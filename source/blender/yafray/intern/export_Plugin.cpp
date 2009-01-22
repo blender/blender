@@ -1946,11 +1946,11 @@ bool blenderYafrayOutput_t::putPixel(int x, int y, const yafray::color_t &c,
 			out++;
 			if ((out==4096) || ((x+y*re->rectx) == ((re->rectx-1)+(re->recty-1)*re->rectx))) {
 				re->result->renlay = render_get_active_layer(re, re->result);
-				re->display_draw(re->result, NULL);
+				re->display_draw(re->ddh, re->result, NULL);
 				out = 0;
 			}
 		}
-		if (re->test_break()) return false;
+		if (re->test_break(re->tbh)) return false;
 		return true;
 	}
 
@@ -1982,9 +1982,9 @@ bool blenderYafrayOutput_t::putPixel(int x, int y, const yafray::color_t &c,
 		re->result->renlay = render_get_active_layer(re, re->result);
 		// note: ymin/ymax swapped here, img. upside down!
 		rcti rt = {txs, txe+1, maxy-tye, ((tys==0) ? maxy : (rres.recty-tys))}; // !!! tys can be zero
-		re->display_draw(re->result, &rt);
+		re->display_draw(re->ddh, re->result, &rt);
 	}
 
-	if (re->test_break()) return false;
+	if (re->test_break(re->tbh)) return false;
 	return true;
 }

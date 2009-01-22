@@ -4471,7 +4471,7 @@ static void view3d_split_250(View3D *v3d, ListBase *regions)
 		if(ar->regiontype==RGN_TYPE_WINDOW && ar->regiondata==NULL) {
 			RegionView3D *rv3d;
 			
-			rv3d= ar->regiondata= MEM_callocN(sizeof(RegionView3D), "region v3d");
+			rv3d= ar->regiondata= MEM_callocN(sizeof(RegionView3D), "region v3d patch");
 			rv3d->persp= v3d->persp;
 			rv3d->view= v3d->view;
 			rv3d->dist= v3d->dist;
@@ -5416,6 +5416,7 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				ar->alignment= RGN_ALIGN_LEFT; 
 				ar->v2d.scroll= (V2D_SCROLL_RIGHT|V2D_SCROLL_BOTTOM);
 				break;
+				
 			case SPACE_ACTION:
 				ar= MEM_callocN(sizeof(ARegion), "area region from do_versions");
 				BLI_addtail(lb, ar);
@@ -5424,6 +5425,7 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				ar->v2d.scroll= V2D_SCROLL_BOTTOM;
 				ar->v2d.flag = V2D_VIEWSYNC_AREA_VERTICAL;
 				break;
+				
 			case SPACE_NLA:
 				ar= MEM_callocN(sizeof(ARegion), "area region from do_versions");
 				BLI_addtail(lb, ar);
@@ -5432,6 +5434,7 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				ar->v2d.scroll= V2D_SCROLL_BOTTOM;
 				ar->v2d.flag = V2D_VIEWSYNC_AREA_VERTICAL;
 				break;
+				
 			case SPACE_NODE:
 				ar= MEM_callocN(sizeof(ARegion), "nodetree area for node");
 				BLI_addtail(lb, ar);
@@ -5439,6 +5442,10 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				ar->alignment= RGN_ALIGN_LEFT;
 				ar->v2d.scroll = (V2D_SCROLL_RIGHT|V2D_SCROLL_BOTTOM);
 				ar->v2d.flag = V2D_VIEWSYNC_AREA_VERTICAL;
+				/* temporarily hide it */
+				ar->flag = RGN_FLAG_HIDDEN;
+				break;
+				
 			case SPACE_FILE:
 				/* channel (bookmarks/directories) region */
 				ar= MEM_callocN(sizeof(ARegion), "area region from do_versions");

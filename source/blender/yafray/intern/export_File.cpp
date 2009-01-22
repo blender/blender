@@ -360,7 +360,7 @@ void yafrayFileRender_t::displayImage()
 
 	// based on another assumption of ogl errors on my system, forgot to actually draw it...
 	re->result->renlay = render_get_active_layer(re, re->result);
-	re->display_draw(re->result, NULL);
+	re->display_draw(re->ddh, re->result, NULL);
 
 }
 

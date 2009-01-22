@@ -208,16 +208,23 @@ struct Render
 	struct MemArena *memArena;
 	
 	/* callbacks */
-	void (*display_init)(RenderResult *rr);
-	void (*display_clear)(RenderResult *rr);
-	void (*display_draw)(RenderResult *rr, volatile rcti *rect);
+	void (*display_init)(void *handle, RenderResult *rr);
+	void *dih;
+	void (*display_clear)(void *handle, RenderResult *rr);
+	void *dch;
+	void (*display_draw)(void *handle, RenderResult *rr, volatile rcti *rect);
+	void *ddh;
 	
-	void (*stats_draw)(RenderStats *ri);
-	void (*timecursor)(int i);
+	void (*stats_draw)(void *handle, RenderStats *ri);
+	void *sdh;
+	void (*timecursor)(void *handle, int i);
+	void *tch;
 	
-	int (*test_break)(void);
-	int (*test_return)(void);
-	void (*error)(char *str);
+	int (*test_break)(void *handle);
+	void *tbh;
+	
+	void (*error)(void *handle, char *str);
+	void *erh;
 	
 	RenderStats i;
 };

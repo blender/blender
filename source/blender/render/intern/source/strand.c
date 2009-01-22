@@ -773,7 +773,7 @@ int zbuffer_strands_abuf(Render *re, RenderPart *pa, RenderLayer *rl, APixstrand
 	float z[4], bounds[4], winmat[4][4];
 	int a, b, c, i, totsegment, clip[4];
 
-	if(re->test_break())
+	if(re->test_break(re->tbh))
 		return 0;
 	if(re->totstrand == 0)
 		return 0;
@@ -881,7 +881,7 @@ int zbuffer_strands_abuf(Render *re, RenderPart *pa, RenderLayer *rl, APixstrand
 		}
 	}
 
-	if(!re->test_break()) {
+	if(!re->test_break(re->tbh)) {
 		/* convert list to array and sort */
 		sortsegments= MEM_mallocN(sizeof(StrandSortSegment)*totsegment, "StrandSortSegment");
 		for(a=0, sortseg=firstseg; a<totsegment; a++, sortseg=sortseg->next)
@@ -893,11 +893,11 @@ int zbuffer_strands_abuf(Render *re, RenderPart *pa, RenderLayer *rl, APixstrand
 
 	spart.totapixbuf= MEM_callocN(sizeof(int)*pa->rectx*pa->recty, "totapixbuf");
 
-	if(!re->test_break()) {
+	if(!re->test_break(re->tbh)) {
 		/* render segments in sorted order */
 		sortseg= sortsegments;
 		for(a=0; a<totsegment; a++, sortseg++) {
-			if(re->test_break())
+			if(re->test_break(re->tbh))
 				break;
 
 			obi= &re->objectinstance[sortseg->obi];

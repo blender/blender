@@ -200,14 +200,13 @@ void RE_make_stars(struct Render *re, struct Scene *scenev3d, void (*initfunc)(v
 				   void (*vertexfunc)(float*),  void (*termfunc)(void));
 
 /* display and event callbacks */
-void RE_display_init_cb	(struct Render *re, void (*f)(RenderResult *rr));
-void RE_display_clear_cb(struct Render *re, void (*f)(RenderResult *rr));
-void RE_display_draw_cb	(struct Render *re, void (*f)(RenderResult *rr, volatile struct rcti *rect));
-void RE_stats_draw_cb	(struct Render *re, void (*f)(RenderStats *rs));
-void RE_timecursor_cb	(struct Render *re, void (*f)(int));
-void RE_test_break_cb	(struct Render *re, int (*f)(void));
-void RE_test_return_cb	(struct Render *re, int (*f)(void));
-void RE_error_cb		(struct Render *re, void (*f)(char *str));
+void RE_display_init_cb	(struct Render *re, void *handle, void (*f)(void *handle, RenderResult *rr));
+void RE_display_clear_cb(struct Render *re, void *handle, void (*f)(void *handle, RenderResult *rr));
+void RE_display_draw_cb	(struct Render *re, void *handle, void (*f)(void *handle, RenderResult *rr, volatile struct rcti *rect));
+void RE_stats_draw_cb	(struct Render *re, void *handle, void (*f)(void *handle, RenderStats *rs));
+void RE_timecursor_cb	(struct Render *re, void *handle, void (*f)(void *handle, int));
+void RE_test_break_cb	(struct Render *re, void *handle, int (*f)(void *handle));
+void RE_error_cb		(struct Render *re, void *handle, void (*f)(void *handle, char *str));
 
 /* should move to kernel once... still unsure on how/where */
 float RE_filter_value(int type, float x);

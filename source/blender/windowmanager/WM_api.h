@@ -36,8 +36,12 @@ struct IDProperty;
 struct wmEvent;
 struct wmEventHandler;
 struct wmGesture;
+struct wmJob;
+struct wmNotifier;
 struct rcti;
 struct PointerRNA;
+
+typedef struct wmJob wmJob;
 
 /* general API */
 void		WM_setprefsize		(int stax, int stay, int sizx, int sizy);
@@ -167,6 +171,19 @@ void		wmOrtho2			(float x1, float x2, float y1, float y2);
 			/* utilities */
 void		WM_set_framebuffer_index_color(int index);
 int			WM_framebuffer_to_index(unsigned int col);
+
+			/* threaded Jobs Manager */
+
+struct wmJob *WM_jobs_get(struct wmWindowManager *wm, struct wmWindow *win, void *owner);
+
+void		WM_jobs_customdata(struct wmJob *, void *customdata, void (*free)(void *));
+void		WM_jobs_timer(struct wmJob *, double timestep, unsigned int note);
+void		WM_jobs_callbacks(struct wmJob *, 
+							  void (*startjob)(void *, short *, short *),
+							  void (*listener)(struct wmJob *, struct wmNotifier *), 
+							  void (*update)(void *));
+
+void		WM_jobs_start(struct wmJob *);
 
 #endif /* WM_API_H */
 

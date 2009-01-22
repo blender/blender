@@ -1292,11 +1292,11 @@ static void occ_compute_passes(Render *re, OcclusionTree *tree, int totpass)
 			VECADDFAC(co, co, n, 1e-8f);
 
 			occ_lookup(tree, 0, &tree->face[i], co, n, &occ[i], NULL);
-			if(re->test_break())
+			if(re->test_break(re->tbh))
 				break;
 		}
 
-		if(re->test_break())
+		if(re->test_break(re->tbh))
 			break;
 
 		for(i=0; i<tree->totface; i++) {
@@ -1546,7 +1546,7 @@ void make_occ_tree(Render *re)
 	R= *re;
 
 	re->i.infostr= "Occlusion preprocessing";
-	re->stats_draw(&re->i);
+	re->stats_draw(re->sdh, &re->i);
 	
 	re->occlusiontree= occ_tree_build(re);
 	
@@ -1738,7 +1738,7 @@ void cache_occ_samples(Render *re, RenderPart *pa, ShadeSample *ssamp)
 				sample->filled= 1;
 			}
 
-			if(re->test_break())
+			if(re->test_break(re->tbh))
 				break;
 		}
 	}

@@ -307,18 +307,18 @@ static void progressiverad_rr(Render *re)
 		applyformfactors_rr(re, shoot, shootrf);
 		
 		it++;
-		re->timecursor(it);
+		re->timecursor(re->tch, it);
 		
 		clear_backface_test_rr(re);
 		
-		if(re->test_break()) break;
+		if(re->test_break(re->tbh)) break;
 		if(RG.maxiter && RG.maxiter<=it) break;
 		
 		findshoot_rr(re, &shoot, &shootrf);
 	}
 	printf(" Unshot energy:%f\n", 1000.0*maxenergy);
 	
-	re->timecursor((re->scene->r.cfra));
+	re->timecursor(re->tch, re->scene->r.cfra);
 }
 
 static RadFace *radfaces=NULL;

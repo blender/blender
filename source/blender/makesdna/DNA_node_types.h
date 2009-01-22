@@ -182,9 +182,11 @@ typedef struct bNodeTree {
 	bNodeSocket *selout;
 
 	/* callbacks */
-	void (*timecursor)(int nr);
-	void (*stats_draw)(char *str);
-	int (*test_break)(void);
+	void (*timecursor)(void *, int nr);
+	void (*stats_draw)(void *, char *str);
+	int (*test_break)(void *);
+	void *tbh, *tch, *sdh;
+	
 } bNodeTree;
 
 /* ntree->type, index */

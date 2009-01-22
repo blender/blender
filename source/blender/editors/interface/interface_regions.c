@@ -303,6 +303,7 @@ static void ui_tooltip_region_free(ARegion *ar)
 	data= ar->regiondata;
 	MEM_freeN(data->tip);
 	MEM_freeN(data);
+	ar->regiondata= NULL;
 }
 
 ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)

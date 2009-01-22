@@ -122,20 +122,20 @@ static int commandline_threads= -1;
 
 
 static volatile int g_break= 0;
-static int thread_break(void)
+static int thread_break(void *unused)
 {
 	return g_break;
 }
 
 /* default callbacks, set in each new render */
-static void result_nothing(RenderResult *rr) {}
-static void result_rcti_nothing(RenderResult *rr, volatile struct rcti *rect) {}
-static void stats_nothing(RenderStats *rs) {}
-static void int_nothing(int val) {}
-static int void_nothing(void) {return 0;}
-static void print_error(char *str) {printf("ERROR: %s\n", str);}
+static void result_nothing(void *unused, RenderResult *rr) {}
+static void result_rcti_nothing(void *unused, RenderResult *rr, volatile struct rcti *rect) {}
+static void stats_nothing(void *unused, RenderStats *rs) {}
+static void int_nothing(void *unused, int val) {}
+static int void_nothing(void *unused) {return 0;}
+static void print_error(void *unused, char *str) {printf("ERROR: %s\n", str);}
 
-static void stats_background(RenderStats *rs)
+static void stats_background(void *unused, RenderStats *rs)
 {
 	uintptr_t mem_in_use= MEM_get_memory_in_use();
 	float megs_used_memory= mem_in_use/(1024.0*1024.0);
@@ -1019,12 +1019,13 @@ Render *RE_NewRender(const char *name)
 	re->display_draw= result_rcti_nothing;
 	re->timecursor= int_nothing;
 	re->test_break= void_nothing;
-	re->test_return= void_nothing;
 	re->error= print_error;
 	if(G.background)
 		re->stats_draw= stats_background;
 	else
 		re->stats_draw= stats_nothing;
+	/* clear callback handles */
+	re->dih= re->dch= re->ddh= re->sdh= re->tch= re->tbh= re->erh= NULL;
 	
 	/* init some variables */
 	re->ycor= 1.0f;
@@ -1083,7 +1084,7 @@ void RE_InitState(Render *re, Render *source, RenderData *rd, int winx, int winy
 	
 	if(re->rectx < 2 || re->recty < 2 || (BKE_imtype_is_movie(rd->imtype) &&
 										  (re->rectx < 16 || re->recty < 16) )) {
-		re->error("Image too small");
+		re->error(re->erh, "Image too small");
 		re->ok= 0;
 	}
 	else {
@@ -1173,39 +1174,41 @@ void RE_SetView(Render *re, float mat[][4])
 }
 
 /* image and movie output has to move to either imbuf or kernel */
-void RE_display_init_cb(Render *re, void (*f)(RenderResult *rr))
+void RE_display_init_cb(Render *re, void *handle, void (*f)(void *handle, RenderResult *rr))
 {
 	re->display_init= f;
+	re->dih= handle;
 }
-void RE_display_clear_cb(Render *re, void (*f)(RenderResult *rr))
+void RE_display_clear_cb(Render *re, void *handle, void (*f)(void *handle, RenderResult *rr))
 {
 	re->display_clear= f;
+	re->dch= handle;
 }
-void RE_display_draw_cb(Render *re, void (*f)(RenderResult *rr, volatile rcti *rect))
+void RE_display_draw_cb(Render *re, void *handle, void (*f)(void *handle, RenderResult *rr, volatile rcti *rect))
 {
 	re->display_draw= f;
+	re->ddh= handle;
 }
-
-void RE_stats_draw_cb(Render *re, void (*f)(RenderStats *rs))
+void RE_stats_draw_cb(Render *re, void *handle, void (*f)(void *handle, RenderStats *rs))
 {
 	re->stats_draw= f;
+	re->sdh= handle;
 }
-void RE_timecursor_cb(Render *re, void (*f)(int))
+void RE_timecursor_cb(Render *re, void *handle, void (*f)(void *handle, int))
 {
 	re->timecursor= f;
+	re->tch= handle;
 }
 
-void RE_test_break_cb(Render *re, int (*f)(void))
+void RE_test_break_cb(Render *re, void *handle, int (*f)(void *handle))
 {
 	re->test_break= f;
+	re->tbh= handle;
 }
-void RE_test_return_cb(Render *re, int (*f)(void))
-{
-	re->test_return= f;
-}
-void RE_error_cb(Render *re, void (*f)(char *str))
+void RE_error_cb(Render *re, void *handle, void (*f)(void *handle, char *str))
 {
 	re->error= f;
+	re->erh= handle;
 }
 
 
@@ -1253,7 +1256,7 @@ static void *do_part_thread(void *pa_v)
 	RenderPart *pa= pa_v;
 	
 	/* need to return nicely all parts on esc */
-	if(R.test_break()==0) {
+	if(R.test_break(R.tbh)==0) {
 		
 		if(!R.sss_points && (R.r.scemode & R_FULL_SAMPLE))
 			pa->result= new_full_sample_buffers(&R, &pa->fullresult, &pa->disprect, pa->crop);
@@ -1289,7 +1292,7 @@ static void render_tile_processor(Render *re, int firsttile)
 {
 	RenderPart *pa;
 	
-	if(re->test_break())
+	if(re->test_break(re->tbh))
 		return;
 
 	/* hrmf... exception, this is used for preview render, re-entrant, so render result has to be re-used */
@@ -1298,7 +1301,7 @@ static void render_tile_processor(Render *re, int firsttile)
 		re->result= new_render_result(re, &re->disprect, 0, RR_USEMEM);
 	}
 	
-	re->stats_draw(&re->i);
+	re->stats_draw(re->sdh, &re->i);
  
 	if(re->result==NULL)
 		return;
@@ -1317,17 +1320,17 @@ static void render_tile_processor(Render *re, int firsttile)
 			do_part_thread(pa);
 			
 			if(pa->result) {
-				if(!re->test_break()) {
+				if(!re->test_break(re->tbh)) {
 					if(render_display_draw_enabled(re))
-						re->display_draw(pa->result, NULL);
+						re->display_draw(re->ddh, pa->result, NULL);
 					
 					re->i.partsdone++;
-					re->stats_draw(&re->i);
+					re->stats_draw(re->sdh, &re->i);
 				}
 				RE_FreeRenderResult(pa->result);
 				pa->result= NULL;
 			}		
-			if(re->test_break())
+			if(re->test_break(re->tbh))
 				break;
 		}
 	}
@@ -1444,7 +1447,7 @@ static void print_part_stats(Render *re, RenderPart *pa)
 	
 	sprintf(str, "Part %d-%d", pa->nr, re->i.totpart);
 	re->i.infostr= str;
-	re->stats_draw(&re->i);
+	re->stats_draw(re->sdh, &re->i);
 	re->i.infostr= NULL;
 }
 
@@ -1514,7 +1517,7 @@ static void threaded_tile_processor(Render *re)
 	
 	while(rendering) {
 		
-		if(re->test_break())
+		if(re->test_break(re->tbh))
 			PIL_sleep_ms(50);
 		else if(nextpa && BLI_available_threads(&threads)) {
 			drawtimer= 0;
@@ -1547,7 +1550,7 @@ static void threaded_tile_processor(Render *re)
 				
 				if(pa->result) {
 					if(render_display_draw_enabled(re))
-						re->display_draw(pa->result, NULL);
+						re->display_draw(re->ddh, pa->result, NULL);
 					print_part_stats(re, pa);
 					
 					free_render_result(&pa->fullresult, pa->result);
@@ -1560,7 +1563,7 @@ static void threaded_tile_processor(Render *re)
 				rendering= 1;
 				if(pa->nr && pa->result && drawtimer>20) {
 					if(render_display_draw_enabled(re))
-						re->display_draw(pa->result, &pa->result->renrect);
+						re->display_draw(re->ddh, pa->result, &pa->result->renrect);
 					hasdrawn= 1;
 				}
 			}
@@ -1569,7 +1572,7 @@ static void threaded_tile_processor(Render *re)
 			drawtimer= 0;
 
 		/* on break, wait for all slots to get freed */
-		if( (g_break=re->test_break()) && BLI_available_threads(&threads)==re->r.threads)
+		if( (g_break=re->test_break(re->tbh)) && BLI_available_threads(&threads)==re->r.threads)
 			rendering= 0;
 		
 	}
@@ -1615,7 +1618,7 @@ void RE_TileProcessor(Render *re, int firsttile, int threaded)
 		
 	if(!re->sss_points)
 		re->i.lastframetime= PIL_check_seconds_timer()- re->i.starttime;
-	re->stats_draw(&re->i);
+	re->stats_draw(re->sdh, &re->i);
 }
 
 
@@ -1636,7 +1639,7 @@ static void do_render_3d(Render *re)
 	
 	/* do left-over 3d post effects (flares) */
 	if(re->flag & R_HALO)
-		if(!re->test_break())
+		if(!re->test_break(re->tbh))
 			add_halo_flare(re);
 
 	
@@ -1709,7 +1712,7 @@ static void do_render_blur_3d(Render *re)
 		blurfac= 1.0f/(float)(re->r.osa-blur);
 		
 		merge_renderresult_blur(rres, re->result, blurfac);
-		if(re->test_break()) break;
+		if(re->test_break(re->tbh)) break;
 	}
 	
 	/* swap results */
@@ -1721,7 +1724,7 @@ static void do_render_blur_3d(Render *re)
 	
 	/* weak... the display callback wants an active renderlayer pointer... */
 	re->result->renlay= render_get_active_layer(re, re->result);
-	re->display_draw(re->result, NULL);	
+	re->display_draw(re->ddh, re->result, NULL);	
 }
 
 
@@ -1788,7 +1791,7 @@ static void do_render_fields_3d(Render *re)
 	re->result= NULL;
 	
 	/* second field */
-	if(!re->test_break()) {
+	if(!re->test_break(re->tbh)) {
 		
 		re->i.curfield= 2;	/* stats */
 		
@@ -1827,7 +1830,7 @@ static void do_render_fields_3d(Render *re)
 	
 	/* weak... the display callback wants an active renderlayer pointer... */
 	re->result->renlay= render_get_active_layer(re, re->result);
-	re->display_draw(re->result, NULL);
+	re->display_draw(re->ddh, re->result, NULL);
 }
 
 static void load_backbuffer(Render *re)
@@ -1910,8 +1913,8 @@ static void do_render_fields_blur_3d(Render *re)
 				/* weak... the display callback wants an active renderlayer pointer... */
 				re->result->renlay= render_get_active_layer(re, re->result);
 				
-				re->display_init(re->result);
-				re->display_draw(re->result, NULL);
+				re->display_init(re->dih, re->result);
+				re->display_draw(re->ddh, re->result, NULL);
 			}
 		}
 	}
@@ -2017,10 +2020,10 @@ static int composite_needs_render(Scene *sce)
 }
 
 /* bad call... need to think over proper method still */
-static void render_composit_stats(char *str)
+static void render_composit_stats(void *unused, char *str)
 {
 	R.i.infostr= str;
-	R.stats_draw(&R.i);
+	R.stats_draw(R.sdh, &R.i);
 	R.i.infostr= NULL;
 }
 
@@ -2086,10 +2089,10 @@ static void do_merge_fullsample(Render *re, bNodeTree *ntree)
 		if(sample!=re->osa-1) {
 			/* weak... the display callback wants an active renderlayer pointer... */
 			re->result->renlay= render_get_active_layer(re, re->result);
-			re->display_draw(re->result, NULL);
+			re->display_draw(re->ddh, re->result, NULL);
 		}
 		
-		if(re->test_break())
+		if(re->test_break(re->tbh))
 			break;
 	}
 	
@@ -2127,8 +2130,8 @@ void RE_MergeFullSample(Render *re, Scene *sce, bNodeTree *ntree)
 		RE_ReadRenderResult(re->scene, re->scene);
 	
 	/* and now we can draw (result is there) */
-	re->display_init(re->result);
-	re->display_clear(re->result);
+	re->display_init(re->dih, re->result);
+	re->display_clear(re->dch, re->result);
 	
 	do_merge_fullsample(re, ntree);
 }
@@ -2152,7 +2155,7 @@ static void do_render_composite_fields_blur_3d(Render *re)
 	if(re->r.scemode & R_SINGLE_LAYER)
 		pop_render_result(re);
 	
-	if(!re->test_break()) {
+	if(!re->test_break(re->tbh)) {
 		
 		if(ntree) {
 			ntreeCompositTagRender(re->scene);
@@ -2165,9 +2168,11 @@ static void do_render_composite_fields_blur_3d(Render *re)
 				if((re->r.scemode & R_SINGLE_LAYER)==0)
 					ntree_render_scenes(re);
 				
-				if(!re->test_break()) {
+				if(!re->test_break(re->tbh)) {
 					ntree->stats_draw= render_composit_stats;
 					ntree->test_break= re->test_break;
+					ntree->sdh= re->sdh;
+					ntree->tbh= re->tbh;
 					/* in case it was never initialized */
 					R.stats_draw= re->stats_draw;
 					
@@ -2178,6 +2183,7 @@ static void do_render_composite_fields_blur_3d(Render *re)
 					
 					ntree->stats_draw= NULL;
 					ntree->test_break= NULL;
+					ntree->tbh= ntree->sdh= NULL;
 				}
 			}
 			else if(re->r.scemode & R_FULL_SAMPLE)
@@ -2187,7 +2193,7 @@ static void do_render_composite_fields_blur_3d(Render *re)
 
 	/* weak... the display callback wants an active renderlayer pointer... */
 	re->result->renlay= render_get_active_layer(re, re->result);
-	re->display_draw(re->result, NULL);
+	re->display_draw(re->ddh, re->result, NULL);
 }
 
 #ifndef DISABLE_YAFRAY
@@ -2237,14 +2243,14 @@ static void yafrayRender(Render *re)
 				RE_FreeRenderResult(re->result);
 				re->result= rres;
 				
-				re->display_init(re->result);
-				re->display_draw(re->result, NULL);
+				re->display_init(re->dih, re->result);
+				re->display_draw(re->ddh, re->result, NULL);
 			}
 		}
 	}
 
 	re->i.lastframetime = PIL_check_seconds_timer()- re->i.starttime;
-	re->stats_draw(&re->i);
+	re->stats_draw(re->sdh, &re->i);
 	
 	RE_Database_Free(re);
 }
@@ -2273,11 +2279,11 @@ static void do_render_all_options(Render *re)
 	
 	if(re->r.scemode & R_DOSEQ) {
 		/* note: do_render_seq() frees rect32 when sequencer returns float images */
-		if(!re->test_break()) 
+		if(!re->test_break(re->tbh)) 
 			; //XXX do_render_seq(re->result, re->r.cfra);
 		
-		re->stats_draw(&re->i);
-		re->display_draw(re->result, NULL);
+		re->stats_draw(re->sdh, &re->i);
+		re->display_draw(re->ddh, re->result, NULL);
 		
 	}
 	else {
@@ -2296,12 +2302,12 @@ static void do_render_all_options(Render *re)
 	
 	re->i.lastframetime= PIL_check_seconds_timer()- re->i.starttime;
 	
-	re->stats_draw(&re->i);
+	re->stats_draw(re->sdh, &re->i);
 	
 	/* stamp image info here */
 	if((re->r.scemode & R_STAMP_INFO) && (re->r.stamp & R_STAMP_DRAW)) {
 		renderresult_stampinfo(re->scene);
-		re->display_draw(re->result, NULL);
+		re->display_draw(re->ddh, re->result, NULL);
 	}
 }
 
@@ -2312,11 +2318,11 @@ static int is_rendering_allowed(Render *re)
 	/* forbidden combinations */
 	if(re->r.mode & R_PANORAMA) {
 		if(re->r.mode & R_BORDER) {
-			re->error("No border supported for Panorama");
+			re->error(re->erh, "No border supported for Panorama");
 			return 0;
 		}
 		if(re->r.mode & R_ORTHO) {
-			re->error("No Ortho render possible for Panorama");
+			re->error(re->erh, "No Ortho render possible for Panorama");
 			return 0;
 		}
 	}
@@ -2324,11 +2330,11 @@ static int is_rendering_allowed(Render *re)
 	if(re->r.mode & R_BORDER) {
 		if(re->r.border.xmax <= re->r.border.xmin || 
 		   re->r.border.ymax <= re->r.border.ymin) {
-			re->error("No border area selected.");
+			re->error(re->erh, "No border area selected.");
 			return 0;
 		}
 		if(re->r.scemode & R_EXR_TILE_FILE) {
-			re->error("Border render and Buffer-save not supported yet");
+			re->error(re->erh, "Border render and Buffer-save not supported yet");
 			return 0;
 		}
 	}
@@ -2339,7 +2345,7 @@ static int is_rendering_allowed(Render *re)
 		render_unique_exr_name(re, str, 0);
 		
 		if (BLI_is_writable(str)==0) {
-			re->error("Can not save render buffers, check the temp default path");
+			re->error(re->erh, "Can not save render buffers, check the temp default path");
 			return 0;
 		}
 		
@@ -2349,7 +2355,7 @@ static int is_rendering_allowed(Render *re)
 		
 		/* no fullsample and edge */
 		if((re->r.scemode & R_FULL_SAMPLE) && (re->r.mode & R_EDGE)) {
-			re->error("Full Sample doesn't support Edge Enhance");
+			re->error(re->erh, "Full Sample doesn't support Edge Enhance");
 			return 0;
 		}
 		
@@ -2363,7 +2369,7 @@ static int is_rendering_allowed(Render *re)
 			bNode *node;
 		
 			if(ntree==NULL) {
-				re->error("No Nodetree in Scene");
+				re->error(re->erh, "No Nodetree in Scene");
 				return 0;
 			}
 			
@@ -2373,7 +2379,7 @@ static int is_rendering_allowed(Render *re)
 			
 			
 			if(node==NULL) {
-				re->error("No Render Output Node in Scene");
+				re->error(re->erh, "No Render Output Node in Scene");
 				return 0;
 			}
 		}
@@ -2385,7 +2391,7 @@ static int is_rendering_allowed(Render *re)
 	
 	if(!(re->r.scemode & (R_DOSEQ|R_DOCOMP))) {
 		if(re->scene->camera==NULL) {
-			re->error("No camera");
+			re->error(re->erh, "No camera");
 			return 0;
 		}
 	}
@@ -2401,13 +2407,13 @@ static int is_rendering_allowed(Render *re)
 		if(!(srl->layflag & SCE_LAY_DISABLE))
 			break;
 	if(srl==NULL) {
-		re->error("All RenderLayers are disabled");
+		re->error(re->erh, "All RenderLayers are disabled");
 		return 0;
 	}
 	
 	/* renderer */
 	if(!ELEM(re->r.renderer, R_INTERN, R_YAFRAY)) {
-		re->error("Unknown render engine set");
+		re->error(re->erh, "Unknown render engine set");
 		return 0;
 	}
 	return 1;
@@ -2464,8 +2470,8 @@ static int render_initialize_from_scene(Render *re, Scene *scene, int anim)
 	if(!is_rendering_allowed(re))
 		return 0;
 	
-	re->display_init(re->result);
-	re->display_clear(re->result);
+	re->display_init(re->dih, re->result);
+	re->display_clear(re->dch, re->result);
 	
 	return 1;
 }
@@ -2585,11 +2591,11 @@ void RE_BlenderAnim(Render *re, Scene *scene, int sfra, int efra, int tfra)
 				
 				do_render_all_options(re);
 
-				if(re->test_break() == 0) {
+				if(re->test_break(re->tbh) == 0) {
 					do_write_image_or_movie(re, scene, mh);
 				}
 			} else {
-				re->test_break();
+				re->test_break(re->tbh);
 			}
 		}
 	} else {
@@ -2633,7 +2639,7 @@ void RE_BlenderAnim(Render *re, Scene *scene, int sfra, int efra, int tfra)
 			
 			do_render_all_options(re);
 			
-			if(re->test_break() == 0) {
+			if(re->test_break(re->tbh) == 0) {
 				do_write_image_or_movie(re, scene, mh);
 			}
 		

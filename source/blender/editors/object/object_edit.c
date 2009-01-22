@@ -1665,7 +1665,7 @@ static int object_clear_origin_exec(bContext *C, wmOperator *op)
 		ED_anim_dag_flush_update(C);	
 	ED_undo_push(C,"Clear origin");
 	
-	WM_event_add_notifier(C, NC_SCENE|ND_TRANSFORM, CTX_data_scene(C));
+	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
 	
 	return OPERATOR_FINISHED;
 }
@@ -2941,19 +2941,19 @@ void ED_object_enter_editmode(bContext *C, int flag)
 		/* to ensure all goes in restposition and without striding */
 		DAG_object_flush_update(scene, ob, OB_RECALC);
 
-		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_EDITMODE_ARMATURE, ob);
+		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_EDITMODE_ARMATURE, scene);
 	}
 	else if(ob->type==OB_FONT) {
 		scene->obedit= ob; // XXX for context
 //		ok= 1;
 // XXX		make_editText();
-		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_EDITMODE_TEXT, ob);
+		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_EDITMODE_TEXT, scene);
 	}
 	else if(ob->type==OB_MBALL) {
 		scene->obedit= ob; // XXX for context
 //		ok= 1;
 // XXX		make_editMball();
-		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_EDITMODE_MBALL, ob);
+		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_EDITMODE_MBALL, scene);
 		
 	}
 	else if(ob->type==OB_LATTICE) {
@@ -2961,14 +2961,14 @@ void ED_object_enter_editmode(bContext *C, int flag)
 		ok= 1;
 		make_editLatt(ob);
 		
-		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_EDITMODE_LATTICE, ob);
+		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_EDITMODE_LATTICE, scene);
 	}
 	else if(ob->type==OB_SURF || ob->type==OB_CURVE) {
 		ok= 1;
 		scene->obedit= ob; // XXX for context
 		make_editNurb(ob);
 		
-		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_EDITMODE_CURVE, ob);
+		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_EDITMODE_CURVE, scene);
 	}
 	
 	if(ok) {
@@ -2976,7 +2976,7 @@ void ED_object_enter_editmode(bContext *C, int flag)
 	}
 	else {
 		scene->obedit= NULL; // XXX for context
-		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_MODE_OBJECT, ob);
+		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_MODE_OBJECT, scene);
 	}
 	
 	if(flag & EM_WAITCURSOR) waitcursor(0);

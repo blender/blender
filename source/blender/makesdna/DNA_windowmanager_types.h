@@ -65,8 +65,10 @@ typedef struct wmWindowManager {
 	ListBase operators;		/* operator registry */
 	
 	ListBase queue;			/* refresh/redraw wmNotifier structs */
-
+	
 	ListBase reports;		/* information and error reports */
+	
+	ListBase jobs;			/* threaded jobs manager */
 	
 	ListBase paintcursors;	/* extra overlay cursors to draw, like circles */
 	

@@ -175,6 +175,7 @@ static void shader_node_previewrender(ScrArea *sa, SpaceNode *snode)
 static void set_timecursor() {}
 static int blender_test_break() { return 0; }
 
+// XXX snode_handle_recalc can go away */
 static void snode_handle_recalc(SpaceNode *snode)
 {
 	if(snode->treetype==NTREE_SHADER) {

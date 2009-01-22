@@ -84,6 +84,9 @@
 
 #include "GPU_material.h"
 
+#include "WM_api.h"
+#include "WM_types.h"
+
 #include "ED_anim_api.h"
 #include "ED_view3d.h"
 
@@ -99,6 +102,19 @@
 /* XXX */
 static int qtest() {return 0;}
 /* XXX */
+
+typedef struct ShaderPreview {
+	/* from wmJob */
+	void *owner;
+	short *stop, *do_update;
+	
+	Scene *scene;
+	ID *id;
+	
+	int sizex, sizey;
+	int pr_method;
+} ShaderPreview;
+
 
 static void set_previewrect(ScrArea *sa, RenderInfo *ri)
 {
@@ -249,7 +265,7 @@ void BIF_preview_changed(short id_code)
 
 static Main *pr_main= NULL;
 
-void BIF_preview_init_dbase(void)
+void ED_preview_init_dbase(void)
 {
 	BlendFileData *bfd;
 	extern int datatoc_preview_blend_size;
@@ -265,7 +281,7 @@ void BIF_preview_init_dbase(void)
 	G.fileflags &= ~G_FILE_NO_UI;
 }
 
-void BIF_preview_free_dbase(void)
+void ED_preview_free_dbase(void)
 {
 	if(pr_main)
 		free_main(pr_main);
@@ -280,12 +296,13 @@ static Object *find_object(ListBase *lb, const char *name)
 	return ob;
 }
 
-/* call this with an ID pointer to initialize preview scene */
-/* call this with ID NULL to restore assigned ID pointers in preview scene */
-static Scene *preview_prepare_scene(Scene *scene, RenderInfo *ri, int id_type, ID *id, int pr_method)
+/* call this with a pointer to initialize preview scene */
+/* call this with NULL to restore assigned ID pointers in preview scene */
+static Scene *preview_prepare_scene(Scene *scene, int id_type, ShaderPreview *sp)
 {
 	Scene *sce;
 	Base *base;
+	ID *id= sp?sp->id:NULL;
 	
 	if(pr_main==NULL) return NULL;
 	
@@ -331,7 +348,7 @@ static Scene *preview_prepare_scene(Scene *scene, RenderInfo *ri, int id_type, I
 				}
 
 				
-				if(pr_method==PR_ICON_RENDER) {
+				if(sp->pr_method==PR_ICON_RENDER) {
 					if (mat->mode & MA_HALO) {
 						sce->lay= 1<<MA_FLAT;
 					} 
@@ -342,7 +359,7 @@ static Scene *preview_prepare_scene(Scene *scene, RenderInfo *ri, int id_type, I
 				else {
 					sce->lay= 1<<mat->pr_type;
 					if(mat->nodetree)
-						ntreeInitPreview(mat->nodetree, ri->pr_rectx, ri->pr_recty);
+						ntreeInitPreview(mat->nodetree, sp->sizex, sp->sizey);
 				}
 			}
 			else {
@@ -412,7 +429,7 @@ static Scene *preview_prepare_scene(Scene *scene, RenderInfo *ri, int id_type, I
 	return NULL;
 }
 
-static void previewrender_progress(RenderResult *rr, volatile rcti *renrect)
+void previewrender_progress(void *handle, RenderResult *rr, volatile rcti *renrect)
 {
 	SpaceButs *sbuts= NULL; // XXX
 	RenderLayer *rl;
@@ -436,10 +453,10 @@ static void previewrender_progress(RenderResult *rr, volatile rcti *renrect)
 /* called by interface_icons.c, or by BIF_previewrender_buts or by nodes... */
 void BIF_previewrender(Scene *scene, struct ID *id, struct RenderInfo *ri, struct ScrArea *area, int pr_method)
 {
+	SpaceButs *sbuts= NULL; // XXX
 	Render *re;
 	RenderStats *rstats;
 	Scene *sce;
-	SpaceButs *sbuts= NULL;
 	int oldx= ri->pr_rectx, oldy= ri->pr_recty;
 	char name [32];
 	
@@ -453,7 +470,7 @@ void BIF_previewrender(Scene *scene, struct ID *id, struct RenderInfo *ri, struc
 	}
 	
 	/* get the stuff from the builtin preview dbase */
-	sce= preview_prepare_scene(scene, ri, GS(id->name), id, pr_method);
+//	sce= preview_prepare_scene(scene, ri, GS(id->name), id, pr_method);
 	if(sce==NULL) return;
 	
 	/* set drawing conditions OK */
@@ -480,15 +497,15 @@ void BIF_previewrender(Scene *scene, struct ID *id, struct RenderInfo *ri, struc
 		
 		/* handle cases */
 		if(pr_method==PR_DRAW_RENDER) {
-			RE_display_draw_cb(re, previewrender_progress);
-			RE_test_break_cb(re, qtest);
+//			RE_display_draw_cb(re, previewrender_progress);
+//			RE_test_break_cb(re, qtest);
 			sce->r.scemode |= R_NODE_PREVIEW;
 			if(sbuts->flag & SB_PRV_OSA)
 				sce->r.mode |= R_OSA;
 			sce->r.scemode &= ~R_NO_IMAGE_LOAD;
 		}
 		else if(pr_method==PR_DO_RENDER) {
-			RE_test_break_cb(re, qtest);
+//			RE_test_break_cb(re, qtest);
 			sce->r.scemode |= R_NODE_PREVIEW;
 			sce->r.scemode &= ~R_NO_IMAGE_LOAD;
 		}
@@ -540,7 +557,7 @@ void BIF_previewrender(Scene *scene, struct ID *id, struct RenderInfo *ri, struc
 	}
 
 	/* unassign the pointers, reset vars */
-	preview_prepare_scene(scene, ri, GS(id->name), NULL, 0);
+//	preview_prepare_scene(scene, ri, GS(id->name), NULL, 0);
 	
 }
 
@@ -646,13 +663,8 @@ void BIF_previewdraw(ScrArea *sa, uiBlock *block)
 }
 
 /* *************************** Preview for 3d window *********************** */
-static void view3d_previewrender_stats(RenderStats *rs)
-{
-//	if(rs->convertdone) 
-//		printf("rendered %d %.3f\n", rs->partsdone, rs->lastframetime);
-}
 
-static void view3d_previewrender_progress(RenderResult *rr, volatile rcti *renrect)
+void view3d_previewrender_progress(RenderResult *rr, volatile rcti *renrect)
 {
 //	ScrArea *sa= NULL; // XXX
 //	View3D *v3d= NULL; // XXX
@@ -814,9 +826,9 @@ void BIF_view3d_previewrender(Scene *scene, ScrArea *sa)
 		
 		sprintf(name, "View3dPreview %p", sa);
 		re= ri->re= RE_NewRender(name);
-		RE_display_draw_cb(re, view3d_previewrender_progress);
-		RE_stats_draw_cb(re, view3d_previewrender_stats);
-		RE_test_break_cb(re, qtest);
+		//RE_display_draw_cb(re, view3d_previewrender_progress);
+		//RE_stats_draw_cb(re, view3d_previewrender_stats);
+		//RE_test_break_cb(re, qtest);
 		
 		/* no osa, blur, seq, layers, etc for preview render */
 		rdata= scene->r;
@@ -959,4 +971,139 @@ void BIF_view3d_previewdraw(struct ScrArea *sa, struct uiBlock *block)
 //			addafterqueue(sa->win, RENDERPREVIEW, 1);
 //	}
 }
+
+
+/* **************************** New preview system ****************** */
+
+/* called by renderer, sets job update value */
+static void shader_preview_draw(void *spv, RenderResult *rr, volatile struct rcti *rect)
+{
+	ShaderPreview *sp= spv;
+	
+	*(sp->do_update)= 1;
+}
+
+/* called by renderer, checks job value */
+static int shader_preview_break(void *spv)
+{
+	ShaderPreview *sp= spv;
+	
+	return *(sp->stop);
+}
+
+
+static void shader_preview_startjob(void *customdata, short *stop, short *do_update)
+{
+	ShaderPreview *sp= customdata;
+	Render *re;
+	RenderStats *rstats;
+	Scene *sce;
+	char name [32];
+
+	sp->stop= stop;
+	sp->do_update= do_update;
+	
+	/* get the stuff from the builtin preview dbase */
+	sce= preview_prepare_scene(sp->scene, GS(sp->id->name), sp);
+	if(sce==NULL) return;
+	
+	sprintf(name, "Preview %p", sp->owner);
+	re= RE_GetRender(name);
+	
+	/* full refreshed render from first tile */
+	if(re==NULL) {
+		re= RE_NewRender(name);
+		
+		/* sce->r gets copied in RE_InitState! */
+		if(sp->pr_method==PR_DO_RENDER) {
+			sce->r.scemode |= R_NODE_PREVIEW;
+			sce->r.scemode &= ~R_NO_IMAGE_LOAD;
+		}
+		else {	/* PR_ICON_RENDER */
+			sce->r.scemode &= ~R_NODE_PREVIEW;
+			sce->r.scemode |= R_NO_IMAGE_LOAD;
+		}
+		
+		/* allocates render result */
+		RE_InitState(re, NULL, &sce->r, sp->sizex, sp->sizey, NULL);
+	}
+	
+	/* callbacs are cleared on GetRender() */
+	if(sp->pr_method==PR_DO_RENDER) {
+		RE_display_draw_cb(re, sp, shader_preview_draw);
+		RE_test_break_cb(re, sp, shader_preview_break);
+	}
+
+	/* enforce preview image clear */
+//	if(GS(sp->id->name)==ID_MA) {
+//		Material *ma= (Material *)sp->id;
+//		ntreeClearPreview(ma->nodetree);
+//	}
+
+	/* entire cycle for render engine */
+	RE_SetCamera(re, sce->camera);
+	RE_Database_FromScene(re, sce, 1);
+	RE_TileProcessor(re, 0, 0);	// actual render engine
+	RE_Database_Free(re);
+
+	*do_update= 1;
+
+	/* handle results */
+	if(sp->pr_method==PR_ICON_RENDER) {
+		//if(ri->rect==NULL)
+		//	ri->rect= MEM_mallocN(sizeof(int)*ri->pr_rectx*ri->pr_recty, "BIF_previewrender");
+		//RE_ResultGet32(re, ri->rect);
+	}
+	else {
+		rstats= RE_GetStats(re);
+		
+		if(rstats->totpart==rstats->partsdone && rstats->partsdone) {
+			// allqueues
+		}
+		else {
+			//			if(pr_method==PR_DRAW_RENDER && qtest())
+			//				addafterqueue(area->win, RENDERPREVIEW, 1);
+		}
+	}
+
+	/* unassign the pointers, reset vars */
+	preview_prepare_scene(sp->scene, GS(sp->id->name), NULL);
+
+}
+
+static void shader_preview_free(void *customdata)
+{
+	ShaderPreview *sp= customdata;
+	
+	MEM_freeN(sp);
+}
+
+static void shader_preview_update(void *customdata)
+{
+//	ShaderPreview *sp= customdata;
+	
+}
+
+
+void ED_preview_shader_job(const bContext *C, void *owner, ID *id, int sizex, int sizey)
+{
+	wmJob *steve= WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), owner);
+	ShaderPreview *sp= MEM_callocN(sizeof(ShaderPreview), "shader preview");
+
+	/* customdata for preview thread */
+	sp->scene= CTX_data_scene(C);
+	sp->owner= owner;
+	sp->sizex= sizex;
+	sp->sizey= sizey;
+	sp->pr_method= PR_DO_RENDER;
+	sp->id = id;
+	
+	/* setup job */
+	WM_jobs_customdata(steve, sp, shader_preview_free);
+	WM_jobs_timer(steve, 0.1, NC_MATERIAL);
+	WM_jobs_callbacks(steve, shader_preview_startjob, NULL, shader_preview_update);
+	
+	WM_jobs_start(steve);
+}
+
 

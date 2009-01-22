@@ -517,7 +517,7 @@ static int wm_eventmatch(wmEvent *winevent, wmKeymapItem *kmi)
 static int wm_event_always_pass(wmEvent *event)
 {
 	/* some events we always pass on, to ensure proper communication */
-	return ELEM4(event->type, TIMER, TIMER0, TIMER1, TIMER2);
+	return ELEM5(event->type, TIMER, TIMER0, TIMER1, TIMER2, TIMERJOBS);
 }
 
 /* Warning: this function removes a modal handler, when finished */

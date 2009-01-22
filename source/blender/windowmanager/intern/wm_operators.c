@@ -874,6 +874,7 @@ void wm_operatortype_init(void)
 	WM_operatortype_append(WM_OT_tweak_gesture);
 	WM_operatortype_append(WM_OT_open_recentfile);
 	WM_operatortype_append(WM_OT_open_mainfile);
+	WM_operatortype_append(WM_OT_jobs_timer);
 	WM_operatortype_append(WM_OT_save_as_mainfile);
 }
 
@@ -881,6 +882,9 @@ void wm_operatortype_init(void)
 void wm_window_keymap(wmWindowManager *wm)
 {
 	ListBase *keymap= WM_keymap_listbase(wm, "Window", 0, 0);
+	
+	/* items to make WM work */
+	WM_keymap_verify_item(keymap, "WM_OT_jobs_timer", TIMERJOBS, KM_ANY, KM_ANY, 0);
 	
 	/* note, this doesn't replace existing keymap items */
 	WM_keymap_verify_item(keymap, "WM_OT_window_duplicate", AKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);

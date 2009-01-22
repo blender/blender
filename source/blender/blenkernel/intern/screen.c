@@ -224,6 +224,8 @@ void BKE_area_region_free(SpaceType *st, ARegion *ar)
 			art->free(ar);
 	}
 	if(ar) {
+		if(ar->regiondata)
+			printf("regiondata free error\n");
 		BLI_freelistN(&ar->panels);
 	}
 }

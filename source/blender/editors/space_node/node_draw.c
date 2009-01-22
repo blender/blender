@@ -71,6 +71,7 @@
 #include "BMF_Api.h"
 
 #include "WM_api.h"
+#include "WM_types.h"
 
 #include "ED_screen.h"
 #include "ED_util.h"
@@ -497,7 +498,7 @@ static void socket_vector_menu_cb(bContext *C, void *node_v, void *ntree_v)
 {
 	if(node_v && ntree_v) {
 		NodeTagChanged(ntree_v, node_v); 
-		// addqueue(curarea->win, UI_BUT_EVENT, B_NODE_EXEC+((bNode *)node_v)->nr); XXX
+		// addqueue(curarea->win, UI_BUT_EVENT, B_NODE_EXEC); XXX
 	}
 }
 
@@ -603,6 +604,22 @@ static void node_draw_preview(bNodePreview *preview, rctf *prv)
 
 	UI_ThemeColorShadeAlpha(TH_BACK, -15, +100);
 	fdrawbox(prv->xmin, prv->ymin, prv->xmax, prv->ymax);
+	
+}
+
+static void do_node_internal_buttons(bContext *C, void *node_v, int event)
+{
+	SpaceNode *snode= (SpaceNode*)CTX_wm_space_data(C);
+	
+	if(event==B_NODE_EXEC) {
+		if(snode->treetype==NTREE_SHADER)
+			WM_event_add_notifier(C, NC_MATERIAL|ND_SHADING, snode->id);
+		
+	//	else if(snode->treetype==NTREE_COMPOSIT)
+	//		composit_node_event(snode, val);
+	//	else if(snode->treetype==NTREE_TEXTURE)
+	//		texture_node_event(snode, val);
+	}
 	
 }
 
@@ -742,7 +759,7 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 			
 			//block= uiNewBlock(&sa->uiblocks, str, UI_EMBOSS, UI_HELV, sa->win);
 			block= uiBeginBlock(C, ar, str, UI_EMBOSS, UI_HELV);
-			uiBlockSetFlag(block, UI_BLOCK_NO_HILITE);
+			uiBlockSetHandleFunc(block, do_node_internal_buttons, node);
 			// XXX if(snode->id)
 			// XXX	uiSetButLock(snode->id->lib!=NULL, ERROR_LIBDATA_MESSAGE);
 		}
@@ -761,7 +778,7 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 				float *butpoin= sock->ns.vec;
 				
 				if(sock->type==SOCK_VALUE) {
-					bt= uiDefButF(block, NUM, B_NODE_EXEC+node->nr, sock->name, 
+					bt= uiDefButF(block, NUM, B_NODE_EXEC, sock->name, 
 						  (short)sock->locx+NODE_DYS, (short)(sock->locy)-9, (short)node->width-NODE_DY, 17, 
 						  butpoin, sock->ns.min, sock->ns.max, 10, 2, "");
 					uiButSetFunc(bt, node_sync_cb, snode, node);
@@ -776,7 +793,7 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 					
 					if(labelw>0) width= 40; else width= (short)node->width-NODE_DY;
 					
-					bt= uiDefButF(block, COL, B_NODE_EXEC+node->nr, "", 
+					bt= uiDefButF(block, COL, B_NODE_EXEC, "", 
 						(short)(sock->locx+NODE_DYS), (short)sock->locy-8, width, 15, 
 						   butpoin, 0, 0, 0, 0, "");
 					uiButSetFunc(bt, node_sync_cb, snode, node);
@@ -826,12 +843,13 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 			if(node->typeinfo->butfunc) {
 				node->typeinfo->butfunc(block, snode->nodetree, node, &node->butr);
 			}
-			uiDrawBlock(C, block);
 		}
 	}
 	
-	if(block)
+	if(block) {
 		uiEndBlock(C, block);
+		uiDrawBlock(C, block);
+	}
 }
 
 static void node_draw_hidden(View2D *v2d, SpaceNode *snode, bNode *node)

@@ -59,5 +59,9 @@ void wm_gesture_draw(struct wmWindow *win);
 int wm_gesture_evaluate(bContext *C, wmGesture *gesture);
 void wm_gesture_tag_redraw(bContext *C);
 
+/* wm_jobs.h */
+void WM_OT_jobs_timer(struct wmOperatorType *ot);
+
+
 #endif /* WM_H */
 
