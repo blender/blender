@@ -264,6 +264,125 @@ static char *shapekey_adrcodes_to_paths (int adrcode, int *array_index)
 	return buf;
 }
 
+/* Texture types */
+static char *texture_adrcodes_to_paths (int adrcode, int *array_index)
+{
+	/* set array index like this in-case nothing sets it correctly  */
+	*array_index= 0;
+	
+	/* result depends on adrcode */
+	switch (adrcode) {
+		case TE_NSIZE:
+			return "noise_size";
+		case TE_TURB:
+			return "turbulence";
+			
+		case TE_NDEPTH:	// XXX texture RNA undefined
+			//poin= &(tex->noisedepth); *type= IPO_SHORT; break;
+			break;
+		case TE_NTYPE: // XXX texture RNA undefined
+			//poin= &(tex->noisetype); *type= IPO_SHORT; break;
+			break;
+			
+		case TE_N_BAS1:
+			return "noise_basis";
+		case TE_N_BAS2:
+			return "noise_basis"; // XXX this is not yet defined in RNA...
+		
+			/* voronoi */
+		case TE_VNW1:
+			*array_index= 0; return "feature_weights";
+		case TE_VNW2:
+			*array_index= 1; return "feature_weights";
+		case TE_VNW3:
+			*array_index= 2; return "feature_weights";
+		case TE_VNW4:
+			*array_index= 3; return "feature_weights";
+		case TE_VNMEXP:
+			return "minkovsky_exponent";
+		case TE_VN_DISTM:
+			return "distance_metric";
+		case TE_VN_COLT:
+			return "color_type";
+		
+			/* distorted noise / voronoi */
+		case TE_ISCA:
+			return "noise_intensity";
+			
+			/* distorted noise */
+		case TE_DISTA:
+			return "distortion_amount";
+		
+			/* musgrave */
+		case TE_MG_TYP: // XXX texture RNA undefined
+		//	poin= &(tex->stype); *type= IPO_SHORT; break;
+			break;
+		case TE_MGH:
+			return "highest_dimension";
+		case TE_MG_LAC:
+			return "lacunarity";
+		case TE_MG_OCT:
+			return "octaves";
+		case TE_MG_OFF:
+			return "offset";
+		case TE_MG_GAIN:
+			return "gain";
+			
+		case TE_COL_R:
+			*array_index= 0; return "rgb_factor";
+		case TE_COL_G:
+			*array_index= 1; return "rgb_factor";
+		case TE_COL_B:
+			*array_index= 2; return "rgb_factor";
+			
+		case TE_BRIGHT:
+			return "brightness";
+		case TE_CONTRA:
+			return "constrast";
+	}
+	
+	return NULL;
+}
+
+/* Camera Types */
+static char *camera_adrcodes_to_paths (int adrcode, int *array_index)
+{
+	/* set array index like this in-case nothing sets it correctly  */
+	*array_index= 0;
+	
+	/* result depends on adrcode */
+	switch (adrcode) {
+		case CAM_LENS:
+#if 0 // XXX this cannot be resolved easily... perhaps we assume camera is perspective (works for most cases...
+			if (ca->type == CAM_ORTHO)
+				return "ortho_scale";
+			else
+				return "lens"; 
+#endif // XXX this cannot be resolved easily
+			break;
+			
+		case CAM_STA:
+			return "clip_start";
+		case CAM_END:
+			return "clip_end";
+			
+#if 0 // XXX these are not defined in RNA
+		case CAM_YF_APERT:
+			poin= &(ca->YF_aperture); break;
+		case CAM_YF_FDIST:
+			poin= &(ca->YF_dofdist); break;
+#endif // XXX these are not defined in RNA
+			
+		case CAM_SHIFT_X:
+			return "shift_x";
+		case CAM_SHIFT_Y:
+			return "shift_y";
+	}
+	
+	/* unrecognised adrcode, or not-yet-handled ones! */
+	return NULL;
+}
+
 /* ------- */
 
 /* Allocate memory for RNA-path for some property given a blocktype, adrcode, and 'root' parts of path
@@ -293,6 +412,14 @@ char *get_rna_access (int blocktype, int adrcode, char actname[], char constname
 			
 		case ID_KE: /* shapekeys */
 			propname= shapekey_adrcodes_to_paths(adrcode, &dummy_index);
+			break;
+			
+		case ID_TE: /* textures */
+			propname= texture_adrcodes_to_paths(adrcode, &dummy_index);
+			break;
+			
+		case ID_CA:
+			propname= camera_adrcodes_to_paths(adrcode, &dummy_index);
 			break;
 			
 		/* XXX problematic blocktypes */
@@ -835,70 +962,6 @@ void do_versions_ipos_to_animato(Main *main)
 
 /* --------------------- Get Pointer API ----------------------------- */ 
 
-/* get texture channel */
-static void *give_tex_poin (Tex *tex, int adrcode, int *type )
-{
-	void *poin= NULL;
-
-	switch (adrcode) {
-	case TE_NSIZE:
-		poin= &(tex->noisesize); break;
-	case TE_TURB:
-		poin= &(tex->turbul); break;
-	case TE_NDEPTH:
-		poin= &(tex->noisedepth); *type= IPO_SHORT; break;
-	case TE_NTYPE:
-		poin= &(tex->noisetype); *type= IPO_SHORT; break;
-	case TE_VNW1:
-		poin= &(tex->vn_w1); break;
-	case TE_VNW2:
-		poin= &(tex->vn_w2); break;
-	case TE_VNW3:
-		poin= &(tex->vn_w3); break;
-	case TE_VNW4:
-		poin= &(tex->vn_w4); break;
-	case TE_VNMEXP:
-		poin= &(tex->vn_mexp); break;
-	case TE_ISCA:
-		poin= &(tex->ns_outscale); break;
-	case TE_DISTA:
-		poin= &(tex->dist_amount); break;
-	case TE_VN_COLT:
-		poin= &(tex->vn_coltype); *type= IPO_SHORT; break;
-	case TE_VN_DISTM:
-		poin= &(tex->vn_distm); *type= IPO_SHORT; break;
-	case TE_MG_TYP:
-		poin= &(tex->stype); *type= IPO_SHORT; break;
-	case TE_MGH:
-		poin= &(tex->mg_H); break;
-	case TE_MG_LAC:
-		poin= &(tex->mg_lacunarity); break;
-	case TE_MG_OCT:
-		poin= &(tex->mg_octaves); break;
-	case TE_MG_OFF:
-		poin= &(tex->mg_offset); break;
-	case TE_MG_GAIN:
-		poin= &(tex->mg_gain); break;
-	case TE_N_BAS1:
-		poin= &(tex->noisebasis); *type= IPO_SHORT; break;
-	case TE_N_BAS2:
-		poin= &(tex->noisebasis2); *type= IPO_SHORT; break;
-	case TE_COL_R:
-		poin= &(tex->rfac); break;
-	case TE_COL_G:
-		poin= &(tex->gfac); break;
-	case TE_COL_B:
-		poin= &(tex->bfac); break;
-	case TE_BRIGHT:
-		poin= &(tex->bright); break;
-	case TE_CONTRA:
-		poin= &(tex->contrast); break;
-	}
-	
-	/* return pointer */
-	return poin;
-}
-
 /* get texture-slot/mapping channel */
 void *give_mtex_poin (MTex *mtex, int adrcode)
 {
@@ -1048,14 +1111,6 @@ void *get_ipo_poin (ID *id, IpoCurve *icu, int *type)
 			}
 		}
 			break;
-		case ID_TE: /* texture channels -----------------------------  */
-		{
-			Tex *tex= (Tex *)id;
-			
-			if (tex) 
-				poin= give_tex_poin(tex, icu->adrcode, type);
-		}
-			break;
 		case ID_WO: /* world channels -----------------------------  */
 		{
 			World *wo= (World *)id;
@@ -1173,34 +1228,6 @@ void *get_ipo_poin (ID *id, IpoCurve *icu, int *type)
 				
 				if (mtex)
 					poin= give_mtex_poin(mtex, (icu->adrcode & (MA_MAP1-1)));
-			}
-		}
-			break;
-		case ID_CA: /* camera channels -----------------------------  */
-		{
-			Camera *ca= (Camera *)id;
-			
-			switch (icu->adrcode) {
-			case CAM_LENS:
-				if (ca->type == CAM_ORTHO)
-					poin= &(ca->ortho_scale);
-				else
-					poin= &(ca->lens); 
-				break;
-			case CAM_STA:
-				poin= &(ca->clipsta); break;
-			case CAM_END:
-				poin= &(ca->clipend); break;
-				
-			case CAM_YF_APERT:
-				poin= &(ca->YF_aperture); break;
-			case CAM_YF_FDIST:
-				poin= &(ca->YF_dofdist); break;
-				
-			case CAM_SHIFT_X:
-				poin= &(ca->shiftx); break;
-			case CAM_SHIFT_Y:
-				poin= &(ca->shifty); break;
 			}
 		}
 			break;
