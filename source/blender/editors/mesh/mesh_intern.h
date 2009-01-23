@@ -215,6 +215,7 @@ void MESH_OT_subdivide(struct wmOperatorType *ot);
 void MESH_OT_subdivide_multi(struct wmOperatorType *ot);
 void MESH_OT_subdivide_multi_fractal(struct wmOperatorType *ot);
 void MESH_OT_subdivide_smooth(struct wmOperatorType *ot);
+void MESH_OT_removedoublesflag(struct wmOperatorType *ot);
 
 #endif // MESH_INTERN_H
 
