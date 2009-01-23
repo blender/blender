@@ -346,7 +346,7 @@ static void dag_add_driver_relation(AnimData *adt, DagForest *dag, DagNode *node
 		else if (driver->type == DRIVER_TYPE_ROTDIFF) {
 			// XXX rotational difference 
 		}
-		else {
+		else if (driver->id) {
 			/* normal channel-drives-channel */
 			node1 = dag_get_node(dag, driver->id);	// XXX we assume that id is an object...
 			

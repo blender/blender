@@ -1469,17 +1469,14 @@ int RNA_path_resolve(PointerRNA *ptr, const char *path, PointerRNA *r_ptr, Prope
 				return 0;
 
 			len= strlen(token);
-			printf("RNA path identifier strlen = %d \n", len);
-
+			
 			/* check for "" to see if it is a string */
 			if(len >= 2 && token[0] == '"' && token[len-1] == '"') {
 				/* strip away "" */
 				token[len-1]= 0;
-				printf("RNA path identifier - string %s \n", token+1);
 				RNA_property_collection_lookup_string(&curptr, prop, token+1, &nextptr);
 			}
 			else {
-				printf("RNA path identifier - int %s \n", token);
 				/* otherwise do int lookup */
 				intkey= atoi(token);
 				RNA_property_collection_lookup_int(&curptr, prop, intkey, &nextptr);
