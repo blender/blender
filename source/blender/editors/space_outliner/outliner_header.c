@@ -199,7 +199,7 @@ void outliner_header_buttons(const bContext *C, ARegion *ar)
 		uiBlockSetEmboss(block, UI_EMBOSS);
 	}
 	
-	if(soutliner->type==SO_OUTLINER) {
+	if(1) { // XXX soutliner->type==SO_OUTLINER) {
 		if(G.main->library.first) 
 			uiDefButS(block, MENU, B_REDR, "Outliner Display%t|Libraries %x7|All Scenes %x0|Current Scene %x1|Visible Layers %x2|Groups %x6|Same Types %x5|Selected %x3|Active %x4|Sequence %x10|Datablocks %x11|User Preferences %x12",	 xco, yco, 120, 20,  &soutliner->outlinevis, 0, 0, 0, 0, "");
 		else

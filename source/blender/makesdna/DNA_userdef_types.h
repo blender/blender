@@ -195,7 +195,8 @@ typedef struct UserDef {
 	short tb_leftmouse, tb_rightmouse;
 	struct SolidLight light[3];
 	short tw_hotspot, tw_flag, tw_handlesize, tw_size;
-	int textimeout, texcollectrate;
+	short textimeout,texcollectrate;
+	short wmdrawmethod, wmpad;
 	int memcachelimit;
 	int prefetchframes;
 	short frameserverport;
@@ -216,8 +217,6 @@ typedef struct UserDef {
 	short autokey_mode;		/* autokeying mode */
 	short autokey_flag;		/* flags for autokeying */
 
-	int wmdrawmethod, pad;
-	
 	struct ColorBand coba_weight;	/* from texture.h */
 } UserDef;
 

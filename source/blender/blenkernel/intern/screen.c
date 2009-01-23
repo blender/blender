@@ -223,6 +223,9 @@ void BKE_area_region_free(SpaceType *st, ARegion *ar)
 		if(art && art->free)
 			art->free(ar);
 	}
+	else if(ar->type && ar->type->free)
+		ar->type->free(ar);
+
 	if(ar) {
 		if(ar->regiondata)
 			printf("regiondata free error\n");

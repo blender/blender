@@ -39,6 +39,7 @@ struct ListBase;
 struct MDeformVert;
 struct Mesh;
 struct MFace;
+struct MEdge;
 struct MVert;
 struct MCol;
 struct Object;

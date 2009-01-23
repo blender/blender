@@ -455,7 +455,7 @@ static PyObject *pyrna_prop_subscript( BPy_PropertyRNA * self, PyObject *key )
 {
 	PyObject *ret;
 	PointerRNA newptr;
-	int keynum;
+	int keynum = 0;
 	char *keyname = NULL;
 	
 	if (PyUnicode_Check(key)) {
@@ -505,7 +505,7 @@ static PyObject *pyrna_prop_subscript( BPy_PropertyRNA * self, PyObject *key )
 static int pyrna_prop_assign_subscript( BPy_PropertyRNA * self, PyObject *key, PyObject *value )
 {
 	int ret = 0;
-	int keynum;
+	int keynum = 0;
 	char *keyname = NULL;
 	
 	if (!RNA_property_editable(&self->ptr, self->prop)) {

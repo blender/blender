@@ -794,11 +794,11 @@ static void rna_def_constraint_transform(BlenderRNA *brna)
 		{2, "SCALE", "Scale", ""},
 		{0, NULL, NULL, NULL}};
 
-	static EnumPropertyItem axis_map_items[] = {
+	/*static EnumPropertyItem axis_map_items[] = {
 		{0, "X", "X", ""},
 		{1, "Y", "Y", ""},
 		{2, "Z", "Z", ""},
-		{0, NULL, NULL, NULL}};
+		{0, NULL, NULL, NULL}};*/
 
 	srna= RNA_def_struct(brna, "TransformConstraint", "Constraint");
 	RNA_def_struct_ui_text(srna, "Transformation Constraint", "Maps transformations of the target to the object.");

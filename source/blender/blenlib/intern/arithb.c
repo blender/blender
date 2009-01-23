@@ -34,6 +34,7 @@
 
 /* ************************ FUNKTIES **************************** */
 
+#include <stdlib.h>
 #include <math.h>
 #include <sys/types.h>
 #include <string.h> 
@@ -62,13 +63,13 @@
 #define SWAP(type, a, b)	{ type sw_ap; sw_ap=(a); (a)=(b); (b)=sw_ap; }
 #define CLAMP(a, b, c)		if((a)<(b)) (a)=(b); else if((a)>(c)) (a)=(c)
 
-
-#if defined(WIN32) || defined(__APPLE__)
-#include <stdlib.h>
+#ifndef M_PI
 #define M_PI 3.14159265358979323846
-#define M_SQRT2 1.41421356237309504880   
+#endif
 
-#endif /* defined(WIN32) || defined(__APPLE__) */
+#ifndef M_SQRT2
+#define M_SQRT2 1.41421356237309504880   
+#endif
 
 
 float saacos(float fac)

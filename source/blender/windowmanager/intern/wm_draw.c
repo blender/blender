@@ -408,7 +408,7 @@ static int wm_triple_gen_textures(wmWindow *win, wmDrawTriple *triple)
 			glTexImage2D(GL_PROXY_TEXTURE_2D, 0, GL_RGB8, triple->x[x], triple->y[y], 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 			glGetTexLevelParameteriv(GL_PROXY_TEXTURE_2D, 0, GL_TEXTURE_INTERNAL_FORMAT, &format);
 
-			if(format != GL_RGB8) {
+			if(format == 0) {
 				glBindTexture(triple->target, 0);
 				printf("WM: failed to allocate texture for triple buffer drawing (GL_PROXY_TEXTURE_2D).\n");
 				return 0;

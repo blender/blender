@@ -428,7 +428,7 @@ void multiresModifier_del_levels(struct MultiresModifierData *mmd, struct Object
 void multiresModifier_subdivide(MultiresModifierData *mmd, Object *ob, int distance, int updateblock, int simple)
 {
 	DerivedMesh *final = NULL;
-	int totsubvert, totsubface, totsubedge;
+	int totsubvert = 0, totsubface = 0, totsubedge = 0;
 	Mesh *me = get_mesh(ob);
 	MDisps *mdisps;
 	int i;

@@ -1499,7 +1499,7 @@ static int mouse_select(bContext *C, float co[2], int extend, int loop)
 	EditFace *efa;
 	MTFace *tf;
 	NearestHit hit;
-	int a, i, select, selectmode, sticky, sync, hitv[4], nvert;
+	int a, i, select = 1, selectmode, sticky, sync, hitv[4], nvert;
 	int flush = 0; /* 0 == dont flush, 1 == sel, -1 == desel;  only use when selection sync is enabled */
 	float limit[2], *hituv[4], penalty[2];
 	

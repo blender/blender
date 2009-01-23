@@ -96,9 +96,6 @@
 /* patching UserDef struct and Themes */
 static void init_userdef_themes(void)
 {
-	// sets themes, fonts, .. from userdef
-	UI_init_userdef();
-	
 //	countall();
 	
 	/* the UserDef struct is not corrected with do_versions() .... ugh! */
@@ -365,6 +362,9 @@ static void init_userdef_themes(void)
 	}
 
 	MEM_CacheLimiter_set_maximum(U.memcachelimit * 1024 * 1024);
+	
+	// sets themes, fonts, .. from userdef
+	UI_init_userdef();
 	
 	/* funny name, but it is GE stuff, moves userdef stuff to engine */
 // XXX	space_set_commmandline_options();

@@ -238,7 +238,6 @@ ARegion *ui_add_temporary_region(bScreen *sc)
 
 void ui_remove_temporary_region(bContext *C, bScreen *sc, ARegion *ar)
 {
-	ar->regiondata= NULL;
 	wm_draw_region_clear(CTX_wm_window(C), ar);
 	ED_region_exit(C, ar);
 	BKE_area_region_free(NULL, ar);		/* NULL: no spacetype */

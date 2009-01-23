@@ -215,7 +215,7 @@ void IDP_ResizeArray(IDProperty *prop, int newlen)
 	/*first check if the array buffer size has room*/
 	/*if newlen is 200 chars less then totallen, reallocate anyway*/
 	if (newlen <= prop->totallen && prop->totallen - newlen < 200) {
-		idp_resize_group_array(prop, newlen, newarr);
+		idp_resize_group_array(prop, newlen, prop->data.pointer);
 		prop->len = newlen;
 		return;
 	}
