@@ -41,6 +41,7 @@ struct bContext;
 struct SpaceType;
 struct AreagionType;
 struct uiBlock;
+struct rcti;
 
 /* regions */
 void	ED_region_do_listen(ARegion *ar, struct wmNotifier *note);
@@ -49,6 +50,7 @@ void	ED_region_exit(struct bContext *C, struct ARegion *ar);
 void	ED_region_pixelspace(struct ARegion *ar);
 void	ED_region_init(struct bContext *C, struct ARegion *ar);
 void	ED_region_tag_redraw(struct ARegion *ar);
+void	ED_region_tag_redraw_partial(struct ARegion *ar, struct rcti *rct);
 
 /* spaces */
 void	ED_spacetypes_init(void);

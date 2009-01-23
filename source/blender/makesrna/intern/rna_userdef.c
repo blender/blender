@@ -1513,6 +1513,12 @@ static void rna_def_userdef_system(StructRNA *srna)
 		{2048, "AUDIO_SAMPLES_2048", "2048", "Set audio mixing buffer size to 2048 samples"},
 		{0, NULL, NULL, NULL}};
 
+	static EnumPropertyItem draw_method_items[] = {
+		{USER_DRAW_TRIPLE, "TRIPLE_BUFFER", "Triple Buffer", "Use a third buffer for minimal redraws at the cost of more memory."},
+		{USER_DRAW_OVERLAP, "OVERLAP", "Overlap", "Redraw all overlapping regions, minimal memory usage but more redraws."},
+		{USER_DRAW_FULL, "FULL", "Full", "Do a full redraw each time, slow, only use for reference or when all else fails."},
+		{0, NULL, NULL, NULL}};
+
 	/* System & OpenGL */
 
 	prop= RNA_def_property(srna, "solid_lights", PROP_COLLECTION, PROP_NONE);
@@ -1591,6 +1597,11 @@ static void rna_def_userdef_system(StructRNA *srna)
 	RNA_def_property_int_sdna(prop, NULL, "texcollectrate");
 	RNA_def_property_range(prop, 1, 3600);
 	RNA_def_property_ui_text(prop, "Texture Collection Rate", "Number of seconds between each run of the GL texture garbage collector.");
+
+	prop= RNA_def_property(srna, "window_draw_method", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "wmdrawmethod");
+	RNA_def_property_enum_items(prop, draw_method_items);
+	RNA_def_property_ui_text(prop, "Window Draw Method", "Drawing method used by the window manager.");
 
 	prop= RNA_def_property(srna, "audio_mixing_buffer", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "mixbufsize");

@@ -44,6 +44,7 @@
 #include "wm_window.h"
 #include "wm_event_system.h"
 #include "wm_event_types.h"
+#include "wm_draw.h"
 #include "wm.h"
 
 #include "ED_screen.h"

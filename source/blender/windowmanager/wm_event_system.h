@@ -86,7 +86,6 @@ void		wm_event_do_handlers	(bContext *C);
 void		wm_event_add_ghostevent(wmWindow *win, int type, void *customdata);
 
 void		wm_event_do_notifiers	(bContext *C);
-void		wm_draw_update			(bContext *C);
 
 /* wm_keymap.c */
 

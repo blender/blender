@@ -99,9 +99,8 @@ typedef struct wmWindow {
 	
 	struct wmSubWindow *curswin;	/* internal for wm_subwindow.c only */
 
-	unsigned int drawtex;		/* internal for wm_draw.c only */
-	int drawtexw, drawtexh;		/* internal for wm_draw.c only */
-	int drawmethod;				/* internal for wm_draw.c only */
+	int drawmethod, drawfail;	/* internal for wm_draw.c only */
+	void *drawdata;				/* internal for wm_draw.c only */
 	
 	ListBase timers;
 	

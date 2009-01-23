@@ -54,9 +54,10 @@ typedef struct bScreen {
 	short full, winid;					/* winid from WM, starts with 1 */
 	short do_draw;						/* notifier for drawing edges */
 	short do_refresh;					/* notifier for scale screen, changed screen, etc */
-	short do_gesture;					/* notifier for gesture draw. */
+	short do_draw_gesture;				/* notifier for gesture draw. */
+	short do_draw_paintcursor;			/* notifier for paint cursor draw. */
 	short swap;							/* indicator to survive swap-exchange systems */
-	short pad[2];
+	short pad;
 	
 	short mainwin;						/* screensize subwindow, for screenedges and global menus */
 	short subwinactive;					/* active subwindow */
@@ -127,6 +128,7 @@ typedef struct ARegion {
 	
 	View2D v2d;					/* 2D-View scrolling/zoom info (most regions are 2d anyways) */
 	rcti winrct;				/* coordinates of region */
+	rcti drawrct;				/* runtime for partial redraw, same or smaller than winrct */
 	short winx, winy;			/* size */
 	
 	short swinid;

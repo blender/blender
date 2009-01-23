@@ -192,9 +192,19 @@ void ED_region_do_draw(bContext *C, ARegion *ar)
 	wmWindow *win= CTX_wm_window(C);
 	ScrArea *sa= CTX_wm_area(C);
 	ARegionType *at= ar->type;
+
+	/* if no partial draw rect set, full rect */
+	if(ar->drawrct.xmin == ar->drawrct.xmax)
+		ar->drawrct= ar->winrct;
+	
+	/* extra clip for safety */
+	ar->drawrct.xmin= MAX2(ar->winrct.xmin, ar->drawrct.xmin);
+	ar->drawrct.ymin= MAX2(ar->winrct.ymin, ar->drawrct.ymin);
+	ar->drawrct.xmax= MIN2(ar->winrct.xmax, ar->drawrct.xmax);
+	ar->drawrct.ymax= MIN2(ar->winrct.ymax, ar->drawrct.ymax);
 	
 	/* note; this sets state, so we can use wmOrtho and friends */
-	wmSubWindowSet(win, ar->swinid);
+	wmSubWindowScissorSet(win, ar->swinid, &ar->drawrct);
 	
 	/* optional header info instead? */
 	if(ar->headerstr) {
@@ -223,6 +233,7 @@ void ED_region_do_draw(bContext *C, ARegion *ar)
 	ED_region_pixelspace(ar);
 	
 	ar->do_draw= 0;
+	memset(&ar->drawrct, 0, sizeof(ar->drawrct));
 }
 
 /* **********************************
@@ -232,8 +243,29 @@ void ED_region_do_draw(bContext *C, ARegion *ar)
 
 void ED_region_tag_redraw(ARegion *ar)
 {
-	if(ar)
+	if(ar) {
+		/* zero region means full region redraw */
 		ar->do_draw= 1;
+		memset(&ar->drawrct, 0, sizeof(ar->drawrct));
+	}
+}
+
+void ED_region_tag_redraw_partial(ARegion *ar, rcti *rct)
+{
+	if(ar) {
+		if(!ar->do_draw) {
+			/* no redraw set yet, set partial region */
+			ar->do_draw= 1;
+			ar->drawrct= *rct;
+		}
+		else if(ar->drawrct.xmin != ar->drawrct.xmax) {
+			/* partial redraw already set, expand region */
+			ar->drawrct.xmin= MIN2(ar->drawrct.xmin, rct->xmin);
+			ar->drawrct.ymin= MIN2(ar->drawrct.ymin, rct->ymin);
+			ar->drawrct.xmax= MAX2(ar->drawrct.xmax, rct->xmax);
+			ar->drawrct.ymax= MAX2(ar->drawrct.ymax, rct->ymax);
+		}
+	}
 }
 
 void ED_area_tag_redraw(ScrArea *sa)
@@ -242,7 +274,7 @@ void ED_area_tag_redraw(ScrArea *sa)
 	
 	if(sa)
 		for(ar= sa->regionbase.first; ar; ar= ar->next)
-			ar->do_draw= 1;
+			ED_region_tag_redraw(ar);
 }
 
 void ED_area_tag_refresh(ScrArea *sa)

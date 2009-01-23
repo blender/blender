@@ -231,8 +231,7 @@ void wm_subwindow_position(wmWindow *win, int swinid, rcti *winrct)
 static wmWindow *_curwindow= NULL;
 static wmSubWindow *_curswin= NULL;
 
-/* enable the WM versions of opengl calls */
-void wmSubWindowSet(wmWindow *win, int swinid)
+void wmSubWindowScissorSet(wmWindow *win, int swinid, rcti *srct)
 {
 	int width, height;
 	_curswin= swin_from_swinid(win, swinid);
@@ -248,7 +247,14 @@ void wmSubWindowSet(wmWindow *win, int swinid)
 	width= _curswin->winrct.xmax - _curswin->winrct.xmin + 1;
 	height= _curswin->winrct.ymax - _curswin->winrct.ymin + 1;
 	glViewport(_curswin->winrct.xmin, _curswin->winrct.ymin, width, height);
-	glScissor(_curswin->winrct.xmin, _curswin->winrct.ymin, width, height);
+
+	if(srct) {
+		width= srct->xmax - srct->xmin + 1;
+		height= srct->ymax - srct->ymin + 1;
+		glScissor(srct->xmin, srct->ymin, width, height);
+	}
+	else
+		glScissor(_curswin->winrct.xmin, _curswin->winrct.ymin, width, height);
 	
 	glMatrixMode(GL_PROJECTION);
 	glLoadMatrixf(&_curswin->winmat[0][0]);
@@ -256,7 +262,13 @@ void wmSubWindowSet(wmWindow *win, int swinid)
 	glLoadMatrixf(&_curswin->viewmat[0][0]);
 	
 	glFlush();
-	
+}
+
+
+/* enable the WM versions of opengl calls */
+void wmSubWindowSet(wmWindow *win, int swinid)
+{
+	wmSubWindowScissorSet(win, swinid, NULL);
 }
 
 void wmLoadMatrix(float mat[][4])

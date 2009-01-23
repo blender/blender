@@ -285,13 +285,19 @@ static void recent_filelist(char *pup)
 static int recentfile_exec(bContext *C, wmOperator *op)
 {
 	int event= RNA_enum_get(op->ptr, "nr");
-	
+
+	// XXX wm in context is not set correctly after WM_read_file -> crash
+	// do it before for now, but is this correct with multiple windows?
+
 	if(event>0) {
-		if (G.sce[0] && (event==1))
+		if (G.sce[0] && (event==1)) {
+			WM_event_add_notifier(C, NC_WINDOW, NULL);
 			WM_read_file(C, G.sce, op->reports);
+		}
 		else {
 			struct RecentFile *recent = BLI_findlink(&(G.recent_files), event-2);
 			if(recent) {
+				WM_event_add_notifier(C, NC_WINDOW, NULL);
 				WM_read_file(C, recent->filename, op->reports);
 			}
 		}
@@ -347,11 +353,12 @@ static int wm_mainfile_exec(bContext *C, wmOperator *op)
 	char filename[FILE_MAX];
 	RNA_string_get(op->ptr, "filename", filename);
 	
+	// XXX wm in context is not set correctly after WM_read_file -> crash
+	// do it before for now, but is this correct with multiple windows?
+	WM_event_add_notifier(C, NC_WINDOW, NULL);
+
 	WM_read_file(C, filename, op->reports);
 	
-	// XXX wm in context is not set correctly after WM_read_file -> crash
-	// WM_event_add_notifier(C, NC_WINDOW, NULL);
-
 	return 0;
 }
 

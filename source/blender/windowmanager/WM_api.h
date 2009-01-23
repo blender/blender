@@ -155,7 +155,8 @@ struct wmGesture *WM_gesture_new(struct bContext *C, struct wmEvent *event, int 
 void		WM_gesture_end(struct bContext *C, struct wmGesture *gesture);
 
 			/* OpenGL wrappers, mimicking opengl syntax */
-void		wmSubWindowSet		(struct wmWindow *win, int swinid);
+void		wmSubWindowSet			(struct wmWindow *win, int swinid);
+void		wmSubWindowScissorSet	(struct wmWindow *win, int swinid, struct rcti *srct);
 
 void		wmLoadMatrix		(float mat[][4]);
 void		wmGetMatrix			(float mat[][4]);

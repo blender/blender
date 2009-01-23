@@ -45,6 +45,7 @@
 
 #include "WM_api.h"
 #include "WM_types.h"
+#include "wm_draw.h"
 #include "wm_subwindow.h"
 #include "wm_window.h"
 
@@ -237,6 +238,8 @@ ARegion *ui_add_temporary_region(bScreen *sc)
 
 void ui_remove_temporary_region(bContext *C, bScreen *sc, ARegion *ar)
 {
+	ar->regiondata= NULL;
+	wm_draw_region_clear(CTX_wm_window(C), ar);
 	ED_region_exit(C, ar);
 	BKE_area_region_free(NULL, ar);		/* NULL: no spacetype */
 	BLI_freelinkN(&sc->regionbase, ar);
@@ -393,8 +396,6 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 void ui_tooltip_free(bContext *C, ARegion *ar)
 {
 	ui_remove_temporary_region(C, CTX_wm_screen(C), ar);
-
-	WM_event_add_notifier(C, NC_WINDOW, NULL);	// XXX provide rect for window
 }
 
 /************************* Creating Menu Blocks **********************/
@@ -711,8 +712,6 @@ void ui_menu_block_free(bContext *C, uiMenuBlockHandle *handle)
 {
 	ui_remove_temporary_region(C, CTX_wm_screen(C), handle->region);
 	MEM_freeN(handle);
-
-	WM_event_add_notifier(C, NC_WINDOW, NULL);	// XXX provide rect for window
 }
 
 /***************************** Menu Button ***************************/

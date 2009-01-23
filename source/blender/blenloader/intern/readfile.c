@@ -4007,8 +4007,9 @@ static void direct_link_windowmanager(FileData *fd, wmWindowManager *wm)
 		win->handlers.first= win->handlers.last= NULL;
 		win->subwindows.first= win->subwindows.last= NULL;
 
-		win->drawtex= 0;
-		win->drawmethod= 0;
+		win->drawdata= NULL;
+		win->drawmethod= -1;
+		win->drawfail= 0;
 	}
 	
 	wm->operators.first= wm->operators.last= NULL;
@@ -4459,6 +4460,8 @@ static void direct_link_region(FileData *fd, ARegion *ar, int spacetype)
 	ar->swinid= 0;
 	ar->type= NULL;
 	ar->swap= 0;
+	ar->do_draw= 0;
+	memset(&ar->drawrct, 0, sizeof(ar->drawrct));
 }
 
 /* for the saved 2.50 files without regiondata */
@@ -4497,6 +4500,7 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 	sc->context= NULL;
 
 	sc->mainwin= sc->subwinactive= 0;	/* indices */
+	sc->swap= 0;
 	
 	/* hacky patch... but people have been saving files with the verse-blender,
 	   causing the handler to keep running for ever, with no means to disable it */

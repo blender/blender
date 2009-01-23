@@ -215,6 +215,8 @@ typedef struct UserDef {
 	
 	short autokey_mode;		/* autokeying mode */
 	short autokey_flag;		/* flags for autokeying */
+
+	int wmdrawmethod, pad;
 	
 	struct ColorBand coba_weight;	/* from texture.h */
 } UserDef;
@@ -324,6 +326,11 @@ extern UserDef U; /* from blenkernel blender.c */
 #define USER_VRML_LAYERS		1
 #define USER_VRML_AUTOSCALE		2
 #define USER_VRML_TWOSIDED		4
+
+/* wm draw method */
+#define USER_DRAW_OVERLAP		0
+#define USER_DRAW_TRIPLE		1
+#define USER_DRAW_FULL			2
 
 /* tw_flag (transform widget) */
 

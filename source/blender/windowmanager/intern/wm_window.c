@@ -49,6 +49,7 @@
 #include "WM_api.h"
 #include "WM_types.h"
 #include "wm.h"
+#include "wm_draw.h"
 #include "wm_window.h"
 #include "wm_subwindow.h"
 #include "wm_event_system.h"
@@ -152,6 +153,9 @@ wmWindow *wm_window_copy(bContext *C, wmWindow *winorig)
 	win->screen= ED_screen_duplicate(win, winorig->screen);
 	win->screen->do_refresh= 1;
 	win->screen->do_draw= 1;
+
+	win->drawmethod= -1;
+	win->drawdata= NULL;
 	
 	return win;
 }
@@ -162,6 +166,7 @@ static void wm_window_close(bContext *C, wmWindow *win)
 	wmWindowManager *wm= CTX_wm_manager(C);
 	BLI_remlink(&wm->windows, win);
 	
+	wm_draw_window_clear(win);
 	WM_event_remove_handlers(C, &win->handlers);
 	ED_screen_exit(C, win, win->screen);
 	wm_window_free(C, win);
@@ -274,6 +279,9 @@ wmWindow *WM_window_open(bContext *C, rcti *rect)
 	win->posy= rect->ymin;
 	win->sizex= rect->xmax - rect->xmin;
 	win->sizey= rect->ymax - rect->ymin;
+
+	win->drawmethod= -1;
+	win->drawdata= NULL;
 	
 	wm_window_add_ghostwindow(wm, "Blender", win);
 	
@@ -490,6 +498,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private)
 					}
 				
 					wm_window_make_drawable(C, win);
+					wm_draw_window_clear(win);
 					WM_event_add_notifier(C, NC_SCREEN|NA_EDITED, NULL);
 				}
 				break;

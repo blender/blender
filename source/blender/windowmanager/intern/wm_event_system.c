@@ -727,10 +727,17 @@ static ARegion *region_event_inside(bContext *C, int x, int y)
 
 static void wm_paintcursor_tag(bContext *C, wmPaintCursor *pc, ARegion *ar)
 {
-	if(ar)
-		for(; pc; pc= pc->next) 
-			if(pc->poll(C))
-				ED_region_tag_redraw(ar);
+	if(ar) {
+		for(; pc; pc= pc->next) {
+			if(pc->poll(C)) {
+				wmWindow *win= CTX_wm_window(C);
+				win->screen->do_draw_paintcursor= 1;
+
+				if(win->drawmethod != USER_DRAW_TRIPLE)
+					ED_region_tag_redraw(ar);
+			}
+		}
+	}
 }
 
 /* called on mousemove, check updates for paintcursors */

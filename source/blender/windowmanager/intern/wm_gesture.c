@@ -31,6 +31,7 @@
 
 #include "DNA_screen_types.h"
 #include "DNA_vec_types.h"
+#include "DNA_userdef_types.h"
 #include "DNA_windowmanager_types.h"
 
 #include "MEM_guardedalloc.h"
@@ -259,11 +260,13 @@ void wm_gesture_draw(wmWindow *win)
 
 void wm_gesture_tag_redraw(bContext *C)
 {
+	wmWindow *win= CTX_wm_window(C);
 	bScreen *screen= CTX_wm_screen(C);
 	ARegion *ar= CTX_wm_region(C);
 	
 	if(screen)
-		screen->do_gesture= 1;
-	if(ar)
+		screen->do_draw_gesture= 1;
+	if(ar && win->drawmethod != USER_DRAW_TRIPLE)
 		ED_region_tag_redraw(ar);
 }
+
