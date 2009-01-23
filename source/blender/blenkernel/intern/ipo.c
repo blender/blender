@@ -344,6 +344,105 @@ static char *texture_adrcodes_to_paths (int adrcode, int *array_index)
 	return NULL;
 }
 
+/* Material Types */
+static char *material_adrcodes_to_paths (int adrcode, int *array_index)
+{
+	/* set array index like this in-case nothing sets it correctly  */
+	*array_index= 0;
+	
+	/* result depends on adrcode */
+	switch (adrcode) {
+		case MA_COL_R:
+			*array_index= 0; return "diffuse_color";
+		case MA_COL_G:
+			*array_index= 1; return "diffuse_color";
+		case MA_COL_B:
+			*array_index= 2; return "diffuse_color";
+			
+		case MA_SPEC_R:
+			*array_index= 0; return "specular_color";
+		case MA_SPEC_G:
+			*array_index= 1; return "specular_color";
+		case MA_SPEC_B:
+			*array_index= 2; return "specular_color";
+			
+		case MA_MIR_R:
+			*array_index= 0; return "mirror_color";
+		case MA_MIR_G:
+			*array_index= 1; return "mirror_color";
+		case MA_MIR_B:
+			*array_index= 2; return "mirror_color";
+			
+		case MA_ALPHA:
+			return "alpha";
+			
+		case MA_REF:
+			return "diffuse_reflection";
+			
+		// XXX add other types...
+	}
+	
+	return NULL;
+	
+#if 0
+	case MA_EMIT:
+		poin= &(ma->emit); break;
+	case MA_AMB:
+		poin= &(ma->amb); break;
+	case MA_SPEC:
+		poin= &(ma->spec); break;
+	case MA_HARD:
+		poin= &(ma->har); *type= IPO_SHORT; break;
+	case MA_SPTR:
+		poin= &(ma->spectra); break;
+	case MA_IOR:
+		poin= &(ma->ang); break;
+	case MA_MODE:
+		poin= &(ma->mode); *type= IPO_INT_BIT; break; // evil... dumping bitflags directly to user!
+	case MA_HASIZE:
+		poin= &(ma->hasize); break;
+	case MA_TRANSLU:
+		poin= &(ma->translucency); break;
+	case MA_RAYM:
+		poin= &(ma->ray_mirror); break;
+	case MA_FRESMIR:
+		poin= &(ma->fresnel_mir); break;
+	case MA_FRESMIRI:
+		poin= &(ma->fresnel_mir_i); break;
+	case MA_FRESTRA:
+		poin= &(ma->fresnel_tra); break;
+	case MA_FRESTRAI:
+		poin= &(ma->fresnel_tra_i); break;
+	case MA_ADD:
+		poin= &(ma->add); break;
+	
+	if (poin == NULL) {
+		if (icu->adrcode & MA_MAP1) mtex= ma->mtex[0];
+		else if (icu->adrcode & MA_MAP2) mtex= ma->mtex[1];
+		else if (icu->adrcode & MA_MAP3) mtex= ma->mtex[2];
+		else if (icu->adrcode & MA_MAP4) mtex= ma->mtex[3];
+		else if (icu->adrcode & MA_MAP5) mtex= ma->mtex[4];
+		else if (icu->adrcode & MA_MAP6) mtex= ma->mtex[5];
+		else if (icu->adrcode & MA_MAP7) mtex= ma->mtex[6];
+		else if (icu->adrcode & MA_MAP8) mtex= ma->mtex[7];
+		else if (icu->adrcode & MA_MAP9) mtex= ma->mtex[8];
+		else if (icu->adrcode & MA_MAP10) mtex= ma->mtex[9];
+		else if (icu->adrcode & MA_MAP12) mtex= ma->mtex[11];
+		else if (icu->adrcode & MA_MAP11) mtex= ma->mtex[10];
+		else if (icu->adrcode & MA_MAP13) mtex= ma->mtex[12];
+		else if (icu->adrcode & MA_MAP14) mtex= ma->mtex[13];
+		else if (icu->adrcode & MA_MAP15) mtex= ma->mtex[14];
+		else if (icu->adrcode & MA_MAP16) mtex= ma->mtex[15];
+		else if (icu->adrcode & MA_MAP17) mtex= ma->mtex[16];
+		else if (icu->adrcode & MA_MAP18) mtex= ma->mtex[17];
+		
+		if (mtex)
+			poin= give_mtex_poin(mtex, (icu->adrcode & (MA_MAP1-1)));
+	}
+#endif
+	
+}
+
 /* Camera Types */
 static char *camera_adrcodes_to_paths (int adrcode, int *array_index)
 {
@@ -414,20 +513,24 @@ char *get_rna_access (int blocktype, int adrcode, char actname[], char constname
 			propname= shapekey_adrcodes_to_paths(adrcode, &dummy_index);
 			break;
 			
-		case ID_TE: /* textures */
+		case ID_TE: /* texture */
 			propname= texture_adrcodes_to_paths(adrcode, &dummy_index);
 			break;
 			
-		case ID_CA:
+		case ID_MA: /* material */
+			propname= material_adrcodes_to_paths(adrcode, &dummy_index);
+			break;
+			
+		case ID_CA: /* camera */
 			propname= camera_adrcodes_to_paths(adrcode, &dummy_index);
 			break;
 			
 		/* XXX problematic blocktypes */
-		case ID_CU:
+		case ID_CU: /* curve */
 			propname= "speed"; // XXX this was a 'dummy curve' that didn't really correspond to any real var...
 			break;
 			
-		case ID_SEQ:
+		case ID_SEQ: /* sequencer strip */
 			//SEQ_FAC1:
 			//	poin= &(seq->facf0); // XXX this doesn't seem to be included anywhere in sequencer RNA...
 			break;
@@ -898,11 +1001,37 @@ void do_versions_ipos_to_animato(Main *main)
 					/* if constraint has own IPO, convert add these to Object 
 					 * (NOTE: they're most likely to be drivers too) 
 					 */
+					if (con->ipo) {
+						/* although this was the constraint's local IPO, we still need to provide pchan + con 
+						 * so that drivers can be added properly...
+						 */
+						ipo_to_animdata(id, con->ipo, pchan->name, con->name);
+						con->ipo->id.us--;
+						con->ipo= NULL;
+					}
 					 
 					/* check for Action Constraint */
 					// XXX do we really want to do this here?
 				}
 			}
+		}
+		
+		/* check constraints for local IPO's */
+		for (con= ob->constraints.first; con; con= con->next) {
+			/* if constraint has own IPO, convert add these to Object 
+			 * (NOTE: they're most likely to be drivers too) 
+			 */
+			if (con->ipo) {
+				/* although this was the constraint's local IPO, we still need to provide con 
+				 * so that drivers can be added properly...
+				 */
+				ipo_to_animdata(id, con->ipo, NULL, con->name);
+				con->ipo->id.us--;
+				con->ipo= NULL;
+			}
+			 
+			/* check for Action Constraint */
+			// XXX do we really want to do this here?
 		}
 		
 		/* check constraint channels - we need to remove them anyway... */
@@ -940,6 +1069,60 @@ void do_versions_ipos_to_animato(Main *main)
 			ipo_to_animdata(id, key->ipo, NULL, NULL);
 			key->ipo->id.us--;
 			key->ipo= NULL;
+		}
+	}
+	
+	/* materials */
+	for (id= main->mat.first; id; id= id->next) {
+		Material *ma= (Material *)id;
+		
+		printf("\tconverting material %s \n", id->name+2);
+		
+		/* we're only interested in the IPO */
+		if (ma->ipo) {
+			/* Add AnimData block */
+			adt= BKE_id_add_animdata(id);
+			
+			/* Convert Material data... */
+			ipo_to_animdata(id, ma->ipo, NULL, NULL);
+			ma->ipo->id.us--;
+			ma->ipo= NULL;
+		}
+	}
+	
+	/* textures */
+	for (id= main->tex.first; id; id= id->next) {
+		Tex *te= (Tex *)id;
+		
+		printf("\tconverting texture %s \n", id->name+2);
+		
+		/* we're only interested in the IPO */
+		if (te->ipo) {
+			/* Add AnimData block */
+			adt= BKE_id_add_animdata(id);
+			
+			/* Convert Texture data... */
+			ipo_to_animdata(id, te->ipo, NULL, NULL);
+			te->ipo->id.us--;
+			te->ipo= NULL;
+		}
+	}
+	
+	/* cameras */
+	for (id= main->camera.first; id; id= id->next) {
+		Camera *ca= (Camera *)id;
+		
+		printf("\tconverting camera %s \n", id->name+2);
+		
+		/* we're only interested in the IPO */
+		if (ca->ipo) {
+			/* Add AnimData block */
+			adt= BKE_id_add_animdata(id);
+			
+			/* Convert Camera data... */
+			ipo_to_animdata(id, ca->ipo, NULL, NULL);
+			ca->ipo->id.us--;
+			ca->ipo= NULL;
 		}
 	}
 	
@@ -1027,90 +1210,6 @@ void *get_ipo_poin (ID *id, IpoCurve *icu, int *type)
 
 	/* data is divided into 'blocktypes' based on ID-codes */
 	switch (GS(id->name)) {
-		case ID_MA: /* material channels -----------------------------  */
-		{
-			Material *ma= (Material *)id;
-			
-			switch (icu->adrcode) {
-			case MA_COL_R:
-				poin= &(ma->r); break;
-			case MA_COL_G:
-				poin= &(ma->g); break;
-			case MA_COL_B:
-				poin= &(ma->b); break;
-			case MA_SPEC_R:
-				poin= &(ma->specr); break;
-			case MA_SPEC_G:
-				poin= &(ma->specg); break;
-			case MA_SPEC_B:
-				poin= &(ma->specb); break;
-			case MA_MIR_R:
-				poin= &(ma->mirr); break;
-			case MA_MIR_G:
-				poin= &(ma->mirg); break;
-			case MA_MIR_B:
-				poin= &(ma->mirb); break;
-			case MA_REF:
-				poin= &(ma->ref); break;
-			case MA_ALPHA:
-				poin= &(ma->alpha); break;
-			case MA_EMIT:
-				poin= &(ma->emit); break;
-			case MA_AMB:
-				poin= &(ma->amb); break;
-			case MA_SPEC:
-				poin= &(ma->spec); break;
-			case MA_HARD:
-				poin= &(ma->har); *type= IPO_SHORT; break;
-			case MA_SPTR:
-				poin= &(ma->spectra); break;
-			case MA_IOR:
-				poin= &(ma->ang); break;
-			case MA_MODE:
-				poin= &(ma->mode); *type= IPO_INT_BIT; break; // evil... dumping bitflags directly to user!
-			case MA_HASIZE:
-				poin= &(ma->hasize); break;
-			case MA_TRANSLU:
-				poin= &(ma->translucency); break;
-			case MA_RAYM:
-				poin= &(ma->ray_mirror); break;
-			case MA_FRESMIR:
-				poin= &(ma->fresnel_mir); break;
-			case MA_FRESMIRI:
-				poin= &(ma->fresnel_mir_i); break;
-			case MA_FRESTRA:
-				poin= &(ma->fresnel_tra); break;
-			case MA_FRESTRAI:
-				poin= &(ma->fresnel_tra_i); break;
-			case MA_ADD:
-				poin= &(ma->add); break;
-			}
-			
-			if (poin == NULL) {
-				if (icu->adrcode & MA_MAP1) mtex= ma->mtex[0];
-				else if (icu->adrcode & MA_MAP2) mtex= ma->mtex[1];
-				else if (icu->adrcode & MA_MAP3) mtex= ma->mtex[2];
-				else if (icu->adrcode & MA_MAP4) mtex= ma->mtex[3];
-				else if (icu->adrcode & MA_MAP5) mtex= ma->mtex[4];
-				else if (icu->adrcode & MA_MAP6) mtex= ma->mtex[5];
-				else if (icu->adrcode & MA_MAP7) mtex= ma->mtex[6];
-				else if (icu->adrcode & MA_MAP8) mtex= ma->mtex[7];
-				else if (icu->adrcode & MA_MAP9) mtex= ma->mtex[8];
-				else if (icu->adrcode & MA_MAP10) mtex= ma->mtex[9];
-				else if (icu->adrcode & MA_MAP12) mtex= ma->mtex[11];
-				else if (icu->adrcode & MA_MAP11) mtex= ma->mtex[10];
-				else if (icu->adrcode & MA_MAP13) mtex= ma->mtex[12];
-				else if (icu->adrcode & MA_MAP14) mtex= ma->mtex[13];
-				else if (icu->adrcode & MA_MAP15) mtex= ma->mtex[14];
-				else if (icu->adrcode & MA_MAP16) mtex= ma->mtex[15];
-				else if (icu->adrcode & MA_MAP17) mtex= ma->mtex[16];
-				else if (icu->adrcode & MA_MAP18) mtex= ma->mtex[17];
-				
-				if (mtex)
-					poin= give_mtex_poin(mtex, (icu->adrcode & (MA_MAP1-1)));
-			}
-		}
-			break;
 		case ID_WO: /* world channels -----------------------------  */
 		{
 			World *wo= (World *)id;

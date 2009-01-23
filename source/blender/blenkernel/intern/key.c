@@ -646,6 +646,8 @@ void do_rel_key(int start, int end, int tot, char *basispoin, Key *key, int mode
 	
 	if(key->from==NULL) return;
 	
+	printf("do_rel_key() \n");
+	
 	if( GS(key->from->name)==ID_ME ) {
 		ofs[0]= sizeof(MVert);
 		ofs[1]= 0;
@@ -681,10 +683,14 @@ void do_rel_key(int start, int end, int tot, char *basispoin, Key *key, int mode
 		if(kb!=key->refkey) {
 			float icuval= kb->curval;
 			
+			printf("\tdo rel key %s : %s = %f \n", key->id.name+2, kb->name, icuval);
+			
 			/* only with value, and no difference allowed */
 			if(!(kb->flag & KEYBLOCK_MUTE) && icuval!=0.0f && kb->totelem==tot) {
 				KeyBlock *refb;
 				float weight, *weights= kb->weights;
+				
+				printf("\t\tnot skipped \n");
 				
 				poin= basispoin;
 				from= kb->data;
@@ -756,6 +762,8 @@ static void do_key(int start, int end, int tot, char *poin, Key *key, KeyBlock *
 
 	if(key->from==0) return;
 
+	printf("do_key() \n");
+	
 	if( GS(key->from->name)==ID_ME ) {
 		ofs[0]= sizeof(MVert);
 		ofs[1]= 0;
@@ -1016,7 +1024,11 @@ static int do_mesh_key(Scene *scene, Object *ob, Mesh *me)
 	/* prevent python from screwing this up? anyhoo, the from pointer could be dropped */
 	me->key->from= (ID *)me;
 	
+	printf("do mesh key ob:%s me:%s ke:%s \n", ob->id.name+2, me->id.name+2, me->key->id.name+2);
+	
 	if(me->key->slurph && me->key->type!=KEY_RELATIVE ) {
+		printf("\tslurph key\n");
+		
 		delta= me->key->slurph;
 		delta/= me->totvert;
 		
@@ -1038,6 +1050,9 @@ static int do_mesh_key(Scene *scene, Object *ob, Mesh *me)
 				CLAMP(ctime, 0.0, 1.0);
 			}
 #endif // XXX old animation system
+			// XXX for now... since speed curve cannot be directly ported yet
+			ctime /= 100.0f;
+			CLAMP(ctime, 0.0f, 1.0f); // XXX for compat, we use this, but this clamping was confusing
 		
 			flag= setkeys(ctime, &me->key->block, k, t, 0);
 			if(flag==0) {
@@ -1053,9 +1068,10 @@ static int do_mesh_key(Scene *scene, Object *ob, Mesh *me)
 		else boundbox_mesh(me, loc, size);
 	}
 	else {
-		
 		if(me->key->type==KEY_RELATIVE) {
 			KeyBlock *kb;
+			
+			printf("\tdo relative \n");
 			
 			for(kb= me->key->block.first; kb; kb= kb->next)
 				kb->weights= get_weights_array(ob, kb->vgroup);
@@ -1068,6 +1084,8 @@ static int do_mesh_key(Scene *scene, Object *ob, Mesh *me)
 			}
 		}
 		else {
+			printf("\tdo absolute \n");
+			
 			ctime= bsystem_time(scene, ob, scene->r.cfra, 0.0); // xxx old cruft
 			
 #if 0 // XXX old animation system
@@ -1076,6 +1094,9 @@ static int do_mesh_key(Scene *scene, Object *ob, Mesh *me)
 				CLAMP(ctime, 0.0, 1.0);
 			}
 #endif // XXX old animation system
+			// XXX for now... since speed curve cannot be directly ported yet
+			ctime /= 100.0f;
+			CLAMP(ctime, 0.0f, 1.0f); // XXX for compat, we use this, but this clamping was confusing
 			
 			flag= setkeys(ctime, &me->key->block, k, t, 0);
 			if(flag==0) {
@@ -1324,7 +1345,9 @@ int do_ob_key(Scene *scene, Object *ob)
 		
 	if(ob->shapeflag & (OB_SHAPE_LOCK|OB_SHAPE_TEMPLOCK)) {
 		KeyBlock *kb= BLI_findlink(&key->block, ob->shapenr-1);
-
+		
+		printf("ob %s, key %s locked \n", ob->id.name+2, key->id.name+2);
+		
 		if(kb && (kb->flag & KEYBLOCK_MUTE))
 			kb= key->refkey;
 
@@ -1370,7 +1393,7 @@ int do_ob_key(Scene *scene, Object *ob)
 #endif // XXX old animation system
 		/* do shapekey local drivers */
 		float ctime= (float)scene->r.cfra; // XXX this needs to be checked
-		printf("ob %s - do shapekey drivers \n", ob->id.name+2);
+		printf("ob %s - do shapekey (%s) drivers \n", ob->id.name+2, key->id.name+2);
 		BKE_animsys_evaluate_animdata(&key->id, key->adt, ctime, ADT_RECALC_DRIVERS);
 		
 		if(ob->type==OB_MESH) return do_mesh_key(scene, ob, ob->data);
