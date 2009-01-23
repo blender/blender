@@ -78,6 +78,8 @@
 #include "ED_screen.h"
 #include "ED_util.h"
 
+#include "GHOST_C-api.h"
+
 #include "UI_interface.h"
 
 // XXX #include "BPY_extern.h"
@@ -462,7 +464,11 @@ static void wm_window_match_do(bContext *C, ListBase *oldwmlist)
 					
 					if(oldwin->winid == win->winid ) {
 						win->ghostwin= oldwin->ghostwin;
+						GHOST_SetWindowUserData(win->ghostwin, win);	/* pointer back */
 						oldwin->ghostwin= NULL;
+						
+						win->eventstate= oldwin->eventstate;
+						oldwin->eventstate= NULL;
 					}
 				}
 			}
@@ -492,6 +498,7 @@ void WM_read_file(bContext *C, char *name, ReportList *reports)
 
 		/* match the read WM with current WM */
 		wm_window_match_do(C, &wmbase); 
+		wm_check(C); /* opens window(s), checks keymaps */
 		
 // XXX		mainwindow_set_filename_to_title(G.main->name);
 //		countall(); <-- will be listener
@@ -549,7 +556,8 @@ int WM_read_homefile(bContext *C, int from_memory)
 	
 	/* match the read WM with current WM */
 	wm_window_match_do(C, &wmbase); 
-	
+	wm_check(C); /* opens window(s), checks keymaps */
+
 	strcpy(G.sce, scestr); /* restore */
 
 	init_userdef_themes();

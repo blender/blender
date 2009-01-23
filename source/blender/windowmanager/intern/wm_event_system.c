@@ -135,6 +135,9 @@ void wm_event_do_notifiers(bContext *C)
 	wmNotifier *note;
 	wmWindow *win;
 	
+	if(wm==NULL)
+		return;
+	
 	/* cache & catch WM level notifiers, such as frame change */
 	/* XXX todo, multiwindow scenes */
 	for(win= wm->windows.first; win; win= win->next) {
@@ -194,7 +197,6 @@ void wm_event_do_notifiers(bContext *C)
 				ED_area_do_refresh(C, sa);
 			}
 		}
-		CTX_wm_area_set(C, NULL);
 	}
 	CTX_wm_window_set(C, NULL);
 }
@@ -686,6 +688,9 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 				break;
 		}
 		
+		/* fileread case */
+		if(CTX_wm_window(C)==NULL)
+			break;
 	}
 	return action;
 }
@@ -794,6 +799,12 @@ void wm_event_do_handlers(bContext *C)
 			
 			action= wm_handlers_do(C, event, &win->handlers);
 			
+			/* fileread case */
+			if(CTX_wm_window(C)==NULL) {
+				wm_event_free(event);
+				break;
+			}
+			
 			if(wm_event_always_pass(event) || action==WM_HANDLER_CONTINUE) {
 				ScrArea *sa;
 				ARegion *ar;
@@ -843,6 +854,10 @@ void wm_event_do_handlers(bContext *C)
 			CTX_wm_area_set(C, NULL);
 			CTX_wm_region_set(C, NULL);
 		}
+		
+		/* fileread case */
+		if(CTX_wm_window(C)==NULL)
+			break;
 	}
 }
 
@@ -867,12 +882,12 @@ wmEventHandler *WM_event_add_modal_handler(bContext *C, ListBase *handlers, wmOp
 wmEventHandler *WM_event_add_keymap_handler(ListBase *handlers, ListBase *keymap)
 {
 	wmEventHandler *handler;
-	
+
 	/* only allow same keymap once */
 	for(handler= handlers->first; handler; handler= handler->next)
 		if(handler->keymap==keymap)
 			return handler;
-
+	
 	handler= MEM_callocN(sizeof(wmEventHandler), "event keymap handler");
 	BLI_addtail(handlers, handler);
 	handler->keymap= keymap;
@@ -897,9 +912,11 @@ wmEventHandler *WM_event_add_keymap_handler_priority(ListBase *handlers, ListBas
 wmEventHandler *WM_event_add_keymap_handler_bb(ListBase *handlers, ListBase *keymap, rcti *bblocal, rcti *bbwin)
 {
 	wmEventHandler *handler= WM_event_add_keymap_handler(handlers, keymap);
-	handler->bblocal= bblocal;
-	handler->bbwin= bbwin;
 	
+	if(handler) {
+		handler->bblocal= bblocal;
+		handler->bbwin= bbwin;
+	}
 	return handler;
 }
 

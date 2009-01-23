@@ -102,6 +102,8 @@ void wm_window_free(bContext *C, wmWindow *win)
 			wm->winactive= NULL;
 		if(CTX_wm_window(C)==win)
 			CTX_wm_window_set(C, NULL);
+		
+		WM_event_remove_handlers(C, &win->handlers);
 	}	
 	
 	if(win->eventstate) MEM_freeN(win->eventstate);
@@ -160,14 +162,13 @@ wmWindow *wm_window_copy(bContext *C, wmWindow *winorig)
 	return win;
 }
 
-/* this is event from ghost */
+/* this is event from ghost, or exit-blender op */
 static void wm_window_close(bContext *C, wmWindow *win)
 {
 	wmWindowManager *wm= CTX_wm_manager(C);
 	BLI_remlink(&wm->windows, win);
 	
 	wm_draw_window_clear(win);
-	WM_event_remove_handlers(C, &win->handlers);
 	ED_screen_exit(C, win, win->screen);
 	wm_window_free(C, win);
 	
@@ -203,20 +204,12 @@ static void wm_window_add_ghostwindow(wmWindowManager *wm, char *title, wmWindow
 								 0 /* no stereo */);
 	
 	if (ghostwin) {
-		ListBase *keymap;
 		
 		win->ghostwin= ghostwin;
 		GHOST_SetWindowUserData(ghostwin, win);	/* pointer back */
 		
 		if(win->eventstate==NULL)
 			win->eventstate= MEM_callocN(sizeof(wmEvent), "window event state");
-		
-		/* add keymap handlers (1 handler for all keys in map!) */
-		keymap= WM_keymap_listbase(wm, "Window", 0, 0);
-		WM_event_add_keymap_handler(&win->handlers, keymap);
-
-		keymap= WM_keymap_listbase(wm, "Screen", 0, 0);
-		WM_event_add_keymap_handler(&win->handlers, keymap);
 		
 		/* until screens get drawn, make it nice grey */
 		glClearColor(.55, .55, .55, 0.0);
@@ -232,8 +225,10 @@ static void wm_window_add_ghostwindow(wmWindowManager *wm, char *title, wmWindow
 
 /* for wmWindows without ghostwin, open these and clear */
 /* window size is read from window, if 0 it uses prefsize */
+/* called in wm_check, also inits stuff after file read */
 void wm_window_add_ghostwindows(wmWindowManager *wm)
 {
+	ListBase *keymap;
 	wmWindow *win;
 	
 	/* no commandline prefsize? then we set this */
@@ -264,6 +259,18 @@ void wm_window_add_ghostwindows(wmWindowManager *wm)
 			}
 			wm_window_add_ghostwindow(wm, "Blender", win);
 		}
+		/* happens after fileread */
+		if(win->eventstate==NULL)
+		   win->eventstate= MEM_callocN(sizeof(wmEvent), "window event state");
+		
+		
+		/* add keymap handlers (1 handler for all keys in map!) */
+		keymap= WM_keymap_listbase(wm, "Window", 0, 0);
+		WM_event_add_keymap_handler(&win->handlers, keymap);
+		
+		keymap= WM_keymap_listbase(wm, "Screen", 0, 0);
+		WM_event_add_keymap_handler(&win->handlers, keymap);
+		
 	}
 }
 

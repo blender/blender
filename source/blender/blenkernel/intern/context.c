@@ -197,6 +197,10 @@ struct uiBlock *CTX_wm_ui_block(const bContext *C)
 void CTX_wm_manager_set(bContext *C, wmWindowManager *wm)
 {
 	C->wm.manager= wm;
+	C->wm.window= NULL;
+	C->wm.screen= NULL;
+	C->wm.area= NULL;
+	C->wm.region= NULL;
 }
 
 void CTX_wm_window_set(bContext *C, wmWindow *win)
@@ -204,17 +208,22 @@ void CTX_wm_window_set(bContext *C, wmWindow *win)
 	C->wm.window= win;
 	C->wm.screen= (win)? win->screen: NULL;
 	C->data.scene= (C->wm.screen)? C->wm.screen->scene: NULL;
+	C->wm.area= NULL;
+	C->wm.region= NULL;
 }
 
 void CTX_wm_screen_set(bContext *C, bScreen *screen)
 {
 	C->wm.screen= screen;
 	C->data.scene= (C->wm.screen)? C->wm.screen->scene: NULL;
+	C->wm.area= NULL;
+	C->wm.region= NULL;
 }
 
 void CTX_wm_area_set(bContext *C, ScrArea *area)
 {
 	C->wm.area= area;
+	C->wm.region= NULL;
 }
 
 void CTX_wm_region_set(bContext *C, ARegion *region)

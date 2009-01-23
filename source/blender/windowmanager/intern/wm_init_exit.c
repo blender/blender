@@ -93,20 +93,6 @@
 #include "GPU_draw.h"
 
 
-static void initbuttons(void)
-{
-	UI_init();
-	
-//	glClearColor(.7f, .7f, .6f, 0.0);
-	
-	G.font= BMF_GetFont(BMF_kHelvetica12);
-	G.fonts= BMF_GetFont(BMF_kHelvetica10);
-	G.fontss= BMF_GetFont(BMF_kHelveticaBold8);
-	
-//	clear_matcopybuf(); /* XXX */
-	
-//	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
-}
 
 /* XXX */
 static void sound_init_listener(void)
@@ -135,11 +121,17 @@ void WM_init(bContext *C)
 	/* get the default database, plus a wm */
 	WM_read_homefile(C, 0);
 	
-	wm_check(C); /* opens window(s), checks keymaps */
+	UI_init();
 	
-//	initscreen();	/* for (visual) speed, this first, then setscreen */
-	initbuttons();
-//	InitCursorData();
+	/* goes away */
+	G.font= BMF_GetFont(BMF_kHelvetica12);
+	G.fonts= BMF_GetFont(BMF_kHelvetica10);
+	G.fontss= BMF_GetFont(BMF_kHelveticaBold8);
+	
+	//	clear_matcopybuf(); /* XXX */
+	
+	//	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+	
 	sound_init_listener();
 //	init_node_butfuncs();
 	
