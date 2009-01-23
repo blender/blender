@@ -92,14 +92,14 @@ typedef struct SK_Stroke
 	int selected;
 } SK_Stroke;
 
-#define SK_ADJUST_LIMIT	5
+#define SK_OVERDRAW_LIMIT	5
 
-typedef struct SK_Adjustment
+typedef struct SK_Overdraw
 {
 	SK_Stroke *target;
 	int	start, end;
 	int count;
-} SK_Adjustment;
+} SK_Overdraw;
 
 #define SK_Stroke_BUFFER_INIT_SIZE 20
 
@@ -127,7 +127,7 @@ typedef struct SK_Sketch
 	SK_Stroke	*active_stroke;
 	SK_Stroke	*gesture;
 	SK_Point	next_point;
-	SK_Adjustment adj;
+	SK_Overdraw over;
 } SK_Sketch;
 
 typedef struct SK_StrokeIterator {
@@ -203,8 +203,8 @@ int sk_detectConvertGesture(SK_Gesture *gest, SK_Sketch *sketch);
 void sk_applyConvertGesture(SK_Gesture *gest, SK_Sketch *sketch);
 
 
-void sk_resetAdjust(SK_Sketch *sketch);
-int sk_hasAdjust(SK_Sketch *sketch, SK_Stroke *stk);
+void sk_resetOverdraw(SK_Sketch *sketch);
+int sk_hasOverdraw(SK_Sketch *sketch, SK_Stroke *stk);
 
 /******************** GESTURE ACTIONS ******************************/
 
@@ -1065,7 +1065,7 @@ void sk_cancelStroke(SK_Sketch *sketch)
 {
 	if (sketch->active_stroke != NULL)
 	{
-		sk_resetAdjust(sketch);
+		sk_resetOverdraw(sketch);
 		sk_removeStroke(sketch, sketch->active_stroke);
 	}
 }
@@ -1407,29 +1407,35 @@ SK_Point *sk_snapPointArmature(Object *ob, ListBase *ebones, short mval[2], int 
 	return pt;
 }
 
-void sk_resetAdjust(SK_Sketch *sketch)
+void sk_resetOverdraw(SK_Sketch *sketch)
 {
-	sketch->adj.target = NULL;
-	sketch->adj.start = -1;
-	sketch->adj.end = -1;
-	sketch->adj.count = 0;
+	sketch->over.target = NULL;
+	sketch->over.start = -1;
+	sketch->over.end = -1;
+	sketch->over.count = 0;
 }
 
-int sk_hasAdjust(SK_Sketch *sketch, SK_Stroke *stk)
+int sk_hasOverdraw(SK_Sketch *sketch, SK_Stroke *stk)
 {
-	return	sketch->adj.target &&
-			sketch->adj.count >= SK_ADJUST_LIMIT &&
-			(sketch->adj.target == stk || stk == NULL) &&
-			(sketch->adj.start != -1 || sketch->adj.end != -1);
+	return	sketch->over.target &&
+			sketch->over.count >= SK_OVERDRAW_LIMIT &&
+			(sketch->over.target == stk || stk == NULL) &&
+			(sketch->over.start != -1 || sketch->over.end != -1);
 }
 
-void sk_updateAdjust(SK_Sketch *sketch, SK_Stroke *stk, SK_DrawData *dd)
+void sk_updateOverdraw(SK_Sketch *sketch, SK_Stroke *stk, SK_DrawData *dd)
 {
-	if (sketch->adj.target == NULL)
+	if (sketch->over.target == NULL)
 	{
 		SK_Stroke *target;
 		int closest_index = -1;
 		int dist = SNAP_MIN_DISTANCE * 2;
+		
+		/* If snapping, don't start overdraw */
+		if (sk_lastStrokePoint(stk)->mode == PT_SNAP)
+		{
+			return;
+		}
 		
 		for (target = sketch->strokes.first; target; target = target->next)
 		{
@@ -1441,60 +1447,60 @@ void sk_updateAdjust(SK_Sketch *sketch, SK_Stroke *stk, SK_DrawData *dd)
 				
 				if (spt != NULL)
 				{
-					sketch->adj.target = target;
+					sketch->over.target = target;
 					closest_index = index;
 				}
 			}
 		}
 		
-		if (sketch->adj.target != NULL)
+		if (sketch->over.target != NULL)
 		{
 			if (closest_index > -1)
 			{
 				if (sk_lastStrokePoint(stk)->type == PT_EXACT)
 				{
-					sketch->adj.count = SK_ADJUST_LIMIT;
+					sketch->over.count = SK_OVERDRAW_LIMIT;
 				}
 				else
 				{
-					sketch->adj.count++;
+					sketch->over.count++;
 				}
 			}
 
 			if (stk->nb_points == 1)
 			{
-				sketch->adj.start = closest_index;
+				sketch->over.start = closest_index;
 			}
 			else
 			{
-				sketch->adj.end = closest_index;
+				sketch->over.end = closest_index;
 			}
 		}
 	}
-	else if (sketch->adj.target != NULL)
+	else if (sketch->over.target != NULL)
 	{
 		SK_Point *closest_pt = NULL;
 		int dist = SNAP_MIN_DISTANCE * 2;
 		int index;
 
-		closest_pt = sk_snapPointStroke(sketch->adj.target, dd->mval, &dist, &index);
+		closest_pt = sk_snapPointStroke(sketch->over.target, dd->mval, &dist, &index);
 		
 		if (closest_pt != NULL)
 		{
 			if (sk_lastStrokePoint(stk)->type == PT_EXACT)
 			{
-				sketch->adj.count = SK_ADJUST_LIMIT;
+				sketch->over.count = SK_OVERDRAW_LIMIT;
 			}
 			else
 			{
-				sketch->adj.count++;
+				sketch->over.count++;
 			}
 			
-			sketch->adj.end = index;
+			sketch->over.end = index;
 		}
 		else
 		{
-			sketch->adj.end = -1;
+			sketch->over.end = -1;
 		}
 	}
 }
@@ -1504,8 +1510,8 @@ int sk_adjustIndexes(SK_Sketch *sketch, int *start, int *end)
 {
 	int retval = 0;
 
-	*start = sketch->adj.start;
-	*end = sketch->adj.end;
+	*start = sketch->over.start;
+	*end = sketch->over.end;
 	
 	if (*start == -1)
 	{
@@ -1514,7 +1520,7 @@ int sk_adjustIndexes(SK_Sketch *sketch, int *start, int *end)
 	
 	if (*end == -1)
 	{
-		*end = sketch->adj.target->nb_points - 1;
+		*end = sketch->over.target->nb_points - 1;
 	}
 	
 	if (*end < *start)
@@ -1528,11 +1534,11 @@ int sk_adjustIndexes(SK_Sketch *sketch, int *start, int *end)
 	return retval;
 }
 
-void sk_endAdjust(SK_Sketch *sketch)
+void sk_endOverdraw(SK_Sketch *sketch)
 {
 	SK_Stroke *stk = sketch->active_stroke;
 	
-	if (sk_hasAdjust(sketch, NULL))
+	if (sk_hasOverdraw(sketch, NULL))
 	{
 		int start;
 		int end;
@@ -1544,22 +1550,15 @@ void sk_endAdjust(SK_Sketch *sketch)
 		
 		if (stk->nb_points > 1)
 		{
-			if (start != 0)
-			{
-				stk->points->type = PT_CONTINUOUS;
-			}
-			
-			if (end != sketch->adj.target->nb_points - 1)
-			{
-				sk_lastStrokePoint(stk)->type = PT_CONTINUOUS;
-			}
+			stk->points->type = sketch->over.target->points[start].type;
+			sk_lastStrokePoint(stk)->type = sketch->over.target->points[end].type;
 		}
 		
-		sk_inserStrokePoints(sketch->adj.target, stk->points, stk->nb_points, start, end);
+		sk_inserStrokePoints(sketch->over.target, stk->points, stk->nb_points, start, end);
 		
 		sk_removeStroke(sketch, stk);
 		
-		sk_resetAdjust(sketch);
+		sk_resetOverdraw(sketch);
 	}
 }
 
@@ -1571,7 +1570,7 @@ void sk_startStroke(SK_Sketch *sketch)
 	BLI_addtail(&sketch->strokes, stk);
 	sketch->active_stroke = stk;
 
-	sk_resetAdjust(sketch);	
+	sk_resetOverdraw(sketch);	
 }
 
 void sk_endStroke(SK_Sketch *sketch)
@@ -1580,7 +1579,7 @@ void sk_endStroke(SK_Sketch *sketch)
 
 	if (G.scene->toolsettings->bone_sketching & BONE_SKETCHING_ADJUST)
 	{
-		sk_endAdjust(sketch);
+		sk_endOverdraw(sketch);
 	}
 
 	sketch->active_stroke = NULL;
@@ -1929,7 +1928,7 @@ void sk_addStrokePoint(SK_Sketch *sketch, SK_Stroke *stk, SK_DrawData *dd, short
 	
 	if (G.scene->toolsettings->bone_sketching & BONE_SKETCHING_ADJUST)
 	{
-		sk_updateAdjust(sketch, stk, dd);
+		sk_updateOverdraw(sketch, stk, dd);
 	}
 }
 
@@ -2953,7 +2952,7 @@ void sk_drawSketch(SK_Sketch *sketch, int with_names)
 			int start = -1;
 			int end = -1;
 			
-			if (sk_hasAdjust(sketch, stk))
+			if (sk_hasOverdraw(sketch, stk))
 			{
 				sk_adjustIndexes(sketch, &start, &end);
 			}
