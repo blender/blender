@@ -369,6 +369,7 @@ void do_time_buttons(bContext *C, void *arg, int event)
 			break;
 		case B_TL_REW:
 			scene->r.cfra= PSFRA;
+			WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
 			//update_for_newframe();
 			break;
 		case B_TL_PLAY:
@@ -380,6 +381,7 @@ void do_time_buttons(bContext *C, void *arg, int event)
 		case B_TL_FF:
 			/* end frame */
 			scene->r.cfra= PEFRA;
+			WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
 			//update_for_newframe();
 			break;
 		case B_TL_PREVKEY:
