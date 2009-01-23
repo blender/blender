@@ -776,6 +776,9 @@ int main(int argc, char **argv)
 						else if (!strcmp(argv[a],"FRAMESERVER")) G.scene->r.imtype = R_FRAMESERVER;
 						else if (!strcmp(argv[a],"CINEON")) G.scene->r.imtype = R_CINEON;
 						else if (!strcmp(argv[a],"DPX")) G.scene->r.imtype = R_DPX;
+#if WITH_OPENJPEG
+						else if (!strcmp(argv[a],"JP2")) G.scene->r.imtype = R_JP2;
+#endif
 						else printf("\nError: Format from '-F' not known or not compiled in this release.\n");
 					}
 				} else {

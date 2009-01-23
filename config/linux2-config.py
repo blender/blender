@@ -157,7 +157,7 @@ BF_OGG_LIB = 'ogg vorbis theoraenc theoradec'
 WITH_BF_OPENJPEG = True 
 BF_OPENJPEG = '#extern/libopenjpeg'
 BF_OPENJPEG_LIB = ''
-BF_OPENJPEG_INC = '${BF_OPENJPEG}/include'
+BF_OPENJPEG_INC = '${BF_OPENJPEG}'
 BF_OPENJPEG_LIBPATH='${BF_OPENJPEG}/lib'
 
 WITH_BF_REDCODE = False  

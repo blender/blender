@@ -42,6 +42,9 @@ if env['WITH_BF_VERSE']:
 if env['WITH_BF_OPENEXR']:
     defs += ' WITH_OPENEXR'
 
+if env['WITH_BF_OPENJPEG']:
+    defs += ' WITH_OPENJPEG'
+
 if env['WITH_BF_DDS']:
     defs += ' WITH_DDS'
 

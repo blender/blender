@@ -310,6 +310,10 @@ typedef struct RenderData {
 	/* cineon */
 	short cineonwhite, cineonblack;
 	float cineongamma;
+	
+	/* jpeg2000 */
+	short jp2_preset, jp2_depth;
+	int rpad3;
 } RenderData;
 
 /* control render convert and shading engine */
@@ -692,6 +696,7 @@ typedef struct Scene {
 #define R_DPX			27
 #define R_MULTILAYER	28
 #define R_DDS			29
+#define R_JP2			30
 
 /* subimtype, flag options for imtype */
 #define R_OPENEXR_HALF	1
@@ -699,6 +704,13 @@ typedef struct Scene {
 #define R_PREVIEW_JPG	4
 #define R_CINEON_LOG 	8
 #define R_TIFF_16BIT	16
+
+#define R_JPEG2K_12BIT	32 /* Jpeg2000 */
+#define R_JPEG2K_16BIT	64
+#define R_JPEG2K_YCC	128 /* when disabled use RGB */
+#define R_JPEG2K_CINE_PRESET	256
+#define R_JPEG2K_CINE_48FPS		512
+
 
 /* bake_mode: same as RE_BAKE_xxx defines */
 /* bake_flag: */
