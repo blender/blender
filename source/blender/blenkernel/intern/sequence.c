@@ -165,10 +165,8 @@ void seq_free_strip(Strip *strip)
 	MEM_freeN(strip);
 }
 
-void seq_free_sequence(Sequence *seq)
+void seq_free_sequence(Editing *ed, Sequence *seq)
 {
-	//XXX Sequence *last_seq = get_last_seq();
-
 	if(seq->strip) seq_free_strip(seq->strip);
 
 	if(seq->anim) IMB_free_anim(seq->anim);
@@ -180,7 +178,8 @@ void seq_free_sequence(Sequence *seq)
 		sh.free(seq);
 	}*/
 
-	//XXX if(seq==last_seq) set_last_seq(NULL);
+	if (ed->act_seq==seq)
+		ed->act_seq= NULL;
 
 	MEM_freeN(seq);
 }
@@ -194,7 +193,7 @@ void seq_free_editing(Editing *ed)
 		return;
 
 	SEQ_BEGIN(ed, seq) {
-		seq_free_sequence(seq);
+		seq_free_sequence(ed, seq);
 	}
 	SEQ_END
 
@@ -3192,4 +3191,9 @@ void fix_single_seq(Sequence *seq)
 		seq_tx_set_final_right( seq, seq_tx_get_final_right(seq, 0) - offset );
 		seq->start += offset;
 	}
+}
+
+int seq_tx_test(Sequence * seq)
+{
+	return (seq->type < SEQ_EFFECT) || (get_sequence_effect_num_inputs(seq->type) == 0);
 }

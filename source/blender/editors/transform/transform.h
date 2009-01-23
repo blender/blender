@@ -153,7 +153,9 @@ typedef struct TransDataCurveHandleFlags {
 /* for sequencer transform */
 typedef struct TransDataSeq {
 	struct Sequence *seq;
+	int flag;		/* a copy of seq->flag that may be modified for nested strips */
 	short sel_flag; /* one of SELECT, SEQ_LEFTSEL and SEQ_RIGHTSEL */
+	
 } TransDataSeq;
 
 typedef struct TransData {

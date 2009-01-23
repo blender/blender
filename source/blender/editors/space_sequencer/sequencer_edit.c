@@ -64,6 +64,7 @@
 #include "BKE_sequence.h"
 #include "BKE_scene.h"
 #include "BKE_utildefines.h"
+#include "BKE_report.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
@@ -252,7 +253,7 @@ void shuffle_seq(Scene *scene, Sequence *test)
 			error("There is no more space to add a sequence strip");
 			
 			BLI_remlink(ed->seqbasep, test);
-			seq_free_sequence(test);
+			seq_free_sequence(ed, test);
 			return;
 		}
 		test->machine++;
@@ -310,12 +311,6 @@ void boundbox_seq(Scene *scene, rctf *rect)
 	rect->ymin= min[1];
 	rect->ymax= max[1];
 
-}
-
-int sequence_is_free_transformable(Sequence * seq)
-{
-	return seq->type < SEQ_EFFECT
-		|| (get_sequence_effect_num_inputs(seq->type) == 0);
 }
 
 /* XXX - use mouse_frame_side instead */
@@ -458,7 +453,7 @@ Sequence *find_nearest_seq(Scene *scene, View2D *v2d, int *hand, short mval[2])
 			if( ((seq->startdisp < seq->enddisp) && (seq->startdisp<=x && seq->enddisp>=x)) ||
 				((seq->startdisp > seq->enddisp) && (seq->startdisp>=x && seq->enddisp<=x)) )
 			{
-				if(sequence_is_free_transformable(seq)) {
+				if(seq_tx_test(seq)) {
 					
 					/* clamp handles to defined size in pixel space */
 					
@@ -662,7 +657,7 @@ static void reload_sound_strip(Scene *scene, char *name)
 		calc_sequence(seqact);
 
 		seq->strip= 0;
-		seq_free_sequence(seq);
+		seq_free_sequence(ed, seq);
 		BLI_remlink(ed->seqbasep, seq);
 
 		seq= ed->seqbasep->first;
@@ -702,7 +697,7 @@ static void reload_image_strip(Scene *scene, char *name)
 		calc_sequence(seqact);
 
 		seq->strip= 0;
-		seq_free_sequence(seq);
+		seq_free_sequence(ed, seq);
 		BLI_remlink(ed->seqbasep, seq);
 
 		update_changed_seq_and_deps(scene, seqact, 1, 1);
@@ -969,7 +964,7 @@ static void recurs_del_seq_flag(Scene *scene, ListBase *lb, short flag, short de
 			if(seq==last_seq) set_last_seq(scene, NULL);
 			if(seq->type==SEQ_META) recurs_del_seq_flag(scene, &seq->seqbase, flag, 1);
 			if(seq->ipo) seq->ipo->id.us--;
-			seq_free_sequence(seq);
+			seq_free_sequence((Editing *)scene->ed, seq);
 		}
 		seq= seqn;
 	}
@@ -1453,203 +1448,6 @@ void no_gaps(Scene *scene)
 }
 
 
-/* ****************** META ************************* */
-
-void make_meta(Scene *scene)
-{
-	Sequence *seq, *seqm, *next;
-	Editing *ed;
-	int tot;
-	
-	ed= scene->ed;
-	if(ed==NULL) return;
-
-	/* is there more than 1 select */
-	tot= 0;
-	seq= ed->seqbasep->first;
-	while(seq) {
-		if(seq->flag & SELECT) {
-			tot++;
-			if (seq->type == SEQ_RAM_SOUND) { 
-				error("Can't make Meta Strip from audio"); 
-				return; 
-			}
-		}
-		seq= seq->next;
-	}
-	if(tot < 1) return;
-
-	if(okee("Make Meta Strip")==0) return;
-
-	/* test relationships */
-	seq= ed->seqbasep->first;
-	while(seq) {
-		if(seq->flag & SELECT) {
-			if(seq->type & SEQ_EFFECT) {
-				if(seq->seq1 && 
-				   (seq->seq1->flag & SELECT)==0) tot= 0;
-				if(seq->seq2 &&
-				   (seq->seq2->flag & SELECT)==0) tot= 0;
-				if(seq->seq3 &&
-				   (seq->seq3->flag & SELECT)==0) tot= 0;
-			}
-		}
-		else if(seq->type & SEQ_EFFECT) {
-			if(seq->seq1 &&
-			   (seq->seq1->flag & SELECT)) tot= 0;
-			if(seq->seq2 &&
-			   (seq->seq2->flag & SELECT)) tot= 0;
-			if(seq->seq3 &&
-			   (seq->seq3->flag & SELECT)) tot= 0;
-		}
-		if(tot==0) break;
-		seq= seq->next;
-	}
-	if(tot==0) {
-		error("Please select all related strips");
-		return;
-	}
-
-	/* remove all selected from main list, and put in meta */
-
-	seqm= alloc_sequence(((Editing *)scene->ed)->seqbasep, 1, 1);
-	seqm->type= SEQ_META;
-	seqm->flag= SELECT;
-
-	seq= ed->seqbasep->first;
-	while(seq) {
-		next= seq->next;
-		if(seq!=seqm && (seq->flag & SELECT)) {
-			BLI_remlink(ed->seqbasep, seq);
-			BLI_addtail(&seqm->seqbase, seq);
-		}
-		seq= next;
-	}
-	calc_sequence(seqm);
-
-	seqm->strip= MEM_callocN(sizeof(Strip), "metastrip");
-	seqm->strip->len= seqm->len;
-	seqm->strip->us= 1;
-
-	if( test_overlap_seq(scene, seqm) ) shuffle_seq(scene, seqm);
-	
-	BIF_undo_push("Make Meta Strip, Sequencer");
-}
-
-static int seq_depends_on_meta(Sequence *seq, Sequence *seqm)
-{
-	if (seq == seqm) return 1;
-	else if (seq->seq1 && seq_depends_on_meta(seq->seq1, seqm)) return 1;
-	else if (seq->seq2 && seq_depends_on_meta(seq->seq2, seqm)) return 1;
-	else if (seq->seq3 && seq_depends_on_meta(seq->seq3, seqm)) return 1;
-	else return 0;
-}
-
-void un_meta(Scene *scene)
-{
-	Editing *ed;
-	Sequence *seq, *last_seq = get_last_seq(scene);
-
-	ed= scene->ed;
-	if(ed==NULL) return;
-
-	if(last_seq==0 || last_seq->type!=SEQ_META) return;
-
-	if(okee("Un Meta Strip")==0) return;
-
-	addlisttolist(ed->seqbasep, &last_seq->seqbase);
-
-	last_seq->seqbase.first= 0;
-	last_seq->seqbase.last= 0;
-
-	BLI_remlink(ed->seqbasep, last_seq);
-	seq_free_sequence(last_seq);
-
-	/* emtpy meta strip, delete all effects depending on it */
-	for(seq=ed->seqbasep->first; seq; seq=seq->next)
-		if((seq->type & SEQ_EFFECT) && seq_depends_on_meta(seq, last_seq))
-			seq->flag |= SEQ_FLAG_DELETE;
-
-	recurs_del_seq_flag(scene, ed->seqbasep, SEQ_FLAG_DELETE, 0);
-
-	/* test for effects and overlap */
-	SEQP_BEGIN(ed, seq) {
-		if(seq->flag & SELECT) {
-			seq->flag &= ~SEQ_OVERLAP;
-			if( test_overlap_seq(scene, seq) ) {
-				shuffle_seq(scene, seq);
-			}
-		}
-	}
-	SEQ_END;
-
-	sort_seq(scene);
-
-	BIF_undo_push("Un-Make Meta Strip, Sequencer");
-}
-
-void exit_meta(Scene *scene)
-{
-	Sequence *seq;
-	MetaStack *ms;
-	Editing *ed;
-
-	ed= scene->ed;
-	if(ed==NULL) return;
-
-	if(ed->metastack.first==0) return;
-
-	ms= ed->metastack.last;
-	BLI_remlink(&ed->metastack, ms);
-
-	ed->seqbasep= ms->oldbasep;
-
-	/* recalc all: the meta can have effects connected to it */
-	seq= ed->seqbasep->first;
-	while(seq) {
-		calc_sequence(seq);
-		seq= seq->next;
-	}
-
-	set_last_seq(scene, ms->parseq);
-
-	ms->parseq->flag |= SELECT;
-	recurs_sel_seq(ms->parseq);
-
-	MEM_freeN(ms);
-
-	BIF_undo_push("Exit Meta Strip, Sequence");
-}
-
-
-void enter_meta(Scene *scene)
-{
-	MetaStack *ms;
-	Editing *ed;
-	Sequence *last_seq= get_last_seq(scene);
-
-	ed= scene->ed;
-	if(ed==NULL) return;
-
-	if(last_seq==0 || last_seq->type!=SEQ_META || (last_seq->flag & SELECT)==0) {
-		exit_meta(scene);
-		return;
-	}
-
-	ms= MEM_mallocN(sizeof(MetaStack), "metastack");
-	BLI_addtail(&ed->metastack, ms);
-	ms->parseq= last_seq;
-	ms->oldbasep= ed->seqbasep;
-
-	ed->seqbasep= &last_seq->seqbase;
-
-	set_last_seq(scene, NULL);
-	BIF_undo_push("Enter Meta Strip, Sequence");
-}
-
-
-/* ****************** END META ************************* */
-
 static int seq_get_snaplimit(View2D *v2d)
 {
 	/* fake mouse coords to get the snap value
@@ -1970,7 +1768,7 @@ void transform_seq(Scene *scene, SpaceSeq *sseq, View2D *v2d, int mode, int cont
 						seq_tx_handle_xlimits(seq, sel_flag & SEQ_LEFTSEL, sel_flag & SEQ_RIGHTSEL);
 						
 						if( (sel_flag & (SEQ_LEFTSEL+SEQ_RIGHTSEL))==0 ) {
-							if(sequence_is_free_transformable(seq)) seq->start= ts->start+ ix;
+							if(seq_tx_test(seq)) seq->start= ts->start+ ix;
 
 							/* Y Transformation */
 							if(seq->depth==0) seq->machine= ts->machine+ iy;
@@ -2008,7 +1806,7 @@ void transform_seq(Scene *scene, SpaceSeq *sseq, View2D *v2d, int mode, int cont
 				for(seq_index=0, seq=seqar[0]; seq_index < totseq_index; seq=seqar[++seq_index]) {
 					if(seq->flag & SELECT && !(seq->depth==0 && seq->flag & SEQ_LOCK)) {
 						/* only move the contents of the metastrip otherwise the transformation is applied twice */
-						if (sequence_is_free_transformable(seq) && seq->type != SEQ_META) {
+						if (seq_tx_test(seq) && seq->type != SEQ_META) {
 							
 							move_left = move_right = 0;
 							
@@ -2292,7 +2090,7 @@ void seq_snap(Scene *scene, short event)
 	/* also check metas */
 	SEQP_BEGIN(ed, seq) {
 		if (seq->flag & SELECT && !(seq->depth==0 && seq->flag & SEQ_LOCK) &&
-		    sequence_is_free_transformable(seq)) {
+		    seq_tx_test(seq)) {
 			if((seq->flag & (SEQ_LEFTSEL+SEQ_RIGHTSEL))==0) {
 				seq->start= CFRA-seq->startofs+seq->startstill;
 			} else { 
@@ -2751,7 +2549,7 @@ static int sequencer_separate_images_exec(bContext *C, wmOperator *op)
 				start_ofs += step;
 			}
 
-			seq_free_sequence(seq);
+			seq_free_sequence(ed, seq);
 			seq = seq->next;
 		} else {
 			seq = seq->next;
@@ -2780,3 +2578,244 @@ void SEQUENCER_OT_separate_images(wmOperatorType *ot)
 
 	ot->poll= ED_operator_sequencer_active;
 }
+
+
+/* META Operators */
+
+/* separate_meta_toggle operator */
+static int sequencer_meta_toggle_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	Editing *ed= scene->ed;
+	Sequence *last_seq= get_last_seq(scene);
+	MetaStack *ms;
+
+
+
+	if(last_seq && last_seq->type==SEQ_META && last_seq->flag & SELECT) {
+		/* Enter Metastrip */
+		ms= MEM_mallocN(sizeof(MetaStack), "metastack");
+		BLI_addtail(&ed->metastack, ms);
+		ms->parseq= last_seq;
+		ms->oldbasep= ed->seqbasep;
+
+		ed->seqbasep= &last_seq->seqbase;
+
+		set_last_seq(scene, NULL);
+
+		ED_undo_push(C, "Enter Meta Strip, Sequence");
+	}
+	else {
+		/* Exit Metastrip (if possible) */
+
+		Sequence *seq;
+
+		if(ed->metastack.first==NULL)
+			return OPERATOR_CANCELLED;
+
+		ms= ed->metastack.last;
+		BLI_remlink(&ed->metastack, ms);
+
+		ed->seqbasep= ms->oldbasep;
+
+		/* recalc all: the meta can have effects connected to it */
+		for(seq= ed->seqbasep->first; seq; seq= seq->next)
+			calc_sequence(seq);
+
+		set_last_seq(scene, ms->parseq);
+
+		ms->parseq->flag |= SELECT;
+		recurs_sel_seq(ms->parseq);
+
+		MEM_freeN(ms);
+
+		ED_undo_push(C, "Exit Meta Strip, Sequence");
+	}
+
+	ED_area_tag_redraw(CTX_wm_area(C));
+	return OPERATOR_FINISHED;
+}
+
+void SEQUENCER_OT_meta_toggle(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Toggle Meta Strip";
+	ot->idname= "SEQUENCER_OT_meta_toggle";
+
+	/* api callbacks */
+	ot->exec= sequencer_meta_toggle_exec;
+
+	ot->poll= ED_operator_sequencer_active;
+}
+
+
+/* separate_meta_make operator */
+static int sequencer_meta_make_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	Editing *ed= scene->ed;
+	
+	Sequence *seq, *seqm, *next;
+	
+	int tot;
+
+	/* is there more than 1 select */
+	tot= 0;
+	seq= ed->seqbasep->first;
+	while(seq) {
+		if(seq->flag & SELECT) {
+			tot++;
+			if (seq->type == SEQ_RAM_SOUND) {
+				BKE_report(op->reports, RPT_ERROR, "Can't make Meta Strip from audio");
+				return OPERATOR_CANCELLED;;
+			}
+		}
+		seq= seq->next;
+	}
+	if(tot < 1) return OPERATOR_CANCELLED;;
+
+
+	/* test relationships */
+	seq= ed->seqbasep->first;
+	while(seq) {
+		if(seq->flag & SELECT) {
+			if(seq->type & SEQ_EFFECT) {
+				if(seq->seq1 &&
+				   (seq->seq1->flag & SELECT)==0) tot= 0;
+				if(seq->seq2 &&
+				   (seq->seq2->flag & SELECT)==0) tot= 0;
+				if(seq->seq3 &&
+				   (seq->seq3->flag & SELECT)==0) tot= 0;
+			}
+		}
+		else if(seq->type & SEQ_EFFECT) {
+			if(seq->seq1 &&
+			   (seq->seq1->flag & SELECT)) tot= 0;
+			if(seq->seq2 &&
+			   (seq->seq2->flag & SELECT)) tot= 0;
+			if(seq->seq3 &&
+			   (seq->seq3->flag & SELECT)) tot= 0;
+		}
+		if(tot==0) break;
+		seq= seq->next;
+	}
+
+	if(tot==0) {
+		BKE_report(op->reports, RPT_ERROR, "Please select all related strips");
+		return OPERATOR_CANCELLED;
+	}
+
+	/* remove all selected from main list, and put in meta */
+
+	seqm= alloc_sequence(((Editing *)scene->ed)->seqbasep, 1, 1);
+	seqm->type= SEQ_META;
+	seqm->flag= SELECT;
+
+	seq= ed->seqbasep->first;
+	while(seq) {
+		next= seq->next;
+		if(seq!=seqm && (seq->flag & SELECT)) {
+			BLI_remlink(ed->seqbasep, seq);
+			BLI_addtail(&seqm->seqbase, seq);
+		}
+		seq= next;
+	}
+	calc_sequence(seqm);
+
+	seqm->strip= MEM_callocN(sizeof(Strip), "metastrip");
+	seqm->strip->len= seqm->len;
+	seqm->strip->us= 1;
+	
+	set_last_seq(scene, seqm);
+
+	if( test_overlap_seq(scene, seqm) ) shuffle_seq(scene, seqm);
+
+	ED_undo_push(C, "Make Meta Strip, Sequencer");
+	
+	ED_area_tag_redraw(CTX_wm_area(C));
+	return OPERATOR_FINISHED;
+}
+
+void SEQUENCER_OT_meta_make(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Make Meta Strip";
+	ot->idname= "SEQUENCER_OT_meta_make";
+
+	/* api callbacks */
+	ot->invoke= WM_operator_confirm;
+	ot->exec= sequencer_meta_make_exec;
+
+	ot->poll= ED_operator_sequencer_active;
+}
+
+
+static int seq_depends_on_meta(Sequence *seq, Sequence *seqm)
+{
+	if (seq == seqm) return 1;
+	else if (seq->seq1 && seq_depends_on_meta(seq->seq1, seqm)) return 1;
+	else if (seq->seq2 && seq_depends_on_meta(seq->seq2, seqm)) return 1;
+	else if (seq->seq3 && seq_depends_on_meta(seq->seq3, seqm)) return 1;
+	else return 0;
+}
+
+/* separate_meta_make operator */
+static int sequencer_meta_separate_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	Editing *ed= scene->ed;
+
+	Sequence *seq, *last_seq = get_last_seq(scene);
+
+	if(last_seq==0 || last_seq->type!=SEQ_META)
+		return OPERATOR_CANCELLED;
+
+	addlisttolist(ed->seqbasep, &last_seq->seqbase);
+
+	last_seq->seqbase.first= 0;
+	last_seq->seqbase.last= 0;
+
+	BLI_remlink(ed->seqbasep, last_seq);
+	seq_free_sequence(ed, last_seq);
+
+	/* emtpy meta strip, delete all effects depending on it */
+	for(seq=ed->seqbasep->first; seq; seq=seq->next)
+		if((seq->type & SEQ_EFFECT) && seq_depends_on_meta(seq, last_seq))
+			seq->flag |= SEQ_FLAG_DELETE;
+
+	recurs_del_seq_flag(scene, ed->seqbasep, SEQ_FLAG_DELETE, 0);
+
+	/* test for effects and overlap */
+	SEQP_BEGIN(ed, seq) {
+		if(seq->flag & SELECT) {
+			seq->flag &= ~SEQ_OVERLAP;
+			if( test_overlap_seq(scene, seq) ) {
+				shuffle_seq(scene, seq);
+			}
+		}
+	}
+	SEQ_END;
+
+	sort_seq(scene);
+
+	ED_undo_push(C, "UnMeta Strip, Sequencer");
+
+	ED_area_tag_redraw(CTX_wm_area(C));
+	return OPERATOR_FINISHED;
+}
+
+void SEQUENCER_OT_meta_separate(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "UnMeta Strip";
+	ot->idname= "SEQUENCER_OT_meta_separate";
+
+	/* api callbacks */
+	ot->invoke= WM_operator_confirm;
+	ot->exec= sequencer_meta_separate_exec;
+
+	ot->poll= ED_operator_sequencer_active;
+}
+
+
+

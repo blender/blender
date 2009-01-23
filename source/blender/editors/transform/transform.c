@@ -261,6 +261,13 @@ void projectIntView(TransInfo *t, float *vec, int *adr)
 		adr[0]= out[0];
 		adr[1]= out[1];
 	}
+	else if(t->spacetype==SPACE_SEQ) { /* XXX not tested yet, but should work */
+		int out[2] = {0, 0};
+		
+		UI_view2d_view_to_region((View2D *)t->view, vec[0], vec[1], out, out+1);
+		adr[0]= out[0];
+		adr[1]= out[1];
+	}
 }
 
 void projectFloatView(TransInfo *t, float *vec, float *adr)

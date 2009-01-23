@@ -2311,6 +2311,12 @@ void flushTransSeq(TransInfo *t)
 	TransDataSeq *tdsq= NULL;
 	Sequence *seq;
 
+
+	/* prevent updating the same seq twice
+	 * if the transdata order is changed this will mess up
+	 * but so will TransDataSeq */
+	Sequence *seq_prev= NULL;
+
 	/* flush to 2d vector from internally used 3d vector */
 	for(a=0; a<t->total; a++, td++, td2d++) {
 
@@ -2325,22 +2331,38 @@ void flushTransSeq(TransInfo *t)
 
 		switch (tdsq->sel_flag) {
 		case SELECT:
-			seq->start= new_frame;
-			seq->machine= (int)(td2d->loc[1] + 0.5f);
+			if (seq->type != SEQ_META) /* for meta's, their children move */
+				seq->start= new_frame;
+			
+			if (seq->depth==0) {
+				seq->machine= (int)(td2d->loc[1] + 0.5f);
+				CLAMP(seq->machine, 1, MAXSEQ);
+			}
 			break;
 		case SEQ_LEFTSEL: /* no vertical transform  */
 			seq_tx_set_final_left(seq, new_frame);
-			seq_tx_handle_xlimits(seq, seq->flag&SEQ_LEFTSEL, seq->flag&SEQ_RIGHTSEL);
+			seq_tx_handle_xlimits(seq, tdsq->flag&SEQ_LEFTSEL, tdsq->flag&SEQ_RIGHTSEL);
 			fix_single_seq(seq); /* todo - move this into aftertrans update? - old seq tx needed it anyway */
 			break;
 		case SEQ_RIGHTSEL: /* no vertical transform  */
 			seq_tx_set_final_right(seq, new_frame);
-			seq_tx_handle_xlimits(seq, seq->flag&SEQ_LEFTSEL, seq->flag&SEQ_RIGHTSEL);
+			seq_tx_handle_xlimits(seq, tdsq->flag&SEQ_LEFTSEL, tdsq->flag&SEQ_RIGHTSEL);
 			fix_single_seq(seq); /* todo - move this into aftertrans update? - old seq tx needed it anyway */
 			break;
 		}
-		
-		calc_sequence(seq);
+
+		if (seq != seq_prev) {
+			if(seq->depth==0) {
+				/* Calculate this strip and all nested strips
+				 * children are ALWAYS transformed first
+				 * so we dont need to do this in another loop. */
+				calc_sequence(seq);
+			}
+			else {
+				calc_sequence_disp(seq);
+			}
+		}
+		seq_prev= seq;
 	}
 }
 
@@ -3263,8 +3285,86 @@ static short constraints_list_needinv(TransInfo *t, ListBase *list)
 }
 
 
+/* This function applies the rules for transforming a strip so duplicate
+ * checks dont need to be added in multiple places.
+ *
+ * count and recursive MUST be set.
+ *
+ * seq->depth must be set
+ */
+static void SeqTransInfo(Sequence *seq, int *recursive, int *count, int *flag)
+{
 
-static TransData *SeqToTransData(TransData *td, TransData2D *td2d, TransDataSeq *tdsq, Sequence *seq, int sel_flag)
+	if (seq->depth == 0) {
+
+		/* Count */
+
+		/* Non nested strips (resect selection and handles) */
+		if ((seq->flag & SELECT) == 0 || (seq->flag & SEQ_LOCK) || (seq_tx_test(seq) == 0)) {
+			*recursive= *count= *flag= 0;
+			return; /* unselected strip, lockedd or the strip is an effect - then dont bother */
+		}
+		else if ((seq->flag & (SEQ_LEFTSEL|SEQ_RIGHTSEL)) == (SEQ_LEFTSEL|SEQ_RIGHTSEL)) {
+			*flag= seq->flag;
+			*count= 2; /* we need 2 transdata's */
+		} else {
+			*flag= seq->flag;
+			*count= 1; /* selected or with a handle selected */
+		}
+
+		/* Recursive */
+
+		if ((seq->type == SEQ_META) && ((seq->flag & (SEQ_LEFTSEL|SEQ_RIGHTSEL)) == 0)) {
+			/* if any handles are selected, dont recurse */
+			*recursive = 1;
+		}
+		else {
+			*recursive = 0;
+		}
+	}
+	else {
+		/* Nested, different rules apply */
+		
+		if (seq->type == SEQ_META) {
+			/* Meta's can only directly be moved between channels since they
+			 * dont have their start and length set directly (children affect that)
+			 * since this Meta is nested we dont need any of its data infact.
+			 * calc_sequence() will update its settings when run on the toplevel meta */
+			*flag= 0;
+			*count= 0;
+			*recursive = 1;
+		}
+		else {
+			*flag= (seq->flag | SELECT) & ~(SEQ_LEFTSEL|SEQ_RIGHTSEL);
+			*count= 1; /* ignore the selection for nested */
+			*recursive = 0;
+		}
+	}
+}
+
+
+
+static int SeqTransCount(ListBase *seqbase, int depth)
+{
+	Sequence *seq;
+	int tot= 0, recursive, count, flag;
+
+	for (seq= seqbase->first; seq; seq= seq->next) {
+		seq->depth= depth;
+
+		SeqTransInfo(seq, &recursive, &count, &flag); /* ignore the flag */
+		tot += count;
+
+		if (recursive) {
+			tot += SeqTransCount(&seq->seqbase, depth+1);
+		}
+	}
+
+	return tot;
+}
+
+
+static TransData *SeqToTransData(TransData *td, TransData2D *td2d, TransDataSeq *tdsq, Sequence *seq, int flag, int sel_flag)
 {
 	switch(sel_flag) {
 	case SELECT:
@@ -3283,8 +3383,13 @@ static TransData *SeqToTransData(TransData *td, TransData2D *td2d, TransDataSeq 
 	td2d->loc2d = NULL;
 
 	
-	tdsq->sel_flag= sel_flag;
 	tdsq->seq= seq;
+
+	/* Use instead of seq->flag for nested strips and other
+	 * cases where the selection may need to be modified */
+	tdsq->flag= flag;
+	tdsq->sel_flag= sel_flag;
+	
 	
 	td->extra= (void *)tdsq; /* allow us to update the strip from here */
 
@@ -3307,6 +3412,50 @@ static TransData *SeqToTransData(TransData *td, TransData2D *td2d, TransDataSeq 
 	return td;
 }
 
+static int SeqToTransData_Recursive(ListBase *seqbase, TransData *td, TransData2D *td2d, TransDataSeq *tdsq)
+{
+	Sequence *seq;
+	int recursive, count, flag;
+	int tot= 0;
+	
+	for (seq= seqbase->first; seq; seq= seq->next) {
+
+		SeqTransInfo(seq, &recursive, &count, &flag);
+		
+		/* add children first so recalculating metastrips does nested strips first */
+		if (recursive) {
+			int tot_children= SeqToTransData_Recursive(&seq->seqbase, td, td2d, tdsq);
+			
+			td=		td +	tot_children;
+			td2d=	td2d +	tot_children;
+			tdsq=	tdsq +	tot_children;
+
+			tot += tot_children;
+		}
+
+		/* use 'flag' which is derived from seq->flag but modified for special cases */
+		if (flag & SELECT) {
+			if (flag & (SEQ_LEFTSEL|SEQ_RIGHTSEL)) {
+				if (flag & SEQ_LEFTSEL) {
+					SeqToTransData(td++, td2d++, tdsq++, seq, flag, SEQ_LEFTSEL);
+					tot++;
+				}
+				if (flag & SEQ_RIGHTSEL) {
+					SeqToTransData(td++, td2d++, tdsq++, seq, flag, SEQ_RIGHTSEL);
+					tot++;
+				}
+			}
+			else {
+				SeqToTransData(td++, td2d++, tdsq++, seq, flag, SELECT);
+				tot++;
+			}
+		}
+	}
+
+	return tot;
+}
+
+
 static void createTransSeqData(bContext *C, TransInfo *t)
 {
 	Scene *scene= CTX_data_scene(C);
@@ -3320,16 +3469,7 @@ static void createTransSeqData(bContext *C, TransInfo *t)
 	int count=0;
 	float cfra;
 
-	for (seq=ed->seqbasep->first; seq; seq= seq->next) {
-		if (seq->flag & SELECT) {
-			if ((seq->flag & (SEQ_LEFTSEL|SEQ_RIGHTSEL)) == (SEQ_LEFTSEL|SEQ_RIGHTSEL)) {
-				count += 2; /* transform both sides of the strip (not all that common) */
-			}
-			else {
-				count += 1;
-			}
-		}
-	}
+	count = SeqTransCount(ed->seqbasep, 0);
 
 	/* stop if trying to build list if nothing selected */
 	if (count == 0) {
@@ -3343,22 +3483,10 @@ static void createTransSeqData(bContext *C, TransInfo *t)
 	td2d = t->data2d = MEM_callocN(t->total*sizeof(TransData2D), "TransSeq TransData2D");
 	tdsq = t->customData= MEM_callocN(t->total*sizeof(TransDataSeq), "TransSeq TransDataSeq");
 
+	
+
 	/* loop 2: build transdata array */
-	for (seq=ed->seqbasep->first; seq; seq= seq->next) {
-		if (seq->flag & SELECT) {
-			if (seq->flag & (SEQ_LEFTSEL|SEQ_RIGHTSEL)) {
-				if (seq->flag & SEQ_LEFTSEL) {
-					SeqToTransData(td++, td2d++, tdsq++, seq, SEQ_LEFTSEL);
-				}
-				if (seq->flag & SEQ_RIGHTSEL) {
-					SeqToTransData(td++, td2d++, tdsq++, seq, SEQ_RIGHTSEL);
-				}
-			}
-			else {
-				SeqToTransData(td++, td2d++, tdsq++, seq, SELECT);
-			}
-		}
-	}
+	SeqToTransData_Recursive(ed->seqbasep, td, td2d, tdsq);
 }
 
 

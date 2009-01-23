@@ -137,7 +137,7 @@ struct SeqEffectHandle {
 /* sequence.c */
 
 // extern
-void seq_free_sequence(struct Sequence *seq);
+void seq_free_sequence(struct Editing *ed, struct Sequence *seq);
 void seq_free_strip(struct Strip *strip);
 void seq_free_editing(struct Editing *ed);
 char *give_seqname(struct Sequence *seq);
@@ -175,5 +175,7 @@ int seq_tx_get_final_right(struct Sequence *seq, int metaclip);
 void seq_tx_set_final_left(struct Sequence *seq, int val);
 void seq_tx_set_final_right(struct Sequence *seq, int val);
 void seq_tx_handle_xlimits(struct Sequence *seq, int leftflag, int rightflag);
+int seq_tx_test(struct Sequence * seq);
 int check_single_seq(struct Sequence *seq);
 void fix_single_seq(struct Sequence *seq);
+

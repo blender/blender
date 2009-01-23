@@ -72,6 +72,9 @@ void SEQUENCER_OT_unmute(struct wmOperatorType *ot);
 void SEQUENCER_OT_add_duplicate(struct wmOperatorType *ot);
 void SEQUENCER_OT_delete(struct wmOperatorType *ot);
 void SEQUENCER_OT_separate_images(struct wmOperatorType *ot);
+void SEQUENCER_OT_meta_toggle(struct wmOperatorType *ot);
+void SEQUENCER_OT_meta_make(struct wmOperatorType *ot);
+void SEQUENCER_OT_meta_separate(struct wmOperatorType *ot);
 
 
 /* sequencer_select.c */

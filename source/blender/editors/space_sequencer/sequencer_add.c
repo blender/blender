@@ -747,7 +747,7 @@ static int add_seq_effect(Scene *scene, View2D *v2d, int type, char *str)
 
 		if(newseq->plugin==0) {
 			BLI_remlink(ed->seqbasep, newseq);
-			seq_free_sequence(newseq);
+			seq_free_sequence(ed, newseq);
 			set_last_seq(scene, NULL);
 			return 0;
 		}
