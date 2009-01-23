@@ -289,15 +289,9 @@ bAnimListElem *make_new_animlistelem (void *data, short datatype, void *owner, s
 		
 		ale->data= data;
 		ale->type= datatype;
+			// XXX what is the point of the owner data?
 		ale->owner= owner;
 		ale->ownertype= ownertype;
-		
-		if ((owner) && (ownertype == ANIMTYPE_FCURVE)) {
-			FCurve *ofcu= (FCurve *)owner;
-			ale->grp= ofcu->grp;
-		}
-		else 
-			ale->grp= NULL;
 		
 		/* do specifics */
 		switch (datatype) {
@@ -664,7 +658,7 @@ static int animdata_filter_gpencil (ListBase *anim_data, bScreen *sc, int filter
 }
 #endif 
 
-#if 0 // XXX old anim sys
+
 static int animdata_filter_dopesheet_mats (ListBase *anim_data, bDopeSheet *ads, Base *base, int filter_mode)
 {
 	bAnimListElem *ale=NULL;
@@ -672,7 +666,7 @@ static int animdata_filter_dopesheet_mats (ListBase *anim_data, bDopeSheet *ads,
 	int items = 0;
 	
 	/* include materials-expand widget? */
-	if ((filter_mode & ANIMFILTER_CHANNELS) && !(filter_mode & (ANIMFILTER_IPOKEYS|ANIMFILTER_ONLYFCU))) {
+	if ((filter_mode & ANIMFILTER_CHANNELS) && !(filter_mode & ANIMFILTER_CURVESONLY)) {
 		ale= make_new_animlistelem(ob, ANIMTYPE_FILLMATD, base, ANIMTYPE_OBJECT);
 		if (ale) {
 			BLI_addtail(anim_data, ale);
@@ -681,7 +675,7 @@ static int animdata_filter_dopesheet_mats (ListBase *anim_data, bDopeSheet *ads,
 	}
 	
 	/* add materials? */
-	if (FILTER_MAT_OBJC(ob) || (filter_mode & ANIMFILTER_IPOKEYS) || (filter_mode & ANIMFILTER_ONLYFCU)) {
+	if (FILTER_MAT_OBJC(ob) || (filter_mode & ANIMFILTER_CURVESONLY)) {
 		short a;
 		
 		/* for each material, either add channels separately, or as ipo-block */
@@ -689,11 +683,11 @@ static int animdata_filter_dopesheet_mats (ListBase *anim_data, bDopeSheet *ads,
 			Material *ma= give_current_material(ob, a);
 			
 			/* for now, if no material returned, skip (this shouldn't confuse the user I hope) */
-			if (ELEM(NULL, ma, ma->ipo)) continue;
+			if (ELEM(NULL, ma, ma->adt)) continue;
 			
 			/* include material-expand widget? */
 			// hmm... do we need to store the index of this material in the array anywhere?
-			if (filter_mode & (ANIMFILTER_CHANNELS|ANIMFILTER_IPOKEYS)) {
+			if (filter_mode & ANIMFILTER_CHANNELS) {
 				ale= make_new_animlistelem(ma, ANIMTYPE_DSMAT, base, ANIMTYPE_OBJECT);
 				if (ale) {
 					BLI_addtail(anim_data, ale);
@@ -702,10 +696,8 @@ static int animdata_filter_dopesheet_mats (ListBase *anim_data, bDopeSheet *ads,
 			}
 			
 			/* add material's ipo-curve channels? */
-			if ( (FILTER_MAT_OBJD(ma) || (filter_mode & ANIMFILTER_ONLYFCU)) && 
-				  !(filter_mode & ANIMFILTER_IPOKEYS) ) 
-			{
-				items += animdata_filter_ipocurves(anim_data, ma->ipo, filter_mode, base, ANIMTYPE_OBJECT, (ID *)ma);
+			if (FILTER_MAT_OBJD(ma) || (filter_mode & ANIMFILTER_CURVESONLY)) {
+				//items += animdata_filter_ipocurves(anim_data, ma->ipo, filter_mode, base, ANIMTYPE_OBJECT, (ID *)ma);
 			}
 		}
 
@@ -714,6 +706,8 @@ static int animdata_filter_dopesheet_mats (ListBase *anim_data, bDopeSheet *ads,
 	/* return the number of items added to the list */
 	return items;
 }
+
+#if 0 // XXX old anim sys
 
 static int animdata_filter_dopesheet_cam (ListBase *anim_data, bDopeSheet *ads, Base *base, int filter_mode)
 {
@@ -826,7 +820,7 @@ static int animdata_filter_dopesheet_ob (ListBase *anim_data, bDopeSheet *ads, B
 		AnimData *adt= ob->adt;
 		
 		/* include action-expand widget? */
-		if ((filter_mode & ANIMFILTER_CHANNELS) && !(filter_mode & (ANIMFILTER_CURVESONLY))) {
+		if ((filter_mode & ANIMFILTER_CHANNELS) && !(filter_mode & ANIMFILTER_CURVESONLY)) {
 			ale= make_new_animlistelem(adt->action, ANIMTYPE_FILLACTD, base, ANIMTYPE_OBJECT);
 			if (ale) {
 				ale->id= (ID *)ob; // err.... is this a good idea?
@@ -846,7 +840,7 @@ static int animdata_filter_dopesheet_ob (ListBase *anim_data, bDopeSheet *ads, B
 	/* ShapeKeys? */
 	if ((key) && !(ads->filterflag & ADS_FILTER_NOSHAPEKEYS)) {
 		/* include shapekey-expand widget? */
-		if ((filter_mode & ANIMFILTER_CHANNELS) && !(filter_mode & (ANIMFILTER_IPOKEYS|ANIMFILTER_ONLYFCU))) {
+		if ((filter_mode & ANIMFILTER_CHANNELS) && !(filter_mode & ANIMFILTER_CURVESONLY)) {
 			ale= make_new_animlistelem(key, ANIMTYPE_DSSKEY, base, ANIMTYPE_OBJECT);
 			if (ale) {
 				BLI_addtail(anim_data, ale);
@@ -855,15 +849,18 @@ static int animdata_filter_dopesheet_ob (ListBase *anim_data, bDopeSheet *ads, B
 		}
 		
 		/* add channels */
-		if (FILTER_SKE_OBJD(key) || (filter_mode & ANIMFILTER_IPOKEYS) || (filter_mode & ANIMFILTER_ONLYFCU)) {
+		if (FILTER_SKE_OBJD(key) || (filter_mode & ANIMFILTER_CURVESONLY)) {
 			items += animdata_filter_shapekey(anim_data, key, filter_mode, ob, ANIMTYPE_OBJECT);
 		}
 	}
+#endif
 	
+
 	/* Materials? */
 	if ((ob->totcol) && !(ads->filterflag & ADS_FILTER_NOMAT))
 		items += animdata_filter_dopesheet_mats(anim_data, ads, base, filter_mode);
 	
+#if 0
 	/* Object Data */
 	switch (ob->type) {
 		case OB_CAMERA: /* ------- Camera ------------ */
@@ -888,7 +885,7 @@ static int animdata_filter_dopesheet_ob (ListBase *anim_data, bDopeSheet *ads, B
 		}
 			break;
 	}
-#endif // XXX fixme...
+#endif
 	
 	/* return the number of items added to the list */
 	return items;
@@ -936,6 +933,7 @@ static int animdata_filter_dopesheet (ListBase *anim_data, bDopeSheet *ads, int 
 					/* only selected should be shown */
 					continue;
 				}
+#if 0
 				if ((ads->filterflag & ADS_FILTER_NOARM) && (ob->type == OB_ARMATURE)) {
 					/* not showing armatures  */
 					continue;
@@ -944,6 +942,7 @@ static int animdata_filter_dopesheet (ListBase *anim_data, bDopeSheet *ads, int 
 					/* not showing objects that aren't armatures */
 					continue;
 				}
+#endif
 				
 				/* check filters for datatypes */
 				actOk= (ANIMDATA_HAS_KEYS(ob) /*&& !(ads->filterflag & ADS_FILTER_NOACTS)*/);

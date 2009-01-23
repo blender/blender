@@ -484,29 +484,35 @@ static FCurve *icu_to_fcu (IpoCurve *icu, char *actname, char *constname)
 	 *	- beztriples are more likely to be encountered as they are keyframes (the other type wasn't used yet)
 	 */
 	// XXX we need to cope with the nasty old 'bitflag' curves... that will be a task for later
+	// XXX we also need to correct values for object-rotation curves
 	fcu->totvert= icu->totvert;
 	
 	if (icu->bezt) {
+		BezTriple *dst, *src;
+		
 		/* allocate new array for keyframes/beztriples */
 		fcu->bezt= MEM_callocN(sizeof(BezTriple)*fcu->totvert, "BezTriples");
 		
-		/* check if we need to set interpolation settings (thus doing it the 'slow' way) */
-		if (icu->ipo != IPO_MIXED) {
-			BezTriple *dst, *src;
+		/* loop through copying all BezTriples individually, as we need to modify a few things */
+		for (dst=fcu->bezt, src=icu->bezt; i < fcu->totvert; i++, dst++, src++) {
+			/* firstly, copy BezTriple data */
+			*dst= *src;
 			
-			/* loop through copying all BezTriples, as we need to set interpolation settings too */
-			for (dst=fcu->bezt, src=icu->bezt; i < fcu->totvert; i++, dst++, src++) {
-				/* firstly, copy BezTriple data */
-				*dst= *src;
-				
-				/* now copy interpolation from curve */
+			/* now copy interpolation from curve (if not already set) */
+			if (icu->ipo != IPO_MIXED)
 				dst->ipo= icu->ipo;
+				
+			/* correct values for object rotation curves - they were degrees/10 */
+			// XXX for now, just make them into degrees 
+			if ((icu->blocktype == ID_OB) && ELEM3(icu->adrcode, OB_ROT_X, OB_ROT_Y, OB_ROT_Z)) {
+				dst->vec[0][0] *= 10.0f;
+				dst->vec[1][0] *= 10.0f;
+				dst->vec[2][0] *= 10.0f;
 			}
 		}
-		else {
-			/* interpolation already set (from AnimSys2 branch) */
-			memcpy(fcu->bezt, icu->bezt, sizeof(BezTriple)*fcu->totvert);
-		}
+		
+		/* free this data now */
+		MEM_freeN(icu->bezt);
 	}
 	else if (icu->bp) {
 		/* TODO: need to convert from BPoint type to the more compact FPoint type... but not priority, since no data used this */
@@ -568,7 +574,6 @@ static FCurve *icu_to_fcu (IpoCurve *icu, char *actname, char *constname)
 static void ipo_to_animdata (ID *id, Ipo *ipo, char *actname, char *constname)
 {
 	AnimData *adt= BKE_animdata_from_id(id);
-	bAction *act= adt->action;
 	//bActionGroup *grp;
 	IpoCurve *icu, *icn;
 	FCurve *fcu;
@@ -576,6 +581,10 @@ static void ipo_to_animdata (ID *id, Ipo *ipo, char *actname, char *constname)
 	/* sanity check */
 	if ELEM(NULL, id, ipo)
 		return;
+	if (adt == NULL) {
+		printf("ERROR ipo_to_animdata(): adt invalid \n");
+		return;
+	}
 	
 	printf("ipo to animdata - ID:%s, IPO:%s, actname:%s constname:%s  curves:%d \n", 
 		id->name+2, ipo->id.name+2, (actname)?actname:"<None>", (constname)?constname:"<None>", 
@@ -609,11 +618,13 @@ static void ipo_to_animdata (ID *id, Ipo *ipo, char *actname, char *constname)
 		/* conversion path depends on whether it's a driver or not */
 		if (fcu->driver == NULL) {
 			/* try to get action */
-			if (adt->action == NULL)
-				act= adt->action= add_empty_action("ConvertedAction"); // XXX we need a better name for this...
+			if (adt->action == NULL) {
+				adt->action= add_empty_action("ConvertedAction"); // XXX we need a better name for this...
+				printf("added new action \n");
+			}
 				
 			/* add F-Curve to action */
-			BLI_addtail(&act->curves, fcu);
+			BLI_addtail(&adt->action->curves, fcu);
 		}
 		else {
 			/* add F-Curve to AnimData's drivers */
@@ -646,6 +657,7 @@ static void action_to_animdata (ID *id, bAction *act)
 	/* check if we need to set this Action as the AnimData's action */
 	if (adt->action == NULL) {
 		/* set this Action as AnimData's Action */
+		printf("act_to_adt - set adt action to act \n");
 		adt->action= act;
 	}
 		

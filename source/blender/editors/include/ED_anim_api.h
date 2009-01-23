@@ -93,10 +93,9 @@ typedef struct bAnimListElem {
 	void	*key_data;	/* motion data - ipo or ipo-curve */
 	short	datatype;	/* type of motion data to expect */
 	
-	struct ID *id;				/* ID block (ID_SC, ID_SCE, or ID_OB) that owns the channel */
-	struct bActionGroup *grp;	/* action group that owns the channel (only for Action/Dopesheet) */
+	struct ID *id;				/* ID block that channel is attached to (may be used  */
 	
-	void 	*owner;		/* will either be an action channel or fake ipo-channel (for keys) */
+	void 	*owner;		/* group or channel which acts as this channel's owner */
 	short	ownertype;	/* type of owner */
 } bAnimListElem;
 

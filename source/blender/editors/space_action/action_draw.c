@@ -617,11 +617,11 @@ void draw_channel_names(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 				{
 					FCurve *fcu = (FCurve *)ale->data;
 					
-					indent = 2;
+					indent = 0;
 					protect = -1; // for now, until this can be supported by others
 					
-					group= (ale->grp) ? 1 : 0;
-					grp= ale->grp;
+					//group= (ale->grp) ? 1 : 0;
+					//grp= ale->grp;
 					
 					if (ale->id) {
 						if (GS(ale->id->name) == ID_MA)
