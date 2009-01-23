@@ -244,10 +244,16 @@ static void view3d_modal_keymaps(wmWindowManager *wm, ARegion *ar, int stype)
 	else
 		WM_event_remove_keymap_handler(&ar->handlers, keymap);
 	
-	
 	keymap= WM_keymap_listbase(wm, "EditMesh", 0, 0);
 	if(stype==NS_EDITMODE_MESH)
 		WM_event_add_keymap_handler(&ar->handlers, keymap);
+	else
+		WM_event_remove_keymap_handler(&ar->handlers, keymap);
+
+	/* editfont keymap swallows all... */
+	keymap= WM_keymap_listbase(wm, "Font", 0, 0);
+	if(stype==NS_EDITMODE_TEXT)
+		WM_event_add_keymap_handler_priority(&ar->handlers, keymap, 10);
 	else
 		WM_event_remove_keymap_handler(&ar->handlers, keymap);
 	
@@ -458,6 +464,7 @@ void ED_spacetype_view3d(void)
 	/* regions: main window */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype view3d region");
 	art->regionid = RGN_TYPE_WINDOW;
+	art->keymapflag= ED_KEYMAP_FRAMES;
 	art->draw= view3d_main_area_draw;
 	art->init= view3d_main_area_init;
 	art->free= view3d_main_area_free;
@@ -470,7 +477,7 @@ void ED_spacetype_view3d(void)
 	art= MEM_callocN(sizeof(ARegionType), "spacetype view3d region");
 	art->regionid = RGN_TYPE_HEADER;
 	art->minsizey= HEADERY;
-	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D;
+	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D|ED_KEYMAP_FRAMES;
 	art->listener= view3d_header_area_listener;
 	
 	art->init= view3d_header_area_init;

@@ -493,9 +493,12 @@ static int wm_userdef_event_map(int kmitype)
 static int wm_eventmatch(wmEvent *winevent, wmKeymapItem *kmi)
 {
 	int kmitype= wm_userdef_event_map(kmi->type);
-	
+
 	/* the matching rules */
-	if(winevent->type!=kmitype) return 0;
+	if(kmitype==KM_TEXTINPUT)
+		if(ISKEYBOARD(winevent->type)) return 1;
+	if(kmitype!=KM_ANY)
+		if(winevent->type!=kmitype) return 0;
 	
 	if(kmi->val!=KM_ANY)
 		if(winevent->val!=kmi->val) return 0;
@@ -877,6 +880,20 @@ wmEventHandler *WM_event_add_keymap_handler(ListBase *handlers, ListBase *keymap
 	return handler;
 }
 
+/* priorities not implemented yet, for time being just insert in begin of list */
+wmEventHandler *WM_event_add_keymap_handler_priority(ListBase *handlers, ListBase *keymap, int priority)
+{
+	wmEventHandler *handler;
+	
+	WM_event_remove_keymap_handler(handlers, keymap);
+	
+	handler= MEM_callocN(sizeof(wmEventHandler), "event keymap handler");
+	BLI_addhead(handlers, handler);
+	handler->keymap= keymap;
+	
+	return handler;
+}
+
 wmEventHandler *WM_event_add_keymap_handler_bb(ListBase *handlers, ListBase *keymap, rcti *bblocal, rcti *bbwin)
 {
 	wmEventHandler *handler= WM_event_add_keymap_handler(handlers, keymap);
@@ -1114,6 +1131,10 @@ void wm_event_add_ghostevent(wmWindow *win, int type, void *customdata)
 			event.type= convert_key(kd->key);
 			event.ascii= kd->ascii;
 			event.val= (type==GHOST_kEventKeyDown); /* XXX eventmatch uses defines, bad code... */
+			
+			/* exclude arrow keys, esc, etc from text input */
+			if(type==GHOST_kEventKeyUp || (event.ascii<32 && event.ascii>14))
+				event.ascii= '\0';
 			
 			/* modifiers */
 			if (event.type==LEFTSHIFTKEY || event.type==RIGHTSHIFTKEY) {

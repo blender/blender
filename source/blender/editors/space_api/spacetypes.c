@@ -40,6 +40,7 @@
 #include "BIF_gl.h"
 
 #include "ED_anim_api.h"
+#include "ED_curve.h"
 #include "ED_mesh.h"
 #include "ED_object.h"
 #include "ED_sculpt.h"
@@ -79,6 +80,7 @@ void ED_spacetypes_init(void)
 	ED_operatortypes_mesh();
 	ED_operatortypes_sculpt();
 	ED_operatortypes_uvedit();
+	ED_operatortypes_curve();
 	ui_view2d_operatortypes();
 	
 	spacetypes = BKE_spacetypes_list();
@@ -101,6 +103,7 @@ void ED_spacetypes_keymap(wmWindowManager *wm)
 	ED_keymap_object(wm);
 	ED_keymap_mesh(wm);
 	ED_keymap_uvedit(wm);
+	ED_keymap_curve(wm);
 	UI_view2d_keymap(wm);
 
 	spacetypes = BKE_spacetypes_list();

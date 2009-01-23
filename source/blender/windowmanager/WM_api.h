@@ -88,6 +88,8 @@ char		*WM_key_event_operator_string(const struct bContext *C, const char *opname
 struct wmEventHandler *WM_event_add_keymap_handler(ListBase *handlers, ListBase *keymap);
 						/* boundbox, optional subwindow boundbox for offset */
 struct wmEventHandler *WM_event_add_keymap_handler_bb(ListBase *handlers, ListBase *keymap, rcti *bb, rcti *swinbb);
+						/* priority not implemented, it adds in begin */
+struct wmEventHandler *WM_event_add_keymap_handler_priority(ListBase *handlers, ListBase *keymap, int priority);
 
 void		WM_event_remove_keymap_handler(ListBase *handlers, ListBase *keymap);
 

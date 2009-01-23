@@ -4053,16 +4053,16 @@ static void curve_draw_speed(Scene *scene, Object *ob)
 }
 
 
-static void tekentextcurs(void)
+static void draw_textcurs(float textcurs[][2])
 {
 	cpack(0);
 	
 	set_inverted_drawing(1);
 	glBegin(GL_QUADS);
-	glVertex2fv(G.textcurs[0]);
-	glVertex2fv(G.textcurs[1]);
-	glVertex2fv(G.textcurs[2]);
-	glVertex2fv(G.textcurs[3]);
+	glVertex2fv(textcurs[0]);
+	glVertex2fv(textcurs[1]);
+	glVertex2fv(textcurs[2]);
+	glVertex2fv(textcurs[3]);
 	glEnd();
 	set_inverted_drawing(0);
 }
@@ -4932,8 +4932,8 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 		case OB_FONT:
 			cu= ob->data;
 			if (cu->disp.first==NULL) makeDispListCurveTypes(scene, ob, 0);
-			if(cu->editstr) {
-				tekentextcurs();
+			if(cu->editfont) {
+				draw_textcurs(cu->editfont->textcurs);
 
 				if (cu->flag & CU_FAST) {
 					cpack(0xFFFFFF);
@@ -4987,17 +4987,17 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 				setlinestyle(0);
 
 
-				if (getselection(ob, &selstart, &selend) && selboxes) {
+				if (BKE_font_getselection(ob, &selstart, &selend) && cu->selboxes) {
 					float selboxw;
 
 					cpack(0xffffff);
 					set_inverted_drawing(1);	    	
 					for (i=0; i<(selend-selstart+1); i++) {
-						SelBox *sb = &(selboxes[i]);
+						SelBox *sb = &(cu->selboxes[i]);
 
 						if (i<(selend-selstart)) {
-							if (selboxes[i+1].y == sb->y)
-								selboxw= selboxes[i+1].x - sb->x;
+							if (cu->selboxes[i+1].y == sb->y)
+								selboxw= cu->selboxes[i+1].x - sb->x;
 							else
 								selboxw= sb->w;
 						}

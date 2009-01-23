@@ -56,6 +56,7 @@
 #include "BKE_anim.h"  
 #include "BKE_curve.h"  
 #include "BKE_displist.h"  
+#include "BKE_font.h" 
 #include "BKE_global.h" 
 #include "BKE_key.h"  
 #include "BKE_library.h"  
@@ -86,14 +87,32 @@ void unlink_curve(Curve *cu)
 	cu->key= 0;
 }
 
+/* frees editcurve entirely */
+void BKE_free_editfont(Curve *cu)
+{
+	if(cu->editfont) {
+		EditFont *ef= cu->editfont;
+		
+		if(ef->oldstr) MEM_freeN(ef->oldstr);
+		if(ef->oldstrinfo) MEM_freeN(ef->oldstrinfo);
+		if(ef->textbuf) MEM_freeN(ef->textbuf);
+		if(ef->textbufinfo) MEM_freeN(ef->textbufinfo);
+		if(ef->copybuf) MEM_freeN(ef->copybuf);
+		if(ef->copybufinfo) MEM_freeN(ef->copybufinfo);
+		
+		MEM_freeN(ef);
+		cu->editfont= NULL;
+	}
+}
 
-/* niet curve zelf vrijgeven */
+/* don't free curve itself */
 void free_curve(Curve *cu)
 {
 
 	freeNurblist(&cu->nurb);
 	BLI_freelistN(&cu->bev);
 	freedisplist(&cu->disp);
+	BKE_free_editfont(cu);
 	
 	if(cu->editnurb) {
 		freeNurblist(cu->editnurb);
@@ -130,6 +149,18 @@ Curve *add_curve(char *name, int type)
 	cu->texflag= CU_AUTOSPACE;
 	
 	cu->bb= unit_boundbox();
+	
+	if(type==OB_FONT) {
+		cu->vfont= cu->vfontb= cu->vfonti= cu->vfontbi= get_builtin_font();
+		cu->vfont->id.us+=4;
+		cu->str= MEM_mallocN(12, "str");
+		strcpy(cu->str, "Text");
+		cu->pos= 4;
+		cu->strinfo= MEM_callocN(12*sizeof(CharInfo), "strinfo");
+		cu->totbox= cu->actbox= 1;
+		cu->tb= MEM_callocN(MAXTEXTBOX*sizeof(TextBox), "textbox");
+		cu->tb[0].w = cu->tb[0].h = 0.0;
+	}
 	
 	return cu;
 }

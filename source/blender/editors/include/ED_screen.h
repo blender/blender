@@ -115,6 +115,7 @@ int		ED_operator_uvedit(struct bContext *C);
 #define ED_KEYMAP_VIEW2D	2
 #define ED_KEYMAP_MARKERS	4
 #define ED_KEYMAP_ANIMATION	8
+#define ED_KEYMAP_FRAMES	16
 
 #endif /* ED_SCREEN_H */
 

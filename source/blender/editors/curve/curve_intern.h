@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *
- * The Original Code is Copyright (C) 2009 Blender Foundation.
+ * The Original Code is Copyright (C) 2008 Blender Foundation.
  * All rights reserved.
  *
  * 
@@ -25,36 +25,18 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef ED_CURVE_H
-#define ED_CURVE_H
 
-struct wmWindowManager;
-struct Scene;
-struct Object;
-struct bContext;
-struct Base;
-struct View3D;
+#ifndef ED_CURVE_INTERN_H
+#define ED_CURVE_INTERN_H
 
-/* curve_ops.c */
-void ED_operatortypes_curve(void);
-void ED_keymap_curve(struct wmWindowManager *wm);
+/* internal exports only */
+struct wmOperatorType;
 
-/* editcurve.c */
-void	undo_push_curve	(struct bContext *C, char *name);
-ListBase *curve_get_editcurve(struct Object *ob);
+/* lorem.c */
+char *ED_lorem;
 
-void	load_editNurb	(struct Object *obedit);
-void	make_editNurb	(struct Object *obedit);
-void	remake_editNurb	(struct Object *obedit);
-void	free_editNurb	(struct Object *obedit);
+/* editfont.c */
+void FONT_OT_textedit(struct wmOperatorType *ot);
 
-void mouse_nurb(struct bContext *C, short mval[2], int extend);
-
-/* editfont.h */
-void make_editText		(struct Object *obedit);
-void load_editText		(struct Object *obedit);
-void remake_editText	(struct Object *obedit);
-void free_editText		(struct Object *obedit);
-
-#endif /* ED_CURVE_H */
+#endif /* ED_UTIL_INTERN_H */
 

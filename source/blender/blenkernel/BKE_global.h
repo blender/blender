@@ -76,8 +76,6 @@ typedef struct Global {
 	/* Used for BMesh transformations */
 	struct BME_Glob *editBMesh;
     
-	float textcurs[4][2];
-    
 	/* Frank's variables */
 	int	save_over;
 

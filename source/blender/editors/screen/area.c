@@ -556,6 +556,10 @@ static void ed_default_handlers(wmWindowManager *wm, ListBase *handlers, int fla
 		ListBase *keymap= WM_keymap_listbase(wm, "Animation", 0, 0);
 		WM_event_add_keymap_handler(handlers, keymap);
 	}
+	if(flag & ED_KEYMAP_FRAMES) {
+		ListBase *keymap= WM_keymap_listbase(wm, "Frames", 0, 0);
+		WM_event_add_keymap_handler(handlers, keymap);
+	}
 }
 
 

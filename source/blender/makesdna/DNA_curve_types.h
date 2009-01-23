@@ -46,6 +46,8 @@ struct Key;
 struct Material;
 struct VFont;
 struct AnimData;
+struct SelBox;
+struct EditFont;
 
 /* These two Lines with # tell makesdna this struct can be excluded. */
 #
@@ -180,7 +182,9 @@ typedef struct Curve {
 	float linewidth;
 
 	char *str;
-	char *editstr;
+	struct SelBox *selboxes;
+	struct EditFont *editfont;
+	
 	char family[24];
 	struct VFont *vfont;
 	struct VFont *vfontb;

@@ -2816,8 +2816,8 @@ void OBJECT_OT_set_center(wmOperatorType *ot)
 void ED_object_exit_editmode(bContext *C, int flag)
 {
 	Scene *scene= CTX_data_scene(C);
-	Object *ob;
 	Object *obedit= CTX_data_edit_object(C);
+	Object *ob;
 	int freedata = flag & EM_FREEDATA;
 	
 	if(obedit==NULL) return;
@@ -2852,7 +2852,8 @@ void ED_object_exit_editmode(bContext *C, int flag)
 		if(freedata) free_editNurb(obedit);
 	}
 	else if(obedit->type==OB_FONT && freedata) {
-//		load_editText();
+		load_editText(obedit);
+		if(freedata) free_editText(obedit);
 	}
 	else if(obedit->type==OB_LATTICE) {
 		load_editLatt(obedit);
@@ -2945,8 +2946,8 @@ void ED_object_enter_editmode(bContext *C, int flag)
 	}
 	else if(ob->type==OB_FONT) {
 		scene->obedit= ob; // XXX for context
-//		ok= 1;
-// XXX		make_editText();
+		ok= 1;
+ 		make_editText(ob);
 		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_EDITMODE_TEXT, scene);
 	}
 	else if(ob->type==OB_MBALL) {
@@ -4348,7 +4349,7 @@ void copy_attr(Scene *scene, View3D *v3d, short event)
 						cu1->vfontbi= cu->vfontbi;
 						id_us_plus((ID *)cu1->vfontbi);						
 
-						text_to_curve(scene, base->object, 0);		/* needed? */
+						BKE_text_to_curve(scene, base->object, 0);		/* needed? */
 
 						
 						strcpy(cu1->family, cu->family);
