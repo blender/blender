@@ -132,7 +132,9 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_add_primitive_ico_sphere);
 	WM_operatortype_append(MESH_OT_add_duplicate);
 	WM_operatortype_append(MESH_OT_removedoublesflag);
-
+	WM_operatortype_append(MESH_OT_extrude_mesh);
+	WM_operatortype_append(MESH_OT_edit_faces);
+	
 }
 
 /* note mesh keymap also for other space? */
@@ -168,6 +170,8 @@ void ED_keymap_mesh(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "MESH_OT_subdivide_multi_fractal", WKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_subdivide_smooth", WKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);*/
 	WM_keymap_add_item(keymap, "MESH_OT_removedoublesflag", VKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "MESH_OT_extrude_mesh", EKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "MESH_OT_edit_faces", PKEY, KM_PRESS, KM_CTRL, 0);
 	
 	
 
