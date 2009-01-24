@@ -448,17 +448,6 @@ void recalcData(TransInfo *t)
 			DAG_object_flush_update(G.scene, t->obedit, OB_RECALC_DATA);  /* sets recalc flags */
 		}
 	}
-	else if( (t->flag & T_POSE) && t->poseobj) {
-		Object *ob= t->poseobj;
-		bArmature *arm= ob->data;
-		
-		/* old optimize trick... this enforces to bypass the depgraph */
-		if (!(arm->flag & ARM_DELAYDEFORM)) {
-			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);  /* sets recalc flags */
-		}
-		else
-			where_is_pose(ob);
-	}
 	else if(G.f & G_PARTICLEEDIT) {
 		flushTransParticles(t);
 	}
@@ -573,6 +562,17 @@ void recalcData(TransInfo *t)
 				transform_armature_mirror_update(t->obedit);
 			
 		}
+	}
+	else if( (t->flag & T_POSE) && t->poseobj) {
+		Object *ob= t->poseobj;
+		bArmature *arm= ob->data;
+		
+		/* old optimize trick... this enforces to bypass the depgraph */
+		if (!(arm->flag & ARM_DELAYDEFORM)) {
+			DAG_object_flush_update(scene, ob, OB_RECALC_DATA);  /* sets recalc flags */
+		}
+		else
+			where_is_pose(scene, ob);
 	}
 	else {
 		for(base= FIRSTBASE; base; base= base->next) {

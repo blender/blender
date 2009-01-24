@@ -866,7 +866,7 @@ static void ipo_to_animdata (ID *id, Ipo *ipo, char *actname, char *constname)
 	}
 }
 
-/* Convert Action-block to new system
+/* Convert Action-block to new system 
  * NOTE: we need to be careful here, as same data-structs are used for new system too!
  */
 static void action_to_animdata (ID *id, bAction *act)

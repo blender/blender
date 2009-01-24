@@ -98,6 +98,7 @@
 #include "BKE_utildefines.h"
 #include "BKE_bmesh.h"
 #include "BKE_context.h"
+#include "BKE_report.h"
 
 //#include "BIF_editaction.h"
 //#include "BIF_editview.h"
@@ -579,7 +580,7 @@ static void add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tr
 	/* proper way to get parent transform + own transform + constraints transform */
 	Mat3CpyMat4(omat, ob->obmat);
 	
-	if(pchan->parent) { 	 
+	if (pchan->parent) { 	 
 		if(pchan->bone->flag & BONE_HINGE) 	 
 			Mat3CpyMat4(pmat, pchan->parent->bone->arm_mat); 	 
 		else 	 
@@ -610,7 +611,7 @@ static void add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tr
 	Mat3MulMat3(td->axismtx, omat, pmat);
 	Mat3Ortho(td->axismtx);
 	
-	if(t->mode==TFM_BONESIZE) {
+	if (t->mode==TFM_BONESIZE) {
 		bArmature *arm= t->poseobj->data;
 		
 		if(arm->drawtype==ARM_ENVELOPE) {
@@ -627,7 +628,7 @@ static void add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tr
 	}
 	
 	/* in this case we can do target-less IK grabbing */
-	if(t->mode==TFM_TRANSLATION) {
+	if (t->mode==TFM_TRANSLATION) {
 		bKinematicConstraint *data= has_targetless_ik(pchan);
 		if(data) {
 			if(data->flag & CONSTRAINT_IK_TIP) {
@@ -689,7 +690,7 @@ static void set_pose_transflags(TransInfo *t, Object *ob)
 				bone->flag |= BONE_TRANSFORM;
 			else
 				bone->flag &= ~BONE_TRANSFORM;
-
+			
 			bone->flag &= ~BONE_HINGE_CHILD_TRANSFORM;
 			bone->flag &= ~BONE_TRANSFORM_CHILD;
 		}
@@ -952,8 +953,6 @@ static short pose_grab_with_ik(Object *ob)
 /* only called with pose mode active object now */
 static void createTransPose(bContext *C, TransInfo *t, Object *ob)
 {
-	// TRANSFORM_FIX_ME
-#if 0
 	bArmature *arm;
 	bPoseChannel *pchan;
 	TransData *td;
@@ -964,16 +963,16 @@ static void createTransPose(bContext *C, TransInfo *t, Object *ob)
 	t->total= 0;
 	
 	/* check validity of state */
-	arm=get_armature (ob);
-	if (arm==NULL || ob->pose==NULL) return;
+	arm= get_armature(ob);
+	if ((arm==NULL) || (ob->pose==NULL)) return;
 	
 	if (arm->flag & ARM_RESTPOS) {
-		if(ELEM(t->mode, TFM_DUMMY, TFM_BONESIZE)==0) {
-			notice("Pose edit not possible while Rest Position is enabled");
+		if (ELEM(t->mode, TFM_DUMMY, TFM_BONESIZE)==0) {
+			//notice("Pose edit not possible while Rest Position is enabled");
+			BKE_report(CTX_reports(C), RPT_ERROR, "Can't select linked when sync selection is enabled.");
 			return;
 		}
 	}
-	if (!(ob->lay & G.vd->lay)) return;
 
 	/* do we need to add temporal IK chains? */
 	if ((arm->flag & ARM_AUTO_IK) && t->mode==TFM_TRANSLATION) {
@@ -989,10 +988,6 @@ static void createTransPose(bContext *C, TransInfo *t, Object *ob)
 	t->flag |= T_POSE;
 	t->poseobj= ob;	/* we also allow non-active objects to be transformed, in weightpaint */
 	
-	/* make sure the lock is set OK, unlock can be accidentally saved? */
-	ob->pose->flag |= POSE_LOCKED;
-	ob->pose->flag &= ~POSE_DO_UNLOCK;
-
 	/* init trans data */
     td = t->data = MEM_callocN(t->total*sizeof(TransData), "TransPoseBone");
     tdx = t->ext = MEM_callocN(t->total*sizeof(TransDataExtension), "TransPoseBoneExt");
@@ -1004,18 +999,20 @@ static void createTransPose(bContext *C, TransInfo *t, Object *ob)
 	
 	/* use pose channels to fill trans data */
 	td= t->data;
-	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-		if(pchan->bone->flag & BONE_TRANSFORM) {
+	for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+		if (pchan->bone->flag & BONE_TRANSFORM) {
 			add_pose_transdata(t, pchan, ob, td);
 			td++;
 		}
 	}
 	
-	if(td != (t->data+t->total)) printf("Bone selection count error\n");
+	if(td != (t->data+t->total)) {
+		// printf("Bone selection count error\n");
+		BKE_report(CTX_reports(C), RPT_DEBUG, "Bone selection count error.");
+	}
 	
 	/* initialise initial auto=ik chainlen's? */
 	if (ik_on) transform_autoik_update(t, 0);
-#endif
 }
 
 /* ********************* armature ************** */
@@ -4605,7 +4602,9 @@ void createTransData(bContext *C, TransInfo *t)
 		}
 	}
 	else if (ob && (ob->flag & OB_POSEMODE)) {
-		createTransPose(C, t, OBACT);
+		// XXX this is currently limited to active armature only... 
+		// XXX active-layer checking isn't done as that should probably be checked through context instead
+		createTransPose(C, t, ob);
 	}
 	else if (G.f & G_WEIGHTPAINT) {
 		/* exception, we look for the one selected armature */
