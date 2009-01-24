@@ -31,36 +31,11 @@
 #ifndef LBM_FLUIDSIM_H
 #define LBM_FLUIDSIM_H
 
-struct Mesh;
-struct DerivedMesh;
-struct Object;
-struct fluidsimDerivedMesh;
-
-extern double fluidsimViscosityPreset[6];
-extern char* fluidsimViscosityPresetString[6];
-
-/* allocates and initializes fluidsim data */
-struct FluidsimSettings* fluidsimSettingsNew(struct Object *srcob);
-
-/* frees internal data itself */
-void fluidsimSettingsFree(struct FluidsimSettings* sb);
-
-/* duplicate internal data */
-struct FluidsimSettings* fluidsimSettingsCopy(struct FluidsimSettings* sb);
-
-/* export blender geometry to fluid solver */
-void fluidsimBake(struct Object* ob);
-
-/* read & write bobj / bobj.gz files (e.g. for fluid sim surface meshes) */
-void writeBobjgz(char *filename, struct Object *ob, int useGlobalCoords, int append, float time);
-struct Mesh* readBobjgz(char *filename, struct Mesh *orgmesh, float* bbstart, float *bbsize);
-
-/* create derived mesh for fluid sim objects */
-// WARNING - currently implemented in DerivedMesh.c!
-void loadFluidsimMesh(struct Object *srcob, int useRenderParams);
+/* note; elbeem.h was exported all over, should only expose LBM_fluidsim.h */
+#include "elbeem.h"
 
 /* run simulation with given config file */
-// WARNING - implemented in intern/elbeem/blendercall.cpp
+// implemented in intern/elbeem/blendercall.cpp
 int performElbeemSimulation(char *cfgfilename);
 
 
