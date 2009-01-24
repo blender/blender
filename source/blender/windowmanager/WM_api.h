@@ -158,6 +158,7 @@ void		WM_gesture_end(struct bContext *C, struct wmGesture *gesture);
 
 			/* radial control operator */
 int		WM_radial_control_invoke(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
+int		WM_radial_control_modal(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
 void		WM_OT_radial_control_partial(struct wmOperatorType *ot);
 
 			/* OpenGL wrappers, mimicking opengl syntax */

@@ -46,6 +46,20 @@ static void *rna_Brush_active_texture_get(PointerRNA *ptr)
 	return brush->mtex[(int)brush->texact];
 }
 
+static float rna_Brush_rotation_get(PointerRNA *ptr)
+{
+	Brush *brush= (Brush*)ptr->data;
+	const float conv = 57.295779506;
+	return brush->rot * conv;
+}
+
+static void rna_Brush_rotation_set(PointerRNA *ptr, float v)
+{
+	Brush *brush= (Brush*)ptr->data;
+	const float conv = 0.017453293;
+	brush->rot = v * conv;
+}
+
 #else
 
 void rna_def_brush(BlenderRNA *brna)
@@ -122,6 +136,12 @@ void rna_def_brush(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "alpha");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Strength", "The amount of pressure on the brush.");
+
+	prop= RNA_def_property(srna, "rotation", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "rot");
+	RNA_def_property_range(prop, 0, 360);
+	RNA_def_property_float_funcs(prop, "rna_Brush_rotation_get", "rna_Brush_rotation_set", NULL);
+	RNA_def_property_ui_text(prop, "Rotation", "Angle of the brush texture.");
 	
 	/* flag */
 	prop= RNA_def_property(srna, "airbrush", PROP_BOOLEAN, PROP_NONE);

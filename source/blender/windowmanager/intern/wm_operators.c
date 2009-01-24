@@ -50,6 +50,7 @@
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h" /* for paint cursor */
+#include "IMB_imbuf_types.h"
 
 #include "ED_fileselect.h"
 #include "ED_screen.h"
@@ -875,35 +876,88 @@ void WM_OT_lasso_gesture(wmOperatorType *ot)
 
 /* *********************** radial control ****************** */
 
+const int WM_RADIAL_CONTROL_DISPLAY_SIZE = 200;
+
 typedef struct wmRadialControl {
-	float radius;
+	int mode;
+	float initial_value, value, max_value;
 	int initial_mouse[2];
 	void *cursor;
-	// XXX: texture data
+	GLuint tex;
 } wmRadialControl;
 
 static void wm_radial_control_paint(bContext *C, int x, int y, void *customdata)
 {
-	wmRadialControl *p = (wmRadialControl*)customdata;
+	wmRadialControl *rc = (wmRadialControl*)customdata;
 	ARegion *ar = CTX_wm_region(C);
+	float r1, r2, r3, angle;
 
 	/* Keep cursor in the original place */
-	x = p->initial_mouse[0] - ar->winrct.xmin;
-	y = p->initial_mouse[1] - ar->winrct.ymin;
+	x = rc->initial_mouse[0] - ar->winrct.xmin;
+	y = rc->initial_mouse[1] - ar->winrct.ymin;
+
+	glPushMatrix();
 	
 	glTranslatef((float)x, (float)y, 0.0f);
-	
+
+	if(rc->mode == WM_RADIALCONTROL_SIZE) {
+		r1= rc->value;
+		r2= rc->initial_value;
+		r3= r1;
+	} else if(rc->mode == WM_RADIALCONTROL_STRENGTH) {
+		r1= (1 - rc->value) * WM_RADIAL_CONTROL_DISPLAY_SIZE;
+		r2= WM_RADIAL_CONTROL_DISPLAY_SIZE;
+		r3= WM_RADIAL_CONTROL_DISPLAY_SIZE;
+	} else if(rc->mode == WM_RADIALCONTROL_ANGLE) {
+		r1= r2= WM_RADIAL_CONTROL_DISPLAY_SIZE;
+		r3= WM_RADIAL_CONTROL_DISPLAY_SIZE;
+		angle = rc->value;
+	}
+
 	glColor4ub(255, 255, 255, 128);
 	glEnable( GL_LINE_SMOOTH );
 	glEnable(GL_BLEND);
-	glutil_draw_lined_arc(0.0, M_PI*2.0, p->radius, 40);
+
+	if(rc->mode == WM_RADIALCONTROL_ANGLE)
+		fdrawline(0, 0, WM_RADIAL_CONTROL_DISPLAY_SIZE, 0);
+
+	if(rc->tex) {
+		const float str = rc->mode == WM_RADIALCONTROL_STRENGTH ? (rc->value + 0.5) : 1;
+
+		glRotatef(angle, 0, 0, 1);
+
+		glBindTexture(GL_TEXTURE_2D, rc->tex);
+
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+		glEnable(GL_TEXTURE_2D);
+		glBegin(GL_QUADS);
+		glColor4f(0,0,0, str);
+		glTexCoord2f(0,0);
+		glVertex2f(-r3, -r3);
+		glTexCoord2f(1,0);
+		glVertex2f(r3, -r3);
+		glTexCoord2f(1,1);
+		glVertex2f(r3, r3);
+		glTexCoord2f(0,1);
+		glVertex2f(-r3, r3);
+		glEnd();
+		glDisable(GL_TEXTURE_2D);
+	}
+
+	glColor4ub(255, 255, 255, 128);	
+	if(rc->mode == WM_RADIALCONTROL_ANGLE)
+		fdrawline(0, 0, WM_RADIAL_CONTROL_DISPLAY_SIZE, 0);
+	glutil_draw_lined_arc(0.0, M_PI*2.0, r1, 40);
+	glutil_draw_lined_arc(0.0, M_PI*2.0, r2, 40);
 	glDisable(GL_BLEND);
 	glDisable( GL_LINE_SMOOTH );
 	
-	glTranslatef((float)-x, (float)-y, 0.0f);
+	glPopMatrix();
 }
 
-static int wm_radial_control_modal(bContext *C, wmOperator *op, wmEvent *event)
+int WM_radial_control_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
 	wmRadialControl *rc = (wmRadialControl*)op->customdata;
 	int mode, initial_mouse[2], delta[2];
@@ -923,13 +977,16 @@ static int wm_radial_control_modal(bContext *C, wmOperator *op, wmEvent *event)
 		if(mode == WM_RADIALCONTROL_SIZE)
 			new_value = dist;
 		else if(mode == WM_RADIALCONTROL_STRENGTH) {
-			float fin = (200.0f - dist) * 0.5f;
-			new_value = fin>=0 ? fin : 0;
+			new_value = 1 - dist / WM_RADIAL_CONTROL_DISPLAY_SIZE;
 		} else if(mode == WM_RADIALCONTROL_ANGLE)
 			new_value = ((int)(atan2(delta[1], delta[0]) * (180.0 / M_PI)) + 180);
 		
-		if(event->ctrl)
-			new_value = ((int)new_value + 5) / 10*10;	
+		if(event->ctrl) {
+			if(mode == WM_RADIALCONTROL_STRENGTH)
+				new_value = ((int)(new_value * 100) / 10*10) / 100.0f;
+			else
+				new_value = ((int)new_value + 5) / 10*10;
+		}
 		
 		break;
 	case ESCKEY:
@@ -943,8 +1000,14 @@ static int wm_radial_control_modal(bContext *C, wmOperator *op, wmEvent *event)
 		break;
 	}
 
+	/* Clamp */
+	if(new_value > rc->max_value)
+		new_value = rc->max_value;
+	else if(new_value < 0)
+		new_value = 0;
+
 	/* Update paint data */
-	rc->radius = new_value;
+	rc->value = new_value;
 
 	RNA_float_set(op->ptr, "new_value", new_value);
 
@@ -958,6 +1021,7 @@ static int wm_radial_control_modal(bContext *C, wmOperator *op, wmEvent *event)
 	return ret;
 }
 
+/* Expects the operator customdata to be an ImBuf (or NULL) */
 int WM_radial_control_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	wmRadialControl *rc = MEM_callocN(sizeof(wmRadialControl), "radial control");
@@ -965,19 +1029,37 @@ int WM_radial_control_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	float initial_value = RNA_float_get(op->ptr, "initial_value");
 	int mouse[2] = {event->x, event->y};
 
-	if(mode == WM_RADIALCONTROL_SIZE)
+	if(mode == WM_RADIALCONTROL_SIZE) {
+		rc->max_value = 200;
 		mouse[0]-= initial_value;
-	else if(mode == WM_RADIALCONTROL_STRENGTH)
-		mouse[0]-= 200 - 2*initial_value;
+	}
+	else if(mode == WM_RADIALCONTROL_STRENGTH) {
+		rc->max_value = 1;
+		mouse[0]-= WM_RADIAL_CONTROL_DISPLAY_SIZE * (1 - initial_value);
+	}
 	else if(mode == WM_RADIALCONTROL_ANGLE) {
-		mouse[0]-= 200 * cos(initial_value * M_PI / 180.0);
-		mouse[1]-= 200 * sin(initial_value * M_PI / 180.0);
+		rc->max_value = 360;
+		mouse[0]-= WM_RADIAL_CONTROL_DISPLAY_SIZE * cos(initial_value);
+		mouse[1]-= WM_RADIAL_CONTROL_DISPLAY_SIZE * sin(initial_value);
+		initial_value *= 180.0f/M_PI;
+	}
+
+	if(op->customdata) {
+		ImBuf *im = (ImBuf*)op->customdata;
+		/* Build GL texture */
+		glGenTextures(1, &rc->tex);
+		glBindTexture(GL_TEXTURE_2D, rc->tex);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, im->x, im->y, 0, GL_ALPHA, GL_FLOAT, im->rect_float);
+		MEM_freeN(im->rect_float);
+		MEM_freeN(im);
 	}
 
 	RNA_int_set_array(op->ptr, "initial_mouse", mouse);
 	RNA_float_set(op->ptr, "new_value", initial_value);
 		
 	op->customdata = rc;
+	rc->mode = mode;
+	rc->initial_value = initial_value;
 	rc->initial_mouse[0] = mouse[0];
 	rc->initial_mouse[1] = mouse[1];
 	rc->cursor = WM_paint_cursor_activate(CTX_wm_manager(C), op->type->poll,
@@ -986,7 +1068,7 @@ int WM_radial_control_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	/* add modal handler */
 	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
 	
-	wm_radial_control_modal(C, op, event);
+	WM_radial_control_modal(C, op, event);
 	
 	return OPERATOR_RUNNING_MODAL;
 }
@@ -1000,8 +1082,6 @@ void WM_OT_radial_control_partial(wmOperatorType *ot)
 		{WM_RADIALCONTROL_STRENGTH, "STRENGTH", "Strength", ""},
 		{WM_RADIALCONTROL_ANGLE, "ANGLE", "Angle", ""},
 		{0, NULL, NULL, NULL}};
-
-	ot->modal= wm_radial_control_modal;
 
 	/* Should be set in custom invoke() */
 	RNA_def_float(ot->srna, "initial_value", 0, 0, FLT_MAX, "Initial Value", "", 0, FLT_MAX);

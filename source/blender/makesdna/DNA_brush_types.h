@@ -63,9 +63,13 @@ typedef struct Brush {
 	float rgb[3];				/* color */
 	float alpha;				/* opacity */
 
+	float rot;				/* rotation in radians */
+
 	short texact;				/* active texture */
 	char sculpt_tool;			/* active tool */
 	char tex_mode;
+	
+	char pad[4];
 } Brush;
 
 /* Brush.flag */

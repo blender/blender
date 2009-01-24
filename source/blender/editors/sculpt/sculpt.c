@@ -609,32 +609,6 @@ static void flip_coord(float out[3], float in[3], const char symm)
 		out[2]= in[2];
 }
 
-/* Use the warpfac field in MTex to store a rotation value for sculpt textures. Value is in degrees */
-static float sculpt_tex_angle(Sculpt *sd)
-{
-	Brush *br = sd->brush;
-	if(br->texact!=-1 && br->mtex[br->texact])
-		return br->mtex[br->texact]->warpfac;
-	return 0;
-}
-
-static void set_tex_angle(Sculpt *sd, const float f)
-{
-	Brush *br = sd->brush;
-	if(br->texact != -1 && br->mtex[br->texact])
-		br->mtex[br->texact]->warpfac = f;
-}
-	
-static float to_rad(const float deg)
-{
-	return deg * (M_PI/180.0f);
-}
-
-static float to_deg(const float rad)
-{
-	return rad * (180.0f/M_PI);
-}
-
 /* Get a pixel from the texcache at (px, py) */
 static unsigned char get_texcache_pixel(const SculptSession *ss, int px, int py)
 {
@@ -701,7 +675,7 @@ static float tex_strength(Sculpt *sd, float *point, const float len)
 	}
 	else if(ss->texcache) {
 		const float bsize= ss->cache->pixel_radius * 2;
-		const float rot= to_rad(sculpt_tex_angle(sd)) + ss->cache->rotation;
+		const float rot= sd->brush->rot + ss->cache->rotation;
 		int px, py;
 		float flip[3], point_2d[2];
 
@@ -1016,7 +990,7 @@ static void projverts_clear_inside(SculptSession *ss)
 		ss->projverts[i].inside = 0;
 }
 
-static void sculpt_update_tex(Sculpt *sd)
+static void sculpt_update_tex(Sculpt *sd, int half_size)
 {
 	SculptSession *ss= sd->session;
 	Brush *br = sd->brush;
@@ -1035,7 +1009,7 @@ static void sculpt_update_tex(Sculpt *sd)
 	}
 
 	/* Need to allocate a bigger buffer for bigger brush size */
-	ss->texcache_side = sd->brush->size * 2;
+	ss->texcache_side = half_size * 2;
 	if(!ss->texcache || ss->texcache_side > ss->texcache_actual) {
 		ss->texcache = MEM_callocN(sizeof(int) * ss->texcache_side * ss->texcache_side, "Sculpt Texture cache");
 		ss->texcache_actual = ss->texcache_side;
@@ -1073,99 +1047,6 @@ static void sculpt_update_tex(Sculpt *sd)
 		}
 	}
 }
-
-/* XXX: Used anywhere?
-void sculptmode_set_strength(const int delta)
-{
-	int val = sculptmode_brush()->strength + delta;
-	if(val < 1) val = 1;
-	if(val > 100) val = 100;
-	sculptmode_brush()->strength= val;
-}*/
-
-/* XXX: haven't brought in the radial control files, not sure where to put them. Note that all the paint modes should have access to radial control! */
-#if 0
-static void sculpt_radialcontrol_callback(const int mode, const int val)
-{
-	SculptSession *ss = sculpt_session();
-	BrushData *br = sculptmode_brush();
-
-	if(mode == RADIALCONTROL_SIZE)
-		br->size = val;
-	else if(mode == RADIALCONTROL_STRENGTH)
-		br->strength = val;
-	else if(mode == RADIALCONTROL_ROTATION)
-		set_tex_angle(val);
-
-	ss->radialcontrol = NULL;
-}
-
-/* Returns GL handle to brush texture */
-static GLuint sculpt_radialcontrol_calctex()
-{
-	Sculpt *sd= sculpt_data();
-	SculptSession *ss= sculpt_session();
-	int i, j;
-	const int tsz = ss->texcache_side;
-	float *texdata= MEM_mallocN(sizeof(float)*tsz*tsz, "Brush preview");
-	GLuint tex;
-
-	if(sd->tex_mode!=SCULPTREPT_3D)
-		sculptmode_update_tex();
-	for(i=0; i<tsz; ++i)
-		for(j=0; j<tsz; ++j) {
-			float magn= sqrt(pow(i-tsz/2,2)+pow(j-tsz/2,2));
-			if(sd->texfade)
-				texdata[i*tsz+j]= curve_strength(magn,tsz/2);
-			else
-				texdata[i*tsz+j]= magn < tsz/2 ? 1 : 0;
-		}
-	if(sd->texact != -1 && ss->texcache) {
-		for(i=0; i<tsz; ++i)
-			for(j=0; j<tsz; ++j) {
-				const int col= ss->texcache[i*tsz+j];
-				texdata[i*tsz+j]*= (((char*)&col)[0]+((char*)&col)[1]+((char*)&col)[2])/3.0f/255.0f;
-			}
-	}
-		
-	glGenTextures(1, &tex);
-	glBindTexture(GL_TEXTURE_2D, tex);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, tsz, tsz, 0, GL_ALPHA, GL_FLOAT, texdata);
-	MEM_freeN(texdata);
-
-	return tex;
-}
-
-void sculpt_radialcontrol_start(int mode)
-{
-	Sculpt *sd = sculpt_data();
-	SculptSession *ss = sculpt_session();
-	BrushData *br = sculptmode_brush();
-	int orig=1, max=100;
-
-	if(mode == RADIALCONTROL_SIZE) {
-		orig = br->size;
-		max = 200;
-	}
-	else if(mode == RADIALCONTROL_STRENGTH) {
-		orig = br->strength;
-		max = 100;
-	}
-	else if(mode == RADIALCONTROL_ROTATION) {
-		if(sd->texact!=-1 && sd->mtex[sd->texact]) {
-			orig = sculpt_tex_angle();
-			max = 360;
-		}
-		else
-			mode = RADIALCONTROL_NONE;
-	}
-
-	if(mode != RADIALCONTROL_NONE) {
-		ss->radialcontrol= radialcontrol_start(mode, sculpt_radialcontrol_callback, orig, max,
-						       sculpt_radialcontrol_calctex());
-	}
-}
-#endif
 
 void sculptmode_selectbrush_menu(void)
 {
@@ -1344,6 +1225,43 @@ void sculptmode_draw_mesh(int only_damaged)
 }
 #endif
 
+static int sculpt_poll(bContext *C)
+{
+	return G.f & G_SCULPTMODE && CTX_wm_area(C)->spacetype == SPACE_VIEW3D &&
+		CTX_wm_region(C)->regiontype == RGN_TYPE_WINDOW;
+}
+
+/*** Sculpt Cursor ***/
+static void draw_paint_cursor(bContext *C, int x, int y, void *customdata)
+{
+	Sculpt *sd= CTX_data_tool_settings(C)->sculpt;
+	
+	glTranslatef((float)x, (float)y, 0.0f);
+	
+	glColor4ub(255, 100, 100, 128);
+	glEnable( GL_LINE_SMOOTH );
+	glEnable(GL_BLEND);
+	glutil_draw_lined_arc(0.0, M_PI*2.0, sd->brush->size, 40);
+	glDisable(GL_BLEND);
+	glDisable( GL_LINE_SMOOTH );
+	
+	glTranslatef((float)-x, (float)-y, 0.0f);
+}
+
+static void toggle_paint_cursor(bContext *C)
+{
+	Sculpt *s = CTX_data_scene(C)->toolsettings->sculpt;
+
+	if(s->session->cursor) {
+		WM_paint_cursor_end(CTX_wm_manager(C), s->session->cursor);
+		s->session->cursor = NULL;
+	}
+	else {
+		s->session->cursor =
+			WM_paint_cursor_activate(CTX_wm_manager(C), sculpt_poll, draw_paint_cursor, NULL);
+	}
+}
+
 static void sculpt_undo_push(bContext *C, Sculpt *sd)
 {
 	switch(sd->brush->sculpt_tool) {
@@ -1366,10 +1284,37 @@ static void sculpt_undo_push(bContext *C, Sculpt *sd)
 	}
 }
 
-static int sculpt_poll(bContext *C)
+static ImBuf *sculpt_radial_control_texture(bContext *C)
 {
-	return G.f & G_SCULPTMODE && CTX_wm_area(C)->spacetype == SPACE_VIEW3D &&
-		CTX_wm_region(C)->regiontype == RGN_TYPE_WINDOW;
+	Sculpt *s = CTX_data_scene(C)->toolsettings->sculpt;
+	ImBuf *im = MEM_callocN(sizeof(ImBuf), "radial control texture");
+	unsigned int *texcache;
+	int side = 256;
+	int half = side / 2;
+	int i, j;
+
+	sculpt_update_tex(s, half);
+	texcache = s->session->texcache;
+	im->rect_float = MEM_callocN(sizeof(float) * side * side, "radial control rect");
+	im->x = im->y = side;
+
+	for(i=0; i<side; ++i) {
+		for(j=0; j<side; ++j) {
+			float magn= sqrt(pow(i - half, 2) + pow(j - half, 2));
+			im->rect_float[i*side + j]= curve_strength(s->brush->curve, magn, half);
+		}
+	}
+
+	/* Modulate curve with texture */
+	if(texcache) {
+		for(i=0; i<side; ++i)
+			for(j=0; j<side; ++j) {
+				const int col= texcache[i*side+j];
+				im->rect_float[i*side+j]*= (((char*)&col)[0]+((char*)&col)[1]+((char*)&col)[2])/3.0f/255.0f;
+			}
+	}
+
+	return im;
 }
 
 static int sculpt_radial_control_invoke(bContext *C, wmOperator *op, wmEvent *event)
@@ -1382,11 +1327,23 @@ static int sculpt_radial_control_invoke(bContext *C, wmOperator *op, wmEvent *ev
 		original_value = br->size;
 	else if(mode == WM_RADIALCONTROL_STRENGTH)
 		original_value = br->alpha;
-	/*else if(mode == WM_RADIALCONTROL_ANGLE)
-	  original_value = br->rotation;*/
+	else if(mode == WM_RADIALCONTROL_ANGLE)
+		original_value = br->rot;
+
+	toggle_paint_cursor(C);
 
 	RNA_float_set(op->ptr, "initial_value", original_value);
+	op->customdata = sculpt_radial_control_texture(C);
+
 	return WM_radial_control_invoke(C, op, event);
+}
+
+static int sculpt_radial_control_modal(bContext *C, wmOperator *op, wmEvent *event)
+{
+	int ret = WM_radial_control_modal(C, op, event);
+	if(ret != OPERATOR_RUNNING_MODAL)
+		toggle_paint_cursor(C);
+	return ret;
 }
 
 static int sculpt_radial_control_exec(bContext *C, wmOperator *op)
@@ -1394,13 +1351,14 @@ static int sculpt_radial_control_exec(bContext *C, wmOperator *op)
 	Brush *br = CTX_data_scene(C)->toolsettings->sculpt->brush;
 	int mode = RNA_int_get(op->ptr, "mode");
 	float new_value = RNA_float_get(op->ptr, "new_value");
+	const float conv = 0.017453293;
 
 	if(mode == WM_RADIALCONTROL_SIZE)
 		br->size = new_value;
 	else if(mode == WM_RADIALCONTROL_STRENGTH)
 		br->alpha = new_value;
-	/*else if(mode == WM_RADIALCONTROL_ANGLE)
-	  br->rotation = new_value;*/
+	else if(mode == WM_RADIALCONTROL_ANGLE)
+		br->rot = new_value * conv;
 
 	return OPERATOR_FINISHED;
 }
@@ -1414,6 +1372,7 @@ static void SCULPT_OT_radial_control(wmOperatorType *ot)
 	ot->idname= "SCULPT_OT_radial_control";
 
 	ot->invoke= sculpt_radial_control_invoke;
+	ot->modal= sculpt_radial_control_modal;
 	ot->exec= sculpt_radial_control_exec;
 	ot->poll= sculpt_poll;
 }
@@ -1618,7 +1577,7 @@ static int sculpt_brush_stroke_invoke(bContext *C, wmOperator *op, wmEvent *even
 	/* TODO: Shouldn't really have to do this at the start of every
 	   stroke, but sculpt would need some sort of notification when
 	   changes are made to the texture. */
-	sculpt_update_tex(sd);
+	sculpt_update_tex(sd, sd->brush->size);
 
 	/* add modal handler */
 	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
@@ -1699,7 +1658,7 @@ static int sculpt_brush_stroke_exec(bContext *C, wmOperator *op)
 	view3d_operator_needs_opengl(C);
 	sculpt_update_cache_invariants(sd, C, op);
 	sculptmode_update_all_projverts(sd->session);
-	sculpt_update_tex(sd);
+	sculpt_update_tex(sd, sd->brush->size);
 
 	RNA_BEGIN(op->ptr, itemptr, "stroke") {
 		sculpt_update_cache_variants(sd, &itemptr);
@@ -1759,23 +1718,6 @@ static void SCULPT_OT_brush_stroke(wmOperatorType *ot)
 
 /**** Toggle operator for turning sculpt mode on or off ****/
 
-/* XXX: The code for drawing all the paint cursors is really the same, would be better to unify them */
-static void draw_paint_cursor(bContext *C, int x, int y, void *customdata)
-{
-	Sculpt *sd= CTX_data_tool_settings(C)->sculpt;
-	
-	glTranslatef((float)x, (float)y, 0.0f);
-	
-	glColor4ub(255, 100, 100, 128);
-	glEnable( GL_LINE_SMOOTH );
-	glEnable(GL_BLEND);
-	glutil_draw_lined_arc(0.0, M_PI*2.0, sd->brush->size, 40);
-	glDisable(GL_BLEND);
-	glDisable( GL_LINE_SMOOTH );
-	
-	glTranslatef((float)-x, (float)-y, 0.0f);
-}
-
 static int sculpt_toggle_mode(bContext *C, wmOperator *op)
 {
 	ToolSettings *ts = CTX_data_tool_settings(C);
@@ -1784,7 +1726,7 @@ static int sculpt_toggle_mode(bContext *C, wmOperator *op)
 		/* Leave sculptmode */
 		G.f &= ~G_SCULPTMODE;
 
-		WM_paint_cursor_end(CTX_wm_manager(C), ts->sculpt->session->cursor);
+		toggle_paint_cursor(C);
 
 		sculptsession_free(ts->sculpt);
 
@@ -1806,9 +1748,7 @@ static int sculpt_toggle_mode(bContext *C, wmOperator *op)
 			MEM_freeN(ts->sculpt->session);
 		ts->sculpt->session = MEM_callocN(sizeof(SculptSession), "sculpt session");
 
-		/* Activate visible brush */
-		ts->sculpt->session->cursor =
-			WM_paint_cursor_activate(CTX_wm_manager(C), sculpt_poll, draw_paint_cursor, NULL);
+		toggle_paint_cursor(C);
 
 
 
