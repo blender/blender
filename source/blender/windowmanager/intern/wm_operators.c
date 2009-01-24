@@ -924,7 +924,10 @@ static void wm_radial_control_paint(bContext *C, int x, int y, void *customdata)
 	if(rc->tex) {
 		const float str = rc->mode == WM_RADIALCONTROL_STRENGTH ? (rc->value + 0.5) : 1;
 
-		glRotatef(angle, 0, 0, 1);
+		if(rc->mode == WM_RADIALCONTROL_ANGLE) {
+			glRotatef(angle, 0, 0, 1);
+			fdrawline(0, 0, WM_RADIAL_CONTROL_DISPLAY_SIZE, 0);
+		}
 
 		glBindTexture(GL_TEXTURE_2D, rc->tex);
 
@@ -947,8 +950,6 @@ static void wm_radial_control_paint(bContext *C, int x, int y, void *customdata)
 	}
 
 	glColor4ub(255, 255, 255, 128);	
-	if(rc->mode == WM_RADIALCONTROL_ANGLE)
-		fdrawline(0, 0, WM_RADIAL_CONTROL_DISPLAY_SIZE, 0);
 	glutil_draw_lined_arc(0.0, M_PI*2.0, r1, 40);
 	glutil_draw_lined_arc(0.0, M_PI*2.0, r2, 40);
 	glDisable(GL_BLEND);

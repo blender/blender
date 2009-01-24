@@ -34,15 +34,10 @@
 #include "DNA_vec_types.h"
 #include "BKE_sculpt.h"
 
-struct BrushAction;
 struct Brush;
-struct IndexNode;
-struct KeyBlock;
 struct Mesh;
 struct Object;
-struct PartialVisibility;
 struct Scene;
-struct ScrArea;
 struct Sculpt;
 struct SculptStroke;
 

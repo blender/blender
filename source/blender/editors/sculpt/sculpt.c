@@ -271,7 +271,7 @@ static float brush_strength(Sculpt *sd, StrokeCache *cache)
 /* For clipping against a mirror modifier */
 static void sculpt_clip(StrokeCache *cache, float *co, const float val[3])
 {
-	char i;
+	int i;
 	for(i=0; i<3; ++i) {
 		if((cache->flag & (CLIP_X << i)) && (fabs(co[i]) <= cache->clip_tolerance[i]))
 			co[i]= 0.0f;
