@@ -3294,9 +3294,10 @@ static short constraints_list_needinv(TransInfo *t, ListBase *list)
 /* This function applies the rules for transforming a strip so duplicate
  * checks dont need to be added in multiple places.
  *
- * count and recursive MUST be set.
+ * recursive, count and flag MUST be set.
  *
- * seq->depth must be set
+ * seq->depth must be set before running this function so we know if the strips
+ * are root level or not
  */
 static void SeqTransInfo(TransInfo *t, Sequence *seq, int *recursive, int *count, int *flag)
 {
@@ -3357,22 +3358,24 @@ static void SeqTransInfo(TransInfo *t, Sequence *seq, int *recursive, int *count
 				*count= 0;
 				*flag= 0;
 			}
-			else if ((seq->flag & (SEQ_LEFTSEL|SEQ_RIGHTSEL)) == (SEQ_LEFTSEL|SEQ_RIGHTSEL)) {
-				*flag= seq->flag;
-				*count= 2; /* we need 2 transdata's */
-			} else {
-				*flag= seq->flag;
-				*count= 1; /* selected or with a handle selected */
-			}
-
-			/* Recursive */
-
-			if ((seq->type == SEQ_META) && ((seq->flag & (SEQ_LEFTSEL|SEQ_RIGHTSEL)) == 0)) {
-				/* if any handles are selected, dont recurse */
-				*recursive = 1;
-			}
 			else {
-				*recursive = 0;
+				if ((seq->flag & (SEQ_LEFTSEL|SEQ_RIGHTSEL)) == (SEQ_LEFTSEL|SEQ_RIGHTSEL)) {
+					*flag= seq->flag;
+					*count= 2; /* we need 2 transdata's */
+				} else {
+					*flag= seq->flag;
+					*count= 1; /* selected or with a handle selected */
+				}
+
+				/* Recursive */
+
+				if ((seq->type == SEQ_META) && ((seq->flag & (SEQ_LEFTSEL|SEQ_RIGHTSEL)) == 0)) {
+					/* if any handles are selected, dont recurse */
+					*recursive = 1;
+				}
+				else {
+					*recursive = 0;
+				}
 			}
 		}
 		else {

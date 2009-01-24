@@ -1100,10 +1100,8 @@ static int sequencer_add_scene_strip_exec(bContext *C, wmOperator *op)
 	channel= RNA_int_get(op->ptr, "channel");
 	
 	RNA_string_get(op->ptr, "scene", sce_name);
-	
-	for(sce_seq= CTX_data_main(C)->scene.first; sce_seq; sce_seq= sce_seq->id.next)
-		if (strcmp(sce_seq->id.name+2, sce_name)==0)
-			break;
+
+	sce_seq= find_id("SC", sce_name);
 	
 	if (sce_seq==NULL) {
 		BKE_reportf(op->reports, RPT_ERROR, "Scene \"%s\" not found", sce_name);
