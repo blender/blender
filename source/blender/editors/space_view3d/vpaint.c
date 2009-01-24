@@ -1069,7 +1069,7 @@ static int wp_poll(bContext *C)
 	return 0;
 }
 
-static void wp_drawcursor(bContext *C, int x, int y)
+static void wp_drawcursor(bContext *C, int x, int y, void *customdata)
 {
 	ToolSettings *ts= CTX_data_tool_settings(C);
 	
@@ -1118,7 +1118,7 @@ static int set_wpaint(bContext *C, wmOperator *op)		/* toggle */
 		if(wp==NULL)
 			wp= scene->toolsettings->wpaint= new_vpaint(1);
 		
-		wp->paintcursor = WM_paint_cursor_activate(CTX_wm_manager(C), wp_poll, wp_drawcursor);
+		wp->paintcursor = WM_paint_cursor_activate(CTX_wm_manager(C), wp_poll, wp_drawcursor, NULL);
 		
 		mesh_octree_table(ob, NULL, NULL, 's');
 		
@@ -1501,7 +1501,7 @@ static int vp_poll(bContext *C)
 	return 0;
 }
 
-static void vp_drawcursor(bContext *C, int x, int y)
+static void vp_drawcursor(bContext *C, int x, int y, void *customdata)
 {
 	ToolSettings *ts= CTX_data_tool_settings(C);
 	
@@ -1559,7 +1559,7 @@ static int set_vpaint(bContext *C, wmOperator *op)		/* toggle */
 		if(vp==NULL)
 			vp= scene->toolsettings->vpaint= new_vpaint(0);
 		
-		vp->paintcursor = WM_paint_cursor_activate(CTX_wm_manager(C), vp_poll, vp_drawcursor);
+		vp->paintcursor = WM_paint_cursor_activate(CTX_wm_manager(C), vp_poll, vp_drawcursor, NULL);
 	}
 	
 	if (me)

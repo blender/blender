@@ -26,6 +26,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include <float.h>
+#include <math.h>
 #include <string.h>
 
 #include "DNA_ID.h"
@@ -45,6 +47,9 @@
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_utildefines.h"
+
+#include "BIF_gl.h"
+#include "BIF_glutil.h" /* for paint cursor */
 
 #include "ED_fileselect.h"
 #include "ED_screen.h"
@@ -450,12 +455,14 @@ static void WM_OT_exit_blender(wmOperatorType *ot)
  - draw(bContext): drawing callback for paint cursor
 */
 
-void *WM_paint_cursor_activate(wmWindowManager *wm, int (*poll)(bContext *C), void (*draw)(bContext *C, int, int))
+void *WM_paint_cursor_activate(wmWindowManager *wm, int (*poll)(bContext *C),
+			       void (*draw)(bContext *C, int, int, void *customdata), void *customdata)
 {
 	wmPaintCursor *pc= MEM_callocN(sizeof(wmPaintCursor), "paint cursor");
 	
 	BLI_addtail(&wm->paintcursors, pc);
 	
+	pc->customdata = customdata;
 	pc->poll= poll;
 	pc->draw= draw;
 	
@@ -866,6 +873,149 @@ void WM_OT_lasso_gesture(wmOperatorType *ot)
 }
 #endif
 
+/* *********************** radial control ****************** */
+
+typedef struct wmRadialControl {
+	float radius;
+	int initial_mouse[2];
+	void *cursor;
+	// XXX: texture data
+} wmRadialControl;
+
+static void wm_radial_control_paint(bContext *C, int x, int y, void *customdata)
+{
+	wmRadialControl *p = (wmRadialControl*)customdata;
+	ARegion *ar = CTX_wm_region(C);
+
+	/* Keep cursor in the original place */
+	x = p->initial_mouse[0] - ar->winrct.xmin;
+	y = p->initial_mouse[1] - ar->winrct.ymin;
+	
+	glTranslatef((float)x, (float)y, 0.0f);
+	
+	glColor4ub(255, 255, 255, 128);
+	glEnable( GL_LINE_SMOOTH );
+	glEnable(GL_BLEND);
+	glutil_draw_lined_arc(0.0, M_PI*2.0, p->radius, 40);
+	glDisable(GL_BLEND);
+	glDisable( GL_LINE_SMOOTH );
+	
+	glTranslatef((float)-x, (float)-y, 0.0f);
+}
+
+static int wm_radial_control_modal(bContext *C, wmOperator *op, wmEvent *event)
+{
+	wmRadialControl *rc = (wmRadialControl*)op->customdata;
+	int mode, initial_mouse[2], delta[2];
+	float dist;
+	double new_value = RNA_float_get(op->ptr, "new_value");
+	int ret = OPERATOR_RUNNING_MODAL;
+
+	mode = RNA_int_get(op->ptr, "mode");
+	RNA_int_get_array(op->ptr, "initial_mouse", initial_mouse);
+
+	switch(event->type) {
+	case MOUSEMOVE:
+		delta[0]= initial_mouse[0] - event->x;
+		delta[1]= initial_mouse[1] - event->y;
+		dist= sqrt(delta[0]*delta[0]+delta[1]*delta[1]);
+
+		if(mode == WM_RADIALCONTROL_SIZE)
+			new_value = dist;
+		else if(mode == WM_RADIALCONTROL_STRENGTH) {
+			float fin = (200.0f - dist) * 0.5f;
+			new_value = fin>=0 ? fin : 0;
+		} else if(mode == WM_RADIALCONTROL_ANGLE)
+			new_value = ((int)(atan2(delta[1], delta[0]) * (180.0 / M_PI)) + 180);
+		
+		if(event->ctrl)
+			new_value = ((int)new_value + 5) / 10*10;	
+		
+		break;
+	case ESCKEY:
+	case RIGHTMOUSE:
+		ret = OPERATOR_CANCELLED;
+		break;
+	case LEFTMOUSE:
+	case PADENTER:
+		op->type->exec(C, op);
+		ret = OPERATOR_FINISHED;
+		break;
+	}
+
+	/* Update paint data */
+	rc->radius = new_value;
+
+	RNA_float_set(op->ptr, "new_value", new_value);
+
+	if(ret != OPERATOR_RUNNING_MODAL) {
+		WM_paint_cursor_end(CTX_wm_manager(C), rc->cursor);
+		MEM_freeN(rc);
+	}
+	
+	ED_region_tag_redraw(CTX_wm_region(C));
+
+	return ret;
+}
+
+int WM_radial_control_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	wmRadialControl *rc = MEM_callocN(sizeof(wmRadialControl), "radial control");
+	int mode = RNA_int_get(op->ptr, "mode");
+	float initial_value = RNA_float_get(op->ptr, "initial_value");
+	int mouse[2] = {event->x, event->y};
+
+	if(mode == WM_RADIALCONTROL_SIZE)
+		mouse[0]-= initial_value;
+	else if(mode == WM_RADIALCONTROL_STRENGTH)
+		mouse[0]-= 200 - 2*initial_value;
+	else if(mode == WM_RADIALCONTROL_ANGLE) {
+		mouse[0]-= 200 * cos(initial_value * M_PI / 180.0);
+		mouse[1]-= 200 * sin(initial_value * M_PI / 180.0);
+	}
+
+	RNA_int_set_array(op->ptr, "initial_mouse", mouse);
+	RNA_float_set(op->ptr, "new_value", initial_value);
+		
+	op->customdata = rc;
+	rc->initial_mouse[0] = mouse[0];
+	rc->initial_mouse[1] = mouse[1];
+	rc->cursor = WM_paint_cursor_activate(CTX_wm_manager(C), op->type->poll,
+					      wm_radial_control_paint, op->customdata);
+
+	/* add modal handler */
+	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
+	
+	wm_radial_control_modal(C, op, event);
+	
+	return OPERATOR_RUNNING_MODAL;
+}
+
+/** Important: this doesn't define an actual operator, it
+    just sets up the common parts of the radial control op. **/
+void WM_OT_radial_control_partial(wmOperatorType *ot)
+{
+	static EnumPropertyItem prop_mode_items[] = {
+		{WM_RADIALCONTROL_SIZE, "SIZE", "Size", ""},
+		{WM_RADIALCONTROL_STRENGTH, "STRENGTH", "Strength", ""},
+		{WM_RADIALCONTROL_ANGLE, "ANGLE", "Angle", ""},
+		{0, NULL, NULL, NULL}};
+
+	ot->modal= wm_radial_control_modal;
+
+	/* Should be set in custom invoke() */
+	RNA_def_float(ot->srna, "initial_value", 0, 0, FLT_MAX, "Initial Value", "", 0, FLT_MAX);
+
+	/* Set internally, should be used in custom exec() to get final value */
+	RNA_def_float(ot->srna, "new_value", 0, 0, FLT_MAX, "New Value", "", 0, FLT_MAX);
+
+	/* Should be set before calling operator */
+	RNA_def_enum(ot->srna, "mode", prop_mode_items, 0, "Mode", "");
+
+	/* Internal */
+	RNA_def_int_vector(ot->srna, "initial_mouse", 2, NULL, INT_MIN, INT_MAX, "initial_mouse", "", INT_MIN, INT_MAX);
+}
+
 /* ******************************************************* */
  
 /* called on initialize WM_exit() */
@@ -902,7 +1052,7 @@ void wm_window_keymap(wmWindowManager *wm)
 	WM_keymap_verify_item(keymap, "WM_OT_open_recentfile", OKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_verify_item(keymap, "WM_OT_open_mainfile", F1KEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "WM_OT_save_as_mainfile", F2KEY, KM_PRESS, 0, 0);
-	WM_keymap_verify_item(keymap, "WM_OT_window_fullscreen_toggle", FKEY, KM_PRESS, 0, 0);
+	WM_keymap_verify_item(keymap, "WM_OT_window_fullscreen_toggle", F11KEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "WM_OT_exit_blender", QKEY, KM_PRESS, KM_CTRL, 0);
 }
 

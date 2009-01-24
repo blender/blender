@@ -229,6 +229,12 @@ typedef struct wmGesture {
 	/* customdata for lasso is short array */
 } wmGesture;
 
+/* **************** Radial control *******************/
+typedef enum wmRadialControlMode {
+	WM_RADIALCONTROL_SIZE,
+	WM_RADIALCONTROL_STRENGTH,
+	WM_RADIALCONTROL_ANGLE
+} wmRadialControlMode;
 
 /* ************** custom wmEvent data ************** */
 

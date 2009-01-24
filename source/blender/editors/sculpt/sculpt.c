@@ -1366,12 +1366,60 @@ static void sculpt_undo_push(bContext *C, Sculpt *sd)
 	}
 }
 
+static int sculpt_poll(bContext *C)
+{
+	return G.f & G_SCULPTMODE && CTX_wm_area(C)->spacetype == SPACE_VIEW3D &&
+		CTX_wm_region(C)->regiontype == RGN_TYPE_WINDOW;
+}
+
+static int sculpt_radial_control_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	Brush *br = CTX_data_scene(C)->toolsettings->sculpt->brush;
+	int mode = RNA_int_get(op->ptr, "mode");
+	float original_value;
+
+	if(mode == WM_RADIALCONTROL_SIZE)
+		original_value = br->size;
+	else if(mode == WM_RADIALCONTROL_STRENGTH)
+		original_value = br->alpha;
+	/*else if(mode == WM_RADIALCONTROL_ANGLE)
+	  original_value = br->rotation;*/
+
+	RNA_float_set(op->ptr, "initial_value", original_value);
+	return WM_radial_control_invoke(C, op, event);
+}
+
+static int sculpt_radial_control_exec(bContext *C, wmOperator *op)
+{
+	Brush *br = CTX_data_scene(C)->toolsettings->sculpt->brush;
+	int mode = RNA_int_get(op->ptr, "mode");
+	float new_value = RNA_float_get(op->ptr, "new_value");
+
+	if(mode == WM_RADIALCONTROL_SIZE)
+		br->size = new_value;
+	else if(mode == WM_RADIALCONTROL_STRENGTH)
+		br->alpha = new_value;
+	/*else if(mode == WM_RADIALCONTROL_ANGLE)
+	  br->rotation = new_value;*/
+
+	return OPERATOR_FINISHED;
+}
+
+/**** Radial control ****/
+static void SCULPT_OT_radial_control(wmOperatorType *ot)
+{
+	WM_OT_radial_control_partial(ot);
+
+	ot->name= "Sculpt Radial Control";
+	ot->idname= "SCULPT_OT_radial_control";
+
+	ot->invoke= sculpt_radial_control_invoke;
+	ot->exec= sculpt_radial_control_exec;
+	ot->poll= sculpt_poll;
+}
+
 /**** Operator for applying a stroke (various attributes including mouse path)
       using the current brush. ****/
-static int sculpt_brush_stroke_poll(bContext *C)
-{
-	return G.f & G_SCULPTMODE && CTX_wm_area(C)->spacetype == SPACE_VIEW3D;
-}
 
 static void sculpt_load_mats(bglMats *mats, ViewContext *vc)
 {
@@ -1688,7 +1736,7 @@ static void SCULPT_OT_brush_stroke(wmOperatorType *ot)
 	ot->invoke= sculpt_brush_stroke_invoke;
 	ot->modal= sculpt_brush_stroke_modal;
 	ot->exec= sculpt_brush_stroke_exec;
-	ot->poll= sculpt_brush_stroke_poll;
+	ot->poll= sculpt_poll;
 
 	/* properties */
 	RNA_def_collection_runtime(ot->srna, "stroke", &RNA_OperatorStrokeElement, "Stroke", "");
@@ -1712,7 +1760,7 @@ static void SCULPT_OT_brush_stroke(wmOperatorType *ot)
 /**** Toggle operator for turning sculpt mode on or off ****/
 
 /* XXX: The code for drawing all the paint cursors is really the same, would be better to unify them */
-static void draw_paint_cursor(bContext *C, int x, int y)
+static void draw_paint_cursor(bContext *C, int x, int y, void *customdata)
 {
 	Sculpt *sd= CTX_data_tool_settings(C)->sculpt;
 	
@@ -1760,7 +1808,7 @@ static int sculpt_toggle_mode(bContext *C, wmOperator *op)
 
 		/* Activate visible brush */
 		ts->sculpt->session->cursor =
-			WM_paint_cursor_activate(CTX_wm_manager(C), sculpt_brush_stroke_poll, draw_paint_cursor);
+			WM_paint_cursor_activate(CTX_wm_manager(C), sculpt_poll, draw_paint_cursor, NULL);
 
 
 
@@ -1796,6 +1844,7 @@ static void SCULPT_OT_toggle_mode(wmOperatorType *ot)
 
 void ED_operatortypes_sculpt()
 {
+	WM_operatortype_append(SCULPT_OT_radial_control);
 	WM_operatortype_append(SCULPT_OT_brush_stroke);
 	WM_operatortype_append(SCULPT_OT_toggle_mode);
 }

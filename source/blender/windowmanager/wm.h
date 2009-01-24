@@ -32,9 +32,11 @@ struct wmWindow;
 
 typedef struct wmPaintCursor {
 	struct wmPaintCursor *next, *prev;
+
+	void *customdata;
 	
 	int (*poll)(struct bContext *C);
-	void (*draw)(bContext *C, int, int);
+	void (*draw)(bContext *C, int, int, void *customdata);
 } wmPaintCursor;
 
 extern void wm_close_and_free(bContext *C, wmWindowManager *);

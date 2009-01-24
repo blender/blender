@@ -72,7 +72,7 @@ static void wm_paintcursor_draw(bContext *C, ARegion *ar)
 			for(pc= wm->paintcursors.first; pc; pc= pc->next) {
 				if(pc->poll(C)) {
 					ARegion *ar= CTX_wm_region(C);
-					pc->draw(C, win->eventstate->x - ar->winrct.xmin, win->eventstate->y - ar->winrct.ymin);
+					pc->draw(C, win->eventstate->x - ar->winrct.xmin, win->eventstate->y - ar->winrct.ymin, pc->customdata);
 				}
 			}
 		}

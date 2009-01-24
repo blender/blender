@@ -67,7 +67,7 @@ void		WM_cursor_restore	(struct wmWindow *win);
 void		WM_cursor_wait		(struct wmWindow *win, int val);
 void		WM_timecursor		(struct wmWindow *win, int nr);
 
-void		*WM_paint_cursor_activate(struct wmWindowManager *wm, int (*poll)(struct bContext *C), void (*draw)(struct bContext *C, int, int));
+void		*WM_paint_cursor_activate(struct wmWindowManager *wm, int (*poll)(struct bContext *C), void (*draw)(struct bContext *C, int, int, void *customdata), void *customdata);
 void		WM_paint_cursor_end(struct wmWindowManager *wm, void *handle);
 
 			/* keymap */
@@ -155,6 +155,10 @@ void		WM_OT_tweak_gesture(struct wmOperatorType *ot);
 			/* Gesture manager API */
 struct wmGesture *WM_gesture_new(struct bContext *C, struct wmEvent *event, int type);
 void		WM_gesture_end(struct bContext *C, struct wmGesture *gesture);
+
+			/* radial control operator */
+int		WM_radial_control_invoke(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
+void		WM_OT_radial_control_partial(struct wmOperatorType *ot);
 
 			/* OpenGL wrappers, mimicking opengl syntax */
 void		wmSubWindowSet			(struct wmWindow *win, int swinid);
