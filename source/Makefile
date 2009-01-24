@@ -243,6 +243,7 @@ PULIB += $(OCGDIR)/blender/ed_curve/libed_curve.a
 PULIB += $(OCGDIR)/blender/ed_armature/libed_armature.a
 PULIB += $(OCGDIR)/blender/ed_mesh/libed_mesh.a
 PULIB += $(OCGDIR)/blender/ed_sculpt/libed_sculpt.a
+PULIB += $(OCGDIR)/blender/ed_physics/libed_physics.a
 PULIB += $(OCGDIR)/blender/ed_animation/libed_animation.a
 PULIB += $(OCGDIR)/blender/ed_transform/libed_transform.a
 PULIB += $(OCGDIR)/blender/ed_util/libed_util.a

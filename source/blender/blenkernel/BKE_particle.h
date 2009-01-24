@@ -301,6 +301,10 @@ void do_effectors(int pa_no, struct ParticleData *pa, struct ParticleKey *state,
 void psys_calc_dmcache(struct Object *ob, struct DerivedMesh *dm, struct ParticleSystem *psys);
 int psys_particle_dm_face_lookup(struct Object *ob, struct DerivedMesh *dm, int index, float *fw, struct LinkNode *node);
 
+void reset_particle(struct Scene *scene, struct ParticleData *pa, struct ParticleSystem *psys, struct ParticleSystemModifierData *psmd, struct Object *ob,
+					float dtime, float cfra, float *vg_vel, float *vg_tan, float *vg_rot);
+
+
 /* psys_reset */
 #define PSYS_RESET_ALL			1
 #define PSYS_RESET_DEPSGRAPH 	2

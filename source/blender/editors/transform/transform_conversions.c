@@ -119,13 +119,14 @@
 //#include "BIF_space.h"
 //#include "BIF_toolbox.h"
 
-#include "ED_armature.h"
-#include "ED_types.h"
 #include "ED_anim_api.h"
+#include "ED_armature.h"
+#include "ED_editparticle.h"
 #include "ED_keyframing.h"
 #include "ED_keyframes_edit.h"
-#include "ED_view3d.h"
 #include "ED_mesh.h"
+#include "ED_types.h"
+#include "ED_view3d.h"
 
 #include "UI_view2d.h"
 
@@ -1617,7 +1618,7 @@ static void createTransParticleVerts(bContext *C, TransInfo *t)
 	Object *ob = OBACT;
 	ParticleSystem *psys = PE_get_current(ob);
 	ParticleSystemModifierData *psmd = NULL;
-	ParticleEditSettings *pset = PE_settings();
+	ParticleEditSettings *pset = PE_settings(t->scene);
 	ParticleData *pa = NULL;
 	ParticleEdit *edit;
 	ParticleEditKey *key;
@@ -1762,7 +1763,7 @@ void flushTransParticles(TransInfo *t)
 		}
 	}
 
-	PE_update_object(OBACT, 1);
+	PE_update_object(scene, OBACT, 1);
 #endif
 }
 
@@ -3535,7 +3536,6 @@ static void createTransSeqData(bContext *C, TransInfo *t)
 	Sequence *seq;
 
 	int count=0;
-	float cfra;
 
 
 
@@ -4133,10 +4133,10 @@ void special_aftertrans_update(TransInfo *t)
 			}
 		}
 		else if (ac.datatype == ANIMCONT_SHAPEKEY) {
+#if 0 // XXX old animation system
 			/* fix up the Ipocurves and redraw stuff */
 			Key *key= (Key *)ac.data;
 			
-#if 0 // XXX old animation system
 			if (key->ipo) {
 				if ( (saction->flag & SACTION_NOTRANSKEYCULL)==0 && 
 				     ((cancelled == 0) || (duplicate)) )
@@ -4314,9 +4314,6 @@ void special_aftertrans_update(TransInfo *t)
 
 static void createTransObject(bContext *C, TransInfo *t)
 {
-	Scene *sce = CTX_data_scene(C);
-	View3D *v3d = t->view;
-	
 	TransData *td = NULL;
 	TransDataExtension *tx;
 //	IpoKey *ik;

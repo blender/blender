@@ -84,7 +84,6 @@
 #ifndef DISABLE_ELBEEM
 #include "DNA_object_fluidsim.h"
 #include "LBM_fluidsim.h"
-#include "elbeem.h"
 #include <zlib.h>
 #include <string.h>
 
@@ -1689,7 +1688,7 @@ static void initialize_all_particles(Object *ob, ParticleSystem *psys, ParticleS
 	}
 }
 /* sets particle to the emitter surface with initial velocity & rotation */
-static void reset_particle(Scene *scene, ParticleData *pa, ParticleSystem *psys, ParticleSystemModifierData *psmd, Object *ob,
+void reset_particle(Scene *scene, ParticleData *pa, ParticleSystem *psys, ParticleSystemModifierData *psmd, Object *ob,
 					float dtime, float cfra, float *vg_vel, float *vg_tan, float *vg_rot)
 {
 	ParticleSettings *part;
@@ -4364,7 +4363,7 @@ static void particles_fluid_step(Scene *scene, Object *ob, ParticleSystem *psys,
 			gzf = gzopen(filename, "rb");
 			if (!gzf) {
 				snprintf(debugStrBuffer,256,"readFsPartData::error - Unable to open file for reading '%s' \n", filename); 
-				//elbeemDebugOut(debugStrBuffer);
+				elbeemDebugOut(debugStrBuffer);
 				return;
 			}
 	
@@ -4424,7 +4423,9 @@ static void particles_fluid_step(Scene *scene, Object *ob, ParticleSystem *psys,
 	
 			totpart = psys->totpart = activeParts;
 			snprintf(debugStrBuffer,256,"readFsPartData::done - particles:%d, active:%d, file:%d, mask:%d  \n", psys->totpart,activeParts,fileParts,readMask);
-			elbeemDebugOut(debugStrBuffer);
+			// bad level call
+			// XXX elbeemDebugOut(debugStrBuffer);
+			
 		} // fluid sim particles done
 	}
 	#endif // DISABLE_ELBEEM

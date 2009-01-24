@@ -43,14 +43,6 @@ struct wmWindowManager;
 struct EditMesh;
 struct ViewContext;
 
-typedef struct ViewDepths {
-	unsigned short w, h;
-	float *depths;
-	double depth_range[2];
-	
-	char damaged;
-} ViewDepths;
-
 /* drawing flags: */
 #define DRAW_PICKING	1
 #define DRAW_CONSTCOLOR	2
@@ -60,9 +52,6 @@ typedef struct ViewDepths {
 #define V3D_TRANSP	2
 
 #define V3D_SELECT_MOUSE	1
-
-/* project short */
-#define IS_CLIPPED        12000
 
 /* view3d_header.c */
 void view3d_header_buttons(const struct bContext *C, struct ARegion *ar);

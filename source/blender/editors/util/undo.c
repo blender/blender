@@ -54,7 +54,11 @@
 
 #include "BKE_utildefines.h"
 
+#include "ED_armature.h"
+#include "ED_editparticle.h"
+#include "ED_curve.h"
 #include "ED_mesh.h"
+#include "ED_object.h"
 #include "ED_screen.h"
 #include "ED_util.h"
 
@@ -67,15 +71,7 @@
 /* ***************** generic undo system ********************* */
 
 /* ********* XXX **************** */
-static void undo_push_curve() {}
-static void undo_push_font() {}
 static void undo_push_mball() {}
-static void undo_push_lattice() {}
-static void undo_push_armature() {}
-static void PE_undo_push() {}
-static void PE_undo() {}
-static void PE_redo() {}
-static void PE_undo_menu() {}
 static void undo_imagepaint_step() {}
 static void sound_initialize_sounds() {}
 /* ********* XXX **************** */
@@ -90,20 +86,20 @@ void ED_undo_push(bContext *C, char *str)
 		if(obedit->type==OB_MESH)
 			undo_push_mesh(C, str);
 		else if ELEM(obedit->type, OB_CURVE, OB_SURF)
-			undo_push_curve(str);
+			undo_push_curve(C, str);
 		else if (obedit->type==OB_FONT)
-			undo_push_font(str);
+			undo_push_font(C, str);
 		else if (obedit->type==OB_MBALL)
 			undo_push_mball(str);
 		else if (obedit->type==OB_LATTICE)
-			undo_push_lattice(str);
+			undo_push_lattice(C, str);
 		else if (obedit->type==OB_ARMATURE)
-			undo_push_armature(str);
+			undo_push_armature(C, str);
 	}
 	else if(G.f & G_PARTICLEEDIT) {
 		if (U.undosteps == 0) return;
 		
-		PE_undo_push(str);
+		PE_undo_push(CTX_data_scene(C), str);
 	}
 	else {
 		if(U.uiflag & USER_GLOBALUNDO) 
@@ -134,9 +130,9 @@ static int ed_undo_step(bContext *C, wmOperator *op, int step)
 		}
 		else if(G.f & G_PARTICLEEDIT) {
 			if(step==1)
-				PE_undo();
+				PE_undo(CTX_data_scene(C));
 			else
-				PE_redo();
+				PE_redo(CTX_data_scene(C));
 		}
 		else {
 			do_glob_undo= 1;
@@ -178,7 +174,7 @@ void ED_undo_menu(bContext *C)
 	}
 	else {
 		if(G.f & G_PARTICLEEDIT)
-			PE_undo_menu();
+			PE_undo_menu(CTX_data_scene(C));
 		else if(U.uiflag & USER_GLOBALUNDO) {
 			char *menu= BKE_undo_menu_string();
 			if(menu) {

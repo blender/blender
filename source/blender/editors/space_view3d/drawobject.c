@@ -55,6 +55,7 @@
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_object_force.h"
+#include "DNA_object_fluidsim.h"
 #include "DNA_particle_types.h"
 #include "DNA_space_types.h"
 #include "DNA_scene_types.h"
@@ -62,8 +63,6 @@
 #include "DNA_userdef_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_world_types.h"
-// FSPARTICLE
-#include "DNA_object_fluidsim.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
@@ -99,6 +98,7 @@
 #include "GPU_material.h"
 #include "GPU_extensions.h"
 
+#include "ED_editparticle.h"
 #include "ED_mesh.h"
 #include "ED_types.h"
 #include "ED_util.h"
@@ -1114,14 +1114,12 @@ static void drawlattice__point(Lattice *lt, DispList *dl, int u, int v, int w, i
 	int index = ((w*lt->pntsv + v)*lt->pntsu) + u;
 
 	if(use_wcol) {
-#if 0
-		XXX
 		float col[3];
 		MDeformWeight *mdw= get_defweight (lt->dvert+index, use_wcol-1);
 		
 		weight_to_rgb(mdw?mdw->weight:0.0f, col, col+1, col+2);
 		glColor3fv(col);
-#endif
+
 	}
 	
 	if (dl) {
@@ -2364,7 +2362,7 @@ static void draw_mesh_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base 
 static int draw_mesh_object(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, int dt, int flag)
 {
 	Object *ob= base->object;
-	Object *obedit= scene->obedit; // XXX hrumf, see below
+	Object *obedit= scene->obedit;
 	Mesh *me= ob->data;
 	EditMesh *em= me->edit_mesh;
 	int do_alpha_pass= 0, drawlinked= 0, retval= 0, glsl, check_alpha;
@@ -3508,7 +3506,7 @@ static void draw_particle_edit(Scene *scene, View3D *v3d, RegionView3D *rv3d, Ob
 	ParticleData *pa;
 	ParticleCacheKey **path;
 	ParticleEditKey *key;
-	ParticleEditSettings *pset = NULL; // XXX PE_settings();
+	ParticleEditSettings *pset = PE_settings(scene);
 	int i, k, totpart = psys->totpart, totchild=0, timed = pset->draw_timed;
 	char nosel[4], sel[4];
 	float sel_col[3];
@@ -3517,7 +3515,7 @@ static void draw_particle_edit(Scene *scene, View3D *v3d, RegionView3D *rv3d, Ob
 
 	/* create path and child path cache if it doesn't exist already */
 	if(psys->pathcache==0){
-// XXX		PE_hide_keys_time(psys,CFRA);
+		PE_hide_keys_time(scene, psys,CFRA);
 		psys_cache_paths(scene, ob, psys, CFRA,0);
 	}
 	if(psys->pathcache==0)
@@ -4594,7 +4592,6 @@ static void drawSolidSelect(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base 
 
 static void drawWireExtra(Scene *scene, RegionView3D *rv3d, Object *ob) 
 {
-	// XXX scene->obedit warning
 	if(ob!=scene->obedit && (ob->flag & SELECT)) {
 		if(ob==OBACT) {
 			if(ob->flag & OB_FROMGROUP) UI_ThemeColor(TH_GROUP_ACTIVE);
@@ -4726,7 +4723,6 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 
 	ob= base->object;
 
-	/* XXX ermfh... */
 	if (ob!=scene->obedit) {
 		if (ob->restrictflag & OB_RESTRICT_VIEW) 
 			return;
@@ -5087,7 +5083,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 			draw_new_particle_system(scene, v3d, rv3d, base, psys, dt);
 		
 		if(G.f & G_PARTICLEEDIT && ob==OBACT) {
-			psys= NULL; // XXX PE_get_current(ob);
+			psys= PE_get_current(ob);
 			if(psys && !scene->obedit && psys_in_edit_mode(scene, psys))
 				draw_particle_edit(scene, v3d, rv3d, ob, psys, dt);
 		}

@@ -594,7 +594,7 @@ int WM_gesture_circle_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
-static void gesture_circle_apply(bContext *C, wmOperator *op, int event_type)
+static void gesture_circle_apply(bContext *C, wmOperator *op)
 {
 	wmGesture *gesture= op->customdata;
 	rcti *rect= gesture->customdata;
@@ -603,8 +603,6 @@ static void gesture_circle_apply(bContext *C, wmOperator *op, int event_type)
 	RNA_int_set(op->ptr, "x", rect->xmin);
 	RNA_int_set(op->ptr, "y", rect->ymin);
 	RNA_int_set(op->ptr, "radius", rect->xmax);
-	if( RNA_struct_find_property(op->ptr, "event_type") )
-		RNA_int_set(op->ptr, "event_type", event_type);
 	
 	if(op->type->exec)
 		op->type->exec(C, op);
@@ -627,7 +625,7 @@ int WM_gesture_circle_modal(bContext *C, wmOperator *op, wmEvent *event)
 			wm_gesture_tag_redraw(C);
 			
 			if(gesture->mode)
-				gesture_circle_apply(C, op, event->type);
+				gesture_circle_apply(C, op);
 
 			break;
 		case WHEELUPMOUSE:
@@ -646,9 +644,14 @@ int WM_gesture_circle_modal(bContext *C, wmOperator *op, wmEvent *event)
 				wm_gesture_end(C, op);
 				return OPERATOR_FINISHED;
 			}
-			else
+			else {
+				if( RNA_struct_find_property(op->ptr, "event_type") )
+					RNA_int_set(op->ptr, "event_type", event->type);
+				
+				/* apply first click */
+				gesture_circle_apply(C, op);
 				gesture->mode= 1;
-
+			}
 			break;
 		case ESCKEY:
 			wm_gesture_end(C, op);

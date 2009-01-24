@@ -70,6 +70,7 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
+#include "ED_editparticle.h"
 #include "ED_space_api.h"
 #include "ED_screen.h"
 #include "ED_types.h"
@@ -966,7 +967,7 @@ static int viewcenter_exec(bContext *C, wmOperator *op) /* like a localview with
 // XXX		ok= minmax_tface(min, max);
 	}
 	else if (G.f & G_PARTICLEEDIT) {
-// XXX		ok= PE_minmax(min, max);
+		ok= PE_minmax(scene, min, max);
 	}
 	else {
 		Base *base= FIRSTBASE;

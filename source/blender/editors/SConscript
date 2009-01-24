@@ -12,7 +12,7 @@ SConscript(['datafiles/SConscript',
 			'object/SConscript',
 			'curve/SConscript',
 			'gpencil/SConscript',
-			#'physics/SConscript', enable this when there is actually code in physics/
+			'physics/SConscript',
 			'preview/SConscript',
 			'space_buttons/SConscript',
 			'space_file/SConscript',
