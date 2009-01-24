@@ -2336,6 +2336,7 @@ static int sequencer_cut_exec(bContext *C, wmOperator *op)
 
 static int sequencer_cut_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
+	Scene *scene = CTX_data_scene(C);
 	ARegion *ar= CTX_wm_region(C);
 	View2D *v2d= UI_view2d_fromcontext(C);
 	
