@@ -295,6 +295,9 @@ void transform_keymap_for_space(struct wmWindowManager *wm, struct ListBase *key
 		case SPACE_SEQ:
 			km= WM_keymap_add_item(keymap, "TFM_OT_transform", GKEY, KM_PRESS, 0, 0);
 			RNA_int_set(km->ptr, "mode", TFM_TRANSLATION);
+
+			km= WM_keymap_add_item(keymap, "TFM_OT_transform", EKEY, KM_PRESS, 0, 0);
+			RNA_int_set(km->ptr, "mode", TFM_TIME_EXTEND);
 			break;
 		default:
 			break;

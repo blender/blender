@@ -2324,15 +2324,10 @@ void flushTransSeq(TransInfo *t)
 		seq= tdsq->seq;
 		new_frame= (int)(td2d->loc[0] + 0.5f);
 
-		/* TODO, only use seq flags for non nested strips
-		 * seq_tx_handle_xlimits used below is only correct when your not using metastrips.
-		 * meta children should ignore those flags
-		 */
-
 		switch (tdsq->sel_flag) {
 		case SELECT:
 			if (seq->type != SEQ_META) /* for meta's, their children move */
-				seq->start= new_frame;
+				seq->start= new_frame - tdsq->start_offset;
 			
 			if (seq->depth==0) {
 				seq->machine= (int)(td2d->loc[1] + 0.5f);
@@ -2363,6 +2358,17 @@ void flushTransSeq(TransInfo *t)
 			}
 		}
 		seq_prev= seq;
+	}
+
+	if (t->mode == TFM_TIME_TRANSLATE) { /* originally TFM_TIME_EXTEND, transform changes */
+		/* Special annoying case here, need to calc metas with TFM_TIME_EXTEND only */
+		seq= ((Editing *)t->scene->ed)->seqbasep->first;
+
+		while(seq) {
+			if (seq->type == SEQ_META && seq->flag & SELECT)
+				calc_sequence(seq);
+			seq= seq->next;
+		}
 	}
 }
 
@@ -3050,7 +3056,7 @@ static void createTransActionData(bContext *C, TransInfo *t)
 		float xmouse, ymouse;
 		
 		UI_view2d_region_to_view(&ac.ar->v2d, t->imval[0], t->imval[1], &xmouse, &ymouse);
-		side = (xmouse > CFRA) ? 'R' : 'L';
+		side = (xmouse > CFRA) ? 'R' : 'L'; // XXX use t->frame_side
 	}
 	else {
 		/* normal transform - both sides of current frame are considered */
@@ -3292,59 +3298,107 @@ static short constraints_list_needinv(TransInfo *t, ListBase *list)
  *
  * seq->depth must be set
  */
-static void SeqTransInfo(Sequence *seq, int *recursive, int *count, int *flag)
+static void SeqTransInfo(TransInfo *t, Sequence *seq, int *recursive, int *count, int *flag)
 {
+	/* for extend we need to do some tricks */
+	if (t->mode == TFM_TIME_EXTEND) {
 
-	if (seq->depth == 0) {
+		/* *** Extend Transform *** */
 
-		/* Count */
+		Scene * scene= t->scene;
+		int cfra= CFRA;
+		int left= seq_tx_get_final_left(seq, 0);
+		int right= seq_tx_get_final_right(seq, 0);
 
-		/* Non nested strips (resect selection and handles) */
-		if ((seq->flag & SELECT) == 0 || (seq->flag & SEQ_LOCK) || (seq_tx_test(seq) == 0)) {
-			*recursive= *count= *flag= 0;
-			return; /* unselected strip, lockedd or the strip is an effect - then dont bother */
-		}
-		else if ((seq->flag & (SEQ_LEFTSEL|SEQ_RIGHTSEL)) == (SEQ_LEFTSEL|SEQ_RIGHTSEL)) {
-			*flag= seq->flag;
-			*count= 2; /* we need 2 transdata's */
-		} else {
-			*flag= seq->flag;
-			*count= 1; /* selected or with a handle selected */
-		}
-
-		/* Recursive */
-
-		if ((seq->type == SEQ_META) && ((seq->flag & (SEQ_LEFTSEL|SEQ_RIGHTSEL)) == 0)) {
-			/* if any handles are selected, dont recurse */
-			*recursive = 1;
-		}
-		else {
-			*recursive = 0;
-		}
-	}
-	else {
-		/* Nested, different rules apply */
-		
-		if (seq->type == SEQ_META) {
-			/* Meta's can only directly be moved between channels since they
-			 * dont have their start and length set directly (children affect that)
-			 * since this Meta is nested we dont need any of its data infact.
-			 * calc_sequence() will update its settings when run on the toplevel meta */
-			*flag= 0;
+		if (seq->depth == 0 && ((seq->flag & SELECT) == 0 || (seq->flag & SEQ_LOCK) || (seq_tx_test(seq) == 0))) {
+			*recursive= 0;
 			*count= 0;
-			*recursive = 1;
+			*flag= 0;
+		}
+		else if (seq->type ==SEQ_META) {
+			
+			/* for meta's we only ever need to extend their children, no matter what depth
+			 * just check the meta's are in the bounds */
+			if (t->frame_side=='R' && right <= cfra)		*recursive= 0;
+			else if (t->frame_side=='L' && left >= cfra)	*recursive= 0;
+			else											*recursive= 1;
+			
+			*count= 0;
+			*flag= 0;
 		}
 		else {
+
+			*recursive= 0;	/* not a meta, so no thinking here */
+			*count= 1;		/* unless its set to 0, extend will never set 2 handles at once */
 			*flag= (seq->flag | SELECT) & ~(SEQ_LEFTSEL|SEQ_RIGHTSEL);
-			*count= 1; /* ignore the selection for nested */
-			*recursive = 0;
+
+			if (t->frame_side=='R') {
+				if (right <= cfra)		*count= *flag= 0;	/* ignore */
+				else if (left > cfra)	;	/* keep the selection */
+				else					*flag |= SEQ_RIGHTSEL;
+			}
+			else {
+				if (left >= cfra)		*count= *flag= 0;	/* ignore */
+				else if (right < cfra)	;	/* keep the selection */
+				else					*flag |= SEQ_LEFTSEL;
+			}
+		}
+	} else {
+
+		/* *** Normal Transform *** */
+
+		if (seq->depth == 0) {
+
+			/* Count */
+
+			/* Non nested strips (resect selection and handles) */
+			if ((seq->flag & SELECT) == 0 || (seq->flag & SEQ_LOCK) || (seq_tx_test(seq) == 0)) {
+				*recursive= 0;
+				*count= 0;
+				*flag= 0;
+			}
+			else if ((seq->flag & (SEQ_LEFTSEL|SEQ_RIGHTSEL)) == (SEQ_LEFTSEL|SEQ_RIGHTSEL)) {
+				*flag= seq->flag;
+				*count= 2; /* we need 2 transdata's */
+			} else {
+				*flag= seq->flag;
+				*count= 1; /* selected or with a handle selected */
+			}
+
+			/* Recursive */
+
+			if ((seq->type == SEQ_META) && ((seq->flag & (SEQ_LEFTSEL|SEQ_RIGHTSEL)) == 0)) {
+				/* if any handles are selected, dont recurse */
+				*recursive = 1;
+			}
+			else {
+				*recursive = 0;
+			}
+		}
+		else {
+			/* Nested, different rules apply */
+
+			if (seq->type == SEQ_META) {
+				/* Meta's can only directly be moved between channels since they
+				 * dont have their start and length set directly (children affect that)
+				 * since this Meta is nested we dont need any of its data infact.
+				 * calc_sequence() will update its settings when run on the toplevel meta */
+				*flag= 0;
+				*count= 0;
+				*recursive = 1;
+			}
+			else {
+				*flag= (seq->flag | SELECT) & ~(SEQ_LEFTSEL|SEQ_RIGHTSEL);
+				*count= 1; /* ignore the selection for nested */
+				*recursive = 0;
+			}
 		}
 	}
 }
 
 
 
-static int SeqTransCount(ListBase *seqbase, int depth)
+static int SeqTransCount(TransInfo *t, ListBase *seqbase, int depth)
 {
 	Sequence *seq;
 	int tot= 0, recursive, count, flag;
@@ -3352,11 +3406,11 @@ static int SeqTransCount(ListBase *seqbase, int depth)
 	for (seq= seqbase->first; seq; seq= seq->next) {
 		seq->depth= depth;
 
-		SeqTransInfo(seq, &recursive, &count, &flag); /* ignore the flag */
+		SeqTransInfo(t, seq, &recursive, &count, &flag); /* ignore the flag */
 		tot += count;
 
 		if (recursive) {
-			tot += SeqTransCount(&seq->seqbase, depth+1);
+			tot += SeqTransCount(t, &seq->seqbase, depth+1);
 		}
 	}
 
@@ -3364,14 +3418,22 @@ static int SeqTransCount(ListBase *seqbase, int depth)
 }
 
 
-static TransData *SeqToTransData(TransData *td, TransData2D *td2d, TransDataSeq *tdsq, Sequence *seq, int flag, int sel_flag)
+static TransData *SeqToTransData(TransInfo *t, TransData *td, TransData2D *td2d, TransDataSeq *tdsq, Sequence *seq, int flag, int sel_flag)
 {
+	int start_left;
+
 	switch(sel_flag) {
 	case SELECT:
-		td2d->loc[0] = seq->start; /* hold original location */
+		/* Use seq_tx_get_final_left() and an offset here
+		 * so transform has the left hand location of the strip.
+		 * tdsq->start_offset is used when flushing the tx data back */
+		start_left= seq_tx_get_final_left(seq, 0);
+		td2d->loc[0]= start_left;
+		tdsq->start_offset= start_left - seq->start; /* use to apply the original location */
 		break;
 	case SEQ_LEFTSEL:
-		td2d->loc[0] = seq_tx_get_final_left(seq, 0);
+		start_left= seq_tx_get_final_left(seq, 0);
+		td2d->loc[0] = start_left;
 		break;
 	case SEQ_RIGHTSEL:
 		td2d->loc[0] = seq_tx_get_final_right(seq, 0);
@@ -3409,10 +3471,14 @@ static TransData *SeqToTransData(TransData *td, TransData2D *td2d, TransDataSeq 
 	Mat3One(td->mtx);
 	Mat3One(td->smtx);
 
+	/* Time Transform (extend) */
+	td->val= td2d->loc;
+	td->ival= td2d->loc[0];
+	
 	return td;
 }
 
-static int SeqToTransData_Recursive(ListBase *seqbase, TransData *td, TransData2D *td2d, TransDataSeq *tdsq)
+static int SeqToTransData_Recursive(TransInfo *t, ListBase *seqbase, TransData *td, TransData2D *td2d, TransDataSeq *tdsq)
 {
 	Sequence *seq;
 	int recursive, count, flag;
@@ -3420,11 +3486,11 @@ static int SeqToTransData_Recursive(ListBase *seqbase, TransData *td, TransData2
 	
 	for (seq= seqbase->first; seq; seq= seq->next) {
 
-		SeqTransInfo(seq, &recursive, &count, &flag);
+		SeqTransInfo(t, seq, &recursive, &count, &flag);
 		
 		/* add children first so recalculating metastrips does nested strips first */
 		if (recursive) {
-			int tot_children= SeqToTransData_Recursive(&seq->seqbase, td, td2d, tdsq);
+			int tot_children= SeqToTransData_Recursive(t, &seq->seqbase, td, td2d, tdsq);
 			
 			td=		td +	tot_children;
 			td2d=	td2d +	tot_children;
@@ -3437,16 +3503,16 @@ static int SeqToTransData_Recursive(ListBase *seqbase, TransData *td, TransData2
 		if (flag & SELECT) {
 			if (flag & (SEQ_LEFTSEL|SEQ_RIGHTSEL)) {
 				if (flag & SEQ_LEFTSEL) {
-					SeqToTransData(td++, td2d++, tdsq++, seq, flag, SEQ_LEFTSEL);
+					SeqToTransData(t, td++, td2d++, tdsq++, seq, flag, SEQ_LEFTSEL);
 					tot++;
 				}
 				if (flag & SEQ_RIGHTSEL) {
-					SeqToTransData(td++, td2d++, tdsq++, seq, flag, SEQ_RIGHTSEL);
+					SeqToTransData(t, td++, td2d++, tdsq++, seq, flag, SEQ_RIGHTSEL);
 					tot++;
 				}
 			}
 			else {
-				SeqToTransData(td++, td2d++, tdsq++, seq, flag, SELECT);
+				SeqToTransData(t, td++, td2d++, tdsq++, seq, flag, SELECT);
 				tot++;
 			}
 		}
@@ -3458,6 +3524,8 @@ static int SeqToTransData_Recursive(ListBase *seqbase, TransData *td, TransData2
 
 static void createTransSeqData(bContext *C, TransInfo *t)
 {
+	ARegion *ar= CTX_wm_region(C);
+	View2D *v2d= UI_view2d_fromcontext(C);
 	Scene *scene= CTX_data_scene(C);
 	Editing *ed= scene->ed;
 	TransData *td = NULL;
@@ -3469,7 +3537,24 @@ static void createTransSeqData(bContext *C, TransInfo *t)
 	int count=0;
 	float cfra;
 
-	count = SeqTransCount(ed->seqbasep, 0);
+
+
+
+	/* which side of the current frame should be allowed */
+	if (t->mode == TFM_TIME_EXTEND) {
+		/* only side on which mouse is gets transformed */
+		float xmouse, ymouse;
+
+		UI_view2d_region_to_view(v2d, t->imval[0], t->imval[1], &xmouse, &ymouse);
+		t->frame_side = (xmouse > CFRA) ? 'R' : 'L';
+	}
+	else {
+		/* normal transform - both sides of current frame are considered */
+		t->frame_side = 'B';
+	}
+
+
+	count = SeqTransCount(t, ed->seqbasep, 0);
 
 	/* stop if trying to build list if nothing selected */
 	if (count == 0) {
@@ -3486,7 +3571,7 @@ static void createTransSeqData(bContext *C, TransInfo *t)
 	
 
 	/* loop 2: build transdata array */
-	SeqToTransData_Recursive(ed->seqbasep, td, td2d, tdsq);
+	SeqToTransData_Recursive(t, ed->seqbasep, td, td2d, tdsq);
 }
 
 

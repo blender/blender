@@ -154,6 +154,7 @@ typedef struct TransDataCurveHandleFlags {
 typedef struct TransDataSeq {
 	struct Sequence *seq;
 	int flag;		/* a copy of seq->flag that may be modified for nested strips */
+	short start_offset; /* use this so we can have transform data at the strips start, but apply correctly to the start frame  */
 	short sel_flag; /* one of SELECT, SEQ_LEFTSEL and SEQ_RIGHTSEL */
 	
 } TransDataSeq;
@@ -219,6 +220,7 @@ typedef struct TransInfo {
     short       imval[2];       /* initial mouse position               */
 	short       idx_max;		/* maximum index on the input vector	*/
 	float		snap[3];		/* Snapping Gears						*/
+	char		frame_side;		/* Mouse side of the cfra, 'L', 'R' or 'B' */
 	
 	float		viewmat[4][4];	/* copy from G.vd, prevents feedback,   */
 	float		viewinv[4][4];  /* and to make sure we don't have to    */
