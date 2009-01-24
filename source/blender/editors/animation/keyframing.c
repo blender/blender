@@ -15,6 +15,7 @@
 
 #include "DNA_anim_types.h"
 #include "DNA_action_types.h"
+#include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_key_types.h"
 #include "DNA_object_types.h"
@@ -2009,7 +2010,7 @@ void common_modifykey (bContext *C, short mode)
 /* Insert Key Operator ------------------------ */
 
 /* XXX WARNING:
- * This is currently just a basic operator, which work in 3d-view context on objects only
+ * This is currently just a basic operator, which work in 3d-view context on objects/bones only
  * and will insert keyframes for a few settings only. This is until it becomes clear how
  * to separate (or not) the process for RNA-path creation between context + keyingsets.
  * 
@@ -2019,10 +2020,13 @@ void common_modifykey (bContext *C, short mode)
 /* defines for basic insert-key testing operator  */
 	// XXX this will definitely be replaced
 EnumPropertyItem prop_insertkey_types[] = {
-	{0, "LOC", "Location", ""},
-	{1, "ROT", "Rotation", ""},
-	{2, "SCALE", "Scale", ""},
+	{0, "OBLOC", "Object Location", ""},
+	{1, "OBROT", "Object Rotation", ""},
+	{2, "OBSCALE", "Object Scale", ""},
 	{3, "MAT_COL", "Active Material - Color", ""},
+	{4, "PCHANLOC", "Pose-Channel Location", ""},
+	{5, "PCHANROT", "Pose-Channel Rotation", ""},
+	{6, "PCHANSCALE", "Pose-Channel Scale", ""},
 	{0, NULL, NULL, NULL}
 };
  
@@ -2040,33 +2044,73 @@ static int insert_key_exec (bContext *C, wmOperator *op)
 		short success= 0;
 		
 		/* check which keyframing mode chosen for this object */
-		switch (mode) {
-			case 3: /* color of active material */
+		if (mode < 4) {
+			/* object-based keyframes */
+			switch (mode) {
+			case 3: /* color of active material (only for geometry...) */
 				// NOTE: this is just a demo... but ideally we'd go through materials instead of active one only so reference stays same
 				success+= insertkey(id, "active_material.diffuse_color", 0, cfra, 0);
 				success+= insertkey(id, "active_material.diffuse_color", 1, cfra, 0);
 				success+= insertkey(id, "active_material.diffuse_color", 2, cfra, 0);
 				break;
-			case 2: /* scale */
+			case 2: /* object scale */
 				success+= insertkey(id, "scale", 0, cfra, 0);
 				success+= insertkey(id, "scale", 1, cfra, 0);
 				success+= insertkey(id, "scale", 2, cfra, 0);
 				break;
-			case 1: /* rotation */
+			case 1: /* object rotation */
 				success+= insertkey(id, "rotation", 0, cfra, 0);
 				success+= insertkey(id, "rotation", 1, cfra, 0);
 				success+= insertkey(id, "rotation", 2, cfra, 0);
 				break;
-			default: /* location */
+			default: /* object location */
 				success+= insertkey(id, "location", 0, cfra, 0);
 				success+= insertkey(id, "location", 1, cfra, 0);
 				success+= insertkey(id, "location", 2, cfra, 0);
 				break;
+			}
+			
+			ob->recalc |= OB_RECALC_OB;
+		}
+		else if ((ob->pose) && (ob->flag & OB_POSEMODE)) {
+			/* PoseChannel based keyframes */
+			bPoseChannel *pchan;
+			
+			for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+				/* only if selected */
+				if ((pchan->bone) && (pchan->bone->flag & BONE_SELECTED)) {
+					char buf[512];
+					
+					switch (mode) {
+					case 6: /* pchan scale */
+						sprintf(buf, "pose.pose_channels[\"%s\"].scale", pchan->name);
+						success+= insertkey(id, buf, 0, cfra, 0);
+						success+= insertkey(id, buf, 1, cfra, 0);
+						success+= insertkey(id, buf, 2, cfra, 0);
+						break;
+					case 5: /* pchan rotation */
+						sprintf(buf, "pose.pose_channels[\"%s\"].rotation", pchan->name);
+						success+= insertkey(id, buf, 0, cfra, 0);
+						success+= insertkey(id, buf, 1, cfra, 0);
+						success+= insertkey(id, buf, 2, cfra, 0);
+						success+= insertkey(id, buf, 3, cfra, 0);
+						break;
+					default: /* pchan location */
+						sprintf(buf, "pose.pose_channels[\"%s\"].location", pchan->name);
+						success+= insertkey(id, buf, 0, cfra, 0);
+						success+= insertkey(id, buf, 1, cfra, 0);
+						success+= insertkey(id, buf, 2, cfra, 0);
+						break;
+					}
+				}
+			}
+			
+			ob->recalc |= OB_RECALC_OB;
 		}
 		
 		printf("Ob '%s' - Successfully added %d Keyframes \n", id->name+2, success);
 		
-		ob->recalc |= OB_RECALC_OB;
+		
 	}
 	CTX_DATA_END;
 	
