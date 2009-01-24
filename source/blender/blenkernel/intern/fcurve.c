@@ -1412,10 +1412,13 @@ FModifier *fcurve_add_modifier (FCurve *fcu, int type)
 		return NULL;
 	}
 	
-	/* add modifier data */
+	/* add modifier itself */
 	fcm= MEM_callocN(sizeof(FModifier), "F-Curve Modifier");
 	BLI_addtail(&fcu->modifiers, fcm);
 	
+	/* add modifier's data */
+	fcm->data= MEM_callocN(fmi->size, "F-Curve Modifier Data");
+		
 	/* init custom settings if necessary */
 	if (fmi->new_data)	
 		fmi->new_data(fcm->data);
@@ -1452,16 +1455,25 @@ void fcurve_remove_modifier (FCurve *fcu, FModifier *fcm)
 {
 	FModifierTypeInfo *fmi= fmodifier_get_typeinfo(fcm);
 	
-	/* sanity checks */
-	if ELEM3(NULL, fcu, fcm, fmi)
+	/* sanity check */
+	if (fcm == NULL)
 		return;
-		
-	/* free modifier's special data */
-	if (fmi->free_data)
+	
+	/* free modifier's special data (stored inside fcm->data) */
+	if (fmi && fmi->free_data)
 		fmi->free_data(fcm);
+		
+	/* free modifier's data (fcm->data) */
+	MEM_freeN(fcm->data);
 	
 	/* remove modifier from stack */
-	BLI_freelinkN(&fcu->modifiers, fcm);
+	if (fcu)
+		BLI_freelinkN(&fcu->modifiers, fcm);
+	else {
+		// XXX this case can probably be removed some day, as it shouldn't happen...
+		printf("fcurve_remove_modifier() - no fcurve \n");
+		MEM_freeN(fcm);
+	}
 }
 
 /* Remove all of a given F-Curve's modifiers */
