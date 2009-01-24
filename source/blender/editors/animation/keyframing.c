@@ -2109,8 +2109,6 @@ static int insert_key_exec (bContext *C, wmOperator *op)
 		}
 		
 		printf("Ob '%s' - Successfully added %d Keyframes \n", id->name+2, success);
-		
-		
 	}
 	CTX_DATA_END;
 	

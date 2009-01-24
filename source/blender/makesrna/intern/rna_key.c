@@ -268,11 +268,9 @@ static void rna_def_keyblock(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
 	RNA_def_property_float_sdna(prop, NULL, "pos");
 	RNA_def_property_ui_text(prop, "Frame", "Frame for absolute keys.");
-
-	/* the current value isn't easily editable this way, it's linked to an IPO.
-	 * these seem to be mostly the values that are being written to, not edited */
+	
+	/* for now, this is editable directly, as users can set this even if they're not animating them (to test results) */
 	prop= RNA_def_property(srna, "value", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
 	RNA_def_property_float_sdna(prop, NULL, "curval");
 	RNA_def_property_ui_text(prop, "Value", "Value of shape key at the current frame.");
 
