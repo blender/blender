@@ -995,7 +995,6 @@ void initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 {
 	int mode    = RNA_int_get(op->ptr, "mode");
 	int options = RNA_int_get(op->ptr, "options");
-	float values[4];
 
 	/* added initialize, for external calls to set stuff in TransInfo, like undo string */
 
@@ -1122,12 +1121,12 @@ void initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 		break;
 	}
 	
-	RNA_float_get_array(op->ptr, "values", values);
-	
 	/* overwrite initial values if operator supplied a non-null vector */
-	if (!QuatIsNul(values))
+	if (RNA_property_is_set(op->ptr, "values"))
 	{
-		QUATCOPY(t->values, values); /* vec-4 */
+		float values[4];
+		RNA_float_get_array(op->ptr, "values", values);
+		QUATCOPY(t->values, values);
 	}
 
 	/* Constraint init from operator */
@@ -1136,7 +1135,6 @@ void initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 		
 		if (t->con.mode & CON_APPLY)
 		{
-			//int options = RNA_int_get(op->ptr, "options");
 			RNA_float_get_array(op->ptr, "constraint_matrix", (float*)t->spacemtx);
 			
 			setUserConstraint(t, t->con.mode, "%s");		
