@@ -2074,7 +2074,7 @@ static TStripElem* do_handle_speed_effect(Scene *scene, Sequence * seq, int cfra
 	TStripElem * se1 = 0;
 	TStripElem * se2 = 0;
 	
-	sequence_effect_speed_rebuild_map(scene, seq, 0);
+	sequence_effect_speed_rebuild_map(seq, 0);
 	
 	f_cfra = seq->start + s->frameMap[nr];
 	
@@ -2865,16 +2865,13 @@ void free_imbuf_seq_except(Scene *scene, int cfra)
 	SEQ_END
 }
 
-void free_imbuf_seq(Scene *scene)
+void free_imbuf_seq(ListBase * seqbase)
 {
-	Editing *ed= scene->ed;
 	Sequence *seq;
 	TStripElem *se;
 	int a;
-
-	if(ed==NULL) return;
-
-	SEQ_BEGIN(ed, seq) {
+	
+	for(seq= seqbase->first; seq; seq= seq->next) {
 		if(seq->strip) {
 			for(a = 0, se = seq->strip->tstripdata; 
 			    a < seq->strip->len && se; a++, se++) {
@@ -2901,11 +2898,14 @@ void free_imbuf_seq(Scene *scene)
 			if(seq->type==SEQ_MOVIE)
 				free_anim_seq(seq);
 			if(seq->type==SEQ_SPEED) {
-				sequence_effect_speed_rebuild_map(scene, seq, 1);
+				sequence_effect_speed_rebuild_map(seq, 1);
 			}
 		}
+		if(seq->type==SEQ_META) {
+			free_imbuf_seq(&seq->seqbase);
+		}
 	}
-	SEQ_END
+	
 }
 
 static int update_changed_seq_recurs(Scene *scene, Sequence *seq, Sequence *changed_seq, int len_change, int ibuf_change)
@@ -2947,7 +2947,7 @@ static int update_changed_seq_recurs(Scene *scene, Sequence *seq, Sequence *chan
 			if(seq->type == SEQ_MOVIE)
 				free_anim_seq(seq);
 			if(seq->type == SEQ_SPEED) {
-				sequence_effect_speed_rebuild_map(scene, seq, 1);
+				sequence_effect_speed_rebuild_map(seq, 1);
 			}
 		}
 		
@@ -2981,7 +2981,7 @@ void free_imbuf_seq_with_ipo(Scene *scene, struct Ipo *ipo)
 		if(seq->ipo == ipo) {
 			update_changed_seq_and_deps(scene, seq, 0, 1);
 			if(seq->type == SEQ_SPEED) {
-				sequence_effect_speed_rebuild_map(scene, seq, 1);
+				sequence_effect_speed_rebuild_map(seq, 1);
 			}
 		}
 	}
@@ -3196,4 +3196,73 @@ void fix_single_seq(Sequence *seq)
 int seq_tx_test(Sequence * seq)
 {
 	return (seq->type < SEQ_EFFECT) || (get_sequence_effect_num_inputs(seq->type) == 0);
+}
+
+int seq_test_overlap(ListBase * seqbasep, Sequence *test)
+{
+	Sequence *seq;
+
+	seq= seqbasep->first;
+	while(seq) {
+		if(seq!=test) {
+			if(test->machine==seq->machine) {
+				if( (test->enddisp <= seq->startdisp) || (test->startdisp >= seq->enddisp) );
+				else return 1;
+			}
+		}
+		seq= seq->next;
+	}
+	return 0;
+}
+
+
+static void seq_translate(Sequence *seq, int delta)
+{
+	seq->start += delta;
+	if(seq->type==SEQ_META) {
+		Sequence *seq_child;
+		for(seq_child= seq->seqbase.first; seq_child; seq_child= seq_child->next) {
+			seq_translate(seq_child, delta);
+		}
+	}
+
+	calc_sequence_disp(seq);
+}
+
+/* return 0 if there werent enough space */
+int shuffle_seq(ListBase * seqbasep, Sequence *test)
+{
+	int orig_machine= test->machine;
+	test->machine++;
+	calc_sequence(test);
+	while( seq_test_overlap(seqbasep, test) ) {
+		if(test->machine >= MAXSEQ) {
+			break;
+		}
+		test->machine++;
+		calc_sequence(test); // XXX - I dont think this is needed since were only moving vertically, Campbell.
+	}
+
+	
+	if(test->machine >= MAXSEQ) {
+		/* Blender 2.4x would remove the strip.
+		 * nicer to move it to the end */
+
+		Sequence *seq;
+		int new_frame= test->enddisp;
+
+		for(seq= seqbasep->first; seq; seq= seq->next) {
+			if (seq->machine == orig_machine)
+				new_frame = MAX2(new_frame, seq->enddisp);
+		}
+
+		test->machine= orig_machine;
+		new_frame = new_frame + (test->start-test->startdisp); /* adjust by the startdisp */
+		seq_translate(test, new_frame - test->start);
+
+		calc_sequence(test);
+		return 0;
+	} else {
+		return 1;
+	}
 }

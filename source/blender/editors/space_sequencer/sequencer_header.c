@@ -50,8 +50,11 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "RNA_access.h"
+
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
+#include "BIF_transform.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -70,7 +73,14 @@
 
 static void do_viewmenu(bContext *C, void *arg, int event)
 {
-	
+	switch (event) { // XXX more to go
+	case 3:
+		WM_operator_name_call(C, "SEQUENCER_OT_view_all", WM_OP_INVOKE_REGION_WIN, NULL);
+		break;
+	case 4:
+		WM_operator_name_call(C, "SEQUENCER_OT_view_selected", WM_OP_INVOKE_REGION_WIN, NULL);
+		break;
+	}
 }
 
 static uiBlock *seq_viewmenu(bContext *C, uiMenuBlockHandle *handle, void *arg_unused)
@@ -85,22 +95,19 @@ static uiBlock *seq_viewmenu(bContext *C, uiMenuBlockHandle *handle, void *arg_u
 	block= uiBeginBlock(C, handle->region, "seq_viewmenu", UI_EMBOSSP, UI_HELV);
 	uiBlockSetButmFunc(block, do_viewmenu, NULL);
 
-	
-
-	if (sseq->mainb) {
+	if (sseq->mainb == SEQ_DRAW_SEQUENCE) {
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1,
+				 "Play Back Animation "
+				 "in all Sequence Areas|Alt A", 0, yco-=20,
+				 menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
+	}
+	else {
 		uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL,
 				 "Grease Pencil...", 0, yco-=20,
 				 menuwidth, 19, NULL, 0.0, 0.0, 1, 7, "");
 
 		uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	}
 
-	if (sseq->mainb == 0) {
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1,
-				 "Play Back Animation "
-				 "in all Sequence Areas|Alt A", 0, yco-=20,
-				 menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
-	} else {
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1,
 				 "Play Back Animation "
 				 "in this window|Alt A", 0, yco-=20,
@@ -155,22 +162,42 @@ static uiBlock *seq_viewmenu(bContext *C, uiMenuBlockHandle *handle, void *arg_u
 
 static void do_selectmenu(bContext *C, void *arg, int event)
 {
-
+	switch (event) {
+	case 0:
+		WM_operator_name_call(C, "SEQUENCER_OT_borderselect", WM_OP_INVOKE_REGION_WIN, NULL);
+		break;
+	case 1:
+		WM_operator_name_call(C, "SEQUENCER_OT_select_linked", WM_OP_INVOKE_REGION_WIN, NULL);
+		break;
+	case 2: /* strips to left */
+		break;
+	case 3: /* strips to right */
+		break;
+	case 5: /* strips to left */
+		break;
+	case 6: /* strips to right */
+		break;
+	case 7:
+		WM_operator_name_call(C, "SEQUENCER_OT_select_linked", WM_OP_INVOKE_REGION_WIN, NULL);
+		break;
+	case 8: /* sel all markers */
+		break;
+	case 9:
+		WM_operator_name_call(C, "SEQUENCER_OT_select_invert", WM_OP_INVOKE_REGION_WIN, NULL);
+		break;
+	}
 }
 
 static uiBlock *seq_selectmenu(bContext *C, uiMenuBlockHandle *handle, void *arg_unused)
 {
 	ScrArea *sa= CTX_wm_area(C);
 
-
-
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
 
 	block= uiBeginBlock(C, handle->region, "seq_selectmenu", UI_EMBOSSP, UI_HELV);
 	uiBlockSetButmFunc(block, do_selectmenu, NULL);
-
-
+	
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Strips to the Left", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Strips to the Right", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
@@ -184,7 +211,7 @@ static uiBlock *seq_selectmenu(bContext *C, uiMenuBlockHandle *handle, void *arg
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Linked|Ctrl L", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 7, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Select/Deselect All Strips|A", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Select/Deselect All Markers|Ctrl A", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 8, "");
-
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Invert Selection|Ctrl I", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 9, "");
 
 
 	if(sa->headertype==HEADERTOP) {
@@ -436,7 +463,87 @@ static uiBlock *seq_addmenu(bContext *C, uiMenuBlockHandle *handle, void *arg_un
 
 static void do_editmenu(bContext *C, void *arg, int event)
 {
+	PointerRNA ptr;
+	
+	switch (event) {
+	case 7:
+		WM_operator_properties_create(&ptr, "TFM_OT_transform");
+		RNA_int_set(&ptr, "mode", TFM_TIME_EXTEND);
+		WM_operator_name_call(C, "TFM_OT_transform", WM_OP_INVOKE_REGION_WIN, &ptr);
+		WM_operator_properties_free(&ptr);
+		break;
+	case 11:
+		WM_operator_properties_create(&ptr, "TFM_OT_transform");
+		RNA_int_set(&ptr, "mode", TFM_TRANSLATION);
+		WM_operator_name_call(C, "TFM_OT_transform", WM_OP_INVOKE_REGION_WIN, &ptr);
+		WM_operator_properties_free(&ptr);
+		break;
+	case 12:
+		/* snap to current frame */
+		break;
 
+	case 13:
+		WM_operator_properties_create(&ptr, "SEQUENCER_OT_cut");
+		RNA_enum_set(&ptr, "type", 1); // CONSTANT
+		WM_operator_name_call(C, "SEQUENCER_OT_cut", WM_OP_INVOKE_REGION_WIN, &ptr);
+		WM_operator_properties_free(&ptr);
+		break;
+	case 23:
+		WM_operator_properties_create(&ptr, "SEQUENCER_OT_cut");
+		RNA_enum_set(&ptr, "type", 0); // CONSTANT
+		WM_operator_name_call(C, "SEQUENCER_OT_cut", WM_OP_INVOKE_REGION_WIN, &ptr);
+		WM_operator_properties_free(&ptr);
+		break;
+	case 16:
+		WM_operator_name_call(C, "SEQUENCER_OT_separate_images", WM_OP_INVOKE_REGION_WIN, NULL);
+		break;
+	case 5:
+		WM_operator_name_call(C, "SEQUENCER_OT_add_duplicate", WM_OP_INVOKE_REGION_WIN, NULL);
+		break;
+	case 6:
+		WM_operator_name_call(C, "SEQUENCER_OT_delete", WM_OP_INVOKE_REGION_WIN, NULL);
+		break;
+	case 1: /* change efect image scene TODO */
+		break;
+	case 14: /* reassign inputs */
+		break;
+	case 15: /* remap paths */
+		break;
+	case 2:
+		WM_operator_name_call(C, "SEQUENCER_OT_meta_make", WM_OP_INVOKE_REGION_WIN, NULL);
+		break;
+	case 3:
+		WM_operator_name_call(C, "SEQUENCER_OT_meta_separate", WM_OP_INVOKE_REGION_WIN, NULL);
+		break;
+	case 9:
+	case 10:
+		WM_operator_name_call(C, "SEQUENCER_OT_meta_toggle", WM_OP_INVOKE_REGION_WIN, NULL);
+		break;
+	case 17:
+		WM_operator_name_call(C, "SEQUENCER_OT_reload", WM_OP_INVOKE_REGION_WIN, NULL);
+		break;
+	case 18:
+		WM_operator_name_call(C, "SEQUENCER_OT_lock", WM_OP_INVOKE_REGION_WIN, NULL);
+		break;
+	case 19:
+		WM_operator_name_call(C, "SEQUENCER_OT_unlock", WM_OP_INVOKE_REGION_WIN, NULL);
+		break;
+	case 20:
+		WM_operator_name_call(C, "SEQUENCER_OT_mute", WM_OP_INVOKE_REGION_WIN, NULL);
+		break;
+	case 21:
+		WM_operator_name_call(C, "SEQUENCER_OT_unmute", WM_OP_INVOKE_REGION_WIN, NULL);
+		break;
+	case 22:
+		
+#define SEQ_UNSELECTED 1 // XXX
+		
+		WM_operator_properties_create(&ptr, "SEQUENCER_OT_mute");
+		RNA_enum_set(&ptr, "type", SEQ_UNSELECTED); // CONSTANT
+		WM_operator_name_call(C, "SEQUENCER_OT_mute", WM_OP_INVOKE_REGION_WIN, &ptr);
+		WM_operator_properties_free(&ptr);
+		break;
+	}
 }
 
 static uiBlock *seq_editmenu(bContext *C, uiMenuBlockHandle *handle, void *arg_unused)
@@ -535,6 +642,9 @@ static uiBlock *seq_editmenu(bContext *C, uiMenuBlockHandle *handle, void *arg_u
 static void do_sequencer_buttons(bContext *C, void *arg, int event)
 {
 	switch(event) {
+	case B_SEQCLEAR:
+		WM_operator_name_call(C, "SEQUENCER_OT_refresh_all", WM_OP_INVOKE_REGION_WIN, NULL);
+		break;
 	}
 }
 
@@ -597,7 +707,7 @@ void sequencer_header_buttons(const bContext *C, ARegion *ar)
 
 	xco+= 8 + XIC+10;
 
-	if(sseq->mainb) {
+	if(sseq->mainb != SEQ_DRAW_SEQUENCE) {
 		int minchan = 0;
 
 		/* CHANNEL shown in image preview */

@@ -161,7 +161,7 @@ void update_changed_seq_and_deps(struct Scene *scene, struct Sequence *changed_s
 /* seqeffects.c */
 // intern?
 struct SeqEffectHandle get_sequence_blend(struct Sequence *seq);
-void sequence_effect_speed_rebuild_map(struct Scene *scene, struct Sequence *seq, int force);
+void sequence_effect_speed_rebuild_map(struct Sequence *seq, int force);
 
 // extern
 struct SeqEffectHandle get_sequence_effect(struct Sequence *seq);
@@ -178,4 +178,7 @@ void seq_tx_handle_xlimits(struct Sequence *seq, int leftflag, int rightflag);
 int seq_tx_test(struct Sequence * seq);
 int check_single_seq(struct Sequence *seq);
 void fix_single_seq(struct Sequence *seq);
+int seq_test_overlap(struct ListBase * seqbasep, struct Sequence *test);
+int shuffle_seq(struct ListBase * seqbasep, struct Sequence *test);
+void free_imbuf_seq(struct ListBase * seqbasep);
 

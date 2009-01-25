@@ -2303,12 +2303,14 @@ void flushTransNodes(TransInfo *t)
 /* *** SEQUENCE EDITOR *** */
 void flushTransSeq(TransInfo *t)
 {
+	ListBase *seqbasep= ((Editing *)t->scene->ed)->seqbasep;
 	int a, new_frame;
 	TransData *td= t->data;
 	TransData2D *td2d= t->data2d;
 	TransDataSeq *tdsq= NULL;
 	Sequence *seq;
 
+	
 
 	/* prevent updating the same seq twice
 	 * if the transdata order is changed this will mess up
@@ -2350,6 +2352,12 @@ void flushTransSeq(TransInfo *t)
 				 * children are ALWAYS transformed first
 				 * so we dont need to do this in another loop. */
 				calc_sequence(seq);
+
+				/* test overlap, displayes red outline */
+				seq->flag &= ~SEQ_OVERLAP;
+				if( seq_test_overlap(seqbasep, seq) ) {
+					seq->flag |= SEQ_OVERLAP;
+				}
 			}
 			else {
 				calc_sequence_disp(seq);
@@ -2360,7 +2368,7 @@ void flushTransSeq(TransInfo *t)
 
 	if (t->mode == TFM_TIME_TRANSLATE) { /* originally TFM_TIME_EXTEND, transform changes */
 		/* Special annoying case here, need to calc metas with TFM_TIME_EXTEND only */
-		seq= ((Editing *)t->scene->ed)->seqbasep->first;
+		seq= seqbasep->first;
 
 		while(seq) {
 			if (seq->type == SEQ_META && seq->flag & SELECT)
@@ -3525,7 +3533,7 @@ static int SeqToTransData_Recursive(TransInfo *t, ListBase *seqbase, TransData *
 
 static void createTransSeqData(bContext *C, TransInfo *t)
 {
-	ARegion *ar= CTX_wm_region(C);
+	
 	View2D *v2d= UI_view2d_fromcontext(C);
 	Scene *scene= CTX_data_scene(C);
 	Editing *ed= scene->ed;
@@ -3533,7 +3541,7 @@ static void createTransSeqData(bContext *C, TransInfo *t)
 	TransData2D *td2d= NULL;
 	TransDataSeq *tdsq= NULL;
 
-	Sequence *seq;
+	
 
 	int count=0;
 
@@ -4063,6 +4071,38 @@ void special_aftertrans_update(TransInfo *t)
 	}
 
 	if (t->spacetype == SPACE_SEQ) {
+
+		if (!cancelled) {
+			ListBase *seqbasep= ((Editing *)t->scene->ed)->seqbasep;
+			int a, new_frame;
+			TransData *td= t->data;
+			TransData2D *td2d= t->data2d;
+			TransDataSeq *tdsq= NULL;
+			Sequence *seq;
+
+			
+
+			/* prevent updating the same seq twice
+			 * if the transdata order is changed this will mess up
+			 * but so will TransDataSeq */
+			Sequence *seq_prev= NULL;
+
+			/* flush to 2d vector from internally used 3d vector */
+			for(a=0; a<t->total; a++, td++, td2d++) {
+
+				tdsq= (TransDataSeq *)td->extra;
+				seq= tdsq->seq;
+
+				if (seq != seq_prev) {
+					if(seq->depth==0) {
+						if (seq->flag & SEQ_OVERLAP) {
+							shuffle_seq(seqbasep, seq);
+						}
+					}
+				}
+				seq_prev= seq;
+			}
+		}
 		MEM_freeN(t->customData);
 	}
 	else if (t->spacetype == SPACE_ACTION) {

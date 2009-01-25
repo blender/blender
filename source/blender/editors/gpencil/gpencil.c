@@ -367,7 +367,7 @@ bGPdata *gpencil_data_getactive (ScrArea *sa)
 			SpaceSeq *sseq= sa->spacedata.first;
 			
 			/* only applicable for image modes */
-			if (sseq->mainb)
+			if (sseq->mainb != SEQ_DRAW_SEQUENCE)
 				return sseq->gpd;
 		}
 			break;
@@ -431,7 +431,7 @@ short gpencil_data_setactive (ScrArea *sa, bGPdata *gpd)
 			SpaceSeq *sseq= sa->spacedata.first;
 			
 			/* only applicable if right mode */
-			if (sseq->mainb) {
+			if (sseq->mainb != SEQ_DRAW_SEQUENCE) {
 				/* free the existing block */
 				if (sseq->gpd)
 					free_gpencil_data(sseq->gpd);
@@ -1748,7 +1748,7 @@ static void gp_session_initpaint (bContext *C, tGPsdata *p)
 			p->v2d= &ar->v2d;
 			
 			/* check that gpencil data is allowed to be drawn */
-			if (sseq->mainb == 0) {
+			if (sseq->mainb == SEQ_DRAW_SEQUENCE) {
 				p->status= GP_STATUS_ERROR;
 				if (G.f & G_DEBUG) 
 					printf("Error: In active view (sequencer), active mode doesn't support Grease Pencil \n");

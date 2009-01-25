@@ -73,9 +73,6 @@
 #define SEQ_LEFTHANDLE		1
 #define SEQ_RIGHTHANDLE	2
 
-#define SEQ_STRIP_OFSBOTTOM		0.2
-#define SEQ_STRIP_OFSTOP		0.8
-
 /* Note, Dont use WHILE_SEQ while drawing! - it messes up transform, - Campbell */
 
 int no_rightbox=0, no_leftbox= 0;
@@ -807,7 +804,7 @@ static void draw_image_seq(Scene *scene, ARegion *ar, SpaceSeq *sseq)
 	if(ibuf->rect==NULL && ibuf->rect_float == NULL) 
 		return;
 
-	switch(sseq->mainb) {
+	switch(sseq->mainb != SEQ_DRAW_SEQUENCE) {
 	case SEQ_DRAW_IMG_IMBUF:
 		if (sseq->zebra != 0) {
 			ibuf = make_zebra_view_from_ibuf(ibuf, sseq->zebra);
@@ -905,44 +902,6 @@ void seq_reset_imageofs(SpaceSeq *sseq)
 	sseq->xof = sseq->yof = sseq->zoom = 0;
 }
 
-void seq_home(Scene *scene, ARegion *ar, SpaceSeq *sseq)
-{
-	View2D *v2d= &ar->v2d;
-	
-	if (!sseq->mainb) {
-		v2d->cur= v2d->tot;
-//		test_view2d(v2d, ar->winx, ar->winy);
-//		view2d_do_locks(ar, V2D_LOCK_COPY);
-	} else {
-		float zoomX, zoomY;
-		int width, height, imgwidth, imgheight;	
-		
-		width = ar->winx;
-		height = ar->winy;
-		
-		seq_reset_imageofs(sseq);
-		
-		imgwidth= (scene->r.size*scene->r.xsch)/100;
-		imgheight= (scene->r.size*scene->r.ysch)/100;
-		
-		/* Apply aspect, dosnt need to be that accurate */
-		imgwidth= (int)(imgwidth * ((float)scene->r.xasp / (float)scene->r.yasp));
-		
-		if (((imgwidth >= width) || (imgheight >= height)) && 
-			((width > 0) && (height > 0))) {
-			
-			/* Find the zoom value that will fit the image in the image space */
-			zoomX = ((float)width) / ((float)imgwidth);
-			zoomY = ((float)height) / ((float)imgheight);
-			sseq->zoom= (zoomX < zoomY) ? zoomX : zoomY;
-	
-			sseq->zoom = 1.0f / power_of_2(1/ MIN2(zoomX, zoomY) );
-		}
-		else {
-			sseq->zoom= 1.0f;
-		}
-	}
-}
 
 #if 0
 /* XXX - these should really be made to use View2D instead of so wacko private system - Aligorith */
@@ -1016,7 +975,7 @@ void drawprefetchseqspace(Scene *scene, ARegion *ar, SpaceSeq *sseq)
 	rectx= (scene->r.size*scene->r.xsch)/100;
 	recty= (scene->r.size*scene->r.ysch)/100;
 
-	if(sseq->mainb) {
+	if(sseq->mainb != SEQ_DRAW_SEQUENCE) {
 		give_ibuf_prefetch_request(
 			rectx, recty, (scene->r.cfra), sseq->chanshown);
 	}
@@ -1036,7 +995,7 @@ void drawseqspace(const bContext *C, ARegion *ar)
 
 	ed= scene->ed;
 
-	if(sseq->mainb) {
+	if(sseq->mainb != SEQ_DRAW_SEQUENCE) {
 		draw_image_seq(scene, ar, sseq);
 		return;
 	}

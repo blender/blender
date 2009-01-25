@@ -935,9 +935,9 @@ static void do_gammacross_effect_byte(float facf0, float facf1,
 	char *rt1, *rt2, *rt;
 	
 	xo= x;
-	rt1= (char *)rect1;
-	rt2= (char *)rect2;
-	rt= (char *)out;
+	rt1= (signed char *)rect1;
+	rt2= (signed char *)rect2;
+	rt= (signed char *)out;
 
 	fac2= (int)(256.0*facf0);
 	fac1= 256-fac2;
@@ -2772,7 +2772,7 @@ static void store_icu_yrange_speed(struct Sequence * seq,
 	}	
 }
 
-void sequence_effect_speed_rebuild_map(Scene *scene, Sequence * seq, int force)
+void sequence_effect_speed_rebuild_map(Sequence * seq, int force)
 {
 	float facf0 = seq->facf0;
 	//float ctime, div;

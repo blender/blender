@@ -66,8 +66,6 @@
 #include "BKE_utildefines.h"
 #include "BKE_report.h"
 
-#include "BIF_gl.h"
-#include "BIF_glutil.h"
 #include "BIF_transform.h"
 
 #include "WM_api.h"
@@ -155,114 +153,19 @@ Sequence *get_forground_frame_seq(Scene *scene, int frame)
 	return best_seq;
 }
 
-/* check if one side can be transformed */
-int seq_tx_check_left(Sequence *seq)
-{
-	if (seq->flag & SELECT) {
-		if (seq->flag & SEQ_LEFTSEL)
-			return 1;
-		else if (seq->flag & SEQ_RIGHTSEL)
-			return 0;
-		
-		return 1; /* selected and neither left or right handles are, so let us move both */
-	}
-	return 0;
-}
-
-int seq_tx_check_right(Sequence *seq)
-{
-	if (seq->flag & SELECT) {
-		if (seq->flag & SEQ_RIGHTSEL)
-			return 1;
-		else if (seq->flag & SEQ_LEFTSEL)
-			return 0;
-		
-		return 1; /* selected and neither left or right handles are, so let us move both */
-	}
-	return 0;
-}
-
 void seq_rectf(Sequence *seq, rctf *rectf)
 {
 	if(seq->startstill) rectf->xmin= seq->start;
 	else rectf->xmin= seq->startdisp;
-	rectf->ymin= seq->machine+0.2;
+	rectf->ymin= seq->machine+SEQ_STRIP_OFSBOTTOM;
 	if(seq->endstill) rectf->xmax= seq->start+seq->len;
 	else rectf->xmax= seq->enddisp;
-	rectf->ymax= seq->machine+0.8;
-}
-
-int test_overlap_seq(Scene *scene, Sequence *test)
-{
-	Sequence *seq;
-	Editing *ed;
-	
-	ed= scene->ed;
-	if(ed==NULL) return 0;
-	
-	seq= ed->seqbasep->first;
-	while(seq) {
-		if(seq!=test) {
-			if(test->machine==seq->machine) {
-				if(test->depth==seq->depth) {
-					if( (test->enddisp <= seq->startdisp) || (test->startdisp >= seq->enddisp) );
-					else return 1;
-				}
-			}
-		}
-		seq= seq->next;
-	}
-	return 0;
-}
-
-void shuffle_seq(Scene *scene, Sequence *test)
-{
-	Editing *ed;
-	Sequence *seq;
-	int a, start;
-	
-	ed= scene->ed;
-	if(ed==NULL) return;
-	
-	/* is there more than 1 select: only shuffle y */
-	a=0;
-	seq= ed->seqbasep->first;
-	while(seq) {
-		if(seq->flag & SELECT) a++;
-		seq= seq->next;
-	}
-	
-	if(a<2 && test->type==SEQ_IMAGE) {
-		start= test->start;
-		
-		for(a= 1; a<50; a++) {
-			test->start= start+a;
-			calc_sequence(test);
-			if( test_overlap_seq(scene, test)==0) return;
-			test->start= start-a;
-			calc_sequence(test);
-			if( test_overlap_seq(scene, test)==0) return;
-		}
-		test->start= start;
-	}
-	
-	test->machine++;
-	calc_sequence(test);
-	while( test_overlap_seq(scene, test) ) {
-		if(test->machine >= MAXSEQ) {
-			error("There is no more space to add a sequence strip");
-			
-			BLI_remlink(ed->seqbasep, test);
-			seq_free_sequence(ed, test);
-			return;
-		}
-		test->machine++;
-		calc_sequence(test);
-	}
+	rectf->ymax= seq->machine+SEQ_STRIP_OFSTOP;
 }
 
 static void change_plugin_seq(Scene *scene, char *str)	/* called from fileselect */
 {
+	Editing *ed= scene->ed;
 	struct SeqEffectHandle sh;
 	Sequence *last_seq= get_last_seq(scene);
 
@@ -276,7 +179,7 @@ static void change_plugin_seq(Scene *scene, char *str)	/* called from fileselect
 				 last_seq->seq2->machine, 
 				 last_seq->seq3->machine);
 
-	if( test_overlap_seq(scene, last_seq) ) shuffle_seq(scene, last_seq);
+	if( seq_test_overlap(ed->seqbasep, last_seq) ) shuffle_seq(ed->seqbasep, last_seq);
 	
 	BIF_undo_push("Load/Change Plugin, Sequencer");
 }
@@ -311,18 +214,6 @@ void boundbox_seq(Scene *scene, rctf *rect)
 	rect->ymin= min[1];
 	rect->ymax= max[1];
 
-}
-
-/* XXX - use mouse_frame_side instead */
-char mouse_cfra_side(View2D *v2d, int frame ) 
-{
-	short mval[2];
-	float xmouse, ymouse;
-//	getmouseco_areawin(mval);
-	
-	/* choose the side based on which side of the playhead the mouse is on */
-	UI_view2d_region_to_view(v2d, mval[0], mval[1], &xmouse, &ymouse);
-	return (xmouse > frame) ? 'R' : 'L';
 }
 
 int mouse_frame_side(View2D *v2d, short mouse_x, int frame ) 
@@ -868,19 +759,6 @@ int seq_effect_find_selected(Scene *scene, Sequence *activeseq, int type, Sequen
 	*selseq3= seq3;
 
 	return 1;
-}
-
-void reload_sequence(Scene *scene)
-{
-	Editing *ed= scene->ed;
-	Sequence *seq;
-	
-	SEQP_BEGIN(ed, seq) {
-		if(seq->flag & SELECT) {
-			update_changed_seq_and_deps(scene, seq, 0, 1);
-		}
-	}
-	SEQ_END
 }
 
 void reassign_inputs_seq_effect(Scene *scene)
@@ -1447,7 +1325,7 @@ void no_gaps(Scene *scene)
 	BIF_undo_push("No Gaps, Sequencer");
 }
 
-
+#if 0
 static int seq_get_snaplimit(View2D *v2d)
 {
 	/* fake mouse coords to get the snap value
@@ -1461,621 +1339,7 @@ static int seq_get_snaplimit(View2D *v2d)
 	UI_view2d_region_to_view(v2d, mval[0], mval[1], &xmouse, &ymouse);
 	return (int)(x - xmouse);
 }
-
-static int can_transform_seq_test_func(Sequence * seq)
-{
-	if((seq->flag & SELECT) && !(seq->depth==0 && seq->flag & SEQ_LOCK)) {
-		return BUILD_SEQAR_COUNT_CURRENT | BUILD_SEQAR_COUNT_CHILDREN;
-	}
-	if ((seq->depth==0 && seq->flag & SEQ_LOCK) && !(seq->type & SEQ_EFFECT)) {
-		if (seq->type != SEQ_META) {
-			return BUILD_SEQAR_COUNT_NOTHING;
-		} else {
-			return BUILD_SEQAR_COUNT_CURRENT;
-		}
-	}
-	return BUILD_SEQAR_COUNT_CURRENT | BUILD_SEQAR_COUNT_CHILDREN;
-}
-
-void transform_seq(Scene *scene, SpaceSeq *sseq, View2D *v2d, int mode, int context)
-{
-	Sequence *seq, *last_seq;
-	Editing *ed;
-	float dx, dy, dvec[2], div;
-	TransSeq *transmain, *ts;
-	int totstrip=0, firsttime=1, afbreek=0, midtog= 0, proj= 0;
-	int ix, iy; /* these values are used for storing the mouses offset from its original location */
-	int ix_old = 0;
-	unsigned short event = 0;
-	short mval[2], xo, yo, xn, yn;
-	char str[32];
-	char side= 'L'; /* for extend mode only - use to know which side to extend on */
-	char marker_moved=0; /* if we mvoed a marker, redraw all marker views */
-	/* used for extend in a number of places */
-	int cfra = CFRA;
-	
-	/* for snapping */
-	char snapskip = 0, snap, snap_old= 0;
-	int snapdist_max = seq_get_snaplimit(v2d);
-	/* at the moment there are only 4 possible snap points,
-	-	last_seq (start,end)
-	-	selected bounds (start/end)
-	-	last_seq (next/prev)
-	-	current frame */
-	int snap_points[4], snap_point_num = 0;
-	int j; /* loop on snap_points */
-	
-	/* for markers */
-	int *oldframe = NULL, totmark=0, a;
-	TimeMarker *marker;
-	
-	/* looping on sequences, WHILE_SEQ macro allocates memory each time */
-	int totseq_index, seq_index; 
-	Sequence **seqar = 0;
-	
-	if(mode!='g' && mode!='e') return;	/* from gesture */
-
-	/* which seqs are involved */
-	ed= scene->ed;
-	if(ed==NULL) return;
-
-	/* Build the sequence array once, be sure to free it */
-	build_seqar_cb( ed->seqbasep,  &seqar, &totseq_index, 
-			can_transform_seq_test_func );
-	
-	if (seqar) {
-		for(seq_index=0, seq=seqar[0]; seq_index < totseq_index; seq=seqar[++seq_index]) {
-			if((seq->flag & SELECT) && !(seq->depth==0 && seq->flag & SEQ_LOCK)) 
-				totstrip++;
-			/* only needed for extend but can set here anyway since were alredy looping */
-			seq->tmp= NULL;
-		}
-	}
-	
-	/* for extending we need the metastrip clipped left/right values, set the metastrips as parents in seq->tmp */
-	if (mode=='e') {
-		Sequence *meta_seq;
-		for(seq_index=0, seq=seqar[0]; seq_index < totseq_index; seq=seqar[++seq_index]) {
-			if (seq->type == SEQ_META) {
-				for (meta_seq = seq->seqbase.first; meta_seq; meta_seq= meta_seq->next){
-					meta_seq->tmp= (void *)seq;
-				}
-			}
-		}
-	}
-	
-	
-	if (sseq->flag & SEQ_MARKER_TRANS) {
-		for(marker= scene->markers.first; marker; marker= marker->next) {
-			if(marker->flag & SELECT) totmark++;
-		}
-	}
-	
-	if(totstrip==0 && totmark==0) {
-		if(seqar) MEM_freeN(seqar);
-		return;
-	}
-
-	G.moving= 1;
-	
-	last_seq = get_last_seq(scene);
-	
-	ts=transmain= MEM_callocN(totstrip*sizeof(TransSeq), "transseq");
-
-	for(seq_index=0, seq=seqar[0]; seq_index < totseq_index; seq=seqar[++seq_index]) {
-		if((seq->flag & SELECT) && !(seq->depth==0 && seq->flag & SEQ_LOCK)) {
-			ts->start= seq->start;
-			ts->machine= seq->machine;
-			ts->startstill= seq->startstill;
-			ts->endstill= seq->endstill;
-			ts->startofs= seq->startofs;
-			ts->endofs= seq->endofs;
-			
-			/* for extend only */
-			if (mode=='e') {
-				ts->final_left = seq_tx_get_final_left(seq, 1);
-				ts->final_right = seq_tx_get_final_right(seq, 1);
-			}
-			ts++;
-		}
-	}
-	
-//	getmouseco_areawin(mval);
-	
-	/* choose the side based on which side of the playhead the mouse is on */
-	if (mode=='e')
-		side = mouse_cfra_side(v2d, cfra);
-	
-	/* Markers */
-	if (sseq->flag & SEQ_MARKER_TRANS && totmark) {
-		oldframe= MEM_mallocN(totmark*sizeof(int), "marker array");
-		for(a=0, marker= scene->markers.first; marker; marker= marker->next) {
-			if(marker->flag & SELECT) {
-				if (mode=='e') {
-					
-					/* when extending, invalidate markers on the other side by using an invalid frame value */
-					if ((side == 'L' && marker->frame > cfra) || (side == 'R' && marker->frame < cfra)) {
-						oldframe[a] = MAXFRAME+1;
-					} else {
-						oldframe[a]= marker->frame;
-					}
-				} else {
-					oldframe[a]= marker->frame;
-				}
-				a++;
-			}
-		}
-	}
-	
-	xo=xn= mval[0];
-	yo=yn= mval[1];
-	dvec[0]= dvec[1]= 0.0;
-
-	while(afbreek==0) {
-//		getmouseco_areawin(mval);
-		// XXX G.qual = get_qual();
-		// snap = (G.qual & LR_CTRLKEY) ? 1 : 0;
-		
-		if(mval[0]!=xo || mval[1]!=yo || firsttime || snap != snap_old) {
-			if (firsttime) {
-				snap_old = snap;
-				firsttime= 0;
-			}
-			
-			/* run for either grab or extend */
-			dx= mval[0]- xo;
-			dy= mval[1]- yo;
-
-			div= v2d->mask.xmax-v2d->mask.xmin;
-			dx= (v2d->cur.xmax-v2d->cur.xmin)*(dx)/div;
-
-			div= v2d->mask.ymax-v2d->mask.ymin;
-			dy= (v2d->cur.ymax-v2d->cur.ymin)*(dy)/div;
-
-			if(0) { // XXX G.qual & LR_SHIFTKEY) {
-				if(dx>1.0) dx= 1.0; else if(dx<-1.0) dx= -1.0;
-			}
-
-			dvec[0]+= dx;
-			dvec[1]+= dy;
-
-			if(midtog) dvec[proj]= 0.0;
-			ix= floor(dvec[0]+0.5);
-			iy= floor(dvec[1]+0.5);
-			
-			ts= transmain;
-			
-			/* SNAP! use the active Seq */
-			// XXX snap = G.qual & LR_CTRLKEY ? 1 : 0;
-			
-			if (!snap) {
-				snapskip = 0;
-			} else {
-				int dist;
-				int snap_ofs= 0;
-				int snap_dist= snapdist_max;
-				
-				/* Get sequence points to snap to the markers */
-				
-				snap_point_num=0;
-				if (last_seq && (last_seq->flag & SELECT)) { /* active seq bounds */
-					if(seq_tx_check_left(last_seq))
-						snap_points[snap_point_num++] = seq_tx_get_final_left(last_seq, 0);
-					if(seq_tx_check_right(last_seq))
-						snap_points[snap_point_num++] = seq_tx_get_final_right(last_seq, 0);
-					
-				}
-				if (totstrip > 1) { /* selection bounds */
-					int bounds_left = MAXFRAME*2;
-					int bounds_right = -(MAXFRAME*2);
-					
-					for(seq_index=0, seq=seqar[0]; seq_index < totseq_index; seq=seqar[++seq_index]) {
-						if(seq->flag & SELECT) {
-							if(seq_tx_check_left(seq))
-								bounds_left		= MIN2(bounds_left,	seq_tx_get_final_left(seq, 0));
-							if(seq_tx_check_right(seq))
-								bounds_right	= MAX2(bounds_right,seq_tx_get_final_right(seq, 0));
-						}
-					}
-					
-					/* its possible there were no points to set on either side */
-					if (bounds_left != MAXFRAME*2)
-						snap_points[snap_point_num++] = bounds_left;
-					if (bounds_right != -(MAXFRAME*2))
-						snap_points[snap_point_num++] = bounds_right;
-				}
-				
-				
-				/* Define so we can snap to other points without hassle */
-				
-#define TESTSNAP(test_frame)\
-				for(j=0; j<snap_point_num; j++) {\
-					/* see if this beats the current best snap point */\
-					dist = abs(snap_points[j] - test_frame);\
-					if (dist < snap_dist) {\
-						snap_ofs = test_frame - snap_points[j];\
-						snap_dist = dist;\
-					}\
-				}
-				
-				
-				/* Detect the best marker to snap to! */
-				for(a=0, marker= scene->markers.first; marker; a++, marker= marker->next) {
-					
-					/* dont snap to a marker on the wrong extend side */
-					if (mode=='e' && ((side == 'L' && marker->frame > cfra) || (side == 'R' && marker->frame < cfra)))
-						continue;
-					
-					/* when we are moving markers, dont snap to selected markers, durr */
-					if ((sseq->flag & SEQ_MARKER_TRANS)==0 || (marker->flag & SELECT)==0) {
-						
-						/* loop over the sticky points - max 4 */
-						TESTSNAP(marker->frame);
-						if (snap_dist == 0) break; /* alredy snapped? - stop looking */
-					}
-				}
-				
-				if (snap_dist) {
-					TESTSNAP(cfra);
-				}
-				
-				/* check seq's next to the active also - nice for quick snapping */
-				if (snap_dist && last_seq && seq_tx_check_left(last_seq)) {
-					seq = find_next_prev_sequence(scene, last_seq, 1, 0); /* left */
-					if(seq && !seq_tx_check_right(seq))
-						TESTSNAP(seq_tx_get_final_right(seq, 0));
-				}
-				
-				if (snap_dist && last_seq && seq_tx_check_right(last_seq)) {
-					seq = find_next_prev_sequence(scene, last_seq, 2, 0); /* right */
-					if(seq && !seq_tx_check_left(seq))
-						TESTSNAP(seq_tx_get_final_left(seq, 0));
-				}
-
-#undef TESTSNAP
-
-				if (abs(ix_old-ix) >= snapdist_max) {
-					/* mouse has moved out of snap range */
-					snapskip = 0;
-				} else if (snap_dist==0) {
-					/* nowhere to move, dont do anything */
-					snapskip = 1;
-				} else if (snap_dist < snapdist_max) {
-					/* do the snapping by adjusting the mouse offset value */
-					ix = ix_old + snap_ofs;
-				}
-			}
-			
-			if (mode=='g' && !snapskip) {
-				/* Grab */
-				for(seq_index=0, seq=seqar[0]; seq_index < totseq_index; seq=seqar[++seq_index]) {
-					if(seq->flag & SELECT && !(seq->depth==0 && seq->flag & SEQ_LOCK)) {
-						int myofs;
-						/* flag, ignores lefsel/rightsel for nested strips */
-						int sel_flag = (seq->depth==0) ? seq->flag : seq->flag & ~(SEQ_LEFTSEL+SEQ_RIGHTSEL);
-						
-						// SEQ_DEBUG_INFO(seq);
-						
-						/* X Transformation */
-						if((seq->depth==0) && (sel_flag & SEQ_LEFTSEL)) {
-							myofs = (ts->startofs - ts->startstill);
-							seq_tx_set_final_left(seq, ts->start + (myofs + ix));
-						}
-						if((seq->depth==0) && (sel_flag & SEQ_RIGHTSEL)) {
-							myofs = (ts->endstill - ts->endofs);
-							seq_tx_set_final_right(seq, ts->start + seq->len + (myofs + ix));
-						}
-						seq_tx_handle_xlimits(seq, sel_flag & SEQ_LEFTSEL, sel_flag & SEQ_RIGHTSEL);
-						
-						if( (sel_flag & (SEQ_LEFTSEL+SEQ_RIGHTSEL))==0 ) {
-							if(seq_tx_test(seq)) seq->start= ts->start+ ix;
-
-							/* Y Transformation */
-							if(seq->depth==0) seq->machine= ts->machine+ iy;
-
-							if(seq->machine<1) seq->machine= 1;
-							else if(seq->machine>= MAXSEQ) seq->machine= MAXSEQ;
-						}
-						calc_sequence(seq);
-						ts++;
-					}
-				}
-				
-				/* Markers */
-				if (sseq->flag & SEQ_MARKER_TRANS) {
-					for(a=0, marker= scene->markers.first; marker; marker= marker->next) {
-						if(marker->flag & SELECT) {
-							marker->frame= oldframe[a] + ix;
-							marker_moved=1;
-							a++;
-						}
-					}
-				}
-			
-			/* Extend, grabs one side of the current frame */
-			} else if (mode=='e' && !snapskip) {
-				int myofs; /* offset from start of the seq clip */
-				int xnew, final_left, final_right; /* just to store results from seq_tx_get_final_left/right */
-				
-				/* we dont use seq side selection flags for this,
-				instead we need to calculate which sides to move
-				based on its initial position from the cursor */
-				int move_left, move_right;
-				
-				/* Extend, Similar to grab but operate on one side of the cursor */
-				for(seq_index=0, seq=seqar[0]; seq_index < totseq_index; seq=seqar[++seq_index]) {
-					if(seq->flag & SELECT && !(seq->depth==0 && seq->flag & SEQ_LOCK)) {
-						/* only move the contents of the metastrip otherwise the transformation is applied twice */
-						if (seq_tx_test(seq) && seq->type != SEQ_META) {
-							
-							move_left = move_right = 0;
-							
-							//SEQ_DEBUG_INFO(seq);
-							
-							final_left =	seq_tx_get_final_left(seq, 1);
-							final_right =	seq_tx_get_final_right(seq, 1);
-							
-							/* Only X Axis moving */
-							
-							/* work out which sides to move first */
-							if (side=='L') {
-								if (final_left <= cfra || ts->final_left <= cfra)	move_left = 1;
-								if (final_right <= cfra || ts->final_right <= cfra)	move_right = 1;
-							} else {
-								if (final_left >= cfra || ts->final_left >= cfra)	move_left = 1;
-								if (final_right >= cfra || ts->final_right >= cfra)	move_right = 1;
-							}
-							
-							if (move_left && move_right) {
-								/* simple move - dont need to do anything complicated */
-								seq->start= ts->start+ ix;
-							} else {
-								if (side=='L') {
-									if (move_left) {
-										
-										/* Similar to other funcs */
-										myofs = (ts->startofs - ts->startstill);
-										xnew = ts->start + (ix + myofs);
-										
-										/* make sure the we dont resize down to 0 or less in size
-										also include the startstill so the contense dosnt go outside the bounds, 
-										if the seq->startofs is 0 then its ignored */
-										
-										/* TODO remove, add check to seq_tx_handle_xlimits, works ok for now */
-										if (xnew + seq->startstill > final_right-1) {
-											xnew = (final_right-1) - seq->startstill;
-										}
-										/* Note, this is the only case where the start needs to be adjusted
-										since its not needed when modifying the end or when moving the entire sequence  */
-										//seq->start = ts->start+ix;   // This works when xnew is not clamped, line below takes clamping into account
-										seq->start= xnew - myofs;  /* TODO see above */
-										/* done with unique stuff */
-										
-										seq_tx_set_final_left(seq, xnew);
-										seq_tx_handle_xlimits(seq, 1, 0);
-										
-										/* Special case again - setting the end back to what it was */
-										seq_tx_set_final_right(seq, final_right);
-									}
-									if (move_right) {
-										myofs = (ts->endstill - ts->endofs);
-										xnew = ts->start + seq->len + (myofs + ix);
-										seq_tx_set_final_right(seq, xnew);
-										seq_tx_handle_xlimits(seq, 0, 1);
-									}
-								} else { /* R */
-									if (move_left) {
-										myofs = (ts->startofs - ts->startstill);
-										xnew = ts->start + (myofs + ix);
-										seq_tx_set_final_left(seq, xnew);
-										seq_tx_handle_xlimits(seq, 1, 0);
-									}
-									if (move_right) {
-										myofs = (ts->endstill - ts->endofs);
-										xnew = ts->start + seq->len + (myofs + ix);
-										seq_tx_set_final_right(seq, xnew);
-										seq_tx_handle_xlimits(seq, 0, 1);
-									}
-								}
-							}
-						}
-						calc_sequence(seq);
-						ts++;
-					}
-				}
-				
-				/* markers */
-				if (sseq->flag & SEQ_MARKER_TRANS) {
-					for(a=0, marker= scene->markers.first; marker; marker= marker->next) {\
-						if (marker->flag & SELECT) {
-							if(oldframe[a] != MAXFRAME+1) {
-								marker->frame= oldframe[a] + ix;
-								marker_moved=1;
-							}
-							a++;
-						}
-					}
-				}
-			}
-			
-			sprintf(str, "X: %d   Y: %d  ", ix, iy);
-//			headerprint(str);
-			
-			/* remember the last value for snapping,
-			only set if we are not currently snapped,
-			prevents locking on a keyframe */
-			if (!snapskip)
-				ix_old = ix; 
-			
-			/* just to tell if ctrl was pressed, this means we get a recalc when pressing ctrl */
-			snap_old = snap;
-			
-			/* rememver last mouse values so we can skip transform when nothing happens */
-			xo= mval[0];
-			yo= mval[1];
-
-			/* test for effect and overlap */
-			for(seq_index=0, seq=seqar[0]; seq_index < totseq_index; seq=seqar[++seq_index]) {
-				if((seq->depth==0) && (seq->flag & SELECT) && !(seq->depth==0 && seq->flag & SEQ_LOCK)) {
-					seq->flag &= ~SEQ_OVERLAP;
-					if( test_overlap_seq(scene, seq) ) {
-						seq->flag |= SEQ_OVERLAP;
-					}
-				}
-				else if(seq->type & SEQ_EFFECT) {
-					if(seq->seq1 && seq->seq1->flag & SELECT) calc_sequence(seq);
-					else if(seq->seq2 && seq->seq2->flag & SELECT) calc_sequence(seq);
-					else if(seq->seq3 && seq->seq3->flag & SELECT) calc_sequence(seq);
-				}
-			}
-			/* warning, drawing should NEVER use WHILE_SEQ,
-			if it does the seq->depth value will be messed up and
-			overlap checks with metastrips will give incorrect results */
-// XXX			force_draw_plus(SPACE_BUTS, 0);
-			
-		}
-
-#if 0
-		while(qtest()) {
-			event= extern_qread(&val);
-			if(val) {
-				switch(event) {
-				case ESCKEY:
-				case LEFTMOUSE:
-				case RIGHTMOUSE:
-				case SPACEKEY:
-				case RETKEY:
-					afbreek= 1;
-					break;
-				case XKEY:
-					if(!(midtog && (proj == 0))) {
-						midtog= ~midtog;
-					}
-					if(midtog) {
-						proj= 1;
-						firsttime= 1;
-					}
-					break;
-				case YKEY:
-					if(!(midtog && (proj == 1))) {
-						midtog= ~midtog;
-					}
-					if(midtog) {
-						proj= 0;
-						firsttime= 1;
-					}
-					break;
-				case MIDDLEMOUSE:
-					midtog= ~midtog;
-					if(midtog) {
-						if( abs(mval[0]-xn) > abs(mval[1]-yn)) proj= 1;
-						else proj= 0;
-						firsttime= 1;
-					}
-					break;
-				default:
-					arrows_move_cursor(event);
-				}
-			}
-			if(afbreek) break;
-		}
 #endif
-	}
-
-	if((event==ESCKEY) || (event==RIGHTMOUSE)) {
-
-		ts= transmain;
-		for(seq_index=0, seq=seqar[0]; seq_index < totseq_index; seq=seqar[++seq_index]) {
-			if(seq->flag & SELECT && !(seq->depth==0 && seq->flag & SEQ_LOCK)) {
-				seq->start= ts->start;
-				seq->machine= ts->machine;
-				seq->startstill= ts->startstill;
-				seq->endstill= ts->endstill;
-				seq->startofs= ts->startofs;
-				seq->endofs= ts->endofs;
-
-				calc_sequence(seq);
-				seq->flag &= ~SEQ_OVERLAP;
-
-				ts++;
-			} else if(seq->type & SEQ_EFFECT) {
-				if(seq->seq1 && seq->seq1->flag & SELECT) calc_sequence(seq);
-				else if(seq->seq2 && seq->seq2->flag & SELECT) calc_sequence(seq);
-				else if(seq->seq3 && seq->seq3->flag & SELECT) calc_sequence(seq);
-			}
-		}
-	
-		/* Markers */
-		if (sseq->flag & SEQ_MARKER_TRANS) {
-			for(a=0, marker= scene->markers.first; marker; marker= marker->next) {
-				if (marker->flag & SELECT) {
-					if(oldframe[a] != MAXFRAME+1) {
-						marker->frame= oldframe[a];
-					}
-					a++;
-				}
-			}
-			marker_moved = 0;
-		}	
-	} else {
-
-		/* images, effects and overlap */
-		for(seq_index=0, seq=seqar[0]; seq_index < totseq_index; seq=seqar[++seq_index]) {
-			
-			/* fixes single image strips - makes sure their start is not out of bounds
-			ideally this would be done during transform since data is rendered at that time
-			however it ends up being a lot messier! - Campbell */
-			fix_single_seq(seq);
-			
-			if(seq->type == SEQ_META) {
-				calc_sequence(seq);
-				seq->flag &= ~SEQ_OVERLAP;
-				if( test_overlap_seq(scene, seq) ) shuffle_seq(scene, seq);
-			}
-			else if(seq->flag & SELECT) {
-				calc_sequence(seq);
-				seq->flag &= ~SEQ_OVERLAP;
-				if( test_overlap_seq(scene, seq) ) shuffle_seq(scene, seq);
-			}
-			else if(seq->type & SEQ_EFFECT) calc_sequence(seq);
-		}
-
-		/* as last: */
-		sort_seq(scene);
-	}
-	
-	/* free sequence array */
-	if(seqar) MEM_freeN(seqar);
-	
-	G.moving= 0;
-	MEM_freeN(transmain);
-	
-	if (sseq->flag & SEQ_MARKER_TRANS && totmark)
-		MEM_freeN(oldframe);
-	
-	if (mode=='g')
-		BIF_undo_push("Transform Grab, Sequencer");
-	else if (mode=='e')
-		BIF_undo_push("Transform Extend, Sequencer");
-	
-}
-
-/*	since grab can move markers, we must turn this off before adding a new sequence
-	I am not so happy with this, but the baddness in contained here - Campbell */
-
-/* XXX temp disabled, will work differently anyway */
-void _transform_seq_nomarker_(Scene *scene, SpaceSeq *sseq, View2D *v2d, int mode, int context) 
-{
-	int flag_back;
-	if (!sseq) return; /* should never happen */
-	
-	flag_back = sseq->flag;
-	sseq->flag &= ~SEQ_MARKER_TRANS;
-	
-	transform_seq(scene, sseq, v2d, mode, context);
-	
-	sseq->flag = flag_back;
-}
 
 void seq_snap(Scene *scene, short event)
 {
@@ -2110,8 +1374,8 @@ void seq_snap(Scene *scene, short event)
 	SEQP_BEGIN(ed, seq) {
 		if(seq->flag & SELECT && !(seq->depth==0 && seq->flag & SEQ_LOCK)) {
 			seq->flag &= ~SEQ_OVERLAP;
-			if( test_overlap_seq(scene, seq) ) {
-				shuffle_seq(scene, seq);
+			if( seq_test_overlap(ed->seqbasep, seq) ) {
+				shuffle_seq(ed->seqbasep, seq);
 			}
 		}
 		else if(seq->type & SEQ_EFFECT) {
@@ -2141,24 +1405,6 @@ void seq_snap_menu(Scene *scene)
 	seq_snap(scene, event);
 }
 
-void seq_lock_sel(Scene *scene, int lock) 
-{
-	Editing *ed;
-	Sequence *seq;
-	
-	ed= scene->ed;
-	if(!ed) return;
-	
-	for(seq= ed->seqbasep->first; seq; seq= seq->next) {
-		if ((seq->flag & SELECT)) {
-			if (lock) seq->flag |= SEQ_LOCK;
-			else seq->flag &= ~SEQ_LOCK;
-		}
-	}
-	BIF_undo_push(lock?"Lock Strips, Sequencer":"Unlock Strips, Sequencer");
-}
-
-
 /* Operator functions */
 
 
@@ -2172,10 +1418,9 @@ static EnumPropertyItem prop_set_mute_types[] = {
 static int sequencer_mute_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
-	Editing *ed;
+	Editing *ed= scene->ed;
 	Sequence *seq;
 	int selected;
-	ed= scene->ed;
 
 	selected=  RNA_enum_is_equal(op->ptr, "type", "SELECTED");
 	
@@ -2222,10 +1467,9 @@ void SEQUENCER_OT_mute(struct wmOperatorType *ot)
 static int sequencer_unmute_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
-	Editing *ed;
+	Editing *ed= scene->ed;
 	Sequence *seq;
 	int selected;
-	ed= scene->ed;
 
 	selected=  RNA_enum_is_equal(op->ptr, "type", "SELECTED");
 	
@@ -2267,6 +1511,133 @@ void SEQUENCER_OT_unmute(struct wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "type", prop_set_mute_types, SEQ_SELECTED, "Type", "");
 }
 
+
+/* lock operator */
+static int sequencer_lock_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	Editing *ed= scene->ed;
+	Sequence *seq;
+
+	for(seq= ed->seqbasep->first; seq; seq= seq->next) {
+		if (seq->flag & SELECT) {
+			seq->flag |= SEQ_LOCK;
+		}
+	}
+
+	ED_undo_push(C, "Lock Strips, Sequencer");
+
+	ED_area_tag_redraw(CTX_wm_area(C));
+
+	return OPERATOR_FINISHED;
+}
+
+void SEQUENCER_OT_lock(struct wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Lock Strips";
+	ot->idname= "SEQUENCER_OT_lock";
+
+	/* api callbacks */
+	ot->exec= sequencer_lock_exec;
+
+	ot->poll= ED_operator_sequencer_active;
+	ot->flag= OPTYPE_REGISTER;
+}
+
+/* unlock operator */
+static int sequencer_unlock_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	Editing *ed= scene->ed;
+	Sequence *seq;
+
+	for(seq= ed->seqbasep->first; seq; seq= seq->next) {
+		if (seq->flag & SELECT) {
+			seq->flag &= ~SEQ_LOCK;
+		}
+	}
+
+	ED_undo_push(C, "UnLock Strips, Sequencer");
+	ED_area_tag_redraw(CTX_wm_area(C));
+
+	return OPERATOR_FINISHED;
+}
+
+void SEQUENCER_OT_unlock(struct wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "UnLock Strips";
+	ot->idname= "SEQUENCER_OT_unlock";
+
+	/* api callbacks */
+	ot->exec= sequencer_unlock_exec;
+
+	ot->poll= ED_operator_sequencer_active;
+	ot->flag= OPTYPE_REGISTER;
+}
+
+/* reload operator */
+static int sequencer_reload_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	Editing *ed= scene->ed;
+	Sequence *seq;
+
+	for(seq= ed->seqbasep->first; seq; seq= seq->next) {
+		if(seq->flag & SELECT) {
+			update_changed_seq_and_deps(scene, seq, 0, 1);
+		}
+	}
+
+	ED_undo_push(C, "UnLock Strips, Sequencer");
+
+	ED_area_tag_redraw(CTX_wm_area(C));
+
+	return OPERATOR_FINISHED;
+}
+
+void SEQUENCER_OT_reload(struct wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Reload Strips";
+	ot->idname= "SEQUENCER_OT_reload";
+
+	/* api callbacks */
+	ot->exec= sequencer_reload_exec;
+
+	ot->poll= ED_operator_sequencer_active;
+	ot->flag= OPTYPE_REGISTER;
+}
+
+/* reload operator */
+static int sequencer_refresh_all_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	Editing *ed= scene->ed;
+	
+
+	free_imbuf_seq(&ed->seqbase);
+
+	ED_undo_push(C, "Refresh, Sequencer");
+
+	ED_area_tag_redraw(CTX_wm_area(C));
+
+	return OPERATOR_FINISHED;
+}
+
+void SEQUENCER_OT_refresh_all(struct wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Refresh Sequencer";
+	ot->idname= "SEQUENCER_OT_refresh_all";
+
+	/* api callbacks */
+	ot->exec= sequencer_refresh_all_exec;
+
+	ot->poll= ED_operator_sequencer_active;
+	ot->flag= OPTYPE_REGISTER;
+}
 
 /* cut operator */
 static EnumPropertyItem prop_cut_side_types[] = {
@@ -2525,7 +1896,7 @@ static int sequencer_separate_images_exec(bContext *C, wmOperator *op)
 				/* new seq */
 				se = give_stripelem(seq, cfra);
 
-				seq_new= alloc_sequence(((Editing *)scene->ed)->seqbasep, start_ofs, seq->machine);
+				seq_new= alloc_sequence(ed->seqbasep, start_ofs, seq->machine);
 				seq_new->type= SEQ_IMAGE;
 				seq_new->len = 1;
 				seq_new->endstill = step-1;
@@ -2541,8 +1912,8 @@ static int sequencer_separate_images_exec(bContext *C, wmOperator *op)
 				strncpy(se_new->name, se->name, FILE_MAXFILE-1);
 				calc_sequence(seq_new);
 				seq_new->flag &= ~SEQ_OVERLAP;
-				if (test_overlap_seq(scene, seq_new)) {
-					shuffle_seq(scene, seq_new);
+				if (seq_test_overlap(ed->seqbasep, seq_new)) {
+					shuffle_seq(ed->seqbasep, seq_new);
 				}
 
 				cfra++;
@@ -2728,7 +2099,7 @@ static int sequencer_meta_make_exec(bContext *C, wmOperator *op)
 	
 	set_last_seq(scene, seqm);
 
-	if( test_overlap_seq(scene, seqm) ) shuffle_seq(scene, seqm);
+	if( seq_test_overlap(ed->seqbasep, seqm) ) shuffle_seq(ed->seqbasep, seqm);
 
 	ED_undo_push(C, "Make Meta Strip, Sequencer");
 	
@@ -2789,8 +2160,8 @@ static int sequencer_meta_separate_exec(bContext *C, wmOperator *op)
 	SEQP_BEGIN(ed, seq) {
 		if(seq->flag & SELECT) {
 			seq->flag &= ~SEQ_OVERLAP;
-			if( test_overlap_seq(scene, seq) ) {
-				shuffle_seq(scene, seq);
+			if( seq_test_overlap(ed->seqbasep, seq) ) {
+				shuffle_seq(ed->seqbasep, seq);
 			}
 		}
 	}
@@ -2817,5 +2188,141 @@ void SEQUENCER_OT_meta_separate(wmOperatorType *ot)
 	ot->poll= ED_operator_sequencer_active;
 }
 
+/* view_all operator */
+static int sequencer_view_all_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	bScreen *sc= CTX_wm_screen(C);
+	ScrArea *area= CTX_wm_area(C);
+	ARegion *ar= CTX_wm_region(C);
+	SpaceSeq *sseq= area->spacedata.first;
+	View2D *v2d= UI_view2d_fromcontext(C);
+
+	if (sseq->mainb==SEQ_DRAW_SEQUENCE) {
+		v2d->cur= v2d->tot;
+		UI_view2d_curRect_validate(v2d);
+		UI_view2d_sync(sc, area, v2d, V2D_LOCK_COPY);
+	} else {
+		/* Like zooming on an image view */
+		float zoomX, zoomY;
+		int width, height, imgwidth, imgheight;
+
+		width = ar->winx;
+		height = ar->winy;
+
+		seq_reset_imageofs(sseq);
+
+		imgwidth= (scene->r.size*scene->r.xsch)/100;
+		imgheight= (scene->r.size*scene->r.ysch)/100;
+
+		/* Apply aspect, dosnt need to be that accurate */
+		imgwidth= (int)(imgwidth * ((float)scene->r.xasp / (float)scene->r.yasp));
+
+		if (((imgwidth >= width) || (imgheight >= height)) &&
+			((width > 0) && (height > 0))) {
+
+			/* Find the zoom value that will fit the image in the image space */
+			zoomX = ((float)width) / ((float)imgwidth);
+			zoomY = ((float)height) / ((float)imgheight);
+			sseq->zoom= (zoomX < zoomY) ? zoomX : zoomY;
+
+			sseq->zoom = 1.0f / power_of_2(1/ MIN2(zoomX, zoomY) );
+		}
+		else {
+			sseq->zoom= 1.0f;
+		}
+	}
+
+
+	ED_area_tag_redraw(CTX_wm_area(C));
+	return OPERATOR_FINISHED;
+}
+
+void SEQUENCER_OT_view_all(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "View All";
+	ot->idname= "SEQUENCER_OT_view_all";
+
+	/* api callbacks */
+	ot->exec= sequencer_view_all_exec;
+
+	ot->poll= ED_operator_sequencer_active;
+}
+
+
+/* view_all operator */
+static int sequencer_view_selected_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	View2D *v2d= UI_view2d_fromcontext(C);
+	ScrArea *area= CTX_wm_area(C);
+	bScreen *sc= CTX_wm_screen(C);
+	Editing *ed= scene->ed;
+	Sequence *seq;
+
+	int xmin=  MAXFRAME*2;
+	int xmax= -MAXFRAME*2;
+	int ymin=  MAXSEQ+1;
+	int ymax= 0;
+	int orig_height;
+	int ymid;
+	int ymargin= 1;
+	int xmargin= FPS;
+
+	
+	for(seq=ed->seqbasep->first; seq; seq=seq->next) {
+		if(seq->flag & SELECT) {
+			xmin= MIN2(xmin, seq->startdisp);
+			xmax= MAX2(xmax, seq->enddisp);
+
+			ymin= MIN2(ymin, seq->machine);
+			ymax= MAX2(ymax, seq->machine);
+		}
+	}
+
+	if (ymax != 0) {
+		
+		xmax += xmargin;
+		xmin -= xmargin;
+		ymax += ymargin;
+		ymin -= ymargin;
+
+		orig_height= v2d->cur.ymax - v2d->cur.ymin;
+
+		v2d->cur.xmin= xmin;
+		v2d->cur.xmax= xmax;
+
+		v2d->cur.ymin= ymin;
+		v2d->cur.ymax= ymax;
+
+		/* only zoom out vertically */
+		if (orig_height > v2d->cur.ymax - v2d->cur.ymin) {
+			ymid= (v2d->cur.ymax + v2d->cur.ymin) / 2;
+
+			v2d->cur.ymin= ymid - (orig_height/2);
+			v2d->cur.ymax= ymid + (orig_height/2);
+		}
+
+		UI_view2d_curRect_validate(v2d);
+		UI_view2d_sync(sc, area, v2d, V2D_LOCK_COPY);
+
+		ED_area_tag_redraw(CTX_wm_area(C));
+	}
+	
+	return OPERATOR_FINISHED;
+}
+
+void SEQUENCER_OT_view_selected(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "View Selected";
+	ot->idname= "SEQUENCER_OT_view_selected";
+
+	/* api callbacks */
+	ot->exec= sequencer_view_selected_exec;
+
+	ot->poll= ED_operator_sequencer_active;
+}
 
 

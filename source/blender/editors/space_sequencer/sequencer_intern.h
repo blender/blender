@@ -42,6 +42,7 @@ void sequencer_header_buttons(const struct bContext *C, struct ARegion *ar);
 
 /* sequencer_draw.c */
 void drawseqspace(const struct bContext *C, struct ARegion *ar);
+void seq_reset_imageofs(struct SpaceSeq *sseq);
 
 /* sequencer_edit.c */
 struct View2D;
@@ -60,15 +61,16 @@ void set_last_seq(struct Scene *scene, struct Sequence *seq);
 int seq_effect_find_selected(struct Scene *scene, struct Sequence *activeseq, int type, struct Sequence **selseq1, struct Sequence **selseq2, struct Sequence **selseq3);
 struct Sequence *alloc_sequence(struct ListBase *lb, int cfra, int machine);
 
-int test_overlap_seq(struct Scene *scene, struct Sequence *test);
-void shuffle_seq(struct Scene *scene, struct Sequence *test);
-
 /* operators */
 struct wmOperatorType;
 struct wmWindowManager;
 void SEQUENCER_OT_cut(struct wmOperatorType *ot);
 void SEQUENCER_OT_mute(struct wmOperatorType *ot);
 void SEQUENCER_OT_unmute(struct wmOperatorType *ot);
+void SEQUENCER_OT_lock(struct wmOperatorType *ot);
+void SEQUENCER_OT_unlock(struct wmOperatorType *ot);
+void SEQUENCER_OT_reload(struct wmOperatorType *ot);
+void SEQUENCER_OT_refresh_all(struct wmOperatorType *ot);
 void SEQUENCER_OT_add_duplicate(struct wmOperatorType *ot);
 void SEQUENCER_OT_delete(struct wmOperatorType *ot);
 void SEQUENCER_OT_separate_images(struct wmOperatorType *ot);
@@ -76,6 +78,8 @@ void SEQUENCER_OT_meta_toggle(struct wmOperatorType *ot);
 void SEQUENCER_OT_meta_make(struct wmOperatorType *ot);
 void SEQUENCER_OT_meta_separate(struct wmOperatorType *ot);
 
+void SEQUENCER_OT_view_all(struct wmOperatorType *ot);
+void SEQUENCER_OT_view_selected(struct wmOperatorType *ot);
 
 /* sequencer_select.c */
 void SEQUENCER_OT_deselect_all(struct wmOperatorType *ot);

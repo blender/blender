@@ -67,12 +67,19 @@ void sequencer_operatortypes(void)
 	WM_operatortype_append(SEQUENCER_OT_cut);
 	WM_operatortype_append(SEQUENCER_OT_mute);
 	WM_operatortype_append(SEQUENCER_OT_unmute);
+	WM_operatortype_append(SEQUENCER_OT_lock);
+	WM_operatortype_append(SEQUENCER_OT_unlock);
+	WM_operatortype_append(SEQUENCER_OT_reload);
+	WM_operatortype_append(SEQUENCER_OT_refresh_all);
 	WM_operatortype_append(SEQUENCER_OT_add_duplicate);
 	WM_operatortype_append(SEQUENCER_OT_delete);
 	WM_operatortype_append(SEQUENCER_OT_separate_images);
 	WM_operatortype_append(SEQUENCER_OT_meta_toggle);
 	WM_operatortype_append(SEQUENCER_OT_meta_make);
 	WM_operatortype_append(SEQUENCER_OT_meta_separate);
+
+	WM_operatortype_append(SEQUENCER_OT_view_all);
+	WM_operatortype_append(SEQUENCER_OT_view_selected);
 	
 	/* sequencer_select.c */
 	WM_operatortype_append(SEQUENCER_OT_deselect_all);
@@ -109,6 +116,11 @@ void sequencer_keymap(wmWindowManager *wm)
 	RNA_enum_set(WM_keymap_add_item(keymap, "SEQUENCER_OT_unmute", HKEY, KM_PRESS, KM_ALT, 0)->ptr, "type", SEQ_SELECTED);
 	RNA_enum_set(WM_keymap_add_item(keymap, "SEQUENCER_OT_unmute", HKEY, KM_PRESS, KM_ALT|KM_SHIFT, 0)->ptr, "type", SEQ_UNSELECTED);
 
+	WM_keymap_add_item(keymap, "SEQUENCER_OT_lock", LKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "SEQUENCER_OT_unlock", HKEY, KM_PRESS, KM_SHIFT|KM_ALT, 0);
+
+	WM_keymap_add_item(keymap, "SEQUENCER_OT_reload", RKEY, KM_PRESS, KM_ALT, 0);
+
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_add_duplicate", DKEY, KM_PRESS, KM_SHIFT, 0);
 
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_delete", XKEY, KM_PRESS, 0, 0);
@@ -120,6 +132,9 @@ void sequencer_keymap(wmWindowManager *wm)
 
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_meta_make", MKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_meta_separate", MKEY, KM_PRESS, KM_ALT, 0);
+
+	WM_keymap_add_item(keymap, "SEQUENCER_OT_view_all", HOMEKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "SEQUENCER_OT_view_selected", PADPERIOD, KM_PRESS, 0, 0);
 	
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_select", SELECTMOUSE, KM_PRESS, 0, 0);
 	RNA_enum_set(WM_keymap_add_item(keymap, "SEQUENCER_OT_select", SELECTMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "type", 1);
