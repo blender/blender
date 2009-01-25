@@ -733,11 +733,13 @@ static FCurve *icu_to_fcu (IpoCurve *icu, char *actname, char *constname)
 				dst->ipo= icu->ipo;
 				
 			/* correct values for object rotation curves - they were degrees/10 */
-			// XXX for now, just make them into degrees 
+			// XXX for now, just make them into radians as RNA sets/reads directly in that form
 			if ((icu->blocktype == ID_OB) && ELEM3(icu->adrcode, OB_ROT_X, OB_ROT_Y, OB_ROT_Z)) {
-				dst->vec[0][0] *= 10.0f;
-				dst->vec[1][0] *= 10.0f;
-				dst->vec[2][0] *= 10.0f;
+				const float fac= M_PI / 180.0f; //10.0f * M_PI/180.0f;
+				
+				dst->vec[0][0] *= fac;
+				dst->vec[1][0] *= fac;
+				dst->vec[2][0] *= fac;
 			}
 		}
 		
@@ -827,9 +829,10 @@ static void ipo_to_animdata (ID *id, Ipo *ipo, char *actname, char *constname)
 	 *		F-Curves for bones). This may be added later... for now let's just dump without them...
 	 */
 	if (actname) {
+		printf("actname != 0 \n");
 		if ((GS(id->name) == ID_OB) && (strcmp(actname, "Object") == 0))
 			actname= NULL;
-		if ((GS(id->name) == ID_OB) && (strcmp(actname, "Shape") == 0))
+		else if ((GS(id->name) == ID_OB) && (strcmp(actname, "Shape") == 0))
 			actname= NULL;
 	}
 	

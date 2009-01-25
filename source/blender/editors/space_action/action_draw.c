@@ -439,7 +439,7 @@ void draw_channel_names(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 			bActionGroup *grp = NULL;
 			short indent= 0, offset= 0, sel= 0, group= 0;
 			int expand= -1, protect = -1, special= -1, mute = -1;
-			char name[64];
+			char name[128];
 			
 			/* determine what needs to be drawn */
 			switch (ale->type) {
@@ -618,16 +618,16 @@ void draw_channel_names(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 					FCurve *fcu = (FCurve *)ale->data;
 					
 					indent = 0;
-					protect = -1; // for now, until this can be supported by others
 					
 					//group= (ale->grp) ? 1 : 0;
 					//grp= ale->grp;
 					
+					// XXX this needs to be more detailed...
 					if (ale->id) {
 						if (GS(ale->id->name) == ID_MA)
 							offset= 21;
 						else
-							offset= 0;
+							offset= 14;
 					}
 					else
 						offset= 0;
@@ -645,7 +645,8 @@ void draw_channel_names(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 					sel = SEL_FCU(fcu);
 					
 					// for now, we just print the full path... this needs more work!
-					sprintf(name, "%s[%d]", fcu->rna_path, fcu->array_index);
+					getname_anim_fcurve(name, ale->id, fcu);
+					//sprintf(name, "%s[%d]", fcu->rna_path, fcu->array_index);
 				}
 					break;
 				

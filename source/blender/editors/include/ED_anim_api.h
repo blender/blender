@@ -269,11 +269,13 @@ void ANIM_draw_previewrange(const struct bContext *C, struct View2D *v2d);
 /* ************************************************* */
 /* ASSORTED TOOLS */
 
-/* ------------ IPO Adrcode <-> Icons/Names Mapping ------------ */
+/* ------------ Animation F-Curves <-> Icons/Names Mapping ------------ */
 /* anim_ipo_utils.c */
 
-int geticon_ipo_blocktype(short blocktype);
-char *getname_ipocurve(struct IpoCurve *icu, struct Object *ob); // XXX 
+int geticon_anim_blocktype(short blocktype);
+
+void getname_anim_fcurve(char *name, struct ID *id, struct FCurve *fcu);
+
 
 unsigned int ipo_rainbow(int cur, int tot);
 
