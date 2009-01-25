@@ -1385,11 +1385,11 @@ static int select_inverse_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void UV_OT_select_inverse(wmOperatorType *ot)
+void UV_OT_select_invert(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select Invert";
-	ot->idname= "UV_OT_select_inverse";
+	ot->idname= "UV_OT_select_invert";
 	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
 	
 	/* api callbacks */
@@ -2575,7 +2575,7 @@ void select_pinned_tface_uv(Scene *scene, Image *ima, Object *obedit)
 void ED_operatortypes_uvedit(void)
 {
 	WM_operatortype_append(UV_OT_de_select_all);
-	WM_operatortype_append(UV_OT_select_inverse);
+	WM_operatortype_append(UV_OT_select_invert);
 	WM_operatortype_append(UV_OT_select);
 	WM_operatortype_append(UV_OT_loop_select);
 	WM_operatortype_append(UV_OT_select_linked);
@@ -2600,7 +2600,7 @@ void ED_keymap_uvedit(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "UV_OT_select_linked", LKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "UV_OT_unlink_selection", LKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "UV_OT_de_select_all", AKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "UV_OT_select_inverse", IKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "UV_OT_select_invert", IKEY, KM_PRESS, KM_CTRL, 0);
 
 	WM_keymap_add_item(keymap, "UV_OT_stitch", VKEY, KM_PRESS, 0, 0);
 }

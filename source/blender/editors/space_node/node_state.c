@@ -179,11 +179,11 @@ static int node_toggle_visibility_invoke(bContext *C, wmOperator *op, wmEvent *e
 	return node_toggle_visibility_exec(C,op);
 }
 
-void NODE_OT_toggle_visibility(wmOperatorType *ot)
+void NODE_OT_visibility_toggle(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Toggle Visibility";
-	ot->idname= "NODE_OT_toggle_visibility";
+	ot->idname= "NODE_OT_visibility_toggle";
 	
 	/* api callbacks */
 	ot->invoke= node_toggle_visibility_invoke;

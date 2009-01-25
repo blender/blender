@@ -2995,12 +2995,12 @@ static int toggle_editmode_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void OBJECT_OT_toggle_editmode(wmOperatorType *ot)
+void OBJECT_OT_editmode_toggle(wmOperatorType *ot)
 {
 	
 	/* identifiers */
 	ot->name= "Toggle Editmode";
-	ot->idname= "OBJECT_OT_toggle_editmode";
+	ot->idname= "OBJECT_OT_editmode_toggle";
 	
 	/* api callbacks */
 	ot->exec= toggle_editmode_exec;

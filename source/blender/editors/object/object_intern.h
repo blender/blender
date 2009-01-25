@@ -42,7 +42,7 @@ struct Mesh;
 #define CLEAR_OBJ_ORIGIN 3
 
 /* object_edit.c */
-void OBJECT_OT_toggle_editmode(struct wmOperatorType *ot);
+void OBJECT_OT_editmode_toggle(struct wmOperatorType *ot);
 void OBJECT_OT_make_parent(struct wmOperatorType *ot);
 void OBJECT_OT_clear_parent(struct wmOperatorType *ot);
 void OBJECT_OT_make_track(struct wmOperatorType *ot);

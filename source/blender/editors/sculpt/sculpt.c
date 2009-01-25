@@ -1664,11 +1664,11 @@ static int sculpt_toggle_mode(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static void SCULPT_OT_toggle_mode(wmOperatorType *ot)
+static void SCULPT_OT_sculptmode_toggle(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Sculpt Mode";
-	ot->idname= "SCULPT_OT_toggle_mode";
+	ot->idname= "SCULPT_OT_sculptmode_toggle";
 	
 	/* api callbacks */
 	ot->exec= sculpt_toggle_mode;
@@ -1680,7 +1680,7 @@ void ED_operatortypes_sculpt()
 {
 	WM_operatortype_append(SCULPT_OT_radial_control);
 	WM_operatortype_append(SCULPT_OT_brush_stroke);
-	WM_operatortype_append(SCULPT_OT_toggle_mode);
+	WM_operatortype_append(SCULPT_OT_sculptmode_toggle);
 }
 
 void sculpt(Sculpt *sd)

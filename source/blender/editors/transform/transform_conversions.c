@@ -4074,7 +4074,7 @@ void special_aftertrans_update(TransInfo *t)
 
 		if (!cancelled) {
 			ListBase *seqbasep= ((Editing *)t->scene->ed)->seqbasep;
-			int a, new_frame;
+			int a;
 			TransData *td= t->data;
 			TransData2D *td2d= t->data2d;
 			TransDataSeq *tdsq= NULL;
