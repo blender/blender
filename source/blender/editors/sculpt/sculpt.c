@@ -1255,7 +1255,11 @@ static int sculpt_radial_control_modal(bContext *C, wmOperator *op, wmEvent *eve
 
 static int sculpt_radial_control_exec(bContext *C, wmOperator *op)
 {
-	return brush_radial_control_exec(op, CTX_data_scene(C)->toolsettings->sculpt->brush);
+	int ret = brush_radial_control_exec(op, CTX_data_scene(C)->toolsettings->sculpt->brush);
+	char str[256];
+	WM_radial_control_string(op, str, 256);
+	ED_undo_push(C, str);	
+	return ret;
 }
 
 static void SCULPT_OT_radial_control(wmOperatorType *ot)

@@ -160,6 +160,7 @@ void		WM_gesture_end(struct bContext *C, struct wmGesture *gesture);
 int		WM_radial_control_invoke(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
 int		WM_radial_control_modal(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
 void		WM_OT_radial_control_partial(struct wmOperatorType *ot);
+void		WM_radial_control_string(struct wmOperator *op, char str[], int maxlen);
 
 			/* OpenGL wrappers, mimicking opengl syntax */
 void		wmSubWindowSet			(struct wmWindow *win, int swinid);

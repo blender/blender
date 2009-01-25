@@ -1075,6 +1075,20 @@ int WM_radial_control_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
+/* Gets a descriptive string of the operation */
+void WM_radial_control_string(wmOperator *op, char str[], int maxlen)
+{
+	int mode = RNA_int_get(op->ptr, "mode");
+	float v = RNA_float_get(op->ptr, "new_value");
+
+	if(mode == WM_RADIALCONTROL_SIZE)
+		sprintf(str, "Size: %d", (int)v);
+	else if(mode == WM_RADIALCONTROL_STRENGTH)
+		sprintf(str, "Strength: %d", (int)v);
+	else if(mode == WM_RADIALCONTROL_ANGLE)
+		sprintf(str, "Angle: %d", (int)(v * 180.0f/M_PI));
+}
+
 /** Important: this doesn't define an actual operator, it
     just sets up the common parts of the radial control op. **/
 void WM_OT_radial_control_partial(wmOperatorType *ot)
