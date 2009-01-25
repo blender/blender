@@ -205,5 +205,11 @@ typedef struct wmOperator {
 /* add this flag if the event should pass through */
 #define OPERATOR_PASS_THROUGH	8
 
+typedef enum wmRadialControlMode {
+	WM_RADIALCONTROL_SIZE,
+	WM_RADIALCONTROL_STRENGTH,
+	WM_RADIALCONTROL_ANGLE
+} wmRadialControlMode;
+
 #endif /* DNA_WINDOWMANAGER_TYPES_H */
 
