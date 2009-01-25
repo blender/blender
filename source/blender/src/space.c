@@ -1326,13 +1326,6 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			}
 		}
 
-#ifndef DISABLE_PYTHON
-		/* run any view3d event handler script links */
-		if (event && sa->scriptlink.totscript)
-			if (BPY_do_spacehandlers(sa, event, val, SPACEHANDLER_VIEW3D_EVENT))
-				return; /* return if event was processed (swallowed) by handler(s) */
-#endif
-
 		/* TEXTEDITING?? */
 		if((G.obedit) && G.obedit->type==OB_FONT) {
 			switch(event) {
