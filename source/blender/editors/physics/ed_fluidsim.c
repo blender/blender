@@ -1139,7 +1139,7 @@ FluidsimSettings* fluidsimSettingsCopy(FluidsimSettings *fss) {
 }
 
 /* only compile dummy functions */
-void fluidsimBake(bContext *C, struct Object *ob)
+void fluidsimBake(bContext *C, struct Object *ob) {
 }
 
 void fluidsimFreeBake(struct Object *ob) {
