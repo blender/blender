@@ -66,6 +66,11 @@ void OBJECT_OT_make_dupli_real(struct wmOperatorType *ot);
 void OBJECT_OT_object_add(struct wmOperatorType *ot);
 void OBJECT_OT_add_duplicate(struct wmOperatorType *ot);
 
+void OBJECT_OT_mesh_add(struct wmOperatorType *ot);
+void OBJECT_OT_curve_add(struct wmOperatorType *ot);
+	/* only used as menu */
+void OBJECT_OT_primitive_add(struct wmOperatorType *ot);
+
 /* editlattice.c */
 void free_editLatt(Object *ob);
 void make_editLatt(Object *obedit);

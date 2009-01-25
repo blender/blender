@@ -258,6 +258,7 @@ void ED_object_base_init_from_view(bContext *C, Base *base)
 			}
 		}
 	}
+	where_is_object(scene, ob);
 }
 
 /* ******************* add object operator ****************** */
@@ -322,6 +323,174 @@ void OBJECT_OT_object_add(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER;
 	
 	RNA_def_enum(ot->srna, "type", prop_object_types, 0, "Type", "");
+}
+
+/* ***************** add primitives *************** */
+/* ******  work both in and outside editmode ****** */
+
+static EnumPropertyItem prop_mesh_types[] = {
+	{0, "PLANE", "Plane", ""},
+	{1, "CUBE", "Cube", ""},
+	{2, "CIRCLE", "Circle", ""},
+	{3, "UVSPHERE", "UVsphere", ""},
+	{4, "ICOSPHERE", "Icosphere", ""},
+	{5, "CYLINDER", "Cylinder", ""},
+	{6, "CONE", "Cone", ""},
+	{7, "GRID", "Grid", ""},
+	{8, "MONKEY", "Monkey", ""},
+	{0, NULL, NULL, NULL}
+};
+
+static int object_add_mesh_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	int newob= 0;
+	
+	if(obedit==NULL) {
+		RNA_enum_set(op->ptr, "type", OB_MESH);
+		object_add_exec(C, op);
+		ED_object_enter_editmode(C, 0);
+		newob = 1;
+	}
+	switch(RNA_enum_get(op->ptr, "primtype")) {
+		case 0:
+			WM_operator_name_call(C, "MESH_OT_add_primitive_plane", WM_OP_INVOKE_REGION_WIN, NULL);
+			break;
+		case 1:
+			WM_operator_name_call(C, "MESH_OT_add_primitive_cube", WM_OP_INVOKE_REGION_WIN, NULL);
+			break;
+		case 2:
+			WM_operator_name_call(C, "MESH_OT_add_primitive_circle", WM_OP_INVOKE_REGION_WIN, NULL);
+			break;
+		case 3:
+			WM_operator_name_call(C, "MESH_OT_add_primitive_uv_sphere", WM_OP_INVOKE_REGION_WIN, NULL);
+			break;
+		case 4:
+			WM_operator_name_call(C, "MESH_OT_add_primitive_ico_sphere", WM_OP_INVOKE_REGION_WIN, NULL);
+			break;
+		case 5:
+			WM_operator_name_call(C, "MESH_OT_add_primitive_cylinder", WM_OP_INVOKE_REGION_WIN, NULL);
+			break;
+		case 6:
+			WM_operator_name_call(C, "MESH_OT_add_primitive_cone", WM_OP_INVOKE_REGION_WIN, NULL);
+			break;
+		case 7:
+			WM_operator_name_call(C, "MESH_OT_add_primitive_grid", WM_OP_INVOKE_REGION_WIN, NULL);
+			break;
+		case 8:
+			WM_operator_name_call(C, "MESH_OT_add_primitive_monkey", WM_OP_INVOKE_REGION_WIN, NULL);
+			break;
+	}
+	/* userdef */
+	if (newob && (U.flag & USER_ADD_EDITMODE)==0) {
+		ED_object_exit_editmode(C, EM_FREEDATA);
+	}
+	
+	return OPERATOR_FINISHED;
+}
+
+static int object_add_mesh_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	uiMenuItem *head= uiMenuBegin("Add Mesh");
+	
+	uiMenuItemsEnumO(head, "OBJECT_OT_mesh_add", "primtype");
+	uiMenuEnd(C, head);
+
+	/* this operator is only for a menu, not used further */
+	return OPERATOR_CANCELLED;
+}
+
+void OBJECT_OT_mesh_add(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Add Mesh";
+	ot->idname= "OBJECT_OT_mesh_add";
+	
+	/* api callbacks */
+	ot->invoke= object_add_mesh_invoke;
+	ot->exec= object_add_mesh_exec;
+	
+	ot->poll= ED_operator_scene_editable;
+	ot->flag= OPTYPE_REGISTER;
+	
+	RNA_def_enum(ot->srna, "type", prop_object_types, 0, "Type", "");
+	RNA_def_enum(ot->srna, "primtype", prop_mesh_types, 0, "Primitive", "");
+}
+
+static EnumPropertyItem prop_curve_types[] = {
+	{0, "BEZCUVE", "Bezier Curve", ""},
+	{1, "BEZCIRCLE", "Bezier Circle", ""},
+	{2, "NURBSCUVE", "Nurbs Curve", ""},
+	{3, "NURBSCIRCLE", "Nurbs Circle", ""},
+	{0, NULL, NULL, NULL}
+};
+
+static int object_add_curve_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	
+	if(obedit==NULL) {
+		RNA_enum_set(op->ptr, "type", OB_MESH);
+		object_add_exec(C, op);
+		ED_object_enter_editmode(C, 0);
+	}
+	switch(RNA_enum_get(op->ptr, "primtype")) {
+		
+		
+	}
+	/* userdef */
+	
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_curve_add(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Add Curve";
+	ot->idname= "OBJECT_OT_curve_add";
+	
+	/* api callbacks */
+	ot->exec= object_add_curve_exec;
+	
+	ot->poll= ED_operator_scene_editable;
+	ot->flag= OPTYPE_REGISTER;
+	
+	RNA_def_enum(ot->srna, "primtype", prop_curve_types, 0, "Type", "");
+}
+
+
+static int object_add_primitive_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	uiMenuItem *head= uiMenuBegin("Add Object");
+	
+	uiMenuLevelEnumO(head, "OBJECT_OT_mesh_add", "primtype");
+	uiMenuLevelEnumO(head, "OBJECT_OT_curve_add", "primtype");
+	uiMenuItemEnumO(head, "OBJECT_OT_object_add", "type", OB_SURF);
+	uiMenuItemEnumO(head, "OBJECT_OT_object_add", "type", OB_MBALL);
+	uiMenuItemEnumO(head, "OBJECT_OT_object_add", "type", OB_CAMERA);
+	uiMenuItemEnumO(head, "OBJECT_OT_object_add", "type", OB_LAMP);
+	uiMenuItemEnumO(head, "OBJECT_OT_object_add", "type", OB_EMPTY);
+	uiMenuItemEnumO(head, "OBJECT_OT_object_add", "type", OB_ARMATURE);
+	uiMenuItemEnumO(head, "OBJECT_OT_object_add", "type", OB_LATTICE);
+	
+	uiMenuEnd(C, head);
+	
+	/* this operator is only for a menu, not used further */
+	return OPERATOR_CANCELLED;
+}
+
+/* only used as menu */
+void OBJECT_OT_primitive_add(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Add Primitive";
+	ot->idname= "OBJECT_OT_primitive_add";
+	
+	/* api callbacks */
+	ot->invoke= object_add_primitive_invoke;
+	
+	ot->poll= ED_operator_scene_editable;
+	ot->flag= OPTYPE_REGISTER;
 }
 
 

@@ -55,6 +55,7 @@
 #include "RNA_define.h"
 
 #include "UI_interface.h"
+#include "UI_resources.h"
 
 #include "screen_intern.h"	/* own module include */
 
@@ -1028,7 +1029,7 @@ static int screen_full_area_exec(bContext *C, wmOperator *op)
 
 void SCREEN_OT_screen_full_area(wmOperatorType *ot)
 {
-	ot->name = "Toggle Full Area in Screen";
+	ot->name = "Toggle Make Area Fullscreen";
 	ot->idname = "SCREEN_OT_screen_full_area";
 	
 	ot->exec= screen_full_area_exec;
@@ -1548,8 +1549,41 @@ static int region_flip_exec(bContext *C, wmOperator *op)
 		ar->alignment= RGN_ALIGN_LEFT;
 	
 	WM_event_add_notifier(C, NC_SCREEN|NA_EDITED, NULL);
+	printf("executed region flip\n");
 	
 	return OPERATOR_FINISHED;
+}
+
+static void testfunc(bContext *C, void *argv, int arg)
+{
+	printf("arg %d\n", arg);
+}
+
+static void newlevel1(uiMenuItem *head)
+{
+	uiMenuFunc(head, testfunc, NULL);
+	
+	uiMenuItemVal(head, "First", ICON_PROP_ON, 1);
+	uiMenuItemVal(head, "Second", ICON_PROP_CON, 2);
+	uiMenuItemVal(head, "Third", ICON_SMOOTHCURVE, 3);
+	uiMenuItemVal(head, "Fourth", ICON_SHARPCURVE, 4);	
+}
+
+static int testing123(bContext *C, wmOperator *op, wmEvent *event)
+{
+	uiMenuItem *head= uiMenuBegin("Hello world");
+	
+	uiMenuContext(head, WM_OP_EXEC_DEFAULT);
+	uiMenuItemO(head, "SCREEN_OT_region_flip", ICON_PROP_ON);
+	uiMenuItemO(head, "SCREEN_OT_screen_full_area", ICON_PROP_CON);
+	uiMenuItemO(head, "SCREEN_OT_region_foursplit", ICON_SMOOTHCURVE);
+	uiMenuLevel(head, "Submenu", newlevel1);
+	uiMenuItemO(head, "SCREEN_OT_area_rip", ICON_PROP_ON);
+	
+	uiMenuEnd(C, head);
+	
+	/* this operator is only for a menu, not used further */
+	return OPERATOR_CANCELLED;
 }
 
 void SCREEN_OT_region_flip(wmOperatorType *ot)
@@ -1559,10 +1593,13 @@ void SCREEN_OT_region_flip(wmOperatorType *ot)
 	ot->idname= "SCREEN_OT_region_flip";
 	
 	/* api callbacks */
-	ot->invoke= WM_operator_confirm;
+	ot->invoke= testing123; // XXX WM_operator_confirm;
 	ot->exec= region_flip_exec;
 	
 	ot->poll= ED_operator_areaactive;
+	
+	RNA_def_int(ot->srna, "test", 0, INT_MIN, INT_MAX, "test", "", INT_MIN, INT_MAX);
+
 }
 
 /* ****************** anim player, typically with timer ***************** */

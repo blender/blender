@@ -219,6 +219,23 @@ void uiPupmenuNotice(struct bContext *C, char *str, ...);
 void uiPupmenuError(struct bContext *C, char *str, ...);
 void uiPupmenuReports(struct bContext *C, struct ReportList *reports);
 
+/* Custom popup menus and toolbox */
+typedef struct uiMenuItem uiMenuItem;
+
+uiMenuItem *uiMenuBegin(const char *title);
+
+void uiMenuFunc(uiMenuItem *head, void (*eventfunc)(struct bContext *, void *, int), void *argv);
+void uiMenuContext(uiMenuItem *head, int opcontext);
+
+void uiMenuItemVal(uiMenuItem *head, const char *name, int icon, int argval);
+void uiMenuItemEnumO(uiMenuItem *head, char *opname, char *propname, int value);
+void uiMenuItemsEnumO(uiMenuItem *head, char *opname, char *propname);
+void uiMenuItemO(uiMenuItem *head, char *name, int icon);
+void uiMenuLevel(uiMenuItem *head, const char *name, void (*newlevel)(uiMenuItem *));
+void uiMenuLevelEnumO(uiMenuItem *head, char *opname, char *propname);
+
+void uiMenuEnd(struct bContext *C, struct uiMenuItem *head);
+
 /* Block */
 
 uiBlock *uiBeginBlock(const struct bContext *C, struct ARegion *region, char *name, short dt, short font);
