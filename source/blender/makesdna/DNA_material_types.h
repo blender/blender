@@ -70,13 +70,18 @@ typedef struct Material {
 	short vol_precache_resolution;
 	float vol_stepsize, vol_shade_stepsize;
 	float vol_depth_cutoff;
-	float vpad;
+	short vol_shade_type;
+	short vpad;
 	float vol_density_scale;
 	float vol_absorption, vol_scattering;
 	float vol_absorption_col[3];
 	short vol_shadeflag;
 	short vol_phasefunc_type;
 	float vol_phasefunc_g;
+	float vpad2;
+	
+	float vol_ms_diff, vol_ms_intensity;
+	int vol_ms_steps;
 		
 	float fresnel_mir, fresnel_mir_i;
 	float fresnel_tra, fresnel_tra_i;
@@ -358,10 +363,15 @@ typedef struct Material {
 
 /* vol_shadeflag */
 #define MA_VOL_SHADED		1
-#define MA_VOL_ATTENUATED	2
 #define MA_VOL_RECVSHADOW	4
 #define MA_VOL_PRECACHESHADING	8
 #define MA_VOL_USEALPHA		16
+
+/* vol_shading_type */
+#define MA_VOL_SHADE_NONE					0
+#define MA_VOL_SHADE_SINGLE					1
+#define MA_VOL_SHADE_MULTIPLE				2
+#define MA_VOL_SHADE_SINGLEPLUSMULTIPLE		3
 
 /* vol_phasefunc_type */
 #define MA_VOL_PH_ISOTROPIC		0

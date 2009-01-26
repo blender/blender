@@ -8072,17 +8072,27 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			}
 		}
 	}
-	
+
 	if (main->versionfile < 248 || (main->versionfile == 248 && main->subversionfile < 3)) {
 		Tex *tex;
+		Material *ma;
 		
 		/* blend texture extrapolation */
 		for(tex=main->tex.first; tex; tex= tex->id.next) {
 			if (tex->type == TEX_BLEND)
 				tex->extend = TEX_EXTEND;
 		}
+		
+		for(ma=main->mat.first; ma; ma= ma->id.next) {
+			if (ma->vol_shadeflag & 2) { // old MA_VOL_ATTENUATED
+				ma->vol_shade_type = MA_VOL_SHADE_SINGLE;
+				ma->vol_ms_diff = 0.5f;
+				ma->vol_ms_steps = 5;
+				ma->vol_ms_intensity = 1.0;
+			}
+		}
 	}
-	
+
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in src/usiblender.c! */
 

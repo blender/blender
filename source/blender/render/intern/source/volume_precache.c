@@ -47,6 +47,7 @@
 #include "render_types.h"
 #include "renderdatabase.h"
 #include "volumetric.h"
+#include "volume_precache.h"
 
 
 #include "BKE_global.h"
@@ -211,119 +212,140 @@ static void lightcache_filter(float *cache, int res)
 	}
 }
 
+static inline int I(int x,int y,int z,int n) //has a pad of 1 voxel surrounding the core for boundary simulation
+{ 
+	return (x*(n+2)+y)*(n+2)+z;
+}
 
-void vol_precache_objectinstance(Render *re, ObjectInstanceRen *obi, Material *ma, float *bbmin, float *bbmax)
+static void ms_diffuse(int b, float* x0, float* x, float diff, int n)
 {
-	int x, y, z;
+	int i, j, k, l;
+	const float dt = VOL_MS_TIMESTEP;
+	const float a = dt*diff*n*n*n;
+	
+	for (l=0; l<20; l++)
+	{
+		for (k=1; k<=n; k++)
+		{
+			for (j=1; j<=n; j++)
+			{
+				for (i=1; i<=n; i++)
+				{
+					x[I(i,j,k,n)] = (x0[I(i,j,k,n)] + a*(
+														 x[I(i-1,j,k,n)]+x[I(i+1,j,k,n)]+
+														 x[I(i,j-1,k,n)]+x[I(i,j+1,k,n)]+
+														 x[I(i,j,k-1,n)]+x[I(i,j,k+1,n)]))/(1+6*a);
+				}
+			}
+		}
+	}
+}
 
-	float co[3], voxel[3], scatter_col[3];
-	ShadeInput shi;
-	float view[3] = {0.0,0.0,-1.0};
-	float density;
-	float stepsize;
-	
-	float resf, res_3f;
-	int res_2, res_3;
-	
-	float i = 1.0f;
+void multiple_scattering_diffusion(Render *re, float *cache, int res, Material *ma)
+{
+	const float diff = ma->vol_ms_diff * 0.001f; 	/* compensate for scaling for a nicer UI range */
+	const float fac = ma->vol_ms_intensity;
+	const float simframes = ma->vol_ms_steps;
+	const int shade_type = ma->vol_shade_type;
+	const float dt = VOL_MS_TIMESTEP;
+
+	int i, j, k, m;
+	int n = res;
+	const int size = (n+2)*(n+2)*(n+2);
 	double time, lasttime= PIL_check_seconds_timer();
-	const int res = ma->vol_precache_resolution;
-	RayTree *tree;
+	float total;
+	float c=1.0f;
+	int index;
+	float origf;	/* factor for blending in original light cache */
 	
-	R = *re;
+	
+	float *sr0=(float *)MEM_callocN(size*sizeof(float), "temporary multiple scattering buffer");
+	float *sr=(float *)MEM_callocN(size*sizeof(float), "temporary multiple scattering buffer");
+	float *sg0=(float *)MEM_callocN(size*sizeof(float), "temporary multiple scattering buffer");
+	float *sg=(float *)MEM_callocN(size*sizeof(float), "temporary multiple scattering buffer");
+	float *sb0=(float *)MEM_callocN(size*sizeof(float), "temporary multiple scattering buffer");
+	float *sb=(float *)MEM_callocN(size*sizeof(float), "temporary multiple scattering buffer");
 
-	/* create a raytree with just the faces of the instanced ObjectRen, 
-	 * used for checking if the cached point is inside or outside. */
-	tree = create_raytree_obi(obi, bbmin, bbmax);
-	if (!tree) return;
+	total = (float)(n*n*n*simframes);
+	
+	/* Scattering as diffusion pass */
+	for (m=0; m<simframes; m++)
+	{
+		/* add sources */
+		for (k=1; k<=n; k++)
+		{
+			for (j=1; j<=n; j++)
+			{
+				for (i=1; i<=n; i++)
+				{
+					time= PIL_check_seconds_timer();
+					c++;
+					
+					index=(i-1)*n*n + (j-1)*n + k-1;
+					
+					if (cache[index] > 0.0f)
+						sr[I(i,j,k,n)] += cache[index];
+					if (cache[1*n*n*n + index] > 0.0f)
+						sg[I(i,j,k,n)] += cache[1*n*n*n + index];
+					if (cache[2*n*n*n + index] > 0.0f)
+						sb[I(i,j,k,n)] += cache[2*n*n*n + index];
 
-	/* Need a shadeinput to calculate scattering */
-	memset(&shi, 0, sizeof(ShadeInput)); 
-	shi.depth= 1;
-	shi.mask= 1;
-	shi.mat = ma;
-	shi.vlr = NULL;
-	memcpy(&shi.r, &shi.mat->r, 23*sizeof(float));	// note, keep this synced with render_types.h
-	shi.har= shi.mat->har;
-	shi.obi= obi;
-	shi.obr= obi->obr;
-	shi.lay = re->scene->lay;
-	VECCOPY(shi.view, view);
-	
-	stepsize = vol_get_stepsize(&shi, STEPSIZE_VIEW);
 
-	resf = (float)res;
-	res_2 = res*res;
-	res_3 = res*res*res;
-	res_3f = (float)res_3;
-	
-	VecSubf(voxel, bbmax, bbmin);
-	if ((voxel[0] < FLT_EPSILON) || (voxel[1] < FLT_EPSILON) || (voxel[2] < FLT_EPSILON))
-		return;
-	VecMulf(voxel, 1.0f/res);
-	
-	obi->volume_precache = MEM_callocN(sizeof(float)*res_3*3, "volume light cache");
-	
-	/* Iterate over the 3d voxel grid, and fill the voxels with scattering information
-	 *
-	 * It's stored in memory as 3 big float grids next to each other, one for each RGB channel.
-	 * I'm guessing the memory alignment may work out better this way for the purposes
-	 * of doing linear interpolation, but I haven't actually tested this theory! :)
-	 */
-	for (x=0; x < res; x++) {
-		co[0] = bbmin[0] + (voxel[0] * x);
-		
-		for (y=0; y < res; y++) {
-			co[1] = bbmin[1] + (voxel[1] * y);
-			
-			for (z=0; z < res; z++) {
-				co[2] = bbmin[2] + (voxel[2] * z);
-			
-				time= PIL_check_seconds_timer();
-				i++;
-			
-				/* display progress every second */
-				if(re->test_break()) {
-					if(tree) {
-						RE_ray_tree_free(tree);
-						tree= NULL;
+					/* Displays progress every second */
+					if(time-lasttime>1.0f) {
+						char str[64];
+						sprintf(str, "Simulating multiple scattering: %d%%", (int)
+								(100.0f * (c / total)));
+						re->i.infostr= str;
+						re->stats_draw(&re->i);
+						re->i.infostr= NULL;
+						lasttime= time;
 					}
-					return;
 				}
-				if(time-lasttime>1.0f) {
-					char str[64];
-					sprintf(str, "Precaching volume: %d%%", (int)(100.0f * (i / res_3f)));
-					re->i.infostr= str;
-					re->stats_draw(&re->i);
-					re->i.infostr= NULL;
-					lasttime= time;
-				}
-				
-				/* don't bother if the point is not inside the volume mesh */
-				if (!point_inside_obi(tree, obi, co)) {
-					obi->volume_precache[0*res_3 + x*res_2 + y*res + z] = -1.0f;
-					obi->volume_precache[1*res_3 + x*res_2 + y*res + z] = -1.0f;
-					obi->volume_precache[2*res_3 + x*res_2 + y*res + z] = -1.0f;
-					continue;
-				}
-				density = vol_get_density(&shi, co);
-				vol_get_scattering(&shi, scatter_col, co, stepsize, density);
-			
-				obi->volume_precache[0*res_3 + x*res_2 + y*res + z] = scatter_col[0];
-				obi->volume_precache[1*res_3 + x*res_2 + y*res + z] = scatter_col[1];
-				obi->volume_precache[2*res_3 + x*res_2 + y*res + z] = scatter_col[2];
+			}
+		}
+		SWAP(float *, sr, sr0);
+		SWAP(float *, sg, sg0);
+		SWAP(float *, sb, sb0);
+
+		/* main diffusion simulation */
+		ms_diffuse(0, sr0, sr, diff, n);
+		ms_diffuse(0, sg0, sg, diff, n);
+		ms_diffuse(0, sb0, sb, diff, n);
+		
+		if (re->test_break()) break;
+	}
+	
+	/* copy to light cache */
+
+	if (shade_type == MA_VOL_SHADE_SINGLEPLUSMULTIPLE)
+		origf = 1.0f;
+	else
+		origf = 0.0f;
+
+	for (k=1;k<=n;k++)
+	{
+		for (j=1;j<=n;j++)
+		{
+			for (i=1;i<=n;i++)
+			{
+				index=(i-1)*n*n + (j-1)*n + k-1;
+				cache[index]			= origf * cache[index]  + fac * sr[I(i,j,k,n)];
+				cache[1*n*n*n + index]	= origf * cache[1*n*n*n + index] + fac * sg[I(i,j,k,n)];
+				cache[2*n*n*n + index]	= origf * cache[2*n*n*n + index] + fac * sb[I(i,j,k,n)];
 			}
 		}
 	}
 
-	if(tree) {
-		RE_ray_tree_free(tree);
-		tree= NULL;
-	}
-	
-	lightcache_filter(obi->volume_precache, res);
-
+	MEM_freeN(sr0);
+	MEM_freeN(sr);
+	MEM_freeN(sg0);
+	MEM_freeN(sg);
+	MEM_freeN(sb0);
+	MEM_freeN(sb);
 }
+
+
 
 #if 0 // debug stuff
 static void *vol_precache_part_test(void *data)
@@ -566,6 +588,11 @@ void vol_precache_objectinstance_threads(Render *re, ObjectInstanceRen *obi, Mat
 	}
 	
 	lightcache_filter(obi->volume_precache, res);
+	
+	if (ELEM(ma->vol_shade_type, MA_VOL_SHADE_MULTIPLE, MA_VOL_SHADE_SINGLEPLUSMULTIPLE))
+	{
+		multiple_scattering_diffusion(re, obi->volume_precache, res, ma);
+	}
 }
 
 /* loop through all objects (and their associated materials)
@@ -575,12 +602,14 @@ void volume_precache(Render *re)
 	ObjectInstanceRen *obi;
 	VolumeOb *vo;
 
+	/* ignore light cache and multiple scattering for preview render .. for now? */
+	if (re->r.scemode & R_PREVIEWBUTS) return;
+
 	for(vo= re->volumes.first; vo; vo= vo->next) {
 		if (vo->ma->vol_shadeflag & MA_VOL_PRECACHESHADING) {
 			for(obi= re->instancetable.first; obi; obi= obi->next) {
 				if (obi->obr == vo->obr) {
-					if (G.rt==10) vol_precache_objectinstance(re, obi, vo->ma, obi->obr->boundbox[0], obi->obr->boundbox[1]);
-					else vol_precache_objectinstance_threads(re, obi, vo->ma, obi->obr->boundbox[0], obi->obr->boundbox[1]);
+					vol_precache_objectinstance_threads(re, obi, vo->ma, obi->obr->boundbox[0], obi->obr->boundbox[1]);
 				}
 			}
 		}

@@ -379,7 +379,7 @@ void vol_shade_one_lamp(struct ShadeInput *shi, float *co, LampRen *lar, float *
 	p = vol_get_phasefunc(shi, shi->mat->vol_phasefunc_type, shi->mat->vol_phasefunc_g, shi->view, lv);
 	VecMulf(lacol, p);
 	
-	if (shi->mat->vol_shadeflag & MA_VOL_ATTENUATED) {
+	if (shi->mat->vol_shade_type != MA_VOL_SHADE_NONE) {
 		Isect is;
 		
 		/* find minimum of volume bounds, or lamp coord */
@@ -511,8 +511,12 @@ static void volumeintegrate(struct ShadeInput *shi, float *col, float *co, float
 			/* incoming light via emission or scattering (additive) */
 			vol_get_emission(shi, emit_col, step_mid, density);
 			
-			if ((shi->mat->vol_shadeflag & MA_VOL_PRECACHESHADING) &&
-				(shi->mat->vol_shadeflag & MA_VOL_ATTENUATED)) {
+			
+			if (R.r.scemode & R_PREVIEWBUTS) {
+				vol_get_scattering(shi, scatter_col, step_mid, stepsize, density);
+			} else if (((shi->mat->vol_shadeflag & MA_VOL_PRECACHESHADING) &&
+				(shi->mat->vol_shade_type == MA_VOL_SHADE_SINGLE)) ||
+				(ELEM(shi->mat->vol_shade_type, MA_VOL_SHADE_MULTIPLE, MA_VOL_SHADE_SINGLEPLUSMULTIPLE))) {
 				vol_get_precached_scattering(shi, scatter_col, step_mid);
 			} else
 				vol_get_scattering(shi, scatter_col, step_mid, stepsize, density);

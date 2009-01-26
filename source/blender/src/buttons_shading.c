@@ -4534,23 +4534,59 @@ static void material_panel_material_volume(Material *ma)
 	
 	yco -= YSPACE;
 	
+	uiDefBut(block, LABEL, B_NOP, "Self Shading:",
+		X2CLM1, yco-=BUTH, BUTW2, BUTH, 0, 0, 0, 0, 0, "");	
+
 	uiBlockBeginAlign(block);
-	uiDefButBitS(block, TOG, MA_VOL_ATTENUATED, B_MATPRV, "Self Shading",
-		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->vol_shadeflag), 0, 0, 0, 0, "Uses absorption for light attenuation");
-	uiDefButF(block, NUM, B_MATPRV, "Step Size: ",
-		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->vol_shade_stepsize), 0.001, 100.0, 10, 2, "Step");
-	uiBlockEndAlign(block);
+	uiDefButS(block, MENU, B_TEXREDR_PRV, "Self Shading %t|None %x0|Single Scattering %x1|Multiple Scattering %x2|Single + Multiple %x3",
+		X2CLM1, yco-=BUTH, BUTW2, BUTH, &ma->vol_shade_type, 0.0, 0.0, 0, 0, "Use absorbtion to attenuate light - Single scattering: direct lighting, Multiple scattering: internal light bouncing & diffusion");
+		
+	if (ELEM3(ma->vol_shade_type, MA_VOL_SHADE_SINGLE, MA_VOL_SHADE_MULTIPLE, MA_VOL_SHADE_SINGLEPLUSMULTIPLE))
+	{
+		uiDefButF(block, NUM, B_MATPRV, "Step Size: ",
+			X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->vol_shade_stepsize), 0.001, 100.0, 10, 2, "Step");
 	
-	yco -= YSPACE;
-	
-	if (ma->vol_shadeflag & MA_VOL_ATTENUATED) {
-		uiBlockBeginAlign(block);
-		uiDefButBitS(block, TOG, MA_VOL_PRECACHESHADING, B_MATPRV, "Light Cache",
-			X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->vol_shadeflag), 0, 0, 0, 0, "Pre-cache the shading information into a voxel grid");
-		uiDefButS(block, NUM, B_MATPRV, "Resolution: ",
-			X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->vol_precache_resolution), 0.0, 1024.0, 10, 2, "Resolution of the voxel grid, low resolutions are faster, high resolutions use more memory (res ^3)");
 		uiBlockEndAlign(block);
+		
+		yco -= YSPACE;
+		
+		if (ma->vol_shade_type == MA_VOL_SHADE_SINGLE)
+		{
+			uiBlockBeginAlign(block);
+			uiDefButBitS(block, TOG, MA_VOL_PRECACHESHADING, B_MATPRV, "Light Cache",
+				X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->vol_shadeflag), 0, 0, 0, 0, "Pre-cache the shading information into a voxel grid, speeds up shading at slightly less accuracy");
+			uiDefButS(block, NUM, B_MATPRV, "Resolution: ",
+				X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->vol_precache_resolution), 0.0, 1024.0, 10, 2, "Resolution of the voxel grid, low resolutions are faster, high resolutions use more memory (res ^3)");
+		
+		}
+		else if (ELEM(ma->vol_shade_type, MA_VOL_SHADE_MULTIPLE, MA_VOL_SHADE_SINGLEPLUSMULTIPLE))
+		{
+			uiDefBut(block, LABEL, B_NOP, "Light Cache:",
+				X2CLM1, yco-=BUTH, BUTW2, BUTH, 0, 0, 0, 0, 0, "");	
+			uiDefButS(block, NUM, B_MATPRV, "Resolution: ",
+				X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->vol_precache_resolution), 0.0, 1024.0, 10, 2, "Resolution of the voxel grid, low resolutions are faster, high resolutions use more memory (res ^3)");
+		
+		}
+
+		uiBlockEndAlign(block);
+		
+		yco -= YSPACE;
+		
+		if (ELEM(ma->vol_shade_type, MA_VOL_SHADE_MULTIPLE, MA_VOL_SHADE_SINGLEPLUSMULTIPLE)) {
+			uiDefBut(block, LABEL, B_NOP, "Multiple Scattering:",
+				X2CLM1, yco-=BUTH, BUTW2, BUTH, 0, 0, 0, 0, 0, "");	
+
+			uiBlockBeginAlign(block);
+			uiDefButF(block, NUM, B_MATPRV, "Blur: ",
+				X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->vol_ms_diff), 0.01, 1.0, 10, 2, "Diffusion factor, the strength of the blurring effect");
+			uiDefButI(block, NUM, B_MATPRV, "Spread: ",
+				X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->vol_ms_steps), 1, 512.0, 10, 2, "Simulation steps, the effective distance over which the light is diffused");
+			uiDefButF(block, NUM, B_MATPRV, "Intensity: ",
+				X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->vol_ms_intensity), 0.00001, 1024.0, 10, 2, "Multiplier for multiple scattered light energy");
+			uiBlockEndAlign(block);
+		}
 	}
+	uiBlockEndAlign(block);
 	
 	yco -= YSPACE;
 	
