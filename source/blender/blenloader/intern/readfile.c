@@ -5454,11 +5454,7 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				/* init mainarea view2d */
 				ar->v2d.scroll |= (V2D_SCROLL_BOTTOM|V2D_SCROLL_SCALE_HORIZONTAL);
 				ar->v2d.scroll |= (V2D_SCROLL_LEFT|V2D_SCROLL_SCALE_VERTICAL);
-				
-				/* init dopesheet */
-				// XXX move this elsewhere instead?
-				sipo->ads= MEM_callocN(sizeof(bDopeSheet), "GraphEdit DopeSheet");
-				
+								
 				//ar->v2d.flag |= V2D_IS_INITIALISED;
 				break;
 			}

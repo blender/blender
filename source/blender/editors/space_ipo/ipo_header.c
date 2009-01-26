@@ -141,8 +141,9 @@ void graph_header_buttons(const bContext *C, ARegion *ar)
 	/* mode selector */
 	uiDefButS(block, MENU, B_REDR, 
 			"Editor Mode %t|F-Curve Editor %x0|Drivers %x1", 
-			xco,yco,90,YIC, &sipo->mode, 0, 1, 0, 0, 
+			xco,yco,120,YIC, &sipo->mode, 0, 1, 0, 0, 
 			"Editing modes for this editor");
+	xco+= 120;
 	
 	/* always as last  */
 	UI_view2d_totRect_set(&ar->v2d, xco+XIC+80, ar->v2d.tot.ymax-ar->v2d.tot.ymin);

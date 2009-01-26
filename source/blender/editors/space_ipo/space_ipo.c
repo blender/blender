@@ -155,7 +155,7 @@ static void graph_main_area_init(wmWindowManager *wm, ARegion *ar)
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_CUSTOM, ar->winx, ar->winy);
 	
 	/* own keymap */
-	keymap= WM_keymap_listbase(wm, "Ipo", SPACE_IPO, 0);	/* XXX weak? */
+	keymap= WM_keymap_listbase(wm, "GraphEdit Keys", SPACE_IPO, 0);	/* XXX weak? */
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 }
 
@@ -209,14 +209,6 @@ static void graph_main_area_draw(const bContext *C, ARegion *ar)
 	scrollers= UI_view2d_scrollers_calc(C, v2d, unitx, V2D_GRID_NOCLAMP, unity, V2D_GRID_NOCLAMP);
 	UI_view2d_scrollers_draw(C, v2d, scrollers);
 	UI_view2d_scrollers_free(scrollers);
-}
-
-void graph_operatortypes(void)
-{
-}
-
-void graph_keymap(struct wmWindowManager *wm)
-{
 }
 
 static void graph_channel_area_init(wmWindowManager *wm, ARegion *ar)
@@ -375,8 +367,8 @@ void ED_spacetype_ipo(void)
 	st->free= graph_free;
 	st->init= graph_init;
 	st->duplicate= graph_duplicate;
-	st->operatortypes= graph_operatortypes;
-	st->keymap= graph_keymap;
+	st->operatortypes= graphedit_operatortypes;
+	st->keymap= graphedit_keymap;
 	st->listener= graph_listener;
 	st->refresh= graph_refresh;
 	
@@ -386,7 +378,7 @@ void ED_spacetype_ipo(void)
 	art->init= graph_main_area_init;
 	art->draw= graph_main_area_draw;
 	art->listener= graph_main_area_listener;
-	art->keymapflag= ED_KEYMAP_VIEW2D|ED_KEYMAP_MARKERS|ED_KEYMAP_ANIMATION;
+	art->keymapflag= ED_KEYMAP_VIEW2D/*|ED_KEYMAP_MARKERS*/|ED_KEYMAP_ANIMATION|ED_KEYMAP_FRAMES;
 
 	BLI_addhead(&st->regiontypes, art);
 	

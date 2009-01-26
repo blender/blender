@@ -247,9 +247,6 @@ static void draw_fcurve_handles (SpaceIpo *sipo, ARegion *ar, FCurve *fcu)
 {
 	extern unsigned int nurbcol[];
 	unsigned int *col;
-	
-	BezTriple *bezt=fcu->bezt, *prevbezt=NULL;
-	float *fp;
 	int sel, b;
 	
 	/* don't draw handle lines if handles are not shown */
@@ -258,6 +255,9 @@ static void draw_fcurve_handles (SpaceIpo *sipo, ARegion *ar, FCurve *fcu)
 	
 	/* slightly hacky, but we want to draw unselected points before selected ones*/
 	for (sel= 0; sel < 2; sel++) {
+		BezTriple *bezt=fcu->bezt, *prevbezt=NULL;
+		float *fp;
+		
 		if (sel) col= nurbcol+4;
 		else col= nurbcol;
 			
@@ -268,7 +268,7 @@ static void draw_fcurve_handles (SpaceIpo *sipo, ARegion *ar, FCurve *fcu)
 				/* only draw first handle if previous segment had handles */
 				if ( (!prevbezt && (bezt->ipo==BEZT_IPO_BEZ)) || (prevbezt && (prevbezt->ipo==BEZT_IPO_BEZ)) ) 
 				{
-					cpack(col[bezt->h1]);
+					cpack(col[(unsigned char)bezt->h1]);
 					glBegin(GL_LINE_STRIP); 
 						glVertex2fv(fp); glVertex2fv(fp+3); 
 					glEnd();
@@ -278,7 +278,7 @@ static void draw_fcurve_handles (SpaceIpo *sipo, ARegion *ar, FCurve *fcu)
 				/* only draw second handle if this segment is bezier */
 				if (bezt->ipo == BEZT_IPO_BEZ) 
 				{
-					cpack(col[bezt->h2]);
+					cpack(col[(unsigned char)bezt->h2]);
 					glBegin(GL_LINE_STRIP); 
 						glVertex2fv(fp+3); glVertex2fv(fp+6); 
 					glEnd();
@@ -290,7 +290,7 @@ static void draw_fcurve_handles (SpaceIpo *sipo, ARegion *ar, FCurve *fcu)
 					 ( (!prevbezt && (bezt->ipo==BEZT_IPO_BEZ)) || (prevbezt && (prevbezt->ipo==BEZT_IPO_BEZ)) ) ) 
 				{
 					fp= bezt->vec[0];
-					cpack(col[bezt->h1]);
+					cpack(col[(unsigned char)bezt->h1]);
 					
 					glBegin(GL_LINE_STRIP); 
 						glVertex2fv(fp); glVertex2fv(fp+3); 
@@ -302,7 +302,7 @@ static void draw_fcurve_handles (SpaceIpo *sipo, ARegion *ar, FCurve *fcu)
 					 (bezt->ipo == BEZT_IPO_BEZ) )
 				{
 					fp= bezt->vec[1];
-					cpack(col[bezt->h2]);
+					cpack(col[(unsigned char)bezt->h2]);
 					
 					glBegin(GL_LINE_STRIP); 
 						glVertex2fv(fp); glVertex2fv(fp+3); 
@@ -604,7 +604,7 @@ void graph_draw_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 	
 	/* build list of curves to draw */
 		// XXX enable ANIMFILTER_CURVEVISIBLE when we have a method to set them
-	filter= (ANIMFILTER_VISIBLE|ANIMFILTER_CURVESONLY/*|ANIMFILTER_CURVEVISIBLE*/);
+	filter= (ANIMFILTER_VISIBLE|ANIMFILTER_CURVESONLY|ANIMFILTER_CURVEVISIBLE);
 	items= ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 		
 	/* for each curve:
@@ -629,7 +629,6 @@ void graph_draw_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 		/* draw handles and vertices as appropriate */
 		draw_fcurve_handles(sipo, ar, fcu);
 		draw_fcurve_vertices(sipo, ar, fcu);
-		
 		
 		/* undo mapping of keyframes for drawing if scaled F-Curve */
 		if (nob)

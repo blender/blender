@@ -199,6 +199,10 @@ static short actedit_get_context (bAnimContext *ac, SpaceAction *saction)
 /* Get data being edited in Graph Editor (depending on current 'mode') */
 static short graphedit_get_context (bAnimContext *ac, SpaceIpo *sipo)
 {
+	/* init dopesheet data if non-existant (i.e. for old files) */
+	if (sipo->ads == NULL)
+		sipo->ads= MEM_callocN(sizeof(bDopeSheet), "GraphEdit DopeSheet");
+	
 	/* sync settings with current view status, then return appropriate data */
 	switch (sipo->mode) {
 		case SIPO_MODE_ANIMATION:	/* Animation F-Curve Editor */
@@ -466,7 +470,7 @@ static int animdata_filter_fcurves (ListBase *anim_data, FCurve *first, bActionG
 	 */
 	for (fcu= first; ((fcu) && (fcu->grp==grp)); fcu= fcu->next) {
 		/* only include if visible (Graph Editor check, not channels check) */
-		if (!(filter_mode & ANIMFILTER_CURVEVISIBLE) || (fcu->flag & FCURVE_VISIBLE)) {
+		//if (!(filter_mode & ANIMFILTER_CURVEVISIBLE) || (fcu->flag & FCURVE_VISIBLE)) { // XXX don't do this till we have tools to set this
 			/* only work with this channel and its subchannels if it is editable */
 			if (!(filter_mode & ANIMFILTER_FOREDIT) || EDITABLE_FCU(fcu)) {
 				/* only include this curve if selected */
@@ -480,7 +484,7 @@ static int animdata_filter_fcurves (ListBase *anim_data, FCurve *first, bActionG
 					}
 				}
 			}
-		}
+		//}
 	}
 	
 	/* return the number of items added to the list */

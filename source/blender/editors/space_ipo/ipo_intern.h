@@ -29,6 +29,7 @@
 #define ED_IPO_INTERN_H
 
 struct bContext;
+struct wmWindowManager;
 struct bAnimContext;
 struct SpaceIpo;
 struct ARegion;
@@ -41,6 +42,10 @@ void graph_draw_curves(struct bAnimContext *ac, struct SpaceIpo *sipo, struct AR
 
 /* ipo_header.c */
 void graph_header_buttons(const bContext *C, struct ARegion *ar);
+
+/* ipo_ops.c */
+void graphedit_keymap(struct wmWindowManager *wm);
+void graphedit_operatortypes(void);
 
 
 #endif /* ED_IPO_INTERN_H */
