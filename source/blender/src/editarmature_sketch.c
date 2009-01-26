@@ -173,6 +173,8 @@ typedef struct SK_GestureAction {
 
 SK_Sketch *GLOBAL_sketch = NULL;
 SK_Point boneSnap;
+int    LAST_SNAP_POINT_VALID = 0;
+float  LAST_SNAP_POINT[3];
 
 #define SNAP_MIN_DISTANCE 12
 
@@ -896,7 +898,7 @@ void sk_appendStrokePoint(SK_Stroke *stk, SK_Point *pt)
 	stk->nb_points++;
 }
 
-void sk_inserStrokePoints(SK_Stroke *stk, SK_Point *pts, int len, int start, int end)
+void sk_insertStrokePoints(SK_Stroke *stk, SK_Point *pts, int len, int start, int end)
 {
 	int size = end - start + 1;
 	
@@ -926,35 +928,42 @@ void sk_trimStroke(SK_Stroke *stk, int start, int end)
 	stk->nb_points = size;
 }
 
-void sk_cutoutStroke(SK_Stroke *stk, int start, int end, float p_start[3], float p_end[3])
+void sk_straightenStroke(SK_Stroke *stk, int start, int end, float p_start[3], float p_end[3])
 {
-	int size = end - start + 1;
+	SK_Point pt1, pt2;
+	SK_Point *prev, *next;
+	float delta_p[3];
+	int i, total;
 	
-	if (size == 1)
+	total = end - start + 1;
+
+	VecSubf(delta_p, p_end, p_start);
+	
+	prev = stk->points + start;
+	next = stk->points + end;
+	
+	VECCOPY(pt1.p, p_start);
+	VECCOPY(pt1.no, prev->no);
+	pt1.mode = prev->mode;
+	pt1.type = prev->type;
+	
+	VECCOPY(pt2.p, p_end);
+	VECCOPY(pt2.no, next->no);
+	pt2.mode = next->mode;
+	pt2.type = next->type;
+	
+	sk_insertStrokePoint(stk, &pt1, start + 1); /* insert after start */
+	sk_insertStrokePoint(stk, &pt2, end); /* insert before end (since end was pushed back already) */
+	
+	for (i = 1; i < total; i++)
 	{
-		int move_size = stk->nb_points - end;
-		
-		sk_growStrokeBuffer(stk);
-		
-		memmove(stk->points + end + 1, stk->points + end, move_size * sizeof(SK_Point));
-		end++;
-		size++; 
-		stk->nb_points++;
-	}
-	
-	stk->points[start].type = PT_EXACT;
-	VECCOPY(stk->points[start].p, p_start);
-	stk->points[end].type = PT_EXACT;
-	VECCOPY(stk->points[end].p, p_end);
-	
-	if (size > 2)
-	{
-		int move_size = stk->nb_points - end;
-		
-		memmove(stk->points + start + 1, stk->points + end, move_size * sizeof(SK_Point));
-		
-		stk->nb_points = stk->nb_points - (size - 2);
-	}
+		float delta = (float)i / (float)total;
+		float *p = stk->points[start + 1 + i].p;
+
+		VECCOPY(p, delta_p);
+		VecMulf(p, delta);
+		VecAddf(p, p, p_start);
+	} 
 }
 
 void sk_polygonizeStroke(SK_Stroke *stk, int start, int end)
@@ -1554,7 +1563,7 @@ void sk_endOverdraw(SK_Sketch *sketch)
 			sk_lastStrokePoint(stk)->type = sketch->over.target->points[end].type;
 		}
 		
-		sk_inserStrokePoints(sketch->over.target, stk->points, stk->nb_points, start, end);
+		sk_insertStrokePoints(sketch->over.target, stk->points, stk->nb_points, start, end);
 		
 		sk_removeStroke(sketch, stk);
 		
@@ -1768,7 +1777,7 @@ int sk_getStrokeEmbedPoint(SK_Point *pt, SK_Sketch *sketch, SK_Stroke *stk, SK_D
 {
 	ListBase depth_peels;
 	SK_DepthPeel *p1, *p2;
-	SK_Point *last_pt = NULL;
+	float *last_p = NULL;
 	float dist = FLT_MAX;
 	float p[3];
 	int point_added = 0;
@@ -1779,7 +1788,11 @@ int sk_getStrokeEmbedPoint(SK_Point *pt, SK_Sketch *sketch, SK_Stroke *stk, SK_D
 	
 	if (stk->nb_points > 0 && stk->points[stk->nb_points - 1].type == PT_CONTINUOUS)
 	{
-		last_pt = stk->points + (stk->nb_points - 1);
+		last_p = stk->points[stk->nb_points - 1].p;
+	}
+	else if (LAST_SNAP_POINT_VALID)
+	{
+		last_p = LAST_SNAP_POINT;
 	}
 	
 	
@@ -1827,14 +1840,14 @@ int sk_getStrokeEmbedPoint(SK_Point *pt, SK_Sketch *sketch, SK_Stroke *stk, SK_D
 				VECCOPY(vec, p1->p);
 			}
 			
-			if (last_pt == NULL)
+			if (last_p == NULL)
 			{
 				VECCOPY(p, vec);
 				dist = 0;
 				break;
 			}
 			
-			new_dist = VecLenf(last_pt->p, vec);
+			new_dist = VecLenf(last_p, vec);
 			
 			if (new_dist < dist)
 			{
@@ -1944,6 +1957,12 @@ void sk_getStrokePoint(SK_Point *pt, SK_Sketch *sketch, SK_Stroke *stk, SK_DrawD
 	if (point_added == 0 && qual & LR_SHIFTKEY)
 	{
 		point_added = sk_getStrokeEmbedPoint(pt, sketch, stk, dd);
+		LAST_SNAP_POINT_VALID = 1;
+		VECCOPY(LAST_SNAP_POINT, pt->p);
+	}
+	else
+	{
+		LAST_SNAP_POINT_VALID = 0;
 	}
 	
 	if (point_added == 0)
@@ -2556,7 +2575,7 @@ void sk_applyCommandGesture(SK_Gesture *gest, SK_Sketch *sketch)
 	SK_Intersection *isect;
 	int command;
 	
-	command = pupmenu("Action %t|Flatten %x1|Cut Out %x2|Polygonize %x3");
+	command = pupmenu("Action %t|Flatten %x1|Straighten %x2|Polygonize %x3");
 	if(command < 1) return;
 
 	for (isect = gest->intersections.first; isect; isect = isect->next)
@@ -2573,7 +2592,7 @@ void sk_applyCommandGesture(SK_Gesture *gest, SK_Sketch *sketch)
 					sk_flattenStroke(isect->stroke, isect->before, i2->after);
 					break;
 				case 2:
-					sk_cutoutStroke(isect->stroke, isect->after, i2->before, isect->p, i2->p);
+					sk_straightenStroke(isect->stroke, isect->after, i2->before, isect->p, i2->p);
 					break;
 				case 3:
 					sk_polygonizeStroke(isect->stroke, isect->before, i2->after);
