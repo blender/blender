@@ -790,6 +790,7 @@ void wm_event_do_handlers(bContext *C)
 			int action;
 
 			CTX_wm_window_set(C, win);
+			
 			/* we let modal handlers get active area/region, also wm_paintcursor_test needs it */
 			CTX_wm_area_set(C, area_event_inside(C, event->x, event->y));
 			CTX_wm_region_set(C, region_event_inside(C, event->x, event->y));
@@ -802,7 +803,7 @@ void wm_event_do_handlers(bContext *C)
 			/* fileread case */
 			if(CTX_wm_window(C)==NULL) {
 				wm_event_free(event);
-				break;
+				return;
 			}
 			
 			if(wm_event_always_pass(event) || action==WM_HANDLER_CONTINUE) {
@@ -850,14 +851,8 @@ void wm_event_do_handlers(bContext *C)
 			}
 			wm_event_free(event);
 			
-			CTX_wm_window_set(C, NULL);
-			CTX_wm_area_set(C, NULL);
-			CTX_wm_region_set(C, NULL);
 		}
-		
-		/* fileread case */
-		if(CTX_wm_window(C)==NULL)
-			break;
+		CTX_wm_window_set(C, NULL);
 	}
 }
 

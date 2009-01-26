@@ -279,7 +279,6 @@ void wm_window_add_ghostwindows(wmWindowManager *wm)
 /* area-rip calls this */
 wmWindow *WM_window_open(bContext *C, rcti *rect)
 {
-	wmWindowManager *wm= CTX_wm_manager(C);
 	wmWindow *win= wm_window_new(C);
 	
 	win->posx= rect->xmin;
@@ -290,7 +289,7 @@ wmWindow *WM_window_open(bContext *C, rcti *rect)
 	win->drawmethod= -1;
 	win->drawdata= NULL;
 	
-	wm_window_add_ghostwindow(wm, "Blender", win);
+	wm_check(C);
 	
 	return win;
 }
