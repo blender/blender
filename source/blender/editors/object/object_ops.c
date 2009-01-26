@@ -63,7 +63,7 @@
 
 void ED_operatortypes_object(void)
 {
-	WM_operatortype_append(OBJECT_OT_toggle_editmode);
+	WM_operatortype_append(OBJECT_OT_editmode_toggle);
 	WM_operatortype_append(OBJECT_OT_make_parent);
 	WM_operatortype_append(OBJECT_OT_clear_parent);
 	WM_operatortype_append(OBJECT_OT_make_track);
@@ -84,12 +84,16 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_clear_slowparent);
 	WM_operatortype_append(OBJECT_OT_set_center);
 	WM_operatortype_append(OBJECT_OT_make_dupli_real);
-	WM_operatortype_append(OBJECT_OT_object_add);
 	WM_operatortype_append(OBJECT_OT_add_duplicate);
 	WM_operatortype_append(GROUP_OT_group_create);
 	WM_operatortype_append(GROUP_OT_group_remove);
 	WM_operatortype_append(GROUP_OT_objects_add_active);
 	WM_operatortype_append(GROUP_OT_objects_remove_active);
+	
+	WM_operatortype_append(OBJECT_OT_mesh_add);
+	WM_operatortype_append(OBJECT_OT_curve_add);
+	WM_operatortype_append(OBJECT_OT_object_add);
+	WM_operatortype_append(OBJECT_OT_primitive_add);
 }
 
 void ED_keymap_object(wmWindowManager *wm)
@@ -97,7 +101,7 @@ void ED_keymap_object(wmWindowManager *wm)
 	ListBase *keymap= WM_keymap_listbase(wm, "Object Non-modal", 0, 0);
 	
 	/* Note: this keymap works disregarding mode */
-	WM_keymap_add_item(keymap, "OBJECT_OT_toggle_editmode", TABKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "OBJECT_OT_editmode_toggle", TABKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "OBJECT_OT_set_center", CKEY, KM_PRESS, KM_ALT|KM_CTRL, 0);
 
 	/* Note: this keymap gets disabled in non-objectmode,  */
@@ -123,7 +127,7 @@ void ED_keymap_object(wmWindowManager *wm)
 	WM_keymap_verify_item(keymap, "OBJECT_OT_clear_restrictview", HKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_verify_item(keymap, "OBJECT_OT_set_restrictview", HKEY, KM_PRESS, 0, 0);
 	
-	WM_keymap_verify_item(keymap, "OBJECT_OT_object_add", AKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_verify_item(keymap, "OBJECT_OT_primitive_add", AKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_verify_item(keymap, "OBJECT_OT_add_duplicate", DKEY, KM_PRESS, KM_SHIFT, 0);
 	
 	// XXX this should probably be in screen instead... here for testing purposes in the meantime... - Aligorith

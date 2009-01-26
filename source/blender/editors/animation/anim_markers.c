@@ -163,6 +163,9 @@ void draw_markers_time(const bContext *C, int flag)
 	View2D *v2d= UI_view2d_fromcontext(C);
 	TimeMarker *marker;
 	
+	if(markers == NULL)
+		return;
+	
 	/* unselected markers are drawn at the first time */
 	for (marker= markers->first; marker; marker= marker->next) {
 		if (!(marker->flag & SELECT)) draw_marker(v2d, marker, CTX_data_scene(C)->r.cfra, flag);
@@ -184,6 +187,9 @@ static int ed_marker_add(bContext *C, wmOperator *op)
 	ListBase *markers= context_get_markers(C);
 	TimeMarker *marker;
 	int frame= CTX_data_scene(C)->r.cfra;
+	
+	if(markers == NULL)
+		return OPERATOR_CANCELLED;
 	
 	/* two markers can't be at the same place */
 	for(marker= markers->first; marker; marker= marker->next)
@@ -260,6 +266,8 @@ static int ed_marker_move_init(bContext *C, wmOperator *op)
 	TimeMarker *marker;
 	int totmark=0;
 	int a;
+
+	if(markers == NULL) return 0;
 	
 	for (marker= markers->first; marker; marker= marker->next)
 		if (marker->flag & SELECT) totmark++;
@@ -496,6 +504,8 @@ static void ed_marker_duplicate_apply(bContext *C, wmOperator *op)
 	ListBase *markers= context_get_markers(C);
 	TimeMarker *marker, *newmarker;
 	
+	if(markers == NULL) return;
+
 	/* go through the list of markers, duplicate selected markers and add duplicated copies
 	* to the begining of the list (unselect original markers) */
 	for(marker= markers->first; marker; marker= marker->next) {
@@ -591,6 +601,9 @@ static int ed_marker_select(bContext *C, wmEvent *evt, int extend)
 	float viewx;
 	int x, y, cfra;
 	
+	if(markers == NULL)
+		return OPERATOR_PASS_THROUGH;
+
 	x= evt->x - CTX_wm_region(C)->winrct.xmin;
 	y= evt->y - CTX_wm_region(C)->winrct.ymin;
 	
@@ -681,6 +694,9 @@ static int ed_marker_border_select_exec(bContext *C, wmOperator *op)
 	if(yminf > 30.0f || ymaxf < 0.0f)
 		return 0;
 	
+	if(markers == NULL)
+		return 0;
+	
 	/* XXX marker context */
 	for(marker= markers->first; marker; marker= marker->next) {
 		if ((marker->frame > xminf) && (marker->frame <= xmaxf)) {
@@ -730,6 +746,9 @@ static int ed_marker_select_all_exec(bContext *C, wmOperator *op)
 	ListBase *markers= context_get_markers(C);
 	TimeMarker *marker;
 	int select= RNA_int_get(op->ptr, "select_type");
+
+	if(markers == NULL)
+		return OPERATOR_CANCELLED;
 	
 	if(RNA_boolean_get(op->ptr, "select_swap")) {
 		for(marker= markers->first; marker; marker= marker->next) {
@@ -785,6 +804,9 @@ static int ed_marker_delete_exec(bContext *C, wmOperator *op)
 	ListBase *markers= context_get_markers(C);
 	TimeMarker *marker, *nmarker;
 	short changed= 0;
+	
+	if(markers == NULL)
+		return OPERATOR_CANCELLED;
 	
 	for(marker= markers->first; marker; marker= nmarker) {
 		nmarker= marker->next;

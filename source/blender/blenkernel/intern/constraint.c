@@ -898,7 +898,7 @@ static void vectomat (float *vec, float *target_up, short axis, short upflag, sh
 		n[2] = 1.0;
 	}
 	if (axis > 2) axis -= 3;
-	else VecMulf(n,-1);
+	else VecNegf(n);
 
 	/* n specifies the transformation of the track axis */
 	if (flags & TARGET_Z_UP) { 
@@ -2039,7 +2039,7 @@ static void locktrack_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *
 					Projf(vec2, vec, cob->matrix[0]);
 					VecSubf(totmat[1], vec, vec2);
 					Normalize(totmat[1]);
-					VecMulf(totmat[1],-1);
+					VecNegf(totmat[1]);
 					
 					/* the x axis is fixed */
 					totmat[0][0] = cob->matrix[0][0];
@@ -2057,7 +2057,7 @@ static void locktrack_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *
 					Projf(vec2, vec, cob->matrix[0]);
 					VecSubf(totmat[2], vec, vec2);
 					Normalize(totmat[2]);
-					VecMulf(totmat[2],-1);
+					VecNegf(totmat[2]);
 						
 					/* the x axis is fixed */
 					totmat[0][0] = cob->matrix[0][0];
@@ -2122,7 +2122,7 @@ static void locktrack_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *
 					Projf(vec2, vec, cob->matrix[1]);
 					VecSubf(totmat[0], vec, vec2);
 					Normalize(totmat[0]);
-					VecMulf(totmat[0],-1);
+					VecNegf(totmat[0]);
 					
 					/* the y axis is fixed */
 					totmat[1][0] = cob->matrix[1][0];
@@ -2140,7 +2140,7 @@ static void locktrack_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *
 					Projf(vec2, vec, cob->matrix[1]);
 					VecSubf(totmat[2], vec, vec2);
 					Normalize(totmat[2]);
-					VecMulf(totmat[2],-1);
+					VecNegf(totmat[2]);
 					
 					/* the y axis is fixed */
 					totmat[1][0] = cob->matrix[1][0];
@@ -2205,7 +2205,7 @@ static void locktrack_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *
 					Projf(vec2, vec, cob->matrix[2]);
 					VecSubf(totmat[0], vec, vec2);
 					Normalize(totmat[0]);
-					VecMulf(totmat[0],-1);
+					VecNegf(totmat[0]);
 					
 					/* the z axis is fixed */
 					totmat[2][0] = cob->matrix[2][0];
@@ -2223,7 +2223,7 @@ static void locktrack_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *
 					Projf(vec2, vec, cob->matrix[2]);
 					VecSubf(totmat[1], vec, vec2);
 					Normalize(totmat[1]);
-					VecMulf(totmat[1],-1);
+					VecNegf(totmat[1]);
 					
 					/* the z axis is fixed */
 					totmat[2][0] = cob->matrix[2][0];

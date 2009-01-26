@@ -65,8 +65,10 @@ typedef struct wmWindowManager {
 	ListBase operators;		/* operator registry */
 	
 	ListBase queue;			/* refresh/redraw wmNotifier structs */
-
+	
 	ListBase reports;		/* information and error reports */
+	
+	ListBase jobs;			/* threaded jobs manager */
 	
 	ListBase paintcursors;	/* extra overlay cursors to draw, like circles */
 	
@@ -97,9 +99,8 @@ typedef struct wmWindow {
 	
 	struct wmSubWindow *curswin;	/* internal for wm_subwindow.c only */
 
-	unsigned int drawtex;		/* internal for wm_draw.c only */
-	int drawtexw, drawtexh;		/* internal for wm_draw.c only */
-	int drawmethod;				/* internal for wm_draw.c only */
+	int drawmethod, drawfail;	/* internal for wm_draw.c only */
+	void *drawdata;				/* internal for wm_draw.c only */
 	
 	ListBase timers;
 	
@@ -203,6 +204,12 @@ typedef struct wmOperator {
 #define OPERATOR_FINISHED		4
 /* add this flag if the event should pass through */
 #define OPERATOR_PASS_THROUGH	8
+
+typedef enum wmRadialControlMode {
+	WM_RADIALCONTROL_SIZE,
+	WM_RADIALCONTROL_STRENGTH,
+	WM_RADIALCONTROL_ANGLE
+} wmRadialControlMode;
 
 #endif /* DNA_WINDOWMANAGER_TYPES_H */
 

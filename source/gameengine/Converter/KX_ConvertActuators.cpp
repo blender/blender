@@ -661,7 +661,8 @@ void BL_ConvertActuators(char* maggiename,
 					{
 						KX_SCA_DynamicActuator* tmpdynact 
 							= new KX_SCA_DynamicActuator(gameobj, 
-								editobact->dyn_operation
+								editobact->dyn_operation,
+								editobact->mass
 								);
 							baseact = tmpdynact;
 					}

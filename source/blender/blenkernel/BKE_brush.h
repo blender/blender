@@ -34,6 +34,7 @@
 struct ID;
 struct Brush;
 struct ImBuf;
+struct wmOperator;
 
 /* datablock functions */
 struct Brush *add_brush(char *name);
@@ -58,6 +59,7 @@ typedef enum {
 	BRUSH_PRESET_MAX
 } BrushCurvePreset;
 void brush_curve_preset(struct Brush *b, BrushCurvePreset preset);
+float brush_curve_strength(struct Brush *br, float p, const float len);
 
 /* sampling */
 float brush_sample_falloff(struct Brush *brush, float dist);
@@ -78,6 +80,13 @@ int brush_painter_paint(BrushPainter *painter, BrushFunc func, float *pos,
 	double time, float pressure, void *user);
 void brush_painter_break_stroke(BrushPainter *painter);
 void brush_painter_free(BrushPainter *painter);
+
+/* texture */
+unsigned int *brush_gen_texture_cache(struct Brush *br, int half_side);
+
+/* radial control */
+void brush_radial_control_invoke(struct wmOperator *op, struct Brush *br);
+int brush_radial_control_exec(struct wmOperator *op, struct Brush *br);
 
 #endif
 

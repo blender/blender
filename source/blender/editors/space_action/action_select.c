@@ -117,7 +117,7 @@ static void *get_nearest_action_key (bAnimContext *ac, int mval[2], float *selx,
 	
 	/* filter data */
 	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CHANNELS);
-	ANIM_animdata_filter(&anim_data, filter, ac->data, ac->datatype);
+	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	/* get channel */
 	ale= BLI_findlink(&anim_data, channel_index);
@@ -266,7 +266,7 @@ static void deselect_action_keys (bAnimContext *ac, short test, short sel)
 		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVESONLY);
 	
 	/* filter data */
-	ANIM_animdata_filter(&anim_data, filter, ac->data, ac->datatype);
+	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	/* init BezTriple looping data */
 	memset(&bed, 0, sizeof(BeztEditData));
@@ -378,7 +378,7 @@ static void borderselect_action (bAnimContext *ac, rcti rect, short mode, short 
 	
 	/* filter data */
 	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CHANNELS);
-	ANIM_animdata_filter(&anim_data, filter, ac->data, ac->datatype);
+	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	/* get beztriple editing/validation funcs  */
 	select_cb= ANIM_editkeyframes_select(selectmode);
@@ -559,7 +559,7 @@ static void markers_selectkeys_between (bAnimContext *ac)
 	
 	/* filter data */
 	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVESONLY);
-	ANIM_animdata_filter(&anim_data, filter, ac->data, ac->datatype);
+	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	/* select keys in-between */
 	for (ale= anim_data.first; ale; ale= ale->next) {
@@ -615,14 +615,14 @@ static void columnselect_action_keys (bAnimContext *ac, short mode)
 		case ACTKEYS_COLUMNSEL_KEYS: /* list of selected keys */
 			if (ac->datatype == ANIMCONT_GPENCIL) {
 				filter= (ANIMFILTER_VISIBLE);
-				ANIM_animdata_filter(&anim_data, filter, ac->data, ac->datatype);
+				ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 				
 				//for (ale= anim_data.first; ale; ale= ale->next)
 				//	gplayer_make_cfra_list(ale->data, &elems, 1);
 			}
 			else {
 				filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVESONLY);
-				ANIM_animdata_filter(&anim_data, filter, ac->data, ac->datatype);
+				ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 				
 				for (ale= anim_data.first; ale; ale= ale->next)
 					ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, NULL, bezt_to_cfraelem, NULL);
@@ -659,7 +659,7 @@ static void columnselect_action_keys (bAnimContext *ac, short mode)
 		filter= (ANIMFILTER_VISIBLE);
 	else
 			filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVESONLY);
-	ANIM_animdata_filter(&anim_data, filter, ac->data, ac->datatype);
+	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	for (ale= anim_data.first; ale; ale= ale->next) {
 		Object *nob= ANIM_nla_mapping_get(ac, ale);
@@ -927,7 +927,7 @@ static void selectkeys_leftright (bAnimContext *ac, short leftright, short selec
 		filter= (ANIMFILTER_VISIBLE);
 	else
 		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVESONLY);
-	ANIM_animdata_filter(&anim_data, filter, ac->data, ac->datatype);
+	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 		
 	/* select keys on the side where most data occurs */
 	for (ale= anim_data.first; ale; ale= ale->next) {
@@ -972,7 +972,7 @@ static void mouse_columnselect_action_keys (bAnimContext *ac, float selx)
 		filter= (ANIMFILTER_VISIBLE);
 	else
 		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVESONLY);
-	ANIM_animdata_filter(&anim_data, filter, ac->data, ac->datatype);
+	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	for (ale= anim_data.first; ale; ale= ale->next) {
 		Object *nob= ANIM_nla_mapping_get(ac, ale);

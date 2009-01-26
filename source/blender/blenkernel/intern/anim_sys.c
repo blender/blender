@@ -86,7 +86,10 @@ AnimData *BKE_id_add_animdata (ID *id)
 	if (id_has_animdata(id)) {
 		IdAdtTemplate *iat= (IdAdtTemplate *)id;
 		
-		iat->adt= MEM_callocN(sizeof(AnimData), "AnimData");
+		/* check if there's already AnimData, in which case, don't add */
+		if (iat->adt == NULL)
+			iat->adt= MEM_callocN(sizeof(AnimData), "AnimData");
+		
 		return iat->adt;
 	}
 	else 
@@ -232,7 +235,8 @@ static void animsys_execute_fcurve (PointerRNA *ptr, AnimMapper *remap, FCurve *
 	free_path= animsys_remap_path(remap, fcu->rna_path, &path);
 	
 	/* write value to setting */
-	animsys_write_rna_setting(ptr, path, fcu->array_index, fcu->curval);
+	if (path)
+		animsys_write_rna_setting(ptr, path, fcu->array_index, fcu->curval);
 	
 	/* free temp path-info */
 	if (free_path)
@@ -586,7 +590,7 @@ void BKE_animsys_evaluate_animdata (ID *id, AnimData *adt, float ctime, short re
 	 *	  or be layered on top of existing animation data.
 	 *	- Drivers should be in the appropriate order to be evaluated without problems...
 	 */
-	if ((recalc & ADT_RECALC_DRIVERS) && (adt->recalc & ADT_RECALC_DRIVERS))
+	if ((recalc & ADT_RECALC_DRIVERS) /*&& (adt->recalc & ADT_RECALC_DRIVERS)*/) // XXX for now, don't check yet, as depsgraph hasn't been updated
 	{
 		animsys_evaluate_drivers(&id_ptr, adt, ctime);
 	}
@@ -615,7 +619,7 @@ void BKE_animsys_evaluate_all_animation (Main *main, float ctime)
 {
 	ID *id;
 	
-	//printf("Evaluate all animation - %f \n", ctime);
+	printf("Evaluate all animation - %f \n", ctime);
 
 	/* macro for less typing */
 #define EVAL_ANIM_IDS(first) \
@@ -640,7 +644,7 @@ void BKE_animsys_evaluate_all_animation (Main *main, float ctime)
 	EVAL_ANIM_IDS(main->camera.first);
 	
 	/* shapekeys */
-	// TODO...
+	EVAL_ANIM_IDS(main->key.first);
 	
 	/* curves */
 	// TODO...

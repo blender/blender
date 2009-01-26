@@ -112,6 +112,7 @@
 #include "ED_anim_api.h"
 #include "ED_armature.h"
 #include "ED_curve.h"
+#include "ED_editparticle.h"
 #include "ED_mesh.h"
 #include "ED_object.h"
 #include "ED_screen.h"
@@ -257,6 +258,7 @@ void ED_object_base_init_from_view(bContext *C, Base *base)
 			}
 		}
 	}
+	where_is_object(scene, ob);
 }
 
 /* ******************* add object operator ****************** */
@@ -321,6 +323,174 @@ void OBJECT_OT_object_add(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER;
 	
 	RNA_def_enum(ot->srna, "type", prop_object_types, 0, "Type", "");
+}
+
+/* ***************** add primitives *************** */
+/* ******  work both in and outside editmode ****** */
+
+static EnumPropertyItem prop_mesh_types[] = {
+	{0, "PLANE", "Plane", ""},
+	{1, "CUBE", "Cube", ""},
+	{2, "CIRCLE", "Circle", ""},
+	{3, "UVSPHERE", "UVsphere", ""},
+	{4, "ICOSPHERE", "Icosphere", ""},
+	{5, "CYLINDER", "Cylinder", ""},
+	{6, "CONE", "Cone", ""},
+	{7, "GRID", "Grid", ""},
+	{8, "MONKEY", "Monkey", ""},
+	{0, NULL, NULL, NULL}
+};
+
+static int object_add_mesh_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	int newob= 0;
+	
+	if(obedit==NULL) {
+		RNA_enum_set(op->ptr, "type", OB_MESH);
+		object_add_exec(C, op);
+		ED_object_enter_editmode(C, 0);
+		newob = 1;
+	}
+	switch(RNA_enum_get(op->ptr, "primtype")) {
+		case 0:
+			WM_operator_name_call(C, "MESH_OT_add_primitive_plane", WM_OP_INVOKE_REGION_WIN, NULL);
+			break;
+		case 1:
+			WM_operator_name_call(C, "MESH_OT_add_primitive_cube", WM_OP_INVOKE_REGION_WIN, NULL);
+			break;
+		case 2:
+			WM_operator_name_call(C, "MESH_OT_add_primitive_circle", WM_OP_INVOKE_REGION_WIN, NULL);
+			break;
+		case 3:
+			WM_operator_name_call(C, "MESH_OT_add_primitive_uv_sphere", WM_OP_INVOKE_REGION_WIN, NULL);
+			break;
+		case 4:
+			WM_operator_name_call(C, "MESH_OT_add_primitive_ico_sphere", WM_OP_INVOKE_REGION_WIN, NULL);
+			break;
+		case 5:
+			WM_operator_name_call(C, "MESH_OT_add_primitive_cylinder", WM_OP_INVOKE_REGION_WIN, NULL);
+			break;
+		case 6:
+			WM_operator_name_call(C, "MESH_OT_add_primitive_cone", WM_OP_INVOKE_REGION_WIN, NULL);
+			break;
+		case 7:
+			WM_operator_name_call(C, "MESH_OT_add_primitive_grid", WM_OP_INVOKE_REGION_WIN, NULL);
+			break;
+		case 8:
+			WM_operator_name_call(C, "MESH_OT_add_primitive_monkey", WM_OP_INVOKE_REGION_WIN, NULL);
+			break;
+	}
+	/* userdef */
+	if (newob && (U.flag & USER_ADD_EDITMODE)==0) {
+		ED_object_exit_editmode(C, EM_FREEDATA);
+	}
+	
+	return OPERATOR_FINISHED;
+}
+
+static int object_add_mesh_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	uiMenuItem *head= uiMenuBegin("Add Mesh");
+	
+	uiMenuItemsEnumO(head, "OBJECT_OT_mesh_add", "primtype");
+	uiMenuEnd(C, head);
+
+	/* this operator is only for a menu, not used further */
+	return OPERATOR_CANCELLED;
+}
+
+void OBJECT_OT_mesh_add(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Add Mesh";
+	ot->idname= "OBJECT_OT_mesh_add";
+	
+	/* api callbacks */
+	ot->invoke= object_add_mesh_invoke;
+	ot->exec= object_add_mesh_exec;
+	
+	ot->poll= ED_operator_scene_editable;
+	ot->flag= OPTYPE_REGISTER;
+	
+	RNA_def_enum(ot->srna, "type", prop_object_types, 0, "Type", "");
+	RNA_def_enum(ot->srna, "primtype", prop_mesh_types, 0, "Primitive", "");
+}
+
+static EnumPropertyItem prop_curve_types[] = {
+	{0, "BEZCUVE", "Bezier Curve", ""},
+	{1, "BEZCIRCLE", "Bezier Circle", ""},
+	{2, "NURBSCUVE", "Nurbs Curve", ""},
+	{3, "NURBSCIRCLE", "Nurbs Circle", ""},
+	{0, NULL, NULL, NULL}
+};
+
+static int object_add_curve_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	
+	if(obedit==NULL) {
+		RNA_enum_set(op->ptr, "type", OB_MESH);
+		object_add_exec(C, op);
+		ED_object_enter_editmode(C, 0);
+	}
+	switch(RNA_enum_get(op->ptr, "primtype")) {
+		
+		
+	}
+	/* userdef */
+	
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_curve_add(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Add Curve";
+	ot->idname= "OBJECT_OT_curve_add";
+	
+	/* api callbacks */
+	ot->exec= object_add_curve_exec;
+	
+	ot->poll= ED_operator_scene_editable;
+	ot->flag= OPTYPE_REGISTER;
+	
+	RNA_def_enum(ot->srna, "primtype", prop_curve_types, 0, "Type", "");
+}
+
+
+static int object_add_primitive_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	uiMenuItem *head= uiMenuBegin("Add Object");
+	
+	uiMenuLevelEnumO(head, "OBJECT_OT_mesh_add", "primtype");
+	uiMenuLevelEnumO(head, "OBJECT_OT_curve_add", "primtype");
+	uiMenuItemEnumO(head, "OBJECT_OT_object_add", "type", OB_SURF);
+	uiMenuItemEnumO(head, "OBJECT_OT_object_add", "type", OB_MBALL);
+	uiMenuItemEnumO(head, "OBJECT_OT_object_add", "type", OB_CAMERA);
+	uiMenuItemEnumO(head, "OBJECT_OT_object_add", "type", OB_LAMP);
+	uiMenuItemEnumO(head, "OBJECT_OT_object_add", "type", OB_EMPTY);
+	uiMenuItemEnumO(head, "OBJECT_OT_object_add", "type", OB_ARMATURE);
+	uiMenuItemEnumO(head, "OBJECT_OT_object_add", "type", OB_LATTICE);
+	
+	uiMenuEnd(C, head);
+	
+	/* this operator is only for a menu, not used further */
+	return OPERATOR_CANCELLED;
+}
+
+/* only used as menu */
+void OBJECT_OT_primitive_add(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Add Primitive";
+	ot->idname= "OBJECT_OT_primitive_add";
+	
+	/* api callbacks */
+	ot->invoke= object_add_primitive_invoke;
+	
+	ot->poll= ED_operator_scene_editable;
+	ot->flag= OPTYPE_REGISTER;
 }
 
 
@@ -1665,7 +1835,7 @@ static int object_clear_origin_exec(bContext *C, wmOperator *op)
 		ED_anim_dag_flush_update(C);	
 	ED_undo_push(C,"Clear origin");
 	
-	WM_event_add_notifier(C, NC_SCENE|ND_TRANSFORM, CTX_data_scene(C));
+	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
 	
 	return OPERATOR_FINISHED;
 }
@@ -2816,8 +2986,8 @@ void OBJECT_OT_set_center(wmOperatorType *ot)
 void ED_object_exit_editmode(bContext *C, int flag)
 {
 	Scene *scene= CTX_data_scene(C);
-	Object *ob;
 	Object *obedit= CTX_data_edit_object(C);
+	Object *ob;
 	int freedata = flag & EM_FREEDATA;
 	
 	if(obedit==NULL) return;
@@ -2852,7 +3022,8 @@ void ED_object_exit_editmode(bContext *C, int flag)
 		if(freedata) free_editNurb(obedit);
 	}
 	else if(obedit->type==OB_FONT && freedata) {
-//		load_editText();
+		load_editText(obedit);
+		if(freedata) free_editText(obedit);
 	}
 	else if(obedit->type==OB_LATTICE) {
 		load_editLatt(obedit);
@@ -2941,19 +3112,19 @@ void ED_object_enter_editmode(bContext *C, int flag)
 		/* to ensure all goes in restposition and without striding */
 		DAG_object_flush_update(scene, ob, OB_RECALC);
 
-		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_EDITMODE_ARMATURE, ob);
+		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_EDITMODE_ARMATURE, scene);
 	}
 	else if(ob->type==OB_FONT) {
 		scene->obedit= ob; // XXX for context
-//		ok= 1;
-// XXX		make_editText();
-		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_EDITMODE_TEXT, ob);
+		ok= 1;
+ 		make_editText(ob);
+		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_EDITMODE_TEXT, scene);
 	}
 	else if(ob->type==OB_MBALL) {
 		scene->obedit= ob; // XXX for context
 //		ok= 1;
 // XXX		make_editMball();
-		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_EDITMODE_MBALL, ob);
+		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_EDITMODE_MBALL, scene);
 		
 	}
 	else if(ob->type==OB_LATTICE) {
@@ -2961,14 +3132,14 @@ void ED_object_enter_editmode(bContext *C, int flag)
 		ok= 1;
 		make_editLatt(ob);
 		
-		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_EDITMODE_LATTICE, ob);
+		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_EDITMODE_LATTICE, scene);
 	}
 	else if(ob->type==OB_SURF || ob->type==OB_CURVE) {
 		ok= 1;
 		scene->obedit= ob; // XXX for context
 		make_editNurb(ob);
 		
-		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_EDITMODE_CURVE, ob);
+		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_EDITMODE_CURVE, scene);
 	}
 	
 	if(ok) {
@@ -2976,7 +3147,7 @@ void ED_object_enter_editmode(bContext *C, int flag)
 	}
 	else {
 		scene->obedit= NULL; // XXX for context
-		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_MODE_OBJECT, ob);
+		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_MODE_OBJECT, scene);
 	}
 	
 	if(flag & EM_WAITCURSOR) waitcursor(0);
@@ -2993,12 +3164,12 @@ static int toggle_editmode_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void OBJECT_OT_toggle_editmode(wmOperatorType *ot)
+void OBJECT_OT_editmode_toggle(wmOperatorType *ot)
 {
 	
 	/* identifiers */
 	ot->name= "Toggle Editmode";
-	ot->idname= "OBJECT_OT_toggle_editmode";
+	ot->idname= "OBJECT_OT_editmode_toggle";
 	
 	/* api callbacks */
 	ot->exec= toggle_editmode_exec;
@@ -4348,7 +4519,7 @@ void copy_attr(Scene *scene, View3D *v3d, short event)
 						cu1->vfontbi= cu->vfontbi;
 						id_us_plus((ID *)cu1->vfontbi);						
 
-						text_to_curve(scene, base->object, 0);		/* needed? */
+						BKE_text_to_curve(scene, base->object, 0);		/* needed? */
 
 						
 						strcpy(cu1->family, cu->family);
@@ -6130,8 +6301,10 @@ void texspace_edit(Scene *scene, View3D *v3d)
 
 void mirrormenu(void)
 {
+	Scene *scene= NULL; // XXX
+	
 	if(G.f & G_PARTICLEEDIT) {
-// XXX		PE_mirror_x(0);
+		PE_mirror_x(scene, 0);
 	}
 	else {
 // XXX		initTransform(TFM_MIRROR, CTX_NO_PET);

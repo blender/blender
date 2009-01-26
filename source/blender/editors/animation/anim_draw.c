@@ -193,25 +193,15 @@ Object *ANIM_nla_mapping_get(bAnimContext *ac, bAnimListElem *ale)
 		return NULL;
 	
 	/* handling depends on the type of animation-context we've got */
-	if (ELEM(ac->datatype, ANIMCONT_ACTION, ANIMCONT_IPO)) {
-		/* Action Editor (action mode) or Ipo Editor (ipo mode):
+	if (ac->datatype == ANIMCONT_ACTION) {
+		/* Action Editor (action mode) or Graph Editor (ipo mode):
 		 * Only use if editor is not pinned, and active object has action
 		 */
 		if (ac->obact && ac->obact->action) {
-			/* Action Editor */
-			if (ac->datatype == ANIMCONT_ACTION) {
-				SpaceAction *saction= (SpaceAction *)ac->sa->spacedata.first;
-				
-				if (saction->pin == 0)
-					return ac->obact;
-			}
-			/* IPO Editor */
-			else if (ac->datatype == ANIMCONT_IPO) {
-				SpaceIpo *sipo= (SpaceIpo *)ac->sa->spacedata.first;
-				
-				if (sipo->pin == 0)
-					return ac->obact;
-			}
+			SpaceAction *saction= (SpaceAction *)ac->sa->spacedata.first;
+			
+			if (saction->pin == 0)
+				return ac->obact;
 		}
 	}
 	else if ((ac->datatype == ANIMCONT_DOPESHEET) && (ale)) {
@@ -225,6 +215,7 @@ Object *ANIM_nla_mapping_get(bAnimContext *ac, bAnimListElem *ale)
 				return ob;
 		}
 	}
+	// XXX todo: add F-Curves mode (Graph Editor) ...
 	
 	/* no appropriate object found */
 	return NULL;

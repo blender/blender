@@ -339,6 +339,7 @@ PyParentObject SCA_RandomActuator::Parents[] = {
 };
 
 PyMethodDef SCA_RandomActuator::Methods[] = {
+	//Deprecated functions ------>
 	{"setSeed",         (PyCFunction) SCA_RandomActuator::sPySetSeed, METH_VARARGS, (PY_METHODCHAR)SetSeed_doc},
 	{"getSeed",         (PyCFunction) SCA_RandomActuator::sPyGetSeed, METH_VARARGS, (PY_METHODCHAR)GetSeed_doc},
 	{"getPara1",        (PyCFunction) SCA_RandomActuator::sPyGetPara1, METH_VARARGS, (PY_METHODCHAR)GetPara1_doc},
@@ -346,6 +347,7 @@ PyMethodDef SCA_RandomActuator::Methods[] = {
 	{"getDistribution", (PyCFunction) SCA_RandomActuator::sPyGetDistribution, METH_VARARGS, (PY_METHODCHAR)GetDistribution_doc},
 	{"setProperty",     (PyCFunction) SCA_RandomActuator::sPySetProperty, METH_VARARGS, (PY_METHODCHAR)SetProperty_doc},
 	{"getProperty",     (PyCFunction) SCA_RandomActuator::sPyGetProperty, METH_VARARGS, (PY_METHODCHAR)GetProperty_doc},
+	//<----- Deprecated
 	{"setBoolConst",    (PyCFunction) SCA_RandomActuator::sPySetBoolConst, METH_VARARGS, (PY_METHODCHAR)SetBoolConst_doc},
 	{"setBoolUniform",  (PyCFunction) SCA_RandomActuator::sPySetBoolUniform, METH_VARARGS, (PY_METHODCHAR)SetBoolUniform_doc},
 	{"setBoolBernouilli",(PyCFunction) SCA_RandomActuator::sPySetBoolBernouilli, METH_VARARGS, (PY_METHODCHAR)SetBoolBernouilli_doc},
@@ -359,8 +361,40 @@ PyMethodDef SCA_RandomActuator::Methods[] = {
 	{NULL,NULL} //Sentinel
 };
 
+PyAttributeDef SCA_RandomActuator::Attributes[] = {
+	KX_PYATTRIBUTE_FLOAT_RO("para1",SCA_RandomActuator,m_parameter1),
+	KX_PYATTRIBUTE_FLOAT_RO("para2",SCA_RandomActuator,m_parameter2),
+	KX_PYATTRIBUTE_ENUM_RO("distribution",SCA_RandomActuator,m_distribution),
+	KX_PYATTRIBUTE_STRING_RW_CHECK("property",0,100,false,SCA_RandomActuator,m_propname,CheckProperty),
+	{ NULL }	//Sentinel
+};	
+
 PyObject* SCA_RandomActuator::_getattr(const STR_String& attr) {
+	PyObject* object = _getattr_self(Attributes, this, attr);
+	if (object != NULL)
+		return object;
+	if (attr == "seed") {
+		return PyInt_FromLong(m_base->GetSeed());
+	}
 	_getattr_up(SCA_IActuator);
+}
+
+int SCA_RandomActuator::_setattr(const STR_String& attr, PyObject *value)
+{
+	int ret = _setattr_self(Attributes, this, attr, value);
+	if (ret >= 0)
+		return ret;
+	if (attr == "seed") {
+		if (PyInt_Check(value))	{
+			int ival = PyInt_AsLong(value);
+			m_base->SetSeed(ival);
+			return 0;
+		} else {
+			PyErr_SetString(PyExc_TypeError, "expected an integer");
+			return 1;
+		}
+	}
+	return SCA_IActuator::_setattr(attr, value);
 }
 
 /* 1. setSeed                                                            */
@@ -371,6 +405,7 @@ const char SCA_RandomActuator::SetSeed_doc[] =
 "\tequal series. If the seed is 0, the generator will produce\n"
 "\tthe same value on every call.\n";
 PyObject* SCA_RandomActuator::PySetSeed(PyObject* self, PyObject* args, PyObject* kwds) {
+	ShowDeprecationWarning("setSeed()", "the seed property");
 	long seedArg;
 	if(!PyArg_ParseTuple(args, "i", &seedArg)) {
 		return NULL;
@@ -386,6 +421,7 @@ const char SCA_RandomActuator::GetSeed_doc[] =
 "\tReturns the initial seed of the generator. Equal seeds produce\n"
 "\tequal series.\n";
 PyObject* SCA_RandomActuator::PyGetSeed(PyObject* self, PyObject* args, PyObject* kwds) {
+	ShowDeprecationWarning("getSeed()", "the seed property");
 	return PyInt_FromLong(m_base->GetSeed());
 }
 
@@ -396,6 +432,7 @@ const char SCA_RandomActuator::GetPara1_doc[] =
 "\tto the documentation of the generator types for the meaning\n"
 "\tof this value.";
 PyObject* SCA_RandomActuator::PyGetPara1(PyObject* self, PyObject* args, PyObject* kwds) {
+	ShowDeprecationWarning("getPara1()", "the para1 property");
 	return PyFloat_FromDouble(m_parameter1);
 }
 
@@ -406,6 +443,7 @@ const char SCA_RandomActuator::GetPara2_doc[] =
 "\tto the documentation of the generator types for the meaning\n"
 "\tof this value.";
 PyObject* SCA_RandomActuator::PyGetPara2(PyObject* self, PyObject* args, PyObject* kwds) {
+	ShowDeprecationWarning("getPara2()", "the para2 property");
 	return PyFloat_FromDouble(m_parameter2);
 }
 
@@ -414,6 +452,7 @@ const char SCA_RandomActuator::GetDistribution_doc[] =
 "getDistribution()\n"
 "\tReturns the type of the active distribution.\n";
 PyObject* SCA_RandomActuator::PyGetDistribution(PyObject* self, PyObject* args, PyObject* kwds) {
+	ShowDeprecationWarning("getDistribution()", "the distribution property");
 	return PyInt_FromLong(m_distribution);
 }
 
@@ -424,6 +463,7 @@ const char SCA_RandomActuator::SetProperty_doc[] =
 "\tSet the property to which the random value is assigned. If the \n"
 "\tgenerator and property types do not match, the assignment is ignored.\n";
 PyObject* SCA_RandomActuator::PySetProperty(PyObject* self, PyObject* args, PyObject* kwds) {
+	ShowDeprecationWarning("setProperty()", "the 'property' property");
 	char *nameArg;
 	if (!PyArg_ParseTuple(args, "s", &nameArg)) {
 		return NULL;
@@ -446,6 +486,7 @@ const char SCA_RandomActuator::GetProperty_doc[] =
 "\tReturn the property to which the random value is assigned. If the \n"
 "\tgenerator and property types do not match, the assignment is ignored.\n";
 PyObject* SCA_RandomActuator::PyGetProperty(PyObject* self, PyObject* args, PyObject* kwds) {
+	ShowDeprecationWarning("getProperty()", "the 'property' property");
 	return PyString_FromString(m_propname);
 }
 
@@ -463,9 +504,7 @@ PyObject* SCA_RandomActuator::PySetBoolConst(PyObject* self,
 	}
 	
 	m_distribution = KX_RANDOMACT_BOOL_CONST;
-	if (paraArg) {
-		m_parameter1 = 1;
-	}
+	m_parameter1 = (paraArg) ? 1.0 : 0.0;
 	
 	Py_Return;
 }

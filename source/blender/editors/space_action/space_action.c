@@ -404,7 +404,7 @@ void ED_spacetype_action(void)
 	art->init= action_main_area_init;
 	art->draw= action_main_area_draw;
 	art->listener= action_main_area_listener;
-	art->keymapflag= ED_KEYMAP_VIEW2D/*|ED_KEYMAP_MARKERS*/|ED_KEYMAP_ANIMATION;
+	art->keymapflag= ED_KEYMAP_VIEW2D/*|ED_KEYMAP_MARKERS*/|ED_KEYMAP_ANIMATION|ED_KEYMAP_FRAMES;
 
 	BLI_addhead(&st->regiontypes, art);
 	
@@ -412,7 +412,7 @@ void ED_spacetype_action(void)
 	art= MEM_callocN(sizeof(ARegionType), "spacetype action region");
 	art->regionid = RGN_TYPE_HEADER;
 	art->minsizey= HEADERY;
-	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D;
+	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D|ED_KEYMAP_FRAMES;
 	
 	art->init= action_header_area_init;
 	art->draw= action_header_area_draw;

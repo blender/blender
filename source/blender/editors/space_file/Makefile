@@ -47,6 +47,7 @@ CPPFLAGS += -I../../blenlib
 CPPFLAGS += -I../../makesdna
 CPPFLAGS += -I../../makesrna
 CPPFLAGS += -I../../imbuf
+CPPFLAGS += -I../../render/extern/include
 CPPFLAGS += -I../../python
 CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
 

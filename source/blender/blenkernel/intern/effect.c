@@ -86,7 +86,6 @@
 #ifndef DISABLE_ELBEEM
 #include "DNA_object_fluidsim.h"
 #include "LBM_fluidsim.h"
-#include "elbeem.h"
 #include <zlib.h>
 #include <string.h>
 #endif // DISABLE_ELBEEM
@@ -253,7 +252,7 @@ static float eff_calc_visibility(Scene *scene, Object *ob, float *co, float *dir
 		return 0;
 	
 	VECCOPY(norm, dir);
-	VecMulf(norm, -1.0);
+	VecNegf(norm);
 	len = Normalize(norm);
 	
 	// check all collision objects

@@ -852,7 +852,7 @@ static void sss_create_tree_mat(Render *re, Material *mat)
 	float (*co)[3] = NULL, (*color)[3] = NULL, *area = NULL;
 	int totpoint = 0, osa, osaflag, partsdone;
 
-	if(re->test_break())
+	if(re->test_break(re->tbh))
 		return;
 	
 	points.first= points.last= NULL;
@@ -888,7 +888,7 @@ static void sss_create_tree_mat(Render *re, Material *mat)
 		return;
 
 	/* merge points together into a single buffer */
-	if(!re->test_break()) {
+	if(!re->test_break(re->tbh)) {
 		for(totpoint=0, p=points.first; p; p=p->next)
 			totpoint += p->totpoint;
 		
@@ -913,7 +913,7 @@ static void sss_create_tree_mat(Render *re, Material *mat)
 	BLI_freelistN(&points);
 
 	/* build tree */
-	if(!re->test_break()) {
+	if(!re->test_break(re->tbh)) {
 		SSSData *sss= MEM_callocN(sizeof(*sss), "SSSData");
 		float ior= mat->sss_ior, cfac= mat->sss_colfac;
 		float *col= mat->sss_col, *radius= mat->sss_radius;
@@ -981,7 +981,7 @@ void make_sss_tree(Render *re)
 	re->sss_hash= BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
 
 	re->i.infostr= "SSS preprocessing";
-	re->stats_draw(&re->i);
+	re->stats_draw(re->sdh, &re->i);
 	
 	for(mat= G.main->mat.first; mat; mat= mat->id.next)
 		if(mat->id.us && (mat->flag & MA_IS_USED) && (mat->sss_flag & MA_DIFF_SSS))

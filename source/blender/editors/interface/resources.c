@@ -449,6 +449,9 @@ void ui_theme_init_userdef(void)
 	SETCOL(btheme->tipo.handle_vertex, 0xff, 0x70, 0xff, 255);
 	SETCOL(btheme->tipo.handle_vertex_select, 0xff, 0xff, 0x70, 255);
 	btheme->tipo.handle_vertex_size= 3;
+	
+	SETCOL(btheme->tipo.ds_channel, 0x36, 0x13, 0xca, 255);
+	SETCOL(btheme->tipo.ds_subchannel, 0x60, 0x43, 0xd2, 255);
 
 	/* space file */
 	/* to have something initialized */

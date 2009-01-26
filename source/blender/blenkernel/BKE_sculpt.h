@@ -40,13 +40,10 @@ struct StrokeCache;
 typedef struct SculptSession {
 	struct ProjVert *projverts;
 
-	/* An array of lists; array is sized as
-	   large as the number of verts in the mesh,
-	   the list for each vert contains the index
-	   for all the faces that use that vertex */
-	struct ListBase *vertex_users;
-	struct IndexNode *vertex_users_mem;
-	int vertex_users_size;
+	/* Mesh connectivity */
+	struct ListBase *fmap;
+	struct IndexNode *fmap_mem;
+	int fmap_size;
 
 	/* Used temporarily per-stroke */
 	float *vertexcosnos;
@@ -54,7 +51,7 @@ typedef struct SculptSession {
 	ListBase damaged_verts;
 	
 	/* Used to cache the render of the active texture */
-	unsigned int texcache_w, texcache_h, *texcache;
+	unsigned int texcache_side, *texcache, texcache_actual;
 
 	void *cursor; /* wm handle */
 
@@ -66,6 +63,5 @@ typedef struct SculptSession {
 } SculptSession;
 
 void sculptsession_free(struct Sculpt *sculpt);
-void sculpt_vertexusers_free(struct SculptSession *ss);
 
 #endif

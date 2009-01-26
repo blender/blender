@@ -39,12 +39,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
-#include "BLI_storage_types.h"
 
-#include "IMB_imbuf_types.h"
-#include "IMB_imbuf.h"
-
-#include "DNA_ipo_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
@@ -52,20 +47,14 @@
 #include "DNA_sequence_types.h"
 #include "DNA_view2d_types.h"
 #include "DNA_userdef_types.h"
-#include "DNA_sound_types.h"
 
 #include "BKE_context.h"
 #include "BKE_global.h"
-#include "BKE_image.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
-#include "BKE_plugin_types.h"
 #include "BKE_sequence.h"
 #include "BKE_scene.h"
 #include "BKE_utildefines.h"
-
-#include "BIF_gl.h"
-#include "BIF_glutil.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -90,24 +79,12 @@
 /* own include */
 #include "sequencer_intern.h"
 static void BIF_undo_push() {}
-static void error() {}
-static void waitcursor() {}
-static void activate_fileselect() {}
 static void std_rmouse_transform() {}
-static int get_mbut() {return 0;}
-static int pupmenu() {return 0;}
-static int pupmenu_col() {return 0;}
-static int okee() {return 0;}
 static void *find_nearest_marker() {return NULL;}
 static void deselect_markers() {}
-static void transform_markers() {}
 static void transform_seq_nomarker() {}
 	
 	
-	
-	
-	
-
 
 /****** TODO - bring back into operators ******* */
 void select_channel_direction(Scene *scene, Sequence *test,int lr) {

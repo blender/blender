@@ -43,10 +43,13 @@
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
 
+#include "DNA_anim_types.h"
 #include "DNA_action_types.h"
+#include "DNA_camera_types.h"
 #include "DNA_curve_types.h"
-#include "DNA_ipo_types.h"
 #include "DNA_key_types.h"
+#include "DNA_lamp_types.h"
+#include "DNA_material_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
@@ -56,9 +59,12 @@
 #include "DNA_view2d_types.h"
 #include "DNA_windowmanager_types.h"
 
+#include "BKE_animsys.h"
+#include "BKE_context.h"
 #include "BKE_curve.h"
 #include "BKE_depsgraph.h"
-#include "BKE_ipo.h"
+#include "BKE_fcurve.h"
+#include "BKE_global.h"
 #include "BKE_key.h"
 #include "BKE_object.h"
 #include "BKE_utildefines.h"
@@ -69,85 +75,57 @@
 #include "ED_anim_api.h"
 #include "ED_util.h"
 
+#include "ipo_intern.h"
+
+#include "UI_interface.h"
+#include "UI_interface_icons.h"
 #include "UI_resources.h"
 #include "UI_view2d.h"
+#include "UI_text.h"
 
-/* **************************** */
-// XXX stubs to remove!
-
-// NOTE: the code in this file has yet to be rewritten to get rid of the editipo system which is past its use-by-date - Aligorith
-
-typedef struct EditIpo {
-	IpoCurve *icu;
-	short disptype;
-	short flag;
-	unsigned int col;
-} EditIpo;
-
-#define ISPOIN(a, b, c)                       ( (a->b) && (a->c) )  
-#define ISPOIN3(a, b, c, d)           ( (a->b) && (a->c) && (a->d) )
-#define ISPOIN4(a, b, c, d, e)        ( (a->b) && (a->c) && (a->d) && (a->e) )
+/* XXX */
+extern void ui_rasterpos_safe(float x, float y, float aspect);
+extern void gl_round_box(int mode, float minx, float miny, float maxx, float maxy, float rad);
 
 /* *************************** */
+/* Curve Drawing */
 
-/* helper func - draw keyframe vertices only for an IPO-curve */
-static void draw_ipovertices_keyframes(IpoCurve *icu, View2D *v2d, short disptype, short edit, short sel)
+/* Points ---------------- */
+
+/* helper func - draw keyframe vertices only for an F-Curve */
+static void draw_fcurve_vertices_keyframes (FCurve *fcu, View2D *v2d, short edit, short sel)
 {
-	BezTriple *bezt= icu->bezt;
-	float v1[2];
-	int a, b;
+	BezTriple *bezt= fcu->bezt;
+	int i;
 	
 	bglBegin(GL_POINTS);
 	
-	for (a = 0; a < icu->totvert; a++, bezt++) {
-		/* IPO_DISPBITS is used for displaying curves for bitflag variables */
-		if (disptype == IPO_DISPBITS) {
-			/*if (v2d->cur.xmin < bezt->vec[1][0] < v2d->cur.xmax) {*/
-			short ok= 0;
-			
-			if (edit) {
-				if ((bezt->f2 & SELECT) == sel) 
-					ok= 1;
-			}
-			else ok= 1;
-			
-			if (ok) {
-				int val= (int)bezt->vec[1][1];
-				v1[0]= bezt->vec[1][0];
-				
-				for (b= 0; b < 31; b++) {
-					if (val & (1<<b)) {	
-						v1[1]= b + 1;
-						bglVertex3fv(v1);
-					}
-				}
-			}
-			/*}*/
-		} 
-		else { /* normal (non bit) curves */
-			if (edit) {
-				/* Only the vertex of the line, the
-				 * handler are drawn later
-				 */
-				if ((bezt->f2 & SELECT) == sel) /* && G.v2d->cur.xmin < bezt->vec[1][0] < G.v2d->cur.xmax)*/
-					bglVertex3fv(bezt->vec[1]);
-			}
-			else {
-				/* draw only if in bounds */
-				/*if (G.v2d->cur.xmin < bezt->vec[1][0] < G.v2d->cur.xmax)*/
+	for (i = 0; i < fcu->totvert; i++, bezt++) {
+		if (edit) {
+			/* Only the vertex of the line, the
+			 * handler are drawn later
+			 */
+			if ((bezt->f2 & SELECT) == sel) /* && v2d->cur.xmin < bezt->vec[1][0] < v2d->cur.xmax)*/
 				bglVertex3fv(bezt->vec[1]);
-			}
+		}
+		else {
+			/* draw only if in bounds */
+			/*if (v2d->cur.xmin < bezt->vec[1][0] < v2d->cur.xmax)*/
+			bglVertex3fv(bezt->vec[1]);
 		}
 	}
+	
 	bglEnd();
 }
 
-/* helper func - draw handle vertex for an IPO-Curve as a round unfilled circle */
-static void draw_ipohandle_control(float x, float y, float xscale, float yscale, float hsize)
+
+/* helper func - draw handle vertex for an F-Curve as a round unfilled circle */
+static void draw_fcurve_handle_control (float x, float y, float xscale, float yscale, float hsize)
 {
 	static GLuint displist=0;
 	
 	/* initialise round circle shape */
+	// FIXME: sometimes, this will draw incorrectly (i.e. a scaled copy shows up at the origin)
 	if (displist == 0) {
 		GLUquadricObj *qobj;
 		
@@ -156,7 +134,7 @@ static void draw_ipohandle_control(float x, float y, float xscale, float yscale,
 		
 		qobj	= gluNewQuadric(); 
 		gluQuadricDrawStyle(qobj, GLU_SILHOUETTE); 
-		gluDisk(qobj, 0.07,  0.8, 12, 1);
+		gluDisk(qobj, 0.07,  0.6, 8, 1);
 		gluDeleteQuadric(qobj);  
 		
 		glEndList();
@@ -174,13 +152,13 @@ static void draw_ipohandle_control(float x, float y, float xscale, float yscale,
 	glTranslatef(-x, -y, 0.0f);
 }
 
-/* helper func - draw handle vertices only for an IPO-curve (if it is in EditMode) */
-static void draw_ipovertices_handles(IpoCurve *icu, View2D *v2d, short disptype, short sel)
+/* helper func - draw handle vertices only for an F-Curve (if it is not protected) */
+static void draw_fcurve_vertices_handles (FCurve *fcu, View2D *v2d, short sel)
 {
-	BezTriple *bezt= icu->bezt;
+	BezTriple *bezt= fcu->bezt;
 	BezTriple *prevbezt = NULL;
 	float hsize, xscale, yscale;
-	int a;
+	int i;
 	
 	/* get view settings */
 	hsize= UI_GetThemeValuef(TH_HANDLE_VERTEX_SIZE);
@@ -190,225 +168,178 @@ static void draw_ipovertices_handles(IpoCurve *icu, View2D *v2d, short disptype,
 	if (sel) UI_ThemeColor(TH_HANDLE_VERTEX_SELECT);
 	else UI_ThemeColor(TH_HANDLE_VERTEX);
 	
-	for (a= 0; a < icu->totvert; a++, prevbezt=bezt, bezt++) {
-		if (disptype != IPO_DISPBITS) {
-			if (ELEM(icu->ipo, IPO_BEZ, IPO_MIXED)) {
-				/* Draw the editmode handels for a bezier curve (others don't have handles) 
-				 * if their selection status matches the selection status we're drawing for
-				 *	- first handle only if previous beztriple was bezier-mode
-				 *	- second handle only if current beztriple is bezier-mode
-				 */
-				if ( (!prevbezt && (bezt->ipo==IPO_BEZ)) || (prevbezt && (prevbezt->ipo==IPO_BEZ)) ) {
-					if ((bezt->f1 & SELECT) == sel)/* && v2d->cur.xmin < bezt->vec[0][0] < v2d->cur.xmax)*/
-						draw_ipohandle_control(bezt->vec[0][0], bezt->vec[0][1], xscale, yscale, hsize);
-				}
-				
-				if (bezt->ipo==IPO_BEZ) {
-					if ((bezt->f3 & SELECT) == sel)/* && v2d->cur.xmin < bezt->vec[2][0] < v2d->cur.xmax)*/
-						draw_ipohandle_control(bezt->vec[2][0], bezt->vec[2][1], xscale, yscale, hsize);
-				}
-			}
+	for (i=0; i < fcu->totvert; i++, prevbezt=bezt, bezt++) {
+		/* Draw the editmode handels for a bezier curve (others don't have handles) 
+		 * if their selection status matches the selection status we're drawing for
+		 *	- first handle only if previous beztriple was bezier-mode
+		 *	- second handle only if current beztriple is bezier-mode
+		 */
+		if ( (!prevbezt && (bezt->ipo==BEZT_IPO_BEZ)) || (prevbezt && (prevbezt->ipo==BEZT_IPO_BEZ)) ) {
+			if ((bezt->f1 & SELECT) == sel)/* && v2d->cur.xmin < bezt->vec[0][0] < v2d->cur.xmax)*/
+				draw_fcurve_handle_control(bezt->vec[0][0], bezt->vec[0][1], xscale, yscale, hsize);
+		}
+		
+		if (bezt->ipo==BEZT_IPO_BEZ) {
+			if ((bezt->f3 & SELECT) == sel)/* && v2d->cur.xmin < bezt->vec[2][0] < v2d->cur.xmax)*/
+				draw_fcurve_handle_control(bezt->vec[2][0], bezt->vec[2][1], xscale, yscale, hsize);
 		}
 	}
 }
 
-static void draw_ipovertices(SpaceIpo *sipo, ARegion *ar, int sel)
+/* helper func - set color to draw F-Curve data with */
+static void set_fcurve_vertex_color (SpaceIpo *sipo, FCurve *fcu, short sel)
+{
+#if 0
+		if (sipo->showkey) {
+			if (sel) UI_ThemeColor(TH_TEXT_HI);
+			else UI_ThemeColor(TH_TEXT);
+		} 
+#endif
+		if ((fcu->flag & FCURVE_PROTECTED)==0) {
+			/* Curve's points are being edited */
+			if (sel) UI_ThemeColor(TH_VERTEX_SELECT); 
+			else UI_ThemeColor(TH_VERTEX);
+		} 
+		else {
+			/* Curve's points cannot be edited */
+			if (sel) UI_ThemeColor(TH_TEXT_HI);
+			else UI_ThemeColor(TH_TEXT);
+		}
+}
+
+
+void draw_fcurve_vertices (SpaceIpo *sipo, ARegion *ar, FCurve *fcu)
 {
 	View2D *v2d= &ar->v2d;
-	EditIpo *ei= sipo->editipo;
-	int nr, val = 0;
 	
-	/* this shouldn't get called while drawing in selection-buffer anyway */
-	//if (G.f & G_PICKSEL) return;
+	/* only draw points if curve is visible 
+	 * 	- draw unselected points before selected points as separate passes to minimise color-changing overhead
+	 *	   (XXX dunno if this is faster than drawing all in one pass though) 
+	 * 	   and also to make sure in the case of overlapping points that the selected is always visible
+	 *	- draw handles before keyframes, so that keyframes will overlap handles (keyframes are more important for users)
+	 */
 	
 	glPointSize(UI_GetThemeValuef(TH_VERTEX_SIZE));
 	
-	for (nr=0; nr<sipo->totipo; nr++, ei++) {
-		if ISPOIN(ei, flag & IPO_VISIBLE, icu) {
-			/* select colors to use to draw keyframes */
-			if (sipo->showkey) {
-				if (sel) UI_ThemeColor(TH_TEXT_HI);
-				else UI_ThemeColor(TH_TEXT);
-			} 
-			else if (ei->flag & IPO_EDIT) {
-				if (sel) UI_ThemeColor(TH_VERTEX_SELECT); 
-				else UI_ThemeColor(TH_VERTEX);
-			} 
-			else {
-				if (sel) UI_ThemeColor(TH_TEXT_HI);
-				else UI_ThemeColor(TH_TEXT);
-				
-				val= (ei->icu->flag & IPO_SELECT)!=0;
-				if (sel != val) continue;
-			}
-			
-			/* We can't change the color in the middle of
-			 * GL_POINTS because then Blender will segfault
-			 * on TNT2 / Linux with NVidia's drivers
-			 * (at least up to ver. 4349) 
-			 */		
-			
-			/* draw keyframes, then the handles (if in editmode) */
-			draw_ipovertices_keyframes(ei->icu, v2d, ei->disptype, (ei->flag & IPO_EDIT), sel);
-			
-			/* Now draw the two vertex of the handles,
-			 * This needs to be done after the keyframes, 
-			 * because we can't call glPointSize
-			 * in the middle of a glBegin/glEnd also the
-			 * bug comment before.
-			 */
-			if ((ei->flag & IPO_EDIT) && (sipo->flag & SIPO_NOHANDLES)==0)
-				draw_ipovertices_handles(ei->icu, v2d, ei->disptype, sel);
-		}
+	/* draw the two handles first (if they're shown, and if curve is being edited) */
+	if ((fcu->flag & FCURVE_PROTECTED)==0 && (sipo->flag & SIPO_NOHANDLES)==0) {
+		set_fcurve_vertex_color(sipo, fcu, 0);
+		draw_fcurve_vertices_handles(fcu, v2d, 0);
+		
+		set_fcurve_vertex_color(sipo, fcu, 1);
+		draw_fcurve_vertices_handles(fcu, v2d, 1);
 	}
+		
+	/* draw keyframes over the handles */
+	set_fcurve_vertex_color(sipo, fcu, 0);
+	draw_fcurve_vertices_keyframes(fcu, v2d, !(fcu->flag & FCURVE_PROTECTED), 0);
 	
-	glPointSize(1.0);
+	set_fcurve_vertex_color(sipo, fcu, 1);
+	draw_fcurve_vertices_keyframes(fcu, v2d, !(fcu->flag & FCURVE_PROTECTED), 1);
+	
+	glPointSize(1.0f);
 }
 
-/* draw lines for IPO-curve handles only (this is only done in EditMode) */
-static void draw_ipohandles(SpaceIpo *sipo, ARegion *ar, int sel)
+/* Handles ---------------- */
+
+/* draw lines for F-Curve handles only (this is only done in EditMode) */
+static void draw_fcurve_handles (SpaceIpo *sipo, ARegion *ar, FCurve *fcu)
 {
-	EditIpo *ei;
 	extern unsigned int nurbcol[];
 	unsigned int *col;
-	int a, b;
+	
+	BezTriple *bezt=fcu->bezt, *prevbezt=NULL;
+	float *fp;
+	int sel, b;
 	
 	/* don't draw handle lines if handles are not shown */
-	if (sipo->flag & SIPO_NOHANDLES)
+	if ((sipo->flag & SIPO_NOHANDLES) || (fcu->flag & FCURVE_PROTECTED))
 		return;
 	
-	if (sel) col= nurbcol+4;
-	else col= nurbcol;
-	
-	ei= sipo->editipo;
-	for (a=0; a<sipo->totipo; a++, ei++) {
-		if ISPOIN4(ei, flag & IPO_VISIBLE, flag & IPO_EDIT, icu, disptype!=IPO_DISPBITS) {
-			if (ELEM(ei->icu->ipo, IPO_BEZ, IPO_MIXED)) {
-				BezTriple *bezt=ei->icu->bezt, *prevbezt=NULL;
-				float *fp;
+	/* slightly hacky, but we want to draw unselected points before selected ones*/
+	for (sel= 0; sel < 2; sel++) {
+		if (sel) col= nurbcol+4;
+		else col= nurbcol;
+			
+		for (b= 0; b < fcu->totvert; b++, prevbezt=bezt, bezt++) {
+			if ((bezt->f2 & SELECT)==sel) {
+				fp= bezt->vec[0];
 				
-				for (b= 0; b < ei->icu->totvert; b++, prevbezt=bezt, bezt++) {
-					if ((bezt->f2 & SELECT)==sel) {
-						fp= bezt->vec[0];
-						
-						/* only draw first handle if previous segment had handles */
-						if ( (!prevbezt && (bezt->ipo==IPO_BEZ)) || (prevbezt && (prevbezt->ipo==IPO_BEZ)) ) 
-						{
-							cpack(col[bezt->h1]);
-							glBegin(GL_LINE_STRIP); 
-							glVertex2fv(fp); glVertex2fv(fp+3); 
-							glEnd();
-							
-						}
-						
-						/* only draw second handle if this segment is bezier */
-						if (bezt->ipo == IPO_BEZ) 
-						{
-							cpack(col[bezt->h2]);
-							glBegin(GL_LINE_STRIP); 
-							glVertex2fv(fp+3); glVertex2fv(fp+6); 
-							glEnd();
-						}
-					}
-					else {
-						/* only draw first handle if previous segment was had handles, and selection is ok */
-						if ( ((bezt->f1 & SELECT)==sel) && 
-							 ( (!prevbezt && (bezt->ipo==IPO_BEZ)) || (prevbezt && (prevbezt->ipo==IPO_BEZ)) ) ) 
-						{
-							fp= bezt->vec[0];
-							cpack(col[bezt->h1]);
-							
-							glBegin(GL_LINE_STRIP); 
-							glVertex2fv(fp); glVertex2fv(fp+3); 
-							glEnd();
-						}
-						
-						/* only draw second handle if this segment is bezier, and selection is ok */
-						if ( ((bezt->f3 & SELECT)==sel) &&
-							 (bezt->ipo == IPO_BEZ) )
-						{
-							fp= bezt->vec[1];
-							cpack(col[bezt->h2]);
-							
-							glBegin(GL_LINE_STRIP); 
-							glVertex2fv(fp); glVertex2fv(fp+3); 
-							glEnd();
-						}
-					}
+				/* only draw first handle if previous segment had handles */
+				if ( (!prevbezt && (bezt->ipo==BEZT_IPO_BEZ)) || (prevbezt && (prevbezt->ipo==BEZT_IPO_BEZ)) ) 
+				{
+					cpack(col[bezt->h1]);
+					glBegin(GL_LINE_STRIP); 
+						glVertex2fv(fp); glVertex2fv(fp+3); 
+					glEnd();
+					
+				}
+				
+				/* only draw second handle if this segment is bezier */
+				if (bezt->ipo == BEZT_IPO_BEZ) 
+				{
+					cpack(col[bezt->h2]);
+					glBegin(GL_LINE_STRIP); 
+						glVertex2fv(fp+3); glVertex2fv(fp+6); 
+					glEnd();
+				}
+			}
+			else {
+				/* only draw first handle if previous segment was had handles, and selection is ok */
+				if ( ((bezt->f1 & SELECT)==sel) && 
+					 ( (!prevbezt && (bezt->ipo==BEZT_IPO_BEZ)) || (prevbezt && (prevbezt->ipo==BEZT_IPO_BEZ)) ) ) 
+				{
+					fp= bezt->vec[0];
+					cpack(col[bezt->h1]);
+					
+					glBegin(GL_LINE_STRIP); 
+						glVertex2fv(fp); glVertex2fv(fp+3); 
+					glEnd();
+				}
+				
+				/* only draw second handle if this segment is bezier, and selection is ok */
+				if ( ((bezt->f3 & SELECT)==sel) &&
+					 (bezt->ipo == BEZT_IPO_BEZ) )
+				{
+					fp= bezt->vec[1];
+					cpack(col[bezt->h2]);
+					
+					glBegin(GL_LINE_STRIP); 
+						glVertex2fv(fp); glVertex2fv(fp+3); 
+					glEnd();
 				}
 			}
 		}
 	}
 }
 
-/* helper func - draw one repeat of an ipo-curve: bitflag curve only (this is evil stuff to expose to user like this) */
-static void draw_ipocurve_repeat_bits (IpoCurve *icu, View2D *v2d, float cycxofs)
-{
-	BezTriple *bezt= icu->bezt;
-	int a;
-	
-	/* loop over each keyframe, drawing a line extending from that point */
-	for (a=0, bezt=icu->bezt; a < icu->totvert; a++, bezt++) {
-		int val= (int)bezt->vec[1][1];
-		int b= 0;
-		
-		/* for each bit in the int, draw a line if the keyframe incorporates it */
-		for (b = 0; b < 31; b++) {
-			if (val & (1<<b)) {
-				float v1[2];
-				
-				/* value stays constant */
-				v1[1]= b+1;
-				
-				glBegin(GL_LINE_STRIP);
-					/* extend left too if first keyframe, and not cyclic extrapolation */
-					if ((a == 0) && !(icu->extrap & IPO_CYCL)) {
-						v1[0]= v2d->cur.xmin+cycxofs;
-						glVertex2fv(v1);
-					}
-					
-					/* must pass through current keyframe */
-					v1[0]= bezt->vec[1][0] + cycxofs;
-					glVertex2fv(v1); 
-					
-					/* 1. if there is a next keyframe, extend until then OR
-					 * 2. extend until 'infinity' if not cyclic extrapolation
-					 */
-					if ((a+1) < icu->totvert) v1[0]= (bezt+1)->vec[1][0]+cycxofs;
-					else if ((icu->extrap & IPO_CYCL)==0) v1[0]= v2d->cur.xmax+cycxofs;
-					
-					glVertex2fv(v1);
-				glEnd();
-			}
-		}
-	}
-}
+/* Curve ---------------- */
 
-/* helper func - draw one repeat of an ipo-curve: normal curve */
-static void draw_ipocurve_repeat_normal (IpoCurve *icu, View2D *v2d, float cycxofs, float cycyofs, float *facp)
+/* helper func - draw one repeat of an F-Curve */
+static void draw_fcurve_repeat (FCurve *fcu, View2D *v2d, float cycxofs, float cycyofs, float *facp)
 {
-	BezTriple *prevbezt= icu->bezt;
+	BezTriple *prevbezt= fcu->bezt;
 	BezTriple *bezt= prevbezt+1;
 	float v1[2], v2[2], v3[2], v4[2];
 	float *fp, data[120];
 	float fac= *(facp);
-	int b= icu->totvert-1;
+	int b= fcu->totvert-1;
 	int resol;
 	
 	glBegin(GL_LINE_STRIP);
 	
 	/* extrapolate to left? */
-	if ((icu->extrap & IPO_CYCL)==0) {
+	if ( (fcu->modifiers.first == NULL)/* || ( ((FModifier *)fcu->modifiers.first)->type != FMODIFIER_TYPE_CYCLES) */) {
 		/* left-side of view comes before first keyframe, so need to extend as not cyclic */
 		if (prevbezt->vec[1][0] > v2d->cur.xmin) {
 			v1[0]= v2d->cur.xmin;
 			
 			/* y-value depends on the interpolation */
-			if ((icu->extrap==IPO_HORIZ) || (prevbezt->ipo==IPO_CONST) || (icu->totvert==1)) {
+			if ((fcu->extend==FCURVE_EXTRAPOLATE_CONSTANT) || (prevbezt->ipo==BEZT_IPO_CONST) || (fcu->totvert==1)) {
 				/* just extend across the first keyframe's value */
 				v1[1]= prevbezt->vec[1][1];
 			} 
-			else if (prevbezt->ipo==IPO_LIN) {
+			else if (prevbezt->ipo==BEZT_IPO_LIN) {
 				/* extrapolate linear dosnt use the handle, use the next points center instead */
 				fac= (prevbezt->vec[1][0]-bezt->vec[1][0])/(prevbezt->vec[1][0]-v1[0]);
 				if (fac) fac= 1.0f/fac;
@@ -426,15 +357,16 @@ static void draw_ipocurve_repeat_normal (IpoCurve *icu, View2D *v2d, float cycxo
 	}
 	
 	/* if only one keyframe, add it now */
-	if (icu->totvert == 1) {
+	if (fcu->totvert == 1) {
 		v1[0]= prevbezt->vec[1][0] + cycxofs;
 		v1[1]= prevbezt->vec[1][1] + cycyofs;
 		glVertex2fv(v1);
 	}
 	
 	/* draw curve between first and last keyframe (if there are enough to do so) */
+	// XXX this doesn't take into account modifiers, or sample data
 	while (b--) {
-		if (prevbezt->ipo==IPO_CONST) {
+		if (prevbezt->ipo==BEZT_IPO_CONST) {
 			/* Constant-Interpolation: draw segment between previous keyframe and next, but holding same value */
 			v1[0]= prevbezt->vec[1][0]+cycxofs;
 			v1[1]= prevbezt->vec[1][1]+cycyofs;
@@ -444,7 +376,7 @@ static void draw_ipocurve_repeat_normal (IpoCurve *icu, View2D *v2d, float cycxo
 			v1[1]= prevbezt->vec[1][1]+cycyofs;
 			glVertex2fv(v1);
 		}
-		else if (prevbezt->ipo==IPO_LIN) {
+		else if (prevbezt->ipo==BEZT_IPO_LIN) {
 			/* Linear interpolation: just add one point (which should add a new line segment) */
 			v1[0]= prevbezt->vec[1][0]+cycxofs;
 			v1[1]= prevbezt->vec[1][1]+cycyofs;
@@ -456,7 +388,7 @@ static void draw_ipocurve_repeat_normal (IpoCurve *icu, View2D *v2d, float cycxo
 			 */
 			
 			/* resol not depending on horizontal resolution anymore, drivers for example... */
-			if (icu->driver) 
+			if (fcu->driver) 
 				resol= 32;
 			else 
 				resol= 3.0*sqrt(bezt->vec[1][0] - prevbezt->vec[1][0]);
@@ -481,7 +413,7 @@ static void draw_ipocurve_repeat_normal (IpoCurve *icu, View2D *v2d, float cycxo
 				v4[0]= bezt->vec[1][0]+cycxofs;
 				v4[1]= bezt->vec[1][1]+cycyofs;
 				
-// XXX old sys!				correct_bezpart(v1, v2, v3, v4);
+				correct_bezpart(v1, v2, v3, v4);
 				
 				forward_diff_bezier(v1[0], v2[0], v3[0], v4[0], data, resol, 3);
 				forward_diff_bezier(v1[1], v2[1], v3[1], v4[1], data+1, resol, 3);
@@ -504,16 +436,16 @@ static void draw_ipocurve_repeat_normal (IpoCurve *icu, View2D *v2d, float cycxo
 	}
 	
 	/* extrapolate to right? (see code for left-extrapolation above too) */
-	if ((icu->extrap & IPO_CYCL)==0) {
+	if ( (fcu->modifiers.first == NULL)/* || ( ((FModifier *)fcu->modifiers.first)->type != FMODIFIER_TYPE_CYCLES) */) {
 		if (prevbezt->vec[1][0] < v2d->cur.xmax) {
 			v1[0]= v2d->cur.xmax;
 			
 			/* y-value depends on the interpolation */
-			if ((icu->extrap==IPO_HORIZ) || (prevbezt->ipo==IPO_CONST) || (icu->totvert==1)) {
+			if ((fcu->extend==FCURVE_EXTRAPOLATE_CONSTANT) || (prevbezt->ipo==BEZT_IPO_CONST) || (fcu->totvert==1)) {
 				/* based on last keyframe's value */
 				v1[1]= prevbezt->vec[1][1];
 			} 
-			else if (prevbezt->ipo==IPO_LIN) {
+			else if (prevbezt->ipo==BEZT_IPO_LIN) {
 				/* extrapolate linear dosnt use the handle, use the previous points center instead */
 				bezt = prevbezt-1;
 				fac= (prevbezt->vec[1][0]-bezt->vec[1][0])/(prevbezt->vec[1][0]-v1[0]);
@@ -536,6 +468,8 @@ static void draw_ipocurve_repeat_normal (IpoCurve *icu, View2D *v2d, float cycxo
 	/* return fac, as we alter it */
 	*(facp) = fac;
 } 
+
+#if 0 // XXX old animation system unconverted code!
 
 /* draw all ipo-curves */
 static void draw_ipocurves(SpaceIpo *sipo, ARegion *ar, int sel)
@@ -639,6 +573,7 @@ static void draw_ipocurves(SpaceIpo *sipo, ARegion *ar, int sel)
 		}
 	}
 }
+#endif // XXX old animation system unconverted code
 
 #if 0
 static void draw_ipokey(SpaceIpo *sipo, ARegion *ar)
@@ -658,56 +593,472 @@ static void draw_ipokey(SpaceIpo *sipo, ARegion *ar)
 }
 #endif
 
-void drawipospace(ScrArea *sa, ARegion *ar)
+void graph_draw_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 {
-	SpaceIpo *sipo= sa->spacedata.first;
-	//View2D *v2d= &ar->v2d;
-	//	EditIpo *ei;
-
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
+	int filter;
 	
-	if(sipo->editipo) {
+	unsigned int col;
+	int items, i;
+	
+	/* build list of curves to draw */
+		// XXX enable ANIMFILTER_CURVEVISIBLE when we have a method to set them
+	filter= (ANIMFILTER_VISIBLE|ANIMFILTER_CURVESONLY/*|ANIMFILTER_CURVEVISIBLE*/);
+	items= ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 		
-		/* correct scale for degrees? */
-		// XXX this should be calculated elsewhere
-#if 0
-		disptype= -1;
-		ei= sipo->editipo;
-		for(a=0; a<sipo->totipo; a++, ei++) {
-			if(ei->flag & IPO_VISIBLE) {
-				if(disptype== -1) disptype= ei->disptype;
-				else if(disptype!=ei->disptype) disptype= 0;
-			}
-		}
-#endif
-		// now set grid size (done elsehwere now)
+	/* for each curve:
+	 *	draw curve, then handle-lines, and finally vertices in this order so that 
+	 * 	the data will be layered correctly
+	 */
+	for (ale=anim_data.first, i=0; ale; ale=ale->next, i++) {
+		FCurve *fcu= (FCurve *)ale->key_data;
+		Object *nob= ANIM_nla_mapping_get(ac, ale);
+		float fac=0.0f; // dummy var
 		
-		/* ipokeys */
-#if 0
-		if(sipo->showkey) {
-			//if(sipo->ipokey.first==0) make_ipokey();
-			//else update_ipokey_val();
-			make_ipokey();
-			draw_ipokey(sipo);
-		}
-#endif
+		/* map ipo-points for drawing if scaled F-Curve */
+		if (nob)
+			ANIM_nla_mapping_apply_fcurve(nob, ale->key_data, 0, 1); 
 		
-		/* map ipo-points for drawing if scaled ipo */
-		//if (NLA_IPO_SCALED)
-		//	ANIM_nla_mapping_apply_ipo(OBACT, sipo->ipo, 0, 0);
-
-		/* draw deselect */
-		draw_ipocurves(sipo, ar, 0);
-		draw_ipohandles(sipo, ar, 0);
-		draw_ipovertices(sipo, ar, 0);
+		/* draw curve - we currently calculate colour on the fly, but that should probably be done in advance instead */
+		col= ipo_rainbow(i, items);
+		cpack(col);
 		
-		/* draw select */
-		draw_ipocurves(sipo, ar, 1);
-		draw_ipohandles(sipo, ar, 1);
-		draw_ipovertices(sipo, ar, 1);
+		draw_fcurve_repeat(fcu, &ar->v2d, 0, 0, &fac); // XXX this call still needs a lot more work
 		
-		/* undo mapping of ipo-points for drawing if scaled ipo */
-		//if (NLA_IPO_SCALED)
-		//	ANIM_nla_mapping_apply_ipo(OBACT, sipo->ipo, 1, 0);
+		/* draw handles and vertices as appropriate */
+		draw_fcurve_handles(sipo, ar, fcu);
+		draw_fcurve_vertices(sipo, ar, fcu);
 		
+		
+		/* undo mapping of keyframes for drawing if scaled F-Curve */
+		if (nob)
+			ANIM_nla_mapping_apply_fcurve(nob, ale->key_data, 1, 1); 
 	}
+	
+	/* free list of curves */
+	BLI_freelistN(&anim_data);
+}
+
+/* ************************************************************************* */
+/* Channel List */
+
+// XXX quite a few of these need to be kept in sync with their counterparts in Action Editor
+// as they're the same. We have 2 separate copies of this for now to make it easier to develop
+// the diffences between the two editors, but one day these should be merged!
+
+/* left hand part */
+void graph_draw_channel_names(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar) 
+{
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
+	int filter;
+	
+	View2D *v2d= &ar->v2d;
+	float x= 0.0f, y= 0.0f;
+	int items, height;
+	
+	/* build list of channels to draw */
+	filter= (ANIMFILTER_VISIBLE|ANIMFILTER_CHANNELS);
+	items= ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
+	
+	/* Update max-extent of channels here (taking into account scrollers):
+	 * 	- this is done to allow the channel list to be scrollable, but must be done here
+	 * 	  to avoid regenerating the list again and/or also because channels list is drawn first
+	 *	- offset of ACHANNEL_HEIGHT*2 is added to the height of the channels, as first is for 
+	 *	  start of list offset, and the second is as a correction for the scrollers.
+	 */
+	height= ((items*ACHANNEL_STEP) + (ACHANNEL_HEIGHT*2));
+	if (height > (v2d->mask.ymax - v2d->mask.ymin)) {
+		/* don't use totrect set, as the width stays the same 
+		 * (NOTE: this is ok here, the configuration is pretty straightforward) 
+		 */
+		v2d->tot.ymin= (float)(-height);
+	}
+	
+	/* loop through channels, and set up drawing depending on their type  */	
+	y= (float)ACHANNEL_FIRST;
+	
+	for (ale= anim_data.first; ale; ale= ale->next) {
+		const float yminc= (float)(y - ACHANNEL_HEIGHT_HALF);
+		const float ymaxc= (float)(y + ACHANNEL_HEIGHT_HALF);
+		
+		/* check if visible */
+		if ( IN_RANGE(yminc, v2d->cur.ymin, v2d->cur.ymax) ||
+			 IN_RANGE(ymaxc, v2d->cur.ymin, v2d->cur.ymax) ) 
+		{
+			bActionGroup *grp = NULL;
+			short indent= 0, offset= 0, sel= 0, group= 0;
+			int expand= -1, protect = -1, special= -1, mute = -1;
+			char name[128];
+			
+			/* determine what needs to be drawn */
+			switch (ale->type) {
+				case ANIMTYPE_OBJECT: /* object */
+				{
+					Base *base= (Base *)ale->data;
+					Object *ob= base->object;
+					
+					group= 4;
+					indent= 0;
+					
+					/* icon depends on object-type */
+					if (ob->type == OB_ARMATURE)
+						special= ICON_ARMATURE;
+					else	
+						special= ICON_OBJECT;
+						
+					/* only show expand if there are any channels */
+					if (EXPANDED_OBJC(ob))
+						expand= ICON_TRIA_DOWN;
+					else
+						expand= ICON_TRIA_RIGHT;
+					
+					sel = SEL_OBJC(base);
+					strcpy(name, ob->id.name+2);
+				}
+					break;
+				case ANIMTYPE_FILLACTD: /* action widget */
+				{
+					bAction *act= (bAction *)ale->data;
+					
+					group = 4;
+					indent= 1;
+					special= ICON_ACTION;
+					
+					if (EXPANDED_ACTC(act))
+						expand= ICON_TRIA_DOWN;
+					else
+						expand= ICON_TRIA_RIGHT;
+					
+					sel = SEL_ACTC(act);
+					strcpy(name, "Action");
+				}
+					break;
+				case ANIMTYPE_FILLMATD: /* object materials (dopesheet) expand widget */
+				{
+					Object *ob = (Object *)ale->data;
+					
+					group = 4;
+					indent = 1;
+					special = ICON_MATERIAL;
+					
+					if (FILTER_MAT_OBJC(ob))
+						expand = ICON_TRIA_DOWN;
+					else
+						expand = ICON_TRIA_RIGHT;
+						
+					strcpy(name, "Materials");
+				}
+					break;
+				
+				
+				case ANIMTYPE_DSMAT: /* single material (dopesheet) expand widget */
+				{
+					Material *ma = (Material *)ale->data;
+					
+					group = 0;
+					indent = 0;
+					special = ICON_MATERIAL;
+					offset = 21;
+					
+					if (FILTER_MAT_OBJD(ma))
+						expand = ICON_TRIA_DOWN;
+					else
+						expand = ICON_TRIA_RIGHT;
+					
+					strcpy(name, ma->id.name+2);
+				}
+					break;
+				case ANIMTYPE_DSLAM: /* lamp (dopesheet) expand widget */
+				{
+					Lamp *la = (Lamp *)ale->data;
+					
+					group = 4;
+					indent = 1;
+					special = ICON_LAMP;
+					
+					if (FILTER_LAM_OBJD(la))
+						expand = ICON_TRIA_DOWN;
+					else
+						expand = ICON_TRIA_RIGHT;
+					
+					strcpy(name, la->id.name+2);
+				}
+					break;
+				case ANIMTYPE_DSCAM: /* camera (dopesheet) expand widget */
+				{
+					Camera *ca = (Camera *)ale->data;
+					
+					group = 4;
+					indent = 1;
+					special = ICON_CAMERA;
+					
+					if (FILTER_CAM_OBJD(ca))
+						expand = ICON_TRIA_DOWN;
+					else
+						expand = ICON_TRIA_RIGHT;
+					
+					strcpy(name, ca->id.name+2);
+				}
+					break;
+				case ANIMTYPE_DSCUR: /* curve (dopesheet) expand widget */
+				{
+					Curve *cu = (Curve *)ale->data;
+					
+					group = 4;
+					indent = 1;
+					special = ICON_CURVE;
+					
+					if (FILTER_CUR_OBJD(cu))
+						expand = ICON_TRIA_DOWN;
+					else
+						expand = ICON_TRIA_RIGHT;
+					
+					strcpy(name, cu->id.name+2);
+				}
+					break;
+				case ANIMTYPE_DSSKEY: /* shapekeys (dopesheet) expand widget */
+				{
+					Key *key= (Key *)ale->data;
+					
+					group = 4;
+					indent = 1;
+					special = ICON_EDIT;
+					
+					if (FILTER_SKE_OBJD(key))	
+						expand = ICON_TRIA_DOWN;
+					else
+						expand = ICON_TRIA_RIGHT;
+						
+					//sel = SEL_OBJC(base);
+					strcpy(name, "Shape Keys");
+				}
+					break;
+					
+				
+				case ANIMTYPE_GROUP: /* action group */
+				{
+					bActionGroup *agrp= (bActionGroup *)ale->data;
+					
+					group= 2;
+					indent= 0;
+					special= -1;
+					
+					offset= (ale->id) ? 21 : 0;
+					
+					/* only show expand if there are any channels */
+					if (agrp->channels.first) {
+						if (EXPANDED_AGRP(agrp))
+							expand = ICON_TRIA_DOWN;
+						else
+							expand = ICON_TRIA_RIGHT;
+					}
+					
+					if (EDITABLE_AGRP(agrp))
+						protect = ICON_UNLOCKED;
+					else
+						protect = ICON_LOCKED;
+						
+					sel = SEL_AGRP(agrp);
+					strcpy(name, agrp->name);
+				}
+					break;
+				case ANIMTYPE_FCURVE: /* F-Curve channel */
+				{
+					FCurve *fcu = (FCurve *)ale->data;
+					
+					indent = 0;
+					
+					//group= (ale->grp) ? 1 : 0;
+					//grp= ale->grp;
+					
+					// XXX include some UI element to allow toggling of visibility
+					
+					switch (ale->ownertype) {
+						case ANIMTYPE_NONE:	/* no owner */
+						case ANIMTYPE_FCURVE: 
+							offset= 0;
+							break;
+							
+						case ANIMTYPE_DSMAT: /* for now, this is special case for materials */
+							offset= 21;
+							indent= 1;
+							break;
+							
+						default:
+							offset= 14;
+							break;
+					}
+					
+					if (fcu->flag & FCURVE_MUTED)
+						mute = ICON_MUTE_IPO_ON;
+					else	
+						mute = ICON_MUTE_IPO_OFF;
+						
+					if (EDITABLE_FCU(fcu))
+						protect = ICON_UNLOCKED;
+					else
+						protect = ICON_LOCKED;
+					
+					sel = SEL_FCU(fcu);
+					
+					// for now, we just print the full path... this needs more work!
+					getname_anim_fcurve(name, ale->id, fcu);
+					//sprintf(name, "%s[%d]", fcu->rna_path, fcu->array_index);
+				}
+					break;
+					
+				case ANIMTYPE_SHAPEKEY: /* shapekey channel */
+				{
+					KeyBlock *kb = (KeyBlock *)ale->data;
+					
+					indent = 0;
+					special = -1;
+					
+					offset= (ale->id) ? 21 : 0;
+					
+					if (kb->name[0] == '\0')
+						sprintf(name, "Key %d", ale->index);
+					else
+						strcpy(name, kb->name);
+				}
+					break;
+			}	
+			
+			/* now, start drawing based on this information */
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			glEnable(GL_BLEND);
+			
+			/* draw backing strip behind channel name */
+			if (group == 4) {
+				/* only used in dopesheet... */
+				if (ale->type == ANIMTYPE_OBJECT) {
+					/* object channel - darker */
+					UI_ThemeColor(TH_DOPESHEET_CHANNELOB);
+					uiSetRoundBox((expand == ICON_TRIA_DOWN)? (1):(1|8));
+					gl_round_box(GL_POLYGON, x+offset,  yminc, (float)ACHANNEL_NAMEWIDTH, ymaxc, 8);
+				}
+				else {
+					/* sub-object folders - lighter */
+					UI_ThemeColor(TH_DOPESHEET_CHANNELSUBOB);
+					
+					offset += 7 * indent;
+					glBegin(GL_QUADS);
+						glVertex2f(x+offset, yminc);
+						glVertex2f(x+offset, ymaxc);
+						glVertex2f((float)ACHANNEL_NAMEWIDTH, ymaxc);
+						glVertex2f((float)ACHANNEL_NAMEWIDTH, yminc);
+					glEnd();
+					
+					/* clear group value, otherwise we cause errors... */
+					group = 0;
+				}
+			}
+			else if (group == 3) {
+				/* only for gp-data channels */
+				UI_ThemeColorShade(TH_GROUP, 20);
+				uiSetRoundBox((expand == ICON_TRIA_DOWN)? (1):(1|8));
+				gl_round_box(GL_POLYGON, x+offset,  yminc, (float)ACHANNEL_NAMEWIDTH, ymaxc, 8);
+			}
+			else if (group == 2) {
+				/* only for action group channels */
+				if (ale->flag & AGRP_ACTIVE)
+					UI_ThemeColorShade(TH_GROUP_ACTIVE, 10);
+				else
+					UI_ThemeColorShade(TH_GROUP, 20);
+				uiSetRoundBox((expand == ICON_TRIA_DOWN)? (1):(1|8));
+				gl_round_box(GL_POLYGON, x+offset,  yminc, (float)ACHANNEL_NAMEWIDTH, ymaxc, 8);
+			}
+			else {
+				/* for normal channels 
+				 *	- use 3 shades of color group/standard color for 3 indention level
+				 *	- only use group colors if allowed to, and if actually feasible
+				 */
+				if ((grp) && (grp->customCol)) 
+				{
+					char cp[3];
+					
+					if (indent == 2) {
+						VECCOPY(cp, grp->cs.solid);
+					}
+					else if (indent == 1) {
+						VECCOPY(cp, grp->cs.select);
+					}
+					else {
+						VECCOPY(cp, grp->cs.active);
+					}
+					
+					glColor3ub(cp[0], cp[1], cp[2]);
+				}
+				else
+					UI_ThemeColorShade(TH_HEADER, ((indent==0)?20: (indent==1)?-20: -40));
+				
+				indent += group;
+				offset += 7 * indent;
+				glBegin(GL_QUADS);
+					glVertex2f(x+offset, yminc);
+					glVertex2f(x+offset, ymaxc);
+					glVertex2f((float)ACHANNEL_NAMEWIDTH, ymaxc);
+					glVertex2f((float)ACHANNEL_NAMEWIDTH, yminc);
+				glEnd();
+			}
+			
+			/* draw expand/collapse triangle */
+			if (expand > 0) {
+				UI_icon_draw(x+offset, yminc, expand);
+				offset += 17;
+			}
+			
+			/* draw special icon indicating certain data-types */
+			if (special > -1) {
+				if (ELEM(group, 3, 4)) {
+					/* for gpdatablock channels */
+					UI_icon_draw(x+offset, yminc, special);
+					offset += 17;
+				}
+				else {
+					/* for ipo/constraint channels */
+					UI_icon_draw(x+offset, yminc, special);
+					offset += 17;
+				}
+			}
+			glDisable(GL_BLEND);
+			
+			/* draw name */
+			if (sel)
+				UI_ThemeColor(TH_TEXT_HI);
+			else
+				UI_ThemeColor(TH_TEXT);
+			offset += 3;
+			ui_rasterpos_safe(x+offset, y-4, 1.0f);
+			UI_DrawString(G.font, name, 0);
+			
+			/* reset offset - for RHS of panel */
+			offset = 0;
+			
+			/* set blending again, as text drawing may clear it */
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			glEnable(GL_BLEND);
+			
+			/* draw protect 'lock' */
+			if (protect > -1) {
+				offset = 16;
+				UI_icon_draw((float)ACHANNEL_NAMEWIDTH-offset, yminc, protect);
+			}
+			
+			/* draw mute 'eye' */
+			if (mute > -1) {
+				offset += 16;
+				UI_icon_draw((float)(ACHANNEL_NAMEWIDTH-offset), yminc, mute);
+			}
+			glDisable(GL_BLEND);
+		}
+		
+		/* adjust y-position for next one */
+		y -= ACHANNEL_STEP;
+	}
+	
+	/* free tempolary channels */
+	BLI_freelistN(&anim_data);
 }

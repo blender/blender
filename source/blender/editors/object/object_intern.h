@@ -42,7 +42,7 @@ struct Mesh;
 #define CLEAR_OBJ_ORIGIN 3
 
 /* object_edit.c */
-void OBJECT_OT_toggle_editmode(struct wmOperatorType *ot);
+void OBJECT_OT_editmode_toggle(struct wmOperatorType *ot);
 void OBJECT_OT_make_parent(struct wmOperatorType *ot);
 void OBJECT_OT_clear_parent(struct wmOperatorType *ot);
 void OBJECT_OT_make_track(struct wmOperatorType *ot);
@@ -65,6 +65,11 @@ void OBJECT_OT_set_center(struct wmOperatorType *ot);
 void OBJECT_OT_make_dupli_real(struct wmOperatorType *ot);
 void OBJECT_OT_object_add(struct wmOperatorType *ot);
 void OBJECT_OT_add_duplicate(struct wmOperatorType *ot);
+
+void OBJECT_OT_mesh_add(struct wmOperatorType *ot);
+void OBJECT_OT_curve_add(struct wmOperatorType *ot);
+	/* only used as menu */
+void OBJECT_OT_primitive_add(struct wmOperatorType *ot);
 
 /* editlattice.c */
 void free_editLatt(Object *ob);

@@ -2274,7 +2274,7 @@ void object_handle_update(Scene *scene, Object *ob)
 		
 		if(ob->recalc & OB_RECALC_OB) {
 
-			// printf("recalcob %s\n", ob->id.name+2);
+			 printf("recalcob %s\n", ob->id.name+2);
 			
 			/* handle proxy copy for target */
 			if(ob->id.lib && ob->proxy_from) {
@@ -2296,7 +2296,7 @@ void object_handle_update(Scene *scene, Object *ob)
 		
 		if(ob->recalc & OB_RECALC_DATA) {
 			
-			// printf("recalcdata %s\n", ob->id.name+2);
+			 printf("recalcdata %s\n", ob->id.name+2);
 			
 			/* includes all keys and modifiers */
 			if(ob->type==OB_MESH) {
@@ -2312,29 +2312,20 @@ void object_handle_update(Scene *scene, Object *ob)
 			else if(ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT)) {
 				makeDispListCurveTypes(scene, ob, 0);
 			}
+			else if(ELEM(ob->type, OB_CAMERA, OB_LAMP)) {
+				ID *data_id= (ID *)ob->data;
+				AnimData *adt= BKE_animdata_from_id(data_id);
+				float ctime= (float)scene->r.cfra; // XXX this is bad...
+				
+				/* evaluate drivers */
+				BKE_animsys_evaluate_animdata(data_id, adt, ctime, ADT_RECALC_DRIVERS);
+			}
 			else if(ob->type==OB_LATTICE) {
 				lattice_calc_modifiers(scene, ob);
 			}
-			else if(ob->type==OB_CAMERA) {
-				//Camera *cam = (Camera *)ob->data;
-				
-					// xxx old animation code here
-				//calc_ipo(cam->ipo, frame_to_float(scene, scene->r.cfra));
-				//execute_ipo(&cam->id, cam->ipo);
-				
-				// in new system, this has already been done! - aligorith
-			}
-			else if(ob->type==OB_LAMP) {
-				//Lamp *la = (Lamp *)ob->data;
-				
-					// xxx old animation code here
-				//calc_ipo(la->ipo, frame_to_float(scene, scene->r.cfra));
-				//execute_ipo(&la->id, la->ipo);
-				
-				// in new system, this has already been done! - aligorith
-			}
 			else if(ob->type==OB_ARMATURE) {
 				/* this happens for reading old files and to match library armatures with poses */
+				// XXX this won't screw up the pose set already...
 				if(ob->pose==NULL || (ob->pose->flag & POSE_RECALC))
 					armature_rebuild_pose(ob, ob->data);
 				
@@ -2343,7 +2334,6 @@ void object_handle_update(Scene *scene, Object *ob)
 					// printf("pose proxy copy, lib ob %s proxy %s\n", ob->id.name, ob->proxy_from->id.name);
 				}
 				else {
-					//do_all_pose_actions(scene, ob);  // xxx old animation system
 					where_is_pose(scene, ob);
 				}
 			}

@@ -75,7 +75,6 @@ public:
 		KX_TIMER0,
 		KX_TIMER1,
 		KX_TIMER2,
-		KX_TIMER3,
 	
 		// SYSTEM
 

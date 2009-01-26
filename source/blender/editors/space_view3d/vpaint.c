@@ -61,6 +61,8 @@
 #include "DNA_view3d_types.h"
 #include "DNA_userdef_types.h"
 
+#include "RNA_access.h"
+
 #include "BKE_armature.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_cloth.h"
@@ -104,6 +106,84 @@
 /* XXX */
 static void BIF_undo_push() {}
 static void error() {}
+
+/* polling - retrieve whether cursor should be set or operator should be done */
+
+static int vp_poll(bContext *C)
+{
+	if(G.f & G_VERTEXPAINT) {
+		ScrArea *sa= CTX_wm_area(C);
+		if(sa->spacetype==SPACE_VIEW3D) {
+			ARegion *ar= CTX_wm_region(C);
+			if(ar->regiontype==RGN_TYPE_WINDOW)
+				return 1;
+		}
+	}
+	return 0;
+}
+
+static int wp_poll(bContext *C)
+{
+	if(G.f & G_WEIGHTPAINT) {
+		ScrArea *sa= CTX_wm_area(C);
+		if(sa->spacetype==SPACE_VIEW3D) {
+			ARegion *ar= CTX_wm_region(C);
+			if(ar->regiontype==RGN_TYPE_WINDOW)
+				return 1;
+		}
+	}
+	return 0;
+}
+
+
+/* Cursors */
+static void vp_drawcursor(bContext *C, int x, int y, void *customdata)
+{
+	ToolSettings *ts= CTX_data_tool_settings(C);
+	
+	glTranslatef((float)x, (float)y, 0.0f);
+	
+	glColor4ub(255, 255, 255, 128);
+	glEnable( GL_LINE_SMOOTH );
+	glEnable(GL_BLEND);
+	glutil_draw_lined_arc(0.0, M_PI*2.0, ts->vpaint->size, 40);
+	glDisable(GL_BLEND);
+	glDisable( GL_LINE_SMOOTH );
+	
+	glTranslatef((float)-x, (float)-y, 0.0f);
+}
+
+static void wp_drawcursor(bContext *C, int x, int y, void *customdata)
+{
+	ToolSettings *ts= CTX_data_tool_settings(C);
+	
+	glTranslatef((float)x, (float)y, 0.0f);
+	
+	glColor4ub(200, 200, 255, 128);
+	glEnable( GL_LINE_SMOOTH );
+	glEnable(GL_BLEND);
+	glutil_draw_lined_arc(0.0, M_PI*2.0, ts->wpaint->size, 40);
+	glDisable(GL_BLEND);
+	glDisable( GL_LINE_SMOOTH );
+	
+	glTranslatef((float)-x, (float)-y, 0.0f);
+}
+
+static void toggle_paint_cursor(bContext *C, int wpaint)
+{
+	ToolSettings *ts = CTX_data_scene(C)->toolsettings;
+	VPaint *vp = wpaint ? ts->wpaint : ts->vpaint;
+
+	if(vp->paintcursor) {
+		WM_paint_cursor_end(CTX_wm_manager(C), vp->paintcursor);
+		vp->paintcursor = NULL;
+	}
+	else {
+		vp->paintcursor = wpaint ?
+			WM_paint_cursor_activate(CTX_wm_manager(C), wp_poll, wp_drawcursor, NULL) :
+			WM_paint_cursor_activate(CTX_wm_manager(C), vp_poll, vp_drawcursor, NULL);
+	}
+}
 
 static VPaint *new_vpaint(int wpaint)
 {
@@ -472,7 +552,7 @@ void vpaint_dogamma(Scene *scene)
 	Object *ob;
 	float igam, fac;
 	int a, temp;
-	char *cp, gamtab[256];
+	unsigned char *cp, gamtab[256];
 
 	if((G.f & G_VERTEXPAINT)==0) return;
 
@@ -494,7 +574,7 @@ void vpaint_dogamma(Scene *scene)
 	}
 
 	a= 4*me->totface;
-	cp= (char *)me->mcol;
+	cp= (unsigned char *)me->mcol;
 	while(a--) {
 		
 		cp[1]= gamtab[ cp[1] ];
@@ -1055,35 +1135,6 @@ static void do_weight_paint_vertex(VPaint *wp, Object *ob, int index, int alpha,
 
 
 /* *************** set wpaint operator ****************** */
-/* retrieve whether cursor should be set or operator should be done */
-static int wp_poll(bContext *C)
-{
-	if(G.f & G_WEIGHTPAINT) {
-		ScrArea *sa= CTX_wm_area(C);
-		if(sa->spacetype==SPACE_VIEW3D) {
-			ARegion *ar= CTX_wm_region(C);
-			if(ar->regiontype==RGN_TYPE_WINDOW)
-				return 1;
-		}
-	}
-	return 0;
-}
-
-static void wp_drawcursor(bContext *C, int x, int y)
-{
-	ToolSettings *ts= CTX_data_tool_settings(C);
-	
-	glTranslatef((float)x, (float)y, 0.0f);
-	
-	glColor4ub(200, 200, 255, 128);
-	glEnable( GL_LINE_SMOOTH );
-	glEnable(GL_BLEND);
-	glutil_draw_lined_arc(0.0, M_PI*2.0, ts->wpaint->size, 40);
-	glDisable(GL_BLEND);
-	glDisable( GL_LINE_SMOOTH );
-	
-	glTranslatef((float)-x, (float)-y, 0.0f);
-}
 
 static int set_wpaint(bContext *C, wmOperator *op)		/* toggle */
 {		
@@ -1118,7 +1169,7 @@ static int set_wpaint(bContext *C, wmOperator *op)		/* toggle */
 		if(wp==NULL)
 			wp= scene->toolsettings->wpaint= new_vpaint(1);
 		
-		wp->paintcursor = WM_paint_cursor_activate(CTX_wm_manager(C), wp_poll, wp_drawcursor);
+		toggle_paint_cursor(C, 1);
 		
 		mesh_octree_table(ob, NULL, NULL, 's');
 		
@@ -1135,7 +1186,7 @@ static int set_wpaint(bContext *C, wmOperator *op)		/* toggle */
 	}
 	else {
 		if(wp)
-			WM_paint_cursor_end(CTX_wm_manager(C), wp->paintcursor);
+			toggle_paint_cursor(C, 1);
 		
 		mesh_octree_table(ob, NULL, NULL, 'e');
 	}
@@ -1156,6 +1207,108 @@ void VIEW3D_OT_wpaint_toggle(wmOperatorType *ot)
 	ot->exec= set_wpaint;
 	ot->poll= ED_operator_object_active;
 	
+}
+
+/* ************ paint radial controls *************/
+
+void paint_radial_control_invoke(wmOperator *op, VPaint *vp)
+{
+	int mode = RNA_int_get(op->ptr, "mode");
+	float original_value;
+
+	if(mode == WM_RADIALCONTROL_SIZE)
+		original_value = vp->size;
+	else if(mode == WM_RADIALCONTROL_STRENGTH)
+		original_value = vp->a;
+
+	RNA_float_set(op->ptr, "initial_value", original_value);
+}
+
+static int paint_radial_control_exec(wmOperator *op, VPaint *vp)
+{
+	int mode = RNA_int_get(op->ptr, "mode");
+	float new_value = RNA_float_get(op->ptr, "new_value");
+
+	if(mode == WM_RADIALCONTROL_SIZE)
+		vp->size = new_value;
+	else if(mode == WM_RADIALCONTROL_STRENGTH)
+		vp->a = new_value;
+
+	return OPERATOR_FINISHED;
+}
+
+static int vpaint_radial_control_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	toggle_paint_cursor(C, 0);
+	paint_radial_control_invoke(op, CTX_data_scene(C)->toolsettings->vpaint);
+	return WM_radial_control_invoke(C, op, event);
+}
+
+static int vpaint_radial_control_modal(bContext *C, wmOperator *op, wmEvent *event)
+{
+	int ret = WM_radial_control_modal(C, op, event);
+	if(ret != OPERATOR_RUNNING_MODAL)
+		toggle_paint_cursor(C, 0);
+	return ret;
+}
+
+static int vpaint_radial_control_exec(bContext *C, wmOperator *op)
+{
+	int ret = paint_radial_control_exec(op, CTX_data_scene(C)->toolsettings->vpaint);
+	char str[256];
+	WM_radial_control_string(op, str, 256);
+	ED_undo_push(C, str);	
+	return ret;
+}
+
+static int wpaint_radial_control_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	toggle_paint_cursor(C, 1);
+	paint_radial_control_invoke(op, CTX_data_scene(C)->toolsettings->wpaint);
+	return WM_radial_control_invoke(C, op, event);
+}
+
+static int wpaint_radial_control_modal(bContext *C, wmOperator *op, wmEvent *event)
+{
+	int ret = WM_radial_control_modal(C, op, event);
+	if(ret != OPERATOR_RUNNING_MODAL)
+		toggle_paint_cursor(C, 1);
+	return ret;
+}
+
+static int wpaint_radial_control_exec(bContext *C, wmOperator *op)
+{
+	int ret = paint_radial_control_exec(op, CTX_data_scene(C)->toolsettings->wpaint);
+	char str[256];
+	WM_radial_control_string(op, str, 256);
+	ED_undo_push(C, str);	
+	return ret;
+}
+
+void VIEW3D_OT_wpaint_radial_control(wmOperatorType *ot)
+{
+	WM_OT_radial_control_partial(ot);
+
+	ot->name= "Weight Paint Radial Control";
+	ot->idname= "VIEW3D_OT_wpaint_radial_control";
+
+	ot->invoke= wpaint_radial_control_invoke;
+	ot->modal= wpaint_radial_control_modal;
+	ot->exec= wpaint_radial_control_exec;
+	ot->poll= wp_poll;
+}
+
+void VIEW3D_OT_vpaint_radial_control(wmOperatorType *ot)
+{
+	WM_OT_radial_control_partial(ot);
+
+	ot->name= "Vertex Paint Radial Control";
+	ot->idname= "VIEW3D_OT_vpaint_radial_control";
+
+	ot->invoke= vpaint_radial_control_invoke;
+	ot->modal= vpaint_radial_control_modal;
+	ot->exec= vpaint_radial_control_exec;
+	ot->poll= vp_poll;
 }
 
 /* ************ weight paint operator ********** */
@@ -1487,35 +1640,6 @@ void VIEW3D_OT_wpaint(wmOperatorType *ot)
 
 /* ************ set / clear vertex paint mode ********** */
 
-/* retrieve whether cursor should be set or operator should be done */
-static int vp_poll(bContext *C)
-{
-	if(G.f & G_VERTEXPAINT) {
-		ScrArea *sa= CTX_wm_area(C);
-		if(sa->spacetype==SPACE_VIEW3D) {
-			ARegion *ar= CTX_wm_region(C);
-			if(ar->regiontype==RGN_TYPE_WINDOW)
-				return 1;
-		}
-	}
-	return 0;
-}
-
-static void vp_drawcursor(bContext *C, int x, int y)
-{
-	ToolSettings *ts= CTX_data_tool_settings(C);
-	
-	glTranslatef((float)x, (float)y, 0.0f);
-	
-	glColor4ub(255, 255, 255, 128);
-	glEnable( GL_LINE_SMOOTH );
-	glEnable(GL_BLEND);
-	glutil_draw_lined_arc(0.0, M_PI*2.0, ts->vpaint->size, 40);
-	glDisable(GL_BLEND);
-	glDisable( GL_LINE_SMOOTH );
-	
-	glTranslatef((float)-x, (float)-y, 0.0f);
-}
 
 static int set_vpaint(bContext *C, wmOperator *op)		/* toggle */
 {	
@@ -1545,7 +1669,7 @@ static int set_vpaint(bContext *C, wmOperator *op)		/* toggle */
 		G.f &= ~G_VERTEXPAINT;
 		
 		if(vp) {
-			WM_paint_cursor_end(CTX_wm_manager(C), vp->paintcursor);
+			toggle_paint_cursor(C, 0);
 			vp->paintcursor= NULL;
 		}
 	}
@@ -1559,7 +1683,7 @@ static int set_vpaint(bContext *C, wmOperator *op)		/* toggle */
 		if(vp==NULL)
 			vp= scene->toolsettings->vpaint= new_vpaint(0);
 		
-		vp->paintcursor = WM_paint_cursor_activate(CTX_wm_manager(C), vp_poll, vp_drawcursor);
+		toggle_paint_cursor(C, 0);
 	}
 	
 	if (me)

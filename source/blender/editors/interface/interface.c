@@ -486,7 +486,8 @@ static void ui_menu_block_set_keymaps(const bContext *C, uiBlock *block)
 
 	/* XXX bounds? */
 	for(but=block->buttons.first; but; but=but->next) {
-		if(but->opname) {
+		/* only hotkey for menus without properties */
+		if(but->opname && but->opptr==NULL) {
 			if(WM_key_event_operator_string(C, but->opname, but->opcontext, buf, sizeof(buf))) {
 				butstr= MEM_mallocN(strlen(but->str)+strlen(buf)+2, "menu_block_set_keymaps");
 				strcpy(butstr, but->str);

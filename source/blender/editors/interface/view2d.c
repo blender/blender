@@ -1391,7 +1391,7 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 				grid->powerx= 1;
 			
 			/* draw numbers in the appropriate range */
-			if (dfac != 0.0f) {
+			if (dfac > 0.0f) {
 				for (; fac < hor.xmax; fac+=dfac, val+=grid->dx) {
 					switch (vs->xunits) {
 						case V2D_UNIT_FRAMES:		/* frames (as whole numbers)*/
@@ -1523,7 +1523,7 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 				fac += 0.5f * dfac;
 				
 			/* draw vertical steps */
-			if (dfac != 0.0f) {
+			if (dfac > 0.0f) {
 				for (; fac < vert.ymax; fac+= dfac, val += grid->dy) {
 					scroll_printstr(vs, scene, (float)(vert.xmax)-14.0f, fac, val, grid->powery, vs->yunits, 'v');
 				}

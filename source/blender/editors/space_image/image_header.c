@@ -244,7 +244,7 @@ static uiBlock *image_selectmenu(bContext *C, uiMenuBlockHandle *handle, void *a
 	uiDefMenuSep(block);
 	
 	uiDefMenuButO(block, "UV_OT_de_select_all", NULL);
-	uiDefMenuButO(block, "UV_OT_select_inverse", NULL);
+	uiDefMenuButO(block, "UV_OT_select_invert", NULL);
 	uiDefMenuButO(block, "UV_OT_unlink_selection", NULL); // Unlink Selection|Alt L
 	
 	uiDefMenuSep(block);

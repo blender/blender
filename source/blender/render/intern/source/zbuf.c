@@ -2495,7 +2495,7 @@ void zbuffer_shadow(Render *re, float winmat[][4], LampRen *lar, int *rectz, int
 				}
 			}
 
-			if((a & 255)==255 && re->test_break()) 
+			if((a & 255)==255 && re->test_break(re->tbh)) 
 				break;
 		}
 
@@ -2544,13 +2544,13 @@ void zbuffer_shadow(Render *re, float winmat[][4], LampRen *lar, int *rectz, int
 						}
 					}
 
-					if((a & 255)==255 && re->test_break()) 
+					if((a & 255)==255 && re->test_break(re->tbh)) 
 						break;
 				}
 			}
 		}
 
-		if(re->test_break()) 
+		if(re->test_break(re->tbh)) 
 			break;
 	}
 	
@@ -3512,13 +3512,13 @@ static int zbuffer_abuf(RenderPart *pa, APixstr *APixbuf, ListBase *apsmbase, Re
 						}
 					}
 					if((v & 255)==255) 
-						if(R.test_break()) 
+						if(R.test_break(R.tbh)) 
 							break; 
 				}
 			}
 		}
 
-		if(R.test_break()) break;
+		if(R.test_break(R.tbh)) break;
 	}
 	
 	for(zsample=0; zsample<samples; zsample++) {
@@ -4013,7 +4013,7 @@ unsigned short *zbuffer_transp_shade(RenderPart *pa, RenderLayer *rl, float *pas
 	unsigned short *ztramask= NULL, filled;
 
 	/* looks nicer for calling code */
-	if(R.test_break())
+	if(R.test_break(R.tbh))
 		return NULL;
 	
 	if(R.osa>16) { /* MAX_OSA */
@@ -4096,7 +4096,7 @@ unsigned short *zbuffer_transp_shade(RenderPart *pa, RenderLayer *rl, float *pas
 		apstrand= aprectstrand;
 		od= offs;
 		
-		if(R.test_break())
+		if(R.test_break(R.tbh))
 			break;
 		
 		for(x=pa->disprect.xmin+crop; x<pa->disprect.xmax-crop; x++, ap++, apstrand++, pass+=4, od++) {

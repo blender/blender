@@ -180,13 +180,13 @@ void makeraytree(Render *re)
 				double time= PIL_check_seconds_timer();
 
 				vlr= obr->vlaknodes[v>>8].vlak;
-				if(re->test_break())
+				if(re->test_break(re->tbh))
 					break;
 				if(time-lasttime>1.0f) {
 					char str[32];
 					sprintf(str, "Filling Octree: %d", totv);
 					re->i.infostr= str;
-					re->stats_draw(&re->i);
+					re->stats_draw(re->sdh, &re->i);
 					re->i.infostr= NULL;
 					lasttime= time;
 				}
@@ -202,7 +202,7 @@ void makeraytree(Render *re)
 	RE_ray_tree_done(re->raytree);
 	
 	re->i.infostr= NULL;
-	re->stats_draw(&re->i);
+	re->stats_draw(re->sdh, &re->i);
 }
 
 static void shade_ray(Isect *is, ShadeInput *shi, ShadeResult *shr)

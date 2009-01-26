@@ -232,6 +232,7 @@ int set_listbasepointers(Main *main, ListBase **lb)
 	/* BACKWARDS! also watch order of free-ing! (mesh<->mat) */
 
 	lb[a++]= &(main->ipo);
+	lb[a++]= &(main->action); // xxx moved here to avoid problems when freeing with animato (aligorith)
 	lb[a++]= &(main->key);
 	lb[a++]= &(main->nodetree);
 	lb[a++]= &(main->image);
@@ -244,7 +245,6 @@ int set_listbasepointers(Main *main, ListBase **lb)
 	 */
 
 	lb[a++]= &(main->armature);
-	lb[a++]= &(main->action);
 
 	lb[a++]= &(main->mesh);
 	lb[a++]= &(main->curve);
@@ -490,7 +490,7 @@ void free_libblock(ListBase *lb, void *idv)
 			free_camera((Camera*) id);
 			break;
 		case ID_IP:
-			/*free_ipo((Ipo *)id);*/
+			free_ipo((Ipo *)id);
 			break;
 		case ID_KE:
 			free_key((Key *)id);
@@ -682,52 +682,6 @@ static void IDnames_to_dyn_pupstring(DynStr *pupds, ListBase *lb, ID *link, shor
 	}
 }
 
-	/* Silly routine, the only difference between the one
-	 * above is that it only adds items with a matching
-	 * blocktype... this should be unified somehow... - zr
-	 */
-static void IPOnames_to_dyn_pupstring(DynStr *pupds, ListBase *lb, ID *link, short *nr, int blocktype)
-{
-	ID *id;
-	int i, nids;
-	
-	for (id= lb->first, nids= 0; id; id= id->next) {
-		Ipo *ipo= (Ipo*) id;
-		
-		if (ipo->blocktype==blocktype)
-			nids++;
-	}
-	
-	if (nids>MAX_IDPUP) {
-		BLI_dynstr_append(pupds, "DataBrowse %x-2");
-	} else {
-		for (i=0, id= lb->first; id; id= id->next) {
-			Ipo *ipo= (Ipo*) id;
-			
-			if (ipo->blocktype==blocktype) {
-				char buf[32];
-			
-				if (id==link)
-					*nr= i+1;
-					
-				if (U.uiflag & USER_HIDE_DOT && id->name[2]=='.')
-					continue;
-
-				get_flags_for_id(id, buf);
-				
-				BLI_dynstr_append(pupds, buf);
-				BLI_dynstr_append(pupds, id->name+2);
-				sprintf(buf, "%%x%d", i+1);
-				BLI_dynstr_append(pupds, buf);
-				
-				if(id->next)
-					BLI_dynstr_append(pupds, "|");
-				
-				i++;
-			}
-		}
-	}
-}
 
 /* used by headerbuttons.c buttons.c editobject.c editseq.c */
 /* if nr==NULL no MAX_IDPUP, this for non-header browsing */
@@ -774,28 +728,6 @@ void IMAnames_to_pupstring(char **str, char *title, char *extraops, ListBase *lb
 	BLI_dynstr_free(pupds);
 }
 
-
-/* only used by headerbuttons.c */
-void IPOnames_to_pupstring(char **str, char *title, char *extraops, ListBase *lb, ID *link, short *nr, int blocktype)
-{
-	DynStr *pupds= BLI_dynstr_new();
-	
-	if (title) {
-		BLI_dynstr_append(pupds, title);
-		BLI_dynstr_append(pupds, "%t|");
-	}
-	
-	if (extraops) {
-		BLI_dynstr_append(pupds, extraops);
-		if (BLI_dynstr_get_len(pupds))
-			BLI_dynstr_append(pupds, "|");
-	}
-
-	IPOnames_to_dyn_pupstring(pupds, lb, link, nr, blocktype);	
-	
-	*str= BLI_dynstr_get_cstring(pupds);
-	BLI_dynstr_free(pupds);
-}
 
 /* used by buttons.c library.c mball.c */
 void splitIDname(char *name, char *left, int *nr)

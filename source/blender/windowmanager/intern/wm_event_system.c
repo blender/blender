@@ -135,6 +135,9 @@ void wm_event_do_notifiers(bContext *C)
 	wmNotifier *note;
 	wmWindow *win;
 	
+	if(wm==NULL)
+		return;
+	
 	/* cache & catch WM level notifiers, such as frame change */
 	/* XXX todo, multiwindow scenes */
 	for(win= wm->windows.first; win; win= win->next) {
@@ -194,7 +197,6 @@ void wm_event_do_notifiers(bContext *C)
 				ED_area_do_refresh(C, sa);
 			}
 		}
-		CTX_wm_area_set(C, NULL);
 	}
 	CTX_wm_window_set(C, NULL);
 }
@@ -493,9 +495,12 @@ static int wm_userdef_event_map(int kmitype)
 static int wm_eventmatch(wmEvent *winevent, wmKeymapItem *kmi)
 {
 	int kmitype= wm_userdef_event_map(kmi->type);
-	
+
 	/* the matching rules */
-	if(winevent->type!=kmitype) return 0;
+	if(kmitype==KM_TEXTINPUT)
+		if(ISKEYBOARD(winevent->type)) return 1;
+	if(kmitype!=KM_ANY)
+		if(winevent->type!=kmitype) return 0;
 	
 	if(kmi->val!=KM_ANY)
 		if(winevent->val!=kmi->val) return 0;
@@ -517,7 +522,7 @@ static int wm_eventmatch(wmEvent *winevent, wmKeymapItem *kmi)
 static int wm_event_always_pass(wmEvent *event)
 {
 	/* some events we always pass on, to ensure proper communication */
-	return ELEM4(event->type, TIMER, TIMER0, TIMER1, TIMER2);
+	return ELEM5(event->type, TIMER, TIMER0, TIMER1, TIMER2, TIMERJOBS);
 }
 
 /* Warning: this function removes a modal handler, when finished */
@@ -683,6 +688,9 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 				break;
 		}
 		
+		/* fileread case */
+		if(CTX_wm_window(C)==NULL)
+			break;
 	}
 	return action;
 }
@@ -727,10 +735,17 @@ static ARegion *region_event_inside(bContext *C, int x, int y)
 
 static void wm_paintcursor_tag(bContext *C, wmPaintCursor *pc, ARegion *ar)
 {
-	if(ar)
-		for(; pc; pc= pc->next) 
-			if(pc->poll(C))
-				ED_region_tag_redraw(ar);
+	if(ar) {
+		for(; pc; pc= pc->next) {
+			if(pc->poll(C)) {
+				wmWindow *win= CTX_wm_window(C);
+				win->screen->do_draw_paintcursor= 1;
+
+				if(win->drawmethod != USER_DRAW_TRIPLE)
+					ED_region_tag_redraw(ar);
+			}
+		}
+	}
 }
 
 /* called on mousemove, check updates for paintcursors */
@@ -784,6 +799,12 @@ void wm_event_do_handlers(bContext *C)
 			
 			action= wm_handlers_do(C, event, &win->handlers);
 			
+			/* fileread case */
+			if(CTX_wm_window(C)==NULL) {
+				wm_event_free(event);
+				break;
+			}
+			
 			if(wm_event_always_pass(event) || action==WM_HANDLER_CONTINUE) {
 				ScrArea *sa;
 				ARegion *ar;
@@ -833,6 +854,10 @@ void wm_event_do_handlers(bContext *C)
 			CTX_wm_area_set(C, NULL);
 			CTX_wm_region_set(C, NULL);
 		}
+		
+		/* fileread case */
+		if(CTX_wm_window(C)==NULL)
+			break;
 	}
 }
 
@@ -857,12 +882,12 @@ wmEventHandler *WM_event_add_modal_handler(bContext *C, ListBase *handlers, wmOp
 wmEventHandler *WM_event_add_keymap_handler(ListBase *handlers, ListBase *keymap)
 {
 	wmEventHandler *handler;
-	
+
 	/* only allow same keymap once */
 	for(handler= handlers->first; handler; handler= handler->next)
 		if(handler->keymap==keymap)
 			return handler;
-
+	
 	handler= MEM_callocN(sizeof(wmEventHandler), "event keymap handler");
 	BLI_addtail(handlers, handler);
 	handler->keymap= keymap;
@@ -870,12 +895,28 @@ wmEventHandler *WM_event_add_keymap_handler(ListBase *handlers, ListBase *keymap
 	return handler;
 }
 
+/* priorities not implemented yet, for time being just insert in begin of list */
+wmEventHandler *WM_event_add_keymap_handler_priority(ListBase *handlers, ListBase *keymap, int priority)
+{
+	wmEventHandler *handler;
+	
+	WM_event_remove_keymap_handler(handlers, keymap);
+	
+	handler= MEM_callocN(sizeof(wmEventHandler), "event keymap handler");
+	BLI_addhead(handlers, handler);
+	handler->keymap= keymap;
+	
+	return handler;
+}
+
 wmEventHandler *WM_event_add_keymap_handler_bb(ListBase *handlers, ListBase *keymap, rcti *bblocal, rcti *bbwin)
 {
 	wmEventHandler *handler= WM_event_add_keymap_handler(handlers, keymap);
-	handler->bblocal= bblocal;
-	handler->bbwin= bbwin;
 	
+	if(handler) {
+		handler->bblocal= bblocal;
+		handler->bbwin= bbwin;
+	}
 	return handler;
 }
 
@@ -1107,6 +1148,10 @@ void wm_event_add_ghostevent(wmWindow *win, int type, void *customdata)
 			event.type= convert_key(kd->key);
 			event.ascii= kd->ascii;
 			event.val= (type==GHOST_kEventKeyDown); /* XXX eventmatch uses defines, bad code... */
+			
+			/* exclude arrow keys, esc, etc from text input */
+			if(type==GHOST_kEventKeyUp || (event.ascii<32 && event.ascii>14))
+				event.ascii= '\0';
 			
 			/* modifiers */
 			if (event.type==LEFTSHIFTKEY || event.type==RIGHTSHIFTKEY) {

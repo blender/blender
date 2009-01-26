@@ -59,6 +59,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
+#include "DNA_sequence_types.h"
 #include "DNA_texture_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_world_types.h"
@@ -91,11 +92,13 @@
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_particle.h"
+#include "BKE_sequence.h"
 #include "BKE_pointcache.h"
 #include "BKE_softbody.h"
 #include "BKE_utildefines.h"
 #include "BKE_bmesh.h"
 #include "BKE_context.h"
+#include "BKE_report.h"
 
 //#include "BIF_editaction.h"
 //#include "BIF_editview.h"
@@ -116,13 +119,14 @@
 //#include "BIF_space.h"
 //#include "BIF_toolbox.h"
 
-#include "ED_armature.h"
-#include "ED_types.h"
 #include "ED_anim_api.h"
+#include "ED_armature.h"
+#include "ED_editparticle.h"
 #include "ED_keyframing.h"
 #include "ED_keyframes_edit.h"
-#include "ED_view3d.h"
 #include "ED_mesh.h"
+#include "ED_types.h"
+#include "ED_view3d.h"
 
 #include "UI_view2d.h"
 
@@ -577,7 +581,7 @@ static void add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tr
 	/* proper way to get parent transform + own transform + constraints transform */
 	Mat3CpyMat4(omat, ob->obmat);
 	
-	if(pchan->parent) { 	 
+	if (pchan->parent) { 	 
 		if(pchan->bone->flag & BONE_HINGE) 	 
 			Mat3CpyMat4(pmat, pchan->parent->bone->arm_mat); 	 
 		else 	 
@@ -608,7 +612,7 @@ static void add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tr
 	Mat3MulMat3(td->axismtx, omat, pmat);
 	Mat3Ortho(td->axismtx);
 	
-	if(t->mode==TFM_BONESIZE) {
+	if (t->mode==TFM_BONESIZE) {
 		bArmature *arm= t->poseobj->data;
 		
 		if(arm->drawtype==ARM_ENVELOPE) {
@@ -625,7 +629,7 @@ static void add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tr
 	}
 	
 	/* in this case we can do target-less IK grabbing */
-	if(t->mode==TFM_TRANSLATION) {
+	if (t->mode==TFM_TRANSLATION) {
 		bKinematicConstraint *data= has_targetless_ik(pchan);
 		if(data) {
 			if(data->flag & CONSTRAINT_IK_TIP) {
@@ -687,7 +691,7 @@ static void set_pose_transflags(TransInfo *t, Object *ob)
 				bone->flag |= BONE_TRANSFORM;
 			else
 				bone->flag &= ~BONE_TRANSFORM;
-
+			
 			bone->flag &= ~BONE_HINGE_CHILD_TRANSFORM;
 			bone->flag &= ~BONE_TRANSFORM_CHILD;
 		}
@@ -950,8 +954,6 @@ static short pose_grab_with_ik(Object *ob)
 /* only called with pose mode active object now */
 static void createTransPose(bContext *C, TransInfo *t, Object *ob)
 {
-	// TRANSFORM_FIX_ME
-#if 0
 	bArmature *arm;
 	bPoseChannel *pchan;
 	TransData *td;
@@ -962,16 +964,16 @@ static void createTransPose(bContext *C, TransInfo *t, Object *ob)
 	t->total= 0;
 	
 	/* check validity of state */
-	arm=get_armature (ob);
-	if (arm==NULL || ob->pose==NULL) return;
+	arm= get_armature(ob);
+	if ((arm==NULL) || (ob->pose==NULL)) return;
 	
 	if (arm->flag & ARM_RESTPOS) {
-		if(ELEM(t->mode, TFM_DUMMY, TFM_BONESIZE)==0) {
-			notice("Pose edit not possible while Rest Position is enabled");
+		if (ELEM(t->mode, TFM_DUMMY, TFM_BONESIZE)==0) {
+			//notice("Pose edit not possible while Rest Position is enabled");
+			BKE_report(CTX_reports(C), RPT_ERROR, "Can't select linked when sync selection is enabled.");
 			return;
 		}
 	}
-	if (!(ob->lay & G.vd->lay)) return;
 
 	/* do we need to add temporal IK chains? */
 	if ((arm->flag & ARM_AUTO_IK) && t->mode==TFM_TRANSLATION) {
@@ -987,10 +989,6 @@ static void createTransPose(bContext *C, TransInfo *t, Object *ob)
 	t->flag |= T_POSE;
 	t->poseobj= ob;	/* we also allow non-active objects to be transformed, in weightpaint */
 	
-	/* make sure the lock is set OK, unlock can be accidentally saved? */
-	ob->pose->flag |= POSE_LOCKED;
-	ob->pose->flag &= ~POSE_DO_UNLOCK;
-
 	/* init trans data */
     td = t->data = MEM_callocN(t->total*sizeof(TransData), "TransPoseBone");
     tdx = t->ext = MEM_callocN(t->total*sizeof(TransDataExtension), "TransPoseBoneExt");
@@ -1002,18 +1000,20 @@ static void createTransPose(bContext *C, TransInfo *t, Object *ob)
 	
 	/* use pose channels to fill trans data */
 	td= t->data;
-	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-		if(pchan->bone->flag & BONE_TRANSFORM) {
+	for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+		if (pchan->bone->flag & BONE_TRANSFORM) {
 			add_pose_transdata(t, pchan, ob, td);
 			td++;
 		}
 	}
 	
-	if(td != (t->data+t->total)) printf("Bone selection count error\n");
+	if(td != (t->data+t->total)) {
+		// printf("Bone selection count error\n");
+		BKE_report(CTX_reports(C), RPT_DEBUG, "Bone selection count error.");
+	}
 	
 	/* initialise initial auto=ik chainlen's? */
 	if (ik_on) transform_autoik_update(t, 0);
-#endif
 }
 
 /* ********************* armature ************** */
@@ -1618,7 +1618,7 @@ static void createTransParticleVerts(bContext *C, TransInfo *t)
 	Object *ob = OBACT;
 	ParticleSystem *psys = PE_get_current(ob);
 	ParticleSystemModifierData *psmd = NULL;
-	ParticleEditSettings *pset = PE_settings();
+	ParticleEditSettings *pset = PE_settings(t->scene);
 	ParticleData *pa = NULL;
 	ParticleEdit *edit;
 	ParticleEditKey *key;
@@ -1763,7 +1763,7 @@ void flushTransParticles(TransInfo *t)
 		}
 	}
 
-	PE_update_object(OBACT, 1);
+	PE_update_object(scene, OBACT, 1);
 #endif
 }
 
@@ -2300,6 +2300,84 @@ void flushTransNodes(TransInfo *t)
 	}
 }
 
+/* *** SEQUENCE EDITOR *** */
+void flushTransSeq(TransInfo *t)
+{
+	ListBase *seqbasep= ((Editing *)t->scene->ed)->seqbasep;
+	int a, new_frame;
+	TransData *td= t->data;
+	TransData2D *td2d= t->data2d;
+	TransDataSeq *tdsq= NULL;
+	Sequence *seq;
+
+	
+
+	/* prevent updating the same seq twice
+	 * if the transdata order is changed this will mess up
+	 * but so will TransDataSeq */
+	Sequence *seq_prev= NULL;
+
+	/* flush to 2d vector from internally used 3d vector */
+	for(a=0; a<t->total; a++, td++, td2d++) {
+
+		tdsq= (TransDataSeq *)td->extra;
+		seq= tdsq->seq;
+		new_frame= (int)(td2d->loc[0] + 0.5f);
+
+		switch (tdsq->sel_flag) {
+		case SELECT:
+			if (seq->type != SEQ_META && seq_tx_test(seq)) /* for meta's, their children move */
+				seq->start= new_frame - tdsq->start_offset;
+			
+			if (seq->depth==0) {
+				seq->machine= (int)(td2d->loc[1] + 0.5f);
+				CLAMP(seq->machine, 1, MAXSEQ);
+			}
+			break;
+		case SEQ_LEFTSEL: /* no vertical transform  */
+			seq_tx_set_final_left(seq, new_frame);
+			seq_tx_handle_xlimits(seq, tdsq->flag&SEQ_LEFTSEL, tdsq->flag&SEQ_RIGHTSEL);
+			fix_single_seq(seq); /* todo - move this into aftertrans update? - old seq tx needed it anyway */
+			break;
+		case SEQ_RIGHTSEL: /* no vertical transform  */
+			seq_tx_set_final_right(seq, new_frame);
+			seq_tx_handle_xlimits(seq, tdsq->flag&SEQ_LEFTSEL, tdsq->flag&SEQ_RIGHTSEL);
+			fix_single_seq(seq); /* todo - move this into aftertrans update? - old seq tx needed it anyway */
+			break;
+		}
+
+		if (seq != seq_prev) {
+			if(seq->depth==0) {
+				/* Calculate this strip and all nested strips
+				 * children are ALWAYS transformed first
+				 * so we dont need to do this in another loop. */
+				calc_sequence(seq);
+				
+				/* test overlap, displayes red outline */
+				seq->flag &= ~SEQ_OVERLAP;
+				if( seq_test_overlap(seqbasep, seq) ) {
+					seq->flag |= SEQ_OVERLAP;
+				}
+			}
+			else {
+				calc_sequence_disp(seq);
+			}
+		}
+		seq_prev= seq;
+	}
+
+	if (t->mode == TFM_TIME_TRANSLATE) { /* originally TFM_TIME_EXTEND, transform changes */
+		/* Special annoying case here, need to calc metas with TFM_TIME_EXTEND only */
+		seq= seqbasep->first;
+
+		while(seq) {
+			if (seq->type == SEQ_META && seq->flag & SELECT)
+				calc_sequence(seq);
+			seq= seq->next;
+		}
+	}
+}
+
 /* ********************* UV ****************** */
 
 static void UVsToTransData(TransData *td, TransData2D *td2d, float *uv, int selected)
@@ -2763,7 +2841,7 @@ static void posttrans_action_clean (bAnimContext *ac, bAction *act)
 	
 	/* filter data */
 	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY);
-	ANIM_animdata_filter(&anim_data, filter, act, ANIMCONT_ACTION);
+	ANIM_animdata_filter(ac, &anim_data, filter, act, ANIMCONT_ACTION);
 	
 	/* loop through relevant data, removing keyframes from the ipo-blocks that were attached 
 	 *  	- all keyframes are converted in/out of global time 
@@ -2976,7 +3054,7 @@ static void createTransActionData(bContext *C, TransInfo *t)
 		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT);
 	else
 		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY);
-	ANIM_animdata_filter(&anim_data, filter, ac.data, ac.datatype);
+	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 		
 	/* which side of the current frame should be allowed */
 	if (t->mode == TFM_TIME_EXTEND) {
@@ -2984,7 +3062,7 @@ static void createTransActionData(bContext *C, TransInfo *t)
 		float xmouse, ymouse;
 		
 		UI_view2d_region_to_view(&ac.ar->v2d, t->imval[0], t->imval[1], &xmouse, &ymouse);
-		side = (xmouse > CFRA) ? 'R' : 'L';
+		side = (xmouse > CFRA) ? 'R' : 'L'; // XXX use t->frame_side
 	}
 	else {
 		/* normal transform - both sides of current frame are considered */
@@ -3217,6 +3295,293 @@ static short constraints_list_needinv(TransInfo *t, ListBase *list)
 	/* no appropriate candidates found */
 	return 0;
 }
+
+
+/* This function applies the rules for transforming a strip so duplicate
+ * checks dont need to be added in multiple places.
+ *
+ * recursive, count and flag MUST be set.
+ *
+ * seq->depth must be set before running this function so we know if the strips
+ * are root level or not
+ */
+static void SeqTransInfo(TransInfo *t, Sequence *seq, int *recursive, int *count, int *flag)
+{
+	/* for extend we need to do some tricks */
+	if (t->mode == TFM_TIME_EXTEND) {
+
+		/* *** Extend Transform *** */
+
+		Scene * scene= t->scene;
+		int cfra= CFRA;
+		int left= seq_tx_get_final_left(seq, 0);
+		int right= seq_tx_get_final_right(seq, 0);
+
+		if (seq->depth == 0 && ((seq->flag & SELECT) == 0 || (seq->flag & SEQ_LOCK))) {
+			*recursive= 0;
+			*count= 0;
+			*flag= 0;
+		}
+		else if (seq->type ==SEQ_META) {
+			
+			/* for meta's we only ever need to extend their children, no matter what depth
+			 * just check the meta's are in the bounds */
+			if (t->frame_side=='R' && right <= cfra)		*recursive= 0;
+			else if (t->frame_side=='L' && left >= cfra)	*recursive= 0;
+			else											*recursive= 1;
+			
+			*count= 0;
+			*flag= 0;
+		}
+		else {
+
+			*recursive= 0;	/* not a meta, so no thinking here */
+			*count= 1;		/* unless its set to 0, extend will never set 2 handles at once */
+			*flag= (seq->flag | SELECT) & ~(SEQ_LEFTSEL|SEQ_RIGHTSEL);
+
+			if (t->frame_side=='R') {
+				if (right <= cfra)		*count= *flag= 0;	/* ignore */
+				else if (left > cfra)	;	/* keep the selection */
+				else					*flag |= SEQ_RIGHTSEL;
+			}
+			else {
+				if (left >= cfra)		*count= *flag= 0;	/* ignore */
+				else if (right < cfra)	;	/* keep the selection */
+				else					*flag |= SEQ_LEFTSEL;
+			}
+		}
+	} else {
+
+		/* *** Normal Transform *** */
+
+		if (seq->depth == 0) {
+
+			/* Count */
+
+			/* Non nested strips (resect selection and handles) */
+			if ((seq->flag & SELECT) == 0 || (seq->flag & SEQ_LOCK)) {
+				*recursive= 0;
+				*count= 0;
+				*flag= 0;
+			}
+			else {
+				if ((seq->flag & (SEQ_LEFTSEL|SEQ_RIGHTSEL)) == (SEQ_LEFTSEL|SEQ_RIGHTSEL)) {
+					*flag= seq->flag;
+					*count= 2; /* we need 2 transdata's */
+				} else {
+					*flag= seq->flag;
+					*count= 1; /* selected or with a handle selected */
+				}
+
+				/* Recursive */
+
+				if ((seq->type == SEQ_META) && ((seq->flag & (SEQ_LEFTSEL|SEQ_RIGHTSEL)) == 0)) {
+					/* if any handles are selected, dont recurse */
+					*recursive = 1;
+				}
+				else {
+					*recursive = 0;
+				}
+			}
+		}
+		else {
+			/* Nested, different rules apply */
+
+			if (seq->type == SEQ_META) {
+				/* Meta's can only directly be moved between channels since they
+				 * dont have their start and length set directly (children affect that)
+				 * since this Meta is nested we dont need any of its data infact.
+				 * calc_sequence() will update its settings when run on the toplevel meta */
+				*flag= 0;
+				*count= 0;
+				*recursive = 1;
+			}
+			else {
+				*flag= (seq->flag | SELECT) & ~(SEQ_LEFTSEL|SEQ_RIGHTSEL);
+				*count= 1; /* ignore the selection for nested */
+				*recursive = 0;
+			}
+		}
+	}
+}
+
+
+
+static int SeqTransCount(TransInfo *t, ListBase *seqbase, int depth)
+{
+	Sequence *seq;
+	int tot= 0, recursive, count, flag;
+
+	for (seq= seqbase->first; seq; seq= seq->next) {
+		seq->depth= depth;
+
+		SeqTransInfo(t, seq, &recursive, &count, &flag); /* ignore the flag */
+		tot += count;
+
+		if (recursive) {
+			tot += SeqTransCount(t, &seq->seqbase, depth+1);
+		}
+	}
+
+	return tot;
+}
+
+
+static TransData *SeqToTransData(TransInfo *t, TransData *td, TransData2D *td2d, TransDataSeq *tdsq, Sequence *seq, int flag, int sel_flag)
+{
+	int start_left;
+
+	switch(sel_flag) {
+	case SELECT:
+		/* Use seq_tx_get_final_left() and an offset here
+		 * so transform has the left hand location of the strip.
+		 * tdsq->start_offset is used when flushing the tx data back */
+		start_left= seq_tx_get_final_left(seq, 0);
+		td2d->loc[0]= start_left;
+		tdsq->start_offset= start_left - seq->start; /* use to apply the original location */
+		break;
+	case SEQ_LEFTSEL:
+		start_left= seq_tx_get_final_left(seq, 0);
+		td2d->loc[0] = start_left;
+		break;
+	case SEQ_RIGHTSEL:
+		td2d->loc[0] = seq_tx_get_final_right(seq, 0);
+		break;
+	}
+
+	td2d->loc[1] = seq->machine; /* channel - Y location */
+	td2d->loc[2] = 0.0f;
+	td2d->loc2d = NULL;
+
+	
+	tdsq->seq= seq;
+
+	/* Use instead of seq->flag for nested strips and other
+	 * cases where the selection may need to be modified */
+	tdsq->flag= flag;
+	tdsq->sel_flag= sel_flag;
+	
+	
+	td->extra= (void *)tdsq; /* allow us to update the strip from here */
+
+	td->flag = 0;
+	td->loc = td2d->loc;
+	VECCOPY(td->center, td->loc);
+	VECCOPY(td->iloc, td->loc);
+
+	memset(td->axismtx, 0, sizeof(td->axismtx));
+	td->axismtx[2][2] = 1.0f;
+
+	td->ext= NULL; td->tdi= NULL; td->val= NULL;
+
+	td->flag |= TD_SELECTED;
+	td->dist= 0.0;
+
+	Mat3One(td->mtx);
+	Mat3One(td->smtx);
+
+	/* Time Transform (extend) */
+	td->val= td2d->loc;
+	td->ival= td2d->loc[0];
+	
+	return td;
+}
+
+static int SeqToTransData_Recursive(TransInfo *t, ListBase *seqbase, TransData *td, TransData2D *td2d, TransDataSeq *tdsq)
+{
+	Sequence *seq;
+	int recursive, count, flag;
+	int tot= 0;
+	
+	for (seq= seqbase->first; seq; seq= seq->next) {
+
+		SeqTransInfo(t, seq, &recursive, &count, &flag);
+		
+		/* add children first so recalculating metastrips does nested strips first */
+		if (recursive) {
+			int tot_children= SeqToTransData_Recursive(t, &seq->seqbase, td, td2d, tdsq);
+			
+			td=		td +	tot_children;
+			td2d=	td2d +	tot_children;
+			tdsq=	tdsq +	tot_children;
+
+			tot += tot_children;
+		}
+
+		/* use 'flag' which is derived from seq->flag but modified for special cases */
+		if (flag & SELECT) {
+			if (flag & (SEQ_LEFTSEL|SEQ_RIGHTSEL)) {
+				if (flag & SEQ_LEFTSEL) {
+					SeqToTransData(t, td++, td2d++, tdsq++, seq, flag, SEQ_LEFTSEL);
+					tot++;
+				}
+				if (flag & SEQ_RIGHTSEL) {
+					SeqToTransData(t, td++, td2d++, tdsq++, seq, flag, SEQ_RIGHTSEL);
+					tot++;
+				}
+			}
+			else {
+				SeqToTransData(t, td++, td2d++, tdsq++, seq, flag, SELECT);
+				tot++;
+			}
+		}
+	}
+
+	return tot;
+}
+
+
+static void createTransSeqData(bContext *C, TransInfo *t)
+{
+	
+	View2D *v2d= UI_view2d_fromcontext(C);
+	Scene *scene= CTX_data_scene(C);
+	Editing *ed= scene->ed;
+	TransData *td = NULL;
+	TransData2D *td2d= NULL;
+	TransDataSeq *tdsq= NULL;
+
+	
+
+	int count=0;
+
+
+
+
+	/* which side of the current frame should be allowed */
+	if (t->mode == TFM_TIME_EXTEND) {
+		/* only side on which mouse is gets transformed */
+		float xmouse, ymouse;
+
+		UI_view2d_region_to_view(v2d, t->imval[0], t->imval[1], &xmouse, &ymouse);
+		t->frame_side = (xmouse > CFRA) ? 'R' : 'L';
+	}
+	else {
+		/* normal transform - both sides of current frame are considered */
+		t->frame_side = 'B';
+	}
+
+
+	count = SeqTransCount(t, ed->seqbasep, 0);
+
+	/* allocate memory for data */
+	t->total= count;
+
+	/* stop if trying to build list if nothing selected */
+	if (count == 0) {
+		return;
+	}
+	
+	td = t->data = MEM_callocN(t->total*sizeof(TransData), "TransSeq TransData");
+	td2d = t->data2d = MEM_callocN(t->total*sizeof(TransData2D), "TransSeq TransData2D");
+	tdsq = t->customData= MEM_callocN(t->total*sizeof(TransDataSeq), "TransSeq TransDataSeq");
+
+	
+
+	/* loop 2: build transdata array */
+	SeqToTransData_Recursive(t, ed->seqbasep, td, td2d, tdsq);
+}
+
 
 /* transcribe given object into TransData for Transforming */
 static void ObjectToTransData(bContext *C, TransInfo *t, TransData *td, Object *ob) 
@@ -3684,6 +4049,7 @@ void autokeyframe_pose_cb_func(Object *ob, int tmode, short targetless_ik)
 
 /* inserting keys, refresh ipo-keys, pointcache, redraw events... (ton) */
 /* note: transdata has been freed already! */
+/* note: this runs even when createTransData exits early because  (t->total==0), is this correct?... (campbell) */
 void special_aftertrans_update(TransInfo *t)
 {
 	Object *ob;
@@ -3704,8 +4070,59 @@ void special_aftertrans_update(TransInfo *t)
 			}
 		}
 	}
-	
-	if (t->spacetype == SPACE_ACTION) {
+
+	if (t->spacetype == SPACE_SEQ) {
+
+		if (!cancelled) {
+			ListBase *seqbasep= ((Editing *)t->scene->ed)->seqbasep;
+			int a;
+			TransData *td= t->data;
+			TransData2D *td2d= t->data2d;
+			TransDataSeq *tdsq= NULL;
+			Sequence *seq;
+
+			
+
+			/* prevent updating the same seq twice
+			 * if the transdata order is changed this will mess up
+			 * but so will TransDataSeq */
+			Sequence *seq_prev= NULL;
+
+			/* flush to 2d vector from internally used 3d vector */
+			for(a=0; a<t->total; a++, td++, td2d++) {
+
+				tdsq= (TransDataSeq *)td->extra;
+				seq= tdsq->seq;
+
+				if (seq != seq_prev) {
+					if(seq->depth==0) {
+						if (seq->flag & SEQ_OVERLAP) {
+							shuffle_seq(seqbasep, seq);
+						}
+					}
+				}
+
+				/* as last: */
+				seq_prev= seq;
+			}
+
+			for(seq= seqbasep->first; seq; seq= seq->next) {
+				/* We might want to build a list of effects that need to be updated during transform */
+				if(seq->type & SEQ_EFFECT) {
+					if		(seq->seq1 && seq->seq1->flag & SELECT) calc_sequence(seq);
+					else if	(seq->seq2 && seq->seq2->flag & SELECT) calc_sequence(seq);
+					else if	(seq->seq3 && seq->seq3->flag & SELECT) calc_sequence(seq);
+				}
+			}
+
+			sort_seq(t->scene);
+		}
+		
+		if (t->customData)
+			MEM_freeN(t->customData);
+
+	}
+	else if (t->spacetype == SPACE_ACTION) {
 		SpaceAction *saction= (SpaceAction *)t->sa->spacedata.first;
 		Scene *scene;
 		bAnimContext ac;
@@ -3730,7 +4147,7 @@ void special_aftertrans_update(TransInfo *t)
 			short filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY);
 			
 			/* get channels to work on */
-			ANIM_animdata_filter(&anim_data, filter, ac.data, ac.datatype);
+			ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 			
 			/* these should all be ipo-blocks */
 			for (ale= anim_data.first; ale; ale= ale->next) {
@@ -3773,10 +4190,10 @@ void special_aftertrans_update(TransInfo *t)
 			}
 		}
 		else if (ac.datatype == ANIMCONT_SHAPEKEY) {
+#if 0 // XXX old animation system
 			/* fix up the Ipocurves and redraw stuff */
 			Key *key= (Key *)ac.data;
 			
-#if 0 // XXX old animation system
 			if (key->ipo) {
 				if ( (saction->flag & SACTION_NOTRANSKEYCULL)==0 && 
 				     ((cancelled == 0) || (duplicate)) )
@@ -3954,9 +4371,6 @@ void special_aftertrans_update(TransInfo *t)
 
 static void createTransObject(bContext *C, TransInfo *t)
 {
-	Scene *sce = CTX_data_scene(C);
-	View3D *v3d = t->view;
-	
 	TransData *td = NULL;
 	TransDataExtension *tx;
 //	IpoKey *ik;
@@ -4172,6 +4586,11 @@ void createTransData(bContext *C, TransInfo *t)
 		// TRANSFORM_FIX_ME
 		//createTransNlaData(C, t);
 	}
+	else if (t->spacetype == SPACE_SEQ) {
+		t->flag |= T_POINTS|T_2D_EDIT;
+		t->num.flag |= NUM_NO_FRACTION; /* sequencer has no use for floating point transformations */
+		createTransSeqData(C, t);
+	}
 	else if (t->spacetype == SPACE_IPO) {
 		t->flag |= T_POINTS|T_2D_EDIT;
 		createTransIpoData(C, t);
@@ -4237,7 +4656,9 @@ void createTransData(bContext *C, TransInfo *t)
 		}
 	}
 	else if (ob && (ob->flag & OB_POSEMODE)) {
-		createTransPose(C, t, OBACT);
+		// XXX this is currently limited to active armature only... 
+		// XXX active-layer checking isn't done as that should probably be checked through context instead
+		createTransPose(C, t, ob);
 	}
 	else if (G.f & G_WEIGHTPAINT) {
 		/* exception, we look for the one selected armature */

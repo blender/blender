@@ -181,6 +181,15 @@ typedef enum {
 #define DDS				(1 << 19)
 #endif
 
+#ifdef WITH_OPENJPEG
+#define JP2				(1 << 18)
+#define JP2_12BIT			(1 << 17)
+#define JP2_16BIT			(1 << 16)
+#define JP2_YCC			(1 << 15)
+#define JP2_CINE			(1 << 14)
+#define JP2_CINE_48FPS		(1 << 13) 
+#endif
+
 #define RAWTGA	        (TGA | 1)
 
 #define JPG_STD	        (JPG | (0 << 8))
@@ -217,6 +226,7 @@ typedef enum {
 #define IS_tga(x)		(x->ftype & TGA)
 #define IS_png(x)		(x->ftype & PNG)
 #define IS_openexr(x)	(x->ftype & OPENEXR)
+#define IS_jp2(x)              (x->ftype & JP2)
 #define IS_cineon(x)	(x->ftype & CINEON)
 #define IS_dpx(x)		(x->ftype & DPX)
 #define IS_bmp(x)		(x->ftype & BMP)

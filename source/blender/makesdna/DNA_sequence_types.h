@@ -232,6 +232,9 @@ typedef struct SpeedControlVars {
 	int lastValidFrame;
 } SpeedControlVars;
 
+#define SEQ_STRIP_OFSBOTTOM		0.2f
+#define SEQ_STRIP_OFSTOP		0.8f
+
 /* SpeedControlVars->flags */
 #define SEQ_SPEED_INTEGRATE      1
 #define SEQ_SPEED_BLEND          2

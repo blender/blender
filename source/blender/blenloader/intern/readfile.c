@@ -122,6 +122,7 @@
 #include "BKE_global.h" // for G
 #include "BKE_group.h"
 #include "BKE_image.h"
+#include "BKE_ipo.h" 
 #include "BKE_key.h" //void set_four_ipo
 #include "BKE_lattice.h"
 #include "BKE_library.h" // for wich_libbase
@@ -1823,6 +1824,7 @@ static void lib_link_fcurves(FileData *fd, ID *id, ListBase *list)
 	}
 }
 
+/* NOTE: this assumes that link_list has already been called on the list */
 static void direct_link_fcurves(FileData *fd, ListBase *list)
 {
 	FCurve *fcu;
@@ -1904,8 +1906,8 @@ static void direct_link_action(FileData *fd, bAction *act)
 	bActionChannel *achan; // XXX depreceated - old animation system
 	bActionGroup *agrp;
 
-	link_list(fd, &act->curves); // xxx - do we need to patch the data for this?
-	link_list(fd, &act->chanbase);
+	link_list(fd, &act->curves);
+	link_list(fd, &act->chanbase); // XXX depreceated - old animation system
 	link_list(fd, &act->groups);
 	link_list(fd, &act->markers);
 
@@ -1951,6 +1953,7 @@ static void direct_link_animdata(FileData *fd, AnimData *adt)
 		return;
 	
 	/* link drivers */
+	link_list(fd, &adt->drivers);
 	direct_link_fcurves(fd, &adt->drivers);
 	
 	/* link overrides */
@@ -2655,7 +2658,7 @@ static void direct_link_curve(FileData *fd, Curve *cu)
 	cu->editnurb= NULL;
 	cu->lastselbp= NULL;
 	cu->path= NULL;
-	cu->editstr= NULL;
+	cu->editfont= NULL;
 	
 	nu= cu->nurb.first;
 	while(nu) {
@@ -3393,6 +3396,7 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 			FluidsimModifierData *fluidmd = (FluidsimModifierData*) md;
 			
 			fluidmd->fss= newdataadr(fd, fluidmd->fss);
+			fluidmd->fss->meshSurfNormals = 0;
 		}
 		else if (md->type==eModifierType_Collision) {
 			
@@ -3689,6 +3693,9 @@ static void lib_link_scene(FileData *fd, Main *main)
 			sce->ima= newlibadr_us(fd, sce->id.lib, sce->ima);
 			sce->toolsettings->imapaint.brush=
 				newlibadr_us(fd, sce->id.lib, sce->toolsettings->imapaint.brush);
+			if(sce->toolsettings->sculpt)
+				sce->toolsettings->sculpt->brush=
+					newlibadr_us(fd, sce->id.lib, sce->toolsettings->sculpt->brush);
 
 			for(base= sce->base.first; base; base= next) {
 				next= base->next;
@@ -3779,8 +3786,9 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 	if(sce->toolsettings) {
 		sce->toolsettings->vpaint= newdataadr(fd, sce->toolsettings->vpaint);
 		sce->toolsettings->wpaint= newdataadr(fd, sce->toolsettings->wpaint);
+		sce->toolsettings->sculpt= newdataadr(fd, sce->toolsettings->sculpt);
 		if(sce->toolsettings->sculpt)
-			sce->toolsettings->sculpt->session= NULL;
+			sce->toolsettings->sculpt->session= MEM_callocN(sizeof(SculptSession), "reload sculpt session");
 	}
 
 	if(sce->ed) {
@@ -3924,63 +3932,6 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 	
 }
 
-/* Nasty exception; IpoWindow stores a non-ID pointer in *from for sequence
-   strips... bad code warning! 
-
-   We work around it by retrieving the missing pointer from the corresponding
-   Sequence-structure. 
-
-   This is needed, to make Ipo-Pinning work for Sequence-Ipos...
-*/
-// XXX old animation system - depreceated stuff...
-static Sequence * find_sequence_from_ipo_helper(Main * main, Ipo * ipo)
-{
-	Sequence *seq;
-	Scene *sce;
-	
-	for(sce=main->scene.first; sce; sce=sce->id.next) {
-		int found = 0;
-
-		SEQ_BEGIN(sce->ed, seq) {
-			if (seq->ipo == ipo) {
-				found = 1;
-				break;
-			}
-		} 
-		SEQ_END
-
-		if (found) {
-			break;
-		}
-		seq = NULL;
-	}
-
-	if (seq)
-        return seq;
-	else
-		return NULL;
-}
-
-static void lib_link_screen_sequence_ipos(Main *main)
-{
-	bScreen *sc;
-	ScrArea *sa;
-
-	for(sc= main->screen.first; sc; sc= sc->id.next) {
-		for(sa= sc->areabase.first; sa; sa= sa->next) {
-			SpaceLink *sl;
-			for (sl= sa->spacedata.first; sl; sl= sl->next) {
-				if(sl->spacetype == SPACE_IPO) {
-					SpaceIpo *sipo= (SpaceIpo *)sl;
-					if(sipo->blocktype==ID_SEQ) {
-						sipo->from = (ID*) find_sequence_from_ipo_helper(main, sipo->ipo);
-					}
-				}
-			}
-		}
-	}
-}
-
 /* ************ READ WM ***************** */
 
 static void direct_link_windowmanager(FileData *fd, wmWindowManager *wm)
@@ -4000,8 +3951,9 @@ static void direct_link_windowmanager(FileData *fd, wmWindowManager *wm)
 		win->handlers.first= win->handlers.last= NULL;
 		win->subwindows.first= win->subwindows.last= NULL;
 
-		win->drawtex= 0;
-		win->drawmethod= 0;
+		win->drawdata= NULL;
+		win->drawmethod= -1;
+		win->drawfail= 0;
 	}
 	
 	wm->operators.first= wm->operators.last= NULL;
@@ -4114,13 +4066,9 @@ static void lib_link_screen(FileData *fd, Main *main)
 					}
 					else if(sl->spacetype==SPACE_IPO) {
 						SpaceIpo *sipo= (SpaceIpo *)sl;
-						sipo->editipo= 0;
 						
-						if(sipo->blocktype==ID_SEQ) sipo->from= NULL;	// no libdata
-						else sipo->from= newlibadr(fd, sc->id.lib, sipo->from);
-						
-						sipo->ipokey.first= sipo->ipokey.last= 0;
-						sipo->ipo= newlibadr(fd, sc->id.lib, sipo->ipo);
+						if(sipo->ads)
+							sipo->ads->source= newlibadr(fd, sc->id.lib, sipo->ads->source);
 					}
 					else if(sl->spacetype==SPACE_BUTS) {
 						SpaceButs *sbuts= (SpaceButs *)sl;
@@ -4316,17 +4264,6 @@ void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 					if((v3d->layact & v3d->lay)==0) v3d->layact= v3d->lay;
 					
 				}
-				else if(sl->spacetype==SPACE_IPO) {
-					SpaceIpo *sipo= (SpaceIpo *)sl;
-					
-					if(sipo->blocktype==ID_SEQ) sipo->from= NULL;	// no libdata
-					else sipo->from= restore_pointer_by_name(newmain, (ID *)sipo->from, 0);
-					
-					// not free sipo->ipokey, creates dependency with src/
-					sipo->ipo= restore_pointer_by_name(newmain, (ID *)sipo->ipo, 0);
-					if(sipo->editipo) MEM_freeN(sipo->editipo);
-					sipo->editipo= NULL;
-				}
 				else if(sl->spacetype==SPACE_BUTS) {
 					SpaceButs *sbuts= (SpaceButs *)sl;
 					sbuts->lockpoin= NULL;
@@ -4452,6 +4389,8 @@ static void direct_link_region(FileData *fd, ARegion *ar, int spacetype)
 	ar->swinid= 0;
 	ar->type= NULL;
 	ar->swap= 0;
+	ar->do_draw= 0;
+	memset(&ar->drawrct, 0, sizeof(ar->drawrct));
 }
 
 /* for the saved 2.50 files without regiondata */
@@ -4464,7 +4403,7 @@ static void view3d_split_250(View3D *v3d, ListBase *regions)
 		if(ar->regiontype==RGN_TYPE_WINDOW && ar->regiondata==NULL) {
 			RegionView3D *rv3d;
 			
-			rv3d= ar->regiondata= MEM_callocN(sizeof(RegionView3D), "region v3d");
+			rv3d= ar->regiondata= MEM_callocN(sizeof(RegionView3D), "region v3d patch");
 			rv3d->persp= v3d->persp;
 			rv3d->view= v3d->view;
 			rv3d->dist= v3d->dist;
@@ -4490,6 +4429,7 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 	sc->context= NULL;
 
 	sc->mainwin= sc->subwinactive= 0;	/* indices */
+	sc->swap= 0;
 	
 	/* hacky patch... but people have been saving files with the verse-blender,
 	   causing the handler to keep running for ever, with no means to disable it */
@@ -4561,6 +4501,11 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 				v3d->properties_storage= NULL;
 				
 				view3d_split_250(v3d, &sl->regionbase);
+			}
+			else if (sl->spacetype==SPACE_IPO) {
+				SpaceIpo *sipo= (SpaceIpo*)sl;
+				
+				sipo->ads= newdataadr(fd, sipo->ads);
 			}
 			else if (sl->spacetype==SPACE_OOPS) {
 				SpaceOops *soops= (SpaceOops*) sl;
@@ -5409,6 +5354,7 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				ar->alignment= RGN_ALIGN_LEFT; 
 				ar->v2d.scroll= (V2D_SCROLL_RIGHT|V2D_SCROLL_BOTTOM);
 				break;
+				
 			case SPACE_ACTION:
 				ar= MEM_callocN(sizeof(ARegion), "area region from do_versions");
 				BLI_addtail(lb, ar);
@@ -5417,6 +5363,7 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				ar->v2d.scroll= V2D_SCROLL_BOTTOM;
 				ar->v2d.flag = V2D_VIEWSYNC_AREA_VERTICAL;
 				break;
+				
 			case SPACE_NLA:
 				ar= MEM_callocN(sizeof(ARegion), "area region from do_versions");
 				BLI_addtail(lb, ar);
@@ -5425,6 +5372,7 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				ar->v2d.scroll= V2D_SCROLL_BOTTOM;
 				ar->v2d.flag = V2D_VIEWSYNC_AREA_VERTICAL;
 				break;
+				
 			case SPACE_NODE:
 				ar= MEM_callocN(sizeof(ARegion), "nodetree area for node");
 				BLI_addtail(lb, ar);
@@ -5432,6 +5380,10 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				ar->alignment= RGN_ALIGN_LEFT;
 				ar->v2d.scroll = (V2D_SCROLL_RIGHT|V2D_SCROLL_BOTTOM);
 				ar->v2d.flag = V2D_VIEWSYNC_AREA_VERTICAL;
+				/* temporarily hide it */
+				ar->flag = RGN_FLAG_HIDDEN;
+				break;
+				
 			case SPACE_FILE:
 				/* channel (bookmarks/directories) region */
 				ar= MEM_callocN(sizeof(ARegion), "area region from do_versions");
@@ -5499,8 +5451,14 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				SpaceIpo *sipo= (SpaceIpo *)sl;
 				memcpy(&ar->v2d, &sipo->v2d, sizeof(View2D));
 				
+				/* init mainarea view2d */
 				ar->v2d.scroll |= (V2D_SCROLL_BOTTOM|V2D_SCROLL_SCALE_HORIZONTAL);
 				ar->v2d.scroll |= (V2D_SCROLL_LEFT|V2D_SCROLL_SCALE_VERTICAL);
+				
+				/* init dopesheet */
+				// XXX move this elsewhere instead?
+				sipo->ads= MEM_callocN(sizeof(bDopeSheet), "GraphEdit DopeSheet");
+				
 				//ar->v2d.flag |= V2D_IS_INITIALISED;
 				break;
 			}
@@ -8499,6 +8457,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				
 				fluidmd->fss->lastgoodframe = INT_MAX;
 				fluidmd->fss->flag = 0;
+				fluidmd->fss->meshSurfNormals = 0;
 			}
 		}
 	}
@@ -8661,14 +8620,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	}
 	if (main->versionfile < 248 || (main->versionfile == 248 && main->subversionfile < 3)) {
 		bScreen *sc;
-		Ipo *ipo;
-		IpoCurve *icu;
-		
-		/* fix IPO-curves to work with new interpolation options */
-		//for (ipo=main->ipo.first; ipo; ipo= ipo->id.next) {
-		//	for (icu= ipo->curve.first; icu; icu= icu->next) 
-		//		set_interpolation_ipocurve(icu, icu->ipo); // function removed (XXX add it here)
-		//}
 		
 		/* adjust default settings for Animation Editors */
 		for (sc= main->screen.first; sc; sc= sc->id.next) {
@@ -8715,10 +8666,15 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		for(screen= main->screen.first; screen; screen= screen->id.next)
 			do_versions_windowmanager_2_50(screen);
 		
+		/* old Animation System (using IPO's) needs to be converted to the new Animato system 
+		 * (NOTE: conversion code in blenkernel/intern/ipo.c for now)
+		 */
+		//do_versions_ipos_to_animato(main);
+		
 		/* struct audio data moved to renderdata */
 		for(scene= main->scene.first; scene; scene= scene->id.next) {
 			scene->r.audio = scene->audio;
-
+			
 			if(!scene->toolsettings->uv_selectmode)
 				scene->toolsettings->uv_selectmode= UV_SELECT_VERTEX;
 		}
@@ -8832,7 +8788,7 @@ static void lib_link_all(FileData *fd, Main *main)
 	lib_link_material(fd, main);
 	lib_link_texture(fd, main);
 	lib_link_image(fd, main);
-	lib_link_ipo(fd, main);
+	lib_link_ipo(fd, main);		// XXX depreceated... still needs to be maintained for version patches still
 	lib_link_key(fd, main);
 	lib_link_world(fd, main);
 	lib_link_lamp(fd, main);
@@ -8844,7 +8800,6 @@ static void lib_link_all(FileData *fd, Main *main)
 	lib_link_armature(fd, main);
 	lib_link_action(fd, main);
 	lib_link_vfont(fd, main);
-	lib_link_screen_sequence_ipos(main);
 	lib_link_nodetree(fd, main);	/* has to be done after scene/materials, this will verify group nodes */
 	lib_link_brush(fd, main);
 	lib_link_particlesettings(fd, main);
@@ -9132,7 +9087,6 @@ static void expand_animdata(FileData *fd, Main *mainvar, AnimData *adt)
 	
 	/* own action */
 	expand_doit(fd, mainvar, adt->action);
-	expand_action(fd, mainvar, adt->action);	// XXX this call is only used for patching old animation system
 	
 	/* drivers - assume that these F-Curves have driver data to be in this list... */
 	for (fcd= adt->drivers.first; fcd; fcd= fcd->next) {
@@ -9163,6 +9117,9 @@ static void expand_group(FileData *fd, Main *mainvar, Group *group)
 static void expand_key(FileData *fd, Main *mainvar, Key *key)
 {
 	expand_doit(fd, mainvar, key->ipo); // XXX depreceated - old animation system
+	
+	if(key->adt)
+		expand_animdata(fd, mainvar, key->adt);
 }
 
 static void expand_nodetree(FileData *fd, Main *mainvar, bNodeTree *ntree)

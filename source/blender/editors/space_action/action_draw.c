@@ -409,7 +409,7 @@ void draw_channel_names(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 	
 	/* build list of channels to draw */
 	filter= (ANIMFILTER_VISIBLE|ANIMFILTER_CHANNELS);
-	items= ANIM_animdata_filter(&anim_data, filter, ac->data, ac->datatype);
+	items= ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	/* Update max-extent of channels here (taking into account scrollers):
 	 * 	- this is done to allow the channel list to be scrollable, but must be done here
@@ -439,7 +439,7 @@ void draw_channel_names(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 			bActionGroup *grp = NULL;
 			short indent= 0, offset= 0, sel= 0, group= 0;
 			int expand= -1, protect = -1, special= -1, mute = -1;
-			char name[64];
+			char name[128];
 			
 			/* determine what needs to be drawn */
 			switch (ale->type) {
@@ -617,20 +617,26 @@ void draw_channel_names(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 				{
 					FCurve *fcu = (FCurve *)ale->data;
 					
-					indent = 2;
-					protect = -1; // for now, until this can be supported by others
+					indent = 0;
 					
-					group= (ale->grp) ? 1 : 0;
-					grp= ale->grp;
+					//group= (ale->grp) ? 1 : 0;
+					//grp= ale->grp;
 					
-					if (ale->id) {
-						if (GS(ale->id->name) == ID_MA)
-							offset= 21;
-						else
+					switch (ale->ownertype) {
+						case ANIMTYPE_NONE:	/* no owner */
+						case ANIMTYPE_FCURVE: 
 							offset= 0;
+							break;
+							
+						case ANIMTYPE_DSMAT: /* for now, this is special case for materials */
+							offset= 21;
+							indent= 1;
+							break;
+							
+						default:
+							offset= 14;
+							break;
 					}
-					else
-						offset= 0;
 					
 					if (fcu->flag & FCURVE_MUTED)
 						mute = ICON_MUTE_IPO_ON;
@@ -645,7 +651,8 @@ void draw_channel_names(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 					sel = SEL_FCU(fcu);
 					
 					// for now, we just print the full path... this needs more work!
-					sprintf(name, "%s[%d]", fcu->rna_path, fcu->array_index);
+					getname_anim_fcurve(name, ale->id, fcu);
+					//sprintf(name, "%s[%d]", fcu->rna_path, fcu->array_index);
 				}
 					break;
 				
@@ -987,7 +994,7 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 	
 	/* build list of channels to draw */
 	filter= (ANIMFILTER_VISIBLE|ANIMFILTER_CHANNELS);
-	items= ANIM_animdata_filter(&anim_data, filter, ac->data, ac->datatype);
+	items= ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	/* Update max-extent of channels here (taking into account scrollers):
 	 * 	- this is done to allow the channel list to be scrollable, but must be done here
@@ -1058,6 +1065,8 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 						}
 							break;
 						
+						case ANIMTYPE_FILLACTD:
+						case ANIMTYPE_FILLMATD:
 						case ANIMTYPE_DSSKEY:
 						{
 							if (sel) glColor4ub(col2b[0], col2b[1], col2b[2], 0x45); 

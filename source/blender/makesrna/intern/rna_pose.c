@@ -124,7 +124,7 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "loc");
 	RNA_def_property_ui_text(prop, "Location", "");
 
-	prop= RNA_def_property(srna, "size", PROP_FLOAT, PROP_VECTOR);
+	prop= RNA_def_property(srna, "scale", PROP_FLOAT, PROP_VECTOR);
 	RNA_def_property_float_sdna(prop, NULL, "size");
 	RNA_def_property_ui_text(prop, "Scale", "");
 

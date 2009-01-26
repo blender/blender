@@ -195,7 +195,8 @@ typedef struct UserDef {
 	short tb_leftmouse, tb_rightmouse;
 	struct SolidLight light[3];
 	short tw_hotspot, tw_flag, tw_handlesize, tw_size;
-	int textimeout, texcollectrate;
+	short textimeout,texcollectrate;
+	short wmdrawmethod, wmpad;
 	int memcachelimit;
 	int prefetchframes;
 	short frameserverport;
@@ -215,7 +216,7 @@ typedef struct UserDef {
 	
 	short autokey_mode;		/* autokeying mode */
 	short autokey_flag;		/* flags for autokeying */
-	
+
 	struct ColorBand coba_weight;	/* from texture.h */
 } UserDef;
 
@@ -324,6 +325,11 @@ extern UserDef U; /* from blenkernel blender.c */
 #define USER_VRML_LAYERS		1
 #define USER_VRML_AUTOSCALE		2
 #define USER_VRML_TWOSIDED		4
+
+/* wm draw method */
+#define USER_DRAW_OVERLAP		0
+#define USER_DRAW_TRIPLE		1
+#define USER_DRAW_FULL			2
 
 /* tw_flag (transform widget) */
 

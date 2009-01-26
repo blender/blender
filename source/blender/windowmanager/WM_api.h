@@ -36,8 +36,12 @@ struct IDProperty;
 struct wmEvent;
 struct wmEventHandler;
 struct wmGesture;
+struct wmJob;
+struct wmNotifier;
 struct rcti;
 struct PointerRNA;
+
+typedef struct wmJob wmJob;
 
 /* general API */
 void		WM_setprefsize		(int stax, int stay, int sizx, int sizy);
@@ -63,7 +67,7 @@ void		WM_cursor_restore	(struct wmWindow *win);
 void		WM_cursor_wait		(struct wmWindow *win, int val);
 void		WM_timecursor		(struct wmWindow *win, int nr);
 
-void		*WM_paint_cursor_activate(struct wmWindowManager *wm, int (*poll)(struct bContext *C), void (*draw)(struct bContext *C, int, int));
+void		*WM_paint_cursor_activate(struct wmWindowManager *wm, int (*poll)(struct bContext *C), void (*draw)(struct bContext *C, int, int, void *customdata), void *customdata);
 void		WM_paint_cursor_end(struct wmWindowManager *wm, void *handle);
 
 			/* keymap */
@@ -84,6 +88,8 @@ char		*WM_key_event_operator_string(const struct bContext *C, const char *opname
 struct wmEventHandler *WM_event_add_keymap_handler(ListBase *handlers, ListBase *keymap);
 						/* boundbox, optional subwindow boundbox for offset */
 struct wmEventHandler *WM_event_add_keymap_handler_bb(ListBase *handlers, ListBase *keymap, rcti *bb, rcti *swinbb);
+						/* priority not implemented, it adds in begin */
+struct wmEventHandler *WM_event_add_keymap_handler_priority(ListBase *handlers, ListBase *keymap, int priority);
 
 void		WM_event_remove_keymap_handler(ListBase *handlers, ListBase *keymap);
 
@@ -114,6 +120,8 @@ void		WM_event_window_timer_sleep(struct wmWindow *win, struct wmTimer *timer, i
 int			WM_menu_invoke			(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
 			/* invoke callback, confirm menu + exec */
 int			WM_operator_confirm		(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
+		/* invoke callback, file selector "filename" unset + exec */
+int			WM_operator_filesel		(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
 			/* poll callback, context checks */
 int			WM_operator_winactive	(struct bContext *C);
 
@@ -150,8 +158,15 @@ void		WM_OT_tweak_gesture(struct wmOperatorType *ot);
 struct wmGesture *WM_gesture_new(struct bContext *C, struct wmEvent *event, int type);
 void		WM_gesture_end(struct bContext *C, struct wmGesture *gesture);
 
+			/* radial control operator */
+int		WM_radial_control_invoke(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
+int		WM_radial_control_modal(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
+void		WM_OT_radial_control_partial(struct wmOperatorType *ot);
+void		WM_radial_control_string(struct wmOperator *op, char str[], int maxlen);
+
 			/* OpenGL wrappers, mimicking opengl syntax */
-void		wmSubWindowSet		(struct wmWindow *win, int swinid);
+void		wmSubWindowSet			(struct wmWindow *win, int swinid);
+void		wmSubWindowScissorSet	(struct wmWindow *win, int swinid, struct rcti *srct);
 
 void		wmLoadMatrix		(float mat[][4]);
 void		wmGetMatrix			(float mat[][4]);
@@ -167,6 +182,18 @@ void		wmOrtho2			(float x1, float x2, float y1, float y2);
 			/* utilities */
 void		WM_set_framebuffer_index_color(int index);
 int			WM_framebuffer_to_index(unsigned int col);
+
+			/* threaded Jobs Manager */
+
+struct wmJob *WM_jobs_get(struct wmWindowManager *wm, struct wmWindow *win, void *owner);
+
+void		WM_jobs_customdata(struct wmJob *, void *customdata, void (*free)(void *));
+void		WM_jobs_timer(struct wmJob *, double timestep, unsigned int note);
+void		WM_jobs_callbacks(struct wmJob *, 
+							  void (*startjob)(void *, short *, short *),
+							  void (*update)(void *));
+
+void		WM_jobs_start(struct wmJob *);
 
 #endif /* WM_API_H */
 

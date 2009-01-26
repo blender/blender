@@ -41,6 +41,8 @@
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
 
+#include "BIF_transform.h" /* transform keymap */
+
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_utildefines.h"
@@ -58,12 +60,26 @@
 
 /* ************************** registration **********************************/
 
+
 void sequencer_operatortypes(void)
 {
 	/* sequencer_edit.c */
 	WM_operatortype_append(SEQUENCER_OT_cut);
 	WM_operatortype_append(SEQUENCER_OT_mute);
 	WM_operatortype_append(SEQUENCER_OT_unmute);
+	WM_operatortype_append(SEQUENCER_OT_lock);
+	WM_operatortype_append(SEQUENCER_OT_unlock);
+	WM_operatortype_append(SEQUENCER_OT_reload);
+	WM_operatortype_append(SEQUENCER_OT_refresh_all);
+	WM_operatortype_append(SEQUENCER_OT_add_duplicate);
+	WM_operatortype_append(SEQUENCER_OT_delete);
+	WM_operatortype_append(SEQUENCER_OT_separate_images);
+	WM_operatortype_append(SEQUENCER_OT_meta_toggle);
+	WM_operatortype_append(SEQUENCER_OT_meta_make);
+	WM_operatortype_append(SEQUENCER_OT_meta_separate);
+
+	WM_operatortype_append(SEQUENCER_OT_view_all);
+	WM_operatortype_append(SEQUENCER_OT_view_selected);
 	
 	/* sequencer_select.c */
 	WM_operatortype_append(SEQUENCER_OT_deselect_all);
@@ -76,19 +92,17 @@ void sequencer_operatortypes(void)
 	WM_operatortype_append(SEQUENCER_OT_borderselect);
 	
 	/* sequencer_add.c */
-	WM_operatortype_append(SEQUENCER_OT_add_color_strip);
 	WM_operatortype_append(SEQUENCER_OT_add_scene_strip);
+	WM_operatortype_append(SEQUENCER_OT_add_movie_strip);
+	WM_operatortype_append(SEQUENCER_OT_add_sound_strip);
+	WM_operatortype_append(SEQUENCER_OT_add_image_strip);
+	WM_operatortype_append(SEQUENCER_OT_add_effect_strip);
 }
+
 
 void sequencer_keymap(wmWindowManager *wm)
 {
 	ListBase *keymap= WM_keymap_listbase(wm, "Sequencer", SPACE_SEQ, 0);
-	
-	
-	WM_keymap_add_item(keymap, "SEQUENCER_OT_add_color_strip", RKEY, KM_PRESS, 0, 0); // XXX JUST FOR TESTING
-	WM_keymap_add_item(keymap, "SEQUENCER_OT_add_scene_strip", TKEY, KM_PRESS, 0, 0); // XXX JUST FOR TESTING
-	
-	
 	
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_deselect_all", AKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_select_invert", IKEY, KM_PRESS, KM_CTRL, 0);
@@ -101,6 +115,26 @@ void sequencer_keymap(wmWindowManager *wm)
 	
 	RNA_enum_set(WM_keymap_add_item(keymap, "SEQUENCER_OT_unmute", HKEY, KM_PRESS, KM_ALT, 0)->ptr, "type", SEQ_SELECTED);
 	RNA_enum_set(WM_keymap_add_item(keymap, "SEQUENCER_OT_unmute", HKEY, KM_PRESS, KM_ALT|KM_SHIFT, 0)->ptr, "type", SEQ_UNSELECTED);
+
+	WM_keymap_add_item(keymap, "SEQUENCER_OT_lock", LKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "SEQUENCER_OT_unlock", HKEY, KM_PRESS, KM_SHIFT|KM_ALT, 0);
+
+	WM_keymap_add_item(keymap, "SEQUENCER_OT_reload", RKEY, KM_PRESS, KM_ALT, 0);
+
+	WM_keymap_add_item(keymap, "SEQUENCER_OT_add_duplicate", DKEY, KM_PRESS, KM_SHIFT, 0);
+
+	WM_keymap_add_item(keymap, "SEQUENCER_OT_delete", XKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "SEQUENCER_OT_delete", DELKEY, KM_PRESS, 0, 0);
+	
+	WM_keymap_add_item(keymap, "SEQUENCER_OT_separate_images", YKEY, KM_PRESS, 0, 0);
+
+	WM_keymap_add_item(keymap, "SEQUENCER_OT_meta_toggle", TABKEY, KM_PRESS, 0, 0);
+
+	WM_keymap_add_item(keymap, "SEQUENCER_OT_meta_make", MKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "SEQUENCER_OT_meta_separate", MKEY, KM_PRESS, KM_ALT, 0);
+
+	WM_keymap_add_item(keymap, "SEQUENCER_OT_view_all", HOMEKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "SEQUENCER_OT_view_selected", PADPERIOD, KM_PRESS, 0, 0);
 	
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_select", SELECTMOUSE, KM_PRESS, 0, 0);
 	RNA_enum_set(WM_keymap_add_item(keymap, "SEQUENCER_OT_select", SELECTMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "type", 1);
@@ -116,5 +150,7 @@ void sequencer_keymap(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_borderselect", BKEY, KM_PRESS, 0, 0);
 	
 	WM_keymap_verify_item(keymap, "ANIM_OT_change_frame", LEFTMOUSE, KM_PRESS, 0, 0);
+	
+	transform_keymap_for_space(wm, keymap, SPACE_SEQ);
 }
 

@@ -427,8 +427,9 @@ void BME_bmesh_to_editmesh(BME_Mesh *bm, BME_TransData_Head *td, EditMesh *em) {
 				efa->f |= SELECT;
 			}
 			if(f->flag & ME_HIDE) efa->h= 1;
-			if((G.f & G_FACESELECT) && (efa->f & SELECT))
-				; //XXX EM_select_face(efa, 1); /* flush down */
+			// XXX flag depricated
+			// if((G.f & G_FACESELECT) && (efa->f & SELECT))
+				//XXX EM_select_face(efa, 1); /* flush down */
 			CustomData_em_copy_data(&bm->pdata, &em->fdata, f->data, &efa->data);
 			BME_loops_to_corners(bm, &em->fdata, efa->data, f,numCol,numTex);
 		}

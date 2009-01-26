@@ -63,8 +63,13 @@ typedef struct Brush {
 	float rgb[3];				/* color */
 	float alpha;				/* opacity */
 
+	float rot;				/* rotation in radians */
+
 	short texact;				/* active texture */
-	char sculpt_tool, pad;			/* active tool */
+	char sculpt_tool;			/* active tool */
+	char tex_mode;
+	
+	char pad[4];
 } Brush;
 
 /* Brush.flag */
@@ -78,6 +83,7 @@ typedef struct Brush {
 #define BRUSH_RAKE		128
 #define BRUSH_ANCHORED		256
 #define BRUSH_DIR_IN		512
+#define BRUSH_SPACE		1024
 
 /* Brush.blend */
 #define BRUSH_BLEND_MIX 		0
@@ -88,6 +94,11 @@ typedef struct Brush {
 #define BRUSH_BLEND_DARKEN		5
 #define BRUSH_BLEND_ERASE_ALPHA	6
 #define BRUSH_BLEND_ADD_ALPHA	7
+
+/* Brush.tex_mode */
+#define BRUSH_TEX_DRAG 0
+#define BRUSH_TEX_TILE 1
+#define BRUSH_TEX_3D   2
 
 /* Brush.sculpt_tool */
 #define SCULPT_TOOL_DRAW    1

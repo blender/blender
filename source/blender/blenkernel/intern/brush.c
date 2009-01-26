@@ -28,6 +28,7 @@
  */
 
 #include <math.h>
+#include <string.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -36,6 +37,9 @@
 #include "DNA_image_types.h"
 #include "DNA_texture_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_windowmanager_types.h"
+
+#include "RNA_access.h"
 
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
@@ -43,6 +47,7 @@
 #include "BKE_brush.h"
 #include "BKE_colortools.h"
 #include "BKE_global.h"
+#include "BKE_image.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_texture.h"
@@ -52,6 +57,7 @@
 #include "IMB_imbuf_types.h"
 
 #include "RE_render_ext.h" /* externtex */
+#include "RE_shader_ext.h"
 
 /* Datablock add/copy/free/make_local */
 
@@ -935,4 +941,123 @@ int brush_painter_paint(BrushPainter *painter, BrushFunc func, float *pos, doubl
 	return totpaintops;
 }
 
+/* Uses the brush curve control to find a strength value between 0 and 1 */
+float brush_curve_strength(Brush *br, float p, const float len)
+{
+	if(p > len) p= len;
+	return curvemapping_evaluateF(br->curve, 0, p/len);
+}
 
+/* TODO: should probably be unified with BrushPainter stuff? */
+unsigned int *brush_gen_texture_cache(Brush *br, int half_side)
+{
+	unsigned int *texcache = NULL;
+	MTex *mtex = br->mtex[br->texact];
+	TexResult texres;
+	int hasrgb, ix, iy;
+	int side = half_side * 2;
+
+	memset(&texres, 0, sizeof(TexResult));
+	
+	if(mtex && mtex->tex) {
+		float x, y, step = 2.0 / side, co[3];
+
+		texcache = MEM_callocN(sizeof(int) * side * side, "Brush texture cache");
+
+		BKE_image_get_ibuf(mtex->tex->ima, NULL);
+		
+		/*do normalized cannonical view coords for texture*/
+		for (y=-1.0, iy=0; iy<side; iy++, y += step) {
+			for (x=-1.0, ix=0; ix<side; ix++, x += step) {
+				co[0]= x;
+				co[1]= y;
+				co[2]= 0.0f;
+				
+				/* This is copied from displace modifier code */
+				hasrgb = multitex_ext(mtex->tex, co, NULL, NULL, 1, &texres);
+			
+				/* if the texture gave an RGB value, we assume it didn't give a valid
+				 * intensity, so calculate one (formula from do_material_tex).
+				 * if the texture didn't give an RGB value, copy the intensity across
+				 */
+				if(hasrgb & TEX_RGB)
+					texres.tin = (0.35 * texres.tr + 0.45 *
+					              texres.tg + 0.2 * texres.tb);
+
+				texres.tin = texres.tin * 255.0;
+				((char*)texcache)[(iy*side+ix)*4] = (char)texres.tin;
+				((char*)texcache)[(iy*side+ix)*4+1] = (char)texres.tin;
+				((char*)texcache)[(iy*side+ix)*4+2] = (char)texres.tin;
+				((char*)texcache)[(iy*side+ix)*4+3] = (char)texres.tin;
+			}
+		}
+	}
+
+	return texcache;
+}
+
+/**** Radial Control ****/
+static struct ImBuf *brush_gen_radial_control_imbuf(Brush *br)
+{
+	ImBuf *im = MEM_callocN(sizeof(ImBuf), "radial control texture");
+	unsigned int *texcache;
+	int side = 128;
+	int half = side / 2;
+	int i, j;
+
+	texcache = brush_gen_texture_cache(br, half);
+	im->rect_float = MEM_callocN(sizeof(float) * side * side, "radial control rect");
+	im->x = im->y = side;
+
+	for(i=0; i<side; ++i) {
+		for(j=0; j<side; ++j) {
+			float magn= sqrt(pow(i - half, 2) + pow(j - half, 2));
+			im->rect_float[i*side + j]= brush_curve_strength(br, magn, half);
+		}
+	}
+
+	/* Modulate curve with texture */
+	if(texcache) {
+		for(i=0; i<side; ++i)
+			for(j=0; j<side; ++j) {
+				const int col= texcache[i*side+j];
+				im->rect_float[i*side+j]*= (((char*)&col)[0]+((char*)&col)[1]+((char*)&col)[2])/3.0f/255.0f;
+			}
+	}
+
+	MEM_freeN(texcache);
+
+	return im;
+}
+
+void brush_radial_control_invoke(wmOperator *op, Brush *br)
+{
+	int mode = RNA_int_get(op->ptr, "mode");
+	float original_value;
+
+	if(mode == WM_RADIALCONTROL_SIZE)
+		original_value = br->size;
+	else if(mode == WM_RADIALCONTROL_STRENGTH)
+		original_value = br->alpha;
+	else if(mode == WM_RADIALCONTROL_ANGLE)
+		original_value = br->rot;
+
+	RNA_float_set(op->ptr, "initial_value", original_value);
+	op->customdata = brush_gen_radial_control_imbuf(br);
+}
+
+int brush_radial_control_exec(wmOperator *op, Brush *br)
+{
+	int mode = RNA_int_get(op->ptr, "mode");
+	float new_value = RNA_float_get(op->ptr, "new_value");
+	const float conv = 0.017453293;
+
+	if(mode == WM_RADIALCONTROL_SIZE)
+		br->size = new_value;
+	else if(mode == WM_RADIALCONTROL_STRENGTH)
+		br->alpha = new_value;
+	else if(mode == WM_RADIALCONTROL_ANGLE)
+		br->rot = new_value * conv;
+
+	return OPERATOR_FINISHED;
+}

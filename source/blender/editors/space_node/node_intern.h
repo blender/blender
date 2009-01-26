@@ -56,7 +56,7 @@ void node_keymap(wmWindowManager *wm);
 /* node_select.c */
 void NODE_OT_select(struct wmOperatorType *ot);
 void NODE_OT_extend_select(struct wmOperatorType *ot);
-void NODE_OT_toggle_visibility(struct wmOperatorType *ot);
+void NODE_OT_visibility_toggle(struct wmOperatorType *ot);
 void NODE_OT_fit_all(struct wmOperatorType *ot);
 void NODE_OT_border_select(struct wmOperatorType *ot);
 void NODE_OT_delete_selection(struct wmOperatorType *ot);

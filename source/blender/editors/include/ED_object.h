@@ -71,6 +71,7 @@ void add_constraint_to_object (struct bConstraint *con, struct Object *ob);
 
 /* editlattice.c */
 void mouse_lattice(struct bContext *C, short mval[2], int extend);
+void undo_push_lattice(struct bContext *C, char *name);
 
 /* editkey.c */
 void insert_shapekey(struct Scene *scene, struct Object *ob);

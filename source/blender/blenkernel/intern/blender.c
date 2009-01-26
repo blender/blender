@@ -74,6 +74,7 @@
 #include "BKE_font.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
+#include "BKE_ipo.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
 #include "BKE_object.h"
@@ -371,11 +372,11 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, char *filename)
 		//setscreen(G.curscreen);
 	}
 	
+	// XXX is this in the right place?
+	do_versions_ipos_to_animato(G.main); // XXX fixme... complicated versionpatching
+	
 	/* baseflags, groups, make depsgraph, etc */
 	set_scene_bg(CTX_data_scene(C));
-
-	/* clear BONE_UNKEYED flags, these are not valid anymore for proxies */
-	framechange_poses_clear_unkeyed();
 
 	/* last stage of do_versions actually, that sets recalc flags for recalc poses */
 	for(ob= G.main->object.first; ob; ob= ob->id.next) {

@@ -132,6 +132,10 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_add_primitive_uv_sphere);
 	WM_operatortype_append(MESH_OT_add_primitive_ico_sphere);
 	WM_operatortype_append(MESH_OT_add_duplicate);
+	WM_operatortype_append(MESH_OT_removedoublesflag);
+	WM_operatortype_append(MESH_OT_extrude_mesh);
+	WM_operatortype_append(MESH_OT_edit_faces);
+	
 }
 
 /* note mesh keymap also for other space? */
@@ -167,20 +171,12 @@ void ED_keymap_mesh(wmWindowManager *wm)
 	/*WM_keymap_add_item(keymap, "MESH_OT_subdivide_multi", WKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_subdivide_multi_fractal", WKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_subdivide_smooth", WKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);*/
+	WM_keymap_add_item(keymap, "MESH_OT_removedoublesflag", VKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "MESH_OT_extrude_mesh", EKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "MESH_OT_edit_faces", PKEY, KM_PRESS, KM_CTRL, 0);
 	
-	
-
 	/* add */
 	WM_keymap_add_item(keymap, "MESH_OT_add_duplicate", DKEY, KM_PRESS, KM_SHIFT, 0);
-	WM_keymap_add_item(keymap, "MESH_OT_add_primitive_plane", ZEROKEY, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_add_item(keymap, "MESH_OT_add_primitive_cube", ONEKEY, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_add_item(keymap, "MESH_OT_add_primitive_circle", TWOKEY, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_add_item(keymap, "MESH_OT_add_primitive_cylinder", THREEKEY, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_add_item(keymap, "MESH_OT_add_primitive_tube", FOURKEY, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_add_item(keymap, "MESH_OT_add_primitive_cone", FIVEKEY, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_add_item(keymap, "MESH_OT_add_primitive_grid", SIXKEY, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_add_item(keymap, "MESH_OT_add_primitive_uv_sphere", SEVENKEY, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_add_item(keymap, "MESH_OT_add_primitive_ico_sphere", EIGHTKEY, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_add_item(keymap, "MESH_OT_add_primitive_monkey", NINEKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "OBJECT_OT_mesh_add", AKEY, KM_PRESS, KM_SHIFT, 0);
 }
 

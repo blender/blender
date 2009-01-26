@@ -991,7 +991,7 @@ static void font_duplilist(ListBase *lb, Scene *scene, Object *par, int level, i
 	
 	/* in par the family name is stored, use this to find the other objects */
 	
-	chartransdata= text_to_curve(scene, par, FO_DUPLI);
+	chartransdata= BKE_text_to_curve(scene, par, FO_DUPLI);
 	if(chartransdata==0) return;
 	
 	memset(obar, 0, 256*sizeof(void *));

@@ -1761,9 +1761,9 @@ void nodeAddToPreview(bNode *node, float *col, int x, int y)
 		if(x>=0 && y>=0) {
 			if(x<preview->xsize && y<preview->ysize) {
 				float *tar= preview->rect+ 4*((preview->xsize*y) + x);
-				if(tar[0]==0.0f) {
+				//if(tar[0]==0.0f) {
 					QUATCOPY(tar, col);
-				}
+				//}
 			}
 			//else printf("prv out bound x y %d %d\n", x, y);
 		}
@@ -2420,11 +2420,11 @@ void ntreeCompositExecTree(bNodeTree *ntree, RenderData *rd, int do_preview)
 			if(node) {
 
 				if(ntree->timecursor)
-					ntree->timecursor(totnode);
+					ntree->timecursor(ntree->tch, totnode);
 				if(ntree->stats_draw) {
 					char str[64];
 					sprintf(str, "Compositing %d %s", totnode, node->name);
-					ntree->stats_draw(str);
+					ntree->stats_draw(ntree->sdh, str);
 				}
 				totnode--;
 				
@@ -2440,7 +2440,7 @@ void ntreeCompositExecTree(bNodeTree *ntree, RenderData *rd, int do_preview)
 		
 		rendering= 0;
 		/* test for ESC */
-		if(ntree->test_break && ntree->test_break()) {
+		if(ntree->test_break && ntree->test_break(ntree->tbh)) {
 			for(node= ntree->nodes.first; node; node= node->next)
 				node->exec |= NODE_READY;
 		}

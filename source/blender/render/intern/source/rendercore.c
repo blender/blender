@@ -314,7 +314,7 @@ static void halo_tile(RenderPart *pa, RenderLayer *rl)
 				}
 			}
 		}
-		if(R.test_break() ) break; 
+		if(R.test_break(R.tbh) ) break; 
 	}
 }
 
@@ -430,7 +430,7 @@ static void lamphalo_tile(RenderPart *pa, RenderLayer *rl)
 			if(rd) rd++;
 		}
 		if(y&1)
-			if(R.test_break()) break; 
+			if(R.test_break(R.tbh)) break; 
 	}
 }				
 
@@ -662,7 +662,7 @@ static void sky_tile(RenderPart *pa, RenderLayer *rl)
 		}
 		
 		if(y&1)
-			if(R.test_break()) break; 
+			if(R.test_break(R.tbh)) break; 
 	}
 }
 
@@ -760,7 +760,7 @@ static void shadeDA_tile(RenderPart *pa, RenderLayer *rl)
 	int samp;
 	int x, y, seed, crop=0, offs=0, od;
 	
-	if(R.test_break()) return; 
+	if(R.test_break(R.tbh)) return; 
 	
 	/* irregular shadowb buffer creation */
 	if(R.r.mode & R_SHADOW)
@@ -821,7 +821,7 @@ static void shadeDA_tile(RenderPart *pa, RenderLayer *rl)
 		rectdaps+= pa->rectx;
 		offs+= pa->rectx;
 		
-		if(y&1) if(R.test_break()) break; 
+		if(y&1) if(R.test_break(R.tbh)) break; 
 	}
 	
 	/* disable scanline updating */
@@ -1142,7 +1142,7 @@ void zbufshadeDA_tile(RenderPart *pa)
 			sdata.psmlist= &psmlist;
 			sdata.edgerect= edgerect;
 			zbuffer_solid(pa, rl, make_pixelstructs, &sdata);
-			if(R.test_break()) break; 
+			if(R.test_break(R.tbh)) break; 
 		}
 		
 		/* shades solid */
@@ -1280,7 +1280,7 @@ void zbufshade_tile(RenderPart *pa)
 		
 		zbuffer_solid(pa, rl, NULL, NULL);
 		
-		if(!R.test_break()) {	/* NOTE: this if() is not consistant */
+		if(!R.test_break(R.tbh)) {	/* NOTE: this if() is not consistant */
 			
 			/* edges only for solid part, ztransp doesn't support it yet anti-aliased */
 			if(rl->layflag & SCE_LAY_EDGE) {
@@ -1325,7 +1325,7 @@ void zbufshade_tile(RenderPart *pa)
 						}
 					}
 					if(y&1)
-						if(R.test_break()) break; 
+						if(R.test_break(R.tbh)) break; 
 				}
 				
 				if(R.occlusiontree)
@@ -1377,7 +1377,7 @@ void zbufshade_tile(RenderPart *pa)
 		if(rl->layflag & SCE_LAY_SKY)
 			sky_tile(pa, rl);
 		
-		if(!R.test_break()) {
+		if(!R.test_break(R.tbh)) {
 			if(rl->layflag & SCE_LAY_EDGE) 
 				if(R.r.mode & R_EDGE)
 					edge_enhance_add(pa, rl->rectf, edgerect);
@@ -1505,8 +1505,8 @@ static void shade_sample_sss(ShadeSample *ssamp, Material *mat, ObjectInstanceRe
 
 	/* not a pretty solution, but fixes common cases */
 	if(shi->obr->ob && shi->obr->ob->transflag & OB_NEG_SCALE) {
-		VecMulf(shi->vn, -1.0f);
-		VecMulf(shi->vno, -1.0f);
+		VecNegf(shi->vn);
+		VecNegf(shi->vno);
 	}
 
 	/* if nodetree, use the material that we are currently preprocessing
@@ -1717,7 +1717,7 @@ void zbufshade_sss_tile(RenderPart *pa)
 		}
 
 		if(y&1)
-			if(re->test_break()) break; 
+			if(re->test_break(re->tbh)) break; 
 	}
 
 	/* note: after adding we do not free these arrays, sss keeps them */
@@ -1797,7 +1797,7 @@ static void renderhalo_post(RenderResult *rr, float *rectf, HaloRen *har)	/* pos
 	
 				rectft+= 4*rr->rectx;
 				
-				if(R.test_break()) break; 
+				if(R.test_break(R.tbh)) break; 
 			}
 		}
 	}
@@ -1915,7 +1915,7 @@ void add_halo_flare(Render *re)
 	if(do_draw) {
 		/* weak... the display callback wants an active renderlayer pointer... */
 		rr->renlay= rl;
-		re->display_draw(rr, NULL);
+		re->display_draw(re->ddh, rr, NULL);
 	}
 	
 	R.r.mode= mode;	
@@ -2334,7 +2334,7 @@ static void do_bake_shade(void *handle, int x, int y, float u, float v)
 	ShadeInput *shi= ssamp->shi;
 	
 	/* fast threadsafe break test */
-	if(R.test_break())
+	if(R.test_break(R.tbh))
 		return;
 	
 	/* setup render coordinates */
@@ -2567,7 +2567,7 @@ static void *do_bake_thread(void *bs_v)
 		shade_tface(bs);
 		
 		/* fast threadsafe break test */
-		if(R.test_break())
+		if(R.test_break(R.tbh))
 			break;
 	}
 	bs->ready= 1;

@@ -33,6 +33,8 @@ struct Image;
 struct ScrArea;
 struct uiBlock;
 struct Render;
+struct bContext;
+struct ID;
 
 #define PREVIEW_RENDERSIZE 140
 
@@ -68,21 +70,10 @@ pr_method:
 #define PR_ICON_RENDER	1
 #define PR_DO_RENDER	2
 
-#if 0
-void	BIF_previewrender		(struct ID *id, struct RenderInfo *ri, struct ScrArea *area, int pr_method);
-void	BIF_previewrender_buts	(struct SpaceButs *sbuts);
-void	BIF_previewdraw			(struct ScrArea *sa, struct uiBlock *block);
-void    BIF_preview_changed		(short id_code);
+void ED_preview_init_dbase(void);
+void ED_preview_free_dbase(void);
 
-void	BIF_preview_init_dbase	(void);
-void	BIF_preview_free_dbase	(void);
+void ED_preview_shader_job(const struct bContext *C, void *owner, struct ID *id, int sizex, int sizey);
 
-void	BIF_view3d_previewrender(struct ScrArea *sa);
-void	BIF_view3d_previewdraw	(struct ScrArea *sa, struct uiBlock *block);
-void	BIF_view3d_previewrender_free(struct View3D *v3d);
-void	BIF_view3d_previewrender_clear(struct ScrArea *sa);
-void	BIF_view3d_previewrender_signal(struct ScrArea *sa, short signal);
-
-#endif
 
 #endif

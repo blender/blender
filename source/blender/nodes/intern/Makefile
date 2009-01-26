@@ -46,5 +46,5 @@ CPPFLAGS += -I../../gpu
 CPPFLAGS += -I$(NAN_GLEW)/include
 CPPFLAGS += -I$(OPENGL_HEADERS)
 
-DIRS = SHD_nodes CMP_nodes
+DIRS = SHD_nodes CMP_nodes TEX_nodes
 include nan_subdirs.mk

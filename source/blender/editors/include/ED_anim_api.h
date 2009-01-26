@@ -74,7 +74,8 @@ typedef enum eAnimCont_Types {
 	ANIMCONT_SHAPEKEY,		/* shapekey (Key) */
 	ANIMCONT_GPENCIL,		/* grease pencil (screen) */
 	ANIMCONT_DOPESHEET,		/* dopesheet (bDopesheet) */
-	ANIMCONT_IPO,			/* single IPO (Ipo) */		// XXX
+	ANIMCONT_FCURVES,		/* animation F-Curves (bDopesheet) */		// XXX 
+	ANIMCONT_DRIVERS,		/* drivers (bDopesheet) */
 } eAnimCont_Types;
 
 /* --------------- Channels -------------------- */
@@ -93,10 +94,9 @@ typedef struct bAnimListElem {
 	void	*key_data;	/* motion data - ipo or ipo-curve */
 	short	datatype;	/* type of motion data to expect */
 	
-	struct ID *id;				/* ID block (ID_SC, ID_SCE, or ID_OB) that owns the channel */
-	struct bActionGroup *grp;	/* action group that owns the channel (only for Action/Dopesheet) */
+	struct ID *id;				/* ID block that channel is attached to (may be used  */
 	
-	void 	*owner;		/* will either be an action channel or fake ipo-channel (for keys) */
+	void 	*owner;		/* group or channel which acts as this channel's owner */
 	short	ownertype;	/* type of owner */
 } bAnimListElem;
 
@@ -143,12 +143,13 @@ typedef enum eAnim_KeyType {
 /* filtering flags  - under what circumstances should a channel be added */
 // XXX was ACTFILTER_*
 typedef enum eAnimFilter_Flags {
-	ANIMFILTER_VISIBLE		= (1<<0),	/* should channels be visible */
+	ANIMFILTER_VISIBLE		= (1<<0),	/* should channels be visible (in terms of hierarchy only) */
 	ANIMFILTER_SEL			= (1<<1),	/* should channels be selected */
 	ANIMFILTER_FOREDIT		= (1<<2),	/* does editable status matter */
 	ANIMFILTER_CURVESONLY	= (1<<3),	/* don't include summary-channels, etc. */
 	ANIMFILTER_CHANNELS		= (1<<4),	/* make list for interface drawing */
 	ANIMFILTER_ACTGROUPED	= (1<<5),	/* belongs to the active actiongroup */
+	ANIMFILTER_CURVEVISIBLE	= (1<<6),	/* F-Curve is visible for editing/viewing in Graph Editor */
 } eAnimFilter_Flags;
 
 
@@ -207,7 +208,7 @@ typedef enum eAnimFilter_Flags {
 /* Obtain list of filtered Animation channels to operate on.
  * Returns the number of channels in the list
  */
-int ANIM_animdata_filter(ListBase *anim_data, int filter_mode, void *data, short datatype);
+int ANIM_animdata_filter(bAnimContext *ac, ListBase *anim_data, int filter_mode, void *data, short datatype);
 
 /* Obtain current anim-data context from Blender Context info.
  * Returns whether the operation was successful. 
@@ -270,11 +271,13 @@ void ANIM_draw_previewrange(const struct bContext *C, struct View2D *v2d);
 /* ************************************************* */
 /* ASSORTED TOOLS */
 
-/* ------------ IPO Adrcode <-> Icons/Names Mapping ------------ */
+/* ------------ Animation F-Curves <-> Icons/Names Mapping ------------ */
 /* anim_ipo_utils.c */
 
-int geticon_ipo_blocktype(short blocktype);
-char *getname_ipocurve(struct IpoCurve *icu, struct Object *ob); // XXX 
+int geticon_anim_blocktype(short blocktype);
+
+void getname_anim_fcurve(char *name, struct ID *id, struct FCurve *fcu);
+
 
 unsigned int ipo_rainbow(int cur, int tot);
 

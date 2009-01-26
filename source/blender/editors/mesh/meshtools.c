@@ -947,7 +947,7 @@ int *mesh_get_x_mirror_faces(Object *ob, EditMesh *em)
 /* ****************** render BAKING ********************** */
 
 /* threaded break test */
-static int thread_break(void)
+static int thread_break(void *unused)
 {
 	return G.afbreek;
 }
@@ -1038,7 +1038,7 @@ void objects_bake_render(Scene *scene, short event, char **error_msg)
 		}
 		
 		waitcursor(1);
-		RE_test_break_cb(re, thread_break);
+		RE_test_break_cb(re, NULL, thread_break);
 		G.afbreek= 0;	/* blender_test_break uses this global */
 		
 		RE_Database_Baking(re, scene, event, (active)? actob: NULL);

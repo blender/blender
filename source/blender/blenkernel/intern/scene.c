@@ -651,17 +651,6 @@ void scene_add_render_layer(Scene *sce)
 	srl->passflag= SCE_PASS_COMBINED|SCE_PASS_Z;
 }
 
-void sculpt_vertexusers_free(SculptSession *ss)
-{
-	if(ss && ss->vertex_users){
-		MEM_freeN(ss->vertex_users);
-		MEM_freeN(ss->vertex_users_mem);
-		ss->vertex_users= NULL;
-		ss->vertex_users_mem= NULL;
-		ss->vertex_users_size= 0;
-	}
-}
-
 void sculptsession_free(Sculpt *sculpt)
 {
 	SculptSession *ss= sculpt->session;
@@ -672,7 +661,12 @@ void sculptsession_free(Sculpt *sculpt)
 		if(ss->radialcontrol)
 			MEM_freeN(ss->radialcontrol);
 
-		sculpt_vertexusers_free(ss);
+		if(ss->fmap)
+			MEM_freeN(ss->fmap);
+
+		if(ss->fmap_mem)
+			MEM_freeN(ss->fmap_mem);
+
 		if(ss->texcache)
 			MEM_freeN(ss->texcache);
 		MEM_freeN(ss);

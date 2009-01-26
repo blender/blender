@@ -341,11 +341,11 @@ static int toggle_time_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void ANIM_OT_toggle_time(wmOperatorType *ot)
+void ANIM_OT_time_toggle(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Toggle Frames/Seconds";
-	ot->idname= "ANIM_OT_toggle_time";
+	ot->idname= "ANIM_OT_time_toggle";
 	
 	/* api callbacks */
 	ot->exec= toggle_time_exec;
@@ -356,7 +356,7 @@ void ANIM_OT_toggle_time(wmOperatorType *ot)
 void ED_operatortypes_anim(void)
 {
 	WM_operatortype_append(ANIM_OT_change_frame);
-	WM_operatortype_append(ANIM_OT_toggle_time);
+	WM_operatortype_append(ANIM_OT_time_toggle);
 	
 	WM_operatortype_append(ANIM_OT_previewrange_define);
 	WM_operatortype_append(ANIM_OT_previewrange_clear);
@@ -372,7 +372,7 @@ void ED_keymap_anim(wmWindowManager *wm)
 	
 		/* frame management */
 	WM_keymap_verify_item(keymap, "ANIM_OT_change_frame", LEFTMOUSE, KM_PRESS, 0, 0);
-	WM_keymap_verify_item(keymap, "ANIM_OT_toggle_time", TKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_verify_item(keymap, "ANIM_OT_time_toggle", TKEY, KM_PRESS, KM_CTRL, 0);
 	
 		/* preview range */
 	WM_keymap_verify_item(keymap, "ANIM_OT_previewrange_define", PKEY, KM_PRESS, KM_CTRL, 0);

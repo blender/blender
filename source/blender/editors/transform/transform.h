@@ -150,6 +150,14 @@ typedef struct TransDataCurveHandleFlags {
 	char *h1, *h2;
 } TransDataCurveHandleFlags;
 
+/* for sequencer transform */
+typedef struct TransDataSeq {
+	struct Sequence *seq;
+	int flag;		/* a copy of seq->flag that may be modified for nested strips */
+	short start_offset; /* use this so we can have transform data at the strips start, but apply correctly to the start frame  */
+	short sel_flag; /* one of SELECT, SEQ_LEFTSEL and SEQ_RIGHTSEL */
+	
+} TransDataSeq;
 
 typedef struct TransData {
 	float  dist;         /* Distance needed to affect element (for Proportionnal Editing)                  */
@@ -212,6 +220,7 @@ typedef struct TransInfo {
     short       imval[2];       /* initial mouse position               */
 	short       idx_max;		/* maximum index on the input vector	*/
 	float		snap[3];		/* Snapping Gears						*/
+	char		frame_side;		/* Mouse side of the cfra, 'L', 'R' or 'B' */
 	
 	float		viewmat[4][4];	/* copy from G.vd, prevents feedback,   */
 	float		viewinv[4][4];  /* and to make sure we don't have to    */
@@ -438,6 +447,7 @@ void flushTransUVs(TransInfo *t);
 void flushTransParticles(TransInfo *t);
 int clipUVTransform(TransInfo *t, float *vec, int resize);
 void flushTransNodes(TransInfo *t);
+void flushTransSeq(TransInfo *t);
 
 /*********************** exported from transform_manipulator.c ********** */
 void draw_manipulator_ext(struct ScrArea *sa, int type, char axis, int col, float vec[3], float mat[][3]);

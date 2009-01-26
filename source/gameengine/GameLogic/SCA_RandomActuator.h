@@ -97,6 +97,7 @@ class SCA_RandomActuator : public SCA_IActuator
 	/* --------------------------------------------------------------------- */
 
 	virtual PyObject* _getattr(const STR_String& attr);
+	virtual int _setattr(const STR_String& attr, PyObject *value);
 
 	/* 1. setSeed                                                            */
 	KX_PYMETHOD_DOC(SCA_RandomActuator,SetSeed);
@@ -135,7 +136,6 @@ class SCA_RandomActuator : public SCA_IActuator
 	KX_PYMETHOD_DOC(SCA_RandomActuator,SetFloatNormal);
 	/* 20. setFloatNegativeExponential, */
 	KX_PYMETHOD_DOC(SCA_RandomActuator,SetFloatNegativeExponential);
-	
 }; /* end of class KX_EditObjectActuator : public SCA_PropertyActuator */
 
 #endif

@@ -2021,7 +2021,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 		if(orco1==0)
 			orco+=3;
 
-		if(re->test_break())
+		if(re->test_break(re->tbh))
 			break;
 	}
 
@@ -4357,7 +4357,7 @@ static void init_render_object(Render *re, Object *ob, Object *par, DupliObject 
 		re->i.totstrand= re->totstrand;
 		re->i.tothalo= re->tothalo;
 		re->i.totlamp= re->totlamp;
-		re->stats_draw(&re->i);
+		re->stats_draw(re->sdh, &re->i);
 	}
 
 	ob->flag |= OB_DONE;
@@ -4727,7 +4727,7 @@ static void database_init_objects(Render *re, unsigned int renderlay, int nolamp
 					else
 						init_render_object(re, obd, ob, dob, timeoffset, vectorlay);
 					
-					if(re->test_break()) break;
+					if(re->test_break(re->tbh)) break;
 				}
 				free_object_duplilist(lb);
 
@@ -4738,7 +4738,7 @@ static void database_init_objects(Render *re, unsigned int renderlay, int nolamp
 				init_render_object(re, ob, NULL, 0, timeoffset, vectorlay);
 		}
 
-		if(re->test_break()) break;
+		if(re->test_break(re->tbh)) break;
 	}
 
 	/* objects in groups with OB_RENDER_DUPLI set still need to be created,
@@ -4755,7 +4755,7 @@ static void database_init_objects(Render *re, unsigned int renderlay, int nolamp
 		}
 	}
 
-	if(!re->test_break())
+	if(!re->test_break(re->tbh))
 		RE_makeRenderInstances(re);
 }
 
@@ -4817,7 +4817,7 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 	/* MAKE RENDER DATA */
 	database_init_objects(re, lay, 0, 0, 0, 0);
 
-	if(!re->test_break()) {
+	if(!re->test_break(re->tbh)) {
 		int tothalo;
 
 		set_material_lightgroups(re);
@@ -4832,17 +4832,17 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 		re->i.totstrand= re->totstrand;
 		re->i.tothalo= re->tothalo;
 		re->i.totlamp= re->totlamp;
-		re->stats_draw(&re->i);
+		re->stats_draw(re->sdh, &re->i);
 		
 		/* don't sort stars */
 		tothalo= re->tothalo;
-		if(!re->test_break())
+		if(!re->test_break(re->tbh))
 			if(re->wrld.mode & WO_STARS)
 				RE_make_stars(re, NULL, NULL, NULL, NULL);
 		sort_halos(re, tothalo);
 		
 		re->i.infostr= "Creating Shadowbuffers";
-		re->stats_draw(&re->i);
+		re->stats_draw(re->sdh, &re->i);
 
 		/* SHADOW BUFFER */
 		threaded_makeshadowbufs(re);
@@ -4851,43 +4851,43 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 		/* although radio mode could be useful at some point, later */
 		if (re->r.renderer==R_INTERN) {
 			/* RADIO (uses no R anymore) */
-			if(!re->test_break())
+			if(!re->test_break(re->tbh))
 				if(re->r.mode & R_RADIO) do_radio_render(re);
 			
 			/* raytree */
-			if(!re->test_break()) {
+			if(!re->test_break(re->tbh)) {
 				if(re->r.mode & R_RAYTRACE) {
 					makeraytree(re);
 				}
 			}
 			/* ENVIRONMENT MAPS */
-			if(!re->test_break())
+			if(!re->test_break(re->tbh))
 				make_envmaps(re);
 		}
 		
-		if(!re->test_break())
+		if(!re->test_break(re->tbh))
 			project_renderdata(re, projectverto, re->r.mode & R_PANORAMA, 0, 1);
 		
 		/* Occlusion */
-		if((re->wrld.mode & WO_AMB_OCC) && !re->test_break())
+		if((re->wrld.mode & WO_AMB_OCC) && !re->test_break(re->tbh))
 			if(re->wrld.ao_gather_method == WO_AOGATHER_APPROX)
 				if(re->r.renderer==R_INTERN)
 					if(re->r.mode & R_SHADOW)
 						make_occ_tree(re);
 
 		/* SSS */
-		if((re->r.mode & R_SSS) && !re->test_break())
+		if((re->r.mode & R_SSS) && !re->test_break(re->tbh))
 			if(re->r.renderer==R_INTERN)
 				make_sss_tree(re);
 	}
 	
-	if(re->test_break())
+	if(re->test_break(re->tbh))
 		RE_Database_Free(re);
 	else
 		re->i.convertdone= 1;
 	
 	re->i.infostr= NULL;
-	re->stats_draw(&re->i);
+	re->stats_draw(re->sdh, &re->i);
 }
 
 /* exported call to recalculate hoco for vertices, when winmat changed */
@@ -4940,7 +4940,7 @@ static void database_fromscene_vectors(Render *re, Scene *scene, int timeoffset)
 	/* MAKE RENDER DATA */
 	database_init_objects(re, lay, 0, 0, 0, timeoffset);
 	
-	if(!re->test_break())
+	if(!re->test_break(re->tbh))
 		project_renderdata(re, projectverto, re->r.mode & R_PANORAMA, 0, 1);
 
 	/* do this in end, particles for example need cfra */
@@ -5313,7 +5313,7 @@ void RE_Database_FromScene_Vectors(Render *re, Scene *sce)
 	RE_Database_Free(re);
 	re->strandsurface= strandsurface;
 	
-	if(!re->test_break()) {
+	if(!re->test_break(re->tbh)) {
 		/* creates entire dbase */
 		re->i.infostr= "Calculating next frame vectors";
 		
@@ -5328,10 +5328,10 @@ void RE_Database_FromScene_Vectors(Render *re, Scene *sce)
 	RE_Database_Free(re);
 	re->strandsurface= strandsurface;
 	
-	if(!re->test_break())
+	if(!re->test_break(re->tbh))
 		RE_Database_FromScene(re, sce, 1);
 	
-	if(!re->test_break()) {
+	if(!re->test_break(re->tbh)) {
 		for(step= 0; step<2; step++) {
 			
 			if(step)
@@ -5400,7 +5400,7 @@ void RE_Database_FromScene_Vectors(Render *re, Scene *sce)
 	}
 	
 	re->i.infostr= NULL;
-	re->stats_draw(&re->i);
+	re->stats_draw(re->sdh, &re->i);
 }
 
 
@@ -5499,12 +5499,12 @@ void RE_Database_Baking(Render *re, Scene *scene, int type, Object *actob)
 			threaded_makeshadowbufs(re);
 
 	/* raytree */
-	if(!re->test_break())
+	if(!re->test_break(re->tbh))
 		if(re->r.mode & R_RAYTRACE)
 			makeraytree(re);
 	
 	/* occlusion */
-	if((re->wrld.mode & WO_AMB_OCC) && !re->test_break())
+	if((re->wrld.mode & WO_AMB_OCC) && !re->test_break(re->tbh))
 		if(re->wrld.ao_gather_method == WO_AOGATHER_APPROX)
 			if(re->r.mode & R_SHADOW)
 				make_occ_tree(re);

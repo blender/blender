@@ -104,6 +104,8 @@ void docenter_armature (struct Scene *scene, struct View3D *v3d, struct Object *
 void auto_align_armature(struct Scene *scene, struct View3D *v3d, short mode);
 void unique_editbone_name (ListBase *edbo, char *name);
 
+void undo_push_armature(struct bContext *C, char *name);
+
 /* poseobject.c */
 void ED_armature_exit_posemode(struct Base *base);
 void ED_armature_enter_posemode(struct Base *base);

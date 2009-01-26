@@ -75,10 +75,9 @@
 #define TIMER0			0x0111	/* timer event, slot for internal use */
 #define TIMER1			0x0112	/* timer event, slot for internal use */
 #define TIMER2			0x0113	/* timer event, slot for internal use */
-#define TIMER3			0x0114	/* timer event, slot for internal use */
+#define TIMERJOBS		0x0114  /* timer event, internal use */
 
 /* standard keyboard */
-
 #define AKEY		'a'
 #define BKEY		'b'
 #define CKEY		'c'
@@ -166,11 +165,9 @@
 #define	PADSLASHKEY 	161
 #define PADASTERKEY 	160
 
-
 #define PADMINUS		162
 #define PADENTER		163
 #define PADPLUSKEY 		164
-
 
 #define	F1KEY 		300
 #define	F2KEY 		301
@@ -195,6 +192,10 @@
 #define UNKNOWNKEY	171
 #define COMMANDKEY	172
 #define GRLESSKEY	173
+
+/* for event checks */
+#define ISKEYBOARD(event)	(event >='a' && event <=255)
+
 
 /* **************** BLENDER QUEUE EVENTS ********************* */
 

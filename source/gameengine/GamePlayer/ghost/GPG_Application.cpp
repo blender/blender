@@ -530,6 +530,7 @@ bool GPG_Application::initEngine(GHOST_IWindow* window, const int stereoMode)
 		bool fixed_framerate= (SYS_GetCommandLineInt(syshandle, "fixed_framerate", fixedFr) != 0);
 		bool frameRate = (SYS_GetCommandLineInt(syshandle, "show_framerate", 0) != 0);
 		bool useLists = (SYS_GetCommandLineInt(syshandle, "displaylists", G.fileflags & G_FILE_DISPLAY_LISTS) != 0);
+		bool nodepwarnings = (SYS_GetCommandLineInt(syshandle, "ignore_deprecation_warnings", 0) != 0);
 
 		if(GLEW_ARB_multitexture && GLEW_VERSION_1_1)
 			m_blendermat = (SYS_GetCommandLineInt(syshandle, "blender_material", 1) != 0);
@@ -603,6 +604,8 @@ bool GPG_Application::initEngine(GHOST_IWindow* window, const int stereoMode)
 		m_ketsjiengine->SetNetworkDevice(m_networkdevice);
 		m_ketsjiengine->SetAudioDevice(m_audiodevice);
 		m_ketsjiengine->SetTimingDisplay(frameRate, false, false);
+
+		CValue::SetDeprecationWarnings(nodepwarnings);
 
 		m_ketsjiengine->SetUseFixedTime(fixed_framerate);
 		m_ketsjiengine->SetTimingDisplay(frameRate, profile, properties);
@@ -686,8 +689,9 @@ bool GPG_Application::startEngine(void)
 		initGameKeys();
 		initPythonConstraintBinding();
 		initMathutils();
+#ifdef WITH_FFMPEG
         initVideoTexture();
-
+#endif
 		// Set the GameLogic.globalDict from marshal'd data, so we can
 		// load new blend files and keep data in GameLogic.globalDict
 		loadGamePythonConfig(m_pyGlobalDictString, m_pyGlobalDictString_Length);

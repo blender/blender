@@ -238,7 +238,7 @@ void ED_spacetype_sound(void)
 	art->init= sound_main_area_init;
 	art->draw= sound_main_area_draw;
 	art->listener= sound_main_area_listener;
-	art->keymapflag= ED_KEYMAP_VIEW2D;
+	art->keymapflag= ED_KEYMAP_VIEW2D|ED_KEYMAP_FRAMES;
 
 	BLI_addhead(&st->regiontypes, art);
 	

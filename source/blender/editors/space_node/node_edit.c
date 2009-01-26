@@ -62,43 +62,14 @@
 #include "ED_previewrender.h"
 
 #include "BIF_gl.h"
-/*#include "BIF_cursors.h"
-#include "BIF_editview.h"
-#include "BIF_graphics.h"
-#include "BIF_imasel.h"
-#include "BIF_interface.h"
-#include "BIF_mywindow.h"
-#include "BIF_previewrender.h"
-#include "BIF_resources.h"
-#include "BIF_renderwin.h"
-#include "BIF_space.h"
-#include "BIF_scrarea.h"
-#include "BIF_screen.h"
-#include "BIF_toolbox.h"
-*/
-
-/*#include "BSE_drawipo.h"
-#include "BSE_edit.h"
-#include "BSE_filesel.h"
-#include "BSE_headerbuttons.h"
-#include "BSE_node.h"*/
 
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
 #include "BLI_storage_types.h"
 
-/*#include "BDR_editobject.h"
-#include "BDR_gpencil.h"*/
-
 #include "RE_pipeline.h"
-#include "IMB_imbuf_types.h"
 
-/*#include "blendef.h"
-#include "butspace.h"
-#include "PIL_time.h"
-#include "mydevice.h"
-#include "winlay.h"
-*/
+#include "IMB_imbuf_types.h"
 
 #include "ED_space_api.h"
 #include "ED_screen.h"
@@ -118,69 +89,11 @@
 static void BIF_undo_push(char *s) {}
 
 #if 0
-/* currently called from BIF_preview_changed */
-void snode_tag_dirty(SpaceNode *snode)
-{
-	bNode *node;
-	
-	if(snode->treetype==NTREE_SHADER) {
-		if(snode->nodetree) {
-			for(node= snode->nodetree->nodes.first; node; node= node->next) {
-				if(node->type==SH_NODE_OUTPUT)
-					node->lasty= 0;
-			}
-			snode->flag |= SNODE_DO_PREVIEW;	/* this adds an afterqueue on a redraw, to allow button previews to work first */
-		}
-	}
-	// allqueue(REDRAWNODE, 1);
-}
 
-static void shader_node_previewrender(ScrArea *sa, SpaceNode *snode)
-{
-	bNode *node;
-	
-	if(snode->id==NULL) return;
-	if( ((Material *)snode->id )->use_nodes==0 ) return;
-
-	for(node= snode->nodetree->nodes.first; node; node= node->next) {
-		if(node->type==SH_NODE_OUTPUT) {
-			if(node->flag & NODE_DO_OUTPUT) {
-				if(node->lasty<PREVIEW_RENDERSIZE-2) {
-					RenderInfo ri;	
-//					int test= node->lasty;
-					
-					ri.curtile = 0;
-					ri.tottile = 0;
-					ri.rect = NULL;
-					ri.pr_rectx = PREVIEW_RENDERSIZE;
-					ri.pr_recty = PREVIEW_RENDERSIZE;
-					
-					// XXX BIF_previewrender(snode->id, &ri, NULL, PR_DO_RENDER);	/* sends redraw event */
-					if(ri.rect) MEM_freeN(ri.rect);
-					
-					/* when not finished... */
-					if(ri.curtile<ri.tottile)
-						; // XXX addafterqueue(sa->win, RENDERPREVIEW, 1);
-//					if(test!=node->lasty)
-//						printf("node rendered to %d\n", node->lasty);
-
-					break;
-				}
-			}
-		}
-	}
-}
-
-// XXX stub
-static void set_timecursor() {}
-static int blender_test_break() { return 0; }
-
+// XXX snode_handle_recalc will go away */
 static void snode_handle_recalc(SpaceNode *snode)
 {
-	if(snode->treetype==NTREE_SHADER) {
-		// XXX BIF_preview_changed(ID_MA);	 /* signals buttons windows and node editors */
-	}
-	else if(snode->treetype==NTREE_COMPOSIT) {
+	if(snode->treetype==NTREE_COMPOSIT) {
 		if(G.scene->use_nodes) {
 			snode->nodetree->timecursor= set_timecursor;
 			G.afbreek= 0;
@@ -209,19 +122,6 @@ static void snode_handle_recalc(SpaceNode *snode)
 	}
 }
 
-static void shader_node_event(SpaceNode *snode, short event)
-{
-	switch(event) {
-		case B_REDR:
-			// allqueue(REDRAWNODE, 1);
-			break;
-		default:
-			/* B_NODE_EXEC */
-			snode_handle_recalc(snode);
-			break;
-			
-	}
-}
 
 static int image_detect_file_sequence(int *start_p, int *frames_p, char *str)
 {
@@ -2630,11 +2530,6 @@ void winqreadnodespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				composit_node_event(snode, val);
 			else if(snode->treetype==NTREE_TEXTURE)
 				texture_node_event(snode, val);
-			break;
-			
-		case RENDERPREVIEW:
-			if(snode->treetype==NTREE_SHADER)
-				shader_node_previewrender(sa, snode);
 			break;
 			
 		case PADPLUSKEY:

@@ -49,8 +49,6 @@ void	btCompoundShape::addChildShape(const btTransform& localTransform,btCollisio
 	child.m_childShapeType = shape->getShapeType();
 	child.m_childMargin = shape->getMargin();
 
-	m_children.push_back(child);
-
 	//extend the local aabbMin/aabbMax
 	btVector3 localAabbMin,localAabbMax;
 	shape->getAabb(localTransform,localAabbMin,localAabbMax);
@@ -69,10 +67,11 @@ void	btCompoundShape::addChildShape(const btTransform& localTransform,btCollisio
 	if (m_dynamicAabbTree)
 	{
 		const btDbvtVolume	bounds=btDbvtVolume::FromMM(localAabbMin,localAabbMax);
-		int index = m_children.size()-1;
+		int index = m_children.size();
 		child.m_node = m_dynamicAabbTree->insert(bounds,(void*)index);
 	}
 
+	m_children.push_back(child);
 }
 
 void btCompoundShape::removeChildShapeByIndex(int childShapeIndex)

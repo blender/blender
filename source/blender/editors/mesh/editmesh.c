@@ -2073,7 +2073,7 @@ static void undoMesh_to_editMesh(void *umv, void *emv)
 static void *getEditMesh(bContext *C)
 {
 	Object *obedit= CTX_data_edit_object(C);
-	if(obedit) {
+	if(obedit && obedit->type==OB_MESH) {
 		Mesh *me= obedit->data;
 		return me->edit_mesh;
 	}

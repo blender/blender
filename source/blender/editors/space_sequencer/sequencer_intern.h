@@ -21,12 +21,15 @@
  * All rights reserved.
  *
  * 
- * Contributor(s): Blender Foundation
+ * Contributor(s): Blender Foundation, Campbell Barton
  *
  * ***** END GPL LICENSE BLOCK *****
  */
 #ifndef ED_SEQUENCER_INTERN_H
 #define ED_SEQUENCER_INTERN_H
+
+#include "RNA_access.h"
+#include "DNA_sequence_types.h"
 
 /* internal exports only */
 
@@ -42,6 +45,7 @@ void sequencer_header_buttons(const struct bContext *C, struct ARegion *ar);
 
 /* sequencer_draw.c */
 void drawseqspace(const struct bContext *C, struct ARegion *ar);
+void seq_reset_imageofs(struct SpaceSeq *sseq);
 
 /* sequencer_edit.c */
 struct View2D;
@@ -57,11 +61,11 @@ void deselect_all_seq(struct Scene *scene);
 void recurs_sel_seq(struct Sequence *seqm);
 int event_to_efftype(int event);
 void set_last_seq(struct Scene *scene, struct Sequence *seq);
-int seq_effect_find_selected(struct Scene *scene, struct Sequence *activeseq, int type, struct Sequence **selseq1, struct Sequence **selseq2, struct Sequence **selseq3);
+int seq_effect_find_selected(struct Scene *scene, struct Sequence *activeseq, int type, struct Sequence **selseq1, struct Sequence **selseq2, struct Sequence **selseq3, char **error_str);
 struct Sequence *alloc_sequence(struct ListBase *lb, int cfra, int machine);
 
-int test_overlap_seq(struct Scene *scene, struct Sequence *test);
-void shuffle_seq(struct Scene *scene, struct Sequence *test);
+/* externs */
+extern EnumPropertyItem sequencer_prop_effect_types[];
 
 /* operators */
 struct wmOperatorType;
@@ -69,6 +73,19 @@ struct wmWindowManager;
 void SEQUENCER_OT_cut(struct wmOperatorType *ot);
 void SEQUENCER_OT_mute(struct wmOperatorType *ot);
 void SEQUENCER_OT_unmute(struct wmOperatorType *ot);
+void SEQUENCER_OT_lock(struct wmOperatorType *ot);
+void SEQUENCER_OT_unlock(struct wmOperatorType *ot);
+void SEQUENCER_OT_reload(struct wmOperatorType *ot);
+void SEQUENCER_OT_refresh_all(struct wmOperatorType *ot);
+void SEQUENCER_OT_add_duplicate(struct wmOperatorType *ot);
+void SEQUENCER_OT_delete(struct wmOperatorType *ot);
+void SEQUENCER_OT_separate_images(struct wmOperatorType *ot);
+void SEQUENCER_OT_meta_toggle(struct wmOperatorType *ot);
+void SEQUENCER_OT_meta_make(struct wmOperatorType *ot);
+void SEQUENCER_OT_meta_separate(struct wmOperatorType *ot);
+
+void SEQUENCER_OT_view_all(struct wmOperatorType *ot);
+void SEQUENCER_OT_view_selected(struct wmOperatorType *ot);
 
 /* sequencer_select.c */
 void SEQUENCER_OT_deselect_all(struct wmOperatorType *ot);
@@ -82,10 +99,11 @@ void SEQUENCER_OT_select_invert(struct wmOperatorType *ot);
 
 
 /* sequencer_select.c */
-void SEQUENCER_OT_add_color_strip(struct wmOperatorType *ot);
 void SEQUENCER_OT_add_scene_strip(struct wmOperatorType *ot);
-
-
+void SEQUENCER_OT_add_movie_strip(struct wmOperatorType *ot);
+void SEQUENCER_OT_add_sound_strip(struct wmOperatorType *ot);
+void SEQUENCER_OT_add_image_strip(struct wmOperatorType *ot);
+void SEQUENCER_OT_add_effect_strip(struct wmOperatorType *ot);
 
 /* RNA enums, just to be more readable */
 enum {

@@ -35,6 +35,10 @@ struct bContext;
 struct Base;
 struct View3D;
 
+/* curve_ops.c */
+void	ED_operatortypes_curve(void);
+void	ED_keymap_curve	(struct wmWindowManager *wm);
+
 /* editcurve.c */
 void	undo_push_curve	(struct bContext *C, char *name);
 ListBase *curve_get_editcurve(struct Object *ob);
@@ -44,8 +48,14 @@ void	make_editNurb	(struct Object *obedit);
 void	remake_editNurb	(struct Object *obedit);
 void	free_editNurb	(struct Object *obedit);
 
-void mouse_nurb(struct bContext *C, short mval[2], int extend);
+void	mouse_nurb		(struct bContext *C, short mval[2], int extend);
 
+/* editfont.h */
+void	undo_push_font	(struct bContext *C, char *name);
+void	make_editText	(struct Object *obedit);
+void	load_editText	(struct Object *obedit);
+void	remake_editText	(struct Object *obedit);
+void	free_editText	(struct Object *obedit);
 
 #endif /* ED_CURVE_H */
 

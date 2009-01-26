@@ -398,8 +398,8 @@ static void rna_def_userdef_theme_space_ipo(BlenderRNA *brna)
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Handle Vertex Select", "");
 
-	prop= RNA_def_property(srna, "handle_vertex_size", PROP_FLOAT, PROP_COLOR);
-	RNA_def_property_array(prop, 3);
+	prop= RNA_def_property(srna, "handle_vertex_size", PROP_INT, PROP_NONE);
+	RNA_def_property_range(prop, 0, 255);
 	RNA_def_property_ui_text(prop, "Handle Vertex Size", "");
 }
 
@@ -1320,10 +1320,10 @@ static void rna_def_userdef_edit(StructRNA *srna)
 	RNA_def_property_boolean_sdna(prop, NULL, "autokey_flag", AUTOKEY_FLAG_AUTOMATKEY);
 	RNA_def_property_ui_text(prop, "Use Visual Keying", "Use Visual keying automatically for constrained objects.");
 
-	prop= RNA_def_property(srna, "new_ipo_curve_type", PROP_ENUM, PROP_NONE);
+	prop= RNA_def_property(srna, "new_interpolation_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, new_ipo_curve_types);
 	RNA_def_property_enum_sdna(prop, NULL, "ipo_new");
-	RNA_def_property_ui_text(prop, "New Ipo Curve Type", "");
+	RNA_def_property_ui_text(prop, "New Interpolation Type", "");
 
 	prop= RNA_def_property(srna, "grease_pencil_manhattan_distance", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "gp_manhattendist");
@@ -1513,6 +1513,12 @@ static void rna_def_userdef_system(StructRNA *srna)
 		{2048, "AUDIO_SAMPLES_2048", "2048", "Set audio mixing buffer size to 2048 samples"},
 		{0, NULL, NULL, NULL}};
 
+	static EnumPropertyItem draw_method_items[] = {
+		{USER_DRAW_TRIPLE, "TRIPLE_BUFFER", "Triple Buffer", "Use a third buffer for minimal redraws at the cost of more memory."},
+		{USER_DRAW_OVERLAP, "OVERLAP", "Overlap", "Redraw all overlapping regions, minimal memory usage but more redraws."},
+		{USER_DRAW_FULL, "FULL", "Full", "Do a full redraw each time, slow, only use for reference or when all else fails."},
+		{0, NULL, NULL, NULL}};
+
 	/* System & OpenGL */
 
 	prop= RNA_def_property(srna, "solid_lights", PROP_COLLECTION, PROP_NONE);
@@ -1591,6 +1597,11 @@ static void rna_def_userdef_system(StructRNA *srna)
 	RNA_def_property_int_sdna(prop, NULL, "texcollectrate");
 	RNA_def_property_range(prop, 1, 3600);
 	RNA_def_property_ui_text(prop, "Texture Collection Rate", "Number of seconds between each run of the GL texture garbage collector.");
+
+	prop= RNA_def_property(srna, "window_draw_method", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "wmdrawmethod");
+	RNA_def_property_enum_items(prop, draw_method_items);
+	RNA_def_property_ui_text(prop, "Window Draw Method", "Drawing method used by the window manager.");
 
 	prop= RNA_def_property(srna, "audio_mixing_buffer", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "mixbufsize");

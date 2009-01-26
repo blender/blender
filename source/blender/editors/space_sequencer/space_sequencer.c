@@ -188,12 +188,12 @@ static void sequencer_header_area_draw(const bContext *C, ARegion *ar)
 static void sequencer_main_area_listener(ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
-	/* context changes */
 	switch(wmn->category) {
 		case NC_SCENE:
 			switch(wmn->data) {
 				case ND_FRAME:
 				case ND_MARKERS:
+				case ND_SEQUENCER:
 					ED_region_tag_redraw(ar);
 					break;
 			}
@@ -222,7 +222,7 @@ void ED_spacetype_sequencer(void)
 	art->init= sequencer_main_area_init;
 	art->draw= drawseqspace;
 	art->listener= sequencer_main_area_listener;
-	art->keymapflag= ED_KEYMAP_VIEW2D;
+	art->keymapflag= ED_KEYMAP_VIEW2D|ED_KEYMAP_FRAMES;
 
 	BLI_addhead(&st->regiontypes, art);
 	
@@ -230,7 +230,7 @@ void ED_spacetype_sequencer(void)
 	art= MEM_callocN(sizeof(ARegionType), "spacetype sequencer region");
 	art->regionid = RGN_TYPE_HEADER;
 	art->minsizey= HEADERY;
-	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D;
+	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D|ED_KEYMAP_FRAMES;
 	
 	art->init= sequencer_header_area_init;
 	art->draw= sequencer_header_area_draw;

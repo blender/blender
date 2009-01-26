@@ -97,6 +97,9 @@ typedef struct wmEvent {
 #define KM_ALT2		64
 #define KM_OSKEY2	128
 
+/* type: defined in wm_event_types.c */
+#define KM_TEXTINPUT	-2
+
 /* val */
 #define KM_ANY		-1
 #define KM_RELEASE	0
@@ -225,7 +228,6 @@ typedef struct wmGesture {
 	/* customdata for circle is recti, (xmin, ymin) is center, xmax radius */
 	/* customdata for lasso is short array */
 } wmGesture;
-
 
 /* ************** custom wmEvent data ************** */
 

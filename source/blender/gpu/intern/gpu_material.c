@@ -306,7 +306,7 @@ void GPU_material_bind_uniforms(GPUMaterial *material, float obmat[][4], float v
 			if(material->dynproperty & DYN_LAMP_VEC) {
 				VECCOPY(lamp->dynvec, lamp->vec);
 				Normalize(lamp->dynvec);
-				VecMulf(lamp->dynvec, -1.0f);
+				VecNegf(lamp->dynvec);
 				Mat4Mul3Vecfl(viewmat, lamp->dynvec);
 			}
 

@@ -82,6 +82,7 @@
 	/***/
 
 #include "GPU_extensions.h"
+#include "Value.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -141,7 +142,7 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 	do
 	{
 		View3D *v3d= (View3D*) area->spacedata.first;
-		RegionView3D *rv3d= ar->regiondata;
+		RegionView3D *rv3d= (RegionView3D*) ar->regiondata;
 
 		// get some preferences
 		SYS_SystemHandle syshandle = SYS_GetSystem();
@@ -151,6 +152,7 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 		bool frameRate = (SYS_GetCommandLineInt(syshandle, "show_framerate", 0) != 0);
 		bool game2ipo = (SYS_GetCommandLineInt(syshandle, "game2ipo", 0) != 0);
 		bool displaylists = (SYS_GetCommandLineInt(syshandle, "displaylists", 0) != 0);
+		bool nodepwarnings = (SYS_GetCommandLineInt(syshandle, "ignore_deprecation_warnings", 0) != 0);
 
 		// create the canvas, rasterizer and rendertools
 		RAS_ICanvas* canvas = new KX_BlenderCanvas(area);
@@ -206,6 +208,8 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 		ketsjiengine->SetAudioDevice(audiodevice);
 		ketsjiengine->SetUseFixedTime(usefixed);
 		ketsjiengine->SetTimingDisplay(frameRate, profile, properties);
+
+		CValue::SetDeprecationWarnings(nodepwarnings);
 
 
 		//lock frame and camera enabled - storing global values
@@ -376,7 +380,9 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 			initGameKeys();
 			initPythonConstraintBinding();
 			initMathutils();
+#ifdef WITH_FFMPEG
 			initVideoTexture();
+#endif
 
 			if (sceneconverter)
 			{
@@ -669,7 +675,9 @@ extern "C" void StartKetsjiShellSimulation(struct ScrArea *area,
 			initGameKeys();
 			initPythonConstraintBinding();
 			initMathutils();
-            initVideoTexture();
+#ifdef WITH_FFMPEG
+			initVideoTexture();
+#endif
 
 			if (sceneconverter)
 			{

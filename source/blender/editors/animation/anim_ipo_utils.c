@@ -26,11 +26,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/* XXX:
- * This file contains some assorted channel-name defines for IPO Curves, which are required
- * under the 'old' Adrcode system. These should be replaced in the near future after all
- * editors are in place, to use the RNA system instead, in conjunction with the RNA-IPO 
- * integration step.
+/* This file contains code for presenting F-Curves and other animation data
+ * in the UI (especially for use in the Animation Editors).
  *
  * -- Joshua Leung, Dec 2008
  */
@@ -38,99 +35,33 @@
 
 #include <stdio.h>
 
+#include "MEM_guardedalloc.h"
+
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
 
-#include "DNA_curve_types.h"
-#include "DNA_ipo_types.h"
+#include "DNA_anim_types.h"
 #include "DNA_key_types.h"
 #include "DNA_object_types.h"
 #include "DNA_space_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_view3d_types.h"
 
-#include "BKE_ipo.h"
+#include "BKE_animsys.h"
 #include "BKE_key.h"
 #include "BKE_utildefines.h"
 
 #include "UI_resources.h"
 #include "ED_anim_api.h"
 
-
-	// XXX should these be exposed too?
-char *getname_ac_ei(int nr);
-char *getname_co_ei(int nr);
-char *getname_ob_ei(int nr, int colipo);
-char *getname_tex_ei(int nr);
-char *getname_mtex_ei(int nr);
-char *getname_mat_ei(int nr);
-char *getname_world_ei(int nr);
-char *getname_seq_ei(int nr);
-char *getname_cu_ei(int nr);
-char *getname_la_ei(int nr);
-char *getname_cam_ei(int nr);
-char *getname_snd_ei(int nr);
-char *getname_fluidsim_ei(int nr);
-char *getname_part_ei(int nr);
-
-
-/* ------------------------- Channel Name Defines ------------------------ */
-
-char *ob_ic_names[OB_TOTNAM] = { "LocX", "LocY", "LocZ", "dLocX", "dLocY", "dLocZ",
-	"RotX", "RotY", "RotZ", "dRotX", "dRotY", "dRotZ",
-	"ScaleX", "ScaleY", "ScaleZ", "dScaleX", "dScaleY", "dScaleZ",
-	"Layer", "Time", "ColR", "ColG", "ColB", "ColA",
-	"FStreng", "FFall", "RDamp", "Damping", "Perm", "FMaxD" };
-
-char *co_ic_names[CO_TOTNAM] = { "Inf", "HeadTail" };
-char *mtex_ic_names[TEX_TOTNAM] = { "OfsX", "OfsY", "OfsZ", "SizeX", "SizeY", "SizeZ",
-	"texR", "texG", "texB", "DefVar", "Col", "Nor", "Var",
-	"Disp" };
-char *tex_ic_names[TE_TOTNAM] = { "NSize", "NDepth", "NType", "Turb", "Vnw1", "Vnw2",
-	"Vnw3", "Vnw4", "MinkMExp", "DistM", "ColT", "iScale",
-	"DistA", "MgType", "MgH", "Lacu", "Oct", "MgOff",
-	"MgGain", "NBase1", "NBase2", "ColR", "ColG", "ColB", "Bright", "Contras"};
-char *ma_ic_names[MA_TOTNAM] = { "R", "G", "B", "SpecR", "SpecG", "SpecB", "MirR",
-	"MirG", "MirB", "Ref", "Alpha", "Emit", "Amb", "Spec",
-	"Hard", "SpTra", "Ior", "Mode", "HaSize", "Translu",
-	"RayMir", "FresMir", "FresMirI", "FresTra", "FresTraI",
-	"TraGlow" };
-char *seq_ic_names[SEQ_TOTNAM] = { "Fac" };
-char *cu_ic_names[CU_TOTNAM] = { "Speed" };
-char *key_ic_names[KEY_TOTNAM] = { "Speed", "Key 1", "Key 2", "Key 3", "Key 4", "Key 5",
-	"Key 6", "Key 7", "Key 8", "Key 9", "Key 10",
-	"Key 11", "Key 12", "Key 13", "Key 14", "Key 15",
-	"Key 16", "Key 17", "Key 18", "Key 19", "Key 20",
-	"Key 21", "Key 22", "Key 23", "Key 24", "Key 25",
-	"Key 26", "Key 27", "Key 28", "Key 29", "Key 30",
-	"Key 31", "Key 32", "Key 33", "Key 34", "Key 35",
-	"Key 36", "Key 37", "Key 38", "Key 39", "Key 40",
-	"Key 41", "Key 42", "Key 43", "Key 44", "Key 45",
-	"Key 46", "Key 47", "Key 48", "Key 49", "Key 50",
-	"Key 51", "Key 52", "Key 53", "Key 54", "Key 55",
-	"Key 56", "Key 57", "Key 58", "Key 59", "Key 60",
-	"Key 61", "Key 62", "Key 63"};
-char *wo_ic_names[WO_TOTNAM] = { "HorR", "HorG", "HorB", "ZenR", "ZenG", "ZenB", "Expos",
-	"Misi", "MisDi", "MisSta", "MisHi", "StarR", "StarB",
-	"StarG", "StarDi", "StarSi" };
-char *la_ic_names[LA_TOTNAM] = { "Energy", "R", "G", "B", "Dist", "SpoSi", "SpoBl",
-	"Quad1", "Quad2", "HaInt" };
-/* yafray: two curve names added, 'Apert' for aperture, and 'FDist' for focal distance */
-char *cam_ic_names[CAM_TOTNAM] = { "Lens", "ClSta", "ClEnd", "Apert", "FDist", "ShiftX", "ShiftY" };
-char *snd_ic_names[SND_TOTNAM] = { "Vol", "Pitch", "Pan", "Atten" };
-char *ac_ic_names[AC_TOTNAM] = {"LocX", "LocY", "LocZ", "ScaleX", "ScaleY",
-	"ScaleZ", "RotX", "RotY", "RotZ", "QuatW", "QuatX", "QuatY", "QuatZ"};
-char *ic_name_empty[1] ={ "" };
-char *fluidsim_ic_names[FLUIDSIM_TOTNAM] = { "Fac-Visc", "Fac-Time",  "GravX","GravY","GravZ",  "VelX","VelY","VelZ", "Active", "AttrForceStr", "AttrForceRad", "VelForceStr", "VelForceRad" };
-char *part_ic_names[PART_TOTNAM] = { "E_Freq", "E_Life", "E_Speed", "E_Angular", "E_Size",
-"Angular", "Size", "Drag", "Brown", "Damp", "Length", "Clump",
-"GravX", "GravY", "GravZ", "KinkAmp", "KinkFreq", "KinkShape", "BBTilt",
-"FStreng", "FFall", "FMaxD", "F2Streng", "F2Fall", "F2MaxD"};
+#include "RNA_access.h"
+#include "RNA_types.h"
 
 /* ----------------------- Getter functions ----------------------- */
 
 /* gets the appropriate icon for the given blocktype */
-int geticon_ipo_blocktype(short blocktype)
+// XXX some of these will be depreceated?
+int geticon_anim_blocktype(short blocktype)
 {
 	switch (blocktype) {
 		case ID_OB:
@@ -160,171 +91,92 @@ int geticon_ipo_blocktype(short blocktype)
 	}
 }
 
-/* get name of ipo-curve
- * 	- icu should be valid pointer
- *	- ob is only needed for a shapekey-related hack
+/* Write into "name" buffer, the name of the property (retrieved using RNA from the curve's settings) 
+ * WARNING: name buffer we're writing to cannot exceed 128 chars (check action_draw.c for details)
  */
-char *getname_ipocurve(IpoCurve *icu, Object *ob)
+// TODO: have an extra var to indicate if prop was valid?
+void getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
 {
-	switch (icu->blocktype) {
-		case ID_OB: 
-			return getname_ob_ei(icu->adrcode, 0); /* dummy 2nd arg */ 
-		case ID_PO:
-			return getname_ac_ei(icu->adrcode);
-		case ID_KE:
-		{
-			static char name[32];
-			Key *key= ob_get_key(ob);
-			KeyBlock *kb= key_get_keyblock(key, icu->adrcode);
+	/* sanity checks */
+	if (name == NULL)
+		return;
+	else if ELEM3(NULL, id, fcu, fcu->rna_path) {
+		if (fcu == NULL)
+			sprintf(name, "<invalid>");
+		else if (fcu->rna_path == NULL)
+			sprintf(name, "<no path>");
+		else /* id == NULL */
+			BLI_snprintf(name, 128, "%s[%d]", fcu->rna_path, fcu->array_index);
+	}
+	else {
+		PointerRNA id_ptr, ptr;
+		PropertyRNA *prop;
+		
+		/* get RNA pointer, and resolve the path */
+		RNA_id_pointer_create(id, &id_ptr);
+		
+		/* try to resolve the path */
+		if (RNA_path_resolve(&id_ptr, fcu->rna_path, &ptr, &prop)) {
+			char *structname=NULL, *propname=NULL, *arrayname=NULL, arrayindbuf[16];
+			PropertyRNA *nameprop;
 			
-			/* only return name if it has been set, otherwise use 
-			 * default method using static string (Key #)
+			/* for now, name will consist of struct-name + property name + array index:
+			 *	i.e. Bone1.Location.X, or Object.Location.X
 			 */
-			if ((kb) && (kb->name[0] != '\0'))
-				return kb->name; /* return keyblock's name  */
 			
-			/* in case keyblock is not named or no key/keyblock was found */
-			sprintf(name, "Key %d", icu->adrcode);
-			return name;
+			/* for structname, we use a custom name if one is available */
+				// xxx we might want an icon from types?
+				// xxx it is hard to differentiate between object and bone channels then, if ob + bone motion occur together...
+			nameprop= RNA_struct_name_property(&ptr);
+			if (nameprop) {
+				/* this gets a string which will need to be freed */
+				structname= RNA_property_string_get_alloc(&ptr, nameprop, NULL, 0);
+			}
+			else
+				structname= (char *)RNA_struct_ui_name(&ptr);
+			
+			/* Property Name is straightforward */
+			propname= (char *)RNA_property_ui_name(&ptr, prop);
+			
+			if (RNA_property_array_length(&ptr, prop)) {
+					// XXX the format of these is not final... we don't know how this will go yet
+				static char *vectoritem[4]= {".X", ".Y", ".Z", ".W"};
+				static char *quatitem[4]= {".W", ".X", ".Y", ".Z"};
+				static char *coloritem[4]= {".R", ".G", ".B", ".A"};
+				
+				int tot= RNA_property_array_length(&ptr, prop);
+				int propsubtype= RNA_property_subtype(&ptr, prop);
+				
+				/* get string to use for array index */
+				if ((tot == 4) && (propsubtype == PROP_ROTATION))
+					arrayname= quatitem[fcu->array_index];
+				else if ( (tot <= 4) && ((propsubtype == PROP_VECTOR) || (propsubtype == PROP_ROTATION)) )
+					arrayname= vectoritem[fcu->array_index];
+				else if ((tot <= 4) && (propsubtype == PROP_COLOR))
+					arrayname= coloritem[fcu->array_index];
+				else {
+					/* we need to write the index to a temp buffer (in py syntax), as it is a number... */
+					sprintf(arrayindbuf, "[%d]", fcu->array_index);
+					arrayname= &arrayindbuf[0];
+				}
+			}
+			
+			/* putting this all together into the buffer */
+				// XXX we need to check for invalid names...
+			BLI_snprintf(name, 128, "%s.%s%s", structname, propname, arrayname); 
+			
+			/* free temp name if nameprop is set */
+			if (nameprop)
+				MEM_freeN(structname);
 		}
-		case ID_MA:
-			return getname_mat_ei(icu->adrcode);
-		case ID_LA:
-			return getname_la_ei(icu->adrcode);
-		case ID_CA:
-			return getname_cam_ei(icu->adrcode);
-		case ID_CU:
-			return getname_cu_ei(icu->adrcode);
-			
-		default: /* fixme - add all of the other types! */
-			return NULL;
+		else {
+			/* invalid path */
+			BLI_snprintf(name, 128, "\"%s[%d]\"", fcu->rna_path, fcu->array_index);
+		}
 	}
 }
 
-
-char *getname_ac_ei(int nr) 
-{
-	switch(nr) {
-		case AC_LOC_X:
-		case AC_LOC_Y:
-		case AC_LOC_Z:
-			return ac_ic_names[nr-1];
-		
-		case AC_SIZE_X:
-		case AC_SIZE_Y:
-		case AC_SIZE_Z:
-			return ac_ic_names[nr-10];
-			
-		case AC_EUL_X:
-		case AC_EUL_Y:
-		case AC_EUL_Z:
-			return ac_ic_names[nr-10];
-		
-		case AC_QUAT_X:
-		case AC_QUAT_Y:
-		case AC_QUAT_Z:
-		case AC_QUAT_W:
-			return ac_ic_names[nr-16];
-		
-		default:
-			return ic_name_empty[0]; /* empty */
-	}
-}
-
-char *getname_co_ei(int nr)
-{
-	switch(nr){
-		case CO_ENFORCE:
-		case CO_HEADTAIL:
-			return co_ic_names[nr-1];
-	}
-	return ic_name_empty[0];
-}
-
-char *getname_ob_ei(int nr, int colipo)
-{
-	if(nr>=OB_LOC_X && nr <= OB_PD_FMAXD) return ob_ic_names[nr-1];
-	
-	return ic_name_empty[0];
-}
-
-char *getname_tex_ei(int nr)
-{
-	if(nr>=TE_NSIZE && nr<=TE_CONTRA) return tex_ic_names[nr-1];
-	
-	return ic_name_empty[0];
-}
-
-char *getname_mtex_ei(int nr)
-{
-	if(nr>=MAP_OFS_X && nr<=MAP_DISP) return mtex_ic_names[nr-1];
-	
-	return ic_name_empty[0];
-}
-
-char *getname_mat_ei(int nr)
-{
-	if(nr>=MA_MAP1) return getname_mtex_ei((nr & (MA_MAP1-1)));
-	else {
-		if(nr>=MA_COL_R && nr<=MA_ADD) return ma_ic_names[nr-1];
-	}
-	return ic_name_empty[0];
-}
-
-char *getname_world_ei(int nr)
-{
-	if(nr>=MA_MAP1) return getname_mtex_ei((nr & (MA_MAP1-1)));
-	else {
-		if(nr>=WO_HOR_R && nr<=WO_STARSIZE) return wo_ic_names[nr-1];
-	}
-	return ic_name_empty[0];
-}
-
-char *getname_seq_ei(int nr)
-{
-	if(nr == SEQ_FAC1) return seq_ic_names[nr-1];
-	return ic_name_empty[0];
-}
-
-char *getname_cu_ei(int nr)
-{
-	if(nr==CU_SPEED) return cu_ic_names[nr-1];
-	return ic_name_empty[0];
-}
-
-char *getname_la_ei(int nr)
-{
-	if(nr>=MA_MAP1) return getname_mtex_ei((nr & (MA_MAP1-1)));
-	else {
-		if(nr>=LA_ENERGY && nr<=LA_HALOINT) return la_ic_names[nr-1];
-	}
-	return ic_name_empty[0];
-}
-
-char *getname_cam_ei(int nr)
-{
-	if(nr>=CAM_LENS && nr<=CAM_SHIFT_Y) return cam_ic_names[nr-1];
-	return ic_name_empty[0];
-}
-
-char *getname_snd_ei(int nr)
-{
-	if(nr>=SND_VOLUME && nr<=SND_ATTEN) return snd_ic_names[nr-1];
-	return ic_name_empty[0];
-}
-
-char *getname_fluidsim_ei(int nr)
-{
-	if(nr <= FLUIDSIM_TOTIPO) return fluidsim_ic_names[nr-1];
-	return ic_name_empty[0];
-}
-char *getname_part_ei(int nr)
-{
-	if(nr <= PART_TOTIPO) return part_ic_names[nr-1];
-	return ic_name_empty[0];
-}
-
-/* ------------------------------- Color Codes for IPO Channels ---------------------------- */
+/* ------------------------------- Color Codes for F-Curve Channels ---------------------------- */
 
 unsigned int ipo_rainbow(int cur, int tot)
 {

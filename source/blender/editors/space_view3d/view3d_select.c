@@ -76,6 +76,7 @@
 
 #include "ED_armature.h"
 #include "ED_curve.h"
+#include "ED_editparticle.h"
 #include "ED_mesh.h"
 #include "ED_object.h"
 #include "ED_screen.h"
@@ -596,7 +597,6 @@ static void do_lasso_select_armature(ViewContext *vc, short mcords[][2], short m
 			else ebone->flag &= ~(BONE_ACTIVE|BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL);
 		}
 	}
-	// XXX countall();	/* abused for flushing selection!!!! */
 }
 
 static void do_lasso_select_facemode(ViewContext *vc, short mcords[][2], short moves, short select)
@@ -658,8 +658,8 @@ void view3d_lasso_select(ViewContext *vc, short mcords[][2], short moves, short 
 			do_lasso_select_facemode(vc, mcords, moves, select);
 		else if(G.f & (G_VERTEXPAINT|G_TEXTUREPAINT|G_WEIGHTPAINT))
 			;
-// XX		else if(G.f & G_PARTICLEEDIT)
-//			PE_do_lasso_select(mcords, moves, select);
+		else if(G.f & G_PARTICLEEDIT)
+			PE_do_lasso_select(vc, mcords, moves, select);
 		else  
 			do_lasso_select_objects(vc, mcords, moves, select);
 	}
@@ -1306,7 +1306,7 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 		return OPERATOR_FINISHED;
 	}
 	else if(obedit==NULL && (G.f & G_PARTICLEEDIT)) {
-// XXX		PE_borderselect();
+		PE_borderselect(&vc, &rect, (val==LEFTMOUSE));
 		return OPERATOR_FINISHED;
 	}
 	
@@ -1321,7 +1321,6 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 		}
 		else if(ELEM(obedit->type, OB_CURVE, OB_SURF)) {
 			do_nurbs_box_select(&vc, &rect, val==LEFTMOUSE);
-//			allqueue(REDRAWVIEW3D, 0);
 		}
 		else if(obedit->type==OB_MBALL) {
 			hits= view3d_opengl_select(&vc, buffer, MAXPICKBUF, &rect);
@@ -1568,7 +1567,7 @@ void VIEW3D_OT_select(wmOperatorType *ot)
 
 static void mesh_circle_doSelectVert(void *userData, EditVert *eve, int x, int y, int index)
 {
-	struct { short select, mval[2]; float radius; } *data = userData;
+	struct {ViewContext *vc; short select, mval[2]; float radius; } *data = userData;
 	int mx = x - data->mval[0], my = y - data->mval[1];
 	float r = sqrt(mx*mx + my*my);
 
@@ -1578,7 +1577,7 @@ static void mesh_circle_doSelectVert(void *userData, EditVert *eve, int x, int y
 }
 static void mesh_circle_doSelectEdge(void *userData, EditEdge *eed, int x0, int y0, int x1, int y1, int index)
 {
-	struct { short select, mval[2]; float radius; } *data = userData;
+	struct {ViewContext *vc; short select, mval[2]; float radius; } *data = userData;
 
 	if (edge_inside_circle(data->mval[0], data->mval[1], (short) data->radius, x0, y0, x1, y1)) {
 		EM_select_edge(eed, data->select);
@@ -1586,13 +1585,12 @@ static void mesh_circle_doSelectEdge(void *userData, EditEdge *eed, int x0, int 
 }
 static void mesh_circle_doSelectFace(void *userData, EditFace *efa, int x, int y, int index)
 {
-	struct { short select, mval[2]; float radius; } *data = userData;
+	struct {ViewContext *vc; short select, mval[2]; float radius; } *data = userData;
 	int mx = x - data->mval[0], my = y - data->mval[1];
 	float r = sqrt(mx*mx + my*my);
-	EditMesh *em= NULL; // XXX
 	
 	if (r<=data->radius) {
-		EM_select_face_fgon(em, efa, data->select);
+		EM_select_face_fgon(data->vc->em, efa, data->select);
 	}
 }
 
@@ -1615,7 +1613,7 @@ static void mesh_circle_select(ViewContext *vc, int selecting, short *mval, floa
 		}
 	}
 	else {
-		struct { short select, mval[2]; float radius; } data;
+		struct {ViewContext *vc; short select, mval[2]; float radius; } data;
 		
 		bbsel= EM_init_backbuf_circle(vc, mval[0], mval[1], (short)(rad+1.0));
 		vc->em= ((Mesh *)vc->obedit->data)->edit_mesh;
@@ -1657,7 +1655,7 @@ static void mesh_circle_select(ViewContext *vc, int selecting, short *mval, floa
 
 static void nurbscurve_circle_doSelect(void *userData, Nurb *nu, BPoint *bp, BezTriple *bezt, int beztindex, int x, int y)
 {
-	struct { short select, mval[2]; float radius; } *data = userData;
+	struct {ViewContext *vc; short select, mval[2]; float radius; } *data = userData;
 	int mx = x - data->mval[0], my = y - data->mval[1];
 	float r = sqrt(mx*mx + my*my);
 
@@ -1677,7 +1675,7 @@ static void nurbscurve_circle_doSelect(void *userData, Nurb *nu, BPoint *bp, Bez
 }
 static void nurbscurve_circle_select(ViewContext *vc, int selecting, short *mval, float rad)
 {
-	struct { short select, mval[2]; float radius; } data;
+	struct {ViewContext *vc; short select, mval[2]; float radius; } data;
 
 	/* set vc-> edit data */
 	
@@ -1692,7 +1690,7 @@ static void nurbscurve_circle_select(ViewContext *vc, int selecting, short *mval
 
 static void latticecurve_circle_doSelect(void *userData, BPoint *bp, int x, int y)
 {
-	struct { short select, mval[2]; float radius; } *data = userData;
+	struct {ViewContext *vc; short select, mval[2]; float radius; } *data = userData;
 	int mx = x - data->mval[0], my = y - data->mval[1];
 	float r = sqrt(mx*mx + my*my);
 
@@ -1702,7 +1700,7 @@ static void latticecurve_circle_doSelect(void *userData, BPoint *bp, int x, int 
 }
 static void lattice_circle_select(ViewContext *vc, int selecting, short *mval, float rad)
 {
-	struct { short select, mval[2]; float radius; } data;
+	struct {ViewContext *vc; short select, mval[2]; float radius; } data;
 
 	/* set vc-> edit data */
 	

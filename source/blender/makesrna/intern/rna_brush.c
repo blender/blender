@@ -46,6 +46,20 @@ static void *rna_Brush_active_texture_get(PointerRNA *ptr)
 	return brush->mtex[(int)brush->texact];
 }
 
+static float rna_Brush_rotation_get(PointerRNA *ptr)
+{
+	Brush *brush= (Brush*)ptr->data;
+	const float conv = 57.295779506;
+	return brush->rot * conv;
+}
+
+static void rna_Brush_rotation_set(PointerRNA *ptr, float v)
+{
+	Brush *brush= (Brush*)ptr->data;
+	const float conv = 0.017453293;
+	brush->rot = v * conv;
+}
+
 #else
 
 void rna_def_brush(BlenderRNA *brna)
@@ -61,6 +75,11 @@ void rna_def_brush(BlenderRNA *brna)
 		{BRUSH_BLEND_DARKEN, "DARKEN", "Darken", "Use darken blending mode while painting."},
 		{BRUSH_BLEND_ERASE_ALPHA, "ERASE_ALPHA", "Erase Alpha", "Erase alpha while painting."},
 		{BRUSH_BLEND_ADD_ALPHA, "ADD_ALPHA", "Add Alpha", "Add alpha while painting."},
+		{0, NULL, NULL, NULL}};
+	static EnumPropertyItem prop_texture_mode_items[] = {
+		{BRUSH_TEX_DRAG, "TEX_DRAG", "Drag", ""},
+		{BRUSH_TEX_TILE, "TEX_TILE", "Tile", ""},
+		{BRUSH_TEX_3D, "TEX_3D", "3D", ""},
 		{0, NULL, NULL, NULL}};
 	static EnumPropertyItem prop_sculpt_tool_items[] = {
 		{SCULPT_TOOL_DRAW, "DRAW", "Draw", ""},
@@ -79,6 +98,11 @@ void rna_def_brush(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "blend", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, prop_blend_items);
 	RNA_def_property_ui_text(prop, "Blending mode", "Brush blending mode.");
+
+	prop= RNA_def_property(srna, "texture_mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "tex_mode");
+	RNA_def_property_enum_items(prop, prop_texture_mode_items);
+	RNA_def_property_ui_text(prop, "Texture Mode", "");
 
 	prop= RNA_def_property(srna, "sculpt_tool", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, prop_sculpt_tool_items);
@@ -112,6 +136,12 @@ void rna_def_brush(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "alpha");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Strength", "The amount of pressure on the brush.");
+
+	prop= RNA_def_property(srna, "rotation", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "rot");
+	RNA_def_property_range(prop, 0, 360);
+	RNA_def_property_float_funcs(prop, "rna_Brush_rotation_get", "rna_Brush_rotation_set", NULL);
+	RNA_def_property_ui_text(prop, "Rotation", "Angle of the brush texture.");
 	
 	/* flag */
 	prop= RNA_def_property(srna, "airbrush", PROP_BOOLEAN, PROP_NONE);
@@ -149,6 +179,10 @@ void rna_def_brush(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "flip_direction", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_DIR_IN);
 	RNA_def_property_ui_text(prop, "Flip Direction", "Move vertices in the opposite direction.");
+
+	prop= RNA_def_property(srna, "space", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_SPACE);
+	RNA_def_property_ui_text(prop, "Space", "Limit brush application to the distance specified by spacing.");
 	
 	/* not exposed in the interface yet
 	prop= RNA_def_property(srna, "fixed_tex", PROP_BOOLEAN, PROP_NONE);

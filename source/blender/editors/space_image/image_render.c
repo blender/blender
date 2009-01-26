@@ -121,7 +121,7 @@ static void imagewindow_progress(ScrArea *sa, RenderResult *rr, volatile rcti *r
 
 /* in render window; display a couple of scanlines of rendered image */
 /* NOTE: called while render, so no malloc allowed! */
-static void imagewindow_progress_display_cb(RenderResult *rr, volatile rcti *rect)
+static void imagewindow_progress_display_cb(void *handle, RenderResult *rr, volatile rcti *rect)
 {
 	if (image_area) {
 		imagewindow_progress(image_area, rr, rect);
@@ -132,7 +132,7 @@ static void imagewindow_progress_display_cb(RenderResult *rr, volatile rcti *rec
 }
 
 /* unused, init_display_cb is called on each render */
-static void imagewindow_clear_display_cb(RenderResult *rr)
+static void imagewindow_clear_display_cb(void *handle, RenderResult *rr)
 {
 	if (image_area) {
 	}
@@ -257,7 +257,7 @@ static ScrArea *imagewindow_set_render_display(bContext *C)
 	return sa;
 }
 
-static void imagewindow_init_display_cb(RenderResult *rr)
+static void imagewindow_init_display_cb(void *handle, RenderResult *rr)
 {
 	bContext *C= NULL; // XXX
 
@@ -313,7 +313,7 @@ void imagewindow_toggle_render(bContext *C)
 }
 
 /* NOTE: called while render, so no malloc allowed! */
-static void imagewindow_renderinfo_cb(RenderStats *rs)
+static void imagewindow_renderinfo_cb(void *handle, RenderStats *rs)
 {
 	if(image_area) {
 		// XXX BIF_make_render_text(rs);
@@ -327,9 +327,10 @@ static void imagewindow_renderinfo_cb(RenderStats *rs)
 
 void imagewindow_render_callbacks(Render *re)
 {
-	RE_display_init_cb(re, imagewindow_init_display_cb);
-	RE_display_draw_cb(re, imagewindow_progress_display_cb);
-	RE_display_clear_cb(re, imagewindow_clear_display_cb);
-	RE_stats_draw_cb(re, imagewindow_renderinfo_cb);	
+	/* XXX fill in correct handler */
+	RE_display_init_cb(re, NULL, imagewindow_init_display_cb);
+	RE_display_draw_cb(re, NULL, imagewindow_progress_display_cb);
+	RE_display_clear_cb(re, NULL, imagewindow_clear_display_cb);
+	RE_stats_draw_cb(re, NULL, imagewindow_renderinfo_cb);	
 }
 

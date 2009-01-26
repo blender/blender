@@ -47,6 +47,7 @@
 #include "BKE_context.h"
 #include "BKE_screen.h"
 
+#include "ED_previewrender.h"
 #include "ED_space_api.h"
 #include "ED_screen.h"
 
@@ -85,7 +86,7 @@ static SpaceLink *node_new(const bContext *C)
 	ar->regiontype= RGN_TYPE_CHANNELS;
 	ar->alignment= RGN_ALIGN_LEFT;
 	
-	ar->v2d.scroll = (V2D_SCROLL_RIGHT|V2D_SCROLL_BOTTOM);
+	//ar->v2d.scroll = (V2D_SCROLL_RIGHT|V2D_SCROLL_BOTTOM);
 	
 	/* main area */
 	ar= MEM_callocN(sizeof(ARegion), "main area for node");
@@ -132,6 +133,34 @@ static void node_free(SpaceLink *sl)
 static void node_init(struct wmWindowManager *wm, ScrArea *sa)
 {
 
+}
+
+static void node_area_listener(ScrArea *sa, wmNotifier *wmn)
+{
+	
+	/* preview renders */
+	switch(wmn->category) {
+		case NC_SCENE:
+			break;
+		case NC_MATERIAL:
+			/* future: add ID check? */
+			if(wmn->data==ND_SHADING)
+				ED_area_tag_refresh(sa);
+			break;
+	}
+}
+
+static void node_area_refresh(const struct bContext *C, struct ScrArea *sa)
+{
+	/* default now: refresh node is starting preview */
+	SpaceNode *snode= sa->spacedata.first;
+	
+	if(snode->treetype==NTREE_SHADER) {
+		if(snode->nodetree) {
+			
+			ED_preview_shader_job(C, sa, snode->id, 100, 100);
+		}
+	}
 }
 
 static SpaceLink *node_duplicate(SpaceLink *sl)
@@ -231,9 +260,6 @@ static void node_main_area_listener(ARegion *ar, wmNotifier *wmn)
 		case NC_MATERIAL:
 			ED_region_tag_redraw(ar);
 			break;
-		case ND_NODES:
-			ED_region_tag_redraw(ar);
-			break;
 	}
 }
 
@@ -269,6 +295,8 @@ void ED_spacetype_node(void)
 	st->duplicate= node_duplicate;
 	st->operatortypes= node_operatortypes;
 	st->keymap= node_keymap;
+	st->listener= node_area_listener;
+	st->refresh= node_area_refresh;
 	st->context= node_context;
 	
 	/* regions: main window */
@@ -285,7 +313,7 @@ void ED_spacetype_node(void)
 	art= MEM_callocN(sizeof(ARegionType), "spacetype node region");
 	art->regionid = RGN_TYPE_HEADER;
 	art->minsizey= HEADERY;
-	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D;
+	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D|ED_KEYMAP_FRAMES;
 	
 	art->init= node_header_area_init;
 	art->draw= node_header_area_draw;
@@ -295,8 +323,8 @@ void ED_spacetype_node(void)
 	/* regions: channels */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype node region");
 	art->regionid = RGN_TYPE_CHANNELS;
-	art->minsizex= 200;
-	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D;
+	art->minsizex= 100;
+	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D|ED_KEYMAP_FRAMES;
 	
 	art->init= node_channel_area_init;
 	art->draw= node_channel_area_draw;

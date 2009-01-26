@@ -82,6 +82,7 @@
 #include "wm_files.h"
 #include "wm_window.h"
 
+#include "ED_previewrender.h"
 #include "ED_space_api.h"
 #include "ED_screen.h"
 #include "ED_util.h"
@@ -92,20 +93,6 @@
 #include "GPU_draw.h"
 
 
-static void initbuttons(void)
-{
-	UI_init();
-	
-//	glClearColor(.7f, .7f, .6f, 0.0);
-	
-	G.font= BMF_GetFont(BMF_kHelvetica12);
-	G.fonts= BMF_GetFont(BMF_kHelvetica10);
-	G.fontss= BMF_GetFont(BMF_kHelveticaBold8);
-	
-//	clear_matcopybuf(); /* XXX */
-	
-//	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
-}
 
 /* XXX */
 static void sound_init_listener(void)
@@ -134,15 +121,21 @@ void WM_init(bContext *C)
 	/* get the default database, plus a wm */
 	WM_read_homefile(C, 0);
 	
-	wm_check(C); /* opens window(s), checks keymaps */
+	UI_init();
 	
-//	initscreen();	/* for (visual) speed, this first, then setscreen */
-	initbuttons();
-//	InitCursorData();
+	/* goes away */
+	G.font= BMF_GetFont(BMF_kHelvetica12);
+	G.fonts= BMF_GetFont(BMF_kHelvetica10);
+	G.fontss= BMF_GetFont(BMF_kHelveticaBold8);
+	
+	//	clear_matcopybuf(); /* XXX */
+	
+	//	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+	
 	sound_init_listener();
 //	init_node_butfuncs();
 	
-// XXX	BIF_preview_init_dbase();
+	ED_preview_init_dbase();
 	
 	GPU_extensions_init();
 	
@@ -215,7 +208,8 @@ void WM_exit(bContext *C)
 #endif
 	
 //	fastshade_free_render();	/* shaded view */
-	free_blender();				/* blender.c, does entire library */
+	ED_preview_free_dbase();	/* frees a Main dbase, before free_blender! */
+	free_blender();				/* blender.c, does entire library and spacetypes */
 //	free_matcopybuf();
 //	free_ipocopybuf();
 	free_actcopybuf();
@@ -260,7 +254,6 @@ void WM_exit(bContext *C)
 
 	UI_exit();
 	BLI_freelistN(&U.themes);
-// XXX	BIF_preview_free_dbase();
 
 	RNA_exit();
 	

@@ -55,6 +55,14 @@ typedef struct ViewContext {
 	short mval[2];
 } ViewContext;
 
+typedef struct ViewDepths {
+	unsigned short w, h;
+	float *depths;
+	double depth_range[2];
+	
+	char damaged;
+} ViewDepths;
+
 
 float *give_cursor(struct Scene *scene, struct View3D *v3d);
 
@@ -67,6 +75,7 @@ float read_cached_depth(struct ViewContext *vc, int x, int y);
 void request_depth_update(struct ViewContext *vc);
 
 /* Projection */
+#define IS_CLIPPED        12000
 
 void project_short(struct ARegion *ar, float *vec, short *adr);
 void project_short_noclip(struct ARegion *ar, float *vec, short *adr);

@@ -52,7 +52,6 @@
 // headers for fluidsim bobj meshes
 #include <stdlib.h>
 #include "LBM_fluidsim.h"
-#include "elbeem.h"
 #include <zlib.h>
 #include <string.h>
 #include <stdio.h>

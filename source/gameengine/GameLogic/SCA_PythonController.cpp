@@ -233,9 +233,11 @@ PyMethodDef SCA_PythonController::Methods[] = {
 	{"getActuator", (PyCFunction) SCA_PythonController::sPyGetActuator, METH_O, (PY_METHODCHAR)SCA_PythonController::GetActuator_doc},
 	{"getSensors", (PyCFunction) SCA_PythonController::sPyGetSensors, METH_NOARGS, (PY_METHODCHAR)SCA_PythonController::GetSensors_doc},
 	{"getSensor", (PyCFunction) SCA_PythonController::sPyGetSensor, METH_O, (PY_METHODCHAR)SCA_PythonController::GetSensor_doc},
-	{"getScript", (PyCFunction) SCA_PythonController::sPyGetScript, METH_NOARGS},
 	{"setScript", (PyCFunction) SCA_PythonController::sPySetScript, METH_O},
+	//Deprecated functions ------>
+	{"getScript", (PyCFunction) SCA_PythonController::sPyGetScript, METH_NOARGS},
 	{"getState", (PyCFunction) SCA_PythonController::sPyGetState, METH_NOARGS},
+	//<----- Deprecated
 	{NULL,NULL} //Sentinel
 };
 
@@ -329,9 +331,27 @@ void SCA_PythonController::Trigger(SCA_LogicManager* logicmgr)
 
 PyObject* SCA_PythonController::_getattr(const STR_String& attr)
 {
+	if (attr == "script") {
+		return PyString_FromString(m_scriptText);
+	}
+	if (attr == "state") {
+		return PyInt_FromLong(m_statemask);
+	}
 	_getattr_up(SCA_IController);
 }
 
+int SCA_PythonController::_setattr(const STR_String& attr, PyObject *value)
+{
+	if (attr == "script") {
+		PyErr_SetString(PyExc_AttributeError, "script is read only, use setScript() to update the script");
+		return 1;
+	}
+	if (attr == "state") {
+		PyErr_SetString(PyExc_AttributeError, "state is read only");
+		return 1;
+	}
+	return SCA_IController::_setattr(attr, value);
+}
 
 
 PyObject* SCA_PythonController::PyGetActuators(PyObject* self)
@@ -420,6 +440,7 @@ SCA_PythonController::PyGetSensors(PyObject* self)
 /* 1. getScript */
 PyObject* SCA_PythonController::PyGetScript(PyObject* self)
 {
+	ShowDeprecationWarning("getScript()", "the script property");
 	return PyString_FromString(m_scriptText);
 }
 
@@ -443,6 +464,7 @@ PyObject* SCA_PythonController::PySetScript(PyObject* self, PyObject* value)
 /* 1. getScript */
 PyObject* SCA_PythonController::PyGetState(PyObject* self)
 {
+	ShowDeprecationWarning("getState()", "the state property");
 	return PyInt_FromLong(m_statemask);
 }
 

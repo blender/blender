@@ -439,6 +439,7 @@ void ED_spacetype_image(void)
 	/* regions: main window */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype image region");
 	art->regionid = RGN_TYPE_WINDOW;
+	art->keymapflag= ED_KEYMAP_FRAMES;
 	art->init= image_main_area_init;
 	art->draw= image_main_area_draw;
 	art->listener= image_main_area_listener;
@@ -450,7 +451,7 @@ void ED_spacetype_image(void)
 	art= MEM_callocN(sizeof(ARegionType), "spacetype image region");
 	art->regionid = RGN_TYPE_HEADER;
 	art->minsizey= HEADERY;
-	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D;
+	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D|ED_KEYMAP_FRAMES;
 	
 	art->init= image_header_area_init;
 	art->draw= image_header_area_draw;

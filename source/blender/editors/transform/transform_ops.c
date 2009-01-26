@@ -73,8 +73,6 @@ static int select_orientation_invoke(bContext *C, wmOperator *op, wmEvent *event
 	
 void TFM_OT_select_orientation(struct wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-	
 	/* identifiers */
 	ot->name   = "Select Orientation";
 	ot->idname = "TFM_OT_select_orientation";
@@ -84,8 +82,7 @@ void TFM_OT_select_orientation(struct wmOperatorType *ot)
 	ot->exec   = select_orientation_exec;
 	ot->poll   = ED_operator_areaactive;
 
-	prop = RNA_def_property(ot->srna, "orientation", PROP_INT, PROP_NONE);
-	RNA_def_property_array(prop, -1);
+	RNA_def_int(ot->srna, "orientation", -1, INT_MIN, INT_MAX, "Orientation", "DOC_BROKEN", INT_MIN, INT_MAX);
 }
 
 static void transformops_exit(bContext *C, wmOperator *op)
@@ -161,13 +158,9 @@ static int transform_exec(bContext *C, wmOperator *op)
 
 static int transform_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	float values[4];
-	
-	RNA_float_get_array(op->ptr, "values", values);
-
 	transformops_data(C, op, event);
 
-	if(!QuatIsNul(values)) {
+	if(RNA_property_is_set(op->ptr, "values")) {
 		return transform_exec(C, op);
 	}
 	else {
@@ -180,7 +173,6 @@ static int transform_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 void TFM_OT_transform(struct wmOperatorType *ot)
 {
-	static const float value[4] = {0, 0, 0, 0};
 	static const float mtx[3][3] = {{1, 0, 0},{0, 1, 0},{0, 0, 1}};
 	static EnumPropertyItem transform_mode_types[] = {
 			{TFM_INIT, "INIT", "Init", ""},
@@ -228,14 +220,11 @@ void TFM_OT_transform(struct wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "mode", transform_mode_types, 0, "Mode", "");
 	RNA_def_int(ot->srna, "options", 0, INT_MIN, INT_MAX, "Options", "", INT_MIN, INT_MAX);
 	
-	RNA_def_float_vector(ot->srna, "values", 4, value, -FLT_MAX, FLT_MAX, "Values", "", -FLT_MAX, FLT_MAX);
+	RNA_def_float_vector(ot->srna, "values", 4, NULL, -FLT_MAX, FLT_MAX, "Values", "", -FLT_MAX, FLT_MAX);
 
 	RNA_def_int(ot->srna, "constraint_orientation", 0, INT_MIN, INT_MAX, "Constraint Orientation", "", INT_MIN, INT_MAX);
 	RNA_def_int(ot->srna, "constraint_mode", 0, INT_MIN, INT_MAX, "Constraint Mode", "", INT_MIN, INT_MAX);
 
-//	prop = RNA_def_property(ot->srna, "constraint_matrix", PROP_FLOAT, PROP_MATRIX);
-//	RNA_def_property_array(prop, 9);
-//	RNA_def_property_float_array_default(prop, (float*)mtx);
 	RNA_def_float_matrix(ot->srna, "constraint_matrix", 9, mtx[0], -FLT_MAX, FLT_MAX, "Constraint Matrix", "", -FLT_MAX, FLT_MAX);
 }
 
@@ -285,7 +274,6 @@ void transform_keymap_for_space(struct wmWindowManager *wm, struct ListBase *key
 			km= WM_keymap_add_item(keymap, "TFM_OT_transform", TKEY, KM_PRESS, 0, 0);
 			RNA_int_set(km->ptr, "mode", TFM_TIME_SLIDE);
 			break;
-		
 		case SPACE_NODE:
 			km= WM_keymap_add_item(keymap, "TFM_OT_transform", GKEY, KM_PRESS, 0, 0);
 			RNA_int_set(km->ptr, "mode", TFM_TRANSLATION);
@@ -295,6 +283,13 @@ void transform_keymap_for_space(struct wmWindowManager *wm, struct ListBase *key
 			
 			km = WM_keymap_add_item(keymap, "TFM_OT_transform", SKEY, KM_PRESS, 0, 0);
 			RNA_int_set(km->ptr, "mode", TFM_RESIZE);
+			break;
+		case SPACE_SEQ:
+			km= WM_keymap_add_item(keymap, "TFM_OT_transform", GKEY, KM_PRESS, 0, 0);
+			RNA_int_set(km->ptr, "mode", TFM_TRANSLATION);
+
+			km= WM_keymap_add_item(keymap, "TFM_OT_transform", EKEY, KM_PRESS, 0, 0);
+			RNA_int_set(km->ptr, "mode", TFM_TIME_EXTEND);
 			break;
 		default:
 			break;

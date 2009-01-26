@@ -13,10 +13,11 @@ private:
 	short int m_savedCollisionFilterGroup;
 	short int m_savedCollisionFilterMask;
 	MT_Scalar m_savedMass;
+	btCollisionShape* m_bulletChildShape;
 
 public:
 
-	KX_BulletPhysicsController (const CcdConstructionInfo& ci, bool dyna);
+	KX_BulletPhysicsController (const CcdConstructionInfo& ci, bool dyna, bool compound);
 	virtual ~KX_BulletPhysicsController ();
 
 	///////////////////////////////////
@@ -40,8 +41,11 @@ public:
 	virtual	void setPosition(const MT_Point3& pos);
 	virtual	void setScaling(const MT_Vector3& scaling);
 	virtual	MT_Scalar	GetMass();
+	virtual	void	SetMass(MT_Scalar newmass);
 	virtual	MT_Vector3	getReactionForce();
 	virtual void	setRigidBody(bool rigid);
+	virtual void    AddCompoundChild(KX_IPhysicsController* child);
+	virtual void    RemoveCompoundChild(KX_IPhysicsController* child);
 
 	virtual void	resolveCombinedVelocities(float linvelX,float linvelY,float linvelZ,float angVelX,float angVelY,float angVelZ);
 

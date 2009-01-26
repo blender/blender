@@ -165,10 +165,8 @@ void seq_free_strip(Strip *strip)
 	MEM_freeN(strip);
 }
 
-void seq_free_sequence(Sequence *seq)
+void seq_free_sequence(Editing *ed, Sequence *seq)
 {
-	//XXX Sequence *last_seq = get_last_seq();
-
 	if(seq->strip) seq_free_strip(seq->strip);
 
 	if(seq->anim) IMB_free_anim(seq->anim);
@@ -180,7 +178,8 @@ void seq_free_sequence(Sequence *seq)
 		sh.free(seq);
 	}*/
 
-	//XXX if(seq==last_seq) set_last_seq(NULL);
+	if (ed->act_seq==seq)
+		ed->act_seq= NULL;
 
 	MEM_freeN(seq);
 }
@@ -194,7 +193,7 @@ void seq_free_editing(Editing *ed)
 		return;
 
 	SEQ_BEGIN(ed, seq) {
-		seq_free_sequence(seq);
+		seq_free_sequence(ed, seq);
 	}
 	SEQ_END
 
@@ -2075,7 +2074,7 @@ static TStripElem* do_handle_speed_effect(Scene *scene, Sequence * seq, int cfra
 	TStripElem * se1 = 0;
 	TStripElem * se2 = 0;
 	
-	sequence_effect_speed_rebuild_map(scene, seq, 0);
+	sequence_effect_speed_rebuild_map(seq, 0);
 	
 	f_cfra = seq->start + s->frameMap[nr];
 	
@@ -2866,16 +2865,13 @@ void free_imbuf_seq_except(Scene *scene, int cfra)
 	SEQ_END
 }
 
-void free_imbuf_seq(Scene *scene)
+void free_imbuf_seq(ListBase * seqbase)
 {
-	Editing *ed= scene->ed;
 	Sequence *seq;
 	TStripElem *se;
 	int a;
-
-	if(ed==NULL) return;
-
-	SEQ_BEGIN(ed, seq) {
+	
+	for(seq= seqbase->first; seq; seq= seq->next) {
 		if(seq->strip) {
 			for(a = 0, se = seq->strip->tstripdata; 
 			    a < seq->strip->len && se; a++, se++) {
@@ -2902,11 +2898,14 @@ void free_imbuf_seq(Scene *scene)
 			if(seq->type==SEQ_MOVIE)
 				free_anim_seq(seq);
 			if(seq->type==SEQ_SPEED) {
-				sequence_effect_speed_rebuild_map(scene, seq, 1);
+				sequence_effect_speed_rebuild_map(seq, 1);
 			}
 		}
+		if(seq->type==SEQ_META) {
+			free_imbuf_seq(&seq->seqbase);
+		}
 	}
-	SEQ_END
+	
 }
 
 static int update_changed_seq_recurs(Scene *scene, Sequence *seq, Sequence *changed_seq, int len_change, int ibuf_change)
@@ -2948,7 +2947,7 @@ static int update_changed_seq_recurs(Scene *scene, Sequence *seq, Sequence *chan
 			if(seq->type == SEQ_MOVIE)
 				free_anim_seq(seq);
 			if(seq->type == SEQ_SPEED) {
-				sequence_effect_speed_rebuild_map(scene, seq, 1);
+				sequence_effect_speed_rebuild_map(seq, 1);
 			}
 		}
 		
@@ -2982,7 +2981,7 @@ void free_imbuf_seq_with_ipo(Scene *scene, struct Ipo *ipo)
 		if(seq->ipo == ipo) {
 			update_changed_seq_and_deps(scene, seq, 0, 1);
 			if(seq->type == SEQ_SPEED) {
-				sequence_effect_speed_rebuild_map(scene, seq, 1);
+				sequence_effect_speed_rebuild_map(seq, 1);
 			}
 		}
 	}
@@ -3064,3 +3063,206 @@ void do_render_seq(RenderResult *rr, int cfra)
 }
 
 #endif
+
+/* seq funcs's for transforming internally
+ notice the difference between start/end and left/right.
+
+ left and right are the bounds at which the sequence is rendered,
+start and end are from the start and fixed length of the sequence.
+*/
+int seq_tx_get_start(Sequence *seq) {
+	return seq->start;
+}
+int seq_tx_get_end(Sequence *seq)
+{
+	return seq->start+seq->len;
+}
+
+int seq_tx_get_final_left(Sequence *seq, int metaclip)
+{
+	if (metaclip && seq->tmp) {
+		/* return the range clipped by the parents range */
+		return MAX2( seq_tx_get_final_left(seq, 0), seq_tx_get_final_left((Sequence *)seq->tmp, 1) );
+	} else {
+		return (seq->start - seq->startstill) + seq->startofs;
+	}
+
+}
+int seq_tx_get_final_right(Sequence *seq, int metaclip)
+{
+	if (metaclip && seq->tmp) {
+		/* return the range clipped by the parents range */
+		return MIN2( seq_tx_get_final_right(seq, 0), seq_tx_get_final_right((Sequence *)seq->tmp, 1) );
+	} else {
+		return ((seq->start+seq->len) + seq->endstill) - seq->endofs;
+	}
+}
+
+void seq_tx_set_final_left(Sequence *seq, int val)
+{
+	if (val < (seq)->start) {
+		seq->startstill = abs(val - (seq)->start);
+				(seq)->startofs = 0;
+	} else {
+		seq->startofs = abs(val - (seq)->start);
+		seq->startstill = 0;
+	}
+}
+
+void seq_tx_set_final_right(Sequence *seq, int val)
+{
+	if (val > (seq)->start + (seq)->len) {
+		seq->endstill = abs(val - (seq->start + (seq)->len));
+		(seq)->endofs = 0;
+	} else {
+		seq->endofs = abs(val - ((seq)->start + (seq)->len));
+		seq->endstill = 0;
+	}
+}
+
+/* used so we can do a quick check for single image seq
+   since they work a bit differently to normal image seq's (during transform) */
+int check_single_seq(Sequence *seq)
+{
+	if ( seq->len==1 && (seq->type == SEQ_IMAGE || seq->type == SEQ_COLOR))
+		return 1;
+	else
+		return 0;
+}
+
+/* use to impose limits when dragging/extending - so impossible situations dont happen
+ * Cant use the SEQ_LEFTSEL and SEQ_LEFTSEL directly because the strip may be in a metastrip */
+void seq_tx_handle_xlimits(Sequence *seq, int leftflag, int rightflag)
+{
+	if(leftflag) {
+		if (seq_tx_get_final_left(seq, 0) >= seq_tx_get_final_right(seq, 0)) {
+			seq_tx_set_final_left(seq, seq_tx_get_final_right(seq, 0)-1);
+		}
+
+		if (check_single_seq(seq)==0) {
+			if (seq_tx_get_final_left(seq, 0) >= seq_tx_get_end(seq)) {
+				seq_tx_set_final_left(seq, seq_tx_get_end(seq)-1);
+			}
+
+			/* dosnt work now - TODO */
+			/*
+			if (seq_tx_get_start(seq) >= seq_tx_get_final_right(seq, 0)) {
+				int ofs;
+				ofs = seq_tx_get_start(seq) - seq_tx_get_final_right(seq, 0);
+				seq->start -= ofs;
+				seq_tx_set_final_left(seq, seq_tx_get_final_left(seq, 0) + ofs );
+			}*/
+
+		}
+	}
+
+	if(rightflag) {
+		if (seq_tx_get_final_right(seq, 0) <=  seq_tx_get_final_left(seq, 0)) {
+			seq_tx_set_final_right(seq, seq_tx_get_final_left(seq, 0)+1);
+		}
+
+		if (check_single_seq(seq)==0) {
+			if (seq_tx_get_final_right(seq, 0) <= seq_tx_get_start(seq)) {
+				seq_tx_set_final_right(seq, seq_tx_get_start(seq)+1);
+			}
+		}
+	}
+
+	/* sounds cannot be extended past their endpoints */
+	if (seq->type == SEQ_RAM_SOUND || seq->type == SEQ_HD_SOUND) {
+		seq->startstill= 0;
+		seq->endstill= 0;
+	}
+}
+
+void fix_single_seq(Sequence *seq)
+{
+	int left, start, offset;
+	if (!check_single_seq(seq))
+		return;
+
+	/* make sure the image is always at the start since there is only one,
+	   adjusting its start should be ok */
+	left = seq_tx_get_final_left(seq, 0);
+	start = seq->start;
+	if (start != left) {
+		offset = left - start;
+		seq_tx_set_final_left( seq, seq_tx_get_final_left(seq, 0) - offset );
+		seq_tx_set_final_right( seq, seq_tx_get_final_right(seq, 0) - offset );
+		seq->start += offset;
+	}
+}
+
+int seq_tx_test(Sequence * seq)
+{
+	return (seq->type < SEQ_EFFECT) || (get_sequence_effect_num_inputs(seq->type) == 0);
+}
+
+int seq_test_overlap(ListBase * seqbasep, Sequence *test)
+{
+	Sequence *seq;
+
+	seq= seqbasep->first;
+	while(seq) {
+		if(seq!=test) {
+			if(test->machine==seq->machine) {
+				if( (test->enddisp <= seq->startdisp) || (test->startdisp >= seq->enddisp) );
+				else return 1;
+			}
+		}
+		seq= seq->next;
+	}
+	return 0;
+}
+
+
+static void seq_translate(Sequence *seq, int delta)
+{
+	seq->start += delta;
+	if(seq->type==SEQ_META) {
+		Sequence *seq_child;
+		for(seq_child= seq->seqbase.first; seq_child; seq_child= seq_child->next) {
+			seq_translate(seq_child, delta);
+		}
+	}
+
+	calc_sequence_disp(seq);
+}
+
+/* return 0 if there werent enough space */
+int shuffle_seq(ListBase * seqbasep, Sequence *test)
+{
+	int orig_machine= test->machine;
+	test->machine++;
+	calc_sequence(test);
+	while( seq_test_overlap(seqbasep, test) ) {
+		if(test->machine >= MAXSEQ) {
+			break;
+		}
+		test->machine++;
+		calc_sequence(test); // XXX - I dont think this is needed since were only moving vertically, Campbell.
+	}
+
+	
+	if(test->machine >= MAXSEQ) {
+		/* Blender 2.4x would remove the strip.
+		 * nicer to move it to the end */
+
+		Sequence *seq;
+		int new_frame= test->enddisp;
+
+		for(seq= seqbasep->first; seq; seq= seq->next) {
+			if (seq->machine == orig_machine)
+				new_frame = MAX2(new_frame, seq->enddisp);
+		}
+
+		test->machine= orig_machine;
+		new_frame = new_frame + (test->start-test->startdisp); /* adjust by the startdisp */
+		seq_translate(test, new_frame - test->start);
+
+		calc_sequence(test);
+		return 0;
+	} else {
+		return 1;
+	}
+}

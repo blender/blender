@@ -155,7 +155,7 @@ void ANIM_deselect_anim_channels (void *data, short datatype, short test, short 
 	
 	/* filter data */
 	filter= ANIMFILTER_VISIBLE;
-	ANIM_animdata_filter(&anim_data, filter, data, datatype);
+	ANIM_animdata_filter(NULL, &anim_data, filter, data, datatype);
 	
 	/* See if we should be selecting or deselecting */
 	if (test) {
@@ -646,7 +646,7 @@ static void setflag_anim_channels (bAnimContext *ac, short setting, short mode)
 	
 	/* filter data */
 	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CHANNELS | ANIMFILTER_SEL);
-	ANIM_animdata_filter(&anim_data, filter, ac->data, ac->datatype);
+	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	/* affect selected channels */
 	for (ale= anim_data.first; ale; ale= ale->next) {
@@ -840,7 +840,7 @@ static void borderselect_anim_channels (bAnimContext *ac, rcti *rect, short sele
 	
 	/* filter data */
 	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CHANNELS);
-	ANIM_animdata_filter(&anim_data, filter, ac->data, ac->datatype);
+	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	/* loop over data, doing border select */
 	for (ale= anim_data.first; ale; ale= ale->next) {
@@ -963,7 +963,7 @@ static void mouse_anim_channels (bAnimContext *ac, float x, int channel_index, s
 	/* get the channel that was clicked on */
 		/* filter channels */
 	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CHANNELS);
-	filter= ANIM_animdata_filter(&anim_data, filter, ac->data, ac->datatype);
+	filter= ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 		/* get channel from index */
 	ale= BLI_findlink(&anim_data, channel_index);

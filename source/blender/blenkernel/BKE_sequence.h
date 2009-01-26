@@ -137,7 +137,7 @@ struct SeqEffectHandle {
 /* sequence.c */
 
 // extern
-void seq_free_sequence(struct Sequence *seq);
+void seq_free_sequence(struct Editing *ed, struct Sequence *seq);
 void seq_free_strip(struct Strip *strip);
 void seq_free_editing(struct Editing *ed);
 char *give_seqname(struct Sequence *seq);
@@ -161,8 +161,24 @@ void update_changed_seq_and_deps(struct Scene *scene, struct Sequence *changed_s
 /* seqeffects.c */
 // intern?
 struct SeqEffectHandle get_sequence_blend(struct Sequence *seq);
-void sequence_effect_speed_rebuild_map(struct Scene *scene, struct Sequence *seq, int force);
+void sequence_effect_speed_rebuild_map(struct Sequence *seq, int force);
 
 // extern
 struct SeqEffectHandle get_sequence_effect(struct Sequence *seq);
 int get_sequence_effect_num_inputs(int seq_type);
+
+/* for transform but also could use elsewhere */
+int seq_tx_get_start(struct Sequence *seq);
+int seq_tx_get_end(struct Sequence *seq);
+int seq_tx_get_final_left(struct Sequence *seq, int metaclip);
+int seq_tx_get_final_right(struct Sequence *seq, int metaclip);
+void seq_tx_set_final_left(struct Sequence *seq, int val);
+void seq_tx_set_final_right(struct Sequence *seq, int val);
+void seq_tx_handle_xlimits(struct Sequence *seq, int leftflag, int rightflag);
+int seq_tx_test(struct Sequence * seq);
+int check_single_seq(struct Sequence *seq);
+void fix_single_seq(struct Sequence *seq);
+int seq_test_overlap(struct ListBase * seqbasep, struct Sequence *test);
+int shuffle_seq(struct ListBase * seqbasep, struct Sequence *test);
+void free_imbuf_seq(struct ListBase * seqbasep);
+

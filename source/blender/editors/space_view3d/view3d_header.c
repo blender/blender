@@ -63,6 +63,7 @@
 #include "BKE_utildefines.h" /* for VECCOPY */
 
 #include "ED_armature.h"
+#include "ED_editparticle.h"
 #include "ED_object.h"
 #include "ED_mesh.h"
 #include "ED_util.h"
@@ -144,7 +145,7 @@ void ED_view3d_exit_paint_modes(bContext *C)
 
 //	if(G.f & G_TEXTUREPAINT) set_texturepaint();
 //	if(G.f & G_SCULPTMODE) set_sculptmode();
-//	if(G.f & G_PARTICLEEDIT) PE_set_particle_edit();
+	if(G.f & G_PARTICLEEDIT) PE_set_particle_edit(CTX_data_scene(C));
 	
 	G.f &= ~(G_VERTEXPAINT+G_TEXTUREPAINT+G_WEIGHTPAINT+G_SCULPTMODE+G_PARTICLEEDIT);
 }
@@ -4969,14 +4970,14 @@ static uiBlock *view3d_faceselmenu(bContext *C, uiMenuBlockHandle *handle, void 
 
 void do_view3d_select_particlemenu(bContext *C, void *arg, int event)
 {
-#if 0
+
 	/* events >= 6 are registered bpython scripts */
 #ifndef DISABLE_PYTHON
-	if (event >= 6) BPY_menu_do_python(PYMENU_FACESELECT, event - 6);
+// XXX	if (event >= 6) BPY_menu_do_python(PYMENU_FACESELECT, event - 6);
 #endif
 	switch(event) {
 		case 0:
-			PE_borderselect();
+			// XXX PE_borderselect();
 			break;
 		case 1:
 			PE_deselectall();
@@ -4997,8 +4998,6 @@ void do_view3d_select_particlemenu(bContext *C, void *arg, int event)
 			PE_select_linked();
 			break;
 	}
-	allqueue(REDRAWVIEW3D, 0);
-#endif
 }
 
 static uiBlock *view3d_select_particlemenu(bContext *C, uiMenuBlockHandle *handle, void *arg_unused)
@@ -5047,7 +5046,7 @@ static uiBlock *view3d_select_particlemenu(bContext *C, uiMenuBlockHandle *handl
 
 void do_view3d_particle_showhidemenu(bContext *C, void *arg, int event)
 {
-#if 0
+
 	switch(event) {
 	case 1: /* show hidden */
 		PE_hide(0);
@@ -5059,8 +5058,6 @@ void do_view3d_particle_showhidemenu(bContext *C, void *arg, int event)
 		PE_hide(1);
 		break;
 	}
-	allqueue(REDRAWVIEW3D, 0);
-#endif
 }
 
 static uiBlock *view3d_particle_showhidemenu(bContext *C, uiMenuBlockHandle *handle, void *arg_unused)
@@ -5124,7 +5121,7 @@ uiBlock *view3d_particlemenu(bContext *C, uiMenuBlockHandle *handle, void *arg_u
 {
 	Scene *scene= CTX_data_scene(C);
 	uiBlock *block;
-// XXX	ParticleEditSettings *pset= PE_settings();
+	ParticleEditSettings *pset= PE_settings(scene);
 	short yco= 0, menuwidth= 120;
 	
 	block= uiBeginBlock(C, handle->region, "view3d_particlemenu", UI_EMBOSSP, UI_HELV);
@@ -5133,7 +5130,7 @@ uiBlock *view3d_particlemenu(bContext *C, uiMenuBlockHandle *handle, void *arg_u
 	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Particle Edit Properties|N", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
-//	uiDefIconTextBut(block, BUTM, 1, (pset->flag & PE_X_MIRROR)? ICON_CHECKBOX_HLT: ICON_CHECKBOX_DEHLT, "X-Axis Mirror Editing", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
+	uiDefIconTextBut(block, BUTM, 1, (pset->flag & PE_X_MIRROR)? ICON_CHECKBOX_HLT: ICON_CHECKBOX_DEHLT, "X-Axis Mirror Editing", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Mirror|Ctrl M", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
@@ -5359,7 +5356,7 @@ static void do_view3d_buttons(bContext *C, void *arg, int event)
 				ED_view3d_exit_paint_modes(C);
 				if(obedit) ED_object_exit_editmode(C, EM_FREEUNDO|EM_FREEUNDO|EM_WAITCURSOR);	/* exit editmode and undo */
 					
-				WM_operator_name_call(C, "SCULPT_OT_toggle_mode", WM_OP_EXEC_REGION_WIN, NULL);
+				WM_operator_name_call(C, "SCULPT_OT_sculptmode_toggle", WM_OP_EXEC_REGION_WIN, NULL);
 			}
 		}
 		else if (v3d->modeselect == V3D_VERTEXPAINTMODE_SEL) {
@@ -5406,7 +5403,7 @@ static void do_view3d_buttons(bContext *C, void *arg, int event)
 				ED_view3d_exit_paint_modes(C);
 				if(obedit) ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);	/* exit editmode and undo */
 
-// XXX				PE_set_particle_edit();
+				PE_set_particle_edit(scene);
 			}
 		}
 		allqueue(REDRAWVIEW3D, 1);

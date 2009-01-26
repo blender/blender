@@ -225,6 +225,17 @@ void convertViewVec(TransInfo *t, float *vec, short dx, short dy)
 		vec[1]= (v2d->cur.ymax-v2d->cur.ymin)*(dy)/divy;
 		vec[2]= 0.0f;
 	}
+	else if(t->spacetype==SPACE_SEQ) {
+		View2D *v2d = &t->ar->v2d;
+		float divx, divy;
+
+		divx= v2d->mask.xmax-v2d->mask.xmin;
+		divy= v2d->mask.ymax-v2d->mask.ymin;
+
+		vec[0]= (v2d->cur.xmax-v2d->cur.xmin)*(dx)/divx;
+		vec[1]= (v2d->cur.ymax-v2d->cur.ymin)*(dy)/divy;
+		vec[2]= 0.0f;
+	}
 }
 
 void projectIntView(TransInfo *t, float *vec, int *adr)
@@ -247,6 +258,13 @@ void projectIntView(TransInfo *t, float *vec, int *adr)
 		int out[2] = {0, 0};
 		
 		UI_view2d_view_to_region((View2D *)t->view, vec[0], vec[1], out, out+1); 
+		adr[0]= out[0];
+		adr[1]= out[1];
+	}
+	else if(t->spacetype==SPACE_SEQ) { /* XXX not tested yet, but should work */
+		int out[2] = {0, 0};
+		
+		UI_view2d_view_to_region((View2D *)t->view, vec[0], vec[1], out, out+1);
 		adr[0]= out[0];
 		adr[1]= out[1];
 	}
@@ -338,6 +356,10 @@ static void viewRedrawForce(bContext *C, TransInfo *t)
 	{
 		//ED_area_tag_redraw(t->sa);
 		WM_event_add_notifier(C, NC_SCENE|ND_NODES, NULL);
+	}
+	else if(t->spacetype == SPACE_SEQ)
+	{
+		WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, NULL);
 	}
 #if 0 // TRANSFORM_FIX_ME
 	else if (t->spacetype==SPACE_IMAGE) {
@@ -973,7 +995,6 @@ void initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 {
 	int mode    = RNA_int_get(op->ptr, "mode");
 	int options = RNA_int_get(op->ptr, "options");
-	float values[4];
 
 	/* added initialize, for external calls to set stuff in TransInfo, like undo string */
 
@@ -1100,12 +1121,12 @@ void initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 		break;
 	}
 	
-	RNA_float_get_array(op->ptr, "values", values);
-	
 	/* overwrite initial values if operator supplied a non-null vector */
-	if (!QuatIsNul(values))
+	if (RNA_property_is_set(op->ptr, "values"))
 	{
-		QUATCOPY(t->values, values); /* vec-4 */
+		float values[4];
+		RNA_float_get_array(op->ptr, "values", values);
+		QUATCOPY(t->values, values);
 	}
 
 	/* Constraint init from operator */
@@ -1114,7 +1135,6 @@ void initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 		
 		if (t->con.mode & CON_APPLY)
 		{
-			//int options = RNA_int_get(op->ptr, "options");
 			RNA_float_get_array(op->ptr, "constraint_matrix", (float*)t->spacemtx);
 			
 			setUserConstraint(t, t->con.mode, "%s");		
