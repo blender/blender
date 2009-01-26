@@ -120,6 +120,8 @@ void		WM_event_window_timer_sleep(struct wmWindow *win, struct wmTimer *timer, i
 int			WM_menu_invoke			(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
 			/* invoke callback, confirm menu + exec */
 int			WM_operator_confirm		(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
+		/* invoke callback, file selector "filename" unset + exec */
+int			WM_operator_filesel		(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
 			/* poll callback, context checks */
 int			WM_operator_winactive	(struct bContext *C);
 

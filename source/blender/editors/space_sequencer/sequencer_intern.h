@@ -21,12 +21,15 @@
  * All rights reserved.
  *
  * 
- * Contributor(s): Blender Foundation
+ * Contributor(s): Blender Foundation, Campbell Barton
  *
  * ***** END GPL LICENSE BLOCK *****
  */
 #ifndef ED_SEQUENCER_INTERN_H
 #define ED_SEQUENCER_INTERN_H
+
+#include "RNA_access.h"
+#include "DNA_sequence_types.h"
 
 /* internal exports only */
 
@@ -58,8 +61,11 @@ void deselect_all_seq(struct Scene *scene);
 void recurs_sel_seq(struct Sequence *seqm);
 int event_to_efftype(int event);
 void set_last_seq(struct Scene *scene, struct Sequence *seq);
-int seq_effect_find_selected(struct Scene *scene, struct Sequence *activeseq, int type, struct Sequence **selseq1, struct Sequence **selseq2, struct Sequence **selseq3);
+int seq_effect_find_selected(struct Scene *scene, struct Sequence *activeseq, int type, struct Sequence **selseq1, struct Sequence **selseq2, struct Sequence **selseq3, char **error_str);
 struct Sequence *alloc_sequence(struct ListBase *lb, int cfra, int machine);
+
+/* externs */
+extern EnumPropertyItem sequencer_prop_effect_types[];
 
 /* operators */
 struct wmOperatorType;
@@ -93,11 +99,11 @@ void SEQUENCER_OT_select_invert(struct wmOperatorType *ot);
 
 
 /* sequencer_select.c */
-void SEQUENCER_OT_add_color_strip(struct wmOperatorType *ot);
 void SEQUENCER_OT_add_scene_strip(struct wmOperatorType *ot);
 void SEQUENCER_OT_add_movie_strip(struct wmOperatorType *ot);
 void SEQUENCER_OT_add_sound_strip(struct wmOperatorType *ot);
 void SEQUENCER_OT_add_image_strip(struct wmOperatorType *ot);
+void SEQUENCER_OT_add_effect_strip(struct wmOperatorType *ot);
 
 /* RNA enums, just to be more readable */
 enum {

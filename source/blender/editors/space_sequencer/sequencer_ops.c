@@ -92,11 +92,11 @@ void sequencer_operatortypes(void)
 	WM_operatortype_append(SEQUENCER_OT_borderselect);
 	
 	/* sequencer_add.c */
-	WM_operatortype_append(SEQUENCER_OT_add_color_strip);
 	WM_operatortype_append(SEQUENCER_OT_add_scene_strip);
 	WM_operatortype_append(SEQUENCER_OT_add_movie_strip);
 	WM_operatortype_append(SEQUENCER_OT_add_sound_strip);
 	WM_operatortype_append(SEQUENCER_OT_add_image_strip);
+	WM_operatortype_append(SEQUENCER_OT_add_effect_strip);
 }
 
 

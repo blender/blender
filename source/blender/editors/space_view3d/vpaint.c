@@ -552,7 +552,7 @@ void vpaint_dogamma(Scene *scene)
 	Object *ob;
 	float igam, fac;
 	int a, temp;
-	char *cp, gamtab[256];
+	unsigned char *cp, gamtab[256];
 
 	if((G.f & G_VERTEXPAINT)==0) return;
 
@@ -574,7 +574,7 @@ void vpaint_dogamma(Scene *scene)
 	}
 
 	a= 4*me->totface;
-	cp= (char *)me->mcol;
+	cp= (unsigned char *)me->mcol;
 	while(a--) {
 		
 		cp[1]= gamtab[ cp[1] ];

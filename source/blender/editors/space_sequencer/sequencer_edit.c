@@ -104,6 +104,32 @@ static int okee() {return 0;}
 
 
 /* XXX */
+/* RNA Enums, used in multiple files */
+EnumPropertyItem sequencer_prop_effect_types[] = {
+	{SEQ_CROSS, "CROSS", "Crossfade", "Crossfade effect strip type"},
+	{SEQ_ADD, "ADD", "Add", "Add effect strip type"},
+	{SEQ_SUB, "SUBTRACT", "Subtract", "Subtract effect strip type"},
+	{SEQ_ALPHAOVER, "ALPHA_OVER", "Alpha Over", "Alpha Over effect strip type"},
+	{SEQ_ALPHAUNDER, "ALPHA_UNDER", "Alpha Under", "Alpha Under effect strip type"},
+	{SEQ_GAMCROSS, "GAMMA_CROSS", "Gamma Cross", "Gamma Cross effect strip type"},
+	{SEQ_MUL, "MULTIPLY", "Multiply", "Multiply effect strip type"},
+	{SEQ_OVERDROP, "ALPHA_OVER_DROP", "Alpha Over Drop", "Alpha Over Drop effect strip type"},
+	{SEQ_PLUGIN, "PLUGIN", "Plugin", "Plugin effect strip type"},
+	{SEQ_WIPE, "WIPE", "Wipe", "Wipe effect strip type"},
+	{SEQ_GLOW, "GLOW", "Glow", "Glow effect strip type"},
+	{SEQ_TRANSFORM, "TRANSFORM", "Transform", "Transform effect strip type"},
+	{SEQ_COLOR, "COLOR", "Color", "Color effect strip type"},
+	{SEQ_SPEED, "SPEED", "Speed", "Color effect strip type"},
+	{0, NULL, NULL, NULL}
+};
+
+/* mute operator */
+EnumPropertyItem sequencer_prop_operate_types[] = { /* better name? */
+	{SEQ_SELECTED, "SELECTED", "Selected", ""},
+	{SEQ_UNSELECTED, "UNSELECTED", "Unselected ", ""},
+	{0, NULL, NULL, NULL}
+};
+
 
 typedef struct TransSeq {
 	int start, machine;
@@ -696,20 +722,20 @@ void change_sequence(Scene *scene)
 
 }
 
-int seq_effect_find_selected(Scene *scene, Sequence *activeseq, int type, Sequence **selseq1, Sequence **selseq2, Sequence **selseq3)
+int seq_effect_find_selected(Scene *scene, Sequence *activeseq, int type, Sequence **selseq1, Sequence **selseq2, Sequence **selseq3, char **error_str)
 {
 	Editing *ed = scene->ed;
 	Sequence *seq1= 0, *seq2= 0, *seq3= 0, *seq;
 	
+	*error_str= NULL;
+
 	if (!activeseq)
 		seq2= get_last_seq(scene);
 
 	for(seq=ed->seqbasep->first; seq; seq=seq->next) {
 		if(seq->flag & SELECT) {
-			if (seq->type == SEQ_RAM_SOUND
-			    || seq->type == SEQ_HD_SOUND) { 
-				error("Can't apply effects to "
-				      "audio sequence strips");
+			if (seq->type == SEQ_RAM_SOUND || seq->type == SEQ_HD_SOUND) {
+				*error_str= "Can't apply effects to audio sequence strips";
 				return 0;
 			}
 			if((seq != activeseq) && (seq != seq2)) {
@@ -717,8 +743,8 @@ int seq_effect_find_selected(Scene *scene, Sequence *activeseq, int type, Sequen
                                 else if(seq1==0) seq1= seq;
                                 else if(seq3==0) seq3= seq;
                                 else {
-                                       error("Can't apply effect to more than 3 sequence strips");
-                                       return 0;
+									*error_str= "Can't apply effect to more than 3 sequence strips";
+									return 0;
                                 }
 			}
 		}
@@ -736,23 +762,26 @@ int seq_effect_find_selected(Scene *scene, Sequence *activeseq, int type, Sequen
 	switch(get_sequence_effect_num_inputs(type)) {
 	case 0:
 		*selseq1 = *selseq2 = *selseq3 = 0;
-		return 1;
+		return 1; /* succsess */
 	case 1:
 		if(seq2==0)  {
-			error("Need at least one selected sequence strip");
+			*error_str= "Need at least one selected sequence strip";
 			return 0;
 		}
 		if(seq1==0) seq1= seq2;
 		if(seq3==0) seq3= seq2;
 	case 2:
 		if(seq1==0 || seq2==0) {
-			error("Need 2 selected sequence strips");
+			*error_str= "Need 2 selected sequence strips";
 			return 0;
 		}
 		if(seq3==0) seq3= seq2;
 	}
 	
-	if (seq1==NULL && seq2==NULL && seq3==NULL) return 0;
+	if (seq1==NULL && seq2==NULL && seq3==NULL) {
+		*error_str= "TODO: in what cases does this happen?";
+		return 0;
+	}
 	
 	*selseq1= seq1;
 	*selseq2= seq2;
@@ -765,17 +794,21 @@ void reassign_inputs_seq_effect(Scene *scene)
 {
 	Editing *ed= scene->ed;
 	Sequence *seq1, *seq2, *seq3, *last_seq = get_last_seq(scene);
+	char *error_msg;
 
 	if(last_seq==0 || !(last_seq->type & SEQ_EFFECT)) return;
 	if(ed==NULL) return;
 
-	if(!seq_effect_find_selected(scene, last_seq, last_seq->type, &seq1, &seq2, &seq3))
+	if(!seq_effect_find_selected(scene, last_seq, last_seq->type, &seq1, &seq2, &seq3, &error_msg)) {
+		//BKE_report(op->reports, RPT_ERROR, error_msg); // XXX operatorify
 		return;
-
+	}
 	/* see reassigning would create a cycle */
-	if(seq_is_predecessor(seq1, last_seq) || seq_is_predecessor(seq2, last_seq) ||
-	   seq_is_predecessor(seq3, last_seq)) {
-		error("Can't reassign inputs: no cycles allowed");
+	if(	seq_is_predecessor(seq1, last_seq) ||
+		seq_is_predecessor(seq2, last_seq) ||
+		seq_is_predecessor(seq3, last_seq)
+	) {
+		//BKE_report(op->reports, RPT_ERROR, "Can't reassign inputs: no cycles allowed"); // XXX operatorify
 	   	return;
 	}
 	
@@ -1407,14 +1440,6 @@ void seq_snap_menu(Scene *scene)
 
 /* Operator functions */
 
-
-/* mute operator */
-static EnumPropertyItem prop_set_mute_types[] = {
-	{SEQ_SELECTED, "SELECTED", "Selected", ""},
-	{SEQ_UNSELECTED, "UNSELECTED", "Unselected ", ""},
-	{0, NULL, NULL, NULL}
-};
-
 static int sequencer_mute_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
@@ -1459,7 +1484,7 @@ void SEQUENCER_OT_mute(struct wmOperatorType *ot)
 	ot->poll= ED_operator_sequencer_active;
 	ot->flag= OPTYPE_REGISTER;
 
-	RNA_def_enum(ot->srna, "type", prop_set_mute_types, SEQ_SELECTED, "Type", "");
+	RNA_def_enum(ot->srna, "type", sequencer_prop_operate_types, SEQ_SELECTED, "Type", "");
 }
 
 
@@ -1508,7 +1533,7 @@ void SEQUENCER_OT_unmute(struct wmOperatorType *ot)
 	ot->poll= ED_operator_sequencer_active;
 	ot->flag= OPTYPE_REGISTER;
 
-	RNA_def_enum(ot->srna, "type", prop_set_mute_types, SEQ_SELECTED, "Type", "");
+	RNA_def_enum(ot->srna, "type", sequencer_prop_operate_types, SEQ_SELECTED, "Type", "");
 }
 
 
@@ -1842,7 +1867,8 @@ static int sequencer_delete_exec(bContext *C, wmOperator *op)
 	}
 
 	ED_undo_push(C, "Delete Strip(s), Sequencer");
-	ED_area_tag_redraw(CTX_wm_area(C));
+	//ED_area_tag_redraw(CTX_wm_area(C));
+	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, NULL); /* redraw other sequencer views */
 	
 	return OPERATOR_FINISHED;
 }

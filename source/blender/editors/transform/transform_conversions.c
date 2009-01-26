@@ -2326,7 +2326,7 @@ void flushTransSeq(TransInfo *t)
 
 		switch (tdsq->sel_flag) {
 		case SELECT:
-			if (seq->type != SEQ_META) /* for meta's, their children move */
+			if (seq->type != SEQ_META && seq_tx_test(seq)) /* for meta's, their children move */
 				seq->start= new_frame - tdsq->start_offset;
 			
 			if (seq->depth==0) {
@@ -2352,7 +2352,7 @@ void flushTransSeq(TransInfo *t)
 				 * children are ALWAYS transformed first
 				 * so we dont need to do this in another loop. */
 				calc_sequence(seq);
-
+				
 				/* test overlap, displayes red outline */
 				seq->flag &= ~SEQ_OVERLAP;
 				if( seq_test_overlap(seqbasep, seq) ) {
@@ -3317,7 +3317,7 @@ static void SeqTransInfo(TransInfo *t, Sequence *seq, int *recursive, int *count
 		int left= seq_tx_get_final_left(seq, 0);
 		int right= seq_tx_get_final_right(seq, 0);
 
-		if (seq->depth == 0 && ((seq->flag & SELECT) == 0 || (seq->flag & SEQ_LOCK) || (seq_tx_test(seq) == 0))) {
+		if (seq->depth == 0 && ((seq->flag & SELECT) == 0 || (seq->flag & SEQ_LOCK))) {
 			*recursive= 0;
 			*count= 0;
 			*flag= 0;
@@ -3359,7 +3359,7 @@ static void SeqTransInfo(TransInfo *t, Sequence *seq, int *recursive, int *count
 			/* Count */
 
 			/* Non nested strips (resect selection and handles) */
-			if ((seq->flag & SELECT) == 0 || (seq->flag & SEQ_LOCK) || (seq_tx_test(seq) == 0)) {
+			if ((seq->flag & SELECT) == 0 || (seq->flag & SEQ_LOCK)) {
 				*recursive= 0;
 				*count= 0;
 				*flag= 0;
@@ -3564,14 +3564,14 @@ static void createTransSeqData(bContext *C, TransInfo *t)
 
 	count = SeqTransCount(t, ed->seqbasep, 0);
 
+	/* allocate memory for data */
+	t->total= count;
+
 	/* stop if trying to build list if nothing selected */
 	if (count == 0) {
 		return;
 	}
-
-	/* allocate memory for data */
-	t->total= count;
-
+	
 	td = t->data = MEM_callocN(t->total*sizeof(TransData), "TransSeq TransData");
 	td2d = t->data2d = MEM_callocN(t->total*sizeof(TransData2D), "TransSeq TransData2D");
 	tdsq = t->customData= MEM_callocN(t->total*sizeof(TransDataSeq), "TransSeq TransDataSeq");
@@ -4049,6 +4049,7 @@ void autokeyframe_pose_cb_func(Object *ob, int tmode, short targetless_ik)
 
 /* inserting keys, refresh ipo-keys, pointcache, redraw events... (ton) */
 /* note: transdata has been freed already! */
+/* note: this runs even when createTransData exits early because  (t->total==0), is this correct?... (campbell) */
 void special_aftertrans_update(TransInfo *t)
 {
 	Object *ob;
@@ -4100,10 +4101,26 @@ void special_aftertrans_update(TransInfo *t)
 						}
 					}
 				}
+
+				/* as last: */
 				seq_prev= seq;
 			}
+
+			for(seq= seqbasep->first; seq; seq= seq->next) {
+				/* We might want to build a list of effects that need to be updated during transform */
+				if(seq->type & SEQ_EFFECT) {
+					if		(seq->seq1 && seq->seq1->flag & SELECT) calc_sequence(seq);
+					else if	(seq->seq2 && seq->seq2->flag & SELECT) calc_sequence(seq);
+					else if	(seq->seq3 && seq->seq3->flag & SELECT) calc_sequence(seq);
+				}
+			}
+
+			sort_seq(t->scene);
 		}
-		MEM_freeN(t->customData);
+		
+		if (t->customData)
+			MEM_freeN(t->customData);
+
 	}
 	else if (t->spacetype == SPACE_ACTION) {
 		SpaceAction *saction= (SpaceAction *)t->sa->spacedata.first;

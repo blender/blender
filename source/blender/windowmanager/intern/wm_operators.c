@@ -236,6 +236,26 @@ int WM_operator_confirm(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
+/* op->invoke, opens fileselect if filename property not set, otherwise executes */
+int WM_operator_filesel(bContext *C, wmOperator *op, wmEvent *event)
+{
+	if (RNA_property_is_set(op->ptr, "filename")) {
+		return WM_operator_call(C, op);
+	} else {
+		SpaceFile *sfile;
+
+		ED_screen_full_newspace(C, CTX_wm_area(C), SPACE_FILE);
+		
+		/* settings for filebrowser */
+		sfile= (SpaceFile*)CTX_wm_space_data(C);
+		sfile->op = op;
+		ED_fileselect_set_params(sfile, FILE_BLENDER, op->type->name, "", 0, 0, 0);
+
+		/* screen and area have been reset already in ED_screen_full_newspace */
+		return OPERATOR_RUNNING_MODAL;
+	}
+}
+
 /* op->poll */
 int WM_operator_winactive(bContext *C)
 {
