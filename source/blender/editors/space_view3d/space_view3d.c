@@ -250,6 +250,12 @@ static void view3d_modal_keymaps(wmWindowManager *wm, ARegion *ar, int stype)
 	else
 		WM_event_remove_keymap_handler(&ar->handlers, keymap);
 
+	keymap= WM_keymap_listbase(wm, "Curve", 0, 0);
+	if(stype==NS_EDITMODE_CURVE)
+		WM_event_add_keymap_handler(&ar->handlers, keymap);
+	else
+		WM_event_remove_keymap_handler(&ar->handlers, keymap);
+	
 	/* editfont keymap swallows all... */
 	keymap= WM_keymap_listbase(wm, "Font", 0, 0);
 	if(stype==NS_EDITMODE_TEXT)

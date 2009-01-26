@@ -237,7 +237,25 @@ typedef struct Curve {
 #define CU_BSPLINE		2
 #define CU_CARDINAL		3
 #define CU_NURBS		4
+#define CU_TYPE			7
+
 #define CU_2D			8
+
+		/* only for adding */
+#define CU_PRIMITIVE	0xF00
+
+		/* 2 or 4 points */
+#define CU_PRIM_CURVE	0x100
+		/* 8 points circle */
+#define CU_PRIM_CIRCLE	0x200
+		/* 4x4 patch Nurb */
+#define CU_PRIM_PATCH	0x300
+#define CU_PRIM_TUBE	0x400
+#define CU_PRIM_SPHERE	0x500
+#define CU_PRIM_DONUT	0x600
+		/* 5 points,  5th order straight line (for anim path) */
+#define CU_PRIM_PATH	0x700
+
 
 /* flagu flagv (nurb) */
 #define CU_CYCLIC		1
