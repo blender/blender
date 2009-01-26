@@ -1065,6 +1065,8 @@ void do_versions_ipos_to_animato(Main *main)
 		 * are likely to be drivers, but it's hard to trace that from here, so move this to Ob loop?
 		 */
 		if (key->ipo) {
+			printf("\t\tconverting key->ipo %s -> %s \n", id->name+2, key->ipo->id.name+2);
+			
 			/* Add AnimData block */
 			adt= BKE_id_add_animdata(id);
 			

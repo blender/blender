@@ -98,7 +98,7 @@ static void get_keyframe_extents (bAnimContext *ac, float *min, float *max)
 	
 	/* get data to filter, from Action or Dopesheet */
 	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_SEL | ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY);
-	ANIM_animdata_filter(&anim_data, filter, ac->data, ac->datatype);
+	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	/* set large values to try to override */
 	*min= 999999999.0f;
@@ -211,7 +211,7 @@ static int actkeys_viewall_exec(bContext *C, wmOperator *op)
 	/* do View2D syncing */
 	UI_view2d_sync(CTX_wm_screen(C), CTX_wm_area(C), v2d, V2D_LOCK_COPY);
 	
-	/* set notifier tha things have changed */
+	/* set notifier that things have changed */
 	ED_area_tag_redraw(CTX_wm_area(C));
 	
 	return OPERATOR_FINISHED;
@@ -286,7 +286,7 @@ static short copy_action_keys (bAnimContext *ac)
 	
 	/* filter data */
 	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_SEL | ANIMFILTER_IPOKEYS);
-	ANIM_animdata_filter(&anim_data, filter, ac->data, ac->datatype);
+	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	/* assume that each of these is an ipo-block */
 	for (ale= anim_data.first; ale; ale= ale->next) {
@@ -385,7 +385,7 @@ static short paste_action_keys (bAnimContext *ac)
 	
 	/* filter data */
 	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_SEL | ANIMFILTER_FOREDIT | ANIMFILTER_IPOKEYS);
-	ANIM_animdata_filter(&anim_data, filter, ac->data, ac->datatype);
+	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	/* from selected channels */
 	for (ale= anim_data.first; ale; ale= ale->next) {
@@ -584,7 +584,7 @@ static void delete_action_keys (bAnimContext *ac)
 		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT);
 	else
 		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY);
-	ANIM_animdata_filter(&anim_data, filter, ac->data, ac->datatype);
+	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	/* loop through filtered data and delete selected keys */
 	for (ale= anim_data.first; ale; ale= ale->next) {
@@ -644,7 +644,7 @@ static void clean_action_keys (bAnimContext *ac, float thresh)
 	
 	/* filter data */
 	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_SEL | ANIMFILTER_CURVESONLY);
-	ANIM_animdata_filter(&anim_data, filter, ac->data, ac->datatype);
+	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	/* loop through filtered data and clean curves */
 	for (ale= anim_data.first; ale; ale= ale->next)
@@ -716,7 +716,7 @@ static void sample_action_keys (bAnimContext *ac)
 	
 	/* filter data */
 	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY);
-	ANIM_animdata_filter(&anim_data, filter, ac->data, ac->datatype);
+	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	/* loop through filtered data and add keys between selected keyframes on every frame  */
 	for (ale= anim_data.first; ale; ale= ale->next) {
@@ -843,7 +843,7 @@ static void setexpo_action_keys(bAnimContext *ac, short mode)
 	
 	/* filter data */
 	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY);
-	ANIM_animdata_filter(&anim_data, filter, ac->data, ac->datatype);
+	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	/* loop through setting mode per F-Curve */
 	for (ale= anim_data.first; ale; ale= ale->next) {
@@ -921,7 +921,7 @@ static void setipo_action_keys(bAnimContext *ac, short mode)
 	
 	/* filter data */
 	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY);
-	ANIM_animdata_filter(&anim_data, filter, ac->data, ac->datatype);
+	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	/* loop through setting BezTriple interpolation
 	 * Note: we do not supply BeztEditData to the looper yet. Currently that's not necessary here...
@@ -1001,7 +1001,7 @@ static void sethandles_action_keys(bAnimContext *ac, short mode)
 	
 	/* filter data */
 	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY);
-	ANIM_animdata_filter(&anim_data, filter, ac->data, ac->datatype);
+	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	/* loop through setting flags for handles 
 	 * Note: we do not supply BeztEditData to the looper yet. Currently that's not necessary here...
@@ -1116,7 +1116,7 @@ static int actkeys_cfrasnap_exec(bContext *C, wmOperator *op)
 	
 	/* loop over action data, averaging values */
 	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVESONLY);
-	ANIM_animdata_filter(&anim_data, filter, ac.data, ac.datatype);
+	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 	
 	for (ale= anim_data.first; ale; ale= ale->next)
 		ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, NULL, bezt_calc_average, NULL);
@@ -1175,7 +1175,7 @@ static void snap_action_keys(bAnimContext *ac, short mode)
 		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT);
 	else
 		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY);
-	ANIM_animdata_filter(&anim_data, filter, ac->data, ac->datatype);
+	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	/* get beztriple editing callbacks */
 	edit_cb= ANIM_editkeyframes_snap(mode);
@@ -1296,7 +1296,7 @@ static void mirror_action_keys(bAnimContext *ac, short mode)
 		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT);
 	else
 		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY);
-	ANIM_animdata_filter(&anim_data, filter, ac->data, ac->datatype);
+	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	/* mirror keyframes */
 	for (ale= anim_data.first; ale; ale= ale->next) {

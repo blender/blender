@@ -1539,7 +1539,7 @@ static void do_action_buttons(bContext *C, void *arg, int event)
 {
 	switch(event) {
 		case B_REDR:
-			ED_region_tag_redraw(CTX_wm_region(C));
+			ED_area_tag_redraw(CTX_wm_area(C));
 			break;
 			
 		case B_ACTCOPYKEYS:

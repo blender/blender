@@ -278,7 +278,7 @@ short ANIM_animdata_get_context (const bContext *C, bAnimContext *ac)
 /* this function allocates memory for a new bAnimListElem struct for the 
  * provided animation channel-data. 
  */
-bAnimListElem *make_new_animlistelem (void *data, short datatype, void *owner, short ownertype)
+bAnimListElem *make_new_animlistelem (void *data, short datatype, void *owner, short ownertype, ID *owner_id)
 {
 	bAnimListElem *ale= NULL;
 	
@@ -292,6 +292,8 @@ bAnimListElem *make_new_animlistelem (void *data, short datatype, void *owner, s
 			// XXX what is the point of the owner data?
 		ale->owner= owner;
 		ale->ownertype= ownertype;
+		
+		ale->id= owner_id;
 		
 		/* do specifics */
 		switch (datatype) {
@@ -334,7 +336,7 @@ bAnimListElem *make_new_animlistelem (void *data, short datatype, void *owner, s
 				
 				ale->flag= FILTER_MAT_OBJD(ma);
 				
-				ale->key_data= adt->action;
+				ale->key_data= (adt) ? adt->action : NULL;
 				ale->datatype= ALE_ACT;
 			}
 				break;
@@ -345,7 +347,7 @@ bAnimListElem *make_new_animlistelem (void *data, short datatype, void *owner, s
 				
 				ale->flag= FILTER_LAM_OBJD(la);
 				
-				ale->key_data= adt->action;
+				ale->key_data= (adt) ? adt->action : NULL;
 				ale->datatype= ALE_ACT;
 			}
 				break;
@@ -356,7 +358,7 @@ bAnimListElem *make_new_animlistelem (void *data, short datatype, void *owner, s
 				
 				ale->flag= FILTER_CAM_OBJD(ca);
 				
-				ale->key_data= adt->action;
+				ale->key_data= (adt) ? adt->action : NULL;
 				ale->datatype= ALE_ACT;
 			}
 				break;
@@ -367,7 +369,7 @@ bAnimListElem *make_new_animlistelem (void *data, short datatype, void *owner, s
 				
 				ale->flag= FILTER_CUR_OBJD(cu);
 				
-				ale->key_data= adt->action;
+				ale->key_data= (adt) ? adt->action : NULL;
 				ale->datatype= ALE_ACT;
 			}
 				break;
@@ -378,7 +380,7 @@ bAnimListElem *make_new_animlistelem (void *data, short datatype, void *owner, s
 				
 				ale->flag= FILTER_SKE_OBJD(key); 
 				
-				ale->key_data= adt->action;
+				ale->key_data= (adt) ? adt->action : NULL;
 				ale->datatype= ALE_ACT;
 			}
 				break;
@@ -424,7 +426,7 @@ bAnimListElem *make_new_animlistelem (void *data, short datatype, void *owner, s
 /* ----------------------------------------- */
 
 
-static int animdata_filter_fcurves (ListBase *anim_data, FCurve *first, bActionGroup *grp, int filter_mode, ID *owner_id)
+static int animdata_filter_fcurves (ListBase *anim_data, FCurve *first, bActionGroup *grp, void *owner, short ownertype, int filter_mode, ID *owner_id)
 {
 	bAnimListElem *ale = NULL;
 	FCurve *fcu;
@@ -439,11 +441,9 @@ static int animdata_filter_fcurves (ListBase *anim_data, FCurve *first, bActionG
 			/* only include this curve if selected */
 			if (!(filter_mode & ANIMFILTER_SEL) || (SEL_FCU(fcu))) {
 				/* owner/ownertype will be either object or action-channel, depending if it was dopesheet or part of an action */
-				ale= make_new_animlistelem(fcu, ANIMTYPE_FCURVE, fcu, ANIMTYPE_FCURVE);
+				ale= make_new_animlistelem(fcu, ANIMTYPE_FCURVE, owner, ownertype, owner_id);
 				
 				if (ale) {
-					/* ID will only be Object if data to write to directly belongs there, otherwise, another pointer will be used */
-					ale->id= owner_id;
 					BLI_addtail(anim_data, ale);
 					items++;
 				}
@@ -455,12 +455,11 @@ static int animdata_filter_fcurves (ListBase *anim_data, FCurve *first, bActionG
 	return items;
 }
 
-static int animdata_filter_action (ListBase *anim_data, bAction *act, int filter_mode, void *owner, short ownertype)
+static int animdata_filter_action (ListBase *anim_data, bAction *act, int filter_mode, void *owner, short ownertype, ID *owner_id)
 {
 	bAnimListElem *ale=NULL;
 	bActionGroup *agrp;
 	FCurve *lastchan=NULL;
-	short owned= (owner && ownertype) ? 1 : 0;
 	int items = 0;
 	
 	/* loop over groups */
@@ -470,9 +469,8 @@ static int animdata_filter_action (ListBase *anim_data, bAction *act, int filter
 		if ((filter_mode & ANIMFILTER_CHANNELS) || !(filter_mode & ANIMFILTER_CURVESONLY)) {
 			/* check if filtering by selection */
 			if ( !(filter_mode & ANIMFILTER_SEL) || SEL_AGRP(agrp) ) {
-				ale= make_new_animlistelem(agrp, ANIMTYPE_GROUP, NULL, ANIMTYPE_NONE);
+				ale= make_new_animlistelem(agrp, ANIMTYPE_GROUP, NULL, ANIMTYPE_NONE, owner_id);
 				if (ale) {
-					if (owned) ale->id= owner;
 					BLI_addtail(anim_data, ale);
 					items++;
 				}
@@ -501,7 +499,7 @@ static int animdata_filter_action (ListBase *anim_data, bAction *act, int filter
 			{
 				if (!(filter_mode & ANIMFILTER_FOREDIT) || EDITABLE_AGRP(agrp)) {
 					// XXX the 'owner' info here needs review...
-					items += animdata_filter_fcurves(anim_data, agrp->channels.first, agrp, filter_mode, ((owned)?owner:NULL));
+					items += animdata_filter_fcurves(anim_data, agrp->channels.first, agrp, owner, ownertype, filter_mode, owner_id);
 					
 					/* remove group from filtered list if last element is group 
 					 * (i.e. only if group had channels, which were all hidden)
@@ -521,19 +519,18 @@ static int animdata_filter_action (ListBase *anim_data, bAction *act, int filter
 	/* loop over un-grouped F-Curves (only if we're not only considering those channels in the animive group) */
 	if (!(filter_mode & ANIMFILTER_ACTGROUPED))  {
 		// XXX the 'owner' info here needs review...
-		items += animdata_filter_fcurves(anim_data, (lastchan)?(lastchan->next):(act->curves.first), NULL, filter_mode, ((owned)?owner:NULL));
+		items += animdata_filter_fcurves(anim_data, (lastchan)?(lastchan->next):(act->curves.first), NULL, owner, ownertype, filter_mode, owner_id);
 	}
 	
 	/* return the number of items added to the list */
 	return items;
 }
 
-static int animdata_filter_shapekey (ListBase *anim_data, Key *key, int filter_mode, void *owner, short ownertype)
+static int animdata_filter_shapekey (ListBase *anim_data, Key *key, int filter_mode, void *owner, short ownertype, ID *owner_id)
 {
 	bAnimListElem *ale;
 	KeyBlock *kb;
 	//FCurve *fcu;
-	short owned= (owner && ownertype)? 1 : 0;
 	int i, items=0;
 	
 	/* are we filtering for display or editing */
@@ -565,7 +562,7 @@ static int animdata_filter_shapekey (ListBase *anim_data, Key *key, int filter_m
 			}
 #endif // XXX fixme... old system
 			
-			if (owned) ale->id= owner;
+			ale->id= owner_id;
 			
 			BLI_addtail(anim_data, ale);
 			items++;
@@ -667,7 +664,7 @@ static int animdata_filter_dopesheet_mats (ListBase *anim_data, bDopeSheet *ads,
 	
 	/* include materials-expand widget? */
 	if ((filter_mode & ANIMFILTER_CHANNELS) && !(filter_mode & ANIMFILTER_CURVESONLY)) {
-		ale= make_new_animlistelem(ob, ANIMTYPE_FILLMATD, base, ANIMTYPE_OBJECT);
+		ale= make_new_animlistelem(ob, ANIMTYPE_FILLMATD, base, ANIMTYPE_OBJECT, (ID *)ob);
 		if (ale) {
 			BLI_addtail(anim_data, ale);
 			items++;
@@ -688,7 +685,7 @@ static int animdata_filter_dopesheet_mats (ListBase *anim_data, bDopeSheet *ads,
 			/* include material-expand widget? */
 			// hmm... do we need to store the index of this material in the array anywhere?
 			if (filter_mode & ANIMFILTER_CHANNELS) {
-				ale= make_new_animlistelem(ma, ANIMTYPE_DSMAT, base, ANIMTYPE_OBJECT);
+				ale= make_new_animlistelem(ma, ANIMTYPE_DSMAT, base, ANIMTYPE_OBJECT, (ID *)ma);
 				if (ale) {
 					BLI_addtail(anim_data, ale);
 					items++;
@@ -698,112 +695,81 @@ static int animdata_filter_dopesheet_mats (ListBase *anim_data, bDopeSheet *ads,
 			/* add material's ipo-curve channels? */
 			if (FILTER_MAT_OBJD(ma) || (filter_mode & ANIMFILTER_CURVESONLY)) {
 				//items += animdata_filter_ipocurves(anim_data, ma->ipo, filter_mode, base, ANIMTYPE_OBJECT, (ID *)ma);
+					// XXX the 'owner' info here is still subject to improvement
+				items += animdata_filter_action(anim_data, ma->adt->action, filter_mode, ma, ANIMTYPE_DSMAT, (ID *)ma);
 			}
 		}
-
 	}
 	
 	/* return the number of items added to the list */
 	return items;
 }
 
-#if 0 // XXX old anim sys
-
-static int animdata_filter_dopesheet_cam (ListBase *anim_data, bDopeSheet *ads, Base *base, int filter_mode)
+static int animdata_filter_dopesheet_obdata (ListBase *anim_data, bDopeSheet *ads, Base *base, int filter_mode)
 {
 	bAnimListElem *ale=NULL;
 	Object *ob= base->object;
-	Camera *ca= (Camera *)ob->data;
-	int items = 0;
+	IdAdtTemplate *iat= ob->data;
+	short type=0, expanded=0;
+	int items= 0;
 	
-	/* include camera-expand widget? */
-	if (filter_mode & (ANIMFILTER_CHANNELS|ANIMFILTER_IPOKEYS)) {
-		ale= make_new_animlistelem(ca, ANIMTYPE_DSCAM, base, ANIMTYPE_OBJECT);
-		if (ale) {
-			BLI_addtail(anim_data, ale);
-			items++;
+	/* get settings based on data type */
+	switch (ob->type) {
+		case OB_CAMERA: /* ------- Camera ------------ */
+		{
+			Camera *ca= (Camera *)ob->data;
+			
+			type= ANIMTYPE_DSCAM;
+			expanded= FILTER_CAM_OBJD(ca);
 		}
+			break;
+		case OB_LAMP: /* ---------- Lamp ----------- */
+		{
+			Lamp *la= (Lamp *)ob->data;
+			
+			type= ANIMTYPE_DSLAM;
+			expanded= FILTER_LAM_OBJD(la);
+		}
+			break;
+		case OB_CURVE: /* ------- Curve ---------- */
+		{
+			Curve *cu= (Curve *)ob->data;
+			
+			type= ANIMTYPE_DSCUR;
+			expanded= FILTER_CUR_OBJD(cu);
+		}
+			break;
 	}
 	
-	/* add camera ipo-curve channels? */
-	if ( (FILTER_CAM_OBJD(ca) || (filter_mode & ANIMFILTER_ONLYFCU)) && 
-		  !(filter_mode & ANIMFILTER_IPOKEYS) ) 
-	{
-		items += animdata_filter_ipocurves(anim_data, ca->ipo, filter_mode, base, ANIMTYPE_OBJECT, (ID *)ca);
+	/* include data-expand widget? */
+	if ((filter_mode & ANIMFILTER_CURVESONLY) == 0) {		
+		ale= make_new_animlistelem(iat, type, base, ANIMTYPE_OBJECT, (ID *)iat);
+		if (ale) BLI_addtail(anim_data, ale);
+	}
+	
+	/* add object-data animation channels? */
+	if ((expanded) || (filter_mode & ANIMFILTER_CURVESONLY)) {
+		// XXX the 'owner' info here is still subject to improvement
+		items += animdata_filter_action(anim_data, iat->adt->action, filter_mode, iat, type, (ID *)iat);
 	}
 	
 	/* return the number of items added to the list */
 	return items;
 }
-
-static int animdata_filter_dopesheet_lamp (ListBase *anim_data, bDopeSheet *ads, Base *base, int filter_mode)
-{
-	bAnimListElem *ale=NULL;
-	Object *ob= base->object;
-	Lamp *la= (Lamp *)ob->data;
-	int items = 0;
-	
-	/* include lamp-expand widget? */
-	if (filter_mode & (ANIMFILTER_CHANNELS|ANIMFILTER_IPOKEYS)) {
-		ale= make_new_animlistelem(la, ANIMTYPE_DSLAM, base, ANIMTYPE_OBJECT);
-		if (ale) {
-			BLI_addtail(anim_data, ale);
-			items++;
-		}
-	}
-	
-	/* add lamp ipo-curve channels? */
-	if ( (FILTER_LAM_OBJD(la) || (filter_mode & ANIMFILTER_ONLYFCU)) && 
-		  !(filter_mode & ANIMFILTER_IPOKEYS) ) 
-	{
-		items += animdata_filter_ipocurves(anim_data, la->ipo, filter_mode, base, ANIMTYPE_OBJECT, (ID *)la);
-	}
-	
-	/* return the number of items added to the list */
-	return items;
-}
-
-static int animdata_filter_dopesheet_curve (ListBase *anim_data, bDopeSheet *ads, Base *base, int filter_mode)
-{
-	bAnimListElem *ale=NULL;
-	Object *ob= base->object;
-	Curve *cu= (Curve *)ob->data;
-	int items = 0;
-	
-	/* include curve-expand widget? */
-	if (filter_mode & (ANIMFILTER_CHANNELS|ANIMFILTER_IPOKEYS)) {
-		ale= make_new_animlistelem(cu, ANIMTYPE_DSCUR, base, ANIMTYPE_OBJECT);
-		if (ale) {
-			BLI_addtail(anim_data, ale);
-			items++;
-		}
-	}
-	
-	/* add curve ipo-curve channels? */
-	if ( (FILTER_CUR_OBJD(cu) || (filter_mode & ANIMFILTER_ONLYFCU)) && 
-		  !(filter_mode & ANIMFILTER_IPOKEYS) ) 
-	{
-		items += animdata_filter_ipocurves(anim_data, cu->ipo, filter_mode, base, ANIMTYPE_OBJECT, (ID *)cu);
-	}
-	
-	/* return the number of items added to the list */
-	return items;
-}
-#endif // XXX old anim sys
 
 static int animdata_filter_dopesheet_ob (ListBase *anim_data, bDopeSheet *ads, Base *base, int filter_mode)
 {
 	bAnimListElem *ale=NULL;
 	Scene *sce= (Scene *)ads->source;
 	Object *ob= base->object;
-//	Key *key= ob_get_key(ob);
+	Key *key= ob_get_key(ob);
 	int items = 0;
 	
 	/* add this object as a channel first */
 	if ((filter_mode & ANIMFILTER_CURVESONLY) == 0) {
 		/* check if filtering by selection */
 		if ( !(filter_mode & ANIMFILTER_SEL) || ((base->flag & SELECT) || (base == sce->basact)) ) {
-			ale= make_new_animlistelem(base, ANIMTYPE_OBJECT, NULL, ANIMTYPE_NONE);
+			ale= make_new_animlistelem(base, ANIMTYPE_OBJECT, NULL, ANIMTYPE_NONE, NULL);
 			if (ale) {
 				BLI_addtail(anim_data, ale);
 				items++;
@@ -821,9 +787,8 @@ static int animdata_filter_dopesheet_ob (ListBase *anim_data, bDopeSheet *ads, B
 		
 		/* include action-expand widget? */
 		if ((filter_mode & ANIMFILTER_CHANNELS) && !(filter_mode & ANIMFILTER_CURVESONLY)) {
-			ale= make_new_animlistelem(adt->action, ANIMTYPE_FILLACTD, base, ANIMTYPE_OBJECT);
+			ale= make_new_animlistelem(adt->action, ANIMTYPE_FILLACTD, base, ANIMTYPE_OBJECT, (ID *)ob);
 			if (ale) {
-				ale->id= (ID *)ob; // err.... is this a good idea?
 				BLI_addtail(anim_data, ale);
 				items++;
 			}
@@ -832,16 +797,15 @@ static int animdata_filter_dopesheet_ob (ListBase *anim_data, bDopeSheet *ads, B
 		/* add F-Curve channels? */
 		if (EXPANDED_ACTC(adt->action) || !(filter_mode & ANIMFILTER_CHANNELS)) {
 			// need to make the ownertype normal object here... (maybe type should be a separate one for clarity?)
-			items += animdata_filter_action(anim_data, adt->action, filter_mode, ob, ANIMTYPE_OBJECT); 
+			items += animdata_filter_action(anim_data, adt->action, filter_mode, ob, ANIMTYPE_OBJECT, (ID *)ob); 
 		}
 	}
 	
-#if 0 // XXX fixme... 
 	/* ShapeKeys? */
 	if ((key) && !(ads->filterflag & ADS_FILTER_NOSHAPEKEYS)) {
 		/* include shapekey-expand widget? */
 		if ((filter_mode & ANIMFILTER_CHANNELS) && !(filter_mode & ANIMFILTER_CURVESONLY)) {
-			ale= make_new_animlistelem(key, ANIMTYPE_DSSKEY, base, ANIMTYPE_OBJECT);
+			ale= make_new_animlistelem(key, ANIMTYPE_DSSKEY, base, ANIMTYPE_OBJECT, (ID *)ob);
 			if (ale) {
 				BLI_addtail(anim_data, ale);
 				items++;
@@ -850,42 +814,39 @@ static int animdata_filter_dopesheet_ob (ListBase *anim_data, bDopeSheet *ads, B
 		
 		/* add channels */
 		if (FILTER_SKE_OBJD(key) || (filter_mode & ANIMFILTER_CURVESONLY)) {
-			items += animdata_filter_shapekey(anim_data, key, filter_mode, ob, ANIMTYPE_OBJECT);
+			items += animdata_filter_shapekey(anim_data, key, filter_mode, ob, ANIMTYPE_OBJECT, (ID *)ob);
 		}
 	}
-#endif
 	
 
 	/* Materials? */
 	if ((ob->totcol) && !(ads->filterflag & ADS_FILTER_NOMAT))
 		items += animdata_filter_dopesheet_mats(anim_data, ads, base, filter_mode);
 	
-#if 0
 	/* Object Data */
 	switch (ob->type) {
 		case OB_CAMERA: /* ------- Camera ------------ */
 		{
 			Camera *ca= (Camera *)ob->data;
-			if ((ca->ipo) && !(ads->filterflag & ADS_FILTER_NOCAM))
-				items += animdata_filter_dopesheet_cam(anim_data, ads, base, filter_mode);
+			if (ANIMDATA_HAS_KEYS(ca) && !(ads->filterflag & ADS_FILTER_NOCAM))
+				items += animdata_filter_dopesheet_obdata(anim_data, ads, base, filter_mode);
 		}
 			break;
 		case OB_LAMP: /* ---------- Lamp ----------- */
 		{
 			Lamp *la= (Lamp *)ob->data;
-			if ((la->ipo) && !(ads->filterflag & ADS_FILTER_NOLAM))
-				items += animdata_filter_dopesheet_lamp(anim_data, ads, base, filter_mode);
+			if (ANIMDATA_HAS_KEYS(la) && !(ads->filterflag & ADS_FILTER_NOLAM))
+				items += animdata_filter_dopesheet_obdata(anim_data, ads, base, filter_mode);
 		}
 			break;
 		case OB_CURVE: /* ------- Curve ---------- */
 		{
 			Curve *cu= (Curve *)ob->data;
-			if ((cu->ipo) && !(ads->filterflag & ADS_FILTER_NOCUR))
-				items += animdata_filter_dopesheet_curve(anim_data, ads, base, filter_mode);
+			if (ANIMDATA_HAS_KEYS(cu) && !(ads->filterflag & ADS_FILTER_NOCUR))
+				items += animdata_filter_dopesheet_obdata(anim_data, ads, base, filter_mode);
 		}
 			break;
 	}
-#endif
 	
 	/* return the number of items added to the list */
 	return items;
@@ -1028,21 +989,22 @@ static int animdata_filter_dopesheet (ListBase *anim_data, bDopeSheet *ads, int 
  *		will be placed for use.
  *	filter_mode: how should the data be filtered - bitmapping accessed flags
  */
-int ANIM_animdata_filter (ListBase *anim_data, int filter_mode, void *data, short datatype)
+int ANIM_animdata_filter (bAnimContext *ac, ListBase *anim_data, int filter_mode, void *data, short datatype)
 {
 	int items = 0;
 	
 	/* only filter data if there's somewhere to put it */
 	if (data && anim_data) {
 		bAnimListElem *ale, *next;
+		Object *obact= (ac) ? ac->obact : NULL;
 		
 		/* firstly filter the data */
 		switch (datatype) {
 			case ANIMCONT_ACTION:
-				items= animdata_filter_action(anim_data, data, filter_mode, NULL, ANIMTYPE_NONE);
+				items= animdata_filter_action(anim_data, data, filter_mode, NULL, ANIMTYPE_NONE, (ID *)obact);
 				break;
 			case ANIMCONT_SHAPEKEY:
-				items= animdata_filter_shapekey(anim_data, data, filter_mode, NULL, ANIMTYPE_NONE);
+				items= animdata_filter_shapekey(anim_data, data, filter_mode, NULL, ANIMTYPE_NONE, (ID *)obact);
 				break;
 			case ANIMCONT_GPENCIL:
 				//items= animdata_filter_gpencil(anim_data, data, filter_mode);

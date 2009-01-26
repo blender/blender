@@ -409,7 +409,7 @@ void draw_channel_names(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 	
 	/* build list of channels to draw */
 	filter= (ANIMFILTER_VISIBLE|ANIMFILTER_CHANNELS);
-	items= ANIM_animdata_filter(&anim_data, filter, ac->data, ac->datatype);
+	items= ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	/* Update max-extent of channels here (taking into account scrollers):
 	 * 	- this is done to allow the channel list to be scrollable, but must be done here
@@ -622,15 +622,20 @@ void draw_channel_names(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 					//group= (ale->grp) ? 1 : 0;
 					//grp= ale->grp;
 					
-					// XXX this needs to be more detailed...
-					if (ale->id) {
-						if (GS(ale->id->name) == ID_MA)
+					switch (ale->ownertype) {
+						case ANIMTYPE_NONE:	/* no owner */
+						case ANIMTYPE_FCURVE: 
+							offset= 0;
+							break;
+							
+						case ANIMTYPE_DSMAT: /* for now, this is special case for materials */
 							offset= 21;
-						else
+							break;
+							
+						default:
 							offset= 14;
+							break;
 					}
-					else
-						offset= 0;
 					
 					if (fcu->flag & FCURVE_MUTED)
 						mute = ICON_MUTE_IPO_ON;
@@ -988,7 +993,7 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 	
 	/* build list of channels to draw */
 	filter= (ANIMFILTER_VISIBLE|ANIMFILTER_CHANNELS);
-	items= ANIM_animdata_filter(&anim_data, filter, ac->data, ac->datatype);
+	items= ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	/* Update max-extent of channels here (taking into account scrollers):
 	 * 	- this is done to allow the channel list to be scrollable, but must be done here

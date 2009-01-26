@@ -188,7 +188,7 @@ void ANIM_editkeyframes_refresh(bAnimContext *ac)
 	
 	/* filter animation data */
 	filter= ANIMFILTER_CURVESONLY; 
-	ANIM_animdata_filter(&anim_data, filter, ac->data, ac->datatype);
+	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	/* loop over ipo-curves that are likely to have been edited, and check them */
 	for (ale= anim_data.first; ale; ale= ale->next) {

@@ -2841,7 +2841,7 @@ static void posttrans_action_clean (bAnimContext *ac, bAction *act)
 	
 	/* filter data */
 	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY);
-	ANIM_animdata_filter(&anim_data, filter, act, ANIMCONT_ACTION);
+	ANIM_animdata_filter(ac, &anim_data, filter, act, ANIMCONT_ACTION);
 	
 	/* loop through relevant data, removing keyframes from the ipo-blocks that were attached 
 	 *  	- all keyframes are converted in/out of global time 
@@ -3054,7 +3054,7 @@ static void createTransActionData(bContext *C, TransInfo *t)
 		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT);
 	else
 		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY);
-	ANIM_animdata_filter(&anim_data, filter, ac.data, ac.datatype);
+	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 		
 	/* which side of the current frame should be allowed */
 	if (t->mode == TFM_TIME_EXTEND) {
@@ -4130,7 +4130,7 @@ void special_aftertrans_update(TransInfo *t)
 			short filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY);
 			
 			/* get channels to work on */
-			ANIM_animdata_filter(&anim_data, filter, ac.data, ac.datatype);
+			ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 			
 			/* these should all be ipo-blocks */
 			for (ale= anim_data.first; ale; ale= ale->next) {
