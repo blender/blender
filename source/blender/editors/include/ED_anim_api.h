@@ -74,7 +74,8 @@ typedef enum eAnimCont_Types {
 	ANIMCONT_SHAPEKEY,		/* shapekey (Key) */
 	ANIMCONT_GPENCIL,		/* grease pencil (screen) */
 	ANIMCONT_DOPESHEET,		/* dopesheet (bDopesheet) */
-	ANIMCONT_IPO,			/* single IPO (Ipo) */		// XXX
+	ANIMCONT_FCURVES,		/* animation F-Curves (bDopesheet) */		// XXX 
+	ANIMCONT_DRIVERS,		/* drivers (bDopesheet) */
 } eAnimCont_Types;
 
 /* --------------- Channels -------------------- */
@@ -142,12 +143,13 @@ typedef enum eAnim_KeyType {
 /* filtering flags  - under what circumstances should a channel be added */
 // XXX was ACTFILTER_*
 typedef enum eAnimFilter_Flags {
-	ANIMFILTER_VISIBLE		= (1<<0),	/* should channels be visible */
+	ANIMFILTER_VISIBLE		= (1<<0),	/* should channels be visible (in terms of hierarchy only) */
 	ANIMFILTER_SEL			= (1<<1),	/* should channels be selected */
 	ANIMFILTER_FOREDIT		= (1<<2),	/* does editable status matter */
 	ANIMFILTER_CURVESONLY	= (1<<3),	/* don't include summary-channels, etc. */
 	ANIMFILTER_CHANNELS		= (1<<4),	/* make list for interface drawing */
 	ANIMFILTER_ACTGROUPED	= (1<<5),	/* belongs to the active actiongroup */
+	ANIMFILTER_CURVEVISIBLE	= (1<<6),	/* F-Curve is visible for editing/viewing in Graph Editor */
 } eAnimFilter_Flags;
 
 

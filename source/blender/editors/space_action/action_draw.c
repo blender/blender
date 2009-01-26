@@ -630,6 +630,7 @@ void draw_channel_names(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 							
 						case ANIMTYPE_DSMAT: /* for now, this is special case for materials */
 							offset= 21;
+							indent= 1;
 							break;
 							
 						default:

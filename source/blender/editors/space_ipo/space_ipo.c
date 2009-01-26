@@ -29,7 +29,7 @@
 #include <string.h>
 #include <stdio.h>
 
-#include "DNA_ipo_types.h"
+#include "DNA_anim_types.h"
 #include "DNA_object_types.h"
 #include "DNA_space_types.h"
 #include "DNA_scene_types.h"
@@ -62,25 +62,27 @@
 
 /* ******************** default callbacks for ipo space ***************** */
 
-static SpaceLink *ipo_new(const bContext *C)
+static SpaceLink *graph_new(const bContext *C)
 {
 	Scene *scene= CTX_data_scene(C);
 	ARegion *ar;
 	SpaceIpo *sipo;
 	
-	sipo= MEM_callocN(sizeof(SpaceIpo), "initipo");
+	sipo= MEM_callocN(sizeof(SpaceIpo), "init graphedit");
 	sipo->spacetype= SPACE_IPO;
-	sipo->blocktype= ID_OB;
+	
+	/* allocate DopeSheet data for Graph Editor */
+	sipo->ads= MEM_callocN(sizeof(bDopeSheet), "GraphEdit DopeSheet");
 	
 	/* header */
-	ar= MEM_callocN(sizeof(ARegion), "header for ipo");
+	ar= MEM_callocN(sizeof(ARegion), "header for graphedit");
 	
 	BLI_addtail(&sipo->regionbase, ar);
 	ar->regiontype= RGN_TYPE_HEADER;
 	ar->alignment= RGN_ALIGN_BOTTOM;
 	
 	/* channels */
-	ar= MEM_callocN(sizeof(ARegion), "main area for ipo");
+	ar= MEM_callocN(sizeof(ARegion), "main area for graphedit");
 	
 	BLI_addtail(&sipo->regionbase, ar);
 	ar->regiontype= RGN_TYPE_CHANNELS;
@@ -89,7 +91,7 @@ static SpaceLink *ipo_new(const bContext *C)
 	ar->v2d.scroll = (V2D_SCROLL_RIGHT|V2D_SCROLL_BOTTOM);
 	
 	/* main area */
-	ar= MEM_callocN(sizeof(ARegion), "main area for ipo");
+	ar= MEM_callocN(sizeof(ARegion), "main area for graphedit");
 	
 	BLI_addtail(&sipo->regionbase, ar);
 	ar->regiontype= RGN_TYPE_WINDOW;
@@ -112,42 +114,41 @@ static SpaceLink *ipo_new(const bContext *C)
 	
 	ar->v2d.keeptot= 0;
 	
-	/* channel list region XXX */
-
-	
 	return (SpaceLink *)sipo;
 }
 
 /* not spacelink itself */
-static void ipo_free(SpaceLink *sl)
+static void graph_free(SpaceLink *sl)
 {	
-	SpaceIpo *si= (SpaceIpo*) sl;
+	SpaceIpo *si= (SpaceIpo *)sl;
 	
-	if(si->editipo) MEM_freeN(si->editipo);
-	// XXX free_ipokey(&si->ipokey);
-
+	if (si->ads) {
+		BLI_freelistN(&si->ads->chanbase);
+		MEM_freeN(si->ads);
+	}
 }
 
 
 /* spacetype; init callback */
-static void ipo_init(struct wmWindowManager *wm, ScrArea *sa)
+static void graph_init(struct wmWindowManager *wm, ScrArea *sa)
 {
-
+	//SpaceIpo *si= (SpaceIpo *)sa->spacedata.first;
+	
 }
 
-static SpaceLink *ipo_duplicate(SpaceLink *sl)
+static SpaceLink *graph_duplicate(SpaceLink *sl)
 {
 	SpaceIpo *sipon= MEM_dupallocN(sl);
 	
 	/* clear or remove stuff from old */
-	sipon->editipo= NULL;
-	sipon->ipokey.first= sipon->ipokey.last= NULL;
+	//sipon->ipokey.first= sipon->ipokey.last= NULL;
+	sipon->ads= MEM_dupallocN(sipon->ads);
 	
 	return (SpaceLink *)sipon;
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
-static void ipo_main_area_init(wmWindowManager *wm, ARegion *ar)
+static void graph_main_area_init(wmWindowManager *wm, ARegion *ar)
 {
 	ListBase *keymap;
 	
@@ -158,15 +159,16 @@ static void ipo_main_area_init(wmWindowManager *wm, ARegion *ar)
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 }
 
-static void ipo_main_area_draw(const bContext *C, ARegion *ar)
+static void graph_main_area_draw(const bContext *C, ARegion *ar)
 {
 	/* draw entirely, view changes should be handled here */
 	SpaceIpo *sipo= (SpaceIpo*)CTX_wm_space_data(C);
+	bAnimContext ac;
 	View2D *v2d= &ar->v2d;
 	View2DGrid *grid;
 	View2DScrollers *scrollers;
 	float col[3];
-	short unit=0, flag=0;
+	short unitx=0, unity=V2D_UNIT_VALUES, flag=0;
 	
 	/* clear and setup matrix */
 	UI_GetThemeColor3fv(TH_BACK, col);
@@ -176,12 +178,15 @@ static void ipo_main_area_draw(const bContext *C, ARegion *ar)
 	UI_view2d_view_ortho(C, v2d);
 	
 	/* grid */
-	unit= (sipo->flag & SIPO_DRAWTIME)? V2D_UNIT_SECONDS : V2D_UNIT_FRAMES;
-	grid= UI_view2d_grid_calc(C, v2d, unit, V2D_GRID_NOCLAMP, V2D_UNIT_VALUES/*unit-y*/, V2D_GRID_NOCLAMP, ar->winx, ar->winy);
+	unitx= (sipo->flag & SIPO_DRAWTIME)? V2D_UNIT_SECONDS : V2D_UNIT_FRAMES;
+	grid= UI_view2d_grid_calc(C, v2d, unitx, V2D_GRID_NOCLAMP, unity, V2D_GRID_NOCLAMP, ar->winx, ar->winy);
 	UI_view2d_grid_draw(C, v2d, grid, V2D_GRIDLINES_ALL);
 	UI_view2d_grid_free(grid);
 	
-	/* data... */
+	/* draw data */
+	if (ANIM_animdata_get_context(C, &ac)) {
+		graph_draw_curves(&ac, sipo, ar);
+	}
 	
 	/* current frame */
 	if (sipo->flag & SIPO_DRAWTIME) 	flag |= DRAWCFRA_UNIT_SECONDS;
@@ -201,27 +206,34 @@ static void ipo_main_area_draw(const bContext *C, ARegion *ar)
 	
 	/* scrollers */
 		// FIXME: args for scrollers depend on the type of data being shown...
-	scrollers= UI_view2d_scrollers_calc(C, v2d, unit, V2D_GRID_NOCLAMP, V2D_UNIT_VALUES/*unit-y*/, V2D_GRID_NOCLAMP);
+	scrollers= UI_view2d_scrollers_calc(C, v2d, unitx, V2D_GRID_NOCLAMP, unity, V2D_GRID_NOCLAMP);
 	UI_view2d_scrollers_draw(C, v2d, scrollers);
 	UI_view2d_scrollers_free(scrollers);
 }
 
-void ipo_operatortypes(void)
+void graph_operatortypes(void)
 {
 }
 
-void ipo_keymap(struct wmWindowManager *wm)
+void graph_keymap(struct wmWindowManager *wm)
 {
 }
 
-static void ipo_channel_area_init(wmWindowManager *wm, ARegion *ar)
+static void graph_channel_area_init(wmWindowManager *wm, ARegion *ar)
 {
+	ListBase *keymap;
+	
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_LIST, ar->winx, ar->winy);
+	
+	/* own keymap */
+	keymap= WM_keymap_listbase(wm, "Animation_Channels", 0, 0);	/* XXX weak? */
+	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 }
 
-static void ipo_channel_area_draw(const bContext *C, ARegion *ar)
+static void graph_channel_area_draw(const bContext *C, ARegion *ar)
 {
-	//SpaceIpo *sipo= C->area->spacedata.first;
+	SpaceIpo *sipo= (SpaceIpo *)CTX_wm_space_data(C);
+	bAnimContext ac;
 	View2D *v2d= &ar->v2d;
 	View2DScrollers *scrollers;
 	float col[3];
@@ -233,7 +245,10 @@ static void ipo_channel_area_draw(const bContext *C, ARegion *ar)
 	
 	UI_view2d_view_ortho(C, v2d);
 	
-	/* data... */
+	/* draw channels */
+	if (ANIM_animdata_get_context(C, &ac)) {
+		graph_draw_channel_names(&ac, sipo, ar);
+	}
 	
 	/* reset view matrix */
 	UI_view2d_view_restore(C);
@@ -245,12 +260,12 @@ static void ipo_channel_area_draw(const bContext *C, ARegion *ar)
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
-static void ipo_header_area_init(wmWindowManager *wm, ARegion *ar)
+static void graph_header_area_init(wmWindowManager *wm, ARegion *ar)
 {
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_HEADER, ar->winx, ar->winy);
 }
 
-static void ipo_header_area_draw(const bContext *C, ARegion *ar)
+static void graph_header_area_draw(const bContext *C, ARegion *ar)
 {
 	float col[3];
 	
@@ -266,26 +281,86 @@ static void ipo_header_area_draw(const bContext *C, ARegion *ar)
 	/* set view2d view matrix for scrolling (without scrollers) */
 	UI_view2d_view_ortho(C, &ar->v2d);
 	
-	ipo_header_buttons(C, ar);
+	graph_header_buttons(C, ar);
 	
 	/* restore view matrix? */
 	UI_view2d_view_restore(C);
 }
 
-static void ipo_main_area_listener(ARegion *ar, wmNotifier *wmn)
+static void graph_main_area_listener(ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
 	switch(wmn->category) {
-		
 		case NC_SCENE:
 			switch(wmn->data) {
+				case ND_OB_ACTIVE:
 				case ND_FRAME:
 				case ND_MARKERS:
 					ED_region_tag_redraw(ar);
 					break;
-				}
+			}
+			break;
+		case NC_OBJECT:
+			switch(wmn->data) {
+				case ND_BONE_ACTIVE:
+				case ND_BONE_SELECT:
+					ED_region_tag_redraw(ar);
+					break;
+			}
 			break;
 	}
+}
+
+/* editor level listener */
+static void graph_listener(ScrArea *sa, wmNotifier *wmn)
+{
+	/* context changes */
+	switch (wmn->category) {
+		case NC_SCENE:
+			/*switch (wmn->data) {
+				case ND_OB_ACTIVE:
+				case ND_OB_SELECT:
+					ED_area_tag_refresh(sa);
+					break;
+			}*/
+			ED_area_tag_refresh(sa);
+			break;
+		case NC_OBJECT:
+			/*switch (wmn->data) {
+				case ND_BONE_SELECT:
+				case ND_BONE_ACTIVE:
+					ED_area_tag_refresh(sa);
+					break;
+			}*/
+			ED_area_tag_refresh(sa);
+			break;
+	}
+}
+
+static void graph_refresh(const bContext *C, ScrArea *sa)
+{
+	SpaceIpo *sipo = (SpaceIpo *)sa->spacedata.first;
+	
+	/* updates to data needed depends on Graph Editor mode... */
+	switch (sipo->mode) {
+		case SIPO_MODE_ANIMATION: /* all animation */
+		{
+			
+		}
+			break;
+		
+		case SIPO_MODE_DRIVERS: /* drivers only  */
+		{
+			Object *ob= CTX_data_active_object(C);
+			
+			/* sync changes to bones to the corresponding action channels */
+			ANIM_pose_to_action_sync(ob, sa);
+		}
+			break; 
+	}
+	
+	/* region updates? */
+	// XXX resizing y-extents of tot should go here?
 }
 
 /* only called once, from space/spacetypes.c */
@@ -296,42 +371,44 @@ void ED_spacetype_ipo(void)
 	
 	st->spaceid= SPACE_IPO;
 	
-	st->new= ipo_new;
-	st->free= ipo_free;
-	st->init= ipo_init;
-	st->duplicate= ipo_duplicate;
-	st->operatortypes= ipo_operatortypes;
-	st->keymap= ipo_keymap;
+	st->new= graph_new;
+	st->free= graph_free;
+	st->init= graph_init;
+	st->duplicate= graph_duplicate;
+	st->operatortypes= graph_operatortypes;
+	st->keymap= graph_keymap;
+	st->listener= graph_listener;
+	st->refresh= graph_refresh;
 	
 	/* regions: main window */
-	art= MEM_callocN(sizeof(ARegionType), "spacetype ipo region");
+	art= MEM_callocN(sizeof(ARegionType), "spacetype graphedit region");
 	art->regionid = RGN_TYPE_WINDOW;
-	art->init= ipo_main_area_init;
-	art->draw= ipo_main_area_draw;
-	art->listener= ipo_main_area_listener;
+	art->init= graph_main_area_init;
+	art->draw= graph_main_area_draw;
+	art->listener= graph_main_area_listener;
 	art->keymapflag= ED_KEYMAP_VIEW2D|ED_KEYMAP_MARKERS|ED_KEYMAP_ANIMATION;
 
 	BLI_addhead(&st->regiontypes, art);
 	
 	/* regions: header */
-	art= MEM_callocN(sizeof(ARegionType), "spacetype ipo region");
+	art= MEM_callocN(sizeof(ARegionType), "spacetype graphedit region");
 	art->regionid = RGN_TYPE_HEADER;
 	art->minsizey= HEADERY;
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D|ED_KEYMAP_FRAMES;
 	
-	art->init= ipo_header_area_init;
-	art->draw= ipo_header_area_draw;
+	art->init= graph_header_area_init;
+	art->draw= graph_header_area_draw;
 	
 	BLI_addhead(&st->regiontypes, art);
 	
 	/* regions: channels */
-	art= MEM_callocN(sizeof(ARegionType), "spacetype ipo region");
+	art= MEM_callocN(sizeof(ARegionType), "spacetype graphedit region");
 	art->regionid = RGN_TYPE_CHANNELS;
 	art->minsizex= 200;
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D|ED_KEYMAP_FRAMES;
 	
-	art->init= ipo_channel_area_init;
-	art->draw= ipo_channel_area_draw;
+	art->init= graph_channel_area_init;
+	art->draw= graph_channel_area_draw;
 	
 	BLI_addhead(&st->regiontypes, art);
 	

@@ -287,10 +287,12 @@ typedef struct bDopeSheet {
 typedef enum DOPESHEET_FILTERFLAG {
 		/* general filtering */
 	ADS_FILTER_ONLYSEL			= (1<<0),
+	ADS_FILTER_ONLYDRIVERS		= (1<<1),
 	
 		/* datatype-based filtering */
 	ADS_FILTER_NOOBJ			= (1<<4),	// XXX
 	ADS_FILTER_NOARM			= (1<<5),	// XXX
+	
 	ADS_FILTER_NOSHAPEKEYS 		= (1<<6),
 	ADS_FILTER_NOCAM			= (1<<10),
 	ADS_FILTER_NOMAT			= (1<<11),

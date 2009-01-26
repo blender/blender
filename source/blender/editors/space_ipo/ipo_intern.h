@@ -28,11 +28,19 @@
 #ifndef ED_IPO_INTERN_H
 #define ED_IPO_INTERN_H
 
+struct bContext;
+struct bAnimContext;
+struct SpaceIpo;
+struct ARegion;
+
 /* internal exports only */
 
+/* ipo_draw.c */
+void graph_draw_channel_names(struct bAnimContext *ac, struct SpaceIpo *sipo, struct ARegion *ar);
+void graph_draw_curves(struct bAnimContext *ac, struct SpaceIpo *sipo, struct ARegion *ar);
 
 /* ipo_header.c */
-void ipo_header_buttons(const bContext *C, ARegion *ar);
+void graph_header_buttons(const bContext *C, struct ARegion *ar);
 
 
 #endif /* ED_IPO_INTERN_H */

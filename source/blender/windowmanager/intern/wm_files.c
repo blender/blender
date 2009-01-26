@@ -327,6 +327,10 @@ static void init_userdef_themes(void)
 			/* DopeSheet - (Object) Channel color */
 			SETCOL(btheme->tact.ds_channel, 0x36, 0x13, 0xca, 255);
 			SETCOL(btheme->tact.ds_subchannel, 0x60, 0x43, 0xd2, 255);
+			
+			/* Graph Editor - (Object) Channel color */
+			SETCOL(btheme->tipo.ds_channel, 0x36, 0x13, 0xca, 255);
+			SETCOL(btheme->tipo.ds_subchannel, 0x60, 0x43, 0xd2, 255);
 		}
 		
 		/* adjust grease-pencil distances */

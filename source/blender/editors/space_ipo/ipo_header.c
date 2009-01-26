@@ -29,6 +29,7 @@
 #include <string.h>
 #include <stdio.h>
 
+#include "DNA_anim_types.h"
 #include "DNA_space_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
@@ -41,6 +42,7 @@
 #include "BKE_context.h"
 #include "BKE_screen.h"
 
+#include "ED_anim_api.h"
 #include "ED_screen.h"
 #include "ED_types.h"
 #include "ED_util.h"
@@ -57,6 +59,15 @@
 
 #include "ipo_intern.h"
 
+/* ********************************************************* */
+/* Menu Defines... */
+
+/* button events */
+enum {
+	B_REDR 	= 0,
+	B_GRAPHCOPYKEYS,
+	B_GRAPHPASTEKEYS,
+} eActHeader_ButEvents;
 
 /* ************************ header area region *********************** */
 
@@ -91,25 +102,29 @@ static uiBlock *dummy_viewmenu(bContext *C, uiMenuBlockHandle *handle, void *arg
 	return block;
 }
 
-static void do_ipo_buttons(bContext *C, void *arg, int event)
+static void do_graph_buttons(bContext *C, void *arg, int event)
 {
-	switch(event) {
+	switch (event) {
+		case B_REDR:
+			ED_area_tag_redraw(CTX_wm_area(C));
+			break;
 	}
 }
 
 
-void ipo_header_buttons(const bContext *C, ARegion *ar)
+void graph_header_buttons(const bContext *C, ARegion *ar)
 {
 	ScrArea *sa= CTX_wm_area(C);
+	SpaceIpo *sipo= (SpaceIpo *)CTX_wm_space_data(C);
 	uiBlock *block;
 	int xco, yco= 3;
 	
 	block= uiBeginBlock(C, ar, "header buttons", UI_EMBOSS, UI_HELV);
-	uiBlockSetHandleFunc(block, do_ipo_buttons, NULL);
+	uiBlockSetHandleFunc(block, do_graph_buttons, NULL);
 	
 	xco= ED_area_header_standardbuttons(C, block, yco);
 	
-	if((sa->flag & HEADER_NO_PULLDOWN)==0) {
+	if ((sa->flag & HEADER_NO_PULLDOWN)==0) {
 		int xmax;
 		
 		/* pull down menus */
@@ -118,10 +133,17 @@ void ipo_header_buttons(const bContext *C, ARegion *ar)
 		xmax= GetButStringLength("View");
 		uiDefPulldownBut(block, dummy_viewmenu, CTX_wm_area(C), 
 						 "View", xco, yco-2, xmax-3, 24, "");
+		xco+= xmax;
 	}
 	
 	uiBlockSetEmboss(block, UI_EMBOSS);
-
+	
+	/* mode selector */
+	uiDefButS(block, MENU, B_REDR, 
+			"Editor Mode %t|F-Curve Editor %x0|Drivers %x1", 
+			xco,yco,90,YIC, &sipo->mode, 0, 1, 0, 0, 
+			"Editing modes for this editor");
+	
 	/* always as last  */
 	UI_view2d_totRect_set(&ar->v2d, xco+XIC+80, ar->v2d.tot.ymax-ar->v2d.tot.ymin);
 	

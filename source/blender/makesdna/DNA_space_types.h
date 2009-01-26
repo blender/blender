@@ -38,7 +38,6 @@
 /* Hum ... Not really nice... but needed for spacebuts. */
 #include "DNA_view2d_types.h"
 
-struct Ipo;
 struct ID;
 struct Text;
 struct Script;
@@ -51,6 +50,7 @@ struct bNodeTree;
 struct uiBlock;
 struct FileList;
 struct bGPdata;
+struct bDopeSheet;
 struct FileSelectParams;
 struct wmOperator;
 struct wmTimer;
@@ -78,6 +78,8 @@ typedef struct SpaceInfo {
 	short blockhandler[8];
 } SpaceInfo;
 
+/* 'Graph' Editor (formerly known as the IPO Editor) */
+// XXX for now, we keep all old data...
 typedef struct SpaceIpo {
 	SpaceLink *next, *prev;
 	ListBase regionbase;		/* storage of regions for inactive spaces */
@@ -85,25 +87,18 @@ typedef struct SpaceIpo {
 	float blockscale;
 
 	short blockhandler[8];
-	
-	unsigned int rowbut, pad2; 
 	View2D v2d; /* depricated, copied to region */
 	
-	void *editipo;
-	ListBase ipokey;
+		// 'IPO keys' - vertical lines for 
+	//ListBase ipokey;		// XXX it's not clear how these will come back yet
+	//short showkey;			// XXX this doesn't need to be restored until ipokeys come back
 	
-	/* the ipo context we need to store */
-	struct Ipo *ipo;
-	struct ID *from;
-	char actname[32], constname[32], bonename[32];
-
-	short totipo, pin;
-	short butofs, channel;
-	short showkey, blocktype;
-	short menunr, lock;
-	short flag, autosnap;
-	float median[3];
-	rctf tot;
+	struct bDopeSheet *ads;	/* settings for filtering animation data (NOTE: we use a pointer due to code-linking issues) */
+	
+	short mode;				/* mode for the Graph editor (eGraphEdit_Mode) */
+	short flag;				/* settings for Graph editor */
+	short autosnap;			/* time-transform autosnapping settings for Graph editor (eAnimEdit_AutoSnap in DNA_action_types.h) */
+	char pin, lock;
 } SpaceIpo;
 
 typedef struct SpaceButs {
@@ -588,12 +583,20 @@ typedef struct SpaceImaSel {
 #define SI_DRAW_STRETCH	1<<21
 #define SI_DISPGP		1<<22
 
-/* SpaceIpo->flag */
+/* SpaceIpo->flag (Graph Editor Settings) */
 #define SIPO_LOCK_VIEW			(1<<0)
 #define SIPO_NOTRANSKEYCULL		(1<<1)
 #define SIPO_NOHANDLES			(1<<2)
 #define SIPO_NODRAWCFRANUM		(1<<3)
 #define SIPO_DRAWTIME			(1<<4)
+
+/* SpaceIpo->mode (Graph Editor Mode) */
+enum {
+		/* all animation curves (from all over Blender) */
+	SIPO_MODE_ANIMATION	= 0,
+		/* drivers only */
+	SIPO_MODE_DRIVERS,
+} eGraphEdit_Mode;
 
 /* SpaceText flags (moved from DNA_text_types.h) */
 

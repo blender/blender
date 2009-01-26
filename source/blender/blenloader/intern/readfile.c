@@ -3932,63 +3932,6 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 	
 }
 
-/* Nasty exception; IpoWindow stores a non-ID pointer in *from for sequence
-   strips... bad code warning! 
-
-   We work around it by retrieving the missing pointer from the corresponding
-   Sequence-structure. 
-
-   This is needed, to make Ipo-Pinning work for Sequence-Ipos...
-*/
-// XXX old animation system - depreceated stuff...
-static Sequence * find_sequence_from_ipo_helper(Main * main, Ipo * ipo)
-{
-	Sequence *seq;
-	Scene *sce;
-	
-	for(sce=main->scene.first; sce; sce=sce->id.next) {
-		int found = 0;
-
-		SEQ_BEGIN(sce->ed, seq) {
-			if (seq->ipo == ipo) {
-				found = 1;
-				break;
-			}
-		} 
-		SEQ_END
-
-		if (found) {
-			break;
-		}
-		seq = NULL;
-	}
-
-	if (seq)
-        return seq;
-	else
-		return NULL;
-}
-
-static void lib_link_screen_sequence_ipos(Main *main)
-{
-	bScreen *sc;
-	ScrArea *sa;
-
-	for(sc= main->screen.first; sc; sc= sc->id.next) {
-		for(sa= sc->areabase.first; sa; sa= sa->next) {
-			SpaceLink *sl;
-			for (sl= sa->spacedata.first; sl; sl= sl->next) {
-				if(sl->spacetype == SPACE_IPO) {
-					SpaceIpo *sipo= (SpaceIpo *)sl;
-					if(sipo->blocktype==ID_SEQ) {
-						sipo->from = (ID*) find_sequence_from_ipo_helper(main, sipo->ipo);
-					}
-				}
-			}
-		}
-	}
-}
-
 /* ************ READ WM ***************** */
 
 static void direct_link_windowmanager(FileData *fd, wmWindowManager *wm)
@@ -4123,13 +4066,9 @@ static void lib_link_screen(FileData *fd, Main *main)
 					}
 					else if(sl->spacetype==SPACE_IPO) {
 						SpaceIpo *sipo= (SpaceIpo *)sl;
-						sipo->editipo= 0;
 						
-						if(sipo->blocktype==ID_SEQ) sipo->from= NULL;	// no libdata
-						else sipo->from= newlibadr(fd, sc->id.lib, sipo->from);
-						
-						sipo->ipokey.first= sipo->ipokey.last= 0;
-						sipo->ipo= newlibadr(fd, sc->id.lib, sipo->ipo);
+						if(sipo->ads)
+							sipo->ads->source= newlibadr(fd, sc->id.lib, sipo->ads->source);
 					}
 					else if(sl->spacetype==SPACE_BUTS) {
 						SpaceButs *sbuts= (SpaceButs *)sl;
@@ -4324,17 +4263,6 @@ void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 					/* not very nice, but could help */
 					if((v3d->layact & v3d->lay)==0) v3d->layact= v3d->lay;
 					
-				}
-				else if(sl->spacetype==SPACE_IPO) {
-					SpaceIpo *sipo= (SpaceIpo *)sl;
-					
-					if(sipo->blocktype==ID_SEQ) sipo->from= NULL;	// no libdata
-					else sipo->from= restore_pointer_by_name(newmain, (ID *)sipo->from, 0);
-					
-					// not free sipo->ipokey, creates dependency with src/
-					sipo->ipo= restore_pointer_by_name(newmain, (ID *)sipo->ipo, 0);
-					if(sipo->editipo) MEM_freeN(sipo->editipo);
-					sipo->editipo= NULL;
 				}
 				else if(sl->spacetype==SPACE_BUTS) {
 					SpaceButs *sbuts= (SpaceButs *)sl;
@@ -4573,6 +4501,11 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 				v3d->properties_storage= NULL;
 				
 				view3d_split_250(v3d, &sl->regionbase);
+			}
+			else if (sl->spacetype==SPACE_IPO) {
+				SpaceIpo *sipo= (SpaceIpo*)sl;
+				
+				sipo->ads= newdataadr(fd, sipo->ads);
 			}
 			else if (sl->spacetype==SPACE_OOPS) {
 				SpaceOops *soops= (SpaceOops*) sl;
@@ -5518,8 +5451,14 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				SpaceIpo *sipo= (SpaceIpo *)sl;
 				memcpy(&ar->v2d, &sipo->v2d, sizeof(View2D));
 				
+				/* init mainarea view2d */
 				ar->v2d.scroll |= (V2D_SCROLL_BOTTOM|V2D_SCROLL_SCALE_HORIZONTAL);
 				ar->v2d.scroll |= (V2D_SCROLL_LEFT|V2D_SCROLL_SCALE_VERTICAL);
+				
+				/* init dopesheet */
+				// XXX move this elsewhere instead?
+				sipo->ads= MEM_callocN(sizeof(bDopeSheet), "GraphEdit DopeSheet");
+				
 				//ar->v2d.flag |= V2D_IS_INITIALISED;
 				break;
 			}
@@ -8861,7 +8800,6 @@ static void lib_link_all(FileData *fd, Main *main)
 	lib_link_armature(fd, main);
 	lib_link_action(fd, main);
 	lib_link_vfont(fd, main);
-	lib_link_screen_sequence_ipos(main);
 	lib_link_nodetree(fd, main);	/* has to be done after scene/materials, this will verify group nodes */
 	lib_link_brush(fd, main);
 	lib_link_particlesettings(fd, main);

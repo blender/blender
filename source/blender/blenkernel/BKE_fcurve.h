@@ -95,6 +95,8 @@ void testhandles_fcurve(struct FCurve *fcu);
 void sort_time_fcurve(struct FCurve *fcu);
 short test_time_fcurve(struct FCurve *fcu);
 
+void correct_bezpart(float *v1, float *v2, float *v3, float *v4);
+
 /* -------- Evaluation --------  */
 
 /* evaluate fcurve */

@@ -196,11 +196,40 @@ static short actedit_get_context (bAnimContext *ac, SpaceAction *saction)
 
 /* ----------- Private Stuff - IPO Editor ------------- */
 
-/* Get data being edited in IPO Editor (depending on current 'mode') */
-static short ipoedit_get_context (bAnimContext *ac, SpaceIpo *sipo)
+/* Get data being edited in Graph Editor (depending on current 'mode') */
+static short graphedit_get_context (bAnimContext *ac, SpaceIpo *sipo)
 {
-	// XXX FIXME...
-	return 0;
+	/* sync settings with current view status, then return appropriate data */
+	switch (sipo->mode) {
+		case SIPO_MODE_ANIMATION:	/* Animation F-Curve Editor */
+			/* update scene-pointer (no need to check for pinning yet, as not implemented) */
+			sipo->ads->source= (ID *)ac->scene;
+			sipo->ads->filterflag &= ~ADS_FILTER_ONLYDRIVERS;
+			
+			ac->datatype= ANIMCONT_FCURVES;
+			ac->data= sipo->ads;
+			
+			ac->mode= sipo->mode;
+			return 1;
+		
+		case SIPO_MODE_DRIVERS:		/* Driver F-Curve Editor */
+			/* update scene-pointer (no need to check for pinning yet, as not implemented) */
+			sipo->ads->source= (ID *)ac->scene;
+			sipo->ads->filterflag |= ADS_FILTER_ONLYDRIVERS;
+			
+			ac->datatype= ANIMCONT_FCURVES;
+			ac->data= sipo->ads;
+			
+			ac->mode= sipo->mode;
+			return 1;
+		
+		default: /* unhandled yet */
+			ac->datatype= ANIMCONT_NONE;
+			ac->data= NULL;
+			
+			ac->mode= -1;
+			return 0;
+	}
 }
 
 /* ----------- Public API --------------- */
@@ -227,7 +256,7 @@ short ANIM_animdata_context_getdata (bAnimContext *ac)
 			case SPACE_IPO:
 			{
 				SpaceIpo *sipo= (SpaceIpo *)sa->spacedata.first;
-				ok= ipoedit_get_context(ac, sipo);
+				ok= graphedit_get_context(ac, sipo);
 			}
 				break;
 		}
@@ -436,16 +465,19 @@ static int animdata_filter_fcurves (ListBase *anim_data, FCurve *first, bActionG
 	 * NOTE: we need to check if the F-Curves belong to the same group, as this gets called for groups too...
 	 */
 	for (fcu= first; ((fcu) && (fcu->grp==grp)); fcu= fcu->next) {
-		/* only work with this channel and its subchannels if it is editable */
-		if (!(filter_mode & ANIMFILTER_FOREDIT) || EDITABLE_FCU(fcu)) {
-			/* only include this curve if selected */
-			if (!(filter_mode & ANIMFILTER_SEL) || (SEL_FCU(fcu))) {
-				/* owner/ownertype will be either object or action-channel, depending if it was dopesheet or part of an action */
-				ale= make_new_animlistelem(fcu, ANIMTYPE_FCURVE, owner, ownertype, owner_id);
-				
-				if (ale) {
-					BLI_addtail(anim_data, ale);
-					items++;
+		/* only include if visible (Graph Editor check, not channels check) */
+		if (!(filter_mode & ANIMFILTER_CURVEVISIBLE) || (fcu->flag & FCURVE_VISIBLE)) {
+			/* only work with this channel and its subchannels if it is editable */
+			if (!(filter_mode & ANIMFILTER_FOREDIT) || EDITABLE_FCU(fcu)) {
+				/* only include this curve if selected */
+				if (!(filter_mode & ANIMFILTER_SEL) || (SEL_FCU(fcu))) {
+					/* owner/ownertype will be either object or action-channel, depending if it was dopesheet or part of an action */
+					ale= make_new_animlistelem(fcu, ANIMTYPE_FCURVE, owner, ownertype, owner_id);
+					
+					if (ale) {
+						BLI_addtail(anim_data, ale);
+						items++;
+					}
 				}
 			}
 		}
@@ -985,7 +1017,7 @@ static int animdata_filter_dopesheet (ListBase *anim_data, bDopeSheet *ads, int 
 /* This function filters the active data source to leave only animation channels suitable for
  * usage by the caller. It will return the length of the list 
  * 
- * 	*act_data: is a pointer to a ListBase, to which the filtered animation channels
+ * 	*anim_data: is a pointer to a ListBase, to which the filtered animation channels
  *		will be placed for use.
  *	filter_mode: how should the data be filtered - bitmapping accessed flags
  */
@@ -1003,19 +1035,19 @@ int ANIM_animdata_filter (bAnimContext *ac, ListBase *anim_data, int filter_mode
 			case ANIMCONT_ACTION:
 				items= animdata_filter_action(anim_data, data, filter_mode, NULL, ANIMTYPE_NONE, (ID *)obact);
 				break;
+				
 			case ANIMCONT_SHAPEKEY:
 				items= animdata_filter_shapekey(anim_data, data, filter_mode, NULL, ANIMTYPE_NONE, (ID *)obact);
 				break;
+				
 			case ANIMCONT_GPENCIL:
 				//items= animdata_filter_gpencil(anim_data, data, filter_mode);
 				break;
-			case ANIMCONT_DOPESHEET:
-				items= animdata_filter_dopesheet(anim_data, data, filter_mode);
-				break;
 				
-			case ANIMCONT_IPO:
-				// FIXME: this will be used for showing a single IPO-block (not too useful from animator perspective though!)
-				//items= 0;
+			case ANIMCONT_DOPESHEET:
+			case ANIMCONT_FCURVES:
+			case ANIMCONT_DRIVERS:
+				items= animdata_filter_dopesheet(anim_data, data, filter_mode);
 				break;
 		}
 			
