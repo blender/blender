@@ -2417,7 +2417,7 @@ static int make_parent_exec(bContext *C, wmOperator *op)
 	DAG_scene_sort(CTX_data_scene(C));
 	ED_anim_dag_flush_update(C);	
 	
-	BIF_undo_push("make Parent");
+	ED_undo_push(C,"make Parent");
 	
 	return OPERATOR_FINISHED;
 }
@@ -2425,31 +2425,26 @@ static int make_parent_exec(bContext *C, wmOperator *op)
 static int make_parent_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	Object *ob= CTX_data_active_object(C);
-	char *str, string[256];
-	char formatstr[] = "|%s %%x%d";
+	uiMenuItem *head= uiMenuBegin("Make Parent To");
 	
-	str= string + sprintf(string, "Make Parent To %%t");
+	uiMenuContext(head, WM_OP_EXEC_DEFAULT);
+	uiMenuItemEnumO(head, "OBJECT_OT_make_parent", "type", PAR_OBJECT);
 	
 	/* ob becomes parent, make the associated menus */
 	if(ob->type==OB_ARMATURE) {
-		str += sprintf(str, formatstr, "Object", PAR_OBJECT);
-		str += sprintf(str, formatstr, "Armature Deform", PAR_ARMATURE);
-		str += sprintf(str, formatstr, "Bone", PAR_BONE);
+		uiMenuItemEnumO(head, "OBJECT_OT_make_parent", "type", PAR_ARMATURE);
+		uiMenuItemEnumO(head, "OBJECT_OT_make_parent", "type", PAR_BONE);
 	}
 	else if(ob->type==OB_CURVE) {
-		str += sprintf(str, formatstr, "Object", PAR_OBJECT);
-		str += sprintf(str, formatstr, "Curve Deform", PAR_CURVE);
-		str += sprintf(str, formatstr, "Follow Path", PAR_FOLLOW);
-		str += sprintf(str, formatstr, "Path Constraint", PAR_PATH_CONST);
+		uiMenuItemEnumO(head, "OBJECT_OT_make_parent", "type", PAR_CURVE);
+		uiMenuItemEnumO(head, "OBJECT_OT_make_parent", "type", PAR_FOLLOW);
+		uiMenuItemEnumO(head, "OBJECT_OT_make_parent", "type", PAR_PATH_CONST);
 	}
 	else if(ob->type == OB_LATTICE) {
-		str += sprintf(str, formatstr, "Object", PAR_OBJECT);
-		str += sprintf(str, formatstr, "Lattice Deform", PAR_LATTICE);
+		uiMenuItemEnumO(head, "OBJECT_OT_make_parent", "type", PAR_LATTICE);
 	}
-	else
-		str += sprintf(str, formatstr, "Object", PAR_OBJECT);
 	
-	uiPupmenuOperator(C, 0, op, "type", string);
+	uiMenuEnd(C, head);
 	
 	return OPERATOR_RUNNING_MODAL;
 }
