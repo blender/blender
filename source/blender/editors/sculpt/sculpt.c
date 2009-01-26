@@ -1655,11 +1655,14 @@ static int sculpt_toggle_mode(bContext *C, wmOperator *op)
 		ts->sculpt->brush = add_brush("test brush");
 		/* Also for testing, set the brush texture to the first available one */
 		if(G.main->tex.first) {
-			mtex = MEM_callocN(sizeof(MTex), "test mtex");
-			ts->sculpt->brush->texact = 0;
-			ts->sculpt->brush->mtex[0] = mtex;
-			mtex->tex = G.main->tex.first;
-			mtex->size[0] = mtex->size[1] = mtex->size[2] = 50;
+			Tex *tex = G.main->tex.first;
+			if(tex->type) {
+				mtex = MEM_callocN(sizeof(MTex), "test mtex");
+				ts->sculpt->brush->texact = 0;
+				ts->sculpt->brush->mtex[0] = mtex;
+				mtex->tex = tex;
+				mtex->size[0] = mtex->size[1] = mtex->size[2] = 50;
+			}
 		}
 
 		ED_undo_push(C, "Enter sculpt");

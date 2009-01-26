@@ -244,6 +244,7 @@ void RNA_def_texture(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem prop_type_items[] = {
+		{0, "NONE", "None", ""},
 		{TEX_CLOUDS, "CLOUDS", "Clouds", ""},
 		{TEX_WOOD, "WOOD", "Wood", ""},
 		{TEX_MARBLE, "MARBLE", "Marble", ""},
