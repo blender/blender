@@ -64,7 +64,6 @@ public:
 			m_reverseKeyTranslateTable[TIMER0                           ] =	KX_TIMER0                  ;                  
 			m_reverseKeyTranslateTable[TIMER1                           ] =	KX_TIMER1                  ;                  
 			m_reverseKeyTranslateTable[TIMER2                           ] = KX_TIMER2                  ;                  
-			m_reverseKeyTranslateTable[TIMER3                           ] = KX_TIMER3                  ;                  
                                                                                                                    
 			// SYSTEM                                                                                                  
                                                                                                                    

@@ -36,6 +36,8 @@ __bpydoc__ = """\
 This script is an importer for the X3D and VRML97 file formats.
 """
 
+DEBUG = False
+
 # This should work without a blender at all
 try:
 	from Blender.sys import exists
@@ -50,11 +52,11 @@ def dirName(path):
 
 def imageConvertCompat(path):
 	
-	try:	import os
-	except:
-		return path
+	try:             import os
+	except:          return path
+	if os.sep=='\\': return path # assime win32 has quicktime, dont convert
 	
-	if path.endswith('.gif'):
+	if path.lower().endswith('.gif'):
 		path_to = path[:-3] + 'png'
 		
 		'''
@@ -145,11 +147,10 @@ def vrmlFormat(data):
 					data = data[:start] + data[end:]
 					ok = True # keep looking
 					
-					last_i = end - len(item) + 1
+					last_i = (end - len(item)) + 1
 					# print last_i, item, '|' + data[last_i] + '|'
 		
 	# done with messy extracting strings part
-	
 	
 	
 	# Bad, dont take strings into account
@@ -173,13 +174,14 @@ def vrmlFormat(data):
 		while ok:
 			ok = False
 			i = data.find(search + '"', last_i)
-			
+			# print i
 			if i != -1:
 				start = i + len(search) # first char after end of search
 				item = string_ls.pop(0)
+				# print item
 				data = data[:start] + item + data[start:]
 				
-				last_i = start + len(item)
+				last_i = start + len(item) + 1
 				
 				ok = True
 	
@@ -201,6 +203,7 @@ def vrmlFormat(data):
 NODE_NORMAL = 1 # {}
 NODE_ARRAY = 2 # []
 NODE_REFERENCE = 3 # USE foobar
+# NODE_PROTO = 4 #
 
 lines = []
 
@@ -211,6 +214,10 @@ def getNodePreText(i, words):
 		
 		if i>=len(lines):
 			break
+			'''
+		elif lines[i].startswith('PROTO'):
+			return NODE_PROTO, i+1
+			'''
 		elif lines[i]=='{':
 			# words.append(lines[i]) # no need
 			# print "OK"
@@ -244,6 +251,23 @@ def is_nodeline(i, words):
 	if not lines[i][0].isalpha():
 		return 0, 0
 	
+	#if lines[i].startswith('field'):
+	#	return 0, 0
+	
+	# Is this a prototype??
+	if lines[i].startswith('PROTO'):
+		words[:] = lines[i].split()
+		return NODE_NORMAL, i+1 # TODO - assumes the next line is a '[\n', skip that
+	if lines[i].startswith('EXTERNPROTO'):
+		words[:] = lines[i].split()
+		return NODE_ARRAY, i+1 # TODO - assumes the next line is a '[\n', skip that
+	
+	'''
+	proto_type, new_i = is_protoline(i, words, proto_field_defs)
+	if new_i != -1:
+		return proto_type, new_i
+	'''
+	
 	# Simple "var [" type
 	if lines[i+1] == '[':
 		if lines[i].count('"') % 2 == 0:
@@ -253,6 +277,7 @@ def is_nodeline(i, words):
 	node_type, new_i = getNodePreText(i, words)
 	
 	if not node_type:
+		if DEBUG: print "not node_type", lines[i]
 		return 0, 0
 	
 	# Ok, we have a { after some values
@@ -311,10 +336,10 @@ def is_numline(i):
 		return True
 	except:
 		return False
-	
+
 
 class vrmlNode(object):
-	__slots__ = 'id', 'fields', 'node_type', 'parent', 'children', 'parent', 'array_data', 'reference', 'lineno', 'filename', 'blendObject', 'DEF_NAMESPACE', 'ROUTE_IPO_NAMESPACE', 'FIELD_NAMESPACE', 'x3dNode'
+	__slots__ = 'id', 'fields', 'proto_node', 'proto_field_defs', 'proto_fields', 'node_type', 'parent', 'children', 'parent', 'array_data', 'reference', 'lineno', 'filename', 'blendObject', 'DEF_NAMESPACE', 'ROUTE_IPO_NAMESPACE', 'PROTO_NAMESPACE', 'x3dNode'
 	def __init__(self, parent, node_type, lineno):
 		self.id = None
 		self.node_type = node_type
@@ -329,11 +354,17 @@ class vrmlNode(object):
 		# This is only set from the root nodes.
 		# Having a filename also denotes a root node
 		self.filename = None
+		self.proto_node = None # proto field definition eg: "field SFColor seatColor .6 .6 .1"
 		
 		# Store in the root node because each inline file needs its own root node and its own namespace
 		self.DEF_NAMESPACE = None 
 		self.ROUTE_IPO_NAMESPACE = None 
+		'''
 		self.FIELD_NAMESPACE = None
+		'''
+		
+		
+		self.PROTO_NAMESPACE = None
 		
 		self.reference = None
 		
@@ -343,16 +374,26 @@ class vrmlNode(object):
 			return 
 		
 		self.fields = [] # fields have no order, in some cases rool level values are not unique so dont use a dict
+		
+		self.proto_field_defs = [] # proto field definition eg: "field SFColor seatColor .6 .6 .1"
+		self.proto_fields = [] # proto field usage "diffuseColor IS seatColor"
 		self.children = []
 		self.array_data = [] # use for arrays of data - should only be for NODE_ARRAY types
 		
 	
 	# Only available from the root node
+	'''
 	def getFieldDict(self):
 		if self.FIELD_NAMESPACE != None:
 			return self.FIELD_NAMESPACE
 		else:
 			return self.parent.getFieldDict()
+	'''
+	def getProtoDict(self):
+		if self.PROTO_NAMESPACE != None:
+			return self.PROTO_NAMESPACE
+		else:
+			return self.parent.getProtoDict()
 	
 	def getDefDict(self):
 		if self.DEF_NAMESPACE != None:
@@ -368,9 +409,10 @@ class vrmlNode(object):
 	
 	def setRoot(self, filename):
 		self.filename = filename
-		self.FIELD_NAMESPACE =		{}
+		# self.FIELD_NAMESPACE =		{}
 		self.DEF_NAMESPACE =		{}
 		self.ROUTE_IPO_NAMESPACE =	{}
+		self.PROTO_NAMESPACE =		{}
 	
 	def isRoot(self):
 		if self.filename == None:
@@ -399,20 +441,36 @@ class vrmlNode(object):
 		except:
 			return None
 	
+	def findSpecRecursive(self, spec):
+		self_real = self.getRealNode()
+		if spec == self_real.getSpec():
+			return self
+		
+		for child in self_real.children:
+			if child.findSpecRecursive(spec):
+				return child
+		
+		return None
+	
 	def getPrefix(self):
 		if self.id:
 			return self.id[0]
 		return None
 	
-	def getDefName(self):
+	def getSpecialTypeName(self, typename):
 		self_real = self.getRealNode()
+		try:		return self_real.id[ list(self_real.id).index(typename)+1 ]
+		except:	return None
+	
+	
+	def getDefName(self):
+		return self.getSpecialTypeName('DEF')
+	
+	def getProtoName(self):
+		return self.getSpecialTypeName('PROTO')
 		
-		if 'DEF' in self_real.id:
-			# print self_real.id
-			return self_real.id[ list(self_real.id).index('DEF')+1 ]
-		else:
-			return None
-		
+	def getExternprotoName(self):
+		return self.getSpecialTypeName('EXTERNPROTO')
 	
 	def getChildrenBySpec(self, node_spec): # spec could be Transform, Shape, Appearance
 		self_real = self.getRealNode()
@@ -449,7 +507,26 @@ class vrmlNode(object):
 		ancestry.append(self)
 		for child in self.getRealNode().children:
 			if child not in ancestry:
-				child.getSerialized(results, ancestry)
+				# We dont want to load proto's, they are only references
+				# We could enforce this elsewhere
+				
+				# Only add this in a very special case
+				# where the parent of this object is not the real parent
+				# - In this case we have added the proto as a child to a node instancing it.
+				# This is a bit arbitary, but its how Proto's are done with this importer.
+				if child.getProtoName() == None and child.getExternprotoName() == None:
+					child.getSerialized(results, ancestry)
+				else:
+					
+					if DEBUG: print 'getSerialized() is proto:', child.getProtoName(), child.getExternprotoName(), self.getSpec()
+					
+					self_spec = self.getSpec()
+					
+					if child.getProtoName() == self_spec or child.getExternprotoName() == self_spec:
+						if DEBUG: "FoundProto!"
+						child.getSerialized(results, ancestry)
+					
+					
 		
 		return results
 		
@@ -462,7 +539,7 @@ class vrmlNode(object):
 			child.searchNodeTypeID(node_spec, results)
 		return results
 	
-	def getFieldName(self, field):
+	def getFieldName(self, field, ancestry, AS_CHILD=False):
 		self_real = self.getRealNode() # incase we're an instance
 		
 		for f in self_real.fields:
@@ -470,14 +547,81 @@ class vrmlNode(object):
 			if f and f[0] == field:
 				# print '\tfound field', f
 				
-				return f[1:]
+				if len(f)>=3 and f[1] == 'IS': # eg: 'diffuseColor IS legColor'
+					field_id = f[2]
+					
+					# print "\n\n\n\n\n\nFOND IS!!!"
+					f_proto_lookup = None
+					f_proto_child_lookup = None
+					i = len(ancestry)
+					while i:
+						i -= 1
+						node = ancestry[i]
+						node = node.getRealNode()
+						
+						# proto settings are stored in "self.proto_node"
+						if node.proto_node: 
+							# Get the default value from the proto, this can be overwridden by the proto instace
+							# 'field SFColor legColor .8 .4 .7'
+							if AS_CHILD:
+								for child in node.proto_node.children:
+									#if child.id  and  len(child.id) >= 3  and child.id[2]==field_id:
+									if child.id and ('point' in child.id or 'points' in child.id):
+										f_proto_child_lookup = child
+							
+							else:
+								for f_def in node.proto_node.proto_field_defs:
+									if len(f_def) >= 4:
+										if f_def[0]=='field' and f_def[2]==field_id:
+											f_proto_lookup = f_def[3:]
+						
+						# Node instance, Will be 1 up from the proto-node in the ancestry list. but NOT its parent.
+						# This is the setting as defined by the instance, including this setting is optional,
+						# and will override the default PROTO value 
+						# eg: 'legColor 1 0 0'
+						if AS_CHILD:
+							for child in node.children:
+								if child.id and child.id[0]==field_id:
+									f_proto_child_lookup = child
+						else:
+							for f_def in node.fields:
+								if len(f_def) >= 2:
+									if f_def[0]==field_id:
+										if DEBUG: print "getFieldName(), found proto", f_def
+										f_proto_lookup = f_def[1:]
+						
+					
+					if AS_CHILD:
+						if f_proto_child_lookup:
+							if DEBUG:
+								print "getFieldName() - AS_CHILD=True, child found"
+								print f_proto_child_lookup
+						return f_proto_child_lookup
+					else:
+						return f_proto_lookup
+				else:
+					if AS_CHILD:
+						return None
+					else:
+						# Not using a proto
+						return f[1:]
+						
 		# print '\tfield not found', field
+		
+		
+		# See if this is a proto name
+		if AS_CHILD:
+			child_array = None
+			for child in self_real.children:
+				if child.id and len(child.id) == 1 and child.id[0] == field:
+					return child
+		
 		return None
 	
-	def getFieldAsInt(self, field, default):
+	def getFieldAsInt(self, field, default, ancestry):
 		self_real = self.getRealNode() # incase we're an instance
 		
-		f = self_real.getFieldName(field)
+		f = self_real.getFieldName(field, ancestry)
 		if f==None:	return default
 		if ',' in f: f = f[:f.index(',')] # strip after the comma
 		
@@ -491,10 +635,10 @@ class vrmlNode(object):
 			print '\tvalue "%s" could not be used as an int for field "%s"' % (f[0], field)
 			return default
 	
-	def getFieldAsFloat(self, field, default):
+	def getFieldAsFloat(self, field, default, ancestry):
 		self_real = self.getRealNode() # incase we're an instance
 		
-		f = self_real.getFieldName(field)
+		f = self_real.getFieldName(field, ancestry)
 		if f==None:	return default
 		if ',' in f: f = f[:f.index(',')] # strip after the comma
 		
@@ -508,10 +652,10 @@ class vrmlNode(object):
 			print '\tvalue "%s" could not be used as a float for field "%s"' % (f[0], field)
 			return default
 	
-	def getFieldAsFloatTuple(self, field, default):
+	def getFieldAsFloatTuple(self, field, default, ancestry):
 		self_real = self.getRealNode() # incase we're an instance
 		
-		f = self_real.getFieldName(field)
+		f = self_real.getFieldName(field, ancestry)
 		if f==None:	return default
 		# if ',' in f: f = f[:f.index(',')] # strip after the comma
 		
@@ -532,10 +676,10 @@ class vrmlNode(object):
 			print '\tvalue "%s" could not be used as a float tuple for field "%s"' % (f, field)
 			return default
 	
-	def getFieldAsBool(self, field, default):
+	def getFieldAsBool(self, field, default, ancestry):
 		self_real = self.getRealNode() # incase we're an instance
 		
-		f = self_real.getFieldName(field)
+		f = self_real.getFieldName(field, ancestry)
 		if f==None:	return default
 		if ',' in f: f = f[:f.index(',')] # strip after the comma
 		
@@ -551,10 +695,10 @@ class vrmlNode(object):
 			print '\t"%s" could not be used as a bool for field "%s"' % (f[1], field)
 			return default
 	
-	def getFieldAsString(self, field, default=None):
+	def getFieldAsString(self, field, default, ancestry):
 		self_real = self.getRealNode() # incase we're an instance
 		
-		f = self_real.getFieldName(field)
+		f = self_real.getFieldName(field, ancestry)
 		if f==None:	return default
 		if len(f) < 1:
 			print '\t"%s" wrong length for string conversion for field "%s"' % (f, field)
@@ -576,24 +720,22 @@ class vrmlNode(object):
 			print '\tvalue "%s" could not be used as a string for field "%s"' % (f[0], field)
 			return default
 	
-	def getFieldAsArray(self, field, group):
+	def getFieldAsArray(self, field, group, ancestry):
 		'''
 		For this parser arrays are children
 		'''
 		self_real = self.getRealNode() # incase we're an instance
 		
-		child_array = None
-		for child in self_real.children:
-			# print "ID IS", child.id
-			if child.id and len(child.id) == 1 and child.id[0] == field:
-				child_array = child
-				break
+		child_array = self_real.getFieldName(field, ancestry, True)
 		
+		#if type(child_array)==list: # happens occasionaly
+		#	array_data = child_array 
+			
 		if child_array==None:
 			
 			# For x3d, should work ok with vrml too
 			# for x3d arrays are fields, vrml they are nodes, annoying but not tooo bad.
-			data_split = self.getFieldName(field)
+			data_split = self.getFieldName(field, ancestry)
 			if not data_split:
 				return []
 			array_data = ' '.join(data_split)
@@ -660,7 +802,7 @@ class vrmlNode(object):
 		
 		return new_array
 	
-	def getFieldAsStringArray(self, field):
+	def getFieldAsStringArray(self, field, ancestry):
 		'''
 		Get a list of strings
 		'''
@@ -698,7 +840,6 @@ class vrmlNode(object):
 	def __repr__(self):
 		level = self.getLevel()
 		ind = '  ' * level
-		
 		if self.node_type==NODE_REFERENCE:
 			brackets = ''
 		elif self.node_type==NODE_NORMAL:
@@ -717,14 +858,25 @@ class vrmlNode(object):
 			text += ind + "(reference node)\n"
 			return text
 		
-		text += ind + 'FIELDS:\n'
+		if self.proto_node:
+			text += ind + 'PROTO NODE...\n'
+			text += str(self.proto_node)
+			text += ind + 'PROTO NODE_DONE\n'
+		
+		text += ind + 'FIELDS:' + str(len(self.fields)) + '\n'
 		
 		for i,item in enumerate(self.fields):
 			text += ind + 'FIELD:\n'
 			text += ind + str(item) +'\n'
+
+		text += ind + 'PROTO_FIELD_DEFS:' + str(len(self.proto_field_defs)) + '\n'
 		
-		#text += ind + 'ARRAY: ' + str(len(self.array_data)) + ' ' + str(self.array_data) + '\n'
-		text += ind + 'ARRAY: ' + str(len(self.array_data)) + '[...] \n'
+		for i,item in enumerate(self.proto_field_defs):
+			text += ind + 'PROTO_FIELD:\n'
+			text += ind + str(item) +'\n'
+
+		text += ind + 'ARRAY: ' + str(len(self.array_data)) + ' ' + str(self.array_data) + '\n'
+		#text += ind + 'ARRAY: ' + str(len(self.array_data)) + '[...] \n'
 		
 		text += ind + 'CHILDREN: ' + str(len(self.children)) + '\n'
 		for i, child in enumerate(self.children):
@@ -735,19 +887,55 @@ class vrmlNode(object):
 		
 		return text
 	
-	def parse(self, i):
-		new_i = self.__parse(i)
+	def parse(self, i, IS_PROTO_DATA=False):
+		new_i = self.__parse(i, IS_PROTO_DATA)
 		
 		# print self.id, self.getFilename()
 		
-		# If we were an inline then try load the file
+		# Check if this node was an inline or externproto
+		
+		url_ls = []
+		
 		if self.node_type == NODE_NORMAL and self.getSpec() == 'Inline':
+			ancestry = [] # Warning! - PROTO's using this wont work at all.
+			url = self.getFieldAsString('url', None, ancestry)
+			if url:
+				url_ls = [(url, None)]
+			del ancestry
+		
+		elif self.getExternprotoName():
+			# externproto
+			url_ls = []
+			for f in self.fields:
+				
+				if type(f)==str:
+					f = [f]
+				
+				for ff in f:
+					for f_split in ff.split('"'):
+						# print f_split
+						# "someextern.vrml#SomeID"
+						if '#' in f_split:
+							
+							f_split, f_split_id = f_split.split('#') # there should only be 1 # anyway
+							
+							url_ls.append( (f_split, f_split_id) )
+						else:
+							url_ls.append( (f_split, None) )
+		
+		
+		# Was either an Inline or an EXTERNPROTO
+		if url_ls:
 			
-			url = self.getFieldAsString('url', None)
+			# print url_ls
 			
-			if url != None:
+			for url, extern_key in url_ls:
+				print url
 				urls = []
 				urls.append( url )
+				urls.append( BPySys.caseInsensitivePath(urls[-1]) )
+				
+				urls.append( dirName(self.getFilename()) + url )
 				urls.append( BPySys.caseInsensitivePath(urls[-1]) )
 				
 				urls.append( dirName(self.getFilename()) + baseName(url) )
@@ -786,7 +974,7 @@ class vrmlNode(object):
 							lines.insert(0, 'root_node____')
 							lines.append('}')
 							'''
-							ff = open('/test.txt', 'w')
+							ff = open('/tmp/test.txt', 'w')
 							ff.writelines([l+'\n' for l in lines])
 							'''
 							
@@ -794,15 +982,36 @@ class vrmlNode(object):
 							child.setRoot(url) # initialized dicts
 							child.parse(0)
 							
+							# if self.getExternprotoName():
+							if self.getExternprotoName():
+								if not extern_key: # if none is spesified - use the name
+									extern_key = self.getSpec()
+								
+								if extern_key:
+									
+									self.children.remove(child)
+									child.parent = None
+									
+									extern_child = child.findSpecRecursive(extern_key)
+									
+									if extern_child:
+										self.children.append(extern_child)
+										extern_child.parent = self
+										
+										if DEBUG: print "\tEXTERNPROTO ID found!:", extern_key
+									else:
+										print "\tEXTERNPROTO ID not found!:", extern_key
+									
 							# Watch it! - restore lines
 							lines[:] = lines_old
-					
 		
 		return new_i
 	
-	def __parse(self, i):
-		# print 'parsing at', i,
-		# print i, self.id, self.lineno
+	def __parse(self, i, IS_PROTO_DATA=False):
+		'''
+		print 'parsing at', i,
+		print i, self.id, self.lineno
+		'''
 		l = lines[i]
 		
 		if l=='[':
@@ -811,9 +1020,11 @@ class vrmlNode(object):
 			i+=1
 		else:
 			words = []
+			
 			node_type, new_i = is_nodeline(i, words)
 			if not node_type: # fail for parsing new node.
-				raise "error"
+				print "Failed to parse new node"
+				raise ValueError
 			
 			if self.node_type==NODE_REFERENCE:
 				# Only assign the reference and quit
@@ -827,40 +1038,72 @@ class vrmlNode(object):
 			
 			# fill in DEF/USE
 			key = self.getDefName()
-			
 			if key != None:
 				self.getDefDict()[ key ] = self
+			
+			key = self.getProtoName()
+			if not key:	key = self.getExternprotoName()
+			
+			proto_dict = self.getProtoDict()
+			if key != None:
+				proto_dict[ key ] = self
+				
+				# Parse the proto nodes fields
+				self.proto_node = vrmlNode(self, NODE_ARRAY, new_i)
+				new_i = self.proto_node.parse(new_i)
+				
+				self.children.remove(self.proto_node)
+				
+				# print self.proto_node
+				
+				new_i += 1 # skip past the {
+				
+			
+			else: # If we're a proto instance, add the proto node as our child.
+				spec = self.getSpec()
+				try:
+					self.children.append( proto_dict[spec] )
+					#pass
+				except:
+					pass
+				
+				del spec
+			
+			del proto_dict, key
 			
 			i = new_i
 		
 		# print self.id
 		ok = True
 		while ok:
+			if i>=len(lines):
+				return len(lines)-1
+			
 			l = lines[i]
-			# print '\t', i, l
+			# print '\tDEBUG:', i, self.node_type, l
 			if l=='':
 				i+=1
 				continue 
 			
 			if l=='}':
-				if self.node_type != NODE_NORMAL:
-					print 'wrong node ending, expected an } ' + str(i)
-					raise ""
+				if self.node_type != NODE_NORMAL: # also ends proto nodes, we may want a type for these too.
+					print 'wrong node ending, expected an } ' + str(i) + ' ' + str(self.node_type)
+					if DEBUG:
+						raise ValueError
 				### print "returning", i
 				return i+1
 			if l==']':
 				if self.node_type != NODE_ARRAY:
-					print 'wrong node ending, expected a ] ' + str(i)
-					raise ""
+					print 'wrong node ending, expected a ] ' + str(i) + ' ' + str(self.node_type)
+					if DEBUG:
+						raise ValueError
 				### print "returning", i
 				return i+1
 				
 			node_type, new_i = is_nodeline(i, [])
 			if node_type: # check text\n{
-				### print '\t\tgroup', i
 				child = vrmlNode(self, node_type, i)
 				i = child.parse(i)
-				# print child.id, 'YYY'
 				
 			elif l=='[': # some files have these anonymous lists
 				child = vrmlNode(self, NODE_ARRAY, i)
@@ -943,6 +1186,7 @@ class vrmlNode(object):
 									# this IS a key but the previous value was not a key, ot it was a defined field.
 									if (not iskey(field_context[-1])) or ((len(field_context)==3 and field_context[1]=='IS')):
 										field_list.append(field_context)
+										
 										field_context = [value[j]]
 									else:
 										# The last item was not a value, multiple keys are needed in some cases.
@@ -965,18 +1209,9 @@ class vrmlNode(object):
 						
 						if value[0]=='field':
 							# field SFFloat creaseAngle 4
-							self.getFieldDict()[value[2]] = value[3:] # skip the first 3 values
+							self.proto_field_defs.append(value)
 						else:
-							# Get referenced field
-							if len(value) >= 3 and value[1]=='IS':
-								try:
-									value = [ value[0] ] + self.getFieldDict()[ value[2] ]
-								except:
-									print '\tWarning, field could not be found:', value, 'TODO add support for exposedField'
-									print '\t', self.getFieldDict()
-									self.fields.append(value)
-							else:
-								self.fields.append(value)
+							self.fields.append(value)
 				i+=1
 
 def gzipOpen(path):
@@ -1015,8 +1250,9 @@ def vrml_parse(path):
 	# Use for testing our parsed output, so we can check on line numbers.
 	
 	'''
-	ff = open('/test.txt', 'w')
+	ff = open('/tmp/test.txt', 'w')
 	ff.writelines([l+'\n' for l in lines])
+	ff.close()
 	'''
 	
 	# Now evaluate it
@@ -1036,9 +1272,8 @@ def vrml_parse(path):
 	root.parse(0)
 	
 	# This prints a load of text
-	'''
-	print root
-	'''
+	if DEBUG:
+		print root
 	
 	return root, ''
 
@@ -1055,7 +1290,7 @@ class x3dNode(vrmlNode):
 		vrmlNode.__init__(self, parent, node_type, -1)
 		self.x3dNode = x3dNode
 		
-	def parse(self):
+	def parse(self, IS_PROTO_DATA=False):
 		# print self.x3dNode.tagName
 		
 		define = self.x3dNode.getAttributeNode('DEF')
@@ -1195,12 +1430,12 @@ def translateScale(sca):
 	mat[2][2] = sca[2]
 	return mat
 
-def translateTransform(node):
-	cent =		node.getFieldAsFloatTuple('center', None) # (0.0, 0.0, 0.0)
-	rot =		node.getFieldAsFloatTuple('rotation', None) # (0.0, 0.0, 1.0, 0.0)
-	sca =		node.getFieldAsFloatTuple('scale', None) # (1.0, 1.0, 1.0)
-	scaori =	node.getFieldAsFloatTuple('scaleOrientation', None) # (0.0, 0.0, 1.0, 0.0)
-	tx =		node.getFieldAsFloatTuple('translation', None) # (0.0, 0.0, 0.0)
+def translateTransform(node, ancestry):
+	cent =		node.getFieldAsFloatTuple('center', None, ancestry) # (0.0, 0.0, 0.0)
+	rot =		node.getFieldAsFloatTuple('rotation', None, ancestry) # (0.0, 0.0, 1.0, 0.0)
+	sca =		node.getFieldAsFloatTuple('scale', None, ancestry) # (1.0, 1.0, 1.0)
+	scaori =	node.getFieldAsFloatTuple('scaleOrientation', None, ancestry) # (0.0, 0.0, 1.0, 0.0)
+	tx =		node.getFieldAsFloatTuple('translation', None, ancestry) # (0.0, 0.0, 0.0)
 	
 	if cent:
 		cent_mat = TranslationMatrix(Vector(cent)).resize4x4()
@@ -1232,11 +1467,11 @@ def translateTransform(node):
 	
 	return new_mat
 
-def translateTexTransform(node):
-	cent =		node.getFieldAsFloatTuple('center', None) # (0.0, 0.0)
-	rot =		node.getFieldAsFloat('rotation', None) # 0.0
-	sca =		node.getFieldAsFloatTuple('scale', None) # (1.0, 1.0)
-	tx =		node.getFieldAsFloatTuple('translation', None) # (0.0, 0.0)
+def translateTexTransform(node, ancestry):
+	cent =		node.getFieldAsFloatTuple('center', None, ancestry) # (0.0, 0.0)
+	rot =		node.getFieldAsFloat('rotation', None, ancestry) # 0.0
+	sca =		node.getFieldAsFloatTuple('scale', None, ancestry) # (1.0, 1.0)
+	tx =		node.getFieldAsFloatTuple('translation', None, ancestry) # (0.0, 0.0)
 	
 	
 	if cent:
@@ -1279,17 +1514,17 @@ def getFinalMatrix(node, mtx, ancestry):
 		mtx = Matrix()
 	
 	for node_tx in transform_nodes:
-		mat = translateTransform(node_tx)
+		mat = translateTransform(node_tx, ancestry)
 		mtx = mtx * mat
 	
 	return mtx
 
-def importMesh_IndexedFaceSet(geom, bpyima):
+def importMesh_IndexedFaceSet(geom, bpyima, ancestry):
 	# print geom.lineno, geom.id, vrmlNode.DEF_NAMESPACE.keys()
 	
-	ccw =				geom.getFieldAsBool('ccw', True)
-	ifs_colorPerVertex =	geom.getFieldAsBool('colorPerVertex', True) # per vertex or per face
-	ifs_normalPerVertex =	geom.getFieldAsBool('normalPerVertex', True)
+	ccw =				geom.getFieldAsBool('ccw', True, ancestry)
+	ifs_colorPerVertex =	geom.getFieldAsBool('colorPerVertex', True, ancestry) # per vertex or per face
+	ifs_normalPerVertex =	geom.getFieldAsBool('normalPerVertex', True, ancestry)
 	
 	# This is odd how point is inside Coordinate
 	
@@ -1298,14 +1533,14 @@ def importMesh_IndexedFaceSet(geom, bpyima):
 	
 	coord = geom.getChildBySpec('Coordinate') # works for x3d and vrml
 	
-	if coord:	ifs_points = coord.getFieldAsArray('point', 3)
+	if coord:	ifs_points = coord.getFieldAsArray('point', 3, ancestry)
 	else:		coord = []
 	
 	if not coord:
 		print '\tWarnint: IndexedFaceSet has no points'
 		return None, ccw
 	
-	ifs_faces = geom.getFieldAsArray('coordIndex', 0)
+	ifs_faces = geom.getFieldAsArray('coordIndex', 0, ancestry)
 	
 	coords_tex = None
 	if ifs_faces: # In rare cases this causes problems - no faces but UVs???
@@ -1315,8 +1550,8 @@ def importMesh_IndexedFaceSet(geom, bpyima):
 		coords_tex = geom.getChildBySpec('TextureCoordinate')
 		
 		if coords_tex:
-			ifs_texpoints = coords_tex.getFieldAsArray('point', 2)
-			ifs_texfaces = geom.getFieldAsArray('texCoordIndex', 0)
+			ifs_texpoints = coords_tex.getFieldAsArray('point', 2, ancestry)
+			ifs_texfaces = geom.getFieldAsArray('texCoordIndex', 0, ancestry)
 			
 			if not ifs_texpoints:
 				# IF we have no coords, then dont bother
@@ -1329,11 +1564,11 @@ def importMesh_IndexedFaceSet(geom, bpyima):
 	vcolor_spot = None # spot color when we dont have an array of colors
 	if vcolor:
 		# float to char
-		ifs_vcol = [[int(c*256) for c in col] for col in vcolor.getFieldAsArray('color', 3)]
-		ifs_color_index = geom.getFieldAsArray('colorIndex', 0)
+		ifs_vcol = [[int(c*256) for c in col] for col in vcolor.getFieldAsArray('color', 3, ancestry)]
+		ifs_color_index = geom.getFieldAsArray('colorIndex', 0, ancestry)
 		
 		if not ifs_vcol:
-			vcolor_spot = [int(c*256) for c in vcolor.getFieldAsFloatTuple('color', [])]
+			vcolor_spot = [int(c*256) for c in vcolor.getFieldAsFloatTuple('color', [], ancestry)]
 	
 	# Convert faces into somthing blender can use
 	edges = []
@@ -1516,7 +1751,12 @@ def importMesh_IndexedFaceSet(geom, bpyima):
 				fv = f.verts
 				for i,c in enumerate(fcol):
 					color_index = fv[i].index # color index is vert index
-					if ifs_color_index: color_index = ifs_color_index[color_index]
+					if ifs_color_index:
+						try:
+							color_index = ifs_color_index[color_index]
+						except:
+							print '\tWarning: per vertex color index out of range'
+							continue
 					
 					if len(ifs_vcol) < color_index:
 						c.r, c.g, c.b = ifs_vcol[color_index]
@@ -1540,24 +1780,27 @@ def importMesh_IndexedFaceSet(geom, bpyima):
 					
 					col = ifs_vcol[color_index]
 					for i,c in enumerate(fcol):
-						c.r, c.g, c.b = col
+						try:
+							c.r, c.g, c.b = col
+						except:
+							pass # incase its not between 0 and 255
 	
 	bpymesh.verts.delete([0,]) # EEKADOODLE
 	
 	return bpymesh, ccw
 
-def importMesh_IndexedLineSet(geom):
+def importMesh_IndexedLineSet(geom, ancestry):
 	# VRML not x3d
 	#coord = geom.getChildByName('coord') # 'Coordinate'
 	coord = geom.getChildBySpec('Coordinate') # works for x3d and vrml
-	if coord:	points = coord.getFieldAsArray('point', 3)
+	if coord:	points = coord.getFieldAsArray('point', 3, ancestry)
 	else:		points = []
 	
 	if not points:
 		print '\tWarning: IndexedLineSet had no points'
 		return None
 	
-	ils_lines = geom.getFieldAsArray('coordIndex', 0)
+	ils_lines = geom.getFieldAsArray('coordIndex', 0, ancestry)
 	
 	lines = []
 	line = []
@@ -1596,11 +1839,11 @@ def importMesh_IndexedLineSet(geom):
 	return bpycurve
 
 
-def importMesh_PointSet(geom):
+def importMesh_PointSet(geom, ancestry):
 	# VRML not x3d
 	#coord = geom.getChildByName('coord') # 'Coordinate'
 	coord = geom.getChildBySpec('Coordinate')  # works for x3d and vrml
-	if coord:	points = coord.getFieldAsArray('point', 3)
+	if coord:	points = coord.getFieldAsArray('point', 3, ancestry)
 	else:		points = []
 	
 	# vcolor = geom.getChildByName('color') # blender dosnt have per vertex color
@@ -1614,26 +1857,26 @@ GLOBALS['CIRCLE_DETAIL'] = 12
 
 MATRIX_Z_TO_Y = RotationMatrix(90, 4, 'x')
 
-def importMesh_Sphere(geom):
+def importMesh_Sphere(geom, ancestry):
 	# bpymesh = bpy.data.meshes.new()
-	diameter = geom.getFieldAsFloat('radius', 0.5) * 2 # * 2 for the diameter
+	diameter = geom.getFieldAsFloat('radius', 0.5, ancestry) * 2 # * 2 for the diameter
 	bpymesh = Mesh.Primitives.UVsphere(GLOBALS['CIRCLE_DETAIL'], GLOBALS['CIRCLE_DETAIL'], diameter)  
 	bpymesh.transform(MATRIX_Z_TO_Y)
 	return bpymesh
 
-def importMesh_Cylinder(geom):
+def importMesh_Cylinder(geom, ancestry):
 	# bpymesh = bpy.data.meshes.new()
-	diameter = geom.getFieldAsFloat('radius', 1.0) * 2 # * 2 for the diameter
-	height = geom.getFieldAsFloat('height', 2)
+	diameter = geom.getFieldAsFloat('radius', 1.0, ancestry) * 2 # * 2 for the diameter
+	height = geom.getFieldAsFloat('height', 2, ancestry)
 	bpymesh = Mesh.Primitives.Cylinder(GLOBALS['CIRCLE_DETAIL'], diameter, height) 
 	bpymesh.transform(MATRIX_Z_TO_Y)
 	
 	# Warning - Rely in the order Blender adds verts
 	# not nice design but wont change soon.
 	
-	bottom = geom.getFieldAsBool('bottom', True)
-	side = geom.getFieldAsBool('side', True)
-	top = geom.getFieldAsBool('top', True)
+	bottom = geom.getFieldAsBool('bottom', True, ancestry)
+	side = geom.getFieldAsBool('side', True, ancestry)
+	top = geom.getFieldAsBool('top', True, ancestry)
 	
 	if not top: # last vert is top center of tri fan.
 		bpymesh.verts.delete([(GLOBALS['CIRCLE_DETAIL']+GLOBALS['CIRCLE_DETAIL'])+1])
@@ -1647,18 +1890,18 @@ def importMesh_Cylinder(geom):
 	
 	return bpymesh
 
-def importMesh_Cone(geom):
+def importMesh_Cone(geom, ancestry):
 	# bpymesh = bpy.data.meshes.new()
-	diameter = geom.getFieldAsFloat('bottomRadius', 1.0) * 2 # * 2 for the diameter
-	height = geom.getFieldAsFloat('height', 2)
+	diameter = geom.getFieldAsFloat('bottomRadius', 1.0, ancestry) * 2 # * 2 for the diameter
+	height = geom.getFieldAsFloat('height', 2, ancestry)
 	bpymesh = Mesh.Primitives.Cone(GLOBALS['CIRCLE_DETAIL'], diameter, height) 
 	bpymesh.transform(MATRIX_Z_TO_Y)
 	
 	# Warning - Rely in the order Blender adds verts
 	# not nice design but wont change soon.
 	
-	bottom = geom.getFieldAsBool('bottom', True)
-	side = geom.getFieldAsBool('side', True)
+	bottom = geom.getFieldAsBool('bottom', True, ancestry)
+	side = geom.getFieldAsBool('side', True, ancestry)
 	
 	if not bottom: # last vert is on the bottom
 		bpymesh.verts.delete([GLOBALS['CIRCLE_DETAIL']+1])
@@ -1667,10 +1910,10 @@ def importMesh_Cone(geom):
 	
 	return bpymesh
 
-def importMesh_Box(geom):
+def importMesh_Box(geom, ancestry):
 	# bpymesh = bpy.data.meshes.new()
 	
-	size = geom.getFieldAsFloatTuple('size', (2.0, 2.0, 2.0))
+	size = geom.getFieldAsFloatTuple('size', (2.0, 2.0, 2.0), ancestry)
 	bpymesh = Mesh.Primitives.Cube(1.0) 
 
 	# Scale the box to the size set
@@ -1714,7 +1957,7 @@ def importShape(node, ancestry):
 			textx = appr.getChildBySpec('TextureTransform')
 			
 			if textx:
-				texmtx = translateTexTransform(textx)
+				texmtx = translateTexTransform(textx, ancestry)
 			
 
 			
@@ -1726,28 +1969,28 @@ def importShape(node, ancestry):
 				
 				# all values between 0.0 and 1.0, defaults from VRML docs
 				bpymat = bpy.data.materials.new()
-				bpymat.amb =		mat.getFieldAsFloat('ambientIntensity', 0.2)
-				bpymat.rgbCol =		mat.getFieldAsFloatTuple('diffuseColor', [0.8, 0.8, 0.8])
+				bpymat.amb =		mat.getFieldAsFloat('ambientIntensity', 0.2, ancestry)
+				bpymat.rgbCol =		mat.getFieldAsFloatTuple('diffuseColor', [0.8, 0.8, 0.8], ancestry)
 				
 				# NOTE - blender dosnt support emmisive color
 				# Store in mirror color and approximate with emit.
-				emit =				mat.getFieldAsFloatTuple('emissiveColor', [0.0, 0.0, 0.0])
+				emit =				mat.getFieldAsFloatTuple('emissiveColor', [0.0, 0.0, 0.0], ancestry)
 				bpymat.mirCol =		emit
 				bpymat.emit = 		(emit[0]+emit[1]+emit[2])/3.0
 				
-				bpymat.hard =		int(1+(510*mat.getFieldAsFloat('shininess', 0.2))) # 0-1 -> 1-511
-				bpymat.specCol =	mat.getFieldAsFloatTuple('specularColor', [0.0, 0.0, 0.0])
-				bpymat.alpha =		1.0 - mat.getFieldAsFloat('transparency', 0.0)
+				bpymat.hard =		int(1+(510*mat.getFieldAsFloat('shininess', 0.2, ancestry))) # 0-1 -> 1-511
+				bpymat.specCol =	mat.getFieldAsFloatTuple('specularColor', [0.0, 0.0, 0.0], ancestry)
+				bpymat.alpha =		1.0 - mat.getFieldAsFloat('transparency', 0.0, ancestry)
 				if bpymat.alpha < 0.999:
 					bpymat.mode |= Material.Modes.ZTRANSP
 			
 			
 			if ima:
 				
-				ima_url =			ima.getFieldAsString('url')
+				ima_url =			ima.getFieldAsString('url', None, ancestry)
 				
 				if ima_url==None:
-					try:		ima_url = ima.getFieldAsStringArray('url')[0] # in some cases we get a list of images.
+					try:		ima_url = ima.getFieldAsStringArray('url', ancestry)[0] # in some cases we get a list of images.
 					except:		ima_url = None
 				
 				if ima_url==None:
@@ -1772,8 +2015,8 @@ def importShape(node, ancestry):
 						else:
 							bpymat.setTexture(0, texture, Texture.TexCo.UV, Texture.MapTo.COL)
 							
-						ima_repS =			ima.getFieldAsBool('repeatS', True)
-						ima_repT =			ima.getFieldAsBool('repeatT', True)
+						ima_repS =			ima.getFieldAsBool('repeatS', True, ancestry)
+						ima_repT =			ima.getFieldAsBool('repeatT', True, ancestry)
 						
 						# To make this work properly we'd need to scale the UV's too, better to ignore th
 						# texture.repeat =	max(1, ima_repS * 512), max(1, ima_repT * 512)
@@ -1785,19 +2028,19 @@ def importShape(node, ancestry):
 		geom_spec = geom.getSpec()
 		ccw = True
 		if geom_spec == 'IndexedFaceSet':
-			bpydata, ccw = importMesh_IndexedFaceSet(geom, bpyima)
+			bpydata, ccw = importMesh_IndexedFaceSet(geom, bpyima, ancestry)
 		elif geom_spec == 'IndexedLineSet':
-			bpydata = importMesh_IndexedLineSet(geom)
+			bpydata = importMesh_IndexedLineSet(geom, ancestry)
 		elif geom_spec == 'PointSet':
-			bpydata = importMesh_PointSet(geom)
+			bpydata = importMesh_PointSet(geom, ancestry)
 		elif geom_spec == 'Sphere':
-			bpydata = importMesh_Sphere(geom)
+			bpydata = importMesh_Sphere(geom, ancestry)
 		elif geom_spec == 'Box':
-			bpydata = importMesh_Box(geom)
+			bpydata = importMesh_Box(geom, ancestry)
 		elif geom_spec == 'Cylinder':
-			bpydata = importMesh_Cylinder(geom)
+			bpydata = importMesh_Cylinder(geom, ancestry)
 		elif geom_spec == 'Cone':
-			bpydata = importMesh_Cone(geom)
+			bpydata = importMesh_Cone(geom, ancestry)
 		else:
 			print '\tWarning: unsupported type "%s"' % geom_spec
 			return
@@ -1810,8 +2053,8 @@ def importShape(node, ancestry):
 			bpyob  = node.blendObject = bpy.data.scenes.active.objects.new(bpydata)
 			
 			if type(bpydata) == Types.MeshType:
-				is_solid =			geom.getFieldAsBool('solid', True)
-				creaseAngle =		geom.getFieldAsFloat('creaseAngle', None)
+				is_solid =			geom.getFieldAsBool('solid', True, ancestry)
+				creaseAngle =		geom.getFieldAsFloat('creaseAngle', None, ancestry)
 				
 				if creaseAngle != None:
 					bpydata.maxSmoothAngle = 1+int(min(79, creaseAngle * RAD_TO_DEG))
@@ -1852,17 +2095,17 @@ def importShape(node, ancestry):
 			bpyob.setMatrix( getFinalMatrix(node, None, ancestry) )
 
 
-def importLamp_PointLight(node):
+def importLamp_PointLight(node, ancestry):
 	vrmlname = node.getDefName()
 	if not vrmlname: vrmlname = 'PointLight'
 	
-	# ambientIntensity = node.getFieldAsFloat('ambientIntensity', 0.0) # TODO
-	# attenuation = node.getFieldAsFloatTuple('attenuation', (1.0, 0.0, 0.0)) # TODO
-	color = node.getFieldAsFloatTuple('color', (1.0, 1.0, 1.0))
-	intensity = node.getFieldAsFloat('intensity', 1.0) # max is documented to be 1.0 but some files have higher.
-	location = node.getFieldAsFloatTuple('location', (0.0, 0.0, 0.0))
-	# is_on = node.getFieldAsBool('on', True) # TODO
-	radius = node.getFieldAsFloat('radius', 100.0)
+	# ambientIntensity = node.getFieldAsFloat('ambientIntensity', 0.0, ancestry) # TODO
+	# attenuation = node.getFieldAsFloatTuple('attenuation', (1.0, 0.0, 0.0), ancestry) # TODO
+	color = node.getFieldAsFloatTuple('color', (1.0, 1.0, 1.0), ancestry)
+	intensity = node.getFieldAsFloat('intensity', 1.0, ancestry) # max is documented to be 1.0 but some files have higher.
+	location = node.getFieldAsFloatTuple('location', (0.0, 0.0, 0.0), ancestry)
+	# is_on = node.getFieldAsBool('on', True, ancestry) # TODO
+	radius = node.getFieldAsFloat('radius', 100.0, ancestry)
 	
 	bpylamp = bpy.data.lamps.new()
 	bpylamp.setType('Lamp')
@@ -1874,15 +2117,15 @@ def importLamp_PointLight(node):
 	
 	return bpylamp, mtx
 
-def importLamp_DirectionalLight(node):
+def importLamp_DirectionalLight(node, ancestry):
 	vrmlname = node.getDefName()
 	if not vrmlname: vrmlname = 'DirectLight'
 	
 	# ambientIntensity = node.getFieldAsFloat('ambientIntensity', 0.0) # TODO
-	color = node.getFieldAsFloatTuple('color', (1.0, 1.0, 1.0))
-	direction = node.getFieldAsFloatTuple('direction', (0.0, 0.0, -1.0))
-	intensity = node.getFieldAsFloat('intensity', 1.0) # max is documented to be 1.0 but some files have higher.
-	# is_on = node.getFieldAsBool('on', True) # TODO
+	color = node.getFieldAsFloatTuple('color', (1.0, 1.0, 1.0), ancestry)
+	direction = node.getFieldAsFloatTuple('direction', (0.0, 0.0, -1.0), ancestry)
+	intensity = node.getFieldAsFloat('intensity', 1.0, ancestry) # max is documented to be 1.0 but some files have higher.
+	# is_on = node.getFieldAsBool('on', True, ancestry) # TODO
 	
 	bpylamp = bpy.data.lamps.new(vrmlname)
 	bpylamp.setType('Sun')
@@ -1896,20 +2139,20 @@ def importLamp_DirectionalLight(node):
 
 # looks like default values for beamWidth and cutOffAngle were swapped in VRML docs.
 
-def importLamp_SpotLight(node):
+def importLamp_SpotLight(node, ancestry):
 	vrmlname = node.getDefName()
 	if not vrmlname: vrmlname = 'SpotLight'
 	
-	# ambientIntensity = geom.getFieldAsFloat('ambientIntensity', 0.0) # TODO
-	# attenuation = geom.getFieldAsFloatTuple('attenuation', (1.0, 0.0, 0.0)) # TODO
-	beamWidth = node.getFieldAsFloat('beamWidth', 1.570796) * RAD_TO_DEG # max is documented to be 1.0 but some files have higher.
-	color = node.getFieldAsFloatTuple('color', (1.0, 1.0, 1.0))
-	cutOffAngle = node.getFieldAsFloat('cutOffAngle', 0.785398) * RAD_TO_DEG # max is documented to be 1.0 but some files have higher.
-	direction = node.getFieldAsFloatTuple('direction', (0.0, 0.0, -1.0))
-	intensity = node.getFieldAsFloat('intensity', 1.0) # max is documented to be 1.0 but some files have higher.
-	location = node.getFieldAsFloatTuple('location', (0.0, 0.0, 0.0))
-	# is_on = node.getFieldAsBool('on', True) # TODO
-	radius = node.getFieldAsFloat('radius', 100.0)
+	# ambientIntensity = geom.getFieldAsFloat('ambientIntensity', 0.0, ancestry) # TODO
+	# attenuation = geom.getFieldAsFloatTuple('attenuation', (1.0, 0.0, 0.0), ancestry) # TODO
+	beamWidth = node.getFieldAsFloat('beamWidth', 1.570796, ancestry) * RAD_TO_DEG # max is documented to be 1.0 but some files have higher.
+	color = node.getFieldAsFloatTuple('color', (1.0, 1.0, 1.0), ancestry)
+	cutOffAngle = node.getFieldAsFloat('cutOffAngle', 0.785398, ancestry) * RAD_TO_DEG # max is documented to be 1.0 but some files have higher.
+	direction = node.getFieldAsFloatTuple('direction', (0.0, 0.0, -1.0), ancestry)
+	intensity = node.getFieldAsFloat('intensity', 1.0, ancestry) # max is documented to be 1.0 but some files have higher.
+	location = node.getFieldAsFloatTuple('location', (0.0, 0.0, 0.0), ancestry)
+	# is_on = node.getFieldAsBool('on', True, ancestry) # TODO
+	radius = node.getFieldAsFloat('radius', 100.0, ancestry)
 	
 	bpylamp = bpy.data.lamps.new(vrmlname)
 	bpylamp.setType('Spot')
@@ -1935,14 +2178,14 @@ def importLamp_SpotLight(node):
 
 def importLamp(node, spec, ancestry):
 	if spec=='PointLight':
-		bpylamp,mtx = importLamp_PointLight(node)
+		bpylamp,mtx = importLamp_PointLight(node, ancestry)
 	elif spec=='DirectionalLight':
-		bpylamp,mtx = importLamp_DirectionalLight(node)
+		bpylamp,mtx = importLamp_DirectionalLight(node, ancestry)
 	elif spec=='SpotLight':
-		bpylamp,mtx = importLamp_SpotLight(node)
+		bpylamp,mtx = importLamp_SpotLight(node, ancestry)
 	else:
 		print "Error, not a lamp"
-		raise ""
+		raise ValueError
 	
 	bpyob = node.blendObject = bpy.data.scenes.active.objects.new(bpylamp)
 	bpyob.setMatrix( getFinalMatrix(node, mtx, ancestry) )
@@ -1952,11 +2195,11 @@ def importViewpoint(node, ancestry):
 	name = node.getDefName()
 	if not name: name = 'Viewpoint'
 	
-	fieldOfView = node.getFieldAsFloat('fieldOfView', 0.785398) * RAD_TO_DEG # max is documented to be 1.0 but some files have higher.
-	# jump = node.getFieldAsBool('jump', True)
-	orientation = node.getFieldAsFloatTuple('orientation', (0.0, 0.0, 1.0, 0.0))
-	position = node.getFieldAsFloatTuple('position', (0.0, 0.0, 0.0))
-	description = node.getFieldAsString('description', '')
+	fieldOfView = node.getFieldAsFloat('fieldOfView', 0.785398, ancestry) * RAD_TO_DEG # max is documented to be 1.0 but some files have higher.
+	# jump = node.getFieldAsBool('jump', True, ancestry)
+	orientation = node.getFieldAsFloatTuple('orientation', (0.0, 0.0, 1.0, 0.0), ancestry)
+	position = node.getFieldAsFloatTuple('position', (0.0, 0.0, 0.0), ancestry)
+	description = node.getFieldAsString('description', '', ancestry)
 	
 	bpycam = bpy.data.cameras.new(name)
 	
@@ -1976,63 +2219,80 @@ def importTransform(node, ancestry):
 	bpyob = node.blendObject = bpy.data.scenes.active.objects.new('Empty', name) # , name)
 	bpyob.setMatrix( getFinalMatrix(node, None, ancestry) )
 
+	# so they are not too annoying
+	bpyob.emptyShape= Blender.Object.EmptyShapes.AXES
+	bpyob.drawSize= 0.2
+
 	
 #def importTimeSensor(node):
 
 
-def translatePositionInterpolator(node, ipo):
-	key = node.getFieldAsArray('key', 0)
-	keyValue = node.getFieldAsArray('keyValue', 3)
+def translatePositionInterpolator(node, ipo, ancestry):
+	key = node.getFieldAsArray('key', 0, ancestry)
+	keyValue = node.getFieldAsArray('keyValue', 3, ancestry)
 	
-	loc_x = ipo.addCurve('LocX')
-	loc_y = ipo.addCurve('LocY')
-	loc_z = ipo.addCurve('LocZ')
-	
+	try:
+		loc_x = ipo.addCurve('LocX')
+		loc_y = ipo.addCurve('LocY')
+		loc_z = ipo.addCurve('LocZ')
+	except ValueError:
+		return
+		
 	loc_x.interpolation = loc_y.interpolation = loc_z.interpolation = Blender.IpoCurve.InterpTypes.LINEAR
 	
 	for i, time in enumerate(key):
-		x,y,z = keyValue[i]
+		try:		x,y,z = keyValue[i]
+		except:	continue
 		
 		loc_x.append((time,x))
 		loc_y.append((time,y))
 		loc_z.append((time,z))
 
-def translateOrientationInterpolator(node, ipo):
-	key = node.getFieldAsArray('key', 0)
-	keyValue = node.getFieldAsArray('keyValue', 4)
+def translateOrientationInterpolator(node, ipo, ancestry):
+	key = node.getFieldAsArray('key', 0, ancestry)
+	keyValue = node.getFieldAsArray('keyValue', 4, ancestry)
 	
-	rot_x = ipo.addCurve('RotX')
-	rot_y = ipo.addCurve('RotY')
-	rot_z = ipo.addCurve('RotZ')
+	try:
+		rot_x = ipo.addCurve('RotX')
+		rot_y = ipo.addCurve('RotY')
+		rot_z = ipo.addCurve('RotZ')
+	except ValueError:
+		return
 	
 	rot_x.interpolation = rot_y.interpolation = rot_z.interpolation = Blender.IpoCurve.InterpTypes.LINEAR
 	
 	for i, time in enumerate(key):
+		try:		x,y,z,w = keyValue[i]
+		except:	continue
 		
-		mtx = translateRotation(keyValue[i])
+		mtx = translateRotation((x,y,z,w))
 		eul = mtx.toEuler()
 		rot_x.append((time,eul.x/10.0))
 		rot_y.append((time,eul.y/10.0))
 		rot_z.append((time,eul.z/10.0))
 
 # Untested!
-def translateScalarInterpolator(node, ipo):
-	key = node.getFieldAsArray('key', 0)
-	keyValue = node.getFieldAsArray('keyValue', 4)
+def translateScalarInterpolator(node, ipo, ancestry):
+	key = node.getFieldAsArray('key', 0, ancestry)
+	keyValue = node.getFieldAsArray('keyValue', 4, ancestry)
 	
-	sca_x = ipo.addCurve('SizeX')
-	sca_y = ipo.addCurve('SizeY')
-	sca_z = ipo.addCurve('SizeZ')
+	try:
+		sca_x = ipo.addCurve('ScaleX')
+		sca_y = ipo.addCurve('ScaleY')
+		sca_z = ipo.addCurve('ScaleZ')
+	except ValueError:
+		return
 	
 	sca_x.interpolation = sca_y.interpolation = sca_z.interpolation = Blender.IpoCurve.InterpTypes.LINEAR
 	
 	for i, time in enumerate(key):
-		x,y,z = keyValue[i]
+		try:		x,y,z = keyValue[i]
+		except:	continue
 		sca_x.append((time,x/10.0))
 		sca_y.append((time,y/10.0))
 		sca_z.append((time,z/10.0))
 
-def translateTimeSensor(node, ipo):
+def translateTimeSensor(node, ipo, ancestry):
 	'''
 	Apply a time sensor to an IPO, VRML has many combinations of loop/start/stop/cycle times
 	to give different results, for now just do the basics
@@ -2041,15 +2301,15 @@ def translateTimeSensor(node, ipo):
 	time_cu = ipo.addCurve('Time')
 	time_cu.interpolation = Blender.IpoCurve.InterpTypes.LINEAR
 	
-	cycleInterval = node.getFieldAsFloat('cycleInterval', None)
+	cycleInterval = node.getFieldAsFloat('cycleInterval', None, ancestry)
 	
-	startTime = node.getFieldAsFloat('startTime', 0.0)
-	stopTime = node.getFieldAsFloat('stopTime', 250.0)
+	startTime = node.getFieldAsFloat('startTime', 0.0, ancestry)
+	stopTime = node.getFieldAsFloat('stopTime', 250.0, ancestry)
 		
 	if cycleInterval != None:
 		stopTime = startTime+cycleInterval
 	
-	loop = node.getFieldAsBool('loop', False)
+	loop = node.getFieldAsBool('loop', False, ancestry)
 	
 	time_cu.append((1+startTime, 0.0))
 	time_cu.append((1+stopTime, 1.0/10.0))# anoying, the UI uses /10
@@ -2059,10 +2319,13 @@ def translateTimeSensor(node, ipo):
 		time_cu.extend = Blender.IpoCurve.ExtendTypes.CYCLIC # or - EXTRAP, CYCLIC_EXTRAP, CONST, 
 
 
-def importRoute(node):
+def importRoute(node, ancestry):
 	'''
 	Animation route only at the moment
 	'''
+	
+	if not hasattr(node, 'fields'):
+		return
 	
 	routeIpoDict = node.getRouteIpoDict()
 	
@@ -2093,29 +2356,33 @@ ROUTE champFly001.bindTime TO vpTs.set_startTime
 	
 	for field in node.fields:
 		if field and field[0]=='ROUTE':
-			from_id, from_type = field[1].split('.')
-			to_id, to_type = field[3].split('.')
+			try:
+				from_id, from_type = field[1].split('.')
+				to_id, to_type = field[3].split('.')
+			except:
+				print "Warning, invalid ROUTE", field
+				continue
 			
 			if from_type == 'value_changed':
 				if to_type == 'set_position':
 					ipo = getIpo(to_id)
 					set_data_from_node = defDict[from_id]
-					translatePositionInterpolator(set_data_from_node, ipo)
+					translatePositionInterpolator(set_data_from_node, ipo, ancestry)
 				
-				if to_type == 'set_orientation':
+				if to_type in ('set_orientation', 'rotation'):
 					ipo = getIpo(to_id)
 					set_data_from_node = defDict[from_id]
-					translateOrientationInterpolator(set_data_from_node, ipo)
+					translateOrientationInterpolator(set_data_from_node, ipo, ancestry)
 				
 				if to_type == 'set_scale':
 					ipo = getIpo(to_id)
 					set_data_from_node = defDict[from_id]
-					translateScalarInterpolator(set_data_from_node, ipo)
+					translateScalarInterpolator(set_data_from_node, ipo, ancestry)
 				
-			elif from_type == 'bindTime':
+			elif from_type =='bindTime':
 				ipo = getIpo(from_id)
 				time_node = defDict[to_id]
-				translateTimeSensor(time_node, ipo)
+				translateTimeSensor(time_node, ipo, ancestry)
 			
 		
 
@@ -2147,6 +2414,16 @@ def load_web3d(path, PREF_FLAT=False, PREF_CIRCLE_DIV=16, HELPER_FUNC = None):
 		#	continue
 		
 		spec = node.getSpec()
+		'''
+		prefix = node.getPrefix()
+		if prefix=='PROTO':
+			pass
+		else
+		'''
+		if HELPER_FUNC and HELPER_FUNC(node, ancestry):
+			# Note, include this function so the VRML/X3D importer can be extended
+			# by an external script. - gets first pick 
+			pass
 		if spec=='Shape':
 			importShape(node, ancestry)
 		elif spec in ('PointLight', 'DirectionalLight', 'SpotLight'):
@@ -2163,18 +2440,12 @@ def load_web3d(path, PREF_FLAT=False, PREF_CIRCLE_DIV=16, HELPER_FUNC = None):
 			ipo = bpy.data.ipos.new('web3d_ipo', 'Object')
 			translatePositionInterpolator(node, ipo)
 			'''
-			
-		else:
-			# Note, include this function so the VRML/X3D importer can be extended
-			# by an external script.
-			if HELPER_FUNC:
-				HELPER_FUNC(node, ancestry)
-
-
-
+	
+	
+	
 	# After we import all nodes, route events - anim paths
 	for node, ancestry in all_nodes:
-		importRoute(node)
+		importRoute(node, ancestry)
 	
 	for node, ancestry in all_nodes:
 		if node.isRoot():
@@ -2289,24 +2560,32 @@ if __name__ == '__main__':
 
 # load_web3d('/fe/x3d/www.web3d.org/x3d/content/examples/Basic/StudentProjects/PlayRoom.x3d') # invalid UVs
 
-'''
-import os
-# files = os.popen('find /fe/wrl -iname "*.wrl"').readlines()
-# files = os.popen('find /fe/x3d -iname "*.x3d"').readlines()
-files = os.popen('find   /fe/x3d/X3dExamplesSavage   -iname "*.x3d"').readlines()
 
-files.sort()
-tot = len(files)
-for i, f in enumerate(files):
-	if i < 12803 or i > 1000000:
-		continue
-	#if i != 12686:
-	#	continue
+
+def test():
+	import os
 	
-	f = f.strip()
-	print f, i, tot
-	sce = bpy.data.scenes.new(f.split('/')[-1])
-	bpy.data.scenes.active = sce
-	# Window.
-	load_web3d(f, PREF_FLAT=True)
-'''
+	files = os.popen('find /fe/wrl -iname "*.wrl"').readlines()
+	# files = os.popen('find /fe/x3d -iname "*.x3d"').readlines()
+	# files = os.popen('find   /fe/x3d/X3dExamplesSavage   -iname "*.x3d"').readlines()
+
+	files.sort()
+	tot = len(files)
+	for i, f in enumerate(files):
+		if i < 124 or i > 1000000:
+			continue
+		
+		#if i != 1068:
+		#	continue
+		
+		#if i != 12686:
+		#	continue
+		
+		f = f.strip()
+		print f, i, tot
+		sce = bpy.data.scenes.new(str(i) + '_' + f.split('/')[-1])
+		bpy.data.scenes.active = sce
+		# Window.
+		load_web3d(f, PREF_FLAT=True)
+	
+# test()

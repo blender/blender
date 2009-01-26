@@ -769,6 +769,9 @@ void filelist_setfiletypes(struct FileList* filelist, short has_quicktime)
 			if(		BLI_testextensie(file->relname, ".int")
 				||  BLI_testextensie(file->relname, ".inta")
 				||  BLI_testextensie(file->relname, ".jpg")
+#ifdef WITH_OPENJPEG
+				||  BLI_testextensie(file->relname, ".jp2")
+#endif
 				||	BLI_testextensie(file->relname, ".jpeg")
 				||	BLI_testextensie(file->relname, ".tga")
 				||	BLI_testextensie(file->relname, ".rgb")
@@ -812,6 +815,10 @@ void filelist_setfiletypes(struct FileList* filelist, short has_quicktime)
 			if(BLI_testextensie(file->relname, ".int")
 				||	BLI_testextensie(file->relname, ".inta")
 				||	BLI_testextensie(file->relname, ".jpg")
+				||  BLI_testextensie(file->relname, ".jpeg")
+#ifdef WITH_OPENJPEG
+				||  BLI_testextensie(file->relname, ".jp2")
+#endif
 				||	BLI_testextensie(file->relname, ".tga")
 				||	BLI_testextensie(file->relname, ".rgb")
 				||	BLI_testextensie(file->relname, ".rgba")

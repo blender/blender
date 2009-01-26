@@ -2622,17 +2622,19 @@ void RE_BlenderAnim(Render *re, Scene *scene, int sfra, int efra, int tfra)
 			else
 				nfra+= tfra;
 
-			if (scene->r.mode & (R_NO_OVERWRITE | R_TOUCH) ) {
-				BKE_makepicstring(scene, name, scene->r.pic, scene->r.cfra, scene->r.imtype);
-			}
-			
-			if (scene->r.mode & R_NO_OVERWRITE && BLI_exist(name)) {
-				printf("skipping existing frame \"%s\"\n", name);
-				continue;
-			}
-			if (scene->r.mode & R_TOUCH && !BLI_exist(name)) {
-				BLI_make_existing_file(name); /* makes the dir if its not there */
-				BLI_touch(name);
+			/* Touch/NoOverwrite options are only valid for image's */
+			if(BKE_imtype_is_movie(scene->r.imtype) == 0) {
+				if(scene->r.mode & (R_NO_OVERWRITE | R_TOUCH))
+					BKE_makepicstring(scene, name, scene->r.pic, scene->r.cfra, scene->r.imtype);
+
+				if(scene->r.mode & R_NO_OVERWRITE && BLI_exist(name)) {
+					printf("skipping existing frame \"%s\"\n", name);
+					continue;
+				}
+				if(scene->r.mode & R_TOUCH && !BLI_exist(name)) {
+					BLI_make_existing_file(name); /* makes the dir if its not there */
+					BLI_touch(name);
+				}
 			}
 
 			re->r.cfra= scene->r.cfra;	   /* weak.... */
@@ -2645,8 +2647,10 @@ void RE_BlenderAnim(Render *re, Scene *scene, int sfra, int efra, int tfra)
 		
 			if(G.afbreek==1) {
 				/* remove touched file */
-				if (scene->r.mode & R_TOUCH && BLI_exist(name) && BLI_filepathsize(name) == 0) {
-					BLI_delete(name, 0, 0);
+				if(BKE_imtype_is_movie(scene->r.imtype) == 0) {
+					if (scene->r.mode & R_TOUCH && BLI_exist(name) && BLI_filepathsize(name) == 0) {
+						BLI_delete(name, 0, 0);
+					}
 				}
 				
 				break;
@@ -2711,7 +2715,7 @@ void RE_set_max_threads(int threads)
 	} else if(threads>=1 && threads<=BLENDER_MAX_THREADS) {
 		commandline_threads= threads;
 	} else {
-		printf("Error, threads has to be in range 1-%d\n", BLENDER_MAX_THREADS);
+		printf("Error, threads has to be in range 0-%d\n", BLENDER_MAX_THREADS);
 	}
 }
 

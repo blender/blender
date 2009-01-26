@@ -824,7 +824,7 @@ void psys_thread_distribute_particle(ParticleThread *thread, ParticleData *pa, C
 					VecCopyf(tan,seam->tan);
 					VecSubf(temp2,co1,temp);
 					if(Inpf(tan,temp2)<0.0f)
-						VecMulf(tan,-1.0f);
+						VecNegf(tan);
 				}
 				for(w=0; w<maxw; w++){
 					VecSubf(temp2,ptn[w].co,temp);
@@ -1878,7 +1878,7 @@ void reset_particle(Scene *scene, ParticleData *pa, ParticleSystem *psys, Partic
 		}
 		
 		/* create rotation quat */
-		VecMulf(rot_vec,-1.0);
+		VecNegf(rot_vec);
 		vectoquat(rot_vec, OB_POSX, OB_POSZ, q2);
 
 		/* randomize rotation quat */
@@ -3025,7 +3025,7 @@ static void particle_intersect_face(void *userdata, int index, const BVHTreeRay 
 					CalcNormFloat(t0, t1, t2, col->nor);
 					VECSUB(temp, co2, co1);
 					if(Inpf(col->nor, temp) > 0.0f)
-						VecMulf(col->nor, -1.0f);
+						VecNegf(col->nor);
 
 					VECCOPY(col->vel,vel);
 
@@ -3805,7 +3805,7 @@ static void boid_body(Scene *scene, BoidVecFunc *bvf, ParticleData *pa, Particle
 	VecRotToQuat(pa->state.vel,bank,q);
 
 	VECCOPY(dvec,pa->state.vel);
-	VecMulf(dvec,-1.0f);
+	VecNegf(dvec);
 	vectoquat(dvec, OB_POSX, OB_POSZ, q2);
 
 	QuatMul(pa->state.rot,q,q2);

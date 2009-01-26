@@ -2,16 +2,16 @@
 
 """
 Name: 'User Community'
-Blender: 234
+Blender: 248
 Group: 'HelpWebsites'
 Tooltip: 'Get involved with other Blender users'
 """
 
 __author__ = "Matt Ebb"
 __url__ = ("blender", "blenderartists.org")
-__version__ = "1.0"
+__version__ = "1.0.1"
 __bpydoc__ = """\
-This script opens the user's default web browser at www.blender3d.org's
+This script opens the user's default web browser at www.blender.org's
 "User Community" page.
 """
 
@@ -38,4 +38,4 @@ This script opens the user's default web browser at www.blender3d.org's
 # --------------------------------------------------------------------------
 
 import webbrowser
-webbrowser.open('http://www.blender3d.org/Community')
+webbrowser.open('http://www.blender.org/community/user-community/')

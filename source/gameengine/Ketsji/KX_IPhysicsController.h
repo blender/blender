@@ -32,6 +32,7 @@
 #include "SG_Controller.h"
 #include "MT_Vector3.h"
 #include "MT_Point3.h"
+#include "MT_Transform.h"
 #include "MT_Matrix3x3.h"
 
 struct KX_ClientObjectInfo;
@@ -48,10 +49,11 @@ class KX_IPhysicsController : public SG_Controller
 {
 protected:
 	bool		m_bDyna;
+	bool		m_bCompound;
 	bool		m_suspendDynamics;
 	void*		m_userdata;
 public:
-	KX_IPhysicsController(bool dyna,void* userdata);
+	KX_IPhysicsController(bool dyna,bool compound, void* userdata);
 	virtual ~KX_IPhysicsController();
 
 
@@ -76,8 +78,11 @@ public:
 	virtual	void setPosition(const MT_Point3& pos)=0;
 	virtual	void setScaling(const MT_Vector3& scaling)=0;
 	virtual	MT_Scalar	GetMass()=0;
+	virtual void	SetMass(MT_Scalar newmass)=0;
 	virtual	MT_Vector3	getReactionForce()=0;
 	virtual void	setRigidBody(bool rigid)=0;
+	virtual void    AddCompoundChild(KX_IPhysicsController* child) = 0;
+	virtual void    RemoveCompoundChild(KX_IPhysicsController* child) = 0;
 
 	virtual void	SuspendDynamics(bool ghost=false)=0;
 	virtual void	RestoreDynamics()=0;
@@ -90,6 +95,10 @@ public:
 
 	bool	IsDyna(void) {
 		return m_bDyna;
+	}
+
+	bool	IsCompound(void) {
+		return m_bCompound;
 	}
 
 	virtual MT_Scalar GetRadius()=0;

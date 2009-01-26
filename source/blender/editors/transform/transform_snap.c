@@ -1212,10 +1212,22 @@ int snapObjects(TransInfo *t, int *dist, float *loc, float *no, int mode) {
 					Object *ob = dupli_ob->ob;
 					
 					if (ob->type == OB_MESH) {
-						DerivedMesh *dm = mesh_get_derived_final(t->scene, ob, CD_MASK_BAREMESH);
+						DerivedMesh *dm;
+						EditMesh *em;
 						int val;
-						
-						val = snapDerivedMesh(t, ob, dm, NULL, dupli_ob->mat, ray_start, ray_normal, t->mval, loc, no, dist, &depth);
+
+						if(ob == t->obedit)
+						{
+							em = ((Mesh *)ob->data)->edit_mesh;
+							dm = editmesh_get_derived_cage(t->scene, t->obedit, em, CD_MASK_BAREMESH);
+						}
+						else
+						{
+							em = NULL;
+							dm = mesh_get_derived_final(t->scene, ob, CD_MASK_BAREMESH);
+						}
+
+						val = snapDerivedMesh(t, ob, dm, em, dupli_ob->mat, ray_start, ray_normal, t->mval, loc, no, dist, &depth);
 	
 						retval = retval || val;
 	

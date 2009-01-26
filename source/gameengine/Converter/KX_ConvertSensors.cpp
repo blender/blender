@@ -120,7 +120,6 @@ void BL_ConvertSensors(struct Object* blenderobject,
 	gReverseKeyTranslateTable[TIMER0			] = SCA_IInputDevice::KX_TIMER0;                  
 	gReverseKeyTranslateTable[TIMER1			] = SCA_IInputDevice::KX_TIMER1;                  
 	gReverseKeyTranslateTable[TIMER2			] = SCA_IInputDevice::KX_TIMER2;                  
-	gReverseKeyTranslateTable[TIMER3			] = SCA_IInputDevice::KX_TIMER3;                  
 	
 	// SYSTEM                                                                                                  
 	

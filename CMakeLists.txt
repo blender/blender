@@ -175,7 +175,7 @@ IF(UNIX)
 
   SET(FFMPEG /usr)
   SET(FFMPEG_INC ${FFMPEG}/include)
-  SET(FFMPEG_LIB avformat avcodec avutil)
+  SET(FFMPEG_LIB avformat avcodec avutil avdevice swscale)
   SET(FFMPEG_LIBPATH ${FFMPEG}/lib)
 
   SET(JPEG_LIB jpeg)

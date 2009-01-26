@@ -142,7 +142,7 @@ WITH_BF_BINRELOC = 'false'
 WITH_BF_FFMPEG = 'true'  # -DWITH_FFMPEG
 # Uncomment the following two lines to use system's ffmpeg
 BF_FFMPEG = LCGDIR+'/ffmpeg'
-BF_FFMPEG_LIB = 'avformat avcodec swscale avutil faad faac vorbis x264 ogg mp3lame z'
+BF_FFMPEG_LIB = 'avformat avcodec swscale avutil avdevice faad faac vorbis x264 ogg mp3lame z'
 BF_FFMPEG_INC = '${BF_FFMPEG}/include'
 BF_FFMPEG_LIBPATH='${BF_FFMPEG}/lib'
 
@@ -155,7 +155,7 @@ BF_OGG_LIB = 'ogg vorbis theoraenc theoradec'
 WITH_BF_OPENJPEG = 'false' 
 BF_OPENJPEG = '#extern/libopenjpeg'
 BF_OPENJPEG_LIB = ''
-BF_OPENJPEG_INC = '${BF_OPENJPEG}/include'
+BF_OPENJPEG_INC = '${BF_OPENJPEG}'
 BF_OPENJPEG_LIBPATH='${BF_OPENJPEG}/lib'
 
 WITH_BF_REDCODE = 'false'  

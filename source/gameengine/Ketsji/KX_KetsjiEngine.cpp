@@ -732,6 +732,26 @@ void KX_KetsjiEngine::Render()
 			// do the rendering
 			//RenderFrame(scene);
 			RenderFrame(scene, cam);
+
+			list<class KX_Camera*>* cameras = scene->GetCameras();			
+	
+			// Draw the scene once for each camera with an enabled viewport
+			list<KX_Camera*>::iterator it = cameras->begin();
+			while(it != cameras->end())
+			{
+				if((*it)->GetViewport())
+				{
+					if (scene->IsClearingZBuffer())
+						m_rasterizer->ClearDepthBuffer();
+			
+					m_rendertools->SetAuxilaryClientInfo(scene);
+			
+					// do the rendering
+					RenderFrame(scene, (*it));
+				}
+				
+				it++;
+			}
 		}
 	} // if(m_rasterizer->Stereo())
 

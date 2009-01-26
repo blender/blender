@@ -3396,6 +3396,7 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 			FluidsimModifierData *fluidmd = (FluidsimModifierData*) md;
 			
 			fluidmd->fss= newdataadr(fd, fluidmd->fss);
+			fluidmd->fss->meshSurfNormals = 0;
 		}
 		else if (md->type==eModifierType_Collision) {
 			
@@ -8517,6 +8518,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				
 				fluidmd->fss->lastgoodframe = INT_MAX;
 				fluidmd->fss->flag = 0;
+				fluidmd->fss->meshSurfNormals = 0;
 			}
 		}
 	}

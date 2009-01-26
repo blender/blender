@@ -1,6 +1,7 @@
-/**
- * @file KX_IPhysicsController.cpp
- * $Id$
+/*
+ * IMB_jp2.h
+ *
+ * $Id: IMB_bmp.h 14444 2008-04-16 22:40:48Z hos $
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -27,25 +28,22 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#include "KX_IPhysicsController.h"
+/**
+ * \file IMB_jp2.h
+ * \ingroup imbuf
+ * \brief Function declarations for jp2.c
+ */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
+#ifndef IMB_JP2_H
+#define IMB_JP2_H
+
+#ifdef WITH_OPENJPEG
+struct ImBuf;
+
+int imb_is_a_jp2(void *buf);
+struct ImBuf *imb_jp2_decode(unsigned char *mem, int size, int flags);
+short imb_savejp2(struct ImBuf *ibuf, char *name, int flags);
+#endif /* WITH_OPENJPEG */
+
 #endif
-
-#include "PHY_DynamicTypes.h"
-
-KX_IPhysicsController::KX_IPhysicsController(bool dyna, bool compound, void* userdata)
-
-:	m_bDyna(dyna),
-	m_bCompound(compound),
-	m_suspendDynamics(false),
-	m_userdata(userdata)
-{
-}
-
-KX_IPhysicsController::~KX_IPhysicsController()
-{
-}
-
 

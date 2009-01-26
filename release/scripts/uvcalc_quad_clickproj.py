@@ -171,6 +171,9 @@ def main():
 		f_uv = f.uv
 		return [(v.co-face_corner_main, f_uv[i]) for i,v in enumerate(f.v)]
 	
+	if me.faceUV==False:
+		me.faceUV= True
+
 	coords = [ (co,uv) for f in me.faces if f.sel for co, uv in get_face_coords(f)]
 	
 	coords_orig = [uv.copy() for co, uv in coords]
@@ -265,3 +268,4 @@ def main():
 if __name__=='__main__':
 	main()
 	Window.DrawProgressBar(1.0, '')
+

@@ -102,7 +102,7 @@ typedef struct bPoseChannel {
 
 
 /* PoseChannel (transform) flags */
-enum {
+typedef enum ePchan_Flag {
 	POSE_LOC		=	0x0001,
 	POSE_ROT		=	0x0002,
 	POSE_SIZE		=	0x0004,
@@ -119,7 +119,7 @@ enum {
 } ePchan_Flag;
 
 /* PoseChannel constflag (constraint detection) */
-enum {
+typedef enum ePchan_ConstFlag {
 	PCHAN_HAS_IK		= (1<<0),
 	PCHAN_HAS_CONST		= (1<<1),
 		/* only used for drawing Posemode, not stored in channel */
@@ -130,7 +130,7 @@ enum {
 } ePchan_ConstFlag;
 
 /* PoseChannel->ikflag */
-enum {
+typedef enum ePchan_IkFlag {
 	BONE_IK_NO_XDOF = (1<<0),
 	BONE_IK_NO_YDOF = (1<<1),
 	BONE_IK_NO_ZDOF = (1<<2),
@@ -145,7 +145,7 @@ enum {
 } ePchan_IkFlag;
 
 /* PoseChannel->rotmode */
-enum {
+typedef enum ePchan_RotMode {
 		/* quaternion rotations (default, and for older Blender versions) */
 	PCHAN_ROT_QUAT	= 0,
 		/* euler rotations (xyz only) */
@@ -177,7 +177,7 @@ typedef struct bPose {
 
 
 /* Pose->flag */
-enum {
+typedef enum ePose_Flags {
 		/* results in armature_rebuild_pose being called */
 	POSE_RECALC = (1<<0),
 		/* prevents any channel from getting overridden by anim from IPO */
@@ -221,7 +221,7 @@ typedef struct bActionGroup {
 } bActionGroup;
 
 /* Action Group flags */
-enum {
+typedef enum eActionGroup_Flag {
 	AGRP_SELECTED 	= (1<<0),
 	AGRP_ACTIVE 	= (1<<1),
 	AGRP_PROTECTED 	= (1<<2),
@@ -259,7 +259,7 @@ typedef struct bAction {
 
 
 /* Flags for the action */
-enum {
+typedef enum eAction_Flags {
 		/* flags for displaying in UI */
 	ACT_EXPANDED 	= (1<<0),
 	ACT_SELECTED	= (1<<1),
@@ -331,7 +331,7 @@ typedef struct SpaceAction {
 } SpaceAction;
 
 /* SpaceAction flag */
-enum {
+typedef enum eSAction_Flag {
 		/* during transform (only set for TimeSlide) */
 	SACTION_MOVING	= (1<<0),	
 		/* show sliders (if relevant) */
@@ -354,7 +354,7 @@ enum {
 
 /* SpaceAction Mode Settings */
 // XXX should this be used by other editors too?
-enum  {
+typedef enum eAnimEdit_Context {
 		/* action (default) */
 	SACTCONT_ACTION	= 0,
 		/* editing of shapekey's IPO block */
@@ -366,7 +366,7 @@ enum  {
 } eAnimEdit_Context;
 
 /* SpaceAction AutoSnap Settings (also used by other Animation Editors) */
-enum {
+typedef enum eAnimEdit_AutoSnap {
 		/* no auto-snap */
 	SACTSNAP_OFF = 0,	
 		/* snap to 1.0 frame/second intervals */

@@ -62,12 +62,14 @@ public:
 	/* --------------------------------------------------------------------- */
 
 	virtual PyObject* _getattr(const STR_String& attr);
+	virtual int _setattr(const STR_String& attr, PyObject *value);
 
 	/* 3. setProperty */
 	KX_PYMETHOD_DOC(SCA_ActuatorSensor,SetActuator);
 	/* 4. getProperty */
 	KX_PYMETHOD_DOC_NOARGS(SCA_ActuatorSensor,GetActuator);
 	
+	static int CheckActuator(void *self, const PyAttributeDef*);
 };
 
 #endif

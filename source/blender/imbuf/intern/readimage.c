@@ -58,6 +58,10 @@
 #include "IMB_dpxcineon.h"
 #include "BKE_global.h"
 
+#ifdef WITH_OPENJPEG
+#include "IMB_jp2.h"
+#endif
+
 #ifdef WITH_OPENEXR
 #include "openexr/openexr_api.h"
 #endif
@@ -161,11 +165,16 @@ ImBuf *IMB_ibImageFromMemory(int *mem, int size, int flags) {
 		if (ibuf) return (ibuf);
 #endif
 
+#ifdef WITH_OPENJPEG
+		ibuf = imb_jp2_decode((uchar *)mem, size, flags);
+		if (ibuf) return (ibuf);
+#endif
+
 #ifdef WITH_DDS
 		ibuf = imb_load_dds((uchar *)mem, size, flags);
 		if (ibuf) return (ibuf);
 #endif
-		
+	
 #ifdef WITH_QUICKTIME
 #if defined(_WIN32) || defined (__APPLE__)
 		if(G.have_quicktime) {

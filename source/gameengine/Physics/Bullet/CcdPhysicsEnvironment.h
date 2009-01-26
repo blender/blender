@@ -196,6 +196,8 @@ protected:
 
 		void	enableCcdPhysicsController(CcdPhysicsController* ctrl);
 
+		void	refreshCcdPhysicsController(CcdPhysicsController* ctrl);
+
 		btBroadphaseInterface*	getBroadphase();
 
 		btDispatcher*	getDispatcher();

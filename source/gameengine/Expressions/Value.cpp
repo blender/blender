@@ -32,6 +32,7 @@
 //////////////////////////////////////////////////////////////////////
 
 double CValue::m_sZeroVec[3] = {0.0,0.0,0.0};
+bool CValue::m_ignore_deprecation_warnings(false);
 
 #ifndef NO_EXP_PYTHON_EMBEDDING
 
@@ -849,4 +850,15 @@ void CValue::SetValue(CValue* newval)
 }
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
+/* deprecation warning management */
+void CValue::SetDeprecationWarnings(bool ignoreDeprecationWarnings)
+{
+	m_ignore_deprecation_warnings = ignoreDeprecationWarnings;
+}
+
+void CValue::ShowDeprecationWarning(const char* old_way,const char* new_way)
+{
+	if (!m_ignore_deprecation_warnings)
+		printf("Method %s is deprecated, please use %s instead.\n", old_way, new_way);
+}
 

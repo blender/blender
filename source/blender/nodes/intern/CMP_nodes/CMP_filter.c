@@ -78,6 +78,7 @@ static void do_filter_edge(CompBuf *out, CompBuf *in, float *filter, float fac)
 			QUATCOPY(fp, row2+4);
 		}
 		else if(pix==CB_VAL) {
+			fp+= pix;
 			for(x=2; x<rowlen; x++) {
 				f1= filter[0]*row1[0] + filter[1]*row1[1] + filter[2]*row1[2] + filter[3]*row2[0] + filter[4]*row2[1] + filter[5]*row2[2] + filter[6]*row3[0] + filter[7]*row3[1] + filter[8]*row3[2];
 				f2= filter[0]*row1[0] + filter[3]*row1[1] + filter[6]*row1[2] + filter[1]*row2[0] + filter[4]*row2[1] + filter[7]*row2[2] + filter[2]*row3[0] + filter[5]*row3[1] + filter[8]*row3[2];

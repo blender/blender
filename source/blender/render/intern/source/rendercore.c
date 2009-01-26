@@ -1505,8 +1505,8 @@ static void shade_sample_sss(ShadeSample *ssamp, Material *mat, ObjectInstanceRe
 
 	/* not a pretty solution, but fixes common cases */
 	if(shi->obr->ob && shi->obr->ob->transflag & OB_NEG_SCALE) {
-		VecMulf(shi->vn, -1.0f);
-		VecMulf(shi->vno, -1.0f);
+		VecNegf(shi->vn);
+		VecNegf(shi->vno);
 	}
 
 	/* if nodetree, use the material that we are currently preprocessing
