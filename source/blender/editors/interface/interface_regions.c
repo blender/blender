@@ -2202,7 +2202,7 @@ static uiBlock *ui_block_func_MENU_ITEM(bContext *C, uiMenuBlockHandle *handle, 
 			name= ui_menu_enumpropname(opptr, item->propname, item->retval);
 			BLI_strncpy(bname, name, 64);
 			
-			but= uiDefIconTextBut(block, BUTM, item->retval, ICON_BLANK1, bname, x1, y1, width+16, MENU_BUTTON_HEIGHT-1, NULL, 0.0, 0.0, 0, 0, "");
+			but= uiDefIconTextBut(block, BUTM, item->retval, item->icon, bname, x1, y1, width+16, MENU_BUTTON_HEIGHT-1, NULL, 0.0, 0.0, 0, 0, "");
 			
 			but->opptr= opptr;
 			but->opname= item->opname;
@@ -2211,7 +2211,7 @@ static uiBlock *ui_block_func_MENU_ITEM(bContext *C, uiMenuBlockHandle *handle, 
 			y1 -= MENU_BUTTON_HEIGHT;
 		}
 		else if(item->type==MENU_ITEM_OPNAME) {
-			uiDefIconTextButO(block, BUTM, item->opname, head->opcontext, ICON_BLANK1, NULL, x1, y1, width+16, MENU_BUTTON_HEIGHT-1, NULL);
+			uiDefIconTextButO(block, BUTM, item->opname, head->opcontext, item->icon, NULL, x1, y1, width+16, MENU_BUTTON_HEIGHT-1, NULL);
 			y1 -= MENU_BUTTON_HEIGHT;
 		}
 		else {
