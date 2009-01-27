@@ -1560,7 +1560,7 @@ static int script_setter( BPy_Constraint *self, int type, PyObject *value )
 			break;
 	case EXPP_CONSTR_SCRIPT: {
 		Text *text = (( BPy_Text * )value)->text;
-		if( !BPy_Object_Check( value ) )
+		if( !BPy_Text_Check( value ) )
 			return EXPP_ReturnIntError( PyExc_TypeError, 
 					"expected BPy text argument" );
 		con->text = text;
