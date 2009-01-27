@@ -184,21 +184,17 @@ void GRAPHEDIT_OT_keyframes_deselectall (wmOperatorType *ot)
 
 /* ******************** Border Select Operator **************************** */
 /* This operator currently works in one of three ways:
- *	-> BKEY 	- 1) all keyframes within region are selected (GRAPHKEYS_BORDERSEL_ALLKEYS)
+ *	-> BKEY 	- 1) all keyframes within region are selected (validation with BEZT_OK_REGION)
  *	-> ALT-BKEY - depending on which axis of the region was larger...
- *		-> 2) x-axis, so select all frames within frame range (GRAPHKEYS_BORDERSEL_FRAMERANGE)
- *		-> 3) y-axis, so select all frames within channels that region included (GRAPHKEYS_BORDERSEL_CHANNELS)
+ *		-> 2) x-axis, so select all frames within frame range (validation with BEZT_OK_FRAMERANGE)
+ *		-> 3) y-axis, so select all frames within channels that region included (validation with BEZT_OK_VALUERANGE)
  */
 
-/* defines for borderselect mode */
-enum {
-	GRAPHKEYS_BORDERSEL_ALLKEYS	= 0,
-	GRAPHKEYS_BORDERSEL_FRAMERANGE,
-	GRAPHKEYS_BORDERSEL_CHANNELS,
-} egraphkeys_BorderSelect_Mode;
-
-
-static void borderselect_action (bAnimContext *ac, rcti rect, short mode, short selectmode)
+/* Borderselect only selects keyframes now, as overshooting handles often get caught too,
+ * which means that they may be inadvertantly moved as well.
+ * Also, for convenience, handles should get same status as keyframe (if it was within bounds)
+ */
+static void borderselect_graphkeys (bAnimContext *ac, rcti rect, short mode, short selectmode)
 {
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
@@ -210,30 +206,27 @@ static void borderselect_action (bAnimContext *ac, rcti rect, short mode, short 
 	rctf rectf;
 	
 	/* convert mouse coordinates to frame ranges and channel coordinates corrected for view pan/zoom */
-	UI_view2d_region_to_view(v2d, rect.xmin, rect.ymin+2, &rectf.xmin, &rectf.ymin);
-	UI_view2d_region_to_view(v2d, rect.xmax, rect.ymax-2, &rectf.xmax, &rectf.ymax);
+	UI_view2d_region_to_view(v2d, rect.xmin, rect.ymin, &rectf.xmin, &rectf.ymin);
+	UI_view2d_region_to_view(v2d, rect.xmax, rect.ymax, &rectf.xmax, &rectf.ymax);
 	
 	/* filter data */
-	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVEVISIBLE);
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVESONLY | ANIMFILTER_CURVEVISIBLE);
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	/* get beztriple editing/validation funcs  */
 	select_cb= ANIM_editkeyframes_select(selectmode);
+	ok_cb= ANIM_editkeyframes_ok(mode);
 	
-	if (ELEM(mode, GRAPHKEYS_BORDERSEL_FRAMERANGE, GRAPHKEYS_BORDERSEL_ALLKEYS))
-		ok_cb= ANIM_editkeyframes_ok(BEZT_OK_FRAMERANGE);
-	else
-		ok_cb= NULL;
-		
 	/* init editing data */
 	memset(&bed, 0, sizeof(BeztEditData));
+	bed.data= &rect;
 	
 	/* loop over data, doing border select */
 	for (ale= anim_data.first; ale; ale= ale->next) {
 		Object *nob= ANIM_nla_mapping_get(ac, ale);
 		
 		/* set horizontal range (if applicable) */
-		if (ELEM(mode, GRAPHKEYS_BORDERSEL_FRAMERANGE, GRAPHKEYS_BORDERSEL_ALLKEYS)) {
+		if (mode != BEZT_OK_VALUERANGE) {
 			/* if channel is mapped in NLA, apply correction */
 			if (nob) {
 				bed.f1= get_action_frame(nob, rectf.xmin);
@@ -245,7 +238,8 @@ static void borderselect_action (bAnimContext *ac, rcti rect, short mode, short 
 			}
 		}
 		
-		// xxx... select code...
+		/* select keyframes that are in the appropriate places */
+		ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, ok_cb, select_cb, NULL);
 	}
 	
 	/* cleanup */
@@ -285,15 +279,15 @@ static int graphkeys_borderselect_exec(bContext *C, wmOperator *op)
 		 *	  used for tweaking timing when "blocking", while channels is not that useful...
 		 */
 		if ((rect.xmax - rect.xmin) >= (rect.ymax - rect.ymin))
-			mode= GRAPHKEYS_BORDERSEL_FRAMERANGE;
-		//else
-		//	mode= GRAPHKEYS_BORDERSEL_CHANNELS;
+			mode= BEZT_OK_FRAMERANGE;
+		else
+			mode= BEZT_OK_VALUERANGE;
 	}
 	else 
-		mode= GRAPHKEYS_BORDERSEL_ALLKEYS;
+		mode= BEZT_OK_REGION;
 	
 	/* apply borderselect action */
-	borderselect_action(&ac, rect, mode, selectmode);
+	borderselect_graphkeys(&ac, rect, mode, selectmode);
 	
 	return OPERATOR_FINISHED;
 } 

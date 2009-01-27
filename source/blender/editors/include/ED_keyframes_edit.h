@@ -53,6 +53,8 @@ typedef enum eEditKeyframes_Validate {
 	BEZT_OK_FRAMERANGE,
 	BEZT_OK_SELECTED,
 	BEZT_OK_VALUE,
+	BEZT_OK_VALUERANGE,
+	BEZT_OK_REGION,
 } eEditKeyframes_Validate;
 
 /* ------------ */
@@ -89,7 +91,7 @@ typedef enum eEditKeyframes_Mirror {
 typedef struct BeztEditData {
 	ListBase list;				/* temp list for storing custom list of data to check */
 	struct Scene *scene;		/* pointer to current scene - many tools need access to cfra/etc.  */
-	void *data;					/* pointer to custom data - usually 'Object', but could be other types too */
+	void *data;					/* pointer to custom data - usually 'Object' but also 'rectf', but could be other types too */
 	float f1, f2;				/* storage of times/values as 'decimals' */
 	int i1, i2;					/* storage of times/values/flags as 'whole' numbers */
 } BeztEditData;
@@ -126,7 +128,7 @@ BeztEditFunc ANIM_editkeyframes_ipo(short mode);
 
 void delete_fcurve_key(struct FCurve *fcu, int index, short do_recalc);
 void delete_fcurve_keys(struct FCurve *fcu);
-void duplicate_fcurve_keys(struct FCurve *fcu); // XXX fixme...
+void duplicate_fcurve_keys(struct FCurve *fcu);
 
 void clean_fcurve(struct FCurve *fcu, float thresh);
 void smooth_fcurve(struct FCurve *fcu, short mode);

@@ -617,7 +617,7 @@ void graph_draw_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 		
 		/* map ipo-points for drawing if scaled F-Curve */
 		if (nob)
-			ANIM_nla_mapping_apply_fcurve(nob, ale->key_data, 0, 1); 
+			ANIM_nla_mapping_apply_fcurve(nob, ale->key_data, 0, 0); 
 		
 		/* draw curve - we currently calculate colour on the fly, but that should probably be done in advance instead */
 		col= ipo_rainbow(i, items);
@@ -631,7 +631,7 @@ void graph_draw_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 		
 		/* undo mapping of keyframes for drawing if scaled F-Curve */
 		if (nob)
-			ANIM_nla_mapping_apply_fcurve(nob, ale->key_data, 1, 1); 
+			ANIM_nla_mapping_apply_fcurve(nob, ale->key_data, 1, 0); 
 	}
 	
 	/* free list of curves */

@@ -144,7 +144,7 @@ static void graphedit_keymap_keyframes (wmWindowManager *wm, ListBase *keymap)
 #endif // XXX code to be sanitied for new system	
 		
 	/* transform system */
-	transform_keymap_for_space(wm, keymap, SPACE_IPO);
+	transform_keymap_for_space(wm, keymap, /*SPACE_IPO*/SPACE_ACTION); // xxx
 }
 
 /* --------------- */

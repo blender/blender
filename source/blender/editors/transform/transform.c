@@ -352,6 +352,16 @@ static void viewRedrawForce(bContext *C, TransInfo *t)
 		else 
 			ED_area_tag_redraw(t->sa);
 	}
+	else if (t->spacetype == SPACE_IPO) {
+		SpaceIpo *sipo= (SpaceIpo *)t->sa->spacedata.first;
+		
+		// TRANSFORM_FIX_ME
+		if (sipo->lock) {
+			// whole window...
+		}
+		else 
+			ED_area_tag_redraw(t->sa);
+	}
 	else if(t->spacetype == SPACE_NODE)
 	{
 		//ED_area_tag_redraw(t->sa);
