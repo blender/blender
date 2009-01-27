@@ -1617,7 +1617,7 @@ static void ob_parbone(Object *ob, Object *par, float mat[][4])
 	bPoseChannel *pchan;
 	float vec[3];
 	
-	if (ob->type!=OB_ARMATURE) {
+	if (par->type!=OB_ARMATURE) {
 		Mat4One(mat);
 		return;
 	}

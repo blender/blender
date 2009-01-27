@@ -716,7 +716,7 @@ static int animdata_filter_dopesheet_mats (ListBase *anim_data, bDopeSheet *ads,
 			Material *ma= give_current_material(ob, a);
 			
 			/* for now, if no material returned, skip (this shouldn't confuse the user I hope) */
-			if (ELEM(NULL, ma, ma->adt)) continue;
+			if (ELEM3(NULL, ma, ma->adt, ma->adt->action)) continue;
 			
 			/* include material-expand widget? */
 			// hmm... do we need to store the index of this material in the array anywhere?
