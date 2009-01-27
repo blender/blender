@@ -293,7 +293,10 @@ void file_calc_previews(const bContext *C, ARegion *ar)
 		sfile->tile_h = sfile->prv_h + 4*sfile->prv_border_y + U.fontsize*3/2;
 		width= (v2d->cur.xmax - v2d->cur.xmin - 2*sfile->tile_border_x);
 		columns= file_view_columns(sfile, v2d);
-		rows= filelist_numfiles(sfile->files)/columns + 1; // XXX dirty, modulo is zero
+		if(columns)
+			rows= filelist_numfiles(sfile->files)/columns + 1; // XXX dirty, modulo is zero
+		else
+			rows= filelist_numfiles(sfile->files) + 1; // XXX dirty, modulo is zero
 		height= rows*(sfile->tile_h+2*sfile->tile_border_y) + sfile->tile_border_y*2;
 	} else {
 		sfile->prv_w = 0;
@@ -306,7 +309,11 @@ void file_calc_previews(const bContext *C, ARegion *ar)
 		sfile->tile_h = U.fontsize*3/2;
 		height= v2d->cur.ymax - v2d->cur.ymin;
 		rows = file_view_rows(sfile, v2d);
-		columns = filelist_numfiles(sfile->files)/rows + 1; // XXX dirty, modulo is zero
+		if(rows)
+			columns = filelist_numfiles(sfile->files)/rows + 1; // XXX dirty, modulo is zero
+		else
+			columns = filelist_numfiles(sfile->files) + 1; // XXX dirty, modulo is zero
+			
 		width = columns * (sfile->tile_w + 2*sfile->tile_border_x) + sfile->tile_border_x*2;
 	}
 
