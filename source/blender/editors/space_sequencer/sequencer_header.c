@@ -39,6 +39,7 @@
 
 #include "BLI_blenlib.h"
 
+#include "BKE_utildefines.h"
 #include "BKE_context.h"
 #include "BKE_screen.h"
 #include "BKE_sequence.h"
@@ -289,7 +290,7 @@ static uiBlock *seq_addmenu(bContext *C, uiMenuBlockHandle *handle, void *arg_un
 	uiDefMenuButO(block, "SEQUENCER_OT_add_movie_strip", NULL);
 	uiDefMenuButO(block, "SEQUENCER_OT_add_scene_strip", NULL);
 #ifdef WITH_FFMPEG
-	but= uiDefMenuButO(block, "SEQUENCER_OT_add_movie_strip");
+	but= uiDefMenuButO(block, "SEQUENCER_OT_add_movie_strip", NULL);
 	RNA_boolean_set(uiButGetOperatorPtrRNA(but), "sound", TRUE);
 #endif
 
