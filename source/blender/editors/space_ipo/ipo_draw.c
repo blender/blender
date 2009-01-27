@@ -125,16 +125,15 @@ static void draw_fcurve_handle_control (float x, float y, float xscale, float ys
 	static GLuint displist=0;
 	
 	/* initialise round circle shape */
-	// FIXME: sometimes, this will draw incorrectly (i.e. a scaled copy shows up at the origin)
 	if (displist == 0) {
 		GLUquadricObj *qobj;
 		
 		displist= glGenLists(1);
-		glNewList(displist, GL_COMPILE_AND_EXECUTE);
+		glNewList(displist, GL_COMPILE);
 		
 		qobj	= gluNewQuadric(); 
 		gluQuadricDrawStyle(qobj, GLU_SILHOUETTE); 
-		gluDisk(qobj, 0.07,  0.6, 8, 1);
+		gluDisk(qobj, 0,  0.7, 8, 1);
 		gluDeleteQuadric(qobj);  
 		
 		glEndList();

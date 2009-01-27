@@ -36,13 +36,43 @@ struct ARegion;
 
 /* internal exports only */
 
+/* ***************************************** */
 /* ipo_draw.c */
 void graph_draw_channel_names(struct bAnimContext *ac, struct SpaceIpo *sipo, struct ARegion *ar);
 void graph_draw_curves(struct bAnimContext *ac, struct SpaceIpo *sipo, struct ARegion *ar);
 
+/* ***************************************** */
 /* ipo_header.c */
 void graph_header_buttons(const bContext *C, struct ARegion *ar);
 
+/* ***************************************** */
+/* ipo_select.c */
+
+void GRAPHEDIT_OT_keyframes_deselectall(struct wmOperatorType *ot);
+void GRAPHEDIT_OT_keyframes_borderselect(struct wmOperatorType *ot);
+void GRAPHEDIT_OT_keyframes_columnselect(struct wmOperatorType *ot);
+void GRAPHEDIT_OT_keyframes_clickselect(struct wmOperatorType *ot);
+
+/* defines for left-right select tool */
+enum {
+	GRAPHKEYS_LRSEL_TEST	= -1,
+	GRAPHKEYS_LRSEL_NONE,
+	GRAPHKEYS_LRSEL_LEFT,
+	GRAPHKEYS_LRSEL_RIGHT,
+} eGraphKeys_LeftRightSelect_Mode;
+
+/* defines for column-select mode */
+enum {
+	GRAPHKEYS_COLUMNSEL_KEYS	= 0,
+	GRAPHKEYS_COLUMNSEL_CFRA,
+	GRAPHKEYS_COLUMNSEL_MARKERS_COLUMN,
+	GRAPHKEYS_COLUMNSEL_MARKERS_BETWEEN,
+} eGraphKeys_ColumnSelect_Mode;
+
+/* ***************************************** */
+/* ipo_edit.c */
+
+/* ***************************************** */
 /* ipo_ops.c */
 void graphedit_keymap(struct wmWindowManager *wm);
 void graphedit_operatortypes(void);

@@ -61,7 +61,6 @@
 
 void graphedit_operatortypes(void)
 {
-#if 0 // XXX code to be sanitied for new system
 	/* keyframes */
 		/* selection */
 	WM_operatortype_append(GRAPHEDIT_OT_keyframes_clickselect);
@@ -69,6 +68,7 @@ void graphedit_operatortypes(void)
 	WM_operatortype_append(GRAPHEDIT_OT_keyframes_borderselect);
 	WM_operatortype_append(GRAPHEDIT_OT_keyframes_columnselect);
 	
+#if 0 // XXX code to be sanitied for new system	
 		/* editing */
 	WM_operatortype_append(GRAPHEDIT_OT_keyframes_snap);
 	WM_operatortype_append(GRAPHEDIT_OT_keyframes_mirror);
@@ -91,14 +91,13 @@ void graphedit_operatortypes(void)
 
 static void graphedit_keymap_keyframes (wmWindowManager *wm, ListBase *keymap)
 {
-#if 0 // XXX code to be sanitied for new system
-	/* action_select.c - selection tools */
+	/* iposelect.c - selection tools */
 		/* click-select */
 		// TODO: column to alt, left-right to ctrl (for select-linked consistency)
 	WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_clickselect", SELECTMOUSE, KM_PRESS, 0, 0);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_clickselect", SELECTMOUSE, KM_PRESS, KM_CTRL, 0)->ptr, "column_select", 1);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_clickselect", SELECTMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "extend_select", 1);
-	RNA_enum_set(WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_clickselect", SELECTMOUSE, KM_PRESS, KM_ALT, 0)->ptr, "left_right", ACTKEYS_LRSEL_TEST);
+	RNA_enum_set(WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_clickselect", SELECTMOUSE, KM_PRESS, KM_ALT, 0)->ptr, "left_right", GRAPHKEYS_LRSEL_TEST);
 	
 		/* deselect all */
 	WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_deselectall", AKEY, KM_PRESS, 0, 0);
@@ -109,12 +108,13 @@ static void graphedit_keymap_keyframes (wmWindowManager *wm, ListBase *keymap)
 	RNA_boolean_set(WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_borderselect", BKEY, KM_PRESS, KM_ALT, 0)->ptr, "axis_range", 1);
 	
 		/* column select */
-	RNA_enum_set(WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_columnselect", KKEY, KM_PRESS, 0, 0)->ptr, "mode", ACTKEYS_COLUMNSEL_KEYS);
-	RNA_enum_set(WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_columnselect", KKEY, KM_PRESS, KM_CTRL, 0)->ptr, "mode", ACTKEYS_COLUMNSEL_CFRA);
-	RNA_enum_set(WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_columnselect", KKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "mode", ACTKEYS_COLUMNSEL_MARKERS_COLUMN);
-	RNA_enum_set(WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_columnselect", KKEY, KM_PRESS, KM_ALT, 0)->ptr, "mode", ACTKEYS_COLUMNSEL_MARKERS_BETWEEN);
-	
-	/* action_edit.c */
+	RNA_enum_set(WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_columnselect", KKEY, KM_PRESS, 0, 0)->ptr, "mode", GRAPHKEYS_COLUMNSEL_KEYS);
+	RNA_enum_set(WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_columnselect", KKEY, KM_PRESS, KM_CTRL, 0)->ptr, "mode", GRAPHKEYS_COLUMNSEL_CFRA);
+	RNA_enum_set(WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_columnselect", KKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "mode", GRAPHKEYS_COLUMNSEL_MARKERS_COLUMN);
+	RNA_enum_set(WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_columnselect", KKEY, KM_PRESS, KM_ALT, 0)->ptr, "mode", GRAPHKEYS_COLUMNSEL_MARKERS_BETWEEN);
+
+#if 0 // XXX code to be sanitied for new system		
+	/* ipo_edit.c */
 		/* snap - current frame to selected keys */
 	WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_cfrasnap", SKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0);
 		
@@ -141,10 +141,10 @@ static void graphedit_keymap_keyframes (wmWindowManager *wm, ListBase *keymap)
 		/* auto-set range */
 	WM_keymap_add_item(keymap, "GRAPHEDIT_OT_set_previewrange", PKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
 	WM_keymap_add_item(keymap, "GRAPHEDIT_OT_view_all", HOMEKEY, KM_PRESS, 0, 0);
+#endif // XXX code to be sanitied for new system	
 		
 	/* transform system */
-	transform_keymap_for_space(wm, keymap, SPACE_ACTION);
-#endif // XXX code to be sanitied for new system
+	transform_keymap_for_space(wm, keymap, SPACE_IPO);
 }
 
 /* --------------- */

@@ -183,8 +183,8 @@ short animsys_remap_path (AnimMapper *remap, char *path, char **dst)
 }
 
 
-/* Write the given value to a setting using RNA */
-static void animsys_write_rna_setting (PointerRNA *ptr, char *path, int array_index, float value)
+/* Write the given value to a setting using RNA, and return success */
+static short animsys_write_rna_setting (PointerRNA *ptr, char *path, int array_index, float value)
 {
 	PropertyRNA *prop;
 	PointerRNA new_ptr;
@@ -222,6 +222,15 @@ static void animsys_write_rna_setting (PointerRNA *ptr, char *path, int array_in
 					break;
 			}
 		}
+		
+		/* successful */
+		// XXX should the unhandled case also be successful?
+		return 1;
+	}
+	else {
+		/* failed to get path */
+		printf("Animato: Invalid path '%s[%d]' \n", path, array_index);
+		return 0;
 	}
 }
 

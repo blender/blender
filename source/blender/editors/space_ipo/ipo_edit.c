@@ -507,14 +507,9 @@ static int graphkeys_copy_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	
 	/* copy keyframes */
-	if (ac.datatype == ANIMCONT_GPENCIL) {
-		// FIXME...
-	}
-	else {
-		if (copy_graph_keys(&ac)) {	
-			// XXX errors - need a way to inform the user 
-			printf("Action Copy: No keyframes copied to copy-paste buffer\n");
-		}
+	if (copy_graph_keys(&ac)) {	
+		// XXX errors - need a way to inform the user 
+		printf("Action Copy: No keyframes copied to copy-paste buffer\n");
 	}
 	
 	/* set notifier tha things have changed */
@@ -548,14 +543,9 @@ static int graphkeys_paste_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	
 	/* paste keyframes */
-	if (ac.datatype == ANIMCONT_GPENCIL) {
-		// FIXME...
-	}
-	else {
-		if (paste_graph_keys(&ac)) {
-			// XXX errors - need a way to inform the user 
-			printf("Action Paste: Nothing to paste, as Copy-Paste buffer was empty.\n");
-		}
+	if (paste_graph_keys(&ac)) {
+		// XXX errors - need a way to inform the user 
+		printf("Action Paste: Nothing to paste, as Copy-Paste buffer was empty.\n");
 	}
 	
 	/* validate keyframes after editing */
@@ -590,18 +580,12 @@ static void delete_graph_keys (bAnimContext *ac)
 	int filter;
 	
 	/* filter data */
-	if (ac->datatype == ANIMCONT_GPENCIL)
-		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVEVISIBLE| ANIMFILTER_FOREDIT);
-	else
-		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVEVISIBLE| ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY);
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVEVISIBLE| ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY);
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	/* loop through filtered data and delete selected keys */
 	for (ale= anim_data.first; ale; ale= ale->next) {
-		//if (ale->type == ANIMTYPE_GPLAYER)
-		//	delete_gplayer_frames((bGPDlayer *)ale->data);
-		//else
-			delete_fcurve_keys((FCurve *)ale->key_data); // XXX... this doesn't delete empty curves anymore
+		delete_fcurve_keys((FCurve *)ale->key_data); // XXX... this doesn't delete empty curves anymore
 	}
 	
 	/* free filtered list */
@@ -674,8 +658,6 @@ static int graphkeys_clean_exec(bContext *C, wmOperator *op)
 	/* get editor data */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return OPERATOR_CANCELLED;
-	if (ac.datatype == ANIMCONT_GPENCIL)
-		return OPERATOR_PASS_THROUGH;
 		
 	/* get cleaning threshold */
 	thresh= RNA_float_get(op->ptr, "threshold");
@@ -801,8 +783,6 @@ static int graphkeys_sample_exec(bContext *C, wmOperator *op)
 	/* get editor data */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return OPERATOR_CANCELLED;
-	if (ac.datatype == ANIMCONT_GPENCIL)
-		return OPERATOR_PASS_THROUGH;
 	
 	/* sample keyframes */
 	sample_graph_keys(&ac);
@@ -875,8 +855,6 @@ static int graphkeys_expo_exec(bContext *C, wmOperator *op)
 	/* get editor data */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return OPERATOR_CANCELLED;
-	if (ac.datatype == ANIMCONT_GPENCIL) 
-		return OPERATOR_PASS_THROUGH;
 		
 	/* get handle setting mode */
 	mode= RNA_enum_get(op->ptr, "type");
@@ -953,8 +931,6 @@ static int graphkeys_ipo_exec(bContext *C, wmOperator *op)
 	/* get editor data */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return OPERATOR_CANCELLED;
-	if (ac.datatype == ANIMCONT_GPENCIL) 
-		return OPERATOR_PASS_THROUGH;
 		
 	/* get handle setting mode */
 	mode= RNA_enum_get(op->ptr, "type");
@@ -1051,8 +1027,6 @@ static int graphkeys_handletype_exec(bContext *C, wmOperator *op)
 	/* get editor data */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return OPERATOR_CANCELLED;
-	if (ac.datatype == ANIMCONT_GPENCIL) 
-		return OPERATOR_PASS_THROUGH;
 		
 	/* get handle setting mode */
 	mode= RNA_enum_get(op->ptr, "type");
@@ -1181,10 +1155,7 @@ static void snap_graph_keys(bAnimContext *ac, short mode)
 	BeztEditFunc edit_cb;
 	
 	/* filter data */
-	if (ac->datatype == ANIMCONT_GPENCIL)
-		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVEVISIBLE| ANIMFILTER_FOREDIT);
-	else
-		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVEVISIBLE| ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY);
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVEVISIBLE| ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY);
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	/* get beztriple editing callbacks */
@@ -1202,8 +1173,6 @@ static void snap_graph_keys(bAnimContext *ac, short mode)
 			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, NULL, edit_cb, calchandles_fcurve);
 			ANIM_nla_mapping_apply_fcurve(nob, ale->key_data, 1, 1);
 		}
-		//else if (ale->type == ACTTYPE_GPLAYER)
-		//	snap_gplayer_frames(ale->data, mode);
 		else 
 			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, NULL, edit_cb, calchandles_fcurve);
 	}
@@ -1302,10 +1271,7 @@ static void mirror_graph_keys(bAnimContext *ac, short mode)
 	}
 	
 	/* filter data */
-	if (ac->datatype == ANIMCONT_GPENCIL)
-		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVEVISIBLE| ANIMFILTER_FOREDIT);
-	else
-		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVEVISIBLE| ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY);
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVEVISIBLE| ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY);
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	/* mirror keyframes */
@@ -1317,8 +1283,6 @@ static void mirror_graph_keys(bAnimContext *ac, short mode)
 			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, NULL, edit_cb, calchandles_fcurve);
 			ANIM_nla_mapping_apply_fcurve(nob, ale->key_data, 1, 1);
 		}
-		//else if (ale->type == ACTTYPE_GPLAYER)
-		//	snap_gplayer_frames(ale->data, mode);
 		else 
 			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, NULL, edit_cb, calchandles_fcurve);
 	}

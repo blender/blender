@@ -250,6 +250,21 @@ static char *pchan_adrcodes_to_paths (int adrcode, int *array_index)
 	return NULL;
 }
 
+/* Constraint types */
+static char *constraint_adrcodes_to_paths (int adrcode, int *array_index)
+{
+	/* set array index like this in-case nothing sets it correctly  */
+	*array_index= 0;
+	
+	/* result depends on adrcode */
+	switch (adrcode) {
+		case CO_ENFORCE:
+			return "influence";
+		case CO_HEADTAIL:	// XXX this needs to be wrapped in RNA.. probably then this path will be invalid
+			return "data.head_tail";
+	}
+}
+
 /* ShapeKey types 
  * NOTE: as we don't have access to the keyblock where the data comes from (for now), 
  *	 	we'll just use numerical indicies for now... 
