@@ -237,6 +237,10 @@ static void borderselect_graphkeys (bAnimContext *ac, rcti rect, short mode, sho
 				bed.f2= rectf.xmax;
 			}
 		}
+		else {
+			bed.f1= rectf.ymin;
+			bed.f2= rectf.ymax;
+		}
 		
 		/* select keyframes that are in the appropriate places */
 		ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, ok_cb, select_cb, NULL);
