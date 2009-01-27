@@ -1944,13 +1944,14 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 				uiButSetFunc(but, modifiers_applyModifier, ob, md);
 			}
 			
+			uiClearButLock();
+			uiSetButLock(ob && ob->id.lib, ERROR_LIBDATA_MESSAGE);
+
 			if (md->type!=eModifierType_Fluidsim && md->type!=eModifierType_Softbody && md->type!=eModifierType_ParticleSystem && (md->type!=eModifierType_Cloth)) {
 				but = uiDefBut(block, BUT, B_MODIFIER_RECALC, "Copy",	lx,(cy-=19),60,19, 0, 0, 0, 0, 0, "Duplicate the current modifier at the same position in the stack");
 				uiButSetFunc(but, modifiers_copyModifier, ob, md);
 			}
 			uiBlockEndAlign(block);
-			
-			uiSetButLock(ob && ob->id.lib, ERROR_LIBDATA_MESSAGE);
 		}
 
 		lx = x + 10;
@@ -5525,7 +5526,6 @@ static void editing_panel_links(Object *ob)
 		uiBlockSetCol(block, TH_AUTO);
 	}
 	if(ob) {
-		uiSetButLock(object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
 		but = uiDefBut(block, TEX, B_IDNAME, "OB:",	xco, 180, 454-xco, YIC, ob->id.name+2, 0.0, 21.0, 0, 0, "Active Object name.");
 #ifdef WITH_VERSE
 		if(ob->vnode) uiButSetFunc(but, test_and_send_idbutton_cb, ob, ob->id.name);
@@ -5534,6 +5534,7 @@ static void editing_panel_links(Object *ob)
 		uiButSetFunc(but, test_idbutton_cb, ob->id.name, NULL);
 #endif
 
+		uiSetButLock(object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
 	}
 
 	/* empty display handling, note it returns! */
