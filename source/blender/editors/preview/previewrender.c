@@ -1060,13 +1060,6 @@ static void shader_preview_free(void *customdata)
 	MEM_freeN(sp);
 }
 
-static void shader_preview_update(void *customdata)
-{
-//	ShaderPreview *sp= customdata;
-	
-}
-
-
 void ED_preview_shader_job(const bContext *C, void *owner, ID *id, int sizex, int sizey)
 {
 	wmJob *steve= WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), owner);
@@ -1082,8 +1075,8 @@ void ED_preview_shader_job(const bContext *C, void *owner, ID *id, int sizex, in
 	
 	/* setup job */
 	WM_jobs_customdata(steve, sp, shader_preview_free);
-	WM_jobs_timer(steve, 0.1, NC_MATERIAL);
-	WM_jobs_callbacks(steve, shader_preview_startjob, shader_preview_update);
+	WM_jobs_timer(steve, 0.1, NC_MATERIAL, NC_MATERIAL);
+	WM_jobs_callbacks(steve, shader_preview_startjob, NULL, NULL);
 	
 	WM_jobs_start(steve);
 }

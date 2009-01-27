@@ -612,11 +612,34 @@ static void do_node_internal_buttons(bContext *C, void *node_v, int event)
 	SpaceNode *snode= (SpaceNode*)CTX_wm_space_data(C);
 	
 	if(event==B_NODE_EXEC) {
-		if(snode->treetype==NTREE_SHADER)
+		if(snode->treetype==NTREE_SHADER) {
 			WM_event_add_notifier(C, NC_MATERIAL|ND_SHADING, snode->id);
+		}
+		else if(snode->treetype==NTREE_COMPOSIT) {
+			bNode *node= node_v;
+			
+			NodeTagChanged(snode->edittree, node);
+			/* don't use NodeTagIDChanged, it gives far too many recomposites for image, scene layers, ... */
+				
+			/* not the best implementation of the world... but we need it to work now :) */
+			if(node->type==CMP_NODE_R_LAYERS && node->custom2) {
+				/* add event for this window (after render curarea can be changed) */
+				//addqueue(curarea->win, UI_BUT_EVENT, B_NODE_TREE_EXEC);
+				
+				//composite_node_render(snode, node);
+				//snode_handle_recalc(snode);
+				
+				/* add another event, a render can go fullscreen and open new window */
+				//addqueue(curarea->win, UI_BUT_EVENT, B_NODE_TREE_EXEC);
+			}
+			else {
+				node= snode_get_editgroup(snode);
+				if(node)
+					NodeTagIDChanged(snode->nodetree, node->id);
+			}
+			WM_event_add_notifier(C, NC_SCENE|ND_NODES, CTX_data_scene(C));
+		}			
 		
-	//	else if(snode->treetype==NTREE_COMPOSIT)
-	//		composit_node_event(snode, val);
 	//	else if(snode->treetype==NTREE_TEXTURE)
 	//		texture_node_event(snode, val);
 	}

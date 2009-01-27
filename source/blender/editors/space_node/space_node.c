@@ -141,7 +141,14 @@ static void node_area_listener(ScrArea *sa, wmNotifier *wmn)
 	/* preview renders */
 	switch(wmn->category) {
 		case NC_SCENE:
+			if(wmn->data==ND_NODES)
+				ED_area_tag_refresh(sa);
 			break;
+		case NC_WM:
+			if(wmn->data==ND_FILEREAD)
+				ED_area_tag_refresh(sa);
+			break;
+				
 		case NC_MATERIAL:
 			/* future: add ID check? */
 			if(wmn->data==ND_SHADING)
@@ -155,10 +162,12 @@ static void node_area_refresh(const struct bContext *C, struct ScrArea *sa)
 	/* default now: refresh node is starting preview */
 	SpaceNode *snode= sa->spacedata.first;
 	
-	if(snode->treetype==NTREE_SHADER) {
-		if(snode->nodetree) {
-			
+	if(snode->nodetree) {
+		if(snode->treetype==NTREE_SHADER) {
 			ED_preview_shader_job(C, sa, snode->id, 100, 100);
+		}
+		else if(snode->treetype==NTREE_COMPOSIT) {
+			snode_composite_job(C, sa);
 		}
 	}
 }
@@ -250,7 +259,8 @@ static void node_header_area_draw(const bContext *C, ARegion *ar)
 	UI_view2d_view_restore(C);
 }
 
-static void node_main_area_listener(ARegion *ar, wmNotifier *wmn)
+/* used for header + main area */
+static void node_region_listener(ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
 	switch(wmn->category) {
@@ -304,7 +314,7 @@ void ED_spacetype_node(void)
 	art->regionid = RGN_TYPE_WINDOW;
 	art->init= node_main_area_init;
 	art->draw= node_main_area_draw;
-	art->listener= node_main_area_listener;
+	art->listener= node_region_listener;
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D;
 
 	BLI_addhead(&st->regiontypes, art);
@@ -314,7 +324,7 @@ void ED_spacetype_node(void)
 	art->regionid = RGN_TYPE_HEADER;
 	art->minsizey= HEADERY;
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D|ED_KEYMAP_FRAMES;
-	
+	art->listener= node_region_listener;
 	art->init= node_header_area_init;
 	art->draw= node_header_area_draw;
 	

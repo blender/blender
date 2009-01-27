@@ -394,6 +394,9 @@ static void wm_window_match_init(bContext *C, ListBase *wmlist)
 	/* first wrap up running stuff */
 	/* code copied from wm_init_exit.c */
 	for(wm= wmlist->first; wm; wm= wm->id.next) {
+		
+		WM_jobs_stop_all(wm);
+		
 		for(win= wm->windows.first; win; win= win->next) {
 		
 			CTX_wm_window_set(C, win);	/* needed by operator close callbacks */
@@ -443,12 +446,14 @@ static void wm_window_match_do(bContext *C, ListBase *oldwmlist)
 			/* match oldwm to new dbase, only old files */
 			
 			for(wm= oldwmlist->first; wm; wm= wm->id.next) {
+				/* ensure making new keymaps and set space types */
+				wm->initialized= 0;
+				
 				for(win= wm->windows.first; win; win= win->next) {
-					win->screen= (bScreen *)find_id("SR", win->screenname);
-
-					if(win->screen==NULL)
-						win->screen= ED_screen_duplicate(win, CTX_wm_screen(C)); /* active screen */
-							
+					/* all windows get active screen from file */
+					win->screen= CTX_wm_screen(C);
+					BLI_strncpy(win->screenname, win->screen->id.name+2, 21);
+					
 					if(win->screen->winid==0)
 						win->screen->winid= win->winid;
 				}
@@ -462,6 +467,10 @@ static void wm_window_match_do(bContext *C, ListBase *oldwmlist)
 			/* this code could move to setup_appdata */
 			oldwm= oldwmlist->first;
 			wm= G.main->wm.first;
+
+			/* ensure making new keymaps and set space types */
+			wm->initialized= 0;
+			
 			/* only first wm in list has ghostwins */
 			for(win= wm->windows.first; win; win= win->next) {
 				for(oldwin= oldwm->windows.first; oldwin; oldwin= oldwin->next) {
@@ -518,6 +527,7 @@ void WM_read_file(bContext *C, char *name, ReportList *reports)
 		BKE_reset_undo();
 		BKE_write_undo(C, "original");	/* save current state */
 
+		WM_event_add_notifier(C, NC_WM|ND_FILEREAD, NULL);
 //		refresh_interface_font();
 	}
 //	else if(retval==1)

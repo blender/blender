@@ -4152,6 +4152,22 @@ static void lib_link_screen(FileData *fd, Main *main)
 
 						ssound->sound= newlibadr_us(fd, sc->id.lib, ssound->sound);
 					}
+					else if(sl->spacetype==SPACE_NODE) {
+						SpaceNode *snode= (SpaceNode *)sl;
+						
+						snode->id= newlibadr(fd, sc->id.lib, snode->id);
+						
+						/* internal data, a bit patchy */
+						if(snode->id) {
+							if(GS(snode->id->name)==ID_MA)
+								snode->nodetree= ((Material *)snode->id)->nodetree;
+							else if(GS(snode->id->name)==ID_SCE)
+								snode->nodetree= ((Scene *)snode->id)->nodetree;
+							else if(GS(snode->id->name)==ID_TE)
+								snode->nodetree= ((Tex *)snode->id)->nodetree;
+						}
+						
+					}
 				}
 				sa= sa->next;
 			}
@@ -4345,8 +4361,19 @@ void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 				else if(sl->spacetype==SPACE_NODE) {
 					SpaceNode *snode= (SpaceNode *)sl;
 					
-					snode->nodetree= snode->edittree= NULL;
-					snode->flag |= SNODE_DO_PREVIEW;
+					snode->id= restore_pointer_by_name(newmain, snode->id, 1);
+					snode->edittree= NULL;
+					
+					if(snode->id==NULL)
+						snode->nodetree= NULL;
+					else {
+						if(GS(snode->id->name)==ID_MA)
+							snode->nodetree= ((Material *)snode->id)->nodetree;
+						else if(GS(snode->id->name)==ID_SCE)
+							snode->nodetree= ((Scene *)snode->id)->nodetree;
+						else if(GS(snode->id->name)==ID_TE)
+							snode->nodetree= ((Tex *)snode->id)->nodetree;
+					}
 				}
 			}
 			sa= sa->next;
@@ -4544,7 +4571,6 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 					link_gpencil(fd, snode->gpd);
 				}
 				snode->nodetree= snode->edittree= NULL;
-				snode->flag |= SNODE_DO_PREVIEW;
 			}
 			else if(sl->spacetype==SPACE_SEQ) {
 				SpaceSeq *sseq= (SpaceSeq *)sl;

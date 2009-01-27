@@ -125,6 +125,7 @@ typedef struct bNode {
 	float custom3, custom4;
 	
 	short need_exec, exec;	/* need_exec is set as UI execution event, exec is flag during exec */
+	void *threaddata;		/* optional extra storage for use in thread (read only then!) */
 	
 	rctf totr;				/* entire boundbox */
 	rctf butr;				/* optional buttons area */

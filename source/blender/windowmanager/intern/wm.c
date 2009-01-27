@@ -128,11 +128,13 @@ void wm_add_default(bContext *C)
 {
 	wmWindowManager *wm= alloc_libblock(&CTX_data_main(C)->wm, ID_WM, "WinMan");
 	wmWindow *win;
+	bScreen *screen= CTX_wm_screen(C); /* XXX from file read hrmf */
 	
 	CTX_wm_manager_set(C, wm);
-	
 	win= wm_window_new(C);
-	win->screen= CTX_wm_screen(C); /* XXX from window? */
+	win->screen= screen;
+	if(screen)
+		BLI_strncpy(win->screenname, screen->id.name+2, 21);
 	wm->winactive= win;
 	wm_window_make_drawable(C, win); 
 }

@@ -1306,11 +1306,11 @@ void image_header_buttons(const bContext *C, ARegion *ar)
 		/* record & play */
 		uiBlockBeginAlign(block);
 		if(ima->type==IMA_TYPE_COMPOSITE) {
-			uiDefIconButO(block, BUT, "IMAGE_OT_record_composite", WM_OP_INVOKE_REGION_WIN, ICON_REC, xco, yco, XIC, YIC, NULL); // Record Composite
+//XXX			uiDefIconButO(block, BUT, "IMAGE_OT_record_composite", WM_OP_INVOKE_REGION_WIN, ICON_REC, xco, yco, XIC, YIC, NULL); // Record Composite
 			xco+= XIC;
 		}
 		if((ima->type==IMA_TYPE_COMPOSITE) || ELEM(ima->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE)) {
-			uiDefIconButO(block, BUT, "IMAGE_OT_play_composite", WM_OP_INVOKE_REGION_WIN, ICON_PLAY, xco, yco, XIC, YIC, NULL); // PLAY
+//XXX			uiDefIconButO(block, BUT, "IMAGE_OT_play_composite", WM_OP_INVOKE_REGION_WIN, ICON_PLAY, xco, yco, XIC, YIC, NULL); // PLAY
 			xco+= XIC;
 		}
 		uiBlockEndAlign(block);

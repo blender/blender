@@ -82,6 +82,7 @@
 #include "wm_files.h"
 #include "wm_window.h"
 
+#include "ED_node.h"
 #include "ED_previewrender.h"
 #include "ED_space_api.h"
 #include "ED_screen.h"
@@ -114,10 +115,11 @@ void WM_init(bContext *C)
 	set_free_windowmanager_cb(wm_close_and_free);	/* library.c */
 	set_blender_test_break_cb(wm_window_testbreak); /* blender.c */
 	
-	ED_spacetypes_init();	/* editors/area/spacetype.c */
+	ED_spacetypes_init();	/* editors/space_api/spacetype.c */
 	
-	ED_file_init(); /* for fsmenu */
-
+	ED_file_init();			/* for fsmenu */
+	ED_init_node_butfuncs();	
+	
 	/* get the default database, plus a wm */
 	WM_read_homefile(C, 0);
 	
@@ -175,6 +177,9 @@ void WM_exit(bContext *C)
 	/* modal handlers are on window level freed, others too? */
 	/* note; same code copied in wm_files.c */
 	if(C && CTX_wm_manager(C)) {
+		
+		WM_jobs_stop_all(CTX_wm_manager(C));
+		
 		for(win= CTX_wm_manager(C)->windows.first; win; win= win->next) {
 			
 			CTX_wm_window_set(C, win);	/* needed by operator close callbacks */

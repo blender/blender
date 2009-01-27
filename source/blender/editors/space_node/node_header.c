@@ -773,8 +773,11 @@ void node_header_buttons(const bContext *C, ARegion *ar)
 		}
 	}
 	else if(snode->treetype==NTREE_COMPOSIT) {
-		uiDefButS(block, TOG, B_NODE_USESCENE, "Use Nodes", xco+5,yco,90,19, &scene->use_nodes, 0.0f, 0.0f, 0, 0, "Indicate this Scene will use Nodes and execute them while editing");
-		xco+= 90;
+		int icon;
+		
+		if(WM_jobs_test(CTX_wm_manager(C), sa)) icon= ICON_REC; else icon= ICON_BLANK1;
+		uiDefIconTextButS(block, TOG, B_NODE_USESCENE, icon, "Use Nodes", xco+5,yco,100,19, &scene->use_nodes, 0.0f, 0.0f, 0, 0, "Indicate this Scene will use Nodes and execute them while editing");
+		xco+= 100;
 		uiDefButBitI(block, TOG, R_COMP_FREE, B_NOP, "Free Unused", xco+5,yco,100,19, &scene->r.scemode, 0.0f, 0.0f, 0, 0, "Free Nodes that are not used while composite");
 		xco+= 100;
 		uiDefButBitS(block, TOG, SNODE_BACKDRAW, REDRAWNODE, "Backdrop", xco+5,yco,90,19, &snode->flag, 0.0f, 0.0f, 0, 0, "Use active Viewer Node output as backdrop");
