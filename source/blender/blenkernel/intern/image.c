@@ -91,6 +91,7 @@
 /* quick lookup: supports 1 million frames, thousand passes */
 #define IMA_MAKE_INDEX(frame, index)	((frame)<<10)+index
 #define IMA_INDEX_FRAME(index)			(index>>10)
+#define IMA_INDEX_PASS(index)			(index & ~1023)
 
 /* ******** IMAGE PROCESSING ************* */
 
@@ -331,6 +332,33 @@ static void image_assign_ibuf(Image *ima, ImBuf *ibuf, int index, int frame)
 			image_remove_ibuf(ima, link);
 	}
 }
+
+/* empty image block, of similar type and filename */
+Image *BKE_image_copy(Image *ima)
+{
+	Image *new= image_alloc(ima->id.name+2, ima->source, ima->type);
+
+	BLI_strncpy(new->name, ima->name, sizeof(ima->name));
+	
+	new->gen_x= ima->gen_x;
+	new->gen_y= ima->gen_y;
+	new->gen_type= ima->gen_type;
+	
+	return new;
+}
+
+void BKE_image_merge(Image *dest, Image *source)
+{
+	ImBuf *ibuf;
+	
+	while((ibuf= source->ibufs.first)) {
+		BLI_remlink(&source->ibufs, ibuf);
+		image_assign_ibuf(dest, ibuf, IMA_INDEX_PASS(ibuf->index), IMA_INDEX_FRAME(ibuf->index));
+	}
+	
+	free_libblock(&G.main->image, source);
+}
+
 
 /* checks if image was already loaded, then returns same image */
 /* otherwise creates new. */

@@ -2487,6 +2487,12 @@ bNodeTree *ntreeLocalize(bNodeTree *ntree)
 		/* ensure new user input gets handled ok */
 		node->need_exec= 0;
 		
+		if(ELEM(node->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER)) {
+			if(node->id && (node->flag & NODE_DO_OUTPUT)) {
+				node->new_node->id= (ID *)BKE_image_copy((Image *)node->id);
+			}
+		}
+		
 		for(sock= node->outputs.first; sock; sock= sock->next) {
 			
 			sock->new_sock->ns.data= sock->ns.data;
@@ -2553,6 +2559,12 @@ void ntreeLocalMerge(bNodeTree *localtree, bNodeTree *ntree)
 				node_free_preview(lnode->new_node);
 				lnode->new_node->preview= lnode->preview;
 				lnode->preview= NULL;
+			}
+			
+			if(ELEM(lnode->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER)) {
+				if(lnode->id && (lnode->flag & NODE_DO_OUTPUT)) {
+					BKE_image_merge((Image *)lnode->new_node->id, (Image *)lnode->id);
+				}
 			}
 			
 			for(lsock= lnode->outputs.first; lsock; lsock= lsock->next) {

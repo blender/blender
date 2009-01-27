@@ -148,6 +148,12 @@ void BKE_image_memorypack(struct Image *ima);
 /* prints memory statistics for images */
 void BKE_image_print_memlist(void);
 
+/* empty image block, of similar type and filename */
+struct Image *BKE_image_copy(struct Image *ima);
+
+/* merge source into dest, and free source */
+void BKE_image_merge(struct Image *dest, struct Image *source);
+
 #ifdef __cplusplus
 }
 #endif
