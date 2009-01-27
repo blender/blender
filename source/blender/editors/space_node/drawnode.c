@@ -1069,8 +1069,8 @@ static void node_browse_scene_cb(bContext *C, void *ntree_v, void *node_v)
 
 static int node_composit_buts_renderlayers(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
 {
-	if(block) {
-		Scene *scene= NULL; // XXX CTX_data_scene(C) can't work here. node->id has to be set default (ton) 
+	if(block && node->id) {
+		Scene *scene= (Scene *)node->id;
 		uiBut *bt;
 		char *strp;
 		
