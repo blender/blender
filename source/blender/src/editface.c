@@ -631,15 +631,15 @@ void default_uv(float uv[][2], float size)
 	dy= 1.0-size;
 	
 	uv[0][0]= 0;
-	uv[0][1]= size+dy;
+	uv[0][1]= dy;
 	
-	uv[1][0]= 0;
+	uv[1][0]= size;
 	uv[1][1]= dy;
 	
 	uv[2][0]= size;
-	uv[2][1]= dy;
-	
-	uv[3][0]= size;
+	uv[2][1]= size+dy;
+
+	uv[3][0]= 0;
 	uv[3][1]= size+dy;
 }
 
