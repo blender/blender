@@ -263,6 +263,8 @@ static char *constraint_adrcodes_to_paths (int adrcode, int *array_index)
 		case CO_HEADTAIL:	// XXX this needs to be wrapped in RNA.. probably then this path will be invalid
 			return "data.head_tail";
 	}
+	
+	return NULL;
 }
 
 /* ShapeKey types 
@@ -497,6 +499,71 @@ static char *camera_adrcodes_to_paths (int adrcode, int *array_index)
 	return NULL;
 }
 
+/* Lamp Types */
+static char *lamp_adrcodes_to_paths (int adrcode, int *array_index)
+{
+	/* set array index like this in-case nothing sets it correctly  */
+	*array_index= 0;
+	
+	/* result depends on adrcode */
+	switch (adrcode) {
+		case LA_ENERGY:
+			return "energy";
+			
+		case LA_COL_R:
+			*array_index= 0;  return "color";
+		case LA_COL_G:
+			*array_index= 1;  return "color";
+		case LA_COL_B:
+			*array_index= 2;  return "color";
+			
+		case LA_DIST:
+			return "distance";
+		
+		case LA_SPOTSI:
+			return "spot_size";
+		case LA_SPOTBL:
+			return "spot_blend";
+			
+		case LA_QUAD1:
+			return "linear_attenuation";
+		case LA_QUAD2:
+			return "quadratic_attenuation";
+			
+		case LA_HALOINT:
+			return "halo_intensity";
+	}
+	
+#if 0 // XXX to be converted
+		if (poin == NULL) {
+			if (icu->adrcode & MA_MAP1) mtex= la->mtex[0];
+			else if (icu->adrcode & MA_MAP2) mtex= la->mtex[1];
+			else if (icu->adrcode & MA_MAP3) mtex= la->mtex[2];
+			else if (icu->adrcode & MA_MAP4) mtex= la->mtex[3];
+			else if (icu->adrcode & MA_MAP5) mtex= la->mtex[4];
+			else if (icu->adrcode & MA_MAP6) mtex= la->mtex[5];
+			else if (icu->adrcode & MA_MAP7) mtex= la->mtex[6];
+			else if (icu->adrcode & MA_MAP8) mtex= la->mtex[7];
+			else if (icu->adrcode & MA_MAP9) mtex= la->mtex[8];
+			else if (icu->adrcode & MA_MAP10) mtex= la->mtex[9];
+			else if (icu->adrcode & MA_MAP11) mtex= la->mtex[10];
+			else if (icu->adrcode & MA_MAP12) mtex= la->mtex[11];
+			else if (icu->adrcode & MA_MAP13) mtex= la->mtex[12];
+			else if (icu->adrcode & MA_MAP14) mtex= la->mtex[13];
+			else if (icu->adrcode & MA_MAP15) mtex= la->mtex[14];
+			else if (icu->adrcode & MA_MAP16) mtex= la->mtex[15];
+			else if (icu->adrcode & MA_MAP17) mtex= la->mtex[16];
+			else if (icu->adrcode & MA_MAP18) mtex= la->mtex[17];
+			
+			if (mtex)
+				poin= give_mtex_poin(mtex, (icu->adrcode & (MA_MAP1-1)));
+		}
+#endif // XXX to be converted
+	
+	/* unrecognised adrcode, or not-yet-handled ones! */
+	return NULL;
+}
+
 /* ------- */
 
 /* Allocate memory for RNA-path for some property given a blocktype, adrcode, and 'root' parts of path
@@ -528,6 +595,10 @@ char *get_rna_access (int blocktype, int adrcode, char actname[], char constname
 			propname= shapekey_adrcodes_to_paths(adrcode, &dummy_index);
 			break;
 			
+		case ID_CO: /* constraint */
+			propname= constraint_adrcodes_to_paths(adrcode, &dummy_index);
+			break;
+			
 		case ID_TE: /* texture */
 			propname= texture_adrcodes_to_paths(adrcode, &dummy_index);
 			break;
@@ -538,6 +609,10 @@ char *get_rna_access (int blocktype, int adrcode, char actname[], char constname
 			
 		case ID_CA: /* camera */
 			propname= camera_adrcodes_to_paths(adrcode, &dummy_index);
+			break;
+			
+		case ID_LA: /* lamp */
+			propname= lamp_adrcodes_to_paths(adrcode, &dummy_index);
 			break;
 			
 		/* XXX problematic blocktypes */
@@ -1144,6 +1219,24 @@ void do_versions_ipos_to_animato(Main *main)
 		}
 	}
 	
+	/* lamps */
+	for (id= main->lamp.first; id; id= id->next) {
+		Lamp *la= (Lamp *)id;
+		
+		printf("\tconverting lamp %s \n", id->name+2);
+		
+		/* we're only interest in the IPO */
+		if (la->ipo) {
+			/* Add AnimData block */
+			adt= BKE_id_add_animdata(id);
+			
+			/* Convert Lamp data... */
+			ipo_to_animdata(id, la->ipo, NULL, NULL);
+			la->ipo->id.us--;
+			la->ipo= NULL;
+		}
+	}
+	
 	// XXX add other types too...
 	
 	printf("INFO: animato convert done \n"); // xxx debug
@@ -1290,58 +1383,6 @@ void *get_ipo_poin (ID *id, IpoCurve *icu, int *type)
 				else if (icu->adrcode & MA_MAP16) mtex= wo->mtex[15];
 				else if (icu->adrcode & MA_MAP17) mtex= wo->mtex[16];
 				else if (icu->adrcode & MA_MAP18) mtex= wo->mtex[17];
-				
-				if (mtex)
-					poin= give_mtex_poin(mtex, (icu->adrcode & (MA_MAP1-1)));
-			}
-		}
-			break;
-		case ID_LA: /* lamp channels -----------------------------  */
-		{
-			Lamp *la= (Lamp *)id;
-			
-			switch (icu->adrcode) {
-			case LA_ENERGY:
-				poin= &(la->energy); break;		
-			case LA_COL_R:
-				poin= &(la->r); break;
-			case LA_COL_G:
-				poin= &(la->g); break;
-			case LA_COL_B:
-				poin= &(la->b); break;
-			case LA_DIST:
-				poin= &(la->dist); break;		
-			case LA_SPOTSI:
-				poin= &(la->spotsize); break;
-			case LA_SPOTBL:
-				poin= &(la->spotblend); break;
-			case LA_QUAD1:
-				poin= &(la->att1); break;
-			case LA_QUAD2:
-				poin= &(la->att2); break;
-			case LA_HALOINT:
-				poin= &(la->haint); break;
-			}
-			
-			if (poin == NULL) {
-				if (icu->adrcode & MA_MAP1) mtex= la->mtex[0];
-				else if (icu->adrcode & MA_MAP2) mtex= la->mtex[1];
-				else if (icu->adrcode & MA_MAP3) mtex= la->mtex[2];
-				else if (icu->adrcode & MA_MAP4) mtex= la->mtex[3];
-				else if (icu->adrcode & MA_MAP5) mtex= la->mtex[4];
-				else if (icu->adrcode & MA_MAP6) mtex= la->mtex[5];
-				else if (icu->adrcode & MA_MAP7) mtex= la->mtex[6];
-				else if (icu->adrcode & MA_MAP8) mtex= la->mtex[7];
-				else if (icu->adrcode & MA_MAP9) mtex= la->mtex[8];
-				else if (icu->adrcode & MA_MAP10) mtex= la->mtex[9];
-				else if (icu->adrcode & MA_MAP11) mtex= la->mtex[10];
-				else if (icu->adrcode & MA_MAP12) mtex= la->mtex[11];
-				else if (icu->adrcode & MA_MAP13) mtex= la->mtex[12];
-				else if (icu->adrcode & MA_MAP14) mtex= la->mtex[13];
-				else if (icu->adrcode & MA_MAP15) mtex= la->mtex[14];
-				else if (icu->adrcode & MA_MAP16) mtex= la->mtex[15];
-				else if (icu->adrcode & MA_MAP17) mtex= la->mtex[16];
-				else if (icu->adrcode & MA_MAP18) mtex= la->mtex[17];
 				
 				if (mtex)
 					poin= give_mtex_poin(mtex, (icu->adrcode & (MA_MAP1-1)));

@@ -219,7 +219,7 @@ static void borderselect_graphkeys (bAnimContext *ac, rcti rect, short mode, sho
 	
 	/* init editing data */
 	memset(&bed, 0, sizeof(BeztEditData));
-	bed.data= &rect;
+	bed.data= &rectf;
 	
 	/* loop over data, doing border select */
 	for (ale= anim_data.first; ale; ale= ale->next) {
