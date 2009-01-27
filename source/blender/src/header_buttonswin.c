@@ -77,6 +77,8 @@
 #include "MEM_guardedalloc.h"
 #include "BLI_blenlib.h"
 
+#include "GPU_material.h"
+
 #include "blendef.h"
 #include "mydevice.h"
 #include "butspace.h"
@@ -168,6 +170,7 @@ void do_buts_buttons(short event)
 			}
 			matcopybuf.nodetree= ntreeCopyTree(ma->nodetree, 0);
 			matcopybuf.preview= NULL;
+			matcopybuf.gpumaterial.first= matcopybuf.gpumaterial.last= NULL;
 			matcopied= 1;
 		}
 		break;
@@ -188,6 +191,8 @@ void do_buts_buttons(short event)
 				ntreeFreeTree(ma->nodetree);
 				MEM_freeN(ma->nodetree);
 			}
+
+			GPU_materials_free(ma);
 			
 			id= (ma->id);
 			memcpy(ma, &matcopybuf, sizeof(Material));
