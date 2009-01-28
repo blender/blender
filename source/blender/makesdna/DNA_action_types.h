@@ -261,7 +261,7 @@ typedef struct bAction {
 /* Flags for the action */
 typedef enum eAction_Flags {
 		/* flags for displaying in UI */
-	ACT_EXPANDED 	= (1<<0),
+	ACT_COLLAPSED	= (1<<0),
 	ACT_SELECTED	= (1<<1),
 	
 		/* flags for evaluation/editing */

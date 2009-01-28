@@ -229,7 +229,9 @@ static short animsys_write_rna_setting (PointerRNA *ptr, char *path, int array_i
 	}
 	else {
 		/* failed to get path */
-		printf("Animato: Invalid path '%s[%d]' \n", path, array_index);
+		printf("Animato: Invalid path. ID = '%s',  '%s [%d]' \n", 
+			(ptr && ptr->id.data) ? (((ID *)ptr->id.data)->name+2) : "<No ID>", 
+			path, array_index);
 		return 0;
 	}
 }
@@ -291,7 +293,7 @@ static void animsys_evaluate_drivers (PointerRNA *ptr, AnimData *adt, float ctim
 		if ((fcu->flag & (FCURVE_MUTED|FCURVE_DISABLED)) == 0) 
 		{
 			/* check if driver itself is tagged for recalculation */
-			if ((driver) && (driver->flag & DRIVER_FLAG_RECALC)) {
+			if ((driver) /*&& (driver->flag & DRIVER_FLAG_RECALC)*/) {	// XXX driver recalc flag is not set yet by depsgraph!
 				/* evaluate this using values set already in other places */
 				// NOTE: for 'layering' option later on, we should check if we should remove old value before adding new to only be done when drivers only changed
 				calculate_fcurve(fcu, ctime);

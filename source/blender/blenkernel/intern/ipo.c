@@ -277,7 +277,10 @@ static char *shapekey_adrcodes_to_paths (int adrcode, int *array_index)
 	
 	/* block will be attached to ID_KE block, and setting that we alter is the 'value' (which sets keyblock.curval) */
 	// XXX adrcode 0 was dummy 'speed' curve 
-	sprintf(buf, "keys[%d].value", adrcode-1); // XXX this doesn't seem too safe...
+	if (adrcode == 0) 
+		sprintf(buf, "speed");
+	else
+		sprintf(buf, "keys[%d].value", adrcode);
 	return buf;
 }
 
@@ -710,6 +713,7 @@ static ChannelDriver *idriver_to_cdriver (IpoDriver *idriver)
 		if (idriver->blocktype == ID_AR) {
 			/* ID_PO */
 			if (idriver->adrcode == OB_ROT_DIFF) {
+				printf("idriver_to_cdriver - rotdiff %p \n", idriver->ob);
 				/* Rotational Difference is a special type of driver now... */
 				cdriver->type= DRIVER_TYPE_ROTDIFF;
 				
@@ -727,6 +731,7 @@ static ChannelDriver *idriver_to_cdriver (IpoDriver *idriver)
 				cdriver->rna_path2= get_rna_access(-1, -1, idriver->name+DRIVER_NAME_OFFS, NULL, NULL);
 			}
 			else {
+				printf("idriver_to_cdriver - arm  %p \n", idriver->ob);
 				/* 'standard' driver */
 				cdriver->type= DRIVER_TYPE_CHANNEL;
 				cdriver->id= (ID *)idriver->ob;
@@ -767,11 +772,14 @@ static ChannelDriver *idriver_to_cdriver (IpoDriver *idriver)
 		}
 		else {
 			/* ID_OB */
+			printf("idriver_to_cdriver  - ob %p \n", idriver->ob);
 			cdriver->type= DRIVER_TYPE_CHANNEL;
 			cdriver->id= (ID *)idriver->ob;
-			cdriver->rna_path= get_rna_access(ID_OB, idriver->adrcode, idriver->name, NULL, &cdriver->array_index);
+			cdriver->rna_path= get_rna_access(ID_OB, idriver->adrcode, NULL, NULL, &cdriver->array_index);
 		}
 	}
+	
+	printf("\tcdriver -> id = %p \n", cdriver->id);
 	
 	/* free old driver */
 	MEM_freeN(idriver);
@@ -945,11 +953,14 @@ static void ipo_to_animdata (ID *id, Ipo *ipo, char *actname, char *constname)
 				adt->action= add_empty_action("ConvertedAction"); // XXX we need a better name for this...
 				printf("added new action \n");
 			}
+			printf("\ticu to action fcurve (%p %d) -> (%p %s %d)  \n", icu, icu->adrcode, fcu, fcu->rna_path, fcu->array_index);	
 				
 			/* add F-Curve to action */
 			BLI_addtail(&adt->action->curves, fcu);
 		}
 		else {
+			printf("\ticu to driver fcurve (%p %d) -> (%p %s %d) \n", icu, icu->adrcode, fcu, fcu->rna_path, fcu->array_index);	
+			
 			/* add F-Curve to AnimData's drivers */
 			BLI_addtail(&adt->drivers, fcu);
 		}

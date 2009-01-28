@@ -1025,7 +1025,7 @@ static void mouse_anim_channels (bAnimContext *ac, float x, int channel_index, s
 		case ANIMTYPE_FILLACTD:
 		{
 			bAction *act= (bAction *)ale->data;
-			act->flag ^= ACT_EXPANDED;
+			act->flag ^= ACT_COLLAPSED;
 		}
 			break;
 		case ANIMTYPE_FILLMATD:

@@ -447,22 +447,32 @@ static float driver_get_driver_value (ChannelDriver *driver, short target)
 {
 	PointerRNA id_ptr, ptr;
 	PropertyRNA *prop;
+	ID *id;
 	char *path;
 	int index;
 	float value= 0.0f;
 	
 	/* get RNA-pointer for the ID-block given in driver */
-	if (target == 2) {
+	if (target == 1) {
 		/* second target */
 		RNA_id_pointer_create(driver->id2, &id_ptr);
+		id= driver->id2;
 		path= driver->rna_path2;
 		index= driver->array_index2;
 	}
 	else {
 		/* first/main target */
 		RNA_id_pointer_create(driver->id, &id_ptr);
+		id= driver->id;
 		path= driver->rna_path;
 		index= driver->array_index;
+	}
+	
+	/* error check for missing pointer... */
+	if (id == NULL) {
+		printf("Error: driver doesn't have any valid target to use \n");
+		driver->flag |= DRIVER_FLAG_INVALID;
+		return 0.0f;
 	}
 	
 	/* get property to read from, and get value as appropriate */
@@ -511,9 +521,10 @@ static float evaluate_driver (ChannelDriver *driver, float evaltime)
 		case DRIVER_TYPE_CHANNEL: /* channel/setting drivers channel/setting */
 			return driver_get_driver_value(driver, 0);
 			
-#ifndef DISABLE_PYTHON
+
 		case DRIVER_TYPE_PYTHON: /* expression */
 		{
+#ifndef DISABLE_PYTHON
 			/* check for empty or invalid expression */
 			if ( (driver->expression[0] == '\0') ||
 				 (driver->flag & DRIVER_FLAG_INVALID) )
@@ -526,8 +537,10 @@ static float evaluate_driver (ChannelDriver *driver, float evaltime)
 			 */
 			//return BPY_pydriver_eval(driver); // XXX old func
 			return 1.0f;
-		}
 #endif /* DISABLE_PYTHON*/
+		}
+			break;
+
 		
 		case DRIVER_TYPE_ROTDIFF: /* difference of rotations of 2 bones (should be in same armature) */
 		{

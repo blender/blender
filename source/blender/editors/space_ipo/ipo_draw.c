@@ -653,8 +653,8 @@ void graph_draw_channel_names(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 	int filter;
 	
 	View2D *v2d= &ar->v2d;
-	float x= 0.0f, y= 0.0f;
-	int items, height;
+	float x= 0.0f, y= 0.0f, height;
+	int items;
 	
 	/* build list of channels to draw */
 	filter= (ANIMFILTER_VISIBLE|ANIMFILTER_CHANNELS);

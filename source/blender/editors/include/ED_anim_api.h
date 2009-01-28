@@ -170,7 +170,7 @@ typedef enum eAnimFilter_Flags {
 #define FILTER_CUR_OBJD(cu) ((cu->flag & CU_DS_EXPAND))
 	/* 'Sub-object/Action' channels (flags stored in Action) */
 #define SEL_ACTC(actc) ((actc->flag & ACT_SELECTED))
-#define EXPANDED_ACTC(actc) ((actc->flag & ACT_EXPANDED))
+#define EXPANDED_ACTC(actc) ((actc->flag & ACT_COLLAPSED)==0)
 
 /* Actions (also used for Dopesheet) */
 	/* Action Channel Group */

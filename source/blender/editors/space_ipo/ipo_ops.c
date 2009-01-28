@@ -108,6 +108,7 @@ static void graphedit_keymap_keyframes (wmWindowManager *wm, ListBase *keymap)
 	RNA_boolean_set(WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_borderselect", BKEY, KM_PRESS, KM_ALT, 0)->ptr, "axis_range", 1);
 	
 		/* column select */
+		// XXX KKEY would be nice to keep for 'keyframe' lines
 	RNA_enum_set(WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_columnselect", KKEY, KM_PRESS, 0, 0)->ptr, "mode", GRAPHKEYS_COLUMNSEL_KEYS);
 	RNA_enum_set(WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_columnselect", KKEY, KM_PRESS, KM_CTRL, 0)->ptr, "mode", GRAPHKEYS_COLUMNSEL_CFRA);
 	RNA_enum_set(WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_columnselect", KKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "mode", GRAPHKEYS_COLUMNSEL_MARKERS_COLUMN);
@@ -144,7 +145,7 @@ static void graphedit_keymap_keyframes (wmWindowManager *wm, ListBase *keymap)
 #endif // XXX code to be sanitied for new system	
 		
 	/* transform system */
-	transform_keymap_for_space(wm, keymap, /*SPACE_IPO*/SPACE_ACTION); // xxx
+	transform_keymap_for_space(wm, keymap, SPACE_IPO);
 }
 
 /* --------------- */
