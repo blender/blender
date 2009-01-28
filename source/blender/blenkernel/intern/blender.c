@@ -251,7 +251,7 @@ static void clean_paths(Main *main)
 	}
 	
 	while(scene) {
-		ed= scene->ed;
+		ed= seq_give_editing(scene, 0);
 		if(ed) {
 			seq= ed->seqbasep->first;
 			while(seq) {

@@ -988,12 +988,12 @@ void drawseqspace(const bContext *C, ARegion *ar)
 	Scene *scene= CTX_data_scene(C);
 	View2D *v2d= &ar->v2d;
 	View2DScrollers *scrollers;
-	Editing *ed;
+	Editing *ed= seq_give_editing(scene, FALSE);
 	Sequence *seq;
 	float col[3];
 	int i;
 
-	ed= scene->ed;
+	
 
 	if(sseq->mainb != SEQ_DRAW_SEQUENCE) {
 		draw_image_seq(scene, ar, sseq);

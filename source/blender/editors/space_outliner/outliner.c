@@ -1320,11 +1320,10 @@ static void outliner_build_tree(Main *mainvar, Scene *scene, SpaceOops *soops)
 	}
 	else if(soops->outlinevis==SO_SEQUENCE) {
 		Sequence *seq;
-		Editing *ed;
+		Editing *ed= seq_give_editing(scene, FALSE);
 		int op;
 
-		ed= scene->ed;
-		if(!ed)
+		if(ed==NULL)
 			return;
 
 		seq= ed->seqbasep->first;
@@ -2129,7 +2128,7 @@ static int tree_element_active_sequence(TreeElement *te, TreeStoreElem *tselem, 
 static int tree_element_active_sequence_dup(Scene *scene, TreeElement *te, TreeStoreElem *tselem, int set)
 {
 	Sequence *seq, *p;
-	Editing *ed;
+	Editing *ed= seq_give_editing(scene, FALSE);
 
 	seq= (Sequence*)te->directdata;
 	if(set==0) {
@@ -2139,7 +2138,6 @@ static int tree_element_active_sequence_dup(Scene *scene, TreeElement *te, TreeS
 	}
 
 // XXX	select_single_seq(seq, 1);
-	ed= scene->ed;
 	p= ed->seqbasep->first;
 	while(p) {
 		if((!p->strip) || (!p->strip->stripdata) || (!p->strip->stripdata->name)) {

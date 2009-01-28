@@ -79,10 +79,8 @@
 /* own include */
 #include "sequencer_intern.h"
 static void BIF_undo_push() {}
-static void std_rmouse_transform() {}
 static void *find_nearest_marker() {return NULL;}
 static void deselect_markers() {}
-static void transform_seq_nomarker() {}
 	
 	
 
@@ -90,9 +88,8 @@ static void transform_seq_nomarker() {}
 void select_channel_direction(Scene *scene, Sequence *test,int lr) {
 /* selects all strips in a channel to one direction of the passed strip */
 	Sequence *seq;
-	Editing *ed;
+	Editing *ed= seq_give_editing(scene, FALSE);
 
-	ed= scene->ed;
 	if(ed==NULL) return;
 
 	seq= ed->seqbasep->first;
@@ -159,7 +156,7 @@ void select_surround_from_last(Scene *scene)
 
 void select_single_seq(Scene *scene, Sequence *seq, int deselect_all) /* BRING BACK */
 {
-	Editing *ed= scene->ed;
+	Editing *ed= seq_give_editing(scene, FALSE);
 	
 	if(deselect_all)
 		deselect_all_seq(scene);
@@ -214,21 +211,17 @@ void select_neighbor_from_last(Scene *scene, int lr)
 }
 
 
-
-
-
-
-
-
-	
 /* (de)select operator */
 static int sequencer_deselect_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
-	Editing *ed= scene->ed;
+	Editing *ed= seq_give_editing(scene, FALSE);
 	Sequence *seq;
 	int desel = 0;
-	
+
+	if(ed==NULL)
+		return OPERATOR_CANCELLED;
+
 	for(seq= ed->seqbasep->first; seq; seq=seq->next) {
 		if(seq->flag & SEQ_ALLSEL) {
 			desel= 1;
@@ -269,9 +262,11 @@ void SEQUENCER_OT_deselect_all(struct wmOperatorType *ot)
 static int sequencer_select_invert_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
-	Editing *ed= scene->ed;
+	Editing *ed= seq_give_editing(scene, FALSE);
 	Sequence *seq;
-	
+
+	if(ed==NULL)
+		return OPERATOR_CANCELLED;
 
 	for(seq= ed->seqbasep->first; seq; seq=seq->next) {
 		if (seq->flag & SELECT) {
@@ -314,14 +309,17 @@ static int sequencer_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	ARegion *ar= CTX_wm_region(C);
 	View2D *v2d= UI_view2d_fromcontext(C);
 	Scene *scene= CTX_data_scene(C);
-	Editing *ed= scene->ed;
+	Editing *ed= seq_give_editing(scene, FALSE);
 	short extend= RNA_enum_is_equal(op->ptr, "type", "EXTEND");
 	short mval[2];	
 	
 	Sequence *seq,*neighbor;
 	int hand,seldir, shift= 0; // XXX
 	TimeMarker *marker;
-	
+
+	if(ed==NULL)
+		return OPERATOR_CANCELLED;
+
 	marker=find_nearest_marker(SCE_MARKERS, 1); //XXX - dummy function for now
 	
 	mval[0]= event->x - ar->winrct.xmin;
@@ -432,10 +430,7 @@ static int sequencer_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			recurs_sel_seq(seq);
 		}
 
-
 		ED_undo_push(C,"Select Strips, Sequencer");
-
-		std_rmouse_transform(transform_seq_nomarker);
 	}
 	
 	/* marker transform */
@@ -458,7 +453,7 @@ static int sequencer_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	
 	ED_area_tag_redraw(CTX_wm_area(C));
 	/* allowing tweaks */
-	return OPERATOR_PASS_THROUGH;
+	return OPERATOR_FINISHED|OPERATOR_PASS_THROUGH;
 }
 
 void SEQUENCER_OT_select(wmOperatorType *ot)
@@ -480,12 +475,11 @@ void SEQUENCER_OT_select(wmOperatorType *ot)
 
 /* run recursivly to select linked */
 static int select_more_less_seq__internal(Scene *scene, int sel, int linked) {
-	Editing *ed;
+	Editing *ed= seq_give_editing(scene, FALSE);
 	Sequence *seq, *neighbor;
 	int change=0;
 	int isel;
 	
-	ed= scene->ed;
 	if(ed==NULL) return 0;
 	
 	if (sel) {
@@ -673,15 +667,18 @@ void SEQUENCER_OT_select_linked(wmOperatorType *ot)
 static int sequencer_borderselect_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
+	Editing *ed= seq_give_editing(scene, FALSE);
 	View2D *v2d= UI_view2d_fromcontext(C);
 	
 	Sequence *seq;
-	Editing *ed=scene->ed;
 	rcti rect;
 	rctf rectf, rq;
 	int val;
 	short mval[2];
-	
+
+	if(ed==NULL)
+		return OPERATOR_CANCELLED;
+
 	val= RNA_int_get(op->ptr, "event_type");
 	rect.xmin= RNA_int_get(op->ptr, "xmin");
 	rect.ymin= RNA_int_get(op->ptr, "ymin");
@@ -733,10 +730,3 @@ void SEQUENCER_OT_borderselect(wmOperatorType *ot)
 
 	RNA_def_enum(ot->srna, "type", prop_select_types, 0, "Type", "");
 }
-
-
-
-
-
-
-

@@ -2299,7 +2299,7 @@ void flushTransNodes(TransInfo *t)
 /* *** SEQUENCE EDITOR *** */
 void flushTransSeq(TransInfo *t)
 {
-	ListBase *seqbasep= ((Editing *)t->scene->ed)->seqbasep;
+	ListBase *seqbasep= seq_give_editing(t->scene, FALSE)->seqbasep; /* Editing null check alredy done */
 	int a, new_frame;
 	TransData *td= t->data;
 	TransData2D *td2d= t->data2d;
@@ -3864,17 +3864,17 @@ static void createTransSeqData(bContext *C, TransInfo *t)
 	
 	View2D *v2d= UI_view2d_fromcontext(C);
 	Scene *scene= CTX_data_scene(C);
-	Editing *ed= scene->ed;
+	Editing *ed= seq_give_editing(t->scene, FALSE);
 	TransData *td = NULL;
 	TransData2D *td2d= NULL;
 	TransDataSeq *tdsq= NULL;
 
-	
-
 	int count=0;
 
-
-
+	if (ed==NULL) {
+		t->total= 0;
+		return;
+	}
 
 	/* which side of the current frame should be allowed */
 	if (t->mode == TFM_TIME_EXTEND) {
@@ -4400,9 +4400,9 @@ void special_aftertrans_update(TransInfo *t)
 	}
 
 	if (t->spacetype == SPACE_SEQ) {
-
-		if (!cancelled) {
-			ListBase *seqbasep= ((Editing *)t->scene->ed)->seqbasep;
+		Editing *ed= seq_give_editing(t->scene, FALSE);
+		if (ed && !cancelled) {
+			ListBase *seqbasep= ed->seqbasep;
 			int a;
 			TransData *td= t->data;
 			TransData2D *td2d= t->data2d;

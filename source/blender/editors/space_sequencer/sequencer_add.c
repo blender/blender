@@ -143,7 +143,7 @@ static void sequencer_generic_invoke_xy__internal(bContext *C, wmOperator *op, w
 static int sequencer_add_scene_strip_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
-	Editing *ed= scene->ed;
+	Editing *ed= seq_give_editing(scene, TRUE);
 	
 	Scene *sce_seq;
 	char sce_name[MAX_ID_NAME-2];
@@ -230,7 +230,7 @@ void SEQUENCER_OT_add_scene_strip(struct wmOperatorType *ot)
 static int sequencer_add_movie_strip_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
-	Editing *ed= scene->ed;
+	Editing *ed= seq_give_editing(scene, TRUE);
 	
 	struct anim *an;
 	char filename[FILE_MAX];
@@ -317,7 +317,7 @@ void SEQUENCER_OT_add_movie_strip(struct wmOperatorType *ot)
 static int sequencer_add_sound_strip_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
-	Editing *ed= scene->ed;
+	Editing *ed= seq_give_editing(scene, TRUE);
 	
 	bSound *sound;
 
@@ -415,7 +415,7 @@ void SEQUENCER_OT_add_sound_strip(struct wmOperatorType *ot)
 static int sequencer_add_image_strip_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
-	Editing *ed= scene->ed;
+	Editing *ed= seq_give_editing(scene, TRUE);
 
 
 	int tot_images= 1; //XXX FIXME, we need string arrays!
@@ -506,7 +506,7 @@ void SEQUENCER_OT_add_image_strip(struct wmOperatorType *ot)
 static int sequencer_add_effect_strip_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
-	Editing *ed= scene->ed;
+	Editing *ed= seq_give_editing(scene, TRUE);
 
 	Sequence *seq;	/* generic strip vars */
 	Strip *strip;

@@ -283,7 +283,7 @@ static uiBlock *seq_addmenu(bContext *C, uiMenuBlockHandle *handle, void *arg_un
 #else
 	uiDefMenuButO(block, "SEQUENCER_OT_add_sound_strip", NULL);
 #endif
-	but= uiDefMenuButO(block, "SEQUENCER_OT_add_effect_strip", "Color");
+	but= uiDefMenuButO(block, "SEQUENCER_OT_add_effect_strip", "Add Color Strip");
 	RNA_enum_set(uiButGetOperatorPtrRNA(but), "type", SEQ_COLOR);
 
 	uiDefMenuButO(block, "SEQUENCER_OT_add_image_strip", NULL);
@@ -312,7 +312,7 @@ static uiBlock *seq_editmenu(bContext *C, uiMenuBlockHandle *handle, void *arg_u
 {
 	ScrArea *sa= CTX_wm_area(C);
 	Scene *scene= CTX_data_scene(C);
-	Editing *ed= scene->ed;
+	Editing *ed= seq_give_editing(scene, FALSE);
 
 	uiBlock *block= uiBeginBlock(C, handle->region, "seq_editmenu", UI_EMBOSSP, UI_HELV);
 	uiBut *but;
@@ -332,7 +332,7 @@ static uiBlock *seq_editmenu(bContext *C, uiMenuBlockHandle *handle, void *arg_u
 	uiDefMenuButO(block, "SEQUENCER_OT_add_duplicate", NULL);
 	uiDefMenuButO(block, "SEQUENCER_OT_delete", NULL);
 
-	if (ed->act_seq) {
+	if (ed && ed->act_seq) {
 		switch(ed->act_seq->type) {
 		case SEQ_EFFECT:
 			uiDefMenuSep(block);
@@ -359,7 +359,7 @@ static uiBlock *seq_editmenu(bContext *C, uiMenuBlockHandle *handle, void *arg_u
 	uiDefMenuButO(block, "SEQUENCER_OT_meta_make", NULL);
 	uiDefMenuButO(block, "SEQUENCER_OT_meta_separate", NULL);
 
-	if ((ed && ed->metastack.first) || (ed->act_seq && ed->act_seq->type == SEQ_META)) {
+	if (ed && (ed->metastack.first || (ed->act_seq && ed->act_seq->type == SEQ_META))) {
 		uiDefMenuSep(block);
 		uiDefMenuButO(block, "SEQUENCER_OT_meta_toggle", NULL);
 	}
@@ -393,7 +393,7 @@ void sequencer_header_buttons(const bContext *C, ARegion *ar)
 	ScrArea *sa= CTX_wm_area(C);
 	SpaceSeq *sseq= sa->spacedata.first;
 	Scene *scene= CTX_data_scene(C);
-	Editing *ed= scene->ed;
+	Editing *ed= seq_give_editing(scene, FALSE);
 	
 	uiBlock *block= uiBeginBlock(C, ar, "header buttons", UI_EMBOSS, UI_HELV);
 	int xco=3, yco= 3;
@@ -407,23 +407,23 @@ void sequencer_header_buttons(const bContext *C, ARegion *ar)
 		uiBlockSetEmboss(block, UI_EMBOSSP);
 		
 		xmax= GetButStringLength("View");
-		uiDefPulldownBut(block, seq_viewmenu, sa, "View", xco, yco, xmax-3, 24, "");
+		uiDefPulldownBut(block, seq_viewmenu, sa, "View", xco, 0, xmax-3, 24, "");
 		xco+=xmax;
 
 		xmax= GetButStringLength("Select");
-		uiDefPulldownBut(block, seq_selectmenu, sa, "Select", xco, yco, xmax-3, 24, "");
+		uiDefPulldownBut(block, seq_selectmenu, sa, "Select", xco, 0, xmax-3, 24, "");
 		xco+=xmax;
 
 		xmax= GetButStringLength("Marker");
-		uiDefPulldownBut(block, seq_markermenu, sa, "Marker", xco, yco, xmax-3, 24, "");
+		uiDefPulldownBut(block, seq_markermenu, sa, "Marker", xco, 0, xmax-3, 24, "");
 		xco+=xmax;
 
 		xmax= GetButStringLength("Add");
-		uiDefPulldownBut(block, seq_addmenu, sa, "Add", xco, yco, xmax-3, 24, "");
+		uiDefPulldownBut(block, seq_addmenu, sa, "Add", xco, 0, xmax-3, 24, "");
 		xco+=xmax;
 
 		xmax= GetButStringLength("Strip");
-		uiDefPulldownBut(block, seq_editmenu, sa, "Strip", xco, yco, xmax-3, 24, "");
+		uiDefPulldownBut(block, seq_editmenu, sa, "Strip", xco, 0, xmax-3, 24, "");
 		xco+=xmax;
 	}
 
