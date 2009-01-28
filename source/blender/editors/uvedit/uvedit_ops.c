@@ -56,6 +56,8 @@
 
 #include "IMB_imbuf_types.h" // XXX remove?
 
+#include "BIF_transform.h"
+
 #include "ED_mesh.h"
 #include "ED_screen.h"
 
@@ -77,7 +79,7 @@ void uvface_setsel__internal(bContext *C, SpaceImage *sima, Scene *scene, Object
 
 /************************* state testing ************************/
 
-int uvedit_test_silent(Object *obedit)
+int ED_uvedit_test_silent(Object *obedit)
 {
 	if(obedit->type != OB_MESH)
 		return 0;
@@ -85,12 +87,12 @@ int uvedit_test_silent(Object *obedit)
 	return EM_texFaceCheck(((Mesh*)obedit->data)->edit_mesh);
 }
 
-int uvedit_test(Object *obedit)
+int ED_uvedit_test(Object *obedit)
 {
 	// XXX if(!obedit)
 	// XXX	error("Enter Edit Mode to perform this action");
 
-	return uvedit_test_silent(obedit);
+	return ED_uvedit_test_silent(obedit);
 }
 
 /************************* assign image ************************/
@@ -160,7 +162,7 @@ void ED_uvedit_set_tile(Scene *scene, Object *obedit, Image *ima, int curtile, i
 	MTFace *tf;
 	
 	/* verify if we have something to do */
-	if(!ima || !uvedit_test_silent(obedit))
+	if(!ima || !ED_uvedit_test_silent(obedit))
 		return;
 	
 	/* skip assigning these procedural images... */
@@ -436,69 +438,6 @@ int uvedit_center(Scene *scene, Image *ima, Object *obedit, float *cent, int mod
 	return 0;
 }
 
-/************************** constraints ****************************/
-
-void uvedit_constrain_square(Scene *scene, Image *ima, EditMesh *em)
-{
-	EditFace *efa;
-	MTFace *tf;
-
-	/* if 1 vertex selected: doit (with the selected vertex) */
-	for(efa= em->faces.first; efa; efa= efa->next) {
-		if(efa->v4) {
-			tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-
-			if(uvedit_face_visible(scene, ima, efa, tf)) {
-				if(uvedit_uv_selected(scene, efa, tf, 0)) {
-					if(tf->uv[1][0] == tf->uv[2][0] ) {
-						tf->uv[1][1]= tf->uv[0][1];
-						tf->uv[3][0]= tf->uv[0][0];
-					}
-					else {	
-						tf->uv[1][0]= tf->uv[0][0];
-						tf->uv[3][1]= tf->uv[0][1];
-					}
-					
-				}
-
-				if(uvedit_uv_selected(scene, efa, tf, 1)) {
-					if(tf->uv[2][1] == tf->uv[3][1] ) {
-						tf->uv[2][0]= tf->uv[1][0];
-						tf->uv[0][1]= tf->uv[1][1];
-					}
-					else {
-						tf->uv[2][1]= tf->uv[1][1];
-						tf->uv[0][0]= tf->uv[1][0];
-					}
-
-				}
-
-				if(uvedit_uv_selected(scene, efa, tf, 2)) {
-					if(tf->uv[3][0] == tf->uv[0][0] ) {
-						tf->uv[3][1]= tf->uv[2][1];
-						tf->uv[1][0]= tf->uv[2][0];
-					}
-					else {
-						tf->uv[3][0]= tf->uv[2][0];
-						tf->uv[1][1]= tf->uv[2][1];
-					}
-				}
-
-				if(uvedit_uv_selected(scene, efa, tf, 3)) {
-					if(tf->uv[0][1] == tf->uv[1][1] ) {
-						tf->uv[0][0]= tf->uv[3][0];
-						tf->uv[2][1]= tf->uv[3][1];
-					}
-					else  {
-						tf->uv[0][1]= tf->uv[3][1];
-						tf->uv[2][0]= tf->uv[3][0];
-					}
-				}
-			}
-		}
-	}
-}
-
 /************************** find nearest ****************************/
 
 typedef struct NearestHit {
@@ -650,6 +589,41 @@ static void find_nearest_uv_vert(Scene *scene, Image *ima, EditMesh *em, float c
 			}
 		}
 	}
+}
+
+int ED_uvedit_nearest_uv(Scene *scene, Object *obedit, Image *ima, float co[2], float uv[2])
+{
+	EditMesh *em= ((Mesh*)obedit->data)->edit_mesh;
+	EditFace *efa;
+	MTFace *tf;
+	float mindist, dist;
+	int i, nverts, found= 0;
+
+	mindist= 1e10f;
+	uv[0]= co[0];
+	uv[1]= co[1];
+	
+	for(efa= em->faces.first; efa; efa= efa->next) {
+		tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+
+		if(uvedit_face_visible(scene, ima, efa, tf)) {
+			nverts= efa->v4? 4: 3;
+
+			for(i=0; i<nverts; i++) {
+				dist= fabs(co[0]-tf->uv[i][0]) + fabs(co[1]-tf->uv[i][1]);
+
+				if(dist<=mindist) {
+					mindist= dist;
+
+					uv[0]= tf->uv[i][0];
+					uv[1]= tf->uv[i][1];
+					found= 1;
+				}
+			}
+		}
+	}
+
+	return found;
 }
 
 /*********************** loop select ***********************/
@@ -1323,9 +1297,6 @@ static int stitch_exec(bContext *C, wmOperator *op)
 		MEM_freeN(uv_average);
 	}
 
-	// XXX if(sima->flag & SI_BE_SQUARE)
-	// XXX	uvedit_constrain_square(scene, sima->image, em);
-
 	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit); // XXX
 
@@ -1747,7 +1718,7 @@ static int mouse_select(bContext *C, float co[2], int extend, int loop)
 	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 
-	return OPERATOR_FINISHED;
+	return OPERATOR_PASS_THROUGH|OPERATOR_FINISHED;
 }
 
 static int select_exec(bContext *C, wmOperator *op)
@@ -1947,7 +1918,7 @@ void borderselect_sima(bContext *C, SpaceImage *sima, Scene *scene, Image *ima, 
 	int val, ok = 1;
 	short mval[2], select;
 
-	if(!uvedit_test(obedit)) return;
+	if(!ED_uvedit_test(obedit)) return;
 
 	val= 0; // XXX get_border(&rect, 3);
 	select = 0; // XXX (val==LEFTMOUSE) ? 1 : 0; 
@@ -2236,7 +2207,7 @@ void snap_uv_curs_to_pixels(SpaceImage *sima, View2D *v2d)
 
 int snap_uv_curs_to_sel(Scene *scene, Image *ima, Object *obedit, View2D *v2d)
 {
-	if(!uvedit_test(obedit)) return 0;
+	if(!ED_uvedit_test(obedit)) return 0;
 	return uvedit_center(scene, ima, obedit, v2d->cursor, 0);
 }
 
@@ -2244,7 +2215,7 @@ void snap_menu_sima(SpaceImage *sima, Scene *scene, Object *obedit, View2D *v2d)
 {
 	short event;
 
-	if(!uvedit_test(obedit) || !v2d) return; /* !G.v2d should never happen */
+	if(!ED_uvedit_test(obedit) || !v2d) return; /* !G.v2d should never happen */
 	
 	event = 0; // XXX pupmenu("Snap %t|Selection -> Pixels%x1|Selection -> Cursor%x2|Selection -> Adjacent Unselected%x3|Cursor -> Selection%x4|Cursor -> Pixel%x5");
 	switch (event) {
@@ -2515,7 +2486,7 @@ void pin_tface_uv(Scene *scene, Image *ima, Object *obedit, int mode)
 	EditFace *efa;
 	MTFace *tface;
 	
-	if(!uvedit_test(obedit)) return;
+	if(!ED_uvedit_test(obedit)) return;
 	
 	for(efa= em->faces.first; efa; efa= efa->next) {
 		tface = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
@@ -2547,7 +2518,7 @@ void select_pinned_tface_uv(Scene *scene, Image *ima, Object *obedit)
 	EditFace *efa;
 	MTFace *tface;
 	
-	if(!uvedit_test(obedit)) return;
+	if(!ED_uvedit_test(obedit)) return;
 	
 	for(efa= em->faces.first; efa; efa= efa->next) {
 		tface = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
@@ -2597,11 +2568,16 @@ void ED_keymap_uvedit(wmWindowManager *wm)
 	// XXX not working?
 	RNA_boolean_set(WM_keymap_add_item(keymap, "UV_OT_loop_select", SELECTMOUSE, KM_PRESS, KM_SHIFT, KM_ALT)->ptr, "extend", 1);
 
+	/* generates event, needs to be after select to work */
+	WM_keymap_add_item(keymap, "WM_OT_tweak_gesture", SELECTMOUSE, KM_PRESS, 0, 0);
+
 	WM_keymap_add_item(keymap, "UV_OT_select_linked", LKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "UV_OT_unlink_selection", LKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "UV_OT_de_select_all", AKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "UV_OT_select_invert", IKEY, KM_PRESS, KM_CTRL, 0);
 
 	WM_keymap_add_item(keymap, "UV_OT_stitch", VKEY, KM_PRESS, 0, 0);
+
+	transform_keymap_for_space(wm, keymap, SPACE_IMAGE);
 }
 

@@ -53,6 +53,7 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
+#include "ED_image.h"
 #include "ED_mesh.h"
 #include "ED_space_api.h"
 #include "ED_screen.h"
@@ -547,6 +548,17 @@ void get_space_image_zoom(SpaceImage *sima, ARegion *ar, float *zoomx, float *zo
 	*zoomy= (float)(ar->winrct.ymax - ar->winrct.ymin)/(float)((ar->v2d.cur.ymax - ar->v2d.cur.ymin)*height);
 }
 
+void get_space_image_uv_aspect(SpaceImage *sima, float *aspx, float *aspy)
+{
+	int w, h;
+
+	get_space_image_aspect(sima, aspx, aspy);
+	get_space_image_size(sima, &w, &h);
+
+	*aspx *= (float)w;
+	*aspy *= (float)h;
+}
+
 int get_space_image_show_render(SpaceImage *sima)
 {
 	return (sima->image && ELEM(sima->image->type, IMA_TYPE_R_RESULT, IMA_TYPE_COMPOSITE));
@@ -584,4 +596,22 @@ int get_space_image_show_uvshadow(SpaceImage *sima, Object *obedit)
 
 	return 0;
 }
+
+/* Exported Functions */
+
+Image *ED_space_image(SpaceImage *sima)
+{
+	return get_space_image(sima);
+}
+
+void ED_space_image_size(SpaceImage *sima, int *width, int *height)
+{
+	get_space_image_size(sima, width, height);
+}
+
+void ED_space_image_uv_aspect(SpaceImage *sima, float *aspx, float *aspy)
+{
+	get_space_image_uv_aspect(sima, aspx, aspy);
+}
+
 

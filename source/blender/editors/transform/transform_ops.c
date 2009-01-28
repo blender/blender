@@ -322,6 +322,22 @@ void transform_keymap_for_space(struct wmWindowManager *wm, struct ListBase *key
 			km= WM_keymap_add_item(keymap, "TFM_OT_transform", EKEY, KM_PRESS, 0, 0);
 			RNA_int_set(km->ptr, "mode", TFM_TIME_EXTEND);
 			break;
+		case SPACE_IMAGE:
+			km = WM_keymap_add_item(keymap, "TFM_OT_transform", GKEY, KM_PRESS, 0, 0);
+			RNA_int_set(km->ptr, "mode", TFM_TRANSLATION);
+			
+			km= WM_keymap_add_item(keymap, "TFM_OT_transform", EVT_TWEAK_S, KM_ANY, 0, 0);
+			RNA_int_set(km->ptr, "mode", TFM_TRANSLATION);
+			
+			km = WM_keymap_add_item(keymap, "TFM_OT_transform", RKEY, KM_PRESS, 0, 0);
+			RNA_int_set(km->ptr, "mode", TFM_ROTATION);
+
+			km = WM_keymap_add_item(keymap, "TFM_OT_transform", SKEY, KM_PRESS, 0, 0);
+			RNA_int_set(km->ptr, "mode", TFM_RESIZE);
+
+			km = WM_keymap_add_item(keymap, "TFM_OT_transform", SKEY, KM_PRESS, KM_ALT|KM_CTRL|KM_SHIFT, 0);
+			RNA_int_set(km->ptr, "mode", TFM_SHEAR);
+			break;
 		default:
 			break;
 	}

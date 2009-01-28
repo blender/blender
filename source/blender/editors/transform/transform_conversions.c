@@ -122,10 +122,12 @@
 #include "ED_anim_api.h"
 #include "ED_armature.h"
 #include "ED_editparticle.h"
+#include "ED_image.h"
 #include "ED_keyframing.h"
 #include "ED_keyframes_edit.h"
 #include "ED_mesh.h"
 #include "ED_types.h"
+#include "ED_uvedit.h"
 #include "ED_view3d.h"
 
 #include "UI_view2d.h"
@@ -139,7 +141,6 @@
 //#include "BDR_drawaction.h"		// list of keyframes in action
 //#include "BDR_editobject.h"		// reset_slowparents()
 //#include "BDR_gpencil.h"
-//#include "BDR_unwrapper.h"
 
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
@@ -156,11 +157,6 @@ extern ListBase editelems;
 #include "transform.h"
 
 #include "BLO_sys_types.h" // for intptr_t support
-
-/************ STUBS TO GET COMPILE ************/
-void transform_aspect_ratio_tface_uv(float *a1, float *a2) {}
-
-
 
 /* local function prototype - for Object/Bone Constraints */
 static short constraints_list_needinv(TransInfo *t, ListBase *list);
@@ -2380,11 +2376,11 @@ void flushTransSeq(TransInfo *t)
 
 /* ********************* UV ****************** */
 
-static void UVsToTransData(TransData *td, TransData2D *td2d, float *uv, int selected)
+static void UVsToTransData(SpaceImage *sima, TransData *td, TransData2D *td2d, float *uv, int selected)
 {
 	float aspx, aspy;
 
-	transform_aspect_ratio_tface_uv(&aspx, &aspy);
+	ED_space_image_uv_aspect(sima, &aspx, &aspy);
 
 	/* uv coords are scaled by aspects. this is needed for rotations and
 	   proportional editing to be consistent with the stretchted uv coords
@@ -2418,61 +2414,35 @@ static void UVsToTransData(TransData *td, TransData2D *td2d, float *uv, int sele
 
 static void createTransUVs(bContext *C, TransInfo *t)
 {
-#if 0 // TRANSFORM_FIX_ME
 	SpaceImage *sima = (SpaceImage*)CTX_wm_space_data(C);
+	Image *ima = CTX_data_edit_image(C);
+	Scene *scene = CTX_data_scene(C);
 	TransData *td = NULL;
 	TransData2D *td2d = NULL;
 	MTFace *tf;
 	int count=0, countsel=0;
 	int propmode = t->flag & T_PROP_EDIT;
-	int efa_s1,efa_s2,efa_s3,efa_s4;
 
 	EditMesh *em = ((Mesh *)t->obedit->data)->edit_mesh;
 	EditFace *efa;
 	
-	if(is_uv_tface_editing_allowed()==0) return;
+	if(!ED_uvedit_test(t->obedit)) return;
 
 	/* count */
-	if (sima->flag & SI_BE_SQUARE && !propmode) {
-		for (efa= em->faces.first; efa; efa= efa->next) {
-			/* store face pointer for second loop, prevent second lookup */
-			tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-			if (simaFaceDraw_Check(efa, tf)) {
-				efa->tmp.p = tf;
-				
-				efa_s1 = simaUVSel_Check(efa, tf, 0);
-				efa_s2 = simaUVSel_Check(efa, tf, 1);
-				efa_s3 = simaUVSel_Check(efa, tf, 2);
-				if (efa->v4) {
-					efa_s4 = simaUVSel_Check(efa, tf, 3);
-					if ( efa_s1 || efa_s2 || efa_s3 || efa_s4 ) {
-						countsel += 4; /* all corners of this quad need their edges moved. so we must store TD for each */
-					}
-				} else {
-					/* tri's are delt with normally when SI_BE_SQUARE's enabled */
-					if (efa_s1) countsel++; 
-					if (efa_s2) countsel++; 
-					if (efa_s3) countsel++;
-				}
-			} else {
-				efa->tmp.p = NULL;
-			}
-		}
-	} else {
-		for (efa= em->faces.first; efa; efa= efa->next) {
-			tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-			if (simaFaceDraw_Check(efa, tf)) {
-				efa->tmp.p = tf;
-				
-				if (simaUVSel_Check(efa, tf, 0)) countsel++; 
-				if (simaUVSel_Check(efa, tf, 1)) countsel++; 
-				if (simaUVSel_Check(efa, tf, 2)) countsel++; 
-				if (efa->v4 && simaUVSel_Check(efa, tf, 3)) countsel++;
-				if(propmode)
-					count += (efa->v4)? 4: 3;
-			} else {
-				efa->tmp.p = NULL;
-			}
+	for (efa= em->faces.first; efa; efa= efa->next) {
+		tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+
+		if(uvedit_face_visible(scene, ima, efa, tf)) {
+			efa->tmp.p = tf;
+			
+			if (uvedit_uv_selected(scene, efa, tf, 0)) countsel++; 
+			if (uvedit_uv_selected(scene, efa, tf, 1)) countsel++; 
+			if (uvedit_uv_selected(scene, efa, tf, 2)) countsel++; 
+			if (efa->v4 && uvedit_uv_selected(scene, efa, tf, 3)) countsel++;
+			if(propmode)
+				count += (efa->v4)? 4: 3;
+		} else {
+			efa->tmp.p = NULL;
 		}
 	}
 	
@@ -2491,81 +2461,36 @@ static void createTransUVs(bContext *C, TransInfo *t)
 	td= t->data;
 	td2d= t->data2d;
 	
-	if (sima->flag & SI_BE_SQUARE && !propmode) {
-		for (efa= em->faces.first; efa; efa= efa->next) {
-			tf=(MTFace *)efa->tmp.p;
-			if (tf) {
-				efa_s1 = simaUVSel_Check(efa, tf, 0);
-				efa_s2 = simaUVSel_Check(efa, tf, 1);
-				efa_s3 = simaUVSel_Check(efa, tf, 2);
-				
-				if (efa->v4) {
-					efa_s4 = simaUVSel_Check(efa, tf, 3);
-					
-					if ( efa_s1 || efa_s2 || efa_s3 || efa_s4 ) {
-						/* all corners of this quad need their edges moved. so we must store TD for each */
-
-						UVsToTransData(td, td2d, tf->uv[0], efa_s1);
-						if (!efa_s1)	td->flag |= TD_SKIP;
-						td++; td2d++;
-
-						UVsToTransData(td, td2d, tf->uv[1], efa_s2);
-						if (!efa_s2)	td->flag |= TD_SKIP;
-						td++; td2d++;
-
-						UVsToTransData(td, td2d, tf->uv[2], efa_s3);
-						if (!efa_s3)	td->flag |= TD_SKIP;
-						td++; td2d++;
-
-						UVsToTransData(td, td2d, tf->uv[3], efa_s4);
-						if (!efa_s4)	td->flag |= TD_SKIP;
-						td++; td2d++;
-					}
-				} else {
-					/* tri's are delt with normally when SI_BE_SQUARE's enabled */
-					if (efa_s1) UVsToTransData(td++, td2d++, tf->uv[0], 1); 
-					if (efa_s2) UVsToTransData(td++, td2d++, tf->uv[1], 1); 
-					if (efa_s3) UVsToTransData(td++, td2d++, tf->uv[2], 1);
-				}
-			}
-		}
-	} else {
-		for (efa= em->faces.first; efa; efa= efa->next) {
-			/*tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-			if (simaFaceDraw_Check(efa, tf)) {*/
-			if ((tf=(MTFace *)efa->tmp.p)) {
-				if (propmode) {
-					UVsToTransData(td++, td2d++, tf->uv[0], simaUVSel_Check(efa, tf, 0));
-					UVsToTransData(td++, td2d++, tf->uv[1], simaUVSel_Check(efa, tf, 1));
-					UVsToTransData(td++, td2d++, tf->uv[2], simaUVSel_Check(efa, tf, 2));
-					if(efa->v4)
-						UVsToTransData(td++, td2d++, tf->uv[3], simaUVSel_Check(efa, tf, 3));
-				} else {
-					if(simaUVSel_Check(efa, tf, 0))				UVsToTransData(td++, td2d++, tf->uv[0], 1);
-					if(simaUVSel_Check(efa, tf, 1))				UVsToTransData(td++, td2d++, tf->uv[1], 1);
-					if(simaUVSel_Check(efa, tf, 2))				UVsToTransData(td++, td2d++, tf->uv[2], 1);
-					if(efa->v4 && simaUVSel_Check(efa, tf, 3))	UVsToTransData(td++, td2d++, tf->uv[3], 1);
-				}
+	for (efa= em->faces.first; efa; efa= efa->next) {
+		if ((tf=(MTFace *)efa->tmp.p)) {
+			if (propmode) {
+				UVsToTransData(sima, td++, td2d++, tf->uv[0], uvedit_uv_selected(scene, efa, tf, 0));
+				UVsToTransData(sima, td++, td2d++, tf->uv[1], uvedit_uv_selected(scene, efa, tf, 1));
+				UVsToTransData(sima, td++, td2d++, tf->uv[2], uvedit_uv_selected(scene, efa, tf, 2));
+				if(efa->v4)
+					UVsToTransData(sima, td++, td2d++, tf->uv[3], uvedit_uv_selected(scene, efa, tf, 3));
+			} else {
+				if(uvedit_uv_selected(scene, efa, tf, 0))				UVsToTransData(sima, td++, td2d++, tf->uv[0], 1);
+				if(uvedit_uv_selected(scene, efa, tf, 1))				UVsToTransData(sima, td++, td2d++, tf->uv[1], 1);
+				if(uvedit_uv_selected(scene, efa, tf, 2))				UVsToTransData(sima, td++, td2d++, tf->uv[2], 1);
+				if(efa->v4 && uvedit_uv_selected(scene, efa, tf, 3))	UVsToTransData(sima, td++, td2d++, tf->uv[3], 1);
 			}
 		}
 	}
 	
 	if (sima->flag & SI_LIVE_UNWRAP)
-		unwrap_lscm_live_begin();
-#endif
+		ED_uvedit_live_unwrap_begin(t->scene, t->obedit);
 }
 
 void flushTransUVs(TransInfo *t)
 {
-#if 0 // TRANSFORM_FIX_ME
+	SpaceImage *sima = t->sa->spacedata.first;
 	TransData2D *td;
 	int a, width, height;
-	Object *ob= OBACT;
-	EditMesh *em = ((Mesh *)ob->data)->edit_mesh;
 	float aspx, aspy, invx, invy;
 
-	transform_aspect_ratio_tface_uv(&aspx, &aspy);
-	transform_width_height_tface_uv(&width, &height);
+	ED_space_image_uv_aspect(sima, &aspx, &aspy);
+	ED_space_image_size(sima, &width, &height);
 	invx= 1.0f/aspx;
 	invy= 1.0f/aspy;
 
@@ -2574,28 +2499,20 @@ void flushTransUVs(TransInfo *t)
 		td->loc2d[0]= td->loc[0]*invx;
 		td->loc2d[1]= td->loc[1]*invy;
 		
-		if((G.sima->flag & SI_PIXELSNAP) && (t->state != TRANS_CANCEL)) {
+		if((sima->flag & SI_PIXELSNAP) && (t->state != TRANS_CANCEL)) {
 			td->loc2d[0]= (float)floor(width*td->loc2d[0] + 0.5f)/width;
 			td->loc2d[1]= (float)floor(height*td->loc2d[1] + 0.5f)/height;
 		}
 	}
-	
-	if((G.sima->flag & SI_BE_SQUARE) && (t->flag & T_PROP_EDIT)==0 && (t->state != TRANS_CANCEL)) 
-		be_square_tface_uv(em);
-
-	/* this is overkill if G.sima->lock is not set, but still needed */
-	object_uvs_changed(ob);
-#endif
 }
 
 int clipUVTransform(TransInfo *t, float *vec, int resize)
 {
-#if 0 // TRANSFORM_FIX_ME
 	TransData *td;
 	int a, clipx=1, clipy=1;
 	float aspx, aspy, min[2], max[2];
 
-	transform_aspect_ratio_tface_uv(&aspx, &aspy);
+	ED_space_image_uv_aspect(t->sa->spacedata.first, &aspx, &aspy);
 	min[0]= min[1]= 0.0f;
 	max[0]= aspx; max[1]= aspy;
 
@@ -2635,10 +2552,7 @@ int clipUVTransform(TransInfo *t, float *vec, int resize)
 	}	
 
 	return (clipx || clipy);
-#endif
-return 0;
 }
-
 
 /* ********************* ACTION/NLA EDITOR ****************** */
 

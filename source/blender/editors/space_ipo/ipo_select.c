@@ -871,7 +871,7 @@ static int graphkeys_clickselect_invoke(bContext *C, wmOperator *op, wmEvent *ev
 	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_BOTH);
 	
 	/* for tweak grab to work */
-	return OPERATOR_PASS_THROUGH;
+	return OPERATOR_FINISHED|OPERATOR_PASS_THROUGH;
 }
  
 void GRAPHEDIT_OT_keyframes_clickselect (wmOperatorType *ot)

@@ -662,10 +662,6 @@ static uiBlock *image_uvs_scriptsmenu (void *args_unused)
 static void do_uvsmenu(bContext *C, void *arg, int event)
 {
 	switch(event) {
-	case 1: /* UVs Constrained Rectangular */
-		if(sima->flag & SI_BE_SQUARE) sima->flag &= ~SI_BE_SQUARE;
-		else sima->flag |= SI_BE_SQUARE;
-		break;
 	case 2: /* UVs Clipped to Image Size */
 		if(sima->flag & SI_CLIP_UV) sima->flag &= ~SI_CLIP_UV;
 		else sima->flag |= SI_CLIP_UV;
@@ -727,7 +723,6 @@ static uiBlock *image_uvsmenu(bContext *C, uiMenuBlockHandle *handle, void *arg_
 	block= uiBeginBlock(C, handle->region, "image_imagemenu", UI_EMBOSSP, UI_HELV);
 
 	uiDefMenuTogR(block, &uvptr, "snap_to_pixels", 0, NULL);
-	uiDefMenuTogR(block, &uvptr, "constrain_quads_rectangular", 0, NULL);
 	uiDefMenuTogR(block, &uvptr, "constrain_to_image_bounds", 0, NULL);
 
 	uiDefMenuSep(block);

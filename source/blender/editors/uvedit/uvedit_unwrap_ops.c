@@ -53,6 +53,7 @@
 #include "PIL_time.h"
 
 #include "ED_mesh.h"
+#include "ED_uvedit.h"
 
 #include "uvedit_intern.h"
 #include "uvedit_parametrizer.h"
@@ -166,12 +167,12 @@ void unwrap_lscm(Scene *scene, Object *obedit, short seamcut)
 	short fillholes = scene->toolsettings->uvcalc_flag & UVCALC_FILLHOLES;
 	
 	/* add uvs if there not here */
-	if (!uvedit_test(obedit)) {
+	if (!ED_uvedit_test(obedit)) {
 #if 0
 		if (em && em->faces.first)
 			EM_add_data_layer(&em->fdata, CD_MTFACE);
 		
-		if (!uvedit_test(obedit))
+		if (!ED_uvedit_test(obedit))
 			return;
 		
 		if (G.sima && G.sima->image) /* this is a bit of a kludge, but assume they want the image on their mesh when UVs are added */
@@ -219,7 +220,7 @@ void minimize_stretch_tface_uv(Scene *scene, Object *obedit)
 	unsigned short event = 0;
 	short fillholes = scene->toolsettings->uvcalc_flag & UVCALC_FILLHOLES;
 	
-	if(!uvedit_test(obedit)) return;
+	if(!ED_uvedit_test(obedit)) return;
 
 	handle = construct_param_handle(scene, em, 1, fillholes, 1);
 
@@ -309,7 +310,7 @@ void pack_charts_tface_uv(Scene *scene, Object *obedit)
 	EditMesh *em= ((Mesh*)obedit->data)->edit_mesh;
 	ParamHandle *handle;
 	
-	if(!uvedit_test(obedit)) return;
+	if(!ED_uvedit_test(obedit)) return;
 
 	handle = construct_param_handle(scene, em, 1, 0, 1);
 	param_pack(handle);
@@ -330,7 +331,7 @@ void average_charts_tface_uv(Scene *scene, Object *obedit)
 	EditMesh *em= ((Mesh*)obedit->data)->edit_mesh;
 	ParamHandle *handle;
 	
-	if(!uvedit_test(obedit)) return;
+	if(!ED_uvedit_test(obedit)) return;
 
 	handle = construct_param_handle(scene, em, 1, 0, 1);
 	param_average(handle);
@@ -349,20 +350,20 @@ void average_charts_tface_uv(Scene *scene, Object *obedit)
 
 static ParamHandle *liveHandle = NULL;
 
-void unwrap_lscm_live_begin(Scene *scene, Object *obedit)
+void ED_uvedit_live_unwrap_begin(Scene *scene, Object *obedit)
 {
 	EditMesh *em= ((Mesh*)obedit->data)->edit_mesh;
 	short abf = scene->toolsettings->unwrapper == 1;
 	short fillholes = scene->toolsettings->uvcalc_flag & UVCALC_FILLHOLES;
 
-	if(!uvedit_test(obedit)) return;
+	if(!ED_uvedit_test(obedit)) return;
 
 	liveHandle = construct_param_handle(scene, em, 0, fillholes, 1);
 
 	param_lscm_begin(liveHandle, PARAM_TRUE, abf);
 }
 
-void unwrap_lscm_live_re_solve(void)
+void ED_uvedit_live_unwrap_re_solve(void)
 {
 	if (liveHandle) {
 		param_lscm_solve(liveHandle);
@@ -370,7 +371,7 @@ void unwrap_lscm_live_re_solve(void)
 	}
 }
 	
-void unwrap_lscm_live_end(short cancel)
+void ED_uvedit_live_unwrap_end(short cancel)
 {
 	if (liveHandle) {
 		param_lscm_end(liveHandle);

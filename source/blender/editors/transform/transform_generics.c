@@ -85,9 +85,11 @@
 
 #include "ED_anim_api.h"
 #include "ED_armature.h"
-#include "ED_view3d.h"
+#include "ED_image.h"
 #include "ED_mesh.h"
 #include "ED_space_api.h"
+#include "ED_uvedit.h"
+#include "ED_view3d.h"
 
 //#include "BDR_unwrapper.h"
 
@@ -446,10 +448,13 @@ void recalcData(TransInfo *t)
 	else if (t->obedit) {
 		if (t->obedit->type == OB_MESH) {
 			if(t->spacetype==SPACE_IMAGE) {
+				SpaceImage *sima= t->sa->spacedata.first;
+
 				flushTransUVs(t);
-				/* TRANSFORM_FIX_ME */
-//				if (G.sima->flag & SI_LIVE_UNWRAP)
-//					unwrap_lscm_live_re_solve();
+				if(sima->flag & SI_LIVE_UNWRAP)
+					ED_uvedit_live_unwrap_re_solve();
+	
+				DAG_object_flush_update(t->scene, t->obedit, OB_RECALC_DATA);
 			} else {
 				EditMesh *em = ((Mesh*)t->obedit->data)->edit_mesh;
 				/* mirror modifier clipping? */
@@ -728,11 +733,9 @@ void initTransInfo (bContext *C, TransInfo *t, wmEvent *event)
 	}
 	else if(t->spacetype==SPACE_IMAGE || t->spacetype==SPACE_NODE)
 	{
-		View2D *v2d = sa->spacedata.first; // XXX no!
-
-		t->view = v2d;
-
-		t->around = v2d->around;
+		// XXX for now, get View2D  from the active region
+		t->view = &ar->v2d;
+		t->around = ar->v2d.around;
 	}
 	else
 	{
@@ -776,10 +779,9 @@ void postTrans (TransInfo *t)
 	}
 
 	if(t->spacetype==SPACE_IMAGE) {
-#if 0 // TRANSFORM_FIX_ME
-		if (G.sima->flag & SI_LIVE_UNWRAP)
-			unwrap_lscm_live_end(t->state == TRANS_CANCEL);
-#endif
+		SpaceImage *sima= t->sa->spacedata.first;
+		if(sima->flag & SI_LIVE_UNWRAP)
+			ED_uvedit_live_unwrap_end(t->state == TRANS_CANCEL);
 	}
 	else if(t->spacetype==SPACE_ACTION) {
 		if (t->customData)
@@ -908,16 +910,17 @@ void calculateCenterCursor(TransInfo *t)
 
 void calculateCenterCursor2D(TransInfo *t)
 {
-#if 0 // TRANSFORM_FIX_ME
+	View2D *v2d= t->view;
 	float aspx=1.0, aspy=1.0;
 	
 	if(t->spacetype==SPACE_IMAGE) /* only space supported right now but may change */
-		transform_aspect_ratio_tface_uv(&aspx, &aspy);
-	if (G.v2d) {
-		t->center[0] = G.v2d->cursor[0] * aspx; 
-		t->center[1] = G.v2d->cursor[1] * aspy; 
+		ED_space_image_uv_aspect(t->sa->spacedata.first, &aspx, &aspy);
+
+	if (v2d) {
+		t->center[0] = v2d->cursor[0] * aspx; 
+		t->center[1] = v2d->cursor[1] * aspy; 
 	}
-#endif
+
 	calculateCenter2D(t);
 }
 

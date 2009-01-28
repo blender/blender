@@ -47,6 +47,7 @@ struct ImBuf *get_space_image_buffer(struct SpaceImage *sima);
 void get_space_image_size(struct SpaceImage *sima, int *width, int *height);
 void get_space_image_aspect(struct SpaceImage *sima, float *aspx, float *aspy);
 void get_space_image_zoom(struct SpaceImage *sima, struct ARegion *ar, float *zoomx, float *zoomy);
+void get_space_image_uv_aspect(struct SpaceImage *sima, float *aspx, float *aspy);
 
 int get_space_image_show_render(struct SpaceImage *sima);
 int get_space_image_show_paint(struct SpaceImage *sima);

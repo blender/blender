@@ -76,7 +76,6 @@
 //#include "BIF_editmesh.h"
 //#include "BIF_editsima.h"
 //#include "BIF_editparticle.h"
-//#include "BIF_drawimage.h"		/* uvco_to_areaco_noclip */
 //#include "BIF_editaction.h" 
 
 #include "BKE_action.h" /* get_action_frame */
@@ -96,10 +95,11 @@
 //#include "BSE_time.h"
 //#include "BSE_view.h"
 
-#include "ED_view3d.h"
+#include "ED_image.h"
 #include "ED_screen.h"
-#include "ED_util.h"
 #include "ED_space_api.h"
+#include "ED_util.h"
+#include "ED_view3d.h"
 
 #include "UI_view2d.h"
 #include "WM_types.h"
@@ -192,9 +192,7 @@ void convertViewVec(TransInfo *t, float *vec, short dx, short dy)
 		View2D *v2d = t->view;
 		float divx, divy, aspx, aspy;
 		
-		// TRANSFORM_FIX_ME
-		//transform_aspect_ratio_tface_uv(&aspx, &aspy);
-		aspx= aspy= 1.0f;
+		ED_space_image_uv_aspect(t->sa->spacedata.first, &aspx, &aspy);
 		
 		divx= v2d->mask.xmax-v2d->mask.xmin;
 		divy= v2d->mask.ymax-v2d->mask.ymin;
@@ -246,13 +244,11 @@ void projectIntView(TransInfo *t, float *vec, int *adr)
 	else if(t->spacetype==SPACE_IMAGE) {
 		float aspx, aspy, v[2];
 		
-		// TRANSFORM_FIX_ME
-		//transform_aspect_ratio_tface_uv(&aspx, &aspy);
+		ED_space_image_uv_aspect(t->sa->spacedata.first, &aspx, &aspy);
 		v[0]= vec[0]/aspx;
 		v[1]= vec[1]/aspy;
 		
-		// TRANSFORM_FIX_ME
-		//uvco_to_areaco_noclip(v, adr);
+		UI_view2d_to_region_no_clip(t->view, v[0], v[1], adr, adr+1);
 	}
 	else if(t->spacetype==SPACE_IPO) {
 		int out[2] = {0, 0};
@@ -293,46 +289,44 @@ void projectFloatView(TransInfo *t, float *vec, float *adr)
 
 void applyAspectRatio(TransInfo *t, float *vec)
 {
-#if 0 // TRANSFORM_FIX_ME
-	TransInfo *t = BIF_GetTransInfo();
+	SpaceImage *sima= t->sa->spacedata.first;
 
 	if ((t->spacetype==SPACE_IMAGE) && (t->mode==TFM_TRANSLATION)) {
 		float aspx, aspy;
 
-		if((G.sima->flag & SI_COORDFLOATS)==0) {
+		if((sima->flag & SI_COORDFLOATS)==0) {
 			int width, height;
-			transform_width_height_tface_uv(&width, &height);
+			ED_space_image_size(sima, &width, &height);
 
 			vec[0] *= width;
 			vec[1] *= height;
 		}
 
-		transform_aspect_ratio_tface_uv(&aspx, &aspy);
+		ED_space_image_uv_aspect(sima, &aspx, &aspy);
 		vec[0] /= aspx;
 		vec[1] /= aspy;
 	}
-#endif
 }
 
 void removeAspectRatio(TransInfo *t, float *vec)
 {
-#if 0 // TRANSFORM_FIX_ME
+	SpaceImage *sima= t->sa->spacedata.first;
+
 	if ((t->spacetype==SPACE_IMAGE) && (t->mode==TFM_TRANSLATION)) {
 		float aspx, aspy;
 
-		if((G.sima->flag & SI_COORDFLOATS)==0) {
+		if((sima->flag & SI_COORDFLOATS)==0) {
 			int width, height;
-			transform_width_height_tface_uv(&width, &height);
+			ED_space_image_size(sima, &width, &height);
 
 			vec[0] /= width;
 			vec[1] /= height;
 		}
 
-		transform_aspect_ratio_tface_uv(&aspx, &aspy);
+		ED_space_image_uv_aspect(sima, &aspx, &aspy);
 		vec[0] *= aspx;
 		vec[1] *= aspy;
 	}
-#endif
 }
 
 static void viewRedrawForce(bContext *C, TransInfo *t)
@@ -371,12 +365,16 @@ static void viewRedrawForce(bContext *C, TransInfo *t)
 	{
 		WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, NULL);
 	}
-#if 0 // TRANSFORM_FIX_ME
 	else if (t->spacetype==SPACE_IMAGE) {
-		if (G.sima->lock) force_draw_plus(SPACE_VIEW3D, 0);
+#if 0
+		SpaceImage *sima= (SpaceImage*)t->sa->spacedata.first;
+		if(sima->lock) force_draw_plus(SPACE_VIEW3D, 0);
 		else force_draw(0);
+#endif
+
+		// XXX better notifier, and how to deal with lock?
+		WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, t->obedit);
 	}
-#endif	
 }
 
 static void viewRedrawPost(TransInfo *t)
