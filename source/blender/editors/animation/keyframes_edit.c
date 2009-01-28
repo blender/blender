@@ -197,7 +197,7 @@ void ANIM_editkeyframes_refresh(bAnimContext *ac)
 	for (ale= anim_data.first; ale; ale= ale->next) {
 		FCurve *fcu= ale->key_data;
 		
-		/* make sure keyframes in IPO-curve are all in order, and handles are in valid positions */
+		/* make sure keyframes in F-curve are all in order, and handles are in valid positions */
 		sort_time_fcurve(fcu);
 		testhandles_fcurve(fcu);
 	}
@@ -308,6 +308,16 @@ static short snap_bezier_nearmarker(BeztEditData *bed, BezTriple *bezt)
 	return 0;
 }
 
+static short snap_bezier_horizontal(BeztEditData *bed, BezTriple *bezt)
+{
+	if (bezt->f2 & SELECT) {
+		bezt->vec[0][1]= bezt->vec[2][1]= bezt->vec[1][1];
+		if ((bezt->h1==HD_AUTO) || (bezt->h1==HD_VECT)) bezt->h1= HD_ALIGN;
+		if ((bezt->h2==HD_AUTO) || (bezt->h2==HD_VECT)) bezt->h2= HD_ALIGN;
+	}
+	return 0;	
+}
+
 // calchandles_ipocurve
 BeztEditFunc ANIM_editkeyframes_snap(short type)
 {
@@ -321,6 +331,8 @@ BeztEditFunc ANIM_editkeyframes_snap(short type)
 			return snap_bezier_nearmarker;
 		case SNAP_KEYS_NEARSEC: /* snap to nearest second */
 			return snap_bezier_nearestsec;
+		case SNAP_KEYS_HORIZONTAL: /* snap handles to same value */
+			return snap_bezier_horizontal;
 		default: /* just in case */
 			return snap_bezier_nearest;
 	}

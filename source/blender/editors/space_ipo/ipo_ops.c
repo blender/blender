@@ -46,6 +46,8 @@
 #include "UI_interface.h"
 #include "UI_view2d.h"
 
+#include "ED_screen.h"
+
 #include "BIF_transform.h"
 
 #include "ipo_intern.h"
@@ -56,11 +58,48 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+/* ************************** view-based operators **********************************/
+// XXX this probably shouldn't be here..
+
+/* Toggle Handles ----------------------------------------------------------------- */
+
+static int view_toggle_handles_exec (bContext *C, wmOperator *op)
+{
+	SpaceIpo *sipo= (SpaceIpo *)CTX_wm_space_data(C);
+	ARegion *ar= CTX_wm_region(C);
+	
+	if (sipo == NULL)
+		return OPERATOR_CANCELLED;
+	
+	/* toggle flag to hide handles */
+	sipo->flag ^= SIPO_NOHANDLES;
+	
+	/* request refresh of keys area */
+	ED_region_tag_redraw(ar);
+	
+	return OPERATOR_FINISHED;
+}
+
+void GRAPHEDIT_OT_view_togglehandles (wmOperatorType *ot)
+{
+	/* identification */
+	ot->name= "Show/Hide All Handles";
+	ot->idname= "GRAPHEDIT_OT_view_toggle_handles";
+	
+	/* callbacks */
+	ot->exec= view_toggle_handles_exec;
+	ot->poll= ED_operator_areaactive;
+}
 
 /* ************************** registration - operator types **********************************/
 
 void graphedit_operatortypes(void)
 {
+	/* view */
+	WM_operatortype_append(GRAPHEDIT_OT_view_togglehandles);
+	//WM_operatortype_append(GRAPHEDIT_OT_set_previewrange);
+	//WM_operatortype_append(GRAPHEDIT_OT_view_all);
+	
 	/* keyframes */
 		/* selection */
 	WM_operatortype_append(GRAPHEDIT_OT_keyframes_clickselect);
@@ -68,22 +107,19 @@ void graphedit_operatortypes(void)
 	WM_operatortype_append(GRAPHEDIT_OT_keyframes_borderselect);
 	WM_operatortype_append(GRAPHEDIT_OT_keyframes_columnselect);
 	
-#if 0 // XXX code to be sanitied for new system	
 		/* editing */
 	WM_operatortype_append(GRAPHEDIT_OT_keyframes_snap);
 	WM_operatortype_append(GRAPHEDIT_OT_keyframes_mirror);
 	WM_operatortype_append(GRAPHEDIT_OT_keyframes_cfrasnap);
 	WM_operatortype_append(GRAPHEDIT_OT_keyframes_handletype);
-	WM_operatortype_append(GRAPHEDIT_OT_keyframes_ipotype);
+	WM_operatortype_append(GRAPHEDIT_OT_keyframes_interpolation_type);
+#if 0 // XXX code to be sanitied for new system	
 	WM_operatortype_append(GRAPHEDIT_OT_keyframes_expotype);
 	WM_operatortype_append(GRAPHEDIT_OT_keyframes_sample);
 	WM_operatortype_append(GRAPHEDIT_OT_keyframes_clean);
 	WM_operatortype_append(GRAPHEDIT_OT_keyframes_delete);
 	WM_operatortype_append(GRAPHEDIT_OT_keyframes_copy);
 	WM_operatortype_append(GRAPHEDIT_OT_keyframes_paste);
-	
-	WM_operatortype_append(GRAPHEDIT_OT_set_previewrange);
-	WM_operatortype_append(GRAPHEDIT_OT_view_all);
 #endif // XXX code to be sanitied for new system
 }
 
@@ -91,6 +127,9 @@ void graphedit_operatortypes(void)
 
 static void graphedit_keymap_keyframes (wmWindowManager *wm, ListBase *keymap)
 {
+	/* view */
+	WM_keymap_add_item(keymap, "GRAPHEDIT_OT_view_toggle_handles", HKEY, KM_PRESS, KM_CTRL, 0);
+	
 	/* iposelect.c - selection tools */
 		/* click-select */
 		// TODO: column to alt, left-right to ctrl (for select-linked consistency)
@@ -113,8 +152,8 @@ static void graphedit_keymap_keyframes (wmWindowManager *wm, ListBase *keymap)
 	RNA_enum_set(WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_columnselect", KKEY, KM_PRESS, KM_CTRL, 0)->ptr, "mode", GRAPHKEYS_COLUMNSEL_CFRA);
 	RNA_enum_set(WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_columnselect", KKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "mode", GRAPHKEYS_COLUMNSEL_MARKERS_COLUMN);
 	RNA_enum_set(WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_columnselect", KKEY, KM_PRESS, KM_ALT, 0)->ptr, "mode", GRAPHKEYS_COLUMNSEL_MARKERS_BETWEEN);
-
-#if 0 // XXX code to be sanitied for new system		
+	
+	
 	/* ipo_edit.c */
 		/* snap - current frame to selected keys */
 	WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_cfrasnap", SKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0);
@@ -123,9 +162,9 @@ static void graphedit_keymap_keyframes (wmWindowManager *wm, ListBase *keymap)
 	WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_snap", SKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_mirror", MKEY, KM_PRESS, KM_SHIFT, 0);
 	
-		/* menu + set setting */
 	WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_handletype", HKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_ipotype", TKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_interpolation_type", TKEY, KM_PRESS, KM_SHIFT, 0);
+#if 0 // XXX code to be sanitied for new system	
 	WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_expotype", EKEY, KM_PRESS, KM_SHIFT, 0); // temp...
 	
 		/* destructive */
@@ -138,11 +177,12 @@ static void graphedit_keymap_keyframes (wmWindowManager *wm, ListBase *keymap)
 		/* copy/paste */
 	WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_copy", CKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_paste", VKEY, KM_PRESS, KM_CTRL, 0);
+#endif // XXX code to be sanitied for new system	
 	
 		/* auto-set range */
-	WM_keymap_add_item(keymap, "GRAPHEDIT_OT_set_previewrange", PKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
-	WM_keymap_add_item(keymap, "GRAPHEDIT_OT_view_all", HOMEKEY, KM_PRESS, 0, 0);
-#endif // XXX code to be sanitied for new system	
+	//WM_keymap_add_item(keymap, "GRAPHEDIT_OT_set_previewrange", PKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
+	//WM_keymap_add_item(keymap, "GRAPHEDIT_OT_view_all", HOMEKEY, KM_PRESS, 0, 0);
+	
 		
 	/* transform system */
 	transform_keymap_for_space(wm, keymap, SPACE_IPO);
@@ -157,7 +197,7 @@ void graphedit_keymap(wmWindowManager *wm)
 	/* channels */
 	/* Channels are not directly handled by the Graph Editor module, but are inherited from the Animation module. 
 	 * All the relevant operations, keymaps, drawing, etc. can therefore all be found in that module instead, as these
-	 * are all used for the IPO-Editor too.
+	 * are all used for the Graph Editor too.
 	 */
 	
 	/* keyframes */

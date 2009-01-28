@@ -889,6 +889,8 @@ void GRAPHEDIT_OT_keyframes_expotype (wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "type", prop_graphkeys_expo_types, 0, "Type", "");
 }
 
+#endif // XXX code to be sanitied for new system
+
 /* ******************** Set Interpolation-Type Operator *********************** */
 
 /* defines for set ipo-type for selected keyframes tool */
@@ -947,11 +949,11 @@ static int graphkeys_ipo_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
  
-void GRAPHEDIT_OT_keyframes_ipotype (wmOperatorType *ot)
+void GRAPHEDIT_OT_keyframes_interpolation_type (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Set Keyframe Interpolation";
-	ot->idname= "GRAPHEDIT_OT_keyframes_ipotype";
+	ot->idname= "GRAPHEDIT_OT_keyframes_interpolation_type";
 	
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
@@ -992,6 +994,7 @@ static void sethandles_graph_keys(bAnimContext *ac, short mode)
 	/* loop through setting flags for handles 
 	 * Note: we do not supply BeztEditData to the looper yet. Currently that's not necessary here...
 	 */
+	// XXX we might need to supply BeztEditData to get it to only affect selected handles
 	for (ale= anim_data.first; ale; ale= ale->next) {
 		if (mode == -1) {	
 			BeztEditFunc toggle_cb;
@@ -1137,10 +1140,11 @@ void GRAPHEDIT_OT_keyframes_cfrasnap (wmOperatorType *ot)
 
 /* defines for snap keyframes tool */
 EnumPropertyItem prop_graphkeys_snap_types[] = {
-	{graphkeys_SNAP_CFRA, "CFRA", "Current frame", ""},
-	{graphkeys_SNAP_NEAREST_FRAME, "NEAREST_FRAME", "Nearest Frame", ""}, // XXX as single entry?
-	{graphkeys_SNAP_NEAREST_SECOND, "NEAREST_SECOND", "Nearest Second", ""}, // XXX as single entry?
-	{graphkeys_SNAP_NEAREST_MARKER, "NEAREST_MARKER", "Nearest Marker", ""},
+	{GRAPHKEYS_SNAP_CFRA, "CFRA", "Current frame", ""},
+	{GRAPHKEYS_SNAP_NEAREST_FRAME, "NEAREST_FRAME", "Nearest Frame", ""}, // XXX as single entry?
+	{GRAPHKEYS_SNAP_NEAREST_SECOND, "NEAREST_SECOND", "Nearest Second", ""}, // XXX as single entry?
+	{GRAPHKEYS_SNAP_NEAREST_MARKER, "NEAREST_MARKER", "Nearest Marker", ""},
+	{GRAPHKEYS_SNAP_HORIZONTAL, "HORIZONTAL", "Flatten Handles", ""},
 	{0, NULL, NULL, NULL}
 };
 
@@ -1227,10 +1231,10 @@ void GRAPHEDIT_OT_keyframes_snap (wmOperatorType *ot)
 
 /* defines for mirror keyframes tool */
 EnumPropertyItem prop_graphkeys_mirror_types[] = {
-	{graphkeys_MIRROR_CFRA, "CFRA", "Current frame", ""},
-	{graphkeys_MIRROR_YAXIS, "YAXIS", "Vertical Axis", ""},
-	{graphkeys_MIRROR_XAXIS, "XAXIS", "Horizontal Axis", ""},
-	{graphkeys_MIRROR_MARKER, "MARKER", "First Selected Marker", ""},
+	{GRAPHKEYS_MIRROR_CFRA, "CFRA", "Current frame", ""},
+	{GRAPHKEYS_MIRROR_YAXIS, "YAXIS", "Vertical Axis", ""},
+	{GRAPHKEYS_MIRROR_XAXIS, "XAXIS", "Horizontal Axis", ""},
+	{GRAPHKEYS_MIRROR_MARKER, "MARKER", "First Selected Marker", ""},
 	{0, NULL, NULL, NULL}
 };
 
@@ -1252,7 +1256,7 @@ static void mirror_graph_keys(bAnimContext *ac, short mode)
 	
 	/* for 'first selected marker' mode, need to find first selected marker first! */
 	// XXX should this be made into a helper func in the API?
-	if (mode == graphkeys_MIRROR_MARKER) {
+	if (mode == GRAPHKEYS_MIRROR_MARKER) {
 		Scene *scene= ac->scene;
 		TimeMarker *marker= NULL;
 		
@@ -1334,4 +1338,3 @@ void GRAPHEDIT_OT_keyframes_mirror (wmOperatorType *ot)
 }
 
 /* ************************************************************************** */
-#endif // XXX code to be sanitied for new system

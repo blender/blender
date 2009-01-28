@@ -3253,7 +3253,7 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 						else if (bezt->f2 & SELECT) count++;
 					}
 					else {
-						/* for 'norma' pivots */
+						/* for 'normal' pivots */
 						if (bezt->ipo == BEZT_IPO_BEZ) {
 							if (bezt->f1 & SELECT) count++;
 							if (bezt->f2 & SELECT) count++;
@@ -3349,7 +3349,6 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 		/* Sets handles based on the selection */
 		testhandles_fcurve(fcu);	
 	}
-	
 	
 	/* cleanup temp list */
 	BLI_freelistN(&anim_data);

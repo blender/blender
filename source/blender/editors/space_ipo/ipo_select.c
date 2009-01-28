@@ -579,7 +579,6 @@ static short findnearest_fcurve_vert (bAnimContext *ac, int mval[2], FCurve **fc
 		FCurve *fcu= (FCurve *)ale->key_data;
 		
 		/* try to progressively get closer to the right point... */
-		// XXX keyframe visibility isn't checked for... 
 		if (fcu->bezt) {
 			BezTriple *bezt1=fcu->bezt, *prevbezt=NULL;
 			

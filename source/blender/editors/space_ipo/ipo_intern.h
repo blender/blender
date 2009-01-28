@@ -72,6 +72,45 @@ enum {
 /* ***************************************** */
 /* ipo_edit.c */
 
+void GRAPHEDIT_OT_set_previewrange(struct wmOperatorType *ot);
+void GRAPHEDIT_OT_view_all(struct wmOperatorType *ot);
+
+void GRAPHEDIT_OT_keyframes_copy(struct wmOperatorType *ot);
+void GRAPHEDIT_OT_keyframes_paste(struct wmOperatorType *ot);
+
+void GRAPHEDIT_OT_keyframes_delete(struct wmOperatorType *ot);
+void GRAPHEDIT_OT_keyframes_clean(struct wmOperatorType *ot);
+void GRAPHEDIT_OT_keyframes_sample(struct wmOperatorType *ot);
+
+void GRAPHEDIT_OT_keyframes_handletype(struct wmOperatorType *ot);
+void GRAPHEDIT_OT_keyframes_interpolation_type(struct wmOperatorType *ot);
+void GRAPHEDIT_OT_keyframes_expotype(struct wmOperatorType *ot);
+
+void GRAPHEDIT_OT_keyframes_cfrasnap(struct wmOperatorType *ot);
+void GRAPHEDIT_OT_keyframes_snap(struct wmOperatorType *ot);
+void GRAPHEDIT_OT_keyframes_mirror(struct wmOperatorType *ot);
+
+/* defines for snap keyframes 
+ * NOTE: keep in sync with eEditKeyframes_Snap (in ED_keyframes_edit.h)
+ */
+enum {
+	GRAPHKEYS_SNAP_CFRA = 1,
+	GRAPHKEYS_SNAP_NEAREST_FRAME,
+	GRAPHKEYS_SNAP_NEAREST_SECOND,
+	GRAPHKEYS_SNAP_NEAREST_MARKER,	
+	GRAPHKEYS_SNAP_HORIZONTAL,
+} eGraphKeys_Snap_Mode;
+
+/* defines for mirror keyframes 
+ * NOTE: keep in sync with eEditKeyframes_Mirror (in ED_keyframes_edit.h)
+ */
+enum {
+	GRAPHKEYS_MIRROR_CFRA = 1,
+	GRAPHKEYS_MIRROR_YAXIS,
+	GRAPHKEYS_MIRROR_XAXIS,
+	GRAPHKEYS_MIRROR_MARKER,
+} eGraphKeys_Mirror_Mode;
+
 /* ***************************************** */
 /* ipo_ops.c */
 void graphedit_keymap(struct wmWindowManager *wm);
