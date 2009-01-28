@@ -248,6 +248,8 @@ void WM_exit(bContext *C)
 #ifdef INTERNATIONAL
 	FTF_End();
 #endif
+
+	GPU_extensions_exit();
 	
 //	if (copybuf) MEM_freeN(copybuf);
 //	if (copybufinfo) MEM_freeN(copybufinfo);

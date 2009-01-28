@@ -157,6 +157,51 @@ static void button_activate_state(bContext *C, uiBut *but, uiHandleButtonState s
 static int ui_handler_region_menu(bContext *C, wmEvent *event, void *userdata);
 static int ui_handler_popup(bContext *C, wmEvent *event, void *userdata);
 static void ui_handler_remove_popup(bContext *C, void *userdata);
+static void ui_handle_button_activate(bContext *C, ARegion *ar, uiBut *but, uiButtonActivateType type);
+
+/* ******************** menu navigation helpers ************** */
+
+static uiBut *ui_but_prev(uiBut *but)
+{
+	while(but->prev) {
+		but= but->prev;
+		if(but->type!=LABEL && but->type!=SEPR && but->type!=ROUNDBOX) return but;
+	}
+	return NULL;
+}
+
+static uiBut *ui_but_next(uiBut *but)
+{
+	while(but->next) {
+		but= but->next;
+		if(but->type!=LABEL && but->type!=SEPR && but->type!=ROUNDBOX) return but;
+	}
+	return NULL;
+}
+
+static uiBut *ui_but_first(uiBlock *block)
+{
+	uiBut *but;
+	
+	but= block->buttons.first;
+	while(but) {
+		if(but->type!=LABEL && but->type!=SEPR && but->type!=ROUNDBOX) return but;
+		but= but->next;
+	}
+	return NULL;
+}
+
+static uiBut *ui_but_last(uiBlock *block)
+{
+	uiBut *but;
+	
+	but= block->buttons.last;
+	while(but) {
+		if(but->type!=LABEL && but->type!=SEPR && but->type!=ROUNDBOX) return but;
+		but= but->prev;
+	}
+	return NULL;
+}
 
 /* ********************** button apply/revert ************************/
 
@@ -2892,8 +2937,23 @@ static void button_activate_init(bContext *C, ARegion *ar, uiBut *but, uiButtonA
 
 	button_activate_state(C, but, BUTTON_STATE_HIGHLIGHT);
 
-	if(type == BUTTON_ACTIVATE_OPEN)
+	if(type == BUTTON_ACTIVATE_OPEN) {
 		button_activate_state(C, but, BUTTON_STATE_MENU_OPEN);
+
+		/* activate first button in submenu */
+		if(data->menu && data->menu->region) {
+			ARegion *subar= data->menu->region;
+			uiBlock *subblock= subar->uiblocks.first;
+			uiBut *subbut;
+			
+			if(subblock) {
+				subbut= ui_but_first(subblock);
+
+				if(subbut)
+					ui_handle_button_activate(C, subar, subbut, BUTTON_ACTIVATE);
+			}
+		}
+	}
 	else if(type == BUTTON_ACTIVATE_TEXT_EDITING)
 		button_activate_state(C, but, BUTTON_STATE_TEXT_EDITING);
 	else if(type == BUTTON_ACTIVATE_APPLY)
@@ -3153,50 +3213,6 @@ static void ui_handle_button_closed_submenu(bContext *C, wmEvent *event, uiBut *
 			button_activate_exit(C, data, but, 1);
 		}
 	}
-}
-
-/* ******************** menu navigation helpers ************** */
-
-static uiBut *ui_but_prev(uiBut *but)
-{
-	while(but->prev) {
-		but= but->prev;
-		if(but->type!=LABEL && but->type!=SEPR && but->type!=ROUNDBOX) return but;
-	}
-	return NULL;
-}
-
-static uiBut *ui_but_next(uiBut *but)
-{
-	while(but->next) {
-		but= but->next;
-		if(but->type!=LABEL && but->type!=SEPR && but->type!=ROUNDBOX) return but;
-	}
-	return NULL;
-}
-
-static uiBut *ui_but_first(uiBlock *block)
-{
-	uiBut *but;
-	
-	but= block->buttons.first;
-	while(but) {
-		if(but->type!=LABEL && but->type!=SEPR && but->type!=ROUNDBOX) return but;
-		but= but->next;
-	}
-	return NULL;
-}
-
-static uiBut *ui_but_last(uiBlock *block)
-{
-	uiBut *but;
-	
-	but= block->buttons.last;
-	while(but) {
-		if(but->type!=LABEL && but->type!=SEPR && but->type!=ROUNDBOX) return but;
-		but= but->prev;
-	}
-	return NULL;
 }
 
 /* ************************* menu handling *******************************/
@@ -3474,9 +3490,11 @@ int ui_handle_menu_event(bContext *C, wmEvent *event, uiMenuBlockHandle *menu, i
 		}
 	}
 
-	/* if we are inside the region and didn't handle the event yet, lets
-	 * pass it on to buttons inside this region */
-	if((inside && !menu->menuretval && retval == WM_UI_HANDLER_CONTINUE) || event->type == TIMER) {
+	/* if we are didn't handle the event yet, lets pass it on to
+	 * buttons inside this region. disabled inside check .. not sure
+	 * anymore why it was there? but i meant enter enter didn't work
+	 * for example when mouse was not over submenu */
+	if((/*inside &&*/ !menu->menuretval && retval == WM_UI_HANDLER_CONTINUE) || event->type == TIMER) {
 		but= ui_but_find_activated(ar);
 
 		if(but)

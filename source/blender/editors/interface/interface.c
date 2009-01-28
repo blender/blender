@@ -433,8 +433,8 @@ static int ui_but_equals_old(uiBut *but, uiBut *oldbut)
 	if(but->rnaprop != oldbut->rnaprop)
 	if(but->rnaindex != oldbut->rnaindex) return 0;
 	if(but->func != oldbut->func) return 0;
-	if(but->func_arg1 != oldbut->func_arg1) return 0;
-	if(but->func_arg2 != oldbut->func_arg2) return 0;
+	if(oldbut->func_arg1 != oldbut && but->func_arg1 != oldbut->func_arg1) return 0;
+	if(oldbut->func_arg2 != oldbut && but->func_arg2 != oldbut->func_arg2) return 0;
 
 	return 1;
 }
