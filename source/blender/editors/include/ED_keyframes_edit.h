@@ -132,7 +132,7 @@ void delete_fcurve_keys(struct FCurve *fcu);
 void duplicate_fcurve_keys(struct FCurve *fcu);
 
 void clean_fcurve(struct FCurve *fcu, float thresh);
-void smooth_fcurve(struct FCurve *fcu, short mode);
+void smooth_fcurve(struct FCurve *fcu);
 
 /* ************************************************ */
 

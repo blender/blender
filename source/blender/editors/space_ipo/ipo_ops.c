@@ -113,11 +113,12 @@ void graphedit_operatortypes(void)
 	WM_operatortype_append(GRAPHEDIT_OT_keyframes_cfrasnap);
 	WM_operatortype_append(GRAPHEDIT_OT_keyframes_handletype);
 	WM_operatortype_append(GRAPHEDIT_OT_keyframes_interpolation_type);
-#if 0 // XXX code to be sanitied for new system	
-	WM_operatortype_append(GRAPHEDIT_OT_keyframes_expotype);
+	WM_operatortype_append(GRAPHEDIT_OT_keyframes_extrapolation_type);
 	WM_operatortype_append(GRAPHEDIT_OT_keyframes_sample);
+	WM_operatortype_append(GRAPHEDIT_OT_keyframes_smooth);
 	WM_operatortype_append(GRAPHEDIT_OT_keyframes_clean);
 	WM_operatortype_append(GRAPHEDIT_OT_keyframes_delete);
+#if 0 // XXX code to be sanitied for new system	
 	WM_operatortype_append(GRAPHEDIT_OT_keyframes_copy);
 	WM_operatortype_append(GRAPHEDIT_OT_keyframes_paste);
 #endif // XXX code to be sanitied for new system
@@ -164,16 +165,18 @@ static void graphedit_keymap_keyframes (wmWindowManager *wm, ListBase *keymap)
 	
 	WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_handletype", HKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_interpolation_type", TKEY, KM_PRESS, KM_SHIFT, 0);
-#if 0 // XXX code to be sanitied for new system	
-	WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_expotype", EKEY, KM_PRESS, KM_SHIFT, 0); // temp...
+	WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_extrapolation_type", EKEY, KM_PRESS, KM_SHIFT, 0);
+	
 	
 		/* destructive */
 	WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_clean", OKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_sample", OKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_smooth", OKEY, KM_PRESS, KM_ALT, 0);
 	
 	WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_delete", XKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_delete", DELKEY, KM_PRESS, 0, 0);
 	
+#if 0 // XXX code to be sanitied for new system
 		/* copy/paste */
 	WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_copy", CKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_paste", VKEY, KM_PRESS, KM_CTRL, 0);

@@ -152,11 +152,6 @@ void duplicate_fcurve_keys(FCurve *fcu)
 /* **************************************************** */
 /* Various Tools */
 
-// XXX - stub... until keyframing code is fixed...
-static void insert_vert_fcu(FCurve *fcu, float x, float y, short flag)
-{
-}
-
 /* Basic IPO-Curve 'cleanup' function that removes 'double points' and unnecessary keyframes on linear-segments only */
 void clean_fcurve(FCurve *fcu, float thresh)
 {
@@ -176,7 +171,7 @@ void clean_fcurve(FCurve *fcu, float thresh)
 	
 	/* now insert first keyframe, as it should be ok */
 	bezt = old_bezts;
-	insert_vert_fcu(fcu, bezt->vec[1][0], bezt->vec[1][1], 0);
+	insert_vert_fcurve(fcu, bezt->vec[1][0], bezt->vec[1][1], 0);
 	
 	/* Loop through BezTriples, comparing them. Skip any that do 
 	 * not fit the criteria for "ok" points.
@@ -213,7 +208,7 @@ void clean_fcurve(FCurve *fcu, float thresh)
 				if (cur[1] > next[1]) {
 					if (IS_EQT(cur[1], prev[1], thresh) == 0) {
 						/* add new keyframe */
-						insert_vert_fcu(fcu, cur[0], cur[1], 0);
+						insert_vert_fcurve(fcu, cur[0], cur[1], 0);
 					}
 				}
 			}
@@ -221,7 +216,7 @@ void clean_fcurve(FCurve *fcu, float thresh)
 				/* only add if values are a considerable distance apart */
 				if (IS_EQT(cur[1], prev[1], thresh) == 0) {
 					/* add new keyframe */
-					insert_vert_fcu(fcu, cur[0], cur[1], 0);
+					insert_vert_fcurve(fcu, cur[0], cur[1], 0);
 				}
 			}
 		}
@@ -231,18 +226,18 @@ void clean_fcurve(FCurve *fcu, float thresh)
 				/* does current have same value as previous and next? */
 				if (IS_EQT(cur[1], prev[1], thresh) == 0) {
 					/* add new keyframe*/
-					insert_vert_fcu(fcu, cur[0], cur[1], 0);
+					insert_vert_fcurve(fcu, cur[0], cur[1], 0);
 				}
 				else if (IS_EQT(cur[1], next[1], thresh) == 0) {
 					/* add new keyframe */
-					insert_vert_fcu(fcu, cur[0], cur[1], 0);
+					insert_vert_fcurve(fcu, cur[0], cur[1], 0);
 				}
 			}
 			else {	
 				/* add if value doesn't equal that of previous */
 				if (IS_EQT(cur[1], prev[1], thresh) == 0) {
 					/* add new keyframe */
-					insert_vert_fcu(fcu, cur[0], cur[1], 0);
+					insert_vert_fcurve(fcu, cur[0], cur[1], 0);
 				}
 			}
 		}
@@ -261,8 +256,7 @@ typedef struct tSmooth_Bezt {
 } tSmooth_Bezt;
 
 /* Use a weighted moving-means method to reduce intensity of fluctuations */
-//mode= pupmenu("Smooth F-Curve%t|Tweak Points%x1|Flatten Handles%x2");
-void smooth_fcurve(FCurve *fcu, short mode)
+void smooth_fcurve (FCurve *fcu)
 {
 	BezTriple *bezt;
 	int i, x, totSel = 0;
@@ -283,8 +277,6 @@ void smooth_fcurve(FCurve *fcu, short mode)
 		}
 	}
 	
-	/* check if adjust values too... */
-	if (mode == 2) {
 		/* if any points were selected, allocate tSmooth_Bezt points to work on */
 		if (totSel >= 3) {
 			tSmooth_Bezt *tarray, *tsb;
@@ -309,50 +301,49 @@ void smooth_fcurve(FCurve *fcu, short mode)
 				}
 			}
 			
-			/* calculate the new smoothed ipo's with weighted averages:
-			 *	- this is done with two passes
-			 *	- uses 5 points for each operation (which stores in the relevant handles)
-			 *	-	previous: w/a ratio = 3:5:2:1:1
-			 *	- 	next: w/a ratio = 1:1:2:5:3
-			 */
+	/* calculate the new smoothed F-Curve's with weighted averages:
+	 *	- this is done with two passes
+	 *	- uses 5 points for each operation (which stores in the relevant handles)
+	 *	-	previous: w/a ratio = 3:5:2:1:1
+	 *	- 	next: w/a ratio = 1:1:2:5:3
+	 */
+	
+	/* round 1: calculate previous and next */ 
+	tsb= tarray;
+	for (i=0; i < totSel; i++, tsb++) {
+		/* don't touch end points (otherwise, curves slowly explode) */
+		if (ELEM(i, 0, (totSel-1)) == 0) {
+			const tSmooth_Bezt *tP1 = tsb - 1;
+			const tSmooth_Bezt *tP2 = (i-2 > 0) ? (tsb - 2) : (NULL);
+			const tSmooth_Bezt *tN1 = tsb + 1;
+			const tSmooth_Bezt *tN2 = (i+2 < totSel) ? (tsb + 2) : (NULL);
 			
-			/* round 1: calculate previous and next */ 
-			tsb= tarray;
-			for (i=0; i < totSel; i++, tsb++) {
-				/* don't touch end points (otherwise, curves slowly explode) */
-				if (ELEM(i, 0, (totSel-1)) == 0) {
-					const tSmooth_Bezt *tP1 = tsb - 1;
-					const tSmooth_Bezt *tP2 = (i-2 > 0) ? (tsb - 2) : (NULL);
-					const tSmooth_Bezt *tN1 = tsb + 1;
-					const tSmooth_Bezt *tN2 = (i+2 < totSel) ? (tsb + 2) : (NULL);
-					
-					const float p1 = *tP1->h2;
-					const float p2 = (tP2) ? (*tP2->h2) : (*tP1->h2);
-					const float c1 = *tsb->h2;
-					const float n1 = *tN1->h2;
-					const float n2 = (tN2) ? (*tN2->h2) : (*tN1->h2);
-					
-					/* calculate previous and next */
-					*tsb->h1= (3*p2 + 5*p1 + 2*c1 + n1 + n2) / 12;
-					*tsb->h3= (p2 + p1 + 2*c1 + 5*n1 + 3*n2) / 12;
-				}
-			}
+			const float p1 = *tP1->h2;
+			const float p2 = (tP2) ? (*tP2->h2) : (*tP1->h2);
+			const float c1 = *tsb->h2;
+			const float n1 = *tN1->h2;
+			const float n2 = (tN2) ? (*tN2->h2) : (*tN1->h2);
 			
-			/* round 2: calculate new values and reset handles */
-			tsb= tarray;
-			for (i=0; i < totSel; i++, tsb++) {
-				/* calculate new position by averaging handles */
-				*tsb->h2 = (*tsb->h1 + *tsb->h3) / 2;
-				
-				/* reset handles now */
-				*tsb->h1 = *tsb->h2;
-				*tsb->h3 = *tsb->h2;
-			}
-			
-			/* free memory required for tarray */
-			MEM_freeN(tarray);
+			/* calculate previous and next */
+			*tsb->h1= (3*p2 + 5*p1 + 2*c1 + n1 + n2) / 12;
+			*tsb->h3= (p2 + p1 + 2*c1 + 5*n1 + 3*n2) / 12;
 		}
 	}
+	
+	/* round 2: calculate new values and reset handles */
+	tsb= tarray;
+	for (i=0; i < totSel; i++, tsb++) {
+		/* calculate new position by averaging handles */
+		*tsb->h2 = (*tsb->h1 + *tsb->h3) / 2;
+		
+		/* reset handles now */
+		*tsb->h1 = *tsb->h2;
+		*tsb->h3 = *tsb->h2;
+	}
+	
+	/* free memory required for tarray */
+	MEM_freeN(tarray);
+}
 	
 	/* recalculate handles */
 	calchandles_fcurve(fcu);

@@ -3127,7 +3127,7 @@ static void createTransActionData(bContext *C, TransInfo *t)
 
 
 
-/* Helper function for make_ipo_transdata, which is reponsible for associating
+/* Helper function for createTransGraphEditData, which is reponsible for associating
  * source data with transform data
  */
 static void bezt_to_transdata (TransData *td, TransData2D *td2d, Object *nob, float *loc, float *cent, short selected, short ishandle)
@@ -3145,7 +3145,6 @@ static void bezt_to_transdata (TransData *td, TransData2D *td2d, Object *nob, fl
 		td2d->loc[2] = 0.0f;
 		td2d->loc2d = loc;
 		
-		/*td->flag = 0;*/ /* can be set beforehand, else make sure its set to 0 */
 		td->loc = td2d->loc;
 		td->center[0] = get_action_frame_inv(nob, cent[0]);
 		td->center[1] = cent[1];
@@ -3159,7 +3158,6 @@ static void bezt_to_transdata (TransData *td, TransData2D *td2d, Object *nob, fl
 		td2d->loc[2] = 0.0f;
 		td2d->loc2d = loc;
 		
-		/*td->flag = 0;*/ /* can be set beforehand, else make sure its set to 0 */
 		td->loc = td2d->loc;
 		VECCOPY(td->center, cent);
 		VECCOPY(td->iloc, td->loc);
@@ -3172,7 +3170,7 @@ static void bezt_to_transdata (TransData *td, TransData2D *td2d, Object *nob, fl
 
 	if (selected) {
 		td->flag |= TD_SELECTED;
-		td->dist= 0.0;
+		td->dist= 0.0f;
 	}
 	else
 		td->dist= MAXFLOAT;
@@ -3574,9 +3572,7 @@ void flushTransGraphData(TransInfo *t)
 		//else
 			td2d->loc2d[0]= td2d->loc[0];
 		
-		/* when the icu that point comes from is a bitflag holder, don't allow adjusting values */
-		if ((td->flag & TD_TIMEONLY)==0)
-			td2d->loc2d[1]= td2d->loc[1];
+		td2d->loc2d[1]= td2d->loc[1];
 	}
 }
 

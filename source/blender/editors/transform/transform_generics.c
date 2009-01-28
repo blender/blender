@@ -401,6 +401,7 @@ void recalcData(TransInfo *t)
 		bAnimListElem *ale;
 		int dosort = 0;
 		
+		
 		/* initialise relevant anim-context 'context' data from TransInfo data */
 			/* NOTE: sync this with the code in ANIM_animdata_get_context() */
 		memset(&ac, 0, sizeof(bAnimContext));
@@ -422,7 +423,7 @@ void recalcData(TransInfo *t)
 		/* now test if there is a need to re-sort */
 		for (ale= anim_data.first; ale; ale= ale->next) {
 			FCurve *fcu= (FCurve *)ale->key_data;
-				
+			
 			/* watch it: if the time is wrong: do not correct handles yet */
 			if (test_time_fcurve(fcu))
 				dosort++;

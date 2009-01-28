@@ -81,10 +81,11 @@ void GRAPHEDIT_OT_keyframes_paste(struct wmOperatorType *ot);
 void GRAPHEDIT_OT_keyframes_delete(struct wmOperatorType *ot);
 void GRAPHEDIT_OT_keyframes_clean(struct wmOperatorType *ot);
 void GRAPHEDIT_OT_keyframes_sample(struct wmOperatorType *ot);
+void GRAPHEDIT_OT_keyframes_smooth(struct wmOperatorType *ot);
 
 void GRAPHEDIT_OT_keyframes_handletype(struct wmOperatorType *ot);
 void GRAPHEDIT_OT_keyframes_interpolation_type(struct wmOperatorType *ot);
-void GRAPHEDIT_OT_keyframes_expotype(struct wmOperatorType *ot);
+void GRAPHEDIT_OT_keyframes_extrapolation_type(struct wmOperatorType *ot);
 
 void GRAPHEDIT_OT_keyframes_cfrasnap(struct wmOperatorType *ot);
 void GRAPHEDIT_OT_keyframes_snap(struct wmOperatorType *ot);

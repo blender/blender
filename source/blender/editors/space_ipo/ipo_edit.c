@@ -480,17 +480,6 @@ static short paste_graph_keys (bAnimContext *ac)
 	
 	/* free temp memory */
 	BLI_freelistN(&anim_data);
-	
-	/* do depsgraph updates (for 3d-view)? */
-#if 0
-	if ((ob) && (G.saction->pin==0)) {
-		if (ob->type == OB_ARMATURE)
-			DAG_object_flush_update(G.scene, ob, OB_RECALC_OB|OB_RECALC_DATA);
-		else
-			DAG_object_flush_update(G.scene, ob, OB_RECALC_OB);
-	}
-#endif
-
 #endif // XXX old animation system
 
 	return 0;
@@ -571,6 +560,8 @@ void GRAPHEDIT_OT_keyframes_paste (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
 }
 
+#endif // XXX code to be sanitied for new system
+
 /* ******************** Delete Keyframes Operator ************************* */
 
 static void delete_graph_keys (bAnimContext *ac)
@@ -621,6 +612,7 @@ void GRAPHEDIT_OT_keyframes_delete (wmOperatorType *ot)
 	ot->idname= "GRAPHEDIT_OT_keyframes_delete";
 	
 	/* api callbacks */
+	ot->invoke= WM_operator_confirm;
 	ot->exec= graphkeys_delete_exec;
 	ot->poll= ED_operator_areaactive;
 	
@@ -693,6 +685,8 @@ void GRAPHEDIT_OT_keyframes_clean (wmOperatorType *ot)
 }
 
 /* ******************** Sample Keyframes Operator *********************** */
+
+// XXX some of the common parts (with DopeSheet) should be unified in animation module...
 
 /* little cache for values... */
 typedef struct tempFrameValCache {
@@ -810,12 +804,11 @@ void GRAPHEDIT_OT_keyframes_sample (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
 }
 
+
 /* ************************************************************************** */
 /* SETTINGS STUFF */
 
 /* ******************** Set Extrapolation-Type Operator *********************** */
-
-// XXX rename this operator...
 
 /* defines for set extrapolation-type for selected keyframes tool */
 EnumPropertyItem prop_graphkeys_expo_types[] = {
@@ -871,11 +864,11 @@ static int graphkeys_expo_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
  
-void GRAPHEDIT_OT_keyframes_expotype (wmOperatorType *ot)
+void GRAPHEDIT_OT_keyframes_extrapolation_type (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Set Keyframe Extrapolation";
-	ot->idname= "GRAPHEDIT_OT_keyframes_expotype";
+	ot->idname= "GRAPHEDIT_OT_keyframes_extrapolation_type";
 	
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
@@ -888,8 +881,6 @@ void GRAPHEDIT_OT_keyframes_expotype (wmOperatorType *ot)
 	/* id-props */
 	RNA_def_enum(ot->srna, "type", prop_graphkeys_expo_types, 0, "Type", "");
 }
-
-#endif // XXX code to be sanitied for new system
 
 /* ******************** Set Interpolation-Type Operator *********************** */
 
@@ -1335,6 +1326,56 @@ void GRAPHEDIT_OT_keyframes_mirror (wmOperatorType *ot)
 	
 	/* id-props */
 	RNA_def_enum(ot->srna, "type", prop_graphkeys_mirror_types, 0, "Type", "");
+}
+
+/* ******************** Smooth Keyframes Operator *********************** */
+
+static int graphkeys_smooth_exec(bContext *C, wmOperator *op)
+{
+	bAnimContext ac;
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
+	int filter;
+	
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+	
+	/* filter data */
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVEVISIBLE| ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY);
+	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+	
+	/* smooth keyframes */
+	for (ale= anim_data.first; ale; ale= ale->next) {
+		/* For now, we can only smooth by flattening handles AND smoothing curve values.
+		 * Perhaps the mode argument could be removed, as that functionality is offerred through 
+		 * Snap->Flatten Handles anyway.
+		 */
+		smooth_fcurve(ale->key_data);
+	}
+	BLI_freelistN(&anim_data);
+	
+	/* validate keyframes after editing */
+	ANIM_editkeyframes_refresh(&ac);
+	
+	/* set notifier tha things have changed */
+	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_KEYFRAMES_VALUES);
+	
+	return OPERATOR_FINISHED;
+}
+ 
+void GRAPHEDIT_OT_keyframes_smooth (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Smooth Keys";
+	ot->idname= "GRAPHEDIT_OT_keyframes_smooth";
+	
+	/* api callbacks */
+	ot->exec= graphkeys_smooth_exec;
+	ot->poll= ED_operator_areaactive;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
 }
 
 /* ************************************************************************** */
