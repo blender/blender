@@ -684,6 +684,8 @@ void initTransInfo (bContext *C, TransInfo *t, wmEvent *event)
 	{
 		t->imval[0] = event->x - t->ar->winrct.xmin;
 		t->imval[1] = event->y - t->ar->winrct.ymin;
+		
+		t->event_type = event->type;
 	}
 	else
 	{

@@ -970,8 +970,8 @@ void WM_event_add_mousemove(bContext *C)
 /* for modal callbacks, check configuration for how to interpret exit with tweaks  */
 int WM_modal_tweak_exit(wmEvent *evt, int tweak_event)
 {
-	/* user preset?? dunno... */
-	int tweak_modal= 1;
+	/* user preset or keymap? dunno... */
+	int tweak_modal= (U.flag & USER_DRAGIMMEDIATE)==0;
 	
 	switch(tweak_event) {
 		case EVT_TWEAK_L:

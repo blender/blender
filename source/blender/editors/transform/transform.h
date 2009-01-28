@@ -218,6 +218,7 @@ typedef struct TransInfo {
     float       center[3];      /* center of transformation             */
     int         center2d[2];    /* center in screen coordinates         */
     short       imval[2];       /* initial mouse position               */
+	short		event_type;		/* event->type used to invoke transform */
 	short       idx_max;		/* maximum index on the input vector	*/
 	float		snap[3];		/* Snapping Gears						*/
 	char		frame_side;		/* Mouse side of the cfra, 'L', 'R' or 'B' */

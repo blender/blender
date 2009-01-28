@@ -882,7 +882,8 @@ void transformEvent(TransInfo *t, wmEvent *event)
 			break;
 		case LEFTMOUSE:
 		case RIGHTMOUSE:
-			if (t->options & CTX_TWEAK)
+			if(WM_modal_tweak_exit(event, t->event_type))
+//			if (t->options & CTX_TWEAK)
 				t->state = TRANS_CONFIRM;
 			break;
 		}
