@@ -129,7 +129,7 @@ Example::
 	- UVLAYER - Used for Displace only
 	- MID_LEVEL - Used for Displace only (float [0.0, 1.0], default: 0.5)
 	- STRENGTH - Used for Displace only (float [-1000.0, 1000.0, default: 1.0)
-	- TEXTURE - Used for Displace only (string)
+	- TEXTURE - Used for Displace only (Texture object)
 	- MAPPING - Used for Displace only
 	- DIRECTION - Used for Displace only
 

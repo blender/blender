@@ -190,6 +190,11 @@ void save_image_filesel_str(char *str)
 		case R_MULTILAYER:
 			strcpy(str, "Save Multi Layer EXR");
 			break;
+#ifdef WITH_OPENJPEG
+		case R_JP2:
+			strcpy(str, "Save JPEG2000");
+			break;
+#endif
 			/* default we save jpeg, also for all movie formats */
 		case R_JPEG90:
 		case R_MOVIE:

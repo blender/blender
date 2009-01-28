@@ -1047,8 +1047,11 @@ void M_Blender_Init(void)
 	if (SpaceHandlers) {
 		BPy_constant *d = (BPy_constant *)SpaceHandlers;
 
-		PyConstant_Insert(d,"VIEW3D_EVENT",PyInt_FromLong(SPACEHANDLER_VIEW3D_EVENT));
+		/* EVENT_ALL are reported as EVENT on key presses
+		 * and EVENT_RELEASE on key releases */
 		PyConstant_Insert(d,"VIEW3D_DRAW", PyInt_FromLong(SPACEHANDLER_VIEW3D_DRAW));
+		PyConstant_Insert(d,"VIEW3D_EVENT",PyInt_FromLong(SPACEHANDLER_VIEW3D_EVENT));
+		PyConstant_Insert(d,"VIEW3D_EVENT_RELEASE",PyInt_FromLong(SPACEHANDLER_VIEW3D_EVENT_ALL));
 
 		PyModule_AddObject(module, "SpaceHandlers", SpaceHandlers);
 	}

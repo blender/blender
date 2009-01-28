@@ -963,11 +963,11 @@ PyObject* initGameLogic(KX_KetsjiEngine *engine, KX_Scene* scene) // quick hack 
 	KX_MACRO_addTypesToDict(d, KX_SOUNDACT_LOOPBIDIRECTIONAL_STOP,     KX_SoundActuator::KX_SOUNDACT_LOOPBIDIRECTIONAL_STOP);
 
 	/* 7. Action actuator													   */
-	KX_MACRO_addTypesToDict(d, KX_ACTIONACT_PLAY,     BL_ActionActuator::KX_ACT_ACTION_PLAY);
-	KX_MACRO_addTypesToDict(d, KX_ACTIONACT_FLIPPER,     BL_ActionActuator::KX_ACT_ACTION_FLIPPER);
-	KX_MACRO_addTypesToDict(d, KX_ACTIONACT_LOOPSTOP,     BL_ActionActuator::KX_ACT_ACTION_LOOPSTOP);
-	KX_MACRO_addTypesToDict(d, KX_ACTIONACT_LOOPEND,     BL_ActionActuator::KX_ACT_ACTION_LOOPEND);
-	KX_MACRO_addTypesToDict(d, KX_ACTIONACT_PROPERTY,     BL_ActionActuator::KX_ACT_ACTION_PROPERTY);
+	KX_MACRO_addTypesToDict(d, KX_ACTIONACT_PLAY,        ACT_ACTION_PLAY);
+	KX_MACRO_addTypesToDict(d, KX_ACTIONACT_FLIPPER,     ACT_ACTION_FLIPPER);
+	KX_MACRO_addTypesToDict(d, KX_ACTIONACT_LOOPSTOP,    ACT_ACTION_LOOP_STOP);
+	KX_MACRO_addTypesToDict(d, KX_ACTIONACT_LOOPEND,     ACT_ACTION_LOOP_END);
+	KX_MACRO_addTypesToDict(d, KX_ACTIONACT_PROPERTY,    ACT_ACTION_FROM_PROP);
 	
 	/*8. GL_BlendFunc */
 	KX_MACRO_addTypesToDict(d, BL_ZERO, GL_ZERO);

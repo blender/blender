@@ -533,21 +533,16 @@ static PyObject *BPy_IDGroup_HasKey(BPy_IDProperty *self, PyObject *value)
 	Py_RETURN_FALSE;
 }
 
-static PyObject *BPy_IDGroup_Update(BPy_IDProperty *self, PyObject *vars)
+static PyObject *BPy_IDGroup_Update(BPy_IDProperty *self, PyObject *value)
 {
-	PyObject *pyob, *pkey, *pval;
+	PyObject *pkey, *pval;
 	Py_ssize_t i=0;
 	
-	if (PySequence_Size(vars) != 1)
-		return EXPP_ReturnPyObjError( PyExc_TypeError,
-		   "expected an object derived from dict.");
-	  
-	pyob = PyTuple_GET_ITEM(vars, 0);
-	if (!PyDict_Check(pyob))
+	if (!PyDict_Check(value))
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 		   "expected an object derived from dict.");
 		   
-	while (PyDict_Next(pyob, &i, &pkey, &pval)) {
+	while (PyDict_Next(value, &i, &pkey, &pval)) {
 		BPy_IDGroup_Map_SetItem(self, pkey, pval);
 		if (PyErr_Occurred()) return NULL;
 	}
@@ -571,7 +566,7 @@ static struct PyMethodDef BPy_IDGroup_methods[] = {
 		"get the values associated with this group."},
 	{"has_key", (PyCFunction)BPy_IDGroup_HasKey, METH_O,
 		"returns true if the group contains a key, false if not."},
-	{"update", (PyCFunction)BPy_IDGroup_Update, METH_VARARGS,
+	{"update", (PyCFunction)BPy_IDGroup_Update, METH_O,
 		"updates the values in the group with the values of another or a dict."},
 	{"convert_to_pyobject", (PyCFunction)BPy_IDGroup_ConvertToPy, METH_NOARGS,
 		"return a purely python version of the group."},

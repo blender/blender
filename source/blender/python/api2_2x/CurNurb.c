@@ -467,9 +467,6 @@ PyObject *CurNurb_append( BPy_CurNurb * self, PyObject * value )
 
 PyObject *CurNurb_appendPointToNurb( Nurb * nurb, PyObject * value )
 {
-
-	int i;
-	int size;
 	int npoints = nurb->pntsu;
 
 	/*
@@ -520,81 +517,58 @@ PyObject *CurNurb_appendPointToNurb( Nurb * nurb, PyObject * value )
 
 	}
 	else if( PySequence_Check( value ) ) {
-		size = PySequence_Size( value );
-/*		printf("\ndbg: got a sequence of size %d\n", size );  */
-		if( size == 4 || size == 5 || size == 6) {
-			BPoint *tmp;
-
-			tmp = nurb->bp;	/* save old pts */
-
-			nurb->bp =
-				( BPoint * ) MEM_mallocN( sizeof( BPoint ) *
-							  ( npoints + 1 ),
-							  "CurNurb_append1" );
-			if( !nurb->bp )
-				return ( EXPP_ReturnPyObjError
-					 ( PyExc_MemoryError,
-					   "allocation failed" ) );
-
-			memmove( nurb->bp, tmp, sizeof( BPoint ) * npoints );
-			if( tmp )
-				MEM_freeN( tmp );
-
-			++nurb->pntsu;
-			/* initialize new BPoint from old */
-			memcpy( nurb->bp + npoints, nurb->bp,
-				sizeof( BPoint ) );
-
-			for( i = 0; i < 4; ++i ) {
-				PyObject *item = PySequence_GetItem( value, i );
-
-				if (item == NULL)
-					return NULL;
-
-
-				nurb->bp[npoints].vec[i] = ( float ) PyFloat_AsDouble( item );
-				Py_DECREF( item );
-			}
-
-			if (size >= 5) {
-				PyObject *item = PySequence_GetItem( value, 4 );
-
-				if (item == NULL)
-					return NULL;
-
-				nurb->bp[npoints].alfa = ( float ) PyFloat_AsDouble( item );
-				Py_DECREF( item );
-			}
-			else {
-				nurb->bp[npoints].alfa = 0.0f;
-			}
-			
-			if (size == 6) {
-				PyObject *item = PySequence_GetItem( value, 5 );
-
-				if (item == NULL)
-					return NULL;
-
-				nurb->bp[npoints].radius = ( float ) PyFloat_AsDouble( item );
-				Py_DECREF( item );
-			}
-			else {
-				nurb->bp[npoints].radius = 1.0f;
-			}
-			
-			nurb->bp[npoints].weight = 0.0; /* softbody weight TODO - add access to this, is zero elsewhere but through blender is 1.0 by default */
-			
-			makeknots( nurb, 1, nurb->flagu >> 1 );
-
-		} else {
-			return EXPP_ReturnPyObjError( PyExc_TypeError,
-					"expected a sequence of 4 or 6 floats" );
+		float xco, yco, zco, wval, tilt=0.0f, radius=1.0f;
+		PyObject *args;
+		BPoint *tmp;
+		
+		if (PyTuple_Check(value)) {
+			args= value;
 		}
+		else {
+			args= PySequence_Tuple(value);
+		}
+		
+		if (!PyArg_ParseTuple(args, "ffff|ff", &xco, &yco, &zco, &wval, &tilt, &radius)) {
+			return EXPP_ReturnPyObjError( PyExc_TypeError, "expected a sequence of 4 to 6 floats" );
+		}
+		
+		if (args != value) {
+			Py_DECREF(args);
+		}
+		tmp = nurb->bp;	/* save old pts */
+
+		nurb->bp =
+			( BPoint * ) MEM_mallocN( sizeof( BPoint ) *
+						  ( npoints + 1 ),
+						  "CurNurb_append1" );
+		if( !nurb->bp )
+			return ( EXPP_ReturnPyObjError
+				 ( PyExc_MemoryError,
+				   "allocation failed" ) );
+
+		memmove( nurb->bp, tmp, sizeof( BPoint ) * npoints );
+		if( tmp )
+			MEM_freeN( tmp );
+
+		++nurb->pntsu;
+		/* initialize new BPoint from old */
+		memcpy( nurb->bp + npoints, nurb->bp,
+			sizeof( BPoint ) );
+		
+		tmp= nurb->bp+npoints;
+		tmp->vec[0] = xco;
+		tmp->vec[1] = yco;
+		tmp->vec[2] = zco;
+		tmp->vec[3] = wval;
+		tmp->alfa = tilt;
+		tmp->radius = radius;
+		tmp->weight = 0.0; /* softbody weight TODO - add access to this, is zero elsewhere but through blender is 1.0 by default */
+		
+		makeknots( nurb, 1, nurb->flagu >> 1 );
 
 	} else {
 		/* bail with error */
-		return EXPP_ReturnPyObjError( PyExc_TypeError,
-					"expected a sequence of 4 to 6 floats" );
+		return EXPP_ReturnPyObjError( PyExc_TypeError, "expected a sequence of 4 to 6 floats" );
 
 	}
 

@@ -780,7 +780,7 @@ static void pose_grab_with_ik_clear(Object *ob)
 {
 	bKinematicConstraint *data;
 	bPoseChannel *pchan;
-	bConstraint *con;
+	bConstraint *con, *next;
 	
 	for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
 		/* clear all temporary lock flags */
@@ -788,7 +788,8 @@ static void pose_grab_with_ik_clear(Object *ob)
 		
 		pchan->constflag &= ~(PCHAN_HAS_IK|PCHAN_HAS_TARGET);
 		/* remove all temporary IK-constraints added */
-		for (con= pchan->constraints.first; con; con= con->next) {
+		for (con= pchan->constraints.first; con; con= next) {
+			next= con->next;
 			if (con->type==CONSTRAINT_TYPE_KINEMATIC) {
 				data= con->data;
 				if (data->flag & CONSTRAINT_IK_TEMP) {

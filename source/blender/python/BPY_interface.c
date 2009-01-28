@@ -2403,7 +2403,7 @@ int BPY_is_spacehandler(Text *text, char spacetype)
 		char *line = tline->line;
 
 		/* Expected format: # SPACEHANDLER.SPACE.TYPE
-		 * Ex: # SPACEHANDLER.VIEW3D.DRAW
+		 * Exs: # SPACEHANDLER.VIEW3D.DRAW
 		 * The actual checks are forgiving, so slight variations also work. */
 		if (line && line[0] == '#' && strstr(line, "HANDLER")) {
 			line++; /* skip '#' */
@@ -2411,11 +2411,19 @@ int BPY_is_spacehandler(Text *text, char spacetype)
 			/* only done for 3D View right now, trivial to add for others: */
 			switch (spacetype) {
 				case SPACE_VIEW3D:
-					if (strstr(line, "3D")) { /* VIEW3D, 3DVIEW */
+					line = strstr(line, "3D"); /* VIEW3D, 3DVIEW */
+					if (line) {
 						if (strstr(line, "DRAW")) type = SPACEHANDLER_VIEW3D_DRAW;
-						else if (strstr(line, "EVENT")) type = SPACEHANDLER_VIEW3D_EVENT;
+						else {
+							line = strstr(line, "EVENT");
+							if (line) {
+								if (strstr(line, "ALL")) {
+									type = SPACEHANDLER_VIEW3D_EVENT_ALL;
+								} else { type = SPACEHANDLER_VIEW3D_EVENT; }
+							}
+						}
 					}
-					break;
+				break;
 			}
 		}
 	}
@@ -2464,7 +2472,6 @@ int BPY_add_spacehandler(Text *text, ScrArea *sa, char spacetype)
 	if (handlertype) {
 		ScriptLink *slink = &sa->scriptlink;
 		void *stmp, *ftmp;
-		unsigned short space_event = SPACEHANDLER_VIEW3D_EVENT;
 
 		/* extend slink */
 
@@ -2484,17 +2491,8 @@ int BPY_add_spacehandler(Text *text, ScrArea *sa, char spacetype)
 			MEM_freeN(ftmp);
 		}
 
-		switch (spacetype) {
-			case SPACE_VIEW3D:
-				if (handlertype == 1) space_event = SPACEHANDLER_VIEW3D_EVENT;
-				else space_event = SPACEHANDLER_VIEW3D_DRAW;
-				break;
-			default:
-				break;
-		}
-
 		slink->scripts[slink->totscript] = (ID *)text;
-		slink->flag[slink->totscript]= space_event;
+		slink->flag[slink->totscript]= handlertype;
 
 		slink->totscript++;
 		slink->actscript = slink->totscript;
@@ -2508,6 +2506,7 @@ int BPY_do_spacehandlers( ScrArea *sa, unsigned short event,
 {
 	ScriptLink *scriptlink;
 	int retval = 0;
+	short slink_event, spacehandlers_match;
 	PyGILState_STATE gilstate;
 	
 	if (!sa || !(G.f & G_DOSCRIPTLINKS)) return 0;
@@ -2549,7 +2548,16 @@ int BPY_do_spacehandlers( ScrArea *sa, unsigned short event,
 		EXPP_dict_set_item_str(g_blenderdict, "eventValue", PyInt_FromLong(eventValue));
 		/* now run all assigned space handlers for this space and space_event */
 		for( index = 0; index < scriptlink->totscript; index++ ) {
-			
+
+			spacehandlers_match = 0;
+
+			slink_event = scriptlink->flag[index];
+			if( slink_event == space_event )
+				spacehandlers_match = 1;
+			else if( ( space_event == SPACEHANDLER_VIEW3D_EVENT ) &&
+					( slink_event == SPACEHANDLER_VIEW3D_EVENT_ALL ) )
+				spacehandlers_match = 1;
+
 			/* for DRAW handlers: */
 			if (event == 0) {
 				glPushAttrib(GL_ALL_ATTRIB_BITS);
@@ -2558,8 +2566,8 @@ int BPY_do_spacehandlers( ScrArea *sa, unsigned short event,
 				glMatrixMode(GL_MODELVIEW);
 				glPushMatrix();
 			}
-			
-			if( ( scriptlink->flag[index] == space_event ) &&
+
+			if( spacehandlers_match &&
 			    ( scriptlink->scripts[index] != NULL ) ) {
 				dict = CreateGlobalDictionary();
 				ret = RunPython( ( Text * ) scriptlink->scripts[index], dict );

@@ -65,15 +65,15 @@ PyParentObject KX_PolyProxy::Parents[] = {
 };
 
 PyMethodDef KX_PolyProxy::Methods[] = {
-	KX_PYMETHODTABLE_NOARG(KX_PolyProxy,getMaterialIndex),
-	KX_PYMETHODTABLE_NOARG(KX_PolyProxy,getNumVertex),
-	KX_PYMETHODTABLE_NOARG(KX_PolyProxy,isVisible),
-	KX_PYMETHODTABLE_NOARG(KX_PolyProxy,isCollider),
-	KX_PYMETHODTABLE_NOARG(KX_PolyProxy,getMaterialName),
-	KX_PYMETHODTABLE_NOARG(KX_PolyProxy,getTextureName),
+	KX_PYMETHODTABLE_NOARGS(KX_PolyProxy,getMaterialIndex),
+	KX_PYMETHODTABLE_NOARGS(KX_PolyProxy,getNumVertex),
+	KX_PYMETHODTABLE_NOARGS(KX_PolyProxy,isVisible),
+	KX_PYMETHODTABLE_NOARGS(KX_PolyProxy,isCollider),
+	KX_PYMETHODTABLE_NOARGS(KX_PolyProxy,getMaterialName),
+	KX_PYMETHODTABLE_NOARGS(KX_PolyProxy,getTextureName),
 	KX_PYMETHODTABLE(KX_PolyProxy,getVertexIndex),
-	KX_PYMETHODTABLE_NOARG(KX_PolyProxy,getMesh),
-	KX_PYMETHODTABLE_NOARG(KX_PolyProxy,getMaterial),
+	KX_PYMETHODTABLE_NOARGS(KX_PolyProxy,getMesh),
+	KX_PYMETHODTABLE_NOARGS(KX_PolyProxy,getMaterial),
 	{NULL,NULL} //Sentinel
 };
 
@@ -171,7 +171,7 @@ void		KX_PolyProxy::ReplicaSetName(STR_String) {};
 
 // stuff for python integration
 
-KX_PYMETHODDEF_DOC_NOARG(KX_PolyProxy, getMaterialIndex, 
+KX_PYMETHODDEF_DOC_NOARGS(KX_PolyProxy, getMaterialIndex, 
 "getMaterialIndex() : return the material index of the polygon in the mesh\n")
 {
 	RAS_MaterialBucket* polyBucket = m_polygon->GetMaterial();
@@ -186,31 +186,31 @@ KX_PYMETHODDEF_DOC_NOARG(KX_PolyProxy, getMaterialIndex,
 	return PyInt_FromLong(matid);
 }
 
-KX_PYMETHODDEF_DOC_NOARG(KX_PolyProxy, getNumVertex,
+KX_PYMETHODDEF_DOC_NOARGS(KX_PolyProxy, getNumVertex,
 "getNumVertex() : returns the number of vertex of the polygon, 3 or 4\n")
 {
 	return PyInt_FromLong(m_polygon->VertexCount());
 }
 
-KX_PYMETHODDEF_DOC_NOARG(KX_PolyProxy, isVisible,
+KX_PYMETHODDEF_DOC_NOARGS(KX_PolyProxy, isVisible,
 "isVisible() : returns whether the polygon is visible or not\n")
 {
 	return PyInt_FromLong(m_polygon->IsVisible());
 }
 
-KX_PYMETHODDEF_DOC_NOARG(KX_PolyProxy, isCollider,
+KX_PYMETHODDEF_DOC_NOARGS(KX_PolyProxy, isCollider,
 "isCollider() : returns whether the polygon is receives collision or not\n")
 {
 	return PyInt_FromLong(m_polygon->IsCollider());
 }
 
-KX_PYMETHODDEF_DOC_NOARG(KX_PolyProxy, getMaterialName,
+KX_PYMETHODDEF_DOC_NOARGS(KX_PolyProxy, getMaterialName,
 "getMaterialName() : returns the polygon material name, \"NoMaterial\" if no material\n")
 {
 	return PyString_FromString(m_polygon->GetMaterial()->GetPolyMaterial()->GetMaterialName());
 }
 
-KX_PYMETHODDEF_DOC_NOARG(KX_PolyProxy, getTextureName,
+KX_PYMETHODDEF_DOC_NOARGS(KX_PolyProxy, getTextureName,
 "getTexturelName() : returns the polygon texture name, \"NULL\" if no texture\n")
 {
 	return PyString_FromString(m_polygon->GetMaterial()->GetPolyMaterial()->GetTextureName());
@@ -239,14 +239,14 @@ KX_PYMETHODDEF_DOC(KX_PolyProxy, getVertexIndex,
 	return PyInt_FromLong(0);
 }
 
-KX_PYMETHODDEF_DOC_NOARG(KX_PolyProxy, getMesh,
+KX_PYMETHODDEF_DOC_NOARGS(KX_PolyProxy, getMesh,
 "getMesh() : returns a mesh proxy\n")
 {
 	KX_MeshProxy* meshproxy = new KX_MeshProxy((RAS_MeshObject*)m_mesh);
 	return meshproxy;
 }
 
-KX_PYMETHODDEF_DOC_NOARG(KX_PolyProxy, getMaterial,
+KX_PYMETHODDEF_DOC_NOARGS(KX_PolyProxy, getMaterial,
 "getMaterial() : returns a material\n")
 {
 	RAS_IPolyMaterial *polymat = m_polygon->GetMaterial()->GetPolyMaterial();

@@ -43,6 +43,12 @@ public:
 	bool getWhole (void) { return m_whole; }
 	/// set whole buffer use
 	void setWhole (bool whole);
+
+	/// is alpha channel used
+	bool getAlpha (void) { return m_alpha; }
+	/// set whole buffer use
+    void setAlpha (bool alpha) { m_alpha = alpha; }
+
 	/// get capture size in viewport
 	short * getCaptureSize (void) { return m_capSize; }
 	/// set capture size in viewport
@@ -61,6 +67,8 @@ protected:
 	short m_capSize[2];
 	/// use whole viewport
 	bool m_whole;
+    /// use alpha channel
+    bool m_alpha;
 
 	/// position of capture rectangle in viewport
 	GLint m_position[2];
@@ -79,6 +87,12 @@ protected:
 	GLint * getViewportSize (void) { return m_viewport + 2; }
 };
 
+PyObject * ImageViewport_getCaptureSize (PyImage * self, void * closure);
+int ImageViewport_setCaptureSize (PyImage * self, PyObject * value, void * closure);
+PyObject * ImageViewport_getWhole (PyImage * self, void * closure);
+int ImageViewport_setWhole (PyImage * self, PyObject * value, void * closure);
+PyObject * ImageViewport_getAlpha (PyImage * self, void * closure);
+int ImageViewport_setAlpha (PyImage * self, PyObject * value, void * closure);
 
 #endif
 

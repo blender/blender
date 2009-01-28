@@ -1031,14 +1031,19 @@ getClipboard(int flag
 	//This needs to change so we do not wait for ever or check owner first
 	while(1) {
 		XNextEvent(m_display, &xevent);
-		if(xevent.type == SelectionNotify) {
-			if(XGetWindowProperty(m_display, m_window, xevent.xselection.property, 0L, 4096L, False, AnyPropertyType, &rtype, &bits, &len, &bytes, &data) == Success) {
-				if (data) {
-					tmp_data = (unsigned char*) malloc(strlen((char*)data)+1);
-					strcpy((char*)tmp_data, (char*)data);
-					XFree(data);
-					return (GHOST_TUns8*)tmp_data;
+		if(xevent.type == SelectionNotify) { 
+			if (xevent.xselection.property ) { /* eric4 on linux gives zero Atom xevent.xselection.property value, closes blender instantly */
+				if(XGetWindowProperty(m_display, m_window, xevent.xselection.property , 0L, 4096L, False, AnyPropertyType, &rtype, &bits, &len, &bytes, &data) == Success) {
+					if (data) {
+						tmp_data = (unsigned char*) malloc(strlen((char*)data)+1);
+						strcpy((char*)tmp_data, (char*)data);
+						XFree(data);
+						return (GHOST_TUns8*)tmp_data;
+					}
 				}
+			}
+			else {
+				fprintf(stderr, "error: cut buffer had a zero xevent.xselection.property, FIXME\n"); // XXX fix this problem!
 			}
 			return NULL;
 		}

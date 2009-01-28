@@ -77,6 +77,7 @@ class SCA_PythonController : public SCA_IController
 	static PyObject* sPyAddActiveActuator(PyObject* self, 
 										  PyObject* args);
 	virtual PyObject* _getattr(const STR_String& attr);
+	virtual int _setattr(const STR_String& attr, PyObject *value);
 
 	KX_PYMETHOD_DOC_NOARGS(SCA_PythonController,GetSensors);
 	KX_PYMETHOD_DOC_NOARGS(SCA_PythonController,GetActuators);

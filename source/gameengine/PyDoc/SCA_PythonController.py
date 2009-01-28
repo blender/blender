@@ -6,6 +6,14 @@ class SCA_PythonController(SCA_IController):
 	"""
 	A Python controller uses a Python script to activate it's actuators,
 	based on it's sensors.
+	
+	Properties:
+	
+	@ivar script: the Python script this controller executes
+	@type script: string, read-only
+	@ivar state: the controllers state bitmask.
+	             This can be used with the GameObject's state to test if the controller is active.
+	@type state: integer
 	"""
 
 	def getSensors():
@@ -36,6 +44,7 @@ class SCA_PythonController(SCA_IController):
 		"""
 	def getScript():
 		"""
+		DEPRECATED: use the script property
 		Gets the Python script this controller executes.
 		
 		@rtype: string
@@ -48,6 +57,7 @@ class SCA_PythonController(SCA_IController):
 		"""
 	def getState():
 		"""
+		DEPRECATED: use the state property
 		Get the controllers state bitmask, this can be used with the GameObject's state to test if the the controller is active.
 		This for instance will always be true however you could compare with a previous state to see when the state was activated.
 		GameLogic.getCurrentController().getState() & GameLogic.getCurrentController().getOwner().getState()

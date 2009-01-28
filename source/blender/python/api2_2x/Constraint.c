@@ -1560,7 +1560,7 @@ static int script_setter( BPy_Constraint *self, int type, PyObject *value )
 			break;
 	case EXPP_CONSTR_SCRIPT: {
 		Text *text = (( BPy_Text * )value)->text;
-		if( !BPy_Object_Check( value ) )
+		if( !BPy_Text_Check( value ) )
 			return EXPP_ReturnIntError( PyExc_TypeError, 
 					"expected BPy text argument" );
 		con->text = text;
@@ -2291,6 +2291,7 @@ static PyObject *ConstraintSeq_remove( BPy_ConstraintSeq *self, BPy_Constraint *
 {
 	bConstraint *con = locate_constr(self, value);
 	bPoseChannel *active= NULL;
+	int tmpflag= 0;
 
 	/* if we can't locate the constraint, return (exception already set) */
 	if (!con)
@@ -2304,6 +2305,11 @@ static PyObject *ConstraintSeq_remove( BPy_ConstraintSeq *self, BPy_Constraint *
 			if (active) active->bone->flag &= ~BONE_ACTIVE;
 			self->pchan->bone->flag |= BONE_ACTIVE;
 		}
+
+		if(!(self->obj->flag & OB_POSEMODE)) {
+			self->obj->flag |= OB_POSEMODE;
+			tmpflag= 1;
+		}
 	}
 	
 	/* del_constr_func() frees constraint + its data */
@@ -2314,6 +2320,8 @@ static PyObject *ConstraintSeq_remove( BPy_ConstraintSeq *self, BPy_Constraint *
 		if (active) active->bone->flag |= BONE_ACTIVE;
 		self->pchan->bone->flag &= ~BONE_ACTIVE;
 	}
+	if(tmpflag)
+		self->obj->flag &= ~OB_POSEMODE;
 	
 	/* erase the link to the constraint */
 	value->con = NULL;

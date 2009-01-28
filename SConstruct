@@ -115,8 +115,9 @@ if toolset:
 		env.Tool('mstoolkit', ['tools'])
 	else:
 		env = BlenderEnvironment(tools=[toolset], ENV = os.environ)
-		if env:
-			btools.SetupSpawn(env)
+		# xxx commented out, as was supressing warnings under mingw..
+		#if env:
+		#	btools.SetupSpawn(env)
 else:
 	env = BlenderEnvironment(ENV = os.environ)
 
@@ -321,10 +322,15 @@ if not quickie and do_clean:
 				print "remove file %s"%(B.root_build_dir+entry)
 				os.remove(B.root_build_dir+entry)
 		for confile in ['extern/ffmpeg/config.mak', 'extern/x264/config.mak',
-				'extern/xvidcore/build/generic/platform.inc']:
+				'extern/xvidcore/build/generic/platform.inc', 'extern/ffmpeg/include']:
 			if os.path.exists(confile):
 				print "clean file %s"%confile
-				os.remove(confile)
+				if os.path.isdir(confile):
+					for root, dirs, files in os.walk(confile):
+						for name in files:
+							os.remove(os.path.join(root, name))
+				else:
+					os.remove(confile)
 		print B.bc.OKGREEN+'...done'+B.bc.ENDC
 	else:
 		print B.bc.HEADER+'Already Clean, nothing to do.'+B.bc.ENDC

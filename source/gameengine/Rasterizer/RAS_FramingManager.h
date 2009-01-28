@@ -212,9 +212,6 @@ public :
 		RAS_FrameFrustum &frustum
 	);
 
-
-private :
-
 	static
 		void
 	ComputeDefaultFrustum(
@@ -224,6 +221,8 @@ private :
 		const float design_aspect_ratio,
 		RAS_FrameFrustum & frustum
 	);	
+
+private :
 
 	static
 		void
