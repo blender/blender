@@ -142,6 +142,8 @@ void IDP_FreeIterBeforeEnd(void *vself);
 struct IDProperty *IDP_GetProperties(struct ID *id, int create_if_needed);
 struct IDProperty *IDP_CopyProperty(struct IDProperty *prop);
 
+int IDP_EqualsProperties(struct IDProperty *prop1, struct IDProperty *prop2);
+
 /*
 Allocate a new ID.
 

@@ -112,6 +112,7 @@ static uiBlock *image_view_viewnavmenu(bContext *C, uiMenuBlockHandle *handle, v
 	/* position menu */
 	uiBlockSetDirection(block, UI_RIGHT);
 	uiTextBoundsBlock(block, 50);
+	uiEndBlock(C, block);
 
 	return block;
 }

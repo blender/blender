@@ -214,7 +214,9 @@ struct uiBlock {
 	int lock;
 	char *lockstr;
 	
-	float xofs, yofs;			// offset to parent button
+	float xofs, yofs;				// offset to parent button
+	int textbounds, dotextbounds;	// for doing delayed
+	int endblock;					// uiEndBlock done?
 
 	rctf safety;				// pulldowns, to detect outside, can differ per case how it is created
 	ListBase saferct;			// uiSafetyRct list

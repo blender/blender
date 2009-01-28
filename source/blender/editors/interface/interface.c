@@ -207,11 +207,17 @@ void ui_window_to_region(const ARegion *ar, int *x, int *y)
 
 /* ******************* block calc ************************* */
 
-/* only for pulldowns */
 void uiTextBoundsBlock(uiBlock *block, int addval)
 {
+	block->textbounds= addval;
+	block->dotextbounds= 1;
+}
+
+/* only for pulldowns */
+static void ui_text_bounds_block(uiBlock *block)
+{
 	uiBut *bt;
-	int i = 0, j, x1addval= 0, nextcol;
+	int i = 0, j, x1addval= 0, nextcol, addval= block->textbounds;
 	
 	bt= block->buttons.first;
 	while(bt) {
@@ -482,13 +488,15 @@ static int ui_but_update_from_old_block(const bContext *C, uiBlock *block, uiBut
 static void ui_menu_block_set_keymaps(const bContext *C, uiBlock *block)
 {
 	uiBut *but;
+	IDProperty *prop;
 	char buf[512], *butstr;
+	int bounds= 0;;
 
-	/* XXX bounds? */
 	for(but=block->buttons.first; but; but=but->next) {
-		/* only hotkey for menus without properties */
-		if(but->opname && but->opptr==NULL) {
-			if(WM_key_event_operator_string(C, but->opname, but->opcontext, buf, sizeof(buf))) {
+		if(but->opname) {
+			prop= (but->opptr)? but->opptr->data: NULL;
+
+			if(WM_key_event_operator_string(C, but->opname, but->opcontext, prop, buf, sizeof(buf))) {
 				butstr= MEM_mallocN(strlen(but->str)+strlen(buf)+2, "menu_block_set_keymaps");
 				strcpy(butstr, but->str);
 				strcat(butstr, "|");
@@ -499,6 +507,7 @@ static void ui_menu_block_set_keymaps(const bContext *C, uiBlock *block)
 				MEM_freeN(butstr);
 
 				ui_check_but(but);
+				bounds= 1;
 			}
 		}
 	}
@@ -526,9 +535,12 @@ void uiEndBlock(const bContext *C, uiBlock *block)
 
 	/* handle pending stuff */
 	if(block->flag & UI_BLOCK_LOOP) ui_menu_block_set_keymaps(C, block);
+	if(block->dotextbounds) ui_text_bounds_block(block); /* after keymaps! */
 	if(block->autofill) ui_autofill(block);
 	if(block->minx==0.0 && block->maxx==0.0) uiBoundsBlock(block, 0);
 	if(block->flag & UI_BUT_ALIGN) uiBlockEndAlign(block);
+
+	block->endblock= 1;
 }
 
 /* ************** BLOCK DRAWING FUNCTION ************* */
@@ -536,6 +548,9 @@ void uiEndBlock(const bContext *C, uiBlock *block)
 void uiDrawBlock(const bContext *C, uiBlock *block)
 {
 	uiBut *but;
+
+	if(!block->endblock)
+		uiEndBlock(C, block);
 
 	/* we set this only once */
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

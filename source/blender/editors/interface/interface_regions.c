@@ -651,6 +651,9 @@ uiMenuBlockHandle *ui_menu_block_create(bContext *C, ARegion *butregion, uiBut *
 	block= block_func(C, handle, arg);
 	block->handle= handle;
 
+	if(!block->endblock)
+		uiEndBlock(C, block);
+
 	/* if this is being created from a button */
 	if(but) {
 		if(ELEM(but->type, BLOCK, PULLDOWN))
