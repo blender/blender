@@ -529,6 +529,8 @@ void WM_read_file(bContext *C, char *name, ReportList *reports)
 
 		WM_event_add_notifier(C, NC_WM|ND_FILEREAD, NULL);
 //		refresh_interface_font();
+					   
+		CTX_wm_window_set(C, NULL); /* exits queues */
 	}
 //	else if(retval==1)
 // XXX		BIF_undo_push("Import file");

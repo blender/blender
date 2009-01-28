@@ -1171,5 +1171,6 @@ void wm_window_keymap(wmWindowManager *wm)
 	WM_keymap_verify_item(keymap, "WM_OT_save_as_mainfile", F2KEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "WM_OT_window_fullscreen_toggle", F11KEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "WM_OT_exit_blender", QKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "ED_FILE_OT_load", RETKEY, KM_PRESS, 0, 0);
 }
 

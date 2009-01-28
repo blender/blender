@@ -506,7 +506,7 @@ void ED_FILE_OT_load(struct wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= file_load_exec;
-	ot->poll= ED_operator_file_active;
+	ot->poll= ED_operator_file_active; /* <- important, handler is on window level */
 }
 
 

@@ -261,6 +261,7 @@ void file_operatortypes(void)
 	WM_operatortype_append(ED_FILE_OT_cancel);
 }
 
+/* NOTE: do not add .blend file reading on this level */
 void file_keymap(struct wmWindowManager *wm)
 {
 	ListBase *keymap= WM_keymap_listbase(wm, "File", SPACE_FILE, 0);
@@ -268,7 +269,6 @@ void file_keymap(struct wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "ED_FILE_OT_select_all", AKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "ED_FILE_OT_border_select", BKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "ED_FILE_OT_highlight", MOUSEMOVE, KM_ANY, 0, 0);
-	WM_keymap_add_item(keymap, "ED_FILE_OT_load", RETKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "ED_FILE_OT_cancel", ESCKEY, KM_PRESS, 0, 0);
 	
 	WM_keymap_add_item(keymap, "ED_FILE_OT_loadimages", TIMER1, KM_ANY, KM_ANY, 0);
