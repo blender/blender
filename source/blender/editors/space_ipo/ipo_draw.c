@@ -67,6 +67,7 @@
 #include "BKE_global.h"
 #include "BKE_key.h"
 #include "BKE_object.h"
+#include "BKE_screen.h"
 #include "BKE_utildefines.h"
 
 #include "BIF_gl.h"
@@ -667,12 +668,16 @@ void graph_draw_channel_names(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 	 *	  start of list offset, and the second is as a correction for the scrollers.
 	 */
 	height= ((items*ACHANNEL_STEP) + (ACHANNEL_HEIGHT*2));
+	
 	if (height > (v2d->mask.ymax - v2d->mask.ymin)) {
 		/* don't use totrect set, as the width stays the same 
 		 * (NOTE: this is ok here, the configuration is pretty straightforward) 
 		 */
 		v2d->tot.ymin= (float)(-height);
 	}
+	
+	/* XXX I would call the below line! (ton) */
+	/* UI_view2d_totRect_set(v2d, ar->type->minsizex, height); */
 	
 	/* loop through channels, and set up drawing depending on their type  */	
 	y= (float)ACHANNEL_FIRST;

@@ -1760,6 +1760,10 @@ void ED_keymap_screen(wmWindowManager *wm)
 	WM_keymap_verify_item(keymap, "SCREEN_OT_repeat_last", F4KEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "SCREEN_OT_region_flip", F5KEY, KM_PRESS, 0, 0);
 
+	/* files */
+	WM_keymap_add_item(keymap, "ED_FILE_OT_load", RETKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "ED_FILE_OT_cancel", ESCKEY, KM_PRESS, 0, 0);
+	
 	/* undo */
 	WM_keymap_add_item(keymap, "ED_OT_undo", ZKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "ED_OT_undo", ZKEY, KM_PRESS, KM_OSKEY, 0);

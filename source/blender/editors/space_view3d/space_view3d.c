@@ -290,6 +290,7 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 				case ND_GEOM_SELECT:
 				case ND_DRAW:
 				case ND_MODIFIER:
+				case ND_KEYS:
 					ED_region_tag_redraw(ar);
 					break;
 			}

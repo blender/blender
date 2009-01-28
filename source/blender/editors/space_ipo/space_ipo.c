@@ -296,10 +296,15 @@ static void graph_region_listener(ARegion *ar, wmNotifier *wmn)
 			switch(wmn->data) {
 				case ND_BONE_ACTIVE:
 				case ND_BONE_SELECT:
+				case ND_KEYS:
 					ED_region_tag_redraw(ar);
 					break;
 			}
 			break;
+		default:
+			if(wmn->data==ND_KEYS)
+				ED_region_tag_redraw(ar);
+				
 	}
 }
 
