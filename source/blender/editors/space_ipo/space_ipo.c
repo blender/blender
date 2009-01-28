@@ -279,7 +279,7 @@ static void graph_header_area_draw(const bContext *C, ARegion *ar)
 	UI_view2d_view_restore(C);
 }
 
-static void graph_main_area_listener(ARegion *ar, wmNotifier *wmn)
+static void graph_region_listener(ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
 	switch(wmn->category) {
@@ -377,7 +377,7 @@ void ED_spacetype_ipo(void)
 	art->regionid = RGN_TYPE_WINDOW;
 	art->init= graph_main_area_init;
 	art->draw= graph_main_area_draw;
-	art->listener= graph_main_area_listener;
+	art->listener= graph_region_listener;
 	art->keymapflag= ED_KEYMAP_VIEW2D/*|ED_KEYMAP_MARKERS*/|ED_KEYMAP_ANIMATION|ED_KEYMAP_FRAMES;
 
 	BLI_addhead(&st->regiontypes, art);
@@ -387,7 +387,7 @@ void ED_spacetype_ipo(void)
 	art->regionid = RGN_TYPE_HEADER;
 	art->minsizey= HEADERY;
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D|ED_KEYMAP_FRAMES;
-	
+	art->listener= graph_region_listener;
 	art->init= graph_header_area_init;
 	art->draw= graph_header_area_draw;
 	
@@ -398,7 +398,7 @@ void ED_spacetype_ipo(void)
 	art->regionid = RGN_TYPE_CHANNELS;
 	art->minsizex= 200;
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D|ED_KEYMAP_FRAMES;
-	
+	art->listener= graph_region_listener;
 	art->init= graph_channel_area_init;
 	art->draw= graph_channel_area_draw;
 	
