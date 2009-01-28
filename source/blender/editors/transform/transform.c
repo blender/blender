@@ -376,52 +376,6 @@ static void viewRedrawForce(bContext *C, TransInfo *t)
 		if (G.sima->lock) force_draw_plus(SPACE_VIEW3D, 0);
 		else force_draw(0);
 	}
-	else if (t->spacetype == SPACE_ACTION) {
-		if (G.saction->lock) {
-			short context;
-			
-			/* we ignore the pointer this function returns (not needed) */
-			get_action_context(&context);
-			
-			if (context == ACTCONT_ACTION)
-				force_draw_plus(SPACE_VIEW3D, 0);
-			else if (context == ACTCONT_SHAPEKEY) 
-				force_draw_all(0);
-			else
-				force_draw(0);
-		}
-		else {
-			force_draw(0);
-		}
-	}
-	else if (t->spacetype == SPACE_NLA) {
-		if (G.snla->lock)
-			force_draw_all(0);
-		else
-			force_draw(0);
-	}
-	else if (t->spacetype == SPACE_IPO) {
-		/* update realtime */
-		if (G.sipo->lock) {
-			if (G.sipo->blocktype==ID_MA || G.sipo->blocktype==ID_TE)
-				force_draw_plus(SPACE_BUTS, 0);
-			else if (G.sipo->blocktype==ID_CA)
-				force_draw_plus(SPACE_VIEW3D, 0);
-			else if (G.sipo->blocktype==ID_KE)
-				force_draw_plus(SPACE_VIEW3D, 0);
-			else if (G.sipo->blocktype==ID_PO)
-				force_draw_plus(SPACE_VIEW3D, 0);
-			else if (G.sipo->blocktype==ID_OB) 
-				force_draw_plus(SPACE_VIEW3D, 0);
-			else if (G.sipo->blocktype==ID_SEQ) 
-				force_draw_plus(SPACE_SEQ, 0);
-			else 
-				force_draw(0);
-		}
-		else {
-			force_draw(0);
-		}
-	}
 #endif	
 }
 
@@ -1111,8 +1065,15 @@ void initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 		initTimeScale(t);
 		break;
 	case TFM_TIME_EXTEND: 
-		/* now that transdata has been made, do like for TFM_TIME_TRANSLATE */
-		initTimeTranslate(t);
+		/* now that transdata has been made, do like for TFM_TIME_TRANSLATE (for most Animation
+		 * Editors because they have only 1D transforms for time values) or TFM_TRANSLATION
+		 * (for Graph Editor only since it uses 'standard' transforms to get 2D movement)
+		 * depending on which editor this was called from 
+		 */
+		if (t->spacetype == SPACE_IPO)
+			initTranslation(t);
+		else
+			initTimeTranslate(t);
 		break;
 	case TFM_BAKE_TIME:
 		initBakeTime(t);
