@@ -1068,7 +1068,8 @@ static int actkeys_clickselect_invoke(bContext *C, wmOperator *op, wmEvent *even
 	/* set notifier tha things have changed */
 	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_BOTH);
 	
-	return OPERATOR_FINISHED;
+	/* for tweak grab to work */
+	return OPERATOR_FINISHED|OPERATOR_PASS_THROUGH;
 }
  
 void ACT_OT_keyframes_clickselect (wmOperatorType *ot)
