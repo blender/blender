@@ -32,9 +32,15 @@ makesrna_tool.Append (CPPPATH = ['#/intern/guardedalloc',
 								 '../../windowmanager'])
 
 if env['OURPLATFORM'] == 'linuxcross':
-    makesrna_tool.Replace(CC='gcc')
-    makesrna_tool.Replace(AR='ar')
-    makesrna_tool.Replace(LINK='gcc')
+	USE_WINE = True # when cross compiling on linux 64bit this is useful
+else:
+	USE_WINE = False
+
+if not USE_WINE:
+	if env['OURPLATFORM'] == 'linuxcross':
+		makesdna_tool.Replace(CC='gcc')
+		makesdna_tool.Replace(AR='ar')
+		makesdna_tool.Replace(LINK='gcc')
 
 if sys.platform != 'cygwin':
     makesrna_tool.Append (CCFLAGS = cflags)
@@ -74,6 +80,12 @@ if env['OURPLATFORM'] != 'linuxcross':
     rna.Command (generated_files, '', root_build_dir+os.sep+"makesrna " + build_dir)
 else:
     rna.Command (generated_files, '', root_build_dir+os.sep+"makesrna.exe "  + build_dir)
+	
+    if USE_WINE:
+        rna.Command (generated_files, '', 'wine ' + root_build_dir+os.sep+"makesrna.exe "  + build_dir)
+    else:
+        rna.Command (generated_files, '', root_build_dir+os.sep+"makesrna.exe "  + build_dir)
+
 
 obj = ['intern/rna_access.c', 'intern/rna_dependency.c']
 for generated_file in generated_files:
