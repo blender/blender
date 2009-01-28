@@ -89,38 +89,12 @@ enum {
 
 static void do_file_buttons(bContext *C, void *arg, int event)
 {
-	SpaceFile *sfile= (SpaceFile*)CTX_wm_space_data(C);
 	switch(event) {
 		case B_FS_LOAD:
-			{
-				char name[FILE_MAX];
-
-				ED_screen_full_prevspace(C);
-				if(sfile->op) {
-					wmOperator *op= sfile->op;
-					
-					/* if load .blend, all UI pointers after exec are invalid! */
-					/* but, operator can be freed still */
-					
-					sfile->op = NULL;
-					BLI_strncpy(name, sfile->params->dir, sizeof(name));
-					strcat(name, sfile->params->file);
-					RNA_string_set(op->ptr, "filename", name);
-				
-					op->type->exec(C, op);
-				
-					WM_operator_free(op);
-				}
-
-			}
+			file_load_exec(C, NULL);	/* file_ops.c */
 			break;
 		case B_FS_CANCEL:
-			if(sfile->op) {
-				WM_operator_free(sfile->op);
-				sfile->op = NULL;
-			}
-			ED_screen_full_prevspace(C);
-			
+			file_cancel_exec(C, NULL); /* file_ops.c */
 			break;
 	}
 }
@@ -203,15 +177,16 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 static void draw_tile(short sx, short sy, short width, short height, int colorid, int shade)
 {
 	/* TODO: BIF_ThemeColor seems to need this to show the color, not sure why? - elubie */
-	glEnable(GL_BLEND);
-	glColor4ub(0, 0, 0, 100);
-	glDisable(GL_BLEND);
+	//glEnable(GL_BLEND);
+	//glColor4ub(0, 0, 0, 100);
+	//glDisable(GL_BLEND);
+	/* I think it was a missing glDisable() - ton */
 	
 	UI_ThemeColorShade(colorid, shade);
 	uiSetRoundBox(15);	
-	glRecti(sx, sy - height, sx + width, sy);
+	// glRecti(sx, sy - height, sx + width, sy);
 
-	// uiRoundBox(sx+TILE_BORDER_X, sy - sfile->prv_h - TILE_BORDER_Y*3 - U.fontsize, sx + sfile->prv_w + TILE_BORDER_X*3, sy, 6);
+	uiRoundBox(sx, sy - height, sx + width, sy, 6);
 }
 
 static float shorten_string(char* string, float w)
@@ -367,10 +342,10 @@ void file_draw_previews(const bContext *C, ARegion *ar)
 
 		if (params->active_file == i) {
 			colorid = TH_ACTIVE;
-			draw_tile(sx, sy, sfile->tile_w, sfile->tile_h, colorid,0);
+			draw_tile(sx - 1, sy, sfile->tile_w + 1, sfile->tile_h, colorid,0);
 		} else if (file->flags & ACTIVE) {
 			colorid = TH_HILITE;
-			draw_tile(sx, sy, sfile->tile_w, sfile->tile_h, colorid,0);
+			draw_tile(sx - 1, sy, sfile->tile_w + 1, sfile->tile_h, colorid,0);
 		} else {
 			colorid = TH_BACK;
 			draw_tile(sx, sy, sfile->tile_w, sfile->tile_h, colorid, -5);
@@ -424,18 +399,18 @@ void file_draw_previews(const bContext *C, ARegion *ar)
 				// glaDrawPixelsSafe((float)sx+8 + dx, (float)sy - imgwidth + dy - 8, imb->x, imb->y, imb->x, GL_RGBA, GL_UNSIGNED_BYTE, imb->rect);
 				glColor4f(1.0, 1.0, 1.0, 1.0);
 				glaDrawPixelsTex((float)sx + dx, (float)sy - sfile->prv_h + dy, imb->x, imb->y,GL_UNSIGNED_BYTE, imb->rect);
-				// glDisable(GL_BLEND);
+				glDisable(GL_BLEND);
 				imb = 0;
 			}
 #if 0
 		}		
 #endif
 		if (type == FILE_MAIN) {
-			glColor3f(1.0f, 1.0f, 1.0f);			
+			glColor4f(1.0f, 1.0f, 1.0f, 1.0f);			
 		}
 		else {
 			if (S_ISDIR(file->type)) {
-				glColor3f(1.0f, 1.0f, 0.9f);
+				glColor4f(1.0f, 1.0f, 0.9f, 1.0f);
 			}
 			else if (file->flags & IMAGEFILE) {
 				UI_ThemeColor(TH_SEQ_IMAGE);
@@ -506,16 +481,17 @@ void file_draw_list(const bContext *C, ARegion *ar)
 	for (i=offset; (i < numfiles); ++i)
 	{
 		sy = ar->v2d.tot.ymax-sfile->tile_border_y - (i%rows)*(sfile->tile_h+sfile->tile_border_y);
-		sx = ar->v2d.tot.xmin +sfile->tile_border_x + (i/rows)*(sfile->tile_w+sfile->tile_border_x);
+		sx = 2 + ar->v2d.tot.xmin +sfile->tile_border_x + (i/rows)*(sfile->tile_w+sfile->tile_border_x);
 
 		file = filelist_file(files, i);	
 
 		if (params->active_file == i) {
-			colorid = TH_ACTIVE;
-			draw_tile(sx, sy, sfile->tile_w, sfile->tile_h, colorid,0);
+			if (file->flags & ACTIVE) colorid= TH_HILITE;
+			else colorid = TH_BACK;
+			draw_tile(sx, sy-3, sfile->tile_w, sfile->tile_h, colorid,20);
 		} else if (file->flags & ACTIVE) {
 			colorid = TH_HILITE;
-			draw_tile(sx, sy, sfile->tile_w, sfile->tile_h, colorid,0);
+			draw_tile(sx, sy-3, sfile->tile_w, sfile->tile_h, colorid,0);
 		} else {
 			/*
 			colorid = TH_PANEL;
@@ -523,11 +499,11 @@ void file_draw_list(const bContext *C, ARegion *ar)
 			*/
 		}
 		if (type == FILE_MAIN) {
-			glColor3f(1.0f, 1.0f, 1.0f);			
+			glColor4f(1.0f, 1.0f, 1.0f, 1.0f);			
 		}
 		else {
 			if (S_ISDIR(file->type)) {
-				glColor3f(1.0f, 1.0f, 0.9f);
+				glColor4f(1.0f, 1.0f, 0.9f, 1.0f);
 			}
 			else if (file->flags & IMAGEFILE) {
 				UI_ThemeColor(TH_SEQ_IMAGE);
@@ -550,7 +526,7 @@ void file_draw_list(const bContext *C, ARegion *ar)
 		}
 		
 		sw = UI_GetStringWidth(G.font, file->size, 0);
-		file_draw_string(sx, sy, file->relname, sfile->tile_w - sw - 2, sfile->tile_h);
+		file_draw_string(sx, sy, file->relname, sfile->tile_w - sw - 5, sfile->tile_h);
 		file_draw_string(sx + sfile->tile_w - sw, sy, file->size, sfile->tile_w - sw, sfile->tile_h);
 	}
 }
@@ -584,9 +560,9 @@ void file_draw_fsmenu(const bContext *C, ARegion *ar)
 			if (params->active_bookmark == i ) {
 				glColor4ub(0, 0, 0, 100);
 				UI_ThemeColor(TH_HILITE);
-				// uiSetRoundBox(15);	
-				// uiRoundBox(simasel->bookmarkrect.xmin + TILE_BORDER_X - 1, sy - linestep*0.25, simasel->bookmarkrect.xmax - TILE_BORDER_X + 1, sy + linestep*0.75, 6);
-				glRecti(sx, sy - linestep, sx + bmwidth, sy);
+				uiSetRoundBox(15);	
+				uiRoundBox(sx, sy - linestep, sx + bmwidth, sy, 6);
+				// glRecti(sx, sy - linestep, sx + bmwidth, sy);
 				UI_ThemeColor(TH_TEXT_HI);
 			} else {
 				UI_ThemeColor(TH_TEXT);

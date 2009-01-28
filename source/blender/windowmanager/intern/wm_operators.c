@@ -368,7 +368,8 @@ static int wm_mainfile_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	/* settings for filebrowser */
 	sfile= (SpaceFile*)CTX_wm_space_data(C);
 	sfile->op = op;
-	ED_fileselect_set_params(sfile, FILE_BLENDER, "Load", "C:\\", 0, 0, 0);
+	// XXX replace G.sce
+	ED_fileselect_set_params(sfile, FILE_BLENDER, "Load As", G.sce, 0, 0, 0);
 
 	/* screen and area have been reset already in ED_screen_full_newspace */
 
