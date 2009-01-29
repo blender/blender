@@ -935,7 +935,7 @@ void sk_straightenStroke(SK_Stroke *stk, int start, int end, float p_start[3], f
 	float delta_p[3];
 	int i, total;
 	
-	total = end - start + 1;
+	total = end - start;
 
 	VecSubf(delta_p, p_end, p_start);
 	
@@ -953,7 +953,7 @@ void sk_straightenStroke(SK_Stroke *stk, int start, int end, float p_start[3], f
 	pt2.type = next->type;
 	
 	sk_insertStrokePoint(stk, &pt1, start + 1); /* insert after start */
-	sk_insertStrokePoint(stk, &pt2, end); /* insert before end (since end was pushed back already) */
+	sk_insertStrokePoint(stk, &pt2, end + 1); /* insert before end (since end was pushed back already) */
 	
 	for (i = 1; i < total; i++)
 	{
@@ -1337,14 +1337,14 @@ void sk_drawStrokeSubdivision(SK_Stroke *stk)
 	}	
 }
 
-SK_Point *sk_snapPointStroke(SK_Stroke *stk, short mval[2], int *dist, int *index)
+SK_Point *sk_snapPointStroke(SK_Stroke *stk, short mval[2], int *dist, int *index, int all_pts)
 {
 	SK_Point *pt = NULL;
 	int i;
 	
 	for (i = 0; i < stk->nb_points; i++)
 	{
-		if (1) // stk->points[i].type == PT_EXACT)
+		if (all_pts || stk->points[i].type == PT_EXACT)
 		{
 			short pval[2];
 			int pdist;
@@ -1452,7 +1452,7 @@ void sk_updateOverdraw(SK_Sketch *sketch, SK_Stroke *stk, SK_DrawData *dd)
 			{
 				int index;
 				
-				SK_Point *spt = sk_snapPointStroke(target, dd->mval, &dist, &index);
+				SK_Point *spt = sk_snapPointStroke(target, dd->mval, &dist, &index, 1);
 				
 				if (spt != NULL)
 				{
@@ -1492,7 +1492,7 @@ void sk_updateOverdraw(SK_Sketch *sketch, SK_Stroke *stk, SK_DrawData *dd)
 		int dist = SNAP_MIN_DISTANCE * 2;
 		int index;
 
-		closest_pt = sk_snapPointStroke(sketch->over.target, dd->mval, &dist, &index);
+		closest_pt = sk_snapPointStroke(sketch->over.target, dd->mval, &dist, &index, 1);
 		
 		if (closest_pt != NULL)
 		{
@@ -1697,8 +1697,16 @@ int sk_getStrokeSnapPoint(SK_Point *pt, SK_Sketch *sketch, SK_Stroke *source_stk
 	
 	for (stk = sketch->strokes.first; stk; stk = stk->next)
 	{
-		SK_Point *spt = sk_snapPointStroke(stk, dd->mval, &dist, NULL);
-		
+		SK_Point *spt = NULL;
+		if (stk == source_stk)
+		{
+			spt = sk_snapPointStroke(stk, dd->mval, &dist, NULL, 0);
+		}
+		else
+		{
+			spt = sk_snapPointStroke(stk, dd->mval, &dist, NULL, 1);
+		}
+			
 		if (spt != NULL)
 		{
 			VECCOPY(pt->p, spt->p);
@@ -2592,7 +2600,7 @@ void sk_applyCommandGesture(SK_Gesture *gest, SK_Sketch *sketch)
 					sk_flattenStroke(isect->stroke, isect->before, i2->after);
 					break;
 				case 2:
-					sk_straightenStroke(isect->stroke, isect->after, i2->before, isect->p, i2->p);
+					sk_straightenStroke(isect->stroke, isect->before, i2->after, isect->p, i2->p);
 					break;
 				case 3:
 					sk_polygonizeStroke(isect->stroke, isect->before, i2->after);
