@@ -4,6 +4,8 @@ Import ('env')
 
 sources = env.Glob('intern/*.c')
 
-incs = '. intern ../blenkernel ../blenlib ../makesdna ../ftfont'
+incs = '. intern  #/intern/guardedalloc ../blenkernel ../blenlib ../makesdna ../ftfont'
+
+defs = ''
 
 env.BlenderLib ( 'bf_blenfont', sources, Split(incs), Split(defs), libtype=['core'], priority=[210] )
