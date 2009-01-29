@@ -97,22 +97,32 @@ extern void gl_round_box(int mode, float minx, float miny, float maxx, float max
 static void draw_fcurve_vertices_keyframes (FCurve *fcu, View2D *v2d, short edit, short sel)
 {
 	BezTriple *bezt= fcu->bezt;
+	const float fac= 0.05f * (v2d->cur.xmax - v2d->cur.xmin);
 	int i;
 	
+	/* we use bgl points not standard gl points, to workaround vertex 
+	 * drawing bugs that some drivers have (probably legacy ones only though)
+	 */
 	bglBegin(GL_POINTS);
 	
 	for (i = 0; i < fcu->totvert; i++, bezt++) {
-		if (edit) {
-			/* Only the vertex of the line, the
-			 * handler are drawn later
-			 */
-			if ((bezt->f2 & SELECT) == sel) /* && v2d->cur.xmin < bezt->vec[1][0] < v2d->cur.xmax)*/
+		/* as an optimisation step, only draw those in view 
+		 *	- we apply a correction factor to ensure that points don't pop in/out due to slight twitches of view size
+		 */
+		if IN_RANGE(bezt->vec[1][0], (v2d->cur.xmin - fac), (v2d->cur.xmax + fac)) {
+			if (edit) {
+				/* 'Keyframe' vertex only, as handle lines and handles have already been drawn
+				 *	- only draw those with correct selection state for the current drawing color
+				 *	- 
+				 */
+				if ((bezt->f2 & SELECT) == sel)
+					bglVertex3fv(bezt->vec[1]);
+			}
+			else {
+				/* no check for selection here, as curve is not editable... */
+				// XXX perhaps we don't want to even draw points?   maybe add an option for that later
 				bglVertex3fv(bezt->vec[1]);
-		}
-		else {
-			/* draw only if in bounds */
-			/*if (v2d->cur.xmin < bezt->vec[1][0] < v2d->cur.xmax)*/
-			bglVertex3fv(bezt->vec[1]);
+			}
 		}
 	}
 	
@@ -388,10 +398,11 @@ static void draw_fcurve_repeat (FCurve *fcu, View2D *v2d, float cycxofs, float c
 			 */
 			
 			/* resol not depending on horizontal resolution anymore, drivers for example... */
+			// XXX need to take into account the scale
 			if (fcu->driver) 
 				resol= 32;
 			else 
-				resol= 3.0*sqrt(bezt->vec[1][0] - prevbezt->vec[1][0]);
+				resol= 3.0f*sqrt(bezt->vec[1][0] - prevbezt->vec[1][0]);
 			
 			if (resol < 2) {
 				/* only draw one */

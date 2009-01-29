@@ -113,7 +113,11 @@ void free_ipo (Ipo *ipo)
 }
 
 /* *************************************************** */
-/* ADRCODE to RNA-Path Conversion Code */
+/* ADRCODE to RNA-Path Conversion Code  - Special (Bitflags) */
+
+
+/* *************************************************** */
+/* ADRCODE to RNA-Path Conversion Code  - Standard */
 
 /* Object types */
 static char *ob_adrcodes_to_paths (int adrcode, int *array_index)
@@ -793,7 +797,7 @@ static ChannelDriver *idriver_to_cdriver (IpoDriver *idriver)
  *	actname: name of Action-Channel (if applicable) that IPO-Curve's IPO-block belonged to
  *	constname: name of Constraint-Channel (if applicable) that IPO-Curve's IPO-block belonged to
  */
-static FCurve *icu_to_fcu (IpoCurve *icu, char *actname, char *constname)
+static void icu_to_fcurves (ListBase *list, IpoCurve *icu, char *actname, char *constname)
 {
 	FCurve *fcu;
 	int i= 0;
@@ -806,6 +810,51 @@ static FCurve *icu_to_fcu (IpoCurve *icu, char *actname, char *constname)
 		fcu->driver= idriver_to_cdriver(icu->driver);
 		icu->driver= NULL;
 	}
+	
+	/* copy flags */
+	if (icu->flag & IPO_VISIBLE) fcu->flag |= FCURVE_VISIBLE;
+	if (icu->flag & IPO_SELECT) fcu->flag |= FCURVE_SELECTED;
+	if (icu->flag & IPO_ACTIVE) fcu->flag |= FCURVE_ACTIVE;
+	if (icu->flag & IPO_MUTE) fcu->flag |= FCURVE_MUTED;
+	if (icu->flag & IPO_PROTECT) fcu->flag |= FCURVE_PROTECTED;
+	if (icu->flag & IPO_AUTO_HORIZ) fcu->flag |= FCURVE_AUTO_HANDLES;
+	
+	/* set extrapolation */
+	switch (icu->extrap) {
+		case IPO_HORIZ: /* constant extrapolation */
+		case IPO_DIR: /* linear extrapolation */
+		{
+			/* just copy, as the new defines match the old ones... */
+			fcu->extend= icu->extrap;
+		}
+			break;
+			
+		case IPO_CYCL: /* cyclic extrapolation */
+		case IPO_CYCLX: /* cyclic extrapolation + offset */
+		{
+			/* Add a new FModifier (Cyclic) instead of setting extend value 
+			 * as that's the new equivilant of that option. 
+			 */
+			FModifier *fcm= fcurve_add_modifier(fcu, FMODIFIER_TYPE_CYCLES);
+			FMod_Cycles *data= (FMod_Cycles *)fcm->data;
+			
+			/* if 'offset' one is in use, set appropriate settings */
+			if (icu->extrap == IPO_CYCLX)
+				data->before_mode= data->after_mode= FCM_EXTRAPOLATE_CYCLIC_OFFSET;
+			else
+				data->before_mode= data->after_mode= FCM_EXTRAPOLATE_CYCLIC;
+		}
+			break;
+	}
+	
+	/* -------- */
+	
+	/* get rna-path
+	 *	- we will need to set the 'disabled' flag if no path is able to be made (for now)
+	 */
+	fcu->rna_path= get_rna_access(icu->blocktype, icu->adrcode, actname, constname, &fcu->array_index);
+	if (fcu->rna_path == NULL)
+		fcu->flag |= FCURVE_DISABLED;
 	
 	/* convert keyframes 
 	 *	- beztriples and bpoints are mutually exclusive, so we won't have both at the same time
@@ -850,63 +899,121 @@ static FCurve *icu_to_fcu (IpoCurve *icu, char *actname, char *constname)
 		//FPoint *fpt;
 	}
 	
-	/* get rna-path
-	 *	- we will need to set the 'disabled' flag if no path is able to be made (for now)
+	/* add new F-Curve to list */
+	BLI_addtail(list, fcu);
+}
+
+/* ------------------------- */
+
+/* Convert IPO-block (i.e. all its IpoCurves) to the new system.
+ * This does not assume that any ID or AnimData uses it, but does assume that
+ * it is given two lists, which it will perform driver/animation-data separation.
+ */
+static void ipo_to_animato (Ipo *ipo, char actname[], char constname[], ListBase *anim, ListBase *drivers)
+{
+	IpoCurve *icu, *icn;
+	
+	/* sanity check */
+	if (ELEM3(NULL, ipo, anim, drivers))
+		return;
+		
+	printf("ipo_to_animato \n");
+		
+	/* validate actname and constname 
+	 *	- clear actname if it was one of the generic <builtin> ones (i.e. 'Object', or 'Shapes')
+	 *	- actname can then be used to assign F-Curves in Action to Action Groups 
+	 *	  (i.e. thus keeping the benefits that used to be provided by Action Channels for grouping
+	 *		F-Curves for bones). This may be added later... for now let's just dump without them...
 	 */
-	fcu->rna_path= get_rna_access(icu->blocktype, icu->adrcode, actname, constname, &fcu->array_index);
-	if (fcu->rna_path == NULL)
-		fcu->flag |= FCURVE_DISABLED;
-	
-	/* copy flags */
-	if (icu->flag & IPO_VISIBLE) fcu->flag |= FCURVE_VISIBLE;
-	if (icu->flag & IPO_SELECT) fcu->flag |= FCURVE_SELECTED;
-	if (icu->flag & IPO_ACTIVE) fcu->flag |= FCURVE_ACTIVE;
-	if (icu->flag & IPO_MUTE) fcu->flag |= FCURVE_MUTED;
-	if (icu->flag & IPO_PROTECT) fcu->flag |= FCURVE_PROTECTED;
-	if (icu->flag & IPO_AUTO_HORIZ) fcu->flag |= FCURVE_AUTO_HANDLES;
-	
-	/* set extrapolation */
-	switch (icu->extrap) {
-		case IPO_HORIZ: /* constant extrapolation */
-		case IPO_DIR: /* linear extrapolation */
-		{
-			/* just copy, as the new defines match the old ones... */
-			fcu->extend= icu->extrap;
-		}
-			break;
-			
-		case IPO_CYCL: /* cyclic extrapolation */
-		case IPO_CYCLX: /* cyclic extrapolation + offset */
-		{
-			/* Add a new FModifier (Cyclic) instead of setting extend value 
-			 * as that's the new equivilant of that option. 
-			 */
-			FModifier *fcm= fcurve_add_modifier(fcu, FMODIFIER_TYPE_CYCLES);
-			FMod_Cycles *data= (FMod_Cycles *)fcm->data;
-			
-			/* if 'offset' one is in use, set appropriate settings */
-			if (icu->extrap == IPO_CYCLX)
-				data->before_mode= data->after_mode= FCM_EXTRAPOLATE_CYCLIC_OFFSET;
-			else
-				data->before_mode= data->after_mode= FCM_EXTRAPOLATE_CYCLIC;
-		}
-			break;
+	if (actname) {
+		if ((ipo->blocktype == ID_OB) && (strcmp(actname, "Object") == 0))
+			actname= NULL;
+		else if ((ipo->blocktype == ID_OB) && (strcmp(actname, "Shape") == 0))
+			actname= NULL;
 	}
 	
-	/* return new F-Curve */
-	return fcu;
+	/* loop over IPO-Curves, freeing as we progress */
+	for (icu= ipo->curve.first; icu; icu= icn) {
+		/* get link to next (for later) */
+		icn= icu->next;
+		
+		/* Since an IPO-Curve may end up being made into many F-Curves (i.e. bitflag curves), 
+		 * we figure out the best place to put the channel, then tell the curve-converter to just dump there
+		 */
+		if (icu->driver)
+			icu_to_fcurves(drivers, icu, actname, constname);
+		else
+			icu_to_fcurves(anim, icu, actname, constname);
+		
+		/* free this IpoCurve now that it's been converted */
+		BLI_freelinkN(&ipo->curve, icu);
+	}
 }
+
+/* Convert Action-block to new system, separating animation and drivers
+ * New curves may not be converted directly into the given Action (i.e. for Actions linked
+ * to Objects, where ob->ipo and ob->action need to be combined).
+ * NOTE: we need to be careful here, as same data-structs are used for new system too!
+ */
+static void action_to_animato (bAction *act, ListBase *curves, ListBase *drivers)
+{
+	bActionChannel *achan, *achann;
+	bConstraintChannel *conchan, *conchann;
+	
+	/* only continue if there are Action Channels (indicating unconverted data) */
+	if (act->chanbase.first == NULL)
+		return;
+		
+	/* get rid of all Action Groups */
+	// XXX this is risky if there's some old + some new data in the Action...
+	if (act->groups.first) 
+		BLI_freelistN(&act->groups);
+	
+	/* loop through Action-Channels, converting data, freeing as we go */
+	for (achan= act->chanbase.first; achan; achan= achann) {
+		/* get pointer to next Action Channel */
+		achann= achan->next;
+		
+		/* convert Action Channel's IPO data */
+		if (achan->ipo) {
+			ipo_to_animato(achan->ipo, achan->name, NULL, curves, drivers);
+			achan->ipo->id.us--;
+			achan->ipo= NULL;
+		}
+		
+		/* convert constraint channel IPO-data */
+		for (conchan= achan->constraintChannels.first; conchan; conchan= conchann) {
+			/* get pointer to next Constraint Channel */
+			conchann= conchan->next;
+			
+			/* convert Constraint Channel's IPO data */
+			if (conchan->ipo) {
+				ipo_to_animato(conchan->ipo, achan->name, conchan->name, curves, drivers);
+				conchan->ipo->id.us--;
+				conchan->ipo= NULL;
+			}
+			
+			/* free Constraint Channel */
+			BLI_freelinkN(&achan->constraintChannels, conchan);
+		}
+		
+		/* free Action Channel */
+		BLI_freelinkN(&act->chanbase, achan);
+	}
+}
+
+
+/* ------------------------- */
 
 /* Convert IPO-block (i.e. all its IpoCurves) for some ID to the new system
  * This assumes that AnimData has been added already. Separation of drivers
  * from animation data is accomplished here too...
  */
-static void ipo_to_animdata (ID *id, Ipo *ipo, char *actname, char *constname)
+static void ipo_to_animdata (ID *id, Ipo *ipo, char actname[], char constname[])
 {
 	AnimData *adt= BKE_animdata_from_id(id);
-	//bActionGroup *grp;
-	IpoCurve *icu, *icn;
-	FCurve *fcu;
+	ListBase anim = {NULL, NULL};
+	ListBase drivers = {NULL, NULL};
 	
 	/* sanity check */
 	if ELEM(NULL, id, ipo)
@@ -920,112 +1027,52 @@ static void ipo_to_animdata (ID *id, Ipo *ipo, char *actname, char *constname)
 		id->name+2, ipo->id.name+2, (actname)?actname:"<None>", (constname)?constname:"<None>", 
 		BLI_countlist(&ipo->curve));
 	
-	/* validate actname and constname 
-	 *	- clear actname if it was one of the generic <builtin> ones (i.e. 'Object', or 'Shapes')
-	 *	- actname can then be used to assign F-Curves in Action to Action Groups 
-	 *	  (i.e. thus keeping the benefits that used to be provided by Action Channels for grouping
-	 *		F-Curves for bones). This may be added later... for now let's just dump without them...
+	/* Convert curves to animato system (separated into separate lists of F-Curves for animation and drivers),
+	 * and the try to put these lists in the right places, but do not free the lists here
 	 */
-	if (actname) {
-		printf("actname != 0 \n");
-		if ((GS(id->name) == ID_OB) && (strcmp(actname, "Object") == 0))
-			actname= NULL;
-		else if ((GS(id->name) == ID_OB) && (strcmp(actname, "Shape") == 0))
-			actname= NULL;
+	ipo_to_animato(ipo, actname, constname, &anim, &drivers);
+	
+	/* deal with animation first */
+	if (anim.first) {
+		printf("\thas anim \n");
+		/* try to get action */
+		if (adt->action == NULL) {
+			adt->action= add_empty_action("ConvData_Action"); // XXX we need a better name for this
+			printf("\t\tadded new action \n");
+		}
+		
+		/* add F-Curves to action */
+		addlisttolist(&adt->action->curves, &anim);
 	}
 	
-	/* loop over IPO-Curves, freeing as we progress */
-	for (icu= ipo->curve.first; icu; icu= icn) {
-		/* get link to next (for later) */
-		icn= icu->next;
-		
-		/* convert IPO-Curve to F-Curve 
-		 * NOTE: this frees any of the old data stored in the IPO-Curve that isn't needed anymore...
-		 */
-		// XXX we need to cope with the nasty old 'bitflag' curves... that will be a task for later
-		//		we will need to create a few new curves when doing so, and will need to sift through the keyframes to add relevant data
-		fcu= icu_to_fcu(icu, actname, constname);
-		
-		/* conversion path depends on whether it's a driver or not */
-		if (fcu->driver == NULL) {
-			/* try to get action */
-			if (adt->action == NULL) {
-				adt->action= add_empty_action("ConvertedAction"); // XXX we need a better name for this...
-				printf("added new action \n");
-			}
-			printf("\ticu to action fcurve (%p %d) -> (%p %s %d)  \n", icu, icu->adrcode, fcu, fcu->rna_path, fcu->array_index);	
-				
-			/* add F-Curve to action */
-			BLI_addtail(&adt->action->curves, fcu);
-		}
-		else {
-			printf("\ticu to driver fcurve (%p %d) -> (%p %s %d) \n", icu, icu->adrcode, fcu, fcu->rna_path, fcu->array_index);	
-			
-			/* add F-Curve to AnimData's drivers */
-			BLI_addtail(&adt->drivers, fcu);
-		}
-		
-		/* free this IpoCurve now that it's been converted */
-		BLI_freelinkN(&ipo->curve, icu);
+	/* deal with drivers */
+	if (drivers.first) {
+		printf("\thas drivers \n");
+		/* add drivers to end of driver stack */
+		addlisttolist(&adt->drivers, &drivers);
 	}
 }
 
-/* Convert Action-block to new system 
+/* Convert Action-block to new system
  * NOTE: we need to be careful here, as same data-structs are used for new system too!
  */
 static void action_to_animdata (ID *id, bAction *act)
 {
 	AnimData *adt= BKE_animdata_from_id(id);
-	bActionChannel *achan, *achann;
-	bConstraintChannel *conchan, *conchann;
 	
 	/* only continue if there are Action Channels (indicating unconverted data) */
 	if (ELEM(NULL, adt, act->chanbase.first))
 		return;
-		
-	/* get rid of all Action Groups */
-	// XXX this is risky if there's some old, some new data in the Action...
-	if (act->groups.first) 
-		BLI_freelistN(&act->groups);
-		
+	
 	/* check if we need to set this Action as the AnimData's action */
 	if (adt->action == NULL) {
 		/* set this Action as AnimData's Action */
 		printf("act_to_adt - set adt action to act \n");
 		adt->action= act;
 	}
-		
-	/* loop through Action-Channels, converting data, freeing as we go */
-	for (achan= act->chanbase.first; achan; achan= achann) {
-		/* get pointer to next Action Channel */
-		achann= achan->next;
-		
-		/* convert Action Channel's IPO data */
-		if (achan->ipo) {
-			ipo_to_animdata(id, achan->ipo, achan->name, NULL);
-			achan->ipo->id.us--;
-			achan->ipo= NULL;
-		}
-		
-		/* convert constraint channel IPO-data */
-		for (conchan= achan->constraintChannels.first; conchan; conchan= conchann) {
-			/* get pointer to next Constraint Channel */
-			conchann= conchan->next;
-			
-			/* convert Constraint Channel's IPO data */
-			if (conchan->ipo) {
-				ipo_to_animdata(id, conchan->ipo, achan->name, conchan->name);
-				conchan->ipo->id.us--;
-				conchan->ipo= NULL;
-			}
-			
-			/* free Constraint Channel */
-			BLI_freelinkN(&achan->constraintChannels, conchan);
-		}
-		
-		/* free Action Channel */
-		BLI_freelinkN(&act->chanbase, achan);
-	}
+	
+	/* convert Action data */
+	action_to_animato(act, &adt->action->curves, &adt->drivers);
 }
 
 /* *************************************************** */
@@ -1044,6 +1091,7 @@ static void action_to_animdata (ID *id, bAction *act)
 // XXX currently done after all file reading... 
 void do_versions_ipos_to_animato(Main *main)
 {
+	ListBase drivers = {NULL, NULL};
 	ID *id;
 	AnimData *adt;
 	
@@ -1061,6 +1109,7 @@ void do_versions_ipos_to_animato(Main *main)
 	else
 		printf("INFO: Converting to Animato... \n"); // xxx debug
 		
+	/* ----------- Animation Attached to Data -------------- */
 	
 	/* objects */
 	for (id= main->object.first; id; id= id->next) {
@@ -1113,9 +1162,6 @@ void do_versions_ipos_to_animato(Main *main)
 						con->ipo->id.us--;
 						con->ipo= NULL;
 					}
-					 
-					/* check for Action Constraint */
-					// XXX do we really want to do this here?
 				}
 			}
 		}
@@ -1236,7 +1282,7 @@ void do_versions_ipos_to_animato(Main *main)
 		
 		printf("\tconverting lamp %s \n", id->name+2);
 		
-		/* we're only interest in the IPO */
+		/* we're only interested in the IPO */
 		if (la->ipo) {
 			/* Add AnimData block */
 			adt= BKE_id_add_animdata(id);
@@ -1248,7 +1294,49 @@ void do_versions_ipos_to_animato(Main *main)
 		}
 	}
 	
-	// XXX add other types too...
+	/* --------- Unconverted Animation Data ------------------ */
+	/* For Animation data which may not be directly connected (i.e. not linked) to any other 
+	 * data, we need to perform a separate pass to make sure that they are converted to standalone
+	 * Actions which may then be able to be reused. This does mean that we will be going over data that's
+	 * already been converted, but there are no problems with that.
+	 *
+	 * The most common case for this will be Action Constraints, or IPO's with Fake-Users. 
+	 * We collect all drivers that were found into a temporary collection, and free them in one go, as they're 
+	 * impossible to resolve.
+	 */
+	
+	/* actions */
+	for (id= main->action.first; id; id= id->next) {
+		bAction *act= (bAction *)id;
+		
+		printf("\tconverting action %s \n", id->name+2);
+		
+		/* be careful! some of the actions we encounter will be converted ones... */
+		action_to_animato(act, &act->curves, &drivers);
+	}
+	
+	/* ipo's */
+	for (id= main->ipo.first; id; id= id->next) {
+		Ipo *ipo= (Ipo *)id;
+		
+		printf("\tconverting ipo %s \n", id->name+2);
+		
+		/* most likely this IPO has already been processed, so check if any curves left to convert */
+		if (ipo->curve.first) {
+			bAction *new_act;
+			
+			/* add a new action for this, and convert all data into that action */
+			new_act= add_empty_action("ConvIPO_Action"); // XXX need a better name...
+			ipo_to_animato(ipo, NULL, NULL, &new_act->curves, &drivers);
+		}
+		
+		/* clear fake-users, and set user-count to zero to make sure it is cleared on file-save */
+		ipo->id.us= 0;
+		ipo->id.flag &= ~LIB_FAKEUSER;
+	}
+	
+	/* free unused drivers from actions + ipos */
+	free_fcurves(&drivers);
 	
 	printf("INFO: animato convert done \n"); // xxx debug
 }
