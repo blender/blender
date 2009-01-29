@@ -363,7 +363,7 @@ void bone_flip_name (char *name, int strip_number)
  */
 void bone_autoside_name (char *name, int strip_number, short axis, float head, float tail)
 {
-	int		len;
+	unsigned int len;
 	char	basename[32]={""};
 	char 	extension[5]={""};
 
@@ -606,7 +606,7 @@ Mat4 *b_bone_spline_setup(bPoseChannel *pchan, int rest)
 			Mat3Inv(imat3, mat3);
 			Mat3MulMat3(mat3, result, imat3);			// the matrix transforming vec_roll to desired roll
 			
-			roll1= atan2(mat3[2][0], mat3[2][2]);
+			roll1= (float)atan2(mat3[2][0], mat3[2][2]);
 		}
 	}
 	else {
@@ -639,7 +639,7 @@ Mat4 *b_bone_spline_setup(bPoseChannel *pchan, int rest)
 		Mat3Inv(imat3, mat3);
 		Mat3MulMat3(mat3, imat3, result);			// the matrix transforming vec_roll to desired roll
 		
-		roll2= atan2(mat3[2][0], mat3[2][2]);
+		roll2= (float)atan2(mat3[2][0], mat3[2][2]);
 		
 		/* and only now negate handle */
 		VecMulf(h2, -hlength2);
@@ -784,7 +784,7 @@ float distfactor_to_bone (float vec[3], float b1[3], float b2[3], float rad1, fl
 		
 		if(l!=0.0f) {
 			rad= a/l;
-			rad= rad*rad2 + (1.0-rad)*rad1;
+			rad= rad*rad2 + (1.0f-rad)*rad1;
 		}
 		else rad= rad1;
 	}
@@ -798,8 +798,8 @@ float distfactor_to_bone (float vec[3], float b1[3], float b2[3], float rad1, fl
 		if(rdist==0.0f || dist >= l) 
 			return 0.0f;
 		else {
-			a= sqrt(dist)-rad;
-			return 1.0-( a*a )/( rdist*rdist );
+			a= (float)sqrt(dist)-rad;
+			return 1.0f-( a*a )/( rdist*rdist );
 		}
 	}
 }
@@ -1301,7 +1301,7 @@ void mat3_to_vec_roll(float mat[][3], float *vec, float *roll)
         Mat3Inv(vecmatinv, vecmat);
         Mat3MulMat3(rollmat, vecmatinv, mat);
 
-        *roll= atan2(rollmat[2][0], rollmat[2][2]);
+        *roll= (float)atan2(rollmat[2][0], rollmat[2][2]);
     }
 }
 
@@ -1333,7 +1333,7 @@ void vec_roll_to_mat3(float *vec, float roll, float mat[][3])
 		float updown;
 		
 		/* point same direction, or opposite? */
-		updown = ( Inpf (target,nor) > 0 ) ? 1.0 : -1.0;
+		updown = ( Inpf (target,nor) > 0 ) ? 1.0f : -1.0f;
 		
 		/* I think this should work ... */
 		bMatrix[0][0]=updown; bMatrix[0][1]=0.0;    bMatrix[0][2]=0.0;
@@ -1789,10 +1789,10 @@ static void execute_posetree(Object *ob, PoseTree *tree)
 		IK_SetStiffness(seg, IK_Y, pchan->stiffness[1]);
 		IK_SetStiffness(seg, IK_Z, pchan->stiffness[2]);
 		
-		if(tree->stretch && (pchan->ikstretch > 0.0)) {
+		if(tree->stretch && (pchan->ikstretch > 0.0f)) {
 			float ikstretch = pchan->ikstretch*pchan->ikstretch;
-			IK_SetStiffness(seg, IK_TRANS_Y, MIN2(1.0-ikstretch, 0.99));
-			IK_SetLimit(seg, IK_TRANS_Y, 0.001, 1e10);
+			IK_SetStiffness(seg, IK_TRANS_Y, MIN2(1.0f-ikstretch, 0.99f));
+			IK_SetLimit(seg, IK_TRANS_Y, 0.001f, 1e10);
 		}
 	}
 
@@ -1858,10 +1858,10 @@ static void execute_posetree(Object *ob, PoseTree *tree)
 		}
 
 		/* do we need blending? */
-		if (!resultblend && target->con->enforce!=1.0) {
+		if (!resultblend && target->con->enforce!=1.0f) {
 			float q1[4], q2[4], q[4];
 			float fac= target->con->enforce;
-			float mfac= 1.0-fac;
+			float mfac= 1.0f-fac;
 			
 			pchan= tree->pchan[target->tip];
 			
@@ -1884,13 +1884,13 @@ static void execute_posetree(Object *ob, PoseTree *tree)
 		
 		iktarget= iktree[target->tip];
 		
-		if(data->weight != 0.0) {
+		if(data->weight != 0.0f) {
 			if(poleconstrain)
 				IK_SolverSetPoleVectorConstraint(solver, iktarget, goalpos,
-					polepos, data->poleangle*M_PI/180, (poleangledata == data));
+					polepos, data->poleangle*(float)M_PI/180.0f, (poleangledata == data));
 			IK_SolverAddGoal(solver, iktarget, goalpos, data->weight);
 		}
-		if((data->flag & CONSTRAINT_IK_ROT) && (data->orientweight != 0.0))
+		if((data->flag & CONSTRAINT_IK_ROT) && (data->orientweight != 0.0f))
 			if((data->flag & CONSTRAINT_IK_AUTO)==0)
 				IK_SolverAddGoalOrientation(solver, iktarget, goalrot,
 					data->orientweight);
@@ -1900,7 +1900,7 @@ static void execute_posetree(Object *ob, PoseTree *tree)
 	IK_Solve(solver, 0.0f, tree->iterations);
 
 	if(poleangledata)
-		poleangledata->poleangle= IK_SolverGetPoleAngle(solver)*180/M_PI;
+		poleangledata->poleangle= IK_SolverGetPoleAngle(solver)*180.0f/(float)M_PI;
 
 	IK_FreeSolver(solver);
 
@@ -1917,20 +1917,20 @@ static void execute_posetree(Object *ob, PoseTree *tree)
 			float parentstretch, stretch;
 			
 			pchan= tree->pchan[a];
-			parentstretch= (tree->parent[a] >= 0)? ikstretch[tree->parent[a]]: 1.0;
+			parentstretch= (tree->parent[a] >= 0)? ikstretch[tree->parent[a]]: 1.0f;
 			
-			if(tree->stretch && (pchan->ikstretch > 0.0)) {
+			if(tree->stretch && (pchan->ikstretch > 0.0f)) {
 				float trans[3], length;
 				
 				IK_GetTranslationChange(iktree[a], trans);
 				length= pchan->bone->length*VecLength(pchan->pose_mat[1]);
 				
-				ikstretch[a]= (length == 0.0)? 1.0: (trans[1]+length)/length;
+				ikstretch[a]= (length == 0.0f)? 1.0f: (trans[1]+length)/length;
 			}
 			else
-				ikstretch[a] = 1.0;
+				ikstretch[a] = 1.0f;
 			
-			stretch= (parentstretch == 0.0)? 1.0: ikstretch[a]/parentstretch;
+			stretch= (parentstretch == 0.0f)? 1.0f: ikstretch[a]/parentstretch;
 			
 			VecMulf(tree->basis_change[a][0], stretch);
 			VecMulf(tree->basis_change[a][1], stretch);
@@ -2035,7 +2035,7 @@ static void do_strip_modifiers(Scene *scene, Object *armob, Bone *bone, bPoseCha
 {
 	bActionModifier *amod;
 	bActionStrip *strip, *strip2;
-	float scene_cfra= scene->r.cfra;
+	float scene_cfra= (float)scene->r.cfra;
 	int do_modif;
 
 	for (strip=armob->nlastrips.first; strip; strip=strip->next) {

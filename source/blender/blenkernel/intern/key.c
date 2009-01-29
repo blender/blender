@@ -1039,7 +1039,7 @@ static int do_mesh_key(Scene *scene, Object *ob, Mesh *me)
 			/* in do_key and cp_key the case a>tot is handled */
 		}
 		
-		cfra= scene->r.cfra;
+		cfra= (float)scene->r.cfra;
 		
 		for(a=0; a<me->totvert; a+=step, cfra+= delta) {
 			
@@ -1086,7 +1086,7 @@ static int do_mesh_key(Scene *scene, Object *ob, Mesh *me)
 		else {
 			printf("\tdo absolute \n");
 			
-			ctime= bsystem_time(scene, ob, scene->r.cfra, 0.0); // xxx old cruft
+			ctime= bsystem_time(scene, ob, (float)scene->r.cfra, 0.0f); // xxx old cruft
 			
 #if 0 // XXX old animation system
 			if(calc_ipo_spec(me->key->ipo, KEY_SPEED, &ctime)==0) {
@@ -1207,10 +1207,10 @@ static int do_curve_key(Scene *scene, Curve *cu)
 			/* in do_key and cp_key the case a>tot has been handled */
 		}
 		
-		cfra= scene->r.cfra;
+		cfra= (float)scene->r.cfra;
 		
 		for(a=0; a<tot; a+=step, cfra+= delta) {
-			ctime= bsystem_time(scene, 0, cfra, 0.0); // XXX old cruft
+			ctime= bsystem_time(scene, 0, cfra, 0.0f); // XXX old cruft
 #if 0 // XXX old animation system
 			if(calc_ipo_spec(cu->key->ipo, KEY_SPEED, &ctime)==0) {
 				ctime /= 100.0;
@@ -1274,7 +1274,7 @@ static int do_latt_key(Scene *scene, Object *ob, Lattice *lt)
 		delta= lt->key->slurph;
 		delta/= (float)tot;
 		
-		cfra= scene->r.cfra;
+		cfra= (float)scene->r.cfra;
 		
 		for(a=0; a<tot; a++, cfra+= delta) {
 			

@@ -1012,7 +1012,7 @@ static void icu_to_fcurves (ListBase *list, IpoCurve *icu, char *actname, char *
 				/* correct values for object rotation curves - they were degrees/10 */
 				// XXX for now, just make them into radians as RNA sets/reads directly in that form
 				if ((icu->blocktype == ID_OB) && ELEM3(icu->adrcode, OB_ROT_X, OB_ROT_Y, OB_ROT_Z)) {
-					const float fac= M_PI / 18.0f; //10.0f * M_PI/180.0f;
+					const float fac= (float)M_PI / 18.0f; //10.0f * M_PI/180.0f;
 					
 					dst->vec[0][1] *= fac;
 					dst->vec[1][1] *= fac;

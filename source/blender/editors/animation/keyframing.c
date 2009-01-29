@@ -334,7 +334,7 @@ void insert_vert_fcurve (FCurve *fcu, float x, float y, short fast)
 	/* set handletype and interpolation */
 	if (fcu->totvert > 2) {
 		BezTriple *bezt= (fcu->bezt + a);
-		short h1, h2;
+		char h1, h2;
 		
 		/* set handles (autohandles by default) */
 		h1= h2= HD_AUTO;

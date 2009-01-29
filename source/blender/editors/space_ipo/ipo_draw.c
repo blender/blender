@@ -152,7 +152,7 @@ static void draw_fcurve_handle_control (float x, float y, float xscale, float ys
 	
 	/* adjust view transform before starting */
 	glTranslatef(x, y, 0.0f);
-	glScalef(1.0/xscale*hsize, 1.0/yscale*hsize, 1.0);
+	glScalef(1.0f/xscale*hsize, 1.0f/yscale*hsize, 1.0f);
 	
 	/* draw! */
 	glCallList(displist);
@@ -402,7 +402,7 @@ static void draw_fcurve_repeat (FCurve *fcu, View2D *v2d, float cycxofs, float c
 			if (fcu->driver) 
 				resol= 32;
 			else 
-				resol= 3.0f*sqrt(bezt->vec[1][0] - prevbezt->vec[1][0]);
+				resol= (int)(3.0*sqrt(bezt->vec[1][0] - prevbezt->vec[1][0]));
 			
 			if (resol < 2) {
 				/* only draw one */
@@ -678,7 +678,7 @@ void graph_draw_channel_names(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 	 *	- offset of ACHANNEL_HEIGHT*2 is added to the height of the channels, as first is for 
 	 *	  start of list offset, and the second is as a correction for the scrollers.
 	 */
-	height= ((items*ACHANNEL_STEP) + (ACHANNEL_HEIGHT*2));
+	height= (float)((items*ACHANNEL_STEP) + (ACHANNEL_HEIGHT*2));
 	
 	if (height > (v2d->mask.ymax - v2d->mask.ymin)) {
 		/* don't use totrect set, as the width stays the same 

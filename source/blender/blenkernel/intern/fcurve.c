@@ -1042,7 +1042,7 @@ static void fcm_generator_evaluate (FCurve *fcu, FModifier *fcm, float *cvalue, 
 			// TODO: could this be more efficient (i.e. without need to recalc pow() everytime)
 			cp= data->poly_coefficients;
 			for (i=0; (i <= data->poly_order) && (cp); i++, cp++)
-				value += (*cp) * pow(evaltime, i);
+				value += (*cp) * (float)pow(evaltime, i);
 			
 			/* only if something changed */
 			if (data->poly_order)
