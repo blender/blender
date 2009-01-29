@@ -1894,7 +1894,7 @@ static void actcon_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstraint
 			/* make a temporary pose and evaluate using that */
 			pose = MEM_callocN(sizeof(bPose), "pose");
 			
-			/* make a copy of the bone of interest in the temp pose */
+			/* make a copy of the bone of interest in the temp pose before evaluating action, so that it can get set */
 			pchan = cob->pchan;
 			tchan= verify_pose_channel(pose, pchan->name);
 			
