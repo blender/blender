@@ -81,6 +81,7 @@
 #include "GHOST_C-api.h"
 
 #include "UI_interface.h"
+#include "BLF_api.h"
 
 // XXX #include "BPY_extern.h"
 
@@ -583,9 +584,7 @@ int WM_read_homefile(bContext *C, int from_memory)
 	G.fileflags &= ~G_FILE_AUTOPLAY;	/*  disable autoplay in .B.blend... */
 //	mainwindow_set_filename_to_title("");	// empty string re-initializes title to "Blender"
 
-#ifdef INTERNATIONAL
-// XXX	read_languagefile();
-#endif
+	BLF_lang_init();
 	
 //	refresh_interface_font();
 	

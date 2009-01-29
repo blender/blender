@@ -32,14 +32,9 @@
 
 struct BMF_Font;
 
-int  read_languagefile(void);		/* usiblender.c */
-void free_languagemenu(void);		/* usiblender.c */
-
 void set_interface_font(char *str); /* headerbuttons.c */
 void start_interface_font(void);	/* headerbuttons.c */
-void lang_setlanguage(void);		/* usiblender.c */
 
-char *language_pup(void);
 char *fontsize_pup(void);
 
 int UI_DrawString(struct BMF_Font* font, char *str, int translate);
@@ -53,15 +48,6 @@ void UI_RasterPos(float x, float y);
 void UI_SetScale(float aspect);
 void ui_text_init_userdef(void);
 
-struct LANGMenuEntry {
-	struct LANGMenuEntry *next;
-	char *line;
-	char *language;
-	char *code;
-	int id;
-};
-
-struct LANGMenuEntry *find_language(short langid);
 
 #endif /* UI_TEXT_H */
 

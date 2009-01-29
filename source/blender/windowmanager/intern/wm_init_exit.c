@@ -89,6 +89,7 @@
 #include "ED_util.h"
 
 #include "UI_interface.h"
+#include "BLF_api.h"
 
 #include "GPU_extensions.h"
 #include "GPU_draw.h"
@@ -223,10 +224,7 @@ void WM_exit(bContext *C)
 	
 //	fsmenu_free();
 	
-#ifdef INTERNATIONAL
-//	free_languagemenu();
-#endif
-	
+	BLF_lang_exit();
 	RE_FreeAllRender();
 	
 //	free_txt_data();

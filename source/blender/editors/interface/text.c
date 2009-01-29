@@ -43,6 +43,7 @@
 
 #include "BIF_gl.h"
 #include "UI_text.h"
+#include "BLF_api.h"
 
 #include "ED_datafiles.h"
 
@@ -77,11 +78,7 @@ void string_to_utf8(char *original, char *utf_8, char *code)
 
 #ifdef INTERNATIONAL
 #include "FTF_Api.h"
-
-static struct LANGMenuEntry *langmenu= 0;
-static int tot_lang = 0;
-
-#endif // INTERNATIONAL
+#endif
 
 void UI_RasterPos(float x, float y)
 {
@@ -118,14 +115,13 @@ int UI_DrawString(BMF_Font* font, char *str, int translate)
 #ifdef WITH_ICONV
 			if(translate & CONVERT_TO_UTF8) {
 				char utf_8[512];
+				char *code;
 
-				struct LANGMenuEntry *lme;
-				lme = find_language(U.language);
-
-				if (lme !=NULL) {
-					if (!strcmp(lme->code, "ja_JP"))
+				code= BLF_lang_find_code(U.language);
+				if (lme) {
+					if (!strcmp(code, "ja_JP"))
 						string_to_utf8(str, utf_8, "Shift_JIS");	/* Japanese */
-					else if (!strcmp(lme->code, "zh_CN"))
+					else if (!strcmp(code, "zh_CN"))
 						string_to_utf8(str, utf_8, "GB2312");		/* Chinese */
 				}
 	
@@ -204,50 +200,6 @@ char *fontsize_pup(void)
 	return (string);
 }
 
-
-char *language_pup(void)
-{
-	struct LANGMenuEntry *lme = langmenu;
-	static char string[1024];
-	static char tmp[1024];
-
-	if(tot_lang == 0)
-		sprintf(string, "Choose Language: %%t|Language:  English %%x0");
-	else {
-		sprintf(string, "Choose Language: %%t");
-		while(lme) {
-			sprintf(tmp, "|Language:  %s %%x%d", lme->language, lme->id);
-			strcat(string, tmp);
-			lme= lme->next;
-		}
-	}
-
-	return string;
-}
-
-struct LANGMenuEntry *find_language(short langid)
-{
-	struct LANGMenuEntry *lme = langmenu;
-
-	while(lme) {
-		if(lme->id == langid)
-			return lme;
-
-		lme=lme->next;
-	}
-	return NULL;
-}
-
-
-void lang_setlanguage(void) 
-{
-	struct LANGMenuEntry *lme;
-
-	lme = find_language(U.language);
-	if(lme) FTF_SetLanguage(lme->code);
-	else FTF_SetLanguage("en_US");
-}
-
 /* called from fileselector */
 void set_interface_font(char *str) 
 {
@@ -255,7 +207,7 @@ void set_interface_font(char *str)
 	/* this test needed because fileselect callback can happen after disable AA fonts */
 	if(U.transopts & USER_DOTRANSLATE) {
 		if(FTF_SetFont((unsigned char*)str, 0, U.fontsize)) {
-			lang_setlanguage();
+			BLF_lang_set(U.language);
 			
 			if(strlen(str) < FILE_MAXDIR) strcpy(U.fontname, str);
 			G.ui_international = TRUE;
@@ -297,8 +249,7 @@ void start_interface_font(void)
 	}
 
 	if(result) {
-		lang_setlanguage();
-
+		BLF_lang_set(U.language);
 		G.ui_international = TRUE;
 	} 
 	else {
@@ -309,133 +260,6 @@ void start_interface_font(void)
 	}
 
 	/* XXX 2.50 bad call allqueue(REDRAWALL, 0); */
-}
-
-static char *first_dpointchar(char *string) 
-{
-	char *dpointchar;
-	
-	dpointchar= strchr(string, ':');	
-
-	return dpointchar;
-}
-
-
-static void splitlangline(char *line, struct LANGMenuEntry *lme)
-{
-	char *dpointchar= first_dpointchar(line);
-
-	if (dpointchar) {
-		lme->code= BLI_strdup(dpointchar+1);
-		*(dpointchar)=0;
-		lme->language= BLI_strdup(line);
-	} else {
-		/* XXX 2.50 bad call error("Invalid language file"); */
-	}
-}
-
-
-static void puplang_insert_entry(char *line)
-{
-	struct LANGMenuEntry *lme, *prev;
-	int sorted = 0;
-
-	prev= NULL;
-	lme= langmenu;
-
-	for (; lme; prev= lme, lme= lme->next) {
-		if (lme->line) {
-			if (BLI_streq(line, lme->line)) {
-				return;
-			} else if (sorted && strcmp(line, lme->line)<0) {
-				break;
-			}
-		}
-	}
-	
-	lme= MEM_mallocN(sizeof(*lme), "lme");
-	lme->line = BLI_strdup(line);
-	splitlangline(line, lme);
-	lme->id = tot_lang;
-	tot_lang++;
-
-	if (prev) {
-		lme->next= prev->next;
-		prev->next= lme;
-	} else {
-		lme->next= langmenu;
-		langmenu= lme;
-	}
-}
-
-
-int read_languagefile(void) 
-{
-	char name[FILE_MAXDIR+FILE_MAXFILE];
-	LinkNode *l, *lines;
-	
-	/* .Blanguages, http://www.blender3d.org/cms/Installation_Policy.352.0.html*/
-#if defined (__APPLE__) || (WIN32)
-	BLI_make_file_string("/", name, BLI_gethome(), ".Blanguages");
-#else
-	BLI_make_file_string("/", name, BLI_gethome(), ".blender/.Blanguages");
-#endif
-
-	lines= BLI_read_file_as_lines(name);
-
-	if(lines == NULL) {
-		/* If not found in home, try current dir 
-		 * (Resources folder of app bundle on OS X) */
-#if defined (__APPLE__)
-		char *bundlePath = BLI_getbundle();
-		strcpy(name, bundlePath);
-		strcat(name, "/Contents/Resources/.Blanguages");
-#else
-		/* Check the CWD. Takes care of the case where users
-		 * unpack blender tarball; cd blender-dir; ./blender */
-		strcpy(name, ".blender/.Blanguages");
-#endif
-		lines= BLI_read_file_as_lines(name);
-
-		if(lines == NULL) {
-			/* If not found in .blender, try current dir */
-			strcpy(name, ".Blanguages");
-			lines= BLI_read_file_as_lines(name);
-			if(lines == NULL) {
-				if(G.f & G_DEBUG) printf("File .Blanguages not found\n");
-				return 0;
-			}
-		}
-	}
-
-	for (l= lines; l; l= l->next) {
-		char *line= l->link;
-			
-		if (!BLI_streq(line, "")) {
-			puplang_insert_entry(line);
-		}
-	}
-
-	BLI_free_file_lines(lines);
-
-	return 1;
-}
-
-
-void free_languagemenu(void)
-{
-	struct LANGMenuEntry *lme= langmenu;
-
-	while (lme) {
-		struct LANGMenuEntry *n= lme->next;
-
-		if (lme->line) MEM_freeN(lme->line);
-		if (lme->language) MEM_freeN(lme->language);
-		if (lme->code) MEM_freeN(lme->code);
-		MEM_freeN(lme);
-
-		lme= n;
-	}
 }
 
 #endif /* INTERNATIONAL */

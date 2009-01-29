@@ -1,5 +1,5 @@
 #
-# $Id$
+# $Id:
 #
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
@@ -17,10 +17,8 @@
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
-# The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
+# The Original Code is Copyright (C) 2008 Blender Foundation.
 # All rights reserved.
-#
-# The Original Code is: all of this file.
 #
 # Contributor(s): none yet.
 #
@@ -28,24 +26,17 @@
 #
 #
 
-include nan_definitions.mk
+LIBNAME = blenfont
+DIR = $(OCGDIR)/blender/blenfont
 
-DIRS = windowmanager editors blenloader readblenfile
-DIRS += avi imbuf render radiosity blenlib blenkernel blenpluginapi
-DIRS += makesdna makesrna yafray
-DIRS += python nodes gpu
-DIRS += blenfont
+include nan_compile.mk
 
-ifeq ($(WITH_FREETYPE2), true)
-	DIRS += ftfont
-endif
+CFLAGS += $(LEVEL_1_C_WARNINGS)
 
-ifeq ($(WITH_QUICKTIME), true)
-	DIRS += quicktime
-endif
+CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
+CPPFLAGS += -I../../makesdna
+CPPFLAGS += -I../../blenlib
+CPPFLAGS += -I../../blenkernel
+CPPFLAGS += -I../../ftfont
 
-DIR = $(OCGDIR)/blender
-SOURCEDIR = source/blender
-TESTDIRS = deflate streamglue
-
-include nan_subdirs.mk
+CPPFLAGS += -I..
