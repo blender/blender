@@ -1,4 +1,4 @@
-# $Id$
+# $Id $
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
 # This program is free software; you can redistribute it and/or
@@ -15,37 +15,20 @@
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
-# The Original Code is Copyright (C) 2006, Blender Foundation
+# The Original Code is Copyright (C) 2008, Blender Foundation
 # All rights reserved.
 #
 # The Original Code is: all of this file.
 #
-# Contributor(s): Jacques Beaurain.
-#
 # ***** END GPL LICENSE BLOCK *****
 
-SUBDIRS(windowmanager editors avi nodes blenkernel blenlib blenloader blenpluginapi imbuf imbuf/intern/cineon gpu makesdna makesrna radiosity readblenfile render blenfont)
+FILE(GLOB SRC intern/*.c)
 
-IF(WITH_INTERNATIONAL)
-  SUBDIRS(ftfont)
-ENDIF(WITH_INTERNATIONAL)
+#SET(INC . intern ../../../intern/guardedalloc ../blenlib ../blenkernel ../makedna
 
-IF(WITH_OPENEXR)
-  SUBDIRS(imbuf/intern/openexr)
-ENDIF(WITH_OPENEXR)
+SET(INC 
+  ../../../intern/guardedalloc ../blenlib ../makesdna
+  ../blenkernel ../ftfont
+)
 
-IF(WITH_DDS)
-  SUBDIRS(imbuf/intern/dds)
-ENDIF(WITH_DDS)
-
-IF(WITH_QUICKTIME)
-  SUBDIRS(quicktime)
-ENDIF(WITH_QUICKTIME)
-
-IF(WITH_PYTHON)
-  SUBDIRS(python)
-ENDIF(WITH_PYTHON)
-
-IF(WITH_YAFRAY)
-  SUBDIRS(yafray)
-ENDIF(WITH_YAFRAY)
+BLENDERLIB(bf_blenfont "${SRC}" "${INC}")
