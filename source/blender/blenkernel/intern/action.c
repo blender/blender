@@ -45,6 +45,7 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
+#include "BKE_animsys.h"
 #include "BKE_action.h"
 #include "BKE_anim.h"
 #include "BKE_armature.h"
@@ -610,46 +611,6 @@ void extract_pose_from_pose(bPose *pose, const bPose *src)
 	}
 }
 
-/* Pose should exist, can have any number of channels too (used for constraint) */
-void extract_pose_from_action(bPose *pose, bAction *act, float ctime) 
-{
-#if 0	// XXX old animation system
-	bActionChannel *achan;
-	bPoseChannel	*pchan;
-	Ipo				*ipo;
-
-	if (!act)
-		return;
-	if (!pose)
-		return;
-	
-	/* Copy the data from the action into the pose */
-	for (pchan= pose->chanbase.first; pchan; pchan=pchan->next) {
-		/* skip this pose channel if it has been tagged as having unkeyed poses */
-		if ((pchan->bone) && (pchan->bone->flag & BONE_UNKEYED)) 
-			continue;
-		
-		/* get action channel and clear pchan-transform flags */
-		achan= get_action_channel(act, pchan->name);
-		pchan->flag &= ~(POSE_LOC|POSE_ROT|POSE_SIZE);
-		
-		if (achan) {
-			ipo = achan->ipo;
-			if (ipo) {
-				/* Evaluates and sets the internal ipo value */
-				calc_ipo(ipo, ctime);
-				/* This call also sets the pchan flags */
-				execute_action_ipo(achan, pchan);
-			}
-			/* 0 = do all ipos, not only drivers */
-			do_constraint_channels(&pchan->constraints, &achan->constraintChannels, ctime, 0);
-		}
-	}
-#endif	// XXX old animation system
-	
-	pose->ctime= ctime;	/* used for cyclic offset matching */
-}
-
 /* for do_all_pose_actions, clears the pose. Now also exported for proxy and tools */
 void rest_pose(bPose *pose)
 {
@@ -706,6 +667,50 @@ void copy_pose_result(bPose *to, bPose *from)
 			pchanto->flag= pchanfrom->flag;
 		}
 	}
+}
+
+/* For the calculation of the effects of an Action at the given frame on an object 
+ * This is currently only used for the Action Constraint 
+ */
+void what_does_obaction (Scene *scene, Object *ob, Object *workob, bPose *pose, bAction *act, float cframe)
+{
+	AnimData adt;
+	
+	/* clear workob and animdata */
+	clear_workob(workob);
+	memset(&adt, 0, sizeof(AnimData));
+	
+	/* init workob */
+	Mat4CpyMat4(workob->obmat, ob->obmat);
+	Mat4CpyMat4(workob->parentinv, ob->parentinv);
+	Mat4CpyMat4(workob->constinv, ob->constinv);
+	workob->parent= ob->parent;
+	workob->track= ob->track;
+
+	workob->trackflag= ob->trackflag;
+	workob->upflag= ob->upflag;
+	
+	workob->partype= ob->partype;
+	workob->par1= ob->par1;
+	workob->par2= ob->par2;
+	workob->par3= ob->par3;
+
+	workob->constraints.first = ob->constraints.first;
+	workob->constraints.last = ob->constraints.last;
+	
+	workob->pose= pose;	/* need to set pose too, since this is used for both types of Action Constraint */
+
+	strcpy(workob->parsubstr, ob->parsubstr);
+	strcpy(workob->id.name, "OB<ConstrWorkOb>"); /* we don't use real object name, otherwise RNA screws with the real thing */
+	
+	/* init animdata, and attach to workob */
+	workob->adt= &adt;
+	
+	adt.recalc= ADT_RECALC_ANIM;
+	adt.action= act;
+	
+	/* execute effects of Action on to workob (or it's PoseChannels) */
+	BKE_animsys_evaluate_animdata(workob, &adt, cframe, ADT_RECALC_ANIM);
 }
 
 /* ********** NLA with non-poses works with ipo channels ********** */
@@ -1161,45 +1166,6 @@ static Object *get_parent_path(Object *ob)
 }
 
 /* ************** do the action ************ */
-
-/* For the calculation of the effects of an action at the given frame on an object 
- * This is currently only used for the action constraint 
- */
-void what_does_obaction (Scene *scene, Object *ob, Object *workob, bAction *act, float cframe)
-{
-	ListBase tchanbase= {NULL, NULL};
-	
-	clear_workob(workob);
-	Mat4CpyMat4(workob->obmat, ob->obmat);
-	Mat4CpyMat4(workob->parentinv, ob->parentinv);
-	Mat4CpyMat4(workob->constinv, ob->constinv);
-	workob->parent= ob->parent;
-	workob->track= ob->track;
-
-	workob->trackflag= ob->trackflag;
-	workob->upflag= ob->upflag;
-	
-	workob->partype= ob->partype;
-	workob->par1= ob->par1;
-	workob->par2= ob->par2;
-	workob->par3= ob->par3;
-
-	workob->constraints.first = ob->constraints.first;
-	workob->constraints.last = ob->constraints.last;
-
-	strcpy(workob->parsubstr, ob->parsubstr);
-	strcpy(workob->id.name, ob->id.name);
-	
-	/* extract_ipochannels_from_action needs id's! */
-	workob->action= act;
-	
-	extract_ipochannels_from_action(&tchanbase, &workob->id, act, "Object", bsystem_time(scene, workob, cframe, 0.0));
-	
-	if (tchanbase.first) {
-		execute_ipochannels(&tchanbase);
-		BLI_freelistN(&tchanbase);
-	}
-}
 
 /* ----- nla, etc. --------- */
 

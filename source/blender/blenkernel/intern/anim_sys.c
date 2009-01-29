@@ -229,6 +229,8 @@ static short animsys_write_rna_setting (PointerRNA *ptr, char *path, int array_i
 	}
 	else {
 		/* failed to get path */
+		// XXX don't tag as failed yet though, as there are some legit situations (Action Constraint) 
+		// where some channels will not exist, but shouldn't lock up Action
 		printf("Animato: Invalid path. ID = '%s',  '%s [%d]' \n", 
 			(ptr && ptr->id.data) ? (((ID *)ptr->id.data)->name+2) : "<No ID>", 
 			path, array_index);

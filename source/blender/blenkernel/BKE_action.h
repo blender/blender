@@ -123,17 +123,8 @@ void update_pose_constraint_flags(struct bPose *pose);
 // XXX to be depreceated for a more general solution in animsys...
 void framechange_poses_clear_unkeyed(void);
 
-/**
- * Set the pose channels from the given action.
- */
-// XXX old crap
-void extract_pose_from_action(struct bPose *pose, struct bAction *act, float ctime);
-
-/**
- * Get the effects of the given action using a workob 
- */
-// XXX old crap, used for action constraint though!
-void what_does_obaction(struct Scene *scene, struct Object *ob, struct Object *workob, struct bAction *act, float cframe);
+/* Used for the Action Constraint */
+void what_does_obaction(struct Scene *scene, struct Object *ob, struct Object *workob, struct bPose *pose, struct bAction *act, float cframe);
 
 /* exported for game engine */
 void blend_poses(struct bPose *dst, struct bPose *src, float srcweight, short mode);
