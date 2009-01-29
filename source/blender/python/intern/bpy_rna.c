@@ -34,13 +34,35 @@
 #define MAXFLOAT_DOC 10000000
 
 static int pyrna_struct_compare( BPy_StructRNA * a, BPy_StructRNA * b )
-{ 
+{
 	return (a->ptr.data==b->ptr.data) ? 0 : -1;
 }
 
 static int pyrna_prop_compare( BPy_PropertyRNA * a, BPy_PropertyRNA * b )
 {
 	return (a->prop==b->prop && a->ptr.data==b->ptr.data ) ? 0 : -1;
+}
+
+
+/* For some reason python3 needs these :/ */
+static PyObject *pyrna_struct_richcmp(BPy_StructRNA * a, BPy_StructRNA * b, int op)
+{
+	int cmp_result= -1; /* assume false */
+	if (BPy_StructRNA_Check(a) && BPy_StructRNA_Check(b)) {
+		cmp_result= pyrna_struct_compare(a, b);
+	}
+
+	return Py_CmpToRich(op, cmp_result);
+}
+
+static PyObject *pyrna_prop_richcmp(BPy_PropertyRNA * a, BPy_PropertyRNA * b, int op)
+{
+	int cmp_result= -1; /* assume false */
+	if (BPy_PropertyRNA_Check(a) && BPy_PropertyRNA_Check(b)) {
+		cmp_result= pyrna_prop_compare(a, b);
+	}
+
+	return Py_CmpToRich(op, cmp_result);
 }
 
 /*----------------------repr--------------------------------------------*/
@@ -954,7 +976,7 @@ static PyObject * pyrna_prop_new(PyTypeObject *type, PyObject *args, PyObject *k
 /*-----------------------BPy_StructRNA method def------------------------------*/
 PyTypeObject pyrna_struct_Type = {
 #if (PY_VERSION_HEX >= 0x02060000)
-	PyVarObject_HEAD_INIT(&PyType_Type, 0)
+	PyVarObject_HEAD_INIT(NULL, 0)
 #else
 	/* python 2.5 and below */
 	PyObject_HEAD_INIT( NULL )  /* required py macro */
@@ -1001,7 +1023,7 @@ PyTypeObject pyrna_struct_Type = {
 
   /***  Assigned meaning in release 2.1 ***/
   /*** rich comparisons ***/
-	NULL,                       /* richcmpfunc tp_richcompare; */
+	(richcmpfunc)pyrna_struct_richcmp,	/* richcmpfunc tp_richcompare; */
 
   /***  weak reference enabler ***/
 	0,                          /* long tp_weaklistoffset; */
@@ -1039,7 +1061,7 @@ PyTypeObject pyrna_struct_Type = {
 /*-----------------------BPy_PropertyRNA method def------------------------------*/
 PyTypeObject pyrna_prop_Type = {
 #if (PY_VERSION_HEX >= 0x02060000)
-	PyVarObject_HEAD_INIT(&PyType_Type, 0)
+	PyVarObject_HEAD_INIT(NULL, 0)
 #else
 	/* python 2.5 and below */
 	PyObject_HEAD_INIT( NULL )  /* required py macro */
@@ -1087,7 +1109,7 @@ PyTypeObject pyrna_prop_Type = {
 
   /***  Assigned meaning in release 2.1 ***/
   /*** rich comparisons ***/
-	NULL,                       /* richcmpfunc tp_richcompare; */
+	(richcmpfunc)pyrna_prop_richcmp,	/* richcmpfunc tp_richcompare; */
 
   /***  weak reference enabler ***/
 	0,                          /* long tp_weaklistoffset; */

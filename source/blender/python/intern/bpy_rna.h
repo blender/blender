@@ -33,14 +33,17 @@
 extern PyTypeObject pyrna_struct_Type;
 extern PyTypeObject pyrna_prop_Type;
 
+#define BPy_StructRNA_Check(v)		(PyObject_TypeCheck(v, &pyrna_struct_Type))
+#define BPy_PropertyRNA_Check(v)	(PyObject_TypeCheck(v, &pyrna_prop_Type))
+
 typedef struct {
-	PyObject_VAR_HEAD /* required python macro   */
+	PyObject_HEAD /* required python macro   */
 	PointerRNA ptr;
 	int freeptr; /* needed in some cases if ptr.data is created on the fly, free when deallocing */
 } BPy_StructRNA;
 
 typedef struct {
-	PyObject_VAR_HEAD /* required python macro   */
+	PyObject_HEAD /* required python macro   */
 	PointerRNA ptr;
 	PropertyRNA *prop;
 } BPy_PropertyRNA;

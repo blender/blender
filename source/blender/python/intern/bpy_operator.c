@@ -278,7 +278,7 @@ PyObject *pyop_base_dir(PyObject *self)
 /*-----------------------BPy_OperatorBase method def------------------------------*/
 PyTypeObject pyop_base_Type = {
 #if (PY_VERSION_HEX >= 0x02060000)
-	PyVarObject_HEAD_INIT(&PyType_Type, 0)
+	PyVarObject_HEAD_INIT(NULL, 0)
 #else
 	/* python 2.5 and below */
 	PyObject_HEAD_INIT( NULL )  /* required py macro */
@@ -364,7 +364,7 @@ PyTypeObject pyop_base_Type = {
 /*-----------------------BPy_OperatorBase method def------------------------------*/
 PyTypeObject pyop_func_Type = {
 #if (PY_VERSION_HEX >= 0x02060000)
-	PyVarObject_HEAD_INIT(&PyType_Type, 0)
+	PyVarObject_HEAD_INIT(NULL, 0)
 #else
 	/* python 2.5 and below */
 	PyObject_HEAD_INIT( NULL )  /* required py macro */
