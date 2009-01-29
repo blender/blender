@@ -14,6 +14,7 @@
 #include "BKE_animsys.h"
 #include "BKE_action.h"
 #include "BKE_fcurve.h"
+#include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_utildefines.h"
 
@@ -231,9 +232,11 @@ static short animsys_write_rna_setting (PointerRNA *ptr, char *path, int array_i
 		/* failed to get path */
 		// XXX don't tag as failed yet though, as there are some legit situations (Action Constraint) 
 		// where some channels will not exist, but shouldn't lock up Action
-		printf("Animato: Invalid path. ID = '%s',  '%s [%d]' \n", 
-			(ptr && ptr->id.data) ? (((ID *)ptr->id.data)->name+2) : "<No ID>", 
-			path, array_index);
+		if (G.f & G_DEBUG) {
+			printf("Animato: Invalid path. ID = '%s',  '%s [%d]' \n", 
+				(ptr && ptr->id.data) ? (((ID *)ptr->id.data)->name+2) : "<No ID>", 
+				path, array_index);
+		}
 		return 0;
 	}
 }
@@ -632,7 +635,8 @@ void BKE_animsys_evaluate_all_animation (Main *main, float ctime)
 {
 	ID *id;
 	
-	printf("Evaluate all animation - %f \n", ctime);
+	if (G.f & G_DEBUG)
+		printf("Evaluate all animation - %f \n", ctime);
 
 	/* macro for less typing */
 #define EVAL_ANIM_IDS(first) \

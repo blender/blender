@@ -1882,8 +1882,8 @@ static void actcon_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstraint
 		CLAMP(s, 0, 1);
 		t = ( s * (data->end-data->start)) + data->start;
 		
-		// xxx temp debugging string
-		printf("do Action Constraint %s - Ob %s Pchan %s \n", con->name, cob->ob->id.name+2, (cob->pchan)?cob->pchan->name:NULL);
+		if (G.f & G_DEBUG)
+			printf("do Action Constraint %s - Ob %s Pchan %s \n", con->name, cob->ob->id.name+2, (cob->pchan)?cob->pchan->name:NULL);
 		
 		/* Get the appropriate information from the action */
 		if (cob->type == CONSTRAINT_OBTYPE_BONE) {

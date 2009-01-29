@@ -2273,8 +2273,9 @@ void object_handle_update(Scene *scene, Object *ob)
 	if(ob->recalc & OB_RECALC) {
 		
 		if(ob->recalc & OB_RECALC_OB) {
-
-			 printf("recalcob %s\n", ob->id.name+2);
+			
+			if (G.f & G_DEBUG)
+				printf("recalcob %s\n", ob->id.name+2);
 			
 			/* handle proxy copy for target */
 			if(ob->id.lib && ob->proxy_from) {
@@ -2296,7 +2297,8 @@ void object_handle_update(Scene *scene, Object *ob)
 		
 		if(ob->recalc & OB_RECALC_DATA) {
 			
-			 printf("recalcdata %s\n", ob->id.name+2);
+			if (G.f & G_DEBUG)
+				printf("recalcdata %s\n", ob->id.name+2);
 			
 			/* includes all keys and modifiers */
 			if(ob->type==OB_MESH) {

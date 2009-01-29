@@ -1346,7 +1346,7 @@ int do_ob_key(Scene *scene, Object *ob)
 	if(ob->shapeflag & (OB_SHAPE_LOCK|OB_SHAPE_TEMPLOCK)) {
 		KeyBlock *kb= BLI_findlink(&key->block, ob->shapenr-1);
 		
-		printf("ob %s, key %s locked \n", ob->id.name+2, key->id.name+2);
+		if (G.f & G_DEBUG) printf("ob %s, key %s locked \n", ob->id.name+2, key->id.name+2);
 		
 		if(kb && (kb->flag & KEYBLOCK_MUTE))
 			kb= key->refkey;
@@ -1393,7 +1393,7 @@ int do_ob_key(Scene *scene, Object *ob)
 #endif // XXX old animation system
 		/* do shapekey local drivers */
 		float ctime= (float)scene->r.cfra; // XXX this needs to be checked
-		printf("ob %s - do shapekey (%s) drivers \n", ob->id.name+2, key->id.name+2);
+		if (G.f & G_DEBUG) printf("ob %s - do shapekey (%s) drivers \n", ob->id.name+2, key->id.name+2);
 		BKE_animsys_evaluate_animdata(&key->id, key->adt, ctime, ADT_RECALC_DRIVERS);
 		
 		if(ob->type==OB_MESH) return do_mesh_key(scene, ob, ob->data);

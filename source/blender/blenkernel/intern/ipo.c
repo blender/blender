@@ -109,7 +109,8 @@ void free_ipo (Ipo *ipo)
 		BLI_freelinkN(&ipo->curve, icu);
 	}
 	
-	printf("Freed %d (Unconverted) Ipo-Curves from IPO '%s' \n", n, ipo->id.name+2);
+	if (G.f & G_DEBUG)
+		printf("Freed %d (Unconverted) Ipo-Curves from IPO '%s' \n", n, ipo->id.name+2);
 }
 
 /* *************************************************** */
@@ -778,7 +779,7 @@ static ChannelDriver *idriver_to_cdriver (IpoDriver *idriver)
 		if (idriver->blocktype == ID_AR) {
 			/* ID_PO */
 			if (idriver->adrcode == OB_ROT_DIFF) {
-				printf("idriver_to_cdriver - rotdiff %p \n", idriver->ob);
+				if (G.f & G_DEBUG) printf("idriver_to_cdriver - rotdiff %p \n", idriver->ob);
 				/* Rotational Difference is a special type of driver now... */
 				cdriver->type= DRIVER_TYPE_ROTDIFF;
 				
@@ -796,7 +797,7 @@ static ChannelDriver *idriver_to_cdriver (IpoDriver *idriver)
 				cdriver->rna_path2= get_rna_access(-1, -1, idriver->name+DRIVER_NAME_OFFS, NULL, NULL);
 			}
 			else {
-				printf("idriver_to_cdriver - arm  %p \n", idriver->ob);
+				if (G.f & G_DEBUG) printf("idriver_to_cdriver - arm  %p \n", idriver->ob);
 				/* 'standard' driver */
 				cdriver->type= DRIVER_TYPE_CHANNEL;
 				cdriver->id= (ID *)idriver->ob;
@@ -837,14 +838,14 @@ static ChannelDriver *idriver_to_cdriver (IpoDriver *idriver)
 		}
 		else {
 			/* ID_OB */
-			printf("idriver_to_cdriver  - ob %p \n", idriver->ob);
+			if (G.f & G_DEBUG) printf("idriver_to_cdriver  - ob %p \n", idriver->ob);
 			cdriver->type= DRIVER_TYPE_CHANNEL;
 			cdriver->id= (ID *)idriver->ob;
 			cdriver->rna_path= get_rna_access(ID_OB, idriver->adrcode, NULL, NULL, &cdriver->array_index);
 		}
 	}
 	
-	printf("\tcdriver -> id = %p \n", cdriver->id);
+	if (G.f & G_DEBUG) printf("\tcdriver -> id = %p \n", cdriver->id);
 	
 	/* free old driver */
 	MEM_freeN(idriver);
@@ -917,7 +918,7 @@ static void icu_to_fcurves (ListBase *list, IpoCurve *icu, char *actname, char *
 		FCurve *fcurve;
 		int b;
 		
-		printf("\tconvert bitflag ipocurve, totbits = %d \n", totbits);
+		if (G.f & G_DEBUG) printf("\tconvert bitflag ipocurve, totbits = %d \n", totbits);
 		
 		/* add the 'only int values' flag */
 		fcu->flag |= FCURVE_INT_VALUES;		
@@ -1048,7 +1049,7 @@ static void ipo_to_animato (Ipo *ipo, char actname[], char constname[], ListBase
 	if (ELEM3(NULL, ipo, anim, drivers))
 		return;
 		
-	printf("ipo_to_animato \n");
+	if (G.f & G_DEBUG) printf("ipo_to_animato \n");
 		
 	/* validate actname and constname 
 	 *	- clear actname if it was one of the generic <builtin> ones (i.e. 'Object', or 'Shapes')
@@ -1154,9 +1155,11 @@ static void ipo_to_animdata (ID *id, Ipo *ipo, char actname[], char constname[])
 		return;
 	}
 	
-	printf("ipo to animdata - ID:%s, IPO:%s, actname:%s constname:%s  curves:%d \n", 
-		id->name+2, ipo->id.name+2, (actname)?actname:"<None>", (constname)?constname:"<None>", 
-		BLI_countlist(&ipo->curve));
+	if (G.f & G_DEBUG) {
+		printf("ipo to animdata - ID:%s, IPO:%s, actname:%s constname:%s  curves:%d \n", 
+			id->name+2, ipo->id.name+2, (actname)?actname:"<None>", (constname)?constname:"<None>", 
+			BLI_countlist(&ipo->curve));
+	}
 	
 	/* Convert curves to animato system (separated into separate lists of F-Curves for animation and drivers),
 	 * and the try to put these lists in the right places, but do not free the lists here
@@ -1165,11 +1168,11 @@ static void ipo_to_animdata (ID *id, Ipo *ipo, char actname[], char constname[])
 	
 	/* deal with animation first */
 	if (anim.first) {
-		printf("\thas anim \n");
+		if (G.f & G_DEBUG) printf("\thas anim \n");
 		/* try to get action */
 		if (adt->action == NULL) {
 			adt->action= add_empty_action("ConvData_Action"); // XXX we need a better name for this
-			printf("\t\tadded new action \n");
+			if (G.f & G_DEBUG) printf("\t\tadded new action \n");
 		}
 		
 		/* add F-Curves to action */
@@ -1178,7 +1181,7 @@ static void ipo_to_animdata (ID *id, Ipo *ipo, char actname[], char constname[])
 	
 	/* deal with drivers */
 	if (drivers.first) {
-		printf("\thas drivers \n");
+		if (G.f & G_DEBUG) printf("\thas drivers \n");
 		/* add drivers to end of driver stack */
 		addlisttolist(&adt->drivers, &drivers);
 	}
@@ -1198,7 +1201,7 @@ static void action_to_animdata (ID *id, bAction *act)
 	/* check if we need to set this Action as the AnimData's action */
 	if (adt->action == NULL) {
 		/* set this Action as AnimData's Action */
-		printf("act_to_adt - set adt action to act \n");
+		if (G.f & G_DEBUG) printf("act_to_adt - set adt action to act \n");
 		adt->action= act;
 	}
 	
@@ -1249,7 +1252,7 @@ void do_versions_ipos_to_animato(Main *main)
 		bConstraint *con;
 		bConstraintChannel *conchan, *conchann;
 		
-		printf("\tconverting ob %s \n", id->name+2);
+		if (G.f & G_DEBUG) printf("\tconverting ob %s \n", id->name+2);
 		
 		/* check if object has any animation data */
 		if ((ob->ipo) || (ob->action) || (ob->nlastrips.first)) {
@@ -1336,7 +1339,7 @@ void do_versions_ipos_to_animato(Main *main)
 	for (id= main->key.first; id; id= id->next) {
 		Key *key= (Key *)id;
 		
-		printf("\tconverting key %s \n", id->name+2);
+		if (G.f & G_DEBUG) printf("\tconverting key %s \n", id->name+2);
 		
 		/* we're only interested in the IPO 
 		 * NOTE: for later, it might be good to port these over to Object instead, as many of these
@@ -1357,7 +1360,7 @@ void do_versions_ipos_to_animato(Main *main)
 	for (id= main->mat.first; id; id= id->next) {
 		Material *ma= (Material *)id;
 		
-		printf("\tconverting material %s \n", id->name+2);
+		if (G.f & G_DEBUG) printf("\tconverting material %s \n", id->name+2);
 		
 		/* we're only interested in the IPO */
 		if (ma->ipo) {
@@ -1375,7 +1378,7 @@ void do_versions_ipos_to_animato(Main *main)
 	for (id= main->tex.first; id; id= id->next) {
 		Tex *te= (Tex *)id;
 		
-		printf("\tconverting texture %s \n", id->name+2);
+		if (G.f & G_DEBUG) printf("\tconverting texture %s \n", id->name+2);
 		
 		/* we're only interested in the IPO */
 		if (te->ipo) {
@@ -1393,7 +1396,7 @@ void do_versions_ipos_to_animato(Main *main)
 	for (id= main->camera.first; id; id= id->next) {
 		Camera *ca= (Camera *)id;
 		
-		printf("\tconverting camera %s \n", id->name+2);
+		if (G.f & G_DEBUG) printf("\tconverting camera %s \n", id->name+2);
 		
 		/* we're only interested in the IPO */
 		if (ca->ipo) {
@@ -1411,7 +1414,7 @@ void do_versions_ipos_to_animato(Main *main)
 	for (id= main->lamp.first; id; id= id->next) {
 		Lamp *la= (Lamp *)id;
 		
-		printf("\tconverting lamp %s \n", id->name+2);
+		if (G.f & G_DEBUG) printf("\tconverting lamp %s \n", id->name+2);
 		
 		/* we're only interested in the IPO */
 		if (la->ipo) {
@@ -1440,7 +1443,7 @@ void do_versions_ipos_to_animato(Main *main)
 	for (id= main->action.first; id; id= id->next) {
 		bAction *act= (bAction *)id;
 		
-		printf("\tconverting action %s \n", id->name+2);
+		if (G.f & G_DEBUG) printf("\tconverting action %s \n", id->name+2);
 		
 		/* be careful! some of the actions we encounter will be converted ones... */
 		action_to_animato(act, &act->curves, &drivers);
@@ -1450,7 +1453,7 @@ void do_versions_ipos_to_animato(Main *main)
 	for (id= main->ipo.first; id; id= id->next) {
 		Ipo *ipo= (Ipo *)id;
 		
-		printf("\tconverting ipo %s \n", id->name+2);
+		if (G.f & G_DEBUG) printf("\tconverting ipo %s \n", id->name+2);
 		
 		/* most likely this IPO has already been processed, so check if any curves left to convert */
 		if (ipo->curve.first) {
