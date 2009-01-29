@@ -25,6 +25,7 @@ void bezt_add_to_cfra_elem(ListBase *lb, struct BezTriple *bezt);
 /* ************** F-Curve Drivers ***************** */
 
 void fcurve_free_driver(struct FCurve *fcu);
+struct ChannelDriver *fcurve_copy_driver(struct ChannelDriver *driver);
 
 /* ************** F-Curve Modifiers *************** */
 

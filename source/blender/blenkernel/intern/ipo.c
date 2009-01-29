@@ -115,6 +115,73 @@ void free_ipo (Ipo *ipo)
 /* *************************************************** */
 /* ADRCODE to RNA-Path Conversion Code  - Special (Bitflags) */
 
+/* Mapping Table for bitflag <-> RNA path */
+typedef struct AdrBit2Path {
+	int bit;
+	char *path;
+	int array_index;
+} AdrBit2Path;
+
+/* ----------------- */
+/* Mapping Tables to use bits <-> RNA paths */
+
+/* Object layers */
+static AdrBit2Path ob_layer_bits[]= {
+	{(1<<0), "layer", 0},
+	{(1<<1), "layer", 1},
+	{(1<<2), "layer", 2},
+	{(1<<3), "layer", 3},
+	{(1<<4), "layer", 4},
+	{(1<<5), "layer", 5},
+	{(1<<6), "layer", 6},
+	{(1<<7), "layer", 7},
+	{(1<<8), "layer", 8},
+	{(1<<9), "layer", 9},
+	{(1<<10), "layer", 10},
+	{(1<<11), "layer", 11},
+	{(1<<12), "layer", 12},
+	{(1<<13), "layer", 13},
+	{(1<<14), "layer", 14},
+	{(1<<15), "layer", 15},
+	{(1<<16), "layer", 16},
+	{(1<<17), "layer", 17},
+	{(1<<18), "layer", 18},
+	{(1<<19), "layer", 19},
+	{(1<<20), "layer", 20}
+};
+
+/* ----------------- */
+
+/* This function checks if a Blocktype+Adrcode combo, returning a mapping table */
+static AdrBit2Path *adrcode_bitmaps_to_paths (int blocktype, int adrcode, int *tot)
+{
+	/* Object layers */
+	if ((blocktype == ID_OB) && (adrcode == OB_LAY)) {
+		*tot= sizeof(ob_layer_bits)/sizeof(AdrBit2Path);
+		return ob_layer_bits;
+	}
+	else if ((blocktype == ID_MA) && (adrcode == MA_MODE)) {
+		// XXX to be added...
+	}
+	// XXX TODO: add other types...
+	
+	/* Normal curve */
+	return NULL;
+}
+
+/* This function makes a copy of a path stored in AdrBit2Path entry, and makes a guardedalloc copy */
+static char *adrcode_bitmap_path_copy (const char *abp_path)
+{
+	char *path;
+	int len;
+	
+	/* copy the path */
+	len= strlen(abp_path) + 1; // XXX is this safe?
+	path= MEM_callocN(len, "Bitflag IPO-Curve RNA-Path");
+	memcpy(path, abp_path, len);
+	
+	return path;
+}
 
 /* *************************************************** */
 /* ADRCODE to RNA-Path Conversion Code  - Standard */
@@ -167,10 +234,6 @@ static char *ob_adrcodes_to_paths (int adrcode, int *array_index)
 			*array_index= 2; return "delta_scale";
 	
 #if 0	
-		case OB_LAY:	// XXX EVIL BITFLAG ALERT! this one will need special attention...
-		//	poin= &(ob->lay); *type= IPO_INT_BIT; break;
-			return NULL;
-			
 		case OB_COL_R:	
 			poin= &(ob->col[0]); break;
 		case OB_COL_G:
@@ -421,8 +484,6 @@ static char *material_adrcodes_to_paths (int adrcode, int *array_index)
 		poin= &(ma->spectra); break;
 	case MA_IOR:
 		poin= &(ma->ang); break;
-	case MA_MODE:
-		poin= &(ma->mode); *type= IPO_INT_BIT; break; // evil... dumping bitflags directly to user!
 	case MA_HASIZE:
 		poin= &(ma->hasize); break;
 	case MA_TRANSLU:
@@ -799,8 +860,9 @@ static ChannelDriver *idriver_to_cdriver (IpoDriver *idriver)
  */
 static void icu_to_fcurves (ListBase *list, IpoCurve *icu, char *actname, char *constname)
 {
+	AdrBit2Path *abp;
 	FCurve *fcu;
-	int i= 0;
+	int i=0, totbits;
 	
 	/* allocate memory for a new F-Curve */
 	fcu= MEM_callocN(sizeof(FCurve), "FCurve");
@@ -849,58 +911,127 @@ static void icu_to_fcurves (ListBase *list, IpoCurve *icu, char *actname, char *
 	
 	/* -------- */
 	
-	/* get rna-path
-	 *	- we will need to set the 'disabled' flag if no path is able to be made (for now)
-	 */
-	fcu->rna_path= get_rna_access(icu->blocktype, icu->adrcode, actname, constname, &fcu->array_index);
-	if (fcu->rna_path == NULL)
-		fcu->flag |= FCURVE_DISABLED;
-	
-	/* convert keyframes 
-	 *	- beztriples and bpoints are mutually exclusive, so we won't have both at the same time
-	 *	- beztriples are more likely to be encountered as they are keyframes (the other type wasn't used yet)
-	 */
-	// XXX we need to cope with the nasty old 'bitflag' curves... that will be a task for later
-	// XXX we also need to correct values for object-rotation curves
-	fcu->totvert= icu->totvert;
-	
-	if (icu->bezt) {
-		BezTriple *dst, *src;
+	/* get adrcode <-> bitflags mapping to handle nasty bitflag curves? */
+	abp= adrcode_bitmaps_to_paths(icu->blocktype, icu->adrcode, &totbits);
+	if (abp && totbits) {
+		FCurve *fcurve;
+		int b;
 		
-		/* allocate new array for keyframes/beztriples */
-		fcu->bezt= MEM_callocN(sizeof(BezTriple)*fcu->totvert, "BezTriples");
+		printf("\tconvert bitflag ipocurve, totbits = %d \n", totbits);
 		
-		/* loop through copying all BezTriples individually, as we need to modify a few things */
-		for (dst=fcu->bezt, src=icu->bezt; i < fcu->totvert; i++, dst++, src++) {
-			/* firstly, copy BezTriple data */
-			*dst= *src;
+		/* add the 'only int values' flag */
+		fcu->flag |= FCURVE_INT_VALUES;		
+		
+		/* for each bit we have to remap + check for:
+		 * 1) we need to make copy the existing F-Curve data (fcu -> fcurve),
+		 * 	  except for the last one which will use the original 
+		 * 2) copy the relevant path info across
+		 * 3) filter the keyframes for the flag of interest
+		 */
+		for (b=0; b < totbits; b++, abp++) {
+			/* make a copy of existing base-data if not the last curve */
+			if (b < (totbits-1))
+				fcurve= copy_fcurve(fcu);
+			else
+				fcurve= fcu;
+				
+			/* set path */
+			fcurve->rna_path= MEM_dupallocN(abp->path);
+			fcurve->array_index= abp->array_index;
 			
-			/* now copy interpolation from curve (if not already set) */
-			if (icu->ipo != IPO_MIXED)
-				dst->ipo= icu->ipo;
+			/* convert keyframes 
+			 *	- beztriples and bpoints are mutually exclusive, so we won't have both at the same time
+			 *	- beztriples are more likely to be encountered as they are keyframes (the other type wasn't used yet)
+			 */
+			fcurve->totvert= icu->totvert;
+			
+			if (icu->bezt) {
+				BezTriple *dst, *src;
 				
-			/* correct values for object rotation curves - they were degrees/10 */
-			// XXX for now, just make them into radians as RNA sets/reads directly in that form
-			if ((icu->blocktype == ID_OB) && ELEM3(icu->adrcode, OB_ROT_X, OB_ROT_Y, OB_ROT_Z)) {
-				const float fac= M_PI / 18.0f; //10.0f * M_PI/180.0f;
+				/* allocate new array for keyframes/beztriples */
+				fcurve->bezt= MEM_callocN(sizeof(BezTriple)*fcurve->totvert, "BezTriples");
 				
-				dst->vec[0][1] *= fac;
-				dst->vec[1][1] *= fac;
-				dst->vec[2][1] *= fac;
+				/* loop through copying all BezTriples individually, as we need to modify a few things */
+				for (dst=fcurve->bezt, src=icu->bezt; i < fcurve->totvert; i++, dst++, src++) {
+					/* firstly, copy BezTriple data */
+					*dst= *src;
+					
+					/* interpolation can only be constant... */
+					dst->ipo= BEZT_IPO_CONST;
+					
+					/* correct values, by checking if the flag of interest is set */
+					if ( ((int)(dst->vec[1][1])) & (abp->bit) )
+						dst->vec[0][1]= dst->vec[1][1]= dst->vec[2][1] = 1.0f;
+					else
+						dst->vec[0][1]= dst->vec[1][1]= dst->vec[2][1] = 0.0f;
+				}
 			}
+			else if (icu->bp) {
+				/* TODO: need to convert from BPoint type to the more compact FPoint type... but not priority, since no data used this */
+				//BPoint *bp;
+				//FPoint *fpt;
+			}
+			
+			/* add new F-Curve to list */
+			BLI_addtail(list, fcurve);
 		}
 		
-		/* free this data now */
-		MEM_freeN(icu->bezt);
+		/* free old data of curve now that it's no longer needed for converting any more curves */
+		if (icu->bezt) MEM_freeN(icu->bezt);
+		if (icu->bp) MEM_freeN(icu->bezt);
 	}
-	else if (icu->bp) {
-		/* TODO: need to convert from BPoint type to the more compact FPoint type... but not priority, since no data used this */
-		//BPoint *bp;
-		//FPoint *fpt;
+	else {
+		/* get rna-path
+		 *	- we will need to set the 'disabled' flag if no path is able to be made (for now)
+		 */
+		fcu->rna_path= get_rna_access(icu->blocktype, icu->adrcode, actname, constname, &fcu->array_index);
+		if (fcu->rna_path == NULL)
+			fcu->flag |= FCURVE_DISABLED;
+		
+		/* convert keyframes 
+		 *	- beztriples and bpoints are mutually exclusive, so we won't have both at the same time
+		 *	- beztriples are more likely to be encountered as they are keyframes (the other type wasn't used yet)
+		 */
+		fcu->totvert= icu->totvert;
+		
+		if (icu->bezt) {
+			BezTriple *dst, *src;
+			
+			/* allocate new array for keyframes/beztriples */
+			fcu->bezt= MEM_callocN(sizeof(BezTriple)*fcu->totvert, "BezTriples");
+			
+			/* loop through copying all BezTriples individually, as we need to modify a few things */
+			for (dst=fcu->bezt, src=icu->bezt; i < fcu->totvert; i++, dst++, src++) {
+				/* firstly, copy BezTriple data */
+				*dst= *src;
+				
+				/* now copy interpolation from curve (if not already set) */
+				if (icu->ipo != IPO_MIXED)
+					dst->ipo= icu->ipo;
+					
+				/* correct values for object rotation curves - they were degrees/10 */
+				// XXX for now, just make them into radians as RNA sets/reads directly in that form
+				if ((icu->blocktype == ID_OB) && ELEM3(icu->adrcode, OB_ROT_X, OB_ROT_Y, OB_ROT_Z)) {
+					const float fac= M_PI / 18.0f; //10.0f * M_PI/180.0f;
+					
+					dst->vec[0][1] *= fac;
+					dst->vec[1][1] *= fac;
+					dst->vec[2][1] *= fac;
+				}
+			}
+			
+			/* free this data now */
+			MEM_freeN(icu->bezt);
+		}
+		else if (icu->bp) {
+			/* TODO: need to convert from BPoint type to the more compact FPoint type... but not priority, since no data used this */
+			//BPoint *bp;
+			//FPoint *fpt;
+		}
+		
+		/* add new F-Curve to list */
+		BLI_addtail(list, fcu);
 	}
-	
-	/* add new F-Curve to list */
-	BLI_addtail(list, fcu);
 }
 
 /* ------------------------- */

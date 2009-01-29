@@ -106,7 +106,7 @@ FCurve *copy_fcurve (FCurve *fcu)
 	fcu_d->rna_path= MEM_dupallocN(fcu_d->rna_path);
 	
 	/* copy driver */
-	//fcurve_copy_driver();
+	fcu_d->driver= fcurve_copy_driver(fcu_d->driver);
 	
 	/* copy modifiers */
 	fcurve_copy_modifiers(&fcu_d->modifiers, &fcu->modifiers);
@@ -436,6 +436,24 @@ void fcurve_free_driver(FCurve *fcu)
 	/* free driver itself, then set F-Curve's point to this to NULL (as the curve may still be used) */
 	MEM_freeN(driver);
 	fcu->driver= NULL;
+}
+
+/* This makes a copy of the given driver */
+ChannelDriver *fcurve_copy_driver (ChannelDriver *driver)
+{
+	ChannelDriver *ndriver;
+	
+	/* sanity checks */
+	if (driver == NULL)
+		return NULL;
+		
+	/* copy all data */
+	ndriver= MEM_dupallocN(driver);
+	ndriver->rna_path= MEM_dupallocN(ndriver->rna_path);
+	ndriver->rna_path2= MEM_dupallocN(ndriver->rna_path2);
+	
+	/* return the new driver */
+	return ndriver;
 }
 
 /* Driver Evaluation -------------------------- */
