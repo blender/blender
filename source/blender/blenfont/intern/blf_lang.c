@@ -42,7 +42,9 @@
 #include "blf_internal_types.h"
 
 // XXX 2.50 Remove this later.
+#ifdef WITH_FREETYPE2
 #include "FTF_Api.h"
+#endif
 
 static ListBase global_lang= { NULL, NULL };
 static int global_tot_lang= 0;
@@ -99,12 +101,14 @@ char *BLF_lang_find_code(short langid)
 
 void BLF_lang_set(int id)
 {
+#ifdef WITH_FREETYPE2
 	LangBLF *lme;
 
 	// XXX 2.50 Remove this later, with ftfont
 	lme= blf_lang_find_by_id(id);
 	if(lme) FTF_SetLanguage(lme->code);
 	else FTF_SetLanguage("en_US");
+#endif
 }
 
 static void blf_lang_split(char *line, LangBLF* lme)

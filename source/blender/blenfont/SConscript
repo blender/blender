@@ -8,4 +8,7 @@ incs = '. intern  #/intern/guardedalloc ../blenkernel ../blenlib ../makesdna ../
 
 defs = ''
 
+if env['WITH_BF_INTERNATIONAL']:
+	defs += ' WITH_FREETYPE2'
+
 env.BlenderLib ( 'bf_blenfont', sources, Split(incs), Split(defs), libtype=['core'], priority=[210] )
