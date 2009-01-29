@@ -1018,14 +1018,15 @@ static struct ImBuf *brush_gen_radial_control_imbuf(Brush *br)
 
 	/* Modulate curve with texture */
 	if(texcache) {
-		for(i=0; i<side; ++i)
+		for(i=0; i<side; ++i) {
 			for(j=0; j<side; ++j) {
 				const int col= texcache[i*side+j];
 				im->rect_float[i*side+j]*= (((char*)&col)[0]+((char*)&col)[1]+((char*)&col)[2])/3.0f/255.0f;
 			}
-	}
+		}
 
-	MEM_freeN(texcache);
+		MEM_freeN(texcache);
+	}
 
 	return im;
 }

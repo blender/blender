@@ -30,16 +30,22 @@
 #ifndef BKE_SCULPT_H
 #define BKE_SCULPT_H
 
-struct NumInput;
-struct RadialControl;
-struct Scene;
+struct MFace;
+struct MultireModifierData;
+struct MVert;
 struct Sculpt;
-struct SculptSession;
 struct StrokeCache;
 
 typedef struct SculptSession {
 	struct ProjVert *projverts;
 
+	/* Mesh data (not copied) can come either directly from a Mesh, or from a MultiresDM */
+	struct MultiresModifierData *multires; /* Special handling for multires meshes */
+	struct MVert *mvert;
+	struct MFace *mface;
+	int totvert, totface;
+	float *face_normals;
+	
 	/* Mesh connectivity */
 	struct ListBase *fmap;
 	struct IndexNode *fmap_mem;
@@ -55,8 +61,6 @@ typedef struct SculptSession {
 
 	void *cursor; /* wm handle */
 
-	struct RadialControl *radialcontrol;
-	
 	struct SculptStroke *stroke;
 
 	struct StrokeCache *cache;

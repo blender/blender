@@ -658,9 +658,6 @@ void sculptsession_free(Sculpt *sculpt)
 		if(ss->projverts)
 			MEM_freeN(ss->projverts);
 
-		if(ss->radialcontrol)
-			MEM_freeN(ss->radialcontrol);
-
 		if(ss->fmap)
 			MEM_freeN(ss->fmap);
 

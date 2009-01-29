@@ -145,13 +145,6 @@ typedef struct StrokeCache {
 	ViewContext vc;
 	bglMats *mats;
 
-	/* Mesh data (not copied) can come either directly from a Mesh, or from a MultiresDM */
-	int multires; /* Special handling for multires meshes */
-	MVert *mvert;
-	MFace *mface;
-	int totvert, totface;
-	float *face_normals;
-
 	float *layer_disps; /* Displacements for each vertex */
  	float (*mesh_store)[3]; /* Copy of the mesh vertices' locations */
 	short (*orig_norms)[3]; /* Copy of the mesh vertices' normals */
@@ -331,7 +324,7 @@ static void calc_area_normal(Sculpt *sd, float out[3], const ListBase* active_ve
 	}
 	else {
 		for(; node; node = node->next)
-			add_norm_if(out_dir, out, out_flip, cache->mvert[node->Index].no);
+			add_norm_if(out_dir, out, out_flip, sd->session->mvert[node->Index].no);
 	}
 
 	if (out[0]==0.0 && out[1]==0.0 && out[2]==0.0) {
@@ -359,7 +352,7 @@ static void do_draw_brush(Sculpt *sd, SculptSession *ss, const ListBase* active_
 	sculpt_axislock(sd, area_normal);
 	
 	while(node){
-		float *co= ss->cache->mvert[node->Index].co;
+		float *co= ss->mvert[node->Index].co;
 		
 		const float val[3]= {co[0]+area_normal[0]*node->Fade*ss->cache->scale[0],
 		                     co[1]+area_normal[1]*node->Fade*ss->cache->scale[1],
@@ -385,12 +378,12 @@ static void neighbor_average(SculptSession *ss, float avg[3], const int vert)
 		
 	/* Don't modify corner vertices */
 	if(ncount==1) {
-		VecCopyf(avg, ss->cache->mvert[vert].co);
+		VecCopyf(avg, ss->mvert[vert].co);
 		return;
 	}
 
 	while(node){
-		f= &ss->cache->mface[node->index];
+		f= &ss->mface[node->index];
 		
 		if(f->v4) {
 			skip= (f->v1==vert?2:
@@ -401,7 +394,7 @@ static void neighbor_average(SculptSession *ss, float avg[3], const int vert)
 
 		for(i=0; i<(f->v4?4:3); ++i) {
 			if(i != skip && (ncount!=2 || BLI_countlist(&ss->fmap[(&f->v1)[i]]) <= 2)) {
-				VecAddf(avg, avg, ss->cache->mvert[(&f->v1)[i]].co);
+				VecAddf(avg, avg, ss->mvert[(&f->v1)[i]].co);
 				++total;
 			}
 		}
@@ -412,7 +405,7 @@ static void neighbor_average(SculptSession *ss, float avg[3], const int vert)
 	if(total>0)
 		VecMulf(avg, 1.0f / total);
 	else
-		VecCopyf(avg, ss->cache->mvert[vert].co);
+		VecCopyf(avg, ss->mvert[vert].co);
 }
 
 static void do_smooth_brush(SculptSession *ss, const ListBase* active_verts)
@@ -420,7 +413,7 @@ static void do_smooth_brush(SculptSession *ss, const ListBase* active_verts)
 	ActiveData *node= active_verts->first;
 
 	while(node){
-		float *co= ss->cache->mvert[node->Index].co;
+		float *co= ss->mvert[node->Index].co;
 		float avg[3], val[3];
 
 		neighbor_average(ss, avg, node->Index);
@@ -438,7 +431,7 @@ static void do_pinch_brush(SculptSession *ss, const ListBase* active_verts)
  	ActiveData *node= active_verts->first;
 
 	while(node) {
-		float *co= ss->cache->mvert[node->Index].co;
+		float *co= ss->mvert[node->Index].co;
 		const float val[3]= {co[0]+(ss->cache->location[0]-co[0])*node->Fade,
 		                     co[1]+(ss->cache->location[1]-co[1])*node->Fade,
 		                     co[2]+(ss->cache->location[2]-co[2])*node->Fade};
@@ -457,7 +450,7 @@ static void do_grab_brush(Sculpt *sd, SculptSession *ss)
 	sculpt_axislock(sd, grab_delta);
 	
 	while(node) {
-		float *co= ss->cache->mvert[node->Index].co;
+		float *co= ss->mvert[node->Index].co;
 		
 		VecCopyf(add, grab_delta);
 		VecMulf(add, node->Fade);
@@ -482,7 +475,7 @@ static void do_layer_brush(Sculpt *sd, SculptSession *ss, const ListBase *active
 		
 		if((bstr > 0 && *disp < bstr) ||
 		  (bstr < 0 && *disp > bstr)) {
-		  	float *co= ss->cache->mvert[node->Index].co;
+		  	float *co= ss->mvert[node->Index].co;
 		  	
 			*disp+= node->Fade;
 
@@ -512,8 +505,8 @@ static void do_inflate_brush(SculptSession *ss, const ListBase *active_verts)
 	float add[3];
 	
 	while(node) {
-		float *co= ss->cache->mvert[node->Index].co;
-		short *no= ss->cache->mvert[node->Index].no;
+		float *co= ss->mvert[node->Index].co;
+		short *no= ss->mvert[node->Index].no;
 
 		add[0]= no[0]/ 32767.0f;
 		add[1]= no[1]/ 32767.0f;
@@ -549,7 +542,7 @@ static void calc_flatten_center(SculptSession *ss, ActiveData *node, float co[3]
 	
 	co[0] = co[1] = co[2] = 0.0f;
 	for(i = 0; i < FLATTEN_SAMPLE_SIZE; ++i)
-		VecAddf(co, co, ss->cache->mvert[outer[i]->Index].co);
+		VecAddf(co, co, ss->mvert[outer[i]->Index].co);
 	VecMulf(co, 1.0f / FLATTEN_SAMPLE_SIZE);
 }
 
@@ -564,7 +557,7 @@ static void do_flatten_brush(Sculpt *sd, SculptSession *ss, const ListBase *acti
 	calc_flatten_center(ss, node, cntr);
 
 	while(node){
-		float *co= ss->cache->mvert[node->Index].co;
+		float *co= ss->mvert[node->Index].co;
 		float p1[3], sub1[3], sub2[3], intr[3], val[3];
 		
 		/* Find the intersection between squash-plane and vertex (along the area normal) */
@@ -743,7 +736,7 @@ static void sculpt_add_damaged_rect(SculptSession *ss)
 	BLI_addtail(&ss->damaged_rects, rn);
 
 	/* Update insides */
-	for(i=0; i<ss->cache->totvert; ++i) {
+	for(i=0; i<ss->totvert; ++i) {
 		if(!ss->projverts[i].inside) {
 			if(ss->projverts[i].co[0] > rn->r.xmin && ss->projverts[i].co[1] > rn->r.ymin &&
 			   ss->projverts[i].co[0] < rn->r.xmax && ss->projverts[i].co[1] < rn->r.ymax) {
@@ -757,6 +750,7 @@ static void sculpt_add_damaged_rect(SculptSession *ss)
 }
 
 /* Clears the depth buffer in each modified area. */
+#if 0
 static void sculpt_clear_damaged_areas(SculptSession *ss)
 {
 	RectNode *rn= NULL;
@@ -785,7 +779,7 @@ static void sculpt_clear_damaged_areas(SculptSession *ss)
 		glClear(GL_DEPTH_BUFFER_BIT);
 	}
 }
-
+#endif
 static void do_brush_action(Sculpt *sd, StrokeCache *cache)
 {
 	SculptSession *ss = sd->session;
@@ -805,11 +799,11 @@ static void do_brush_action(Sculpt *sd, StrokeCache *cache)
 	/* Build a list of all vertices that are potentially within the brush's
 	   area of influence. Only do this once for the grab brush. */
 	if((b->sculpt_tool != SCULPT_TOOL_GRAB) || cache->first_time) {
-		for(i=0; i<cache->totvert; ++i) {
+		for(i=0; i<ss->totvert; ++i) {
 			/* Projverts.inside provides a rough bounding box */
-			if(cache->multires || ss->projverts[i].inside) {
+			if(ss->multires || ss->projverts[i].inside) {
 				//vert= ss->vertexcosnos ? &ss->vertexcosnos[i*6] : a->verts[i].co;
-				vert= cache->mvert[i].co;
+				vert= ss->mvert[i].co;
 				av_dist= VecLenf(ss->cache->location, vert);
 				if(av_dist < cache->radius) {
 					adata= (ActiveData*)MEM_mallocN(sizeof(ActiveData), "ActiveData");
@@ -857,7 +851,7 @@ static void do_brush_action(Sculpt *sd, StrokeCache *cache)
 		}
 	
 		/* Copy the modified vertices from mesh to the active key */
-		if(keyblock && !cache->multires) {
+		if(keyblock && !ss->multires) {
 			float *co= keyblock->data;
 			if(co) {
 				if(b->sculpt_tool == SCULPT_TOOL_GRAB)
@@ -871,7 +865,7 @@ static void do_brush_action(Sculpt *sd, StrokeCache *cache)
 			}
 		}
 
-		if(ss->vertexcosnos && !cache->multires)
+		if(ss->vertexcosnos && !ss->multires)
 			BLI_freelistN(&active_verts);
 		else {
 			if(b->sculpt_tool != SCULPT_TOOL_GRAB)
@@ -952,16 +946,16 @@ static void update_damaged_vert(SculptSession *ss, ListBase *lb)
 
 		while(face){
 			float *fn = NULL;
-			if(ss->cache->face_normals)
-				fn = &ss->cache->face_normals[face->index*3];
-			add_face_normal(&norm, ss->cache->mvert, &ss->cache->mface[face->index], fn);
+			if(ss->face_normals)
+				fn = &ss->face_normals[face->index*3];
+			add_face_normal(&norm, ss->mvert, &ss->mface[face->index], fn);
 			face= face->next;
 		}
 		Normalize(&norm.x);
 		
-		ss->cache->mvert[vert->Index].no[0]=norm.x*32767;
-		ss->cache->mvert[vert->Index].no[1]=norm.y*32767;
-		ss->cache->mvert[vert->Index].no[2]=norm.z*32767;
+		ss->mvert[vert->Index].no[0]=norm.x*32767;
+		ss->mvert[vert->Index].no[1]=norm.y*32767;
+		ss->mvert[vert->Index].no[2]=norm.z*32767;
 	}
 }
 
@@ -971,18 +965,19 @@ static void calc_damaged_verts(SculptSession *ss)
 	
 	for(i=0; i<8; ++i)
 		update_damaged_vert(ss, &ss->cache->grab_active_verts[i]);
-
 	update_damaged_vert(ss, &ss->damaged_verts);
 	BLI_freelistN(&ss->damaged_verts);
 	ss->damaged_verts.first = ss->damaged_verts.last = NULL;
 }
 
+#if 0
 static void projverts_clear_inside(SculptSession *ss)
 {
 	int i;
-	for(i = 0; i < ss->cache->totvert; ++i)
+	for(i = 0; i < ss->totvert; ++i)
 		ss->projverts[i].inside = 0;
 }
+#endif
 
 static void sculpt_update_tex(Sculpt *sd)
 {
@@ -1027,10 +1022,10 @@ static void sculptmode_update_all_projverts(SculptSession *ss)
 	unsigned i;
 
 	if(!ss->projverts)
-		ss->projverts = MEM_mallocN(sizeof(ProjVert)*ss->cache->totvert,"ProjVerts");
+		ss->projverts = MEM_mallocN(sizeof(ProjVert)*ss->totvert,"ProjVerts");
 
-	for(i=0; i<ss->cache->totvert; ++i) {
-		project(ss->cache->mats, ss->vertexcosnos ? &ss->vertexcosnos[i * 6] : ss->cache->mvert[i].co,
+	for(i=0; i<ss->totvert; ++i) {
+		project(ss->cache->mats, ss->vertexcosnos ? &ss->vertexcosnos[i * 6] : ss->mvert[i].co,
 			ss->projverts[i].co);
 		ss->projverts[i].inside= 0;
 	}
@@ -1066,32 +1061,31 @@ static struct MultiresModifierData *sculpt_multires_active(Object *ob)
 	return NULL;
 }
 
-static void sculpt_update_mesh_elements(SculptSession *ss, Object *ob)
+static void sculpt_update_mesh_elements(bContext *C)
 {
-	StrokeCache *cache = ss->cache;
+	SculptSession *ss = CTX_data_tool_settings(C)->sculpt->session;
+	Object *ob = CTX_data_active_object(C);
 
-	if(sculpt_multires_active(ob)) {
-		DerivedMesh *dm = mesh_get_derived_final(NULL, ob, CD_MASK_BAREMESH); /* XXX scene=? */
-		cache->multires = 1;
-		cache->totvert = dm->getNumVerts(dm);
-		cache->totface = dm->getNumFaces(dm);
-		cache->mvert = dm->getVertDataArray(dm, CD_MVERT);
-		cache->mface = dm->getFaceDataArray(dm, CD_MFACE);
-		cache->face_normals = dm->getFaceDataArray(dm, CD_NORMAL);
+	if((ss->multires = sculpt_multires_active(ob))) {
+		DerivedMesh *dm = mesh_get_derived_final(CTX_data_scene(C), ob, CD_MASK_BAREMESH);
+		ss->totvert = dm->getNumVerts(dm);
+		ss->totface = dm->getNumFaces(dm);
+		ss->mvert = dm->getVertDataArray(dm, CD_MVERT);
+		ss->mface = dm->getFaceDataArray(dm, CD_MFACE);
+		ss->face_normals = dm->getFaceDataArray(dm, CD_NORMAL);
 	}
 	else {
 		Mesh *me = get_mesh(ob);
-		cache->multires = 0;
-		cache->totvert = me->totvert;
-		cache->totface = me->totface;
-		cache->mvert = me->mvert;
-		cache->mface = me->mface;
-		cache->face_normals = NULL;
+		ss->totvert = me->totvert;
+		ss->totface = me->totface;
+		ss->mvert = me->mvert;
+		ss->mface = me->mface;
+		ss->face_normals = NULL;
 	}
 
-	if(cache->totvert != ss->fmap_size) {
-		create_vert_face_map(&ss->fmap, &ss->fmap_mem, cache->mface, cache->totvert, cache->totface);
-		ss->fmap_size = cache->totvert;
+	if(ss->totvert != ss->fmap_size) {
+		create_vert_face_map(&ss->fmap, &ss->fmap_mem, ss->mface, ss->totvert, ss->totface);
+		ss->fmap_size = ss->totvert;
 	}
 }
 
@@ -1343,21 +1337,21 @@ static void sculpt_update_cache_invariants(Sculpt *sd, bContext *C, wmOperator *
 	cache->mats = MEM_callocN(sizeof(bglMats), "sculpt bglMats");
 	sculpt_load_mats(cache->mats, &cache->vc);
 
-	sculpt_update_mesh_elements(sd->session, cache->vc.obact);
+	sculpt_update_mesh_elements(C);
 
 	/* Make copies of the mesh vertex locations and normals for some tools */
 	if(sd->brush->sculpt_tool == SCULPT_TOOL_LAYER || (sd->brush->flag & BRUSH_ANCHORED)) {
-		cache->layer_disps = MEM_callocN(sizeof(float) * cache->totvert, "layer brush displacements");
-		cache->mesh_store= MEM_mallocN(sizeof(float) * 3 * cache->totvert, "sculpt mesh vertices copy");
-		for(i = 0; i < cache->totvert; ++i)
-			VecCopyf(cache->mesh_store[i], cache->mvert[i].co);
+		cache->layer_disps = MEM_callocN(sizeof(float) * sd->session->totvert, "layer brush displacements");
+		cache->mesh_store= MEM_mallocN(sizeof(float) * 3 * sd->session->totvert, "sculpt mesh vertices copy");
+		for(i = 0; i < sd->session->totvert; ++i)
+			VecCopyf(cache->mesh_store[i], sd->session->mvert[i].co);
 
 		if(sd->brush->flag & BRUSH_ANCHORED) {
-			cache->orig_norms= MEM_mallocN(sizeof(short) * 3 * cache->totvert, "Sculpt orig norm");
-			for(i = 0; i < cache->totvert; ++i) {
-				cache->orig_norms[i][0] = cache->mvert[i].no[0];
-				cache->orig_norms[i][1] = cache->mvert[i].no[1];
-				cache->orig_norms[i][2] = cache->mvert[i].no[2];
+			cache->orig_norms= MEM_mallocN(sizeof(short) * 3 * sd->session->totvert, "Sculpt orig norm");
+			for(i = 0; i < sd->session->totvert; ++i) {
+				cache->orig_norms[i][0] = sd->session->mvert[i].no[0];
+				cache->orig_norms[i][1] = sd->session->mvert[i].no[1];
+				cache->orig_norms[i][2] = sd->session->mvert[i].no[2];
 			}
 		}
 	}
@@ -1490,20 +1484,38 @@ static void sculpt_restore_mesh(Sculpt *sd)
 	
 	/* Restore the mesh before continuing with anchored stroke */
 	if((sd->brush->flag & BRUSH_ANCHORED) && cache->mesh_store) {
-		for(i = 0; i < cache->totvert; ++i) {
-			VecCopyf(cache->mvert[i].co, cache->mesh_store[i]);
-			cache->mvert[i].no[0] = cache->orig_norms[i][0];
-			cache->mvert[i].no[1] = cache->orig_norms[i][1];
-			cache->mvert[i].no[2] = cache->orig_norms[i][2];
+		for(i = 0; i < sd->session->totvert; ++i) {
+			VecCopyf(sd->session->mvert[i].co, cache->mesh_store[i]);
+			sd->session->mvert[i].no[0] = cache->orig_norms[i][0];
+			sd->session->mvert[i].no[1] = cache->orig_norms[i][1];
+			sd->session->mvert[i].no[2] = cache->orig_norms[i][2];
 		}
 	}
 }
 
 static void sculpt_post_stroke_free(SculptSession *ss)
 {
-	//calc_damaged_verts(sd->session, &a);
 	BLI_freelistN(&ss->damaged_rects);
 	BLI_freelistN(&ss->damaged_verts);
+}
+
+static void sculpt_flush_update(bContext *C)
+{
+	Sculpt *s = CTX_data_tool_settings(C)->sculpt;
+	ARegion *ar = CTX_wm_region(C);
+	MultiresModifierData *mmd = s->session->multires;
+
+	calc_damaged_verts(s->session);
+
+	if(mmd) {
+		if(mmd->undo_verts && mmd->undo_verts != s->session->mvert)
+			MEM_freeN(mmd->undo_verts);
+		
+		mmd->undo_verts = s->session->mvert;
+		mmd->undo_verts_tot = s->session->totvert;
+	}
+
+	ED_region_tag_redraw(ar);
 }
 
 static int sculpt_brush_stroke_modal(bContext *C, wmOperator *op, wmEvent *event)
@@ -1514,6 +1526,8 @@ static int sculpt_brush_stroke_modal(bContext *C, wmOperator *op, wmEvent *event
 	ARegion *ar = CTX_wm_region(C);
 	float center[3];
 	int mouse[2] = {event->x, event->y};
+
+	sculpt_update_mesh_elements(C);
 
 	unproject(sd->session->cache->mats, center, event->x, event->y,
 		  read_cached_depth(&sd->session->cache->vc, event->x, event->y));
@@ -1528,10 +1542,8 @@ static int sculpt_brush_stroke_modal(bContext *C, wmOperator *op, wmEvent *event
 	sculpt_restore_mesh(sd);
 	do_symmetrical_brush_actions(CTX_data_tool_settings(C)->sculpt, sd->session->cache);
 
+	sculpt_flush_update(C);
 	sculpt_post_stroke_free(sd->session);
-
-	DAG_object_flush_update(CTX_data_scene(C), ob, OB_RECALC_DATA);
-	ED_region_tag_redraw(ar);
 
 	/* Finished */
 	if(event->type == LEFTMOUSE && event->val == 0) {
@@ -1549,8 +1561,6 @@ static int sculpt_brush_stroke_modal(bContext *C, wmOperator *op, wmEvent *event
 
 static int sculpt_brush_stroke_exec(bContext *C, wmOperator *op)
 {
-	Object *ob= CTX_data_active_object(C);
-	ARegion *ar = CTX_wm_region(C);
 	Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
 
 	view3d_operator_needs_opengl(C);
@@ -1570,8 +1580,7 @@ static int sculpt_brush_stroke_exec(bContext *C, wmOperator *op)
 
 	sculpt_cache_free(sd->session->cache);
 
-	DAG_object_flush_update(CTX_data_scene(C), ob, OB_RECALC_DATA);
-	ED_region_tag_redraw(ar);
+	sculpt_flush_update(C);
 
 	sculpt_undo_push(C, sd);
 
