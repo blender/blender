@@ -36,6 +36,8 @@
 #include "DNA_userdef_types.h" 
 
 #include "BKE_context.h"
+#include "BKE_global.h"
+#include "BKE_main.h"
 
 #include "WM_api.h"
 #include "wm_cursors.h"
@@ -120,29 +122,32 @@ void WM_cursor_set(wmWindow *win, int curs)
 	}
 }
 
-static int LastCursor=-1;	/* global, assumed we only have one */
-
 void WM_cursor_modal(wmWindow *win, int val)
 {
-	if(LastCursor == -1)
-		LastCursor = win->cursor;
+	if(win->lastcursor == 0)
+		win->lastcursor = win->cursor;
 	WM_cursor_set(win, val);
 }
 
 void WM_cursor_restore(wmWindow *win)
 {
-	if(LastCursor != -1)
-		WM_cursor_set(win, LastCursor);
-	LastCursor = -1;
+	if(win->lastcursor)
+		WM_cursor_set(win, win->lastcursor);
+	win->lastcursor = 0;
 }
 
-
-void WM_cursor_wait(wmWindow *win, int val)
+/* to allow usage all over, we do entire WM */
+void WM_cursor_wait(int val)
 {
-	if(val) {
-		WM_cursor_modal(win, CURSOR_WAIT);
-	} else {
-		WM_cursor_restore(win);
+	wmWindowManager *wm= G.main->wm.first;
+	wmWindow *win= wm->windows.first; 
+	
+	for(; win; win= win->next) {
+		if(val) {
+			WM_cursor_modal(win, CURSOR_WAIT);
+		} else {
+			WM_cursor_restore(win);
+		}
 	}
 }
 
@@ -166,8 +171,8 @@ void WM_timecursor(wmWindow *win, int nr)
 	unsigned char bitmap[16][2];
 	int i, idx;
 	
-	if(LastCursor != -1)
-		LastCursor= win->cursor; 
+	if(win->lastcursor != 0)
+		win->lastcursor= win->cursor; 
 	
 	memset(&bitmap, 0x00, sizeof(bitmap));
 	memset(&mask, 0xFF, sizeof(mask));

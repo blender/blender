@@ -99,7 +99,6 @@ static int extern_qread() {return 0;}
 static void waitcursor() {}
 static void error() {}
 static int pupmenu() {return 0;}
-static int okee() {return 0;}
 static int qtest() {return 0;}
 #define add_numbut(a, b, c, d, e, f, g) {}
 static int do_clever_numbuts() {return 0;}
@@ -724,8 +723,6 @@ void MESH_OT_extrude_mesh(wmOperatorType *ot)
 void split_mesh(EditMesh *em)
 {
 
-	if(okee(" Split ")==0) return;
-
 	waitcursor(1);
 
 	/* make duplicate first */
@@ -777,6 +774,7 @@ void extrude_repeat_mesh(RegionView3D *rv3d, Object *obedit, EditMesh *em, int s
 
 void spin_mesh(View3D *v3d, Object *obedit, EditMesh *em, int steps, float degr, float *dvec, int mode)
 {
+	Scene *scene= NULL; // XXX from context!
 	RegionView3D *rv3d= NULL; // XXX from context
 	EditVert *eve,*nextve;
 	float nor[3]= {0.0, 0.0, 0.0};
@@ -798,7 +796,7 @@ void spin_mesh(View3D *v3d, Object *obedit, EditMesh *em, int steps, float degr,
 
 	phi= degr*M_PI/360.0;
 	phi/= steps;
-//	if(scene->toolsettings->editbutflag & B_CLOCKWISE) phi= -phi;
+	if(scene->toolsettings->editbutflag & B_CLOCKWISE) phi= -phi;
 
 	if(dvec) {
 		n[0]= rv3d->viewinv[1][0];
@@ -821,7 +819,7 @@ void spin_mesh(View3D *v3d, Object *obedit, EditMesh *em, int steps, float degr,
 	Mat3MulMat3(tmat,cmat,bmat);
 	Mat3MulMat3(bmat,imat,tmat);
 
-//	if(mode==0) if(scene->toolsettings->editbutflag & B_KEEPORIG) adduplicateflag(1);
+	if(mode==0) if(scene->toolsettings->editbutflag & B_KEEPORIG) adduplicateflag(em, 1);
 	ok= 1;
 
 	for(a=0;a<steps;a++) {
@@ -1183,6 +1181,8 @@ void fill_mesh(EditMesh *em)
 	}
 
 	BLI_end_edgefill();
+
+	// XXX option beautyfill */
 
 	waitcursor(0);
 	EM_select_flush(em);

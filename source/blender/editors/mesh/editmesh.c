@@ -77,6 +77,7 @@
 #include "BIF_retopo.h"
 
 #include "ED_mesh.h"
+#include "ED_object.h"
 #include "ED_util.h"
 #include "ED_view3d.h"
 
@@ -92,11 +93,8 @@ editmesh.c:
 
 /* XXX */
 static void BIF_undo_push() {}
-static void waitcursor() {}
 static void error() {}
 static int pupmenu() {return 0;}
-static void key_to_mesh() {}
-static void adduplicate() {}
 
 
 /* ***************** HASH ********************* */
@@ -851,8 +849,6 @@ void make_editMesh(Scene *scene, Object *ob)
 
 	actkey = ob_get_keyblock(ob);
 	if(actkey) {
-		// XXX strcpy(G.editModeTitleExtra, "(Key) ");
-		key_to_mesh(actkey, me);
 		tot= actkey->totelem;
 		/* undo-ing in past for previous editmode sessions gives corrupt 'keyindex' values */
 		undo_editmode_clear();
@@ -1424,8 +1420,6 @@ void load_editMesh(Scene *scene, Object *ob)
 void remake_editMesh(Scene *scene, Object *ob)
 {
 	make_editMesh(scene, ob);
-//	allqueue(REDRAWVIEW3D, 0);
-//	allqueue(REDRAWBUTSOBJECT, 0); /* needed to have nice cloth panels */
 	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
 	BIF_undo_push("Undo all changes");
 }
@@ -1448,8 +1442,6 @@ void separate_mesh(Scene *scene, Object *obedit)
 	
 	if(obedit==NULL) return;
 
-	waitcursor(1);
-	
 	me= obedit->data;
 	em= me->edit_mesh;
 	if(me->key) {
@@ -1527,7 +1519,7 @@ void separate_mesh(Scene *scene, Object *obedit)
 	oldob= obedit;
 	oldbase= BASACT;
 	
-	adduplicate(1, 0); /* notrans and a linked duplicate */
+// XXX	adduplicate(1, 0); /* notrans and a linked duplicate */
 	
 	obedit= BASACT->object;	/* basact was set in adduplicate()  */
 	
@@ -1562,9 +1554,6 @@ void separate_mesh(Scene *scene, Object *obedit)
 	BASACT= oldbase;
 	BASACT->flag |= SELECT;
 	
-	waitcursor(0);
-
-//	allqueue(REDRAWVIEW3D, 0);
 	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);	
 
 }
@@ -1595,7 +1584,6 @@ void separate_material(Scene *scene, Object *obedit)
 		}
 	}
 	
-	//	allqueue(REDRAWVIEW3D, 0);
 	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 	
 }
@@ -1621,8 +1609,6 @@ void separate_mesh_loose(Scene *scene, Object *obedit)
 		return;
 	}
 
-	waitcursor(1);	
-	
 	/* we are going to abuse the system as follows:
 	 * 1. add a duplicate object: this will be the new one, we remember old pointer
 	 * 2: then do a split if needed.
@@ -1637,7 +1623,7 @@ void separate_mesh_loose(Scene *scene, Object *obedit)
 		/* make only obedit selected */
 		base= FIRSTBASE;
 		while(base) {
-// XXX			if(base->lay & G.vd->lay) {
+// 			if(base->lay & G.vd->lay) {
 				if(base->object==obedit) base->flag |= SELECT;
 				else base->flag &= ~SELECT;
 //			}
@@ -1720,7 +1706,7 @@ void separate_mesh_loose(Scene *scene, Object *obedit)
 			oldob= obedit;
 			oldbase= BASACT;
 			
-			adduplicate(1, 0); /* notrans and a linked duplicate*/
+// XXX			adduplicate(1, 0); /* notrans and a linked duplicate*/
 			
 			obedit= BASACT->object;	/* basact was set in adduplicate()  */
 
@@ -1760,8 +1746,6 @@ void separate_mesh_loose(Scene *scene, Object *obedit)
 	/* unselect the vertices that we (ab)used for the separation*/
 	EM_clear_flag_all(em, SELECT);
 		
-	waitcursor(0);
-//	allqueue(REDRAWVIEW3D, 0);
 	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);	
 }
 
@@ -1775,7 +1759,6 @@ void separatemenu(Scene *scene, Object *obedit)
 	event = pupmenu("Separate %t|Selected%x1|All Loose Parts%x2|By Material%x3");
 	
 	if (event==0) return;
-	waitcursor(1);
 	
 	switch (event) {
 		case 1: 
@@ -1788,7 +1771,6 @@ void separatemenu(Scene *scene, Object *obedit)
 			separate_material(scene, obedit);
 			break;
 	}
-	waitcursor(0);
 }
 
 
@@ -1848,9 +1830,6 @@ static void free_undoMesh(void *umv)
 {
 	UndoMesh *um= umv;
 	
-	if (um == NULL)
-		return; /* XXX FIX ME, THIS SHOULD NEVER BE TRUE YET IT HAPPENS DURING TRANSFORM */
-	
 	if(um->verts) MEM_freeN(um->verts);
 	if(um->edges) MEM_freeN(um->edges);
 	if(um->faces) MEM_freeN(um->faces);
@@ -1865,7 +1844,6 @@ static void free_undoMesh(void *umv)
 static void *editMesh_to_undoMesh(void *emv)
 {
 	EditMesh *em= (EditMesh *)emv;
-//	Scene *scene= NULL;
 	UndoMesh *um;
 	EditVert *eve;
 	EditEdge *eed;

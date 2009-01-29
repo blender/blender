@@ -94,6 +94,9 @@ typedef struct wmWindow {
 	short monitor;		/* multiscreen... no idea how to store yet */
 	short active;		/* set to 1 if an active window, for quick rejects */
 	short cursor;		/* current mouse cursor type */
+	short lastcursor;	/* for temp waitcursor */
+	short pad2;
+	int pad3;
 	
 	struct wmEvent *eventstate;	/* storage for event system */
 	
