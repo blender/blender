@@ -217,7 +217,7 @@ int WM_menu_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		for (i=0; i<totitem; i++)
 			p+= sprintf(p, "|%s %%x%d", item[i].name, item[i].value);
 		
-		uiPupmenuOperator(C, totitem/30, op, "type", menu);
+		uiPupMenuOperator(C, totitem/30, op, "type", menu);
 		MEM_freeN(menu);
 		
 		return OPERATOR_RUNNING_MODAL;
@@ -231,7 +231,7 @@ int WM_operator_confirm(bContext *C, wmOperator *op, wmEvent *event)
 	char buf[512];
 	
 	sprintf(buf, "OK? %%i%d%%t|%s", ICON_HELP, op->type->name);
-	uiPupmenuOperator(C, 0, op, NULL, buf);
+	uiPupMenuOperator(C, 0, op, NULL, buf);
 	
 	return OPERATOR_RUNNING_MODAL;
 }
@@ -337,7 +337,7 @@ static int wm_recentfile_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	char pup[2048];
 	
 	recent_filelist(pup);
-	uiPupmenuOperator(C, 0, op, "nr", pup);
+	uiPupMenuOperator(C, 0, op, "nr", pup);
 	
 	return OPERATOR_RUNNING_MODAL;
 }

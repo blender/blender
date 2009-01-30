@@ -111,14 +111,14 @@ static void do_viewmenu(bContext *C, void *arg, int event)
 	ED_area_tag_redraw(curarea);
 }
 
-static uiBlock *outliner_viewmenu(bContext *C, uiMenuBlockHandle *handle, void *arg_unused)
+static uiBlock *outliner_viewmenu(bContext *C, ARegion *ar, void *arg_unused)
 {
 	ScrArea *curarea= CTX_wm_area(C);
 	SpaceOops *soops= curarea->spacedata.first;
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
 	
-	block= uiBeginBlock(C, handle->region, "outliner_viewmenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "outliner_viewmenu", UI_EMBOSSP, UI_HELV);
 	uiBlockSetButmFunc(block, do_viewmenu, NULL);
 	
 	if(soops->type==SO_OUTLINER) {

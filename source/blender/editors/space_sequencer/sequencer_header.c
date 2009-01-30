@@ -72,13 +72,13 @@
 #define B_IPOBORDER		4
 #define B_SEQCLEAR		5
 
-static uiBlock *seq_viewmenu(bContext *C, uiMenuBlockHandle *handle, void *arg_unused)
+static uiBlock *seq_viewmenu(bContext *C, ARegion *ar, void *arg_unused)
 {
 	ScrArea *sa= CTX_wm_area(C);
 	SpaceSeq *sseq= sa->spacedata.first;
 	View2D *v2d= UI_view2d_fromcontext(C);
 
-	uiBlock *block= uiBeginBlock(C, handle->region, "seq_viewmenu", UI_EMBOSSP, UI_HELV);
+	uiBlock *block= uiBeginBlock(C, ar, "seq_viewmenu", UI_EMBOSSP, UI_HELV);
 	short yco= 0, menuwidth=120;
 
 	if (sseq->mainb == SEQ_DRAW_SEQUENCE) {
@@ -146,11 +146,11 @@ static uiBlock *seq_viewmenu(bContext *C, uiMenuBlockHandle *handle, void *arg_u
 	return block;
 }
 
-static uiBlock *seq_selectmenu(bContext *C, uiMenuBlockHandle *handle, void *arg_unused)
+static uiBlock *seq_selectmenu(bContext *C, ARegion *ar, void *arg_unused)
 {
 	ScrArea *sa= CTX_wm_area(C);
 
-	uiBlock *block= uiBeginBlock(C, handle->region, "seq_selectmenu", UI_EMBOSSP, UI_HELV);
+	uiBlock *block= uiBeginBlock(C, ar, "seq_selectmenu", UI_EMBOSSP, UI_HELV);
 	uiBut *but;
 
 	but= uiDefMenuButO(block, "SEQUENCER_OT_select_active_side", "Strips to the Left");
@@ -188,13 +188,13 @@ static uiBlock *seq_selectmenu(bContext *C, uiMenuBlockHandle *handle, void *arg
 	return block;
 }
 
-static uiBlock *seq_markermenu(bContext *C, uiMenuBlockHandle *handle, void *arg_unused)
+static uiBlock *seq_markermenu(bContext *C, ARegion *ar, void *arg_unused)
 {
 	ScrArea *sa= CTX_wm_area(C);
 	SpaceSeq *sseq= sa->spacedata.first;
 
 
-	uiBlock *block= uiBeginBlock(C, handle->region, "seq_markermenu", UI_EMBOSSP, UI_HELV);
+	uiBlock *block= uiBeginBlock(C, ar, "seq_markermenu", UI_EMBOSSP, UI_HELV);
 	short yco= 0, menuwidth=120;
 
 
@@ -235,9 +235,9 @@ static uiBlock *seq_markermenu(bContext *C, uiMenuBlockHandle *handle, void *arg
 	return block;
 }
 
-static uiBlock *seq_addmenu_effectmenu(bContext *C, uiMenuBlockHandle *handle, void *arg_unused)
+static uiBlock *seq_addmenu_effectmenu(bContext *C, ARegion *ar, void *arg_unused)
 {
-	uiBlock *block= uiBeginBlock(C, handle->region, "seq_addmenu_effectmenu", UI_EMBOSSP, UI_HELV);
+	uiBlock *block= uiBeginBlock(C, ar, "seq_addmenu_effectmenu", UI_EMBOSSP, UI_HELV);
 
 
 	RNA_enum_set(uiButGetOperatorPtrRNA(uiDefMenuButO(block, "SEQUENCER_OT_add_effect_strip", "Add")), "type", SEQ_ADD);
@@ -266,10 +266,10 @@ static uiBlock *seq_addmenu_effectmenu(bContext *C, uiMenuBlockHandle *handle, v
 }
 
 
-static uiBlock *seq_addmenu(bContext *C, uiMenuBlockHandle *handle, void *arg_unused)
+static uiBlock *seq_addmenu(bContext *C, ARegion *ar, void *arg_unused)
 {
 	ScrArea *sa= CTX_wm_area(C);
-	uiBlock *block= uiBeginBlock(C, handle->region, "seq_addmenu", UI_EMBOSSP, UI_HELV);
+	uiBlock *block= uiBeginBlock(C, ar, "seq_addmenu", UI_EMBOSSP, UI_HELV);
 	uiBut *but;
 	
 	uiDefMenuSub(block, seq_addmenu_effectmenu, "Effect");
@@ -308,13 +308,13 @@ static uiBlock *seq_addmenu(bContext *C, uiMenuBlockHandle *handle, void *arg_un
 	return block;
 }
 
-static uiBlock *seq_editmenu(bContext *C, uiMenuBlockHandle *handle, void *arg_unused)
+static uiBlock *seq_editmenu(bContext *C, ARegion *ar, void *arg_unused)
 {
 	ScrArea *sa= CTX_wm_area(C);
 	Scene *scene= CTX_data_scene(C);
 	Editing *ed= seq_give_editing(scene, FALSE);
 
-	uiBlock *block= uiBeginBlock(C, handle->region, "seq_editmenu", UI_EMBOSSP, UI_HELV);
+	uiBlock *block= uiBeginBlock(C, ar, "seq_editmenu", UI_EMBOSSP, UI_HELV);
 	uiBut *but;
 	
 

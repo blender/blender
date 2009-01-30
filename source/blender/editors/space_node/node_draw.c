@@ -503,7 +503,7 @@ static void socket_vector_menu_cb(bContext *C, void *node_v, void *ntree_v)
 }
 
 /* NOTE: this is a block-menu, needs 0 events, otherwise the menu closes */
-static uiBlock *socket_vector_menu(bContext *C, uiMenuBlockHandle *handle, void *socket_v)
+static uiBlock *socket_vector_menu(bContext *C, ARegion *ar, void *socket_v)
 {
 	SpaceNode *snode= (SpaceNode*)CTX_wm_space_data(C);
 	ScrArea *sa= CTX_wm_area(C);
@@ -523,7 +523,7 @@ static uiBlock *socket_vector_menu(bContext *C, uiMenuBlockHandle *handle, void 
 			break;
 	}
 	
-	block= uiBeginBlock(C, handle->region, "socket menu", UI_EMBOSS, UI_HELV);
+	block= uiBeginBlock(C, ar, "socket menu", UI_EMBOSS, UI_HELV);
 
 	/* use this for a fake extra empy space around the buttons */
 	uiDefBut(block, LABEL, 0, "",			-4, -4, 188, 68, NULL, 0, 0, 0, 0, "");

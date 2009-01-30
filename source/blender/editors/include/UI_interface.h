@@ -30,6 +30,8 @@
 #ifndef UI_INTERFACE_H
 #define UI_INTERFACE_H
 
+/* Struct Declarations */
+
 struct ID;
 struct ListBase;
 struct ARegion;
@@ -41,6 +43,12 @@ struct bContext;
 struct PointerRNA;
 struct PropertyRNA;
 struct ReportList;
+
+typedef struct uiBut uiBut;
+typedef struct uiBlock uiBlock;
+typedef struct uiPopupBlockHandle uiPopupBlockHandle;
+
+/* Defines */
 
 /* uiBlock->dt */
 #define UI_EMBOSS		0	/* use one of the themes for drawing */
@@ -76,7 +84,7 @@ struct ReportList;
 #define UI_BLOCK_MOVEMOUSE_QUIT	128
 #define UI_BLOCK_KEEP_OPEN		256
 
-/* uiMenuBlockHandle->menuretval */
+/* uiPopupBlockHandle->menuretval */
 #define UI_RETURN_CANCEL	1       /* cancel all menus cascading */
 #define UI_RETURN_OK        2       /* choice made */
 #define UI_RETURN_OUT       4       /* left the menu */
@@ -169,12 +177,13 @@ struct ReportList;
 #define ICONTOGN (34<<9)
 #define FTPREVIEW (35<<9)
 #define NUMABS	(36<<9)
+#define HMENU	(37<<9)
 #define BUTTYPE	(63<<9)
 
-typedef struct uiBut uiBut;
-typedef struct uiBlock uiBlock;
-
-/* Common Drawing Functions */
+/* Drawing
+ *
+ * Functions to draw various shapes, taking theme settings into account.
+ * Used for code that draws its own UI style elements. */
 
 void uiEmboss(float x1, float y1, float x2, float y2, int sel);
 void uiRoundBox(float minx, float miny, float maxx, float maxy, float rad);
@@ -183,91 +192,137 @@ void uiRoundRect(float minx, float miny, float maxx, float maxy, float rad);
 void uiDrawMenuBox(float minx, float miny, float maxx, float maxy, short flag, short direction);
 void uiDrawBoxShadow(unsigned char alpha, float minx, float miny, float maxx, float maxy);
 
-/* Popup Menu's */
+/* Menus
+ *
+ * These functions are used by popup menus, toolbox and header menus. They
+ * assume uiMenuItem head is already created, which is done by uiMenuButton
+ * for header menus, or can be done with uiPupMenuBegin for popups. These
+ * functions do not use uiDefBut functions in order to simplify creating
+ * them, and to permit other types of menus (radial, ..) in the future. */
 
-typedef struct uiMenuBlockHandle {
-	/* internal */
-	struct ARegion *region;
-	int towardsx, towardsy;
-	double towardstime;
-	int dotowards;
-
-	int popup;
-	void (*popup_func)(struct bContext *C, void *arg, int event);
-	void *popup_arg;
-	/* for operator menus */
-	struct wmOperator *op_arg;
-	const char *propname;
-	
-	/* return values */
-	int butretval;
-	int menuretval;
-	float retvalue;
-	float retvec[3];
-} uiMenuBlockHandle;
-
-typedef uiBlock* (*uiBlockFuncFP)(struct bContext *C, struct uiMenuBlockHandle *handle, void *arg1);
-typedef void (*uiPupmenuFunc)(struct bContext *C, void *arg, int event);
-
-void uiPupmenuSetActive(int val);
-
-void uiPupmenuOperator(struct bContext *C, int maxrow, struct  wmOperator *op, const char *propname, char *str);
-void uiPupmenu(struct bContext *C, int maxrow, uiPupmenuFunc func, void *arg, char *str, ...);
-void uiPupmenuOkee(struct bContext *C, char *opname, char *str, ...);
-void uiPupmenuSaveOver(struct bContext *C, char *opname, char *filename, ...);
-void uiPupmenuNotice(struct bContext *C, char *str, ...);
-void uiPupmenuError(struct bContext *C, char *str, ...);
-void uiPupmenuReports(struct bContext *C, struct ReportList *reports);
-
-/* Custom popup menus and toolbox */
 typedef struct uiMenuItem uiMenuItem;
 
-uiMenuItem *uiMenuBegin(const char *title);
+typedef void (*uiMenuCreateFunc)(struct bContext *C, uiMenuItem *head, void *arg1);
+typedef void (*uiMenuHandleFunc)(struct bContext *C, void *arg, int event);
 
-void uiMenuFunc(uiMenuItem *head, void (*eventfunc)(struct bContext *, void *, int), void *argv);
+void uiMenuFunc(uiMenuItem *head, uiMenuHandleFunc handlefunc, void *argv);
 void uiMenuContext(uiMenuItem *head, int opcontext);
 
 void uiMenuItemVal(uiMenuItem *head, const char *name, int icon, int argval);
+
 void uiMenuItemEnumO(uiMenuItem *head, char *opname, char *propname, int value);
+void uiMenuItemBooleanO(uiMenuItem *head, char *opname, char *propname, int value);
 void uiMenuItemsEnumO(uiMenuItem *head, char *opname, char *propname);
+void uiMenuItemFloatO(uiMenuItem *head, const char *name, char *opname, char *propname, float value);
 void uiMenuItemO(uiMenuItem *head, char *name, int icon);
-void uiMenuLevel(uiMenuItem *head, const char *name, void (*newlevel)(uiMenuItem *));
+
+void uiMenuItemBooleanR(uiMenuItem *head, struct PointerRNA *ptr, char *propname);
+void uiMenuItemEnumR(uiMenuItem *head, struct PointerRNA *ptr, char *propname, int value);
+void uiMenuItemsEnumR(uiMenuItem *head, struct PointerRNA *ptr, char *propname);
+
+void uiMenuLevel(uiMenuItem *head, const char *name, uiMenuCreateFunc newlevel);
 void uiMenuLevelEnumO(uiMenuItem *head, char *opname, char *propname);
+void uiMenuLevelEnumR(uiMenuItem *head, struct PointerRNA *ptr, char *propname);
 
-void uiMenuEnd(struct bContext *C, struct uiMenuItem *head);
+void uiMenuSeparator(uiMenuItem *head);
 
-/* Block */
+/* Popup Menus
+ *
+ * Functions used to create popup menus. For more extended menus the
+ * uiPupMenuBegin/End functions can be used to define own items with
+ * the uiMenu functions inbetween. If it is a simple confirmation menu
+ * or similar, popups can be created with a single function call. */
+
+uiMenuItem *uiPupMenuBegin(const char *title);
+void uiPupMenuEnd(struct bContext *C, struct uiMenuItem *head);
+
+void uiPupMenu(struct bContext *C, int maxrow, uiMenuHandleFunc func, void *arg, char *str, ...);
+void uiPupMenuOperator(struct bContext *C, int maxrow, struct  wmOperator *op, const char *propname, char *str);
+void uiPupMenuOkee(struct bContext *C, char *opname, char *str, ...);
+void uiPupMenuSaveOver(struct bContext *C, char *opname, char *filename, ...);
+void uiPupMenuNotice(struct bContext *C, char *str, ...);
+void uiPupMenuError(struct bContext *C, char *str, ...);
+void uiPupMenuReports(struct bContext *C, struct ReportList *reports);
+
+void uiPupMenuSetActive(int val);
+
+/* Popup Blocks
+ *
+ * Functions used to create popup blocks. These are like popup menus
+ * but allow using all button types and creating an own layout. */
+
+uiBlock *uiPupBlockBegin(struct bContext *C, const char *title);
+void uiPupBlockEnd(struct bContext *C, uiBlock *block);
+
+/* Blocks
+ *
+ * Functions for creating, drawing and freeing blocks. A Block is a
+ * container of buttons and used for various purposes.
+ * 
+ * Begin/Define Buttons/End/Draw is the typical order in which these
+ * function should be called, though for popup blocks Draw is left out.
+ * Freeing blocks is done by the screen/ module automatically.
+ *
+ * */
 
 uiBlock *uiBeginBlock(const struct bContext *C, struct ARegion *region, char *name, short dt, short font);
 void uiEndBlock(const struct bContext *C, uiBlock *block);
 void uiDrawBlock(const struct bContext *C, struct uiBlock *block);
+
 uiBlock *uiGetBlock(char *name, struct ARegion *ar);
+
 void uiFreeBlock(const struct bContext *C, uiBlock *block);
 void uiFreeBlocks(const struct bContext *C, struct ListBase *lb);
 void uiFreeInactiveBlocks(const struct bContext *C, struct ListBase *lb);
 
-void uiBoundsBlock(struct uiBlock *block, int addval);
-void uiTextBoundsBlock(uiBlock *block, int addval);
-
 void uiBlockSetButLock(uiBlock *block, int val, char *lockstr);
 void uiBlockClearButLock(uiBlock *block);
+
+/* Appearance/Cruft
+ *
+ * These functions should mostly dissappear ideally, or become internal.
+ * Font handling could move to blenfont/, and appearance could be dictated
+ * better by high level information instead of spread out all over. */
+
+void uiSetCurFont(uiBlock *block, int index);
+void *uiSetCurFont_ext(float aspect);
+void uiDefFont(unsigned int index, void *xl, void *large, void *medium, void *small);
+void *uiBlockGetCurFont	(uiBlock *block);
 
 /* automatic aligning, horiz or verical */
 void uiBlockBeginAlign(uiBlock *block);
 void uiBlockEndAlign(uiBlock *block);
 
-/* Misc */
+void uiBoundsBlock(struct uiBlock *block, int addval);
+void uiTextBoundsBlock(uiBlock *block, int addval);
+void uiPopupBoundsBlock(uiBlock *block, int addval);
 
-void uiSetCurFont(uiBlock *block, int index);
-void *uiSetCurFont_ext(float aspect);
-void uiDefFont(unsigned int index, void *xl, void *large, void *medium, void *small);
+int		uiBlocksGetYMin		(ListBase *lb);
+int		uiBlockGetCol		(uiBlock *block);
 
-void uiComposeLinks(uiBlock *block);
-uiBut *uiFindInlink(uiBlock *block, void *poin);
+void	uiBlockSetCol		(uiBlock *block, int col);
+void	uiBlockSetEmboss	(uiBlock *block, int emboss);
+void	uiBlockSetDirection	(uiBlock *block, int direction);
+void 	uiBlockFlipOrder	(uiBlock *block);
+void	uiBlockSetFlag		(uiBlock *block, int flag);
+void	uiBlockSetXOfs		(uiBlock *block, int xofs);
 
-void uiBlockPickerButtons(struct uiBlock *block, float *col, float *hsv, float *old, char *hexcol, char mode, short retval);
+int		uiButGetRetVal		(uiBut *but);
 
-/* Defining Buttons */
+void	uiButSetFlag		(uiBut *but, int flag);
+void	uiButClearFlag		(uiBut *but, int flag);
+
+void	uiAutoBlock(uiBlock *block, float minx, float miny, float sizex, float sizey, int flag);
+
+/* Buttons
+ *
+ * Functions to define various types of buttons in a block. Postfixes:
+ * - F: float
+ * - I: int
+ * - S: short
+ * - C: char
+ * - R: RNA
+ * - O: operator */
 
 uiBut *uiDefBut(uiBlock *block, 
 					   int type, int retval, char *str, 
@@ -323,65 +378,93 @@ uiBut *uiDefIconTextButBitC(uiBlock *block, int type, int bit, int retval, int i
 uiBut *uiDefIconTextButR(uiBlock *block, int type, int retval, int icon, char *str, short x1, short y1, short x2, short y2, struct PointerRNA *ptr, const char *propname, int index, float min, float max, float a1, float a2,  char *tip);
 uiBut *uiDefIconTextButO(uiBlock *block, int type, char *opname, int opcontext, int icon, char *str, short x1, short y1, short x2, short y2, char *tip);
 
-typedef void		(*uiIDPoinFuncFP)	(struct bContext *C, char *str, struct ID **idpp);
+/* for passing inputs to ButO buttons */
+struct PointerRNA *uiButGetOperatorPtrRNA(uiBut *but);
+
+/* Special Buttons
+ *
+ * Butons with a more specific purpose:
+ * - IDPoinBut: for creating buttons that work on a pointer to an ID block.
+ * - MenuBut: buttons that popup a menu (in headers usually).
+ * - PulldownBut: like MenuBut, but creating a uiBlock (for compatibility).
+ * - BlockBut: buttons that popup a block with more buttons.
+ * - KeyevtBut: buttons that can be used to turn key events into values.
+ * - PickerButtons: buttons like the color picker (for code sharing). */
+
+typedef uiBlock* (*uiBlockCreateFunc)(struct bContext *C, struct ARegion *ar, void *arg1);
+typedef void     (*uiIDPoinFuncFP)(struct bContext *C, char *str, struct ID **idpp);
+
 uiBut *uiDefIDPoinBut(struct uiBlock *block, uiIDPoinFuncFP func, short blocktype, int retval, char *str,
 						short x1, short y1, short x2, short y2, void *idpp, char *tip);
 
-uiBut *uiDefBlockBut(uiBlock *block, uiBlockFuncFP func, void *func_arg1, char *str, short x1, short y1, short x2, short y2, char *tip);
-uiBut *uiDefPulldownBut(uiBlock *block, uiBlockFuncFP func, void *func_arg1, char *str, short x1, short y1, short x2, short y2, char *tip);
+uiBut *uiDefPulldownBut(uiBlock *block, uiBlockCreateFunc func, void *arg, char *str, short x1, short y1, short x2, short y2, char *tip);
+uiBut *uiDefMenuBut(uiBlock *block, uiMenuCreateFunc func, void *arg, char *str, short x1, short y1, short x2, short y2, char *tip);
+uiBut *uiDefIconTextMenuBut(uiBlock *block, uiMenuCreateFunc func, void *arg, int icon, char *str, short x1, short y1, short x2, short y2, char *tip);
 
-uiBut *uiDefIconTextBlockBut(uiBlock *block, uiBlockFuncFP func, void *arg, int icon, char *str, short x1, short y1, short x2, short y2, char *tip);
-uiBut *uiDefIconBlockBut(uiBlock *block, uiBlockFuncFP func, void *arg, int retval, int icon, short x1, short y1, short x2, short y2, char *tip);
+uiBut *uiDefBlockBut(uiBlock *block, uiBlockCreateFunc func, void *func_arg1, char *str, short x1, short y1, short x2, short y2, char *tip);
+uiBut *uiDefIconBlockBut(uiBlock *block, uiBlockCreateFunc func, void *arg, int retval, int icon, short x1, short y1, short x2, short y2, char *tip);
+uiBut *uiDefIconTextBlockBut(uiBlock *block, uiBlockCreateFunc func, void *arg, int icon, char *str, short x1, short y1, short x2, short y2, char *tip);
 
 void uiDefKeyevtButS(uiBlock *block, int retval, char *str, short x1, short y1, short x2, short y2, short *spoin, char *tip);
 
-uiBut *uiDefMenuButO(uiBlock *block, char *opname, char *name);
-uiBut *uiDefMenuSep(uiBlock *block);
-uiBut *uiDefMenuSub(uiBlock *block, uiBlockFuncFP func, char *name);
-uiBut *uiDefMenuTogR(uiBlock *block, struct PointerRNA *ptr, char *propname, char *propvalue, char *name);
+void uiBlockPickerButtons(struct uiBlock *block, float *col, float *hsv, float *old, char *hexcol, char mode, short retval);
 
-void uiAutoBlock(struct uiBlock *block, 
-				 float minx, float miny, 
-				 float sizex, float sizey, int flag);
-void uiSetButLink(struct uiBut *but, 
-				  void **poin, 
-				  void ***ppoin, 
-				  short *tot, 
-				  int from, int to);
+/* Links
+ *
+ * Game engine logic brick links. Non-functional currently in 2.5,
+ * code to handle and draw these is disabled internally. */
 
-int		uiBlocksGetYMin		(ListBase *lb);
-int		uiBlockGetCol		(uiBlock *block);
-void*	uiBlockGetCurFont	(uiBlock *block);
+void uiSetButLink(struct uiBut *but,  void **poin,  void ***ppoin,  short *tot,  int from, int to);
 
-void	uiBlockSetCol		(uiBlock *block, int col);
-void	uiBlockSetEmboss	(uiBlock *block, int emboss);
-void	uiBlockSetDirection	(uiBlock *block, int direction);
-void 	uiBlockFlipOrder	(uiBlock *block);
-void	uiBlockSetFlag		(uiBlock *block, int flag);
-void	uiBlockSetXOfs		(uiBlock *block, int xofs);
+void uiComposeLinks(uiBlock *block);
+uiBut *uiFindInlink(uiBlock *block, void *poin);
 
-int		uiButGetRetVal		(uiBut *but);
+/* Callbacks
+ *
+ * uiBlockSetHandleFunc/ButmFunc are for handling events through a callback.
+ * HandleFunc gets the retval passed on, and ButmFunc gets a2. The latter is
+ * mostly for compatibility with older code.
+ *
+ * uiButSetCompleteFunc is for tab completion.
+ *
+ * uiBlockSetFunc and uiButSetFunc are callbacks run when a button is used,
+ * in case events, operators or RNA are not sufficient to handle the button. */
 
-void	uiButSetFlag		(uiBut *but, int flag);
-void	uiButClearFlag		(uiBut *but, int flag);
+typedef void (*uiButHandleFunc)(struct bContext *C, void *arg1, void *arg2);
+typedef void (*uiButCompleteFunc)(struct bContext *C, char *str, void *arg);
+typedef void (*uiBlockHandleFunc)(struct bContext *C, void *arg, int event);
 
-struct PointerRNA *uiButGetOperatorPtrRNA(uiBut *but);
+void	uiBlockSetHandleFunc(uiBlock *block,	uiBlockHandleFunc func, void *arg);
+void	uiBlockSetButmFunc	(uiBlock *block,	uiMenuHandleFunc func, void *arg);
 
-void	uiBlockSetHandleFunc(uiBlock *block,	void (*func)(struct bContext *C, void *arg, int event), void *arg);
-void	uiBlockSetButmFunc	(uiBlock *block,	void (*func)(struct bContext *C, void *arg, int but_a2), void *arg);
+void	uiBlockSetFunc		(uiBlock *block,	uiButHandleFunc func, void *arg1, void *arg2);
+void	uiButSetFunc		(uiBut *but,		uiButHandleFunc func, void *arg1, void *arg2);
 
-void	uiBlockSetFunc		(uiBlock *block,	void (*func)(struct bContext *C, void *arg1, void *arg2), void *arg1, void *arg2);
-void	uiButSetFunc		(uiBut *but,		void (*func)(struct bContext *C, void *arg1, void *arg2), void *arg1, void *arg2);
-
-void	uiButSetCompleteFunc(uiBut *but,		void (*func)(struct bContext *C, char *str, void *arg), void *arg);
+void	uiButSetCompleteFunc(uiBut *but,		uiButCompleteFunc func, void *arg);
 
 void 	uiBlockSetDrawExtraFunc(uiBlock *block, void (*func)(struct bContext *C, uiBlock *block));
 
-/* Panels */
+/* Autocomplete
+ *
+ * Tab complete helper functions, for use in uiButCompleteFunc callbacks.
+ * Call begin once, then multiple times do_name with all possibilities,
+ * and finally end to finish and get the completed name. */
 
-extern void uiFreePanels(struct ListBase *lb);
+typedef struct AutoComplete AutoComplete;
+
+AutoComplete *autocomplete_begin(char *startname, int maxlen);
+void autocomplete_do_name(AutoComplete *autocpl, const char *name);
+void autocomplete_end(AutoComplete *autocpl, char *autoname);
+
+/* Panels
+ *
+ * Functions for creating, freeing and drawing panels. The API here
+ * could use a good cleanup, though how they will function in 2.5 is
+ * not clear yet so we postpone that. */
+
 extern void uiNewPanelTabbed(char *, char *);
 extern int uiNewPanel(const struct bContext *C, struct ARegion *ar, uiBlock *block, char *panelname, char *tabname, int ofsx, int ofsy, int sizex, int sizey);
+extern void uiFreePanels(struct ListBase *lb);
 extern void uiDrawPanels(const struct bContext *C, int re_align);
 	
 extern void uiSetPanelsView2d(struct ARegion *ar);
@@ -394,25 +477,31 @@ extern int uiAlignPanelStep(struct ScrArea *sa, struct ARegion *ar, float fac);
 extern void uiPanelControl(int);
 extern void uiSetPanelHandler(int);
 
-/* Autocomplete */
-
-typedef struct AutoComplete AutoComplete;
-
-AutoComplete *autocomplete_begin(char *startname, int maxlen);
-void autocomplete_do_name(AutoComplete *autocpl, const char *name);
-void autocomplete_end(AutoComplete *autocpl, char *autoname);
-
-/* Handlers for regions with UI blocks */
+/* Handlers
+ *
+ * Handlers that can be registered in regions, areas and windows for
+ * handling WM events. Mostly this is done automatic by modules such
+ * as screen/ if ED_KEYMAP_UI is set, or internally in popup functions. */
 
 void UI_add_region_handlers(struct ListBase *handlers);
 void UI_add_area_handlers(struct ListBase *handlers);
-void UI_add_popup_handlers(struct ListBase *handlers, uiMenuBlockHandle *menu);
+void UI_add_popup_handlers(struct ListBase *handlers, uiPopupBlockHandle *menu);
 
-/* Module initialization and exit */
+/* Module
+ *
+ * init and exit should be called before using this module. init_userdef must
+ * be used to reinitialize some internal state if user preferences change. */
 
 void UI_init(void);
 void UI_init_userdef(void);
 void UI_exit(void);
+
+/* XXX hide this */
+
+uiBut *uiDefMenuButO(uiBlock *block, char *opname, char *name);
+uiBut *uiDefMenuSep(uiBlock *block);
+uiBut *uiDefMenuSub(uiBlock *block, uiBlockCreateFunc func, char *name);
+uiBut *uiDefMenuTogR(uiBlock *block, struct PointerRNA *ptr, char *propname, char *propvalue, char *name);
 
 #endif /*  UI_INTERFACE_H */
 

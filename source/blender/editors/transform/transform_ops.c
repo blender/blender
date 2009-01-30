@@ -66,7 +66,7 @@ static int select_orientation_invoke(bContext *C, wmOperator *op, wmEvent *event
 	
 	op->customdata = string;
 	
-	uiPupmenuOperator(C, 0, op, "orientation", string);
+	uiPupMenuOperator(C, 0, op, "orientation", string);
 	
 	return OPERATOR_RUNNING_MODAL;
 }

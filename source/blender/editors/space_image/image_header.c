@@ -83,89 +83,52 @@
 #define B_SIMA_RECORD		8
 #define B_SIMA_PLAY			9
 
-static uiBlock *image_view_viewnavmenu(bContext *C, uiMenuBlockHandle *handle, void *arg_unused)
+static void image_view_viewnavmenu(bContext *C, uiMenuItem *head, void *arg_unused)
 {
-	uiBlock *block;
-	uiBut *but;
 	int a;
 	
-	/* create menu */
-	block= uiBeginBlock(C, handle->region, "image_view_viewnavmenu", UI_EMBOSSP, UI_HELV);
-	
-	uiDefMenuButO(block, "IMAGE_OT_view_zoom_in", NULL);
-	uiDefMenuButO(block, "IMAGE_OT_view_zoom_out", NULL);
+	uiMenuItemO(head, "IMAGE_OT_view_zoom_in", ICON_BLANK1);
+	uiMenuItemO(head, "IMAGE_OT_view_zoom_out", ICON_BLANK1);
 
-	uiDefMenuSep(block);
+	uiMenuSeparator(head);
 
 	for(a=0; a<7; a++) {
 		const int ratios[7][2] = {{1, 8}, {1, 4}, {1, 2}, {1, 1}, {2, 1}, {4, 1}, {8, 1}};
 		char namestr[128];
 
 		sprintf(namestr, "Zoom %d:%d", ratios[a][0], ratios[a][1]);
-
-		but= uiDefMenuButO(block, "IMAGE_OT_view_zoom_ratio", namestr);
-		RNA_float_set(uiButGetOperatorPtrRNA(but), "ratio", (float)ratios[a][0]/(float)ratios[a][1]);
+		uiMenuItemFloatO(head, namestr, "IMAGE_OT_view_zoom_ratio", "ratio", (float)ratios[a][0]/(float)ratios[a][1]);
 	}
-
-	/* XXX find key shortcut! */
-
-	/* position menu */
-	uiBlockSetDirection(block, UI_RIGHT);
-	uiTextBoundsBlock(block, 50);
-	uiEndBlock(C, block);
-
-	return block;
 }
 
 #if 0
 static void do_viewmenu(bContext *C, void *arg, int event)
 {
-	switch(event) {
-	case 1: /* View All */
-		do_image_buttons(B_SIMAGEHOME);
-		break;
-	case 4: /* Realtime Panel... */
-		add_blockhandler(curarea, IMAGE_HANDLER_VIEW_PROPERTIES, UI_PNL_UNSTOW);
-		break;
-	case 7: /* Properties  Panel */
-		add_blockhandler(curarea, IMAGE_HANDLER_PROPERTIES, UI_PNL_UNSTOW);
-		break;
-	case 8: /* Paint Panel... */
-		add_blockhandler(curarea, IMAGE_HANDLER_PAINT, UI_PNL_UNSTOW);
-		break;
-	case 9:
-		image_viewcenter();
-		break;
-	case 11: /* Curves Panel... */
-		add_blockhandler(curarea, IMAGE_HANDLER_CURVES, UI_PNL_UNSTOW);
-		break;
-	case 12: /* composite preview */
-		toggle_blockhandler(curarea, IMAGE_HANDLER_PREVIEW, 0);
-		scrarea_queue_winredraw(curarea);
-		break;
-	case 13: /* Realtime Panel... */
-		add_blockhandler(curarea, IMAGE_HANDLER_GAME_PROPERTIES, UI_PNL_UNSTOW);
-		break;
-	case 15: /* Grease Pencil... */
-		add_blockhandler(curarea, IMAGE_HANDLER_GREASEPENCIL, UI_PNL_UNSTOW);
-		break;
-	}
+	add_blockhandler(curarea, IMAGE_HANDLER_VIEW_PROPERTIES, UI_PNL_UNSTOW);
+	add_blockhandler(curarea, IMAGE_HANDLER_PROPERTIES, UI_PNL_UNSTOW);
+	add_blockhandler(curarea, IMAGE_HANDLER_PAINT, UI_PNL_UNSTOW);
+	add_blockhandler(curarea, IMAGE_HANDLER_CURVES, UI_PNL_UNSTOW);
+
+	toggle_blockhandler(curarea, IMAGE_HANDLER_PREVIEW, 0);
+	scrarea_queue_winredraw(curarea);
+
+	add_blockhandler(curarea, IMAGE_HANDLER_GAME_PROPERTIES, UI_PNL_UNSTOW);
+	add_blockhandler(curarea, IMAGE_HANDLER_GREASEPENCIL, UI_PNL_UNSTOW);
 
 	allqueue(REDRAWIMAGE, 0);
 	allqueue(REDRAWVIEW3D, 0);
 }
 #endif
 
-static uiBlock *image_viewmenu(bContext *C, uiMenuBlockHandle *handle, void *arg_unused)
+static void image_viewmenu(bContext *C, uiMenuItem *head, void *arg_unused)
 {
 	bScreen *sc= CTX_wm_screen(C);
 	ScrArea *sa= CTX_wm_area(C);
 	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
 	PointerRNA spaceptr, uvptr;
-	uiBlock *block;
 	int show_paint, show_render, show_uvedit;
 
-	/* retrrieve state */
+	/* retrieve state */
 	RNA_pointer_create(&sc->id, &RNA_SpaceImageEditor, sima, &spaceptr);
 	RNA_pointer_create(&sc->id, &RNA_SpaceUVEditor, sima, &uvptr);
 
@@ -174,43 +137,27 @@ static uiBlock *image_viewmenu(bContext *C, uiMenuBlockHandle *handle, void *arg
 	show_uvedit= get_space_image_show_uvedit(sima, CTX_data_edit_object(C));
 	
 	/* create menu */
-	block= uiBeginBlock(C, handle->region, "image_viewmenu", UI_EMBOSSP, UI_HELV);
-	
-	uiDefMenuButO(block, "IMAGE_OT_toggle_view_properties_panel", NULL); // View Properties...
-	uiDefMenuButO(block, "IMAGE_OT_toggle_image_properties_panel", NULL); // Image Properties...|N
-	uiDefMenuButO(block, "IMAGE_OT_toggle_realtime_properties_panel", NULL); // Real-time properties...
-	if(show_paint) uiDefMenuButO(block, "IMAGE_OT_toggle_paint_panel", NULL); // Paint Tool...|C
-	uiDefMenuButO(block, "IMAGE_OT_toggle_curves_panel", NULL); // Curves Tool...
-	if(show_render) uiDefMenuButO(block, "IMAGE_OT_toggle_compositing_preview_panel", NULL); // Compositing Preview...|Shift P
-	uiDefMenuButO(block, "IMAGE_OT_toggle_grease_pencil_panel", NULL); // Grease Pencil...
+	uiMenuItemO(head, "IMAGE_OT_toggle_view_properties_panel", ICON_MENU_PANEL); // View Properties...
+	uiMenuItemO(head, "IMAGE_OT_toggle_image_properties_panel", ICON_MENU_PANEL); // Image Properties...|N
+	uiMenuItemO(head, "IMAGE_OT_toggle_realtime_properties_panel", ICON_MENU_PANEL); // Real-time properties...
+	if(show_paint) uiMenuItemO(head, "IMAGE_OT_toggle_paint_panel", ICON_MENU_PANEL); // Paint Tool...|C
+	uiMenuItemO(head, "IMAGE_OT_toggle_curves_panel", ICON_MENU_PANEL); // Curves Tool...
+	if(show_render) uiMenuItemO(head, "IMAGE_OT_toggle_compositing_preview_panel", ICON_MENU_PANEL); // Compositing Preview...|Shift P
+	uiMenuItemO(head, "IMAGE_OT_toggle_grease_pencil_panel", ICON_MENU_PANEL); // Grease Pencil...
 
-	uiDefMenuSep(block);
+	uiMenuSeparator(head);
 
-	uiDefMenuTogR(block, &spaceptr, "update_automatically", NULL, NULL);
-	// XXX if(show_uvedit) uiDefMenuTogR(block, &uvptr, "local_view", NULL, "UV Local View"); // Numpad /
+	uiMenuItemBooleanR(head, &spaceptr, "update_automatically");
+	// XXX if(show_uvedit) uiMenuItemBooleanR(head, &uvptr, "local_view"); // "UV Local View", Numpad /
 
-	uiDefMenuSep(block);
+	uiMenuSeparator(head);
 
-	uiDefMenuSub(block, image_view_viewnavmenu, "View Navigation");
-	if(show_uvedit) uiDefMenuButO(block, "IMAGE_OT_view_selected", NULL);
-	uiDefMenuButO(block, "IMAGE_OT_view_all", NULL);
+	uiMenuLevel(head, "View Navigation", image_view_viewnavmenu);
+	if(show_uvedit) uiMenuItemO(head, "IMAGE_OT_view_selected", ICON_BLANK1);
+	uiMenuItemO(head, "IMAGE_OT_view_all", ICON_BLANK1);
 
-	if(sa->full) uiDefMenuButO(block, "SCREEN_OT_screen_full_area", "Tile Window"); // Ctrl UpArrow
-	else uiDefMenuButO(block, "SCREEN_OT_screen_full_area", "Maximize Window"); // Ctr DownArrow
-	
-	/* position menu */
-	if(sa->headertype==HEADERTOP) {
-		uiBlockSetDirection(block, UI_DOWN);
-	}
-	else {
-		uiBlockSetDirection(block, UI_TOP);
-		uiBlockFlipOrder(block);
-	}
-	
-	uiTextBoundsBlock(block, 50);
-	uiEndBlock(C, block);
-	
-	return block;
+	if(sa->full) uiMenuItemO(head, "SCREEN_OT_screen_full_area", ICON_BLANK1); // "Tile Window", Ctrl UpArrow
+	else uiMenuItemO(head, "SCREEN_OT_screen_full_area", ICON_BLANK1); // "Maximize Window", Ctr DownArrow
 }
 
 #if 0
@@ -231,41 +178,21 @@ static void do_selectmenu(bContext *C, void *arg, int event)
 }
 #endif
 
-static uiBlock *image_selectmenu(bContext *C, uiMenuBlockHandle *handle, void *arg_unused)
+static void image_selectmenu(bContext *C, uiMenuItem *head, void *arg_unused)
 {
-	ScrArea *sa= CTX_wm_area(C);
-	uiBlock *block;
-	
-	/* create menu */
-	block= uiBeginBlock(C, handle->region, "image_selectmenu", UI_EMBOSSP, UI_HELV);
+	uiMenuItemO(head, "UV_OT_border_select", ICON_BLANK1); // Border Select|B
+	uiMenuItemO(head, "UV_OT_border_select_pinned", ICON_BLANK1); // Border Select Pinned|Shift B
 
-	uiDefMenuButO(block, "UV_OT_border_select", NULL); // Border Select|B
-	uiDefMenuButO(block, "UV_OT_border_select_pinned", NULL); // Border Select Pinned|Shift B
+	uiMenuSeparator(head);
+	
+	uiMenuItemO(head, "UV_OT_de_select_all", ICON_BLANK1);
+	uiMenuItemO(head, "UV_OT_select_invert", ICON_BLANK1);
+	uiMenuItemO(head, "UV_OT_unlink_selection", ICON_BLANK1); // Unlink Selection|Alt L
+	
+	uiMenuSeparator(head);
 
-	uiDefMenuSep(block);
-	
-	uiDefMenuButO(block, "UV_OT_de_select_all", NULL);
-	uiDefMenuButO(block, "UV_OT_select_invert", NULL);
-	uiDefMenuButO(block, "UV_OT_unlink_selection", NULL); // Unlink Selection|Alt L
-	
-	uiDefMenuSep(block);
-
-	uiDefMenuButO(block, "UV_OT_select_pinned", NULL); // Select Pinned|Shift P
-	uiDefMenuButO(block, "UV_OT_select_linked", NULL); // Select Linked|Ctrl L
-
-	/* position menu */
-	if(sa->headertype==HEADERTOP) {
-		uiBlockSetDirection(block, UI_DOWN);
-	}
-	else {
-		uiBlockSetDirection(block, UI_TOP);
-		uiBlockFlipOrder(block);
-	}
-	
-	uiTextBoundsBlock(block, 50);
-	uiEndBlock(C, block);
-	
-	return block;
+	uiMenuItemO(head, "UV_OT_select_pinned", ICON_BLANK1); // Select Pinned|Shift P
+	uiMenuItemO(head, "UV_OT_select_linked", ICON_BLANK1); // Select Linked|Ctrl L
 }
 
 #if 0
@@ -332,12 +259,10 @@ static void do_image_image_rtmappingmenu(void *arg, int event)
 }
 #endif
 
-static uiBlock *image_imagemenu(bContext *C, uiMenuBlockHandle *handle, void *arg_unused)
+static void image_imagemenu(bContext *C, uiMenuItem *head, void *arg_unused)
 {
 	bScreen *sc= CTX_wm_screen(C);
-	ScrArea *sa= CTX_wm_area(C);
 	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
-	uiBlock *block;
 	PointerRNA spaceptr;
 	Image *ima;
 	ImBuf *ibuf;
@@ -352,34 +277,32 @@ static uiBlock *image_imagemenu(bContext *C, uiMenuBlockHandle *handle, void *ar
 	RNA_pointer_create(&sc->id, &RNA_SpaceImageEditor, sima, &spaceptr);
 
 	/* create menu */
-	block= uiBeginBlock(C, handle->region, "image_imagemenu", UI_EMBOSSP, UI_HELV);
-
-	uiDefMenuButO(block, "IMAGE_OT_new", NULL); // New...|Alt N
-	uiDefMenuButO(block, "IMAGE_OT_open", NULL); // Open...|Alt O
+	uiMenuItemO(head, "IMAGE_OT_new", ICON_BLANK1); // New...|Alt N
+	uiMenuItemO(head, "IMAGE_OT_open", ICON_BLANK1); // Open...|Alt O
 
 	if(ima) {
-		uiDefMenuButO(block, "IMAGE_OT_replace", NULL); // Replace...
-		uiDefMenuButO(block, "IMAGE_OT_reload", NULL); // Reload...|Alt R
-		uiDefMenuButO(block, "IMAGE_OT_save", NULL); // Save|Alt S
-		uiDefMenuButO(block, "IMAGE_OT_save_as", NULL); // Save As...
+		uiMenuItemO(head, "IMAGE_OT_replace", ICON_BLANK1); // Replace...
+		uiMenuItemO(head, "IMAGE_OT_reload", ICON_BLANK1); // Reload...|Alt R
+		uiMenuItemO(head, "IMAGE_OT_save", ICON_BLANK1); // Save|Alt S
+		uiMenuItemO(head, "IMAGE_OT_save_as", ICON_BLANK1); // Save As...
 		if(ima->source == IMA_SRC_SEQUENCE)
-			uiDefMenuButO(block, "IMAGE_OT_save_changed", NULL); // Save Changed Images
+			uiMenuItemO(head, "IMAGE_OT_save_changed", ICON_BLANK1); // Save Changed Images
 
 		if(!show_render) {
-			uiDefMenuSep(block);
+			uiMenuSeparator(head);
 
-			if(ima->packedfile) uiDefMenuButO(block, "IMAGE_OT_unpack", NULL); // Unpack Image...
-			else uiDefMenuButO(block, "IMAGE_OT_pack", NULL); // Pack Image
+			if(ima->packedfile) uiMenuItemO(head, "IMAGE_OT_unpack", ICON_BLANK1); // Unpack Image...
+			else uiMenuItemO(head, "IMAGE_OT_pack", ICON_BLANK1); // Pack Image
 
 			/* only for dirty && specific image types : XXX poll? */
 			if(ibuf && (ibuf->userflags & IB_BITMAPDIRTY))
 				if(ELEM(ima->source, IMA_SRC_FILE, IMA_SRC_GENERATED) && ima->type != IMA_TYPE_MULTILAYER)
-					uiDefMenuButO(block, "IMAGE_OT_pack_as_png", NULL); // Pack Image As PNG
+					uiMenuItemO(head, "IMAGE_OT_pack_as_png", ICON_BLANK1); // Pack Image As PNG
 
-			uiDefMenuSep(block);
+			uiMenuSeparator(head);
 
 			/* XXX check state better */
-			uiDefMenuTogR(block, &spaceptr, "image_painting", NULL, NULL);
+			uiMenuItemBooleanR(head, &spaceptr, "image_painting");
 		}
 	}
 
@@ -399,20 +322,6 @@ static uiBlock *image_imagemenu(bContext *C, uiMenuBlockHandle *handle, void *ar
 	}
 #endif
 #endif
-
-	/* position menu */
-	if(sa->headertype==HEADERTOP) {
-		uiBlockSetDirection(block, UI_DOWN);
-	}
-	else {
-		uiBlockSetDirection(block, UI_TOP);
-		uiBlockFlipOrder(block);
-	}
-	
-	uiTextBoundsBlock(block, 80);
-	uiEndBlock(C, block);
-	
-	return block;
 }
 
 #if 0
@@ -433,61 +342,11 @@ static void do_image_uvs_showhidemenu(void *arg, int event)
 }
 #endif
 
-static uiBlock *image_uvs_showhidemenu(bContext *C, uiMenuBlockHandle *handle, void *arg_unused)
+static void image_uvs_showhidemenu(bContext *C, uiMenuItem *head, void *arg_unused)
 {
-	uiBlock *block;
-	
-	/* create menu */
-	block= uiBeginBlock(C, handle->region, "image_uvs_showhidemenu", UI_EMBOSSP, UI_HELV);
-
-	uiDefMenuButO(block, "UV_OT_show_hidden_faces", NULL); // Show Hidden Faces|Alt H
-	uiDefMenuButO(block, "UV_OT_hide_selected_faces", NULL); // Hide Selected Faces|H
-	uiDefMenuButO(block, "UV_OT_hide_deselected_faces", NULL); // Hide Deselected Faces|Shift H
-
-	/* position menu */
-	uiBlockSetDirection(block, UI_RIGHT);
-	uiTextBoundsBlock(block, 60);
-
-	uiEndBlock(C, block);
-
-	return block;
-}
-
-#if 0
-static void do_image_uvs_propfalloffmenu(void *arg, int event)
-{
-	G.scene->prop_mode= event;
-	allqueue(REDRAWVIEW3D, 1);
-}
-#endif
-
-static uiBlock *image_uvs_propfalloffmenu(bContext *C, uiMenuBlockHandle *handle, void *arg_unused)
-{
-	Scene *scene= CTX_data_scene(C);
-	PointerRNA sceneptr;
-	uiBlock *block;
-	
-	/* retrieve state */
-	RNA_id_pointer_create(&scene->id, &sceneptr);
-	
-	/* create menu */
-	block= uiBeginBlock(C, handle->region, "image_uvs_propfalloffmenu", UI_EMBOSSP, UI_HELV);
-
-	uiDefMenuTogR(block, &sceneptr, "proportional_editing_falloff", "SMOOTH", NULL); // Smooth|Shift O
-	uiDefMenuTogR(block, &sceneptr, "proportional_editing_falloff", "SPHERE", NULL); // Sphere|Shift O
-	uiDefMenuTogR(block, &sceneptr, "proportional_editing_falloff", "ROOT", NULL); // Root|Shift O
-	uiDefMenuTogR(block, &sceneptr, "proportional_editing_falloff", "SHARP", NULL); // Sharp|Shift O
-	uiDefMenuTogR(block, &sceneptr, "proportional_editing_falloff", "LINEAR", NULL); // Linear|Shift O
-	uiDefMenuTogR(block, &sceneptr, "proportional_editing_falloff", "RANDOM", NULL); // Random|Shift O
-	uiDefMenuTogR(block, &sceneptr, "proportional_editing_falloff", "CONSTANT", NULL); // Constant|Shift O
-
-	/* position menu */
-	uiBlockSetDirection(block, UI_RIGHT);
-	uiTextBoundsBlock(block, 60);
-
-	uiEndBlock(C, block);
-
-	return block;
+	uiMenuItemO(head, "UV_OT_show_hidden_faces", ICON_BLANK1); // Show Hidden Faces|Alt H
+	uiMenuItemO(head, "UV_OT_hide_selected_faces", ICON_BLANK1); // Hide Selected Faces|H
+	uiMenuItemO(head, "UV_OT_hide_deselected_faces", ICON_BLANK1); // Hide Deselected Faces|Shift H
 }
 
 #if 0
@@ -510,24 +369,11 @@ static void do_image_uvs_transformmenu(void *arg, int event)
 }
 #endif
 
-static uiBlock *image_uvs_transformmenu(bContext *C, uiMenuBlockHandle *handle, void *arg_unused)
+static void image_uvs_transformmenu(bContext *C, uiMenuItem *head, void *arg_unused)
 {
-	uiBlock *block;
-	
-	/* create menu */
-	block= uiBeginBlock(C, handle->region, "image_uvs_transformmenu", UI_EMBOSSP, UI_HELV);
-
-	uiDefMenuButO(block, "UV_OT_grab", NULL); // Grab/Move|G
-	uiDefMenuButO(block, "UV_OT_rotate", NULL); // Rotate|R
-	uiDefMenuButO(block, "UV_OT_scale", NULL); // Scale|S
-
-	/* position menu */
-	uiBlockSetDirection(block, UI_RIGHT);
-	uiTextBoundsBlock(block, 60);
-
-	uiEndBlock(C, block);
-
-	return block;
+	uiMenuItemO(head, "UV_OT_grab", ICON_BLANK1); // Grab/Move|G
+	uiMenuItemO(head, "UV_OT_rotate", ICON_BLANK1); // Rotate|R
+	uiMenuItemO(head, "UV_OT_scale", ICON_BLANK1); // Scale|S
 }
 
 #if 0
@@ -554,26 +400,10 @@ static void do_image_uvs_mirrormenu(void *arg, int event)
 }
 #endif
 
-static uiBlock *image_uvs_mirrormenu(bContext *C, uiMenuBlockHandle *handle, void *arg_unused)
+static void image_uvs_mirrormenu(bContext *C, uiMenuItem *head, void *arg_unused)
 {
-	uiBlock *block;
-	uiBut *but;
-	
-	/* create menu */
-	block= uiBeginBlock(C, handle->region, "image_uvs_mirrormenu", UI_EMBOSSP, UI_HELV);
-
-	but= uiDefMenuButO(block, "UV_OT_mirror", "X Axis"); // M, 1
-	RNA_enum_set(uiButGetOperatorPtrRNA(but), "axis", 'x');
-	but= uiDefMenuButO(block, "UV_OT_mirror", "Y Axis"); // M, 2
-	RNA_enum_set(uiButGetOperatorPtrRNA(but), "axis", 'y');
-
-	/* position menu */
-	uiBlockSetDirection(block, UI_RIGHT);
-	uiTextBoundsBlock(block, 60);
-
-	uiEndBlock(C, block);
-
-	return block;
+	uiMenuItemEnumO(head, "UV_OT_mirror", "axis", 'x'); // "X Axis", M, 1
+	uiMenuItemEnumO(head, "UV_OT_mirror", "axis", 'y'); // "Y Axis", M, 2
 }
 
 #if 0
@@ -599,29 +429,10 @@ static void do_image_uvs_weldalignmenu(void *arg, int event)
 }
 #endif
 
-static uiBlock *image_uvs_weldalignmenu(bContext *C, uiMenuBlockHandle *handle, void *arg_unused)
+static void image_uvs_weldalignmenu(bContext *C, uiMenuItem *head, void *arg_unused)
 {
-	uiBlock *block;
-	uiBut *but;
-	
-	/* create menu */
-	block= uiBeginBlock(C, handle->region, "image_uvs_weldalignmenu", UI_EMBOSSP, UI_HELV);
-
-	but= uiDefMenuButO(block, "UV_OT_weld", NULL); // W, 1
-	but= uiDefMenuButO(block, "UV_OT_align", "Align Auto"); // W, 2
-	RNA_enum_set(uiButGetOperatorPtrRNA(but), "axis", 'a');
-	but= uiDefMenuButO(block, "UV_OT_align", "Align X"); // W, 3
-	RNA_enum_set(uiButGetOperatorPtrRNA(but), "axis", 'x');
-	but= uiDefMenuButO(block, "UV_OT_align", "Align Y"); // W, 4
-	RNA_enum_set(uiButGetOperatorPtrRNA(but), "axis", 'y');
-
-	/* position menu */
-	uiBlockSetDirection(block, UI_RIGHT);
-	uiTextBoundsBlock(block, 60);
-
-	uiEndBlock(C, block);
-
-	return block;
+	uiMenuItemO(head, "UV_OT_weld", ICON_BLANK1); // W, 1
+	uiMenuItemsEnumO(head, "UV_OT_align", "axis"); // W, 2/3/4
 }
 
 #if 0
@@ -633,7 +444,7 @@ static void do_image_uvs_scriptsmenu(void *arg, int event)
 	allqueue(REDRAWIMAGE, 0);
 }
 
-static uiBlock *image_uvs_scriptsmenu (void *args_unused)
+static void image_uvs_scriptsmenu (void *args_unused)
 {
 	uiBlock *block;
 	BPyMenu *pym;
@@ -702,13 +513,11 @@ static void do_uvsmenu(bContext *C, void *arg, int event)
 }
 #endif
 
-static uiBlock *image_uvsmenu(bContext *C, uiMenuBlockHandle *handle, void *arg_unused)
+static void image_uvsmenu(bContext *C, uiMenuItem *head, void *arg_unused)
 {
 	bScreen *sc= CTX_wm_screen(C);
-	ScrArea *sa= CTX_wm_area(C);
 	Scene *scene= CTX_data_scene(C);
 	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
-	uiBlock *block;
 	PointerRNA uvptr, sceneptr;
 	Image *ima;
 	ImBuf *ibuf;
@@ -721,60 +530,45 @@ static uiBlock *image_uvsmenu(bContext *C, uiMenuBlockHandle *handle, void *arg_
 	RNA_id_pointer_create(&scene->id, &sceneptr);
 
 	/* create menu */
-	block= uiBeginBlock(C, handle->region, "image_imagemenu", UI_EMBOSSP, UI_HELV);
+	uiMenuItemBooleanR(head, &uvptr, "snap_to_pixels");
+	uiMenuItemBooleanR(head, &uvptr, "constrain_to_image_bounds");
 
-	uiDefMenuTogR(block, &uvptr, "snap_to_pixels", 0, NULL);
-	uiDefMenuTogR(block, &uvptr, "constrain_to_image_bounds", 0, NULL);
+	uiMenuSeparator(head);
 
-	uiDefMenuSep(block);
+	uiMenuItemBooleanR(head, &uvptr, "live_unwrap");
+	uiMenuItemO(head, "UV_OT_unwrap", ICON_BLANK1); // Unwrap|E
+	uiMenuItemO(head, "UV_OT_unpin", ICON_BLANK1); // Unpin|Alt P
+	uiMenuItemO(head, "UV_OT_pin", ICON_BLANK1); // Pin|P
 
-	uiDefMenuTogR(block, &uvptr, "live_unwrap", 0, NULL);
-	uiDefMenuButO(block, "UV_OT_unwrap", NULL); // Unwrap|E
-	uiDefMenuButO(block, "UV_OT_unpin", NULL); // Unpin|Alt P
-	uiDefMenuButO(block, "UV_OT_pin", NULL); // Pin|P
+	uiMenuSeparator(head);
 
-	uiDefMenuSep(block);
+	uiMenuItemO(head, "UV_OT_pack_islands", ICON_BLANK1); // Pack Islands|Ctr P
+	uiMenuItemO(head, "UV_OT_average_islands", ICON_BLANK1); // Average Islands Scale|Ctrl A
+	uiMenuItemO(head, "UV_OT_minimize_stretch", ICON_BLANK1); // Minimize Stretch...|Ctrl V
+	uiMenuItemO(head, "UV_OT_stitch", ICON_BLANK1);
 
-	uiDefMenuButO(block, "UV_OT_pack_islands", NULL); // Pack Islands|Ctr P
-	uiDefMenuButO(block, "UV_OT_average_islands", NULL); // Average Islands Scale|Ctrl A
-	uiDefMenuButO(block, "UV_OT_minimize_stretch", NULL); // Minimize Stretch...|Ctrl V
-	uiDefMenuButO(block, "UV_OT_stitch", NULL);
+	uiMenuSeparator(head);
 
-	uiDefMenuSep(block);
+	uiMenuLevel(head, "Transform", image_uvs_transformmenu);
+	uiMenuLevel(head, "Mirror", image_uvs_mirrormenu);
+	uiMenuLevel(head, "Weld/Align", image_uvs_weldalignmenu);
 
-	uiDefMenuSub(block, image_uvs_transformmenu, "Transform");
-	uiDefMenuSub(block, image_uvs_mirrormenu, "Mirror");
-	uiDefMenuSub(block, image_uvs_weldalignmenu, "Weld/Align");
+	uiMenuSeparator(head);
 
-	uiDefMenuSep(block);
+	uiMenuItemBooleanR(head, &sceneptr, "proportional_editing");
+	uiMenuLevelEnumR(head, &sceneptr, "proportional_editing_falloff");
 
-	uiDefMenuTogR(block, &sceneptr, "proportional_editing", 0, NULL);
-	uiDefMenuSub(block, image_uvs_propfalloffmenu, "Proportional Falloff");
+	uiMenuSeparator(head);
 
-	uiDefMenuSep(block);
-
-	uiDefMenuSub(block, image_uvs_showhidemenu, "Show/Hide Faces");
+	uiMenuLevel(head, "Show/Hide Faces", image_uvs_showhidemenu);
 
 #if 0
 #ifndef DISABLE_PYTHON
-	uiDefMenuSep(block);
+	uiMenuSeparator(head);
 
-	uiDefMenuSub(block, image_uvs_scriptsmenu, "Scripts");
+	uiMenuLevel(head, "Scripts", image_uvs_scriptsmenu);
 #endif
 #endif
-
-	if(sa->headertype==HEADERTOP) {
-		uiBlockSetDirection(block, UI_DOWN);
-	}
-	else {
-		uiBlockSetDirection(block, UI_TOP);
-		uiBlockFlipOrder(block);
-	}
-	
-	uiTextBoundsBlock(block, 50);
-	uiEndBlock(C, block);
-	
-	return block;
 }
 
 static void image_menu_uvlayers(Object *obedit, char *menustr, int *active)
@@ -1130,23 +924,23 @@ void image_header_buttons(const bContext *C, ARegion *ar)
 		uiBlockSetEmboss(block, UI_EMBOSSP);
 		
 		xmax= GetButStringLength("View");
-		uiDefPulldownBut(block, image_viewmenu, NULL, "View", xco, yco-2, xmax-3, 24, "");
+		uiDefMenuBut(block, image_viewmenu, NULL, "View", xco, yco-2, xmax-3, 24, "");
 		xco+= xmax;
 		
 		if(show_uvedit) {
 			xmax= GetButStringLength("Select");
-			uiDefPulldownBut(block, image_selectmenu, NULL, "Select", xco, yco-2, xmax-3, 24, "");
+			uiDefMenuBut(block, image_selectmenu, NULL, "Select", xco, yco-2, xmax-3, 24, "");
 			xco+= xmax;
 		}
 		
 		menuname= (ibuf && (ibuf->userflags & IB_BITMAPDIRTY))? "Image*": "Image";
 		xmax= GetButStringLength(menuname);
-		uiDefPulldownBut(block, image_imagemenu, NULL, menuname, xco, yco-2, xmax-3, 24, "");
+		uiDefMenuBut(block, image_imagemenu, NULL, menuname, xco, yco-2, xmax-3, 24, "");
 		xco+= xmax;
 
 		if(show_uvedit) {
 			xmax= GetButStringLength("UVs");
-			uiDefPulldownBut(block, image_uvsmenu, NULL, "UVs", xco, yco-2, xmax-3, 24, "");
+			uiDefMenuBut(block, image_uvsmenu, NULL, "UVs", xco, yco-2, xmax-3, 24, "");
 			xco+= xmax;
 		}
 	}

@@ -220,7 +220,7 @@ int WM_operator_call(bContext *C, wmOperator *op)
 
 	if(!(retval & OPERATOR_RUNNING_MODAL))
 		if(op->reports->list.first)
-			uiPupmenuReports(C, op->reports);
+			uiPupMenuReports(C, op->reports);
 	
 	if((retval & OPERATOR_FINISHED) && (op->type->flag & OPTYPE_REGISTER)) {
 		wm_operator_register(CTX_wm_manager(C), op);
@@ -283,7 +283,7 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, P
 
 		if(!(retval & OPERATOR_RUNNING_MODAL)) {
 			if(op->reports->list.first) /* only show the report if the report list was not given in the function */
-				uiPupmenuReports(C, op->reports);
+				uiPupMenuReports(C, op->reports);
 		
 		if (retval & OPERATOR_FINISHED) /* todo - this may conflict with the other WM_operator_print, if theres ever 2 prints for 1 action will may need to add modal check here */
 			if(G.f & G_DEBUG)
@@ -558,7 +558,7 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 
 			if(!(retval & OPERATOR_RUNNING_MODAL))
 				if(op->reports->list.first)
-					uiPupmenuReports(C, op->reports);
+					uiPupMenuReports(C, op->reports);
 
 			if (retval & OPERATOR_FINISHED) {
 				if(G.f & G_DEBUG)

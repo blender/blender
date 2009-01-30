@@ -474,7 +474,7 @@ void OBJECT_OT_curve_add(wmOperatorType *ot)
 
 static int object_add_primitive_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	uiMenuItem *head= uiMenuBegin("Add Object");
+	uiMenuItem *head= uiPupMenuBegin("Add Object");
 	
 	uiMenuLevelEnumO(head, "OBJECT_OT_mesh_add", "type");
 	uiMenuLevelEnumO(head, "OBJECT_OT_curve_add", "type");
@@ -486,7 +486,7 @@ static int object_add_primitive_invoke(bContext *C, wmOperator *op, wmEvent *eve
 	uiMenuItemEnumO(head, "OBJECT_OT_object_add", "type", OB_ARMATURE);
 	uiMenuItemEnumO(head, "OBJECT_OT_object_add", "type", OB_LATTICE);
 	
-	uiMenuEnd(C, head);
+	uiPupMenuEnd(C, head);
 	
 	/* this operator is only for a menu, not used further */
 	return OPERATOR_CANCELLED;
@@ -2425,7 +2425,7 @@ static int make_parent_exec(bContext *C, wmOperator *op)
 static int make_parent_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	Object *ob= CTX_data_active_object(C);
-	uiMenuItem *head= uiMenuBegin("Make Parent To");
+	uiMenuItem *head= uiPupMenuBegin("Make Parent To");
 	
 	uiMenuContext(head, WM_OP_EXEC_DEFAULT);
 	uiMenuItemEnumO(head, "OBJECT_OT_make_parent", "type", PAR_OBJECT);
@@ -2444,7 +2444,7 @@ static int make_parent_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		uiMenuItemEnumO(head, "OBJECT_OT_make_parent", "type", PAR_LATTICE);
 	}
 	
-	uiMenuEnd(C, head);
+	uiPupMenuEnd(C, head);
 	
 	return OPERATOR_RUNNING_MODAL;
 }

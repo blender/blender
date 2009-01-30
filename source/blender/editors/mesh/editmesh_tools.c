@@ -6478,7 +6478,7 @@ static int subdivs_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	p+= sprintf(p, "|%s %%x%d", "fractal", 1);
 	p+= sprintf(p, "|%s %%x%d", "smooth", 0);
 	
-	uiPupmenuOperator(C, 20, op, "index", menu);
+	uiPupMenuOperator(C, 20, op, "index", menu);
 	MEM_freeN(menu);
 	
 	return OPERATOR_RUNNING_MODAL;
@@ -6740,7 +6740,7 @@ static int edit_faces_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	p+= sprintf(p, "|%s %%x%d", "set solid", 0);
 	
 	
-	uiPupmenuOperator(C, 20, op, "index", menu);
+	uiPupMenuOperator(C, 20, op, "index", menu);
 	MEM_freeN(menu);
 	
 	return OPERATOR_RUNNING_MODAL;

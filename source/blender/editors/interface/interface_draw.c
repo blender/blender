@@ -3214,7 +3214,8 @@ void ui_set_embossfunc(uiBut *but, int drawtype)
 
 	// standard builtin first:
 	if(but->type==LABEL || but->type==ROUNDBOX) but->embossfunc= ui_draw_nothing;
-	else if(but->type==PULLDOWN) but->embossfunc= ui_draw_pulldown_round;
+	else if(ELEM(but->type, PULLDOWN, HMENU) && !(but->block->flag & UI_BLOCK_LOOP))
+		but->embossfunc= ui_draw_pulldown_round;
 	else if(drawtype==UI_EMBOSSM) but->embossfunc= ui_draw_minimal;
 	else if(drawtype==UI_EMBOSSN) but->embossfunc= ui_draw_nothing;
 	else if(drawtype==UI_EMBOSSP) but->embossfunc= ui_draw_pulldown_item;

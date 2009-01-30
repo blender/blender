@@ -91,14 +91,14 @@ static void do_viewmenu(bContext *C, void *arg, int event)
 	}
 }
 
-static uiBlock *graph_viewmenu(bContext *C, uiMenuBlockHandle *handle, void *arg_unused)
+static uiBlock *graph_viewmenu(bContext *C, ARegion *ar, void *arg_unused)
 {
 	ScrArea *curarea= CTX_wm_area(C);
 	SpaceIpo *sipo= (SpaceIpo *)CTX_wm_space_data(C);
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
 	
-	block= uiBeginBlock(C, handle->region, "graph_viewmenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "graph_viewmenu", UI_EMBOSSP, UI_HELV);
 	uiBlockSetButmFunc(block, do_viewmenu, NULL);
 	
 		// XXX these options should use new menu-options

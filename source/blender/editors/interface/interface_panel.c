@@ -266,7 +266,7 @@ static void ui_scale_panel_block(uiBlock *block)
 
 	if(block->autofill) ui_autofill(block);
 	/* buttons min/max centered, offset calculated */
-	uiBoundsBlock(block, 0);
+	ui_bounds_block(block);
 
 	if( block->maxx-block->minx > block->panel->sizex - 2*PNL_SAFETY ) {
 		facx= (block->panel->sizex - (2*PNL_SAFETY))/( block->maxx-block->minx );
