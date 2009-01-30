@@ -138,6 +138,7 @@ void getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
 			/* Property Name is straightforward */
 			propname= (char *)RNA_property_ui_name(&ptr, prop);
 			
+			/* Array Index - only if applicable */
 			if (RNA_property_array_length(&ptr, prop)) {
 					// XXX the format of these is not final... we don't know how this will go yet
 				static char *vectoritem[4]= {".X", ".Y", ".Z", ".W"};
@@ -159,6 +160,10 @@ void getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
 					sprintf(arrayindbuf, "[%d]", fcu->array_index);
 					arrayname= &arrayindbuf[0];
 				}
+			}
+			else {
+				/* no array index */
+				arrayname= "";
 			}
 			
 			/* putting this all together into the buffer */

@@ -20,6 +20,7 @@
 
 #include "BKE_fcurve.h"
 #include "BKE_curve.h" 
+#include "BKE_global.h"
 #include "BKE_idprop.h"
 #include "BKE_utildefines.h"
 
@@ -489,6 +490,7 @@ static float driver_get_driver_value (ChannelDriver *driver, short target)
 	/* error check for missing pointer... */
 	if (id == NULL) {
 		printf("Error: driver doesn't have any valid target to use \n");
+		if (G.f & G_DEBUG) printf("\tpath = %s [%d] \n", path, index);
 		driver->flag |= DRIVER_FLAG_INVALID;
 		return 0.0f;
 	}

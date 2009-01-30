@@ -749,6 +749,22 @@ void graph_draw_channel_names(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 					strcpy(name, "Action");
 				}
 					break;
+				case ANIMTYPE_FILLDRIVERS: /* drivers widget */
+				{
+					AnimData *adt= (AnimData *)ale->data;
+					
+					group = 4;
+					indent= 1;
+					special= ICON_IPO_DEHLT;
+					
+					if (EXPANDED_DRVD(adt))
+						expand= ICON_TRIA_DOWN;
+					else
+						expand= ICON_TRIA_RIGHT;
+					
+					strcpy(name, "Drivers");
+				}
+					break;
 				case ANIMTYPE_FILLMATD: /* object materials (dopesheet) expand widget */
 				{
 					Object *ob = (Object *)ale->data;

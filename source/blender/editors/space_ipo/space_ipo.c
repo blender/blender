@@ -132,8 +132,11 @@ static void graph_free(SpaceLink *sl)
 /* spacetype; init callback */
 static void graph_init(struct wmWindowManager *wm, ScrArea *sa)
 {
-	//SpaceIpo *si= (SpaceIpo *)sa->spacedata.first;
+	SpaceIpo *sipo= (SpaceIpo *)sa->spacedata.first;
 	
+	/* init dopesheet data if non-existant (i.e. for old files) */
+	if (sipo->ads == NULL)
+		sipo->ads= MEM_callocN(sizeof(bDopeSheet), "GraphEdit DopeSheet");
 }
 
 static SpaceLink *graph_duplicate(SpaceLink *sl)

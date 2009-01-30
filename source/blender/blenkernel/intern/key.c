@@ -646,7 +646,7 @@ void do_rel_key(int start, int end, int tot, char *basispoin, Key *key, int mode
 	
 	if(key->from==NULL) return;
 	
-	printf("do_rel_key() \n");
+	if (G.f & G_DEBUG) printf("do_rel_key() \n");
 	
 	if( GS(key->from->name)==ID_ME ) {
 		ofs[0]= sizeof(MVert);
@@ -683,14 +683,14 @@ void do_rel_key(int start, int end, int tot, char *basispoin, Key *key, int mode
 		if(kb!=key->refkey) {
 			float icuval= kb->curval;
 			
-			printf("\tdo rel key %s : %s = %f \n", key->id.name+2, kb->name, icuval);
+			if (G.f & G_DEBUG) printf("\tdo rel key %s : %s = %f \n", key->id.name+2, kb->name, icuval);
 			
 			/* only with value, and no difference allowed */
 			if(!(kb->flag & KEYBLOCK_MUTE) && icuval!=0.0f && kb->totelem==tot) {
 				KeyBlock *refb;
 				float weight, *weights= kb->weights;
 				
-				printf("\t\tnot skipped \n");
+				if (G.f & G_DEBUG) printf("\t\tnot skipped \n");
 				
 				poin= basispoin;
 				from= kb->data;
@@ -762,7 +762,7 @@ static void do_key(int start, int end, int tot, char *poin, Key *key, KeyBlock *
 
 	if(key->from==0) return;
 
-	printf("do_key() \n");
+	if (G.f & G_DEBUG) printf("do_key() \n");
 	
 	if( GS(key->from->name)==ID_ME ) {
 		ofs[0]= sizeof(MVert);
@@ -1024,10 +1024,10 @@ static int do_mesh_key(Scene *scene, Object *ob, Mesh *me)
 	/* prevent python from screwing this up? anyhoo, the from pointer could be dropped */
 	me->key->from= (ID *)me;
 	
-	printf("do mesh key ob:%s me:%s ke:%s \n", ob->id.name+2, me->id.name+2, me->key->id.name+2);
+	if (G.f & G_DEBUG) printf("do mesh key ob:%s me:%s ke:%s \n", ob->id.name+2, me->id.name+2, me->key->id.name+2);
 	
 	if(me->key->slurph && me->key->type!=KEY_RELATIVE ) {
-		printf("\tslurph key\n");
+		if (G.f & G_DEBUG) printf("\tslurph key\n");
 		
 		delta= me->key->slurph;
 		delta/= me->totvert;
@@ -1071,7 +1071,7 @@ static int do_mesh_key(Scene *scene, Object *ob, Mesh *me)
 		if(me->key->type==KEY_RELATIVE) {
 			KeyBlock *kb;
 			
-			printf("\tdo relative \n");
+			if (G.f & G_DEBUG) printf("\tdo relative \n");
 			
 			for(kb= me->key->block.first; kb; kb= kb->next)
 				kb->weights= get_weights_array(ob, kb->vgroup);
@@ -1084,7 +1084,7 @@ static int do_mesh_key(Scene *scene, Object *ob, Mesh *me)
 			}
 		}
 		else {
-			printf("\tdo absolute \n");
+			if (G.f & G_DEBUG) printf("\tdo absolute \n");
 			
 			ctime= bsystem_time(scene, ob, (float)scene->r.cfra, 0.0f); // xxx old cruft
 			
