@@ -99,7 +99,8 @@ void view3d_keymap(wmWindowManager *wm)
 	WM_keymap_verify_item(keymap, "VIEW3D_OT_vpaint", LEFTMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "VIEW3D_OT_wpaint", LEFTMOUSE, KM_PRESS, 0, 0);
 
-	WM_keymap_verify_item(keymap, "SCULPT_OT_brush_stroke", LEFTMOUSE, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "SCULPT_OT_brush_stroke", LEFTMOUSE, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "SCULPT_OT_brush_stroke", LEFTMOUSE, KM_PRESS, KM_SHIFT, 0);
 	
 	WM_keymap_verify_item(keymap, "VIEW3D_OT_cursor3d", ACTIONMOUSE, KM_PRESS, 0, 0);
 	

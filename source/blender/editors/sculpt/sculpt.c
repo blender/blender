@@ -275,11 +275,12 @@ static void sculpt_clip(StrokeCache *cache, float *co, const float val[3])
 
 static void sculpt_axislock(Sculpt *sd, float *co)
 {
-	if (sd->flags & (SCULPT_LOCK_X|SCULPT_LOCK_Y|SCULPT_LOCK_Z)) return;
-	/* XXX: if(G.vd->twmode == V3D_MANIP_LOCAL) { */
-	if(0) {
+	if(sd->flags == (SCULPT_LOCK_X|SCULPT_LOCK_Y|SCULPT_LOCK_Z))
+		return;
+
+	if(sd->session->cache->vc.v3d->twmode == V3D_MANIP_LOCAL) {
 		float mat[3][3], imat[3][3];
-		/* XXX: Mat3CpyMat4(mat, OBACT->obmat); */
+		Mat3CpyMat4(mat, sd->session->cache->vc.obact->obmat);
 		Mat3Inv(imat, mat);
 		Mat3MulVecfl(mat, co);
 		if (sd->flags & SCULPT_LOCK_X) co[0] = 0.0;
@@ -1576,9 +1577,8 @@ static int sculpt_brush_stroke_exec(bContext *C, wmOperator *op)
 	}
 	RNA_END;
 
-	sculpt_cache_free(sd->session->cache);
-
 	sculpt_flush_update(C);
+	sculpt_cache_free(sd->session->cache);
 
 	sculpt_undo_push(C, sd);
 

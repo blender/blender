@@ -812,16 +812,18 @@ typedef struct Scene {
 #define FFMPEG_MULTIPLEX_AUDIO  1
 #define FFMPEG_AUTOSPLIT_OUTPUT 2
 
-/* SculptData.flags */
-#define SCULPT_SYMM_X        1
-#define SCULPT_SYMM_Y        2
-#define SCULPT_SYMM_Z        4
-#define SCULPT_INPUT_SMOOTH  8
-#define SCULPT_DRAW_FAST    16
-#define SCULPT_DRAW_BRUSH   32
-#define SCULPT_LOCK_X       64
-#define SCULPT_LOCK_Y      128
-#define SCULPT_LOCK_Z      256
+/* Sculpt.flags */
+typedef enum SculptFlags {
+	SCULPT_SYMM_X = 1,
+	SCULPT_SYMM_Y = 2,
+	SCULPT_SYMM_Z = 4,
+	SCULPT_INPUT_SMOOTH = 8,
+	SCULPT_DRAW_FAST = 16,
+	SCULPT_DRAW_BRUSH = 32,
+	SCULPT_LOCK_X = 64,
+	SCULPT_LOCK_Y = 128,
+	SCULPT_LOCK_Z = 256
+} SculptFlags;
 
 /* toolsettings->imagepaint_flag */
 #define IMAGEPAINT_DRAWING				1
