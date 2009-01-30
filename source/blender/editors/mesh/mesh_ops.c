@@ -137,6 +137,7 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_removedoublesflag);
 	WM_operatortype_append(MESH_OT_extrude_mesh);
 	WM_operatortype_append(MESH_OT_edit_faces);
+	WM_operatortype_append(MESH_OT_separate);
 	
 }
 
@@ -179,5 +180,8 @@ void ED_keymap_mesh(wmWindowManager *wm)
 	/* add */
 	WM_keymap_add_item(keymap, "MESH_OT_add_duplicate", DKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "OBJECT_OT_mesh_add", AKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "MESH_OT_separate", PKEY, KM_PRESS, KM_SHIFT, 0);
+	
+	
 }
 

@@ -93,6 +93,8 @@ int editface_containsEdge(struct EditFace *efa, struct EditEdge *eed);
 
 void em_setup_viewcontext(struct bContext *C, ViewContext *vc);
 
+void MESH_OT_separate(struct wmOperatorType *ot);
+
 /* ******************* editmesh_add.c */
 void MESH_OT_add_primitive_plane(struct wmOperatorType *ot);
 void MESH_OT_add_primitive_cube(struct wmOperatorType *ot);
@@ -185,6 +187,7 @@ extern void EM_automerge(int update);
 void editmesh_select_by_material(EditMesh *em, int index);
 void righthandfaces(EditMesh *em, int select);	/* makes faces righthand turning */
 void EM_select_more(EditMesh *em);
+void selectconnected_mesh_all(EditMesh *em);
 
 /**
  * findnearestvert

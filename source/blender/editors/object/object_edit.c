@@ -610,7 +610,7 @@ static void copy_object_set_idnew(Scene *scene, View3D *v3d, int dupflag)
 #endif // XXX old animation system
 	int a;
 	
-	/* check object pointers */
+	/* XXX check object pointers */
 	for(base= FIRSTBASE; base; base= base->next) {
 		if(TESTBASELIB(v3d, base)) {
 			ob= base->object;
@@ -5758,95 +5758,85 @@ void make_local_menu(Scene *scene, View3D *v3d)
 	U.dupflag for default operations or you can construct a flag as python does
 	if the dupflag is 0 then no data will be copied (linked duplicate) */
 
-static int add_duplicate_exec(bContext *C, wmOperator *op)
+/* used below, assumes id.new is correct */
+/* leaves selection of base/object unaltered */
+static Base *object_add_duplicate_internal(Scene *scene, Base *base, int dupflag)
 {
-	Scene *scene= CTX_data_scene(C);
-	View3D *v3d= CTX_wm_view3d(C);
-	Base *basen;
+	Base *basen= NULL;
 	Material ***matarar;
 	Object *ob, *obn;
 	ID *id;
-	int dupflag= U.dupflag;
 	int a, didit;
-	
-	clear_id_newpoins();
-	clear_sca_new_poins();	/* sensor/contr/act */
-	
-	CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
-		
-		ob= base->object;
-		if(ob->flag & OB_POSEMODE) {
-			; /* nothing? */
-		}
-		else {
-			obn= copy_object(ob);
-			obn->recalc |= OB_RECALC;
-			
-			basen= MEM_mallocN(sizeof(Base), "duplibase");
-			*basen= *base;
-			BLI_addhead(&scene->base, basen);	/* addhead: prevent eternal loop */
-			basen->object= obn;
-			base->flag &= ~SELECT;
-			
-			if(basen->flag & OB_FROMGROUP) {
-				Group *group;
-				for(group= G.main->group.first; group; group= group->id.next) {
-					if(object_in_group(ob, group))
-						add_to_group(group, obn);
-				}
-				obn->flag |= OB_FROMGROUP; /* this flag is unset with copy_object() */
-			}
-			
-			if(BASACT==base)
-				ED_base_object_activate(C, basen);
 
-			/* duplicates using userflags */
+	ob= base->object;
+	if(ob->flag & OB_POSEMODE) {
+		; /* nothing? */
+	}
+	else {
+		obn= copy_object(ob);
+		obn->recalc |= OB_RECALC;
+		
+		basen= MEM_mallocN(sizeof(Base), "duplibase");
+		*basen= *base;
+		BLI_addhead(&scene->base, basen);	/* addhead: prevent eternal loop */
+		basen->object= obn;
+		
+		if(basen->flag & OB_FROMGROUP) {
+			Group *group;
+			for(group= G.main->group.first; group; group= group->id.next) {
+				if(object_in_group(ob, group))
+					add_to_group(group, obn);
+			}
+			obn->flag |= OB_FROMGROUP; /* this flag is unset with copy_object() */
+		}
+		
+		/* duplicates using userflags */
 #if 0 // XXX old animation system				
-			if(dupflag & USER_DUP_IPO) {
-				bConstraintChannel *chan;
-				id= (ID *)obn->ipo;
-				
+		if(dupflag & USER_DUP_IPO) {
+			bConstraintChannel *chan;
+			id= (ID *)obn->ipo;
+			
+			if(id) {
+				ID_NEW_US( obn->ipo)
+				else obn->ipo= copy_ipo(obn->ipo);
+				id->us--;
+			}
+			/* Handle constraint ipos */
+			for (chan=obn->constraintChannels.first; chan; chan=chan->next){
+				id= (ID *)chan->ipo;
 				if(id) {
-					ID_NEW_US( obn->ipo)
-					else obn->ipo= copy_ipo(obn->ipo);
-					id->us--;
-				}
-				/* Handle constraint ipos */
-				for (chan=obn->constraintChannels.first; chan; chan=chan->next){
-					id= (ID *)chan->ipo;
-					if(id) {
-						ID_NEW_US( chan->ipo)
-						else chan->ipo= copy_ipo(chan->ipo);
-						id->us--;
-					}
-				}
-			}
-			if(dupflag & USER_DUP_ACT){ /* Not buttons in the UI to modify this, add later? */
-				id= (ID *)obn->action;
-				if (id){
-					ID_NEW_US(obn->action)
-					else{
-						obn->action= copy_action(obn->action);
-					}
+					ID_NEW_US( chan->ipo)
+					else chan->ipo= copy_ipo(chan->ipo);
 					id->us--;
 				}
 			}
+		}
+		if(dupflag & USER_DUP_ACT){ /* Not buttons in the UI to modify this, add later? */
+			id= (ID *)obn->action;
+			if (id){
+				ID_NEW_US(obn->action)
+				else{
+					obn->action= copy_action(obn->action);
+				}
+				id->us--;
+			}
+		}
 #endif // XXX old animation system
-			if(dupflag & USER_DUP_MAT) {
-				for(a=0; a<obn->totcol; a++) {
-					id= (ID *)obn->mat[a];
-					if(id) {
-						ID_NEW_US(obn->mat[a])
-						else obn->mat[a]= copy_material(obn->mat[a]);
-						id->us--;
-					}
+		if(dupflag & USER_DUP_MAT) {
+			for(a=0; a<obn->totcol; a++) {
+				id= (ID *)obn->mat[a];
+				if(id) {
+					ID_NEW_US(obn->mat[a])
+					else obn->mat[a]= copy_material(obn->mat[a]);
+					id->us--;
 				}
 			}
-			
-			id= obn->data;
-			didit= 0;
-			
-			switch(obn->type) {
+		}
+		
+		id= obn->data;
+		didit= 0;
+		
+		switch(obn->type) {
 			case OB_MESH:
 				if(dupflag & USER_DUP_MESH) {
 					ID_NEW_US2( obn->data )
@@ -5854,7 +5844,7 @@ static int add_duplicate_exec(bContext *C, wmOperator *op)
 						obn->data= copy_mesh(obn->data);
 						
 						if(obn->fluidsimSettings) {
-						obn->fluidsimSettings->orgMesh = (Mesh *)obn->data;
+							obn->fluidsimSettings->orgMesh = (Mesh *)obn->data;
 						}
 						
 						didit= 1;
@@ -5909,22 +5899,22 @@ static int add_duplicate_exec(bContext *C, wmOperator *op)
 					id->us--;
 				}
 				break;
-
+				
 			case OB_ARMATURE:
 				obn->recalc |= OB_RECALC_DATA;
 				if(obn->pose) obn->pose->flag |= POSE_RECALC;
-				
-				if(dupflag & USER_DUP_ARM) {
-					ID_NEW_US2(obn->data )
-					else {
-						obn->data= copy_armature(obn->data);
-						armature_rebuild_pose(obn, obn->data);
-						didit= 1;
+					
+					if(dupflag & USER_DUP_ARM) {
+						ID_NEW_US2(obn->data )
+						else {
+							obn->data= copy_armature(obn->data);
+							armature_rebuild_pose(obn, obn->data);
+							didit= 1;
+						}
+						id->us--;
 					}
-					id->us--;
-				}
-				
-				break;
+						
+						break;
 				
 			case OB_LATTICE:
 				if(dupflag!=0) {
@@ -5940,26 +5930,66 @@ static int add_duplicate_exec(bContext *C, wmOperator *op)
 					id->us--;
 				}
 				break;
-			}
-			
-			if(dupflag & USER_DUP_MAT) {
-				matarar= give_matarar(obn);
-				if(didit && matarar) {
-					for(a=0; a<obn->totcol; a++) {
-						id= (ID *)(*matarar)[a];
-						if(id) {
-							ID_NEW_US( (*matarar)[a] )
-							else (*matarar)[a]= copy_material((*matarar)[a]);
-							
-							id->us--;
-						}
+		}
+		
+		if(dupflag & USER_DUP_MAT) {
+			matarar= give_matarar(obn);
+			if(didit && matarar) {
+				for(a=0; a<obn->totcol; a++) {
+					id= (ID *)(*matarar)[a];
+					if(id) {
+						ID_NEW_US( (*matarar)[a] )
+						else (*matarar)[a]= copy_material((*matarar)[a]);
+						
+						id->us--;
 					}
 				}
 			}
 		}
 	}
+	return basen;
+}
+
+/* single object duplicate, if dupflag==0, fully linked, else it uses U.dupflag */
+/* leaves selection of base/object unaltered */
+Base *ED_object_add_duplicate(Scene *scene, Base *base, int usedupflag)
+{
+	Base *basen;
+	int dupflag= usedupflag?U.dupflag:0;
+
+	clear_id_newpoins();
+	clear_sca_new_poins();	/* sensor/contr/act */
+	
+	basen= object_add_duplicate_internal(scene, base, dupflag);
+	
+	DAG_scene_sort(scene);
+	
+	return basen;
+}
+
+/* contextual operator dupli */
+static int add_duplicate_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	View3D *v3d= CTX_wm_view3d(C);
+	int dupflag= U.dupflag;
+	
+	clear_id_newpoins();
+	clear_sca_new_poins();	/* sensor/contr/act */
+	
+	CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
+		Base *basen= object_add_duplicate_internal(scene, base, dupflag);
+		
+		/* XXX context conflict maybe, itterator could solve this? */
+		ED_base_object_select(base, BA_DESELECT);
+		/* new object becomes active */
+		if(BASACT==base)
+			ED_base_object_activate(C, basen);
+		
+	}
 	CTX_DATA_END;
 
+	/* XXX fix this for context */
 	copy_object_set_idnew(scene, v3d, dupflag);
 
 	DAG_scene_sort(scene);
