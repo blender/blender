@@ -503,6 +503,7 @@ static int viewrotate_modal(bContext *C, wmOperator *op, wmEvent *event)
 
 		default:
 			if(event->type==vod->origkey && event->val==0) {
+				request_depth_update(CTX_wm_region_view3d(C));
 
 				MEM_freeN(vod);
 				op->customdata= NULL;
@@ -598,6 +599,7 @@ static int viewmove_modal(bContext *C, wmOperator *op, wmEvent *event)
 
 		default:
 			if(event->type==vod->origkey && event->val==0) {
+				request_depth_update(CTX_wm_region_view3d(C));
 
 				MEM_freeN(vod);
 				op->customdata= NULL;
@@ -753,6 +755,7 @@ static int viewzoom_modal(bContext *C, wmOperator *op, wmEvent *event)
 
 		default:
 			if(event->type==vod->origkey && event->val==0) {
+				request_depth_update(CTX_wm_region_view3d(C));
 
 				MEM_freeN(vod);
 				op->customdata= NULL;
@@ -789,6 +792,7 @@ static int viewzoom_exec(bContext *C, wmOperator *op)
 	if(rv3d->viewlock)
 		view3d_boxview_sync(CTX_wm_area(C), CTX_wm_region(C));
 	
+	request_depth_update(CTX_wm_region_view3d(C));
 	ED_region_tag_redraw(CTX_wm_region(C));
 
 	return OPERATOR_FINISHED;

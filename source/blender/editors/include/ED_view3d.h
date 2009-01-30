@@ -72,7 +72,7 @@ void window_to_3d_delta(struct ARegion *ar, float *vec, short mx, short my);
 
 /* Depth buffer */
 float read_cached_depth(struct ViewContext *vc, int x, int y);
-void request_depth_update(struct ViewContext *vc);
+void request_depth_update(struct RegionView3D *rv3d);
 
 /* Projection */
 #define IS_CLIPPED        12000

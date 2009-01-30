@@ -1522,8 +1522,6 @@ static int sculpt_brush_stroke_modal(bContext *C, wmOperator *op, wmEvent *event
 {
 	PointerRNA itemptr;
 	Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
-	Object *ob= CTX_data_active_object(C);
-	ARegion *ar = CTX_wm_region(C);
 	float center[3];
 	int mouse[2] = {event->x, event->y};
 
@@ -1547,7 +1545,7 @@ static int sculpt_brush_stroke_modal(bContext *C, wmOperator *op, wmEvent *event
 
 	/* Finished */
 	if(event->type == LEFTMOUSE && event->val == 0) {
-		request_depth_update(&sd->session->cache->vc);
+		request_depth_update(sd->session->cache->vc.rv3d);
 
 		sculpt_cache_free(sd->session->cache);
 
