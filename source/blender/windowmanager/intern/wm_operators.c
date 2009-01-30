@@ -764,9 +764,14 @@ static int tweak_gesture_modal(bContext *C, wmOperator *op, wmEvent *event)
 		case RIGHTMOUSE:
 		case MIDDLEMOUSE:
 			if(gesture->event_type==event->type) {
-				wm_gesture_evaluate(C, gesture);
 				wm_gesture_end(C, op);
-				return OPERATOR_FINISHED;
+				
+				/* when tweak fails we should give the other keymap entries a chance
+				 * those then won't react to km_press, but km_release
+				 * it sets hidden event value where tweak maps fail on, to prevent loops */
+				event->val= 1;
+				event->no_tweak= 1;
+				return OPERATOR_FINISHED|OPERATOR_PASS_THROUGH;
 			}
 			break;
 	}

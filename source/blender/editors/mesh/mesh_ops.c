@@ -138,6 +138,7 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_extrude_mesh);
 	WM_operatortype_append(MESH_OT_edit_faces);
 	WM_operatortype_append(MESH_OT_separate);
+	WM_operatortype_append(MESH_OT_dupli_extrude_cursor);
 	
 }
 
@@ -181,6 +182,7 @@ void ED_keymap_mesh(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "MESH_OT_add_duplicate", DKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "OBJECT_OT_mesh_add", AKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_separate", PKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "MESH_OT_dupli_extrude_cursor", LEFTMOUSE, KM_PRESS, KM_CTRL, 0);
 	
 	
 }

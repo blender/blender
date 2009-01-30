@@ -515,6 +515,9 @@ static int wm_eventmatch(wmEvent *winevent, wmKeymapItem *kmi)
 	if(kmi->keymodifier)
 		if(winevent->keymodifier!=kmi->keymodifier) return 0;
 	
+	/* happens on tweak failure */
+	if(kmi->is_tweak)
+		if(winevent->no_tweak) return 0;
 	
 	return 1;
 }
@@ -545,7 +548,7 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 			
 			retval= ot->modal(C, op, event);
 
-			/* putting back screen context */
+			/* putting back screen context, reval can pass trough after modal failures! */
 			if((retval & OPERATOR_PASS_THROUGH) || wm_event_always_pass(event)) {
 				CTX_wm_area_set(C, area);
 				CTX_wm_region_set(C, region);
@@ -581,7 +584,7 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 				MEM_freeN(handler);
 				
 				/* prevent silly errors from operator users */
-				retval &= ~OPERATOR_PASS_THROUGH;
+				//retval &= ~OPERATOR_PASS_THROUGH;
 			}
 			
 		}

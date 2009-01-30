@@ -61,13 +61,13 @@ enum {
 typedef struct wmEvent {
 	struct wmEvent *next, *prev;
 	
-	short type;		/* event code itself (short, is also in keymap) */
-	short val;		/* press, release, scrollvalue */
-	short x, y;				/* mouse pointer position */
-	short prevx, prevy;		/* previous mouse pointer position */
-	short unicode;	/* future, ghost? */
-	char ascii;		/* from ghost */
-	char pad1;		
+	short type;			/* event code itself (short, is also in keymap) */
+	short val;			/* press, release, scrollvalue */
+	short x, y;			/* mouse pointer position */
+	short prevx, prevy;	/* previous mouse pointer position */
+	short unicode;		/* future, ghost? */
+	char ascii;			/* from ghost */
+	char no_tweak;		/* set on tweak failure, to allow other events to try it */
 	
 	/* modifier states */
 	short shift, ctrl, alt, oskey;	/* oskey is apple or windowskey, value denotes order of pressed */

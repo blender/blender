@@ -857,10 +857,10 @@ void ED_marker_keymap(wmWindowManager *wm)
 	ListBase *keymap= WM_keymap_listbase(wm, "Markers", 0, 0);
 	
 	WM_keymap_verify_item(keymap, "MARKER_OT_add", MKEY, KM_PRESS, 0, 0);
-	WM_keymap_verify_item(keymap, "MARKER_OT_move", EVT_TWEAK_R, KM_ANY, 0, 0);
+	WM_keymap_verify_item(keymap, "MARKER_OT_move", EVT_TWEAK_S, KM_ANY, 0, 0);
 	WM_keymap_verify_item(keymap, "MARKER_OT_duplicate", DKEY, KM_PRESS, KM_SHIFT, 0);
-	WM_keymap_verify_item(keymap, "MARKER_OT_mouseselect", RIGHTMOUSE, KM_PRESS, 0, 0);
-	WM_keymap_verify_item(keymap, "MARKER_OT_mouseselect_extend", RIGHTMOUSE, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_verify_item(keymap, "MARKER_OT_mouseselect", SELECTMOUSE, KM_PRESS, 0, 0);
+	WM_keymap_verify_item(keymap, "MARKER_OT_mouseselect_extend", SELECTMOUSE, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_verify_item(keymap, "MARKER_OT_border_select", BKEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "MARKER_OT_select_all", AKEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "MARKER_OT_delete", XKEY, KM_PRESS, 0, 0);
@@ -868,6 +868,6 @@ void ED_marker_keymap(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "MARKER_OT_move", GKEY, KM_PRESS, 0, 0);
 	
 	/* generates event, needs to be after select to work */
-	WM_keymap_verify_item(keymap, "WM_OT_tweak_gesture", RIGHTMOUSE, KM_PRESS, 0, 0);
+	WM_keymap_tweak(keymap, SELECTMOUSE, KM_PRESS, 0, 0);
 	
 }

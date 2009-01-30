@@ -168,7 +168,7 @@ typedef struct wmKeymapItem {
 	short shift, ctrl, alt, oskey;	/* oskey is apple or windowskey, value denotes order of pressed */
 	short keymodifier;				/* rawkey modifier */
 	
-	short pad;
+	short is_tweak;					/* internal only, to handle tweak failure events properly */
 } wmKeymapItem;
 
 #define KMAP_MAX_NAME	64

@@ -118,6 +118,8 @@ static short icoface[20][3] = {
 	{10,9,11}
 };
 
+/* *************** add-click-mesh (extrude) operator ************** */
+
 static void get_view_aligned_coordinate(ViewContext *vc, float *fp, short mval[2])
 {
 	float dvec[3];
@@ -136,14 +138,18 @@ static void get_view_aligned_coordinate(ViewContext *vc, float *fp, short mval[2
 	}
 }
 
-void add_click_mesh(bContext *C)
+static int dupli_extrude_cursor(bContext *C, wmOperator *op, wmEvent *event)
 {
 	ViewContext vc;
 	EditVert *eve, *v1;
 	float min[3], max[3];
 	int done= 0;
+	short mval[2];
 	
 	em_setup_viewcontext(C, &vc);
+	
+	mval[0]= event->x - vc.ar->winrct.xmin;
+	mval[1]= event->y - vc.ar->winrct.ymin;
 	
 	INIT_MINMAX(min, max);
 	
@@ -159,7 +165,6 @@ void add_click_mesh(bContext *C)
 		EditEdge *eed;
 		float vec[3], cent[3], mat[3][3];
 		float nor[3]= {0.0, 0.0, 0.0};
-		short mval[2];
 		
 		/* check for edges that are half selected, use for rotation */
 		done= 0;
@@ -220,26 +225,44 @@ void add_click_mesh(bContext *C)
 		float mat[3][3],imat[3][3];
 		float *curs= give_cursor(vc.scene, vc.v3d);
 		
+		VECCOPY(min, curs);
+		get_view_aligned_coordinate(&vc, min, mval);
+		
 		eve= addvertlist(vc.em, 0, NULL);
 
 		Mat3CpyMat4(mat, vc.obedit->obmat);
 		Mat3Inv(imat, mat);
 		
-		VECCOPY(eve->co, curs);
-		VecSubf(eve->co, eve->co, vc.obedit->obmat[3]);
-
+		VECCOPY(eve->co, min);
 		Mat3MulVecfl(imat, eve->co);
+		VecSubf(eve->co, eve->co, vc.obedit->obmat[3]);
 		
 		eve->f= SELECT;
 	}
 	
 	//retopo_do_all();
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, vc.obedit); 
+	DAG_object_flush_update(vc.scene, vc.obedit, OB_RECALC_DATA);
 	
-	BIF_undo_push("Add vertex/edge/face");
-	DAG_object_flush_update(vc.scene, vc.obedit, OB_RECALC_DATA);	
-	
-
+	return OPERATOR_FINISHED;
 }
+
+void MESH_OT_dupli_extrude_cursor(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Duplicate or Extrude at 3D Cursor";
+	ot->idname= "MESH_OT_dupli_extrude_cursor";
+	
+	/* api callbacks */
+	ot->invoke= dupli_extrude_cursor;
+	ot->poll= ED_operator_editmesh;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
+}
+
+
+/* ********************** */
 
 /* selected faces get hidden edges */
 static void make_fgon(EditMesh *em, int make)

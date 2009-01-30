@@ -151,7 +151,7 @@ void sequencer_keymap(wmWindowManager *wm)
 	
 	WM_keymap_verify_item(keymap, "ANIM_OT_change_frame", LEFTMOUSE, KM_PRESS, 0, 0);
 
-	WM_keymap_add_item(keymap, "WM_OT_tweak_gesture", SELECTMOUSE, KM_PRESS, 0, 0);
+	WM_keymap_tweak(keymap, SELECTMOUSE, KM_PRESS, 0, 0);
 
 	transform_keymap_for_space(wm, keymap, SPACE_SEQ);
 }

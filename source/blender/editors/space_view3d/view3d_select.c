@@ -702,13 +702,16 @@ static int view3d_lasso_select_exec(bContext *C, wmOperator *op)
 	}
 	RNA_END;
 	
-	/* setup view context for argument to callbacks */
-	view3d_set_viewcontext(C, &vc);
-	
-	select= RNA_enum_is_equal(op->ptr, "type", "SELECT");
-	view3d_lasso_select(&vc, mcords, i, select);
-	
-	return OPERATOR_FINISHED;
+	if(i>1) {
+		/* setup view context for argument to callbacks */
+		view3d_set_viewcontext(C, &vc);
+		
+		select= RNA_enum_is_equal(op->ptr, "type", "SELECT");
+		view3d_lasso_select(&vc, mcords, i, select);
+		
+		return OPERATOR_FINISHED;
+	}
+	return OPERATOR_PASS_THROUGH;
 }
 
 void VIEW3D_OT_lasso_select(wmOperatorType *ot)
