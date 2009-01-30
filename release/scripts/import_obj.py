@@ -424,8 +424,8 @@ def create_mesh(scn, new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_l
 					sharp_edges[key]= None
 	
 	
-	# mat the material names to an index
-	material_mapping= dict([(name, i) for i, name in enumerate(unique_materials.keys())])
+	# map the material names to an index
+	material_mapping= dict([(name, i) for i, name in enumerate(unique_materials)]) # enumerate over unique_materials keys()
 	
 	materials= [None] * len(unique_materials)
 	
