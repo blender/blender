@@ -77,7 +77,6 @@
 /* XXX */
 static void BIF_undo_push() {}
 static void error() {}
-static int pupmenu() {return 0;}
 #define add_numbut(a, b, c, d, e, f, g) {}
 /* XXX */
 
@@ -265,7 +264,7 @@ void MESH_OT_dupli_extrude_cursor(wmOperatorType *ot)
 /* ********************** */
 
 /* selected faces get hidden edges */
-static void make_fgon(EditMesh *em, int make)
+void make_fgon(EditMesh *em, int make)
 {
 	EditFace *efa;
 	EditEdge *eed;
@@ -631,7 +630,7 @@ void addfaces_from_edgenet(EditMesh *em)
 // XXX	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 }
 
-void addedgeface_mesh(EditMesh *em)
+static void addedgeface_mesh(EditMesh *em)
 {
 	EditVert *eve, *neweve[4];
 	EditEdge *eed;
@@ -662,19 +661,7 @@ void addedgeface_mesh(EditMesh *em)
 		return;
 	}
 	else if(amount > 4) {
-		
-		/* Python Menu removed XXX */
-		int ret;
-		
-		/* facemenu, will add python items */
-		char facemenu[4096]= "Make Faces%t|Auto%x1|Make FGon%x2|Clear FGon%x3";
-		
-		ret= pupmenu(facemenu);
-		
-		if(ret==1) addfaces_from_edgenet(em);
-		else if(ret==2) make_fgon(em, 1);
-		else if(ret==3) make_fgon(em, 0);
-		
+		addfaces_from_edgenet(em);
 		return;
 	}
 	else if(amount<2) {
@@ -757,12 +744,38 @@ void addedgeface_mesh(EditMesh *em)
 		fix_new_face(em, efa);
 		
 		recalc_editnormals(em);
-		BIF_undo_push("Add face");
 	}
+	}
+
+static int addedgeface_mesh_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
 	
-// XXX	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);	
+	addedgeface_mesh(em);
+	
+	ED_undo_push(C, "Make Edge/Face");	// Note this will become depricated 
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	
+	DAG_object_flush_update(CTX_data_scene(C), obedit, OB_RECALC_DATA);	
+	
+	return OPERATOR_FINISHED;
 }
 
+void MESH_OT_add_edge_face(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Make Edge/Face";
+	ot->idname= "MESH_OT_add_edge_face";
+	
+	/* api callbacks */
+	ot->exec= addedgeface_mesh_exec;
+	ot->poll= ED_operator_editmesh;
+}
+
+
+
+/* ************************ primitives ******************* */
 
 // HACK: these can also be found in cmoview.tga.c, but are here so that they can be found by linker
 // this hack is only used so that scons+mingw + split-sources hack works

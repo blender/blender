@@ -110,7 +110,6 @@ static int snap_to_center() {return 0;}
 /* local prototypes ---------------*/
 static void free_tagged_edges_faces(EditMesh *em, EditEdge *eed, EditFace *efa);
 int EdgeLoopDelete(EditMesh *em);
-void addedgeface_mesh(EditMesh *em);
 
 /********* qsort routines *********/
 
@@ -6648,30 +6647,6 @@ void MESH_OT_edge_flip(wmOperatorType *ot)
 	ot->poll= ED_operator_editmesh;
 }
 
-static int addedgeface_mesh_exec(bContext *C, wmOperator *op)
-{
-	Object *obedit= CTX_data_edit_object(C);
-	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
-	
-	addedgeface_mesh(em);
-	
-	ED_undo_push(C, "Make Edge/Face");	// Note this will become depricated 
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
-	
-	return OPERATOR_FINISHED;
-}
-
-void MESH_OT_addedgeface_mesh(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Make Edge/Face";
-	ot->idname= "MESH_OT_addedgeface_mesh";
-	
-	/* api callbacks */
-	ot->exec= addedgeface_mesh_exec;
-	ot->poll= ED_operator_editmesh;
-}
-
 static int mesh_set_smooth_faces_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
@@ -6735,7 +6710,6 @@ static int edit_faces_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	p+= sprintf(p, "|%s %%x%d", "quads to tris", 5);
 	p+= sprintf(p, "|%s %%x%d", "tris to quads", 4);
 	p+= sprintf(p, "|%s %%x%d", "flip triangle edges", 3);
-	p+= sprintf(p, "|%s %%x%d", "make edge/face", 2);
 	p+= sprintf(p, "|%s %%x%d", "set smooth", 1);
 	p+= sprintf(p, "|%s %%x%d", "set solid", 0);
 	
@@ -6764,9 +6738,6 @@ static int edit_faces_exec(bContext *C, wmOperator *op)
 			break;
 		case 3: /* Flip triangle edges */
 			edge_flip_exec(C,op);
-			break;
-		case 2: /* Make Edge/Face */
-			addedgeface_mesh_exec(C,op);
 			break;
 		case 1: /* Set Smooth */
 			mesh_set_smooth_faces_exec(C,op);
