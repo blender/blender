@@ -139,7 +139,7 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_edit_faces);
 	WM_operatortype_append(MESH_OT_separate);
 	WM_operatortype_append(MESH_OT_dupli_extrude_cursor);
-	
+	WM_operatortype_append(MESH_OT_loop_select);
 }
 
 /* note mesh keymap also for other space? */
@@ -148,6 +148,10 @@ void ED_keymap_mesh(wmWindowManager *wm)
 	ListBase *keymap= WM_keymap_listbase(wm, "EditMesh", 0, 0);
 	
 	/* selecting */
+	RNA_int_set(WM_keymap_add_item(keymap, "MESH_OT_loop_select", SELECTMOUSE, KM_PRESS, KM_ALT, 0)->ptr, "type", 0);
+	RNA_int_set(WM_keymap_add_item(keymap, "MESH_OT_loop_select", SELECTMOUSE, KM_PRESS, KM_SHIFT|KM_ALT, 0)->ptr, "type", 1);
+	RNA_int_set(WM_keymap_add_item(keymap, "MESH_OT_loop_select", SELECTMOUSE, KM_PRESS, KM_ALT|KM_CTRL, 0)->ptr, "type", 2);
+	RNA_int_set(WM_keymap_add_item(keymap, "MESH_OT_loop_select", SELECTMOUSE, KM_PRESS, KM_SHIFT|KM_ALT|KM_CTRL, 0)->ptr, "type", 3);
 	WM_keymap_add_item(keymap, "MESH_OT_de_select_all", AKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_select_more", PADPLUSKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_select_less", PADMINUS, KM_PRESS, KM_CTRL, 0);
@@ -160,6 +164,8 @@ void ED_keymap_mesh(wmWindowManager *wm)
 	
 	RNA_float_set(WM_keymap_add_item(keymap, "MESH_OT_select_linked_flat_faces", FKEY, KM_PRESS, (KM_CTRL|KM_SHIFT|KM_ALT), 0)->ptr,"sharpness",135.0);
 	RNA_float_set(WM_keymap_add_item(keymap, "MESH_OT_select_sharp_edges", SKEY, KM_PRESS, (KM_CTRL|KM_SHIFT|KM_ALT), 0)->ptr,"sharpness",135.0);		
+	
+	/* transform keymap already defined, so no tweaks for select */
 	
 	/* hide */
 	WM_keymap_add_item(keymap, "MESH_OT_hide_mesh", HKEY, KM_PRESS, 0, 0);

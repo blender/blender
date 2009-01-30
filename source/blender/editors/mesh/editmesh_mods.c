@@ -1921,37 +1921,53 @@ void loop_multiselect(EditMesh *em, int looptype)
 		
 /* ***************** MAIN MOUSE SELECTION ************** */
 
-/* just to have the functions nice together */
 
-static void mouse_mesh_loop(ViewContext *vc)
+/* ***************** loop select (non modal) ************** */
+
+static EnumPropertyItem prop_select_types[] = {
+	{0, "LOOP_EXCLUSIVE", "Loop Exclusive", ""},
+	{1, "LOOP_EXTEND", "Loop Extend", ""},
+	{2, "RING_EXCLUSIVE", "Ring Exclusive", ""},
+	{3, "RING_EXTEND", "Ring Extend", ""},
+	{0, NULL, NULL, NULL}
+};
+
+
+static void mouse_mesh_loop(bContext *C, short mval[2], short extend, short ring)
 {
-	EditMesh *em= vc->em;
+	ViewContext vc;
+	EditMesh *em;
 	EditEdge *eed;
 	int select= 1;
 	int dist= 50;
-	int shift= 0, alt= 0, ctrl= 0; // XXX
 	
-	eed= findnearestedge(vc, &dist);
+	em_setup_viewcontext(C, &vc);
+	vc.mval[0]= mval[0];
+	vc.mval[1]= mval[1];
+	em= vc.em;
+	
+	eed= findnearestedge(&vc, &dist);
 	if(eed) {
-		if (vc->scene->toolsettings->edge_mode == EDGE_MODE_SELECT) {
-			if(shift==0) EM_clear_flag_all(em, SELECT);
+		/* XXX: should toolsettings do this? */
+		if (vc.scene->toolsettings->edge_mode == EDGE_MODE_SELECT) {
+			if(extend==0) EM_clear_flag_all(em, SELECT);
 		
 			if((eed->f & SELECT)==0) select=1;
-			else if(shift) select=0;
+			else if(extend) select=0;
 
 			if(em->selectmode & SCE_SELECT_FACE) {
 				faceloop_select(em, eed, select);
 			}
 			else if(em->selectmode & SCE_SELECT_EDGE) {
-		        if((alt && ctrl))
+		        if(ring)
 					edgering_select(em, eed, select);
-		        else if(alt)
+		        else
 					edgeloop_select(em, eed, select);
 			}
 		    else if(em->selectmode & SCE_SELECT_VERTEX) {
-		        if((alt && ctrl))
+		        if(ring)
 					edgering_select(em, eed, select);
-		        else if(alt)
+		        else 
 					edgeloop_select(em, eed, select);
 			}
 
@@ -1960,18 +1976,18 @@ static void mouse_mesh_loop(ViewContext *vc)
 			
 		} 
 		else {
-			int act = (edgetag_context_check(vc->scene, eed)==0);
+			int act = (edgetag_context_check(vc.scene, eed)==0);
 			int path = 0;
 			
-			if (alt && ctrl && em->selected.last) {
+			if (ring && em->selected.last) {
 				EditSelection *ese = em->selected.last;
 	
 				if(ese && ese->type == EDITEDGE) {
 					EditEdge *eed_act;
 					eed_act = (EditEdge*)ese->data;
 					if (eed_act != eed) {
-						/* If shift is pressed we need to use the last active edge, (if it exists) */
-						if (edgetag_shortest_path(vc->scene, em, eed_act, eed)) {
+						/* If extend, we need to use the last active edge, (if it exists) */
+						if (edgetag_shortest_path(vc.scene, em, eed_act, eed)) {
 							EM_remove_selection(em, eed_act, EDITEDGE);
 							EM_select_edge(eed_act, 0);
 							path = 1;
@@ -1980,7 +1996,7 @@ static void mouse_mesh_loop(ViewContext *vc)
 				}
 			}
 			if (path==0) {
-				edgetag_context_set(vc->scene, eed, act); /* switch the edge option */
+				edgetag_context_set(vc.scene, eed, act); /* switch the edge option */
 			}
 			
 			if (act) {
@@ -2000,7 +2016,7 @@ static void mouse_mesh_loop(ViewContext *vc)
 				}
 			}
 			
-			switch (0) { // XXX scene->toolsettings->edge_mode) {
+			switch (vc.scene->toolsettings->edge_mode) {
 			case EDGE_MODE_TAG_SEAM:
 				G.f |= G_DRAWSEAMS;
 				break;
@@ -2015,11 +2031,49 @@ static void mouse_mesh_loop(ViewContext *vc)
 				break;
 			}
 			
-//			DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
+			DAG_object_flush_update(vc.scene, vc.obedit, OB_RECALC_DATA);
 		}
-				
+		
+		WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, vc.obedit);
 	}
 }
+
+static int mesh_loop_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	ARegion *ar= CTX_wm_region(C);
+	short extend= RNA_int_get(op->ptr, "type");
+	short mval[2], ring= 0;	
+	
+	mval[0]= event->x - ar->winrct.xmin;
+	mval[1]= event->y - ar->winrct.ymin;
+	
+	view3d_operator_needs_opengl(C);
+	
+	/* hmrs, 4 selections in 1 property this way? */
+	if(extend>1) ring= 1;
+	extend &= ~2;
+	
+	mouse_mesh_loop(C, mval, extend, ring);
+	
+	/* allowing tweaks */
+	return OPERATOR_PASS_THROUGH;
+}
+
+void MESH_OT_loop_select(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Loop Select";
+	ot->idname= "MESH_OT_loop_select";
+	
+	/* api callbacks */
+	ot->invoke= mesh_loop_select_invoke;
+	ot->poll= ED_operator_editmesh;
+	
+	/* properties */
+	RNA_def_enum(ot->srna, "type", prop_select_types, 0, "Type", "");
+}
+
+/* ************************************************** */
 
 
 /* here actual select happens */
@@ -2030,15 +2084,13 @@ void mouse_mesh(bContext *C, short mval[2], short extend)
 	EditVert *eve;
 	EditEdge *eed;
 	EditFace *efa;
-	int  alt= 0; // XXX
 	
 	/* setup view context for argument to callbacks */
 	em_setup_viewcontext(C, &vc);
 	vc.mval[0]= mval[0];
 	vc.mval[1]= mval[1];
 	
-	if(alt) mouse_mesh_loop(&vc);
-	else if(unified_findnearest(&vc, &eve, &eed, &efa)) {
+	if(unified_findnearest(&vc, &eve, &eed, &efa)) {
 		
 		if(extend==0) EM_clear_flag_all(vc.em, SELECT);
 		
@@ -2089,7 +2141,6 @@ void mouse_mesh(bContext *C, short mval[2], short extend)
 
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, vc.obedit);
 	
-//	rightmouse_transform();
 }
 
 // XXX should we use CTX_scene(C)->selectmode & SCE_SELECT_FACE like it was in the past ? calls selectconnected_delimit_mesh_all if true

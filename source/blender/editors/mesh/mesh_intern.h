@@ -168,7 +168,7 @@ extern struct EditFace *EM_face_from_faces(EditMesh *em, struct EditFace *efa1,
 
 
 /* ******************* editmesh_mods.c */
-
+void MESH_OT_loop_select(struct wmOperatorType *ot);
 void MESH_OT_de_select_all(struct wmOperatorType *ot);
 void MESH_OT_select_more(struct wmOperatorType *ot);
 void MESH_OT_select_less(struct wmOperatorType *ot);
