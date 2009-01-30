@@ -83,8 +83,9 @@
 #include "BLI_blenlib.h"
 #include "BLI_dynstr.h"
 
-#include "BKE_library.h"
+#include "BKE_animsys.h"
 #include "BKE_context.h"
+#include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_global.h"
 #include "BKE_sound.h"
@@ -401,6 +402,45 @@ void *alloc_libblock(ListBase *lb, short type, const char *name)
 /* from blendef: */
 #define GS(a)	(*((short *)(a)))
 
+/* by spec, animdata is first item after ID */
+/* we still read ->adt itself, to ensure compiler warns when it doesnt exist */
+static void id_copy_animdata(ID *id)
+{
+	switch(GS(id->name)) {
+		case ID_OB:
+			((Object *)id)->adt= BKE_copy_animdata(((Object *)id)->adt);
+			break;
+		case ID_CU:
+			((Curve *)id)->adt= BKE_copy_animdata(((Curve *)id)->adt);
+			break;
+		case ID_CA:
+			((Camera *)id)->adt= BKE_copy_animdata(((Camera *)id)->adt);
+			break;
+		case ID_KE:
+			((Key *)id)->adt= BKE_copy_animdata(((Key *)id)->adt);
+			break;
+		case ID_LA:
+			((Lamp *)id)->adt= BKE_copy_animdata(((Lamp *)id)->adt);
+			break;
+		case ID_MA:
+			((Material *)id)->adt= BKE_copy_animdata(((Material *)id)->adt);
+			break;
+		case ID_NT:
+			((bNodeTree *)id)->adt= BKE_copy_animdata(((bNodeTree *)id)->adt);
+			break;
+		case ID_SCE:
+			((Scene *)id)->adt= BKE_copy_animdata(((Scene *)id)->adt);
+			break;
+		case ID_TE:
+			((Tex *)id)->adt= BKE_copy_animdata(((Tex *)id)->adt);
+			break;
+		case ID_WO:
+			((World *)id)->adt= BKE_copy_animdata(((World *)id)->adt);
+			break;
+	}
+	
+}
+
 /* used everywhere in blenkernel and text.c */
 void *copy_libblock(void *rt)
 {
@@ -429,6 +469,8 @@ void *copy_libblock(void *rt)
 	idn->flag |= LIB_NEW;
 	if (id->properties) idn->properties = IDP_CopyProperty(id->properties);
 
+	id_copy_animdata(id);
+	
 	return idn;
 }
 
