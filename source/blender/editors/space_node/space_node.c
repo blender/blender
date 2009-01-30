@@ -273,11 +273,11 @@ static void node_region_listener(ARegion *ar, wmNotifier *wmn)
 	}
 }
 
-static int node_context(const bContext *C, const bContextDataMember *member, bContextDataResult *result)
+static int node_context(const bContext *C, bContextDataMember member, bContextDataResult *result)
 {
 	SpaceNode *snode= (SpaceNode*)CTX_wm_space_data(C);
 	
-	if(member == CTX_data_selected_nodes) {
+	if(member == CTX_DATA_SELECTED_NODES) {
 		bNode *node;
 		
 		for(next_node(snode->edittree); (node=next_node(NULL));) {

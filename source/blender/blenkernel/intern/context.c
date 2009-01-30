@@ -239,18 +239,12 @@ void CTX_wm_ui_block_set(bContext *C, struct uiBlock *block, bContextDataCallbac
 
 /* data context utility functions */
 
-struct bContextDataMember {
-	StructRNA *rna;
-	const char *name;
-	int collection;
-};
-
 struct bContextDataResult {
 	void *pointer;
 	ListBase list;
 };
 
-static int ctx_data_get(bContext *C, const bContextDataMember *member, bContextDataResult *result)
+static int ctx_data_get(bContext *C, bContextDataMember member, bContextDataResult *result)
 {
 	int done= 0, recursion= C->data.recursion;
 
@@ -284,7 +278,7 @@ static int ctx_data_get(bContext *C, const bContextDataMember *member, bContextD
 	return done;
 }
 
-static void *ctx_data_pointer_get(const bContext *C, const bContextDataMember *member)
+static void *ctx_data_pointer_get(const bContext *C, bContextDataMember member)
 {
 	bContextDataResult result;
 
@@ -294,7 +288,7 @@ static void *ctx_data_pointer_get(const bContext *C, const bContextDataMember *m
 	return NULL;
 }
 
-static int ctx_data_pointer_verify(const bContext *C, const bContextDataMember *member, void **pointer)
+static int ctx_data_pointer_verify(const bContext *C, bContextDataMember member, void **pointer)
 {
 	bContextDataResult result;
 
@@ -308,7 +302,7 @@ static int ctx_data_pointer_verify(const bContext *C, const bContextDataMember *
 	}
 }
 
-static int ctx_data_collection_get(const bContext *C, const bContextDataMember *member, ListBase *list)
+static int ctx_data_collection_get(const bContext *C, bContextDataMember member, ListBase *list)
 {
 	bContextDataResult result;
 
@@ -351,7 +345,7 @@ Main *CTX_data_main(const bContext *C)
 {
 	Main *bmain;
 
-	if(ctx_data_pointer_verify(C, CTX_data_main, (void*)&bmain))
+	if(ctx_data_pointer_verify(C, CTX_DATA_MAIN, (void*)&bmain))
 		return bmain;
 	else
 		return C->data.main;
@@ -366,7 +360,7 @@ Scene *CTX_data_scene(const bContext *C)
 {
 	Scene *scene;
 
-	if(ctx_data_pointer_verify(C, CTX_data_scene, (void*)&scene))
+	if(ctx_data_pointer_verify(C, CTX_DATA_SCENE, (void*)&scene))
 		return scene;
 	else
 		return C->data.scene;
@@ -389,62 +383,62 @@ ToolSettings *CTX_data_tool_settings(const bContext *C)
 
 int CTX_data_selected_nodes(const bContext *C, ListBase *list)
 {
-	return ctx_data_collection_get(C, CTX_data_selected_nodes, list);
+	return ctx_data_collection_get(C, CTX_DATA_SELECTED_NODES, list);
 }
 
 int CTX_data_selected_editable_objects(const bContext *C, ListBase *list)
 {
-	return ctx_data_collection_get(C, CTX_data_selected_editable_objects, list);
+	return ctx_data_collection_get(C, CTX_DATA_SELECTED_EDITABLE_OBJECTS, list);
 }
 
 int CTX_data_selected_editable_bases(const bContext *C, ListBase *list)
 {
-	return ctx_data_collection_get(C, CTX_data_selected_editable_bases, list);
+	return ctx_data_collection_get(C, CTX_DATA_SELECTED_EDITABLE_BASES, list);
 }
 
 int CTX_data_selected_objects(const bContext *C, ListBase *list)
 {
-	return ctx_data_collection_get(C, CTX_data_selected_objects, list);
+	return ctx_data_collection_get(C, CTX_DATA_SELECTED_OBJECTS, list);
 }
 
 int CTX_data_selected_bases(const bContext *C, ListBase *list)
 {
-	return ctx_data_collection_get(C, CTX_data_selected_bases, list);
+	return ctx_data_collection_get(C, CTX_DATA_SELECTED_BASES, list);
 }
 
 int CTX_data_visible_objects(const bContext *C, ListBase *list)
 {
-	return ctx_data_collection_get(C, CTX_data_visible_objects, list);
+	return ctx_data_collection_get(C, CTX_DATA_VISIBLE_OBJECTS, list);
 }
 
 int CTX_data_visible_bases(const bContext *C, ListBase *list)
 {
-	return ctx_data_collection_get(C, CTX_data_visible_bases, list);
+	return ctx_data_collection_get(C, CTX_DATA_VISIBLE_BASES, list);
 }
 
 struct Object *CTX_data_active_object(const bContext *C)
 {
-	return ctx_data_pointer_get(C, CTX_data_active_object);
+	return ctx_data_pointer_get(C, CTX_DATA_ACTIVE_OBJECT);
 }
 
 struct Base *CTX_data_active_base(const bContext *C)
 {
-	return ctx_data_pointer_get(C, CTX_data_active_base);
+	return ctx_data_pointer_get(C, CTX_DATA_ACTIVE_BASE);
 }
 
 struct Object *CTX_data_edit_object(const bContext *C)
 {
-	return ctx_data_pointer_get(C, CTX_data_edit_object);
+	return ctx_data_pointer_get(C, CTX_DATA_EDIT_OBJECT);
 }
 
 struct Image *CTX_data_edit_image(const bContext *C)
 {
-	return ctx_data_pointer_get(C, CTX_data_edit_image);
+	return ctx_data_pointer_get(C, CTX_DATA_EDIT_IMAGE);
 }
 
 struct ImBuf *CTX_data_edit_image_buffer(const bContext *C)
 {
-	return ctx_data_pointer_get(C, CTX_data_edit_image_buffer);
+	return ctx_data_pointer_get(C, CTX_DATA_EDIT_IMAGE_BUFFER);
 }
 
 /* data evaluation */

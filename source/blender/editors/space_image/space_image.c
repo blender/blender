@@ -230,15 +230,15 @@ static void image_listener(ScrArea *sa, wmNotifier *wmn)
 	}
 }
 
-static int image_context(const bContext *C, const bContextDataMember *member, bContextDataResult *result)
+static int image_context(const bContext *C, bContextDataMember member, bContextDataResult *result)
 {
 	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
 
-	if(member == CTX_data_edit_image) {
+	if(member == CTX_DATA_EDIT_IMAGE) {
 		CTX_data_pointer_set(result, get_space_image(sima));
 		return 1;
 	}
-	else if(member == CTX_data_edit_image_buffer) {
+	else if(member == CTX_DATA_EDIT_IMAGE_BUFFER) {
 		CTX_data_pointer_set(result, get_space_image_buffer(sima));
 		return 1;
 	}
