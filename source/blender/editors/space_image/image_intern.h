@@ -57,10 +57,14 @@ int get_space_image_show_uvshadow(struct SpaceImage *sima, struct Object *obedit
 /* image_header.c */
 void image_header_buttons(const struct bContext *C, struct ARegion *ar);
 
+void IMAGE_OT_toolbox(struct wmOperatorType *ot);
+
 /* image_draw.c */
 void draw_image_main(struct SpaceImage *sima, struct ARegion *ar, struct Scene *scene);
 
 /* image_ops.c */
+int space_image_main_area_poll(struct bContext *C);
+
 void IMAGE_OT_view_all(struct wmOperatorType *ot);
 void IMAGE_OT_view_pan(struct wmOperatorType *ot);
 void IMAGE_OT_view_selected(struct wmOperatorType *ot);

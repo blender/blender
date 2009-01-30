@@ -1117,3 +1117,38 @@ void image_header_buttons(const bContext *C, ARegion *ar)
 	uiDrawBlock(C, block);
 }
 
+/********************** toolbox operator *********************/
+
+static int toolbox_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
+	Object *obedit= CTX_data_edit_object(C);
+	uiMenuItem *head;
+	int show_uvedit;
+
+	show_uvedit= get_space_image_show_uvedit(sima, obedit);
+
+	head= uiPupMenuBegin("Toolbox");
+
+	uiMenuLevel(head, "View", image_viewmenu);
+	if(show_uvedit) uiMenuLevel(head, "Select", image_selectmenu);
+	uiMenuLevel(head, "Image", image_imagemenu);
+	if(show_uvedit) uiMenuLevel(head, "UVs", image_uvsmenu);
+
+	uiPupMenuEnd(C, head);
+
+	return OPERATOR_CANCELLED;
+}
+
+void IMAGE_OT_toolbox(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Toolbox";
+	ot->idname= "IMAGE_OT_toolbox";
+	
+	/* api callbacks */
+	ot->invoke= toolbox_invoke;
+	ot->poll= space_image_main_area_poll;
+}
+
+

@@ -146,6 +146,8 @@ void image_operatortypes(void)
 	WM_operatortype_append(IMAGE_OT_view_zoom_in);
 	WM_operatortype_append(IMAGE_OT_view_zoom_out);
 	WM_operatortype_append(IMAGE_OT_view_zoom_ratio);
+
+	WM_operatortype_append(IMAGE_OT_toolbox);
 }
 
 void image_keymap(struct wmWindowManager *wm)
@@ -169,6 +171,8 @@ void image_keymap(struct wmWindowManager *wm)
 	RNA_float_set(WM_keymap_add_item(keymap, "IMAGE_OT_view_zoom_ratio", PAD2, KM_PRESS, 0, 0)->ptr, "ratio", 0.5f);
 	RNA_float_set(WM_keymap_add_item(keymap, "IMAGE_OT_view_zoom_ratio", PAD4, KM_PRESS, 0, 0)->ptr, "ratio", 0.25f);
 	RNA_float_set(WM_keymap_add_item(keymap, "IMAGE_OT_view_zoom_ratio", PAD8, KM_PRESS, 0, 0)->ptr, "ratio", 0.125f);
+
+	WM_keymap_add_item(keymap, "IMAGE_OT_toolbox", SPACEKEY, KM_PRESS, 0, 0);
 }
 
 static void image_refresh(const bContext *C, ScrArea *sa)

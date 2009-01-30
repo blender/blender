@@ -144,7 +144,7 @@ static void sima_zoom_set_factor(SpaceImage *sima, ARegion *ar, float zoomfac)
 	sima_zoom_set(sima, ar, sima->zoom*zoomfac);
 }
 
-static int space_image_main_area_poll(bContext *C)
+int space_image_main_area_poll(bContext *C)
 {
 	SpaceLink *slink= CTX_wm_space_data(C);
 	ARegion *ar= CTX_wm_region(C);
