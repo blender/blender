@@ -235,6 +235,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\windowmanager\wm_draw.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\windowmanager\wm_event_system.h"
 				>
 			</File>

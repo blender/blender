@@ -126,7 +126,7 @@ static int do_header_hidden_node(SpaceNode *snode, bNode *node, float mx, float 
 	return 0;
 }
 
-static void node_toggle_visibility(SpaceNode *snode, ARegion *ar, short *mval)
+static int node_toggle_visibility(SpaceNode *snode, ARegion *ar, short *mval)
 {
 	bNode *node;
 	float mx, my;
@@ -140,16 +140,17 @@ static void node_toggle_visibility(SpaceNode *snode, ARegion *ar, short *mval)
 		if(node->flag & NODE_HIDDEN) {
 			if(do_header_hidden_node(snode, node, mx, my)) {
 				ED_region_tag_redraw(ar);
-				break;
+				return 1;
 			}
 		}
 		else {
 			if(do_header_node(snode, node, mx, my)) {
 				ED_region_tag_redraw(ar);
-				break;
+				return 1;
 			}
 		}
 	}
+	return 0;
 }
 
 static int node_toggle_visibility_exec(bContext *C, wmOperator *op)
@@ -160,9 +161,10 @@ static int node_toggle_visibility_exec(bContext *C, wmOperator *op)
 
 	mval[0] = RNA_int_get(op->ptr, "mouse_x");
 	mval[1] = RNA_int_get(op->ptr, "mouse_y");
-	node_toggle_visibility(snode, ar, mval);
-
-	return OPERATOR_FINISHED;
+	if(node_toggle_visibility(snode, ar, mval))
+		return OPERATOR_FINISHED;
+	else
+		return OPERATOR_PASS_THROUGH;
 }
 
 static int node_toggle_visibility_invoke(bContext *C, wmOperator *op, wmEvent *event)

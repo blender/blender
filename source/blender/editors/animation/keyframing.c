@@ -334,7 +334,7 @@ void insert_vert_fcurve (FCurve *fcu, float x, float y, short fast)
 	/* set handletype and interpolation */
 	if (fcu->totvert > 2) {
 		BezTriple *bezt= (fcu->bezt + a);
-		short h1, h2;
+		char h1, h2;
 		
 		/* set handles (autohandles by default) */
 		h1= h2= HD_AUTO;
@@ -2117,9 +2117,9 @@ static int insert_key_exec (bContext *C, wmOperator *op)
 	ED_undo_push(C, "Insert Keyframe");
 	
 	if (mode == 3) // material color requires different notifiers
-		WM_event_add_notifier(C, NC_MATERIAL|ND_SHADING_DRAW, NULL);
+		WM_event_add_notifier(C, NC_MATERIAL|ND_KEYS, NULL);
 	else
-		WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
+		WM_event_add_notifier(C, NC_OBJECT|ND_KEYS, NULL);
 	
 	return OPERATOR_FINISHED;
 }
@@ -2184,7 +2184,7 @@ static int delete_key_exec (bContext *C, wmOperator *op)
 	ED_undo_push(C, "Delete Keyframe");
 	
 		// XXX what if it was a material keyframe?
-	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
+	WM_event_add_notifier(C, NC_OBJECT|ND_KEYS, NULL);
 	
 	return OPERATOR_FINISHED;
 }

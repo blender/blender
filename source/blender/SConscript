@@ -18,7 +18,8 @@ SConscript(['avi/SConscript',
             'readblenfile/SConscript',
             'render/SConscript',
             'nodes/SConscript',
-            'windowmanager/SConscript'])
+            'windowmanager/SConscript',
+	    'blenfont/SConscript'])
 
 
 

@@ -514,10 +514,6 @@ static void occ_build_recursive(OcclusionTree *tree, OccNode *node, int begin, i
 	OccFace *face;
 	int a, b, totthread=0, offset[TOTCHILD], count[TOTCHILD];
 
-	/* keep track of maximum depth for stack */
-	if(depth > tree->maxdepth)
-		tree->maxdepth= depth;
-
 	/* add a new node */
 	node->occlusion= 1.0f;
 
@@ -551,6 +547,10 @@ static void occ_build_recursive(OcclusionTree *tree, OccNode *node, int begin, i
 
 				child= BLI_memarena_alloc(tree->arena, sizeof(OccNode));
 				node->child[b].node= child;
+
+				/* keep track of maximum depth for stack */
+				if(depth+1 > tree->maxdepth)
+					tree->maxdepth= depth+1;
 
 				if(tree->dothreadedbuild)
 					BLI_unlock_thread(LOCK_CUSTOM1);
@@ -679,6 +679,7 @@ static OcclusionTree *occ_tree_build(Render *re)
 
 	/* recurse */
 	tree->root= BLI_memarena_alloc(tree->arena, sizeof(OccNode));
+	tree->maxdepth= 1;
 	occ_build_recursive(tree, tree->root, 0, totface, 1);
 
 #if 0

@@ -220,7 +220,7 @@ int WM_operator_call(bContext *C, wmOperator *op)
 
 	if(!(retval & OPERATOR_RUNNING_MODAL))
 		if(op->reports->list.first)
-			uiPupmenuReports(C, op->reports);
+			uiPupMenuReports(C, op->reports);
 	
 	if((retval & OPERATOR_FINISHED) && (op->type->flag & OPTYPE_REGISTER)) {
 		wm_operator_register(CTX_wm_manager(C), op);
@@ -283,7 +283,7 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, P
 
 		if(!(retval & OPERATOR_RUNNING_MODAL)) {
 			if(op->reports->list.first) /* only show the report if the report list was not given in the function */
-				uiPupmenuReports(C, op->reports);
+				uiPupMenuReports(C, op->reports);
 		
 		if (retval & OPERATOR_FINISHED) /* todo - this may conflict with the other WM_operator_print, if theres ever 2 prints for 1 action will may need to add modal check here */
 			if(G.f & G_DEBUG)
@@ -558,7 +558,7 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 
 			if(!(retval & OPERATOR_RUNNING_MODAL))
 				if(op->reports->list.first)
-					uiPupmenuReports(C, op->reports);
+					uiPupMenuReports(C, op->reports);
 
 			if (retval & OPERATOR_FINISHED) {
 				if(G.f & G_DEBUG)
@@ -790,6 +790,7 @@ void wm_event_do_handlers(bContext *C)
 			int action;
 
 			CTX_wm_window_set(C, win);
+			
 			/* we let modal handlers get active area/region, also wm_paintcursor_test needs it */
 			CTX_wm_area_set(C, area_event_inside(C, event->x, event->y));
 			CTX_wm_region_set(C, region_event_inside(C, event->x, event->y));
@@ -802,7 +803,7 @@ void wm_event_do_handlers(bContext *C)
 			/* fileread case */
 			if(CTX_wm_window(C)==NULL) {
 				wm_event_free(event);
-				break;
+				return;
 			}
 			
 			if(wm_event_always_pass(event) || action==WM_HANDLER_CONTINUE) {
@@ -850,14 +851,8 @@ void wm_event_do_handlers(bContext *C)
 			}
 			wm_event_free(event);
 			
-			CTX_wm_window_set(C, NULL);
-			CTX_wm_area_set(C, NULL);
-			CTX_wm_region_set(C, NULL);
 		}
-		
-		/* fileread case */
-		if(CTX_wm_window(C)==NULL)
-			break;
+		CTX_wm_window_set(C, NULL);
 	}
 }
 
@@ -975,8 +970,8 @@ void WM_event_add_mousemove(bContext *C)
 /* for modal callbacks, check configuration for how to interpret exit with tweaks  */
 int WM_modal_tweak_exit(wmEvent *evt, int tweak_event)
 {
-	/* user preset?? dunno... */
-	int tweak_modal= 1;
+	/* user preset or keymap? dunno... */
+	int tweak_modal= (U.flag & USER_DRAGIMMEDIATE)==0;
 	
 	switch(tweak_event) {
 		case EVT_TWEAK_L:

@@ -36,12 +36,12 @@ extern PyTypeObject pyop_base_Type;
 extern PyTypeObject pyop_func_Type;
 
 typedef struct {
-	PyObject_VAR_HEAD /* required python macro   */
+	PyObject_HEAD /* required python macro   */
 	bContext *C;
 } BPy_OperatorBase;
 
 typedef struct {
-	PyObject_VAR_HEAD /* required python macro   */
+	PyObject_HEAD /* required python macro   */
 	char name[OP_MAX_TYPENAME];
 	bContext *C;
 } BPy_OperatorFunc;

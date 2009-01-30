@@ -274,6 +274,7 @@ IF(UNIX)
     bf_videotex
     bf_rna
     bf_dna
+    bf_blenfont
   )
 
   FOREACH(SORTLIB ${BLENDER_SORTED_LIBS})

@@ -84,7 +84,7 @@ static void do_time_redrawmenu(bContext *C, void *arg, int event)
 }
 
 
-static uiBlock *time_redrawmenu(bContext *C, uiMenuBlockHandle *handle, void *arg_unused)
+static uiBlock *time_redrawmenu(bContext *C, ARegion *ar, void *arg_unused)
 {
 	ScrArea *curarea= CTX_wm_area(C);
 	SpaceTime *stime= (SpaceTime*)CTX_wm_space_data(C);
@@ -93,7 +93,7 @@ static uiBlock *time_redrawmenu(bContext *C, uiMenuBlockHandle *handle, void *ar
 	short yco= 0, menuwidth=120, icon;
 	char str[32];
 	
-	block= uiBeginBlock(C, handle->region, "header time_redrawmenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "header time_redrawmenu", UI_EMBOSSP, UI_HELV);
 	uiBlockSetButmFunc(block, do_time_redrawmenu, NULL);
 	
 	if(stime->redraws & TIME_LEFTMOST_3D_WIN) icon= ICON_CHECKBOX_HLT;
@@ -205,7 +205,7 @@ static void do_time_viewmenu(bContext *C, void *arg, int event)
 	}
 }
 
-static uiBlock *time_viewmenu(bContext *C, uiMenuBlockHandle *handle, void *arg_unused)
+static uiBlock *time_viewmenu(bContext *C, ARegion *ar, void *arg_unused)
 {
 	ScrArea *curarea= CTX_wm_area(C);
 	SpaceTime *stime= (SpaceTime*)CTX_wm_space_data(C);
@@ -213,7 +213,7 @@ static uiBlock *time_viewmenu(bContext *C, uiMenuBlockHandle *handle, void *arg_
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
 	
-	block= uiBeginBlock(C, handle->region, "time_viewmenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "time_viewmenu", UI_EMBOSSP, UI_HELV);
 	uiBlockSetButmFunc(block, do_time_viewmenu, NULL);
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Play Back Animation", 0, yco-=20,
@@ -293,13 +293,13 @@ static void do_time_framemenu(bContext *C, void *arg, int event)
 	}
 }
 
-static uiBlock *time_framemenu(bContext *C, uiMenuBlockHandle *handle, void *arg_unused)
+static uiBlock *time_framemenu(bContext *C, ARegion *ar, void *arg_unused)
 {
 	ScrArea *curarea= CTX_wm_area(C);
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
 	
-	block= uiBeginBlock(C, handle->region, "time_framemenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "time_framemenu", UI_EMBOSSP, UI_HELV);
 	uiBlockSetButmFunc(block, do_time_framemenu, NULL);
 
 	uiDefIconTextButO(block, BUTM, "MARKER_OT_add", WM_OP_EXEC_REGION_WIN, ICON_BLANK1, "Add Marker",

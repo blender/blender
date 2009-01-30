@@ -77,8 +77,16 @@
 #include "BIF_retopo.h"
 
 #include "ED_mesh.h"
+#include "ED_object.h"
 #include "ED_util.h"
+#include "ED_screen.h"
 #include "ED_view3d.h"
+
+#include "RNA_access.h"
+#include "RNA_define.h"
+
+#include "WM_api.h"
+#include "WM_types.h"
 
 /* own include */
 #include "mesh_intern.h"
@@ -92,11 +100,7 @@ editmesh.c:
 
 /* XXX */
 static void BIF_undo_push() {}
-static void waitcursor() {}
 static void error() {}
-static int pupmenu() {return 0;}
-static void key_to_mesh() {}
-static void adduplicate() {}
 
 
 /* ***************** HASH ********************* */
@@ -583,6 +587,7 @@ static void editMesh_set_hash(EditMesh *em)
 {
 	EditEdge *eed;
 
+	if(em->hashedgetab) MEM_freeN(em->hashedgetab);
 	em->hashedgetab= NULL;
 	
 	for(eed=em->edges.first; eed; eed= eed->next)  {
@@ -851,8 +856,6 @@ void make_editMesh(Scene *scene, Object *ob)
 
 	actkey = ob_get_keyblock(ob);
 	if(actkey) {
-		// XXX strcpy(G.editModeTitleExtra, "(Key) ");
-		key_to_mesh(actkey, me);
 		tot= actkey->totelem;
 		/* undo-ing in past for previous editmode sessions gives corrupt 'keyindex' values */
 		undo_editmode_clear();
@@ -1424,371 +1427,203 @@ void load_editMesh(Scene *scene, Object *ob)
 void remake_editMesh(Scene *scene, Object *ob)
 {
 	make_editMesh(scene, ob);
-//	allqueue(REDRAWVIEW3D, 0);
-//	allqueue(REDRAWBUTSOBJECT, 0); /* needed to have nice cloth panels */
 	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
 	BIF_undo_push("Undo all changes");
 }
 
-/* ***************		(partial exit editmode) *************/
+/* *************** Operator: separate parts *************/
 
+static EnumPropertyItem prop_separate_types[] = {
+	{0, "SELECTED", "Selection", ""},
+	{1, "MATERIAL", "By Material", ""},
+	{2, "LOOSE", "By loose parts", ""},
+	{0, NULL, NULL, NULL}
+};
 
-
-
-void separate_mesh(Scene *scene, Object *obedit)
+/* return 1: success */
+static int mesh_separate_selected(Scene *scene, Base *editbase)
 {
-	EditMesh *em, emcopy;
+	EditMesh *em, *emnew;
 	EditVert *eve, *v1;
 	EditEdge *eed, *e1;
-	EditFace *efa, *vl1;
-	Object *oldob;
-	Mesh *me, *men;
-	Base *base, *oldbase;
-	ListBase edve, eded, edvl;
+	EditFace *efa, *f1;
+	Object *obedit;
+	Mesh *me, *menew;
+	Base *basenew;
 	
-	if(obedit==NULL) return;
-
-	waitcursor(1);
+	if(editbase==NULL) return 0;
 	
+	obedit= editbase->object;
 	me= obedit->data;
 	em= me->edit_mesh;
 	if(me->key) {
 		error("Can't separate with vertex keys");
-		return;
+		return 0;
 	}
 	
-	if(em->selected.first) BLI_freelistN(&(em->selected)); /* clear the selection order */
+	if(em->selected.first) 
+		BLI_freelistN(&(em->selected)); /* clear the selection order */
 		
 	EM_selectmode_set(em);	// enforce full consistant selection flags 
 	
-	/* we are going to abuse the system as follows:
-	 * 1. add a duplicate object: this will be the new one, we remember old pointer
-	 * 2: then do a split if needed.
-	 * 3. put apart: all NOT selected verts, edges, faces
-	 * 4. call load_editMesh(): this will be the new object
-	 * 5. freelist and get back old verts, edges, facs
+	EM_stats_update(em);
+	
+	if(em->totvertsel==0) return 0;
+	
+	/* we are going to work as follows:
+	 * 1. add a linked duplicate object: this will be the new one, we remember old pointer
+	 * 2. give new object empty mesh and put in editmode
+	 * 3: do a split if needed on current editmesh.
+	 * 4. copy over: all NOT selected verts, edges, faces
+	 * 5. call load_editMesh() on the new object
 	 */
 	
-	/* make only obedit selected */
-	base= FIRSTBASE;
-	while(base) {
-//	XXX	if(base->lay & G.vd->lay) {
-			if(base->object==obedit) base->flag |= SELECT;
-			else base->flag &= ~SELECT;
-//		}
-		base= base->next;
-	}
+	/* 1 */
+	basenew= ED_object_add_duplicate(scene, editbase, 0);	/* 0 = fully linked */
+	ED_base_object_select(basenew, BA_DESELECT);
 	
-	/* no test for split, split doesn't split when a loose part is selected */
+	/* 2 */
+	basenew->object->data= menew= add_mesh(me->id.name);	/* empty */
+	me->id.us--;
+	make_editMesh(scene, basenew->object);
+	emnew= menew->edit_mesh;
+	
+	/* 3 */
 	/* SPLIT: first make duplicate */
 	adduplicateflag(em, SELECT);
-
 	/* SPLIT: old faces have 3x flag 128 set, delete these ones */
 	delfaceflag(em, 128);
-	
 	/* since we do tricky things with verts/edges/faces, this makes sure all is selected coherent */
 	EM_selectmode_set(em);
 	
-	/* set apart: everything that is not selected */
-	edve.first= edve.last= eded.first= eded.last= edvl.first= edvl.last= 0;
-	eve= em->verts.first;
-	while(eve) {
+	/* 4 */
+	/* move over: everything that is selected */
+	for(eve= em->verts.first; eve; eve= v1) {
 		v1= eve->next;
-		if((eve->f & SELECT)==0) {
+		if(eve->f & SELECT) {
 			BLI_remlink(&em->verts, eve);
-			BLI_addtail(&edve, eve);
+			BLI_addtail(&emnew->verts, eve);
 		}
-		
-		eve= v1;
 	}
-	eed= em->edges.first;
-	while(eed) {
+	
+	for(eed= em->edges.first; eed; eed= e1) {
 		e1= eed->next;
-		if((eed->f & SELECT)==0) {
+		if(eed->f & SELECT) {
 			BLI_remlink(&em->edges, eed);
-			BLI_addtail(&eded, eed);
+			BLI_addtail(&emnew->edges, eed);
 		}
-		eed= e1;
 	}
-	efa= em->faces.first;
-	while(efa) {
-		vl1= efa->next;
+	
+	for(efa= em->faces.first; efa; efa= f1) {
+		f1= efa->next;
 		if (efa == em->act_face && (efa->f & SELECT)) {
 			EM_set_actFace(em, NULL);
 		}
 
-		if((efa->f & SELECT)==0) {
+		if(efa->f & SELECT) {
 			BLI_remlink(&em->faces, efa);
-			BLI_addtail(&edvl, efa);
+			BLI_addtail(&emnew->faces, efa);
 		}
-		efa= vl1;
 	}
+
+	/* 5 */
+	load_editMesh(scene, basenew->object);
+	free_editMesh(emnew);
 	
-	oldob= obedit;
-	oldbase= BASACT;
-	
-	adduplicate(1, 0); /* notrans and a linked duplicate */
-	
-	obedit= BASACT->object;	/* basact was set in adduplicate()  */
-	
-	men= copy_mesh(me);
-	set_mesh(obedit, men);
-	/* because new mesh is a copy: reduce user count */
-	men->id.us--;
-	
-	load_editMesh(scene, obedit);
-	
-	BASACT->flag &= ~SELECT;
-	
-	/* we cannot free the original buffer... */
-	emcopy= *em;
-	emcopy.allverts= NULL;
-	emcopy.alledges= NULL;
-	emcopy.allfaces= NULL;
-	emcopy.derivedFinal= emcopy.derivedCage= NULL;
-	memset(&emcopy.vdata, 0, sizeof(emcopy.vdata));
-	memset(&emcopy.fdata, 0, sizeof(emcopy.fdata));
-	free_editMesh(&emcopy);
-	
-	em->verts= edve;
-	em->edges= eded;
-	em->faces= edvl;
-	
-	/* hashedges are freed now, make new! */
+	/* hashedges are invalid now, make new! */
 	editMesh_set_hash(em);
 
 	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);	
-	obedit= oldob;
-	BASACT= oldbase;
-	BASACT->flag |= SELECT;
-	
-	waitcursor(0);
+	DAG_object_flush_update(scene, basenew->object, OB_RECALC_DATA);	
 
-//	allqueue(REDRAWVIEW3D, 0);
-	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);	
-
+	return 1;
 }
 
-void separate_material(Scene *scene, Object *obedit)
+/* return 1: success */
+static int mesh_separate_material(Scene *scene, Base *editbase)
+{
+	Mesh *me= editbase->object->data;
+	EditMesh *em= me->edit_mesh;
+	unsigned char curr_mat;
+	
+	for (curr_mat = 1; curr_mat < editbase->object->totcol; ++curr_mat) {
+		/* clear selection, we're going to use that to select material group */
+		EM_clear_flag_all(em, SELECT);
+		/* select the material */
+		editmesh_select_by_material(em, curr_mat);
+		/* and now separate */
+		if(0==mesh_separate_selected(scene, editbase))
+			return 0;
+	}
+	return 1;
+}
+
+/* return 1: success */
+static int mesh_separate_loose(Scene *scene, Base *editbase)
 {
 	Mesh *me;
 	EditMesh *em;
-	unsigned char curr_mat;
+	int doit= 1;
 	
-	me= obedit->data;
+	me= editbase->object->data;
 	em= me->edit_mesh;
+	
 	if(me->key) {
 		error("Can't separate with vertex keys");
-		return;
+		return 0;
 	}
 	
-	if(obedit && em) {
-		if(obedit->type == OB_MESH) {
-			for (curr_mat = 1; curr_mat < obedit->totcol; ++curr_mat) {
-				/* clear selection, we're going to use that to select material group */
-				EM_clear_flag_all(em, SELECT);
-				/* select the material */
-				editmesh_select_by_material(em, curr_mat);
-				/* and now separate */
-				separate_mesh(scene, obedit);
-			}
-		}
-	}
+	EM_clear_flag_all(em, SELECT);
 	
-	//	allqueue(REDRAWVIEW3D, 0);
-	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-	
-}
-
-
-void separate_mesh_loose(Scene *scene, Object *obedit)
-{
-	EditMesh *em, emcopy;
-	EditVert *eve, *v1;
-	EditEdge *eed, *e1;
-	EditFace *efa, *vl1;
-	Object *oldob=NULL;
-	Mesh *me, *men;
-	Base *base, *oldbase;
-	ListBase edve, eded, edvl;
-	int vertsep=0;	
-	short done=0, check=1;
-			
-	me= obedit->data;
-	em= me->edit_mesh;
-	if(me->key) {
-		error("Can't separate a mesh with vertex keys");
-		return;
-	}
-
-	waitcursor(1);	
-	
-	/* we are going to abuse the system as follows:
-	 * 1. add a duplicate object: this will be the new one, we remember old pointer
-	 * 2: then do a split if needed.
-	 * 3. put apart: all NOT selected verts, edges, faces
-	 * 4. call load_editMesh(): this will be the new object
-	 * 5. freelist and get back old verts, edges, facs
-	 */
-			
-	while(!done){		
-		vertsep=check=1;
-		
-		/* make only obedit selected */
-		base= FIRSTBASE;
-		while(base) {
-// XXX			if(base->lay & G.vd->lay) {
-				if(base->object==obedit) base->flag |= SELECT;
-				else base->flag &= ~SELECT;
-//			}
-			base= base->next;
-		}		
-		
-		/*--------- Select connected-----------*/		
-		
-		EM_clear_flag_all(em, SELECT);
-
+	while(doit && em->verts.first) {
 		/* Select a random vert to start with */
-		eve= em->verts.first;
+		EditVert *eve= em->verts.first;
 		eve->f |= SELECT;
 		
-		while(check==1) {
-			check= 0;			
-			eed= em->edges.first;			
-			while(eed) {				
-				if(eed->h==0) {
-					if(eed->v1->f & SELECT) {
-						if( (eed->v2->f & SELECT)==0 ) {
-							eed->v2->f |= SELECT;
-							vertsep++;
-							check= 1;
-						}
-					}
-					else if(eed->v2->f & SELECT) {
-						if( (eed->v1->f & SELECT)==0 ) {
-							eed->v1->f |= SELECT;
-							vertsep++;
-							check= SELECT;
-						}
-					}
-				}
-				eed= eed->next;				
-			}
-		}		
-		/*----------End of select connected--------*/
+		selectconnected_mesh_all(em);
 		
-		
-		/* If the amount of vertices that is about to be split == the total amount 
-		   of verts in the mesh, it means that there is only 1 unconnected object, so we don't have to separate
-		*/
-		if(em->totvert==vertsep) done=1;				
-		else{			
-			/* No splitting: select connected goes fine */
-			
-			EM_select_flush(em);	// from verts->edges->faces
-
-			/* set apart: everything that is not selected */
-			edve.first= edve.last= eded.first= eded.last= edvl.first= edvl.last= 0;
-			eve= em->verts.first;
-			while(eve) {
-				v1= eve->next;
-				if((eve->f & SELECT)==0) {
-					BLI_remlink(&em->verts, eve);
-					BLI_addtail(&edve, eve);
-				}
-				eve= v1;
-			}
-			eed= em->edges.first;
-			while(eed) {
-				e1= eed->next;
-				if( (eed->f & SELECT)==0 ) {
-					BLI_remlink(&em->edges, eed);
-					BLI_addtail(&eded, eed);
-				}
-				eed= e1;
-			}
-			efa= em->faces.first;
-			while(efa) {
-				vl1= efa->next;
-				if( (efa->f & SELECT)==0 ) {
-					BLI_remlink(&em->faces, efa);
-					BLI_addtail(&edvl, efa);
-				}
-				efa= vl1;
-			}
-			
-			oldob= obedit;
-			oldbase= BASACT;
-			
-			adduplicate(1, 0); /* notrans and a linked duplicate*/
-			
-			obedit= BASACT->object;	/* basact was set in adduplicate()  */
-
-			men= copy_mesh(me);
-			set_mesh(obedit, men);
-			/* because new mesh is a copy: reduce user count */
-			men->id.us--;
-			
-			load_editMesh(scene, obedit);
-			
-			BASACT->flag &= ~SELECT;
-			
-			/* we cannot free the original buffer... */
-			emcopy= *em;
-			emcopy.allverts= NULL;
-			emcopy.alledges= NULL;
-			emcopy.allfaces= NULL;
-			emcopy.derivedFinal= emcopy.derivedCage= NULL;
-			memset(&emcopy.vdata, 0, sizeof(emcopy.vdata));
-			memset(&emcopy.fdata, 0, sizeof(emcopy.fdata));
-			free_editMesh(&emcopy);
-			
-			em->verts= edve;
-			em->edges= eded;
-			em->faces= edvl;
-			
-			/* hashedges are freed now, make new! */
-			editMesh_set_hash(em);
-			
-			obedit= oldob;
-			BASACT= oldbase;
-			BASACT->flag |= SELECT;	
-					
-		}		
+		/* and now separate */
+		doit= mesh_separate_selected(scene, editbase);
 	}
-	
-	/* unselect the vertices that we (ab)used for the separation*/
-	EM_clear_flag_all(em, SELECT);
-		
-	waitcursor(0);
-//	allqueue(REDRAWVIEW3D, 0);
-	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);	
+	return 1;
 }
 
-void separatemenu(Scene *scene, Object *obedit)
+
+static int mesh_separate_exec(bContext *C, wmOperator *op)
 {
-	Mesh *me= obedit->data;
-	short event;
+	Scene *scene= CTX_data_scene(C);
+	Base *base= CTX_data_active_base(C);
+	int retval= 0;
 	
-	if(me->edit_mesh->verts.first==NULL) return;
+	if(RNA_enum_is_equal(op->ptr, "type", "SELECTED"))
+		retval= mesh_separate_selected(scene, base);
+	else if(RNA_enum_is_equal(op->ptr, "type", "MATERIAL"))
+		retval= mesh_separate_material (scene, base);
+	else if(RNA_enum_is_equal(op->ptr, "type", "LOOSE"))
+		retval= mesh_separate_loose(scene, base);
 	   
-	event = pupmenu("Separate %t|Selected%x1|All Loose Parts%x2|By Material%x3");
-	
-	if (event==0) return;
-	waitcursor(1);
-	
-	switch (event) {
-		case 1: 
-			separate_mesh(scene, obedit);
-			break;
-		case 2:	    	    	    
-			separate_mesh_loose(scene, obedit);
-			break;
-		case 3:
-			separate_material(scene, obedit);
-			break;
+	if(retval) {
+		WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, base->object);
+		return OPERATOR_FINISHED;
 	}
-	waitcursor(0);
+	return OPERATOR_CANCELLED;
+}
+
+void MESH_OT_separate(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Mesh Separate";
+	ot->idname= "MESH_OT_separate";
+	
+	/* api callbacks */
+	ot->invoke= WM_menu_invoke;
+	ot->exec= mesh_separate_exec;
+	ot->poll= ED_operator_editmesh;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
+	
+	RNA_def_enum(ot->srna, "type", prop_separate_types, 0, "Type", "");
 }
 
 
@@ -1848,9 +1683,6 @@ static void free_undoMesh(void *umv)
 {
 	UndoMesh *um= umv;
 	
-	if (um == NULL)
-		return; /* XXX FIX ME, THIS SHOULD NEVER BE TRUE YET IT HAPPENS DURING TRANSFORM */
-	
 	if(um->verts) MEM_freeN(um->verts);
 	if(um->edges) MEM_freeN(um->edges);
 	if(um->faces) MEM_freeN(um->faces);
@@ -1865,7 +1697,6 @@ static void free_undoMesh(void *umv)
 static void *editMesh_to_undoMesh(void *emv)
 {
 	EditMesh *em= (EditMesh *)emv;
-//	Scene *scene= NULL;
 	UndoMesh *um;
 	EditVert *eve;
 	EditEdge *eed;

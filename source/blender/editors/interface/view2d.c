@@ -57,6 +57,91 @@
 #include "interface_intern.h"
 
 /* *********************************************************************** */
+
+/* helper to allow scrollbars to dynamically hide */
+static int view2d_scroll_mapped(int scroll)
+{
+	if(scroll & V2D_SCROLL_HORIZONTAL_HIDE)
+		scroll &= ~(V2D_SCROLL_HORIZONTAL);
+	if(scroll & V2D_SCROLL_VERTICAL_HIDE)
+		scroll &= ~(V2D_SCROLL_VERTICAL);
+	return scroll;
+}
+
+/* called each time cur changes, to dynamically update masks */
+static void view2_masks(View2D *v2d)
+{
+	int scroll;
+	
+	/* mask - view frame */
+	v2d->mask.xmin= v2d->mask.ymin= 0;
+	v2d->mask.xmax= v2d->winx - 1;	/* -1 yes! masks are pixels */
+	v2d->mask.ymax= v2d->winy - 1;
+
+#if 0
+	v2d->scroll &= ~(V2D_SCROLL_HORIZONTAL_HIDE|V2D_SCROLL_VERTICAL_HIDE);
+	/* check size if: */
+	if (v2d->scroll & V2D_SCROLL_HORIZONTAL)
+		if(!(v2d->scroll & V2D_SCROLL_SCALE_HORIZONTAL))
+			if (v2d->tot.xmax-v2d->tot.xmin <= v2d->cur.xmax-v2d->cur.xmin)
+				v2d->scroll |= V2D_SCROLL_HORIZONTAL_HIDE;
+	if (v2d->scroll & V2D_SCROLL_VERTICAL)
+		if(!(v2d->scroll & V2D_SCROLL_SCALE_VERTICAL))
+			if (v2d->tot.ymax-v2d->tot.ymin <= v2d->cur.ymax-v2d->cur.ymin)
+				v2d->scroll |= V2D_SCROLL_VERTICAL_HIDE;
+#endif
+	scroll= view2d_scroll_mapped(v2d->scroll);
+	
+	/* scrollers shrink mask area, but should be based off regionsize 
+		*	- they can only be on one to two edges of the region they define
+		*	- if they overlap, they must not occupy the corners (which are reserved for other widgets)
+		*/
+	if (scroll) {
+		/* vertical scroller */
+		if (scroll & V2D_SCROLL_LEFT) {
+			/* on left-hand edge of region */
+			v2d->vert= v2d->mask;
+			v2d->vert.xmax= V2D_SCROLL_WIDTH;
+			v2d->mask.xmin= v2d->vert.xmax + 1;
+		}
+		else if (scroll & V2D_SCROLL_RIGHT) {
+			/* on right-hand edge of region */
+			v2d->vert= v2d->mask;
+			v2d->vert.xmax++; /* one pixel extra... was having leaving a minor gap... */
+			v2d->vert.xmin= v2d->vert.xmax - V2D_SCROLL_WIDTH;
+			v2d->mask.xmax= v2d->vert.xmin - 1;
+		}
+		
+		/* horizontal scroller */
+		if (scroll & (V2D_SCROLL_BOTTOM|V2D_SCROLL_BOTTOM_O)) {
+			/* on bottom edge of region (V2D_SCROLL_BOTTOM_O is outliner, the other is for standard) */
+			v2d->hor= v2d->mask;
+			v2d->hor.ymax= V2D_SCROLL_HEIGHT;
+			v2d->mask.ymin= v2d->hor.ymax + 1;
+		}
+		else if (scroll & V2D_SCROLL_TOP) {
+			/* on upper edge of region */
+			v2d->hor= v2d->mask;
+			v2d->hor.ymin= v2d->hor.ymax - V2D_SCROLL_HEIGHT;
+			v2d->mask.ymax= v2d->hor.ymin - 1;
+		}
+		
+		/* adjust vertical scroller if there's a horizontal scroller, to leave corner free */
+		if (scroll & V2D_SCROLL_VERTICAL) {
+			/* just set y min/max for vertical scroller to y min/max of mask as appropriate */
+			if (scroll & (V2D_SCROLL_BOTTOM|V2D_SCROLL_BOTTOM_O)) {
+				/* on bottom edge of region (V2D_SCROLL_BOTTOM_O is outliner, the other is for standard) */
+				v2d->vert.ymin= v2d->mask.ymin;
+			}
+			else if (scroll & V2D_SCROLL_TOP) {
+				/* on upper edge of region */
+				v2d->vert.ymax= v2d->mask.ymax;
+			}
+		}
+	}
+	
+}
+
 /* Refresh and Validation */
 
 /* Initialise all relevant View2D data (including view rects if first time) and/or refresh mask sizes after view resize
@@ -153,69 +238,19 @@ void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
 		}
 	}
 	
-	
 	/* store view size */
 	v2d->winx= winx;
 	v2d->winy= winy;
 	
-	/* mask - view frame */
-	v2d->mask.xmin= v2d->mask.ymin= 0;
-	v2d->mask.xmax= winx - 1;	/* -1 yes! masks are pixels */
-	v2d->mask.ymax= winy - 1;
-	
-	/* scrollers shrink mask area, but should be based off regionsize 
-	 *	- they can only be on one to two edges of the region they define
-	 *	- if they overlap, they must not occupy the corners (which are reserved for other widgets)
-	 */
-	if (v2d->scroll) {
-		/* vertical scroller */
-		if (v2d->scroll & V2D_SCROLL_LEFT) {
-			/* on left-hand edge of region */
-			v2d->vert= v2d->mask;
-			v2d->vert.xmax= V2D_SCROLL_WIDTH;
-			v2d->mask.xmin= v2d->vert.xmax + 1;
-		}
-		else if (v2d->scroll & V2D_SCROLL_RIGHT) {
-			/* on right-hand edge of region */
-			v2d->vert= v2d->mask;
-			v2d->vert.xmax++; /* one pixel extra... was having leaving a minor gap... */
-			v2d->vert.xmin= v2d->vert.xmax - V2D_SCROLL_WIDTH;
-			v2d->mask.xmax= v2d->vert.xmin - 1;
-		}
-		
-		/* horizontal scroller */
-		if (v2d->scroll & (V2D_SCROLL_BOTTOM|V2D_SCROLL_BOTTOM_O)) {
-			/* on bottom edge of region (V2D_SCROLL_BOTTOM_O is outliner, the other is for standard) */
-			v2d->hor= v2d->mask;
-			v2d->hor.ymax= V2D_SCROLL_HEIGHT;
-			v2d->mask.ymin= v2d->hor.ymax + 1;
-		}
-		else if (v2d->scroll & V2D_SCROLL_TOP) {
-			/* on upper edge of region */
-			v2d->hor= v2d->mask;
-			v2d->hor.ymin= v2d->hor.ymax - V2D_SCROLL_HEIGHT;
-			v2d->mask.ymax= v2d->hor.ymin - 1;
-		}
-		
-		/* adjust vertical scroller if there's a horizontal scroller, to leave corner free */
-		if (v2d->scroll & V2D_SCROLL_VERTICAL) {
-			/* just set y min/max for vertical scroller to y min/max of mask as appropriate */
-			if (v2d->scroll & (V2D_SCROLL_BOTTOM|V2D_SCROLL_BOTTOM_O)) {
-				/* on bottom edge of region (V2D_SCROLL_BOTTOM_O is outliner, the other is for standard) */
-				v2d->vert.ymin= v2d->mask.ymin;
-			}
-			else if (v2d->scroll & V2D_SCROLL_TOP) {
-				/* on upper edge of region */
-				v2d->vert.ymax= v2d->mask.ymax;
-			}
-		}
-	}
+	/* set masks */
+	view2_masks(v2d);
 	
 	/* set 'tot' rect before setting cur? */
 	if (tot_changed) 
 		UI_view2d_totRect_set(v2d, winx, winy);
 	else
 		UI_view2d_curRect_validate(v2d);
+	
 }
 
 /* Ensure View2D rects remain in a viable configuration 
@@ -549,6 +584,9 @@ void UI_view2d_curRect_validate(View2D *v2d)
 			}
 		}
 	}
+	
+	/* set masks */
+	view2_masks(v2d);
 }
 
 /* ------------------ */
@@ -731,7 +769,7 @@ static void view2d_map_cur_using_mask(View2D *v2d, rctf *curmasked)
 {
 	*curmasked= v2d->cur;
 	
-	if ((v2d->scroll)) {
+	if (view2d_scroll_mapped(v2d->scroll)) {
 		float dx= (v2d->cur.xmax-v2d->cur.xmin)/((float)(v2d->mask.xmax-v2d->mask.xmin+1));
 		float dy= (v2d->cur.ymax-v2d->cur.ymin)/((float)(v2d->mask.ymax-v2d->mask.ymin+1));
 		
@@ -1116,6 +1154,7 @@ View2DScrollers *UI_view2d_scrollers_calc(const bContext *C, View2D *v2d, short 
 	View2DScrollers *scrollers;
 	rcti vert, hor;
 	float fac, totsize, scrollsize;
+	int scroll= view2d_scroll_mapped(v2d->scroll);
 	
 	vert= v2d->vert;
 	hor= v2d->hor;
@@ -1129,7 +1168,7 @@ View2DScrollers *UI_view2d_scrollers_calc(const bContext *C, View2D *v2d, short 
 	 */
 	
 	/* horizontal scrollers */
-	if (v2d->scroll & V2D_SCROLL_HORIZONTAL) {
+	if (scroll & V2D_SCROLL_HORIZONTAL) {
 		/* scroller 'button' extents */
 		totsize= v2d->tot.xmax - v2d->tot.xmin;
 		scrollsize= (float)(hor.xmax - hor.xmin);
@@ -1145,7 +1184,7 @@ View2DScrollers *UI_view2d_scrollers_calc(const bContext *C, View2D *v2d, short 
 	}
 	
 	/* vertical scrollers */
-	if (v2d->scroll & V2D_SCROLL_VERTICAL) {
+	if (scroll & V2D_SCROLL_VERTICAL) {
 		/* scroller 'button' extents */
 		totsize= v2d->tot.ymax - v2d->tot.ymin;
 		scrollsize= (float)(vert.ymax - vert.ymin);
@@ -1161,7 +1200,7 @@ View2DScrollers *UI_view2d_scrollers_calc(const bContext *C, View2D *v2d, short 
 	}
 	
 	/* grid markings on scrollbars */
-	if (v2d->scroll & (V2D_SCROLL_SCALE_HORIZONTAL|V2D_SCROLL_SCALE_VERTICAL)) {
+	if (scroll & (V2D_SCROLL_SCALE_HORIZONTAL|V2D_SCROLL_SCALE_VERTICAL)) {
 		/* store clamping */
 		scrollers->xclamp= xclamp;
 		scrollers->xunits= xunits;
@@ -1292,13 +1331,14 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 	Scene *scene= CTX_data_scene(C);
 	const short darker= -50, dark= -10, light= 20, lighter= 50;
 	rcti vert, hor, corner;
+	int scroll= view2d_scroll_mapped(v2d->scroll);
 	
 	/* make copies of rects for less typing */
 	vert= v2d->vert;
 	hor= v2d->hor;
 	
 	/* horizontal scrollbar */
-	if (v2d->scroll & V2D_SCROLL_HORIZONTAL) {
+	if (scroll & V2D_SCROLL_HORIZONTAL) {
 		/* scroller backdrop */
 		UI_ThemeColorShade(TH_SHADE1, light);
 		glRecti(hor.xmin,  hor.ymin,  hor.xmax,  hor.ymax);
@@ -1306,8 +1346,10 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 		/* scroller 'button' 
 		 *	- if view is zoomable in x, draw handles too 
 		 *	- handles are drawn darker
+		 *  - no slider when view is > total
 		 */
-		if (v2d->keepzoom & V2D_LOCKZOOM_X) {
+		if (v2d->tot.xmax-v2d->tot.xmin <= v2d->cur.xmax-v2d->cur.xmin); 
+		else if (v2d->keepzoom & V2D_LOCKZOOM_X) {
 			/* draw base bar as rounded shape */
 			UI_ThemeColorShade(TH_SHADE1, dark);
 			uiSetRoundBox(15);
@@ -1362,7 +1404,7 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 		
 		/* scale indicators */
 		// XXX will need to update the font drawing when the new stuff comes in
-		if ((v2d->scroll & V2D_SCROLL_SCALE_HORIZONTAL) && (vs->grid)) {
+		if ((scroll & V2D_SCROLL_SCALE_HORIZONTAL) && (vs->grid)) {
 			View2DGrid *grid= vs->grid;
 			float fac, dfac, fac2, val;
 			
@@ -1426,14 +1468,14 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 		
 		/* decoration outer bevel line */
 		UI_ThemeColorShade(TH_SHADE1, lighter);
-		if (v2d->scroll & (V2D_SCROLL_BOTTOM|V2D_SCROLL_BOTTOM_O))
+		if (scroll & (V2D_SCROLL_BOTTOM|V2D_SCROLL_BOTTOM_O))
 			sdrawline(hor.xmin, hor.ymax, hor.xmax, hor.ymax);
-		else if (v2d->scroll & V2D_SCROLL_TOP)
+		else if (scroll & V2D_SCROLL_TOP)
 			sdrawline(hor.xmin, hor.ymin, hor.xmax, hor.ymin);
 	}
 	
 	/* vertical scrollbar */
-	if (v2d->scroll & V2D_SCROLL_VERTICAL) {
+	if (scroll & V2D_SCROLL_VERTICAL) {
 		/* scroller backdrop  */
 		UI_ThemeColorShade(TH_SHADE1, light);
 		glRecti(vert.xmin,  vert.ymin,  vert.xmax,  vert.ymax);
@@ -1442,7 +1484,8 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 		 *	- if view is zoomable in y, draw handles too 
 		 *	- handles are drawn darker
 		 */
-		if (v2d->keepzoom & V2D_LOCKZOOM_Y) {
+		if (v2d->tot.ymax-v2d->tot.ymin <= v2d->cur.ymax-v2d->cur.ymin); 
+		else if (v2d->keepzoom & V2D_LOCKZOOM_Y) {
 			/* draw base bar as rounded shape */
 			UI_ThemeColorShade(TH_SHADE1, dark);
 			uiSetRoundBox(15);
@@ -1497,7 +1540,7 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 		
 		/* scale indiators */
 		// XXX will need to update the font drawing when the new stuff comes in
-		if ((v2d->scroll & V2D_SCROLL_SCALE_VERTICAL) && (vs->grid)) {
+		if ((scroll & V2D_SCROLL_SCALE_VERTICAL) && (vs->grid)) {
 			View2DGrid *grid= vs->grid;
 			float fac, dfac, val;
 			
@@ -1532,14 +1575,14 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 		
 		/* decoration outer bevel line */
 		UI_ThemeColorShade(TH_SHADE1, lighter);
-		if (v2d->scroll & V2D_SCROLL_RIGHT)
+		if (scroll & V2D_SCROLL_RIGHT)
 			sdrawline(vert.xmin, vert.ymin, vert.xmin, vert.ymax);
-		else if (v2d->scroll & V2D_SCROLL_LEFT)
+		else if (scroll & V2D_SCROLL_LEFT)
 			sdrawline(vert.xmax, vert.ymin, vert.xmax, vert.ymax);
 	}
 	
 	/* draw a 'sunken square' to cover up any overlapping corners resulting from intersection of overflowing scroller data */
-	if ((v2d->scroll & V2D_SCROLL_VERTICAL) && (v2d->scroll & V2D_SCROLL_HORIZONTAL)) {
+	if ((scroll & V2D_SCROLL_VERTICAL) && (scroll & V2D_SCROLL_HORIZONTAL)) {
 		/* set bounds (these should be right) */
 		corner.xmin= vert.xmin;
 		corner.xmax= vert.xmax;
@@ -1811,16 +1854,17 @@ short UI_view2d_mouse_in_scrollers (const bContext *C, View2D *v2d, int x, int y
 {
 	ARegion *ar= CTX_wm_region(C);
 	int co[2];
+	int scroll= view2d_scroll_mapped(v2d->scroll);
 	
 	/* clamp x,y to region-coordinates first */
 	co[0]= x - ar->winrct.xmin;
 	co[1]= y - ar->winrct.ymin;
 	
 	/* check if within scrollbars */
-	if (v2d->scroll & V2D_SCROLL_HORIZONTAL) {
+	if (scroll & V2D_SCROLL_HORIZONTAL) {
 		if (IN_2D_HORIZ_SCROLL(v2d, co)) return 'h';
 	}
-	if (v2d->scroll & V2D_SCROLL_VERTICAL) {
+	if (scroll & V2D_SCROLL_VERTICAL) {
 		if (IN_2D_VERT_SCROLL(v2d, co)) return 'v';
 	}	
 	

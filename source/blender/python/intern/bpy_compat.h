@@ -74,4 +74,11 @@
 #endif
 #endif
 
+
+/* defined in bpy_util.c */
+#if PY_VERSION_HEX < 0x03000000
+PyObject *Py_CmpToRich(int op, int cmp);
+#endif
+
+
 #endif /* BPY_COMPAT_H__ */

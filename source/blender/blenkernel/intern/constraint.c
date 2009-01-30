@@ -1882,20 +1882,29 @@ static void actcon_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstraint
 		CLAMP(s, 0, 1);
 		t = ( s * (data->end-data->start)) + data->start;
 		
+		if (G.f & G_DEBUG)
+			printf("do Action Constraint %s - Ob %s Pchan %s \n", con->name, cob->ob->id.name+2, (cob->pchan)?cob->pchan->name:NULL);
+		
 		/* Get the appropriate information from the action */
+		// XXX probably we might need some special filtering methods to make this more efficient
 		if (cob->type == CONSTRAINT_OBTYPE_BONE) {
+			Object workob;
 			bPose *pose;
 			bPoseChannel *pchan, *tchan;
 			
 			/* make a temporary pose and evaluate using that */
 			pose = MEM_callocN(sizeof(bPose), "pose");
 			
+			/* make a copy of the bone of interest in the temp pose before evaluating action, so that it can get set */
 			pchan = cob->pchan;
 			tchan= verify_pose_channel(pose, pchan->name);
-			extract_pose_from_action(pose, data->act, t);
 			
+			/* evaluate action using workob (it will only set the PoseChannel in question) */
+			// XXX we need some flags to prevent evaluation from setting disabled flags on all other settings
+			what_does_obaction(cob->scene, cob->ob, &workob, pose, data->act, t);
+			
+			/* convert animation to matrices for use here */
 			chan_calc_mat(tchan);
-			
 			Mat4CpyMat4(ct->matrix, tchan->chan_mat);
 			
 			/* Clean up */
@@ -1903,8 +1912,9 @@ static void actcon_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstraint
 		}
 		else if (cob->type == CONSTRAINT_OBTYPE_OBJECT) {
 			Object workob;
+			
 			/* evaluate using workob */
-			//what_does_obaction(cob->scene, cob->ob, &workob, data->act, t); // FIXME: missing func...
+			what_does_obaction(cob->scene, cob->ob, &workob, NULL, data->act, t);
 			object_to_mat4(&workob, ct->matrix);
 		}
 		else {

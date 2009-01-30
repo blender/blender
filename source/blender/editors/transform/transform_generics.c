@@ -34,6 +34,7 @@
 
 #include "BLO_sys_types.h" // for intptr_t support
 
+#include "DNA_anim_types.h"
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
@@ -71,6 +72,7 @@
 #include "BKE_depsgraph.h"
 #include "BKE_displist.h"
 #include "BKE_depsgraph.h"
+#include "BKE_fcurve.h"
 #include "BKE_global.h"
 #include "BKE_group.h"
 #include "BKE_lattice.h"
@@ -81,12 +83,14 @@
 #include "BKE_utildefines.h"
 #include "BKE_context.h"
 
+#include "ED_anim_api.h"
 #include "ED_armature.h"
-#include "ED_view3d.h"
+#include "ED_image.h"
 #include "ED_mesh.h"
 #include "ED_space_api.h"
+#include "ED_uvedit.h"
+#include "ED_view3d.h"
 
-//#include "BSE_editaction_types.h"
 //#include "BDR_unwrapper.h"
 
 #include "BLI_arithb.h"
@@ -347,76 +351,6 @@ void recalcData(TransInfo *t)
 			}
 		}
 	}
-	else if (t->spacetype == SPACE_IPO) {
-		EditIpo *ei;
-		int dosort = 0;
-		int a;
-		
-		/* do the flush first */
-		flushTransIpoData(t);
-		
-		/* now test if there is a need to re-sort */
-		ei= G.sipo->editipo;
-		for (a=0; a<G.sipo->totipo; a++, ei++) {
-			if (ISPOIN(ei, flag & IPO_VISIBLE, icu)) {
-				
-				/* watch it: if the time is wrong: do not correct handles */
-				if (test_time_ipocurve(ei->icu)) {
-					dosort++;
-				} else {
-					calchandles_ipocurve(ei->icu);
-				}
-			}
-		}
-		
-		/* do resort and other updates? */
-		if (dosort) remake_ipo_transdata(t);
-		if (G.sipo->showkey) update_ipokey_val();
-		
-		calc_ipo(G.sipo->ipo, (float)CFRA);
-		
-		/* update realtime - not working? */
-		if (G.sipo->lock) {
-			if (G.sipo->blocktype==ID_MA || G.sipo->blocktype==ID_TE) {
-				do_ipo(G.sipo->ipo);
-			}
-			else if(G.sipo->blocktype==ID_CA) {
-				do_ipo(G.sipo->ipo);
-			}
-			else if(G.sipo->blocktype==ID_KE) {
-				Object *ob= OBACT;
-				if(ob) {
-					ob->shapeflag &= ~OB_SHAPE_TEMPLOCK;
-					DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
-				}
-			}
-			else if(G.sipo->blocktype==ID_PO) {
-				Object *ob= OBACT;
-				if(ob && ob->pose) {
-					DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
-				}
-			}
-			else if(G.sipo->blocktype==ID_OB) {
-				Object *ob= OBACT;
-				Base *base= FIRSTBASE;
-				
-				/* only if this if active object has this ipo in an action (assumes that current ipo is in action) */
-				if ((ob) && (ob->ipoflag & OB_ACTION_OB) && (G.sipo->pin==0)) {
-					ob->ctime= -1234567.0f;
-					DAG_object_flush_update(G.scene, ob, OB_RECALC_OB);
-				}
-				
-				while(base) {
-					if(base->object->ipo==G.sipo->ipo) {
-						do_ob_ipo(base->object);
-						base->object->recalc |= OB_RECALC_OB;
-					}
-					base= base->next;
-				}
-				DAG_scene_flush_update(G.scene, screen_view3d_layers(), 0);
-			}
-		}
-	}
 	else if (t->obedit) {
 		if ELEM(t->obedit->type, OB_CURVE, OB_SURF) {
 			Curve *cu= t->obedit->data;
@@ -458,13 +392,69 @@ void recalcData(TransInfo *t)
 	else if (t->spacetype==SPACE_SEQ) {
 		flushTransSeq(t);
 	}
+	else if (t->spacetype == SPACE_IPO) {
+		SpaceIpo *sipo= (SpaceIpo *)t->sa->spacedata.first;
+		Scene *scene;
+		
+		ListBase anim_data = {NULL, NULL};
+		bAnimContext ac;
+		int filter;
+		
+		bAnimListElem *ale;
+		int dosort = 0;
+		
+		
+		/* initialise relevant anim-context 'context' data from TransInfo data */
+			/* NOTE: sync this with the code in ANIM_animdata_get_context() */
+		memset(&ac, 0, sizeof(bAnimContext));
+		
+		scene= ac.scene= t->scene;
+		ac.obact= OBACT;
+		ac.sa= t->sa;
+		ac.ar= t->ar;
+		ac.spacetype= (t->sa)? t->sa->spacetype : 0;
+		ac.regiontype= (t->ar)? t->ar->regiontype : 0;
+		
+		/* do the flush first */
+		flushTransGraphData(t);
+		
+		/* get curves to check if a re-sort is needed */
+		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY | ANIMFILTER_CURVEVISIBLE);
+		ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+		
+		/* now test if there is a need to re-sort */
+		for (ale= anim_data.first; ale; ale= ale->next) {
+			FCurve *fcu= (FCurve *)ale->key_data;
+			
+			/* watch it: if the time is wrong: do not correct handles yet */
+			if (test_time_fcurve(fcu))
+				dosort++;
+			else
+				calchandles_fcurve(fcu);
+		}
+		
+		/* do resort and other updates? */
+		if (dosort) remake_graph_transdata(t, &anim_data);
+		//if (sipo->showkey) update_ipokey_val();
+		
+		/* now free temp channels */
+		BLI_freelistN(&anim_data);
+		
+		/* update realtime - not working? */
+		if (sipo->lock) {
+		
+		}
+	}
 	else if (t->obedit) {
 		if (t->obedit->type == OB_MESH) {
 			if(t->spacetype==SPACE_IMAGE) {
+				SpaceImage *sima= t->sa->spacedata.first;
+
 				flushTransUVs(t);
-				/* TRANSFORM_FIX_ME */
-//				if (G.sima->flag & SI_LIVE_UNWRAP)
-//					unwrap_lscm_live_re_solve();
+				if(sima->flag & SI_LIVE_UNWRAP)
+					ED_uvedit_live_unwrap_re_solve();
+	
+				DAG_object_flush_update(t->scene, t->obedit, OB_RECALC_DATA);
 			} else {
 				EditMesh *em = ((Mesh*)t->obedit->data)->edit_mesh;
 				/* mirror modifier clipping? */
@@ -699,6 +689,8 @@ void initTransInfo (bContext *C, TransInfo *t, wmEvent *event)
 	{
 		t->imval[0] = event->x - t->ar->winrct.xmin;
 		t->imval[1] = event->y - t->ar->winrct.ymin;
+		
+		t->event_type = event->type;
 	}
 	else
 	{
@@ -741,11 +733,9 @@ void initTransInfo (bContext *C, TransInfo *t, wmEvent *event)
 	}
 	else if(t->spacetype==SPACE_IMAGE || t->spacetype==SPACE_NODE)
 	{
-		View2D *v2d = sa->spacedata.first; // XXX no!
-
-		t->view = v2d;
-
-		t->around = v2d->around;
+		// XXX for now, get View2D  from the active region
+		t->view = &ar->v2d;
+		t->around = ar->v2d.around;
 	}
 	else
 	{
@@ -789,10 +779,9 @@ void postTrans (TransInfo *t)
 	}
 
 	if(t->spacetype==SPACE_IMAGE) {
-#if 0 // TRANSFORM_FIX_ME
-		if (G.sima->flag & SI_LIVE_UNWRAP)
-			unwrap_lscm_live_end(t->state == TRANS_CANCEL);
-#endif
+		SpaceImage *sima= t->sa->spacedata.first;
+		if(sima->flag & SI_LIVE_UNWRAP)
+			ED_uvedit_live_unwrap_end(t->state == TRANS_CANCEL);
 	}
 	else if(t->spacetype==SPACE_ACTION) {
 		if (t->customData)
@@ -921,16 +910,17 @@ void calculateCenterCursor(TransInfo *t)
 
 void calculateCenterCursor2D(TransInfo *t)
 {
-#if 0 // TRANSFORM_FIX_ME
+	View2D *v2d= t->view;
 	float aspx=1.0, aspy=1.0;
 	
 	if(t->spacetype==SPACE_IMAGE) /* only space supported right now but may change */
-		transform_aspect_ratio_tface_uv(&aspx, &aspy);
-	if (G.v2d) {
-		t->center[0] = G.v2d->cursor[0] * aspx; 
-		t->center[1] = G.v2d->cursor[1] * aspy; 
+		ED_space_image_uv_aspect(t->sa->spacedata.first, &aspx, &aspy);
+
+	if (v2d) {
+		t->center[0] = v2d->cursor[0] * aspx; 
+		t->center[1] = v2d->cursor[1] * aspy; 
 	}
-#endif
+
 	calculateCenter2D(t);
 }
 

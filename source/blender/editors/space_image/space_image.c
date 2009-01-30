@@ -53,6 +53,7 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
+#include "ED_image.h"
 #include "ED_mesh.h"
 #include "ED_space_api.h"
 #include "ED_screen.h"
@@ -145,6 +146,8 @@ void image_operatortypes(void)
 	WM_operatortype_append(IMAGE_OT_view_zoom_in);
 	WM_operatortype_append(IMAGE_OT_view_zoom_out);
 	WM_operatortype_append(IMAGE_OT_view_zoom_ratio);
+
+	WM_operatortype_append(IMAGE_OT_toolbox);
 }
 
 void image_keymap(struct wmWindowManager *wm)
@@ -168,6 +171,8 @@ void image_keymap(struct wmWindowManager *wm)
 	RNA_float_set(WM_keymap_add_item(keymap, "IMAGE_OT_view_zoom_ratio", PAD2, KM_PRESS, 0, 0)->ptr, "ratio", 0.5f);
 	RNA_float_set(WM_keymap_add_item(keymap, "IMAGE_OT_view_zoom_ratio", PAD4, KM_PRESS, 0, 0)->ptr, "ratio", 0.25f);
 	RNA_float_set(WM_keymap_add_item(keymap, "IMAGE_OT_view_zoom_ratio", PAD8, KM_PRESS, 0, 0)->ptr, "ratio", 0.125f);
+
+	WM_keymap_add_item(keymap, "IMAGE_OT_toolbox", SPACEKEY, KM_PRESS, 0, 0);
 }
 
 static void image_refresh(const bContext *C, ScrArea *sa)
@@ -215,6 +220,8 @@ static void image_listener(ScrArea *sa, wmNotifier *wmn)
 		case NC_SCENE:
 			switch(wmn->data) {
 				case ND_MODE:
+				case ND_RENDER_RESULT:
+				case ND_COMPO_RESULT:
 					ED_area_tag_refresh(sa);
 					ED_area_tag_redraw(sa);
 					break;
@@ -545,6 +552,17 @@ void get_space_image_zoom(SpaceImage *sima, ARegion *ar, float *zoomx, float *zo
 	*zoomy= (float)(ar->winrct.ymax - ar->winrct.ymin)/(float)((ar->v2d.cur.ymax - ar->v2d.cur.ymin)*height);
 }
 
+void get_space_image_uv_aspect(SpaceImage *sima, float *aspx, float *aspy)
+{
+	int w, h;
+
+	get_space_image_aspect(sima, aspx, aspy);
+	get_space_image_size(sima, &w, &h);
+
+	*aspx *= (float)w;
+	*aspy *= (float)h;
+}
+
 int get_space_image_show_render(SpaceImage *sima)
 {
 	return (sima->image && ELEM(sima->image->type, IMA_TYPE_R_RESULT, IMA_TYPE_COMPOSITE));
@@ -582,4 +600,22 @@ int get_space_image_show_uvshadow(SpaceImage *sima, Object *obedit)
 
 	return 0;
 }
+
+/* Exported Functions */
+
+Image *ED_space_image(SpaceImage *sima)
+{
+	return get_space_image(sima);
+}
+
+void ED_space_image_size(SpaceImage *sima, int *width, int *height)
+{
+	get_space_image_size(sima, width, height);
+}
+
+void ED_space_image_uv_aspect(SpaceImage *sima, float *aspx, float *aspy)
+{
+	get_space_image_uv_aspect(sima, aspx, aspy);
+}
+
 

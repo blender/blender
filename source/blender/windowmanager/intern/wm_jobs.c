@@ -36,6 +36,7 @@
 #include "BKE_blender.h"
 #include "BKE_context.h"
 #include "BKE_idprop.h"
+#include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_report.h"
@@ -87,18 +88,22 @@ struct wmJob {
 	
 	/* should store entire own context, for start, update, free */
 	void *customdata;
+	/* to prevent cpu overhead, use this one which only gets called when job really starts, not in thread */
+	void (*initjob)(void *);
+	/* this runs inside thread, and does full job */
 	void (*startjob)(void *, short *stop, short *do_update);
+	/* update gets called if thread defines so, and max once per timerstep */
+	/* it runs outside thread, blocking blender, no drawing! */
+	void (*update)(void *);
+	/* free entire customdata, doesn't run in thread */
 	void (*free)(void *);
 	
 	/* running jobs each have own timer */
 	double timestep;
 	wmTimer *wt;
 	/* the notifier event timers should send */
-	unsigned int note;
+	unsigned int note, endnote;
 	
-	/* update gets called if thread defines so, and max once per timerstep */
-	/* no drawing, send notifiers! */
-	void (*update)(void *);
 	
 /* internal */
 	void *owner;
@@ -135,6 +140,18 @@ wmJob *WM_jobs_get(wmWindowManager *wm, wmWindow *win, void *owner)
 	return steve;
 }
 
+/* returns true if job runs, for UI (progress) indicators */
+int WM_jobs_test(wmWindowManager *wm, void *owner)
+{
+	wmJob *steve;
+	
+	for(steve= wm->jobs.first; steve; steve= steve->next)
+		if(steve->owner==owner)
+			if(steve->running)
+				return 1;
+	return 0;
+}
+
 void WM_jobs_customdata(wmJob *steve, void *customdata, void (*free)(void *))
 {
 	/* pending job? just free */
@@ -150,17 +167,20 @@ void WM_jobs_customdata(wmJob *steve, void *customdata, void (*free)(void *))
 	}
 }
 
-void WM_jobs_timer(wmJob *steve, double timestep, unsigned int note)
+void WM_jobs_timer(wmJob *steve, double timestep, unsigned int note, unsigned int endnote)
 {
 	steve->timestep = timestep;
 	steve->note = note;
+	steve->endnote = endnote;
 }
 
 void WM_jobs_callbacks(wmJob *steve, 
 					   void (*startjob)(void *, short *, short *),
+					   void (*initjob)(void *),
 					   void (*update)(void  *))
 {
 	steve->startjob= startjob;
+	steve->initjob= initjob;
 	steve->update= update;
 }
 
@@ -191,15 +211,42 @@ void WM_jobs_start(wmJob *steve)
 			steve->customdata= NULL;
 			steve->running= 1;
 			
-			BLI_init_threads(&steve->threads, do_job_thread, 1);
+			if(steve->initjob)
+				steve->initjob(steve->run_customdata);
+			
+ 			BLI_init_threads(&steve->threads, do_job_thread, 1);
 			BLI_insert_thread(&steve->threads, steve);
 
+			// printf("job started\n");
+			
 			/* restarted job has timer already */
 			if(steve->wt==NULL)
 				steve->wt= WM_event_add_window_timer(steve->win, TIMERJOBS, steve->timestep);
 		}
 		else printf("job fails, not initialized\n");
 	}
+}
+
+void WM_jobs_stop_all(wmWindowManager *wm)
+{
+	wmJob *steve= wm->jobs.first;
+	
+	for(; steve; steve= steve->next) {
+		if(steve->running) {
+			/* signal job to end */
+			steve->stop= 1;
+			BLI_end_threads(&steve->threads);
+		}
+		
+		if(steve->wt)
+			WM_event_remove_window_timer(steve->win, steve->wt);
+		if(steve->customdata)
+			steve->free(steve->customdata);
+		if(steve->run_customdata)
+			steve->run_free(steve->run_customdata);
+	}	
+	
+	BLI_freelistN(&wm->jobs);
 }
 
 /* hardcoded to event TIMERJOBS */
@@ -214,9 +261,10 @@ static int wm_jobs_timer(bContext *C, wmOperator *op, wmEvent *evt)
 			/* running threads */
 			if(steve->threads.first) {
 				
-				if(steve->do_update) {
+				/* always call note and update when ready */
+				if(steve->do_update || steve->ready) {
 					if(steve->update)
-						steve->update(steve->customdata);
+						steve->update(steve->run_customdata);
 					if(steve->note)
 						WM_event_add_notifier(C, steve->note, NULL);
 					steve->do_update= 0;
@@ -228,8 +276,14 @@ static int wm_jobs_timer(bContext *C, wmOperator *op, wmEvent *evt)
 					steve->run_customdata= NULL;
 					steve->run_free= NULL;
 					
+					//	if(steve->stop) printf("job stopped\n");
+					//	else printf("job finished\n");
+
 					steve->running= 0;
 					BLI_end_threads(&steve->threads);
+					
+					if(steve->endnote)
+						WM_event_add_notifier(C, steve->endnote, NULL);
 					
 					/* new job added for steve? */
 					if(steve->customdata) {

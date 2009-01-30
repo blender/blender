@@ -4049,28 +4049,23 @@ int join_curve(Scene *scene, int type)
 	return 1;
 }
 
-
-
-Nurb *addNurbprim(Scene *scene, int type, int stype, int newname)
-/* type: &8= 2D;  0=poly,1 bez, 4 nurb
- * stype:   0: 2/4 points curve
- *	    1: 8 points circle
- *	    2: 4x4 patch Nurb
- *	    3: tube 4:sphere 5:donut
- *		6: 5 points,  5th order straight line (for anim path) 
- */
+Nurb *addNurbprim(bContext *C, int type, int newname)
 {
-	Object *obedit= scene->obedit; // XXX
+	static int xzproj= 0;	/* this function calls itself... */
+	Scene *scene= CTX_data_scene(C);
+	Object *obedit= CTX_data_edit_object(C);
 	ListBase *editnurb= curve_get_editcurve(obedit);
-	View3D *v3d= NULL; // XXX
-	RegionView3D *rv3d= NULL; // XXX
-	static int xzproj= 0;
+	View3D *v3d= CTX_wm_view3d(C);
+	RegionView3D *rv3d= CTX_wm_region_view3d(C);
 	Nurb *nu = NULL;
 	BezTriple *bezt;
 	BPoint *bp;
 	float *curs, cent[3],vec[3],imat[3][3],mat[3][3];
 	float fac,cmat[3][3], grid;
-	int a, b;
+	int a, b, cutype, stype;
+	
+	cutype= type & CU_TYPE;	// poly, bezier, nurbs, etc
+	stype= type & CU_PRIMITIVE;
 	
 	if (v3d)	grid = v3d->grid;
 	else		grid = 1.0;
@@ -4085,7 +4080,7 @@ Nurb *addNurbprim(Scene *scene, int type, int stype, int newname)
 		cent[1]-= obedit->obmat[3][1];
 		cent[2]-= obedit->obmat[3][2];
 		
-		if (v3d) {
+		if (rv3d) {
 			if ( !(newname) || U.flag & USER_ADD_VIEWALIGNED) 
 				Mat3CpyMat4(imat, rv3d->viewmat);
 			else Mat3One(imat);
@@ -4096,11 +4091,11 @@ Nurb *addNurbprim(Scene *scene, int type, int stype, int newname)
 		setflagsNurb(editnurb, 0);
 	}
 	else {
-		Mat3One(imat);
-		cent[0]= cent[1]= cent[2]= 0.0;
+		return NULL;
 	}
 	
-	if (ELEM5(stype, 0, 1, 2, 4, 6)) {
+	/* these types call this function to return a Nurb */
+	if (stype!=CU_PRIM_TUBE && stype!=CU_PRIM_DONUT) {
 		nu = (Nurb*)MEM_callocN(sizeof(Nurb), "addNurbprim");
 		nu->type= type;
 		nu->resolu= 4;
@@ -4108,13 +4103,13 @@ Nurb *addNurbprim(Scene *scene, int type, int stype, int newname)
 	}
 
 	switch(stype) {
-	case 0:	/* curve */
+	case CU_PRIM_CURVE:	/* curve */
 		nu->resolu= 12; /* set as 4 above */
 		if(newname) {
 			rename_id((ID *)obedit, "Curve");
 			rename_id((ID *)obedit->data, "Curve");
 		}
-		if((type & 7)==CU_BEZIER) {
+		if(cutype==CU_BEZIER) {
 			nu->pntsu= 2;
 			nu->bezt =
 				(BezTriple*)MEM_callocN(2 * sizeof(BezTriple), "addNurbprim1");
@@ -4175,14 +4170,14 @@ Nurb *addNurbprim(Scene *scene, int type, int stype, int newname)
 			bp= nu->bp;
 			for(a=0;a<4;a++, bp++) Mat3MulVecfl(imat,bp->vec);
 
-			if((type & 7)==4) {
+			if(cutype==CU_NURBS) {
 				nu->knotsu= 0;	/* makeknots allocates */
 				makeknots(nu, 1, nu->flagu>>1);
 			}
 
 		}
 		break;
-	case 6:	/* 5 point path */
+	case CU_PRIM_PATH:	/* 5 point path */
 		nu->pntsu= 5;
 		nu->pntsv= 1;
 		nu->orderu= 5;
@@ -4210,19 +4205,19 @@ Nurb *addNurbprim(Scene *scene, int type, int stype, int newname)
 		bp= nu->bp;
 		for(a=0;a<5;a++, bp++) Mat3MulVecfl(imat,bp->vec);
 
-		if((type & 7)==4) {
+		if(cutype==CU_NURBS) {
 			nu->knotsu= 0;	/* makeknots allocates */
 			makeknots(nu, 1, nu->flagu>>1);
 		}
 
 		break;
-	case 1:	/* circle */
+	case CU_PRIM_CIRCLE:	/* circle */
 		nu->resolu= 12; /* set as 4 above */
 		if(newname) {
 			rename_id((ID *)obedit, "CurveCircle");
 			rename_id((ID *)obedit->data, "CurveCircle");
 		}
-		if((type & 7)==CU_BEZIER) {
+		if(cutype==CU_BEZIER) {
 			nu->pntsu= 4;
 			nu->bezt= callocstructN(BezTriple, 4, "addNurbprim1");
 			nu->flagu= CU_CYCLIC;
@@ -4269,7 +4264,7 @@ Nurb *addNurbprim(Scene *scene, int type, int stype, int newname)
 
 			calchandlesNurb(nu);
 		}
-		else if( (type & 7)==CU_NURBS ) {  /* nurb */
+		else if( cutype==CU_NURBS ) {  /* nurb */
 			nu->pntsu= 8;
 			nu->pntsv= 1;
 			nu->orderu= 4;
@@ -4300,8 +4295,8 @@ Nurb *addNurbprim(Scene *scene, int type, int stype, int newname)
 			makeknots(nu, 1, nu->flagu>>1);
 		}
 		break;
-	case 2:	/* 4x4 patch */
-		if( (type & 7)==CU_NURBS ) {  /* nurb */
+	case CU_PRIM_PATCH:	/* 4x4 patch */
+		if( cutype==CU_NURBS ) {  /* nurb */
 			if(newname) {
 				rename_id((ID *)obedit, "Surf");
 				rename_id((ID *)obedit->data, "Surf");
@@ -4338,14 +4333,14 @@ Nurb *addNurbprim(Scene *scene, int type, int stype, int newname)
 			makeknots(nu, 2, nu->flagv>>1);
 		}
 		break;
-	case 3:	/* tube */
-		if( (type & 7)==CU_NURBS ) {
+	case CU_PRIM_TUBE:	/* tube */
+		if( cutype==CU_NURBS ) {
 			if(newname) {
 				rename_id((ID *)obedit, "SurfTube");
 				rename_id((ID *)obedit->data, "SurfTube");
 			}
 
-			nu= addNurbprim(scene, 4, 1, newname);  /* circle */
+			nu= addNurbprim(C, CU_NURBS|CU_2D|CU_PRIM_CIRCLE, 0);  /* circle */
 			nu->resolu= 4;
 			nu->flag= CU_SMOOTH;
 			BLI_addtail(editnurb, nu); /* temporal for extrude and translate */
@@ -4369,8 +4364,8 @@ Nurb *addNurbprim(Scene *scene, int type, int stype, int newname)
 			}
 		}
 		break;
-	case 4:	/* sphere */
-		if( (type & 7)==CU_NURBS ) {
+	case CU_PRIM_SPHERE:	/* sphere */
+		if( cutype==CU_NURBS ) {
 			if(newname) {
 				rename_id((ID *)obedit, "SurfSphere");
 				rename_id((ID *)obedit->data, "SurfSphere");
@@ -4416,15 +4411,15 @@ Nurb *addNurbprim(Scene *scene, int type, int stype, int newname)
 			BLI_remlink(editnurb, nu);
 		}
 		break;
-	case 5:	/* donut */
-		if( (type & 7)==CU_NURBS ) {
+	case CU_PRIM_DONUT:	/* donut */
+		if( cutype==CU_NURBS ) {
 			if(newname) {
 				rename_id((ID *)obedit, "SurfDonut");
 				rename_id((ID *)obedit->data, "SurfDonut");
 			}
 
 			xzproj= 1;
-			nu= addNurbprim(scene, 4, 1, newname);  /* circle */
+			nu= addNurbprim(C, CU_NURBS|CU_2D|CU_PRIM_CIRCLE, 0);  /* circle */
 			xzproj= 0;
 			nu->resolu= 4;
 			nu->resolv= 4;
@@ -4491,110 +4486,6 @@ void default_curve_ipo(Scene *scene, Curve *cu)
 	calchandles_ipocurve(icu);
 #endif // XXX old animation system
 }
-
-void add_primitiveCurve(Scene *scene, int stype)
-{
-	Object *obedit= scene->obedit; // XXX
-	ListBase *editnurb= curve_get_editcurve(obedit);
-	View3D *v3d= NULL; // XXX
-	Nurb *nu;
-	Curve *cu;
-	int type, newname= 0;
-
-	if(v3d==0) return;
-	if(scene->id.lib) return;
-
-	if(stype>=10 && stype<20) type= CU_2D+1;
-	else if(stype>=20 && stype<30) type= CU_2D+2;
-	else if(stype>=30 && stype<40) type= CU_2D+3;
-	else if(stype>=40 && stype<50) {
-		if(stype==46) type= 4;
-		else type= CU_2D+4;
-	}
-	else type= CU_2D;
-
-// XXX	check_editmode(OB_CURVE);
-	
-	/* if no obedit: new object and enter editmode */
-	if(obedit==NULL) {
-// XXX		add_object_draw(OB_CURVE);
-		ED_object_base_init_from_view(NULL, BASACT); // NULL is C
-		obedit= BASACT->object;
-		
-		where_is_object(scene, obedit);
-		
-		make_editNurb(obedit);
-		newname= 1;
-		
-		cu= obedit->data;
-		if(stype==46) {
-			cu->flag |= (CU_3D+CU_PATH);
-			
-			default_curve_ipo(scene, cu);
-		}
-	}
-	else {
-		cu= obedit->data;
-	}
-
-	if(cu->flag & CU_3D) type &= ~CU_2D;
-
-	stype= (stype % 10);
-	
-	nu= addNurbprim(scene, type, stype, newname);   /* 2D */
-	
-	BLI_addtail(editnurb, nu);
-	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-
-	/* if a new object was created, it stores it in Curve, for reload original data and undo */
-	if ( !(newname) || U.flag & USER_ADD_EDITMODE) {
-		if(newname) load_editNurb(obedit);
-	} else {
-		// XXX
-		ED_object_exit_editmode(NULL, EM_FREEDATA|EM_WAITCURSOR);
-	}
-	
-	BIF_undo_push("Add Curve");
-}
-
-void add_primitiveNurb(Scene *scene, int type)
-{
-	Object *obedit= scene->obedit; // XXX
-	ListBase *editnurb= curve_get_editcurve(obedit);
-	Nurb *nu;
-	int newname= 0;
-	
-	if(scene->id.lib) return;
-
-// XXX	check_editmode(OB_SURF);
-
-	/* if no obedit: new object and enter editmode */
-	if(obedit==0) {
-// XXX		add_object_draw(OB_SURF);
-		ED_object_base_init_from_view(NULL, BASACT); // NULL is C
-		 obedit= BASACT->object;
-		
-		where_is_object(scene, obedit);
-		
-		make_editNurb(obedit);
-		newname= 1;
-	}
-
-	nu= addNurbprim(scene, 4, type, newname);
-	BLI_addtail(editnurb,nu);
-	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-
-	/* if a new object was created, it stores it in Curve, for reload original data and undo */
-	if ( !(newname) || U.flag & USER_ADD_EDITMODE) {
-		if(newname) load_editNurb(obedit);
-	} else {
-		// XXX
-		ED_object_exit_editmode(NULL, EM_FREEDATA|EM_WAITCURSOR);
-	}
-	
-	BIF_undo_push("Add Surface");
-}
-
 
 
 void clear_tilt(Scene *scene)

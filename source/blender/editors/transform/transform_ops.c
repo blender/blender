@@ -66,7 +66,7 @@ static int select_orientation_invoke(bContext *C, wmOperator *op, wmEvent *event
 	
 	op->customdata = string;
 	
-	uiPupmenuOperator(C, 0, op, "orientation", string);
+	uiPupMenuOperator(C, 0, op, "orientation", string);
 	
 	return OPERATOR_RUNNING_MODAL;
 }
@@ -242,7 +242,10 @@ void transform_keymap_for_space(struct wmWindowManager *wm, struct ListBase *key
 		case SPACE_VIEW3D:
 			km = WM_keymap_add_item(keymap, "TFM_OT_transform", GKEY, KM_PRESS, 0, 0);
 			RNA_int_set(km->ptr, "mode", TFM_TRANSLATION);
-
+			
+			km= WM_keymap_add_item(keymap, "TFM_OT_transform", EVT_TWEAK_S, KM_ANY, 0, 0);
+			RNA_int_set(km->ptr, "mode", TFM_TRANSLATION);
+			
 			km = WM_keymap_add_item(keymap, "TFM_OT_transform", RKEY, KM_PRESS, 0, 0);
 			RNA_int_set(km->ptr, "mode", TFM_ROTATION);
 
@@ -265,6 +268,9 @@ void transform_keymap_for_space(struct wmWindowManager *wm, struct ListBase *key
 			km= WM_keymap_add_item(keymap, "TFM_OT_transform", GKEY, KM_PRESS, 0, 0);
 			RNA_int_set(km->ptr, "mode", TFM_TIME_TRANSLATE);
 			
+			km= WM_keymap_add_item(keymap, "TFM_OT_transform", EVT_TWEAK_S, KM_ANY, 0, 0);
+			RNA_int_set(km->ptr, "mode", TFM_TIME_TRANSLATE);
+			
 			km= WM_keymap_add_item(keymap, "TFM_OT_transform", EKEY, KM_PRESS, 0, 0);
 			RNA_int_set(km->ptr, "mode", TFM_TIME_EXTEND);
 			
@@ -274,8 +280,30 @@ void transform_keymap_for_space(struct wmWindowManager *wm, struct ListBase *key
 			km= WM_keymap_add_item(keymap, "TFM_OT_transform", TKEY, KM_PRESS, 0, 0);
 			RNA_int_set(km->ptr, "mode", TFM_TIME_SLIDE);
 			break;
+		case SPACE_IPO:
+			km= WM_keymap_add_item(keymap, "TFM_OT_transform", GKEY, KM_PRESS, 0, 0);
+			RNA_int_set(km->ptr, "mode", TFM_TRANSLATION);
+			
+			km= WM_keymap_add_item(keymap, "TFM_OT_transform", EVT_TWEAK_S, KM_ANY, 0, 0);
+			RNA_int_set(km->ptr, "mode", TFM_TRANSLATION);
+			
+				// XXX the 'mode' identifier here is not quite right
+			km= WM_keymap_add_item(keymap, "TFM_OT_transform", EKEY, KM_PRESS, 0, 0);
+			RNA_int_set(km->ptr, "mode", TFM_TIME_EXTEND);
+			
+			km = WM_keymap_add_item(keymap, "TFM_OT_transform", RKEY, KM_PRESS, 0, 0);
+			RNA_int_set(km->ptr, "mode", TFM_ROTATION);
+			
+			km = WM_keymap_add_item(keymap, "TFM_OT_transform", SKEY, KM_PRESS, 0, 0);
+			RNA_int_set(km->ptr, "mode", TFM_RESIZE);
+			break;
 		case SPACE_NODE:
 			km= WM_keymap_add_item(keymap, "TFM_OT_transform", GKEY, KM_PRESS, 0, 0);
+			RNA_int_set(km->ptr, "mode", TFM_TRANSLATION);
+			
+			km= WM_keymap_add_item(keymap, "TFM_OT_transform", EVT_TWEAK_A, KM_ANY, 0, 0);
+			RNA_int_set(km->ptr, "mode", TFM_TRANSLATION);
+			km= WM_keymap_add_item(keymap, "TFM_OT_transform", EVT_TWEAK_S, KM_ANY, 0, 0);
 			RNA_int_set(km->ptr, "mode", TFM_TRANSLATION);
 			
 			km = WM_keymap_add_item(keymap, "TFM_OT_transform", RKEY, KM_PRESS, 0, 0);
@@ -287,9 +315,28 @@ void transform_keymap_for_space(struct wmWindowManager *wm, struct ListBase *key
 		case SPACE_SEQ:
 			km= WM_keymap_add_item(keymap, "TFM_OT_transform", GKEY, KM_PRESS, 0, 0);
 			RNA_int_set(km->ptr, "mode", TFM_TRANSLATION);
-
+			
+			km= WM_keymap_add_item(keymap, "TFM_OT_transform", EVT_TWEAK_S, KM_ANY, 0, 0);
+			RNA_int_set(km->ptr, "mode", TFM_TRANSLATION);
+			
 			km= WM_keymap_add_item(keymap, "TFM_OT_transform", EKEY, KM_PRESS, 0, 0);
 			RNA_int_set(km->ptr, "mode", TFM_TIME_EXTEND);
+			break;
+		case SPACE_IMAGE:
+			km = WM_keymap_add_item(keymap, "TFM_OT_transform", GKEY, KM_PRESS, 0, 0);
+			RNA_int_set(km->ptr, "mode", TFM_TRANSLATION);
+			
+			km= WM_keymap_add_item(keymap, "TFM_OT_transform", EVT_TWEAK_S, KM_ANY, 0, 0);
+			RNA_int_set(km->ptr, "mode", TFM_TRANSLATION);
+			
+			km = WM_keymap_add_item(keymap, "TFM_OT_transform", RKEY, KM_PRESS, 0, 0);
+			RNA_int_set(km->ptr, "mode", TFM_ROTATION);
+
+			km = WM_keymap_add_item(keymap, "TFM_OT_transform", SKEY, KM_PRESS, 0, 0);
+			RNA_int_set(km->ptr, "mode", TFM_RESIZE);
+
+			km = WM_keymap_add_item(keymap, "TFM_OT_transform", SKEY, KM_PRESS, KM_ALT|KM_CTRL|KM_SHIFT, 0);
+			RNA_int_set(km->ptr, "mode", TFM_SHEAR);
 			break;
 		default:
 			break;

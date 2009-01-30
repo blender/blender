@@ -646,7 +646,7 @@ void do_rel_key(int start, int end, int tot, char *basispoin, Key *key, int mode
 	
 	if(key->from==NULL) return;
 	
-	printf("do_rel_key() \n");
+	if (G.f & G_DEBUG) printf("do_rel_key() \n");
 	
 	if( GS(key->from->name)==ID_ME ) {
 		ofs[0]= sizeof(MVert);
@@ -683,14 +683,14 @@ void do_rel_key(int start, int end, int tot, char *basispoin, Key *key, int mode
 		if(kb!=key->refkey) {
 			float icuval= kb->curval;
 			
-			printf("\tdo rel key %s : %s = %f \n", key->id.name+2, kb->name, icuval);
+			if (G.f & G_DEBUG) printf("\tdo rel key %s : %s = %f \n", key->id.name+2, kb->name, icuval);
 			
 			/* only with value, and no difference allowed */
 			if(!(kb->flag & KEYBLOCK_MUTE) && icuval!=0.0f && kb->totelem==tot) {
 				KeyBlock *refb;
 				float weight, *weights= kb->weights;
 				
-				printf("\t\tnot skipped \n");
+				if (G.f & G_DEBUG) printf("\t\tnot skipped \n");
 				
 				poin= basispoin;
 				from= kb->data;
@@ -762,7 +762,7 @@ static void do_key(int start, int end, int tot, char *poin, Key *key, KeyBlock *
 
 	if(key->from==0) return;
 
-	printf("do_key() \n");
+	if (G.f & G_DEBUG) printf("do_key() \n");
 	
 	if( GS(key->from->name)==ID_ME ) {
 		ofs[0]= sizeof(MVert);
@@ -1024,10 +1024,10 @@ static int do_mesh_key(Scene *scene, Object *ob, Mesh *me)
 	/* prevent python from screwing this up? anyhoo, the from pointer could be dropped */
 	me->key->from= (ID *)me;
 	
-	printf("do mesh key ob:%s me:%s ke:%s \n", ob->id.name+2, me->id.name+2, me->key->id.name+2);
+	if (G.f & G_DEBUG) printf("do mesh key ob:%s me:%s ke:%s \n", ob->id.name+2, me->id.name+2, me->key->id.name+2);
 	
 	if(me->key->slurph && me->key->type!=KEY_RELATIVE ) {
-		printf("\tslurph key\n");
+		if (G.f & G_DEBUG) printf("\tslurph key\n");
 		
 		delta= me->key->slurph;
 		delta/= me->totvert;
@@ -1039,7 +1039,7 @@ static int do_mesh_key(Scene *scene, Object *ob, Mesh *me)
 			/* in do_key and cp_key the case a>tot is handled */
 		}
 		
-		cfra= scene->r.cfra;
+		cfra= (float)scene->r.cfra;
 		
 		for(a=0; a<me->totvert; a+=step, cfra+= delta) {
 			
@@ -1071,7 +1071,7 @@ static int do_mesh_key(Scene *scene, Object *ob, Mesh *me)
 		if(me->key->type==KEY_RELATIVE) {
 			KeyBlock *kb;
 			
-			printf("\tdo relative \n");
+			if (G.f & G_DEBUG) printf("\tdo relative \n");
 			
 			for(kb= me->key->block.first; kb; kb= kb->next)
 				kb->weights= get_weights_array(ob, kb->vgroup);
@@ -1084,9 +1084,9 @@ static int do_mesh_key(Scene *scene, Object *ob, Mesh *me)
 			}
 		}
 		else {
-			printf("\tdo absolute \n");
+			if (G.f & G_DEBUG) printf("\tdo absolute \n");
 			
-			ctime= bsystem_time(scene, ob, scene->r.cfra, 0.0); // xxx old cruft
+			ctime= bsystem_time(scene, ob, (float)scene->r.cfra, 0.0f); // xxx old cruft
 			
 #if 0 // XXX old animation system
 			if(calc_ipo_spec(me->key->ipo, KEY_SPEED, &ctime)==0) {
@@ -1207,10 +1207,10 @@ static int do_curve_key(Scene *scene, Curve *cu)
 			/* in do_key and cp_key the case a>tot has been handled */
 		}
 		
-		cfra= scene->r.cfra;
+		cfra= (float)scene->r.cfra;
 		
 		for(a=0; a<tot; a+=step, cfra+= delta) {
-			ctime= bsystem_time(scene, 0, cfra, 0.0); // XXX old cruft
+			ctime= bsystem_time(scene, 0, cfra, 0.0f); // XXX old cruft
 #if 0 // XXX old animation system
 			if(calc_ipo_spec(cu->key->ipo, KEY_SPEED, &ctime)==0) {
 				ctime /= 100.0;
@@ -1274,7 +1274,7 @@ static int do_latt_key(Scene *scene, Object *ob, Lattice *lt)
 		delta= lt->key->slurph;
 		delta/= (float)tot;
 		
-		cfra= scene->r.cfra;
+		cfra= (float)scene->r.cfra;
 		
 		for(a=0; a<tot; a++, cfra+= delta) {
 			
@@ -1346,7 +1346,7 @@ int do_ob_key(Scene *scene, Object *ob)
 	if(ob->shapeflag & (OB_SHAPE_LOCK|OB_SHAPE_TEMPLOCK)) {
 		KeyBlock *kb= BLI_findlink(&key->block, ob->shapenr-1);
 		
-		printf("ob %s, key %s locked \n", ob->id.name+2, key->id.name+2);
+		if (G.f & G_DEBUG) printf("ob %s, key %s locked \n", ob->id.name+2, key->id.name+2);
 		
 		if(kb && (kb->flag & KEYBLOCK_MUTE))
 			kb= key->refkey;
@@ -1393,7 +1393,7 @@ int do_ob_key(Scene *scene, Object *ob)
 #endif // XXX old animation system
 		/* do shapekey local drivers */
 		float ctime= (float)scene->r.cfra; // XXX this needs to be checked
-		printf("ob %s - do shapekey (%s) drivers \n", ob->id.name+2, key->id.name+2);
+		if (G.f & G_DEBUG) printf("ob %s - do shapekey (%s) drivers \n", ob->id.name+2, key->id.name+2);
 		BKE_animsys_evaluate_animdata(&key->id, key->adt, ctime, ADT_RECALC_DRIVERS);
 		
 		if(ob->type==OB_MESH) return do_mesh_key(scene, ob, ob->data);

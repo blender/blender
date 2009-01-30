@@ -91,13 +91,13 @@ static void do_node_selectmenu(bContext *C, void *arg, int event)
 	ED_area_tag_redraw(curarea);
 }
 
-static uiBlock *node_selectmenu(bContext *C, uiMenuBlockHandle *handle, void *arg_unused)
+static uiBlock *node_selectmenu(bContext *C, ARegion *ar, void *arg_unused)
 {
 	ScrArea *curarea= CTX_wm_area(C);
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
 	
-	block= uiBeginBlock(C, handle->region, "node_selectmenu", 
+	block= uiBeginBlock(C, ar, "node_selectmenu", 
 					  UI_EMBOSSP, UI_HELV);
 	uiBlockSetButmFunc(block, do_node_selectmenu, NULL);
 	
@@ -218,11 +218,11 @@ static void node_make_addmenu(bContext *C, int nodeclass, uiBlock *block)
 	}
 }
 
-static uiBlock *node_add_inputmenu(bContext *C, uiMenuBlockHandle *handle, void *arg_unused)
+static uiBlock *node_add_inputmenu(bContext *C, ARegion *ar, void *arg_unused)
 {
 	uiBlock *block;
 
-	block= uiBeginBlock(C, handle->region, "node_add_inputmenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "node_add_inputmenu", UI_EMBOSSP, UI_HELV);
 	uiBlockSetButmFunc(block, do_node_addmenu, NULL);
 	
 	node_make_addmenu(C, NODE_CLASS_INPUT, block);
@@ -233,11 +233,11 @@ static uiBlock *node_add_inputmenu(bContext *C, uiMenuBlockHandle *handle, void 
 	
 	return block;
 }
-static uiBlock *node_add_outputmenu(bContext *C, uiMenuBlockHandle *handle, void *arg_unused)
+static uiBlock *node_add_outputmenu(bContext *C, ARegion *ar, void *arg_unused)
 {
 	uiBlock *block;
 	
-	block= uiBeginBlock(C, handle->region, "node_add_outputmenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "node_add_outputmenu", UI_EMBOSSP, UI_HELV);
 	uiBlockSetButmFunc(block, do_node_addmenu, NULL);
 	
 	node_make_addmenu(C, NODE_CLASS_OUTPUT, block);
@@ -248,11 +248,11 @@ static uiBlock *node_add_outputmenu(bContext *C, uiMenuBlockHandle *handle, void
 	
 	return block;
 }
-static uiBlock *node_add_colormenu(bContext *C, uiMenuBlockHandle *handle, void *arg_unused)
+static uiBlock *node_add_colormenu(bContext *C, ARegion *ar, void *arg_unused)
 {
 	uiBlock *block;
 	
-	block= uiBeginBlock(C, handle->region, "node_add_colormenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "node_add_colormenu", UI_EMBOSSP, UI_HELV);
 	uiBlockSetButmFunc(block, do_node_addmenu, NULL);
 	
 	node_make_addmenu(C, NODE_CLASS_OP_COLOR, block);
@@ -263,11 +263,11 @@ static uiBlock *node_add_colormenu(bContext *C, uiMenuBlockHandle *handle, void 
 	
 	return block;
 }
-static uiBlock *node_add_vectormenu(bContext *C, uiMenuBlockHandle *handle, void *arg_unused)
+static uiBlock *node_add_vectormenu(bContext *C, ARegion *ar, void *arg_unused)
 {
 	uiBlock *block;
 	
-	block= uiBeginBlock(C, handle->region, "node_add_vectormenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "node_add_vectormenu", UI_EMBOSSP, UI_HELV);
 	uiBlockSetButmFunc(block, do_node_addmenu, NULL);
 	
 	node_make_addmenu(C, NODE_CLASS_OP_VECTOR, block);
@@ -278,11 +278,11 @@ static uiBlock *node_add_vectormenu(bContext *C, uiMenuBlockHandle *handle, void
 	
 	return block;
 }
-static uiBlock *node_add_filtermenu(bContext *C, uiMenuBlockHandle *handle, void *arg_unused)
+static uiBlock *node_add_filtermenu(bContext *C, ARegion *ar, void *arg_unused)
 {
 	uiBlock *block;
 	
-	block= uiBeginBlock(C, handle->region, "node_add_filtermenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "node_add_filtermenu", UI_EMBOSSP, UI_HELV);
 	uiBlockSetButmFunc(block, do_node_addmenu, NULL);
 	
 	node_make_addmenu(C, NODE_CLASS_OP_FILTER, block);
@@ -293,11 +293,11 @@ static uiBlock *node_add_filtermenu(bContext *C, uiMenuBlockHandle *handle, void
 	
 	return block;
 }
-static uiBlock *node_add_convertermenu(bContext *C, uiMenuBlockHandle *handle, void *arg_unused)
+static uiBlock *node_add_convertermenu(bContext *C, ARegion *ar, void *arg_unused)
 {
 	uiBlock *block;
 	
-	block= uiBeginBlock(C, handle->region, "node_add_convertermenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "node_add_convertermenu", UI_EMBOSSP, UI_HELV);
 	uiBlockSetButmFunc(block, do_node_addmenu, NULL);
 	
 	node_make_addmenu(C, NODE_CLASS_CONVERTOR, block);
@@ -308,11 +308,11 @@ static uiBlock *node_add_convertermenu(bContext *C, uiMenuBlockHandle *handle, v
 	
 	return block;
 }
-static uiBlock *node_add_mattemenu(bContext *C, uiMenuBlockHandle *handle, void *arg_unused)
+static uiBlock *node_add_mattemenu(bContext *C, ARegion *ar, void *arg_unused)
 {
 	uiBlock *block;
 	
-	block= uiBeginBlock(C, handle->region, "node_add_mattemenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "node_add_mattemenu", UI_EMBOSSP, UI_HELV);
 	uiBlockSetButmFunc(block, do_node_addmenu, NULL);
 	
 	node_make_addmenu(C, NODE_CLASS_MATTE, block);
@@ -323,11 +323,11 @@ static uiBlock *node_add_mattemenu(bContext *C, uiMenuBlockHandle *handle, void 
 	
 	return block;
 }
-static uiBlock *node_add_distortmenu(bContext *C, uiMenuBlockHandle *handle, void *arg_unused)
+static uiBlock *node_add_distortmenu(bContext *C, ARegion *ar, void *arg_unused)
 {
 	uiBlock *block;
 	
-	block= uiBeginBlock(C, handle->region, "node_add_distortmenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "node_add_distortmenu", UI_EMBOSSP, UI_HELV);
 	uiBlockSetButmFunc(block, do_node_addmenu, NULL);
 	
 	node_make_addmenu(C, NODE_CLASS_DISTORT, block);
@@ -338,11 +338,11 @@ static uiBlock *node_add_distortmenu(bContext *C, uiMenuBlockHandle *handle, voi
 	
 	return block;
 }
-static uiBlock *node_add_patternmenu(bContext *C, uiMenuBlockHandle *handle,  void *arg_unused)
+static uiBlock *node_add_patternmenu(bContext *C, ARegion *ar,  void *arg_unused)
 {
 	uiBlock *block;
 	
-	block= uiBeginBlock(C, handle->region, "node_add_patternmenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "node_add_patternmenu", UI_EMBOSSP, UI_HELV);
 	uiBlockSetButmFunc(block, do_node_addmenu, NULL);
 	
 	node_make_addmenu(C, NODE_CLASS_PATTERN, block);
@@ -353,11 +353,11 @@ static uiBlock *node_add_patternmenu(bContext *C, uiMenuBlockHandle *handle,  vo
 	
 	return block;
 }
-static uiBlock *node_add_texturemenu(bContext *C, uiMenuBlockHandle *handle, void *arg_unused)
+static uiBlock *node_add_texturemenu(bContext *C, ARegion *ar, void *arg_unused)
 {
 	uiBlock *block;
 	
-	block= uiBeginBlock(C, handle->region, "node_add_texturemenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "node_add_texturemenu", UI_EMBOSSP, UI_HELV);
 	uiBlockSetButmFunc(block, do_node_addmenu, NULL);
 	
 	node_make_addmenu(C, NODE_CLASS_TEXTURE, block);
@@ -368,11 +368,11 @@ static uiBlock *node_add_texturemenu(bContext *C, uiMenuBlockHandle *handle, voi
 	
 	return block;
 }
-static uiBlock *node_add_groupmenu(bContext *C, uiMenuBlockHandle *handle, void *arg_unused)
+static uiBlock *node_add_groupmenu(bContext *C, ARegion *ar, void *arg_unused)
 {
 	uiBlock *block;
 	
-	block= uiBeginBlock(C, handle->region, "node_add_groupmenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "node_add_groupmenu", UI_EMBOSSP, UI_HELV);
 	uiBlockSetButmFunc(block, do_node_addmenu, NULL);
 	
 	node_make_addmenu(C, NODE_CLASS_GROUP, block);
@@ -384,11 +384,11 @@ static uiBlock *node_add_groupmenu(bContext *C, uiMenuBlockHandle *handle, void 
 	return block;
 }
 
-static uiBlock *node_add_dynamicmenu(bContext *C, uiMenuBlockHandle *handle, void *arg_unused)
+static uiBlock *node_add_dynamicmenu(bContext *C, ARegion *ar, void *arg_unused)
 {
 	uiBlock *block;
 	
-	block= uiBeginBlock(C, handle->region, "node_add_dynamicmenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "node_add_dynamicmenu", UI_EMBOSSP, UI_HELV);
 	uiBlockSetButmFunc(block, do_node_addmenu, NULL);
 	
 	node_make_addmenu(C, NODE_CLASS_OP_DYNAMIC, block);
@@ -400,14 +400,14 @@ static uiBlock *node_add_dynamicmenu(bContext *C, uiMenuBlockHandle *handle, voi
 	return block;
 }
 
-static uiBlock *node_addmenu(bContext *C, uiMenuBlockHandle *handle, void *arg_unused)
+static uiBlock *node_addmenu(bContext *C, ARegion *ar, void *arg_unused)
 {
 	ScrArea *curarea= CTX_wm_area(C);
 	SpaceNode *snode= (SpaceNode*)CTX_wm_space_data(C);
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
 	
-	block= uiBeginBlock(C, handle->region, "node_addmenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "node_addmenu", UI_EMBOSSP, UI_HELV);
 	uiBlockSetButmFunc(block, do_node_addmenu, NULL);
 	
 	if(snode->treetype==NTREE_SHADER) {
@@ -521,14 +521,14 @@ static void do_node_nodemenu(bContext *C, void *arg, int event)
 	ED_area_tag_redraw(curarea);
 }
 
-static uiBlock *node_nodemenu(bContext *C, uiMenuBlockHandle *handle, void *arg_unused)
+static uiBlock *node_nodemenu(bContext *C, ARegion *ar, void *arg_unused)
 {
 	ScrArea *curarea= CTX_wm_area(C);
 	SpaceNode *snode= (SpaceNode*)CTX_wm_space_data(C);
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
 	
-	block= uiBeginBlock(C, handle->region, "node_nodemenu", 
+	block= uiBeginBlock(C, ar, "node_nodemenu", 
 					  UI_EMBOSSP, UI_HELV);
 	uiBlockSetButmFunc(block, do_node_nodemenu, NULL);
 	
@@ -606,14 +606,14 @@ static void do_node_viewmenu(bContext *C, void *arg, int event)
 	ED_area_tag_redraw(sa);
 }
 
-static uiBlock *node_viewmenu(bContext *C, uiMenuBlockHandle *handle, void *arg_unused)
+static uiBlock *node_viewmenu(bContext *C, ARegion *ar, void *arg_unused)
 {
 	ScrArea *curarea= CTX_wm_area(C);
 	SpaceNode *snode= (SpaceNode*)CTX_wm_space_data(C);
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
 	
-	block= uiBeginBlock(C, handle->region, "node_viewmenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "node_viewmenu", UI_EMBOSSP, UI_HELV);
 	uiBlockSetButmFunc(block, do_node_viewmenu, NULL);
 
 	if (snode->nodetree) {
@@ -773,8 +773,11 @@ void node_header_buttons(const bContext *C, ARegion *ar)
 		}
 	}
 	else if(snode->treetype==NTREE_COMPOSIT) {
-		uiDefButS(block, TOG, B_NODE_USESCENE, "Use Nodes", xco+5,yco,90,19, &scene->use_nodes, 0.0f, 0.0f, 0, 0, "Indicate this Scene will use Nodes and execute them while editing");
-		xco+= 90;
+		int icon;
+		
+		if(WM_jobs_test(CTX_wm_manager(C), sa)) icon= ICON_REC; else icon= ICON_BLANK1;
+		uiDefIconTextButS(block, TOG, B_NODE_USESCENE, icon, "Use Nodes", xco+5,yco,100,19, &scene->use_nodes, 0.0f, 0.0f, 0, 0, "Indicate this Scene will use Nodes and execute them while editing");
+		xco+= 100;
 		uiDefButBitI(block, TOG, R_COMP_FREE, B_NOP, "Free Unused", xco+5,yco,100,19, &scene->r.scemode, 0.0f, 0.0f, 0, 0, "Free Nodes that are not used while composite");
 		xco+= 100;
 		uiDefButBitS(block, TOG, SNODE_BACKDRAW, REDRAWNODE, "Backdrop", xco+5,yco,90,19, &snode->flag, 0.0f, 0.0f, 0, 0, "Use active Viewer Node output as backdrop");

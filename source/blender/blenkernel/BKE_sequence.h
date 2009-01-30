@@ -140,6 +140,7 @@ struct SeqEffectHandle {
 void seq_free_sequence(struct Editing *ed, struct Sequence *seq);
 void seq_free_strip(struct Strip *strip);
 void seq_free_editing(struct Editing *ed);
+struct Editing *seq_give_editing(struct Scene *scene, int alloc);
 char *give_seqname(struct Sequence *seq);
 struct ImBuf *give_ibuf_seq(struct Scene *scene, int rectx, int recty, int cfra, int chanshown);
 struct ImBuf *give_ibuf_seq_threaded(struct Scene *scene, int rectx, int recty, int cfra, int chanshown);

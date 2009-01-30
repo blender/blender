@@ -122,10 +122,12 @@
 #include "ED_anim_api.h"
 #include "ED_armature.h"
 #include "ED_editparticle.h"
+#include "ED_image.h"
 #include "ED_keyframing.h"
 #include "ED_keyframes_edit.h"
 #include "ED_mesh.h"
 #include "ED_types.h"
+#include "ED_uvedit.h"
 #include "ED_view3d.h"
 
 #include "UI_view2d.h"
@@ -139,7 +141,6 @@
 //#include "BDR_drawaction.h"		// list of keyframes in action
 //#include "BDR_editobject.h"		// reset_slowparents()
 //#include "BDR_gpencil.h"
-//#include "BDR_unwrapper.h"
 
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
@@ -156,11 +157,6 @@ extern ListBase editelems;
 #include "transform.h"
 
 #include "BLO_sys_types.h" // for intptr_t support
-
-/************ STUBS TO GET COMPILE ************/
-void transform_aspect_ratio_tface_uv(float *a1, float *a2) {}
-
-
 
 /* local function prototype - for Object/Bone Constraints */
 static short constraints_list_needinv(TransInfo *t, ListBase *list);
@@ -2303,7 +2299,7 @@ void flushTransNodes(TransInfo *t)
 /* *** SEQUENCE EDITOR *** */
 void flushTransSeq(TransInfo *t)
 {
-	ListBase *seqbasep= ((Editing *)t->scene->ed)->seqbasep;
+	ListBase *seqbasep= seq_give_editing(t->scene, FALSE)->seqbasep; /* Editing null check alredy done */
 	int a, new_frame;
 	TransData *td= t->data;
 	TransData2D *td2d= t->data2d;
@@ -2380,11 +2376,11 @@ void flushTransSeq(TransInfo *t)
 
 /* ********************* UV ****************** */
 
-static void UVsToTransData(TransData *td, TransData2D *td2d, float *uv, int selected)
+static void UVsToTransData(SpaceImage *sima, TransData *td, TransData2D *td2d, float *uv, int selected)
 {
 	float aspx, aspy;
 
-	transform_aspect_ratio_tface_uv(&aspx, &aspy);
+	ED_space_image_uv_aspect(sima, &aspx, &aspy);
 
 	/* uv coords are scaled by aspects. this is needed for rotations and
 	   proportional editing to be consistent with the stretchted uv coords
@@ -2418,61 +2414,35 @@ static void UVsToTransData(TransData *td, TransData2D *td2d, float *uv, int sele
 
 static void createTransUVs(bContext *C, TransInfo *t)
 {
-#if 0 // TRANSFORM_FIX_ME
 	SpaceImage *sima = (SpaceImage*)CTX_wm_space_data(C);
+	Image *ima = CTX_data_edit_image(C);
+	Scene *scene = CTX_data_scene(C);
 	TransData *td = NULL;
 	TransData2D *td2d = NULL;
 	MTFace *tf;
 	int count=0, countsel=0;
 	int propmode = t->flag & T_PROP_EDIT;
-	int efa_s1,efa_s2,efa_s3,efa_s4;
 
 	EditMesh *em = ((Mesh *)t->obedit->data)->edit_mesh;
 	EditFace *efa;
 	
-	if(is_uv_tface_editing_allowed()==0) return;
+	if(!ED_uvedit_test(t->obedit)) return;
 
 	/* count */
-	if (sima->flag & SI_BE_SQUARE && !propmode) {
-		for (efa= em->faces.first; efa; efa= efa->next) {
-			/* store face pointer for second loop, prevent second lookup */
-			tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-			if (simaFaceDraw_Check(efa, tf)) {
-				efa->tmp.p = tf;
-				
-				efa_s1 = simaUVSel_Check(efa, tf, 0);
-				efa_s2 = simaUVSel_Check(efa, tf, 1);
-				efa_s3 = simaUVSel_Check(efa, tf, 2);
-				if (efa->v4) {
-					efa_s4 = simaUVSel_Check(efa, tf, 3);
-					if ( efa_s1 || efa_s2 || efa_s3 || efa_s4 ) {
-						countsel += 4; /* all corners of this quad need their edges moved. so we must store TD for each */
-					}
-				} else {
-					/* tri's are delt with normally when SI_BE_SQUARE's enabled */
-					if (efa_s1) countsel++; 
-					if (efa_s2) countsel++; 
-					if (efa_s3) countsel++;
-				}
-			} else {
-				efa->tmp.p = NULL;
-			}
-		}
-	} else {
-		for (efa= em->faces.first; efa; efa= efa->next) {
-			tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-			if (simaFaceDraw_Check(efa, tf)) {
-				efa->tmp.p = tf;
-				
-				if (simaUVSel_Check(efa, tf, 0)) countsel++; 
-				if (simaUVSel_Check(efa, tf, 1)) countsel++; 
-				if (simaUVSel_Check(efa, tf, 2)) countsel++; 
-				if (efa->v4 && simaUVSel_Check(efa, tf, 3)) countsel++;
-				if(propmode)
-					count += (efa->v4)? 4: 3;
-			} else {
-				efa->tmp.p = NULL;
-			}
+	for (efa= em->faces.first; efa; efa= efa->next) {
+		tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+
+		if(uvedit_face_visible(scene, ima, efa, tf)) {
+			efa->tmp.p = tf;
+			
+			if (uvedit_uv_selected(scene, efa, tf, 0)) countsel++; 
+			if (uvedit_uv_selected(scene, efa, tf, 1)) countsel++; 
+			if (uvedit_uv_selected(scene, efa, tf, 2)) countsel++; 
+			if (efa->v4 && uvedit_uv_selected(scene, efa, tf, 3)) countsel++;
+			if(propmode)
+				count += (efa->v4)? 4: 3;
+		} else {
+			efa->tmp.p = NULL;
 		}
 	}
 	
@@ -2491,81 +2461,36 @@ static void createTransUVs(bContext *C, TransInfo *t)
 	td= t->data;
 	td2d= t->data2d;
 	
-	if (sima->flag & SI_BE_SQUARE && !propmode) {
-		for (efa= em->faces.first; efa; efa= efa->next) {
-			tf=(MTFace *)efa->tmp.p;
-			if (tf) {
-				efa_s1 = simaUVSel_Check(efa, tf, 0);
-				efa_s2 = simaUVSel_Check(efa, tf, 1);
-				efa_s3 = simaUVSel_Check(efa, tf, 2);
-				
-				if (efa->v4) {
-					efa_s4 = simaUVSel_Check(efa, tf, 3);
-					
-					if ( efa_s1 || efa_s2 || efa_s3 || efa_s4 ) {
-						/* all corners of this quad need their edges moved. so we must store TD for each */
-
-						UVsToTransData(td, td2d, tf->uv[0], efa_s1);
-						if (!efa_s1)	td->flag |= TD_SKIP;
-						td++; td2d++;
-
-						UVsToTransData(td, td2d, tf->uv[1], efa_s2);
-						if (!efa_s2)	td->flag |= TD_SKIP;
-						td++; td2d++;
-
-						UVsToTransData(td, td2d, tf->uv[2], efa_s3);
-						if (!efa_s3)	td->flag |= TD_SKIP;
-						td++; td2d++;
-
-						UVsToTransData(td, td2d, tf->uv[3], efa_s4);
-						if (!efa_s4)	td->flag |= TD_SKIP;
-						td++; td2d++;
-					}
-				} else {
-					/* tri's are delt with normally when SI_BE_SQUARE's enabled */
-					if (efa_s1) UVsToTransData(td++, td2d++, tf->uv[0], 1); 
-					if (efa_s2) UVsToTransData(td++, td2d++, tf->uv[1], 1); 
-					if (efa_s3) UVsToTransData(td++, td2d++, tf->uv[2], 1);
-				}
-			}
-		}
-	} else {
-		for (efa= em->faces.first; efa; efa= efa->next) {
-			/*tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-			if (simaFaceDraw_Check(efa, tf)) {*/
-			if ((tf=(MTFace *)efa->tmp.p)) {
-				if (propmode) {
-					UVsToTransData(td++, td2d++, tf->uv[0], simaUVSel_Check(efa, tf, 0));
-					UVsToTransData(td++, td2d++, tf->uv[1], simaUVSel_Check(efa, tf, 1));
-					UVsToTransData(td++, td2d++, tf->uv[2], simaUVSel_Check(efa, tf, 2));
-					if(efa->v4)
-						UVsToTransData(td++, td2d++, tf->uv[3], simaUVSel_Check(efa, tf, 3));
-				} else {
-					if(simaUVSel_Check(efa, tf, 0))				UVsToTransData(td++, td2d++, tf->uv[0], 1);
-					if(simaUVSel_Check(efa, tf, 1))				UVsToTransData(td++, td2d++, tf->uv[1], 1);
-					if(simaUVSel_Check(efa, tf, 2))				UVsToTransData(td++, td2d++, tf->uv[2], 1);
-					if(efa->v4 && simaUVSel_Check(efa, tf, 3))	UVsToTransData(td++, td2d++, tf->uv[3], 1);
-				}
+	for (efa= em->faces.first; efa; efa= efa->next) {
+		if ((tf=(MTFace *)efa->tmp.p)) {
+			if (propmode) {
+				UVsToTransData(sima, td++, td2d++, tf->uv[0], uvedit_uv_selected(scene, efa, tf, 0));
+				UVsToTransData(sima, td++, td2d++, tf->uv[1], uvedit_uv_selected(scene, efa, tf, 1));
+				UVsToTransData(sima, td++, td2d++, tf->uv[2], uvedit_uv_selected(scene, efa, tf, 2));
+				if(efa->v4)
+					UVsToTransData(sima, td++, td2d++, tf->uv[3], uvedit_uv_selected(scene, efa, tf, 3));
+			} else {
+				if(uvedit_uv_selected(scene, efa, tf, 0))				UVsToTransData(sima, td++, td2d++, tf->uv[0], 1);
+				if(uvedit_uv_selected(scene, efa, tf, 1))				UVsToTransData(sima, td++, td2d++, tf->uv[1], 1);
+				if(uvedit_uv_selected(scene, efa, tf, 2))				UVsToTransData(sima, td++, td2d++, tf->uv[2], 1);
+				if(efa->v4 && uvedit_uv_selected(scene, efa, tf, 3))	UVsToTransData(sima, td++, td2d++, tf->uv[3], 1);
 			}
 		}
 	}
 	
 	if (sima->flag & SI_LIVE_UNWRAP)
-		unwrap_lscm_live_begin();
-#endif
+		ED_uvedit_live_unwrap_begin(t->scene, t->obedit);
 }
 
 void flushTransUVs(TransInfo *t)
 {
-#if 0 // TRANSFORM_FIX_ME
+	SpaceImage *sima = t->sa->spacedata.first;
 	TransData2D *td;
 	int a, width, height;
-	Object *ob= OBACT;
-	EditMesh *em = ((Mesh *)ob->data)->edit_mesh;
 	float aspx, aspy, invx, invy;
 
-	transform_aspect_ratio_tface_uv(&aspx, &aspy);
-	transform_width_height_tface_uv(&width, &height);
+	ED_space_image_uv_aspect(sima, &aspx, &aspy);
+	ED_space_image_size(sima, &width, &height);
 	invx= 1.0f/aspx;
 	invy= 1.0f/aspy;
 
@@ -2574,28 +2499,20 @@ void flushTransUVs(TransInfo *t)
 		td->loc2d[0]= td->loc[0]*invx;
 		td->loc2d[1]= td->loc[1]*invy;
 		
-		if((G.sima->flag & SI_PIXELSNAP) && (t->state != TRANS_CANCEL)) {
+		if((sima->flag & SI_PIXELSNAP) && (t->state != TRANS_CANCEL)) {
 			td->loc2d[0]= (float)floor(width*td->loc2d[0] + 0.5f)/width;
 			td->loc2d[1]= (float)floor(height*td->loc2d[1] + 0.5f)/height;
 		}
 	}
-	
-	if((G.sima->flag & SI_BE_SQUARE) && (t->flag & T_PROP_EDIT)==0 && (t->state != TRANS_CANCEL)) 
-		be_square_tface_uv(em);
-
-	/* this is overkill if G.sima->lock is not set, but still needed */
-	object_uvs_changed(ob);
-#endif
 }
 
 int clipUVTransform(TransInfo *t, float *vec, int resize)
 {
-#if 0 // TRANSFORM_FIX_ME
 	TransData *td;
 	int a, clipx=1, clipy=1;
 	float aspx, aspy, min[2], max[2];
 
-	transform_aspect_ratio_tface_uv(&aspx, &aspy);
+	ED_space_image_uv_aspect(t->sa->spacedata.first, &aspx, &aspy);
 	min[0]= min[1]= 0.0f;
 	max[0]= aspx; max[1]= aspy;
 
@@ -2635,48 +2552,6 @@ int clipUVTransform(TransInfo *t, float *vec, int resize)
 	}	
 
 	return (clipx || clipy);
-#endif
-return 0;
-}
-
-/* ********************* IPO EDITOR ************************* */
-
-/* for IPO Editor transform - but actual creation of transform structures is not performed here
- * due to bad globals that would need to be imported specially for this
- */
-static void createTransIpoData(bContext *C, TransInfo *t)
-{
-	// TRANSFORM_FIX_ME
-#if 0
-	/* in editipo.c due to some globals that are defined in that file... */
-	make_ipo_transdata(t);
-#endif
-}
-
-/* this function is called on recalcData to apply the transforms applied
- * to the transdata on to the actual keyframe data 
- */
-void flushTransIpoData(TransInfo *t)
-{
-#if 0 // TRANSFORM_FIX_ME
-	TransData2D *td;
-	int a;
-	
-	/* flush to 2d vector from internally used 3d vector */
-	for (a=0, td= t->data2d; a<t->total; a++, td++) {
-		// FIXME: autosnap needs to be here...
-		
-		/* we need to unapply the nla-scaling from the time in some situations */
-		if (NLA_IPO_SCALED)
-			td->loc2d[0]= get_action_frame(OBACT, td->loc[0]);
-		else
-			td->loc2d[0]= td->loc[0];
-		
-		/* when the icu that point comes from is a bitflag holder, don't allow adjusting values */
-		if ((t->data[a].flag & TD_TIMEONLY)==0)
-			td->loc2d[1]= td->loc[1];
-	}
-#endif
 }
 
 /* ********************* ACTION/NLA EDITOR ****************** */
@@ -3162,6 +3037,459 @@ static void createTransActionData(bContext *C, TransInfo *t)
 	BLI_freelistN(&anim_data);
 }
 
+/* ********************* GRAPH EDITOR ************************* */
+
+
+
+/* Helper function for createTransGraphEditData, which is reponsible for associating
+ * source data with transform data
+ */
+static void bezt_to_transdata (TransData *td, TransData2D *td2d, Object *nob, float *loc, float *cent, short selected, short ishandle)
+{
+	/* New location from td gets dumped onto the old-location of td2d, which then
+	 * gets copied to the actual data at td2d->loc2d (bezt->vec[n])
+	 *
+	 * Due to NLA scaling, we apply NLA scaling to some of the verts here,
+	 * and then that scaling will be undone after transform is done.
+	 */
+	
+	if (nob) {
+		td2d->loc[0] = get_action_frame_inv(nob, loc[0]);
+		td2d->loc[1] = loc[1];
+		td2d->loc[2] = 0.0f;
+		td2d->loc2d = loc;
+		
+		td->loc = td2d->loc;
+		td->center[0] = get_action_frame_inv(nob, cent[0]);
+		td->center[1] = cent[1];
+		td->center[2] = 0.0f;
+		
+		VECCOPY(td->iloc, td->loc);
+	}
+	else {
+		td2d->loc[0] = loc[0];
+		td2d->loc[1] = loc[1];
+		td2d->loc[2] = 0.0f;
+		td2d->loc2d = loc;
+		
+		td->loc = td2d->loc;
+		VECCOPY(td->center, cent);
+		VECCOPY(td->iloc, td->loc);
+	}
+
+	memset(td->axismtx, 0, sizeof(td->axismtx));
+	td->axismtx[2][2] = 1.0f;
+
+	td->ext= NULL; td->tdi= NULL; td->val= NULL;
+
+	if (selected) {
+		td->flag |= TD_SELECTED;
+		td->dist= 0.0f;
+	}
+	else
+		td->dist= MAXFLOAT;
+	
+	if (ishandle)	
+		td->flag |= TD_NOTIMESNAP;
+	
+	Mat3One(td->mtx);
+	Mat3One(td->smtx);
+}	
+
+static void createTransGraphEditData(bContext *C, TransInfo *t)
+{
+	Scene *scene= CTX_data_scene(C);
+	ARegion *ar= CTX_wm_region(C);
+	View2D *v2d= &ar->v2d;
+	
+	TransData *td = NULL;
+	TransData2D *td2d = NULL;
+	
+	bAnimContext ac;
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
+	int filter;
+	
+	BezTriple *bezt, *prevbezt;
+	int count=0, i;
+	float cfra;
+	char side;
+	
+	/* determine what type of data we are operating on */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return;
+	
+	/* filter data */
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY | ANIMFILTER_CURVEVISIBLE);
+	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+		
+	/* which side of the current frame should be allowed */
+		// XXX we still want this mode, but how to get this using standard transform too?
+	if (t->mode == TFM_TIME_EXTEND) {
+		/* only side on which mouse is gets transformed */
+		float xmouse, ymouse;
+		
+		UI_view2d_region_to_view(&ac.ar->v2d, t->imval[0], t->imval[1], &xmouse, &ymouse);
+		side = (xmouse > CFRA) ? 'R' : 'L'; // XXX use t->frame_side
+	}
+	else {
+		/* normal transform - both sides of current frame are considered */
+		side = 'B';
+	}
+	
+	/* loop 1: count how many BezTriples (specifically their verts) are selected (or should be edited) */
+	for (ale= anim_data.first; ale; ale= ale->next) {
+		Object *nob= NULL; //ANIM_nla_mapping_get(&ac, ale); // XXX we don't handle NLA mapping for now here...
+		FCurve *fcu= (FCurve *)ale->key_data;
+		
+		/* convert current-frame to action-time (slightly less accurate, espcially under
+		 * higher scaling ratios, but is faster than converting all points) 
+		 */
+		if (nob) 
+			cfra = get_action_frame(nob, (float)CFRA);
+		else
+			cfra = (float)CFRA;
+		
+		/* only include BezTriples whose 'keyframe' occurs on the same side of the current frame as mouse */
+		if (fcu->bezt) {
+			for (i=0, bezt=fcu->bezt; i < fcu->totvert; i++, bezt++) {
+				if (FrameOnMouseSide(side, bezt->vec[1][0], cfra)) {
+					if (v2d->around == V3D_LOCAL) {
+						/* for local-pivot we only need to count the number of selected handles only, so that centerpoitns don't
+						 * don't get moved wrong
+						 */
+						if (bezt->ipo == BEZT_IPO_BEZ) {
+							if (bezt->f1 & SELECT) count++;
+							if (bezt->f3 & SELECT) count++;
+						}
+						else if (bezt->f2 & SELECT) count++;
+					}
+					else {
+						/* for 'normal' pivots */
+						if (bezt->ipo == BEZT_IPO_BEZ) {
+							if (bezt->f1 & SELECT) count++;
+							if (bezt->f2 & SELECT) count++;
+							if (bezt->f3 & SELECT) count++;
+						}
+						else if (bezt->f2 & SELECT) count++;
+					}
+				}
+			}
+		}
+	}
+	
+	/* stop if trying to build list if nothing selected */
+	if (count == 0) {
+		/* cleanup temp list */
+		BLI_freelistN(&anim_data);
+		return;
+	}
+	
+	/* allocate memory for data */
+	t->total= count;
+	
+	t->data= MEM_callocN(t->total*sizeof(TransData), "TransData (Graph Editor)");
+		/* for each 2d vert a 3d vector is allocated, so that they can be treated just as if they were 3d verts */
+	t->data2d= MEM_callocN(t->total*sizeof(TransData2D), "TransData2D (Graph Editor)");
+	
+	td= t->data;
+	td2d= t->data2d;
+	
+	/* loop 2: build transdata arrays */
+	cfra = (float)CFRA;
+	
+	for (ale= anim_data.first; ale; ale= ale->next) {
+		Object *nob= NULL; //ANIM_nla_mapping_get(&ac, ale);	// XXX we don't handle NLA mapping here yet
+		FCurve *fcu= (FCurve *)ale->key_data;
+		
+		/* only include BezTriples whose 'keyframe' occurs on the same side of the current frame as mouse (if applicable) */
+		bezt= fcu->bezt;
+		prevbezt= NULL;
+		
+		for (i=0; i < fcu->totvert; i++, prevbezt=bezt, bezt++) {
+			if (FrameOnMouseSide(side, bezt->vec[1][0], cfra)) {
+				TransDataCurveHandleFlags *hdata = NULL;
+				short h1=1, h2=1;
+				
+				/* only include handles if selected, and interpolaton mode uses beztriples */
+				if ( (!prevbezt && (bezt->ipo==BEZT_IPO_BEZ)) || (prevbezt && (prevbezt->ipo==BEZT_IPO_BEZ)) ) {
+					if (bezt->f1 & SELECT) {
+						hdata = initTransDataCurveHandes(td, bezt);
+						bezt_to_transdata(td++, td2d++, nob, bezt->vec[0], bezt->vec[1], 1, 1);
+					}
+					else
+						h1= 0;
+				}
+				if (bezt->ipo == BEZT_IPO_BEZ) {
+					if (bezt->f3 & SELECT) {
+						if (hdata==NULL)
+							hdata = initTransDataCurveHandes(td, bezt);
+						bezt_to_transdata(td++, td2d++, nob, bezt->vec[2], bezt->vec[1], 1, 1);
+					}
+					else
+						h2= 0;
+				}
+				
+				/* only include main vert if selected */
+				if (bezt->f2 & SELECT) {
+					/* if scaling around individuals centers, do no include keyframes */
+					if (v2d->around != V3D_LOCAL) {
+						/* if handles were not selected, store their selection status */
+						if (!(bezt->f1 & SELECT) && !(bezt->f3 & SELECT)) {
+							if (hdata == NULL)
+								hdata = initTransDataCurveHandes(td, bezt);
+						}
+						
+						bezt_to_transdata(td++, td2d++, nob, bezt->vec[1], bezt->vec[1], 1, 0);
+					}
+					
+					/* special hack (must be done after initTransDataCurveHandes(), as that stores handle settings to restore...): 
+					 *	- Check if we've got entire BezTriple selected and we're scaling/rotating that point, 
+					 *	  then check if we're using auto-handles. 
+					 *	- If so, change them auto-handles to aligned handles so that handles get affected too
+					 */
+					if ((bezt->h1 == HD_AUTO) && (bezt->h2 == HD_AUTO) && ELEM(t->mode, TFM_ROTATION, TFM_RESIZE)) {
+						if (h1 && h2) {
+							bezt->h1= HD_ALIGN;
+							bezt->h2= HD_ALIGN;
+						}
+					}
+				}
+			}
+		}
+		
+		/* Sets handles based on the selection */
+		testhandles_fcurve(fcu);	
+	}
+	
+	/* cleanup temp list */
+	BLI_freelistN(&anim_data);
+}
+
+
+/* ------------------------ */
+
+/* struct for use in re-sorting BezTriples during IPO transform */
+typedef struct BeztMap {
+	BezTriple *bezt;
+	int oldIndex; 		/* index of bezt in icu->bezt array before sorting */
+	int newIndex;		/* index of bezt in icu->bezt array after sorting */
+	short swapHs; 		/* swap order of handles (-1=clear; 0=not checked, 1=swap) */
+	char pipo, cipo;	/* interpolation of current and next segments */
+} BeztMap;
+
+
+/* This function converts an FCurve's BezTriple array to a BeztMap array
+ * NOTE: this allocates memory that will need to get freed later
+ */
+static BeztMap *bezt_to_beztmaps (BezTriple *bezts, int totvert)
+{
+	BezTriple *bezt= bezts;
+	BezTriple *prevbezt= NULL;
+	BeztMap *bezm, *bezms;
+	int i;
+	
+	/* allocate memory for this array */
+	if (totvert==0 || bezts==NULL)
+		return NULL;
+	bezm= bezms= MEM_callocN(sizeof(BeztMap)*totvert, "BeztMaps");
+	
+	/* assign beztriples to beztmaps */
+	for (i=0; i < totvert; i++, bezm++, prevbezt=bezt, bezt++) {
+		bezm->bezt= bezt;
+		
+		bezm->oldIndex= i;
+		bezm->newIndex= i;
+		
+		bezm->pipo= (prevbezt) ? prevbezt->ipo : bezt->ipo;
+		bezm->cipo= bezt->ipo;
+	}
+	
+	return bezms;
+}
+
+/* This function copies the code of sort_time_ipocurve, but acts on BeztMap structs instead */
+static void sort_time_beztmaps (BeztMap *bezms, int totvert)
+{
+	BeztMap *bezm;
+	int i, ok= 1;
+	
+	/* keep repeating the process until nothing is out of place anymore */
+	while (ok) {
+		ok= 0;
+		
+		bezm= bezms;
+		i= totvert;
+		while (i--) {
+			/* is current bezm out of order (i.e. occurs later than next)? */
+			if (i > 0) {
+				if (bezm->bezt->vec[1][0] > (bezm+1)->bezt->vec[1][0]) {
+					bezm->newIndex++;
+					(bezm+1)->newIndex--;
+					
+					SWAP(BeztMap, *bezm, *(bezm+1));
+					
+					ok= 1;
+				}
+			}
+			
+			/* do we need to check if the handles need to be swapped?
+			 * optimisation: this only needs to be performed in the first loop
+			 */
+			if (bezm->swapHs == 0) {
+				if ( (bezm->bezt->vec[0][0] > bezm->bezt->vec[1][0]) && 
+					 (bezm->bezt->vec[2][0] < bezm->bezt->vec[1][0]) )
+				{
+					/* handles need to be swapped */
+					bezm->swapHs = 1;
+				}
+				else {
+					/* handles need to be cleared */
+					bezm->swapHs = -1;
+				}
+			}
+			
+			bezm++;
+		}	
+	}
+}
+
+/* This function firstly adjusts the pointers that the transdata has to each BezTriple */
+static void beztmap_to_data (TransInfo *t, FCurve *fcu, BeztMap *bezms, int totvert)
+{
+	BezTriple *bezts = fcu->bezt;
+	BeztMap *bezm;
+	TransData2D *td;
+	int i, j;
+	char *adjusted;
+	
+	/* dynamically allocate an array of chars to mark whether an TransData's 
+	 * pointers have been fixed already, so that we don't override ones that are
+	 * already done
+ 	 */
+	adjusted= MEM_callocN(t->total, "beztmap_adjusted_map");
+	
+	/* for each beztmap item, find if it is used anywhere */
+	bezm= bezms;
+	for (i= 0; i < totvert; i++, bezm++) {
+		/* loop through transdata, testing if we have a hit 
+		 * for the handles (vec[0]/vec[2]), we must also check if they need to be swapped...
+		 */
+		td= t->data2d;
+		for (j= 0; j < t->total; j++, td++) {
+			/* skip item if already marked */
+			if (adjusted[j] != 0) continue;
+			
+			/* only selected verts */
+			if (bezm->pipo == BEZT_IPO_BEZ) {
+				if (bezm->bezt->f1 & SELECT) {
+					if (td->loc2d == bezm->bezt->vec[0]) {
+						if (bezm->swapHs == 1)
+							td->loc2d= (bezts + bezm->newIndex)->vec[2];
+						else
+							td->loc2d= (bezts + bezm->newIndex)->vec[0];
+						adjusted[j] = 1;
+					}
+				}
+			}
+			if (bezm->cipo == BEZT_IPO_BEZ) {
+				if (bezm->bezt->f3 & SELECT) {
+					if (td->loc2d == bezm->bezt->vec[2]) {
+						if (bezm->swapHs == 1)
+							td->loc2d= (bezts + bezm->newIndex)->vec[0];
+						else
+							td->loc2d= (bezts + bezm->newIndex)->vec[2];
+						adjusted[j] = 1;
+					}
+				}
+			}
+			if (bezm->bezt->f2 & SELECT) {
+				if (td->loc2d == bezm->bezt->vec[1]) {
+					td->loc2d= (bezts + bezm->newIndex)->vec[1];
+					adjusted[j] = 1;
+				}
+			}
+		}
+		
+	}
+	
+	/* free temp memory used for 'adjusted' array */
+	MEM_freeN(adjusted);
+}
+
+/* This function is called by recalcData during the Transform loop to recalculate 
+ * the handles of curves and sort the keyframes so that the curves draw correctly.
+ * It is only called if some keyframes have moved out of order.
+ *
+ * anim_data is the list of channels (F-Curves) retrieved already containing the 
+ * channels to work on. It should not be freed here as it may still need to be used.
+ */
+void remake_graph_transdata (TransInfo *t, ListBase *anim_data)
+{
+	bAnimListElem *ale;
+	
+	/* sort and reassign verts */
+	for (ale= anim_data->first; ale; ale= ale->next) {
+		FCurve *fcu= (FCurve *)ale->key_data;
+		
+		if (fcu->bezt) {
+			BeztMap *bezm;
+			
+			/* adjust transform-data pointers */
+			bezm= bezt_to_beztmaps(fcu->bezt, fcu->totvert);
+			sort_time_beztmaps(bezm, fcu->totvert);
+			beztmap_to_data(t, fcu, bezm, fcu->totvert);
+			
+			/* re-sort actual beztriples (perhaps this could be done using the beztmaps to save time?) */
+			sort_time_fcurve(fcu);
+			
+			/* free mapping stuff */
+			MEM_freeN(bezm);
+			
+			/* make sure handles are all set correctly */
+			testhandles_fcurve(fcu);
+		}
+	}
+}
+
+/* this function is called on recalcData to apply the transforms applied
+ * to the transdata on to the actual keyframe data 
+ */
+void flushTransGraphData(TransInfo *t)
+{
+	SpaceIpo *sipo = (SpaceIpo *)t->sa->spacedata.first;
+	TransData *td;
+	TransData2D *td2d;
+	int a;
+	
+	/* flush to 2d vector from internally used 3d vector */
+	for (a=0, td= t->data, td2d=t->data2d; a<t->total; a++, td++, td2d++) {
+		/* handle snapping for time values 
+		 *	- we should still be in NLA-mapping timespace 
+		 *	- only apply to keyframes (but never to handles)
+		 */
+		if ((td->flag & TD_NOTIMESNAP)==0) {
+			switch (sipo->autosnap) {
+				case SACTSNAP_FRAME: /* snap to nearest frame */
+					td2d->loc[0]= (float)( floor(td2d->loc[0]+0.5f) );
+					break;
+					
+				case SACTSNAP_MARKER: /* snap to nearest marker */
+					//td2d->loc[0]= (float)find_nearest_marker_time(td2d->loc[0]);
+					break;
+			}
+		}
+		
+		/* we need to unapply the nla-scaling from the time in some situations */
+		//if (NLA_IPO_SCALED)
+		//	td2d->loc2d[0]= get_action_frame(OBACT, td2d->loc[0]);
+		//else
+			td2d->loc2d[0]= td2d->loc[0];
+		
+		td2d->loc2d[1]= td2d->loc[1];
+	}
+}
+
 
 /* **************** IpoKey stuff, for Object TransData ********** */
 
@@ -3536,17 +3864,17 @@ static void createTransSeqData(bContext *C, TransInfo *t)
 	
 	View2D *v2d= UI_view2d_fromcontext(C);
 	Scene *scene= CTX_data_scene(C);
-	Editing *ed= scene->ed;
+	Editing *ed= seq_give_editing(t->scene, FALSE);
 	TransData *td = NULL;
 	TransData2D *td2d= NULL;
 	TransDataSeq *tdsq= NULL;
 
-	
-
 	int count=0;
 
-
-
+	if (ed==NULL) {
+		t->total= 0;
+		return;
+	}
 
 	/* which side of the current frame should be allowed */
 	if (t->mode == TFM_TIME_EXTEND) {
@@ -4072,9 +4400,9 @@ void special_aftertrans_update(TransInfo *t)
 	}
 
 	if (t->spacetype == SPACE_SEQ) {
-
-		if (!cancelled) {
-			ListBase *seqbasep= ((Editing *)t->scene->ed)->seqbasep;
+		Editing *ed= seq_give_editing(t->scene, FALSE);
+		if (ed && !cancelled) {
+			ListBase *seqbasep= ed->seqbasep;
 			int a;
 			TransData *td= t->data;
 			TransData2D *td2d= t->data2d;
@@ -4226,11 +4554,64 @@ void special_aftertrans_update(TransInfo *t)
 		}
 #endif // XXX future of this is still not clear
 		
-		/* make sure all IPO-curves are set correctly */
+		/* make sure all F-Curves are set correctly */
 		ANIM_editkeyframes_refresh(&ac);
 		
 		/* clear flag that was set for time-slide drawing */
 		saction->flag &= ~SACTION_MOVING;
+	}
+	else if (t->spacetype == SPACE_IPO) {
+		SpaceIpo *sipo= (SpaceIpo *)t->sa->spacedata.first;
+		Scene *scene;
+		bAnimContext ac;
+		
+		/* initialise relevant anim-context 'context' data from TransInfo data */
+			/* NOTE: sync this with the code in ANIM_animdata_get_context() */
+		memset(&ac, 0, sizeof(bAnimContext));
+		
+		scene= ac.scene= t->scene;
+		ob= ac.obact= OBACT;
+		ac.sa= t->sa;
+		ac.ar= t->ar;
+		ac.spacetype= (t->sa)? t->sa->spacetype : 0;
+		ac.regiontype= (t->ar)? t->ar->regiontype : 0;
+		
+		if (ANIM_animdata_context_getdata(&ac) == 0)
+			return;
+		
+		if (ac.datatype) 
+		{
+			ListBase anim_data = {NULL, NULL};
+			bAnimListElem *ale;
+			short filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY | ANIMFILTER_CURVEVISIBLE);
+			
+			/* get channels to work on */
+			ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+			
+			/* these should all be ipo-blocks */
+			for (ale= anim_data.first; ale; ale= ale->next) {
+				Object *nob= ANIM_nla_mapping_get(&ac, ale);
+				FCurve *fcu= (FCurve *)ale->key_data;
+				
+				if ( (sipo->flag & SIPO_NOTRANSKEYCULL)==0 && 
+				     ((cancelled == 0) || (duplicate)) )
+				{
+					if (nob) {
+						ANIM_nla_mapping_apply_fcurve(nob, fcu, 0, 1); 
+						posttrans_fcurve_clean(fcu);
+						ANIM_nla_mapping_apply_fcurve(nob, fcu, 1, 1);
+					}
+					else
+						posttrans_fcurve_clean(fcu);
+				}
+			}
+			
+			/* free temp memory */
+			BLI_freelistN(&anim_data);
+		}
+		
+		/* make sure all F-Curves are set correctly */
+		ANIM_editkeyframes_refresh(&ac);
 	}
 	else if (t->obedit) {
 		// TRANSFORM_FIX_ME
@@ -4259,26 +4640,6 @@ void special_aftertrans_update(TransInfo *t)
 		{
 			posttrans_nla_clean(t);
 		}
-	}
-	else if (t->spacetype == SPACE_IPO) {
-		// FIXME! is there any code from the old transform_ipo that needs to be added back? 
-		
-		/* after transform, remove duplicate keyframes on a frame that resulted from transform */
-		if (G.sipo->ipo) 
-		{
-			if ( (G.sipo->flag & SIPO_NOTRANSKEYCULL)==0 && 
-				 (cancelled == 0) )
-			{
-				/* NOTE: no need to do NLA scaling stuff here, as when there is NLA scaling,
-				 * the transformed handles will get moved wrong (seem to match wrong repeat cycle)
-				 */
-				posttrans_ipo_clean(G.sipo->ipo);
-			}
-		}
-		
-		/* resetting slow-parents isn't really necessary when editing sequence ipo's */
-		if (G.sipo->blocktype==ID_SEQ)
-			resetslowpar= 0;
 	}
 	else if ((t->flag & T_POSE) && (t->poseobj)) {
 		bArmature *arm;
@@ -4593,7 +4954,7 @@ void createTransData(bContext *C, TransInfo *t)
 	}
 	else if (t->spacetype == SPACE_IPO) {
 		t->flag |= T_POINTS|T_2D_EDIT;
-		createTransIpoData(C, t);
+		createTransGraphEditData(C, t);
 #if 0		
 		if (t->data && (t->flag & T_PROP_EDIT)) {
 			sort_trans_data(t);	// makes selected become first in array

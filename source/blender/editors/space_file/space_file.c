@@ -195,6 +195,7 @@ static void file_main_area_draw(const bContext *C, ARegion *ar)
 		sfile->files = filelist_new();
 		filelist_setdir(sfile->files, params->dir);
 		filelist_settype(sfile->files, params->type);
+		params->active_file = -1; // added this so it opens nicer (ton)
 	}
 
 	if (filelist_empty(sfile->files))
@@ -213,15 +214,21 @@ static void file_main_area_draw(const bContext *C, ARegion *ar)
 		if(params->sort!=FILE_SORTALPHA) filelist_sort(sfile->files, params->sort);		
 	}
 
-
 	/* clear and setup matrix */
 	UI_GetThemeColor3fv(TH_BACK, col);
 	glClearColor(col[0], col[1], col[2], 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
 	
-	file_calc_previews(C,ar);
+	/* sets tile/border settings in sfile */
+	file_calc_previews(C, ar);
 
-
+	/* on first read, find active file */
+	if (params->active_file == -1) {
+		wmEvent *event= CTX_wm_window(C)->eventstate;
+		file_hilight_set(sfile, ar, event->x - ar->winrct.xmin, event->y - ar->winrct.ymin);
+		
+	}
+	
 	/* data... */
 	UI_view2d_view_ortho(C, v2d);
 	
@@ -250,8 +257,11 @@ void file_operatortypes(void)
 	WM_operatortype_append(ED_FILE_OT_select_bookmark);
 	WM_operatortype_append(ED_FILE_OT_loadimages);
 	WM_operatortype_append(ED_FILE_OT_highlight);
+	WM_operatortype_append(ED_FILE_OT_load);
+	WM_operatortype_append(ED_FILE_OT_cancel);
 }
 
+/* NOTE: do not add .blend file reading on this level */
 void file_keymap(struct wmWindowManager *wm)
 {
 	ListBase *keymap= WM_keymap_listbase(wm, "File", SPACE_FILE, 0);
@@ -259,6 +269,7 @@ void file_keymap(struct wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "ED_FILE_OT_select_all", AKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "ED_FILE_OT_border_select", BKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "ED_FILE_OT_highlight", MOUSEMOVE, KM_ANY, 0, 0);
+	
 	WM_keymap_add_item(keymap, "ED_FILE_OT_loadimages", TIMER1, KM_ANY, KM_ANY, 0);
 
 	keymap= WM_keymap_listbase(wm, "FileBookmark", SPACE_FILE, 0);

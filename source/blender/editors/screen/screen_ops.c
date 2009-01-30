@@ -1359,7 +1359,7 @@ static int repeat_history_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	for (i=items-1, lastop= wm->operators.last; lastop; lastop= lastop->prev, i--)
 		p+= sprintf(p, "|%s %%x%d", lastop->type->name, i);
 	
-	uiPupmenuOperator(C, i/20, op, "index", menu);
+	uiPupMenuOperator(C, i/20, op, "index", menu);
 	MEM_freeN(menu);
 	
 	return OPERATOR_RUNNING_MODAL;
@@ -1559,7 +1559,7 @@ static void testfunc(bContext *C, void *argv, int arg)
 	printf("arg %d\n", arg);
 }
 
-static void newlevel1(uiMenuItem *head)
+static void newlevel1(bContext *C, uiMenuItem *head, void *arg)
 {
 	uiMenuFunc(head, testfunc, NULL);
 	
@@ -1571,7 +1571,7 @@ static void newlevel1(uiMenuItem *head)
 
 static int testing123(bContext *C, wmOperator *op, wmEvent *event)
 {
-	uiMenuItem *head= uiMenuBegin("Hello world");
+	uiMenuItem *head= uiPupMenuBegin("Hello world");
 	
 	uiMenuContext(head, WM_OP_EXEC_DEFAULT);
 	uiMenuItemO(head, "SCREEN_OT_region_flip", ICON_PROP_ON);
@@ -1580,7 +1580,7 @@ static int testing123(bContext *C, wmOperator *op, wmEvent *event)
 	uiMenuLevel(head, "Submenu", newlevel1);
 	uiMenuItemO(head, "SCREEN_OT_area_rip", ICON_PROP_ON);
 	
-	uiMenuEnd(C, head);
+	uiPupMenuEnd(C, head);
 	
 	/* this operator is only for a menu, not used further */
 	return OPERATOR_CANCELLED;
@@ -1760,6 +1760,10 @@ void ED_keymap_screen(wmWindowManager *wm)
 	WM_keymap_verify_item(keymap, "SCREEN_OT_repeat_last", F4KEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "SCREEN_OT_region_flip", F5KEY, KM_PRESS, 0, 0);
 
+	/* files */
+	WM_keymap_add_item(keymap, "ED_FILE_OT_load", RETKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "ED_FILE_OT_cancel", ESCKEY, KM_PRESS, 0, 0);
+	
 	/* undo */
 	WM_keymap_add_item(keymap, "ED_OT_undo", ZKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "ED_OT_undo", ZKEY, KM_PRESS, KM_OSKEY, 0);

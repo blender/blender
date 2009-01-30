@@ -20,6 +20,7 @@
 
 #include "BKE_fcurve.h"
 #include "BKE_curve.h" 
+#include "BKE_global.h"
 #include "BKE_idprop.h"
 #include "BKE_utildefines.h"
 
@@ -106,7 +107,7 @@ FCurve *copy_fcurve (FCurve *fcu)
 	fcu_d->rna_path= MEM_dupallocN(fcu_d->rna_path);
 	
 	/* copy driver */
-	//fcurve_copy_driver();
+	fcu_d->driver= fcurve_copy_driver(fcu_d->driver);
 	
 	/* copy modifiers */
 	fcurve_copy_modifiers(&fcu_d->modifiers, &fcu->modifiers);
@@ -438,6 +439,24 @@ void fcurve_free_driver(FCurve *fcu)
 	fcu->driver= NULL;
 }
 
+/* This makes a copy of the given driver */
+ChannelDriver *fcurve_copy_driver (ChannelDriver *driver)
+{
+	ChannelDriver *ndriver;
+	
+	/* sanity checks */
+	if (driver == NULL)
+		return NULL;
+		
+	/* copy all data */
+	ndriver= MEM_dupallocN(driver);
+	ndriver->rna_path= MEM_dupallocN(ndriver->rna_path);
+	ndriver->rna_path2= MEM_dupallocN(ndriver->rna_path2);
+	
+	/* return the new driver */
+	return ndriver;
+}
+
 /* Driver Evaluation -------------------------- */
 
 /* Helper function to obtain a value using RNA from the specified source (for evaluating drivers) 
@@ -447,22 +466,33 @@ static float driver_get_driver_value (ChannelDriver *driver, short target)
 {
 	PointerRNA id_ptr, ptr;
 	PropertyRNA *prop;
+	ID *id;
 	char *path;
 	int index;
 	float value= 0.0f;
 	
 	/* get RNA-pointer for the ID-block given in driver */
-	if (target == 2) {
+	if (target == 1) {
 		/* second target */
 		RNA_id_pointer_create(driver->id2, &id_ptr);
+		id= driver->id2;
 		path= driver->rna_path2;
 		index= driver->array_index2;
 	}
 	else {
 		/* first/main target */
 		RNA_id_pointer_create(driver->id, &id_ptr);
+		id= driver->id;
 		path= driver->rna_path;
 		index= driver->array_index;
+	}
+	
+	/* error check for missing pointer... */
+	if (id == NULL) {
+		printf("Error: driver doesn't have any valid target to use \n");
+		if (G.f & G_DEBUG) printf("\tpath = %s [%d] \n", path, index);
+		driver->flag |= DRIVER_FLAG_INVALID;
+		return 0.0f;
 	}
 	
 	/* get property to read from, and get value as appropriate */
@@ -511,9 +541,10 @@ static float evaluate_driver (ChannelDriver *driver, float evaltime)
 		case DRIVER_TYPE_CHANNEL: /* channel/setting drivers channel/setting */
 			return driver_get_driver_value(driver, 0);
 			
-#ifndef DISABLE_PYTHON
+
 		case DRIVER_TYPE_PYTHON: /* expression */
 		{
+#ifndef DISABLE_PYTHON
 			/* check for empty or invalid expression */
 			if ( (driver->expression[0] == '\0') ||
 				 (driver->flag & DRIVER_FLAG_INVALID) )
@@ -526,8 +557,10 @@ static float evaluate_driver (ChannelDriver *driver, float evaltime)
 			 */
 			//return BPY_pydriver_eval(driver); // XXX old func
 			return 1.0f;
-		}
 #endif /* DISABLE_PYTHON*/
+		}
+			break;
+
 		
 		case DRIVER_TYPE_ROTDIFF: /* difference of rotations of 2 bones (should be in same armature) */
 		{
@@ -1011,7 +1044,7 @@ static void fcm_generator_evaluate (FCurve *fcu, FModifier *fcm, float *cvalue, 
 			// TODO: could this be more efficient (i.e. without need to recalc pow() everytime)
 			cp= data->poly_coefficients;
 			for (i=0; (i <= data->poly_order) && (cp); i++, cp++)
-				value += (*cp) * pow(evaltime, i);
+				value += (*cp) * (float)pow(evaltime, i);
 			
 			/* only if something changed */
 			if (data->poly_order)

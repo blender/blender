@@ -496,6 +496,9 @@ enum {
 	ADT_NLA_EVAL_OFF		= (1<<1),
 		/* don't execute drivers */
 	ADT_DRIVERS_DISABLED	= (1<<2),
+	
+		/* drivers expanded in UI */
+	ADT_DRIVERS_COLLAPSED	= (1<<10),
 } eAnimData_Flag;
 
 /* Animation Data recalculation settings (to be set by depsgraph) */

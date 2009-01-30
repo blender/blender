@@ -132,8 +132,11 @@ static void graph_free(SpaceLink *sl)
 /* spacetype; init callback */
 static void graph_init(struct wmWindowManager *wm, ScrArea *sa)
 {
-	//SpaceIpo *si= (SpaceIpo *)sa->spacedata.first;
+	SpaceIpo *sipo= (SpaceIpo *)sa->spacedata.first;
 	
+	/* init dopesheet data if non-existant (i.e. for old files) */
+	if (sipo->ads == NULL)
+		sipo->ads= MEM_callocN(sizeof(bDopeSheet), "GraphEdit DopeSheet");
 }
 
 static SpaceLink *graph_duplicate(SpaceLink *sl)
@@ -155,7 +158,7 @@ static void graph_main_area_init(wmWindowManager *wm, ARegion *ar)
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_CUSTOM, ar->winx, ar->winy);
 	
 	/* own keymap */
-	keymap= WM_keymap_listbase(wm, "Ipo", SPACE_IPO, 0);	/* XXX weak? */
+	keymap= WM_keymap_listbase(wm, "GraphEdit Keys", SPACE_IPO, 0);	/* XXX weak? */
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 }
 
@@ -209,14 +212,6 @@ static void graph_main_area_draw(const bContext *C, ARegion *ar)
 	scrollers= UI_view2d_scrollers_calc(C, v2d, unitx, V2D_GRID_NOCLAMP, unity, V2D_GRID_NOCLAMP);
 	UI_view2d_scrollers_draw(C, v2d, scrollers);
 	UI_view2d_scrollers_free(scrollers);
-}
-
-void graph_operatortypes(void)
-{
-}
-
-void graph_keymap(struct wmWindowManager *wm)
-{
 }
 
 static void graph_channel_area_init(wmWindowManager *wm, ARegion *ar)
@@ -287,7 +282,7 @@ static void graph_header_area_draw(const bContext *C, ARegion *ar)
 	UI_view2d_view_restore(C);
 }
 
-static void graph_main_area_listener(ARegion *ar, wmNotifier *wmn)
+static void graph_region_listener(ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
 	switch(wmn->category) {
@@ -304,10 +299,15 @@ static void graph_main_area_listener(ARegion *ar, wmNotifier *wmn)
 			switch(wmn->data) {
 				case ND_BONE_ACTIVE:
 				case ND_BONE_SELECT:
+				case ND_KEYS:
 					ED_region_tag_redraw(ar);
 					break;
 			}
 			break;
+		default:
+			if(wmn->data==ND_KEYS)
+				ED_region_tag_redraw(ar);
+				
 	}
 }
 
@@ -375,8 +375,8 @@ void ED_spacetype_ipo(void)
 	st->free= graph_free;
 	st->init= graph_init;
 	st->duplicate= graph_duplicate;
-	st->operatortypes= graph_operatortypes;
-	st->keymap= graph_keymap;
+	st->operatortypes= graphedit_operatortypes;
+	st->keymap= graphedit_keymap;
 	st->listener= graph_listener;
 	st->refresh= graph_refresh;
 	
@@ -385,8 +385,8 @@ void ED_spacetype_ipo(void)
 	art->regionid = RGN_TYPE_WINDOW;
 	art->init= graph_main_area_init;
 	art->draw= graph_main_area_draw;
-	art->listener= graph_main_area_listener;
-	art->keymapflag= ED_KEYMAP_VIEW2D|ED_KEYMAP_MARKERS|ED_KEYMAP_ANIMATION;
+	art->listener= graph_region_listener;
+	art->keymapflag= ED_KEYMAP_VIEW2D/*|ED_KEYMAP_MARKERS*/|ED_KEYMAP_ANIMATION|ED_KEYMAP_FRAMES;
 
 	BLI_addhead(&st->regiontypes, art);
 	
@@ -395,7 +395,7 @@ void ED_spacetype_ipo(void)
 	art->regionid = RGN_TYPE_HEADER;
 	art->minsizey= HEADERY;
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D|ED_KEYMAP_FRAMES;
-	
+	art->listener= graph_region_listener;
 	art->init= graph_header_area_init;
 	art->draw= graph_header_area_draw;
 	
@@ -406,7 +406,7 @@ void ED_spacetype_ipo(void)
 	art->regionid = RGN_TYPE_CHANNELS;
 	art->minsizex= 200;
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D|ED_KEYMAP_FRAMES;
-	
+	art->listener= graph_region_listener;
 	art->init= graph_channel_area_init;
 	art->draw= graph_channel_area_draw;
 	

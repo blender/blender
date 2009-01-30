@@ -347,11 +347,16 @@ static void dag_add_driver_relation(AnimData *adt, DagForest *dag, DagNode *node
 			// XXX rotational difference 
 		}
 		else if (driver->id) {
-			/* normal channel-drives-channel */
-			node1 = dag_get_node(dag, driver->id);	// XXX we assume that id is an object...
+			if(GS(driver->id->name)==ID_OB) {
+				/* normal channel-drives-channel */
+				node1 = dag_get_node(dag, driver->id);
 			
-			// XXX what happens for bone drivers?
-			dag_add_relation(dag, node1, node, isdata?DAG_RL_OB_DATA:DAG_RL_OB_OB, "Ipo Driver");
+				// XXX how to find out rnapath is bone?
+				if( ((Object *)driver->id)->type==OB_ARMATURE )
+					dag_add_relation(dag, node1, node, isdata?DAG_RL_DATA_DATA:DAG_RL_DATA_OB, "Ipo Driver");
+				else
+					dag_add_relation(dag, node1, node, isdata?DAG_RL_OB_DATA:DAG_RL_OB_OB, "Ipo Driver");
+			}
 		}
 #if 0 // XXX old 'normal' type
 

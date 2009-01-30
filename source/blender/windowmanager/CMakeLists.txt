@@ -38,6 +38,7 @@ SET(INC .
   ../../../intern/ghost ../../../intern/opennl/extern ../../../extern/glew/include
   ../nodes
   ../gpu
+  ../blenfont
   ${SDL_INC}
 )
 

@@ -60,7 +60,7 @@ typedef struct TreeElement {
 #define TE_FREE_NAME	8
 
 /* TreeStoreElem types */
-#define TSE_NLA				1
+#define TSE_NLA				1	
 #define TSE_NLA_ACTION		2
 #define TSE_DEFGROUP_BASE	3
 #define TSE_DEFGROUP		4
@@ -74,6 +74,9 @@ typedef struct TreeElement {
 #define TSE_SCRIPT_BASE		12
 #define TSE_POSE_BASE		13
 #define TSE_POSE_CHANNEL	14
+#define TSE_ANIM_DATA		15
+#define TSE_DRIVER_BASE		16
+#define TSE_DRIVER			17
 
 #define TSE_PROXY			18
 #define TSE_R_LAYER_BASE	19

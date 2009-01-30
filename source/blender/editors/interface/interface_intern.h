@@ -121,14 +121,14 @@ struct uiBut {
 	float a1, a2, hsv[3];	// hsv is temp memory for hsv buttons
 	float aspect;
 
-	void (*func)(struct bContext*, void *, void *);
+	uiButHandleFunc func;
 	void *func_arg1;
 	void *func_arg2;
 
 	void (*embossfunc)(int , int , float, float, float, float, float, int);
 	void (*sliderfunc)(int , float, float, float, float, float, float, int);
 
-	void (*autocomplete_func)(struct bContext*, char *, void *);
+	uiButCompleteFunc autocomplete_func;
 	void *autofunc_arg;
 	
 	uiLink *link;
@@ -143,19 +143,22 @@ struct uiBut {
 	short lock, win;
 	short iconadd, dt;
 
-		/* IDPOIN data */
+	/* IDPOIN data */
 	uiIDPoinFuncFP idpoin_func;
 	ID **idpoin_idpp;
 
-		/* BLOCK data */
-	uiBlockFuncFP block_func;
+	/* BLOCK data */
+	uiBlockCreateFunc block_create_func;
 
-		/* RNA */
+	/* HMENU data */
+	uiMenuCreateFunc menu_create_func;
+
+	/* RNA data */
 	struct PointerRNA rnapoin;
 	struct PropertyRNA *rnaprop;
 	int rnaindex;
 
-		/* Operator */
+	/* Operator data */
 	const char *opname;
 	int opcontext;
 	struct IDProperty *opproperties;
@@ -188,14 +191,14 @@ struct uiBlock {
 	float minx, miny, maxx, maxy;
 	float aspect;
 
-	void (*func)(struct bContext*, void *arg1, void *arg2);
+	uiButHandleFunc func;
 	void *func_arg1;
 	void *func_arg2;
 
-	void (*butm_func)(struct bContext*, void *arg, int but_a2);
+	uiMenuHandleFunc butm_func;
 	void *butm_func_arg;
 
-	void (*handle_func)(struct bContext*, void *arg, int event);
+	uiBlockHandleFunc handle_func;
 	void *handle_func_arg;
 	
 	/* extra draw function for custom blocks */
@@ -214,12 +217,14 @@ struct uiBlock {
 	int lock;
 	char *lockstr;
 	
-	float xofs, yofs;			// offset to parent button
+	float xofs, yofs;				// offset to parent button
+	int bounds, dobounds;			// for doing delayed
+	int endblock;					// uiEndBlock done?
 
 	rctf safety;				// pulldowns, to detect outside, can differ per case how it is created
 	ListBase saferct;			// uiSafetyRct list
 
-	uiMenuBlockHandle *handle;	// handle
+	uiPopupBlockHandle *handle;	// handle
 	int tooltipdisabled;		// to avoid tooltip after click
 
 	int handler;				// for panels in other windows than buttonswin... just event code
@@ -258,18 +263,46 @@ extern void ui_autofill(uiBlock *block);
 extern int  ui_is_but_float(uiBut *but);
 extern void ui_update_block_buts_hsv(uiBlock *block, float *hsv);
 
+extern void ui_bounds_block(uiBlock *block);
+
 /* interface_regions.c */
-uiBlock *ui_block_func_MENU(struct bContext *C, uiMenuBlockHandle *handle, void *arg_but);
-uiBlock *ui_block_func_ICONROW(struct bContext *C, uiMenuBlockHandle *handle, void *arg_but);
-uiBlock *ui_block_func_ICONTEXTROW(struct bContext *C, uiMenuBlockHandle *handle, void *arg_but);
-uiBlock *ui_block_func_COL(struct bContext *C, uiMenuBlockHandle *handle, void *arg_but);
+
+struct uiPopupBlockHandle {
+	/* internal */
+	struct ARegion *region;
+	int towardsx, towardsy;
+	double towardstime;
+	int dotowards;
+
+	int popup;
+	void (*popup_func)(struct bContext *C, void *arg, int event);
+	void *popup_arg;
+	/* for operator menus */
+	struct wmOperator *op_arg;
+	const char *propname;
+	
+	/* return values */
+	int butretval;
+	int menuretval;
+	float retvalue;
+	float retvec[3];
+};
+
+uiBlock *ui_block_func_MENU(struct bContext *C, uiPopupBlockHandle *handle, void *arg_but);
+uiBlock *ui_block_func_ICONROW(struct bContext *C, uiPopupBlockHandle *handle, void *arg_but);
+uiBlock *ui_block_func_ICONTEXTROW(struct bContext *C, uiPopupBlockHandle *handle, void *arg_but);
+uiBlock *ui_block_func_COL(struct bContext *C, uiPopupBlockHandle *handle, void *arg_but);
 
 struct ARegion *ui_tooltip_create(struct bContext *C, struct ARegion *butregion, uiBut *but);
 void ui_tooltip_free(struct bContext *C, struct ARegion *ar);
 
-uiMenuBlockHandle *ui_menu_block_create(struct bContext *C, struct ARegion *butregion, uiBut *but,
-	uiBlockFuncFP block_func, void *arg);
-void ui_menu_block_free(struct bContext *C, uiMenuBlockHandle *handle);
+typedef uiBlock* (*uiBlockHandleCreateFunc)(struct bContext *C, struct uiPopupBlockHandle *handle, void *arg1);
+
+uiPopupBlockHandle *ui_popup_block_create(struct bContext *C, struct ARegion *butregion, uiBut *but,
+	uiBlockCreateFunc create_func, uiBlockHandleCreateFunc handle_create_func, void *arg);
+uiPopupBlockHandle *ui_popup_menu_create(struct bContext *C, struct ARegion *butregion, uiBut *but,
+	uiMenuCreateFunc create_func, void *arg);
+void ui_popup_block_free(struct bContext *C, uiPopupBlockHandle *handle);
 
 void ui_set_name_menu(uiBut *but, int value);
 

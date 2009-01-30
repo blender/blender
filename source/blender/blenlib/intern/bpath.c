@@ -201,7 +201,9 @@ static struct bSound *snd_stepdata__internal(struct bSound *snd, int step_next) 
 	return snd;
 }
 
-static struct Sequence *seq_stepdata__internal(struct BPathIterator *bpi, int step_next) {
+static struct Sequence *seq_stepdata__internal(struct BPathIterator *bpi, int step_next)
+{
+	Editing *ed;
 	Sequence *seq;
 	
 	/* Initializing */
@@ -214,11 +216,11 @@ static struct Sequence *seq_stepdata__internal(struct BPathIterator *bpi, int st
 	}
 	
 	while (bpi->seqdata.scene) {
-		
-		if (bpi->seqdata.scene->ed) {
+		ed= seq_give_editing(bpi->seqdata.scene, 0);
+		if (ed) {
 			if (bpi->seqdata.seqar == NULL) {
 				/* allocate the sequencer array */
-				seq_array(bpi->seqdata.scene->ed, &bpi->seqdata.seqar, &bpi->seqdata.totseq, 0);		
+				seq_array(ed, &bpi->seqdata.seqar, &bpi->seqdata.totseq, 0);
 				bpi->seqdata.seq = 0;
 			}
 			

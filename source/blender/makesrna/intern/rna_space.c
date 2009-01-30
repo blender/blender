@@ -210,10 +210,6 @@ static void rna_def_space_image_uv(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SI_PIXELSNAP);
 	RNA_def_property_ui_text(prop, "Snap to Pixels", "Snap UVs to pixel locations while editing.");
 
-	prop= RNA_def_property(srna, "constrain_quads_rectangular", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", SI_BE_SQUARE);
-	RNA_def_property_ui_text(prop, "Constrain Quads Rectangular", "Constrain quads to be rectangular while editing.");
-
 	prop= RNA_def_property(srna, "constrain_to_image_bounds", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SI_CLIP_UV);
 	RNA_def_property_ui_text(prop, "Constrain to Image Bounds", "Constraint to stay within the image bounds while editing.");

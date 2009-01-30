@@ -44,10 +44,6 @@ struct wmOperatorType;
 #define TF_PIN_MASK(id) (TF_PIN1 << id)
 #define TF_SEL_MASK(id) (TF_SEL1 << id)
 
-/* state testing */
-int uvedit_test(struct Object *obedit);
-int uvedit_test_silent(struct Object *obedit);
-
 /* visibility and selection */
 int uvedit_face_visible_nolocal(struct Scene *scene, struct EditFace *efa);
 int uvedit_face_visible(struct Scene *scene, struct Image *ima, struct EditFace *efa, struct MTFace *tf);

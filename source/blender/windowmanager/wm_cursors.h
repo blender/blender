@@ -74,9 +74,9 @@ typedef struct BCursor {
 
 } BCursor;
 
-#define SYSCURSOR -1
+#define SYSCURSOR 1
 enum {
-	BC_NW_ARROWCURSOR=0, 
+	BC_NW_ARROWCURSOR=2, 
 	BC_NS_ARROWCURSOR,
 	BC_EW_ARROWCURSOR,
 	BC_WAITCURSOR,

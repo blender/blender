@@ -109,11 +109,83 @@ void free_ipo (Ipo *ipo)
 		BLI_freelinkN(&ipo->curve, icu);
 	}
 	
-	printf("Freed %d (Unconverted) Ipo-Curves from IPO '%s' \n", n, ipo->id.name+2);
+	if (G.f & G_DEBUG)
+		printf("Freed %d (Unconverted) Ipo-Curves from IPO '%s' \n", n, ipo->id.name+2);
 }
 
 /* *************************************************** */
-/* ADRCODE to RNA-Path Conversion Code */
+/* ADRCODE to RNA-Path Conversion Code  - Special (Bitflags) */
+
+/* Mapping Table for bitflag <-> RNA path */
+typedef struct AdrBit2Path {
+	int bit;
+	char *path;
+	int array_index;
+} AdrBit2Path;
+
+/* ----------------- */
+/* Mapping Tables to use bits <-> RNA paths */
+
+/* Object layers */
+static AdrBit2Path ob_layer_bits[]= {
+	{(1<<0), "layer", 0},
+	{(1<<1), "layer", 1},
+	{(1<<2), "layer", 2},
+	{(1<<3), "layer", 3},
+	{(1<<4), "layer", 4},
+	{(1<<5), "layer", 5},
+	{(1<<6), "layer", 6},
+	{(1<<7), "layer", 7},
+	{(1<<8), "layer", 8},
+	{(1<<9), "layer", 9},
+	{(1<<10), "layer", 10},
+	{(1<<11), "layer", 11},
+	{(1<<12), "layer", 12},
+	{(1<<13), "layer", 13},
+	{(1<<14), "layer", 14},
+	{(1<<15), "layer", 15},
+	{(1<<16), "layer", 16},
+	{(1<<17), "layer", 17},
+	{(1<<18), "layer", 18},
+	{(1<<19), "layer", 19},
+	{(1<<20), "layer", 20}
+};
+
+/* ----------------- */
+
+/* This function checks if a Blocktype+Adrcode combo, returning a mapping table */
+static AdrBit2Path *adrcode_bitmaps_to_paths (int blocktype, int adrcode, int *tot)
+{
+	/* Object layers */
+	if ((blocktype == ID_OB) && (adrcode == OB_LAY)) {
+		*tot= sizeof(ob_layer_bits)/sizeof(AdrBit2Path);
+		return ob_layer_bits;
+	}
+	else if ((blocktype == ID_MA) && (adrcode == MA_MODE)) {
+		// XXX to be added...
+	}
+	// XXX TODO: add other types...
+	
+	/* Normal curve */
+	return NULL;
+}
+
+/* This function makes a copy of a path stored in AdrBit2Path entry, and makes a guardedalloc copy */
+static char *adrcode_bitmap_path_copy (const char *abp_path)
+{
+	char *path;
+	int len;
+	
+	/* copy the path */
+	len= strlen(abp_path) + 1; // XXX is this safe?
+	path= MEM_callocN(len, "Bitflag IPO-Curve RNA-Path");
+	memcpy(path, abp_path, len);
+	
+	return path;
+}
+
+/* *************************************************** */
+/* ADRCODE to RNA-Path Conversion Code  - Standard */
 
 /* Object types */
 static char *ob_adrcodes_to_paths (int adrcode, int *array_index)
@@ -163,10 +235,6 @@ static char *ob_adrcodes_to_paths (int adrcode, int *array_index)
 			*array_index= 2; return "delta_scale";
 	
 #if 0	
-		case OB_LAY:	// XXX EVIL BITFLAG ALERT! this one will need special attention...
-		//	poin= &(ob->lay); *type= IPO_INT_BIT; break;
-			return NULL;
-			
 		case OB_COL_R:	
 			poin= &(ob->col[0]); break;
 		case OB_COL_G:
@@ -250,6 +318,23 @@ static char *pchan_adrcodes_to_paths (int adrcode, int *array_index)
 	return NULL;
 }
 
+/* Constraint types */
+static char *constraint_adrcodes_to_paths (int adrcode, int *array_index)
+{
+	/* set array index like this in-case nothing sets it correctly  */
+	*array_index= 0;
+	
+	/* result depends on adrcode */
+	switch (adrcode) {
+		case CO_ENFORCE:
+			return "influence";
+		case CO_HEADTAIL:	// XXX this needs to be wrapped in RNA.. probably then this path will be invalid
+			return "data.head_tail";
+	}
+	
+	return NULL;
+}
+
 /* ShapeKey types 
  * NOTE: as we don't have access to the keyblock where the data comes from (for now), 
  *	 	we'll just use numerical indicies for now... 
@@ -260,7 +345,10 @@ static char *shapekey_adrcodes_to_paths (int adrcode, int *array_index)
 	
 	/* block will be attached to ID_KE block, and setting that we alter is the 'value' (which sets keyblock.curval) */
 	// XXX adrcode 0 was dummy 'speed' curve 
-	sprintf(buf, "keys[%d].value", adrcode-1); // XXX this doesn't seem too safe...
+	if (adrcode == 0) 
+		sprintf(buf, "speed");
+	else
+		sprintf(buf, "keys[%d].value", adrcode);
 	return buf;
 }
 
@@ -397,8 +485,6 @@ static char *material_adrcodes_to_paths (int adrcode, int *array_index)
 		poin= &(ma->spectra); break;
 	case MA_IOR:
 		poin= &(ma->ang); break;
-	case MA_MODE:
-		poin= &(ma->mode); *type= IPO_INT_BIT; break; // evil... dumping bitflags directly to user!
 	case MA_HASIZE:
 		poin= &(ma->hasize); break;
 	case MA_TRANSLU:
@@ -482,6 +568,71 @@ static char *camera_adrcodes_to_paths (int adrcode, int *array_index)
 	return NULL;
 }
 
+/* Lamp Types */
+static char *lamp_adrcodes_to_paths (int adrcode, int *array_index)
+{
+	/* set array index like this in-case nothing sets it correctly  */
+	*array_index= 0;
+	
+	/* result depends on adrcode */
+	switch (adrcode) {
+		case LA_ENERGY:
+			return "energy";
+			
+		case LA_COL_R:
+			*array_index= 0;  return "color";
+		case LA_COL_G:
+			*array_index= 1;  return "color";
+		case LA_COL_B:
+			*array_index= 2;  return "color";
+			
+		case LA_DIST:
+			return "distance";
+		
+		case LA_SPOTSI:
+			return "spot_size";
+		case LA_SPOTBL:
+			return "spot_blend";
+			
+		case LA_QUAD1:
+			return "linear_attenuation";
+		case LA_QUAD2:
+			return "quadratic_attenuation";
+			
+		case LA_HALOINT:
+			return "halo_intensity";
+	}
+	
+#if 0 // XXX to be converted
+		if (poin == NULL) {
+			if (icu->adrcode & MA_MAP1) mtex= la->mtex[0];
+			else if (icu->adrcode & MA_MAP2) mtex= la->mtex[1];
+			else if (icu->adrcode & MA_MAP3) mtex= la->mtex[2];
+			else if (icu->adrcode & MA_MAP4) mtex= la->mtex[3];
+			else if (icu->adrcode & MA_MAP5) mtex= la->mtex[4];
+			else if (icu->adrcode & MA_MAP6) mtex= la->mtex[5];
+			else if (icu->adrcode & MA_MAP7) mtex= la->mtex[6];
+			else if (icu->adrcode & MA_MAP8) mtex= la->mtex[7];
+			else if (icu->adrcode & MA_MAP9) mtex= la->mtex[8];
+			else if (icu->adrcode & MA_MAP10) mtex= la->mtex[9];
+			else if (icu->adrcode & MA_MAP11) mtex= la->mtex[10];
+			else if (icu->adrcode & MA_MAP12) mtex= la->mtex[11];
+			else if (icu->adrcode & MA_MAP13) mtex= la->mtex[12];
+			else if (icu->adrcode & MA_MAP14) mtex= la->mtex[13];
+			else if (icu->adrcode & MA_MAP15) mtex= la->mtex[14];
+			else if (icu->adrcode & MA_MAP16) mtex= la->mtex[15];
+			else if (icu->adrcode & MA_MAP17) mtex= la->mtex[16];
+			else if (icu->adrcode & MA_MAP18) mtex= la->mtex[17];
+			
+			if (mtex)
+				poin= give_mtex_poin(mtex, (icu->adrcode & (MA_MAP1-1)));
+		}
+#endif // XXX to be converted
+	
+	/* unrecognised adrcode, or not-yet-handled ones! */
+	return NULL;
+}
+
 /* ------- */
 
 /* Allocate memory for RNA-path for some property given a blocktype, adrcode, and 'root' parts of path
@@ -513,6 +664,10 @@ char *get_rna_access (int blocktype, int adrcode, char actname[], char constname
 			propname= shapekey_adrcodes_to_paths(adrcode, &dummy_index);
 			break;
 			
+		case ID_CO: /* constraint */
+			propname= constraint_adrcodes_to_paths(adrcode, &dummy_index);
+			break;
+			
 		case ID_TE: /* texture */
 			propname= texture_adrcodes_to_paths(adrcode, &dummy_index);
 			break;
@@ -523,6 +678,10 @@ char *get_rna_access (int blocktype, int adrcode, char actname[], char constname
 			
 		case ID_CA: /* camera */
 			propname= camera_adrcodes_to_paths(adrcode, &dummy_index);
+			break;
+			
+		case ID_LA: /* lamp */
+			propname= lamp_adrcodes_to_paths(adrcode, &dummy_index);
 			break;
 			
 		/* XXX problematic blocktypes */
@@ -620,6 +779,7 @@ static ChannelDriver *idriver_to_cdriver (IpoDriver *idriver)
 		if (idriver->blocktype == ID_AR) {
 			/* ID_PO */
 			if (idriver->adrcode == OB_ROT_DIFF) {
+				if (G.f & G_DEBUG) printf("idriver_to_cdriver - rotdiff %p \n", idriver->ob);
 				/* Rotational Difference is a special type of driver now... */
 				cdriver->type= DRIVER_TYPE_ROTDIFF;
 				
@@ -637,6 +797,7 @@ static ChannelDriver *idriver_to_cdriver (IpoDriver *idriver)
 				cdriver->rna_path2= get_rna_access(-1, -1, idriver->name+DRIVER_NAME_OFFS, NULL, NULL);
 			}
 			else {
+				if (G.f & G_DEBUG) printf("idriver_to_cdriver - arm  %p \n", idriver->ob);
 				/* 'standard' driver */
 				cdriver->type= DRIVER_TYPE_CHANNEL;
 				cdriver->id= (ID *)idriver->ob;
@@ -677,11 +838,14 @@ static ChannelDriver *idriver_to_cdriver (IpoDriver *idriver)
 		}
 		else {
 			/* ID_OB */
+			if (G.f & G_DEBUG) printf("idriver_to_cdriver  - ob %p \n", idriver->ob);
 			cdriver->type= DRIVER_TYPE_CHANNEL;
 			cdriver->id= (ID *)idriver->ob;
-			cdriver->rna_path= get_rna_access(ID_OB, idriver->adrcode, idriver->name, NULL, &cdriver->array_index);
+			cdriver->rna_path= get_rna_access(ID_OB, idriver->adrcode, NULL, NULL, &cdriver->array_index);
 		}
 	}
+	
+	if (G.f & G_DEBUG) printf("\tcdriver -> id = %p \n", cdriver->id);
 	
 	/* free old driver */
 	MEM_freeN(idriver);
@@ -695,10 +859,11 @@ static ChannelDriver *idriver_to_cdriver (IpoDriver *idriver)
  *	actname: name of Action-Channel (if applicable) that IPO-Curve's IPO-block belonged to
  *	constname: name of Constraint-Channel (if applicable) that IPO-Curve's IPO-block belonged to
  */
-static FCurve *icu_to_fcu (IpoCurve *icu, char *actname, char *constname)
+static void icu_to_fcurves (ListBase *list, IpoCurve *icu, char *actname, char *constname)
 {
+	AdrBit2Path *abp;
 	FCurve *fcu;
-	int i= 0;
+	int i=0, totbits;
 	
 	/* allocate memory for a new F-Curve */
 	fcu= MEM_callocN(sizeof(FCurve), "FCurve");
@@ -708,56 +873,6 @@ static FCurve *icu_to_fcu (IpoCurve *icu, char *actname, char *constname)
 		fcu->driver= idriver_to_cdriver(icu->driver);
 		icu->driver= NULL;
 	}
-	
-	/* convert keyframes 
-	 *	- beztriples and bpoints are mutually exclusive, so we won't have both at the same time
-	 *	- beztriples are more likely to be encountered as they are keyframes (the other type wasn't used yet)
-	 */
-	// XXX we need to cope with the nasty old 'bitflag' curves... that will be a task for later
-	// XXX we also need to correct values for object-rotation curves
-	fcu->totvert= icu->totvert;
-	
-	if (icu->bezt) {
-		BezTriple *dst, *src;
-		
-		/* allocate new array for keyframes/beztriples */
-		fcu->bezt= MEM_callocN(sizeof(BezTriple)*fcu->totvert, "BezTriples");
-		
-		/* loop through copying all BezTriples individually, as we need to modify a few things */
-		for (dst=fcu->bezt, src=icu->bezt; i < fcu->totvert; i++, dst++, src++) {
-			/* firstly, copy BezTriple data */
-			*dst= *src;
-			
-			/* now copy interpolation from curve (if not already set) */
-			if (icu->ipo != IPO_MIXED)
-				dst->ipo= icu->ipo;
-				
-			/* correct values for object rotation curves - they were degrees/10 */
-			// XXX for now, just make them into radians as RNA sets/reads directly in that form
-			if ((icu->blocktype == ID_OB) && ELEM3(icu->adrcode, OB_ROT_X, OB_ROT_Y, OB_ROT_Z)) {
-				const float fac= M_PI / 18.0f; //10.0f * M_PI/180.0f;
-				
-				dst->vec[0][1] *= fac;
-				dst->vec[1][1] *= fac;
-				dst->vec[2][1] *= fac;
-			}
-		}
-		
-		/* free this data now */
-		MEM_freeN(icu->bezt);
-	}
-	else if (icu->bp) {
-		/* TODO: need to convert from BPoint type to the more compact FPoint type... but not priority, since no data used this */
-		//BPoint *bp;
-		//FPoint *fpt;
-	}
-	
-	/* get rna-path
-	 *	- we will need to set the 'disabled' flag if no path is able to be made (for now)
-	 */
-	fcu->rna_path= get_rna_access(icu->blocktype, icu->adrcode, actname, constname, &fcu->array_index);
-	if (fcu->rna_path == NULL)
-		fcu->flag |= FCURVE_DISABLED;
 	
 	/* copy flags */
 	if (icu->flag & IPO_VISIBLE) fcu->flag |= FCURVE_VISIBLE;
@@ -795,33 +910,147 @@ static FCurve *icu_to_fcu (IpoCurve *icu, char *actname, char *constname)
 			break;
 	}
 	
-	/* return new F-Curve */
-	return fcu;
+	/* -------- */
+	
+	/* get adrcode <-> bitflags mapping to handle nasty bitflag curves? */
+	abp= adrcode_bitmaps_to_paths(icu->blocktype, icu->adrcode, &totbits);
+	if (abp && totbits) {
+		FCurve *fcurve;
+		int b;
+		
+		if (G.f & G_DEBUG) printf("\tconvert bitflag ipocurve, totbits = %d \n", totbits);
+		
+		/* add the 'only int values' flag */
+		fcu->flag |= FCURVE_INT_VALUES;		
+		
+		/* for each bit we have to remap + check for:
+		 * 1) we need to make copy the existing F-Curve data (fcu -> fcurve),
+		 * 	  except for the last one which will use the original 
+		 * 2) copy the relevant path info across
+		 * 3) filter the keyframes for the flag of interest
+		 */
+		for (b=0; b < totbits; b++, abp++) {
+			/* make a copy of existing base-data if not the last curve */
+			if (b < (totbits-1))
+				fcurve= copy_fcurve(fcu);
+			else
+				fcurve= fcu;
+				
+			/* set path */
+			fcurve->rna_path= MEM_dupallocN(abp->path);
+			fcurve->array_index= abp->array_index;
+			
+			/* convert keyframes 
+			 *	- beztriples and bpoints are mutually exclusive, so we won't have both at the same time
+			 *	- beztriples are more likely to be encountered as they are keyframes (the other type wasn't used yet)
+			 */
+			fcurve->totvert= icu->totvert;
+			
+			if (icu->bezt) {
+				BezTriple *dst, *src;
+				
+				/* allocate new array for keyframes/beztriples */
+				fcurve->bezt= MEM_callocN(sizeof(BezTriple)*fcurve->totvert, "BezTriples");
+				
+				/* loop through copying all BezTriples individually, as we need to modify a few things */
+				for (dst=fcurve->bezt, src=icu->bezt; i < fcurve->totvert; i++, dst++, src++) {
+					/* firstly, copy BezTriple data */
+					*dst= *src;
+					
+					/* interpolation can only be constant... */
+					dst->ipo= BEZT_IPO_CONST;
+					
+					/* correct values, by checking if the flag of interest is set */
+					if ( ((int)(dst->vec[1][1])) & (abp->bit) )
+						dst->vec[0][1]= dst->vec[1][1]= dst->vec[2][1] = 1.0f;
+					else
+						dst->vec[0][1]= dst->vec[1][1]= dst->vec[2][1] = 0.0f;
+				}
+			}
+			else if (icu->bp) {
+				/* TODO: need to convert from BPoint type to the more compact FPoint type... but not priority, since no data used this */
+				//BPoint *bp;
+				//FPoint *fpt;
+			}
+			
+			/* add new F-Curve to list */
+			BLI_addtail(list, fcurve);
+		}
+		
+		/* free old data of curve now that it's no longer needed for converting any more curves */
+		if (icu->bezt) MEM_freeN(icu->bezt);
+		if (icu->bp) MEM_freeN(icu->bezt);
+	}
+	else {
+		/* get rna-path
+		 *	- we will need to set the 'disabled' flag if no path is able to be made (for now)
+		 */
+		fcu->rna_path= get_rna_access(icu->blocktype, icu->adrcode, actname, constname, &fcu->array_index);
+		if (fcu->rna_path == NULL)
+			fcu->flag |= FCURVE_DISABLED;
+		
+		/* convert keyframes 
+		 *	- beztriples and bpoints are mutually exclusive, so we won't have both at the same time
+		 *	- beztriples are more likely to be encountered as they are keyframes (the other type wasn't used yet)
+		 */
+		fcu->totvert= icu->totvert;
+		
+		if (icu->bezt) {
+			BezTriple *dst, *src;
+			
+			/* allocate new array for keyframes/beztriples */
+			fcu->bezt= MEM_callocN(sizeof(BezTriple)*fcu->totvert, "BezTriples");
+			
+			/* loop through copying all BezTriples individually, as we need to modify a few things */
+			for (dst=fcu->bezt, src=icu->bezt; i < fcu->totvert; i++, dst++, src++) {
+				/* firstly, copy BezTriple data */
+				*dst= *src;
+				
+				/* now copy interpolation from curve (if not already set) */
+				if (icu->ipo != IPO_MIXED)
+					dst->ipo= icu->ipo;
+					
+				/* correct values for object rotation curves - they were degrees/10 */
+				// XXX for now, just make them into radians as RNA sets/reads directly in that form
+				if ((icu->blocktype == ID_OB) && ELEM3(icu->adrcode, OB_ROT_X, OB_ROT_Y, OB_ROT_Z)) {
+					const float fac= (float)M_PI / 18.0f; //10.0f * M_PI/180.0f;
+					
+					dst->vec[0][1] *= fac;
+					dst->vec[1][1] *= fac;
+					dst->vec[2][1] *= fac;
+				}
+			}
+			
+			/* free this data now */
+			MEM_freeN(icu->bezt);
+		}
+		else if (icu->bp) {
+			/* TODO: need to convert from BPoint type to the more compact FPoint type... but not priority, since no data used this */
+			//BPoint *bp;
+			//FPoint *fpt;
+		}
+		
+		/* add new F-Curve to list */
+		BLI_addtail(list, fcu);
+	}
 }
 
-/* Convert IPO-block (i.e. all its IpoCurves) for some ID to the new system
- * This assumes that AnimData has been added already. Separation of drivers
- * from animation data is accomplished here too...
+/* ------------------------- */
+
+/* Convert IPO-block (i.e. all its IpoCurves) to the new system.
+ * This does not assume that any ID or AnimData uses it, but does assume that
+ * it is given two lists, which it will perform driver/animation-data separation.
  */
-static void ipo_to_animdata (ID *id, Ipo *ipo, char *actname, char *constname)
+static void ipo_to_animato (Ipo *ipo, char actname[], char constname[], ListBase *anim, ListBase *drivers)
 {
-	AnimData *adt= BKE_animdata_from_id(id);
-	//bActionGroup *grp;
 	IpoCurve *icu, *icn;
-	FCurve *fcu;
 	
 	/* sanity check */
-	if ELEM(NULL, id, ipo)
+	if (ELEM3(NULL, ipo, anim, drivers))
 		return;
-	if (adt == NULL) {
-		printf("ERROR ipo_to_animdata(): adt invalid \n");
-		return;
-	}
-	
-	printf("ipo to animdata - ID:%s, IPO:%s, actname:%s constname:%s  curves:%d \n", 
-		id->name+2, ipo->id.name+2, (actname)?actname:"<None>", (constname)?constname:"<None>", 
-		BLI_countlist(&ipo->curve));
-	
+		
+	if (G.f & G_DEBUG) printf("ipo_to_animato \n");
+		
 	/* validate actname and constname 
 	 *	- clear actname if it was one of the generic <builtin> ones (i.e. 'Object', or 'Shapes')
 	 *	- actname can then be used to assign F-Curves in Action to Action Groups 
@@ -829,10 +1058,9 @@ static void ipo_to_animdata (ID *id, Ipo *ipo, char *actname, char *constname)
 	 *		F-Curves for bones). This may be added later... for now let's just dump without them...
 	 */
 	if (actname) {
-		printf("actname != 0 \n");
-		if ((GS(id->name) == ID_OB) && (strcmp(actname, "Object") == 0))
+		if ((ipo->blocktype == ID_OB) && (strcmp(actname, "Object") == 0))
 			actname= NULL;
-		else if ((GS(id->name) == ID_OB) && (strcmp(actname, "Shape") == 0))
+		else if ((ipo->blocktype == ID_OB) && (strcmp(actname, "Shape") == 0))
 			actname= NULL;
 	}
 	
@@ -841,59 +1069,38 @@ static void ipo_to_animdata (ID *id, Ipo *ipo, char *actname, char *constname)
 		/* get link to next (for later) */
 		icn= icu->next;
 		
-		/* convert IPO-Curve to F-Curve 
-		 * NOTE: this frees any of the old data stored in the IPO-Curve that isn't needed anymore...
+		/* Since an IPO-Curve may end up being made into many F-Curves (i.e. bitflag curves), 
+		 * we figure out the best place to put the channel, then tell the curve-converter to just dump there
 		 */
-		// XXX we need to cope with the nasty old 'bitflag' curves... that will be a task for later
-		//		we will need to create a few new curves when doing so, and will need to sift through the keyframes to add relevant data
-		fcu= icu_to_fcu(icu, actname, constname);
-		
-		/* conversion path depends on whether it's a driver or not */
-		if (fcu->driver == NULL) {
-			/* try to get action */
-			if (adt->action == NULL) {
-				adt->action= add_empty_action("ConvertedAction"); // XXX we need a better name for this...
-				printf("added new action \n");
-			}
-				
-			/* add F-Curve to action */
-			BLI_addtail(&adt->action->curves, fcu);
-		}
-		else {
-			/* add F-Curve to AnimData's drivers */
-			BLI_addtail(&adt->drivers, fcu);
-		}
+		if (icu->driver)
+			icu_to_fcurves(drivers, icu, actname, constname);
+		else
+			icu_to_fcurves(anim, icu, actname, constname);
 		
 		/* free this IpoCurve now that it's been converted */
 		BLI_freelinkN(&ipo->curve, icu);
 	}
 }
 
-/* Convert Action-block to new system 
+/* Convert Action-block to new system, separating animation and drivers
+ * New curves may not be converted directly into the given Action (i.e. for Actions linked
+ * to Objects, where ob->ipo and ob->action need to be combined).
  * NOTE: we need to be careful here, as same data-structs are used for new system too!
  */
-static void action_to_animdata (ID *id, bAction *act)
+static void action_to_animato (bAction *act, ListBase *curves, ListBase *drivers)
 {
-	AnimData *adt= BKE_animdata_from_id(id);
 	bActionChannel *achan, *achann;
 	bConstraintChannel *conchan, *conchann;
 	
 	/* only continue if there are Action Channels (indicating unconverted data) */
-	if (ELEM(NULL, adt, act->chanbase.first))
+	if (act->chanbase.first == NULL)
 		return;
 		
 	/* get rid of all Action Groups */
-	// XXX this is risky if there's some old, some new data in the Action...
+	// XXX this is risky if there's some old + some new data in the Action...
 	if (act->groups.first) 
 		BLI_freelistN(&act->groups);
-		
-	/* check if we need to set this Action as the AnimData's action */
-	if (adt->action == NULL) {
-		/* set this Action as AnimData's Action */
-		printf("act_to_adt - set adt action to act \n");
-		adt->action= act;
-	}
-		
+	
 	/* loop through Action-Channels, converting data, freeing as we go */
 	for (achan= act->chanbase.first; achan; achan= achann) {
 		/* get pointer to next Action Channel */
@@ -901,7 +1108,7 @@ static void action_to_animdata (ID *id, bAction *act)
 		
 		/* convert Action Channel's IPO data */
 		if (achan->ipo) {
-			ipo_to_animdata(id, achan->ipo, achan->name, NULL);
+			ipo_to_animato(achan->ipo, achan->name, NULL, curves, drivers);
 			achan->ipo->id.us--;
 			achan->ipo= NULL;
 		}
@@ -913,7 +1120,7 @@ static void action_to_animdata (ID *id, bAction *act)
 			
 			/* convert Constraint Channel's IPO data */
 			if (conchan->ipo) {
-				ipo_to_animdata(id, conchan->ipo, achan->name, conchan->name);
+				ipo_to_animato(conchan->ipo, achan->name, conchan->name, curves, drivers);
 				conchan->ipo->id.us--;
 				conchan->ipo= NULL;
 			}
@@ -925,6 +1132,81 @@ static void action_to_animdata (ID *id, bAction *act)
 		/* free Action Channel */
 		BLI_freelinkN(&act->chanbase, achan);
 	}
+}
+
+
+/* ------------------------- */
+
+/* Convert IPO-block (i.e. all its IpoCurves) for some ID to the new system
+ * This assumes that AnimData has been added already. Separation of drivers
+ * from animation data is accomplished here too...
+ */
+static void ipo_to_animdata (ID *id, Ipo *ipo, char actname[], char constname[])
+{
+	AnimData *adt= BKE_animdata_from_id(id);
+	ListBase anim = {NULL, NULL};
+	ListBase drivers = {NULL, NULL};
+	
+	/* sanity check */
+	if ELEM(NULL, id, ipo)
+		return;
+	if (adt == NULL) {
+		printf("ERROR ipo_to_animdata(): adt invalid \n");
+		return;
+	}
+	
+	if (G.f & G_DEBUG) {
+		printf("ipo to animdata - ID:%s, IPO:%s, actname:%s constname:%s  curves:%d \n", 
+			id->name+2, ipo->id.name+2, (actname)?actname:"<None>", (constname)?constname:"<None>", 
+			BLI_countlist(&ipo->curve));
+	}
+	
+	/* Convert curves to animato system (separated into separate lists of F-Curves for animation and drivers),
+	 * and the try to put these lists in the right places, but do not free the lists here
+	 */
+	ipo_to_animato(ipo, actname, constname, &anim, &drivers);
+	
+	/* deal with animation first */
+	if (anim.first) {
+		if (G.f & G_DEBUG) printf("\thas anim \n");
+		/* try to get action */
+		if (adt->action == NULL) {
+			adt->action= add_empty_action("ConvData_Action"); // XXX we need a better name for this
+			if (G.f & G_DEBUG) printf("\t\tadded new action \n");
+		}
+		
+		/* add F-Curves to action */
+		addlisttolist(&adt->action->curves, &anim);
+	}
+	
+	/* deal with drivers */
+	if (drivers.first) {
+		if (G.f & G_DEBUG) printf("\thas drivers \n");
+		/* add drivers to end of driver stack */
+		addlisttolist(&adt->drivers, &drivers);
+	}
+}
+
+/* Convert Action-block to new system
+ * NOTE: we need to be careful here, as same data-structs are used for new system too!
+ */
+static void action_to_animdata (ID *id, bAction *act)
+{
+	AnimData *adt= BKE_animdata_from_id(id);
+	
+	/* only continue if there are Action Channels (indicating unconverted data) */
+	if (ELEM(NULL, adt, act->chanbase.first))
+		return;
+	
+	/* check if we need to set this Action as the AnimData's action */
+	if (adt->action == NULL) {
+		/* set this Action as AnimData's Action */
+		if (G.f & G_DEBUG) printf("act_to_adt - set adt action to act \n");
+		adt->action= act;
+	}
+	
+	/* convert Action data */
+	action_to_animato(act, &adt->action->curves, &adt->drivers);
 }
 
 /* *************************************************** */
@@ -943,6 +1225,7 @@ static void action_to_animdata (ID *id, bAction *act)
 // XXX currently done after all file reading... 
 void do_versions_ipos_to_animato(Main *main)
 {
+	ListBase drivers = {NULL, NULL};
 	ID *id;
 	AnimData *adt;
 	
@@ -960,6 +1243,7 @@ void do_versions_ipos_to_animato(Main *main)
 	else
 		printf("INFO: Converting to Animato... \n"); // xxx debug
 		
+	/* ----------- Animation Attached to Data -------------- */
 	
 	/* objects */
 	for (id= main->object.first; id; id= id->next) {
@@ -968,7 +1252,7 @@ void do_versions_ipos_to_animato(Main *main)
 		bConstraint *con;
 		bConstraintChannel *conchan, *conchann;
 		
-		printf("\tconverting ob %s \n", id->name+2);
+		if (G.f & G_DEBUG) printf("\tconverting ob %s \n", id->name+2);
 		
 		/* check if object has any animation data */
 		if ((ob->ipo) || (ob->action) || (ob->nlastrips.first)) {
@@ -1012,9 +1296,6 @@ void do_versions_ipos_to_animato(Main *main)
 						con->ipo->id.us--;
 						con->ipo= NULL;
 					}
-					 
-					/* check for Action Constraint */
-					// XXX do we really want to do this here?
 				}
 			}
 		}
@@ -1058,7 +1339,7 @@ void do_versions_ipos_to_animato(Main *main)
 	for (id= main->key.first; id; id= id->next) {
 		Key *key= (Key *)id;
 		
-		printf("\tconverting key %s \n", id->name+2);
+		if (G.f & G_DEBUG) printf("\tconverting key %s \n", id->name+2);
 		
 		/* we're only interested in the IPO 
 		 * NOTE: for later, it might be good to port these over to Object instead, as many of these
@@ -1079,7 +1360,7 @@ void do_versions_ipos_to_animato(Main *main)
 	for (id= main->mat.first; id; id= id->next) {
 		Material *ma= (Material *)id;
 		
-		printf("\tconverting material %s \n", id->name+2);
+		if (G.f & G_DEBUG) printf("\tconverting material %s \n", id->name+2);
 		
 		/* we're only interested in the IPO */
 		if (ma->ipo) {
@@ -1097,7 +1378,7 @@ void do_versions_ipos_to_animato(Main *main)
 	for (id= main->tex.first; id; id= id->next) {
 		Tex *te= (Tex *)id;
 		
-		printf("\tconverting texture %s \n", id->name+2);
+		if (G.f & G_DEBUG) printf("\tconverting texture %s \n", id->name+2);
 		
 		/* we're only interested in the IPO */
 		if (te->ipo) {
@@ -1115,7 +1396,7 @@ void do_versions_ipos_to_animato(Main *main)
 	for (id= main->camera.first; id; id= id->next) {
 		Camera *ca= (Camera *)id;
 		
-		printf("\tconverting camera %s \n", id->name+2);
+		if (G.f & G_DEBUG) printf("\tconverting camera %s \n", id->name+2);
 		
 		/* we're only interested in the IPO */
 		if (ca->ipo) {
@@ -1129,7 +1410,67 @@ void do_versions_ipos_to_animato(Main *main)
 		}
 	}
 	
-	// XXX add other types too...
+	/* lamps */
+	for (id= main->lamp.first; id; id= id->next) {
+		Lamp *la= (Lamp *)id;
+		
+		if (G.f & G_DEBUG) printf("\tconverting lamp %s \n", id->name+2);
+		
+		/* we're only interested in the IPO */
+		if (la->ipo) {
+			/* Add AnimData block */
+			adt= BKE_id_add_animdata(id);
+			
+			/* Convert Lamp data... */
+			ipo_to_animdata(id, la->ipo, NULL, NULL);
+			la->ipo->id.us--;
+			la->ipo= NULL;
+		}
+	}
+	
+	/* --------- Unconverted Animation Data ------------------ */
+	/* For Animation data which may not be directly connected (i.e. not linked) to any other 
+	 * data, we need to perform a separate pass to make sure that they are converted to standalone
+	 * Actions which may then be able to be reused. This does mean that we will be going over data that's
+	 * already been converted, but there are no problems with that.
+	 *
+	 * The most common case for this will be Action Constraints, or IPO's with Fake-Users. 
+	 * We collect all drivers that were found into a temporary collection, and free them in one go, as they're 
+	 * impossible to resolve.
+	 */
+	
+	/* actions */
+	for (id= main->action.first; id; id= id->next) {
+		bAction *act= (bAction *)id;
+		
+		if (G.f & G_DEBUG) printf("\tconverting action %s \n", id->name+2);
+		
+		/* be careful! some of the actions we encounter will be converted ones... */
+		action_to_animato(act, &act->curves, &drivers);
+	}
+	
+	/* ipo's */
+	for (id= main->ipo.first; id; id= id->next) {
+		Ipo *ipo= (Ipo *)id;
+		
+		if (G.f & G_DEBUG) printf("\tconverting ipo %s \n", id->name+2);
+		
+		/* most likely this IPO has already been processed, so check if any curves left to convert */
+		if (ipo->curve.first) {
+			bAction *new_act;
+			
+			/* add a new action for this, and convert all data into that action */
+			new_act= add_empty_action("ConvIPO_Action"); // XXX need a better name...
+			ipo_to_animato(ipo, NULL, NULL, &new_act->curves, &drivers);
+		}
+		
+		/* clear fake-users, and set user-count to zero to make sure it is cleared on file-save */
+		ipo->id.us= 0;
+		ipo->id.flag &= ~LIB_FAKEUSER;
+	}
+	
+	/* free unused drivers from actions + ipos */
+	free_fcurves(&drivers);
 	
 	printf("INFO: animato convert done \n"); // xxx debug
 }
@@ -1275,58 +1616,6 @@ void *get_ipo_poin (ID *id, IpoCurve *icu, int *type)
 				else if (icu->adrcode & MA_MAP16) mtex= wo->mtex[15];
 				else if (icu->adrcode & MA_MAP17) mtex= wo->mtex[16];
 				else if (icu->adrcode & MA_MAP18) mtex= wo->mtex[17];
-				
-				if (mtex)
-					poin= give_mtex_poin(mtex, (icu->adrcode & (MA_MAP1-1)));
-			}
-		}
-			break;
-		case ID_LA: /* lamp channels -----------------------------  */
-		{
-			Lamp *la= (Lamp *)id;
-			
-			switch (icu->adrcode) {
-			case LA_ENERGY:
-				poin= &(la->energy); break;		
-			case LA_COL_R:
-				poin= &(la->r); break;
-			case LA_COL_G:
-				poin= &(la->g); break;
-			case LA_COL_B:
-				poin= &(la->b); break;
-			case LA_DIST:
-				poin= &(la->dist); break;		
-			case LA_SPOTSI:
-				poin= &(la->spotsize); break;
-			case LA_SPOTBL:
-				poin= &(la->spotblend); break;
-			case LA_QUAD1:
-				poin= &(la->att1); break;
-			case LA_QUAD2:
-				poin= &(la->att2); break;
-			case LA_HALOINT:
-				poin= &(la->haint); break;
-			}
-			
-			if (poin == NULL) {
-				if (icu->adrcode & MA_MAP1) mtex= la->mtex[0];
-				else if (icu->adrcode & MA_MAP2) mtex= la->mtex[1];
-				else if (icu->adrcode & MA_MAP3) mtex= la->mtex[2];
-				else if (icu->adrcode & MA_MAP4) mtex= la->mtex[3];
-				else if (icu->adrcode & MA_MAP5) mtex= la->mtex[4];
-				else if (icu->adrcode & MA_MAP6) mtex= la->mtex[5];
-				else if (icu->adrcode & MA_MAP7) mtex= la->mtex[6];
-				else if (icu->adrcode & MA_MAP8) mtex= la->mtex[7];
-				else if (icu->adrcode & MA_MAP9) mtex= la->mtex[8];
-				else if (icu->adrcode & MA_MAP10) mtex= la->mtex[9];
-				else if (icu->adrcode & MA_MAP11) mtex= la->mtex[10];
-				else if (icu->adrcode & MA_MAP12) mtex= la->mtex[11];
-				else if (icu->adrcode & MA_MAP13) mtex= la->mtex[12];
-				else if (icu->adrcode & MA_MAP14) mtex= la->mtex[13];
-				else if (icu->adrcode & MA_MAP15) mtex= la->mtex[14];
-				else if (icu->adrcode & MA_MAP16) mtex= la->mtex[15];
-				else if (icu->adrcode & MA_MAP17) mtex= la->mtex[16];
-				else if (icu->adrcode & MA_MAP18) mtex= la->mtex[17];
 				
 				if (mtex)
 					poin= give_mtex_poin(mtex, (icu->adrcode & (MA_MAP1-1)));

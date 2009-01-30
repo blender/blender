@@ -78,6 +78,8 @@ void node_deselectall(SpaceNode *snode, int swap);
 void node_shader_default(Material *ma);
 void node_composit_default(Scene *sce);
 void node_texture_default(Tex *tx);
+void snode_composite_job(const struct bContext *C, ScrArea *sa);
+bNode *snode_get_editgroup(SpaceNode *snode);
 
 // XXXXXX
 

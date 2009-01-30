@@ -114,6 +114,9 @@ typedef struct View2D {
 #define V2D_SCROLL_SCALE_VERTICAL	(1<<5)
 	/* scale markings - horizontal */	
 #define V2D_SCROLL_SCALE_HORIZONTAL	(1<<6)
+	/* disable draw temporary */
+#define V2D_SCROLL_VERTICAL_HIDE	(1<<7)		
+#define V2D_SCROLL_HORIZONTAL_HIDE	(1<<8)
 
 /* alignment flags for totrect, flags use 'shading-out' convention (v2d->align) */
 	/* all quadrants free */

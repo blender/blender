@@ -207,11 +207,27 @@ void ui_window_to_region(const ARegion *ar, int *x, int *y)
 
 /* ******************* block calc ************************* */
 
-/* only for pulldowns */
-void uiTextBoundsBlock(uiBlock *block, int addval)
+static void ui_block_translate(uiBlock *block, int x, int y)
 {
 	uiBut *bt;
-	int i = 0, j, x1addval= 0, nextcol;
+
+	for(bt= block->buttons.first; bt; bt=bt->next) {
+		bt->x1 += x;
+		bt->y1 += y;
+		bt->x2 += x;
+		bt->y2 += y;
+	}
+
+	block->minx += x;
+	block->miny += y;
+	block->maxx += x;
+	block->maxy += y;
+}
+
+static void ui_text_bounds_block(uiBlock *block, float offset)
+{
+	uiBut *bt;
+	int i = 0, j, x1addval= offset, nextcol;
 	
 	bt= block->buttons.first;
 	while(bt) {
@@ -233,24 +249,21 @@ void uiTextBoundsBlock(uiBlock *block, int addval)
 		else nextcol= 0;
 		
 		bt->x1 = x1addval;
-		bt->x2 = bt->x1 + i + addval;
+		bt->x2 = bt->x1 + i + block->bounds;
 		
 		ui_check_but(bt);	// clips text again
 		
 		if(nextcol)
-			x1addval+= i + addval;
+			x1addval+= i + block->bounds;
 		
 		bt= bt->next;
 	}
 }
 
-void uiBoundsBlock(uiBlock *block, int addval)
+void ui_bounds_block(uiBlock *block)
 {
 	uiBut *bt;
 	int xof;
-	
-	if(block==NULL)
-		return;
 	
 	if(block->buttons.first==NULL) {
 		if(block->panel) {
@@ -274,10 +287,10 @@ void uiBoundsBlock(uiBlock *block, int addval)
 			bt= bt->next;
 		}
 		
-		block->minx -= addval;
-		block->miny -= addval;
-		block->maxx += addval;
-		block->maxy += addval;
+		block->minx -= block->bounds;
+		block->miny -= block->bounds;
+		block->maxx += block->bounds;
+		block->maxy += block->bounds;
 	}
 
 	/* hardcoded exception... but that one is annoying with larger safety */ 
@@ -291,34 +304,80 @@ void uiBoundsBlock(uiBlock *block, int addval)
 	block->safety.ymax= block->maxy+xof;
 }
 
-void uiBlockTranslate(uiBlock *block, int x, int y)
+static void ui_popup_bounds_block(const bContext *C, uiBlock *block)
 {
-	uiBut *bt;
+	int startx, starty, endx, endy, width, height;
+	int oldbounds, mx, my, xmax, ymax;
 
-	for(bt= block->buttons.first; bt; bt=bt->next) {
-		bt->x1 += x;
-		bt->y1 += y;
-		bt->x2 += x;
-		bt->y2 += y;
+	oldbounds= block->bounds;
+
+	/* compute bounds */
+	ui_bounds_block(block);
+	mx= block->minx;
+	my= block->miny;
+
+	wm_window_get_size(CTX_wm_window(C), &xmax, &ymax);
+
+	/* first we ensure wide enough text bounds */
+	block->bounds= 50;
+	ui_text_bounds_block(block, block->minx);
+
+	/* next we recompute bounds */
+	block->bounds= oldbounds;
+	ui_bounds_block(block);
+
+	/* and we adjust the position to fit within window */
+	width= block->maxx - block->minx;
+	height= block->maxy - block->miny;
+
+	startx= mx-(0.8*(width));
+	starty= my;
+	
+	if(startx<10)
+		startx= 10;
+	if(starty<10)
+		starty= 10;
+	
+	endx= startx+width;
+	endy= starty+height;
+	
+	if(endx>xmax) {
+		endx= xmax-10;
+		startx= endx-width;
+	}
+	if(endy>ymax-20) {
+		endy= ymax-20;
+		starty= endy-height;
 	}
 
-	block->minx += x;
-	block->miny += y;
-	block->maxx += x;
-	block->maxy += y;
+	ui_block_translate(block, startx - block->minx, starty - block->miny);
+
+	/* now recompute bounds and safety */
+	ui_bounds_block(block);
 }
 
-void uiBlockOrigin(uiBlock *block)
+/* used for various cases */
+void uiBoundsBlock(uiBlock *block, int addval)
 {
-	uiBut *bt;
-	int minx= 10000, miny= 10000;
+	if(block==NULL)
+		return;
+	
+	block->bounds= addval;
+	block->dobounds= 1;
+}
 
-	for(bt= block->buttons.first; bt; bt=bt->next) {
-		if(bt->x1 < minx) minx= bt->x1;
-		if(bt->y1 < miny) miny= bt->y1;
-	}
+/* used for pulldowns */
+void uiTextBoundsBlock(uiBlock *block, int addval)
+{
+	block->bounds= addval;
+	block->dobounds= 2;
+}
 
-	uiBlockTranslate(block, -minx, -miny);
+/* used for menu popups */
+void uiPopupBoundsBlock(uiBlock *block, int addval)
+{
+	block->bounds= addval;
+	block->dobounds= 3;
 }
 
 void ui_autofill(uiBlock *block)
@@ -433,8 +492,8 @@ static int ui_but_equals_old(uiBut *but, uiBut *oldbut)
 	if(but->rnaprop != oldbut->rnaprop)
 	if(but->rnaindex != oldbut->rnaindex) return 0;
 	if(but->func != oldbut->func) return 0;
-	if(but->func_arg1 != oldbut->func_arg1) return 0;
-	if(but->func_arg2 != oldbut->func_arg2) return 0;
+	if(oldbut->func_arg1 != oldbut && but->func_arg1 != oldbut->func_arg1) return 0;
+	if(oldbut->func_arg2 != oldbut && but->func_arg2 != oldbut->func_arg2) return 0;
 
 	return 1;
 }
@@ -479,16 +538,21 @@ static int ui_but_update_from_old_block(const bContext *C, uiBlock *block, uiBut
 	return found;
 }
 
-static void ui_menu_block_set_keymaps(const bContext *C, uiBlock *block)
+void ui_menu_block_set_keymaps(const bContext *C, uiBlock *block)
 {
 	uiBut *but;
+	IDProperty *prop;
 	char buf[512], *butstr;
 
-	/* XXX bounds? */
+	/* only do it before bounding */
+	if(block->minx != block->maxx)
+		return;
+
 	for(but=block->buttons.first; but; but=but->next) {
-		/* only hotkey for menus without properties */
-		if(but->opname && but->opptr==NULL) {
-			if(WM_key_event_operator_string(C, but->opname, but->opcontext, buf, sizeof(buf))) {
+		if(but->opname) {
+			prop= (but->opptr)? but->opptr->data: NULL;
+
+			if(WM_key_event_operator_string(C, but->opname, but->opcontext, prop, buf, sizeof(buf))) {
 				butstr= MEM_mallocN(strlen(but->str)+strlen(buf)+2, "menu_block_set_keymaps");
 				strcpy(butstr, but->str);
 				strcat(butstr, "|");
@@ -526,9 +590,17 @@ void uiEndBlock(const bContext *C, uiBlock *block)
 
 	/* handle pending stuff */
 	if(block->flag & UI_BLOCK_LOOP) ui_menu_block_set_keymaps(C, block);
+
+	/* after keymaps! */
+	if(block->dobounds == 1) ui_bounds_block(block);
+	else if(block->dobounds == 2) ui_text_bounds_block(block, 0.0f);
+	else if(block->dobounds == 3) ui_popup_bounds_block(C, block);
+
 	if(block->autofill) ui_autofill(block);
 	if(block->minx==0.0 && block->maxx==0.0) uiBoundsBlock(block, 0);
 	if(block->flag & UI_BUT_ALIGN) uiBlockEndAlign(block);
+
+	block->endblock= 1;
 }
 
 /* ************** BLOCK DRAWING FUNCTION ************* */
@@ -536,6 +608,9 @@ void uiEndBlock(const bContext *C, uiBlock *block)
 void uiDrawBlock(const bContext *C, uiBlock *block)
 {
 	uiBut *but;
+
+	if(!block->endblock)
+		uiEndBlock(C, block);
 
 	/* we set this only once */
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -1767,6 +1842,7 @@ static int ui_auto_themecol(uiBut *but)
 	case TEX:
 		return TH_BUT_TEXTFIELD;
 	case PULLDOWN:
+	case HMENU:
 	case BLOCK:
 	case MENU:
 	case BUTM:
@@ -2102,6 +2178,18 @@ uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, char *str, short x1,
 				BLI_dynstr_free(dynstr);
 
 				freestr= 1;
+			}
+			else if(type == ROW && proptype == PROP_ENUM) {
+				const EnumPropertyItem *item;
+				int i, totitem;
+
+				RNA_property_enum_items(ptr, prop, &item, &totitem);
+				for(i=0; i<totitem; i++)
+					if(item[i].value == (int)max)
+						str= (char*)item[i].name;
+
+				if(!str)
+					str= (char*)RNA_property_ui_name(ptr, prop);
 			}
 			else
 				str= (char*)RNA_property_ui_name(ptr, prop);
@@ -2564,7 +2652,7 @@ uiBut *uiDefMenuSep(uiBlock *block)
 	return uiDefBut(block, SEPR, 0, "", 0, y, MENU_WIDTH, MENU_SEP_HEIGHT, NULL, 0.0, 0.0, 0, 0, "");
 }
 
-uiBut *uiDefMenuSub(uiBlock *block, uiBlockFuncFP func, char *name)
+uiBut *uiDefMenuSub(uiBlock *block, uiBlockCreateFunc func, char *name)
 {
 	int y= ui_menu_y(block) - MENU_ITEM_HEIGHT;
 	return uiDefIconTextBlockBut(block, func, NULL, ICON_RIGHTARROW_THIN, name, 0, y, MENU_WIDTH, MENU_ITEM_HEIGHT-1, "");
@@ -2798,24 +2886,48 @@ uiBut *uiDefIDPoinBut(uiBlock *block, uiIDPoinFuncFP func, short blocktype, int 
 	return but;
 }
 
-uiBut *uiDefBlockBut(uiBlock *block, uiBlockFuncFP func, void *arg, char *str, short x1, short y1, short x2, short y2, char *tip)
+uiBut *uiDefBlockBut(uiBlock *block, uiBlockCreateFunc func, void *arg, char *str, short x1, short y1, short x2, short y2, char *tip)
 {
 	uiBut *but= ui_def_but(block, BLOCK, 0, str, x1, y1, x2, y2, arg, 0.0, 0.0, 0.0, 0.0, tip);
-	but->block_func= func;
+	but->block_create_func= func;
 	ui_check_but(but);
 	return but;
 }
 
-uiBut *uiDefPulldownBut(uiBlock *block, uiBlockFuncFP func, void *arg, char *str, short x1, short y1, short x2, short y2, char *tip)
+uiBut *uiDefPulldownBut(uiBlock *block, uiBlockCreateFunc func, void *arg, char *str, short x1, short y1, short x2, short y2, char *tip)
 {
 	uiBut *but= ui_def_but(block, PULLDOWN, 0, str, x1, y1, x2, y2, arg, 0.0, 0.0, 0.0, 0.0, tip);
-	but->block_func= func;
+	but->block_create_func= func;
 	ui_check_but(but);
+	return but;
+}
+
+uiBut *uiDefMenuBut(uiBlock *block, uiMenuCreateFunc func, void *arg, char *str, short x1, short y1, short x2, short y2, char *tip)
+{
+	uiBut *but= ui_def_but(block, HMENU, 0, str, x1, y1, x2, y2, arg, 0.0, 0.0, 0.0, 0.0, tip);
+	but->menu_create_func= func;
+	ui_check_but(but);
+	return but;
+}
+
+uiBut *uiDefIconTextMenuBut(uiBlock *block, uiMenuCreateFunc func, void *arg, int icon, char *str, short x1, short y1, short x2, short y2, char *tip)
+{
+	uiBut *but= ui_def_but(block, HMENU, 0, str, x1, y1, x2, y2, arg, 0.0, 0.0, 0.0, 0.0, tip);
+
+	but->icon= (BIFIconID) icon;
+	but->flag|= UI_HAS_ICON;
+
+	but->flag|= UI_ICON_LEFT;
+	but->flag|= UI_ICON_RIGHT;
+
+	but->menu_create_func= func;
+	ui_check_but(but);
+
 	return but;
 }
 
 /* Block button containing both string label and icon */
-uiBut *uiDefIconTextBlockBut(uiBlock *block, uiBlockFuncFP func, void *arg, int icon, char *str, short x1, short y1, short x2, short y2, char *tip)
+uiBut *uiDefIconTextBlockBut(uiBlock *block, uiBlockCreateFunc func, void *arg, int icon, char *str, short x1, short y1, short x2, short y2, char *tip)
 {
 	uiBut *but= ui_def_but(block, BLOCK, 0, str, x1, y1, x2, y2, arg, 0.0, 0.0, 0.0, 0.0, tip);
 	
@@ -2825,14 +2937,14 @@ uiBut *uiDefIconTextBlockBut(uiBlock *block, uiBlockFuncFP func, void *arg, int 
 	but->flag|= UI_ICON_LEFT;
 	but->flag|= UI_ICON_RIGHT;
 
-	but->block_func= func;
+	but->block_create_func= func;
 	ui_check_but(but);
 	
 	return but;
 }
 
 /* Block button containing icon */
-uiBut *uiDefIconBlockBut(uiBlock *block, uiBlockFuncFP func, void *arg, int retval, int icon, short x1, short y1, short x2, short y2, char *tip)
+uiBut *uiDefIconBlockBut(uiBlock *block, uiBlockCreateFunc func, void *arg, int retval, int icon, short x1, short y1, short x2, short y2, char *tip)
 {
 	uiBut *but= ui_def_but(block, BLOCK, retval, "", x1, y1, x2, y2, arg, 0.0, 0.0, 0.0, 0.0, tip);
 	
@@ -2842,7 +2954,7 @@ uiBut *uiDefIconBlockBut(uiBlock *block, uiBlockFuncFP func, void *arg, int retv
 	but->flag|= UI_ICON_LEFT;
 	but->flag|= UI_ICON_RIGHT;
 	
-	but->block_func= func;
+	but->block_create_func= func;
 	ui_check_but(but);
 	
 	return but;

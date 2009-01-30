@@ -145,6 +145,8 @@ void ANIM_animdata_send_notifiers (bContext *C, bAnimContext *ac, short data_cha
 	/* types of notifiers to send, depends on the editor context */
 	switch (ac->datatype) {
 		case ANIMCONT_DOPESHEET: /* dopesheet */
+		case ANIMCONT_FCURVES: /* fcurve editor */
+		case ANIMCONT_DRIVERS: /* drivers editor */	// XXX probably this will need separate handling, since these are part of dependency system 
 		{
 			/* what action was taken */
 			switch (data_changed) {
@@ -153,8 +155,9 @@ void ANIM_animdata_send_notifiers (bContext *C, bAnimContext *ac, short data_cha
 					// XXX what about other cases? maybe we need general ND_KEYFRAMES or ND_ANIMATION?
 					WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
 					break;
-				//case ANIM_CHANGED_KEYFRAMES_SELECT:	// XXX what to do here?
-				//	break;
+				case ANIM_CHANGED_KEYFRAMES_SELECT:	// XXX what to do here?
+					WM_event_add_notifier(C, NC_SCENE, NULL);
+					break;
 				case ANIM_CHANGED_CHANNELS:
 					// XXX err... check available datatypes in dopesheet first?
 					// FIXME: this currently doesn't work (to update own view)

@@ -1025,7 +1025,13 @@ static void mouse_anim_channels (bAnimContext *ac, float x, int channel_index, s
 		case ANIMTYPE_FILLACTD:
 		{
 			bAction *act= (bAction *)ale->data;
-			act->flag ^= ACT_EXPANDED;
+			act->flag ^= ACT_COLLAPSED;
+		}
+			break;
+		case ANIMTYPE_FILLDRIVERS:
+		{
+			AnimData *adt= (AnimData* )ale->data;
+			adt->flag ^= ADT_DRIVERS_COLLAPSED;
 		}
 			break;
 		case ANIMTYPE_FILLMATD:
@@ -1126,6 +1132,11 @@ static void mouse_anim_channels (bAnimContext *ac, float x, int channel_index, s
 			else {
 				/* select/deselect */
 				fcu->flag ^= FCURVE_SELECTED;
+				
+				if (fcu->flag & FCURVE_SELECTED)
+					fcu->flag |= FCURVE_ACTIVE;
+				else
+					fcu->flag &= ~FCURVE_ACTIVE;
 			}
 		}
 			break;

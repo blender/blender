@@ -627,6 +627,7 @@ void ACT_OT_keyframes_delete (wmOperatorType *ot)
 	ot->idname= "ACT_OT_keyframes_delete";
 	
 	/* api callbacks */
+	ot->invoke= WM_operator_confirm;
 	ot->exec= actkeys_delete_exec;
 	ot->poll= ED_operator_areaactive;
 	
@@ -825,8 +826,6 @@ void ACT_OT_keyframes_sample (wmOperatorType *ot)
 
 /* ******************** Set Extrapolation-Type Operator *********************** */
 
-// XXX rename this operator...
-
 /* defines for set extrapolation-type for selected keyframes tool */
 EnumPropertyItem prop_actkeys_expo_types[] = {
 	{FCURVE_EXTRAPOLATE_CONSTANT, "CONSTANT", "Constant Extrapolation", ""},
@@ -883,11 +882,11 @@ static int actkeys_expo_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
  
-void ACT_OT_keyframes_expotype (wmOperatorType *ot)
+void ACT_OT_keyframes_extrapolation_type (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Set Keyframe Extrapolation";
-	ot->idname= "ACT_OT_keyframes_expotype";
+	ot->idname= "ACT_OT_keyframes_extrapolation_type";
 	
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
@@ -961,11 +960,11 @@ static int actkeys_ipo_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
  
-void ACT_OT_keyframes_ipotype (wmOperatorType *ot)
+void ACT_OT_keyframes_interpolation_type (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Set Keyframe Interpolation";
-	ot->idname= "ACT_OT_keyframes_ipotype";
+	ot->idname= "ACT_OT_keyframes_interpolation_type";
 	
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;

@@ -217,7 +217,7 @@ int WM_menu_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		for (i=0; i<totitem; i++)
 			p+= sprintf(p, "|%s %%x%d", item[i].name, item[i].value);
 		
-		uiPupmenuOperator(C, totitem/30, op, "type", menu);
+		uiPupMenuOperator(C, totitem/30, op, "type", menu);
 		MEM_freeN(menu);
 		
 		return OPERATOR_RUNNING_MODAL;
@@ -231,7 +231,7 @@ int WM_operator_confirm(bContext *C, wmOperator *op, wmEvent *event)
 	char buf[512];
 	
 	sprintf(buf, "OK? %%i%d%%t|%s", ICON_HELP, op->type->name);
-	uiPupmenuOperator(C, 0, op, NULL, buf);
+	uiPupMenuOperator(C, 0, op, NULL, buf);
 	
 	return OPERATOR_RUNNING_MODAL;
 }
@@ -337,7 +337,7 @@ static int wm_recentfile_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	char pup[2048];
 	
 	recent_filelist(pup);
-	uiPupmenuOperator(C, 0, op, "nr", pup);
+	uiPupMenuOperator(C, 0, op, "nr", pup);
 	
 	return OPERATOR_RUNNING_MODAL;
 }
@@ -368,7 +368,8 @@ static int wm_mainfile_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	/* settings for filebrowser */
 	sfile= (SpaceFile*)CTX_wm_space_data(C);
 	sfile->op = op;
-	ED_fileselect_set_params(sfile, FILE_BLENDER, "Load", "C:\\", 0, 0, 0);
+	// XXX replace G.sce
+	ED_fileselect_set_params(sfile, FILE_BLENDER, "Load As", G.sce, 0, 0, 0);
 
 	/* screen and area have been reset already in ED_screen_full_newspace */
 
@@ -1170,5 +1171,6 @@ void wm_window_keymap(wmWindowManager *wm)
 	WM_keymap_verify_item(keymap, "WM_OT_save_as_mainfile", F2KEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "WM_OT_window_fullscreen_toggle", F11KEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "WM_OT_exit_blender", QKEY, KM_PRESS, KM_CTRL, 0);
+
 }
 

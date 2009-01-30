@@ -73,22 +73,54 @@ enum {
 
 static void do_viewmenu(bContext *C, void *arg, int event)
 {
+	SpaceIpo *sipo= (SpaceIpo *)CTX_wm_space_data(C);
 	
+	switch (event) {
+		case 1: /* Show time/frames */
+			sipo->flag ^= SIPO_DRAWTIME;
+			break;
+		case 2: /* AutoMerge Keyframes */
+			sipo->flag ^= SIPO_NOTRANSKEYCULL;
+			break;
+		case 3: /* Show/Hide handles */
+			sipo->flag ^= SIPO_NOHANDLES;
+			break;
+		case 4: /* Show current frame number beside indicator */
+			sipo->flag ^= SIPO_NODRAWCFRANUM;
+			break;
+	}
 }
 
-static uiBlock *dummy_viewmenu(bContext *C, uiMenuBlockHandle *handle, void *arg_unused)
+static uiBlock *graph_viewmenu(bContext *C, ARegion *ar, void *arg_unused)
 {
 	ScrArea *curarea= CTX_wm_area(C);
+	SpaceIpo *sipo= (SpaceIpo *)CTX_wm_space_data(C);
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
 	
-	block= uiBeginBlock(C, handle->region, "dummy_viewmenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "graph_viewmenu", UI_EMBOSSP, UI_HELV);
 	uiBlockSetButmFunc(block, do_viewmenu, NULL);
 	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Nothing yet", 0, yco-=20, 
-					 menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
+		// XXX these options should use new menu-options
 	
-	if(curarea->headertype==HEADERTOP) {
+	if (sipo->flag & SIPO_DRAWTIME) {
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+					 "Show Frames|Ctrl T", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
+	}
+	else {
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+					 "Show Seconds|Ctrl T", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
+	}
+	
+	
+	uiDefIconTextBut(block, BUTM, 1, (sipo->flag & SIPO_NOTRANSKEYCULL)?ICON_CHECKBOX_DEHLT:ICON_CHECKBOX_HLT, 
+					 "AutoMerge Keyframes|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+	uiDefIconTextBut(block, BUTM, 1, (sipo->flag & SIPO_NOHANDLES)?ICON_CHECKBOX_DEHLT:ICON_CHECKBOX_HLT, 
+					 "Show Handles|Ctrl H", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
+	uiDefIconTextBut(block, BUTM, 1, (sipo->flag & SIPO_NODRAWCFRANUM)?ICON_CHECKBOX_DEHLT:ICON_CHECKBOX_HLT, 
+					 "Show Current Frame Number|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
+	
+	if (curarea->headertype==HEADERTOP) {
 		uiBlockSetDirection(block, UI_DOWN);
 	}
 	else {
@@ -131,7 +163,7 @@ void graph_header_buttons(const bContext *C, ARegion *ar)
 		uiBlockSetEmboss(block, UI_EMBOSSP);
 		
 		xmax= GetButStringLength("View");
-		uiDefPulldownBut(block, dummy_viewmenu, CTX_wm_area(C), 
+		uiDefPulldownBut(block, graph_viewmenu, CTX_wm_area(C), 
 						 "View", xco, yco-2, xmax-3, 24, "");
 		xco+= xmax;
 	}
@@ -141,11 +173,56 @@ void graph_header_buttons(const bContext *C, ARegion *ar)
 	/* mode selector */
 	uiDefButS(block, MENU, B_REDR, 
 			"Editor Mode %t|F-Curve Editor %x0|Drivers %x1", 
-			xco,yco,90,YIC, &sipo->mode, 0, 1, 0, 0, 
+			xco,yco,110,YIC, &sipo->mode, 0, 1, 0, 0, 
 			"Editing modes for this editor");
+	xco+= 120;
+	
+	/* filtering buttons */
+	if (sipo->ads) {
+		//uiBlockBeginAlign(block);
+			uiDefIconButBitI(block, TOG, ADS_FILTER_ONLYSEL, B_REDR, ICON_RESTRICT_SELECT_OFF,	(short)(xco+=XIC),yco,XIC,YIC, &(sipo->ads->filterflag), 0, 0, 0, 0, "Only display selected Objects");
+		//uiBlockEndAlign(block);
+		xco += 5;
+		
+		uiBlockBeginAlign(block);
+			//uiDefIconButBitI(block, TOGN, ADS_FILTER_NOOBJ, B_REDR, ICON_OBJECT,	(short)(xco+=XIC),yco,XIC,YIC, &(sipo->ads->filterflag), 0, 0, 0, 0, "Display Non-Armature Objects");
+			//uiDefIconButBitI(block, TOGN, ADS_FILTER_NOARM, B_REDR, ICON_ARMATURE,	(short)(xco+=XIC),yco,XIC,YIC, &(sipo->ads->filterflag), 0, 0, 0, 0, "Display Armature Objects");
+			uiDefIconButBitI(block, TOGN, ADS_FILTER_NOSHAPEKEYS, B_REDR, ICON_EDIT,	(short)(xco+=XIC),yco,XIC,YIC, &(sipo->ads->filterflag), 0, 0, 0, 0, "Display ShapeKeys");
+			uiDefIconButBitI(block, TOGN, ADS_FILTER_NOMAT, B_REDR, ICON_MATERIAL,	(short)(xco+=XIC),yco,XIC,YIC, &(sipo->ads->filterflag), 0, 0, 0, 0, "Display Materials");
+			uiDefIconButBitI(block, TOGN, ADS_FILTER_NOLAM, B_REDR, ICON_LAMP,	(short)(xco+=XIC),yco,XIC,YIC, &(sipo->ads->filterflag), 0, 0, 0, 0, "Display Lamps");
+			uiDefIconButBitI(block, TOGN, ADS_FILTER_NOCAM, B_REDR, ICON_CAMERA,	(short)(xco+=XIC),yco,XIC,YIC, &(sipo->ads->filterflag), 0, 0, 0, 0, "Display Cameras");
+			uiDefIconButBitI(block, TOGN, ADS_FILTER_NOCUR, B_REDR, ICON_CURVE,	(short)(xco+=XIC),yco,XIC,YIC, &(sipo->ads->filterflag), 0, 0, 0, 0, "Display Curves");
+		uiBlockEndAlign(block);
+		xco += 30;
+	}
+	else {
+		// XXX this case shouldn't happen at all... for now, just pad out same amount of space
+		xco += 6*XIC + 35;
+	}
+	
+	/* copy + paste */
+	uiBlockBeginAlign(block);
+		uiDefIconBut(block, BUT, B_GRAPHCOPYKEYS, ICON_COPYDOWN,	xco,yco,XIC,YIC, 0, 0, 0, 0, 0, "Copies the selected keyframes from the selected channel(s) to the buffer");
+		uiDefIconBut(block, BUT, B_GRAPHPASTEKEYS, ICON_PASTEDOWN,	xco+=XIC,yco,XIC,YIC, 0, 0, 0, 0, 0, "Pastes the keyframes from the buffer");
+	uiBlockEndAlign(block);
+	xco += (XIC + 8);
+	
+	/* auto-snap selector */
+	if (sipo->flag & SIPO_DRAWTIME) {
+		uiDefButS(block, MENU, B_REDR,
+				"Auto-Snap Keyframes %t|No Time-Snap %x0|Nearest Second %x2|Nearest Marker %x3", 
+				xco,yco,90,YIC, &sipo->autosnap, 0, 1, 0, 0, 
+				"Auto-snapping mode for keyframe times when transforming");
+	}
+	else {
+		uiDefButS(block, MENU, B_REDR, 
+				"Auto-Snap Keyframes %t|No Time-Snap %x0|Nearest Frame %x2|Nearest Marker %x3", 
+				xco,yco,90,YIC, &sipo->autosnap, 0, 1, 0, 0, 
+				"Auto-snapping mode for keyframe times when transforming");
+	}
 	
 	/* always as last  */
-	UI_view2d_totRect_set(&ar->v2d, xco+XIC+80, ar->v2d.tot.ymax-ar->v2d.tot.ymin);
+	UI_view2d_totRect_set(&ar->v2d, xco+XIC+80, (int)(ar->v2d.tot.ymax - ar->v2d.tot.ymin));
 	
 	uiEndBlock(C, block);
 	uiDrawBlock(C, block);

@@ -30,6 +30,8 @@
 
 struct Scene;
 struct Object;
+struct MTFace;
+struct EditFace;
 struct Image;
 struct wmWindowManager;
 
@@ -40,6 +42,21 @@ void ED_keymap_uvedit(struct wmWindowManager *wm);
 void ED_uvedit_assign_image(struct Scene *scene, struct Object *obedit, struct Image *ima, struct Image *previma);
 void ED_uvedit_set_tile(struct Scene *scene, struct Object *obedit, struct Image *ima, int curtile, int dotile);
 int ED_uvedit_minmax(struct Scene *scene, struct Image *ima, struct Object *obedit, float *min, float *max);
+
+int ED_uvedit_test_silent(struct Object *obedit);
+int ED_uvedit_test(struct Object *obedit);
+
+int uvedit_face_visible(struct Scene *scene, struct Image *ima, struct EditFace *efa, struct MTFace *tf);
+int uvedit_face_selected(struct Scene *scene, struct EditFace *efa, struct MTFace *tf);
+int uvedit_edge_selected(struct Scene *scene, struct EditFace *efa, struct MTFace *tf, int i);
+int uvedit_uv_selected(struct Scene *scene, struct EditFace *efa, struct MTFace *tf, int i);
+
+int ED_uvedit_nearest_uv(struct Scene *scene, struct Object *obedit, struct Image *ima, float co[2], float uv[2]);
+
+/* uvedit_unwrap.c */
+void ED_uvedit_live_unwrap_begin(struct Scene *scene, struct Object *obedit);
+void ED_uvedit_live_unwrap_re_solve(void);
+void ED_uvedit_live_unwrap_end(short cancel);
 
 #endif /* ED_UVEDIT_H */
 

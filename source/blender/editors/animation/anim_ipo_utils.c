@@ -138,6 +138,7 @@ void getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
 			/* Property Name is straightforward */
 			propname= (char *)RNA_property_ui_name(&ptr, prop);
 			
+			/* Array Index - only if applicable */
 			if (RNA_property_array_length(&ptr, prop)) {
 					// XXX the format of these is not final... we don't know how this will go yet
 				static char *vectoritem[4]= {".X", ".Y", ".Z", ".W"};
@@ -159,6 +160,10 @@ void getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
 					sprintf(arrayindbuf, "[%d]", fcu->array_index);
 					arrayname= &arrayindbuf[0];
 				}
+			}
+			else {
+				/* no array index */
+				arrayname= "";
 			}
 			
 			/* putting this all together into the buffer */
@@ -190,8 +195,8 @@ unsigned int ipo_rainbow(int cur, int tot)
 	if(tot > 32) fac= fac*1.95f;
 	if(fac>1.0f) fac-= 1.0f;
 	
-	if(fac>0.5f && fac<0.8f) sat= 0.4f;
-	else sat= 0.5f;
+	if(fac>0.5f && fac<0.8f) sat= 0.5f;
+	else sat= 0.6f;
 	
 	return hsv_to_cpack(fac, sat, 1.0f);
 }

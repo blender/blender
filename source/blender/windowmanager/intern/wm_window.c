@@ -153,6 +153,7 @@ wmWindow *wm_window_copy(bContext *C, wmWindow *winorig)
 	win->sizey= winorig->sizey;
 	
 	win->screen= ED_screen_duplicate(win, winorig->screen);
+	BLI_strncpy(win->screenname, win->screen->id.name+2, 21);
 	win->screen->do_refresh= 1;
 	win->screen->do_draw= 1;
 
@@ -279,7 +280,6 @@ void wm_window_add_ghostwindows(wmWindowManager *wm)
 /* area-rip calls this */
 wmWindow *WM_window_open(bContext *C, rcti *rect)
 {
-	wmWindowManager *wm= CTX_wm_manager(C);
 	wmWindow *win= wm_window_new(C);
 	
 	win->posx= rect->xmin;
@@ -290,7 +290,7 @@ wmWindow *WM_window_open(bContext *C, rcti *rect)
 	win->drawmethod= -1;
 	win->drawdata= NULL;
 	
-	wm_window_add_ghostwindow(wm, "Blender", win);
+	wm_check(C);
 	
 	return win;
 }

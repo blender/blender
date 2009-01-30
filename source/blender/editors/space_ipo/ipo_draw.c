@@ -67,6 +67,7 @@
 #include "BKE_global.h"
 #include "BKE_key.h"
 #include "BKE_object.h"
+#include "BKE_screen.h"
 #include "BKE_utildefines.h"
 
 #include "BIF_gl.h"
@@ -96,22 +97,32 @@ extern void gl_round_box(int mode, float minx, float miny, float maxx, float max
 static void draw_fcurve_vertices_keyframes (FCurve *fcu, View2D *v2d, short edit, short sel)
 {
 	BezTriple *bezt= fcu->bezt;
+	const float fac= 0.05f * (v2d->cur.xmax - v2d->cur.xmin);
 	int i;
 	
+	/* we use bgl points not standard gl points, to workaround vertex 
+	 * drawing bugs that some drivers have (probably legacy ones only though)
+	 */
 	bglBegin(GL_POINTS);
 	
 	for (i = 0; i < fcu->totvert; i++, bezt++) {
-		if (edit) {
-			/* Only the vertex of the line, the
-			 * handler are drawn later
-			 */
-			if ((bezt->f2 & SELECT) == sel) /* && v2d->cur.xmin < bezt->vec[1][0] < v2d->cur.xmax)*/
+		/* as an optimisation step, only draw those in view 
+		 *	- we apply a correction factor to ensure that points don't pop in/out due to slight twitches of view size
+		 */
+		if IN_RANGE(bezt->vec[1][0], (v2d->cur.xmin - fac), (v2d->cur.xmax + fac)) {
+			if (edit) {
+				/* 'Keyframe' vertex only, as handle lines and handles have already been drawn
+				 *	- only draw those with correct selection state for the current drawing color
+				 *	- 
+				 */
+				if ((bezt->f2 & SELECT) == sel)
+					bglVertex3fv(bezt->vec[1]);
+			}
+			else {
+				/* no check for selection here, as curve is not editable... */
+				// XXX perhaps we don't want to even draw points?   maybe add an option for that later
 				bglVertex3fv(bezt->vec[1]);
-		}
-		else {
-			/* draw only if in bounds */
-			/*if (v2d->cur.xmin < bezt->vec[1][0] < v2d->cur.xmax)*/
-			bglVertex3fv(bezt->vec[1]);
+			}
 		}
 	}
 	
@@ -125,16 +136,15 @@ static void draw_fcurve_handle_control (float x, float y, float xscale, float ys
 	static GLuint displist=0;
 	
 	/* initialise round circle shape */
-	// FIXME: sometimes, this will draw incorrectly (i.e. a scaled copy shows up at the origin)
 	if (displist == 0) {
 		GLUquadricObj *qobj;
 		
 		displist= glGenLists(1);
-		glNewList(displist, GL_COMPILE_AND_EXECUTE);
+		glNewList(displist, GL_COMPILE);
 		
 		qobj	= gluNewQuadric(); 
 		gluQuadricDrawStyle(qobj, GLU_SILHOUETTE); 
-		gluDisk(qobj, 0.07,  0.6, 8, 1);
+		gluDisk(qobj, 0,  0.7, 8, 1);
 		gluDeleteQuadric(qobj);  
 		
 		glEndList();
@@ -142,7 +152,7 @@ static void draw_fcurve_handle_control (float x, float y, float xscale, float ys
 	
 	/* adjust view transform before starting */
 	glTranslatef(x, y, 0.0f);
-	glScalef(1.0/xscale*hsize, 1.0/yscale*hsize, 1.0);
+	glScalef(1.0f/xscale*hsize, 1.0f/yscale*hsize, 1.0f);
 	
 	/* draw! */
 	glCallList(displist);
@@ -247,9 +257,6 @@ static void draw_fcurve_handles (SpaceIpo *sipo, ARegion *ar, FCurve *fcu)
 {
 	extern unsigned int nurbcol[];
 	unsigned int *col;
-	
-	BezTriple *bezt=fcu->bezt, *prevbezt=NULL;
-	float *fp;
 	int sel, b;
 	
 	/* don't draw handle lines if handles are not shown */
@@ -258,6 +265,9 @@ static void draw_fcurve_handles (SpaceIpo *sipo, ARegion *ar, FCurve *fcu)
 	
 	/* slightly hacky, but we want to draw unselected points before selected ones*/
 	for (sel= 0; sel < 2; sel++) {
+		BezTriple *bezt=fcu->bezt, *prevbezt=NULL;
+		float *fp;
+		
 		if (sel) col= nurbcol+4;
 		else col= nurbcol;
 			
@@ -268,7 +278,7 @@ static void draw_fcurve_handles (SpaceIpo *sipo, ARegion *ar, FCurve *fcu)
 				/* only draw first handle if previous segment had handles */
 				if ( (!prevbezt && (bezt->ipo==BEZT_IPO_BEZ)) || (prevbezt && (prevbezt->ipo==BEZT_IPO_BEZ)) ) 
 				{
-					cpack(col[bezt->h1]);
+					cpack(col[(unsigned char)bezt->h1]);
 					glBegin(GL_LINE_STRIP); 
 						glVertex2fv(fp); glVertex2fv(fp+3); 
 					glEnd();
@@ -278,7 +288,7 @@ static void draw_fcurve_handles (SpaceIpo *sipo, ARegion *ar, FCurve *fcu)
 				/* only draw second handle if this segment is bezier */
 				if (bezt->ipo == BEZT_IPO_BEZ) 
 				{
-					cpack(col[bezt->h2]);
+					cpack(col[(unsigned char)bezt->h2]);
 					glBegin(GL_LINE_STRIP); 
 						glVertex2fv(fp+3); glVertex2fv(fp+6); 
 					glEnd();
@@ -290,7 +300,7 @@ static void draw_fcurve_handles (SpaceIpo *sipo, ARegion *ar, FCurve *fcu)
 					 ( (!prevbezt && (bezt->ipo==BEZT_IPO_BEZ)) || (prevbezt && (prevbezt->ipo==BEZT_IPO_BEZ)) ) ) 
 				{
 					fp= bezt->vec[0];
-					cpack(col[bezt->h1]);
+					cpack(col[(unsigned char)bezt->h1]);
 					
 					glBegin(GL_LINE_STRIP); 
 						glVertex2fv(fp); glVertex2fv(fp+3); 
@@ -302,7 +312,7 @@ static void draw_fcurve_handles (SpaceIpo *sipo, ARegion *ar, FCurve *fcu)
 					 (bezt->ipo == BEZT_IPO_BEZ) )
 				{
 					fp= bezt->vec[1];
-					cpack(col[bezt->h2]);
+					cpack(col[(unsigned char)bezt->h2]);
 					
 					glBegin(GL_LINE_STRIP); 
 						glVertex2fv(fp); glVertex2fv(fp+3); 
@@ -388,10 +398,11 @@ static void draw_fcurve_repeat (FCurve *fcu, View2D *v2d, float cycxofs, float c
 			 */
 			
 			/* resol not depending on horizontal resolution anymore, drivers for example... */
+			// XXX need to take into account the scale
 			if (fcu->driver) 
 				resol= 32;
 			else 
-				resol= 3.0*sqrt(bezt->vec[1][0] - prevbezt->vec[1][0]);
+				resol= (int)(3.0*sqrt(bezt->vec[1][0] - prevbezt->vec[1][0]));
 			
 			if (resol < 2) {
 				/* only draw one */
@@ -604,7 +615,7 @@ void graph_draw_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 	
 	/* build list of curves to draw */
 		// XXX enable ANIMFILTER_CURVEVISIBLE when we have a method to set them
-	filter= (ANIMFILTER_VISIBLE|ANIMFILTER_CURVESONLY/*|ANIMFILTER_CURVEVISIBLE*/);
+	filter= (ANIMFILTER_VISIBLE|ANIMFILTER_CURVESONLY|ANIMFILTER_CURVEVISIBLE);
 	items= ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 		
 	/* for each curve:
@@ -618,7 +629,7 @@ void graph_draw_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 		
 		/* map ipo-points for drawing if scaled F-Curve */
 		if (nob)
-			ANIM_nla_mapping_apply_fcurve(nob, ale->key_data, 0, 1); 
+			ANIM_nla_mapping_apply_fcurve(nob, ale->key_data, 0, 0); 
 		
 		/* draw curve - we currently calculate colour on the fly, but that should probably be done in advance instead */
 		col= ipo_rainbow(i, items);
@@ -630,10 +641,9 @@ void graph_draw_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 		draw_fcurve_handles(sipo, ar, fcu);
 		draw_fcurve_vertices(sipo, ar, fcu);
 		
-		
 		/* undo mapping of keyframes for drawing if scaled F-Curve */
 		if (nob)
-			ANIM_nla_mapping_apply_fcurve(nob, ale->key_data, 1, 1); 
+			ANIM_nla_mapping_apply_fcurve(nob, ale->key_data, 1, 0); 
 	}
 	
 	/* free list of curves */
@@ -655,8 +665,8 @@ void graph_draw_channel_names(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 	int filter;
 	
 	View2D *v2d= &ar->v2d;
-	float x= 0.0f, y= 0.0f;
-	int items, height;
+	float x= 0.0f, y= 0.0f, height;
+	int items;
 	
 	/* build list of channels to draw */
 	filter= (ANIMFILTER_VISIBLE|ANIMFILTER_CHANNELS);
@@ -668,13 +678,17 @@ void graph_draw_channel_names(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 	 *	- offset of ACHANNEL_HEIGHT*2 is added to the height of the channels, as first is for 
 	 *	  start of list offset, and the second is as a correction for the scrollers.
 	 */
-	height= ((items*ACHANNEL_STEP) + (ACHANNEL_HEIGHT*2));
+	height= (float)((items*ACHANNEL_STEP) + (ACHANNEL_HEIGHT*2));
+	
 	if (height > (v2d->mask.ymax - v2d->mask.ymin)) {
 		/* don't use totrect set, as the width stays the same 
 		 * (NOTE: this is ok here, the configuration is pretty straightforward) 
 		 */
 		v2d->tot.ymin= (float)(-height);
 	}
+	
+	/* XXX I would call the below line! (ton) */
+	/* UI_view2d_totRect_set(v2d, ar->type->minsizex, height); */
 	
 	/* loop through channels, and set up drawing depending on their type  */	
 	y= (float)ACHANNEL_FIRST;
@@ -733,6 +747,22 @@ void graph_draw_channel_names(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 					
 					sel = SEL_ACTC(act);
 					strcpy(name, "Action");
+				}
+					break;
+				case ANIMTYPE_FILLDRIVERS: /* drivers widget */
+				{
+					AnimData *adt= (AnimData *)ale->data;
+					
+					group = 4;
+					indent= 1;
+					special= ICON_IPO_DEHLT;
+					
+					if (EXPANDED_DRVD(adt))
+						expand= ICON_TRIA_DOWN;
+					else
+						expand= ICON_TRIA_RIGHT;
+					
+					strcpy(name, "Drivers");
 				}
 					break;
 				case ANIMTYPE_FILLMATD: /* object materials (dopesheet) expand widget */

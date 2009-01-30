@@ -64,7 +64,7 @@ void		WM_write_autosave	(struct bContext *C);
 void		WM_cursor_set		(struct wmWindow *win, int curs);
 void		WM_cursor_modal		(struct wmWindow *win, int curs);
 void		WM_cursor_restore	(struct wmWindow *win);
-void		WM_cursor_wait		(struct wmWindow *win, int val);
+void		WM_cursor_wait		(int val);
 void		WM_timecursor		(struct wmWindow *win, int nr);
 
 void		*WM_paint_cursor_activate(struct wmWindowManager *wm, int (*poll)(struct bContext *C), void (*draw)(struct bContext *C, int, int, void *customdata), void *customdata);
@@ -81,7 +81,7 @@ ListBase	*WM_keymap_listbase	(struct wmWindowManager *wm, const char *nameid,
 								 int spaceid, int regionid);
 
 char		*WM_key_event_string(short type);
-char		*WM_key_event_operator_string(const struct bContext *C, const char *opname, int opcontext, char *str, int len);
+char		*WM_key_event_operator_string(const struct bContext *C, const char *opname, int opcontext, struct IDProperty *properties, char *str, int len);
 
 			/* handlers */
 
@@ -187,13 +187,17 @@ int			WM_framebuffer_to_index(unsigned int col);
 
 struct wmJob *WM_jobs_get(struct wmWindowManager *wm, struct wmWindow *win, void *owner);
 
+int			WM_jobs_test(struct wmWindowManager *wm, void *owner);
+
 void		WM_jobs_customdata(struct wmJob *, void *customdata, void (*free)(void *));
-void		WM_jobs_timer(struct wmJob *, double timestep, unsigned int note);
+void		WM_jobs_timer(struct wmJob *, double timestep, unsigned int note, unsigned int endnote);
 void		WM_jobs_callbacks(struct wmJob *, 
 							  void (*startjob)(void *, short *, short *),
+							  void (*initjob)(void *),
 							  void (*update)(void *));
 
 void		WM_jobs_start(struct wmJob *);
+void		WM_jobs_stop_all(struct wmWindowManager *wm);
 
 #endif /* WM_API_H */
 

@@ -37,6 +37,7 @@
 
 #include "BKE_blender.h"
 #include "BKE_context.h"
+#include "BKE_idprop.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_utildefines.h"
@@ -507,13 +508,35 @@ static char *wm_keymap_item_to_string(wmKeymapItem *kmi, char *str, int len)
 	return str;
 }
 
-char *WM_key_event_operator_string(const bContext *C, const char *opname, int opcontext, char *str, int len)
+static char *wm_keymap_item_find(ListBase *handlers, const char *opname, int opcontext, IDProperty *properties, char *str, int len)
 {
 	wmEventHandler *handler;
 	wmKeymapItem *kmi;
-	ListBase *handlers= NULL;
 
-	/* find right handler list based on specified context */
+	/* find keymap item in handlers */
+	for(handler=handlers->first; handler; handler=handler->next)
+		if(handler->keymap)
+			for(kmi=handler->keymap->first; kmi; kmi=kmi->next)
+				if(strcmp(kmi->idname, opname) == 0 && WM_key_event_string(kmi->type)[0])
+					if(kmi->ptr && IDP_EqualsProperties(properties, kmi->ptr->data))
+						return wm_keymap_item_to_string(kmi, str, len);
+	
+	return NULL;
+}
+
+char *WM_key_event_operator_string(const bContext *C, const char *opname, int opcontext, IDProperty *properties, char *str, int len)
+{
+	char *found= NULL;
+
+	/* look into multiple handler lists to find the item */
+	if(CTX_wm_window(C))
+		if((found= wm_keymap_item_find(&CTX_wm_window(C)->handlers, opname, opcontext, properties, str, len)))
+			return found;
+
+	if(CTX_wm_area(C))
+		if((found= wm_keymap_item_find(&CTX_wm_area(C)->handlers, opname, opcontext, properties, str, len)))
+			return found;
+
 	if(ELEM(opcontext, WM_OP_EXEC_REGION_WIN, WM_OP_INVOKE_REGION_WIN)) {
 		if(CTX_wm_area(C)) {
 			ARegion *ar= CTX_wm_area(C)->regionbase.first;
@@ -522,31 +545,15 @@ char *WM_key_event_operator_string(const bContext *C, const char *opname, int op
 					break;
 
 			if(ar)
-				handlers= &ar->handlers;
+				if((found= wm_keymap_item_find(&ar->handlers, opname, opcontext, properties, str, len)))
+					return found;
 		}
-	}
-	else if(ELEM(opcontext, WM_OP_EXEC_AREA, WM_OP_INVOKE_AREA)) {
-		if(CTX_wm_area(C))
-			handlers= &CTX_wm_area(C)->handlers;
-	}
-	else if(ELEM(opcontext, WM_OP_EXEC_SCREEN, WM_OP_INVOKE_SCREEN)) {
-		if(CTX_wm_window(C))
-			handlers= &CTX_wm_window(C)->handlers;
 	}
 	else {
 		if(CTX_wm_region(C))
-			handlers= &CTX_wm_region(C)->handlers;
+			if((found= wm_keymap_item_find(&CTX_wm_region(C)->handlers, opname, opcontext, properties, str, len)))
+				return found;
 	}
-
-	if(!handlers)
-		return NULL;
-	
-	/* find keymap item in handlers */
-	for(handler=handlers->first; handler; handler=handler->next)
-		if(handler->keymap)
-			for(kmi=handler->keymap->first; kmi; kmi=kmi->next)
-				if(strcmp(kmi->idname, opname) == 0 && WM_key_event_string(kmi->type)[0])
-					return wm_keymap_item_to_string(kmi, str, len);
 
 	return NULL;
 }

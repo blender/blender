@@ -184,6 +184,17 @@ void seq_free_sequence(Editing *ed, Sequence *seq)
 	MEM_freeN(seq);
 }
 
+Editing *seq_give_editing(Scene *scene, int alloc)
+{
+	if (scene->ed == NULL && alloc) {
+		Editing *ed;
+
+		ed= scene->ed= MEM_callocN( sizeof(Editing), "addseq");
+		ed->seqbasep= &ed->seqbase;
+	}
+	return scene->ed;
+}
+
 void seq_free_editing(Editing *ed)
 {
 	MetaStack *ms;
@@ -594,10 +605,10 @@ void sort_seq(Scene *scene)
 {
 	/* all strips together per kind, and in order of y location ("machine") */
 	ListBase seqbase, effbase;
-	Editing *ed;
+	Editing *ed= seq_give_editing(scene, FALSE);
 	Sequence *seq, *seqt;
 
-	ed= scene->ed;
+	
 	if(ed==NULL) return;
 
 	seqbase.first= seqbase.last= 0;
@@ -1036,14 +1047,11 @@ static int evaluate_seq_frame_gen(Sequence ** seq_arr, ListBase *seqbase, int cf
 
 int evaluate_seq_frame(Scene *scene, int cfra)
 {
-       Editing *ed;
-       Sequence *seq_arr[MAXSEQ+1];
+	Editing *ed= seq_give_editing(scene, FALSE);
+	Sequence *seq_arr[MAXSEQ+1];
 
-       ed= scene->ed;
-       if(ed==NULL) return 0;
-	
-       return evaluate_seq_frame_gen(seq_arr, ed->seqbasep, cfra);
-
+	if(ed==NULL) return 0;
+	return evaluate_seq_frame_gen(seq_arr, ed->seqbasep, cfra);
 }
 
 static int video_seq_is_rendered(Sequence * seq)
@@ -2403,12 +2411,12 @@ static TStripElem* do_build_seq_array_recursively(Scene *scene,
 
 static ImBuf *give_ibuf_seq_impl(Scene *scene, int rectx, int recty, int cfra, int chanshown)
 {
-	Editing *ed;
+	Editing *ed= seq_give_editing(scene, FALSE);
 	int count;
 	ListBase *seqbasep;
 	TStripElem *se;
 
-	ed= scene->ed;
+	
 	if(ed==NULL) return NULL;
 
 	count = BLI_countlist(&ed->metastack);
@@ -2818,7 +2826,7 @@ static void free_anim_seq(Sequence *seq)
 
 void free_imbuf_seq_except(Scene *scene, int cfra)
 {
-	Editing *ed= scene->ed;
+	Editing *ed= seq_give_editing(scene, FALSE);
 	Sequence *seq;
 	TStripElem *se;
 	int a;
@@ -2960,10 +2968,10 @@ static int update_changed_seq_recurs(Scene *scene, Sequence *seq, Sequence *chan
 
 void update_changed_seq_and_deps(Scene *scene, Sequence *changed_seq, int len_change, int ibuf_change)
 {
-	Editing *ed= scene->ed;
+	Editing *ed= seq_give_editing(scene, FALSE);
 	Sequence *seq;
 	
-	if (!ed) return;
+	if (ed==NULL) return;
 	
 	for (seq=ed->seqbase.first; seq; seq=seq->next)
 		update_changed_seq_recurs(scene, seq, changed_seq, len_change, ibuf_change);
@@ -2972,7 +2980,7 @@ void update_changed_seq_and_deps(Scene *scene, Sequence *changed_seq, int len_ch
 void free_imbuf_seq_with_ipo(Scene *scene, struct Ipo *ipo)
 {
 	/* force update of all sequences with this ipo, on ipo changes */
-	Editing *ed= scene->ed;
+	Editing *ed= seq_give_editing(scene, FALSE);
 	Sequence *seq;
 
 	if(ed==NULL) return;

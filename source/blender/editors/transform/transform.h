@@ -218,6 +218,7 @@ typedef struct TransInfo {
     float       center[3];      /* center of transformation             */
     int         center2d[2];    /* center in screen coordinates         */
     short       imval[2];       /* initial mouse position               */
+	short		event_type;		/* event->type used to invoke transform */
 	short       idx_max;		/* maximum index on the input vector	*/
 	float		snap[3];		/* Snapping Gears						*/
 	char		frame_side;		/* Mouse side of the cfra, 'L', 'R' or 'B' */
@@ -331,6 +332,7 @@ typedef struct TransInfo {
 #define TD_SKIP				(1 << 11)	/* don't transform this data */
 #define TD_BEZTRIPLE		(1 << 12)	/* if this is a bez triple, we need to restore the handles, if this is set transdata->misc.hdata needs freeing */
 #define TD_NO_LOC			(1 << 13)	/* when this is set, don't apply translation changes to this element */
+#define TD_NOTIMESNAP		(1 << 14)	/* for Graph Editor autosnap, indicates that point should not undergo autosnapping */
 
 /* transsnap->status */
 #define SNAP_ON			1
@@ -441,8 +443,10 @@ void drawPropCircle(TransInfo *t);
 
 /*********************** transform_conversions.c ********** */
 struct ListBase;
+
 void flushTransGPactionData(TransInfo *t);
-void flushTransIpoData(TransInfo *t);
+void flushTransGraphData(TransInfo *t);
+void remake_graph_transdata(TransInfo *t, struct ListBase *anim_data);
 void flushTransUVs(TransInfo *t);
 void flushTransParticles(TransInfo *t);
 int clipUVTransform(TransInfo *t, float *vec, int resize);

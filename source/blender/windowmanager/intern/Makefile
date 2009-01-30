@@ -62,6 +62,7 @@ CPPFLAGS += -I../../render/extern/include
 CPPFLAGS += -I../../ftfont
 CPPFLAGS += -I../../radiosity/extern/include
 CPPFLAGS += -I../../../kernel/gen_system
+CPPFLAGS += -I../../blenfont
 
 # path to the guarded memory allocator
 CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include

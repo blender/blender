@@ -527,6 +527,60 @@ IDProperty *IDP_GetProperties(ID *id, int create_if_needed)
 	}
 }
 
+int IDP_EqualsProperties(IDProperty *prop1, IDProperty *prop2)
+{
+	if(prop1 == NULL && prop2 == NULL)
+		return 1;
+	else if(prop1 == NULL || prop2 == NULL)
+		return 0;
+	else if(prop1->type != prop2->type)
+		return 0;
+
+	if(prop1->type == IDP_INT)
+		return (IDP_Int(prop1) == IDP_Int(prop2));
+	else if(prop1->type == IDP_FLOAT)
+		return (IDP_Float(prop1) == IDP_Float(prop2));
+	else if(prop1->type == IDP_DOUBLE)
+		return (IDP_Double(prop1) == IDP_Double(prop2));
+	else if(prop1->type == IDP_STRING)
+		return BSTR_EQ(IDP_String(prop1), IDP_String(prop2));
+	else if(prop1->type == IDP_ARRAY) {
+		if(prop1->len == prop2->len && prop1->subtype == prop2->subtype)
+			return memcmp(IDP_Array(prop1), IDP_Array(prop2), idp_size_table[prop1->subtype]*prop1->len);
+		else
+			return 0;
+	}
+	else if(prop1->type == IDP_GROUP) {
+		IDProperty *link1, *link2;
+
+		if(BLI_countlist(&prop1->data.group) != BLI_countlist(&prop2->data.group))
+			return 0;
+
+		for(link1=prop1->data.group.first; link1; link1=link1->next) {
+			link2= IDP_GetPropertyFromGroup(prop2, link1->name);
+
+			if(!IDP_EqualsProperties(link1, link2))
+				return 0;
+		}
+
+		return 1;
+	}
+	else if(prop1->type == IDP_IDPARRAY) {
+		IDProperty *array1= IDP_IDPArray(prop1);
+		IDProperty *array2= IDP_IDPArray(prop2);
+		int i;
+
+		if(prop1->len != prop2->len)
+			return 0;
+		
+		for(i=0; i<prop1->len; i++)
+			if(!IDP_EqualsProperties(&array1[i], &array2[i]))
+				return 0;
+	}
+	
+	return 1;
+}
+
 IDProperty *IDP_New(int type, IDPropertyTemplate val, const char *name)
 {
 	IDProperty *prop=NULL;

@@ -86,6 +86,12 @@ static void rna_userdef_autokeymode_set(struct PointerRNA *ptr,int value)
 	}
 }
 
+static void *rna_UserDef_self_get(PointerRNA *ptr)
+{
+	return ptr->data;
+}
+
+
 #else
 
 static void rna_def_userdef_theme_ui(BlenderRNA *brna)
@@ -1029,9 +1035,10 @@ static void rna_def_userdef_solidlight(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Specular Color", "The color of the lights specular highlight.");
 }
 
-static void rna_def_userdef_view(StructRNA *srna)
+static void rna_def_userdef_view(BlenderRNA *brna)
 {
 	PropertyRNA *prop;
+	StructRNA *srna;
 
 	static EnumPropertyItem view_zoom_styles[] = {
 		{USER_ZOOM_CONT, "CONTINUE", "Continue", "Old style zoom, continues while moving mouse up or down."},
@@ -1044,6 +1051,11 @@ static void rna_def_userdef_view(StructRNA *srna)
 		{USER_TRACKBALL, "TRACKBALL", "Trackball", "Use trackball style rotation in the viewport."},
 		{0, NULL, NULL, NULL}};
 
+
+	srna= RNA_def_struct(brna, "UserPreferencesView", NULL);
+	RNA_def_struct_sdna(srna, "UserDef");
+	RNA_def_struct_nested(brna, srna, "UserPreferences");
+	RNA_def_struct_ui_text(srna, "View & Controls", "Preferences related to viewing data");
 
 	/* View and Controls  */
 
@@ -1062,7 +1074,7 @@ static void rna_def_userdef_view(StructRNA *srna)
 
 	prop= RNA_def_property(srna, "use_large_cursors", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "curssize", 0);
-	RNA_def_property_ui_text(prop, "Use Large Cursors", "Use large mouse cursors when available.");
+	RNA_def_property_ui_text(prop, "Large Cursors", "Use large mouse cursors when available.");
 
 	prop= RNA_def_property(srna, "show_view_name", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_SHOW_VIEWPORTNAME);
@@ -1104,7 +1116,7 @@ static void rna_def_userdef_view(StructRNA *srna)
 
 	prop= RNA_def_property(srna, "use_column_layout", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_PLAINMENUS);
-	RNA_def_property_ui_text(prop, "Use Column Layout", "Use a column layout for toolbox and do not flip the contents of any menu.");
+	RNA_def_property_ui_text(prop, "Toolbox Column Layout", "Use a column layout for toolbox and do not flip the contents of any menu.");
 
 	/* snap to grid */
 	prop= RNA_def_property(srna, "snap_translate", PROP_BOOLEAN, PROP_NONE);
@@ -1121,11 +1133,11 @@ static void rna_def_userdef_view(StructRNA *srna)
 
 	prop= RNA_def_property(srna, "auto_depth", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_ORBIT_ZBUF);
-	RNA_def_property_ui_text(prop, "Use Auto Depth", "Use the depth under the mouse to improve view pan/rotate/zoom functionality.");
+	RNA_def_property_ui_text(prop, "Auto Depth", "Use the depth under the mouse to improve view pan/rotate/zoom functionality.");
 
 	prop= RNA_def_property(srna, "global_pivot", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_LOCKAROUND);
-	RNA_def_property_ui_text(prop, "Use Global Pivot", "Lock the same rotation/scaling pivot in all 3D Views.");
+	RNA_def_property_ui_text(prop, "Global Pivot", "Lock the same rotation/scaling pivot in all 3D Views.");
 
 	/* view zoom */
 	prop= RNA_def_property(srna, "viewport_zoom_style", PROP_ENUM, PROP_NONE);
@@ -1169,7 +1181,7 @@ static void rna_def_userdef_view(StructRNA *srna)
 	
 	prop= RNA_def_property(srna, "use_middle_mouse_paste", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_MMB_PASTE);
-	RNA_def_property_ui_text(prop, "Use Middle Mouse Paste", "In text window, paste with middle mouse button instead of panning.");
+	RNA_def_property_ui_text(prop, "Middle Mouse Paste", "In text window, paste with middle mouse button instead of panning.");
 
 	prop= RNA_def_property(srna, "show_mini_axis", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_SHOW_ROTVIEWICON);
@@ -1188,11 +1200,11 @@ static void rna_def_userdef_view(StructRNA *srna)
 	/* middle mouse button */
 	prop= RNA_def_property(srna, "middle_mouse_rotate", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", USER_VIEWMOVE);
-	RNA_def_property_ui_text(prop, "Use Middle Mouse Rotate", "Use the middle mouse button for rotation the viewport.");
+	RNA_def_property_ui_text(prop, "Middle Mouse Rotate", "Use the middle mouse button for rotation the viewport.");
 
 	prop= RNA_def_property(srna, "middle_mouse_pan", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", USER_VIEWMOVE);
-	RNA_def_property_ui_text(prop, "Use Middle Mouse Pan", "Use the middle mouse button for panning the viewport.");
+	RNA_def_property_ui_text(prop, "Middle Mouse Pan", "Use the middle mouse button for panning the viewport.");
 
 	prop= RNA_def_property(srna, "wheel_invert_zoom", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_WHEELZOOMDIR);
@@ -1214,24 +1226,24 @@ static void rna_def_userdef_view(StructRNA *srna)
 	RNA_def_property_ui_text(prop, "Rotation Angle", "The rotation step for numerical pad keys (2 4 6 8).");
 
 	/* 3D transform widget */
-	prop= RNA_def_property(srna, "use_transform_widget", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_manipulator", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "tw_flag", 1);
-	RNA_def_property_ui_text(prop, "Use Transform Widget", "Use 3d transform manipulator.");
+	RNA_def_property_ui_text(prop, "Manipulator", "Use 3d transform manipulator.");
 
-	prop= RNA_def_property(srna, "transform_widget_size", PROP_INT, PROP_NONE);
+	prop= RNA_def_property(srna, "manipulator_size", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "tw_size");
 	RNA_def_property_range(prop, 2, 40);
-	RNA_def_property_ui_text(prop, "Transform Widget Size", "Diameter of widget, in 10 pixel units.");
+	RNA_def_property_ui_text(prop, "Manipulator Size", "Diameter of widget, in 10 pixel units.");
 
-	prop= RNA_def_property(srna, "transform_widget_handle_size", PROP_INT, PROP_NONE);
+	prop= RNA_def_property(srna, "manipulator_handle_size", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "tw_handlesize");
 	RNA_def_property_range(prop, 2, 40);
-	RNA_def_property_ui_text(prop, "Transform Widget Handle Size", "Size of widget handles as percentage of widget radius.");
+	RNA_def_property_ui_text(prop, "Manipulator Handle Size", "Size of widget handles as percentage of widget radius.");
 
-	prop= RNA_def_property(srna, "transform_widget_hotspot", PROP_INT, PROP_NONE);
+	prop= RNA_def_property(srna, "manipulator_hotspot", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "tw_hotspot");
 	RNA_def_property_range(prop, 4, 40);
-	RNA_def_property_ui_text(prop, "Transform Widget Hotspot", "Hotspot in pixels for clicking widget handles.");
+	RNA_def_property_ui_text(prop, "Manipulator Hotspot", "Hotspot in pixels for clicking widget handles.");
 
 	prop= RNA_def_property(srna, "object_center_size", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "obcenter_dia");
@@ -1249,9 +1261,10 @@ static void rna_def_userdef_view(StructRNA *srna)
 	RNA_def_property_ui_text(prop, "NDof Rotation Speed", "The overall rotation speed of an NDOF device, as percent of standard.");
 }
 
-static void rna_def_userdef_edit(StructRNA *srna)
+static void rna_def_userdef_edit(BlenderRNA *brna)
 {
 	PropertyRNA *prop;
+	StructRNA *srna;
 
 	static EnumPropertyItem auto_key_modes[] = {
 		{AUTOKEY_MODE_NORMAL, "ADD_REPLACE_KEYS", "Add/Replace Keys", ""},
@@ -1264,6 +1277,11 @@ static void rna_def_userdef_edit(StructRNA *srna)
 		{IPO_BEZ, "BEZIER", "Bezier", ""},
 		{0, NULL, NULL, NULL}};
 
+	srna= RNA_def_struct(brna, "UserPreferencesEdit", NULL);
+	RNA_def_struct_sdna(srna, "UserDef");
+	RNA_def_struct_nested(brna, srna, "UserPreferences");
+	RNA_def_struct_ui_text(srna, "Edit Methods", "Settings for interacting with Blender data.");
+	
 	/* Edit Methods */
 	prop= RNA_def_property(srna, "material_linked_object", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", USER_MAT_ON_OB);
@@ -1318,7 +1336,7 @@ static void rna_def_userdef_edit(StructRNA *srna)
 
 	prop= RNA_def_property(srna, "use_visual_keying", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "autokey_flag", AUTOKEY_FLAG_AUTOMATKEY);
-	RNA_def_property_ui_text(prop, "Use Visual Keying", "Use Visual keying automatically for constrained objects.");
+	RNA_def_property_ui_text(prop, "Visual Keying", "Use Visual keying automatically for constrained objects.");
 
 	prop= RNA_def_property(srna, "new_interpolation_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, new_ipo_curve_types);
@@ -1395,10 +1413,11 @@ static void rna_def_userdef_edit(StructRNA *srna)
 	RNA_def_property_ui_text(prop, "Duplicate Action", "Causes actions to be duplicated with Shift+D.");
 }
 
-static void rna_def_userdef_language(StructRNA *srna)
+static void rna_def_userdef_language(BlenderRNA *brna)
 {
 	PropertyRNA *prop;
-
+	StructRNA *srna;
+	
 	/* hardcoded here, could become dynamic somehow */
 	static EnumPropertyItem language_items[] = {
 		{0, "ENGLISH", "English", ""},
@@ -1425,7 +1444,12 @@ static void rna_def_userdef_language(StructRNA *srna)
 		{21, "GREEK", "Greek", ""},
 		{22, "KOREAN", "Korean", ""},
 		{0, NULL, NULL, NULL}};
-
+		
+	srna= RNA_def_struct(brna, "UserPreferencesLanguage", NULL);
+	RNA_def_struct_sdna(srna, "UserDef");
+	RNA_def_struct_nested(brna, srna, "UserPreferences");
+	RNA_def_struct_ui_text(srna, "Language & Font", "User interface translation settings.");
+	
 	prop= RNA_def_property(srna, "international_fonts", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "transopts", USER_DOTRANSLATE);
 	RNA_def_property_ui_text(prop, "International Fonts", "Use international fonts.");
@@ -1459,14 +1483,20 @@ static void rna_def_userdef_language(StructRNA *srna)
 
 	prop= RNA_def_property(srna, "use_textured_fonts", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "transopts", USER_USETEXTUREFONT);
-	RNA_def_property_ui_text(prop, "Use Textured Fonts", "Use textures for drawing international fonts.");
+	RNA_def_property_ui_text(prop, "Textured Fonts", "Use textures for drawing international fonts.");
 }
 
-static void rna_def_userdef_autosave(StructRNA *srna)
+static void rna_def_userdef_autosave(BlenderRNA *brna)
 {
 	PropertyRNA *prop;
+	StructRNA *srna;
 
 	/* Autosave  */
+
+	srna= RNA_def_struct(brna, "UserPreferencesAutosave", NULL);
+	RNA_def_struct_sdna(srna, "UserDef");
+	RNA_def_struct_nested(brna, srna, "UserPreferences");
+	RNA_def_struct_ui_text(srna, "Auto Save", "Automatic backup file settings.");
 
 	prop= RNA_def_property(srna, "save_version", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "versions");
@@ -1491,9 +1521,10 @@ static void rna_def_userdef_autosave(StructRNA *srna)
 	RNA_def_property_ui_text(prop, "Save Preview Images", "Enables automatic saving of preview images in the .blend file.");
 }
 
-static void rna_def_userdef_system(StructRNA *srna)
+static void rna_def_userdef_system(BlenderRNA *brna)
 {
 	PropertyRNA *prop;
+	StructRNA *srna;
 
 	static EnumPropertyItem gl_texture_clamp_items[] = {
 		{0, "GL_CLAMP_OFF", "GL Texture Clamp Off", ""},
@@ -1518,6 +1549,11 @@ static void rna_def_userdef_system(StructRNA *srna)
 		{USER_DRAW_OVERLAP, "OVERLAP", "Overlap", "Redraw all overlapping regions, minimal memory usage but more redraws."},
 		{USER_DRAW_FULL, "FULL", "Full", "Do a full redraw each time, slow, only use for reference or when all else fails."},
 		{0, NULL, NULL, NULL}};
+
+	srna= RNA_def_struct(brna, "UserPreferencesSystem", NULL);
+	RNA_def_struct_sdna(srna, "UserDef");
+	RNA_def_struct_nested(brna, srna, "UserPreferences");
+	RNA_def_struct_ui_text(srna, "System & OpenGL", "Graphics driver and operating system settings.");
 
 	/* System & OpenGL */
 
@@ -1581,7 +1617,7 @@ static void rna_def_userdef_system(StructRNA *srna)
 	
 	prop= RNA_def_property(srna, "use_mipmaps", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "gameflags", USER_DISABLE_MIPMAP);
-	RNA_def_property_ui_text(prop, "Use Mipmaps", "Scale textures for the 3d View (looks nicer but uses more memory and slows image reloading.)");
+	RNA_def_property_ui_text(prop, "Mipmaps", "Scale textures for the 3d View (looks nicer but uses more memory and slows image reloading.)");
 
 	prop= RNA_def_property(srna, "gl_texture_limit", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "glreslimit");
@@ -1619,13 +1655,19 @@ static void rna_def_userdef_system(StructRNA *srna)
 #endif
 }
 
-static void rna_def_userdef_filepaths(StructRNA *srna)
+static void rna_def_userdef_filepaths(BlenderRNA *brna)
 {
 	PropertyRNA *prop;
+	StructRNA *srna;
+	
+	srna= RNA_def_struct(brna, "UserPreferencesFilePaths", NULL);
+	RNA_def_struct_sdna(srna, "UserDef");
+	RNA_def_struct_nested(brna, srna, "UserPreferences");
+	RNA_def_struct_ui_text(srna, "File Paths", "Default paths for external files.");
 
 	prop= RNA_def_property(srna, "use_relative_paths", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", USER_RELPATHS);
-	RNA_def_property_ui_text(prop, "Use Relative Paths", "Default relative path option for the file selector.");
+	RNA_def_property_ui_text(prop, "Relative Paths", "Default relative path option for the file selector.");
 
 	prop= RNA_def_property(srna, "compress_file", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", USER_FILECOMPRESS);
@@ -1700,12 +1742,49 @@ void RNA_def_userdef(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "Theme");
 	RNA_def_property_ui_text(prop, "Themes", "");
 	
-	rna_def_userdef_view(srna);
-	rna_def_userdef_edit(srna);
-	rna_def_userdef_language(srna);
-	rna_def_userdef_autosave(srna);
-	rna_def_userdef_system(srna);
-	rna_def_userdef_filepaths(srna);
+	/* nested structs */
+	prop= RNA_def_property(srna, "userpreferences_view", PROP_POINTER, PROP_NEVER_NULL);
+	RNA_def_property_struct_type(prop, "UserPreferencesView");
+	RNA_def_property_pointer_funcs(prop, "rna_UserDef_self_get", NULL, NULL);
+	RNA_def_property_ui_text(prop, "View & Controls", "Preferences related to viewing data.");
+
+	prop= RNA_def_property(srna, "userpreferences_edit", PROP_POINTER, PROP_NEVER_NULL);
+	RNA_def_property_struct_type(prop, "UserPreferencesEdit");
+	RNA_def_property_pointer_funcs(prop, "rna_UserDef_self_get", NULL, NULL);
+	RNA_def_property_ui_text(prop, "Edit Methods", "Settings for interacting with Blender data.");
+	
+	prop= RNA_def_property(srna, "userpreferences_autosave", PROP_POINTER, PROP_NEVER_NULL);
+	RNA_def_property_struct_type(prop, "UserPreferencesAutosave");
+	RNA_def_property_pointer_funcs(prop, "rna_UserDef_self_get", NULL, NULL);
+	RNA_def_property_ui_text(prop, "Auto Save", "Automatic backup file settings.");
+
+	prop= RNA_def_property(srna, "userpreferences_language", PROP_POINTER, PROP_NEVER_NULL);
+	RNA_def_property_struct_type(prop, "UserPreferencesLanguage");
+	RNA_def_property_pointer_funcs(prop, "rna_UserDef_self_get", NULL, NULL);
+	RNA_def_property_ui_text(prop, "Language & Font", "User interface translation settings.");
+	
+	prop= RNA_def_property(srna, "userpreferences_filepaths", PROP_POINTER, PROP_NEVER_NULL);
+	RNA_def_property_struct_type(prop, "UserPreferencesFilePaths");
+	RNA_def_property_pointer_funcs(prop, "rna_UserDef_self_get", NULL, NULL);
+	RNA_def_property_ui_text(prop, "File Paths", "Default paths for external files.");
+	
+	prop= RNA_def_property(srna, "userpreferences_system", PROP_POINTER, PROP_NEVER_NULL);
+	RNA_def_property_struct_type(prop, "UserPreferencesSystem");
+	RNA_def_property_pointer_funcs(prop, "rna_UserDef_self_get", NULL, NULL);
+	RNA_def_property_ui_text(prop, "System & OpenGL", "Graphics driver and operating system settings.");
+	
+	rna_def_userdef_view(brna);
+	rna_def_userdef_edit(brna);
+	rna_def_userdef_autosave(brna);
+	rna_def_userdef_language(brna);
+	rna_def_userdef_filepaths(brna);
+	rna_def_userdef_system(brna);
+	
+	
+	
+	
+	
+	
 }
 
 #endif

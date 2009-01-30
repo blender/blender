@@ -73,8 +73,8 @@ void action_operatortypes(void)
 	WM_operatortype_append(ACT_OT_keyframes_mirror);
 	WM_operatortype_append(ACT_OT_keyframes_cfrasnap);
 	WM_operatortype_append(ACT_OT_keyframes_handletype);
-	WM_operatortype_append(ACT_OT_keyframes_ipotype);
-	WM_operatortype_append(ACT_OT_keyframes_expotype);
+	WM_operatortype_append(ACT_OT_keyframes_interpolation_type);
+	WM_operatortype_append(ACT_OT_keyframes_extrapolation_type);
 	WM_operatortype_append(ACT_OT_keyframes_sample);
 	WM_operatortype_append(ACT_OT_keyframes_clean);
 	WM_operatortype_append(ACT_OT_keyframes_delete);
@@ -121,8 +121,8 @@ static void action_keymap_keyframes (wmWindowManager *wm, ListBase *keymap)
 	
 		/* menu + set setting */
 	WM_keymap_add_item(keymap, "ACT_OT_keyframes_handletype", HKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "ACT_OT_keyframes_ipotype", TKEY, KM_PRESS, KM_SHIFT, 0);
-	WM_keymap_add_item(keymap, "ACT_OT_keyframes_expotype", EKEY, KM_PRESS, KM_SHIFT, 0); // temp...
+	WM_keymap_add_item(keymap, "ACT_OT_keyframes_interpolation_type", TKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "ACT_OT_keyframes_extrapolation_type", EKEY, KM_PRESS, KM_SHIFT, 0); 
 	
 		/* destructive */
 	WM_keymap_add_item(keymap, "ACT_OT_keyframes_clean", OKEY, KM_PRESS, 0, 0);
@@ -138,6 +138,9 @@ static void action_keymap_keyframes (wmWindowManager *wm, ListBase *keymap)
 		/* auto-set range */
 	WM_keymap_add_item(keymap, "ACT_OT_set_previewrange", PKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
 	WM_keymap_add_item(keymap, "ACT_OT_view_all", HOMEKEY, KM_PRESS, 0, 0);
+	
+	/* generates event, needs to be after select to work */
+	WM_keymap_add_item(keymap, "WM_OT_tweak_gesture", SELECTMOUSE, KM_PRESS, 0, 0);
 		
 	/* transform system */
 	transform_keymap_for_space(wm, keymap, SPACE_ACTION);

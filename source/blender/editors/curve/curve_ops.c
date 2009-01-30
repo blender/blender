@@ -74,9 +74,9 @@ void ED_keymap_curve(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "FONT_OT_textedit", KM_TEXTINPUT, KM_ANY, KM_ANY, 0);
 
 	/* only set in editmode curve, by space_view3d listener */
-//	keymap= WM_keymap_listbase(wm, "Curve", 0, 0);
+	keymap= WM_keymap_listbase(wm, "Curve", 0, 0);
 	
-//	WM_keymap_add_item(keymap, "OBJECT_OT_de_select_all", AKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "OBJECT_OT_curve_add", AKEY, KM_PRESS, KM_SHIFT, 0);
 
 }
 

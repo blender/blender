@@ -14,6 +14,7 @@
 #include "BKE_animsys.h"
 #include "BKE_action.h"
 #include "BKE_fcurve.h"
+#include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_utildefines.h"
 
@@ -183,8 +184,8 @@ short animsys_remap_path (AnimMapper *remap, char *path, char **dst)
 }
 
 
-/* Write the given value to a setting using RNA */
-static void animsys_write_rna_setting (PointerRNA *ptr, char *path, int array_index, float value)
+/* Write the given value to a setting using RNA, and return success */
+static short animsys_write_rna_setting (PointerRNA *ptr, char *path, int array_index, float value)
 {
 	PropertyRNA *prop;
 	PointerRNA new_ptr;
@@ -222,6 +223,21 @@ static void animsys_write_rna_setting (PointerRNA *ptr, char *path, int array_in
 					break;
 			}
 		}
+		
+		/* successful */
+		// XXX should the unhandled case also be successful?
+		return 1;
+	}
+	else {
+		/* failed to get path */
+		// XXX don't tag as failed yet though, as there are some legit situations (Action Constraint) 
+		// where some channels will not exist, but shouldn't lock up Action
+		if (G.f & G_DEBUG) {
+			printf("Animato: Invalid path. ID = '%s',  '%s [%d]' \n", 
+				(ptr && ptr->id.data) ? (((ID *)ptr->id.data)->name+2) : "<No ID>", 
+				path, array_index);
+		}
+		return 0;
 	}
 }
 
@@ -282,7 +298,7 @@ static void animsys_evaluate_drivers (PointerRNA *ptr, AnimData *adt, float ctim
 		if ((fcu->flag & (FCURVE_MUTED|FCURVE_DISABLED)) == 0) 
 		{
 			/* check if driver itself is tagged for recalculation */
-			if ((driver) && (driver->flag & DRIVER_FLAG_RECALC)) {
+			if ((driver) /*&& (driver->flag & DRIVER_FLAG_RECALC)*/) {	// XXX driver recalc flag is not set yet by depsgraph!
 				/* evaluate this using values set already in other places */
 				// NOTE: for 'layering' option later on, we should check if we should remove old value before adding new to only be done when drivers only changed
 				calculate_fcurve(fcu, ctime);
@@ -619,7 +635,8 @@ void BKE_animsys_evaluate_all_animation (Main *main, float ctime)
 {
 	ID *id;
 	
-	printf("Evaluate all animation - %f \n", ctime);
+	if (G.f & G_DEBUG)
+		printf("Evaluate all animation - %f \n", ctime);
 
 	/* macro for less typing */
 #define EVAL_ANIM_IDS(first) \

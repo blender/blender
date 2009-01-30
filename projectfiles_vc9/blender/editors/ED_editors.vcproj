@@ -206,7 +206,15 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\editors\include\ED_editparticle.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\include\ED_fileselect.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\include\ED_fluidsim.h"
 				>
 			</File>
 			<File
@@ -235,6 +243,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\editors\include\ED_mesh.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\include\ED_node.h"
 				>
 			</File>
 			<File
@@ -559,11 +571,23 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\editors\space_ipo\ipo_edit.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\space_ipo\ipo_header.c"
 				>
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\editors\space_ipo\ipo_intern.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\space_ipo\ipo_ops.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\space_ipo\ipo_select.c"
 				>
 			</File>
 			<File
@@ -704,6 +728,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\editors\space_file\space_file.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\space_file\writeimage.c"
 				>
 			</File>
 		</Filter>
@@ -1147,7 +1175,23 @@
 			Name="curve"
 			>
 			<File
+				RelativePath="..\..\..\source\blender\editors\curve\curve_intern.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\curve\curve_ops.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\curve\editcurve.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\curve\editfont.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\curve\lorem.c"
 				>
 			</File>
 		</Filter>
@@ -1160,6 +1204,22 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\editors\preview\previewrender_intern.h"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="physics"
+			>
+			<File
+				RelativePath="..\..\..\source\blender\editors\physics\ed_fluidsim.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\physics\editparticle.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\physics\physics_intern.h"
 				>
 			</File>
 		</Filter>

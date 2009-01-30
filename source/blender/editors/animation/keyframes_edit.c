@@ -38,7 +38,6 @@
 #include "DNA_action_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_curve_types.h"
-#include "DNA_ipo_types.h" // XXX to be phased out
 #include "DNA_key_types.h"
 #include "DNA_object_types.h"
 #include "DNA_space_types.h"
@@ -56,7 +55,7 @@
 /* This file defines an API and set of callback-operators for non-destructive editing of keyframe data.
  *
  * Two API functions are defined for actually performing the operations on the data:
- *			ipo_keys_bezier_loop() and icu_keys_bezier_loop()
+ *			ANIM_fcurve_keys_bezier_loop()
  * which take the data they operate on, a few callbacks defining what operations to perform.
  *
  * As operators which work on keyframes usually apply the same operation on all BezTriples in 
@@ -83,6 +82,10 @@ short ANIM_fcurve_keys_bezier_loop(BeztEditData *bed, FCurve *fcu, BeztEditFunc 
 {
     BezTriple *bezt;
 	int b;
+	
+	/* sanity check */
+	if (fcu == NULL)
+		return 0;
 	
 	/* if function to apply to bezier curves is set, then loop through executing it on beztriples */
     if (bezt_cb) {
@@ -194,7 +197,7 @@ void ANIM_editkeyframes_refresh(bAnimContext *ac)
 	for (ale= anim_data.first; ale; ale= ale->next) {
 		FCurve *fcu= ale->key_data;
 		
-		/* make sure keyframes in IPO-curve are all in order, and handles are in valid positions */
+		/* make sure keyframes in F-curve are all in order, and handles are in valid positions */
 		sort_time_fcurve(fcu);
 		testhandles_fcurve(fcu);
 	}
@@ -233,6 +236,21 @@ static short ok_bezier_value(BeztEditData *bed, BezTriple *bezt)
 	return IS_EQ(bezt->vec[1][1], bed->f1);
 }
 
+static short ok_bezier_valuerange(BeztEditData *bed, BezTriple *bezt)
+{
+	/* value range is stored in float properties */
+	return ((bezt->vec[1][1] > bed->f1) && (bezt->vec[1][1] < bed->f2));
+}
+
+static short ok_bezier_region(BeztEditData *bed, BezTriple *bezt)
+{
+	/* rect is stored in data property (it's of type rectf, but may not be set) */
+	if (bed->data)
+		return BLI_in_rctf(bed->data, bezt->vec[1][0], bezt->vec[1][1]);
+	else 
+		return 0;
+}
+
 
 BeztEditFunc ANIM_editkeyframes_ok(short mode)
 {
@@ -242,10 +260,14 @@ BeztEditFunc ANIM_editkeyframes_ok(short mode)
 			return ok_bezier_frame;
 		case BEZT_OK_FRAMERANGE: /* only if bezt falls within the specified frame range (floats) */
 			return ok_bezier_framerange;
-		case BEZT_OK_SELECTED:	/* only if bezt is selected */
+		case BEZT_OK_SELECTED:	/* only if bezt is selected (self) */
 			return ok_bezier_selected;
 		case BEZT_OK_VALUE: /* only if bezt value matches (float) */
 			return ok_bezier_value;
+		case BEZT_OK_VALUERANGE: /* only if bezier falls within the specified value range (floats) */
+			return ok_bezier_valuerange;
+		case BEZT_OK_REGION: /* only if bezier falls within the specified rect (data -> rectf) */
+			return ok_bezier_region;
 		default: /* nothing was ok */
 			return NULL;
 	}
@@ -286,6 +308,16 @@ static short snap_bezier_nearmarker(BeztEditData *bed, BezTriple *bezt)
 	return 0;
 }
 
+static short snap_bezier_horizontal(BeztEditData *bed, BezTriple *bezt)
+{
+	if (bezt->f2 & SELECT) {
+		bezt->vec[0][1]= bezt->vec[2][1]= bezt->vec[1][1];
+		if ((bezt->h1==HD_AUTO) || (bezt->h1==HD_VECT)) bezt->h1= HD_ALIGN;
+		if ((bezt->h2==HD_AUTO) || (bezt->h2==HD_VECT)) bezt->h2= HD_ALIGN;
+	}
+	return 0;	
+}
+
 // calchandles_ipocurve
 BeztEditFunc ANIM_editkeyframes_snap(short type)
 {
@@ -299,6 +331,8 @@ BeztEditFunc ANIM_editkeyframes_snap(short type)
 			return snap_bezier_nearmarker;
 		case SNAP_KEYS_NEARSEC: /* snap to nearest second */
 			return snap_bezier_nearestsec;
+		case SNAP_KEYS_HORIZONTAL: /* snap handles to same value */
+			return snap_bezier_horizontal;
 		default: /* just in case */
 			return snap_bezier_nearest;
 	}
@@ -355,7 +389,7 @@ static short mirror_bezier_marker(BeztEditData *bed, BezTriple *bezt)
 }
 
 /* Note: for markers case, need to set global vars (eww...) */
-// calchandles_ipocurve
+// calchandles_fcurve
 BeztEditFunc ANIM_editkeyframes_mirror(short type)
 {
 	switch (type) {
@@ -437,7 +471,7 @@ static short set_bezier_free(BeztEditData *bed, BezTriple *bezt)
 }
 
 /* Set all Bezier Handles to a single type */
-// calchandles_ipocurve
+// calchandles_fcurve
 BeztEditFunc ANIM_editkeyframes_handles(short code)
 {
 	switch (code) {
@@ -460,21 +494,21 @@ BeztEditFunc ANIM_editkeyframes_handles(short code)
 static short set_bezt_constant(BeztEditData *bed, BezTriple *bezt) 
 {
 	if (bezt->f2 & SELECT) 
-		bezt->ipo= IPO_CONST;
+		bezt->ipo= BEZT_IPO_CONST;
 	return 0;
 }
 
 static short set_bezt_linear(BeztEditData *bed, BezTriple *bezt) 
 {
 	if (bezt->f2 & SELECT) 
-		bezt->ipo= IPO_LIN;
+		bezt->ipo= BEZT_IPO_LIN;
 	return 0;
 }
 
 static short set_bezt_bezier(BeztEditData *bed, BezTriple *bezt) 
 {
 	if (bezt->f2 & SELECT) 
-		bezt->ipo= IPO_BEZ;
+		bezt->ipo= BEZT_IPO_BEZ;
 	return 0;
 }
 
@@ -483,9 +517,9 @@ static short set_bezt_bezier(BeztEditData *bed, BezTriple *bezt)
 BeztEditFunc ANIM_editkeyframes_ipo(short code)
 {
 	switch (code) {
-		case IPO_CONST: /* constant */
+		case BEZT_IPO_CONST: /* constant */
 			return set_bezt_constant;
-		case IPO_LIN: /* linear */	
+		case BEZT_IPO_LIN: /* linear */	
 			return set_bezt_linear;
 		default: /* bezier */
 			return set_bezt_bezier;

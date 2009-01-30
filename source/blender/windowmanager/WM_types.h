@@ -140,17 +140,21 @@ typedef struct wmNotifier {
 
 /* category */
 #define NOTE_CATEGORY		0xFF000000
-#define	NC_WINDOW			(1<<24)
-#define	NC_SCREEN			(2<<24)
-#define	NC_SCENE			(3<<24)
-#define	NC_OBJECT			(4<<24)
-#define	NC_MATERIAL			(5<<24)
-#define	NC_TEXTURE			(6<<24)
-#define	NC_LAMP				(7<<24)
-#define	NC_GROUP			(8<<24)
+#define	NC_WM				(1<<24)
+#define	NC_WINDOW			(2<<24)
+#define	NC_SCREEN			(3<<24)
+#define	NC_SCENE			(4<<24)
+#define	NC_OBJECT			(5<<24)
+#define	NC_MATERIAL			(6<<24)
+#define	NC_TEXTURE			(7<<24)
+#define	NC_LAMP				(8<<24)
+#define	NC_GROUP			(9<<24)
 
 /* data type, 256 entries is enough, it can overlap */
 #define NOTE_DATA			0x00FF0000
+
+	/* windowmanager */
+#define ND_FILEREAD			(1<<16)
 
 	/* Scene */
 #define	ND_MARKERS			(2<<16)
@@ -161,6 +165,8 @@ typedef struct wmNotifier {
 #define ND_OB_ACTIVE		(7<<16)
 #define ND_OB_SELECT		(8<<16)
 #define ND_MODE				(9<<16)
+#define ND_RENDER_RESULT	(10<<16)
+#define ND_COMPO_RESULT		(11<<16)
 
 	/* Object */
 #define	ND_TRANSFORM		(16<<16)
@@ -171,6 +177,7 @@ typedef struct wmNotifier {
 #define ND_GEOM_SELECT		(21<<16)
 #define ND_DRAW				(22<<16)
 #define ND_MODIFIER			(23<<16)
+#define ND_KEYS				(24<<16)
 
 	/* Material */
 #define	ND_SHADING			(30<<16)

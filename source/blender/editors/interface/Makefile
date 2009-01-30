@@ -49,6 +49,7 @@ CPPFLAGS += -I../../makesdna
 CPPFLAGS += -I../../makesrna
 CPPFLAGS += -I../../imbuf
 CPPFLAGS += -I../../ftfont
+CPPFLAGS += -I../../blenfont
 
 # own include 
 

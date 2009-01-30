@@ -88,35 +88,113 @@
 // XXX XXX XXX
 static void BIF_undo_push(char *s) {}
 
+/* ***************** composite job manager ********************** */
+
+typedef struct CompoJob {
+	Scene *scene;
+	bNodeTree *ntree;
+	bNodeTree *localtree;
+	short *stop;
+	short *do_update;
+} CompoJob;
+
+/* called by compo, only to check job 'stop' value */
+static int compo_breakjob(void *cjv)
+{
+	CompoJob *cj= cjv;
+	
+	return *(cj->stop);
+}
+
+/* called by compo, wmJob sends notifier */
+static void compo_redrawjob(void *cjv, char *str)
+{
+	CompoJob *cj= cjv;
+	
+	*(cj->do_update)= 1;
+}
+
+static void compo_freejob(void *cjv)
+{
+	CompoJob *cj= cjv;
+
+	if(cj->localtree) {
+		ntreeLocalMerge(cj->localtree, cj->ntree);
+	}
+	MEM_freeN(cj);
+}
+
+/* only now we copy the nodetree, so adding many jobs while
+   sliding buttons doesn't frustrate */
+static void compo_initjob(void *cjv)
+{
+	CompoJob *cj= cjv;
+
+	cj->localtree= ntreeLocalize(cj->ntree);
+}
+
+/* called before redraw notifiers, it moves finished previews over */
+static void compo_updatejob(void *cjv)
+{
+	CompoJob *cj= cjv;
+	
+	ntreeLocalSync(cj->localtree, cj->ntree);
+}
+
+
+/* only this runs inside thread */
+static void compo_startjob(void *cjv, short *stop, short *do_update)
+{
+	CompoJob *cj= cjv;
+	bNodeTree *ntree= cj->localtree;
+	
+	if(cj->scene->use_nodes==0)
+		return;
+	
+	cj->stop= stop;
+	cj->do_update= do_update;
+	
+	ntree->test_break= compo_breakjob;
+	ntree->tbh= cj;
+	ntree->stats_draw= compo_redrawjob;
+	ntree->sdh= cj;
+	
+	// XXX BIF_store_spare();
+	
+	ntreeCompositExecTree(ntree, &cj->scene->r, 1);	/* 1 is do_previews */
+	
+	ntree->test_break= NULL;
+	ntree->stats_draw= NULL;
+
+}
+
+void snode_composite_job(const bContext *C, ScrArea *sa)
+{
+	SpaceNode *snode= sa->spacedata.first;
+	wmJob *steve= WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), sa);
+	CompoJob *cj= MEM_callocN(sizeof(CompoJob), "compo job");
+	
+	/* customdata for preview thread */
+	cj->scene= CTX_data_scene(C);
+	cj->ntree= snode->nodetree;
+	
+	/* setup job */
+	WM_jobs_customdata(steve, cj, compo_freejob);
+	WM_jobs_timer(steve, 0.1, NC_SCENE, NC_SCENE|ND_COMPO_RESULT);
+	WM_jobs_callbacks(steve, compo_startjob, compo_initjob, compo_updatejob);
+	
+	WM_jobs_start(steve);
+	
+}
+
+/* ***************************************** */
+
 #if 0
 
 // XXX snode_handle_recalc will go away */
 static void snode_handle_recalc(SpaceNode *snode)
 {
-	if(snode->treetype==NTREE_COMPOSIT) {
-		if(G.scene->use_nodes) {
-			snode->nodetree->timecursor= set_timecursor;
-			G.afbreek= 0;
-			snode->nodetree->test_break= blender_test_break;
-			
-			// XXX BIF_store_spare();
-			
-			ntreeCompositExecTree(snode->nodetree, &G.scene->r, 1);	/* 1 is do_previews */
-			
-			snode->nodetree->timecursor= NULL;
-			snode->nodetree->test_break= NULL;
-			// XXX waitcursor(0);
-			
-			// allqueue(REDRAWIMAGE, 1);
-			if(G.scene->r.scemode & R_DOCOMP) {
-				// XXX BIF_redraw_render_rect();	/* seems to screwup display? */
-				// mywinset(curarea->win);
-			}
-		}
-
-		// allqueue(REDRAWNODE, 1);
-	}
-	else if(snode->treetype==NTREE_TEXTURE) {
+	if(snode->treetype==NTREE_TEXTURE) {
 		ntreeTexUpdatePreviews(snode->nodetree);
 		// XXX BIF_preview_changed(ID_TE);
 	}
@@ -233,7 +311,7 @@ static void set_node_imagepath(char *str)	/* called from fileselect */
 
 #endif /* 0 */
 
-static bNode *snode_get_editgroup(SpaceNode *snode)
+bNode *snode_get_editgroup(SpaceNode *snode)
 {
 	bNode *gnode;
 	

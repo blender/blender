@@ -74,7 +74,10 @@ static int mesh_add_duplicate_exec(bContext *C, wmOperator *op)
 
 static int mesh_add_duplicate_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
+	WM_cursor_wait(1);
 	mesh_add_duplicate_exec(C, op);
+	WM_cursor_wait(0);
+	
 	RNA_int_set(op->ptr, "mode", TFM_TRANSLATION);
 	WM_operator_name_call(C, "TFM_OT_transform", WM_OP_INVOKE_REGION_WIN, op->ptr);
 	
@@ -135,6 +138,7 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_removedoublesflag);
 	WM_operatortype_append(MESH_OT_extrude_mesh);
 	WM_operatortype_append(MESH_OT_edit_faces);
+	WM_operatortype_append(MESH_OT_separate);
 	
 }
 
@@ -178,5 +182,8 @@ void ED_keymap_mesh(wmWindowManager *wm)
 	/* add */
 	WM_keymap_add_item(keymap, "MESH_OT_add_duplicate", DKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "OBJECT_OT_mesh_add", AKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "MESH_OT_separate", PKEY, KM_PRESS, KM_SHIFT, 0);
+	
+	
 }
 

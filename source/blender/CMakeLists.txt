@@ -24,7 +24,7 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SUBDIRS(windowmanager editors avi nodes blenkernel blenlib blenloader blenpluginapi imbuf imbuf/intern/cineon gpu makesdna makesrna radiosity readblenfile render)
+SUBDIRS(windowmanager editors avi nodes blenkernel blenlib blenloader blenpluginapi imbuf imbuf/intern/cineon gpu makesdna makesrna radiosity readblenfile render blenfont)
 
 IF(WITH_INTERNATIONAL)
   SUBDIRS(ftfont)

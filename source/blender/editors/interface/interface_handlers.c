@@ -122,7 +122,7 @@ typedef struct uiHandleButtonData {
 	CBData *dragcbd;
 
 	/* menu open */
-	uiMenuBlockHandle *menu;
+	uiPopupBlockHandle *menu;
 	int menuretval;
 
 	/* post activate */
@@ -157,6 +157,51 @@ static void button_activate_state(bContext *C, uiBut *but, uiHandleButtonState s
 static int ui_handler_region_menu(bContext *C, wmEvent *event, void *userdata);
 static int ui_handler_popup(bContext *C, wmEvent *event, void *userdata);
 static void ui_handler_remove_popup(bContext *C, void *userdata);
+static void ui_handle_button_activate(bContext *C, ARegion *ar, uiBut *but, uiButtonActivateType type);
+
+/* ******************** menu navigation helpers ************** */
+
+static uiBut *ui_but_prev(uiBut *but)
+{
+	while(but->prev) {
+		but= but->prev;
+		if(but->type!=LABEL && but->type!=SEPR && but->type!=ROUNDBOX) return but;
+	}
+	return NULL;
+}
+
+static uiBut *ui_but_next(uiBut *but)
+{
+	while(but->next) {
+		but= but->next;
+		if(but->type!=LABEL && but->type!=SEPR && but->type!=ROUNDBOX) return but;
+	}
+	return NULL;
+}
+
+static uiBut *ui_but_first(uiBlock *block)
+{
+	uiBut *but;
+	
+	but= block->buttons.first;
+	while(but) {
+		if(but->type!=LABEL && but->type!=SEPR && but->type!=ROUNDBOX) return but;
+		but= but->next;
+	}
+	return NULL;
+}
+
+static uiBut *ui_but_last(uiBlock *block)
+{
+	uiBut *but;
+	
+	but= block->buttons.last;
+	while(but) {
+		if(but->type!=LABEL && but->type!=SEPR && but->type!=ROUNDBOX) return but;
+		but= but->prev;
+	}
+	return NULL;
+}
 
 /* ********************** button apply/revert ************************/
 
@@ -553,6 +598,7 @@ static void ui_apply_button(bContext *C, uiBlock *block, uiBut *but, uiHandleBut
 		case ICONTEXTROW:
 		case BLOCK:
 		case PULLDOWN:
+		case HMENU:
 		case COL:
 			ui_apply_but_BLOCK(C, but, data);
 			break;
@@ -1384,13 +1430,19 @@ static void ui_numedit_apply(bContext *C, uiBlock *block, uiBut *but, uiHandleBu
 
 static void ui_blockopen_begin(bContext *C, uiBut *but, uiHandleButtonData *data)
 {
-	uiBlockFuncFP func= NULL;
+	uiBlockCreateFunc func= NULL;
+	uiBlockHandleCreateFunc handlefunc= NULL;
+	uiMenuCreateFunc menufunc= NULL;
 	void *arg= NULL;
 
 	switch(but->type) {
 		case BLOCK:
 		case PULLDOWN:
-			func= but->block_func;
+			func= but->block_create_func;
+			arg= but->poin;
+			break;
+		case HMENU:
+			menufunc= but->menu_create_func;
 			arg= but->poin;
 			break;
 		case MENU:
@@ -1398,15 +1450,15 @@ static void ui_blockopen_begin(bContext *C, uiBut *but, uiHandleButtonData *data
 			data->value= data->origvalue;
 			but->editval= &data->value;
 
-			func= ui_block_func_MENU;
+			handlefunc= ui_block_func_MENU;
 			arg= but;
 			break;
 		case ICONROW:
-			func= ui_block_func_ICONROW;
+			handlefunc= ui_block_func_ICONROW;
 			arg= but;
 			break;
 		case ICONTEXTROW:
-			func= ui_block_func_ICONTEXTROW;
+			handlefunc= ui_block_func_ICONTEXTROW;
 			arg= but;
 			break;
 		case COL:
@@ -1414,13 +1466,18 @@ static void ui_blockopen_begin(bContext *C, uiBut *but, uiHandleButtonData *data
 			VECCOPY(data->vec, data->origvec);
 			but->editvec= data->vec;
 
-			func= ui_block_func_COL;
+			handlefunc= ui_block_func_COL;
 			arg= but;
 			break;
 	}
 
-	if(func) {
-		data->menu= ui_menu_block_create(C, data->region, but, func, arg);
+	if(func || handlefunc) {
+		data->menu= ui_popup_block_create(C, data->region, but, func, handlefunc, arg);
+		if(but->block->handle)
+			data->menu->popup= but->block->handle->popup;
+	}
+	else if(menufunc) {
+		data->menu= ui_popup_menu_create(C, data->region, but, menufunc, arg);
 		if(but->block->handle)
 			data->menu->popup= but->block->handle->popup;
 	}
@@ -1439,7 +1496,7 @@ static void ui_blockopen_end(bContext *C, uiBut *but, uiHandleButtonData *data)
 	}
 
 	if(data->menu) {
-		ui_menu_block_free(C, data->menu);
+		ui_popup_block_free(C, data->menu);
 		data->menu= NULL;
 	}
 }
@@ -2613,6 +2670,7 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, wmEvent *event)
 		break;
 	case BLOCK:
 	case PULLDOWN:
+	case HMENU:
 		retval= ui_do_but_BLOCK(C, but, data, event);
 		break;
 	case BUTM:
@@ -2790,7 +2848,7 @@ static void button_activate_state(bContext *C, uiBut *but, uiHandleButtonState s
 		button_tooltip_timer_reset(but);
 
 		/* automatic open pulldown block timer */
-		if(but->type==BLOCK || but->type==MENU || but->type==PULLDOWN || but->type==ICONTEXTROW) {
+		if(ELEM5(but->type, BLOCK, MENU, PULLDOWN, HMENU, ICONTEXTROW)) {
 			if(!data->autoopentimer) {
 				int time;
 
@@ -2892,8 +2950,23 @@ static void button_activate_init(bContext *C, ARegion *ar, uiBut *but, uiButtonA
 
 	button_activate_state(C, but, BUTTON_STATE_HIGHLIGHT);
 
-	if(type == BUTTON_ACTIVATE_OPEN)
+	if(type == BUTTON_ACTIVATE_OPEN) {
 		button_activate_state(C, but, BUTTON_STATE_MENU_OPEN);
+
+		/* activate first button in submenu */
+		if(data->menu && data->menu->region) {
+			ARegion *subar= data->menu->region;
+			uiBlock *subblock= subar->uiblocks.first;
+			uiBut *subbut;
+			
+			if(subblock) {
+				subbut= ui_but_first(subblock);
+
+				if(subbut)
+					ui_handle_button_activate(C, subar, subbut, BUTTON_ACTIVATE);
+			}
+		}
+	}
 	else if(type == BUTTON_ACTIVATE_TEXT_EDITING)
 		button_activate_state(C, but, BUTTON_STATE_TEXT_EDITING);
 	else if(type == BUTTON_ACTIVATE_APPLY)
@@ -2915,7 +2988,7 @@ static void button_activate_exit(bContext *C, uiHandleButtonData *data, uiBut *b
 	 * value to the button value and the menu return value to ok, the
 	 * menu return value will be picked up and the menu will close */
 	if(block->handle && !(block->flag & UI_BLOCK_KEEP_OPEN) && !data->cancel) {
-		uiMenuBlockHandle *menu;
+		uiPopupBlockHandle *menu;
 
 		menu= block->handle;
 		menu->butretval= data->retval;
@@ -3124,7 +3197,7 @@ static int ui_handle_button_event(bContext *C, wmEvent *event, uiBut *but)
 static void ui_handle_button_closed_submenu(bContext *C, wmEvent *event, uiBut *but)
 {
 	uiHandleButtonData *data;
-	uiMenuBlockHandle *menu;
+	uiPopupBlockHandle *menu;
 
 	data= but->active;
 	menu= data->menu;
@@ -3155,50 +3228,6 @@ static void ui_handle_button_closed_submenu(bContext *C, wmEvent *event, uiBut *
 	}
 }
 
-/* ******************** menu navigation helpers ************** */
-
-static uiBut *ui_but_prev(uiBut *but)
-{
-	while(but->prev) {
-		but= but->prev;
-		if(but->type!=LABEL && but->type!=SEPR && but->type!=ROUNDBOX) return but;
-	}
-	return NULL;
-}
-
-static uiBut *ui_but_next(uiBut *but)
-{
-	while(but->next) {
-		but= but->next;
-		if(but->type!=LABEL && but->type!=SEPR && but->type!=ROUNDBOX) return but;
-	}
-	return NULL;
-}
-
-static uiBut *ui_but_first(uiBlock *block)
-{
-	uiBut *but;
-	
-	but= block->buttons.first;
-	while(but) {
-		if(but->type!=LABEL && but->type!=SEPR && but->type!=ROUNDBOX) return but;
-		but= but->next;
-	}
-	return NULL;
-}
-
-static uiBut *ui_but_last(uiBlock *block)
-{
-	uiBut *but;
-	
-	but= block->buttons.last;
-	while(but) {
-		if(but->type!=LABEL && but->type!=SEPR && but->type!=ROUNDBOX) return but;
-		but= but->prev;
-	}
-	return NULL;
-}
-
 /* ************************* menu handling *******************************/
 
 /* function used to prevent loosing the open menu when using nested pulldowns,
@@ -3210,7 +3239,7 @@ static uiBut *ui_but_last(uiBlock *block)
  * - only for 1 second
  */
 
-static void ui_mouse_motion_towards_init(uiMenuBlockHandle *menu, int mx, int my)
+static void ui_mouse_motion_towards_init(uiPopupBlockHandle *menu, int mx, int my)
 {
 	if(!menu->dotowards) {
 		menu->dotowards= 1;
@@ -3220,7 +3249,7 @@ static void ui_mouse_motion_towards_init(uiMenuBlockHandle *menu, int mx, int my
 	}
 }
 
-static int ui_mouse_motion_towards_check(uiBlock *block, uiMenuBlockHandle *menu, int mx, int my)
+static int ui_mouse_motion_towards_check(uiBlock *block, uiPopupBlockHandle *menu, int mx, int my)
 {
 	int fac, dx, dy, domx, domy;
 
@@ -3274,7 +3303,7 @@ static int ui_mouse_motion_towards_check(uiBlock *block, uiMenuBlockHandle *menu
 	return menu->dotowards;
 }
 
-int ui_handle_menu_event(bContext *C, wmEvent *event, uiMenuBlockHandle *menu, int topmenu)
+int ui_handle_menu_event(bContext *C, wmEvent *event, uiPopupBlockHandle *menu, int topmenu)
 {
 	ARegion *ar;
 	uiBlock *block;
@@ -3474,9 +3503,11 @@ int ui_handle_menu_event(bContext *C, wmEvent *event, uiMenuBlockHandle *menu, i
 		}
 	}
 
-	/* if we are inside the region and didn't handle the event yet, lets
-	 * pass it on to buttons inside this region */
-	if((inside && !menu->menuretval && retval == WM_UI_HANDLER_CONTINUE) || event->type == TIMER) {
+	/* if we are didn't handle the event yet, lets pass it on to
+	 * buttons inside this region. disabled inside check .. not sure
+	 * anymore why it was there? but i meant enter enter didn't work
+	 * for example when mouse was not over submenu */
+	if((/*inside &&*/ !menu->menuretval && retval == WM_UI_HANDLER_CONTINUE) || event->type == TIMER) {
 		but= ui_but_find_activated(ar);
 
 		if(but)
@@ -3496,13 +3527,13 @@ int ui_handle_menu_event(bContext *C, wmEvent *event, uiMenuBlockHandle *menu, i
 		return retval;
 }
 
-static int ui_handle_menu_closed_submenu(bContext *C, wmEvent *event, uiMenuBlockHandle *menu)
+static int ui_handle_menu_closed_submenu(bContext *C, wmEvent *event, uiPopupBlockHandle *menu)
 {
 	ARegion *ar;
 	uiBut *but;
 	uiBlock *block;
 	uiHandleButtonData *data;
-	uiMenuBlockHandle *submenu;
+	uiPopupBlockHandle *submenu;
 
 	ar= menu->region;
 	block= ar->uiblocks.first;
@@ -3532,11 +3563,11 @@ static int ui_handle_menu_closed_submenu(bContext *C, wmEvent *event, uiMenuBloc
 		return WM_UI_HANDLER_BREAK;
 }
 
-static int ui_handle_menus_recursive(bContext *C, wmEvent *event, uiMenuBlockHandle *menu)
+static int ui_handle_menus_recursive(bContext *C, wmEvent *event, uiPopupBlockHandle *menu)
 {
 	uiBut *but;
 	uiHandleButtonData *data;
-	uiMenuBlockHandle *submenu;
+	uiPopupBlockHandle *submenu;
 	int retval= WM_UI_HANDLER_CONTINUE;
 
 	/* check if we have a submenu, and handle events for it first */
@@ -3665,16 +3696,16 @@ static int ui_handler_region_menu(bContext *C, wmEvent *event, void *userdata)
 /* two types of popups, one with operator + enum, other with regular callbacks */
 static int ui_handler_popup(bContext *C, wmEvent *event, void *userdata)
 {
-	uiMenuBlockHandle *menu= userdata;
+	uiPopupBlockHandle *menu= userdata;
 
 	ui_handle_menus_recursive(C, event, menu);
 
 	/* free if done, does not free handle itself */
 	if(menu->menuretval) {
 		/* copy values, we have to free first (closes region) */
-		uiMenuBlockHandle temp= *menu;
+		uiPopupBlockHandle temp= *menu;
 		
-		ui_menu_block_free(C, menu);
+		ui_popup_block_free(C, menu);
 		WM_event_remove_ui_handler(&CTX_wm_window(C)->handlers, ui_handler_popup, ui_handler_remove_popup, menu);
 
 		if(temp.menuretval == UI_RETURN_OK) {
@@ -3707,10 +3738,10 @@ static int ui_handler_popup(bContext *C, wmEvent *event, void *userdata)
 
 static void ui_handler_remove_popup(bContext *C, void *userdata)
 {
-	uiMenuBlockHandle *menu= userdata;
+	uiPopupBlockHandle *menu= userdata;
 
 	/* free menu block if window is closed for some reason */
-	ui_menu_block_free(C, menu);
+	ui_popup_block_free(C, menu);
 
 	/* delayed apply callbacks */
 	ui_apply_but_funcs_after(C);
@@ -3722,7 +3753,7 @@ void UI_add_region_handlers(ListBase *handlers)
 	WM_event_add_ui_handler(NULL, handlers, ui_handler_region, ui_handler_remove_region, NULL);
 }
 
-void UI_add_popup_handlers(ListBase *handlers, uiMenuBlockHandle *menu)
+void UI_add_popup_handlers(ListBase *handlers, uiPopupBlockHandle *menu)
 {
 	WM_event_add_ui_handler(NULL, handlers, ui_handler_popup, ui_handler_remove_popup, menu);
 }

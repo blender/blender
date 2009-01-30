@@ -521,7 +521,7 @@ void ACT_OT_keyframes_borderselect(wmOperatorType *ot)
  */
 
 /* defines for column-select mode */
-EnumPropertyItem prop_column_select_types[] = {
+static EnumPropertyItem prop_column_select_types[] = {
 	{ACTKEYS_COLUMNSEL_KEYS, "KEYS", "On Selected Keyframes", ""},
 	{ACTKEYS_COLUMNSEL_CFRA, "CFRA", "On Current Frame", ""},
 	{ACTKEYS_COLUMNSEL_MARKERS_COLUMN, "MARKERS_COLUMN", "On Selected Markers", ""},
@@ -750,7 +750,7 @@ void ACT_OT_keyframes_columnselect (wmOperatorType *ot)
  */
 
 /* defines for left-right select tool */
-EnumPropertyItem prop_leftright_select_types[] = {
+static EnumPropertyItem prop_leftright_select_types[] = {
 	{ACTKEYS_LRSEL_TEST, "CHECK", "Check if Select Left or Right", ""},
 	{ACTKEYS_LRSEL_NONE, "OFF", "Don't select", ""},
 	{ACTKEYS_LRSEL_LEFT, "LEFT", "Before current frame", ""},
@@ -978,12 +978,13 @@ static void mouse_columnselect_action_keys (bAnimContext *ac, float selx)
 		Object *nob= ANIM_nla_mapping_get(ac, ale);
 		
 		/* set frame for validation callback to refer to */
+		// XXX have a more sensitive range?
 		if (nob)
 			bed.f1= get_action_frame(nob, selx);
 		else
 			bed.f1= selx;
 		
-		/* select elements with frame number matching cfraelem */
+		/* select elements with frame number matching cfra */
 		ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, ok_cb, select_cb, NULL);
 			
 #if 0 // XXX reenable when Grease Pencil stuff is back
@@ -1067,7 +1068,8 @@ static int actkeys_clickselect_invoke(bContext *C, wmOperator *op, wmEvent *even
 	/* set notifier tha things have changed */
 	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_BOTH);
 	
-	return OPERATOR_FINISHED;
+	/* for tweak grab to work */
+	return OPERATOR_FINISHED|OPERATOR_PASS_THROUGH;
 }
  
 void ACT_OT_keyframes_clickselect (wmOperatorType *ot)

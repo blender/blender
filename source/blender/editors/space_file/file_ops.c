@@ -398,38 +398,39 @@ void ED_FILE_OT_loadimages(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= loadimages_invoke;
 	
-	ot->poll= ED_operator_areaactive;
+	ot->poll= ED_operator_file_active;
 }
 
+int file_hilight_set(SpaceFile *sfile, ARegion *ar, int mx, int my)
+{
+	FileSelectParams* params;
+	int numfiles, actfile;
+	
+	if(sfile==NULL || sfile->files==NULL) return 0;
+	
+	numfiles = filelist_numfiles(sfile->files);
+	params = ED_fileselect_get_params(sfile);
+	
+	if (params->display) {
+		actfile = find_file_mouse_hor(sfile, ar, mx , my);
+	} else {
+		actfile = find_file_mouse_vert(sfile, ar, mx, my);
+	}
+	
+	if (actfile >= 0 && actfile < numfiles ) {
+		params->active_file=actfile;
+		return 1;
+	}
+	return 0;
+}
 
 static int file_highlight_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	ScrArea *sa= CTX_wm_area(C);
 	ARegion *ar= CTX_wm_region(C);
-	FileSelectParams* params;
-	short x, y;
-	int actfile;
-	int numfiles;
 	SpaceFile *sfile= (SpaceFile*)CTX_wm_space_data(C);
 	
-	if (!sfile || !sfile->files) return OPERATOR_FINISHED;
-
-	numfiles = filelist_numfiles(sfile->files);
-
-	x = event->x - ar->winrct.xmin;
-	y = event->y - ar->winrct.ymin;
-
-	params = ED_fileselect_get_params(sfile);
-	if (params->display) {
-		actfile = find_file_mouse_hor(sfile, ar,x , y);
-	} else {
-		actfile = find_file_mouse_vert(sfile, ar, x, y);
-	}
-
-	if (actfile >= 0 && actfile < numfiles )
-	{
-		params->active_file=actfile;
-		ED_area_tag_redraw(sa);
+	if( file_hilight_set(sfile, ar, event->x - ar->winrct.xmin, event->y - ar->winrct.ymin)) {
+		ED_area_tag_redraw(CTX_wm_area(C));
 	}
 	
 	return OPERATOR_FINISHED;
@@ -443,6 +444,70 @@ void ED_FILE_OT_highlight(struct wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->invoke= file_highlight_invoke;
-	ot->poll= ED_operator_areaactive;
+	ot->poll= ED_operator_file_active;
 }
+
+int file_cancel_exec(bContext *C, wmOperator *unused)
+{
+	SpaceFile *sfile= (SpaceFile*)CTX_wm_space_data(C);
+	
+	if(sfile->op) {
+		WM_operator_free(sfile->op);
+		sfile->op = NULL;
+	}
+	ED_screen_full_prevspace(C);
+	
+	return OPERATOR_FINISHED;
+}
+
+void ED_FILE_OT_cancel(struct wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Cancel File Load";
+	ot->idname= "ED_FILE_OT_cancel";
+	
+	/* api callbacks */
+	ot->exec= file_cancel_exec;
+	ot->poll= ED_operator_file_active;
+}
+
+
+int file_load_exec(bContext *C, wmOperator *unused)
+{
+	SpaceFile *sfile= (SpaceFile*)CTX_wm_space_data(C);
+	char name[FILE_MAX];
+	
+	ED_screen_full_prevspace(C);
+	
+	if(sfile->op) {
+		wmOperator *op= sfile->op;
+		
+		/* if load .blend, all UI pointers after exec are invalid! */
+		/* but, operator can be freed still */
+		
+		sfile->op = NULL;
+		BLI_strncpy(name, sfile->params->dir, sizeof(name));
+		strcat(name, sfile->params->file);
+		RNA_string_set(op->ptr, "filename", name);
+		
+		op->type->exec(C, op);
+		
+		WM_operator_free(op);
+	}
+				
+	return OPERATOR_FINISHED;
+}
+
+void ED_FILE_OT_load(struct wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Load File";
+	ot->idname= "ED_FILE_OT_load";
+	
+	/* api callbacks */
+	ot->exec= file_load_exec;
+	ot->poll= ED_operator_file_active; /* <- important, handler is on window level */
+}
+
+
 

@@ -106,6 +106,7 @@ typedef struct bNodeType {
 #define NODE_BREAK		2
 #define NODE_FINISHED	4
 #define NODE_FREEBUFS	8
+#define NODE_SKIPPED	16
 
 /* nodetype->nclass, for add-menu and themes */
 #define NODE_CLASS_INPUT		0
@@ -148,6 +149,11 @@ void			ntreeInitPreview(struct bNodeTree *, int xsize, int ysize);
 void			ntreeClearPreview(struct bNodeTree *ntree);
 
 void			ntreeFreeCache(struct bNodeTree *ntree);
+				
+				/* calls allowing threaded composite */
+struct bNodeTree *ntreeLocalize(struct bNodeTree *ntree);
+void			ntreeLocalSync(struct bNodeTree *localtree, struct bNodeTree *ntree);
+void			ntreeLocalMerge(struct bNodeTree *localtree, struct bNodeTree *ntree);
 
 /* ************** GENERIC API, NODES *************** */
 

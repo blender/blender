@@ -30,7 +30,7 @@
 
 struct Object;
 struct bContext;
-struct uiMenuBlockHandle;
+struct ARegion;
 struct uiBlock;
 struct wmOperatorType;
 
@@ -55,7 +55,7 @@ void undo_editmode_push(struct bContext *C, char *name,
 
 						
 void	*undo_editmode_get_prev		(struct Object *ob);
-struct uiBlock *editmode_undohistorymenu(struct bContext *C, struct uiMenuBlockHandle *handle, void *arg_unused);
+struct uiBlock *editmode_undohistorymenu(struct bContext *C, struct ARegion *ar, void *arg_unused);
 void	undo_editmode_menu			(struct bContext *C);
 void	undo_editmode_clear			(void);
 void	undo_editmode_step			(struct bContext *C, int step);

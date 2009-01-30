@@ -34,6 +34,7 @@ DIRS = windowmanager editors blenloader readblenfile
 DIRS += avi imbuf render radiosity blenlib blenkernel blenpluginapi
 DIRS += makesdna makesrna yafray
 DIRS += python nodes gpu
+DIRS += blenfont
 
 ifeq ($(WITH_FREETYPE2), true)
 	DIRS += ftfont

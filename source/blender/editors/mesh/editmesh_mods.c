@@ -256,12 +256,8 @@ int EM_mask_init_backbuf_border(ViewContext *vc, short mcords[][2], short tot, s
 	dr = buf->rect;
 
 	/* draw the mask */
-#ifdef __APPLE__
-	glDrawBuffer(GL_AUX0);
-#endif
 	glDisable(GL_DEPTH_TEST);
 	
-// XXX	persp(PERSP_WIN);
 	glColor3ub(0, 0, 0);
 	
 	/* yah, opengl doesn't do concave... tsk! */
@@ -271,10 +267,7 @@ int EM_mask_init_backbuf_border(ViewContext *vc, short mcords[][2], short tot, s
 	for(a=0; a<tot; a++) glVertex2s(mcords[a][0], mcords[a][1]);
 	glEnd();
 	
-// XXX	persp(PERSP_VIEW);
 	glFinish();	/* to be sure readpixels sees mask */
-	
-	glDrawBuffer(GL_BACK);
 	
 	/* grab mask */
 	bufmask= view3d_read_backbuf(vc, xmin, ymin, xmax, ymax);
@@ -1476,9 +1469,6 @@ void EM_mesh_copy_face(EditMesh *em, short type)
 	
 	if (change) {
 //		DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-		if (type==3) {
-// XXX			allqueue(REDRAWIMAGE, 0);			
-		}
 		
 		BIF_undo_push("Copy Face Attribute");
 	}
@@ -2832,31 +2822,31 @@ void select_faces_by_numverts(EditMesh *em, int numverts)
 		BIF_undo_push("Select non-Triangles/Quads");
 }
 
-void select_sharp_edges(EditMesh *em, float fsharpness)
+static int select_sharp_edges_exec(bContext *C, wmOperator *op)
 {
 	/* Find edges that have exactly two neighboring faces,
-	 * check the angle between those faces, and if angle is
-	 * small enough, select the edge
-	 */
+	* check the angle between those faces, and if angle is
+	* small enough, select the edge
+	*/
+	Object *obedit= CTX_data_edit_object(C);
+	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
 	EditEdge *eed;
 	EditFace *efa;
 	EditFace **efa1;
 	EditFace **efa2;
-	intptr_t edgecount = 0, i;
-	static short sharpness = 135;
-
+	intptr_t edgecount = 0, i = 0;
+	float sharpness, fsharpness;
+	
+	/* 'standard' behaviour - check if selected, then apply relevant selection */
+	
 	if(em->selectmode==SCE_SELECT_FACE) {
 		error("Doesn't work in face selection mode");
-		return;
+		return OPERATOR_CANCELLED;
 	}
 
-// XXX	if(button(&sharpness,0, 180,"Max Angle:")==0) return;
-	/* if faces are at angle 'sharpness', then the face normals
-	 * are at angle 180.0 - 'sharpness' (convert to radians too)
-	 */
+	sharpness= RNA_float_get(op->ptr, "sharpness");
 	fsharpness = ((180.0 - sharpness) * M_PI) / 180.0;
 
-	i=0;
 	/* count edges, use tmp.l  */
 	eed= em->edges.first;
 	while(eed) {
@@ -2929,18 +2919,6 @@ void select_sharp_edges(EditMesh *em, float fsharpness)
 //	if (EM_texFaceCheck())
 	
 	BIF_undo_push("Select Sharp Edges");
-}
-
-static int select_sharp_edges_exec(bContext *C, wmOperator *op)
-{
-	Object *obedit= CTX_data_edit_object(C);
-	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
-	
-	/* 'standard' behaviour - check if selected, then apply relevant selection */
-	
-	// XXX we need a message here - for 1 its recalculate normals inside, for 2 its outside 
-	righthandfaces(em, RNA_float_get(op->ptr, "sharpness"));
-	
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit); //TODO is this needed ?
 	return OPERATOR_FINISHED;	
 }
@@ -2958,13 +2936,12 @@ void MESH_OT_select_sharp_edges(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
 	
-	/* props XXX figure out? */
+	/* props */
 	RNA_def_float(ot->srna, "sharpness", 0.01f, 0.0f, FLT_MAX, "sharpness", "", 0.0f, 180.0f);
 }
 
 
-// XXX looks like more work is needed in order for this to work (see in function)
-void select_linked_flat_faces(EditMesh *em, float fsharpness)
+static void select_linked_flat_faces(EditMesh *em, float sharpness)
 {
 	/* Find faces that are linked to selected faces that are 
 	 * relatively flat (angle between faces is higher than
@@ -2975,18 +2952,13 @@ void select_linked_flat_faces(EditMesh *em, float fsharpness)
 	EditFace **efa1;
 	EditFace **efa2;
 	intptr_t edgecount = 0, i, faceselcount=0, faceselcountold=0;
-	static short sharpness = 135;
+	float fsharpness;
 	
-
 	if(em->selectmode!=SCE_SELECT_FACE) {
 		error("Only works in face selection mode");
 		return;
 	}
 
-// XXX	if(button(&sharpness,0, 180,"Min Angle:")==0) return;
-	/* if faces are at angle 'sharpness', then the face normals
-	 * are at angle 180.0 - 'sharpness' (convert to radians too)
-	 */
 	fsharpness = ((180.0 - sharpness) * M_PI) / 180.0;
 
 	i=0;
@@ -3890,6 +3862,7 @@ void Face_Menu(EditMesh *em)
 
 /* **************** NORMALS ************** */
 
+/* XXX value of select is messed up, it means two things */
 void righthandfaces(EditMesh *em, int select)	/* makes faces righthand turning */
 {
 	EditEdge *eed, *ed1, *ed2, *ed3, *ed4;
@@ -4108,7 +4081,7 @@ static int righthandfaces_exec(bContext *C, wmOperator *op)
 	
 	/* 'standard' behaviour - check if selected, then apply relevant selection */
 	
-	// XXX we need a message here - for 1 its recalculate normals inside, for 2 its outside 
+	// XXX  need other args
 	righthandfaces(em, RNA_int_get(op->ptr, "select"));
 	
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit); //TODO is this needed ?
@@ -4128,7 +4101,7 @@ void MESH_OT_righthandfaces(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
 	
-	/* props */
+	/* XXX make it enum or so  */
 	RNA_def_int(ot->srna, "select", 0, INT_MIN, INT_MAX, "Select", "", INT_MIN, INT_MAX);
 }
 
@@ -4310,6 +4283,7 @@ void editmesh_align_view_to_selected(Object *obedit, EditMesh *em, View3D *v3d, 
 
 void vertexsmooth(Object *obedit, EditMesh *em)
 {
+	Scene *scene= NULL; // XXX
 	EditVert *eve, *eve_mir = NULL;
 	EditEdge *eed;
 	float *adror, *adr, fac;
@@ -4394,9 +4368,9 @@ void vertexsmooth(Object *obedit, EditMesh *em)
 		if(eve->f & SELECT) {
 			if(eve->f1) {
 				
-// XXX				if (scene->toolsettings->editbutflag & B_MESH_X_MIRROR) {
-//					eve_mir= editmesh_get_x_mirror_vert(obedit, em, eve->co);
-//				}
+				if (scene->toolsettings->editbutflag & B_MESH_X_MIRROR) {
+					eve_mir= editmesh_get_x_mirror_vert(obedit, em, eve->co);
+				}
 				
 				adr = eve->tmp.p;
 				fac= 0.5/(float)eve->f1;

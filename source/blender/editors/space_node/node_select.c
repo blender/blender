@@ -125,10 +125,9 @@ static int node_select_exec(bContext *C, wmOperator *op)
 	}
 
 	WM_event_add_notifier(C, NC_SCENE|ND_NODES, NULL); /* Do we need to pass the scene? */
-	
-	//WM_event_add_modal_handler(C, &window->handlers, op);
 
-	return /*OPERATOR_RUNNING_MODAL;*/ OPERATOR_FINISHED;
+	/* allow tweak event to work too */
+	return OPERATOR_FINISHED|OPERATOR_PASS_THROUGH;
 }
 
 static int node_select_modal(bContext *C, wmOperator *op, wmEvent *event)

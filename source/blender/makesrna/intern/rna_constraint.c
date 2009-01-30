@@ -1209,18 +1209,17 @@ void RNA_def_constraint(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CONSTRAINT_ACTIVE);
 	RNA_def_property_ui_text(prop, "Active", "Constraint is the one being edited ");
 	
-	prop= RNA_def_property(srna, "own_ipo", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", CONSTRAINT_OWN_IPO);
-	RNA_def_property_ui_text(prop, "Local IPO", "Constraint has its own IPO data.");
-	
 	prop= RNA_def_property(srna, "proxy_local", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CONSTRAINT_PROXY_LOCAL);
 	RNA_def_property_ui_text(prop, "Proxy Local", "Constraint was added in this proxy instance (i.e. did not belong to source Armature).");
 	
+	/* values */
+	prop= RNA_def_property(srna, "influence", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "enforce");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Influence", "Amount of influence constraint will have on the final solution.");
+	
 	/* pointers */
-	prop= RNA_def_property(srna, "ipo", PROP_POINTER, PROP_NONE);
-	RNA_def_property_ui_text(prop, "IPO", "Local IPO data.");
-
 	rna_def_constrainttarget(brna);
 
 	rna_def_constraint_childof(brna);
