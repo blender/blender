@@ -33,6 +33,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_anim_types.h"
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
@@ -590,6 +591,7 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 	te->index= index;	// for data arays
 	if(ELEM3(type, TSE_SEQUENCE, TSE_SEQ_STRIP, TSE_SEQUENCE_DUP));
 	else if(ELEM3(type, TSE_RNA_STRUCT, TSE_RNA_PROPERTY, TSE_RNA_ARRAY_ELEM));
+	else if(type==TSE_ANIM_DATA);
 	else {
 		te->name= id->name+2; // default, can be overridden by Library or non-ID data
 		te->idcode= GS(id->name);
@@ -611,6 +613,8 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 		case ID_OB:
 			{
 				Object *ob= (Object *)id;
+				
+				outliner_add_element(soops, &te->subtree, ob->adt, te, TSE_ANIM_DATA, 0);
 				
 				if(ob->proxy && ob->id.lib==NULL)
 					outliner_add_element(soops, &te->subtree, ob->proxy, te, TSE_PROXY, 0);
@@ -696,9 +700,6 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 					}
 				}
 				
-				outliner_add_element(soops, &te->subtree, ob->ipo, te, 0, 0);
-				outliner_add_element(soops, &te->subtree, ob->action, te, 0, 0);
-				
 				for(a=0; a<ob->totcol; a++) 
 					outliner_add_element(soops, &te->subtree, ob->mat[a], te, 0, a);
 				
@@ -778,27 +779,16 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 				}
 				
 				if(ob->dup_group)
-					outliner_add_element(soops, &te->subtree, ob->dup_group, te, 0, 0);
-
-				if(ob->nlastrips.first) {
-					bActionStrip *strip;
-					TreeElement *ten;
-					TreeElement *tenla= outliner_add_element(soops, &te->subtree, ob, te, TSE_NLA, 0);
-					int a= 0;
-					
-					tenla->name= "NLA strips";
-					for (strip=ob->nlastrips.first; strip; strip=strip->next, a++) {
-						ten= outliner_add_element(soops, &tenla->subtree, strip->act, tenla, TSE_NLA_ACTION, a);
-						if(ten) ten->directdata= strip;
-					}
-				}
+					outliner_add_element(soops, &te->subtree, ob->dup_group, te, 0, 0);	
 				
 			}
 			break;
 		case ID_ME:
 			{
 				Mesh *me= (Mesh *)id;
-				outliner_add_element(soops, &te->subtree, me->ipo, te, 0, 0);
+				
+				//outliner_add_element(soops, &te->subtree, me->adt, te, TSE_ANIM_DATA, 0);
+				
 				outliner_add_element(soops, &te->subtree, me->key, te, 0, 0);
 				for(a=0; a<me->totcol; a++) 
 					outliner_add_element(soops, &te->subtree, me->mat[a], te, 0, a);
@@ -809,6 +799,9 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 		case ID_CU:
 			{
 				Curve *cu= (Curve *)id;
+				
+				outliner_add_element(soops, &te->subtree, cu->adt, te, TSE_ANIM_DATA, 0);
+				
 				for(a=0; a<cu->totcol; a++) 
 					outliner_add_element(soops, &te->subtree, cu->mat[a], te, 0, a);
 			}
@@ -824,7 +817,8 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 		{
 			Material *ma= (Material *)id;
 			
-			outliner_add_element(soops, &te->subtree, ma->ipo, te, 0, 0);
+			outliner_add_element(soops, &te->subtree, ma->adt, te, TSE_ANIM_DATA, 0);
+			
 			for(a=0; a<MAX_MTEX; a++) {
 				if(ma->mtex[a]) outliner_add_element(soops, &te->subtree, ma->mtex[a]->tex, te, 0, a);
 			}
@@ -834,20 +828,22 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 			{
 				Tex *tex= (Tex *)id;
 				
-				outliner_add_element(soops, &te->subtree, tex->ipo, te, 0, 0);
+				outliner_add_element(soops, &te->subtree, tex->adt, te, TSE_ANIM_DATA, 0);
 				outliner_add_element(soops, &te->subtree, tex->ima, te, 0, 0);
 			}
 			break;
 		case ID_CA:
 			{
 				Camera *ca= (Camera *)id;
-				outliner_add_element(soops, &te->subtree, ca->ipo, te, 0, 0);
+				outliner_add_element(soops, &te->subtree, ca->adt, te, TSE_ANIM_DATA, 0);
 			}
 			break;
 		case ID_LA:
 			{
 				Lamp *la= (Lamp *)id;
-				outliner_add_element(soops, &te->subtree, la->ipo, te, 0, 0);
+				
+				outliner_add_element(soops, &te->subtree, la->adt, te, TSE_ANIM_DATA, 0);
+				
 				for(a=0; a<MAX_MTEX; a++) {
 					if(la->mtex[a]) outliner_add_element(soops, &te->subtree, la->mtex[a]->tex, te, 0, a);
 				}
@@ -856,7 +852,9 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 		case ID_WO:
 			{
 				World *wrld= (World *)id;
-				outliner_add_element(soops, &te->subtree, wrld->ipo, te, 0, 0);
+				
+				outliner_add_element(soops, &te->subtree, wrld->adt, te, TSE_ANIM_DATA, 0);
+				
 				for(a=0; a<MAX_MTEX; a++) {
 					if(wrld->mtex[a]) outliner_add_element(soops, &te->subtree, wrld->mtex[a]->tex, te, 0, a);
 				}
@@ -865,35 +863,14 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 		case ID_KE:
 			{
 				Key *key= (Key *)id;
-				outliner_add_element(soops, &te->subtree, key->ipo, te, 0, 0);
-			}
-			break;
-		case ID_IP:
-			{
-				Ipo *ipo= (Ipo *)id;
-				IpoCurve *icu;
-				Object *lastadded= NULL;
 				
-				for (icu= ipo->curve.first; icu; icu= icu->next) {
-					if (icu->driver && icu->driver->ob) {
-						if (lastadded != icu->driver->ob) {
-							outliner_add_element(soops, &te->subtree, icu->driver->ob, te, TSE_LINKED_OB, 0);
-							lastadded= icu->driver->ob;
-						}
-					}
-				}
+				outliner_add_element(soops, &te->subtree, key->adt, te, TSE_ANIM_DATA, 0);
 			}
 			break;
 		case ID_AC:
 			{
-				bAction *act= (bAction *)id;
-				bActionChannel *chan;
-				int a= 0;
-				
-				tselem= TREESTORE(parent);
-				for (chan=act->chanbase.first; chan; chan=chan->next, a++) {
-					outliner_add_element(soops, &te->subtree, chan->ipo, te, 0, a);
-				}
+				// XXX do we want to be exposing the F-Curves here?
+				//bAction *act= (bAction *)id;
 			}
 			break;
 		case ID_AR:
@@ -938,6 +915,56 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 				}
 			}
 			break;
+		}
+	}
+	else if(type==TSE_ANIM_DATA) {
+		AnimData *adt= (AnimData *)idv;
+		
+		/* this element's info */
+		te->name= "Animation";
+		
+		/* Action */
+		outliner_add_element(soops, &te->subtree, adt->action, te, 0, 0);
+		
+		/* Drivers */
+		if (adt->drivers.first) {
+			TreeElement *ted= outliner_add_element(soops, &te->subtree, adt, te, TSE_DRIVER_BASE, 0);
+			ID *lastadded= NULL;
+			FCurve *fcu;
+			
+			ted->name= "Drivers";
+		
+			for (fcu= adt->drivers.first; fcu; fcu= fcu->next) {
+				if (fcu->driver && fcu->driver->id) {
+					if (lastadded != fcu->driver->id) {
+						outliner_add_element(soops, &ted->subtree, fcu->driver->id, ted, TSE_LINKED_OB, 0);
+						lastadded= fcu->driver->id;
+					}
+				}
+			}
+		}
+		
+		/* NLA Data */
+		if (adt->nla_tracks.first) {
+#if 0
+			TreeElement *tenla= outliner_add_element(soops, &te->subtree, adt, te, TSE_NLA, 0);
+			NlaTrack *nlt;
+			int a= 0;
+			
+			tenla->name= "NLA Tracks";
+			
+			for (nlt= adt->nla_tracks.first; nlt; nlt= nlt->next) {
+				TreeElement *tenlt= outliner_add_element(soops, &te->subtree, nlt, te, TSE_NLA_TRACK, a);
+				bActionStrip *strip;
+				TreeElement *ten;
+				int b= 0;
+				
+				for (strip=nlt->strips.first; strip; strip=strip->next, a++) {
+					ten= outliner_add_element(soops, &tenla->subtree, strip->act, tenla, TSE_NLA_ACTION, a);
+					if(ten) ten->directdata= strip;
+				}
+			}
+#endif
 		}
 	}
 	else if(type==TSE_SEQUENCE) {
@@ -1833,75 +1860,6 @@ static int tree_element_active_world(Scene *scene, SpaceOops *soops, TreeElement
 	return 0;
 }
 
-static int tree_element_active_ipo(Scene *scene, SpaceOops *soops, TreeElement *te, int set)
-{
-	TreeElement *tes;
-	TreeStoreElem *tselems=NULL;
-	Object *ob;
-	
-	/* we search for the object parent */
-	ob= (Object *)outliner_search_back(soops, te, ID_OB);
-	if(ob==NULL || ob!=OBACT) return 0;	// just paranoia
-	
-	/* the parent of ipo */
-	tes= te->parent;
-	tselems= TREESTORE(tes);
-	
-	if(set) {
-		if(tes->idcode==ID_AC) {
-			if(ob->ipoflag & OB_ACTION_OB)
-				ob->ipowin= ID_OB;
-			else if(ob->ipoflag & OB_ACTION_KEY)
-				ob->ipowin= ID_KE;
-			else 
-				ob->ipowin= ID_PO;
-		}
-		else ob->ipowin= tes->idcode;
-		
-		if(ob->ipowin==ID_MA) tree_element_active_material(scene, soops, tes, 1);
-		else if(ob->ipowin==ID_AC) {
-			bActionChannel *chan;
-			short a=0;
-			for(chan=ob->action->chanbase.first; chan; chan= chan->next) {
-				if(a==te->index) break;
-				if(chan->ipo) a++;
-			}
-// XXX			deselect_actionchannels(ob->action, 0);
-//			if (chan)
-//				select_channel(ob->action, chan, SELECT_ADD);
-			allqueue(REDRAWACTION, ob->ipowin);
-			allqueue(REDRAWVIEW3D, ob->ipowin);
-		}
-		
-		allqueue(REDRAWIPO, ob->ipowin);
-	}
-	else {
-		if(tes->idcode==ID_AC) {
-			if(ob->ipoflag & OB_ACTION_OB)
-				return ob->ipowin==ID_OB;
-			else if(ob->ipoflag & OB_ACTION_KEY)
-				return ob->ipowin==ID_KE;
-			else if(ob->ipowin==ID_AC) {
-				bActionChannel *chan;
-				short a=0;
-				for(chan=ob->action->chanbase.first; chan; chan= chan->next) {
-					if(a==te->index) break;
-					if(chan->ipo) a++;
-				}
-// XXX				if(chan==get_hilighted_action_channel(ob->action)) return 1;
-			}
-		}
-		else if(ob->ipowin==tes->idcode) {
-			if(ob->ipowin==ID_MA) {
-				Material *ma= give_current_material(ob, ob->actcol);
-				if(ma==(Material *)tselems->id) return 1;
-			}
-			else return 1;
-		}
-	}
-	return 0;
-}	
-
 static int tree_element_active_defgroup(Scene *scene, TreeElement *te, TreeStoreElem *tselem, int set)
 {
 	Object *ob;
@@ -1916,26 +1874,6 @@ static int tree_element_active_defgroup(Scene *scene, TreeElement *te, TreeStore
 	else {
 		if(ob==OBACT)
 			if(ob->actdef== te->index+1) return 1;
-	}
-	return 0;
-}
-
-static int tree_element_active_nla_action(TreeElement *te, TreeStoreElem *tselem, int set)
-{
-	if(set) {
-		bActionStrip *strip= te->directdata;
-		if(strip) {
-// XXX			deselect_nlachannel_keys(0);
-			strip->flag |= ACTSTRIP_SELECT;
-			allqueue(REDRAWNLA, 0);
-		}
-	}
-	else {
-		/* id in tselem is action */
-		bActionStrip *strip= te->directdata;
-		if(strip) {
-			if(strip->flag & ACTSTRIP_SELECT) return 1;
-		}
 	}
 	return 0;
 }
@@ -2085,8 +2023,6 @@ static int tree_element_active(Scene *scene, SpaceOops *soops, TreeElement *te, 
 			return tree_element_active_world(scene, soops, te, set);
 		case ID_LA:
 			return tree_element_active_lamp(scene, soops, te, set);
-		case ID_IP:
-			return tree_element_active_ipo(scene, soops, te, set);
 		case ID_TE:
 			return tree_element_active_texture(scene, soops, te, set);
 		case ID_TXT:
@@ -2159,8 +2095,6 @@ static int tree_element_type_active(bContext *C, Scene *scene, SpaceOops *soops,
 {
 	
 	switch(tselem->type) {
-		case TSE_NLA_ACTION:
-			return tree_element_active_nla_action(te, tselem, set);
 		case TSE_DEFGROUP:
 			return tree_element_active_defgroup(scene, te, tselem, set);
 		case TSE_BONE:
@@ -2233,7 +2167,7 @@ static int do_outliner_mouse_event(bContext *C, Scene *scene, ARegion *ar, Space
 			if(event==LEFTMOUSE) {
 			
 				if (ctrl) {
-					if(ELEM9(tselem->type, TSE_NLA, TSE_DEFGROUP_BASE, TSE_CONSTRAINT_BASE, TSE_MODIFIER_BASE, TSE_SCRIPT_BASE, TSE_POSE_BASE, TSE_POSEGRP_BASE, TSE_R_LAYER_BASE, TSE_R_PASS)) 
+					if(ELEM10(tselem->type, TSE_ANIM_DATA, TSE_NLA, TSE_DEFGROUP_BASE, TSE_CONSTRAINT_BASE, TSE_MODIFIER_BASE, TSE_SCRIPT_BASE, TSE_POSE_BASE, TSE_POSEGRP_BASE, TSE_R_LAYER_BASE, TSE_R_PASS)) 
 						error("Cannot edit builtin name");
 					else if(ELEM3(tselem->type, TSE_SEQUENCE, TSE_SEQ_STRIP, TSE_SEQUENCE_DUP))
 						error("Cannot edit sequence name");
@@ -3241,10 +3175,10 @@ static int tselem_rna_icon(PointerRNA *ptr)
 		return ICON_TPAINT_HLT;
 	else if(rnatype == &RNA_Library)
 		return ICON_LIBRARY_DEHLT;
-	/*else if(rnatype == &RNA_Action)
-		return ICON_ACTION;*/
-	else if(rnatype == &RNA_Ipo)
-		return ICON_IPO_DEHLT;
+	else if(rnatype == &RNA_Action)
+		return ICON_ACTION;
+	//else if(rnatype == &RNA_Ipo)
+	//	return ICON_IPO_DEHLT;
 	else if(rnatype == &RNA_Key)
 		return ICON_SHAPEKEY;
 	else if(rnatype == &RNA_Main)
@@ -3318,6 +3252,8 @@ static void tselem_draw_icon(float x, float y, TreeStoreElem *tselem, TreeElemen
 {
 	if(tselem->type) {
 		switch( tselem->type) {
+			case TSE_ANIM_DATA:
+				UI_icon_draw(x, y, ICON_IPO_DEHLT); break; // xxx
 			case TSE_NLA:
 				UI_icon_draw(x, y, ICON_NLA); break;
 			case TSE_NLA_ACTION:
@@ -3464,8 +3400,6 @@ static void tselem_draw_icon(float x, float y, TreeStoreElem *tselem, TreeElemen
 				UI_icon_draw(x, y, ICON_MATERIAL_DEHLT); break;
 			case ID_TE:
 				UI_icon_draw(x, y, ICON_TEXTURE_DEHLT); break;
-			case ID_IP:
-				UI_icon_draw(x, y, ICON_IPO_DEHLT); break;
 			case ID_IM:
 				UI_icon_draw(x, y, ICON_IMAGE_DEHLT); break;
 			case ID_SO:
