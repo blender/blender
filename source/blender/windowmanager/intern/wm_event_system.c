@@ -837,6 +837,7 @@ void wm_event_do_handlers(bContext *C)
 						/* NOTE: do not escape on WM_HANDLER_BREAK, mousemove needs handled for previous area */
 					}
 				}
+				
 				/* XXX hrmf, this gives reliable previous mouse coord for area change, feels bad? 
 				   doing it on ghost queue gives errors when mousemoves go over area borders */
 				if(doit && win->screen->subwinactive != win->screen->mainwin) {
