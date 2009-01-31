@@ -187,7 +187,7 @@ static int EM_check_selection(EditMesh *em, void *data)
 	
 	for(ese = em->selected.first; ese; ese = ese->next){
 		if(ese->data == data) return 1;
-		}
+	}
 	
 	return 0;
 }

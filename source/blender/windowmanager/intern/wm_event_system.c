@@ -72,14 +72,6 @@ void wm_event_add(wmWindow *win, wmEvent *event_to_add)
 	BLI_addtail(&win->queue, event);
 }
 
-wmEvent *wm_event_next(wmWindow *win)
-{
-	wmEvent *event= win->queue.first;
-
-	if(event) BLI_remlink(&win->queue, event);
-	return event;
-}
-
 static void wm_event_free(wmEvent *event)
 {
 	if(event->customdata && event->customdatafree)
@@ -789,9 +781,9 @@ void wm_event_do_handlers(bContext *C)
 		if( win->screen==NULL )
 			wm_event_free_all(win);
 		
-		while( (event=wm_event_next(win)) ) {
+		while( (event= win->queue.first) ) {
 			int action;
-
+			
 			CTX_wm_window_set(C, win);
 			
 			/* we let modal handlers get active area/region, also wm_paintcursor_test needs it */
@@ -852,6 +844,9 @@ void wm_event_do_handlers(bContext *C)
 					win->eventstate->prevy= event->y;
 				}
 			}
+			
+			/* unlink and free here, blender-quit then frees all */
+			BLI_remlink(&win->queue, event);
 			wm_event_free(event);
 			
 		}

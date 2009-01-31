@@ -322,21 +322,6 @@ int wm_window_fullscreen_toggle_op(bContext *C, wmOperator *op)
 	
 }
 
-	
-/* exit blender */
-int wm_exit_blender_op(bContext *C, wmOperator *op)
-{
-	wmWindowManager *wm= CTX_wm_manager(C);
-	wmWindow *win= wm->windows.first;
-
-	while(win) {
-		wm_window_close(C, win);
-		win= win->next;
-	}
-
-	return OPERATOR_FINISHED;
-}
-
 
 /* ************ events *************** */
 

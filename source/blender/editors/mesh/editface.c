@@ -826,6 +826,8 @@ int minmax_tface(Scene *scene, float *min, float *max)
 	return ok;
 }
 
+/* ******************** edge loop shortest path ********************* */
+
 #define ME_SEAM_DONE 2		/* reuse this flag */
 
 static float edgetag_cut_cost(EditMesh *em, int e1, int e2, int vert)
@@ -871,7 +873,11 @@ static void edgetag_add_adjacent(EditMesh *em, Heap *heap, int mednum, int vertn
 
 void edgetag_context_set(Scene *scene, EditEdge *eed, int val)
 {
+	
 	switch (scene->toolsettings->edge_mode) {
+	case EDGE_MODE_SELECT:
+		EM_select_edge(eed, val);
+		break;
 	case EDGE_MODE_TAG_SEAM:
 		if (val)		{eed->seam = 255;}
 		else			{eed->seam = 0;}
@@ -894,6 +900,8 @@ void edgetag_context_set(Scene *scene, EditEdge *eed, int val)
 int edgetag_context_check(Scene *scene, EditEdge *eed)
 {
 	switch (scene->toolsettings->edge_mode) {
+	case EDGE_MODE_SELECT:
+		return (eed->f & SELECT) ? 1 : 0;
 	case EDGE_MODE_TAG_SEAM:
 		return eed->seam ? 1 : 0;
 	case EDGE_MODE_TAG_SHARP:
@@ -1029,6 +1037,8 @@ int edgetag_shortest_path(Scene *scene, EditMesh *em, EditEdge *source, EditEdge
 	return 1;
 }
 
+/* *************************************** */
+
 static void seam_edgehash_insert_face(EdgeHash *ehash, MFace *mf)
 {
 	BLI_edgehash_insert(ehash, mf->v1, mf->v2, NULL);
@@ -1094,7 +1104,7 @@ void seam_mark_clear_tface(Scene *scene, short mode)
 // XXX	if (G.rt == 8)
 //		unwrap_lscm(1);
 
-	G.f |= G_DRAWSEAMS;
+	me->drawflag |= ME_DRAWSEAMS;
 	BIF_undo_push("Mark Seam");
 
 // XXX notifier!		object_tface_flags_changed(OBACT, 1);

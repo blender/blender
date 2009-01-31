@@ -78,7 +78,6 @@ enum {
 /* wm_event_system.c */
 void		wm_event_add(wmWindow *win, wmEvent *event_to_add);
 void		wm_event_free_all		(wmWindow *win);
-wmEvent		*wm_event_next			(wmWindow *win);
 
 			/* goes over entire hierarchy:  events -> window -> screen -> area -> region */
 void		wm_event_do_handlers	(bContext *C);

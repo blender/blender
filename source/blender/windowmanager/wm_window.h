@@ -58,7 +58,6 @@ void		wm_window_testbreak		(void);
 int			wm_window_duplicate_op	(bContext *C, wmOperator *op);
 int			wm_window_rip_op	(bContext *C, wmOperator *op, struct wmEvent *event);
 int			wm_window_fullscreen_toggle_op(bContext *C, wmOperator *op);
-int			wm_exit_blender_op(bContext *C, wmOperator *op);
 
 
 #endif /* WM_WINDOW_H */

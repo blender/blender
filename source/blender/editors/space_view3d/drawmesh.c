@@ -135,13 +135,14 @@ static EdgeHash *get_tface_mesh_marked_edge_info(Mesh *me)
 static int draw_tfaces3D__setHiddenOpts(void *userData, int index)
 {
 	struct { Mesh *me; EdgeHash *eh; } *data = userData;
-	MEdge *med = &data->me->medge[index];
+	Mesh *me= data->me;
+	MEdge *med = &me->medge[index];
 	uintptr_t flags = (intptr_t) BLI_edgehash_lookup(data->eh, med->v1, med->v2);
 
-	if((G.f & G_DRAWSEAMS) && (med->flag&ME_SEAM)) {
+	if((me->drawflag & ME_DRAWSEAMS) && (med->flag&ME_SEAM)) {
 		return 0;
-	} else if(G.f & G_DRAWEDGES){ 
-		if (G.f&G_HIDDENEDGES) {
+	} else if(me->drawflag & ME_DRAWEDGES){ 
+		if (me->drawflag & ME_HIDDENEDGES) {
 			return 1;
 		} else {
 			return (flags & eEdge_Visible);
@@ -154,11 +155,12 @@ static int draw_tfaces3D__setHiddenOpts(void *userData, int index)
 static int draw_tfaces3D__setSeamOpts(void *userData, int index)
 {
 	struct { Mesh *me; EdgeHash *eh; } *data = userData;
+	Mesh *me= data->me;
 	MEdge *med = &data->me->medge[index];
 	uintptr_t flags = (intptr_t) BLI_edgehash_lookup(data->eh, med->v1, med->v2);
 
-	if (med->flag&ME_SEAM) {
-		if (G.f&G_HIDDENEDGES) {
+	if (med->flag & ME_SEAM) {
+		if (me->drawflag & ME_HIDDENEDGES) {
 			return 1;
 		} else {
 			return (flags & eEdge_Visible);
@@ -217,7 +219,7 @@ static void draw_tfaces3D(RegionView3D *rv3d, Object *ob, Mesh *me, DerivedMesh 
 	dm->drawMappedEdges(dm, draw_tfaces3D__setHiddenOpts, &data);
 
 		/* Draw Seams */
-	if(G.f & G_DRAWSEAMS) {
+	if(me->drawflag & ME_DRAWSEAMS) {
 		UI_ThemeColor(TH_EDGE_SEAM);
 		glLineWidth(2);
 
@@ -227,7 +229,7 @@ static void draw_tfaces3D(RegionView3D *rv3d, Object *ob, Mesh *me, DerivedMesh 
 	}
 
 	/* Draw Selected Faces */
-	if(G.f & G_DRAWFACES) {
+	if(me->drawflag & ME_DRAWFACES) {
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		UI_ThemeColor4(TH_FACE_SELECT);

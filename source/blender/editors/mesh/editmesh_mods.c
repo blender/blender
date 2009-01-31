@@ -1924,15 +1924,6 @@ void loop_multiselect(EditMesh *em, int looptype)
 
 /* ***************** loop select (non modal) ************** */
 
-static EnumPropertyItem prop_select_types[] = {
-	{0, "LOOP_EXCLUSIVE", "Loop Exclusive", ""},
-	{1, "LOOP_EXTEND", "Loop Extend", ""},
-	{2, "RING_EXCLUSIVE", "Ring Exclusive", ""},
-	{3, "RING_EXTEND", "Ring Extend", ""},
-	{0, NULL, NULL, NULL}
-};
-
-
 static void mouse_mesh_loop(bContext *C, short mval[2], short extend, short ring)
 {
 	ViewContext vc;
@@ -1948,91 +1939,29 @@ static void mouse_mesh_loop(bContext *C, short mval[2], short extend, short ring
 	
 	eed= findnearestedge(&vc, &dist);
 	if(eed) {
-		/* XXX: should toolsettings do this? */
-		if (vc.scene->toolsettings->edge_mode == EDGE_MODE_SELECT) {
-			if(extend==0) EM_clear_flag_all(em, SELECT);
-		
-			if((eed->f & SELECT)==0) select=1;
-			else if(extend) select=0;
-
-			if(em->selectmode & SCE_SELECT_FACE) {
-				faceloop_select(em, eed, select);
-			}
-			else if(em->selectmode & SCE_SELECT_EDGE) {
-		        if(ring)
-					edgering_select(em, eed, select);
-		        else
-					edgeloop_select(em, eed, select);
-			}
-		    else if(em->selectmode & SCE_SELECT_VERTEX) {
-		        if(ring)
-					edgering_select(em, eed, select);
-		        else 
-					edgeloop_select(em, eed, select);
-			}
-
-			EM_selectmode_flush(em);
-//			if (EM_texFaceCheck())
-			
-		} 
-		else {
-			int act = (edgetag_context_check(vc.scene, eed)==0);
-			int path = 0;
-			
-			if (ring && em->selected.last) {
-				EditSelection *ese = em->selected.last;
+		if(extend==0) EM_clear_flag_all(em, SELECT);
 	
-				if(ese && ese->type == EDITEDGE) {
-					EditEdge *eed_act;
-					eed_act = (EditEdge*)ese->data;
-					if (eed_act != eed) {
-						/* If extend, we need to use the last active edge, (if it exists) */
-						if (edgetag_shortest_path(vc.scene, em, eed_act, eed)) {
-							EM_remove_selection(em, eed_act, EDITEDGE);
-							EM_select_edge(eed_act, 0);
-							path = 1;
-						}
-					}
-				}
-			}
-			if (path==0) {
-				edgetag_context_set(vc.scene, eed, act); /* switch the edge option */
-			}
-			
-			if (act) {
-				if ((eed->f & SELECT)==0) {
-					EM_select_edge(eed, 1);
-					EM_selectmode_flush(em);
-				}
-				/* even if this is selected it may not be in the selection list */
-				EM_store_selection(em, eed, EDITEDGE);
-			} else {
-				if (eed->f & SELECT) {
-					EM_select_edge(eed, 0);
-					/* logic is differnt from above here since if this was selected we dont know if its in the selection list or not */
-					EM_remove_selection(em, eed, EDITEDGE);
-					
-					EM_selectmode_flush(em);
-				}
-			}
-			
-			switch (vc.scene->toolsettings->edge_mode) {
-			case EDGE_MODE_TAG_SEAM:
-				G.f |= G_DRAWSEAMS;
-				break;
-			case EDGE_MODE_TAG_SHARP:
-				G.f |= G_DRAWSHARP;
-				break;
-			case EDGE_MODE_TAG_CREASE:	
-				G.f |= G_DRAWCREASES;
-				break;
-			case EDGE_MODE_TAG_BEVEL:
-				G.f |= G_DRAWBWEIGHTS;
-				break;
-			}
-			
-			DAG_object_flush_update(vc.scene, vc.obedit, OB_RECALC_DATA);
+		if((eed->f & SELECT)==0) select=1;
+		else if(extend) select=0;
+
+		if(em->selectmode & SCE_SELECT_FACE) {
+			faceloop_select(em, eed, select);
 		}
+		else if(em->selectmode & SCE_SELECT_EDGE) {
+			if(ring)
+				edgering_select(em, eed, select);
+			else
+				edgeloop_select(em, eed, select);
+		}
+		else if(em->selectmode & SCE_SELECT_VERTEX) {
+			if(ring)
+				edgering_select(em, eed, select);
+			else 
+				edgeloop_select(em, eed, select);
+		}
+
+		EM_selectmode_flush(em);
+//			if (EM_texFaceCheck())
 		
 		WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, vc.obedit);
 	}
@@ -2069,6 +1998,107 @@ void MESH_OT_loop_select(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", "");
 	RNA_def_boolean(ot->srna, "ring", 0, "Select Ring", "");
 }
+
+/* ******************* mesh shortest path select, uses prev-selected edge ****************** */
+
+/* since you want to create paths with multiple selects, it doesn't have extend option */
+static void mouse_mesh_shortest_path(bContext *C, short mval[2])
+{
+	ViewContext vc;
+	EditMesh *em;
+	EditEdge *eed;
+	int dist= 50;
+	
+	em_setup_viewcontext(C, &vc);
+	vc.mval[0]= mval[0];
+	vc.mval[1]= mval[1];
+	em= vc.em;
+	
+	eed= findnearestedge(&vc, &dist);
+	if(eed) {
+		Mesh *me= vc.obedit->data;
+		int path = 0;
+		
+		if (em->selected.last) {
+			EditSelection *ese = em->selected.last;
+			
+			if(ese && ese->type == EDITEDGE) {
+				EditEdge *eed_act;
+				eed_act = (EditEdge*)ese->data;
+				if (eed_act != eed) {
+					if (edgetag_shortest_path(vc.scene, em, eed_act, eed)) {
+						EM_remove_selection(em, eed_act, EDITEDGE);
+						path = 1;
+					}
+				}
+			}
+		}
+		if (path==0) {
+			int act = (edgetag_context_check(vc.scene, eed)==0);
+			edgetag_context_set(vc.scene, eed, act); /* switch the edge option */
+		}
+		
+		EM_selectmode_flush(em);
+
+		/* even if this is selected it may not be in the selection list */
+		if(edgetag_context_check(vc.scene, eed)==0)
+			EM_remove_selection(em, eed, EDITEDGE);
+		else
+			EM_store_selection(em, eed, EDITEDGE);
+	
+		/* force drawmode for mesh */
+		switch (vc.scene->toolsettings->edge_mode) {
+			
+			case EDGE_MODE_TAG_SEAM:
+				me->drawflag |= ME_DRAWSEAMS;
+				break;
+			case EDGE_MODE_TAG_SHARP:
+				me->drawflag |= ME_DRAWSHARP;
+				break;
+			case EDGE_MODE_TAG_CREASE:	
+				me->drawflag |= ME_DRAWCREASES;
+				break;
+			case EDGE_MODE_TAG_BEVEL:
+				me->drawflag |= ME_DRAWBWEIGHTS;
+				break;
+		}
+		
+		DAG_object_flush_update(vc.scene, vc.obedit, OB_RECALC_DATA);
+	
+		WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, vc.obedit);
+	}
+}
+
+
+static int mesh_shortest_path_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	ARegion *ar= CTX_wm_region(C);
+	short mval[2];	
+	
+	mval[0]= event->x - ar->winrct.xmin;
+	mval[1]= event->y - ar->winrct.ymin;
+	
+	view3d_operator_needs_opengl(C);
+
+	mouse_mesh_shortest_path(C, mval);
+	
+	return OPERATOR_FINISHED;
+}
+	
+void MESH_OT_shortest_path_select(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Shortest Path Select";
+	ot->idname= "MESH_OT_shortest_path_select";
+	
+	/* api callbacks */
+	ot->invoke= mesh_shortest_path_select_invoke;
+	ot->poll= ED_operator_editmesh;
+	
+	/* properties */
+	RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", "");
+}
+
 
 /* ************************************************** */
 
@@ -3603,13 +3633,12 @@ void EM_selectmode_menu(EditMesh *em)
 
 void editmesh_mark_seam(EditMesh *em, int clear)
 {
+	Mesh *me= NULL; // XXX
 	EditEdge *eed;
 	
 	/* auto-enable seams drawing */
 	if(clear==0) {
-		if(!(G.f & G_DRAWSEAMS)) {
-			G.f |= G_DRAWSEAMS;
-		}
+		me->drawflag |= ME_DRAWSEAMS;
 	}
 
 	if(clear) {
@@ -3637,16 +3666,13 @@ void editmesh_mark_seam(EditMesh *em, int clear)
 
 void editmesh_mark_sharp(EditMesh *em, int set)
 {
+	Mesh *me= NULL;
 	EditEdge *eed;
 
-#if 0
 	/* auto-enable sharp edge drawing */
 	if(set) {
-		if(!(G.f & G_DRAWSEAMS)) {
-			G.f |= G_DRAWSEAMS;
-		}
+		me->drawflag |= ME_DRAWSHARP;
 	}
-#endif
 
 	if(set) {
 		eed= em->edges.first;

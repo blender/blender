@@ -461,6 +461,15 @@ static void WM_OT_window_fullscreen_toggle(wmOperatorType *ot)
     ot->poll= WM_operator_winactive;
 }
 
+static int wm_exit_blender_op(bContext *C, wmOperator *op)
+{
+	WM_operator_free(op);
+	
+	WM_exit(C);	
+	
+	return OPERATOR_FINISHED;
+}
+
 static void WM_OT_exit_blender(wmOperatorType *ot)
 {
 	ot->name= "Exit Blender";
@@ -531,18 +540,18 @@ static int border_apply(bContext *C, wmOperator *op, int event_type)
 	
 	if(rect->xmin==rect->xmax || rect->ymin==rect->ymax)
 		return 0;
-	else {
 		
-		/* operator arguments and storage. */
-		RNA_int_set(op->ptr, "xmin", rect->xmin);
-		RNA_int_set(op->ptr, "ymin", rect->ymin);
-		RNA_int_set(op->ptr, "xmax", rect->xmax);
-		RNA_int_set(op->ptr, "ymax", rect->ymax);
-		if( RNA_struct_find_property(op->ptr, "event_type") )
-			RNA_int_set(op->ptr, "event_type", event_type);
-		
-		op->type->exec(C, op);
-	}
+	/* operator arguments and storage. */
+	RNA_int_set(op->ptr, "xmin", rect->xmin);
+	RNA_int_set(op->ptr, "ymin", rect->ymin);
+	RNA_int_set(op->ptr, "xmax", rect->xmax);
+	RNA_int_set(op->ptr, "ymax", rect->ymax);
+	if( RNA_struct_find_property(op->ptr, "event_type") )
+		RNA_int_set(op->ptr, "event_type", event_type);
+	
+	op->type->exec(C, op);
+	
+	return 1;
 }
 
 static void wm_gesture_end(bContext *C, wmOperator *op)

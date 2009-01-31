@@ -146,6 +146,8 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_dupli_extrude_cursor);
 	WM_operatortype_append(MESH_OT_loop_select);
 	WM_operatortype_append(MESH_OT_add_edge_face);
+	WM_operatortype_append(MESH_OT_shortest_path_select);
+	
 	
 }
 
@@ -156,6 +158,7 @@ void ED_keymap_mesh(wmWindowManager *wm)
 	wmKeymapItem *kmi;
 	
 	/* selecting */
+	/* standard mouse selection goes via space_view3d */
 	WM_keymap_add_item(keymap, "MESH_OT_loop_select", SELECTMOUSE, KM_PRESS, KM_ALT, 0);
 	kmi= WM_keymap_add_item(keymap, "MESH_OT_loop_select", SELECTMOUSE, KM_PRESS, KM_SHIFT|KM_ALT, 0);
 	RNA_boolean_set(kmi->ptr, "extend", 1);
@@ -164,7 +167,9 @@ void ED_keymap_mesh(wmWindowManager *wm)
 	kmi= WM_keymap_add_item(keymap, "MESH_OT_loop_select", SELECTMOUSE, KM_PRESS, KM_SHIFT|KM_ALT|KM_CTRL, 0);
 	RNA_boolean_set(kmi->ptr, "extend", 1);
 	RNA_boolean_set(kmi->ptr, "ring", 1);
-					   
+
+	WM_keymap_add_item(keymap, "MESH_OT_shortest_path_select", SELECTMOUSE, KM_PRESS, KM_CTRL, 0);
+	
 	WM_keymap_add_item(keymap, "MESH_OT_de_select_all", AKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_select_more", PADPLUSKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_select_less", PADMINUS, KM_PRESS, KM_CTRL, 0);

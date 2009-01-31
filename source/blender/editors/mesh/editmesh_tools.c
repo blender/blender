@@ -3901,7 +3901,8 @@ typedef struct SlideVert {
 
 int EdgeSlide(EditMesh *em, short immediate, float imperc)
 {
-//	NumInput num;
+//	NumInput num; XXX
+	Mesh *me= NULL; // XXX
 	EditFace *efa;
 	EditEdge *eed,*first=NULL,*last=NULL, *temp = NULL;
 	EditVert *ev, *nearest;
@@ -4180,7 +4181,7 @@ int EdgeSlide(EditMesh *em, short immediate, float imperc)
 			return 0;
 		}
 
-		if(G.f & G_DRAW_EDGELEN) {
+		if(me->drawflag & ME_DRAW_EDGELEN) {
 			if(!(tempsv->up->f & SELECT)) {
 				tempsv->up->f |= SELECT;
 				tempsv->up->f2 |= 16;
@@ -4633,7 +4634,7 @@ int EdgeSlide(EditMesh *em, short immediate, float imperc)
 	}
 	
 	
-	if(G.f & G_DRAW_EDGELEN) {
+	if(me->drawflag & ME_DRAW_EDGELEN) {
 		look = vertlist;
 		while(look) {	
 			tempsv  = BLI_ghash_lookup(vertgh,(EditVert*)look->link);
