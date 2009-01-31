@@ -133,6 +133,8 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_add_primitive_monkey);
 	WM_operatortype_append(MESH_OT_add_primitive_uv_sphere);
 	WM_operatortype_append(MESH_OT_add_primitive_ico_sphere);
+	WM_operatortype_append(MESH_OT_clear_fgon);
+	WM_operatortype_append(MESH_OT_make_fgon);
 	WM_operatortype_append(MESH_OT_add_duplicate);
 	WM_operatortype_append(MESH_OT_removedoublesflag);
 	WM_operatortype_append(MESH_OT_extrude_mesh);
@@ -191,11 +193,6 @@ void ED_keymap_mesh(wmWindowManager *wm)
 	
 
 	WM_keymap_add_item(keymap, "MESH_OT_delete_mesh", XKEY, KM_PRESS, 0, 0);
-	
-	
-	
-	
-
 
 	/* add */
 	WM_keymap_add_item(keymap, "MESH_OT_add_edge_face", FKEY, KM_PRESS, 0, 0);
@@ -203,6 +200,9 @@ void ED_keymap_mesh(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "OBJECT_OT_mesh_add", AKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_separate", PKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_dupli_extrude_cursor", LEFTMOUSE, KM_PRESS, KM_CTRL, 0);
+	
+	WM_keymap_add_item(keymap, "MESH_OT_make_fgon",MKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "MESH_OT_clear_fgon",MKEY, KM_PRESS, KM_SHIFT, 0);
 	
 	
 }

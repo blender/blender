@@ -109,6 +109,9 @@ void MESH_OT_add_primitive_ico_sphere(struct wmOperatorType *ot);
 void MESH_OT_dupli_extrude_cursor(struct wmOperatorType *ot);
 void MESH_OT_add_edge_face(struct wmOperatorType *ot);
 
+void MESH_OT_make_fgon(struct wmOperatorType *ot);
+void MESH_OT_clear_fgon(struct wmOperatorType *ot);
+
 /* ******************* editmesh_lib.c */
 void EM_stats_update(EditMesh *em);
 
