@@ -113,6 +113,7 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_select_non_manifold);
 	WM_operatortype_append(MESH_OT_selectconnected_mesh_all);
 	WM_operatortype_append(MESH_OT_selectconnected_mesh);
+	WM_operatortype_append(MESH_OT_selectrandom_mesh);
 	WM_operatortype_append(MESH_OT_hide_mesh);
 	WM_operatortype_append(MESH_OT_reveal_mesh);
 	WM_operatortype_append(MESH_OT_consistant_normals);
@@ -182,7 +183,9 @@ void ED_keymap_mesh(wmWindowManager *wm)
 	RNA_boolean_set(WM_keymap_add_item(keymap, "MESH_OT_selectconnected_mesh", LKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "deselect", 1);
 	
 	RNA_float_set(WM_keymap_add_item(keymap, "MESH_OT_select_linked_flat_faces", FKEY, KM_PRESS, (KM_CTRL|KM_SHIFT|KM_ALT), 0)->ptr,"sharpness",135.0);
-	RNA_float_set(WM_keymap_add_item(keymap, "MESH_OT_select_sharp_edges", SKEY, KM_PRESS, (KM_CTRL|KM_SHIFT|KM_ALT), 0)->ptr,"sharpness",135.0);		
+	RNA_float_set(WM_keymap_add_item(keymap, "MESH_OT_select_sharp_edges", SKEY, KM_PRESS, (KM_CTRL|KM_SHIFT|KM_ALT), 0)->ptr,"sharpness",135.0);
+	
+	WM_keymap_add_item(keymap, "MESH_OT_selectrandom_mesh", SPACEKEY, KM_PRESS, 0, 0);
 	
 	/* temp hotkeys! */
 	WM_keymap_add_item(keymap, "MESH_OT_similar_vertex_select", GKEY, KM_PRESS, KM_SHIFT, 0);

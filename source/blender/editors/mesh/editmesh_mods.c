@@ -3555,12 +3555,11 @@ void MESH_OT_select_less(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-void selectrandom_mesh(EditMesh *em) /* randomly selects a user-set % of vertices/edges/faces */
+void selectrandom_mesh(EditMesh *em, int randfac) /* randomly selects a user-set % of vertices/edges/faces */
 {
 	EditVert *eve;
 	EditEdge *eed;
 	EditFace *efa;
-	static short randfac = 50;
 
 	/* Get the percentage of vertices to randomly select as 'randfac' */
 // XXX	if(button(&randfac,0, 100,"Percentage:")==0) return;
@@ -3596,6 +3595,37 @@ void selectrandom_mesh(EditMesh *em) /* randomly selects a user-set % of vertice
 		EM_selectmode_flush(em);
 	}
 //	if (EM_texFaceCheck())
+}
+
+static int selectrandom_mesh_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
+	
+	selectrandom_mesh(em, RNA_int_get(op->ptr,"percentage"));
+		
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	
+	return OPERATOR_FINISHED;	
+}
+
+void MESH_OT_selectrandom_mesh(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Select random mesh";
+	ot->idname= "MESH_OT_selectrandom_mesh";
+	
+	/* api callbacks */
+	ot->exec= selectrandom_mesh_exec;
+	ot->poll= ED_operator_editmesh;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
+	
+	/* props */
+
+	
+	RNA_def_int(ot->srna, "percentage", 50, 0, 100, "percentage", "", 0, 100);
 }
 
 void editmesh_select_by_material(EditMesh *em, int index) 
