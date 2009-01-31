@@ -631,21 +631,20 @@ void SEQUENCER_OT_select_pick_linked(wmOperatorType *ot)
 }
 
 
-
 /* select linked operator */
 static int sequencer_select_linked_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	int selected;
-	
+
 	selected = 1;
 	while (selected) {
 		selected = select_more_less_seq__internal(scene, 1, 1);
 	}
-	
+
 	ED_undo_push(C, "Select linked, Sequencer");
 	ED_area_tag_redraw(CTX_wm_area(C));
-	
+
 	return OPERATOR_FINISHED;
 }
 
@@ -654,12 +653,62 @@ void SEQUENCER_OT_select_linked(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Select linked";
 	ot->idname= "SEQUENCER_OT_select_linked";
-	
+
 	/* api callbacks */
 	ot->exec= sequencer_select_linked_exec;
 	ot->poll= ED_operator_sequencer_active;
 
 	/* properties */
+}
+
+
+/* select linked operator */
+static int sequencer_select_handles_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	Editing *ed= seq_give_editing(scene, 0);
+	Sequence *seq;
+	int sel_side= RNA_enum_get(op->ptr, "side");
+
+	if (ed==NULL)
+		return OPERATOR_CANCELLED;
+
+	for(seq= ed->seqbasep->first; seq; seq=seq->next) {
+		if (seq->flag & SELECT) {
+			switch(sel_side) {
+			case SEQ_SIDE_LEFT:
+				seq->flag &= ~SEQ_RIGHTSEL;
+				seq->flag |= SEQ_LEFTSEL;
+				break;
+			case SEQ_SIDE_RIGHT:
+				seq->flag &= ~SEQ_LEFTSEL;
+				seq->flag |= SEQ_RIGHTSEL;
+				break;
+			case SEQ_SIDE_BOTH:
+				seq->flag |= SEQ_LEFTSEL+SEQ_RIGHTSEL;
+				break;
+			}
+		}
+	}
+
+	ED_undo_push(C, "Select Handles, Sequencer");
+	ED_area_tag_redraw(CTX_wm_area(C));
+
+	return OPERATOR_FINISHED;
+}
+
+void SEQUENCER_OT_select_handles(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Select Handles";
+	ot->idname= "SEQUENCER_OT_select_handles";
+
+	/* api callbacks */
+	ot->exec= sequencer_select_handles_exec;
+	ot->poll= ED_operator_sequencer_active;
+
+	/* properties */
+	RNA_def_enum(ot->srna, "side", prop_side_types, SEQ_SIDE_BOTH, "Side", "The side of the handle that is selected");
 }
 
 

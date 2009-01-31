@@ -130,6 +130,12 @@ EnumPropertyItem sequencer_prop_operate_types[] = { /* better name? */
 	{0, NULL, NULL, NULL}
 };
 
+ EnumPropertyItem prop_side_types[] = {
+	{SEQ_SIDE_LEFT, "LEFT", "Left", ""},
+	{SEQ_SIDE_RIGHT, "RIGHT", "Right", ""},
+	{SEQ_SIDE_BOTH, "BOTH", "Both", ""},
+	{0, NULL, NULL, NULL}
+};
 
 typedef struct TransSeq {
 	int start, machine;
@@ -1681,12 +1687,6 @@ void SEQUENCER_OT_refresh_all(struct wmOperatorType *ot)
 }
 
 /* cut operator */
-static EnumPropertyItem prop_cut_side_types[] = {
-	{SEQ_LEFT, "LEFT", "Left", ""},
-	{SEQ_RIGHT, "RIGHT", "Right", ""},
-	{0, NULL, NULL, NULL}
-};
-
 static EnumPropertyItem prop_cut_types[] = {
 	{SEQ_CUT_SOFT, "SOFT", "Soft", ""},
 	{SEQ_CUT_HARD, "HARD", "Hard", ""},
@@ -1722,20 +1722,21 @@ static int sequencer_cut_exec(bContext *C, wmOperator *op)
 	if (newlist.first) { /* got new strips ? */
 		Sequence *seq;
 		addlisttolist(ed->seqbasep, &newlist);
-		
-		SEQP_BEGIN(ed, seq) {
-			if (cut_side==SEQ_LEFT) {
-				if ( seq->startdisp >= cut_frame ) {
-					seq->flag &= SEQ_DESEL;
-				}
-			} else {
-				if ( seq->enddisp <= cut_frame ) {
-					seq->flag &= SEQ_DESEL;
+
+		if (cut_side != SEQ_SIDE_BOTH) {
+			SEQP_BEGIN(ed, seq) {
+				if (cut_side==SEQ_SIDE_LEFT) {
+					if ( seq->startdisp >= cut_frame ) {
+						seq->flag &= SEQ_DESEL;
+					}
+				} else {
+					if ( seq->enddisp <= cut_frame ) {
+						seq->flag &= SEQ_DESEL;
+					}
 				}
 			}
+			SEQ_END;
 		}
-		SEQ_END;
-		
 		/* as last: */
 		sort_seq(scene);
 	}
@@ -1783,7 +1784,7 @@ void SEQUENCER_OT_cut(struct wmOperatorType *ot)
 
 	RNA_def_int(ot->srna, "frame", 0, INT_MIN, INT_MAX, "Frame", "Frame where selected strips will be cut", INT_MIN, INT_MAX);
 	RNA_def_enum(ot->srna, "type", prop_cut_types, SEQ_CUT_SOFT, "Type", "the type of cut operation to perform on strips");
-	RNA_def_enum(ot->srna, "side", prop_cut_side_types, SEQ_LEFT, "Side", "The side that remains selected after cutting");
+	RNA_def_enum(ot->srna, "side", prop_side_types, SEQ_SIDE_BOTH, "Side", "The side that remains selected after cutting");
 }
 
 /* duplicate operator */
@@ -2382,4 +2383,62 @@ void SEQUENCER_OT_view_selected(wmOperatorType *ot)
 	ot->poll= ED_operator_sequencer_active;
 }
 
+
+
+
+/* borderselect operator */
+static int sequencer_view_zoom_exec(bContext *C, wmOperator *op)
+{
+	bScreen *sc= CTX_wm_screen(C);
+	ScrArea *area= CTX_wm_area(C);
+	View2D *v2d= UI_view2d_fromcontext(C);
+	rcti rect;
+	rctf rectf;
+
+	int val;
+	short mval[2];
+
+	val= RNA_int_get(op->ptr, "event_type");
+	rect.xmin= RNA_int_get(op->ptr, "xmin");
+	rect.ymin= RNA_int_get(op->ptr, "ymin");
+	rect.xmax= RNA_int_get(op->ptr, "xmax");
+	rect.ymax= RNA_int_get(op->ptr, "ymax");
+
+	mval[0]= rect.xmin;
+	mval[1]= rect.ymin;
+	UI_view2d_region_to_view(v2d, mval[0], mval[1], &rectf.xmin, &rectf.ymin);
+	mval[0]= rect.xmax;
+	mval[1]= rect.ymax;
+	UI_view2d_region_to_view(v2d, mval[0], mval[1], &rectf.xmax, &rectf.ymax);
+
+	v2d->cur= rectf;
+	UI_view2d_curRect_validate(v2d);
+	UI_view2d_sync(sc, area, v2d, V2D_LOCK_COPY);
+
+	ED_undo_push(C,"Zoom View, Sequencer");
+	return OPERATOR_FINISHED;
+}
+
+
+/* ****** Border Select ****** */
+void SEQUENCER_OT_view_zoom(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "View Zoom";
+	ot->idname= "SEQUENCER_OT_view_zoom";
+
+	/* api callbacks */
+	ot->invoke= WM_border_select_invoke;
+	ot->exec= sequencer_view_zoom_exec;
+	ot->modal= WM_border_select_modal;
+
+	ot->poll= ED_operator_sequencer_active;
+
+	/* rna */
+	RNA_def_int(ot->srna, "event_type", 0, INT_MIN, INT_MAX, "Event Type", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "xmin", 0, INT_MIN, INT_MAX, "X Min", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "xmax", 0, INT_MIN, INT_MAX, "X Max", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "ymin", 0, INT_MIN, INT_MAX, "Y Min", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "ymax", 0, INT_MIN, INT_MAX, "Y Max", "", INT_MIN, INT_MAX);
+}
 

@@ -159,11 +159,11 @@ static uiBlock *seq_selectmenu(bContext *C, ARegion *ar, void *arg_unused)
 	RNA_enum_set(uiButGetOperatorPtrRNA(but), "side", 'r');
 	uiDefMenuSep(block);
 	but= uiDefMenuButO(block, "SEQUENCER_OT_select_handles", "Surrounding Handles");
-	RNA_enum_set(uiButGetOperatorPtrRNA(but), "side", 'b');
+	RNA_enum_set(uiButGetOperatorPtrRNA(but), "side", SEQ_SIDE_BOTH);
 	but= uiDefMenuButO(block, "SEQUENCER_OT_select_handles", "Left Handles");
-	RNA_enum_set(uiButGetOperatorPtrRNA(but), "side", 'l');
+	RNA_enum_set(uiButGetOperatorPtrRNA(but), "side", SEQ_SIDE_LEFT);
 	but= uiDefMenuButO(block, "SEQUENCER_OT_select_handles", "Right Handles");
-	RNA_enum_set(uiButGetOperatorPtrRNA(but), "side", 'r');
+	RNA_enum_set(uiButGetOperatorPtrRNA(but), "side", SEQ_SIDE_RIGHT);
 	uiDefMenuSep(block);
 	uiDefMenuButO(block, "SEQUENCER_OT_borderselect", NULL);
 	uiDefMenuSep(block);
@@ -501,11 +501,8 @@ void sequencer_header_buttons(const bContext *C, ARegion *ar)
 			      0, 0, 0, 0,
 			      "Zooms view in and out (Ctrl MiddleMouse)");
 		xco += XIC;
-		uiDefIconBut(block, BUT, B_IPOBORDER,
-			     ICON_BORDERMOVE,
-			     xco,yco,XIC,YIC, 0,
-			     0, 0, 0, 0,
-			     "Zooms view to fit area");
+		uiDefIconButO(block, BUT, "SEQUENCER_OT_view_zoom", WM_OP_INVOKE_REGION_WIN, ICON_BORDERMOVE, xco,yco,XIC,YIC, "Zooms view to fit area");
+		
 		uiBlockEndAlign(block);
 		xco += 8 + XIC;
 	}

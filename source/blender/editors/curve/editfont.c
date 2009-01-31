@@ -622,7 +622,7 @@ static int do_textedit(bContext *C, wmOperator *op, wmEvent *evt)
 	
 	/* tab should exit editmode, but we allow it to be typed using modifier keys */
 	if(event==TABKEY) {
-		if(alt==ctrl==shift==0)
+		if((alt||ctrl||shift) == 0)
 			return OPERATOR_PASS_THROUGH;
 		else
 			ascii= 9;
