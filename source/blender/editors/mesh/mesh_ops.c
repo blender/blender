@@ -190,7 +190,7 @@ void ED_keymap_mesh(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "MESH_OT_edit_faces", PKEY, KM_PRESS, KM_CTRL, 0);
 	
 
-	WM_keymap_add_item(keymap, "MESH_OT_delete_mesh", DKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "MESH_OT_delete_mesh", XKEY, KM_PRESS, 0, 0);
 	
 	
 	
