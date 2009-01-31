@@ -710,7 +710,7 @@ void what_does_obaction (Scene *scene, Object *ob, Object *workob, bPose *pose, 
 	adt.action= act;
 	
 	/* execute effects of Action on to workob (or it's PoseChannels) */
-	BKE_animsys_evaluate_animdata(workob, &adt, cframe, ADT_RECALC_ANIM);
+	BKE_animsys_evaluate_animdata(&workob->id, &adt, cframe, ADT_RECALC_ANIM);
 }
 
 /* ********** NLA with non-poses works with ipo channels ********** */

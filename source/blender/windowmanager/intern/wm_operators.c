@@ -519,7 +519,7 @@ void WM_paint_cursor_end(wmWindowManager *wm, void *handle)
    It stores 4 values (xmin, xmax, ymin, ymax) and event it ended with (event_type)
 */
 
-static void border_apply(bContext *C, wmOperator *op, int event_type)
+static int border_apply(bContext *C, wmOperator *op, int event_type)
 {
 	wmGesture *gesture= op->customdata;
 	rcti *rect= gesture->customdata;
@@ -529,15 +529,20 @@ static void border_apply(bContext *C, wmOperator *op, int event_type)
 	if(rect->ymin > rect->ymax)
 		SWAP(int, rect->ymin, rect->ymax);
 	
-	/* operator arguments and storage. */
-	RNA_int_set(op->ptr, "xmin", rect->xmin);
-	RNA_int_set(op->ptr, "ymin", rect->ymin);
-	RNA_int_set(op->ptr, "xmax", rect->xmax);
-	RNA_int_set(op->ptr, "ymax", rect->ymax);
-	if( RNA_struct_find_property(op->ptr, "event_type") )
-		RNA_int_set(op->ptr, "event_type", event_type);
-	
-	op->type->exec(C, op);
+	if(rect->xmin==rect->xmax || rect->ymin==rect->ymax)
+		return 0;
+	else {
+		
+		/* operator arguments and storage. */
+		RNA_int_set(op->ptr, "xmin", rect->xmin);
+		RNA_int_set(op->ptr, "ymin", rect->ymin);
+		RNA_int_set(op->ptr, "xmax", rect->xmax);
+		RNA_int_set(op->ptr, "ymax", rect->ymax);
+		if( RNA_struct_find_property(op->ptr, "event_type") )
+			RNA_int_set(op->ptr, "event_type", event_type);
+		
+		op->type->exec(C, op);
+	}
 }
 
 static void wm_gesture_end(bContext *C, wmOperator *op)
@@ -597,9 +602,12 @@ int WM_border_select_modal(bContext *C, wmOperator *op, wmEvent *event)
 				}
 			}
 			else {
-				border_apply(C, op, event->type);
+				if(border_apply(C, op, event->type)) {
+					wm_gesture_end(C, op);
+					return OPERATOR_FINISHED;
+				}
 				wm_gesture_end(C, op);
-				return OPERATOR_FINISHED;
+				return OPERATOR_CANCELLED;
 			}
 			break;
 		case ESCKEY:
