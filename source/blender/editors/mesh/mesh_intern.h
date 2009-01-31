@@ -232,5 +232,7 @@ void MESH_OT_edge_flip(struct wmOperatorType *ot);
 void MESH_OT_mesh_set_smooth_faces(struct wmOperatorType *ot);
 void MESH_OT_mesh_set_solid_faces(struct wmOperatorType *ot);
 
+void MESH_OT_delete_mesh(struct wmOperatorType *ot);
+
 #endif // MESH_INTERN_H
 

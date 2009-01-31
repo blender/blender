@@ -965,16 +965,15 @@ static void erase_vertices(EditMesh *em, ListBase *l)
 	}
 }
 
-void delete_mesh(Object *obedit, EditMesh *em)
+void delete_mesh(Object *obedit, EditMesh *em, int event)
 {
 	EditFace *efa, *nextvl;
 	EditVert *eve,*nextve;
 	EditEdge *eed,*nexted;
-	short event;
 	int count;
 	char *str="Erase";
 
-	event= pupmenu("Erase %t|Vertices%x10|Edges%x1|Faces%x2|All%x3|Edges & Faces%x4|Only Faces%x5|Edge Loop%x6");
+	
 	if(event<1) return;
 
 	if(event==10 ) {
@@ -1106,6 +1105,60 @@ void delete_mesh(Object *obedit, EditMesh *em)
 	BIF_undo_push(str);
 }
 
+static int delete_mesh_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
+	
+	delete_mesh(obedit,em,RNA_int_get(op->ptr, "event"));
+	
+	ED_undo_push(C, "Delete Mesh");	// Note this will become depricated 
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	
+	return OPERATOR_FINISHED;
+}
+
+static int delete_mesh_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	int items;
+	char *menu, *p;
+	
+	items = 6;
+	
+	menu= MEM_callocN(items * OP_MAX_TYPENAME, "string");
+	
+	p= menu + sprintf(menu, "%s %%t", "Erase");
+	p+= sprintf(p, "|%s %%x%d", "Vertices", 10);
+	p+= sprintf(p, "|%s %%x%d", "Edges", 1);
+	p+= sprintf(p, "|%s %%x%d", "Faces", 2);
+	p+= sprintf(p, "|%s %%x%d", "All", 3);
+	p+= sprintf(p, "|%s %%x%d", "Edges & Faces", 4);
+	p+= sprintf(p, "|%s %%x%d", "Only Faces", 5);
+	p+= sprintf(p, "|%s %%x%d", "Edge Loop", 6);
+	
+	
+	uiPupMenuOperator(C, 20, op, "event", menu);
+	MEM_freeN(menu);
+	
+	return OPERATOR_RUNNING_MODAL;
+}
+
+
+void MESH_OT_delete_mesh(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "delete mesh";
+	ot->idname= "MESH_OT_delete_mesh";
+	
+	/* api callbacks */
+	ot->invoke= delete_mesh_invoke;
+	ot->exec= delete_mesh_exec;
+	
+	ot->poll= ED_operator_editmesh;
+	
+	/*props */
+	RNA_def_int(ot->srna, "event", 0, 0, INT_MAX, "event", "", 0, 1000);
+}
 
 /* Got this from scanfill.c. You will need to juggle around the
  * callbacks for the scanfill.c code a bit for this to work. */
