@@ -797,7 +797,6 @@ void wm_event_do_handlers(bContext *C)
 			
 			/* fileread case */
 			if(CTX_wm_window(C)==NULL) {
-				wm_event_free(event);
 				return;
 			}
 			
