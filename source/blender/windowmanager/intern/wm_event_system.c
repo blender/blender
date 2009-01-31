@@ -47,9 +47,10 @@
 #include "BKE_report.h"
 #include "BKE_utildefines.h"
 
+#include "ED_anim_api.h"
 #include "ED_screen.h"
 #include "ED_space_api.h"
-#include "ED_anim_api.h"
+#include "ED_util.h"
 
 #include "RNA_access.h"
 
@@ -214,8 +215,14 @@ int WM_operator_call(bContext *C, wmOperator *op)
 		if(op->reports->list.first)
 			uiPupMenuReports(C, op->reports);
 	
-	if((retval & OPERATOR_FINISHED) && (op->type->flag & OPTYPE_REGISTER)) {
-		wm_operator_register(CTX_wm_manager(C), op);
+	if(retval & OPERATOR_FINISHED) {
+		if(op->type->flag & OPTYPE_UNDO)
+			ED_undo_push_op(C, op);
+		
+		if(op->type->flag & OPTYPE_REGISTER)
+			wm_operator_register(CTX_wm_manager(C), op);
+		else
+			WM_operator_free(op);
 	}
 	else
 		WM_operator_free(op);
@@ -282,8 +289,14 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, P
 				WM_operator_print(op);
 		}
 
-		if((retval & OPERATOR_FINISHED) && (ot->flag & OPTYPE_REGISTER)) {
-			wm_operator_register(wm, op);
+		if(retval & OPERATOR_FINISHED) {
+			if(ot->flag & OPTYPE_UNDO)
+				ED_undo_push_op(C, op);
+			
+			if(ot->flag & OPTYPE_REGISTER)
+				wm_operator_register(wm, op);
+			else
+				WM_operator_free(op);
 		}
 		else if(!(retval & OPERATOR_RUNNING_MODAL)) {
 			WM_operator_free(op);
@@ -510,8 +523,17 @@ static int wm_eventmatch(wmEvent *winevent, wmKeymapItem *kmi)
 		if(winevent->keymodifier!=kmi->keymodifier) return 0;
 	
 	/* happens on tweak failure */
-	if(kmi->is_tweak)
-		if(winevent->no_tweak) return 0;
+	/* weak code, testing only now! (ton) */
+	if(kmi->is_tweak) {
+		/* only after tweak keymap we allow the hack */
+		if(winevent->no_tweak) {
+			winevent->no_tweak= 2;
+			return 0;
+		}
+	}
+	
+	if(winevent->no_tweak==1)
+		return 0;
 	
 	return 1;
 }
@@ -562,8 +584,14 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 					WM_operator_print(op); /* todo - this print may double up, might want to check more flags then the FINISHED */
 			}			
 
-			if((retval & OPERATOR_FINISHED) && (ot->flag & OPTYPE_REGISTER)) {
-				wm_operator_register(CTX_wm_manager(C), op);
+			if(retval & OPERATOR_FINISHED) {
+				if(ot->flag & OPTYPE_UNDO)
+					ED_undo_push_op(C, op);
+				
+				if(ot->flag & OPTYPE_REGISTER)
+					wm_operator_register(CTX_wm_manager(C), op);
+				else
+					WM_operator_free(op);
 				handler->op= NULL;
 			}
 			else if(retval & (OPERATOR_CANCELLED|OPERATOR_FINISHED)) {

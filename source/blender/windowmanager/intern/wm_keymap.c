@@ -64,6 +64,7 @@ static void keymap_event_set(wmKeymapItem *kmi, short type, short val, int modif
 	}
 	else {
 		
+		/* defines? */
 		if(modifier & KM_SHIFT)
 			kmi->shift= 1;
 		else if(modifier & KM_SHIFT2)

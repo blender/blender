@@ -1034,6 +1034,8 @@ void SCREEN_OT_screen_full_area(wmOperatorType *ot)
 	
 	ot->exec= screen_full_area_exec;
 	ot->poll= ED_operator_screenactive;
+	ot->flag= OPTYPE_REGISTER;
+
 }
 
 
@@ -1321,12 +1323,15 @@ static int repeat_last_exec(bContext *C, wmOperator *op)
 	
 	if(lastop) {
 		if(lastop->type->poll==NULL || lastop->type->poll(C)) {
-			printf("repeat %s\n", lastop->type->idname);
-			lastop->type->exec(C, lastop);
+			if(lastop->type->exec) {
+				printf("repeat %s\n", lastop->type->idname);
+				lastop->type->exec(C, lastop);
+				return OPERATOR_FINISHED;
+			}
 		}
 	}
 	
-	return OPERATOR_FINISHED;
+	return OPERATOR_CANCELLED;
 }
 
 void SCREEN_OT_repeat_last(wmOperatorType *ot)
@@ -1528,6 +1533,7 @@ void SCREEN_OT_region_foursplit(wmOperatorType *ot)
 	ot->invoke= WM_operator_confirm;
 	ot->exec= region_foursplit_exec;
 	ot->poll= ED_operator_areaactive;
+	ot->flag= OPTYPE_REGISTER;
 }
 
 
@@ -1597,6 +1603,7 @@ void SCREEN_OT_region_flip(wmOperatorType *ot)
 	ot->exec= region_flip_exec;
 	
 	ot->poll= ED_operator_areaactive;
+	ot->flag= OPTYPE_REGISTER;
 	
 	RNA_def_int(ot->srna, "test", 0, INT_MIN, INT_MAX, "test", "", INT_MIN, INT_MAX);
 

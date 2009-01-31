@@ -90,7 +90,7 @@ editmesh_mods.c, UI level access, no geometry changes
 
 #include "BLO_sys_types.h" // for intptr_t support
 
-static void BIF_undo_push() {}
+/* XXX */
 static void waitcursor() {}
 static void error() {}
 static int pupmenu() {return 0;}
@@ -826,6 +826,9 @@ void MESH_OT_similar_face_select(wmOperatorType *ot)
 	ot->exec= similar_face_select_exec;
 	ot->poll= ED_operator_editmesh;
 	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
 	/* properties */
 	RNA_def_enum(ot->srna, "type", prop_simface_types, 0, "Type", "");
 }
@@ -1082,6 +1085,9 @@ void MESH_OT_similar_edge_select(wmOperatorType *ot)
 	ot->exec= similar_edge_select_exec;
 	ot->poll= ED_operator_editmesh;
 	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
 	/* properties */
 	RNA_def_enum(ot->srna, "type", prop_simedge_types, 0, "Type", "");
 }
@@ -1236,6 +1242,9 @@ void MESH_OT_similar_vertex_select(wmOperatorType *ot)
 	ot->exec= similar_vert_select_exec;
 	ot->poll= ED_operator_editmesh;
 	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
 	/* properties */
 	RNA_def_enum(ot->srna, "type", prop_simvertex_types, 0, "Type", "");
 }
@@ -1367,7 +1376,6 @@ void EM_mesh_copy_edge(EditMesh *em, short type)
 	if (change) {
 //		DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 		
-		BIF_undo_push("Copy Edge Attribute");
 	}
 }
 
@@ -1496,7 +1504,6 @@ void EM_mesh_copy_face(EditMesh *em, short type)
 	if (change) {
 //		DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 		
-		BIF_undo_push("Copy Face Attribute");
 	}
 }
 
@@ -1627,7 +1634,6 @@ void EM_mesh_copy_face_layer(EditMesh *em, short type)
 	if (change) {
 //		DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 		
-		BIF_undo_push("Copy Face Layer");
 	}
 }
 
@@ -1932,7 +1938,6 @@ void loop_multiselect(EditMesh *em, int looptype)
 			edgering_select(em, eed,SELECT);
 		}
 		EM_selectmode_flush(em);
-		BIF_undo_push("Edge Ring Multi-Select");
 	}
 	else{
 		for(edindex = 0; edindex < edfirstcount; edindex +=1){
@@ -1940,7 +1945,6 @@ void loop_multiselect(EditMesh *em, int looptype)
 			edgeloop_select(em, eed,SELECT);
 		}
 		EM_selectmode_flush(em);
-		BIF_undo_push("Edge Loop Multi-Select");
 	}
 	MEM_freeN(edarray);
 //	if (EM_texFaceCheck())
@@ -2020,6 +2024,9 @@ void MESH_OT_loop_select(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= mesh_loop_select_invoke;
 	ot->poll= ED_operator_editmesh;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
 	RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", "");
@@ -2121,6 +2128,9 @@ void MESH_OT_shortest_path_select(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= mesh_shortest_path_select_invoke;
 	ot->poll= ED_operator_editmesh;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
 	RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", "");
@@ -2239,7 +2249,6 @@ void selectconnected_mesh_all(EditMesh *em)
 	EM_select_flush(em);
 	
 //	if (EM_texFaceCheck())
-	BIF_undo_push("Select Connected (All)");
 }
 
 static int selectconnected_mesh_all_exec(bContext *C, wmOperator *op)
@@ -2262,7 +2271,10 @@ void MESH_OT_selectconnected_mesh_all(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= selectconnected_mesh_all_exec;
 	ot->poll= ED_operator_editmesh;
-
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
 }
 
 /* *********** select connected ************* */
@@ -2342,8 +2354,6 @@ static int selectconnected_mesh_invoke(bContext *C, wmOperator *op, wmEvent *eve
 	
 //	if (EM_texFaceCheck())
 	
-	BIF_undo_push("Select Linked");
-	
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 	return OPERATOR_FINISHED;	
 }
@@ -2357,7 +2367,10 @@ void MESH_OT_selectconnected_mesh(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= selectconnected_mesh_invoke;
 	ot->poll= ED_operator_editmesh;
-
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
 	RNA_def_boolean(ot->srna, "deselect", 0, "Deselect", "");
 }
 
@@ -2450,8 +2463,6 @@ static void selectconnected_delimit_mesh__internal(ViewContext *vc, short all, s
 				EM_select_face(efa, 1);
 	
 //	if (EM_texFaceCheck())
-	
-	BIF_undo_push("Select Linked Delimeted");
 	
 }
 
@@ -2571,7 +2582,6 @@ void hide_mesh(EditMesh *em, int swap)
 //	if(EM_texFaceCheck())
 
 	//	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);	
-	BIF_undo_push("Hide");
 }
 
 static int hide_mesh_exec(bContext *C, wmOperator *op)
@@ -2600,7 +2610,7 @@ void MESH_OT_hide_mesh(wmOperatorType *ot)
 	ot->poll= ED_operator_editmesh;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
 	RNA_def_boolean(ot->srna, "swap", 0, "Swap", "");
@@ -2640,7 +2650,6 @@ void reveal_mesh(EditMesh *em)
 
 //	if (EM_texFaceCheck())
 //	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);	
-	BIF_undo_push("Reveal");
 }
 
 static int reveal_mesh_exec(bContext *C, wmOperator *op)
@@ -2663,6 +2672,9 @@ void MESH_OT_reveal_mesh(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= reveal_mesh_exec;
 	ot->poll= ED_operator_editmesh;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 void hide_tface_uv(EditMesh *em, int swap)
@@ -2777,8 +2789,6 @@ void hide_tface_uv(EditMesh *em, int swap)
 	
 	EM_validate_selections();
 	
-	BIF_undo_push("Hide UV");
-
 // XXX	object_tface_flags_changed(OBACT, 0);
 #endif
 }
@@ -2885,8 +2895,6 @@ void reveal_tface_uv(EditMesh *em)
 		}
 	}
 	
-	BIF_undo_push("Reveal UV");
-	
 // XXX	object_tface_flags_changed(OBACT, 0);
 #endif
 }
@@ -2918,12 +2926,6 @@ void select_faces_by_numverts(EditMesh *em, int numverts)
 
 //	if (EM_texFaceCheck())
 	
-	if (numverts==3)
-		BIF_undo_push("Select Triangles");
-	else if (numverts==4)
-		BIF_undo_push("Select Quads");
-	else
-		BIF_undo_push("Select non-Triangles/Quads");
 }
 
 static int select_sharp_edges_exec(bContext *C, wmOperator *op)
@@ -3022,7 +3024,6 @@ static int select_sharp_edges_exec(bContext *C, wmOperator *op)
 
 //	if (EM_texFaceCheck())
 	
-	BIF_undo_push("Select Sharp Edges");
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit); //TODO is this needed ?
 	return OPERATOR_FINISHED;	
 }
@@ -3038,7 +3039,7 @@ void MESH_OT_select_sharp_edges(wmOperatorType *ot)
 	ot->poll= ED_operator_editmesh;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
 	RNA_def_float(ot->srna, "sharpness", 0.01f, 0.0f, FLT_MAX, "sharpness", "", 0.0f, 180.0f);
@@ -3179,7 +3180,6 @@ static void select_linked_flat_faces(EditMesh *em, float sharpness)
 
 //	if (EM_texFaceCheck())
 
-	BIF_undo_push("Select Linked Flat Faces");
 }
 
 static int select_linked_flat_faces_exec(bContext *C, wmOperator *op)
@@ -3204,7 +3204,7 @@ void MESH_OT_select_linked_flat_faces(wmOperatorType *ot)
 	ot->poll= ED_operator_editmesh;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
 	RNA_def_float(ot->srna, "sharpness", 0.0f, 0.0f, FLT_MAX, "sharpness", "", 0.0f, 180.0f);
@@ -3278,7 +3278,6 @@ void select_non_manifold(EditMesh *em)
 
 //	if (EM_texFaceCheck())
 
-	BIF_undo_push("Select Non Manifold");
 }
 
 static int select_non_manifold_exec(bContext *C, wmOperator *op)
@@ -3301,6 +3300,9 @@ void MESH_OT_select_non_manifold(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= select_non_manifold_exec;
 	ot->poll= ED_operator_editmesh;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 void selectswap_mesh(EditMesh *em) /* UI level */
@@ -3337,8 +3339,6 @@ void selectswap_mesh(EditMesh *em) /* UI level */
 	
 //	if (EM_texFaceCheck())
 
-	BIF_undo_push("Select Swap");
-	
 }
 
 static int selectswap_mesh_exec(bContext *C, wmOperator *op)
@@ -3361,6 +3361,9 @@ void MESH_OT_selectswap_mesh(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= selectswap_mesh_exec;
 	ot->poll= ED_operator_editmesh;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 	
 /* ******************** (de)select all operator **************** */
@@ -3372,11 +3375,9 @@ static int toggle_select_all_exec(bContext *C, wmOperator *op)
 	
 	if( EM_nvertices_selected(em) ) {
 		EM_clear_flag_all(em, SELECT);
-		BIF_undo_push("Deselect All");
 	}
 	else  {
 		EM_set_flag_all(em, SELECT);
-		BIF_undo_push("Select All");
 	}
 		
 //		if (EM_texFaceCheck())
@@ -3394,6 +3395,9 @@ void MESH_OT_de_select_all(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= toggle_select_all_exec;
 	ot->poll= ED_operator_editmesh;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* ******************** **************** */
@@ -3446,8 +3450,6 @@ static int select_more(bContext *C, wmOperator *op)
 
 //	if (EM_texFaceCheck(em))
 
-	BIF_undo_push("Select More");
-
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 	return OPERATOR_FINISHED;
 }
@@ -3461,6 +3463,9 @@ void MESH_OT_select_more(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= select_more;
 	ot->poll= ED_operator_editmesh;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 void EM_select_less(EditMesh *em)
@@ -3531,8 +3536,6 @@ static int select_less(bContext *C, wmOperator *op)
 
 	EM_select_less(em);
 
-	BIF_undo_push("Select Less");
-
 //	if (EM_texFaceCheck(em))
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 	return OPERATOR_FINISHED;
@@ -3547,6 +3550,9 @@ void MESH_OT_select_less(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= select_less;
 	ot->poll= ED_operator_editmesh;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 void selectrandom_mesh(EditMesh *em) /* randomly selects a user-set % of vertices/edges/faces */
@@ -3569,7 +3575,6 @@ void selectrandom_mesh(EditMesh *em) /* randomly selects a user-set % of vertice
 			}
 		}
 		EM_selectmode_flush(em);
-		BIF_undo_push("Select Random: Vertices");
 	}
 	else if(em->selectmode & SCE_SELECT_EDGE) {
 		for(eed= em->edges.first; eed; eed= eed->next) {
@@ -3579,7 +3584,6 @@ void selectrandom_mesh(EditMesh *em) /* randomly selects a user-set % of vertice
 			}
 		}
 		EM_selectmode_flush(em);
-		BIF_undo_push("Select Random:Edges");
 	}
 	else {
 		for(efa= em->faces.first; efa; efa= efa->next) {
@@ -3590,7 +3594,6 @@ void selectrandom_mesh(EditMesh *em) /* randomly selects a user-set % of vertice
 		}
 		
 		EM_selectmode_flush(em);
-		BIF_undo_push("Select Random:Faces");
 	}
 //	if (EM_texFaceCheck())
 }
@@ -3636,20 +3639,17 @@ void EM_selectmode_menu(EditMesh *em)
 		if(val==1){ 
 			em->selectmode= SCE_SELECT_VERTEX;
 			EM_selectmode_set(em);
-			BIF_undo_push("Selectmode Set: Vertex");
 			}
 		else if(val==2){
 			if(ctrl) EM_convertsel(em, em->selectmode, SCE_SELECT_EDGE);
 			em->selectmode= SCE_SELECT_EDGE;
 			EM_selectmode_set(em);
-			BIF_undo_push("Selectmode Set: Edge");
 		}
 		
 		else{
 			if((ctrl)) EM_convertsel(em, em->selectmode, SCE_SELECT_FACE);
 			em->selectmode= SCE_SELECT_FACE;
 			EM_selectmode_set(em);
-			BIF_undo_push("Selectmode Set: Vertex");
 		}
 		
 //		if (EM_texFaceCheck())
@@ -3676,7 +3676,6 @@ void editmesh_mark_seam(EditMesh *em, int clear)
 			}
 			eed= eed->next;
 		}
-		BIF_undo_push("Mark Seam");
 	}
 	else {
 		eed= em->edges.first;
@@ -3686,7 +3685,6 @@ void editmesh_mark_seam(EditMesh *em, int clear)
 			}
 			eed= eed->next;
 		}
-		BIF_undo_push("Clear Seam");
 	}
 
 }
@@ -3740,7 +3738,6 @@ void Vertex_Menu(EditMesh *em)
 	{
 		case 1:
 // XXX			notice("Removed %d Vertices", removedoublesflag(1, 0, scene->toolsettings->doublimit));
-			BIF_undo_push("Remove Doubles");
 			break;
 		case 2:	
 // XXX			mergemenu(em);
@@ -3750,7 +3747,6 @@ void Vertex_Menu(EditMesh *em)
 			break;
 		case 4:
 // XXX			pathselect(em);
-			BIF_undo_push("Select Vertex Path");
 			break;
 		case 5: 
 // XXX			shape_copy_select_from(em);
@@ -3786,11 +3782,9 @@ void Edge_Menu(EditMesh *em)
 		break;
 	case 5:
 //		EdgeSlide(em, 0,0.0);
-  //  		BIF_undo_push("EdgeSlide");
 		break;
 	case 6:
 //        	CutEdgeloop(em, 1);
-		BIF_undo_push("Loopcut New");
 		break;
 	case 7:
 //		loop_multiselect(em, 0);
@@ -3806,12 +3800,10 @@ void Edge_Menu(EditMesh *em)
 		break;
 	case 11:
 //		editmesh_mark_sharp(em, 1);
-		BIF_undo_push("Mark Sharp");
 //		DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 		break;
 	case 12: 
 //		editmesh_mark_sharp(em, 0);
-		BIF_undo_push("Clear Sharp");
 //		DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 		break;
 	}
@@ -3834,7 +3826,6 @@ void Face_Menu(EditMesh *em)
 		case 1:
 //			flip_editnormals(em);
 //			DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-			BIF_undo_push("Flip Normals");
 			break;
 		case 2:
 //			bevel_menu(em);
@@ -4121,7 +4112,7 @@ void MESH_OT_consistant_normals(wmOperatorType *ot)
 	ot->poll= ED_operator_editmesh;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	RNA_def_boolean(ot->srna, "inside", 0, "Inside", "");
 }
@@ -4431,7 +4422,6 @@ void vertexsmooth(Object *obedit, EditMesh *em)
 
 //	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 
-	BIF_undo_push("Vertex Smooth");
 }
 
 void vertexnoise(Object *obedit, EditMesh *em)
@@ -4477,7 +4467,6 @@ void vertexnoise(Object *obedit, EditMesh *em)
 	recalc_editnormals(em);
 //	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 
-	BIF_undo_push("Vertex Noise");
 }
 
 void vertices_to_sphere(Scene *scene, View3D *v3d, Object *obedit, EditMesh *em)
@@ -4536,6 +4525,5 @@ void vertices_to_sphere(Scene *scene, View3D *v3d, Object *obedit, EditMesh *em)
 	recalc_editnormals(em);
 //	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 
-	BIF_undo_push("To Sphere");
 }
 

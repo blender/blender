@@ -105,7 +105,6 @@
 /* ***************** XXX **************** */
 static int sample_backbuf_rect() {return 0;}
 static int sample_backbuf() {return 0;}
-static void BIF_undo_push() {}
 static void error() {}
 static int pupmenu() {return 0;}
 /* ***************** XXX **************** */
@@ -592,8 +591,6 @@ static void calculate_uv_map(Scene *scene, ARegion *ar, View3D *v3d, EditMesh *e
 		correct_uv_aspect(em);
 	}
 	
-	BIF_undo_push("UV calculation");
-
 // XXX notifier	object_uvs_changed(OBACT);
 
 }
@@ -653,8 +650,6 @@ void reveal_tface(Scene *scene)
 		mface++;
 	}
 
-	BIF_undo_push("Reveal face");
-
 // XXX notifier!	object_tface_flags_changed(OBACT, 0);
 }
 
@@ -689,8 +684,6 @@ void hide_tface(Scene *scene)
 		
 		mface++;
 	}
-
-	BIF_undo_push("Hide face");
 
 // XXX notifier!		object_tface_flags_changed(OBACT, 0);
 }
@@ -746,8 +739,6 @@ void deselectall_tface(Scene *scene)
 		mface++;
 	}
 
-	BIF_undo_push("(De)select all faces");
-
 // XXX notifier!		object_tface_flags_changed(OBACT, 0);
 }
 
@@ -770,8 +761,6 @@ void selectswap_tface(Scene *scene)
 		}
 		mface++;
 	}
-
-	BIF_undo_push("Select inverse face");
 
 // XXX notifier!		object_tface_flags_changed(OBACT, 0);
 }
@@ -1105,7 +1094,6 @@ void seam_mark_clear_tface(Scene *scene, short mode)
 //		unwrap_lscm(1);
 
 	me->drawflag |= ME_DRAWSEAMS;
-	BIF_undo_push("Mark Seam");
 
 // XXX notifier!		object_tface_flags_changed(OBACT, 1);
 }
@@ -1154,7 +1142,6 @@ void face_select(Scene *scene, View3D *v3d)
 	
 	/* image window redraw */
 	
-	BIF_undo_push("Select UV face");
 
 // XXX notifier!		object_tface_flags_changed(OBACT, 1);
 }
@@ -1216,7 +1203,6 @@ void face_borderselect(Scene *scene, ARegion *ar)
 		IMB_freeImBuf(ibuf);
 		MEM_freeN(selar);
 
-		BIF_undo_push("Border Select UV face");
 
 // XXX notifier!			object_tface_flags_changed(OBACT, 0);
 	}

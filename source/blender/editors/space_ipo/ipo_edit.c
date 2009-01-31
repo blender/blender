@@ -189,7 +189,7 @@ void GRAPHEDIT_OT_set_previewrange (wmOperatorType *ot)
 	ot->poll= ED_operator_areaactive;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* ****************** View-All Operator ****************** */
@@ -236,7 +236,7 @@ void GRAPHEDIT_OT_view_all (wmOperatorType *ot)
 	ot->poll= ED_operator_areaactive;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* ************************************************************************** */
@@ -518,7 +518,7 @@ void GRAPHEDIT_OT_keyframes_copy (wmOperatorType *ot)
 	ot->poll= ED_operator_areaactive;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 
@@ -557,7 +557,7 @@ void GRAPHEDIT_OT_keyframes_paste (wmOperatorType *ot)
 	ot->poll= ED_operator_areaactive;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 #endif // XXX code to be sanitied for new system
@@ -617,7 +617,7 @@ void GRAPHEDIT_OT_keyframes_delete (wmOperatorType *ot)
 	ot->poll= ED_operator_areaactive;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* ******************** Clean Keyframes Operator ************************* */
@@ -678,7 +678,7 @@ void GRAPHEDIT_OT_keyframes_clean (wmOperatorType *ot)
 	ot->poll= ED_operator_areaactive;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
 	RNA_def_float(ot->srna, "threshold", 0.001f, 0.0f, FLT_MAX, "Threshold", "", 0.0f, 1000.0f);
@@ -801,7 +801,7 @@ void GRAPHEDIT_OT_keyframes_sample (wmOperatorType *ot)
 	ot->poll= ED_operator_areaactive;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 
@@ -876,7 +876,7 @@ void GRAPHEDIT_OT_keyframes_extrapolation_type (wmOperatorType *ot)
 	ot->poll= ED_operator_areaactive;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* id-props */
 	RNA_def_enum(ot->srna, "type", prop_graphkeys_expo_types, 0, "Type", "");
@@ -952,7 +952,7 @@ void GRAPHEDIT_OT_keyframes_interpolation_type (wmOperatorType *ot)
 	ot->poll= ED_operator_areaactive;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* id-props */
 	RNA_def_enum(ot->srna, "type", prop_graphkeys_ipo_types, 0, "Type", "");
@@ -1049,7 +1049,7 @@ void GRAPHEDIT_OT_keyframes_handletype (wmOperatorType *ot)
 	ot->poll= ED_operator_areaactive;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* id-props */
 	RNA_def_enum(ot->srna, "type", prop_graphkeys_handletype_types, 0, "Type", "");
@@ -1124,7 +1124,7 @@ void GRAPHEDIT_OT_keyframes_cfrasnap (wmOperatorType *ot)
 	ot->poll= ED_operator_areaactive;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* ******************** Snap Keyframes Operator *********************** */
@@ -1212,7 +1212,7 @@ void GRAPHEDIT_OT_keyframes_snap (wmOperatorType *ot)
 	ot->poll= ED_operator_areaactive;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* id-props */
 	RNA_def_enum(ot->srna, "type", prop_graphkeys_snap_types, 0, "Type", "");
@@ -1322,7 +1322,7 @@ void GRAPHEDIT_OT_keyframes_mirror (wmOperatorType *ot)
 	ot->poll= ED_operator_areaactive;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* id-props */
 	RNA_def_enum(ot->srna, "type", prop_graphkeys_mirror_types, 0, "Type", "");
@@ -1375,7 +1375,7 @@ void GRAPHEDIT_OT_keyframes_smooth (wmOperatorType *ot)
 	ot->poll= ED_operator_areaactive;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* ************************************************************************** */

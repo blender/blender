@@ -41,6 +41,7 @@ struct wmWindowManager;
 
 /* flag */
 #define OPTYPE_REGISTER		1
+#define OPTYPE_UNDO			2
 
 /* context to call operator in for WM_operator_name_call */
 enum {

@@ -415,6 +415,9 @@ void VIEW3D_OT_setcameratoview(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= view3d_setcameratoview_exec;	
 	ot->poll= ED_operator_view3d_active;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* ********************************** */

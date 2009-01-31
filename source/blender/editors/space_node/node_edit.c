@@ -85,8 +85,6 @@
  
 #include "node_intern.h"
 
-// XXX XXX XXX
-static void BIF_undo_push(char *s) {}
 
 /* ***************** composite job manager ********************** */
 
@@ -768,7 +766,6 @@ void node_ungroup(SpaceNode *snode)
 	else {
 		if(nodeGroupUnGroup(snode->edittree, gnode)) {
 			
-			BIF_undo_push("Deselect all nodes");
 			// allqueue(REDRAWNODE, 0);
 		}
 		else
@@ -844,7 +841,6 @@ static void node_addgroup(SpaceNode *snode)
 				id_us_plus(node->id);
 				
 				node_set_active(snode, node);
-				BIF_undo_push("Add Node");
 			}
 		}			
 	}
@@ -1202,8 +1198,6 @@ static void transform_nodes(bNodeTree *ntree, char mode, char *undostr)
 		}
 		
 	}
-	else
-		BIF_undo_push(undostr);
 	
 	// allqueue(REDRAWNODE, 1);
 	MEM_freeN(oldlocs);
@@ -1290,8 +1284,6 @@ void scale_node(SpaceNode *snode, bNode *node)
 	if(cancel) {
 		node->width= oldwidth;
 	}
-	else
-		BIF_undo_push("Scale Node");
 	
 	// allqueue(REDRAWNODE, 1);
 	
@@ -1319,7 +1311,6 @@ void node_rename(SpaceNode *snode)
 	if(found_node) {
 		rename_node= nodeGetActive(snode->edittree);
 		node_rename_but((char *)rename_node->username);
-		BIF_undo_push("Rename Node");
 	
 		// allqueue(REDRAWNODE, 1);
 	}
@@ -1441,7 +1432,6 @@ static void node_hide_unhide_sockets(SpaceNode *snode, bNode *node)
 
 	// allqueue(REDRAWNODE, 1);
 	snode_verify_groups(snode);
-	BIF_undo_push("Hide/Unhide sockets");
 
 }
 
@@ -1708,7 +1698,6 @@ void node_border_select(SpaceNode *snode)
 			}
 		}
 		// allqueue(REDRAWNODE, 1);
-		BIF_undo_push("Border select nodes");
 	}		
 }
 
@@ -1846,8 +1835,6 @@ void node_mute(SpaceNode *snode)
 		}
 	}
 	
-	// allqueue(REDRAWNODE, 0);
-	BIF_undo_push("Enable/Disable nodes");
 
 }
 
@@ -2007,9 +1994,6 @@ static int node_add_link_drag(SpaceNode *snode, bNode *node, bNodeSocket *sock, 
 	snode_verify_groups(snode);
 	snode_handle_recalc(snode);
 	
-	// allqueue(REDRAWNODE, 0);
-	BIF_undo_push("Add link");
-
 	return 1;
 }
 
@@ -2091,7 +2075,6 @@ void node_delete(SpaceNode *snode)
 	snode_verify_groups(snode);
 	// NODE_FIX_ME
 	// snode_handle_recalc(snode);
-	// BIF_undo_push("Delete nodes");
 	// allqueue(REDRAWNODE, 1);
 }
 
@@ -2117,8 +2100,6 @@ void node_hide(SpaceNode *snode)
 				node->flag &= ~NODE_HIDDEN;
 		}
 	}
-	// BIF_undo_push("Hide nodes");
-	// allqueue(REDRAWNODE, 1);
 }
 
 #if 0
@@ -2142,8 +2123,6 @@ void node_insert_key(SpaceNode *snode)
 			if(fbutton(&fval, 0.0f, 1.0f, 10, 10, "Insert Value")) {
 				curvemap_insert(cumap->cm, curval, fval);
 
-				BIF_undo_push("Insert key in Time node");
-				// allqueue(REDRAWNODE, 1);
 			}
 		}
 	}
@@ -2173,8 +2152,6 @@ void node_select_linked(SpaceNode *snode, int out)
 		if(node->flag & NODE_TEST)
 			node->flag |= NODE_SELECT;
 	
-	BIF_undo_push("Select Linked nodes");
-	// allqueue(REDRAWNODE, 1);
 }
 
 /* makes a link between selected output and input sockets */
@@ -2200,8 +2177,6 @@ void node_make_link(SpaceNode *snode)
 	snode_verify_groups(snode);
 	snode_handle_recalc(snode);
 
-	// allqueue(REDRAWNODE, 0);
-	BIF_undo_push("Make Link Between Sockets");
 }
 
 static void node_border_link_delete(SpaceNode *snode)
@@ -2272,8 +2247,6 @@ static void node_border_link_delete(SpaceNode *snode)
 				snode_verify_groups(snode);
 				snode_handle_recalc(snode);
 			}
-			// allqueue(REDRAWNODE, 0);
-			BIF_undo_push("Erase links");
 		}
 	}
 	
@@ -2421,8 +2394,6 @@ void node_make_group(SpaceNode *snode)
 	else {
 		nodeSetActive(snode->nodetree, gnode);
 		ntreeSolveOrder(snode->nodetree);
-		// allqueue(REDRAWNODE, 0);
-		BIF_undo_push("Make Node Group");
 	}
 }
 
@@ -2634,7 +2605,6 @@ void winqreadnodespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			}
 			else if(G.qual==0) {
 				node_deselectall(snode, 1);
-				BIF_undo_push("Deselect all nodes");
 			}
 			break;
 		case BKEY:
@@ -2746,5 +2716,8 @@ void NODE_OT_delete_selection(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= node_delete_selection_exec;
 	ot->poll= ED_operator_node_active;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 

@@ -95,7 +95,6 @@ static int objects_add_active_exec(bContext *C, wmOperator *op)
 	if (!ok) BKE_report(op->reports, RPT_ERROR, "Active Object contains no groups");
 	
 	DAG_scene_sort(CTX_data_scene(C));
-	ED_undo_push(C,"Add To Active Group");
 
 	WM_event_add_notifier(C, NC_GROUP|NA_EDITED, NULL);
 	
@@ -113,6 +112,9 @@ void GROUP_OT_objects_add_active(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= objects_add_active_exec;	
 	ot->poll= ED_operator_scene_editable;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 static int objects_remove_active_exec(bContext *C, wmOperator *op)
@@ -147,7 +149,6 @@ static int objects_remove_active_exec(bContext *C, wmOperator *op)
 	if (!ok) BKE_report(op->reports, RPT_ERROR, "Active Object contains no groups");
 	
 	DAG_scene_sort(CTX_data_scene(C));
-	ED_undo_push(C,"Remove From Active Group");
 
 	WM_event_add_notifier(C, NC_GROUP|NA_EDITED, NULL);
 	
@@ -165,6 +166,9 @@ void GROUP_OT_objects_remove_active(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= objects_remove_active_exec;	
 	ot->poll= ED_operator_scene_editable;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 static int group_remove_exec(bContext *C, wmOperator *op)
@@ -183,7 +187,6 @@ static int group_remove_exec(bContext *C, wmOperator *op)
 	CTX_DATA_END;
 
 	DAG_scene_sort(CTX_data_scene(C));
-	ED_undo_push(C,"Remove From Group");
 
 	WM_event_add_notifier(C, NC_GROUP|NA_EDITED, NULL);
 	
@@ -201,6 +204,9 @@ void GROUP_OT_group_remove(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= group_remove_exec;	
 	ot->poll= ED_operator_scene_editable;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 static int group_create_exec(bContext *C, wmOperator *op)
@@ -221,7 +227,6 @@ static int group_create_exec(bContext *C, wmOperator *op)
 	CTX_DATA_END;
 
 	DAG_scene_sort(CTX_data_scene(C));
-	ED_undo_push(C,"Create Group");
 
 	WM_event_add_notifier(C, NC_GROUP|NA_EDITED, NULL);
 	
@@ -239,6 +244,9 @@ void GROUP_OT_group_create(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= group_create_exec;	
 	ot->poll= ED_operator_scene_editable;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	RNA_def_string(ot->srna, "GID", "Group", 32, "Name", "Name of the new group");
 }

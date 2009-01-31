@@ -147,8 +147,6 @@ void do_node_addmenu(bContext *C, void *arg, int event)
 	// XXX snode_autoconnect(snode, node, NODE_TEST);
 		
 	// XXX addqueue(curarea->win, UI_BUT_EVENT, B_NODE_TREE_EXEC);
-	
-	// ED_undo_push("Add Node");
 }
 
 static void node_make_addmenu(bContext *C, int nodeclass, uiBlock *block)

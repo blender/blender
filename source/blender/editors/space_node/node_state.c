@@ -191,6 +191,9 @@ void NODE_OT_visibility_toggle(wmOperatorType *ot)
 	ot->invoke= node_toggle_visibility_invoke;
 	ot->poll= ED_operator_node_active;
 	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
 	RNA_def_int(ot->srna, "mouse_x", 0, INT_MIN, INT_MAX, "Mouse X", "", INT_MIN, INT_MAX);
 	RNA_def_int(ot->srna, "mouse_y", 0, INT_MIN, INT_MAX, "Mouse Y", "", INT_MIN, INT_MAX);
 }
@@ -214,4 +217,7 @@ void NODE_OT_fit_all(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= node_fit_all_exec;
 	ot->poll= ED_operator_node_active;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }

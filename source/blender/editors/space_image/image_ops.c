@@ -266,7 +266,10 @@ void IMAGE_OT_view_pan(wmOperatorType *ot)
 	ot->modal= view_pan_modal;
 	ot->cancel= view_pan_cancel;
 	ot->poll= space_image_main_area_poll;
-
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER;
+	
 	/* properties */
 	RNA_def_float_vector(ot->srna, "offset", 2, NULL, -FLT_MAX, FLT_MAX,
 		"Offset", "Offset in floating point units, 1.0 is the width and height of the image.", -FLT_MAX, FLT_MAX);
@@ -378,7 +381,10 @@ void IMAGE_OT_view_zoom(wmOperatorType *ot)
 	ot->modal= view_zoom_modal;
 	ot->cancel= view_zoom_cancel;
 	ot->poll= space_image_main_area_poll;
-
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER;
+	
 	/* properties */
 	RNA_def_float(ot->srna, "factor", 0.0f, 0.0f, FLT_MAX,
 		"Factor", "Zoom factor, values higher than 1.0 zoom in, lower values zoom out.", -FLT_MAX, FLT_MAX);
@@ -444,6 +450,9 @@ void IMAGE_OT_view_all(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= view_all_exec;
 	ot->poll= space_image_main_area_poll;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER;
 }
 
 /********************** view selected operator *********************/
@@ -498,6 +507,9 @@ void IMAGE_OT_view_selected(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= view_selected_exec;
 	ot->poll= ED_operator_uvedit;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER;
 }
 
 /********************** view zoom in/out operator *********************/
@@ -523,6 +535,9 @@ void IMAGE_OT_view_zoom_in(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= view_zoom_in_exec;
 	ot->poll= space_image_main_area_poll;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER;
 }
 
 static int view_zoom_out_exec(bContext *C, wmOperator *op)
@@ -546,6 +561,9 @@ void IMAGE_OT_view_zoom_out(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= view_zoom_out_exec;
 	ot->poll= space_image_main_area_poll;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER;
 }
 
 /********************** view zoom ratio operator *********************/
@@ -584,6 +602,9 @@ void IMAGE_OT_view_zoom_ratio(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= view_zoom_ratio_exec;
 	ot->poll= space_image_main_area_poll;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER;
 	
 	/* properties */
 	RNA_def_float(ot->srna, "ratio", 0.0f, 0.0f, FLT_MAX,

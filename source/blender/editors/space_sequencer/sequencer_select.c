@@ -78,7 +78,6 @@
 
 /* own include */
 #include "sequencer_intern.h"
-static void BIF_undo_push() {}
 static void *find_nearest_marker() {return NULL;}
 static void deselect_markers() {}
 	
@@ -118,8 +117,6 @@ void select_dir_from_last(Scene *scene, int lr)
 	
 	select_channel_direction(scene, seq,lr);
 	
-	if (lr==1)	BIF_undo_push("Select Strips to the Left, Sequencer");
-	else		BIF_undo_push("Select Strips to the Right, Sequencer");
 }
 	
 void select_surrounding_handles(Scene *scene, Sequence *test) /* XXX BRING BACK */
@@ -149,7 +146,6 @@ void select_surround_from_last(Scene *scene)
 		return;
 	
 	select_surrounding_handles(scene, seq);
-	ED_undo_push(C, "Select Surrounding Handles, Sequencer");
 }
 #endif
 
@@ -204,9 +200,6 @@ void select_neighbor_from_last(Scene *scene, int lr)
 		}
 	}
 	if (change) {
-		
-		if (lr==1)	BIF_undo_push("Select Left Handles, Sequencer");
-		else		BIF_undo_push("Select Right Handles, Sequencer");
 	}
 }
 
@@ -238,7 +231,6 @@ static int sequencer_deselect_exec(bContext *C, wmOperator *op)
 			seq->flag |= SELECT;
 		}
 	}
-	ED_undo_push(C, "(De)Select All, Sequencer");
 	ED_area_tag_redraw(CTX_wm_area(C));
 	
 	return OPERATOR_FINISHED;
@@ -254,7 +246,9 @@ void SEQUENCER_OT_deselect_all(struct wmOperatorType *ot)
 	ot->exec= sequencer_deselect_exec;
 
 	ot->poll= ED_operator_sequencer_active;
-	ot->flag= OPTYPE_REGISTER;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 
@@ -277,7 +271,6 @@ static int sequencer_select_invert_exec(bContext *C, wmOperator *op)
 			seq->flag |= SELECT;
 		}
 	}
-	ED_undo_push(C, "Select Invert, Sequencer");
 	ED_area_tag_redraw(CTX_wm_area(C));
 	
 	return OPERATOR_FINISHED;
@@ -293,7 +286,9 @@ void SEQUENCER_OT_select_invert(struct wmOperatorType *ot)
 	ot->exec= sequencer_select_invert_exec;
 
 	ot->poll= ED_operator_sequencer_active;
-	ot->flag= OPTYPE_REGISTER;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 
@@ -339,8 +334,6 @@ static int sequencer_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			deselect_markers(0, 0);
 			marker->flag |= SELECT;				
 		}
-
-		ED_undo_push(C,"Select Marker, Sequencer");
 		
 	} else {
 	
@@ -429,8 +422,6 @@ static int sequencer_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 			recurs_sel_seq(seq);
 		}
-
-		ED_undo_push(C,"Select Strips, Sequencer");
 	}
 	
 	/* marker transform */
@@ -465,7 +456,10 @@ void SEQUENCER_OT_select(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= sequencer_select_invoke;
 	ot->poll= ED_operator_sequencer_active;
-
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
 	/* properties */
 	RNA_def_enum(ot->srna, "type", prop_select_types, 0, "Type", "");
 }
@@ -530,7 +524,6 @@ static int sequencer_select_more_exec(bContext *C, wmOperator *op)
 	Scene *scene= CTX_data_scene(C);
 	
 	if (select_more_less_seq__internal(scene, 0, 0)) {
-		ED_undo_push(C, "Select More, Sequencer");
 		ED_area_tag_redraw(CTX_wm_area(C));
 	}
 	
@@ -546,7 +539,10 @@ void SEQUENCER_OT_select_more(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= sequencer_select_more_exec;
 	ot->poll= ED_operator_sequencer_active;
-
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
 	/* properties */
 }
 
@@ -557,7 +553,6 @@ static int sequencer_select_less_exec(bContext *C, wmOperator *op)
 	Scene *scene= CTX_data_scene(C);
 	
 	if (select_more_less_seq__internal(scene, 1, 0)) {
-		ED_undo_push(C, "Select less, Sequencer");
 		ED_area_tag_redraw(CTX_wm_area(C));
 	}
 	
@@ -573,7 +568,10 @@ void SEQUENCER_OT_select_less(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= sequencer_select_less_exec;
 	ot->poll= ED_operator_sequencer_active;
-
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
 	/* properties */
 }
 
@@ -610,7 +608,6 @@ static int sequencer_select_pick_linked_invoke(bContext *C, wmOperator *op, wmEv
 		selected = select_more_less_seq__internal(scene, 1, 1);
 	}
 	
-	ED_undo_push(C, "Select pick linked, Sequencer");
 	ED_area_tag_redraw(CTX_wm_area(C));
 	
 	return OPERATOR_FINISHED;
@@ -625,7 +622,10 @@ void SEQUENCER_OT_select_pick_linked(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= sequencer_select_pick_linked_invoke;
 	ot->poll= ED_operator_sequencer_active;
-
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
 	/* properties */
 	RNA_def_enum(ot->srna, "type", prop_select_types, 0, "Type", "Type of select linked operation");
 }
@@ -642,7 +642,6 @@ static int sequencer_select_linked_exec(bContext *C, wmOperator *op)
 		selected = select_more_less_seq__internal(scene, 1, 1);
 	}
 
-	ED_undo_push(C, "Select linked, Sequencer");
 	ED_area_tag_redraw(CTX_wm_area(C));
 
 	return OPERATOR_FINISHED;
@@ -657,7 +656,10 @@ void SEQUENCER_OT_select_linked(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= sequencer_select_linked_exec;
 	ot->poll= ED_operator_sequencer_active;
-
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
 	/* properties */
 }
 
@@ -691,7 +693,6 @@ static int sequencer_select_handles_exec(bContext *C, wmOperator *op)
 		}
 	}
 
-	ED_undo_push(C, "Select Handles, Sequencer");
 	ED_area_tag_redraw(CTX_wm_area(C));
 
 	return OPERATOR_FINISHED;
@@ -706,7 +707,10 @@ void SEQUENCER_OT_select_handles(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= sequencer_select_handles_exec;
 	ot->poll= ED_operator_sequencer_active;
-
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
 	/* properties */
 	RNA_def_enum(ot->srna, "side", prop_side_types, SEQ_SIDE_BOTH, "Side", "The side of the handle that is selected");
 }
@@ -751,7 +755,6 @@ static int sequencer_borderselect_exec(bContext *C, wmOperator *op)
 		}
 	}
 
-	ED_undo_push(C,"Border Select");
 	return OPERATOR_FINISHED;
 } 
 
@@ -769,6 +772,9 @@ void SEQUENCER_OT_borderselect(wmOperatorType *ot)
 	ot->modal= WM_border_select_modal;
 	
 	ot->poll= ED_operator_sequencer_active;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* rna */
 	RNA_def_int(ot->srna, "event_type", 0, INT_MIN, INT_MAX, "Event Type", "", INT_MIN, INT_MAX);

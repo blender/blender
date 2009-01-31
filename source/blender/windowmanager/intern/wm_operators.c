@@ -283,8 +283,6 @@ static void WM_OT_save_homefile(wmOperatorType *ot)
 	ot->invoke= WM_operator_confirm;
 	ot->exec= WM_write_homefile;
 	ot->poll= WM_operator_winactive;
-	
-	ot->flag= OPTYPE_REGISTER;
 }
 
 /* ********* recent file *********** */
@@ -351,10 +349,7 @@ static void WM_OT_open_recentfile(wmOperatorType *ot)
 	ot->exec= recentfile_exec;
 	ot->poll= WM_operator_winactive;
 	
-	ot->flag= OPTYPE_REGISTER;
-	
 	RNA_def_property(ot->srna, "nr", PROP_ENUM, PROP_NONE);
-
 }
 
 /* ********* main file *********** */

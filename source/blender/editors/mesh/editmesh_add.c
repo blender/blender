@@ -75,7 +75,6 @@
 /* bpymenu removed XXX */
 
 /* XXX */
-static void BIF_undo_push() {}
 static void error() {}
 #define add_numbut(a, b, c, d, e, f, g) {}
 /* XXX */
@@ -257,7 +256,7 @@ void MESH_OT_dupli_extrude_cursor(wmOperatorType *ot)
 	ot->poll= ED_operator_editmesh;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 
@@ -383,6 +382,9 @@ void MESH_OT_make_fgon(struct wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= make_fgon_exec;
 	ot->poll= ED_operator_editmesh;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 static int clear_fgon_exec(bContext *C, wmOperator *op)
@@ -409,6 +411,9 @@ void MESH_OT_clear_fgon(struct wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= clear_fgon_exec;
 	ot->poll= ED_operator_editmesh;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* precondition; 4 vertices selected, check for 4 edges and create face */
@@ -674,7 +679,6 @@ void addfaces_from_edgenet(EditMesh *em)
 
 	EM_select_flush(em);
 	
-	BIF_undo_push("Add faces");
 // XXX	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 }
 
@@ -703,7 +707,6 @@ static void addedgeface_mesh(EditMesh *em)
 	if(amount==2) {
 		eed= addedgelist(em, neweve[0], neweve[1], NULL);
 		EM_select_edge(eed, 1);
-		BIF_undo_push("Add edge");
 
 		// XXX		DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);	
 		return;
@@ -802,7 +805,6 @@ static int addedgeface_mesh_exec(bContext *C, wmOperator *op)
 	
 	addedgeface_mesh(em);
 	
-	ED_undo_push(C, "Make Edge/Face");	// Note this will become depricated 
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 	
 	DAG_object_flush_update(CTX_data_scene(C), obedit, OB_RECALC_DATA);	
@@ -819,6 +821,10 @@ void MESH_OT_add_edge_face(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= addedgeface_mesh_exec;
 	ot->poll= ED_operator_editmesh;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
 }
 
 
@@ -1323,7 +1329,6 @@ static int add_primitive_plane_exec(bContext *C, wmOperator *op)
 	
 	make_prim(obedit, PRIM_PLANE, mat, 4, 0, 0, dia, 0.0f, 0, 1);
 	
-	ED_undo_push(C, "Add Plane");	// Note this will become depricated 
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 	
 	return OPERATOR_FINISHED;	
@@ -1340,7 +1345,7 @@ void MESH_OT_add_primitive_plane(wmOperatorType *ot)
 	ot->poll= ED_operator_editmesh;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 static int add_primitive_cube_exec(bContext *C, wmOperator *op)
@@ -1354,7 +1359,6 @@ static int add_primitive_cube_exec(bContext *C, wmOperator *op)
 	
 	make_prim(obedit, PRIM_CUBE, mat, 4, 0, 0, dia, 1.0f, 1, 1);
 	
-	ED_undo_push(C, "Add Cube");	// Note this will become depricated 
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 	
 	return OPERATOR_FINISHED;	
@@ -1371,7 +1375,7 @@ void MESH_OT_add_primitive_cube(wmOperatorType *ot)
 	ot->poll= ED_operator_editmesh;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 static int add_primitive_circle_exec(bContext *C, wmOperator *op)
@@ -1385,7 +1389,6 @@ static int add_primitive_circle_exec(bContext *C, wmOperator *op)
 	make_prim(obedit, PRIM_CIRCLE, mat, RNA_int_get(op->ptr, "vertices"), 0, 0, dia, 0.0f, 0, 
 			  RNA_boolean_get(op->ptr, "fill"));
 	
-	ED_undo_push(C, "Add Circle");	// Note this will become depricated 
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 	
 	return OPERATOR_FINISHED;	
@@ -1400,9 +1403,9 @@ void MESH_OT_add_primitive_circle(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= add_primitive_circle_exec;
 	ot->poll= ED_operator_editmesh;
-
+	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
 	RNA_def_int(ot->srna, "vertices", 32, INT_MIN, INT_MAX, "Vertices", "", 3, 500);
@@ -1421,7 +1424,6 @@ static int add_primitive_cylinder_exec(bContext *C, wmOperator *op)
 	make_prim(obedit, PRIM_CYLINDER, mat, RNA_int_get(op->ptr, "vertices"), 0, 0, dia, 
 			  RNA_float_get(op->ptr, "depth"), 1, 1);
 	
-	ED_undo_push(C, "Add Cylinder");	// Note this will become depricated 
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 	
 	return OPERATOR_FINISHED;	
@@ -1436,9 +1438,9 @@ void MESH_OT_add_primitive_cylinder(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= add_primitive_cylinder_exec;
 	ot->poll= ED_operator_editmesh;
-
+	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
 	RNA_def_int(ot->srna, "vertices", 32, INT_MIN, INT_MAX, "Vertices", "", 2, 500);
@@ -1457,7 +1459,6 @@ static int add_primitive_tube_exec(bContext *C, wmOperator *op)
 	make_prim(obedit, PRIM_CYLINDER, mat, RNA_int_get(op->ptr, "vertices"), 0, 0, dia, 
 			  RNA_float_get(op->ptr, "depth"), 1, 0);
 	
-	ED_undo_push(C, "Add Tube");	// Note this will become depricated 
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 	
 	return OPERATOR_FINISHED;	
@@ -1472,9 +1473,9 @@ void MESH_OT_add_primitive_tube(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= add_primitive_tube_exec;
 	ot->poll= ED_operator_editmesh;
-
+	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
 	RNA_def_int(ot->srna, "vertices", 32, INT_MIN, INT_MAX, "Vertices", "", 2, 500);
@@ -1493,7 +1494,6 @@ static int add_primitive_cone_exec(bContext *C, wmOperator *op)
 	make_prim(obedit, PRIM_CONE, mat, RNA_int_get(op->ptr, "vertices"), 0, 0, dia, 
 			  RNA_float_get(op->ptr, "depth"), 0, RNA_boolean_get(op->ptr, "cap_end"));
 	
-	ED_undo_push(C, "Add Cone");	// Note this will become depricated 
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 	
 	return OPERATOR_FINISHED;	
@@ -1508,9 +1508,9 @@ void MESH_OT_add_primitive_cone(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= add_primitive_cone_exec;
 	ot->poll= ED_operator_editmesh;
-
+	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
 	RNA_def_int(ot->srna, "vertices", 32, INT_MIN, INT_MAX, "Vertices", "", 2, 500);
@@ -1531,7 +1531,6 @@ static int add_primitive_grid_exec(bContext *C, wmOperator *op)
 	make_prim(obedit, PRIM_GRID, mat, RNA_int_get(op->ptr, "x_subdivisions"), 
 			  RNA_int_get(op->ptr, "y_subdivisions"), 0, dia, 0.0f, 0, 1);
 	
-	ED_undo_push(C, "Add Grid");	// Note this will become depricated 
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 	
 	return OPERATOR_FINISHED;	
@@ -1548,7 +1547,7 @@ void MESH_OT_add_primitive_grid(wmOperatorType *ot)
 	ot->poll= ED_operator_editmesh;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
 	RNA_def_int(ot->srna, "x_subdivisions", 10, INT_MIN, INT_MAX, "X Subdivisions", "", 3, 1000);
@@ -1565,7 +1564,6 @@ static int add_primitive_monkey_exec(bContext *C, wmOperator *op)
 	
 	make_prim(obedit, PRIM_MONKEY, mat, 0, 0, 2, 0.0f, 0.0f, 0, 0);
 	
-	ED_undo_push(C, "Add Monkey");	// Note this will become depricated 
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 	
 	return OPERATOR_FINISHED;	
@@ -1582,7 +1580,7 @@ void MESH_OT_add_primitive_monkey(wmOperatorType *ot)
 	ot->poll= ED_operator_editmesh;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 static int add_primitive_uvsphere_exec(bContext *C, wmOperator *op)
@@ -1610,9 +1608,9 @@ void MESH_OT_add_primitive_uv_sphere(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= add_primitive_uvsphere_exec;
 	ot->poll= ED_operator_editmesh;
-
+	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
 	RNA_def_int(ot->srna, "segments", 32, INT_MIN, INT_MAX, "Segments", "", 3, 500);
@@ -1647,7 +1645,7 @@ void MESH_OT_add_primitive_ico_sphere(wmOperatorType *ot)
 	ot->poll= ED_operator_editmesh;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
 	RNA_def_int(ot->srna, "subdivisions", 2, 0, 6, "Subdivisions", "", 0, 8);

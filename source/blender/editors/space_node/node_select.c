@@ -188,6 +188,9 @@ void NODE_OT_extend_select(wmOperatorType *ot)
 	ot->invoke= node_extend_select_invoke;
 	ot->poll= ED_operator_node_active;
 	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
 	RNA_def_enum(ot->srna, "select_type", prop_select_items, 0, "Select Type", "");
 	
 	RNA_def_int(ot->srna, "mouse_x", 0, INT_MIN, INT_MAX, "Mouse X", "", INT_MIN, INT_MAX);
@@ -205,6 +208,9 @@ void NODE_OT_select(wmOperatorType *ot)
 	ot->invoke= node_select_invoke;
 	ot->poll= ED_operator_node_active;
 	ot->modal= node_select_modal;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	RNA_def_enum(ot->srna, "select_type", prop_select_items, 0, "Select Type", "");
 	
@@ -269,6 +275,9 @@ void NODE_OT_border_select(wmOperatorType *ot)
 	ot->modal= WM_border_select_modal;
 	
 	ot->poll= ED_operator_node_active;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* rna */
 	RNA_def_int(ot->srna, "event_type", 0, INT_MIN, INT_MAX, "Event Type", "", INT_MIN, INT_MAX);

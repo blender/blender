@@ -1621,7 +1621,7 @@ void MESH_OT_separate(wmOperatorType *ot)
 	ot->poll= ED_operator_editmesh;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	RNA_def_enum(ot->srna, "type", prop_separate_types, 0, "Type", "");
 }
@@ -1807,13 +1807,13 @@ static void undoMesh_to_editMesh(void *umv, void *emv)
 	EditSelectionC *esec;
 	int a=0;
 
-	em->selectmode = um->selectmode;
-	
 	free_editMesh(em);
 	
 	/* malloc blocks */
 	memset(em, 0, sizeof(EditMesh));
 		
+	em->selectmode = um->selectmode;
+	
 	init_editmesh_fastmalloc(em, um->totvert, um->totedge, um->totface);
 
 	CustomData_free(&em->vdata, 0);
