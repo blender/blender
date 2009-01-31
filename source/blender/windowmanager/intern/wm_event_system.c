@@ -496,14 +496,16 @@ static int wm_eventmatch(wmEvent *winevent, wmKeymapItem *kmi)
 	
 	if(kmi->val!=KM_ANY)
 		if(winevent->val!=kmi->val) return 0;
+	
+	/* modifiers also check bits, so it allows modifier order */
 	if(kmi->shift!=KM_ANY)
-		if(winevent->shift!=kmi->shift) return 0;
+		if(winevent->shift != kmi->shift && !(winevent->shift & kmi->shift)) return 0;
 	if(kmi->ctrl!=KM_ANY)
-		if(winevent->ctrl!=kmi->ctrl) return 0;
+		if(winevent->ctrl != kmi->ctrl && !(winevent->ctrl & kmi->ctrl)) return 0;
 	if(kmi->alt!=KM_ANY)
-		if(winevent->alt!=kmi->alt) return 0;
+		if(winevent->alt != kmi->alt && !(winevent->alt & kmi->alt)) return 0;
 	if(kmi->oskey!=KM_ANY)
-		if(winevent->oskey!=kmi->oskey) return 0;
+		if(winevent->oskey != kmi->oskey && !(winevent->oskey & kmi->oskey)) return 0;
 	if(kmi->keymodifier)
 		if(winevent->keymodifier!=kmi->keymodifier) return 0;
 	
@@ -1149,12 +1151,23 @@ void wm_event_add_ghostevent(wmWindow *win, int type, void *customdata)
 			/* modifiers */
 			if (event.type==LEFTSHIFTKEY || event.type==RIGHTSHIFTKEY) {
 				event.shift= evt->shift= event.val;
-			} else if (event.type==LEFTCTRLKEY || event.type==RIGHTCTRLKEY) {
+				if(event.val && (evt->ctrl || evt->alt || evt->oskey))
+				   event.shift= evt->shift = 3;		// define?
+			} 
+			else if (event.type==LEFTCTRLKEY || event.type==RIGHTCTRLKEY) {
 				event.ctrl= evt->ctrl= event.val;
-			} else if (event.type==LEFTALTKEY || event.type==RIGHTALTKEY) {
+				if(event.val && (evt->shift || evt->alt || evt->oskey))
+				   event.ctrl= evt->ctrl = 3;		// define?
+			} 
+			else if (event.type==LEFTALTKEY || event.type==RIGHTALTKEY) {
 				event.alt= evt->alt= event.val;
-			} else if (event.type==COMMANDKEY) {
+				if(event.val && (evt->ctrl || evt->shift || evt->oskey))
+				   event.alt= evt->alt = 3;		// define?
+			} 
+			else if (event.type==COMMANDKEY) {
 				event.oskey= evt->oskey= event.val;
+				if(event.val && (evt->ctrl || evt->alt || evt->shift))
+				   event.oskey= evt->oskey = 3;		// define?
 			}
 			
 			/* if test_break set, it catches this. Keep global for now? */

@@ -148,6 +148,8 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_add_edge_face);
 	WM_operatortype_append(MESH_OT_shortest_path_select);
 	WM_operatortype_append(MESH_OT_similar_vertex_select);
+	WM_operatortype_append(MESH_OT_similar_edge_select);
+	WM_operatortype_append(MESH_OT_similar_face_select);
 }
 
 /* note mesh keymap also for other space? */
@@ -182,7 +184,10 @@ void ED_keymap_mesh(wmWindowManager *wm)
 	RNA_float_set(WM_keymap_add_item(keymap, "MESH_OT_select_linked_flat_faces", FKEY, KM_PRESS, (KM_CTRL|KM_SHIFT|KM_ALT), 0)->ptr,"sharpness",135.0);
 	RNA_float_set(WM_keymap_add_item(keymap, "MESH_OT_select_sharp_edges", SKEY, KM_PRESS, (KM_CTRL|KM_SHIFT|KM_ALT), 0)->ptr,"sharpness",135.0);		
 	
-	WM_keymap_add_item(keymap, "MESH_OT_similar_vertex_select", JKEY, KM_PRESS, 0, 0);
+	/* temp hotkeys! */
+	WM_keymap_add_item(keymap, "MESH_OT_similar_vertex_select", GKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "MESH_OT_similar_edge_select", GKEY, KM_PRESS, KM_SHIFT2|KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "MESH_OT_similar_face_select", GKEY, KM_PRESS, KM_SHIFT|KM_CTRL2, 0);
 	
 	
 	/* transform keymap already defined, so no tweaks for select */

@@ -654,12 +654,22 @@ FACES GROUP
  mode 6: same co-planer
 */
 
+static EnumPropertyItem prop_simface_types[] = {
+	{1, "MATERIAL", "Material", ""},
+	{2, "IMAGE", "Image", ""},
+	{3, "AREA", "Area", ""},
+	{4, "PERIMETER", "Perimeter", ""},
+	{5, "NORMAL", "Normal", ""},
+	{6, "COPLANAR", "Co-planar", ""},
+	{0, NULL, NULL, NULL}
+};
+
+
 /* this as a way to compare the ares, perim  of 2 faces thay will scale to different sizes
 *0.5 so smaller faces arnt ALWAYS selected with a thresh of 1.0 */
 #define SCALE_CMP(a,b) ((a+a*thresh >= b) && (a-(a*thresh*0.5) <= b))
 
-
-int facegroup_select(EditMesh *em, short mode)
+static int similar_face_select__internal(Scene *scene, EditMesh *em, int mode)
 {
 	EditFace *efa, *base_efa=NULL;
 	unsigned int selcount=0; /*count how many new faces we select*/
@@ -667,9 +677,8 @@ int facegroup_select(EditMesh *em, short mode)
 	/*deselcount, count how many deselected faces are left, so we can bail out early
 	also means that if there are no deselected faces, we can avoid a lot of looping */
 	unsigned int deselcount=0; 
-	
+	float thresh= scene->toolsettings->select_thresh;
 	short ok=0;
-	float thresh=0; // XXX scene->toolsettings->select_thresh;
 	
 	for(efa= em->faces.first; efa; efa= efa->next) {
 		if (!efa->h) {
@@ -787,6 +796,41 @@ int facegroup_select(EditMesh *em, short mode)
 	return selcount;
 }
 
+static int similar_face_select_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	Object *obedit= CTX_data_edit_object(C);
+	Mesh *me= obedit->data;
+	EditMesh *em= me->edit_mesh; 
+
+	int selcount = similar_face_select__internal(scene, em, RNA_int_get(op->ptr, "type"));
+	
+	if (selcount) {
+		/* here was an edge-mode only select flush case, has to be generalized */
+		EM_selectmode_flush(em);
+		WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+		return OPERATOR_FINISHED;
+	}
+	
+	return OPERATOR_CANCELLED;
+}	
+
+void MESH_OT_similar_face_select(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Similar Face Select";
+	ot->idname= "MESH_OT_similar_face_select";
+	
+	/* api callbacks */
+	ot->invoke= WM_menu_invoke;
+	ot->exec= similar_face_select_exec;
+	ot->poll= ED_operator_editmesh;
+	
+	/* properties */
+	RNA_def_enum(ot->srna, "type", prop_simface_types, 0, "Type", "");
+}
+
+/* ***************************************************** */
 
 /*
 EDGE GROUP
@@ -799,11 +843,18 @@ EDGE GROUP
  mode 7: similar sharp
 */
 
-/* this function is only used by edgegroup_select's edge angle */
+static EnumPropertyItem prop_simedge_types[] = {
+	{1, "LENGTH", "Length", ""},
+	{2, "DIR", "Direction", ""},
+	{3, "FACE", "Amount of Vertices in Face", ""},
+	{4, "FACE_ANGLE", "Face Angles", ""},
+	{5, "CREASE", "Crease", ""},
+	{6, "SEAM", "Seam", ""},
+	{7, "SHARP", "Sharpness", ""},
+	{0, NULL, NULL, NULL}
+};
 
-
-
-static int edgegroup_select__internal(EditMesh *em, short mode)
+static int similar_edge_select__internal(Scene *scene, EditMesh *em, int mode)
 {
 	EditEdge *eed, *base_eed=NULL;
 	unsigned int selcount=0; /* count how many new edges we select*/
@@ -813,7 +864,7 @@ static int edgegroup_select__internal(EditMesh *em, short mode)
 	unsigned int deselcount=0;
 	
 	short ok=0;
-	float thresh=0; // XXX scene->toolsettings->select_thresh;
+	float thresh= scene->toolsettings->select_thresh;
 	
 	for(eed= em->edges.first; eed; eed= eed->next) {
 		if (!eed->h) {
@@ -1001,29 +1052,41 @@ static int edgegroup_select__internal(EditMesh *em, short mode)
 	return selcount;
 }
 /* wrap the above function but do selection flushing edge to face */
-int edgegroup_select(EditMesh *em, short mode)
+static int similar_edge_select_exec(bContext *C, wmOperator *op)
 {
-	int selcount = edgegroup_select__internal(em, mode);
+	Scene *scene= CTX_data_scene(C);
+	Object *obedit= CTX_data_edit_object(C);
+	Mesh *me= obedit->data;
+	EditMesh *em= me->edit_mesh; 
+
+	int selcount = similar_edge_select__internal(scene, em, RNA_int_get(op->ptr, "type"));
 	
 	if (selcount) {
-		/* Could run a generic flush function,
-		 * but the problem is only that all edges of a face
-		 * can be selected without the face becoming selected */
-		EditFace *efa;
-		for(efa= em->faces.first; efa; efa= efa->next) {
-			if (efa->v4) {
-				if (efa->e1->f&SELECT && efa->e2->f&SELECT && efa->e3->f&SELECT && efa->e4->f&SELECT)
-					efa->f |= SELECT;
-			}  else {
-				if (efa->e1->f&SELECT && efa->e2->f&SELECT && efa->e3->f&SELECT)
-					efa->f |= SELECT;
-			}
-		}
+		/* here was an edge-mode only select flush case, has to be generalized */
+		EM_selectmode_flush(em);
+		WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+		return OPERATOR_FINISHED;
 	}
-	return selcount;
+	
+	return OPERATOR_CANCELLED;
 }
 
+void MESH_OT_similar_edge_select(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Similar Edge Select";
+	ot->idname= "MESH_OT_similar_edge_select";
+	
+	/* api callbacks */
+	ot->invoke= WM_menu_invoke;
+	ot->exec= similar_edge_select_exec;
+	ot->poll= ED_operator_editmesh;
+	
+	/* properties */
+	RNA_def_enum(ot->srna, "type", prop_simedge_types, 0, "Type", "");
+}
 
+/* ********************************* */
 
 /*
 VERT GROUP
@@ -1041,20 +1104,19 @@ static EnumPropertyItem prop_simvertex_types[] = {
 
 static int similar_vert_select_exec(bContext *C, wmOperator *op)
 {
-//	Scene *scene= CTX_data_scene(C);
+	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	Mesh *me= obedit->data;
 	EditMesh *em= me->edit_mesh; 
 	EditVert *eve, *base_eve=NULL;
 	unsigned int selcount=0; /* count how many new edges we select*/
 	
-	
 	/*count how many visible selected edges there are,
 	so we can return when there are none left */
 	unsigned int deselcount=0;
 	
 	short ok=0;
-	float thresh=0; // XXX scene->toolsettings->select_thresh;
+	float thresh= scene->toolsettings->select_thresh;
 	
 	for(eve= em->verts.first; eve; eve= eve->next) {
 		if (!eve->h) {
@@ -1161,73 +1223,6 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
 		return OPERATOR_FINISHED;
 	}
 	return OPERATOR_CANCELLED;
-}
-
-/* EditMode menu triggered from space.c by pressing Shift+G
-handles face/edge vert context and
-facegroup_select/edgegroup_select/vertgroup_select do all the work
-*/
-
-void select_mesh_group_menu(EditMesh *em)
-{
-	short ret;
-	int selcount, first_item=1, multi=0;
-	char str[512] = "Select Similar "; /* total max length is 404 at the moment */
-	
-	if (!ELEM3(em->selectmode, SCE_SELECT_VERTEX, SCE_SELECT_EDGE, SCE_SELECT_FACE)) {
-		multi=1;
-	}
-	
-	if(em->selectmode & SCE_SELECT_VERTEX) {
-		if (multi) strcat(str, "%t|Vertices%x-1|");
-		else strcat(str, "Vertices %t|");
-		strcat(str, "    Normal %x1|    Face Users %x2|    Shared Vertex Groups%x3");
-		first_item=0;
-	}
-
-	if(em->selectmode & SCE_SELECT_EDGE) {
-		if (multi) {
-			if (first_item) strcat(str, "%t|Edges%x-1|");
-			else strcat(str, "|%l|Edges%x-1|");
-		} else strcat(str, "Edges %t|");
-		
-		strcat(str, "    Length %x10|    Direction %x20|    Face Users%x30|    Face Angle%x40|    Crease%x50|    Seam%x60|    Sharp%x70");
-		first_item=0;
-	}
-	
-	if(em->selectmode & SCE_SELECT_FACE) {
-		if (multi) {
-			strcat(str, "|%l|Faces%x-1|");
-		} else strcat(str, "Faces %t|");
-		strcat(str, "    Material %x100|    Image %x200|    Area %x300|    Perimeter %x400|    Normal %x500|    Co-Planar %x600");
-	
-	}
-	
-	ret= pupmenu(str);
-	if (ret<1) return;
-	
-	
-	if (ret<100) {
-		selcount= edgegroup_select(em, ret/10);
-		
-		if (selcount) { /* update if data was selected */
-			/*EM_select_flush(em);*/ /* dont use because it can end up selecting more edges and is not usefull*/
-			em->totedgesel+=selcount;
-//			if (EM_texFaceCheck())
-			BIF_undo_push("Select Similar Edges");
-		}
-		return;
-	}
-	
-	if (ret<1000) {
-		selcount= facegroup_select(em, ret/100);
-		if (selcount) { /* update if data was selected */
-			em->totfacesel+=selcount;
-//			if (EM_texFaceCheck())
-			BIF_undo_push("Select Similar Faces");
-		}
-		return;
-	}
 }
 
 void MESH_OT_similar_vertex_select(wmOperatorType *ot)

@@ -187,6 +187,8 @@ void MESH_OT_select_linked_flat_faces(struct wmOperatorType *ot);
 void MESH_OT_select_sharp_edges(struct wmOperatorType *ot);
 void MESH_OT_shortest_path_select(struct wmOperatorType *ot);
 void MESH_OT_similar_vertex_select(struct wmOperatorType *ot);
+void MESH_OT_similar_edge_select(struct wmOperatorType *ot);
+void MESH_OT_similar_face_select(struct wmOperatorType *ot);
 
 extern EditEdge *findnearestedge(ViewContext *vc, int *dist);
 extern void EM_automerge(int update);
