@@ -639,11 +639,9 @@ static int unified_findnearest(ViewContext *vc, EditVert **eve, EditEdge **eed, 
 	return (*eve || *eed || *efa);
 }
 
-/* this as a way to compare the ares, perim  of 2 faces thay will scale to different sizes
- *0.5 so smaller faces arnt ALWAYS selected with a thresh of 1.0 */
-#define SCALE_CMP(a,b) ((a+a*thresh >= b) && (a-(a*thresh*0.5) <= b))
 
-/* ****************  GROUP SELECTS ************** */
+/* ****************  SIMILAR "group" SELECTS. FACE, EDGE AND VERTEX ************** */
+
 /* selects new faces/edges/verts based on the
  existing selection
 
@@ -655,6 +653,12 @@ FACES GROUP
  mode 5: same normal
  mode 6: same co-planer
 */
+
+/* this as a way to compare the ares, perim  of 2 faces thay will scale to different sizes
+*0.5 so smaller faces arnt ALWAYS selected with a thresh of 1.0 */
+#define SCALE_CMP(a,b) ((a+a*thresh >= b) && (a-(a*thresh*0.5) <= b))
+
+
 int facegroup_select(EditMesh *em, short mode)
 {
 	EditFace *efa, *base_efa=NULL;
@@ -1027,11 +1031,23 @@ VERT GROUP
  mode 2: same number of face users
  mode 3: same vertex groups
 */
-int vertgroup_select(EditMesh *em, short mode)
+static EnumPropertyItem prop_simvertex_types[] = {
+	{0, "NORMAL", "Normal", ""},
+	{1, "FACE", "Amount of Vertices in Face", ""},
+	{2, "VGROUP", "Vertex Groups", ""},
+	{0, NULL, NULL, NULL}
+};
+
+
+static int similar_vert_select_exec(bContext *C, wmOperator *op)
 {
+//	Scene *scene= CTX_data_scene(C);
+	Object *obedit= CTX_data_edit_object(C);
+	Mesh *me= obedit->data;
+	EditMesh *em= me->edit_mesh; 
 	EditVert *eve, *base_eve=NULL;
-	
 	unsigned int selcount=0; /* count how many new edges we select*/
+	
 	
 	/*count how many visible selected edges there are,
 	so we can return when there are none left */
@@ -1058,8 +1074,8 @@ int vertgroup_select(EditMesh *em, short mode)
 	if (!ok || !deselcount) /* no data selected OR no more data to select*/
 		return 0;
 	
-	
-	if (mode==2) { /* store face users */
+	if(RNA_enum_is_equal(op->ptr, "type", "FACE")) {
+		/* store face users */
 		EditFace *efa;
 		
 		/* count how many faces each edge uses use tmp->l */
@@ -1075,7 +1091,7 @@ int vertgroup_select(EditMesh *em, short mode)
 	for(base_eve= em->verts.first; base_eve; base_eve= base_eve->next) {
 		if (base_eve->f1) {
 				
-			if (mode==1) { /* same normal */
+			if(RNA_enum_is_equal(op->ptr, "type", "NORMAL")) {
 				float angle;
 				for(eve= em->verts.first; eve; eve= eve->next) {
 					if (!(eve->f & SELECT) && !eve->h) {
@@ -1089,7 +1105,8 @@ int vertgroup_select(EditMesh *em, short mode)
 						}
 					}
 				}
-			} else if (mode==2) { /* face users */
+			}
+			else if(RNA_enum_is_equal(op->ptr, "type", "FACE")) {
 				for(eve= em->verts.first; eve; eve= eve->next) {
 					if (
 						!(eve->f & SELECT) &&
@@ -1103,7 +1120,8 @@ int vertgroup_select(EditMesh *em, short mode)
 							return selcount;
 					}
 				}
-			} else if (mode==3) { /* vertex groups */
+			} 
+			else if(RNA_enum_is_equal(op->ptr, "type", "VGROUP")) {
 				MDeformVert *dvert, *base_dvert;
 				short i, j; /* weight index */
 
@@ -1137,7 +1155,12 @@ int vertgroup_select(EditMesh *em, short mode)
 			}
 		}
 	} /* end basevert loop */
-	return selcount;
+
+	if(selcount) {
+		WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+		return OPERATOR_FINISHED;
+	}
+	return OPERATOR_CANCELLED;
 }
 
 /* EditMode menu triggered from space.c by pressing Shift+G
@@ -1183,16 +1206,6 @@ void select_mesh_group_menu(EditMesh *em)
 	ret= pupmenu(str);
 	if (ret<1) return;
 	
-	if (ret<10) {
-		selcount= vertgroup_select(em, ret);
-		if (selcount) { /* update if data was selected */
-			EM_select_flush(em); /* so that selected verts, go onto select faces */
-			em->totvertsel += selcount;
-//			if (EM_texFaceCheck())
-			BIF_undo_push("Select Similar Vertices");
-		}
-		return;
-	}
 	
 	if (ret<100) {
 		selcount= edgegroup_select(em, ret/10);
@@ -1217,6 +1230,24 @@ void select_mesh_group_menu(EditMesh *em)
 	}
 }
 
+void MESH_OT_similar_vertex_select(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Similar Vertex Select";
+	ot->idname= "MESH_OT_similar_vertex_select";
+	
+	/* api callbacks */
+	ot->invoke= WM_menu_invoke;
+	ot->exec= similar_vert_select_exec;
+	ot->poll= ED_operator_editmesh;
+	
+	/* properties */
+	RNA_def_enum(ot->srna, "type", prop_simvertex_types, 0, "Type", "");
+}
+
+/* ******************************************* */
+
+
 int mesh_layers_menu_charlen(CustomData *data, int type)
 {
  	int i, len = 0;
@@ -1233,7 +1264,8 @@ int mesh_layers_menu_charlen(CustomData *data, int type)
 
 /* this function adds menu text into an existing string.
  * this string's size should be allocated with mesh_layers_menu_charlen */
-void mesh_layers_menu_concat(CustomData *data, int type, char *str) {
+void mesh_layers_menu_concat(CustomData *data, int type, char *str) 
+{
 	int i, count = 0;
 	char *str_pt = str;
 	CustomDataLayer *layer;
@@ -4077,17 +4109,17 @@ static int righthandfaces_exec(bContext *C, wmOperator *op)
 	/* 'standard' behaviour - check if selected, then apply relevant selection */
 	
 	// XXX  need other args
-	righthandfaces(em, RNA_int_get(op->ptr, "select"));
+	righthandfaces(em, RNA_boolean_get(op->ptr, "inside"));
 	
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit); //TODO is this needed ?
 	return OPERATOR_FINISHED;	
 }
 
-void MESH_OT_righthandfaces(wmOperatorType *ot)
+void MESH_OT_consistant_normals(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Manipulate Normals";
-	ot->idname= "MESH_OT_righthandfaces";
+	ot->name= "Make Normals consistant";
+	ot->idname= "MESH_OT_consistant_normals";
 	
 	/* api callbacks */
 	ot->exec= righthandfaces_exec;
@@ -4096,8 +4128,7 @@ void MESH_OT_righthandfaces(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
 	
-	/* XXX make it enum or so  */
-	RNA_def_int(ot->srna, "select", 0, INT_MIN, INT_MAX, "Select", "", INT_MIN, INT_MAX);
+	RNA_def_boolean(ot->srna, "inside", 0, "Inside", "");
 }
 
 /* ********** ALIGN WITH VIEW **************** */

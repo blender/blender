@@ -182,10 +182,11 @@ void MESH_OT_selectconnected_mesh_all(struct wmOperatorType *ot);
 void MESH_OT_selectconnected_mesh(struct wmOperatorType *ot);
 void MESH_OT_hide_mesh(struct wmOperatorType *ot);
 void MESH_OT_reveal_mesh(struct wmOperatorType *ot);
-void MESH_OT_righthandfaces(struct wmOperatorType *ot);
+void MESH_OT_consistant_normals(struct wmOperatorType *ot);
 void MESH_OT_select_linked_flat_faces(struct wmOperatorType *ot);
 void MESH_OT_select_sharp_edges(struct wmOperatorType *ot);
 void MESH_OT_shortest_path_select(struct wmOperatorType *ot);
+void MESH_OT_similar_vertex_select(struct wmOperatorType *ot);
 
 extern EditEdge *findnearestedge(ViewContext *vc, int *dist);
 extern void EM_automerge(int update);
