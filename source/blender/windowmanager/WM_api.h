@@ -75,7 +75,7 @@ wmKeymapItem *WM_keymap_verify_item(ListBase *lb, char *idname, short type,
 								 short val, int modifier, short keymodifier);
 wmKeymapItem *WM_keymap_add_item(ListBase *lb, char *idname, short type, 
 								 short val, int modifier, short keymodifier);
-wmKeymapItem *WM_keymap_tweak	(ListBase *lb, short type, short val, int modifier, short keymodifier);
+void		WM_keymap_tweak	(ListBase *lb, short type, short val, int modifier, short keymodifier);
 ListBase	*WM_keymap_listbase	(struct wmWindowManager *wm, const char *nameid, 
 								 int spaceid, int regionid);
 

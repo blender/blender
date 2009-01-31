@@ -2041,22 +2041,18 @@ static void mouse_mesh_loop(bContext *C, short mval[2], short extend, short ring
 static int mesh_loop_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	ARegion *ar= CTX_wm_region(C);
-	short extend= RNA_int_get(op->ptr, "type");
-	short mval[2], ring= 0;	
+	short mval[2];	
 	
 	mval[0]= event->x - ar->winrct.xmin;
 	mval[1]= event->y - ar->winrct.ymin;
 	
 	view3d_operator_needs_opengl(C);
 	
-	/* hmrs, 4 selections in 1 property this way? */
-	if(extend>1) ring= 1;
-	extend &= ~2;
+	mouse_mesh_loop(C, mval, RNA_boolean_get(op->ptr, "extend"),
+					RNA_boolean_get(op->ptr, "ring"));
 	
-	mouse_mesh_loop(C, mval, extend, ring);
-	
-	/* allowing tweaks */
-	return OPERATOR_PASS_THROUGH;
+	/* cannot do tweaks for as long this keymap is after transform map */
+	return OPERATOR_FINISHED;
 }
 
 void MESH_OT_loop_select(wmOperatorType *ot)
@@ -2070,7 +2066,8 @@ void MESH_OT_loop_select(wmOperatorType *ot)
 	ot->poll= ED_operator_editmesh;
 	
 	/* properties */
-	RNA_def_enum(ot->srna, "type", prop_select_types, 0, "Type", "");
+	RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", "");
+	RNA_def_boolean(ot->srna, "ring", 0, "Select Ring", "");
 }
 
 /* ************************************************** */

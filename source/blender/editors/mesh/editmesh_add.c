@@ -264,7 +264,7 @@ void MESH_OT_dupli_extrude_cursor(wmOperatorType *ot)
 /* ********************** */
 
 /* selected faces get hidden edges */
-void make_fgon(EditMesh *em, int make)
+int make_fgon(EditMesh *em, int make)
 {
 	EditFace *efa;
 	EditEdge *eed;
@@ -272,7 +272,7 @@ void make_fgon(EditMesh *em, int make)
 	float *nor=NULL;	// reference
 	int done=0;
 	
-	if(!make) {
+	if(make==0) {
 		for(efa= em->faces.first; efa; efa= efa->next) {
 			if(efa->f & SELECT) {
 				efa->fgonf= 0;
@@ -280,12 +280,12 @@ void make_fgon(EditMesh *em, int make)
 				efa->e2->h &= ~EM_FGON;
 				efa->e3->h &= ~EM_FGON;
 				if(efa->e4) efa->e4->h &= ~EM_FGON;
+				done= 1;
 			}
 		}
 		EM_fgon_flags(em);	// redo flags and indices for fgons
-// XXX		DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);	
-		BIF_undo_push("Clear FGon");
-		return;
+		
+		return done;
 	}
 
 	/* tagging edges. rule is:
@@ -337,13 +337,13 @@ void make_fgon(EditMesh *em, int make)
 	}
 	if(eve) {
 		error("Cannot make polygon with interior vertices");
-		return;
+		return 0;
 	}
 	
 	// check for faces
 	if(nor==NULL) {
 		error("No faces selected to make FGon");
-		return;
+		return 0;
 	}
 
 	// and there we go
@@ -354,15 +354,61 @@ void make_fgon(EditMesh *em, int make)
 		}
 	}
 	
-	if(done==0) {
-		error("Didn't find FGon to create");
-	}
-	else {
+	if(done)
 		EM_fgon_flags(em);	// redo flags and indices for fgons
+	return done;
+}
 
-// XXX		DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);	
-		BIF_undo_push("Make FGon");
+static int make_fgon_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
+
+	if( make_fgon(em, 1) ) {
+		DAG_object_flush_update(CTX_data_scene(C), obedit, OB_RECALC_DATA);	
+	
+		WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+		
+		return OPERATOR_FINISHED;
 	}
+	return OPERATOR_CANCELLED;
+}
+
+void MESH_OT_make_fgon(struct wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Make F-gon";
+	ot->idname= "MESH_OT_make_fgon";
+	
+	/* api callbacks */
+	ot->exec= make_fgon_exec;
+	ot->poll= ED_operator_editmesh;
+}
+
+static int clear_fgon_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
+	
+	if( make_fgon(em, 0) ) {
+		DAG_object_flush_update(CTX_data_scene(C), obedit, OB_RECALC_DATA);	
+		
+		WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+
+		return OPERATOR_FINISHED;
+	}
+	return OPERATOR_CANCELLED;
+}
+
+void MESH_OT_clear_fgon(struct wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Clear F-gon";
+	ot->idname= "MESH_OT_clear_fgon";
+	
+	/* api callbacks */
+	ot->exec= clear_fgon_exec;
+	ot->poll= ED_operator_editmesh;
 }
 
 /* precondition; 4 vertices selected, check for 4 edges and create face */
@@ -410,6 +456,8 @@ static EditFace *addface_from_edges(EditMesh *em)
 	}
 	return NULL;
 }
+
+/* ******************************* */
 
 /* this also allows to prevent triangles being made in quads */
 static int compareface_overlaps(EditFace *vl1, EditFace *vl2)
