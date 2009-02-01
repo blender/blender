@@ -6670,7 +6670,7 @@ void MESH_OT_edge_flip(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int mesh_set_smooth_faces_exec(bContext *C, wmOperator *op)
+static int mesh_faces_shade_smooth_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
@@ -6682,21 +6682,21 @@ static int mesh_set_smooth_faces_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void MESH_OT_mesh_set_smooth_faces(wmOperatorType *ot)
+void MESH_OT_faces_shade_smooth(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Set Smooth Faces";
-	ot->idname= "MESH_OT_mesh_set_smooth_faces";
+	ot->name= "Flat Face Shading";
+	ot->idname= "MESH_OT_faces_shade_smooth";
 	
 	/* api callbacks */
-	ot->exec= mesh_set_smooth_faces_exec;
+	ot->exec= mesh_faces_shade_smooth_exec;
 	ot->poll= ED_operator_editmesh;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int mesh_set_solid_faces_exec(bContext *C, wmOperator *op)
+static int mesh_faces_shade_solid_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
@@ -6708,91 +6708,16 @@ static int mesh_set_solid_faces_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void MESH_OT_mesh_set_solid_faces(wmOperatorType *ot)
+void MESH_OT_faces_shade_solid(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Set Solid Faces";
-	ot->idname= "MESH_OT_mesh_set_solid_faces";
+	ot->name= "Smooth Face Shading";
+	ot->idname= "MESH_OT_faces_shade_solid";
 	
 	/* api callbacks */
-	ot->exec= mesh_set_solid_faces_exec;
+	ot->exec= mesh_faces_shade_solid_exec;
 	ot->poll= ED_operator_editmesh;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-}
-
-static int edit_faces_invoke(bContext *C, wmOperator *op, wmEvent *event)
-{
-	int items;
-	char *menu, *p;
-	
-	items = 8;
-	
-	menu= MEM_callocN(items * OP_MAX_TYPENAME, "string");
-	
-	p= menu + sprintf(menu, "%s %%t", "edit faces");
-	p+= sprintf(p, "|%s %%x%d", "fill faces", 7);
-	p+= sprintf(p, "|%s %%x%d", "beauty fill faces", 6);
-	p+= sprintf(p, "|%s %%x%d", "quads to tris", 5);
-	p+= sprintf(p, "|%s %%x%d", "tris to quads", 4);
-	p+= sprintf(p, "|%s %%x%d", "flip triangle edges", 3);
-	p+= sprintf(p, "|%s %%x%d", "set smooth", 1);
-	p+= sprintf(p, "|%s %%x%d", "set solid", 0);
-	
-	
-	uiPupMenuOperator(C, 20, op, "index", menu);
-	MEM_freeN(menu);
-	
-	return OPERATOR_RUNNING_MODAL;
-}
-
-static int edit_faces_exec(bContext *C, wmOperator *op)
-{	
-	switch(RNA_int_get(op->ptr, "index"))
-		{
-		case 7: /* Fill Faces */
-			fill_mesh_exec(C,op);
-			break;
-		case 6: /* Beauty Fill Faces */
-			beauty_fill_exec(C,op);
-			break;
-		case 5: /* Quads to Tris */
-			convert_quads_to_tris_exec(C,op);
-			break;
-		case 4: /* Tris to Quads */
-			convert_tris_to_quads_exec(C,op);
-			break;
-		case 3: /* Flip triangle edges */
-			edge_flip_exec(C,op);
-			break;
-		case 1: /* Set Smooth */
-			mesh_set_smooth_faces_exec(C,op);
-			break;
-		case 0: /* Set Solid */
-			mesh_set_solid_faces_exec(C,op);
-			break;
-	}
-	
-	return OPERATOR_FINISHED;
-}
-
-void MESH_OT_edit_faces(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "edit faces";
-	ot->idname= "MESH_OT_edit_faces";
-	
-	/* api callbacks */
-	ot->invoke= edit_faces_invoke;
-	ot->exec= edit_faces_exec;
-	
-	ot->poll= ED_operator_editmesh;
-	
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-	
-	/*props */
-	RNA_def_int(ot->srna, "index", 0, 0, INT_MAX, "Index", "", 0, 1000);
-	
 }

@@ -140,8 +140,15 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_add_duplicate);
 	WM_operatortype_append(MESH_OT_removedoublesflag);
 	WM_operatortype_append(MESH_OT_extrude_mesh);
-	WM_operatortype_append(MESH_OT_edit_faces);
 	WM_operatortype_append(MESH_OT_vertices_to_sphere);
+
+	WM_operatortype_append(MESH_OT_fill_mesh);
+	WM_operatortype_append(MESH_OT_beauty_fill);
+	WM_operatortype_append(MESH_OT_convert_quads_to_tris);
+	WM_operatortype_append(MESH_OT_convert_tris_to_quads);
+	WM_operatortype_append(MESH_OT_edge_flip);
+	WM_operatortype_append(MESH_OT_faces_shade_smooth);
+	WM_operatortype_append(MESH_OT_faces_shade_solid);
 
 	WM_operatortype_append(MESH_OT_delete_mesh);
 
@@ -217,7 +224,12 @@ void ED_keymap_mesh(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "MESH_OT_subdivide_smooth", WKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);*/
 	WM_keymap_add_item(keymap, "MESH_OT_removedoublesflag", VKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_extrude_mesh", EKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "MESH_OT_edit_faces", PKEY, KM_PRESS, KM_CTRL, 0);
+	
+	WM_keymap_add_item(keymap, "VIEW3D_OT_editmesh_face_toolbox", FKEY, KM_PRESS, KM_CTRL, 0); /* operators below are in this toolbox */
+	WM_keymap_add_item(keymap, "MESH_OT_fill_mesh", FKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "MESH_OT_beauty_fill", FKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_add_item(keymap, "MESH_OT_convert_quads_to_tris", TKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "MESH_OT_convert_tris_to_quads", JKEY, KM_PRESS, KM_ALT, 0);
 	
 	/* add/remove */
 	WM_keymap_add_item(keymap, "MESH_OT_add_edge_face", FKEY, KM_PRESS, 0, 0);

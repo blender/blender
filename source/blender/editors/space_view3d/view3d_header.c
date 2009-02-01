@@ -5963,3 +5963,33 @@ void view3d_header_buttons(const bContext *C, ARegion *ar)
 }
 
 
+
+/* edit face toolbox */
+static int editmesh_face_toolbox_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	uiMenuItem *head;
+
+	head= uiPupMenuBegin("Edit Faces");
+
+	uiMenuItemO(head, "MESH_OT_fill_mesh", ICON_BLANK1);
+	uiMenuItemO(head, "MESH_OT_beauty_fill", ICON_BLANK1);
+	uiMenuItemO(head, "MESH_OT_convert_quads_to_tris", ICON_BLANK1);
+	uiMenuItemO(head, "MESH_OT_convert_tris_to_quads", ICON_BLANK1);
+	uiMenuItemO(head, "MESH_OT_edge_flip", ICON_BLANK1);
+	uiMenuItemO(head, "MESH_OT_faces_shade_smooth", ICON_BLANK1);
+	uiMenuItemO(head, "MESH_OT_faces_shade_solid", ICON_BLANK1);
+	uiPupMenuEnd(C, head);
+
+	return OPERATOR_CANCELLED;
+}
+
+void VIEW3D_OT_editmesh_face_toolbox(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Edit Faces";
+	ot->idname= "VIEW3D_OT_editmesh_face_toolbox";
+
+	/* api callbacks */
+	ot->invoke= editmesh_face_toolbox_invoke;
+	ot->poll= ED_operator_editmesh;
+}

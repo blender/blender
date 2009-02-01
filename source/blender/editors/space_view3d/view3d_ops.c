@@ -86,6 +86,7 @@ void view3d_operatortypes(void)
 	WM_operatortype_append(VIEW3D_OT_wpaint_toggle);
 	WM_operatortype_append(VIEW3D_OT_vpaint);
 	WM_operatortype_append(VIEW3D_OT_wpaint);
+	WM_operatortype_append(VIEW3D_OT_editmesh_face_toolbox);
 	
 	transform_operatortypes();
 }
