@@ -1587,9 +1587,6 @@ static int sculpt_brush_stroke_exec(bContext *C, wmOperator *op)
 
 static void SCULPT_OT_brush_stroke(wmOperatorType *ot)
 {
-	float vec3f_def[] = {0,0,0};
-	int vec2i_def[] = {0,0};
-
 	ot->flag |= OPTYPE_REGISTER;
 
 	/* identifiers */
@@ -1610,15 +1607,15 @@ static void SCULPT_OT_brush_stroke(wmOperatorType *ot)
 
 	/* If the object has a scaling factor, brushes also need to be scaled
 	   to work as expected. */
-	RNA_def_float_vector(ot->srna, "scale", 3, vec3f_def, 0.0f, FLT_MAX, "Scale", "", 0.0f, 1000.0f);
+	RNA_def_float_vector(ot->srna, "scale", 3, NULL, 0.0f, FLT_MAX, "Scale", "", 0.0f, 1000.0f);
 
 	RNA_def_int(ot->srna, "flag", 0, 0, INT_MAX, "flag", "", 0, INT_MAX);
 
 	/* For mirror modifiers */
-	RNA_def_float_vector(ot->srna, "clip_tolerance", 3, vec3f_def, 0.0f, FLT_MAX, "clip_tolerance", "", 0.0f, 1000.0f);
+	RNA_def_float_vector(ot->srna, "clip_tolerance", 3, NULL, 0.0f, FLT_MAX, "clip_tolerance", "", 0.0f, 1000.0f);
 
 	/* The initial 2D location of the mouse */
-	RNA_def_int_vector(ot->srna, "initial_mouse", 2, vec2i_def, INT_MIN, INT_MAX, "initial_mouse", "", INT_MIN, INT_MAX);
+	RNA_def_int_vector(ot->srna, "initial_mouse", 2, NULL, INT_MIN, INT_MAX, "initial_mouse", "", INT_MIN, INT_MAX);
 
 	/* The initial screen depth of the mouse */
 	RNA_def_float(ot->srna, "depth", 0.0f, 0.0f, FLT_MAX, "depth", "", 0.0f, FLT_MAX);

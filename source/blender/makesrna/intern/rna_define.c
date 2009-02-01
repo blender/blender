@@ -999,7 +999,7 @@ void RNA_def_property_float_default(PropertyRNA *prop, float value)
 			break;
 	}
 }
-
+/* array must remain valid after this function finishes */
 void RNA_def_property_float_array_default(PropertyRNA *prop, const float *array)
 {
 	StructRNA *srna= DefRNA.laststruct;
@@ -1007,7 +1007,7 @@ void RNA_def_property_float_array_default(PropertyRNA *prop, const float *array)
 	switch(prop->type) {
 		case PROP_FLOAT: {
 			FloatPropertyRNA *fprop= (FloatPropertyRNA*)prop;
-			fprop->defaultarray= array;
+			fprop->defaultarray= array; /* WARNING, this array must not come from the stack and lost */
 			break;
 		}
 		default:
