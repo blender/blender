@@ -34,6 +34,7 @@ struct Base;
 struct Bone;
 struct bArmature;
 struct bPoseChannel;
+struct wmWindowManager;
 struct ListBase;
 struct View3D;
 
@@ -85,6 +86,10 @@ typedef struct EditBone
 #define BONE_SELECT_PARENT	0
 #define BONE_SELECT_CHILD	1
 
+/* armature_ops.c */
+void ED_operatortypes_armature(void);
+void ED_keymap_armature(struct wmWindowManager *wm);
+
 /* editarmature.c */
 void ED_armature_from_edit(struct Scene *scene, struct Object *obedit);
 void ED_armature_to_edit(struct Object *ob);
@@ -111,7 +116,6 @@ void ED_armature_exit_posemode(struct Base *base);
 void ED_armature_enter_posemode(struct Base *base);
 int ED_pose_channel_in_IK_chain(struct Object *ob, struct bPoseChannel *pchan);
 void ED_pose_deselectall(struct Object *ob, int test, int doundo);
-
 
 
 #endif /* ED_ARMATURE_H */
