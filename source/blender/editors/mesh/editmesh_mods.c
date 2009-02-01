@@ -3686,25 +3686,12 @@ void mesh_selection_mode_menu(EditMesh *em, int val)
 	}
 }
 
-static int mesh_selection_mode_menu_invoke(bContext *C, wmOperator *op, wmEvent *event)
-{
-	int items;
-	char *menu, *p;
-	
-	items = 3;
-	
-	menu= MEM_callocN(items * OP_MAX_TYPENAME, "string");
-	
-	p= menu + sprintf(menu, "%s %%t", "Selection Mode");
-	p+= sprintf(p, "|%s %%x%d", "Vertices", 1);
-	p+= sprintf(p, "|%s %%x%d", "Edges", 2);
-	p+= sprintf(p, "|%s %%x%d", "Faces", 3);
-	
-	uiPupMenuOperator(C, 20, op, "index", menu);
-	MEM_freeN(menu);
-	
-	return OPERATOR_RUNNING_MODAL;
-}
+static EnumPropertyItem prop_mesh_edit_types[] = {
+	{1, "VERT", "Vertices", ""},
+	{2, "EDGE", "Edges", ""},
+	{3, "FACE", "Faces", ""},
+	{0, NULL, NULL, NULL}
+};
 
 static int mesh_selection_mode_menu_exec(bContext *C, wmOperator *op)
 {		
@@ -3712,21 +3699,21 @@ static int mesh_selection_mode_menu_exec(bContext *C, wmOperator *op)
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
 
-	mesh_selection_mode_menu(em, RNA_int_get(op->ptr,"index"));
+	mesh_selection_mode_menu(em, RNA_enum_get(op->ptr,"type"));
 
 	WM_event_add_notifier(C, NC_WINDOW, obedit);
 
 	return OPERATOR_FINISHED;
 }
 
-void MESH_OT_mesh_selection_mode_menu(wmOperatorType *ot)
+void MESH_OT_mesh_selection_type(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Selection Mode";
-	ot->idname= "MESH_OT_mesh_selection_mode_menu";
+	ot->idname= "MESH_OT_mesh_selection_type";
 	
 	/* api callbacks */
-	ot->invoke= mesh_selection_mode_menu_invoke;
+	ot->invoke= WM_menu_invoke;
 	ot->exec= mesh_selection_mode_menu_exec;
 	
 	ot->poll= ED_operator_editmesh;
@@ -3734,8 +3721,8 @@ void MESH_OT_mesh_selection_mode_menu(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	/*props */
-	RNA_def_int(ot->srna, "index", 1, 0, INT_MAX, "Index", "", 0, 4);
+	/* props */
+	RNA_def_enum(ot->srna, "type", prop_mesh_edit_types, 0, "Type", "Select the mesh selection type");
 	
 }
 /* ************************* SEAMS AND EDGES **************** */

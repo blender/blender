@@ -204,8 +204,14 @@ int WM_menu_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	const EnumPropertyItem *item;
 	int totitem, i, len= strlen(op->type->name) + 8;
 	char *menu, *p;
-	
-	if(prop) {
+
+	if(prop==NULL) {
+		printf("WM_menu_invoke: %s has no \"type\" enum property\n", op->type->idname);
+	}
+	else if (RNA_property_type(op->ptr, prop) != PROP_ENUM) {
+		printf("WM_menu_invoke: %s \"type\" is not an enum property\n", op->type->idname);
+	}
+	else {
 		RNA_property_enum_items(op->ptr, prop, &item, &totitem);
 		
 		for (i=0; i<totitem; i++)

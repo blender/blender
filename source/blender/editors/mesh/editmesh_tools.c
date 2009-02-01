@@ -1096,52 +1096,38 @@ void delete_mesh(Object *obedit, EditMesh *em, int event)
 //	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 }
 
+/* Note, these values must match delete_mesh() event values */
+static EnumPropertyItem prop_mesh_delete_types[] = {
+	{10,"VERT",		"Vertices", ""},
+	{1, "EDGE",		"Edges", ""},
+	{2, "FACE",		"Faces", ""},
+	{3, "ALL",		"All", ""},
+	{4, "EDGE_FACE","Edges & Faces", ""},
+	{5, "ONLY_FACE","Only Faces", ""},
+	{6, "EDGE_LOOP","Edge Loop", ""},
+	{0, NULL, NULL, NULL}
+};
+
 static int delete_mesh_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
 	
-	delete_mesh(obedit,em,RNA_int_get(op->ptr, "event"));
+	delete_mesh(obedit,em,RNA_enum_get(op->ptr, "type"));
 	
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 	
 	return OPERATOR_FINISHED;
 }
 
-static int delete_mesh_invoke(bContext *C, wmOperator *op, wmEvent *event)
-{
-	int items;
-	char *menu, *p;
-	
-	items = 6;
-	
-	menu= MEM_callocN(items * OP_MAX_TYPENAME, "string");
-	
-	p= menu + sprintf(menu, "%s %%t", "Erase");
-	p+= sprintf(p, "|%s %%x%d", "Vertices", 10);
-	p+= sprintf(p, "|%s %%x%d", "Edges", 1);
-	p+= sprintf(p, "|%s %%x%d", "Faces", 2);
-	p+= sprintf(p, "|%s %%x%d", "All", 3);
-	p+= sprintf(p, "|%s %%x%d", "Edges & Faces", 4);
-	p+= sprintf(p, "|%s %%x%d", "Only Faces", 5);
-	p+= sprintf(p, "|%s %%x%d", "Edge Loop", 6);
-	
-	
-	uiPupMenuOperator(C, 20, op, "event", menu);
-	MEM_freeN(menu);
-	
-	return OPERATOR_RUNNING_MODAL;
-}
-
-
 void MESH_OT_delete_mesh(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "delete mesh";
+	ot->name= "Delete Mesh";
 	ot->idname= "MESH_OT_delete_mesh";
 	
 	/* api callbacks */
-	ot->invoke= delete_mesh_invoke;
+	ot->invoke= WM_menu_invoke;
 	ot->exec= delete_mesh_exec;
 	
 	ot->poll= ED_operator_editmesh;
@@ -1150,7 +1136,7 @@ void MESH_OT_delete_mesh(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/*props */
-	RNA_def_int(ot->srna, "event", 0, 0, INT_MAX, "event", "", 0, 1000);
+	RNA_def_enum(ot->srna, "type", prop_mesh_delete_types, 10, "Type", "Method used for deleting mesh data");
 }
 
 /* Got this from scanfill.c. You will need to juggle around the

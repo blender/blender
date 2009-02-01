@@ -114,7 +114,7 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_selectconnected_mesh_all);
 	WM_operatortype_append(MESH_OT_selectconnected_mesh);
 	WM_operatortype_append(MESH_OT_selectrandom_mesh);
-	WM_operatortype_append(MESH_OT_mesh_selection_mode_menu);
+	WM_operatortype_append(MESH_OT_mesh_selection_type);
 	WM_operatortype_append(MESH_OT_hide_mesh);
 	WM_operatortype_append(MESH_OT_reveal_mesh);
 	WM_operatortype_append(MESH_OT_consistant_normals);
