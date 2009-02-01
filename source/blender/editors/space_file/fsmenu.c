@@ -280,7 +280,7 @@ void fsmenu_read_file(const char *filename)
 	}
 #endif
 
-	fp = fopen(filename, "w");
+	fp = fopen(filename, "r");
 	if (!fp) return;
 
 	while ( fgets ( line, 256, fp ) != NULL ) /* read a line */

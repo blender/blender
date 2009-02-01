@@ -370,7 +370,7 @@ static int wm_mainfile_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	sfile= (SpaceFile*)CTX_wm_space_data(C);
 	sfile->op = op;
 	// XXX replace G.sce
-	ED_fileselect_set_params(sfile, FILE_BLENDER, "Load As", G.sce, 0, 0, 0);
+	ED_fileselect_set_params(sfile, FILE_BLENDER, "Load", G.sce, 0, 0, 0);
 
 	/* screen and area have been reset already in ED_screen_full_newspace */
 
