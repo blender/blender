@@ -202,6 +202,7 @@ typedef struct wmNotifier {
 #define NS_EDITMODE_MBALL	(6<<8)
 #define NS_EDITMODE_LATTICE	(7<<8)
 #define NS_EDITMODE_ARMATURE	(8<<8)
+#define NS_POSEMODE			(9<<8)
 
 
 /* action classification */

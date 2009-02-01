@@ -180,6 +180,10 @@ static void view3d_main_area_init(wmWindowManager *wm, ARegion *ar)
 	keymap= WM_keymap_listbase(wm, "Object Non-modal", 0, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 	
+	/* pose is not modal, operator poll checks for this */
+	keymap= WM_keymap_listbase(wm, "Pose", 0, 0);
+	WM_event_add_keymap_handler(&ar->handlers, keymap);
+	
 	/* object modal ops default */
 	keymap= WM_keymap_listbase(wm, "Object Mode", 0, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
@@ -252,6 +256,12 @@ static void view3d_modal_keymaps(wmWindowManager *wm, ARegion *ar, int stype)
 
 	keymap= WM_keymap_listbase(wm, "Curve", 0, 0);
 	if(stype==NS_EDITMODE_CURVE)
+		WM_event_add_keymap_handler(&ar->handlers, keymap);
+	else
+		WM_event_remove_keymap_handler(&ar->handlers, keymap);
+	
+	keymap= WM_keymap_listbase(wm, "Armature", 0, 0);
+	if(stype==NS_EDITMODE_ARMATURE)
 		WM_event_add_keymap_handler(&ar->handlers, keymap);
 	else
 		WM_event_remove_keymap_handler(&ar->handlers, keymap);

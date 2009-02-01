@@ -112,8 +112,8 @@ void unique_editbone_name (ListBase *edbo, char *name);
 void undo_push_armature(struct bContext *C, char *name);
 
 /* poseobject.c */
-void ED_armature_exit_posemode(struct Base *base);
-void ED_armature_enter_posemode(struct Base *base);
+void ED_armature_exit_posemode(struct bContext *C, struct Base *base);
+void ED_armature_enter_posemode(struct bContext *C, struct Base *base);
 int ED_pose_channel_in_IK_chain(struct Object *ob, struct bPoseChannel *pchan);
 void ED_pose_deselectall(struct Object *ob, int test, int doundo);
 

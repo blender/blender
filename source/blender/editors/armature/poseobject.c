@@ -67,6 +67,12 @@
 #include "BIF_transform.h" /* for autokey TFM_TRANSLATION, etc */
 #include "BIF_gl.h"
 
+#include "RNA_access.h"
+#include "RNA_define.h"
+
+#include "WM_api.h"
+#include "WM_types.h"
+
 #include "ED_armature.h"
 #include "ED_anim_api.h"
 #include "ED_keyframing.h"
@@ -108,7 +114,7 @@ void set_pose_keys (Object *ob)
 	}
 }
 
-void ED_armature_enter_posemode(Base *base)
+void ED_armature_enter_posemode(bContext *C, Base *base)
 {
 	Object *ob= base->object;
 	
@@ -123,21 +129,24 @@ void ED_armature_enter_posemode(Base *base)
 			ob->flag |= OB_POSEMODE;
 			base->flag= ob->flag;
 			
+			WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_POSEMODE, NULL);
+			
 			break;
 		default:
 			return;
 	}
-	// XXX
-	G.f &= ~(G_VERTEXPAINT | G_TEXTUREPAINT | G_WEIGHTPAINT | G_SCULPTMODE);
+	ED_view3d_exit_paint_modes(C);
 }
 
-void ED_armature_exit_posemode(Base *base)
+void ED_armature_exit_posemode(bContext *C, Base *base)
 {
 	if(base) {
 		Object *ob= base->object;
 		
 		ob->flag &= ~OB_POSEMODE;
 		base->flag= ob->flag;
+		
+		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_MODE_OBJECT, NULL);
 	}	
 }
 

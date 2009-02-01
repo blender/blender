@@ -5338,7 +5338,7 @@ static void do_view3d_buttons(bContext *C, void *arg, int event)
 			
 			v3d->flag &= ~V3D_MODE;
 			ED_view3d_exit_paint_modes(C);
-			ED_armature_exit_posemode(basact);
+			ED_armature_exit_posemode(C, basact);
 			if(obedit) 
 				ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);	/* exit editmode and undo */
 		} 
@@ -5394,7 +5394,7 @@ static void do_view3d_buttons(bContext *C, void *arg, int event)
 				if(obedit) 
 					ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);	/* exit editmode and undo */
 				
-				ED_armature_enter_posemode(basact);
+				ED_armature_enter_posemode(C, basact);
 			}
 		}
 		else if(v3d->modeselect == V3D_PARTICLEEDITMODE_SEL){

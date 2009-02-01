@@ -1098,7 +1098,6 @@ static void mouse_select(bContext *C, short *mval, short extend, short obcenter)
 		else if (BASE_SELECTABLE(v3d, basact)) {
 
 			oldbasact= BASACT;
-			BASACT= basact;
 			
 			if(!extend) {
 				deselectall_except(scene, basact);
@@ -1120,10 +1119,8 @@ static void mouse_select(bContext *C, short *mval, short extend, short obcenter)
 			}
 
 			WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, scene);
-			
 		}
 	}
-
 }
 
 /* ********************  border and circle ************************************** */

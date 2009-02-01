@@ -29,10 +29,14 @@
 #define ED_ARMATURE_INTERN_H
 
 /* internal exports only */
+struct wmOperatorType;
 
+/* editarmature.c */
 void armature_bone_rename(Object *ob, char *oldnamep, char *newnamep);
 EditBone *armature_bone_get_mirrored(ListBase *edbo, EditBone *ebo);
 
+void POSE_OT_hide(struct wmOperatorType *ot);
+void POSE_OT_reveil(struct wmOperatorType *ot);
 
 
 #endif /* ED_ARMATURE_INTERN_H */

@@ -64,20 +64,25 @@
 /* Both operators ARMATURE_OT_xxx and POSE_OT_xxx here */
 void ED_operatortypes_armature(void)
 {
-//	WM_operatortype_append(POSE_OT_pose_hide);
+	WM_operatortype_append(POSE_OT_hide);
+	WM_operatortype_append(POSE_OT_reveil);
 }
 
 void ED_keymap_armature(wmWindowManager *wm)
 {
 	ListBase *keymap= WM_keymap_listbase(wm, "Armature", 0, 0);
+	wmKeymapItem *kmi;
 	
 	/* only set in editmode armature, by space_view3d listener */
-	WM_keymap_add_item(keymap, "ARMATURE_OT_hide", HKEY, KM_PRESS, 0, 0);
+//	WM_keymap_add_item(keymap, "ARMATURE_OT_hide", HKEY, KM_PRESS, 0, 0);
 
 	/* only set in posemode, by space_view3d listener */
 	keymap= WM_keymap_listbase(wm, "Pose", 0, 0);
 	
-	WM_keymap_add_item(keymap, "POSE_OT_pose_hide", HKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "POSE_OT_hide", HKEY, KM_PRESS, 0, 0);
+	kmi= WM_keymap_add_item(keymap, "POSE_OT_hide", HKEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_boolean_set(kmi->ptr, "invert", 1);
+	WM_keymap_add_item(keymap, "POSE_OT_reveil", HKEY, KM_PRESS, KM_ALT, 0);
 
 }
 
