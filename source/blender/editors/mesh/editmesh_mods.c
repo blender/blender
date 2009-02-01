@@ -3305,7 +3305,7 @@ void MESH_OT_select_non_manifold(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-void selectswap_mesh(EditMesh *em) /* UI level */
+static void selectswap_mesh(EditMesh *em) /* UI level */
 {
 	EditVert *eve;
 	EditEdge *eed;
@@ -3555,7 +3555,7 @@ void MESH_OT_select_less(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-void selectrandom_mesh(EditMesh *em, int randfac) /* randomly selects a user-set % of vertices/edges/faces */
+static void selectrandom_mesh(EditMesh *em, int randfac) /* randomly selects a user-set % of vertices/edges/faces */
 {
 	EditVert *eve;
 	EditEdge *eed;
@@ -3654,7 +3654,7 @@ void editmesh_deselect_by_material(EditMesh *em, int index)
 	EM_selectmode_flush(em);
 }
 
-void mesh_selection_mode_menu(EditMesh *em, int val)
+static void mesh_selection_type(EditMesh *em, int val)
 {
 	int ctrl= 0; // XXX
 	
@@ -3693,13 +3693,13 @@ static EnumPropertyItem prop_mesh_edit_types[] = {
 	{0, NULL, NULL, NULL}
 };
 
-static int mesh_selection_mode_menu_exec(bContext *C, wmOperator *op)
+static int mesh_selection_type_exec(bContext *C, wmOperator *op)
 {		
 	
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
 
-	mesh_selection_mode_menu(em, RNA_enum_get(op->ptr,"type"));
+	mesh_selection_type(em, RNA_enum_get(op->ptr,"type"));
 
 	WM_event_add_notifier(C, NC_WINDOW, obedit);
 
@@ -3714,7 +3714,7 @@ void MESH_OT_mesh_selection_type(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
-	ot->exec= mesh_selection_mode_menu_exec;
+	ot->exec= mesh_selection_type_exec;
 	
 	ot->poll= ED_operator_editmesh;
 	

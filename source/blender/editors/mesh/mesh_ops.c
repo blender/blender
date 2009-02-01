@@ -197,7 +197,7 @@ void ED_keymap_mesh(wmWindowManager *wm)
 	
 	/* selection mode */
 	
-	WM_keymap_add_item(keymap, "MESH_OT_mesh_selection_mode_menu", TABKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "MESH_OT_mesh_selection_type", TABKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0);
 	
 	
 	/* transform keymap already defined, so no tweaks for select */
