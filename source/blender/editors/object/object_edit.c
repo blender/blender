@@ -1647,10 +1647,10 @@ static int object_select_random_exec(bContext *C, wmOperator *op)
 {	
 	float percent;
 	
-	percent = RNA_float_get(op->ptr, "percent");
+	percent = RNA_float_get(op->ptr, "percent") / 100.0f;
 		
 	CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
-		if ((!base->flag & SELECT && (BLI_frand() * 100) < percent)) {
+		if ((!base->flag & SELECT && BLI_frand() < percent)) {
 				ED_base_object_select(base, BA_SELECT);
 		}
 	}
@@ -1675,7 +1675,7 @@ void OBJECT_OT_select_random(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	RNA_def_float(ot->srna, "percent", 50.0f, 0.0f, FLT_MAX, "Percent", "1", 0.01f, 100.0f);
+	RNA_def_float(ot->srna, "percent", 50.0f, 0.0f, 100.0f, "Percent", "percentage of objects to randomly select", 0.01f, 100.0f);
 }
 
 /* ******** Clear object Translation *********** */

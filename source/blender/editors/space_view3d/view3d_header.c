@@ -5971,7 +5971,7 @@ static int editmesh_face_toolbox_invoke(bContext *C, wmOperator *op, wmEvent *ev
 
 	head= uiPupMenuBegin("Edit Faces");
 
-	uiMenuItemO(head, "MESH_OT_fill_mesh", ICON_BLANK1);
+	uiMenuItemO(head, "MESH_OT_fill", ICON_BLANK1);
 	uiMenuItemO(head, "MESH_OT_beauty_fill", ICON_BLANK1);
 	uiMenuItemO(head, "MESH_OT_convert_quads_to_tris", ICON_BLANK1);
 	uiMenuItemO(head, "MESH_OT_convert_tris_to_quads", ICON_BLANK1);

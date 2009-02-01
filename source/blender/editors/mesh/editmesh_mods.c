@@ -2251,7 +2251,7 @@ void selectconnected_mesh_all(EditMesh *em)
 //	if (EM_texFaceCheck())
 }
 
-static int selectconnected_mesh_all_exec(bContext *C, wmOperator *op)
+static int select_linked_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
@@ -2262,14 +2262,14 @@ static int selectconnected_mesh_all_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;	
 }
 
-void MESH_OT_selectconnected_mesh_all(wmOperatorType *ot)
+void MESH_OT_select_linked(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select All of the Connected Mesh";
-	ot->idname= "MESH_OT_selectconnected_mesh_all";
+	ot->idname= "MESH_OT_select_linked";
 	
 	/* api callbacks */
-	ot->exec= selectconnected_mesh_all_exec;
+	ot->exec= select_linked_exec;
 	ot->poll= ED_operator_editmesh;
 	
 	/* flags */
@@ -2280,7 +2280,7 @@ void MESH_OT_selectconnected_mesh_all(wmOperatorType *ot)
 /* *********** select connected ************* */
 
 // XXX should we use CTX_scene(C)->selectmode & SCE_SELECT_FACE like it was in the past ? calls selectconnected_delimit_mesh if true
-static int selectconnected_mesh_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int select_linked_pick_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	Object *obedit= CTX_data_edit_object(C);
 	ViewContext vc;
@@ -2358,14 +2358,14 @@ static int selectconnected_mesh_invoke(bContext *C, wmOperator *op, wmEvent *eve
 	return OPERATOR_FINISHED;	
 }
 
-void MESH_OT_selectconnected_mesh(wmOperatorType *ot)
+void MESH_OT_select_linked_pick(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select Connected Mesh";
-	ot->idname= "MESH_OT_selectconnected_mesh";
+	ot->idname= "MESH_OT_select_linked_pick";
 	
 	/* api callbacks */
-	ot->invoke= selectconnected_mesh_invoke;
+	ot->invoke= select_linked_pick_invoke;
 	ot->poll= ED_operator_editmesh;
 	
 	/* flags */
@@ -2599,11 +2599,11 @@ static int hide_mesh_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;	
 }
 
-void MESH_OT_hide_mesh(wmOperatorType *ot)
+void MESH_OT_hide(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Hide vertice or Hide All of the Mesh";
-	ot->idname= "MESH_OT_hide_mesh";
+	ot->idname= "MESH_OT_hide";
 	
 	/* api callbacks */
 	ot->exec= hide_mesh_exec;
@@ -2663,11 +2663,11 @@ static int reveal_mesh_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;	
 }
 
-void MESH_OT_reveal_mesh(wmOperatorType *ot)
+void MESH_OT_reveal(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Reveal the Mesh";
-	ot->idname= "MESH_OT_reveal_mesh";
+	ot->idname= "MESH_OT_reveal";
 	
 	/* api callbacks */
 	ot->exec= reveal_mesh_exec;
@@ -3352,11 +3352,11 @@ static int selectswap_mesh_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;	
 }
 
-void MESH_OT_selectswap_mesh(wmOperatorType *ot)
+void MESH_OT_select_invert(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select Swap";
-	ot->idname= "MESH_OT_selectswap_mesh";
+	ot->idname= "MESH_OT_select_invert";
 	
 	/* api callbacks */
 	ot->exec= selectswap_mesh_exec;
@@ -3555,12 +3555,12 @@ void MESH_OT_select_less(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static void selectrandom_mesh(EditMesh *em, int randfac) /* randomly selects a user-set % of vertices/edges/faces */
+static void selectrandom_mesh(EditMesh *em, float perc) /* randomly selects a user-set % of vertices/edges/faces */
 {
 	EditVert *eve;
 	EditEdge *eed;
 	EditFace *efa;
-
+	float randfac= perc/100.0f;
 	/* Get the percentage of vertices to randomly select as 'randfac' */
 // XXX	if(button(&randfac,0, 100,"Percentage:")==0) return;
 
@@ -3569,7 +3569,7 @@ static void selectrandom_mesh(EditMesh *em, int randfac) /* randomly selects a u
 	if(em->selectmode & SCE_SELECT_VERTEX) {
 		for(eve= em->verts.first; eve; eve= eve->next) {
 			if(eve->h==0) {
-				if ( (BLI_frand() * 100) < randfac) 
+				if (BLI_frand() < randfac) 
 					eve->f |= SELECT;
 			}
 		}
@@ -3578,7 +3578,7 @@ static void selectrandom_mesh(EditMesh *em, int randfac) /* randomly selects a u
 	else if(em->selectmode & SCE_SELECT_EDGE) {
 		for(eed= em->edges.first; eed; eed= eed->next) {
 			if(eed->h==0) {
-				if ( (BLI_frand() * 100) < randfac) 
+				if (BLI_frand() < randfac) 
 					EM_select_edge(eed, 1);
 			}
 		}
@@ -3587,7 +3587,7 @@ static void selectrandom_mesh(EditMesh *em, int randfac) /* randomly selects a u
 	else {
 		for(efa= em->faces.first; efa; efa= efa->next) {
 			if(efa->h==0) {
-				if ( (BLI_frand() * 100) < randfac) 
+				if (BLI_frand() < randfac) 
 					EM_select_face(efa, 1);
 			}
 		}
@@ -3597,35 +3597,33 @@ static void selectrandom_mesh(EditMesh *em, int randfac) /* randomly selects a u
 //	if (EM_texFaceCheck())
 }
 
-static int selectrandom_mesh_exec(bContext *C, wmOperator *op)
+static int mesh_select_random_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
 	
-	selectrandom_mesh(em, RNA_int_get(op->ptr,"percentage"));
+	selectrandom_mesh(em, RNA_float_get(op->ptr,"percent"));
 		
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 	
 	return OPERATOR_FINISHED;	
 }
 
-void MESH_OT_selectrandom_mesh(wmOperatorType *ot)
+void MESH_OT_select_random(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select random mesh";
-	ot->idname= "MESH_OT_selectrandom_mesh";
-	
+	ot->name= "Select Random";
+	ot->idname= "MESH_OT_select_random";
+
 	/* api callbacks */
-	ot->exec= selectrandom_mesh_exec;
+	ot->exec= mesh_select_random_exec;
 	ot->poll= ED_operator_editmesh;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
 	
 	/* props */
-
-	
-	RNA_def_int(ot->srna, "percentage", 50, 0, 100, "Percentage", "", 0, 100);
+	RNA_def_float(ot->srna, "percent", 50.0f, 0.0f, 100.0f, "Percent", "percentage of mesh data to randomly select", 0.01f, 100.0f);
 }
 
 void editmesh_select_by_material(EditMesh *em, int index) 
@@ -3706,11 +3704,11 @@ static int mesh_selection_type_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void MESH_OT_mesh_selection_type(wmOperatorType *ot)
+void MESH_OT_selection_type(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Selection Mode";
-	ot->idname= "MESH_OT_mesh_selection_type";
+	ot->idname= "MESH_OT_selection_type";
 	
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
@@ -4538,7 +4536,7 @@ void vertexnoise(Object *obedit, EditMesh *em)
 
 }
 
-void vertices_to_sphere(Scene *scene, View3D *v3d, Object *obedit, EditMesh *em, int perc)
+static void vertices_to_sphere(Scene *scene, View3D *v3d, Object *obedit, EditMesh *em, float perc)
 {
 	EditVert *eve;
 	float *curs, len, vec[3], cent[3], fac, facm, imat[3][3], bmat[3][3];
@@ -4546,8 +4544,8 @@ void vertices_to_sphere(Scene *scene, View3D *v3d, Object *obedit, EditMesh *em,
 	
 // XXX	if(button(&perc, 1, 100, "Percentage:")==0) return;
 	
-	fac= perc/100.0;
-	facm= 1.0-fac;
+	fac= perc/100.0f;
+	facm= 1.0f-fac;
 	
 	Mat3CpyMat4(bmat, obedit->obmat);
 	Mat3Inv(imat, bmat);
@@ -4602,7 +4600,7 @@ static int vertices_to_sphere_exec(bContext *C, wmOperator *op)
 	Scene *scene = CTX_data_scene(C);
 	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
 	
-	vertices_to_sphere(scene, v3d, obedit, em, RNA_int_get(op->ptr,"percentage"));
+	vertices_to_sphere(scene, v3d, obedit, em, RNA_float_get(op->ptr,"percent"));
 		
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 	
@@ -4623,7 +4621,5 @@ void MESH_OT_vertices_to_sphere(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
 	
 	/* props */
-
-	
-	RNA_def_int(ot->srna, "percentage", 100, 0, 100, "Percentage", "", 0, 100);
+	RNA_def_float(ot->srna, "percent", 100.0f, 0.0f, 100.0f, "Percent", "DOC_BROKEN", 0.01f, 100.0f);
 }

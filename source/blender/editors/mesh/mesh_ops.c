@@ -109,14 +109,14 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_de_select_all);
 	WM_operatortype_append(MESH_OT_select_more);
 	WM_operatortype_append(MESH_OT_select_less);
-	WM_operatortype_append(MESH_OT_selectswap_mesh);
+	WM_operatortype_append(MESH_OT_select_invert);
 	WM_operatortype_append(MESH_OT_select_non_manifold);
-	WM_operatortype_append(MESH_OT_selectconnected_mesh_all);
-	WM_operatortype_append(MESH_OT_selectconnected_mesh);
-	WM_operatortype_append(MESH_OT_selectrandom_mesh);
-	WM_operatortype_append(MESH_OT_mesh_selection_type);
-	WM_operatortype_append(MESH_OT_hide_mesh);
-	WM_operatortype_append(MESH_OT_reveal_mesh);
+	WM_operatortype_append(MESH_OT_select_linked);
+	WM_operatortype_append(MESH_OT_select_linked_pick);
+	WM_operatortype_append(MESH_OT_select_random);
+	WM_operatortype_append(MESH_OT_selection_type);
+	WM_operatortype_append(MESH_OT_hide);
+	WM_operatortype_append(MESH_OT_reveal);
 	WM_operatortype_append(MESH_OT_consistant_normals);
 	WM_operatortype_append(MESH_OT_subdivide);
 	WM_operatortype_append(MESH_OT_subdivide_multi);
@@ -139,10 +139,10 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_make_fgon);
 	WM_operatortype_append(MESH_OT_add_duplicate);
 	WM_operatortype_append(MESH_OT_removedoublesflag);
-	WM_operatortype_append(MESH_OT_extrude_mesh);
+	WM_operatortype_append(MESH_OT_extrude);
 	WM_operatortype_append(MESH_OT_vertices_to_sphere);
 
-	WM_operatortype_append(MESH_OT_fill_mesh);
+	WM_operatortype_append(MESH_OT_fill);
 	WM_operatortype_append(MESH_OT_beauty_fill);
 	WM_operatortype_append(MESH_OT_convert_quads_to_tris);
 	WM_operatortype_append(MESH_OT_convert_tris_to_quads);
@@ -150,7 +150,7 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_faces_shade_smooth);
 	WM_operatortype_append(MESH_OT_faces_shade_solid);
 
-	WM_operatortype_append(MESH_OT_delete_mesh);
+	WM_operatortype_append(MESH_OT_delete);
 
 	WM_operatortype_append(MESH_OT_separate);
 	WM_operatortype_append(MESH_OT_dupli_extrude_cursor);
@@ -184,17 +184,17 @@ void ED_keymap_mesh(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "MESH_OT_de_select_all", AKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_select_more", PADPLUSKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_select_less", PADMINUS, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_add_item(keymap, "MESH_OT_selectswap_mesh", IKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "MESH_OT_select_invert", IKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_select_non_manifold", MKEY, KM_PRESS, (KM_CTRL|KM_SHIFT|KM_ALT), 0);
 	
-	WM_keymap_add_item(keymap, "MESH_OT_selectconnected_mesh_all", LKEY, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_add_item(keymap, "MESH_OT_selectconnected_mesh", LKEY, KM_PRESS, 0, 0);
-	RNA_boolean_set(WM_keymap_add_item(keymap, "MESH_OT_selectconnected_mesh", LKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "deselect", 1);
+	WM_keymap_add_item(keymap, "MESH_OT_select_linked", LKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "MESH_OT_select_linked_pick", LKEY, KM_PRESS, 0, 0);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "MESH_OT_select_linked_pick", LKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "deselect", 1);
 	
 	RNA_float_set(WM_keymap_add_item(keymap, "MESH_OT_select_linked_flat_faces", FKEY, KM_PRESS, (KM_CTRL|KM_SHIFT|KM_ALT), 0)->ptr,"sharpness",135.0);
 	RNA_float_set(WM_keymap_add_item(keymap, "MESH_OT_select_sharp_edges", SKEY, KM_PRESS, (KM_CTRL|KM_SHIFT|KM_ALT), 0)->ptr,"sharpness",135.0);
 	
-	WM_keymap_add_item(keymap, "MESH_OT_selectrandom_mesh", SPACEKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "MESH_OT_select_random", SPACEKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_vertices_to_sphere", SKEY, KM_PRESS, KM_CTRL|KM_SHIFT , 0);
 	
 	/* temp hotkeys! */
@@ -204,15 +204,15 @@ void ED_keymap_mesh(wmWindowManager *wm)
 	
 	/* selection mode */
 	
-	WM_keymap_add_item(keymap, "MESH_OT_mesh_selection_type", TABKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "MESH_OT_selection_type", TABKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0);
 	
 	
 	/* transform keymap already defined, so no tweaks for select */
 	
 	/* hide */
-	WM_keymap_add_item(keymap, "MESH_OT_hide_mesh", HKEY, KM_PRESS, 0, 0);
-	RNA_boolean_set(WM_keymap_add_item(keymap, "MESH_OT_hide_mesh", HKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "swap", 1);
-	WM_keymap_add_item(keymap, "MESH_OT_reveal_mesh", HKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_add_item(keymap, "MESH_OT_hide", HKEY, KM_PRESS, 0, 0);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "MESH_OT_hide", HKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "swap", 1);
+	WM_keymap_add_item(keymap, "MESH_OT_reveal", HKEY, KM_PRESS, KM_ALT, 0);
 	
 	/* tools */
 	WM_keymap_add_item(keymap, "MESH_OT_consistant_normals", NKEY, KM_PRESS, KM_CTRL, 0);
@@ -223,10 +223,10 @@ void ED_keymap_mesh(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "MESH_OT_subdivide_multi_fractal", WKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_subdivide_smooth", WKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);*/
 	WM_keymap_add_item(keymap, "MESH_OT_removedoublesflag", VKEY, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_add_item(keymap, "MESH_OT_extrude_mesh", EKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "MESH_OT_extrude", EKEY, KM_PRESS, 0, 0);
 	
 	WM_keymap_add_item(keymap, "VIEW3D_OT_editmesh_face_toolbox", FKEY, KM_PRESS, KM_CTRL, 0); /* operators below are in this toolbox */
-	WM_keymap_add_item(keymap, "MESH_OT_fill_mesh", FKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "MESH_OT_fill", FKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_beauty_fill", FKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_convert_quads_to_tris", TKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_convert_tris_to_quads", JKEY, KM_PRESS, KM_ALT, 0);
@@ -238,7 +238,7 @@ void ED_keymap_mesh(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "MESH_OT_separate", PKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_dupli_extrude_cursor", LEFTMOUSE, KM_PRESS, KM_CTRL, 0);
 	
-	WM_keymap_add_item(keymap, "MESH_OT_delete_mesh", XKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "MESH_OT_delete", XKEY, KM_PRESS, 0, 0);
 	
 	WM_keymap_add_item(keymap, "MESH_OT_make_fgon", FKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_clear_fgon", FKEY, KM_PRESS, KM_SHIFT|KM_ALT, 0);

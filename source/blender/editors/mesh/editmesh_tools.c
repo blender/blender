@@ -691,7 +691,7 @@ void extrude_mesh(Object *obedit, EditMesh *em)
 }
 
 // XXX should be a menu item
-static int extrude_mesh_exec(bContext *C, wmOperator *op)
+static int mesh_extrude_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
@@ -703,14 +703,14 @@ static int extrude_mesh_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;	
 }
 
-void MESH_OT_extrude_mesh(wmOperatorType *ot)
+void MESH_OT_extrude(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Extrude Mesh";
-	ot->idname= "MESH_OT_extrude_mesh";
+	ot->idname= "MESH_OT_extrude";
 	
 	/* api callbacks */
-	ot->exec= extrude_mesh_exec;
+	ot->exec= mesh_extrude_exec;
 	ot->poll= ED_operator_editmesh;
 	
 	/* flags */
@@ -1120,11 +1120,11 @@ static int delete_mesh_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void MESH_OT_delete_mesh(wmOperatorType *ot)
+void MESH_OT_delete(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Delete Mesh";
-	ot->idname= "MESH_OT_delete_mesh";
+	ot->idname= "MESH_OT_delete";
 	
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
@@ -6552,11 +6552,11 @@ static int fill_mesh_exec(bContext *C, wmOperator *op)
 	
 }
 
-void MESH_OT_fill_mesh(wmOperatorType *ot)
+void MESH_OT_fill(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Fill Mesh";
-	ot->idname= "MESH_OT_fill_mesh";
+	ot->idname= "MESH_OT_fill";
 	
 	/* api callbacks */
 	ot->exec= fill_mesh_exec;
