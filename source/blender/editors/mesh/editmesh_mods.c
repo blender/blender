@@ -3654,9 +3654,9 @@ void editmesh_deselect_by_material(EditMesh *em, int index)
 	EM_selectmode_flush(em);
 }
 
-void EM_selectmode_menu(EditMesh *em)
+void mesh_selection_mode_menu(EditMesh *em, int val)
 {
-	int val, ctrl= 0; // XXX
+	int ctrl= 0; // XXX
 	
 //	if(em->selectmode & SCE_SELECT_VERTEX) pupmenu_set_active(1);
 //	else if(em->selectmode & SCE_SELECT_EDGE) pupmenu_set_active(2);
@@ -3686,6 +3686,58 @@ void EM_selectmode_menu(EditMesh *em)
 	}
 }
 
+static int mesh_selection_mode_menu_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	int items;
+	char *menu, *p;
+	
+	items = 3;
+	
+	menu= MEM_callocN(items * OP_MAX_TYPENAME, "string");
+	
+	p= menu + sprintf(menu, "%s %%t", "Selection Mode");
+	p+= sprintf(p, "|%s %%x%d", "Vertices", 1);
+	p+= sprintf(p, "|%s %%x%d", "Edges", 2);
+	p+= sprintf(p, "|%s %%x%d", "Faces", 3);
+	
+	uiPupMenuOperator(C, 20, op, "index", menu);
+	MEM_freeN(menu);
+	
+	return OPERATOR_RUNNING_MODAL;
+}
+
+static int mesh_selection_mode_menu_exec(bContext *C, wmOperator *op)
+{		
+	
+	Object *obedit= CTX_data_edit_object(C);
+	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
+
+	mesh_selection_mode_menu(em, RNA_int_get(op->ptr,"index"));
+
+	WM_event_add_notifier(C, NC_WINDOW, obedit);
+
+	return OPERATOR_FINISHED;
+}
+
+void MESH_OT_mesh_selection_mode_menu(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Selection Mode";
+	ot->idname= "MESH_OT_mesh_selection_mode_menu";
+	
+	/* api callbacks */
+	ot->invoke= mesh_selection_mode_menu_invoke;
+	ot->exec= mesh_selection_mode_menu_exec;
+	
+	ot->poll= ED_operator_editmesh;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/*props */
+	RNA_def_int(ot->srna, "index", 1, 0, INT_MAX, "Index", "", 0, 4);
+	
+}
 /* ************************* SEAMS AND EDGES **************** */
 
 void editmesh_mark_seam(EditMesh *em, int clear)

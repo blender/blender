@@ -114,6 +114,7 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_selectconnected_mesh_all);
 	WM_operatortype_append(MESH_OT_selectconnected_mesh);
 	WM_operatortype_append(MESH_OT_selectrandom_mesh);
+	WM_operatortype_append(MESH_OT_mesh_selection_mode_menu);
 	WM_operatortype_append(MESH_OT_hide_mesh);
 	WM_operatortype_append(MESH_OT_reveal_mesh);
 	WM_operatortype_append(MESH_OT_consistant_normals);
@@ -193,6 +194,10 @@ void ED_keymap_mesh(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "MESH_OT_similar_vertex_select", GKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_similar_edge_select", GKEY, KM_PRESS, KM_SHIFT2|KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_similar_face_select", GKEY, KM_PRESS, KM_SHIFT|KM_CTRL2, 0);
+	
+	/* selection mode */
+	
+	WM_keymap_add_item(keymap, "MESH_OT_mesh_selection_mode_menu", TABKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0);
 	
 	
 	/* transform keymap already defined, so no tweaks for select */
