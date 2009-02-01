@@ -1321,15 +1321,8 @@ static int repeat_last_exec(bContext *C, wmOperator *op)
 {
 	wmOperator *lastop= CTX_wm_manager(C)->operators.last;
 	
-	if(lastop) {
-		if(lastop->type->poll==NULL || lastop->type->poll(C)) {
-			if(lastop->type->exec) {
-				printf("repeat %s\n", lastop->type->idname);
-				lastop->type->exec(C, lastop);
-				return OPERATOR_FINISHED;
-			}
-		}
-	}
+	if(lastop)
+		WM_operator_repeat(C, lastop);
 	
 	return OPERATOR_CANCELLED;
 }
@@ -1380,10 +1373,7 @@ static int repeat_history_exec(bContext *C, wmOperator *op)
 		BLI_remlink(&wm->operators, op);
 		BLI_addtail(&wm->operators, op);
 		
-		if(op->type->poll==NULL || op->type->poll(C)) {
-			printf("repeat %s\n", op->type->idname);
-			op->type->exec(C, op);
-		}
+		WM_operator_repeat(C, op);
 	}
 					 
 	return OPERATOR_FINISHED;

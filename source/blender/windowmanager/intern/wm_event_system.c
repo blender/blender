@@ -196,21 +196,20 @@ void wm_event_do_notifiers(bContext *C)
 
 /* ********************* operators ******************* */
 
-static void WM_operator_print(wmOperator *op)
-{
-	char *buf = WM_operator_pystring(op);
-	printf("%s\n", buf);
-	MEM_freeN(buf);
-}
-
-/* for running operators with frozen context (modal handlers, menus) */
-int WM_operator_call(bContext *C, wmOperator *op)
+/* if repeat is true, it doesn't register again, nor does it free */
+static int wm_operator_exec(bContext *C, wmOperator *op, int repeat)
 {
 	int retval= OPERATOR_CANCELLED;
 	
+	if(op==NULL || op->type==NULL)
+		return retval;
+	
+	if(op->type->poll && op->type->poll(C)==0)
+		return retval;
+	
 	if(op->type->exec)
 		retval= op->type->exec(C, op);
-
+	
 	if(!(retval & OPERATOR_RUNNING_MODAL))
 		if(op->reports->list.first)
 			uiPupMenuReports(C, op->reports);
@@ -219,17 +218,31 @@ int WM_operator_call(bContext *C, wmOperator *op)
 		if(op->type->flag & OPTYPE_UNDO)
 			ED_undo_push_op(C, op);
 		
-		if(op->type->flag & OPTYPE_REGISTER)
-			wm_operator_register(CTX_wm_manager(C), op);
-		else
-			WM_operator_free(op);
+		if(repeat==0) {
+			if(op->type->flag & OPTYPE_REGISTER)
+				wm_operator_register(CTX_wm_manager(C), op);
+			else
+				WM_operator_free(op);
+		}
 	}
-	else
+	else if(repeat==0)
 		WM_operator_free(op);
-
+	
 	return retval;
+	
 }
 
+/* for running operators with frozen context (modal handlers, menus) */
+int WM_operator_call(bContext *C, wmOperator *op)
+{
+	return wm_operator_exec(C, op, 0);
+}
+
+/* do this operator again, put here so it can share above code */
+int WM_operator_repeat(bContext *C, wmOperator *op)
+{
+	return wm_operator_exec(C, op, 1);
+}
 
 static wmOperator *wm_operator_create(wmWindowManager *wm, wmOperatorType *ot, PointerRNA *properties, ReportList *reports)
 {
@@ -262,6 +275,13 @@ static wmOperator *wm_operator_create(wmWindowManager *wm, wmOperatorType *ot, P
 	return op;
 }
 
+static void wm_operator_print(wmOperator *op)
+{
+	char *buf = WM_operator_pystring(op);
+	printf("%s\n", buf);
+	MEM_freeN(buf);
+}
+
 static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, PointerRNA *properties)
 {
 	wmWindowManager *wm= CTX_wm_manager(C);
@@ -284,9 +304,9 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, P
 			if(op->reports->list.first) /* only show the report if the report list was not given in the function */
 				uiPupMenuReports(C, op->reports);
 		
-		if (retval & OPERATOR_FINISHED) /* todo - this may conflict with the other WM_operator_print, if theres ever 2 prints for 1 action will may need to add modal check here */
+		if (retval & OPERATOR_FINISHED) /* todo - this may conflict with the other wm_operator_print, if theres ever 2 prints for 1 action will may need to add modal check here */
 			if(G.f & G_DEBUG)
-				WM_operator_print(op);
+				wm_operator_print(op);
 		}
 
 		if(retval & OPERATOR_FINISHED) {
@@ -581,7 +601,7 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 
 			if (retval & OPERATOR_FINISHED) {
 				if(G.f & G_DEBUG)
-					WM_operator_print(op); /* todo - this print may double up, might want to check more flags then the FINISHED */
+					wm_operator_print(op); /* todo - this print may double up, might want to check more flags then the FINISHED */
 			}			
 
 			if(retval & OPERATOR_FINISHED) {
