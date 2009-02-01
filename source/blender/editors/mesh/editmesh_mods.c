@@ -3652,34 +3652,28 @@ void editmesh_deselect_by_material(EditMesh *em, int index)
 	EM_selectmode_flush(em);
 }
 
-static void mesh_selection_type(EditMesh *em, int val)
+static void mesh_selection_type(Scene *scene, EditMesh *em, int val)
 {
-	int ctrl= 0; // XXX
-	
-//	if(em->selectmode & SCE_SELECT_VERTEX) pupmenu_set_active(1);
-//	else if(em->selectmode & SCE_SELECT_EDGE) pupmenu_set_active(2);
-//	else pupmenu_set_active(3);
-	
-//	val= pupmenu("Select Mode%t|Vertices|Edges|Faces");
-	
-	
 	if(val>0) {
-		if(val==1){ 
+		if(val==1) { 
 			em->selectmode= SCE_SELECT_VERTEX;
 			EM_selectmode_set(em);
-			}
-		else if(val==2){
-			if(ctrl) EM_convertsel(em, em->selectmode, SCE_SELECT_EDGE);
+		}
+		else if(val==2) {
+			//if(ctrl) EM_convertsel(em, em->selectmode, SCE_SELECT_EDGE);
 			em->selectmode= SCE_SELECT_EDGE;
 			EM_selectmode_set(em);
 		}
 		
 		else{
-			if((ctrl)) EM_convertsel(em, em->selectmode, SCE_SELECT_FACE);
+			//if((ctrl)) EM_convertsel(em, em->selectmode, SCE_SELECT_FACE);
 			em->selectmode= SCE_SELECT_FACE;
 			EM_selectmode_set(em);
 		}
 		
+		/* note, em stores selectmode to be able to pass it on everywhere without scene,
+		   this is only until all select modes and toolsettings are settled more */
+		scene->selectmode= em->selectmode;
 //		if (EM_texFaceCheck())
 	}
 }
@@ -3697,9 +3691,9 @@ static int mesh_selection_type_exec(bContext *C, wmOperator *op)
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
 
-	mesh_selection_type(em, RNA_enum_get(op->ptr,"type"));
+	mesh_selection_type(CTX_data_scene(C), em, RNA_enum_get(op->ptr,"type"));
 
-	WM_event_add_notifier(C, NC_WINDOW, obedit);
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 
 	return OPERATOR_FINISHED;
 }

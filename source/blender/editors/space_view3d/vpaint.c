@@ -1192,6 +1192,18 @@ static int set_wpaint(bContext *C, wmOperator *op)		/* toggle */
 	return OPERATOR_FINISHED;
 }
 
+/* for switching to/from mode */
+static int paint_poll_test(bContext *C)
+{
+	if(ED_operator_view3d_active(C)==0)
+		return 0;
+	if(CTX_data_edit_object(C))
+		return 0;
+	if(CTX_data_active_object(C)==NULL)
+		return 0;
+	return 1;
+}
+
 void VIEW3D_OT_wpaint_toggle(wmOperatorType *ot)
 {
 	
@@ -1201,7 +1213,7 @@ void VIEW3D_OT_wpaint_toggle(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= set_wpaint;
-	ot->poll= ED_operator_object_active;
+	ot->poll= paint_poll_test;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1708,7 +1720,7 @@ void VIEW3D_OT_vpaint_toggle(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= set_vpaint;
-	ot->poll= ED_operator_object_active;
+	ot->poll= paint_poll_test;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
