@@ -140,6 +140,7 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_removedoublesflag);
 	WM_operatortype_append(MESH_OT_extrude_mesh);
 	WM_operatortype_append(MESH_OT_edit_faces);
+	WM_operatortype_append(MESH_OT_vertices_to_sphere);
 
 	WM_operatortype_append(MESH_OT_delete_mesh);
 
@@ -186,6 +187,7 @@ void ED_keymap_mesh(wmWindowManager *wm)
 	RNA_float_set(WM_keymap_add_item(keymap, "MESH_OT_select_sharp_edges", SKEY, KM_PRESS, (KM_CTRL|KM_SHIFT|KM_ALT), 0)->ptr,"sharpness",135.0);
 	
 	WM_keymap_add_item(keymap, "MESH_OT_selectrandom_mesh", SPACEKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "MESH_OT_vertices_to_sphere", SKEY, KM_PRESS, KM_CTRL|KM_SHIFT , 0);
 	
 	/* temp hotkeys! */
 	WM_keymap_add_item(keymap, "MESH_OT_similar_vertex_select", GKEY, KM_PRESS, KM_SHIFT, 0);

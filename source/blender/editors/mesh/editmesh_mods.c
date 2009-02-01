@@ -3625,7 +3625,7 @@ void MESH_OT_selectrandom_mesh(wmOperatorType *ot)
 	/* props */
 
 	
-	RNA_def_int(ot->srna, "percentage", 50, 0, 100, "percentage", "", 0, 100);
+	RNA_def_int(ot->srna, "percentage", 50, 0, 100, "Percentage", "", 0, 100);
 }
 
 void editmesh_select_by_material(EditMesh *em, int index) 
@@ -4499,12 +4499,11 @@ void vertexnoise(Object *obedit, EditMesh *em)
 
 }
 
-void vertices_to_sphere(Scene *scene, View3D *v3d, Object *obedit, EditMesh *em)
+void vertices_to_sphere(Scene *scene, View3D *v3d, Object *obedit, EditMesh *em, int perc)
 {
 	EditVert *eve;
 	float *curs, len, vec[3], cent[3], fac, facm, imat[3][3], bmat[3][3];
 	int tot;
-	short perc=100;
 	
 // XXX	if(button(&perc, 1, 100, "Percentage:")==0) return;
 	
@@ -4557,3 +4556,35 @@ void vertices_to_sphere(Scene *scene, View3D *v3d, Object *obedit, EditMesh *em)
 
 }
 
+static int vertices_to_sphere_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	View3D *v3d = CTX_wm_view3d(C);
+	Scene *scene = CTX_data_scene(C);
+	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
+	
+	vertices_to_sphere(scene, v3d, obedit, em, RNA_int_get(op->ptr,"percentage"));
+		
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	
+	return OPERATOR_FINISHED;	
+}
+
+void MESH_OT_vertices_to_sphere(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Vertices to Sphere";
+	ot->idname= "MESH_OT_vertices_to_sphere";
+	
+	/* api callbacks */
+	ot->exec= vertices_to_sphere_exec;
+	ot->poll= ED_operator_editmesh;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
+	
+	/* props */
+
+	
+	RNA_def_int(ot->srna, "percentage", 100, 0, 100, "Percentage", "", 0, 100);
+}
