@@ -38,6 +38,7 @@
 #include "BKE_screen.h"
 #include "BKE_utildefines.h"
 
+#include "DNA_armature_types.h"
 #include "DNA_object_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_curve_types.h"
@@ -163,6 +164,23 @@ int ED_operator_editmesh(bContext *C)
 		return NULL != ((Mesh *)obedit->data)->edit_mesh;
 	return 0;
 }
+
+int ED_operator_editarmature(bContext *C)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	if(obedit && obedit->type==OB_ARMATURE)
+		return NULL != ((bArmature *)obedit->data)->edbo;
+	return 0;
+}
+
+int ED_operator_posemode(bContext *C)
+{
+	Object *obact= CTX_data_active_object(C);
+	if(obact && obact->type==OB_ARMATURE)
+		return (obact->flag & OB_POSEMODE)!=0;
+	return 0;
+}
+
 
 int ED_operator_uvedit(bContext *C)
 {

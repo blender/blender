@@ -2265,7 +2265,7 @@ static int select_linked_exec(bContext *C, wmOperator *op)
 void MESH_OT_select_linked(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select All of the Connected Mesh";
+	ot->name= "Select Linked All";
 	ot->idname= "MESH_OT_select_linked";
 	
 	/* api callbacks */
@@ -2361,7 +2361,7 @@ static int select_linked_pick_invoke(bContext *C, wmOperator *op, wmEvent *event
 void MESH_OT_select_linked_pick(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select Connected Mesh";
+	ot->name= "Select Linked";
 	ot->idname= "MESH_OT_select_linked_pick";
 	
 	/* api callbacks */
@@ -2482,7 +2482,7 @@ void selectconnected_delimit_mesh_all(ViewContext *vc)
 	
 	
 /* swap is 0 or 1, if 1 it hides not selected */
-void hide_mesh(EditMesh *em, int swap)
+static void hide_mesh(EditMesh *em, int swap)
 {
 	EditVert *eve;
 	EditEdge *eed;
@@ -2589,11 +2589,7 @@ static int hide_mesh_exec(bContext *C, wmOperator *op)
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
 	
-	/* 'standard' behaviour - check if selected, then apply relevant selection */
-	if (RNA_boolean_get(op->ptr, "swap"))
-		hide_mesh(em,1);
-	else
-		hide_mesh(em,0);
+	hide_mesh(em, RNA_boolean_get(op->ptr, "invert"));
 		
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 	return OPERATOR_FINISHED;	
@@ -2602,7 +2598,7 @@ static int hide_mesh_exec(bContext *C, wmOperator *op)
 void MESH_OT_hide(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Hide vertice or Hide All of the Mesh";
+	ot->name= "Hide Selection";
 	ot->idname= "MESH_OT_hide";
 	
 	/* api callbacks */
@@ -2613,7 +2609,7 @@ void MESH_OT_hide(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
-	RNA_def_boolean(ot->srna, "swap", 0, "Swap", "");
+	RNA_def_boolean(ot->srna, "invert", 0, "Invert", "");
 }
 
 void reveal_mesh(EditMesh *em)
@@ -2666,7 +2662,7 @@ static int reveal_mesh_exec(bContext *C, wmOperator *op)
 void MESH_OT_reveal(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Reveal the Mesh";
+	ot->name= "Reveal Hidden";
 	ot->idname= "MESH_OT_reveal";
 	
 	/* api callbacks */
@@ -4165,7 +4161,7 @@ static int righthandfaces_exec(bContext *C, wmOperator *op)
 void MESH_OT_consistant_normals(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Make Normals consistant";
+	ot->name= "Make Normals Consistant";
 	ot->idname= "MESH_OT_consistant_normals";
 	
 	/* api callbacks */
