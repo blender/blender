@@ -260,12 +260,23 @@ typedef struct Curve {
 /* flagu flagv (nurb) */
 #define CU_CYCLIC		1
 
+/* *************** BEZTRIPLE **************** */
+
 /* h1 h2 (beztriple) */
-#define HD_FREE			0
-#define HD_AUTO			1
-#define HD_VECT			2
-#define HD_ALIGN		3
-#define HD_AUTO_ANIM	4
+enum {
+	HD_FREE	= 0,
+	HD_AUTO,
+	HD_VECT,
+	HD_ALIGN,
+	HD_AUTO_ANIM
+} eBezTriple_Handle;
+
+/* interpolation modes (used only for BezTriple->ipo) */
+enum {
+	BEZT_IPO_CONST = 0,	/* constant interpolation */
+	BEZT_IPO_LIN,		/* linear interpolation */
+	BEZT_IPO_BEZ,		/* bezier interpolation */
+} eBezTriple_Interpolation;
 
 /* *************** CHARINFO **************** */
 

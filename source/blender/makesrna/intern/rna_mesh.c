@@ -893,13 +893,6 @@ void rna_def_texmat_common(StructRNA *srna, const char *texspace_editable)
 	RNA_def_property_ui_text(prop, "Materials", "");
 }
 
-void rna_def_ipo_common(StructRNA *srna)
-{
-	PropertyRNA *prop;
-
-	prop= RNA_def_property(srna, "ipo", PROP_POINTER, PROP_NONE);
-	RNA_def_property_ui_text(prop, "Ipo Curves", "Ipo curves used by this datablock.");
-}
 
 static void rna_def_mesh(BlenderRNA *brna)
 {
@@ -989,7 +982,6 @@ static void rna_def_mesh(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Shape Keys", "");
 
 	rna_def_texmat_common(srna, "rna_Mesh_texspace_editable");
-	rna_def_ipo_common(srna);
 }
 
 void RNA_def_mesh(BlenderRNA *brna)

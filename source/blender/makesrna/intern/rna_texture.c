@@ -423,7 +423,7 @@ void RNA_def_texture(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0, 25);
 	RNA_def_property_ui_text(prop, "Normal Factor", "Amount the texture affects normal values.");
 
-	rna_def_ipo_common(srna);
+	rna_def_animdata_common(srna);
        
 	prop= RNA_def_property(srna, "image", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "ima");

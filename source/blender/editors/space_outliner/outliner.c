@@ -3178,6 +3178,8 @@ static int tselem_rna_icon(PointerRNA *ptr)
 		return ICON_LIBRARY_DEHLT;
 	else if(rnatype == &RNA_Action)
 		return ICON_ACTION;
+	else if(rnatype == &RNA_FCurve)
+		return ICON_IPO_DEHLT;
 	//else if(rnatype == &RNA_Ipo)
 	//	return ICON_IPO_DEHLT;
 	else if(rnatype == &RNA_Key)

@@ -600,20 +600,10 @@ static StructRNA *rna_def_object(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Lock Scale", "Lock editing of scale in the interface.");
 
 	/* collections */
-
-	prop= RNA_def_property(srna, "ipo", PROP_POINTER, PROP_NONE);
-	RNA_def_property_struct_type(prop, "Ipo");
-	RNA_def_property_ui_text(prop, "Ipo Curves", "Ipo curves used by the object.");
-
 	prop= RNA_def_property(srna, "constraints", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Constraint");
 	RNA_def_property_ui_text(prop, "Constraints", "Constraints of the object.");
 
-	prop= RNA_def_property(srna, "constraint_channels", PROP_COLLECTION, PROP_NONE);
-	RNA_def_property_collection_sdna(prop, NULL, "constraintChannels", NULL);
-	RNA_def_property_struct_type(prop, "Constraint");
-	RNA_def_property_ui_text(prop, "Constraint Channels", "Ipo curves for the object constraints.");
-	
 	prop= RNA_def_property(srna, "modifiers", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Modifier");
 	RNA_def_property_ui_text(prop, "Modifiers", "Modifiers affecting the geometric data of the Object.");
@@ -697,6 +687,8 @@ static StructRNA *rna_def_object(BlenderRNA *brna)
 
 	/* anim */
 	
+	rna_def_animdata_common(srna);
+	
 	prop= RNA_def_property(srna, "draw_keys", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "ipoflag", OB_DRAWKEY);
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE); // update ipo flag indirect
@@ -750,7 +742,7 @@ static StructRNA *rna_def_object(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "dupli_faces_scale", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "dupfacesca");
-	RNA_def_property_range(prop, 0.001, 10000.0);
+	RNA_def_property_range(prop, 0.001f, 10000.0f);
 	RNA_def_property_ui_text(prop, "Dupli Faces Scale", "Scale the DupliFace objects.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 
@@ -861,12 +853,7 @@ static StructRNA *rna_def_object(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "X-Ray", "Makes the object draw in front of others.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 	
-	/* action / pose / nla */
-
-	prop= RNA_def_property(srna, "action", PROP_POINTER, PROP_NONE);
-	RNA_def_property_struct_type(prop, "Action");
-	RNA_def_property_ui_text(prop, "Action", "Action used by object to define Ipo curves.");
-
+	/* pose */
 	prop= RNA_def_property(srna, "pose_library", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "poselib");
 	RNA_def_property_struct_type(prop, "Action");
@@ -882,6 +869,8 @@ static StructRNA *rna_def_object(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
 	RNA_def_property_ui_text(prop, "Pose Mode", "Object with armature data is in pose mode.");
 
+	// XXX this stuff should be moved to AnimData...
+/*
 	prop= RNA_def_property(srna, "nla_disable_path", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "nlaflag", OB_DISABLE_PATH);
 	RNA_def_property_ui_text(prop, "NLA Disable Path", "Disable path temporally, for editing cycles.");
@@ -901,7 +890,8 @@ static StructRNA *rna_def_object(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "UnknownType");
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
 	RNA_def_property_ui_text(prop, "NLA Strips", "NLA strips of the object.");
-
+*/
+	
 	/* shape keys */
 
 	prop= RNA_def_property(srna, "shape_key_lock", PROP_BOOLEAN, PROP_NONE);

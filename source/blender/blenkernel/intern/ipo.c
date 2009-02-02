@@ -287,14 +287,13 @@ static char *pchan_adrcodes_to_paths (int adrcode, int *array_index)
 		case AC_QUAT_Z:
 			*array_index= 3; return "rotation";
 			
-#if 0 // XXX these were not 'official' channels (i.e. not in bf-releases)... these will need separate wrapping to work...
 		case AC_EUL_X:
-			*array_index= 0; return "rotation";
+			*array_index= 0; return "euler_rotation";
 		case AC_EUL_Y:
-			*array_index= 1; return "rotation";
+			*array_index= 1; return "euler_rotation";
 		case AC_EUL_Z:
-			*array_index= 2; return "rotation";
-#endif 
+			*array_index= 2; return "euler_rotation";
+			
 		case -1: // XXX special case for rotation drivers... until eulers are added...
 			*array_index= 0; return "rotation";
 			
@@ -937,7 +936,7 @@ static void icu_to_fcurves (ListBase *list, IpoCurve *icu, char *actname, char *
 				fcurve= fcu;
 				
 			/* set path */
-			fcurve->rna_path= MEM_dupallocN(abp->path);
+			fcurve->rna_path= adrcode_bitmap_path_copy(abp->path);
 			fcurve->array_index= abp->array_index;
 			
 			/* convert keyframes 
@@ -1010,9 +1009,11 @@ static void icu_to_fcurves (ListBase *list, IpoCurve *icu, char *actname, char *
 				if (icu->ipo != IPO_MIXED)
 					dst->ipo= icu->ipo;
 					
-				/* correct values for object rotation curves - they were degrees/10 */
+				/* correct values for euler rotation curves - they were degrees/10 */
 				// XXX for now, just make them into radians as RNA sets/reads directly in that form
-				if ((icu->blocktype == ID_OB) && ELEM3(icu->adrcode, OB_ROT_X, OB_ROT_Y, OB_ROT_Z)) {
+				if ( ((icu->blocktype == ID_OB) && ELEM3(icu->adrcode, OB_ROT_X, OB_ROT_Y, OB_ROT_Z)) ||
+					 ((icu->blocktype == ID_PO) && ELEM3(icu->adrcode, AC_EUL_X, AC_EUL_Y, AC_EUL_Z)) )
+				{
 					const float fac= (float)M_PI / 18.0f; //10.0f * M_PI/180.0f;
 					
 					dst->vec[0][1] *= fac;

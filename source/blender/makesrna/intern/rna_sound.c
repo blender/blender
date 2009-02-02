@@ -135,7 +135,7 @@ static void rna_def_sound(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "bSound");
 	RNA_def_struct_ui_text(srna, "Sound", "Sound datablock referencing an external or packed sound file.");
 
-	rna_def_ipo_common(srna);
+	//rna_def_ipo_common(srna);
 
 	/*prop= RNA_def_property(srna, "sample", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "SoundSample");

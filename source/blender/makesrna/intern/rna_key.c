@@ -327,7 +327,7 @@ static void rna_def_key(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "ShapeKey");
 	RNA_def_property_ui_text(prop, "Keys", "Shape keys.");
 
-	rna_def_ipo_common(srna);
+	rna_def_animdata_common(srna);
 
 	prop= RNA_def_property(srna, "user", PROP_POINTER, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "from");

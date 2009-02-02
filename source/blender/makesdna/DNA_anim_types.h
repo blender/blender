@@ -255,14 +255,6 @@ enum {
 	FCURVE_EXTRAPOLATE_LINEAR,			/* just extend gradient of segment between first segment keyframes */
 } eFCurve_Extend;
 
-/* interpolation modes (used only for BezTriple->ipo) */
-// TODO: move this to curve-types file?
-enum {
-	BEZT_IPO_CONST = 0,	/* constant interpolation */
-	BEZT_IPO_LIN,		/* linear interpolation */
-	BEZT_IPO_BEZ,		/* bezier interpolation */
-} eBezTriple_Interpolation;
-
 /* ************************************************ */
 /* 'Action' Datatypes */
 

@@ -791,7 +791,7 @@ void RNA_def_material(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Node Tree", "Node tree for node based materials.");
 
 	/* common */
-	rna_def_ipo_common(srna);
+	rna_def_animdata_common(srna);
 	rna_def_mtex_common(srna, "rna_Material_mtex_begin", "rna_Material_active_texture_get", "MaterialTextureSlot");
 
 	prop= RNA_def_property(srna, "script_link", PROP_POINTER, PROP_NEVER_NULL);

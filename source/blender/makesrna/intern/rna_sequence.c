@@ -287,8 +287,8 @@ static void rna_def_sequence(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, seq_type_items);
 	RNA_def_property_ui_text(prop, "Type", "");
 
-	prop= RNA_def_property(srna, "ipo", PROP_POINTER, PROP_NONE);
-	RNA_def_property_ui_text(prop, "Ipo Curves", "Ipo curves used by this sequence.");
+	//prop= RNA_def_property(srna, "ipo", PROP_POINTER, PROP_NONE);
+	//RNA_def_property_ui_text(prop, "Ipo Curves", "Ipo curves used by this sequence.");
 
 	/* flags */
 

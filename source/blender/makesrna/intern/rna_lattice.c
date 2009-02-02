@@ -158,8 +158,6 @@ static void rna_def_lattice(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", LT_OUTSIDE);
 	RNA_def_property_ui_text(prop, "Outside", "Only draw, and take into account, the outer vertices.");
 
-	rna_def_ipo_common(srna);
-
 	prop= RNA_def_property(srna, "shape_keys", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "key");
 	RNA_def_property_ui_text(prop, "Shape Keys", "");

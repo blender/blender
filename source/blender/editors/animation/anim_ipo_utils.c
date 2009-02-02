@@ -69,7 +69,7 @@ int geticon_anim_blocktype(short blocktype)
 		case ID_PO:
 			return ICON_POSE_HLT;
 		case ID_KE:
-			return ICON_EDIT;
+			return ICON_SHAPEKEY;
 		case ID_MA:
 			return ICON_MATERIAL;
 		case ID_WO:

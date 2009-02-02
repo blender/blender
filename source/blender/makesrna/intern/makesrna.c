@@ -936,7 +936,7 @@ typedef struct RNAProcessItem {
 RNAProcessItem PROCESS_ITEMS[]= {
 	{"rna_ID.c", RNA_def_ID},
 	{"rna_texture.c", RNA_def_texture},
-	{"rna_action.c", RNA_def_action},
+	{"rna_action.c", RNA_def_animation},
 	{"rna_actuator.c", RNA_def_actuator},
 	{"rna_armature.c", RNA_def_armature},
 	{"rna_brush.c", RNA_def_brush},
@@ -949,7 +949,6 @@ RNAProcessItem PROCESS_ITEMS[]= {
 	{"rna_fluidsim.c", RNA_def_fluidsim},
 	{"rna_group.c", RNA_def_group},
 	{"rna_image.c", RNA_def_image},
-	{"rna_ipo.c", RNA_def_ipo},
 	{"rna_key.c", RNA_def_key},
 	{"rna_lamp.c", RNA_def_lamp},
 	{"rna_lattice.c", RNA_def_lattice},

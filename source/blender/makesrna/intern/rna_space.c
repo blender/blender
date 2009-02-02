@@ -41,7 +41,7 @@ static StructRNA* rna_Space_refine(struct PointerRNA *ptr)
 		/*case SPACE_VIEW3D:
 			return &RNA_SpaceView3D;
 		case SPACE_IPO:
-			return &RNA_SpaceIpoEditor;
+			return &RNA_SpaceGraphEditor;
 		case SPACE_OOPS:
 			return &RNA_SpaceOutliner;
 		case SPACE_BUTS:
@@ -61,7 +61,7 @@ static StructRNA* rna_Space_refine(struct PointerRNA *ptr)
 		case SPACE_SOUND:
 			return &RNA_SpaceAudioWindow;
 		case SPACE_ACTION:
-			return &RNA_SpaceActionEditor;
+			return &RNA_SpaceDopeSheetEditor;
 		case SPACE_NLA:
 			return &RNA_SpaceNLAEditor;
 		case SPACE_SCRIPT:
@@ -90,7 +90,7 @@ static void rna_def_space(BlenderRNA *brna)
 	static EnumPropertyItem type_items[] = {
 		{SPACE_EMPTY, "EMPTY", "Empty", ""},
 		{SPACE_VIEW3D, "VIEW_3D", "3D View", ""},
-		{SPACE_IPO, "IPO_EDITOR", "Ipo Editor", ""},
+		{SPACE_IPO, "GRAPH_EDITOR", "Graph Editor", ""},
 		{SPACE_OOPS, "OUTLINER", "Outliner", ""},
 		{SPACE_BUTS, "BUTTONS_WINDOW", "Buttons Window", ""},
 		{SPACE_FILE, "FILE_BROWSER", "File Browser", ""},
@@ -100,7 +100,7 @@ static void rna_def_space(BlenderRNA *brna)
 		{SPACE_TEXT, "TEXT_EDITOR", "Text Editor", ""},
 		//{SPACE_IMASEL, "IMAGE_BROWSER", "Image Browser", ""},
 		{SPACE_SOUND, "AUDIO_WINDOW", "Audio Window", ""},
-		{SPACE_ACTION, "ACTION_EDITOR", "Action Editor", ""},
+		{SPACE_ACTION, "DOPESHEET_EDITOR", "DopeSheet Editor", ""},
 		{SPACE_NLA, "NLA_EDITOR", "NLA Editor", ""},
 		{SPACE_SCRIPT, "SCRIPTS_WINDOW", "Scripts Window", ""},
 		{SPACE_TIME, "TIMELINE", "Timeline", ""},

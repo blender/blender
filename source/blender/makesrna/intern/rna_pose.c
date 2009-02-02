@@ -45,6 +45,11 @@
 
 static void rna_def_pose_channel(BlenderRNA *brna)
 {
+	static EnumPropertyItem prop_rotmode_items[] = {
+		{PCHAN_ROT_QUAT, "QUATERNION", "Quaternion (WXYZ)", "No Gimbal Lock (default)"},
+		{PCHAN_ROT_EUL, "EULER", "Euler (XYZ)", "Prone to Gimbal Lock"},
+		{0, NULL, NULL, NULL}};
+	
 	StructRNA *srna;
 	PropertyRNA *prop;
 
@@ -90,10 +95,10 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "selectflag", BONE_SELECTED);
 	RNA_def_property_ui_text(prop, "Selected", "");
 	
-		// XXX note: bone groups are stored internally as bActionGroups :) - Aligorith
-	//prop= RNA_def_property(srna, "bone_group_index", PROP_INT, PROP_NONE);
-	//RNA_def_property_int_sdna(prop, NULL, "agrp_index");
-	//RNA_def_property_ui_text(prop, "Bone Group Index", "Bone Group this pose channel belongs to (0=no group).");
+		/* XXX note: bone groups are stored internally as bActionGroups :) - Aligorith */
+	prop= RNA_def_property(srna, "bone_group_index", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "agrp_index");
+	RNA_def_property_ui_text(prop, "Bone Group Index", "Bone Group this pose channel belongs to (0=no group).");
 
 	prop= RNA_def_property(srna, "path_start_frame", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "pathsf");
@@ -131,6 +136,16 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "rotation", PROP_FLOAT, PROP_ROTATION);
 	RNA_def_property_float_sdna(prop, NULL, "quat");
 	RNA_def_property_ui_text(prop, "Rotation", "Rotation in Quaternions.");
+	
+	prop= RNA_def_property(srna, "euler_rotation", PROP_FLOAT, PROP_ROTATION);
+	RNA_def_property_float_sdna(prop, NULL, "eul");
+	RNA_def_property_ui_text(prop, "Rotation", "Rotation in Eulers.");
+	
+	prop= RNA_def_property(srna, "rotation_mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "rotmode");
+	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_enum_items(prop, prop_rotmode_items);
+	RNA_def_property_ui_text(prop, "Rotation Mode", "");
 
 	/* These three matrix properties await an implementation of the PROP_MATRIX subtype, which currently doesn't exist. */
 /*	prop= RNA_def_property(srna, "channel_matrix", PROP_FLOAT, PROP_MATRIX);

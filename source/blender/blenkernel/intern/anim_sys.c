@@ -448,7 +448,7 @@ static void nlatrack_ctime_get_strip (ListBase *list, NlaTrack *nlt, short index
 	
 	
 	/* allocate new eval-strip for this strip + add to stack */
-	nes= MEM_callocN(sizeof(NlaEvalStrip), "bNlaEvalStrip");
+	nes= MEM_callocN(sizeof(NlaEvalStrip), "NlaEvalStrip");
 	
 	nes->track= nlt;
 	nes->strip= astrip;
@@ -473,7 +473,7 @@ static void nlastrip_ctime_evaluate (ListBase *channels, NlaEvalStrip *nes, floa
 /* write the accumulated settings to */
 static void nladata_flush_channels (PointerRNA *ptr, ListBase *channels)
 {
-
+	
 }
 
 /* ---------------------- */

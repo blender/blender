@@ -95,7 +95,7 @@ extern BlenderDefRNA DefRNA;
 extern BlenderRNA BLENDER_RNA;
 
 void RNA_def_ID(struct BlenderRNA *brna);
-void RNA_def_action(struct BlenderRNA *brna);
+void RNA_def_animation(struct BlenderRNA *brna);
 void RNA_def_armature(struct BlenderRNA *brna);
 void RNA_def_actuator(struct BlenderRNA *brna);
 void RNA_def_brush(struct BlenderRNA *brna);
@@ -110,7 +110,6 @@ void RNA_def_fluidsim(struct BlenderRNA *brna);
 void RNA_def_gameproperty(struct BlenderRNA *brna);
 void RNA_def_group(struct BlenderRNA *brna);
 void RNA_def_image(struct BlenderRNA *brna);
-void RNA_def_ipo(struct BlenderRNA *brna);
 void RNA_def_key(struct BlenderRNA *brna);
 void RNA_def_lamp(struct BlenderRNA *brna);
 void RNA_def_lattice(struct BlenderRNA *brna);
@@ -142,7 +141,8 @@ void RNA_def_vpaint(struct BlenderRNA *brna);
 void RNA_def_wm(struct BlenderRNA *brna);
 void RNA_def_world(struct BlenderRNA *brna);
 
-void rna_def_ipo_common(struct StructRNA *srna);
+void rna_def_animdata_common(struct StructRNA *srna);
+
 void rna_def_texmat_common(struct StructRNA *srna, const char *texspace_editable);
 void rna_def_mtex_common(struct StructRNA *srna, const char *begin, const char *activeget, const char *structname);
 

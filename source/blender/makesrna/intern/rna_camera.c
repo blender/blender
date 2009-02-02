@@ -152,7 +152,7 @@ void RNA_def_camera(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Lens Unit", "Unit to edit lens in for the user interface.");
 
 	/* pointers */
-	rna_def_ipo_common(srna);
+	rna_def_animdata_common(srna);
 
 	prop= RNA_def_property(srna, "dof_object", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Object");

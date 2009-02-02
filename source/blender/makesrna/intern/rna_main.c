@@ -124,12 +124,6 @@ static void rna_Main_camera_begin(CollectionPropertyIterator *iter, PointerRNA *
 	rna_iterator_listbase_begin(iter, &bmain->camera, NULL);
 }
 
-static void rna_Main_ipo_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
-{
-	Main *bmain= (Main*)ptr->data;
-	rna_iterator_listbase_begin(iter, &bmain->ipo, NULL);
-}
-
 static void rna_Main_key_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	Main *bmain= (Main*)ptr->data;
@@ -237,7 +231,6 @@ void RNA_def_main(BlenderRNA *brna)
 		{"metaballs", "MetaBall", "rna_Main_mball_begin", "Metaballs", "Metaball datablocks."},
 		{"vfonts", "VectorFont", "rna_Main_vfont_begin", "Vector Fonts", "Vector font datablocks."},
 		{"textures", "Texture", "rna_Main_tex_begin", "Textures", "Texture datablocks."},
-		{"ipos", "Ipo", "rna_Main_ipo_begin", "Ipos", "Ipo datablocks."},
 		{"brushes", "Brush", "rna_Main_brush_begin", "Brushes", "Brush datablocks."},
 		{"worlds", "World", "rna_Main_world_begin", "Worlds", "World datablocks."},
 		{"groups", "Group", "rna_Main_group_begin", "Groups", "Group datablocks."},
