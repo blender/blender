@@ -192,6 +192,7 @@ void MESH_OT_similar_face_select(struct wmOperatorType *ot);
 void MESH_OT_select_random(struct wmOperatorType *ot);
 void MESH_OT_vertices_to_sphere(struct wmOperatorType *ot);
 void MESH_OT_selection_type(struct wmOperatorType *ot);
+void MESH_OT_select_multi_loop(struct wmOperatorType *ot);
 
 extern EditEdge *findnearestedge(ViewContext *vc, int *dist);
 extern void EM_automerge(int update);
