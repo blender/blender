@@ -316,26 +316,13 @@ static StructDefRNA *rna_find_def_struct(StructRNA *srna)
 	return NULL;
 }
 
-static PropertyDefRNA *rna_find_def_property(StructRNA *srna, PropertyRNA *prop)
-{
-	StructDefRNA *ds= rna_find_def_struct(srna);
-	PropertyDefRNA *dp;
-
-	if(ds)
-		for(dp=ds->properties.first; dp; dp=dp->next)
-			if(dp->prop == prop)
-				return dp;
-	
-	return NULL;
-}
-
 /* Struct Definition */
 
 StructRNA *RNA_def_struct(BlenderRNA *brna, const char *identifier, const char *from)
 {
 	StructRNA *srna, *srnafrom= NULL;
 	StructDefRNA *ds= NULL, *dsfrom= NULL;
-	PropertyRNA *prop, *propfrom;
+	PropertyRNA *prop;
 	
 	if(DefRNA.preprocess) {
 		char error[512];
@@ -397,40 +384,8 @@ StructRNA *RNA_def_struct(BlenderRNA *brna, const char *identifier, const char *
 		srna->flag |= STRUCT_RUNTIME;
 
 	if(srnafrom) {
-		/* copy from struct to derive stuff, a bit clumsy since we can't
-		 * use MEM_dupallocN, data structs may not be alloced but builtin */
-
-		for(propfrom= srnafrom->properties.first; propfrom; propfrom=propfrom->next) {
-			prop= RNA_def_property(srna, propfrom->identifier, propfrom->type, propfrom->subtype);
-
-			rna_remlink(&srna->properties, prop);
-			memcpy(prop, propfrom, rna_property_type_sizeof(propfrom->type));
-
-			if(!DefRNA.preprocess)
-				prop->flag |= PROP_RUNTIME;
-
-			prop->next= prop->prev= NULL;
-			rna_addtail(&srna->properties, prop);
-
-			if(propfrom == srnafrom->nameproperty)
-				srna->nameproperty= prop;
-			if(propfrom == srnafrom->iteratorproperty)
-				srna->iteratorproperty= prop;
-
-			if(DefRNA.preprocess) {
-				PropertyDefRNA *dp, *dpfrom;
-				
-				dp= ds->properties.last;
-				dpfrom= rna_find_def_property(srnafrom, propfrom);
-
-				rna_remlink(&ds->properties, dp);
-				memcpy(dp, dpfrom, sizeof(*dp));
-				dp->srna= srna;
-				dp->prop= prop;
-				dp->next= dp->prev= NULL;
-				rna_addtail(&ds->properties, dp);
-			}
-		}
+		srna->nameproperty= srnafrom->nameproperty;
+		srna->iteratorproperty= srnafrom->iteratorproperty;
 	}
 	else {
 		/* define some builtin properties */
@@ -440,14 +395,13 @@ StructRNA *RNA_def_struct(BlenderRNA *brna, const char *identifier, const char *
 
 		if(DefRNA.preprocess) {
 			RNA_def_property_struct_type(prop, "Property");
-			RNA_def_property_collection_funcs(prop, "rna_builtin_properties_begin", "rna_builtin_properties_next", "rna_iterator_listbase_end", "rna_builtin_properties_get", 0, 0, 0, 0);
+			RNA_def_property_collection_funcs(prop, "rna_builtin_properties_begin", "rna_builtin_properties_next", "rna_iterator_listbase_end", "rna_builtin_properties_get", 0, 0, 0);
 		}
 		else {
 #ifdef RNA_RUNTIME
 			CollectionPropertyRNA *cprop= (CollectionPropertyRNA*)prop;
 			cprop->begin= rna_builtin_properties_begin;
 			cprop->next= rna_builtin_properties_next;
-			cprop->next= rna_iterator_listbase_end;
 			cprop->get= rna_builtin_properties_get;
 			cprop->structtype= &RNA_Property;
 #endif
@@ -459,7 +413,7 @@ StructRNA *RNA_def_struct(BlenderRNA *brna, const char *identifier, const char *
 
 		if(DefRNA.preprocess) {
 			RNA_def_property_struct_type(prop, "Struct");
-			RNA_def_property_pointer_funcs(prop, "rna_builtin_type_get", NULL, NULL);
+			RNA_def_property_pointer_funcs(prop, "rna_builtin_type_get", NULL);
 		}
 		else {
 #ifdef RNA_RUNTIME
@@ -744,6 +698,12 @@ void RNA_def_property_array(PropertyRNA *prop, int arraylength)
 
 	if(arraylength<0) {
 		fprintf(stderr, "RNA_def_property_array: %s.%s, array length must be zero of greater.\n", srna->identifier, prop->identifier);
+		DefRNA.error= 1;
+		return;
+	}
+
+	if(arraylength>RNA_MAX_ARRAY) {
+		fprintf(stderr, "RNA_def_property_array: %s.%s, array length must be smaller than %d.\n", srna->identifier, prop->identifier, RNA_MAX_ARRAY);
 		DefRNA.error= 1;
 		return;
 	}
@@ -1499,7 +1459,7 @@ void RNA_def_property_string_funcs(PropertyRNA *prop, const char *get, const cha
 	}
 }
 
-void RNA_def_property_pointer_funcs(PropertyRNA *prop, const char *get, const char *type, const char *set)
+void RNA_def_property_pointer_funcs(PropertyRNA *prop, const char *get, const char *set)
 {
 	StructRNA *srna= DefRNA.laststruct;
 
@@ -1513,7 +1473,6 @@ void RNA_def_property_pointer_funcs(PropertyRNA *prop, const char *get, const ch
 			PointerPropertyRNA *pprop= (PointerPropertyRNA*)prop;
 
 			if(get) pprop->get= (PropPointerGetFunc)get;
-			if(type) pprop->type= (PropPointerTypeFunc)type;
 			if(set) pprop->set= (PropPointerSetFunc)set;
 			break;
 		}
@@ -1524,7 +1483,7 @@ void RNA_def_property_pointer_funcs(PropertyRNA *prop, const char *get, const ch
 	}
 }
 
-void RNA_def_property_collection_funcs(PropertyRNA *prop, const char *begin, const char *next, const char *end, const char *get, const char *type, const char *length, const char *lookupint, const char *lookupstring)
+void RNA_def_property_collection_funcs(PropertyRNA *prop, const char *begin, const char *next, const char *end, const char *get, const char *length, const char *lookupint, const char *lookupstring)
 {
 	StructRNA *srna= DefRNA.laststruct;
 
@@ -1541,7 +1500,6 @@ void RNA_def_property_collection_funcs(PropertyRNA *prop, const char *begin, con
 			if(next) cprop->next= (PropCollectionNextFunc)next;
 			if(end) cprop->end= (PropCollectionEndFunc)end;
 			if(get) cprop->get= (PropCollectionGetFunc)get;
-			if(type) cprop->type= (PropCollectionTypeFunc)type;
 			if(length) cprop->length= (PropCollectionLengthFunc)length;
 			if(lookupint) cprop->lookupint= (PropCollectionLookupIntFunc)lookupint;
 			if(lookupstring) cprop->lookupstring= (PropCollectionLookupStringFunc)lookupstring;

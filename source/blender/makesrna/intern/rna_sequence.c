@@ -98,12 +98,12 @@ static StructRNA* rna_Sequence_refine(struct PointerRNA *ptr)
 	}
 }
 
-static void *rna_SequenceEdtior_meta_stack_get(CollectionPropertyIterator *iter)
+static PointerRNA rna_SequenceEdtior_meta_stack_get(CollectionPropertyIterator *iter)
 {
 	ListBaseIterator *internal= iter->internal;
 	MetaStack *ms= (MetaStack*)internal->link;
 
-	return (Sequence*)ms->parseq;
+	return rna_pointer_inherit_refine(&iter->parent, &RNA_Sequence, ms->parseq);
 }
 
 #else
@@ -154,7 +154,7 @@ static void rna_def_strip_transform(BlenderRNA *brna)
 	PropertyRNA *prop;
 	
 	srna = RNA_def_struct(brna, "SequenceTransform", NULL);
-	RNA_def_struct_ui_text(srna, "Sequence Transform", "Transform paramaters for a sequence strip.");
+	RNA_def_struct_ui_text(srna, "Sequence Transform", "Transform parameters for a sequence strip.");
 	RNA_def_struct_sdna(srna, "StripTransform");
 
 	prop= RNA_def_property(srna, "offset_x", PROP_INT, PROP_NONE);
@@ -188,7 +188,7 @@ static void rna_def_strip_color_balance(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	srna = RNA_def_struct(brna, "SequenceColorBalance", NULL);
-	RNA_def_struct_ui_text(srna, "Sequence Color Balance", "Color balance paramaters for a sequence strip.");
+	RNA_def_struct_ui_text(srna, "Sequence Color Balance", "Color balance parameters for a sequence strip.");
 	RNA_def_struct_sdna(srna, "StripColorBalance");
 
 	prop= RNA_def_property(srna, "lift", PROP_FLOAT, PROP_COLOR);
@@ -384,7 +384,7 @@ void rna_def_editor(BlenderRNA *brna)
 	RNA_def_property_collection_sdna(prop, NULL, "metastack", NULL);
 	RNA_def_property_struct_type(prop, "Sequence");
 	RNA_def_property_ui_text(prop, "Meta Stack", "Meta strip stack, last is currently edited meta strip.");
-	RNA_def_property_collection_funcs(prop, 0, 0, 0, "rna_SequenceEdtior_meta_stack_get", 0, 0, 0, 0);
+	RNA_def_property_collection_funcs(prop, 0, 0, 0, "rna_SequenceEdtior_meta_stack_get", 0, 0, 0);
 }
 
 static void rna_def_filter_video(StructRNA *srna)

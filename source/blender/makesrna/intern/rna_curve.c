@@ -33,41 +33,58 @@
 
 #ifdef RNA_RUNTIME
 
-
-static float rna_BezTriple_handle1_get(PointerRNA *ptr, int index)
+static void rna_BezTriple_handle1_get(PointerRNA *ptr, float *values)
 {
 	BezTriple *bt= (BezTriple*)ptr->data;
-	return bt->vec[0][index];
+
+	values[0]= bt->vec[0][0];
+	values[1]= bt->vec[0][1];
+	values[2]= bt->vec[0][2];
 }
 
-static void rna_BezTriple_handle1_set(PointerRNA *ptr, int index, float value)
+static void rna_BezTriple_handle1_set(PointerRNA *ptr, const float *values)
 {
 	BezTriple *bt= (BezTriple*)ptr->data;
-	bt->vec[0][index]= value;
+
+	bt->vec[0][0]= values[0];
+	bt->vec[0][1]= values[1];
+	bt->vec[0][2]= values[2];
 }
 
-static float rna_BezTriple_handle2_get(PointerRNA *ptr, int index)
+static void rna_BezTriple_handle2_get(PointerRNA *ptr, float *values)
 {
 	BezTriple *bt= (BezTriple*)ptr->data;
-	return bt->vec[2][index];
+
+	values[0]= bt->vec[2][0];
+	values[1]= bt->vec[2][1];
+	values[2]= bt->vec[2][2];
 }
 
-static void rna_BezTriple_handle2_set(PointerRNA *ptr, int index, float value)
+static void rna_BezTriple_handle2_set(PointerRNA *ptr, const float *values)
 {
 	BezTriple *bt= (BezTriple*)ptr->data;
-	bt->vec[2][index]= value;
+
+	bt->vec[2][0]= values[0];
+	bt->vec[2][1]= values[1];
+	bt->vec[2][2]= values[2];
 }
 
-static float rna_BezTriple_ctrlpoint_get(PointerRNA *ptr, int index)
+static void rna_BezTriple_ctrlpoint_get(PointerRNA *ptr, float *values)
 {
 	BezTriple *bt= (BezTriple*)ptr->data;
-	return bt->vec[1][index];
+
+	values[0]= bt->vec[1][0];
+	values[1]= bt->vec[1][1];
+	values[2]= bt->vec[1][2];
 }
 
-static void rna_BezTriple_ctrlpoint_set(PointerRNA *ptr, int index, float value)
+static void rna_BezTriple_ctrlpoint_set(PointerRNA *ptr, const float *values)
 {
 	BezTriple *bt= (BezTriple*)ptr->data;
-	bt->vec[1][index]= value;
+
+	bt->vec[1][0]= values[0];
+	bt->vec[1][1]= values[1];
+	bt->vec[1][2]= values[2];
 }
 
 static int rna_Curve_texspace_editable(PointerRNA *ptr)
@@ -78,8 +95,7 @@ static int rna_Curve_texspace_editable(PointerRNA *ptr)
 
 #else
 
-
-void rna_def_bpoint(BlenderRNA *brna)
+static void rna_def_bpoint(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
@@ -120,7 +136,7 @@ void rna_def_bpoint(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Bevel Radius", "Radius for bevelling");
 }
 
-void rna_def_beztriple(BlenderRNA *brna)
+static void rna_def_beztriple(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;

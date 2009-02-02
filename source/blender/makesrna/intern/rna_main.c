@@ -46,11 +46,13 @@ static int rna_Main_filename_length(PointerRNA *ptr)
 	return strlen(bmain->name);
 }
 
+#if 0
 static void rna_Main_filename_set(PointerRNA *ptr, const char *value)
 {
 	Main *bmain= (Main*)ptr->data;
 	BLI_strncpy(bmain->name, value, sizeof(bmain->name));
 }
+#endif
 
 static void rna_Main_scene_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
@@ -257,7 +259,7 @@ void RNA_def_main(BlenderRNA *brna)
 	{
 		prop= RNA_def_property(srna, lists[i][0], PROP_COLLECTION, PROP_NONE);
 		RNA_def_property_struct_type(prop, lists[i][1]);
-		RNA_def_property_collection_funcs(prop, lists[i][2], "rna_iterator_listbase_next", "rna_iterator_listbase_end", "rna_iterator_listbase_get", 0, 0, 0, 0);
+		RNA_def_property_collection_funcs(prop, lists[i][2], "rna_iterator_listbase_next", "rna_iterator_listbase_end", "rna_iterator_listbase_get", 0, 0, 0);
 		RNA_def_property_ui_text(prop, lists[i][3], lists[i][4]);
 	}
 }

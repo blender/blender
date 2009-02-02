@@ -111,16 +111,22 @@ static void rna_ClothSettings_bend_vgroup_set(PointerRNA *ptr, const char *value
 	rna_object_vgroup_name_index_set(ptr, value, &sim->vgroup_bend);
 }
 
-static float rna_ClothSettings_gravity_get(PointerRNA *ptr, int index)
+static void rna_ClothSettings_gravity_get(PointerRNA *ptr, float *values)
 {
 	ClothSimSettings *sim= (ClothSimSettings*)ptr->data;
-	return sim->gravity[index];
+
+	values[0]= sim->gravity[0];
+	values[1]= sim->gravity[1];
+	values[2]= sim->gravity[2];
 }
 
-static void rna_ClothSettings_gravity_set(PointerRNA *ptr, int index, float value)
+static void rna_ClothSettings_gravity_set(PointerRNA *ptr, const float *values)
 {
 	ClothSimSettings *sim= (ClothSimSettings*)ptr->data;
-	sim->gravity[index]= value;
+
+	sim->gravity[0]= values[0];
+	sim->gravity[1]= values[1];
+	sim->gravity[2]= values[2];
 }
 
 #else

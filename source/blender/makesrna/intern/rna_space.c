@@ -75,9 +75,9 @@ static StructRNA* rna_Space_refine(struct PointerRNA *ptr)
 	}
 }
 
-static void *rna_SpaceImage_self_get(PointerRNA *ptr)
+static PointerRNA rna_SpaceImage_uvedit_get(PointerRNA *ptr)
 {
-	return ptr->id.data;
+	return rna_pointer_inherit_refine(ptr, &RNA_SpaceUVEditor, ptr->data);
 }
 
 #else
@@ -264,7 +264,7 @@ static void rna_def_space_image(BlenderRNA *brna)
 	/* uv */
 	prop= RNA_def_property(srna, "uv_editor", PROP_POINTER, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "SpaceUVEditor");
-	RNA_def_property_pointer_funcs(prop, "rna_SpaceImage_self_get", NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_SpaceImage_uvedit_get", NULL);
 	RNA_def_property_ui_text(prop, "UV Editor", "UV editor settings.");
 	
 	/* paint */

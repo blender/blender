@@ -69,10 +69,10 @@ static int rna_Operator_name_length(PointerRNA *ptr)
 	return strlen(op->type->name);
 }
 
-static void *rna_Operator_properties_get(PointerRNA *ptr)
+static PointerRNA rna_Operator_properties_get(PointerRNA *ptr)
 {
 	wmOperator *op= (wmOperator*)ptr->data;
-	return op->properties;
+	return rna_pointer_inherit_refine(ptr, &RNA_OperatorProperties, op->properties);
 }
 
 #else
@@ -83,7 +83,7 @@ static void rna_def_operator(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	srna= RNA_def_struct(brna, "Operator", NULL);
-	RNA_def_struct_ui_text(srna, "Operator", "Storage of an operator being or executed, or registered after execution.");
+	RNA_def_struct_ui_text(srna, "Operator", "Storage of an operator being executed, or registered after execution.");
 	RNA_def_struct_sdna(srna, "wmOperator");
 
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
@@ -95,7 +95,7 @@ static void rna_def_operator(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "properties", PROP_POINTER, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "OperatorProperties");
 	RNA_def_property_ui_text(prop, "Properties", "");
-	RNA_def_property_pointer_funcs(prop, "rna_Operator_properties_get", NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_Operator_properties_get", NULL);
 
 	srna= RNA_def_struct(brna, "OperatorProperties", NULL);
 	RNA_def_struct_ui_text(srna, "Operator Properties", "Input properties of an Operator.");

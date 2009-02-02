@@ -105,14 +105,19 @@ typedef enum PropertyFlag {
 } PropertyFlag;
 
 typedef struct CollectionPropertyIterator {
+	/* internal */
 	PointerRNA parent;
 	struct PropertyRNA *prop;
 	void *internal;
 	int idprop;
+	int level;
 
+	/* external */
 	int valid;
 	PointerRNA ptr;
 } CollectionPropertyIterator;
+
+/* Iterator Utility */
 
 typedef struct EnumPropertyItem {
 	int value;

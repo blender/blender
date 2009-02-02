@@ -55,10 +55,10 @@ static int rna_VertexGroup_index_get(PointerRNA *ptr)
 	return BLI_findindex(&ob->defbase, ptr->data);
 }
 
-static void *rna_Object_active_vertex_group_get(PointerRNA *ptr)
+static PointerRNA rna_Object_active_vertex_group_get(PointerRNA *ptr)
 {
 	Object *ob= (Object*)ptr->id.data;
-	return BLI_findlink(&ob->defbase, ob->actdef);
+	return rna_pointer_inherit_refine(ptr, &RNA_VertexGroup, BLI_findlink(&ob->defbase, ob->actdef));
 }
 
 void rna_object_vgroup_name_index_get(PointerRNA *ptr, char *value, int index)
@@ -165,19 +165,18 @@ static void rna_Object_active_material_index_range(PointerRNA *ptr, int *min, in
 	*max= ob->totcol-1;
 }
 
-static void *rna_Object_active_material_get(PointerRNA *ptr)
+static PointerRNA rna_Object_active_material_get(PointerRNA *ptr)
 {
 	Object *ob= (Object*)ptr->id.data;
-
-	return give_current_material(ob, ob->actcol);
+	return rna_pointer_inherit_refine(ptr, &RNA_Material, give_current_material(ob, ob->actcol));
 }
 
 #if 0
-static void rna_Object_active_material_set(PointerRNA *ptr, void *value)
+static void rna_Object_active_material_set(PointerRNA *ptr, PointerRNA value)
 {
 	Object *ob= (Object*)ptr->id.data;
 
-	assign_material(ob, value, ob->actcol);
+	assign_material(ob, value.data, ob->actcol);
 }
 #endif
 
@@ -197,32 +196,46 @@ static void rna_Object_active_material_link_set(PointerRNA *ptr, int value)
 		ob->colbits &= ~(1<<(ob->actcol));
 }
 
-static void *rna_Object_game_settings_get(PointerRNA *ptr)
+static PointerRNA rna_Object_game_settings_get(PointerRNA *ptr)
 {
-	return ptr->id.data;
+	return rna_pointer_inherit_refine(ptr, &RNA_GameObjectSettings, ptr->id.data);
 }
 
-static void rna_Object_layer_set(PointerRNA *ptr, int index, int value)
+static void rna_Object_layer_set(PointerRNA *ptr, const int *values)
 {
 	Object *ob= (Object*)ptr->data;
+	int i, tot;
 
-	if(value) ob->lay |= (1<<index);
-	else {
-		ob->lay &= ~(1<<index);
-		if(ob->lay == 0)
-			ob->lay |= (1<<index);
+	/* ensure we always have some layer selected */
+	for(i=0; i<20; i++)
+		if(values[i])
+			tot++;
+	
+	if(tot==0)
+		return;
+
+	for(i=0; i<20; i++) {
+		if(values[i]) ob->lay |= (1<<i);
+		else ob->lay &= ~(1<<i);
 	}
 }
 
-static void rna_GameObjectSettings_state_set(PointerRNA *ptr, int index, int value)
+static void rna_GameObjectSettings_state_set(PointerRNA *ptr, const int *values)
 {
 	Object *ob= (Object*)ptr->data;
+	int i, tot;
 
-	if(value) ob->state |= (1<<index);
-	else {
-		ob->state &= ~(1<<index);
-		if(ob->state == 0)
-			ob->state |= (1<<index);
+	/* ensure we always have some stateer selected */
+	for(i=0; i<20; i++)
+		if(values[i])
+			tot++;
+	
+	if(tot==0)
+		return;
+
+	for(i=0; i<20; i++) {
+		if(values[i]) ob->state |= (1<<i);
+		else ob->state &= ~(1<<i);
 	}
 }
 
@@ -539,7 +552,7 @@ static StructRNA *rna_def_object(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "active_material", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
 	RNA_def_property_struct_type(prop, "Material");
-	RNA_def_property_pointer_funcs(prop, "rna_Object_active_material_get", NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_Object_active_material_get", NULL);
 	RNA_def_property_ui_text(prop, "Active Material", "Active material being displayed.");
 
 	prop= RNA_def_property(srna, "active_material_index", PROP_INT, PROP_UNSIGNED);
@@ -612,7 +625,7 @@ static StructRNA *rna_def_object(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "game", PROP_POINTER, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "GameObjectSettings");
-	RNA_def_property_pointer_funcs(prop, "rna_Object_game_settings_get", NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_Object_game_settings_get", NULL);
 	RNA_def_property_ui_text(prop, "Game Settings", "Game engine related settings for the object.");
 
 	/* vertex groups */
@@ -624,7 +637,7 @@ static StructRNA *rna_def_object(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "active_vertex_group", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "VertexGroup");
-	RNA_def_property_pointer_funcs(prop, "rna_Object_active_vertex_group_get", NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_Object_active_vertex_group_get", NULL);
 	RNA_def_property_ui_text(prop, "Active Vertex Group", "Vertex groups of the object.");
 
 	/* empty */

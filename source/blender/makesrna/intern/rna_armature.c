@@ -34,29 +34,41 @@
 
 #ifdef RNA_RUNTIME
 
-
-static void rna_Bone_layer_set(PointerRNA *ptr, int index, int value)
+static void rna_Bone_layer_set(PointerRNA *ptr, const int *values)
 {
 	Bone *bone= (Bone*)ptr->data;
+	int i, tot;
 
-	if(value) bone->layer |= (1<<index);
-	else {
-		bone->layer &= ~(1<<index);
-		if(bone->layer == 0)
-			bone->layer |= (1<<index);
+	/* ensure we always have some layer selected */
+	for(i=0; i<20; i++)
+		if(values[i])
+			tot++;
+	
+	if(tot==0)
+		return;
+
+	for(i=0; i<20; i++) {
+		if(values[i]) bone->layer |= (1<<i);
+		else bone->layer &= ~(1<<i);
 	}
 }
 
-
-static void rna_Armature_layer_set(PointerRNA *ptr, int index, int value)
+static void rna_Armature_layer_set(PointerRNA *ptr, const int *values)
 {
 	bArmature *arm= (bArmature*)ptr->data;
+	int i, tot;
 
-	if(value) arm->layer |= (1<<index);
-	else {
-		arm->layer &= ~(1<<index);
-		if(arm->layer == 0)
-			arm->layer |= (1<<index);
+	/* ensure we always have some layer selected */
+	for(i=0; i<20; i++)
+		if(values[i])
+			tot++;
+	
+	if(tot==0)
+		return;
+
+	for(i=0; i<20; i++) {
+		if(values[i]) arm->layer |= (1<<i);
+		else arm->layer &= ~(1<<i);
 	}
 }
 

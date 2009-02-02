@@ -37,9 +37,29 @@
 
 #ifdef RNA_RUNTIME
 
-static void *rna_Material_self_get(PointerRNA *ptr)
+static PointerRNA rna_Material_mirror_get(PointerRNA *ptr)
 {
-	return ptr->id.data;
+	return rna_pointer_inherit_refine(ptr, &RNA_MaterialRaytraceMirror, ptr->id.data);
+}
+
+static PointerRNA rna_Material_transp_get(PointerRNA *ptr)
+{
+	return rna_pointer_inherit_refine(ptr, &RNA_MaterialRaytraceTransparency, ptr->id.data);
+}
+
+static PointerRNA rna_Material_halo_get(PointerRNA *ptr)
+{
+	return rna_pointer_inherit_refine(ptr, &RNA_MaterialHalo, ptr->id.data);
+}
+
+static PointerRNA rna_Material_sss_get(PointerRNA *ptr)
+{
+	return rna_pointer_inherit_refine(ptr, &RNA_MaterialSubsurfaceScattering, ptr->id.data);
+}
+
+static PointerRNA rna_Material_strand_get(PointerRNA *ptr)
+{
+	return rna_pointer_inherit_refine(ptr, &RNA_MaterialStrand, ptr->id.data);
 }
 
 static void rna_Material_mode_halo_set(PointerRNA *ptr, int value)
@@ -58,10 +78,10 @@ static void rna_Material_mtex_begin(CollectionPropertyIterator *iter, PointerRNA
 	rna_iterator_array_begin(iter, (void*)ma->mtex, sizeof(MTex*), MAX_MTEX, NULL);
 }
 
-static void *rna_Material_active_texture_get(PointerRNA *ptr)
+static PointerRNA rna_Material_active_texture_get(PointerRNA *ptr)
 {
 	Material *ma= (Material*)ptr->data;
-	return ma->mtex[(int)ma->texact];
+	return rna_pointer_inherit_refine(ptr, &RNA_TextureSlot, ma->mtex[(int)ma->texact]);
 }
 
 static void rna_MaterialStrand_start_size_range(PointerRNA *ptr, float *min, float *max)
@@ -762,27 +782,27 @@ void RNA_def_material(BlenderRNA *brna)
 	/* nested structs */
 	prop= RNA_def_property(srna, "raytrace_mirror", PROP_POINTER, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "MaterialRaytraceMirror");
-	RNA_def_property_pointer_funcs(prop, "rna_Material_self_get", NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_Material_mirror_get", NULL);
 	RNA_def_property_ui_text(prop, "Raytrace Mirror", "Raytraced reflection settings for the material.");
 
 	prop= RNA_def_property(srna, "raytrace_transparency", PROP_POINTER, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "MaterialRaytraceTransparency");
-	RNA_def_property_pointer_funcs(prop, "rna_Material_self_get", NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_Material_transp_get", NULL);
 	RNA_def_property_ui_text(prop, "Raytrace Transparency", "Raytraced reflection settings for the material.");
 
 	prop= RNA_def_property(srna, "halo", PROP_POINTER, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "MaterialHalo");
-	RNA_def_property_pointer_funcs(prop, "rna_Material_self_get", NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_Material_halo_get", NULL);
 	RNA_def_property_ui_text(prop, "Halo", "Halo settings for the material.");
 
 	prop= RNA_def_property(srna, "subsurface_scattering", PROP_POINTER, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "MaterialSubsurfaceScattering");
-	RNA_def_property_pointer_funcs(prop, "rna_Material_self_get", NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_Material_sss_get", NULL);
 	RNA_def_property_ui_text(prop, "Subsurface Scattering", "Subsurface scattering settings for the material.");
 
 	prop= RNA_def_property(srna, "strand", PROP_POINTER, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "MaterialStrand");
-	RNA_def_property_pointer_funcs(prop, "rna_Material_self_get", NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_Material_strand_get", NULL);
 	RNA_def_property_ui_text(prop, "Strand", "Strand settings for the material.");
 
 	/* nodetree */
@@ -821,13 +841,13 @@ void rna_def_mtex_common(StructRNA *srna, const char *begin, const char *activeg
 	/* mtex */
 	prop= RNA_def_property(srna, "textures", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, structname);
-	RNA_def_property_collection_funcs(prop, begin, "rna_iterator_array_next", "rna_iterator_array_end", "rna_iterator_array_dereference_get", 0, 0, 0, 0);
+	RNA_def_property_collection_funcs(prop, begin, "rna_iterator_array_next", "rna_iterator_array_end", "rna_iterator_array_dereference_get", 0, 0, 0);
 	RNA_def_property_ui_text(prop, "Textures", "Texture slots defining the mapping and influence of textures.");
 
 	prop= RNA_def_property(srna, "active_texture", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
 	RNA_def_property_struct_type(prop, structname);
-	RNA_def_property_pointer_funcs(prop, activeget, NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, activeget, NULL);
 	RNA_def_property_ui_text(prop, "Active Texture", "Active texture slot being displayed.");
 
 	prop= RNA_def_property(srna, "active_texture_index", PROP_INT, PROP_UNSIGNED);

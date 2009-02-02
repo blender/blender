@@ -181,8 +181,8 @@ struct IDProperty *rna_idproperty_check(struct PropertyRNA **prop, struct Pointe
 
 void rna_builtin_properties_begin(struct CollectionPropertyIterator *iter, struct PointerRNA *ptr);
 void rna_builtin_properties_next(struct CollectionPropertyIterator *iter);
-void *rna_builtin_properties_get(struct CollectionPropertyIterator *iter);
-void *rna_builtin_type_get(struct PointerRNA *ptr);
+PointerRNA rna_builtin_properties_get(struct CollectionPropertyIterator *iter);
+PointerRNA rna_builtin_type_get(struct PointerRNA *ptr);
 
 /* Iterators */
 
@@ -217,6 +217,10 @@ void rna_iterator_array_end(struct CollectionPropertyIterator *iter);
 void rna_addtail(struct ListBase *listbase, void *vlink);
 void rna_freelinkN(struct ListBase *listbase, void *vlink);
 void rna_freelistN(struct ListBase *listbase);
+
+/* Pointer Handling */
+
+PointerRNA rna_pointer_inherit_refine(struct PointerRNA *ptr, struct StructRNA *type, void *data);
 
 #endif /* RNA_INTERNAL_H */
 

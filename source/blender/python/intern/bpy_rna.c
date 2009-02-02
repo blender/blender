@@ -163,7 +163,7 @@ PyObject * pyrna_prop_to_py(PointerRNA *ptr, PropertyRNA *prop)
 	case PROP_POINTER:
 	{
 		PointerRNA newptr;
-		RNA_property_pointer_get(ptr, prop, &newptr);
+		newptr= RNA_property_pointer_get(ptr, prop);
 		if (newptr.data) {
 			ret = pyrna_struct_CreatePyObject(&newptr);
 		} else {
@@ -209,7 +209,7 @@ int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, PyObject *value)
 		switch (type) {
 		case PROP_BOOLEAN:
 		{
-			signed char *param_arr = MEM_mallocN(sizeof(char) * len, "pyrna bool array");
+			int *param_arr = MEM_mallocN(sizeof(char) * len, "pyrna bool array");
 			
 			/* collect the variables before assigning, incase one of them is incorrect */
 			for (i=0; i<len; i++) {
@@ -224,9 +224,7 @@ int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, PyObject *value)
 				}
 			}
 			
-			for (i=0; i<len; i++) {
-				RNA_property_boolean_set_array(ptr, prop, i, param_arr[i]);
-			}
+			RNA_property_boolean_set_array(ptr, prop, param_arr);
 			
 			MEM_freeN(param_arr);
 			break;
@@ -248,9 +246,7 @@ int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, PyObject *value)
 				return -1;
 			}
 			
-			for (i=0; i<len; i++) {
-				RNA_property_int_set_array(ptr, prop, i, param_arr[i]);
-			}
+			RNA_property_int_set_array(ptr, prop, param_arr);
 			
 			MEM_freeN(param_arr);
 			break;
@@ -272,9 +268,7 @@ int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, PyObject *value)
 				return -1;
 			}
 			
-			for (i=0; i<len; i++) {
-				RNA_property_float_set_array(ptr, prop, i, param_arr[i]);
-			}
+			RNA_property_float_set_array(ptr, prop, param_arr);
 			
 			MEM_freeN(param_arr);
 			break;
@@ -385,13 +379,13 @@ static PyObject * pyrna_prop_to_py_index(PointerRNA *ptr, PropertyRNA *prop, int
 	/* see if we can coorce into a python type - PropertyType */
 	switch (type) {
 	case PROP_BOOLEAN:
-		ret = PyBool_FromLong( RNA_property_boolean_get_array(ptr, prop, index) );
+		ret = PyBool_FromLong( RNA_property_boolean_get_index(ptr, prop, index) );
 		break;
 	case PROP_INT:
-		ret = PyLong_FromSize_t( (size_t)RNA_property_int_get_array(ptr, prop, index) );
+		ret = PyLong_FromSize_t( (size_t)RNA_property_int_get_index(ptr, prop, index) );
 		break;
 	case PROP_FLOAT:
-		ret = PyFloat_FromDouble( RNA_property_float_get_array(ptr, prop, index) );
+		ret = PyFloat_FromDouble( RNA_property_float_get_index(ptr, prop, index) );
 		break;
 	default:
 		PyErr_SetString(PyExc_AttributeError, "not an array type");
@@ -419,7 +413,7 @@ static int pyrna_py_to_prop_index(PointerRNA *ptr, PropertyRNA *prop, int index,
 			PyErr_SetString(PyExc_TypeError, "expected True/False or 0/1");
 			ret = -1;
 		} else {
-			RNA_property_boolean_set_array(ptr, prop, index, param);
+			RNA_property_boolean_set_index(ptr, prop, index, param);
 		}
 		break;
 	}
@@ -430,7 +424,7 @@ static int pyrna_py_to_prop_index(PointerRNA *ptr, PropertyRNA *prop, int index,
 			PyErr_SetString(PyExc_TypeError, "expected an int type");
 			ret = -1;
 		} else {
-			RNA_property_int_set_array(ptr, prop, index, param);
+			RNA_property_int_set_index(ptr, prop, index, param);
 		}
 		break;
 	}
@@ -441,7 +435,7 @@ static int pyrna_py_to_prop_index(PointerRNA *ptr, PropertyRNA *prop, int index,
 			PyErr_SetString(PyExc_TypeError, "expected a float type");
 			ret = -1;
 		} else {
-			RNA_property_float_set_array(ptr, prop, index, param);
+			RNA_property_float_set_index(ptr, prop, index, param);
 		}
 		break;
 	}
@@ -679,7 +673,7 @@ PyObject *pyrna_struct_to_docstring(BPy_StructRNA *self)
 				
 				// TODO - why does this crash sometimes
 				// PointerRNA newptr;
-				// RNA_property_pointer_get(&iter.ptr, prop, &newptr);
+				// newptr= RNA_property_pointer_get(&iter.ptr, prop);
 				
 				// Use this instead, its not that useful
 				BLI_dynstr_appendf(dynstr, "@type %s: PyRNA %s\n", identifier, RNA_struct_identifier(&iter.ptr));

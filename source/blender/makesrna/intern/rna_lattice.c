@@ -36,24 +36,18 @@
 
 #ifdef RNA_RUNTIME
 
-static float rna_LatticePoint_co_get(PointerRNA *ptr, int index)
+static void rna_LatticePoint_co_get(PointerRNA *ptr, float *values)
 {
 	Lattice *lt= (Lattice*)ptr->id.data;
 	BPoint *bp= (BPoint*)ptr->data;
 	int a= bp - lt->def;
+	int x= a % lt->pntsu;
+	int y= (a/lt->pntsu) % lt->pntsv;
+	int z= (a/(lt->pntsu*lt->pntsv));
 
-	if(index == 0) {
-		int x= a % lt->pntsu;
-		return lt->fu + x*lt->du;
-	}
-	else if(index == 1) {
-		int y= (a/lt->pntsu) % lt->pntsv;
-		return lt->fv + y*lt->dv;
-	}
-	else {
-		int z= (a/(lt->pntsu*lt->pntsv));
-		return lt->fw + z*lt->dw;
-	}
+	values[0]= lt->fu + x*lt->du;
+	values[1]= lt->fv + y*lt->dv;
+	values[2]= lt->fw + z*lt->dw;
 }
 
 static void rna_LatticePoint_groups_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
@@ -105,7 +99,7 @@ static void rna_def_latticepoint(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Deformed Location", "");
 
 	prop= RNA_def_property(srna, "groups", PROP_COLLECTION, PROP_NONE);
-	RNA_def_property_collection_funcs(prop, "rna_LatticePoint_groups_begin", "rna_iterator_array_next", "rna_iterator_array_end", "rna_iterator_array_get", 0, 0, 0, 0);
+	RNA_def_property_collection_funcs(prop, "rna_LatticePoint_groups_begin", "rna_iterator_array_next", "rna_iterator_array_end", "rna_iterator_array_get", 0, 0, 0);
 	RNA_def_property_struct_type(prop, "VertexGroupElement");
 	RNA_def_property_ui_text(prop, "Groups", "Weights for the vertex groups this point is member of.");
 }
@@ -164,7 +158,7 @@ static void rna_def_lattice(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "points", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, "LatticePoint");
-	RNA_def_property_collection_funcs(prop, "rna_Lattice_points_begin", "rna_iterator_array_next", "rna_iterator_array_end", "rna_iterator_array_get", 0, 0, 0, 0);
+	RNA_def_property_collection_funcs(prop, "rna_Lattice_points_begin", "rna_iterator_array_next", "rna_iterator_array_end", "rna_iterator_array_get", 0, 0, 0);
 	RNA_def_property_ui_text(prop, "Points", "Points of the lattice.");
 }
 

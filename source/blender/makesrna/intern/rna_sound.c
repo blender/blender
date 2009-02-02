@@ -98,7 +98,7 @@ static void rna_def_soundlistener(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "SoundListener", "ID");
 	RNA_def_struct_sdna(srna, "bSoundListener");
-	RNA_def_struct_ui_text(srna, "Sound Listener", "Sound listener defining paramaters about how sounds are played.");
+	RNA_def_struct_ui_text(srna, "Sound Listener", "Sound listener defining parameters about how sounds are played.");
 
 	prop= RNA_def_property(srna, "gain", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Gain", "Overall volume for Game Engine sound.");
