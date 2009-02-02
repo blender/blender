@@ -125,15 +125,6 @@ wmKeymapItem *WM_keymap_add_item(ListBase *lb, char *idname, short type, short v
 	return kmi;
 }
 
-/* enables tweak for mouse/modifier combo
-   on tweak fail, it passes on event with 'val=1', so other keymap items can test */
-void WM_keymap_tweak(ListBase *lb, short type, short val, int modifier, short keymodifier)
-{
-	wmKeymapItem *km= WM_keymap_add_item(lb, "WM_OT_tweak_gesture", type, val, modifier, keymodifier);
-	km->is_tweak= 1;
-}
-
-
 /* ****************** storage in WM ************ */
 
 /* name id's are for storing general or multiple keymaps, 

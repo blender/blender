@@ -38,6 +38,7 @@ struct wmWindowManager;
 struct wmWindow;
 
 struct wmEvent;
+struct wmGesture;
 struct wmOperatorType;
 struct wmOperator;
 
@@ -102,6 +103,8 @@ typedef struct wmWindow {
 	
 	struct wmSubWindow *curswin;	/* internal for wm_subwindow.c only */
 
+	struct wmGesture *tweak;	/* internal for wm_operators.c */
+	
 	int drawmethod, drawfail;	/* internal for wm_draw.c only */
 	void *drawdata;				/* internal for wm_draw.c only */
 	
@@ -168,7 +171,7 @@ typedef struct wmKeymapItem {
 	short shift, ctrl, alt, oskey;	/* oskey is apple or windowskey, value denotes order of pressed */
 	short keymodifier;				/* rawkey modifier */
 	
-	short is_tweak;					/* internal only, to handle tweak failure events properly */
+	short pad;
 } wmKeymapItem;
 
 #define KMAP_MAX_NAME	64

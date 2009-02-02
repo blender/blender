@@ -55,6 +55,8 @@ void wm_operatortype_free(void);
 void wm_operatortype_init(void);
 void wm_window_keymap(wmWindowManager *wm);
 
+void wm_tweakevent_test(bContext *C, wmEvent *event, int action);
+
 /* wm_gesture.c */
 #define WM_LASSO_MAX_POINTS		1024
 void wm_gesture_draw(struct wmWindow *win);

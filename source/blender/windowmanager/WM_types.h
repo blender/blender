@@ -68,7 +68,7 @@ typedef struct wmEvent {
 	short prevx, prevy;	/* previous mouse pointer position */
 	short unicode;		/* future, ghost? */
 	char ascii;			/* from ghost */
-	char no_tweak;		/* set on tweak failure, to allow other events to try it */
+	char pad;
 	
 	/* modifier states */
 	short shift, ctrl, alt, oskey;	/* oskey is apple or windowskey, value denotes order of pressed */
@@ -224,6 +224,7 @@ typedef struct wmNotifier {
 #define WM_GESTURE_CIRCLE		5
 
 /* wmGesture is registered to window listbase, handled by operator callbacks */
+/* tweak gesture is builtin feature */
 typedef struct wmGesture {
 	struct wmGesture *next, *prev;
 	int event_type;	/* event->type */

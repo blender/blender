@@ -186,9 +186,6 @@ static void graphedit_keymap_keyframes (wmWindowManager *wm, ListBase *keymap)
 	//WM_keymap_add_item(keymap, "GRAPHEDIT_OT_set_previewrange", PKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
 	//WM_keymap_add_item(keymap, "GRAPHEDIT_OT_view_all", HOMEKEY, KM_PRESS, 0, 0);
 	
-	/* generates event, needs to be after select to work */
-	WM_keymap_tweak(keymap, SELECTMOUSE, KM_PRESS, 0, 0);
-
 	/* transform system */
 	transform_keymap_for_space(wm, keymap, SPACE_IPO);
 }

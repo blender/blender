@@ -183,10 +183,5 @@ void view3d_keymap(wmWindowManager *wm)
 
 	transform_keymap_for_space(wm, keymap, SPACE_VIEW3D);
 
-	/* generates event, in end to make select work */
-	WM_keymap_tweak(keymap, SELECTMOUSE, KM_PRESS, 0, 0);
-	/* tweak event for border, lasso, etc */
-	WM_keymap_tweak(keymap, ACTIONMOUSE, KM_PRESS, KM_CTRL, 0);
-
 }
 

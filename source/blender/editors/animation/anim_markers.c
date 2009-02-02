@@ -889,7 +889,4 @@ void ED_marker_keymap(wmWindowManager *wm)
 	
 	WM_keymap_add_item(keymap, "MARKER_OT_move", GKEY, KM_PRESS, 0, 0);
 	
-	/* generates event, needs to be after select to work */
-	WM_keymap_tweak(keymap, SELECTMOUSE, KM_PRESS, 0, 0);
-	
 }

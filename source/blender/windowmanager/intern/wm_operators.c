@@ -729,22 +729,10 @@ void WM_OT_circle_gesture(wmOperatorType *ot)
 
 /* **************** Tweak gesture *************** */
 
-static int tweak_gesture_invoke(bContext *C, wmOperator *op, wmEvent *event)
-{
-	op->customdata= WM_gesture_new(C, event, WM_GESTURE_TWEAK);
-	
-	/* add modal handler */
-	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
-	
-	wm_gesture_tag_redraw(C);
-	
-	return OPERATOR_RUNNING_MODAL;
-}
-
-static int tweak_gesture_modal(bContext *C, wmOperator *op, wmEvent *event)
+static void tweak_gesture_modal(bContext *C, wmEvent *event)
 {
 	wmWindow *window= CTX_wm_window(C);
-	wmGesture *gesture= op->customdata;
+	wmGesture *gesture= window->tweak;
 	rcti *rect= gesture->customdata;
 	int sx, sy, val;
 	
@@ -758,7 +746,7 @@ static int tweak_gesture_modal(bContext *C, wmOperator *op, wmEvent *event)
 			
 			if((val= wm_gesture_evaluate(C, gesture))) {
 				wmEvent event;
-					
+
 				event= *(window->eventstate);
 				if(gesture->event_type==LEFTMOUSE)
 					event.type= EVT_TWEAK_L;
@@ -770,11 +758,9 @@ static int tweak_gesture_modal(bContext *C, wmOperator *op, wmEvent *event)
 				/* mouse coords! */
 				wm_event_add(window, &event);
 				
-				wm_gesture_end(C, op);
-				return OPERATOR_FINISHED;
+				WM_gesture_end(C, gesture);	/* frees gesture itself, and unregisters from window */
+				window->tweak= NULL;
 			}
-			else
-				wm_gesture_tag_redraw(C);
 			
 			break;
 			
@@ -782,29 +768,43 @@ static int tweak_gesture_modal(bContext *C, wmOperator *op, wmEvent *event)
 		case RIGHTMOUSE:
 		case MIDDLEMOUSE:
 			if(gesture->event_type==event->type) {
-				wm_gesture_end(C, op);
+				WM_gesture_end(C, gesture);
+				window->tweak= NULL;
 				
 				/* when tweak fails we should give the other keymap entries a chance
 				 * those then won't react to km_press, but km_release
 				 * it sets hidden event value where tweak maps fail on, to prevent loops */
-				event->val= 1;
-				event->no_tweak= 1;
-				return OPERATOR_FINISHED|OPERATOR_PASS_THROUGH;
+				//event->val= 1;
+				//event->no_tweak= 1;
 			}
 			break;
+		default:
+			WM_gesture_end(C, gesture);
+			window->tweak= NULL;
 	}
-	return OPERATOR_RUNNING_MODAL;
 }
 
-void WM_OT_tweak_gesture(wmOperatorType *ot)
+/* standard tweak, called after window handlers passed on event */
+void wm_tweakevent_test(bContext *C, wmEvent *event, int action)
 {
-	ot->name= "Tweak Gesture";
-	ot->idname= "WM_OT_tweak_gesture";
+	wmWindow *win= CTX_wm_window(C);
 	
-	ot->invoke= tweak_gesture_invoke;
-	ot->modal= tweak_gesture_modal;
-
-	ot->poll= WM_operator_winactive;
+	if(win->tweak==NULL) {
+		if(CTX_wm_region(C)) {
+			if(event->val) { // pressed
+				if( ELEM3(event->type, LEFTMOUSE, MIDDLEMOUSE, RIGHTMOUSE) )
+					win->tweak= WM_gesture_new(C, event, WM_GESTURE_TWEAK);
+			}
+		}
+	}
+	else {
+		if(action==WM_HANDLER_BREAK) {
+			WM_gesture_end(C, win->tweak);
+			win->tweak= NULL;
+		}
+		else
+			tweak_gesture_modal(C, event);
+	}
 }
 
 /* *********************** lasso gesture ****************** */
@@ -1171,7 +1171,6 @@ void wm_operatortype_init(void)
 	WM_operatortype_append(WM_OT_save_homefile);
 	WM_operatortype_append(WM_OT_window_fullscreen_toggle);
 	WM_operatortype_append(WM_OT_exit_blender);
-	WM_operatortype_append(WM_OT_tweak_gesture);
 	WM_operatortype_append(WM_OT_open_recentfile);
 	WM_operatortype_append(WM_OT_open_mainfile);
 	WM_operatortype_append(WM_OT_jobs_timer);

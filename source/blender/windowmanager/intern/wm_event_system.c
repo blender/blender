@@ -542,19 +542,6 @@ static int wm_eventmatch(wmEvent *winevent, wmKeymapItem *kmi)
 	if(kmi->keymodifier)
 		if(winevent->keymodifier!=kmi->keymodifier) return 0;
 	
-	/* happens on tweak failure */
-	/* weak code, testing only now! (ton) */
-	if(kmi->is_tweak) {
-		/* only after tweak keymap we allow the hack */
-		if(winevent->no_tweak) {
-			winevent->no_tweak= 2;
-			return 0;
-		}
-	}
-	
-	if(winevent->no_tweak==1)
-		return 0;
-	
 	return 1;
 }
 
@@ -850,15 +837,23 @@ void wm_event_do_handlers(bContext *C)
 				return;
 			}
 			
+			/* builtin tweak, if action is break it removes tweak */
+			if(!wm_event_always_pass(event))
+				wm_tweakevent_test(C, event, action);
+			
 			if(wm_event_always_pass(event) || action==WM_HANDLER_CONTINUE) {
 				ScrArea *sa;
 				ARegion *ar;
 				int doit= 0;
 				
 				/* XXX to solve, here screen handlers? */
-				if(event->type==MOUSEMOVE) {
-					ED_screen_set_subwinactive(win, event);	/* state variables in screen, cursors */
-					wm_paintcursor_test(C, event);
+				if(!wm_event_always_pass(event)) {
+					if(event->type==MOUSEMOVE) {
+						/* state variables in screen, cursors */
+						ED_screen_set_subwinactive(win, event);	
+						/* for regions having custom cursors */
+						wm_paintcursor_test(C, event);
+					}
 				}
 				
 				for(sa= win->screen->areabase.first; sa; sa= sa->next) {

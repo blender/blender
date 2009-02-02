@@ -703,6 +703,8 @@ static int view3d_lasso_select_exec(bContext *C, wmOperator *op)
 	RNA_END;
 	
 	if(i>1) {
+		view3d_operator_needs_opengl(C);
+		
 		/* setup view context for argument to callbacks */
 		view3d_set_viewcontext(C, &vc);
 		
@@ -1753,6 +1755,8 @@ static int view3d_circle_select_exec(bContext *C, wmOperator *op)
 	if(CTX_data_edit_object(C)) {
 		ViewContext vc;
 		short mval[2], selecting;
+		
+		view3d_operator_needs_opengl(C);
 		
 		view3d_set_viewcontext(C, &vc);
 		mval[0]= x;

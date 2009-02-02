@@ -247,10 +247,9 @@ int EM_mask_init_backbuf_border(ViewContext *vc, short mcords[][2], short tot, s
 	}
 	else if(vc->v3d->drawtype<OB_SOLID || (vc->v3d->flag & V3D_ZBUF_SELECT)==0) return 0;
 
-	if(em_vertoffs==0) return 0;
-	
 	buf= view3d_read_backbuf(vc, xmin, ymin, xmax, ymax);
 	if(buf==NULL) return 0;
+	if(em_vertoffs==0) return 0;
 
 	dr = buf->rect;
 
@@ -260,6 +259,7 @@ int EM_mask_init_backbuf_border(ViewContext *vc, short mcords[][2], short tot, s
 	glColor3ub(0, 0, 0);
 	
 	/* yah, opengl doesn't do concave... tsk! */
+	ED_region_pixelspace(vc->ar);
  	draw_triangulated(mcords, tot);	
 	
 	glBegin(GL_LINE_LOOP);	/* for zero sized masks, lines */
@@ -301,11 +301,11 @@ int EM_init_backbuf_circle(ViewContext *vc, short xs, short ys, short rads)
 		else return 0;
 	}
 	else if(vc->v3d->drawtype<OB_SOLID || (vc->v3d->flag & V3D_ZBUF_SELECT)==0) return 0;
-	if(em_vertoffs==0) return 0;
 	
 	xmin= xs-rads; xmax= xs+rads;
 	ymin= ys-rads; ymax= ys+rads;
 	buf= view3d_read_backbuf(vc, xmin, ymin, xmax, ymax);
+	if(em_vertoffs==0) return 0;
 	if(buf==NULL) return 0;
 
 	dr = buf->rect;

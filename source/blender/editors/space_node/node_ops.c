@@ -73,9 +73,5 @@ void node_keymap(struct wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "NODE_OT_border_select", BKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "NODE_OT_delete_selection", XKEY, KM_PRESS, 0, 0);
 	
-	/* generates event, needs to be after select to work */
-	WM_keymap_tweak(keymap, ACTIONMOUSE, KM_PRESS, 0, 0);
-	WM_keymap_tweak(keymap, SELECTMOUSE, KM_PRESS, 0, 0);
-	
 	transform_keymap_for_space(wm, keymap, SPACE_NODE);
 }
