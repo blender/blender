@@ -103,8 +103,9 @@ typedef struct wmEvent {
 
 /* val */
 #define KM_ANY		-1
-#define KM_RELEASE	0
+#define KM_NOTHING	0
 #define KM_PRESS	1
+#define KM_RELEASE	2
 
 
 /* ************** UI Handler ***************** */
