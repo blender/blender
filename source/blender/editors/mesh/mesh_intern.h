@@ -32,6 +32,11 @@
 #ifndef MESH_INTERN_H
 #define MESH_INTERN_H
 
+#include "BLI_editVert.h"
+#include "DNA_scene_types.h"
+#include "DNA_object_types.h"
+#include "DNA_mesh_types.h"
+
 struct bContext;
 struct wmOperatorType;
 struct ViewContext;

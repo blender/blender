@@ -39,7 +39,7 @@
  *  Returns -
  *	1 for success, 0 for failure.
  */
-
+#if 1
 void BM_Dissolve_Disk(BMesh *bm, BMVert *v) {
 	BMFace *f, *f2;
 	BMEdge *e, *keepedge=NULL, *baseedge=NULL;
@@ -111,6 +111,38 @@ void BM_Dissolve_Disk(BMesh *bm, BMVert *v) {
 		BM_Join_Faces(bm, f, f2, NULL, 0, 0);
 	}
 }
+#else
+void BM_Dissolve_Disk(BMesh *bm, BMVert *v){
+	BMFace *f;
+	BMEdge *e;
+	BMIter iter;
+	int done, len;
+	
+	if(v->edge){
+		done = 0;
+		while(!done){
+			done = 1;
+			
+			/*loop the edges looking for an edge to dissolve*/
+			for (e=BMIter_New(&iter, bm, BM_EDGES_OF_VERT, v); e;
+			     e = BMIter_Step(&iter)) {
+				f = NULL;
+				len = bmesh_cycle_length(&(e->loop->radial));
+				if(len == 2){
+					f = BM_Join_Faces(bm,e->loop->f,((BMLoop*)
+					      (e->loop->radial.next->data))->f, 
+					       e, 1, 0);
+				}
+				if(f){ 
+					done = 0;
+					break;
+				}
+			};
+		}
+		BM_Collapse_Vert(bm, v->edge, v, 1.0, 1);
+	}
+}
+#endif
 
 /**
  *			bmesh_join_faces

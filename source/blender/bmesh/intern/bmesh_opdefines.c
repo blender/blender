@@ -34,7 +34,11 @@ BMOpDefine def_triangop = {
 };
 
 BMOpDefine def_subdop = {
-	{BMOP_OPSLOT_PNT_BUF},
+	{BMOP_OPSLOT_PNT_BUF,
+	 BMOP_OPSLOT_INT,
+	 BMOP_OPSLOT_INT,
+	 BMOP_OPSLOT_FLT,
+	 BMOP_OPSLOT_INT},
 	esubdivide_exec,
 	BMOP_ESUBDIVIDE_TOTSLOT,
 	0

@@ -79,8 +79,8 @@ void BM_Data_Facevert_Edgeinterp(BMesh *bm, BMVert *v1, BMVert *v2, BMVert *v, B
 	float w[2];
 	BMLoop *l=NULL, *v1loop = NULL, *vloop = NULL, *v2loop = NULL;
 	
-	w[0] = 1.0f - fac;
-	w[1] = fac;
+	w[1] = 1.0f - fac;
+	w[0] = fac;
 
 	if(!e1->loop) return;
 	l = e1->loop;

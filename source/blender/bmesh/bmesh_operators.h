@@ -22,7 +22,7 @@ typedef struct BMOpSlot{
 	int len;
 	int index; /*index within slot array*/
 	union {
-		int	i;
+		int i;
 		float f;					
 		void *p;					
 		float vec[3];				/*vector*/
@@ -52,7 +52,6 @@ typedef struct BMOpDefine {
 
 /*BMOpDefine->flag*/
 //doesn't do anything at the moment.
-#define BMO_NOFLAGS		1
 
 /*API for operators*/
 void BMO_Init_Op(struct BMOperator *op, int opcode);
@@ -152,16 +151,31 @@ enum {
 
 /*edge subdivide op*/
 #define BMOP_ESUBDIVIDE			5
-#define BMOP_ESUBDIVIDE_EDGES	0
-#define BMOP_ESUBDIVIDE_TOTSLOT	1
+enum {
+	BMOP_ESUBDIVIDE_EDGES,
+	BMOP_ESUBDIVIDE_NUMCUTS,
+	BMOP_ESUBDIVIDE_FLAG, //beauty flag in esubdivide
+	BMOP_ESUBDIVIDE_RADIUS,
+	BMOP_ESUBDIVIDE_SELACTION,
+	BMOP_ESUBDIVIDE_TOTSLOT,
+};
+/*
+SUBDIV_SELECT_INNER
+SUBDIV_SELECT_ORIG
+SUBDIV_SELECT_INNER_SEL
+SUBDIV_SELECT_LOOPCUT
+DOUBLEOPFILL
+*/
 
 /*triangulate*/
 #define BMOP_TRIANGULATE		6
 
-#define BMOP_TRIANG_FACEIN		0
-#define BMOP_TRIANG_NEW_EDGES	1
-#define BMOP_TRIANG_NEW_FACES	2
-#define BMOP_TRIANG_TOTSLOT		3
+enum {
+	BMOP_TRIANG_FACEIN,
+	BMOP_TRIANG_NEW_EDGES,
+	BMOP_TRIANG_NEW_FACES,
+	BMOP_TRIANG_TOTSLOT,
+};
 
 /*dissolve faces*/
 #define BMOP_DISSOLVE_FACES		7

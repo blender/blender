@@ -204,5 +204,34 @@
 #define SET_INT_IN_POINTER(i) ((void*)(intptr_t)(i))
 #define GET_INT_FROM_POINTER(i) ((int)(intptr_t)(i))
 
+/*little pointer array macro library.  example of usage:
+
+int *arr = NULL;
+V_DECLARE(arr);
+int i;
+
+for (i=0; i<10; i++) {
+	V_GROW(arr);
+	arr[i] = something;
+}
+V_FREE(arr);
+*/
+
+#define V_DECLARE(vec) int _##vec##_count=0; void *_##vec##_tmp
+#define V_SIZE(vec) ((vec)==NULL ? 0 : MEM_allocN_len(vec) / sizeof(*vec))
+#define V_COUNT(vec) _##vec##_count
+#define MSTR(s) #s
+#define V_GROW(vec) \
+	V_SIZE(vec) > _##vec##_count ? _##vec##_count++ : \
+	((_##vec##_tmp = MEM_callocN(sizeof(*vec)*(_##vec##_count*2+2), #vec " " __FILE__ " ")),\
+	(vec && memcpy(_##vec##_tmp, vec, sizeof(*vec) * _##vec##_count)),\
+	(vec && (MEM_freeN(vec),1)),\
+	(vec = _##vec##_tmp),\
+	_##vec##_count++)
+
+//(vec) ? WMEM_freeN(vec), 1 : 0
+#define V_FREE(vec) if (vec) MEM_freeN(vec);
+#define V_RESET(vec) _##vec##_count=0
+
 #endif
 

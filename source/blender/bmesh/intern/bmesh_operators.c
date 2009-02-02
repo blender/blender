@@ -80,9 +80,6 @@ void BMO_Init_Op(BMOperator *op, int opcode)
 	memset(op, 0, sizeof(BMOperator));
 	op->type = opcode;
 	
-	//currently not used, flags are always allocated
-	op->needflag = !(opdefines[opcode]->flag & BMO_NOFLAGS);
-
 	/*initialize the operator slot types*/
 	for(i = 0; i < opdefines[opcode]->totslot; i++) {
 		op->slots[i].slottype = opdefines[opcode]->slottypes[i];

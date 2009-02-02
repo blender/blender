@@ -3301,7 +3301,11 @@ static int bmesh_test_exec(bContext *C, wmOperator *op)
 
 	bm = editmesh_to_bmesh(em);
 
-#if 1
+#if 1 /*edge subdivide test*/
+	BM_esubdivideflag(obedit, bm, SELECT, 0, 0, G.rt==0?1:G.rt, 0);
+#endif
+
+#if 0
 	/*dissolve vert test*/
 	{
 			BMOperator op;
