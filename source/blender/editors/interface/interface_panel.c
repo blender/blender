@@ -1459,7 +1459,7 @@ int ui_handler_panel_region(bContext *C, wmEvent *event)
 				inside_scale= 1;
 	}
 
-	if(!event->val)
+	if(event->val!=KM_PRESS)
 		return retval;
 
 	if(event->type == LEFTMOUSE) {
@@ -1513,7 +1513,7 @@ static int ui_handler_panel(bContext *C, wmEvent *event, void *userdata)
 	uiHandlePanelData *data= panel->activedata;
 
 	/* verify if we can stop */
-	if(event->type == LEFTMOUSE && !event->val) {
+	if(event->type == LEFTMOUSE && event->val!=KM_PRESS) {
 		panel_activate_state(C, panel, PANEL_STATE_ANIMATION);
 		return WM_UI_HANDLER_BREAK;
 	}

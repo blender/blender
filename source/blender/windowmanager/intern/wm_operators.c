@@ -771,12 +771,8 @@ static void tweak_gesture_modal(bContext *C, wmEvent *event)
 				WM_gesture_end(C, gesture);
 				window->tweak= NULL;
 				
-				/* when tweak fails we should give the other keymap entries a chance
-				 * those then won't react to km_press, but km_release
-				 * it sets hidden event value where tweak maps fail on, to prevent loops */
+				/* when tweak fails we should give the other keymap entries a chance */
 				event->val= KM_RELEASE;
-				//event->val= 1;
-				//event->no_tweak= 1;
 			}
 			break;
 		default:
