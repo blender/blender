@@ -1912,11 +1912,14 @@ static void edgering_select(EditMesh *em, EditEdge *startedge, int select)
 	}
 }
 
-void loop_multiselect(EditMesh *em, int looptype)
+static int loop_multiselect(bContext *C, wmOperator *op)
 {
+	Object *obedit= CTX_data_edit_object(C);
+	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
 	EditEdge *eed;
 	EditEdge **edarray;
 	int edindex, edfirstcount;
+	int looptype= RNA_boolean_get(op->ptr, "ring");
 	
 	/* sets em->totedgesel */
 	EM_nedges_selected(em);
@@ -1948,7 +1951,28 @@ void loop_multiselect(EditMesh *em, int looptype)
 	}
 	MEM_freeN(edarray);
 //	if (EM_texFaceCheck())
+	
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	return OPERATOR_FINISHED;	
 }
+
+void MESH_OT_select_multi_loop(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Multi Select Loops";
+	ot->idname= "MESH_OT_select_multi_loop";
+	
+	/* api callbacks */
+	ot->exec= loop_multiselect;
+	ot->poll= ED_operator_editmesh;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* properties */
+	RNA_def_boolean(ot->srna, "ring", 0, "Ring", "");
+}
+
 		
 /* ***************** MAIN MOUSE SELECTION ************** */
 
@@ -2207,79 +2231,121 @@ void mouse_mesh(bContext *C, short mval[2], short extend)
 	
 }
 
-// XXX should we use CTX_scene(C)->selectmode & SCE_SELECT_FACE like it was in the past ? calls selectconnected_delimit_mesh_all if true
-void selectconnected_mesh_all(EditMesh *em)
-{
-	EditVert *v1,*v2;
-	EditEdge *eed;
-	short done=1, toggle=0;
+/* *********** select linked ************* */
 
-	if(em->edges.first==0) return;
+/* for use with selectconnected_delimit_mesh only! */
+#define is_edge_delimit_ok(eed) ((eed->tmp.l == 1) && (eed->seam==0))
+#define is_face_tag(efa) is_edge_delimit_ok(efa->e1) || is_edge_delimit_ok(efa->e2) || is_edge_delimit_ok(efa->e3) || (efa->v4 && is_edge_delimit_ok(efa->e4))
+
+#define face_tag(efa)\
+if(efa->v4)	efa->tmp.l=		efa->e1->tmp.l= efa->e2->tmp.l= efa->e3->tmp.l= efa->e4->tmp.l= 1;\
+else		efa->tmp.l=		efa->e1->tmp.l= efa->e2->tmp.l= efa->e3->tmp.l= 1;
+
+/* all - 1) use all faces for extending the selection  2) only use the mouse face
+* sel - 1) select  0) deselect 
+* */
+
+/* legacy warning, this function combines too much :) */
+static int select_linked_limited_invoke(ViewContext *vc, short all, short sel)
+{
+	EditMesh *em= vc->em;
+	EditFace *efa;
+	EditEdge *eed;
+	EditVert *eve;
+	short done=1, change=0;
+	
+	if(em->faces.first==0) return OPERATOR_CANCELLED;
+	
+	/* flag all edges+faces as off*/
+	for(eed= em->edges.first; eed; eed= eed->next)
+		eed->tmp.l=0;
+	
+	for(efa= em->faces.first; efa; efa= efa->next) {
+		efa->tmp.l = 0;
+	}
+	
+	if (all) {
+		// XXX verts?
+		for(eed= em->edges.first; eed; eed= eed->next) {
+			if(eed->f & SELECT)
+				eed->tmp.l= 1;
+		}
+		for(efa= em->faces.first; efa; efa= efa->next) {
+			
+			if (efa->f & SELECT) {
+				face_tag(efa);
+			} else {
+				efa->tmp.l = 0;
+			}
+		}
+	} 
+	else {
+		if( unified_findnearest(vc, &eve, &eed, &efa) ) {
+			
+			if(efa) {
+				efa->tmp.l = 1;
+				face_tag(efa);
+			}
+			else if(eed)
+				eed->tmp.l= 1;
+			else {
+				for(eed= em->edges.first; eed; eed= eed->next)
+					if(eed->v1==eve || eed->v2==eve)
+						break;
+				eed->tmp.l= 1;
+			}
+		}
+		else
+			return OPERATOR_FINISHED;
+	}
 	
 	while(done==1) {
 		done= 0;
-		
-		toggle++;
-		if(toggle & 1) eed= em->edges.first;
-		else eed= em->edges.last;
-		
-		while(eed) {
-			v1= eed->v1;
-			v2= eed->v2;
-			if(eed->h==0) {
-				if(v1->f & SELECT) {
-					if( (v2->f & SELECT)==0 ) {
-						v2->f |= SELECT;
-						done= 1;
-					}
-				}
-				else if(v2->f & SELECT) {
-					if( (v1->f & SELECT)==0 ) {
-						v1->f |= SELECT;
-						done= 1;
-					}
+		/* simple algo - select all faces that have a selected edge
+		* this intern selects the edge, repeat until nothing is left to do */
+		for(efa= em->faces.first; efa; efa= efa->next) {
+			if ((efa->tmp.l == 0) && (!efa->h)) {
+				if (is_face_tag(efa)) {
+					face_tag(efa);
+					done= 1;
 				}
 			}
-			if(toggle & 1) eed= eed->next;
-			else eed= eed->prev;
 		}
 	}
-
-	/* now use vertex select flag to select rest */
-	EM_select_flush(em);
 	
-//	if (EM_texFaceCheck())
+	for(efa= em->faces.first; efa; efa= efa->next) {
+		if (efa->tmp.l) {
+			if (sel) {
+				if (!(efa->f & SELECT)) {
+					EM_select_face(efa, 1);
+					change = 1;
+				}
+			} else {
+				if (efa->f & SELECT) {
+					EM_select_face(efa, 0);
+					change = 1;
+				}
+			}
+		}
+	}
+	
+	if (!change)
+		return OPERATOR_CANCELLED;
+	
+	if (!sel) /* make sure de-selecting faces didnt de-select the verts/edges connected to selected faces, this is common with boundries */
+		for(efa= em->faces.first; efa; efa= efa->next)
+			if (efa->f & SELECT)
+				EM_select_face(efa, 1);
+	
+	//	if (EM_texFaceCheck())
+	
+	return OPERATOR_FINISHED;
 }
 
-static int select_linked_exec(bContext *C, wmOperator *op)
-{
-	Object *obedit= CTX_data_edit_object(C);
-	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
-	
-	selectconnected_mesh_all(em);
-	
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
-	return OPERATOR_FINISHED;	
-}
+#undef is_edge_delimit_ok
+#undef is_face_tag
+#undef face_tag
 
-void MESH_OT_select_linked(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Select Linked All";
-	ot->idname= "MESH_OT_select_linked";
-	
-	/* api callbacks */
-	ot->exec= select_linked_exec;
-	ot->poll= ED_operator_editmesh;
-	
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-	
-}
-
-/* *********** select connected ************* */
-
-// XXX should we use CTX_scene(C)->selectmode & SCE_SELECT_FACE like it was in the past ? calls selectconnected_delimit_mesh if true
 static int select_linked_pick_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	Object *obedit= CTX_data_edit_object(C);
@@ -2289,6 +2355,7 @@ static int select_linked_pick_invoke(bContext *C, wmOperator *op, wmEvent *event
 	EditFace *efa;
 	short done=1, toggle=0;
 	int sel= !RNA_boolean_get(op->ptr, "deselect");
+	int limit= RNA_boolean_get(op->ptr, "limit");
 	
 	/* unified_finednearest needs ogl */
 	view3d_operator_needs_opengl(C);
@@ -2301,7 +2368,16 @@ static int select_linked_pick_invoke(bContext *C, wmOperator *op, wmEvent *event
 	vc.mval[0]= event->x - vc.ar->winrct.xmin;
 	vc.mval[1]= event->y - vc.ar->winrct.ymin;
 	
+	/* return warning! */
+	if(limit) {
+		int retval= select_linked_limited_invoke(&vc, 0, sel);
+		WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+		return retval;
+	}
+	
 	if( unified_findnearest(&vc, &eve, &eed, &efa)==0 ) {
+		WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	
 		return OPERATOR_CANCELLED;
 	}
 
@@ -2372,114 +2448,91 @@ void MESH_OT_select_linked_pick(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	RNA_def_boolean(ot->srna, "deselect", 0, "Deselect", "");
+	RNA_def_boolean(ot->srna, "limit", 0, "Limit by Seams", "");
 }
+
 
 /* ************************* */
 
-/* for use with selectconnected_delimit_mesh only! */
-#define is_edge_delimit_ok(eed) ((eed->tmp.l == 1) && (eed->seam==0))
-#define is_face_tag(efa) is_edge_delimit_ok(efa->e1) || is_edge_delimit_ok(efa->e2) || is_edge_delimit_ok(efa->e3) || (efa->v4 && is_edge_delimit_ok(efa->e4))
-
-#define face_tag(efa)\
-	if(efa->v4)	efa->tmp.l=		efa->e1->tmp.l= efa->e2->tmp.l= efa->e3->tmp.l= efa->e4->tmp.l= 1;\
-	else		efa->tmp.l=		efa->e1->tmp.l= efa->e2->tmp.l= efa->e3->tmp.l= 1;
-
-/* all - 1) use all faces for extending the selection  2) only use the mouse face
- * sel - 1) select  0) deselect 
- * */
-static void selectconnected_delimit_mesh__internal(ViewContext *vc, short all, short sel)
+void selectconnected_mesh_all(EditMesh *em)
 {
-	EditMesh *em= vc->em;
-	EditFace *efa;
+	EditVert *v1,*v2;
 	EditEdge *eed;
-	short done=1, change=0;
-	int dist = 75;
+	short done=1, toggle=0;
 	
-	if(em->faces.first==0) return;
-	
-	/* flag all edges as off*/
-	for(eed= em->edges.first; eed; eed= eed->next)
-		eed->tmp.l=0;
-	
-	if (all) {
-		for(efa= em->faces.first; efa; efa= efa->next) {
-			if (efa->f & SELECT) {
-				face_tag(efa);
-			} else {
-				efa->tmp.l = 0;
-			}
-		}
-	} else {
-		EditFace *efa_mouse = findnearestface(vc, &dist);
-		
-		if( !efa_mouse ) {
-			/* error("Nothing indicated "); */ /* this is mostly annoying, eps with occluded geometry */
-			return;
-		}
-		
-		for(efa= em->faces.first; efa; efa= efa->next) {
-			efa->tmp.l = 0;
-		}
-		efa_mouse->tmp.l = 1;
-		face_tag(efa_mouse);
-	}
+	if(em->edges.first==0) return;
 	
 	while(done==1) {
 		done= 0;
-		/* simple algo - select all faces that have a selected edge
-		 * this intern selects the edge, repeat until nothing is left to do */
-		for(efa= em->faces.first; efa; efa= efa->next) {
-			if ((efa->tmp.l == 0) && (!efa->h)) {
-				if (is_face_tag(efa)) {
-					face_tag(efa);
-					done= 1;
+		
+		toggle++;
+		if(toggle & 1) eed= em->edges.first;
+		else eed= em->edges.last;
+		
+		while(eed) {
+			v1= eed->v1;
+			v2= eed->v2;
+			if(eed->h==0) {
+				if(v1->f & SELECT) {
+					if( (v2->f & SELECT)==0 ) {
+						v2->f |= SELECT;
+						done= 1;
+					}
+				}
+				else if(v2->f & SELECT) {
+					if( (v1->f & SELECT)==0 ) {
+						v1->f |= SELECT;
+						done= 1;
+					}
 				}
 			}
+			if(toggle & 1) eed= eed->next;
+			else eed= eed->prev;
 		}
 	}
 	
-	for(efa= em->faces.first; efa; efa= efa->next) {
-		if (efa->tmp.l) {
-			if (sel) {
-				if (!(efa->f & SELECT)) {
-					EM_select_face(efa, 1);
-					change = 1;
-				}
-			} else {
-				if (efa->f & SELECT) {
-					EM_select_face(efa, 0);
-					change = 1;
-				}
-			}
-		}
+	/* now use vertex select flag to select rest */
+	EM_select_flush(em);
+	
+	//	if (EM_texFaceCheck())
+}
+
+static int select_linked_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
+	
+	if( RNA_boolean_get(op->ptr, "limit") ) {
+		ViewContext vc;
+		em_setup_viewcontext(C, &vc);
+		select_linked_limited_invoke(&vc, 1, 1);
 	}
+	else
+		selectconnected_mesh_all(em);
 	
-	if (!change)
-		return;
-	
-	if (!sel) /* make sure de-selecting faces didnt de-select the verts/edges connected to selected faces, this is common with boundries */
-		for(efa= em->faces.first; efa; efa= efa->next)
-			if (efa->f & SELECT)
-				EM_select_face(efa, 1);
-	
-//	if (EM_texFaceCheck())
-	
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	return OPERATOR_FINISHED;	
 }
 
-#undef is_edge_delimit_ok
-#undef is_face_tag
-#undef face_tag
-
-void selectconnected_delimit_mesh(EditMesh *em)
+void MESH_OT_select_linked(wmOperatorType *ot)
 {
+	/* identifiers */
+	ot->name= "Select Linked All";
+	ot->idname= "MESH_OT_select_linked";
 	
-	// XXX selectconnected_delimit_mesh__internal(em, 0, ((G.qual & LR_SHIFTKEY)==0));
+	/* api callbacks */
+	ot->exec= select_linked_exec;
+	ot->poll= ED_operator_editmesh;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	RNA_def_boolean(ot->srna, "limit", 0, "Limit by Seams", "");
 }
-void selectconnected_delimit_mesh_all(ViewContext *vc)
-{
-	selectconnected_delimit_mesh__internal(vc, 1, 1);
-}	
-	
+
+
+/* ************************* */
+
 	
 /* swap is 0 or 1, if 1 it hides not selected */
 static void hide_mesh(EditMesh *em, int swap)

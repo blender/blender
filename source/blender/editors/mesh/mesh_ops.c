@@ -160,6 +160,8 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_similar_vertex_select);
 	WM_operatortype_append(MESH_OT_similar_edge_select);
 	WM_operatortype_append(MESH_OT_similar_face_select);
+	WM_operatortype_append(MESH_OT_select_multi_loop);
+	
 }
 
 /* note mesh keymap also for other space? */
