@@ -1740,7 +1740,8 @@ void enter_editmode(int wc)
 	
 	if(wc) waitcursor(0);
 	
-	scrarea_queue_headredraw(curarea);
+	if (G.background==0)
+		scrarea_queue_headredraw(curarea);
 }
 
 void exit_editmode(int flag)	/* freedata==0 at render, 1= freedata, 2= do undo buffer too */
@@ -1817,8 +1818,9 @@ void exit_editmode(int flag)	/* freedata==0 at render, 1= freedata, 2= do undo b
 	allqueue(REDRAWNLA, 0);
 	allqueue(REDRAWIPO, 0);
 	allqueue(REDRAWOOPS, 0);
-
-	scrarea_queue_headredraw(curarea);
+	
+	if (G.background==0)
+		scrarea_queue_headredraw(curarea);
 	
 	if(G.obedit==NULL && (flag & EM_FREEUNDO)) 
 		BIF_undo_push("Editmode");
