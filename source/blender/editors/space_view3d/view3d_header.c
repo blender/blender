@@ -624,7 +624,9 @@ static void view3d_viewmenu(bContext *C, uiMenuItem *head, void *arg_unused)
 	uiMenuLevel(head, "Align View", view3d_view_alignviewmenu);
 	
 	uiMenuSeparator(head);
-	
+
+	uiMenuContext(head, WM_OP_INVOKE_REGION_WIN);	
+
 	uiMenuItemO(head, "VIEW3D_OT_clipping", ICON_BLANK1);
 	uiMenuItemO(head, "VIEW3D_OT_border_zoom", ICON_BLANK1);
 	
