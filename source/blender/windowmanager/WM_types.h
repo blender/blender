@@ -45,10 +45,12 @@ struct wmWindowManager;
 
 /* context to call operator in for WM_operator_name_call */
 enum {
+	/* if there's invoke, call it, otherwise exec */
 	WM_OP_INVOKE_DEFAULT,
 	WM_OP_INVOKE_REGION_WIN,
 	WM_OP_INVOKE_AREA,
 	WM_OP_INVOKE_SCREEN,
+	/* only call exec */
 	WM_OP_EXEC_DEFAULT,
 	WM_OP_EXEC_REGION_WIN,
 	WM_OP_EXEC_AREA,

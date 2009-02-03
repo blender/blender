@@ -1819,7 +1819,7 @@ static uiBlock *ui_block_func_MENU_ITEM(bContext *C, uiPopupBlockHandle *handle,
 			y1 -= MENU_BUTTON_HEIGHT;
 		}
 		else if(item->type==MENU_ITEM_OPNAME_BOOL) {
-			but= uiDefIconTextButO(block, BUTM, item->opname, head->opcontext, item->icon, item->name, x1, y1, width+16, MENU_BUTTON_HEIGHT-1, "");
+			but= uiDefIconTextButO(block, BUTM, item->opname, item->opcontext, item->icon, item->name, x1, y1, width+16, MENU_BUTTON_HEIGHT-1, "");
 			RNA_boolean_set(uiButGetOperatorPtrRNA(but), item->propname, item->boolval);
 			
 			y1 -= MENU_BUTTON_HEIGHT;
@@ -1831,19 +1831,19 @@ static uiBlock *ui_block_func_MENU_ITEM(bContext *C, uiPopupBlockHandle *handle,
 			name= ui_menu_enumpropname(item->opname, item->propname, item->enumval);
 			BLI_strncpy(bname, name, sizeof(bname));
 			
-			but= uiDefIconTextButO(block, BUTM, item->opname, head->opcontext, item->icon, bname, x1, y1, width+16, MENU_BUTTON_HEIGHT-1, "");
+			but= uiDefIconTextButO(block, BUTM, item->opname, item->opcontext, item->icon, bname, x1, y1, width+16, MENU_BUTTON_HEIGHT-1, "");
 			RNA_enum_set(uiButGetOperatorPtrRNA(but), item->propname, item->enumval);
 			
 			y1 -= MENU_BUTTON_HEIGHT;
 		}
 		else if(item->type==MENU_ITEM_OPNAME_FLOAT) {
-			but= uiDefIconTextButO(block, BUTM, item->opname, head->opcontext, item->icon, item->name, x1, y1, width+16, MENU_BUTTON_HEIGHT-1, "");
+			but= uiDefIconTextButO(block, BUTM, item->opname, item->opcontext, item->icon, item->name, x1, y1, width+16, MENU_BUTTON_HEIGHT-1, "");
 			RNA_float_set(uiButGetOperatorPtrRNA(but), item->propname, item->fltval);
 			
 			y1 -= MENU_BUTTON_HEIGHT;
 		}
 		else if(item->type==MENU_ITEM_OPNAME) {
-			uiDefIconTextButO(block, BUTM, item->opname, head->opcontext, item->icon, NULL, x1, y1, width+16, MENU_BUTTON_HEIGHT-1, NULL);
+			uiDefIconTextButO(block, BUTM, item->opname, item->opcontext, item->icon, NULL, x1, y1, width+16, MENU_BUTTON_HEIGHT-1, NULL);
 			y1 -= MENU_BUTTON_HEIGHT;
 		}
 		else if(item->type==MENU_ITEM_RNA_BOOL) {
@@ -1954,7 +1954,8 @@ static uiMenuItem *ui_menu_add_item(uiMenuItem *head, const char *name, int icon
 	else
 		item->icon= ICON_BLANK1;
 	item->retval= argval;
-	item->opcontext= WM_OP_EXEC_REGION_WIN; 
+	
+	item->opcontext= head->opcontext; 
 	
 	BLI_addtail(&head->items, item);
 	

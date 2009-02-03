@@ -116,9 +116,6 @@
 /* XXX port over */
 static void handle_view3d_lock(void) {}
 static void allqueue(int x, int y) {}
-static void persptoetsen(int x) {}
-static void fly(void) {}
-static void editmesh_align_view_to_selected(void *x, int y) {}
 static void countall(void) {}
 extern void borderselect();
 static int retopo_mesh_paint_check() {return 0;}
@@ -248,6 +245,7 @@ void do_layer_buttons(bContext *C, short event)
 	allqueue(REDRAWNLA, 0);	
 }
 
+#if 0
 static void do_view3d_view_camerasmenu(bContext *C, void *arg, int event)
 {
 	Scene *scene= CTX_data_scene(C);
@@ -278,7 +276,7 @@ static void do_view3d_view_camerasmenu(bContext *C, void *arg, int event)
 	allqueue(REDRAWVIEW3D, 0);
 }
 
-#if 0
+
 static uiBlock *view3d_view_camerasmenu(bContext *C, ARegion *ar, void *arg_unused)
 {
 	Scene *scene= CTX_data_scene(C);
@@ -311,6 +309,8 @@ static uiBlock *view3d_view_camerasmenu(bContext *C, ARegion *ar, void *arg_unus
 	return block;
 }
 #endif
+
+#if 0
 static void do_view3d_view_cameracontrolsmenu(bContext *C, void *arg, int event)
 {
 	switch(event) {
@@ -365,6 +365,7 @@ static void do_view3d_view_cameracontrolsmenu(bContext *C, void *arg, int event)
 	}
 	allqueue(REDRAWVIEW3D, 0);
 }
+
 
 static uiBlock *view3d_view_cameracontrolsmenu(bContext *C, ARegion *ar, void *arg_unused)
 {
@@ -456,7 +457,7 @@ static void do_view3d_view_alignviewmenu(bContext *C, void *arg, int event)
 	}
 	allqueue(REDRAWVIEW3D, 0);
 }
-#if 0
+
 static uiBlock *view3d_view_alignviewmenu(bContext *C, ARegion *ar, void *arg_unused)
 {
 /*		static short tog=0; */
@@ -483,18 +484,15 @@ static uiBlock *view3d_view_alignviewmenu(bContext *C, ARegion *ar, void *arg_un
 	uiTextBoundsBlock(block, 50);
 	return block;
 }
-
-#ifndef DISABLE_PYTHON
-// XXX static void do_view3d_view_spacehandlers(bContext *C, void *arg, int event)
-//{
-//}
 #endif
+
+#if 0
 static uiBlock *view3d_view_spacehandlers(bContext *C, ARegion *ar, void *arg_unused)
 {
 	/* XXX */
 	return NULL;
 }
-#endif /* DISABLE_PYTHON */
+
 
 static void do_view3d_viewmenu(bContext *C, void *arg, int event)
 {
@@ -553,12 +551,13 @@ static void do_view3d_viewmenu(bContext *C, void *arg, int event)
 	}
 	allqueue(REDRAWVIEW3D, 1);
 }
+#endif
 
 static void view3d_view_viewnavmenu(bContext *C, uiMenuItem *head, void *arg_unused)
 {
-	uiMenuItemO(head, "VIEW3D_OT_view_fly_mode", ICON_BLANK1);
+//	uiMenuItemO(head, "VIEW3D_OT_view_fly_mode", ICON_BLANK1);
 	
-	uiMenuSeparator(head);
+//	uiMenuSeparator(head);
 	
 	uiMenuItemEnumO(head, "VIEW3D_OT_view_orbit", "type", V3D_VIEW_STEPLEFT);
 	uiMenuItemEnumO(head, "VIEW3D_OT_view_orbit", "type", V3D_VIEW_STEPRIGHT);
@@ -590,13 +589,13 @@ static void view3d_viewmenu(bContext *C, uiMenuItem *head, void *arg_unused)
 {
 	ScrArea *sa= CTX_wm_area(C);
 	
-	uiMenuItemO(head, "VIEW3D_OT_toggle_transform_orientations_panel", ICON_MENU_PANEL); // Transform Orientations...
-	uiMenuItemO(head, "VIEW3D_OT_toggle_render_preview_panel", ICON_MENU_PANEL); // render preview...
-	uiMenuItemO(head, "VIEW3D_OT_toggle_view_properties_panel", ICON_MENU_PANEL); // View Properties....
-	uiMenuItemO(head, "VIEW3D_OT_toggle_background_image_panel", ICON_MENU_PANEL); // Background Image....
-	uiMenuItemO(head, "VIEW3D_OT_toggle_grease_pencil_panel", ICON_MENU_PANEL); // Grease Pencil....
+//	uiMenuItemO(head, "VIEW3D_OT_toggle_transform_orientations_panel", ICON_MENU_PANEL); // Transform Orientations...
+//	uiMenuItemO(head, "VIEW3D_OT_toggle_render_preview_panel", ICON_MENU_PANEL); // render preview...
+//	uiMenuItemO(head, "VIEW3D_OT_toggle_view_properties_panel", ICON_MENU_PANEL); // View Properties....
+//	uiMenuItemO(head, "VIEW3D_OT_toggle_background_image_panel", ICON_MENU_PANEL); // Background Image....
+//	uiMenuItemO(head, "VIEW3D_OT_toggle_grease_pencil_panel", ICON_MENU_PANEL); // Grease Pencil....
 	
-	uiMenuSeparator(head);
+//	uiMenuSeparator(head);
 	
 	uiMenuItemEnumO(head, "VIEW3D_OT_viewnumpad", "view", V3D_VIEW_CAMERA);
 	uiMenuItemEnumO(head, "VIEW3D_OT_viewnumpad", "view", V3D_VIEW_TOP);
@@ -611,14 +610,14 @@ static void view3d_viewmenu(bContext *C, uiMenuItem *head, void *arg_unused)
 	
 	uiMenuSeparator(head);
 	
-	uiMenuItemO(head, "VIEW3D_OT_view_show_all_layers", ICON_BLANK1);	
+//	uiMenuItemO(head, "VIEW3D_OT_view_show_all_layers", ICON_BLANK1);	
 	
-	uiMenuSeparator(head);
+//	uiMenuSeparator(head);
 	
-	uiMenuItemO(head, "VIEW3D_OT_view_local_view", ICON_BLANK1);
-	uiMenuItemO(head, "VIEW3D_OT_view_global_view", ICON_BLANK1);
+//	uiMenuItemO(head, "VIEW3D_OT_view_local_view", ICON_BLANK1);
+//	uiMenuItemO(head, "VIEW3D_OT_view_global_view", ICON_BLANK1);
 	
-	uiMenuSeparator(head);
+//	uiMenuSeparator(head);
 	
 	uiMenuLevel(head, "View Navigation", view3d_view_viewnavmenu);
 	uiMenuLevel(head, "Align View", view3d_view_alignviewmenu);
