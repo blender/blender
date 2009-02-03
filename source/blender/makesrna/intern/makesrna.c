@@ -830,6 +830,12 @@ static void rna_def_property_funcs_header(FILE *f, PropertyDefRNA *dp)
 			break;
 		}
 		case PROP_STRING: {
+			StringPropertyRNA *sprop= (StringPropertyRNA*)prop;
+
+			if(sprop->maxlength) {
+				fprintf(f, "#define %s_%s_MAX %d\n\n", srna->identifier, prop->identifier, sprop->maxlength);
+			}
+			
 			fprintf(f, "void %sget(PointerRNA *ptr, char *value);\n", func);
 			fprintf(f, "int %slength(PointerRNA *ptr);\n", func);
 			//fprintf(f, "void %sset(PointerRNA *ptr, const char *value);\n", func);
@@ -1340,20 +1346,23 @@ static void rna_generate_header(BlenderRNA *brna, FILE *f)
 	PropertyDefRNA *dp;
 	StructRNA *srna;
 
-	fprintf(f, "\n/* Automatically generated function declarations for the Data API.\n"
+	fprintf(f, "\n#ifndef __RNA_BLENDER_H__\n");
+	fprintf(f, "#define __RNA_BLENDER_H__\n\n");
+
+	fprintf(f, "/* Automatically generated function declarations for the Data API.\n"
 	             "   Do not edit manually, changes will be overwritten.              */\n\n");
 
 	fprintf(f, "#include \"RNA_types.h\"\n\n");
 
-	fprintf(f, "#define FOREACH_BEGIN(property, ptr, itemptr) \\\n");
+	fprintf(f, "#define FOREACH_BEGIN(property, sptr, itemptr) \\\n");
 	fprintf(f, "	{ \\\n");
-	fprintf(f, "		CollectionPropertyIterator itemptr##_macro_iter; \\\n");
-	fprintf(f, "		for(property##_begin(sptr, propname, &itemptr##_macro_iter); itemptr##_macro_iter.valid; property##_end(&itemptr##_macro_iter)) { \\\n");
-	fprintf(f, "			PointerRNA itemptr= itemptr##_macro_iter.ptr;\n\n");
+	fprintf(f, "		CollectionPropertyIterator rna_macro_iter; \\\n");
+	fprintf(f, "		for(property##_begin(&rna_macro_iter, sptr); rna_macro_iter.valid; property##_next(&rna_macro_iter)) { \\\n");
+	fprintf(f, "			itemptr= rna_macro_iter.ptr;\n\n");
 
-	fprintf(f, "#define FOREACH_END \\\n");
+	fprintf(f, "#define FOREACH_END(property) \\\n");
 	fprintf(f, "		} \\\n");
-	fprintf(f, "		property##__end(&itemptr##_macro_iter); \\\n");
+	fprintf(f, "		property##_end(&rna_macro_iter); \\\n");
 	fprintf(f, "	}\n\n");
 
 	for(ds=DefRNA.structs.first; ds; ds=ds->next) {
@@ -1370,6 +1379,8 @@ static void rna_generate_header(BlenderRNA *brna, FILE *f)
 		for(dp=ds->properties.first; dp; dp=dp->next)
 			rna_def_property_funcs_header(f, dp);
 	}
+
+	fprintf(f, "#endif /* __RNA_BLENDER_H__ */\n");
 }
 
 static void make_bad_file(char *file)

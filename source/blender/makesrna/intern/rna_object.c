@@ -204,7 +204,7 @@ static PointerRNA rna_Object_game_settings_get(PointerRNA *ptr)
 static void rna_Object_layer_set(PointerRNA *ptr, const int *values)
 {
 	Object *ob= (Object*)ptr->data;
-	int i, tot;
+	int i, tot= 0;
 
 	/* ensure we always have some layer selected */
 	for(i=0; i<20; i++)
@@ -223,7 +223,7 @@ static void rna_Object_layer_set(PointerRNA *ptr, const int *values)
 static void rna_GameObjectSettings_state_set(PointerRNA *ptr, const int *values)
 {
 	Object *ob= (Object*)ptr->data;
-	int i, tot;
+	int i, tot= 0;
 
 	/* ensure we always have some stateer selected */
 	for(i=0; i<20; i++)

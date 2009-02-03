@@ -37,7 +37,7 @@
 static void rna_Bone_layer_set(PointerRNA *ptr, const int *values)
 {
 	Bone *bone= (Bone*)ptr->data;
-	int i, tot;
+	int i, tot= 0;
 
 	/* ensure we always have some layer selected */
 	for(i=0; i<20; i++)
@@ -56,7 +56,7 @@ static void rna_Bone_layer_set(PointerRNA *ptr, const int *values)
 static void rna_Armature_layer_set(PointerRNA *ptr, const int *values)
 {
 	bArmature *arm= (bArmature*)ptr->data;
-	int i, tot;
+	int i, tot= 0;
 
 	/* ensure we always have some layer selected */
 	for(i=0; i<20; i++)

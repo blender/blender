@@ -57,6 +57,7 @@ static int rna_Driver_RnaPath_length(PointerRNA *ptr)
 		return 0;
 }
 
+#if 0
 static void rna_Driver_RnaPath_set(PointerRNA *ptr, const char *value)
 {
 	ChannelDriver *driver= (ChannelDriver *)ptr->data;
@@ -69,7 +70,7 @@ static void rna_Driver_RnaPath_set(PointerRNA *ptr, const char *value)
 	else 
 		driver->rna_path= NULL;
 }
-
+#endif
 
 static void rna_FCurve_RnaPath_get(PointerRNA *ptr, char *value)
 {
@@ -91,6 +92,7 @@ static int rna_FCurve_RnaPath_length(PointerRNA *ptr)
 		return 0;
 }
 
+#if 0
 static void rna_FCurve_RnaPath_set(PointerRNA *ptr, const char *value)
 {
 	FCurve *fcu= (FCurve *)ptr->data;
@@ -103,6 +105,7 @@ static void rna_FCurve_RnaPath_set(PointerRNA *ptr, const char *value)
 	else 
 		fcu->rna_path= NULL;
 }
+#endif
 
 #else
 
