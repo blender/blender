@@ -50,7 +50,7 @@
 
 #include "BIF_transform.h"
 
-#include "ipo_intern.h"
+#include "graph_intern.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"

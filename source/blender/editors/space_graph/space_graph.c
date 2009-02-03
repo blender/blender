@@ -58,7 +58,7 @@
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
-#include "ipo_intern.h"	// own include
+#include "graph_intern.h"	// own include
 
 /* ******************** default callbacks for ipo space ***************** */
 
