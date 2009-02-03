@@ -278,6 +278,7 @@ static void do_view3d_view_camerasmenu(bContext *C, void *arg, int event)
 	allqueue(REDRAWVIEW3D, 0);
 }
 
+#if 0
 static uiBlock *view3d_view_camerasmenu(bContext *C, ARegion *ar, void *arg_unused)
 {
 	Scene *scene= CTX_data_scene(C);
@@ -309,7 +310,7 @@ static uiBlock *view3d_view_camerasmenu(bContext *C, ARegion *ar, void *arg_unus
 	uiTextBoundsBlock(block, 50);
 	return block;
 }
-
+#endif
 static void do_view3d_view_cameracontrolsmenu(bContext *C, void *arg, int event)
 {
 	switch(event) {
@@ -455,7 +456,7 @@ static void do_view3d_view_alignviewmenu(bContext *C, void *arg, int event)
 	}
 	allqueue(REDRAWVIEW3D, 0);
 }
-
+#if 0
 static uiBlock *view3d_view_alignviewmenu(bContext *C, ARegion *ar, void *arg_unused)
 {
 /*		static short tog=0; */
@@ -487,7 +488,7 @@ static uiBlock *view3d_view_alignviewmenu(bContext *C, ARegion *ar, void *arg_un
 // XXX static void do_view3d_view_spacehandlers(bContext *C, void *arg, int event)
 //{
 //}
-
+#endif
 static uiBlock *view3d_view_spacehandlers(bContext *C, ARegion *ar, void *arg_unused)
 {
 	/* XXX */
@@ -553,6 +554,91 @@ static void do_view3d_viewmenu(bContext *C, void *arg, int event)
 	allqueue(REDRAWVIEW3D, 1);
 }
 
+static void view3d_view_viewnavmenu(bContext *C, uiMenuItem *head, void *arg_unused)
+{
+	uiMenuItemO(head, "VIEW3D_OT_view_fly_mode", ICON_BLANK1);
+	
+	uiMenuSeparator(head);
+	
+	uiMenuItemEnumO(head, "VIEW3D_OT_view_orbit", "type", V3D_VIEW_STEPLEFT);
+	uiMenuItemEnumO(head, "VIEW3D_OT_view_orbit", "type", V3D_VIEW_STEPRIGHT);
+	uiMenuItemEnumO(head, "VIEW3D_OT_view_orbit", "type", V3D_VIEW_STEPUP);
+	uiMenuItemEnumO(head, "VIEW3D_OT_view_orbit", "type", V3D_VIEW_STEPDOWN);
+	
+	uiMenuSeparator(head);
+	
+	uiMenuItemEnumO(head, "VIEW3D_OT_view_pan", "type", V3D_VIEW_PANLEFT);
+	uiMenuItemEnumO(head, "VIEW3D_OT_view_pan", "type", V3D_VIEW_PANRIGHT);
+	uiMenuItemEnumO(head, "VIEW3D_OT_view_pan", "type", V3D_VIEW_PANUP);
+	uiMenuItemEnumO(head, "VIEW3D_OT_view_pan", "type", V3D_VIEW_PANDOWN);
+	
+	uiMenuSeparator(head);
+	
+	uiMenuItemFloatO(head, "Zoom in", "VIEW3D_OT_viewzoom", "delta", 1.0f);
+	uiMenuItemFloatO(head, "Zoom out", "VIEW3D_OT_viewzoom", "delta", -1.0f);
+	
+}
+static void view3d_view_alignviewmenu(bContext *C, uiMenuItem *head, void *arg_unused)
+{
+	
+}
+static void view3d_view_camerasmenu(bContext *C, uiMenuItem *head, void *arg_unused)
+{
+	
+}
+static void view3d_viewmenu(bContext *C, uiMenuItem *head, void *arg_unused)
+{
+	ScrArea *sa= CTX_wm_area(C);
+	
+	uiMenuItemO(head, "VIEW3D_OT_toggle_transform_orientations_panel", ICON_MENU_PANEL); // Transform Orientations...
+	uiMenuItemO(head, "VIEW3D_OT_toggle_render_preview_panel", ICON_MENU_PANEL); // render preview...
+	uiMenuItemO(head, "VIEW3D_OT_toggle_view_properties_panel", ICON_MENU_PANEL); // View Properties....
+	uiMenuItemO(head, "VIEW3D_OT_toggle_background_image_panel", ICON_MENU_PANEL); // Background Image....
+	uiMenuItemO(head, "VIEW3D_OT_toggle_grease_pencil_panel", ICON_MENU_PANEL); // Grease Pencil....
+	
+	uiMenuSeparator(head);
+	
+	uiMenuItemEnumO(head, "VIEW3D_OT_viewnumpad", "view", V3D_VIEW_CAMERA);
+	uiMenuItemEnumO(head, "VIEW3D_OT_viewnumpad", "view", V3D_VIEW_TOP);
+	uiMenuItemEnumO(head, "VIEW3D_OT_viewnumpad", "view", V3D_VIEW_FRONT);
+	uiMenuItemEnumO(head, "VIEW3D_OT_viewnumpad", "view", V3D_VIEW_RIGHT);
+	
+	uiMenuLevel(head, "Cameras", view3d_view_camerasmenu);
+	
+	uiMenuSeparator(head);
+
+	uiMenuItemO(head, "VIEW3D_OT_view_persportho", ICON_BLANK1);
+	
+	uiMenuSeparator(head);
+	
+	uiMenuItemO(head, "VIEW3D_OT_view_show_all_layers", ICON_BLANK1);	
+	
+	uiMenuSeparator(head);
+	
+	uiMenuItemO(head, "VIEW3D_OT_view_local_view", ICON_BLANK1);
+	uiMenuItemO(head, "VIEW3D_OT_view_global_view", ICON_BLANK1);
+	
+	uiMenuSeparator(head);
+	
+	uiMenuLevel(head, "View Navigation", view3d_view_viewnavmenu);
+	uiMenuLevel(head, "Align View", view3d_view_alignviewmenu);
+	
+	uiMenuSeparator(head);
+	
+	uiMenuItemO(head, "VIEW3D_OT_clipping", ICON_BLANK1);
+	uiMenuItemO(head, "VIEW3D_OT_border_zoom", ICON_BLANK1);
+	
+	uiMenuSeparator(head);
+	
+	uiMenuItemO(head, "VIEW3D_OT_viewcenter", ICON_BLANK1);
+	uiMenuItemO(head, "VIEW3D_OT_viewhome", ICON_BLANK1);
+	
+	uiMenuSeparator(head);
+	
+	if(sa->full) uiMenuItemO(head, "SCREEN_OT_screen_full_area", ICON_BLANK1); // "Tile Window", Ctrl UpArrow
+	else uiMenuItemO(head, "SCREEN_OT_screen_full_area", ICON_BLANK1); // "Maximize Window", Ctr DownArrow
+}
+#if 0
 static uiBlock *view3d_viewmenu(bContext *C, ARegion *ar, void *arg_unused)
 {
 	ScrArea *sa= CTX_wm_area(C);
@@ -642,6 +728,7 @@ static uiBlock *view3d_viewmenu(bContext *C, ARegion *ar, void *arg_unused)
 	
 	return block;
 }
+#endif
 
 #if 0
 void do_view3d_select_object_typemenu(bContext *C, void *arg, int event)
@@ -5559,7 +5646,8 @@ static void view3d_header_pulldowns(const bContext *C, uiBlock *block, Object *o
 	 * height of the header */
 	
 	xmax= GetButStringLength("View");
-	uiDefPulldownBut(block, view3d_viewmenu, NULL, "View", xco, yco-2, xmax-3, 24, "");
+	uiDefMenuBut(block, view3d_viewmenu, NULL, "View", xco, yco-2, xmax-3, 24, "");
+	//uiDefPulldownBut(block, view3d_viewmenu, NULL, "View", xco, yco-2, xmax-3, 24, "");
 	xco+= xmax;
 	
 	xmax= GetButStringLength("Select");

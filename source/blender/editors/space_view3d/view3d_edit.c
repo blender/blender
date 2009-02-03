@@ -1315,16 +1315,7 @@ static EnumPropertyItem prop_view_items[] = {
 	{V3D_VIEW_RIGHT, "RIGHT", "Right", "View From the Right"},
 	{V3D_VIEW_TOP, "TOP", "Top", "View From the Top"},
 	{V3D_VIEW_BOTTOM, "BOTTOM", "Bottom", "View From the Bottom"},
-	{V3D_VIEW_PERSPORTHO, "PERSPORTHO", "Persp-Ortho", "Switch between Perspecive and Orthographic View"},
 	{V3D_VIEW_CAMERA, "CAMERA", "Camera", "View From the active amera"},
-	{V3D_VIEW_STEPLEFT, "STEPLEFT", "Step Left", "Step the view around to the Left"},
-	{V3D_VIEW_STEPRIGHT, "STEPRIGHT", "Step Right", "Step the view around to the Right"},
-	{V3D_VIEW_STEPUP, "STEPUP", "Step Up", "Step the view Up"},
-	{V3D_VIEW_STEPDOWN, "STEPDOWN", "Step Down", "Step the view Down"},
-	{V3D_VIEW_PANLEFT, "PANLEFT", "Pan Left", "Pan the view to the Left"},
-	{V3D_VIEW_PANRIGHT, "PANRIGHT", "Pan Right", "Pan the view to the Right"},
-	{V3D_VIEW_PANUP, "PANUP", "Pan Up", "Pan the view Up"},
-	{V3D_VIEW_PANDOWN, "PANDOWN", "Pan Down", "Pan the view Down"},
 	{0, NULL, NULL, NULL}};
 
 static void axis_set_view(bContext *C, float q1, float q2, float q3, float q4, short view, int perspo)
@@ -1371,14 +1362,11 @@ static void axis_set_view(bContext *C, float q1, float q2, float q3, float q4, s
 
 }
 
-
 static int viewnumpad_exec(bContext *C, wmOperator *op)
 {
-	ARegion *ar= CTX_wm_region(C);
 	View3D *v3d = CTX_wm_view3d(C);
 	RegionView3D *rv3d= CTX_wm_region_view3d(C);
 	Scene *scene= CTX_data_scene(C);
-	float phi, si, q1[4], vec[3];
 	static int perspo=V3D_PERSP;
 	int viewnum;
 
@@ -1409,16 +1397,6 @@ static int viewnumpad_exec(bContext *C, wmOperator *op)
 
 		case V3D_VIEW_RIGHT:
 			axis_set_view(C, 0.5, -0.5, -0.5, -0.5, viewnum, perspo);
-			break;
-
-		case V3D_VIEW_PERSPORTHO:
-			if(rv3d->viewlock==0) {
-				if(rv3d->persp!=V3D_ORTHO) 
-					rv3d->persp=V3D_ORTHO;
-				else rv3d->persp=V3D_PERSP;
-
-				ED_region_tag_redraw(ar);
-			}
 			break;
 
 		case V3D_VIEW_CAMERA:
@@ -1464,65 +1442,6 @@ static int viewnumpad_exec(bContext *C, wmOperator *op)
 			}
 			break;
 
-		case V3D_VIEW_STEPLEFT:
-		case V3D_VIEW_STEPRIGHT:
-		case V3D_VIEW_STEPUP:
-		case V3D_VIEW_STEPDOWN:
-			if(rv3d->viewlock==0) {
-
-				if(rv3d->persp != V3D_CAMOB) {
-					if(viewnum == V3D_VIEW_STEPLEFT || viewnum == V3D_VIEW_STEPRIGHT) {
-						/* z-axis */
-						phi= (float)(M_PI/360.0)*U.pad_rot_angle;
-						if(viewnum == V3D_VIEW_STEPRIGHT) phi= -phi;
-						si= (float)sin(phi);
-						q1[0]= (float)cos(phi);
-						q1[1]= q1[2]= 0.0;
-						q1[3]= si;
-						QuatMul(rv3d->viewquat, rv3d->viewquat, q1);
-						rv3d->view= 0;
-					}
-					if(viewnum == V3D_VIEW_STEPDOWN || viewnum == V3D_VIEW_STEPUP) {
-						/* horizontal axis */
-						VECCOPY(q1+1, rv3d->viewinv[0]);
-
-						Normalize(q1+1);
-						phi= (float)(M_PI/360.0)*U.pad_rot_angle;
-						if(viewnum == V3D_VIEW_STEPDOWN) phi= -phi;
-						si= (float)sin(phi);
-						q1[0]= (float)cos(phi);
-						q1[1]*= si;
-						q1[2]*= si;
-						q1[3]*= si;
-						QuatMul(rv3d->viewquat, rv3d->viewquat, q1);
-						rv3d->view= 0;
-					}
-					ED_region_tag_redraw(ar);
-				}
-			}
-			break;
-
-		case V3D_VIEW_PANRIGHT:
-		case V3D_VIEW_PANLEFT:
-		case V3D_VIEW_PANUP:
-		case V3D_VIEW_PANDOWN:
-
-			initgrabz(rv3d, 0.0, 0.0, 0.0);
-
-			if(viewnum == V3D_VIEW_PANRIGHT) window_to_3d_delta(ar, vec, -32, 0);
-			else if(viewnum == V3D_VIEW_PANLEFT) window_to_3d_delta(ar, vec, 32, 0);
-			else if(viewnum == V3D_VIEW_PANUP) window_to_3d_delta(ar, vec, 0, -25);
-			else if(viewnum == V3D_VIEW_PANDOWN) window_to_3d_delta(ar, vec, 0, 25);
-			rv3d->ofs[0]+= vec[0];
-			rv3d->ofs[1]+= vec[1];
-			rv3d->ofs[2]+= vec[2];
-
-			if(rv3d->viewlock)
-				view3d_boxview_sync(CTX_wm_area(C), ar);
-
-			ED_region_tag_redraw(ar);
-			break;
-
 		default :
 			break;
 	}
@@ -1531,8 +1450,6 @@ static int viewnumpad_exec(bContext *C, wmOperator *op)
 
 	return OPERATOR_FINISHED;
 }
-
-
 void VIEW3D_OT_viewnumpad(wmOperatorType *ot)
 {
 	/* identifiers */
@@ -1548,6 +1465,153 @@ void VIEW3D_OT_viewnumpad(wmOperatorType *ot)
 	
 	RNA_def_enum(ot->srna, "view", prop_view_items, 0, "View", "");
 }
+
+static EnumPropertyItem prop_view_orbit_items[] = {
+	{V3D_VIEW_STEPLEFT, "ORBITLEFT", "Orbit Left", "Orbit the view around to the Left"},
+	{V3D_VIEW_STEPRIGHT, "ORBITRIGHT", "Orbit Right", "Orbit the view around to the Right"},
+	{V3D_VIEW_STEPUP, "ORBITUP", "Orbit Up", "Orbit the view Up"},
+	{V3D_VIEW_STEPDOWN, "ORBITDOWN", "Orbit Down", "Orbit the view Down"},
+	{0, NULL, NULL, NULL}};
+
+static int vieworbit_exec(bContext *C, wmOperator *op)
+{
+	ARegion *ar= CTX_wm_region(C);
+	RegionView3D *rv3d= CTX_wm_region_view3d(C);
+	float phi, si, q1[4];		
+	int orbitdir;
+
+	orbitdir = RNA_enum_get(op->ptr, "type");
+	
+	if(rv3d->viewlock==0) {
+
+		if(rv3d->persp != V3D_CAMOB) {
+			if(orbitdir == V3D_VIEW_STEPLEFT || orbitdir == V3D_VIEW_STEPRIGHT) {
+				/* z-axis */
+				phi= (float)(M_PI/360.0)*U.pad_rot_angle;
+				if(orbitdir == V3D_VIEW_STEPRIGHT) phi= -phi;
+				si= (float)sin(phi);
+				q1[0]= (float)cos(phi);
+				q1[1]= q1[2]= 0.0;
+				q1[3]= si;
+				QuatMul(rv3d->viewquat, rv3d->viewquat, q1);
+				rv3d->view= 0;
+			}
+			if(orbitdir == V3D_VIEW_STEPDOWN || orbitdir == V3D_VIEW_STEPUP) {
+				/* horizontal axis */
+				VECCOPY(q1+1, rv3d->viewinv[0]);
+
+				Normalize(q1+1);
+				phi= (float)(M_PI/360.0)*U.pad_rot_angle;
+				if(orbitdir == V3D_VIEW_STEPDOWN) phi= -phi;
+				si= (float)sin(phi);
+				q1[0]= (float)cos(phi);
+				q1[1]*= si;
+				q1[2]*= si;
+				q1[3]*= si;
+				QuatMul(rv3d->viewquat, rv3d->viewquat, q1);
+				rv3d->view= 0;
+			}
+			ED_region_tag_redraw(ar);
+		}
+	}
+
+	return OPERATOR_FINISHED;	
+}
+
+void VIEW3D_OT_view_orbit(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "View Orbit";
+	ot->idname= "VIEW3D_OT_view_orbit";
+
+	/* api callbacks */
+	ot->exec= vieworbit_exec;
+	ot->poll= ED_operator_view3d_active;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER;
+	RNA_def_enum(ot->srna, "type", prop_view_orbit_items, 0, "Orbit", "Direction of View Orbit");
+}
+
+static EnumPropertyItem prop_view_pan_items[] = {
+	{V3D_VIEW_PANLEFT, "PANLEFT", "Pan Left", "Pan the view to the Left"},
+	{V3D_VIEW_PANRIGHT, "PANRIGHT", "Pan Right", "Pan the view to the Right"},
+	{V3D_VIEW_PANUP, "PANUP", "Pan Up", "Pan the view Up"},
+	{V3D_VIEW_PANDOWN, "PANDOWN", "Pan Down", "Pan the view Down"},
+	{0, NULL, NULL, NULL}};
+
+static int viewpan_exec(bContext *C, wmOperator *op)
+{
+	ARegion *ar= CTX_wm_region(C);
+	RegionView3D *rv3d= CTX_wm_region_view3d(C);	
+	float vec[3];	
+	int pandir;
+
+	pandir = RNA_enum_get(op->ptr, "type");
+	
+	initgrabz(rv3d, 0.0, 0.0, 0.0);
+
+	if(pandir == V3D_VIEW_PANRIGHT) window_to_3d_delta(ar, vec, -32, 0);
+	else if(pandir == V3D_VIEW_PANLEFT) window_to_3d_delta(ar, vec, 32, 0);
+	else if(pandir == V3D_VIEW_PANUP) window_to_3d_delta(ar, vec, 0, -25);
+	else if(pandir == V3D_VIEW_PANDOWN) window_to_3d_delta(ar, vec, 0, 25);
+	rv3d->ofs[0]+= vec[0];
+	rv3d->ofs[1]+= vec[1];
+	rv3d->ofs[2]+= vec[2];
+
+	if(rv3d->viewlock)
+		view3d_boxview_sync(CTX_wm_area(C), ar);
+
+	ED_region_tag_redraw(ar);
+
+	return OPERATOR_FINISHED;	
+}
+
+void VIEW3D_OT_view_pan(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "View Pan";
+	ot->idname= "VIEW3D_OT_view_pan";
+
+	/* api callbacks */
+	ot->exec= viewpan_exec;
+	ot->poll= ED_operator_view3d_active;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER;
+	RNA_def_enum(ot->srna, "type", prop_view_pan_items, 0, "Pan", "Direction of View Pan");
+}
+
+static int viewpersportho_exec(bContext *C, wmOperator *op)
+{
+	ARegion *ar= CTX_wm_region(C);
+	RegionView3D *rv3d= CTX_wm_region_view3d(C);	
+	
+	if(rv3d->viewlock==0) {
+		if(rv3d->persp!=V3D_ORTHO) 
+			rv3d->persp=V3D_ORTHO;
+		else rv3d->persp=V3D_PERSP;
+		ED_region_tag_redraw(ar);
+	}
+
+	return OPERATOR_FINISHED;
+	
+}
+
+void VIEW3D_OT_view_persportho(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "View persp/ortho";
+	ot->idname= "VIEW3D_OT_view_persportho";
+
+	/* api callbacks */
+	ot->exec= viewpersportho_exec;
+	ot->poll= ED_operator_view3d_active;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER;
+}
+
 
 /* ********************* set clipping operator ****************** */
 
@@ -1635,7 +1699,7 @@ void VIEW3D_OT_clipping(wmOperatorType *ot)
 {
 
 	/* identifiers */
-	ot->name= "Border Select";
+	ot->name= "Clipping Border";
 	ot->idname= "VIEW3D_OT_clipping";
 
 	/* api callbacks */

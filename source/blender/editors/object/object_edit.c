@@ -2473,7 +2473,7 @@ static int make_parent_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	
 	uiPupMenuEnd(C, head);
 	
-	return OPERATOR_RUNNING_MODAL;
+	return OPERATOR_CANCELLED;
 }
 
 
