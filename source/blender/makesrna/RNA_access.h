@@ -36,12 +36,12 @@ struct Main;
 extern BlenderRNA BLENDER_RNA;
 
 extern StructRNA RNA_Action;
-extern StructRNA RNA_ActionChannel;
 extern StructRNA RNA_ActionGroup;
 extern StructRNA RNA_Actuator;
 extern StructRNA RNA_ActuatorSensor;
 extern StructRNA RNA_AlwaysSensor;
 extern StructRNA RNA_AndController;
+extern StructRNA RNA_AnimData;
 extern StructRNA RNA_Area;
 extern StructRNA RNA_AreaLamp;
 extern StructRNA RNA_Armature;
@@ -80,6 +80,7 @@ extern StructRNA RNA_DecimateModifier;
 extern StructRNA RNA_DelaySensor;
 extern StructRNA RNA_DisplaceModifier;
 extern StructRNA RNA_DomainFluidSettings;
+extern StructRNA RNA_Driver;
 extern StructRNA RNA_EdgeSplitModifier;
 extern StructRNA RNA_EffectSequence;
 extern StructRNA RNA_EnumProperty;
@@ -87,6 +88,7 @@ extern StructRNA RNA_EnumPropertyItem;
 extern StructRNA RNA_EnvironmentMap;
 extern StructRNA RNA_ExplodeModifier;
 extern StructRNA RNA_ExpressionController;
+extern StructRNA RNA_FCurve;
 extern StructRNA RNA_FieldSettings;
 extern StructRNA RNA_FloatProperty;
 extern StructRNA RNA_FluidFluidSettings;
@@ -112,9 +114,6 @@ extern StructRNA RNA_ImageSequence;
 extern StructRNA RNA_ImageUser;
 extern StructRNA RNA_InflowFluidSettings;
 extern StructRNA RNA_IntProperty;
-extern StructRNA RNA_Ipo;
-extern StructRNA RNA_IpoCurve;
-extern StructRNA RNA_IpoDriver;
 extern StructRNA RNA_JoystickSensor;
 extern StructRNA RNA_Key;
 extern StructRNA RNA_KeyboardSensor;
@@ -235,13 +234,13 @@ extern StructRNA RNA_TextMarker;
 extern StructRNA RNA_Texture;
 extern StructRNA RNA_TextureSlot;
 extern StructRNA RNA_Theme;
-extern StructRNA RNA_ThemeActionEditor;
+extern StructRNA RNA_ThemeDopeSheetEditor;
 extern StructRNA RNA_ThemeAudioWindow;
 extern StructRNA RNA_ThemeBoneColorSet;
 extern StructRNA RNA_ThemeButtonsWindow;
 extern StructRNA RNA_ThemeFileBrowser;
 extern StructRNA RNA_ThemeImageEditor;
-extern StructRNA RNA_ThemeIpoEditor;
+extern StructRNA RNA_ThemeGraphEditor;
 extern StructRNA RNA_ThemeNLAEditor;
 extern StructRNA RNA_ThemeNodeEditor;
 extern StructRNA RNA_ThemeOutliner;
@@ -342,18 +341,24 @@ void RNA_property_update(struct bContext *C, PointerRNA *ptr, PropertyRNA *prop)
 
 int RNA_property_boolean_get(PointerRNA *ptr, PropertyRNA *prop);
 void RNA_property_boolean_set(PointerRNA *ptr, PropertyRNA *prop, int value);
-int RNA_property_boolean_get_array(PointerRNA *ptr, PropertyRNA *prop, int index);
-void RNA_property_boolean_set_array(PointerRNA *ptr, PropertyRNA *prop, int index, int value);
+void RNA_property_boolean_get_array(PointerRNA *ptr, PropertyRNA *prop, int *values);
+int RNA_property_boolean_get_index(PointerRNA *ptr, PropertyRNA *prop, int index);
+void RNA_property_boolean_set_array(PointerRNA *ptr, PropertyRNA *prop, const int *values);
+void RNA_property_boolean_set_index(PointerRNA *ptr, PropertyRNA *prop, int index, int value);
 
 int RNA_property_int_get(PointerRNA *ptr, PropertyRNA *prop);
 void RNA_property_int_set(PointerRNA *ptr, PropertyRNA *prop, int value);
-int RNA_property_int_get_array(PointerRNA *ptr, PropertyRNA *prop, int index);
-void RNA_property_int_set_array(PointerRNA *ptr, PropertyRNA *prop, int index, int value);
+void RNA_property_int_get_array(PointerRNA *ptr, PropertyRNA *prop, int *values);
+int RNA_property_int_get_index(PointerRNA *ptr, PropertyRNA *prop, int index);
+void RNA_property_int_set_array(PointerRNA *ptr, PropertyRNA *prop, const int *values);
+void RNA_property_int_set_index(PointerRNA *ptr, PropertyRNA *prop, int index, int value);
 
 float RNA_property_float_get(PointerRNA *ptr, PropertyRNA *prop);
 void RNA_property_float_set(PointerRNA *ptr, PropertyRNA *prop, float value);
-float RNA_property_float_get_array(PointerRNA *ptr, PropertyRNA *prop, int index);
-void RNA_property_float_set_array(PointerRNA *ptr, PropertyRNA *prop, int index, float value);
+void RNA_property_float_get_array(PointerRNA *ptr, PropertyRNA *prop, float *values);
+float RNA_property_float_get_index(PointerRNA *ptr, PropertyRNA *prop, int index);
+void RNA_property_float_set_array(PointerRNA *ptr, PropertyRNA *prop, const float *values);
+void RNA_property_float_set_index(PointerRNA *ptr, PropertyRNA *prop, int index, float value);
 
 void RNA_property_string_get(PointerRNA *ptr, PropertyRNA *prop, char *value);
 char *RNA_property_string_get_alloc(PointerRNA *ptr, PropertyRNA *prop, char *fixedbuf, int fixedlen);
@@ -363,8 +368,8 @@ void RNA_property_string_set(PointerRNA *ptr, PropertyRNA *prop, const char *val
 int RNA_property_enum_get(PointerRNA *ptr, PropertyRNA *prop);
 void RNA_property_enum_set(PointerRNA *ptr, PropertyRNA *prop, int value);
 
-void RNA_property_pointer_get(PointerRNA *ptr, PropertyRNA *prop, PointerRNA *r_ptr);
-void RNA_property_pointer_set(PointerRNA *ptr, PropertyRNA *prop, PointerRNA *ptr_value);
+PointerRNA RNA_property_pointer_get(PointerRNA *ptr, PropertyRNA *prop);
+void RNA_property_pointer_set(PointerRNA *ptr, PropertyRNA *prop, PointerRNA ptr_value);
 
 void RNA_property_collection_begin(PointerRNA *ptr, PropertyRNA *prop, CollectionPropertyIterator *iter);
 void RNA_property_collection_next(CollectionPropertyIterator *iter);
@@ -441,7 +446,7 @@ char *RNA_string_get_alloc(PointerRNA *ptr, const char *name, char *fixedbuf, in
 int RNA_string_length(PointerRNA *ptr, const char *name);
 void RNA_string_set(PointerRNA *ptr, const char *name, const char *value);
 
-void RNA_pointer_get(PointerRNA *ptr, const char *name, PointerRNA *r_value);
+PointerRNA RNA_pointer_get(PointerRNA *ptr, const char *name);
 void RNA_pointer_add(PointerRNA *ptr, const char *name);
 
 void RNA_collection_begin(PointerRNA *ptr, const char *name, CollectionPropertyIterator *iter);

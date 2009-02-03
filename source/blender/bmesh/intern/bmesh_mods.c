@@ -320,22 +320,12 @@ BMVert *BM_Split_Edge(BMesh *bm, BMVert *v, BMEdge *e, BMEdge **ne, float percen
 BMVert  *BM_Split_Edge_Multi(BMesh *bm, BMEdge *e, int numcuts)
 {
 	int i;
-	float percent, step,length, vt1[3], v2[3];
+	float percent;
 	BMVert *nv = NULL;
 	
-	percent = 0.0;
-	step = (1.0/((float)numcuts+1));
-	
-	length = VecLenf(e->v1->co,e->v2->co);
-	VECCOPY(v2,e->v2->co);
-	VecSubf(vt1, e->v1->co,  e->v2->co);
-	
 	for(i=0; i < numcuts; i++){
-		percent += step;
+		percent = 1.0 / (float)(numcuts + 1 - i);
 		nv = BM_Split_Edge(bm, e->v2, e, NULL, percent, 0);
-		VECCOPY(nv->co,vt1);
-		VecMulf(nv->co,percent);
-		VecAddf(nv->co,v2,nv->co);
 	}
 	return nv;
 }

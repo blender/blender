@@ -56,7 +56,7 @@ void		ed_screen_set(bContext *C, bScreen *sc);
 void		ed_screen_fullarea(bContext *C);
 
 /* screen_context.c */
-void ed_screen_context(const bContext *C, const bContextDataMember *member, bContextDataResult *result);
+void ed_screen_context(const bContext *C, bContextDataMember member, bContextDataResult *result);
 
 #endif /* ED_SCREEN_INTERN_H */
 

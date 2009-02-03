@@ -66,6 +66,7 @@ struct Sequence *alloc_sequence(struct ListBase *lb, int cfra, int machine);
 
 /* externs */
 extern EnumPropertyItem sequencer_prop_effect_types[];
+extern EnumPropertyItem prop_side_types[];
 
 /* operators */
 struct wmOperatorType;
@@ -86,6 +87,7 @@ void SEQUENCER_OT_meta_separate(struct wmOperatorType *ot);
 
 void SEQUENCER_OT_view_all(struct wmOperatorType *ot);
 void SEQUENCER_OT_view_selected(struct wmOperatorType *ot);
+void SEQUENCER_OT_view_zoom(struct wmOperatorType *ot);
 
 /* sequencer_select.c */
 void SEQUENCER_OT_deselect_all(struct wmOperatorType *ot);
@@ -94,6 +96,7 @@ void SEQUENCER_OT_select_more(struct wmOperatorType *ot);
 void SEQUENCER_OT_select_less(struct wmOperatorType *ot);
 void SEQUENCER_OT_select_linked(struct wmOperatorType *ot);
 void SEQUENCER_OT_select_pick_linked(struct wmOperatorType *ot);
+void SEQUENCER_OT_select_handles(struct wmOperatorType *ot);
 void SEQUENCER_OT_borderselect(struct wmOperatorType *ot);
 void SEQUENCER_OT_select_invert(struct wmOperatorType *ot);
 
@@ -107,8 +110,9 @@ void SEQUENCER_OT_add_effect_strip(struct wmOperatorType *ot);
 
 /* RNA enums, just to be more readable */
 enum {
-    SEQ_LEFT,
-    SEQ_RIGHT,
+    SEQ_SIDE_LEFT,
+    SEQ_SIDE_RIGHT,
+	SEQ_SIDE_BOTH,
 };
 enum {
     SEQ_CUT_SOFT,

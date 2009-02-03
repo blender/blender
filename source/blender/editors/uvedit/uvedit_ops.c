@@ -2568,9 +2568,6 @@ void ED_keymap_uvedit(wmWindowManager *wm)
 	// XXX not working?
 	RNA_boolean_set(WM_keymap_add_item(keymap, "UV_OT_loop_select", SELECTMOUSE, KM_PRESS, KM_SHIFT, KM_ALT)->ptr, "extend", 1);
 
-	/* generates event, needs to be after select to work */
-	WM_keymap_add_item(keymap, "WM_OT_tweak_gesture", SELECTMOUSE, KM_PRESS, 0, 0);
-
 	WM_keymap_add_item(keymap, "UV_OT_select_linked", LKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "UV_OT_unlink_selection", LKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "UV_OT_de_select_all", AKEY, KM_PRESS, 0, 0);

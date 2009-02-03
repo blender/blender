@@ -318,10 +318,15 @@ void ED_FILE_OT_select_all(wmOperatorType *ot)
 
 /* ---------- BOOKMARKS ----------- */
 
-static void set_active_bookmark(FileSelectParams* params, struct ARegion* ar, short y)
+static void set_active_bookmark(FileSelectParams* params, struct ARegion* ar, short x, short y)
 {
 	int nentries = fsmenu_get_nentries();
-	short posy = ar->v2d.mask.ymax - TILE_BORDER_Y - y;
+	float fx, fy;
+	short posy;
+
+	UI_view2d_region_to_view(&ar->v2d, x, y, &fx, &fy);
+
+	posy = ar->v2d.cur.ymax - 2*TILE_BORDER_Y - fy;
 	params->active_bookmark = ((float)posy / (U.fontsize*3.0f/2.0f));
 	if (params->active_bookmark < 0 || params->active_bookmark > nentries) {
 		params->active_bookmark = -1;
@@ -332,7 +337,7 @@ static void file_select_bookmark(SpaceFile* sfile, ARegion* ar, short x, short y
 {
 	if (BLI_in_rcti(&ar->v2d.mask, x, y)) {
 		char *selected;
-		set_active_bookmark(sfile->params, ar, y);
+		set_active_bookmark(sfile->params, ar, x, y);
 		selected= fsmenu_get_entry(sfile->params->active_bookmark);			
 		/* which string */
 		if (selected) {

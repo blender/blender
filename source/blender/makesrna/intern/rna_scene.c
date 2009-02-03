@@ -38,23 +38,30 @@
 #include "BKE_context.h"
 #include "BKE_global.h"
 
-void *rna_Scene_objects_get(CollectionPropertyIterator *iter)
+PointerRNA rna_Scene_objects_get(CollectionPropertyIterator *iter)
 {
 	ListBaseIterator *internal= iter->internal;
 
 	/* we are actually iterating a Base list, so override get */
-	return ((Base*)internal->link)->object;
+	return rna_pointer_inherit_refine(&iter->parent, &RNA_Object, ((Base*)internal->link)->object);
 }
 
-static void rna_Scene_layer_set(PointerRNA *ptr, int index, int value)
+static void rna_Scene_layer_set(PointerRNA *ptr, const int *values)
 {
 	Scene *scene= (Scene*)ptr->data;
+	int i, tot;
 
-	if(value) scene->lay |= (1<<index);
-	else {
-		scene->lay &= ~(1<<index);
-		if(scene->lay == 0)
-			scene->lay |= (1<<index);
+	/* ensure we always have some layer selected */
+	for(i=0; i<20; i++)
+		if(values[i])
+			tot++;
+	
+	if(tot==0)
+		return;
+
+	for(i=0; i<20; i++) {
+		if(values[i]) scene->lay |= (1<<i);
+		else scene->lay &= ~(1<<i);
 	}
 }
 
@@ -175,7 +182,7 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_collection_sdna(prop, NULL, "base", NULL);
 	RNA_def_property_struct_type(prop, "Object");
 	RNA_def_property_ui_text(prop, "Objects", "");
-	RNA_def_property_collection_funcs(prop, 0, 0, 0, "rna_Scene_objects_get", 0, 0, 0, 0);
+	RNA_def_property_collection_funcs(prop, 0, 0, 0, "rna_Scene_objects_get", 0, 0, 0);
 
 	prop= RNA_def_property(srna, "visible_layers", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "lay", 1);

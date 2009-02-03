@@ -94,7 +94,6 @@ editmesh_tool.c: UI called tools for editmesh, geometry changes here, otherwise 
 #include "mesh_intern.h"
 
 /* XXX */
-static void BIF_undo_push() {}
 static int extern_qread() {return 0;}
 static void waitcursor() {}
 static void error() {}
@@ -110,7 +109,6 @@ static int snap_to_center() {return 0;}
 /* local prototypes ---------------*/
 static void free_tagged_edges_faces(EditMesh *em, EditEdge *eed, EditFace *efa);
 int EdgeLoopDelete(EditMesh *em);
-void addedgeface_mesh(EditMesh *em);
 
 /********* qsort routines *********/
 
@@ -182,7 +180,6 @@ void convert_to_triface(EditMesh *em, int direction)
 	
 	EM_fgon_flags(em);	// redo flags and indices for fgons
 
-	BIF_undo_push("Convert Quads to Triangles");
 	
 }
 
@@ -495,7 +492,6 @@ static int removedoublesflag_exec(bContext *C, wmOperator *op)
 
 	removedoublesflag(em,1,0,scene->toolsettings->doublimit);
 		
-	ED_undo_push(C, "Remove Doubles");	// Note this will become depricated 
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 	
 	return OPERATOR_FINISHED;	
@@ -510,6 +506,9 @@ void MESH_OT_removedoublesflag(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= removedoublesflag_exec;
 	ot->poll= ED_operator_editmesh;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 // XXX is this needed?
@@ -556,8 +555,6 @@ void xsortvert_flag(bContext *C, int flag)
 	
 	MEM_freeN(sortblock);
 
-	BIF_undo_push("Xsort");
-	
 }
 
 /* called from buttons */
@@ -615,8 +612,6 @@ void hashvert_flag(EditMesh *em, int flag)
 	addlisttolist(&em->verts, &tbase);
 	
 	MEM_freeN(sortblock);
-
-	BIF_undo_push("Hash");
 
 }
 
@@ -696,28 +691,30 @@ void extrude_mesh(Object *obedit, EditMesh *em)
 }
 
 // XXX should be a menu item
-static int extrude_mesh_exec(bContext *C, wmOperator *op)
+static int mesh_extrude_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
 
 	extrude_mesh(obedit,em);
 		
-	ED_undo_push(C, "Extrude Mesh");	// Note this will become depricated 
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 	
 	return OPERATOR_FINISHED;	
 }
 
-void MESH_OT_extrude_mesh(wmOperatorType *ot)
+void MESH_OT_extrude(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Extrude Mesh";
-	ot->idname= "MESH_OT_extrude_mesh";
+	ot->idname= "MESH_OT_extrude";
 	
 	/* api callbacks */
-	ot->exec= extrude_mesh_exec;
+	ot->exec= mesh_extrude_exec;
 	ot->poll= ED_operator_editmesh;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 void split_mesh(EditMesh *em)
@@ -734,8 +731,6 @@ void split_mesh(EditMesh *em)
 	waitcursor(0);
 
 //	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-
-	BIF_undo_push("Split");
 
 }
 
@@ -769,7 +764,6 @@ void extrude_repeat_mesh(RegionView3D *rv3d, Object *obedit, EditMesh *em, int s
 	
 //	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 
-	BIF_undo_push("Extrude Repeat");
 }
 
 void spin_mesh(View3D *v3d, Object *obedit, EditMesh *em, int steps, float degr, float *dvec, int mode)
@@ -854,8 +848,6 @@ void spin_mesh(View3D *v3d, Object *obedit, EditMesh *em, int steps, float degr,
 
 	//	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 
-	
-	if(dvec==NULL) BIF_undo_push("Spin");
 }
 
 void screw_mesh(Object *obedit, EditMesh *em, int steps, int turns)
@@ -916,7 +908,6 @@ void screw_mesh(Object *obedit, EditMesh *em, int steps, int turns)
 
 	spin_mesh(v3d, obedit, em, turns*steps, turns*360, dvec, 0);
 
-	BIF_undo_push("Spin");
 }
 
 
@@ -966,16 +957,15 @@ static void erase_vertices(EditMesh *em, ListBase *l)
 	}
 }
 
-void delete_mesh(Object *obedit, EditMesh *em)
+void delete_mesh(Object *obedit, EditMesh *em, int event)
 {
 	EditFace *efa, *nextvl;
 	EditVert *eve,*nextve;
 	EditEdge *eed,*nexted;
-	short event;
 	int count;
 	char *str="Erase";
 
-	event= pupmenu("Erase %t|Vertices%x10|Edges%x1|Faces%x2|All%x3|Edges & Faces%x4|Only Faces%x5|Edge Loop%x6");
+	
 	if(event<1) return;
 
 	if(event==10 ) {
@@ -1104,9 +1094,50 @@ void delete_mesh(Object *obedit, EditMesh *em)
 	EM_fgon_flags(em);	// redo flags and indices for fgons
 
 //	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-	BIF_undo_push(str);
 }
 
+/* Note, these values must match delete_mesh() event values */
+static EnumPropertyItem prop_mesh_delete_types[] = {
+	{10,"VERT",		"Vertices", ""},
+	{1, "EDGE",		"Edges", ""},
+	{2, "FACE",		"Faces", ""},
+	{3, "ALL",		"All", ""},
+	{4, "EDGE_FACE","Edges & Faces", ""},
+	{5, "ONLY_FACE","Only Faces", ""},
+	{6, "EDGE_LOOP","Edge Loop", ""},
+	{0, NULL, NULL, NULL}
+};
+
+static int delete_mesh_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
+	
+	delete_mesh(obedit,em,RNA_enum_get(op->ptr, "type"));
+	
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	
+	return OPERATOR_FINISHED;
+}
+
+void MESH_OT_delete(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Delete Mesh";
+	ot->idname= "MESH_OT_delete";
+	
+	/* api callbacks */
+	ot->invoke= WM_menu_invoke;
+	ot->exec= delete_mesh_exec;
+	
+	ot->poll= ED_operator_editmesh;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/*props */
+	RNA_def_enum(ot->srna, "type", prop_mesh_delete_types, 10, "Type", "Method used for deleting mesh data");
+}
 
 /* Got this from scanfill.c. You will need to juggle around the
  * callbacks for the scanfill.c code a bit for this to work. */
@@ -1188,7 +1219,6 @@ void fill_mesh(EditMesh *em)
 	EM_select_flush(em);
 //	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 
-	BIF_undo_push("Fill");
 }
 /*GB*/
 /*-------------------------------------------------------------------------------*/
@@ -3118,7 +3148,6 @@ void beauty_fill(EditMesh *em)
 	
 //	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 
-	BIF_undo_push("Beauty Fill");
 }
 
 
@@ -3420,7 +3449,6 @@ void join_triangles(EditMesh *em)
 	EM_selectmode_flush(em);
 //	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 
-	BIF_undo_push("Convert Triangles to Quads");
 }
 /* ******************** END TRIANGLE TO QUAD ************************************* */
 
@@ -3518,8 +3546,6 @@ void edge_flip(EditMesh *em)
 	
 //	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 
-	BIF_undo_push("Flip Triangle Edges");
-	
 }
 
 static void edge_rotate(EditMesh *em, EditEdge *eed,int dir)
@@ -3755,7 +3781,6 @@ void edge_rotate_selected(EditMesh *em, int dir)
 	
 //	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 
-	BIF_undo_push("Rotate Edge");	
 }
 
 /******************* BEVEL CODE STARTS HERE ********************/
@@ -3782,7 +3807,7 @@ void bevel_menu(EditMesh *em)
 		options = G.editBMesh->options;
 		res = G.editBMesh->res;
 		bm = BME_editmesh_to_bmesh(em);
-		BIF_undo_push("Pre-Bevel");
+//		BIF_undo_push("Pre-Bevel");
 		free_editMesh(em);
 		BME_bevel(bm,0.1f,res,options,0,0,&td);
 		BME_bmesh_to_editmesh(bm, td, em);
@@ -3849,7 +3874,8 @@ typedef struct SlideVert {
 
 int EdgeSlide(EditMesh *em, short immediate, float imperc)
 {
-//	NumInput num;
+//	NumInput num; XXX
+	Mesh *me= NULL; // XXX
 	EditFace *efa;
 	EditEdge *eed,*first=NULL,*last=NULL, *temp = NULL;
 	EditVert *ev, *nearest;
@@ -4128,7 +4154,7 @@ int EdgeSlide(EditMesh *em, short immediate, float imperc)
 			return 0;
 		}
 
-		if(G.f & G_DRAW_EDGELEN) {
+		if(me->drawflag & ME_DRAW_EDGELEN) {
 			if(!(tempsv->up->f & SELECT)) {
 				tempsv->up->f |= SELECT;
 				tempsv->up->f2 |= 16;
@@ -4581,7 +4607,7 @@ int EdgeSlide(EditMesh *em, short immediate, float imperc)
 	}
 	
 	
-	if(G.f & G_DRAW_EDGELEN) {
+	if(me->drawflag & ME_DRAW_EDGELEN) {
 		look = vertlist;
 		while(look) {	
 			tempsv  = BLI_ghash_lookup(vertgh,(EditVert*)look->link);
@@ -4719,9 +4745,6 @@ void mesh_set_face_flags(EditMesh *em, short mode)
 		efa= efa->next;
 	}
 	
-	if (change) {
-		BIF_undo_push((mode ? "Set Flags" : "Clear Flags"));
-	}
 }
 
 void mesh_set_smooth_faces(EditMesh *em, short event)
@@ -4741,8 +4764,6 @@ void mesh_set_smooth_faces(EditMesh *em, short event)
 	
 //	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 	
-	if(event==1) BIF_undo_push("Set Smooth");
-	else if(event==0) BIF_undo_push("Set Solid");
 }
 
 /* helper to find edge for edge_rip */
@@ -5021,7 +5042,6 @@ void shape_propagate(Scene *scene, Object *obedit, EditMesh *em)
 		}
 	}		
 
-	BIF_undo_push("Propagate Blendshape Verts");
 	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 	return;	
 }
@@ -5096,8 +5116,7 @@ void shape_copy_from_lerp(EditMesh *em, KeyBlock* thisBlock, KeyBlock* fromBlock
 			} 
 		}
 	}
-	if(!canceled)						
-		BIF_undo_push("Copy Blendshape Verts");
+	if(!canceled);
 	else
 		for(ev = em->verts.first; ev ; ev = ev->next){
 			if(ev->f & SELECT){
@@ -5927,8 +5946,6 @@ void region_to_loop(EditMesh *em)
 
 //		if (EM_texFaceCheck())
 
-		BIF_undo_push("Face Region to Edge Loop");
-
 	}
 }
 
@@ -6086,7 +6103,6 @@ void loop_to_region(EditMesh *em)
 
 //	if (EM_texFaceCheck())
 
-	BIF_undo_push("Edge Loop to Face Region");
 }
 
 
@@ -6156,7 +6172,6 @@ void mesh_rotate_uvs(EditMesh *em)
 	if (change) {
 //		DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 
-		BIF_undo_push("Rotate UV face");
 	}
 }
 
@@ -6239,7 +6254,6 @@ void mesh_mirror_uvs(EditMesh *em)
 	if (change) {
 //		DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 
-		BIF_undo_push("Mirror UV face");
 	}
 }
 
@@ -6289,7 +6303,6 @@ void mesh_rotate_colors(EditMesh *em)
 	if (change) {
 //		DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 
-		BIF_undo_push("Rotate Color face");
 	}	
 }
 
@@ -6338,7 +6351,6 @@ void mesh_mirror_colors(EditMesh *em)
 	
 	if (change) {
 //		DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-		BIF_undo_push("Mirror Color face");
 	}
 }
 
@@ -6350,7 +6362,6 @@ static int subdivide_exec(bContext *C, wmOperator *op)
 	
 	esubdivideflag(obedit, em, 1, 0.0, scene->toolsettings->editbutflag, 1, 0);
 		
-	ED_undo_push(C, "Subdivide");	// Note this will become depricated 
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 	
 	return OPERATOR_FINISHED;	
@@ -6365,6 +6376,9 @@ void MESH_OT_subdivide(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= subdivide_exec;
 	ot->poll= ED_operator_editmesh;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 static int subdivide_multi_exec(bContext *C, wmOperator *op)
@@ -6375,7 +6389,6 @@ static int subdivide_multi_exec(bContext *C, wmOperator *op)
 	
 	esubdivideflag(obedit, em, 1, 0.0, scene->toolsettings->editbutflag, RNA_int_get(op->ptr,"number_cuts"), 0);
 		
-	ED_undo_push(C, "Subdivide Multi");	// Note this will become depricated 
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 	
 	return OPERATOR_FINISHED;	
@@ -6390,13 +6403,11 @@ void MESH_OT_subdivide_multi(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= subdivide_multi_exec;
 	ot->poll= ED_operator_editmesh;
-
+	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
-
-	
 	RNA_def_int(ot->srna, "number_cuts", 4, 0, 100, "Number of Cuts", "", 0, INT_MAX);
 }
 
@@ -6408,7 +6419,6 @@ static int subdivide_multi_fractal_exec(bContext *C, wmOperator *op)
 
 	esubdivideflag(obedit, em, 1, -(RNA_float_get(op->ptr, "random_factor")/100), scene->toolsettings->editbutflag, RNA_int_get(op->ptr, "number_cuts"), 0);
 		
-	ED_undo_push(C, "Subdivide Multi Fractal");	// Note this will become depricated 
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 	
 	return OPERATOR_FINISHED;	
@@ -6425,7 +6435,7 @@ void MESH_OT_subdivide_multi_fractal(wmOperatorType *ot)
 	ot->poll= ED_operator_editmesh;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
 	RNA_def_int(ot->srna, "number_cuts", 4, 0, 100, "Number of Cuts", "", 0, INT_MAX);
@@ -6440,7 +6450,6 @@ static int subdivide_smooth_exec(bContext *C, wmOperator *op)
 
 	esubdivideflag(obedit, em, 1, 0.292f*RNA_float_get(op->ptr, "smoothness"), scene->toolsettings->editbutflag | B_SMOOTH, 1, 0);
 		
-	ED_undo_push(C, "Subdivide Smooth");	// Note this will become depricated 
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 	
 	return OPERATOR_FINISHED;	
@@ -6457,7 +6466,7 @@ void MESH_OT_subdivide_smooth(wmOperatorType *ot)
 	ot->poll= ED_operator_editmesh;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
 	RNA_def_float(ot->srna, "smoothness", 5.0f, 0.0f, 1000.0f, "Smoothness", "", 0.0f, FLT_MAX);
@@ -6517,6 +6526,9 @@ void MESH_OT_subdivs(wmOperatorType *ot)
 	
 	ot->poll= ED_operator_editmesh;
 	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
 	/*props */
 	RNA_def_int(ot->srna, "index", 0, 0, INT_MAX, "Index", "", 0, 1000);
 	
@@ -6534,22 +6546,24 @@ static int fill_mesh_exec(bContext *C, wmOperator *op)
 	
 	fill_mesh(em);
 	
-	ED_undo_push(C, "Fill Mesh");	// Note this will become depricated 
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 	
 	return OPERATOR_FINISHED;
 	
 }
 
-void MESH_OT_fill_mesh(wmOperatorType *ot)
+void MESH_OT_fill(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Fill Mesh";
-	ot->idname= "MESH_OT_fill_mesh";
+	ot->idname= "MESH_OT_fill";
 	
 	/* api callbacks */
 	ot->exec= fill_mesh_exec;
 	ot->poll= ED_operator_editmesh;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 static int beauty_fill_exec(bContext *C, wmOperator *op)
@@ -6559,7 +6573,6 @@ static int beauty_fill_exec(bContext *C, wmOperator *op)
 	
 	 beauty_fill(em);
 	
-	ED_undo_push(C, "Beauty Fill");	// Note this will become depricated 
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 	
 	return OPERATOR_FINISHED;
@@ -6574,6 +6587,9 @@ void MESH_OT_beauty_fill(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= beauty_fill_exec;
 	ot->poll= ED_operator_editmesh;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 static int convert_quads_to_tris_exec(bContext *C, wmOperator *op)
@@ -6583,7 +6599,6 @@ static int convert_quads_to_tris_exec(bContext *C, wmOperator *op)
 	
 	convert_to_triface(em,0);
 	
-	ED_undo_push(C, "Quads to Tris");	// Note this will become depricated 
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 	
 	return OPERATOR_FINISHED;
@@ -6598,6 +6613,9 @@ void MESH_OT_convert_quads_to_tris(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= convert_quads_to_tris_exec;
 	ot->poll= ED_operator_editmesh;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 static int convert_tris_to_quads_exec(bContext *C, wmOperator *op)
@@ -6607,7 +6625,6 @@ static int convert_tris_to_quads_exec(bContext *C, wmOperator *op)
 
 	join_triangles(em);
 	
-	ED_undo_push(C, "Tris To Quads");	// Note this will become depricated 
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 	
 	return OPERATOR_FINISHED;
@@ -6622,6 +6639,9 @@ void MESH_OT_convert_tris_to_quads(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= convert_tris_to_quads_exec;
 	ot->poll= ED_operator_editmesh;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 static int edge_flip_exec(bContext *C, wmOperator *op)
@@ -6631,7 +6651,6 @@ static int edge_flip_exec(bContext *C, wmOperator *op)
 	
 	edge_flip(em);
 	
-	ED_undo_push(C, "Edge Flip");	// Note this will become depricated 
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 	
 	return OPERATOR_FINISHED;
@@ -6646,152 +6665,59 @@ void MESH_OT_edge_flip(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= edge_flip_exec;
 	ot->poll= ED_operator_editmesh;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int addedgeface_mesh_exec(bContext *C, wmOperator *op)
-{
-	Object *obedit= CTX_data_edit_object(C);
-	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
-	
-	addedgeface_mesh(em);
-	
-	ED_undo_push(C, "Make Edge/Face");	// Note this will become depricated 
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
-	
-	return OPERATOR_FINISHED;
-}
-
-void MESH_OT_addedgeface_mesh(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Make Edge/Face";
-	ot->idname= "MESH_OT_addedgeface_mesh";
-	
-	/* api callbacks */
-	ot->exec= addedgeface_mesh_exec;
-	ot->poll= ED_operator_editmesh;
-}
-
-static int mesh_set_smooth_faces_exec(bContext *C, wmOperator *op)
+static int mesh_faces_shade_smooth_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
 	
 	mesh_set_smooth_faces(em,1);
 	
-	ED_undo_push(C, "Set Smooth Faces");	// Note this will become depricated 
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 	
 	return OPERATOR_FINISHED;
 }
 
-void MESH_OT_mesh_set_smooth_faces(wmOperatorType *ot)
+void MESH_OT_faces_shade_smooth(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Set Smooth Faces";
-	ot->idname= "MESH_OT_mesh_set_smooth_faces";
+	ot->name= "Flat Face Shading";
+	ot->idname= "MESH_OT_faces_shade_smooth";
 	
 	/* api callbacks */
-	ot->exec= mesh_set_smooth_faces_exec;
+	ot->exec= mesh_faces_shade_smooth_exec;
 	ot->poll= ED_operator_editmesh;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int mesh_set_solid_faces_exec(bContext *C, wmOperator *op)
+static int mesh_faces_shade_solid_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
 	
 	mesh_set_smooth_faces(em,0);
 	
-	ED_undo_push(C, "Set Solid Faces");	// Note this will become depricated 
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 	
 	return OPERATOR_FINISHED;
 }
 
-void MESH_OT_mesh_set_solid_faces(wmOperatorType *ot)
+void MESH_OT_faces_shade_solid(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Set Solid Faces";
-	ot->idname= "MESH_OT_mesh_set_solid_faces";
+	ot->name= "Smooth Face Shading";
+	ot->idname= "MESH_OT_faces_shade_solid";
 	
 	/* api callbacks */
-	ot->exec= mesh_set_solid_faces_exec;
-	ot->poll= ED_operator_editmesh;
-}
-
-static int edit_faces_invoke(bContext *C, wmOperator *op, wmEvent *event)
-{
-	int items;
-	char *menu, *p;
-	
-	items = 8;
-	
-	menu= MEM_callocN(items * OP_MAX_TYPENAME, "string");
-	
-	p= menu + sprintf(menu, "%s %%t", "edit faces");
-	p+= sprintf(p, "|%s %%x%d", "fill faces", 7);
-	p+= sprintf(p, "|%s %%x%d", "beauty fill faces", 6);
-	p+= sprintf(p, "|%s %%x%d", "quads to tris", 5);
-	p+= sprintf(p, "|%s %%x%d", "tris to quads", 4);
-	p+= sprintf(p, "|%s %%x%d", "flip triangle edges", 3);
-	p+= sprintf(p, "|%s %%x%d", "make edge/face", 2);
-	p+= sprintf(p, "|%s %%x%d", "set smooth", 1);
-	p+= sprintf(p, "|%s %%x%d", "set solid", 0);
-	
-	
-	uiPupMenuOperator(C, 20, op, "index", menu);
-	MEM_freeN(menu);
-	
-	return OPERATOR_RUNNING_MODAL;
-}
-
-static int edit_faces_exec(bContext *C, wmOperator *op)
-{	
-	switch(RNA_int_get(op->ptr, "index"))
-		{
-		case 7: /* Fill Faces */
-			fill_mesh_exec(C,op);
-			break;
-		case 6: /* Beauty Fill Faces */
-			beauty_fill_exec(C,op);
-			break;
-		case 5: /* Quads to Tris */
-			convert_quads_to_tris_exec(C,op);
-			break;
-		case 4: /* Tris to Quads */
-			convert_tris_to_quads_exec(C,op);
-			break;
-		case 3: /* Flip triangle edges */
-			edge_flip_exec(C,op);
-			break;
-		case 2: /* Make Edge/Face */
-			addedgeface_mesh_exec(C,op);
-			break;
-		case 1: /* Set Smooth */
-			mesh_set_smooth_faces_exec(C,op);
-			break;
-		case 0: /* Set Solid */
-			mesh_set_solid_faces_exec(C,op);
-			break;
-	}
-	
-	return OPERATOR_FINISHED;
-}
-
-void MESH_OT_edit_faces(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "edit faces";
-	ot->idname= "MESH_OT_edit_faces";
-	
-	/* api callbacks */
-	ot->invoke= edit_faces_invoke;
-	ot->exec= edit_faces_exec;
-	
+	ot->exec= mesh_faces_shade_solid_exec;
 	ot->poll= ED_operator_editmesh;
 	
-	/*props */
-	RNA_def_int(ot->srna, "index", 0, 0, INT_MAX, "Index", "", 0, 1000);
-	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }

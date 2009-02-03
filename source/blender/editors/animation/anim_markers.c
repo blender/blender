@@ -207,7 +207,6 @@ static int ed_marker_add(bContext *C, wmOperator *op)
 	BLI_addtail(markers, marker);
 	
 	WM_event_add_notifier(C, NC_SCENE|ND_MARKERS, NULL);
-	//BIF_undo_push("Add Marker");
 	
 	return OPERATOR_FINISHED;
 }
@@ -222,6 +221,8 @@ static void MARKER_OT_add(wmOperatorType *ot)
 	ot->exec= ed_marker_add;
 	ot->poll= ED_operator_areaactive;
 	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* ************************** transform markers *************************** */
@@ -474,6 +475,9 @@ static void MARKER_OT_move(wmOperatorType *ot)
 	ot->modal= ed_marker_move_modal;
 	ot->poll= ED_operator_areaactive;
 	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
 	/* rna storage */
 	RNA_def_int(ot->srna, "frames", 0, INT_MIN, INT_MAX, "Frames", "", INT_MIN, INT_MAX);
 }
@@ -549,6 +553,9 @@ static void MARKER_OT_duplicate(wmOperatorType *ot)
 	ot->invoke= ed_marker_duplicate_invoke;
 	ot->modal= ed_marker_move_modal;
 	ot->poll= ED_operator_areaactive;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* rna storage */
 	RNA_def_int(ot->srna, "frames", 0, INT_MIN, INT_MAX, "Frames", "", INT_MIN, INT_MAX);
@@ -641,6 +648,9 @@ static void MARKER_OT_mouseselect(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= ed_marker_select_invoke;
 	ot->poll= ED_operator_areaactive;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 static void MARKER_OT_mouseselect_extend(wmOperatorType *ot)
@@ -652,6 +662,9 @@ static void MARKER_OT_mouseselect_extend(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= ed_marker_select_extend_invoke;
 	ot->poll= ED_operator_areaactive;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* *************************** border select markers **************** */
@@ -731,6 +744,9 @@ static void MARKER_OT_border_select(wmOperatorType *ot)
 	
 	ot->poll= ED_operator_areaactive;
 	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
 	/* rna */
 	RNA_def_int(ot->srna, "event_type", 0, INT_MIN, INT_MAX, "Event Type", "", INT_MIN, INT_MAX);
 	RNA_def_int(ot->srna, "xmin", 0, INT_MIN, INT_MAX, "X Min", "", INT_MIN, INT_MAX);
@@ -791,6 +807,9 @@ static void MARKER_OT_select_all(wmOperatorType *ot)
 	ot->invoke= ed_marker_select_all_invoke;
 	ot->poll= ED_operator_areaactive;
 	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
 	/* rna */
 	RNA_def_boolean(ot->srna, "select_swap", 0, "Select Swap", "");
 	RNA_def_int(ot->srna, "select_type", 0, INT_MIN, INT_MAX, "Select Type", "", INT_MIN, INT_MAX);
@@ -834,6 +853,9 @@ static void MARKER_OT_delete(wmOperatorType *ot)
 	ot->exec= ed_marker_delete_exec;
 	ot->poll= ED_operator_areaactive;
 	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
 }
 
 /* ************************** registration **********************************/
@@ -857,17 +879,14 @@ void ED_marker_keymap(wmWindowManager *wm)
 	ListBase *keymap= WM_keymap_listbase(wm, "Markers", 0, 0);
 	
 	WM_keymap_verify_item(keymap, "MARKER_OT_add", MKEY, KM_PRESS, 0, 0);
-	WM_keymap_verify_item(keymap, "MARKER_OT_move", EVT_TWEAK_R, KM_ANY, 0, 0);
+	WM_keymap_verify_item(keymap, "MARKER_OT_move", EVT_TWEAK_S, KM_ANY, 0, 0);
 	WM_keymap_verify_item(keymap, "MARKER_OT_duplicate", DKEY, KM_PRESS, KM_SHIFT, 0);
-	WM_keymap_verify_item(keymap, "MARKER_OT_mouseselect", RIGHTMOUSE, KM_PRESS, 0, 0);
-	WM_keymap_verify_item(keymap, "MARKER_OT_mouseselect_extend", RIGHTMOUSE, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_verify_item(keymap, "MARKER_OT_mouseselect", SELECTMOUSE, KM_PRESS, 0, 0);
+	WM_keymap_verify_item(keymap, "MARKER_OT_mouseselect_extend", SELECTMOUSE, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_verify_item(keymap, "MARKER_OT_border_select", BKEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "MARKER_OT_select_all", AKEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "MARKER_OT_delete", XKEY, KM_PRESS, 0, 0);
 	
 	WM_keymap_add_item(keymap, "MARKER_OT_move", GKEY, KM_PRESS, 0, 0);
-	
-	/* generates event, needs to be after select to work */
-	WM_keymap_verify_item(keymap, "WM_OT_tweak_gesture", RIGHTMOUSE, KM_PRESS, 0, 0);
 	
 }

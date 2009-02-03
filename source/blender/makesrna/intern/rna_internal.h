@@ -95,7 +95,7 @@ extern BlenderDefRNA DefRNA;
 extern BlenderRNA BLENDER_RNA;
 
 void RNA_def_ID(struct BlenderRNA *brna);
-void RNA_def_action(struct BlenderRNA *brna);
+void RNA_def_animation(struct BlenderRNA *brna);
 void RNA_def_armature(struct BlenderRNA *brna);
 void RNA_def_actuator(struct BlenderRNA *brna);
 void RNA_def_brush(struct BlenderRNA *brna);
@@ -110,7 +110,6 @@ void RNA_def_fluidsim(struct BlenderRNA *brna);
 void RNA_def_gameproperty(struct BlenderRNA *brna);
 void RNA_def_group(struct BlenderRNA *brna);
 void RNA_def_image(struct BlenderRNA *brna);
-void RNA_def_ipo(struct BlenderRNA *brna);
 void RNA_def_key(struct BlenderRNA *brna);
 void RNA_def_lamp(struct BlenderRNA *brna);
 void RNA_def_lattice(struct BlenderRNA *brna);
@@ -142,7 +141,8 @@ void RNA_def_vpaint(struct BlenderRNA *brna);
 void RNA_def_wm(struct BlenderRNA *brna);
 void RNA_def_world(struct BlenderRNA *brna);
 
-void rna_def_ipo_common(struct StructRNA *srna);
+void rna_def_animdata_common(struct StructRNA *srna);
+
 void rna_def_texmat_common(struct StructRNA *srna, const char *texspace_editable);
 void rna_def_mtex_common(struct StructRNA *srna, const char *begin, const char *activeget, const char *structname);
 
@@ -181,8 +181,8 @@ struct IDProperty *rna_idproperty_check(struct PropertyRNA **prop, struct Pointe
 
 void rna_builtin_properties_begin(struct CollectionPropertyIterator *iter, struct PointerRNA *ptr);
 void rna_builtin_properties_next(struct CollectionPropertyIterator *iter);
-void *rna_builtin_properties_get(struct CollectionPropertyIterator *iter);
-void *rna_builtin_type_get(struct PointerRNA *ptr);
+PointerRNA rna_builtin_properties_get(struct CollectionPropertyIterator *iter);
+PointerRNA rna_builtin_type_get(struct PointerRNA *ptr);
 
 /* Iterators */
 
@@ -217,6 +217,10 @@ void rna_iterator_array_end(struct CollectionPropertyIterator *iter);
 void rna_addtail(struct ListBase *listbase, void *vlink);
 void rna_freelinkN(struct ListBase *listbase, void *vlink);
 void rna_freelistN(struct ListBase *listbase);
+
+/* Pointer Handling */
+
+PointerRNA rna_pointer_inherit_refine(struct PointerRNA *ptr, struct StructRNA *type, void *data);
 
 #endif /* RNA_INTERNAL_H */
 

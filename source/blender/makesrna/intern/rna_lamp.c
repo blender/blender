@@ -46,9 +46,9 @@ static void rna_Lamp_buffer_size_set(PointerRNA *ptr, int value)
 	la->bufsize &= (~15); /* round to multiple of 16 */
 }
 
-static void *rna_Lamp_sky_settings_get(PointerRNA *ptr)
+static PointerRNA rna_Lamp_sky_settings_get(PointerRNA *ptr)
 {
-	return ptr->id.data;
+	return rna_pointer_inherit_refine(ptr, &RNA_LampSkySettings, ptr->id.data);
 }
 
 static void rna_Lamp_mtex_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
@@ -57,10 +57,10 @@ static void rna_Lamp_mtex_begin(CollectionPropertyIterator *iter, PointerRNA *pt
 	rna_iterator_array_begin(iter, (void*)la->mtex, sizeof(MTex*), MAX_MTEX, NULL);
 }
 
-static void *rna_Lamp_active_texture_get(PointerRNA *ptr)
+static PointerRNA rna_Lamp_active_texture_get(PointerRNA *ptr)
 {
 	Lamp *la= (Lamp*)ptr->data;
-	return la->mtex[(int)la->texact];
+	return rna_pointer_inherit_refine(ptr, &RNA_TextureSlot, la->mtex[(int)la->texact]);
 }
 
 static StructRNA* rna_Lamp_refine(struct PointerRNA *ptr)
@@ -645,7 +645,7 @@ static void rna_def_sun_lamp(BlenderRNA *brna)
 	/* sky */
 	prop= RNA_def_property(srna, "sky", PROP_POINTER, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "LampSkySettings");
-	RNA_def_property_pointer_funcs(prop, "rna_Lamp_sky_settings_get", NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_Lamp_sky_settings_get", NULL);
 	RNA_def_property_ui_text(prop, "Sky Settings", "Sky related settings for sun lamps.");
 }
 

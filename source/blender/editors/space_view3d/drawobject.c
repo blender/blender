@@ -1712,7 +1712,7 @@ static void draw_em_fancy_verts(Scene *scene, View3D *v3d, Object *obedit, EditM
 	glPointSize(1.0);
 }
 
-static void draw_em_fancy_edges(Scene *scene, View3D *v3d, DerivedMesh *cageDM, short sel_only, EditEdge *eed_act)
+static void draw_em_fancy_edges(Scene *scene, View3D *v3d, Mesh *me, DerivedMesh *cageDM, short sel_only, EditEdge *eed_act)
 {
 	int pass;
 	unsigned char wireCol[4], selCol[4], actCol[4];
@@ -1746,7 +1746,7 @@ static void draw_em_fancy_edges(Scene *scene, View3D *v3d, DerivedMesh *cageDM, 
 		if(scene->selectmode == SCE_SELECT_FACE) {
 			draw_dm_edges_sel(cageDM, wireCol, selCol, actCol, eed_act);
 		}	
-		else if( (G.f & G_DRAWEDGES) || (scene->selectmode & SCE_SELECT_EDGE) ) {	
+		else if( (me->drawflag & ME_DRAWEDGES) || (scene->selectmode & SCE_SELECT_EDGE) ) {	
 			if(cageDM->drawMappedEdgesInterp && (scene->selectmode & SCE_SELECT_VERTEX)) {
 				glShadeModel(GL_SMOOTH);
 				draw_dm_edges_sel_interp(cageDM, wireCol, selCol);
@@ -1771,6 +1771,7 @@ static void draw_em_fancy_edges(Scene *scene, View3D *v3d, DerivedMesh *cageDM, 
 
 static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d, Object *ob, EditMesh *em)
 {
+	Mesh *me= ob->data;
 	EditEdge *eed;
 	EditFace *efa;
 	float v1[3], v2[3], v3[3], v4[3];
@@ -1800,7 +1801,7 @@ static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d, Object *ob, E
 
 	if(v3d->zbuf) bglPolygonOffset(rv3d->dist, 5.0);
 	
-	if(G.f & G_DRAW_EDGELEN) {
+	if(me->drawflag & ME_DRAW_EDGELEN) {
 		UI_GetThemeColor3fv(TH_TEXT, col);
 		/* make color a bit more red */
 		if(col[0]> 0.5) {col[1]*=0.7; col[2]*= 0.7;}
@@ -1826,7 +1827,7 @@ static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d, Object *ob, E
 		}
 	}
 
-	if(G.f & G_DRAW_FACEAREA) {
+	if(me->drawflag & ME_DRAW_FACEAREA) {
 // XXX		extern int faceselectedOR(EditFace *efa, int flag);		// editmesh.h shouldn't be in this file... ok for now?
 		
 		UI_GetThemeColor3fv(TH_TEXT, col);
@@ -1862,7 +1863,7 @@ static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d, Object *ob, E
 		}
 	}
 
-	if(G.f & G_DRAW_EDGEANG) {
+	if(me->drawflag & ME_DRAW_EDGEANG) {
 		EditEdge *e1, *e2, *e3, *e4;
 		
 		UI_GetThemeColor3fv(TH_TEXT, col);
@@ -2018,7 +2019,7 @@ static void draw_em_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object 
 		}
 	}
 	
-	if((G.f & (G_DRAWFACES)) || FACESEL_PAINT_TEST) {	/* transp faces */
+	if((me->drawflag & (ME_DRAWFACES)) || FACESEL_PAINT_TEST) {	/* transp faces */
 		unsigned char col1[4], col2[4], col3[4];
 			
 		UI_GetThemeColor4ubv(TH_FACE, (char *)col1);
@@ -2055,14 +2056,14 @@ static void draw_em_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object 
 	}
 
 	/* here starts all fancy draw-extra over */
-	if((G.f & G_DRAWEDGES)==0 && CHECK_OB_DRAWTEXTURE(v3d, dt)) {
-		/* we are drawing textures and 'G_DRAWEDGES' is disabled, dont draw any edges */
+	if((me->drawflag & ME_DRAWEDGES)==0 && CHECK_OB_DRAWTEXTURE(v3d, dt)) {
+		/* we are drawing textures and 'ME_DRAWEDGES' is disabled, dont draw any edges */
 		
 		/* only draw selected edges otherwise there is no way of telling if a face is selected */
-		draw_em_fancy_edges(scene, v3d, cageDM, 1, eed_act);
+		draw_em_fancy_edges(scene, v3d, me, cageDM, 1, eed_act);
 		
 	} else {
-		if(G.f & G_DRAWSEAMS) {
+		if(me->drawflag & ME_DRAWSEAMS) {
 			UI_ThemeColor(TH_EDGE_SEAM);
 			glLineWidth(2);
 	
@@ -2072,7 +2073,7 @@ static void draw_em_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object 
 			glLineWidth(1);
 		}
 		
-		if(G.f & G_DRAWSHARP) {
+		if(me->drawflag & ME_DRAWSHARP) {
 			UI_ThemeColor(TH_EDGE_SHARP);
 			glLineWidth(2);
 	
@@ -2082,30 +2083,30 @@ static void draw_em_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object 
 			glLineWidth(1);
 		}
 	
-		if(G.f & G_DRAWCREASES) {
+		if(me->drawflag & ME_DRAWCREASES) {
 			draw_dm_creases(cageDM);
 		}
-		if(G.f & G_DRAWBWEIGHTS) {
+		if(me->drawflag & ME_DRAWBWEIGHTS) {
 			draw_dm_bweights(scene, cageDM);
 		}
 	
-		draw_em_fancy_edges(scene, v3d, cageDM, 0, eed_act);
+		draw_em_fancy_edges(scene, v3d, me, cageDM, 0, eed_act);
 	}
 	if(em) {
 // XXX		retopo_matrix_update(v3d);
 
 		draw_em_fancy_verts(scene, v3d, ob, em, cageDM, eve_act);
 
-		if(G.f & G_DRAWNORMALS) {
+		if(me->drawflag & ME_DRAWNORMALS) {
 			UI_ThemeColor(TH_NORMAL);
 			draw_dm_face_normals(scene, cageDM);
 		}
-		if(G.f & G_DRAW_VNORMALS) {
+		if(me->drawflag & ME_DRAW_VNORMALS) {
 			UI_ThemeColor(TH_NORMAL);
 			draw_dm_vert_normals(scene, cageDM);
 		}
 
-		if(G.f & (G_DRAW_EDGELEN|G_DRAW_FACEAREA|G_DRAW_EDGEANG))
+		if(me->drawflag & (ME_DRAW_EDGELEN|ME_DRAW_FACEAREA|ME_DRAW_EDGEANG))
 			draw_em_measure_stats(v3d, rv3d, ob, em);
 	}
 
@@ -4903,9 +4904,6 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 			dtx= dtx & (OB_DRAWWIRE|OB_TEXSPACE);
 		}
 
-		if(G.f & G_DRAW_EXT) {
-			if(ob->type==OB_EMPTY || ob->type==OB_CAMERA || ob->type==OB_LAMP) dt= OB_WIRE;
-		}
 	}
 
 	/* draw outline for selected solid objects, mesh does itself */

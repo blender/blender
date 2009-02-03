@@ -3945,11 +3945,13 @@ static void direct_link_windowmanager(FileData *fd, wmWindowManager *wm)
 		win->ghostwin= NULL;
 		win->eventstate= NULL;
 		win->curswin= NULL;
-		
+		win->tweak= NULL;
+
 		win->timers.first= win->timers.last= NULL;
 		win->queue.first= win->queue.last= NULL;
 		win->handlers.first= win->handlers.last= NULL;
 		win->subwindows.first= win->subwindows.last= NULL;
+		win->gesture.first= win->gesture.last= NULL;
 
 		win->drawdata= NULL;
 		win->drawmethod= -1;
@@ -8682,6 +8684,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		bScreen *screen;
 		Scene *scene;
 		Material *ma;
+		Mesh *me;
 		Scene *sce;
 		Tex *tx;
 		
@@ -8717,6 +8720,11 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		for(tx= main->tex.first; tx; tx= tx->id.next) {
 			if(tx->nodetree && strlen(tx->nodetree->id.name)==0)
 				strcpy(tx->nodetree->id.name, "NTTexture Nodetree");
+		}
+		
+		/* copy standard draw flag to meshes(used to be global, is not available here) */
+		for(me= main->mesh.first; me; me= me->id.next) {
+			me->drawflag= ME_DRAWEDGES|ME_DRAWFACES|ME_DRAWCREASES;
 		}
 	}
 

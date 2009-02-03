@@ -46,11 +46,13 @@ static int rna_Main_filename_length(PointerRNA *ptr)
 	return strlen(bmain->name);
 }
 
+#if 0
 static void rna_Main_filename_set(PointerRNA *ptr, const char *value)
 {
 	Main *bmain= (Main*)ptr->data;
 	BLI_strncpy(bmain->name, value, sizeof(bmain->name));
 }
+#endif
 
 static void rna_Main_scene_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
@@ -122,12 +124,6 @@ static void rna_Main_camera_begin(CollectionPropertyIterator *iter, PointerRNA *
 {
 	Main *bmain= (Main*)ptr->data;
 	rna_iterator_listbase_begin(iter, &bmain->camera, NULL);
-}
-
-static void rna_Main_ipo_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
-{
-	Main *bmain= (Main*)ptr->data;
-	rna_iterator_listbase_begin(iter, &bmain->ipo, NULL);
 }
 
 static void rna_Main_key_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
@@ -237,7 +233,6 @@ void RNA_def_main(BlenderRNA *brna)
 		{"metaballs", "MetaBall", "rna_Main_mball_begin", "Metaballs", "Metaball datablocks."},
 		{"vfonts", "VectorFont", "rna_Main_vfont_begin", "Vector Fonts", "Vector font datablocks."},
 		{"textures", "Texture", "rna_Main_tex_begin", "Textures", "Texture datablocks."},
-		{"ipos", "Ipo", "rna_Main_ipo_begin", "Ipos", "Ipo datablocks."},
 		{"brushes", "Brush", "rna_Main_brush_begin", "Brushes", "Brush datablocks."},
 		{"worlds", "World", "rna_Main_world_begin", "Worlds", "World datablocks."},
 		{"groups", "Group", "rna_Main_group_begin", "Groups", "Group datablocks."},
@@ -264,7 +259,7 @@ void RNA_def_main(BlenderRNA *brna)
 	{
 		prop= RNA_def_property(srna, lists[i][0], PROP_COLLECTION, PROP_NONE);
 		RNA_def_property_struct_type(prop, lists[i][1]);
-		RNA_def_property_collection_funcs(prop, lists[i][2], "rna_iterator_listbase_next", "rna_iterator_listbase_end", "rna_iterator_listbase_get", 0, 0, 0, 0);
+		RNA_def_property_collection_funcs(prop, lists[i][2], "rna_iterator_listbase_next", "rna_iterator_listbase_end", "rna_iterator_listbase_get", 0, 0, 0);
 		RNA_def_property_ui_text(prop, lists[i][3], lists[i][4]);
 	}
 }

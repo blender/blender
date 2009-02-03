@@ -422,8 +422,8 @@ void RNA_def_fluidsim(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE); // needs to update variables
 	RNA_def_property_ui_text(prop, "Type", "Type of participation in the fluid simulation.");
 
-	prop= RNA_def_property(srna, "ipo", PROP_POINTER, PROP_NONE);
-	RNA_def_property_ui_text(prop, "Ipo Curves", "Ipo curves used by fluid simulation settings.");
+	//prop= RNA_def_property(srna, "ipo", PROP_POINTER, PROP_NONE);
+	//RNA_def_property_ui_text(prop, "Ipo Curves", "Ipo curves used by fluid simulation settings.");
 
 	/* types */
 

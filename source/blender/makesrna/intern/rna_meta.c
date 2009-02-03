@@ -141,7 +141,6 @@ void rna_def_metaball(BlenderRNA *brna)
 
 	/* materials, textures */
 	rna_def_texmat_common(srna, "rna_Meta_texspace_editable");
-	rna_def_ipo_common(srna);
 }
 
 void RNA_def_meta(BlenderRNA *brna)

@@ -117,37 +117,24 @@ typedef struct Global {
 #define G_RENDER_SHADOW	(1 <<  3)
 #define G_BACKBUFSEL	(1 <<  4)
 #define G_PICKSEL		(1 <<  5)
-#define G_DRAWNORMALS	(1 <<  6)
-#define G_DRAWFACES		(1 <<  7)
+
 #define G_FACESELECT	(1 <<  8)
-#define G_DRAW_EXT		(1 <<  9)
+
 #define G_VERTEXPAINT	(1 << 10)
-#define G_ALLEDGES		(1 << 11)
+
 #define G_DEBUG			(1 << 12)
 #define G_DOSCRIPTLINKS (1 << 13)
-#define G_DRAW_VNORMALS	(1 << 14)
+
 #define G_WEIGHTPAINT	(1 << 15)	
 #define G_TEXTUREPAINT	(1 << 16)
 /* #define G_NOFROZEN	(1 << 17) also removed */
 #define G_GREASEPENCIL 	(1 << 17)
-#define G_DRAWEDGES		(1 << 18)
-#define G_DRAWCREASES	(1 << 19)
-#define G_DRAWSEAMS     (1 << 20)
-#define G_HIDDENEDGES   (1 << 21)
-/* Measurement info Drawing */
-#define G_DRAW_EDGELEN  (1 << 22) 
-#define G_DRAW_FACEAREA (1 << 23)
-#define G_DRAW_EDGEANG  (1 << 24)
 
-/* #define G_RECORDKEYS	(1 << 25)   also removed */
-
-#define G_DRAWSHARP     (1 << 28) /* draw edges with the sharp flag */
 #define G_SCULPTMODE    (1 << 29)
 #define G_PARTICLEEDIT	(1 << 30)
 
 /* #define G_AUTOMATKEYS	(1 << 30)   also removed */
 #define G_HIDDENHANDLES (1 << 31) /* used for curves only */
-#define G_DRAWBWEIGHTS	(1 << 31)
 
 /* macro for testing face select mode
  * Texture paint could be removed since selected faces are not used

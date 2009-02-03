@@ -103,7 +103,7 @@ void RNA_def_nodetree(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "nodes", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "nodes", NULL);
-	RNA_def_property_collection_funcs(prop, "rna_Nodetree_nodes_begin", "rna_iterator_listbase_next", "rna_iterator_listbase_end", "rna_iterator_listbase_get", 0, 0, 0, 0);
+	RNA_def_property_collection_funcs(prop, "rna_Nodetree_nodes_begin", "rna_iterator_listbase_next", "rna_iterator_listbase_end", "rna_iterator_listbase_get", 0, 0, 0);
 	RNA_def_property_struct_type(prop, "Node");
 	RNA_def_property_ui_text(prop, "Nodes", "");
 	

@@ -64,6 +64,7 @@ static void keymap_event_set(wmKeymapItem *kmi, short type, short val, int modif
 	}
 	else {
 		
+		/* defines? */
 		if(modifier & KM_SHIFT)
 			kmi->shift= 1;
 		else if(modifier & KM_SHIFT2)
@@ -108,25 +109,6 @@ wmKeymapItem *WM_keymap_verify_item(ListBase *lb, char *idname, short type, shor
 		keymap_event_set(kmi, type, val, modifier, keymodifier);
 		keymap_properties_set(kmi);
 	}
-	return kmi;
-}
-
-/* if item was added, then replace */
-wmKeymapItem *WM_keymap_set_item(ListBase *lb, char *idname, short type, short val, int modifier, short keymodifier)
-{
-	wmKeymapItem *kmi;
-	
-	for(kmi= lb->first; kmi; kmi= kmi->next)
-		if(strncmp(kmi->idname, idname, OP_MAX_TYPENAME)==0)
-			break;
-	if(kmi==NULL) {
-		kmi= MEM_callocN(sizeof(wmKeymapItem), "keymap entry");
-	
-		BLI_addtail(lb, kmi);
-		BLI_strncpy(kmi->idname, idname, OP_MAX_TYPENAME);
-	}
-	keymap_event_set(kmi, type, val, modifier, keymodifier);
-	keymap_properties_set(kmi);
 	return kmi;
 }
 

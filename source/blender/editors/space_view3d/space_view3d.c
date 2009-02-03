@@ -180,6 +180,10 @@ static void view3d_main_area_init(wmWindowManager *wm, ARegion *ar)
 	keymap= WM_keymap_listbase(wm, "Object Non-modal", 0, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 	
+	/* pose is not modal, operator poll checks for this */
+	keymap= WM_keymap_listbase(wm, "Pose", 0, 0);
+	WM_event_add_keymap_handler(&ar->handlers, keymap);
+	
 	/* object modal ops default */
 	keymap= WM_keymap_listbase(wm, "Object Mode", 0, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
@@ -252,6 +256,12 @@ static void view3d_modal_keymaps(wmWindowManager *wm, ARegion *ar, int stype)
 
 	keymap= WM_keymap_listbase(wm, "Curve", 0, 0);
 	if(stype==NS_EDITMODE_CURVE)
+		WM_event_add_keymap_handler(&ar->handlers, keymap);
+	else
+		WM_event_remove_keymap_handler(&ar->handlers, keymap);
+	
+	keymap= WM_keymap_listbase(wm, "Armature", 0, 0);
+	if(stype==NS_EDITMODE_ARMATURE)
 		WM_event_add_keymap_handler(&ar->handlers, keymap);
 	else
 		WM_event_remove_keymap_handler(&ar->handlers, keymap);
@@ -382,19 +392,19 @@ static int object_is_libdata(Object *ob)
 	return 0;
 }
 
-static int view3d_context(const bContext *C, const bContextDataMember *member, bContextDataResult *result)
+static int view3d_context(const bContext *C, bContextDataMember member, bContextDataResult *result)
 {
 	View3D *v3d= CTX_wm_view3d(C);
 	Scene *scene= CTX_data_scene(C);
 	Base *base;
 
 	if(v3d==NULL) return 0;
-	
-	if(ELEM(member, CTX_data_selected_objects, CTX_data_selected_bases)) {
+
+	if(ELEM(member, CTX_DATA_SELECTED_OBJECTS, CTX_DATA_SELECTED_BASES)) {
 		for(base=scene->base.first; base; base=base->next) {
 			if((base->flag & SELECT) && (base->lay & v3d->lay)) {
 				if((base->object->restrictflag & OB_RESTRICT_VIEW)==0) {
-					if(member == CTX_data_selected_objects)
+					if(member == CTX_DATA_SELECTED_OBJECTS)
 						CTX_data_list_add(result, base->object);
 					else
 						CTX_data_list_add(result, base);
@@ -404,12 +414,12 @@ static int view3d_context(const bContext *C, const bContextDataMember *member, b
 
 		return 1;
 	}
-	else if(ELEM(member, CTX_data_selected_editable_objects, CTX_data_selected_editable_bases)) {
+	else if(ELEM(member, CTX_DATA_SELECTED_EDITABLE_OBJECTS, CTX_DATA_SELECTED_EDITABLE_BASES)) {
 		for(base=scene->base.first; base; base=base->next) {
 			if((base->flag & SELECT) && (base->lay & v3d->lay)) {
 				if((base->object->restrictflag & OB_RESTRICT_VIEW)==0) {
 					if(0==object_is_libdata(base->object)) {
-						if(member == CTX_data_selected_editable_objects)
+						if(member == CTX_DATA_SELECTED_EDITABLE_OBJECTS)
 							CTX_data_list_add(result, base->object);
 						else
 							CTX_data_list_add(result, base);
@@ -420,11 +430,11 @@ static int view3d_context(const bContext *C, const bContextDataMember *member, b
 		
 		return 1;
 	}
-	else if(ELEM(member, CTX_data_visible_objects, CTX_data_visible_bases)) {
+	else if(ELEM(member, CTX_DATA_VISIBLE_OBJECTS, CTX_DATA_VISIBLE_BASES)) {
 		for(base=scene->base.first; base; base=base->next) {
 			if(base->lay & v3d->lay) {
 				if((base->object->restrictflag & OB_RESTRICT_VIEW)==0) {
-					if(member == CTX_data_visible_objects)
+					if(member == CTX_DATA_VISIBLE_OBJECTS)
 						CTX_data_list_add(result, base->object);
 					else
 						CTX_data_list_add(result, base);
@@ -434,14 +444,14 @@ static int view3d_context(const bContext *C, const bContextDataMember *member, b
 		
 		return 1;
 	}
-	else if(member == CTX_data_active_base) {
+	else if(member == CTX_DATA_ACTIVE_BASE) {
 		if(scene->basact && (scene->basact->lay & v3d->lay))
 			if((scene->basact->object->restrictflag & OB_RESTRICT_VIEW)==0)
 				CTX_data_pointer_set(result, scene->basact);
 
 		return 1;
 	}
-	else if(member == CTX_data_active_object) {
+	else if(member == CTX_DATA_ACTIVE_OBJECT) {
 		if(scene->basact && (scene->basact->lay & v3d->lay))
 			if((scene->basact->object->restrictflag & OB_RESTRICT_VIEW)==0)
 				CTX_data_pointer_set(result, scene->basact->object);

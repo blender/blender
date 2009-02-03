@@ -190,7 +190,6 @@ static int sequencer_add_scene_strip_exec(bContext *C, wmOperator *op)
 		seq->flag |= SELECT;
 	}
 	
-	ED_undo_push(C, "Add Scene Strip, Sequencer");
 	ED_area_tag_redraw(CTX_wm_area(C));
 	
 	return OPERATOR_FINISHED;
@@ -220,8 +219,10 @@ void SEQUENCER_OT_add_scene_strip(struct wmOperatorType *ot)
 	ot->exec= sequencer_add_scene_strip_exec;
 
 	ot->poll= ED_operator_sequencer_active;
-	ot->flag= OPTYPE_REGISTER;
-
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
 	sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME);
 	RNA_def_string(ot->srna, "scene", "", MAX_ID_NAME-2, "Scene Name", "Scene name to add as a strip");
 }
@@ -279,7 +280,6 @@ static int sequencer_add_movie_strip_exec(bContext *C, wmOperator *op)
 		seq->flag |= SELECT;
 	}
 	
-	ED_undo_push(C, "Add Movie Strip, Sequencer");
 	ED_area_tag_redraw(CTX_wm_area(C));
 	
 	return OPERATOR_FINISHED;
@@ -306,7 +306,9 @@ void SEQUENCER_OT_add_movie_strip(struct wmOperatorType *ot)
 	ot->exec= sequencer_add_movie_strip_exec;
 
 	ot->poll= ED_operator_sequencer_active;
-	ot->flag= OPTYPE_REGISTER;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME|SEQPROP_FILENAME);
 	RNA_def_boolean(ot->srna, "sound", FALSE, "Sound", "Load hd sound with the movie"); // XXX need to impliment this
@@ -378,7 +380,6 @@ static int sequencer_add_sound_strip_exec(bContext *C, wmOperator *op)
 		seq->flag |= SELECT;
 	}
 
-	ED_undo_push(C, "Add Sound Strip, Sequencer");
 	ED_area_tag_redraw(CTX_wm_area(C));
 	
 	return OPERATOR_FINISHED;
@@ -405,8 +406,10 @@ void SEQUENCER_OT_add_sound_strip(struct wmOperatorType *ot)
 	ot->exec= sequencer_add_sound_strip_exec;
 
 	ot->poll= ED_operator_sequencer_active;
-	ot->flag= OPTYPE_REGISTER;
-
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
 	sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME|SEQPROP_FILENAME);
 	RNA_def_boolean(ot->srna, "hd", FALSE, "HD Sound", "Load the sound as streaming audio"); // XXX need to impliment this
 }
@@ -469,7 +472,6 @@ static int sequencer_add_image_strip_exec(bContext *C, wmOperator *op)
 		seq->flag |= SELECT;
 	}
 
-	ED_undo_push(C, "Add Image Strip, Sequencer");
 	ED_area_tag_redraw(CTX_wm_area(C));
 	
 	return OPERATOR_FINISHED;
@@ -496,7 +498,9 @@ void SEQUENCER_OT_add_image_strip(struct wmOperatorType *ot)
 	ot->exec= sequencer_add_image_strip_exec;
 
 	ot->poll= ED_operator_sequencer_active;
-	ot->flag= OPTYPE_REGISTER;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME|SEQPROP_FILENAME);
 }
@@ -595,13 +599,6 @@ static int sequencer_add_effect_strip_exec(bContext *C, wmOperator *op)
 		seq->flag |= SELECT;
 	}
 
-	if (seq->type==SEQ_PLUGIN) {
-		ED_undo_push(C, "Add Plugin Strip, Sequencer");
-	}
-	else {
-		ED_undo_push(C, "Add Effect Strip, Sequencer");
-	}
-
 	ED_area_tag_redraw(CTX_wm_area(C));
 	return OPERATOR_FINISHED;
 }
@@ -632,8 +629,10 @@ void SEQUENCER_OT_add_effect_strip(struct wmOperatorType *ot)
 	ot->exec= sequencer_add_effect_strip_exec;
 
 	ot->poll= ED_operator_sequencer_active;
-	ot->flag= OPTYPE_REGISTER;
-
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
 	sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME|SEQPROP_ENDFRAME|SEQPROP_FILENAME);
 	RNA_def_enum(ot->srna, "type", sequencer_prop_effect_types, SEQ_CROSS, "Type", "Sequencer effect type");
 	RNA_def_float_vector(ot->srna, "color", 3, NULL, 0.0f, 1.0f, "Color", "Initialize the strip with this color (only used when type='COLOR')", 0.0f, 1.0f);

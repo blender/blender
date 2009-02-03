@@ -204,8 +204,14 @@ int WM_menu_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	const EnumPropertyItem *item;
 	int totitem, i, len= strlen(op->type->name) + 8;
 	char *menu, *p;
-	
-	if(prop) {
+
+	if(prop==NULL) {
+		printf("WM_menu_invoke: %s has no \"type\" enum property\n", op->type->idname);
+	}
+	else if (RNA_property_type(op->ptr, prop) != PROP_ENUM) {
+		printf("WM_menu_invoke: %s \"type\" is not an enum property\n", op->type->idname);
+	}
+	else {
 		RNA_property_enum_items(op->ptr, prop, &item, &totitem);
 		
 		for (i=0; i<totitem; i++)
@@ -283,8 +289,6 @@ static void WM_OT_save_homefile(wmOperatorType *ot)
 	ot->invoke= WM_operator_confirm;
 	ot->exec= WM_write_homefile;
 	ot->poll= WM_operator_winactive;
-	
-	ot->flag= OPTYPE_REGISTER;
 }
 
 /* ********* recent file *********** */
@@ -351,10 +355,7 @@ static void WM_OT_open_recentfile(wmOperatorType *ot)
 	ot->exec= recentfile_exec;
 	ot->poll= WM_operator_winactive;
 	
-	ot->flag= OPTYPE_REGISTER;
-	
 	RNA_def_property(ot->srna, "nr", PROP_ENUM, PROP_NONE);
-
 }
 
 /* ********* main file *********** */
@@ -369,7 +370,7 @@ static int wm_mainfile_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	sfile= (SpaceFile*)CTX_wm_space_data(C);
 	sfile->op = op;
 	// XXX replace G.sce
-	ED_fileselect_set_params(sfile, FILE_BLENDER, "Load As", G.sce, 0, 0, 0);
+	ED_fileselect_set_params(sfile, FILE_BLENDER, "Load", G.sce, 0, 0, 0);
 
 	/* screen and area have been reset already in ED_screen_full_newspace */
 
@@ -461,6 +462,15 @@ static void WM_OT_window_fullscreen_toggle(wmOperatorType *ot)
     ot->poll= WM_operator_winactive;
 }
 
+static int wm_exit_blender_op(bContext *C, wmOperator *op)
+{
+	WM_operator_free(op);
+	
+	WM_exit(C);	
+	
+	return OPERATOR_FINISHED;
+}
+
 static void WM_OT_exit_blender(wmOperatorType *ot)
 {
 	ot->name= "Exit Blender";
@@ -519,7 +529,7 @@ void WM_paint_cursor_end(wmWindowManager *wm, void *handle)
    It stores 4 values (xmin, xmax, ymin, ymax) and event it ended with (event_type)
 */
 
-static void border_apply(bContext *C, wmOperator *op, int event_type)
+static int border_apply(bContext *C, wmOperator *op, int event_type)
 {
 	wmGesture *gesture= op->customdata;
 	rcti *rect= gesture->customdata;
@@ -529,6 +539,9 @@ static void border_apply(bContext *C, wmOperator *op, int event_type)
 	if(rect->ymin > rect->ymax)
 		SWAP(int, rect->ymin, rect->ymax);
 	
+	if(rect->xmin==rect->xmax || rect->ymin==rect->ymax)
+		return 0;
+		
 	/* operator arguments and storage. */
 	RNA_int_set(op->ptr, "xmin", rect->xmin);
 	RNA_int_set(op->ptr, "ymin", rect->ymin);
@@ -538,6 +551,8 @@ static void border_apply(bContext *C, wmOperator *op, int event_type)
 		RNA_int_set(op->ptr, "event_type", event_type);
 	
 	op->type->exec(C, op);
+	
+	return 1;
 }
 
 static void wm_gesture_end(bContext *C, wmOperator *op)
@@ -597,9 +612,12 @@ int WM_border_select_modal(bContext *C, wmOperator *op, wmEvent *event)
 				}
 			}
 			else {
-				border_apply(C, op, event->type);
+				if(border_apply(C, op, event->type)) {
+					wm_gesture_end(C, op);
+					return OPERATOR_FINISHED;
+				}
 				wm_gesture_end(C, op);
-				return OPERATOR_FINISHED;
+				return OPERATOR_CANCELLED;
 			}
 			break;
 		case ESCKEY:
@@ -711,22 +729,10 @@ void WM_OT_circle_gesture(wmOperatorType *ot)
 
 /* **************** Tweak gesture *************** */
 
-static int tweak_gesture_invoke(bContext *C, wmOperator *op, wmEvent *event)
-{
-	op->customdata= WM_gesture_new(C, event, WM_GESTURE_TWEAK);
-	
-	/* add modal handler */
-	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
-	
-	wm_gesture_tag_redraw(C);
-	
-	return OPERATOR_RUNNING_MODAL;
-}
-
-static int tweak_gesture_modal(bContext *C, wmOperator *op, wmEvent *event)
+static void tweak_gesture_modal(bContext *C, wmEvent *event)
 {
 	wmWindow *window= CTX_wm_window(C);
-	wmGesture *gesture= op->customdata;
+	wmGesture *gesture= window->tweak;
 	rcti *rect= gesture->customdata;
 	int sx, sy, val;
 	
@@ -740,7 +746,7 @@ static int tweak_gesture_modal(bContext *C, wmOperator *op, wmEvent *event)
 			
 			if((val= wm_gesture_evaluate(C, gesture))) {
 				wmEvent event;
-					
+
 				event= *(window->eventstate);
 				if(gesture->event_type==LEFTMOUSE)
 					event.type= EVT_TWEAK_L;
@@ -752,11 +758,9 @@ static int tweak_gesture_modal(bContext *C, wmOperator *op, wmEvent *event)
 				/* mouse coords! */
 				wm_event_add(window, &event);
 				
-				wm_gesture_end(C, op);
-				return OPERATOR_FINISHED;
+				WM_gesture_end(C, gesture);	/* frees gesture itself, and unregisters from window */
+				window->tweak= NULL;
 			}
-			else
-				wm_gesture_tag_redraw(C);
 			
 			break;
 			
@@ -764,24 +768,40 @@ static int tweak_gesture_modal(bContext *C, wmOperator *op, wmEvent *event)
 		case RIGHTMOUSE:
 		case MIDDLEMOUSE:
 			if(gesture->event_type==event->type) {
-				wm_gesture_evaluate(C, gesture);
-				wm_gesture_end(C, op);
-				return OPERATOR_FINISHED;
+				WM_gesture_end(C, gesture);
+				window->tweak= NULL;
+				
+				/* when tweak fails we should give the other keymap entries a chance */
+				event->val= KM_RELEASE;
 			}
 			break;
+		default:
+			WM_gesture_end(C, gesture);
+			window->tweak= NULL;
 	}
-	return OPERATOR_RUNNING_MODAL;
 }
 
-void WM_OT_tweak_gesture(wmOperatorType *ot)
+/* standard tweak, called after window handlers passed on event */
+void wm_tweakevent_test(bContext *C, wmEvent *event, int action)
 {
-	ot->name= "Tweak Gesture";
-	ot->idname= "WM_OT_tweak_gesture";
+	wmWindow *win= CTX_wm_window(C);
 	
-	ot->invoke= tweak_gesture_invoke;
-	ot->modal= tweak_gesture_modal;
-
-	ot->poll= WM_operator_winactive;
+	if(win->tweak==NULL) {
+		if(CTX_wm_region(C)) {
+			if(event->val) { // pressed
+				if( ELEM3(event->type, LEFTMOUSE, MIDDLEMOUSE, RIGHTMOUSE) )
+					win->tweak= WM_gesture_new(C, event, WM_GESTURE_TWEAK);
+			}
+		}
+	}
+	else {
+		if(action==WM_HANDLER_BREAK) {
+			WM_gesture_end(C, win->tweak);
+			win->tweak= NULL;
+		}
+		else
+			tweak_gesture_modal(C, event);
+	}
 }
 
 /* *********************** lasso gesture ****************** */
@@ -1148,7 +1168,6 @@ void wm_operatortype_init(void)
 	WM_operatortype_append(WM_OT_save_homefile);
 	WM_operatortype_append(WM_OT_window_fullscreen_toggle);
 	WM_operatortype_append(WM_OT_exit_blender);
-	WM_operatortype_append(WM_OT_tweak_gesture);
 	WM_operatortype_append(WM_OT_open_recentfile);
 	WM_operatortype_append(WM_OT_open_mainfile);
 	WM_operatortype_append(WM_OT_jobs_timer);

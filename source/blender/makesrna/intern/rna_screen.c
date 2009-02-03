@@ -75,7 +75,7 @@ static void rna_def_region(BlenderRNA *brna)
 	StructRNA *srna;
 	
 	srna= RNA_def_struct(brna, "Region", NULL);
-	RNA_def_struct_ui_text(srna, "Region", "Region in a subdivid screen area.");
+	RNA_def_struct_ui_text(srna, "Region", "Region in a subdivided screen area.");
 	RNA_def_struct_sdna(srna, "ARegion");
 }
 

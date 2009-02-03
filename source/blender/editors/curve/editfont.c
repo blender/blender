@@ -68,7 +68,6 @@
 #include "curve_intern.h"
 
 /* XXX */
-static void BIF_undo_push() {}
 static void error() {}
 static int okee() {return 0;}
 /* XXX */
@@ -472,7 +471,6 @@ void txt_export_to_objects(struct Text *text)
 		linenum++;
 		curline = curline->next;
 	}
-	BIF_undo_push("Add Text as Objects");
 }
 
 static short next_word(Curve *cu)
@@ -622,7 +620,7 @@ static int do_textedit(bContext *C, wmOperator *op, wmEvent *evt)
 	
 	/* tab should exit editmode, but we allow it to be typed using modifier keys */
 	if(event==TABKEY) {
-		if(alt==ctrl==shift==0)
+		if((alt||ctrl||shift) == 0)
 			return OPERATOR_PASS_THROUGH;
 		else
 			ascii= 9;
@@ -932,8 +930,6 @@ static int do_textedit(bContext *C, wmOperator *op, wmEvent *evt)
 			DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 		}			
 
-		BIF_undo_push("Textedit");
-		
 		WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, NULL); // XXX better note
 
 	}
@@ -959,6 +955,8 @@ void FONT_OT_textedit(wmOperatorType *ot)
 	ot->invoke= do_textedit;
 	
 	ot->poll= font_editmode;
+	
+	ot->flag = OPTYPE_UNDO;
 }
 
 
@@ -1006,7 +1004,6 @@ void paste_unicodeText(Scene *scene, char *filename)
 		update_string(cu);
 		BKE_text_to_curve(scene, obedit, 0);
 		DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-		BIF_undo_push("Paste text");
 	}
 }
 
@@ -1070,7 +1067,6 @@ void paste_editText(Scene *scene)
 		update_string(cu);
 		BKE_text_to_curve(scene, obedit, 0);
 		DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-		BIF_undo_push("Paste text");
 	}
 }
 
@@ -1109,7 +1105,6 @@ void make_editText(Object *obedit)
 	update_string(cu);
 	
 	textediting= 1;
-	BIF_undo_push("Original");
 }
 
 
@@ -1161,7 +1156,6 @@ void remake_editText(Object *obedit)
 
 	update_string(cu);
 	
-	BIF_undo_push("Reload");
 }
 
 
@@ -1242,7 +1236,6 @@ void to_upper(Scene *scene)
 		}
 	}
 	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-	BIF_undo_push("To upper");
 
 	update_string(cu);
 }

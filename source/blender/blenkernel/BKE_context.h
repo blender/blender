@@ -59,13 +59,35 @@ struct wmWindowManager;
 struct bContext;
 typedef struct bContext bContext;
 
-typedef void bContextDataMember;
-
 struct bContextDataResult;
 typedef struct bContextDataResult bContextDataResult;
 
+enum {
+	CTX_DATA_MAIN,
+	CTX_DATA_SCENE,
+	CTX_DATA_TOOL_SETTINGS,
+
+	CTX_DATA_SELECTED_OBJECTS,
+	CTX_DATA_SELECTED_BASES,
+	CTX_DATA_SELECTED_EDITABLE_OBJECTS,
+	CTX_DATA_SELECTED_EDITABLE_BASES,
+	CTX_DATA_VISIBLE_OBJECTS,
+	CTX_DATA_VISIBLE_BASES,
+
+	CTX_DATA_ACTIVE_OBJECT,
+	CTX_DATA_ACTIVE_BASE,
+	CTX_DATA_EDIT_OBJECT,
+
+	CTX_DATA_EDIT_IMAGE,
+	CTX_DATA_EDIT_IMAGE_BUFFER,
+
+	CTX_DATA_SELECTED_NODES
+};
+
+typedef int bContextDataMember;
+
 typedef int (*bContextDataCallback)(const bContext *C,
-	const bContextDataMember *member, bContextDataResult *result);
+	bContextDataMember member, bContextDataResult *result);
 
 /* Context */
 

@@ -33,20 +33,20 @@
 #include "BKE_context.h"
 #include "BKE_utildefines.h"
 
-int ed_screen_context(const bContext *C, const bContextDataMember *member, bContextDataResult *result)
+int ed_screen_context(const bContext *C, bContextDataMember member, bContextDataResult *result)
 {
 	bScreen *sc= CTX_wm_screen(C);
 	Scene *scene= sc->scene;
 	Base *base;
 
-	if(member == CTX_data_scene) {
+	if(member == CTX_DATA_SCENE) {
 		CTX_data_pointer_set(result, scene);
 		return 1;
 	}
-	else if(ELEM(member, CTX_data_selected_objects, &CTX_data_selected_bases)) {
+	else if(ELEM(member, CTX_DATA_SELECTED_OBJECTS, CTX_DATA_SELECTED_BASES)) {
 		for(base=scene->base.first; base; base=base->next) {
 			if((base->flag & SELECT) && (base->lay & scene->lay)) {
-				if(member == CTX_data_selected_objects)
+				if(member == CTX_DATA_SELECTED_OBJECTS)
 					CTX_data_list_add(result, base->object);
 				else
 					CTX_data_list_add(result, base);
@@ -55,19 +55,19 @@ int ed_screen_context(const bContext *C, const bContextDataMember *member, bCont
 
 		return 1;
 	}
-	else if(member == CTX_data_active_base) {
+	else if(member == CTX_DATA_ACTIVE_BASE) {
 		if(scene->basact)
 			CTX_data_pointer_set(result, scene->basact);
 
 		return 1;
 	}
-	else if(member == CTX_data_active_object) {
+	else if(member == CTX_DATA_ACTIVE_OBJECT) {
 		if(scene->basact)
 			CTX_data_pointer_set(result, scene->basact->object);
 
 		return 1;
 	}
-	else if(member == CTX_data_edit_object) {
+	else if(member == CTX_DATA_EDIT_OBJECT) {
 		/* convenience for now, 1 object per scene in editmode */
 		if(scene->obedit)
 			CTX_data_pointer_set(result, scene->obedit);

@@ -83,6 +83,7 @@ static int rna_TextLine_line_length(PointerRNA *ptr)
 	return line->len;
 }
 
+#if 0
 static void rna_TextLine_line_set(PointerRNA *ptr, const char *value)
 {
 	TextLine *line= (TextLine*)ptr->data;
@@ -99,6 +100,7 @@ static void rna_TextLine_line_set(PointerRNA *ptr, const char *value)
 		line->len= 0;
 	}
 }
+#endif
 
 #else
 

@@ -47,9 +47,10 @@
 #include "BKE_report.h"
 #include "BKE_utildefines.h"
 
+#include "ED_anim_api.h"
 #include "ED_screen.h"
 #include "ED_space_api.h"
-#include "ED_anim_api.h"
+#include "ED_util.h"
 
 #include "RNA_access.h"
 
@@ -70,14 +71,6 @@ void wm_event_add(wmWindow *win, wmEvent *event_to_add)
 	
 	*event= *event_to_add;
 	BLI_addtail(&win->queue, event);
-}
-
-wmEvent *wm_event_next(wmWindow *win)
-{
-	wmEvent *event= win->queue.first;
-
-	if(event) BLI_remlink(&win->queue, event);
-	return event;
 }
 
 static void wm_event_free(wmEvent *event)
@@ -203,34 +196,53 @@ void wm_event_do_notifiers(bContext *C)
 
 /* ********************* operators ******************* */
 
-static void WM_operator_print(wmOperator *op)
+/* if repeat is true, it doesn't register again, nor does it free */
+static int wm_operator_exec(bContext *C, wmOperator *op, int repeat)
 {
-	char *buf = WM_operator_pystring(op);
-	printf("%s\n", buf);
-	MEM_freeN(buf);
+	int retval= OPERATOR_CANCELLED;
+	
+	if(op==NULL || op->type==NULL)
+		return retval;
+	
+	if(op->type->poll && op->type->poll(C)==0)
+		return retval;
+	
+	if(op->type->exec)
+		retval= op->type->exec(C, op);
+	
+	if(!(retval & OPERATOR_RUNNING_MODAL))
+		if(op->reports->list.first)
+			uiPupMenuReports(C, op->reports);
+	
+	if(retval & OPERATOR_FINISHED) {
+		if(op->type->flag & OPTYPE_UNDO)
+			ED_undo_push_op(C, op);
+		
+		if(repeat==0) {
+			if(op->type->flag & OPTYPE_REGISTER)
+				wm_operator_register(CTX_wm_manager(C), op);
+			else
+				WM_operator_free(op);
+		}
+	}
+	else if(repeat==0)
+		WM_operator_free(op);
+	
+	return retval;
+	
 }
 
 /* for running operators with frozen context (modal handlers, menus) */
 int WM_operator_call(bContext *C, wmOperator *op)
 {
-	int retval= OPERATOR_CANCELLED;
-	
-	if(op->type->exec)
-		retval= op->type->exec(C, op);
-
-	if(!(retval & OPERATOR_RUNNING_MODAL))
-		if(op->reports->list.first)
-			uiPupMenuReports(C, op->reports);
-	
-	if((retval & OPERATOR_FINISHED) && (op->type->flag & OPTYPE_REGISTER)) {
-		wm_operator_register(CTX_wm_manager(C), op);
-	}
-	else
-		WM_operator_free(op);
-
-	return retval;
+	return wm_operator_exec(C, op, 0);
 }
 
+/* do this operator again, put here so it can share above code */
+int WM_operator_repeat(bContext *C, wmOperator *op)
+{
+	return wm_operator_exec(C, op, 1);
+}
 
 static wmOperator *wm_operator_create(wmWindowManager *wm, wmOperatorType *ot, PointerRNA *properties, ReportList *reports)
 {
@@ -263,6 +275,13 @@ static wmOperator *wm_operator_create(wmWindowManager *wm, wmOperatorType *ot, P
 	return op;
 }
 
+static void wm_operator_print(wmOperator *op)
+{
+	char *buf = WM_operator_pystring(op);
+	printf("%s\n", buf);
+	MEM_freeN(buf);
+}
+
 static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, PointerRNA *properties)
 {
 	wmWindowManager *wm= CTX_wm_manager(C);
@@ -285,13 +304,19 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, P
 			if(op->reports->list.first) /* only show the report if the report list was not given in the function */
 				uiPupMenuReports(C, op->reports);
 		
-		if (retval & OPERATOR_FINISHED) /* todo - this may conflict with the other WM_operator_print, if theres ever 2 prints for 1 action will may need to add modal check here */
+		if (retval & OPERATOR_FINISHED) /* todo - this may conflict with the other wm_operator_print, if theres ever 2 prints for 1 action will may need to add modal check here */
 			if(G.f & G_DEBUG)
-				WM_operator_print(op);
+				wm_operator_print(op);
 		}
 
-		if((retval & OPERATOR_FINISHED) && (ot->flag & OPTYPE_REGISTER)) {
-			wm_operator_register(wm, op);
+		if(retval & OPERATOR_FINISHED) {
+			if(ot->flag & OPTYPE_UNDO)
+				ED_undo_push_op(C, op);
+			
+			if(ot->flag & OPTYPE_REGISTER)
+				wm_operator_register(wm, op);
+			else
+				WM_operator_free(op);
 		}
 		else if(!(retval & OPERATOR_RUNNING_MODAL)) {
 			WM_operator_free(op);
@@ -504,17 +529,18 @@ static int wm_eventmatch(wmEvent *winevent, wmKeymapItem *kmi)
 	
 	if(kmi->val!=KM_ANY)
 		if(winevent->val!=kmi->val) return 0;
+	
+	/* modifiers also check bits, so it allows modifier order */
 	if(kmi->shift!=KM_ANY)
-		if(winevent->shift!=kmi->shift) return 0;
+		if(winevent->shift != kmi->shift && !(winevent->shift & kmi->shift)) return 0;
 	if(kmi->ctrl!=KM_ANY)
-		if(winevent->ctrl!=kmi->ctrl) return 0;
+		if(winevent->ctrl != kmi->ctrl && !(winevent->ctrl & kmi->ctrl)) return 0;
 	if(kmi->alt!=KM_ANY)
-		if(winevent->alt!=kmi->alt) return 0;
+		if(winevent->alt != kmi->alt && !(winevent->alt & kmi->alt)) return 0;
 	if(kmi->oskey!=KM_ANY)
-		if(winevent->oskey!=kmi->oskey) return 0;
+		if(winevent->oskey != kmi->oskey && !(winevent->oskey & kmi->oskey)) return 0;
 	if(kmi->keymodifier)
 		if(winevent->keymodifier!=kmi->keymodifier) return 0;
-	
 	
 	return 1;
 }
@@ -545,7 +571,7 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 			
 			retval= ot->modal(C, op, event);
 
-			/* putting back screen context */
+			/* putting back screen context, reval can pass trough after modal failures! */
 			if((retval & OPERATOR_PASS_THROUGH) || wm_event_always_pass(event)) {
 				CTX_wm_area_set(C, area);
 				CTX_wm_region_set(C, region);
@@ -562,11 +588,17 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 
 			if (retval & OPERATOR_FINISHED) {
 				if(G.f & G_DEBUG)
-					WM_operator_print(op); /* todo - this print may double up, might want to check more flags then the FINISHED */
+					wm_operator_print(op); /* todo - this print may double up, might want to check more flags then the FINISHED */
 			}			
 
-			if((retval & OPERATOR_FINISHED) && (ot->flag & OPTYPE_REGISTER)) {
-				wm_operator_register(CTX_wm_manager(C), op);
+			if(retval & OPERATOR_FINISHED) {
+				if(ot->flag & OPTYPE_UNDO)
+					ED_undo_push_op(C, op);
+				
+				if(ot->flag & OPTYPE_REGISTER)
+					wm_operator_register(CTX_wm_manager(C), op);
+				else
+					WM_operator_free(op);
 				handler->op= NULL;
 			}
 			else if(retval & (OPERATOR_CANCELLED|OPERATOR_FINISHED)) {
@@ -581,7 +613,7 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 				MEM_freeN(handler);
 				
 				/* prevent silly errors from operator users */
-				retval &= ~OPERATOR_PASS_THROUGH;
+				//retval &= ~OPERATOR_PASS_THROUGH;
 			}
 			
 		}
@@ -786,9 +818,9 @@ void wm_event_do_handlers(bContext *C)
 		if( win->screen==NULL )
 			wm_event_free_all(win);
 		
-		while( (event=wm_event_next(win)) ) {
+		while( (event= win->queue.first) ) {
 			int action;
-
+			
 			CTX_wm_window_set(C, win);
 			
 			/* we let modal handlers get active area/region, also wm_paintcursor_test needs it */
@@ -802,9 +834,12 @@ void wm_event_do_handlers(bContext *C)
 			
 			/* fileread case */
 			if(CTX_wm_window(C)==NULL) {
-				wm_event_free(event);
 				return;
 			}
+			
+			/* builtin tweak, if action is break it removes tweak */
+			if(!wm_event_always_pass(event))
+				wm_tweakevent_test(C, event, action);
 			
 			if(wm_event_always_pass(event) || action==WM_HANDLER_CONTINUE) {
 				ScrArea *sa;
@@ -812,9 +847,13 @@ void wm_event_do_handlers(bContext *C)
 				int doit= 0;
 				
 				/* XXX to solve, here screen handlers? */
-				if(event->type==MOUSEMOVE) {
-					ED_screen_set_subwinactive(win, event);	/* state variables in screen, cursors */
-					wm_paintcursor_test(C, event);
+				if(!wm_event_always_pass(event)) {
+					if(event->type==MOUSEMOVE) {
+						/* state variables in screen, cursors */
+						ED_screen_set_subwinactive(win, event);	
+						/* for regions having custom cursors */
+						wm_paintcursor_test(C, event);
+					}
 				}
 				
 				for(sa= win->screen->areabase.first; sa; sa= sa->next) {
@@ -842,6 +881,7 @@ void wm_event_do_handlers(bContext *C)
 						/* NOTE: do not escape on WM_HANDLER_BREAK, mousemove needs handled for previous area */
 					}
 				}
+				
 				/* XXX hrmf, this gives reliable previous mouse coord for area change, feels bad? 
 				   doing it on ghost queue gives errors when mousemoves go over area borders */
 				if(doit && win->screen->subwinactive != win->screen->mainwin) {
@@ -849,6 +889,9 @@ void wm_event_do_handlers(bContext *C)
 					win->eventstate->prevy= event->y;
 				}
 			}
+			
+			/* unlink and free here, blender-quit then frees all */
+			BLI_remlink(&win->queue, event);
 			wm_event_free(event);
 			
 		}
@@ -1151,12 +1194,23 @@ void wm_event_add_ghostevent(wmWindow *win, int type, void *customdata)
 			/* modifiers */
 			if (event.type==LEFTSHIFTKEY || event.type==RIGHTSHIFTKEY) {
 				event.shift= evt->shift= event.val;
-			} else if (event.type==LEFTCTRLKEY || event.type==RIGHTCTRLKEY) {
+				if(event.val && (evt->ctrl || evt->alt || evt->oskey))
+				   event.shift= evt->shift = 3;		// define?
+			} 
+			else if (event.type==LEFTCTRLKEY || event.type==RIGHTCTRLKEY) {
 				event.ctrl= evt->ctrl= event.val;
-			} else if (event.type==LEFTALTKEY || event.type==RIGHTALTKEY) {
+				if(event.val && (evt->shift || evt->alt || evt->oskey))
+				   event.ctrl= evt->ctrl = 3;		// define?
+			} 
+			else if (event.type==LEFTALTKEY || event.type==RIGHTALTKEY) {
 				event.alt= evt->alt= event.val;
-			} else if (event.type==COMMANDKEY) {
+				if(event.val && (evt->ctrl || evt->shift || evt->oskey))
+				   event.alt= evt->alt = 3;		// define?
+			} 
+			else if (event.type==COMMANDKEY) {
 				event.oskey= evt->oskey= event.val;
+				if(event.val && (evt->ctrl || evt->alt || evt->shift))
+				   event.oskey= evt->oskey = 3;		// define?
 			}
 			
 			/* if test_break set, it catches this. Keep global for now? */

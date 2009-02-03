@@ -63,17 +63,21 @@ static void rna_CurveMapping_clip_set(PointerRNA *ptr, int value)
 	curvemapping_changed(cumap, 0);
 }
 
-static void rna_CurveMapping_black_level_set(PointerRNA *ptr, int index, float value)
+static void rna_CurveMapping_black_level_set(PointerRNA *ptr, const float *values)
 {
 	CurveMapping *cumap= (CurveMapping*)ptr->data;
-	cumap->black[index]= value;
+	cumap->black[0]= values[0];
+	cumap->black[1]= values[1];
+	cumap->black[2]= values[2];
 	curvemapping_set_black_white(cumap, NULL, NULL);
 }
 
-static void rna_CurveMapping_white_level_set(PointerRNA *ptr, int index, float value)
+static void rna_CurveMapping_white_level_set(PointerRNA *ptr, const float *values)
 {
 	CurveMapping *cumap= (CurveMapping*)ptr->data;
-	cumap->white[index]= value;
+	cumap->white[0]= values[0];
+	cumap->white[1]= values[1];
+	cumap->white[2]= values[2];
 	curvemapping_set_black_white(cumap, NULL, NULL);
 }
 
@@ -208,7 +212,7 @@ static void rna_def_curvemapping(BlenderRNA *brna)
 	RNA_def_property_float_funcs(prop, NULL, NULL, "rna_CurveMapping_clipmaxy_range");
 
 	prop= RNA_def_property(srna, "curves", PROP_COLLECTION, PROP_NONE);
-	RNA_def_property_collection_funcs(prop, "rna_CurveMapping_curves_begin", "rna_iterator_array_next", "rna_iterator_array_end", "rna_iterator_array_get", 0, "rna_CurveMapping_curves_length", 0, 0);
+	RNA_def_property_collection_funcs(prop, "rna_CurveMapping_curves_begin", "rna_iterator_array_next", "rna_iterator_array_end", "rna_iterator_array_get", "rna_CurveMapping_curves_length", 0, 0);
 	RNA_def_property_struct_type(prop, "CurveMap");
 	RNA_def_property_ui_text(prop, "Curves", "");
 

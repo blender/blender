@@ -275,11 +275,12 @@ static void sculpt_clip(StrokeCache *cache, float *co, const float val[3])
 
 static void sculpt_axislock(Sculpt *sd, float *co)
 {
-	if (sd->flags & (SCULPT_LOCK_X|SCULPT_LOCK_Y|SCULPT_LOCK_Z)) return;
-	/* XXX: if(G.vd->twmode == V3D_MANIP_LOCAL) { */
-	if(0) {
+	if(sd->flags == (SCULPT_LOCK_X|SCULPT_LOCK_Y|SCULPT_LOCK_Z))
+		return;
+
+	if(sd->session->cache->vc.v3d->twmode == V3D_MANIP_LOCAL) {
 		float mat[3][3], imat[3][3];
-		/* XXX: Mat3CpyMat4(mat, OBACT->obmat); */
+		Mat3CpyMat4(mat, sd->session->cache->vc.obact->obmat);
 		Mat3Inv(imat, mat);
 		Mat3MulVecfl(mat, co);
 		if (sd->flags & SCULPT_LOCK_X) co[0] = 0.0;
@@ -1010,8 +1011,6 @@ void sculptmode_selectbrush_menu(void)
 	if(val>0) {
 		sd->brush_type= val;
 
-		BIF_undo_push("Brush type");
-		
 		allqueue(REDRAWVIEW3D, 1);
 		allqueue(REDRAWBUTSEDIT, 1);
 	}*/
@@ -1252,7 +1251,7 @@ static int sculpt_radial_control_exec(bContext *C, wmOperator *op)
 	int ret = brush_radial_control_exec(op, CTX_data_scene(C)->toolsettings->sculpt->brush);
 	char str[256];
 	WM_radial_control_string(op, str, 256);
-	ED_undo_push(C, str);	
+
 	return ret;
 }
 
@@ -1267,6 +1266,8 @@ static void SCULPT_OT_radial_control(wmOperatorType *ot)
 	ot->modal= sculpt_radial_control_modal;
 	ot->exec= sculpt_radial_control_exec;
 	ot->poll= sculpt_poll;
+
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /**** Operator for applying a stroke (various attributes including mouse path)
@@ -1522,8 +1523,6 @@ static int sculpt_brush_stroke_modal(bContext *C, wmOperator *op, wmEvent *event
 {
 	PointerRNA itemptr;
 	Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
-	Object *ob= CTX_data_active_object(C);
-	ARegion *ar = CTX_wm_region(C);
 	float center[3];
 	int mouse[2] = {event->x, event->y};
 
@@ -1547,7 +1546,7 @@ static int sculpt_brush_stroke_modal(bContext *C, wmOperator *op, wmEvent *event
 
 	/* Finished */
 	if(event->type == LEFTMOUSE && event->val == 0) {
-		request_depth_update(&sd->session->cache->vc);
+		request_depth_update(sd->session->cache->vc.rv3d);
 
 		sculpt_cache_free(sd->session->cache);
 
@@ -1578,9 +1577,8 @@ static int sculpt_brush_stroke_exec(bContext *C, wmOperator *op)
 	}
 	RNA_END;
 
-	sculpt_cache_free(sd->session->cache);
-
 	sculpt_flush_update(C);
+	sculpt_cache_free(sd->session->cache);
 
 	sculpt_undo_push(C, sd);
 
@@ -1589,9 +1587,6 @@ static int sculpt_brush_stroke_exec(bContext *C, wmOperator *op)
 
 static void SCULPT_OT_brush_stroke(wmOperatorType *ot)
 {
-	float vec3f_def[] = {0,0,0};
-	int vec2i_def[] = {0,0};
-
 	ot->flag |= OPTYPE_REGISTER;
 
 	/* identifiers */
@@ -1603,21 +1598,24 @@ static void SCULPT_OT_brush_stroke(wmOperatorType *ot)
 	ot->modal= sculpt_brush_stroke_modal;
 	ot->exec= sculpt_brush_stroke_exec;
 	ot->poll= sculpt_poll;
+	
+	/* flags (sculpt does own undo? (ton) */
+	ot->flag= OPTYPE_REGISTER;
 
 	/* properties */
 	RNA_def_collection_runtime(ot->srna, "stroke", &RNA_OperatorStrokeElement, "Stroke", "");
 
 	/* If the object has a scaling factor, brushes also need to be scaled
 	   to work as expected. */
-	RNA_def_float_vector(ot->srna, "scale", 3, vec3f_def, 0.0f, FLT_MAX, "Scale", "", 0.0f, 1000.0f);
+	RNA_def_float_vector(ot->srna, "scale", 3, NULL, 0.0f, FLT_MAX, "Scale", "", 0.0f, 1000.0f);
 
 	RNA_def_int(ot->srna, "flag", 0, 0, INT_MAX, "flag", "", 0, INT_MAX);
 
 	/* For mirror modifiers */
-	RNA_def_float_vector(ot->srna, "clip_tolerance", 3, vec3f_def, 0.0f, FLT_MAX, "clip_tolerance", "", 0.0f, 1000.0f);
+	RNA_def_float_vector(ot->srna, "clip_tolerance", 3, NULL, 0.0f, FLT_MAX, "clip_tolerance", "", 0.0f, 1000.0f);
 
 	/* The initial 2D location of the mouse */
-	RNA_def_int_vector(ot->srna, "initial_mouse", 2, vec2i_def, INT_MIN, INT_MAX, "initial_mouse", "", INT_MIN, INT_MAX);
+	RNA_def_int_vector(ot->srna, "initial_mouse", 2, NULL, INT_MIN, INT_MAX, "initial_mouse", "", INT_MIN, INT_MAX);
 
 	/* The initial screen depth of the mouse */
 	RNA_def_float(ot->srna, "depth", 0.0f, 0.0f, FLT_MAX, "depth", "", 0.0f, FLT_MAX);
@@ -1636,8 +1634,6 @@ static int sculpt_toggle_mode(bContext *C, wmOperator *op)
 		toggle_paint_cursor(C);
 
 		sculptsession_free(ts->sculpt);
-
-		ED_undo_push(C, "Exit sculpt");
 	}
 	else {
 		MTex *mtex; // XXX: temporary
@@ -1673,8 +1669,6 @@ static int sculpt_toggle_mode(bContext *C, wmOperator *op)
 				mtex->size[0] = mtex->size[1] = mtex->size[2] = 50;
 			}
 		}
-
-		ED_undo_push(C, "Enter sculpt");
 	}
 
 	return OPERATOR_FINISHED;
@@ -1690,6 +1684,7 @@ static void SCULPT_OT_sculptmode_toggle(wmOperatorType *ot)
 	ot->exec= sculpt_toggle_mode;
 	ot->poll= ED_operator_object_active;
 	
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 void ED_operatortypes_sculpt()
@@ -2145,8 +2140,6 @@ void sculptmode_pmv(int mode)
 	else mesh_pmv_off(ob, get_mesh(ob));
 
 	/*XXX: scrarea_do_windraw(curarea); */
-
-	BIF_undo_push("Partial mesh hide");
 
 	waitcursor(0);
 }

@@ -643,7 +643,7 @@ static int edgeDrawFlagInfo_cmp(const void *av, const void *bv)
 }
 #endif
 
-static void edge_drawflags(EditMesh *em)
+static void edge_drawflags(Mesh *me, EditMesh *em)
 {
 	EditVert *eve;
 	EditEdge *eed, *e1, *e2, *e3, *e4;
@@ -692,7 +692,7 @@ static void edge_drawflags(EditMesh *em)
 		efa= efa->next;
 	}
 
-	if(G.f & G_ALLEDGES) {
+	if(me->drawflag & ME_ALLEDGES) {
 		efa= em->faces.first;
 		while(efa) {
 			if(efa->e1->f2>=2) efa->e1->f2= 1;
@@ -1042,7 +1042,7 @@ void load_editMesh(Scene *scene, Object *ob)
 	/* eed->f1 : flag for dynaface (cylindertest, old engine) */
 	/* eve->f1 : flag for dynaface (sphere test, old engine) */
 	/* eve->f2 : being used in vertexnormals */
-	edge_drawflags(em);
+	edge_drawflags(me, em);
 	
 	EM_stats_update(em);
 	
@@ -1146,9 +1146,9 @@ void load_editMesh(Scene *scene, Object *ob)
 		eve->tmp.l = a++;  /* counter */
 			
 		mvert->flag= 0;
-		if(eve->f1==1) mvert->flag |= ME_SPHERETEST;
 		mvert->flag |= (eve->f & SELECT);
 		if (eve->h) mvert->flag |= ME_HIDE;
+		
 		mvert->bweight= (char)(255.0*eve->bweight);
 
 		eve= eve->next;
@@ -1621,7 +1621,7 @@ void MESH_OT_separate(wmOperatorType *ot)
 	ot->poll= ED_operator_editmesh;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	RNA_def_enum(ot->srna, "type", prop_separate_types, 0, "Type", "");
 }
@@ -1807,13 +1807,13 @@ static void undoMesh_to_editMesh(void *umv, void *emv)
 	EditSelectionC *esec;
 	int a=0;
 
-	em->selectmode = um->selectmode;
-	
 	free_editMesh(em);
 	
 	/* malloc blocks */
 	memset(em, 0, sizeof(EditMesh));
 		
+	em->selectmode = um->selectmode;
+	
 	init_editmesh_fastmalloc(em, um->totvert, um->totedge, um->totface);
 
 	CustomData_free(&em->vdata, 0);

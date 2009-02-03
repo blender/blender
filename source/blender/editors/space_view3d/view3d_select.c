@@ -702,13 +702,18 @@ static int view3d_lasso_select_exec(bContext *C, wmOperator *op)
 	}
 	RNA_END;
 	
-	/* setup view context for argument to callbacks */
-	view3d_set_viewcontext(C, &vc);
-	
-	select= RNA_enum_is_equal(op->ptr, "type", "SELECT");
-	view3d_lasso_select(&vc, mcords, i, select);
-	
-	return OPERATOR_FINISHED;
+	if(i>1) {
+		view3d_operator_needs_opengl(C);
+		
+		/* setup view context for argument to callbacks */
+		view3d_set_viewcontext(C, &vc);
+		
+		select= RNA_enum_is_equal(op->ptr, "type", "SELECT");
+		view3d_lasso_select(&vc, mcords, i, select);
+		
+		return OPERATOR_FINISHED;
+	}
+	return OPERATOR_PASS_THROUGH;
 }
 
 void VIEW3D_OT_lasso_select(wmOperatorType *ot)
@@ -720,6 +725,9 @@ void VIEW3D_OT_lasso_select(wmOperatorType *ot)
 	ot->modal= WM_gesture_lasso_modal;
 	ot->exec= view3d_lasso_select_exec;
 	ot->poll= WM_operator_winactive;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	RNA_def_collection_runtime(ot->srna, "path", &RNA_OperatorMousePath, "Path", "");
 	RNA_def_enum(ot->srna, "type", lasso_select_types, 0, "Type", "");
@@ -1092,7 +1100,6 @@ static void mouse_select(bContext *C, short *mval, short extend, short obcenter)
 		else if (BASE_SELECTABLE(v3d, basact)) {
 
 			oldbasact= BASACT;
-			BASACT= basact;
 			
 			if(!extend) {
 				deselectall_except(scene, basact);
@@ -1114,10 +1121,8 @@ static void mouse_select(bContext *C, short *mval, short extend, short obcenter)
 			}
 
 			WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, scene);
-			
 		}
 	}
-
 }
 
 /* ********************  border and circle ************************************** */
@@ -1478,7 +1483,6 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 		}
 		MEM_freeN(vbuffer);
 	}
-	ED_undo_push(C,"Border Select");
 	return OPERATOR_FINISHED;
 } 
 
@@ -1503,6 +1507,9 @@ void VIEW3D_OT_borderselect(wmOperatorType *ot)
 	ot->modal= WM_border_select_modal;
 	
 	ot->poll= ED_operator_view3d_active;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* rna */
 	RNA_def_int(ot->srna, "event_type", 0, INT_MIN, INT_MAX, "Event Type", "", INT_MIN, INT_MAX);
@@ -1542,10 +1549,9 @@ static int view3d_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	}
 	else 
 		mouse_select(C, mval, extend, 0);
-	
-	ED_undo_push(C,"Mouse Select");
+
 	/* allowing tweaks */
-	return OPERATOR_PASS_THROUGH;
+	return OPERATOR_PASS_THROUGH|OPERATOR_FINISHED;
 }
 
 void VIEW3D_OT_select(wmOperatorType *ot)
@@ -1557,7 +1563,10 @@ void VIEW3D_OT_select(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= view3d_select_invoke;
 	ot->poll= ED_operator_view3d_active;
-
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
 	/* properties */
 	RNA_def_enum(ot->srna, "type", prop_select_types, 0, "Type", "");
 }
@@ -1747,6 +1756,8 @@ static int view3d_circle_select_exec(bContext *C, wmOperator *op)
 		ViewContext vc;
 		short mval[2], selecting;
 		
+		view3d_operator_needs_opengl(C);
+		
 		view3d_set_viewcontext(C, &vc);
 		mval[0]= x;
 		mval[1]= y;
@@ -1771,7 +1782,6 @@ static int view3d_circle_select_exec(bContext *C, wmOperator *op)
 		WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, CTX_data_scene(C));
 	}
 	
-	ED_undo_push(C,"Circle Select");
 	return OPERATOR_FINISHED;
 }
 
@@ -1784,6 +1794,9 @@ void VIEW3D_OT_circle_select(wmOperatorType *ot)
 	ot->modal= WM_gesture_circle_modal;
 	ot->exec= view3d_circle_select_exec;
 	ot->poll= ED_operator_view3d_active;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	RNA_def_int(ot->srna, "x", 0, INT_MIN, INT_MAX, "X", "", INT_MIN, INT_MAX);
 	RNA_def_int(ot->srna, "y", 0, INT_MIN, INT_MAX, "Y", "", INT_MIN, INT_MAX);

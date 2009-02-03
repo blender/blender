@@ -485,19 +485,19 @@ static float setting_get_rna_value (PointerRNA *ptr, PropertyRNA *prop, int inde
 	switch (RNA_property_type(ptr, prop)) {
 		case PROP_BOOLEAN:
 			if (RNA_property_array_length(ptr, prop))
-				value= (float)RNA_property_boolean_get_array(ptr, prop, index);
+				value= (float)RNA_property_boolean_get_index(ptr, prop, index);
 			else
 				value= (float)RNA_property_boolean_get(ptr, prop);
 			break;
 		case PROP_INT:
 			if (RNA_property_array_length(ptr, prop))
-				value= (float)RNA_property_int_get_array(ptr, prop, index);
+				value= (float)RNA_property_int_get_index(ptr, prop, index);
 			else
 				value= (float)RNA_property_int_get(ptr, prop);
 			break;
 		case PROP_FLOAT:
 			if (RNA_property_array_length(ptr, prop))
-				value= RNA_property_float_get_array(ptr, prop, index);
+				value= RNA_property_float_get_index(ptr, prop, index);
 			else
 				value= RNA_property_float_get(ptr, prop);
 			break;
@@ -2114,7 +2114,6 @@ static int insert_key_exec (bContext *C, wmOperator *op)
 	
 	/* send updates */
 	ED_anim_dag_flush_update(C);	
-	ED_undo_push(C, "Insert Keyframe");
 	
 	if (mode == 3) // material color requires different notifiers
 		WM_event_add_notifier(C, NC_MATERIAL|ND_KEYS, NULL);
@@ -2135,6 +2134,10 @@ void ANIM_OT_insert_keyframe (wmOperatorType *ot)
 	/* callbacks */
 	ot->invoke= WM_menu_invoke; // XXX we will need our own one eventually, to cope with the dynamic menus...
 	ot->exec= insert_key_exec; 
+	ot->poll= ED_operator_areaactive;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
 		// XXX update this for the latest RNA stuff styles...
@@ -2181,7 +2184,6 @@ static int delete_key_exec (bContext *C, wmOperator *op)
 	
 	/* send updates */
 	ED_anim_dag_flush_update(C);	
-	ED_undo_push(C, "Delete Keyframe");
 	
 		// XXX what if it was a material keyframe?
 	WM_event_add_notifier(C, NC_OBJECT|ND_KEYS, NULL);
@@ -2198,6 +2200,11 @@ void ANIM_OT_delete_keyframe (wmOperatorType *ot)
 	/* callbacks */
 	ot->invoke= WM_operator_confirm; // XXX we will need our own one eventually, to cope with the dynamic menus...
 	ot->exec= delete_key_exec; 
+	
+	ot->poll= ED_operator_areaactive;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* ******************************************* */

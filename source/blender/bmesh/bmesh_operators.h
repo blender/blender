@@ -205,6 +205,9 @@ extern int bmesh_total_ops;
   type flag etypeflag and header flag flag to it.  note,
   to get more useful information (such as the mapping from
   original to new elements) you should run the dupe op manually.*/
-void BMOP_DupeFromFlag(struct BMesh *bm, int etypeflag, int flag);
+struct Object;
 
+void BMOP_DupeFromFlag(struct BMesh *bm, int etypeflag, int flag);
+void BM_esubdivideflag(struct Object *obedit, struct BMesh *bm, int selflag, float rad, 
+		       int flag, int numcuts, int seltype);
 #endif

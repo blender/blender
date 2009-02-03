@@ -29,8 +29,8 @@
 
 #include "rna_internal.h"
 
+#include "DNA_curve_types.h"
 #include "DNA_userdef_types.h"
-#include "DNA_ipo_types.h"
 
 #ifdef RNA_RUNTIME
 
@@ -86,11 +86,35 @@ static void rna_userdef_autokeymode_set(struct PointerRNA *ptr,int value)
 	}
 }
 
-static void *rna_UserDef_self_get(PointerRNA *ptr)
+static PointerRNA rna_UserDef_view_get(PointerRNA *ptr)
 {
-	return ptr->data;
+	return rna_pointer_inherit_refine(ptr, &RNA_UserPreferencesView, ptr->data);
 }
 
+static PointerRNA rna_UserDef_edit_get(PointerRNA *ptr)
+{
+	return rna_pointer_inherit_refine(ptr, &RNA_UserPreferencesEdit, ptr->data);
+}
+
+static PointerRNA rna_UserDef_autosave_get(PointerRNA *ptr)
+{
+	return rna_pointer_inherit_refine(ptr, &RNA_UserPreferencesAutosave, ptr->data);
+}
+
+static PointerRNA rna_UserDef_language_get(PointerRNA *ptr)
+{
+	return rna_pointer_inherit_refine(ptr, &RNA_UserPreferencesLanguage, ptr->data);
+}
+
+static PointerRNA rna_UserDef_filepaths_get(PointerRNA *ptr)
+{
+	return rna_pointer_inherit_refine(ptr, &RNA_UserPreferencesFilePaths, ptr->data);
+}
+
+static PointerRNA rna_UserDef_system_get(PointerRNA *ptr)
+{
+	return rna_pointer_inherit_refine(ptr, &RNA_UserPreferencesSystem, ptr->data);
+}
 
 #else
 
@@ -365,9 +389,9 @@ static void rna_def_userdef_theme_space_ipo(BlenderRNA *brna)
 
 	/* space_ipo */
 
-	srna= RNA_def_struct(brna, "ThemeIpoEditor", NULL);
+	srna= RNA_def_struct(brna, "ThemeGraphEditor", NULL);
 	RNA_def_struct_sdna(srna, "ThemeSpace");
-	RNA_def_struct_ui_text(srna, "Theme Ipo Editor", "Theme settings for the Ipo Editor.");
+	RNA_def_struct_ui_text(srna, "Theme Graph Editor", "Theme settings for the Ipo Editor.");
 
 	rna_def_userdef_theme_spaces_main(srna);
 
@@ -384,10 +408,10 @@ static void rna_def_userdef_theme_space_ipo(BlenderRNA *brna)
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Window Sliders", "");
 
-	prop= RNA_def_property(srna, "ipo_channels", PROP_FLOAT, PROP_COLOR);
+	prop= RNA_def_property(srna, "channels_region", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_float_sdna(prop, NULL, "shade2");
 	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Ipo Channels", "");
+	RNA_def_property_ui_text(prop, "Channels Region", "");
 	
 	rna_def_userdef_theme_spaces_vertex(srna);
 
@@ -764,9 +788,9 @@ static void rna_def_userdef_theme_space_action(BlenderRNA *brna)
 
 	/* space_action */
 
-	srna= RNA_def_struct(brna, "ThemeActionEditor", NULL);
+	srna= RNA_def_struct(brna, "ThemeDopeSheetEditor", NULL);
 	RNA_def_struct_sdna(srna, "ThemeSpace");
-	RNA_def_struct_ui_text(srna, "Theme Action Editor", "Theme settings for the Action Editor.");
+	RNA_def_struct_ui_text(srna, "Theme DopeSheet Editor", "Theme settings for the DopeSheet Editor.");
 
 	rna_def_userdef_theme_spaces_main(srna);
 
@@ -774,10 +798,10 @@ static void rna_def_userdef_theme_space_action(BlenderRNA *brna)
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Grid", "");
 
-	prop= RNA_def_property(srna, "rvk_sliders", PROP_FLOAT, PROP_COLOR);
+	prop= RNA_def_property(srna, "value_sliders", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_float_sdna(prop, NULL, "face");
 	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "RVK Sliders", "");
+	RNA_def_property_ui_text(prop, "Value Sliders", "");
 
 	prop= RNA_def_property(srna, "view_sliders", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_float_sdna(prop, NULL, "shade1");
@@ -818,6 +842,16 @@ static void rna_def_userdef_theme_space_action(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "cframe");
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Current Frame", "");
+	
+	prop= RNA_def_property(srna, "dopesheet_channel", PROP_FLOAT, PROP_COLOR);
+	RNA_def_property_float_sdna(prop, NULL, "ds_channel");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "DopeSheet Channel", "");
+	
+	prop= RNA_def_property(srna, "dopesheet_subchannel", PROP_FLOAT, PROP_COLOR);
+	RNA_def_property_float_sdna(prop, NULL, "ds_subchannel");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "DopeSheet Sub-Channel", "");
 }
 
 static void rna_def_userdef_theme_space_nla(BlenderRNA *brna)
@@ -919,10 +953,10 @@ static void rna_def_userdef_themes(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "ThemeView3D");
 	RNA_def_property_ui_text(prop, "3D View", "");
 
-	prop= RNA_def_property(srna, "ipo_curve_editor", PROP_POINTER, PROP_NEVER_NULL);
+	prop= RNA_def_property(srna, "graph_editor", PROP_POINTER, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "tipo");
-	RNA_def_property_struct_type(prop, "ThemeIpoEditor");
-	RNA_def_property_ui_text(prop, "Ipo Curve Editor", "");
+	RNA_def_property_struct_type(prop, "ThemeGraphEditor");
+	RNA_def_property_ui_text(prop, "Graph Editor", "");
 
 	prop= RNA_def_property(srna, "file_browser", PROP_POINTER, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "tfile");
@@ -934,10 +968,10 @@ static void rna_def_userdef_themes(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "ThemeNLAEditor");
 	RNA_def_property_ui_text(prop, "NLA Editor", "");
 
-	prop= RNA_def_property(srna, "action_editor", PROP_POINTER, PROP_NEVER_NULL);
+	prop= RNA_def_property(srna, "dopesheet_editor", PROP_POINTER, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "tact");
-	RNA_def_property_struct_type(prop, "ThemeActionEditor");
-	RNA_def_property_ui_text(prop, "Action Editor", "");
+	RNA_def_property_struct_type(prop, "ThemeDopeSheetEditor");
+	RNA_def_property_ui_text(prop, "DopeSheet Editor", "");
 
 	prop= RNA_def_property(srna, "image_editor", PROP_POINTER, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "tima");
@@ -1271,10 +1305,10 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
 		{AUTOKEY_MODE_EDITKEYS, "REPLACE_KEYS", "Replace Keys", ""},
 		{0, NULL, NULL, NULL}};
 
-	static EnumPropertyItem new_ipo_curve_types[] = {
-		{IPO_CONST, "CONSTANT", "Constant", ""},
-		{IPO_LIN, "LINEAR", "Linear", ""},
-		{IPO_BEZ, "BEZIER", "Bezier", ""},
+	static EnumPropertyItem new_interpolation_types[] = {
+		{BEZT_IPO_CONST, "CONSTANT", "Constant", ""},
+		{BEZT_IPO_LIN, "LINEAR", "Linear", ""},
+		{BEZT_IPO_BEZ, "BEZIER", "Bezier", ""},
 		{0, NULL, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "UserPreferencesEdit", NULL);
@@ -1339,7 +1373,7 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Visual Keying", "Use Visual keying automatically for constrained objects.");
 
 	prop= RNA_def_property(srna, "new_interpolation_type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, new_ipo_curve_types);
+	RNA_def_property_enum_items(prop, new_interpolation_types);
 	RNA_def_property_enum_sdna(prop, NULL, "ipo_new");
 	RNA_def_property_ui_text(prop, "New Interpolation Type", "");
 
@@ -1743,34 +1777,34 @@ void RNA_def_userdef(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Themes", "");
 	
 	/* nested structs */
-	prop= RNA_def_property(srna, "userpreferences_view", PROP_POINTER, PROP_NEVER_NULL);
+	prop= RNA_def_property(srna, "view", PROP_POINTER, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "UserPreferencesView");
-	RNA_def_property_pointer_funcs(prop, "rna_UserDef_self_get", NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_UserDef_view_get", NULL);
 	RNA_def_property_ui_text(prop, "View & Controls", "Preferences related to viewing data.");
 
-	prop= RNA_def_property(srna, "userpreferences_edit", PROP_POINTER, PROP_NEVER_NULL);
+	prop= RNA_def_property(srna, "edit", PROP_POINTER, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "UserPreferencesEdit");
-	RNA_def_property_pointer_funcs(prop, "rna_UserDef_self_get", NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_UserDef_edit_get", NULL);
 	RNA_def_property_ui_text(prop, "Edit Methods", "Settings for interacting with Blender data.");
 	
-	prop= RNA_def_property(srna, "userpreferences_autosave", PROP_POINTER, PROP_NEVER_NULL);
+	prop= RNA_def_property(srna, "autosave", PROP_POINTER, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "UserPreferencesAutosave");
-	RNA_def_property_pointer_funcs(prop, "rna_UserDef_self_get", NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_UserDef_autosave_get", NULL);
 	RNA_def_property_ui_text(prop, "Auto Save", "Automatic backup file settings.");
 
-	prop= RNA_def_property(srna, "userpreferences_language", PROP_POINTER, PROP_NEVER_NULL);
+	prop= RNA_def_property(srna, "language", PROP_POINTER, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "UserPreferencesLanguage");
-	RNA_def_property_pointer_funcs(prop, "rna_UserDef_self_get", NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_UserDef_language_get", NULL);
 	RNA_def_property_ui_text(prop, "Language & Font", "User interface translation settings.");
 	
-	prop= RNA_def_property(srna, "userpreferences_filepaths", PROP_POINTER, PROP_NEVER_NULL);
+	prop= RNA_def_property(srna, "filepaths", PROP_POINTER, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "UserPreferencesFilePaths");
-	RNA_def_property_pointer_funcs(prop, "rna_UserDef_self_get", NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_UserDef_filepaths_get", NULL);
 	RNA_def_property_ui_text(prop, "File Paths", "Default paths for external files.");
 	
-	prop= RNA_def_property(srna, "userpreferences_system", PROP_POINTER, PROP_NEVER_NULL);
+	prop= RNA_def_property(srna, "system", PROP_POINTER, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "UserPreferencesSystem");
-	RNA_def_property_pointer_funcs(prop, "rna_UserDef_self_get", NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_UserDef_system_get", NULL);
 	RNA_def_property_ui_text(prop, "System & OpenGL", "Graphics driver and operating system settings.");
 	
 	rna_def_userdef_view(brna);

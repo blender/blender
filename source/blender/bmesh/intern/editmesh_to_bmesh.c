@@ -91,7 +91,8 @@ static BMVert *editvert_to_BMVert(BMesh *bm, EditMesh *em, EditVert *eve)
 		BMVert *v = NULL;
 
 		v = BM_Make_Vert(bm, eve->co, NULL);
-		
+		VECCOPY(v->no, eve->no);
+
 		/*transfer flags*/
 		v->head.flag = eve->h ? BM_HIDDEN : 0;
 		if(eve->f & SELECT) BM_Select_Vert(bm, v, 1);

@@ -64,25 +64,32 @@ static int rna_Struct_name_length(PointerRNA *ptr)
 	return strlen(((StructRNA*)ptr->data)->name);
 }
 
-static void *rna_Struct_base_get(PointerRNA *ptr)
+static PointerRNA rna_Struct_base_get(PointerRNA *ptr)
 {
-	return ((StructRNA*)ptr->data)->base;
+	return rna_pointer_inherit_refine(ptr, &RNA_Struct, ((StructRNA*)ptr->data)->base);
 }
 
-static void *rna_Struct_nested_get(PointerRNA *ptr)
+static PointerRNA rna_Struct_nested_get(PointerRNA *ptr)
 {
-	return ((StructRNA*)ptr->data)->nested;
+	return rna_pointer_inherit_refine(ptr, &RNA_Struct, ((StructRNA*)ptr->data)->nested);
 }
 
-static void *rna_Struct_name_property_get(PointerRNA *ptr)
+static PointerRNA rna_Struct_name_property_get(PointerRNA *ptr)
 {
-	return ((StructRNA*)ptr->data)->nameproperty;
+	return rna_pointer_inherit_refine(ptr, &RNA_Property, ((StructRNA*)ptr->data)->nameproperty);
 }
+
+/* Struct property iteration. This is quite complicated, the purpose is to
+ * iterate over properties of all inheritance levels, and for each struct to
+ * also iterator over id properties not known by RNA. */
 
 static int rna_idproperty_known(CollectionPropertyIterator *iter, void *data)
 {
 	IDProperty *idprop= (IDProperty*)data;
 	PropertyRNA *prop;
+
+	/* function to skip any id properties that are already known by RNA,
+	 * for the second loop where we go over unknown id properties */
 
 	for(prop= iter->parent.type->properties.first; prop; prop=prop->next)
 		if(strcmp(prop->identifier, idprop->name) == 0)
@@ -94,7 +101,39 @@ static int rna_idproperty_known(CollectionPropertyIterator *iter, void *data)
 static int rna_property_builtin(CollectionPropertyIterator *iter, void *data)
 {
 	PropertyRNA *prop= (PropertyRNA*)data;
+
+	/* function to skip builtin rna properties */
+
 	return (prop->flag & PROP_BUILTIN);
+}
+
+static void rna_inheritance_next_level_restart(CollectionPropertyIterator *iter, IteratorSkipFunc skip)
+{
+	/* RNA struct inheritance */
+	while(!iter->valid && iter->level > 0) {
+		StructRNA *srna;
+		int i;
+
+		srna= (StructRNA*)iter->parent.data;
+		iter->level--;
+		for(i=iter->level; i>0; i--)
+			srna= srna->base;
+
+		rna_iterator_listbase_end(iter);
+		rna_iterator_listbase_begin(iter, &srna->properties, skip);
+	}
+}
+
+static void rna_inheritance_listbase_begin(CollectionPropertyIterator *iter, ListBase *lb, IteratorSkipFunc skip)
+{
+	rna_iterator_listbase_begin(iter, lb, skip);
+	rna_inheritance_next_level_restart(iter, skip);
+}
+
+static void rna_inheritance_listbase_next(CollectionPropertyIterator *iter, IteratorSkipFunc skip)
+{
+	rna_iterator_listbase_next(iter);
+	rna_inheritance_next_level_restart(iter, skip);
 }
 
 static void rna_Struct_properties_next(CollectionPropertyIterator *iter)
@@ -108,7 +147,7 @@ static void rna_Struct_properties_next(CollectionPropertyIterator *iter)
 	}
 	else {
 		/* regular properties */
-		rna_iterator_listbase_next(iter);
+		rna_inheritance_listbase_next(iter, rna_property_builtin);
 
 		/* try id properties */
 		if(!iter->valid) {
@@ -126,23 +165,37 @@ static void rna_Struct_properties_next(CollectionPropertyIterator *iter)
 
 static void rna_Struct_properties_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
-	rna_iterator_listbase_begin(iter, &((StructRNA*)ptr->data)->properties, rna_property_builtin);
+	StructRNA *srna;
+
+	/* here ptr->data should always be the same as iter->parent.type */
+	srna= (StructRNA *)ptr->data;
+
+	while(srna->base) {
+		iter->level++;
+		srna= srna->base;
+	}
+
+	rna_inheritance_listbase_begin(iter, &srna->properties, rna_property_builtin);
 }
 
-static void *rna_Struct_properties_get(CollectionPropertyIterator *iter)
+static PointerRNA rna_Struct_properties_get(CollectionPropertyIterator *iter)
 {
 	ListBaseIterator *internal= iter->internal;
 
 	/* we return either PropertyRNA* or IDProperty*, the rna_access.c
 	 * functions can handle both as PropertyRNA* with some tricks */
-	return internal->link;
+	return rna_pointer_inherit_refine(&iter->parent, &RNA_Property, internal->link);
 }
+
+/* Builtin properties iterator re-uses the Struct properties iterator, only
+ * difference is that we need to see the ptr data to the type of the struct
+ * whose properties we want to iterate over. */
 
 void rna_builtin_properties_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	PointerRNA newptr;
 
-	/* we create a new with the type as the data */
+	/* we create a new pointer with the type as the data */
 	newptr.type= &RNA_Struct;
 	newptr.data= ptr->type;
 
@@ -155,6 +208,8 @@ void rna_builtin_properties_begin(CollectionPropertyIterator *iter, PointerRNA *
 		newptr.id.data= NULL;
 	}
 
+	iter->parent= newptr;
+
 	rna_Struct_properties_begin(iter, &newptr);
 }
 
@@ -163,14 +218,14 @@ void rna_builtin_properties_next(CollectionPropertyIterator *iter)
 	rna_Struct_properties_next(iter);
 }
 
-void *rna_builtin_properties_get(CollectionPropertyIterator *iter)
+PointerRNA rna_builtin_properties_get(CollectionPropertyIterator *iter)
 {
 	return rna_Struct_properties_get(iter);
 }
 
-void *rna_builtin_type_get(PointerRNA *ptr)
+PointerRNA rna_builtin_type_get(PointerRNA *ptr)
 {
-	return ptr->type;
+	return rna_pointer_inherit_refine(ptr, &RNA_Struct, ptr->type);
 }
 
 /* Property */
@@ -382,18 +437,18 @@ static int rna_EnumPropertyItem_value_get(PointerRNA *ptr)
 	return ((EnumPropertyItem*)ptr->data)->value;
 }
 
-static void *rna_PointerProperty_fixed_type_get(PointerRNA *ptr)
+static PointerRNA rna_PointerProperty_fixed_type_get(PointerRNA *ptr)
 {
 	PropertyRNA *prop= (PropertyRNA*)ptr->data;
 	rna_idproperty_check(&prop, ptr);
-	return ((PointerPropertyRNA*)prop)->structtype;
+	return rna_pointer_inherit_refine(ptr, &RNA_Struct, ((PointerPropertyRNA*)prop)->structtype);
 }
 
-static void *rna_CollectionProperty_fixed_type_get(PointerRNA *ptr)
+static PointerRNA rna_CollectionProperty_fixed_type_get(PointerRNA *ptr)
 {
 	PropertyRNA *prop= (PropertyRNA*)ptr->data;
 	rna_idproperty_check(&prop, ptr);
-	return ((CollectionPropertyRNA*)prop)->structtype;
+	return rna_pointer_inherit_refine(ptr, &RNA_Struct, ((CollectionPropertyRNA*)prop)->structtype);
 }
 
 /* Blender RNA */
@@ -432,25 +487,25 @@ static void rna_def_struct(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "base", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
 	RNA_def_property_struct_type(prop, "Struct");
-	RNA_def_property_pointer_funcs(prop, "rna_Struct_base_get", NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_Struct_base_get", NULL);
 	RNA_def_property_ui_text(prop, "Base", "Struct definition this is derived from.");
 
 	prop= RNA_def_property(srna, "nested", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
 	RNA_def_property_struct_type(prop, "Struct");
-	RNA_def_property_pointer_funcs(prop, "rna_Struct_nested_get", NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_Struct_nested_get", NULL);
 	RNA_def_property_ui_text(prop, "Nested", "Struct in which this struct is always nested, and to which it logically belongs.");
 
 	prop= RNA_def_property(srna, "name_property", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
 	RNA_def_property_struct_type(prop, "StringProperty");
-	RNA_def_property_pointer_funcs(prop, "rna_Struct_name_property_get", NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_Struct_name_property_get", NULL);
 	RNA_def_property_ui_text(prop, "Name Property", "Property that gives the name of the struct.");
 
 	prop= RNA_def_property(srna, "properties", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
 	RNA_def_property_struct_type(prop, "Property");
-	RNA_def_property_collection_funcs(prop, "rna_Struct_properties_begin", "rna_Struct_properties_next", "rna_iterator_listbase_end", "rna_Struct_properties_get", 0, 0, 0, 0);
+	RNA_def_property_collection_funcs(prop, "rna_Struct_properties_begin", "rna_Struct_properties_next", "rna_iterator_listbase_end", "rna_Struct_properties_get", 0, 0, 0);
 	RNA_def_property_ui_text(prop, "Properties", "Properties in the struct.");
 }
 
@@ -584,7 +639,7 @@ static void rna_def_enum_property(BlenderRNA *brna, StructRNA *srna)
 	prop= RNA_def_property(srna, "items", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
 	RNA_def_property_struct_type(prop, "EnumPropertyItem");
-	RNA_def_property_collection_funcs(prop, "rna_EnumProperty_items_begin", "rna_iterator_array_next", "rna_iterator_array_end", "rna_iterator_array_get", 0, 0, 0, 0);
+	RNA_def_property_collection_funcs(prop, "rna_EnumProperty_items_begin", "rna_iterator_array_next", "rna_iterator_array_end", "rna_iterator_array_get", 0, 0, 0);
 	RNA_def_property_ui_text(prop, "Items", "Possible values for the property.");
 
 	srna= RNA_def_struct(brna, "EnumPropertyItem", NULL);
@@ -615,9 +670,9 @@ static void rna_def_pointer_property(StructRNA *srna, PropertyType type)
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
 	RNA_def_property_struct_type(prop, "Struct");
 	if(type == PROP_POINTER)
-		RNA_def_property_pointer_funcs(prop, "rna_PointerProperty_fixed_type_get", NULL, NULL);
+		RNA_def_property_pointer_funcs(prop, "rna_PointerProperty_fixed_type_get", NULL);
 	else
-		RNA_def_property_pointer_funcs(prop, "rna_CollectionProperty_fixed_type_get", NULL, NULL);
+		RNA_def_property_pointer_funcs(prop, "rna_CollectionProperty_fixed_type_get", NULL);
 	RNA_def_property_ui_text(prop, "Pointer Type", "Fixed pointer type, empty if variable type.");
 }
 
@@ -674,7 +729,7 @@ void RNA_def_rna(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "structs", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
 	RNA_def_property_struct_type(prop, "Struct");
-	RNA_def_property_collection_funcs(prop, "rna_BlenderRNA_structs_begin", "rna_iterator_listbase_next", "rna_iterator_listbase_end", "rna_iterator_listbase_get", 0, 0, 0, 0);
+	RNA_def_property_collection_funcs(prop, "rna_BlenderRNA_structs_begin", "rna_iterator_listbase_next", "rna_iterator_listbase_end", "rna_iterator_listbase_get", 0, 0, 0);
 	RNA_def_property_ui_text(prop, "Structs", "");
 }
 

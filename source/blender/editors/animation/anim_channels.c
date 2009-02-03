@@ -549,7 +549,7 @@ void ANIM_OT_channels_move_up (wmOperatorType *ot)
 	ot->poll= ED_operator_areaactive;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
 	RNA_def_enum(ot->srna, "direction", NULL /* XXX add enum for this */, REARRANGE_ACTCHAN_UP, "Direction", "");
@@ -566,7 +566,7 @@ void ANIM_OT_channels_move_down (wmOperatorType *ot)
 	ot->poll= ED_operator_areaactive;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
 	RNA_def_enum(ot->srna, "direction", NULL /* XXX add enum for this */, REARRANGE_ACTCHAN_DOWN, "Direction", "");
@@ -583,7 +583,7 @@ void ANIM_OT_channels_move_top (wmOperatorType *ot)
 	ot->poll= ED_operator_areaactive;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
 	RNA_def_enum(ot->srna, "direction", NULL /* XXX add enum for this */, REARRANGE_ACTCHAN_TOP, "Direction", "");
@@ -600,7 +600,7 @@ void ANIM_OT_channels_move_bottom (wmOperatorType *ot)
 	ot->poll= ED_operator_areaactive;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
 	RNA_def_enum(ot->srna, "direction", NULL /* XXX add enum for this */, REARRANGE_ACTCHAN_BOTTOM, "Direction", "");
@@ -732,7 +732,7 @@ void ANIM_OT_channels_enable_setting (wmOperatorType *ot)
 	ot->poll= ED_operator_areaactive;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
 		/* flag-setting mode */
@@ -753,7 +753,7 @@ void ANIM_OT_channels_disable_setting (wmOperatorType *ot)
 	ot->poll= ED_operator_areaactive;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
 		/* flag-setting mode */
@@ -774,7 +774,7 @@ void ANIM_OT_channels_toggle_setting (wmOperatorType *ot)
 	ot->poll= ED_operator_areaactive;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
 		/* flag-setting mode */
@@ -816,7 +816,7 @@ void ANIM_OT_channels_deselectall (wmOperatorType *ot)
 	ot->poll= ED_operator_areaactive;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
 	RNA_def_boolean(ot->srna, "invert", 0, "Invert", "");
@@ -937,7 +937,7 @@ void ANIM_OT_channels_borderselect(wmOperatorType *ot)
 	ot->poll= ED_operator_areaactive;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* rna */
 	RNA_def_int(ot->srna, "event_type", 0, INT_MIN, INT_MAX, "Event Type", "", INT_MIN, INT_MAX);
@@ -1247,6 +1247,9 @@ void ANIM_OT_channels_mouseclick (wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= animchannels_mouseclick_invoke;
 	ot->poll= ED_operator_areaactive;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* id-props */
 	RNA_def_boolean(ot->srna, "extend_select", 0, "Extend Select", ""); // SHIFTKEY

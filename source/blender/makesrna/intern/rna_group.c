@@ -33,12 +33,12 @@
 
 #ifdef RNA_RUNTIME
 
-void *rna_Group_objects_get(CollectionPropertyIterator *iter)
+PointerRNA rna_Group_objects_get(CollectionPropertyIterator *iter)
 {
 	ListBaseIterator *internal= iter->internal;
 
 	/* we are actually iterating a GroupObject list, so override get */
-	return ((GroupObject *)internal->link)->ob;
+	return rna_pointer_inherit_refine(&iter->parent, &RNA_Object, ((GroupObject*)internal->link)->ob);
 }
 
 #else
@@ -60,7 +60,7 @@ void RNA_def_group(BlenderRNA *brna)
 	RNA_def_property_collection_sdna(prop, NULL, "gobject", NULL);
 	RNA_def_property_struct_type(prop, "Object");
 	RNA_def_property_ui_text(prop, "Objects", "A collection of this groups objects.");
-	RNA_def_property_collection_funcs(prop, 0, 0, 0, "rna_Group_objects_get", 0, 0, 0, 0);
+	RNA_def_property_collection_funcs(prop, 0, 0, 0, "rna_Group_objects_get", 0, 0, 0);
 	
 	prop= RNA_def_property(srna, "layer", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "layer", 1);

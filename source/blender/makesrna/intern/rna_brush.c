@@ -40,10 +40,10 @@ static void rna_Brush_mtex_begin(CollectionPropertyIterator *iter, PointerRNA *p
 	rna_iterator_array_begin(iter, (void*)brush->mtex, sizeof(MTex*), MAX_MTEX, NULL);
 }
 
-static void *rna_Brush_active_texture_get(PointerRNA *ptr)
+static PointerRNA rna_Brush_active_texture_get(PointerRNA *ptr)
 {
 	Brush *brush= (Brush*)ptr->data;
-	return brush->mtex[(int)brush->texact];
+	return rna_pointer_inherit_refine(ptr, &RNA_TextureSlot, brush->mtex[(int)brush->texact]);
 }
 
 static float rna_Brush_rotation_get(PointerRNA *ptr)

@@ -34,6 +34,8 @@ struct PointerRNA;
 struct CollectionPropertyIterator;
 struct bContext;
 
+#define RNA_MAX_ARRAY 32
+
 /* Function Callbacks */
 
 typedef void (*UpdateFunc)(struct bContext *C, struct PointerRNA *ptr);
@@ -42,34 +44,32 @@ typedef struct StructRNA *(*StructRefineFunc)(struct PointerRNA *ptr);
 
 typedef int (*PropBooleanGetFunc)(struct PointerRNA *ptr);
 typedef void (*PropBooleanSetFunc)(struct PointerRNA *ptr, int value);
-typedef int (*PropBooleanArrayGetFunc)(struct PointerRNA *ptr, int index);
-typedef void (*PropBooleanArraySetFunc)(struct PointerRNA *ptr, int index, int value);
+typedef void (*PropBooleanArrayGetFunc)(struct PointerRNA *ptr, int *values);
+typedef void (*PropBooleanArraySetFunc)(struct PointerRNA *ptr, const int *values);
 typedef int (*PropIntGetFunc)(struct PointerRNA *ptr);
 typedef void (*PropIntSetFunc)(struct PointerRNA *ptr, int value);
-typedef int (*PropIntArrayGetFunc)(struct PointerRNA *ptr, int index);
-typedef void (*PropIntArraySetFunc)(struct PointerRNA *ptr, int index, int value);
+typedef void (*PropIntArrayGetFunc)(struct PointerRNA *ptr, int *values);
+typedef void (*PropIntArraySetFunc)(struct PointerRNA *ptr, const int *values);
 typedef void (*PropIntRangeFunc)(struct PointerRNA *ptr, int *min, int *max);
 typedef float (*PropFloatGetFunc)(struct PointerRNA *ptr);
 typedef void (*PropFloatSetFunc)(struct PointerRNA *ptr, float value);
-typedef float (*PropFloatArrayGetFunc)(struct PointerRNA *ptr, int index);
-typedef void (*PropFloatArraySetFunc)(struct PointerRNA *ptr, int index, float value);
+typedef void (*PropFloatArrayGetFunc)(struct PointerRNA *ptr, float *values);
+typedef void (*PropFloatArraySetFunc)(struct PointerRNA *ptr, const float *values);
 typedef void (*PropFloatRangeFunc)(struct PointerRNA *ptr, float *min, float *max);
 typedef void (*PropStringGetFunc)(struct PointerRNA *ptr, char *value);
 typedef int (*PropStringLengthFunc)(struct PointerRNA *ptr);
 typedef void (*PropStringSetFunc)(struct PointerRNA *ptr, const char *value);
 typedef int (*PropEnumGetFunc)(struct PointerRNA *ptr);
 typedef void (*PropEnumSetFunc)(struct PointerRNA *ptr, int value);
-typedef void* (*PropPointerGetFunc)(struct PointerRNA *ptr);
-typedef void (*PropPointerSetFunc)(struct PointerRNA *ptr, void *value);
-typedef struct StructRNA* (*PropPointerTypeFunc)(struct PointerRNA *ptr);
+typedef PointerRNA (*PropPointerGetFunc)(struct PointerRNA *ptr);
+typedef void (*PropPointerSetFunc)(struct PointerRNA *ptr, const PointerRNA value);
 typedef void (*PropCollectionBeginFunc)(struct CollectionPropertyIterator *iter, struct PointerRNA *ptr);
 typedef void (*PropCollectionNextFunc)(struct CollectionPropertyIterator *iter);
 typedef void (*PropCollectionEndFunc)(struct CollectionPropertyIterator *iter);
-typedef void* (*PropCollectionGetFunc)(struct CollectionPropertyIterator *iter);
-typedef struct StructRNA* (*PropCollectionTypeFunc)(struct CollectionPropertyIterator *iter);
+typedef PointerRNA (*PropCollectionGetFunc)(struct CollectionPropertyIterator *iter);
 typedef int (*PropCollectionLengthFunc)(struct PointerRNA *ptr);
-typedef void* (*PropCollectionLookupIntFunc)(struct PointerRNA *ptr, int key, struct StructRNA **type);
-typedef void* (*PropCollectionLookupStringFunc)(struct PointerRNA *ptr, const char *key, struct StructRNA **type);
+typedef PointerRNA (*PropCollectionLookupIntFunc)(struct PointerRNA *ptr, int key);
+typedef PointerRNA (*PropCollectionLookupStringFunc)(struct PointerRNA *ptr, const char *key);
 
 struct PropertyRNA {
 	struct PropertyRNA *next, *prev;
@@ -185,7 +185,6 @@ typedef struct PointerPropertyRNA {
 
 	PropPointerGetFunc get;
 	PropPointerSetFunc set;
-	PropPointerTypeFunc type;	/* optional */
 
 	struct StructRNA *structtype;
 } PointerPropertyRNA;
@@ -197,7 +196,6 @@ typedef struct CollectionPropertyRNA {
 	PropCollectionNextFunc next;
 	PropCollectionEndFunc end;						/* optional */
 	PropCollectionGetFunc get;
-	PropCollectionTypeFunc type;					/* optional */
 	PropCollectionLengthFunc length;				/* optional */
 	PropCollectionLookupIntFunc lookupint;			/* optional */
 	PropCollectionLookupStringFunc lookupstring;	/* optional */

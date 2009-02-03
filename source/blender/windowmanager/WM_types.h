@@ -41,6 +41,7 @@ struct wmWindowManager;
 
 /* flag */
 #define OPTYPE_REGISTER		1
+#define OPTYPE_UNDO			2
 
 /* context to call operator in for WM_operator_name_call */
 enum {
@@ -61,13 +62,13 @@ enum {
 typedef struct wmEvent {
 	struct wmEvent *next, *prev;
 	
-	short type;		/* event code itself (short, is also in keymap) */
-	short val;		/* press, release, scrollvalue */
-	short x, y;				/* mouse pointer position */
-	short prevx, prevy;		/* previous mouse pointer position */
-	short unicode;	/* future, ghost? */
-	char ascii;		/* from ghost */
-	char pad1;		
+	short type;			/* event code itself (short, is also in keymap) */
+	short val;			/* press, release, scrollvalue */
+	short x, y;			/* mouse pointer position */
+	short prevx, prevy;	/* previous mouse pointer position */
+	short unicode;		/* future, ghost? */
+	char ascii;			/* from ghost */
+	char pad;
 	
 	/* modifier states */
 	short shift, ctrl, alt, oskey;	/* oskey is apple or windowskey, value denotes order of pressed */
@@ -102,8 +103,9 @@ typedef struct wmEvent {
 
 /* val */
 #define KM_ANY		-1
-#define KM_RELEASE	0
+#define KM_NOTHING	0
 #define KM_PRESS	1
+#define KM_RELEASE	2
 
 
 /* ************** UI Handler ***************** */
@@ -201,6 +203,7 @@ typedef struct wmNotifier {
 #define NS_EDITMODE_MBALL	(6<<8)
 #define NS_EDITMODE_LATTICE	(7<<8)
 #define NS_EDITMODE_ARMATURE	(8<<8)
+#define NS_POSEMODE			(9<<8)
 
 
 /* action classification */
@@ -222,6 +225,7 @@ typedef struct wmNotifier {
 #define WM_GESTURE_CIRCLE		5
 
 /* wmGesture is registered to window listbase, handled by operator callbacks */
+/* tweak gesture is builtin feature */
 typedef struct wmGesture {
 	struct wmGesture *next, *prev;
 	int event_type;	/* event->type */

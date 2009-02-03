@@ -71,12 +71,11 @@ void		*WM_paint_cursor_activate(struct wmWindowManager *wm, int (*poll)(struct b
 void		WM_paint_cursor_end(struct wmWindowManager *wm, void *handle);
 
 			/* keymap */
-wmKeymapItem *WM_keymap_set_item	(ListBase *lb, char *idname, short type, 
-								 short val, int modifier, short keymodifier);
 wmKeymapItem *WM_keymap_verify_item(ListBase *lb, char *idname, short type, 
 								 short val, int modifier, short keymodifier);
-wmKeymapItem *WM_keymap_add_item	(ListBase *lb, char *idname, short type, 
+wmKeymapItem *WM_keymap_add_item(ListBase *lb, char *idname, short type, 
 								 short val, int modifier, short keymodifier);
+void		WM_keymap_tweak	(ListBase *lb, short type, short val, int modifier, short keymodifier);
 ListBase	*WM_keymap_listbase	(struct wmWindowManager *wm, const char *nameid, 
 								 int spaceid, int regionid);
 
@@ -134,6 +133,7 @@ void		WM_operatortype_append_ptr	(void (*opfunc)(wmOperatorType*, void *), void 
 int			WM_operatortype_remove(const char *idname);
 
 int			WM_operator_call		(struct bContext *C, struct wmOperator *op);
+int			WM_operator_repeat		(struct bContext *C, struct wmOperator *op);
 int         WM_operator_name_call	(struct bContext *C, const char *opstring, int context, struct PointerRNA *properties);
 int			WM_operator_call_py(struct bContext *C, struct wmOperatorType *ot, struct PointerRNA *properties, struct ReportList *reports);
 

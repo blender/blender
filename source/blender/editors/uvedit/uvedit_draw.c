@@ -413,6 +413,7 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, EditMesh *em, MTFac
 static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 {
 	ToolSettings *settings;
+	Mesh *me= obedit->data;
 	EditMesh *em;
 	EditFace *efa, *efa_act;
 	MTFace *tf, *activetf = NULL;
@@ -422,7 +423,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 	int drawfaces, interpedges, lastsel, sel;
 	Image *ima= sima->image;
  	
-	em= ((Mesh*)obedit->data)->edit_mesh;
+	em= me->edit_mesh;
 	activetf= EM_get_active_mtface(em, &efa_act, NULL, 0); /* will be set to NULL if hidden */
 
 	settings= scene->toolsettings;
@@ -457,7 +458,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 	if(sima->flag & SI_DRAW_STRETCH) {
 		draw_uvs_stretch(sima, scene, em, activetf);
 	}
-	else if(G.f & G_DRAWFACES) {
+	else if(me->drawflag & ME_DRAWFACES) {
 		/* draw transparent faces */
 		UI_GetThemeColor4ubv(TH_FACE, col1);
 		UI_GetThemeColor4ubv(TH_FACE_SELECT, col2);
@@ -614,7 +615,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 			col2[0] = col2[1] = col2[2] = 128; col2[3] = 255;
 			glColor4ubv((unsigned char *)col2); 
 			
-			if(G.f & G_DRAWEDGES) {
+			if(me->drawflag & ME_DRAWEDGES) {
 				UI_GetThemeColor4ubv(TH_VERTEX_SELECT, col1);
 				lastsel = sel = 0;
 

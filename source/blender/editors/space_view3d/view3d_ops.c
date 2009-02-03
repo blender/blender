@@ -68,6 +68,9 @@ void view3d_operatortypes(void)
 	WM_operatortype_append(VIEW3D_OT_viewzoom);
 	WM_operatortype_append(VIEW3D_OT_viewhome);
 	WM_operatortype_append(VIEW3D_OT_viewnumpad);
+	WM_operatortype_append(VIEW3D_OT_view_orbit);
+	WM_operatortype_append(VIEW3D_OT_view_pan);
+	WM_operatortype_append(VIEW3D_OT_view_persportho);
 	WM_operatortype_append(VIEW3D_OT_viewcenter);
 	WM_operatortype_append(VIEW3D_OT_select);
 	WM_operatortype_append(VIEW3D_OT_borderselect);
@@ -86,6 +89,7 @@ void view3d_operatortypes(void)
 	WM_operatortype_append(VIEW3D_OT_wpaint_toggle);
 	WM_operatortype_append(VIEW3D_OT_vpaint);
 	WM_operatortype_append(VIEW3D_OT_wpaint);
+	WM_operatortype_append(VIEW3D_OT_editmesh_face_toolbox);
 	
 	transform_operatortypes();
 }
@@ -99,7 +103,8 @@ void view3d_keymap(wmWindowManager *wm)
 	WM_keymap_verify_item(keymap, "VIEW3D_OT_vpaint", LEFTMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "VIEW3D_OT_wpaint", LEFTMOUSE, KM_PRESS, 0, 0);
 
-	WM_keymap_verify_item(keymap, "SCULPT_OT_brush_stroke", LEFTMOUSE, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "SCULPT_OT_brush_stroke", LEFTMOUSE, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "SCULPT_OT_brush_stroke", LEFTMOUSE, KM_PRESS, KM_SHIFT, 0);
 	
 	WM_keymap_verify_item(keymap, "VIEW3D_OT_cursor3d", ACTIONMOUSE, KM_PRESS, 0, 0);
 	
@@ -121,20 +126,21 @@ void view3d_keymap(wmWindowManager *wm)
 	/* numpad view hotkeys*/
 	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD0, KM_PRESS, 0, 0)->ptr, "view", V3D_VIEW_CAMERA);
 	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD1, KM_PRESS, 0, 0)->ptr, "view", V3D_VIEW_FRONT);
-	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD2, KM_PRESS, 0, 0)->ptr, "view", V3D_VIEW_STEPDOWN);
+	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_view_orbit", PAD2, KM_PRESS, 0, 0)->ptr, "type", V3D_VIEW_STEPDOWN);
 	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD3, KM_PRESS, 0, 0)->ptr, "view", V3D_VIEW_RIGHT);
-	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD4, KM_PRESS, 0, 0)->ptr, "view", V3D_VIEW_STEPLEFT);
-	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD5, KM_PRESS, 0, 0)->ptr, "view", V3D_VIEW_PERSPORTHO);
-	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD6, KM_PRESS, 0, 0)->ptr, "view", V3D_VIEW_STEPRIGHT);
+	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_view_orbit", PAD4, KM_PRESS, 0, 0)->ptr, "type", V3D_VIEW_STEPLEFT);
+	WM_keymap_add_item(keymap, "VIEW3D_OT_view_persportho", PAD5, KM_PRESS, 0, 0);
+	
+	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_view_orbit", PAD6, KM_PRESS, 0, 0)->ptr, "type", V3D_VIEW_STEPRIGHT);
 	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD7, KM_PRESS, 0, 0)->ptr, "view", V3D_VIEW_TOP);
-	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD8, KM_PRESS, 0, 0)->ptr, "view", V3D_VIEW_STEPUP);
+	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_view_orbit", PAD8, KM_PRESS, 0, 0)->ptr, "type", V3D_VIEW_STEPUP);
 	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD1, KM_PRESS, KM_CTRL, 0)->ptr, "view", V3D_VIEW_BACK);
 	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD3, KM_PRESS, KM_CTRL, 0)->ptr, "view", V3D_VIEW_LEFT);
 	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD7, KM_PRESS, KM_CTRL, 0)->ptr, "view", V3D_VIEW_BOTTOM);
-	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD2, KM_PRESS, KM_CTRL, 0)->ptr, "view", V3D_VIEW_PANDOWN);
-	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD4, KM_PRESS, KM_CTRL, 0)->ptr, "view", V3D_VIEW_PANLEFT);
-	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD6, KM_PRESS, KM_CTRL, 0)->ptr, "view", V3D_VIEW_PANRIGHT);
-	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD8, KM_PRESS, KM_CTRL, 0)->ptr, "view", V3D_VIEW_PANUP);
+	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_view_pan", PAD2, KM_PRESS, KM_CTRL, 0)->ptr, "type", V3D_VIEW_PANDOWN);
+	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_view_pan", PAD4, KM_PRESS, KM_CTRL, 0)->ptr, "type", V3D_VIEW_PANLEFT);
+	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_view_pan", PAD6, KM_PRESS, KM_CTRL, 0)->ptr, "type", V3D_VIEW_PANRIGHT);
+	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_view_pan", PAD8, KM_PRESS, KM_CTRL, 0)->ptr, "type", V3D_VIEW_PANUP);
 
 	/* drawtype */
 	km = WM_keymap_add_item(keymap, "VIEW3D_OT_drawtype", ZKEY, KM_PRESS, 0, 0);
@@ -153,8 +159,8 @@ void view3d_keymap(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "VIEW3D_OT_select", SELECTMOUSE, KM_PRESS, 0, 0);
 	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_select", SELECTMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "type", 1);
 	WM_keymap_add_item(keymap, "VIEW3D_OT_borderselect", BKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "VIEW3D_OT_lasso_select", LEFTMOUSE, KM_PRESS, KM_CTRL, 0);
-	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_lasso_select", LEFTMOUSE, KM_PRESS, KM_SHIFT|KM_CTRL, 0)->ptr, "type", 1);
+	WM_keymap_add_item(keymap, "VIEW3D_OT_lasso_select", EVT_TWEAK_A, KM_ANY, KM_CTRL, 0);
+	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_lasso_select", EVT_TWEAK_A, KM_ANY, KM_SHIFT|KM_CTRL, 0)->ptr, "type", 1);
 	WM_keymap_add_item(keymap, "VIEW3D_OT_circle_select", CKEY, KM_PRESS, 0, 0);
 	
 	WM_keymap_add_item(keymap, "VIEW3D_OT_clipping", BKEY, KM_PRESS, KM_ALT, 0);
@@ -177,13 +183,9 @@ void view3d_keymap(wmWindowManager *wm)
 	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_wpaint_radial_control", FKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "mode", WM_RADIALCONTROL_STRENGTH);
 
 	/* TODO - this is just while we have no way to load a text datablock */
-	km = WM_keymap_add_item(keymap, "SCRIPT_OT_run_pyfile", PKEY, KM_PRESS, 0, 0);
-	RNA_string_set(km->ptr, "filename", "test.py");
+	RNA_string_set(WM_keymap_add_item(keymap, "SCRIPT_OT_run_pyfile", PKEY, KM_PRESS, 0, 0)->ptr, "filename", "test.py");
 
 	transform_keymap_for_space(wm, keymap, SPACE_VIEW3D);
-
-	/* generates event, in end to make select work */
-	WM_keymap_verify_item(keymap, "WM_OT_tweak_gesture", SELECTMOUSE, KM_PRESS, 0, 0);
 
 }
 

@@ -338,7 +338,7 @@ void ACT_OT_keyframes_deselectall (wmOperatorType *ot)
 	ot->poll= ED_operator_areaactive;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
 	RNA_def_boolean(ot->srna, "invert", 0, "Invert", "");
@@ -500,7 +500,7 @@ void ACT_OT_keyframes_borderselect(wmOperatorType *ot)
 	ot->poll= ED_operator_areaactive;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* rna */
 	RNA_def_int(ot->srna, "event_type", 0, INT_MIN, INT_MAX, "Event Type", "", INT_MIN, INT_MAX);
@@ -733,7 +733,7 @@ void ACT_OT_keyframes_columnselect (wmOperatorType *ot)
 	ot->poll= ED_operator_areaactive;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
 	RNA_def_enum(ot->srna, "mode", prop_column_select_types, 0, "Mode", "");
@@ -1081,6 +1081,9 @@ void ACT_OT_keyframes_clickselect (wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= actkeys_clickselect_invoke;
 	ot->poll= ED_operator_areaactive;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* id-props */
 	// XXX should we make this into separate operators?

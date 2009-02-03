@@ -132,7 +132,7 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 	/* space available for load/save buttons? */
 	slen = UI_GetStringWidth(G.font, sfile->params->title, 0);
 	loadbutton= slen > 60 ? slen + 20 : MAX2(80, 20+UI_GetStringWidth(G.font, params->title, 0));
-	if(ar->v2d.mask.xmax-ar->v2d.mask.xmin > loadbutton+20) {
+	if(ar->v2d.cur.xmax-ar->v2d.cur.xmin > loadbutton+20) {
 		if(params->title[0]==0) {
 			loadbutton= 0;
 		}
@@ -544,7 +544,7 @@ void file_draw_fsmenu(const bContext *C, ARegion *ar)
 	int fontsize = U.fontsize;
 
 	sx = ar->v2d.cur.xmin + TILE_BORDER_X;
-	sy = -2*TILE_BORDER_Y;
+	sy = ar->v2d.cur.ymax-2*TILE_BORDER_Y;
 	for (i=0; i< nentries && (sy > ar->v2d.cur.ymin) ;++i) {
 		char *fname = fsmenu_get_entry(i);
 

@@ -77,6 +77,7 @@
 #include "BKE_object.h"
 #include "BKE_screen.h"
 #include "BKE_scene.h"
+#include "BKE_sequence.h"
 #include "BKE_utildefines.h"
 
 #include "ED_screen.h"
@@ -1079,7 +1080,7 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 			te->rnaptr= *ptr;
 
 			if(proptype == PROP_POINTER) {
-				RNA_property_pointer_get(ptr, prop, &pptr);
+				pptr= RNA_property_pointer_get(ptr, prop);
 
 				if(pptr.data) {
 					if(!(tselem->flag & TSE_CLOSED))
@@ -3177,6 +3178,8 @@ static int tselem_rna_icon(PointerRNA *ptr)
 		return ICON_LIBRARY_DEHLT;
 	else if(rnatype == &RNA_Action)
 		return ICON_ACTION;
+	else if(rnatype == &RNA_FCurve)
+		return ICON_IPO_DEHLT;
 	//else if(rnatype == &RNA_Ipo)
 	//	return ICON_IPO_DEHLT;
 	else if(rnatype == &RNA_Key)
@@ -4102,7 +4105,7 @@ static uiBut *outliner_draw_rnabut(uiBlock *block, PointerRNA *ptr, PropertyRNA 
 			length= RNA_property_array_length(ptr, prop);
 
 			if(length)
-				value= RNA_property_boolean_get_array(ptr, prop, index);
+				value= RNA_property_boolean_get_index(ptr, prop, index);
 			else
 				value= RNA_property_boolean_get(ptr, prop);
 
@@ -4130,7 +4133,7 @@ static uiBut *outliner_draw_rnabut(uiBlock *block, PointerRNA *ptr, PropertyRNA 
 			char *text, *descr, textbuf[256];
 			int icon;
 
-			RNA_property_pointer_get(ptr, prop, &pptr);
+			pptr= RNA_property_pointer_get(ptr, prop);
 
 			if(!pptr.data)
 				return NULL;

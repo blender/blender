@@ -415,6 +415,9 @@ void VIEW3D_OT_setcameratoview(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= view3d_setcameratoview_exec;	
 	ot->poll= ED_operator_view3d_active;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* ********************************** */
@@ -525,10 +528,10 @@ float read_cached_depth(ViewContext *vc, int x, int y)
 		return 1;
 }
 
-void request_depth_update(ViewContext *vc)
+void request_depth_update(RegionView3D *rv3d)
 {
-	if(vc->rv3d->depths)
-		vc->rv3d->depths->damaged= 1;
+	if(rv3d->depths)
+		rv3d->depths->damaged= 1;
 }
 
 void view3d_get_object_project_mat(RegionView3D *rv3d, Object *ob, float pmat[4][4], float vmat[4][4])

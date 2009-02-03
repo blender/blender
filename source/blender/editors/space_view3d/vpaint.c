@@ -104,7 +104,6 @@
 #define MAXINDEX	512000
 
 /* XXX */
-static void BIF_undo_push() {}
 static void error() {}
 
 /* polling - retrieve whether cursor should be set or operator should be done */
@@ -397,7 +396,6 @@ void clear_vpaint(Scene *scene)
 		*to= paintcol;
 		to++; 
 	}
-	BIF_undo_push("Clear vertex colors");
 	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
 	
 }
@@ -430,7 +428,6 @@ void clear_vpaint_selectedfaces(Scene *scene)
 		}
 	}
 	
-	BIF_undo_push("Clear vertex colors");
 	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
 }
 
@@ -541,7 +538,6 @@ void clear_wpaint_selectedfaces(Scene *scene)
 	copy_wpaint_prev(wp, NULL, 0);
 
 	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
-	BIF_undo_push("Set vertex weight");
 }
 
 
@@ -1196,6 +1192,18 @@ static int set_wpaint(bContext *C, wmOperator *op)		/* toggle */
 	return OPERATOR_FINISHED;
 }
 
+/* for switching to/from mode */
+static int paint_poll_test(bContext *C)
+{
+	if(ED_operator_view3d_active(C)==0)
+		return 0;
+	if(CTX_data_edit_object(C))
+		return 0;
+	if(CTX_data_active_object(C)==NULL)
+		return 0;
+	return 1;
+}
+
 void VIEW3D_OT_wpaint_toggle(wmOperatorType *ot)
 {
 	
@@ -1205,7 +1213,10 @@ void VIEW3D_OT_wpaint_toggle(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= set_wpaint;
-	ot->poll= ED_operator_object_active;
+	ot->poll= paint_poll_test;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 }
 
@@ -1257,7 +1268,6 @@ static int vpaint_radial_control_exec(bContext *C, wmOperator *op)
 	int ret = paint_radial_control_exec(op, CTX_data_scene(C)->toolsettings->vpaint);
 	char str[256];
 	WM_radial_control_string(op, str, 256);
-	ED_undo_push(C, str);	
 	return ret;
 }
 
@@ -1281,7 +1291,6 @@ static int wpaint_radial_control_exec(bContext *C, wmOperator *op)
 	int ret = paint_radial_control_exec(op, CTX_data_scene(C)->toolsettings->wpaint);
 	char str[256];
 	WM_radial_control_string(op, str, 256);
-	ED_undo_push(C, str);	
 	return ret;
 }
 
@@ -1296,6 +1305,9 @@ void VIEW3D_OT_wpaint_radial_control(wmOperatorType *ot)
 	ot->modal= wpaint_radial_control_modal;
 	ot->exec= wpaint_radial_control_exec;
 	ot->poll= wp_poll;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 void VIEW3D_OT_vpaint_radial_control(wmOperatorType *ot)
@@ -1309,6 +1321,9 @@ void VIEW3D_OT_vpaint_radial_control(wmOperatorType *ot)
 	ot->modal= vpaint_radial_control_modal;
 	ot->exec= vpaint_radial_control_exec;
 	ot->poll= vp_poll;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* ************ weight paint operator ********** */
@@ -1350,8 +1365,6 @@ static void wpaint_exit(bContext *C, wmOperator *op)
 	}
 	
 	DAG_object_flush_update(CTX_data_scene(C), ob, OB_RECALC_DATA);
-	
-	ED_undo_push(C, "Weight Paint");
 	
 	MEM_freeN(wpd);
 	op->customdata= NULL;
@@ -1635,6 +1648,9 @@ void VIEW3D_OT_wpaint(wmOperatorType *ot)
 	/* ot->exec= vpaint_exec; <-- needs stroke property */
 	ot->poll= wp_poll;
 	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
 }
 
 
@@ -1704,7 +1720,10 @@ void VIEW3D_OT_vpaint_toggle(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= set_vpaint;
-	ot->poll= ED_operator_object_active;
+	ot->poll= paint_poll_test;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 }
 
@@ -1750,8 +1769,6 @@ static void vpaint_exit(bContext *C, wmOperator *op)
 	
 	/* frees prev buffer */
 	copy_vpaint_prev(ts->vpaint, NULL, 0);
-	
-	ED_undo_push(C, "Vertex Paint");
 	
 	MEM_freeN(vpd);
 	op->customdata= NULL;
@@ -1928,6 +1945,9 @@ void VIEW3D_OT_vpaint(wmOperatorType *ot)
 	ot->modal= vpaint_modal;
 	/* ot->exec= vpaint_exec; <-- needs stroke property */
 	ot->poll= vp_poll;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 }
 

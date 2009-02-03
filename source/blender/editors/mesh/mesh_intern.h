@@ -112,6 +112,11 @@ void MESH_OT_add_primitive_grid(struct wmOperatorType *ot);
 void MESH_OT_add_primitive_monkey(struct wmOperatorType *ot);
 void MESH_OT_add_primitive_uv_sphere(struct wmOperatorType *ot);
 void MESH_OT_add_primitive_ico_sphere(struct wmOperatorType *ot);
+void MESH_OT_dupli_extrude_cursor(struct wmOperatorType *ot);
+void MESH_OT_add_edge_face(struct wmOperatorType *ot);
+
+void MESH_OT_make_fgon(struct wmOperatorType *ot);
+void MESH_OT_clear_fgon(struct wmOperatorType *ot);
 
 /* ******************* editmesh_lib.c */
 void EM_stats_update(EditMesh *em);
@@ -173,20 +178,29 @@ extern struct EditFace *EM_face_from_faces(EditMesh *em, struct EditFace *efa1,
 
 
 /* ******************* editmesh_mods.c */
-
+void MESH_OT_loop_select(struct wmOperatorType *ot);
 void MESH_OT_de_select_all(struct wmOperatorType *ot);
 void MESH_OT_bmesh_test(struct wmOperatorType *ot);
 void MESH_OT_select_more(struct wmOperatorType *ot);
 void MESH_OT_select_less(struct wmOperatorType *ot);
-void MESH_OT_selectswap_mesh(struct wmOperatorType *ot);
+void MESH_OT_select_invert(struct wmOperatorType *ot);
 void MESH_OT_select_non_manifold(struct wmOperatorType *ot);
-void MESH_OT_selectconnected_mesh_all(struct wmOperatorType *ot);
-void MESH_OT_selectconnected_mesh(struct wmOperatorType *ot);
-void MESH_OT_hide_mesh(struct wmOperatorType *ot);
-void MESH_OT_reveal_mesh(struct wmOperatorType *ot);
-void MESH_OT_righthandfaces(struct wmOperatorType *ot);
+void MESH_OT_select_linked(struct wmOperatorType *ot);
+void MESH_OT_select_linked_pick(struct wmOperatorType *ot);
+void MESH_OT_hide(struct wmOperatorType *ot);
+void MESH_OT_reveal(struct wmOperatorType *ot);
+void MESH_OT_consistant_normals(struct wmOperatorType *ot);
 void MESH_OT_select_linked_flat_faces(struct wmOperatorType *ot);
 void MESH_OT_select_sharp_edges(struct wmOperatorType *ot);
+void MESH_OT_shortest_path_select(struct wmOperatorType *ot);
+void MESH_OT_similar_vertex_select(struct wmOperatorType *ot);
+void MESH_OT_similar_edge_select(struct wmOperatorType *ot);
+void MESH_OT_similar_face_select(struct wmOperatorType *ot);
+void MESH_OT_select_random(struct wmOperatorType *ot);
+void MESH_OT_vertices_to_sphere(struct wmOperatorType *ot);
+void MESH_OT_selection_type(struct wmOperatorType *ot);
+void MESH_OT_select_multi_loop(struct wmOperatorType *ot);
+
 extern EditEdge *findnearestedge(struct ViewContext *vc, int *dist);
 extern void EM_automerge(int update);
 void editmesh_select_by_material(EditMesh *em, int index);
@@ -224,17 +238,17 @@ void MESH_OT_subdivide_multi(struct wmOperatorType *ot);
 void MESH_OT_subdivide_multi_fractal(struct wmOperatorType *ot);
 void MESH_OT_subdivide_smooth(struct wmOperatorType *ot);
 void MESH_OT_removedoublesflag(struct wmOperatorType *ot);
-void MESH_OT_extrude_mesh(struct wmOperatorType *ot);
-void MESH_OT_edit_faces(struct wmOperatorType *ot);
+void MESH_OT_extrude(struct wmOperatorType *ot);
 
-void MESH_OT_fill_mesh(struct wmOperatorType *ot);
+void MESH_OT_fill(struct wmOperatorType *ot);
 void MESH_OT_beauty_fill(struct wmOperatorType *ot);
 void MESH_OT_convert_quads_to_tris(struct wmOperatorType *ot);
 void MESH_OT_convert_tris_to_quads(struct wmOperatorType *ot);
 void MESH_OT_edge_flip(struct wmOperatorType *ot);
-void MESH_OT_addedgeface_mesh(struct wmOperatorType *ot);
-void MESH_OT_mesh_set_smooth_faces(struct wmOperatorType *ot);
-void MESH_OT_mesh_set_solid_faces(struct wmOperatorType *ot);
+void MESH_OT_faces_shade_smooth(struct wmOperatorType *ot);
+void MESH_OT_faces_shade_solid(struct wmOperatorType *ot);
+
+void MESH_OT_delete(struct wmOperatorType *ot);
 
 #endif // MESH_INTERN_H
 

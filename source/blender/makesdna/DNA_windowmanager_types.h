@@ -38,6 +38,7 @@ struct wmWindowManager;
 struct wmWindow;
 
 struct wmEvent;
+struct wmGesture;
 struct wmOperatorType;
 struct wmOperator;
 
@@ -102,6 +103,8 @@ typedef struct wmWindow {
 	
 	struct wmSubWindow *curswin;	/* internal for wm_subwindow.c only */
 
+	struct wmGesture *tweak;	/* internal for wm_operators.c */
+	
 	int drawmethod, drawfail;	/* internal for wm_draw.c only */
 	void *drawdata;				/* internal for wm_draw.c only */
 	

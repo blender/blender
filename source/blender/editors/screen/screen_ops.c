@@ -38,6 +38,7 @@
 #include "BKE_screen.h"
 #include "BKE_utildefines.h"
 
+#include "DNA_armature_types.h"
 #include "DNA_object_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_curve_types.h"
@@ -163,6 +164,23 @@ int ED_operator_editmesh(bContext *C)
 		return NULL != ((Mesh *)obedit->data)->edit_mesh;
 	return 0;
 }
+
+int ED_operator_editarmature(bContext *C)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	if(obedit && obedit->type==OB_ARMATURE)
+		return NULL != ((bArmature *)obedit->data)->edbo;
+	return 0;
+}
+
+int ED_operator_posemode(bContext *C)
+{
+	Object *obact= CTX_data_active_object(C);
+	if(obact && obact->type==OB_ARMATURE)
+		return (obact->flag & OB_POSEMODE)!=0;
+	return 0;
+}
+
 
 int ED_operator_uvedit(bContext *C)
 {
@@ -1034,6 +1052,8 @@ void SCREEN_OT_screen_full_area(wmOperatorType *ot)
 	
 	ot->exec= screen_full_area_exec;
 	ot->poll= ED_operator_screenactive;
+	ot->flag= OPTYPE_REGISTER;
+
 }
 
 
@@ -1319,14 +1339,10 @@ static int repeat_last_exec(bContext *C, wmOperator *op)
 {
 	wmOperator *lastop= CTX_wm_manager(C)->operators.last;
 	
-	if(lastop) {
-		if(lastop->type->poll==NULL || lastop->type->poll(C)) {
-			printf("repeat %s\n", lastop->type->idname);
-			lastop->type->exec(C, lastop);
-		}
-	}
+	if(lastop)
+		WM_operator_repeat(C, lastop);
 	
-	return OPERATOR_FINISHED;
+	return OPERATOR_CANCELLED;
 }
 
 void SCREEN_OT_repeat_last(wmOperatorType *ot)
@@ -1375,10 +1391,7 @@ static int repeat_history_exec(bContext *C, wmOperator *op)
 		BLI_remlink(&wm->operators, op);
 		BLI_addtail(&wm->operators, op);
 		
-		if(op->type->poll==NULL || op->type->poll(C)) {
-			printf("repeat %s\n", op->type->idname);
-			op->type->exec(C, op);
-		}
+		WM_operator_repeat(C, op);
 	}
 					 
 	return OPERATOR_FINISHED;
@@ -1528,6 +1541,7 @@ void SCREEN_OT_region_foursplit(wmOperatorType *ot)
 	ot->invoke= WM_operator_confirm;
 	ot->exec= region_foursplit_exec;
 	ot->poll= ED_operator_areaactive;
+	ot->flag= OPTYPE_REGISTER;
 }
 
 
@@ -1597,6 +1611,7 @@ void SCREEN_OT_region_flip(wmOperatorType *ot)
 	ot->exec= region_flip_exec;
 	
 	ot->poll= ED_operator_areaactive;
+	ot->flag= OPTYPE_REGISTER;
 	
 	RNA_def_int(ot->srna, "test", 0, INT_MIN, INT_MAX, "test", "", INT_MIN, INT_MAX);
 

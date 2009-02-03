@@ -80,6 +80,7 @@ void sequencer_operatortypes(void)
 
 	WM_operatortype_append(SEQUENCER_OT_view_all);
 	WM_operatortype_append(SEQUENCER_OT_view_selected);
+	WM_operatortype_append(SEQUENCER_OT_view_zoom);
 	
 	/* sequencer_select.c */
 	WM_operatortype_append(SEQUENCER_OT_deselect_all);
@@ -89,6 +90,7 @@ void sequencer_operatortypes(void)
 	WM_operatortype_append(SEQUENCER_OT_select_less);
 	WM_operatortype_append(SEQUENCER_OT_select_pick_linked);
 	WM_operatortype_append(SEQUENCER_OT_select_linked);
+	WM_operatortype_append(SEQUENCER_OT_select_handles);
 	WM_operatortype_append(SEQUENCER_OT_borderselect);
 	
 	/* sequencer_add.c */
@@ -135,6 +137,8 @@ void sequencer_keymap(wmWindowManager *wm)
 
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_view_all", HOMEKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_view_selected", PADPERIOD, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "SEQUENCER_OT_view_zoom", BKEY, KM_PRESS, KM_SHIFT, 0);
+
 	
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_select", SELECTMOUSE, KM_PRESS, 0, 0);
 	RNA_enum_set(WM_keymap_add_item(keymap, "SEQUENCER_OT_select", SELECTMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "type", 1);
@@ -150,8 +154,6 @@ void sequencer_keymap(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_borderselect", BKEY, KM_PRESS, 0, 0);
 	
 	WM_keymap_verify_item(keymap, "ANIM_OT_change_frame", LEFTMOUSE, KM_PRESS, 0, 0);
-
-	WM_keymap_add_item(keymap, "WM_OT_tweak_gesture", SELECTMOUSE, KM_PRESS, 0, 0);
 
 	transform_keymap_for_space(wm, keymap, SPACE_SEQ);
 }

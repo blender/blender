@@ -107,6 +107,12 @@ void ED_undo_push(bContext *C, char *str)
 	}
 }
 
+void ED_undo_push_op(bContext *C, wmOperator *op)
+{
+	/* in future, get undo string info? */
+	ED_undo_push(C, op->type->name);
+}
+
 static int ed_undo_step(bContext *C, wmOperator *op, int step)
 {	
 	Object *obedit= CTX_data_edit_object(C);

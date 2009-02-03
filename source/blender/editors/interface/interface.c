@@ -1144,7 +1144,7 @@ void ui_get_but_vectorf(uiBut *but, float *vec)
 			tot= MIN2(tot, 3);
 
 			for(a=0; a<tot; a++)
-				vec[a]= RNA_property_float_get_array(&but->rnapoin, prop, a);
+				vec[a]= RNA_property_float_get_index(&but->rnapoin, prop, a);
 		}
 	}
 	else if(but->pointype == CHA) {
@@ -1178,7 +1178,7 @@ void ui_set_but_vectorf(uiBut *but, float *vec)
 			tot= MIN2(tot, 3);
 
 			for(a=0; a<tot; a++)
-				RNA_property_float_set_array(&but->rnapoin, prop, a, vec[a]);
+				RNA_property_float_set_index(&but->rnapoin, prop, a, vec[a]);
 		}
 	}
 	else if(but->pointype == CHA) {
@@ -1218,19 +1218,19 @@ double ui_get_but_val(uiBut *but)
 		switch(RNA_property_type(&but->rnapoin, prop)) {
 			case PROP_BOOLEAN:
 				if(RNA_property_array_length(&but->rnapoin, prop))
-					value= RNA_property_boolean_get_array(&but->rnapoin, prop, but->rnaindex);
+					value= RNA_property_boolean_get_index(&but->rnapoin, prop, but->rnaindex);
 				else
 					value= RNA_property_boolean_get(&but->rnapoin, prop);
 				break;
 			case PROP_INT:
 				if(RNA_property_array_length(&but->rnapoin, prop))
-					value= RNA_property_int_get_array(&but->rnapoin, prop, but->rnaindex);
+					value= RNA_property_int_get_index(&but->rnapoin, prop, but->rnaindex);
 				else
 					value= RNA_property_int_get(&but->rnapoin, prop);
 				break;
 			case PROP_FLOAT:
 				if(RNA_property_array_length(&but->rnapoin, prop))
-					value= RNA_property_float_get_array(&but->rnapoin, prop, but->rnaindex);
+					value= RNA_property_float_get_index(&but->rnapoin, prop, but->rnaindex);
 				else
 					value= RNA_property_float_get(&but->rnapoin, prop);
 				break;
@@ -1282,19 +1282,19 @@ void ui_set_but_val(uiBut *but, double value)
 			switch(RNA_property_type(&but->rnapoin, prop)) {
 				case PROP_BOOLEAN:
 					if(RNA_property_array_length(&but->rnapoin, prop))
-						RNA_property_boolean_set_array(&but->rnapoin, prop, but->rnaindex, value);
+						RNA_property_boolean_set_index(&but->rnapoin, prop, but->rnaindex, value);
 					else
 						RNA_property_boolean_set(&but->rnapoin, prop, value);
 					break;
 				case PROP_INT:
 					if(RNA_property_array_length(&but->rnapoin, prop))
-						RNA_property_int_set_array(&but->rnapoin, prop, but->rnaindex, value);
+						RNA_property_int_set_index(&but->rnapoin, prop, but->rnaindex, value);
 					else
 						RNA_property_int_set(&but->rnapoin, prop, value);
 					break;
 				case PROP_FLOAT:
 					if(RNA_property_array_length(&but->rnapoin, prop))
-						RNA_property_float_set_array(&but->rnapoin, prop, but->rnaindex, value);
+						RNA_property_float_set_index(&but->rnapoin, prop, but->rnaindex, value);
 					else
 						RNA_property_float_set(&but->rnapoin, prop, value);
 					break;

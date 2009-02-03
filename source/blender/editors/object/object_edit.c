@@ -140,7 +140,6 @@
 
 /* ************* XXX **************** */
 static void allqueue() {}
-static void BIF_undo_push() {}
 static void error() {}
 static void waitcursor() {}
 static int pupmenu() {return 0;}
@@ -329,7 +328,9 @@ void OBJECT_OT_object_add(wmOperatorType *ot)
 	ot->exec= object_add_exec;
 	
 	ot->poll= ED_operator_scene_editable;
-	ot->flag= OPTYPE_REGISTER;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	RNA_def_enum(ot->srna, "type", prop_object_types, 0, "Type", "");
 }
@@ -413,7 +414,9 @@ void OBJECT_OT_mesh_add(wmOperatorType *ot)
 	ot->exec= object_add_mesh_exec;
 	
 	ot->poll= ED_operator_scene_editable;
-	ot->flag= OPTYPE_REGISTER;
+	
+	/* flags */
+	ot->flag= 0;
 	
 	RNA_def_enum(ot->srna, "type", prop_mesh_types, 0, "Primitive", "");
 }
@@ -466,7 +469,9 @@ void OBJECT_OT_curve_add(wmOperatorType *ot)
 	ot->exec= object_add_curve_exec;
 	
 	ot->poll= ED_operator_scene_editable;
-	ot->flag= OPTYPE_REGISTER;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	RNA_def_enum(ot->srna, "type", prop_curve_types, 0, "Primitive", "");
 }
@@ -503,7 +508,9 @@ void OBJECT_OT_primitive_add(wmOperatorType *ot)
 	ot->invoke= object_add_primitive_invoke;
 	
 	ot->poll= ED_operator_scene_editable;
-	ot->flag= OPTYPE_REGISTER;
+	
+	/* flags */
+	ot->flag= 0;
 }
 
 
@@ -581,7 +588,6 @@ void delete_obj(Scene *scene, View3D *v3d, int ok)
 	DAG_scene_sort(scene);
 	ED_anim_dag_flush_update(C);	
 
-	BIF_undo_push("Delete object(s)");
 }
 
 static void single_object_users__forwardModifierLinks(void *userData, Object *ob, Object **obpoin)
@@ -1224,7 +1230,6 @@ void add_hook_menu(Scene *scene, View3D *v3d)
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSOBJECT, 0);
 	
-	BIF_undo_push("Add hook");
 }
 
 /* ******************** clear parent operator ******************* */
@@ -1260,8 +1265,6 @@ static int clear_parent_exec(bContext *C, wmOperator *op)
 	DAG_scene_sort(CTX_data_scene(C));
 	ED_anim_dag_flush_update(C);
 	
-	ED_undo_push(C,"Clear Parent");	
-	
 	return OPERATOR_FINISHED;
 }
 
@@ -1276,7 +1279,9 @@ void OBJECT_OT_clear_parent(wmOperatorType *ot)
 	ot->exec= clear_parent_exec;
 	
 	ot->poll= ED_operator_object_active;
-	ot->flag= OPTYPE_REGISTER;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	RNA_def_enum(ot->srna, "type", prop_clear_parent_types, 0, "Type", "");
 }
@@ -1310,8 +1315,6 @@ static int object_clear_track_exec(bContext *C, wmOperator *op)
 	DAG_scene_sort(CTX_data_scene(C));
 	ED_anim_dag_flush_update(C);
 
-	ED_undo_push(C,"Clear Track");	
-	
 	return OPERATOR_FINISHED;
 }
 
@@ -1326,7 +1329,9 @@ void OBJECT_OT_clear_track(wmOperatorType *ot)
 	ot->exec= object_clear_track_exec;
 	
 	ot->poll= ED_operator_scene_editable;
-	ot->flag= OPTYPE_REGISTER;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	RNA_def_enum(ot->srna, "type", prop_clear_track_types, 0, "Type", "");
 }
@@ -1348,8 +1353,6 @@ static int object_select_by_type_exec(bContext *C, wmOperator *op)
 	}
 	CTX_DATA_END;
 	
-	/* undo? */
-	ED_undo_push(C,"Select By Type");
 	WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, CTX_data_scene(C));
 	
 	return OPERATOR_FINISHED;
@@ -1365,6 +1368,9 @@ void OBJECT_OT_select_by_type(wmOperatorType *ot)
 	ot->invoke= WM_menu_invoke;
 	ot->exec= object_select_by_type_exec;
 	ot->poll= ED_operator_scene_editable;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	RNA_def_enum(ot->srna, "type", prop_object_types, 0, "Type", "");
 
@@ -1498,10 +1504,10 @@ static int object_select_linked_exec(bContext *C, wmOperator *op)
 	
 	if (changed) {
 		WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, CTX_data_scene(C));
-		ED_undo_push(C,"Select linked");
+		return OPERATOR_FINISHED;
 	}
 	
-	return OPERATOR_FINISHED;
+	return OPERATOR_CANCELLED;
 }
 
 void OBJECT_OT_select_linked(wmOperatorType *ot)
@@ -1514,6 +1520,9 @@ void OBJECT_OT_select_linked(wmOperatorType *ot)
 	ot->invoke= WM_menu_invoke;
 	ot->exec= object_select_linked_exec;
 	ot->poll= ED_operator_scene_editable;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	RNA_def_enum(ot->srna, "type", prop_select_linked_types, 0, "Type", "");
 
@@ -1533,7 +1542,6 @@ static int object_select_by_layer_exec(bContext *C, wmOperator *op)
 	CTX_DATA_END;
 	
 	/* undo? */
-	ED_undo_push(C,"Select By Layer");
 	WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, CTX_data_scene(C));
 	
 	return OPERATOR_FINISHED;
@@ -1550,6 +1558,9 @@ void OBJECT_OT_select_by_layer(wmOperatorType *ot)
 	ot->exec= object_select_by_layer_exec;
 	ot->poll= ED_operator_scene_editable;
 	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
 	RNA_def_int(ot->srna, "layer", 1, 1, 20, "Layer", "", 1, 20);
 }
 
@@ -1565,7 +1576,6 @@ static int object_select_invert_exec(bContext *C, wmOperator *op)
 	CTX_DATA_END;
 	
 	/* undo? */
-	ED_undo_push(C,"Selection Invert");
 	WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, CTX_data_scene(C));
 	
 	return OPERATOR_FINISHED;
@@ -1581,7 +1591,10 @@ void OBJECT_OT_select_invert(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= object_select_invert_exec;
 	ot->poll= ED_operator_scene_editable;
-
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
 }
 /* ****** (de)select All *******/
 
@@ -1609,7 +1622,6 @@ static int object_de_select_all_exec(bContext *C, wmOperator *op)
 	
 	/* undo? */
 	WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, CTX_data_scene(C));
-	ED_undo_push(C,"(De)Select All");
 	
 	return OPERATOR_FINISHED;
 }
@@ -1624,7 +1636,10 @@ void OBJECT_OT_de_select_all(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= object_de_select_all_exec;
 	ot->poll= ED_operator_scene_editable;
-
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
 }
 /* ****** random selection *******/
 
@@ -1632,17 +1647,15 @@ static int object_select_random_exec(bContext *C, wmOperator *op)
 {	
 	float percent;
 	
-	percent = RNA_float_get(op->ptr, "percent");
+	percent = RNA_float_get(op->ptr, "percent") / 100.0f;
 		
 	CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
-		if ((!base->flag & SELECT && (BLI_frand() * 100) < percent)) {
+		if ((!base->flag & SELECT && BLI_frand() < percent)) {
 				ED_base_object_select(base, BA_SELECT);
 		}
 	}
 	CTX_DATA_END;
 	
-	/* undo? */
-	ED_undo_push(C,"Select Random");
 	WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, CTX_data_scene(C));
 	
 	return OPERATOR_FINISHED;
@@ -1659,7 +1672,10 @@ void OBJECT_OT_select_random(wmOperatorType *ot)
 	ot->exec = object_select_random_exec;
 	ot->poll= ED_operator_scene_editable;
 	
-	RNA_def_float(ot->srna, "percent", 50.0f, 0.0f, FLT_MAX, "Percent", "1", 0.01f, 100.0f);
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	RNA_def_float(ot->srna, "percent", 50.0f, 0.0f, 100.0f, "Percent", "percentage of objects to randomly select", 0.01f, 100.0f);
 }
 
 /* ******** Clear object Translation *********** */
@@ -1694,7 +1710,6 @@ static int object_clear_location_exec(bContext *C, wmOperator *op)
 
 	if(armature_clear==0) /* in this case flush was done */
 		ED_anim_dag_flush_update(C);	
-	ED_undo_push(C,"Clear Location");
 	
 	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
 	
@@ -1713,6 +1728,9 @@ void OBJECT_OT_clear_location(wmOperatorType *ot)
 	ot->invoke= WM_operator_confirm;
 	ot->exec= object_clear_location_exec;
 	ot->poll= ED_operator_object_active;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 static int object_clear_rotation_exec(bContext *C, wmOperator *op)
@@ -1746,7 +1764,6 @@ static int object_clear_rotation_exec(bContext *C, wmOperator *op)
 
 	if(armature_clear==0) /* in this case flush was done */
 		ED_anim_dag_flush_update(C);	
-	ED_undo_push(C,"Clear Rotation");
 	
 	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
 	
@@ -1765,6 +1782,9 @@ void OBJECT_OT_clear_rotation(wmOperatorType *ot)
 	ot->invoke= WM_operator_confirm;
 	ot->exec= object_clear_rotation_exec;
 	ot->poll= ED_operator_object_active;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 static int object_clear_scale_exec(bContext *C, wmOperator *op)
@@ -1803,7 +1823,6 @@ static int object_clear_scale_exec(bContext *C, wmOperator *op)
 	
 	if(armature_clear==0) /* in this case flush was done */
 		ED_anim_dag_flush_update(C);	
-	ED_undo_push(C,"Clear Scale");
 	
 	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, CTX_data_scene(C));
 	
@@ -1821,6 +1840,9 @@ void OBJECT_OT_clear_scale(wmOperatorType *ot)
 	ot->invoke= WM_operator_confirm;
 	ot->exec= object_clear_scale_exec;
 	ot->poll= ED_operator_object_active;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 static int object_clear_origin_exec(bContext *C, wmOperator *op)
@@ -1846,7 +1868,6 @@ static int object_clear_origin_exec(bContext *C, wmOperator *op)
 
 	if(armature_clear==0) /* in this case flush was done */
 		ED_anim_dag_flush_update(C);	
-	ED_undo_push(C,"Clear origin");
 	
 	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
 	
@@ -1864,6 +1885,9 @@ void OBJECT_OT_clear_origin(wmOperatorType *ot)
 	ot->invoke= WM_operator_confirm;
 	ot->exec= object_clear_origin_exec;
 	ot->poll= ED_operator_object_active;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* ********* clear/set restrict view *********/
@@ -1885,7 +1909,6 @@ static int object_clear_restrictview_exec(bContext *C, wmOperator *op)
 		}
 	}
 	if (changed) {
-		ED_undo_push(C,"Unhide Objects");
 		DAG_scene_sort(scene);
 		WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, scene);
 	}
@@ -1904,6 +1927,9 @@ void OBJECT_OT_clear_restrictview(wmOperatorType *ot)
 	ot->invoke= WM_operator_confirm;
 	ot->exec= object_clear_restrictview_exec;
 	ot->poll= ED_operator_view3d_active;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 static EnumPropertyItem prop_set_restrictview_types[] = {
@@ -1939,8 +1965,6 @@ static int object_set_restrictview_exec(bContext *C, wmOperator *op)
 	CTX_DATA_END;
 
 	if (changed) {
-		if(RNA_enum_is_equal(op->ptr, "type", "SELECTED")) ED_undo_push(C,"Hide Selected Objects");
-		else if(RNA_enum_is_equal(op->ptr, "type", "UNSELECTED")) ED_undo_push(C,"Hide Unselected Objects");
 		DAG_scene_sort(scene);
 		
 		WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, CTX_data_scene(C));
@@ -1961,6 +1985,9 @@ void OBJECT_OT_set_restrictview(wmOperatorType *ot)
 	ot->exec= object_set_restrictview_exec;
 	ot->poll= ED_operator_view3d_active;
 	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
 	RNA_def_enum(ot->srna, "type", prop_set_restrictview_types, 0, "Type", "");
 	
 }
@@ -1977,7 +2004,6 @@ static int object_set_slowparent_exec(bContext *C, wmOperator *op)
 	CTX_DATA_END;
 
 	ED_anim_dag_flush_update(C);	
-	ED_undo_push(C,"Set Slow Parent");
 	
 	WM_event_add_notifier(C, NC_SCENE, CTX_data_scene(C));
 	
@@ -1995,6 +2021,9 @@ void OBJECT_OT_set_slowparent(wmOperatorType *ot)
 	ot->invoke= WM_operator_confirm;
 	ot->exec= object_set_slowparent_exec;
 	ot->poll= ED_operator_view3d_active;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 static int object_clear_slowparent_exec(bContext *C, wmOperator *op)
@@ -2015,7 +2044,6 @@ static int object_clear_slowparent_exec(bContext *C, wmOperator *op)
 	CTX_DATA_END;
 
 	ED_anim_dag_flush_update(C);	
-	ED_undo_push(C,"Clear Slow Parent");
 	
 	WM_event_add_notifier(C, NC_SCENE, CTX_data_scene(C));
 	
@@ -2033,6 +2061,9 @@ void OBJECT_OT_clear_slowparent(wmOperatorType *ot)
 	ot->invoke= WM_operator_confirm;
 	ot->exec= object_clear_slowparent_exec;
 	ot->poll= ED_operator_view3d_active;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 /* ******************** **************** */
 
@@ -2174,7 +2205,6 @@ void make_vertex_parent(Scene *scene, Object *obedit, View3D *v3d)
 	allqueue(REDRAWVIEW3D, 0);
 	
 	DAG_scene_sort(scene);
-	/* BIF_undo_push(str); not, conflicts with editmode undo... */
 }
 
 static Object *group_objects_menu(Group *group)
@@ -2260,7 +2290,6 @@ void make_proxy(Scene *scene)
 		DAG_scene_sort(scene);
 		DAG_object_flush_update(scene, newob, OB_RECALC);
 		allqueue(REDRAWALL, 0);
-		BIF_undo_push("Make Proxy Object");
 	}
 }
 
@@ -2417,8 +2446,6 @@ static int make_parent_exec(bContext *C, wmOperator *op)
 	DAG_scene_sort(CTX_data_scene(C));
 	ED_anim_dag_flush_update(C);	
 	
-	ED_undo_push(C,"make Parent");
-	
 	return OPERATOR_FINISHED;
 }
 
@@ -2446,7 +2473,7 @@ static int make_parent_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	
 	uiPupMenuEnd(C, head);
 	
-	return OPERATOR_RUNNING_MODAL;
+	return OPERATOR_CANCELLED;
 }
 
 
@@ -2461,7 +2488,9 @@ void OBJECT_OT_make_parent(wmOperatorType *ot)
 	ot->exec= make_parent_exec;
 	
 	ot->poll= ED_operator_object_active;
-	ot->flag= OPTYPE_REGISTER;
+	
+	/* flags */
+	ot->flag= 0;
 	
 	RNA_def_enum(ot->srna, "type", prop_make_parent_types, 0, "Type", "");
 }
@@ -2538,8 +2567,6 @@ static int make_track_exec(bContext *C, wmOperator *op)
 	DAG_scene_sort(CTX_data_scene(C));
 	ED_anim_dag_flush_update(C);	
 	
-	BIF_undo_push("make track");
-	
 	return OPERATOR_FINISHED;
 }
 
@@ -2554,7 +2581,9 @@ void OBJECT_OT_make_track(wmOperatorType *ot)
 	ot->exec= make_track_exec;
 	
 	ot->poll= ED_operator_scene_editable;
-	ot->flag= OPTYPE_REGISTER;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	RNA_def_enum(ot->srna, "type", prop_make_track_types, 0, "Type", "");
 }
@@ -2620,8 +2649,6 @@ static int object_make_dupli_real_exec(bContext *C, wmOperator *op)
 	ED_anim_dag_flush_update(C);	
 	WM_event_add_notifier(C, NC_SCENE, CTX_data_scene(C));
 	
-	ED_undo_push(C,"Make duplicates real");	
-	
 	return OPERATOR_FINISHED;
 }
 
@@ -2637,6 +2664,9 @@ void OBJECT_OT_make_dupli_real(wmOperatorType *ot)
 	ot->exec= object_make_dupli_real_exec;
 	
 	ot->poll= ED_operator_scene_editable;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 /* ******************* Set Object Center ********************** */
 
@@ -2960,8 +2990,7 @@ static int object_set_center_exec(bContext *C, wmOperator *op)
 	if (tot_change) {
 		ED_anim_dag_flush_update(C);
 		allqueue(REDRAWVIEW3D, 0);
-		ED_undo_push(C,"Do Center");	
-		}
+	}
 	
 	/* Warn if any errors occured */
 	if (tot_lib_error+tot_multiuser_arm_error) {
@@ -2985,7 +3014,9 @@ void OBJECT_OT_set_center(wmOperatorType *ot)
 	ot->exec= object_set_center_exec;
 	
 	ot->poll= ED_operator_view3d_active;
-	ot->flag= OPTYPE_REGISTER;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	RNA_def_enum(ot->srna, "type", prop_set_center_types, 0, "Type", "");
 }
@@ -3183,6 +3214,9 @@ void OBJECT_OT_editmode_toggle(wmOperatorType *ot)
 	ot->exec= toggle_editmode_exec;
 	
 	ot->poll= ED_operator_object_active;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* *************************** */
@@ -3250,7 +3284,6 @@ void movetolayer(Scene *scene, View3D *v3d)
 	allqueue(REDRAWOOPS, 0);
 	allqueue(REDRAWINFO, 0);
 	
-	BIF_undo_push("Move to layer");
 }
 
 
@@ -3444,7 +3477,6 @@ void special_editmenu(Scene *scene, View3D *v3d)
 			DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
 			allqueue(REDRAWVIEW3D, 0);
 			allqueue(REDRAWBUTSEDIT, 0);
-			BIF_undo_push("Change texture face");
 		}
 		else if(G.f & G_VERTEXPAINT) {
 			Mesh *me= get_mesh(ob);
@@ -3456,8 +3488,6 @@ void special_editmenu(Scene *scene, View3D *v3d)
 				
 // XXX				do_shared_vertexcol(me);
 				
-				BIF_undo_push("Shared VertexCol");
-
 				DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
 			}
 		}
@@ -3546,7 +3576,6 @@ void special_editmenu(Scene *scene, View3D *v3d)
 								} else if (ret==-2) {
 									error("Both meshes must be a closed mesh");
 								}
-								else BIF_undo_push("Boolean");
 								waitcursor(0);
 							} else {
 								BooleanModifierData *bmd = NULL;
@@ -3560,7 +3589,6 @@ void special_editmenu(Scene *scene, View3D *v3d)
 									case 6:	bmd->operation = eBooleanModifierOp_Difference; break;
 								}
 // XXX								do_common_editbuts(B_CHANGEDEP);
-								BIF_undo_push("Add Boolean modifier");								
 							}								
 						} else {
 							error("Please select 2 meshes");
@@ -3593,13 +3621,11 @@ void special_editmenu(Scene *scene, View3D *v3d)
 			waitcursor(1);
 			esubdivideflag(1, 0.0, scene->toolsettings->editbutflag, 1, 0);
 			
-			BIF_undo_push("ESubdivide Single");            
 			break;
 		case 2:
 			if(button(&numcuts, 1, 128, "Number of Cuts:")==0) return;
 			waitcursor(1);
 			esubdivideflag(1, 0.0, scene->toolsettings->editbutflag, numcuts, 0);
-			BIF_undo_push("ESubdivide");
 			break;
 		case 3:
 			if(button(&numcuts, 1, 128, "Number of Cuts:")==0) return;
@@ -3608,7 +3634,6 @@ void special_editmenu(Scene *scene, View3D *v3d)
 			waitcursor(1);			
 			fac= -( (float)randfac )/100;
 			esubdivideflag(1, fac, scene->toolsettings->editbutflag, numcuts, 0);
-			BIF_undo_push("Subdivide Fractal");
 			break;
 			
 		case 4:
@@ -3618,7 +3643,6 @@ void special_editmenu(Scene *scene, View3D *v3d)
 			
 			waitcursor(1);
 			esubdivideflag(1, fac, scene->toolsettings->editbutflag | B_SMOOTH, 1, 0);
-			BIF_undo_push("Subdivide Smooth");
 			break;		
 		}
 		*/
@@ -3630,13 +3654,11 @@ void special_editmenu(Scene *scene, View3D *v3d)
 			waitcursor(1);
 // XXX			esubdivideflag(1, 0.0, scene->toolsettings->editbutflag, 1, 0);
 			
-			BIF_undo_push("ESubdivide Single");            
 			break;
 		case 2:
 // XXX			if(button(&numcuts, 1, 128, "Number of Cuts:")==0) return;
 			waitcursor(1);
 // XXX			esubdivideflag(1, 0.0, scene->toolsettings->editbutflag, numcuts, 0);
-			BIF_undo_push("ESubdivide");
 			break;
 		case 3:
 // XXX			if(button(&numcuts, 1, 128, "Number of Cuts:")==0) return;
@@ -3645,7 +3667,6 @@ void special_editmenu(Scene *scene, View3D *v3d)
 			waitcursor(1);			
 			fac= -( (float)randfac )/100;
 // XXX			esubdivideflag(1, fac, scene->toolsettings->editbutflag, numcuts, 0);
-			BIF_undo_push("Subdivide Fractal");
 			break;
 			
 		case 12:	/* smooth */
@@ -3656,7 +3677,6 @@ void special_editmenu(Scene *scene, View3D *v3d)
 			
 			waitcursor(1);
 // XXX			esubdivideflag(1, fac, scene->toolsettings->editbutflag | B_SMOOTH, 1, 0);
-			BIF_undo_push("Subdivide Smooth");
 			break;		
 
 		case 4:
@@ -3664,7 +3684,6 @@ void special_editmenu(Scene *scene, View3D *v3d)
 			break;
 		case 5:
 // XXX			notice("Removed %d Vertices", removedoublesflag(1, 0, scene->toolsettings->doublimit));
-			BIF_undo_push("Remove Doubles");
 			break;
 		case 6:
 // XXX			hide_mesh(0);
@@ -3677,7 +3696,6 @@ void special_editmenu(Scene *scene, View3D *v3d)
 			break;
 		case 9:
 // XXX			flip_editnormals();
-			BIF_undo_push("Flip Normals");
 			break;
 		case 10:
 // XXX			vertexsmooth();
@@ -3699,7 +3717,6 @@ void special_editmenu(Scene *scene, View3D *v3d)
 			break;
 		case 18:
 // XXX			pathselect();
-			BIF_undo_push("Select Vertex Path");
 			break;
 		}
 		
@@ -4007,7 +4024,6 @@ void convertmenu(Scene *scene, View3D *v3d)
 	allqueue(REDRAWOOPS, 0);
 //	allspace(OOPS_TEST, 0);
 	allqueue(REDRAWBUTSEDIT, 0);
-	BIF_undo_push("Convert Object");
 
 	DAG_scene_sort(scene);
 }
@@ -4151,10 +4167,6 @@ void flip_subdivison(Scene *scene, View3D *v3d, int level)
 	allqueue(REDRAWBUTSEDIT, 0);
 	allqueue(REDRAWBUTSOBJECT, 0);
 	ED_anim_dag_flush_update(C);	
-	if(particles)
-		BIF_undo_push("Switch particles on/off");
-	else
-		BIF_undo_push("Switch subsurf on/off");
 }
  
 static void copymenu_properties(Scene *scene, View3D *v3d, Object *ob)
@@ -4216,7 +4228,6 @@ static void copymenu_properties(Scene *scene, View3D *v3d, Object *ob)
 	MEM_freeN(str);
 	allqueue(REDRAWVIEW3D, 0);
 	
-	BIF_undo_push("Copy properties");
 }
 
 static void copymenu_logicbricks(Scene *scene, View3D *v3d, Object *ob)
@@ -4251,7 +4262,6 @@ static void copymenu_logicbricks(Scene *scene, View3D *v3d, Object *ob)
 			}
 		}
 	}
-	BIF_undo_push("Copy logic");
 }
 
 static void copymenu_modifiers(Scene *scene, View3D *v3d, Object *ob)
@@ -4355,7 +4365,6 @@ static void copymenu_modifiers(Scene *scene, View3D *v3d, Object *ob)
 	allqueue(REDRAWBUTSOBJECT, 0);
 	DAG_scene_sort(scene);
 	
-	BIF_undo_push("Copy modifiers");
 }
 
 /* both pointers should exist */
@@ -4653,7 +4662,6 @@ void copy_attr(Scene *scene, View3D *v3d, short event)
 		allqueue(REDRAWBUTSOBJECT, 0);
 	}
 	
-	BIF_undo_push("Copy Attributes");
 }
 
 void copy_attr_menu(Scene *scene, View3D *v3d)
@@ -4858,7 +4866,6 @@ void make_links(Scene *scene, View3D *v3d, short event)
 
 	ED_anim_dag_flush_update(C);	
 
-	BIF_undo_push("Create links");
 }
 
 void make_links_menu(Scene *scene, View3D *v3d)
@@ -4998,7 +5005,6 @@ static void apply_objects_internal(Scene *scene, View3D *v3d, int apply_scale, i
 				/* texspace and normals */
 				BASACT= base;
 // XXX				ED_object_enter_editmode(C, 0);
-				BIF_undo_push("Applied object");	/* editmode undo itself */
 // XXX				ED_object_exit_editmode(C, EM_FREEDATA|EM_WAITCURSOR); /* freedata, but no undo */
 				BASACT= basact;
 				
@@ -5074,7 +5080,6 @@ static void apply_objects_internal(Scene *scene, View3D *v3d, int apply_scale, i
 				/* texspace and normals */
 				BASACT= base;
 // XXX				ED_object_enter_editmode(C, 0);
-				BIF_undo_push("Applied object");	/* editmode undo itself */
 // XXX				ED_object_exit_editmode(C, EM_FREEDATA|EM_WAITCURSOR); /* freedata, but no undo */
 				BASACT= basact;
 				
@@ -5088,12 +5093,6 @@ static void apply_objects_internal(Scene *scene, View3D *v3d, int apply_scale, i
 	}
 	if (change) {
 		allqueue(REDRAWVIEW3D, 0);
-		if (apply_scale && apply_rot)
-			BIF_undo_push("Apply Objects Scale & Rotation");
-		else if (apply_scale)
-			BIF_undo_push("Apply Objects Scale");
-		else
-			BIF_undo_push("Apply Objects Rotation");
 	}
 }
 
@@ -5133,7 +5132,6 @@ void apply_objects_visual_tx( Scene *scene, View3D *v3d )
 	}
 	if (change) {
 		allqueue(REDRAWVIEW3D, 0);
-		BIF_undo_push("Apply Objects Visual Transform");
 	}
 }
 
@@ -5558,7 +5556,6 @@ void single_user(Scene *scene, View3D *v3d)
 		clear_id_newpoins();
 
 		allqueue(REDRAWALL, 0);
-		BIF_undo_push("Single user");
 	}
 }
 
@@ -5730,7 +5727,6 @@ void make_local(Scene *scene, View3D *v3d, int mode)
 	}
 
 	allqueue(REDRAWALL, 0);
-	BIF_undo_push("Make local");
 }
 
 void make_local_menu(Scene *scene, View3D *v3d)
@@ -6024,6 +6020,9 @@ void OBJECT_OT_add_duplicate(wmOperatorType *ot)
 	
 	ot->poll= ED_operator_scene_editable;
 	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
 	/* to give to transform */
 	RNA_def_int(ot->srna, "mode", TFM_TRANSLATION, 0, INT_MAX, "Mode", "", 0, INT_MAX);
 }
@@ -6089,7 +6088,6 @@ void image_aspect(Scene *scene, View3D *v3d)
 	}
 	
 	allqueue(REDRAWVIEW3D, 0);
-	BIF_undo_push("Image aspect");
 }
 
 void set_ob_ipoflags(Scene *scene, View3D *v3d)
@@ -6178,7 +6176,6 @@ void select_select_keys(Scene *scene, View3D *v3d)
 //	allspace(REMAKEIPO, 0);
 	allqueue(REDRAWIPO, 0);
 
-	BIF_undo_push("Select keys");
 #endif  // XXX old animation system
 }
 
@@ -6410,10 +6407,6 @@ void hookmenu(Scene *scene, View3D *v3d)
 	}
 	
 	if (changed) {
-		if (event==1)
-			BIF_undo_push("Clear hook offset for selected");
-		else if (event==2)
-			BIF_undo_push("Hook cursor center for selected");
 		
 		allqueue(REDRAWVIEW3D, 0);
 		allqueue(REDRAWBUTSEDIT, 0);

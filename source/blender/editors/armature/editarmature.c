@@ -74,12 +74,16 @@
 
 #include "BIF_gl.h"
 
+#include "RNA_access.h"
+#include "RNA_define.h"
+
 #include "WM_api.h"
 #include "WM_types.h"
 
 #include "ED_armature.h"
 #include "ED_mesh.h"
 #include "ED_object.h"
+#include "ED_screen.h"
 #include "ED_util.h"
 #include "ED_view3d.h"
 
@@ -4055,6 +4059,8 @@ void create_vgroups_from_armature(Scene *scene, Object *ob, Object *par)
 	}
 } 
 
+/* ************* hide/unhide pose bones ******************* */
+
 static int hide_selected_pose_bone(Object *ob, Bone *bone, void *ptr) 
 {
 	bArmature *arm= ob->data;
@@ -4066,20 +4072,6 @@ static int hide_selected_pose_bone(Object *ob, Bone *bone, void *ptr)
 		}
 	}
 	return 0;
-}
-
-/* active object is armature */
-void hide_selected_pose_bones(Object *ob) 
-{
-	bArmature *arm= ob->data;
-
-	if (!arm)
-		return;
-
-	bone_looper(ob, arm->bonebase.first, NULL, 
-				hide_selected_pose_bone);
-	
-	BIF_undo_push("Hide Bones");
 }
 
 static int hide_unselected_pose_bone(Object *ob, Bone *bone, void *ptr) 
@@ -4096,15 +4088,40 @@ static int hide_unselected_pose_bone(Object *ob, Bone *bone, void *ptr)
 	return 0;
 }
 
-/* active object is armature */
-void hide_unselected_pose_bones(Object *ob) 
+/* active object is armature in posemode, poll checked */
+static int pose_hide_exec(bContext *C, wmOperator *op) 
 {
-	bArmature		*arm= ob->data;
+	Object *ob= CTX_data_active_object(C);
+	bArmature *arm= ob->data;
 
-	bone_looper(ob, arm->bonebase.first, NULL, 
+	if(RNA_boolean_get(op->ptr, "invert"))
+	   bone_looper(ob, arm->bonebase.first, NULL, 
 				hide_unselected_pose_bone);
+	else
+	   bone_looper(ob, arm->bonebase.first, NULL, 
+				   hide_selected_pose_bone);
+	
+	/* note, notifier might evolve */
+	WM_event_add_notifier(C, NC_OBJECT|ND_BONE_SELECT, ob);
+	
+	return OPERATOR_FINISHED;
+}
 
-	BIF_undo_push("Hide Unselected Bone");
+void POSE_OT_hide(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Hide Selection";
+	ot->idname= "POSE_OT_hide";
+	
+	/* api callbacks */
+	ot->exec= pose_hide_exec;
+	ot->poll= ED_operator_posemode;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* props */
+	RNA_def_boolean(ot->srna, "invert", 0, "Invert", "");
 }
 
 static int show_pose_bone(Object *ob, Bone *bone, void *ptr) 
@@ -4117,21 +4134,40 @@ static int show_pose_bone(Object *ob, Bone *bone, void *ptr)
 			bone->flag |= BONE_SELECTED;
 		}
 	}
-
+	
 	return 0;
 }
 
-/* active object is armature in posemode */
-void show_all_pose_bones(Object *ob) 
+/* active object is armature in posemode, poll checked */
+static int pose_reveil_exec(bContext *C, wmOperator *op) 
 {
-	bArmature		*arm= ob->data;
+	Object *ob= CTX_data_active_object(C);
+	bArmature *arm= ob->data;
+	
+	bone_looper(ob, arm->bonebase.first, NULL, show_pose_bone);
+	
+	/* note, notifier might evolve */
+	WM_event_add_notifier(C, NC_OBJECT|ND_BONE_SELECT, ob);
 
-	bone_looper(ob, arm->bonebase.first, NULL, 
-				show_pose_bone);
-
-	BIF_undo_push("Reveal Bones");
+	return OPERATOR_FINISHED;
 }
 
+void POSE_OT_reveil(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Reveil Selection";
+	ot->idname= "POSE_OT_reveil";
+	
+	/* api callbacks */
+	ot->exec= pose_reveil_exec;
+	ot->poll= ED_operator_posemode;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* props */
+	RNA_def_boolean(ot->srna, "invert", 0, "Invert", "");
+}
 
 /* ************* RENAMING DISASTERS ************ */
 

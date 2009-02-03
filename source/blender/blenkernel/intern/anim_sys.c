@@ -200,19 +200,19 @@ static short animsys_write_rna_setting (PointerRNA *ptr, char *path, int array_i
 			{
 				case PROP_BOOLEAN:
 					if (RNA_property_array_length(&new_ptr, prop))
-						RNA_property_boolean_set_array(&new_ptr, prop, array_index, (int)value);
+						RNA_property_boolean_set_index(&new_ptr, prop, array_index, (int)value);
 					else
 						RNA_property_boolean_set(&new_ptr, prop, (int)value);
 					break;
 				case PROP_INT:
 					if (RNA_property_array_length(&new_ptr, prop))
-						RNA_property_int_set_array(&new_ptr, prop, array_index, (int)value);
+						RNA_property_int_set_index(&new_ptr, prop, array_index, (int)value);
 					else
 						RNA_property_int_set(&new_ptr, prop, (int)value);
 					break;
 				case PROP_FLOAT:
 					if (RNA_property_array_length(&new_ptr, prop))
-						RNA_property_float_set_array(&new_ptr, prop, array_index, value);
+						RNA_property_float_set_index(&new_ptr, prop, array_index, value);
 					else
 						RNA_property_float_set(&new_ptr, prop, value);
 					break;
@@ -448,7 +448,7 @@ static void nlatrack_ctime_get_strip (ListBase *list, NlaTrack *nlt, short index
 	
 	
 	/* allocate new eval-strip for this strip + add to stack */
-	nes= MEM_callocN(sizeof(NlaEvalStrip), "bNlaEvalStrip");
+	nes= MEM_callocN(sizeof(NlaEvalStrip), "NlaEvalStrip");
 	
 	nes->track= nlt;
 	nes->strip= astrip;
@@ -473,7 +473,7 @@ static void nlastrip_ctime_evaluate (ListBase *channels, NlaEvalStrip *nes, floa
 /* write the accumulated settings to */
 static void nladata_flush_channels (PointerRNA *ptr, ListBase *channels)
 {
-
+	
 }
 
 /* ---------------------- */

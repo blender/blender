@@ -248,6 +248,9 @@ void ANIM_OT_previewrange_define(wmOperatorType *ot)
 	
 	ot->poll= ED_operator_areaactive;
 	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
 	/* rna */
 		/* used to define frame range */
 	RNA_def_int(ot->srna, "xmin", 0, INT_MIN, INT_MAX, "X Min", "", INT_MIN, INT_MAX);
@@ -274,8 +277,6 @@ static int previewrange_clear_exec(bContext *C, wmOperator *op)
 	
 	ED_area_tag_redraw(curarea);
 	
-	//BIF_undo_push("Clear Preview Range");
-	
 	return OPERATOR_FINISHED;
 } 
 
@@ -287,6 +288,11 @@ void ANIM_OT_previewrange_clear(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= previewrange_clear_exec;
+	
+	ot->poll= ED_operator_areaactive;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* ****************** time display toggle operator ****************************/
@@ -349,6 +355,8 @@ void ANIM_OT_time_toggle(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= toggle_time_exec;
+	
+	ot->poll= ED_operator_areaactive;
 }
 
 /* ************************** registration **********************************/
