@@ -213,7 +213,7 @@ void WM_exit(bContext *C)
 	BPY_end_python();
 #endif
 	
-//	fastshade_free_render();	/* shaded view */
+	fastshade_free_render();	/* shaded view */
 	ED_preview_free_dbase();	/* frees a Main dbase, before free_blender! */
 	free_blender();				/* blender.c, does entire library and spacetypes */
 //	free_matcopybuf();

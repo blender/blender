@@ -66,6 +66,9 @@
 #include "BKE_object.h"
 #include "BKE_utildefines.h"
 
+#include "WM_api.h"
+#include "WM_types.h"
+
 #include "ED_anim_api.h"
 #include "ED_keyframes_edit.h"
 #include "ED_object.h"
@@ -2759,7 +2762,7 @@ void addsegment_nurb(Scene *scene)
 
 void mouse_nurb(bContext *C, short mval[2], int extend)
 {
-	Object *obedit= CTX_data_edit_object(C); // XXX
+	Object *obedit= CTX_data_edit_object(C); 
 	ListBase *editnurb= curve_get_editcurve(obedit);
 	Curve *cu= obedit->data;
 	ViewContext vc;
@@ -2812,7 +2815,7 @@ void mouse_nurb(bContext *C, short mval[2], int extend)
 
 	}
 
-//	rightmouse_transform();
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 	
 	if(nu!=get_actNurb(obedit)) {
 		set_actNurb(obedit, nu);

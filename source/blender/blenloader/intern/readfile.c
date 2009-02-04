@@ -3672,6 +3672,17 @@ static void direct_link_object(FileData *fd, Object *ob)
 
 /* ************ READ SCENE ***************** */
 
+/* patch for missing scene IDs, can't be in do-versions */
+static void composite_patch(bNodeTree *ntree, Scene *scene)
+{
+	bNode *node;
+	
+	for(node= ntree->nodes.first; node; node= node->next)
+		if(node->id==NULL && node->type==CMP_NODE_R_LAYERS)
+			node->id= &scene->id;
+}
+
+
 static void lib_link_scene(FileData *fd, Main *main)
 {
 	Scene *sce;
@@ -3736,8 +3747,10 @@ static void lib_link_scene(FileData *fd, Main *main)
 			
 			lib_link_scriptlink(fd, &sce->id, &sce->scriptlink);
 			
-			if(sce->nodetree)
+			if(sce->nodetree) {
 				lib_link_ntree(fd, &sce->id, sce->nodetree);
+				composite_patch(sce->nodetree, sce);
+			}
 			
 			for(srl= sce->r.layers.first; srl; srl= srl->next) {
 				srl->mat_override= newlibadr_us(fd, sce->id.lib, srl->mat_override);

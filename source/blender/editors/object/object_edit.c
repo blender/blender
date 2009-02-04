@@ -526,69 +526,52 @@ void ED_base_object_free_and_unlink(Scene *scene, Base *base)
 	MEM_freeN(base);
 }
 
-void delete_obj(Scene *scene, View3D *v3d, int ok)
+static int object_delete_exec(bContext *C, wmOperator *op)
 {
-	Base *base, *nbase;
+	Scene *scene= CTX_data_scene(C);
 	int islamp= 0;
 	
-	if(scene->obedit) return; // XXX get from context
-	if(scene->id.lib) return;
+	if(CTX_data_edit_object(C)) 
+		return OPERATOR_CANCELLED;
+	
+	ED_view3d_exit_paint_modes(C);
 
-	for(base= FIRSTBASE; base; base= nbase) {
-		nbase= base->next;
+	CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
 
-		if(TESTBASE(v3d, base)) { 
-			if(ok==0) {
-				int shift= 0; // XXX
-				/* Shift Del is global delete */
-				if (shift) {
-					if(!okee("Erase selected Object(s) Globally")) return;
-					ok= 2;
-				} else {
-					if(!okee("Erase selected Object(s)")) return;
-					ok= 1;
-				}
-			}
-			
-//			ED_view3d_exit_paint_modes(C);
-
-			if(base->object->type==OB_LAMP) islamp= 1;
-
-			if (ok==2) {
-				Scene *scene; 
-				Base *base_other;
-				
-				for (scene= G.main->scene.first; scene; scene= scene->id.next) {
-					if (scene != scene && !(scene->id.lib)) {
-						base_other= object_in_scene( base->object, scene );
-						if (base_other) {
-							ED_base_object_free_and_unlink( scene, base_other );
-						}
-					}
-				}
-			}
-			
-			/* remove from current scene only */
-			ED_base_object_free_and_unlink(scene, base);
-		}
+		if(base->object->type==OB_LAMP) islamp= 1;
+		
+		/* remove from current scene only */
+		ED_base_object_free_and_unlink(scene, base);
 	}
+	CTX_DATA_END;
 
 	if(islamp) reshadeall_displist(scene);	/* only frees displist */
-
-// XXX	redraw_test_buttons(OBACT);
-	allqueue(REDRAWVIEW3D, 0);
-	allqueue (REDRAWACTION, 0);
-	allqueue(REDRAWIPO, 0);
-	allqueue(REDRAWDATASELECT, 0);
-//	allspace(OOPS_TEST, 0);
-	allqueue(REDRAWOOPS, 0);
-	allqueue(REDRAWACTION, 0);
-	allqueue(REDRAWNLA, 0);
 	
 	DAG_scene_sort(scene);
-	ED_anim_dag_flush_update(C);	
-
+	ED_anim_dag_flush_update(C);
+	
+	WM_event_add_notifier(C, NC_SCENE|ND_OB_ACTIVE, CTX_data_scene(C));
+	
+	return OPERATOR_FINISHED;
 }
+
+void OBJECT_OT_delete(wmOperatorType *ot)
+{
+	
+	/* identifiers */
+	ot->name= "Delete Objects";
+	ot->idname= "OBJECT_OT_delete";
+	
+	/* api callbacks */
+	ot->invoke= WM_operator_confirm;
+	ot->exec= object_delete_exec;
+	ot->poll= ED_operator_scene_editable;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+}
+
 
 static void single_object_users__forwardModifierLinks(void *userData, Object *ob, Object **obpoin)
 {

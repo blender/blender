@@ -47,7 +47,6 @@
 #include "BKE_report.h"
 #include "BKE_utildefines.h"
 
-#include "ED_anim_api.h"
 #include "ED_screen.h"
 #include "ED_space_api.h"
 #include "ED_util.h"

@@ -35,21 +35,14 @@
 #include "DNA_armature_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_space_types.h"
-#include "DNA_texture_types.h"
-#include "DNA_view3d_types.h"
-#include "DNA_windowmanager_types.h"
 
 #include "BLI_blenlib.h"
 
 #include "BKE_action.h"
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
-#include "BKE_global.h"
-#include "BKE_scene.h"
 #include "BKE_main.h"
-#include "BKE_node.h"
+#include "BKE_scene.h"
 #include "BKE_utildefines.h"
 
 #include "RNA_access.h"
@@ -62,22 +55,7 @@
 #include "WM_types.h"
 
 /* ***************** depsgraph calls and anim updates ************* */
-
-static unsigned int screen_view3d_layers(bScreen *screen)
-{
-	if(screen) {
-		unsigned int layer= screen->scene->lay;	/* as minimum this */
-		ScrArea *sa;
-		
-		/* get all used view3d layers */
-		for(sa= screen->areabase.first; sa; sa= sa->next) {
-			if(sa->spacetype==SPACE_VIEW3D)
-				layer |= ((View3D *)sa->spacedata.first)->lay;
-		}
-		return layer;
-	}
-	return 0;
-}
+/* ***************** only these can be called from editors ******** */
 
 /* generic update flush, reads from context Screen (layers) and scene */
 /* this is for compliancy, later it can do all windows etc */
@@ -86,7 +64,7 @@ void ED_anim_dag_flush_update(const bContext *C)
 	Scene *scene= CTX_data_scene(C);
 	bScreen *screen= CTX_wm_screen(C);
 	
-	DAG_scene_flush_update(scene, screen_view3d_layers(screen), 0);
+	DAG_scene_flush_update(scene, ED_screen_view3d_layers(screen), 0);
 }
 
 /* flushes changes from object to all relations in scene */
@@ -95,45 +73,9 @@ void ED_anim_object_flush_update(const bContext *C, Object *ob)
 	Scene *scene= CTX_data_scene(C);
 	bScreen *screen= CTX_wm_screen(C);
 	
-	DAG_object_update_flags(scene, ob, screen_view3d_layers(screen));
+	DAG_object_update_flags(scene, ob, ED_screen_view3d_layers(screen));
 }
 
-
-/* results in fully updated anim system */
-/* in future sound should be on WM level, only 1 sound can play! */
-void ED_update_for_newframe(const bContext *C, int mute)
-{
-	bScreen *screen= CTX_wm_screen(C);
-	Scene *scene= screen->scene;
-	
-	//extern void audiostream_scrub(unsigned int frame);	/* seqaudio.c */
-	
-	/* this function applies the changes too */
-	/* XXX future: do all windows */
-	scene_update_for_newframe(scene, screen_view3d_layers(screen)); /* BKE_scene.h */
-	
-	//if ( (CFRA>1) && (!mute) && (scene->audio.flag & AUDIO_SCRUB)) 
-	//	audiostream_scrub( CFRA );
-	
-	/* 3d window, preview */
-	//BIF_view3d_previewrender_signal(curarea, PR_DBASE|PR_DISPRECT);
-	
-	/* all movie/sequence images */
-	//BIF_image_update_frame();
-	
-	/* composite */
-	if(scene->use_nodes && scene->nodetree)
-		ntreeCompositTagAnimated(scene->nodetree);
-	
-	/* update animated texture nodes */
-	{
-		Tex *tex;
-		for(tex= G.main->tex.first; tex; tex= tex->id.next)
-			if( tex->use_nodes && tex->nodetree ) {
-				ntreeTexTagAnimated( tex->nodetree );
-			}
-	}
-}
 
 /* **************************** animation tool notifiers ******************************** */
 

@@ -84,6 +84,9 @@ void	ED_screen_animation_timer(struct bContext *C, int enable);
 void	ED_screen_full_newspace(struct bContext *C, ScrArea *sa, int type);
 void	ED_screen_full_prevspace(struct bContext *C);
 
+/* anim */
+void	ED_update_for_newframe(const struct bContext *C, int mute);
+unsigned int ED_screen_view3d_layers(struct bScreen *screen);
 
 void	ED_operatortypes_screen(void);
 void	ED_keymap_screen(struct wmWindowManager *wm);
@@ -104,6 +107,7 @@ int		ED_operator_buttons_active(struct bContext *C);
 int		ED_operator_node_active(struct bContext *C);
 int		ED_operator_ipo_active(struct bContext *C);
 int		ED_operator_sequencer_active(struct bContext *C);
+int		ED_operator_image_active(struct bContext *C);
 
 int		ED_operator_object_active(struct bContext *C);
 int		ED_operator_editmesh(struct bContext *C);

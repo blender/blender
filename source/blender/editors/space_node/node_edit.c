@@ -513,7 +513,7 @@ void node_composit_default(Scene *sce)
 	out= nodeAddNodeType(sce->nodetree, CMP_NODE_COMPOSITE, NULL, NULL);
 	out->locx= 300.0f; out->locy= 400.0f;
 	
-	in= nodeAddNodeType(sce->nodetree, CMP_NODE_R_LAYERS, NULL, NULL);
+	in= nodeAddNodeType(sce->nodetree, CMP_NODE_R_LAYERS, NULL, &sce->id);
 	in->locx= 10.0f; in->locy= 400.0f;
 	nodeSetActive(sce->nodetree, in);
 	

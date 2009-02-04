@@ -39,6 +39,7 @@
 #include "BLI_blenlib.h"
 
 #include "BKE_context.h"
+#include "BKE_global.h"
 #include "BKE_screen.h"
 
 #include "ED_screen.h"
@@ -60,9 +61,10 @@
 
 /* ************************ header area region *********************** */
 
+#define B_STOPRENDER 1
+
 static void do_viewmenu(bContext *C, void *arg, int event)
 {
-	
 }
 
 static uiBlock *dummy_viewmenu(bContext *C, ARegion *ar, void *arg_unused)
@@ -95,6 +97,9 @@ static uiBlock *dummy_viewmenu(bContext *C, ARegion *ar, void *arg_unused)
 static void do_info_buttons(bContext *C, void *arg, int event)
 {
 	switch(event) {
+		case B_STOPRENDER:
+			G.afbreek= 1;
+			break;
 	}
 }
 
@@ -139,13 +144,14 @@ void info_header_buttons(const bContext *C, ARegion *ar)
 		xmax= GetButStringLength("Help");
 		uiDefPulldownBut(block, dummy_viewmenu, NULL, "Help",	xco, yco, xmax-3, 22, "");
 		xco+= xmax;
-		
-		
-		
 	}
 	
 	uiBlockSetEmboss(block, UI_EMBOSS);
 
+	if(WM_jobs_test(CTX_wm_manager(C), CTX_data_scene(C))) {
+		uiDefIconTextBut(block, BUT, B_STOPRENDER, ICON_REC, "Render", xco+5,yco,75,19, NULL, 0.0f, 0.0f, 0, 0, "Stop rendering");
+	}
+	
 	/* always as last  */
 	UI_view2d_totRect_set(&ar->v2d, xco+XIC+80, ar->v2d.tot.ymax-ar->v2d.tot.ymin);
 	

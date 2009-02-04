@@ -1013,6 +1013,10 @@ Render *RE_NewRender(const char *name)
 		strncpy(re->name, name, RE_MAXNAME);
 	}
 	
+	/* prevent UI to draw old results immediately */
+	RE_FreeRenderResult(re->result);
+	re->result= NULL;
+	
 	/* set default empty callbacks */
 	re->display_init= result_nothing;
 	re->display_clear= result_nothing;
@@ -1948,8 +1952,11 @@ static void render_scene(Render *re, Scene *sce, int cfra)
 
 	/* copy callbacks */
 	resc->display_draw= re->display_draw;
+	resc->ddh= re->ddh;
 	resc->test_break= re->test_break;
+	resc->tbh= re->tbh;
 	resc->stats_draw= re->stats_draw;
+	resc->sdh= re->sdh;
 	
 	do_render_fields_blur_3d(resc);
 }

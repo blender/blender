@@ -121,6 +121,10 @@ static void image_verify_buffer_float(SpaceImage *sima, ImBuf *ibuf)
 			else 
 				IMB_rect_from_float(ibuf);
 		}
+		else if(sima->pad) {
+			sima->pad= 0; // XXX temp for render updates!
+			IMB_rect_from_float(ibuf);
+		}
 	}
 }
 
@@ -667,6 +671,8 @@ void draw_image_main(SpaceImage *sima, ARegion *ar, Scene *scene)
 	}
 #endif
 
+	/* put scene context variable in iuser */
+	sima->iuser.scene= scene;
 	/* retrieve the image and information about it */
 	ima= get_space_image(sima);
 	ibuf= get_space_image_buffer(sima);

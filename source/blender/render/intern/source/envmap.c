@@ -142,7 +142,9 @@ static Render *envmap_render_copy(Render *re, EnvMap *env)
 	
 	/* callbacks */
 	envre->display_draw= re->display_draw;
+	envre->ddh= re->ddh;
 	envre->test_break= re->test_break;
+	envre->tbh= re->tbh;
 	
 	/* and for the evil stuff; copy the database... */
 	envre->totvlak= re->totvlak;

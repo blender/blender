@@ -31,6 +31,7 @@
 #include "DNA_vec_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_texture_types.h"
 
 #include "BLI_blenlib.h"
 
@@ -38,7 +39,9 @@
 #include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
+#include "BKE_node.h"
 #include "BKE_screen.h"
+#include "BKE_scene.h"
 #include "BKE_utildefines.h"
 
 #include "BIF_gl.h"
@@ -1225,10 +1228,9 @@ void ed_screen_set(bContext *C, bScreen *sc)
 }
 
 /* this function toggles: if area is full then the parent will be restored */
-void ed_screen_fullarea(bContext *C)
+void ed_screen_fullarea(bContext *C, ScrArea *sa)
 {
 	bScreen *sc, *oldscreen;
-	ScrArea *sa= CTX_wm_area(C);
 	
 	if(sa==NULL) {
 		return;
@@ -1260,7 +1262,7 @@ void ed_screen_fullarea(bContext *C)
 				// in autoplay screens the headers are disabled by 
 				// default. So use the old headertype instead
 			
-			area_copy_data(old, CTX_wm_area(C), 1);	/*  1 = swap spacelist */
+			area_copy_data(old, sa, 1);	/*  1 = swap spacelist */
 			
 			old->full= NULL;
 			
@@ -1280,8 +1282,8 @@ void ed_screen_fullarea(bContext *C)
 		oldscreen= CTX_wm_screen(C);
 
 		/* is there only 1 area? */
-		if(oldscreen->areabase.first==CTX_wm_screen(C)->areabase.last) return;
-		if(CTX_wm_area(C)->spacetype==SPACE_INFO) return;
+		if(oldscreen->areabase.first==oldscreen->areabase.last) return;
+		if(sa->spacetype==SPACE_INFO) return;
 		
 		oldscreen->full = SCREENFULL;
 		
@@ -1297,9 +1299,9 @@ void ed_screen_fullarea(bContext *C)
 
 		/* copy area */
 		newa= newa->prev;
-		area_copy_data(newa, CTX_wm_area(C), 1);	/* 1 = swap spacelist */
+		area_copy_data(newa, sa, 1);	/* 1 = swap spacelist */
 
-		CTX_wm_area(C)->full= oldscreen;
+		sa->full= oldscreen;
 		newa->full= oldscreen;
 		newa->next->full= oldscreen;
 
@@ -1316,8 +1318,9 @@ void ed_screen_fullarea(bContext *C)
 void ED_screen_full_newspace(bContext *C, ScrArea *sa, int type)
 {
 	if(sa->full==0)
-		ed_screen_fullarea(C);
+		ed_screen_fullarea(C, sa);
 
+	/* CTX_wm_area(C) is new area */
 	ED_area_newspace(C, CTX_wm_area(C), type);
 }
 
@@ -1328,7 +1331,7 @@ void ED_screen_full_prevspace(bContext *C)
 	ED_area_prevspace(C);
 	
 	if(sa->full)
-		ed_screen_fullarea(C);
+		ed_screen_fullarea(C, sa);
 }
 
 void ED_screen_animation_timer(bContext *C, int enable)
@@ -1344,4 +1347,58 @@ void ED_screen_animation_timer(bContext *C, int enable)
 	if(enable)
 		screen->animtimer= WM_event_add_window_timer(win, TIMER0, (1.0/FPS));
 }
+
+unsigned int ED_screen_view3d_layers(bScreen *screen)
+{
+	if(screen) {
+		unsigned int layer= screen->scene->lay;	/* as minimum this */
+		ScrArea *sa;
+		
+		/* get all used view3d layers */
+		for(sa= screen->areabase.first; sa; sa= sa->next) {
+			if(sa->spacetype==SPACE_VIEW3D)
+				layer |= ((View3D *)sa->spacedata.first)->lay;
+		}
+		return layer;
+	}
+	return 0;
+}
+
+
+/* results in fully updated anim system */
+/* in future sound should be on WM level, only 1 sound can play! */
+void ED_update_for_newframe(const bContext *C, int mute)
+{
+	bScreen *screen= CTX_wm_screen(C);
+	Scene *scene= screen->scene;
+	
+	//extern void audiostream_scrub(unsigned int frame);	/* seqaudio.c */
+	
+	/* this function applies the changes too */
+	/* XXX future: do all windows */
+	scene_update_for_newframe(scene, ED_screen_view3d_layers(screen)); /* BKE_scene.h */
+	
+	//if ( (CFRA>1) && (!mute) && (scene->audio.flag & AUDIO_SCRUB)) 
+	//	audiostream_scrub( CFRA );
+	
+	/* 3d window, preview */
+	//BIF_view3d_previewrender_signal(curarea, PR_DBASE|PR_DISPRECT);
+	
+	/* all movie/sequence images */
+	//BIF_image_update_frame();
+	
+	/* composite */
+	if(scene->use_nodes && scene->nodetree)
+		ntreeCompositTagAnimated(scene->nodetree);
+	
+	/* update animated texture nodes */
+	{
+		Tex *tex;
+		for(tex= G.main->tex.first; tex; tex= tex->id.next)
+			if( tex->use_nodes && tex->nodetree ) {
+				ntreeTexTagAnimated( tex->nodetree );
+			}
+	}
+}
+
 
