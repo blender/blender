@@ -244,7 +244,6 @@ typedef enum eActionGroup_Flag {
  * It serves as a 'unit' of reusable animation information (i.e. keyframes/motion data), that 
  * affects a group of related settings (as defined by the user). 
  */
-// XXX use this as drop-in replacement at some point...
 typedef struct bAction {
 	ID 	id;				/* ID-serialisation for relinking */
 	

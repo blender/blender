@@ -351,6 +351,76 @@ static char *shapekey_adrcodes_to_paths (int adrcode, int *array_index)
 	return buf;
 }
 
+/* MTex (Texture Slot) types */
+static char *mtex_adrcodes_to_paths (int adrcode, int *array_index)
+{
+	char *base=NULL, *prop=NULL;
+	static char buf[128];
+	
+	/* base part of path */
+	if (adrcode & MA_MAP1) base= "textures[0]";
+	else if (adrcode & MA_MAP2) base= "textures[1]";
+	else if (adrcode & MA_MAP3) base= "textures[2]";
+	else if (adrcode & MA_MAP4) base= "textures[3]";
+	else if (adrcode & MA_MAP5) base= "textures[4]";
+	else if (adrcode & MA_MAP6) base= "textures[5]";
+	else if (adrcode & MA_MAP7) base= "textures[6]";
+	else if (adrcode & MA_MAP8) base= "textures[7]";
+	else if (adrcode & MA_MAP9) base= "textures[8]";
+	else if (adrcode & MA_MAP10) base= "textures[9]";
+	else if (adrcode & MA_MAP11) base= "textures[10]";
+	else if (adrcode & MA_MAP12) base= "textures[11]";
+	else if (adrcode & MA_MAP13) base= "textures[12]";
+	else if (adrcode & MA_MAP14) base= "textures[13]";
+	else if (adrcode & MA_MAP15) base= "textures[14]";
+	else if (adrcode & MA_MAP16) base= "textures[15]";
+	else if (adrcode & MA_MAP17) base= "textures[16]";
+	else if (adrcode & MA_MAP18) base= "textures[17]";
+		
+	/* property identifier for path */
+	adrcode= (adrcode & (MA_MAP1-1));
+	switch (adrcode) {
+#if 0 // XXX these are not wrapped in RNA yet!
+		case MAP_OFS_X:
+			poin= &(mtex->ofs[0]); break;
+		case MAP_OFS_Y:
+			poin= &(mtex->ofs[1]); break;
+		case MAP_OFS_Z:
+			poin= &(mtex->ofs[2]); break;
+		case MAP_SIZE_X:
+			poin= &(mtex->size[0]); break;
+		case MAP_SIZE_Y:
+			poin= &(mtex->size[1]); break;
+		case MAP_SIZE_Z:
+			poin= &(mtex->size[2]); break;
+		case MAP_R:
+			poin= &(mtex->r); break;
+		case MAP_G:
+			poin= &(mtex->g); break;
+		case MAP_B:
+			poin= &(mtex->b); break;
+		case MAP_DVAR:
+			poin= &(mtex->def_var); break;
+		case MAP_COLF:
+			poin= &(mtex->colfac); break;
+		case MAP_NORF:
+			poin= &(mtex->norfac); break;
+		case MAP_VARF:
+			poin= &(mtex->varfac); break;
+#endif
+		case MAP_DISP:
+			prop= "warp_factor"; break;
+	}
+	
+	/* only build and return path if there's a property */
+	if (prop) {
+		BLI_snprintf(buf, 128, "%s.%s", base, prop);
+		return buf;
+	}
+	else
+		return NULL;
+}
+
 /* Texture types */
 static char *texture_adrcodes_to_paths (int adrcode, int *array_index)
 {
@@ -465,8 +535,10 @@ static char *material_adrcodes_to_paths (int adrcode, int *array_index)
 			
 		case MA_REF:
 			return "diffuse_reflection";
-			
-		// XXX add other types...
+		
+		
+		default: /* for now, we assume that the others were MTex channels */
+			return mtex_adrcodes_to_paths(adrcode, array_index);
 	}
 	
 	return NULL;
@@ -500,30 +572,6 @@ static char *material_adrcodes_to_paths (int adrcode, int *array_index)
 		poin= &(ma->fresnel_tra_i); break;
 	case MA_ADD:
 		poin= &(ma->add); break;
-	
-	if (poin == NULL) {
-		if (icu->adrcode & MA_MAP1) mtex= ma->mtex[0];
-		else if (icu->adrcode & MA_MAP2) mtex= ma->mtex[1];
-		else if (icu->adrcode & MA_MAP3) mtex= ma->mtex[2];
-		else if (icu->adrcode & MA_MAP4) mtex= ma->mtex[3];
-		else if (icu->adrcode & MA_MAP5) mtex= ma->mtex[4];
-		else if (icu->adrcode & MA_MAP6) mtex= ma->mtex[5];
-		else if (icu->adrcode & MA_MAP7) mtex= ma->mtex[6];
-		else if (icu->adrcode & MA_MAP8) mtex= ma->mtex[7];
-		else if (icu->adrcode & MA_MAP9) mtex= ma->mtex[8];
-		else if (icu->adrcode & MA_MAP10) mtex= ma->mtex[9];
-		else if (icu->adrcode & MA_MAP12) mtex= ma->mtex[11];
-		else if (icu->adrcode & MA_MAP11) mtex= ma->mtex[10];
-		else if (icu->adrcode & MA_MAP13) mtex= ma->mtex[12];
-		else if (icu->adrcode & MA_MAP14) mtex= ma->mtex[13];
-		else if (icu->adrcode & MA_MAP15) mtex= ma->mtex[14];
-		else if (icu->adrcode & MA_MAP16) mtex= ma->mtex[15];
-		else if (icu->adrcode & MA_MAP17) mtex= ma->mtex[16];
-		else if (icu->adrcode & MA_MAP18) mtex= ma->mtex[17];
-		
-		if (mtex)
-			poin= give_mtex_poin(mtex, (icu->adrcode & (MA_MAP1-1)));
-	}
 #endif
 	
 }
@@ -600,33 +648,10 @@ static char *lamp_adrcodes_to_paths (int adrcode, int *array_index)
 			
 		case LA_HALOINT:
 			return "halo_intensity";
-	}
-	
-#if 0 // XXX to be converted
-		if (poin == NULL) {
-			if (icu->adrcode & MA_MAP1) mtex= la->mtex[0];
-			else if (icu->adrcode & MA_MAP2) mtex= la->mtex[1];
-			else if (icu->adrcode & MA_MAP3) mtex= la->mtex[2];
-			else if (icu->adrcode & MA_MAP4) mtex= la->mtex[3];
-			else if (icu->adrcode & MA_MAP5) mtex= la->mtex[4];
-			else if (icu->adrcode & MA_MAP6) mtex= la->mtex[5];
-			else if (icu->adrcode & MA_MAP7) mtex= la->mtex[6];
-			else if (icu->adrcode & MA_MAP8) mtex= la->mtex[7];
-			else if (icu->adrcode & MA_MAP9) mtex= la->mtex[8];
-			else if (icu->adrcode & MA_MAP10) mtex= la->mtex[9];
-			else if (icu->adrcode & MA_MAP11) mtex= la->mtex[10];
-			else if (icu->adrcode & MA_MAP12) mtex= la->mtex[11];
-			else if (icu->adrcode & MA_MAP13) mtex= la->mtex[12];
-			else if (icu->adrcode & MA_MAP14) mtex= la->mtex[13];
-			else if (icu->adrcode & MA_MAP15) mtex= la->mtex[14];
-			else if (icu->adrcode & MA_MAP16) mtex= la->mtex[15];
-			else if (icu->adrcode & MA_MAP17) mtex= la->mtex[16];
-			else if (icu->adrcode & MA_MAP18) mtex= la->mtex[17];
 			
-			if (mtex)
-				poin= give_mtex_poin(mtex, (icu->adrcode & (MA_MAP1-1)));
-		}
-#endif // XXX to be converted
+		default: /* for now, we assume that the others were MTex channels */
+			return mtex_adrcodes_to_paths(adrcode, array_index);
+	}
 	
 	/* unrecognised adrcode, or not-yet-handled ones! */
 	return NULL;
@@ -1490,45 +1515,6 @@ void do_versions_ipos_to_animato(Main *main)
 
 /* --------------------- Get Pointer API ----------------------------- */ 
 
-/* get texture-slot/mapping channel */
-void *give_mtex_poin (MTex *mtex, int adrcode)
-{
-	void *poin= NULL;
-	
-	switch (adrcode) {
-	case MAP_OFS_X:
-		poin= &(mtex->ofs[0]); break;
-	case MAP_OFS_Y:
-		poin= &(mtex->ofs[1]); break;
-	case MAP_OFS_Z:
-		poin= &(mtex->ofs[2]); break;
-	case MAP_SIZE_X:
-		poin= &(mtex->size[0]); break;
-	case MAP_SIZE_Y:
-		poin= &(mtex->size[1]); break;
-	case MAP_SIZE_Z:
-		poin= &(mtex->size[2]); break;
-	case MAP_R:
-		poin= &(mtex->r); break;
-	case MAP_G:
-		poin= &(mtex->g); break;
-	case MAP_B:
-		poin= &(mtex->b); break;
-	case MAP_DVAR:
-		poin= &(mtex->def_var); break;
-	case MAP_COLF:
-		poin= &(mtex->colfac); break;
-	case MAP_NORF:
-		poin= &(mtex->norfac); break;
-	case MAP_VARF:
-		poin= &(mtex->varfac); break;
-	case MAP_DISP:
-		poin= &(mtex->dispfac); break;
-	}
-	
-	/* return pointer */
-	return poin;
-}
 
 /* GS reads the memory pointed at in a specific ordering. There are,
  * however two definitions for it. I have jotted them down here, both,

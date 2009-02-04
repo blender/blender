@@ -2259,6 +2259,11 @@ static int outliner_activate_click(bContext *C, wmOperator *op, wmEvent *event)
 		
 		/* select relevant row */
 		outliner_select(soops, &soops->tree, &row, &selecting);
+		
+		// XXX old flag found in old code, do we still use this?
+		//soops->storeflag |= SO_TREESTORE_REDRAW;
+		
+		BIF_undo_push("Outliner selection event");
 	}
 	
 	ED_region_tag_redraw(ar);
