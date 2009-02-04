@@ -559,17 +559,11 @@ static void view3d_view_viewnavmenu(bContext *C, uiMenuItem *head, void *arg_unu
 	
 //	uiMenuSeparator(head);
 	
-	uiMenuItemEnumO(head, "VIEW3D_OT_view_orbit", "type", V3D_VIEW_STEPLEFT);
-	uiMenuItemEnumO(head, "VIEW3D_OT_view_orbit", "type", V3D_VIEW_STEPRIGHT);
-	uiMenuItemEnumO(head, "VIEW3D_OT_view_orbit", "type", V3D_VIEW_STEPUP);
-	uiMenuItemEnumO(head, "VIEW3D_OT_view_orbit", "type", V3D_VIEW_STEPDOWN);
+	uiMenuItemsEnumO(head, "VIEW3D_OT_view_orbit", "type");
 	
 	uiMenuSeparator(head);
 	
-	uiMenuItemEnumO(head, "VIEW3D_OT_view_pan", "type", V3D_VIEW_PANLEFT);
-	uiMenuItemEnumO(head, "VIEW3D_OT_view_pan", "type", V3D_VIEW_PANRIGHT);
-	uiMenuItemEnumO(head, "VIEW3D_OT_view_pan", "type", V3D_VIEW_PANUP);
-	uiMenuItemEnumO(head, "VIEW3D_OT_view_pan", "type", V3D_VIEW_PANDOWN);
+	uiMenuItemsEnumO(head, "VIEW3D_OT_view_pan", "type");
 	
 	uiMenuSeparator(head);
 	
@@ -597,12 +591,12 @@ static void view3d_viewmenu(bContext *C, uiMenuItem *head, void *arg_unused)
 	
 //	uiMenuSeparator(head);
 	
-	uiMenuItemEnumO(head, "VIEW3D_OT_viewnumpad", "view", V3D_VIEW_CAMERA);
-	uiMenuItemEnumO(head, "VIEW3D_OT_viewnumpad", "view", V3D_VIEW_TOP);
-	uiMenuItemEnumO(head, "VIEW3D_OT_viewnumpad", "view", V3D_VIEW_FRONT);
-	uiMenuItemEnumO(head, "VIEW3D_OT_viewnumpad", "view", V3D_VIEW_RIGHT);
+	uiMenuItemEnumO(head, "VIEW3D_OT_viewnumpad", "type", V3D_VIEW_CAMERA);
+	uiMenuItemEnumO(head, "VIEW3D_OT_viewnumpad", "type", V3D_VIEW_TOP);
+	uiMenuItemEnumO(head, "VIEW3D_OT_viewnumpad", "type", V3D_VIEW_FRONT);
+	uiMenuItemEnumO(head, "VIEW3D_OT_viewnumpad", "type", V3D_VIEW_RIGHT);
 	
-	uiMenuLevel(head, "Cameras", view3d_view_camerasmenu);
+	//uiMenuLevel(head, "Cameras", view3d_view_camerasmenu);
 	
 	uiMenuSeparator(head);
 

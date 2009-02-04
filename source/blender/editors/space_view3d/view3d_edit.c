@@ -1370,7 +1370,7 @@ static int viewnumpad_exec(bContext *C, wmOperator *op)
 	static int perspo=V3D_PERSP;
 	int viewnum;
 
-	viewnum = RNA_enum_get(op->ptr, "view");
+	viewnum = RNA_enum_get(op->ptr, "type");
 
 	/* Use this to test if we started out with a camera */
 
@@ -1463,7 +1463,7 @@ void VIEW3D_OT_viewnumpad(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER;
 	
-	RNA_def_enum(ot->srna, "view", prop_view_items, 0, "View", "");
+	RNA_def_enum(ot->srna, "type", prop_view_items, 0, "View", "The Type of view");
 }
 
 static EnumPropertyItem prop_view_orbit_items[] = {
