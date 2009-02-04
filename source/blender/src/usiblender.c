@@ -668,6 +668,12 @@ int BIF_read_homefile(int from_memory)
 		success = BKE_read_file_from_memory(datatoc_B_blend, datatoc_B_blend_size, NULL);
 		/* outliner patch for 2.42 .b.blend */
 		outliner_242_patch();
+		
+		/* When loading factory settings, the reset solid OpenGL lights need to be applied. */
+		U.light[0].flag=0;
+		U.light[1].flag=0;
+		U.light[2].flag=0;
+		GPU_default_lights();
 	}
 
 	BLI_clean(scestr);
