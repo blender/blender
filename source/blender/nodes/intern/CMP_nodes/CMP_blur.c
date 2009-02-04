@@ -567,6 +567,11 @@ static void node_composit_exec_blur(void *data, bNode *node, bNodeStack **in, bN
 	
 	if(out[0]->hasoutput==0) return;
 	
+	if(nbd->relative) {
+		nbd->sizex= (int)(nbd->percentx*nbd->image_in_width);
+		nbd->sizey= (int)(nbd->percenty*nbd->image_in_height);
+	}
+
 	if (((NodeBlurData *)node->storage)->filtertype == R_FILTER_FAST_GAUSS) {
 		CompBuf *new, *img = in[0]->data;
 		/*from eeshlo's original patch, removed to fit in with the existing blur node */
