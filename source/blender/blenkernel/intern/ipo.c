@@ -936,7 +936,7 @@ static void icu_to_fcurves (ListBase *list, IpoCurve *icu, char *actname, char *
 				fcurve= fcu;
 				
 			/* set path */
-			fcurve->rna_path= adrcode_bitmap_path_copy(abp->path);
+			fcurve->rna_path= BLI_strdupn(abp->path, strlen(abp->path));
 			fcurve->array_index= abp->array_index;
 			
 			/* convert keyframes 

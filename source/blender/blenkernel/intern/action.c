@@ -511,7 +511,7 @@ static float get_actionstrip_frame(bActionStrip *strip, float cframe, int invert
 	repeat = (strip->flag & ACTSTRIP_USESTRIDE) ? (1.0f) : (strip->repeat);
 	
 	if (strip->scale == 0.0f) strip->scale= 1.0f;
-	scale = fabs(strip->scale); /* scale must be positive (for now) */
+	scale = (float)fabs(strip->scale); /* scale must be positive (for now) */
 	
 	actlength = strip->actend-strip->actstart;
 	if (actlength == 0.0f) actlength = 1.0f;

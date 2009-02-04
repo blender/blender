@@ -2249,8 +2249,17 @@ static int outliner_activate_click(bContext *C, wmOperator *op, wmEvent *event)
 	if(te) {
 		BIF_undo_push("Outliner click event");
 	}
-	else 
-		outliner_select(ar, soops);
+	else {
+		short selecting= -1;
+		int row;
+		
+		/* get row number - 100 here is just a dummy value since we don't need the column */
+		UI_view2d_listview_view_to_cell(&ar->v2d, 1000, OL_H, 0.0f, 0.0f, 
+						fmval[0], fmval[1], NULL, &row);
+		
+		/* select relevant row */
+		outliner_select(soops, &soops->tree, &row, &selecting);
+	}
 	
 	ED_region_tag_redraw(ar);
 
@@ -2553,64 +2562,46 @@ void outliner_show_hierarchy(Scene *scene, SpaceOops *soops)
 	BIF_undo_push("Outliner show hierarchy");
 }
 
-#if 0
-static void do_outliner_select(SpaceOops *soops, ListBase *lb, float y1, float y2, short *selecting)
+void outliner_select(SpaceOops *soops, ListBase *lb, int *index, short *selecting)
 {
 	TreeElement *te;
 	TreeStoreElem *tselem;
 	
-	if(y1>y2) SWAP(float, y1, y2);
-	
-	for(te= lb->first; te; te= te->next) {
+	for (te= lb->first; te && *index >= 0; te=te->next, (*index)--) {
 		tselem= TREESTORE(te);
 		
-		if(te->ys + OL_H < y1) return;
-		if(te->ys < y2) {
-			if((te->flag & TE_ICONROW)==0) {
-				if(*selecting == -1) {
-					if( tselem->flag & TSE_SELECTED) *selecting= 0;
-					else *selecting= 1;
+		/* if we've encountered the right item, set its 'Outliner' selection status */
+		if (*index == 0) {
+			/* this should be the last one, so no need to do anything with index */
+			if ((te->flag & TE_ICONROW)==0) {
+				/* -1 value means toggle testing for now... */
+				if (*selecting == -1) {
+					if (tselem->flag & TSE_SELECTED) 
+						*selecting= 0;
+					else 
+						*selecting= 1;
 				}
-				if(*selecting) tselem->flag |= TSE_SELECTED;
-				else tselem->flag &= ~TSE_SELECTED;
+				
+				/* set selection */
+				if (*selecting) 
+					tselem->flag |= TSE_SELECTED;
+				else 
+					tselem->flag &= ~TSE_SELECTED;
 			}
 		}
-		if((tselem->flag & TSE_CLOSED)==0) do_outliner_select(soops, &te->subtree, y1, y2, selecting);
-	}
-}
-#endif
-
-/* its own redraw loop... urm */
-void outliner_select(ARegion *ar, SpaceOops *so)
-{
-#if 0
-	XXX
-	float fmval[2], y1, y2;
-	short yo=-1, selecting= -1;
-	
-	UI_view2d_region_to_view(&ar->v2d, event->x, event->y, fmval, fmval+1);
-	
-	y1= fmval[1];
-
-	while (get_mbut() & (L_MOUSE|R_MOUSE)) {
-		UI_view2d_region_to_view(&ar->v2d, event->x, event->y, fmval, fmval+1);
-		y2= fmval[1];
-		
-		if(yo!=mval[1]) {
-			/* select the 'ouliner row' */
-			do_outliner_select(so, &so->tree, y1, y2, &selecting);
-			yo= mval[1];
-			
-			so->storeflag |= SO_TREESTORE_REDRAW;
-// XXX			screen_swapbuffers();
-		
-			y1= y2;
+		else if ((tselem->flag & TSE_CLOSED)==0) {
+			/* Only try selecting sub-elements if we haven't hit the right element yet
+			 *
+			 * Hack warning:
+			 * 	Index must be reduced before supplying it to the sub-tree to try to do
+			 * 	selection, however, we need to increment it again for the next loop to 
+			 * 	function correctly
+			 */
+			(*index)--;
+			outliner_select(soops, &te->subtree, index, selecting);
+			(*index)++;
 		}
-		else PIL_sleep_ms(30);
 	}
-	
-	BIF_undo_push("Outliner selection");
-#endif
 }
 
 /* ************ SELECTION OPERATIONS ********* */
@@ -3704,20 +3695,19 @@ static void outliner_draw_tree(Scene *scene, ARegion *ar, SpaceOops *soops)
 	
 	glBlendFunc(GL_SRC_ALPHA,  GL_ONE_MINUS_SRC_ALPHA); // only once
 	
-	if(ELEM(soops->outlinevis, SO_DATABLOCKS, SO_USERDEF)) {
-		// struct marks
+	if (ELEM(soops->outlinevis, SO_DATABLOCKS, SO_USERDEF)) {
+		/* struct marks */
 		UI_ThemeColorShadeAlpha(TH_BACK, -15, -200);
 		//UI_ThemeColorShade(TH_BACK, -20);
 		starty= (int)ar->v2d.tot.ymax-OL_H;
 		outliner_draw_struct_marks(ar, soops, &soops->tree, &starty);
 	}
-	else {
-		// selection first
-		UI_GetThemeColor3fv(TH_BACK, col);
-		glColor3f(col[0]+0.06f, col[1]+0.08f, col[2]+0.10f);
-		starty= (int)ar->v2d.tot.ymax-OL_H;
-		outliner_draw_selection(ar, soops, &soops->tree, &starty);
-	}
+	
+	/* always draw selection fill before hierarchy */
+	UI_GetThemeColor3fv(TH_BACK, col);
+	glColor3f(col[0]+0.06f, col[1]+0.08f, col[2]+0.10f);
+	starty= (int)ar->v2d.tot.ymax-OL_H;
+	outliner_draw_selection(ar, soops, &soops->tree, &starty);
 	
 	// grey hierarchy lines
 	UI_ThemeColorBlend(TH_BACK, TH_TEXT, 0.2f);
