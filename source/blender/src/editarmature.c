@@ -4737,7 +4737,7 @@ EditBone * test_subdivideByCorrelation(ReebArc *arc, ReebNode *head, ReebNode *t
 		
 		initArcIterator(iter, arc, head);
 		
-		lastBone = subdivideArcBy(arm, &G.edbo, iter, invmat, tmat, nextCorrelationSubdivision);
+		lastBone = subdivideArcBy(arm, &G.edbo, iter, invmat, tmat, nextAdaptativeSubdivision);
 	}
 	
 	return lastBone;

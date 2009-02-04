@@ -2336,7 +2336,7 @@ static void view3d_panel_bonesketch_spaces(short cntrl)
 
 		uiBlockBeginAlign(block);
 		
-		uiDefButC(block, MENU, B_REDR, "Subdivision Method%t|Length%x2|Correlation%x3|Fixed%x1|Template%x4", 10,yco,60,19, &G.scene->toolsettings->bone_sketching_convert, 0, 0, 0, 0, subdiv_tooltip[(unsigned char)G.scene->toolsettings->bone_sketching_convert]);
+		uiDefButC(block, MENU, B_REDR, "Subdivision Method%t|Length%x2|Adaptative%x3|Fixed%x1|Template%x4", 10,yco,60,19, &G.scene->toolsettings->bone_sketching_convert, 0, 0, 0, 0, subdiv_tooltip[(unsigned char)G.scene->toolsettings->bone_sketching_convert]);
 
 		switch(G.scene->toolsettings->bone_sketching_convert)
 		{
@@ -2344,7 +2344,7 @@ static void view3d_panel_bonesketch_spaces(short cntrl)
 			uiDefButF(block, NUM, B_REDR, 					"Lim:",		70, yco, 140, 19, &G.scene->toolsettings->skgen_length_limit,0.1,50.0, 10, 0,		"Maximum length of the subdivided bones");
 			yco -= 20;
 			break;
-		case SK_CONVERT_CUT_CORRELATION:
+		case SK_CONVERT_CUT_ADAPTATIVE:
 			uiDefButF(block, NUM, B_REDR, 					"Thres:",			70, yco, 140, 19, &G.scene->toolsettings->skgen_correlation_limit,0.0, 1.0, 0.01, 0,	"Correlation threshold for subdivision");
 			yco -= 20;
 			break;

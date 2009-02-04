@@ -886,7 +886,7 @@ typedef struct Scene {
 /* toolsettings->bone_sketching_convert */
 #define	SK_CONVERT_CUT_FIXED			1
 #define	SK_CONVERT_CUT_LENGTH			2
-#define	SK_CONVERT_CUT_CORRELATION		3
+#define	SK_CONVERT_CUT_ADAPTATIVE		3
 #define	SK_CONVERT_RETARGET				4
 
 /* toolsettings->skgen_retarget_options */

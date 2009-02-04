@@ -1316,9 +1316,9 @@ void sk_drawStrokeSubdivision(SK_Stroke *stk)
 					
 					initStrokeIterator(iter, stk, head_index, i);
 
-					if (G.scene->toolsettings->bone_sketching_convert == SK_CONVERT_CUT_CORRELATION)
+					if (G.scene->toolsettings->bone_sketching_convert == SK_CONVERT_CUT_ADAPTATIVE)
 					{
-						drawSubdividedStrokeBy(iter, nextCorrelationSubdivision);
+						drawSubdividedStrokeBy(iter, nextAdaptativeSubdivision);
 					}
 					else if (G.scene->toolsettings->bone_sketching_convert == SK_CONVERT_CUT_LENGTH)
 					{
@@ -2214,9 +2214,9 @@ void sk_convertStroke(SK_Stroke *stk)
 
 					initStrokeIterator(iter, stk, head_index, i);
 					
-					if (G.scene->toolsettings->bone_sketching_convert == SK_CONVERT_CUT_CORRELATION)
+					if (G.scene->toolsettings->bone_sketching_convert == SK_CONVERT_CUT_ADAPTATIVE)
 					{
-						bone = subdivideArcBy(arm, &G.edbo, iter, invmat, tmat, nextCorrelationSubdivision);
+						bone = subdivideArcBy(arm, &G.edbo, iter, invmat, tmat, nextAdaptativeSubdivision);
 					}
 					else if (G.scene->toolsettings->bone_sketching_convert == SK_CONVERT_CUT_LENGTH)
 					{

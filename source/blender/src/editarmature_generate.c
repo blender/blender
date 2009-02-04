@@ -177,7 +177,7 @@ int nextFixedSubdivision(BArcIterator *iter, int start, int end, float head[3], 
 	
 	return -1;
 }
-int nextCorrelationSubdivision(BArcIterator *iter, int start, int end, float head[3], float p[3])
+int nextAdaptativeSubdivision(BArcIterator *iter, int start, int end, float head[3], float p[3])
 {
 	float correlation_threshold = G.scene->toolsettings->skgen_correlation_limit;
 	float *start_p;
