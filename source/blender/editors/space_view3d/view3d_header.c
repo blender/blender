@@ -555,7 +555,7 @@ static void do_view3d_viewmenu(bContext *C, void *arg, int event)
 
 static void view3d_view_viewnavmenu(bContext *C, uiMenuItem *head, void *arg_unused)
 {
-//	uiMenuItemO(head, "VIEW3D_OT_view_fly_mode", ICON_BLANK1);
+//	uiMenuItemO(head, 0, "VIEW3D_OT_view_fly_mode");
 	
 //	uiMenuSeparator(head);
 	
@@ -567,8 +567,8 @@ static void view3d_view_viewnavmenu(bContext *C, uiMenuItem *head, void *arg_unu
 	
 	uiMenuSeparator(head);
 	
-	uiMenuItemFloatO(head, "Zoom in", "VIEW3D_OT_viewzoom", "delta", 1.0f);
-	uiMenuItemFloatO(head, "Zoom out", "VIEW3D_OT_viewzoom", "delta", -1.0f);
+	uiMenuItemFloatO(head, "Zoom in", 0, "VIEW3D_OT_viewzoom", "delta", 1.0f);
+	uiMenuItemFloatO(head, "Zoom out", 0, "VIEW3D_OT_viewzoom", "delta", -1.0f);
 	
 }
 static void view3d_view_alignviewmenu(bContext *C, uiMenuItem *head, void *arg_unused)
@@ -583,33 +583,33 @@ static void view3d_viewmenu(bContext *C, uiMenuItem *head, void *arg_unused)
 {
 	ScrArea *sa= CTX_wm_area(C);
 	
-//	uiMenuItemO(head, "VIEW3D_OT_toggle_transform_orientations_panel", ICON_MENU_PANEL); // Transform Orientations...
-//	uiMenuItemO(head, "VIEW3D_OT_toggle_render_preview_panel", ICON_MENU_PANEL); // render preview...
-//	uiMenuItemO(head, "VIEW3D_OT_toggle_view_properties_panel", ICON_MENU_PANEL); // View Properties....
-//	uiMenuItemO(head, "VIEW3D_OT_toggle_background_image_panel", ICON_MENU_PANEL); // Background Image....
-//	uiMenuItemO(head, "VIEW3D_OT_toggle_grease_pencil_panel", ICON_MENU_PANEL); // Grease Pencil....
+//	uiMenuItemO(head, ICON_MENU_PANEL, "VIEW3D_OT_toggle_transform_orientations_panel"); // Transform Orientations...
+//	uiMenuItemO(head, ICON_MENU_PANEL, "VIEW3D_OT_toggle_render_preview_panel"); // render preview...
+//	uiMenuItemO(head, ICON_MENU_PANEL, "VIEW3D_OT_toggle_view_properties_panel"); // View Properties....
+//	uiMenuItemO(head, ICON_MENU_PANEL, "VIEW3D_OT_toggle_background_image_panel"); // Background Image....
+//	uiMenuItemO(head, ICON_MENU_PANEL, "VIEW3D_OT_toggle_grease_pencil_panel"); // Grease Pencil....
 	
 //	uiMenuSeparator(head);
 	
-	uiMenuItemEnumO(head, "VIEW3D_OT_viewnumpad", "type", V3D_VIEW_CAMERA);
-	uiMenuItemEnumO(head, "VIEW3D_OT_viewnumpad", "type", V3D_VIEW_TOP);
-	uiMenuItemEnumO(head, "VIEW3D_OT_viewnumpad", "type", V3D_VIEW_FRONT);
-	uiMenuItemEnumO(head, "VIEW3D_OT_viewnumpad", "type", V3D_VIEW_RIGHT);
+	uiMenuItemEnumO(head, 0, "VIEW3D_OT_viewnumpad", "type", V3D_VIEW_CAMERA);
+	uiMenuItemEnumO(head, 0, "VIEW3D_OT_viewnumpad", "type", V3D_VIEW_TOP);
+	uiMenuItemEnumO(head, 0, "VIEW3D_OT_viewnumpad", "type", V3D_VIEW_FRONT);
+	uiMenuItemEnumO(head, 0, "VIEW3D_OT_viewnumpad", "type", V3D_VIEW_RIGHT);
 	
 	//uiMenuLevel(head, "Cameras", view3d_view_camerasmenu);
 	
 	uiMenuSeparator(head);
 
-	uiMenuItemO(head, "VIEW3D_OT_view_persportho", ICON_BLANK1);
+	uiMenuItemO(head, 0, "VIEW3D_OT_view_persportho");
 	
 	uiMenuSeparator(head);
 	
-//	uiMenuItemO(head, "VIEW3D_OT_view_show_all_layers", ICON_BLANK1);	
+//	uiMenuItemO(head, 0, "VIEW3D_OT_view_show_all_layers");	
 	
 //	uiMenuSeparator(head);
 	
-//	uiMenuItemO(head, "VIEW3D_OT_view_local_view", ICON_BLANK1);
-//	uiMenuItemO(head, "VIEW3D_OT_view_global_view", ICON_BLANK1);
+//	uiMenuItemO(head, 0, "VIEW3D_OT_view_local_view");
+//	uiMenuItemO(head, 0, "VIEW3D_OT_view_global_view");
 	
 //	uiMenuSeparator(head);
 	
@@ -620,18 +620,18 @@ static void view3d_viewmenu(bContext *C, uiMenuItem *head, void *arg_unused)
 
 	uiMenuContext(head, WM_OP_INVOKE_REGION_WIN);	
 
-	uiMenuItemO(head, "VIEW3D_OT_clipping", ICON_BLANK1);
-	uiMenuItemO(head, "VIEW3D_OT_border_zoom", ICON_BLANK1);
+	uiMenuItemO(head, 0, "VIEW3D_OT_clipping");
+	uiMenuItemO(head, 0, "VIEW3D_OT_border_zoom");
 	
 	uiMenuSeparator(head);
 	
-	uiMenuItemO(head, "VIEW3D_OT_viewcenter", ICON_BLANK1);
-	uiMenuItemO(head, "VIEW3D_OT_viewhome", ICON_BLANK1);
+	uiMenuItemO(head, 0, "VIEW3D_OT_viewcenter");
+	uiMenuItemO(head, 0, "VIEW3D_OT_viewhome");
 	
 	uiMenuSeparator(head);
 	
-	if(sa->full) uiMenuItemO(head, "SCREEN_OT_screen_full_area", ICON_BLANK1); // "Tile Window", Ctrl UpArrow
-	else uiMenuItemO(head, "SCREEN_OT_screen_full_area", ICON_BLANK1); // "Maximize Window", Ctr DownArrow
+	if(sa->full) uiMenuItemO(head, 0, "SCREEN_OT_screen_full_area"); // "Tile Window", Ctrl UpArrow
+	else uiMenuItemO(head, 0, "SCREEN_OT_screen_full_area"); // "Maximize Window", Ctr DownArrow
 }
 #if 0
 static uiBlock *view3d_viewmenu(bContext *C, ARegion *ar, void *arg_unused)
@@ -6052,15 +6052,15 @@ static int editmesh_face_toolbox_invoke(bContext *C, wmOperator *op, wmEvent *ev
 {
 	uiMenuItem *head;
 
-	head= uiPupMenuBegin("Edit Faces");
+	head= uiPupMenuBegin("Edit Faces", 0);
 
-	uiMenuItemO(head, "MESH_OT_fill", ICON_BLANK1);
-	uiMenuItemO(head, "MESH_OT_beauty_fill", ICON_BLANK1);
-	uiMenuItemO(head, "MESH_OT_convert_quads_to_tris", ICON_BLANK1);
-	uiMenuItemO(head, "MESH_OT_convert_tris_to_quads", ICON_BLANK1);
-	uiMenuItemO(head, "MESH_OT_edge_flip", ICON_BLANK1);
-	uiMenuItemO(head, "MESH_OT_faces_shade_smooth", ICON_BLANK1);
-	uiMenuItemO(head, "MESH_OT_faces_shade_solid", ICON_BLANK1);
+	uiMenuItemO(head, 0, "MESH_OT_fill");
+	uiMenuItemO(head, 0, "MESH_OT_beauty_fill");
+	uiMenuItemO(head, 0, "MESH_OT_convert_quads_to_tris");
+	uiMenuItemO(head, 0, "MESH_OT_convert_tris_to_quads");
+	uiMenuItemO(head, 0, "MESH_OT_edge_flip");
+	uiMenuItemO(head, 0, "MESH_OT_faces_shade_smooth");
+	uiMenuItemO(head, 0, "MESH_OT_faces_shade_solid");
 	uiPupMenuEnd(C, head);
 
 	return OPERATOR_CANCELLED;

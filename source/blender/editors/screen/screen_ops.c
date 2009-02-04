@@ -32,6 +32,7 @@
 
 #include "BKE_context.h"
 #include "BKE_customdata.h"
+#include "BKE_idprop.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_report.h"
@@ -1362,23 +1363,21 @@ static int repeat_history_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	wmWindowManager *wm= CTX_wm_manager(C);
 	wmOperator *lastop;
+	uiMenuItem *head;
 	int items, i;
-	char *menu, *p;
 	
 	items= BLI_countlist(&wm->operators);
 	if(items==0)
 		return OPERATOR_CANCELLED;
 	
-	menu= MEM_callocN(items * OP_MAX_TYPENAME, "string");
-	
-	p= menu + sprintf(menu, "%s %%t", op->type->name);
+	head= uiPupMenuBegin(op->type->name, 0);
+
 	for (i=items-1, lastop= wm->operators.last; lastop; lastop= lastop->prev, i--)
-		p+= sprintf(p, "|%s %%x%d", lastop->type->name, i);
+		uiMenuItemIntO(head, lastop->type->name, 0, op->type->idname, "index", i);
+
+	uiPupMenuEnd(C, head);
 	
-	uiPupMenuOperator(C, i/20, op, "index", menu);
-	MEM_freeN(menu);
-	
-	return OPERATOR_RUNNING_MODAL;
+	return OPERATOR_CANCELLED;
 }
 
 static int repeat_history_exec(bContext *C, wmOperator *op)
@@ -1410,6 +1409,89 @@ void SCREEN_OT_repeat_history(wmOperatorType *ot)
 	ot->poll= ED_operator_screenactive;
 	
 	RNA_def_int(ot->srna, "index", 0, 0, INT_MAX, "Index", "", 0, 1000);
+}
+
+/* ********************** redo operator ***************************** */
+
+static int redo_last_exec(bContext *C, wmOperator *op)
+{
+#if 0
+	/* XXX context is not correct after popup menu */
+	wmOperator *lastop= CTX_wm_manager(C)->operators.last;
+	
+	if(lastop) {
+		ED_undo_pop(C);
+		WM_operator_repeat(C, lastop);
+	}
+#endif
+	
+	return OPERATOR_CANCELLED;
+}
+
+static void redo_last_cb(bContext *C, void *arg1, void *arg2)
+{
+#if 0
+	/* XXX context here is not correct .. we get the popup block region
+	 * context but should actually have where ever the last operator was
+	 * executed. */
+	WM_operator_name_call(C, "SCREEN_OT_redo_last", WM_OP_EXEC_DEFAULT, NULL);
+#endif
+}
+
+static uiBlock *ui_block_create_redo_last(bContext *C, ARegion *ar, void *arg_op)
+{
+	wmWindowManager *wm= CTX_wm_manager(C);
+	wmOperator *op= arg_op;
+	PointerRNA ptr;
+	uiBlock *block;
+	int height;
+	
+	block= uiBeginBlock(C, ar, "redo_last_popup", UI_EMBOSS, UI_HELV);
+	uiBlockSetFlag(block, UI_BLOCK_KEEP_OPEN|UI_BLOCK_RET_1);
+	uiBlockSetFunc(block, redo_last_cb, NULL, NULL);
+
+	if(!op->properties) {
+		IDPropertyTemplate val = {0};
+		op->properties= IDP_New(IDP_GROUP, val, "wmOperatorProperties");
+	}
+
+	RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
+	height= uiDefAutoButsRNA(block, &ptr);
+
+	uiPopupBoundsBlock(block, 4.0f, 0, 0);
+	uiEndBlock(C, block);
+
+	return block;
+}
+
+static int redo_last_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	wmWindowManager *wm= CTX_wm_manager(C);
+	wmOperator *lastop= wm->operators.last;
+
+	if(!lastop)
+		return OPERATOR_CANCELLED;
+
+	/* only for operators that are registered and did an undo push */
+	if(!(lastop->type->flag & OPTYPE_REGISTER) || !(lastop->type->flag & OPTYPE_UNDO))
+		return OPERATOR_CANCELLED;
+
+	uiPupBlockO(C, ui_block_create_redo_last, lastop, op->type->idname, WM_OP_EXEC_DEFAULT);
+
+	return OPERATOR_CANCELLED;
+}
+
+void SCREEN_OT_redo_last(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Redo Last";
+	ot->idname= "SCREEN_OT_redo_last";
+	
+	/* api callbacks */
+	ot->invoke= redo_last_invoke;
+	ot->exec= redo_last_exec;
+	
+	ot->poll= ED_operator_screenactive;
 }
 
 /* ************** region split operator ***************************** */
@@ -1585,14 +1667,14 @@ static void newlevel1(bContext *C, uiMenuItem *head, void *arg)
 
 static int testing123(bContext *C, wmOperator *op, wmEvent *event)
 {
-	uiMenuItem *head= uiPupMenuBegin("Hello world");
+	uiMenuItem *head= uiPupMenuBegin("Hello world", 0);
 	
 	uiMenuContext(head, WM_OP_EXEC_DEFAULT);
-	uiMenuItemO(head, "SCREEN_OT_region_flip", ICON_PROP_ON);
-	uiMenuItemO(head, "SCREEN_OT_screen_full_area", ICON_PROP_CON);
-	uiMenuItemO(head, "SCREEN_OT_region_foursplit", ICON_SMOOTHCURVE);
+	uiMenuItemO(head, ICON_PROP_ON, "SCREEN_OT_region_flip");
+	uiMenuItemO(head, ICON_PROP_CON, "SCREEN_OT_screen_full_area");
+	uiMenuItemO(head, ICON_SMOOTHCURVE, "SCREEN_OT_region_foursplit");
 	uiMenuLevel(head, "Submenu", newlevel1);
-	uiMenuItemO(head, "SCREEN_OT_area_rip", ICON_PROP_ON);
+	uiMenuItemO(head, ICON_PROP_ON, "SCREEN_OT_area_rip");
 	
 	uiPupMenuEnd(C, head);
 	
@@ -1724,6 +1806,7 @@ void ED_operatortypes_screen(void)
 	WM_operatortype_append(SCREEN_OT_actionzone);
 	WM_operatortype_append(SCREEN_OT_repeat_last);
 	WM_operatortype_append(SCREEN_OT_repeat_history);
+	WM_operatortype_append(SCREEN_OT_redo_last);
 	
 	/* screen tools */
 	WM_operatortype_append(SCREEN_OT_area_move);
@@ -1774,6 +1857,7 @@ void ED_keymap_screen(wmWindowManager *wm)
 	WM_keymap_verify_item(keymap, "SCREEN_OT_repeat_history", F3KEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "SCREEN_OT_repeat_last", F4KEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "SCREEN_OT_region_flip", F5KEY, KM_PRESS, 0, 0);
+	WM_keymap_verify_item(keymap, "SCREEN_OT_redo_last", F6KEY, KM_PRESS, 0, 0);
 
 	/* files */
 	WM_keymap_add_item(keymap, "ED_FILE_OT_load", RETKEY, KM_PRESS, 0, 0);

@@ -3092,161 +3092,6 @@ void outliner_operation_menu(Scene *scene, ARegion *ar, SpaceOops *soops)
 
 /* ***************** DRAW *************** */
 
-static int tselem_rna_icon(PointerRNA *ptr)
-{
-	StructRNA *rnatype= ptr->type;
-
-	if(rnatype == &RNA_Scene)
-		return ICON_SCENE_DEHLT;
-	else if(rnatype == &RNA_World)
-		return ICON_WORLD;
-	else if(rnatype == &RNA_Object)
-		return ICON_OBJECT;
-	else if(rnatype == &RNA_Mesh)
-		return ICON_MESH;
-	else if(rnatype == &RNA_MeshVertex)
-		return ICON_VERTEXSEL;
-	else if(rnatype == &RNA_MeshEdge)
-		return ICON_EDGESEL;
-	else if(rnatype == &RNA_MeshFace)
-		return ICON_FACESEL;
-	else if(rnatype == &RNA_MeshTextureFace)
-		return ICON_FACESEL_HLT;
-	else if(rnatype == &RNA_VertexGroup)
-		return ICON_VGROUP;
-	else if(rnatype == &RNA_VertexGroupElement)
-		return ICON_VGROUP;
-	else if(rnatype == &RNA_Curve)
-		return ICON_CURVE;
-	else if(rnatype == &RNA_MetaBall)
-		return ICON_MBALL;
-	else if(rnatype == &RNA_MetaElement)
-		return ICON_OUTLINER_DATA_META;
-	else if(rnatype == &RNA_Lattice)
-		return ICON_LATTICE;
-	else if(rnatype == &RNA_Armature)
-		return ICON_ARMATURE;
-	else if(rnatype == &RNA_Bone)
-		return ICON_BONE_DEHLT;
-	else if(rnatype == &RNA_Camera)
-		return ICON_CAMERA;
-	else if(rnatype == &RNA_LocalLamp)
-		return ICON_LAMP;
-	else if(rnatype == &RNA_AreaLamp)
-		return ICON_LAMP;
-	else if(rnatype == &RNA_SpotLamp)
-		return ICON_LAMP;
-	else if(rnatype == &RNA_SunLamp)
-		return ICON_LAMP;
-	else if(rnatype == &RNA_HemiLamp)
-		return ICON_LAMP;
-	else if(rnatype == &RNA_Lamp)
-		return ICON_LAMP;
-	else if(rnatype == &RNA_Group)
-		return ICON_GROUP;
-	else if(rnatype == &RNA_ParticleSystem)
-		return ICON_PARTICLES;
-	else if(rnatype == &RNA_ParticleSettings)
-		return ICON_PARTICLES;
-	else if(rnatype == &RNA_Material)
-		return ICON_MATERIAL;
-	else if(rnatype == &RNA_Texture)
-		return ICON_TEXTURE;
-	else if(rnatype == &RNA_TextureSlot)
-		return ICON_TEXTURE;
-	else if(rnatype == &RNA_WorldTextureSlot)
-		return ICON_TEXTURE;
-	else if(rnatype == &RNA_MaterialTextureSlot)
-		return ICON_TEXTURE;
-	else if(rnatype == &RNA_Image)
-		return ICON_TEXTURE;
-	else if(rnatype == &RNA_Screen)
-		return ICON_SPLITSCREEN;
-	else if(rnatype == &RNA_NodeTree)
-		return ICON_NODE;
-	else if(rnatype == &RNA_Text)
-		return ICON_TEXT;
-	else if(rnatype == &RNA_Sound)
-		return ICON_SOUND;
-	else if(rnatype == &RNA_Brush)
-		return ICON_TPAINT_HLT;
-	else if(rnatype == &RNA_Library)
-		return ICON_LIBRARY_DEHLT;
-	else if(rnatype == &RNA_Action)
-		return ICON_ACTION;
-	else if(rnatype == &RNA_FCurve)
-		return ICON_IPO_DEHLT;
-	//else if(rnatype == &RNA_Ipo)
-	//	return ICON_IPO_DEHLT;
-	else if(rnatype == &RNA_Key)
-		return ICON_SHAPEKEY;
-	else if(rnatype == &RNA_Main)
-		return ICON_BLENDER;
-	else if(rnatype == &RNA_Struct)
-		return ICON_RNA;
-	else if(rnatype == &RNA_Property)
-		return ICON_RNA;
-	else if(rnatype == &RNA_BooleanProperty)
-		return ICON_RNA;
-	else if(rnatype == &RNA_IntProperty)
-		return ICON_RNA;
-	else if(rnatype == &RNA_FloatProperty)
-		return ICON_RNA;
-	else if(rnatype == &RNA_StringProperty)
-		return ICON_RNA;
-	else if(rnatype == &RNA_EnumProperty)
-		return ICON_RNA;
-	else if(rnatype == &RNA_EnumPropertyItem)
-		return ICON_RNA;
-	else if(rnatype == &RNA_PointerProperty)
-		return ICON_RNA;
-	else if(rnatype == &RNA_CollectionProperty)
-		return ICON_RNA;
-	else if(rnatype == &RNA_GameObjectSettings)
-		return ICON_GAME;
-	else if(rnatype == &RNA_ScriptLink)
-		return ICON_PYTHON;
-	
-	/* modifiers */
-	else if(rnatype == &RNA_SubsurfModifier)
-		return ICON_MOD_SUBSURF;
-	else if(rnatype == &RNA_ArmatureModifier)
-		return ICON_ARMATURE;
-	else if(rnatype == &RNA_LatticeModifier)
-		return ICON_LATTICE;
-	else if(rnatype == &RNA_CurveModifier)
-		return ICON_CURVE;
-	else if(rnatype == &RNA_BuildModifier)
-		return ICON_MOD_BUILD;
-	else if(rnatype == &RNA_MirrorModifier)
-		return ICON_MOD_MIRROR;
-	else if(rnatype == &RNA_DecimateModifier)
-		return ICON_MOD_DECIM;
-	else if(rnatype == &RNA_WaveModifier)
-		return ICON_MOD_WAVE;
-	else if(rnatype == &RNA_HookModifier)
-		return ICON_HOOK;
-	else if(rnatype == &RNA_SoftbodyModifier)
-		return ICON_MOD_SOFT;
-	else if(rnatype == &RNA_BooleanModifier)
-		return ICON_MOD_BOOLEAN;
-	else if(rnatype == &RNA_ParticleInstanceModifier)
-		return ICON_MOD_PARTICLEINSTANCE;
-	else if(rnatype == &RNA_ParticleSystemModifier)
-		return ICON_MOD_PARTICLES;
-	else if(rnatype == &RNA_EdgeSplitModifier)
-		return ICON_MOD_EDGESPLIT;
-	else if(rnatype == &RNA_ArrayModifier)
-		return ICON_MOD_ARRAY;
-	else if(rnatype == &RNA_UVProjectModifier)
-		return ICON_MOD_UVPROJECT;
-	else if(rnatype == &RNA_DisplaceModifier)
-		return ICON_MOD_DISPLACE;
-	
-	else
-		return ICON_DOT;
-}
-
 static void tselem_draw_icon(float x, float y, TreeStoreElem *tselem, TreeElement *te)
 {
 	if(tselem->type) {
@@ -3353,7 +3198,7 @@ static void tselem_draw_icon(float x, float y, TreeStoreElem *tselem, TreeElemen
 				UI_icon_draw(x, y, ICON_OBJECT);
 				break;
 			case TSE_RNA_STRUCT:
-				UI_icon_draw(x, y, tselem_rna_icon(&te->rnaptr));
+				UI_icon_draw(x, y, UI_GetIconRNA(&te->rnaptr));
 				break;
 			default:
 				UI_icon_draw(x, y, ICON_DOT); break;
@@ -4084,79 +3929,6 @@ static void outliner_draw_rnacols(ARegion *ar, SpaceOops *soops, int sizex)
 		v2d->cur.ymin);
 }
 
-static uiBut *outliner_draw_rnabut(uiBlock *block, PointerRNA *ptr, PropertyRNA *prop, int index, int x1, int y1, int x2, int y2)
-{
-	uiBut *but=NULL;
-	const char *propname= RNA_property_identifier(ptr, prop);
-	int arraylen= RNA_property_array_length(ptr, prop);
-
-	switch(RNA_property_type(ptr, prop)) {
-		case PROP_BOOLEAN: {
-			int value, length;
-
-			if(arraylen && index == -1)
-				return NULL;
-
-			length= RNA_property_array_length(ptr, prop);
-
-			if(length)
-				value= RNA_property_boolean_get_index(ptr, prop, index);
-			else
-				value= RNA_property_boolean_get(ptr, prop);
-
-			but= uiDefButR(block, TOG, 0, (value)? "True": "False", x1, y1, x2, y2, ptr, propname, index, 0, 0, -1, -1, NULL);
-			break;
-		}
-		case PROP_INT:
-		case PROP_FLOAT:
-			if(arraylen && index == -1) {
-				if(RNA_property_subtype(ptr, prop) == PROP_COLOR)
-					but= uiDefButR(block, COL, 0, "", x1, y1, x2, y2, ptr, propname, 0, 0, 0, -1, -1, NULL);
-			}
-			else
-				but= uiDefButR(block, NUM, 0, "", x1, y1, x2, y2, ptr, propname, index, 0, 0, -1, -1, NULL);
-			break;
-		case PROP_ENUM:
-			but= uiDefButR(block, MENU, 0, NULL, x1, y1, x2, y2, ptr, propname, index, 0, 0, -1, -1, NULL);
-			break;
-		case PROP_STRING:
-			but= uiDefButR(block, TEX, 0, "", x1, y1, x2, y2, ptr, propname, index, 0, 0, -1, -1, NULL);
-			break;
-		case PROP_POINTER: {
-			PointerRNA pptr;
-			PropertyRNA *nameprop;
-			char *text, *descr, textbuf[256];
-			int icon;
-
-			pptr= RNA_property_pointer_get(ptr, prop);
-
-			if(!pptr.data)
-				return NULL;
-
-			icon= tselem_rna_icon(&pptr);
-			nameprop= RNA_struct_name_property(&pptr);
-
-			if(nameprop) {
-				text= RNA_property_string_get_alloc(&pptr, nameprop, textbuf, sizeof(textbuf));
-				descr= (char*)RNA_property_ui_description(&pptr, prop);
-				but= uiDefIconTextBut(block, LABEL, 0, icon, text, x1, y1, x2, y2, NULL, 0, 0, 0, 0, descr);
-				if(text != textbuf)
-					MEM_freeN(text);
-			}
-			else {
-				text= (char*)RNA_struct_ui_name(&pptr);
-				descr= (char*)RNA_property_ui_description(&pptr, prop);
-				but= uiDefIconTextBut(block, LABEL, 0, icon, text, x1, y1, x2, y2, NULL, 0, 0, 0, 0, descr);
-			}
-		}
-		default:
-			but= NULL;
-			break;
-	}
-
-	return but;
-}
-
 static void outliner_draw_rnabuts(uiBlock *block, Scene *scene, ARegion *ar, SpaceOops *soops, int sizex, ListBase *lb)
 {	
 	TreeElement *te;
@@ -4174,13 +3946,13 @@ static void outliner_draw_rnabuts(uiBlock *block, Scene *scene, ARegion *ar, Spa
 				prop= te->directdata;
 
 				if(!(RNA_property_type(ptr, prop) == PROP_POINTER && (tselem->flag & TSE_CLOSED)==0))
-					outliner_draw_rnabut(block, ptr, prop, -1, sizex, te->ys, OL_RNA_COL_SIZEX, OL_H-1);
+					uiDefAutoButR(block, ptr, prop, -1, "", sizex, te->ys, OL_RNA_COL_SIZEX, OL_H-1);
 			}
 			else if(tselem->type == TSE_RNA_ARRAY_ELEM) {
 				ptr= &te->rnaptr;
 				prop= te->directdata;
 
-				outliner_draw_rnabut(block, ptr, prop, te->index, sizex, te->ys, OL_RNA_COL_SIZEX, OL_H-1);
+				uiDefAutoButR(block, ptr, prop, te->index, "", sizex, te->ys, OL_RNA_COL_SIZEX, OL_H-1);
 			}
 		}
 		

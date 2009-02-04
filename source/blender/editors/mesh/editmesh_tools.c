@@ -6474,39 +6474,29 @@ void MESH_OT_subdivide_smooth(wmOperatorType *ot)
 
 static int subdivs_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	int items;
-	char *menu, *p;
+	uiMenuItem *head;
+
+	head= uiPupMenuBegin("Subdivision Type", 0);
+	uiMenuItemsEnumO(head, "MESH_OT_subdivs", "type");
+	uiPupMenuEnd(C, head);
 	
-	items = 4;
-	
-	menu= MEM_callocN(items * OP_MAX_TYPENAME, "string");
-	
-	p= menu + sprintf(menu, "%s %%t", "subdiv");
-	p+= sprintf(p, "|%s %%x%d", "simple", 3);
-	p+= sprintf(p, "|%s %%x%d", "multi", 2);
-	p+= sprintf(p, "|%s %%x%d", "fractal", 1);
-	p+= sprintf(p, "|%s %%x%d", "smooth", 0);
-	
-	uiPupMenuOperator(C, 20, op, "index", menu);
-	MEM_freeN(menu);
-	
-	return OPERATOR_RUNNING_MODAL;
+	return OPERATOR_CANCELLED;
 }
 
 static int subdivs_exec(bContext *C, wmOperator *op)
 {	
-	switch(RNA_int_get(op->ptr, "index"))
+	switch(RNA_int_get(op->ptr, "type"))
 	{
-		case 3: // simple
+		case 0: // simple
 			subdivide_exec(C,op);
 			break;
-		case 2: // multi
+		case 1: // multi
 			subdivide_multi_exec(C,op);
 			break;
-		case 1: // fractal;
+		case 2: // fractal;
 			subdivide_multi_fractal_exec(C,op);
 			break;
-		case 0: //smooth
+		case 3: //smooth
 			subdivide_smooth_exec(C,op);
 			break;
 	}
@@ -6516,6 +6506,13 @@ static int subdivs_exec(bContext *C, wmOperator *op)
 
 void MESH_OT_subdivs(wmOperatorType *ot)
 {
+	static EnumPropertyItem type_items[]= {
+		{0, "SIMPLE", "Simple", ""},
+		{1, "MULTI", "Multi", ""},
+		{2, "FRACTAL", "Fractal", ""},
+		{3, "SMOOTH", "Smooth", ""},
+		{0, NULL, NULL}};
+
 	/* identifiers */
 	ot->name= "subdivs";
 	ot->idname= "MESH_OT_subdivs";
@@ -6530,7 +6527,7 @@ void MESH_OT_subdivs(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/*props */
-	RNA_def_int(ot->srna, "index", 0, 0, INT_MAX, "Index", "", 0, 1000);
+	RNA_def_enum(ot->srna, "type", type_items, 0, "Type", "");
 	
 	/* this is temp, the ops are different, but they are called from subdivs, so all the possible props should be here as well*/
 	RNA_def_int(ot->srna, "number_cuts", 4, 0, 100, "Number of Cuts", "", 0, INT_MAX);

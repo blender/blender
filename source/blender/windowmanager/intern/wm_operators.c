@@ -201,9 +201,7 @@ void WM_operator_properties_free(PointerRNA *ptr)
 int WM_menu_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	PropertyRNA *prop= RNA_struct_find_property(op->ptr, "type");
-	const EnumPropertyItem *item;
-	int totitem, i, len= strlen(op->type->name) + 8;
-	char *menu, *p;
+	uiMenuItem *head;
 
 	if(prop==NULL) {
 		printf("WM_menu_invoke: %s has no \"type\" enum property\n", op->type->idname);
@@ -212,34 +210,24 @@ int WM_menu_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		printf("WM_menu_invoke: %s \"type\" is not an enum property\n", op->type->idname);
 	}
 	else {
-		RNA_property_enum_items(op->ptr, prop, &item, &totitem);
-		
-		for (i=0; i<totitem; i++)
-			len+= strlen(item[i].name) + 8;
-		
-		menu= MEM_callocN(len, "string");
-		
-		p= menu + sprintf(menu, "%s %%t", op->type->name);
-		for (i=0; i<totitem; i++)
-			p+= sprintf(p, "|%s %%x%d", item[i].name, item[i].value);
-		
-		uiPupMenuOperator(C, totitem/30, op, "type", menu);
-		MEM_freeN(menu);
-		
-		return OPERATOR_RUNNING_MODAL;
+		head= uiPupMenuBegin(op->type->name, 0);
+		uiMenuItemsEnumO(head, op->type->idname, "type");
+		uiPupMenuEnd(C, head);
 	}
+
 	return OPERATOR_CANCELLED;
 }
 
 /* op->invoke */
 int WM_operator_confirm(bContext *C, wmOperator *op, wmEvent *event)
 {
-	char buf[512];
+	uiMenuItem *head;
+
+	head= uiPupMenuBegin("OK?", ICON_HELP);
+	uiMenuItemO(head, 0, op->type->idname);
+	uiPupMenuEnd(C, head);
 	
-	sprintf(buf, "OK? %%i%d%%t|%s", ICON_HELP, op->type->name);
-	uiPupMenuOperator(C, 0, op, NULL, buf);
-	
-	return OPERATOR_RUNNING_MODAL;
+	return OPERATOR_CANCELLED;
 }
 
 /* op->invoke, opens fileselect if filename property not set, otherwise executes */
@@ -293,26 +281,6 @@ static void WM_OT_save_homefile(wmOperatorType *ot)
 
 /* ********* recent file *********** */
 
-static void recent_filelist(char *pup)
-{
-	struct RecentFile *recent;
-	int i, ofs= 0;
-	char *p;
-	
-	p= pup + sprintf(pup, "Open Recent%%t");
-	
-	if (G.sce[0]) {
-		p+= sprintf(p, "|%s %%x%d", G.sce, 1);
-		ofs = 1;
-	}
-	
-	for (recent = G.recent_files.first, i=0; (i<U.recent_files) && (recent); recent = recent->next, i++) {
-		if (strcmp(recent->filename, G.sce)) {
-			p+= sprintf(p, "|%s %%x%d", recent->filename, i+ofs+1);
-		}
-	}
-}
-
 static int recentfile_exec(bContext *C, wmOperator *op)
 {
 	int event= RNA_enum_get(op->ptr, "nr");
@@ -338,12 +306,24 @@ static int recentfile_exec(bContext *C, wmOperator *op)
 
 static int wm_recentfile_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	char pup[2048];
+	struct RecentFile *recent;
+	uiMenuItem *head;
+	int i, ofs= 0;
+
+	head= uiPupMenuBegin("Open Recent", 0);
+
+	if(G.sce[0]) {
+		uiMenuItemIntO(head, G.sce, 0, op->type->idname, "nr", 1);
+		ofs = 1;
+	}
 	
-	recent_filelist(pup);
-	uiPupMenuOperator(C, 0, op, "nr", pup);
+	for(recent = G.recent_files.first, i=0; (i<U.recent_files) && (recent); recent = recent->next, i++)
+		if(strcmp(recent->filename, G.sce))
+			uiMenuItemIntO(head, recent->filename, 0, op->type->idname, "nr", i+ofs+1);
+
+	uiPupMenuEnd(C, head);
 	
-	return OPERATOR_RUNNING_MODAL;
+	return OPERATOR_CANCELLED;
 }
 
 static void WM_OT_open_recentfile(wmOperatorType *ot)

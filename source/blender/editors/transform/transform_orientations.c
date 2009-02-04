@@ -57,6 +57,8 @@
 #include "ED_mesh.h"
 #include "ED_util.h"
 
+#include "UI_interface.h"
+
 #include "transform.h"
 
 /* *********************** TransSpace ************************** */
@@ -350,6 +352,22 @@ void BIF_selectTransformOrientation(bContext *C, TransformOrientation *target) {
 void BIF_selectTransformOrientationValue(bContext *C, int orientation) {
 	View3D *v3d = CTX_wm_view3d(C);
 	v3d->twmode = orientation;
+}
+
+void BIF_menuTransformOrientation(bContext *C, uiMenuItem *head, void *arg)
+{
+	char menu[] = "%t|Global%x0|Local%x1|Normal%x2|View%x3";
+	ListBase *transform_spaces = &CTX_data_scene(C)->transform_spaces;
+	TransformOrientation *ts;
+	int i= V3D_MANIP_CUSTOM;
+
+	uiMenuItemEnumO(head, 0, "TFM_OT_select_orientation", "orientation", V3D_MANIP_GLOBAL);
+	uiMenuItemEnumO(head, 0, "TFM_OT_select_orientation", "orientation", V3D_MANIP_LOCAL);
+	uiMenuItemEnumO(head, 0, "TFM_OT_select_orientation", "orientation", V3D_MANIP_NORMAL);
+	uiMenuItemEnumO(head, 0, "TFM_OT_select_orientation", "orientation", V3D_MANIP_VIEW);
+
+	for(ts = transform_spaces->first; ts; ts = ts->next)
+		uiMenuItemIntO(head, ts->name, 0, "TFM_OT_select_orientation", "custom_index", i++);
 }
 
 char * BIF_menustringTransformOrientation(const bContext *C, char *title) {

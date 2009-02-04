@@ -304,23 +304,28 @@ void ui_bounds_block(uiBlock *block)
 	block->safety.ymax= block->maxy+xof;
 }
 
-static void ui_popup_bounds_block(const bContext *C, uiBlock *block)
+static void ui_popup_bounds_block(const bContext *C, uiBlock *block, int menu)
 {
+	wmWindow *window= CTX_wm_window(C);
 	int startx, starty, endx, endy, width, height;
 	int oldbounds, mx, my, xmax, ymax;
 
 	oldbounds= block->bounds;
 
-	/* compute bounds */
+	/* compute mouse position with user defined offset */
 	ui_bounds_block(block);
-	mx= block->minx;
-	my= block->miny;
+	mx= window->eventstate->x + block->minx + block->mx;
+	my= window->eventstate->y + block->miny + block->my;
 
-	wm_window_get_size(CTX_wm_window(C), &xmax, &ymax);
+	wm_window_get_size(window, &xmax, &ymax);
 
 	/* first we ensure wide enough text bounds */
-	block->bounds= 50;
-	ui_text_bounds_block(block, block->minx);
+	if(menu) {
+		if(block->flag & UI_BLOCK_LOOP) {
+			block->bounds= 50;
+			ui_text_bounds_block(block, block->minx);
+		}
+	}
 
 	/* next we recompute bounds */
 	block->bounds= oldbounds;
@@ -373,11 +378,22 @@ void uiTextBoundsBlock(uiBlock *block, int addval)
 	block->dobounds= 2;
 }
 
-/* used for menu popups */
-void uiPopupBoundsBlock(uiBlock *block, int addval)
+/* used for block popups */
+void uiPopupBoundsBlock(uiBlock *block, int addval, int mx, int my)
 {
 	block->bounds= addval;
 	block->dobounds= 3;
+	block->mx= mx;
+	block->my= my;
+}
+
+/* used for menu popups */
+void uiMenuPopupBoundsBlock(uiBlock *block, int addval, int mx, int my)
+{
+	block->bounds= addval;
+	block->dobounds= 4;
+	block->mx= mx;
+	block->my= my;
 }
 
 void ui_autofill(uiBlock *block)
@@ -594,7 +610,7 @@ void uiEndBlock(const bContext *C, uiBlock *block)
 	/* after keymaps! */
 	if(block->dobounds == 1) ui_bounds_block(block);
 	else if(block->dobounds == 2) ui_text_bounds_block(block, 0.0f);
-	else if(block->dobounds == 3) ui_popup_bounds_block(C, block);
+	else if(block->dobounds) ui_popup_bounds_block(C, block, (block->dobounds == 4));
 
 	if(block->autofill) ui_autofill(block);
 	if(block->minx==0.0 && block->maxx==0.0) uiBoundsBlock(block, 0);

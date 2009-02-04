@@ -218,7 +218,7 @@ struct uiBlock {
 	char *lockstr;
 	
 	float xofs, yofs;				// offset to parent button
-	int bounds, dobounds;			// for doing delayed
+	int bounds, dobounds, mx, my;	// for doing delayed
 	int endblock;					// uiEndBlock done?
 
 	rctf safety;				// pulldowns, to detect outside, can differ per case how it is created
@@ -277,9 +277,10 @@ struct uiPopupBlockHandle {
 	int popup;
 	void (*popup_func)(struct bContext *C, void *arg, int event);
 	void *popup_arg;
-	/* for operator menus */
-	struct wmOperator *op_arg;
-	const char *propname;
+
+	/* for operator popups */
+	const char *opname;
+	int opcontext;
 	
 	/* return values */
 	int butretval;

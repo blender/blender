@@ -87,8 +87,8 @@ static void image_view_viewnavmenu(bContext *C, uiMenuItem *head, void *arg_unus
 {
 	int a;
 	
-	uiMenuItemO(head, "IMAGE_OT_view_zoom_in", ICON_BLANK1);
-	uiMenuItemO(head, "IMAGE_OT_view_zoom_out", ICON_BLANK1);
+	uiMenuItemO(head, 0, "IMAGE_OT_view_zoom_in");
+	uiMenuItemO(head, 0, "IMAGE_OT_view_zoom_out");
 
 	uiMenuSeparator(head);
 
@@ -97,7 +97,7 @@ static void image_view_viewnavmenu(bContext *C, uiMenuItem *head, void *arg_unus
 		char namestr[128];
 
 		sprintf(namestr, "Zoom %d:%d", ratios[a][0], ratios[a][1]);
-		uiMenuItemFloatO(head, namestr, "IMAGE_OT_view_zoom_ratio", "ratio", (float)ratios[a][0]/(float)ratios[a][1]);
+		uiMenuItemFloatO(head, namestr, 0, "IMAGE_OT_view_zoom_ratio", "ratio", (float)ratios[a][0]/(float)ratios[a][1]);
 	}
 }
 
@@ -137,13 +137,13 @@ static void image_viewmenu(bContext *C, uiMenuItem *head, void *arg_unused)
 	show_uvedit= get_space_image_show_uvedit(sima, CTX_data_edit_object(C));
 	
 	/* create menu */
-	uiMenuItemO(head, "IMAGE_OT_toggle_view_properties_panel", ICON_MENU_PANEL); // View Properties...
-	uiMenuItemO(head, "IMAGE_OT_toggle_image_properties_panel", ICON_MENU_PANEL); // Image Properties...|N
-	uiMenuItemO(head, "IMAGE_OT_toggle_realtime_properties_panel", ICON_MENU_PANEL); // Real-time properties...
-	if(show_paint) uiMenuItemO(head, "IMAGE_OT_toggle_paint_panel", ICON_MENU_PANEL); // Paint Tool...|C
-	uiMenuItemO(head, "IMAGE_OT_toggle_curves_panel", ICON_MENU_PANEL); // Curves Tool...
-	if(show_render) uiMenuItemO(head, "IMAGE_OT_toggle_compositing_preview_panel", ICON_MENU_PANEL); // Compositing Preview...|Shift P
-	uiMenuItemO(head, "IMAGE_OT_toggle_grease_pencil_panel", ICON_MENU_PANEL); // Grease Pencil...
+	uiMenuItemO(head, ICON_MENU_PANEL, "IMAGE_OT_toggle_view_properties_panel"); // View Properties...
+	uiMenuItemO(head, ICON_MENU_PANEL, "IMAGE_OT_toggle_image_properties_panel"); // Image Properties...|N
+	uiMenuItemO(head, ICON_MENU_PANEL, "IMAGE_OT_toggle_realtime_properties_panel"); // Real-time properties...
+	if(show_paint) uiMenuItemO(head, ICON_MENU_PANEL, "IMAGE_OT_toggle_paint_panel"); // Paint Tool...|C
+	uiMenuItemO(head, ICON_MENU_PANEL, "IMAGE_OT_toggle_curves_panel"); // Curves Tool...
+	if(show_render) uiMenuItemO(head, ICON_MENU_PANEL, "IMAGE_OT_toggle_compositing_preview_panel"); // Compositing Preview...|Shift P
+	uiMenuItemO(head, ICON_MENU_PANEL, "IMAGE_OT_toggle_grease_pencil_panel"); // Grease Pencil...
 
 	uiMenuSeparator(head);
 
@@ -153,11 +153,11 @@ static void image_viewmenu(bContext *C, uiMenuItem *head, void *arg_unused)
 	uiMenuSeparator(head);
 
 	uiMenuLevel(head, "View Navigation", image_view_viewnavmenu);
-	if(show_uvedit) uiMenuItemO(head, "IMAGE_OT_view_selected", ICON_BLANK1);
-	uiMenuItemO(head, "IMAGE_OT_view_all", ICON_BLANK1);
+	if(show_uvedit) uiMenuItemO(head, 0, "IMAGE_OT_view_selected");
+	uiMenuItemO(head, 0, "IMAGE_OT_view_all");
 
-	if(sa->full) uiMenuItemO(head, "SCREEN_OT_screen_full_area", ICON_BLANK1); // "Tile Window", Ctrl UpArrow
-	else uiMenuItemO(head, "SCREEN_OT_screen_full_area", ICON_BLANK1); // "Maximize Window", Ctr DownArrow
+	if(sa->full) uiMenuItemO(head, 0, "SCREEN_OT_screen_full_area"); // "Tile Window", Ctrl UpArrow
+	else uiMenuItemO(head, 0, "SCREEN_OT_screen_full_area"); // "Maximize Window", Ctr DownArrow
 }
 
 #if 0
@@ -180,19 +180,19 @@ static void do_selectmenu(bContext *C, void *arg, int event)
 
 static void image_selectmenu(bContext *C, uiMenuItem *head, void *arg_unused)
 {
-	uiMenuItemO(head, "UV_OT_border_select", ICON_BLANK1); // Border Select|B
-	uiMenuItemO(head, "UV_OT_border_select_pinned", ICON_BLANK1); // Border Select Pinned|Shift B
+	uiMenuItemO(head, 0, "UV_OT_border_select"); // Border Select|B
+	uiMenuItemO(head, 0, "UV_OT_border_select_pinned"); // Border Select Pinned|Shift B
 
 	uiMenuSeparator(head);
 	
-	uiMenuItemO(head, "UV_OT_de_select_all", ICON_BLANK1);
-	uiMenuItemO(head, "UV_OT_select_invert", ICON_BLANK1);
-	uiMenuItemO(head, "UV_OT_unlink_selection", ICON_BLANK1); // Unlink Selection|Alt L
+	uiMenuItemO(head, 0, "UV_OT_de_select_all");
+	uiMenuItemO(head, 0, "UV_OT_select_invert");
+	uiMenuItemO(head, 0, "UV_OT_unlink_selection"); // Unlink Selection|Alt L
 	
 	uiMenuSeparator(head);
 
-	uiMenuItemO(head, "UV_OT_select_pinned", ICON_BLANK1); // Select Pinned|Shift P
-	uiMenuItemO(head, "UV_OT_select_linked", ICON_BLANK1); // Select Linked|Ctrl L
+	uiMenuItemO(head, 0, "UV_OT_select_pinned"); // Select Pinned|Shift P
+	uiMenuItemO(head, 0, "UV_OT_select_linked"); // Select Linked|Ctrl L
 }
 
 #if 0
@@ -277,27 +277,27 @@ static void image_imagemenu(bContext *C, uiMenuItem *head, void *arg_unused)
 	RNA_pointer_create(&sc->id, &RNA_SpaceImageEditor, sima, &spaceptr);
 
 	/* create menu */
-	uiMenuItemO(head, "IMAGE_OT_new", ICON_BLANK1); // New...|Alt N
-	uiMenuItemO(head, "IMAGE_OT_open", ICON_BLANK1); // Open...|Alt O
+	uiMenuItemO(head, 0, "IMAGE_OT_new"); // New...|Alt N
+	uiMenuItemO(head, 0, "IMAGE_OT_open"); // Open...|Alt O
 
 	if(ima) {
-		uiMenuItemO(head, "IMAGE_OT_replace", ICON_BLANK1); // Replace...
-		uiMenuItemO(head, "IMAGE_OT_reload", ICON_BLANK1); // Reload...|Alt R
-		uiMenuItemO(head, "IMAGE_OT_save", ICON_BLANK1); // Save|Alt S
-		uiMenuItemO(head, "IMAGE_OT_save_as", ICON_BLANK1); // Save As...
+		uiMenuItemO(head, 0, "IMAGE_OT_replace"); // Replace...
+		uiMenuItemO(head, 0, "IMAGE_OT_reload"); // Reload...|Alt R
+		uiMenuItemO(head, 0, "IMAGE_OT_save"); // Save|Alt S
+		uiMenuItemO(head, 0, "IMAGE_OT_save_as"); // Save As...
 		if(ima->source == IMA_SRC_SEQUENCE)
-			uiMenuItemO(head, "IMAGE_OT_save_changed", ICON_BLANK1); // Save Changed Images
+			uiMenuItemO(head, 0, "IMAGE_OT_save_changed"); // Save Changed Images
 
 		if(!show_render) {
 			uiMenuSeparator(head);
 
-			if(ima->packedfile) uiMenuItemO(head, "IMAGE_OT_unpack", ICON_BLANK1); // Unpack Image...
-			else uiMenuItemO(head, "IMAGE_OT_pack", ICON_BLANK1); // Pack Image
+			if(ima->packedfile) uiMenuItemO(head, 0, "IMAGE_OT_unpack"); // Unpack Image...
+			else uiMenuItemO(head, 0, "IMAGE_OT_pack"); // Pack Image
 
 			/* only for dirty && specific image types : XXX poll? */
 			if(ibuf && (ibuf->userflags & IB_BITMAPDIRTY))
 				if(ELEM(ima->source, IMA_SRC_FILE, IMA_SRC_GENERATED) && ima->type != IMA_TYPE_MULTILAYER)
-					uiMenuItemO(head, "IMAGE_OT_pack_as_png", ICON_BLANK1); // Pack Image As PNG
+					uiMenuItemO(head, 0, "IMAGE_OT_pack_as_png"); // Pack Image As PNG
 
 			uiMenuSeparator(head);
 
@@ -344,9 +344,9 @@ static void do_image_uvs_showhidemenu(void *arg, int event)
 
 static void image_uvs_showhidemenu(bContext *C, uiMenuItem *head, void *arg_unused)
 {
-	uiMenuItemO(head, "UV_OT_show_hidden_faces", ICON_BLANK1); // Show Hidden Faces|Alt H
-	uiMenuItemO(head, "UV_OT_hide_selected_faces", ICON_BLANK1); // Hide Selected Faces|H
-	uiMenuItemO(head, "UV_OT_hide_deselected_faces", ICON_BLANK1); // Hide Deselected Faces|Shift H
+	uiMenuItemO(head, 0, "UV_OT_show_hidden_faces"); // Show Hidden Faces|Alt H
+	uiMenuItemO(head, 0, "UV_OT_hide_selected_faces"); // Hide Selected Faces|H
+	uiMenuItemO(head, 0, "UV_OT_hide_deselected_faces"); // Hide Deselected Faces|Shift H
 }
 
 #if 0
@@ -371,9 +371,9 @@ static void do_image_uvs_transformmenu(void *arg, int event)
 
 static void image_uvs_transformmenu(bContext *C, uiMenuItem *head, void *arg_unused)
 {
-	uiMenuItemO(head, "UV_OT_grab", ICON_BLANK1); // Grab/Move|G
-	uiMenuItemO(head, "UV_OT_rotate", ICON_BLANK1); // Rotate|R
-	uiMenuItemO(head, "UV_OT_scale", ICON_BLANK1); // Scale|S
+	uiMenuItemO(head, 0, "UV_OT_grab"); // Grab/Move|G
+	uiMenuItemO(head, 0, "UV_OT_rotate"); // Rotate|R
+	uiMenuItemO(head, 0, "UV_OT_scale"); // Scale|S
 }
 
 #if 0
@@ -402,8 +402,8 @@ static void do_image_uvs_mirrormenu(void *arg, int event)
 
 static void image_uvs_mirrormenu(bContext *C, uiMenuItem *head, void *arg_unused)
 {
-	uiMenuItemEnumO(head, "UV_OT_mirror", "axis", 'x'); // "X Axis", M, 1
-	uiMenuItemEnumO(head, "UV_OT_mirror", "axis", 'y'); // "Y Axis", M, 2
+	uiMenuItemEnumO(head, 0, "UV_OT_mirror", "axis", 'x'); // "X Axis", M, 1
+	uiMenuItemEnumO(head, 0, "UV_OT_mirror", "axis", 'y'); // "Y Axis", M, 2
 }
 
 #if 0
@@ -431,7 +431,7 @@ static void do_image_uvs_weldalignmenu(void *arg, int event)
 
 static void image_uvs_weldalignmenu(bContext *C, uiMenuItem *head, void *arg_unused)
 {
-	uiMenuItemO(head, "UV_OT_weld", ICON_BLANK1); // W, 1
+	uiMenuItemO(head, 0, "UV_OT_weld"); // W, 1
 	uiMenuItemsEnumO(head, "UV_OT_align", "axis"); // W, 2/3/4
 }
 
@@ -536,16 +536,16 @@ static void image_uvsmenu(bContext *C, uiMenuItem *head, void *arg_unused)
 	uiMenuSeparator(head);
 
 	uiMenuItemBooleanR(head, &uvptr, "live_unwrap");
-	uiMenuItemO(head, "UV_OT_unwrap", ICON_BLANK1); // Unwrap|E
-	uiMenuItemO(head, "UV_OT_unpin", ICON_BLANK1); // Unpin|Alt P
-	uiMenuItemO(head, "UV_OT_pin", ICON_BLANK1); // Pin|P
+	uiMenuItemO(head, 0, "UV_OT_unwrap"); // Unwrap|E
+	uiMenuItemO(head, 0, "UV_OT_unpin"); // Unpin|Alt P
+	uiMenuItemO(head, 0, "UV_OT_pin"); // Pin|P
 
 	uiMenuSeparator(head);
 
-	uiMenuItemO(head, "UV_OT_pack_islands", ICON_BLANK1); // Pack Islands|Ctr P
-	uiMenuItemO(head, "UV_OT_average_islands", ICON_BLANK1); // Average Islands Scale|Ctrl A
-	uiMenuItemO(head, "UV_OT_minimize_stretch", ICON_BLANK1); // Minimize Stretch...|Ctrl V
-	uiMenuItemO(head, "UV_OT_stitch", ICON_BLANK1);
+	uiMenuItemO(head, 0, "UV_OT_pack_islands"); // Pack Islands|Ctr P
+	uiMenuItemO(head, 0, "UV_OT_average_islands"); // Average Islands Scale|Ctrl A
+	uiMenuItemO(head, 0, "UV_OT_minimize_stretch"); // Minimize Stretch...|Ctrl V
+	uiMenuItemO(head, 0, "UV_OT_stitch");
 
 	uiMenuSeparator(head);
 
@@ -1128,7 +1128,7 @@ static int toolbox_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 	show_uvedit= get_space_image_show_uvedit(sima, obedit);
 
-	head= uiPupMenuBegin("Toolbox");
+	head= uiPupMenuBegin("Toolbox", 0);
 
 	uiMenuLevel(head, "View", image_viewmenu);
 	if(show_uvedit) uiMenuLevel(head, "Select", image_selectmenu);

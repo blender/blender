@@ -210,11 +210,12 @@ void uiMenuContext(uiMenuItem *head, int opcontext);
 
 void uiMenuItemVal(uiMenuItem *head, const char *name, int icon, int argval);
 
-void uiMenuItemEnumO(uiMenuItem *head, char *opname, char *propname, int value);
-void uiMenuItemBooleanO(uiMenuItem *head, char *opname, char *propname, int value);
+void uiMenuItemEnumO(uiMenuItem *head, int icon, char *opname, char *propname, int value);
+void uiMenuItemBooleanO(uiMenuItem *head, int icon, char *opname, char *propname, int value);
 void uiMenuItemsEnumO(uiMenuItem *head, char *opname, char *propname);
-void uiMenuItemFloatO(uiMenuItem *head, const char *name, char *opname, char *propname, float value);
-void uiMenuItemO(uiMenuItem *head, char *name, int icon);
+void uiMenuItemIntO(uiMenuItem *head, const char *name, int icon, char *opname, char *propname, int value);
+void uiMenuItemFloatO(uiMenuItem *head, const char *name, int icon, char *opname, char *propname, float value);
+void uiMenuItemO(uiMenuItem *head, int icon, char *opname);
 
 void uiMenuItemBooleanR(uiMenuItem *head, struct PointerRNA *ptr, char *propname);
 void uiMenuItemEnumR(uiMenuItem *head, struct PointerRNA *ptr, char *propname, int value);
@@ -233,11 +234,10 @@ void uiMenuSeparator(uiMenuItem *head);
  * the uiMenu functions inbetween. If it is a simple confirmation menu
  * or similar, popups can be created with a single function call. */
 
-uiMenuItem *uiPupMenuBegin(const char *title);
+uiMenuItem *uiPupMenuBegin(const char *title, int icon);
 void uiPupMenuEnd(struct bContext *C, struct uiMenuItem *head);
 
 void uiPupMenu(struct bContext *C, int maxrow, uiMenuHandleFunc func, void *arg, char *str, ...);
-void uiPupMenuOperator(struct bContext *C, int maxrow, struct  wmOperator *op, const char *propname, char *str);
 void uiPupMenuOkee(struct bContext *C, char *opname, char *str, ...);
 void uiPupMenuSaveOver(struct bContext *C, char *opname, char *filename, ...);
 void uiPupMenuNotice(struct bContext *C, char *str, ...);
@@ -251,8 +251,10 @@ void uiPupMenuSetActive(int val);
  * Functions used to create popup blocks. These are like popup menus
  * but allow using all button types and creating an own layout. */
 
-uiBlock *uiPupBlockBegin(struct bContext *C, const char *title);
-void uiPupBlockEnd(struct bContext *C, uiBlock *block);
+typedef uiBlock* (*uiBlockCreateFunc)(struct bContext *C, struct ARegion *ar, void *arg1);
+
+void uiPupBlock(struct bContext *C, uiBlockCreateFunc func, void *arg);
+void uiPupBlockO(struct bContext *C, uiBlockCreateFunc func, void *arg, char *opname, int opcontext);
 
 /* Blocks
  *
@@ -295,7 +297,8 @@ void uiBlockEndAlign(uiBlock *block);
 
 void uiBoundsBlock(struct uiBlock *block, int addval);
 void uiTextBoundsBlock(uiBlock *block, int addval);
-void uiPopupBoundsBlock(uiBlock *block, int addval);
+void uiPopupBoundsBlock(uiBlock *block, int addval, int mx, int my);
+void uiMenuPopupBoundsBlock(uiBlock *block, int addvall, int mx, int my);
 
 int		uiBlocksGetYMin		(ListBase *lb);
 int		uiBlockGetCol		(uiBlock *block);
@@ -389,9 +392,9 @@ struct PointerRNA *uiButGetOperatorPtrRNA(uiBut *but);
  * - PulldownBut: like MenuBut, but creating a uiBlock (for compatibility).
  * - BlockBut: buttons that popup a block with more buttons.
  * - KeyevtBut: buttons that can be used to turn key events into values.
- * - PickerButtons: buttons like the color picker (for code sharing). */
+ * - PickerButtons: buttons like the color picker (for code sharing).
+ * - AutoButR: RNA property button with type automatically defined. */
 
-typedef uiBlock* (*uiBlockCreateFunc)(struct bContext *C, struct ARegion *ar, void *arg1);
 typedef void     (*uiIDPoinFuncFP)(struct bContext *C, char *str, struct ID **idpp);
 
 uiBut *uiDefIDPoinBut(struct uiBlock *block, uiIDPoinFuncFP func, short blocktype, int retval, char *str,
@@ -408,6 +411,9 @@ uiBut *uiDefIconTextBlockBut(uiBlock *block, uiBlockCreateFunc func, void *arg, 
 void uiDefKeyevtButS(uiBlock *block, int retval, char *str, short x1, short y1, short x2, short y2, short *spoin, char *tip);
 
 void uiBlockPickerButtons(struct uiBlock *block, float *col, float *hsv, float *old, char *hexcol, char mode, short retval);
+
+uiBut *uiDefAutoButR(uiBlock *block, struct PointerRNA *ptr, struct PropertyRNA *prop, int index, char *name, int x1, int y1, int x2, int y2);
+int uiDefAutoButsRNA(uiBlock *block, struct PointerRNA *ptr);
 
 /* Links
  *
