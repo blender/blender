@@ -3768,10 +3768,13 @@ void MESH_OT_selection_type(wmOperatorType *ot)
 }
 /* ************************* SEAMS AND EDGES **************** */
 
-void editmesh_mark_seam(EditMesh *em, int clear)
+static int editmesh_mark_seam(bContext *C, wmOperator *op)
 {
-	Mesh *me= NULL; // XXX
+	Object *obedit= CTX_data_edit_object(C);
+	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
+	Mesh *me= ((Mesh *)obedit->data);
 	EditEdge *eed;
+	int clear = RNA_boolean_get(op->ptr, "clear");
 	
 	/* auto-enable seams drawing */
 	if(clear==0) {
@@ -3797,11 +3800,33 @@ void editmesh_mark_seam(EditMesh *em, int clear)
 		}
 	}
 
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+
+	return OPERATOR_FINISHED;
 }
 
-void editmesh_mark_sharp(EditMesh *em, int set)
+void MESH_OT_mark_seam(wmOperatorType *ot)
 {
-	Mesh *me= NULL;
+	/* identifiers */
+	ot->name= "Mark seam";
+	ot->idname= "MESH_OT_mark_seam";
+	
+	/* api callbacks */
+	ot->exec= editmesh_mark_seam;
+	ot->poll= ED_operator_editmesh;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	RNA_def_boolean(ot->srna, "clear", 0, "Clear", "");
+}
+
+static int editmesh_mark_sharp(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
+	Mesh *me= ((Mesh *)obedit->data);
+	int set = RNA_boolean_get(op->ptr, "set");
 	EditEdge *eed;
 
 	/* auto-enable sharp edge drawing */
@@ -3823,6 +3848,25 @@ void editmesh_mark_sharp(EditMesh *em, int set)
 		}
 	}
 
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+
+	return OPERATOR_FINISHED;
+}
+
+void MESH_OT_mark_sharp(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Mark sharp";
+	ot->idname= "MESH_OT_mark_sharp";
+	
+	/* api callbacks */
+	ot->exec= editmesh_mark_sharp;
+	ot->poll= ED_operator_editmesh;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	RNA_def_boolean(ot->srna, "set", 0, "Set", "");
 }
 
 void BME_Menu()	{
@@ -3879,10 +3923,10 @@ void Edge_Menu(EditMesh *em)
 	switch(ret)
 	{
 	case 1:
-		editmesh_mark_seam(em, 0);
+		//editmesh_mark_seam(em, 0);
 		break;
 	case 2:
-		editmesh_mark_seam(em, 1);
+		//editmesh_mark_seam(em, 1);
 		break;
 	case 3:
 //		edge_rotate_selected(em, 2);
@@ -4403,9 +4447,13 @@ void editmesh_align_view_to_selected(Object *obedit, EditMesh *em, View3D *v3d, 
 
 /* **************** VERTEX DEFORMS *************** */
 
-void vertexsmooth(Object *obedit, EditMesh *em)
+static int smooth_vertex(bContext *C, wmOperator *op)
 {
-	Scene *scene= NULL; // XXX
+	Scene *scene= CTX_data_scene(C);
+	Object *obedit= CTX_data_edit_object(C);
+	Mesh *me= obedit->data;
+	EditMesh *em= me->edit_mesh; 
+
 	EditVert *eve, *eve_mir = NULL;
 	EditEdge *eed;
 	float *adror, *adr, fac;
@@ -4413,7 +4461,7 @@ void vertexsmooth(Object *obedit, EditMesh *em)
 	int teller=0;
 	ModifierData *md= obedit->modifiers.first;
 
-	if(em==NULL) return;
+	if(em==NULL) return OPERATOR_CANCELLED;
 
 	/* count */
 	eve= em->verts.first;
@@ -4421,7 +4469,7 @@ void vertexsmooth(Object *obedit, EditMesh *em)
 		if(eve->f & SELECT) teller++;
 		eve= eve->next;
 	}
-	if(teller==0) return;
+	if(teller==0) return OPERATOR_CANCELLED;
 	
 	adr=adror= (float *)MEM_callocN(3*sizeof(float *)*teller, "vertsmooth");
 	eve= em->verts.first;
@@ -4530,8 +4578,25 @@ void vertexsmooth(Object *obedit, EditMesh *em)
 
 	recalc_editnormals(em);
 
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+
 //	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 
+	return OPERATOR_FINISHED;
+}
+
+void MESH_OT_smooth_vertex(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Smooth Vertex";
+	ot->idname= "MESH_OT_smooth_vertex";
+	
+	/* api callbacks */
+	ot->exec= smooth_vertex;
+	ot->poll= ED_operator_editmesh;
+	
+	/* flags */
+	ot->flag= OPTYPE_UNDO;
 }
 
 void vertexnoise(Object *obedit, EditMesh *em)

@@ -193,6 +193,9 @@ void MESH_OT_select_random(struct wmOperatorType *ot);
 void MESH_OT_vertices_to_sphere(struct wmOperatorType *ot);
 void MESH_OT_selection_type(struct wmOperatorType *ot);
 void MESH_OT_select_multi_loop(struct wmOperatorType *ot);
+void MESH_OT_mark_seam(struct wmOperatorType *ot);
+void MESH_OT_mark_sharp(struct wmOperatorType *ot);
+void MESH_OT_smooth_vertex(struct wmOperatorType *ot);
 
 extern EditEdge *findnearestedge(ViewContext *vc, int *dist);
 extern void EM_automerge(int update);
