@@ -83,6 +83,8 @@
 #include "UI_interface.h"
 #include "BLF_api.h"
 
+#include "GPU_draw.h"
+
 // XXX #include "BPY_extern.h"
 
 #include "WM_api.h"
@@ -570,6 +572,12 @@ int WM_read_homefile(bContext *C, int from_memory)
 	} else {
 		success = BKE_read_file_from_memory(C, datatoc_B_blend, datatoc_B_blend_size, NULL, NULL);
 	}
+	
+	/* When loading factory settings, the reset solid OpenGL lights need to be applied. */
+	U.light[0].flag=0;
+	U.light[1].flag=0;
+	U.light[2].flag=0;
+	GPU_default_lights();
 	
 	/* match the read WM with current WM */
 	wm_window_match_do(C, &wmbase); 
