@@ -39,7 +39,6 @@ SET(DEFSRC
      rna_group.c
      rna_ID.c
      rna_image.c
-     rna_ipo.c
      rna_key.c
      rna_lamp.c
      rna_lattice.c

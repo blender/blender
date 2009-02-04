@@ -198,7 +198,7 @@ IF(UNIX)
   SET(PLATFORM_LINKFLAGS "-pthread")
 
   # Better warnings
-  SET(C_WARNINGS "-Wall -Wno-char-subscripts -Wpointer-arith -Wcast-align -Waggregate-return -Wnested-externs -Wdeclaration-after-statement")
+  SET(C_WARNINGS "-Wall -Wno-char-subscripts -Wpointer-arith -Wcast-align -Wnested-externs -Wdeclaration-after-statement")
 
   INCLUDE_DIRECTORIES(/usr/include /usr/local/include)
 ENDIF(UNIX)
