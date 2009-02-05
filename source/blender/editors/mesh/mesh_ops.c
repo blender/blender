@@ -164,6 +164,7 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_mark_seam);
 	WM_operatortype_append(MESH_OT_mark_sharp);
 	WM_operatortype_append(MESH_OT_smooth_vertex);
+	WM_operatortype_append(MESH_OT_flip_editnormals);
 	
 }
 
@@ -209,6 +210,8 @@ void ED_keymap_mesh(wmWindowManager *wm)
 	RNA_boolean_set(WM_keymap_add_item(keymap, "MESH_OT_mark_sharp", TWOKEY, KM_PRESS, KM_ALT , 0)->ptr,"set",1);
 
 	WM_keymap_add_item(keymap, "MESH_OT_smooth_vertex", THREEKEY, KM_PRESS, KM_CTRL , 0);
+
+	WM_keymap_add_item(keymap, "MESH_OT_flip_editnormals", THREEKEY, KM_PRESS, KM_ALT , 0);
 
 	/* temp hotkeys! */
 	WM_keymap_add_item(keymap, "MESH_OT_similar_vertex_select", GKEY, KM_PRESS, KM_SHIFT, 0);
