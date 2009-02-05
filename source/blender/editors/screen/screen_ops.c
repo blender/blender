@@ -45,6 +45,7 @@
 #include "BKE_idprop.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
+#include "BKE_multires.h"
 #include "BKE_report.h"
 #include "BKE_screen.h"
 #include "BKE_utildefines.h"
@@ -2028,8 +2029,11 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	
 	/* handle UI stuff */
 	WM_cursor_wait(1);
+
+	/* flush multires changes (for sculpt) */
+	multires_force_update(CTX_data_active_object(C));
 	
-	// get editmode results, sculpt mode results (no set sculptmode in end!)
+	// get editmode results
 	// store spare
 	// get view3d layer, local layer, make this nice api call to render
 	// store spare

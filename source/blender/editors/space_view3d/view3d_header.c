@@ -140,8 +140,10 @@ void ED_view3d_exit_paint_modes(bContext *C)
 	else if(G.f & G_WEIGHTPAINT)
 		WM_operator_name_call(C, "VIEW3D_OT_wpaint_toggle", WM_OP_EXEC_REGION_WIN, NULL);
 
+	if(G.f & G_SCULPTMODE)
+		WM_operator_name_call(C, "SCULPT_OT_sculptmode_toggle", WM_OP_EXEC_REGION_WIN, NULL);
+
 //	if(G.f & G_TEXTUREPAINT) set_texturepaint();
-//	if(G.f & G_SCULPTMODE) set_sculptmode();
 	if(G.f & G_PARTICLEEDIT) PE_set_particle_edit(CTX_data_scene(C));
 	
 	G.f &= ~(G_VERTEXPAINT+G_TEXTUREPAINT+G_WEIGHTPAINT+G_SCULPTMODE+G_PARTICLEEDIT);
@@ -5427,7 +5429,6 @@ static void do_view3d_buttons(bContext *C, void *arg, int event)
 		else if (v3d->modeselect == V3D_EDITMODE_SEL) {
 			if(!obedit) {
 				v3d->flag &= ~V3D_MODE;
-				ED_view3d_exit_paint_modes(C);
 				ED_object_enter_editmode(C, EM_WAITCURSOR);
 				ED_undo_push(C, "Original");	/* here, because all over code enter_editmode is abused */
 			}

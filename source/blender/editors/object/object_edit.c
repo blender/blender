@@ -3101,6 +3101,8 @@ void ED_object_enter_editmode(bContext *C, int flag)
 	}
 	
 	if(flag & EM_WAITCURSOR) waitcursor(1);
+
+	ED_view3d_exit_paint_modes(C);
 	
 	if(ob->type==OB_MESH) {
 		Mesh *me= ob->data;

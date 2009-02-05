@@ -1083,6 +1083,8 @@ static void sculpt_update_mesh_elements(bContext *C)
 	}
 
 	if(ss->totvert != ss->fmap_size) {
+		if(ss->fmap) MEM_freeN(ss->fmap);
+		if(ss->fmap_mem) MEM_freeN(ss->fmap_mem);
 		create_vert_face_map(&ss->fmap, &ss->fmap_mem, ss->mface, ss->totvert, ss->totface);
 		ss->fmap_size = ss->totvert;
 	}
@@ -1628,6 +1630,8 @@ static int sculpt_toggle_mode(bContext *C, wmOperator *op)
 	ToolSettings *ts = CTX_data_tool_settings(C);
 
 	if(G.f & G_SCULPTMODE) {
+		multires_force_update(CTX_data_active_object(C));
+
 		/* Leave sculptmode */
 		G.f &= ~G_SCULPTMODE;
 
