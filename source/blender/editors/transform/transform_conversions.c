@@ -3440,11 +3440,11 @@ void remake_graph_transdata (TransInfo *t, ListBase *anim_data)
 			sort_time_beztmaps(bezm, fcu->totvert);
 			beztmap_to_data(t, fcu, bezm, fcu->totvert);
 			
-			/* re-sort actual beztriples (perhaps this could be done using the beztmaps to save time?) */
-			sort_time_fcurve(fcu);
-			
 			/* free mapping stuff */
 			MEM_freeN(bezm);
+			
+			/* re-sort actual beztriples (perhaps this could be done using the beztmaps to save time?) */
+			sort_time_fcurve(fcu);
 			
 			/* make sure handles are all set correctly */
 			testhandles_fcurve(fcu);

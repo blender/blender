@@ -91,11 +91,10 @@ static void error() {};
 static void BIF_undo_push() {}
 static void countall() {}
 static void add_constraint() {}
-static void select_actionchannel_by_name() {}
 static void autokeyframe_pose_cb_func() {}
 /* ************* XXX *************** */
 
-
+/* This function is used to indicate that a bone is selected and needs keyframes inserted */
 void set_pose_keys (Object *ob)
 {
 	bArmature *arm= ob->data;
@@ -104,16 +103,15 @@ void set_pose_keys (Object *ob)
 	if (ob->pose){
 		for (chan=ob->pose->chanbase.first; chan; chan=chan->next){
 			Bone *bone= chan->bone;
-			if(bone && (bone->flag & BONE_SELECTED) && (arm->layer & bone->layer)) {
-				chan->flag |= POSE_KEY;		
-			}
-			else {
+			if ((bone) && (bone->flag & BONE_SELECTED) && (arm->layer & bone->layer))
+				chan->flag |= POSE_KEY;	
+			else
 				chan->flag &= ~POSE_KEY;
-			}
 		}
 	}
 }
 
+/* This function is used to process the necessary updates for */
 void ED_armature_enter_posemode(bContext *C, Base *base)
 {
 	Object *ob= base->object;
@@ -472,9 +470,7 @@ void pose_select_hierarchy(Scene *scene, short direction, short add_to_sel)
 						curbone->flag &= ~BONE_ACTIVE;
 						pabone->flag |= (BONE_ACTIVE|BONE_SELECTED);
 						
-						// XXX this is evil... this sort of stuff is to be handled in one go as a result of a notifier
-						select_actionchannel_by_name (ob->action, pchan->name, 0);
-						select_actionchannel_by_name (ob->action, pchan->parent->name, 1);
+						// XXX notifiers need to be sent to other editors to update
 						break;
 					}
 				} else { // BONE_SELECT_CHILD
@@ -488,9 +484,7 @@ void pose_select_hierarchy(Scene *scene, short direction, short add_to_sel)
 						curbone->flag &= ~BONE_ACTIVE;
 						chbone->flag |= (BONE_ACTIVE|BONE_SELECTED);
 						
-						// XXX this is evil... this sort of stuff is to be handled in one go as a result of a notifier
-						select_actionchannel_by_name (ob->action, pchan->name, 0);
-						select_actionchannel_by_name (ob->action, pchan->child->name, 1);
+						// XXX notifiers need to be sent to other editors to update
 						break;
 					}
 				}
@@ -1339,8 +1333,7 @@ void pose_activate_flipped_bone(Scene *scene)
 					DAG_object_flush_update(scene, OBACT, OB_RECALC_DATA);
 				}
 				
-				// XXX this is evil... this sort of stuff is to be handled in one go as a result of a notifier
-				select_actionchannel_by_name(ob->action, name, 1);
+				// XXX notifiers need to be sent to other editors to update
 				
 			}			
 		}

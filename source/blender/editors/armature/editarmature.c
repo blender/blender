@@ -1844,20 +1844,97 @@ float ED_rollBoneToVector(EditBone *bone, float new_up_axis[3])
 	return roll;
 }
 
+
+/* Set roll value for given bone -> Z-Axis Point up (original method) */
+void auto_align_ebone_zaxisup(Scene *scene, View3D *v3d, EditBone *ebone)
+{
+	float	delta[3], curmat[3][3];
+	float	xaxis[3]={1.0f, 0.0f, 0.0f}, yaxis[3], zaxis[3]={0.0f, 0.0f, 1.0f};
+	float	targetmat[3][3], imat[3][3], diffmat[3][3];
+	
+	/* Find the current bone matrix */
+	VecSubf(delta, ebone->tail, ebone->head);
+	vec_roll_to_mat3(delta, 0.0f, curmat);
+	
+	/* Make new matrix based on y axis & z-up */
+	VECCOPY(yaxis, curmat[1]);
+	
+	Mat3One(targetmat);
+	VECCOPY(targetmat[0], xaxis);
+	VECCOPY(targetmat[1], yaxis);
+	VECCOPY(targetmat[2], zaxis);
+	Mat3Ortho(targetmat);
+	
+	/* Find the difference between the two matrices */
+	Mat3Inv(imat, targetmat);
+	Mat3MulMat3(diffmat, imat, curmat);
+	
+	// old-method... let's see if using mat3_to_vec_roll is more accurate
+	//ebone->roll = atan2(diffmat[2][0], diffmat[2][2]);  
+	mat3_to_vec_roll(diffmat, delta, &ebone->roll);
+}
+
+/* Set roll value for given bone -> Z-Axis point towards cursor */
+void auto_align_ebone_tocursor(Scene *scene, View3D *v3d, EditBone *ebone)
+{
+	Object *obedit= scene->obedit; // XXX get from context
+	float  	*cursor= give_cursor(scene, v3d);
+	float	delta[3], curmat[3][3];
+	float	mat[4][4], tmat[4][4], imat[4][4];
+	float 	rmat[4][4], rot[3];
+	float	vec[3];
+	
+	/* find the current bone matrix as a 4x4 matrix (in Armature Space) */
+	VecSubf(delta, ebone->tail, ebone->head);
+	vec_roll_to_mat3(delta, ebone->roll, curmat);
+	Mat4CpyMat3(mat, curmat);
+	VECCOPY(mat[3], ebone->head);
+	
+	/* multiply bone-matrix by object matrix (so that bone-matrix is in WorldSpace) */
+	Mat4MulMat4(tmat, mat, obedit->obmat);
+	Mat4Invert(imat, tmat);
+	
+	/* find position of cursor relative to bone */
+	VecMat4MulVecfl(vec, imat, cursor);
+	
+	/* check that cursor is in usable position */
+	if ((IS_EQ(vec[0], 0)==0) && (IS_EQ(vec[2], 0)==0)) {
+		/* Compute a rotation matrix around y */
+		rot[1] = atan2(vec[0], vec[2]);
+		rot[0] = rot[2] = 0.0f;
+		EulToMat4(rot, rmat);
+		
+		/* Multiply the bone matrix by rotation matrix. This should be new bone-matrix */
+		Mat4MulMat4(tmat, rmat, mat);
+		Mat3CpyMat4(curmat, tmat);
+		
+		/* Now convert from new bone-matrix, back to a roll value (in radians) */
+		mat3_to_vec_roll(curmat, delta, &ebone->roll);
+	}
+}
+
 /* Sets the roll value of selected bones, depending on the mode
  * 	mode == 0: their z-axes point upwards 
  * 	mode == 1: their z-axes point towards 3d-cursor
  */
 void auto_align_armature(Scene *scene, View3D *v3d, short mode)
 {
-	Object *obedit= scene->obedit; // XXX get from context
+	Object *obedit= scene->obedit;
 	bArmature *arm= obedit->data;
 	EditBone *ebone;
 	EditBone *flipbone = NULL;
-	float	delta[3];
-	float	curmat[3][3];
-	float  	*cursor= give_cursor(scene, v3d);
-		
+	void (*roll_func)(Scene *, View3D *, EditBone *) = NULL;
+	
+	/* specific method used to calculate roll depends on mode */
+	switch (mode) {
+		case 1:  /* Z-Axis point towards cursor */
+			roll_func= auto_align_ebone_tocursor;
+			break;
+		default: /* Z-Axis Point Up */
+			roll_func= auto_align_ebone_zaxisup;
+			break;
+	}
+	
 	for (ebone = arm->edbo->first; ebone; ebone=ebone->next) {
 		if (EBONE_VISIBLE(arm, ebone)) {
 			if (arm->flag & ARM_MIRROR_EDIT)
@@ -1866,65 +1943,8 @@ void auto_align_armature(Scene *scene, View3D *v3d, short mode)
 			if ((ebone->flag & BONE_SELECTED) || 
 				(flipbone && (flipbone->flag & BONE_SELECTED))) 
 			{
-				/* specific method used to calculate roll depends on mode */
-				if (mode == 1) {
-					/* Z-Axis point towards cursor */
-					float	mat[4][4], tmat[4][4], imat[4][4];
-					float 	rmat[4][4], rot[3];
-					float	vec[3];
-					
-					/* find the current bone matrix as a 4x4 matrix (in Armature Space) */
-					VecSubf(delta, ebone->tail, ebone->head);
-					vec_roll_to_mat3(delta, ebone->roll, curmat);
-					Mat4CpyMat3(mat, curmat);
-					VECCOPY(mat[3], ebone->head);
-					
-					/* multiply bone-matrix by object matrix (so that bone-matrix is in WorldSpace) */
-					Mat4MulMat4(tmat, mat, obedit->obmat);
-					Mat4Invert(imat, tmat);
-					
-					/* find position of cursor relative to bone */
-					VecMat4MulVecfl(vec, imat, cursor);
-					
-					/* check that cursor is in usable position */
-					if ((IS_EQ(vec[0], 0)==0) && (IS_EQ(vec[2], 0)==0)) {
-						/* Compute a rotation matrix around y */
-						rot[1] = atan2(vec[0], vec[2]);
-						rot[0] = rot[2] = 0.0f;
-						EulToMat4(rot, rmat);
-						
-						/* Multiply the bone matrix by rotation matrix. This should be new bone-matrix */
-						Mat4MulMat4(tmat, rmat, mat);
-						Mat3CpyMat4(curmat, tmat);
-						
-						/* Now convert from new bone-matrix, back to a roll value (in radians) */
-						mat3_to_vec_roll(curmat, delta, &ebone->roll);
-					}
-				}
-				else { 
-					/* Z-Axis Point Up */
-					float	xaxis[3]={1.0, 0.0, 0.0}, yaxis[3], zaxis[3]={0.0, 0.0, 1.0};
-					float	targetmat[3][3], imat[3][3], diffmat[3][3];
-					
-					/* Find the current bone matrix */
-					VecSubf(delta, ebone->tail, ebone->head);
-					vec_roll_to_mat3(delta, 0.0, curmat);
-					
-					/* Make new matrix based on y axis & z-up */
-					VECCOPY (yaxis, curmat[1]);
-					
-					Mat3One(targetmat);
-					VECCOPY (targetmat[0], xaxis);
-					VECCOPY (targetmat[1], yaxis);
-					VECCOPY (targetmat[2], zaxis);
-					Mat3Ortho(targetmat);
-					
-					/* Find the difference between the two matrices */
-					Mat3Inv(imat, targetmat);
-					Mat3MulMat3(diffmat, imat, curmat);
-					
-					ebone->roll = atan2(diffmat[2][0], diffmat[2][2]);
-				}				
+				/* roll func is a callback which assumes that all is well */
+				roll_func(scene, v3d, ebone);			
 			}
 		}
 	}
@@ -3539,6 +3559,7 @@ static int clear_active_flag(Object *ob, Bone *bone, void *data)
 }
 
 
+// XXX bone_looper is only to be used when we want to access settings (i.e. editability/visibility/selected) that context doesn't offer 
 static int bone_looper(Object *ob, Bone *bone, void *data,
 				int (*bone_func)(Object *, Bone *, void *)) 
 {

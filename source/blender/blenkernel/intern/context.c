@@ -441,6 +441,31 @@ struct ImBuf *CTX_data_edit_image_buffer(const bContext *C)
 	return ctx_data_pointer_get(C, CTX_DATA_EDIT_IMAGE_BUFFER);
 }
 
+struct EditBone *CTX_data_active_bone(const bContext *C)
+{
+	return ctx_data_pointer_get(C, CTX_DATA_ACTIVE_BONE);
+}
+
+int CTX_data_selected_bones(const bContext *C, ListBase *list)
+{
+	return ctx_data_collection_get(C, CTX_DATA_SELECTED_BONES, list);
+}
+
+int CTX_data_selected_editable_bones(const bContext *C, ListBase *list)
+{
+	return ctx_data_collection_get(C, CTX_DATA_SELECTED_EDITABLE_BONES, list);
+}
+
+struct bPoseChannel *CTX_data_active_pchan(const bContext *C)
+{
+	return ctx_data_pointer_get(C, CTX_DATA_ACTIVE_PCHAN);
+}
+
+int CTX_data_selected_pchans(const bContext *C, ListBase *list)
+{
+	return ctx_data_collection_get(C, CTX_DATA_SELECTED_PCHANS, list);
+}
+
 /* data evaluation */
 
 float CTX_eval_frame(const bContext *C)
