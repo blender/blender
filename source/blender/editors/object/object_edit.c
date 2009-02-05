@@ -1669,17 +1669,7 @@ static int object_clear_location_exec(bContext *C, wmOperator *op)
 	int armature_clear= 0;
 
 	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
-		if ((ob->flag & OB_POSEMODE)) {
-			/* only clear pose transforms if:
-			 *	- with a mesh in weightpaint mode, it's related armature needs to be cleared
-			 *	- with clearing transform of object being edited at the time
-			 */
-			if ((G.f & G_WEIGHTPAINT) || (ob==OBACT)) {
-				clear_armature(scene, ob, 'g');
-				armature_clear= 1;	/* silly system to prevent another dag update, so no action applied */
-			}
-		}
-		else if((G.f & G_WEIGHTPAINT)==0) {
+		if((G.f & G_WEIGHTPAINT)==0) {
 			if ((ob->protectflag & OB_LOCK_LOCX)==0)
 				ob->loc[0]= ob->dloc[0]= 0.0f;
 			if ((ob->protectflag & OB_LOCK_LOCY)==0)
@@ -1722,17 +1712,7 @@ static int object_clear_rotation_exec(bContext *C, wmOperator *op)
 	int armature_clear= 0;
 
 	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
-		if ((ob->flag & OB_POSEMODE)) {
-			/* only clear pose transforms if:
-			 *	- with a mesh in weightpaint mode, it's related armature needs to be cleared
-			 *	- with clearing transform of object being edited at the time
-			 */
-			if ((G.f & G_WEIGHTPAINT) || (ob==OBACT)) {
-				clear_armature(scene, ob, 'r');
-				armature_clear= 1;	/* silly system to prevent another dag update, so no action applied */
-			}
-		}
-		else if((G.f & G_WEIGHTPAINT)==0) {
+		if((G.f & G_WEIGHTPAINT)==0) {
 			/* eulers can only get cleared if they are not protected */
 			if ((ob->protectflag & OB_LOCK_ROTX)==0)
 				ob->rot[0]= ob->drot[0]= 0.0f;
@@ -1776,17 +1756,7 @@ static int object_clear_scale_exec(bContext *C, wmOperator *op)
 	int armature_clear= 0;
 
 	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
-		if ((ob->flag & OB_POSEMODE)) {
-			/* only clear pose transforms if:
-			 *	- with a mesh in weightpaint mode, it's related armature needs to be cleared
-			 *	- with clearing transform of object being edited at the time
-			 */
-			if ((G.f & G_WEIGHTPAINT) || (ob==OBACT)) {
-				clear_armature(scene, ob, 's');
-				armature_clear= 1;	/* silly system to prevent another dag update, so no action applied */
-			}
-		}
-		else if((G.f & G_WEIGHTPAINT)==0) {
+		if((G.f & G_WEIGHTPAINT)==0) {
 			if ((ob->protectflag & OB_LOCK_SCALEX)==0) {
 				ob->dsize[0]= 0.0f;
 				ob->size[0]= 1.0f;

@@ -109,6 +109,9 @@ void ED_operatortypes_armature(void)
 {
 	WM_operatortype_append(POSE_OT_hide);
 	WM_operatortype_append(POSE_OT_reveil);
+	WM_operatortype_append(POSE_OT_rot_clear);
+	WM_operatortype_append(POSE_OT_loc_clear);
+	WM_operatortype_append(POSE_OT_scale_clear);
 	
 	WM_operatortype_append(ARMATURE_OT_test); // XXX temp test for context iterators... to be removed
 }
@@ -133,6 +136,9 @@ void ED_keymap_armature(wmWindowManager *wm)
 	kmi= WM_keymap_add_item(keymap, "POSE_OT_hide", HKEY, KM_PRESS, KM_SHIFT, 0);
 	RNA_boolean_set(kmi->ptr, "invert", 1);
 	WM_keymap_add_item(keymap, "POSE_OT_reveil", HKEY, KM_PRESS, KM_ALT, 0);
-
+	/*clear pose*/
+	WM_keymap_add_item(keymap, "POSE_OT_rot_clear", RKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_add_item(keymap, "POSE_OT_loc_clear", GKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_add_item(keymap, "POSE_OT_scale_clear", SKEY, KM_PRESS, KM_ALT, 0);
 }
 

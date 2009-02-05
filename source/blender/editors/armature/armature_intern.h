@@ -37,7 +37,9 @@ EditBone *armature_bone_get_mirrored(ListBase *edbo, EditBone *ebo);
 
 void POSE_OT_hide(struct wmOperatorType *ot);
 void POSE_OT_reveil(struct wmOperatorType *ot);
-
+void POSE_OT_rot_clear(struct wmOperatorType *ot);
+void POSE_OT_loc_clear(struct wmOperatorType *ot);
+void POSE_OT_scale_clear(struct wmOperatorType *ot);
 
 #endif /* ED_ARMATURE_INTERN_H */
 
