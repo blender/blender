@@ -121,10 +121,6 @@ static void image_verify_buffer_float(SpaceImage *sima, ImBuf *ibuf)
 			else 
 				IMB_rect_from_float(ibuf);
 		}
-		else if(sima->pad) {
-			sima->pad= 0; // XXX temp for render updates!
-			IMB_rect_from_float(ibuf);
-		}
 	}
 }
 

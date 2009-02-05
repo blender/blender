@@ -3678,7 +3678,7 @@ static void composite_patch(bNodeTree *ntree, Scene *scene)
 	bNode *node;
 	
 	for(node= ntree->nodes.first; node; node= node->next)
-		if(node->id==NULL && node->type==CMP_NODE_R_LAYERS)
+		if(node->id==NULL && ELEM(node->type, CMP_NODE_R_LAYERS, CMP_NODE_COMPOSITE))
 			node->id= &scene->id;
 }
 

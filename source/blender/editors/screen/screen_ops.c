@@ -1952,6 +1952,8 @@ typedef struct RenderJob {
 	Render *re;
 	wmWindow *win;
 	int anim;
+	Image *image;
+	ImageUser iuser;
 	short *stop;
 	short *do_update;
 } RenderJob;
@@ -1964,28 +1966,85 @@ static void render_freejob(void *rjv)
 }
 
 /* called inside thread! */
-static void image_rect_update(void *rjv, RenderResult *rr, volatile rcti *rect)
+static void image_rect_update(void *rjv, RenderResult *rr, volatile rcti *renrect)
 {
-	/* rect null means per tile */
-	if(rect==NULL) {
-		RenderJob *rj= rjv;
-		ScrArea *sa;
+	RenderJob *rj= rjv;
+	ImBuf *ibuf;
+	float x1, y1, *rectf= NULL;
+	int ymin, ymax, xmin, xmax;
+	int rymin, rxmin;
+	char *rectc;
+	
+	ibuf= BKE_image_get_ibuf(rj->image, &rj->iuser);
+	if(ibuf==NULL) return;
+
+	/* if renrect argument, we only refresh scanlines */
+	if(renrect) {
+		/* if ymax==recty, rendering of layer is ready, we should not draw, other things happen... */
+		if(rr->renlay==NULL || renrect->ymax>=rr->recty)
+			return;
 		
-		// XXX validate window?
+		/* xmin here is first subrect x coord, xmax defines subrect width */
+		xmin = renrect->xmin;
+		xmax = renrect->xmax - xmin;
+		if (xmax<2) return;
 		
-		/* find an imagewindow showing render result */
-		for(sa= rj->win->screen->areabase.first; sa; sa= sa->next) {
-			if(sa->spacetype==SPACE_IMAGE) {
-				SpaceImage *sima= sa->spacedata.first;
-				
-				if(sima->image && sima->image->type==IMA_TYPE_R_RESULT) {
-					/* force refresh */
-					sima->pad= 1; // XXX temp
-					*(rj->do_update)= 1;
-				}
-			}
+		ymin= renrect->ymin;
+		ymax= renrect->ymax - ymin;
+		if(ymax<2)
+			return;
+		renrect->ymin= renrect->ymax;
+	}
+	else {
+		xmin = ymin = rr->crop;
+		xmax = rr->rectx - 2*rr->crop;
+		ymax = rr->recty - 2*rr->crop;
+	}
+	
+	/* xmin ymin is in tile coords. transform to ibuf */
+	rxmin= rr->tilerect.xmin + xmin;
+	if(rxmin >= ibuf->x) return;
+	rymin= rr->tilerect.ymin + ymin;
+	if(rymin >= ibuf->y) return;
+	
+	if(rxmin + xmax > ibuf->x)
+		xmax= ibuf->x - rxmin;
+	if(rymin + ymax > ibuf->y)
+		ymax= ibuf->y - rymin;
+	if(xmax < 1 || ymax < 1) return;
+	
+	/* find current float rect for display, first case is after composit... still weak */
+	if(rr->rectf)
+		rectf= rr->rectf;
+	else {
+		if(rr->rect32)
+			return;
+		else {
+			if(rr->renlay==NULL || rr->renlay->rectf==NULL) return;
+			rectf= rr->renlay->rectf;
 		}
 	}
+	if(rectf==NULL) return;
+	
+	rectf+= 4*(rr->rectx*ymin + xmin);
+	rectc= (char *)(ibuf->rect + ibuf->x*rymin + rxmin);
+
+	for(y1= 0; y1<ymax; y1++) {
+		float *rf= rectf;
+		char *rc= rectc;
+		
+		for(x1= 0; x1<xmax; x1++, rf += 4, rc+=4) {
+			rc[0]= FTOCHAR(rf[0]);
+			rc[1]= FTOCHAR(rf[1]);
+			rc[2]= FTOCHAR(rf[2]);
+			rc[3]= FTOCHAR(rf[3]);
+		}
+		rectf += 4*rr->rectx;
+		rectc += 4*ibuf->x;
+	}
+	
+	/* make jobs timer to send notifier */
+	*(rj->do_update)= 1;
 }
 
 static void render_startjob(void *rjv, short *stop, short *do_update)
@@ -2046,6 +2105,8 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	rj->scene= scene;
 	rj->win= CTX_wm_window(C);
 	rj->anim= RNA_boolean_get(op->ptr, "anim");
+	rj->iuser.scene= scene;
+	rj->iuser.ok= 1;
 	
 	/* setup job */
 	steve= WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), scene);
@@ -2053,10 +2114,11 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	WM_jobs_timer(steve, 0.2, NC_SCENE|ND_RENDER_RESULT, 0);
 	WM_jobs_callbacks(steve, render_startjob, NULL, NULL);
 	
-	/* get a render result image, and make sure it is clean */
+	/* get a render result image, and make sure it is empty */
 	ima= BKE_image_verify_viewer(IMA_TYPE_R_RESULT, "Render Result");
 	BKE_image_signal(ima, NULL, IMA_SIGNAL_FREE);
-	   
+	rj->image= ima;
+	
 	/* setup new render */
 	re= RE_NewRender(scene->id.name);
 	RE_test_break_cb(re, rj, render_breakjob);

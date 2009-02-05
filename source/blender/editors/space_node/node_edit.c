@@ -510,7 +510,7 @@ void node_composit_default(Scene *sce)
 	
 	sce->nodetree= ntreeAddTree(NTREE_COMPOSIT);
 	
-	out= nodeAddNodeType(sce->nodetree, CMP_NODE_COMPOSITE, NULL, NULL);
+	out= nodeAddNodeType(sce->nodetree, CMP_NODE_COMPOSITE, NULL, &sce->id);
 	out->locx= 300.0f; out->locy= 400.0f;
 	
 	in= nodeAddNodeType(sce->nodetree, CMP_NODE_R_LAYERS, NULL, &sce->id);
@@ -2302,6 +2302,8 @@ void node_read_fullsamplelayers(SpaceNode *snode)
  * goes over all scenes other than the input, checks if they have
  * render layer nodes referencing the to-be-deleted scene, and
  * resets them to NULL. */
+
+/* XXX needs to get current scene then! */
 void clear_scene_in_nodes(Scene *sce)
 {
 	Scene *sce1;
