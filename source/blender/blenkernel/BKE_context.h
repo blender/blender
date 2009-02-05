@@ -40,8 +40,6 @@ struct EditMesh;
 struct ListBase;
 struct Main;
 struct Object;
-struct Bone;
-struct bArmature;
 struct PointerRNA;
 struct ReportList;
 struct Scene;

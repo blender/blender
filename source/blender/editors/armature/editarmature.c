@@ -4012,32 +4012,27 @@ void create_vgroups_from_armature(Scene *scene, Object *ob, Object *par)
 	}
 } 
 /* ************* Clear Pose *****************************/
+
 static int pose_clear_scale_exec(bContext *C, wmOperator *op) 
 {
 	Scene *scene = CTX_data_scene(C);
 	Object *ob= CTX_data_active_object(C);
-	bArmature *arm= ob->data;
 	
 	/* only clear those channels that are not locked */
-	CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pchans){
-		if (arm->layer & pchan->bone->layer) {
-			if ((pchan->protectflag & OB_LOCK_SCALEX)==0)
-				pchan->size[0]= 1.0f;
-			if ((pchan->protectflag & OB_LOCK_SCALEY)==0)
-				pchan->size[1]= 1.0f;
-			if ((pchan->protectflag & OB_LOCK_SCALEZ)==0)
-				pchan->size[2]= 1.0f;
-			/* the current values from IPO's may not be zero, so tag as unkeyed */
-			pchan->bone->flag |= BONE_UNKEYED;
-		}
+	CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pchans) {
+		if ((pchan->protectflag & OB_LOCK_SCALEX)==0)
+			pchan->size[0]= 1.0f;
+		if ((pchan->protectflag & OB_LOCK_SCALEY)==0)
+			pchan->size[1]= 1.0f;
+		if ((pchan->protectflag & OB_LOCK_SCALEZ)==0)
+			pchan->size[2]= 1.0f;
+			
+		/* the current values from IPO's may not be zero, so tag as unkeyed */
+		//pchan->bone->flag |= BONE_UNKEYED;
 	}
 	CTX_DATA_END;
-		
+	
 	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
-	/* no update for this object, this will execute the action again */
-	/* is weak... like for ipo editing which uses ctime now... */
-	where_is_pose (scene, ob);
-	ob->recalc= 0;
 
 	/* note, notifier might evolve */
 	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, ob);
@@ -4064,28 +4059,22 @@ static int pose_clear_loc_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
 	Object *ob= CTX_data_active_object(C);
-	bArmature *arm= ob->data;
 	
 	/* only clear those channels that are not locked */
-	CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pchans){
-		if (arm->layer & pchan->bone->layer) {
-			if ((pchan->protectflag & OB_LOCK_LOCX)==0)
-				pchan->loc[0]= 0.0f;
-			if ((pchan->protectflag & OB_LOCK_LOCY)==0)
-				pchan->loc[1]= 0.0f;
-			if ((pchan->protectflag & OB_LOCK_LOCZ)==0)
-				pchan->loc[2]= 0.0f;
-			/* the current values from IPO's may not be zero, so tag as unkeyed */
-			pchan->bone->flag |= BONE_UNKEYED;
-		}
+	CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pchans) {
+		if ((pchan->protectflag & OB_LOCK_LOCX)==0)
+			pchan->loc[0]= 0.0f;
+		if ((pchan->protectflag & OB_LOCK_LOCY)==0)
+			pchan->loc[1]= 0.0f;
+		if ((pchan->protectflag & OB_LOCK_LOCZ)==0)
+			pchan->loc[2]= 0.0f;
+			
+		/* the current values from IPO's may not be zero, so tag as unkeyed */
+		//pchan->bone->flag |= BONE_UNKEYED;
 	}
 	CTX_DATA_END;
-		
+	
 	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
-	/* no update for this object, this will execute the action again */
-	/* is weak... like for ipo editing which uses ctime now... */
-	where_is_pose (scene, ob);
-	ob->recalc= 0;
 
 	/* note, notifier might evolve */
 	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, ob);
@@ -4112,46 +4101,55 @@ static int pose_clear_rot_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
 	Object *ob= CTX_data_active_object(C);
-	bArmature *arm= ob->data;
 	
 	/* only clear those channels that are not locked */
-	CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pchans){
-		if (arm->layer & pchan->bone->layer) {
-			if (pchan->protectflag & (OB_LOCK_ROTX|OB_LOCK_ROTY|OB_LOCK_ROTZ)) {
-				float eul[3], oldeul[3], quat1[4];
-					
+	CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pchans) {
+		if (pchan->protectflag & (OB_LOCK_ROTX|OB_LOCK_ROTY|OB_LOCK_ROTZ)) {
+			float eul[3], oldeul[3], quat1[4];
+			
+			if (pchan->rotmode == PCHAN_ROT_QUAT) {
 				QUATCOPY(quat1, pchan->quat);
 				QuatToEul(pchan->quat, oldeul);
-				eul[0]= eul[1]= eul[2]= 0.0f;
-				
-				if (pchan->protectflag & OB_LOCK_ROTX)
-					eul[0]= oldeul[0];
-				if (pchan->protectflag & OB_LOCK_ROTY)
-					eul[1]= oldeul[1];
-				if (pchan->protectflag & OB_LOCK_ROTZ)
-					eul[2]= oldeul[2];
-							
+			}
+			else {
+				VECCOPY(oldeul, pchan->eul);
+			}
+			eul[0]= eul[1]= eul[2]= 0.0f;
+			
+			if (pchan->protectflag & OB_LOCK_ROTX)
+				eul[0]= oldeul[0];
+			if (pchan->protectflag & OB_LOCK_ROTY)
+				eul[1]= oldeul[1];
+			if (pchan->protectflag & OB_LOCK_ROTZ)
+				eul[2]= oldeul[2];
+			
+			if (pchan->rotmode == PCHAN_ROT_QUAT) {
 				EulToQuat(eul, pchan->quat);
 				/* quaternions flip w sign to accumulate rotations correctly */
 				if ((quat1[0]<0.0f && pchan->quat[0]>0.0f) || (quat1[0]>0.0f && pchan->quat[0]<0.0f)) {
 					QuatMulf(pchan->quat, -1.0f);
 				}
-			}						
-			else { 
-				pchan->quat[1]=pchan->quat[2]=pchan->quat[3]=0.0F; 
-				pchan->quat[0]=1.0F;
 			}
-			/* the current values from IPO's may not be zero, so tag as unkeyed */
-			pchan->bone->flag |= BONE_UNKEYED;
+			else {
+				VECCOPY(pchan->eul, eul);
+			}
+		}						
+		else { 
+			if (pchan->rotmode == PCHAN_ROT_QUAT) {
+				pchan->quat[1]=pchan->quat[2]=pchan->quat[3]= 0.0f; 
+				pchan->quat[0]= 1.0f;
+			}
+			else {
+				pchan->eul[0]= pchan->eul[1]= pchan->eul[2]= 0.0f;
+			}
 		}
+		
+		/* the current values from IPO's may not be zero, so tag as unkeyed */
+		//pchan->bone->flag |= BONE_UNKEYED;
 	}
 	CTX_DATA_END;
-		
+	
 	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
-	/* no update for this object, this will execute the action again */
-	/* is weak... like for ipo editing which uses ctime now... */
-	where_is_pose (scene, ob);
-	ob->recalc= 0;
 
 	/* note, notifier might evolve */
 	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, ob);

@@ -507,8 +507,10 @@ static int view3d_context(const bContext *C, bContextDataMember member, bContext
 		
 		if (obact && arm) {
 			for (pchan= obact->pose->chanbase.first; pchan; pchan= pchan->next) {
-				if ((pchan->bone) && (arm->layer & pchan->bone->layer)) {
-					CTX_data_list_add(result, pchan);
+				/* ensure that PoseChannel is on visible layer and is not hidden in PoseMode */
+				if ((pchan->bone) && (arm->layer & pchan->bone->layer) && !(pchan->bone->flag & BONE_HIDDEN_P)) {
+					if (pchan->bone->flag & (BONE_SELECTED|BONE_ACTIVE)) 
+						CTX_data_list_add(result, pchan);
 				}
 			}
 			

@@ -33,7 +33,7 @@ struct wmOperatorType;
 
 /* editarmature.c */
 void armature_bone_rename(Object *ob, char *oldnamep, char *newnamep);
-EditBone *armature_bone_get_mirrored(ListBase *edbo, EditBone *ebo);
+EditBone *armature_bone_get_mirrored(ListBase *edbo, EditBone *ebo); // XXX this is needed for populating the context iterators
 
 void POSE_OT_hide(struct wmOperatorType *ot);
 void POSE_OT_reveil(struct wmOperatorType *ot);
