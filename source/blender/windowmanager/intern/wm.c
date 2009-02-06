@@ -150,6 +150,7 @@ void wm_close_and_free(bContext *C, wmWindowManager *wm)
 	
 	while((win= wm->windows.first)) {
 		BLI_remlink(&wm->windows, win);
+		wm_draw_window_clear(win);
 		wm_window_free(C, win);
 	}
 	
