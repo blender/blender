@@ -572,12 +572,6 @@ int WM_read_homefile(bContext *C, int from_memory)
 		success = BKE_read_file(C, tstr, NULL, NULL);
 	} else {
 		success = BKE_read_file_from_memory(C, datatoc_B_blend, datatoc_B_blend_size, NULL, NULL);
-		
-		/* When loading factory settings, the reset solid OpenGL lights need to be applied. */
-		U.light[0].flag=0;
-		U.light[1].flag=0;
-		U.light[2].flag=0;
-		GPU_default_lights();
 	}
 	
 	/* match the read WM with current WM */
@@ -587,6 +581,12 @@ int WM_read_homefile(bContext *C, int from_memory)
 	strcpy(G.sce, scestr); /* restore */
 
 	init_userdef_themes();
+	
+	/* When loading factory settings, the reset solid OpenGL lights need to be applied. */
+	U.light[0].flag=0;
+	U.light[1].flag=0;
+	U.light[2].flag=0;
+	GPU_default_lights();
 	
 	/* XXX */
 	G.save_over = 0;	// start with save preference untitled.blend
