@@ -1556,7 +1556,7 @@ static void delete_bone(ListBase *edbo, EditBone* exBone)
 }
 
 /* context: editmode armature */
-EditBone *armature_bone_get_mirrored(ListBase *edbo, EditBone *ebo)
+EditBone *ED_armature_bone_get_mirrored(ListBase *edbo, EditBone *ebo)
 {
 	EditBone *eboflip= NULL;
 	char name[32];
@@ -1592,7 +1592,7 @@ void delete_armature(Scene *scene)
 		for (curBone=arm->edbo->first; curBone; curBone=curBone->next) {
 			if (arm->layer & curBone->layer) {
 				if (curBone->flag & BONE_SELECTED) {
-					next = armature_bone_get_mirrored(arm->edbo, curBone);
+					next = ED_armature_bone_get_mirrored(arm->edbo, curBone);
 					if (next)
 						next->flag |= BONE_SELECTED;
 				}
@@ -1656,10 +1656,10 @@ void delete_armature(Scene *scene)
 }
 
 /* toggle==0: deselect
-toggle==1: swap (based on test)
-toggle==2: only active tag
-toggle==3: swap (no test)
-*/
+ * toggle==1: swap (based on test)
+ * toggle==2: only active tag
+ * toggle==3: swap (no test)
+ */
 void deselectall_armature(Object *obedit, int toggle, int doundo)
 {
 	bArmature *arm= obedit->data;
@@ -1916,20 +1916,22 @@ void auto_align_ebone_tocursor(Scene *scene, View3D *v3d, EditBone *ebone)
 	}
 }
 
-/* Sets the roll value of selected bones, depending on the mode
- * 	mode == 0: their z-axes point upwards 
- * 	mode == 1: their z-axes point towards 3d-cursor
- */
-void auto_align_armature(Scene *scene, View3D *v3d, short mode)
+
+static EnumPropertyItem prop_calc_roll_types[] = {
+	{0, "GLOBALUP", "Z-Axis Up", ""},
+	{1, "CURSOR", "Z-Axis to Cursor", ""},
+	{0, NULL, NULL, NULL}
+};
+
+static int armature_calc_roll_exec(bContext *C, wmOperator *op) 
 {
-	Object *obedit= scene->obedit;
-	bArmature *arm= obedit->data;
-	EditBone *ebone;
-	EditBone *flipbone = NULL;
+	Scene *scene= CTX_data_scene(C);
+	View3D *v3d= (View3D *)CTX_wm_space_data(C);
+	Object *ob= CTX_data_edit_object(C);
 	void (*roll_func)(Scene *, View3D *, EditBone *) = NULL;
 	
 	/* specific method used to calculate roll depends on mode */
-	switch (mode) {
+	switch (RNA_enum_get(op->ptr, "type")) {
 		case 1:  /* Z-Axis point towards cursor */
 			roll_func= auto_align_ebone_tocursor;
 			break;
@@ -1938,19 +1940,36 @@ void auto_align_armature(Scene *scene, View3D *v3d, short mode)
 			break;
 	}
 	
-	for (ebone = arm->edbo->first; ebone; ebone=ebone->next) {
-		if (EBONE_VISIBLE(arm, ebone)) {
-			if (arm->flag & ARM_MIRROR_EDIT)
-				flipbone = armature_bone_get_mirrored(arm->edbo, ebone);
-			
-			if ((ebone->flag & BONE_SELECTED) || 
-				(flipbone && (flipbone->flag & BONE_SELECTED))) 
-			{
-				/* roll func is a callback which assumes that all is well */
-				roll_func(scene, v3d, ebone);			
-			}
-		}
+	/* recalculate roll on selected bones */
+	CTX_DATA_BEGIN(C, EditBone *, ebone, selected_editable_bones) {
+		/* roll func is a callback which assumes that all is well */
+		roll_func(scene, v3d, ebone);
 	}
+	CTX_DATA_END;
+	
+
+	/* note, notifier might evolve */
+	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, ob);
+	
+	return OPERATOR_FINISHED;
+}
+
+void ARMATURE_OT_calculate_roll(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Recalculate Roll";
+	ot->idname= "ARMATURE_OT_calculate_roll";
+	
+	/* api callbacks */
+	ot->invoke = WM_menu_invoke;
+	ot->exec = armature_calc_roll_exec;
+	ot->poll = ED_operator_editarmature;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* properties */
+	RNA_def_enum(ot->srna, "type", prop_calc_roll_types, 0, "Type", "");
 }
 
 /* **************** undo for armatures ************** */
@@ -2046,14 +2065,14 @@ static EditBone *add_editbone(Object *obedit, char *name)
 	BLI_addtail(arm->edbo, bone);
 	
 	bone->flag |= BONE_TIPSEL;
-	bone->weight= 1.0F;
-	bone->dist= 0.25F;
-	bone->xwidth= 0.1;
-	bone->zwidth= 0.1;
-	bone->ease1= 1.0;
-	bone->ease2= 1.0;
-	bone->rad_head= 0.10;
-	bone->rad_tail= 0.05;
+	bone->weight= 1.0f;
+	bone->dist= 0.25f;
+	bone->xwidth= 0.1f;
+	bone->zwidth= 0.1f;
+	bone->ease1= 1.0f;
+	bone->ease2= 1.0f;
+	bone->rad_head= 0.10f;
+	bone->rad_tail= 0.05f;
 	bone->segments= 1;
 	bone->layer= arm->layer;
 	
@@ -2168,7 +2187,7 @@ void addvert_armature(Scene *scene, View3D *v3d)
 	/* we re-use code for mirror editing... */
 	flipbone= NULL;
 	if (arm->flag & ARM_MIRROR_EDIT)
-		flipbone= armature_bone_get_mirrored(arm->edbo, ebone);
+		flipbone= ED_armature_bone_get_mirrored(arm->edbo, ebone);
 
 	for (a=0; a<2; a++) {
 		if (a==1) {
@@ -2309,7 +2328,7 @@ void adduplicate_armature(Scene *scene)
 		for (curBone=arm->edbo->first; curBone; curBone=curBone->next) {
 			if (EBONE_VISIBLE(arm, curBone)) {
 				if (curBone->flag & BONE_SELECTED) {
-					eBone = armature_bone_get_mirrored(arm->edbo, curBone);
+					eBone = ED_armature_bone_get_mirrored(arm->edbo, curBone);
 					if (eBone)
 						eBone->flag |= BONE_SELECTED;
 				}
@@ -2989,7 +3008,7 @@ void make_bone_parent(Scene *scene)
 		bone_connect_to_existing_parent(actbone);
 		
 		if (arm->flag & ARM_MIRROR_EDIT) {
-			flipbone = armature_bone_get_mirrored(arm->edbo, actbone);
+			flipbone = ED_armature_bone_get_mirrored(arm->edbo, actbone);
 			if (flipbone)
 				bone_connect_to_existing_parent(flipbone);
 		}
@@ -3009,8 +3028,8 @@ void make_bone_parent(Scene *scene)
 						 * - if there's no mirrored copy of actbone (i.e. actbone = "parent.C" or "parent")
 						 *	then just use actbone. Useful when doing upper arm to spine.
 						 */
-						flipbone = armature_bone_get_mirrored(arm->edbo, selbone);
-						flippar = armature_bone_get_mirrored(arm->edbo, actbone);
+						flipbone = ED_armature_bone_get_mirrored(arm->edbo, selbone);
+						flippar = ED_armature_bone_get_mirrored(arm->edbo, actbone);
 						
 						if (flipbone) {
 							if (flippar)
@@ -3056,7 +3075,7 @@ void clear_bone_parent(Scene *scene)
 		if (EBONE_VISIBLE(arm, ebone)) {
 			if (ebone->flag & BONE_SELECTED) {
 				if (arm->flag & ARM_MIRROR_EDIT)
-					flipbone = armature_bone_get_mirrored(arm->edbo, ebone);
+					flipbone = ED_armature_bone_get_mirrored(arm->edbo, ebone);
 					
 				if (flipbone)
 					editbone_clear_parent(flipbone, val);
@@ -3108,7 +3127,7 @@ void extrude_armature(Scene *scene, int forked)
 				/* we re-use code for mirror editing... */
 				flipbone= NULL;
 				if (arm->flag & ARM_MIRROR_EDIT) {
-					flipbone= armature_bone_get_mirrored(arm->edbo, ebone);
+					flipbone= ED_armature_bone_get_mirrored(arm->edbo, ebone);
 					if (flipbone) {
 						forked= 0;	// we extrude 2 different bones
 						if (flipbone->flag & (BONE_TIPSEL|BONE_ROOTSEL|BONE_SELECTED))
@@ -3226,7 +3245,7 @@ void subdivide_armature(Scene *scene, int numcuts)
 						/* try to find mirrored bone on a != 0 */
 						if (a) {
 							if (arm->flag & ARM_MIRROR_EDIT)
-								ebone= armature_bone_get_mirrored(arm->edbo, mbone);
+								ebone= ED_armature_bone_get_mirrored(arm->edbo, mbone);
 							else 
 								ebone= NULL;
 						}
@@ -3421,7 +3440,7 @@ static int armature_align_bones_exec(bContext *C, wmOperator *op)
 		 * - if there's no mirrored copy of actbone (i.e. actbone = "parent.C" or "parent")
 		 *	then just use actbone. Useful when doing upper arm to spine.
 		 */
-		actmirb= armature_bone_get_mirrored(arm->edbo, actbone);
+		actmirb= ED_armature_bone_get_mirrored(arm->edbo, actbone);
 		if (actmirb == NULL) 
 			actmirb= actbone;
 	}
@@ -4524,7 +4543,7 @@ void transform_armature_mirror_update(Object *obedit)
 	for (ebo= arm->edbo->first; ebo; ebo=ebo->next) {
 		/* no layer check, correct mirror is more important */
 		if (ebo->flag & (BONE_TIPSEL|BONE_ROOTSEL)) {
-			eboflip= armature_bone_get_mirrored(arm->edbo, ebo);
+			eboflip= ED_armature_bone_get_mirrored(arm->edbo, ebo);
 			
 			if (eboflip) {
 				/* we assume X-axis flipping for now */

@@ -43,6 +43,7 @@
 #include "BLI_arithb.h"
 #include "BLI_rand.h"
 
+#include "BKE_action.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_screen.h"
@@ -478,7 +479,7 @@ static int view3d_context(const bContext *C, bContextDataMember member, bContext
 					 * bones will be operated on twice.
 					 */
 					if (arm->flag & ARM_MIRROR_EDIT)
-						flipbone = armature_bone_get_mirrored(arm->edbo, ebone);
+						flipbone = ED_armature_bone_get_mirrored(arm->edbo, ebone);
 					
 					/* if we're filtering for editable too, use the check for that instead, as it has selection check too */
 					if (member == CTX_DATA_SELECTED_EDITABLE_BONES) {

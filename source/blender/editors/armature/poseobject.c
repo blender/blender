@@ -1385,7 +1385,7 @@ void pose_movetolayer(Scene *scene)
 				if (ebo->flag & BONE_SELECTED) {
 					ebo->layer= lay;
 					if (arm->flag & ARM_MIRROR_EDIT) {
-						flipBone = armature_bone_get_mirrored(arm->edbo, ebo);
+						flipBone = ED_armature_bone_get_mirrored(arm->edbo, ebo);
 						if (flipBone)
 							flipBone->layer = lay;
 					}
