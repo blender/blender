@@ -1051,10 +1051,8 @@ static void node_browse_scene_cb(bContext *C, void *ntree_v, void *node_v)
 		node->id= NULL;
 	}
 	sce= BLI_findlink(&G.main->scene, node->menunr-1);
-	if(sce!=CTX_data_scene(C)) {
-		node->id= &sce->id;
-		id_us_plus(node->id);
-	}
+	node->id= &sce->id;
+	id_us_plus(node->id);
 	
 	set_render_layers_title(C, node, NULL);
 	nodeSetActive(ntree, node);

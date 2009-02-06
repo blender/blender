@@ -648,14 +648,17 @@ static uiBlock *node_viewmenu(bContext *C, ARegion *ar, void *arg_unused)
 
 static void do_node_buttons(bContext *C, void *arg, int event)
 {
-	// NODE_FIX_ME : instead of using "current material/texture/scene" a la old buttons/G.scene
-	// have a panel from which enumerates textures, materials and scenes.
+	// NODE_FIX_ME : instead of using "current material/texture/scene", node editor can also pin context?
+	// note: scene context better not gets overridden, that'll clash too much (ton)
 	SpaceNode *snode= (SpaceNode*)CTX_wm_space_data(C);
 	Scene *scene= CTX_data_scene(C);
 	Material *ma;
 	Tex *tx;
 	
 	switch(event) {
+		case B_REDR:
+			ED_area_tag_redraw(CTX_wm_area(C));			
+			break;
 		case B_NODE_USEMAT:
 			ma= (Material *)snode->id;
 			if(ma) {
@@ -663,21 +666,17 @@ static void do_node_buttons(bContext *C, void *arg, int event)
 					node_shader_default(ma);
 					snode_set_context(snode, scene);
 				}
-				/* BIF_preview_changed(ID_MA);
-				allqueue(REDRAWNODE, 0);
-				allqueue(REDRAWBUTSSHADING, 0);
-				allqueue(REDRAWIPO, 0);*/
 			}		
+			ED_area_tag_redraw(CTX_wm_area(C));			
 			break;
 			
 		case B_NODE_USESCENE:
 			if(scene->use_nodes) {
 				if(scene->nodetree==NULL)
 					node_composit_default(scene);
-				// addqueue(curarea->win, UI_BUT_EVENT, B_NODE_TREE_EXEC);
 			}
 			snode_set_context(snode, scene);
-			// allqueue(REDRAWNODE, 0);
+			ED_area_tag_redraw(CTX_wm_area(C));			
 			break;
 			
 		case B_NODE_USETEX:
@@ -688,11 +687,8 @@ static void do_node_buttons(bContext *C, void *arg, int event)
 					node_texture_default(tx);
 					snode_set_context(snode, scene);
 				}
-				/* BIF_preview_changed(ID_TE);
-				allqueue(REDRAWNODE, 0);
-				allqueue(REDRAWBUTSSHADING, 0);
-				allqueue(REDRAWIPO, 0);*/
 			}
+			ED_area_tag_redraw(CTX_wm_area(C));			
 			break;
 	}
 }
