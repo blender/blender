@@ -141,7 +141,7 @@ void do_node_addmenu(bContext *C, void *arg, int event)
 	// toolbox_mousepos(mval, 0 ); /* get initial mouse position */
 	// areamouseco_to_ipoco(G.v2d, mval, &locx, &locy);
 	// NODE_FIX_ME
-	node= node_add_node(snode, event, 0.0, 0.0);
+	node= node_add_node(snode, CTX_data_scene(C), event, 0.0, 0.0);
 	
 	/* uses test flag */
 	// XXX snode_autoconnect(snode, node, NODE_TEST);

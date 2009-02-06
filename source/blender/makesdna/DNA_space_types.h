@@ -349,6 +349,7 @@ typedef struct SpaceNode {
 	void *curfont;
 	
 	float xof, yof;	/* offset for drawing the backdrop */
+	float mx, my;	/* mousepos for drawing socketless link */
 	
 	struct bNodeTree *nodetree, *edittree;
 	int treetype, pad;			/* treetype: as same nodetree->type */

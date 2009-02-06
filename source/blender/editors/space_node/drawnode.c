@@ -2562,17 +2562,12 @@ void node_draw_link_bezier(View2D *v2d, float vec[4][3], int th_col1, int th_col
 void node_draw_link(View2D *v2d, SpaceNode *snode, bNodeLink *link)
 {
 	float vec[4][3];
-	float mx=0.0f, my=0.0f;
 	int do_shaded= 1, th_col1= TH_WIRE, th_col2= TH_WIRE;
 	
 	if(link->fromnode==NULL && link->tonode==NULL)
 		return;
 	
-	/* XXX fix -> notifier thingymajiggle this is dragging link */
 	if(link->fromnode==NULL || link->tonode==NULL) {
-		// short mval[2];
-		// XXX getmouseco_areawin(mval);
-		// XXX areamouseco_to_ipoco(v2d, mval, &mx, &my);
 		UI_ThemeColor(TH_WIRE);
 		do_shaded= 0;
 	}
@@ -2611,16 +2606,16 @@ void node_draw_link(View2D *v2d, SpaceNode *snode, bNodeLink *link)
 		vec[0][1]= link->fromsock->locy;
 	}
 	else {
-		vec[0][0]= mx;
-		vec[0][1]= my;
+		vec[0][0]= snode->mx;
+		vec[0][1]= snode->my;
 	}
 	if(link->tonode) {
 		vec[3][0]= link->tosock->locx;
 		vec[3][1]= link->tosock->locy;
 	}
 	else {
-		vec[3][0]= mx;
-		vec[3][1]= my;
+		vec[3][0]= snode->mx;
+		vec[3][1]= snode->my;
 	}
 	
 	node_draw_link_bezier(v2d, vec, th_col1, th_col2, do_shaded);

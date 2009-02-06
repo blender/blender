@@ -1124,7 +1124,8 @@ bNodeTree *ntreeCopyTree(bNodeTree *ntree, int internal_select)
 	
 	/* check for copying links */
 	for(link= ntree->links.first; link; link= link->next) {
-		if(link->fromnode->new_node && link->tonode->new_node) {
+		if(link->fromnode==NULL || link->tonode==NULL);
+		else if(link->fromnode->new_node && link->tonode->new_node) {
 			nlink= nodeAddLink(newtree, link->fromnode->new_node, NULL, link->tonode->new_node, NULL);
 			/* sockets were copied in order */
 			for(a=0, sock= link->fromnode->outputs.first; sock; sock= sock->next, a++) {
@@ -2269,8 +2270,10 @@ static int setExecutableNodes(bNodeTree *ntree, ThreadData *thd)
 			/* is sock in use? */
 			else if(sock->link) {
 				bNodeLink *link= sock->link;
+				
 				/* this is the test for a cyclic case */
-				if(link->fromnode->level >= link->tonode->level && link->tonode->level!=0xFFF) {
+				if(link->fromnode==NULL || link->tonode==NULL);
+				else if(link->fromnode->level >= link->tonode->level && link->tonode->level!=0xFFF) {
 					if(link->fromnode->need_exec) {
 						node->need_exec= 1;
 						break;

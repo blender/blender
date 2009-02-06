@@ -52,9 +52,6 @@ struct GPUMaterial;
 struct GPUNode;
 struct GPUNodeStack;
 
-#define SOCK_IN		1
-#define SOCK_OUT	2
-
 /* ************** NODE TYPE DEFINITIONS ***** */
 
 typedef struct bNodeSocketType {
