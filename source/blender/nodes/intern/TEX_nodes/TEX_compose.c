@@ -53,19 +53,19 @@ static void exec(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 }
 
 bNodeType tex_node_compose= {
-	/* *next,*prev     */  NULL, NULL,
-	/* type code       */  TEX_NODE_COMPOSE,
-	/* name            */  "Compose RGBA",
-	/* width+range     */  100, 60, 150,
-	/* class+opts      */  NODE_CLASS_OP_COLOR, 0,
-	/* input sock      */  inputs,
-	/* output sock     */  outputs,
-	/* storage         */  "", 
-	/* execfunc        */  exec,
-	/* butfunc         */  NULL,
-	/* initfunc        */  NULL,
-	/* freestoragefunc */  NULL,
-	/* copystoragefunc */  NULL,
-	/* id              */  NULL   
+	/* *next,*prev     */ NULL, NULL,
+	/* type code       */ TEX_NODE_COMPOSE,
+	/* name            */ "Compose RGBA",
+	/* width+range     */ 100, 60, 150,
+	/* class+opts      */ NODE_CLASS_OP_COLOR, 0,
+	/* input sock      */ inputs,
+	/* output sock     */ outputs,
+	/* storage         */ "", 
+	/* execfunc        */ exec,
+	/* butfunc         */ NULL,
+	/* initfunc        */ NULL,
+	/* freestoragefunc */ NULL,
+	/* copystoragefunc */ NULL,
+	/* id              */ NULL   
 	
 };

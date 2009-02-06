@@ -2902,6 +2902,7 @@ static void registerTextureNodes(ListBase *ntypelist)
 	
 	nodeRegisterType(ntypelist, &tex_node_rotate);
 	nodeRegisterType(ntypelist, &tex_node_translate);
+	nodeRegisterType(ntypelist, &tex_node_scale);
 	
 	nodeRegisterType(ntypelist, &tex_node_proc_voronoi);
 	nodeRegisterType(ntypelist, &tex_node_proc_blend);

@@ -30,8 +30,8 @@
 #include "../TEX_util.h"
 
 static bNodeSocketType inputs[]= { 
-	{ SOCK_RGBA, 1, "Color", 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
-	{ SOCK_VECTOR, 1, "Offset",   0.0f, 0.0f, 0.0f, 0.0f,  -1.0f, 1.0f },
+	{ SOCK_RGBA,   1, "Color", 0.0f, 0.0f, 0.0f, 1.0f,    0.0f,  1.0f },
+	{ SOCK_VECTOR, 1, "Scale", 1.0f, 1.0f, 1.0f, 0.0f,  -10.0f, 10.0f },
 	{ -1, 0, "" } 
 };
 
@@ -42,13 +42,13 @@ static bNodeSocketType outputs[]= {
 
 static void colorfn(float *out, float *coord, bNode *node, bNodeStack **in, short thread)
 {
-	float offset[3], new_coord[3];
+	float scale[3], new_coord[3];
 	
-	tex_input_vec(offset, in[1], coord, thread);
+	tex_input_vec(scale, in[1], coord, thread);
 	
-	new_coord[0] = coord[0] + offset[0];
-	new_coord[1] = coord[1] + offset[1];
-	new_coord[2] = coord[2] + offset[2];
+	new_coord[0] = coord[0] * scale[0];
+	new_coord[1] = coord[1] * scale[1];
+	new_coord[2] = coord[2] * scale[2];
 	
 	tex_input_rgba(out, in[0], new_coord, thread);
 }
@@ -57,10 +57,10 @@ static void exec(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 	tex_output(node, in, out[0], &colorfn);
 }
 
-bNodeType tex_node_translate = {
+bNodeType tex_node_scale = {
 	/* *next,*prev */	NULL, NULL,
-	/* type code   */	TEX_NODE_TRANSLATE, 
-	/* name        */	"Translate", 
+	/* type code   */	TEX_NODE_SCALE, 
+	/* name        */	"Scale", 
 	/* width+range */	90, 80, 100, 
 	/* class+opts  */	NODE_CLASS_DISTORT, NODE_OPTIONS, 
 	/* input sock  */	inputs, 

@@ -30,14 +30,14 @@
 #include <math.h>
 
 static bNodeSocketType inputs[]= {
-	{ SOCK_RGBA, 0, "Color", 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f },
+	{ SOCK_RGBA, 1, "Color", 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f },
 	{ -1, 0, "" }
 };
 static bNodeSocketType outputs[]= {
-	{ SOCK_VALUE, 1, "Red",   0.0f, 0.0f, 0.0f, 0.0f,  0.0f, 1.0f },
-	{ SOCK_VALUE, 1, "Green", 0.0f, 0.0f, 0.0f, 0.0f,  0.0f, 1.0f },
-	{ SOCK_VALUE, 1, "Blue",  0.0f, 0.0f, 0.0f, 0.0f,  0.0f, 1.0f },
-	{ SOCK_VALUE, 1, "Alpha", 1.0f, 0.0f, 0.0f, 0.0f,  0.0f, 1.0f },
+	{ SOCK_VALUE, 0, "Red",   0.0f, 0.0f, 0.0f, 0.0f,  0.0f, 1.0f },
+	{ SOCK_VALUE, 0, "Green", 0.0f, 0.0f, 0.0f, 0.0f,  0.0f, 1.0f },
+	{ SOCK_VALUE, 0, "Blue",  0.0f, 0.0f, 0.0f, 0.0f,  0.0f, 1.0f },
+	{ SOCK_VALUE, 0, "Alpha", 1.0f, 0.0f, 0.0f, 0.0f,  0.0f, 1.0f },
 	{ -1, 0, "" }
 };
 

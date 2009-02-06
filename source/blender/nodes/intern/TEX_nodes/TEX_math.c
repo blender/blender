@@ -143,6 +143,29 @@ static void valuefn(float *out, float *coord, bNode *node, bNodeStack **in, shor
 			*out= (int)(in0 + 0.5f);
 		}
 		break; 
+		
+	case 15: /* Less Than */
+		{
+			if( in0 < in1 )
+				*out= 1.0f;
+			else
+				*out= 0.0f;
+		}
+		break;
+		
+	case 16: /* Greater Than */
+		{
+			if( in0 > in1 )
+				*out= 1.0f;
+			else
+				*out= 0.0f;
+		}
+		break;
+		
+	default:
+		fprintf(stderr,
+			"%s:%d: unhandeld value in switch statement: %d\n",
+			__FILE__, __LINE__, node->custom1);
 	} 
 }
 
