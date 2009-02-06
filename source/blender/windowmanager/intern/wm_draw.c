@@ -365,7 +365,7 @@ static void wm_draw_triple_fail(bContext *C, wmWindow *win)
 
 static int wm_triple_gen_textures(wmWindow *win, wmDrawTriple *triple)
 {
-	GLint width;
+	GLint maxsize;
 	int x, y;
 
 	/* compute texture sizes */
@@ -402,16 +402,13 @@ static int wm_triple_gen_textures(wmWindow *win, wmDrawTriple *triple)
 
 	for(y=0; y<triple->ny; y++) {
 		for(x=0; x<triple->nx; x++) {
-			/* disabled, does not seems to work well everywhere */
 			/* proxy texture is only guaranteed to test for the cases that
 			 * there is only one texture in use, which may not be the case */
-			glBindTexture(triple->target, triple->bind[x + y*triple->nx]);
-			glTexImage2D(GL_PROXY_TEXTURE_2D, 0, GL_RGB8, triple->x[x], triple->y[y], 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-			glGetTexLevelParameteriv(GL_PROXY_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &width);
+			glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxsize);
 
-			if(width == 0) {
+			if(triple->x[x] > maxsize || triple->y[y] > maxsize) {
 				glBindTexture(triple->target, 0);
-				printf("WM: failed to allocate texture for triple buffer drawing (GL_PROXY_TEXTURE_2D).\n");
+				printf("WM: failed to allocate texture for triple buffer drawing (texture too large for graphics card).\n");
 				return 0;
 			}
 

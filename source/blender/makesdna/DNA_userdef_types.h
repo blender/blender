@@ -327,8 +327,8 @@ extern UserDef U; /* from blenkernel blender.c */
 #define USER_VRML_TWOSIDED		4
 
 /* wm draw method */
-#define USER_DRAW_OVERLAP		0
-#define USER_DRAW_TRIPLE		1
+#define USER_DRAW_TRIPLE		0
+#define USER_DRAW_OVERLAP		1
 #define USER_DRAW_FULL			2
 
 /* tw_flag (transform widget) */
