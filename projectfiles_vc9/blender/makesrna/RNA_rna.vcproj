@@ -223,10 +223,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna.crna_ipo_gen.c"
-				>
-			</File>
-			<File
 				RelativePath="..\..\..\source\blender\makesrna\intern\rna.crna_key_gen.c"
 				>
 			</File>
