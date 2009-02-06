@@ -403,6 +403,8 @@ struct TexResult;
 #define TEX_NODE_TRANSLATE  116
 #define TEX_NODE_COORD      117
 #define TEX_NODE_DISTANCE   118
+#define TEX_NODE_COMPOSE    119
+#define TEX_NODE_DECOMPOSE  120
 
 /* 201-299 reserved. Use like this: TEX_NODE_PROC + TEX_CLOUDS, etc */
 #define TEX_NODE_PROC      200

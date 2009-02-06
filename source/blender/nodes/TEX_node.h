@@ -58,6 +58,9 @@ extern bNodeType tex_node_distance;
 extern bNodeType tex_node_rotate;
 extern bNodeType tex_node_translate;
 
+extern bNodeType tex_node_compose;
+extern bNodeType tex_node_decompose;
+
 extern bNodeType tex_node_proc_voronoi;
 extern bNodeType tex_node_proc_blend;
 extern bNodeType tex_node_proc_magic;
