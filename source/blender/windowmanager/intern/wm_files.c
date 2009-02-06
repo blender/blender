@@ -428,8 +428,8 @@ return;
   2- no current wm, but read wm: that's OK, do nothing
   3- current wm, but not in file: try match screen names
   4- current wm, and wm in file: try match ghostwin 
-
 */
+
 static void wm_window_match_do(bContext *C, ListBase *oldwmlist)
 {
 	wmWindowManager *oldwm, *wm;
@@ -444,13 +444,11 @@ static void wm_window_match_do(bContext *C, ListBase *oldwmlist)
 	else {
 		/* cases 3 and 4 */
 		
-		/* we've read file without wm... */
+		/* we've read file without wm..., keep current one entirely alive */
 		if(G.main->wm.first==NULL) {
 			/* match oldwm to new dbase, only old files */
 			
 			for(wm= oldwmlist->first; wm; wm= wm->id.next) {
-				/* ensure making new keymaps and set space types */
-				wm->initialized= 0;
 				
 				for(win= wm->windows.first; win; win= win->next) {
 					/* all windows get active screen from file */
@@ -464,6 +462,9 @@ static void wm_window_match_do(bContext *C, ListBase *oldwmlist)
 			/* XXX still solve, case where multiple windows open */
 			
 			G.main->wm= *oldwmlist;
+			
+			/* screens were read from file! */
+			ED_screens_initialize(G.main->wm.first);
 		}
 		else {
 			/* what if old was 3, and loaded 1? */
