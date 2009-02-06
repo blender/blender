@@ -1579,6 +1579,28 @@ void object_view_settings(Object *ob, float *lens, float *clipsta, float *clipen
 	}
 }
 
+int get_view3d_ortho(View3D *v3d)
+{
+	Camera *cam;
+	
+	if(v3d->persp==V3D_CAMOB) {
+		if(v3d->camera && v3d->camera->type==OB_CAMERA) {
+			cam= v3d->camera->data;
+
+			if(cam && cam->type==CAM_ORTHO)
+				return 1;
+			else
+				return 0;
+		}
+		else
+			return 0;
+	}
+	
+	if(v3d->persp==V3D_ORTHO)
+		return 1;
+
+	return 0;
+}
 
 int get_view3d_viewplane(int winxi, int winyi, rctf *viewplane, float *clipsta, float *clipend, float *pixsize)
 {

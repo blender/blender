@@ -255,6 +255,8 @@ public:
 	/**
 	 */
 	virtual const	MT_Point3& GetCameraPosition()=0;
+	virtual bool	GetCameraOrtho()=0;
+
 	/**
 	 */
 	virtual void	SetFog(float start,

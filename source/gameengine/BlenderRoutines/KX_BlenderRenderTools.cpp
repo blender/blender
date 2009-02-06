@@ -80,7 +80,7 @@ void KX_BlenderRenderTools::EndFrame(RAS_IRasterizer* rasty)
  * has a maximum of 8 lights (simultaneous), so 20 * 8 lights are possible in
  * a scene. */
 
-void KX_BlenderRenderTools::ProcessLighting(int layer, const MT_Transform& viewmat)
+void KX_BlenderRenderTools::ProcessLighting(RAS_IRasterizer *rasty, int layer, const MT_Transform& viewmat)
 {
 	if(m_lastlightlayer == layer)
 		return;
@@ -101,12 +101,12 @@ void KX_BlenderRenderTools::ProcessLighting(int layer, const MT_Transform& viewm
 	}
 
 	if(enable)
-		EnableOpenGLLights();
+		EnableOpenGLLights(rasty);
 	else
 		DisableOpenGLLights();
 }
 
-void KX_BlenderRenderTools::EnableOpenGLLights()
+void KX_BlenderRenderTools::EnableOpenGLLights(RAS_IRasterizer *rasty)
 {
 	if(m_lastlighting == true)
 		return;
@@ -115,7 +115,8 @@ void KX_BlenderRenderTools::EnableOpenGLLights()
 	glEnable(GL_COLOR_MATERIAL);
 
 	glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
-	glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, true);
+	glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
+	glLightModeli(GL_LIGHT_MODEL_LOCAL_VIEWER, (rasty->GetCameraOrtho())? GL_FALSE: GL_TRUE);
 	if (GLEW_EXT_separate_specular_color || GLEW_VERSION_1_2)
 		glLightModeli(GL_LIGHT_MODEL_COLOR_CONTROL, GL_SEPARATE_SPECULAR_COLOR);
 	

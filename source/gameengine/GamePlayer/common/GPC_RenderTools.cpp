@@ -85,7 +85,7 @@ void GPC_RenderTools::EndFrame(RAS_IRasterizer* rasty)
  * has a maximum of 8 lights (simultaneous), so 20 * 8 lights are possible in
  * a scene. */
 
-void GPC_RenderTools::ProcessLighting(int layer, const MT_Transform& viewmat)
+void GPC_RenderTools::ProcessLighting(RAS_IRasterizer *rasty, int layer, const MT_Transform& viewmat)
 {
 	if(m_lastlightlayer == layer)
 		return;
@@ -106,12 +106,12 @@ void GPC_RenderTools::ProcessLighting(int layer, const MT_Transform& viewmat)
 	}
 
 	if(enable)
-		EnableOpenGLLights();
+		EnableOpenGLLights(rasty);
 	else
 		DisableOpenGLLights();
 }
 
-void GPC_RenderTools::EnableOpenGLLights()
+void GPC_RenderTools::EnableOpenGLLights(RAS_IRasterizer *rasty)
 {
 	if(m_lastlighting == true)
 		return;
@@ -120,7 +120,8 @@ void GPC_RenderTools::EnableOpenGLLights()
 	glEnable(GL_COLOR_MATERIAL);
 
 	glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
-	glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, true);
+	glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
+	glLightModeli(GL_LIGHT_MODEL_LOCAL_VIEWER, (rasty->GetCameraOrtho())? GL_FALSE: GL_TRUE);
 	if (GLEW_EXT_separate_specular_color || GLEW_VERSION_1_2)
 		glLightModeli(GL_LIGHT_MODEL_COLOR_CONTROL, GL_SEPARATE_SPECULAR_COLOR);
 	

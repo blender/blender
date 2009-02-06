@@ -134,6 +134,7 @@ public:
 	virtual 
 		void		
 	ProcessLighting(
+		RAS_IRasterizer *rasty,
 		int layer,
 		const MT_Transform& trans
 	)=0;
