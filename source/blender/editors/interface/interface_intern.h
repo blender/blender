@@ -125,6 +125,9 @@ struct uiBut {
 	void *func_arg1;
 	void *func_arg2;
 
+	uiButHandleNFunc funcN;
+	void *func_argN;
+
 	void (*embossfunc)(int , int , float, float, float, float, float, int);
 	void (*sliderfunc)(int , float, float, float, float, float, float, int);
 

@@ -885,6 +885,39 @@ static void do_image_buttons_set_uvlayer_callback(void *act, void *data)
 }
 #endif
 
+static void sima_idpoin_handle(bContext *C, ID *id, int event)
+{
+	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
+	Scene *scene= CTX_data_scene(C);
+	Object *obedit= CTX_data_edit_object(C);
+
+	switch(event) {
+		case UI_ID_BROWSE:
+		case UI_ID_DELETE:
+			set_space_image(sima, scene, obedit, sima->image);
+
+			if(sima->image && sima->image->id.us==0)
+				sima->image->id.us= 1;
+
+			ED_area_tag_redraw(CTX_wm_area(C));
+			ED_undo_push(C, "Assign Image UV");
+			break;
+		case UI_ID_RENAME:
+			break;
+		case UI_ID_ADD_NEW:
+			/* XXX not implemented */
+			break;
+		case UI_ID_OPEN:
+			/* XXX not implemented */
+			break;
+		case UI_ID_ALONE:
+			/* XXX not implemented */
+			break;
+		case UI_ID_PIN:
+			break;
+	}
+}
+
 void image_header_buttons(const bContext *C, ARegion *ar)
 {
 	bScreen *sc= CTX_wm_screen(C);
@@ -948,6 +981,11 @@ void image_header_buttons(const bContext *C, ARegion *ar)
 	uiBlockSetEmboss(block, UI_EMBOSS);
 
 	/* image select */
+
+	xco= uiDefIDPoinButs(block, CTX_data_main(C), NULL, (ID**)&sima->image, ID_IM, &sima->pin, xco, yco,
+		sima_idpoin_handle, UI_ID_BROWSE|UI_ID_BROWSE_RENDER|UI_ID_RENAME|UI_ID_ADD_NEW|UI_ID_OPEN|UI_ID_DELETE|UI_ID_ALONE|UI_ID_PIN);
+	xco += 8;
+
 #if 0
 	char naam[256];
 	

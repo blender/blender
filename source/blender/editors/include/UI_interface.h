@@ -33,6 +33,7 @@
 /* Struct Declarations */
 
 struct ID;
+struct Main;
 struct ListBase;
 struct ARegion;
 struct wmWindow;
@@ -395,10 +396,25 @@ struct PointerRNA *uiButGetOperatorPtrRNA(uiBut *but);
  * - PickerButtons: buttons like the color picker (for code sharing).
  * - AutoButR: RNA property button with type automatically defined. */
 
-typedef void     (*uiIDPoinFuncFP)(struct bContext *C, char *str, struct ID **idpp);
+#define UI_ID_RENAME		1
+#define UI_ID_BROWSE		2
+#define UI_ID_ADD_NEW		4
+#define UI_ID_OPEN			8
+#define UI_ID_ALONE			16
+#define UI_ID_DELETE		32
+#define UI_ID_LOCAL			64
+#define UI_ID_AUTO_NAME		128
+#define UI_ID_FAKE_USER		256
+#define UI_ID_PIN			512
+#define UI_ID_BROWSE_RENDER	1024
+#define UI_ID_FULL			(UI_ID_RENAME|UI_ID_BROWSE|UI_ID_ADD_NEW|UI_ID_OPEN|UI_ID_ALONE|UI_ID_DELETE|UI_ID_LOCAL)
 
-uiBut *uiDefIDPoinBut(struct uiBlock *block, uiIDPoinFuncFP func, short blocktype, int retval, char *str,
+typedef void (*uiIDPoinFuncFP)(struct bContext *C, char *str, struct ID **idpp);
+typedef void (*uiIDPoinFunc)(struct bContext *C, struct ID *id, int event);
+
+uiBut *uiDefIDPoinBut(uiBlock *block, uiIDPoinFuncFP func, short blocktype, int retval, char *str,
 						short x1, short y1, short x2, short y2, void *idpp, char *tip);
+int uiDefIDPoinButs(uiBlock *block, struct Main *main, struct ID *parid, struct ID **id_p, int id_code, short *pin_p, int x, int y, uiIDPoinFunc func, int events);
 
 uiBut *uiDefPulldownBut(uiBlock *block, uiBlockCreateFunc func, void *arg, char *str, short x1, short y1, short x2, short y2, char *tip);
 uiBut *uiDefMenuBut(uiBlock *block, uiMenuCreateFunc func, void *arg, char *str, short x1, short y1, short x2, short y2, char *tip);
@@ -434,9 +450,12 @@ uiBut *uiFindInlink(uiBlock *block, void *poin);
  * uiButSetCompleteFunc is for tab completion.
  *
  * uiBlockSetFunc and uiButSetFunc are callbacks run when a button is used,
- * in case events, operators or RNA are not sufficient to handle the button. */
+ * in case events, operators or RNA are not sufficient to handle the button.
+ *
+ * uiButSetNFunc will free the argument with MEM_freeN. */
 
 typedef void (*uiButHandleFunc)(struct bContext *C, void *arg1, void *arg2);
+typedef void (*uiButHandleNFunc)(struct bContext *C, void *argN, void *arg2);
 typedef void (*uiButCompleteFunc)(struct bContext *C, char *str, void *arg);
 typedef void (*uiBlockHandleFunc)(struct bContext *C, void *arg, int event);
 
@@ -445,6 +464,7 @@ void	uiBlockSetButmFunc	(uiBlock *block,	uiMenuHandleFunc func, void *arg);
 
 void	uiBlockSetFunc		(uiBlock *block,	uiButHandleFunc func, void *arg1, void *arg2);
 void	uiButSetFunc		(uiBut *but,		uiButHandleFunc func, void *arg1, void *arg2);
+void	uiButSetNFunc		(uiBut *but,		uiButHandleNFunc func, void *argN, void *arg2);
 
 void	uiButSetCompleteFunc(uiBut *but,		uiButCompleteFunc func, void *arg);
 

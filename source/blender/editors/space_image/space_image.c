@@ -487,6 +487,9 @@ void set_space_image(SpaceImage *sima, Scene *scene, Object *obedit, Image *ima)
 
 	if(ima == NULL || ima->type==IMA_TYPE_R_RESULT || ima->type==IMA_TYPE_COMPOSITE)
 		sima->flag &= ~SI_DRAWTOOL;
+
+	if(sima->image)
+		BKE_image_signal(sima->image, &sima->iuser, IMA_SIGNAL_USER_NEW_IMAGE);
 }
 
 ImBuf *get_space_image_buffer(SpaceImage *sima)

@@ -356,7 +356,6 @@ void BIF_selectTransformOrientationValue(bContext *C, int orientation) {
 
 void BIF_menuTransformOrientation(bContext *C, uiMenuItem *head, void *arg)
 {
-	char menu[] = "%t|Global%x0|Local%x1|Normal%x2|View%x3";
 	ListBase *transform_spaces = &CTX_data_scene(C)->transform_spaces;
 	TransformOrientation *ts;
 	int i= V3D_MANIP_CUSTOM;

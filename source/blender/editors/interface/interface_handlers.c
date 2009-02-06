@@ -134,15 +134,18 @@ typedef struct uiHandleButtonData {
 typedef struct uiAfterFunc {
 	struct uiAfterFunc *next, *prev;
 
-	void (*func)(struct bContext*, void *, void *);
+	uiButHandleFunc func;
 	void *func_arg1;
 	void *func_arg2;
 
-	void (*handle_func)(struct bContext*, void *arg, int event);
+	uiButHandleNFunc funcN;
+	void *func_argN;
+
+	uiBlockHandleFunc handle_func;
 	void *handle_func_arg;
 	int retval;
 
-	void (*butm_func)(struct bContext*, void *arg, int event);
+	uiMenuHandleFunc butm_func;
 	void *butm_func_arg;
 	int a2;
 
@@ -217,12 +220,15 @@ static void ui_apply_but_func(bContext *C, uiBut *but)
 	 * handling is done, i.e. menus are closed, in order to avoid conflicts
 	 * with these functions removing the buttons we are working with */
 
-	if(but->func || block->handle_func || (but->type == BUTM && block->butm_func) || but->opname || but->rnaprop) {
+	if(but->func || but->funcN || block->handle_func || (but->type == BUTM && block->butm_func) || but->opname || but->rnaprop) {
 		after= MEM_callocN(sizeof(uiAfterFunc), "uiAfterFunc");
 
 		after->func= but->func;
 		after->func_arg1= but->func_arg1;
 		after->func_arg2= but->func_arg2;
+
+		after->funcN= but->funcN;
+		after->func_argN= but->func_argN;
 
 		after->handle_func= block->handle_func;
 		after->handle_func_arg= block->handle_func_arg;
@@ -264,6 +270,8 @@ static void ui_apply_but_funcs_after(bContext *C)
 
 		if(after.func)
 			after.func(C, after.func_arg1, after.func_arg2);
+		if(after.funcN)
+			after.funcN(C, after.func_argN, after.func_arg2);
 		
 		if(after.handle_func)
 			after.handle_func(C, after.handle_func_arg, after.retval);
@@ -2610,6 +2618,9 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, wmEvent *event)
 
 	data= but->active;
 	retval= WM_UI_HANDLER_CONTINUE;
+
+	if(but->flag & UI_BUT_DISABLED)
+		return WM_UI_HANDLER_BREAK;
 
 	/* handle copy-paste */
 	if(data->state == BUTTON_STATE_HIGHLIGHT) {
