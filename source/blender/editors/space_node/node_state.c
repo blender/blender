@@ -96,14 +96,6 @@ static int do_header_node(SpaceNode *snode, bNode *node, float mx, float my)
 		// XXX node_hide_unhide_sockets(snode, node);
 	}
 	
-	
-	totr= node->totr;
-	totr.xmin= totr.xmax-10.0f;
-	totr.ymax= totr.ymin+10.0f;
-	if(BLI_in_rctf(&totr, mx, my)) {
-		// XXX scale_node(snode, node);
-		return 1;
-	}
 	return 0;
 }
 
@@ -116,13 +108,6 @@ static int do_header_hidden_node(SpaceNode *snode, bNode *node, float mx, float 
 		node->flag &= ~NODE_HIDDEN;
 		return 1;
 	}	
-	
-	totr.xmax= node->totr.xmax;
-	totr.xmin= node->totr.xmax-15.0f;
-	if(BLI_in_rctf(&totr, mx, my)) {
-		scale_node(snode, node);
-		return 1;
-	}
 	return 0;
 }
 

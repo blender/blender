@@ -189,18 +189,34 @@ void snode_composite_job(const bContext *C, ScrArea *sa)
 
 /* ***************************************** */
 
-#if 0
-
-// XXX snode_handle_recalc will go away */
-static void snode_handle_recalc(SpaceNode *snode)
+/* also checks for edited groups */
+bNode *editnode_get_active(bNodeTree *ntree)
 {
-	if(snode->treetype==NTREE_TEXTURE) {
-		ntreeTexUpdatePreviews(snode->nodetree);
+	bNode *node;
+	
+	/* check for edited group */
+	for(node= ntree->nodes.first; node; node= node->next)
+		if(node->flag & NODE_GROUP_EDIT)
+			break;
+	if(node)
+		return nodeGetActive((bNodeTree *)node->id);
+	else
+		return nodeGetActive(ntree);
+}
+
+static void snode_handle_recalc(bContext *C, SpaceNode *snode)
+{
+	if(snode->treetype==NTREE_SHADER)
+		WM_event_add_notifier(C, NC_MATERIAL|ND_NODES, snode->id);
+	else if(snode->treetype==NTREE_COMPOSIT)
+		WM_event_add_notifier(C, NC_SCENE|ND_NODES, snode->id);
+	else if(snode->treetype==NTREE_TEXTURE) {
+		// ntreeTexUpdatePreviews(snode->nodetree);
 		// XXX BIF_preview_changed(ID_TE);
 	}
 }
 
-
+#if 0
 static int image_detect_file_sequence(int *start_p, int *frames_p, char *str)
 {
 	SpaceFile *sfile;
@@ -297,8 +313,7 @@ static void load_node_image(char *str)	/* called from fileselect */
 		BKE_image_signal(ima, node->storage, IMA_SIGNAL_RELOAD);
 		
 		NodeTagChanged(snode->edittree, node);
-		// XXX			snode_handle_recalc(snode);
-		// allqueue(REDRAWNODE, 0); 
+		// XXX snode_handle_recalc(C, snode);
 	}
 }
 
@@ -1034,85 +1049,107 @@ static void snode_bg_viewmove(SpaceNode *snode)
 }
 #endif;
 
+/* ********************** size widget operator ******************** */
 
-/* releases on event, only 1 node */
-void scale_node(SpaceNode *snode, bNode *node)
+typedef struct NodeSizeWidget {
+	float mxstart;
+	float oldwidth;
+} NodeSizeWidget;
+
+static int node_size_widget_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
-	float mxstart, mystart, mx, my, oldwidth;
-	int cont=1, cancel=0;
-	short mval[2], mvalo[2];
+	SpaceNode *snode= (SpaceNode*)CTX_wm_space_data(C);
+	ARegion *ar= CTX_wm_region(C);
+	bNode *node= editnode_get_active(snode->edittree);
+	NodeSizeWidget *nsw= op->customdata;
+	float mx, my;
 	
-	// XXX
-	mval[0] = mvalo[0] = 0;
-	mval[1] = mvalo[1] = 1;
-	mxstart = 0.0f;
-	mystart = 0.0f;
-	mx= 0.0f;
-	my= 0.0f;
-	
-	/* store old */
-	if(node->flag & NODE_HIDDEN)
-		oldwidth= node->miniwidth;
-	else
-		oldwidth= node->width;
-		
-/* XXX	getmouseco_areawin(mvalo);
-	areamouseco_to_ipoco(G.v2d, mvalo, &mxstart, &mystart);*/
-	
-	while(cont) {
-		
-		// XXX getmouseco_areawin(mval);
-		if(mval[0]!=mvalo[0] || mval[1]!=mvalo[1]) {
+	switch (event->type) {
+		case MOUSEMOVE:
 			
-			// XXX areamouseco_to_ipoco(G.v2d, mval, &mx, &my);
-			mvalo[0]= mval[0];
-			mvalo[1]= mval[1];
+			UI_view2d_region_to_view(&ar->v2d, event->x - ar->winrct.xmin, event->y - ar->winrct.ymin, 
+									 &mx, &my);
 			
 			if(node->flag & NODE_HIDDEN) {
-				node->miniwidth= oldwidth + mx-mxstart;
+				node->miniwidth= nsw->oldwidth + mx - nsw->mxstart;
 				CLAMP(node->miniwidth, 0.0f, 100.0f);
 			}
 			else {
-				node->width= oldwidth + mx-mxstart;
+				node->width= nsw->oldwidth + mx - nsw->mxstart;
 				CLAMP(node->width, node->typeinfo->minwidth, node->typeinfo->maxwidth);
 			}
+			// XXX
+			if(snode->nodetree->type == NTREE_TEXTURE)
+				ntreeTexUpdatePreviews(snode->nodetree);
+				
+			ED_region_tag_redraw(ar);
+
+			break;
 			
-			// XXX force_draw(0);
-		}
-		else
-			; // XXX PIL_sleep_ms(10);
-		
-		/* XXX while (qtest()) {
-			short val;
-			unsigned short event= extern_qread(&val);
+		case LEFTMOUSE:
+		case MIDDLEMOUSE:
+		case RIGHTMOUSE:
 			
-			switch (event) {
-				case LEFTMOUSE:
-				case SPACEKEY:
-				case RETKEY:
-					cont=0;
-					break;
-				case ESCKEY:
-				case RIGHTMOUSE:
-					if(val) {
-						cancel=1;
-						cont=0;
-					}
-					break;
-			}
-		}*/
-		
+			MEM_freeN(nsw);
+			op->customdata= NULL;
+			
+			return OPERATOR_FINISHED;
 	}
 	
-	if(cancel) {
-		node->width= oldwidth;
-	}
-	
-	// allqueue(REDRAWNODE, 1);
-	
-	if(snode->nodetree->type == NTREE_TEXTURE)
-		ntreeTexUpdatePreviews(snode->nodetree);
+	return OPERATOR_RUNNING_MODAL;
 }
+
+static int node_size_widget_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	SpaceNode *snode= (SpaceNode*)CTX_wm_space_data(C);
+	ARegion *ar= CTX_wm_region(C);
+	bNode *node= editnode_get_active(snode->edittree);
+	
+	if(node) {
+		rctf totr;
+		
+		UI_view2d_region_to_view(&ar->v2d, event->x - ar->winrct.xmin, event->y - ar->winrct.ymin, 
+								 &snode->mx, &snode->my);
+		totr= node->totr;
+		totr.xmin= totr.xmax-10.0f;
+		totr.ymax= totr.ymin+10.0f;
+		
+		if(BLI_in_rctf(&totr, snode->mx, snode->my)) {
+			NodeSizeWidget *nsw= MEM_callocN(sizeof(NodeSizeWidget), "size widget op data");
+			
+			op->customdata= nsw;
+			nsw->mxstart= snode->mx;
+			
+			/* store old */
+			if(node->flag & NODE_HIDDEN)
+				nsw->oldwidth= node->miniwidth;
+			else
+				nsw->oldwidth= node->width;
+			
+			/* add modal handler */
+			WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
+
+			return OPERATOR_RUNNING_MODAL;
+		}
+	}
+	return OPERATOR_PASS_THROUGH;
+}
+
+void NODE_OT_size_widget(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Scale Node";
+	ot->idname= "NODE_OT_size_widget";
+	
+	/* api callbacks */
+	ot->invoke= node_size_widget_invoke;
+	ot->modal= node_size_widget_modal;
+	ot->poll= ED_operator_node_active;
+	
+	/* flags */
+	ot->flag= 0;
+}
+
 
 #if 0
 
@@ -1160,21 +1197,6 @@ Material *editnode_get_active_material(Material *ma)
 	return ma;
 }
 #endif /* 0 */
-
-/* used in buttons to check context, also checks for edited groups */
-bNode *editnode_get_active(bNodeTree *ntree)
-{
-	bNode *node;
-	
-	/* check for edited group */
-	for(node= ntree->nodes.first; node; node= node->next)
-		if(node->flag & NODE_GROUP_EDIT)
-			break;
-	if(node)
-		return nodeGetActive((bNodeTree *)node->id);
-	else
-		return nodeGetActive(ntree);
-}
 
 
 /* no undo here! */
@@ -1305,7 +1327,7 @@ static void node_hide_unhide_sockets(SpaceNode *snode, bNode *node)
 	totr.xmin= totr.xmax-10.0f;
 	totr.ymax= totr.ymin+10.0f;
 	if(BLI_in_rctf(&totr, mx, my)) {
-		scale_node(snode, node);
+//		scale_node(snode, node);
 		return 1;
 	}
 	return 0;
@@ -1325,7 +1347,7 @@ static void node_hide_unhide_sockets(SpaceNode *snode, bNode *node)
 	totr.xmax= node->totr.xmax;
 	totr.xmin= node->totr.xmax-15.0f;
 	if(BLI_in_rctf(&totr, mx, my)) {
-		scale_node(snode, node);
+//		scale_node(snode, node);
 		return 1;
 	}
 	return 0;
@@ -1819,8 +1841,7 @@ static int node_link_modal(bContext *C, wmOperator *op, wmEvent *event)
 			
 			ntreeSolveOrder(snode->edittree);
 			snode_verify_groups(snode);
-			// XXX			snode_handle_recalc(snode);
-			ED_region_tag_redraw(ar);
+			snode_handle_recalc(C, snode);
 			
 			MEM_freeN(op->customdata);
 			op->customdata= NULL;

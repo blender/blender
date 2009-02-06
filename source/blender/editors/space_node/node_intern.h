@@ -69,7 +69,6 @@ void draw_nodespace_back_pix(ScrArea *sa, SpaceNode *snode);
 bNode *next_node(bNodeTree *ntree);
 bNode *node_add_node(SpaceNode *snode, Scene *scene, int type, float locx, float locy);
 void snode_set_context(SpaceNode *snode, Scene *scene);
-void scale_node(SpaceNode *snode, bNode *node);
 void snode_make_group_editable(SpaceNode *snode, bNode *gnode);
 void snode_home(ScrArea *sa, ARegion *ar, SpaceNode *snode);
 void node_set_active(SpaceNode *snode, bNode *node);
@@ -82,6 +81,7 @@ bNode *snode_get_editgroup(SpaceNode *snode);
 
 void NODE_OT_link(struct wmOperatorType *ot);
 void NODE_OT_delete_selection(struct wmOperatorType *ot);
+void NODE_OT_size_widget(struct wmOperatorType *ot);
 
 // XXXXXX
 
