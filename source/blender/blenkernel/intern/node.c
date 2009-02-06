@@ -2882,6 +2882,7 @@ static void registerTextureNodes(ListBase *ntypelist)
 	nodeRegisterType(ntypelist, &tex_node_mix_rgb);
 	nodeRegisterType(ntypelist, &tex_node_valtorgb);
 	nodeRegisterType(ntypelist, &tex_node_rgbtobw);
+	nodeRegisterType(ntypelist, &tex_node_valtonor);
 	nodeRegisterType(ntypelist, &tex_node_curve_rgb);
 	nodeRegisterType(ntypelist, &tex_node_curve_time);
 	nodeRegisterType(ntypelist, &tex_node_invert);

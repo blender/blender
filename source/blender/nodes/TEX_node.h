@@ -41,6 +41,7 @@
 extern bNodeType tex_node_math;
 extern bNodeType tex_node_mix_rgb;
 extern bNodeType tex_node_valtorgb;
+extern bNodeType tex_node_valtonor;
 extern bNodeType tex_node_rgbtobw;
 extern bNodeType tex_node_output;
 extern bNodeType tex_node_viewer;
