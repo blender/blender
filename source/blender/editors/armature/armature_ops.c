@@ -107,6 +107,8 @@ void ARMATURE_OT_test(wmOperatorType *ot)
 /* Both operators ARMATURE_OT_xxx and POSE_OT_xxx here */
 void ED_operatortypes_armature(void)
 {
+	WM_operatortype_append(ARMATURE_OT_align_bones);
+	
 	WM_operatortype_append(POSE_OT_hide);
 	WM_operatortype_append(POSE_OT_reveil);
 	WM_operatortype_append(POSE_OT_rot_clear);
@@ -126,6 +128,7 @@ void ED_keymap_armature(wmWindowManager *wm)
 	
 	/* only set in editmode armature, by space_view3d listener */
 //	WM_keymap_add_item(keymap, "ARMATURE_OT_hide", HKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "ARMATURE_OT_align_bones", AKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
 	WM_keymap_add_item(keymap, "ARMATURE_OT_test", TKEY, KM_PRESS, 0, 0);  // XXX temp test for context iterators... to be removed
 	
 	/* Pose ------------------------ */

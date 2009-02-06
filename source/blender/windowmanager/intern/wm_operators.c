@@ -912,7 +912,7 @@ static void wm_radial_control_paint(bContext *C, int x, int y, void *customdata)
 {
 	wmRadialControl *rc = (wmRadialControl*)customdata;
 	ARegion *ar = CTX_wm_region(C);
-	float r1, r2, r3, angle;
+	float r1=0.0f, r2=0.0f, r3=0.0f, angle=0.0f;
 
 	/* Keep cursor in the original place */
 	x = rc->initial_mouse[0] - ar->winrct.xmin;
@@ -1163,7 +1163,7 @@ void wm_window_keymap(wmWindowManager *wm)
 	WM_keymap_verify_item(keymap, "WM_OT_jobs_timer", TIMERJOBS, KM_ANY, KM_ANY, 0);
 	
 	/* note, this doesn't replace existing keymap items */
-	WM_keymap_verify_item(keymap, "WM_OT_window_duplicate", AKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
+	WM_keymap_verify_item(keymap, "WM_OT_window_duplicate", WKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
 	WM_keymap_verify_item(keymap, "WM_OT_save_homefile", UKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_verify_item(keymap, "WM_OT_open_recentfile", OKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_verify_item(keymap, "WM_OT_open_mainfile", F1KEY, KM_PRESS, 0, 0);

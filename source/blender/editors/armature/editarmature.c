@@ -67,6 +67,7 @@
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_object.h"
+#include "BKE_report.h"
 #include "BKE_subsurf.h"
 #include "BKE_utildefines.h"
 #include "BKE_modifier.h"
@@ -108,6 +109,7 @@ static void countall() {}
 /* **************** tools on Editmode Armature **************** */
 
 /* Sync selection to parent for connected children */
+// XXX this is really buggy code! do not use this for now - Aligorith, 6Feb2009
 static void armature_sync_selection(ListBase *edbo)
 {
 	EditBone *ebo;
@@ -1560,6 +1562,9 @@ EditBone *armature_bone_get_mirrored(ListBase *edbo, EditBone *ebo)
 {
 	EditBone *eboflip= NULL;
 	char name[32];
+	
+	if (ebo == NULL)
+		return NULL;
 	
 	BLI_strncpy(name, ebo->name, sizeof(name));
 	bone_flip_name(name, 0);		// 0 = don't strip off number extensions
@@ -3346,7 +3351,7 @@ void switch_direction_armature (Scene *scene)
 	BIF_undo_push("Switch Direction");
 }
 
-/* editbone alignment */
+/* ***************** EditBone Alignment ********************* */
 
 /* helper to fix a ebone position if its parent has moved due to alignment*/
 static void fix_connected_bone(EditBone *ebone)
@@ -3398,87 +3403,81 @@ static void bone_align_to_bone(ListBase *edbo, EditBone *selbone, EditBone *actb
 	return;
 }
 
-void align_selected_bones(Scene *scene)
+static int armature_align_bones_exec(bContext *C, wmOperator *op) 
 {
-	Object *obedit= scene->obedit; // XXX get from context
-	bArmature *arm= obedit->data;
-	EditBone *actbone, *ebone, *selbone;
-	EditBone *flipbone, *flippar;
-	short allchildbones= 0, foundselbone= 0;
+	Object *ob= CTX_data_edit_object(C);
+	bArmature *arm= (bArmature *)ob->data;
+	EditBone *actbone= CTX_data_active_bone(C);
+	EditBone *actmirb= NULL;
 	
-	/* find active bone to align to */
-	for (actbone = arm->edbo->first; actbone; actbone=actbone->next) {
-		if (arm->layer & actbone->layer) {
-			if (actbone->flag & BONE_ACTIVE)
-				break;
-		}
-	}
+	/* there must be an active bone */
 	if (actbone == NULL) {
-		error("Needs an active bone");
-		return; 
+		BKE_report(op->reports, RPT_ERROR, "Operation requires an Active Bone");
+		return OPERATOR_CANCELLED;
 	}
-
-	/* find selected bones */
-	for (ebone = arm->edbo->first; ebone; ebone=ebone->next) {
-		if (arm->layer & ebone->layer) {
-			if ((ebone->flag & BONE_SELECTED) && (ebone != actbone)) {
-				foundselbone++;
-				if (ebone->parent != actbone) allchildbones= 1; 
-			}	
-		}
-	}
-	/* abort if no selected bones, and active bone doesn't have a parent to work with instead */
-	if (foundselbone==0 && actbone->parent==NULL) {
-		error("Need selected bone(s)");
-		return;
+	else if (arm->flag & ARM_MIRROR_EDIT) {
+		/* For X-Axis Mirror Editing option, we may need a mirror copy of actbone
+		 * - if there's a mirrored copy of selbone, try to find a mirrored copy of actbone 
+		 *	(i.e.  selbone="child.L" and actbone="parent.L", find "child.R" and "parent.R").
+		 *	This is useful for arm-chains, for example parenting lower arm to upper arm
+		 * - if there's no mirrored copy of actbone (i.e. actbone = "parent.C" or "parent")
+		 *	then just use actbone. Useful when doing upper arm to spine.
+		 */
+		actmirb= armature_bone_get_mirrored(arm->edbo, actbone);
+		if (actmirb == NULL) 
+			actmirb= actbone;
 	}
 	
-	if (foundselbone==0 && actbone->parent) {
+	/* if there is only 1 selected bone, we assume that that is the active bone, 
+	 * since a user will need to have clicked on a bone (thus selecting it) to make it active
+	 */
+	if (CTX_DATA_COUNT(C, selected_editable_bones) <= 1) {
 		/* When only the active bone is selected, and it has a parent,
 		 * align it to the parent, as that is the only possible outcome. 
 		 */
-		bone_align_to_bone(arm->edbo, actbone, actbone->parent);
-		
-		if (arm->flag & ARM_MIRROR_EDIT) {
-			flipbone = armature_bone_get_mirrored(arm->edbo, actbone);
-			if (flipbone)
-				bone_align_to_bone(arm->edbo, flipbone, flipbone->parent);
+		if (actbone->parent) {
+			bone_align_to_bone(arm->edbo, actbone, actbone->parent);
+			
+			if ((arm->flag & ARM_MIRROR_EDIT) && (actmirb->parent))
+				bone_align_to_bone(arm->edbo, actmirb, actmirb->parent);
 		}
 	}
 	else {
-		/* loop through all editbones, aligning all selected bones to the active bone */
-		for (selbone = arm->edbo->first; selbone; selbone=selbone->next) {
-			if (arm->layer & selbone->layer) {
-				if ((selbone->flag & BONE_SELECTED) && (selbone!=actbone)) {
-					/* align selbone to actbone */
-					bone_align_to_bone(arm->edbo, selbone, actbone);
-					
-					if (arm->flag & ARM_MIRROR_EDIT) {
-						/* - if there's a mirrored copy of selbone, try to find a mirrored copy of actbone 
-						 *	(i.e.  selbone="child.L" and actbone="parent.L", find "child.R" and "parent.R").
-						 *	This is useful for arm-chains, for example parenting lower arm to upper arm
-						 * - if there's no mirrored copy of actbone (i.e. actbone = "parent.C" or "parent")
-						 *	then just use actbone. Useful when doing upper arm to spine.
-						 */
-						flipbone = armature_bone_get_mirrored(arm->edbo, selbone);
-						flippar = armature_bone_get_mirrored(arm->edbo, actbone);
-						
-						if (flipbone) {
-							if (flippar)
-								bone_align_to_bone(arm->edbo, flipbone, flippar);
-							else
-								bone_align_to_bone(arm->edbo, flipbone, actbone);
-						}
-					}
-				}
-			}
+		/* Align 'selected' bones to the active one
+		 * - the context iterator contains both selected bones and their mirrored copies,
+		 *   so we assume that unselected bones are mirrored copies of some selected bone
+		 */
+		
+		/* align selected bones to the active one */
+		CTX_DATA_BEGIN(C, EditBone *, ebone, selected_editable_bones) {
+			if (ebone->flag & BONE_SELECTED)
+				bone_align_to_bone(arm->edbo, ebone, actbone);
+			else
+				bone_align_to_bone(arm->edbo, ebone, actmirb);
 		}
+		CTX_DATA_END;
 	}
+	
 
-	countall(); /* checks selection */
-	BIF_undo_push("Align bones");
+	/* note, notifier might evolve */
+	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, ob);
+	
+	return OPERATOR_FINISHED;
+}
 
-	return;
+void ARMATURE_OT_align_bones(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Align Bones";
+	ot->idname= "ARMATURE_OT_align_bones";
+	
+	/* api callbacks */
+	ot->invoke = WM_operator_confirm;
+	ot->exec = armature_align_bones_exec;
+	ot->poll = ED_operator_editarmature;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* ***************** Pose tools ********************* */
@@ -4052,7 +4051,7 @@ void POSE_OT_scale_clear(wmOperatorType *ot)
 	ot->poll = ED_operator_posemode;
 	
 	/* flags */
-	ot->flag= OPTYPE_UNDO;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 static int pose_clear_loc_exec(bContext *C, wmOperator *op) 
@@ -4094,7 +4093,7 @@ void POSE_OT_loc_clear(wmOperatorType *ot)
 	ot->poll = ED_operator_posemode;
 	
 	/* flags */
-	ot->flag= OPTYPE_UNDO;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 static int pose_clear_rot_exec(bContext *C, wmOperator *op) 
@@ -4169,7 +4168,7 @@ void POSE_OT_rot_clear(wmOperatorType *ot)
 	ot->poll = ED_operator_posemode;
 	
 	/* flags */
-	ot->flag= OPTYPE_UNDO;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 } 
 /* ************* hide/unhide pose bones ******************* */

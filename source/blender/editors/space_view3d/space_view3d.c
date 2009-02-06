@@ -469,10 +469,13 @@ static int view3d_context(const bContext *C, bContextDataMember member, bContext
 		if (arm && arm->edbo) {
 			/* Attention: X-Axis Mirroring is also handled here... */
 			for (ebone= arm->edbo->first; ebone; ebone= ebone->next) {
-				/* first and foremost, bone must be visible */
-				if (EBONE_VISIBLE(arm, ebone)) {
-					/* get 'x-axis mirror equivalent' bone if the X-Axis Mirroring option is enabled
-					 * so that users of this data don't need to check for it themselves
+				/* first and foremost, bone must be visible and selected */
+				if (EBONE_VISIBLE(arm, ebone) && (ebone->flag & BONE_SELECTED)) {
+					/* Get 'x-axis mirror equivalent' bone if the X-Axis Mirroring option is enabled
+					 * so that most users of this data don't need to explicitly check for it themselves.
+					 * 
+					 * We need to make sure that these mirrored copies are not selected, otherwise some
+					 * bones will be operated on twice.
 					 */
 					if (arm->flag & ARM_MIRROR_EDIT)
 						flipbone = armature_bone_get_mirrored(arm->edbo, ebone);
@@ -480,19 +483,19 @@ static int view3d_context(const bContext *C, bContextDataMember member, bContext
 					/* if we're filtering for editable too, use the check for that instead, as it has selection check too */
 					if (member == CTX_DATA_SELECTED_EDITABLE_BONES) {
 						/* only selected + editable */
-						if ( EBONE_EDITABLE(ebone) || 
-							 ((flipbone) && EBONE_EDITABLE(flipbone)) ) 
-						{
+						if (EBONE_EDITABLE(ebone)) {
 							CTX_data_list_add(result, ebone);
+						
+							if ((flipbone) && !(flipbone->flag & BONE_SELECTED))
+								CTX_data_list_add(result, flipbone);
 						}
 					}
 					else {
-						/* only include if bone is selected */
-						if ( (ebone->flag & BONE_SELECTED) || 
-							 ((flipbone) && (flipbone->flag & BONE_SELECTED)) ) 
-						{
-							CTX_data_list_add(result, ebone);
-						}
+						/* only include bones if selected */
+						CTX_data_list_add(result, ebone);
+						
+						if ((flipbone) && !(flipbone->flag & BONE_SELECTED))
+							CTX_data_list_add(result, flipbone);
 					}
 				}
 			}	
