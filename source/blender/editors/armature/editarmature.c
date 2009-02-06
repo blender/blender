@@ -103,24 +103,23 @@ static void error() {};
 static void error_libdata() {}
 static void BIF_undo_push() {}
 static void adduplicate() {}
-static void countall() {}
 /* ************* XXX *************** */
 
 /* **************** tools on Editmode Armature **************** */
 
 /* Sync selection to parent for connected children */
-// XXX this is really buggy code! do not use this for now - Aligorith, 6Feb2009
 static void armature_sync_selection(ListBase *edbo)
 {
 	EditBone *ebo;
 	
 	for (ebo=edbo->first; ebo; ebo= ebo->next) {
-		if ((ebo->flag & BONE_CONNECTED) && ebo->parent){
+		if ((ebo->flag & BONE_CONNECTED) && (ebo->parent)) {
 			if (ebo->parent->flag & BONE_TIPSEL)
 				ebo->flag |= BONE_ROOTSEL;
 			else
 				ebo->flag &= ~BONE_ROOTSEL;
 		}
+		
 		if ((ebo->flag & BONE_TIPSEL) && (ebo->flag & BONE_ROOTSEL))
 			ebo->flag |= BONE_SELECTED;
 		else
@@ -1040,8 +1039,6 @@ void separate_armature (Scene *scene, View3D *v3d)
 	
 	/* recalc/redraw + cleanup */
 	waitcursor(0);
-
-	countall(); // flush!
 	
 	BIF_undo_push("Separate Armature");
 }
@@ -1249,7 +1246,7 @@ void armature_select_hierarchy(Scene *scene, short direction, short add_to_sel)
 		}
 	}
 
-	countall(); // flushes selection!
+	armature_sync_selection(arm->edbo);
 	
 	if (direction==BONE_SELECT_PARENT)
 		BIF_undo_push("Select edit bone parent");
@@ -1382,7 +1379,8 @@ void selectconnected_posearmature(bContext *C)
 		selectconnected_posebonechildren (ob, curBone);
 	}
 	
-	countall(); // flushes selection!
+		// XXX this only counted the number of pose channels selected
+	//countall(); // flushes selection!
 
 	BIF_undo_push("Select connected");
 
@@ -1446,7 +1444,7 @@ void selectconnected_armature(bContext *C)
 
 	}
 
-	countall(); // flushes selection!
+	armature_sync_selection(arm->edbo);
 
 	BIF_undo_push("Select connected");
 
@@ -1652,7 +1650,7 @@ void delete_armature(Scene *scene)
 	}
 	
 	
-	countall(); // flushes selection!
+	armature_sync_selection(arm->edbo);
 	
 	BIF_undo_push("Delete bone(s)");
 }
@@ -1709,7 +1707,7 @@ void deselectall_armature(Object *obedit, int toggle, int doundo)
 		}
 	}
 	
-	countall(); // flushes selection!
+	armature_sync_selection(arm->edbo);
 	if (doundo) {
 		if (sel==1) BIF_undo_push("Select All");
 		else BIF_undo_push("Deselect All");
@@ -2125,7 +2123,7 @@ void add_primitiveArmature(Scene *scene, View3D *v3d, int type)
 	/* no primitive support yet */
 	add_primitive_bone(scene, v3d, rv3d, newob);
 	
-	countall(); // flushes selection!
+	//armature_sync_selection(arm->edbo); // XXX which armature?
 
 	if ((newob) && !(U.flag & USER_ADD_EDITMODE)) {
 		ED_armature_from_edit(scene, obedit);
@@ -2213,7 +2211,7 @@ void addvert_armature(Scene *scene, View3D *v3d)
 		
 	}
 	
-	countall();
+	armature_sync_selection(arm->edbo);
 	
 	BIF_undo_push("Add Bone");
 }
@@ -2304,7 +2302,7 @@ void adduplicate_armature(Scene *scene)
 	EditBone	*curBone;
 	EditBone	*firstDup=NULL;	/*	The beginning of the duplicated bones in the edbo list */
 	
-	countall(); // flushes selection!
+	armature_sync_selection(arm->edbo); // XXX why is this needed?
 
 	/* Select mirrored bones */
 	if (arm->flag & ARM_MIRROR_EDIT) {
@@ -2820,7 +2818,7 @@ void merge_armature(Scene *scene)
 	}
 	
 	/* undo + updates */
-	countall();
+	armature_sync_selection(arm->edbo);
 	BIF_undo_push("Merge Bones");
 }
 
@@ -2842,7 +2840,7 @@ void hide_selected_armature_bones(Scene *scene)
 			}
 		}
 	}
-	countall();
+	armature_sync_selection(arm->edbo);
 	BIF_undo_push("Hide Bones");
 }
 
@@ -2862,7 +2860,7 @@ void hide_unselected_armature_bones(Scene *scene)
 			}
 		}
 	}
-	countall();
+	armature_sync_selection(arm->edbo);
 	BIF_undo_push("Hide Unselected Bones");
 }
 
@@ -2880,7 +2878,7 @@ void show_all_armature_bones(Scene *scene)
 			}
 		}
 	}
-	countall();
+	armature_sync_selection(arm->edbo);
 	BIF_undo_push("Reveal Bones");
 }
 
@@ -3026,7 +3024,7 @@ void make_bone_parent(Scene *scene)
 		}
 	}
 
-	countall(); /* checks selection */
+	armature_sync_selection(arm->edbo);
 	BIF_undo_push("Make Parent");
 
 	return;
@@ -3067,7 +3065,7 @@ void clear_bone_parent(Scene *scene)
 		}
 	}
 	
-	countall(); // checks selection
+	armature_sync_selection(arm->edbo);
 	BIF_undo_push("Clear Parent");
 }
 	
@@ -3194,7 +3192,7 @@ void extrude_armature(Scene *scene, int forked)
 	if (totbone==1 && first) first->flag |= BONE_ACTIVE;
 	
 	/* Transform the endpoints */
-	countall(); // flushes selection!
+	armature_sync_selection(arm->edbo);
 // XXX	BIF_TransformSetUndo("Extrude");
 //	initTransform(TFM_TRANSLATION, CTX_NO_PET);
 //	Transform();
@@ -3621,7 +3619,7 @@ void ED_pose_deselectall (Object *ob, int test, int doundo)
 		}
 	}
 	
-	countall();
+	//countall(); // XXX need an equivalent to this...
 	
 	if (doundo) {
 		if (selectmode==1) BIF_undo_push("Select All");
