@@ -503,7 +503,7 @@ int uiDefIDPoinButs(uiBlock *block, Main *bmain, ID *parid, ID **id_p, int id_co
 
 	/* pin button */
 	if(id && (events & UI_ID_PIN)) {
-		but= uiDefIconButS(block, ICONTOG, (events & UI_ID_PIN), 0 /* XXX ICON_PIN_DEHLT */, x, y ,DEF_ICON_BUT_WIDTH,DEF_BUT_HEIGHT, pin_p, 0, 0, 0, 0, "Keeps this view displaying the current data regardless of what object is selected");
+		but= uiDefIconButS(block, ICONTOG, (events & UI_ID_PIN), ICON_KEY_DEHLT, x, y ,DEF_ICON_BUT_WIDTH,DEF_BUT_HEIGHT, pin_p, 0, 0, 0, 0, "Keeps this view displaying the current data regardless of what object is selected");
 		uiButSetNFunc(but, idpoin_cb, MEM_dupallocN(params), SET_INT_IN_POINTER(UI_ID_PIN));
 		x+= DEF_ICON_BUT_WIDTH;
 	}

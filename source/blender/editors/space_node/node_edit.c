@@ -2077,84 +2077,94 @@ void node_make_link(SpaceNode *snode)
 	// XXX			snode_handle_recalc(snode);
 
 }
+#endif
 
-static void node_border_link_delete(SpaceNode *snode)
+/* ********************** Cut Link operator ***************** */
+
+#define LINK_RESOL 12
+static int cut_links_intersect(bNodeLink *link, float mcoords[][2], int tot)
 {
-	rcti rect;
-	short val, mval[2], mvalo[2];
+	float coord_array[LINK_RESOL+1][2];
+	int i, b;
+	
+	if(node_link_bezier_points(NULL, NULL, link, coord_array, LINK_RESOL)) {
 
-	/* to make this work more friendly, we first wait for a mouse move */
-	getmouseco_areawin(mvalo);
-	while (get_mbut() & L_MOUSE) {
-		getmouseco_areawin(mval);
-		if(mval[0]!=mvalo[0] || mval[1]!=mvalo[1])
-			break;
-		else BIF_wait_for_statechange();
+		for(i=0; i<tot-1; i++)
+			for(b=0; b<LINK_RESOL-1; b++)
+				if(IsectLL2Df(mcoords[i], mcoords[i+1], coord_array[b], coord_array[b+1]) > 0)
+					return 1;
 	}
-	if((get_mbut() & L_MOUSE)==0)
-		return;
+	return 0;
+}
+
+static int cut_links_exec(bContext *C, wmOperator *op)
+{
+	SpaceNode *snode= (SpaceNode*)CTX_wm_space_data(C);
+	ARegion *ar= CTX_wm_region(C);
+	float mcoords[256][2];
+	int i= 0;
 	
-	/* now change cursor and draw border */
-	setcursor_space(SPACE_NODE, CURSOR_VPAINT);
+	RNA_BEGIN(op->ptr, itemptr, "path") {
+		float loc[2];
+		
+		RNA_float_get_array(&itemptr, "loc", loc);
+		UI_view2d_region_to_view(&ar->v2d, (short)loc[0], (short)loc[1], 
+								 &mcoords[i][0], &mcoords[i][1]);
+		i++;
+		if(i>= 256) break;
+	}
+	RNA_END;
 	
-	if ( (val = get_border(&rect, 2)) ) {
-		if(rect.xmin<rect.xmax && rect.ymin<rect.ymax) {
-			//#define NODE_MAXPICKBUF	256
-			bNodeLink *link, *next;
-			GLuint buffer[256];
-			rctf rectf;
-			int code=0, hits;
+	if(i>1) {
+		bNodeLink *link, *next;
+		
+		for(link= snode->edittree->links.first; link; link= link->next) {
+			next= link->next;
 			
-			mval[0]= rect.xmin;
-			mval[1]= rect.ymin;
-			areamouseco_to_ipoco(&snode->v2d, mval, &rectf.xmin, &rectf.ymin);
-			mval[0]= rect.xmax;
-			mval[1]= rect.ymax;
-			areamouseco_to_ipoco(&snode->v2d, mval, &rectf.xmax, &rectf.ymax);
-			
-			glLoadIdentity();
-			myortho2(rectf.xmin, rectf.xmax, rectf.ymin, rectf.ymax);
-			
-			glSelectBuffer(256, buffer); 
-			glRenderMode(GL_SELECT);
-			glInitNames();
-			glPushName(-1);
-			
-			/* draw links */
-			for(link= snode->edittree->links.first; link; link= link->next) {
-				glLoadName(code++);
-				node_draw_link(snode, link);
-			}
-			
-			hits= glRenderMode(GL_RENDER);
-			glPopName();
-			if(hits>0) {
-				int a;
-				for(a=0; a<hits; a++) {
-					bNodeLink *link= BLI_findlink(&snode->edittree->links, buffer[ (4 * a) + 3]);
-					if(link)
-						link->fromnode= NULL;	/* first tag for delete, otherwise indices are wrong */
-				}
-				for(link= snode->edittree->links.first; link; link= next) {
-					next= link->next;
-					if(link->fromnode==NULL) {
-						NodeTagChanged(snode->edittree, link->tonode);
-						nodeRemLink(snode->edittree, link);
-					}
-				}
-				ntreeSolveOrder(snode->edittree);
-				snode_verify_groups(snode);
-				// XXX			snode_handle_recalc(snode);
+			if(cut_links_intersect(link, mcoords, i)) {
+				NodeTagChanged(snode->edittree, link->tonode);
+				nodeRemLink(snode->edittree, link);
 			}
 		}
+
+		ntreeSolveOrder(snode->edittree);
+		snode_verify_groups(snode);
+		snode_handle_recalc(C, snode);
+		
+		return OPERATOR_FINISHED;
 	}
 	
-	setcursor_space(SPACE_NODE, CURSOR_STD);
+	return OPERATOR_PASS_THROUGH;;
 }
+
+void NODE_OT_links_cut(wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+	
+	ot->name= "Cut links";
+	ot->idname= "NODE_OT_links_cut";
+	
+	ot->invoke= WM_gesture_lines_invoke;
+	ot->modal= WM_gesture_lines_modal;
+	ot->exec= cut_links_exec;
+	
+	ot->poll= ED_operator_node_active;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	prop= RNA_def_property(ot->srna, "path", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_struct_runtime(prop, &RNA_OperatorMousePath);
+	/* internal */
+	RNA_def_int(ot->srna, "cursor", BC_KNIFECURSOR, 0, INT_MAX, "Cursor", "", 0, INT_MAX);
+}
+
+/* ******************************** */
 
 /* goes over all scenes, reads render layerss */
 void node_read_renderlayers(SpaceNode *snode)
 {
+	Scene *curscene= NULL; // XXX
 	Scene *scene;
 	bNode *node;
 
@@ -2165,36 +2175,32 @@ void node_read_renderlayers(SpaceNode *snode)
 	for(node= snode->edittree->nodes.first; node; node= node->next) {
 		if(node->type==CMP_NODE_R_LAYERS) {
 			ID *id= node->id;
-			if(id==NULL) id= (ID *)G.scene;
 			if(id->flag & LIB_DOIT) {
-				RE_ReadRenderResult(G.scene, (Scene *)id);
+				RE_ReadRenderResult(curscene, (Scene *)id);
 				ntreeCompositTagRender((Scene *)id);
 				id->flag &= ~LIB_DOIT;
 			}
 		}
 	}
 	
-	/* own render result should be read/allocated */
-	if(G.scene->id.flag & LIB_DOIT)
-		RE_ReadRenderResult(G.scene, G.scene);
-	
 	// XXX			snode_handle_recalc(snode);
 }
 
 void node_read_fullsamplelayers(SpaceNode *snode)
 {
-	Render *re= RE_NewRender(G.scene->id.name);
+	Scene *curscene= NULL; // XXX
+	Render *re= RE_NewRender(curscene->id.name);
 
-	waitcursor(1);
+	WM_cursor_wait(1);
 
-	BIF_init_render_callbacks(re, 1);
-	RE_MergeFullSample(re, G.scene, snode->nodetree);
-	BIF_end_render_callbacks();
+	//BIF_init_render_callbacks(re, 1);
+	RE_MergeFullSample(re, curscene, snode->nodetree);
+	//BIF_end_render_callbacks();
 	
 	// allqueue(REDRAWNODE, 1);
 	// allqueue(REDRAWIMAGE, 1);
 	
-	waitcursor(0);
+	WM_cursor_wait(0);
 }
 
 /* called from header_info, when deleting a scene
@@ -2271,7 +2277,7 @@ void node_make_group(SpaceNode *snode)
 	bNode *gnode;
 	
 	if(snode->edittree!=snode->nodetree) {
-		error("Can not add a new Group in a Group");
+// XXX		error("Can not add a new Group in a Group");
 		return;
 	}
 	
@@ -2283,20 +2289,22 @@ void node_make_group(SpaceNode *snode)
 					break;
 		}
 		if(gnode) {
-			error("Can not add RenderLayer in a Group");
+// XXX			error("Can not add RenderLayer in a Group");
 			return;
 		}
 	}
 	
 	gnode= nodeMakeGroupFromSelected(snode->nodetree);
 	if(gnode==NULL) {
-		error("Can not make Group");
+// XXX		error("Can not make Group");
 	}
 	else {
 		nodeSetActive(snode->nodetree, gnode);
 		ntreeSolveOrder(snode->nodetree);
 	}
 }
+
+#if 0
 
 /* ******************** main event loop ****************** */
 

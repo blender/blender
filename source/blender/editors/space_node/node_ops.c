@@ -58,6 +58,7 @@ void node_operatortypes(void)
 	WM_operatortype_append(NODE_OT_delete_selection);
 	WM_operatortype_append(NODE_OT_link);
 	WM_operatortype_append(NODE_OT_size_widget);
+	WM_operatortype_append(NODE_OT_links_cut);
 }
 
 void node_keymap(struct wmWindowManager *wm)
@@ -72,7 +73,8 @@ void node_keymap(struct wmWindowManager *wm)
 	
 	WM_keymap_add_item(keymap, "NODE_OT_link", LEFTMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "NODE_OT_size_widget", LEFTMOUSE, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "NODE_OT_visibility_toggle", ACTIONMOUSE, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "NODE_OT_visibility_toggle", LEFTMOUSE, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "NODE_OT_links_cut", LEFTMOUSE, KM_PRESS, KM_ALT, 0);
 	
 	WM_keymap_add_item(keymap, "NODE_OT_fit_all", HOMEKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "NODE_OT_border_select", BKEY, KM_PRESS, 0, 0);

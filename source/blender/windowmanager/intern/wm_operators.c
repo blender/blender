@@ -557,6 +557,8 @@ static void wm_gesture_end(bContext *C, wmOperator *op)
 
 	ED_area_tag_redraw(CTX_wm_area(C));
 	
+	if( RNA_struct_find_property(op->ptr, "cursor") )
+		WM_cursor_restore(CTX_wm_window(C));
 }
 
 int WM_border_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
@@ -808,6 +810,24 @@ int WM_gesture_lasso_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	
 	wm_gesture_tag_redraw(C);
 	
+	if( RNA_struct_find_property(op->ptr, "cursor") )
+		WM_cursor_modal(CTX_wm_window(C), RNA_int_get(op->ptr, "cursor"));
+	
+	return OPERATOR_RUNNING_MODAL;
+}
+
+int WM_gesture_lines_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	op->customdata= WM_gesture_new(C, event, WM_GESTURE_LINES);
+	
+	/* add modal handler */
+	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
+	
+	wm_gesture_tag_redraw(C);
+	
+	if( RNA_struct_find_property(op->ptr, "cursor") )
+		WM_cursor_modal(CTX_wm_window(C), RNA_int_get(op->ptr, "cursor"));
+	
 	return OPERATOR_RUNNING_MODAL;
 }
 
@@ -873,6 +893,11 @@ int WM_gesture_lasso_modal(bContext *C, wmOperator *op, wmEvent *event)
 			return OPERATOR_CANCELLED;
 	}
 	return OPERATOR_RUNNING_MODAL;
+}
+
+int WM_gesture_lines_modal(bContext *C, wmOperator *op, wmEvent *event)
+{
+	return WM_gesture_lasso_modal(C, op, event);
 }
 
 #if 0

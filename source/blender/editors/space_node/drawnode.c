@@ -53,6 +53,7 @@
 #include "DNA_userdef_types.h"
 
 #include "BKE_context.h"
+#include "BKE_curve.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_library.h"
@@ -2522,12 +2523,32 @@ static void draw_nodespace_back_tex(ScrArea *sa, SpaceNode *snode)
 }
 #endif
 
-void node_draw_link_bezier(View2D *v2d, float vec[4][3], int th_col1, int th_col2, int do_shaded)
+/* if v2d not NULL, it clips and returns 0 if not visible */
+int node_link_bezier_points(View2D *v2d, SpaceNode *snode, bNodeLink *link, float coord_array[][2], int resol)
 {
-	float dist;
+	float dist, vec[4][2];
+	
+	/* in v0 and v3 we put begin/end points */
+	if(link->fromsock) {
+		vec[0][0]= link->fromsock->locx;
+		vec[0][1]= link->fromsock->locy;
+	}
+	else {
+		if(snode==NULL) return 0;
+		vec[0][0]= snode->mx;
+		vec[0][1]= snode->my;
+	}
+	if(link->tosock) {
+		vec[3][0]= link->tosock->locx;
+		vec[3][1]= link->tosock->locy;
+	}
+	else {
+		if(snode==NULL) return 0;
+		vec[3][0]= snode->mx;
+		vec[3][1]= snode->my;
+	}
 	
 	dist= 0.5f*ABS(vec[0][0] - vec[3][0]);
-	
 	
 	/* check direction later, for top sockets */
 	vec[1][0]= vec[0][0]+dist;
@@ -2535,33 +2556,47 @@ void node_draw_link_bezier(View2D *v2d, float vec[4][3], int th_col1, int th_col
 	
 	vec[2][0]= vec[3][0]-dist;
 	vec[2][1]= vec[3][1];
-	// printf("-> %f   %f   %f   %f   %f\n", dist, vec[0][0], vec[3][0], vec[1][0], vec[2][0]);
 	
-	if( MIN4(vec[0][0], vec[1][0], vec[2][0], vec[3][0]) > v2d->cur.xmax); /* clipped */	
-	else if ( MAX4(vec[0][0], vec[1][0], vec[2][0], vec[3][0]) < v2d->cur.xmin); /* clipped */
+	if(v2d && MIN4(vec[0][0], vec[1][0], vec[2][0], vec[3][0]) > v2d->cur.xmax); /* clipped */	
+	else if (v2d && MAX4(vec[0][0], vec[1][0], vec[2][0], vec[3][0]) < v2d->cur.xmin); /* clipped */
 	else {
-		float curve_res = 24, spline_step = 0.0f;
+		
+		/* always do all three, to prevent data hanging around */
+		forward_diff_bezier(vec[0][0], vec[1][0], vec[2][0], vec[3][0], coord_array[0], resol, 2);
+		forward_diff_bezier(vec[0][1], vec[1][1], vec[2][1], vec[3][1], coord_array[0]+1, resol, 2);
+		
+		return 1;
+	}
+	return 0;
+}
+
+#define LINK_RESOL	24
+void node_draw_link_bezier(View2D *v2d, SpaceNode *snode, bNodeLink *link, int th_col1, int th_col2, int do_shaded)
+{
+	float coord_array[LINK_RESOL+1][2];
+	
+	if(node_link_bezier_points(v2d, snode, link, coord_array, LINK_RESOL)) {
+		float dist, spline_step = 0.0f;
+		int i;
 		
 		/* we can reuse the dist variable here to increment the GL curve eval amount*/
-		dist = 1.0f/curve_res;
+		dist = 1.0f/(float)LINK_RESOL;
 		
-		glMap1f(GL_MAP1_VERTEX_3, 0.0, 1.0, 3, 4, vec[0]);
 		glBegin(GL_LINE_STRIP);
-		while (spline_step < 1.000001f) {
-			if(do_shaded)
+		for(i=0; i<LINK_RESOL; i++) {
+			if(do_shaded) {
 				UI_ThemeColorBlend(th_col1, th_col2, spline_step);
-			glEvalCoord1f(spline_step);
-			spline_step += dist;
+				spline_step += dist;
+			}				
+			glVertex2fv(coord_array[i]);
 		}
 		glEnd();
 	}
-	
 }
 
 /* note; this is used for fake links in groups too */
 void node_draw_link(View2D *v2d, SpaceNode *snode, bNodeLink *link)
 {
-	float vec[4][3];
 	int do_shaded= 1, th_col1= TH_WIRE, th_col2= TH_WIRE;
 	
 	if(link->fromnode==NULL && link->tonode==NULL)
@@ -2598,28 +2633,7 @@ void node_draw_link(View2D *v2d, SpaceNode *snode, bNodeLink *link)
 		}
 	}
 	
-	vec[0][2]= vec[1][2]= vec[2][2]= vec[3][2]= 0.0; /* only 2d spline, set the Z to 0*/
-	
-	/* in v0 and v3 we put begin/end points */
-	if(link->fromnode) {
-		vec[0][0]= link->fromsock->locx;
-		vec[0][1]= link->fromsock->locy;
-	}
-	else {
-		vec[0][0]= snode->mx;
-		vec[0][1]= snode->my;
-	}
-	if(link->tonode) {
-		vec[3][0]= link->tosock->locx;
-		vec[3][1]= link->tosock->locy;
-	}
-	else {
-		vec[3][0]= snode->mx;
-		vec[3][1]= snode->my;
-	}
-	
-	node_draw_link_bezier(v2d, vec, th_col1, th_col2, do_shaded);
-	// fdrawbezier(vec);
+	node_draw_link_bezier(v2d, snode, link, th_col1, th_col2, do_shaded);
 }
 
 #if 0

@@ -221,7 +221,7 @@ typedef struct wmNotifier {
 
 /* wmGesture->type */
 #define WM_GESTURE_TWEAK		0
-#define WM_GESTURE_LINE			1
+#define WM_GESTURE_LINES		1
 #define WM_GESTURE_RECT			2
 #define WM_GESTURE_CROSS_RECT	3
 #define WM_GESTURE_LASSO		4

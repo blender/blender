@@ -62,7 +62,8 @@ void NODE_OT_border_select(struct wmOperatorType *ot);
 
 /* drawnode.c */
 void node_draw_link(View2D *v2d, SpaceNode *snode, bNodeLink *link);
-void node_draw_link_bezier(View2D *v2d, float vec[][3], int th_col1, int th_col2, int do_shaded);
+void node_draw_link_bezier(View2D *v2d, SpaceNode *snode, bNodeLink *link, int th_col1, int th_col2, int do_shaded);
+int node_link_bezier_points(View2D *v2d, SpaceNode *snode, bNodeLink *link, float coord_array[][2], int resol);
 void draw_nodespace_back_pix(ScrArea *sa, SpaceNode *snode);
 
 /* node_edit.c */
@@ -82,6 +83,7 @@ bNode *snode_get_editgroup(SpaceNode *snode);
 void NODE_OT_link(struct wmOperatorType *ot);
 void NODE_OT_delete_selection(struct wmOperatorType *ot);
 void NODE_OT_size_widget(struct wmOperatorType *ot);
+void NODE_OT_links_cut(struct wmOperatorType *ot);
 
 // XXXXXX
 
