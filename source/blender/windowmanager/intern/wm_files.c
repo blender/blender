@@ -584,9 +584,6 @@ int WM_read_homefile(bContext *C, wmOperator *op)
 	init_userdef_themes();
 	
 	/* When loading factory settings, the reset solid OpenGL lights need to be applied. */
-	U.light[0].flag=0;
-	U.light[1].flag=0;
-	U.light[2].flag=0;
 	GPU_default_lights();
 	
 	/* XXX */
