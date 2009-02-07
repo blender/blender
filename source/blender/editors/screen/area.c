@@ -109,6 +109,10 @@ void ED_region_do_listen(ARegion *ar, wmNotifier *note)
 {
 	/* generic notes first */
 	switch(note->category) {
+		case NC_WM:
+			if(note->data==ND_FILEREAD)
+				ED_region_tag_redraw(ar);
+			break;
 		case NC_WINDOW:
 			ED_region_tag_redraw(ar);
 			break;

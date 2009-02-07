@@ -112,6 +112,9 @@ void wm_window_free(bContext *C, wmWindow *win)
 	wm_event_free_all(win);
 	wm_subwindows_free(win);
 	
+	if(win->drawdata)
+		MEM_freeN(win->drawdata);
+	
 	wm_ghostwindow_destroy(win);
 	
 	MEM_freeN(win);

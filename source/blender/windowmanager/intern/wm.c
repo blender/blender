@@ -118,8 +118,6 @@ void wm_check(bContext *C)
 		
 		ED_screens_initialize(wm);
 		wm->initialized= 1;
-		
-		WM_event_add_notifier(C, NC_WINDOW, NULL);
 	}
 }
 

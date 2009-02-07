@@ -934,6 +934,10 @@ void ED_screen_do_listen(wmWindow *win, wmNotifier *note)
 	
 	/* generic notes */
 	switch(note->category) {
+		case NC_WM:
+			if(note->data==ND_FILEREAD)
+				win->screen->do_draw= 1;
+			break;
 		case NC_WINDOW:
 			win->screen->do_draw= 1;
 			break;

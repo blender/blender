@@ -122,7 +122,7 @@ void WM_init(bContext *C)
 	ED_init_node_butfuncs();	
 	
 	/* get the default database, plus a wm */
-	WM_read_homefile(C, 0);
+	WM_read_homefile(C, NULL);
 	
 	UI_init();
 	

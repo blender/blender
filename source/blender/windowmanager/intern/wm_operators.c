@@ -279,6 +279,19 @@ static void WM_OT_save_homefile(wmOperatorType *ot)
 	ot->poll= WM_operator_winactive;
 }
 
+static void WM_OT_read_homefile(wmOperatorType *ot)
+{
+	ot->name= "Reload Start-Up File";
+	ot->idname= "WM_OT_read_homefile";
+	
+	ot->invoke= WM_operator_confirm;
+	ot->exec= WM_read_homefile;
+	ot->poll= WM_operator_winactive;
+	
+	RNA_def_boolean(ot->srna, "factory", 0, "Factory Settings", "");
+}
+
+
 /* ********* recent file *********** */
 
 static int recentfile_exec(bContext *C, wmOperator *op)
@@ -1145,6 +1158,7 @@ void wm_operatortype_free(void)
 void wm_operatortype_init(void)
 {
 	WM_operatortype_append(WM_OT_window_duplicate);
+	WM_operatortype_append(WM_OT_read_homefile);
 	WM_operatortype_append(WM_OT_save_homefile);
 	WM_operatortype_append(WM_OT_window_fullscreen_toggle);
 	WM_operatortype_append(WM_OT_exit_blender);
@@ -1164,6 +1178,7 @@ void wm_window_keymap(wmWindowManager *wm)
 	
 	/* note, this doesn't replace existing keymap items */
 	WM_keymap_verify_item(keymap, "WM_OT_window_duplicate", WKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
+	WM_keymap_verify_item(keymap, "WM_OT_read_homefile", XKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_verify_item(keymap, "WM_OT_save_homefile", UKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_verify_item(keymap, "WM_OT_open_recentfile", OKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_verify_item(keymap, "WM_OT_open_mainfile", F1KEY, KM_PRESS, 0, 0);

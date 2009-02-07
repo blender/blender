@@ -74,6 +74,9 @@
 #include "BLO_readfile.h"
 #include "BLO_writefile.h"
 
+#include "RNA_access.h"
+#include "RNA_define.h"
+
 #include "ED_datafiles.h"
 #include "ED_screen.h"
 #include "ED_util.h"
@@ -518,12 +521,9 @@ void WM_read_file(bContext *C, char *name, ReportList *reports)
 		wm_check(C); /* opens window(s), checks keymaps */
 		
 // XXX		mainwindow_set_filename_to_title(G.main->name);
-//		countall(); <-- will be listener
 // XXX		sound_initialize_sounds();
 
-//		winqueue_break= 1;	/* leave queues everywhere */
-
-// XXX		if(retval==2) init_userdef_themes();	// in case a userdef is read from regular .blend
+		if(retval==2) init_userdef_themes();	// in case a userdef is read from regular .blend
 		
 		if (retval!=0) G.relbase_valid = 1;
 
@@ -536,8 +536,8 @@ void WM_read_file(bContext *C, char *name, ReportList *reports)
 					   
 		CTX_wm_window_set(C, NULL); /* exits queues */
 	}
-//	else if(retval==1)
-// XXX		BIF_undo_push("Import file");
+	else if(retval==1)
+		BKE_write_undo(C, "Import file");
 	else if(retval == -1) {
 		if(reports && reports->list.first == NULL)
 			BKE_report(reports, RPT_ERROR, "Cannot read file.");
@@ -547,13 +547,14 @@ void WM_read_file(bContext *C, char *name, ReportList *reports)
 
 /* called on startup,  (context entirely filled with NULLs) */
 /* or called for 'Erase All' */
-int WM_read_homefile(bContext *C, int from_memory)
+int WM_read_homefile(bContext *C, wmOperator *op)
 {
 	ListBase wmbase;
 	char tstr[FILE_MAXDIR+FILE_MAXFILE], scestr[FILE_MAXDIR];
 	char *home= BLI_gethome();
+	int from_memory= op?RNA_boolean_get(op->ptr, "factory"):0;
 	int success;
-	
+		
 	BLI_clean(home);
 	
 	free_ttfont(); /* still weird... what does it here? */
@@ -601,6 +602,9 @@ int WM_read_homefile(bContext *C, int from_memory)
 	BKE_reset_undo();
 	BKE_write_undo(C, "original");	/* save current state */
 	
+	WM_event_add_notifier(C, NC_WM|ND_FILEREAD, NULL);
+	CTX_wm_window_set(C, NULL); /* exits queues */
+				   
 	return success;
 }
 
