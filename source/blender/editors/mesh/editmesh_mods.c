@@ -3354,7 +3354,7 @@ void MESH_OT_select_non_manifold(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static void selectswap_mesh(EditMesh *em) /* UI level */
+void EM_select_swap(EditMesh *em) /* exported for UV */
 {
 	EditVert *eve;
 	EditEdge *eed;
@@ -3395,7 +3395,7 @@ static int selectswap_mesh_exec(bContext *C, wmOperator *op)
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
 	
-	selectswap_mesh(em);
+	EM_select_swap(em);
 	
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 	return OPERATOR_FINISHED;	
@@ -3417,21 +3417,23 @@ void MESH_OT_select_invert(wmOperatorType *ot)
 	
 /* ******************** (de)select all operator **************** */
 
+void EM_toggle_select_all(EditMesh *em) /* exported for UV */
+{
+	if(EM_nvertices_selected(em))
+		EM_clear_flag_all(em, SELECT);
+	else 
+		EM_set_flag_all(em, SELECT);
+}
+
 static int toggle_select_all_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
 	
-	if( EM_nvertices_selected(em) ) {
-		EM_clear_flag_all(em, SELECT);
-	}
-	else  {
-		EM_set_flag_all(em, SELECT);
-	}
-		
-//		if (EM_texFaceCheck())
+	EM_toggle_select_all(em);
 	
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+
 	return OPERATOR_FINISHED;
 }
 

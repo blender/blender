@@ -387,6 +387,7 @@ static void image_main_area_listener(ARegion *ar, wmNotifier *wmn)
 		case NC_OBJECT:
 			switch(wmn->data) {
 				case ND_GEOM_SELECT:
+				case ND_GEOM_DATA:
 					ED_region_tag_redraw(ar);
 					break;
 			}

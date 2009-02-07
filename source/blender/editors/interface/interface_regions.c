@@ -2035,9 +2035,9 @@ void uiMenuItemFloatO(uiMenuItem *head, const char *name, int icon, char *opname
 }
 
 /* single operator item with property */
-void uiMenuItemBooleanO(uiMenuItem *head, int icon, char *opname, char *propname, int value)
+void uiMenuItemBooleanO(uiMenuItem *head, const char *name, int icon, char *opname, char *propname, int value)
 {
-	uiMenuItem *item= ui_menu_add_item(head, "", icon, 0);
+	uiMenuItem *item= ui_menu_add_item(head, name, icon, 0);
 	
 	item->opname= opname; // static!
 	item->propname= propname; // static!

@@ -182,6 +182,7 @@ typedef struct wmNotifier {
 #define ND_DRAW				(22<<16)
 #define ND_MODIFIER			(23<<16)
 #define ND_KEYS				(24<<16)
+#define ND_GEOM_DATA		(25<<16)
 
 	/* Material */
 #define	ND_SHADING			(30<<16)

@@ -210,6 +210,20 @@ int ED_operator_uvedit(bContext *C)
 	return 0;
 }
 
+int ED_operator_uvmap(bContext *C)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	EditMesh *em= NULL;
+
+	if(obedit && obedit->type==OB_MESH)
+		em= ((Mesh *)obedit->data)->edit_mesh;
+
+    if(em && (em->faces.first))
+		return 1;
+
+	return 0;
+}
+
 int ED_operator_editcurve(bContext *C)
 {
 	Object *obedit= CTX_data_edit_object(C);

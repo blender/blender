@@ -114,6 +114,7 @@ int		ED_operator_editmesh(struct bContext *C);
 int		ED_operator_editarmature(struct bContext *C);
 int		ED_operator_editcurve(struct bContext *C);
 int		ED_operator_uvedit(struct bContext *C);
+int		ED_operator_uvmap(struct bContext *C);
 int		ED_operator_posemode(struct bContext *C);
 
 

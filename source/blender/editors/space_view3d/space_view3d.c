@@ -302,6 +302,7 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 				case ND_BONE_SELECT:
 				case ND_TRANSFORM:
 				case ND_GEOM_SELECT:
+				case ND_GEOM_DATA:
 				case ND_DRAW:
 				case ND_MODIFIER:
 				case ND_KEYS:

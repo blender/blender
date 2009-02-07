@@ -212,7 +212,7 @@ void uiMenuContext(uiMenuItem *head, int opcontext);
 void uiMenuItemVal(uiMenuItem *head, const char *name, int icon, int argval);
 
 void uiMenuItemEnumO(uiMenuItem *head, int icon, char *opname, char *propname, int value);
-void uiMenuItemBooleanO(uiMenuItem *head, int icon, char *opname, char *propname, int value);
+void uiMenuItemBooleanO(uiMenuItem *head, const char *name, int icon, char *opname, char *propname, int value);
 void uiMenuItemsEnumO(uiMenuItem *head, char *opname, char *propname);
 void uiMenuItemIntO(uiMenuItem *head, const char *name, int icon, char *opname, char *propname, int value);
 void uiMenuItemFloatO(uiMenuItem *head, const char *name, int icon, char *opname, char *propname, float value);

@@ -366,14 +366,14 @@ static void viewRedrawForce(bContext *C, TransInfo *t)
 		WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, NULL);
 	}
 	else if (t->spacetype==SPACE_IMAGE) {
+		// XXX how to deal with lock?
 #if 0
 		SpaceImage *sima= (SpaceImage*)t->sa->spacedata.first;
 		if(sima->lock) force_draw_plus(SPACE_VIEW3D, 0);
 		else force_draw(0);
 #endif
 
-		// XXX better notifier, and how to deal with lock?
-		WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, t->obedit);
+		WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, t->obedit);
 	}
 }
 

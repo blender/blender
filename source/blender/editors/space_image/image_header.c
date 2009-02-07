@@ -160,39 +160,21 @@ static void image_viewmenu(bContext *C, uiMenuItem *head, void *arg_unused)
 	else uiMenuItemO(head, 0, "SCREEN_OT_screen_full_area"); // "Maximize Window", Ctr DownArrow
 }
 
-#if 0
-static void do_selectmenu(bContext *C, void *arg, int event)
-{
-	switch(event)
-	{
-	case 0: /* Border Select */
-		borderselect_sima(UV_SELECT_ALL);
-		break;
-	case 8: /* Border Select Pinned */
-		borderselect_sima(UV_SELECT_PINNED);
-		break;
-	case 7: /* Pinned UVs */
-		select_pinned_tface_uv();
-		break;
-	}
-}
-#endif
-
 static void image_selectmenu(bContext *C, uiMenuItem *head, void *arg_unused)
 {
-	uiMenuItemO(head, 0, "UV_OT_border_select"); // Border Select|B
-	uiMenuItemO(head, 0, "UV_OT_border_select_pinned"); // Border Select Pinned|Shift B
+	uiMenuItemO(head, 0, "UV_OT_border_select");
+	uiMenuItemBooleanO(head, "Border Select Pinned", 0, "UV_OT_border_select", "pinned", 1); // Border Select Pinned|Shift B
 
 	uiMenuSeparator(head);
 	
 	uiMenuItemO(head, 0, "UV_OT_de_select_all");
 	uiMenuItemO(head, 0, "UV_OT_select_invert");
-	uiMenuItemO(head, 0, "UV_OT_unlink_selection"); // Unlink Selection|Alt L
+	uiMenuItemO(head, 0, "UV_OT_unlink_selection");
 	
 	uiMenuSeparator(head);
 
-	uiMenuItemO(head, 0, "UV_OT_select_pinned"); // Select Pinned|Shift P
-	uiMenuItemO(head, 0, "UV_OT_select_linked"); // Select Linked|Ctrl L
+	uiMenuItemO(head, 0, "UV_OT_select_pinned");
+	uiMenuItemO(head, 0, "UV_OT_select_linked");
 }
 
 #if 0
@@ -376,58 +358,11 @@ static void image_uvs_transformmenu(bContext *C, uiMenuItem *head, void *arg_unu
 	uiMenuItemO(head, 0, "UV_OT_scale"); // Scale|S
 }
 
-#if 0
-static void do_image_uvs_mirrormenu(void *arg, int event)
-{
-	float mat[3][3];
-	
-	Mat3One(mat);
-	
-	switch(event) {
-	case 0: /* X axis */
-		initTransform(TFM_MIRROR, CTX_NO_PET|CTX_AUTOCONFIRM);
-		BIF_setSingleAxisConstraint(mat[0], " on global X axis");
-		Transform();
-		break;
-	case 1: /* Y axis */
-		initTransform(TFM_MIRROR, CTX_NO_PET|CTX_AUTOCONFIRM);
-		BIF_setSingleAxisConstraint(mat[1], " on global Y axis");
-		Transform();
-		break;
-	}
-	
-	BIF_undo_push("Mirror UV");
-}
-#endif
-
 static void image_uvs_mirrormenu(bContext *C, uiMenuItem *head, void *arg_unused)
 {
 	uiMenuItemEnumO(head, 0, "UV_OT_mirror", "axis", 'x'); // "X Axis", M, 1
 	uiMenuItemEnumO(head, 0, "UV_OT_mirror", "axis", 'y'); // "Y Axis", M, 2
 }
-
-#if 0
-static void do_image_uvs_weldalignmenu(void *arg, int event)
-{
-	switch(event) {
-	case 0: /* Weld */
-		weld_align_tface_uv('w');
-		break;
-	case 1: /* Align Auto */
-		weld_align_tface_uv('a');
-		break;
-	case 2: /* Align X */
-		weld_align_tface_uv('x');
-		break;
-	case 3: /* Align Y */
-		weld_align_tface_uv('y');
-		break;
-	}
-	
-	if(event==0) BIF_undo_push("Weld UV");
-	else if(ELEM3(event, 1, 2, 3)) BIF_undo_push("Align UV");
-}
-#endif
 
 static void image_uvs_weldalignmenu(bContext *C, uiMenuItem *head, void *arg_unused)
 {
@@ -474,31 +409,8 @@ static void image_uvs_scriptsmenu (void *args_unused)
 static void do_uvsmenu(bContext *C, void *arg, int event)
 {
 	switch(event) {
-	case 2: /* UVs Clipped to Image Size */
-		if(sima->flag & SI_CLIP_UV) sima->flag &= ~SI_CLIP_UV;
-		else sima->flag |= SI_CLIP_UV;
-		break;
-	case 5: /* Proportional Edit (toggle) */
-		if(G.scene->proportional)
-			G.scene->proportional= 0;
-		else
-			G.scene->proportional= 1;
-		break;
-	case 7: /* UVs Snap to Pixel */
-		sima->flag ^= SI_PIXELSNAP;
-		break;
-    case 8:
-		pin_tface_uv(1);
-		break;
-    case 9:
-		pin_tface_uv(0);
-		break;
     case 10:
 		unwrap_lscm(0);
-		break;
-	case 11:
-		if(sima->flag & SI_LIVE_UNWRAP) sima->flag &= ~SI_LIVE_UNWRAP;
-		else sima->flag |= SI_LIVE_UNWRAP;
 		break;
 	case 12:
 		minimize_stretch_tface_uv();
@@ -536,15 +448,15 @@ static void image_uvsmenu(bContext *C, uiMenuItem *head, void *arg_unused)
 	uiMenuSeparator(head);
 
 	uiMenuItemBooleanR(head, &uvptr, "live_unwrap");
-	uiMenuItemO(head, 0, "UV_OT_unwrap"); // Unwrap|E
-	uiMenuItemO(head, 0, "UV_OT_unpin"); // Unpin|Alt P
-	uiMenuItemO(head, 0, "UV_OT_pin"); // Pin|P
+	uiMenuItemO(head, 0, "UV_OT_unwrap");
+	uiMenuItemBooleanO(head, "Unpin", 0, "UV_OT_pin", "clear", 1);
+	uiMenuItemO(head, 0, "UV_OT_pin");
 
 	uiMenuSeparator(head);
 
-	uiMenuItemO(head, 0, "UV_OT_pack_islands"); // Pack Islands|Ctr P
-	uiMenuItemO(head, 0, "UV_OT_average_islands"); // Average Islands Scale|Ctrl A
-	uiMenuItemO(head, 0, "UV_OT_minimize_stretch"); // Minimize Stretch...|Ctrl V
+	uiMenuItemO(head, 0, "UV_OT_pack_islands");
+	uiMenuItemO(head, 0, "UV_OT_average_islands_scale");
+	uiMenuItemO(head, 0, "UV_OT_minimize_stretch");
 	uiMenuItemO(head, 0, "UV_OT_stitch");
 
 	uiMenuSeparator(head);
