@@ -4,6 +4,7 @@
 	Version="9,00"
 	Name="BL_nodes"
 	ProjectGUID="{4C3AB78A-52CA-4276-A041-39776E52D8C8}"
+	RootNamespace="BL_nodes"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="131072"
 	>
@@ -616,11 +617,19 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\..\source\blender\nodes\intern\TEX_nodes\TEX_compose.c"
+					>
+				</File>
+				<File
 					RelativePath="..\..\..\source\blender\nodes\intern\TEX_nodes\TEX_coord.c"
 					>
 				</File>
 				<File
 					RelativePath="..\..\..\source\blender\nodes\intern\TEX_nodes\TEX_curves.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\nodes\intern\TEX_nodes\TEX_decompose.c"
 					>
 				</File>
 				<File
@@ -660,11 +669,19 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\..\source\blender\nodes\intern\TEX_nodes\TEX_scale.c"
+					>
+				</File>
+				<File
 					RelativePath="..\..\..\source\blender\nodes\intern\TEX_nodes\TEX_texture.c"
 					>
 				</File>
 				<File
 					RelativePath="..\..\..\source\blender\nodes\intern\TEX_nodes\TEX_translate.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\nodes\intern\TEX_nodes\TEX_valToNor.c"
 					>
 				</File>
 				<File

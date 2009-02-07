@@ -4,6 +4,7 @@
 	Version="9,00"
 	Name="BL_imbuf"
 	ProjectGUID="{415BFD6E-64CF-422B-AF88-C07F040A7292}"
+	RootNamespace="BL_imbuf"
 	TargetFrameworkVersion="131072"
 	>
 	<Platforms>
@@ -552,6 +553,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\imbuf\intern\jp2.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\imbuf\intern\jpeg.c"
 				>
 			</File>
@@ -827,6 +832,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\imbuf\intern\IMB_iris.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\imbuf\intern\IMB_jp2.h"
 				>
 			</File>
 			<File
