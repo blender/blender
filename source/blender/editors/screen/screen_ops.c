@@ -1457,12 +1457,13 @@ static int redo_last_exec(bContext *C, wmOperator *op)
 
 static void redo_last_cb(bContext *C, void *arg1, void *arg2)
 {
-#if 0
-	/* XXX context here is not correct .. we get the popup block region
-	 * context but should actually have where ever the last operator was
-	 * executed. */
-	WM_operator_name_call(C, "SCREEN_OT_redo_last", WM_OP_EXEC_DEFAULT, NULL);
-#endif
+	wmOperator *lastop= CTX_wm_manager(C)->operators.last;
+	
+	if(lastop) {
+		ED_undo_pop(C);
+		WM_operator_repeat(C, lastop);
+	}
+	
 }
 
 static uiBlock *ui_block_create_redo_last(bContext *C, ARegion *ar, void *arg_op)

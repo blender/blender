@@ -3539,8 +3539,18 @@ int ui_handle_menu_event(bContext *C, wmEvent *event, uiPopupBlockHandle *menu, 
 	if((/*inside &&*/ !menu->menuretval && retval == WM_UI_HANDLER_CONTINUE) || event->type == TIMER) {
 		but= ui_but_find_activated(ar);
 
-		if(but)
+		if(but) {
+			ScrArea *ctx_area= CTX_wm_area(C);
+			ARegion *ctx_region= CTX_wm_region(C);
+			
+			if(menu->ctx_area) CTX_wm_area_set(C, menu->ctx_area);
+			if(menu->ctx_region) CTX_wm_region_set(C, menu->ctx_region);
+			
 			retval= ui_handle_button_event(C, event, but);
+			
+			if(menu->ctx_area) CTX_wm_area_set(C, ctx_area);
+			if(menu->ctx_region) CTX_wm_region_set(C, ctx_region);
+		}
 		else
 			retval= ui_handle_button_over(C, event, ar);
 	}

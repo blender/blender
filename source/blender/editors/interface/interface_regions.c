@@ -635,6 +635,10 @@ uiPopupBlockHandle *ui_popup_block_create(bContext *C, ARegion *butregion, uiBut
 	/* create handle */
 	handle= MEM_callocN(sizeof(uiPopupBlockHandle), "uiPopupBlockHandle");
 
+	/* store context for operator */
+	handle->ctx_area= CTX_wm_area(C);
+	handle->ctx_region= CTX_wm_region(C);
+	
 	/* create area region */
 	ar= ui_add_temporary_region(CTX_wm_screen(C));
 

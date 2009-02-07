@@ -284,6 +284,8 @@ struct uiPopupBlockHandle {
 	/* for operator popups */
 	const char *opname;
 	int opcontext;
+	ScrArea *ctx_area;
+	ARegion *ctx_region;
 	
 	/* return values */
 	int butretval;
