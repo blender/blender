@@ -44,9 +44,12 @@
 #include "DNA_view3d_types.h"
 #include "DNA_windowmanager_types.h"
 
+#include "RNA_access.h"
+
 #include "MEM_guardedalloc.h"
 
 #include "BKE_action.h"
+#include "BKE_brush.h"
 #include "BKE_context.h"
 #include "BKE_curve.h"
 #include "BKE_depsgraph.h"
@@ -4833,22 +4836,6 @@ void do_view3d_sculptmenu(bContext *C, void *arg, int event)
 		sd->brush_type= event+1;
 		ED_undo_push(C, "Brush type");
 		break;
-	case 7:
-		br->flag ^= SCULPT_BRUSH_AIRBRUSH;
-		ED_undo_push(C, "Airbrush");
-		break;
-	case 8:
-		sd->symm ^= SYMM_X;
-		ED_undo_push(C, "X Symmetry");
-		break;
-	case 9:
-		sd->symm ^= SYMM_Y;
-		ED_undo_push(C, "Y Symmetry");
-		break;
-	case 10:
-		sd->symm ^= SYMM_Z;
-		ED_undo_push(C, "Z Symmetry");
-		break;
 	case 11:
 	        if(v3d)
 			v3d->pivot_last= !v3d->pivot_last;
@@ -4873,14 +4860,6 @@ void do_view3d_sculptmenu(bContext *C, void *arg, int event)
 	case 17:
 		sculpt_radialcontrol_start(RADIALCONTROL_SIZE);
 		break;
-	case 18:
-		br->dir= br->dir==1 ? 2 : 1;
-		ED_undo_push(C, "Add/Sub");
-		break;
-	}
-
-	allqueue(REDRAWBUTSEDIT, 0);
-	allqueue(REDRAWVIEW3D, 0);
 #endif
 }
 
@@ -4900,6 +4879,40 @@ uiBlock *view3d_sculpt_inputmenu(bContext *C, ARegion *ar, void *arg_unused)
 	uiBlockSetDirection(block, UI_RIGHT);
 	uiTextBoundsBlock(block, 50);
 	return block;
+}
+
+static void view3d_sculpt_menu(bContext *C, uiMenuItem *head, void *arg_unused)
+{
+	bScreen *sc= CTX_wm_screen(C);
+	Sculpt *s = CTX_data_tool_settings(C)->sculpt;
+	PointerRNA rna;
+
+	RNA_pointer_create(&sc->id, &RNA_Sculpt, s, &rna);
+
+	uiMenuItemBooleanR(head, &rna, "symmetry_x");
+	uiMenuItemBooleanR(head, &rna, "symmetry_y");
+	uiMenuItemBooleanR(head, &rna, "symmetry_z");
+	uiMenuItemBooleanR(head, &rna, "lock_x");
+	uiMenuItemBooleanR(head, &rna, "lock_y");
+	uiMenuItemBooleanR(head, &rna, "lock_z");
+
+	/* Brush settings */
+	RNA_pointer_create(&sc->id, &RNA_Brush, s->brush, &rna);
+
+	/* Curve */
+	uiMenuSeparator(head);
+	uiMenuItemEnumO(head, 0, "SCULPT_OT_brush_curve_preset", "mode", BRUSH_PRESET_SHARP);
+	uiMenuItemEnumO(head, 0, "SCULPT_OT_brush_curve_preset", "mode", BRUSH_PRESET_SMOOTH);
+	uiMenuItemEnumO(head, 0, "SCULPT_OT_brush_curve_preset", "mode", BRUSH_PRESET_MAX);
+
+	uiMenuSeparator(head);
+
+	uiMenuItemBooleanR(head, &rna, "airbrush");
+	uiMenuItemBooleanR(head, &rna, "rake");
+	uiMenuItemBooleanR(head, &rna, "anchored");
+	uiMenuItemBooleanR(head, &rna, "space");
+
+	uiMenuItemBooleanR(head, &rna, "flip_direction");	
 }
 
 uiBlock *view3d_sculptmenu(bContext *C, ARegion *ar, void *arg_unused)
@@ -4929,19 +4942,6 @@ uiBlock *view3d_sculptmenu(bContext *C, ARegion *ar, void *arg_unused)
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Strengthen Brush|Shift F", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 16, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Rotate Brush|Ctrl F", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 15, "");
 	
-	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	uiDefIconTextBut(block, BUTM, 1, (sd->flags & SCULPT_SYMM_Z ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT), "Z Symmetry|Z", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 10, "");
-	uiDefIconTextBut(block, BUTM, 1, (sd->flags & SCULPT_SYMM_Y ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT), "Y Symmetry|Y", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 9, "");
-	uiDefIconTextBut(block, BUTM, 1, (sd->flags & SCULPT_SYMM_X ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT), "X Symmetry|X", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 8, "");
-	
-	/* XXX if(sd->brush_type!=GRAB_BRUSH) {
-		uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-		uiDefIconTextBut(block, BUTM, 1, (br->flag & SCULPT_BRUSH_AIRBRUSH ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT), "Airbrush|A", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 7, "");
-		
-		if(sd->brush_type!=SMOOTH_BRUSH && sd->brush_type!=FLATTEN_BRUSH) {
-			uiDefIconTextBut(block, BUTM, 1, (br->dir==1 ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT), "Add|V", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 18, "");
-		}
-	}*/
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	/* XXX uiDefIconTextBut(block, BUTM, 1, (sd->brush_type==FLATTEN_BRUSH ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT), "Flatten|T", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
 	uiDefIconTextBut(block, BUTM, 1, (sd->brush_type==LAYER_BRUSH ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT), "Layer|L", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
@@ -5727,7 +5727,7 @@ static void view3d_header_pulldowns(const bContext *C, uiBlock *block, Object *o
 	}
 	else if( G.f & G_SCULPTMODE) {
 		xmax= GetButStringLength("Sculpt");
-		uiDefPulldownBut(block, view3d_sculptmenu, NULL, "Sculpt", xco, yco-2, xmax-3, 24, "");
+		uiDefMenuBut(block, view3d_sculpt_menu, NULL, "Sculpt", xco, yco-2, xmax-3, 24, "");
 		xco+= xmax;
 	}
 	else if (FACESEL_PAINT_TEST) {
