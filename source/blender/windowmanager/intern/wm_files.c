@@ -449,20 +449,23 @@ static void wm_window_match_do(bContext *C, ListBase *oldwmlist)
 		
 		/* we've read file without wm..., keep current one entirely alive */
 		if(G.main->wm.first==NULL) {
+			bScreen *screen= CTX_wm_screen(C);
+			
 			/* match oldwm to new dbase, only old files */
 			
 			for(wm= oldwmlist->first; wm; wm= wm->id.next) {
 				
 				for(win= wm->windows.first; win; win= win->next) {
 					/* all windows get active screen from file */
-					win->screen= CTX_wm_screen(C);
-					BLI_strncpy(win->screenname, win->screen->id.name+2, 21);
+					if(screen->winid==0)
+						win->screen= screen;
+					else 
+						win->screen= ED_screen_duplicate(win, screen);
 					
-					if(win->screen->winid==0)
-						win->screen->winid= win->winid;
+					BLI_strncpy(win->screenname, win->screen->id.name+2, 21);
+					win->screen->winid= win->winid;
 				}
 			}
-			/* XXX still solve, case where multiple windows open */
 			
 			G.main->wm= *oldwmlist;
 			

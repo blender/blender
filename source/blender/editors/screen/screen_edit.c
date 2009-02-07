@@ -411,6 +411,7 @@ bScreen *screen_add(wmWindow *win, Scene *scene, char *name)
 	sc= alloc_libblock(&G.main->screen, ID_SCR, name);
 	sc->scene= scene;
 	sc->do_refresh= 1;
+	sc->winid= win->winid;
 	
 	sv1= screen_addvert(sc, 0, 0);
 	sv2= screen_addvert(sc, 0, win->sizey-1);
@@ -907,6 +908,10 @@ bScreen *ED_screen_duplicate(wmWindow *win, bScreen *sc)
 	/* set in window */
 	win->screen= newsc;
 	
+	/* store identifier */
+	win->screen->winid= win->winid;
+	BLI_strncpy(win->screenname, win->screen->id.name+2, 21);
+
 	return newsc;
 }
 
@@ -1088,12 +1093,20 @@ void ED_screen_exit(bContext *C, wmWindow *window, bScreen *screen)
 		WM_event_remove_window_timer(window, screen->animtimer);
 	screen->animtimer= NULL;
 	
+	if(screen->mainwin)
+		wm_subwindow_close(window, screen->mainwin);
+	screen->mainwin= 0;
+	screen->subwinactive= 0;
+	
 	for(ar= screen->regionbase.first; ar; ar= ar->next)
 		ED_region_exit(C, ar);
 
 	for(sa= screen->areabase.first; sa; sa= sa->next)
 		ED_area_exit(C, sa);
 
+	/* mark it available for use for other windows */
+	screen->winid= 0;
+	
 	CTX_wm_window_set(C, prevwin);
 }
 
@@ -1195,13 +1208,26 @@ int ED_screen_area_active(const bContext *C)
 
 /* operator call, WM + Window + screen already existed before */
 /* Do NOT call in area/region queues! */
-void ed_screen_set(bContext *C, bScreen *sc)
+void ED_screen_set(bContext *C, bScreen *sc)
 {
+	wmWindow *win= CTX_wm_window(C);
 	bScreen *oldscreen= CTX_wm_screen(C);
+	ID *id;
+	
+	/* validate screen, it's called with notifier reference */
+	for(id= CTX_data_main(C)->screen.first; id; id= id->next)
+		if(sc == (bScreen *)id)
+			break;
+	if(id==NULL) 
+		return;
+	
+	/* check for valid winid */
+	if(sc->winid!=0 && sc->winid!=win->winid)
+		return;
 	
 	if(sc->full) {				/* find associated full */
 		bScreen *sc1;
-		for(sc1= G.main->screen.first; sc1; sc1= sc1->id.next) {
+		for(sc1= CTX_data_main(C)->screen.first; sc1; sc1= sc1->id.next) {
 			ScrArea *sa= sc1->areabase.first;
 			if(sa->full==sc) {
 				sc= sc1;
@@ -1212,7 +1238,6 @@ void ed_screen_set(bContext *C, bScreen *sc)
 	}
 	
 	if (oldscreen != sc) {
-		wmWindow *win= CTX_wm_window(C);
 		wmTimer *wt= oldscreen->animtimer;
 		
 		/* we put timer to sleep, so screen_exit has to think there's no timer */
@@ -1225,6 +1250,9 @@ void ed_screen_set(bContext *C, bScreen *sc)
 		
 		win->screen= sc;
 		CTX_wm_window_set(C, win);	// stores C->wm.screen... hrmf
+		
+		/* prevent multiwin errors */
+		sc->winid= win->winid;
 		
 		ED_screen_refresh(CTX_wm_manager(C), CTX_wm_window(C));
 		WM_event_add_notifier(C, NC_WINDOW, NULL);
@@ -1274,7 +1302,7 @@ void ed_screen_fullarea(bContext *C, ScrArea *sa)
 			sc->animtimer= oldscreen->animtimer;
 			oldscreen->animtimer= NULL;
 			
-			ed_screen_set(C, sc);
+			ED_screen_set(C, sc);
 			
 			free_screen(oldscreen);
 			free_libblock(&G.main->screen, oldscreen);
@@ -1292,6 +1320,7 @@ void ed_screen_fullarea(bContext *C, ScrArea *sa)
 		oldscreen->full = SCREENFULL;
 		
 		sc= screen_add(CTX_wm_window(C), CTX_data_scene(C), "temp");
+		sc->full = SCREENFULL; // XXX
 		
 		/* timer */
 		sc->animtimer= oldscreen->animtimer;
@@ -1307,9 +1336,9 @@ void ed_screen_fullarea(bContext *C, ScrArea *sa)
 
 		sa->full= oldscreen;
 		newa->full= oldscreen;
-		newa->next->full= oldscreen;
+		newa->next->full= oldscreen; // XXX
 
-		ed_screen_set(C, sc);
+		ED_screen_set(C, sc);
 	}
 
 	/* XXX bad code: setscreen() ends with first area active. fullscreen render assumes this too */

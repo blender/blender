@@ -52,6 +52,8 @@ struct FileList;
 struct bGPdata;
 struct bDopeSheet;
 struct FileSelectParams;
+struct bScreen;
+struct Scene;
 struct wmOperator;
 struct wmTimer;
 
@@ -75,7 +77,11 @@ typedef struct SpaceInfo {
 	int spacetype;
 	float blockscale;
 
-	short blockhandler[8];
+	short blockhandler[8];		/* XXX depricate this */
+	
+	struct bScreen *screen;		/* browse screen */
+	struct Scene *scene;		/* browse scene */
+	
 } SpaceInfo;
 
 /* 'Graph' Editor (formerly known as the IPO Editor) */

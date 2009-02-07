@@ -123,7 +123,7 @@ void wm_window_free(bContext *C, wmWindow *win)
 static int find_free_winid(wmWindowManager *wm)
 {
 	wmWindow *win;
-	int id= 0;
+	int id= 1;
 	
 	for(win= wm->windows.first; win; win= win->next)
 		if(id <= win->winid)
@@ -155,8 +155,8 @@ wmWindow *wm_window_copy(bContext *C, wmWindow *winorig)
 	win->sizex= winorig->sizex;
 	win->sizey= winorig->sizey;
 	
-	win->screen= ED_screen_duplicate(win, winorig->screen);
-	BLI_strncpy(win->screenname, win->screen->id.name+2, 21);
+	/* duplicate assigns to window */
+	ED_screen_duplicate(win, winorig->screen);
 	win->screen->do_refresh= 1;
 	win->screen->do_draw= 1;
 

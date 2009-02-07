@@ -1025,6 +1025,7 @@ void SCREEN_OT_frame_offset(wmOperatorType *ot)
 static int screen_set_exec(bContext *C, wmOperator *op)
 {
 	bScreen *screen= CTX_wm_screen(C);
+	int tot= BLI_countlist(&CTX_data_main(C)->screen);
 	int delta= RNA_int_get(op->ptr, "delta");
 	
 	/* this screen is 'fake', solve later XXX */
@@ -1032,19 +1033,27 @@ static int screen_set_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	
 	if(delta==1) {
-		screen= screen->id.next;
-		if(screen==NULL) screen= CTX_data_main(C)->screen.first;
+		while(tot--) {
+			screen= screen->id.next;
+			if(screen==NULL) screen= CTX_data_main(C)->screen.first;
+			if(screen->winid==0 && screen->full==0)
+				break;
+		}
 	}
 	else if(delta== -1) {
-		screen= screen->id.prev;
-		if(screen==NULL) screen= CTX_data_main(C)->screen.last;
+		while(tot--) {
+			screen= screen->id.prev;
+			if(screen==NULL) screen= CTX_data_main(C)->screen.last;
+			if(screen->winid==0 && screen->full==0)
+				break;
+		}
 	}
 	else {
 		screen= NULL;
 	}
 	
 	if(screen) {
-		ed_screen_set(C, screen);
+		ED_screen_set(C, screen);
 		return OPERATOR_FINISHED;
 	}
 	return OPERATOR_CANCELLED;

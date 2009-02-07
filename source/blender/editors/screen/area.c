@@ -642,6 +642,10 @@ void area_copy_data(ScrArea *sa1, ScrArea *sa2, int swap_space)
 	else {
 		BKE_spacedata_freelist(&sa1->spacedata);
 		BKE_spacedata_copylist(&sa1->spacedata, &sa2->spacedata);
+		
+		if(sa1->spacedata.first==NULL) {
+			printf("copy data error\n");
+		}
 	}
 	
 	/* regions */

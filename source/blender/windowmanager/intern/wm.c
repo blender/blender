@@ -131,8 +131,9 @@ void wm_add_default(bContext *C)
 	CTX_wm_manager_set(C, wm);
 	win= wm_window_new(C);
 	win->screen= screen;
-	if(screen)
-		BLI_strncpy(win->screenname, screen->id.name+2, 21);
+	screen->winid= win->winid;
+	BLI_strncpy(win->screenname, screen->id.name+2, 21);
+	
 	wm->winactive= win;
 	wm_window_make_drawable(C, win); 
 }

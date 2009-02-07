@@ -52,7 +52,6 @@ ScrEdge		*screen_find_active_scredge(bScreen *sc, int mx, int my);
 
 AZone		*is_in_area_actionzone(ScrArea *sa, int x, int y);
 
-void		ed_screen_set(bContext *C, bScreen *sc);
 void		ed_screen_fullarea(bContext *C, ScrArea *sa);
 
 /* screen_context.c */

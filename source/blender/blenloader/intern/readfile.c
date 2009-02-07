@@ -4516,7 +4516,7 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 		/* 2.50: we now always add spacedata for info */
 		if(sa->spacedata.first==NULL) {
 			SpaceInfo *sinfo= MEM_callocN(sizeof(SpaceInfo), "spaceinfo");
-			sa->spacetype= SPACE_INFO;
+			sa->spacetype= sinfo->spacetype= SPACE_INFO;
 			BLI_addtail(&sa->spacedata, sinfo);
 		}
 		/* add local view3d too */
