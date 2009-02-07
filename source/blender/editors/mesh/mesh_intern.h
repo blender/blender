@@ -162,14 +162,10 @@ extern struct EditFace *EM_face_from_faces(EditMesh *em, struct EditFace *efa1,
 
 /* ******************* editmesh_loop.c */
 
-#define KNIFE_PROMPT 0
-#define KNIFE_EXACT 1
-#define KNIFE_MIDPOINT 2
-#define KNIFE_MULTICUT 3
-
 #define LOOP_SELECT	1
 #define LOOP_CUT	2
 
+void MESH_OT_knife_cut(struct wmOperatorType *ot);
 
 /* ******************* editmesh_mods.c */
 void MESH_OT_loop_select(struct wmOperatorType *ot);

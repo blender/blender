@@ -995,7 +995,7 @@ void ED_screen_draw(wmWindow *win)
 		scrarea_draw_shape_light(sa1, dira);
 	}
 	
-	if(G.f & G_DEBUG) printf("draw screen\n");
+//	if(G.f & G_DEBUG) printf("draw screen\n");
 	win->screen->do_draw= 0;
 }
 

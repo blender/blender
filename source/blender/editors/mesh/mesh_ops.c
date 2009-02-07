@@ -165,6 +165,7 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_mark_sharp);
 	WM_operatortype_append(MESH_OT_smooth_vertex);
 	WM_operatortype_append(MESH_OT_flip_editnormals);
+	WM_operatortype_append(MESH_OT_knife_cut);
 	
 }
 
@@ -256,6 +257,9 @@ void ED_keymap_mesh(wmWindowManager *wm)
 	
 	WM_keymap_add_item(keymap, "MESH_OT_make_fgon", FKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_clear_fgon", FKEY, KM_PRESS, KM_SHIFT|KM_ALT, 0);
+	
+	WM_keymap_add_item(keymap, "MESH_OT_knife_cut", LEFTMOUSE, KM_PRESS, KM_ALT|KM_CTRL, 0);
+	
 	
 	
 }
