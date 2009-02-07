@@ -1,5 +1,4 @@
-/**
- * $Id: 
+ /* $Id: 
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -717,10 +716,12 @@ void MESH_OT_extrude(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-void split_mesh(EditMesh *em)
+static int split_mesh(bContext *C, wmOperator *op)
 {
+	Object *obedit= CTX_data_edit_object(C);
+	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
 
-	waitcursor(1);
+	WM_cursor_wait(1);
 
 	/* make duplicate first */
 	adduplicateflag(em, SELECT);
@@ -728,14 +729,40 @@ void split_mesh(EditMesh *em)
 	delfaceflag(em, 128);
 	recalc_editnormals(em);
 
-	waitcursor(0);
+	WM_cursor_wait(0);
+
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 
 //	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-
+	return OPERATOR_FINISHED;
 }
 
-void extrude_repeat_mesh(RegionView3D *rv3d, Object *obedit, EditMesh *em, int steps, float offs)
+void MESH_OT_split_mesh(wmOperatorType *ot)
 {
+	/* identifiers */
+	ot->name= "Split Mesh";
+	ot->idname= "MESH_OT_split_mesh";
+	
+	/* api callbacks */
+	ot->exec= split_mesh;
+	ot->poll= ED_operator_editmesh;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+
+static int extrude_repeat_mesh(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
+	
+	RegionView3D *rv3d = CTX_wm_region_view3d(C);		
+		
+	int steps = RNA_int_get(op->ptr,"steps");
+	
+	float offs = RNA_float_get(op->ptr,"offset");
+
 	float dvec[3], tmat[3][3], bmat[3][3], nor[3]= {0.0, 0.0, 0.0};
 	short a;
 
@@ -762,10 +789,30 @@ void extrude_repeat_mesh(RegionView3D *rv3d, Object *obedit, EditMesh *em, int s
 	
 	EM_fgon_flags(em);
 	
-//	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 
+//	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
+	return OPERATOR_FINISHED;
 }
 
+void MESH_OT_extrude_repeat(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Extrude Repeat Mesh";
+	ot->idname= "MESH_OT_extrude_repeat";
+	
+	/* api callbacks */
+	ot->exec= extrude_repeat_mesh;
+	ot->poll= ED_operator_editmesh;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* props */
+	RNA_def_float(ot->srna, "offset", 2.0f, 0.0f, 100.0f, "Offset", "", 0.0f, FLT_MAX);
+	RNA_def_int(ot->srna, "steps", 10, 0, 180, "Steps", "", 0, INT_MAX);
+}
+	
 void spin_mesh(View3D *v3d, Object *obedit, EditMesh *em, int steps, float degr, float *dvec, int mode)
 {
 	Scene *scene= NULL; // XXX from context!
@@ -1215,11 +1262,12 @@ void fill_mesh(EditMesh *em)
 
 	// XXX option beautyfill */
 
-	waitcursor(0);
+	WM_cursor_wait(0);
 	EM_select_flush(em);
 //	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 
 }
+
 /*GB*/
 /*-------------------------------------------------------------------------------*/
 /*--------------------------- Edge Based Subdivide ------------------------------*/
@@ -3726,9 +3774,14 @@ static void edge_rotate(EditMesh *em, EditEdge *eed,int dir)
 	free_editface(em, face[1]);		
 }
 
+// XXX ton please check
 /* only accepts 1 selected edge, or 2 selected faces */
-void edge_rotate_selected(EditMesh *em, int dir)
+static int edge_rotate_selected(bContext *C, wmOperator *op)
 {
+	Object *obedit= CTX_data_edit_object(C);
+	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
+		
+	int dir = RNA_int_get(op->ptr,"dir"); // dir == 2 when clockwise and ==1 for counter CW.
 	EditEdge *eed;
 	EditFace *efa;
 	short edgeCount = 0;
@@ -3762,7 +3815,11 @@ void edge_rotate_selected(EditMesh *em, int dir)
 				}
 			}
 		}
-		else error("Select one edge or two adjacent faces");
+		else 
+		{
+			error("Select one edge or two adjacent faces");
+			return OPERATOR_CANCELLED;
+		}
 	}
 	else if(edgeCount==1) {
 		for(eed= em->edges.first; eed; eed= eed->next) {
@@ -3773,15 +3830,42 @@ void edge_rotate_selected(EditMesh *em, int dir)
 			}
 		}
 	}
-	else error("Select one edge or two adjacent faces");
+	else 
+	{	
+		error("Select one edge or two adjacent faces");
+		return OPERATOR_CANCELLED;
+	}
 	
 
 	/* flush selected vertices (again) to edges/faces */
 	EM_select_flush(em);
 	
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+
+	
 //	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
+	
+	return OPERATOR_FINISHED;
 
 }
+
+void MESH_OT_edge_rotate_selected(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Rotate Selected Edge";
+	ot->idname= "MESH_OT_edge_rotate_selected";
+	
+	/* api callbacks */
+	ot->exec= edge_rotate_selected;
+	ot->poll= ED_operator_editmesh;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* props */
+	RNA_def_int(ot->srna, "dir", 1, 1, 2, "Direction", "Clockwise and Counter Clockwise", 1, 2);
+}
+
 
 /******************* BEVEL CODE STARTS HERE ********************/
 
@@ -5916,8 +6000,11 @@ void pathselect(EditMesh *em)
 	}
 }
 
-void region_to_loop(EditMesh *em)
+static int region_to_loop(bContext *C, wmOperator *op)
 {
+	Object *obedit= CTX_data_edit_object(C);
+	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
+
 	EditEdge *eed;
 	EditFace *efa;
 	
@@ -5947,6 +6034,24 @@ void region_to_loop(EditMesh *em)
 //		if (EM_texFaceCheck())
 
 	}
+	
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	
+	return OPERATOR_FINISHED;
+}
+
+void MESH_OT_region_to_loop(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Region to Loop";
+	ot->idname= "MESH_OT_region_to_loop";
+	
+	/* api callbacks */
+	ot->exec= region_to_loop;
+	ot->poll= ED_operator_editmesh;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 static int validate_loop(EditMesh *em, Collection *edgecollection)
@@ -6073,8 +6178,12 @@ static int loop_bisect(EditMesh *em, Collection *edgecollection){
 	else return(2);
 }
 
-void loop_to_region(EditMesh *em)
+static int loop_to_region(bContext *C, wmOperator *op)
 {
+	Object *obedit= CTX_data_edit_object(C);
+	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
+
+
 	EditFace *efa;
 	ListBase allcollections={NULL,NULL};
 	Collection *edgecollection;
@@ -6103,13 +6212,34 @@ void loop_to_region(EditMesh *em)
 
 //	if (EM_texFaceCheck())
 
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	
+	return OPERATOR_FINISHED;
+}
+
+void MESH_OT_loop_to_region(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Loop to Region";
+	ot->idname= "MESH_OT_loop_to_region";
+	
+	/* api callbacks */
+	ot->exec= loop_to_region;
+	ot->poll= ED_operator_editmesh;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 
+// XXX please check if these functions do what you want them to
 /* texface and vertex color editmode tools for the face menu */
 
-void mesh_rotate_uvs(EditMesh *em)
+static int mesh_rotate_uvs(bContext *C, wmOperator *op)
 {
+	Object *obedit= CTX_data_edit_object(C);
+	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
+
 	EditFace *efa;
 	short change = 0, ccw;
 	MTFace *tf;
@@ -6118,7 +6248,7 @@ void mesh_rotate_uvs(EditMesh *em)
 
 	if (!EM_texFaceCheck(em)) {
 		error("mesh has no uv/image layers");
-		return;
+		return OPERATOR_CANCELLED;
 	}
 	
 	ccw = (shift);
@@ -6171,12 +6301,17 @@ void mesh_rotate_uvs(EditMesh *em)
 	
 	if (change) {
 //		DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-
+		WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 	}
+	
+	return OPERATOR_FINISHED;
 }
 
-void mesh_mirror_uvs(EditMesh *em)
+static int mesh_mirror_uvs(bContext *C, wmOperator *op)
 {
+	Object *obedit= CTX_data_edit_object(C);
+	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
+
 	EditFace *efa;
 	short change = 0, altaxis;
 	MTFace *tf;
@@ -6185,7 +6320,7 @@ void mesh_mirror_uvs(EditMesh *em)
 	
 	if (!EM_texFaceCheck(em)) {
 		error("mesh has no uv/image layers");
-		return;
+		return OPERATOR_CANCELLED;
 	}
 	
 	altaxis = (shift);
@@ -6253,12 +6388,16 @@ void mesh_mirror_uvs(EditMesh *em)
 	
 	if (change) {
 //		DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-
+		WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 	}
+	return OPERATOR_FINISHED;
 }
 
-void mesh_rotate_colors(EditMesh *em)
+static int mesh_rotate_colors(bContext *C, wmOperator *op)
 {
+	Object *obedit= CTX_data_edit_object(C);
+	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
+
 	EditFace *efa;
 	short change = 0, ccw;
 	MCol tmpcol, *mcol;
@@ -6266,7 +6405,7 @@ void mesh_rotate_colors(EditMesh *em)
 	
 	if (!EM_vertColorCheck(em)) {
 		error("mesh has no color layers");
-		return;
+		return OPERATOR_CANCELLED;
 	}
 	
 	ccw = (shift);
@@ -6302,13 +6441,18 @@ void mesh_rotate_colors(EditMesh *em)
 	
 	if (change) {
 //		DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-
+		WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 	}	
+	
+	return OPERATOR_FINISHED;
 }
 
 
-void mesh_mirror_colors(EditMesh *em)
+static int mesh_mirror_colors(bContext *C, wmOperator *op)
 {
+	Object *obedit= CTX_data_edit_object(C);
+	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
+
 	EditFace *efa;
 	short change = 0, altaxis;
 	MCol tmpcol, *mcol;
@@ -6316,7 +6460,7 @@ void mesh_mirror_colors(EditMesh *em)
 	
 	if (!EM_vertColorCheck(em)) {
 		error("mesh has no color layers");
-		return;
+		return OPERATOR_CANCELLED;
 	}
 	
 	altaxis = (shift);
@@ -6351,7 +6495,66 @@ void mesh_mirror_colors(EditMesh *em)
 	
 	if (change) {
 //		DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
+		WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 	}
+	
+	return OPERATOR_FINISHED;
+}
+
+void MESH_OT_rotate_uvs(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Rotate UVs";
+	ot->idname= "MESH_OT_rotate_uvs";
+	
+	/* api callbacks */
+	ot->exec= mesh_rotate_uvs;
+	ot->poll= ED_operator_editmesh;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+void MESH_OT_mirror_uvs(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Mirror UVs";
+	ot->idname= "MESH_OT_mirror_uvs";
+	
+	/* api callbacks */
+	ot->exec= mesh_mirror_uvs;
+	ot->poll= ED_operator_editmesh;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+void MESH_OT_rotate_colors(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Rotate Colors";
+	ot->idname= "MESH_OT_rotate_colors";
+	
+	/* api callbacks */
+	ot->exec= mesh_rotate_colors;
+	ot->poll= ED_operator_editmesh;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+void MESH_OT_mirror_colors(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Mirror Colors";
+	ot->idname= "MESH_OT_mirror_colors";
+	
+	/* api callbacks */
+	ot->exec= mesh_mirror_colors;
+	ot->poll= ED_operator_editmesh;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 static int subdivide_exec(bContext *C, wmOperator *op)

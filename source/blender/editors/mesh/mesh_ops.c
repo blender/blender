@@ -141,7 +141,17 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_removedoublesflag);
 	WM_operatortype_append(MESH_OT_extrude);
 	WM_operatortype_append(MESH_OT_vertices_to_sphere);
-
+	WM_operatortype_append(MESH_OT_split_mesh);
+	WM_operatortype_append(MESH_OT_extrude_repeat);
+	WM_operatortype_append(MESH_OT_edge_rotate_selected);
+	WM_operatortype_append(MESH_OT_loop_to_region);
+	WM_operatortype_append(MESH_OT_region_to_loop);
+	
+	WM_operatortype_append(MESH_OT_rotate_uvs);
+	WM_operatortype_append(MESH_OT_mirror_uvs);
+	WM_operatortype_append(MESH_OT_rotate_colors);
+	WM_operatortype_append(MESH_OT_mirror_colors);
+	
 	WM_operatortype_append(MESH_OT_fill);
 	WM_operatortype_append(MESH_OT_beauty_fill);
 	WM_operatortype_append(MESH_OT_convert_quads_to_tris);
@@ -244,6 +254,21 @@ void ED_keymap_mesh(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "MESH_OT_beauty_fill", FKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_convert_quads_to_tris", TKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_convert_tris_to_quads", JKEY, KM_PRESS, KM_ALT, 0);
+	
+	WM_keymap_add_item(keymap, "MESH_OT_split_mesh", FOURKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "MESH_OT_extrude_repeat", FOURKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_add_item(keymap, "MESH_OT_edge_rotate_selected", FIVEKEY, KM_PRESS, KM_CTRL, 0);
+	
+	WM_keymap_add_item(keymap, "MESH_OT_loop_to_region",SIXKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "MESH_OT_region_to_loop",SIXKEY, KM_PRESS, KM_ALT, 0);
+	
+	WM_keymap_add_item(keymap, "MESH_OT_rotate_uvs",SEVENKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "MESH_OT_mirror_uvs",SEVENKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_add_item(keymap, "MESH_OT_rotate_colors",EIGHTKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "MESH_OT_mirror_colors",EIGHTKEY, KM_PRESS, KM_ALT, 0);
+
+	
+	
 	
 	/* add/remove */
 	WM_keymap_add_item(keymap, "MESH_OT_add_edge_face", FKEY, KM_PRESS, 0, 0);

@@ -240,6 +240,16 @@ void MESH_OT_convert_tris_to_quads(struct wmOperatorType *ot);
 void MESH_OT_edge_flip(struct wmOperatorType *ot);
 void MESH_OT_faces_shade_smooth(struct wmOperatorType *ot);
 void MESH_OT_faces_shade_solid(struct wmOperatorType *ot);
+void MESH_OT_split_mesh(struct wmOperatorType *ot);
+void MESH_OT_extrude_repeat(struct wmOperatorType *ot);
+void MESH_OT_edge_rotate_selected(struct wmOperatorType *ot);
+void MESH_OT_loop_to_region(struct wmOperatorType *ot);
+void MESH_OT_region_to_loop(struct wmOperatorType *ot);
+
+void MESH_OT_rotate_uvs(struct wmOperatorType *ot);
+void MESH_OT_mirror_uvs(struct wmOperatorType *ot);
+void MESH_OT_rotate_colors(struct wmOperatorType *ot);
+void MESH_OT_mirror_colors(struct wmOperatorType *ot);
 
 void MESH_OT_delete(struct wmOperatorType *ot);
 
