@@ -333,8 +333,11 @@ int ctx_data_list_count(const bContext *C, int (*func)(const bContext*, ListBase
 {
 	ListBase list;
 
-	if(func(C, &list))
-		return BLI_countlist(&list);
+	if(func(C, &list)) {
+		int tot= BLI_countlist(&list);
+		BLI_freelistN(&list);
+		return tot;
+	}
 	else
 		return 0;
 }
