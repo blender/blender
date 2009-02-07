@@ -36,6 +36,7 @@
 #include "KX_GameObject.h"
 
 #include "PyObjectPlus.h" 
+#include "blendef.h"
 
 STR_String KX_CameraActuator::X_AXIS_STRING = "x";
 STR_String KX_CameraActuator::Y_AXIS_STRING = "y";
@@ -52,9 +53,9 @@ STR_String KX_CameraActuator::Y_AXIS_STRING = "y";
 KX_CameraActuator::KX_CameraActuator(
 	SCA_IObject* gameobj, 
 	SCA_IObject *obj,
-	MT_Scalar hght,
-	MT_Scalar minhght,
-	MT_Scalar maxhght,
+	float hght,
+	float minhght,
+	float maxhght,
 	bool  xytog,
 	PyTypeObject* T
 ): 
@@ -399,6 +400,7 @@ PyParentObject KX_CameraActuator::Parents[] = {
 PyMethodDef KX_CameraActuator::Methods[] = {
 	{"setObject",(PyCFunction) KX_CameraActuator::sPySetObject, METH_O,			(PY_METHODCHAR)SetObject_doc},
 	{"getObject",(PyCFunction) KX_CameraActuator::sPyGetObject, METH_VARARGS,	(PY_METHODCHAR)GetObject_doc},
+	// ---> deprecated
 	{"setMin"	,(PyCFunction) KX_CameraActuator::sPySetMin,	METH_VARARGS,	(PY_METHODCHAR)SetMin_doc},
 	{"getMin"	,(PyCFunction) KX_CameraActuator::sPyGetMin,	METH_NOARGS,	(PY_METHODCHAR)GetMin_doc},
 	{"setMax"	,(PyCFunction) KX_CameraActuator::sPySetMax,	METH_VARARGS,	(PY_METHODCHAR)SetMax_doc},
@@ -410,9 +412,28 @@ PyMethodDef KX_CameraActuator::Methods[] = {
 	{NULL,NULL,NULL,NULL} //Sentinel
 };
 
+PyAttributeDef KX_CameraActuator::Attributes[] = {
+	KX_PYATTRIBUTE_FLOAT_RW("min",-MAXFLOAT,MAXFLOAT,KX_CameraActuator,m_minHeight),
+	KX_PYATTRIBUTE_FLOAT_RW("max",-MAXFLOAT,MAXFLOAT,KX_CameraActuator,m_maxHeight),
+	KX_PYATTRIBUTE_FLOAT_RW("height",-MAXFLOAT,MAXFLOAT,KX_CameraActuator,m_height),
+	KX_PYATTRIBUTE_BOOL_RW("xy",KX_CameraActuator,m_x),
+	{NULL}
+};
+
 PyObject* KX_CameraActuator::_getattr(const STR_String& attr) {
+	PyObject* object = _getattr_self(Attributes, this, attr);
+	if (object != NULL)
+		return object;
 	_getattr_up(SCA_IActuator);
 }
+
+int KX_CameraActuator::_setattr(const STR_String& attr, PyObject* value) {
+	int ret = _setattr_self(Attributes, this, attr, value);
+	if (ret >= 0)
+		return ret;
+	return SCA_IActuator::_setattr(attr, value);
+}
+
 /* get obj  ---------------------------------------------------------- */
 const char KX_CameraActuator::GetObject_doc[] = 
 "getObject(name_only = 1)\n"
@@ -462,6 +483,7 @@ PyObject* KX_CameraActuator::PyGetMin(PyObject* self,
 										PyObject* args, 
 										PyObject* kwds)
 {
+	ShowDeprecationWarning("getMin()", "the min property");
 	return PyFloat_FromDouble(m_minHeight);
 }
 /* set min  ---------------------------------------------------------- */
@@ -472,6 +494,7 @@ PyObject* KX_CameraActuator::PySetMin(PyObject* self,
 										PyObject* args, 
 										PyObject* kwds)
 {
+	ShowDeprecationWarning("setMin()", "the min property");
 	float min;
 	if(PyArg_ParseTuple(args,"f", &min))
 	{
@@ -488,6 +511,7 @@ PyObject* KX_CameraActuator::PyGetMax(PyObject* self,
 										PyObject* args, 
 										PyObject* kwds)
 {
+	ShowDeprecationWarning("getMax()", "the max property");
 	return PyFloat_FromDouble(m_maxHeight);
 }
 /* set min  ---------------------------------------------------------- */
@@ -498,6 +522,7 @@ PyObject* KX_CameraActuator::PySetMax(PyObject* self,
 										PyObject* args, 
 										PyObject* kwds)
 {
+	ShowDeprecationWarning("getMax()", "the max property");
 	float max;
 	if(PyArg_ParseTuple(args,"f", &max))
 	{
@@ -514,6 +539,7 @@ PyObject* KX_CameraActuator::PyGetHeight(PyObject* self,
 										PyObject* args, 
 										PyObject* kwds)
 {
+	ShowDeprecationWarning("getHeight()", "the height property");
 	return PyFloat_FromDouble(m_height);
 }
 /* set height  ---------------------------------------------------------- */
@@ -524,6 +550,7 @@ PyObject* KX_CameraActuator::PySetHeight(PyObject* self,
 										PyObject* args, 
 										PyObject* kwds)
 {
+	ShowDeprecationWarning("getHeight()", "the height property");
 	float height;
 	if(PyArg_ParseTuple(args,"f", &height))
 	{
@@ -541,6 +568,7 @@ PyObject* KX_CameraActuator::PySetXY(PyObject* self,
 										PyObject* args, 
 										PyObject* kwds)
 {
+	ShowDeprecationWarning("setXY()", "the xy property");
 	int value;
 	if(PyArg_ParseTuple(args,"i", &value))
 	{
@@ -559,6 +587,7 @@ PyObject* KX_CameraActuator::PyGetXY(PyObject* self,
 										PyObject* args, 
 										PyObject* kwds)
 {
+	ShowDeprecationWarning("getXY()", "the xy property");
 	return PyInt_FromLong(m_x);
 }
 
