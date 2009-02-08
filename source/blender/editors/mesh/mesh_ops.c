@@ -176,6 +176,8 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_smooth_vertex);
 	WM_operatortype_append(MESH_OT_flip_editnormals);
 	WM_operatortype_append(MESH_OT_knife_cut);
+
+	WM_operatortype_append(MESH_OT_bmesh_test);
 	
 }
 
@@ -285,7 +287,7 @@ void ED_keymap_mesh(wmWindowManager *wm)
 	
 	WM_keymap_add_item(keymap, "MESH_OT_knife_cut", LEFTMOUSE, KM_PRESS, KM_ALT|KM_CTRL, 0);
 	
-	
-	
+
+	WM_keymap_add_item(keymap, "MESH_OT_bmesh_test", JKEY, KM_PRESS, 0, 0);
 }
 

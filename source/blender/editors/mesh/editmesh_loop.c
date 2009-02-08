@@ -76,6 +76,7 @@ editmesh_loop: tools with own drawing subloops, select, knife, subdiv
 #include "ED_view3d.h"
 
 #include "mesh_intern.h"
+#include "bmesh.h"
 
 /* **** XXX ******** */
 static void BIF_undo_push() {}
@@ -204,8 +205,8 @@ void CutEdgeloop(Object *obedit, EditMesh *em, int numcuts)
 	EditEdge *nearest=NULL, *eed;
 	float fac;
 	int keys = 0, holdnum=0, selectmode, dist;
-	short mvalo[2] = {0,0}, mval[2];
-	short event, val, choosing=1, cancel=0, cuthalf = 0, smooth=0;
+	short mvalo[2] = {0,0}, mval[2] = {0, 0};
+	short event=0, val, choosing=1, cancel=0, cuthalf = 0, smooth=0;
 	short hasHidden = 0;
 	char msg[128];
 	
@@ -473,7 +474,7 @@ static float seg_intersect(EditEdge *e, CutCurve *c, int len, char mode, struct 
 	float  m1, b1, m2, b2, x21, x22, y21, y22, xi;
 	float  yi, x1min, x1max, y1max, y1min, perc=0; 
 	float  *scr;
-	float  threshold;
+	float  threshold = 0.0;
 	int  i;
 	
 	//threshold = 0.000001; /*tolerance for vertex intersection*/
@@ -619,20 +620,181 @@ static float seg_intersect(EditEdge *e, CutCurve *c, int len, char mode, struct 
 } 
 
 
+static float bm_seg_intersect(BMEdge *e, CutCurve *c, int len, char mode,
+                              struct GHash *gh, int *isected)
+{
+#define MAXSLOPE 100000
+	float  x11, y11, x12=0, y12=0, x2max, x2min, y2max;
+	float  y2min, dist, lastdist=0, xdiff2, xdiff1;
+	float  m1, b1, m2, b2, x21, x22, y21, y22, xi;
+	float  yi, x1min, x1max, y1max, y1min, perc=0; 
+	float  *scr;
+	float  threshold = 0.0;
+	int  i;
+	
+	//threshold = 0.000001; /*tolerance for vertex intersection*/
+	// XXX	threshold = scene->toolsettings->select_thresh / 100;
+	
+	/* Get screen coords of verts */
+	scr = BLI_ghash_lookup(gh, e->v1);
+	x21=scr[0];
+	y21=scr[1];
+	
+	scr = BLI_ghash_lookup(gh, e->v2);
+	x22=scr[0];
+	y22=scr[1];
+	
+	xdiff2=(x22-x21);  
+	if (xdiff2) {
+		m2=(y22-y21)/xdiff2;
+		b2= ((x22*y21)-(x21*y22))/xdiff2;
+	}
+	else {
+		m2=MAXSLOPE;  /* Verticle slope  */
+		b2=x22;      
+	}
+
+	*isected = 0;
+
+	/*check for *exact* vertex intersection first*/
+	if(mode!=KNIFE_MULTICUT){
+		for (i=0; i<len; i++){
+			if (i>0){
+				x11=x12;
+				y11=y12;
+			}
+			else {
+				x11=c[i].x;
+				y11=c[i].y;
+			}
+			x12=c[i].x;
+			y12=c[i].y;
+			
+			/*test e->v1*/
+			if((x11 == x21 && y11 == y21) || (x12 == x21 && y12 == y21)){
+				perc = 0;
+				*isected = 1;
+				return(perc);
+			}
+			/*test e->v2*/
+			else if((x11 == x22 && y11 == y22) || (x12 == x22 && y12 == y22)){
+				perc = 0;
+				*isected = 2;
+				return(perc);
+			}
+		}
+	}
+	
+	/*now check for edge interesect (may produce vertex intersection as well)*/
+	for (i=0; i<len; i++){
+		if (i>0){
+			x11=x12;
+			y11=y12;
+		}
+		else {
+			x11=c[i].x;
+			y11=c[i].y;
+		}
+		x12=c[i].x;
+		y12=c[i].y;
+		
+		/* Perp. Distance from point to line */
+		if (m2!=MAXSLOPE) dist=(y12-m2*x12-b2);/* /sqrt(m2*m2+1); Only looking for */
+			/* change in sign.  Skip extra math */	
+		else dist=x22-x12;	
+		
+		if (i==0) lastdist=dist;
+		
+		/* if dist changes sign, and intersect point in edge's Bound Box*/
+		if ((lastdist*dist)<=0){
+			xdiff1=(x12-x11); /* Equation of line between last 2 points */
+			if (xdiff1){
+				m1=(y12-y11)/xdiff1;
+				b1= ((x12*y11)-(x11*y12))/xdiff1;
+			}
+			else{
+				m1=MAXSLOPE;
+				b1=x12;
+			}
+			x2max=MAX2(x21,x22)+0.001; /* prevent missed edges   */
+			x2min=MIN2(x21,x22)-0.001; /* due to round off error */
+			y2max=MAX2(y21,y22)+0.001;
+			y2min=MIN2(y21,y22)-0.001;
+			
+			/* Found an intersect,  calc intersect point */
+			if (m1==m2){ /* co-incident lines */
+				/* cut at 50% of overlap area*/
+				x1max=MAX2(x11, x12);
+				x1min=MIN2(x11, x12);
+				xi= (MIN2(x2max,x1max)+MAX2(x2min,x1min))/2.0;	
+				
+				y1max=MAX2(y11, y12);
+				y1min=MIN2(y11, y12);
+				yi= (MIN2(y2max,y1max)+MAX2(y2min,y1min))/2.0;
+			}			
+			else if (m2==MAXSLOPE){ 
+				xi=x22;
+				yi=m1*x22+b1;
+			}
+			else if (m1==MAXSLOPE){ 
+				xi=x12;
+				yi=m2*x12+b2;
+			}
+			else {
+				xi=(b1-b2)/(m2-m1);
+				yi=(b1*m2-m1*b2)/(m2-m1);
+			}
+			
+			/* Intersect inside bounding box of edge?*/
+			if ((xi>=x2min)&&(xi<=x2max)&&(yi<=y2max)&&(yi>=y2min)){
+				/*test for vertex intersect that may be 'close enough'*/
+				if(mode!=KNIFE_MULTICUT){
+					if(xi <= (x21 + threshold) && xi >= (x21 - threshold)){
+						if(yi <= (y21 + threshold) && yi >= (y21 - threshold)){
+							*isected = 1;
+							perc = 0;
+							break;
+						}
+					}
+					if(xi <= (x22 + threshold) && xi >= (x22 - threshold)){
+						if(yi <= (y22 + threshold) && yi >= (y22 - threshold)){
+							*isected = 2;
+							perc = 0;
+							break;
+						}
+					}
+				}
+				if ((m2<=1.0)&&(m2>=-1.0)) perc = (xi-x21)/(x22-x21);	
+				else perc=(yi-y21)/(y22-y21); /*lower slope more accurate*/
+				//isect=32768.0*(perc+0.0000153); /* Percentage in 1/32768ths */
+				
+				break;
+			}
+		}	
+		lastdist=dist;
+	}
+	return(perc);
+} 
+
 #define MAX_CUTS 256
 
 static int knife_cut_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
-	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
+	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh, *em2;
+	BMesh *bm;
 	ARegion *ar= CTX_wm_region(C);
-	EditEdge *eed;
-	EditVert *eve;
+	BMVert *bv;
+	BMIter iter;
+	BMEdge **edges = NULL, *be;
+	V_DECLARE(edges);
+	BMOperator bmop;
 	CutCurve curve[MAX_CUTS];
 	struct GHash *gh;
 	float isect=0.0;
-	float  *scr, co[4];
-	int len=0;
+	float  *scr, co[4], *percents = NULL;
+	V_DECLARE(percents);
+	int len=0, isected, flag;
 	short numcuts=1, mode= RNA_int_get(op->ptr, "type");
 	
 	if (EM_nvertices_selected(em) < 2) {
@@ -651,51 +813,67 @@ static int knife_cut_exec(bContext *C, wmOperator *op)
 	
 	if(len<2) return OPERATOR_CANCELLED;
 	
-	/*store percentage of edge cut for KNIFE_EXACT here.*/
-	for(eed=em->edges.first; eed; eed= eed->next) 
-		eed->tmp.fp = 0.0; 
-	
+	bm = editmesh_to_bmesh(em);
+
 	/*the floating point coordinates of verts in screen space will be stored in a hash table according to the vertices pointer*/
 	gh = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
-	for(eve=em->verts.first; eve; eve=eve->next){
+	for(bv=BMIter_New(&iter, bm, BM_VERTS, NULL);bv;bv=BMIter_Step(&iter)){
 		scr = MEM_mallocN(sizeof(float)*2, "Vertex Screen Coordinates");
-		VECCOPY(co, eve->co);
+		VECCOPY(co, bv->co);
 		co[3]= 1.0;
 		Mat4MulVec4fl(obedit->obmat, co);
 		project_float(ar, co, scr);
-		BLI_ghash_insert(gh, eve, scr);
-		eve->f1 = 0; /*store vertex intersection flag here*/
-	
+		BLI_ghash_insert(gh, bv, scr);
 	}
 	
-	eed= em->edges.first;		
-	while(eed) {	
-		if( eed->v1->f & eed->v2->f & SELECT ){		// NOTE: uses vertex select, subdiv doesnt do edges yet
-			isect= seg_intersect(eed, curve, len, mode, gh);
-			if (isect!=0.0f) eed->f2= 1;
-			else eed->f2=0;
-			eed->tmp.fp= isect;
-			//printf("isect=%i\n", isect);
+	/*store percentage of edge cut for KNIFE_EXACT here.*/
+	for (be=BMIter_New(&iter, bm, BM_EDGES, NULL); be; be=BMIter_Step(&iter)) {
+		if( BM_Is_Selected(bm, be) ) {
+			isect= bm_seg_intersect(be, curve, len, mode, gh, &isected);
+			
+			if (isect != 0.0f) {
+				V_GROW(edges);
+				V_GROW(percents);
+				edges[V_COUNT(edges)-1] = be;
+				percents[V_COUNT(percents)-1] = isect;
+			}
 		}
-		else {
-			eed->f2=0;
-			eed->f1=0;
-		}
-		eed= eed->next;
 	}
+		
+	BMO_Init_Op(&bmop, BMOP_ESUBDIVIDE);
 	
-	if (mode==KNIFE_MIDPOINT) esubdivideflag(obedit, em, SELECT, 0, B_KNIFE, 1, SUBDIV_SELECT_ORIG);
-	else if (mode==KNIFE_MULTICUT) esubdivideflag(obedit, em, SELECT, 0, B_KNIFE, numcuts, SUBDIV_SELECT_ORIG);
-	else esubdivideflag(obedit, em, SELECT, 0, B_KNIFE|B_PERCENTSUBD, 1, SUBDIV_SELECT_ORIG);
+	BMO_Set_Int(&bmop, BMOP_ESUBDIVIDE_NUMCUTS, numcuts);
+	flag = B_KNIFE;
+	if (mode == KNIFE_MIDPOINT) numcuts = 1;
+	else if (mode != KNIFE_MULTICUT) {
+		BMO_Set_PntBuf(&bmop, BMOP_ESUBDIVIDE_PERCENT_EDGES, edges, V_COUNT(edges));
+		BMO_Set_FltBuf(&bmop, BMOP_ESUBDIVIDE_PERCENT_VALUES, percents, V_COUNT(percents));
+	}
 
-	eed=em->edges.first;
-	while(eed){
-		eed->f2=0;
-		eed->f1=0;
-		eed=eed->next;
-	}	
+	BMO_Set_Int(&bmop, BMOP_ESUBDIVIDE_FLAG, flag);
+	BMO_Set_Float(&bmop, BMOP_ESUBDIVIDE_RADIUS, 0);
+	BMO_Set_Int(&bmop, BMOP_ESUBDIVIDE_SELACTION, SUBDIV_SELECT_ORIG);
+	BMO_Set_PntBuf(&bmop, BMOP_ESUBDIVIDE_EDGES, edges, V_COUNT(edges));
+	
+	BMO_Exec_Op(bm, &bmop);
+	BMO_Finish_Op(bm, &bmop);
+	
+	V_FREE(edges);
+	V_FREE(percents);
+
+	//if (mode==KNIFE_MIDPOINT) esubdivideflag(obedit, em, SELECT, 0, B_KNIFE, 1, SUBDIV_SELECT_ORIG);
+	//else if (mode==KNIFE_MULTICUT) esubdivideflag(obedit, em, SELECT, 0, B_KNIFE, numcuts, SUBDIV_SELECT_ORIG);
+	//else esubdivideflag(obedit, em, SELECT, 0, B_KNIFE|B_PERCENTSUBD, 1, SUBDIV_SELECT_ORIG);
 	
 	BLI_ghash_free(gh, NULL, (GHashValFreeFP)MEM_freeN);
+
+	free_editMesh(em);
+
+	em2 = bmesh_to_editmesh(bm);
+	*em = *em2;
+	
+	MEM_freeN(em2);
+	BM_Free_Mesh(bm);
 	
 	return OPERATOR_FINISHED;
 }

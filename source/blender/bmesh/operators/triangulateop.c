@@ -7,9 +7,12 @@
 #include "BLI_arithb.h"
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #define EDGE_NEW	1
 #define FACE_NEW	1
+
 void triangulate_exec(BMesh *bmesh, BMOperator *op)
 {
 	BMOpSlot *finput;

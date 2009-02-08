@@ -62,6 +62,7 @@ void BMO_CopySlot(struct BMOperator *source_op, struct BMOperator *dest_op, int 
 void BMO_Set_Float(struct BMOperator *op, int slotcode, float f);
 void BMO_Set_Int(struct BMOperator *op, int slotcode, int i);
 void BMO_Set_PntBuf(struct BMOperator *op, int slotcode, void *p, int len);
+void BMO_Set_FltBuf(BMOperator *op, int slotcode, float *p, int len);
 void BMO_Set_Pnt(struct BMOperator *op, int slotcode, void *p);
 void BMO_Set_Vec(struct BMOperator *op, int slotcode, float *vec);
 void BMO_SetFlag(struct BMesh *bm, void *element, int flag);
@@ -161,7 +162,7 @@ enum {
 	BMOP_ESUBDIVIDE_CUSTOMFILL_FACES,
 	BMOP_ESUBDIVIDE_CUSTOMFILL_PATTERNS,
 
-	BMOP_ESUBDIVIDE_PERCENT_VERTS,
+	BMOP_ESUBDIVIDE_PERCENT_EDGES,
 	BMOP_ESUBDIVIDE_PERCENT_VALUES,
 
 	BMOP_ESUBDIVIDE_TOTSLOT,

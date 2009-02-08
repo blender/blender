@@ -212,6 +212,15 @@ void BMO_Set_PntBuf(BMOperator *op, int slotcode, void *p, int len)
 	op->slots[slotcode].len = len;
 }
 
+void BMO_Set_FltBuf(BMOperator *op, int slotcode, float *p, int len)
+{
+	if( !(op->slots[slotcode].slottype == BMOP_OPSLOT_FLT_BUF) )
+		return;
+
+	op->slots[slotcode].data.p = p;
+	op->slots[slotcode].len = len;
+}
+
 void BMO_Set_Pnt(BMOperator *op, int slotcode, void *p)
 {
 	if( !(op->slots[slotcode].slottype == BMOP_OPSLOT_PNT) )
