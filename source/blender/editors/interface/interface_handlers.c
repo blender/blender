@@ -3753,6 +3753,8 @@ static int ui_handler_popup(bContext *C, wmEvent *event, void *userdata)
 			if(temp.opname)
 				WM_operator_name_call(C, temp.opname, temp.opcontext, NULL);
 		}
+		else if(temp.cancel_func)
+			temp.cancel_func(temp.popup_arg);
 	}
 	else {
 		/* re-enable tooltips */

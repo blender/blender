@@ -2203,8 +2203,10 @@ void uiPupMenuEnd(bContext *C, uiMenuItem *head)
 	MEM_freeN(head);
 }
 
-/* this one only to be called with operatortype name option */
-void uiPupMenu(bContext *C, int maxrow, uiMenuHandleFunc func, void *arg, char *str, ...)
+/* ************** standard pupmenus *************** */
+
+/* this one can called with operatortype name and operators */
+static uiPopupBlockHandle *ui_pup_menu(bContext *C, int maxrow, uiMenuHandleFunc func, void *arg, char *str, ...)
 {
 	wmWindow *window= CTX_wm_window(C);
 	uiPupMenuInfo info;
@@ -2224,11 +2226,12 @@ void uiPupMenu(bContext *C, int maxrow, uiMenuHandleFunc func, void *arg, char *
 
 	menu->popup_func= func;
 	menu->popup_arg= arg;
+	
+	return menu;
 }
 
-/* standard pupmenus */
 
-static void operator_cb(bContext *C, void *arg, int retval)
+static void operator_name_cb(bContext *C, void *arg, int retval)
 {
 	const char *opname= arg;
 
@@ -2236,7 +2239,7 @@ static void operator_cb(bContext *C, void *arg, int retval)
 		WM_operator_name_call(C, opname, WM_OP_EXEC_DEFAULT, NULL);
 }
 
-static void vconfirm(bContext *C, char *opname, char *title, char *itemfmt, va_list ap)
+static void vconfirm_opname(bContext *C, char *opname, char *title, char *itemfmt, va_list ap)
 {
 	char *s, buf[512];
 
@@ -2244,17 +2247,36 @@ static void vconfirm(bContext *C, char *opname, char *title, char *itemfmt, va_l
 	if (title) s+= sprintf(s, "%s%%t|", title);
 	vsprintf(s, itemfmt, ap);
 
-	uiPupMenu(C, 0, operator_cb, opname, buf);
+	ui_pup_menu(C, 0, operator_name_cb, opname, buf);
 }
 
-static void confirm(bContext *C, char *opname, char *title, char *itemfmt, ...)
+static void operator_cb(bContext *C, void *arg, int retval)
 {
-	va_list ap;
-
-	va_start(ap, itemfmt);
-	vconfirm(C, opname, title, itemfmt, ap);
-	va_end(ap);
+	wmOperator *op= arg;
+	
+	if(op && retval > 0)
+		WM_operator_call(C, op);
+	else
+		WM_operator_free(op);
 }
+
+static void confirm_cancel_operator(void *opv)
+{
+	WM_operator_free(opv);
+}
+
+static void confirm_operator(bContext *C, wmOperator *op, char *title, char *item)
+{
+	uiPopupBlockHandle *handle;
+	char *s, buf[512];
+	
+	s= buf;
+	if (title) s+= sprintf(s, "%s%%t|%s", title, item);
+	
+	handle= ui_pup_menu(C, 0, operator_cb, op, buf);
+	handle->cancel_func= confirm_cancel_operator;
+}
+
 
 void uiPupMenuOkee(bContext *C, char *opname, char *str, ...)
 {
@@ -2264,11 +2286,12 @@ void uiPupMenuOkee(bContext *C, char *opname, char *str, ...)
 	sprintf(titlestr, "OK? %%i%d", ICON_HELP);
 
 	va_start(ap, str);
-	vconfirm(C, opname, titlestr, str, ap);
+	vconfirm_opname(C, opname, titlestr, str, ap);
 	va_end(ap);
 }
 
-void uiPupMenuSaveOver(bContext *C, char *opname, char *filename, ...)
+
+void uiPupMenuSaveOver(bContext *C, wmOperator *op, char *filename)
 {
 	size_t len= strlen(filename);
 
@@ -2276,14 +2299,15 @@ void uiPupMenuSaveOver(bContext *C, char *opname, char *filename, ...)
 		return;
 
 	if(BLI_exists(filename)==0)
-		operator_cb(C, opname, 1);
+		operator_cb(C, op, 1);
 
 	if(filename[len-1]=='/' || filename[len-1]=='\\') {
 		uiPupMenuError(C, "Cannot overwrite a directory");
+		WM_operator_free(op);
 		return;
 	}
 
-	confirm(C, opname, "Save over", filename);
+	confirm_operator(C, op, "Save over", filename);
 }
 
 void uiPupMenuNotice(bContext *C, char *str, ...)
@@ -2291,7 +2315,7 @@ void uiPupMenuNotice(bContext *C, char *str, ...)
 	va_list ap;
 
 	va_start(ap, str);
-	vconfirm(C, NULL, NULL, str, ap);
+	vconfirm_opname(C, NULL, NULL, str, ap);
 	va_end(ap);
 }
 
@@ -2306,7 +2330,7 @@ void uiPupMenuError(bContext *C, char *str, ...)
 	sprintf(nfmt, "%s", str);
 
 	va_start(ap, str);
-	vconfirm(C, NULL, titlestr, nfmt, ap);
+	vconfirm_opname(C, NULL, titlestr, nfmt, ap);
 	va_end(ap);
 }
 
@@ -2331,7 +2355,7 @@ void uiPupMenuReports(bContext *C, ReportList *reports)
 	}
 
 	str= BLI_dynstr_get_cstring(ds);
-	uiPupMenu(C, 0, NULL, NULL, str);
+	ui_pup_menu(C, 0, NULL, NULL, str);
 	MEM_freeN(str);
 
 	BLI_dynstr_free(ds);

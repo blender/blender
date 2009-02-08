@@ -238,9 +238,8 @@ void uiMenuSeparator(uiMenuItem *head);
 uiMenuItem *uiPupMenuBegin(const char *title, int icon);
 void uiPupMenuEnd(struct bContext *C, struct uiMenuItem *head);
 
-void uiPupMenu(struct bContext *C, int maxrow, uiMenuHandleFunc func, void *arg, char *str, ...);
 void uiPupMenuOkee(struct bContext *C, char *opname, char *str, ...);
-void uiPupMenuSaveOver(struct bContext *C, char *opname, char *filename, ...);
+void uiPupMenuSaveOver(struct bContext *C, struct wmOperator *op, char *filename);
 void uiPupMenuNotice(struct bContext *C, char *str, ...);
 void uiPupMenuError(struct bContext *C, char *str, ...);
 void uiPupMenuReports(struct bContext *C, struct ReportList *reports);
