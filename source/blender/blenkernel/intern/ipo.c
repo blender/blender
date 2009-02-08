@@ -151,37 +151,38 @@ static AdrBit2Path ob_layer_bits[]= {
 	{(1<<20), "layer", 20}
 };
 
+/* Material mode */
+static AdrBit2Path ma_mode_bits[]= {
+//	{MA_TRACEBLE, "traceable", 0},
+// 	{MA_SHADOW, "shadow", 0},
+//	{MA_SHLESS, "shadeless", 0},
+// 	...
+	{MA_RAYTRANSP, "raytrace_transparency.enabled", 0},
+	{MA_RAYMIRROR, "raytrace_mirror.enabled", 0},
+	{MA_HALO, "halo.enabled", 0}
+};
+
 /* ----------------- */
+
+/* quick macro for returning the appropriate array for adrcode_bitmaps_to_paths() */
+#define RET_ABP(items) \
+	{ \
+		*tot= sizeof(items)/sizeof(AdrBit2Path); \
+		return items; \
+	}
 
 /* This function checks if a Blocktype+Adrcode combo, returning a mapping table */
 static AdrBit2Path *adrcode_bitmaps_to_paths (int blocktype, int adrcode, int *tot)
 {
 	/* Object layers */
-	if ((blocktype == ID_OB) && (adrcode == OB_LAY)) {
-		*tot= sizeof(ob_layer_bits)/sizeof(AdrBit2Path);
-		return ob_layer_bits;
-	}
-	else if ((blocktype == ID_MA) && (adrcode == MA_MODE)) {
-		// XXX to be added...
-	}
+	if ((blocktype == ID_OB) && (adrcode == OB_LAY)) 
+		RET_ABP(ob_layer_bits)
+	else if ((blocktype == ID_MA) && (adrcode == MA_MODE))
+		RET_ABP(ma_mode_bits)
 	// XXX TODO: add other types...
 	
 	/* Normal curve */
 	return NULL;
-}
-
-/* This function makes a copy of a path stored in AdrBit2Path entry, and makes a guardedalloc copy */
-static char *adrcode_bitmap_path_copy (const char *abp_path)
-{
-	char *path;
-	int len;
-	
-	/* copy the path */
-	len= strlen(abp_path) + 1; // XXX is this safe?
-	path= MEM_callocN(len, "Bitflag IPO-Curve RNA-Path");
-	memcpy(path, abp_path, len);
-	
-	return path;
 }
 
 /* *************************************************** */
@@ -538,43 +539,43 @@ static char *material_adrcodes_to_paths (int adrcode, int *array_index)
 		
 		case MA_EMIT:
 			return "emit";
-
+		
 		case MA_AMB:
 			return "ambient";
-
+		
 		case MA_SPEC:
 			return "specularity";
-
+		
 		case MA_HARD:
 			return "specular_hardness";
-		
+			
 		case MA_SPTR:
 			return "specular_opacity";
-
+			
 		case MA_IOR:
 			return "ior";
-
+			
 		case MA_HASIZE:
 			return "halo.size";
-
+			
 		case MA_TRANSLU:
 			return "translucency";
-
+			
 		case MA_RAYM:
 			return "raytrace_mirror.reflect";
-
+			
 		case MA_FRESMIR:
 			return "raytrace_mirror.fresnel";
-
+			
 		case MA_FRESMIRI:
 			return "raytrace_mirror.fresnel_fac";
-
+			
 		case MA_FRESTRA:
 			return "raytrace_transparency.fresnel";
-
+			
 		case MA_FRESTRAI:
 			return "raytrace_transparency.fresnel_fac";
-
+			
 		case MA_ADD:
 			return "halo.add";
 		
@@ -674,7 +675,6 @@ static char *sound_adrcodes_to_paths (int adrcode, int *array_index)
 	
 	/* result depends on adrcode */
 	switch (adrcode) {
-
 		case SND_VOLUME:
 			return "volume";
 		case SND_PITCH:
@@ -735,7 +735,7 @@ static char *world_adrcodes_to_paths (int adrcode, int *array_index)
 			return "stars.min_distance";
 		case WO_STARSIZE:
 			return "stars.size";
-
+		
 		default: /* for now, we assume that the others were MTex channels */
 			return mtex_adrcodes_to_paths(adrcode, array_index);
 		}
@@ -793,10 +793,10 @@ char *get_rna_access (int blocktype, int adrcode, char actname[], char constname
 		case ID_LA: /* lamp */
 			propname= lamp_adrcodes_to_paths(adrcode, &dummy_index);
 			break;
-
+		
 		case ID_SO: /* sound */
 			propname= sound_adrcodes_to_paths(adrcode, &dummy_index);
-
+		
 		case ID_WO: /* world */
 			propname= world_adrcodes_to_paths(adrcode, &dummy_index);
 			
