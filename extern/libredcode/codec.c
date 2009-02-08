@@ -64,7 +64,7 @@ struct redcode_frame_raw * redcode_decode_video_raw(
 	/* setup the decoder decoding parameters using the current image 
 	   and user parameters */
 	opj_setup_decoder(dinfo, &parameters);
-			
+
 	/* open a byte stream */
 	cio = opj_cio_open((opj_common_ptr)dinfo, 
 			   frame->data + frame->offset, frame->length);

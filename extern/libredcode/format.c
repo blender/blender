@@ -1,9 +1,3 @@
-#ifdef _WIN32
-#include <Winsock2.h>
-#else
-#include <netinet/in.h>
-#endif
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -11,7 +5,7 @@
 
 struct red_reob {
 	unsigned long len;
-	char head[4];
+	unsigned long head;
 
 	unsigned long rdvo;
 	unsigned long rdvs;
@@ -38,8 +32,15 @@ struct redcode_handle {
 	unsigned long * rdao;
 	unsigned long * rdas;
 	long cfra;
+	long length;
 };
 
+unsigned long read_be32(unsigned long val)
+{
+	unsigned char * v = (unsigned char*) & val;
+ 
+	return  (v[0] << 24) | (v[1] << 16) | (v[2] << 8) | v[3];
+}
 
 static unsigned char* read_packet(FILE * fp, char * expect)
 {
@@ -52,7 +53,7 @@ static unsigned char* read_packet(FILE * fp, char * expect)
 
 	head[4] = 0;
 
-	len = ntohl(len);
+	len = read_be32(len);
 
 	if (strcmp(expect, head) != 0) {
 		fprintf(stderr, "Read: %s, expect: %s\n", head, expect);
@@ -79,7 +80,7 @@ static unsigned long * read_index_packet(FILE * fp, char * expect)
 	}
 
 	for (i = 2; i < rv[0]/4; i++) {
-		rv[i] = ntohl(rv[i]);
+		rv[i] = read_be32(rv[i]);
 	}
 	return rv;
 }
@@ -109,6 +110,7 @@ struct redcode_handle * redcode_open(const char * fname)
 {
 	struct redcode_handle * rv = NULL;
 	struct red_reob * reob = NULL;
+	int i;
 
 	FILE * fp = fopen(fname, "rb");
 
@@ -134,6 +136,12 @@ struct redcode_handle * redcode_open(const char * fname)
 	if (!rv->rdvo || !rv->rdvs || !rv->rdao || !rv->rdas) {
 		redcode_close(rv);
 		return NULL;
+	}
+
+	for (i = 0; i < (rv->rdvo[0] - 8)/4; i++) {
+		if (rv->rdvo[i + 2]) {
+			rv->length = i;
+		}
 	}
 
 	return rv;
@@ -162,7 +170,7 @@ void redcode_close(struct redcode_handle * handle)
 
 long redcode_get_length(struct redcode_handle * handle)
 {
-	return handle->rdvo[0]/4;
+	return handle->length;
 }
 
 struct redcode_frame * redcode_read_video_frame(
