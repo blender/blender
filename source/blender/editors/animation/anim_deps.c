@@ -95,10 +95,10 @@ void ANIM_animdata_send_notifiers (bContext *C, bAnimContext *ac, short data_cha
 				case ANIM_CHANGED_KEYFRAMES_VALUES:
 					/* keyframe values changed, so transform may have changed */
 					// XXX what about other cases? maybe we need general ND_KEYFRAMES or ND_ANIMATION?
-					WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
+					WM_event_add_notifier(C, NC_OBJECT|ND_KEYS|ND_TRANSFORM, NULL);
 					break;
-				case ANIM_CHANGED_KEYFRAMES_SELECT:	// XXX what to do here?
-					WM_event_add_notifier(C, NC_SCENE, NULL);
+				case ANIM_CHANGED_KEYFRAMES_SELECT:
+					WM_event_add_notifier(C, NC_OBJECT|ND_KEYS, NULL);
 					break;
 				case ANIM_CHANGED_CHANNELS:
 					// XXX err... check available datatypes in dopesheet first?
@@ -117,8 +117,24 @@ void ANIM_animdata_send_notifiers (bContext *C, bAnimContext *ac, short data_cha
 		{
 			Object *obact= CTX_data_active_object(C);
 			
-			// only update active object for now... more detail to come!
-			WM_event_add_notifier(C, NC_OBJECT, obact);
+			switch (data_changed) {
+				case ANIM_CHANGED_KEYFRAMES_VALUES:
+					/* keyframe values changed, so transform may have changed */
+					// XXX what about other cases? maybe we need general ND_KEYFRAMES or ND_ANIMATION?
+					WM_event_add_notifier(C, NC_OBJECT|ND_KEYS|ND_TRANSFORM, obact);
+					break;
+				case ANIM_CHANGED_KEYFRAMES_SELECT:
+					WM_event_add_notifier(C, NC_OBJECT|ND_KEYS, obact);
+					break;
+				case ANIM_CHANGED_CHANNELS:
+					// XXX err... check available datatypes in dopesheet first?
+					// FIXME: this currently doesn't work (to update own view)
+					WM_event_add_notifier(C, NC_OBJECT|ND_BONE_ACTIVE|ND_BONE_SELECT, obact);
+					break;
+			}
+			
+			// XXX for now, at least update own editor!
+			ED_area_tag_redraw(CTX_wm_area(C));
 		}
 			break;
 			
