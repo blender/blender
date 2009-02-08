@@ -79,7 +79,7 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "ipo_intern.h"
+#include "graph_intern.h"
 
 
 /* ************************************************************************** */

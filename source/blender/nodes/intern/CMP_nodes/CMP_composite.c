@@ -50,7 +50,7 @@ static void node_composit_exec_composite(void *data, bNode *node, bNodeStack **i
 		RenderData *rd= data;
 		
 		if(scene && (rd->scemode & R_DOCOMP)) {
-			RenderResult *rr= RE_GetResult(RE_GetRender(scene->id.name)); /* G.scene is WEAK! */
+			RenderResult *rr= RE_GetResult(RE_GetRender(scene->id.name)); 
 			if(rr) {
 				CompBuf *outbuf, *zbuf=NULL;
 				

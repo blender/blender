@@ -304,23 +304,28 @@ void ui_bounds_block(uiBlock *block)
 	block->safety.ymax= block->maxy+xof;
 }
 
-static void ui_popup_bounds_block(const bContext *C, uiBlock *block)
+static void ui_popup_bounds_block(const bContext *C, uiBlock *block, int menu)
 {
+	wmWindow *window= CTX_wm_window(C);
 	int startx, starty, endx, endy, width, height;
 	int oldbounds, mx, my, xmax, ymax;
 
 	oldbounds= block->bounds;
 
-	/* compute bounds */
+	/* compute mouse position with user defined offset */
 	ui_bounds_block(block);
-	mx= block->minx;
-	my= block->miny;
+	mx= window->eventstate->x + block->minx + block->mx;
+	my= window->eventstate->y + block->miny + block->my;
 
-	wm_window_get_size(CTX_wm_window(C), &xmax, &ymax);
+	wm_window_get_size(window, &xmax, &ymax);
 
 	/* first we ensure wide enough text bounds */
-	block->bounds= 50;
-	ui_text_bounds_block(block, block->minx);
+	if(menu) {
+		if(block->flag & UI_BLOCK_LOOP) {
+			block->bounds= 50;
+			ui_text_bounds_block(block, block->minx);
+		}
+	}
 
 	/* next we recompute bounds */
 	block->bounds= oldbounds;
@@ -373,11 +378,22 @@ void uiTextBoundsBlock(uiBlock *block, int addval)
 	block->dobounds= 2;
 }
 
-/* used for menu popups */
-void uiPopupBoundsBlock(uiBlock *block, int addval)
+/* used for block popups */
+void uiPopupBoundsBlock(uiBlock *block, int addval, int mx, int my)
 {
 	block->bounds= addval;
 	block->dobounds= 3;
+	block->mx= mx;
+	block->my= my;
+}
+
+/* used for menu popups */
+void uiMenuPopupBoundsBlock(uiBlock *block, int addval, int mx, int my)
+{
+	block->bounds= addval;
+	block->dobounds= 4;
+	block->mx= mx;
+	block->my= my;
 }
 
 void ui_autofill(uiBlock *block)
@@ -487,13 +503,14 @@ static int ui_but_equals_old(uiBut *but, uiBut *oldbut)
 	/* various properties are being compared here, hopfully sufficient
 	 * to catch all cases, but it is simple to add more checks later */
 	if(but->retval != oldbut->retval) return 0;
-	if(but->poin != oldbut->poin || but->pointype != oldbut->pointype) return 0;
 	if(but->rnapoin.data != oldbut->rnapoin.data) return 0;
 	if(but->rnaprop != oldbut->rnaprop)
 	if(but->rnaindex != oldbut->rnaindex) return 0;
 	if(but->func != oldbut->func) return 0;
+	if(but->funcN != oldbut->funcN) return 0;
 	if(oldbut->func_arg1 != oldbut && but->func_arg1 != oldbut->func_arg1) return 0;
 	if(oldbut->func_arg2 != oldbut && but->func_arg2 != oldbut->func_arg2) return 0;
+	if(!but->funcN && (but->poin != oldbut->poin || but->pointype != oldbut->pointype)) return 0;
 
 	return 1;
 }
@@ -594,7 +611,7 @@ void uiEndBlock(const bContext *C, uiBlock *block)
 	/* after keymaps! */
 	if(block->dobounds == 1) ui_bounds_block(block);
 	else if(block->dobounds == 2) ui_text_bounds_block(block, 0.0f);
-	else if(block->dobounds == 3) ui_popup_bounds_block(C, block);
+	else if(block->dobounds) ui_popup_bounds_block(C, block, (block->dobounds == 4));
 
 	if(block->autofill) ui_autofill(block);
 	if(block->minx==0.0 && block->maxx==0.0) uiBoundsBlock(block, 0);
@@ -886,8 +903,10 @@ static int ui_do_but_LINK(uiBlock *block, uiBut *but)
 
 void uiBlockSetButLock(uiBlock *block, int val, char *lockstr)
 {
-	block->lock |= val;
-	if(val) block->lockstr= lockstr;
+	if(val) {
+		block->lock |= val;
+		block->lockstr= lockstr;
+	}
 }
 
 void uiBlockClearButLock(uiBlock *block)
@@ -1480,6 +1499,7 @@ static void ui_free_but(const bContext *C, uiBut *but)
 		WM_operator_properties_free(but->opptr);
 		MEM_freeN(but->opptr);
 	}
+	if(but->func_argN) MEM_freeN(but->func_argN);
 	if(but->active) ui_button_active_cancel(C, but);
 	if(but->str && but->str != but->strdata) MEM_freeN(but->str);
 	ui_free_link(but->link);
@@ -2836,19 +2856,19 @@ PointerRNA *uiButGetOperatorPtrRNA(uiBut *but)
 	return but->opptr;
 }
 
-void uiBlockSetHandleFunc(uiBlock *block, void (*func)(struct bContext *C, void *arg, int event), void *arg)
+void uiBlockSetHandleFunc(uiBlock *block, uiBlockHandleFunc func, void *arg)
 {
 	block->handle_func= func;
 	block->handle_func_arg= arg;
 }
 
-void uiBlockSetButmFunc(uiBlock *block, void (*func)(struct bContext *C, void *arg, int but_a2), void *arg)
+void uiBlockSetButmFunc(uiBlock *block, uiMenuHandleFunc func, void *arg)
 {
 	block->butm_func= func;
 	block->butm_func_arg= arg;
 }
 
-void uiBlockSetFunc(uiBlock *block, void (*func)(struct bContext *C, void *arg1, void *arg2), void *arg1, void *arg2)
+void uiBlockSetFunc(uiBlock *block, uiButHandleFunc func, void *arg1, void *arg2)
 {
 	block->func= func;
 	block->func_arg1= arg1;
@@ -2860,14 +2880,21 @@ void uiBlockSetDrawExtraFunc(uiBlock *block, void (*func)())
 	block->drawextra= func;
 }
 
-void uiButSetFunc(uiBut *but, void (*func)(struct bContext *C, void *arg1, void *arg2), void *arg1, void *arg2)
+void uiButSetFunc(uiBut *but, uiButHandleFunc func, void *arg1, void *arg2)
 {
 	but->func= func;
 	but->func_arg1= arg1;
 	but->func_arg2= arg2;
 }
 
-void uiButSetCompleteFunc(uiBut *but, void (*func)(struct bContext *C, char *str, void *arg), void *arg)
+void uiButSetNFunc(uiBut *but, uiButHandleNFunc funcN, void *argN, void *arg2)
+{
+	but->funcN= funcN;
+	but->func_argN= argN;
+	but->func_arg2= arg2;
+}
+
+void uiButSetCompleteFunc(uiBut *but, uiButCompleteFunc func, void *arg)
 {
 	but->autocomplete_func= func;
 	but->autofunc_arg= arg;

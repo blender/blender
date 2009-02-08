@@ -51,6 +51,8 @@ struct StructRNA;
 struct ToolSettings;
 struct Image;
 struct ImBuf;
+struct EditBone;
+struct bPoseChannel;
 struct wmWindow;
 struct wmWindowManager;
 
@@ -81,7 +83,14 @@ enum {
 	CTX_DATA_EDIT_IMAGE,
 	CTX_DATA_EDIT_IMAGE_BUFFER,
 
-	CTX_DATA_SELECTED_NODES
+	CTX_DATA_SELECTED_NODES,
+	
+	CTX_DATA_SELECTED_BONES,
+	CTX_DATA_SELECTED_EDITABLE_BONES,
+	CTX_DATA_SELECTED_PCHANS,
+	
+	CTX_DATA_ACTIVE_BONE,
+	CTX_DATA_ACTIVE_PCHAN,
 };
 
 typedef int bContextDataMember;
@@ -184,6 +193,13 @@ struct Image *CTX_data_edit_image(const bContext *C);
 struct ImBuf *CTX_data_edit_image_buffer(const bContext *C);
 
 int CTX_data_selected_nodes(const bContext *C, ListBase *list);
+
+struct EditBone *CTX_data_active_bone(const bContext *C);
+int CTX_data_selected_bones(const bContext *C, ListBase *list);
+int CTX_data_selected_editable_bones(const bContext *C, ListBase *list);
+
+struct bPoseChannel *CTX_data_active_pchan(const bContext *C);
+int CTX_data_selected_pchans(const bContext *C, ListBase *list);
 
 /* Data Evaluation Context */
 

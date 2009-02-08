@@ -1204,7 +1204,7 @@ static void multiresModifier_update(DerivedMesh *dm)
 
 void multires_force_update(Object *ob)
 {
-	if(ob->derivedFinal) {
+	if(ob && ob->derivedFinal) {
 		ob->derivedFinal->needsFree =1;
 		ob->derivedFinal->release(ob->derivedFinal);
 		ob->derivedFinal = NULL;

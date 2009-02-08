@@ -383,6 +383,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\editors\interface\interface_utils.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\interface\keyval.c"
 				>
 			</File>
@@ -564,34 +568,34 @@
 			</File>
 		</Filter>
 		<Filter
-			Name="space_ipo"
+			Name="space_graph"
 			>
 			<File
-				RelativePath="..\..\..\source\blender\editors\space_ipo\ipo_draw.c"
+				RelativePath="..\..\..\source\blender\editors\space_graph\graph_draw.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\editors\space_ipo\ipo_edit.c"
+				RelativePath="..\..\..\source\blender\editors\space_graph\graph_edit.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\editors\space_ipo\ipo_header.c"
+				RelativePath="..\..\..\source\blender\editors\space_graph\graph_header.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\editors\space_ipo\ipo_intern.h"
+				RelativePath="..\..\..\source\blender\editors\space_graph\graph_intern.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\editors\space_ipo\ipo_ops.c"
+				RelativePath="..\..\..\source\blender\editors\space_graph\graph_ops.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\editors\space_ipo\ipo_select.c"
+				RelativePath="..\..\..\source\blender\editors\space_graph\graph_select.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\editors\space_ipo\space_ipo.c"
+				RelativePath="..\..\..\source\blender\editors\space_graph\space_graph.c"
 				>
 			</File>
 		</Filter>
@@ -1080,6 +1084,10 @@
 			>
 			<File
 				RelativePath="..\..\..\source\blender\editors\armature\armature_intern.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\armature\armature_ops.c"
 				>
 			</File>
 			<File

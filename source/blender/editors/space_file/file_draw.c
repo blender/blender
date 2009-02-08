@@ -488,10 +488,10 @@ void file_draw_list(const bContext *C, ARegion *ar)
 		if (params->active_file == i) {
 			if (file->flags & ACTIVE) colorid= TH_HILITE;
 			else colorid = TH_BACK;
-			draw_tile(sx, sy-3, sfile->tile_w, sfile->tile_h, colorid,20);
+			draw_tile(sx-2, sy-3, sfile->tile_w+2, sfile->tile_h, colorid,20);
 		} else if (file->flags & ACTIVE) {
 			colorid = TH_HILITE;
-			draw_tile(sx, sy-3, sfile->tile_w, sfile->tile_h, colorid,0);
+			draw_tile(sx-2, sy-3, sfile->tile_w+2, sfile->tile_h, colorid,0);
 		} else {
 			/*
 			colorid = TH_PANEL;

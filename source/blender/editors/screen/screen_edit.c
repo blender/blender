@@ -31,6 +31,8 @@
 #include "DNA_vec_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_texture_types.h"
+#include "DNA_userdef_types.h"
 
 #include "BLI_blenlib.h"
 
@@ -38,7 +40,9 @@
 #include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
+#include "BKE_node.h"
 #include "BKE_screen.h"
+#include "BKE_scene.h"
 #include "BKE_utildefines.h"
 
 #include "BIF_gl.h"
@@ -408,6 +412,7 @@ bScreen *screen_add(wmWindow *win, Scene *scene, char *name)
 	sc= alloc_libblock(&G.main->screen, ID_SCR, name);
 	sc->scene= scene;
 	sc->do_refresh= 1;
+	sc->winid= win->winid;
 	
 	sv1= screen_addvert(sc, 0, 0);
 	sv2= screen_addvert(sc, 0, win->sizey-1);
@@ -904,6 +909,10 @@ bScreen *ED_screen_duplicate(wmWindow *win, bScreen *sc)
 	/* set in window */
 	win->screen= newsc;
 	
+	/* store identifier */
+	win->screen->winid= win->winid;
+	BLI_strncpy(win->screenname, win->screen->id.name+2, 21);
+
 	return newsc;
 }
 
@@ -931,6 +940,10 @@ void ED_screen_do_listen(wmWindow *win, wmNotifier *note)
 	
 	/* generic notes */
 	switch(note->category) {
+		case NC_WM:
+			if(note->data==ND_FILEREAD)
+				win->screen->do_draw= 1;
+			break;
 		case NC_WINDOW:
 			win->screen->do_draw= 1;
 			break;
@@ -988,7 +1001,7 @@ void ED_screen_draw(wmWindow *win)
 		scrarea_draw_shape_light(sa1, dira);
 	}
 	
-	if(G.f & G_DEBUG) printf("draw screen\n");
+//	if(G.f & G_DEBUG) printf("draw screen\n");
 	win->screen->do_draw= 0;
 }
 
@@ -1081,12 +1094,20 @@ void ED_screen_exit(bContext *C, wmWindow *window, bScreen *screen)
 		WM_event_remove_window_timer(window, screen->animtimer);
 	screen->animtimer= NULL;
 	
+	if(screen->mainwin)
+		wm_subwindow_close(window, screen->mainwin);
+	screen->mainwin= 0;
+	screen->subwinactive= 0;
+	
 	for(ar= screen->regionbase.first; ar; ar= ar->next)
 		ED_region_exit(C, ar);
 
 	for(sa= screen->areabase.first; sa; sa= sa->next)
 		ED_area_exit(C, sa);
 
+	/* mark it available for use for other windows */
+	screen->winid= 0;
+	
 	CTX_wm_window_set(C, prevwin);
 }
 
@@ -1188,24 +1209,35 @@ int ED_screen_area_active(const bContext *C)
 
 /* operator call, WM + Window + screen already existed before */
 /* Do NOT call in area/region queues! */
-void ed_screen_set(bContext *C, bScreen *sc)
+void ED_screen_set(bContext *C, bScreen *sc)
 {
+	wmWindow *win= CTX_wm_window(C);
 	bScreen *oldscreen= CTX_wm_screen(C);
+	ID *id;
+	
+	/* validate screen, it's called with notifier reference */
+	for(id= CTX_data_main(C)->screen.first; id; id= id->next)
+		if(sc == (bScreen *)id)
+			break;
+	if(id==NULL) 
+		return;
+	
+	/* check for valid winid */
+	if(sc->winid!=0 && sc->winid!=win->winid)
+		return;
 	
 	if(sc->full) {				/* find associated full */
 		bScreen *sc1;
-		for(sc1= G.main->screen.first; sc1; sc1= sc1->id.next) {
+		for(sc1= CTX_data_main(C)->screen.first; sc1; sc1= sc1->id.next) {
 			ScrArea *sa= sc1->areabase.first;
 			if(sa->full==sc) {
 				sc= sc1;
 				break;
 			}
 		}
-		if(sc1==NULL) printf("set screen error\n");
 	}
 	
 	if (oldscreen != sc) {
-		wmWindow *win= CTX_wm_window(C);
 		wmTimer *wt= oldscreen->animtimer;
 		
 		/* we put timer to sleep, so screen_exit has to think there's no timer */
@@ -1219,16 +1251,77 @@ void ed_screen_set(bContext *C, bScreen *sc)
 		win->screen= sc;
 		CTX_wm_window_set(C, win);	// stores C->wm.screen... hrmf
 		
+		/* prevent multiwin errors */
+		sc->winid= win->winid;
+		
 		ED_screen_refresh(CTX_wm_manager(C), CTX_wm_window(C));
 		WM_event_add_notifier(C, NC_WINDOW, NULL);
 	}
 }
 
+/* only call outside of area/region loops */
+void ED_screen_set_scene(bContext *C, Scene *scene)
+{
+	bScreen *sc;
+	bScreen *curscreen= CTX_wm_screen(C);
+	
+	for(sc= CTX_data_main(C)->screen.first; sc; sc= sc->id.next) {
+		if((U.flag & USER_SCENEGLOBAL) || sc==curscreen) {
+			
+			if(scene != sc->scene) {
+				/* all areas endlocalview */
+			// XXX	ScrArea *sa= sc->areabase.first;
+			//	while(sa) {
+			//		endlocalview(sa);
+			//		sa= sa->next;
+			//	}		
+				sc->scene= scene;
+			}
+			
+		}
+	}
+	
+	//  copy_view3d_lock(0);	/* space.c */
+	
+	/* are there cameras in the views that are not in the scene? */
+	for(sc= CTX_data_main(C)->screen.first; sc; sc= sc->id.next) {
+		if( (U.flag & USER_SCENEGLOBAL) || sc==curscreen) {
+			ScrArea *sa= sc->areabase.first;
+			while(sa) {
+				SpaceLink *sl= sa->spacedata.first;
+				while(sl) {
+					if(sl->spacetype==SPACE_VIEW3D) {
+						View3D *v3d= (View3D*) sl;
+						if (!v3d->camera || !object_in_scene(v3d->camera, scene)) {
+							v3d->camera= scene_find_camera(sc->scene);
+							// XXX if (sc==curscreen) handle_view3d_lock();
+							if (!v3d->camera && v3d->persp==V3D_CAMOB) 
+								v3d->persp= V3D_PERSP;
+						}
+					}
+					sl= sl->next;
+				}
+				sa= sa->next;
+			}
+		}
+	}
+	
+	CTX_data_scene_set(C, scene);
+	set_scene_bg(scene);
+	
+	ED_update_for_newframe(C, 1);
+	
+//	set_radglobal();
+	
+	/* complete redraw */
+	WM_event_add_notifier(C, NC_WINDOW, NULL);
+	
+}
+
 /* this function toggles: if area is full then the parent will be restored */
-void ed_screen_fullarea(bContext *C)
+void ed_screen_fullarea(bContext *C, ScrArea *sa)
 {
 	bScreen *sc, *oldscreen;
-	ScrArea *sa= CTX_wm_area(C);
 	
 	if(sa==NULL) {
 		return;
@@ -1260,7 +1353,7 @@ void ed_screen_fullarea(bContext *C)
 				// in autoplay screens the headers are disabled by 
 				// default. So use the old headertype instead
 			
-			area_copy_data(old, CTX_wm_area(C), 1);	/*  1 = swap spacelist */
+			area_copy_data(old, sa, 1);	/*  1 = swap spacelist */
 			
 			old->full= NULL;
 			
@@ -1268,10 +1361,10 @@ void ed_screen_fullarea(bContext *C)
 			sc->animtimer= oldscreen->animtimer;
 			oldscreen->animtimer= NULL;
 			
-			ed_screen_set(C, sc);
+			ED_screen_set(C, sc);
 			
 			free_screen(oldscreen);
-			free_libblock(&G.main->screen, oldscreen);
+			free_libblock(&CTX_data_main(C)->screen, oldscreen);
 		}
 	}
 	else {
@@ -1280,12 +1373,13 @@ void ed_screen_fullarea(bContext *C)
 		oldscreen= CTX_wm_screen(C);
 
 		/* is there only 1 area? */
-		if(oldscreen->areabase.first==CTX_wm_screen(C)->areabase.last) return;
-		if(CTX_wm_area(C)->spacetype==SPACE_INFO) return;
+		if(oldscreen->areabase.first==oldscreen->areabase.last) return;
+		if(sa->spacetype==SPACE_INFO) return;
 		
 		oldscreen->full = SCREENFULL;
 		
 		sc= screen_add(CTX_wm_window(C), CTX_data_scene(C), "temp");
+		sc->full = SCREENFULL; // XXX
 		
 		/* timer */
 		sc->animtimer= oldscreen->animtimer;
@@ -1297,13 +1391,13 @@ void ed_screen_fullarea(bContext *C)
 
 		/* copy area */
 		newa= newa->prev;
-		area_copy_data(newa, CTX_wm_area(C), 1);	/* 1 = swap spacelist */
+		area_copy_data(newa, sa, 1);	/* 1 = swap spacelist */
 
-		CTX_wm_area(C)->full= oldscreen;
+		sa->full= oldscreen;
 		newa->full= oldscreen;
-		newa->next->full= oldscreen;
+		newa->next->full= oldscreen; // XXX
 
-		ed_screen_set(C, sc);
+		ED_screen_set(C, sc);
 	}
 
 	/* XXX bad code: setscreen() ends with first area active. fullscreen render assumes this too */
@@ -1313,12 +1407,18 @@ void ed_screen_fullarea(bContext *C)
 
 }
 
-void ED_screen_full_newspace(bContext *C, ScrArea *sa, int type)
+int ED_screen_full_newspace(bContext *C, ScrArea *sa, int type)
 {
+	if(sa==NULL)
+		return 0;
+	
 	if(sa->full==0)
-		ed_screen_fullarea(C);
+		ed_screen_fullarea(C, sa);
 
+	/* CTX_wm_area(C) is new area */
 	ED_area_newspace(C, CTX_wm_area(C), type);
+	
+	return 1;
 }
 
 void ED_screen_full_prevspace(bContext *C)
@@ -1328,7 +1428,7 @@ void ED_screen_full_prevspace(bContext *C)
 	ED_area_prevspace(C);
 	
 	if(sa->full)
-		ed_screen_fullarea(C);
+		ed_screen_fullarea(C, sa);
 }
 
 void ED_screen_animation_timer(bContext *C, int enable)
@@ -1344,4 +1444,58 @@ void ED_screen_animation_timer(bContext *C, int enable)
 	if(enable)
 		screen->animtimer= WM_event_add_window_timer(win, TIMER0, (1.0/FPS));
 }
+
+unsigned int ED_screen_view3d_layers(bScreen *screen)
+{
+	if(screen) {
+		unsigned int layer= screen->scene->lay;	/* as minimum this */
+		ScrArea *sa;
+		
+		/* get all used view3d layers */
+		for(sa= screen->areabase.first; sa; sa= sa->next) {
+			if(sa->spacetype==SPACE_VIEW3D)
+				layer |= ((View3D *)sa->spacedata.first)->lay;
+		}
+		return layer;
+	}
+	return 0;
+}
+
+
+/* results in fully updated anim system */
+/* in future sound should be on WM level, only 1 sound can play! */
+void ED_update_for_newframe(const bContext *C, int mute)
+{
+	bScreen *screen= CTX_wm_screen(C);
+	Scene *scene= screen->scene;
+	
+	//extern void audiostream_scrub(unsigned int frame);	/* seqaudio.c */
+	
+	/* this function applies the changes too */
+	/* XXX future: do all windows */
+	scene_update_for_newframe(scene, ED_screen_view3d_layers(screen)); /* BKE_scene.h */
+	
+	//if ( (CFRA>1) && (!mute) && (scene->audio.flag & AUDIO_SCRUB)) 
+	//	audiostream_scrub( CFRA );
+	
+	/* 3d window, preview */
+	//BIF_view3d_previewrender_signal(curarea, PR_DBASE|PR_DISPRECT);
+	
+	/* all movie/sequence images */
+	//BIF_image_update_frame();
+	
+	/* composite */
+	if(scene->use_nodes && scene->nodetree)
+		ntreeCompositTagAnimated(scene->nodetree);
+	
+	/* update animated texture nodes */
+	{
+		Tex *tex;
+		for(tex= CTX_data_main(C)->tex.first; tex; tex= tex->id.next)
+			if( tex->use_nodes && tex->nodetree ) {
+				ntreeTexTagAnimated( tex->nodetree );
+			}
+	}
+}
+
 

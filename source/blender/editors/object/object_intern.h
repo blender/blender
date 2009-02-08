@@ -65,6 +65,7 @@ void OBJECT_OT_set_center(struct wmOperatorType *ot);
 void OBJECT_OT_make_dupli_real(struct wmOperatorType *ot);
 void OBJECT_OT_object_add(struct wmOperatorType *ot);
 void OBJECT_OT_add_duplicate(struct wmOperatorType *ot);
+void OBJECT_OT_delete(struct wmOperatorType *ot);
 
 void OBJECT_OT_mesh_add(struct wmOperatorType *ot);
 void OBJECT_OT_curve_add(struct wmOperatorType *ot);

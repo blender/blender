@@ -59,18 +59,17 @@ void NODE_OT_extend_select(struct wmOperatorType *ot);
 void NODE_OT_visibility_toggle(struct wmOperatorType *ot);
 void NODE_OT_fit_all(struct wmOperatorType *ot);
 void NODE_OT_border_select(struct wmOperatorType *ot);
-void NODE_OT_delete_selection(struct wmOperatorType *ot);
 
 /* drawnode.c */
 void node_draw_link(View2D *v2d, SpaceNode *snode, bNodeLink *link);
-void node_draw_link_bezier(View2D *v2d, float vec[][3], int th_col1, int th_col2, int do_shaded);
+void node_draw_link_bezier(View2D *v2d, SpaceNode *snode, bNodeLink *link, int th_col1, int th_col2, int do_shaded);
+int node_link_bezier_points(View2D *v2d, SpaceNode *snode, bNodeLink *link, float coord_array[][2], int resol);
 void draw_nodespace_back_pix(ScrArea *sa, SpaceNode *snode);
 
 /* node_edit.c */
 bNode *next_node(bNodeTree *ntree);
-bNode *node_add_node(SpaceNode *snode, int type, float locx, float locy);
+bNode *node_add_node(SpaceNode *snode, Scene *scene, int type, float locx, float locy);
 void snode_set_context(SpaceNode *snode, Scene *scene);
-void scale_node(SpaceNode *snode, bNode *node);
 void snode_make_group_editable(SpaceNode *snode, bNode *gnode);
 void snode_home(ScrArea *sa, ARegion *ar, SpaceNode *snode);
 void node_set_active(SpaceNode *snode, bNode *node);
@@ -80,6 +79,11 @@ void node_composit_default(Scene *sce);
 void node_texture_default(Tex *tx);
 void snode_composite_job(const struct bContext *C, ScrArea *sa);
 bNode *snode_get_editgroup(SpaceNode *snode);
+
+void NODE_OT_link(struct wmOperatorType *ot);
+void NODE_OT_delete_selection(struct wmOperatorType *ot);
+void NODE_OT_size_widget(struct wmOperatorType *ot);
+void NODE_OT_links_cut(struct wmOperatorType *ot);
 
 // XXXXXX
 

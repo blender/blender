@@ -39,12 +39,14 @@ struct wmNotifier;
 struct wmEvent;
 struct bContext;
 struct SpaceType;
-struct AreagionType;
+struct Scene;
+struct bScreen;
+struct ARegion;
 struct uiBlock;
 struct rcti;
 
 /* regions */
-void	ED_region_do_listen(ARegion *ar, struct wmNotifier *note);
+void	ED_region_do_listen(struct ARegion *ar, struct wmNotifier *note);
 void	ED_region_do_draw(struct bContext *C, struct ARegion *ar);
 void	ED_region_exit(struct bContext *C, struct ARegion *ar);
 void	ED_region_pixelspace(struct ARegion *ar);
@@ -78,12 +80,17 @@ void	ED_screen_draw(struct wmWindow *win);
 void	ED_screen_refresh(struct wmWindowManager *wm, struct wmWindow *win);
 void	ED_screen_do_listen(struct wmWindow *win, struct wmNotifier *note);
 bScreen *ED_screen_duplicate(struct wmWindow *win, struct bScreen *sc);
+void	ED_screen_set(struct bContext *C, struct bScreen *sc);
+void	ED_screen_set_scene(struct bContext *C, struct Scene *scene);
 void	ED_screen_set_subwinactive(struct wmWindow *win, struct wmEvent *event);
 void	ED_screen_exit(struct bContext *C, struct wmWindow *window, struct bScreen *screen);
 void	ED_screen_animation_timer(struct bContext *C, int enable);
-void	ED_screen_full_newspace(struct bContext *C, ScrArea *sa, int type);
+int		ED_screen_full_newspace(struct bContext *C, ScrArea *sa, int type);
 void	ED_screen_full_prevspace(struct bContext *C);
 
+/* anim */
+void	ED_update_for_newframe(const struct bContext *C, int mute);
+unsigned int ED_screen_view3d_layers(struct bScreen *screen);
 
 void	ED_operatortypes_screen(void);
 void	ED_keymap_screen(struct wmWindowManager *wm);
@@ -104,12 +111,14 @@ int		ED_operator_buttons_active(struct bContext *C);
 int		ED_operator_node_active(struct bContext *C);
 int		ED_operator_ipo_active(struct bContext *C);
 int		ED_operator_sequencer_active(struct bContext *C);
+int		ED_operator_image_active(struct bContext *C);
 
 int		ED_operator_object_active(struct bContext *C);
 int		ED_operator_editmesh(struct bContext *C);
 int		ED_operator_editarmature(struct bContext *C);
 int		ED_operator_editcurve(struct bContext *C);
 int		ED_operator_uvedit(struct bContext *C);
+int		ED_operator_uvmap(struct bContext *C);
 int		ED_operator_posemode(struct bContext *C);
 
 

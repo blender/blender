@@ -67,6 +67,7 @@
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_object.h"
+#include "BKE_report.h"
 #include "BKE_subsurf.h"
 #include "BKE_utildefines.h"
 #include "BKE_modifier.h"
@@ -102,7 +103,6 @@ static void error() {};
 static void error_libdata() {}
 static void BIF_undo_push() {}
 static void adduplicate() {}
-static void countall() {}
 /* ************* XXX *************** */
 
 /* **************** tools on Editmode Armature **************** */
@@ -113,12 +113,13 @@ static void armature_sync_selection(ListBase *edbo)
 	EditBone *ebo;
 	
 	for (ebo=edbo->first; ebo; ebo= ebo->next) {
-		if ((ebo->flag & BONE_CONNECTED) && ebo->parent){
+		if ((ebo->flag & BONE_CONNECTED) && (ebo->parent)) {
 			if (ebo->parent->flag & BONE_TIPSEL)
 				ebo->flag |= BONE_ROOTSEL;
 			else
 				ebo->flag &= ~BONE_ROOTSEL;
 		}
+		
 		if ((ebo->flag & BONE_TIPSEL) && (ebo->flag & BONE_ROOTSEL))
 			ebo->flag |= BONE_SELECTED;
 		else
@@ -1038,8 +1039,6 @@ void separate_armature (Scene *scene, View3D *v3d)
 	
 	/* recalc/redraw + cleanup */
 	waitcursor(0);
-
-	countall(); // flush!
 	
 	BIF_undo_push("Separate Armature");
 }
@@ -1247,7 +1246,7 @@ void armature_select_hierarchy(Scene *scene, short direction, short add_to_sel)
 		}
 	}
 
-	countall(); // flushes selection!
+	armature_sync_selection(arm->edbo);
 	
 	if (direction==BONE_SELECT_PARENT)
 		BIF_undo_push("Select edit bone parent");
@@ -1380,7 +1379,8 @@ void selectconnected_posearmature(bContext *C)
 		selectconnected_posebonechildren (ob, curBone);
 	}
 	
-	countall(); // flushes selection!
+		// XXX this only counted the number of pose channels selected
+	//countall(); // flushes selection!
 
 	BIF_undo_push("Select connected");
 
@@ -1444,7 +1444,7 @@ void selectconnected_armature(bContext *C)
 
 	}
 
-	countall(); // flushes selection!
+	armature_sync_selection(arm->edbo);
 
 	BIF_undo_push("Select connected");
 
@@ -1556,10 +1556,13 @@ static void delete_bone(ListBase *edbo, EditBone* exBone)
 }
 
 /* context: editmode armature */
-EditBone *armature_bone_get_mirrored(ListBase *edbo, EditBone *ebo)
+EditBone *ED_armature_bone_get_mirrored(ListBase *edbo, EditBone *ebo)
 {
 	EditBone *eboflip= NULL;
 	char name[32];
+	
+	if (ebo == NULL)
+		return NULL;
 	
 	BLI_strncpy(name, ebo->name, sizeof(name));
 	bone_flip_name(name, 0);		// 0 = don't strip off number extensions
@@ -1589,7 +1592,7 @@ void delete_armature(Scene *scene)
 		for (curBone=arm->edbo->first; curBone; curBone=curBone->next) {
 			if (arm->layer & curBone->layer) {
 				if (curBone->flag & BONE_SELECTED) {
-					next = armature_bone_get_mirrored(arm->edbo, curBone);
+					next = ED_armature_bone_get_mirrored(arm->edbo, curBone);
 					if (next)
 						next->flag |= BONE_SELECTED;
 				}
@@ -1647,16 +1650,16 @@ void delete_armature(Scene *scene)
 	}
 	
 	
-	countall(); // flushes selection!
+	armature_sync_selection(arm->edbo);
 	
 	BIF_undo_push("Delete bone(s)");
 }
 
 /* toggle==0: deselect
-toggle==1: swap (based on test)
-toggle==2: only active tag
-toggle==3: swap (no test)
-*/
+ * toggle==1: swap (based on test)
+ * toggle==2: only active tag
+ * toggle==3: swap (no test)
+ */
 void deselectall_armature(Object *obedit, int toggle, int doundo)
 {
 	bArmature *arm= obedit->data;
@@ -1704,7 +1707,7 @@ void deselectall_armature(Object *obedit, int toggle, int doundo)
 		}
 	}
 	
-	countall(); // flushes selection!
+	armature_sync_selection(arm->edbo);
 	if (doundo) {
 		if (sel==1) BIF_undo_push("Select All");
 		else BIF_undo_push("Deselect All");
@@ -1844,90 +1847,129 @@ float ED_rollBoneToVector(EditBone *bone, float new_up_axis[3])
 	return roll;
 }
 
-/* Sets the roll value of selected bones, depending on the mode
- * 	mode == 0: their z-axes point upwards 
- * 	mode == 1: their z-axes point towards 3d-cursor
- */
-void auto_align_armature(Scene *scene, View3D *v3d, short mode)
+
+/* Set roll value for given bone -> Z-Axis Point up (original method) */
+void auto_align_ebone_zaxisup(Scene *scene, View3D *v3d, EditBone *ebone)
+{
+	float	delta[3], curmat[3][3];
+	float	xaxis[3]={1.0f, 0.0f, 0.0f}, yaxis[3], zaxis[3]={0.0f, 0.0f, 1.0f};
+	float	targetmat[3][3], imat[3][3], diffmat[3][3];
+	
+	/* Find the current bone matrix */
+	VecSubf(delta, ebone->tail, ebone->head);
+	vec_roll_to_mat3(delta, 0.0f, curmat);
+	
+	/* Make new matrix based on y axis & z-up */
+	VECCOPY(yaxis, curmat[1]);
+	
+	Mat3One(targetmat);
+	VECCOPY(targetmat[0], xaxis);
+	VECCOPY(targetmat[1], yaxis);
+	VECCOPY(targetmat[2], zaxis);
+	Mat3Ortho(targetmat);
+	
+	/* Find the difference between the two matrices */
+	Mat3Inv(imat, targetmat);
+	Mat3MulMat3(diffmat, imat, curmat);
+	
+	// old-method... let's see if using mat3_to_vec_roll is more accurate
+	//ebone->roll = atan2(diffmat[2][0], diffmat[2][2]);  
+	mat3_to_vec_roll(diffmat, delta, &ebone->roll);
+}
+
+/* Set roll value for given bone -> Z-Axis point towards cursor */
+void auto_align_ebone_tocursor(Scene *scene, View3D *v3d, EditBone *ebone)
 {
 	Object *obedit= scene->obedit; // XXX get from context
-	bArmature *arm= obedit->data;
-	EditBone *ebone;
-	EditBone *flipbone = NULL;
-	float	delta[3];
-	float	curmat[3][3];
 	float  	*cursor= give_cursor(scene, v3d);
+	float	delta[3], curmat[3][3];
+	float	mat[4][4], tmat[4][4], imat[4][4];
+	float 	rmat[4][4], rot[3];
+	float	vec[3];
+	
+	/* find the current bone matrix as a 4x4 matrix (in Armature Space) */
+	VecSubf(delta, ebone->tail, ebone->head);
+	vec_roll_to_mat3(delta, ebone->roll, curmat);
+	Mat4CpyMat3(mat, curmat);
+	VECCOPY(mat[3], ebone->head);
+	
+	/* multiply bone-matrix by object matrix (so that bone-matrix is in WorldSpace) */
+	Mat4MulMat4(tmat, mat, obedit->obmat);
+	Mat4Invert(imat, tmat);
+	
+	/* find position of cursor relative to bone */
+	VecMat4MulVecfl(vec, imat, cursor);
+	
+	/* check that cursor is in usable position */
+	if ((IS_EQ(vec[0], 0)==0) && (IS_EQ(vec[2], 0)==0)) {
+		/* Compute a rotation matrix around y */
+		rot[1] = atan2(vec[0], vec[2]);
+		rot[0] = rot[2] = 0.0f;
+		EulToMat4(rot, rmat);
 		
-	for (ebone = arm->edbo->first; ebone; ebone=ebone->next) {
-		if (EBONE_VISIBLE(arm, ebone)) {
-			if (arm->flag & ARM_MIRROR_EDIT)
-				flipbone = armature_bone_get_mirrored(arm->edbo, ebone);
-			
-			if ((ebone->flag & BONE_SELECTED) || 
-				(flipbone && (flipbone->flag & BONE_SELECTED))) 
-			{
-				/* specific method used to calculate roll depends on mode */
-				if (mode == 1) {
-					/* Z-Axis point towards cursor */
-					float	mat[4][4], tmat[4][4], imat[4][4];
-					float 	rmat[4][4], rot[3];
-					float	vec[3];
-					
-					/* find the current bone matrix as a 4x4 matrix (in Armature Space) */
-					VecSubf(delta, ebone->tail, ebone->head);
-					vec_roll_to_mat3(delta, ebone->roll, curmat);
-					Mat4CpyMat3(mat, curmat);
-					VECCOPY(mat[3], ebone->head);
-					
-					/* multiply bone-matrix by object matrix (so that bone-matrix is in WorldSpace) */
-					Mat4MulMat4(tmat, mat, obedit->obmat);
-					Mat4Invert(imat, tmat);
-					
-					/* find position of cursor relative to bone */
-					VecMat4MulVecfl(vec, imat, cursor);
-					
-					/* check that cursor is in usable position */
-					if ((IS_EQ(vec[0], 0)==0) && (IS_EQ(vec[2], 0)==0)) {
-						/* Compute a rotation matrix around y */
-						rot[1] = atan2(vec[0], vec[2]);
-						rot[0] = rot[2] = 0.0f;
-						EulToMat4(rot, rmat);
-						
-						/* Multiply the bone matrix by rotation matrix. This should be new bone-matrix */
-						Mat4MulMat4(tmat, rmat, mat);
-						Mat3CpyMat4(curmat, tmat);
-						
-						/* Now convert from new bone-matrix, back to a roll value (in radians) */
-						mat3_to_vec_roll(curmat, delta, &ebone->roll);
-					}
-				}
-				else { 
-					/* Z-Axis Point Up */
-					float	xaxis[3]={1.0, 0.0, 0.0}, yaxis[3], zaxis[3]={0.0, 0.0, 1.0};
-					float	targetmat[3][3], imat[3][3], diffmat[3][3];
-					
-					/* Find the current bone matrix */
-					VecSubf(delta, ebone->tail, ebone->head);
-					vec_roll_to_mat3(delta, 0.0, curmat);
-					
-					/* Make new matrix based on y axis & z-up */
-					VECCOPY (yaxis, curmat[1]);
-					
-					Mat3One(targetmat);
-					VECCOPY (targetmat[0], xaxis);
-					VECCOPY (targetmat[1], yaxis);
-					VECCOPY (targetmat[2], zaxis);
-					Mat3Ortho(targetmat);
-					
-					/* Find the difference between the two matrices */
-					Mat3Inv(imat, targetmat);
-					Mat3MulMat3(diffmat, imat, curmat);
-					
-					ebone->roll = atan2(diffmat[2][0], diffmat[2][2]);
-				}				
-			}
-		}
+		/* Multiply the bone matrix by rotation matrix. This should be new bone-matrix */
+		Mat4MulMat4(tmat, rmat, mat);
+		Mat3CpyMat4(curmat, tmat);
+		
+		/* Now convert from new bone-matrix, back to a roll value (in radians) */
+		mat3_to_vec_roll(curmat, delta, &ebone->roll);
 	}
+}
+
+
+static EnumPropertyItem prop_calc_roll_types[] = {
+	{0, "GLOBALUP", "Z-Axis Up", ""},
+	{1, "CURSOR", "Z-Axis to Cursor", ""},
+	{0, NULL, NULL, NULL}
+};
+
+static int armature_calc_roll_exec(bContext *C, wmOperator *op) 
+{
+	Scene *scene= CTX_data_scene(C);
+	View3D *v3d= (View3D *)CTX_wm_space_data(C);
+	Object *ob= CTX_data_edit_object(C);
+	void (*roll_func)(Scene *, View3D *, EditBone *) = NULL;
+	
+	/* specific method used to calculate roll depends on mode */
+	switch (RNA_enum_get(op->ptr, "type")) {
+		case 1:  /* Z-Axis point towards cursor */
+			roll_func= auto_align_ebone_tocursor;
+			break;
+		default: /* Z-Axis Point Up */
+			roll_func= auto_align_ebone_zaxisup;
+			break;
+	}
+	
+	/* recalculate roll on selected bones */
+	CTX_DATA_BEGIN(C, EditBone *, ebone, selected_editable_bones) {
+		/* roll func is a callback which assumes that all is well */
+		roll_func(scene, v3d, ebone);
+	}
+	CTX_DATA_END;
+	
+
+	/* note, notifier might evolve */
+	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, ob);
+	
+	return OPERATOR_FINISHED;
+}
+
+void ARMATURE_OT_calculate_roll(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Recalculate Roll";
+	ot->idname= "ARMATURE_OT_calculate_roll";
+	
+	/* api callbacks */
+	ot->invoke = WM_menu_invoke;
+	ot->exec = armature_calc_roll_exec;
+	ot->poll = ED_operator_editarmature;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* properties */
+	RNA_def_enum(ot->srna, "type", prop_calc_roll_types, 0, "Type", "");
 }
 
 /* **************** undo for armatures ************** */
@@ -2023,14 +2065,14 @@ static EditBone *add_editbone(Object *obedit, char *name)
 	BLI_addtail(arm->edbo, bone);
 	
 	bone->flag |= BONE_TIPSEL;
-	bone->weight= 1.0F;
-	bone->dist= 0.25F;
-	bone->xwidth= 0.1;
-	bone->zwidth= 0.1;
-	bone->ease1= 1.0;
-	bone->ease2= 1.0;
-	bone->rad_head= 0.10;
-	bone->rad_tail= 0.05;
+	bone->weight= 1.0f;
+	bone->dist= 0.25f;
+	bone->xwidth= 0.1f;
+	bone->zwidth= 0.1f;
+	bone->ease1= 1.0f;
+	bone->ease2= 1.0f;
+	bone->rad_head= 0.10f;
+	bone->rad_tail= 0.05f;
 	bone->segments= 1;
 	bone->layer= arm->layer;
 	
@@ -2100,7 +2142,7 @@ void add_primitiveArmature(Scene *scene, View3D *v3d, int type)
 	/* no primitive support yet */
 	add_primitive_bone(scene, v3d, rv3d, newob);
 	
-	countall(); // flushes selection!
+	//armature_sync_selection(arm->edbo); // XXX which armature?
 
 	if ((newob) && !(U.flag & USER_ADD_EDITMODE)) {
 		ED_armature_from_edit(scene, obedit);
@@ -2145,7 +2187,7 @@ void addvert_armature(Scene *scene, View3D *v3d)
 	/* we re-use code for mirror editing... */
 	flipbone= NULL;
 	if (arm->flag & ARM_MIRROR_EDIT)
-		flipbone= armature_bone_get_mirrored(arm->edbo, ebone);
+		flipbone= ED_armature_bone_get_mirrored(arm->edbo, ebone);
 
 	for (a=0; a<2; a++) {
 		if (a==1) {
@@ -2188,7 +2230,7 @@ void addvert_armature(Scene *scene, View3D *v3d)
 		
 	}
 	
-	countall();
+	armature_sync_selection(arm->edbo);
 	
 	BIF_undo_push("Add Bone");
 }
@@ -2279,14 +2321,14 @@ void adduplicate_armature(Scene *scene)
 	EditBone	*curBone;
 	EditBone	*firstDup=NULL;	/*	The beginning of the duplicated bones in the edbo list */
 	
-	countall(); // flushes selection!
+	armature_sync_selection(arm->edbo); // XXX why is this needed?
 
 	/* Select mirrored bones */
 	if (arm->flag & ARM_MIRROR_EDIT) {
 		for (curBone=arm->edbo->first; curBone; curBone=curBone->next) {
 			if (EBONE_VISIBLE(arm, curBone)) {
 				if (curBone->flag & BONE_SELECTED) {
-					eBone = armature_bone_get_mirrored(arm->edbo, curBone);
+					eBone = ED_armature_bone_get_mirrored(arm->edbo, curBone);
 					if (eBone)
 						eBone->flag |= BONE_SELECTED;
 				}
@@ -2795,7 +2837,7 @@ void merge_armature(Scene *scene)
 	}
 	
 	/* undo + updates */
-	countall();
+	armature_sync_selection(arm->edbo);
 	BIF_undo_push("Merge Bones");
 }
 
@@ -2817,7 +2859,7 @@ void hide_selected_armature_bones(Scene *scene)
 			}
 		}
 	}
-	countall();
+	armature_sync_selection(arm->edbo);
 	BIF_undo_push("Hide Bones");
 }
 
@@ -2837,7 +2879,7 @@ void hide_unselected_armature_bones(Scene *scene)
 			}
 		}
 	}
-	countall();
+	armature_sync_selection(arm->edbo);
 	BIF_undo_push("Hide Unselected Bones");
 }
 
@@ -2855,7 +2897,7 @@ void show_all_armature_bones(Scene *scene)
 			}
 		}
 	}
-	countall();
+	armature_sync_selection(arm->edbo);
 	BIF_undo_push("Reveal Bones");
 }
 
@@ -2966,7 +3008,7 @@ void make_bone_parent(Scene *scene)
 		bone_connect_to_existing_parent(actbone);
 		
 		if (arm->flag & ARM_MIRROR_EDIT) {
-			flipbone = armature_bone_get_mirrored(arm->edbo, actbone);
+			flipbone = ED_armature_bone_get_mirrored(arm->edbo, actbone);
 			if (flipbone)
 				bone_connect_to_existing_parent(flipbone);
 		}
@@ -2986,8 +3028,8 @@ void make_bone_parent(Scene *scene)
 						 * - if there's no mirrored copy of actbone (i.e. actbone = "parent.C" or "parent")
 						 *	then just use actbone. Useful when doing upper arm to spine.
 						 */
-						flipbone = armature_bone_get_mirrored(arm->edbo, selbone);
-						flippar = armature_bone_get_mirrored(arm->edbo, actbone);
+						flipbone = ED_armature_bone_get_mirrored(arm->edbo, selbone);
+						flippar = ED_armature_bone_get_mirrored(arm->edbo, actbone);
 						
 						if (flipbone) {
 							if (flippar)
@@ -3001,7 +3043,7 @@ void make_bone_parent(Scene *scene)
 		}
 	}
 
-	countall(); /* checks selection */
+	armature_sync_selection(arm->edbo);
 	BIF_undo_push("Make Parent");
 
 	return;
@@ -3033,7 +3075,7 @@ void clear_bone_parent(Scene *scene)
 		if (EBONE_VISIBLE(arm, ebone)) {
 			if (ebone->flag & BONE_SELECTED) {
 				if (arm->flag & ARM_MIRROR_EDIT)
-					flipbone = armature_bone_get_mirrored(arm->edbo, ebone);
+					flipbone = ED_armature_bone_get_mirrored(arm->edbo, ebone);
 					
 				if (flipbone)
 					editbone_clear_parent(flipbone, val);
@@ -3042,7 +3084,7 @@ void clear_bone_parent(Scene *scene)
 		}
 	}
 	
-	countall(); // checks selection
+	armature_sync_selection(arm->edbo);
 	BIF_undo_push("Clear Parent");
 }
 	
@@ -3085,7 +3127,7 @@ void extrude_armature(Scene *scene, int forked)
 				/* we re-use code for mirror editing... */
 				flipbone= NULL;
 				if (arm->flag & ARM_MIRROR_EDIT) {
-					flipbone= armature_bone_get_mirrored(arm->edbo, ebone);
+					flipbone= ED_armature_bone_get_mirrored(arm->edbo, ebone);
 					if (flipbone) {
 						forked= 0;	// we extrude 2 different bones
 						if (flipbone->flag & (BONE_TIPSEL|BONE_ROOTSEL|BONE_SELECTED))
@@ -3169,7 +3211,7 @@ void extrude_armature(Scene *scene, int forked)
 	if (totbone==1 && first) first->flag |= BONE_ACTIVE;
 	
 	/* Transform the endpoints */
-	countall(); // flushes selection!
+	armature_sync_selection(arm->edbo);
 // XXX	BIF_TransformSetUndo("Extrude");
 //	initTransform(TFM_TRANSLATION, CTX_NO_PET);
 //	Transform();
@@ -3203,7 +3245,7 @@ void subdivide_armature(Scene *scene, int numcuts)
 						/* try to find mirrored bone on a != 0 */
 						if (a) {
 							if (arm->flag & ARM_MIRROR_EDIT)
-								ebone= armature_bone_get_mirrored(arm->edbo, mbone);
+								ebone= ED_armature_bone_get_mirrored(arm->edbo, mbone);
 							else 
 								ebone= NULL;
 						}
@@ -3326,7 +3368,7 @@ void switch_direction_armature (Scene *scene)
 	BIF_undo_push("Switch Direction");
 }
 
-/* editbone alignment */
+/* ***************** EditBone Alignment ********************* */
 
 /* helper to fix a ebone position if its parent has moved due to alignment*/
 static void fix_connected_bone(EditBone *ebone)
@@ -3378,158 +3420,84 @@ static void bone_align_to_bone(ListBase *edbo, EditBone *selbone, EditBone *actb
 	return;
 }
 
-void align_selected_bones(Scene *scene)
+static int armature_align_bones_exec(bContext *C, wmOperator *op) 
 {
-	Object *obedit= scene->obedit; // XXX get from context
-	bArmature *arm= obedit->data;
-	EditBone *actbone, *ebone, *selbone;
-	EditBone *flipbone, *flippar;
-	short allchildbones= 0, foundselbone= 0;
+	Object *ob= CTX_data_edit_object(C);
+	bArmature *arm= (bArmature *)ob->data;
+	EditBone *actbone= CTX_data_active_bone(C);
+	EditBone *actmirb= NULL;
 	
-	/* find active bone to align to */
-	for (actbone = arm->edbo->first; actbone; actbone=actbone->next) {
-		if (arm->layer & actbone->layer) {
-			if (actbone->flag & BONE_ACTIVE)
-				break;
-		}
-	}
+	/* there must be an active bone */
 	if (actbone == NULL) {
-		error("Needs an active bone");
-		return; 
+		BKE_report(op->reports, RPT_ERROR, "Operation requires an Active Bone");
+		return OPERATOR_CANCELLED;
 	}
-
-	/* find selected bones */
-	for (ebone = arm->edbo->first; ebone; ebone=ebone->next) {
-		if (arm->layer & ebone->layer) {
-			if ((ebone->flag & BONE_SELECTED) && (ebone != actbone)) {
-				foundselbone++;
-				if (ebone->parent != actbone) allchildbones= 1; 
-			}	
-		}
-	}
-	/* abort if no selected bones, and active bone doesn't have a parent to work with instead */
-	if (foundselbone==0 && actbone->parent==NULL) {
-		error("Need selected bone(s)");
-		return;
+	else if (arm->flag & ARM_MIRROR_EDIT) {
+		/* For X-Axis Mirror Editing option, we may need a mirror copy of actbone
+		 * - if there's a mirrored copy of selbone, try to find a mirrored copy of actbone 
+		 *	(i.e.  selbone="child.L" and actbone="parent.L", find "child.R" and "parent.R").
+		 *	This is useful for arm-chains, for example parenting lower arm to upper arm
+		 * - if there's no mirrored copy of actbone (i.e. actbone = "parent.C" or "parent")
+		 *	then just use actbone. Useful when doing upper arm to spine.
+		 */
+		actmirb= ED_armature_bone_get_mirrored(arm->edbo, actbone);
+		if (actmirb == NULL) 
+			actmirb= actbone;
 	}
 	
-	if (foundselbone==0 && actbone->parent) {
+	/* if there is only 1 selected bone, we assume that that is the active bone, 
+	 * since a user will need to have clicked on a bone (thus selecting it) to make it active
+	 */
+	if (CTX_DATA_COUNT(C, selected_editable_bones) <= 1) {
 		/* When only the active bone is selected, and it has a parent,
 		 * align it to the parent, as that is the only possible outcome. 
 		 */
-		bone_align_to_bone(arm->edbo, actbone, actbone->parent);
-		
-		if (arm->flag & ARM_MIRROR_EDIT) {
-			flipbone = armature_bone_get_mirrored(arm->edbo, actbone);
-			if (flipbone)
-				bone_align_to_bone(arm->edbo, flipbone, flipbone->parent);
+		if (actbone->parent) {
+			bone_align_to_bone(arm->edbo, actbone, actbone->parent);
+			
+			if ((arm->flag & ARM_MIRROR_EDIT) && (actmirb->parent))
+				bone_align_to_bone(arm->edbo, actmirb, actmirb->parent);
 		}
 	}
 	else {
-		/* loop through all editbones, aligning all selected bones to the active bone */
-		for (selbone = arm->edbo->first; selbone; selbone=selbone->next) {
-			if (arm->layer & selbone->layer) {
-				if ((selbone->flag & BONE_SELECTED) && (selbone!=actbone)) {
-					/* align selbone to actbone */
-					bone_align_to_bone(arm->edbo, selbone, actbone);
-					
-					if (arm->flag & ARM_MIRROR_EDIT) {
-						/* - if there's a mirrored copy of selbone, try to find a mirrored copy of actbone 
-						 *	(i.e.  selbone="child.L" and actbone="parent.L", find "child.R" and "parent.R").
-						 *	This is useful for arm-chains, for example parenting lower arm to upper arm
-						 * - if there's no mirrored copy of actbone (i.e. actbone = "parent.C" or "parent")
-						 *	then just use actbone. Useful when doing upper arm to spine.
-						 */
-						flipbone = armature_bone_get_mirrored(arm->edbo, selbone);
-						flippar = armature_bone_get_mirrored(arm->edbo, actbone);
-						
-						if (flipbone) {
-							if (flippar)
-								bone_align_to_bone(arm->edbo, flipbone, flippar);
-							else
-								bone_align_to_bone(arm->edbo, flipbone, actbone);
-						}
-					}
-				}
-			}
+		/* Align 'selected' bones to the active one
+		 * - the context iterator contains both selected bones and their mirrored copies,
+		 *   so we assume that unselected bones are mirrored copies of some selected bone
+		 */
+		
+		/* align selected bones to the active one */
+		CTX_DATA_BEGIN(C, EditBone *, ebone, selected_editable_bones) {
+			if (ebone->flag & BONE_SELECTED)
+				bone_align_to_bone(arm->edbo, ebone, actbone);
+			else
+				bone_align_to_bone(arm->edbo, ebone, actmirb);
 		}
+		CTX_DATA_END;
 	}
+	
 
-	countall(); /* checks selection */
-	BIF_undo_push("Align bones");
+	/* note, notifier might evolve */
+	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, ob);
+	
+	return OPERATOR_FINISHED;
+}
 
-	return;
+void ARMATURE_OT_align_bones(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Align Bones";
+	ot->idname= "ARMATURE_OT_align_bones";
+	
+	/* api callbacks */
+	ot->invoke = WM_operator_confirm;
+	ot->exec = armature_align_bones_exec;
+	ot->poll = ED_operator_editarmature;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* ***************** Pose tools ********************* */
-
-void clear_armature(Scene *scene, Object *ob, char mode)
-{
-	bPoseChannel *pchan;
-	bArmature	*arm= ob->data;
-	
-	/* only clear those channels that are not locked */
-	for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-		if (pchan->bone && (pchan->bone->flag & BONE_SELECTED)) {
-			if (arm->layer & pchan->bone->layer) {
-				switch (mode) {
-					case 'r':
-						if (pchan->protectflag & (OB_LOCK_ROTX|OB_LOCK_ROTY|OB_LOCK_ROTZ)) {
-							float eul[3], oldeul[3], quat1[4];
-							
-							QUATCOPY(quat1, pchan->quat);
-							QuatToEul(pchan->quat, oldeul);
-							eul[0]= eul[1]= eul[2]= 0.0f;
-							
-							if (pchan->protectflag & OB_LOCK_ROTX)
-								eul[0]= oldeul[0];
-							if (pchan->protectflag & OB_LOCK_ROTY)
-								eul[1]= oldeul[1];
-							if (pchan->protectflag & OB_LOCK_ROTZ)
-								eul[2]= oldeul[2];
-							
-							EulToQuat(eul, pchan->quat);
-							/* quaternions flip w sign to accumulate rotations correctly */
-							if ((quat1[0]<0.0f && pchan->quat[0]>0.0f) || (quat1[0]>0.0f && pchan->quat[0]<0.0f)) {
-								QuatMulf(pchan->quat, -1.0f);
-							}
-						}						
-						else { 
-							pchan->quat[1]=pchan->quat[2]=pchan->quat[3]=0.0F; 
-							pchan->quat[0]=1.0F;
-						}
-						break;
-					case 'g':
-						if ((pchan->protectflag & OB_LOCK_LOCX)==0)
-							pchan->loc[0]= 0.0f;
-						if ((pchan->protectflag & OB_LOCK_LOCY)==0)
-							pchan->loc[1]= 0.0f;
-						if ((pchan->protectflag & OB_LOCK_LOCZ)==0)
-							pchan->loc[2]= 0.0f;
-						break;
-					case 's':
-						if ((pchan->protectflag & OB_LOCK_SCALEX)==0)
-							pchan->size[0]= 1.0f;
-						if ((pchan->protectflag & OB_LOCK_SCALEY)==0)
-							pchan->size[1]= 1.0f;
-						if ((pchan->protectflag & OB_LOCK_SCALEZ)==0)
-							pchan->size[2]= 1.0f;
-						break;
-						
-				}
-				
-				/* the current values from IPO's may not be zero, so tag as unkeyed */
-				pchan->bone->flag |= BONE_UNKEYED;
-			}
-		}
-	}
-	
-	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
-	/* no update for this object, this will execute the action again */
-	/* is weak... like for ipo editing which uses ctime now... */
-	where_is_pose (scene, ob);
-	ob->recalc= 0;
-}
 
 /* helper for function below */
 static int clear_active_flag(Object *ob, Bone *bone, void *data) 
@@ -3539,6 +3507,7 @@ static int clear_active_flag(Object *ob, Bone *bone, void *data)
 }
 
 
+// XXX bone_looper is only to be used when we want to access settings (i.e. editability/visibility/selected) that context doesn't offer 
 static int bone_looper(Object *ob, Bone *bone, void *data,
 				int (*bone_func)(Object *, Bone *, void *)) 
 {
@@ -3669,7 +3638,7 @@ void ED_pose_deselectall (Object *ob, int test, int doundo)
 		}
 	}
 	
-	countall();
+	//countall(); // XXX need an equivalent to this...
 	
 	if (doundo) {
 		if (selectmode==1) BIF_undo_push("Select All");
@@ -4058,7 +4027,167 @@ void create_vgroups_from_armature(Scene *scene, Object *ob, Object *par)
 		break;
 	}
 } 
+/* ************* Clear Pose *****************************/
 
+static int pose_clear_scale_exec(bContext *C, wmOperator *op) 
+{
+	Scene *scene = CTX_data_scene(C);
+	Object *ob= CTX_data_active_object(C);
+	
+	/* only clear those channels that are not locked */
+	CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pchans) {
+		if ((pchan->protectflag & OB_LOCK_SCALEX)==0)
+			pchan->size[0]= 1.0f;
+		if ((pchan->protectflag & OB_LOCK_SCALEY)==0)
+			pchan->size[1]= 1.0f;
+		if ((pchan->protectflag & OB_LOCK_SCALEZ)==0)
+			pchan->size[2]= 1.0f;
+			
+		/* the current values from IPO's may not be zero, so tag as unkeyed */
+		//pchan->bone->flag |= BONE_UNKEYED;
+	}
+	CTX_DATA_END;
+	
+	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+
+	/* note, notifier might evolve */
+	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, ob);
+	
+	return OPERATOR_FINISHED;
+}
+
+void POSE_OT_scale_clear(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Clear Pose Scale";
+	ot->idname= "POSE_OT_scale_clear";
+	
+	/* api callbacks */
+	ot->invoke = WM_operator_confirm;
+	ot->exec = pose_clear_scale_exec;
+	ot->poll = ED_operator_posemode;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+static int pose_clear_loc_exec(bContext *C, wmOperator *op) 
+{
+	Scene *scene = CTX_data_scene(C);
+	Object *ob= CTX_data_active_object(C);
+	
+	/* only clear those channels that are not locked */
+	CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pchans) {
+		if ((pchan->protectflag & OB_LOCK_LOCX)==0)
+			pchan->loc[0]= 0.0f;
+		if ((pchan->protectflag & OB_LOCK_LOCY)==0)
+			pchan->loc[1]= 0.0f;
+		if ((pchan->protectflag & OB_LOCK_LOCZ)==0)
+			pchan->loc[2]= 0.0f;
+			
+		/* the current values from IPO's may not be zero, so tag as unkeyed */
+		//pchan->bone->flag |= BONE_UNKEYED;
+	}
+	CTX_DATA_END;
+	
+	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+
+	/* note, notifier might evolve */
+	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, ob);
+	
+	return OPERATOR_FINISHED;
+}
+
+void POSE_OT_loc_clear(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Clear Pose Location";
+	ot->idname= "POSE_OT_loc_clear";
+	
+	/* api callbacks */
+	ot->invoke = WM_operator_confirm;
+	ot->exec = pose_clear_loc_exec;
+	ot->poll = ED_operator_posemode;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+static int pose_clear_rot_exec(bContext *C, wmOperator *op) 
+{
+	Scene *scene = CTX_data_scene(C);
+	Object *ob= CTX_data_active_object(C);
+	
+	/* only clear those channels that are not locked */
+	CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pchans) {
+		if (pchan->protectflag & (OB_LOCK_ROTX|OB_LOCK_ROTY|OB_LOCK_ROTZ)) {
+			float eul[3], oldeul[3], quat1[4];
+			
+			if (pchan->rotmode == PCHAN_ROT_QUAT) {
+				QUATCOPY(quat1, pchan->quat);
+				QuatToEul(pchan->quat, oldeul);
+			}
+			else {
+				VECCOPY(oldeul, pchan->eul);
+			}
+			eul[0]= eul[1]= eul[2]= 0.0f;
+			
+			if (pchan->protectflag & OB_LOCK_ROTX)
+				eul[0]= oldeul[0];
+			if (pchan->protectflag & OB_LOCK_ROTY)
+				eul[1]= oldeul[1];
+			if (pchan->protectflag & OB_LOCK_ROTZ)
+				eul[2]= oldeul[2];
+			
+			if (pchan->rotmode == PCHAN_ROT_QUAT) {
+				EulToQuat(eul, pchan->quat);
+				/* quaternions flip w sign to accumulate rotations correctly */
+				if ((quat1[0]<0.0f && pchan->quat[0]>0.0f) || (quat1[0]>0.0f && pchan->quat[0]<0.0f)) {
+					QuatMulf(pchan->quat, -1.0f);
+				}
+			}
+			else {
+				VECCOPY(pchan->eul, eul);
+			}
+		}						
+		else { 
+			if (pchan->rotmode == PCHAN_ROT_QUAT) {
+				pchan->quat[1]=pchan->quat[2]=pchan->quat[3]= 0.0f; 
+				pchan->quat[0]= 1.0f;
+			}
+			else {
+				pchan->eul[0]= pchan->eul[1]= pchan->eul[2]= 0.0f;
+			}
+		}
+		
+		/* the current values from IPO's may not be zero, so tag as unkeyed */
+		//pchan->bone->flag |= BONE_UNKEYED;
+	}
+	CTX_DATA_END;
+	
+	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+
+	/* note, notifier might evolve */
+	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, ob);
+	
+	return OPERATOR_FINISHED;
+}
+
+void POSE_OT_rot_clear(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Clear Pose Rotation";
+	ot->idname= "POSE_OT_rot_clear";
+	
+	/* api callbacks */
+	ot->invoke = WM_operator_confirm;
+	ot->exec = pose_clear_rot_exec;
+	ot->poll = ED_operator_posemode;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+} 
 /* ************* hide/unhide pose bones ******************* */
 
 static int hide_selected_pose_bone(Object *ob, Bone *bone, void *ptr) 
@@ -4414,7 +4543,7 @@ void transform_armature_mirror_update(Object *obedit)
 	for (ebo= arm->edbo->first; ebo; ebo=ebo->next) {
 		/* no layer check, correct mirror is more important */
 		if (ebo->flag & (BONE_TIPSEL|BONE_ROOTSEL)) {
-			eboflip= armature_bone_get_mirrored(arm->edbo, ebo);
+			eboflip= ED_armature_bone_get_mirrored(arm->edbo, ebo);
 			
 			if (eboflip) {
 				/* we assume X-axis flipping for now */

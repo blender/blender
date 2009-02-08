@@ -100,6 +100,7 @@
 
 #include "ED_armature.h"
 #include "ED_object.h"
+#include "ED_screen.h"
 
 #include "outliner_intern.h"
 
@@ -132,7 +133,6 @@
 static void allqueue() {}
 static void BIF_undo_push() {}
 static void BIF_preview_changed() {}
-static void set_scene() {}
 static void error() {}
 static int pupmenu() {return 0;}
 
@@ -1665,8 +1665,7 @@ static void tree_element_set_active_object(bContext *C, Scene *scene, SpaceOops 
 	
 	sce= (Scene *)outliner_search_back(soops, te, ID_SCE);
 	if(sce && scene != sce) {
-// XXX		if(obedit) exit_editmode(EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);
-		set_scene(sce);
+		ED_screen_set_scene(C, sce);
 	}
 	
 	/* find associated base in current scene */
@@ -1845,8 +1844,7 @@ static int tree_element_active_world(Scene *scene, SpaceOops *soops, TreeElement
 	
 	if(set) {	// make new scene active
 		if(sce && scene != sce) {
-// XXX			if(obedit) exit_editmode(EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);
-			set_scene(sce);
+			// XXX ED_screen_set_scene(C, sce);
 		}
 	}
 	
@@ -2188,8 +2186,7 @@ static int do_outliner_mouse_event(bContext *C, Scene *scene, ARegion *ar, Space
 						/* editmode? */
 						if(te->idcode==ID_SCE) {
 							if(scene!=(Scene *)tselem->id) {
-// XXX								if(obedit) exit_editmode(EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);
-								set_scene((Scene *)tselem->id);
+								ED_screen_set_scene(C, (Scene *)tselem->id);
 							}
 						}
 						else if(ELEM5(te->idcode, ID_ME, ID_CU, ID_MB, ID_LT, ID_AR)) {
@@ -2249,8 +2246,22 @@ static int outliner_activate_click(bContext *C, wmOperator *op, wmEvent *event)
 	if(te) {
 		BIF_undo_push("Outliner click event");
 	}
-	else 
-		outliner_select(ar, soops);
+	else {
+		short selecting= -1;
+		int row;
+		
+		/* get row number - 100 here is just a dummy value since we don't need the column */
+		UI_view2d_listview_view_to_cell(&ar->v2d, 1000, OL_H, 0.0f, 0.0f, 
+						fmval[0], fmval[1], NULL, &row);
+		
+		/* select relevant row */
+		outliner_select(soops, &soops->tree, &row, &selecting);
+		
+		// XXX old flag found in old code, do we still use this?
+		//soops->storeflag |= SO_TREESTORE_REDRAW;
+		
+		BIF_undo_push("Outliner selection event");
+	}
 	
 	ED_region_tag_redraw(ar);
 
@@ -2553,64 +2564,46 @@ void outliner_show_hierarchy(Scene *scene, SpaceOops *soops)
 	BIF_undo_push("Outliner show hierarchy");
 }
 
-#if 0
-static void do_outliner_select(SpaceOops *soops, ListBase *lb, float y1, float y2, short *selecting)
+void outliner_select(SpaceOops *soops, ListBase *lb, int *index, short *selecting)
 {
 	TreeElement *te;
 	TreeStoreElem *tselem;
 	
-	if(y1>y2) SWAP(float, y1, y2);
-	
-	for(te= lb->first; te; te= te->next) {
+	for (te= lb->first; te && *index >= 0; te=te->next, (*index)--) {
 		tselem= TREESTORE(te);
 		
-		if(te->ys + OL_H < y1) return;
-		if(te->ys < y2) {
-			if((te->flag & TE_ICONROW)==0) {
-				if(*selecting == -1) {
-					if( tselem->flag & TSE_SELECTED) *selecting= 0;
-					else *selecting= 1;
+		/* if we've encountered the right item, set its 'Outliner' selection status */
+		if (*index == 0) {
+			/* this should be the last one, so no need to do anything with index */
+			if ((te->flag & TE_ICONROW)==0) {
+				/* -1 value means toggle testing for now... */
+				if (*selecting == -1) {
+					if (tselem->flag & TSE_SELECTED) 
+						*selecting= 0;
+					else 
+						*selecting= 1;
 				}
-				if(*selecting) tselem->flag |= TSE_SELECTED;
-				else tselem->flag &= ~TSE_SELECTED;
+				
+				/* set selection */
+				if (*selecting) 
+					tselem->flag |= TSE_SELECTED;
+				else 
+					tselem->flag &= ~TSE_SELECTED;
 			}
 		}
-		if((tselem->flag & TSE_CLOSED)==0) do_outliner_select(soops, &te->subtree, y1, y2, selecting);
-	}
-}
-#endif
-
-/* its own redraw loop... urm */
-void outliner_select(ARegion *ar, SpaceOops *so)
-{
-#if 0
-	XXX
-	float fmval[2], y1, y2;
-	short yo=-1, selecting= -1;
-	
-	UI_view2d_region_to_view(&ar->v2d, event->x, event->y, fmval, fmval+1);
-	
-	y1= fmval[1];
-
-	while (get_mbut() & (L_MOUSE|R_MOUSE)) {
-		UI_view2d_region_to_view(&ar->v2d, event->x, event->y, fmval, fmval+1);
-		y2= fmval[1];
-		
-		if(yo!=mval[1]) {
-			/* select the 'ouliner row' */
-			do_outliner_select(so, &so->tree, y1, y2, &selecting);
-			yo= mval[1];
-			
-			so->storeflag |= SO_TREESTORE_REDRAW;
-// XXX			screen_swapbuffers();
-		
-			y1= y2;
+		else if ((tselem->flag & TSE_CLOSED)==0) {
+			/* Only try selecting sub-elements if we haven't hit the right element yet
+			 *
+			 * Hack warning:
+			 * 	Index must be reduced before supplying it to the sub-tree to try to do
+			 * 	selection, however, we need to increment it again for the next loop to 
+			 * 	function correctly
+			 */
+			(*index)--;
+			outliner_select(soops, &te->subtree, index, selecting);
+			(*index)++;
 		}
-		else PIL_sleep_ms(30);
 	}
-	
-	BIF_undo_push("Outliner selection");
-#endif
 }
 
 /* ************ SELECTION OPERATIONS ********* */
@@ -2857,7 +2850,7 @@ static void outliner_do_object_operation(Scene *scene, SpaceOops *soops, ListBas
 				// when objects selected in other scenes... dunno if that should be allowed
 				Scene *sce= (Scene *)outliner_search_back(soops, te, ID_SCE);
 				if(sce && scene != sce) {
-					set_scene(sce);
+// XXX					ED_screen_set_scene(C, sce);
 				}
 				
 				operation_cb(te, NULL, tselem);
@@ -2978,7 +2971,7 @@ void outliner_operation_menu(Scene *scene, ARegion *ar, SpaceOops *soops)
 				Scene *sce= scene;	// to be able to delete, scenes are set...
 				outliner_do_object_operation(scene, soops, &soops->tree, object_select_cb);
 				if(scene != sce) {
-					set_scene(sce);
+// XXX					ED_screen_set_scene(C, sce);
 				}
 				
 				str= "Select Objects";
@@ -3096,161 +3089,6 @@ void outliner_operation_menu(Scene *scene, ARegion *ar, SpaceOops *soops)
 
 /* ***************** DRAW *************** */
 
-static int tselem_rna_icon(PointerRNA *ptr)
-{
-	StructRNA *rnatype= ptr->type;
-
-	if(rnatype == &RNA_Scene)
-		return ICON_SCENE_DEHLT;
-	else if(rnatype == &RNA_World)
-		return ICON_WORLD;
-	else if(rnatype == &RNA_Object)
-		return ICON_OBJECT;
-	else if(rnatype == &RNA_Mesh)
-		return ICON_MESH;
-	else if(rnatype == &RNA_MeshVertex)
-		return ICON_VERTEXSEL;
-	else if(rnatype == &RNA_MeshEdge)
-		return ICON_EDGESEL;
-	else if(rnatype == &RNA_MeshFace)
-		return ICON_FACESEL;
-	else if(rnatype == &RNA_MeshTextureFace)
-		return ICON_FACESEL_HLT;
-	else if(rnatype == &RNA_VertexGroup)
-		return ICON_VGROUP;
-	else if(rnatype == &RNA_VertexGroupElement)
-		return ICON_VGROUP;
-	else if(rnatype == &RNA_Curve)
-		return ICON_CURVE;
-	else if(rnatype == &RNA_MetaBall)
-		return ICON_MBALL;
-	else if(rnatype == &RNA_MetaElement)
-		return ICON_OUTLINER_DATA_META;
-	else if(rnatype == &RNA_Lattice)
-		return ICON_LATTICE;
-	else if(rnatype == &RNA_Armature)
-		return ICON_ARMATURE;
-	else if(rnatype == &RNA_Bone)
-		return ICON_BONE_DEHLT;
-	else if(rnatype == &RNA_Camera)
-		return ICON_CAMERA;
-	else if(rnatype == &RNA_LocalLamp)
-		return ICON_LAMP;
-	else if(rnatype == &RNA_AreaLamp)
-		return ICON_LAMP;
-	else if(rnatype == &RNA_SpotLamp)
-		return ICON_LAMP;
-	else if(rnatype == &RNA_SunLamp)
-		return ICON_LAMP;
-	else if(rnatype == &RNA_HemiLamp)
-		return ICON_LAMP;
-	else if(rnatype == &RNA_Lamp)
-		return ICON_LAMP;
-	else if(rnatype == &RNA_Group)
-		return ICON_GROUP;
-	else if(rnatype == &RNA_ParticleSystem)
-		return ICON_PARTICLES;
-	else if(rnatype == &RNA_ParticleSettings)
-		return ICON_PARTICLES;
-	else if(rnatype == &RNA_Material)
-		return ICON_MATERIAL;
-	else if(rnatype == &RNA_Texture)
-		return ICON_TEXTURE;
-	else if(rnatype == &RNA_TextureSlot)
-		return ICON_TEXTURE;
-	else if(rnatype == &RNA_WorldTextureSlot)
-		return ICON_TEXTURE;
-	else if(rnatype == &RNA_MaterialTextureSlot)
-		return ICON_TEXTURE;
-	else if(rnatype == &RNA_Image)
-		return ICON_TEXTURE;
-	else if(rnatype == &RNA_Screen)
-		return ICON_SPLITSCREEN;
-	else if(rnatype == &RNA_NodeTree)
-		return ICON_NODE;
-	else if(rnatype == &RNA_Text)
-		return ICON_TEXT;
-	else if(rnatype == &RNA_Sound)
-		return ICON_SOUND;
-	else if(rnatype == &RNA_Brush)
-		return ICON_TPAINT_HLT;
-	else if(rnatype == &RNA_Library)
-		return ICON_LIBRARY_DEHLT;
-	else if(rnatype == &RNA_Action)
-		return ICON_ACTION;
-	else if(rnatype == &RNA_FCurve)
-		return ICON_IPO_DEHLT;
-	//else if(rnatype == &RNA_Ipo)
-	//	return ICON_IPO_DEHLT;
-	else if(rnatype == &RNA_Key)
-		return ICON_SHAPEKEY;
-	else if(rnatype == &RNA_Main)
-		return ICON_BLENDER;
-	else if(rnatype == &RNA_Struct)
-		return ICON_RNA;
-	else if(rnatype == &RNA_Property)
-		return ICON_RNA;
-	else if(rnatype == &RNA_BooleanProperty)
-		return ICON_RNA;
-	else if(rnatype == &RNA_IntProperty)
-		return ICON_RNA;
-	else if(rnatype == &RNA_FloatProperty)
-		return ICON_RNA;
-	else if(rnatype == &RNA_StringProperty)
-		return ICON_RNA;
-	else if(rnatype == &RNA_EnumProperty)
-		return ICON_RNA;
-	else if(rnatype == &RNA_EnumPropertyItem)
-		return ICON_RNA;
-	else if(rnatype == &RNA_PointerProperty)
-		return ICON_RNA;
-	else if(rnatype == &RNA_CollectionProperty)
-		return ICON_RNA;
-	else if(rnatype == &RNA_GameObjectSettings)
-		return ICON_GAME;
-	else if(rnatype == &RNA_ScriptLink)
-		return ICON_PYTHON;
-	
-	/* modifiers */
-	else if(rnatype == &RNA_SubsurfModifier)
-		return ICON_MOD_SUBSURF;
-	else if(rnatype == &RNA_ArmatureModifier)
-		return ICON_ARMATURE;
-	else if(rnatype == &RNA_LatticeModifier)
-		return ICON_LATTICE;
-	else if(rnatype == &RNA_CurveModifier)
-		return ICON_CURVE;
-	else if(rnatype == &RNA_BuildModifier)
-		return ICON_MOD_BUILD;
-	else if(rnatype == &RNA_MirrorModifier)
-		return ICON_MOD_MIRROR;
-	else if(rnatype == &RNA_DecimateModifier)
-		return ICON_MOD_DECIM;
-	else if(rnatype == &RNA_WaveModifier)
-		return ICON_MOD_WAVE;
-	else if(rnatype == &RNA_HookModifier)
-		return ICON_HOOK;
-	else if(rnatype == &RNA_SoftbodyModifier)
-		return ICON_MOD_SOFT;
-	else if(rnatype == &RNA_BooleanModifier)
-		return ICON_MOD_BOOLEAN;
-	else if(rnatype == &RNA_ParticleInstanceModifier)
-		return ICON_MOD_PARTICLEINSTANCE;
-	else if(rnatype == &RNA_ParticleSystemModifier)
-		return ICON_MOD_PARTICLES;
-	else if(rnatype == &RNA_EdgeSplitModifier)
-		return ICON_MOD_EDGESPLIT;
-	else if(rnatype == &RNA_ArrayModifier)
-		return ICON_MOD_ARRAY;
-	else if(rnatype == &RNA_UVProjectModifier)
-		return ICON_MOD_UVPROJECT;
-	else if(rnatype == &RNA_DisplaceModifier)
-		return ICON_MOD_DISPLACE;
-	
-	else
-		return ICON_DOT;
-}
-
 static void tselem_draw_icon(float x, float y, TreeStoreElem *tselem, TreeElement *te)
 {
 	if(tselem->type) {
@@ -3357,7 +3195,7 @@ static void tselem_draw_icon(float x, float y, TreeStoreElem *tselem, TreeElemen
 				UI_icon_draw(x, y, ICON_OBJECT);
 				break;
 			case TSE_RNA_STRUCT:
-				UI_icon_draw(x, y, tselem_rna_icon(&te->rnaptr));
+				UI_icon_draw(x, y, UI_GetIconRNA(&te->rnaptr));
 				break;
 			default:
 				UI_icon_draw(x, y, ICON_DOT); break;
@@ -3704,20 +3542,19 @@ static void outliner_draw_tree(Scene *scene, ARegion *ar, SpaceOops *soops)
 	
 	glBlendFunc(GL_SRC_ALPHA,  GL_ONE_MINUS_SRC_ALPHA); // only once
 	
-	if(ELEM(soops->outlinevis, SO_DATABLOCKS, SO_USERDEF)) {
-		// struct marks
+	if (ELEM(soops->outlinevis, SO_DATABLOCKS, SO_USERDEF)) {
+		/* struct marks */
 		UI_ThemeColorShadeAlpha(TH_BACK, -15, -200);
 		//UI_ThemeColorShade(TH_BACK, -20);
 		starty= (int)ar->v2d.tot.ymax-OL_H;
 		outliner_draw_struct_marks(ar, soops, &soops->tree, &starty);
 	}
-	else {
-		// selection first
-		UI_GetThemeColor3fv(TH_BACK, col);
-		glColor3f(col[0]+0.06f, col[1]+0.08f, col[2]+0.10f);
-		starty= (int)ar->v2d.tot.ymax-OL_H;
-		outliner_draw_selection(ar, soops, &soops->tree, &starty);
-	}
+	
+	/* always draw selection fill before hierarchy */
+	UI_GetThemeColor3fv(TH_BACK, col);
+	glColor3f(col[0]+0.06f, col[1]+0.08f, col[2]+0.10f);
+	starty= (int)ar->v2d.tot.ymax-OL_H;
+	outliner_draw_selection(ar, soops, &soops->tree, &starty);
 	
 	// grey hierarchy lines
 	UI_ThemeColorBlend(TH_BACK, TH_TEXT, 0.2f);
@@ -4089,79 +3926,6 @@ static void outliner_draw_rnacols(ARegion *ar, SpaceOops *soops, int sizex)
 		v2d->cur.ymin);
 }
 
-static uiBut *outliner_draw_rnabut(uiBlock *block, PointerRNA *ptr, PropertyRNA *prop, int index, int x1, int y1, int x2, int y2)
-{
-	uiBut *but=NULL;
-	const char *propname= RNA_property_identifier(ptr, prop);
-	int arraylen= RNA_property_array_length(ptr, prop);
-
-	switch(RNA_property_type(ptr, prop)) {
-		case PROP_BOOLEAN: {
-			int value, length;
-
-			if(arraylen && index == -1)
-				return NULL;
-
-			length= RNA_property_array_length(ptr, prop);
-
-			if(length)
-				value= RNA_property_boolean_get_index(ptr, prop, index);
-			else
-				value= RNA_property_boolean_get(ptr, prop);
-
-			but= uiDefButR(block, TOG, 0, (value)? "True": "False", x1, y1, x2, y2, ptr, propname, index, 0, 0, -1, -1, NULL);
-			break;
-		}
-		case PROP_INT:
-		case PROP_FLOAT:
-			if(arraylen && index == -1) {
-				if(RNA_property_subtype(ptr, prop) == PROP_COLOR)
-					but= uiDefButR(block, COL, 0, "", x1, y1, x2, y2, ptr, propname, 0, 0, 0, -1, -1, NULL);
-			}
-			else
-				but= uiDefButR(block, NUM, 0, "", x1, y1, x2, y2, ptr, propname, index, 0, 0, -1, -1, NULL);
-			break;
-		case PROP_ENUM:
-			but= uiDefButR(block, MENU, 0, NULL, x1, y1, x2, y2, ptr, propname, index, 0, 0, -1, -1, NULL);
-			break;
-		case PROP_STRING:
-			but= uiDefButR(block, TEX, 0, "", x1, y1, x2, y2, ptr, propname, index, 0, 0, -1, -1, NULL);
-			break;
-		case PROP_POINTER: {
-			PointerRNA pptr;
-			PropertyRNA *nameprop;
-			char *text, *descr, textbuf[256];
-			int icon;
-
-			pptr= RNA_property_pointer_get(ptr, prop);
-
-			if(!pptr.data)
-				return NULL;
-
-			icon= tselem_rna_icon(&pptr);
-			nameprop= RNA_struct_name_property(&pptr);
-
-			if(nameprop) {
-				text= RNA_property_string_get_alloc(&pptr, nameprop, textbuf, sizeof(textbuf));
-				descr= (char*)RNA_property_ui_description(&pptr, prop);
-				but= uiDefIconTextBut(block, LABEL, 0, icon, text, x1, y1, x2, y2, NULL, 0, 0, 0, 0, descr);
-				if(text != textbuf)
-					MEM_freeN(text);
-			}
-			else {
-				text= (char*)RNA_struct_ui_name(&pptr);
-				descr= (char*)RNA_property_ui_description(&pptr, prop);
-				but= uiDefIconTextBut(block, LABEL, 0, icon, text, x1, y1, x2, y2, NULL, 0, 0, 0, 0, descr);
-			}
-		}
-		default:
-			but= NULL;
-			break;
-	}
-
-	return but;
-}
-
 static void outliner_draw_rnabuts(uiBlock *block, Scene *scene, ARegion *ar, SpaceOops *soops, int sizex, ListBase *lb)
 {	
 	TreeElement *te;
@@ -4179,13 +3943,13 @@ static void outliner_draw_rnabuts(uiBlock *block, Scene *scene, ARegion *ar, Spa
 				prop= te->directdata;
 
 				if(!(RNA_property_type(ptr, prop) == PROP_POINTER && (tselem->flag & TSE_CLOSED)==0))
-					outliner_draw_rnabut(block, ptr, prop, -1, sizex, te->ys, OL_RNA_COL_SIZEX, OL_H-1);
+					uiDefAutoButR(block, ptr, prop, -1, "", sizex, te->ys, OL_RNA_COL_SIZEX, OL_H-1);
 			}
 			else if(tselem->type == TSE_RNA_ARRAY_ELEM) {
 				ptr= &te->rnaptr;
 				prop= te->directdata;
 
-				outliner_draw_rnabut(block, ptr, prop, te->index, sizex, te->ys, OL_RNA_COL_SIZEX, OL_H-1);
+				uiDefAutoButR(block, ptr, prop, te->index, "", sizex, te->ys, OL_RNA_COL_SIZEX, OL_H-1);
 			}
 		}
 		

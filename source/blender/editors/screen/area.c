@@ -109,6 +109,10 @@ void ED_region_do_listen(ARegion *ar, wmNotifier *note)
 {
 	/* generic notes first */
 	switch(note->category) {
+		case NC_WM:
+			if(note->data==ND_FILEREAD)
+				ED_region_tag_redraw(ar);
+			break;
 		case NC_WINDOW:
 			ED_region_tag_redraw(ar);
 			break;
@@ -639,6 +643,8 @@ void area_copy_data(ScrArea *sa1, ScrArea *sa2, int swap_space)
 		BKE_spacedata_freelist(&sa1->spacedata);
 		BKE_spacedata_copylist(&sa1->spacedata, &sa2->spacedata);
 	}
+	
+	/* Note; SPACE_EMPTY is possible on new screens */
 	
 	/* regions */
 	st= BKE_spacetype_from_id(sa1->spacetype);

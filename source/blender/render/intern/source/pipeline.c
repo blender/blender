@@ -135,6 +135,11 @@ static void int_nothing(void *unused, int val) {}
 static int void_nothing(void *unused) {return 0;}
 static void print_error(void *unused, char *str) {printf("ERROR: %s\n", str);}
 
+int RE_RenderInProgress(Render *re)
+{
+	return re->result_ok==0;
+}
+
 static void stats_background(void *unused, RenderStats *rs)
 {
 	uintptr_t mem_in_use= MEM_get_memory_in_use();
@@ -1012,6 +1017,11 @@ Render *RE_NewRender(const char *name)
 		BLI_addtail(&RenderList, re);
 		strncpy(re->name, name, RE_MAXNAME);
 	}
+	
+	/* prevent UI to draw old results */
+	RE_FreeRenderResult(re->result);
+	re->result= NULL;
+	re->result_ok= 0;
 	
 	/* set default empty callbacks */
 	re->display_init= result_nothing;
@@ -1948,8 +1958,11 @@ static void render_scene(Render *re, Scene *sce, int cfra)
 
 	/* copy callbacks */
 	resc->display_draw= re->display_draw;
+	resc->ddh= re->ddh;
 	resc->test_break= re->test_break;
+	resc->tbh= re->tbh;
 	resc->stats_draw= re->stats_draw;
+	resc->sdh= re->sdh;
 	
 	do_render_fields_blur_3d(resc);
 }
@@ -2480,8 +2493,8 @@ static int render_initialize_from_scene(Render *re, Scene *scene, int anim)
 void RE_BlenderFrame(Render *re, Scene *scene, int frame)
 {
 	/* ugly global still... is to prevent renderwin events and signal subsurfs etc to make full resol */
-	/* is also set by caller renderwin.c */
 	G.rendering= 1;
+	re->result_ok= 0;
 	
 	scene->r.cfra= frame;
 	
@@ -2491,6 +2504,7 @@ void RE_BlenderFrame(Render *re, Scene *scene, int frame)
 	
 	/* UGLY WARNING */
 	G.rendering= 0;
+	re->result_ok= 1;
 }
 
 static void do_write_image_or_movie(Render *re, Scene *scene, bMovieHandle *mh)
@@ -2579,6 +2593,7 @@ void RE_BlenderAnim(Render *re, Scene *scene, int sfra, int efra, int tfra)
 	/* ugly global still... is to prevent renderwin events and signal subsurfs etc to make full resol */
 	/* is also set by caller renderwin.c */
 	G.rendering= 1;
+	re->result_ok= 0;
 	
 	if(BKE_imtype_is_movie(scene->r.imtype))
 		mh->start_movie(&re->r, re->rectx, re->recty);
@@ -2666,6 +2681,7 @@ void RE_BlenderAnim(Render *re, Scene *scene, int sfra, int efra, int tfra)
 	
 	/* UGLY WARNING */
 	G.rendering= 0;
+	re->result_ok= 1;
 }
 
 /* note; repeated win/disprect calc... solve that nicer, also in compo */

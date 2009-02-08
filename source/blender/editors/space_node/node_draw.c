@@ -356,10 +356,10 @@ static void node_draw_mute_line(View2D *v2d, SpaceNode *snode, bNode *node)
 {
 	bNodeSocket *valsock= NULL, *colsock= NULL, *vecsock= NULL;
 	bNodeSocket *sock;
-	float vec[4][3];
+	bNodeLink link;
 	int a;
 	
-	vec[0][2]= vec[1][2]= vec[2][2]= vec[3][2]= 0.0; /* only 2d spline, set the Z to 0*/
+	memset(&link, 0, sizeof(bNodeLink));
 	
 	/* connect the first value buffer in with first value out */
 	/* connect the first RGBA buffer in with first RGBA out */
@@ -381,25 +381,21 @@ static void node_draw_mute_line(View2D *v2d, SpaceNode *snode, bNode *node)
 	if(valsock || colsock || vecsock) {
 		for(a=0, sock= node->outputs.first; sock; sock= sock->next, a++) {
 			if(nodeCountSocketLinks(snode->edittree, sock)) {
-				vec[3][0]= sock->locx;
-				vec[3][1]= sock->locy;
+				link.tosock= sock;
 				
 				if(sock->type==SOCK_VALUE && valsock) {
-					vec[0][0]= valsock->locx;
-					vec[0][1]= valsock->locy;
-					node_draw_link_bezier(v2d, vec, TH_WIRE, TH_WIRE, 0);
+					link.fromsock= valsock;
+					node_draw_link_bezier(v2d, snode, &link, TH_WIRE, TH_WIRE, 0);
 					valsock= NULL;
 				}
 				if(sock->type==SOCK_VECTOR && vecsock) {
-					vec[0][0]= vecsock->locx;
-					vec[0][1]= vecsock->locy;
-					node_draw_link_bezier(v2d, vec, TH_WIRE, TH_WIRE, 0);
+					link.fromsock= vecsock;
+					node_draw_link_bezier(v2d, snode, &link, TH_WIRE, TH_WIRE, 0);
 					vecsock= NULL;
 				}
 				if(sock->type==SOCK_RGBA && colsock) {
-					vec[0][0]= colsock->locx;
-					vec[0][1]= colsock->locy;
-					node_draw_link_bezier(v2d, vec, TH_WIRE, TH_WIRE, 0);
+					link.fromsock= colsock;
+					node_draw_link_bezier(v2d, snode, &link, TH_WIRE, TH_WIRE, 0);
 					colsock= NULL;
 				}
 			}

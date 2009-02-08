@@ -29,6 +29,8 @@
 #include <string.h>
 #include <stdio.h>
 
+#include "DNA_action_types.h"
+#include "DNA_armature_types.h"
 #include "DNA_object_types.h"
 #include "DNA_space_types.h"
 #include "DNA_scene_types.h"
@@ -41,11 +43,13 @@
 #include "BLI_arithb.h"
 #include "BLI_rand.h"
 
+#include "BKE_action.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_screen.h"
 #include "BKE_utildefines.h"
 
+#include "ED_armature.h"
 #include "ED_space_api.h"
 #include "ED_screen.h"
 
@@ -298,6 +302,7 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 				case ND_BONE_SELECT:
 				case ND_TRANSFORM:
 				case ND_GEOM_SELECT:
+				case ND_GEOM_DATA:
 				case ND_DRAW:
 				case ND_MODIFIER:
 				case ND_KEYS:
@@ -457,6 +462,93 @@ static int view3d_context(const bContext *C, bContextDataMember member, bContext
 				CTX_data_pointer_set(result, scene->basact->object);
 
 		return 1;
+	}
+	else if(ELEM(member, CTX_DATA_SELECTED_BONES, CTX_DATA_SELECTED_EDITABLE_BONES)) {
+		Object *obedit= scene->obedit; // XXX get from context?
+		bArmature *arm= (obedit) ? obedit->data : NULL;
+		EditBone *ebone, *flipbone=NULL;
+		
+		if (arm && arm->edbo) {
+			/* Attention: X-Axis Mirroring is also handled here... */
+			for (ebone= arm->edbo->first; ebone; ebone= ebone->next) {
+				/* first and foremost, bone must be visible and selected */
+				if (EBONE_VISIBLE(arm, ebone) && (ebone->flag & BONE_SELECTED)) {
+					/* Get 'x-axis mirror equivalent' bone if the X-Axis Mirroring option is enabled
+					 * so that most users of this data don't need to explicitly check for it themselves.
+					 * 
+					 * We need to make sure that these mirrored copies are not selected, otherwise some
+					 * bones will be operated on twice.
+					 */
+					if (arm->flag & ARM_MIRROR_EDIT)
+						flipbone = ED_armature_bone_get_mirrored(arm->edbo, ebone);
+					
+					/* if we're filtering for editable too, use the check for that instead, as it has selection check too */
+					if (member == CTX_DATA_SELECTED_EDITABLE_BONES) {
+						/* only selected + editable */
+						if (EBONE_EDITABLE(ebone)) {
+							CTX_data_list_add(result, ebone);
+						
+							if ((flipbone) && !(flipbone->flag & BONE_SELECTED))
+								CTX_data_list_add(result, flipbone);
+						}
+					}
+					else {
+						/* only include bones if selected */
+						CTX_data_list_add(result, ebone);
+						
+						if ((flipbone) && !(flipbone->flag & BONE_SELECTED))
+							CTX_data_list_add(result, flipbone);
+					}
+				}
+			}	
+			
+			return 1;
+		}
+	}
+	else if(member == CTX_DATA_SELECTED_PCHANS) {
+		Object *obact= OBACT;
+		bArmature *arm= (obact) ? obact->data : NULL;
+		bPoseChannel *pchan;
+		
+		if (obact && arm) {
+			for (pchan= obact->pose->chanbase.first; pchan; pchan= pchan->next) {
+				/* ensure that PoseChannel is on visible layer and is not hidden in PoseMode */
+				if ((pchan->bone) && (arm->layer & pchan->bone->layer) && !(pchan->bone->flag & BONE_HIDDEN_P)) {
+					if (pchan->bone->flag & (BONE_SELECTED|BONE_ACTIVE)) 
+						CTX_data_list_add(result, pchan);
+				}
+			}
+			
+			return 1;
+		}
+	}
+	else if(member == CTX_DATA_ACTIVE_BONE) {
+		Object *obedit= scene->obedit; // XXX get from context?
+		bArmature *arm= (obedit) ? obedit->data : NULL;
+		EditBone *ebone;
+		
+		if (arm && arm->edbo) {
+			for (ebone= arm->edbo->first; ebone; ebone= ebone->next) {
+				if (EBONE_VISIBLE(arm, ebone)) {
+					if (ebone->flag & BONE_ACTIVE) {
+						CTX_data_pointer_set(result, ebone);
+						
+						return 1;
+					}
+				}
+			}
+		}
+		
+	}
+	else if(member == CTX_DATA_ACTIVE_PCHAN) {
+		Object *obact= OBACT;
+		bPoseChannel *pchan;
+		
+		pchan= get_active_posechannel(obact);
+		if (pchan) {
+			CTX_data_pointer_set(result, pchan);
+			return 1;
+		}
 	}
 
 	return 0;

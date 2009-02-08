@@ -667,6 +667,8 @@ void draw_image_main(SpaceImage *sima, ARegion *ar, Scene *scene)
 	}
 #endif
 
+	/* put scene context variable in iuser */
+	sima->iuser.scene= scene;
 	/* retrieve the image and information about it */
 	ima= get_space_image(sima);
 	ibuf= get_space_image_buffer(sima);

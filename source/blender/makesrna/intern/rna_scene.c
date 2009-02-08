@@ -49,7 +49,7 @@ PointerRNA rna_Scene_objects_get(CollectionPropertyIterator *iter)
 static void rna_Scene_layer_set(PointerRNA *ptr, const int *values)
 {
 	Scene *scene= (Scene*)ptr->data;
-	int i, tot;
+	int i, tot= 0;
 
 	/* ensure we always have some layer selected */
 	for(i=0; i<20; i++)

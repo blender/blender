@@ -26,6 +26,7 @@
  */
 
 #include <stdlib.h>
+#include <stdio.h>
 
 #include "DNA_image_types.h"
 #include "DNA_screen_types.h"
@@ -34,11 +35,16 @@
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
+#include "BKE_screen.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
+#include "ED_screen.h"
+
 #include "RE_pipeline.h"
+
+#include "WM_api.h"
 
 #define HEADER_HEIGHT 18
 
@@ -48,9 +54,9 @@
 static ScrArea *image_area= NULL;
 
 /* can get as well the full picture, as the parts while rendering */
-static void imagewindow_progress(ScrArea *sa, RenderResult *rr, volatile rcti *renrect)
+/* XXX will be obsolete, here for reference now */
+void imagewindow_progress(SpaceImage *sima, RenderResult *rr, volatile rcti *renrect)
 {
-	SpaceImage *sima= sa->spacedata.first;
 	float x1, y1, *rectf= NULL;
 	unsigned int *rect32= NULL;
 	int ymin, ymax, xmin, xmax;
@@ -119,171 +125,6 @@ static void imagewindow_progress(ScrArea *sa, RenderResult *rr, volatile rcti *r
 	
 }
 
-/* in render window; display a couple of scanlines of rendered image */
-/* NOTE: called while render, so no malloc allowed! */
-static void imagewindow_progress_display_cb(void *handle, RenderResult *rr, volatile rcti *rect)
-{
-	if (image_area) {
-		imagewindow_progress(image_area, rr, rect);
-
-		/* no screen_swapbuffers, prevent any other window to draw */
-		// XXX myswapbuffers();
-	}
-}
-
-/* unused, init_display_cb is called on each render */
-static void imagewindow_clear_display_cb(void *handle, RenderResult *rr)
-{
-	if (image_area) {
-	}
-}
-
-/* returns biggest area that is not uv/image editor. Note that it uses buttons */
-/* window as the last possible alternative.									   */
-static ScrArea *biggest_non_image_area(bContext *C)
-{
-	bScreen *sc= CTX_wm_screen(C);
-	ScrArea *sa, *big= NULL;
-	int size, maxsize= 0, bwmaxsize= 0;
-	short foundwin= 0;
-	
-	for(sa= sc->areabase.first; sa; sa= sa->next) {
-		if(sa->winx > 10 && sa->winy > 10) {
-			size= sa->winx*sa->winy;
-			if(sa->spacetype == SPACE_BUTS) {
-				if(foundwin == 0 && size > bwmaxsize) {
-					bwmaxsize= size;
-					big= sa;	
-				}
-			}
-			else if(sa->spacetype != SPACE_IMAGE && size > maxsize) {
-				maxsize= size;
-				big= sa;
-				foundwin= 1;
-			}
-		}
-	}
-		
-	return big;
-}
-
-static ScrArea *biggest_area(bContext *C)
-{
-	bScreen *sc= CTX_wm_screen(C);
-	ScrArea *sa, *big= NULL;
-	int size, maxsize= 0;
-	
-	for(sa= sc->areabase.first; sa; sa= sa->next) {
-		size= sa->winx*sa->winy;
-		if(size > maxsize) {
-			maxsize= size;
-			big= sa;
-		}
-	}
-	return big;
-}
-
-
-/* if R_DISPLAYIMAGE
-      use Image Window showing Render Result
-	  else: turn largest non-image area into Image Window (not to frustrate texture or composite usage)
-	  else: then we use Image Window anyway...
-   if R_DISPSCREEN
-      make a new temp fullscreen area with Image Window
-*/
-
-static ScrArea *find_area_showing_r_result(bContext *C)
-{
-	bScreen *sc= CTX_wm_screen(C);
-	ScrArea *sa;
-	SpaceImage *sima;
-	
-	/* find an imagewindow showing render result */
-	for(sa=sc->areabase.first; sa; sa= sa->next) {
-		if(sa->spacetype==SPACE_IMAGE) {
-			sima= sa->spacedata.first;
-			if(sima->image && sima->image->type==IMA_TYPE_R_RESULT)
-				break;
-		}
-	}
-	return sa;
-}
-
-static ScrArea *imagewindow_set_render_display(bContext *C)
-{
-	ScrArea *sa;
-	SpaceImage *sima;
-	
-	sa= find_area_showing_r_result(C);
-	
-	if(sa==NULL) {
-		/* find largest open non-image area */
-		sa= biggest_non_image_area(C);
-		if(sa) {
-			// XXX newspace(sa, SPACE_IMAGE);
-			sima= sa->spacedata.first;
-			
-			/* makes ESC go back to prev space */
-			sima->flag |= SI_PREVSPACE;
-		}
-		else {
-			/* use any area of decent size */
-			sa= biggest_area(C);
-			if(sa->spacetype!=SPACE_IMAGE) {
-				// XXX newspace(sa, SPACE_IMAGE);
-				sima= sa->spacedata.first;
-				
-				/* makes ESC go back to prev space */
-				sima->flag |= SI_PREVSPACE;
-			}
-		}
-	}
-	
-	sima= sa->spacedata.first;
-	
-	/* get the correct image, and scale it */
-	sima->image= BKE_image_verify_viewer(IMA_TYPE_R_RESULT, "Render Result");
-	
-	if(0) { // XXX G.displaymode==R_DISPLAYSCREEN) {
-		if(sa->full==0) {
-			sima->flag |= SI_FULLWINDOW;
-			/* fullscreen works with lousy curarea */
-			// XXX curarea= sa;
-			// XXX area_fullscreen();
-			// XXX sa= curarea;
-		}
-	}
-	
-	return sa;
-}
-
-static void imagewindow_init_display_cb(void *handle, RenderResult *rr)
-{
-	bContext *C= NULL; // XXX
-
-	image_area= imagewindow_set_render_display(C);
-	
-	if(image_area) {
-		SpaceImage *sima= image_area->spacedata.first;
-		
-		// XXX areawinset(image_area->win);
-		
-		/* calc location using original size (tiles don't tell) */
-		sima->centx= (image_area->winx - sima->zoom*(float)rr->rectx)/2.0f;
-		sima->centy= (image_area->winy - sima->zoom*(float)rr->recty)/2.0f;
-		
-		sima->centx-= sima->zoom*sima->xof;
-		sima->centy-= sima->zoom*sima->yof;
-		
-		// XXX drawimagespace(image_area, sima);
-		// XXX if(image_area->headertype) scrarea_do_headdraw(image_area);
-
-		/* no screen_swapbuffers, prevent any other window to draw */
-		// XXX myswapbuffers();
-		
-		// XXX allqueue(REDRAWIMAGE, 0);	/* redraw in end */
-	}
-}
 
 /* coming from BIF_toggle_render_display() */
 void imagewindow_toggle_render(bContext *C)
@@ -306,7 +147,7 @@ void imagewindow_toggle_render(bContext *C)
 		// XXX addqueue(sa->win, ESCKEY, 1);	/* also returns from fullscreen */
 	}
 	else {
-		sa= imagewindow_set_render_display(C);
+//		sa= imagewindow_set_render_display(C);
 		// XXX scrarea_queue_headredraw(sa);
 		// XXX scrarea_queue_winredraw(sa);
 	}
@@ -325,12 +166,12 @@ static void imagewindow_renderinfo_cb(void *handle, RenderStats *rs)
 	}
 }
 
-void imagewindow_render_callbacks(Render *re)
+void ED_space_image_render_callbacks(bContext *C, Render *re)
 {
-	/* XXX fill in correct handler */
-	RE_display_init_cb(re, NULL, imagewindow_init_display_cb);
-	RE_display_draw_cb(re, NULL, imagewindow_progress_display_cb);
-	RE_display_clear_cb(re, NULL, imagewindow_clear_display_cb);
-	RE_stats_draw_cb(re, NULL, imagewindow_renderinfo_cb);	
+	
+//	RE_display_init_cb(re, C, imagewindow_init_display_cb);
+//	RE_display_draw_cb(re, C, imagewindow_progress_display_cb);
+//	RE_display_clear_cb(re, C, imagewindow_clear_display_cb);
+	RE_stats_draw_cb(re, C, imagewindow_renderinfo_cb);	
 }
 

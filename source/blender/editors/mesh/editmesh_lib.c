@@ -1895,42 +1895,7 @@ static int check_vnormal_flip(float *n, float *vnorm)
 }
 #endif
 
-void flipface(EditMesh *em, EditFace *efa)
-{
-	if(efa->v4) {
-		SWAP(EditVert *, efa->v2, efa->v4);
-		SWAP(EditEdge *, efa->e1, efa->e4);
-		SWAP(EditEdge *, efa->e2, efa->e3);
-		EM_data_interp_from_faces(em, efa, NULL, efa, 0, 3, 2, 1);
-	}
-	else {
-		SWAP(EditVert *, efa->v2, efa->v3);
-		SWAP(EditEdge *, efa->e1, efa->e3);
-		efa->e2->dir= 1-efa->e2->dir;
-		EM_data_interp_from_faces(em, efa, NULL, efa, 0, 2, 1, 3);
-	}
 
-	if(efa->v4) CalcNormFloat4(efa->v1->co, efa->v2->co, efa->v3->co, efa->v4->co, efa->n);
-	else CalcNormFloat(efa->v1->co, efa->v2->co, efa->v3->co, efa->n);
-}
-
-
-void flip_editnormals(EditMesh *em)
-{
-	EditFace *efa;
-	
-	efa= em->faces.first;
-	while(efa) {
-		if( efa->f & SELECT ){
-			flipface(em, efa);
-		}
-		efa= efa->next;
-	}
-	
-	/* update vertex normals too */
-	recalc_editnormals(em);
-	
-}
 
 /* does face centers too */
 void recalc_editnormals(EditMesh *em)

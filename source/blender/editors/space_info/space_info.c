@@ -192,6 +192,17 @@ static void info_main_area_listener(ARegion *ar, wmNotifier *wmn)
 	/* context changes */
 }
 
+static void info_header_listener(ARegion *ar, wmNotifier *wmn)
+{
+	/* context changes */
+	switch(wmn->category) {
+		case NC_SCENE:
+			if(wmn->data==ND_RENDER_RESULT)
+				ED_region_tag_redraw(ar);
+	}
+	
+}
+
 /* only called once, from space/spacetypes.c */
 void ED_spacetype_info(void)
 {
@@ -222,7 +233,7 @@ void ED_spacetype_info(void)
 	art->regionid = RGN_TYPE_HEADER;
 	art->minsizey= HEADERY;
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D;
-	
+	art->listener= info_header_listener;
 	art->init= info_header_area_init;
 	art->draw= info_header_area_draw;
 	

@@ -74,6 +74,9 @@
 #include "BLO_readfile.h"
 #include "BLO_writefile.h"
 
+#include "RNA_access.h"
+#include "RNA_define.h"
+
 #include "ED_datafiles.h"
 #include "ED_screen.h"
 #include "ED_util.h"
@@ -82,6 +85,8 @@
 
 #include "UI_interface.h"
 #include "BLF_api.h"
+
+#include "GPU_draw.h"
 
 // XXX #include "BPY_extern.h"
 
@@ -426,8 +431,8 @@ return;
   2- no current wm, but read wm: that's OK, do nothing
   3- current wm, but not in file: try match screen names
   4- current wm, and wm in file: try match ghostwin 
-
 */
+
 static void wm_window_match_do(bContext *C, ListBase *oldwmlist)
 {
 	wmWindowManager *oldwm, *wm;
@@ -442,26 +447,30 @@ static void wm_window_match_do(bContext *C, ListBase *oldwmlist)
 	else {
 		/* cases 3 and 4 */
 		
-		/* we've read file without wm... */
+		/* we've read file without wm..., keep current one entirely alive */
 		if(G.main->wm.first==NULL) {
+			bScreen *screen= CTX_wm_screen(C);
+			
 			/* match oldwm to new dbase, only old files */
 			
 			for(wm= oldwmlist->first; wm; wm= wm->id.next) {
-				/* ensure making new keymaps and set space types */
-				wm->initialized= 0;
 				
 				for(win= wm->windows.first; win; win= win->next) {
 					/* all windows get active screen from file */
-					win->screen= CTX_wm_screen(C);
-					BLI_strncpy(win->screenname, win->screen->id.name+2, 21);
+					if(screen->winid==0)
+						win->screen= screen;
+					else 
+						win->screen= ED_screen_duplicate(win, screen);
 					
-					if(win->screen->winid==0)
-						win->screen->winid= win->winid;
+					BLI_strncpy(win->screenname, win->screen->id.name+2, 21);
+					win->screen->winid= win->winid;
 				}
 			}
-			/* XXX still solve, case where multiple windows open */
 			
 			G.main->wm= *oldwmlist;
+			
+			/* screens were read from file! */
+			ED_screens_initialize(G.main->wm.first);
 		}
 		else {
 			/* what if old was 3, and loaded 1? */
@@ -515,12 +524,9 @@ void WM_read_file(bContext *C, char *name, ReportList *reports)
 		wm_check(C); /* opens window(s), checks keymaps */
 		
 // XXX		mainwindow_set_filename_to_title(G.main->name);
-//		countall(); <-- will be listener
 // XXX		sound_initialize_sounds();
 
-//		winqueue_break= 1;	/* leave queues everywhere */
-
-// XXX		if(retval==2) init_userdef_themes();	// in case a userdef is read from regular .blend
+		if(retval==2) init_userdef_themes();	// in case a userdef is read from regular .blend
 		
 		if (retval!=0) G.relbase_valid = 1;
 
@@ -533,8 +539,8 @@ void WM_read_file(bContext *C, char *name, ReportList *reports)
 					   
 		CTX_wm_window_set(C, NULL); /* exits queues */
 	}
-//	else if(retval==1)
-// XXX		BIF_undo_push("Import file");
+	else if(retval==1)
+		BKE_write_undo(C, "Import file");
 	else if(retval == -1) {
 		if(reports && reports->list.first == NULL)
 			BKE_report(reports, RPT_ERROR, "Cannot read file.");
@@ -544,13 +550,14 @@ void WM_read_file(bContext *C, char *name, ReportList *reports)
 
 /* called on startup,  (context entirely filled with NULLs) */
 /* or called for 'Erase All' */
-int WM_read_homefile(bContext *C, int from_memory)
+int WM_read_homefile(bContext *C, wmOperator *op)
 {
 	ListBase wmbase;
 	char tstr[FILE_MAXDIR+FILE_MAXFILE], scestr[FILE_MAXDIR];
 	char *home= BLI_gethome();
+	int from_memory= op?RNA_boolean_get(op->ptr, "factory"):0;
 	int success;
-	
+		
 	BLI_clean(home);
 	
 	free_ttfont(); /* still weird... what does it here? */
@@ -579,6 +586,9 @@ int WM_read_homefile(bContext *C, int from_memory)
 
 	init_userdef_themes();
 	
+	/* When loading factory settings, the reset solid OpenGL lights need to be applied. */
+	GPU_default_lights();
+	
 	/* XXX */
 	G.save_over = 0;	// start with save preference untitled.blend
 	G.fileflags &= ~G_FILE_AUTOPLAY;	/*  disable autoplay in .B.blend... */
@@ -592,6 +602,9 @@ int WM_read_homefile(bContext *C, int from_memory)
 	BKE_reset_undo();
 	BKE_write_undo(C, "original");	/* save current state */
 	
+	WM_event_add_notifier(C, NC_WM|ND_FILEREAD, NULL);
+	CTX_wm_window_set(C, NULL); /* exits queues */
+				   
 	return success;
 }
 

@@ -44,35 +44,40 @@
 
 #include "transform.h"
 
-
 static int select_orientation_exec(bContext *C, wmOperator *op)
 {
-	int orientation = RNA_int_get(op->ptr, "orientation");
+	int orientation = RNA_enum_get(op->ptr, "orientation");
+	int custom_index= RNA_int_get(op->ptr, "custom_index");;
+
+	if(orientation == V3D_MANIP_CUSTOM)
+		orientation += custom_index;
 	
-	if (orientation > -1)
-	{
-		BIF_selectTransformOrientationValue(C, orientation);
-		return OPERATOR_FINISHED;
-	}
-	else
-	{
-		return OPERATOR_CANCELLED;
-	}
+	BIF_selectTransformOrientationValue(C, orientation);
+
+	return OPERATOR_FINISHED;
 }
 
 static int select_orientation_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	char *string = BIF_menustringTransformOrientation(C, "Orientation");
+	uiMenuItem *head;
 	
-	op->customdata = string;
+	head= uiPupMenuBegin("Orientation", 0);
+	BIF_menuTransformOrientation(C, head, NULL);
+	uiPupMenuEnd(C, head);
 	
-	uiPupMenuOperator(C, 0, op, "orientation", string);
-	
-	return OPERATOR_RUNNING_MODAL;
+	return OPERATOR_CANCELLED;
 }
 	
 void TFM_OT_select_orientation(struct wmOperatorType *ot)
 {
+	static EnumPropertyItem orientation_items[]= {
+		{V3D_MANIP_GLOBAL, "GLOBAL", "Global", ""},
+		{V3D_MANIP_NORMAL, "NORMAL", "Normal", ""},
+		{V3D_MANIP_LOCAL, "LOCAL", "Local", ""},
+		{V3D_MANIP_VIEW, "VIEW", "View", ""},
+		{V3D_MANIP_CUSTOM, "CUSTOM", "Custom", ""},
+		{0, NULL, NULL, NULL}};
+
 	/* identifiers */
 	ot->name   = "Select Orientation";
 	ot->idname = "TFM_OT_select_orientation";
@@ -82,7 +87,8 @@ void TFM_OT_select_orientation(struct wmOperatorType *ot)
 	ot->exec   = select_orientation_exec;
 	ot->poll   = ED_operator_areaactive;
 
-	RNA_def_int(ot->srna, "orientation", -1, INT_MIN, INT_MAX, "Orientation", "DOC_BROKEN", INT_MIN, INT_MAX);
+	RNA_def_enum(ot->srna, "orientation", orientation_items, V3D_MANIP_CUSTOM, "Orientation", "DOC_BROKEN");
+	RNA_def_int(ot->srna, "custom_index", 0, 0, INT_MAX, "Custom Index", "", 0, INT_MAX);
 }
 
 static void transformops_exit(bContext *C, wmOperator *op)
@@ -208,7 +214,7 @@ void TFM_OT_transform(struct wmOperatorType *ot)
 	/* identifiers */
 	ot->name   = "Transform";
 	ot->idname = "TFM_OT_transform";
-	ot->flag= OPTYPE_REGISTER;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* api callbacks */
 	ot->invoke = transform_invoke;

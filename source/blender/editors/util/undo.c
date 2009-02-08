@@ -113,7 +113,7 @@ void ED_undo_push_op(bContext *C, wmOperator *op)
 	ED_undo_push(C, op->type->name);
 }
 
-static int ed_undo_step(bContext *C, wmOperator *op, int step)
+static int ed_undo_step(bContext *C, int step)
 {	
 	Object *obedit= CTX_data_edit_object(C);
 	ScrArea *sa= CTX_wm_area(C);
@@ -161,13 +161,18 @@ static int ed_undo_step(bContext *C, wmOperator *op, int step)
 	return OPERATOR_FINISHED;
 }
 
+void ED_undo_pop(bContext *C)
+{
+	ed_undo_step(C, 1);
+}
+
 static int ed_undo_exec(bContext *C, wmOperator *op)
 {
-	return ed_undo_step(C, op, 1);
+	return ed_undo_step(C, 1);
 }
 static int ed_redo_exec(bContext *C, wmOperator *op)
 {
-	return ed_undo_step(C, op, -1);
+	return ed_undo_step(C, -1);
 }
 
 void ED_undo_menu(bContext *C)

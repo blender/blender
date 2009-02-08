@@ -113,7 +113,7 @@ struct Render
 	char name[RE_MAXNAME];
 	
 	/* state settings */
-	short flag, osa, ok, do_gamma;
+	short flag, osa, ok, result_ok;
 	
 	/* result of rendering */
 	RenderResult *result;

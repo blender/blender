@@ -125,6 +125,9 @@ struct uiBut {
 	void *func_arg1;
 	void *func_arg2;
 
+	uiButHandleNFunc funcN;
+	void *func_argN;
+
 	void (*embossfunc)(int , int , float, float, float, float, float, int);
 	void (*sliderfunc)(int , float, float, float, float, float, float, int);
 
@@ -218,7 +221,7 @@ struct uiBlock {
 	char *lockstr;
 	
 	float xofs, yofs;				// offset to parent button
-	int bounds, dobounds;			// for doing delayed
+	int bounds, dobounds, mx, my;	// for doing delayed
 	int endblock;					// uiEndBlock done?
 
 	rctf safety;				// pulldowns, to detect outside, can differ per case how it is created
@@ -277,9 +280,12 @@ struct uiPopupBlockHandle {
 	int popup;
 	void (*popup_func)(struct bContext *C, void *arg, int event);
 	void *popup_arg;
-	/* for operator menus */
-	struct wmOperator *op_arg;
-	const char *propname;
+
+	/* for operator popups */
+	const char *opname;
+	int opcontext;
+	ScrArea *ctx_area;
+	ARegion *ctx_region;
 	
 	/* return values */
 	int butretval;

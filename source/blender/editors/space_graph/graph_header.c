@@ -57,7 +57,7 @@
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
-#include "ipo_intern.h"
+#include "graph_intern.h"
 
 /* ********************************************************* */
 /* Menu Defines... */

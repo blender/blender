@@ -172,13 +172,6 @@ static void rna_MeshVertex_groups_begin(CollectionPropertyIterator *iter, Pointe
 		rna_iterator_array_begin(iter, NULL, 0, 0, NULL);
 }
 
-static void rna_MeshMultires_level_range(PointerRNA *ptr, int *min, int *max)
-{
-	Multires *mr= (Multires*)ptr->data;
-	*min= 1;
-	*max= mr->level_count;
-}
-
 static void rna_MeshFace_material_index_range(PointerRNA *ptr, int *min, int *max)
 {
 	Mesh *me= (Mesh*)ptr->id.data;
@@ -871,36 +864,6 @@ static void rna_def_mproperties(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Value", "");
 }
 
-static void rna_def_mmultires(BlenderRNA *brna)
-{
-	StructRNA *srna;
-	PropertyRNA *prop;
-
-	srna= RNA_def_struct(brna, "MeshMultires", NULL);
-	RNA_def_struct_sdna(srna, "Multires");
-	RNA_def_struct_ui_text(srna, "Mesh Multires", "Multiresolution mesh levels data in a Mesh datablock.");
-
-	prop= RNA_def_property(srna, "level", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "newlvl");
-	RNA_def_property_int_funcs(prop, NULL, NULL, "rna_MeshMultires_level_range");
-	RNA_def_property_ui_text(prop, "Level", "");
-
-	prop= RNA_def_property(srna, "edge_level", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "edgelvl");
-	RNA_def_property_int_funcs(prop, NULL, NULL, "rna_MeshMultires_level_range");
-	RNA_def_property_ui_text(prop, "Edge Level", "");
-
-	prop= RNA_def_property(srna, "pin_level", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "pinlvl");
-	RNA_def_property_int_funcs(prop, NULL, NULL, "rna_MeshMultires_level_range");
-	RNA_def_property_ui_text(prop, "Pin Level", "Set level to apply modifiers to during render.");
-
-	prop= RNA_def_property(srna, "render_level", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "renderlvl");
-	RNA_def_property_int_funcs(prop, NULL, NULL, "rna_MeshMultires_level_range");
-	RNA_def_property_ui_text(prop, "Render Level", "Set level to render.");
-}
-
 void rna_def_texmat_common(StructRNA *srna, const char *texspace_editable)
 {
 	PropertyRNA *prop;
@@ -1013,10 +976,6 @@ static void rna_def_mesh(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "texcomesh");
 	RNA_def_property_ui_text(prop, "Texture Space Mesh", "Derive texture coordinates from another mesh");
 
-	prop= RNA_def_property(srna, "multires", PROP_POINTER, PROP_NONE);
-	RNA_def_property_pointer_sdna(prop, NULL, "mr");
-	RNA_def_property_ui_text(prop, "Multires", "");
-
 	prop= RNA_def_property(srna, "shape_keys", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "key");
 	RNA_def_property_ui_text(prop, "Shape Keys", "");
@@ -1035,7 +994,6 @@ void RNA_def_mesh(BlenderRNA *brna)
 	rna_def_msticky(brna);
 	rna_def_mcol(brna);
 	rna_def_mproperties(brna);
-	rna_def_mmultires(brna);
 }
 
 #endif

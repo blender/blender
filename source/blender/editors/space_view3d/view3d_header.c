@@ -44,9 +44,12 @@
 #include "DNA_view3d_types.h"
 #include "DNA_windowmanager_types.h"
 
+#include "RNA_access.h"
+
 #include "MEM_guardedalloc.h"
 
 #include "BKE_action.h"
+#include "BKE_brush.h"
 #include "BKE_context.h"
 #include "BKE_curve.h"
 #include "BKE_depsgraph.h"
@@ -116,9 +119,6 @@
 /* XXX port over */
 static void handle_view3d_lock(void) {}
 static void allqueue(int x, int y) {}
-static void persptoetsen(int x) {}
-static void fly(void) {}
-static void editmesh_align_view_to_selected(void *x, int y) {}
 static void countall(void) {}
 extern void borderselect();
 static int retopo_mesh_paint_check() {return 0;}
@@ -143,8 +143,10 @@ void ED_view3d_exit_paint_modes(bContext *C)
 	else if(G.f & G_WEIGHTPAINT)
 		WM_operator_name_call(C, "VIEW3D_OT_wpaint_toggle", WM_OP_EXEC_REGION_WIN, NULL);
 
+	if(G.f & G_SCULPTMODE)
+		WM_operator_name_call(C, "SCULPT_OT_sculptmode_toggle", WM_OP_EXEC_REGION_WIN, NULL);
+
 //	if(G.f & G_TEXTUREPAINT) set_texturepaint();
-//	if(G.f & G_SCULPTMODE) set_sculptmode();
 	if(G.f & G_PARTICLEEDIT) PE_set_particle_edit(CTX_data_scene(C));
 	
 	G.f &= ~(G_VERTEXPAINT+G_TEXTUREPAINT+G_WEIGHTPAINT+G_SCULPTMODE+G_PARTICLEEDIT);
@@ -248,6 +250,7 @@ void do_layer_buttons(bContext *C, short event)
 	allqueue(REDRAWNLA, 0);	
 }
 
+#if 0
 static void do_view3d_view_camerasmenu(bContext *C, void *arg, int event)
 {
 	Scene *scene= CTX_data_scene(C);
@@ -278,7 +281,7 @@ static void do_view3d_view_camerasmenu(bContext *C, void *arg, int event)
 	allqueue(REDRAWVIEW3D, 0);
 }
 
-#if 0
+
 static uiBlock *view3d_view_camerasmenu(bContext *C, ARegion *ar, void *arg_unused)
 {
 	Scene *scene= CTX_data_scene(C);
@@ -311,6 +314,8 @@ static uiBlock *view3d_view_camerasmenu(bContext *C, ARegion *ar, void *arg_unus
 	return block;
 }
 #endif
+
+#if 0
 static void do_view3d_view_cameracontrolsmenu(bContext *C, void *arg, int event)
 {
 	switch(event) {
@@ -365,6 +370,7 @@ static void do_view3d_view_cameracontrolsmenu(bContext *C, void *arg, int event)
 	}
 	allqueue(REDRAWVIEW3D, 0);
 }
+
 
 static uiBlock *view3d_view_cameracontrolsmenu(bContext *C, ARegion *ar, void *arg_unused)
 {
@@ -456,7 +462,7 @@ static void do_view3d_view_alignviewmenu(bContext *C, void *arg, int event)
 	}
 	allqueue(REDRAWVIEW3D, 0);
 }
-#if 0
+
 static uiBlock *view3d_view_alignviewmenu(bContext *C, ARegion *ar, void *arg_unused)
 {
 /*		static short tog=0; */
@@ -483,18 +489,15 @@ static uiBlock *view3d_view_alignviewmenu(bContext *C, ARegion *ar, void *arg_un
 	uiTextBoundsBlock(block, 50);
 	return block;
 }
-
-#ifndef DISABLE_PYTHON
-// XXX static void do_view3d_view_spacehandlers(bContext *C, void *arg, int event)
-//{
-//}
 #endif
+
+#if 0
 static uiBlock *view3d_view_spacehandlers(bContext *C, ARegion *ar, void *arg_unused)
 {
 	/* XXX */
 	return NULL;
 }
-#endif /* DISABLE_PYTHON */
+
 
 static void do_view3d_viewmenu(bContext *C, void *arg, int event)
 {
@@ -553,90 +556,84 @@ static void do_view3d_viewmenu(bContext *C, void *arg, int event)
 	}
 	allqueue(REDRAWVIEW3D, 1);
 }
+#endif
 
 static void view3d_view_viewnavmenu(bContext *C, uiMenuItem *head, void *arg_unused)
 {
-	uiMenuItemO(head, "VIEW3D_OT_view_fly_mode", ICON_BLANK1);
+//	uiMenuItemO(head, 0, "VIEW3D_OT_view_fly_mode");
+	
+//	uiMenuSeparator(head);
+	
+	uiMenuItemsEnumO(head, "VIEW3D_OT_view_orbit", "type");
 	
 	uiMenuSeparator(head);
 	
-	uiMenuItemEnumO(head, "VIEW3D_OT_view_orbit", "type", V3D_VIEW_STEPLEFT);
-	uiMenuItemEnumO(head, "VIEW3D_OT_view_orbit", "type", V3D_VIEW_STEPRIGHT);
-	uiMenuItemEnumO(head, "VIEW3D_OT_view_orbit", "type", V3D_VIEW_STEPUP);
-	uiMenuItemEnumO(head, "VIEW3D_OT_view_orbit", "type", V3D_VIEW_STEPDOWN);
+	uiMenuItemsEnumO(head, "VIEW3D_OT_view_pan", "type");
 	
 	uiMenuSeparator(head);
 	
-	uiMenuItemEnumO(head, "VIEW3D_OT_view_pan", "type", V3D_VIEW_PANLEFT);
-	uiMenuItemEnumO(head, "VIEW3D_OT_view_pan", "type", V3D_VIEW_PANRIGHT);
-	uiMenuItemEnumO(head, "VIEW3D_OT_view_pan", "type", V3D_VIEW_PANUP);
-	uiMenuItemEnumO(head, "VIEW3D_OT_view_pan", "type", V3D_VIEW_PANDOWN);
-	
-	uiMenuSeparator(head);
-	
-	uiMenuItemFloatO(head, "Zoom in", "VIEW3D_OT_viewzoom", "delta", 1.0f);
-	uiMenuItemFloatO(head, "Zoom out", "VIEW3D_OT_viewzoom", "delta", -1.0f);
+	uiMenuItemFloatO(head, "Zoom in", 0, "VIEW3D_OT_viewzoom", "delta", 1.0f);
+	uiMenuItemFloatO(head, "Zoom out", 0, "VIEW3D_OT_viewzoom", "delta", -1.0f);
 	
 }
 static void view3d_view_alignviewmenu(bContext *C, uiMenuItem *head, void *arg_unused)
 {
 	
 }
-static void view3d_view_camerasmenu(bContext *C, uiMenuItem *head, void *arg_unused)
-{
-	
-}
+
 static void view3d_viewmenu(bContext *C, uiMenuItem *head, void *arg_unused)
 {
 	ScrArea *sa= CTX_wm_area(C);
 	
-	uiMenuItemO(head, "VIEW3D_OT_toggle_transform_orientations_panel", ICON_MENU_PANEL); // Transform Orientations...
-	uiMenuItemO(head, "VIEW3D_OT_toggle_render_preview_panel", ICON_MENU_PANEL); // render preview...
-	uiMenuItemO(head, "VIEW3D_OT_toggle_view_properties_panel", ICON_MENU_PANEL); // View Properties....
-	uiMenuItemO(head, "VIEW3D_OT_toggle_background_image_panel", ICON_MENU_PANEL); // Background Image....
-	uiMenuItemO(head, "VIEW3D_OT_toggle_grease_pencil_panel", ICON_MENU_PANEL); // Grease Pencil....
+//	uiMenuItemO(head, ICON_MENU_PANEL, "VIEW3D_OT_toggle_transform_orientations_panel"); // Transform Orientations...
+//	uiMenuItemO(head, ICON_MENU_PANEL, "VIEW3D_OT_toggle_render_preview_panel"); // render preview...
+//	uiMenuItemO(head, ICON_MENU_PANEL, "VIEW3D_OT_toggle_view_properties_panel"); // View Properties....
+//	uiMenuItemO(head, ICON_MENU_PANEL, "VIEW3D_OT_toggle_background_image_panel"); // Background Image....
+//	uiMenuItemO(head, ICON_MENU_PANEL, "VIEW3D_OT_toggle_grease_pencil_panel"); // Grease Pencil....
 	
-	uiMenuSeparator(head);
+//	uiMenuSeparator(head);
 	
-	uiMenuItemEnumO(head, "VIEW3D_OT_viewnumpad", "view", V3D_VIEW_CAMERA);
-	uiMenuItemEnumO(head, "VIEW3D_OT_viewnumpad", "view", V3D_VIEW_TOP);
-	uiMenuItemEnumO(head, "VIEW3D_OT_viewnumpad", "view", V3D_VIEW_FRONT);
-	uiMenuItemEnumO(head, "VIEW3D_OT_viewnumpad", "view", V3D_VIEW_RIGHT);
+	uiMenuItemEnumO(head, 0, "VIEW3D_OT_viewnumpad", "type", V3D_VIEW_CAMERA);
+	uiMenuItemEnumO(head, 0, "VIEW3D_OT_viewnumpad", "type", V3D_VIEW_TOP);
+	uiMenuItemEnumO(head, 0, "VIEW3D_OT_viewnumpad", "type", V3D_VIEW_FRONT);
+	uiMenuItemEnumO(head, 0, "VIEW3D_OT_viewnumpad", "type", V3D_VIEW_RIGHT);
 	
-	uiMenuLevel(head, "Cameras", view3d_view_camerasmenu);
+	//uiMenuLevel(head, "Cameras", view3d_view_camerasmenu);
 	
 	uiMenuSeparator(head);
 
-	uiMenuItemO(head, "VIEW3D_OT_view_persportho", ICON_BLANK1);
+	uiMenuItemO(head, 0, "VIEW3D_OT_view_persportho");
 	
 	uiMenuSeparator(head);
 	
-	uiMenuItemO(head, "VIEW3D_OT_view_show_all_layers", ICON_BLANK1);	
+//	uiMenuItemO(head, 0, "VIEW3D_OT_view_show_all_layers");	
 	
-	uiMenuSeparator(head);
+//	uiMenuSeparator(head);
 	
-	uiMenuItemO(head, "VIEW3D_OT_view_local_view", ICON_BLANK1);
-	uiMenuItemO(head, "VIEW3D_OT_view_global_view", ICON_BLANK1);
+//	uiMenuItemO(head, 0, "VIEW3D_OT_view_local_view");
+//	uiMenuItemO(head, 0, "VIEW3D_OT_view_global_view");
 	
-	uiMenuSeparator(head);
+//	uiMenuSeparator(head);
 	
 	uiMenuLevel(head, "View Navigation", view3d_view_viewnavmenu);
 	uiMenuLevel(head, "Align View", view3d_view_alignviewmenu);
 	
 	uiMenuSeparator(head);
-	
-	uiMenuItemO(head, "VIEW3D_OT_clipping", ICON_BLANK1);
-	uiMenuItemO(head, "VIEW3D_OT_border_zoom", ICON_BLANK1);
-	
-	uiMenuSeparator(head);
-	
-	uiMenuItemO(head, "VIEW3D_OT_viewcenter", ICON_BLANK1);
-	uiMenuItemO(head, "VIEW3D_OT_viewhome", ICON_BLANK1);
+
+	uiMenuContext(head, WM_OP_INVOKE_REGION_WIN);	
+
+	uiMenuItemO(head, 0, "VIEW3D_OT_clipping");
+	uiMenuItemO(head, 0, "VIEW3D_OT_border_zoom");
 	
 	uiMenuSeparator(head);
 	
-	if(sa->full) uiMenuItemO(head, "SCREEN_OT_screen_full_area", ICON_BLANK1); // "Tile Window", Ctrl UpArrow
-	else uiMenuItemO(head, "SCREEN_OT_screen_full_area", ICON_BLANK1); // "Maximize Window", Ctr DownArrow
+	uiMenuItemO(head, 0, "VIEW3D_OT_viewcenter");
+	uiMenuItemO(head, 0, "VIEW3D_OT_viewhome");
+	
+	uiMenuSeparator(head);
+	
+	if(sa->full) uiMenuItemO(head, 0, "SCREEN_OT_screen_full_area"); // "Tile Window", Ctrl UpArrow
+	else uiMenuItemO(head, 0, "SCREEN_OT_screen_full_area"); // "Maximize Window", Ctr DownArrow
 }
 #if 0
 static uiBlock *view3d_viewmenu(bContext *C, ARegion *ar, void *arg_unused)
@@ -4836,22 +4833,6 @@ void do_view3d_sculptmenu(bContext *C, void *arg, int event)
 		sd->brush_type= event+1;
 		ED_undo_push(C, "Brush type");
 		break;
-	case 7:
-		br->flag ^= SCULPT_BRUSH_AIRBRUSH;
-		ED_undo_push(C, "Airbrush");
-		break;
-	case 8:
-		sd->symm ^= SYMM_X;
-		ED_undo_push(C, "X Symmetry");
-		break;
-	case 9:
-		sd->symm ^= SYMM_Y;
-		ED_undo_push(C, "Y Symmetry");
-		break;
-	case 10:
-		sd->symm ^= SYMM_Z;
-		ED_undo_push(C, "Z Symmetry");
-		break;
 	case 11:
 	        if(v3d)
 			v3d->pivot_last= !v3d->pivot_last;
@@ -4876,14 +4857,6 @@ void do_view3d_sculptmenu(bContext *C, void *arg, int event)
 	case 17:
 		sculpt_radialcontrol_start(RADIALCONTROL_SIZE);
 		break;
-	case 18:
-		br->dir= br->dir==1 ? 2 : 1;
-		ED_undo_push(C, "Add/Sub");
-		break;
-	}
-
-	allqueue(REDRAWBUTSEDIT, 0);
-	allqueue(REDRAWVIEW3D, 0);
 #endif
 }
 
@@ -4903,6 +4876,40 @@ uiBlock *view3d_sculpt_inputmenu(bContext *C, ARegion *ar, void *arg_unused)
 	uiBlockSetDirection(block, UI_RIGHT);
 	uiTextBoundsBlock(block, 50);
 	return block;
+}
+
+static void view3d_sculpt_menu(bContext *C, uiMenuItem *head, void *arg_unused)
+{
+	bScreen *sc= CTX_wm_screen(C);
+	Sculpt *s = CTX_data_tool_settings(C)->sculpt;
+	PointerRNA rna;
+
+	RNA_pointer_create(&sc->id, &RNA_Sculpt, s, &rna);
+
+	uiMenuItemBooleanR(head, &rna, "symmetry_x");
+	uiMenuItemBooleanR(head, &rna, "symmetry_y");
+	uiMenuItemBooleanR(head, &rna, "symmetry_z");
+	uiMenuItemBooleanR(head, &rna, "lock_x");
+	uiMenuItemBooleanR(head, &rna, "lock_y");
+	uiMenuItemBooleanR(head, &rna, "lock_z");
+
+	/* Brush settings */
+	RNA_pointer_create(&sc->id, &RNA_Brush, s->brush, &rna);
+
+	/* Curve */
+	uiMenuSeparator(head);
+	uiMenuItemEnumO(head, 0, "SCULPT_OT_brush_curve_preset", "mode", BRUSH_PRESET_SHARP);
+	uiMenuItemEnumO(head, 0, "SCULPT_OT_brush_curve_preset", "mode", BRUSH_PRESET_SMOOTH);
+	uiMenuItemEnumO(head, 0, "SCULPT_OT_brush_curve_preset", "mode", BRUSH_PRESET_MAX);
+
+	uiMenuSeparator(head);
+
+	uiMenuItemBooleanR(head, &rna, "airbrush");
+	uiMenuItemBooleanR(head, &rna, "rake");
+	uiMenuItemBooleanR(head, &rna, "anchored");
+	uiMenuItemBooleanR(head, &rna, "space");
+
+	uiMenuItemBooleanR(head, &rna, "flip_direction");	
 }
 
 uiBlock *view3d_sculptmenu(bContext *C, ARegion *ar, void *arg_unused)
@@ -4932,19 +4939,6 @@ uiBlock *view3d_sculptmenu(bContext *C, ARegion *ar, void *arg_unused)
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Strengthen Brush|Shift F", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 16, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Rotate Brush|Ctrl F", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 15, "");
 	
-	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	uiDefIconTextBut(block, BUTM, 1, (sd->flags & SCULPT_SYMM_Z ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT), "Z Symmetry|Z", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 10, "");
-	uiDefIconTextBut(block, BUTM, 1, (sd->flags & SCULPT_SYMM_Y ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT), "Y Symmetry|Y", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 9, "");
-	uiDefIconTextBut(block, BUTM, 1, (sd->flags & SCULPT_SYMM_X ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT), "X Symmetry|X", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 8, "");
-	
-	/* XXX if(sd->brush_type!=GRAB_BRUSH) {
-		uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-		uiDefIconTextBut(block, BUTM, 1, (br->flag & SCULPT_BRUSH_AIRBRUSH ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT), "Airbrush|A", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 7, "");
-		
-		if(sd->brush_type!=SMOOTH_BRUSH && sd->brush_type!=FLATTEN_BRUSH) {
-			uiDefIconTextBut(block, BUTM, 1, (br->dir==1 ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT), "Add|V", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 18, "");
-		}
-	}*/
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	/* XXX uiDefIconTextBut(block, BUTM, 1, (sd->brush_type==FLATTEN_BRUSH ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT), "Flatten|T", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
 	uiDefIconTextBut(block, BUTM, 1, (sd->brush_type==LAYER_BRUSH ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT), "Layer|L", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
@@ -5432,7 +5426,6 @@ static void do_view3d_buttons(bContext *C, void *arg, int event)
 		else if (v3d->modeselect == V3D_EDITMODE_SEL) {
 			if(!obedit) {
 				v3d->flag &= ~V3D_MODE;
-				ED_view3d_exit_paint_modes(C);
 				ED_object_enter_editmode(C, EM_WAITCURSOR);
 				ED_undo_push(C, "Original");	/* here, because all over code enter_editmode is abused */
 			}
@@ -5731,7 +5724,7 @@ static void view3d_header_pulldowns(const bContext *C, uiBlock *block, Object *o
 	}
 	else if( G.f & G_SCULPTMODE) {
 		xmax= GetButStringLength("Sculpt");
-		uiDefPulldownBut(block, view3d_sculptmenu, NULL, "Sculpt", xco, yco-2, xmax-3, 24, "");
+		uiDefMenuBut(block, view3d_sculpt_menu, NULL, "Sculpt", xco, yco-2, xmax-3, 24, "");
 		xco+= xmax;
 	}
 	else if (FACESEL_PAINT_TEST) {
@@ -6057,15 +6050,15 @@ static int editmesh_face_toolbox_invoke(bContext *C, wmOperator *op, wmEvent *ev
 {
 	uiMenuItem *head;
 
-	head= uiPupMenuBegin("Edit Faces");
+	head= uiPupMenuBegin("Edit Faces", 0);
 
-	uiMenuItemO(head, "MESH_OT_fill", ICON_BLANK1);
-	uiMenuItemO(head, "MESH_OT_beauty_fill", ICON_BLANK1);
-	uiMenuItemO(head, "MESH_OT_convert_quads_to_tris", ICON_BLANK1);
-	uiMenuItemO(head, "MESH_OT_convert_tris_to_quads", ICON_BLANK1);
-	uiMenuItemO(head, "MESH_OT_edge_flip", ICON_BLANK1);
-	uiMenuItemO(head, "MESH_OT_faces_shade_smooth", ICON_BLANK1);
-	uiMenuItemO(head, "MESH_OT_faces_shade_solid", ICON_BLANK1);
+	uiMenuItemO(head, 0, "MESH_OT_fill");
+	uiMenuItemO(head, 0, "MESH_OT_beauty_fill");
+	uiMenuItemO(head, 0, "MESH_OT_convert_quads_to_tris");
+	uiMenuItemO(head, 0, "MESH_OT_convert_tris_to_quads");
+	uiMenuItemO(head, 0, "MESH_OT_edge_flip");
+	uiMenuItemO(head, 0, "MESH_OT_faces_shade_smooth");
+	uiMenuItemO(head, 0, "MESH_OT_faces_shade_solid");
 	uiPupMenuEnd(C, head);
 
 	return OPERATOR_CANCELLED;

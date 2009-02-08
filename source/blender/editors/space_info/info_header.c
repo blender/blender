@@ -39,6 +39,7 @@
 #include "BLI_blenlib.h"
 
 #include "BKE_context.h"
+#include "BKE_global.h"
 #include "BKE_screen.h"
 
 #include "ED_screen.h"
@@ -60,9 +61,10 @@
 
 /* ************************ header area region *********************** */
 
+#define B_STOPRENDER 1
+
 static void do_viewmenu(bContext *C, void *arg, int event)
 {
-	
 }
 
 static uiBlock *dummy_viewmenu(bContext *C, ARegion *ar, void *arg_unused)
@@ -95,13 +97,73 @@ static uiBlock *dummy_viewmenu(bContext *C, ARegion *ar, void *arg_unused)
 static void do_info_buttons(bContext *C, void *arg, int event)
 {
 	switch(event) {
+		case B_STOPRENDER:
+			G.afbreek= 1;
+			break;
+	}
+}
+
+static void screen_idpoin_handle(bContext *C, ID *id, int event)
+{
+	
+	switch(event) {
+		case UI_ID_BROWSE:
+			/* exception: can't set screens inside of area/region handers */
+			WM_event_add_notifier(C, NC_SCREEN|ND_SCREENBROWSE, id);
+			break;
+		case UI_ID_DELETE:
+			ED_undo_push(C, "");
+			break;
+		case UI_ID_RENAME:
+			break;
+		case UI_ID_ADD_NEW:
+			/* XXX not implemented */
+			break;
+		case UI_ID_OPEN:
+			/* XXX not implemented */
+			break;
+		case UI_ID_ALONE:
+			/* XXX not implemented */
+			break;
+		case UI_ID_PIN:
+			break;
+	}
+}
+
+static void scene_idpoin_handle(bContext *C, ID *id, int event)
+{
+	
+	switch(event) {
+		case UI_ID_BROWSE:
+			/* exception: can't set screens inside of area/region handers */
+			WM_event_add_notifier(C, NC_SCENE|ND_SCENEBROWSE, id);
+			break;
+		case UI_ID_DELETE:
+			ED_undo_push(C, "");
+			break;
+		case UI_ID_RENAME:
+			break;
+		case UI_ID_ADD_NEW:
+			/* XXX not implemented */
+			break;
+		case UI_ID_OPEN:
+			/* XXX not implemented */
+			break;
+		case UI_ID_ALONE:
+			/* XXX not implemented */
+			break;
+		case UI_ID_PIN:
+			break;
 	}
 }
 
 
 void info_header_buttons(const bContext *C, ARegion *ar)
 {
+	wmWindow *win= CTX_wm_window(C);
+	bScreen *screen= CTX_wm_screen(C);
 	ScrArea *sa= CTX_wm_area(C);
+	SpaceInfo *si= sa->spacedata.first;
 	uiBlock *block;
 	int xco, yco= 3;
 	
@@ -139,13 +201,25 @@ void info_header_buttons(const bContext *C, ARegion *ar)
 		xmax= GetButStringLength("Help");
 		uiDefPulldownBut(block, dummy_viewmenu, NULL, "Help",	xco, yco, xmax-3, 22, "");
 		xco+= xmax;
-		
-		
-		
 	}
 	
 	uiBlockSetEmboss(block, UI_EMBOSS);
+	
+	if(screen->full==NULL) {
+		si->screen= win->screen;
+		xco= uiDefIDPoinButs(block, CTX_data_main(C), NULL, (ID**)&si->screen, ID_SCR, NULL, xco, yco,
+						 screen_idpoin_handle, UI_ID_BROWSE|UI_ID_RENAME|UI_ID_ADD_NEW|UI_ID_DELETE);
+		xco += 8;
+		si->scene= screen->scene;
+		xco= uiDefIDPoinButs(block, CTX_data_main(C), NULL, (ID**)&si->scene, ID_SCE, NULL, xco, yco,
+							 scene_idpoin_handle, UI_ID_BROWSE|UI_ID_RENAME|UI_ID_ADD_NEW|UI_ID_DELETE);
+		xco += 8;
+	}	
 
+	if(WM_jobs_test(CTX_wm_manager(C), CTX_data_scene(C))) {
+		uiDefIconTextBut(block, BUT, B_STOPRENDER, ICON_REC, "Render", xco+5,yco,75,19, NULL, 0.0f, 0.0f, 0, 0, "Stop rendering");
+	}
+	
 	/* always as last  */
 	UI_view2d_totRect_set(&ar->v2d, xco+XIC+80, ar->v2d.tot.ymax-ar->v2d.tot.ymin);
 	

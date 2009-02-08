@@ -224,7 +224,7 @@ behaviour, though it may not be the best in practice.
 #define V_DECLARE(vec) int _##vec##_count=0; void *_##vec##_tmp
 
 /*this returns the entire size of the array, including any buffering.*/
-#define V_SIZE(vec) ((vec)==NULL ? 0 : MEM_allocN_len(vec) / sizeof(*vec))
+#define V_SIZE(vec) ((signed int)((vec)==NULL ? 0 : MEM_allocN_len(vec) / sizeof(*vec)))
 
 /*this returns the logical size of the array, not including buffering.*/
 #define V_COUNT(vec) _##vec##_count

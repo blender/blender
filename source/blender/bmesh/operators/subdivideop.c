@@ -4,6 +4,7 @@
 
 #include "BLI_arithb.h"
 #include "BLI_rand.h"
+#include "BLI_ghash.h"
 
 #include "DNA_object_types.h"
 
@@ -11,6 +12,7 @@
 
 #include "bmesh.h"
 #include "mesh_intern.h"
+#include "subdivideop.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -18,8 +20,11 @@
 #include <math.h>
 
 #define SUBD_SPLIT	1
-#define FACE_NEW	1
-#define MAX_FACE	800
+
+/*I don't think new faces are flagged, currently, but
+  better safe than sorry.*/
+#define FACE_NEW	2
+#define FACE_CUSTOMFILL	4
 
 /*stuff for the flag paramter.  note that
   what used to live in "beauty" and
@@ -29,25 +34,9 @@
   collision).*/
 #define SELTYPE_INNER	128
 
-
 /*
 NOTE: beauty has been renamed to flag!
 */
-
-/*
-note: this is a pattern-based edge subdivider.
-it tries to match a pattern to edge selections on faces,
-then executes functions to cut them.
-*/
-typedef struct subdpattern {
-	int seledges[20]; //selected edges mask, for splitting
-
-	/*verts starts at the first new vert cut, not the first vert in the
-	  face*/
-	void (*connectexec)(BMesh *bm, BMFace *face, BMVert **verts, 
-		            int numcuts, int flag, float rad);
-	int len; /*total number of verts*/
-} subdpattern;
 
 /*generic subdivision rules:
   
@@ -256,6 +245,7 @@ v4---v3---v2
 v5---v0---v1
 
 */
+
 static void q_2edge_op_split(BMesh *bm, BMFace *face, BMVert **vlist, 
 			     int numcuts, int flag, float rad) {
 	BMFace *nf;
@@ -587,19 +577,20 @@ typedef struct subd_facedata {
 
 void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 {
-	BMOpSlot *einput;
-	BMEdge *edge, **edges = NULL;
+	V_DECLARE(facedata);
+	V_DECLARE(verts);
 	V_DECLARE(edges);
+	BMOpSlot *einput, *finput, *pinput;
+	BMEdge *edge, **edges = NULL;
 	BMFace *face;
 	BMLoop *nl;
 	BMVert **verts = NULL;
-	V_DECLARE(verts);
 	BMIter fiter, liter;
+	GHash *customfill_hash; 
 	subdpattern *pat;
-	float rad;
-	int i, j, matched, a, b, numcuts, flag, selaction;
 	subd_facedata *facedata = NULL;
-	V_DECLARE(facedata);
+	float rad;
+	int i, j, matched, a, b, numcuts, flag, selaction, fillindex;
 	
 	BMO_Flag_Buffer(bmesh, op, BMOP_ESUBDIVIDE_EDGES, SUBD_SPLIT);
 	
@@ -618,12 +609,26 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 		BMO_SetFlag(bmesh, edge, SUBD_SPLIT);
 	}
 	
+	customfill_hash = BLI_ghash_new(BLI_ghashutil_ptrhash,
+		                        BLI_ghashutil_ptrcmp);
+	
+	/*process custom fill patterns*/
+	finput = BMO_GetSlot(op, BMOP_ESUBDIVIDE_CUSTOMFILL_FACES);
+	pinput = BMO_GetSlot(op, BMOP_ESUBDIVIDE_CUSTOMFILL_PATTERNS);
+	for (i=0; i<finput->len; i++) {
+		face = ((BMFace**)finput->data.p)[i];
+		BMO_SetFlag(bmesh, face, FACE_CUSTOMFILL);
+		BLI_ghash_insert(customfill_hash, face,
+			        ((void**)pinput->data.p)[i]);
+	}
+	
 	for (face=BMIter_New(&fiter, bmesh, BM_FACES, NULL);
 	     face; face=BMIter_Step(&fiter)) {
 		/*figure out which pattern to use*/
-		i = 0;
+
 		V_RESET(edges);
 		V_RESET(verts);
+		i = 0;
 		for (nl=BMIter_New(&liter, bmesh, BM_LOOPS_OF_FACE, face);
 		     nl; nl=BMIter_Step(&liter)) {
 			V_GROW(edges);
@@ -631,6 +636,35 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 			edges[i] = nl->e;
 			verts[i] = nl->v;
 			i++;
+		}
+
+		if (BMO_TestFlag(bmesh, face, FACE_CUSTOMFILL)) {
+			pat = BLI_ghash_lookup(customfill_hash, face);
+			for (i=0; i<pat->len; i++) {
+				matched = 1;
+				for (j=0; j<pat->len; j++) {
+					a = (j + i) % pat->len;
+					if ((!!BMO_TestFlag(bmesh, edges[a], SUBD_SPLIT))
+						!= (!!pat->seledges[j])) {
+							matched = 0;
+							break;
+					}
+				}
+				if (matched) {
+					V_GROW(facedata);
+					b = V_COUNT(facedata)-1;
+					facedata[b].pat = pat;
+					facedata[b].start = verts[i];
+					break;
+				}
+			}
+			if (!matched) {
+				/*if no match, append null element to array.*/
+				V_GROW(facedata);
+			}
+
+			/*obvously don't test for other patterns matching*/
+			continue;
 		}
 
 		for (i=0; i<PLEN; i++) {
@@ -677,7 +711,7 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 		/*figure out which pattern to use*/
 		V_RESET(verts);
 		if (BMO_TestFlag(bmesh, face, SUBD_SPLIT) == 0) continue;
-		
+
 		pat = facedata[i].pat;
 		if (!pat) continue;
 

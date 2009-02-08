@@ -32,7 +32,7 @@
 #include "DNA_listBase.h"
 #include "DNA_screen_types.h"
 #include "DNA_windowmanager_types.h"
-#include "DNA_userdef_types.h"	/* U.flag & TWOBUTTONMOUSE */
+#include "DNA_userdef_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -47,7 +47,6 @@
 #include "BKE_report.h"
 #include "BKE_utildefines.h"
 
-#include "ED_anim_api.h"
 #include "ED_screen.h"
 #include "ED_space_api.h"
 #include "ED_util.h"
@@ -131,20 +130,29 @@ void wm_event_do_notifiers(bContext *C)
 	if(wm==NULL)
 		return;
 	
-	/* cache & catch WM level notifiers, such as frame change */
-	/* XXX todo, multiwindow scenes */
+	/* cache & catch WM level notifiers, such as frame change, scene/screen set */
 	for(win= wm->windows.first; win; win= win->next) {
 		int do_anim= 0;
 		
+		CTX_wm_window_set(C, win);
+		
 		for(note= wm->queue.first; note; note= note->next) {
-			if(note->window==win)
-				if(note->category==NC_SCENE)
-					if(note->data==ND_FRAME)
+			if(note->window==win) {
+				if(note->category==NC_SCREEN) {
+					if(note->data==ND_SCREENBROWSE)
+						ED_screen_set(C, note->reference);	// XXX hrms, think this over!
+				}
+				else if(note->category==NC_SCENE) {
+					if(note->data==ND_SCENEBROWSE) {
+						ED_screen_set_scene(C, note->reference);	// XXX hrms, think this over!
+					}
+					else if(note->data==ND_FRAME)
 						do_anim= 1;
+				}
+			}
 		}
 		if(do_anim) {
 			/* depsgraph gets called, might send more notifiers */
-			CTX_wm_window_set(C, win);
 			ED_update_for_newframe(C, 1);
 		}
 	}

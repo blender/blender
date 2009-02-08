@@ -124,8 +124,10 @@ static int node_select_exec(bContext *C, wmOperator *op)
 			break;
 	}
 
-	WM_event_add_notifier(C, NC_SCENE|ND_NODES, NULL); /* Do we need to pass the scene? */
-
+	/* need refresh/a notifier vs compo notifier */
+	// XXX WM_event_add_notifier(C, NC_SCENE|ND_NODES, NULL); /* Do we need to pass the scene? */
+	ED_region_tag_redraw(ar);
+	
 	/* allow tweak event to work too */
 	return OPERATOR_FINISHED|OPERATOR_PASS_THROUGH;
 }

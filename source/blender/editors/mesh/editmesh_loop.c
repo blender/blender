@@ -52,6 +52,7 @@ editmesh_loop: tools with own drawing subloops, select, knife, subdiv
 #include "BLI_editVert.h"
 #include "BLI_ghash.h"
 
+#include "BKE_context.h"
 #include "BKE_depsgraph.h"
 #include "BKE_displist.h"
 #include "BKE_global.h"
@@ -64,9 +65,14 @@ editmesh_loop: tools with own drawing subloops, select, knife, subdiv
 
 #include "BIF_gl.h"
 
+#include "RNA_access.h"
+#include "RNA_define.h"
+
+#include "WM_api.h"
 #include "WM_types.h"
 
 #include "ED_mesh.h"
+#include "ED_screen.h"
 #include "ED_view3d.h"
 
 #include "mesh_intern.h"
@@ -75,7 +81,6 @@ editmesh_loop: tools with own drawing subloops, select, knife, subdiv
 static void BIF_undo_push() {}
 static void BIF_undo() {}
 static void error() {}
-static int pupmenu() {return 0;}
 static int qtest() {return 0;}
 /* **** XXX ******** */
 
@@ -427,11 +432,6 @@ typedef struct CutCurve {
 	float  y;
 } CutCurve;
 
-static CutCurve *get_mouse_trail(int *len, char mode, char cutmode, struct GHash *gh)
-{
-	return NULL;	// XXX
-}
-
 
 /* ******************************************************************** */
 /* Knife Subdivide Tool.  Subdivides edges intersected by a mouse trail
@@ -444,94 +444,24 @@ static CutCurve *get_mouse_trail(int *len, char mode, char cutmode, struct GHash
 		ESC cancels as expected.
    
 	Contributed by Robert Wenzlaff (Det. Thorn).
+
+    2.5 revamp:
+    - non modal (no menu before cutting)
+    - exit on mouse release
+    - polygon/segment drawing can become handled by WM cb later
+
 */
 
-/* prototype */
-static float seg_intersect(struct EditEdge * e, CutCurve *c, int len, char mode, struct GHash *gh);
+#define KNIFE_EXACT		1
+#define KNIFE_MIDPOINT	2
+#define KNIFE_MULTICUT	3
 
-void KnifeSubdivide(Object *obedit, EditMesh *em, char mode)
-{
-	EditEdge *eed;
-	EditVert *eve;
-	CutCurve *curve;		
-	
-	struct GHash *gh;
-	int len=0;
-	float isect=0.0;
-	short numcuts=1;
-	float  *scr, co[4];
-	
-	if (em==NULL) return;
-
-	if (EM_nvertices_selected(em) < 2) {
-		error("No edges are selected to operate on");
-		return;
-	}
-
-	if (mode==KNIFE_PROMPT) {
-		short val= pupmenu("Cut Type %t|Exact Line%x1|Midpoints%x2|Multicut%x3");
-		if(val<1) return;
-		mode = val;	// warning, mode is char, pupmenu returns -1 with ESC
-	}
-
-	if(mode == KNIFE_MULTICUT) {
-// XXX		if(button(&numcuts, 2, 128, "Number of Cuts:")==0) return;
-	}
-
-	/*  XXX Set a knife cursor here */
-	
-	for(eed=em->edges.first; eed; eed= eed->next) eed->tmp.fp = 0.0; /*store percentage of edge cut for KNIFE_EXACT here.*/
-	
-	/*the floating point coordinates of verts in screen space will be stored in a hash table according to the vertices pointer*/
-	gh = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
-	for(eve=em->verts.first; eve; eve=eve->next){
-		scr = MEM_mallocN(sizeof(float)*2, "Vertex Screen Coordinates");
-		VECCOPY(co, eve->co);
-		co[3]= 1.0;
-//		Mat4MulVec4fl(obedit->obmat, co);
-// XXX		project_float(co,scr);
-		BLI_ghash_insert(gh, eve, scr);
-		eve->f1 = 0; /*store vertex intersection flag here*/
-	
-	}
-	
-	curve=get_mouse_trail(&len, TRAIL_MIXED, mode, gh);
-	
-	if (curve && len && mode){
-		eed= em->edges.first;		
-		while(eed) {	
-			if( eed->v1->f & eed->v2->f & SELECT ){		// NOTE: uses vertex select, subdiv doesnt do edges yet
-				isect=seg_intersect(eed, curve, len, mode, gh);
-				if (isect) eed->f2= 1;
-				else eed->f2=0;
-				eed->tmp.fp= isect;
-				//printf("isect=%i\n", isect);
-			}
-			else {
-				eed->f2=0;
-				eed->f1=0;
-			}
-			eed= eed->next;
-		}
-		
-		if(mode==KNIFE_EXACT) esubdivideflag(obedit, em, SELECT, 0, B_KNIFE|B_PERCENTSUBD,1,SUBDIV_SELECT_ORIG);
-		else if (mode==KNIFE_MIDPOINT) esubdivideflag(obedit, em, SELECT, 0, B_KNIFE,1,SUBDIV_SELECT_ORIG);
-		else if (mode==KNIFE_MULTICUT) esubdivideflag(obedit, em, SELECT, 0, B_KNIFE,numcuts,SUBDIV_SELECT_ORIG);
-
-		eed=em->edges.first;
-		while(eed){
-			eed->f2=0;
-			eed->f1=0;
-			eed=eed->next;
-		}	
-	}
-	/* Return to old cursor and flags...*/
-	
-	BLI_ghash_free(gh, NULL, (GHashValFreeFP)MEM_freeN);
-	if (curve) MEM_freeN(curve);
-
-	BIF_undo_push("Knife");
-}
+static EnumPropertyItem knife_items[]= {
+	{KNIFE_EXACT, "EXACT", "Exact", ""},
+	{KNIFE_MIDPOINT, "MIDPOINTS", "Midpoints", ""},
+	{KNIFE_MULTICUT, "MULTICUT", "Multicut", ""},
+	{0, NULL, NULL}
+};
 
 /* seg_intersect() Determines if and where a mouse trail intersects an EditEdge */
 
@@ -547,7 +477,7 @@ static float seg_intersect(EditEdge *e, CutCurve *c, int len, char mode, struct 
 	int  i;
 	
 	//threshold = 0.000001; /*tolerance for vertex intersection*/
-// XXX	threshold = scene->toolsettings->select_thresh / 100;
+	// XXX	threshold = scene->toolsettings->select_thresh / 100;
 	
 	/* Get screen coords of verts */
 	scr = BLI_ghash_lookup(gh, e->v1);
@@ -612,7 +542,7 @@ static float seg_intersect(EditEdge *e, CutCurve *c, int len, char mode, struct 
 		
 		/* Perp. Distance from point to line */
 		if (m2!=MAXSLOPE) dist=(y12-m2*x12-b2);/* /sqrt(m2*m2+1); Only looking for */
-						       /* change in sign.  Skip extra math */	
+			/* change in sign.  Skip extra math */	
 		else dist=x22-x12;	
 		
 		if (i==0) lastdist=dist;
@@ -635,7 +565,7 @@ static float seg_intersect(EditEdge *e, CutCurve *c, int len, char mode, struct 
 			
 			/* Found an intersect,  calc intersect point */
 			if (m1==m2){ /* co-incident lines */
-						/* cut at 50% of overlap area*/
+				/* cut at 50% of overlap area*/
 				x1max=MAX2(x11, x12);
 				x1min=MIN2(x11, x12);
 				xi= (MIN2(x2max,x1max)+MAX2(x2min,x1min))/2.0;	
@@ -679,6 +609,7 @@ static float seg_intersect(EditEdge *e, CutCurve *c, int len, char mode, struct 
 				if ((m2<=1.0)&&(m2>=-1.0)) perc = (xi-x21)/(x22-x21);	
 				else perc=(yi-y21)/(y22-y21); /*lower slope more accurate*/
 				//isect=32768.0*(perc+0.0000153); /* Percentage in 1/32768ths */
+				
 				break;
 			}
 		}	
@@ -687,27 +618,112 @@ static float seg_intersect(EditEdge *e, CutCurve *c, int len, char mode, struct 
 	return(perc);
 } 
 
-void LoopMenu(Object *obedit, EditMesh *em) /* Called by KKey */
+
+#define MAX_CUTS 256
+
+static int knife_cut_exec(bContext *C, wmOperator *op)
 {
-	short ret;
+	Object *obedit= CTX_data_edit_object(C);
+	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
+	ARegion *ar= CTX_wm_region(C);
+	EditEdge *eed;
+	EditVert *eve;
+	CutCurve curve[MAX_CUTS];
+	struct GHash *gh;
+	float isect=0.0;
+	float  *scr, co[4];
+	int len=0;
+	short numcuts=1, mode= RNA_int_get(op->ptr, "type");
 	
-	ret=pupmenu("Loop/Cut Menu %t|Loop Cut (CTRL-R)%x2|"
-				"Knife (Exact) %x3|Knife (Midpoints)%x4|Knife (Multicut)%x5");
-				
-	switch (ret){
-		case 2:
-			CutEdgeloop(obedit, em, 1);
-			break;
-		case 3: 
-			KnifeSubdivide(obedit, em, KNIFE_EXACT);
-			break;
-		case 4:
-			KnifeSubdivide(obedit, em, KNIFE_MIDPOINT);
-			break;
-		case 5:
-			KnifeSubdivide(obedit, em, KNIFE_MULTICUT);
-			break;
+	if (EM_nvertices_selected(em) < 2) {
+		error("No edges are selected to operate on");
+		return OPERATOR_CANCELLED;;
 	}
 
+	/* get the cut curve */
+	RNA_BEGIN(op->ptr, itemptr, "path") {
+		
+		RNA_float_get_array(&itemptr, "loc", (float *)&curve[len]);
+		len++;
+		if(len>= MAX_CUTS) break;
+	}
+	RNA_END;
+	
+	if(len<2) return OPERATOR_CANCELLED;
+	
+	/*store percentage of edge cut for KNIFE_EXACT here.*/
+	for(eed=em->edges.first; eed; eed= eed->next) 
+		eed->tmp.fp = 0.0; 
+	
+	/*the floating point coordinates of verts in screen space will be stored in a hash table according to the vertices pointer*/
+	gh = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
+	for(eve=em->verts.first; eve; eve=eve->next){
+		scr = MEM_mallocN(sizeof(float)*2, "Vertex Screen Coordinates");
+		VECCOPY(co, eve->co);
+		co[3]= 1.0;
+		Mat4MulVec4fl(obedit->obmat, co);
+		project_float(ar, co, scr);
+		BLI_ghash_insert(gh, eve, scr);
+		eve->f1 = 0; /*store vertex intersection flag here*/
+	
+	}
+	
+	eed= em->edges.first;		
+	while(eed) {	
+		if( eed->v1->f & eed->v2->f & SELECT ){		// NOTE: uses vertex select, subdiv doesnt do edges yet
+			isect= seg_intersect(eed, curve, len, mode, gh);
+			if (isect!=0.0f) eed->f2= 1;
+			else eed->f2=0;
+			eed->tmp.fp= isect;
+			//printf("isect=%i\n", isect);
+		}
+		else {
+			eed->f2=0;
+			eed->f1=0;
+		}
+		eed= eed->next;
+	}
+	
+	if (mode==KNIFE_MIDPOINT) esubdivideflag(obedit, em, SELECT, 0, B_KNIFE, 1, SUBDIV_SELECT_ORIG);
+	else if (mode==KNIFE_MULTICUT) esubdivideflag(obedit, em, SELECT, 0, B_KNIFE, numcuts, SUBDIV_SELECT_ORIG);
+	else esubdivideflag(obedit, em, SELECT, 0, B_KNIFE|B_PERCENTSUBD, 1, SUBDIV_SELECT_ORIG);
+
+	eed=em->edges.first;
+	while(eed){
+		eed->f2=0;
+		eed->f1=0;
+		eed=eed->next;
+	}	
+	
+	BLI_ghash_free(gh, NULL, (GHashValFreeFP)MEM_freeN);
+	
+	return OPERATOR_FINISHED;
 }
+
+
+void MESH_OT_knife_cut(wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+	
+	ot->name= "Knife Cut";
+	ot->idname= "MESH_OT_knife_cut";
+	
+	ot->invoke= WM_gesture_lines_invoke;
+	ot->modal= WM_gesture_lines_modal;
+	ot->exec= knife_cut_exec;
+	
+	ot->poll= ED_operator_editmesh;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	RNA_def_enum(ot->srna, "type", knife_items, KNIFE_EXACT, "Type", "");
+	prop= RNA_def_property(ot->srna, "path", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_struct_runtime(prop, &RNA_OperatorMousePath);
+	
+	/* internal */
+	RNA_def_int(ot->srna, "cursor", BC_KNIFECURSOR, 0, INT_MAX, "Cursor", "", 0, INT_MAX);
+}
+
+/* ******************************************************* */
 

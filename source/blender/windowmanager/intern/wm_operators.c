@@ -201,9 +201,7 @@ void WM_operator_properties_free(PointerRNA *ptr)
 int WM_menu_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	PropertyRNA *prop= RNA_struct_find_property(op->ptr, "type");
-	const EnumPropertyItem *item;
-	int totitem, i, len= strlen(op->type->name) + 8;
-	char *menu, *p;
+	uiMenuItem *head;
 
 	if(prop==NULL) {
 		printf("WM_menu_invoke: %s has no \"type\" enum property\n", op->type->idname);
@@ -212,34 +210,24 @@ int WM_menu_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		printf("WM_menu_invoke: %s \"type\" is not an enum property\n", op->type->idname);
 	}
 	else {
-		RNA_property_enum_items(op->ptr, prop, &item, &totitem);
-		
-		for (i=0; i<totitem; i++)
-			len+= strlen(item[i].name) + 8;
-		
-		menu= MEM_callocN(len, "string");
-		
-		p= menu + sprintf(menu, "%s %%t", op->type->name);
-		for (i=0; i<totitem; i++)
-			p+= sprintf(p, "|%s %%x%d", item[i].name, item[i].value);
-		
-		uiPupMenuOperator(C, totitem/30, op, "type", menu);
-		MEM_freeN(menu);
-		
-		return OPERATOR_RUNNING_MODAL;
+		head= uiPupMenuBegin(op->type->name, 0);
+		uiMenuItemsEnumO(head, op->type->idname, "type");
+		uiPupMenuEnd(C, head);
 	}
+
 	return OPERATOR_CANCELLED;
 }
 
 /* op->invoke */
 int WM_operator_confirm(bContext *C, wmOperator *op, wmEvent *event)
 {
-	char buf[512];
+	uiMenuItem *head;
+
+	head= uiPupMenuBegin("OK?", ICON_HELP);
+	uiMenuItemO(head, 0, op->type->idname);
+	uiPupMenuEnd(C, head);
 	
-	sprintf(buf, "OK? %%i%d%%t|%s", ICON_HELP, op->type->name);
-	uiPupMenuOperator(C, 0, op, NULL, buf);
-	
-	return OPERATOR_RUNNING_MODAL;
+	return OPERATOR_CANCELLED;
 }
 
 /* op->invoke, opens fileselect if filename property not set, otherwise executes */
@@ -291,27 +279,20 @@ static void WM_OT_save_homefile(wmOperatorType *ot)
 	ot->poll= WM_operator_winactive;
 }
 
-/* ********* recent file *********** */
-
-static void recent_filelist(char *pup)
+static void WM_OT_read_homefile(wmOperatorType *ot)
 {
-	struct RecentFile *recent;
-	int i, ofs= 0;
-	char *p;
+	ot->name= "Reload Start-Up File";
+	ot->idname= "WM_OT_read_homefile";
 	
-	p= pup + sprintf(pup, "Open Recent%%t");
+	ot->invoke= WM_operator_confirm;
+	ot->exec= WM_read_homefile;
+	ot->poll= WM_operator_winactive;
 	
-	if (G.sce[0]) {
-		p+= sprintf(p, "|%s %%x%d", G.sce, 1);
-		ofs = 1;
-	}
-	
-	for (recent = G.recent_files.first, i=0; (i<U.recent_files) && (recent); recent = recent->next, i++) {
-		if (strcmp(recent->filename, G.sce)) {
-			p+= sprintf(p, "|%s %%x%d", recent->filename, i+ofs+1);
-		}
-	}
+	RNA_def_boolean(ot->srna, "factory", 0, "Factory Settings", "");
 }
+
+
+/* ********* recent file *********** */
 
 static int recentfile_exec(bContext *C, wmOperator *op)
 {
@@ -338,12 +319,24 @@ static int recentfile_exec(bContext *C, wmOperator *op)
 
 static int wm_recentfile_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	char pup[2048];
+	struct RecentFile *recent;
+	uiMenuItem *head;
+	int i, ofs= 0;
+
+	head= uiPupMenuBegin("Open Recent", 0);
+
+	if(G.sce[0]) {
+		uiMenuItemIntO(head, G.sce, 0, op->type->idname, "nr", 1);
+		ofs = 1;
+	}
 	
-	recent_filelist(pup);
-	uiPupMenuOperator(C, 0, op, "nr", pup);
+	for(recent = G.recent_files.first, i=0; (i<U.recent_files) && (recent); recent = recent->next, i++)
+		if(strcmp(recent->filename, G.sce))
+			uiMenuItemIntO(head, recent->filename, 0, op->type->idname, "nr", i+ofs+1);
+
+	uiPupMenuEnd(C, head);
 	
-	return OPERATOR_RUNNING_MODAL;
+	return OPERATOR_CANCELLED;
 }
 
 static void WM_OT_open_recentfile(wmOperatorType *ot)
@@ -364,7 +357,8 @@ static int wm_mainfile_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	SpaceFile *sfile;
 	
-	ED_screen_full_newspace(C, CTX_wm_area(C), SPACE_FILE);
+	if(0==ED_screen_full_newspace(C, CTX_wm_area(C), SPACE_FILE))
+		return OPERATOR_CANCELLED;
 
 	/* settings for filebrowser */
 	sfile= (SpaceFile*)CTX_wm_space_data(C);
@@ -564,6 +558,8 @@ static void wm_gesture_end(bContext *C, wmOperator *op)
 
 	ED_area_tag_redraw(CTX_wm_area(C));
 	
+	if( RNA_struct_find_property(op->ptr, "cursor") )
+		WM_cursor_restore(CTX_wm_window(C));
 }
 
 int WM_border_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
@@ -815,6 +811,24 @@ int WM_gesture_lasso_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	
 	wm_gesture_tag_redraw(C);
 	
+	if( RNA_struct_find_property(op->ptr, "cursor") )
+		WM_cursor_modal(CTX_wm_window(C), RNA_int_get(op->ptr, "cursor"));
+	
+	return OPERATOR_RUNNING_MODAL;
+}
+
+int WM_gesture_lines_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	op->customdata= WM_gesture_new(C, event, WM_GESTURE_LINES);
+	
+	/* add modal handler */
+	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
+	
+	wm_gesture_tag_redraw(C);
+	
+	if( RNA_struct_find_property(op->ptr, "cursor") )
+		WM_cursor_modal(CTX_wm_window(C), RNA_int_get(op->ptr, "cursor"));
+	
 	return OPERATOR_RUNNING_MODAL;
 }
 
@@ -882,6 +896,11 @@ int WM_gesture_lasso_modal(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
+int WM_gesture_lines_modal(bContext *C, wmOperator *op, wmEvent *event)
+{
+	return WM_gesture_lasso_modal(C, op, event);
+}
+
 #if 0
 /* template to copy from */
 
@@ -932,7 +951,7 @@ static void wm_radial_control_paint(bContext *C, int x, int y, void *customdata)
 {
 	wmRadialControl *rc = (wmRadialControl*)customdata;
 	ARegion *ar = CTX_wm_region(C);
-	float r1, r2, r3, angle;
+	float r1=0.0f, r2=0.0f, r3=0.0f, angle=0.0f;
 
 	/* Keep cursor in the original place */
 	x = rc->initial_mouse[0] - ar->winrct.xmin;
@@ -1165,6 +1184,7 @@ void wm_operatortype_free(void)
 void wm_operatortype_init(void)
 {
 	WM_operatortype_append(WM_OT_window_duplicate);
+	WM_operatortype_append(WM_OT_read_homefile);
 	WM_operatortype_append(WM_OT_save_homefile);
 	WM_operatortype_append(WM_OT_window_fullscreen_toggle);
 	WM_operatortype_append(WM_OT_exit_blender);
@@ -1183,7 +1203,8 @@ void wm_window_keymap(wmWindowManager *wm)
 	WM_keymap_verify_item(keymap, "WM_OT_jobs_timer", TIMERJOBS, KM_ANY, KM_ANY, 0);
 	
 	/* note, this doesn't replace existing keymap items */
-	WM_keymap_verify_item(keymap, "WM_OT_window_duplicate", AKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
+	WM_keymap_verify_item(keymap, "WM_OT_window_duplicate", WKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
+	WM_keymap_verify_item(keymap, "WM_OT_read_homefile", XKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_verify_item(keymap, "WM_OT_save_homefile", UKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_verify_item(keymap, "WM_OT_open_recentfile", OKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_verify_item(keymap, "WM_OT_open_mainfile", F1KEY, KM_PRESS, 0, 0);

@@ -100,6 +100,7 @@ int ED_do_pose_selectbuffer(struct Scene *scene, struct Base *base, unsigned int
 void mouse_armature(struct bContext *C, short mval[2], int extend);
 struct Bone *get_indexed_bone (struct Object *ob, int index);
 float ED_rollBoneToVector(EditBone *bone, float new_up_axis[3]);
+EditBone *ED_armature_bone_get_mirrored(struct ListBase *edbo, EditBone *ebo); // XXX this is needed for populating the context iterators
 
 void transform_armature_mirror_update(struct Object *obedit);
 void clear_armature(struct Scene *scene, struct Object *ob, char mode);

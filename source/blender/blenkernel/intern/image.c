@@ -1797,14 +1797,30 @@ static ImBuf *image_get_ibuf_multilayer(Image *ima, ImageUser *iuser)
 
 /* showing RGBA result itself (from compo/sequence) or
    like exr, using layers etc */
+/* always returns a single ibuf, also during render progress */
 static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser)
 {
+	Render *re;
 	RenderResult *rr= NULL;
 	
-	if(iuser->scene)
-		 rr= RE_GetResult(RE_GetRender(iuser->scene->id.name));
+	if(iuser->scene) {
+		re= RE_GetRender(iuser->scene->id.name);
+		rr= RE_GetResult(re);
+	}
+	if(rr==NULL) return NULL;
 	
-	if(rr) {
+	if(RE_RenderInProgress(re)) {
+		ImBuf *ibuf= image_get_ibuf(ima, IMA_NO_INDEX, 0);
+		
+		/* make ibuf if needed, and initialize it */
+		/* this only gets called when mutex locked */
+		if(ibuf==NULL) {
+			ibuf= IMB_allocImBuf(rr->rectx, rr->recty, 32, IB_rect, 0);
+			image_assign_ibuf(ima, ibuf, IMA_NO_INDEX, 0);
+		}
+		return ibuf;
+	}
+	else {
 		RenderResult rres;
 		float *rectf;
 		unsigned int *rect;

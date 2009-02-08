@@ -878,6 +878,7 @@ enum {
 /* specific defines per space should have higher define values */
 
 struct bTheme;
+struct PointerRNA;
 
 // THE CODERS API FOR THEMES:
 
@@ -919,6 +920,8 @@ void	UI_ColorPtrBlendShade3ubv(char *cp1, char *cp2, float fac, int offset);
 // get a 3 byte color, blended and shaded between two other char color pointers
 void	UI_GetColorPtrBlendShade3ubv(char *cp1, char *cp2, char *col, float fac, int offset);
 
+// get pointer from RNA pointer
+int		UI_GetIconRNA(struct PointerRNA *ptr);
 
 struct ScrArea;
 

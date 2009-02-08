@@ -115,7 +115,7 @@ void outliner_header_buttons(const struct bContext *C, struct ARegion *ar);
 /* outliner.c */
 void outliner_free_tree(struct ListBase *lb);
 void outliner_operation_menu(struct Scene *scene, struct ARegion *ar, struct SpaceOops *soops);
-void outliner_select(struct ARegion *ar, struct SpaceOops *so);
+void outliner_select(struct SpaceOops *soops, struct ListBase *lb, int *index, short *selecting);
 void draw_outliner(const struct bContext *C);
 
 void OUTLINER_OT_activate_click(struct wmOperatorType *ot);

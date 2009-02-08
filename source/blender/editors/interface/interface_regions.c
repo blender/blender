@@ -635,6 +635,10 @@ uiPopupBlockHandle *ui_popup_block_create(bContext *C, ARegion *butregion, uiBut
 	/* create handle */
 	handle= MEM_callocN(sizeof(uiPopupBlockHandle), "uiPopupBlockHandle");
 
+	/* store context for operator */
+	handle->ctx_area= CTX_wm_area(C);
+	handle->ctx_region= CTX_wm_region(C);
+	
 	/* create area region */
 	ar= ui_add_temporary_region(CTX_wm_screen(C));
 
@@ -1657,13 +1661,14 @@ static uiBlock *ui_block_func_MENU_ITEM(bContext *C, uiPopupBlockHandle *handle,
 #define MENU_ITEM_OPNAME			2
 #define MENU_ITEM_OPNAME_BOOL		3
 #define MENU_ITEM_OPNAME_ENUM		4
-#define MENU_ITEM_OPNAME_FLOAT		5
-#define MENU_ITEM_RNA_BOOL			6
-#define MENU_ITEM_RNA_ENUM			7
-#define MENU_ITEM_LEVEL				8
-#define MENU_ITEM_LEVEL_OPNAME_ENUM	9
-#define MENU_ITEM_LEVEL_RNA_ENUM	10
-#define MENU_ITEM_SEPARATOR			11
+#define MENU_ITEM_OPNAME_INT		5
+#define MENU_ITEM_OPNAME_FLOAT		6
+#define MENU_ITEM_RNA_BOOL			7
+#define MENU_ITEM_RNA_ENUM			8
+#define MENU_ITEM_LEVEL				9
+#define MENU_ITEM_LEVEL_OPNAME_ENUM	10
+#define MENU_ITEM_LEVEL_RNA_ENUM	11
+#define MENU_ITEM_SEPARATOR			12
 
 struct uiMenuItem {
 	struct uiMenuItem *next, *prev;
@@ -1675,7 +1680,7 @@ struct uiMenuItem {
 	char *opname;	/* static string */
 	char *propname;	/* static string */
 	
-	int retval, enumval, boolval;
+	int retval, enumval, boolval, intval;
 	float fltval;
 	int opcontext;
 	uiMenuHandleFunc eventfunc;
@@ -1762,15 +1767,15 @@ static uiBlock *ui_block_func_MENU_ITEM(bContext *C, uiPopupBlockHandle *handle,
 	block->themecol= TH_MENU_ITEM;
 	block->direction= UI_DOWN;
 
-	width= 50; // fixed with, uiPopupBoundsBlock will compute actual width
+	width= 50; // fixed with, uiMenuPopupBoundsBlock will compute actual width
 
 	for(item= head->items.first; item; item= item->next) {
 		if(0) height+= PUP_LABELH; // XXX sepr line
 		else height+= MENU_BUTTON_HEIGHT;
 	}
 
-	startx= info->mx;
-	starty= info->my-height+MENU_BUTTON_HEIGHT/2;
+	startx= 0;
+	starty= 0;
 	
 	/* here we go! */
 	if(head->name[0]) {
@@ -1819,7 +1824,7 @@ static uiBlock *ui_block_func_MENU_ITEM(bContext *C, uiPopupBlockHandle *handle,
 			y1 -= MENU_BUTTON_HEIGHT;
 		}
 		else if(item->type==MENU_ITEM_OPNAME_BOOL) {
-			but= uiDefIconTextButO(block, BUTM, item->opname, head->opcontext, item->icon, item->name, x1, y1, width+16, MENU_BUTTON_HEIGHT-1, "");
+			but= uiDefIconTextButO(block, BUTM, item->opname, item->opcontext, item->icon, item->name, x1, y1, width+16, MENU_BUTTON_HEIGHT-1, "");
 			RNA_boolean_set(uiButGetOperatorPtrRNA(but), item->propname, item->boolval);
 			
 			y1 -= MENU_BUTTON_HEIGHT;
@@ -1831,19 +1836,25 @@ static uiBlock *ui_block_func_MENU_ITEM(bContext *C, uiPopupBlockHandle *handle,
 			name= ui_menu_enumpropname(item->opname, item->propname, item->enumval);
 			BLI_strncpy(bname, name, sizeof(bname));
 			
-			but= uiDefIconTextButO(block, BUTM, item->opname, head->opcontext, item->icon, bname, x1, y1, width+16, MENU_BUTTON_HEIGHT-1, "");
+			but= uiDefIconTextButO(block, BUTM, item->opname, item->opcontext, item->icon, bname, x1, y1, width+16, MENU_BUTTON_HEIGHT-1, "");
 			RNA_enum_set(uiButGetOperatorPtrRNA(but), item->propname, item->enumval);
 			
 			y1 -= MENU_BUTTON_HEIGHT;
 		}
-		else if(item->type==MENU_ITEM_OPNAME_FLOAT) {
+		else if(item->type==MENU_ITEM_OPNAME_INT) {
 			but= uiDefIconTextButO(block, BUTM, item->opname, head->opcontext, item->icon, item->name, x1, y1, width+16, MENU_BUTTON_HEIGHT-1, "");
+			RNA_int_set(uiButGetOperatorPtrRNA(but), item->propname, item->intval);
+			
+			y1 -= MENU_BUTTON_HEIGHT;
+		}
+		else if(item->type==MENU_ITEM_OPNAME_FLOAT) {
+			but= uiDefIconTextButO(block, BUTM, item->opname, item->opcontext, item->icon, item->name, x1, y1, width+16, MENU_BUTTON_HEIGHT-1, "");
 			RNA_float_set(uiButGetOperatorPtrRNA(but), item->propname, item->fltval);
 			
 			y1 -= MENU_BUTTON_HEIGHT;
 		}
 		else if(item->type==MENU_ITEM_OPNAME) {
-			uiDefIconTextButO(block, BUTM, item->opname, head->opcontext, item->icon, NULL, x1, y1, width+16, MENU_BUTTON_HEIGHT-1, NULL);
+			uiDefIconTextButO(block, BUTM, item->opname, item->opcontext, item->icon, NULL, x1, y1, width+16, MENU_BUTTON_HEIGHT-1, NULL);
 			y1 -= MENU_BUTTON_HEIGHT;
 		}
 		else if(item->type==MENU_ITEM_RNA_BOOL) {
@@ -1890,7 +1901,8 @@ static uiBlock *ui_block_func_MENU_ITEM(bContext *C, uiPopupBlockHandle *handle,
 		uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_NUMSELECT|UI_BLOCK_RET_1);
 		uiBlockSetDirection(block, UI_DOWN);
 
-		uiPopupBoundsBlock(block, 1);
+		/* here we set an offset for the mouse position */
+		uiMenuPopupBoundsBlock(block, 1, 0, -height+MENU_BUTTON_HEIGHT/2);
 	}
 	else {
 		/* for a header menu we set the direction automatic */
@@ -1954,7 +1966,8 @@ static uiMenuItem *ui_menu_add_item(uiMenuItem *head, const char *name, int icon
 	else
 		item->icon= ICON_BLANK1;
 	item->retval= argval;
-	item->opcontext= WM_OP_EXEC_REGION_WIN; 
+	
+	item->opcontext= head->opcontext; 
 	
 	BLI_addtail(&head->items, item);
 	
@@ -1984,18 +1997,18 @@ void uiMenuItemVal(uiMenuItem *head, const char *name, int icon, int argval)
 }
 
 /* regular operator item */
-void uiMenuItemO(uiMenuItem *head, char *name, int icon)
+void uiMenuItemO(uiMenuItem *head, int icon, char *opname)
 {
-	uiMenuItem *item= ui_menu_add_item(head, name, icon, 0);
+	uiMenuItem *item= ui_menu_add_item(head, "", icon, 0);
 	
-	item->opname= name; // static!
+	item->opname= opname; // static!
 	item->type = MENU_ITEM_OPNAME;
 }
 
 /* single operator item with property */
-void uiMenuItemEnumO(uiMenuItem *head, char *opname, char *propname, int value)
+void uiMenuItemEnumO(uiMenuItem *head, int icon, char *opname, char *propname, int value)
 {
-	uiMenuItem *item= ui_menu_add_item(head, "", 0, 0);
+	uiMenuItem *item= ui_menu_add_item(head, "", icon, 0);
 	
 	item->opname= opname; // static!
 	item->propname= propname; // static!
@@ -2004,9 +2017,20 @@ void uiMenuItemEnumO(uiMenuItem *head, char *opname, char *propname, int value)
 }
 
 /* single operator item with property */
-void uiMenuItemFloatO(uiMenuItem *head, const char *name, char *opname, char *propname, float value)
+void uiMenuItemIntO(uiMenuItem *head, const char *name, int icon, char *opname, char *propname, int value)
 {
-	uiMenuItem *item= ui_menu_add_item(head, name, 0, 0);
+	uiMenuItem *item= ui_menu_add_item(head, name, icon, 0);
+	
+	item->opname= opname; // static!
+	item->propname= propname; // static!
+	item->intval= value;
+	item->type = MENU_ITEM_OPNAME_INT;
+}
+
+/* single operator item with property */
+void uiMenuItemFloatO(uiMenuItem *head, const char *name, int icon, char *opname, char *propname, float value)
+{
+	uiMenuItem *item= ui_menu_add_item(head, name, icon, 0);
 	
 	item->opname= opname; // static!
 	item->propname= propname; // static!
@@ -2015,9 +2039,9 @@ void uiMenuItemFloatO(uiMenuItem *head, const char *name, char *opname, char *pr
 }
 
 /* single operator item with property */
-void uiMenuItemBooleanO(uiMenuItem *head, char *opname, char *propname, int value)
+void uiMenuItemBooleanO(uiMenuItem *head, const char *name, int icon, char *opname, char *propname, int value)
 {
-	uiMenuItem *item= ui_menu_add_item(head, "", 0, 0);
+	uiMenuItem *item= ui_menu_add_item(head, name, icon, 0);
 	
 	item->opname= opname; // static!
 	item->propname= propname; // static!
@@ -2045,7 +2069,7 @@ void uiMenuItemsEnumO(uiMenuItem *head, char *opname, char *propname)
 		RNA_property_enum_items(&ptr, prop, &item, &totitem);
 		
 		for (i=0; i<totitem; i++)
-			uiMenuItemEnumO(head, opname, propname, item[i].value);
+			uiMenuItemEnumO(head, 0, opname, propname, item[i].value);
 	}
 }
 
@@ -2141,12 +2165,13 @@ void uiMenuSeparator(uiMenuItem *head)
 /*************************** Popup Menu API **************************/
 
 /* only return handler, and set optional title */
-uiMenuItem *uiPupMenuBegin(const char *title)
+uiMenuItem *uiPupMenuBegin(const char *title, int icon)
 {
 	uiMenuItem *item= MEM_callocN(sizeof(uiMenuItem), "menu start");
 	
 	item->type = MENU_ITEM_TITLE;
 	item->opcontext= WM_OP_EXEC_REGION_WIN; 
+	item->icon= icon;
 	
 	/* NULL is no title */
 	if(title)
@@ -2177,32 +2202,6 @@ void uiPupMenuEnd(bContext *C, uiMenuItem *head)
 	BLI_freelistN(&head->items);
 	MEM_freeN(head);
 }
-
-/* This one will set enum propname, call operator and register it, and free the operator itself, 
-   call it in op->invoke with returning OPERATOR_RUNNING_MODAL */
-/* Note: propname has to be static */
-void uiPupMenuOperator(bContext *C, int maxrow, wmOperator *op, const char *propname, char *str)
-{
-	wmWindow *window= CTX_wm_window(C);
-	uiPupMenuInfo info;
-	uiPopupBlockHandle *menu;
-	
-	memset(&info, 0, sizeof(info));
-	info.mx= window->eventstate->x;
-	info.my= window->eventstate->y;
-	info.maxrow= maxrow;
-	info.instr= str;
-	
-	menu= ui_popup_block_create(C, NULL, NULL, NULL, ui_block_func_PUPMENU, &info);
-	menu->popup= 1;
-	
-	UI_add_popup_handlers(&window->handlers, menu);
-	WM_event_add_mousemove(C);
-	
-	menu->op_arg= op;
-	menu->propname= propname;
-}
-
 
 /* this one only to be called with operatortype name option */
 void uiPupMenu(bContext *C, int maxrow, uiMenuHandleFunc func, void *arg, char *str, ...)
@@ -2336,5 +2335,26 @@ void uiPupMenuReports(bContext *C, ReportList *reports)
 	MEM_freeN(str);
 
 	BLI_dynstr_free(ds);
+}
+
+/*************************** Popup Block API **************************/
+
+void uiPupBlockO(bContext *C, uiBlockCreateFunc func, void *arg, char *opname, int opcontext)
+{
+	wmWindow *window= CTX_wm_window(C);
+	uiPopupBlockHandle *handle;
+	
+	handle= ui_popup_block_create(C, NULL, NULL, func, NULL, arg);
+	handle->popup= 1;
+	handle->opname= opname;
+	handle->opcontext= opcontext;
+	
+	UI_add_popup_handlers(&window->handlers, handle);
+	WM_event_add_mousemove(C);
+}
+
+void uiPupBlock(bContext *C, uiBlockCreateFunc func, void *arg)
+{
+	uiPupBlockO(C, func, arg, NULL, 0);
 }
 

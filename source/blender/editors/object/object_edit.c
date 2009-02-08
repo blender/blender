@@ -479,17 +479,17 @@ void OBJECT_OT_curve_add(wmOperatorType *ot)
 
 static int object_add_primitive_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	uiMenuItem *head= uiPupMenuBegin("Add Object");
+	uiMenuItem *head= uiPupMenuBegin("Add Object", 0);
 	
 	uiMenuLevelEnumO(head, "OBJECT_OT_mesh_add", "type");
 	uiMenuLevelEnumO(head, "OBJECT_OT_curve_add", "type");
-	uiMenuItemEnumO(head, "OBJECT_OT_object_add", "type", OB_SURF);
-	uiMenuItemEnumO(head, "OBJECT_OT_object_add", "type", OB_MBALL);
-	uiMenuItemEnumO(head, "OBJECT_OT_object_add", "type", OB_CAMERA);
-	uiMenuItemEnumO(head, "OBJECT_OT_object_add", "type", OB_LAMP);
-	uiMenuItemEnumO(head, "OBJECT_OT_object_add", "type", OB_EMPTY);
-	uiMenuItemEnumO(head, "OBJECT_OT_object_add", "type", OB_ARMATURE);
-	uiMenuItemEnumO(head, "OBJECT_OT_object_add", "type", OB_LATTICE);
+	uiMenuItemEnumO(head, 0, "OBJECT_OT_object_add", "type", OB_SURF);
+	uiMenuItemEnumO(head, 0, "OBJECT_OT_object_add", "type", OB_MBALL);
+	uiMenuItemEnumO(head, 0, "OBJECT_OT_object_add", "type", OB_CAMERA);
+	uiMenuItemEnumO(head, 0, "OBJECT_OT_object_add", "type", OB_LAMP);
+	uiMenuItemEnumO(head, 0, "OBJECT_OT_object_add", "type", OB_EMPTY);
+	uiMenuItemEnumO(head, 0, "OBJECT_OT_object_add", "type", OB_ARMATURE);
+	uiMenuItemEnumO(head, 0, "OBJECT_OT_object_add", "type", OB_LATTICE);
 	
 	uiPupMenuEnd(C, head);
 	
@@ -526,69 +526,52 @@ void ED_base_object_free_and_unlink(Scene *scene, Base *base)
 	MEM_freeN(base);
 }
 
-void delete_obj(Scene *scene, View3D *v3d, int ok)
+static int object_delete_exec(bContext *C, wmOperator *op)
 {
-	Base *base, *nbase;
+	Scene *scene= CTX_data_scene(C);
 	int islamp= 0;
 	
-	if(scene->obedit) return; // XXX get from context
-	if(scene->id.lib) return;
+	if(CTX_data_edit_object(C)) 
+		return OPERATOR_CANCELLED;
+	
+	ED_view3d_exit_paint_modes(C);
 
-	for(base= FIRSTBASE; base; base= nbase) {
-		nbase= base->next;
+	CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
 
-		if(TESTBASE(v3d, base)) { 
-			if(ok==0) {
-				int shift= 0; // XXX
-				/* Shift Del is global delete */
-				if (shift) {
-					if(!okee("Erase selected Object(s) Globally")) return;
-					ok= 2;
-				} else {
-					if(!okee("Erase selected Object(s)")) return;
-					ok= 1;
-				}
-			}
-			
-//			ED_view3d_exit_paint_modes(C);
-
-			if(base->object->type==OB_LAMP) islamp= 1;
-
-			if (ok==2) {
-				Scene *scene; 
-				Base *base_other;
-				
-				for (scene= G.main->scene.first; scene; scene= scene->id.next) {
-					if (scene != scene && !(scene->id.lib)) {
-						base_other= object_in_scene( base->object, scene );
-						if (base_other) {
-							ED_base_object_free_and_unlink( scene, base_other );
-						}
-					}
-				}
-			}
-			
-			/* remove from current scene only */
-			ED_base_object_free_and_unlink(scene, base);
-		}
+		if(base->object->type==OB_LAMP) islamp= 1;
+		
+		/* remove from current scene only */
+		ED_base_object_free_and_unlink(scene, base);
 	}
+	CTX_DATA_END;
 
 	if(islamp) reshadeall_displist(scene);	/* only frees displist */
-
-// XXX	redraw_test_buttons(OBACT);
-	allqueue(REDRAWVIEW3D, 0);
-	allqueue (REDRAWACTION, 0);
-	allqueue(REDRAWIPO, 0);
-	allqueue(REDRAWDATASELECT, 0);
-//	allspace(OOPS_TEST, 0);
-	allqueue(REDRAWOOPS, 0);
-	allqueue(REDRAWACTION, 0);
-	allqueue(REDRAWNLA, 0);
 	
 	DAG_scene_sort(scene);
-	ED_anim_dag_flush_update(C);	
-
+	ED_anim_dag_flush_update(C);
+	
+	WM_event_add_notifier(C, NC_SCENE|ND_OB_ACTIVE, CTX_data_scene(C));
+	
+	return OPERATOR_FINISHED;
 }
+
+void OBJECT_OT_delete(wmOperatorType *ot)
+{
+	
+	/* identifiers */
+	ot->name= "Delete Objects";
+	ot->idname= "OBJECT_OT_delete";
+	
+	/* api callbacks */
+	ot->invoke= WM_operator_confirm;
+	ot->exec= object_delete_exec;
+	ot->poll= ED_operator_scene_editable;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+}
+
 
 static void single_object_users__forwardModifierLinks(void *userData, Object *ob, Object **obpoin)
 {
@@ -1686,17 +1669,7 @@ static int object_clear_location_exec(bContext *C, wmOperator *op)
 	int armature_clear= 0;
 
 	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
-		if ((ob->flag & OB_POSEMODE)) {
-			/* only clear pose transforms if:
-			 *	- with a mesh in weightpaint mode, it's related armature needs to be cleared
-			 *	- with clearing transform of object being edited at the time
-			 */
-			if ((G.f & G_WEIGHTPAINT) || (ob==OBACT)) {
-				clear_armature(scene, ob, 'g');
-				armature_clear= 1;	/* silly system to prevent another dag update, so no action applied */
-			}
-		}
-		else if((G.f & G_WEIGHTPAINT)==0) {
+		if((G.f & G_WEIGHTPAINT)==0) {
 			if ((ob->protectflag & OB_LOCK_LOCX)==0)
 				ob->loc[0]= ob->dloc[0]= 0.0f;
 			if ((ob->protectflag & OB_LOCK_LOCY)==0)
@@ -1739,17 +1712,7 @@ static int object_clear_rotation_exec(bContext *C, wmOperator *op)
 	int armature_clear= 0;
 
 	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
-		if ((ob->flag & OB_POSEMODE)) {
-			/* only clear pose transforms if:
-			 *	- with a mesh in weightpaint mode, it's related armature needs to be cleared
-			 *	- with clearing transform of object being edited at the time
-			 */
-			if ((G.f & G_WEIGHTPAINT) || (ob==OBACT)) {
-				clear_armature(scene, ob, 'r');
-				armature_clear= 1;	/* silly system to prevent another dag update, so no action applied */
-			}
-		}
-		else if((G.f & G_WEIGHTPAINT)==0) {
+		if((G.f & G_WEIGHTPAINT)==0) {
 			/* eulers can only get cleared if they are not protected */
 			if ((ob->protectflag & OB_LOCK_ROTX)==0)
 				ob->rot[0]= ob->drot[0]= 0.0f;
@@ -1793,17 +1756,7 @@ static int object_clear_scale_exec(bContext *C, wmOperator *op)
 	int armature_clear= 0;
 
 	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
-		if ((ob->flag & OB_POSEMODE)) {
-			/* only clear pose transforms if:
-			 *	- with a mesh in weightpaint mode, it's related armature needs to be cleared
-			 *	- with clearing transform of object being edited at the time
-			 */
-			if ((G.f & G_WEIGHTPAINT) || (ob==OBACT)) {
-				clear_armature(scene, ob, 's');
-				armature_clear= 1;	/* silly system to prevent another dag update, so no action applied */
-			}
-		}
-		else if((G.f & G_WEIGHTPAINT)==0) {
+		if((G.f & G_WEIGHTPAINT)==0) {
 			if ((ob->protectflag & OB_LOCK_SCALEX)==0) {
 				ob->dsize[0]= 0.0f;
 				ob->size[0]= 1.0f;
@@ -2452,23 +2405,23 @@ static int make_parent_exec(bContext *C, wmOperator *op)
 static int make_parent_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	Object *ob= CTX_data_active_object(C);
-	uiMenuItem *head= uiPupMenuBegin("Make Parent To");
+	uiMenuItem *head= uiPupMenuBegin("Make Parent To", 0);
 	
 	uiMenuContext(head, WM_OP_EXEC_DEFAULT);
-	uiMenuItemEnumO(head, "OBJECT_OT_make_parent", "type", PAR_OBJECT);
+	uiMenuItemEnumO(head, 0, "OBJECT_OT_make_parent", "type", PAR_OBJECT);
 	
 	/* ob becomes parent, make the associated menus */
 	if(ob->type==OB_ARMATURE) {
-		uiMenuItemEnumO(head, "OBJECT_OT_make_parent", "type", PAR_ARMATURE);
-		uiMenuItemEnumO(head, "OBJECT_OT_make_parent", "type", PAR_BONE);
+		uiMenuItemEnumO(head, 0, "OBJECT_OT_make_parent", "type", PAR_ARMATURE);
+		uiMenuItemEnumO(head, 0, "OBJECT_OT_make_parent", "type", PAR_BONE);
 	}
 	else if(ob->type==OB_CURVE) {
-		uiMenuItemEnumO(head, "OBJECT_OT_make_parent", "type", PAR_CURVE);
-		uiMenuItemEnumO(head, "OBJECT_OT_make_parent", "type", PAR_FOLLOW);
-		uiMenuItemEnumO(head, "OBJECT_OT_make_parent", "type", PAR_PATH_CONST);
+		uiMenuItemEnumO(head, 0, "OBJECT_OT_make_parent", "type", PAR_CURVE);
+		uiMenuItemEnumO(head, 0, "OBJECT_OT_make_parent", "type", PAR_FOLLOW);
+		uiMenuItemEnumO(head, 0, "OBJECT_OT_make_parent", "type", PAR_PATH_CONST);
 	}
 	else if(ob->type == OB_LATTICE) {
-		uiMenuItemEnumO(head, "OBJECT_OT_make_parent", "type", PAR_LATTICE);
+		uiMenuItemEnumO(head, 0, "OBJECT_OT_make_parent", "type", PAR_LATTICE);
 	}
 	
 	uiPupMenuEnd(C, head);
@@ -3118,6 +3071,8 @@ void ED_object_enter_editmode(bContext *C, int flag)
 	}
 	
 	if(flag & EM_WAITCURSOR) waitcursor(1);
+
+	ED_view3d_exit_paint_modes(C);
 	
 	if(ob->type==OB_MESH) {
 		Mesh *me= ob->data;

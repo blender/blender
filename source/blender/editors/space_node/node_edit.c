@@ -85,6 +85,8 @@
  
 #include "node_intern.h"
 
+#define SOCK_IN		1
+#define SOCK_OUT	2
 
 /* ***************** composite job manager ********************** */
 
@@ -187,18 +189,34 @@ void snode_composite_job(const bContext *C, ScrArea *sa)
 
 /* ***************************************** */
 
-#if 0
-
-// XXX snode_handle_recalc will go away */
-static void snode_handle_recalc(SpaceNode *snode)
+/* also checks for edited groups */
+bNode *editnode_get_active(bNodeTree *ntree)
 {
-	if(snode->treetype==NTREE_TEXTURE) {
-		ntreeTexUpdatePreviews(snode->nodetree);
+	bNode *node;
+	
+	/* check for edited group */
+	for(node= ntree->nodes.first; node; node= node->next)
+		if(node->flag & NODE_GROUP_EDIT)
+			break;
+	if(node)
+		return nodeGetActive((bNodeTree *)node->id);
+	else
+		return nodeGetActive(ntree);
+}
+
+static void snode_handle_recalc(bContext *C, SpaceNode *snode)
+{
+	if(snode->treetype==NTREE_SHADER)
+		WM_event_add_notifier(C, NC_MATERIAL|ND_NODES, snode->id);
+	else if(snode->treetype==NTREE_COMPOSIT)
+		WM_event_add_notifier(C, NC_SCENE|ND_NODES, snode->id);
+	else if(snode->treetype==NTREE_TEXTURE) {
+		// ntreeTexUpdatePreviews(snode->nodetree);
 		// XXX BIF_preview_changed(ID_TE);
 	}
 }
 
-
+#if 0
 static int image_detect_file_sequence(int *start_p, int *frames_p, char *str)
 {
 	SpaceFile *sfile;
@@ -295,8 +313,7 @@ static void load_node_image(char *str)	/* called from fileselect */
 		BKE_image_signal(ima, node->storage, IMA_SIGNAL_RELOAD);
 		
 		NodeTagChanged(snode->edittree, node);
-		snode_handle_recalc(snode);
-		// allqueue(REDRAWNODE, 0); 
+		// XXX snode_handle_recalc(C, snode);
 	}
 }
 
@@ -401,7 +418,7 @@ static void composit_node_event(SpaceNode *snode, short event)
 			break;
 		}
 		case B_NODE_TREE_EXEC:
-			snode_handle_recalc(snode);
+			// XXX			snode_handle_recalc(snode);
 			break;		
 		default:
 			/* B_NODE_EXEC */
@@ -417,7 +434,7 @@ static void composit_node_event(SpaceNode *snode, short event)
 					addqueue(curarea->win, UI_BUT_EVENT, B_NODE_TREE_EXEC);
 					
 					composite_node_render(snode, node);
-					snode_handle_recalc(snode);
+					// XXX			snode_handle_recalc(snode);
 					
 					/* add another event, a render can go fullscreen and open new window */
 					addqueue(curarea->win, UI_BUT_EVENT, B_NODE_TREE_EXEC);
@@ -427,7 +444,7 @@ static void composit_node_event(SpaceNode *snode, short event)
 					if(node)
 						NodeTagIDChanged(snode->nodetree, node->id);
 					
-					snode_handle_recalc(snode);
+					// XXX			snode_handle_recalc(snode);
 				}
 			}
 		}			
@@ -458,7 +475,7 @@ static void texture_node_event(SpaceNode *snode, short event)
 		default:
 			/* B_NODE_EXEC */
 			ntreeTexCheckCyclics( snode->nodetree );
-			snode_handle_recalc(snode);
+			// XXX			snode_handle_recalc(snode);
 			// allqueue(REDRAWNODE, 1);
 			break;
 	}
@@ -512,9 +529,11 @@ void node_composit_default(Scene *sce)
 	
 	out= nodeAddNodeType(sce->nodetree, CMP_NODE_COMPOSITE, NULL, NULL);
 	out->locx= 300.0f; out->locy= 400.0f;
+	out->id= &sce->id;
 	
 	in= nodeAddNodeType(sce->nodetree, CMP_NODE_R_LAYERS, NULL, NULL);
 	in->locx= 10.0f; in->locy= 400.0f;
+	in->id= &sce->id;
 	nodeSetActive(sce->nodetree, in);
 	
 	/* links from color to color */
@@ -675,7 +694,7 @@ void node_set_active(SpaceNode *snode, bNode *node)
 					if(gnode)
 						NodeTagIDChanged(snode->nodetree, gnode->id);
 					
-					snode_handle_recalc(snode);
+					// XXX			snode_handle_recalc(snode);
 				}
 				
 				/* addnode() doesnt link this yet... */
@@ -905,7 +924,6 @@ bNode *next_node(bNodeTree *ntree)
 	return NULL;
 }
 
-#if 0
 /* is rct in visible part of node? */
 static bNode *visible_node(SpaceNode *snode, rctf *rct)
 {
@@ -917,7 +935,6 @@ static bNode *visible_node(SpaceNode *snode, rctf *rct)
 	}
 	return tnode;
 }
-#endif
 
 void snode_home(ScrArea *sa, ARegion *ar, SpaceNode* snode)
 {
@@ -1030,266 +1047,109 @@ static void snode_bg_viewmove(SpaceNode *snode)
 	
 	window_set_cursor(win, oldcursor);
 }
+#endif;
 
-static void reset_sel_socket(SpaceNode *snode, int in_out)
+/* ********************** size widget operator ******************** */
+
+typedef struct NodeSizeWidget {
+	float mxstart;
+	float oldwidth;
+} NodeSizeWidget;
+
+static int node_size_widget_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
-	bNode *node;
-	bNodeSocket *sock;
+	SpaceNode *snode= (SpaceNode*)CTX_wm_space_data(C);
+	ARegion *ar= CTX_wm_region(C);
+	bNode *node= editnode_get_active(snode->edittree);
+	NodeSizeWidget *nsw= op->customdata;
+	float mx, my;
 	
-	for(node= snode->edittree->nodes.first; node; node= node->next) {
-		if(in_out & SOCK_IN) {
-			for(sock= node->inputs.first; sock; sock= sock->next)
-				if(sock->flag & SOCK_SEL) sock->flag&= ~SOCK_SEL;
-		}
-		if(in_out & SOCK_OUT) {
-			for(sock= node->outputs.first; sock; sock= sock->next)
-				if(sock->flag & SOCK_SEL) sock->flag&= ~SOCK_SEL;
-		}
-	}
-}
-
-/* checks mouse position, and returns found node/socket */
-/* type is SOCK_IN and/or SOCK_OUT */
-static int find_indicated_socket(SpaceNode *snode, bNode **nodep, bNodeSocket **sockp, int in_out)
-{
-	bNode *node;
-	bNodeSocket *sock;
-	rctf rect;
-	short mval[2];
-	
-	getmouseco_areawin(mval);
-	
-	/* check if we click in a socket */
-	for(node= snode->edittree->nodes.first; node; node= node->next) {
-	
-		areamouseco_to_ipoco(G.v2d, mval, &rect.xmin, &rect.ymin);
-		
-		rect.xmin -= NODE_SOCKSIZE+3;
-		rect.ymin -= NODE_SOCKSIZE+3;
-		rect.xmax = rect.xmin + 2*NODE_SOCKSIZE+6;
-		rect.ymax = rect.ymin + 2*NODE_SOCKSIZE+6;
-		
-		if (!(node->flag & NODE_HIDDEN)) {
-			/* extra padding inside and out - allow dragging on the text areas too */
-			if (in_out == SOCK_IN) {
-				rect.xmax += NODE_SOCKSIZE;
-				rect.xmin -= NODE_SOCKSIZE*4;
-			} else if (in_out == SOCK_OUT) {
-				rect.xmax += NODE_SOCKSIZE*4;
-				rect.xmin -= NODE_SOCKSIZE;
-			}
-		}
+	switch (event->type) {
+		case MOUSEMOVE:
 			
-		if(in_out & SOCK_IN) {
-			for(sock= node->inputs.first; sock; sock= sock->next) {
-				if(!(sock->flag & (SOCK_HIDDEN|SOCK_UNAVAIL))) {
-					if(BLI_in_rctf(&rect, sock->locx, sock->locy)) {
-						if(node == visible_node(snode, &rect)) {
-							*nodep= node;
-							*sockp= sock;
-							return 1;
-						}
-					}
-				}
-			}
-		}
-		if(in_out & SOCK_OUT) {
-			for(sock= node->outputs.first; sock; sock= sock->next) {
-				if(!(sock->flag & (SOCK_HIDDEN|SOCK_UNAVAIL))) {
-					if(BLI_in_rctf(&rect, sock->locx, sock->locy)) {
-						if(node == visible_node(snode, &rect)) {
-							*nodep= node;
-							*sockp= sock;
-							return 1;
-						}
-					}
-				}
-			}
-		}
-	}
-	return 0;
-}
-
-/* ********************* transform ****************** */
-
-/* releases on event, only intern (for extern see below) */
-/* we need argument ntree to allow operations on edittree or nodetree */
-static void transform_nodes(bNodeTree *ntree, char mode, char *undostr)
-{
-	bNode *node;
-	float mxstart, mystart, mx, my, *oldlocs, *ol;
-	int cont=1, tot=0, cancel=0, firsttime=1;
-	short mval[2], mvalo[2];
-	
-	/* count total */
-	for(node= ntree->nodes.first; node; node= node->next)
-		if(node->flag & SELECT) tot++;
-	
-	if(tot==0) return;
-	
-	/* store oldlocs */
-	ol= oldlocs= MEM_mallocN(sizeof(float)*2*tot, "oldlocs transform");
-	for(node= ntree->nodes.first; node; node= node->next) {
-		if(node->flag & SELECT) {
-			ol[0]= node->locx; ol[1]= node->locy;
-			ol+= 2;
-		}
-	}
-	
-	getmouseco_areawin(mvalo);
-	areamouseco_to_ipoco(G.v2d, mvalo, &mxstart, &mystart);
-	
-	while(cont) {
-		
-		getmouseco_areawin(mval);
-		if(mval[0]!=mvalo[0] || mval[1]!=mvalo[1] || firsttime) {
-
-			firsttime= 0;
-			
-			areamouseco_to_ipoco(G.v2d, mval, &mx, &my);
-			mvalo[0]= mval[0];
-			mvalo[1]= mval[1];
-			
-			for(ol= oldlocs, node= ntree->nodes.first; node; node= node->next) {
-				if(node->flag & SELECT) {
-					node->locx= ol[0] + mx-mxstart;
-					node->locy= ol[1] + my-mystart;
-					ol+= 2;
-				}
-			}
-			
-			force_draw(0);
-		}
-		else
-			PIL_sleep_ms(10);
-		
-		while (qtest()) {
-			short val;
-			unsigned short event= extern_qread(&val);
-			
-			switch (event) {
-				case LEFTMOUSE:
-				case SPACEKEY:
-				case RETKEY:
-					cont=0;
-					break;
-				case ESCKEY:
-				case RIGHTMOUSE:
-					if(val) {
-						cancel=1;
-						cont=0;
-					}
-					break;
-				default:
-					if(val) arrows_move_cursor(event);
-					break;
-			}
-		}
-		
-	}
-	
-	if(cancel) {
-		for(ol= oldlocs, node= ntree->nodes.first; node; node= node->next) {
-			if(node->flag & SELECT) {
-				node->locx= ol[0];
-				node->locy= ol[1];
-				ol+= 2;
-			}
-		}
-		
-	}
-	
-	// allqueue(REDRAWNODE, 1);
-	MEM_freeN(oldlocs);
-}
-
-/* external call, also for callback */
-void node_transform_ext(int mode, int unused)
-{
-	SpaceNode *snode= curarea->spacedata.first;
-	
-	transform_nodes(snode->edittree, 'g', "Move Node");
-}
-#endif /* 0 */
-
-/* releases on event, only 1 node */
-void scale_node(SpaceNode *snode, bNode *node)
-{
-	float mxstart, mystart, mx, my, oldwidth;
-	int cont=1, cancel=0;
-	short mval[2], mvalo[2];
-	
-	// XXX
-	mval[0] = mvalo[0] = 0;
-	mval[1] = mvalo[1] = 1;
-	mxstart = 0.0f;
-	mystart = 0.0f;
-	mx= 0.0f;
-	my= 0.0f;
-	
-	/* store old */
-	if(node->flag & NODE_HIDDEN)
-		oldwidth= node->miniwidth;
-	else
-		oldwidth= node->width;
-		
-/* XXX	getmouseco_areawin(mvalo);
-	areamouseco_to_ipoco(G.v2d, mvalo, &mxstart, &mystart);*/
-	
-	while(cont) {
-		
-		// XXX getmouseco_areawin(mval);
-		if(mval[0]!=mvalo[0] || mval[1]!=mvalo[1]) {
-			
-			// XXX areamouseco_to_ipoco(G.v2d, mval, &mx, &my);
-			mvalo[0]= mval[0];
-			mvalo[1]= mval[1];
+			UI_view2d_region_to_view(&ar->v2d, event->x - ar->winrct.xmin, event->y - ar->winrct.ymin, 
+									 &mx, &my);
 			
 			if(node->flag & NODE_HIDDEN) {
-				node->miniwidth= oldwidth + mx-mxstart;
+				node->miniwidth= nsw->oldwidth + mx - nsw->mxstart;
 				CLAMP(node->miniwidth, 0.0f, 100.0f);
 			}
 			else {
-				node->width= oldwidth + mx-mxstart;
+				node->width= nsw->oldwidth + mx - nsw->mxstart;
 				CLAMP(node->width, node->typeinfo->minwidth, node->typeinfo->maxwidth);
 			}
+			// XXX
+			if(snode->nodetree->type == NTREE_TEXTURE)
+				ntreeTexUpdatePreviews(snode->nodetree);
+				
+			ED_region_tag_redraw(ar);
+
+			break;
 			
-			// XXX force_draw(0);
-		}
-		else
-			; // XXX PIL_sleep_ms(10);
-		
-		/* XXX while (qtest()) {
-			short val;
-			unsigned short event= extern_qread(&val);
+		case LEFTMOUSE:
+		case MIDDLEMOUSE:
+		case RIGHTMOUSE:
 			
-			switch (event) {
-				case LEFTMOUSE:
-				case SPACEKEY:
-				case RETKEY:
-					cont=0;
-					break;
-				case ESCKEY:
-				case RIGHTMOUSE:
-					if(val) {
-						cancel=1;
-						cont=0;
-					}
-					break;
-			}
-		}*/
-		
+			MEM_freeN(nsw);
+			op->customdata= NULL;
+			
+			return OPERATOR_FINISHED;
 	}
 	
-	if(cancel) {
-		node->width= oldwidth;
-	}
-	
-	// allqueue(REDRAWNODE, 1);
-	
-	if(snode->nodetree->type == NTREE_TEXTURE)
-		ntreeTexUpdatePreviews(snode->nodetree);
+	return OPERATOR_RUNNING_MODAL;
 }
+
+static int node_size_widget_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	SpaceNode *snode= (SpaceNode*)CTX_wm_space_data(C);
+	ARegion *ar= CTX_wm_region(C);
+	bNode *node= editnode_get_active(snode->edittree);
+	
+	if(node) {
+		rctf totr;
+		
+		UI_view2d_region_to_view(&ar->v2d, event->x - ar->winrct.xmin, event->y - ar->winrct.ymin, 
+								 &snode->mx, &snode->my);
+		totr= node->totr;
+		totr.xmin= totr.xmax-10.0f;
+		totr.ymax= totr.ymin+10.0f;
+		
+		if(BLI_in_rctf(&totr, snode->mx, snode->my)) {
+			NodeSizeWidget *nsw= MEM_callocN(sizeof(NodeSizeWidget), "size widget op data");
+			
+			op->customdata= nsw;
+			nsw->mxstart= snode->mx;
+			
+			/* store old */
+			if(node->flag & NODE_HIDDEN)
+				nsw->oldwidth= node->miniwidth;
+			else
+				nsw->oldwidth= node->width;
+			
+			/* add modal handler */
+			WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
+
+			return OPERATOR_RUNNING_MODAL;
+		}
+	}
+	return OPERATOR_PASS_THROUGH;
+}
+
+void NODE_OT_size_widget(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Scale Node";
+	ot->idname= "NODE_OT_size_widget";
+	
+	/* api callbacks */
+	ot->invoke= node_size_widget_invoke;
+	ot->modal= node_size_widget_modal;
+	ot->poll= ED_operator_node_active;
+	
+	/* flags */
+	ot->flag= 0;
+}
+
 
 #if 0
 
@@ -1336,23 +1196,8 @@ Material *editnode_get_active_material(Material *ma)
 	}
 	return ma;
 }
-
-/* used in buttons to check context, also checks for edited groups */
-bNode *editnode_get_active(bNodeTree *ntree)
-{
-	bNode *node;
-	
-	/* check for edited group */
-	for(node= ntree->nodes.first; node; node= node->next)
-		if(node->flag & NODE_GROUP_EDIT)
-			break;
-	if(node)
-		return nodeGetActive((bNodeTree *)node->id);
-	else
-		return nodeGetActive(ntree);
-}
-
 #endif /* 0 */
+
 
 /* no undo here! */
 void node_deselectall(SpaceNode *snode, int swap)
@@ -1375,7 +1220,6 @@ void node_deselectall(SpaceNode *snode, int swap)
 		node->flag &= ~SELECT;
 }
 
-#if 0
 
 int node_has_hidden_sockets(bNode *node)
 {
@@ -1435,7 +1279,7 @@ static void node_hide_unhide_sockets(SpaceNode *snode, bNode *node)
 
 }
 
-static int do_header_node(SpaceNode *snode, bNode *node, float mx, float my)
+/*static*/ int do_header_node(SpaceNode *snode, bNode *node, float mx, float my)
 {
 	rctf totr= node->totr;
 	
@@ -1483,13 +1327,13 @@ static int do_header_node(SpaceNode *snode, bNode *node, float mx, float my)
 	totr.xmin= totr.xmax-10.0f;
 	totr.ymax= totr.ymin+10.0f;
 	if(BLI_in_rctf(&totr, mx, my)) {
-		scale_node(snode, node);
+//		scale_node(snode, node);
 		return 1;
 	}
 	return 0;
 }
 
-static int do_header_hidden_node(SpaceNode *snode, bNode *node, float mx, float my)
+/*static*/ int do_header_hidden_node(SpaceNode *snode, bNode *node, float mx, float my)
 {
 	rctf totr= node->totr;
 	
@@ -1503,7 +1347,7 @@ static int do_header_hidden_node(SpaceNode *snode, bNode *node, float mx, float 
 	totr.xmax= node->totr.xmax;
 	totr.xmin= node->totr.xmax-15.0f;
 	if(BLI_in_rctf(&totr, mx, my)) {
-		scale_node(snode, node);
+//		scale_node(snode, node);
 		return 1;
 	}
 	return 0;
@@ -1538,7 +1382,7 @@ static void node_link_viewer(SpaceNode *snode, bNode *tonode)
 			link->fromsock= tonode->outputs.first;
 			NodeTagChanged(snode->edittree, node);
 			
-			snode_handle_recalc(snode);
+// XXX			snode_handle_recalc(snode);
 		}
 	}
 }
@@ -1551,73 +1395,18 @@ void node_active_link_viewer(SpaceNode *snode)
 		node_link_viewer(snode, node);
 }
 
-/* return 0: nothing done */
-static int node_mouse_select(SpaceNode *snode, unsigned short event)
-{
-	bNode *node;
-	float mx, my;
-	short mval[2];
-	
-	getmouseco_areawin(mval);
-	areamouseco_to_ipoco(G.v2d, mval, &mx, &my);
-	
-	for(next_node(snode->edittree); (node=next_node(NULL));) {
-		
-		/* first check for the headers or scaling widget */
-		if(node->flag & NODE_HIDDEN) {
-			if(do_header_hidden_node(snode, node, mx, my))
-				return 1;
-		}
-		else {
-			if(do_header_node(snode, node, mx, my))
-				return 1;
-		}
-		
-		/* node body */
-		if(BLI_in_rctf(&node->totr, mx, my))
-			break;
-	}
-	if(node) {
-		if((G.qual & LR_SHIFTKEY)==0)
-			node_deselectall(snode, 0);
-		
-		if(G.qual & LR_SHIFTKEY) {
-			if(node->flag & SELECT)
-				node->flag &= ~SELECT;
-			else
-				node->flag |= SELECT;
-		}
-		else 
-			node->flag |= SELECT;
-		
-		node_set_active(snode, node);
-		
-		/* viewer linking */
-		if(G.qual & LR_CTRLKEY)
-			node_link_viewer(snode, node);
-		
-		/* not so nice (no event), but function below delays redraw otherwise */
-		force_draw(0);
-		
-		std_rmouse_transform(node_transform_ext);	/* does undo push for select */
-		
-		return 1;
-	}
-	return 0;
-}
-
 /* return 0, nothing done */
-static int node_mouse_groupheader(SpaceNode *snode)
+/*static*/ int node_mouse_groupheader(SpaceNode *snode)
 {
 	bNode *gnode;
 	float mx, my;
-	short mval[2];
+// XXX	short mval[2];
 	
 	gnode= snode_get_editgroup(snode);
 	if(gnode==NULL) return 0;
 	
-	getmouseco_areawin(mval);
-	areamouseco_to_ipoco(G.v2d, mval, &mx, &my);
+// XXX	getmouseco_areawin(mval);
+// XXX	areamouseco_to_ipoco(G.v2d, mval, &mx, &my);
 	
 	/* click in header or outside? */
 	if(BLI_in_rctf(&gnode->totr, mx, my)==0) {
@@ -1626,10 +1415,67 @@ static int node_mouse_groupheader(SpaceNode *snode)
 		rect.ymax += NODE_DY;
 		if(BLI_in_rctf(&rect, mx, my)==0)
 			snode_make_group_editable(snode, NULL);	/* toggles, so exits editmode */
-		else
-			transform_nodes(snode->nodetree, 'g', "Move group");
+//		else
+// XXX			transform_nodes(snode->nodetree, 'g', "Move group");
 		
 		return 1;
+	}
+	return 0;
+}
+
+/* checks snode->mouse position, and returns found node/socket */
+/* type is SOCK_IN and/or SOCK_OUT */
+static int find_indicated_socket(SpaceNode *snode, bNode **nodep, bNodeSocket **sockp, int in_out)
+{
+	bNode *node;
+	bNodeSocket *sock;
+	rctf rect;
+	
+	/* check if we click in a socket */
+	for(node= snode->edittree->nodes.first; node; node= node->next) {
+		
+		rect.xmin = snode->mx - NODE_SOCKSIZE+3;
+		rect.ymin = snode->my - NODE_SOCKSIZE+3;
+		rect.xmax = rect.xmin + 2*NODE_SOCKSIZE+6;
+		rect.ymax = rect.ymin + 2*NODE_SOCKSIZE+6;
+		
+		if (!(node->flag & NODE_HIDDEN)) {
+			/* extra padding inside and out - allow dragging on the text areas too */
+			if (in_out == SOCK_IN) {
+				rect.xmax += NODE_SOCKSIZE;
+				rect.xmin -= NODE_SOCKSIZE*4;
+			} else if (in_out == SOCK_OUT) {
+				rect.xmax += NODE_SOCKSIZE*4;
+				rect.xmin -= NODE_SOCKSIZE;
+			}
+		}
+		
+		if(in_out & SOCK_IN) {
+			for(sock= node->inputs.first; sock; sock= sock->next) {
+				if(!(sock->flag & (SOCK_HIDDEN|SOCK_UNAVAIL))) {
+					if(BLI_in_rctf(&rect, sock->locx, sock->locy)) {
+						if(node == visible_node(snode, &rect)) {
+							*nodep= node;
+							*sockp= sock;
+							return 1;
+						}
+					}
+				}
+			}
+		}
+		if(in_out & SOCK_OUT) {
+			for(sock= node->outputs.first; sock; sock= sock->next) {
+				if(!(sock->flag & (SOCK_HIDDEN|SOCK_UNAVAIL))) {
+					if(BLI_in_rctf(&rect, sock->locx, sock->locy)) {
+						if(node == visible_node(snode, &rect)) {
+							*nodep= node;
+							*sockp= sock;
+							return 1;
+						}
+					}
+				}
+			}
+		}
 	}
 	return 0;
 }
@@ -1638,13 +1484,9 @@ static int node_socket_hilights(SpaceNode *snode, int in_out)
 {
 	bNode *node;
 	bNodeSocket *sock, *tsock, *socksel= NULL;
-	float mx, my;
-	short mval[2], redraw= 0;
+	short redraw= 0;
 	
 	if(snode->edittree==NULL) return 0;
-	
-	getmouseco_areawin(mval);
-	areamouseco_to_ipoco(G.v2d, mval, &mx, &my);
 	
 	/* deselect socks */
 	for(node= snode->edittree->nodes.first; node; node= node->next) {
@@ -1664,6 +1506,8 @@ static int node_socket_hilights(SpaceNode *snode, int in_out)
 		}
 	}
 	
+	// XXX mousepos should be set here!
+	
 	if(find_indicated_socket(snode, &node, &tsock, in_out)) {
 		tsock->flag |= SELECT;
 		if(redraw==1 && tsock==socksel) redraw= 0;
@@ -1671,34 +1515,6 @@ static int node_socket_hilights(SpaceNode *snode, int in_out)
 	}
 	
 	return redraw;
-}
-
-void node_border_select(SpaceNode *snode)
-{
-	bNode *node;
-	rcti rect;
-	rctf rectf;
-	short val, mval[2];
-	
-	if ( (val = get_border(&rect, 3)) ) {
-		
-		mval[0]= rect.xmin;
-		mval[1]= rect.ymin;
-		areamouseco_to_ipoco(G.v2d, mval, &rectf.xmin, &rectf.ymin);
-		mval[0]= rect.xmax;
-		mval[1]= rect.ymax;
-		areamouseco_to_ipoco(G.v2d, mval, &rectf.xmax, &rectf.ymax);
-		
-		for(node= snode->edittree->nodes.first; node; node= node->next) {
-			if(BLI_isect_rctf(&rectf, &node->totr, NULL)) {
-				if(val==LEFTMOUSE)
-					node->flag |= SELECT;
-				else
-					node->flag &= ~SELECT;
-			}
-		}
-		// allqueue(REDRAWNODE, 1);
-	}		
 }
 
 /* ****************** Add *********************** */
@@ -1755,10 +1571,9 @@ void snode_autoconnect(SpaceNode *snode, bNode *node_to, int flag)
 	ntreeSolveOrder(snode->edittree);
 }
 
-#endif /* 0 */
 
 /* can be called from menus too, but they should do own undopush and redraws */
-bNode *node_add_node(SpaceNode *snode, int type, float locx, float locy)
+bNode *node_add_node(SpaceNode *snode, Scene *scene, int type, float locx, float locy)
 {
 	bNode *node= NULL, *gnode;
 	
@@ -1796,13 +1611,16 @@ bNode *node_add_node(SpaceNode *snode, int type, float locx, float locy)
 		snode_verify_groups(snode);
 		node_set_active(snode, node);
 		
+		if(snode->nodetree->type==NTREE_COMPOSIT) {
+			if(ELEM(node->type, CMP_NODE_R_LAYERS, CMP_NODE_COMPOSITE))
+				node->id = &scene->id;
+			
+			ntreeCompositForceHidden(snode->edittree, scene);
+		}
+			
 		if(node->id)
 			id_us_plus(node->id);
-		
-		// NODE_FIX_ME
-		// if(snode->nodetree->type==NTREE_COMPOSIT)
-		//	ntreeCompositForceHidden(snode->edittree, scene); // XXX was G.scene
-		
+			
 		NodeTagChanged(snode->edittree, node);
 	}
 	
@@ -1845,9 +1663,9 @@ void node_adduplicate(SpaceNode *snode)
 	
 	ntreeSolveOrder(snode->edittree);
 	snode_verify_groups(snode);
-	snode_handle_recalc(snode);
+	// XXX			snode_handle_recalc(snode);
 
-	transform_nodes(snode->edittree, 'g', "Duplicate");
+// XXX	transform_nodes(snode->edittree, 'g', "Duplicate");
 }
 
 static void node_insert_convertor(SpaceNode *snode, bNodeLink *link)
@@ -1883,6 +1701,38 @@ static void node_insert_convertor(SpaceNode *snode, bNodeLink *link)
 	}
 }
 
+
+#endif /* 0 */
+
+/* *************************** add link op ******************** */
+
+/* temp data to pass on to modal */
+typedef struct NodeLinkDrag
+{
+	bNode *node;
+	bNodeSocket *sock;
+	bNodeLink *link;
+	int in_out;
+} NodeLinkDrag;
+
+/*static*/ void reset_sel_socket(SpaceNode *snode, int in_out)
+{
+	bNode *node;
+	bNodeSocket *sock;
+	
+	for(node= snode->edittree->nodes.first; node; node= node->next) {
+		if(in_out & SOCK_IN) {
+			for(sock= node->inputs.first; sock; sock= sock->next)
+				if(sock->flag & SOCK_SEL) sock->flag&= ~SOCK_SEL;
+		}
+		if(in_out & SOCK_OUT) {
+			for(sock= node->outputs.first; sock; sock= sock->next)
+				if(sock->flag & SOCK_SEL) sock->flag&= ~SOCK_SEL;
+		}
+	}
+}
+
+
 static void node_remove_extra_links(SpaceNode *snode, bNodeSocket *tsock, bNodeLink *link)
 {
 	bNodeLink *tlink;
@@ -1914,28 +1764,26 @@ static void node_remove_extra_links(SpaceNode *snode, bNodeSocket *tsock, bNodeL
 
 /* loop that adds a nodelink, called by function below  */
 /* in_out = starting socket */
-static int node_add_link_drag(SpaceNode *snode, bNode *node, bNodeSocket *sock, int in_out)
+static int node_link_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
-	bNode *tnode;
-	bNodeSocket *tsock= NULL;
-	bNodeLink *link= NULL;
-	short mval[2], mvalo[2], firsttime=1;	/* firsttime reconnects a link broken by caller */
+	SpaceNode *snode= (SpaceNode*)CTX_wm_space_data(C);
+	ARegion *ar= CTX_wm_region(C);
+	NodeLinkDrag *nldrag= op->customdata;
+	bNode *tnode, *node;
+	bNodeSocket *tsock= NULL, *sock;
+	bNodeLink *link;
+	int in_out;
+
+	in_out= nldrag->in_out;
+	node= nldrag->node;
+	sock= nldrag->sock;
+	link= nldrag->link;
 	
-	/* we make a temporal link */
-	if(in_out==SOCK_OUT)
-		link= nodeAddLink(snode->edittree, node, sock, NULL, NULL);
-	else
-		link= nodeAddLink(snode->edittree, NULL, NULL, node, sock);
-	
-	getmouseco_areawin(mvalo);
-	while (get_mbut() & L_MOUSE) {
-		
-		getmouseco_areawin(mval);
-		if(mval[0]!=mvalo[0] || mval[1]!=mvalo[1] || firsttime) {
-			firsttime= 0;
-			
-			mvalo[0]= mval[0];
-			mvalo[1]= mval[1];
+	UI_view2d_region_to_view(&ar->v2d, event->x - ar->winrct.xmin, event->y - ar->winrct.ymin, 
+							 &snode->mx, &snode->my);
+
+	switch (event->type) {
+		case MOUSEMOVE:
 			
 			if(in_out==SOCK_OUT) {
 				if(find_indicated_socket(snode, &tnode, &tsock, SOCK_IN)) {
@@ -1971,65 +1819,70 @@ static int node_add_link_drag(SpaceNode *snode, bNode *node, bNodeSocket *sock, 
 			}
 			/* hilight target sockets only */
 			node_socket_hilights(snode, in_out==SOCK_OUT?SOCK_IN:SOCK_OUT);
+			ED_region_tag_redraw(ar);
+			break;
 			
-			force_draw(0);
-		}
-		else BIF_wait_for_statechange();		
+		case LEFTMOUSE:
+		case RIGHTMOUSE:
+		case MIDDLEMOUSE:
+	
+			/* remove link? */
+			if(link->tonode==NULL || link->fromnode==NULL) {
+				nodeRemLink(snode->edittree, link);
+			}
+			else {
+				/* send changed events for original tonode and new */
+				if(link->tonode) 
+					NodeTagChanged(snode->edittree, link->tonode);
+				
+				/* we might need to remove a link */
+				if(in_out==SOCK_OUT) node_remove_extra_links(snode, link->tosock, link);
+			}
+			
+			ntreeSolveOrder(snode->edittree);
+			snode_verify_groups(snode);
+			snode_handle_recalc(C, snode);
+			
+			MEM_freeN(op->customdata);
+			op->customdata= NULL;
+			
+			return OPERATOR_FINISHED;
 	}
 	
-	/* remove link? */
-	if(link->tonode==NULL || link->fromnode==NULL) {
-		nodeRemLink(snode->edittree, link);
-	}
-	else {
-		/* send changed events for original tonode and new */
-		if(link->tonode) 
-			NodeTagChanged(snode->edittree, link->tonode);
-		
-		/* we might need to remove a link */
-		if(in_out==SOCK_OUT) node_remove_extra_links(snode, tsock, link);
-	}
-	
-	ntreeSolveOrder(snode->edittree);
-	snode_verify_groups(snode);
-	snode_handle_recalc(snode);
-	
-	return 1;
+	return OPERATOR_RUNNING_MODAL;
 }
 
 /* return 1 when socket clicked */
-static int node_add_link(SpaceNode *snode)
+static int node_link_init(SpaceNode *snode, NodeLinkDrag *nldrag)
 {
-	bNode *node;
 	bNodeLink *link;
-	bNodeSocket *sock;
 	
 	/* output indicated? */
-	if(find_indicated_socket(snode, &node, &sock, SOCK_OUT)) {
-		if(nodeCountSocketLinks(snode->edittree, sock)<sock->limit)
-			return node_add_link_drag(snode, node, sock, SOCK_OUT);
+	if(find_indicated_socket(snode, &nldrag->node, &nldrag->sock, SOCK_OUT)) {
+		if(nodeCountSocketLinks(snode->edittree, nldrag->sock) < nldrag->sock->limit)
+			return SOCK_OUT;
 		else {
 			/* find if we break a link */
 			for(link= snode->edittree->links.first; link; link= link->next) {
-				if(link->fromsock==sock)
+				if(link->fromsock==nldrag->sock)
 					break;
 			}
 			if(link) {
-				node= link->tonode;
-				sock= link->tosock;
+				nldrag->node= link->tonode;
+				nldrag->sock= link->tosock;
 				nodeRemLink(snode->edittree, link);
-				return node_add_link_drag(snode, node, sock, SOCK_IN);
+				return SOCK_IN;
 			}
 		}
 	}
 	/* or an input? */
-	else if(find_indicated_socket(snode, &node, &sock, SOCK_IN)) {
-		if(nodeCountSocketLinks(snode->edittree, sock)<sock->limit)
-			return node_add_link_drag(snode, node, sock, SOCK_IN);
+	else if(find_indicated_socket(snode, &nldrag->node, &nldrag->sock, SOCK_IN)) {
+		if(nodeCountSocketLinks(snode->edittree, nldrag->sock) < nldrag->sock->limit)
+			return SOCK_IN;
 		else {
 			/* find if we break a link */
 			for(link= snode->edittree->links.first; link; link= link->next) {
-				if(link->tosock==sock)
+				if(link->tosock==nldrag->sock)
 					break;
 			}
 			if(link) {
@@ -2037,10 +1890,10 @@ static int node_add_link(SpaceNode *snode)
 				if(link->tonode) 
 					NodeTagChanged(snode->edittree, link->tonode);
 				
-				node= link->fromnode;
-				sock= link->fromsock;
+				nldrag->node= link->fromnode;
+				nldrag->sock= link->fromsock;
 				nodeRemLink(snode->edittree, link);
-				return node_add_link_drag(snode, node, sock, SOCK_OUT);
+				return SOCK_OUT;
 			}
 		}
 	}
@@ -2048,7 +1901,53 @@ static int node_add_link(SpaceNode *snode)
 	return 0;
 }
 
-#endif /* 0 */
+static int node_link_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	SpaceNode *snode= (SpaceNode*)CTX_wm_space_data(C);
+	ARegion *ar= CTX_wm_region(C);
+	NodeLinkDrag *nldrag= MEM_callocN(sizeof(NodeLinkDrag), "drag link op customdata");
+	
+	UI_view2d_region_to_view(&ar->v2d, event->x - ar->winrct.xmin, event->y - ar->winrct.ymin, 
+							 &snode->mx, &snode->my);
+
+	nldrag->in_out= node_link_init(snode, nldrag);
+		
+	if(nldrag->in_out) {
+		op->customdata= nldrag;
+		
+		/* we make a temporal link */
+		if(nldrag->in_out==SOCK_OUT)
+			nldrag->link= nodeAddLink(snode->edittree, nldrag->node, nldrag->sock, NULL, NULL);
+		else
+			nldrag->link= nodeAddLink(snode->edittree, NULL, NULL, nldrag->node, nldrag->sock);
+		
+		/* add modal handler */
+		WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
+		
+		return OPERATOR_RUNNING_MODAL;
+	}
+	else {
+		MEM_freeN(nldrag);
+		return OPERATOR_CANCELLED|OPERATOR_PASS_THROUGH;
+	}
+}
+
+void NODE_OT_link(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Link Nodes";
+	ot->idname= "NODE_OT_link";
+	
+	/* api callbacks */
+	ot->invoke= node_link_invoke;
+	ot->modal= node_link_modal;
+//	ot->exec= node_link_exec;
+	ot->poll= ED_operator_node_active;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
 
 void node_delete(SpaceNode *snode)
 {
@@ -2175,87 +2074,97 @@ void node_make_link(SpaceNode *snode)
 
 	ntreeSolveOrder(snode->edittree);
 	snode_verify_groups(snode);
-	snode_handle_recalc(snode);
+	// XXX			snode_handle_recalc(snode);
 
 }
+#endif
 
-static void node_border_link_delete(SpaceNode *snode)
+/* ********************** Cut Link operator ***************** */
+
+#define LINK_RESOL 12
+static int cut_links_intersect(bNodeLink *link, float mcoords[][2], int tot)
 {
-	rcti rect;
-	short val, mval[2], mvalo[2];
+	float coord_array[LINK_RESOL+1][2];
+	int i, b;
+	
+	if(node_link_bezier_points(NULL, NULL, link, coord_array, LINK_RESOL)) {
 
-	/* to make this work more friendly, we first wait for a mouse move */
-	getmouseco_areawin(mvalo);
-	while (get_mbut() & L_MOUSE) {
-		getmouseco_areawin(mval);
-		if(mval[0]!=mvalo[0] || mval[1]!=mvalo[1])
-			break;
-		else BIF_wait_for_statechange();
+		for(i=0; i<tot-1; i++)
+			for(b=0; b<LINK_RESOL-1; b++)
+				if(IsectLL2Df(mcoords[i], mcoords[i+1], coord_array[b], coord_array[b+1]) > 0)
+					return 1;
 	}
-	if((get_mbut() & L_MOUSE)==0)
-		return;
+	return 0;
+}
+
+static int cut_links_exec(bContext *C, wmOperator *op)
+{
+	SpaceNode *snode= (SpaceNode*)CTX_wm_space_data(C);
+	ARegion *ar= CTX_wm_region(C);
+	float mcoords[256][2];
+	int i= 0;
 	
-	/* now change cursor and draw border */
-	setcursor_space(SPACE_NODE, CURSOR_VPAINT);
+	RNA_BEGIN(op->ptr, itemptr, "path") {
+		float loc[2];
+		
+		RNA_float_get_array(&itemptr, "loc", loc);
+		UI_view2d_region_to_view(&ar->v2d, (short)loc[0], (short)loc[1], 
+								 &mcoords[i][0], &mcoords[i][1]);
+		i++;
+		if(i>= 256) break;
+	}
+	RNA_END;
 	
-	if ( (val = get_border(&rect, 2)) ) {
-		if(rect.xmin<rect.xmax && rect.ymin<rect.ymax) {
-			//#define NODE_MAXPICKBUF	256
-			bNodeLink *link, *next;
-			GLuint buffer[256];
-			rctf rectf;
-			int code=0, hits;
+	if(i>1) {
+		bNodeLink *link, *next;
+		
+		for(link= snode->edittree->links.first; link; link= link->next) {
+			next= link->next;
 			
-			mval[0]= rect.xmin;
-			mval[1]= rect.ymin;
-			areamouseco_to_ipoco(&snode->v2d, mval, &rectf.xmin, &rectf.ymin);
-			mval[0]= rect.xmax;
-			mval[1]= rect.ymax;
-			areamouseco_to_ipoco(&snode->v2d, mval, &rectf.xmax, &rectf.ymax);
-			
-			glLoadIdentity();
-			myortho2(rectf.xmin, rectf.xmax, rectf.ymin, rectf.ymax);
-			
-			glSelectBuffer(256, buffer); 
-			glRenderMode(GL_SELECT);
-			glInitNames();
-			glPushName(-1);
-			
-			/* draw links */
-			for(link= snode->edittree->links.first; link; link= link->next) {
-				glLoadName(code++);
-				node_draw_link(snode, link);
-			}
-			
-			hits= glRenderMode(GL_RENDER);
-			glPopName();
-			if(hits>0) {
-				int a;
-				for(a=0; a<hits; a++) {
-					bNodeLink *link= BLI_findlink(&snode->edittree->links, buffer[ (4 * a) + 3]);
-					if(link)
-						link->fromnode= NULL;	/* first tag for delete, otherwise indices are wrong */
-				}
-				for(link= snode->edittree->links.first; link; link= next) {
-					next= link->next;
-					if(link->fromnode==NULL) {
-						NodeTagChanged(snode->edittree, link->tonode);
-						nodeRemLink(snode->edittree, link);
-					}
-				}
-				ntreeSolveOrder(snode->edittree);
-				snode_verify_groups(snode);
-				snode_handle_recalc(snode);
+			if(cut_links_intersect(link, mcoords, i)) {
+				NodeTagChanged(snode->edittree, link->tonode);
+				nodeRemLink(snode->edittree, link);
 			}
 		}
+
+		ntreeSolveOrder(snode->edittree);
+		snode_verify_groups(snode);
+		snode_handle_recalc(C, snode);
+		
+		return OPERATOR_FINISHED;
 	}
 	
-	setcursor_space(SPACE_NODE, CURSOR_STD);
+	return OPERATOR_PASS_THROUGH;;
 }
+
+void NODE_OT_links_cut(wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+	
+	ot->name= "Cut links";
+	ot->idname= "NODE_OT_links_cut";
+	
+	ot->invoke= WM_gesture_lines_invoke;
+	ot->modal= WM_gesture_lines_modal;
+	ot->exec= cut_links_exec;
+	
+	ot->poll= ED_operator_node_active;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	prop= RNA_def_property(ot->srna, "path", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_struct_runtime(prop, &RNA_OperatorMousePath);
+	/* internal */
+	RNA_def_int(ot->srna, "cursor", BC_KNIFECURSOR, 0, INT_MAX, "Cursor", "", 0, INT_MAX);
+}
+
+/* ******************************** */
 
 /* goes over all scenes, reads render layerss */
 void node_read_renderlayers(SpaceNode *snode)
 {
+	Scene *curscene= NULL; // XXX
 	Scene *scene;
 	bNode *node;
 
@@ -2266,42 +2175,40 @@ void node_read_renderlayers(SpaceNode *snode)
 	for(node= snode->edittree->nodes.first; node; node= node->next) {
 		if(node->type==CMP_NODE_R_LAYERS) {
 			ID *id= node->id;
-			if(id==NULL) id= (ID *)G.scene;
 			if(id->flag & LIB_DOIT) {
-				RE_ReadRenderResult(G.scene, (Scene *)id);
+				RE_ReadRenderResult(curscene, (Scene *)id);
 				ntreeCompositTagRender((Scene *)id);
 				id->flag &= ~LIB_DOIT;
 			}
 		}
 	}
 	
-	/* own render result should be read/allocated */
-	if(G.scene->id.flag & LIB_DOIT)
-		RE_ReadRenderResult(G.scene, G.scene);
-	
-	snode_handle_recalc(snode);
+	// XXX			snode_handle_recalc(snode);
 }
 
 void node_read_fullsamplelayers(SpaceNode *snode)
 {
-	Render *re= RE_NewRender(G.scene->id.name);
+	Scene *curscene= NULL; // XXX
+	Render *re= RE_NewRender(curscene->id.name);
 
-	waitcursor(1);
+	WM_cursor_wait(1);
 
-	BIF_init_render_callbacks(re, 1);
-	RE_MergeFullSample(re, G.scene, snode->nodetree);
-	BIF_end_render_callbacks();
+	//BIF_init_render_callbacks(re, 1);
+	RE_MergeFullSample(re, curscene, snode->nodetree);
+	//BIF_end_render_callbacks();
 	
 	// allqueue(REDRAWNODE, 1);
 	// allqueue(REDRAWIMAGE, 1);
 	
-	waitcursor(0);
+	WM_cursor_wait(0);
 }
 
 /* called from header_info, when deleting a scene
  * goes over all scenes other than the input, checks if they have
  * render layer nodes referencing the to-be-deleted scene, and
  * resets them to NULL. */
+
+/* XXX needs to get current scene then! */
 void clear_scene_in_nodes(Scene *sce)
 {
 	Scene *sce1;
@@ -2370,7 +2277,7 @@ void node_make_group(SpaceNode *snode)
 	bNode *gnode;
 	
 	if(snode->edittree!=snode->nodetree) {
-		error("Can not add a new Group in a Group");
+// XXX		error("Can not add a new Group in a Group");
 		return;
 	}
 	
@@ -2382,14 +2289,14 @@ void node_make_group(SpaceNode *snode)
 					break;
 		}
 		if(gnode) {
-			error("Can not add RenderLayer in a Group");
+// XXX			error("Can not add RenderLayer in a Group");
 			return;
 		}
 	}
 	
 	gnode= nodeMakeGroupFromSelected(snode->nodetree);
 	if(gnode==NULL) {
-		error("Can not make Group");
+// XXX		error("Can not make Group");
 	}
 	else {
 		nodeSetActive(snode->nodetree, gnode);
@@ -2397,90 +2304,9 @@ void node_make_group(SpaceNode *snode)
 	}
 }
 
+#if 0
+
 /* ******************** main event loop ****************** */
-
-/* special version to prevent overlapping buttons, has a bit of hack... */
-/* yes, check for example composit_node_event(), file window use... */
-static int node_uiDoBlocks(ScrArea *sa, short event)
-{
-	SpaceNode *snode= sa->spacedata.first;
-	ListBase *lb= &sa->uiblocks;
-	ListBase listb= *lb;
-	uiBlock *block;
-	bNode *node;
-	rctf rect;
-	void *prev, *next;
-	int retval= UI_NOTHING;
-	short mval[2];
-	
-	getmouseco_areawin(mval);
-	areamouseco_to_ipoco(G.v2d, mval, &rect.xmin, &rect.ymin);
-
-	/* this happens after filesel usage... */
-	if(lb->first==NULL) {
-		return UI_NOTHING;
-	}
-	
-	/* evil hack: try to do grease-pencil floating panel (like for nodes) */
-	block= uiGetBlock("nodes_panel_gpencil", sa);
-	if (block) {
-		/* try to process events here... if failed, just carry on */
-			/* when there's menus, the prev pointer becomes zero! */
-		prev= ((struct Link *)block)->prev;
-		next= ((struct Link *)block)->next;
-		((struct Link *)block)->prev= NULL;
-		((struct Link *)block)->next= NULL;
-		
-		lb->first= lb->last= block;
-		retval= uiDoBlocks(lb, event, 1);
-		
-		((struct Link *)block)->prev= prev;
-		((struct Link *)block)->next= next;
-		
-		*lb= listb;
-		
-		/* if something happened, get the heck outta here */
-		if (retval != UI_NOTHING)
-			return retval;
-	}
-	
-	
-	rect.xmin -= 2.0f;
-	rect.ymin -= 2.0f;
-	rect.xmax = rect.xmin + 4.0f;
-	rect.ymax = rect.ymin + 4.0f;
-	
-	for(node= snode->edittree->nodes.first; node; node= node->next) {
-		char str[32];
-		
-		/* retreive unique block name, see also drawnode.c */
-		sprintf(str, "node buttons %p", node);
-		block= uiGetBlock(str, sa);
-		
-		if(block) {
-			if(node == visible_node(snode, &rect)) {
-
-				/* when there's menus, the prev pointer becomes zero! */
-				prev= ((struct Link *)block)->prev;
-				next= ((struct Link *)block)->next;
-				((struct Link *)block)->prev= NULL;
-				((struct Link *)block)->next= NULL;
-				
-				lb->first= lb->last= block;
-				retval= uiDoBlocks(lb, event, 1);
-				
-				((struct Link *)block)->prev= prev;
-				((struct Link *)block)->next= next;
-
-				break;
-			}
-		}
-	}
-	
-	*lb= listb;
-	
-	return retval;
-}
 
 void winqreadnodespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 {
@@ -2510,7 +2336,7 @@ void winqreadnodespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			}
 			else if(fromlib) {
 				if(node_mouse_groupheader(snode)==0)
-					node_mouse_select(snode, event);
+					//node_mouse_select(snode, event);
 			}
 			else {
 				
@@ -2518,9 +2344,9 @@ void winqreadnodespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					if(gesture())
 						break;
 					
-				if(node_add_link(snode)==0)
+//				if(node_add_link(snode)==0)
 					if(node_mouse_groupheader(snode)==0)
-						if(node_mouse_select(snode, event)==0)
+//						if(node_mouse_select(snode, event)==0)
 							node_border_link_delete(snode);
 			}
 			break;
@@ -2551,8 +2377,8 @@ void winqreadnodespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					actsock->flag|= SOCK_SEL;
 				}
 			}
-			else if(!node_mouse_select(snode, event)) 
-				toolbox_n();
+//			else if(!node_mouse_select(snode, event)) 
+//				toolbox_n();
 
 			break;
 		case MIDDLEMOUSE:
@@ -2622,7 +2448,7 @@ void winqreadnodespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			}
 			break;
 		case EKEY:
-			snode_handle_recalc(snode);
+			// XXX			snode_handle_recalc(snode);
 			break;
 		case FKEY:
 			node_make_link(snode);
@@ -2641,8 +2467,8 @@ void winqreadnodespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				else if(G.qual==LR_SHIFTKEY) {
 					node_addgroup(snode);
 				}
-				else
-					transform_nodes(snode->edittree, 'g', "Move Node");
+//				else
+// XXX					transform_nodes(snode->edittree, 'g', "Move Node");
 			}
 			break;
 		case HKEY:

@@ -118,8 +118,6 @@ void wm_check(bContext *C)
 		
 		ED_screens_initialize(wm);
 		wm->initialized= 1;
-		
-		WM_event_add_notifier(C, NC_WINDOW, NULL);
 	}
 }
 
@@ -133,8 +131,9 @@ void wm_add_default(bContext *C)
 	CTX_wm_manager_set(C, wm);
 	win= wm_window_new(C);
 	win->screen= screen;
-	if(screen)
-		BLI_strncpy(win->screenname, screen->id.name+2, 21);
+	screen->winid= win->winid;
+	BLI_strncpy(win->screenname, screen->id.name+2, 21);
+	
 	wm->winactive= win;
 	wm_window_make_drawable(C, win); 
 }
@@ -150,6 +149,7 @@ void wm_close_and_free(bContext *C, wmWindowManager *wm)
 	
 	while((win= wm->windows.first)) {
 		BLI_remlink(&wm->windows, win);
+		wm_draw_window_clear(win);
 		wm_window_free(C, win);
 	}
 	

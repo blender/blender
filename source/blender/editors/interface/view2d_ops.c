@@ -487,12 +487,12 @@ static void view_zoomstep_apply(bContext *C, wmOperator *op)
 	dx= (v2d->cur.xmax - v2d->cur.xmin) * (float)RNA_float_get(op->ptr, "zoomfacx");
 	dy= (v2d->cur.ymax - v2d->cur.ymin) * (float)RNA_float_get(op->ptr, "zoomfacy");
 	
-	/* only move view on an axis if change is allowed */
-	if ((v2d->keepzoom & V2D_LOCKOFS_X)==0) {
+	/* only resize view on an axis if change is allowed */
+	if ((v2d->keepzoom & V2D_LOCKZOOM_X)==0) {
 		v2d->cur.xmin += dx;
 		v2d->cur.xmax -= dx;
 	}
-	if ((v2d->keepzoom & V2D_LOCKOFS_Y)==0) {
+	if ((v2d->keepzoom & V2D_LOCKZOOM_Y)==0) {
 		v2d->cur.ymin += dy;
 		v2d->cur.ymax -= dy;
 	}

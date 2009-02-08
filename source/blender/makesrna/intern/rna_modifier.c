@@ -232,9 +232,17 @@ static void rna_WaveModifier_uvlayer_set(PointerRNA *ptr, const char *value)
 	rna_object_uvlayer_name_set(ptr, value, wmd->uvlayer_name, sizeof(wmd->uvlayer_name));
 }
 
+static void rna_MultiresModifier_level_range(PointerRNA *ptr, int *min, int *max)
+{
+	MultiresModifierData *mmd = (MultiresModifierData*)ptr->data;
+
+	*min = 1;
+	*max = mmd->totlvl;
+}
+
 #else
 
-static void rna_def_property_subdivision_common(StructRNA *srna, const char type[], const char level[])
+static void rna_def_property_subdivision_common(StructRNA *srna, const char type[])
 {
 	static EnumPropertyItem prop_subdivision_type_items[] = {
 		{0, "CATMULL_CLARK", "Catmull-Clark", ""},
@@ -245,13 +253,6 @@ static void rna_def_property_subdivision_common(StructRNA *srna, const char type
 	RNA_def_property_enum_sdna(prop, NULL, type);
 	RNA_def_property_enum_items(prop, prop_subdivision_type_items);
 	RNA_def_property_ui_text(prop, "Subdivision Type", "Selects type of subdivision algorithm.");
-
-	prop= RNA_def_property(srna, "levels", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, level);
-	RNA_def_property_range(prop, 1, 20);
-	RNA_def_property_ui_range(prop, 1, 6, 1, 0);
-	RNA_def_property_ui_text(prop, "Levels", "Number of subdivisions to perform.");
-	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_update");
 }
 
 static void rna_def_modifier_subsurf(BlenderRNA *brna)
@@ -263,7 +264,14 @@ static void rna_def_modifier_subsurf(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Subsurf Modifier", "Subdivision surface modifier.");
 	RNA_def_struct_sdna(srna, "SubsurfModifierData");
 
-	rna_def_property_subdivision_common(srna, "subdivType", "levels");
+	rna_def_property_subdivision_common(srna, "subdivType");
+
+	prop= RNA_def_property(srna, "levels", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "levels");
+	RNA_def_property_range(prop, 1, 20);
+	RNA_def_property_ui_range(prop, 1, 6, 1, 0);
+	RNA_def_property_ui_text(prop, "Levels", "Number of subdivisions to perform.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_update");
 
 	prop= RNA_def_property(srna, "render_levels", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "renderLevels");
@@ -285,12 +293,19 @@ static void rna_def_modifier_subsurf(BlenderRNA *brna)
 static void rna_def_modifier_multires(BlenderRNA *brna)
 {
 	StructRNA *srna;
+	PropertyRNA *prop;
 
 	srna= RNA_def_struct(brna, "MultiresModifier", "Modifier");
 	RNA_def_struct_ui_text(srna, "Multires Modifier", "Multiresolution mesh modifier.");
 	RNA_def_struct_sdna(srna, "MultiresModifierData");
 
-	rna_def_property_subdivision_common(srna, "simple", "lvl");
+	rna_def_property_subdivision_common(srna, "simple");
+
+	prop= RNA_def_property(srna, "levels", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "lvl");
+	RNA_def_property_ui_text(prop, "Levels", "");
+	RNA_def_property_int_funcs(prop, NULL, NULL, "rna_MultiresModifier_level_range");
+	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_update");
 }
 
 static void rna_def_modifier_lattice(BlenderRNA *brna)

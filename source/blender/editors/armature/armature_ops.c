@@ -58,24 +58,83 @@
 
 #include "armature_intern.h"
 
+/* ************************** quick tests **********************************/
+
+/*  XXX This is a quick test operator to print names of all EditBones in context
+ *  		that should be removed once tool coding starts...
+ */
+
+static int armature_test_exec (bContext *C, wmOperator *op)
+{
+	printf("EditMode Armature Test: \n");
+	
+	printf("\tSelected Bones \n");
+	CTX_DATA_BEGIN(C, EditBone*, ebone, selected_bones)
+	{
+		printf("\t\tEditBone '%s' \n", ebone->name);
+	}
+	CTX_DATA_END;
+	
+	printf("\tEditable Bones \n");
+	CTX_DATA_BEGIN(C, EditBone*, ebone, selected_editable_bones) 
+	{
+		printf("\t\tEditBone '%s' \n", ebone->name);
+	}
+	CTX_DATA_END;
+	
+	printf("\tActive Bone \n");
+	{
+		EditBone *ebone= CTX_data_active_bone(C);
+		if (ebone) printf("\t\tEditBone '%s' \n", ebone->name);
+		else printf("\t\t<None> \n");
+	}
+	
+	return OPERATOR_FINISHED;
+}
+
+void ARMATURE_OT_test(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Test Context";
+	ot->idname= "ARMATURE_OT_test";
+	
+	/* api callbacks */
+	ot->exec= armature_test_exec;
+}
 
 /* ************************** registration **********************************/
 
 /* Both operators ARMATURE_OT_xxx and POSE_OT_xxx here */
 void ED_operatortypes_armature(void)
 {
+	WM_operatortype_append(ARMATURE_OT_align_bones);
+	WM_operatortype_append(ARMATURE_OT_calculate_roll);
+	
 	WM_operatortype_append(POSE_OT_hide);
 	WM_operatortype_append(POSE_OT_reveil);
+	WM_operatortype_append(POSE_OT_rot_clear);
+	WM_operatortype_append(POSE_OT_loc_clear);
+	WM_operatortype_append(POSE_OT_scale_clear);
+	
+	WM_operatortype_append(ARMATURE_OT_test); // XXX temp test for context iterators... to be removed
 }
 
 void ED_keymap_armature(wmWindowManager *wm)
 {
-	ListBase *keymap= WM_keymap_listbase(wm, "Armature", 0, 0);
+	ListBase *keymap;
 	wmKeymapItem *kmi;
+	
+	/* Armature ------------------------ */
+	keymap= WM_keymap_listbase(wm, "Armature", 0, 0);
 	
 	/* only set in editmode armature, by space_view3d listener */
 //	WM_keymap_add_item(keymap, "ARMATURE_OT_hide", HKEY, KM_PRESS, 0, 0);
-
+	WM_keymap_add_item(keymap, "ARMATURE_OT_align_bones", AKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
+	WM_keymap_add_item(keymap, "ARMATURE_OT_calculate_roll", NKEY, KM_PRESS, KM_CTRL, 0);
+	
+	WM_keymap_add_item(keymap, "ARMATURE_OT_test", TKEY, KM_PRESS, 0, 0);  // XXX temp test for context iterators... to be removed
+	
+	/* Pose ------------------------ */
 	/* only set in posemode, by space_view3d listener */
 	keymap= WM_keymap_listbase(wm, "Pose", 0, 0);
 	
@@ -83,6 +142,9 @@ void ED_keymap_armature(wmWindowManager *wm)
 	kmi= WM_keymap_add_item(keymap, "POSE_OT_hide", HKEY, KM_PRESS, KM_SHIFT, 0);
 	RNA_boolean_set(kmi->ptr, "invert", 1);
 	WM_keymap_add_item(keymap, "POSE_OT_reveil", HKEY, KM_PRESS, KM_ALT, 0);
-
+	/*clear pose*/
+	WM_keymap_add_item(keymap, "POSE_OT_rot_clear", RKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_add_item(keymap, "POSE_OT_loc_clear", GKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_add_item(keymap, "POSE_OT_scale_clear", SKEY, KM_PRESS, KM_ALT, 0);
 }
 

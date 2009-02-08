@@ -76,7 +76,7 @@
 #include "ED_anim_api.h"
 #include "ED_util.h"
 
-#include "ipo_intern.h"
+#include "graph_intern.h"
 
 #include "UI_interface.h"
 #include "UI_interface_icons.h"

@@ -298,7 +298,6 @@ static void action_channel_area_listener(ARegion *ar, wmNotifier *wmn)
 			switch(wmn->data) {
 				case ND_BONE_ACTIVE:
 				case ND_BONE_SELECT:
-				case ND_KEYS:
 					ED_region_tag_redraw(ar);
 					break;
 			}
@@ -327,6 +326,7 @@ static void action_main_area_listener(ARegion *ar, wmNotifier *wmn)
 				case ND_BONE_ACTIVE:
 				case ND_BONE_SELECT:
 				case ND_KEYS:
+				case ND_TRANSFORM:
 					ED_region_tag_redraw(ar);
 					break;
 			}

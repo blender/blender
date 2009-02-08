@@ -89,7 +89,8 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(GROUP_OT_group_remove);
 	WM_operatortype_append(GROUP_OT_objects_add_active);
 	WM_operatortype_append(GROUP_OT_objects_remove_active);
-	
+
+	WM_operatortype_append(OBJECT_OT_delete);
 	WM_operatortype_append(OBJECT_OT_mesh_add);
 	WM_operatortype_append(OBJECT_OT_curve_add);
 	WM_operatortype_append(OBJECT_OT_object_add);
@@ -127,6 +128,7 @@ void ED_keymap_object(wmWindowManager *wm)
 	WM_keymap_verify_item(keymap, "OBJECT_OT_clear_restrictview", HKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_verify_item(keymap, "OBJECT_OT_set_restrictview", HKEY, KM_PRESS, 0, 0);
 	
+	WM_keymap_verify_item(keymap, "OBJECT_OT_delete", XKEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "OBJECT_OT_primitive_add", AKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_verify_item(keymap, "OBJECT_OT_add_duplicate", DKEY, KM_PRESS, KM_SHIFT, 0);
 	

@@ -23,6 +23,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include <float.h>
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
@@ -133,15 +134,18 @@ typedef struct uiHandleButtonData {
 typedef struct uiAfterFunc {
 	struct uiAfterFunc *next, *prev;
 
-	void (*func)(struct bContext*, void *, void *);
+	uiButHandleFunc func;
 	void *func_arg1;
 	void *func_arg2;
 
-	void (*handle_func)(struct bContext*, void *arg, int event);
+	uiButHandleNFunc funcN;
+	void *func_argN;
+
+	uiBlockHandleFunc handle_func;
 	void *handle_func_arg;
 	int retval;
 
-	void (*butm_func)(struct bContext*, void *arg, int event);
+	uiMenuHandleFunc butm_func;
 	void *butm_func_arg;
 	int a2;
 
@@ -216,12 +220,15 @@ static void ui_apply_but_func(bContext *C, uiBut *but)
 	 * handling is done, i.e. menus are closed, in order to avoid conflicts
 	 * with these functions removing the buttons we are working with */
 
-	if(but->func || block->handle_func || (but->type == BUTM && block->butm_func) || but->opname || but->rnaprop) {
+	if(but->func || but->funcN || block->handle_func || (but->type == BUTM && block->butm_func) || but->opname || but->rnaprop) {
 		after= MEM_callocN(sizeof(uiAfterFunc), "uiAfterFunc");
 
 		after->func= but->func;
 		after->func_arg1= but->func_arg1;
 		after->func_arg2= but->func_arg2;
+
+		after->funcN= but->funcN;
+		after->func_argN= but->func_argN;
 
 		after->handle_func= block->handle_func;
 		after->handle_func_arg= block->handle_func_arg;
@@ -250,34 +257,37 @@ static void ui_apply_but_func(bContext *C, uiBut *but)
 
 static void ui_apply_but_funcs_after(bContext *C)
 {
-	uiAfterFunc *after;
+	uiAfterFunc *afterf, after;
 	ListBase funcs;
 
 	/* copy to avoid recursive calls */
 	funcs= UIAfterFuncs;
 	UIAfterFuncs.first= UIAfterFuncs.last= NULL;
 
-	for(after=funcs.first; after; after=after->next) {
-		if(after->func)
-			after->func(C, after->func_arg1, after->func_arg2);
-		
-		if(after->handle_func)
-			after->handle_func(C, after->handle_func_arg, after->retval);
-		if(after->butm_func)
-			after->butm_func(C, after->butm_func_arg, after->a2);
+	for(afterf=funcs.first; afterf; afterf=after.next) {
+		after= *afterf; /* copy to avoid memleak on exit() */
+		BLI_freelinkN(&funcs, afterf);
 
-		if(after->opname)
-			WM_operator_name_call(C, after->opname, after->opcontext, after->opptr);
-		if(after->opptr) {
-			WM_operator_properties_free(after->opptr);
-			MEM_freeN(after->opptr);
+		if(after.func)
+			after.func(C, after.func_arg1, after.func_arg2);
+		if(after.funcN)
+			after.funcN(C, after.func_argN, after.func_arg2);
+		
+		if(after.handle_func)
+			after.handle_func(C, after.handle_func_arg, after.retval);
+		if(after.butm_func)
+			after.butm_func(C, after.butm_func_arg, after.a2);
+
+		if(after.opname)
+			WM_operator_name_call(C, after.opname, after.opcontext, after.opptr);
+		if(after.opptr) {
+			WM_operator_properties_free(after.opptr);
+			MEM_freeN(after.opptr);
 		}
 
-		if(after->rnapoin.data)
-			RNA_property_update(C, &after->rnapoin, after->rnaprop);
+		if(after.rnapoin.data)
+			RNA_property_update(C, &after.rnapoin, after.rnaprop);
 	}
-
-	BLI_freelistN(&funcs);
 }
 
 static void ui_apply_but_BUT(bContext *C, uiBut *but, uiHandleButtonData *data)
@@ -1373,9 +1383,18 @@ static void ui_do_but_textedit_select(bContext *C, uiBlock *block, uiBut *but, u
 
 /* ************* number editing for various types ************* */
 
+static void but_clamped_range(uiBut *but, float *butmin, float *butmax, float *butrange)
+{
+	/* clamp button range to something reasonable in case
+	 * we get -inf/inf from RNA properties */
+	*butmin= MAX2(but->min, -1e4f);
+	*butmax= MIN2(but->max, 1e4f);
+	*butrange= *butmax - *butmin;
+}
+
 static void ui_numedit_begin(uiBut *but, uiHandleButtonData *data)
 {
-	float butrange;
+	float butrange, butmin, butmax;
 
 	if(but->type == BUT_CURVE) {
 		data->cumap= (CurveMapping*)but->poin;
@@ -1395,8 +1414,9 @@ static void ui_numedit_begin(uiBut *but, uiHandleButtonData *data)
 		data->value= data->origvalue;
 		but->editval= &data->value;
 
-		butrange= (but->max - but->min);
-		data->dragfstart= (butrange == 0.0)? 0.0f: (data->value - but->min)/butrange;
+		but_clamped_range(but, &butmin, &butmax, &butrange);
+
+		data->dragfstart= (butrange == 0.0)? 0.0f: (data->value - butmin)/butrange;
 		data->dragf= data->dragfstart;
 	}
 
@@ -1603,7 +1623,7 @@ static int ui_do_but_EXIT(bContext *C, uiBut *but, uiHandleButtonData *data, wmE
 
 static int ui_numedit_but_NUM(uiBut *but, uiHandleButtonData *data, float fac, int snap, int mx)
 {
-	float deler, tempf;
+	float deler, tempf, butmin, butmax, butrange;
 	int lvalue, temp, changed= 0;
 	
 	if(mx == data->draglastx)
@@ -1619,28 +1639,30 @@ static int ui_numedit_but_NUM(uiBut *but, uiHandleButtonData *data, float fac, i
 		data->dragstartx= mx;  /* ignore mouse movement within drag-lock */
 	}
 
+	but_clamped_range(but, &butmin, &butmax, &butrange);
+
 	deler= 500;
 	if(!ui_is_but_float(but)) {
-		if((but->max-but->min)<100) deler= 200.0;
-		if((but->max-but->min)<25) deler= 50.0;
+		if((butrange)<100) deler= 200.0;
+		if((butrange)<25) deler= 50.0;
 	}
 	deler /= fac;
 
-	if(ui_is_but_float(but) && but->max-but->min > 11) {
+	if(ui_is_but_float(but) && butrange > 11) {
 		/* non linear change in mouse input- good for high precicsion */
 		data->dragf+= (((float)(mx-data->draglastx))/deler) * (fabs(data->dragstartx-mx)*0.002);
-	} else if (!ui_is_but_float(but) && but->max-but->min > 129) { /* only scale large int buttons */
+	} else if (!ui_is_but_float(but) && butrange > 129) { /* only scale large int buttons */
 		/* non linear change in mouse input- good for high precicsionm ints need less fine tuning */
 		data->dragf+= (((float)(mx-data->draglastx))/deler) * (fabs(data->dragstartx-mx)*0.004);
 	} else {
 		/*no scaling */
 		data->dragf+= ((float)(mx-data->draglastx))/deler ;
 	}
-	
+
 	if(data->dragf>1.0) data->dragf= 1.0;
 	if(data->dragf<0.0) data->dragf= 0.0;
 	data->draglastx= mx;
-	tempf= ( but->min + data->dragf*(but->max-but->min));
+	tempf= (butmin + data->dragf*butrange);
 	
 	if(!ui_is_but_float(but)) {
 		
@@ -1667,14 +1689,14 @@ static int ui_numedit_but_NUM(uiBut *but, uiHandleButtonData *data, float fac, i
 		if(snap) {
 			if(snap == 2) {
 				if(tempf==but->min || tempf==but->max);
-				else if(but->max-but->min < 2.10) tempf= 0.01*floor(100.0*tempf);
-				else if(but->max-but->min < 21.0) tempf= 0.1*floor(10.0*tempf);
+				else if(butrange < 2.10) tempf= 0.01*floor(100.0*tempf);
+				else if(butrange < 21.0) tempf= 0.1*floor(10.0*tempf);
 				else tempf= floor(tempf);
 			}
 			else {
 				if(tempf==but->min || tempf==but->max);
-				else if(but->max-but->min < 2.10) tempf= 0.1*floor(10*tempf);
-				else if(but->max-but->min < 21.0) tempf= floor(tempf);
+				else if(butrange < 2.10) tempf= 0.1*floor(10*tempf);
+				else if(butrange < 21.0) tempf= floor(tempf);
 				else tempf= 10.0*floor(tempf/10.0);
 			}
 		}
@@ -1818,8 +1840,10 @@ static int ui_do_but_NUM(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 
 static int ui_numedit_but_SLI(uiBut *but, uiHandleButtonData *data, int shift, int ctrl, int mx)
 {
-	float deler, f, tempf;
+	float deler, f, tempf, butmin, butmax, butrange;
 	int temp, lvalue, changed= 0;
+
+	but_clamped_range(but, &butmin, &butmax, &butrange);
 
 	if(but->type==NUMSLI) deler= ((but->x2-but->x1)/2 - 5.0*but->aspect);
 	else if(but->type==HSVSLI) deler= ((but->x2-but->x1)/2 - 5.0*but->aspect);
@@ -1831,7 +1855,7 @@ static int ui_numedit_but_SLI(uiBut *but, uiHandleButtonData *data, int shift, i
 		f= (f-data->dragfstart)/10.0 + data->dragfstart;
 
 	CLAMP(f, 0.0, 1.0);
-	tempf= but->min+f*(but->max-but->min);		
+	tempf= butmin + f*butrange;
 	temp= floor(tempf+.5);
 
 	if(ctrl) {
@@ -1927,10 +1951,12 @@ static int ui_do_but_SLI(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 
 	if(click) {
 		float f, h;
-		float tempf;
+		float tempf, butmin, butmax, butrange;
 		int temp;
 		
 		button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
+
+		but_clamped_range(but, &butmin, &butmax, &butrange);
 
 		tempf= data->value;
 		temp= (int)data->value;
@@ -1940,7 +1966,7 @@ static int ui_do_but_SLI(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 		if(but->type==SLI) f= (float)(mx-but->x1)/(but->x2-but->x1-h);
 		else f= (float)(mx- (but->x1+but->x2)/2)/((but->x2-but->x1)/2 - h);
 		
-		f= but->min+f*(but->max-but->min);
+		f= butmin + f*butrange;
 
 		if(!ui_is_but_float(but)) {
 			if(f<temp) temp--;
@@ -2593,6 +2619,9 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, wmEvent *event)
 	data= but->active;
 	retval= WM_UI_HANDLER_CONTINUE;
 
+	if(but->flag & UI_BUT_DISABLED)
+		return WM_UI_HANDLER_BREAK;
+
 	/* handle copy-paste */
 	if(data->state == BUTTON_STATE_HIGHLIGHT) {
 		if(ELEM(event->type, CKEY, VKEY) && event->val==KM_PRESS && (event->ctrl || event->oskey)) {
@@ -2848,7 +2877,7 @@ static void button_activate_state(bContext *C, uiBut *but, uiHandleButtonState s
 		button_tooltip_timer_reset(but);
 
 		/* automatic open pulldown block timer */
-		if(ELEM5(but->type, BLOCK, MENU, PULLDOWN, HMENU, ICONTEXTROW)) {
+		if(ELEM4(but->type, BLOCK, PULLDOWN, HMENU, ICONTEXTROW)) {
 			if(!data->autoopentimer) {
 				int time;
 
@@ -3510,8 +3539,18 @@ int ui_handle_menu_event(bContext *C, wmEvent *event, uiPopupBlockHandle *menu, 
 	if((/*inside &&*/ !menu->menuretval && retval == WM_UI_HANDLER_CONTINUE) || event->type == TIMER) {
 		but= ui_but_find_activated(ar);
 
-		if(but)
+		if(but) {
+			ScrArea *ctx_area= CTX_wm_area(C);
+			ARegion *ctx_region= CTX_wm_region(C);
+			
+			if(menu->ctx_area) CTX_wm_area_set(C, menu->ctx_area);
+			if(menu->ctx_region) CTX_wm_region_set(C, menu->ctx_region);
+			
 			retval= ui_handle_button_event(C, event, but);
+			
+			if(menu->ctx_area) CTX_wm_area_set(C, ctx_area);
+			if(menu->ctx_region) CTX_wm_region_set(C, ctx_region);
+		}
 		else
 			retval= ui_handle_button_over(C, event, ar);
 	}
@@ -3709,19 +3748,11 @@ static int ui_handler_popup(bContext *C, wmEvent *event, void *userdata)
 		WM_event_remove_ui_handler(&CTX_wm_window(C)->handlers, ui_handler_popup, ui_handler_remove_popup, menu);
 
 		if(temp.menuretval == UI_RETURN_OK) {
-			if(temp.popup_func) {
-				temp.popup_func(C, temp.op_arg, temp.retvalue);
-			}
-			else if(temp.op_arg) {
-				if(temp.propname)
-					RNA_enum_set(temp.op_arg->ptr, temp.propname, temp.retvalue);
-				WM_operator_call(C, temp.op_arg);
-			}
+			if(temp.popup_func)
+				temp.popup_func(C, temp.popup_arg, temp.retvalue);
+			if(temp.opname)
+				WM_operator_name_call(C, temp.opname, temp.opcontext, NULL);
 		}
-		/* always free operator */
-		else if(temp.op_arg)
-			WM_operator_free(temp.op_arg);
-		
 	}
 	else {
 		/* re-enable tooltips */
@@ -3757,3 +3788,4 @@ void UI_add_popup_handlers(ListBase *handlers, uiPopupBlockHandle *menu)
 {
 	WM_event_add_ui_handler(NULL, handlers, ui_handler_popup, ui_handler_remove_popup, menu);
 }
+
