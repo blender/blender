@@ -32,6 +32,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_texture_types.h"
+#include "DNA_userdef_types.h"
 
 #include "BLI_blenlib.h"
 
@@ -1234,7 +1235,6 @@ void ED_screen_set(bContext *C, bScreen *sc)
 				break;
 			}
 		}
-		if(sc1==NULL) printf("set screen error\n");
 	}
 	
 	if (oldscreen != sc) {
@@ -1257,6 +1257,65 @@ void ED_screen_set(bContext *C, bScreen *sc)
 		ED_screen_refresh(CTX_wm_manager(C), CTX_wm_window(C));
 		WM_event_add_notifier(C, NC_WINDOW, NULL);
 	}
+}
+
+/* only call outside of area/region loops */
+void ED_screen_set_scene(bContext *C, Scene *scene)
+{
+	bScreen *sc;
+	bScreen *curscreen= CTX_wm_screen(C);
+	
+	for(sc= CTX_data_main(C)->screen.first; sc; sc= sc->id.next) {
+		if((U.flag & USER_SCENEGLOBAL) || sc==curscreen) {
+			
+			if(scene != sc->scene) {
+				/* all areas endlocalview */
+			// XXX	ScrArea *sa= sc->areabase.first;
+			//	while(sa) {
+			//		endlocalview(sa);
+			//		sa= sa->next;
+			//	}		
+				sc->scene= scene;
+			}
+			
+		}
+	}
+	
+	//  copy_view3d_lock(0);	/* space.c */
+	
+	/* are there cameras in the views that are not in the scene? */
+	for(sc= CTX_data_main(C)->screen.first; sc; sc= sc->id.next) {
+		if( (U.flag & USER_SCENEGLOBAL) || sc==curscreen) {
+			ScrArea *sa= sc->areabase.first;
+			while(sa) {
+				SpaceLink *sl= sa->spacedata.first;
+				while(sl) {
+					if(sl->spacetype==SPACE_VIEW3D) {
+						View3D *v3d= (View3D*) sl;
+						if (!v3d->camera || !object_in_scene(v3d->camera, scene)) {
+							v3d->camera= scene_find_camera(sc->scene);
+							// XXX if (sc==curscreen) handle_view3d_lock();
+							if (!v3d->camera && v3d->persp==V3D_CAMOB) 
+								v3d->persp= V3D_PERSP;
+						}
+					}
+					sl= sl->next;
+				}
+				sa= sa->next;
+			}
+		}
+	}
+	
+	CTX_data_scene_set(C, scene);
+	set_scene_bg(scene);
+	
+	ED_update_for_newframe(C, 1);
+	
+//	set_radglobal();
+	
+	/* complete redraw */
+	WM_event_add_notifier(C, NC_WINDOW, NULL);
+	
 }
 
 /* this function toggles: if area is full then the parent will be restored */
@@ -1305,7 +1364,7 @@ void ed_screen_fullarea(bContext *C, ScrArea *sa)
 			ED_screen_set(C, sc);
 			
 			free_screen(oldscreen);
-			free_libblock(&G.main->screen, oldscreen);
+			free_libblock(&CTX_data_main(C)->screen, oldscreen);
 		}
 	}
 	else {
@@ -1348,13 +1407,18 @@ void ed_screen_fullarea(bContext *C, ScrArea *sa)
 
 }
 
-void ED_screen_full_newspace(bContext *C, ScrArea *sa, int type)
+int ED_screen_full_newspace(bContext *C, ScrArea *sa, int type)
 {
+	if(sa==NULL)
+		return 0;
+	
 	if(sa->full==0)
 		ed_screen_fullarea(C, sa);
 
 	/* CTX_wm_area(C) is new area */
 	ED_area_newspace(C, CTX_wm_area(C), type);
+	
+	return 1;
 }
 
 void ED_screen_full_prevspace(bContext *C)
@@ -1427,7 +1491,7 @@ void ED_update_for_newframe(const bContext *C, int mute)
 	/* update animated texture nodes */
 	{
 		Tex *tex;
-		for(tex= G.main->tex.first; tex; tex= tex->id.next)
+		for(tex= CTX_data_main(C)->tex.first; tex; tex= tex->id.next)
 			if( tex->use_nodes && tex->nodetree ) {
 				ntreeTexTagAnimated( tex->nodetree );
 			}

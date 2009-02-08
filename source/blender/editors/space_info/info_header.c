@@ -135,7 +135,8 @@ static void scene_idpoin_handle(bContext *C, ID *id, int event)
 	
 	switch(event) {
 		case UI_ID_BROWSE:
-			WM_event_add_notifier(C, NC_SCREEN|ND_SCENEBROWSE, CTX_wm_screen(C));
+			/* exception: can't set screens inside of area/region handers */
+			WM_event_add_notifier(C, NC_SCENE|ND_SCENEBROWSE, id);
 			break;
 		case UI_ID_DELETE:
 			ED_undo_push(C, "");

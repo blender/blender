@@ -580,10 +580,7 @@ static void view3d_view_alignviewmenu(bContext *C, uiMenuItem *head, void *arg_u
 {
 	
 }
-static void view3d_view_camerasmenu(bContext *C, uiMenuItem *head, void *arg_unused)
-{
-	
-}
+
 static void view3d_viewmenu(bContext *C, uiMenuItem *head, void *arg_unused)
 {
 	ScrArea *sa= CTX_wm_area(C);

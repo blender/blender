@@ -39,12 +39,14 @@ struct wmNotifier;
 struct wmEvent;
 struct bContext;
 struct SpaceType;
-struct AreagionType;
+struct Scene;
+struct bScreen;
+struct ARegion;
 struct uiBlock;
 struct rcti;
 
 /* regions */
-void	ED_region_do_listen(ARegion *ar, struct wmNotifier *note);
+void	ED_region_do_listen(struct ARegion *ar, struct wmNotifier *note);
 void	ED_region_do_draw(struct bContext *C, struct ARegion *ar);
 void	ED_region_exit(struct bContext *C, struct ARegion *ar);
 void	ED_region_pixelspace(struct ARegion *ar);
@@ -79,10 +81,11 @@ void	ED_screen_refresh(struct wmWindowManager *wm, struct wmWindow *win);
 void	ED_screen_do_listen(struct wmWindow *win, struct wmNotifier *note);
 bScreen *ED_screen_duplicate(struct wmWindow *win, struct bScreen *sc);
 void	ED_screen_set(struct bContext *C, struct bScreen *sc);
+void	ED_screen_set_scene(struct bContext *C, struct Scene *scene);
 void	ED_screen_set_subwinactive(struct wmWindow *win, struct wmEvent *event);
 void	ED_screen_exit(struct bContext *C, struct wmWindow *window, struct bScreen *screen);
 void	ED_screen_animation_timer(struct bContext *C, int enable);
-void	ED_screen_full_newspace(struct bContext *C, ScrArea *sa, int type);
+int		ED_screen_full_newspace(struct bContext *C, ScrArea *sa, int type);
 void	ED_screen_full_prevspace(struct bContext *C);
 
 /* anim */

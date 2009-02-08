@@ -32,7 +32,7 @@
 #include "DNA_listBase.h"
 #include "DNA_screen_types.h"
 #include "DNA_windowmanager_types.h"
-#include "DNA_userdef_types.h"	/* U.flag & TWOBUTTONMOUSE */
+#include "DNA_userdef_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -131,7 +131,6 @@ void wm_event_do_notifiers(bContext *C)
 		return;
 	
 	/* cache & catch WM level notifiers, such as frame change, scene/screen set */
-	/* XXX todo, multiwindow scenes */
 	for(win= wm->windows.first; win; win= win->next) {
 		int do_anim= 0;
 		
@@ -144,7 +143,10 @@ void wm_event_do_notifiers(bContext *C)
 						ED_screen_set(C, note->reference);	// XXX hrms, think this over!
 				}
 				else if(note->category==NC_SCENE) {
-					if(note->data==ND_FRAME)
+					if(note->data==ND_SCENEBROWSE) {
+						ED_screen_set_scene(C, note->reference);	// XXX hrms, think this over!
+					}
+					else if(note->data==ND_FRAME)
 						do_anim= 1;
 				}
 			}

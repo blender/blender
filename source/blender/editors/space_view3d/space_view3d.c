@@ -542,7 +542,6 @@ static int view3d_context(const bContext *C, bContextDataMember member, bContext
 	}
 	else if(member == CTX_DATA_ACTIVE_PCHAN) {
 		Object *obact= OBACT;
-		bArmature *arm= (obact) ? obact->data : NULL;
 		bPoseChannel *pchan;
 		
 		pchan= get_active_posechannel(obact);

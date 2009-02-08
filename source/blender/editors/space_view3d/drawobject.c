@@ -4906,10 +4906,18 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 
 	}
 
+	/* bad exception, solve this! otherwise outline shows too late */
+	if(ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT)) {
+		cu= ob->data;
+		/* still needed for curves hidden in other layers. depgraph doesnt handle that yet */
+		if (cu->disp.first==NULL) makeDispListCurveTypes(scene, ob, 0);
+	}
+	
 	/* draw outline for selected solid objects, mesh does itself */
 	if((v3d->flag & V3D_SELECT_OUTLINE) && ob->type!=OB_MESH) {
 		if(dt>OB_WIRE && dt<OB_TEXTURE && ob!=scene->obedit && (flag && DRAW_SCENESET)==0) {
 			if (!(ob->dtx&OB_DRAWWIRE) && (ob->flag&SELECT) && !(flag&DRAW_PICKING)) {
+				
 				drawSolidSelect(scene, v3d, rv3d, base);
 			}
 		}
@@ -4925,7 +4933,6 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 			break;
 		case OB_FONT:
 			cu= ob->data;
-			if (cu->disp.first==NULL) makeDispListCurveTypes(scene, ob, 0);
 			if(cu->editfont) {
 				draw_textcurs(cu->editfont->textcurs);
 
@@ -5017,8 +5024,6 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 		case OB_CURVE:
 		case OB_SURF:
 			cu= ob->data;
-			/* still needed for curves hidden in other layers. depgraph doesnt handle that yet */
-			if (cu->disp.first==NULL) makeDispListCurveTypes(scene, ob, 0);
 
 			if(cu->editnurb) {
 				drawnurb(scene, v3d, rv3d, base, cu->editnurb->first, dt);

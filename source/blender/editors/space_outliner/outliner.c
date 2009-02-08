@@ -100,6 +100,7 @@
 
 #include "ED_armature.h"
 #include "ED_object.h"
+#include "ED_screen.h"
 
 #include "outliner_intern.h"
 
@@ -132,7 +133,6 @@
 static void allqueue() {}
 static void BIF_undo_push() {}
 static void BIF_preview_changed() {}
-static void set_scene() {}
 static void error() {}
 static int pupmenu() {return 0;}
 
@@ -1665,8 +1665,7 @@ static void tree_element_set_active_object(bContext *C, Scene *scene, SpaceOops 
 	
 	sce= (Scene *)outliner_search_back(soops, te, ID_SCE);
 	if(sce && scene != sce) {
-// XXX		if(obedit) exit_editmode(EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);
-		set_scene(sce);
+		ED_screen_set_scene(C, sce);
 	}
 	
 	/* find associated base in current scene */
@@ -1845,8 +1844,7 @@ static int tree_element_active_world(Scene *scene, SpaceOops *soops, TreeElement
 	
 	if(set) {	// make new scene active
 		if(sce && scene != sce) {
-// XXX			if(obedit) exit_editmode(EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);
-			set_scene(sce);
+			// XXX ED_screen_set_scene(C, sce);
 		}
 	}
 	
@@ -2188,8 +2186,7 @@ static int do_outliner_mouse_event(bContext *C, Scene *scene, ARegion *ar, Space
 						/* editmode? */
 						if(te->idcode==ID_SCE) {
 							if(scene!=(Scene *)tselem->id) {
-// XXX								if(obedit) exit_editmode(EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);
-								set_scene((Scene *)tselem->id);
+								ED_screen_set_scene(C, (Scene *)tselem->id);
 							}
 						}
 						else if(ELEM5(te->idcode, ID_ME, ID_CU, ID_MB, ID_LT, ID_AR)) {
@@ -2853,7 +2850,7 @@ static void outliner_do_object_operation(Scene *scene, SpaceOops *soops, ListBas
 				// when objects selected in other scenes... dunno if that should be allowed
 				Scene *sce= (Scene *)outliner_search_back(soops, te, ID_SCE);
 				if(sce && scene != sce) {
-					set_scene(sce);
+// XXX					ED_screen_set_scene(C, sce);
 				}
 				
 				operation_cb(te, NULL, tselem);
@@ -2974,7 +2971,7 @@ void outliner_operation_menu(Scene *scene, ARegion *ar, SpaceOops *soops)
 				Scene *sce= scene;	// to be able to delete, scenes are set...
 				outliner_do_object_operation(scene, soops, &soops->tree, object_select_cb);
 				if(scene != sce) {
-					set_scene(sce);
+// XXX					ED_screen_set_scene(C, sce);
 				}
 				
 				str= "Select Objects";

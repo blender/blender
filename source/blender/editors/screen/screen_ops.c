@@ -1025,11 +1025,12 @@ void SCREEN_OT_frame_offset(wmOperatorType *ot)
 static int screen_set_exec(bContext *C, wmOperator *op)
 {
 	bScreen *screen= CTX_wm_screen(C);
+	ScrArea *sa= CTX_wm_area(C);
 	int tot= BLI_countlist(&CTX_data_main(C)->screen);
 	int delta= RNA_int_get(op->ptr, "delta");
 	
 	/* this screen is 'fake', solve later XXX */
-	if(CTX_wm_area(C)->full)
+	if(sa && sa->full)
 		return OPERATOR_CANCELLED;
 	
 	if(delta==1) {
@@ -1088,7 +1089,7 @@ void SCREEN_OT_screen_full_area(wmOperatorType *ot)
 	ot->idname = "SCREEN_OT_screen_full_area";
 	
 	ot->exec= screen_full_area_exec;
-	ot->poll= ED_operator_screenactive;
+	ot->poll= ED_operator_areaactive;
 	ot->flag= OPTYPE_REGISTER;
 
 }
@@ -1361,7 +1362,7 @@ void SCREEN_OT_area_join(wmOperatorType *ot)
 	ot->invoke= area_join_invoke;
 	ot->modal= area_join_modal;
 
-	ot->poll= ED_operator_screenactive;
+	ot->poll= ED_operator_areaactive;
 
 	/* rna */
 	RNA_def_int(ot->srna, "x1", -100, INT_MIN, INT_MAX, "X 1", "", INT_MIN, INT_MAX);

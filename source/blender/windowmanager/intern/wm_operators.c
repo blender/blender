@@ -357,7 +357,8 @@ static int wm_mainfile_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	SpaceFile *sfile;
 	
-	ED_screen_full_newspace(C, CTX_wm_area(C), SPACE_FILE);
+	if(0==ED_screen_full_newspace(C, CTX_wm_area(C), SPACE_FILE))
+		return OPERATOR_CANCELLED;
 
 	/* settings for filebrowser */
 	sfile= (SpaceFile*)CTX_wm_space_data(C);
