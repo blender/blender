@@ -159,10 +159,12 @@ typedef struct BMLoop  {
 typedef struct BMFace {
 	struct BMHeader head;
 	struct BMLoop *loopbase;
-	unsigned int len;
+	int len;
 	void *data;
 	float no[3];
-	unsigned short mat_nr;									/*custom data again, and get rid of the unsigned short nonsense...*/
+
+	/*custom data again*/
+	short mat_nr; 
 } BMFace;
 
 /*stub */

@@ -14,9 +14,10 @@ void triangulate_exec(BMesh *bmesh, BMOperator *op)
 {
 	BMOpSlot *finput;
 	BMFace *face;
-	float projectverts[400][3];
+	float (*projectverts)[3] = NULL;
+	V_DECLARE(projectverts);
 	void *projverts;
-	int i, count = 0;
+	int i, lastlen=0, count = 0;
 	
 	finput = BMO_GetSlot(op, BMOP_ESUBDIVIDE_EDGES);
 
@@ -25,8 +26,16 @@ void triangulate_exec(BMesh *bmesh, BMOperator *op)
 
 		/*HACK! need to discuss with Briggs why the function takes an 
 		  externally-allocated array of vert coordinates in the first place.*/
-		if (face->len > 400) projverts = MEM_callocN(sizeof(float)*3*face->len, "projverts");
-		else projverts = projectverts;
+		//if (face->len > 400) projverts = MEM_callocN(sizeof(float)*3*face->len, "projverts");
+		//else projverts = projectverts;
+		if (lastlen < face->len) {
+			V_RESET(projectverts);
+			for (lastlen=0; lastlen<face->len; lastlen++) {
+				V_GROW(projectverts);
+				V_GROW(projectverts);
+				V_GROW(projectverts);
+			}
+		}
 		
 		BM_Triangulate_Face(bmesh, face, projectverts, EDGE_NEW, FACE_NEW);
 		

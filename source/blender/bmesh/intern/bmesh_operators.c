@@ -13,8 +13,8 @@
 /*forward declarations*/
 static void alloc_flag_layer(BMesh *bm);
 static void free_flag_layer(BMesh *bm);
+static void clear_flag_layer(BMesh *bm);
 
-/*function pointer table*/
 typedef void (*opexec)(struct BMesh *bm, struct BMOperator *op);
 
 /*operator slot type information - size of one element of the type given.*/
@@ -47,6 +47,8 @@ void BMO_push(BMesh *bm, BMOperator *op)
 	/*add flag layer, if appropriate*/
 	if (bm->stackdepth > 1)
 		alloc_flag_layer(bm);
+	else
+		clear_flag_layer(bm);
 }
 
 /*
@@ -246,7 +248,7 @@ void BMO_SetFlag(BMesh *bm, void *element, int flag)
 void BMO_ClearFlag(BMesh *bm, void *element, int flag)
 {
 	BMHeader *head = element;
-	head->flags[bm->stackdepth].mask &= ~flag;
+	head->flags[bm->stackdepth-1].mask &= ~flag;
 }
 
 /*
@@ -515,4 +517,26 @@ static void free_flag_layer(BMesh *bm)
 	}
 
 	BLI_mempool_destroy(oldpool);
+}
+
+static void clear_flag_layer(BMesh *bm)
+{
+	BMVert *v;
+	BMEdge *e;
+	BMFace *f;
+	
+	BMIter verts;
+	BMIter edges;
+	BMIter faces;
+	
+	/*now go through and memcpy all the flags*/
+	for(v = BMIter_New(&verts, bm, BM_VERTS, bm); v; v = BMIter_Step(&verts)){
+		memset(v->head.flags, 0, sizeof(BMFlagLayer)*bm->totflags);
+	}
+	for(e = BMIter_New(&edges, bm, BM_EDGES, bm); e; e = BMIter_Step(&edges)){
+		memset(e->head.flags, 0, sizeof(BMFlagLayer)*bm->totflags);
+	}
+	for(f = BMIter_New(&faces, bm, BM_FACES, bm); f; f = BMIter_Step(&faces)){
+		memset(f->head.flags, 0, sizeof(BMFlagLayer)*bm->totflags);
+	}
 }

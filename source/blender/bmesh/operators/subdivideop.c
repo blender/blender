@@ -21,6 +21,15 @@
 #define FACE_NEW	1
 #define MAX_FACE	800
 
+/*stuff for the flag paramter.  note that
+  what used to live in "beauty" and
+  in "seltype" live here.  still have to
+  convert the beauty flags over, which
+  is why it starts at 128 (to avoid
+  collision).*/
+#define SELTYPE_INNER	128
+
+
 /*
 NOTE: beauty has been renamed to flag!
 */
@@ -48,7 +57,6 @@ typedef struct subdpattern {
   * one edge should do, what? make pretty topology, or just
     split the edge only?
 */
-
 
 /* calculates offset for co, based on fractal, sphere or smooth settings  */
 static void alter_co(float *co, BMEdge *edge, float rad, int flag, float perc,
@@ -117,6 +125,7 @@ static BMVert *bm_subdivide_edge_addvert(BMesh *bm, BMEdge *edge, float rad,
 //	float co[3];
 	
 	ev = BM_Split_Edge(bm, edge->v1, edge, out, percent, 1);
+	if (flag & SELTYPE_INNER) BM_Select_Vert(bm, ev, 1);
 
 	/* offset for smooth or sphere or fractal */
 	alter_co(ev->co, edge, rad, flag, percent, vsta, vend);
@@ -165,6 +174,7 @@ static BMVert *subdivideedgenum(BMesh *bm, BMEdge *edge,
 */
 		ev= bm_subdivide_edge_addvert(bm, edge, rad, flag, percent, 
 			               newe, vsta, vend);
+		
 /*		VECCOPY(ev->co, co2);
 	}
 */	
@@ -210,15 +220,19 @@ static void q_1edge_split(BMesh *bm, BMFace *face, BMVert **vlist, int numcuts,
 		add = 2;
 		for (i=0; i<numcuts; i++) {
 			if (i == numcuts/2) add -= 1;
-			BM_Connect_Verts(bm, vlist[i], vlist[numcuts+add], &nf);
+			BM_Connect_Verts(bm, vlist[i], vlist[numcuts+add], 
+				           &nf);
 		}
 	} else {
 		add = 2;
 		for (i=0; i<numcuts; i++) {
-			BM_Connect_Verts(bm, vlist[i], vlist[numcuts+add], &nf);
+			BM_Connect_Verts(bm, vlist[i], vlist[numcuts+add], 
+				           &nf);
 			if (i == numcuts/2) {
 				add -= 1;
-				BM_Connect_Verts(bm, vlist[i], vlist[numcuts+add], &nf);
+				BM_Connect_Verts(bm, vlist[i], 
+					           vlist[numcuts+add],
+						   &nf);
 			}
 		}
 
@@ -248,7 +262,8 @@ static void q_2edge_op_split(BMesh *bm, BMFace *face, BMVert **vlist,
 	int i;
 	
 	for (i=0; i<numcuts; i++) {
-		BM_Connect_Verts(bm, vlist[i], vlist[(numcuts-i-1)+numcuts+2], &nf);
+		BM_Connect_Verts(bm, vlist[i],vlist[(numcuts-i-1)+numcuts+2],
+			           &nf);
 	}
 }
 
@@ -273,7 +288,8 @@ static void q_2edge_split(BMesh *bm, BMFace *face, BMVert **vlist,
 	int i;
 	
 	for (i=0; i<numcuts; i++) {
-		BM_Connect_Verts(bm, vlist[i], vlist[numcuts+(numcuts-i)], &nf);
+		BM_Connect_Verts(bm, vlist[i], vlist[numcuts+(numcuts-i)],
+			           &nf);
 	}
 	BM_Connect_Verts(bm, vlist[numcuts*2+3], vlist[numcuts*2+1], &nf);
 }
@@ -302,15 +318,18 @@ static void q_3edge_split(BMesh *bm, BMFace *face, BMVert **vlist,
 	for (i=0; i<numcuts; i++) {
 		if (i == numcuts/2) {
 			if (numcuts % 2 != 0) {
-				BM_Connect_Verts(bm, vlist[numcuts-i-1+add], vlist[i+numcuts+1], &nf);
+				BM_Connect_Verts(bm, vlist[numcuts-i-1+add], 
+					         vlist[i+numcuts+1], &nf);
 			}
 			add = numcuts*2+2;
 		}
-		BM_Connect_Verts(bm, vlist[numcuts-i-1+add], vlist[i+numcuts+1], &nf);
+		BM_Connect_Verts(bm, vlist[numcuts-i-1+add], 
+			             vlist[i+numcuts+1], &nf);
 	}
 
 	for (i=0; i<numcuts/2+1; i++) {
-		BM_Connect_Verts(bm, vlist[i], vlist[(numcuts-i)+numcuts*2+1], &nf);
+		BM_Connect_Verts(bm, vlist[i],vlist[(numcuts-i)+numcuts*2+1],
+			           &nf);
 	}
 }
 
@@ -360,6 +379,10 @@ static void q_4edge_split(BMesh *bm, BMFace *face, BMVert **vlist, int numcuts,
 		b = numcuts + 1 + numcuts + 1 + (numcuts - i - 1);
 		
 		e = BM_Connect_Verts(bm, vlist[a], vlist[b], &nf);
+		if (flag & SELTYPE_INNER) {
+			BM_Select_Edge(bm, e, 1);
+			BM_Select_Face(bm, nf, 1);
+		}
 		
 		v1 = lines[(i+1)*s] = vlist[a];
 		v2 = lines[(i+1)*s + s-1] = vlist[b];
@@ -367,6 +390,9 @@ static void q_4edge_split(BMesh *bm, BMFace *face, BMVert **vlist, int numcuts,
 		for (a=0; a<numcuts; a++) {
 			v = subdivideedgenum(bm, e, a, numcuts, rad, flag, &ne,
 			                     v1, v2);
+			if (flag & SELTYPE_INNER) {
+				BM_Select_Edge(bm, ne, 1);
+			}
 			lines[(i+1)*s+a+1] = v;
 		}
 	}
@@ -375,7 +401,11 @@ static void q_4edge_split(BMesh *bm, BMFace *face, BMVert **vlist, int numcuts,
 		for (j=1; j<numcuts+1; j++) {
 			a = i*s + j;
 			b = (i-1)*s + j;
-			BM_Connect_Verts(bm, lines[a], lines[b], &nf);
+			e = BM_Connect_Verts(bm, lines[a], lines[b], &nf);
+			if (flag & SELTYPE_INNER) {
+				BM_Select_Edge(bm, e, 1);
+				BM_Select_Face(bm, nf, 1);
+			}
 		}
 	}
 
@@ -448,12 +478,12 @@ static void t_3edge_split(BMesh *bm, BMFace *face, BMVert **vlist,
 	BMEdge *e, *ne;
 	BMVert ***lines, *v;
 	void *stackarr[1];
-	int i, j, u, a, b;
+	int i, j, a, b;
 	
 	/*number of verts in each line*/
 	lines = MEM_callocN(sizeof(void*)*(numcuts+2), "triangle vert table");
 	
-	lines[0] = stackarr;
+	lines[0] = (BMVert**) stackarr;
 	lines[0][0] = vlist[numcuts*2+1];
 	
 	lines[1+numcuts] = MEM_callocN(sizeof(void*)*(numcuts+2), 
@@ -470,6 +500,11 @@ static void t_3edge_split(BMesh *bm, BMFace *face, BMVert **vlist,
 		a = numcuts*2 + 2 + i;
 		b = numcuts + numcuts - i;
 		e = BM_Connect_Verts(bm, vlist[a], vlist[b], &nf);
+		
+		if (flag & SELTYPE_INNER) {
+			BM_Select_Edge(bm, e, 1);
+			BM_Select_Face(bm, nf, 1);
+		}
 
 		lines[i+1][0] = vlist[a];
 		lines[i+1][1+i] = vlist[b];
@@ -478,6 +513,10 @@ static void t_3edge_split(BMesh *bm, BMFace *face, BMVert **vlist,
 			v = subdivideedgenum(bm, e, j, i, rad, flag, &ne,
 			                     vlist[a], vlist[b]);
 			lines[i+1][j+1] = v;
+
+			if (flag & SELTYPE_INNER) {
+				BM_Select_Edge(bm, ne, 1);
+			}
 		}
 	}
 	
@@ -493,12 +532,23 @@ sv7/---v---\ v3 s
 */
 	for (i=1; i<numcuts+1; i++) {
 		for (j=0; j<i; j++) {
-			BM_Connect_Verts(bm, lines[i][j], lines[i+1][j+1],&nf);
-			BM_Connect_Verts(bm,lines[i][j+1],lines[i+1][j+1],&nf);
+			e= BM_Connect_Verts(bm, lines[i][j], lines[i+1][j+1],
+				           &nf);
+			if (flag & SELTYPE_INNER) {
+				BM_Select_Edge(bm, e, 1);
+				BM_Select_Face(bm, nf, 1);
+			}
+
+			e= BM_Connect_Verts(bm,lines[i][j+1],lines[i+1][j+1],
+				           &nf);
+			if (flag & SELTYPE_INNER) {
+				BM_Select_Edge(bm, e, 1);
+				BM_Select_Face(bm, nf, 1);
+			}
 		}
 	}
 
-	for (i=0; i<numcuts; i++) {
+	for (i=1; i<numcuts+2; i++) {
 		MEM_freeN(lines[i]);
 	}
 
@@ -538,10 +588,12 @@ typedef struct subd_facedata {
 void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 {
 	BMOpSlot *einput;
-	BMEdge *edge, *edges[MAX_FACE];
+	BMEdge *edge, **edges = NULL;
+	V_DECLARE(edges);
 	BMFace *face;
 	BMLoop *nl;
-	BMVert *verts[MAX_FACE];
+	BMVert **verts = NULL;
+	V_DECLARE(verts);
 	BMIter fiter, liter;
 	subdpattern *pat;
 	float rad;
@@ -554,7 +606,9 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 	numcuts = BMO_GetSlot(op, BMOP_ESUBDIVIDE_NUMCUTS)->data.i;
 	flag = BMO_GetSlot(op, BMOP_ESUBDIVIDE_FLAG)->data.i;
 	rad = BMO_GetSlot(op, BMOP_ESUBDIVIDE_RADIUS)->data.f;
+
 	selaction = BMO_GetSlot(op, BMOP_ESUBDIVIDE_SELACTION)->data.i;
+	if (selaction == SUBDIV_SELECT_INNER) flag |= SELTYPE_INNER;
 
 	einput = BMO_GetSlot(op, BMOP_ESUBDIVIDE_EDGES);
 	
@@ -567,11 +621,13 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 	for (face=BMIter_New(&fiter, bmesh, BM_FACES, NULL);
 	     face; face=BMIter_Step(&fiter)) {
 		/*figure out which pattern to use*/
-		if (face->len > MAX_FACE) continue;
-
 		i = 0;
+		V_RESET(edges);
+		V_RESET(verts);
 		for (nl=BMIter_New(&liter, bmesh, BM_LOOPS_OF_FACE, face);
 		     nl; nl=BMIter_Step(&liter)) {
+			V_GROW(edges);
+			V_GROW(verts);
 			edges[i] = nl->e;
 			verts[i] = nl->v;
 			i++;
@@ -619,7 +675,7 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 	for (face=BMIter_New(&fiter, bmesh, BM_FACES, NULL);
 	     face; face=BMIter_Step(&fiter)) {
 		/*figure out which pattern to use*/
-		if (face->len > MAX_FACE) continue;
+		V_RESET(verts);
 		if (BMO_TestFlag(bmesh, face, SUBD_SPLIT) == 0) continue;
 		
 		pat = facedata[i].pat;
@@ -639,6 +695,7 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 		for (nl=BMIter_New(&liter, bmesh, BM_LOOPS_OF_FACE, face);
 		     nl; nl=BMIter_Step(&liter)) {
 			b = (j-a+face->len) % face->len;
+			V_GROW(verts);
 			verts[b] = nl->v;
 			j += 1;
 		}
@@ -648,6 +705,8 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 	}
 
 	if (facedata) V_FREE(facedata);
+	if (edges) V_FREE(edges);
+	if (verts) V_FREE(verts);
 }
 
 /*editmesh-emulating function*/
