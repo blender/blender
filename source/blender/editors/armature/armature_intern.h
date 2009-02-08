@@ -36,6 +36,8 @@ void armature_bone_rename(Object *ob, char *oldnamep, char *newnamep);
 
 void ARMATURE_OT_align_bones(struct wmOperatorType *ot);
 void ARMATURE_OT_calculate_roll(struct wmOperatorType *ot);
+void ARMATURE_OT_switch_direction(struct wmOperatorType *ot);
+
 
 void POSE_OT_hide(struct wmOperatorType *ot);
 void POSE_OT_reveil(struct wmOperatorType *ot);

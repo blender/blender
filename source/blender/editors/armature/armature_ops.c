@@ -109,6 +109,7 @@ void ED_operatortypes_armature(void)
 {
 	WM_operatortype_append(ARMATURE_OT_align_bones);
 	WM_operatortype_append(ARMATURE_OT_calculate_roll);
+	WM_operatortype_append(ARMATURE_OT_switch_direction);
 	
 	WM_operatortype_append(POSE_OT_hide);
 	WM_operatortype_append(POSE_OT_reveil);
@@ -131,6 +132,7 @@ void ED_keymap_armature(wmWindowManager *wm)
 //	WM_keymap_add_item(keymap, "ARMATURE_OT_hide", HKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "ARMATURE_OT_align_bones", AKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
 	WM_keymap_add_item(keymap, "ARMATURE_OT_calculate_roll", NKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "ARMATURE_OT_switch_direction", FKEY, KM_PRESS, KM_ALT, 0);
 	
 	WM_keymap_add_item(keymap, "ARMATURE_OT_test", TKEY, KM_PRESS, 0, 0);  // XXX temp test for context iterators... to be removed
 	

@@ -3294,17 +3294,21 @@ void subdivide_armature(Scene *scene, int numcuts)
 	else BIF_undo_push("Subdivide multi");
 }
 
-/* switch direction of bone chains */
-void switch_direction_armature (Scene *scene)
+/* ----------- */
+
+/* Switch Direction operator:
+ * Currently, this does not use context loops, as context loops do not make it
+ * easy to retrieve any hierarchial/chain relationships which are necessary for
+ * this to be done easily.
+ */
+
+static int armature_switch_direction_exec(bContext *C, wmOperator *op) 
 {
-	Object *obedit= scene->obedit; // XXX get from context
-	bArmature *arm= (obedit) ? obedit->data : NULL;
+	Scene *scene= CTX_data_scene(C);
+	Object *ob= CTX_data_edit_object(C);
+	bArmature *arm= (bArmature *)ob->data;
 	ListBase chains = {NULL, NULL};
 	LinkData *chain;
-	
-	/* error checking paranoia */
-	if (arm == NULL)
-		return;
 	
 	/* get chains of bones (ends on chains) */
 	chains_find_tips(arm->edbo, &chains);
@@ -3363,9 +3367,26 @@ void switch_direction_armature (Scene *scene)
 	}
 	
 	/* free chains */
-	BLI_freelistN(&chains);
+	BLI_freelistN(&chains);	
+
+	/* note, notifier might evolve */
+	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, ob);
 	
-	BIF_undo_push("Switch Direction");
+	return OPERATOR_FINISHED;
+}
+
+void ARMATURE_OT_switch_direction(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Switch Direction";
+	ot->idname= "ARMATURE_OT_switch_direction";
+	
+	/* api callbacks */
+	ot->exec = armature_switch_direction_exec;
+	ot->poll = ED_operator_editarmature;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* ***************** EditBone Alignment ********************* */
