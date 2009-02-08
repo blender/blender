@@ -382,6 +382,136 @@ static void q_4edge_split(BMesh *bm, BMFace *face, BMVert **vlist, int numcuts,
 	MEM_freeN(lines);
 }
 
+/*    v3
+     / \
+    /   \
+   /     \
+  /       \
+ /         \
+v4--v0--v1--v2
+    s    s
+*/
+static void t_1edge_split(BMesh *bm, BMFace *face, BMVert **vlist, 
+			     int numcuts, int flag, float rad) {
+	BMFace *nf;
+	int i;
+	
+	for (i=0; i<numcuts; i++) {
+		BM_Connect_Verts(bm, vlist[i], vlist[numcuts+1], &nf);
+	}
+}
+
+subdpattern t_1edge = {
+	{1, 0, 0},
+	t_1edge_split,
+	3,
+};
+
+/*    v5
+     / \
+    /   \ v4 s
+   /     \
+  /       \ v3 s
+ /         \
+v6--v0--v1--v2
+    s   s
+*/
+static void t_2edge_split(BMesh *bm, BMFace *face, BMVert **vlist, 
+			     int numcuts, int flag, float rad) {
+	BMFace *nf;
+	int i;
+	
+	for (i=0; i<numcuts; i++) {
+		BM_Connect_Verts(bm, vlist[i], vlist[numcuts+numcuts-i], &nf);
+	}
+}
+
+subdpattern t_2edge = {
+	{1, 1, 0},
+	t_2edge_split,
+	3,
+};
+
+
+/*     v5
+      / \
+ s v6/---\ v4 s
+    / \ / \
+sv7/---v---\ v3 s
+  /  \/  \/ \
+ v8--v0--v1--v2
+    s    s
+*/
+static void t_3edge_split(BMesh *bm, BMFace *face, BMVert **vlist, 
+			     int numcuts, int flag, float rad) {
+	BMFace *nf;
+	BMEdge *e, *ne;
+	BMVert ***lines, *v;
+	void *stackarr[1];
+	int i, j, u, a, b;
+	
+	/*number of verts in each line*/
+	lines = MEM_callocN(sizeof(void*)*(numcuts+2), "triangle vert table");
+	
+	lines[0] = stackarr;
+	lines[0][0] = vlist[numcuts*2+1];
+	
+	lines[1+numcuts] = MEM_callocN(sizeof(void*)*(numcuts+2), 
+		                       "triangle vert table 2");
+	for (i=0; i<numcuts; i++) {
+		lines[1+numcuts][1+i] = vlist[i];
+	}
+	lines[1+numcuts][0] = vlist[numcuts*3+2];
+	lines[1+numcuts][1+numcuts] = vlist[numcuts];
+
+	for (i=0; i<numcuts; i++) {
+		lines[i+1] = MEM_callocN(sizeof(void*)*(2+i), 
+			               "triangle vert table row");
+		a = numcuts*2 + 2 + i;
+		b = numcuts + numcuts - i;
+		e = BM_Connect_Verts(bm, vlist[a], vlist[b], &nf);
+
+		lines[i+1][0] = vlist[a];
+		lines[i+1][1+i] = vlist[b];
+
+		for (j=0; j<i; j++) {
+			v = subdivideedgenum(bm, e, j, i, rad, flag, &ne,
+			                     vlist[a], vlist[b]);
+			lines[i+1][j+1] = v;
+		}
+	}
+	
+
+/*     v5
+      / \
+ s v6/---\ v4 s
+    / \ / \
+sv7/---v---\ v3 s
+  /  \/  \/ \
+ v8--v0--v1--v2
+    s    s
+*/
+	for (i=1; i<numcuts+1; i++) {
+		for (j=0; j<i; j++) {
+			BM_Connect_Verts(bm, lines[i][j], lines[i+1][j+1],&nf);
+			BM_Connect_Verts(bm,lines[i][j+1],lines[i+1][j+1],&nf);
+		}
+	}
+
+	for (i=0; i<numcuts; i++) {
+		MEM_freeN(lines[i]);
+	}
+
+	MEM_freeN(lines);
+}
+
+subdpattern t_3edge = {
+	{1, 1, 1},
+	t_3edge_split,
+	3,
+};
+
+
 subdpattern q_4edge = {
 	{1, 1, 1, 1},
 	q_4edge_split,
@@ -394,6 +524,9 @@ subdpattern *patterns[] = {
 	&q_4edge,
 	&q_3edge,
 	&q_2edge,
+	&t_1edge,
+	&t_2edge,
+	&t_3edge,
 };
 
 #define PLEN	(sizeof(patterns) / sizeof(void*))
