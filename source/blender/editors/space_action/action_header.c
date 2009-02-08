@@ -29,8 +29,10 @@
 #include <string.h>
 #include <stdio.h>
 
+#include "DNA_anim_types.h"
 #include "DNA_action_types.h"
 #include "DNA_key_types.h"
+#include "DNA_object_types.h"
 #include "DNA_space_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
@@ -1551,6 +1553,38 @@ static void do_action_buttons(bContext *C, void *arg, int event)
 	}
 }
 
+static void saction_idpoin_handle(bContext *C, ID *id, int event)
+{
+	SpaceAction *saction= (SpaceAction*)CTX_wm_space_data(C);
+	Object *obact= CTX_data_active_object(C);
+	AnimData *adt= BKE_id_add_animdata((ID *)obact);
+
+	switch (event) {
+		case UI_ID_BROWSE:
+		case UI_ID_DELETE:
+			/* we must set this action to be the one used by active object (if not pinned) */
+			if (saction->pin == 0)
+				obact->adt->action= saction->action;
+			
+			ED_area_tag_redraw(CTX_wm_area(C));
+			ED_undo_push(C, "Assign Action");
+			break;
+		case UI_ID_RENAME:
+			break;
+		case UI_ID_ADD_NEW:
+			/* XXX not implemented */
+			break;
+		case UI_ID_OPEN:
+			/* XXX not implemented */
+			break;
+		case UI_ID_ALONE:
+			/* XXX not implemented */
+			break;
+		case UI_ID_PIN:
+			break;
+	}
+}
+
 void action_header_buttons(const bContext *C, ARegion *ar)
 {
 	ScrArea *sa= CTX_wm_area(C);
@@ -1628,7 +1662,8 @@ void action_header_buttons(const bContext *C, ARegion *ar)
 	
 	xco += (90 + 8);
 	
-	if (ac.data) {
+	/*if (ac.data)*/ 
+	{
 		/* MODE-DEPENDENT DRAWING */
 		if (saction->mode == SACTCONT_DOPESHEET) {
 			/* FILTERING OPTIONS */
@@ -1652,16 +1687,11 @@ void action_header_buttons(const bContext *C, ARegion *ar)
 		}
 		else if (saction->mode == SACTCONT_ACTION) { // not too appropriate for shapekeys atm...
 			/* NAME ETC */
-				// XXX missing stuff here!
-			//ob= OBACT;
-			//from = (ID *)ob;
-			
-			//xco= std_libbuttons(block, xco, 0, B_ACTPIN, saction->pin, 
-			//					B_ACTIONBROWSE, ID_AC, 0, (ID*)saction->action, 
-			//					from, &(saction->actnr), B_ACTALONE, 
-			//					B_ACTLOCAL, B_ACTIONDELETE, 0, B_KEEPDATA);	
-			
 			//uiClearButLock();
+			
+			/* NAME ETC (it is assumed that */
+			xco= uiDefIDPoinButs(block, CTX_data_main(C), NULL, (ID**)&saction->action, ID_AC, &saction->pin, xco, yco,
+				saction_idpoin_handle, UI_ID_BROWSE|UI_ID_RENAME|UI_ID_ADD_NEW|UI_ID_DELETE|UI_ID_FAKE_USER|UI_ID_ALONE|UI_ID_PIN);
 			
 			xco += 8;
 		}

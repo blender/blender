@@ -238,10 +238,8 @@ void ACT_OT_view_all (wmOperatorType *ot)
 //	- insert key
 
 /* ******************** Copy/Paste Keyframes Operator ************************* */
-/* - The copy/paste buffer currently stores a set of Action Channels, with temporary
- *	IPO-blocks, and also temporary IpoCurves which only contain the selected keyframes.
- * - Only pastes between compatable data is possible (i.e. same achan->name, ipo-curve type, etc.)
- *	Unless there is only one element in the buffer, names are also tested to check for compatability.
+/* - The copy/paste buffer currently stores a set of temporary F-Curves containing only the keyframes 
+ *   that were selected in each of the original F-Curves
  * - All pasted frames are offset by the same amount. This is calculated as the difference in the times of
  *	the current frame and the 'first keyframe' (i.e. the earliest one in all channels).
  * - The earliest frame is calculated per copy operation.
@@ -276,7 +274,6 @@ void free_actcopybuf ()
  */
 static short copy_action_keys (bAnimContext *ac)
 {	
-#if 0 // XXX old animation system
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
 	int filter;
@@ -285,11 +282,12 @@ static short copy_action_keys (bAnimContext *ac)
 	free_actcopybuf();
 	
 	/* filter data */
-	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_SEL | ANIMFILTER_IPOKEYS);
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_SEL | ANIMFILTER_CURVESONLY);
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	/* assume that each of these is an ipo-block */
 	for (ale= anim_data.first; ale; ale= ale->next) {
+#if 0
 		bActionChannel *achan;
 		Ipo *ipo= ale->key_data;
 		Ipo *ipn;
@@ -347,16 +345,21 @@ static short copy_action_keys (bAnimContext *ac)
 				}
 			}
 		}
+#endif
+		//FCurve *fcu= (FCurve *)ale->key_data;
+		//FCurve *fcn;
+		//BezTriple *bezt;
+		//int i;
+		
+		
 	}
 	
 	/* check if anything ended up in the buffer */
 	if (ELEM(NULL, actcopybuf.first, actcopybuf.last))
-	//	error("Nothing copied to buffer");
 		return -1;
 	
 	/* free temp memory */
 	BLI_freelistN(&anim_data);
-#endif // XXX old animation system
 	
 	/* everything went fine */
 	return 0;
