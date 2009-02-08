@@ -924,18 +924,18 @@ static void free_gammacross(Sequence * seq)
 
 static void do_gammacross_effect_byte(float facf0, float facf1, 
 				      int x, int y, 
-				      char *rect1, 
-				      char *rect2, 
-				      char *out)
+				      unsigned char *rect1, 
+				      unsigned char *rect2, 
+				      unsigned char *out)
 {
 	int fac1, fac2, col;
 	int xo;
-	char *rt1, *rt2, *rt;
+	unsigned char *rt1, *rt2, *rt;
 	
 	xo= x;
-	rt1= (char *)rect1;
-	rt2= (char *)rect2;
-	rt= (char *)out;
+	rt1= (unsigned char *)rect1;
+	rt2= (unsigned char *)rect2;
+	rt= (unsigned char *)out;
 
 	fac2= (int)(256.0*facf0);
 	fac1= 256-fac2;
@@ -1994,6 +1994,9 @@ static void do_transform(Sequence * seq,float facf0, int x, int y,
 	float xs,ys,factxScale,factyScale,tx,ty,rad,s,c,xaux,yaux,factRot,px,py;
 	TransformVars *scale;
 	
+	struct RenderData *rd = &G.scene->r;
+
+
 	scale = (TransformVars *)seq->effectdata;
 	xo = x;
 	yo = y;
@@ -2016,6 +2019,9 @@ static void do_transform(Sequence * seq,float facf0, int x, int y,
 	rad = (M_PI * factRot) / 180.0f;
 	s= sin(rad);
 	c= cos(rad);
+
+	tx *= (rd->size / 100.0f);
+	ty *= (rd->size / 100.0f);
 
 	for (yi = 0; yi < yo; yi++) {
 		for (xi = 0; xi < xo; xi++) {
