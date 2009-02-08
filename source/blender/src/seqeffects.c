@@ -2007,8 +2007,10 @@ static void do_transform(Sequence * seq,float facf0, int x, int y,
 
 	//Factor translate
 	if(!scale->percent){
-		tx = scale->xIni+(xo / 2.0f) + (scale->xFin-(xo / 2.0f) - scale->xIni+(xo / 2.0f)) * facf0;
-		ty = scale->yIni+(yo / 2.0f) + (scale->yFin-(yo / 2.0f) - scale->yIni+(yo / 2.0f)) * facf0;
+		float rd_s = (rd->size / 100.0f);
+
+		tx = scale->xIni * rd_s+(xo / 2.0f) + (scale->xFin * rd_s -(xo / 2.0f) - scale->xIni * rd_s +(xo / 2.0f)) * facf0;
+		ty = scale->yIni * rd_s+(yo / 2.0f) + (scale->yFin * rd_s -(yo / 2.0f) - scale->yIni * rd_s +(yo / 2.0f)) * facf0;
 	}else{
 		tx = xo*(scale->xIni/100.0f)+(xo / 2.0f) + (xo*(scale->xFin/100.0f)-(xo / 2.0f) - xo*(scale->xIni/100.0f)+(xo / 2.0f)) * facf0;
 		ty = yo*(scale->yIni/100.0f)+(yo / 2.0f) + (yo*(scale->yFin/100.0f)-(yo / 2.0f) - yo*(scale->yIni/100.0f)+(yo / 2.0f)) * facf0;
@@ -2020,8 +2022,6 @@ static void do_transform(Sequence * seq,float facf0, int x, int y,
 	s= sin(rad);
 	c= cos(rad);
 
-	tx *= (rd->size / 100.0f);
-	ty *= (rd->size / 100.0f);
 
 	for (yi = 0; yi < yo; yi++) {
 		for (xi = 0; xi < xo; xi++) {
