@@ -24,10 +24,6 @@ void triangulate_exec(BMesh *bmesh, BMOperator *op)
 	for (i=0; i<finput->len; i++) {
 		face = ((BMFace**)finput->data.p)[i];
 
-		/*HACK! need to discuss with Briggs why the function takes an 
-		  externally-allocated array of vert coordinates in the first place.*/
-		//if (face->len > 400) projverts = MEM_callocN(sizeof(float)*3*face->len, "projverts");
-		//else projverts = projectverts;
 		if (lastlen < face->len) {
 			V_RESET(projectverts);
 			for (lastlen=0; lastlen<face->len; lastlen++) {

@@ -691,11 +691,14 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 			j++;
 		}
 
+		for (j=0; j<face->len; j++) {
+			V_GROW(verts);
+		}
+		
 		j = 0;
 		for (nl=BMIter_New(&liter, bmesh, BM_LOOPS_OF_FACE, face);
 		     nl; nl=BMIter_Step(&liter)) {
 			b = (j-a+face->len) % face->len;
-			V_GROW(verts);
 			verts[b] = nl->v;
 			j += 1;
 		}

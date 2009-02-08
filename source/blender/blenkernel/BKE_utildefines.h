@@ -215,12 +215,21 @@ for (i=0; i<10; i++) {
 	arr[i] = something;
 }
 V_FREE(arr);
+
+arrays are buffered, using double-buffering (so on each reallocation,
+the array size is doubled).  supposedly this should give good Big Oh
+behaviour, though it may not be the best in practice.
 */
 
 #define V_DECLARE(vec) int _##vec##_count=0; void *_##vec##_tmp
+
+/*this returns the entire size of the array, including any buffering.*/
 #define V_SIZE(vec) ((vec)==NULL ? 0 : MEM_allocN_len(vec) / sizeof(*vec))
+
+/*this returns the logical size of the array, not including buffering.*/
 #define V_COUNT(vec) _##vec##_count
-#define MSTR(s) #s
+
+/*grow the array by one.  zeroes the new elements.*/
 #define V_GROW(vec) \
 	V_SIZE(vec) > _##vec##_count ? _##vec##_count++ : \
 	((_##vec##_tmp = MEM_callocN(sizeof(*vec)*(_##vec##_count*2+2), #vec " " __FILE__ " ")),\
@@ -229,8 +238,9 @@ V_FREE(arr);
 	(vec = _##vec##_tmp),\
 	_##vec##_count++)
 
-//(vec) ? WMEM_freeN(vec), 1 : 0
 #define V_FREE(vec) if (vec) MEM_freeN(vec);
+/*resets the logical size of an array to zero, but doesn't
+  free the memory.*/
 #define V_RESET(vec) _##vec##_count=0
 
 #endif
