@@ -114,7 +114,6 @@ static void get_keyframe_extents (bAnimContext *ac, float *min, float *max)
 			
 			/* get range and apply necessary scaling before */
 			calc_fcurve_range(fcu, &tmin, &tmax);
-			tmin= tmax= 0.0f; // xxx
 			
 			if (nob) {
 				tmin= get_action_frame_inv(nob, tmin);
@@ -200,7 +199,7 @@ static int actkeys_viewall_exec(bContext *C, wmOperator *op)
 	/* set the horizontal range, with an extra offset so that the extreme keys will be in view */
 	get_keyframe_extents(&ac, &v2d->cur.xmin, &v2d->cur.xmax);
 	
-	extra= 0.05f * (v2d->cur.xmax - v2d->cur.xmin);
+	extra= 0.1f * (v2d->cur.xmax - v2d->cur.xmin);
 	v2d->cur.xmin -= extra;
 	v2d->cur.xmax += extra;
 	
