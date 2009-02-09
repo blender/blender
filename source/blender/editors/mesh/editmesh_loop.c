@@ -851,7 +851,6 @@ static int knife_cut_exec(bContext *C, wmOperator *op)
 	if (mode == KNIFE_MIDPOINT) numcuts = 1;
 	BMO_Set_Int(&bmop, BMOP_ESUBDIVIDE_FLAG, flag);
 	BMO_Set_Float(&bmop, BMOP_ESUBDIVIDE_RADIUS, 0);
-	BMO_Set_Int(&bmop, BMOP_ESUBDIVIDE_SELACTION, SUBDIV_SELECT_ORIG);
 	
 	BMO_Exec_Op(bm, &bmop);
 	BMO_Finish_Op(bm, &bmop);

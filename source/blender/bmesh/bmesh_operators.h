@@ -178,7 +178,6 @@ enum {
 	BMOP_ESUBDIVIDE_NUMCUTS,
 	BMOP_ESUBDIVIDE_FLAG, //beauty flag in esubdivide
 	BMOP_ESUBDIVIDE_RADIUS,
-	BMOP_ESUBDIVIDE_SELACTION,
 
 	BMOP_ESUBDIVIDE_CUSTOMFILL_FACEMAP,
 	BMOP_ESUBDIVIDE_PERCENT_EDGEMAP,
@@ -189,11 +188,7 @@ enum {
 
 	/*new edges and vertices from splitting original edges,
 	  doesn't include edges creating by connecting verts.*/
-	BMOP_ESUBDIVIDE_SPLIT_MULTOUT,
-	
-	/*edges created by connecting verts, except for those created
-	  by fully-filled faces (e.g. fully selected faces).*/
-	BMOP_ESUBDIVIDE_CONNECT_MULTOUT,
+	BMOP_ESUBDIVIDE_SPLIT_MULTOUT,	
 	BMOP_ESUBDIVIDE_TOTSLOT,
 };
 /*
