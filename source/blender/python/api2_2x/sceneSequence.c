@@ -102,7 +102,7 @@ returns None if notfound.\nIf 'name' is not specified, it returns a list of all 
 /* Python BPy_Sequence methods table:					   */
 /*****************************************************************************/
 static PyObject *Sequence_copy(BPy_Sequence * self);
-static PyObject *Sequence_update(BPy_Sequence * self);
+static PyObject *Sequence_update(BPy_Sequence * self, PyObject *args);
 static PyObject *Sequence_new(BPy_Sequence * self, PyObject * args);
 static PyObject *Sequence_remove(BPy_Sequence * self, PyObject * args);
 static PyObject *Sequence_rebuildProxy(BPy_Sequence * self);
@@ -121,7 +121,7 @@ static PyMethodDef BPy_Sequence_methods[] = {
 		"() - Return a copy of the sequence containing the same objects."},
 	{"copy", (PyCFunction) Sequence_copy, METH_NOARGS,
 		"() - Return a copy of the sequence containing the same objects."},
-	{"update", (PyCFunction) Sequence_update, METH_NOARGS,
+	{"update", (PyCFunction) Sequence_update, METH_VARARGS,
 		"() - Force and update of the sequence strip"},
 	{"rebuildProxy", (PyCFunction) Sequence_rebuildProxy, METH_VARARGS,
 		"() - Rebuild the active strip's Proxy."},
@@ -587,8 +587,16 @@ static PyObject *Sequence_copy(BPy_Sequence * self)
 	Py_RETURN_NONE;
 }
 
-static PyObject *Sequence_update(BPy_Sequence * self)
+static PyObject *Sequence_update(BPy_Sequence * self, PyObject *args)
 {
+	int data= 0;
+	if (!PyArg_ParseTuple(args, "|i:update", &data))
+		return NULL; 				
+
+	if (data) {
+		update_changed_seq_and_deps(self->seq, 1, 1);
+		new_tstripdata(self->seq);
+	}
 	calc_sequence(self->seq);
 	calc_sequence_disp(self->seq);
 	Py_RETURN_NONE;
