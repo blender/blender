@@ -113,9 +113,7 @@ static uiBlock *seq_viewmenu(bContext *C, ARegion *ar, void *arg_unused)
 	uiDefMenuSep(block);
 
 	/* Lock Time */
-#define V2D_VIEWLOCK 0 // XXX add back
-
-	uiDefIconTextBut(block, BUTM, 1, (v2d->flag & V2D_VIEWLOCK)?ICON_CHECKBOX_HLT:ICON_CHECKBOX_DEHLT,
+	uiDefIconTextBut(block, BUTM, 1, (v2d->flag & V2D_VIEWSYNC_SCREEN_TIME)?ICON_CHECKBOX_HLT:ICON_CHECKBOX_DEHLT,
 			"Lock Time to Other Windows|", 0, yco-=20,
 			menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
 
@@ -123,9 +121,9 @@ static uiBlock *seq_viewmenu(bContext *C, ARegion *ar, void *arg_unused)
 	uiDefMenuSep(block);
 
 	if(sseq->flag & SEQ_DRAWFRAMES)
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show Seconds|T", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show Seconds|Ctrl T", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
 	else
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show Frames|T", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show Frames|Ctrl T", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
 
 	
 	if(!sa->full) uiDefIconTextBut(block, BUTM, B_FULL, ICON_BLANK1, "Maximize Window|Ctrl UpArrow", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0,0, "");
@@ -501,7 +499,7 @@ void sequencer_header_buttons(const bContext *C, ARegion *ar)
 			      0, 0, 0, 0,
 			      "Zooms view in and out (Ctrl MiddleMouse)");
 		xco += XIC;
-		uiDefIconButO(block, BUT, "SEQUENCER_OT_view_zoom", WM_OP_INVOKE_REGION_WIN, ICON_BORDERMOVE, xco,yco,XIC,YIC, "Zooms view to fit area");
+		uiDefIconButO(block, BUT, "View2D_OT_view_borderzoom", WM_OP_INVOKE_REGION_WIN, ICON_BORDERMOVE, xco,yco,XIC,YIC, "Zooms view to fit area");
 		
 		uiBlockEndAlign(block);
 		xco += 8 + XIC;

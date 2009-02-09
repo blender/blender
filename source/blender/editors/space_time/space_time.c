@@ -314,7 +314,7 @@ void ED_spacetype_time(void)
 	art->init= time_main_area_init;
 	art->draw= time_main_area_draw;
 	art->listener= time_main_area_listener;
-	//art->keymap= time_keymap;
+	art->keymap= time_keymap;
 	BLI_addhead(&st->regiontypes, art);
 	
 	/* regions: header */

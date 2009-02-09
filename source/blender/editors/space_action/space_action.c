@@ -74,8 +74,9 @@ static SpaceLink *action_new(const bContext *C)
 	
 	saction= MEM_callocN(sizeof(SpaceAction), "initaction");
 	saction->spacetype= SPACE_ACTION;
-	saction->autosnap = SACTSNAP_FRAME;
 	
+	saction->autosnap = SACTSNAP_FRAME;
+	saction->mode= SACTCONT_DOPESHEET;
 	
 	/* header */
 	ar= MEM_callocN(sizeof(ARegion), "header for action");
