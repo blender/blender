@@ -594,7 +594,7 @@ void draw_channel_names(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 					indent= 0;
 					special= -1;
 					
-					offset= (ale->id) ? 21 : 0;
+					offset= (ale->id) ? 18 : 0;
 					
 					/* only show expand if there are any channels */
 					if (agrp->channels.first) {
@@ -619,8 +619,8 @@ void draw_channel_names(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 					
 					indent = 0;
 					
-					//group= (ale->grp) ? 1 : 0;
-					//grp= ale->grp;
+					group= (fcu->grp) ? 1 : 0;
+					grp= fcu->grp;
 					
 					switch (ale->ownertype) {
 						case ANIMTYPE_NONE:	/* no owner */
@@ -650,9 +650,7 @@ void draw_channel_names(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 					
 					sel = SEL_FCU(fcu);
 					
-					// for now, we just print the full path... this needs more work!
 					getname_anim_fcurve(name, ale->id, fcu);
-					//sprintf(name, "%s[%d]", fcu->rna_path, fcu->array_index);
 				}
 					break;
 				

@@ -1075,7 +1075,7 @@ static void mouse_anim_channels (bAnimContext *ac, float x, int channel_index, s
 		case ANIMTYPE_GROUP: 
 		{
 			bActionGroup *agrp= (bActionGroup *)ale->data;
-			short offset= (ac->datatype == ANIMCONT_DOPESHEET)? 21 : 0;
+			short offset= (ac->datatype == ANIMCONT_DOPESHEET)? 18 : 0;
 			
 			if ((x < (offset+17)) && (agrp->channels.first)) {
 				/* toggle expand */

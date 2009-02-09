@@ -875,7 +875,7 @@ void graph_draw_channel_names(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 					indent= 0;
 					special= -1;
 					
-					offset= (ale->id) ? 21 : 0;
+					offset= (ale->id) ? 18 : 0;
 					
 					/* only show expand if there are any channels */
 					if (agrp->channels.first) {
@@ -900,8 +900,8 @@ void graph_draw_channel_names(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 					
 					indent = 0;
 					
-					//group= (ale->grp) ? 1 : 0;
-					//grp= ale->grp;
+					group= (fcu->grp) ? 1 : 0;
+					grp= fcu->grp;
 					
 					// XXX include some UI element to allow toggling of visibility
 					

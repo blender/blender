@@ -5525,7 +5525,7 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				/* we totally reinit the view for the Action Editor, as some old instances had some weird cruft set */
 				ar->v2d.tot.xmin= -20.0f;
 				ar->v2d.tot.ymin= (float)(-sa->winy);
-				ar->v2d.tot.xmax= (float)(sa->winx);
+				ar->v2d.tot.xmax= (float)((sa->winx > 120)? (sa->winx) : 120);
 				ar->v2d.tot.ymax= 0.0f;
 				
 				ar->v2d.cur= ar->v2d.tot;

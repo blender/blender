@@ -3,6 +3,7 @@
  */
  
 #include <stdio.h>
+#include <stddef.h>
 #include <string.h>
 #include <math.h>
 #include <float.h>
@@ -95,13 +96,13 @@ typedef struct bKeyingContext {
 /* Animation Data Validation */
 
 /* Get (or add relevant data to be able to do so) F-Curve from the Active Action, 
- * for the given Animation Data block 
+ * for the given Animation Data block. This assumes that all the destinations are valid.
  */
-// TODO: should we check if path is valid? For now, assume that it's already set OK by caller...
-FCurve *verify_fcurve (ID *id, const char rna_path[], const int array_index, short add)
+FCurve *verify_fcurve (ID *id, const char group[], const char rna_path[], const int array_index, short add)
 {
 	AnimData *adt;
 	bAction *act;
+	bActionGroup *grp;
 	FCurve *fcu;
 	
 	/* sanity checks */
@@ -133,7 +134,7 @@ FCurve *verify_fcurve (ID *id, const char rna_path[], const int array_index, sho
 		fcu= NULL;
 	
 	if ((fcu == NULL) && (add)) {
-		/* use default settings */
+		/* use default settings to make a F-Curve */
 		fcu= MEM_callocN(sizeof(FCurve), "FCurve");
 		
 		fcu->flag |= (FCURVE_VISIBLE|FCURVE_AUTO_HANDLES);
@@ -144,8 +145,33 @@ FCurve *verify_fcurve (ID *id, const char rna_path[], const int array_index, sho
 		fcu->rna_path= BLI_strdupn(rna_path, strlen(rna_path));
 		fcu->array_index= array_index;
 		
-		/* add curve */
-		BLI_addtail(&act->curves, fcu); // XXX it might be better to add this in order, for easier UI coding...
+		
+		/* if a group name has been provided, try to add or find a group, then add F-Curve to it */
+		if (group) {
+			/* try to find group */
+			grp= action_groups_find_named(act, group);
+			
+			/* no matching groups, so add one */
+			if (grp == NULL) {
+				/* Add a new group, and make it active */
+				grp= MEM_callocN(sizeof(bActionGroup), "bActionGroup");
+				
+				grp->flag |= (AGRP_ACTIVE|AGRP_SELECTED|AGRP_EXPANDED);
+				BLI_snprintf(grp->name, 64, group);
+				
+				BLI_addtail(&act->groups, grp);
+				BLI_uniquename(&act->groups, grp, "Group", offsetof(bActionGroup, name), 64);
+				
+				set_active_action_group(act, grp, 1);
+			}
+			
+			/* add F-Curve to group */
+			action_groups_add_channel(act, grp, fcu);
+		}
+		else {
+			/* just add F-Curve to end of Action's list */
+			BLI_addtail(&act->curves, fcu);
+		}
 	}
 	
 	/* return the F-Curve */
@@ -711,7 +737,7 @@ static float visualkey_get_value (PointerRNA *ptr, PropertyRNA *prop, int array_
  *	the keyframe insertion. These include the 'visual' keyframing modes, quick refresh,
  *	and extra keyframe filtering.
  */
-short insertkey (ID *id, const char rna_path[], int array_index, float cfra, short flag)
+short insertkey (ID *id, const char group[], const char rna_path[], int array_index, float cfra, short flag)
 {	
 	PointerRNA id_ptr, ptr;
 	PropertyRNA *prop;
@@ -725,7 +751,7 @@ short insertkey (ID *id, const char rna_path[], int array_index, float cfra, sho
 	}
 	
 	/* get F-Curve */
-	fcu= verify_fcurve(id, rna_path, array_index, 1);
+	fcu= verify_fcurve(id, group, rna_path, array_index, 1);
 	
 	/* only continue if we have an F-Curve to add keyframe to */
 	if (fcu) {
@@ -809,7 +835,7 @@ short insertkey (ID *id, const char rna_path[], int array_index, float cfra, sho
  *	The flag argument is used for special settings that alter the behaviour of
  *	the keyframe deletion. These include the quick refresh options.
  */
-short deletekey (ID *id, const char rna_path[], int array_index, float cfra, short flag)
+short deletekey (ID *id, const char group[], const char rna_path[], int array_index, float cfra, short flag)
 {
 	AnimData *adt;
 	FCurve *fcu;
@@ -819,7 +845,7 @@ short deletekey (ID *id, const char rna_path[], int array_index, float cfra, sho
 	 * 		so 'add' var must be 0
 	 */
 	// XXX we don't check the validity of the path here yet, but it should be ok...
-	fcu= verify_fcurve(id, rna_path, array_index, 0);
+	fcu= verify_fcurve(id, group, rna_path, array_index, 0);
 	adt= BKE_animdata_from_id(id);
 	
 	/* only continue if we have an ipo-curve to remove keyframes from */
@@ -2049,24 +2075,25 @@ static int insert_key_exec (bContext *C, wmOperator *op)
 			switch (mode) {
 			case 3: /* color of active material (only for geometry...) */
 				// NOTE: this is just a demo... but ideally we'd go through materials instead of active one only so reference stays same
-				success+= insertkey(id, "active_material.diffuse_color", 0, cfra, 0);
-				success+= insertkey(id, "active_material.diffuse_color", 1, cfra, 0);
-				success+= insertkey(id, "active_material.diffuse_color", 2, cfra, 0);
+				// XXX no group for now
+				success+= insertkey(id, NULL, "active_material.diffuse_color", 0, cfra, 0);
+				success+= insertkey(id, NULL, "active_material.diffuse_color", 1, cfra, 0);
+				success+= insertkey(id, NULL, "active_material.diffuse_color", 2, cfra, 0);
 				break;
 			case 2: /* object scale */
-				success+= insertkey(id, "scale", 0, cfra, 0);
-				success+= insertkey(id, "scale", 1, cfra, 0);
-				success+= insertkey(id, "scale", 2, cfra, 0);
+				success+= insertkey(id, "Object Transforms", "scale", 0, cfra, 0);
+				success+= insertkey(id, "Object Transforms", "scale", 1, cfra, 0);
+				success+= insertkey(id, "Object Transforms", "scale", 2, cfra, 0);
 				break;
 			case 1: /* object rotation */
-				success+= insertkey(id, "rotation", 0, cfra, 0);
-				success+= insertkey(id, "rotation", 1, cfra, 0);
-				success+= insertkey(id, "rotation", 2, cfra, 0);
+				success+= insertkey(id, "Object Transforms", "rotation", 0, cfra, 0);
+				success+= insertkey(id, "Object Transforms", "rotation", 1, cfra, 0);
+				success+= insertkey(id, "Object Transforms", "rotation", 2, cfra, 0);
 				break;
 			default: /* object location */
-				success+= insertkey(id, "location", 0, cfra, 0);
-				success+= insertkey(id, "location", 1, cfra, 0);
-				success+= insertkey(id, "location", 2, cfra, 0);
+				success+= insertkey(id, "Object Transforms", "location", 0, cfra, 0);
+				success+= insertkey(id, "Object Transforms", "location", 1, cfra, 0);
+				success+= insertkey(id, "Object Transforms", "location", 2, cfra, 0);
 				break;
 			}
 			
@@ -2084,22 +2111,30 @@ static int insert_key_exec (bContext *C, wmOperator *op)
 					switch (mode) {
 					case 6: /* pchan scale */
 						sprintf(buf, "pose.pose_channels[\"%s\"].scale", pchan->name);
-						success+= insertkey(id, buf, 0, cfra, 0);
-						success+= insertkey(id, buf, 1, cfra, 0);
-						success+= insertkey(id, buf, 2, cfra, 0);
+						success+= insertkey(id, pchan->name, buf, 0, cfra, 0);
+						success+= insertkey(id, pchan->name, buf, 1, cfra, 0);
+						success+= insertkey(id, pchan->name, buf, 2, cfra, 0);
 						break;
 					case 5: /* pchan rotation */
-						sprintf(buf, "pose.pose_channels[\"%s\"].rotation", pchan->name);
-						success+= insertkey(id, buf, 0, cfra, 0);
-						success+= insertkey(id, buf, 1, cfra, 0);
-						success+= insertkey(id, buf, 2, cfra, 0);
-						success+= insertkey(id, buf, 3, cfra, 0);
+						if (pchan->rotmode == PCHAN_ROT_QUAT) {
+							sprintf(buf, "pose.pose_channels[\"%s\"].rotation", pchan->name);
+							success+= insertkey(id, pchan->name, buf, 0, cfra, 0);
+							success+= insertkey(id, pchan->name, buf, 1, cfra, 0);
+							success+= insertkey(id, pchan->name, buf, 2, cfra, 0);
+							success+= insertkey(id, pchan->name, buf, 3, cfra, 0);
+						}
+						else {
+							sprintf(buf, "pose.pose_channels[\"%s\"].euler_rotation", pchan->name);
+							success+= insertkey(id, pchan->name, buf, 0, cfra, 0);
+							success+= insertkey(id, pchan->name, buf, 1, cfra, 0);
+							success+= insertkey(id, pchan->name, buf, 2, cfra, 0);
+						}
 						break;
 					default: /* pchan location */
 						sprintf(buf, "pose.pose_channels[\"%s\"].location", pchan->name);
-						success+= insertkey(id, buf, 0, cfra, 0);
-						success+= insertkey(id, buf, 1, cfra, 0);
-						success+= insertkey(id, buf, 2, cfra, 0);
+						success+= insertkey(id, pchan->name, buf, 0, cfra, 0);
+						success+= insertkey(id, pchan->name, buf, 1, cfra, 0);
+						success+= insertkey(id, pchan->name, buf, 2, cfra, 0);
 						break;
 					}
 				}
@@ -2172,7 +2207,7 @@ static int delete_key_exec (bContext *C, wmOperator *op)
 			
 			for (fcu= act->curves.first; fcu; fcu= fcn) {
 				fcn= fcu->next;
-				success+= deletekey(id, fcu->rna_path, fcu->array_index, cfra, 0);
+				success+= deletekey(id, NULL, fcu->rna_path, fcu->array_index, cfra, 0);
 			}
 		}
 		

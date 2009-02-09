@@ -122,7 +122,6 @@ static void get_keyframe_extents (bAnimContext *ac, float *xmin, float *xmax, fl
 			
 			/* get range and apply necessary scaling before */
 			calc_fcurve_range(fcu, &tmin, &tmax);
-			tmin= tmax= 0.0f; // xxx
 			
 			if (nob) {
 				tmin= get_action_frame_inv(nob, tmin);
