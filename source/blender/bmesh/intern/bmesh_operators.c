@@ -17,18 +17,24 @@ static void clear_flag_layer(BMesh *bm);
 
 typedef void (*opexec)(struct BMesh *bm, struct BMOperator *op);
 
+/*mappings map elements to data, which
+  follows the mapping struct in memory.*/
+typedef struct element_mapping {
+	BMHeader *element;
+	int len;
+} element_mapping;
+
+
 /*operator slot type information - size of one element of the type given.*/
-const int BMOP_OPSLOT_TYPEINFO[BMOP_OPSLOT_TYPES] = {
+const int BMOP_OPSLOT_TYPEINFO[] = {
 	sizeof(int),
 	sizeof(float),
 	sizeof(void*),
 	0, /* unused */
 	0, /* unused */
 	0, /* unused */
-	sizeof(float)*3,
-	sizeof(int),	/* int buffer */
-	sizeof(float),	/* float buffer */
-	sizeof(void*)	/* pointer buffer */
+	sizeof(void*),	/* pointer buffer */
+	sizeof(element_mapping)
 };
 
 /*
@@ -132,6 +138,17 @@ void BMO_Exec_Op(BMesh *bm, BMOperator *op)
 
 void BMO_Finish_Op(BMesh *bm, BMOperator *op)
 {
+	BMOpSlot *slot;
+	int i;
+
+	for (i=0; i<opdefines[op->type]->totslot; i++) {
+		slot = &op->slots[i];
+		if (slot->slottype == BMOP_OPSLOT_MAPPING) {
+			if (slot->data.ghash) 
+				BLI_ghash_free(slot->data.ghash, NULL, NULL);
+		}
+	}
+
 	BLI_memarena_free(op->arena);
 }
 
@@ -203,30 +220,13 @@ void BMO_Set_Int(BMOperator *op, int slotcode, int i)
 }
 
 
-void BMO_Set_PntBuf(BMOperator *op, int slotcode, void *p, int len)
-{
-	if( !(op->slots[slotcode].slottype == BMOP_OPSLOT_PNT_BUF) )
-		return;
-
-	op->slots[slotcode].data.p = p;
-	op->slots[slotcode].len = len;
-}
-
-void BMO_Set_FltBuf(BMOperator *op, int slotcode, float *p, int len)
-{
-	if( !(op->slots[slotcode].slottype == BMOP_OPSLOT_FLT_BUF) )
-		return;
-
-	op->slots[slotcode].data.p = p;
-	op->slots[slotcode].len = len;
-}
-
 void BMO_Set_Pnt(BMOperator *op, int slotcode, void *p)
 {
 	if( !(op->slots[slotcode].slottype == BMOP_OPSLOT_PNT) )
 		return;
 	op->slots[slotcode].data.p = p;
 }
+
 void BMO_Set_Vec(BMOperator *op, int slotcode, float *vec)
 {
 	if( !(op->slots[slotcode].slottype == BMOP_OPSLOT_VEC) )
@@ -310,6 +310,119 @@ int BMO_CountFlag(BMesh *bm, int flag, int type)
 	}
 
 	return count;	
+}
+
+int BMO_CountSlotBuf(struct BMesh *bm, struct BMOperator *op, int slotcode)
+{
+	BMOpSlot *slot = &op->slots[slotcode];
+	
+	/*check if its actually a buffer*/
+	if( !(slot->slottype > BMOP_OPSLOT_VEC) )
+		return 0;
+
+	return slot->len;
+}
+
+#if 0
+void *BMO_Grow_Array(BMesh *bm, BMOperator *op, int slotcode, int totadd) {
+	BMOpSlot *slot = &op->slots[slotcode];
+	void *tmp;
+	
+	/*check if its actually a buffer*/
+	if( !(slot->slottype > BMOP_OPSLOT_VEC) )
+		return NULL;
+
+	if (slot->flag & BMOS_DYNAMIC_ARRAY) {
+		if (slot->len >= slot->size) {
+			slot->size = (slot->size+1+totadd)*2;
+
+			tmp = slot->data.buf;
+			slot->data.buf = MEM_callocN(BMOP_OPSLOT_TYPEINFO[opdefines[op->type]->slottypes[slotcode]] * slot->size, "opslot dynamic array");
+			memcpy(slot->data.buf, tmp, BMOP_OPSLOT_TYPEINFO[opdefines[op->type]->slottypes[slotcode]] * slot->size);
+			MEM_freeN(tmp);
+		}
+
+		slot->len += totadd;
+	} else {
+		slot->flag |= BMOS_DYNAMIC_ARRAY;
+		slot->len += totadd;
+		slot->size = slot->len+2;
+		tmp = slot->data.buf;
+		slot->data.buf = MEM_callocN(BMOP_OPSLOT_TYPEINFO[opdefines[op->type]->slottypes[slotcode]] * slot->len, "opslot dynamic array");
+		memcpy(slot->data.buf, tmp, BMOP_OPSLOT_TYPEINFO[opdefines[op->type]->slottypes[slotcode]] * slot->len);
+	}
+
+	return slot->data.buf;
+}
+#endif
+
+void BMO_Insert_Mapping(BMesh *bm, BMOperator *op, int slotcode, 
+			void *element, void *data, int len) {
+	element_mapping *mapping;
+	BMOpSlot *slot = &op->slots[slotcode];
+
+	/*sanity check*/
+	if (slot->slottype != BMOP_OPSLOT_MAPPING) return;
+	
+	mapping = BLI_memarena_alloc(op->arena, sizeof(*mapping) + len);
+
+	mapping->element = element;
+	mapping->len = len;
+	memcpy(mapping+1, data, len);
+
+	if (!slot->data.ghash) {
+		slot->data.ghash = BLI_ghash_new(BLI_ghashutil_ptrhash, 
+			                             BLI_ghashutil_ptrcmp);
+	}
+	
+	BLI_ghash_insert(slot->data.ghash, element, mapping);
+}
+
+void BMO_Mapping_To_Flag(struct BMesh *bm, struct BMOperator *op, 
+			 int slotcode, int flag)
+{
+	GHashIterator it;
+	BMOpSlot *slot = &op->slots[slotcode];
+	BMHeader *ele;
+
+	/*sanity check*/
+	if (slot->slottype != BMOP_OPSLOT_MAPPING) return;
+	if (!slot->data.ghash) return;
+
+	BLI_ghashIterator_init(&it, slot->data.ghash);
+	for (;ele=BLI_ghashIterator_getKey(&it);BLI_ghashIterator_step(&it)) {
+		BMO_SetFlag(bm, ele, flag);
+	}
+}
+
+void BMO_Insert_MapFloat(BMesh *bm, BMOperator *op, int slotcode, 
+			void *element, float val)
+{
+	BMO_Insert_Mapping(bm, op, slotcode, element, &val, sizeof(float));
+}
+
+void *BMO_Get_MapData(BMesh *bm, BMOperator *op, int slotcode,
+		      void *element)
+{
+	element_mapping *mapping;
+	BMOpSlot *slot = &op->slots[slotcode];
+
+	/*sanity check*/
+	if (slot->slottype != BMOP_OPSLOT_MAPPING) return NULL;
+	if (!slot->data.ghash) return NULL;
+
+	mapping = BLI_ghash_lookup(slot->data.ghash, element);
+	
+	return mapping + 1;
+}
+
+float BMO_Get_MapFloat(BMesh *bm, BMOperator *op, int slotcode,
+		       void *element)
+{
+	float *val = BMO_Get_MapData(bm, op, slotcode, element);
+	if (val) return *val;
+
+	return 0.0f;
 }
 
 static void *alloc_slot_buffer(BMOperator *op, int slotcode, int len){

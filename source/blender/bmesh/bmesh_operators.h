@@ -2,6 +2,7 @@
 #define BM_OPERATORS_H
 
 #include "BLI_memarena.h"
+#include "BLI_ghash.h"
 
 #define BMOP_OPSLOT_INT			0
 #define BMOP_OPSLOT_FLT			1
@@ -12,14 +13,15 @@
   dynamically allocated arrays.  we
   leave a space in the identifiers
   for future growth.*/
-#define BMOP_OPSLOT_INT_BUF		7
-#define BMOP_OPSLOT_FLT_BUF		8		
-#define BMOP_OPSLOT_PNT_BUF		9
-#define BMOP_OPSLOT_TYPES		10
+#define BMOP_OPSLOT_PNT_BUF		7
+
+#define BMOP_OPSLOT_MAPPING		8
+#define BMOP_OPSLOT_TYPES		9
 
 typedef struct BMOpSlot{
 	int slottype;
 	int len;
+	int flag;
 	int index; /*index within slot array*/
 	union {
 		int i;
@@ -27,8 +29,13 @@ typedef struct BMOpSlot{
 		void *p;					
 		float vec[3];				/*vector*/
 		void *buf;				/*buffer*/
+		GHash *ghash;
 	} data;
 }BMOpSlot;
+
+/*BMOpSlot->flag*/
+/*is a dynamically-allocated array.  set at runtime.*/
+#define BMOS_DYNAMIC_ARRAY	1
 
 /*operators represent logical, executable mesh modules.*/
 #define BMOP_MAX_SLOTS			16		/*way more than probably needed*/
@@ -54,6 +61,10 @@ typedef struct BMOpDefine {
 //doesn't do anything at the moment.
 
 /*API for operators*/
+
+/*data types that use pointers (arrays, etc) should never
+  have it set directly.  and never use BMO_Set_Pnt to
+  pass in a list of edges or any arrays, really.*/
 void BMO_Init_Op(struct BMOperator *op, int opcode);
 void BMO_Exec_Op(struct BMesh *bm, struct BMOperator *op);
 void BMO_Finish_Op(struct BMesh *bm, struct BMOperator *op);
@@ -61,8 +72,6 @@ BMOpSlot *BMO_GetSlot(struct BMOperator *op, int slotcode);
 void BMO_CopySlot(struct BMOperator *source_op, struct BMOperator *dest_op, int src, int dst);
 void BMO_Set_Float(struct BMOperator *op, int slotcode, float f);
 void BMO_Set_Int(struct BMOperator *op, int slotcode, int i);
-void BMO_Set_PntBuf(struct BMOperator *op, int slotcode, void *p, int len);
-void BMO_Set_FltBuf(BMOperator *op, int slotcode, float *p, int len);
 void BMO_Set_Pnt(struct BMOperator *op, int slotcode, void *p);
 void BMO_Set_Vec(struct BMOperator *op, int slotcode, float *vec);
 void BMO_SetFlag(struct BMesh *bm, void *element, int flag);
@@ -72,6 +81,18 @@ int BMO_CountFlag(struct BMesh *bm, int flag, int type);
 void BMO_Flag_To_Slot(struct BMesh *bm, struct BMOperator *op, int slotcode, int flag, int type);
 void BMO_Flag_Buffer(struct BMesh *bm, struct BMOperator *op, int slotcode, int flag);
 void BMO_HeaderFlag_To_Slot(struct BMesh *bm, struct BMOperator *op, int slotcode, int flag, int type);
+int BMO_CountSlotBuf(struct BMesh *bm, struct BMOperator *op, int slotcode);
+
+void BMO_Insert_Mapping(BMesh *bm, BMOperator *op, int slotcode, 
+			void *element, void *data, int len);
+void BMO_Insert_MapFloat(BMesh *bm, BMOperator *op, int slotcode, 
+			void *element, float val);
+void *BMO_Get_MapData(BMesh *bm, BMOperator *op, int slotcode,
+		      void *element);
+float BMO_Get_MapFloat(BMesh *bm, BMOperator *op, int slotcode,
+		       void *element);
+void BMO_Mapping_To_Flag(struct BMesh *bm, struct BMOperator *op, 
+			 int slotcode, int flag);
 
 /*if msg is null, then the default message for the errorcode is used*/
 void BMOP_RaiseError(BMesh *bm, int errcode, char *msg);
@@ -159,12 +180,20 @@ enum {
 	BMOP_ESUBDIVIDE_RADIUS,
 	BMOP_ESUBDIVIDE_SELACTION,
 
-	BMOP_ESUBDIVIDE_CUSTOMFILL_FACES,
-	BMOP_ESUBDIVIDE_CUSTOMFILL_PATTERNS,
+	BMOP_ESUBDIVIDE_CUSTOMFILL_FACEMAP,
+	BMOP_ESUBDIVIDE_PERCENT_EDGEMAP,
 
-	BMOP_ESUBDIVIDE_PERCENT_EDGES,
-	BMOP_ESUBDIVIDE_PERCENT_VALUES,
+	/*inner verts/new faces of completely filled faces, e.g.
+	  fully selected face.*/
+	BMOP_ESUBDIVIDE_INNER_MULTOUT,
 
+	/*new edges and vertices from splitting original edges,
+	  doesn't include edges creating by connecting verts.*/
+	BMOP_ESUBDIVIDE_SPLIT_MULTOUT,
+	
+	/*edges created by connecting verts, except for those created
+	  by fully-filled faces (e.g. fully selected faces).*/
+	BMOP_ESUBDIVIDE_CONNECT_MULTOUT,
 	BMOP_ESUBDIVIDE_TOTSLOT,
 };
 /*

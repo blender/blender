@@ -787,14 +787,12 @@ static int knife_cut_exec(bContext *C, wmOperator *op)
 	BMVert *bv;
 	BMIter iter;
 	BMEdge **edges = NULL, *be;
-	V_DECLARE(edges);
 	BMOperator bmop;
 	CutCurve curve[MAX_CUTS];
 	struct GHash *gh;
 	float isect=0.0;
 	float  *scr, co[4], *percents = NULL;
-	V_DECLARE(percents);
-	int len=0, isected, flag;
+	int len=0, isected, flag, i;
 	short numcuts=1, mode= RNA_int_get(op->ptr, "type");
 	
 	if (EM_nvertices_selected(em) < 2) {
@@ -826,34 +824,34 @@ static int knife_cut_exec(bContext *C, wmOperator *op)
 		BLI_ghash_insert(gh, bv, scr);
 	}
 	
+	BMO_Init_Op(&bmop, BMOP_ESUBDIVIDE);
+	
+	i = 0;
 	/*store percentage of edge cut for KNIFE_EXACT here.*/
 	for (be=BMIter_New(&iter, bm, BM_EDGES, NULL); be; be=BMIter_Step(&iter)) {
 		if( BM_Is_Selected(bm, be) ) {
 			isect= bm_seg_intersect(be, curve, len, mode, gh, &isected);
 			
 			if (isect != 0.0f) {
-				V_GROW(edges);
-				V_GROW(percents);
-				edges[V_COUNT(edges)-1] = be;
-				percents[V_COUNT(percents)-1] = isect;
+				if (mode != KNIFE_MULTICUT) {
+					BMO_Insert_MapFloat(bm, &bmop, 
+				               BMOP_ESUBDIVIDE_PERCENT_EDGEMAP,
+				               be, isect);
+
+				}
+				BMO_SetFlag(bm, be, 1);
 			}
 		}
 	}
-		
-	BMO_Init_Op(&bmop, BMOP_ESUBDIVIDE);
 	
+	BMO_Flag_To_Slot(bm, &bmop, BMOP_ESUBDIVIDE_EDGES, 1, BM_EDGE);
+
 	BMO_Set_Int(&bmop, BMOP_ESUBDIVIDE_NUMCUTS, numcuts);
 	flag = B_KNIFE;
 	if (mode == KNIFE_MIDPOINT) numcuts = 1;
-	else if (mode != KNIFE_MULTICUT) {
-		BMO_Set_PntBuf(&bmop, BMOP_ESUBDIVIDE_PERCENT_EDGES, edges, V_COUNT(edges));
-		BMO_Set_FltBuf(&bmop, BMOP_ESUBDIVIDE_PERCENT_VALUES, percents, V_COUNT(percents));
-	}
-
 	BMO_Set_Int(&bmop, BMOP_ESUBDIVIDE_FLAG, flag);
 	BMO_Set_Float(&bmop, BMOP_ESUBDIVIDE_RADIUS, 0);
 	BMO_Set_Int(&bmop, BMOP_ESUBDIVIDE_SELACTION, SUBDIV_SELECT_ORIG);
-	BMO_Set_PntBuf(&bmop, BMOP_ESUBDIVIDE_EDGES, edges, V_COUNT(edges));
 	
 	BMO_Exec_Op(bm, &bmop);
 	BMO_Finish_Op(bm, &bmop);

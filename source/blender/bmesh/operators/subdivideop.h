@@ -5,7 +5,7 @@ typedef struct subdparams {
 	int numcuts;
 	int flag;
 	float rad;
-	GHash *percenthash;
+	BMOperator *op;
 } subdparams;
 
 typedef void (*subd_pattern_fill_fp)(BMesh *bm, BMFace *face, BMVert **verts, 

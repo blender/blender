@@ -147,7 +147,8 @@ static BMVert *subdivideedgenum(BMesh *bm, BMEdge *edge,
 	float percent;
 	 
 	if (BMO_TestFlag(bm, edge, EDGE_PERCENT) && totpoint == 1)
-		percent= *((float*)BLI_ghash_lookup(params->percenthash,edge));
+		percent = BMO_Get_MapFloat(bm, params->op, 
+			                BMOP_ESUBDIVIDE_PERCENT_EDGEMAP, edge);
 	else {
 		percent= 1.0f/(float)(totpoint+1-curpoint);
 
@@ -573,7 +574,7 @@ typedef struct subd_facedata {
 
 void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 {
-	BMOpSlot *einput, *finput, *pinput;
+	BMOpSlot *einput;
 	BMEdge *edge, **edges = NULL;
 	V_DECLARE(edges);
 	BMFace *face;
@@ -581,7 +582,6 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 	BMVert **verts = NULL;
 	V_DECLARE(verts);
 	BMIter fiter, liter;
-	GHash *customfill_hash, *percent_hash; 
 	subdpattern *pat;
 	subdparams params;
 	subd_facedata *facedata = NULL;
@@ -605,34 +605,16 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 		BMO_SetFlag(bmesh, edge, SUBD_SPLIT);
 	}
 	
-	customfill_hash = BLI_ghash_new(BLI_ghashutil_ptrhash,
-		                        BLI_ghashutil_ptrcmp);
-	percent_hash = BLI_ghash_new(BLI_ghashutil_ptrhash,
-		                        BLI_ghashutil_ptrcmp);
-
-	/*process custom fill patterns*/
-	finput = BMO_GetSlot(op, BMOP_ESUBDIVIDE_CUSTOMFILL_FACES);
-	pinput = BMO_GetSlot(op, BMOP_ESUBDIVIDE_CUSTOMFILL_PATTERNS);
-	for (i=0; i<finput->len; i++) {
-		face = ((BMFace**)finput->data.p)[i];
-		BMO_SetFlag(bmesh, face, FACE_CUSTOMFILL);
-		BLI_ghash_insert(customfill_hash, face,
-			        ((void**)pinput->data.p)[i]);
-	}
-	
-	einput = BMO_GetSlot(op, BMOP_ESUBDIVIDE_PERCENT_EDGES);
-	pinput = BMO_GetSlot(op, BMOP_ESUBDIVIDE_PERCENT_VALUES);
-	
-	for (i=0; i<einput->len; i++) {
-		edge = ((BMEdge**)einput->data.p)[i];
-		BMO_SetFlag(bmesh, edge, EDGE_PERCENT);
-		BLI_ghash_insert(percent_hash, edge, ((float*)pinput->data.p)+i);
-	}
-	
 	params.flag = flag;
 	params.numcuts = numcuts;
-	params.percenthash = percent_hash;
+	params.op = op;
 	params.rad = rad;
+
+	BMO_Mapping_To_Flag(bmesh, op, BMOP_ESUBDIVIDE_CUSTOMFILL_FACEMAP,
+	                    FACE_CUSTOMFILL);
+
+	BMO_Mapping_To_Flag(bmesh, op, BMOP_ESUBDIVIDE_PERCENT_EDGEMAP,
+	                    EDGE_PERCENT);
 
 	for (face=BMIter_New(&fiter, bmesh, BM_FACES, NULL);
 	     face; face=BMIter_Step(&fiter)) {
@@ -651,7 +633,8 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 		}
 
 		if (BMO_TestFlag(bmesh, face, FACE_CUSTOMFILL)) {
-			pat = BLI_ghash_lookup(customfill_hash, face);
+			pat = BMO_Get_MapData(bmesh, op, 
+				    BMOP_ESUBDIVIDE_CUSTOMFILL_FACEMAP, face);
 			for (i=0; i<pat->len; i++) {
 				matched = 1;
 				for (j=0; j<pat->len; j++) {

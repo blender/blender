@@ -19,7 +19,6 @@ void triangulate_exec(BMesh *bmesh, BMOperator *op)
 	BMFace *face;
 	float (*projectverts)[3] = NULL;
 	V_DECLARE(projectverts);
-	void *projverts;
 	int i, lastlen=0, count = 0;
 	
 	finput = BMO_GetSlot(op, BMOP_ESUBDIVIDE_EDGES);
@@ -37,8 +36,6 @@ void triangulate_exec(BMesh *bmesh, BMOperator *op)
 		}
 		
 		BM_Triangulate_Face(bmesh, face, projectverts, EDGE_NEW, FACE_NEW);
-		
-		if (projverts != projectverts) MEM_freeN(projverts);
 	}
 	
 	BMO_Flag_To_Slot(bmesh, op, BMOP_TRIANG_NEW_EDGES, EDGE_NEW, BM_EDGE);
