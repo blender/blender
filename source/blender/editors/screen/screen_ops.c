@@ -1002,6 +1002,7 @@ static int frame_offset_exec(bContext *C, wmOperator *op)
 	delta = RNA_int_get(op->ptr, "delta");
 
 	CTX_data_scene(C)->r.cfra += delta;
+
 	WM_event_add_notifier(C, NC_SCENE|ND_FRAME, CTX_data_scene(C));
 
 	return OPERATOR_FINISHED;
@@ -1760,7 +1761,7 @@ static int screen_animation_play(bContext *C, wmOperator *op, wmEvent *event)
 				scene->r.cfra= scene->r.sfra;
 		}
 
-		WM_event_add_notifier(C, NC_SCENE|ND_FRAME, CTX_data_scene(C));
+		WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
 		
 		return OPERATOR_FINISHED;
 	}

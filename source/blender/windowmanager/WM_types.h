@@ -121,7 +121,7 @@ typedef void (*wmUIHandlerRemoveFunc)(struct bContext *C, void *userdata);
 /* ************** Notifiers ****************** */
 
 typedef struct wmNotifier {
-	struct wmNotifier *prev, *next;
+	struct wmNotifier *next, *prev;
 	
 	struct wmWindowManager *wm;
 	struct wmWindow *window;
@@ -162,9 +162,9 @@ typedef struct wmNotifier {
 
 	/* NC_SCREEN screen */
 #define ND_SCREENBROWSE		(1<<16)
-#define ND_SCENEBROWSE		(2<<16)
 
 	/* NC_SCENE Scene */
+#define ND_SCENEBROWSE		(1<<16)
 #define	ND_MARKERS			(2<<16)
 #define	ND_FRAME			(3<<16)
 #define	ND_RENDER_OPTIONS	(4<<16)

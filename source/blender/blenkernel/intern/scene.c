@@ -565,33 +565,10 @@ int scene_check_setscene(Scene *sce)
 	return 1;
 }
 
-static void scene_update(Scene *sce, unsigned int lay)
-{
-	Base *base;
-	Object *ob;
-	
-	if(sce->theDag==NULL)
-		DAG_scene_sort(sce);
-	
-	DAG_scene_update_flags(sce, lay);   // only stuff that moves or needs display still
-	
-	for(base= sce->base.first; base; base= base->next) {
-		ob= base->object;
-		
-		object_handle_update(sce, ob);   // bke_object.h
-		
-		/* only update layer when an ipo */
-			// XXX old animation system
-		//if(ob->ipo && has_ipo_code(ob->ipo, OB_LAY) ) {
-		//	base->lay= ob->lay;
-		//}
-	}
-}
-
 /* This (evil) function is needed to cope with two legacy Blender rendering features
- * mblur (motion blur that renders 'subframes' and blurs them together), and fields 
- * rendering. Thus, the use of ugly globals from object.c
- */
+* mblur (motion blur that renders 'subframes' and blurs them together), and fields 
+* rendering. Thus, the use of ugly globals from object.c
+*/
 // BAD... EVIL... JUJU...!!!!
 // XXX moved here temporarily
 float frame_to_float (Scene *scene, int cfra)		/* see also bsystem_time in object.c */
@@ -607,23 +584,46 @@ float frame_to_float (Scene *scene, int cfra)		/* see also bsystem_time in objec
 	return ctime;
 }
 
+static void scene_update(Scene *sce, unsigned int lay)
+{
+	Base *base;
+	Object *ob;
+	float ctime = frame_to_float(sce, sce->r.cfra); 
+	
+	if(sce->theDag==NULL)
+		DAG_scene_sort(sce);
+	
+	DAG_scene_update_flags(sce, lay);   // only stuff that moves or needs display still
+	
+	/* All 'standard' (i.e. without any dependencies) animation is handled here,
+		* with an 'local' to 'macro' order of evaluation. This should ensure that
+		* settings stored nestled within a hierarchy (i.e. settings in a Texture block
+	    * can be overridden by settings from Scene, which owns the Texture through a hierarchy 
+	    * such as Scene->World->MTex/Texture) can still get correctly overridden.
+		*/
+	BKE_animsys_evaluate_all_animation(G.main, ctime);
+	
+	for(base= sce->base.first; base; base= base->next) {
+		ob= base->object;
+		
+		object_handle_update(sce, ob);   // bke_object.h
+		
+		/* only update layer when an ipo */
+			// XXX old animation system
+		//if(ob->ipo && has_ipo_code(ob->ipo, OB_LAY) ) {
+		//	base->lay= ob->lay;
+		//}
+	}
+}
+
+
 /* applies changes right away, does all sets too */
 void scene_update_for_newframe(Scene *sce, unsigned int lay)
 {
 	Scene *scene= sce;
-	float ctime = frame_to_float(sce, sce->r.cfra); 
 	
 	/* clear animation overrides */
 	// XXX TODO...
-	
-	/* All 'standard' (i.e. without any dependencies) animation is handled here,
-	 * with an 'local' to 'macro' order of evaluation. This should ensure that
-	 * settings stored nestled within a hierarchy (i.e. settings in a Texture block
-	 * can be overridden by settings from Scene, which owns the Texture through a hierarchy 
-	 * such as Scene->World->MTex/Texture) can still get correctly overridden.
-	 */
-	BKE_animsys_evaluate_all_animation(G.main, ctime);
-	
 	
 #ifndef DISABLE_PYTHON
 	if (G.f & G_DOSCRIPTLINKS) BPY_do_all_scripts(SCRIPT_FRAMECHANGED, 0);

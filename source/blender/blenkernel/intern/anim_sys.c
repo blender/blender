@@ -587,7 +587,7 @@ void BKE_animsys_evaluate_animdata (ID *id, AnimData *adt, float ctime, short re
 	 *	- NLA before Active Action, as Active Action behaves as 'tweaking track'
 	 *	  that overrides 'rough' work in NLA
 	 */
-	if ((recalc & ADT_RECALC_ANIM) /*|| (adt->recalc & ADT_RECALC_ANIM)*/) // XXX for now,don't check yet, as depsgraph doesn't know this yet
+	if ((recalc & ADT_RECALC_ANIM) || (adt->recalc & ADT_RECALC_ANIM))
  	{
 		/* evaluate NLA data */
 		if ((adt->nla_tracks.first) && !(adt->flag & ADT_NLA_EVAL_OFF))
@@ -599,6 +599,9 @@ void BKE_animsys_evaluate_animdata (ID *id, AnimData *adt, float ctime, short re
 		// FIXME: what if the solo track was not tweaking one, then nla-solo should be checked too?
 		if (adt->action) 
 			animsys_evaluate_action(&id_ptr, adt->action, adt->remap, ctime);
+		
+		/* reset tag */
+		adt->recalc &= ~ADT_RECALC_ANIM;
 	}
 	
 	/* recalculate drivers 
@@ -639,29 +642,29 @@ void BKE_animsys_evaluate_all_animation (Main *main, float ctime)
 		printf("Evaluate all animation - %f \n", ctime);
 
 	/* macro for less typing */
-#define EVAL_ANIM_IDS(first) \
+#define EVAL_ANIM_IDS(first, flag) \
 	for (id= first; id; id= id->next) { \
 		AnimData *adt= BKE_animdata_from_id(id); \
-		BKE_animsys_evaluate_animdata(id, adt, ctime, ADT_RECALC_ANIM); \
+		BKE_animsys_evaluate_animdata(id, adt, ctime, flag); \
 	}
 	
 	/* nodes */
 	// TODO...
 	
 	/* textures */
-	EVAL_ANIM_IDS(main->tex.first);
+	EVAL_ANIM_IDS(main->tex.first, ADT_RECALC_ANIM);
 	
 	/* lamps */
-	EVAL_ANIM_IDS(main->lamp.first);
+	EVAL_ANIM_IDS(main->lamp.first, ADT_RECALC_ANIM);
 	
 	/* materials */
-	EVAL_ANIM_IDS(main->mat.first);
+	EVAL_ANIM_IDS(main->mat.first, ADT_RECALC_ANIM);
 	
 	/* cameras */
-	EVAL_ANIM_IDS(main->camera.first);
+	EVAL_ANIM_IDS(main->camera.first, ADT_RECALC_ANIM);
 	
 	/* shapekeys */
-	EVAL_ANIM_IDS(main->key.first);
+	EVAL_ANIM_IDS(main->key.first, ADT_RECALC_ANIM);
 	
 	/* curves */
 	// TODO...
@@ -670,13 +673,13 @@ void BKE_animsys_evaluate_all_animation (Main *main, float ctime)
 	// TODO...
 	
 	/* objects */
-	EVAL_ANIM_IDS(main->object.first);
+	EVAL_ANIM_IDS(main->object.first, 0);
 	
 	/* worlds */
-	EVAL_ANIM_IDS(main->world.first);
+	EVAL_ANIM_IDS(main->world.first, ADT_RECALC_ANIM);
 	
 	/* scenes */
-	EVAL_ANIM_IDS(main->scene.first);
+	EVAL_ANIM_IDS(main->scene.first, ADT_RECALC_ANIM);
 }
 
 /* ***************************************** */ 

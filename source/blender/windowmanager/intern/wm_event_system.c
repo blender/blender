@@ -162,28 +162,32 @@ void wm_event_do_notifiers(bContext *C)
 		wmWindow *win;
 		
 		for(win= wm->windows.first; win; win= win->next) {
-			ScrArea *sa;
-			ARegion *ar;
-
-			/* XXX context in notifiers? */
-			CTX_wm_window_set(C, win);
-
-			/* printf("notifier win %d screen %s\n", win->winid, win->screen->id.name+2); */
-			ED_screen_do_listen(win, note);
-
-			for(ar=win->screen->regionbase.first; ar; ar= ar->next) {
-				ED_region_do_listen(ar, note);
-			}
 			
-			for(sa= win->screen->areabase.first; sa; sa= sa->next) {
-				ED_area_do_listen(sa, note);
-				for(ar=sa->regionbase.first; ar; ar= ar->next) {
+			/* filter out notifiers */
+			if(note->category==NC_SCREEN && note->reference && note->reference!=win->screen);
+			else if(note->category==NC_SCENE && note->reference && note->reference!=win->screen->scene);
+			else {
+				ScrArea *sa;
+				ARegion *ar;
+
+				/* XXX context in notifiers? */
+				CTX_wm_window_set(C, win);
+
+				/* printf("notifier win %d screen %s\n", win->winid, win->screen->id.name+2); */
+				ED_screen_do_listen(win, note);
+
+				for(ar=win->screen->regionbase.first; ar; ar= ar->next) {
 					ED_region_do_listen(ar, note);
+				}
+				
+				for(sa= win->screen->areabase.first; sa; sa= sa->next) {
+					ED_area_do_listen(sa, note);
+					for(ar=sa->regionbase.first; ar; ar= ar->next) {
+						ED_region_do_listen(ar, note);
+					}
 				}
 			}
 		}
-		
-		CTX_wm_window_set(C, NULL);
 		
 		MEM_freeN(note);
 	}
