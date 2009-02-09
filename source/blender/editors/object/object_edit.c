@@ -1665,7 +1665,6 @@ void OBJECT_OT_select_random(wmOperatorType *ot)
 
 static int object_clear_location_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene= CTX_data_scene(C);
 	int armature_clear= 0;
 
 	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
@@ -1708,7 +1707,6 @@ void OBJECT_OT_clear_location(wmOperatorType *ot)
 
 static int object_clear_rotation_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene= CTX_data_scene(C);
 	int armature_clear= 0;
 
 	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
@@ -1752,7 +1750,6 @@ void OBJECT_OT_clear_rotation(wmOperatorType *ot)
 
 static int object_clear_scale_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene= CTX_data_scene(C);
 	int armature_clear= 0;
 
 	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
@@ -1777,7 +1774,7 @@ static int object_clear_scale_exec(bContext *C, wmOperator *op)
 	if(armature_clear==0) /* in this case flush was done */
 		ED_anim_dag_flush_update(C);	
 	
-	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, CTX_data_scene(C));
+	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
 	
 	return OPERATOR_FINISHED;
 }
@@ -3041,7 +3038,7 @@ void ED_object_exit_editmode(bContext *C, int flag)
 	
 	if(flag & EM_WAITCURSOR) waitcursor(0);
 	
-	WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_MODE_OBJECT, ob);
+	WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_MODE_OBJECT, scene);
 
 }
 
@@ -3083,7 +3080,7 @@ void ED_object_enter_editmode(bContext *C, int flag)
 		
 		make_editMesh(scene, ob);
 
-		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_EDITMODE_MESH, ob);
+		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_EDITMODE_MESH, scene);
 	}
 	else if (ob->type==OB_ARMATURE){
 		bArmature *arm= base->object->data;
