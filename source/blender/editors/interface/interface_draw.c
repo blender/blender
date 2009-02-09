@@ -2163,7 +2163,12 @@ void uiDrawMenuBox(float minx, float miny, float maxx, float maxy, short flag, s
 	UI_GetThemeColor4ubv(TH_MENU_BACK, col);
 	
 	if (rounded) {
-		if (direction == UI_DOWN) {
+		if (flag & UI_BLOCK_POPUP) {
+			uiSetRoundBox(15);
+			miny -= 4.0;
+			maxy += 4.0;
+		}
+		else if (direction == UI_DOWN) {
 			uiSetRoundBox(12);
 			miny -= 4.0;
 		} else if (direction == UI_TOP) {

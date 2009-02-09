@@ -84,6 +84,7 @@ typedef struct uiPopupBlockHandle uiPopupBlockHandle;
 #define UI_BLOCK_NO_HILITE		64		/* XXX 2.5 not implemented */
 #define UI_BLOCK_MOVEMOUSE_QUIT	128
 #define UI_BLOCK_KEEP_OPEN		256
+#define UI_BLOCK_POPUP			512
 
 /* uiPopupBlockHandle->menuretval */
 #define UI_RETURN_CANCEL	1       /* cancel all menus cascading */
