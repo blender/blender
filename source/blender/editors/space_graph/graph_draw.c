@@ -154,8 +154,15 @@ static void draw_fcurve_handle_control (float x, float y, float xscale, float ys
 	glTranslatef(x, y, 0.0f);
 	glScalef(1.0f/xscale*hsize, 1.0f/yscale*hsize, 1.0f);
 	
+	/* anti-aliased lines for more consistent appearance */
+	glEnable(GL_LINE_SMOOTH);
+	glEnable(GL_BLEND);
+	
 	/* draw! */
 	glCallList(displist);
+	
+	glDisable(GL_LINE_SMOOTH);
+	glDisable(GL_BLEND);
 	
 	/* restore view transform */
 	glScalef(xscale/hsize, yscale/hsize, 1.0);
@@ -320,6 +327,74 @@ static void draw_fcurve_handles (SpaceIpo *sipo, ARegion *ar, FCurve *fcu)
 				}
 			}
 		}
+	}
+}
+
+/* Samples ---------------- */
+
+/* helper func - draw sample-range marker for an F-Curve as a cross */
+static void draw_fcurve_sample_control (float x, float y, float xscale, float yscale, float hsize)
+{
+	static GLuint displist=0;
+	
+	/* initialise X shape */
+	if (displist == 0) {
+		displist= glGenLists(1);
+		glNewList(displist, GL_COMPILE);
+		
+		glBegin(GL_LINES);
+			glVertex2f(-0.7f, -0.7f);
+			glVertex2f(+0.7f, +0.7f);
+			
+			glVertex2f(-0.7f, +0.7f);
+			glVertex2f(+0.7f, -0.7f);
+		glEnd(); // GL_LINES
+		
+		glEndList();
+	}
+	
+	/* adjust view transform before starting */
+	glTranslatef(x, y, 0.0f);
+	glScalef(1.0f/xscale*hsize, 1.0f/yscale*hsize, 1.0f);
+	
+	/* anti-aliased lines for more consistent appearance */
+		// XXX needed here?
+	glEnable(GL_LINE_SMOOTH);
+	glEnable(GL_BLEND);
+	
+	/* draw! */
+	glCallList(displist);
+	
+	glDisable(GL_BLEND);
+	glDisable(GL_LINE_SMOOTH);
+	
+	/* restore view transform */
+	glScalef(xscale/hsize, yscale/hsize, 1.0);
+	glTranslatef(-x, -y, 0.0f);
+}
+
+/* helper func - draw keyframe vertices only for an F-Curve */
+static void draw_fcurve_samples (SpaceIpo *sipo, ARegion *ar, FCurve *fcu)
+{
+	FPoint *first, *last;
+	float hsize, xscale, yscale;
+	
+	/* get view settings */
+	hsize= UI_GetThemeValuef(TH_VERTEX_SIZE);
+	UI_view2d_getscale(&ar->v2d, &xscale, &yscale);
+	
+	/* set vertex color */
+	if (fcu->flag & (FCURVE_ACTIVE|FCURVE_SELECTED)) UI_ThemeColor(TH_TEXT_HI);
+	else UI_ThemeColor(TH_TEXT);
+	
+	/* get verts */
+	first= fcu->fpt;
+	last= (first) ? (first + fcu->totvert) : (NULL);
+	
+	/* draw */
+	if (first && last) {
+		draw_fcurve_sample_control(first->vec[0], first->vec[1], xscale, yscale, hsize);
+		draw_fcurve_sample_control(last->vec[0], last->vec[1], xscale, yscale, hsize);
 	}
 }
 
@@ -627,7 +702,7 @@ void graph_draw_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 		Object *nob= ANIM_nla_mapping_get(ac, ale);
 		float fac=0.0f; // dummy var
 		
-		/* map ipo-points for drawing if scaled F-Curve */
+		/* map keyframes for drawing if scaled F-Curve */
 		if (nob)
 			ANIM_nla_mapping_apply_fcurve(nob, ale->key_data, 0, 0); 
 		
@@ -639,8 +714,15 @@ void graph_draw_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 			draw_fcurve_repeat(fcu, &ar->v2d, 0, 0, &fac); // XXX this call still needs a lot more work
 			
 			/* draw handles and vertices as appropriate */
-			draw_fcurve_handles(sipo, ar, fcu);
-			draw_fcurve_vertices(sipo, ar, fcu);
+			if (fcu->bezt) {
+				/* only draw handles/vertices on keyframes */
+				draw_fcurve_handles(sipo, ar, fcu);
+				draw_fcurve_vertices(sipo, ar, fcu);
+			}
+			else {
+				/* samples: should we only draw two indicators at either end as indicators? */
+				draw_fcurve_samples(sipo, ar, fcu);
+			}
 		}
 		
 		/* undo mapping of keyframes for drawing if scaled F-Curve */
