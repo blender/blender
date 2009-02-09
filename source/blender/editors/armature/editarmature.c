@@ -3228,7 +3228,6 @@ void extrude_armature(Scene *scene, int forked)
  * appropriate ways), and two separate ones.
  */
 
-/* context; editmode armature */
 static int armature_subdivide_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
