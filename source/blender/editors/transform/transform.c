@@ -1162,7 +1162,7 @@ int transformEnd(bContext *C, TransInfo *t)
 		/* free data */
 		postTrans(t);
 	
-		/* aftertrans does insert ipos and action channels, and clears base flags, doesnt read transdata */
+		/* aftertrans does insert keyframes, and clears base flags, doesnt read transdata */
 		special_aftertrans_update(t);
 	
 		/* send events out for redraws */

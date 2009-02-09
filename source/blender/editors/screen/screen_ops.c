@@ -190,8 +190,11 @@ int ED_operator_editarmature(bContext *C)
 int ED_operator_posemode(bContext *C)
 {
 	Object *obact= CTX_data_active_object(C);
-	if(obact && obact->type==OB_ARMATURE)
+	Object *obedit= CTX_data_edit_object(C);
+	
+	if ((obact != obedit) && (obact) && (obact->type==OB_ARMATURE))
 		return (obact->flag & OB_POSEMODE)!=0;
+		
 	return 0;
 }
 

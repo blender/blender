@@ -88,6 +88,8 @@
 #include "ED_util.h"
 #include "ED_view3d.h"
 
+#include "UI_interface.h"
+
 #include "armature_intern.h"
 #include "meshlaplacian.h"
 
@@ -3218,80 +3220,167 @@ void extrude_armature(Scene *scene, int forked)
 	
 }
 
-/* context; editmode armature */
-void subdivide_armature(Scene *scene, int numcuts)
-{
-	Object *obedit= scene->obedit; // XXX get from context
-	bArmature *arm= obedit->data;
-	EditBone *ebone, *newbone, *tbone, *mbone;
-	int a, i;
-	
-	if (numcuts < 1) return;
+/* ----------- */
 
-	for (mbone = arm->edbo->last; mbone; mbone= mbone->prev) {
-		if (EBONE_VISIBLE(arm, mbone)) {
-			if (mbone->flag & BONE_SELECTED) {
-				for (i=numcuts+1; i>1; i--) {
-					/* compute cut ratio first */
-					float cutratio= 1/(float)i;
-					float cutratioI= 1-cutratio;
-					
-					/* take care of mirrored stuff */
-					for (a=0; a<2; a++) {
-						float val1[3];
-						float val2[3];
-						float val3[3];
-						
-						/* try to find mirrored bone on a != 0 */
-						if (a) {
-							if (arm->flag & ARM_MIRROR_EDIT)
-								ebone= ED_armature_bone_get_mirrored(arm->edbo, mbone);
-							else 
-								ebone= NULL;
-						}
-						else
-							ebone= mbone;
-							
-						if (ebone) {
-							newbone= MEM_mallocN(sizeof(EditBone), "ebone subdiv");
-							*newbone = *ebone;
-							BLI_addtail(arm->edbo, newbone);
-							
-							/* calculate location of newbone->head */
-							VECCOPY(val1, ebone->head);
-							VECCOPY(val2, ebone->tail);
-							VECCOPY(val3, newbone->head);
-							
-							val3[0]= val1[0]*cutratio+val2[0]*cutratioI;
-							val3[1]= val1[1]*cutratio+val2[1]*cutratioI;
-							val3[2]= val1[2]*cutratio+val2[2]*cutratioI;
-							
-							VECCOPY(newbone->head, val3);
-							VECCOPY(newbone->tail, ebone->tail);
-							VECCOPY(ebone->tail, newbone->head);
-							
-							newbone->rad_head= 0.5*(ebone->rad_head+ebone->rad_tail);
-							ebone->rad_tail= newbone->rad_head;
-							
-							newbone->flag |= BONE_CONNECTED;
-							
-							unique_editbone_name (arm->edbo, newbone->name);
-							
-							/* correct parent bones */
-							for (tbone = arm->edbo->first; tbone; tbone=tbone->next) {
-								if (tbone->parent==ebone)
-									tbone->parent= newbone;
-							}
-							newbone->parent= ebone;
-						}
-					}
-				}
+/* Subdivide Operators:
+ * This group of operators all use the same 'exec' callback, but they are called
+ * through several different operators - a combined menu (which just calls the exec in the 
+ * appropriate ways), and two separate ones.
+ */
+
+/* context; editmode armature */
+static int armature_subdivide_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	bArmature *arm= obedit->data;
+	EditBone *newbone, *tbone;
+	int numcuts, i;
+	
+	/* there may not be a number_cuts property defined (for 'simple' subdivide) */
+	if (RNA_property_is_set(op->ptr, "number_cuts"))
+		numcuts= RNA_int_get(op->ptr, "number_cuts");
+	else
+		numcuts= 1;
+	
+	/* loop over all editable bones */
+	// XXX the old code did this in reverse order though!
+	CTX_DATA_BEGIN(C, EditBone *, ebone, selected_editable_bones) 
+	{
+		for (i=numcuts+1; i>1; i--) {
+			/* compute cut ratio first */
+			float cutratio= 1.0f / (float)i;
+			float cutratioI= 1.0f - cutratio;
+			
+			float val1[3];
+			float val2[3];
+			float val3[3];
+			
+			newbone= MEM_mallocN(sizeof(EditBone), "ebone subdiv");
+			*newbone = *ebone;
+			BLI_addtail(arm->edbo, newbone);
+			
+			/* calculate location of newbone->head */
+			VECCOPY(val1, ebone->head);
+			VECCOPY(val2, ebone->tail);
+			VECCOPY(val3, newbone->head);
+			
+			val3[0]= val1[0]*cutratio + val2[0]*cutratioI;
+			val3[1]= val1[1]*cutratio + val2[1]*cutratioI;
+			val3[2]= val1[2]*cutratio + val2[2]*cutratioI;
+			
+			VECCOPY(newbone->head, val3);
+			VECCOPY(newbone->tail, ebone->tail);
+			VECCOPY(ebone->tail, newbone->head);
+			
+			newbone->rad_head= 0.5f * (ebone->rad_head + ebone->rad_tail);
+			ebone->rad_tail= newbone->rad_head;
+			
+			newbone->flag |= BONE_CONNECTED;
+			
+			unique_editbone_name(arm->edbo, newbone->name);
+			
+			/* correct parent bones */
+			for (tbone = arm->edbo->first; tbone; tbone=tbone->next) {
+				if (tbone->parent==ebone)
+					tbone->parent= newbone;
 			}
+			newbone->parent= ebone;
 		}
 	}
+	CTX_DATA_END;
 	
-	if (numcuts==1) BIF_undo_push("Subdivide");
-	else BIF_undo_push("Subdivide multi");
+	/* note, notifier might evolve */
+	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, obedit);
+	
+	return OPERATOR_FINISHED;
+}
+
+
+void ARMATURE_OT_subdivide_simple(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Subdivide Simple";
+	ot->idname= "ARMATURE_OT_subdivide_simple";
+	
+	/* api callbacks */
+	ot->exec = armature_subdivide_exec;
+	ot->poll = ED_operator_editarmature;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+void ARMATURE_OT_subdivide_multi(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Subdivide Multi";
+	ot->idname= "ARMATURE_OT_subdivide_multi";
+	
+	/* api callbacks */
+	ot->exec = armature_subdivide_exec;
+	ot->poll = ED_operator_editarmature;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* Properties */
+	RNA_def_int(ot->srna, "number_cuts", 2, 1, 100, "Number of Cuts", "", 1, INT_MAX);
+}
+
+
+
+static int armature_subdivs_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	uiMenuItem *head;
+
+	head= uiPupMenuBegin("Subdivision Type", 0);
+	uiMenuItemsEnumO(head, "ARMATURE_OT_subdivs", "type");
+	uiPupMenuEnd(C, head);
+	
+	return OPERATOR_CANCELLED;
+}
+
+static int armature_subdivs_exec(bContext *C, wmOperator *op)
+{	
+	switch (RNA_int_get(op->ptr, "type"))
+	{
+		case 0: /* simple */
+			RNA_int_set(op->ptr, "number_cuts", 1);
+			armature_subdivide_exec(C, op);
+			break;
+		case 1: /* multi */
+			armature_subdivide_exec(C, op);
+			break;
+	}
+	
+	return OPERATOR_FINISHED;
+}
+
+void ARMATURE_OT_subdivs(wmOperatorType *ot)
+{
+	static EnumPropertyItem type_items[]= {
+		{0, "SIMPLE", "Simple", ""},
+		{1, "MULTI", "Multi", ""},
+		{0, NULL, NULL}};
+
+	/* identifiers */
+	ot->name= "subdivs";
+	ot->idname= "ARMATURE_OT_subdivs";
+	
+	/* api callbacks */
+	ot->invoke= armature_subdivs_invoke;
+	ot->exec= armature_subdivs_exec;
+	
+	ot->poll= ED_operator_editarmature;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* props */
+	RNA_def_enum(ot->srna, "type", type_items, 0, "Type", "");
+	
+	/* this is temp, the ops are different, but they are called from subdivs, so all the possible props should be here as well*/
+	RNA_def_int(ot->srna, "number_cuts", 2, 1, 100, "Number of Cuts", "", 1, INT_MAX); 
 }
 
 /* ----------- */
@@ -3304,7 +3393,6 @@ void subdivide_armature(Scene *scene, int numcuts)
 
 static int armature_switch_direction_exec(bContext *C, wmOperator *op) 
 {
-	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_edit_object(C);
 	bArmature *arm= (bArmature *)ob->data;
 	ListBase chains = {NULL, NULL};
@@ -3312,7 +3400,7 @@ static int armature_switch_direction_exec(bContext *C, wmOperator *op)
 	
 	/* get chains of bones (ends on chains) */
 	chains_find_tips(arm->edbo, &chains);
-	if (chains.first == NULL) return;
+	if (chains.first == NULL) return OPERATOR_CANCELLED;
 	
 	/* loop over chains, only considering selected and visible bones */
 	for (chain= chains.first; chain; chain= chain->next) {
