@@ -49,4 +49,20 @@ int BLF_lang_error(void);
 /* Return the code string for the specified language code. */
 char *BLF_lang_find_code(short langid);
 
+#if 0
+
+/* Add a path to the font dir paths. */
+void BLF_dir_add(const char *path);
+
+/* Remove a path from the font dir paths. */
+void BLF_dir_rem(const char *path);
+
+/* Return an array with all the font dir (this can be used for filesel) */
+char **BLF_dir_get(int *ndir);
+
+/* Free the data return by BLF_dir_get. */
+void BLF_dir_free(char **dirs, int count);
+
+#endif /* zero!! */
+
 #endif /* BLF_API_H */
