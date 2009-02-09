@@ -823,11 +823,9 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 				}
 			}
 			else {
-				/* XXX fix
 				UI_ThemeColor(TH_TEXT);
 				ui_rasterpos_safe(sock->locx+8.0f, sock->locy-5.0f, snode->aspect);
 				UI_DrawString(snode->curfont, sock->name, 0);
-				*/
 			}
 		}
 	}
@@ -835,11 +833,12 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	/* socket outputs */
 	for(sock= node->outputs.first; sock; sock= sock->next) {
 		if(!(sock->flag & (SOCK_HIDDEN|SOCK_UNAVAIL))) {
+			float slen;
+			int ofs= 0;
+			
 			socket_circle_draw(sock, NODE_SOCKSIZE);
 			
-			/* XXX fix
 			UI_ThemeColor(TH_TEXT);
-			ofs= 0;
 			slen= snode->aspect*UI_GetStringWidth(snode->curfont, sock->name, 0);
 			while(slen > node->width) {
 				ofs++;
@@ -847,7 +846,6 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 			}
 			ui_rasterpos_safe(sock->locx-8.0f-slen, sock->locy-5.0f, snode->aspect);
 			UI_DrawString(snode->curfont, sock->name+ofs, 0);
-			*/
 		}
 	}
 	

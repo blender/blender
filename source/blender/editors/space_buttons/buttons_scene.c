@@ -40,8 +40,13 @@
 
 #include "RE_pipeline.h"
 
+#include "RNA_access.h"
+#include "RNA_define.h"
+
 #include "UI_interface.h"
 #include "UI_resources.h"
+
+#include "WM_types.h"
 
 #include "buttons_intern.h"
 
@@ -212,7 +217,8 @@ static void render_panel_render(const bContext *C, ARegion *ar)
 	if(uiNewPanel(C, ar, block, "Render", "Render", 320, 0, 318, 204)==0) return;
 
 	uiBlockBeginAlign(block);
-	uiDefBut(block, BUT,0,"RENDER",	369, 164, 191,37, 0, 0, 0, 0, 0, "Render the current frame (F12)");
+	uiDefButO(block, BUT, "SCREEN_OT_render", WM_OP_INVOKE_DEFAULT, "RENDER",  369, 164, 191,37, "Render the current frame (F12)");
+	
 #ifndef DISABLE_YAFRAY
 	/* yafray: on request, render engine menu is back again, and moved to Render panel */
 	uiDefButS(block, MENU, 0, "Rendering Engine %t|Blender Internal %x0|YafRay %x1", 
@@ -287,12 +293,14 @@ void render_panel_anim(const bContext *C, ARegion *ar)
 {
 	Scene *scene= CTX_data_scene(C);
 	uiBlock *block;
-
+	uiBut *but;
+	
 	block= uiBeginBlock(C, ar,  "render_panel_anim", UI_EMBOSS, UI_HELV);
 	if(uiNewPanel(C, ar, block, "Anim", "Render", 640, 0, 318, 204) == 0) return;
 
-	uiDefBut(block, BUT, 0, "ANIM",        692,142,192,47, 0, 0, 0, 0, 0, "Render the animation to disk from start to end frame, (Ctrl+F12)");
-
+	but= uiDefButO(block, BUT, "SCREEN_OT_render", WM_OP_INVOKE_DEFAULT, "ANIM",  692,142,192,47, "Render the animation to disk from start to end frame, (Ctrl+F12)");
+	RNA_boolean_set(uiButGetOperatorPtrRNA(but), "anim", 1);
+	
 	uiBlockSetCol(block, TH_BUT_SETTING1);
 	uiBlockBeginAlign(block);
 	uiDefButBitI(block, TOG, R_DOSEQ, 0, "Do Sequence",692,114,192,20, &scene->r.scemode, 0, 0, 0, 0, "Enables sequence output rendering (Default: 3D rendering)");
