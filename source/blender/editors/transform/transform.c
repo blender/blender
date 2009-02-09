@@ -980,6 +980,10 @@ void initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 		
 		t->draw_handle = ED_region_draw_cb_activate(t->ar->type, drawTransform, t, REGION_DRAW_POST);
 	}
+	else if(t->spacetype == SPACE_IMAGE) {
+		Mat3One(t->spacemtx);
+		t->draw_handle = ED_region_draw_cb_activate(t->ar->type, drawTransform, t, REGION_DRAW_POST);
+	}
 	else
 		Mat3One(t->spacemtx);
 

@@ -56,6 +56,7 @@
 
 #include "BIF_transform.h"
 
+#include "ED_image.h"
 #include "ED_mesh.h"
 #include "ED_screen.h"
 
@@ -69,7 +70,6 @@
 #include "UI_view2d.h"
 
 #include "uvedit_intern.h"
-#include "../space_image/image_intern.h"
 
 /************************* state testing ************************/
 
@@ -99,7 +99,7 @@ void ED_uvedit_assign_image(Scene *scene, Object *obedit, Image *ima, Image *pre
 		return;
 
 	em= ((Mesh*)obedit->data)->edit_mesh;
-	if(!em || !em->faces.first);
+	if(!em || !em->faces.first)
 		return;
 	
 	/* ensure we have a uv layer */
@@ -133,15 +133,13 @@ void ED_uvedit_assign_image(Scene *scene, Object *obedit, Image *ima, Image *pre
 	}
 
 	/* and update depdency graph */
-	if(update) {
+	if(update)
 		DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-		/* XXX ensure undo, notifiers? */
-	}
 }
 
 /* dotile -	1, set the tile flag (from the space image)
  * 			2, set the tile index for the faces. */
-void ED_uvedit_set_tile(Scene *scene, Object *obedit, Image *ima, int curtile, int dotile)
+void ED_uvedit_set_tile(bContext *C, Scene *scene, Object *obedit, Image *ima, int curtile, int dotile)
 {
 	EditMesh *em;
 	EditFace *efa;
@@ -174,7 +172,7 @@ void ED_uvedit_set_tile(Scene *scene, Object *obedit, Image *ima, int curtile, i
 	}
 
 	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-	// XXX WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, obedit);
 }
 
 /*********************** space conversion *********************/
@@ -183,7 +181,7 @@ static void uvedit_pixel_to_float(SpaceImage *sima, float *dist, float pixeldist
 {
 	int width, height;
 
-	get_space_image_size(sima, &width, &height);
+	ED_space_image_size(sima, &width, &height);
 
 	dist[0]= pixeldist/width;
 	dist[1]= pixeldist/height;
@@ -2183,8 +2181,8 @@ int circle_select_exec(bContext *C, wmOperator *op)
 
 	/* compute ellipse size and location, not a circle since we deal
 	 * with non square image. ellipse is normalized, r = 1.0. */
-	get_space_image_size(sima, &width, &height);
-	get_space_image_zoom(sima, ar, &zoomx, &zoomy);
+	ED_space_image_size(sima, &width, &height);
+	ED_space_image_zoom(sima, ar, &zoomx, &zoomy);
 
 	ellipse[0]= width*zoomx/radius;
 	ellipse[1]= height*zoomy/radius;
@@ -2243,7 +2241,7 @@ static void snap_cursor_to_pixels(SpaceImage *sima, View2D *v2d)
 {
 	int width= 0, height= 0;
 
-	get_space_image_size(sima, &width, &height);
+	ED_space_image_size(sima, &width, &height);
 	snap_uv_to_pixel(v2d->cursor, width, height);
 }
 
@@ -2460,7 +2458,7 @@ static int snap_uvs_to_pixels(SpaceImage *sima, Scene *scene, Object *obedit)
 	float w, h;
 	short change = 0;
 
-	get_space_image_size(sima, &width, &height);
+	ED_space_image_size(sima, &width, &height);
 	w = (float)width;
 	h = (float)height;
 	
@@ -2515,7 +2513,7 @@ void UV_OT_snap_selection(wmOperatorType *ot)
 	static EnumPropertyItem target_items[] = {
 		{0, "PIXELS", "Pixels", ""},
 		{1, "CURSOR", "Cursor", ""},
-		{2, "ADJACENT_UNSELECTED", "Adjacent Unselected", ""},
+		{2, "ADJACENT_DESELECTED", "Adjacent Deselected", ""},
 		{0, NULL, NULL, NULL}};
 
 	/* identifiers */
@@ -2584,7 +2582,7 @@ void UV_OT_pin(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "clear", 0, "Clear", "Clear pinning for the selection instead of setting it.");
 }
 
-/* ******************** select pinned operator **************** */
+/******************* select pinned operator ***************/
 
 static int select_pinned_exec(bContext *C, wmOperator *op)
 {
@@ -2625,6 +2623,280 @@ void UV_OT_select_pinned(wmOperatorType *ot)
 	ot->poll= ED_operator_uvedit;
 }
 
+/********************** hide operator *********************/
+
+static int hide_exec(bContext *C, wmOperator *op)
+{
+	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
+	Scene *scene= CTX_data_scene(C);
+	Object *obedit= CTX_data_edit_object(C);
+	EditMesh *em= ((Mesh*)obedit->data)->edit_mesh;
+	EditFace *efa;
+	MTFace *tf;
+	int swap= (strcmp(op->idname, "UV_OT_hide_deselected") == 0);
+
+	if(scene->toolsettings->uv_flag & UV_SYNC_SELECTION) {
+		EM_hide_mesh(em, swap);
+		WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+		return OPERATOR_FINISHED;
+	}
+	
+	if(swap) {
+		for(efa= em->faces.first; efa; efa= efa->next) {
+			if(efa->f & SELECT) {
+				tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+				if(sima->flag & SI_SELACTFACE) {
+					/* Pretend face mode */
+					if((	(efa->v4==NULL && 
+							(	tf->flag & (TF_SEL1|TF_SEL2|TF_SEL3)) ==			(TF_SEL1|TF_SEL2|TF_SEL3) )			 ||
+							(	tf->flag & (TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4)) ==	(TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4)	) == 0) {
+						
+						if(em->selectmode == SCE_SELECT_FACE) {
+							efa->f &= ~SELECT;
+							/* must re-select after */
+							efa->e1->f &= ~SELECT;
+							efa->e2->f &= ~SELECT;
+							efa->e3->f &= ~SELECT;
+							if(efa->e4) efa->e4->f &= ~SELECT;
+						}
+						else
+							EM_select_face(efa, 0);
+					}
+					tf->flag &= ~(TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4);
+				}
+				else if(em->selectmode == SCE_SELECT_FACE) {
+					if((tf->flag & (TF_SEL1|TF_SEL2|TF_SEL3))==0) {
+						if(!efa->v4)
+							EM_select_face(efa, 0);
+						else if(!(tf->flag & TF_SEL4))
+							EM_select_face(efa, 0);
+						tf->flag &= ~(TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4);
+					}
+				}
+				else {
+					/* EM_deselect_flush will deselect the face */
+					if((tf->flag & TF_SEL1)==0)				efa->v1->f &= ~SELECT;
+					if((tf->flag & TF_SEL2)==0)				efa->v2->f &= ~SELECT;
+					if((tf->flag & TF_SEL3)==0)				efa->v3->f &= ~SELECT;
+					if((efa->v4) && (tf->flag & TF_SEL4)==0)	efa->v4->f &= ~SELECT;			
+
+					tf->flag &= ~(TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4);
+				}
+			}
+		}
+	}
+	else {
+		for(efa= em->faces.first; efa; efa= efa->next) {
+			if(efa->f & SELECT) {
+				tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+
+				if(sima->flag & SI_SELACTFACE) {
+					if(	(efa->v4==NULL && 
+							(	tf->flag & (TF_SEL1|TF_SEL2|TF_SEL3)) ==			(TF_SEL1|TF_SEL2|TF_SEL3) )			 ||
+							(	tf->flag & (TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4)) ==	(TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4)	) {
+						
+						if(em->selectmode == SCE_SELECT_FACE) {
+							efa->f &= ~SELECT;
+							/* must re-select after */
+							efa->e1->f &= ~SELECT;
+							efa->e2->f &= ~SELECT;
+							efa->e3->f &= ~SELECT;
+							if(efa->e4) efa->e4->f &= ~SELECT;
+						}
+						else
+							EM_select_face(efa, 0);
+					}
+
+					tf->flag &= ~(TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4);
+				}
+				else if(em->selectmode == SCE_SELECT_FACE) {
+					if(tf->flag & (TF_SEL1|TF_SEL2|TF_SEL3))
+						EM_select_face(efa, 0);
+					else if(efa->v4 && tf->flag & TF_SEL4)
+						EM_select_face(efa, 0);
+
+					tf->flag &= ~(TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4);
+				}
+				else {
+					/* EM_deselect_flush will deselect the face */
+					if(tf->flag & TF_SEL1)				efa->v1->f &= ~SELECT;
+					if(tf->flag & TF_SEL2)				efa->v2->f &= ~SELECT;
+					if(tf->flag & TF_SEL3)				efa->v3->f &= ~SELECT;
+					if((efa->v4) && tf->flag & TF_SEL4)	efa->v4->f &= ~SELECT;
+
+					tf->flag &= ~(TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4);
+				}
+			}
+		}
+	}
+	
+	/*deselects too many but ok for now*/
+	if(em->selectmode & (SCE_SELECT_EDGE|SCE_SELECT_VERTEX))
+		EM_deselect_flush(em);
+	
+	if(em->selectmode==SCE_SELECT_FACE) {
+		/* de-selected all edges from faces that were de-selected.
+		 * now make sure all faces that are selected also have selected edges */
+		for(efa= em->faces.first; efa; efa= efa->next)
+			if(efa->f & SELECT)
+				EM_select_face(efa, 1);
+	}
+	
+	EM_validate_selections(em);
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+
+	return OPERATOR_FINISHED;
+}
+
+void UV_OT_hide_selected(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Hide Selected";
+	ot->idname= "UV_OT_hide_selected";
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* api callbacks */
+	ot->exec= hide_exec;
+	ot->poll= ED_operator_uvedit;
+}
+
+void UV_OT_hide_deselected(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Hide Deselected";
+	ot->idname= "UV_OT_hide_deselected";
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* api callbacks */
+	ot->exec= hide_exec;
+	ot->poll= ED_operator_uvedit;
+}
+
+/****************** show hidden operator ******************/
+
+static int show_hidden_exec(bContext *C, wmOperator *op)
+{
+	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
+	Scene *scene= CTX_data_scene(C);
+	Object *obedit= CTX_data_edit_object(C);
+	EditMesh *em= ((Mesh*)obedit->data)->edit_mesh;
+	EditFace *efa;
+	MTFace *tf;
+	
+	/* call the mesh function if we are in mesh sync sel */
+	if(scene->toolsettings->uv_flag & UV_SYNC_SELECTION) {
+		EM_reveal_mesh(em);
+		WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+		return OPERATOR_FINISHED;
+	}
+	
+	if(sima->flag & SI_SELACTFACE) {
+		if(em->selectmode == SCE_SELECT_FACE) {
+			for(efa= em->faces.first; efa; efa= efa->next) {
+				if(!(efa->h) && !(efa->f & SELECT)) {
+					tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+					EM_select_face(efa, 1);
+					tf->flag |= TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4;
+				}
+			}
+		}
+		else {
+			/* enable adjacent faces to have disconnected UV selections if sticky is disabled */
+			if(sima->sticky == SI_STICKY_DISABLE) {
+				for(efa= em->faces.first; efa; efa= efa->next) {
+					if(!(efa->h) && !(efa->f & SELECT)) {
+						/* All verts must be unselected for the face to be selected in the UV view */
+						if((efa->v1->f&SELECT)==0 && (efa->v2->f&SELECT)==0 && (efa->v3->f&SELECT)==0 && (efa->v4==0 || (efa->v4->f&SELECT)==0)) {
+							tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+
+							tf->flag |= TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4;
+							/* Cant use EM_select_face here because it unselects the verts
+							 * and we cant tell if the face was totally unselected or not */
+							/*EM_select_face(efa, 1);
+							 * 
+							 * See Loop with EM_select_face() below... */
+							efa->f |= SELECT;
+						}
+					}
+				}
+			}
+			else {
+				for(efa= em->faces.first; efa; efa= efa->next) {
+					if(!(efa->h) && !(efa->f & SELECT)) {
+						tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+
+						if((efa->v1->f & SELECT)==0)				{tf->flag |= TF_SEL1;}
+						if((efa->v2->f & SELECT)==0)				{tf->flag |= TF_SEL2;}
+						if((efa->v3->f & SELECT)==0)				{tf->flag |= TF_SEL3;}
+						if((efa->v4 && (efa->v4->f & SELECT)==0))	{tf->flag |= TF_SEL4;}
+
+						efa->f |= SELECT;
+					}
+				}
+			}
+			
+			/* Select all edges and verts now */
+			for(efa= em->faces.first; efa; efa= efa->next)
+				/* we only selected the face flags, and didnt changes edges or verts, fix this now */
+				if(!(efa->h) && (efa->f & SELECT))
+					EM_select_face(efa, 1);
+
+			EM_select_flush(em);
+		}
+	}
+	else if(em->selectmode == SCE_SELECT_FACE) {
+		for(efa= em->faces.first; efa; efa= efa->next) {
+			if(!(efa->h) && !(efa->f & SELECT)) {
+				tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+				efa->f |= SELECT;
+				tf->flag |= TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4;
+			}
+		}
+		
+		/* Select all edges and verts now */
+		for(efa= em->faces.first; efa; efa= efa->next)
+			/* we only selected the face flags, and didnt changes edges or verts, fix this now */
+			if(!(efa->h) && (efa->f & SELECT))
+				EM_select_face(efa, 1);
+	}
+	else {
+		for(efa= em->faces.first; efa; efa= efa->next) {
+			if(!(efa->h) && !(efa->f & SELECT)) {
+				tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+
+				if((efa->v1->f & SELECT)==0)				{tf->flag |= TF_SEL1;}
+				if((efa->v2->f & SELECT)==0)				{tf->flag |= TF_SEL2;}
+				if((efa->v3->f & SELECT)==0)				{tf->flag |= TF_SEL3;}
+				if((efa->v4 && (efa->v4->f & SELECT)==0))	{tf->flag |= TF_SEL4;}
+
+				efa->f |= SELECT;
+			}
+		}
+		
+		/* Select all edges and verts now */
+		for(efa= em->faces.first; efa; efa= efa->next)
+			/* we only selected the face flags, and didnt changes edges or verts, fix this now */
+			if(!(efa->h) && (efa->f & SELECT))
+				EM_select_face(efa, 1);
+	}
+
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+
+	return OPERATOR_FINISHED;
+}
+
+void UV_OT_show_hidden(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Show Hidden";
+	ot->idname= "UV_OT_show_hidden";
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* api callbacks */
+	ot->exec= show_hidden_exec;
+	ot->poll= ED_operator_uvedit;
+}
+
 /* ************************** registration **********************************/
 
 void ED_operatortypes_uvedit(void)
@@ -2648,10 +2920,20 @@ void ED_operatortypes_uvedit(void)
 	WM_operatortype_append(UV_OT_weld);
 	WM_operatortype_append(UV_OT_pin);
 
-	WM_operatortype_append(UV_OT_unwrap);
-	WM_operatortype_append(UV_OT_minimize_stretch);
 	WM_operatortype_append(UV_OT_average_islands_scale);
+	WM_operatortype_append(UV_OT_cube_project);
+	WM_operatortype_append(UV_OT_cylinder_project);
+	WM_operatortype_append(UV_OT_from_view);
+	WM_operatortype_append(UV_OT_mapping_menu);
+	WM_operatortype_append(UV_OT_minimize_stretch);
 	WM_operatortype_append(UV_OT_pack_islands);
+	WM_operatortype_append(UV_OT_reset);
+	WM_operatortype_append(UV_OT_sphere_project);
+	WM_operatortype_append(UV_OT_unwrap);
+
+	WM_operatortype_append(UV_OT_show_hidden);
+	WM_operatortype_append(UV_OT_hide_selected);
+	WM_operatortype_append(UV_OT_hide_deselected);
 }
 
 void ED_keymap_uvedit(wmWindowManager *wm)
@@ -2662,8 +2944,7 @@ void ED_keymap_uvedit(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "UV_OT_select", SELECTMOUSE, KM_PRESS, 0, 0);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "UV_OT_select", SELECTMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "extend", 1);
 	WM_keymap_add_item(keymap, "UV_OT_loop_select", SELECTMOUSE, KM_PRESS, KM_ALT, 0);
-	// XXX not working?
-	RNA_boolean_set(WM_keymap_add_item(keymap, "UV_OT_loop_select", SELECTMOUSE, KM_PRESS, KM_SHIFT, KM_ALT)->ptr, "extend", 1);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "UV_OT_loop_select", SELECTMOUSE, KM_PRESS, KM_SHIFT|KM_ALT, 0)->ptr, "extend", 1);
 
 	/* border/circle selection */
 	WM_keymap_add_item(keymap, "UV_OT_border_select", BKEY, KM_PRESS, 0, 0);
@@ -2687,6 +2968,11 @@ void ED_keymap_uvedit(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "UV_OT_minimize_stretch", VKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "UV_OT_pack_islands", PKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "UV_OT_average_islands_scale", AKEY, KM_PRESS, KM_CTRL, 0);
+
+	/* hide */
+	WM_keymap_add_item(keymap, "UV_OT_hide_selected", HKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "UV_OT_hide_deselected", HKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "UV_OT_show_hidden", HKEY, KM_PRESS, KM_ALT, 0);
 
 	transform_keymap_for_space(wm, keymap, SPACE_IMAGE);
 }

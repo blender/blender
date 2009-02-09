@@ -43,30 +43,6 @@ int edgetag_context_check(Scene *scene, EditEdge *eed);
 void edgetag_context_set(Scene *scene, EditEdge *eed, int val);
 int edgetag_shortest_path(Scene *scene, EditMesh *em, EditEdge *source, EditEdge *target);
 
-/* ******************* meshtools.c */
-
-
-/* XXX move to uv editor? */
-enum {
-	B_UVAUTO_REDRAW = 3301,
-	B_UVAUTO_SPHERE,
-	B_UVAUTO_CYLINDER,
-	B_UVAUTO_CYLRADIUS,
-	B_UVAUTO_WINDOW,
-	B_UVAUTO_CUBE,
-	B_UVAUTO_CUBESIZE,
-	B_UVAUTO_RESET,
-	B_UVAUTO_BOUNDS,
-	B_UVAUTO_TOP,
-	B_UVAUTO_FACE,
-	B_UVAUTO_OBJECT,
-	B_UVAUTO_ALIGNX,
-	B_UVAUTO_ALIGNY,
-	B_UVAUTO_UNWRAP,
-	B_UVAUTO_DRAWFACES
-};
-
-
 /* ******************* editmesh.c */
 
 extern void free_editvert(EditMesh *em, EditVert *eve);

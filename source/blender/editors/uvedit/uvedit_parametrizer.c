@@ -3828,7 +3828,7 @@ static void p_smooth(PChart *chart)
 		if (hedges) MEM_freeN(hedges);
 		if (vedges) MEM_freeN(vedges);
 
-		// XXX error("Not enough memory for area smoothing grid.");
+		// printf("Not enough memory for area smoothing grid.");
 		return;
 	}
 
@@ -3978,7 +3978,7 @@ static void p_smooth(PChart *chart)
 		if (triangles) MEM_freeN(triangles);
 		if (tri) MEM_freeN(tri);
 
-		// XXX error("Not enough memory for area smoothing grid.");
+		// printf("Not enough memory for area smoothing grid.");
 		return;
 	}
 

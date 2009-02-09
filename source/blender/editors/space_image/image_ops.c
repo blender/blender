@@ -61,6 +61,7 @@
 #include "RNA_define.h"
 #include "RNA_types.h"
 
+#include "ED_image.h"
 #include "ED_screen.h"
 #include "ED_uvedit.h"
 
@@ -126,7 +127,7 @@ static void sima_zoom_set(SpaceImage *sima, ARegion *ar, float zoom)
 		return;
 
 	/* check zoom limits */
-	get_space_image_size(sima, &width, &height);
+	ED_space_image_size(sima, &width, &height);
 
 	width *= sima->zoom;
 	height *= sima->zoom;
@@ -413,10 +414,10 @@ static int view_all_exec(bContext *C, wmOperator *op)
 	scene= (Scene*)CTX_data_scene(C);
 	obedit= CTX_data_edit_object(C);
 
-	ima= get_space_image(sima);
-	ibuf= get_space_image_buffer(sima);
-	get_space_image_size(sima, &width, &height);
-	get_space_image_aspect(sima, &aspx, &aspy);
+	ima= ED_space_image(sima);
+	ibuf= ED_space_image_buffer(sima);
+	ED_space_image_size(sima, &width, &height);
+	ED_space_image_aspect(sima, &aspx, &aspy);
 
 	w= width*aspx;
 	h= height*aspy;
@@ -474,9 +475,9 @@ static int view_selected_exec(bContext *C, wmOperator *op)
 	scene= (Scene*)CTX_data_scene(C);
 	obedit= CTX_data_edit_object(C);
 
-	ima= get_space_image(sima);
-	ibuf= get_space_image_buffer(sima);
-	get_space_image_size(sima, &width, &height);
+	ima= ED_space_image(sima);
+	ibuf= ED_space_image_buffer(sima);
+	ED_space_image_size(sima, &width, &height);
 
 	/* get bounds */
 	if(!ED_uvedit_minmax(scene, ima, obedit, min, max))
@@ -621,7 +622,7 @@ static void load_image_filesel(SpaceImage *sima, Scene *scene, Object *obedit, c
 	ima= BKE_add_image_file(str, scene->r.cfra);
 	if(ima) {
 		BKE_image_signal(ima, &sima->iuser, IMA_SIGNAL_RELOAD);
-		set_space_image(sima, scene, obedit, ima);
+		ED_space_image_set(sima, scene, obedit, ima);
 	}
 	// XXX BIF_undo_push("Load image UV");
 	// XXX allqueue(REDRAWIMAGE, 0);
@@ -642,8 +643,8 @@ static void replace_image_filesel(SpaceImage *sima, char *str)		/* called from f
 
 static void save_image_doit(SpaceImage *sima, Scene *scene, char *name)
 {
-	Image *ima= get_space_image(sima);
-	ImBuf *ibuf= get_space_image_buffer(sima);
+	Image *ima= ED_space_image(sima);
+	ImBuf *ibuf= ED_space_image_buffer(sima);
 	int len;
 	char str[FILE_MAXDIR+FILE_MAXFILE];
 
@@ -775,7 +776,7 @@ static char *filesel_imagetype_string(Image *ima)
 void save_as_image_sima(SpaceImage *sima, Scene *scene)
 {
 	Image *ima = sima->image;
-	ImBuf *ibuf= get_space_image_buffer(sima);
+	ImBuf *ibuf= ED_space_image_buffer(sima);
 	char name[FILE_MAXDIR+FILE_MAXFILE];
 
 	if (ima) {
@@ -801,8 +802,8 @@ void save_as_image_sima(SpaceImage *sima, Scene *scene)
 /* if exists, saves over without fileselect */
 void save_image_sima(SpaceImage *sima, Scene *scene)
 {
-	Image *ima = get_space_image(sima);
-	ImBuf *ibuf= get_space_image_buffer(sima);
+	Image *ima = ED_space_image(sima);
+	ImBuf *ibuf= ED_space_image_buffer(sima);
 	char name[FILE_MAXDIR+FILE_MAXFILE];
 
 	if (ima) {
@@ -880,7 +881,7 @@ void reload_image_sima(SpaceImage *sima)
 {
 	if (sima ) {
 		BKE_image_signal(sima->image, &sima->iuser, IMA_SIGNAL_RELOAD);
-		/* set_space_image(sima, scene, obedit, NULL); - do we really need this? */
+		/* ED_space_image_set(sima, scene, obedit, NULL); - do we really need this? */
 	}
 
 	// XXX allqueue(REDRAWIMAGE, 0);
@@ -912,7 +913,7 @@ void new_image_sima(SpaceImage *sima, Scene *scene, Object *obedit)
 #endif
 
 	ima = BKE_add_image_size(width, height, name, floatbuf, uvtestgrid, color);
-	set_space_image(sima, scene, obedit, ima);
+	ED_space_image_set(sima, scene, obedit, ima);
 	BKE_image_signal(sima->image, &sima->iuser, IMA_SIGNAL_USER_NEW_IMAGE);
 	// XXX BIF_undo_push("Add image");
 
@@ -937,7 +938,7 @@ void pack_image_sima(SpaceImage *sima)
 				}
 			}
 			else {
-				ImBuf *ibuf= get_space_image_buffer(sima);
+				ImBuf *ibuf= ED_space_image_buffer(sima);
 				if (ibuf && (ibuf->userflags & IB_BITMAPDIRTY)) {
 					if(1) // XXX okee("Can't pack painted image. Use Repack as PNG?"))
 						BKE_image_memorypack(ima);
@@ -1045,7 +1046,7 @@ void image_final_aspect(Image *image, float *x, float *y)
 
 void sima_sample_color(SpaceImage *sima)
 {
-	ImBuf *ibuf= get_space_image_buffer(sima);
+	ImBuf *ibuf= ED_space_image_buffer(sima);
 	float fx, fy;
 	short mval[2], mvalo[2], firsttime=1;
 	
@@ -1143,7 +1144,7 @@ void mouseco_to_curtile(SpaceImage *sima, struct Object *obedit)
 	short mval[2];
 	int show_uvedit;
 	
-	show_uvedit= get_space_image_show_uvedit(sima, obedit);
+	show_uvedit= ED_space_image_show_uvedit(sima, obedit);
 	if(!show_uvedit) return;
 
 	if(sima->image && sima->image->tpageflag & IMA_TILES) {

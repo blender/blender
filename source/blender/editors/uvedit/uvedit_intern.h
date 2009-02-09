@@ -66,10 +66,16 @@ float uv_area(float uv[][2], int quad);
 void uv_copy_aspect(float uv_orig[][2], float uv[][2], float aspx, float aspy);
 
 /* operators */
-void UV_OT_pack_islands(struct wmOperatorType *ot);
-void UV_OT_unwrap(struct wmOperatorType *ot);
-void UV_OT_minimize_stretch(struct wmOperatorType *ot);
 void UV_OT_average_islands_scale(struct wmOperatorType *ot);
+void UV_OT_cube_project(struct wmOperatorType *ot);
+void UV_OT_cylinder_project(struct wmOperatorType *ot);
+void UV_OT_from_view(struct wmOperatorType *ot);
+void UV_OT_mapping_menu(struct wmOperatorType *ot);
+void UV_OT_minimize_stretch(struct wmOperatorType *ot);
+void UV_OT_pack_islands(struct wmOperatorType *ot);
+void UV_OT_reset(struct wmOperatorType *ot);
+void UV_OT_sphere_project(struct wmOperatorType *ot);
+void UV_OT_unwrap(struct wmOperatorType *ot);
 
 #endif /* ED_UVEDIT_INTERN_H */
 

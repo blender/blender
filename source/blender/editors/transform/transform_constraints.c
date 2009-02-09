@@ -72,6 +72,7 @@
 #include "BKE_global.h"
 #include "BKE_utildefines.h"
 
+#include "ED_image.h"
 #include "ED_view3d.h"
 
 #include "BLI_arithb.h"
@@ -681,7 +682,7 @@ void drawConstraint(TransInfo *t)
 {
 	TransCon *tc = &(t->con);
 
-	if (t->spacetype!=SPACE_VIEW3D)
+	if (!ELEM(t->spacetype, SPACE_VIEW3D, SPACE_IMAGE))
 		return;
 	if (!(tc->mode & CON_APPLY))
 		return;
@@ -743,7 +744,7 @@ void drawPropCircle(TransInfo *t)
 
 		UI_ThemeColor(TH_GRID);
 		
-		if (t->spacetype == SPACE_VIEW3D)
+		if(t->spacetype == SPACE_VIEW3D)
 		{
 			RegionView3D *rv3d = t->ar->regiondata;
 			
@@ -756,21 +757,25 @@ void drawPropCircle(TransInfo *t)
 			Mat4One(imat);
 		}
 
-		
-		if(t->obedit)
+		glPushMatrix();
+
+		if((t->spacetype == SPACE_VIEW3D) && t->obedit)
 		{
-			glPushMatrix();
 			glMultMatrixf(t->obedit->obmat); /* because t->center is in local space */
+		}
+		else if(t->spacetype == SPACE_IMAGE)
+		{
+			float aspx, aspy;
+
+			ED_space_image_uv_aspect(t->sa->spacedata.first, &aspx, &aspy);
+			glScalef(1.0f/aspx, 1.0f/aspy, 1.0);
 		}
 
 		set_inverted_drawing(1);
 		drawcircball(GL_LINE_LOOP, t->center, t->propsize, imat);
 		set_inverted_drawing(0);
 		
-		if(t->obedit)
-		{
-			glPopMatrix();
-		}
+		glPopMatrix();
 	}
 }
 

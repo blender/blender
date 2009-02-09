@@ -240,7 +240,9 @@ ARegion *ui_add_temporary_region(bScreen *sc)
 
 void ui_remove_temporary_region(bContext *C, bScreen *sc, ARegion *ar)
 {
-	wm_draw_region_clear(CTX_wm_window(C), ar);
+	if(CTX_wm_window(C))
+		wm_draw_region_clear(CTX_wm_window(C), ar);
+
 	ED_region_exit(C, ar);
 	BKE_area_region_free(NULL, ar);		/* NULL: no spacetype */
 	BLI_freelinkN(&sc->regionbase, ar);
@@ -1938,7 +1940,7 @@ uiPopupBlockHandle *ui_popup_menu_create(bContext *C, ARegion *butregion, uiBut 
 	uiMenuInfo info;
 	
 	head= MEM_callocN(sizeof(uiMenuItem), "menu dummy");
-	head->opcontext= WM_OP_EXEC_REGION_WIN; 
+	head->opcontext= WM_OP_INVOKE_REGION_WIN; 
 
 	menu_func(C, head, arg);
 	

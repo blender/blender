@@ -51,6 +51,7 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
+#include "ED_image.h"
 #include "ED_mesh.h"
 #include "ED_screen.h"
 #include "ED_types.h"
@@ -61,6 +62,7 @@
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
+#include "BIF_transform.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -132,9 +134,9 @@ static void image_viewmenu(bContext *C, uiMenuItem *head, void *arg_unused)
 	RNA_pointer_create(&sc->id, &RNA_SpaceImageEditor, sima, &spaceptr);
 	RNA_pointer_create(&sc->id, &RNA_SpaceUVEditor, sima, &uvptr);
 
-	show_render= get_space_image_show_render(sima);
-	show_paint= get_space_image_show_paint(sima);
-	show_uvedit= get_space_image_show_uvedit(sima, CTX_data_edit_object(C));
+	show_render= ED_space_image_show_render(sima);
+	show_paint= ED_space_image_show_paint(sima);
+	show_uvedit= ED_space_image_show_uvedit(sima, CTX_data_edit_object(C));
 	
 	/* create menu */
 	uiMenuItemO(head, ICON_MENU_PANEL, "IMAGE_OT_toggle_view_properties_panel"); // View Properties...
@@ -251,10 +253,10 @@ static void image_imagemenu(bContext *C, uiMenuItem *head, void *arg_unused)
 	int show_render;
 	
 	/* retrieve state */
-	ima= get_space_image(sima);
-	ibuf= get_space_image_buffer(sima);
+	ima= ED_space_image(sima);
+	ibuf= ED_space_image_buffer(sima);
 
-	show_render= get_space_image_show_render(sima);
+	show_render= ED_space_image_show_render(sima);
 
 	RNA_pointer_create(&sc->id, &RNA_SpaceImageEditor, sima, &spaceptr);
 
@@ -306,56 +308,18 @@ static void image_imagemenu(bContext *C, uiMenuItem *head, void *arg_unused)
 #endif
 }
 
-#if 0
-static void do_image_uvs_showhidemenu(void *arg, int event)
-{
-	switch(event) {
-	case 4: /* show hidden faces */
-		reveal_tface_uv();
-		break;
-	case 5: /* hide selected faces */
-		hide_tface_uv(0);
-		break;
-	case 6: /* hide deselected faces */
-		hide_tface_uv(1);
-		break;
-	}
-	allqueue(REDRAWVIEW3D, 0);
-}
-#endif
-
 static void image_uvs_showhidemenu(bContext *C, uiMenuItem *head, void *arg_unused)
 {
-	uiMenuItemO(head, 0, "UV_OT_show_hidden_faces"); // Show Hidden Faces|Alt H
-	uiMenuItemO(head, 0, "UV_OT_hide_selected_faces"); // Hide Selected Faces|H
-	uiMenuItemO(head, 0, "UV_OT_hide_deselected_faces"); // Hide Deselected Faces|Shift H
+	uiMenuItemO(head, 0, "UV_OT_show_hidden");
+	uiMenuItemO(head, 0, "UV_OT_hide_selected");
+	uiMenuItemO(head, 0, "UV_OT_hide_deselected");
 }
-
-#if 0
-static void do_image_uvs_transformmenu(void *arg, int event)
-{
-	switch(event) {
-	case 0: /* Grab */
-		initTransform(TFM_TRANSLATION, CTX_NONE);
-		Transform();
-		break;
-	case 1: /* Rotate */
-		initTransform(TFM_ROTATION, CTX_NONE);
-		Transform();
-		break;
-	case 2: /* Scale */
-		initTransform(TFM_RESIZE, CTX_NONE);
-		Transform();
-		break;
-	}
-}
-#endif
 
 static void image_uvs_transformmenu(bContext *C, uiMenuItem *head, void *arg_unused)
 {
-	uiMenuItemO(head, 0, "UV_OT_grab"); // Grab/Move|G
-	uiMenuItemO(head, 0, "UV_OT_rotate"); // Rotate|R
-	uiMenuItemO(head, 0, "UV_OT_scale"); // Scale|S
+	uiMenuItemEnumO(head, 0, "TFM_OT_transform", "mode", TFM_TRANSLATION);
+	uiMenuItemEnumO(head, 0, "TFM_OT_transform", "mode", TFM_ROTATION);
+	uiMenuItemEnumO(head, 0, "TFM_OT_transform", "mode", TFM_RESIZE);
 }
 
 static void image_uvs_mirrormenu(bContext *C, uiMenuItem *head, void *arg_unused)
@@ -435,8 +399,8 @@ static void image_uvsmenu(bContext *C, uiMenuItem *head, void *arg_unused)
 	ImBuf *ibuf;
 	
 	/* retrieve state */
-	ima= get_space_image(sima);
-	ibuf= get_space_image_buffer(sima);
+	ima= ED_space_image(sima);
+	ibuf= ED_space_image_buffer(sima);
 
 	RNA_pointer_create(&sc->id, &RNA_SpaceUVEditor, sima, &uvptr);
 	RNA_id_pointer_create(&scene->id, &sceneptr);
@@ -806,10 +770,13 @@ static void sima_idpoin_handle(bContext *C, ID *id, int event)
 	switch(event) {
 		case UI_ID_BROWSE:
 		case UI_ID_DELETE:
-			set_space_image(sima, scene, obedit, sima->image);
+			ED_space_image_set(sima, scene, obedit, sima->image);
 
 			if(sima->image && sima->image->id.us==0)
 				sima->image->id.us= 1;
+
+			if(obedit)
+				WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, obedit);
 
 			ED_area_tag_redraw(CTX_wm_area(C));
 			ED_undo_push(C, "Assign Image UV");
@@ -844,12 +811,12 @@ void image_header_buttons(const bContext *C, ARegion *ar)
 	int xco, yco= 3, show_uvedit, show_render, show_paint;
 
 	/* retrieve state */
-	ima= get_space_image(sima);
-	ibuf= get_space_image_buffer(sima);
+	ima= ED_space_image(sima);
+	ibuf= ED_space_image_buffer(sima);
 
-	show_render= get_space_image_show_render(sima);
-	show_paint= get_space_image_show_paint(sima);
-	show_uvedit= get_space_image_show_uvedit(sima, CTX_data_edit_object(C));
+	show_render= ED_space_image_show_render(sima);
+	show_paint= ED_space_image_show_paint(sima);
+	show_uvedit= ED_space_image_show_uvedit(sima, CTX_data_edit_object(C));
 
 	RNA_pointer_create(&sc->id, &RNA_SpaceImageEditor, sima, &spaceptr);
 	RNA_pointer_create(&sc->id, &RNA_SpaceUVEditor, sima, &uvptr);
@@ -1076,7 +1043,7 @@ static int toolbox_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	uiMenuItem *head;
 	int show_uvedit;
 
-	show_uvedit= get_space_image_show_uvedit(sima, obedit);
+	show_uvedit= ED_space_image_show_uvedit(sima, obedit);
 
 	head= uiPupMenuBegin("Toolbox", 0);
 
@@ -1100,5 +1067,4 @@ void IMAGE_OT_toolbox(wmOperatorType *ot)
 	ot->invoke= toolbox_invoke;
 	ot->poll= space_image_main_area_poll;
 }
-
 

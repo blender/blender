@@ -2533,9 +2533,8 @@ void MESH_OT_select_linked(wmOperatorType *ot)
 
 /* ************************* */
 
-	
 /* swap is 0 or 1, if 1 it hides not selected */
-static void hide_mesh(EditMesh *em, int swap)
+void EM_hide_mesh(EditMesh *em, int swap)
 {
 	EditVert *eve;
 	EditEdge *eed;
@@ -2642,7 +2641,7 @@ static int hide_mesh_exec(bContext *C, wmOperator *op)
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
 	
-	hide_mesh(em, RNA_boolean_get(op->ptr, "invert"));
+	EM_hide_mesh(em, RNA_boolean_get(op->ptr, "invert"));
 		
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 	return OPERATOR_FINISHED;	
@@ -2665,7 +2664,7 @@ void MESH_OT_hide(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "invert", 0, "Invert", "");
 }
 
-void reveal_mesh(EditMesh *em)
+void EM_reveal_mesh(EditMesh *em)
 {
 	EditVert *eve;
 	EditEdge *eed;
@@ -2706,8 +2705,8 @@ static int reveal_mesh_exec(bContext *C, wmOperator *op)
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
 	
-	reveal_mesh(em);
-		
+	EM_reveal_mesh(em);
+
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 	return OPERATOR_FINISHED;	
 }
@@ -2724,228 +2723,6 @@ void MESH_OT_reveal(wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-}
-
-void hide_tface_uv(EditMesh *em, int swap)
-{
-#if 0
-	/* no space image here */
-	EditFace *efa;
-	MTFace *tface;
-	
-	if( is_uv_tface_editing_allowed()==0 ) return;
-
-	/* call the mesh function if we are in mesh sync sel */
-	if (G.sima->flag & SI_SYNC_UVSEL) {
-		hide_mesh(swap);
-		return;
-	}
-	
-	if(swap) {
-		for (efa= em->faces.first; efa; efa= efa->next) {
-			if(efa->f & SELECT) {
-				tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-				if (G.sima->flag & SI_SELACTFACE) {
-					/* Pretend face mode */
-					if ((	(efa->v4==NULL && 
-							(	tface->flag & (TF_SEL1|TF_SEL2|TF_SEL3)) ==			(TF_SEL1|TF_SEL2|TF_SEL3) )			 ||
-							(	tface->flag & (TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4)) ==	(TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4)	) == 0) {
-						
-						if (em->selectmode == SCE_SELECT_FACE) {
-							efa->f &= ~SELECT;
-							/* must re-select after */
-							efa->e1->f &= ~SELECT;
-							efa->e2->f &= ~SELECT;
-							efa->e3->f &= ~SELECT;
-							if(efa->e4) efa->e4->f &= ~SELECT;
-						} else {
-							EM_select_face(efa, 0);
-						}
-					}
-					tface->flag &= ~(TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4);
-				} else if (em->selectmode == SCE_SELECT_FACE) {
-					if((tface->flag & (TF_SEL1|TF_SEL2|TF_SEL3))==0) {
-						if(!efa->v4)
-							EM_select_face(efa, 0);
-						else if(!(tface->flag & TF_SEL4))
-							EM_select_face(efa, 0);
-						tface->flag &= ~(TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4);
-					}
-				} else {
-					/* EM_deselect_flush will deselect the face */
-					if((tface->flag & TF_SEL1)==0)				efa->v1->f &= ~SELECT;
-					if((tface->flag & TF_SEL2)==0)				efa->v2->f &= ~SELECT;
-					if((tface->flag & TF_SEL3)==0)				efa->v3->f &= ~SELECT;
-					if((efa->v4) && (tface->flag & TF_SEL4)==0)	efa->v4->f &= ~SELECT;			
-					tface->flag &= ~(TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4);
-				}
-			}
-		}
-	} else {
-		for (efa= em->faces.first; efa; efa= efa->next) {
-			if(efa->f & SELECT) {
-				tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-				if (G.sima->flag & SI_SELACTFACE) {
-					if (	(efa->v4==NULL && 
-							(	tface->flag & (TF_SEL1|TF_SEL2|TF_SEL3)) ==			(TF_SEL1|TF_SEL2|TF_SEL3) )			 ||
-							(	tface->flag & (TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4)) ==	(TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4)	) {
-						
-						if (em->selectmode == SCE_SELECT_FACE) {
-							efa->f &= ~SELECT;
-							/* must re-select after */
-							efa->e1->f &= ~SELECT;
-							efa->e2->f &= ~SELECT;
-							efa->e3->f &= ~SELECT;
-							if(efa->e4) efa->e4->f &= ~SELECT;
-						} else {
-							EM_select_face(efa, 0);
-						}
-					}
-					tface->flag &= ~(TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4);
-				} else if (em->selectmode == SCE_SELECT_FACE) {
-					if(tface->flag & (TF_SEL1|TF_SEL2|TF_SEL3))
-						EM_select_face(efa, 0);
-					else if(efa->v4 && tface->flag & TF_SEL4)
-						EM_select_face(efa, 0);
-					tface->flag &= ~(TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4);
-				} else {
-					/* EM_deselect_flush will deselect the face */
-					if(tface->flag & TF_SEL1)				efa->v1->f &= ~SELECT;
-					if(tface->flag & TF_SEL2)				efa->v2->f &= ~SELECT;
-					if(tface->flag & TF_SEL3)				efa->v3->f &= ~SELECT;
-					if((efa->v4) && tface->flag & TF_SEL4)	efa->v4->f &= ~SELECT;
-					tface->flag &= ~(TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4);
-				}
-			}
-		}
-	}
-	
-	
-	/*deselects too many but ok for now*/
-	if(em->selectmode & (SCE_SELECT_EDGE|SCE_SELECT_VERTEX)) {
-		EM_deselect_flush(em);
-	}
-	
-	if (em->selectmode==SCE_SELECT_FACE) {
-		/* de-selected all edges from faces that were de-selected.
-		 * now make sure all faces that are selected also have selected edges */
-		for (efa= em->faces.first; efa; efa= efa->next) {
-			if (efa->f & SELECT) {
-				EM_select_face(efa, 1);
-			}
-		}
-	}
-	
-	EM_validate_selections();
-	
-// XXX	object_tface_flags_changed(OBACT, 0);
-#endif
-}
-
-void reveal_tface_uv(EditMesh *em)
-{
-#if 0
-	/* function should move away? */
-	EditFace *efa;
-	MTFace *tface;
-
-	if( is_uv_tface_editing_allowed()==0 ) return;
-	
-	/* call the mesh function if we are in mesh sync sel */
-	if (G.sima->flag & SI_SYNC_UVSEL) {
-		reveal_mesh();
-		return;
-	}
-	
-	if (G.sima->flag & SI_SELACTFACE) {
-		if (em->selectmode == SCE_SELECT_FACE) {
-			for (efa= em->faces.first; efa; efa= efa->next) {
-				if (!(efa->h) && !(efa->f & SELECT)) {
-					tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-					EM_select_face(efa, 1);
-					tface->flag |= TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4;
-				}
-			}
-		} else {
-			/* enable adjacent faces to have disconnected UV selections if sticky is disabled */
-			if (G.sima->sticky == SI_STICKY_DISABLE) {
-				for (efa= em->faces.first; efa; efa= efa->next) {
-					if (!(efa->h) && !(efa->f & SELECT)) {
-						/* All verts must be unselected for the face to be selected in the UV view */
-						if ((efa->v1->f&SELECT)==0 && (efa->v2->f&SELECT)==0 && (efa->v3->f&SELECT)==0 && (efa->v4==0 || (efa->v4->f&SELECT)==0)) {
-							tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-							tface->flag |= TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4;
-							/* Cant use EM_select_face here because it unselects the verts
-							 * and we cant tell if the face was totally unselected or not */
-							/*EM_select_face(efa, 1);
-							 * 
-							 * See Loop with EM_select_face() below... */
-							efa->f |= SELECT;
-						}
-					}
-				}
-			} else {
-				for (efa= em->faces.first; efa; efa= efa->next) {
-					if (!(efa->h) && !(efa->f & SELECT)) {
-						tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-						if ((efa->v1->f & SELECT)==0)				{tface->flag |= TF_SEL1;}
-						if ((efa->v2->f & SELECT)==0)				{tface->flag |= TF_SEL2;}
-						if ((efa->v3->f & SELECT)==0)				{tface->flag |= TF_SEL3;}
-						if ((efa->v4 && (efa->v4->f & SELECT)==0))	{tface->flag |= TF_SEL4;}
-						efa->f |= SELECT;
-					}
-				}
-			}
-			
-			/* Select all edges and verts now */
-			for (efa= em->faces.first; efa; efa= efa->next) {
-				/* we only selected the face flags, and didnt changes edges or verts, fix this now */
-				if (!(efa->h) && (efa->f & SELECT)) {
-					EM_select_face(efa, 1);
-				}
-			}
-			EM_select_flush(em);
-		}
-	} else if (em->selectmode == SCE_SELECT_FACE) {
-		for (efa= em->faces.first; efa; efa= efa->next) {
-			if (!(efa->h) && !(efa->f & SELECT)) {
-				tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-				efa->f |= SELECT;
-				tface->flag |= TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4;
-			}
-		}
-		
-		/* Select all edges and verts now */
-		for (efa= em->faces.first; efa; efa= efa->next) {
-			/* we only selected the face flags, and didnt changes edges or verts, fix this now */
-			if (!(efa->h) && (efa->f & SELECT)) {
-				EM_select_face(efa, 1);
-			}
-		}
-		
-	} else {
-		for (efa= em->faces.first; efa; efa= efa->next) {
-			if (!(efa->h) && !(efa->f & SELECT)) {
-				tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-				if ((efa->v1->f & SELECT)==0)				{tface->flag |= TF_SEL1;}
-				if ((efa->v2->f & SELECT)==0)				{tface->flag |= TF_SEL2;}
-				if ((efa->v3->f & SELECT)==0)				{tface->flag |= TF_SEL3;}
-				if ((efa->v4 && (efa->v4->f & SELECT)==0))	{tface->flag |= TF_SEL4;}
-				efa->f |= SELECT;
-			}
-		}
-		
-		/* Select all edges and verts now */
-		for (efa= em->faces.first; efa; efa= efa->next) {
-			/* we only selected the face flags, and didnt changes edges or verts, fix this now */
-			if (!(efa->h) && (efa->f & SELECT)) {
-				EM_select_face(efa, 1);
-			}
-		}
-	}
-	
-// XXX	object_tface_flags_changed(OBACT, 0);
-#endif
 }
 
 void select_faces_by_numverts(EditMesh *em, int numverts)

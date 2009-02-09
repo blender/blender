@@ -52,6 +52,7 @@
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
+#include "ED_image.h"
 #include "ED_screen.h"
 
 #include "UI_resources.h"
@@ -663,16 +664,16 @@ void draw_image_main(SpaceImage *sima, ARegion *ar, Scene *scene)
 			}
 		}
 		/* and we check for spare */
-		ibuf= get_space_image_buffer(sima);
+		ibuf= ED_space_image_buffer(sima);
 	}
 #endif
 
 	/* put scene context variable in iuser */
 	sima->iuser.scene= scene;
 	/* retrieve the image and information about it */
-	ima= get_space_image(sima);
-	ibuf= get_space_image_buffer(sima);
-	get_space_image_zoom(sima, ar, &zoomx, &zoomy);
+	ima= ED_space_image(sima);
+	ibuf= ED_space_image_buffer(sima);
+	ED_space_image_zoom(sima, ar, &zoomx, &zoomy);
 
 	show_viewer= (ima && ima->source == IMA_SRC_VIEWER);
 	show_render= (show_viewer && ima->type == IMA_TYPE_R_RESULT);
