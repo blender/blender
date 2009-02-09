@@ -452,6 +452,8 @@ void ui_theme_init_userdef(void)
 	
 	SETCOL(btheme->tipo.ds_channel, 	82, 96, 110, 255);
 	SETCOL(btheme->tipo.ds_subchannel,	124, 137, 150, 255);
+	SETCOL(btheme->tipo.group, 22, 112, 0, 255);
+	SETCOL(btheme->tipo.group_active, 125, 233, 96, 255);
 
 	/* space file */
 	/* to have something initialized */

@@ -875,7 +875,7 @@ void graph_draw_channel_names(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 					indent= 0;
 					special= -1;
 					
-					offset= (ale->id) ? 18 : 0;
+					offset= (ale->id) ? 16 : 0;
 					
 					/* only show expand if there are any channels */
 					if (agrp->channels.first) {

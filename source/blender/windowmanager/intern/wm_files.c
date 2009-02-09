@@ -331,12 +331,15 @@ static void init_userdef_themes(void)
 		/* adjust themes */
 		for (btheme= U.themes.first; btheme; btheme= btheme->next) {
 			/* DopeSheet - (Object) Channel color */
-			SETCOL(btheme->tact.ds_channel, 0x36, 0x13, 0xca, 255);
-			SETCOL(btheme->tact.ds_subchannel, 0x60, 0x43, 0xd2, 255);
+			SETCOL(btheme->tact.ds_channel, 	82, 96, 110, 255);
+			SETCOL(btheme->tact.ds_subchannel,	124, 137, 150, 255);
 			
 			/* Graph Editor - (Object) Channel color */
-			SETCOL(btheme->tipo.ds_channel, 0x36, 0x13, 0xca, 255);
-			SETCOL(btheme->tipo.ds_subchannel, 0x60, 0x43, 0xd2, 255);
+			SETCOL(btheme->tipo.ds_channel, 	82, 96, 110, 255);
+			SETCOL(btheme->tipo.ds_subchannel,	124, 137, 150, 255);
+			/* Graph Editor - Group Channel color */
+			SETCOL(btheme->tipo.group, 22, 112, 0, 255);
+			SETCOL(btheme->tipo.group_active, 125, 233, 96, 255);
 		}
 		
 		/* adjust grease-pencil distances */

@@ -121,7 +121,6 @@ static void deselect_graph_keys (bAnimContext *ac, short test, short sel)
 	test_cb= ANIM_editkeyframes_ok(BEZT_OK_SELECTED);
 	
 	/* See if we should be selecting or deselecting */
-	// xxx check for curves too
 	if (test) {
 		for (ale= anim_data.first; ale; ale= ale->next) {
 			if (ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, NULL, test_cb, NULL)) {
@@ -135,9 +134,21 @@ static void deselect_graph_keys (bAnimContext *ac, short test, short sel)
 	sel_cb= ANIM_editkeyframes_select(sel);
 	
 	/* Now set the flags */
-	// xxx check for curves too
-	for (ale= anim_data.first; ale; ale= ale->next) 
+	for (ale= anim_data.first; ale; ale= ale->next) {
+		FCurve *fcu= (FCurve *)ale->key_data;
+		
+		/* Keyframes First */
 		ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, NULL, sel_cb, NULL);
+		
+		/* Curve Selection too */
+		if (sel == SELECT_ADD)
+			fcu->flag |= FCURVE_SELECTED;
+		else if (sel == SELECT_SUBTRACT)
+			fcu->flag &= ~FCURVE_SELECTED;
+		else
+			fcu->flag ^= FCURVE_SELECTED;
+		fcu->flag &= ~FCURVE_ACTIVE;
+	}
 	
 	/* Cleanup */
 	BLI_freelistN(&anim_data);
@@ -664,12 +675,6 @@ static void mouse_graph_keys (bAnimContext *ac, int mval[], short selectmode)
 		selectmode= SELECT_ADD;
 	}
 	
-	/* select or deselect? */
-	if (selectmode == SELECT_ADD)
-		fcu->flag |= (FCURVE_ACTIVE|FCURVE_SELECTED);
-	else if (selectmode == SELECT_INVERT)
-		fcu->flag ^= (FCURVE_ACTIVE|FCURVE_SELECTED);
-	
 	/* if we're selecting points too */
 	if ( ((fcu->flag & FCURVE_PROTECTED)==0) /*|| (curvesonly == 0) */) {
 		/* only if there's keyframe */
@@ -712,6 +717,18 @@ static void mouse_graph_keys (bAnimContext *ac, int mval[], short selectmode)
 			}
 		}
 	}
+	
+	/* select or deselect curve? */
+	if (selectmode == SELECT_INVERT) {
+		fcu->flag ^= FCURVE_SELECTED;
+		
+		if (fcu->flag & FCURVE_SELECTED)
+			fcu->flag |= FCURVE_ACTIVE;
+		else
+			fcu->flag &= ~FCURVE_ACTIVE;
+	}
+	else if (selectmode == SELECT_ADD)
+		fcu->flag |= (FCURVE_ACTIVE|FCURVE_SELECTED);
 }
 
 /* Option 2) Selects all the keyframes on either side of the current frame (depends on which side the mouse is on) */
