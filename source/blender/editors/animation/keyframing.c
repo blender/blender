@@ -2267,7 +2267,7 @@ short action_frame_has_keyframe (bAction *act, float frame, short filter)
 	 */
 	for (fcu= act->curves.first; fcu; fcu= fcu->next) {
 		/* only check if there are keyframes (currently only of type BezTriple) */
-		if (fcu->bezt) {
+		if (fcu->bezt && fcu->totvert) {
 			/* we either include all regardless of muting, or only non-muted  */
 			if ((filter & ANIMFILTER_KEYS_MUTED) || (fcu->flag & FCURVE_MUTED)==0) {
 				short replace = -1;

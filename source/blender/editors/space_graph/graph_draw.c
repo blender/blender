@@ -632,14 +632,16 @@ void graph_draw_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 			ANIM_nla_mapping_apply_fcurve(nob, ale->key_data, 0, 0); 
 		
 		/* draw curve - we currently calculate colour on the fly, but that should probably be done in advance instead */
-		col= ipo_rainbow(i, items);
-		cpack(col);
-		
-		draw_fcurve_repeat(fcu, &ar->v2d, 0, 0, &fac); // XXX this call still needs a lot more work
-		
-		/* draw handles and vertices as appropriate */
-		draw_fcurve_handles(sipo, ar, fcu);
-		draw_fcurve_vertices(sipo, ar, fcu);
+		if ( ((fcu->bezt) || (fcu->fpt)) && (fcu->totvert) ) { 
+			col= ipo_rainbow(i, items);
+			cpack(col);
+			
+			draw_fcurve_repeat(fcu, &ar->v2d, 0, 0, &fac); // XXX this call still needs a lot more work
+			
+			/* draw handles and vertices as appropriate */
+			draw_fcurve_handles(sipo, ar, fcu);
+			draw_fcurve_vertices(sipo, ar, fcu);
+		}
 		
 		/* undo mapping of keyframes for drawing if scaled F-Curve */
 		if (nob)

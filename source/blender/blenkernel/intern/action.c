@@ -313,10 +313,14 @@ void action_groups_add_channel (bAction *act, bActionGroup *agrp, FCurve *fcurve
 	}
 	
 	/* only if added, set channel as belonging to this group */
-	if (done)
+	if (done) {
+		//printf("FCurve added to group \n");
 		fcurve->grp= agrp;
-	else 
+	}
+	else {
 		printf("Error: FCurve '%s' couldn't be added to Group '%s' \n", fcurve->rna_path, agrp->name);
+		BLI_addtail(&act->curves, fcurve);
+	}
 }	
 
 /* Remove the given channel from all groups */
