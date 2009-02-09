@@ -771,7 +771,7 @@ static char *windowtype_pup(void)
 		   "|%l" // 33
 		   
 		   "|Graph Editor %x2" //54
-		   "|DopeSheet Editor %x12" //73
+		   "|DopeSheet %x12" //73
 		   "|NLA Editor %x13" //94
 		   
 		   "|%l" //97
