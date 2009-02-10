@@ -3510,7 +3510,7 @@ static void outliner_draw_struct_marks(ARegion *ar, SpaceOops *soops, ListBase *
 		if((tselem->flag & TSE_CLOSED)==0) {
 			outliner_draw_struct_marks(ar, soops, &te->subtree, starty);
 			if(tselem->type == TSE_RNA_STRUCT)
-				fdrawline(0, *starty+OL_H-1, (int)ar->v2d.cur.xmax, *starty+OL_H-1);
+				fdrawline(0, (float)*starty+OL_H-1, ar->v2d.cur.xmax, (float)*starty+OL_H-1);
 		}
 	}
 }
@@ -3919,14 +3919,14 @@ static void outliner_draw_rnacols(ARegion *ar, SpaceOops *soops, int sizex)
 	UI_ThemeColorShadeAlpha(TH_BACK, -15, -200);
 
 	/* draw column separator lines */
-	fdrawline(sizex,
+	fdrawline((float)sizex,
 		v2d->cur.ymax,
-		sizex,
+		(float)sizex,
 		v2d->cur.ymin);
 
-	fdrawline(sizex+OL_RNA_COL_SIZEX,
+	fdrawline((float)sizex+OL_RNA_COL_SIZEX,
 		v2d->cur.ymax,
-		sizex+OL_RNA_COL_SIZEX,
+		(float)sizex+OL_RNA_COL_SIZEX,
 		v2d->cur.ymin);
 }
 
@@ -3945,15 +3945,15 @@ static void outliner_draw_rnabuts(uiBlock *block, Scene *scene, ARegion *ar, Spa
 			if(tselem->type == TSE_RNA_PROPERTY) {
 				ptr= &te->rnaptr;
 				prop= te->directdata;
-
+				
 				if(!(RNA_property_type(ptr, prop) == PROP_POINTER && (tselem->flag & TSE_CLOSED)==0))
-					uiDefAutoButR(block, ptr, prop, -1, "", sizex, te->ys, OL_RNA_COL_SIZEX, OL_H-1);
+					uiDefAutoButR(block, ptr, prop, -1, "", sizex, (int)te->ys, OL_RNA_COL_SIZEX, OL_H-1);
 			}
 			else if(tselem->type == TSE_RNA_ARRAY_ELEM) {
 				ptr= &te->rnaptr;
 				prop= te->directdata;
-
-				uiDefAutoButR(block, ptr, prop, te->index, "", sizex, te->ys, OL_RNA_COL_SIZEX, OL_H-1);
+				
+				uiDefAutoButR(block, ptr, prop, te->index, "", sizex, (int)te->ys, OL_RNA_COL_SIZEX, OL_H-1);
 			}
 		}
 		

@@ -162,18 +162,18 @@ void make_boneList(ListBase *edbo, ListBase *bones, EditBone *parent)
 		VECCOPY(eBone->head, curBone->arm_head);
 		VECCOPY(eBone->tail, curBone->arm_tail);		
 		
-		eBone->roll= 0.0;
+		eBone->roll= 0.0f;
 		
 		/* roll fixing */
 		VecSubf(delta, eBone->tail, eBone->head);
-		vec_roll_to_mat3(delta, 0.0, postmat);
+		vec_roll_to_mat3(delta, 0.0f, postmat);
 		
 		Mat3CpyMat4(premat, curBone->arm_mat);
 		
 		Mat3Inv(imat, postmat);
 		Mat3MulMat3(difmat, imat, premat);
 		
-		eBone->roll = atan2(difmat[2][0], difmat[2][2]);
+		eBone->roll = (float)atan2(difmat[2][0], difmat[2][2]);
 		
 		/* rest of stuff copy */
 		eBone->length= curBone->length;
@@ -234,7 +234,7 @@ static void fix_bonelist_roll (ListBase *bonelist, ListBase *editbonelist)
 			printmatrix4("difmat", difmat);
 			printf ("Roll = %f\n",  (-atan2(difmat[2][0], difmat[2][2]) * (180.0/M_PI)));
 #endif
-			curBone->roll = -atan2(difmat[2][0], difmat[2][2]);
+			curBone->roll = (float)-atan2(difmat[2][0], difmat[2][2]);
 			
 			/* and set restposition again */
 			where_is_armature_bone(curBone, curBone->parent);
@@ -403,13 +403,13 @@ void docenter_armature (Scene *scene, View3D *v3d, Object *ob, int centermode)
 			DO_MINMAX(ebone->tail, min, max);
 		}
 		
-		cent[0]= (min[0]+max[0])/2.0f;
-		cent[1]= (min[1]+max[1])/2.0f;
-		cent[2]= (min[2]+max[2])/2.0f;
+		cent[0]= (min[0] + max[0]) / 2.0f;
+		cent[1]= (min[1] + max[1]) / 2.0f;
+		cent[2]= (min[2] + max[2]) / 2.0f;
 	}
 	
 	/* Do the adjustments */
-	for (ebone= arm->edbo->first; ebone; ebone=ebone->next){
+	for (ebone= arm->edbo->first; ebone; ebone=ebone->next) {
 		VecSubf(ebone->head, ebone->head, cent);
 		VecSubf(ebone->tail, ebone->tail, cent);
 	}
@@ -422,9 +422,9 @@ void docenter_armature (Scene *scene, View3D *v3d, Object *ob, int centermode)
 		Mat3CpyMat4(omat, ob->obmat);
 		
 		Mat3MulVecfl(omat, cent);
-		ob->loc[0]+= cent[0];
-		ob->loc[1]+= cent[1];
-		ob->loc[2]+= cent[2];
+		ob->loc[0] += cent[0];
+		ob->loc[1] += cent[1];
+		ob->loc[2] += cent[2];
 	}
 	else 
 		ED_armature_edit_free(ob);
@@ -477,7 +477,7 @@ void unique_editbone_name (ListBase *edbo, char *name)
 				*dot=0;
 		}
 		
-		for (number = 1; number <=999; number++) {
+		for (number = 1; number <= 999; number++) {
 			sprintf(tempname, "%s.%03d", name, number);
 			if (!editbone_name_exists(edbo, tempname)) {
 				BLI_strncpy(name, tempname, 32);
@@ -745,7 +745,7 @@ int join_armature(Scene *scene, View3D *v3d)
 						Mat4Invert(imat, premat);
 						Mat4MulMat4(difmat, postmat, imat);
 						
-						curbone->roll -= atan2(difmat[2][0], difmat[2][2]);
+						curbone->roll -= (float)atan2(difmat[2][0], difmat[2][2]);
 					}
 					
 					/* Fix Constraints and Other Links to this Bone and Armature */
@@ -1905,7 +1905,7 @@ void auto_align_ebone_tocursor(Scene *scene, View3D *v3d, EditBone *ebone)
 	/* check that cursor is in usable position */
 	if ((IS_EQ(vec[0], 0)==0) && (IS_EQ(vec[2], 0)==0)) {
 		/* Compute a rotation matrix around y */
-		rot[1] = atan2(vec[0], vec[2]);
+		rot[1] = (float)atan2(vec[0], vec[2]);
 		rot[0] = rot[2] = 0.0f;
 		EulToMat4(rot, rmat);
 		
@@ -2359,7 +2359,7 @@ void adduplicate_armature(Scene *scene)
 				/* Lets duplicate the list of constraints that the
 				 * current bone has.
 				 */
-				if (OBACT->pose) {
+				if (obedit->pose) {
 					bPoseChannel *chanold, *channew;
 					ListBase     *listold, *listnew;
 					

@@ -93,8 +93,8 @@ static void time_draw_sfra_efra(const bContext *C, SpaceTime *stime, ARegion *ar
 	UI_ThemeColorShade(TH_BACK, -25);
 
 	if (PSFRA < PEFRA) {
-		glRectf(v2d->cur.xmin, v2d->cur.ymin, PSFRA, v2d->cur.ymax);
-		glRectf(PEFRA, v2d->cur.ymin, v2d->cur.xmax, v2d->cur.ymax);
+		glRectf(v2d->cur.xmin, v2d->cur.ymin, (float)PSFRA, v2d->cur.ymax);
+		glRectf((float)PEFRA, v2d->cur.ymin, v2d->cur.xmax, v2d->cur.ymax);
 	}
 	else {
 		glRectf(v2d->cur.xmin, v2d->cur.ymin, v2d->cur.xmax, v2d->cur.ymax);
@@ -102,8 +102,8 @@ static void time_draw_sfra_efra(const bContext *C, SpaceTime *stime, ARegion *ar
 
 	UI_ThemeColorShade(TH_BACK, -60);
 	/* thin lines where the actual frames are */
-	fdrawline(PSFRA, v2d->cur.ymin, PSFRA, v2d->cur.ymax);
-	fdrawline(PEFRA, v2d->cur.ymin, PEFRA, v2d->cur.ymax);
+	fdrawline((float)PSFRA, v2d->cur.ymin, (float)PSFRA, v2d->cur.ymax);
+	fdrawline((float)PEFRA, v2d->cur.ymin, (float)PEFRA, v2d->cur.ymax);
 }
 
 /* add handlers, stuff you only do once or on area/region changes */

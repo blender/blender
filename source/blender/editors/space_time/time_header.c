@@ -469,28 +469,28 @@ void time_header_buttons(const bContext *C, ARegion *ar)
 	
 	if (scene->r.psfra) {
 		uiDefButI(block, NUM, B_REDRAWALL,"Start:",	
-				  xco,yco, 4.5*XIC, YIC,
+				  xco,yco, (int)4.5*XIC, YIC,
 				  &scene->r.psfra,MINFRAMEF, MAXFRAMEF, 0, 0,
 				  "The start frame of the animation preview (inclusive)");
 		
-		xco += (short)(4.5*XIC);
+		xco += (int)(4.5*XIC);
 		
 		uiDefButI(block, NUM, B_REDRAWALL,"End:",	
-				  xco,yco,4.5*XIC,YIC,
-				  &scene->r.pefra,PSFRA,MAXFRAMEF, 0, 0,
+				  xco,yco, (int)4.5*XIC,YIC,
+				  &scene->r.pefra,(float)PSFRA, MAXFRAMEF, 0, 0,
 				  "The end frame of the animation preview (inclusive)");
 	}
 	else {
 		uiDefButI(block, NUM, B_REDRAWALL,"Start:",	
-				  xco,yco, 4.5*XIC, YIC,
+				  xco,yco, (int)4.5*XIC, YIC,
 				  &scene->r.sfra,MINFRAMEF, MAXFRAMEF, 0, 0,
 				  "The start frame of the animation (inclusive)");
 		
 		xco += (short)(4.5*XIC);
 		
 		uiDefButI(block, NUM, B_REDRAWALL,"End:",	
-				  xco,yco,4.5*XIC,YIC,
-				  &scene->r.efra,(float)SFRA,MAXFRAMEF, 0, 0,
+				  xco,yco, (int)4.5*XIC,YIC,
+				  &scene->r.efra,(float)SFRA, MAXFRAMEF, 0, 0,
 				  "The end frame of the animation (inclusive)");
 	}
 	uiBlockEndAlign(block);
@@ -498,7 +498,7 @@ void time_header_buttons(const bContext *C, ARegion *ar)
 	xco += (short)(4.5 * XIC + 16);
 	
 	uiDefButI(block, NUM, B_NEWFRAME, "",
-			  xco,yco,3.5*XIC,YIC,
+			  xco,yco, (int)3.5*XIC,YIC,
 			  &(scene->r.cfra), MINFRAMEF, MAXFRAMEF, 0, 0,
 			  "Displays Current Frame of animation");
 	
@@ -532,7 +532,7 @@ void time_header_buttons(const bContext *C, ARegion *ar)
 	if (scene->autokey_mode & AUTOKEY_ON) {
 		uiDefButS(block, MENU, REDRAWINFO, 
 				  "Auto-Keying Mode %t|Add/Replace Keys%x3|Replace Keys %x5", 
-				  xco, yco, 3.5*XIC, YIC, &(scene->autokey_mode), 0, 1, 0, 0, 
+				  xco, yco, (int)3.5*XIC, YIC, &(scene->autokey_mode), 0, 1, 0, 0, 
 				  "Mode of automatic keyframe insertion for Objects and Bones");
 		xco+= (4*XIC);
 	}
@@ -553,7 +553,7 @@ void time_header_buttons(const bContext *C, ARegion *ar)
 	
 	
 	/* always as last  */
-	UI_view2d_totRect_set(&ar->v2d, xco+XIC+80, ar->v2d.tot.ymax-ar->v2d.tot.ymin);
+	UI_view2d_totRect_set(&ar->v2d, xco+XIC+80, (int)(ar->v2d.tot.ymax-ar->v2d.tot.ymin));
 	
 	uiEndBlock(C, block);
 	uiDrawBlock(C, block);

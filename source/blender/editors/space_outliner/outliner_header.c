@@ -199,16 +199,16 @@ void outliner_header_buttons(const bContext *C, ARegion *ar)
 		uiBlockSetEmboss(block, UI_EMBOSS);
 	}
 	
-	if(1) { // XXX soutliner->type==SO_OUTLINER) {
+	//if (outliner->type==SO_OUTLINER) {
 		if(G.main->library.first) 
 			uiDefButS(block, MENU, B_REDR, "Outliner Display%t|Libraries %x7|All Scenes %x0|Current Scene %x1|Visible Layers %x2|Groups %x6|Same Types %x5|Selected %x3|Active %x4|Sequence %x10|Datablocks %x11|User Preferences %x12",	 xco, yco, 120, 20,  &soutliner->outlinevis, 0, 0, 0, 0, "");
 		else
 			uiDefButS(block, MENU, B_REDR, "Outliner Display%t|All Scenes %x0|Current Scene %x1|Visible Layers %x2|Groups %x6|Same Types %x5|Selected %x3|Active %x4|Sequence %x10|Datablocks %x11|User Preferences %x12",	 xco, yco, 120, 20,  &soutliner->outlinevis, 0, 0, 0, 0, "");
-	}
+	//}
 	
 	
 	/* always as last  */
-	UI_view2d_totRect_set(&ar->v2d, xco+XIC+100, ar->v2d.tot.ymax-ar->v2d.tot.ymin);
+	UI_view2d_totRect_set(&ar->v2d, xco+XIC+100, (int)(ar->v2d.tot.ymax-ar->v2d.tot.ymin));
 	
 	uiEndBlock(C, block);
 	uiDrawBlock(C, block);

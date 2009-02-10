@@ -699,7 +699,7 @@ float dof_camera(Object *ob)
 {
 	Camera *cam = (Camera *)ob->data; 
 	if (ob->type != OB_CAMERA)
-		return 0.0;
+		return 0.0f;
 	if (cam->dof_ob) {	
 		/* too simple, better to return the distance on the view axis only
 		 * return VecLenf(ob->obmat[3], cam->dof_ob->obmat[3]); */
@@ -709,7 +709,7 @@ float dof_camera(Object *ob)
 		Mat4Ortho(obmat);
 		Mat4Invert(ob->imat, obmat);
 		Mat4MulMat4(mat, cam->dof_ob->obmat, ob->imat);
-		return fabs(mat[3][2]);
+		return (float)fabs(mat[3][2]);
 	}
 	return cam->YF_dofdist;
 }
@@ -720,26 +720,26 @@ void *add_lamp(char *name)
 	
 	la=  alloc_libblock(&G.main->lamp, ID_LA, name);
 	
-	la->r= la->g= la->b= la->k= 1.0;
-	la->haint= la->energy= 1.0;
-	la->dist= 20.0;
-	la->spotsize= 45.0;
-	la->spotblend= 0.15;
-	la->att2= 1.0;
+	la->r= la->g= la->b= la->k= 1.0f;
+	la->haint= la->energy= 1.0f;
+	la->dist= 20.0f;
+	la->spotsize= 45.0f;
+	la->spotblend= 0.15f;
+	la->att2= 1.0f;
 	la->mode= LA_SHAD_BUF;
 	la->bufsize= 512;
-	la->clipsta= 0.5;
-	la->clipend= 40.0;
-	la->shadspotsize= 45.0;
+	la->clipsta= 0.5f;
+	la->clipend= 40.0f;
+	la->shadspotsize= 45.0f;
 	la->samp= 3;
-	la->bias= 1.0;
-	la->soft= 3.0;
+	la->bias= 1.0f;
+	la->soft= 3.0f;
 	la->ray_samp= la->ray_sampy= la->ray_sampz= 1; 
-	la->area_size=la->area_sizey=la->area_sizez= 1.0; 
+	la->area_size=la->area_sizey=la->area_sizez= 1.0f; 
 	la->buffers= 1;
 	la->buftype= LA_SHADBUF_HALFWAY;
 	la->ray_samp_method = LA_SAMP_HALTON;
-	la->adapt_thresh = 0.001;
+	la->adapt_thresh = 0.001f;
 	la->preview=NULL;
 	la->falloff_type = LA_FALLOFF_INVLINEAR;
 	la->curfalloff = curvemapping_add(1, 0.0f, 1.0f, 1.0f, 0.0f);
@@ -748,12 +748,12 @@ void *add_lamp(char *name)
 	la->spread = 1.0;
 	la->sun_brightness = 1.0;
 	la->sun_size = 1.0;
-	la->backscattered_light = 1.0;
-	la->atm_turbidity = 2.0;
-	la->atm_inscattering_factor = 1.0;
-	la->atm_extinction_factor = 1.0;
-	la->atm_distance_factor = 1.0;
-	la->sun_intensity = 1.0;
+	la->backscattered_light = 1.0f;
+	la->atm_turbidity = 2.0f;
+	la->atm_inscattering_factor = 1.0f;
+	la->atm_extinction_factor = 1.0f;
+	la->atm_distance_factor = 1.0f;
+	la->sun_intensity = 1.0f;
 	la->skyblendtype= MA_RAMP_ADD;
 	la->skyblendfac= 1.0f;
 	la->sky_colorspace= BLI_CS_CIE;
@@ -1864,7 +1864,6 @@ void where_is_object_time(Scene *scene, Object *ob, float ctime)
 		/* and even worse, it gives bad effects for NLA stride too (try ctime != par->ctime, with MBlur) */
 		pop= 0;
 		if(no_parent_ipo==0 && stime != par->ctime) {
-		
 			// only for ipo systems? 
 			pushdata(par, sizeof(Object));
 			pop= 1;
@@ -1874,16 +1873,15 @@ void where_is_object_time(Scene *scene, Object *ob, float ctime)
 		}
 		
 		solve_parenting(scene, ob, par, ob->obmat, slowmat, 0);
-
+		
 		if(pop) {
 			poplast(par);
 		}
 		
 		if(ob->partype & PARSLOW) {
 			// include framerate
-
-			fac1= (1.0f/(1.0f+ fabs(give_timeoffset(ob))));
-			if(fac1>=1.0) return;
+			fac1= ( 1.0f / (1.0f + (float)fabs(give_timeoffset(ob))) );
+			if(fac1 >= 1.0f) return;
 			fac2= 1.0f-fac1;
 			
 			fp1= ob->obmat[0];
@@ -1892,7 +1890,6 @@ void where_is_object_time(Scene *scene, Object *ob, float ctime)
 				fp1[0]= fac1*fp1[0] + fac2*fp2[0];
 			}
 		}
-	
 	}
 	else {
 		object_to_mat4(ob, ob->obmat);
@@ -1902,7 +1899,6 @@ void where_is_object_time(Scene *scene, Object *ob, float ctime)
 	if(ob->track) {
 		if( ctime != ob->track->ctime) where_is_object_time(scene, ob->track, ctime);
 		solve_tracking (ob, ob->track->obmat);
-		
 	}
 
 	/* solve constraints */
@@ -2088,7 +2084,7 @@ for a lamp that is the child of another object */
 		bConstraintOb *cob;
 		
 		cob= constraints_make_evalob(scene, ob, NULL, CONSTRAINT_OBTYPE_OBJECT);
-		solve_constraints (&ob->constraints, cob, scene->r.cfra);
+		solve_constraints(&ob->constraints, cob, (float)scene->r.cfra);
 		constraints_clear_evalob(cob);
 	}
 	
@@ -2127,7 +2123,7 @@ void what_does_parent(Scene *scene, Object *ob, Object *workob)
 BoundBox *unit_boundbox()
 {
 	BoundBox *bb;
-	float min[3] = {-1,-1,-1}, max[3] = {-1,-1,-1};
+	float min[3] = {-1.0f,-1.0f,-1.0f}, max[3] = {-1.0f,-1.0f,-1.0f};
 
 	bb= MEM_callocN(sizeof(BoundBox), "bb");
 	boundbox_set_from_min_max(bb, min, max);
