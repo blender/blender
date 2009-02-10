@@ -89,6 +89,9 @@ struct FCurve *list_find_fcurve(ListBase *list, const char rna_path[], const int
 /* get the time extents for F-Curve */
 void calc_fcurve_range(struct FCurve *fcu, float *min, float *max);
 
+/* get the bounding-box extents for F-Curve */
+void calc_fcurve_bounds(struct FCurve *fcu, float *xmin, float *xmax, float *ymin, float *ymax);
+
 /* -------- Curve Sanity --------  */
 
 void calchandles_fcurve(struct FCurve *fcu);

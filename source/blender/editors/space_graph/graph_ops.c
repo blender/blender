@@ -97,8 +97,8 @@ void graphedit_operatortypes(void)
 {
 	/* view */
 	WM_operatortype_append(GRAPHEDIT_OT_view_togglehandles);
-	//WM_operatortype_append(GRAPHEDIT_OT_set_previewrange);
-	//WM_operatortype_append(GRAPHEDIT_OT_view_all);
+	WM_operatortype_append(GRAPHEDIT_OT_set_previewrange);
+	WM_operatortype_append(GRAPHEDIT_OT_view_all);
 	
 	/* keyframes */
 		/* selection */
@@ -183,8 +183,8 @@ static void graphedit_keymap_keyframes (wmWindowManager *wm, ListBase *keymap)
 #endif // XXX code to be sanitied for new system	
 	
 		/* auto-set range */
-	//WM_keymap_add_item(keymap, "GRAPHEDIT_OT_set_previewrange", PKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
-	//WM_keymap_add_item(keymap, "GRAPHEDIT_OT_view_all", HOMEKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "GRAPHEDIT_OT_set_previewrange", PKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
+	WM_keymap_add_item(keymap, "GRAPHEDIT_OT_view_all", HOMEKEY, KM_PRESS, 0, 0);
 	
 	/* transform system */
 	transform_keymap_for_space(wm, keymap, SPACE_IPO);
