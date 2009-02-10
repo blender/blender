@@ -59,6 +59,7 @@ int  BLI_isect_rcti(struct rcti *src1, struct rcti *src2, struct rcti *dest);
 void BLI_union_rctf(struct rctf *rcta, struct rctf *rctb);
 void BLI_union_rcti(struct rcti *rct1, struct rcti *rct2);
 
+
 #ifdef __cplusplus
 }
 #endif
