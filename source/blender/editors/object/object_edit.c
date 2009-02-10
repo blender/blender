@@ -477,6 +477,49 @@ void OBJECT_OT_curve_add(wmOperatorType *ot)
 }
 
 
+static int object_add_armature_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	bArmature *arm;
+	EditBone *ebone;
+	int newob= 0;
+	
+	if ((obedit==NULL) || (obedit->type != OB_ARMATURE)) {
+		object_add_type(C, OB_ARMATURE);
+		ED_object_enter_editmode(C, 0);
+		newob = 1;
+	}
+	else DAG_object_flush_update(CTX_data_scene(C), obedit, OB_RECALC_DATA);
+	
+	//nu= addNurbprim(C, RNA_enum_get(op->ptr, "type"), newob);
+	//editnurb= curve_get_editcurve(CTX_data_edit_object(C));
+	//BLI_addtail(editnurb, nu);
+	
+	/* userdef */
+	if (newob && (U.flag & USER_ADD_EDITMODE)==0) {
+		ED_object_exit_editmode(C, EM_FREEDATA);
+	}
+	
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_armature_add(wmOperatorType *ot)
+{	
+	/* identifiers */
+	ot->name= "Add Armature";
+	ot->idname= "OBJECT_OT_armature_add";
+	
+	/* api callbacks */
+	ot->exec= object_add_armature_exec;
+	ot->poll= ED_operator_scene_editable;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+
 static int object_add_primitive_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	uiMenuItem *head= uiPupMenuBegin("Add Object", 0);
@@ -488,7 +531,7 @@ static int object_add_primitive_invoke(bContext *C, wmOperator *op, wmEvent *eve
 	uiMenuItemEnumO(head, 0, "OBJECT_OT_object_add", "type", OB_CAMERA);
 	uiMenuItemEnumO(head, 0, "OBJECT_OT_object_add", "type", OB_LAMP);
 	uiMenuItemEnumO(head, 0, "OBJECT_OT_object_add", "type", OB_EMPTY);
-	uiMenuItemEnumO(head, 0, "OBJECT_OT_object_add", "type", OB_ARMATURE);
+	uiMenuItemEnumO(head, 0, "OBJECT_OT_armature_add", "type", OB_ARMATURE);
 	uiMenuItemEnumO(head, 0, "OBJECT_OT_object_add", "type", OB_LATTICE);
 	
 	uiPupMenuEnd(C, head);
