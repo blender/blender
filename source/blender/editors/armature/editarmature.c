@@ -3357,65 +3357,61 @@ static int armature_parent_set_exec(bContext *C, wmOperator *op)
 {
 	Object *ob= CTX_data_edit_object(C);
 	bArmature *arm= (bArmature *)ob->data;
-	EditBone *flipbone, *flippar;
 	EditBone *actbone = CTX_data_active_bone(C);
-	short allchildbones= 0, foundselbone= 0;
+	EditBone *actmirb = NULL;
 	short val = RNA_enum_get(op->ptr, "type");
 	
-	/* find selected bones */
-	CTX_DATA_BEGIN(C, EditBone *, ebone, selected_editable_bones) {
-		if (ebone != actbone) {
-			foundselbone++;
-			if (ebone->parent != actbone) allchildbones= 1; 
-		}	
+	/* there must be an active bone */
+	if (actbone == NULL) {
+		BKE_report(op->reports, RPT_ERROR, "Operation requires an Active Bone");
+		return OPERATOR_CANCELLED;
 	}
-	CTX_DATA_END;
-
-	if (foundselbone==0 && actbone->parent) {
+	else if (arm->flag & ARM_MIRROR_EDIT) {
+		/* For X-Axis Mirror Editing option, we may need a mirror copy of actbone
+		 * - if there's a mirrored copy of selbone, try to find a mirrored copy of actbone 
+		 *	(i.e.  selbone="child.L" and actbone="parent.L", find "child.R" and "parent.R").
+		 *	This is useful for arm-chains, for example parenting lower arm to upper arm
+		 * - if there's no mirrored copy of actbone (i.e. actbone = "parent.C" or "parent")
+		 *	then just use actbone. Useful when doing upper arm to spine.
+		 */
+		actmirb= ED_armature_bone_get_mirrored(arm->edbo, actbone);
+		if (actmirb == NULL) 
+			actmirb= actbone;
+	}
+	
+	/* if there is only 1 selected bone, we assume that that is the active bone, 
+	 * since a user will need to have clicked on a bone (thus selecting it) to make it active
+	 */
+	if (CTX_DATA_COUNT(C, selected_editable_bones) <= 1) {
 		/* When only the active bone is selected, and it has a parent,
 		 * connect it to the parent, as that is the only possible outcome. 
 		 */
-		bone_connect_to_existing_parent(actbone);
-		
-		if (arm->flag & ARM_MIRROR_EDIT) {
-			flipbone = ED_armature_bone_get_mirrored(arm->edbo, actbone);
-			if (flipbone)
-				bone_connect_to_existing_parent(flipbone);
+		if (actbone->parent) {
+			bone_connect_to_existing_parent(actbone);
+			
+			if ((arm->flag & ARM_MIRROR_EDIT) && (actmirb->parent))
+				bone_connect_to_existing_parent(actmirb);
 		}
 	}
 	else {
-		/* loop through all editbones, parenting all selected bones to the active bone */
-		CTX_DATA_BEGIN(C, EditBone *, selbone, selected_editable_bones) {
-			if (selbone!=actbone) {
-				/* parent selbone to actbone */
-				bone_connect_to_new_parent(arm->edbo, selbone, actbone, val);
-				
-				if (arm->flag & ARM_MIRROR_EDIT) {
-					/* - if there's a mirrored copy of selbone, try to find a mirrored copy of actbone 
-					 *	(i.e.  selbone="child.L" and actbone="parent.L", find "child.R" and "parent.R").
-					 *	This is useful for arm-chains, for example parenting lower arm to upper arm
-					 * - if there's no mirrored copy of actbone (i.e. actbone = "parent.C" or "parent")
-					 *	then just use actbone. Useful when doing upper arm to spine.
-					 */
-					flipbone = ED_armature_bone_get_mirrored(arm->edbo, selbone);
-					flippar = ED_armature_bone_get_mirrored(arm->edbo, actbone);
-					
-					if (flipbone) {
-						if (flippar)
-							bone_connect_to_new_parent(arm->edbo, flipbone, flippar, val);
-						else
-							bone_connect_to_new_parent(arm->edbo, flipbone, actbone, val);
-					}
-				}
-			}
+		/* Parent 'selected' bones to the active one
+		 * - the context iterator contains both selected bones and their mirrored copies,
+		 *   so we assume that unselected bones are mirrored copies of some selected bone
+		 */
+		
+		/* align selected bones to the active one */
+		CTX_DATA_BEGIN(C, EditBone *, ebone, selected_editable_bones) {
+			if (ebone->flag & BONE_SELECTED) 
+				bone_connect_to_new_parent(arm->edbo, ebone, actbone, val);
+			else
+				bone_connect_to_new_parent(arm->edbo, ebone, actmirb, val);
 		}
 		CTX_DATA_END;
 	}
-
-	armature_sync_selection(arm->edbo);
+	
 
 	/* note, notifier might evolve */
-	WM_event_add_notifier(C, NC_OBJECT, ob);
+	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, ob);
 	
 	return OPERATOR_FINISHED;
 }
@@ -3436,7 +3432,7 @@ static int armature_parent_set_invoke(bContext *C, wmOperator *op, wmEvent *even
 	uiMenuItemEnumO(head, 0, "ARMATURE_OT_set_parent", "type", ARM_PAR_CONNECT);
 	
 	/* ob becomes parent, make the associated menus */
-	if(allchildbones)
+	if (allchildbones)
 		uiMenuItemEnumO(head, 0, "ARMATURE_OT_set_parent", "type", ARM_PAR_OFFSET);	
 		
 	uiPupMenuEnd(C, head);
@@ -3458,7 +3454,7 @@ void ARMATURE_OT_parent_set(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	RNA_def_enum(ot->srna, "type", prop_editarm_make_parent_types, 0, "ParentType", "Type Of parenting");
+	RNA_def_enum(ot->srna, "type", prop_editarm_make_parent_types, 0, "ParentType", "Type of parenting");
 }
 
 static EnumPropertyItem prop_editarm_clear_parent_types[] = {
@@ -3482,16 +3478,9 @@ static int armature_parent_clear_exec(bContext *C, wmOperator *op)
 {
 	Object *ob= CTX_data_edit_object(C);
 	bArmature *arm= (bArmature *)ob->data;
-	EditBone *flipbone = NULL;
 	int val = RNA_enum_get(op->ptr, "type");
 		
 	CTX_DATA_BEGIN(C, EditBone *, ebone, selected_editable_bones) {
-		if (arm->flag & ARM_MIRROR_EDIT)
-			flipbone = ED_armature_bone_get_mirrored(arm->edbo, ebone);
-		
-		if (flipbone)
-			editbone_clear_parent(flipbone, val);
-	
 		editbone_clear_parent(ebone, val);
 	}
 	CTX_DATA_END;
