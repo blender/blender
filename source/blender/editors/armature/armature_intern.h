@@ -40,7 +40,8 @@ void ARMATURE_OT_switch_direction(struct wmOperatorType *ot);
 void ARMATURE_OT_subdivs(struct wmOperatorType *ot);
 void ARMATURE_OT_subdivide_simple(struct wmOperatorType *ot);
 void ARMATURE_OT_subdivide_multi(struct wmOperatorType *ot);
-
+void ARMATURE_OT_parent_set(struct wmOperatorType *ot);
+void ARMATURE_OT_parent_clear(struct wmOperatorType *ot);
 
 void POSE_OT_hide(struct wmOperatorType *ot);
 void POSE_OT_reveil(struct wmOperatorType *ot);

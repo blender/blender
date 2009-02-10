@@ -114,6 +114,9 @@ void ED_operatortypes_armature(void)
 	WM_operatortype_append(ARMATURE_OT_subdivide_simple);
 	WM_operatortype_append(ARMATURE_OT_subdivide_multi);
 	
+	WM_operatortype_append(ARMATURE_OT_parent_set);
+	WM_operatortype_append(ARMATURE_OT_parent_clear);
+	
 	WM_operatortype_append(POSE_OT_hide);
 	WM_operatortype_append(POSE_OT_reveil);
 	WM_operatortype_append(POSE_OT_rot_clear);
@@ -140,6 +143,9 @@ void ED_keymap_armature(wmWindowManager *wm)
 	
 		/* only menu is registered in keymaps for now */
 	WM_keymap_add_item(keymap, "ARMATURE_OT_subdivs", SKEY, KM_PRESS, KM_ALT, 0);
+	
+	WM_keymap_add_item(keymap, "ARMATURE_OT_set_parent", PKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "ARMATURE_OT_clear_parent", PKEY, KM_PRESS, KM_ALT, 0);
 	
 	WM_keymap_add_item(keymap, "ARMATURE_OT_test", TKEY, KM_PRESS, 0, 0);  // XXX temp test for context iterators... to be removed
 	
