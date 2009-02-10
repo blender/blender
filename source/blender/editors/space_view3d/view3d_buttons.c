@@ -187,7 +187,7 @@ static void v3d_editvertex_buts(const bContext *C, uiBlock *block, View3D *v3d, 
 			for (i=0; i<dvert->totweight; i++){
 				dg = BLI_findlink (&ob->defbase, dvert->dw[i].def_nr);
 				if(dg) {
-					max+= snprintf(str, sizeof(str), "%s %%x%d|", dg->name, dvert->dw[i].def_nr); 
+					max+= BLI_snprintf(str, sizeof(str), "%s %%x%d|", dg->name, dvert->dw[i].def_nr); 
 					if(max<320) strcat(defstr, str);
 				}
 				else printf("oh no!\n");
