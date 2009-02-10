@@ -2301,16 +2301,15 @@ void uiPupMenuSaveOver(bContext *C, wmOperator *op, char *filename)
 	if(len==0)
 		return;
 
-	if(BLI_exists(filename)==0)
-		operator_cb(C, op, 1);
-
 	if(filename[len-1]=='/' || filename[len-1]=='\\') {
 		uiPupMenuError(C, "Cannot overwrite a directory");
 		WM_operator_free(op);
 		return;
 	}
-
-	confirm_operator(C, op, "Save over", filename);
+	if(BLI_exists(filename)==0)
+		operator_cb(C, op, 1);
+	else
+		confirm_operator(C, op, "Save over", filename);
 }
 
 void uiPupMenuNotice(bContext *C, char *str, ...)
