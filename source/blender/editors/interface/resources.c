@@ -452,8 +452,8 @@ void ui_theme_init_userdef(void)
 	
 	SETCOL(btheme->tipo.ds_channel, 	82, 96, 110, 255);
 	SETCOL(btheme->tipo.ds_subchannel,	124, 137, 150, 255);
-	SETCOL(btheme->tipo.group, 22, 112, 0, 255);
-	SETCOL(btheme->tipo.group_active, 125, 233, 96, 255);
+	SETCOL(btheme->tipo.group, 79, 101, 73, 255);
+	SETCOL(btheme->tipo.group_active, 135, 177, 125, 255);
 
 	/* space file */
 	/* to have something initialized */
@@ -478,8 +478,8 @@ void ui_theme_init_userdef(void)
 	SETCOL(btheme->tact.hilite,  255, 160, 0, 100);	// bar
 	SETCOL(btheme->tact.strip_select, 	255, 160, 0, 255);
 	SETCOL(btheme->tact.strip, 78, 78, 78, 255);
-	SETCOL(btheme->tact.group, 22, 112, 0, 255);
-	SETCOL(btheme->tact.group_active, 125, 233, 96, 255);
+	SETCOL(btheme->tact.group, 79, 101, 73, 255);
+	SETCOL(btheme->tact.group_active, 135, 177, 125, 255)
 	SETCOL(btheme->tact.ds_channel, 82, 96, 110, 255);
 	SETCOL(btheme->tact.ds_subchannel, 124, 137, 150, 255);
 
