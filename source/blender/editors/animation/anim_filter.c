@@ -484,7 +484,7 @@ static int animdata_filter_fcurves (ListBase *anim_data, FCurve *first, bActionG
 	 */
 	for (fcu= first; ((fcu) && (fcu->grp==grp)); fcu= fcu->next) {
 		/* only include if visible (Graph Editor check, not channels check) */
-		//if (!(filter_mode & ANIMFILTER_CURVEVISIBLE) || (fcu->flag & FCURVE_VISIBLE)) { // XXX don't do this till we have tools to set this
+		if (!(filter_mode & ANIMFILTER_CURVEVISIBLE) || (fcu->flag & FCURVE_VISIBLE)) {
 			/* only work with this channel and its subchannels if it is editable */
 			if (!(filter_mode & ANIMFILTER_FOREDIT) || EDITABLE_FCU(fcu)) {
 				/* only include this curve if selected */
@@ -498,7 +498,7 @@ static int animdata_filter_fcurves (ListBase *anim_data, FCurve *first, bActionG
 					}
 				}
 			}
-		//}
+		}
 	}
 	
 	/* return the number of items added to the list */

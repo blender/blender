@@ -986,9 +986,7 @@ void graph_draw_channel_names(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 					
 					group= (fcu->grp) ? 1 : 0;
 					grp= fcu->grp;
-					
-					// XXX include some UI element to allow toggling of visibility
-					
+										
 					switch (ale->ownertype) {
 						case ANIMTYPE_NONE:	/* no owner */
 						case ANIMTYPE_FCURVE: 
@@ -1005,6 +1003,13 @@ void graph_draw_channel_names(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 							break;
 					}
 					
+					/* for now, 'special' (i.e. in front of name) is used to show visibility status */
+					// XXX these 'blank' icons are currently checkboxes
+					if (fcu->flag & FCURVE_VISIBLE)
+						special= ICON_BLANK012;
+					else
+						special= ICON_BLANK011;
+					
 					if (fcu->flag & FCURVE_MUTED)
 						mute = ICON_MUTE_IPO_ON;
 					else	
@@ -1017,9 +1022,7 @@ void graph_draw_channel_names(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 					
 					sel = SEL_FCU(fcu);
 					
-					// for now, we just print the full path... this needs more work!
 					getname_anim_fcurve(name, ale->id, fcu);
-					//sprintf(name, "%s[%d]", fcu->rna_path, fcu->array_index);
 				}
 					break;
 					
