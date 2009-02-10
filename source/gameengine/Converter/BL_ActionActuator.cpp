@@ -371,7 +371,7 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 			obj->GetPose(&m_pose);
 			
 			/* Override the necessary channels with ones from the action */
-			extract_pose_from_action(m_pose, m_action, m_localtime);
+			// XXX extract_pose_from_action(m_pose, m_action, m_localtime);
 
 			/* Perform the user override (if any) */
 			if (m_userpose){
