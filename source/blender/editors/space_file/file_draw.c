@@ -85,6 +85,7 @@ enum {
 	B_REDR 	= 0,
 	B_FS_LOAD,
 	B_FS_CANCEL,
+	B_FS_PARENT,
 } eFile_ButEvents;
 
 static void do_file_buttons(bContext *C, void *arg, int event)
@@ -95,6 +96,9 @@ static void do_file_buttons(bContext *C, void *arg, int event)
 			break;
 		case B_FS_CANCEL:
 			file_cancel_exec(C, NULL); /* file_ops.c */
+			break;
+		case B_FS_PARENT:
+			file_parent_exec(C, NULL); /* file_ops.c */
 			break;
 	}
 }
@@ -168,7 +172,7 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 
 	MEM_freeN(menu);
 
-	uiDefBut(block, BUT, 0 /* XXX B_FS_PARDIR */, "P", xmin, filebuty2, parentbut_width, 21, 0, 0, 0, 0, 0, "Move to the parent directory (PKEY)");	
+	uiDefBut(block, BUT, B_FS_PARENT, "P", xmin, filebuty2, parentbut_width, 21, 0, 0, 0, 0, 0, "Move to the parent directory (PKEY)");	
 	uiEndBlock(C, block);
 	uiDrawBlock(C, block);
 }
@@ -502,27 +506,10 @@ void file_draw_list(const bContext *C, ARegion *ar)
 			glColor4f(1.0f, 1.0f, 1.0f, 1.0f);			
 		}
 		else {
-			if (S_ISDIR(file->type)) {
-				glColor4f(1.0f, 1.0f, 0.9f, 1.0f);
-			}
-			else if (file->flags & IMAGEFILE) {
-				UI_ThemeColor(TH_SEQ_IMAGE);
-			}
-			else if (file->flags & MOVIEFILE) {
-				UI_ThemeColor(TH_SEQ_MOVIE);
-			}
-			else if (file->flags & BLENDERFILE) {
-				UI_ThemeColor(TH_SEQ_SCENE);
-			}
-			else {
-				if (params->active_file == i) {
-					UI_ThemeColor(TH_GRID); /* grid used for active text */
-				} else if (file->flags & ACTIVE) {
-					UI_ThemeColor(TH_TEXT_HI);			
-				} else {
-					UI_ThemeColor(TH_TEXT);
-				}
-			}
+			if (S_ISDIR(file->type))
+				UI_ThemeColor4(TH_TEXT_HI);			
+			else
+				UI_ThemeColor4(TH_TEXT);
 		}
 		
 		sw = UI_GetStringWidth(G.font, file->size, 0);

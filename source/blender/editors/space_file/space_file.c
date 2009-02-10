@@ -259,6 +259,7 @@ void file_operatortypes(void)
 	WM_operatortype_append(ED_FILE_OT_highlight);
 	WM_operatortype_append(ED_FILE_OT_load);
 	WM_operatortype_append(ED_FILE_OT_cancel);
+	WM_operatortype_append(ED_FILE_OT_parent);
 }
 
 /* NOTE: do not add .blend file reading on this level */
@@ -269,6 +270,7 @@ void file_keymap(struct wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "ED_FILE_OT_select_all", AKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "ED_FILE_OT_border_select", BKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "ED_FILE_OT_highlight", MOUSEMOVE, KM_ANY, 0, 0);
+	WM_keymap_add_item(keymap, "ED_FILE_OT_parent", PKEY, KM_PRESS, 0, 0);
 	
 	WM_keymap_add_item(keymap, "ED_FILE_OT_loadimages", TIMER1, KM_ANY, KM_ANY, 0);
 
