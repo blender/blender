@@ -148,7 +148,12 @@ int ED_operator_buttons_active(bContext *C)
 
 int ED_operator_node_active(bContext *C)
 {
-	return ed_spacetype_test(C, SPACE_NODE);
+	if(ed_spacetype_test(C, SPACE_NODE)) {
+		SpaceNode *snode= (SpaceNode *)CTX_wm_space_data(C);
+		if(snode->edittree)
+			return 1;
+	}
+	return 0;
 }
 
 int ED_operator_ipo_active(bContext *C)
