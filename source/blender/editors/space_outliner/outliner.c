@@ -3120,11 +3120,11 @@ static void tselem_draw_icon(float x, float y, TreeStoreElem *tselem, TreeElemen
 					case eModifierType_Subsurf: 
 						UI_icon_draw(x, y, ICON_MOD_SUBSURF); break;
 					case eModifierType_Armature: 
-						UI_icon_draw(x, y, ICON_ARMATURE); break;
+						UI_icon_draw(x, y, ICON_MOD_ARMATURE); break;
 					case eModifierType_Lattice: 
-						UI_icon_draw(x, y, ICON_LATTICE); break;
+						UI_icon_draw(x, y, ICON_MOD_LATTICE); break;
 					case eModifierType_Curve: 
-						UI_icon_draw(x, y, ICON_CURVE); break;
+						UI_icon_draw(x, y, ICON_MOD_CURVE); break;
 					case eModifierType_Build: 
 						UI_icon_draw(x, y, ICON_MOD_BUILD); break;
 					case eModifierType_Mirror: 
@@ -3165,7 +3165,7 @@ static void tselem_draw_icon(float x, float y, TreeStoreElem *tselem, TreeElemen
 			case TSE_PROXY:
 				UI_icon_draw(x, y, ICON_GHOST); break;
 			case TSE_R_LAYER_BASE:
-				UI_icon_draw(x, y, ICON_RESTRICT_RENDER_OFF); break;
+				UI_icon_draw(x, y, ICON_RENDERLAYERS); break;
 			case TSE_R_LAYER:
 				UI_icon_draw(x, y, ICON_IMAGE_DEHLT); break;
 			case TSE_LINKED_LAMP:
@@ -3218,6 +3218,10 @@ static void tselem_draw_icon(float x, float y, TreeStoreElem *tselem, TreeElemen
 				UI_icon_draw(x, y, ICON_OUTLINER_OB_LATTICE); break;
 			case OB_ARMATURE: 
 				UI_icon_draw(x, y, ICON_OUTLINER_OB_ARMATURE); break;
+			case OB_FONT: 
+				UI_icon_draw(x, y, ICON_OUTLINER_OB_FONT); break;
+			case OB_SURF: 
+				UI_icon_draw(x, y, ICON_OUTLINER_OB_SURFACE); break;
 			case OB_EMPTY: 
 				UI_icon_draw(x, y, ICON_OUTLINER_OB_EMPTY); break;
 		

@@ -808,9 +808,9 @@ static void rna_def_userdef_theme_space_action(BlenderRNA *brna)
 
 	/* space_action */
 
-	srna= RNA_def_struct(brna, "ThemeDopeSheetEditor", NULL);
+	srna= RNA_def_struct(brna, "ThemeDopeSheet", NULL);
 	RNA_def_struct_sdna(srna, "ThemeSpace");
-	RNA_def_struct_ui_text(srna, "Theme DopeSheet Editor", "Theme settings for the DopeSheet Editor.");
+	RNA_def_struct_ui_text(srna, "Theme DopeSheet", "Theme settings for the DopeSheet.");
 
 	rna_def_userdef_theme_spaces_main(srna);
 
@@ -990,8 +990,8 @@ static void rna_def_userdef_themes(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "dopesheet_editor", PROP_POINTER, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "tact");
-	RNA_def_property_struct_type(prop, "ThemeDopeSheetEditor");
-	RNA_def_property_ui_text(prop, "DopeSheet Editor", "");
+	RNA_def_property_struct_type(prop, "ThemeDopeSheet");
+	RNA_def_property_ui_text(prop, "DopeSheet", "");
 
 	prop= RNA_def_property(srna, "image_editor", PROP_POINTER, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "tima");

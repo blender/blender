@@ -133,7 +133,9 @@ int UI_GetIconRNA(PointerRNA *ptr)
 	else if(rnatype == &RNA_Sound)
 		return ICON_SOUND;
 	else if(rnatype == &RNA_Brush)
-		return ICON_TPAINT_HLT;
+		return ICON_BRUSH;
+	else if(rnatype == &RNA_VectorFont)
+		return ICON_FONT;
 	else if(rnatype == &RNA_Library)
 		return ICON_LIBRARY_DEHLT;
 	else if(rnatype == &RNA_Action)

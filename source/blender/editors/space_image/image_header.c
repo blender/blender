@@ -925,7 +925,7 @@ void image_header_buttons(const bContext *C, ARegion *ar)
 				xco+=XIC,yco,XIC,YIC, &scene->toolsettings->uv_selectmode, 1.0, UV_SELECT_EDGE, 0, 0, "Edge select mode");
 			uiDefIconButS(block, ROW, B_REDR, ICON_FACESEL,
 				xco+=XIC,yco,XIC,YIC, &scene->toolsettings->uv_selectmode, 1.0, UV_SELECT_FACE, 0, 0, "Face select mode");
-			uiDefIconButS(block, ROW, B_REDR, ICON_MESH,
+			uiDefIconButS(block, ROW, B_REDR, ICON_LINKEDSEL,
 				xco+=XIC,yco,XIC,YIC, &scene->toolsettings->uv_selectmode, 1.0, UV_SELECT_ISLAND, 0, 0, "Island select mode");
 
 			uiBlockEndAlign(block);
