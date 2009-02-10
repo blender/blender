@@ -593,10 +593,10 @@ static void view3d_viewmenu(bContext *C, uiMenuItem *head, void *arg_unused)
 	
 //	uiMenuSeparator(head);
 	
-	uiMenuItemEnumO(head, 0, "VIEW3D_OT_viewnumpad", "type", V3D_VIEW_CAMERA);
-	uiMenuItemEnumO(head, 0, "VIEW3D_OT_viewnumpad", "type", V3D_VIEW_TOP);
-	uiMenuItemEnumO(head, 0, "VIEW3D_OT_viewnumpad", "type", V3D_VIEW_FRONT);
-	uiMenuItemEnumO(head, 0, "VIEW3D_OT_viewnumpad", "type", V3D_VIEW_RIGHT);
+	uiMenuItemEnumO(head, "", 0, "VIEW3D_OT_viewnumpad", "type", V3D_VIEW_CAMERA);
+	uiMenuItemEnumO(head, "", 0, "VIEW3D_OT_viewnumpad", "type", V3D_VIEW_TOP);
+	uiMenuItemEnumO(head, "", 0, "VIEW3D_OT_viewnumpad", "type", V3D_VIEW_FRONT);
+	uiMenuItemEnumO(head, "", 0, "VIEW3D_OT_viewnumpad", "type", V3D_VIEW_RIGHT);
 	
 	//uiMenuLevel(head, "Cameras", view3d_view_camerasmenu);
 	
@@ -4898,9 +4898,9 @@ static void view3d_sculpt_menu(bContext *C, uiMenuItem *head, void *arg_unused)
 
 	/* Curve */
 	uiMenuSeparator(head);
-	uiMenuItemEnumO(head, 0, "SCULPT_OT_brush_curve_preset", "mode", BRUSH_PRESET_SHARP);
-	uiMenuItemEnumO(head, 0, "SCULPT_OT_brush_curve_preset", "mode", BRUSH_PRESET_SMOOTH);
-	uiMenuItemEnumO(head, 0, "SCULPT_OT_brush_curve_preset", "mode", BRUSH_PRESET_MAX);
+	uiMenuItemEnumO(head, "", 0, "SCULPT_OT_brush_curve_preset", "mode", BRUSH_PRESET_SHARP);
+	uiMenuItemEnumO(head, "", 0, "SCULPT_OT_brush_curve_preset", "mode", BRUSH_PRESET_SMOOTH);
+	uiMenuItemEnumO(head, "", 0, "SCULPT_OT_brush_curve_preset", "mode", BRUSH_PRESET_MAX);
 
 	uiMenuSeparator(head);
 

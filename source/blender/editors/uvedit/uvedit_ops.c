@@ -2897,6 +2897,120 @@ void UV_OT_show_hidden(wmOperatorType *ot)
 	ot->poll= ED_operator_uvedit;
 }
 
+
+/******************** set 3d cursor operator ********************/
+
+static int set_3d_cursor_exec(bContext *C, wmOperator *op)
+{
+	ARegion *ar= CTX_wm_region(C);
+	float location[2];
+
+	RNA_float_get_array(op->ptr, "location", location);
+	ar->v2d.cursor[0]= location[0];
+	ar->v2d.cursor[1]= location[1];
+	
+	ED_area_tag_redraw(CTX_wm_area(C));
+	
+	return OPERATOR_FINISHED;
+}
+
+static int set_3d_cursor_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	ARegion *ar= CTX_wm_region(C);
+	int x, y;
+	float location[2];
+
+	x= event->x - ar->winrct.xmin;
+	y= event->y - ar->winrct.ymin;
+	UI_view2d_region_to_view(&ar->v2d, x, y, &location[0], &location[1]);
+	RNA_float_set_array(op->ptr, "location", location);
+
+	return set_3d_cursor_exec(C, op);
+}
+
+void UV_OT_set_3d_cursor(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Set 3D Cursor";
+	ot->idname= "UV_OT_set_3d_cursor";
+	
+	/* api callbacks */
+	ot->exec= set_3d_cursor_exec;
+	ot->invoke= set_3d_cursor_invoke;
+	ot->poll= ED_operator_uvedit;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* properties */
+	RNA_def_float_vector(ot->srna, "location", 2, NULL, -FLT_MAX, FLT_MAX, "Location", "Cursor location in 0.0-1.0 coordinates.", -10.0f, 10.0f);
+}
+
+/********************** set tile operator **********************/
+
+static int set_tile_exec(bContext *C, wmOperator *op)
+{
+	Image *ima= CTX_data_edit_image(C);
+	int tile[2];
+
+	if(!ima || !(ima->tpageflag & IMA_TILES))
+		return OPERATOR_CANCELLED;
+
+	RNA_int_get_array(op->ptr, "tile", tile);
+	ED_uvedit_set_tile(C, CTX_data_scene(C), CTX_data_edit_object(C), ima, tile[0] + ima->xrep*tile[1], 1);
+
+	ED_area_tag_redraw(CTX_wm_area(C));
+
+	return OPERATOR_FINISHED;
+}
+
+static int set_tile_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
+	Image *ima= CTX_data_edit_image(C);
+	ARegion *ar= CTX_wm_region(C);
+	float fx, fy;
+	int x, y, tile[2];
+
+	if(!ima || !(ima->tpageflag & IMA_TILES))
+		return OPERATOR_CANCELLED;
+
+	x= event->x - ar->winrct.xmin;
+	y= event->y - ar->winrct.ymin;
+	UI_view2d_region_to_view(&ar->v2d, x, y, &fx, &fy);
+
+	if(fx>=0.0 && fy>=0.0 && fx<1.0 && fy<1.0) {
+		fx= fx*ima->xrep;
+		fy= fy*ima->yrep;
+		
+		tile[0]= fx;
+		tile[1]= fy;
+		
+		sima->curtile= tile[1]*ima->xrep + tile[0];
+		RNA_int_set_array(op->ptr, "tile", tile);
+	}
+
+	return set_tile_exec(C, op);
+}
+
+void UV_OT_set_tile(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Set Tile";
+	ot->idname= "UV_OT_set_tile";
+	
+	/* api callbacks */
+	ot->exec= set_tile_exec;
+	ot->invoke= set_tile_invoke;
+	ot->poll= ED_operator_uvedit;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* properties */
+	RNA_def_int_vector(ot->srna, "tile", 2, NULL, 0, INT_MAX, "Tile", "Tile coordinate.", 0, 10);
+}
+
 /* ************************** registration **********************************/
 
 void ED_operatortypes_uvedit(void)
@@ -2934,6 +3048,9 @@ void ED_operatortypes_uvedit(void)
 	WM_operatortype_append(UV_OT_show_hidden);
 	WM_operatortype_append(UV_OT_hide_selected);
 	WM_operatortype_append(UV_OT_hide_deselected);
+
+	WM_operatortype_append(UV_OT_set_3d_cursor);
+	WM_operatortype_append(UV_OT_set_tile);
 }
 
 void ED_keymap_uvedit(wmWindowManager *wm)
@@ -2973,6 +3090,10 @@ void ED_keymap_uvedit(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "UV_OT_hide_selected", HKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "UV_OT_hide_deselected", HKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "UV_OT_show_hidden", HKEY, KM_PRESS, KM_ALT, 0);
+
+	/* cursor */
+	WM_keymap_add_item(keymap, "UV_OT_set_3d_cursor", ACTIONMOUSE, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "UV_OT_set_tile", ACTIONMOUSE, KM_PRESS, KM_SHIFT, 0);
 
 	transform_keymap_for_space(wm, keymap, SPACE_IMAGE);
 }

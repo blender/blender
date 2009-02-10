@@ -158,10 +158,12 @@ static void sima_draw_render_info(SpaceImage *sima, ARegion *ar)
 	UI_DrawString(G.fonts, str, 0);
 }
 
-/*static void sima_draw_image_info(ARegion *ar, int channels, int x, int y, char *cp, float *fp, int *zp, float *zpf)
+void draw_image_info(ARegion *ar, int channels, int x, int y, char *cp, float *fp, int *zp, float *zpf)
 {
 	char str[256];
 	int ofs;
+
+	ED_region_pixelspace(ar);
 	
 	ofs= sprintf(str, "X: %d Y: %d ", x, y);
 	if(cp)
@@ -193,7 +195,7 @@ static void sima_draw_render_info(SpaceImage *sima, ARegion *ar)
 	UI_RasterPos(10, 10);
 	
 	UI_DrawString(G.fonts, str, 0);
-}*/
+}
 
 /* image drawing */
 
@@ -493,36 +495,6 @@ static void draw_image_buffer_repeated(SpaceImage *sima, ARegion *ar, Scene *sce
 
 /* draw uv edit */
 
-/* XXX this becomes draw extra? */
-#if 0
-		glPixelZoom(zoomx, zoomy);
-
-		if(sima->flag & SI_EDITTILE) {
-			/* create char buffer from float if needed */
-			image_verify_buffer_float(sima, ibuf);
-
-			glaDrawPixelsSafe(x1, y1, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
-			
-			glPixelZoom(1.0, 1.0);
-			
-			dx= ibuf->x/sima->image->xrep;
-			dy= ibuf->y/sima->image->yrep;
-			sy= (sima->curtile / sima->image->xrep);
-			sx= sima->curtile - sy*sima->image->xrep;
-	
-			sx*= dx;
-			sy*= dy;
-			
-			calc_image_view(sima, 'p');	/* pixel */
-			myortho2(G.v2d->cur.xmin, G.v2d->cur.xmax, G.v2d->cur.ymin, G.v2d->cur.ymax);
-			
-			cpack(0x0);
-			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); glRects(sx,  sy,  sx+dx-1,  sy+dy-1); glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-			cpack(0xFFFFFF);
-			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); glRects(sx+1,  sy+1,  sx+dx,  sy+dy); glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-		}
-#endif
-
 /* draw grease pencil */
 
 static void draw_image_grease_pencil(SpaceImage *sima, ImBuf *ibuf)
@@ -653,7 +625,7 @@ void draw_image_main(SpaceImage *sima, ARegion *ar, Scene *scene)
 	what_image(sima);
 	
 	if(sima->image) {
-		image_pixel_aspect(sima->image, &xuser_asp, &yuser_asp);
+		ED_image_aspect(sima->image, &xuser_asp, &yuser_asp);
 		
 		/* UGLY hack? until now iusers worked fine... but for flipbook viewer we need this */
 		if(sima->image->type==IMA_TYPE_COMPOSITE) {

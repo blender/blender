@@ -360,10 +360,10 @@ void BIF_menuTransformOrientation(bContext *C, uiMenuItem *head, void *arg)
 	TransformOrientation *ts;
 	int i= V3D_MANIP_CUSTOM;
 
-	uiMenuItemEnumO(head, 0, "TFM_OT_select_orientation", "orientation", V3D_MANIP_GLOBAL);
-	uiMenuItemEnumO(head, 0, "TFM_OT_select_orientation", "orientation", V3D_MANIP_LOCAL);
-	uiMenuItemEnumO(head, 0, "TFM_OT_select_orientation", "orientation", V3D_MANIP_NORMAL);
-	uiMenuItemEnumO(head, 0, "TFM_OT_select_orientation", "orientation", V3D_MANIP_VIEW);
+	uiMenuItemEnumO(head, "", 0, "TFM_OT_select_orientation", "orientation", V3D_MANIP_GLOBAL);
+	uiMenuItemEnumO(head, "", 0, "TFM_OT_select_orientation", "orientation", V3D_MANIP_LOCAL);
+	uiMenuItemEnumO(head, "", 0, "TFM_OT_select_orientation", "orientation", V3D_MANIP_NORMAL);
+	uiMenuItemEnumO(head, "", 0, "TFM_OT_select_orientation", "orientation", V3D_MANIP_VIEW);
 
 	for(ts = transform_spaces->first; ts; ts = ts->next)
 		uiMenuItemIntO(head, ts->name, 0, "TFM_OT_select_orientation", "custom_index", i++);

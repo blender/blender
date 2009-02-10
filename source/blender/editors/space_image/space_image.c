@@ -147,6 +147,19 @@ void image_operatortypes(void)
 	WM_operatortype_append(IMAGE_OT_view_zoom_out);
 	WM_operatortype_append(IMAGE_OT_view_zoom_ratio);
 
+	WM_operatortype_append(IMAGE_OT_new);
+	WM_operatortype_append(IMAGE_OT_open);
+	WM_operatortype_append(IMAGE_OT_replace);
+	WM_operatortype_append(IMAGE_OT_reload);
+	WM_operatortype_append(IMAGE_OT_save);
+	WM_operatortype_append(IMAGE_OT_save_as);
+	WM_operatortype_append(IMAGE_OT_save_sequence);
+	WM_operatortype_append(IMAGE_OT_pack);
+	WM_operatortype_append(IMAGE_OT_unpack);
+	WM_operatortype_append(IMAGE_OT_sample);
+
+	WM_operatortype_append(IMAGE_OT_record_composite);
+
 	WM_operatortype_append(IMAGE_OT_toolbox);
 }
 
@@ -172,6 +185,12 @@ void image_keymap(struct wmWindowManager *wm)
 	RNA_float_set(WM_keymap_add_item(keymap, "IMAGE_OT_view_zoom_ratio", PAD4, KM_PRESS, 0, 0)->ptr, "ratio", 0.25f);
 	RNA_float_set(WM_keymap_add_item(keymap, "IMAGE_OT_view_zoom_ratio", PAD8, KM_PRESS, 0, 0)->ptr, "ratio", 0.125f);
 
+	WM_keymap_add_item(keymap, "IMAGE_OT_new", NKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_add_item(keymap, "IMAGE_OT_open", OKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_add_item(keymap, "IMAGE_OT_reload", RKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_add_item(keymap, "IMAGE_OT_save", SKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_add_item(keymap, "IMAGE_OT_sample", ACTIONMOUSE, KM_PRESS, 0, 0);
+
 	WM_keymap_add_item(keymap, "IMAGE_OT_toolbox", SPACEKEY, KM_PRESS, 0, 0);
 }
 
@@ -190,7 +209,7 @@ static void image_refresh(const bContext *C, ScrArea *sa)
 		EditMesh *em= me->edit_mesh;
 		MTFace *tf;
 		
-		if(EM_texFaceCheck(em)) {
+		if(em && EM_texFaceCheck(em)) {
 			sima->image= ima= NULL;
 			
 			tf = EM_get_active_mtface(em, NULL, NULL, 1); /* partially selected face is ok */
@@ -261,7 +280,7 @@ static void image_main_area_set_view2d(SpaceImage *sima, ARegion *ar)
 		ImBuf *ibuf= imagewindow_get_ibuf(sima);
 		float xuser_asp, yuser_asp;
 		
-		image_pixel_aspect(sima->image, &xuser_asp, &yuser_asp);
+		ED_image_aspect(sima->image, &xuser_asp, &yuser_asp);
 		if(ibuf) {
 			xim= ibuf->x * xuser_asp;
 			yim= ibuf->y * yuser_asp;
@@ -368,6 +387,7 @@ static void image_modal_keymaps(wmWindowManager *wm, ARegion *ar, int stype)
 	ListBase *keymap;
 	
 	keymap= WM_keymap_listbase(wm, "UVEdit", 0, 0);
+
 	if(stype==NS_EDITMODE_MESH)
 		WM_event_add_keymap_handler(&ar->handlers, keymap);
 	else
@@ -479,7 +499,7 @@ Image *ED_space_image(SpaceImage *sima)
 }
 
 /* called to assign images to UV faces */
-void ED_space_image_set(SpaceImage *sima, Scene *scene, Object *obedit, Image *ima)
+void ED_space_image_set(bContext *C, SpaceImage *sima, Scene *scene, Object *obedit, Image *ima)
 {
 	ED_uvedit_assign_image(scene, obedit, ima, sima->image);
 
@@ -487,11 +507,22 @@ void ED_space_image_set(SpaceImage *sima, Scene *scene, Object *obedit, Image *i
 	 * to check if the face is displayed in UV-localview */
 	sima->image= ima;
 
+	if(ima)
+		printf("assign %s\n", ima->id.name);
+
 	if(ima == NULL || ima->type==IMA_TYPE_R_RESULT || ima->type==IMA_TYPE_COMPOSITE)
 		sima->flag &= ~SI_DRAWTOOL;
 
 	if(sima->image)
 		BKE_image_signal(sima->image, &sima->iuser, IMA_SIGNAL_USER_NEW_IMAGE);
+
+	if(sima->image && sima->image->id.us==0)
+		sima->image->id.us= 1;
+
+	if(obedit)
+		WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, obedit);
+
+	ED_area_tag_redraw(CTX_wm_area(C));
 }
 
 ImBuf *ED_space_image_buffer(SpaceImage *sima)

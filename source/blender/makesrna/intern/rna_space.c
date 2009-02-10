@@ -33,6 +33,11 @@
 
 #ifdef RNA_RUNTIME
 
+#include "DNA_scene_types.h"
+
+#include "BKE_brush.h"
+#include "BKE_context.h"
+
 static StructRNA* rna_Space_refine(struct PointerRNA *ptr)
 {
 	SpaceLink *space= (SpaceLink*)ptr->data;
@@ -78,6 +83,14 @@ static StructRNA* rna_Space_refine(struct PointerRNA *ptr)
 static PointerRNA rna_SpaceImage_uvedit_get(PointerRNA *ptr)
 {
 	return rna_pointer_inherit_refine(ptr, &RNA_SpaceUVEditor, ptr->data);
+}
+
+static void rna_SpaceImage_paint_update(bContext *C, PointerRNA *ptr)
+{
+	Scene *scene= CTX_data_scene(C);
+
+	if(scene)
+		brush_check_exists(&scene->toolsettings->imapaint.brush);
 }
 
 #else
@@ -270,8 +283,8 @@ static void rna_def_space_image(BlenderRNA *brna)
 	/* paint */
 	prop= RNA_def_property(srna, "image_painting", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SI_DRAWTOOL);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE); // brush check
 	RNA_def_property_ui_text(prop, "Image Painting", "Enable image painting mode.");
+	RNA_def_property_update(prop, 0, "rna_SpaceImage_paint_update");
 
 	/* grease pencil */
 	prop= RNA_def_property(srna, "grease_pencil", PROP_POINTER, PROP_NONE);

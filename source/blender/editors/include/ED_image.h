@@ -33,7 +33,7 @@ struct bContext;
 
 /* space_image.c, exported for transform */
 struct Image *ED_space_image(struct SpaceImage *sima);
-void ED_space_image_set(struct SpaceImage *sima, struct Scene *scene, struct Object *obedit, struct Image *ima);
+void ED_space_image_set(struct bContext *C, struct SpaceImage *sima, struct Scene *scene, struct Object *obedit, struct Image *ima);
 
 struct ImBuf *ED_space_image_buffer(struct SpaceImage *sima);
 void ED_space_image_size(struct SpaceImage *sima, int *width, int *height);

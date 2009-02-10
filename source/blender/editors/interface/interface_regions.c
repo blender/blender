@@ -2009,9 +2009,9 @@ void uiMenuItemO(uiMenuItem *head, int icon, char *opname)
 }
 
 /* single operator item with property */
-void uiMenuItemEnumO(uiMenuItem *head, int icon, char *opname, char *propname, int value)
+void uiMenuItemEnumO(uiMenuItem *head, const char *name, int icon, char *opname, char *propname, int value)
 {
-	uiMenuItem *item= ui_menu_add_item(head, "", icon, 0);
+	uiMenuItem *item= ui_menu_add_item(head, name, icon, 0);
 	
 	item->opname= opname; // static!
 	item->propname= propname; // static!
@@ -2072,7 +2072,7 @@ void uiMenuItemsEnumO(uiMenuItem *head, char *opname, char *propname)
 		RNA_property_enum_items(&ptr, prop, &item, &totitem);
 		
 		for (i=0; i<totitem; i++)
-			uiMenuItemEnumO(head, 0, opname, propname, item[i].value);
+			uiMenuItemEnumO(head, "", 0, opname, propname, item[i].value);
 	}
 }
 
@@ -2136,8 +2136,6 @@ void uiMenuLevelEnumO(uiMenuItem *head, char *opname, char *propname)
 
 	item->opname= opname; // static!
 	item->propname= propname; // static!
-	
-	BLI_addtail(&head->items, item);
 }
 
 /* make a new level from enum properties */
@@ -2153,8 +2151,6 @@ void uiMenuLevelEnumR(uiMenuItem *head, PointerRNA *ptr, char *propname)
 
 	item->rnapoin= *ptr;
 	item->propname= propname; // static!
-	
-	BLI_addtail(&head->items, item);
 }
 
 /* separator */

@@ -3429,11 +3429,11 @@ static int armature_parent_set_invoke(bContext *C, wmOperator *op, wmEvent *even
 	}
 	CTX_DATA_END;
 
-	uiMenuItemEnumO(head, 0, "ARMATURE_OT_set_parent", "type", ARM_PAR_CONNECT);
+	uiMenuItemEnumO(head, "", 0, "ARMATURE_OT_set_parent", "type", ARM_PAR_CONNECT);
 	
 	/* ob becomes parent, make the associated menus */
 	if (allchildbones)
-		uiMenuItemEnumO(head, 0, "ARMATURE_OT_set_parent", "type", ARM_PAR_OFFSET);	
+		uiMenuItemEnumO(head, "", 0, "ARMATURE_OT_set_parent", "type", ARM_PAR_OFFSET);	
 		
 	uiPupMenuEnd(C, head);
 	

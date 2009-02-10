@@ -262,7 +262,7 @@ static void fluidsimInitMeshChannel(bContext *C, float **setchannel, int size, O
 		float *verts=NULL;
 		int *tris=NULL;
 		scene->r.cfra = frame;
-		ED_update_for_newframe(C, 0);
+		ED_update_for_newframe(C, 1);
 
 		initElbeemMesh(scene, obm, &numVerts, &verts, &numTris, &tris, 1, modifierIndex);
 		//fprintf(stderr,"\nfluidsimInitMeshChannel frame%d verts%d/%d \n\n",frame,vertices,numVerts);
@@ -596,7 +596,7 @@ void fluidsimBake(bContext *C, struct Object *ob)
 	// CHECK more reasonable to number frames according to blender?
 	// dump data for frame 0
 	scene->r.cfra = startFrame;
-	ED_update_for_newframe(C, 0);
+	ED_update_for_newframe(C, 1);
 	
 	// init common export vars for both file export and run
 	for(i=0; i<256; i++) {
@@ -985,7 +985,7 @@ void fluidsimBake(bContext *C, struct Object *ob)
 					fsmesh.channelSizeVertices = allchannelSize;
 					fluidsimInitMeshChannel(C, &fsmesh.channelVertices, allchannelSize, obit, numVerts, timeAtFrame, modifierIndex);
 					scene->r.cfra = startFrame;
-					ED_update_for_newframe(C, 0);
+					ED_update_for_newframe(C, 1);
 					// remove channels
 					fsmesh.channelTranslation      = 
 					fsmesh.channelRotation         = 
@@ -1063,7 +1063,7 @@ void fluidsimBake(bContext *C, struct Object *ob)
 					ScrArea *sa;
 					scene->r.cfra = startFrame+globalBakeFrame;
 					lastRedraw = globalBakeFrame;
-					ED_update_for_newframe(C, 0);
+					ED_update_for_newframe(C, 1);
 					sa= G.curscreen->areabase.first;
 					while(sa) {
 						if(sa->spacetype == SPACE_VIEW3D) { scrarea_do_windraw(sa); }
@@ -1096,7 +1096,7 @@ void fluidsimBake(bContext *C, struct Object *ob)
 	}
 	
 	scene->r.cfra = origFrame;
-	ED_update_for_newframe(C, 0);
+	ED_update_for_newframe(C, 1);
 
 	if(!simAborted) {
 		char fsmessage[512];

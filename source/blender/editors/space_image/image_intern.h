@@ -46,6 +46,7 @@ void IMAGE_OT_toolbox(struct wmOperatorType *ot);
 
 /* image_draw.c */
 void draw_image_main(struct SpaceImage *sima, struct ARegion *ar, struct Scene *scene);
+void draw_image_info(struct ARegion *ar, int channels, int x, int y, char *cp, float *fp, int *zp, float *zpf);
 
 /* image_ops.c */
 int space_image_main_area_poll(struct bContext *C);
@@ -57,6 +58,19 @@ void IMAGE_OT_view_zoom(struct wmOperatorType *ot);
 void IMAGE_OT_view_zoom_in(struct wmOperatorType *ot);
 void IMAGE_OT_view_zoom_out(struct wmOperatorType *ot);
 void IMAGE_OT_view_zoom_ratio(struct wmOperatorType *ot);
+
+void IMAGE_OT_new(struct wmOperatorType *ot);
+void IMAGE_OT_open(struct wmOperatorType *ot);
+void IMAGE_OT_replace(struct wmOperatorType *ot);
+void IMAGE_OT_reload(struct wmOperatorType *ot);
+void IMAGE_OT_save(struct wmOperatorType *ot);
+void IMAGE_OT_save_as(struct wmOperatorType *ot);
+void IMAGE_OT_save_sequence(struct wmOperatorType *ot);
+void IMAGE_OT_pack(struct wmOperatorType *ot);
+void IMAGE_OT_unpack(struct wmOperatorType *ot);
+void IMAGE_OT_sample(struct wmOperatorType *ot);
+
+void IMAGE_OT_record_composite(struct wmOperatorType *ot);
 
 /* uvedit_draw.c */
 void draw_uvedit_main(struct SpaceImage *sima, struct ARegion *ar, struct Scene *scene, struct Object *obedit);
