@@ -48,6 +48,7 @@
 #include "BLI_string.h"
 
 #include "blf_internal_types.h"
+#include "blf_internal.h"
 
 
 /* freetype2 handle. */

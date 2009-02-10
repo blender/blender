@@ -28,8 +28,6 @@
 #ifndef BLF_INTERNAL_TYPES_H
 #define BLF_INTERNAL_TYPES_H
 
-#if 0
-
 typedef struct DirBLF {
 	struct DirBLF *next;
 	struct DirBLF *prev;
@@ -37,6 +35,8 @@ typedef struct DirBLF {
 	/* full path where search fonts. */
 	char *path;
 } DirBLF;
+
+#if 0
 
 typedef struct _GlyphCacheBLF {
 	struct _GlyphCacheBLF *next;

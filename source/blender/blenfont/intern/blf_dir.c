@@ -25,8 +25,6 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#if 0
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -167,5 +165,3 @@ int blf_dir_split(const char *str, char *file, int *size)
 	}
 	return(0);
 }
-
-#endif /* zero!! */

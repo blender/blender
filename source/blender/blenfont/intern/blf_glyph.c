@@ -48,21 +48,8 @@
 #include "BLI_string.h"
 
 #include "blf_internal_types.h"
+#include "blf_internal.h"
 
-
-unsigned int blf_glyph_hash(unsigned int val)
-{
-	unsigned int key;
-
-	key= val;
-	key += ~(key << 16);
-	key ^= (key >> 5);
-	key += (key << 3);
-	key ^= (key >> 13);
-	key += ~(key << 9);
-	key ^= (key >> 17);
-	return(key % 257);
-}
 
 GlyphCacheBLF *blf_glyph_cache_find(FontBLF *font, int size, int dpi)
 {
@@ -169,7 +156,7 @@ GlyphBLF *blf_glyph_search(GlyphCacheBLF *gc, FT_UInt idx)
 	GlyphBLF *p;
 	unsigned int key;
 
-	key= blf_glyph_hash(idx);
+	key= blf_hash(idx);
 	p= gc->bucket[key].first;
 	while (p) {
 		if (p->index == idx)
@@ -260,9 +247,37 @@ GlyphBLF *blf_glyph_add(FontBLF *font, FT_UInt index, unsigned int c)
 	g->uv[1][0]= ((float)(g->xoff + g->width)) / ((float)g->p2_width);
 	g->uv[1][1]= ((float)(g->yoff + g->height)) / ((float)g->p2_height);
 
-	key= blf_glyph_hash(g->index);
+	/* update the x offset for the next glyph. */
+	gc->x_offs += (int)(g->box.xmax - g->box.xmin + gc->pad);
+
+	key= blf_hash(g->index);
 	BLI_addhead(&gc->bucket[key], g);
 	return(g);
+}
+
+void blf_glyph_render(GlyphBLF *g, float x, float y)
+{
+	GLint cur_tex;
+	float dx;
+
+	glGetIntegerv(GL_TEXTURE_2D_BINDING_EXT, &cur_tex);
+	if (cur_tex != g->tex)
+		glBindTexture(GL_TEXTURE_2D, &g->tex);
+
+	dx= floor(x + g->pos_x);
+	glBegin(GL_QUADS);
+	glTexCoord2f(g->uv[0][0], g->uv[0][1]);
+	glVertex2f(dx, y + g->pos_y);
+
+	glTexCoord2f(g->uv[0][0], g->uv[1][1]);
+	glVertex2f(dx, y + g->pos_y - g->height);
+
+	glTexCoord2f(g->uv[1][0], g->uv[1][1]);
+	glVertex2f(dx + g->width, y + g->pos_y - g->height);
+
+	glTexCoord2f(g->uv[1][0], g->uv[0][1]);
+	glVertex2f(dx + g->width, y + g->pos_y);
+	glEnd();
 }
 
 #endif /* zero!! */

@@ -28,11 +28,11 @@
 #ifndef BLF_INTERNAL_H
 #define BLF_INTERNAL_H
 
-#if 0
+unsigned int blf_next_p2(unsigned int x);
+unsigned int blf_hash(unsigned int val);
+int blf_utf8_next(unsigned char *buf, int *iindex);
 
 char *blf_dir_search(const char *file);
 int blf_dir_split(const char *str, char *file, int *size);
-
-#endif /* zero! */
 
 #endif /* BLF_INTERNAL_H */
