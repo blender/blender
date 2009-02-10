@@ -231,7 +231,28 @@ void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
 			}
 				break;
 			
-			/* other view types are completely defined using their own settings already */
+			/* ui listviews, tries to wrap 'tot' inside region width */
+			case V2D_COMMONVIEW_LIST_UI:
+			{
+				/* for now, aspect ratio should be maintained, and zoom is clamped within sane default limits */
+				v2d->keepzoom= (V2D_KEEPASPECT|V2D_KEEPZOOM);
+				v2d->minzoom= 0.5f;
+				v2d->maxzoom= 2.0f;
+				
+				v2d->align= (V2D_ALIGN_NO_NEG_X|V2D_ALIGN_NO_POS_Y);
+				v2d->keeptot= V2D_KEEPTOT_BOUNDS;
+				
+				v2d->tot.xmin= 0.0f;
+				v2d->tot.xmax= 336.f; // XXX 320 width + 2 x PNL_DIST
+				
+				v2d->tot.ymax= 0.0f;
+				v2d->tot.ymin= -336.0f*((float)winy)/(float)winx;
+				
+				v2d->cur= v2d->tot;
+				
+			}
+				break;
+				/* other view types are completely defined using their own settings already */
 			default:
 				/* we don't do anything here, as settings should be fine, but just make sure that rect */
 				break;	

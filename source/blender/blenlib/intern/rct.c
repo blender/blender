@@ -70,7 +70,16 @@ int BLI_in_rctf(rctf *rect, float x, float y)
 
 void BLI_union_rctf(rctf *rct1, rctf *rct2)
 {
+	
+	if(rct1->xmin>rct2->xmin) rct1->xmin= rct2->xmin;
+	if(rct1->xmax<rct2->xmax) rct1->xmax= rct2->xmax;
+	if(rct1->ymin>rct2->ymin) rct1->ymin= rct2->ymin;
+	if(rct1->ymax<rct2->ymax) rct1->ymax= rct2->ymax;
+}
 
+void BLI_union_rcti(rcti *rct1, rcti *rct2)
+{
+	
 	if(rct1->xmin>rct2->xmin) rct1->xmin= rct2->xmin;
 	if(rct1->xmax<rct2->xmax) rct1->xmax= rct2->xmax;
 	if(rct1->ymin>rct2->ymin) rct1->ymin= rct2->ymin;

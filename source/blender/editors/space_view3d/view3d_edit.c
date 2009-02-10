@@ -1818,7 +1818,7 @@ static int set_3dcursor_invoke(bContext *C, wmOperator *op, wmEvent *event)
 //		VECCOPY(fp, oldcurs);
 //	}
 	// XXX notifier for scene */
-	ED_region_tag_redraw(ar);
+	ED_area_tag_redraw(CTX_wm_area(C));
 	
 	/* prevent other mouse ops to fail */
 	return OPERATOR_PASS_THROUGH;

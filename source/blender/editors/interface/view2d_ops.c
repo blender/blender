@@ -1299,5 +1299,12 @@ void UI_view2d_keymap(wmWindowManager *wm)
 	
 	/* scrollers */
 	WM_keymap_add_item(keymap, "View2D_OT_scroller_activate", LEFTMOUSE, KM_PRESS, 0, 0);
+	
+	/* Alternative keymap for buttons listview */
+	keymap= WM_keymap_listbase(wm, "View2D Buttons List", 0, 0);
+	WM_keymap_add_item(keymap, "View2D_OT_view_pan", MIDDLEMOUSE, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "View2D_OT_view_downscroll", WHEELDOWNMOUSE, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "View2D_OT_view_upscroll", WHEELUPMOUSE, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "View2D_OT_view_zoom", MIDDLEMOUSE, KM_PRESS, KM_CTRL, 0);
 }
 

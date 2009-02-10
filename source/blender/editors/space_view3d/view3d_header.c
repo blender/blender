@@ -156,7 +156,7 @@ void ED_view3d_exit_paint_modes(bContext *C)
 
 
 
-static void do_view3d_buttons(bContext *C, void *arg, int event);
+static void do_view3d_header_buttons(bContext *C, void *arg, int event);
 
 #define B_SCENELOCK 101
 #define B_FULL		102
@@ -218,7 +218,7 @@ void do_layer_buttons(bContext *C, short event)
 	
 	if(event==-1 && ctrl) {
 		v3d->scenelock= !v3d->scenelock;
-		do_view3d_buttons(C, NULL, B_SCENELOCK);
+		do_view3d_header_buttons(C, NULL, B_SCENELOCK);
 	} else if (event<0) {
 		if(v3d->lay== (1<<20)-1) {
 			if(event==-2 || shift) v3d->lay= oldlay;
@@ -241,7 +241,7 @@ void do_layer_buttons(bContext *C, short event)
 			if(v3d->lay & (1<<event)) v3d->lay -= (1<<event);
 			else	v3d->lay += (1<<event);
 		}
-		do_view3d_buttons(C, NULL, event+B_LAY);
+		do_view3d_header_buttons(C, NULL, event+B_LAY);
 	}
 	ED_area_tag_redraw(sa);
 	
@@ -5359,7 +5359,7 @@ static char *propfalloff_pup(void)
 }
 
 
-static void do_view3d_buttons(bContext *C, void *arg, int event)
+static void do_view3d_header_buttons(bContext *C, void *arg, int event)
 {
 	Scene *scene= CTX_data_scene(C);
 	ScrArea *sa= CTX_wm_area(C);
@@ -5776,7 +5776,7 @@ void view3d_header_buttons(const bContext *C, ARegion *ar)
 	int a, xco, yco= 3;
 	
 	block= uiBeginBlock(C, ar, "header buttons", UI_EMBOSS, UI_HELV);
-	uiBlockSetHandleFunc(block, do_view3d_buttons, NULL);
+	uiBlockSetHandleFunc(block, do_view3d_header_buttons, NULL);
 	
 	xco= ED_area_header_standardbuttons(C, block, yco);
 

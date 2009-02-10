@@ -2583,7 +2583,7 @@ void node_draw_link_bezier(View2D *v2d, SpaceNode *snode, bNodeLink *link, int t
 		dist = 1.0f/(float)LINK_RESOL;
 		
 		glBegin(GL_LINE_STRIP);
-		for(i=0; i<LINK_RESOL; i++) {
+		for(i=0; i<=LINK_RESOL; i++) {
 			if(do_shaded) {
 				UI_ThemeColorBlend(th_col1, th_col2, spline_step);
 				spline_step += dist;
