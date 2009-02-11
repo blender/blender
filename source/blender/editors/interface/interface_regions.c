@@ -1835,8 +1835,13 @@ static uiBlock *ui_block_func_MENU_ITEM(bContext *C, uiPopupBlockHandle *handle,
 		else if(item->type==MENU_ITEM_OPNAME_ENUM) {
 			const char *name;
 			char bname[64];
-
-			name= ui_menu_enumpropname(item->opname, item->propname, item->enumval);
+			
+			/* If no name is given, use the enum name */
+			if (item->name[0] == '\0')
+				name= ui_menu_enumpropname(item->opname, item->propname, item->enumval);
+			else
+				name= item->name;
+			
 			BLI_strncpy(bname, name, sizeof(bname));
 			
 			but= uiDefIconTextButO(block, BUTM, item->opname, item->opcontext, item->icon, bname, x1, y1, width+16, MENU_BUTTON_HEIGHT-1, "");
