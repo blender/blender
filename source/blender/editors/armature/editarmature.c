@@ -3509,7 +3509,56 @@ void ARMATURE_OT_parent_clear(wmOperatorType *ot)
 	
 	RNA_def_enum(ot->srna, "type", prop_editarm_clear_parent_types, 0, "ClearType", "What way to clear parenting");
 }
+/* ****** (de)select All *******/
 
+static int armature_de_select_all_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit = CTX_data_edit_object(C);
+	bArmature *arm= obedit->data;
+	EditBone *ebone;
+	int	sel=1;
+
+	/*	Determine if there are any selected bones
+	And therefore whether we are selecting or deselecting */
+	if (CTX_DATA_COUNT(C, selected_bones) > 0)	sel=0;
+	
+	/*	Set the flags */
+	for (ebone=arm->edbo->first;ebone;ebone=ebone->next) {
+		if (sel==1) {
+			/* select bone */
+			if(arm->layer & ebone->layer && (ebone->flag & BONE_HIDDEN_A)==0) {
+				ebone->flag |= (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
+				if(ebone->parent)
+					ebone->parent->flag |= (BONE_TIPSEL);
+			}
+		}
+		else {
+			/* deselect bone */
+			ebone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL | BONE_ACTIVE);
+		}
+	}	
+	
+	/* undo? */
+	WM_event_add_notifier(C, NC_OBJECT|ND_BONE_SELECT, NULL);
+	
+	return OPERATOR_FINISHED;
+}
+
+void ARMATURE_OT_de_select_all(wmOperatorType *ot)
+{
+	
+	/* identifiers */
+	ot->name= "deselect all editbone";
+	ot->idname= "ARMATURE_OT_de_select_all";
+	
+	/* api callbacks */
+	ot->exec= armature_de_select_all_exec;
+	ot->poll= ED_operator_editarmature;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+}
 /* ***************** EditBone Alignment ********************* */
 
 /* helper to fix a ebone position if its parent has moved due to alignment*/
@@ -4329,7 +4378,49 @@ void POSE_OT_rot_clear(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
-} 
+}
+
+
+static int pose_de_select_all_exec(bContext *C, wmOperator *op)
+{
+	Object *ob= CTX_data_active_object(C);
+	bArmature *arm= ob->data;
+	bPoseChannel *pchan;
+	EditBone *ebone;
+	int	sel=1;
+
+	/*	Determine if there are any selected bones
+	And therefore whether we are selecting or deselecting */
+	if (CTX_DATA_COUNT(C, selected_pchans) > 0)	sel=0;
+	
+	/*	Set the flags */
+	for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+		if ((pchan->bone->layer & arm->layer) && !(pchan->bone->flag & BONE_HIDDEN_P)) {
+				if (sel==0) pchan->bone->flag &= ~(BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL|BONE_ACTIVE);
+				else pchan->bone->flag |= BONE_SELECTED;
+		}
+	}	
+
+	WM_event_add_notifier(C, NC_OBJECT|ND_BONE_SELECT, NULL);
+	
+	return OPERATOR_FINISHED;
+}
+
+void POSE_OT_de_select_all(wmOperatorType *ot)
+{
+	
+	/* identifiers */
+	ot->name= "deselect all bones";
+	ot->idname= "POSE_OT_de_select_all";
+	
+	/* api callbacks */
+	ot->exec= pose_de_select_all_exec;
+	ot->poll= ED_operator_posemode;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+}
 /* ************* hide/unhide pose bones ******************* */
 
 static int hide_selected_pose_bone(Object *ob, Bone *bone, void *ptr) 

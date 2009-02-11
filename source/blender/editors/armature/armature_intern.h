@@ -41,12 +41,14 @@ void ARMATURE_OT_subdivide_simple(struct wmOperatorType *ot);
 void ARMATURE_OT_subdivide_multi(struct wmOperatorType *ot);
 void ARMATURE_OT_parent_set(struct wmOperatorType *ot);
 void ARMATURE_OT_parent_clear(struct wmOperatorType *ot);
+void ARMATURE_OT_de_select_all(struct wmOperatorType *ot);
 
 void POSE_OT_hide(struct wmOperatorType *ot);
 void POSE_OT_reveil(struct wmOperatorType *ot);
 void POSE_OT_rot_clear(struct wmOperatorType *ot);
 void POSE_OT_loc_clear(struct wmOperatorType *ot);
 void POSE_OT_scale_clear(struct wmOperatorType *ot);
+void POSE_OT_de_select_all(struct wmOperatorType *ot);
 
 #endif /* ED_ARMATURE_INTERN_H */
 
