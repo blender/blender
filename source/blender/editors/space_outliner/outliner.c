@@ -3116,7 +3116,8 @@ static KeyingSet *verify_active_keyingset(Scene *scene, short add)
 
 void OUTLINER_OT_keyingset_add_selected(wmOperatorType *ot)
 {
-
+	ot->idname= "OUTLINER_OT_keyingset_add_selected";
+	ot->name= "Keyingset Add Selected";
 }
 
 
@@ -3124,7 +3125,8 @@ void OUTLINER_OT_keyingset_add_selected(wmOperatorType *ot)
 
 void OUTLINER_OT_keyingset_remove_selected(wmOperatorType *ot)
 {
-
+	ot->idname= "OUTLINER_OT_keyingset_remove_selected";
+	ot->name= "Keyingset Remove Selected";
 }
 
 /* ***************** DRAW *************** */
