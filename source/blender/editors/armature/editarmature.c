@@ -4435,6 +4435,12 @@ static int pose_select_parent_exec(bContext *C, wmOperator *op)
 			parent->bone->flag |= BONE_ACTIVE;
 			pchan->bone->flag &= ~BONE_ACTIVE;
 		}
+		else {
+			return OPERATOR_CANCELLED;
+		}
+	}
+	else {
+		return OPERATOR_CANCELLED;
 	}
 
 	WM_event_add_notifier(C, NC_OBJECT|ND_BONE_SELECT, ob);
