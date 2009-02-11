@@ -119,6 +119,7 @@ void ED_operatortypes_armature(void)
 	WM_operatortype_append(ARMATURE_OT_parent_clear);
 	
 	WM_operatortype_append(ARMATURE_OT_de_select_all);
+	WM_operatortype_append(ARMATURE_OT_selection_invert);
 	
 	/* POSE */
 	WM_operatortype_append(POSE_OT_hide);
@@ -129,6 +130,7 @@ void ED_operatortypes_armature(void)
 	WM_operatortype_append(POSE_OT_scale_clear);
 	
 	WM_operatortype_append(POSE_OT_de_select_all);
+	WM_operatortype_append(POSE_OT_selection_invert);
 
 	WM_operatortype_append(POSE_OT_select_parent);
 	
@@ -157,6 +159,7 @@ void ED_keymap_armature(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "ARMATURE_OT_clear_parent", PKEY, KM_PRESS, KM_ALT, 0);
 	
 	WM_keymap_add_item(keymap, "ARMATURE_OT_de_select_all", AKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "ARMATURE_OT_selection_invert", IKEY, KM_PRESS, KM_CTRL, 0);
 	
 	WM_keymap_add_item(keymap, "ARMATURE_OT_test", TKEY, KM_PRESS, 0, 0);  // XXX temp test for context iterators... to be removed
 	
@@ -174,6 +177,7 @@ void ED_keymap_armature(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "POSE_OT_scale_clear", SKEY, KM_PRESS, KM_ALT, 0);
 	
 	WM_keymap_add_item(keymap, "POSE_OT_de_select_all", AKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "POSE_OT_selection_invert", IKEY, KM_PRESS, KM_CTRL, 0);
 
 	WM_keymap_add_item(keymap, "POSE_OT_select_parent", PKEY, KM_PRESS, KM_SHIFT, 0);
 }

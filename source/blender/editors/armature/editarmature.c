@@ -3509,8 +3509,45 @@ void ARMATURE_OT_parent_clear(wmOperatorType *ot)
 	
 	RNA_def_enum(ot->srna, "type", prop_editarm_clear_parent_types, 0, "ClearType", "What way to clear parenting");
 }
-/* ****** (de)select All *******/
 
+/* ****************  Selections  ******************/
+
+static int armature_selection_invert_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit = CTX_data_edit_object(C);
+	bArmature *arm= obedit->data;
+	EditBone *ebone;
+	
+	/*	Set the flags */
+	for (ebone=arm->edbo->first;ebone;ebone=ebone->next) {
+		/* select bone */
+		if(arm->layer & ebone->layer && (ebone->flag & BONE_HIDDEN_A)==0) {
+			ebone->flag ^= (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
+			ebone->flag &= ~BONE_ACTIVE;
+		}
+	}	
+	
+	/* undo? */
+	WM_event_add_notifier(C, NC_OBJECT|ND_BONE_SELECT, NULL);
+	
+	return OPERATOR_FINISHED;
+}
+
+void ARMATURE_OT_selection_invert(wmOperatorType *ot)
+{
+	
+	/* identifiers */
+	ot->name= "Invert Selection";
+	ot->idname= "ARMATURE_OT_selection_invert";
+	
+	/* api callbacks */
+	ot->exec= armature_selection_invert_exec;
+	ot->poll= ED_operator_editarmature;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+}
 static int armature_de_select_all_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
@@ -4380,7 +4417,42 @@ void POSE_OT_rot_clear(wmOperatorType *ot)
 
 }
 
+/* ***************** selections ********************** */
 
+static int pose_selection_invert_exec(bContext *C, wmOperator *op)
+{
+	Object *ob= CTX_data_active_object(C);
+	bArmature *arm= ob->data;
+	bPoseChannel *pchan;
+	
+	/*	Set the flags */
+	for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+		if ((pchan->bone->layer & arm->layer) && !(pchan->bone->flag & BONE_HIDDEN_P)) {
+				pchan->bone->flag ^= (BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL);
+				pchan->bone->flag &= ~BONE_ACTIVE;
+		}
+	}	
+
+	WM_event_add_notifier(C, NC_OBJECT|ND_BONE_SELECT, NULL);
+	
+	return OPERATOR_FINISHED;
+}
+
+void POSE_OT_selection_invert(wmOperatorType *ot)
+{
+	
+	/* identifiers */
+	ot->name= "Invert Selection";
+	ot->idname= "POSE_OT_selection_invert";
+	
+	/* api callbacks */
+	ot->exec= pose_selection_invert_exec;
+	ot->poll= ED_operator_posemode;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+}
 static int pose_de_select_all_exec(bContext *C, wmOperator *op)
 {
 	Object *ob= CTX_data_active_object(C);
