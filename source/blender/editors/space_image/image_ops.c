@@ -68,6 +68,8 @@
 #include "ED_space_api.h"
 #include "ED_uvedit.h"
 
+#include "UI_interface.h"
+#include "UI_resources.h"
 #include "UI_view2d.h"
 
 #include "WM_api.h"
@@ -591,13 +593,15 @@ static void image_filesel(bContext *C, wmOperator *op, const char *path)
 {
 	SpaceFile *sfile;
 
-	ED_screen_full_newspace(C, CTX_wm_area(C), SPACE_FILE);
+	// XXX context is not set back ok afterwards
+	// ED_screen_full_newspace(C, CTX_wm_area(C), SPACE_FILE);
+	ED_area_newspace(C, CTX_wm_area(C), SPACE_FILE);
 	
 	/* settings for filebrowser */
 	sfile= (SpaceFile*)CTX_wm_space_data(C);
 	sfile->op= op;
 
-	/* XXX right params for image filter browse, filters, .. */
+	/* XXX right params for image save, with pupmenu and image type .. */
 	ED_fileselect_set_params(sfile, FILE_SPECIAL, op->type->name, path, 0, 0, 0);
 }
 
@@ -617,8 +621,6 @@ static int open_exec(bContext *C, wmOperator *op)
 
 	if(!ima)
 		return OPERATOR_CANCELLED;
-
-	return OPERATOR_FINISHED; // XXX context not correct!
 
 	BKE_image_signal(ima, &sima->iuser, IMA_SIGNAL_RELOAD);
 	ED_space_image_set(C, sima, scene, obedit, ima);
@@ -664,8 +666,6 @@ static int replace_exec(bContext *C, wmOperator *op)
 	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
 	char *str;
 
-	return OPERATOR_CANCELLED; // XXX context not correct!
-
 	if(!sima->image)
 		return OPERATOR_CANCELLED;
 	
@@ -674,6 +674,7 @@ static int replace_exec(bContext *C, wmOperator *op)
 	MEM_freeN(str);
 
 	BKE_image_signal(sima->image, &sima->iuser, IMA_SIGNAL_RELOAD);
+	WM_event_add_notifier(C, NC_IMAGE|NA_EDITED, sima->image);
 
 	return OPERATOR_FINISHED;
 }
@@ -714,7 +715,7 @@ void IMAGE_OT_replace(wmOperatorType *ot)
 
 /******************** save image as operator ********************/
 
-static void save_image_doit(SpaceImage *sima, Scene *scene, char *name)
+static void save_image_doit(bContext *C, SpaceImage *sima, Scene *scene, wmOperator *op, char *name)
 {
 	Image *ima= ED_space_image(sima);
 	ImBuf *ibuf= ED_space_image_buffer(sima);
@@ -756,7 +757,8 @@ static void save_image_doit(SpaceImage *sima, Scene *scene, char *name)
 						ibuf->userflags &= ~IB_BITMAPDIRTY;
 					
 				}
-				else; // XXX error("Did not write, no Multilayer Image");
+				else
+					BKE_report(op->reports, RPT_ERROR, "Did not write, no Multilayer Image");
 			}
 			else if (BKE_write_ibuf(scene, ibuf, str, sima->imtypenr, scene->r.subimtype, scene->r.quality)) {
 				BLI_strncpy(ima->name, name, sizeof(ima->name));
@@ -777,12 +779,10 @@ static void save_image_doit(SpaceImage *sima, Scene *scene, char *name)
 				while (len > 0 && str[len - 1] != '/' && str[len - 1] != '\\') len--;
 				rename_id(&ima->id, str+len);
 			} 
-			else {
-				; // XXX error("Couldn't write image: %s", str);
-			}
+			else
+				BKE_reportf(op->reports, RPT_ERROR, "Couldn't write image: %s", str);
 
-			// XXX allqueue(REDRAWHEADERS, 0);
-			// XXX allqueue(REDRAWBUTSSHADING, 0);
+			WM_event_add_notifier(C, NC_IMAGE|NA_EDITED, sima->image);
 
 			WM_cursor_wait(0);
 		}
@@ -793,16 +793,14 @@ static int save_as_exec(bContext *C, wmOperator *op)
 {
 	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
 	Scene *scene= CTX_data_scene(C);
-	//Image *ima = ED_space_image(sima);
+	Image *ima = ED_space_image(sima);
 	char *str;
 
-	return OPERATOR_CANCELLED; // XXX context not correct!
-
-	/*if(!ima)
-		return OPERATOR_CANCELLED;*/
+	if(!ima)
+		return OPERATOR_CANCELLED;
 
 	str= RNA_string_get_alloc(op->ptr, "filename", NULL, 0);
-	save_image_doit(sima, scene, str);
+	save_image_doit(C, sima, scene, op, str);
 	MEM_freeN(str);
 
 	return OPERATOR_FINISHED;
@@ -887,7 +885,7 @@ static int save_exec(bContext *C, wmOperator *op)
 			else 
 				sima->imtypenr= BKE_ftype_to_imtype(ibuf->ftype);
 			
-			save_image_doit(sima, scene, ibuf->name);
+			save_image_doit(C, sima, scene, op, ibuf->name);
 		}
 		else
 			return save_as_exec(C, op);
@@ -950,24 +948,22 @@ static int save_sequence_exec(bContext *C, wmOperator *op)
 	BLI_strncpy(di, ibuf->name, FILE_MAX);
 	BLI_splitdirstring(di, fi);
 	
-	sprintf(fi, "%d Image(s) will be saved in %s", tot, di);
+	BKE_reportf(op->reports, RPT_INFO, "%d Image(s) will be saved in %s", tot, di);
 
-	if(1) { // XXX okee(fi)) {
-		
-		for(ibuf= sima->image->ibufs.first; ibuf; ibuf= ibuf->next) {
-			if(ibuf->userflags & IB_BITMAPDIRTY) {
-				char name[FILE_MAX];
-				BLI_strncpy(name, ibuf->name, sizeof(name));
-				
-				BLI_convertstringcode(name, G.sce);
+	for(ibuf= sima->image->ibufs.first; ibuf; ibuf= ibuf->next) {
+		if(ibuf->userflags & IB_BITMAPDIRTY) {
+			char name[FILE_MAX];
+			BLI_strncpy(name, ibuf->name, sizeof(name));
+			
+			BLI_convertstringcode(name, G.sce);
 
-				if(0 == IMB_saveiff(ibuf, name, IB_rect | IB_zbuf | IB_zbuffloat)) {
-					BKE_reportf(op->reports, RPT_ERROR, "Could not write image %s.", name);
-					break;
-				}
-				printf("Saved: %s\n", ibuf->name);
-				ibuf->userflags &= ~IB_BITMAPDIRTY;
+			if(0 == IMB_saveiff(ibuf, name, IB_rect | IB_zbuf | IB_zbuffloat)) {
+				BKE_reportf(op->reports, RPT_ERROR, "Could not write image %s.", name);
+				break;
 			}
+
+			printf("Saved: %s\n", ibuf->name);
+			ibuf->userflags &= ~IB_BITMAPDIRTY;
 		}
 	}
 
@@ -1003,8 +999,8 @@ static int reload_exec(bContext *C, wmOperator *op)
 	BKE_image_signal(sima->image, &sima->iuser, IMA_SIGNAL_RELOAD);
 	/* ED_space_image_set(C, sima, scene, obedit, NULL); - do we really need this? */
 
-	// XXX notifier
 	// XXX BIF_preview_changed(ID_TE);
+	WM_event_add_notifier(C, NC_IMAGE|NA_EDITED, sima->image);
 	ED_area_tag_redraw(CTX_wm_area(C));
 	
 	return OPERATOR_FINISHED;
@@ -1081,33 +1077,66 @@ void IMAGE_OT_new(wmOperatorType *ot)
 
 /********************* pack operator *********************/
 
-static int pack_exec(bContext *C, wmOperator *op)
+static int pack_test(bContext *C, wmOperator *op)
 {
-	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
 	Image *ima= CTX_data_edit_image(C);
-	ImBuf *ibuf= ED_space_image_buffer(sima);
 	int as_png= RNA_boolean_get(op->ptr, "as_png");
 
 	if(!ima)
-		return OPERATOR_CANCELLED;
+		return 0;
 	if(!as_png && ima->packedfile)
-		return OPERATOR_CANCELLED;
+		return 0;
 
 	if(ima->source==IMA_SRC_SEQUENCE || ima->source==IMA_SRC_MOVIE) {
 		BKE_report(op->reports, RPT_ERROR, "Can't pack movie or image sequence.");
+		return 0;
+	}
+
+	return 1;
+}
+
+static int pack_exec(bContext *C, wmOperator *op)
+{
+	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
+	Image *ima= ED_space_image(sima);
+	ImBuf *ibuf= ED_space_image_buffer(sima);
+	int as_png= RNA_boolean_get(op->ptr, "as_png");
+
+	if(!pack_test(C, op))
+		return OPERATOR_CANCELLED;
+	
+	if(!as_png && (ibuf && (ibuf->userflags & IB_BITMAPDIRTY))) {
+		BKE_report(op->reports, RPT_ERROR, "Can't pack edited image from disk, only as internal PNG.");
 		return OPERATOR_CANCELLED;
 	}
 
-	if(as_png || (ibuf && (ibuf->userflags & IB_BITMAPDIRTY))) {
-		if(1) // XXX okee("Can't pack painted image. Use Repack as PNG?"))
-			BKE_image_memorypack(ima);
-	}
-	else {
-		ima->packedfile = newPackedFile(ima->name);
-		// XXX BIF_undo_push("Pack image");
+	if(as_png)
+		BKE_image_memorypack(ima);
+	else
+		ima->packedfile= newPackedFile(ima->name);
+
+	return OPERATOR_FINISHED;
+}
+
+static int pack_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
+	ImBuf *ibuf= ED_space_image_buffer(sima);
+	uiMenuItem *head;
+	int as_png= RNA_boolean_get(op->ptr, "as_png");
+
+	if(!pack_test(C, op))
+		return OPERATOR_CANCELLED;
+	
+	if(!as_png && (ibuf && (ibuf->userflags & IB_BITMAPDIRTY))) {
+		head= uiPupMenuBegin("OK", ICON_HELP);
+		uiMenuItemBooleanO(head, "Can't pack edited image from disk. Pack as internal PNG?", 0, op->idname, "as_png", 1);
+		uiPupMenuEnd(C, head);
+
+		return OPERATOR_CANCELLED;
 	}
 
-	return OPERATOR_CANCELLED;
+	return pack_exec(C, op);
 }
 
 void IMAGE_OT_pack(wmOperatorType *ot)
@@ -1118,6 +1147,7 @@ void IMAGE_OT_pack(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= pack_exec;
+	ot->invoke= pack_invoke;
 	ot->poll= space_image_poll;
 
 	/* flags */
@@ -1144,15 +1174,11 @@ static int unpack_exec(bContext *C, wmOperator *op)
 	}
 
 	if(G.fileflags & G_AUTOPACK)
-		if(1) // XXX okee("Disable AutoPack?"))
-			G.fileflags &= ~G_AUTOPACK;
+		BKE_report(op->reports, RPT_WARNING, "AutoPack is enabled, so image will be packed again on file save.");
 	
-	if((G.fileflags & G_AUTOPACK) == 0) {
-		unpackImage(ima, PF_ASK);
-		// XXX BIF_undo_push("Ununpack image");
-	}
+	unpackImage(ima, PF_ASK);
 
-	return OPERATOR_CANCELLED;
+	return OPERATOR_FINISHED;
 }
 
 void IMAGE_OT_unpack(wmOperatorType *ot)
@@ -1266,15 +1292,17 @@ static void sample_apply(bContext *C, wmOperator *op, wmEvent *event)
 			info->zfp= &info->zf;
 		}
 		
-		// XXX set white/black point
-		if(sima->cumap) {
-			if(ibuf->channels==4) {
-				if(0) { // XXX G.qual & LR_CTRLKEY) {
-					curvemapping_set_black_white(sima->cumap, NULL, fp);
+		if(sima->cumap && ibuf->channels==4) {
+			/* we reuse this callback for set curves point operators */
+			if(RNA_struct_find_property(op->ptr, "point")) {
+				int point= RNA_enum_get(op->ptr, "point");
+
+				if(point == 1) {
+					curvemapping_set_black_white(sima->cumap, NULL, info->colfp);
 					curvemapping_do_ibuf(sima->cumap, ibuf);
 				}
-				else if(0) { // XXX G.qual & LR_SHIFTKEY) {
-					curvemapping_set_black_white(sima->cumap, fp, NULL);
+				else if(point == 0) {
+					curvemapping_set_black_white(sima->cumap, info->colfp, NULL);
 					curvemapping_do_ibuf(sima->cumap, ibuf);
 				}
 			}
@@ -1368,6 +1396,32 @@ void IMAGE_OT_sample(wmOperatorType *ot)
 	ot->poll= space_image_main_area_poll;
 }
 
+/******************** set curve point operator ********************/
+
+void IMAGE_OT_set_curves_point(wmOperatorType *ot)
+{
+	static EnumPropertyItem point_items[]= {
+		{0, "BLACK_POINT", "Black Point", ""},
+		{1, "WHITE_POINT", "White Point", ""},
+		{0, NULL, NULL, NULL}};
+
+	/* identifiers */
+	ot->name= "Set Curves Point";
+	ot->idname= "IMAGE_OT_set_curves_point";
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* api callbacks */
+	ot->invoke= sample_invoke;
+	ot->modal= sample_modal;
+	ot->cancel= sample_cancel;
+	ot->poll= space_image_main_area_poll;
+
+	/* properties */
+	RNA_def_enum(ot->srna, "point", point_items, 0, "Point", "Set black point or white point for curves.");
+}
+
 /******************** record composite operator *********************/
 
 typedef struct RecordCompositeData {
@@ -1383,11 +1437,12 @@ int record_composite_apply(bContext *C, wmOperator *op)
 	Scene *scene= CTX_data_scene(C);
 	ImBuf *ibuf;
 	
+	WM_timecursor(CTX_wm_window(C), scene->r.cfra);
+
 	// XXX scene->nodetree->test_break= blender_test_break;
 	// XXX scene->nodetree->test_break= NULL;
-	// XXX set_timecursor(CFRA);
 	
-	BKE_image_all_free_anim_ibufs(CFRA);
+	BKE_image_all_free_anim_ibufs(scene->r.cfra);
 	ntreeCompositTagAnimated(scene->nodetree);
 	ntreeCompositExecTree(scene->nodetree, &scene->r, scene->r.cfra != rcd->old_cfra);	/* 1 is no previews */
 
@@ -1421,27 +1476,26 @@ static int record_composite_init(bContext *C, wmOperator *op)
 	rcd->efra= sima->iuser.sfra + sima->iuser.frames-1;
 	scene->r.cfra= rcd->sfra;
 
-	WM_cursor_wait(1);
-
 	return 1;
 }
 
 static void record_composite_exit(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
+	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
 	RecordCompositeData *rcd= op->customdata;
 
 	scene->r.cfra= rcd->old_cfra;
 
-	WM_cursor_wait(0);
+	WM_cursor_restore(CTX_wm_window(C));
 
 	if(rcd->timer)
 		WM_event_remove_window_timer(CTX_wm_window(C), rcd->timer);
 
+	WM_event_add_notifier(C, NC_IMAGE|NA_EDITED, sima->image);
+
 	// XXX play_anim(0);
-	
 	// XXX allqueue(REDRAWNODE, 1);
-	// XXX allqueue(REDRAWIMAGE, 1);
 
 	MEM_freeN(rcd);
 }

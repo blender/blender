@@ -101,9 +101,6 @@ static SpaceLink *image_new(const bContext *C)
 	BLI_addtail(&simage->regionbase, ar);
 	ar->regiontype= RGN_TYPE_WINDOW;
 	
-	/* channel list region XXX */
-
-	
 	return (SpaceLink *)simage;
 }
 
@@ -156,7 +153,9 @@ void image_operatortypes(void)
 	WM_operatortype_append(IMAGE_OT_save_sequence);
 	WM_operatortype_append(IMAGE_OT_pack);
 	WM_operatortype_append(IMAGE_OT_unpack);
+
 	WM_operatortype_append(IMAGE_OT_sample);
+	WM_operatortype_append(IMAGE_OT_set_curves_point);
 
 	WM_operatortype_append(IMAGE_OT_record_composite);
 
@@ -189,7 +188,10 @@ void image_keymap(struct wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "IMAGE_OT_open", OKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "IMAGE_OT_reload", RKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "IMAGE_OT_save", SKEY, KM_PRESS, KM_ALT, 0);
+
 	WM_keymap_add_item(keymap, "IMAGE_OT_sample", ACTIONMOUSE, KM_PRESS, 0, 0);
+	RNA_enum_set(WM_keymap_add_item(keymap, "IMAGE_OT_set_curves_point", ACTIONMOUSE, KM_PRESS, KM_CTRL, 0)->ptr, "point", 0);
+	RNA_enum_set(WM_keymap_add_item(keymap, "IMAGE_OT_set_curves_point", ACTIONMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "point", 1);
 
 	WM_keymap_add_item(keymap, "IMAGE_OT_toolbox", SPACEKEY, KM_PRESS, 0, 0);
 }
@@ -234,6 +236,8 @@ static void image_refresh(const bContext *C, ScrArea *sa)
 
 static void image_listener(ScrArea *sa, wmNotifier *wmn)
 {
+	SpaceImage *sima= sa->spacedata.first;
+
 	/* context changes */
 	switch(wmn->category) {
 		case NC_SCENE:
@@ -245,6 +249,10 @@ static void image_listener(ScrArea *sa, wmNotifier *wmn)
 					ED_area_tag_redraw(sa);
 					break;
 			}
+			break;
+		case NC_IMAGE:	
+			if(!wmn->reference || wmn->reference == sima->image)
+				ED_area_tag_redraw(sa);
 			break;
 	}
 }
@@ -277,7 +285,7 @@ static void image_main_area_set_view2d(SpaceImage *sima, ARegion *ar)
 #if 0
 	if(image_preview_active(curarea, &xim, &yim));
 	else if(sima->image) {
-		ImBuf *ibuf= imagewindow_get_ibuf(sima);
+		ImBuf *ibuf= ED_space_image_buffer(sima);
 		float xuser_asp, yuser_asp;
 		
 		ED_image_aspect(sima->image, &xuser_asp, &yuser_asp);
@@ -506,9 +514,6 @@ void ED_space_image_set(bContext *C, SpaceImage *sima, Scene *scene, Object *obe
 	/* change the space ima after because uvedit_face_visible uses the space ima
 	 * to check if the face is displayed in UV-localview */
 	sima->image= ima;
-
-	if(ima)
-		printf("assign %s\n", ima->id.name);
 
 	if(ima == NULL || ima->type==IMA_TYPE_R_RESULT || ima->type==IMA_TYPE_COMPOSITE)
 		sima->flag &= ~SI_DRAWTOOL;

@@ -125,7 +125,7 @@ static void image_verify_buffer_float(SpaceImage *sima, ImBuf *ibuf)
 	}
 }
 
-static void sima_draw_render_info(SpaceImage *sima, ARegion *ar)
+static void draw_render_info(SpaceImage *sima, ARegion *ar)
 {
 	rcti rect;
 	float colf[3];
@@ -136,23 +136,24 @@ static void sima_draw_render_info(SpaceImage *sima, ARegion *ar)
 		return;
 	
 	rect= ar->winrct;
-	rect.ymin= rect.ymax - HEADER_HEIGHT;
-	
-	glaDefine2DArea(&rect);
+	rect.xmin= 0;
+	rect.ymin= ar->winrct.ymax - ar->winrct.ymin - HEADER_HEIGHT;
+	rect.xmax= ar->winrct.xmax - ar->winrct.xmin;
+	rect.ymax= ar->winrct.ymax - ar->winrct.ymin;
 	
 	/* clear header rect */
 	UI_GetThemeColor3fv(TH_BACK, colf);
-	glClearColor(colf[0]+0.1f, colf[1]+0.1f, colf[2]+0.1f, 1.0); 
-	glClear(GL_COLOR_BUFFER_BIT);
+	glColor3f(colf[0]+0.1f, colf[1]+0.1f, colf[2]+0.1f);
+	glRecti(rect.xmin, rect.ymin, rect.xmax, rect.ymax);
 	
 	UI_ThemeColor(TH_TEXT_HI);
-	glRasterPos2i(12, 5);
-	UI_RasterPos(12, 5);
+	glRasterPos2i(12, rect.ymin + 5);
+	UI_RasterPos(12, rect.ymin + 5);
 
 	if(showspare) {
 		UI_DrawString(G.fonts, "(Previous)", 0);
-		glRasterPos2i(72, 5);
-		UI_RasterPos(72, 5);
+		glRasterPos2i(72, rect.ymin + 5);
+		UI_RasterPos(72, rect.ymin + 5);
 	}
 
 	UI_DrawString(G.fonts, str, 0);
@@ -668,7 +669,7 @@ void draw_image_main(SpaceImage *sima, ARegion *ar, Scene *scene)
 
 	/* render info */
 	if(ibuf && show_render)
-		sima_draw_render_info(sima, ar);
+		draw_render_info(sima, ar);
 
 	/* XXX integrate this code */
 #if 0

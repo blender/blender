@@ -186,37 +186,6 @@ static void do_image_imagemenu(void *arg, int event)
 #ifndef DISABLE_PYTHON
 	if (event >= 20) BPY_menu_do_python(PYMENU_IMAGE, event - 20);
 #endif	
-	switch(event)
-	{
-	case 0:
-		open_image_sima((G.qual==LR_CTRLKEY));
-		break;
-	case 1:
-		replace_image_sima((G.qual==LR_CTRLKEY));
-		break;
-	case 2:
-		pack_image_sima();
-		break;
-	case 5:
-		save_as_image_sima();
-		break;
-	case 6:
-		reload_image_sima();
-		break;
-	case 7:
-		new_image_sima();
-		break;
-	case 8:
-		save_image_sima();
-		break;
-	case 9:
-		save_image_sequence_sima();
-		break;
-	case 10:
-		BKE_image_memorypack(sima->image);
-		allqueue(REDRAWIMAGE, 0);
-		break;
-	}
 }
 #endif
 
@@ -242,12 +211,14 @@ static void image_imagemenu(bContext *C, uiMenuItem *head, void *arg_unused)
 	uiMenuItemO(head, 0, "IMAGE_OT_open"); // Open...
 
 	if(ima) {
-		uiMenuItemO(head, 0, "IMAGE_OT_replace"); // Replace...
-		uiMenuItemO(head, 0, "IMAGE_OT_reload"); // Reload...
+		if(!show_render) {
+			uiMenuItemO(head, 0, "IMAGE_OT_replace"); // Replace...
+			uiMenuItemO(head, 0, "IMAGE_OT_reload"); // Reload...
+		}
 		uiMenuItemO(head, 0, "IMAGE_OT_save"); // Save
 		uiMenuItemO(head, 0, "IMAGE_OT_save_as"); // Save As...
 		if(ima->source == IMA_SRC_SEQUENCE)
-			uiMenuItemO(head, 0, "IMAGE_OT_save_changed"); // Save Changed Images
+			uiMenuItemO(head, 0, "IMAGE_OT_save_sequence"); // Save Changed Sequence Images
 
 		if(!show_render) {
 			uiMenuSeparator(head);
