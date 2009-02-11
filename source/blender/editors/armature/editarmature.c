@@ -4421,6 +4421,43 @@ void POSE_OT_de_select_all(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 }
+
+static int pose_select_parent_exec(bContext *C, wmOperator *op)
+{
+	Object *ob= CTX_data_active_object(C);
+	bArmature *arm= ob->data;
+	bPoseChannel *pchan,*parent;
+
+	/*	Determine if there is an active bone */
+	pchan=CTX_data_active_pchan(C);
+	if (pchan) {
+		parent=pchan->parent;
+		if ((parent) && !(parent->bone->flag & BONE_HIDDEN_P)) {
+			parent->bone->flag |= BONE_SELECTED;
+			parent->bone->flag |= BONE_ACTIVE;
+			pchan->bone->flag &= ~BONE_ACTIVE;
+		}
+	}
+
+	WM_event_add_notifier(C, NC_OBJECT|ND_BONE_SELECT, NULL);
+	
+	return OPERATOR_FINISHED;
+}
+
+void POSE_OT_select_parent(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "select parent bone";
+	ot->idname= "POSE_OT_select_parent";
+
+	/* api callbacks */
+	ot->exec= pose_select_parent_exec;
+	ot->poll= ED_operator_posemode;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+}
 /* ************* hide/unhide pose bones ******************* */
 
 static int hide_selected_pose_bone(Object *ob, Bone *bone, void *ptr) 

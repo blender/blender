@@ -49,6 +49,7 @@ void POSE_OT_rot_clear(struct wmOperatorType *ot);
 void POSE_OT_loc_clear(struct wmOperatorType *ot);
 void POSE_OT_scale_clear(struct wmOperatorType *ot);
 void POSE_OT_de_select_all(struct wmOperatorType *ot);
+void POSE_OT_select_parent(struct wmOperatorType *ot);
 
 #endif /* ED_ARMATURE_INTERN_H */
 

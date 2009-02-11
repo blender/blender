@@ -129,6 +129,8 @@ void ED_operatortypes_armature(void)
 	WM_operatortype_append(POSE_OT_scale_clear);
 	
 	WM_operatortype_append(POSE_OT_de_select_all);
+
+	WM_operatortype_append(POSE_OT_select_parent);
 	
 	WM_operatortype_append(ARMATURE_OT_test); // XXX temp test for context iterators... to be removed
 }
@@ -172,5 +174,7 @@ void ED_keymap_armature(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "POSE_OT_scale_clear", SKEY, KM_PRESS, KM_ALT, 0);
 	
 	WM_keymap_add_item(keymap, "POSE_OT_de_select_all", AKEY, KM_PRESS, 0, 0);
+
+	WM_keymap_add_item(keymap, "POSE_OT_select_parent", PKEY, KM_PRESS, KM_SHIFT, 0);
 }
 
