@@ -64,6 +64,38 @@
 void ED_operatortypes_curve(void)
 {
 	WM_operatortype_append(FONT_OT_textedit);
+
+	WM_operatortype_append(CURVE_OT_separate);
+	WM_operatortype_append(CURVE_OT_switch_direction);
+	WM_operatortype_append(CURVE_OT_set_weight);
+	WM_operatortype_append(CURVE_OT_set_radius);
+	WM_operatortype_append(CURVE_OT_smooth);
+	WM_operatortype_append(CURVE_OT_smooth_curve_radius);
+	WM_operatortype_append(CURVE_OT_de_select_first);
+	WM_operatortype_append(CURVE_OT_de_select_last);
+	WM_operatortype_append(CURVE_OT_de_select_all);
+	WM_operatortype_append(CURVE_OT_hide);
+	WM_operatortype_append(CURVE_OT_reveal);
+	WM_operatortype_append(CURVE_OT_select_invert);
+	WM_operatortype_append(CURVE_OT_subdivide);
+	WM_operatortype_append(CURVE_OT_set_spline_type);
+	WM_operatortype_append(CURVE_OT_make_segment);
+	WM_operatortype_append(CURVE_OT_spin);
+	WM_operatortype_append(CURVE_OT_add_vertex);
+	WM_operatortype_append(CURVE_OT_extrude);
+	WM_operatortype_append(CURVE_OT_make_cyclic);
+	WM_operatortype_append(CURVE_OT_select_linked);
+	WM_operatortype_append(CURVE_OT_select_row);
+	WM_operatortype_append(CURVE_OT_select_next);
+	WM_operatortype_append(CURVE_OT_select_previous);
+	WM_operatortype_append(CURVE_OT_select_more);
+	WM_operatortype_append(CURVE_OT_select_less);
+	WM_operatortype_append(CURVE_OT_select_random);
+	WM_operatortype_append(CURVE_OT_select_every_nth);
+	WM_operatortype_append(CURVE_OT_add_duplicate);
+	WM_operatortype_append(CURVE_OT_delete);
+	WM_operatortype_append(CURVE_OT_set_smooth);
+	WM_operatortype_append(CURVE_OT_clear_tilt);
 }
 
 void ED_keymap_curve(wmWindowManager *wm)
@@ -77,6 +109,5 @@ void ED_keymap_curve(wmWindowManager *wm)
 	keymap= WM_keymap_listbase(wm, "Curve", 0, 0);
 	
 	WM_keymap_add_item(keymap, "OBJECT_OT_curve_add", AKEY, KM_PRESS, KM_SHIFT, 0);
-
 }
 

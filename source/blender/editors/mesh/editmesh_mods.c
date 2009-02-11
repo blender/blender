@@ -2661,7 +2661,7 @@ void MESH_OT_hide(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
-	RNA_def_boolean(ot->srna, "invert", 0, "Invert", "");
+	RNA_def_boolean(ot->srna, "invert", 0, "Invert", "Hide unselected rather than selected.");
 }
 
 void EM_reveal_mesh(EditMesh *em)
@@ -3167,7 +3167,7 @@ void EM_select_swap(EditMesh *em) /* exported for UV */
 
 }
 
-static int selectswap_mesh_exec(bContext *C, wmOperator *op)
+static int select_invert_mesh_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
@@ -3181,11 +3181,11 @@ static int selectswap_mesh_exec(bContext *C, wmOperator *op)
 void MESH_OT_select_invert(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select Swap";
+	ot->name= "Select Invert";
 	ot->idname= "MESH_OT_select_invert";
 	
 	/* api callbacks */
-	ot->exec= selectswap_mesh_exec;
+	ot->exec= select_invert_mesh_exec;
 	ot->poll= ED_operator_editmesh;
 	
 	/* flags */
@@ -3388,7 +3388,7 @@ static void selectrandom_mesh(EditMesh *em, float perc) /* randomly selects a us
 	EditVert *eve;
 	EditEdge *eed;
 	EditFace *efa;
-	float randfac= perc/100.0f;
+	float randfac= perc;
 	/* Get the percentage of vertices to randomly select as 'randfac' */
 // XXX	if(button(&randfac,0, 100,"Percentage:")==0) return;
 
@@ -3451,7 +3451,7 @@ void MESH_OT_select_random(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
 	
 	/* props */
-	RNA_def_float(ot->srna, "percent", 50.0f, 0.0f, 100.0f, "Percent", "percentage of mesh data to randomly select", 0.01f, 100.0f);
+	RNA_def_float(ot->srna, "percent", 0.5f, 0.0f, 1.0f, "Percent", "Percentage of vertices to select randomly.", 0.0001f, 1.0f);
 }
 
 void editmesh_select_by_material(EditMesh *em, int index) 

@@ -238,6 +238,9 @@ int ED_operator_editcurve(bContext *C)
 	if(obedit && obedit->type==OB_CURVE)
 		return NULL != ((Mesh *)obedit->data)->edit_mesh;
 	return 0;
+
+	// XXX this test was in many tools, still needed?
+	// if(v3d==0 || (v3d->lay & obedit->lay)==0 ) return 0;
 }
 
 

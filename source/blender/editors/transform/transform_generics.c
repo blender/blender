@@ -351,41 +351,12 @@ void recalcData(TransInfo *t)
 			}
 		}
 	}
-	else if (t->obedit) {
-		if ELEM(t->obedit->type, OB_CURVE, OB_SURF) {
-			Curve *cu= t->obedit->data;
-			Nurb *nu= cu->editnurb->first;
-			
-			DAG_object_flush_update(G.scene, t->obedit, OB_RECALC_DATA);  /* sets recalc flags */
-			
-			if (t->state == TRANS_CANCEL) {
-				while(nu) {
-					calchandlesNurb(nu); /* Cant do testhandlesNurb here, it messes up the h1 and h2 flags */
-					nu= nu->next;
-				}
-			} else {
-				/* Normal updating */
-				while(nu) {
-					test2DNurb(nu);
-					calchandlesNurb(nu);
-					nu= nu->next;
-				}
-				retopo_do_all();
-			}
-		}
-		else if(t->obedit->type==OB_LATTICE) {
-			DAG_object_flush_update(G.scene, t->obedit, OB_RECALC_DATA);  /* sets recalc flags */
-			
-			if(editLatt->flag & LT_OUTSIDE) outside_lattice(editLatt);
-		}
-		else {
-			DAG_object_flush_update(G.scene, t->obedit, OB_RECALC_DATA);  /* sets recalc flags */
-		}
+#endif
+	if (t->obedit) {
 	}
 	else if(G.f & G_PARTICLEEDIT) {
 		flushTransParticles(t);
 	}
-#endif
 	if (t->spacetype==SPACE_NODE) {
 		flushTransNodes(t);
 	}
@@ -446,7 +417,35 @@ void recalcData(TransInfo *t)
 		}
 	}
 	else if (t->obedit) {
-		if (t->obedit->type == OB_MESH) {
+		if ELEM(t->obedit->type, OB_CURVE, OB_SURF) {
+			Curve *cu= t->obedit->data;
+			Nurb *nu= cu->editnurb->first;
+			
+			DAG_object_flush_update(scene, t->obedit, OB_RECALC_DATA);  /* sets recalc flags */
+			
+			if (t->state == TRANS_CANCEL) {
+				while(nu) {
+					calchandlesNurb(nu); /* Cant do testhandlesNurb here, it messes up the h1 and h2 flags */
+					nu= nu->next;
+				}
+			} else {
+				/* Normal updating */
+				while(nu) {
+					test2DNurb(nu);
+					calchandlesNurb(nu);
+					nu= nu->next;
+				}
+				/* TRANSFORM_FIX_ME */
+				// retopo_do_all();
+			}
+		}
+		else if(t->obedit->type==OB_LATTICE) {
+			Lattice *la= t->obedit->data;
+			DAG_object_flush_update(scene, t->obedit, OB_RECALC_DATA);  /* sets recalc flags */
+			
+			if(la->editlatt->flag & LT_OUTSIDE) outside_lattice(la->editlatt);
+		}
+		else if (t->obedit->type == OB_MESH) {
 			if(t->spacetype==SPACE_IMAGE) {
 				SpaceImage *sima= t->sa->spacedata.first;
 
@@ -454,7 +453,7 @@ void recalcData(TransInfo *t)
 				if(sima->flag & SI_LIVE_UNWRAP)
 					ED_uvedit_live_unwrap_re_solve();
 	
-				DAG_object_flush_update(t->scene, t->obedit, OB_RECALC_DATA);
+				DAG_object_flush_update(scene, t->obedit, OB_RECALC_DATA);
 			} else {
 				EditMesh *em = ((Mesh*)t->obedit->data)->edit_mesh;
 				/* mirror modifier clipping? */
@@ -466,10 +465,10 @@ void recalcData(TransInfo *t)
 //					}
 					clipMirrorModifier(t, t->obedit);
 				}
-				if((t->options & CTX_NO_MIRROR) == 0 && (t->scene->toolsettings->editbutflag & B_MESH_X_MIRROR))
+				if((t->options & CTX_NO_MIRROR) == 0 && (scene->toolsettings->editbutflag & B_MESH_X_MIRROR))
 					editmesh_apply_to_mirror(t);
 				
-				DAG_object_flush_update(t->scene, t->obedit, OB_RECALC_DATA);  /* sets recalc flags */
+				DAG_object_flush_update(scene, t->obedit, OB_RECALC_DATA);  /* sets recalc flags */
 				
 				recalc_editnormals(em);
 			}
@@ -552,6 +551,8 @@ void recalcData(TransInfo *t)
 				transform_armature_mirror_update(t->obedit);
 			
 		}
+		else
+			DAG_object_flush_update(scene, t->obedit, OB_RECALC_DATA);  /* sets recalc flags */
 	}
 	else if( (t->flag & T_POSE) && t->poseobj) {
 		Object *ob= t->poseobj;

@@ -1170,7 +1170,7 @@ static int delete_mesh_exec(bContext *C, wmOperator *op)
 void MESH_OT_delete(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Delete Mesh";
+	ot->name= "Delete";
 	ot->idname= "MESH_OT_delete";
 	
 	/* api callbacks */
@@ -6672,7 +6672,7 @@ void MESH_OT_subdivide_smooth(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
-	RNA_def_float(ot->srna, "smoothness", 5.0f, 0.0f, 1000.0f, "Smoothness", "", 0.0f, FLT_MAX);
+	RNA_def_float(ot->srna, "smoothness", 1.0f, 0.0f, 1000.0f, "Smoothness", "", 0.0f, FLT_MAX);
 }
 
 static int subdivs_invoke(bContext *C, wmOperator *op, wmEvent *event)
@@ -6735,7 +6735,7 @@ void MESH_OT_subdivs(wmOperatorType *ot)
 	/* this is temp, the ops are different, but they are called from subdivs, so all the possible props should be here as well*/
 	RNA_def_int(ot->srna, "number_cuts", 4, 1, 10, "Number of Cuts", "", 1, INT_MAX);
 	RNA_def_float(ot->srna, "random_factor", 5.0, 0.0f, FLT_MAX, "Random Factor", "", 0.0f, 1000.0f);
-	RNA_def_float(ot->srna, "smoothness", 5.0f, 0.0f, 1000.0f, "Smoothness", "", 0.0f, FLT_MAX);
+	RNA_def_float(ot->srna, "smoothness", 1.0f, 0.0f, 1000.0f, "Smoothness", "", 0.0f, FLT_MAX);
 		
 }
 
