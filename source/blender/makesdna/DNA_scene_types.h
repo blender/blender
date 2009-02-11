@@ -537,7 +537,7 @@ typedef struct Scene {
 	short proportional, prop_mode;
 	short automerge, pad5, pad6;
 	
-	short autokey_mode; 					/* mode for autokeying (defines in DNA_userdef_types.h */
+	short autokey_mode; 					/* mode for autokeying (defines in DNA_userdef_types.h) */
 	
 	short use_nodes;
 	
@@ -571,7 +571,10 @@ typedef struct Scene {
 
 	/* frame step. */
 	int frame_step;
-	int pad;
+	
+	/* User-Defined KeyingSets */
+	int active_keyingset;			/* index of the active KeyingSet. first KeyingSet has index 1 */
+	ListBase keyingsets;			/* KeyingSets for the given frame */
 } Scene;
 
 

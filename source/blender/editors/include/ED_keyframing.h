@@ -31,6 +31,8 @@
 struct ListBase;
 struct ID;
 
+struct KeyingSet;
+
 struct FCurve;
 struct BezTriple;
 
@@ -80,6 +82,9 @@ short insertkey(struct ID *id, const char group[], const char rna_path[], int ar
  */
 short deletekey(struct ID *id, const char group[], const char rna_path[], int array_index, float cfra, short flag);
 
+
+/* Generate menu of KeyingSets */
+char *ANIM_build_keyingsets_menu(struct ListBase *list);
 
 /* Main Keyframe Management operators: 
  *	These handle keyframes management from various spaces. They will handle the menus 

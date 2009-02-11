@@ -44,6 +44,7 @@
 #include "BKE_main.h"
 #include "BKE_screen.h"
 
+#include "ED_keyframing.h"
 #include "ED_screen.h"
 #include "ED_util.h"
 #include "ED_types.h"

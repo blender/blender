@@ -689,7 +689,6 @@ void graph_draw_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 	int items, i;
 	
 	/* build list of curves to draw */
-		// XXX enable ANIMFILTER_CURVEVISIBLE when we have a method to set them
 	filter= (ANIMFILTER_VISIBLE|ANIMFILTER_CURVESONLY|ANIMFILTER_CURVEVISIBLE);
 	items= ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 		
@@ -1135,7 +1134,7 @@ void graph_draw_channel_names(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 					offset += 17;
 				}
 				else {
-					/* for ipo/constraint channels */
+					/* for normal channels */
 					UI_icon_draw(x+offset, yminc, special);
 					offset += 17;
 				}

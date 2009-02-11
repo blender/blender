@@ -64,6 +64,7 @@
 
 #include "IMB_imbuf_types.h"
 
+#include "BKE_animsys.h"
 #include "BKE_constraint.h"
 #include "BKE_context.h"
 #include "BKE_deform.h"
@@ -3086,6 +3087,45 @@ void outliner_operation_menu(Scene *scene, ARegion *ar, SpaceOops *soops)
 	}
 }
 
+/* ***************** KEYINGSET OPERATIONS *************** */
+
+/* These operators are only available in databrowser mode for now, as
+ * they depend on having RNA paths and/or hierarchies available.
+ */
+
+/* find the 'active' KeyingSet, and add if not found (if adding is allowed) */
+// TODO: should this be an API func?
+static KeyingSet *verify_active_keyingset(Scene *scene, short add)
+{
+	KeyingSet *ks= NULL;
+	
+	/* try to find one from scene */
+	if (scene->active_keyingset > 0)
+		ks= BLI_findlink(&scene->keyingsets, scene->active_keyingset-1);
+		
+	/* add if none found */
+	// XXX the default settings have yet to evolve
+	if ((add) && (ks==NULL))
+		ks= BKE_keyingset_add(&scene->keyingsets, "KeyingSet", KEYINGSET_ABSOLUTE, 0);
+	
+	return ks;
+}
+
+/* ---------------------------------- */
+
+
+void OUTLINER_OT_keyingset_add_selected(wmOperatorType *ot)
+{
+
+}
+
+
+/* ---------------------------------- */
+
+void OUTLINER_OT_keyingset_remove_selected(wmOperatorType *ot)
+{
+
+}
 
 /* ***************** DRAW *************** */
 

@@ -43,6 +43,7 @@
 #include "BKE_global.h"
 #include "BKE_screen.h"
 
+#include "ED_keyframing.h"
 #include "ED_screen.h"
 #include "ED_types.h"
 #include "ED_util.h"
@@ -429,6 +430,7 @@ void time_header_buttons(const bContext *C, ARegion *ar)
 	Scene *scene= CTX_data_scene(C);
 	uiBlock *block;
 	int xco, yco= 3;
+	char *menustr= NULL;
 	
 	block= uiBeginBlock(C, ar, "header buttons", UI_EMBOSS, UI_HELV);
 	uiBlockSetHandleFunc(block, do_time_buttons, NULL);
@@ -539,11 +541,20 @@ void time_header_buttons(const bContext *C, ARegion *ar)
 	
 	xco+= 16;
 	
-	uiDefIconBut(block, BUT, B_TL_INSERTKEY, ICON_KEY_HLT,
-				 xco, yco, XIC, YIC, 0, 0, 0, 0, 0, "Insert Keyframe for the context of the largest area (IKEY)");
-	xco+= XIC+4;
+	
+	menustr= ANIM_build_keyingsets_menu(&scene->keyingsets);
+	uiDefButI(block, MENU, B_DIFF, 
+				  menustr, 
+				  xco, yco, (int)5.5*XIC, YIC, &(scene->active_keyingset), 0, 1, 0, 0, 
+				  "Active Keying Set (i.e. set of channels to Insert Keyframes for)");
+	MEM_freeN(menustr);
+	xco+= (6*XIC);
+	
 	uiDefIconBut(block, BUT, B_TL_DELETEKEY, ICON_KEY_DEHLT,
 				 xco, yco, XIC, YIC, 0, 0, 0, 0, 0, "Delete Keyframe for the context of the largest area (ALTKEY-IKEY)");
+	xco+= XIC+4;
+	uiDefIconBut(block, BUT, B_TL_INSERTKEY, ICON_KEY_HLT,
+				 xco, yco, XIC, YIC, 0, 0, 0, 0, 0, "Insert Keyframe for the context of the largest area (IKEY)");
 	xco+= XIC+4;
 	
 	xco+= 16;

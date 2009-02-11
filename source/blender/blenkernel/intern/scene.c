@@ -150,6 +150,7 @@ void free_scene(Scene *sce)
 #endif
 
 	BKE_free_animdata((ID *)sce);
+	BKE_keyingsets_free(&sce->keyingsets);
 	
 	if (sce->r.avicodecdata) {
 		free_avicodecdata(sce->r.avicodecdata);

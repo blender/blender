@@ -867,7 +867,7 @@ void draw_channel_names(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 					offset += 17;
 				}
 				else {
-					/* for ipo/constraint channels */
+					/* for normal channels */
 					UI_icon_draw(x+offset, yminc, special);
 					offset += 17;
 				}

@@ -65,6 +65,7 @@
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 
+#include "BKE_animsys.h"
 #include "BKE_action.h"
 #include "BKE_blender.h"
 #include "BKE_context.h"

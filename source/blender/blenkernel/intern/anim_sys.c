@@ -158,6 +158,118 @@ AnimData *BKE_copy_animdata (AnimData *adt)
 	return dadt;
 }
 
+/* *********************************** */ 
+/* KeyingSet API */
+
+/* NOTES:
+ * It is very likely that there will be two copies of the api - one for internal use,
+ * and one 'operator' based wrapper of the internal API, which should allow for access
+ * from Python/scripts so that riggers can automate the creation of KeyingSets for their rigs.
+ */
+
+/* Defining Tools --------------------------- */
+
+/* Used to create a new 'custom' KeyingSet for the user, that will be automatically added to the stack */
+KeyingSet *BKE_keyingset_add (ListBase *list, const char name[], short flag, short keyingflag)
+{
+	KeyingSet *ks;
+	
+	/* allocate new KeyingSet */
+	ks= MEM_callocN(sizeof(KeyingSet), "KeyingSet");
+	
+	BLI_snprintf(ks->name, 64, name);
+	
+	ks->flag= flag;
+	ks->keyingflag= keyingflag;
+	
+	/* add KeyingSet to list */
+	BLI_addtail(list, ks);
+	
+	/* return new KeyingSet for further editing */
+	return ks;
+}
+
+/* Add a destination to a KeyingSet. Nothing is returned for now...
+ * Checks are performed to ensure that destination is appropriate for the KeyingSet in question
+ */
+void BKE_keyingset_add_destination (KeyingSet *ks, ID *id, const char group_name[], const char rna_path[], int array_index, int flag)
+{
+	KS_Path *ksp;
+	
+	/* sanity checks */
+	if ELEM(NULL, ks, rna_path)
+		return;
+	
+	/* ID is optional, and should only be provided for absolute KeyingSets */
+	if (id) {
+		if ((ks->flag & KEYINGSET_ABSOLUTE) == 0)
+			return;
+	}
+	
+	/* allocate a new KeyingSet Path */
+	ksp= MEM_callocN(sizeof(KS_Path), "KeyingSet Path");
+	
+	/* just store absolute info */
+	if (ks->flag & KEYINGSET_ABSOLUTE) {
+		ksp->id= id;
+		BLI_snprintf(ksp->group, 64, group_name);
+	}
+	
+	/* just copy path info */
+	// XXX no checks are performed for templates yet
+	// should array index be checked too?
+	ksp->rna_path= BLI_strdupn(rna_path, strlen(rna_path));
+	ksp->array_index= array_index;
+	
+	/* store flags */
+	ksp->flag= flag;
+	
+	/* add KeyingSet path to KeyingSet */
+	BLI_addtail(&ks->paths, ksp);
+}	
+
+
+/* Freeing Tools --------------------------- */
+
+/* Free data for KeyingSet but not set itself */
+void BKE_keyingset_free (KeyingSet *ks)
+{
+	KS_Path *ksp, *kspn;
+	
+	/* sanity check */
+	if (ks == NULL)
+		return;
+	
+	/* free each path as we go to avoid looping twice */
+	for (ksp= ks->paths.first; ksp; ksp= kspn) {
+		kspn= ksp->next;
+		
+		/* free RNA-path info */
+		MEM_freeN(ksp->rna_path);
+		
+		/* free path itself */
+		BLI_freelinkN(&ks->paths, ks);
+	}
+}
+
+/* Free all the KeyingSets in the given list */
+void BKE_keyingsets_free (ListBase *list)
+{
+	KeyingSet *ks, *ksn;
+	
+	/* sanity check */
+	if (list == NULL)
+		return;
+	
+	/* loop over KeyingSets freeing them 
+	 * 	- BKE_keyingset_free() doesn't free the set itself, but it frees its sub-data
+	 */
+	for (ks= list->first; ks; ks= ksn) {
+		ksn= ks->next;
+		BKE_keyingset_free(ks);
+		BLI_freelinkN(list, ks);
+	}
+}
 
 /* ***************************************** */
 /* Evaluation Data-Setting Backend */
