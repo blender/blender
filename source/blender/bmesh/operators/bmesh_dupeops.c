@@ -11,9 +11,10 @@
 #include "bmesh_operators_private.h"
 
 /*local flag defines*/
-#define DUPE_INPUT		1			/*input from operator*/
+#define DUPE_INPUT		1 /*input from operator*/
 #define DUPE_NEW		2
 #define DUPE_DONE		4
+#define DUPE_MAPPED		8
 
 /*
  *  COPY VERTEX
@@ -46,17 +47,43 @@ static BMVert *copy_vertex(BMesh *source_mesh, BMVert *source_vertex, BMesh *tar
  * Copy an existing edge from one bmesh to another.
  *
 */
-static BMEdge *copy_edge(BMesh *source_mesh, BMEdge *source_edge, BMesh *target_mesh, GHash *vhash, GHash *ehash)
+static BMEdge *copy_edge(BMOperator *op, BMesh *source_mesh,
+			 BMEdge *source_edge, BMesh *target_mesh,
+			 GHash *vhash, GHash *ehash)
 {
 	BMEdge *target_edge = NULL;
 	BMVert *target_vert1, *target_vert2;
-	
+	BMFace *face;
+	BMIter fiter;
+	int found, rlen;
+
+	/*see if any of the neighboring faces are
+	  not being duplicated.  in that case,
+	  add it to the new/old map.*/
+	found = rlen = 0;
+	for (face=BMIter_New(&fiter,source_mesh, BM_FACES_OF_EDGE,source_edge);
+		face; face=BMIter_Step(&fiter)) {
+		if (!BMO_TestFlag(source_mesh, face, DUPE_INPUT)) {
+			found = 1;
+			break;
+		}
+		rlen++;
+	}
+
 	/*Lookup v1 and v2*/
 	target_vert1 = BLI_ghash_lookup(vhash, source_edge->v1);
 	target_vert2 = BLI_ghash_lookup(vhash, source_edge->v2);
 	
 	/*Create a new edge*/
 	target_edge = BM_Make_Edge(target_mesh, target_vert1, target_vert2, NULL, 0);
+	
+	/*add to new/old edge map if necassary*/
+	if (rlen > 0 && rlen <= 2 && found) {
+		/*not sure what non-manifold cases of greater then three
+		  radial should do.*/
+		BMO_Insert_MapPointer(source_mesh,op,BMOP_DUPE_BOUNDS_EDGEMAP,
+			source_edge, target_edge);
+	}
 
 	/*Insert new edge into the edge hash*/
 	BLI_ghash_insert(ehash, source_edge, target_edge);	
@@ -119,7 +146,7 @@ static BMFace *copy_face(BMesh *source_mesh, BMFace *source_face, BMesh *target_
  * Internal Copy function.
 */
 
-static void copy_mesh(BMesh *source, BMesh *target)
+static void copy_mesh(BMOperator *op, BMesh *source, BMesh *target)
 {
 
 	BMVert *v = NULL;
@@ -160,7 +187,7 @@ static void copy_mesh(BMesh *source, BMesh *target)
 			/*edge pass*/
 			for(e = BMIter_New(&edges, source, BM_EDGES_OF_FACE, f); e; e = BMIter_Step(&edges)){
 				if(!BMO_TestFlag(source, (BMHeader*)e, DUPE_DONE)){
-					copy_edge(source, e, target,  vhash,  ehash);
+					copy_edge(op, source, e, target,  vhash,  ehash);
 					BMO_SetFlag(source, (BMHeader*)e, DUPE_DONE);
 				}
 			}
@@ -182,7 +209,7 @@ static void copy_mesh(BMesh *source, BMesh *target)
 				BMO_SetFlag(source, (BMHeader*)e->v2, DUPE_DONE);
 			}
 			/*now copy the actual edge*/
-			copy_edge(source, e, target,  vhash,  ehash);			
+			copy_edge(op, source, e, target,  vhash,  ehash);			
 			BMO_SetFlag(source, (BMHeader*)e, DUPE_DONE); 
 		}
 	}
@@ -264,7 +291,7 @@ void dupeop_exec(BMesh *bm, BMOperator *op)
 	/*flag input*/
 	BMO_Flag_Buffer(bm, dupeop, BMOP_DUPE_MULTIN, DUPE_INPUT);
 	/*use the internal copy function*/
-	copy_mesh(bm, bm);
+	copy_mesh(dupeop, bm, bm);
 	
 	/*Output*/
 	/*First copy the input buffers to output buffers - original data*/
@@ -329,6 +356,8 @@ void splitop_exec(BMesh *bm, BMOperator *op)
 
 	/*now we make our outputs by copying the dupe outputs*/
 	BMO_CopySlot(&dupeop, splitop, BMOP_DUPE_NEW, BMOP_SPLIT_MULTOUT);
+	BMO_CopySlot(&dupeop, splitop, BMOP_DUPE_BOUNDS_EDGEMAP,
+	             BMOP_SPLIT_BOUNDS_EDGEMAP);
 
 	/*cleanup*/
 	BMO_Finish_Op(bm, &delop);

@@ -592,12 +592,11 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 	rad = BMO_GetSlot(op, BMOP_ESUBDIVIDE_RADIUS)->data.f;
 
 	einput = BMO_GetSlot(op, BMOP_ESUBDIVIDE_EDGES);
-	/*first go through and tag edges*/
-	for (i=0; i<einput->len; i++) {
-		edge = ((BMEdge**)einput->data.p)[i];
-		BMO_SetFlag(bmesh, edge, SUBD_SPLIT);
-	}
 	
+	/*first go through and tag edges*/
+	BMO_Flag_To_Slot(bmesh, op, BMOP_ESUBDIVIDE_EDGES,
+	         SUBD_SPLIT, BM_EDGE);
+
 	params.flag = flag;
 	params.numcuts = numcuts;
 	params.op = op;

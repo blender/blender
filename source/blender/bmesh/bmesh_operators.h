@@ -83,6 +83,7 @@ void BMO_Flag_Buffer(struct BMesh *bm, struct BMOperator *op, int slotcode, int 
 void BMO_HeaderFlag_To_Slot(struct BMesh *bm, struct BMOperator *op, int slotcode, int flag, int type);
 int BMO_CountSlotBuf(struct BMesh *bm, struct BMOperator *op, int slotcode);
 
+/*copies data, doesn't store a reference to it.*/
 void BMO_Insert_Mapping(BMesh *bm, BMOperator *op, int slotcode, 
 			void *element, void *data, int len);
 void BMO_Insert_MapFloat(BMesh *bm, BMOperator *op, int slotcode, 
@@ -93,6 +94,13 @@ float BMO_Get_MapFloat(BMesh *bm, BMOperator *op, int slotcode,
 		       void *element);
 void BMO_Mapping_To_Flag(struct BMesh *bm, struct BMOperator *op, 
 			 int slotcode, int flag);
+
+/*do NOT use these for non-operator-api-allocated memory! instead
+  use BMO_Get_MapData, which copies the data.*/
+void BMO_Insert_MapPointer(BMesh *bm, BMOperator *op, int slotcode, 
+			void *element, void *val);
+void *BMO_Get_MapPointer(BMesh *bm, BMOperator *op, int slotcode,
+		       void *element);
 
 /*if msg is null, then the default message for the errorcode is used*/
 void BMOP_RaiseError(BMesh *bm, int errcode, char *msg);
@@ -119,6 +127,7 @@ static char *bmop_error_messages[] = {
 enum {
 	BMOP_SPLIT_MULTIN,
 	BMOP_SPLIT_MULTOUT,
+	BMOP_SPLIT_BOUNDS_EDGEMAP,
 	BMOP_SPLIT_TOTSLOT,
 };
 
@@ -129,6 +138,9 @@ enum {
 	BMOP_DUPE_MULTIN,
 	BMOP_DUPE_ORIG,
 	BMOP_DUPE_NEW,
+	/*we need a map for verts duplicated not connected
+	  to any faces, too.*/	
+	BMOP_DUPE_BOUNDS_EDGEMAP,
 	BMOP_DUPE_TOTSLOT
 };
 
