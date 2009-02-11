@@ -313,13 +313,18 @@ void ui_popup_block_free(struct bContext *C, uiPopupBlockHandle *handle);
 
 void ui_set_name_menu(uiBut *but, int value);
 
+struct AutoComplete;
+struct AutoComplete *autocomplete_begin(char *startname, int maxlen);
+void autocomplete_do_name(struct AutoComplete *autocpl, const char *name);
+void autocomplete_end(struct AutoComplete *autocpl, char *autoname);
+
 /* interface_panel.c */
 extern int ui_handler_panel_region(struct bContext *C, struct wmEvent *event);
 extern void ui_draw_panel(struct ARegion *ar, uiBlock *block);
 
 /* interface_draw.c */
 extern void ui_set_embossfunc(uiBut *but, int drawtype);
-extern void ui_draw_but(uiBut *but);
+extern void ui_draw_but(ARegion *ar, uiBut *but);
 extern void ui_rasterpos_safe(float x, float y, float aspect);
 extern void ui_draw_tria_icon(float x, float y, float aspect, char dir);
 extern void ui_draw_anti_x(float x1, float y1, float x2, float y2);

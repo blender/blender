@@ -480,8 +480,6 @@ void OBJECT_OT_curve_add(wmOperatorType *ot)
 static int object_add_armature_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
-	bArmature *arm;
-	EditBone *ebone;
 	int newob= 0;
 	
 	if ((obedit==NULL) || (obedit->type != OB_ARMATURE)) {

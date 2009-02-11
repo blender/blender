@@ -86,8 +86,8 @@
 
 #include "BIF_gl.h"
 
-#include "ED_anim_api.h"
 #include "ED_fluidsim.h"
+#include "ED_screen.h"
 
 /* XXX */
 /* from header info.c */

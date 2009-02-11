@@ -77,6 +77,8 @@ void VIEW3D_OT_border_zoom(struct wmOperatorType *ot);
 void VIEW3D_OT_drawtype(struct wmOperatorType *ot);
 void VIEW3D_OT_editmesh_face_toolbox(struct wmOperatorType *ot);
 
+void view3d_boxview_copy(ScrArea *sa, ARegion *ar);
+
 /* drawobject.c */
 void draw_object(Scene *scene, struct ARegion *ar, View3D *v3d, Base *base, int flag);
 int draw_glsl_material(Scene *scene, Object *ob, View3D *v3d, int dt);

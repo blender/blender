@@ -1558,7 +1558,7 @@ static void saction_idpoin_handle(bContext *C, ID *id, int event)
 {
 	SpaceAction *saction= (SpaceAction*)CTX_wm_space_data(C);
 	Object *obact= CTX_data_active_object(C);
-	AnimData *adt= BKE_id_add_animdata((ID *)obact);
+	// AnimData *adt= BKE_id_add_animdata((ID *)obact);
 
 	switch (event) {
 		case UI_ID_BROWSE:

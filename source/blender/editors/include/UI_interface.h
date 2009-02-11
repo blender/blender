@@ -513,6 +513,28 @@ void UI_add_region_handlers(struct ListBase *handlers);
 void UI_add_area_handlers(struct ListBase *handlers);
 void UI_add_popup_handlers(struct ListBase *handlers, uiPopupBlockHandle *menu);
 
+/* Legacy code
+ * Callbacks and utils to get 2.48 work */
+
+void test_idbutton_cb(struct bContext *C, void *namev, void *arg2);
+void test_scriptpoin_but(struct bContext *C, char *name, ID **idpp);
+void test_actionpoin_but(struct bContext *C, char *name, ID **idpp);
+void test_obpoin_but(struct bContext *C, char *name, ID **idpp);
+void test_meshobpoin_but(struct bContext *C, char *name, ID **idpp);
+void test_meshpoin_but(struct bContext *C, char *name, ID **idpp);
+void test_matpoin_but(struct bContext *C, char *name, ID **idpp);
+void test_scenepoin_but(struct bContext *C, char *name, ID **idpp);
+void test_grouppoin_but(struct bContext *C, char *name, ID **idpp);
+void test_texpoin_but(struct bContext *C, char *name, ID **idpp);
+void test_imapoin_but(struct bContext *C, char *name, ID **idpp);
+void autocomplete_bone(struct bContext *C, char *str, void *arg_v);
+void autocomplete_vgroup(struct bContext *C, char *str, void *arg_v);
+
+struct CurveMapping;
+struct rctf;
+void curvemap_buttons(uiBlock *block, struct CurveMapping *cumap, char labeltype, short event, short redraw, struct rctf *rect);
+
+
 /* Module
  *
  * init and exit should be called before using this module. init_userdef must

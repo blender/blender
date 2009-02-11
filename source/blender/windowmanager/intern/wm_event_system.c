@@ -31,6 +31,7 @@
 
 #include "DNA_listBase.h"
 #include "DNA_screen_types.h"
+#include "DNA_scene_types.h"
 #include "DNA_windowmanager_types.h"
 #include "DNA_userdef_types.h"
 
@@ -44,7 +45,9 @@
 #include "BKE_context.h"
 #include "BKE_idprop.h"
 #include "BKE_global.h"
+#include "BKE_object.h"
 #include "BKE_report.h"
+#include "BKE_scene.h"
 #include "BKE_utildefines.h"
 
 #include "ED_screen.h"
@@ -194,7 +197,10 @@ void wm_event_do_notifiers(bContext *C)
 	
 	/* cached: editor refresh callbacks now, they get context */
 	for(win= wm->windows.first; win; win= win->next) {
+		Scene *sce, *scene= win->screen->scene;
 		ScrArea *sa;
+		Base *base;
+		
 		CTX_wm_window_set(C, win);
 		for(sa= win->screen->areabase.first; sa; sa= sa->next) {
 			if(sa->do_refresh) {
@@ -202,6 +208,19 @@ void wm_event_do_notifiers(bContext *C)
 				ED_area_do_refresh(C, sa);
 			}
 		}
+		
+		/* update all objects, ipos, matrices, displists, etc. Flags set by depgraph or manual, 
+			no layer check here, gets correct flushed */
+		/* sets first, we allow per definition current scene to have dependencies on sets */
+		if(scene->set) {
+			for(SETLOOPER(scene->set, base))
+				object_handle_update(scene, base->object);
+		}
+		
+		for(base= scene->base.first; base; base= base->next) {
+			object_handle_update(scene, base->object);
+		}
+		
 	}
 	CTX_wm_window_set(C, NULL);
 }

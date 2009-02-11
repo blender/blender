@@ -126,6 +126,10 @@
 
 #define B_CLR_WPAINT	2850
 
+#define B_RV3D_LOCKED	2900
+#define B_RV3D_BOXVIEW	2901
+#define B_RV3D_BOXCLIP	2902
+
 #define B_IDNAME		3000
 
 /* temporary struct for storing transform properties */
@@ -466,7 +470,7 @@ static void validate_bonebutton_cb(bContext *C, void *bonev, void *namev)
 		/* restore */
 		BLI_strncpy(bone->name, oldname, 32);
 		
-		armature_bone_rename(ob->data, oldname, newname); // editarmature.c
+		armature_bone_rename(ob, oldname, newname); // editarmature.c
 	}
 }
 
@@ -493,7 +497,8 @@ static void v3d_posearmature_buts(uiBlock *block, View3D *v3d, Object *ob, float
 	else
 		but= uiDefBut(block, TEX, B_NOP, "Bone:",				160, 140, 140, 19, bone->name, 1, 31, 0, 0, "");
 	uiButSetFunc(but, validate_bonebutton_cb, bone, NULL);
-	
+	uiButSetCompleteFunc(but, autocomplete_bone, (void *)ob);
+
 	QuatToEul(pchan->quat, tfp->ob_eul);
 	tfp->ob_eul[0]*= 180.0/M_PI;
 	tfp->ob_eul[1]*= 180.0/M_PI;
@@ -525,6 +530,22 @@ static void v3d_posearmature_buts(uiBlock *block, View3D *v3d, Object *ob, float
 	uiBlockEndAlign(block);
 }
 
+/* assumes armature editmode */
+void validate_editbonebutton_cb(bContext *C, void *bonev, void *namev)
+{
+	EditBone *eBone= bonev;
+	char oldname[32], newname[32];
+	
+	/* need to be on the stack */
+	BLI_strncpy(newname, eBone->name, 32);
+	BLI_strncpy(oldname, (char *)namev, 32);
+	/* restore */
+	BLI_strncpy(eBone->name, oldname, 32);
+	
+	armature_bone_rename(CTX_data_edit_object(C), oldname, newname); // editarmature.c
+	WM_event_add_notifier(C, NC_OBJECT|ND_BONE_SELECT, CTX_data_edit_object(C)); // XXX fix
+}
+
 static void v3d_editarmature_buts(uiBlock *block, View3D *v3d, Object *ob, float lim)
 {
 	bArmature *arm= ob->data;
@@ -546,7 +567,7 @@ static void v3d_editarmature_buts(uiBlock *block, View3D *v3d, Object *ob, float
 		but= uiDefBut(block, TEX, B_NOP, "Bone:", 160, 130, 140, 19, ebone->name, 1, 31, 0, 0, "");
 	else
 		but= uiDefBut(block, TEX, B_NOP, "Bone:",			160, 150, 140, 19, ebone->name, 1, 31, 0, 0, "");
-// XXX	uiButSetFunc(but, validate_editbonebutton_cb, ebone, NULL);
+	uiButSetFunc(but, validate_editbonebutton_cb, ebone, NULL);
 
 	uiBlockBeginAlign(block);
 	uiDefButF(block, NUM, B_ARMATUREPANEL1, "HeadX:",	10, 70, 140, 19, ebone->head, -lim, lim, 10, 3, "");
@@ -858,7 +879,7 @@ static void do_view3d_region_buttons(bContext *C, void *arg, int event)
 		break;
 	case B_CLR_WPAINT:
 //		if(!multires_level1_test()) {
-	{
+		{
 			bDeformGroup *defGroup = BLI_findlink(&ob->defbase, ob->actdef-1);
 			if(defGroup) {
 				Mesh *me= ob->data;
@@ -869,7 +890,37 @@ static void do_view3d_region_buttons(bContext *C, void *arg, int event)
 			}
 		}
 		break;
-		
+	case B_RV3D_LOCKED:
+	case B_RV3D_BOXVIEW:
+	case B_RV3D_BOXCLIP:
+		{
+			ScrArea *sa= CTX_wm_area(C);
+			ARegion *ar= sa->regionbase.last;
+			RegionView3D *rv3d;
+			short viewlock;
+			
+			ar= ar->prev;
+			rv3d= ar->regiondata;
+			viewlock= rv3d->viewlock;
+			
+			if((viewlock & RV3D_LOCKED)==0)
+				viewlock= 0;
+			else if((viewlock & RV3D_BOXVIEW)==0)
+				viewlock &= ~RV3D_BOXCLIP;
+			
+			for(; ar; ar= ar->prev) {
+				if(ar->alignment==RGN_ALIGN_QSPLIT) {
+					rv3d= ar->regiondata;
+					rv3d->viewlock= viewlock;
+				}
+			}
+			
+			if(rv3d->viewlock & RV3D_BOXVIEW)
+				view3d_boxview_copy(sa, sa->regionbase.last);
+			
+			ED_area_tag_redraw(sa);
+		}
+		break;
 	}
 
 	/* default for now */
@@ -1115,14 +1166,14 @@ static void view3d_panel_object(const bContext *C, ARegion *ar, short cntrl)	// 
 	}
 	else {
 		bt= uiDefBut(block, TEX, B_IDNAME, "OB: ",	10,180,140,20, ob->id.name+2, 0.0, 21.0, 0, 0, "");
-// XXX		uiButSetFunc(bt, test_idbutton_cb, ob->id.name, NULL);
+		uiButSetFunc(bt, test_idbutton_cb, ob->id.name, NULL);
 
 		if((G.f & G_PARTICLEEDIT)==0) {
 			uiBlockBeginAlign(block);
-// XXX			uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_OBJECTPANELPARENT, "Par:", 160, 180, 140, 20, &ob->parent, "Parent Object"); 
+			uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_OBJECTPANELPARENT, "Par:", 160, 180, 140, 20, &ob->parent, "Parent Object"); 
 			if((ob->parent) && (ob->partype == PARBONE)) {
 				bt= uiDefBut(block, TEX, B_OBJECTPANELPARENT, "ParBone:", 160, 160, 140, 20, ob->parsubstr, 0, 30, 0, 0, "");
-// XXX				uiButSetCompleteFunc(bt, autocomplete_bone, (void *)ob->parent);
+				uiButSetCompleteFunc(bt, autocomplete_bone, (void *)ob->parent);
 			}
 			else {
 				strcpy(ob->parsubstr, "");
@@ -1285,8 +1336,11 @@ static void view3d_panel_background(const bContext *C, ARegion *ar, short cntrl)
 
 static void view3d_panel_properties(const bContext *C, ARegion *ar, short cntrl)	// VIEW3D_HANDLER_SETTINGS
 {
+	ScrArea *sa= CTX_wm_area(C);
+	ARegion *arlast;
 	Scene *scene= CTX_data_scene(C);
 	View3D *v3d= CTX_wm_view3d(C);
+	RegionView3D *rv3d;
 	uiBlock *block;
 	float *curs;
 
@@ -1337,9 +1391,28 @@ static void view3d_panel_properties(const bContext *C, ARegion *ar, short cntrl)
 
 	uiDefBut(block, LABEL, 1, "View Locking:",				160, 60, 150, 19, NULL, 0.0, 0.0, 0, 0, "");
 	uiBlockBeginAlign(block);
-// XXX	uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_REDR, "Object:", 160, 40, 140, 19, &v3d->ob_centre, "Lock view to center to this Object"); 
-	uiDefBut(block, TEX, B_REDR, "Bone:",						160, 20, 140, 19, v3d->ob_centre_bone, 1, 31, 0, 0, "If view locked to Object, use this Bone to lock to view to");
+	uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_REDR, "Object:", 160, 40, 150, 19, &v3d->ob_centre, "Lock view to center to this Object"); 
+	uiDefBut(block, TEX, B_REDR, "Bone:",						160, 20, 150, 19, v3d->ob_centre_bone, 1, 31, 0, 0, "If view locked to Object, use this Bone to lock to view to");
+	uiBlockEndAlign(block);	
 
+	/* last region is always 3d... a bit weak */
+	arlast= sa->regionbase.last;
+	uiBlockBeginAlign(block);
+	if(arlast->alignment==RGN_ALIGN_QSPLIT) {
+		arlast= arlast->prev;
+		rv3d= arlast->regiondata;
+		
+		uiDefButO(block, BUT, "SCREEN_OT_region_foursplit", WM_OP_EXEC_REGION_WIN, "End 4-Split View", 160, -10, 150, 19, "Join the 3D View");
+		uiDefButBitS(block, TOG, RV3D_LOCKED, B_RV3D_LOCKED, "Lock", 160, -30, 50, 19, &rv3d->viewlock, 0, 0, 0, 0, "");
+		uiDefButBitS(block, TOG, RV3D_BOXVIEW, B_RV3D_BOXVIEW, "Box", 210, -30, 50, 19, &rv3d->viewlock, 0, 0, 0, 0, "");
+		uiDefButBitS(block, TOG, RV3D_BOXCLIP, B_RV3D_BOXCLIP, "Clip", 260, -30, 50, 19, &rv3d->viewlock, 0, 0, 0, 0, "");
+	}		
+	else
+		uiDefButO(block, BUT, "SCREEN_OT_region_foursplit", WM_OP_EXEC_REGION_WIN, "4-Split View", 160, -10, 150, 19, "Split 3D View in 4 parts");
+		
+	uiBlockEndAlign(block);	
+		
+	
 // XXX
 //	uiDefBut(block, LABEL, 1, "Keyframe Display:",				160, -2, 150, 19, NULL, 0.0, 0.0, 0, 0, "");
 //	uiBlockBeginAlign(block);

@@ -4386,7 +4386,6 @@ static int pose_de_select_all_exec(bContext *C, wmOperator *op)
 	Object *ob= CTX_data_active_object(C);
 	bArmature *arm= ob->data;
 	bPoseChannel *pchan;
-	EditBone *ebone;
 	int	sel=1;
 
 	/*	Determine if there are any selected bones
@@ -4425,7 +4424,6 @@ void POSE_OT_de_select_all(wmOperatorType *ot)
 static int pose_select_parent_exec(bContext *C, wmOperator *op)
 {
 	Object *ob= CTX_data_active_object(C);
-	bArmature *arm= ob->data;
 	bPoseChannel *pchan,*parent;
 
 	/*	Determine if there is an active bone */
@@ -4439,7 +4437,7 @@ static int pose_select_parent_exec(bContext *C, wmOperator *op)
 		}
 	}
 
-	WM_event_add_notifier(C, NC_OBJECT|ND_BONE_SELECT, NULL);
+	WM_event_add_notifier(C, NC_OBJECT|ND_BONE_SELECT, ob);
 	
 	return OPERATOR_FINISHED;
 }
