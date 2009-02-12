@@ -207,11 +207,13 @@ static void time_header_area_listener(ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
 	switch(wmn->category) {
-		
 		case NC_SCENE:
-			if(wmn->data==ND_FRAME)
-				ED_region_tag_redraw(ar);
-			break;
+			switch (wmn->data) {
+				case ND_FRAME:
+				case ND_KEYINGSET:
+					ED_region_tag_redraw(ar);
+				break;
+			}
 	}
 }
 

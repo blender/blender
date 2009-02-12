@@ -877,23 +877,32 @@ enum {
 /* Build menu-string of available keying-sets (allocates memory for string)
  * NOTE: mode must not be longer than 64 chars
  */
-char *ANIM_build_keyingsets_menu (ListBase *list)
+char *ANIM_build_keyingsets_menu (ListBase *list, short for_edit)
 {
 	DynStr *pupds= BLI_dynstr_new();
 	KeyingSet *ks;
 	char buf[64];
 	char *str;
+	int i;
 	
 	/* add title first */
 	BLI_dynstr_append(pupds, "Keying Sets%t|");
 	
-	/* add dummy entry for none-active */
-	BLI_dynstr_append(pupds, "<No Keying Set Active>%x0|");
+	/* add dummy entries for none-active */
+	if (for_edit) { 
+		BLI_dynstr_append(pupds, "Add New%x-1|");
+		BLI_dynstr_append(pupds, " %x0|");
+	}
+	else
+		BLI_dynstr_append(pupds, "<No Keying Set Active>%x0|");
 	
 	/* loop through keyingsets, adding them */
-	for (ks= list->first; ks; ks= ks->next) {
+	for (ks=list->first, i=1; ks; ks=ks->next, i++) {
+		if (for_edit == 0)
+			BLI_dynstr_append(pupds, "KS: ");
+		
 		BLI_dynstr_append(pupds, ks->name);
-		BLI_snprintf( buf, 64, "%s", ((ks->next)?"|":"") );
+		BLI_snprintf( buf, 64, "%%x%d%s", i, ((ks->next)?"|":"") );
 		BLI_dynstr_append(pupds, buf);
 	}
 	

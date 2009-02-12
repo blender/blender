@@ -542,7 +542,7 @@ void time_header_buttons(const bContext *C, ARegion *ar)
 	xco+= 16;
 	
 	
-	menustr= ANIM_build_keyingsets_menu(&scene->keyingsets);
+	menustr= ANIM_build_keyingsets_menu(&scene->keyingsets, 0);
 	uiDefButI(block, MENU, B_DIFF, 
 				  menustr, 
 				  xco, yco, (int)5.5*XIC, YIC, &(scene->active_keyingset), 0, 1, 0, 0, 

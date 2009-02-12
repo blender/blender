@@ -84,7 +84,7 @@ short deletekey(struct ID *id, const char group[], const char rna_path[], int ar
 
 
 /* Generate menu of KeyingSets */
-char *ANIM_build_keyingsets_menu(struct ListBase *list);
+char *ANIM_build_keyingsets_menu(struct ListBase *list, short for_edit);
 
 /* Main Keyframe Management operators: 
  *	These handle keyframes management from various spaces. They will handle the menus 

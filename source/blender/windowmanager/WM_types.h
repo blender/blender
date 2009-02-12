@@ -176,6 +176,7 @@ typedef struct wmNotifier {
 #define ND_MODE				(9<<16)
 #define ND_RENDER_RESULT	(10<<16)
 #define ND_COMPO_RESULT		(11<<16)
+#define ND_KEYINGSET		(12<<16)
 
 	/* NC_OBJECT Object */
 #define	ND_TRANSFORM		(16<<16)
