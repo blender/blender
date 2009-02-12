@@ -58,6 +58,7 @@ editmesh_lib: generic (no UI, no menus) operations/evaluators for editmesh data
 #include "ED_view3d.h"
 
 #include "mesh_intern.h"
+#include "bmesh.h"
 
 /* ****************** stats *************** */
 
@@ -1135,10 +1136,127 @@ short extrudeflag_verts_indiv(EditMesh *em, short flag, float *nor)
 	return 'g';	// g is grab
 }
 
+short BM_extrude_edgeflag(Object *obedit, BMesh *bm, int eflag, float *nor)
+{
+	BMIter iter;
+	BMOIter siter;
+	BMOperator extop;
+	BMEdge *edge;
+	BMFace *f;
+	void *el;
+	ModifierData *md;
+	int flag;
+	
+	switch (eflag) {
+		case SELECT:
+			flag = BM_SELECT;
+			break;
+		default:
+			flag = BM_SELECT;
+			break;
+	}
+
+	for (f=BMIter_New(&iter, bm, BM_FACES, NULL);f;f=BMIter_Step(&iter)) {
+		add_normal_aligned(nor, f->no);
+	}
+	Normalize(nor);
+
+	BMO_Init_Op(&extop, BMOP_EXTRUDE_EDGECONTEXT);
+	BMO_HeaderFlag_To_Slot(bm, &extop, BMOP_EXFACE_EDGEFACEIN,
+		               flag, BM_EDGE|BM_FACE);
+
+	for (edge=BMIter_New(&iter, bm, BM_EDGES, NULL); edge; edge=BMIter_Step(&iter)) {
+		BM_Select_Edge(bm, edge, 0);
+	}
+
+	for (f=BMIter_New(&iter, bm, BM_FACES, NULL); f; f=BMIter_Step(&iter)) {
+		BM_Select_Face(bm, f, 0);
+	}
+
+	/* If a mirror modifier with clipping is on, we need to adjust some 
+	 * of the cases above to handle edges on the line of symmetry.
+	 */
+	for (; md; md=md->next) {
+		if (md->type==eModifierType_Mirror) {
+			MirrorModifierData *mmd = (MirrorModifierData*) md;	
+		
+			if(mmd->flag & MOD_MIR_CLIPPING) {
+				float mtx[4][4];
+				if (mmd->mirror_ob) {
+					float imtx[4][4];
+					Mat4Invert(imtx, mmd->mirror_ob->obmat);
+					Mat4MulMat4(mtx, obedit->obmat, imtx);
+				}
+
+				for (edge=BMIter_New(&iter,bm,BM_EDGES,NULL);
+				     edge; edge=BMIter_Step(&iter))
+				{
+					if(edge->head.flag & flag) {
+						float co1[3], co2[3];
+
+						VecCopyf(co1, edge->v1->co);
+						VecCopyf(co2, edge->v2->co);
+
+						if (mmd->mirror_ob) {
+							VecMat4MulVecfl(co1, mtx, co1);
+							VecMat4MulVecfl(co2, mtx, co2);
+						}
+
+						if (mmd->flag & MOD_MIR_AXIS_X)
+							if ( (fabs(co1[0]) < mmd->tolerance) &&
+								 (fabs(co2[0]) < mmd->tolerance) )
+								BMO_Insert_MapPointer(bm, &extop, BMOP_EXFACE_EXCLUDEMAP, edge, NULL);
+
+						if (mmd->flag & MOD_MIR_AXIS_Y)
+							if ( (fabs(co1[1]) < mmd->tolerance) &&
+								 (fabs(co2[1]) < mmd->tolerance) )
+								BMO_Insert_MapPointer(bm, &extop, BMOP_EXFACE_EXCLUDEMAP, edge, NULL);
+
+						if (mmd->flag & MOD_MIR_AXIS_Z)
+							if ( (fabs(co1[2]) < mmd->tolerance) &&
+								 (fabs(co2[2]) < mmd->tolerance) )
+								BMO_Insert_MapPointer(bm, &extop, BMOP_EXFACE_EXCLUDEMAP, edge, NULL);
+					}
+				}
+			}
+		}
+	}
+
+
+	BMO_Exec_Op(bm, &extop);
+
+	el =  BMO_IterNew(&siter, bm, &extop, BMOP_EXFACE_MULTOUT);
+	for (; el; el=BMO_IterStep(&siter)) {
+		BM_Select(bm, el, 1);
+	}
+
+	BMO_Finish_Op(bm, &extop);
+
+	if(nor[0]==0.0 && nor[1]==0.0 && nor[2]==0.0) return 'g'; // grab
+	return 'n'; // normal constraint 
+
+}
+
+
+static short extrudeflag_edge(Object *obedit, EditMesh *em, short flag, float *nor) {
+	short ret;
+	EditMesh *em2;
+	BMesh *bm = editmesh_to_bmesh(em);
+
+	ret = BM_extrude_edgeflag(obedit, bm, flag, nor);
+	em2 = bmesh_to_editmesh(bm);
+
+	set_editMesh(em, em2);
+	MEM_freeN(em2);
+
+	EM_select_flush(em);
+
+	return ret;
+}
 
 /* this is actually a recode of extrudeflag(), using proper edge/face select */
 /* hurms, doesnt use 'flag' yet, but its not called by primitive making stuff anyway */
-static short extrudeflag_edge(Object *obedit, EditMesh *em, short flag, float *nor)
+static short extrudeflag_edge_old(Object *obedit, EditMesh *em, short flag, float *nor)
 {
 	/* all select edges/faces: extrude */
 	/* old select is cleared, in new ones it is set */

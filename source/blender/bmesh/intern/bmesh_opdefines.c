@@ -3,6 +3,15 @@
 
 #include <stdio.h>
 
+BMOpDefine def_extrudefaceregion = {
+	{BMOP_OPSLOT_PNT_BUF,
+	 BMOP_OPSLOT_MAPPING,
+	 BMOP_OPSLOT_PNT_BUF},
+	extrude_edge_context_exec,
+	BMOP_EXFACE_TOTSLOT,
+	0
+};
+
 BMOpDefine def_makefgonsop = {
 	{0},
 	bmesh_make_fgons_exec,
@@ -79,7 +88,7 @@ BMOpDefine def_dupeop = {
 
 BMOpDefine def_splitop = {
 	{BMOP_OPSLOT_PNT_BUF, BMOP_OPSLOT_PNT_BUF,
-	 BMOP_OPSLOT_MAPPING},
+	 BMOP_OPSLOT_PNT_BUF, BMOP_OPSLOT_MAPPING},
 	splitop_exec,
 	BMOP_SPLIT_TOTSLOT,
 	0
@@ -96,6 +105,7 @@ BMOpDefine *opdefines[] = {
 	&def_dissolvefacesop,
 	&def_dissolvevertsop,
 	&def_makefgonsop,
+	&def_extrudefaceregion,
 };
 
 int bmesh_total_ops = (sizeof(opdefines) / sizeof(void*));

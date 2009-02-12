@@ -518,6 +518,12 @@ static void end_editmesh_fastmalloc(void)
 	callocface= calloc_em;
 }
 
+void set_editMesh(EditMesh *dst, EditMesh *src)
+{
+	free_editMesh(dst);
+	*dst = *src;
+}
+
 /* do not free editmesh itself here */
 void free_editMesh(EditMesh *em)
 {

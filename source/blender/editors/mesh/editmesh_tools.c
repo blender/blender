@@ -634,18 +634,21 @@ void extrude_mesh(Object *obedit, EditMesh *em)
 	}
 	else if(em->selectmode & SCE_SELECT_EDGE) {
 		if (em->totedgesel==0) nr = 0;
-		else if (em->totedgesel==1) nr = 3;
+		
+		nr = 1;
+		/*else if (em->totedgesel==1) nr = 3;
 		else if(em->totfacesel==0) nr = 3;
 		else if(em->totfacesel==1)
 			nr= pupmenu("Extrude %t|Region %x1|Only Edges%x3");
 		else
 			nr= pupmenu("Extrude %t|Region %x1||Individual Faces %x2|Only Edges%x3");
+		*/
 	}
 	else {
 		if (em->totfacesel == 0) nr = 0;
-		else if (em->totfacesel == 1) nr = 1;
-		else
-			nr= pupmenu("Extrude %t|Region %x1||Individual Faces %x2");
+		else nr = 1; //if (em->totfacesel == 1) nr = 1;
+		//else
+		//	nr= pupmenu("Extrude %t|Region %x1||Individual Faces %x2");
 	}
 		
 	if(nr<1) return;

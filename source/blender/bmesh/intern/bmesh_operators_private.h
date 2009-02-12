@@ -17,5 +17,6 @@ void triangulate_exec(BMesh *bmesh, BMOperator *op);
 void dissolvefaces_exec(BMesh *bmesh, BMOperator *op);
 void dissolveverts_exec(BMesh *bmesh, BMOperator *op);
 void bmesh_make_fgons_exec(BMesh *bmesh, BMOperator *op);
+void extrude_edge_context_exec(BMesh *bm, BMOperator *op);
 
 #endif

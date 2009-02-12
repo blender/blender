@@ -55,19 +55,17 @@ static BMEdge *copy_edge(BMOperator *op, BMesh *source_mesh,
 	BMVert *target_vert1, *target_vert2;
 	BMFace *face;
 	BMIter fiter;
-	int found, rlen;
+	int rlen;
 
 	/*see if any of the neighboring faces are
 	  not being duplicated.  in that case,
 	  add it to the new/old map.*/
-	found = rlen = 0;
+	rlen = 0;
 	for (face=BMIter_New(&fiter,source_mesh, BM_FACES_OF_EDGE,source_edge);
 		face; face=BMIter_Step(&fiter)) {
-		if (!BMO_TestFlag(source_mesh, face, DUPE_INPUT)) {
-			found = 1;
-			break;
+		if (BMO_TestFlag(source_mesh, face, DUPE_INPUT)) {
+			rlen++;
 		}
-		rlen++;
 	}
 
 	/*Lookup v1 and v2*/
@@ -78,7 +76,7 @@ static BMEdge *copy_edge(BMOperator *op, BMesh *source_mesh,
 	target_edge = BM_Make_Edge(target_mesh, target_vert1, target_vert2, NULL, 0);
 	
 	/*add to new/old edge map if necassary*/
-	if (rlen > 0 && rlen <= 2 && found) {
+	if (rlen < 2) {
 		/*not sure what non-manifold cases of greater then three
 		  radial should do.*/
 		BMO_Insert_MapPointer(source_mesh,op,BMOP_DUPE_BOUNDS_EDGEMAP,
@@ -335,6 +333,7 @@ void BMOP_DupeFromFlag(BMesh *bm, int etypeflag, int flag)
  *
 */
 
+#define SPLIT_INPUT	1
 void splitop_exec(BMesh *bm, BMOperator *op)
 {
 	BMOperator *splitop = op;
@@ -350,9 +349,12 @@ void splitop_exec(BMesh *bm, BMOperator *op)
 	BMO_CopySlot(splitop, &dupeop, BMOP_SPLIT_MULTIN, BMOP_DUPE_MULTIN);
 	BMO_Exec_Op(bm, &dupeop);
 
-	/*connect outputs of dupe to delete*/
-	BMO_CopySlot(&dupeop, &delop, BMOP_DUPE_ORIG, BMOP_DEL_MULTIN);
-	BMO_Exec_Op(bm, &delop);
+	/*connect outputs of dupe to delete, exluding keep geometry*/
+	BMO_Flag_Buffer(bm, splitop, BMOP_SPLIT_MULTIN, SPLIT_INPUT);
+	BMO_Unflag_Buffer(bm, splitop, BMOP_SPLIT_KEEPIN, SPLIT_INPUT);
+	BMO_Flag_To_Slot(bm, &delop, BMOP_DEL_MULTIN, SPLIT_INPUT, BM_ALL);
+	
+	//BMO_Exec_Op(bm, &delop);
 
 	/*now we make our outputs by copying the dupe outputs*/
 	BMO_CopySlot(&dupeop, splitop, BMOP_DUPE_NEW, BMOP_SPLIT_MULTOUT);

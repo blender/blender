@@ -80,6 +80,7 @@ int BMO_TestFlag(struct BMesh *bm, void *element, int flag);
 int BMO_CountFlag(struct BMesh *bm, int flag, int type);
 void BMO_Flag_To_Slot(struct BMesh *bm, struct BMOperator *op, int slotcode, int flag, int type);
 void BMO_Flag_Buffer(struct BMesh *bm, struct BMOperator *op, int slotcode, int flag);
+void BMO_Unflag_Buffer(struct BMesh *bm, struct BMOperator *op, int slotcode, int flag);
 void BMO_HeaderFlag_To_Slot(struct BMesh *bm, struct BMOperator *op, int slotcode, int flag, int type);
 int BMO_CountSlotBuf(struct BMesh *bm, struct BMOperator *op, int slotcode);
 
@@ -88,6 +89,9 @@ void BMO_Insert_Mapping(BMesh *bm, BMOperator *op, int slotcode,
 			void *element, void *data, int len);
 void BMO_Insert_MapFloat(BMesh *bm, BMOperator *op, int slotcode, 
 			void *element, float val);
+
+//returns 1 if the specified element is in the map.
+int BMO_InMap(BMesh *bm, BMOperator *op, int slotcode, void *element);
 void *BMO_Get_MapData(BMesh *bm, BMOperator *op, int slotcode,
 		      void *element);
 float BMO_Get_MapFloat(BMesh *bm, BMOperator *op, int slotcode,
@@ -101,6 +105,22 @@ void BMO_Insert_MapPointer(BMesh *bm, BMOperator *op, int slotcode,
 			void *element, void *val);
 void *BMO_Get_MapPointer(BMesh *bm, BMOperator *op, int slotcode,
 		       void *element);
+
+struct GHashIterator;
+typedef struct BMOIter {
+	BMOpSlot *slot;
+	int cur; //for arrays
+	struct GHashIterator giter;
+	void *val;
+} BMOIter;
+
+void *BMO_IterNew(BMOIter *iter, BMesh *bm, BMOperator *op, 
+		  int slotcode);
+void *BMO_IterStep(BMOIter *iter);
+
+/*returns a pointer to the key value when iterating over mappings.
+  remember for pointer maps this will be a pointer to a pointer.*/
+void *BMO_IterMapVal(BMOIter *iter);
 
 /*if msg is null, then the default message for the errorcode is used*/
 void BMOP_RaiseError(BMesh *bm, int errcode, char *msg);
@@ -126,8 +146,9 @@ static char *bmop_error_messages[] = {
 
 enum {
 	BMOP_SPLIT_MULTIN,
+	BMOP_SPLIT_KEEPIN, //input list of geometry to keep
 	BMOP_SPLIT_MULTOUT,
-	BMOP_SPLIT_BOUNDS_EDGEMAP,
+	BMOP_SPLIT_BOUNDS_EDGEMAP, //bounding edges of split faces
 	BMOP_SPLIT_TOTSLOT,
 };
 
@@ -236,8 +257,16 @@ enum {
 #define BMOP_MAKE_FGONS			9
 #define BMOP_MAKE_FGONS_TOTSLOT	0
 
+#define BMOP_EXTRUDE_EDGECONTEXT	10
+enum {
+	BMOP_EXFACE_EDGEFACEIN,
+	BMOP_EXFACE_EXCLUDEMAP, //exclude edges from skirt connecting
+	BMOP_EXFACE_MULTOUT, //new geometry
+	BMOP_EXFACE_TOTSLOT,
+};
+
 /*keep this updated!*/
-#define BMOP_TOTAL_OPS			10
+#define BMOP_TOTAL_OPS			11
 /*-------------------------------end operator defines-------------------------------*/
 
 extern BMOpDefine *opdefines[];
@@ -253,5 +282,7 @@ struct Object;
 
 void BMOP_DupeFromFlag(struct BMesh *bm, int etypeflag, int flag);
 void BM_esubdivideflag(struct Object *obedit, struct BMesh *bm, int selflag, float rad, 
-		       int flag, int numcuts, int seltype);
+	       int flag, int numcuts, int seltype);
+void BM_extrudefaceflag(BMesh *bm, int flag);
+
 #endif

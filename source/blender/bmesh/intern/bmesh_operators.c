@@ -436,6 +436,17 @@ void BMO_Insert_MapPointer(BMesh *bm, BMOperator *op, int slotcode,
 	BMO_Insert_Mapping(bm, op, slotcode, element, &val, sizeof(void*));
 }
 
+int BMO_InMap(BMesh *bm, BMOperator *op, int slotcode, void *element)
+{
+	BMOpSlot *slot = &op->slots[slotcode];
+
+	/*sanity check*/
+	if (slot->slottype != BMOP_OPSLOT_MAPPING) return 0;
+	if (!slot->data.ghash) return 0;
+
+	return BLI_ghash_haskey(slot->data.ghash, element);
+}
+
 void *BMO_Get_MapData(BMesh *bm, BMOperator *op, int slotcode,
 		      void *element)
 {
@@ -448,6 +459,8 @@ void *BMO_Get_MapData(BMesh *bm, BMOperator *op, int slotcode,
 
 	mapping = BLI_ghash_lookup(slot->data.ghash, element);
 	
+	if (!mapping) return NULL;
+
 	return mapping + 1;
 }
 
@@ -596,6 +609,24 @@ void BMO_Flag_Buffer(BMesh *bm, BMOperator *op, int slotcode, int flag)
 		BMO_SetFlag(bm, data[i], flag);
 }
 
+/*
+ *
+ * BMO_FLAG_BUFFER
+ *
+ * Removes flags from elements in a slots buffer
+ *
+*/
+
+void BMO_Unflag_Buffer(BMesh *bm, BMOperator *op, int slotcode, int flag)
+{
+	BMOpSlot *slot = BMO_GetSlot(op, slotcode);
+	BMHeader **data =  slot->data.p;
+	int i;
+	
+	for(i = 0; i < slot->len; i++)
+		BMO_ClearFlag(bm, data[i], flag);
+}
+
 
 /*
  *
@@ -705,4 +736,46 @@ static void clear_flag_layer(BMesh *bm)
 	for(f = BMIter_New(&faces, bm, BM_FACES, bm); f; f = BMIter_Step(&faces)){
 		memset(f->head.flags, 0, sizeof(BMFlagLayer)*bm->totflags);
 	}
+}
+
+void *BMO_IterNew(BMOIter *iter, BMesh *bm, BMOperator *op, 
+		  int slotcode)
+{
+	BMOpSlot *slot = &op->slots[slotcode];
+
+	iter->slot = slot;
+	iter->cur = 0;
+
+	if (iter->slot->slottype == BMOP_OPSLOT_MAPPING)
+		if (iter->slot->data.ghash)
+			BLI_ghashIterator_init(&iter->giter, slot->data.ghash);
+
+	return BMO_IterStep(iter);
+}
+
+void *BMO_IterStep(BMOIter *iter)
+{
+	if (iter->slot->slottype == BMOP_OPSLOT_PNT_BUF) {
+		if (iter->cur >= iter->slot->len) return NULL;
+
+		return ((void**)iter->slot->data.buf)[iter->cur++];
+	} else if (iter->slot->slottype == BMOP_OPSLOT_MAPPING) {
+		struct element_mapping *map; 
+		void *ret = BLI_ghashIterator_getKey(&iter->giter);
+		map = BLI_ghashIterator_getValue(&iter->giter);
+		
+		iter->val = map + 1;
+
+		BLI_ghashIterator_step(&iter->giter);
+
+		return ret;
+	}
+
+	return NULL;
+}
+
+/*used for iterating over mappings*/
+void *BMO_IterMapVal(BMOIter *iter)
+{
+	return iter->val;
 }
