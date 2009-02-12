@@ -180,6 +180,7 @@ enum {
 #define DEL_EDGESFACES	4
 #define DEL_FACES		5
 #define DEL_ALL			6
+#define DEL_ONLYTAGGED		7
 
 /*BMOP_DEL_CONTEXT*/
 enum {

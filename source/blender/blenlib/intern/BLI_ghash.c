@@ -33,6 +33,7 @@
 
 #include "MEM_guardedalloc.h"
 #include "BLI_ghash.h"
+#include "BLI_mempool.h"
 
 #include "BLO_sys_types.h" // for intptr_t support
 
@@ -63,6 +64,7 @@ struct GHash {
 	GHashCmpFP	cmpfp;
 	
 	Entry **buckets;
+	struct BLI_mempool *entrypool;
 	int nbuckets, nentries, cursize;
 };
 
@@ -72,7 +74,8 @@ GHash *BLI_ghash_new(GHashHashFP hashfp, GHashCmpFP cmpfp) {
 	GHash *gh= MEM_mallocN(sizeof(*gh), "GHash");
 	gh->hashfp= hashfp;
 	gh->cmpfp= cmpfp;
-	
+	gh->entrypool = BLI_mempool_create(sizeof(Entry), 1, 32);
+
 	gh->cursize= 0;
 	gh->nentries= 0;
 	gh->nbuckets= hashsizes[gh->cursize];
@@ -85,7 +88,7 @@ GHash *BLI_ghash_new(GHashHashFP hashfp, GHashCmpFP cmpfp) {
 
 void BLI_ghash_insert(GHash *gh, void *key, void *val) {
 	unsigned int hash= gh->hashfp(key)%gh->nbuckets;
-	Entry *e= malloc(sizeof(*e));
+	Entry *e= BLI_mempool_alloc(gh->entrypool);
 
 	e->key= key;
 	e->val= val;
@@ -141,7 +144,7 @@ int BLI_ghash_remove (GHash *gh, void *key, GHashKeyFreeFP keyfreefp, GHashValFr
 
 			if (keyfreefp) keyfreefp(e->key);
 			if (valfreefp) valfreefp(e->val);
-			free(e);
+			BLI_mempool_free(gh->entrypool, e);
 
 
 			e= n;
@@ -185,13 +188,14 @@ void BLI_ghash_free(GHash *gh, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreef
 			
 			if (keyfreefp) keyfreefp(e->key);
 			if (valfreefp) valfreefp(e->val);
-			free(e);
+			BLI_mempool_free(gh->entrypool, e);
 			
 			e= n;
 		}
 	}
 	
 	free(gh->buckets);
+	BLI_mempool_destroy(gh->entrypool);
 	gh->buckets = 0;
 	gh->nentries = 0;
 	gh->nbuckets = 0;

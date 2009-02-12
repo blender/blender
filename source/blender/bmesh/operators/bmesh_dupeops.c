@@ -339,22 +339,53 @@ void splitop_exec(BMesh *bm, BMOperator *op)
 	BMOperator *splitop = op;
 	BMOperator dupeop;
 	BMOperator delop;
+	BMVert *v;
+	BMEdge *e;
+	BMFace *f;
+	BMIter iter, iter2;
+	int found;
 
 	/*initialize our sub-operators*/
 	BMO_Init_Op(&dupeop, BMOP_DUPE);
 	BMO_Init_Op(&delop, BMOP_DEL);
 	
-	BMO_Set_Int(&delop, BMOP_DEL_CONTEXT, DEL_FACES);
-
 	BMO_CopySlot(splitop, &dupeop, BMOP_SPLIT_MULTIN, BMOP_DUPE_MULTIN);
 	BMO_Exec_Op(bm, &dupeop);
+	
+	BMO_Flag_Buffer(bm, splitop, BMOP_SPLIT_MULTIN, SPLIT_INPUT);
+
+	/*make sure to remove edges and verts we don't need.*/
+	for (e= BMIter_New(&iter, bm, BM_EDGES, NULL);e;e=BMIter_Step(&iter)) {
+		found = 0;
+		f = BMIter_New(&iter2, bm, BM_FACES_OF_EDGE, e);
+		for (; f; f=BMIter_Step(&iter2)) {
+			if (!BMO_TestFlag(bm, f, SPLIT_INPUT)) {
+				found = 1;
+				break;
+			}
+		}
+		if (!found) BMO_SetFlag(bm, e, SPLIT_INPUT);
+	}
+	
+	for (v= BMIter_New(&iter, bm, BM_VERTS, NULL);v;v=BMIter_Step(&iter)) {
+		found = 0;
+		e = BMIter_New(&iter2, bm, BM_EDGES_OF_VERT, v);
+		for (; e; e=BMIter_Step(&iter2)) {
+			if (!BMO_TestFlag(bm, e, SPLIT_INPUT)) {
+				found = 1;
+				break;
+			}
+		}
+		if (!found) BMO_SetFlag(bm, v, SPLIT_INPUT);
+
+	}
 
 	/*connect outputs of dupe to delete, exluding keep geometry*/
-	BMO_Flag_Buffer(bm, splitop, BMOP_SPLIT_MULTIN, SPLIT_INPUT);
+	BMO_Set_Int(&delop, BMOP_DEL_CONTEXT, DEL_ONLYTAGGED);
 	BMO_Unflag_Buffer(bm, splitop, BMOP_SPLIT_KEEPIN, SPLIT_INPUT);
 	BMO_Flag_To_Slot(bm, &delop, BMOP_DEL_MULTIN, SPLIT_INPUT, BM_ALL);
 	
-	//BMO_Exec_Op(bm, &delop);
+	BMO_Exec_Op(bm, &delop);
 
 	/*now we make our outputs by copying the dupe outputs*/
 	BMO_CopySlot(&dupeop, splitop, BMOP_DUPE_NEW, BMOP_SPLIT_MULTOUT);
@@ -464,7 +495,11 @@ static void delete_context(BMesh *bm, int type){
 	}
 	else if(type == DEL_EDGESFACES) delete_edges(bm);
 	else if(type == DEL_ONLYFACES) BM_remove_tagged_faces(bm, DEL_INPUT);
-	else if(type == DEL_FACES){
+	else if (type == DEL_ONLYTAGGED) {
+		BM_remove_tagged_faces(bm, DEL_INPUT);
+		BM_remove_tagged_edges(bm, DEL_INPUT);
+		BM_remove_tagged_verts(bm, DEL_INPUT);
+	} else if(type == DEL_FACES){
 		/*go through and mark all edges and all verts of all faces for delete*/
 		for(f = BMIter_New(&faces, bm, BM_FACES, bm); f; f = BMIter_Step(&faces)){
 			if(BMO_TestFlag(bm, (BMHeader*)f, DEL_INPUT)){

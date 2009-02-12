@@ -26,7 +26,7 @@ void extrude_edge_context_exec(BMesh *bm, BMOperator *op)
 	/*initialize our sub-operators*/
 	BMO_Init_Op(&splitop, BMOP_SPLIT);
 	
-	BMO_Flag_To_Slot(bm, op, BMOP_EXFACE_EDGEFACEIN, EXT_INPUT, BM_ALL);
+	BMO_Flag_Buffer(bm, op, BMOP_EXFACE_EDGEFACEIN, EXT_INPUT);
 
 	/*calculate geometry to keep*/
 	for (edge = BMIter_New(&iter, bm, BM_EDGES, NULL); edge; edge=BMIter_Step(&iter)) {
@@ -36,7 +36,11 @@ void extrude_edge_context_exec(BMesh *bm, BMOperator *op)
 			if (BMO_TestFlag(bm, f, EXT_INPUT)) rlen++;
 		}
 
-		if (rlen < 2) BMO_SetFlag(bm, edge, EXT_KEEP);
+		if (rlen < 2) {
+			BMO_SetFlag(bm, edge, EXT_KEEP);
+			BMO_SetFlag(bm, edge->v1, EXT_KEEP);
+			BMO_SetFlag(bm, edge->v2, EXT_KEEP);
+		}
 	}
 
 	BMO_CopySlot(op, &splitop, BMOP_EXFACE_EDGEFACEIN, BMOP_SPLIT_MULTIN);
@@ -50,7 +54,10 @@ void extrude_edge_context_exec(BMesh *bm, BMOperator *op)
 	for (; edge; edge=BMO_IterStep(&siter)) {
 		if (BMO_InMap(bm, op, BMOP_EXFACE_EXCLUDEMAP, edge)) continue;
 
-		newedge = *(BMEdge**)BMO_IterMapVal(&siter);
+		newedge = BMO_IterMapVal(&siter);
+		if (!newedge) continue;
+		newedge = *(BMEdge**)newedge;
+
 		verts[0] = edge->v1;
 		verts[1] = edge->v2;
 		verts[2] = newedge->v2;

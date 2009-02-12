@@ -65,7 +65,8 @@ BLI_mempool *BLI_mempool_create(int esize, int tote, int pchunk)
 	pool->chunks.first = pool->chunks.last = NULL;
 	
 	maxchunks = tote / pchunk;
-	
+	if (maxchunks==0) maxchunks = 1;
+
 	/*allocate the actual chunks*/
 	for(i=0; i < maxchunks; i++){
 		BLI_mempool_chunk *mpchunk = MEM_mallocN(sizeof(BLI_mempool_chunk), "BLI_Mempool Chunk");
@@ -85,6 +86,7 @@ BLI_mempool *BLI_mempool_create(int esize, int tote, int pchunk)
 		/*set the end of this chunks memoryy to the new tail for next iteration*/
 		lasttail = curnode;
 	}
+	
 	/*terminate the list*/
 	curnode->next = NULL;
 	return pool;
