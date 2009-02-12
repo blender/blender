@@ -117,8 +117,8 @@ typedef struct wmWindow {
 	ListBase gesture;		/* gesture stuff */
 } wmWindow;
 
-#
-#
+
+
 typedef struct wmOperatorType {
 	struct wmOperatorType *next, *prev;
 	
