@@ -45,7 +45,6 @@ ListBase *curve_get_editcurve(struct Object *ob);
 
 void	load_editNurb	(struct Object *obedit);
 void	make_editNurb	(struct Object *obedit);
-void	remake_editNurb	(struct Object *obedit);
 void	free_editNurb	(struct Object *obedit);
 
 void	mouse_nurb		(struct bContext *C, short mval[2], int extend);

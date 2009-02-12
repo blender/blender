@@ -422,10 +422,10 @@ void OBJECT_OT_mesh_add(wmOperatorType *ot)
 }
 
 static EnumPropertyItem prop_curve_types[] = {
-	{CU_BEZIER|CU_2D|CU_PRIM_CURVE, "BEZCURVE", "Bezier Curve", ""},
-	{CU_BEZIER|CU_2D|CU_PRIM_CIRCLE, "BEZCIRCLE", "Bezier Circle", ""},
-	{CU_NURBS|CU_2D|CU_PRIM_CURVE, "NURBSCUVE", "NURBS Curve", ""},
-	{CU_NURBS|CU_2D|CU_PRIM_CIRCLE, "NURBSCIRCLE", "NURBS Circle", ""},
+	{CU_BEZIER|CU_2D|CU_PRIM_CURVE, "BEZIER_CURVE", "Bezier Curve", ""},
+	{CU_BEZIER|CU_2D|CU_PRIM_CIRCLE, "BEZIER_CIRCLE", "Bezier Circle", ""},
+	{CU_NURBS|CU_2D|CU_PRIM_CURVE, "NURBS_CURVE", "NURBS Curve", ""},
+	{CU_NURBS|CU_2D|CU_PRIM_CIRCLE, "NURBS_CIRCLE", "NURBS Circle", ""},
 	{CU_NURBS|CU_2D|CU_PRIM_PATH, "PATH", "Path", ""},
 	{0, NULL, NULL, NULL}
 };
@@ -5991,7 +5991,6 @@ static int add_duplicate_exec(bContext *C, wmOperator *op)
 
 static int add_duplicate_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	
 	add_duplicate_exec(C, op);
 	
 	RNA_int_set(op->ptr, "mode", TFM_TRANSLATION);
@@ -6019,7 +6018,6 @@ void OBJECT_OT_add_duplicate(wmOperatorType *ot)
 	/* to give to transform */
 	RNA_def_int(ot->srna, "mode", TFM_TRANSLATION, 0, INT_MAX, "Mode", "", 0, INT_MAX);
 }
-
 
 /* ********************** */
 

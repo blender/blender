@@ -2309,7 +2309,7 @@ uiBut *ui_def_but_operator(uiBlock *block, int type, char *opname, int opcontext
 		else str= opname;
 	}
 	
-	if ((!tip || tip[0]=='\0') && ot->description) {
+	if ((!tip || tip[0]=='\0') && ot && ot->description) {
 		tip= ot->description;
 	}
 

@@ -596,10 +596,8 @@ static void uv_map_transform(bContext *C, wmOperator *op, float center[3], float
 	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= ((Mesh*)obedit->data)->edit_mesh;
-	SpaceLink *sl= CTX_wm_space_data(C);
-	View3D *v3d= (sl->spacetype == SPACE_VIEW3D)? (View3D*)sl: NULL;
-	ARegion *ar= CTX_wm_region(C);
-	RegionView3D *rv3d= (v3d && ar->regiontype == RGN_TYPE_WINDOW)? ar->regiondata: NULL;
+	View3D *v3d= CTX_wm_view3d(C);
+	RegionView3D *rv3d= CTX_wm_region_view3d(C);
 	/* common operator properties */
 	int align= RNA_enum_get(op->ptr, "align");
 	int direction= RNA_enum_get(op->ptr, "direction");
@@ -935,13 +933,12 @@ static int from_view_exec(bContext *C, wmOperator *op)
 
 static int from_view_poll(bContext *C)
 {
-	SpaceLink *sl= CTX_wm_space_data(C);
-	ARegion *ar= CTX_wm_region(C);
+	RegionView3D *rv3d= CTX_wm_region_view3d(C)
 
 	if(!ED_operator_uvmap(C))
 		return 0;
 
-	return (sl->spacetype == SPACE_VIEW3D && ar->regiontype == RGN_TYPE_WINDOW);
+	return (rv3d != NULL);
 }
 
 void UV_OT_from_view(wmOperatorType *ot)
