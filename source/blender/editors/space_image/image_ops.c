@@ -1221,6 +1221,9 @@ static void sample_draw(const bContext *C, ARegion *ar, void *arg_info)
 	ImBuf *ibuf= ED_space_image_buffer(sima);
 	ImageSampleInfo *info= arg_info;
 
+	if(ibuf == NULL)
+		return;
+	
 	draw_image_info(ar, ibuf->channels, info->x, info->y, info->colp,
 		info->colfp, info->zp, info->zfp);
 }

@@ -265,6 +265,7 @@ def op2epy(target_path):
 		
 		out.write('def %s(%s):\n' % (op, ', '.join(kw_args)))
 		out.write('\t"""\n')
+		out.write('\t%s\n' % rna_struct.description)
 		for desc in kw_arg_attrs:
 			out.write('\t%s\n' % desc)
 		out.write('\t@rtype: None\n')

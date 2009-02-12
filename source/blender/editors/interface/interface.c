@@ -2308,6 +2308,10 @@ uiBut *ui_def_but_operator(uiBlock *block, int type, char *opname, int opcontext
 		if(ot) str= ot->name;
 		else str= opname;
 	}
+	
+	if ((!tip || tip[0]=='\0') && ot->description) {
+		tip= ot->description;
+	}
 
 	but= ui_def_but(block, type, -1, str, x1, y1, x2, y2, NULL, 0, 0, 0, 0, tip);
 	but->opname= opname;

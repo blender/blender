@@ -123,7 +123,8 @@ typedef struct wmOperatorType {
 	struct wmOperatorType *next, *prev;
 	
 	char *name;		/* text for ui, undo */
-	char *idname;	/* unique identifier */
+	char *idname;		/* unique identifier */
+	char *description;	/* tooltips and python docs */
 	
 	/* this callback executes the operator without any interactive input,
 	 * parameters may be provided through operator properties. cannot use
