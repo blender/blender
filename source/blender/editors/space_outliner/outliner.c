@@ -2478,7 +2478,7 @@ void outliner_find_panel(Scene *scene, ARegion *ar, SpaceOops *soops, int again,
 //		else return; /* XXX RETURN! XXX */
 	}
 
-	/* do selection and reveil */
+	/* do selection and reveal */
 	if (te) {
 		tselem= TREESTORE(te);
 		if (tselem) {

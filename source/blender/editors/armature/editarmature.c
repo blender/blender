@@ -4614,7 +4614,7 @@ static int show_pose_bone(Object *ob, Bone *bone, void *ptr)
 }
 
 /* active object is armature in posemode, poll checked */
-static int pose_reveil_exec(bContext *C, wmOperator *op) 
+static int pose_reveal_exec(bContext *C, wmOperator *op) 
 {
 	Object *ob= CTX_data_active_object(C);
 	bArmature *arm= ob->data;
@@ -4627,14 +4627,14 @@ static int pose_reveil_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void POSE_OT_reveil(wmOperatorType *ot)
+void POSE_OT_reveal(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Reveil Selection";
-	ot->idname= "POSE_OT_reveil";
+	ot->idname= "POSE_OT_reveal";
 	
 	/* api callbacks */
-	ot->exec= pose_reveil_exec;
+	ot->exec= pose_reveal_exec;
 	ot->poll= ED_operator_posemode;
 	
 	/* flags */

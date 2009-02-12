@@ -702,7 +702,7 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 		UI_icon_draw_aspect_blended(iconofs, rct->ymax-NODE_DY+2, ICON_BUTS, snode->aspect, -60);
 		glDisable(GL_BLEND);
 	}
-	{	/* always hide/reveil unused sockets */ 
+	{	/* always hide/reveal unused sockets */ 
 		int shade;
 
 		iconofs-= 18.0f;

@@ -45,7 +45,7 @@ void ARMATURE_OT_de_select_all(struct wmOperatorType *ot);
 void ARMATURE_OT_selection_invert(struct wmOperatorType *ot);
 
 void POSE_OT_hide(struct wmOperatorType *ot);
-void POSE_OT_reveil(struct wmOperatorType *ot);
+void POSE_OT_reveal(struct wmOperatorType *ot);
 void POSE_OT_rot_clear(struct wmOperatorType *ot);
 void POSE_OT_loc_clear(struct wmOperatorType *ot);
 void POSE_OT_scale_clear(struct wmOperatorType *ot);
