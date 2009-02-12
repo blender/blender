@@ -177,7 +177,10 @@ KeyingSet *BKE_keyingset_add (ListBase *list, const char name[], short flag, sho
 	/* allocate new KeyingSet */
 	ks= MEM_callocN(sizeof(KeyingSet), "KeyingSet");
 	
-	BLI_snprintf(ks->name, 64, name);
+	if (name)
+		BLI_snprintf(ks->name, 64, name);
+	else
+		strcpy(ks->name, "Keying Set");
 	
 	ks->flag= flag;
 	ks->keyingflag= keyingflag;
@@ -212,7 +215,10 @@ void BKE_keyingset_add_destination (KeyingSet *ks, ID *id, const char group_name
 	/* just store absolute info */
 	if (ks->flag & KEYINGSET_ABSOLUTE) {
 		ksp->id= id;
-		BLI_snprintf(ksp->group, 64, group_name);
+		if (group_name)
+			BLI_snprintf(ksp->group, 64, group_name);
+		else
+			strcpy(ksp->group, "");
 	}
 	
 	/* just copy path info */
