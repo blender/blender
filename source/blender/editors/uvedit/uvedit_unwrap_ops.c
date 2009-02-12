@@ -933,7 +933,7 @@ static int from_view_exec(bContext *C, wmOperator *op)
 
 static int from_view_poll(bContext *C)
 {
-	RegionView3D *rv3d= CTX_wm_region_view3d(C)
+	RegionView3D *rv3d= CTX_wm_region_view3d(C);
 
 	if(!ED_operator_uvmap(C))
 		return 0;
