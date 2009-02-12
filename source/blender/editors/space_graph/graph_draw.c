@@ -708,7 +708,7 @@ void graph_draw_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 		/* draw curve - we currently calculate colour on the fly, but that should probably be done in advance instead */
 		if ( ((fcu->bezt) || (fcu->fpt)) && (fcu->totvert) ) { 
 			/* set color/drawing style for curve itself */
-			if (fcu->flag & FCURVE_PROTECTED) {
+			if ( ((fcu->grp) && (fcu->grp->flag & AGRP_PROTECTED)) || (fcu->flag & FCURVE_PROTECTED) ) {
 				/* protected curves (non editable) are drawn with dotted lines */
 				setlinestyle(2);
 			}

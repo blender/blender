@@ -248,7 +248,7 @@ void BKE_keyingset_free (KeyingSet *ks)
 		MEM_freeN(ksp->rna_path);
 		
 		/* free path itself */
-		BLI_freelinkN(&ks->paths, ks);
+		BLI_freelinkN(&ks->paths, ksp);
 	}
 }
 

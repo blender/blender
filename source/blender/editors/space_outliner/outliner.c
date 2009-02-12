@@ -76,6 +76,7 @@
 #include "BKE_material.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
+#include "BKE_report.h"
 #include "BKE_screen.h"
 #include "BKE_scene.h"
 #include "BKE_sequence.h"
@@ -3092,12 +3093,37 @@ void outliner_operation_menu(Scene *scene, ARegion *ar, SpaceOops *soops)
 /* These operators are only available in databrowser mode for now, as
  * they depend on having RNA paths and/or hierarchies available.
  */
+enum {
+	KEYINGSET_EDITMODE_ADD	= 0,
+	KEYINGSET_EDITMODE_REMOVE,
+} eKeyingSet_EditModes;
 
+/* typedef'd function-prototype style for KeyingSet operation callbacks */
+typedef void (*ksEditOp)(SpaceOops *soops, KeyingSet *ks, TreeElement *te, TreeStoreElem *tselem);
+ 
+/* Utilities ---------------------------------- */
+ 
+/* specialised poll callback for these operators to work in Datablocks view only */
+static int ed_operator_outliner_datablocks_active(bContext *C)
+{
+	ScrArea *sa= CTX_wm_area(C);
+	if ((sa) && (sa->spacetype==SPACE_OOPS)) {
+		SpaceOops *so= (SpaceOops *)CTX_wm_space_data(C);
+		return ((so->type == SO_OUTLINER) && (so->outlinevis == SO_DATABLOCKS));
+	}
+	return 0;
+}
+ 
+ 
 /* find the 'active' KeyingSet, and add if not found (if adding is allowed) */
 // TODO: should this be an API func?
 static KeyingSet *verify_active_keyingset(Scene *scene, short add)
 {
 	KeyingSet *ks= NULL;
+	
+	/* sanity check */
+	if (scene == NULL)
+		return NULL;
 	
 	/* try to find one from scene */
 	if (scene->active_keyingset > 0)
@@ -3113,22 +3139,183 @@ static KeyingSet *verify_active_keyingset(Scene *scene, short add)
 	return ks;
 }
 
-/* ---------------------------------- */
+/* helper func to add a new KeyingSet Path */
+static void ks_editop_add_cb(SpaceOops *soops, KeyingSet *ks, TreeElement *te, TreeStoreElem *tselem)
+{
+	ListBase hierarchy = {NULL, NULL};
+	LinkData *ld;
+	TreeElement *tem;
+	TreeStoreElem *tse;
+	PointerRNA *ptr;
+	PropertyRNA *prop;
+	ID *id = NULL;
+	char *path=NULL, *newpath=NULL;
+	int array_index= 0;
+	int flag= KSP_FLAG_GROUP_KSNAME;
+	
+	/* optimise tricks:
+	 *	- Don't do anything if the selected item is a 'struct', but arrays are allowed
+	 */
+	if (tselem->type == TSE_RNA_STRUCT)
+		return;
+	
+	//printf("ks_editop_add_cb() \n");
+	
+	/* Overview of Algorithm:
+	 * 	1. Go up the chain of parents until we find the 'root', taking note of the 
+	 *	   levels encountered in reverse-order (i.e. items are added to the start of the list
+	 *      for more convenient looping later)
+	 * 	2. Walk down the chain, adding from the first ID encountered 
+	 *	   (which will become the 'ID' for the KeyingSet Path), and build a  
+	 * 		path as we step through the chain
+	 */
+	// XXX do we want to separate this part out to a helper func for the other editing op at some point?
+	 
+	/* step 1: flatten out hierarchy of parents into a flat chain */
+	for (tem= te->parent; tem; tem= tem->parent) {
+		ld= MEM_callocN(sizeof(LinkData), "LinkData for ks_editop_add_cb()");
+		ld->data= tem;
+		BLI_addhead(&hierarchy, ld);
+	}
+	
+	/* step 2: step down hierarchy building the path (NOTE: addhead in previous loop was needed so that we can loop like this) */
+	for (ld= hierarchy.first; ld; ld= ld->next) {
+		/* get data */
+		tem= (TreeElement *)ld->data;
+		tse= TREESTORE(tem);
+		ptr= &tem->rnaptr;
+		prop= tem->directdata;
+		
+		/* check if we're looking for first ID, or appending to path */
+		if (id) {
+			/* just 'append' property to path 
+			 *	- to prevent memory leaks, we must write to newpath not path, then free old path + swap them
+			 */
+			// TODO: how to do this?
+			//newpath= RNA_path_append(path, NULL, prop, index, NULL);
+			
+			if (path) MEM_freeN(path);
+			path= newpath;
+		}
+		else {
+			/* no ID, so check if entry is RNA-struct, and if that RNA-struct is an ID datablock to extract info from */
+			if (tse->type == TSE_RNA_STRUCT) {
+				/* ptr->data not ptr->id.data seems to be the one we want, since ptr->data is sometimes the owner of this ID? */
+				if (RNA_struct_is_ID(ptr))
+					id= (ID *)ptr->data;
+			}
+		}
+	}
+	
+	/* step 3: if we've got an ID, add the current item to the path */
+	if (id) {
+		/* add the active property to the path */
+		// if array base, add KSP_FLAG_WHOLE_ARRAY
+		ptr= &te->rnaptr;
+		prop= te->directdata;
+		
+		/* array checks */
+		if (tselem->type == TSE_RNA_ARRAY_ELEM) {
+			/* item is part of an array, so must set the array_index */
+			array_index= te->index;
+		}
+		else if (RNA_property_array_length(ptr, prop)) {
+			/* entire array was selected, so keyframe all */
+			flag |= KSP_FLAG_WHOLE_ARRAY;
+		}
+		
+		/* path */
+		newpath= RNA_path_append(path, NULL, prop, 0, NULL);
+		if (path) MEM_freeN(path);
+		path= newpath;
+		
+		printf("Adding KeyingSet '%s': Path %s %d \n", ks->name, path, array_index);
+		
+		/* add a new path with the information obtained (only if valid) */
+		// TODO: what do we do with group name? for now, we don't supply one, and just let this use the KeyingSet name
+		if (path)
+			BKE_keyingset_add_destination(ks, id, NULL, path, array_index, flag);
+	}
+	
+	/* free temp data */
+	if (path) MEM_freeN(path);
+	BLI_freelistN(&hierarchy);
+}
 
+/* Recursively iterate over tree, finding and working on selected items */
+static void do_outliner_keyingset_editop(SpaceOops *soops, KeyingSet *ks, ListBase *tree, ksEditOp edit_cb)
+{
+	TreeElement *te;
+	TreeStoreElem *tselem;
+	
+	for (te= tree->first; te; te=te->next) {
+		tselem= TREESTORE(te);
+		
+		/* if item is selected, perform operation */
+		if (tselem->flag & TSE_SELECTED) {
+			if (edit_cb) edit_cb(soops, ks, te, tselem);
+		}
+		
+		/* go over sub-tree */
+		if ((tselem->flag & TSE_CLOSED)==0)
+			do_outliner_keyingset_editop(soops, ks, &te->subtree, edit_cb);
+	}
+}
+
+/* Add Operator ---------------------------------- */
+
+static int outliner_keyingset_additems_exec(bContext *C, wmOperator *op)
+{
+	SpaceOops *soutliner= (SpaceOops*)CTX_wm_space_data(C);
+	Scene *scene= CTX_data_scene(C);
+	KeyingSet *ks= verify_active_keyingset(scene, 1);
+	
+	/* check for invalid states */
+	if (ks == NULL) {
+		BKE_report(op->reports, RPT_ERROR, "Operation requires an Active Keying Set");
+		return OPERATOR_CANCELLED;
+	}
+	if (soutliner == NULL)
+		return OPERATOR_CANCELLED;
+	
+	/* recursively go into tree, adding selected items */
+	// TODO: make the last arg a callback func instead...
+	do_outliner_keyingset_editop(soutliner, ks, &soutliner->tree, ks_editop_add_cb);
+	
+	/* send notifiers */
+	WM_event_add_notifier(C, NC_SCENE|ND_KEYINGSET, NULL);
+	
+	return OPERATOR_FINISHED;
+}
 
 void OUTLINER_OT_keyingset_add_selected(wmOperatorType *ot)
 {
+	/* identifiers */
 	ot->idname= "OUTLINER_OT_keyingset_add_selected";
 	ot->name= "Keyingset Add Selected";
+	
+	/* api callbacks */
+	ot->exec= outliner_keyingset_additems_exec;
+	ot->poll= ed_operator_outliner_datablocks_active;
+	
+	/* flags */
+	ot->flag = OPTYPE_UNDO;
 }
 
 
-/* ---------------------------------- */
+/* Remove Operator ---------------------------------- */
 
 void OUTLINER_OT_keyingset_remove_selected(wmOperatorType *ot)
 {
+	/* identifiers */
 	ot->idname= "OUTLINER_OT_keyingset_remove_selected";
 	ot->name= "Keyingset Remove Selected";
+	
+	/* api callbacks */
+	ot->poll= ed_operator_outliner_datablocks_active;
+	
+	/* flags */
+	ot->flag = OPTYPE_UNDO;
 }
 
 /* ***************** DRAW *************** */

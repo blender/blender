@@ -111,13 +111,16 @@ FCurve *verify_fcurve (ID *id, const char group[], const char rna_path[], const 
 		/* use default settings to make a F-Curve */
 		fcu= MEM_callocN(sizeof(FCurve), "FCurve");
 		
-		fcu->flag |= (FCURVE_VISIBLE|FCURVE_AUTO_HANDLES);
+		fcu->flag = (FCURVE_VISIBLE|FCURVE_AUTO_HANDLES|FCURVE_SELECTED);
 		if (act->curves.first==NULL) 
 			fcu->flag |= FCURVE_ACTIVE;	/* first one added active */
 			
 		/* store path - make copy, and store that */
 		fcu->rna_path= BLI_strdupn(rna_path, strlen(rna_path));
 		fcu->array_index= array_index;
+		
+		/* set additional flags */
+		// TODO: need to set the FCURVE_INT_VALUES flag must be set if property is not float!
 		
 		
 		/* if a group name has been provided, try to add or find a group, then add F-Curve to it */
@@ -2019,13 +2022,14 @@ static int commonkey_modifykey (ListBase *dsources, KeyingSet *ks, short mode, f
 	else if (mode == COMMONKEY_MODE_DELETE)
 		kflag= 0;
 	
-	
 	/* check if the KeyingSet is absolute or not (i.e. does it requires sources info) */
 	if (ks->flag & KEYINGSET_ABSOLUTE) {
 		/* Absolute KeyingSets are simpler to use, as all the destination info has already been
 		 * provided by the user, and is stored, ready to use, in the KeyingSet paths.
 		 */
 		for (ksp= ks->paths.first; ksp; ksp= ksp->next) {
+			int arraylen, i;
+			
 			/* get pointer to name of group to add channels to */
 			if (ksp->flag & KSP_FLAG_GROUP_NONE)
 				groupname= NULL;
@@ -2034,11 +2038,34 @@ static int commonkey_modifykey (ListBase *dsources, KeyingSet *ks, short mode, f
 			else
 				groupname= ksp->group;
 			
-			/* action to take depends on mode */
-			if (mode == COMMONKEY_MODE_INSERT)
-				success+= insertkey(ksp->id, groupname, ksp->rna_path, ksp->array_index, cfra, kflag);
-			else if (mode == COMMONKEY_MODE_DELETE)
-				success+= deletekey(ksp->id, groupname,  ksp->rna_path, ksp->array_index, cfra, kflag);
+			/* init arraylen and i - arraylen should be greater than i so that
+			 * normal non-array entries get keyframed correctly
+			 */
+			i= ksp->array_index;
+			arraylen= i+1;
+			
+			/* get length of array if whole array option is enabled */
+			if (ksp->flag & KSP_FLAG_WHOLE_ARRAY) {
+				PointerRNA id_ptr, ptr;
+				PropertyRNA *prop;
+				
+				RNA_id_pointer_create(ksp->id, &id_ptr);
+				if (RNA_path_resolve(&id_ptr, ksp->rna_path, &ptr, &prop))
+					arraylen= RNA_property_array_length(&ptr, prop);
+			}
+			
+			/* for each possible index, perform operation 
+			 *	- assume that arraylen is greater than index
+			 */
+			for (; i < arraylen; i++) {
+				/* action to take depends on mode */
+				if (mode == COMMONKEY_MODE_INSERT)
+					success+= insertkey(ksp->id, groupname, ksp->rna_path, i, cfra, kflag);
+				else if (mode == COMMONKEY_MODE_DELETE)
+					success+= deletekey(ksp->id, groupname,  ksp->rna_path, i, cfra, kflag);
+			}
+			
+			// TODO: set recalc tags on the ID?
 		}
 	}
 #if 0 // XXX still need to figure out how to get such keyingsets working
@@ -2148,96 +2175,97 @@ static int insert_key_exec (bContext *C, wmOperator *op)
 		else
 			return OPERATOR_FINISHED;
 	}
-	
-	// XXX more comprehensive tests will be needed
-	CTX_DATA_BEGIN(C, Base*, base, selected_bases) 
-	{
-		Object *ob= base->object;
-		ID *id= (ID *)ob;
-		short success= 0;
-		
-		/* check which keyframing mode chosen for this object */
-		if (mode < 4) {
-			/* object-based keyframes */
-			switch (mode) {
-			case 4: /* color of active material (only for geometry...) */
-				// NOTE: this is just a demo... but ideally we'd go through materials instead of active one only so reference stays same
-				// XXX no group for now
-				success+= insertkey(id, NULL, "active_material.diffuse_color", 0, cfra, 0);
-				success+= insertkey(id, NULL, "active_material.diffuse_color", 1, cfra, 0);
-				success+= insertkey(id, NULL, "active_material.diffuse_color", 2, cfra, 0);
-				break;
-			case 3: /* object scale */
-				success+= insertkey(id, "Object Transforms", "scale", 0, cfra, 0);
-				success+= insertkey(id, "Object Transforms", "scale", 1, cfra, 0);
-				success+= insertkey(id, "Object Transforms", "scale", 2, cfra, 0);
-				break;
-			case 2: /* object rotation */
-				success+= insertkey(id, "Object Transforms", "rotation", 0, cfra, 0);
-				success+= insertkey(id, "Object Transforms", "rotation", 1, cfra, 0);
-				success+= insertkey(id, "Object Transforms", "rotation", 2, cfra, 0);
-				break;
-			case 1: /* object location */
-				success+= insertkey(id, "Object Transforms", "location", 0, cfra, 0);
-				success+= insertkey(id, "Object Transforms", "location", 1, cfra, 0);
-				success+= insertkey(id, "Object Transforms", "location", 2, cfra, 0);
-				break;
+	else {
+		// more comprehensive tests will be needed
+		CTX_DATA_BEGIN(C, Base*, base, selected_bases) 
+		{
+			Object *ob= base->object;
+			ID *id= (ID *)ob;
+			short success= 0;
+			
+			/* check which keyframing mode chosen for this object */
+			if (mode < 4) {
+				/* object-based keyframes */
+				switch (mode) {
+				case 4: /* color of active material (only for geometry...) */
+					// NOTE: this is just a demo... but ideally we'd go through materials instead of active one only so reference stays same
+					// XXX no group for now
+					success+= insertkey(id, NULL, "active_material.diffuse_color", 0, cfra, 0);
+					success+= insertkey(id, NULL, "active_material.diffuse_color", 1, cfra, 0);
+					success+= insertkey(id, NULL, "active_material.diffuse_color", 2, cfra, 0);
+					break;
+				case 3: /* object scale */
+					success+= insertkey(id, "Object Transforms", "scale", 0, cfra, 0);
+					success+= insertkey(id, "Object Transforms", "scale", 1, cfra, 0);
+					success+= insertkey(id, "Object Transforms", "scale", 2, cfra, 0);
+					break;
+				case 2: /* object rotation */
+					success+= insertkey(id, "Object Transforms", "rotation", 0, cfra, 0);
+					success+= insertkey(id, "Object Transforms", "rotation", 1, cfra, 0);
+					success+= insertkey(id, "Object Transforms", "rotation", 2, cfra, 0);
+					break;
+				case 1: /* object location */
+					success+= insertkey(id, "Object Transforms", "location", 0, cfra, 0);
+					success+= insertkey(id, "Object Transforms", "location", 1, cfra, 0);
+					success+= insertkey(id, "Object Transforms", "location", 2, cfra, 0);
+					break;
+				}
+				
+				ob->recalc |= OB_RECALC_OB;
 			}
-			
-			ob->recalc |= OB_RECALC_OB;
-		}
-		else if ((ob->pose) && (ob->flag & OB_POSEMODE)) {
-			/* PoseChannel based keyframes */
-			bPoseChannel *pchan;
-			
-			for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-				/* only if selected */
-				if ((pchan->bone) && (pchan->bone->flag & BONE_SELECTED)) {
-					char buf[512];
-					
-					switch (mode) {
-					case 6: /* pchan scale */
-						sprintf(buf, "pose.pose_channels[\"%s\"].scale", pchan->name);
-						success+= insertkey(id, pchan->name, buf, 0, cfra, 0);
-						success+= insertkey(id, pchan->name, buf, 1, cfra, 0);
-						success+= insertkey(id, pchan->name, buf, 2, cfra, 0);
-						break;
-					case 5: /* pchan rotation */
-						if (pchan->rotmode == PCHAN_ROT_QUAT) {
-							sprintf(buf, "pose.pose_channels[\"%s\"].rotation", pchan->name);
+			else if ((ob->pose) && (ob->flag & OB_POSEMODE)) {
+				/* PoseChannel based keyframes */
+				bPoseChannel *pchan;
+				
+				for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+					/* only if selected */
+					if ((pchan->bone) && (pchan->bone->flag & BONE_SELECTED)) {
+						char buf[512];
+						
+						switch (mode) {
+						case 6: /* pchan scale */
+							sprintf(buf, "pose.pose_channels[\"%s\"].scale", pchan->name);
 							success+= insertkey(id, pchan->name, buf, 0, cfra, 0);
 							success+= insertkey(id, pchan->name, buf, 1, cfra, 0);
 							success+= insertkey(id, pchan->name, buf, 2, cfra, 0);
-							success+= insertkey(id, pchan->name, buf, 3, cfra, 0);
-						}
-						else {
-							sprintf(buf, "pose.pose_channels[\"%s\"].euler_rotation", pchan->name);
+							break;
+						case 5: /* pchan rotation */
+							if (pchan->rotmode == PCHAN_ROT_QUAT) {
+								sprintf(buf, "pose.pose_channels[\"%s\"].rotation", pchan->name);
+								success+= insertkey(id, pchan->name, buf, 0, cfra, 0);
+								success+= insertkey(id, pchan->name, buf, 1, cfra, 0);
+								success+= insertkey(id, pchan->name, buf, 2, cfra, 0);
+								success+= insertkey(id, pchan->name, buf, 3, cfra, 0);
+							}
+							else {
+								sprintf(buf, "pose.pose_channels[\"%s\"].euler_rotation", pchan->name);
+								success+= insertkey(id, pchan->name, buf, 0, cfra, 0);
+								success+= insertkey(id, pchan->name, buf, 1, cfra, 0);
+								success+= insertkey(id, pchan->name, buf, 2, cfra, 0);
+							}
+							break;
+						default: /* pchan location */
+							sprintf(buf, "pose.pose_channels[\"%s\"].location", pchan->name);
 							success+= insertkey(id, pchan->name, buf, 0, cfra, 0);
 							success+= insertkey(id, pchan->name, buf, 1, cfra, 0);
 							success+= insertkey(id, pchan->name, buf, 2, cfra, 0);
+							break;
 						}
-						break;
-					default: /* pchan location */
-						sprintf(buf, "pose.pose_channels[\"%s\"].location", pchan->name);
-						success+= insertkey(id, pchan->name, buf, 0, cfra, 0);
-						success+= insertkey(id, pchan->name, buf, 1, cfra, 0);
-						success+= insertkey(id, pchan->name, buf, 2, cfra, 0);
-						break;
 					}
 				}
+				
+				ob->recalc |= OB_RECALC_OB;
 			}
 			
-			ob->recalc |= OB_RECALC_OB;
+			printf("Ob '%s' - Successfully added %d Keyframes \n", id->name+2, success);
 		}
-		
-		printf("Ob '%s' - Successfully added %d Keyframes \n", id->name+2, success);
+		CTX_DATA_END;
 	}
-	CTX_DATA_END;
 	
 	/* send updates */
 	ED_anim_dag_flush_update(C);	
 	
-	if (mode == 3) // material color requires different notifiers
+	if (mode == 4) // material color requires different notifiers
 		WM_event_add_notifier(C, NC_MATERIAL|ND_KEYS, NULL);
 	else
 		WM_event_add_notifier(C, NC_OBJECT|ND_KEYS, NULL);
