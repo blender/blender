@@ -3191,7 +3191,7 @@ static void ks_editop_add_cb(SpaceOops *soops, KeyingSet *ks, TreeElement *te, T
 			/* just 'append' property to path 
 			 *	- to prevent memory leaks, we must write to newpath not path, then free old path + swap them
 			 */
-			// TODO: how to do this?
+			// TODO: how to do this? we must use 'string' identifiers for collections so that these don't break if data is added/removed
 			//newpath= RNA_path_append(path, NULL, prop, index, NULL);
 			
 			if (path) MEM_freeN(path);
