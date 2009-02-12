@@ -1446,13 +1446,13 @@ def write(filename, batch_objects = None, \
 				for f in me.faces:
 					for col in f.col:
 						if i==-1:
-							file.write('%i,%i,%i,255' % (col[0], col[1], col[2]))
+							file.write('%.4f,%.4f,%.4f,1' % (col[0]/255.0, col[1]/255.0, col[2]/255.0))
 							i=0
 						else:
 							if i==7:
 								file.write('\n\t\t\t\t')
 								i=0
-							file.write(',%i,%i,%i,255' % (col[0], col[1], col[2]))
+							file.write(',%.4f,%.4f,%.4f,1' % (col[0]/255.0, col[1]/255.0, col[2]/255.0))
 						i+=1
 						ii+=1 # One more Color
 				
