@@ -707,10 +707,28 @@ void graph_draw_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 		
 		/* draw curve - we currently calculate colour on the fly, but that should probably be done in advance instead */
 		if ( ((fcu->bezt) || (fcu->fpt)) && (fcu->totvert) ) { 
-			col= ipo_rainbow(i, items);
-			cpack(col);
+			/* set color/drawing style for curve itself */
+			if (fcu->flag & FCURVE_PROTECTED) {
+				/* protected curves (non editable) are drawn with dotted lines */
+				setlinestyle(2);
+			}
+			if (fcu->flag & FCURVE_MUTED) {
+				/* muted curves are drawn in a greyish hue */
+				// XXX should we have some variations?
+				UI_ThemeColorShade(TH_HEADER, 50);
+			}
+			else {
+				// XXX color calculation here really needs to be done in advance instead
+				col= ipo_rainbow(i, items);
+				cpack(col);
+			}
 			
+			/* draw F-Curve */
 			draw_fcurve_repeat(fcu, &ar->v2d, 0, 0, &fac); // XXX this call still needs a lot more work
+			
+			/* restore settings */
+			setlinestyle(0);
+			
 			
 			/* draw handles and vertices as appropriate */
 			if (fcu->bezt) {
