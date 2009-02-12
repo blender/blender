@@ -127,7 +127,11 @@ typedef struct _GlyphBLF {
 } GlyphBLF;
 
 typedef struct FontBLF {
+	/* font name. */
 	char *name;
+
+	/* filename or NULL. */
+	char *filename;
 
 	/* reference count. */
 	int ref;

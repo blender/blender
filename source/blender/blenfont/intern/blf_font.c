@@ -64,27 +64,8 @@ void blf_font_exit(void)
 	FT_Done_Freetype(global_ft_lib);
 }
 
-FontBLF *blf_font_new(char *name)
+void blf_font_fill(FontBLF *font)
 {
-	FontBLF *font;
-	FT_Error err;
-
-	font= (FontBLF *)MEM_mallocN(sizeof(FontBLF), "blf_font_new");
-	err= FT_New_Face(global_ft_lib, name, 0, &font->face);
-	if (err) {
-		MEM_freeN(font);
-		return(NULL);
-	}
-
-	err= FT_Select_Charmap(font->face, ft_encoding_unicode);
-	if (err) {
-		printf("Warning: FT_Select_Charmap fail!!\n");
-		FT_Done_Face(font->face);
-		MEM_freeN(font);
-		return(NULL);
-	}
-
-	font->name= MEM_strdup(name);
 	font->ref= 1;
 	font->aspect= 1.0f;
 	font->pos[0]= 0.0f;
@@ -104,6 +85,59 @@ FontBLF *blf_font_new(char *name)
 	font->cache.last= NULL;
 	font->glyph_cache= NULL;
 	glGetIntegerv(GL_MAX_TEXTURE_SIZE, (GLint *)&font->max_tex_size);
+}
+
+FontBLF *blf_font_new(char *name, char *filename)
+{
+	FontBLF *font;
+	FT_Error err;
+
+	font= (FontBLF *)MEM_mallocN(sizeof(FontBLF), "blf_font_new");
+	err= FT_New_Face(global_ft_lib, filename, 0, &font->face);
+	if (err) {
+		printf("BLF: Can't load font: %s\n", filename);
+		MEM_freeN(font);
+		return(NULL);
+	}
+
+	err= FT_Select_Charmap(font->face, ft_encoding_unicode);
+	if (err) {
+		printf("Warning: FT_Select_Charmap fail!!\n");
+		FT_Done_Face(font->face);
+		MEM_freeN(font);
+		return(NULL);
+	}
+
+	font->name= MEM_strdup(name);
+	font->filename= MEM_strdup(filename);
+	blf_font_fill(font);
+	return(font);
+}
+
+FontBLF *blf_font_new_from_mem(char *name, unsigned char *mem, int mem_size)
+{
+	FontBLF *font;
+	FT_Error err;
+
+	font= (FontBLF *)MEM_mallocN(sizeof(FontBLF), "blf_font_new_from_mem");
+	err= FT_New_Memory_Face(global_ft_lib, mem, size, 0, &font->face);
+	if (err) {
+		printf("BLF: Can't load font: %s, from memory!!\n", name);
+		MEM_freeN(font);
+		return(NULL);
+	}
+
+	err= FT_Select_Charmap(font->face, ft_encoding_unicode);
+	if (err) {
+		printf("BLF: FT_Select_Charmap fail!!\n");
+		FT_Done_Face(font->face);
+		MEM_freeN(font);
+		return(NULL);
+	}
+
+	font->name= MEM_strdup(name);
+	font->filename= NULL;
+	blf_font_fill(font);
 	return(font);
 }
 
@@ -129,6 +163,49 @@ void blf_font_size(FontBLF *font, int size, int dpi)
 		gc= blf_glyph_cache_new(font);
 		if (gc)
 			font->glyph_cache= gc;
+	}
+}
+
+void blf_font_draw(FontBLF *font, char *str)
+{
+	unsigned int c;
+	GlyphBLF *g, *g_prev;
+	FT_Vector delta;
+	FT_UInt glyph_index;
+	int pen_x, pen_y;
+	int i, has_kerning;
+
+	i= 0;
+	pen_x= 0;
+	pen_y= 0;
+	has_kerning= FT_HAS_KERNING(font->face);
+	g_prev= NULL;
+
+	while (str[i]) {
+		c= blf_uf8_next((unsigned char *)str, &i);
+		if (c == 0)
+			break;
+
+		glyph_index= FT_Get_Char_Index(face, c);
+		g= blf_glyph_search(font->glyph_cache, glyph_index);
+		if (!g)
+			g= blf_glyph_add(font, glyph_index, c);
+
+		/* if we don't found a glyph, skip it. */
+		if (!g)
+			continue;
+
+		if (use_kering && g_prev) {
+			delta.x= 0;
+			delta.y= 0;
+
+			FT_Get_Kerning(font->face, g_prev->index, glyph_index, FT_KERNING_MODE_UNFITTED, &delta);
+			pen_x += delta.x >> 6;
+		}
+
+		blf_glyph_render(g, (float)pen_x, (float)pen_y);
+		pen_x += g->advance;
+		g_prev= g;
 	}
 }
 
