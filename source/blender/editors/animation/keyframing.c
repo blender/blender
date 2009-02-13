@@ -2031,9 +2031,9 @@ static int commonkey_modifykey (ListBase *dsources, KeyingSet *ks, short mode, f
 			int arraylen, i;
 			
 			/* get pointer to name of group to add channels to */
-			if (ksp->flag & KSP_FLAG_GROUP_NONE)
+			if (ksp->groupmode == KSP_GROUP_NONE)
 				groupname= NULL;
-			else if (ksp->flag & KSP_FLAG_GROUP_KSNAME)
+			else if (ksp->groupmode == KSP_GROUP_KSNAME)
 				groupname= ks->name;
 			else
 				groupname= ksp->group;

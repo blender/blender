@@ -237,6 +237,15 @@ void RNA_def_scene(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "radiosity", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "radio");
 	RNA_def_property_ui_text(prop, "Radiosity", "");
+	
+	prop= RNA_def_property(srna, "keyingsets", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_collection_sdna(prop, NULL, "keyingsets", NULL);
+	RNA_def_property_struct_type(prop, "KeyingSet");
+	RNA_def_property_ui_text(prop, "Keying Sets", "Keying Sets for this Scene.");
+	
+	prop= RNA_def_property(srna, "active_keyingset", PROP_INT, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_ui_text(prop, "Active Keying Set", "Current Keying Set index.");
 
 	prop= RNA_def_property(srna, "tool_settings", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "toolsettings");

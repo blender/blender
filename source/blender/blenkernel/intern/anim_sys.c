@@ -195,7 +195,7 @@ KeyingSet *BKE_keyingset_add (ListBase *list, const char name[], short flag, sho
 /* Add a destination to a KeyingSet. Nothing is returned for now...
  * Checks are performed to ensure that destination is appropriate for the KeyingSet in question
  */
-void BKE_keyingset_add_destination (KeyingSet *ks, ID *id, const char group_name[], const char rna_path[], int array_index, int flag)
+void BKE_keyingset_add_destination (KeyingSet *ks, ID *id, const char group_name[], const char rna_path[], int array_index, short flag, short groupmode)
 {
 	KS_Path *ksp;
 	
@@ -229,6 +229,7 @@ void BKE_keyingset_add_destination (KeyingSet *ks, ID *id, const char group_name
 	
 	/* store flags */
 	ksp->flag= flag;
+	ksp->groupmode= groupmode;
 	
 	/* add KeyingSet path to KeyingSet */
 	BLI_addtail(&ks->paths, ksp);

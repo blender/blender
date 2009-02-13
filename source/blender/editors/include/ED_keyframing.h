@@ -52,23 +52,6 @@ int insert_bezt_fcurve(struct FCurve *fcu, struct BezTriple *bezt);
  */
 void insert_vert_fcurve(struct FCurve *fcu, float x, float y, short flag);
 
-
-/* flags for use by keyframe creation/deletion calls */
-enum {
-		/* used by isnertkey() and insert_vert_icu() */
-	INSERTKEY_NEEDED 	= (1<<0),	/* only insert keyframes where they're needed */
-	INSERTKEY_MATRIX 	= (1<<1),	/* insert 'visual' keyframes where possible/needed */
-	INSERTKEY_FAST 		= (1<<2),	/* don't recalculate handles,etc. after adding key */
-	INSERTKEY_FASTR		= (1<<3),	/* don't realloc mem (or increase count, as array has already been set out) */
-	INSERTKEY_REPLACE 	= (1<<4),	/* only replace an existing keyframe (this overrides INSERTKEY_NEEDED) */
-	
-		/* used by common_*key() functions - Note: these are generally mutually exclusive (only one will work at a time) */
-	COMMONKEY_ADDMAP	= (1<<10),	/* common key: add texture-slot offset bitflag to adrcode before use */
-	COMMONKEY_PCHANROT	= (1<<11),	/* common key: extend channel list using relevant pchan-rotations */
-		/* all possible items for common_*key() functions */
-	COMMONKEY_MODES 	= (COMMONKEY_ADDMAP|COMMONKEY_PCHANROT)
-} eInsertKeyFlags;
-
 /* -------- */
 
 /* Main Keyframing API calls: 

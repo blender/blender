@@ -261,59 +261,17 @@ void rna_def_action(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Pose Markers", "Markers specific to this Action, for labeling poses.");
 }
 
-/* --- */
+/* --------- */
 
-void rna_def_animdata_common(StructRNA *srna)
+void RNA_def_action(BlenderRNA *brna)
 {
-	PropertyRNA *prop;
-	
-	prop= RNA_def_property(srna, "animation_data", PROP_POINTER, PROP_NONE);
-	RNA_def_property_pointer_sdna(prop, NULL, "adt");
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
-	RNA_def_property_ui_text(prop, "Animation Data", "Animation data for this datablock.");	
-}
-
-void rna_def_animdata(BlenderRNA *brna)
-{
-	StructRNA *srna;
-	PropertyRNA *prop;
-	
-	srna= RNA_def_struct(brna, "AnimData", NULL);
-	//RNA_def_struct_sdna(srna, "AnimData");
-	RNA_def_struct_ui_text(srna, "Animation Data", "Animation data for datablock.");
-	
-	/* NLA */
-	prop= RNA_def_property(srna, "nla_tracks", PROP_COLLECTION, PROP_NONE);
-	RNA_def_property_collection_sdna(prop, NULL, "nla_tracks", NULL);
-	RNA_def_property_struct_type(prop, "UnknownType"); // XXX!
-	RNA_def_property_ui_text(prop, "NLA Tracks", "NLA Tracks (i.e. Animation Layers).");
-	
-	/* Action */
-	prop= RNA_def_property(srna, "action", PROP_POINTER, PROP_NONE);
-	RNA_def_property_ui_text(prop, "Action", "Active Action for this datablock.");	
-	
-	/* Drivers */
-	prop= RNA_def_property(srna, "drivers", PROP_COLLECTION, PROP_NONE);
-	RNA_def_property_collection_sdna(prop, NULL, "drivers", NULL);
-	RNA_def_property_struct_type(prop, "FCurve");
-	RNA_def_property_ui_text(prop, "Drivers", "The Drivers/Expressions for this datablock.");
-	
-	/* Settings */
-}
-
-/* --- */
-
-void RNA_def_animation(BlenderRNA *brna)
-{
-	// XXX move this into its own file?
-	rna_def_animdata(brna);
-	
 	rna_def_action(brna);
 	rna_def_action_group(brna);
 	
-	// XXX move these to their own file?
+	// should these be in their own file, or is that overkill?
 	rna_def_fcurve(brna);
 	rna_def_channeldriver(brna);
 }
+
 
 #endif

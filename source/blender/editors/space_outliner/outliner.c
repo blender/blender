@@ -3151,7 +3151,8 @@ static void ks_editop_add_cb(SpaceOops *soops, KeyingSet *ks, TreeElement *te, T
 	ID *id = NULL;
 	char *path=NULL, *newpath=NULL;
 	int array_index= 0;
-	int flag= KSP_FLAG_GROUP_KSNAME;
+	short flag = 0;
+	short groupmode= KSP_GROUP_KSNAME;
 	
 	/* optimise tricks:
 	 *	- Don't do anything if the selected item is a 'struct', but arrays are allowed
@@ -3159,7 +3160,7 @@ static void ks_editop_add_cb(SpaceOops *soops, KeyingSet *ks, TreeElement *te, T
 	if (tselem->type == TSE_RNA_STRUCT)
 		return;
 	
-	//printf("ks_editop_add_cb() \n");
+	printf("ks_editop_add_cb() \n");
 	
 	/* Overview of Algorithm:
 	 * 	1. Go up the chain of parents until we find the 'root', taking note of the 
@@ -3188,11 +3189,20 @@ static void ks_editop_add_cb(SpaceOops *soops, KeyingSet *ks, TreeElement *te, T
 		
 		/* check if we're looking for first ID, or appending to path */
 		if (id) {
+			if (tse->type == TSE_RNA_STRUCT)
+				printf("\t tem = RNA Struct '%s' \n", tem->name);
+			else if (tse->type == TSE_RNA_ARRAY_ELEM)
+				printf("\t tem = RNA Array Elem '%s' \n", tem->name);
+			else if (tse->type == TSE_RNA_PROPERTY)
+				printf("\t tem = RNA Property '%s' \n", tem->name);
+			else
+				printf("\t tem = WTF? \n");
+			
 			/* just 'append' property to path 
 			 *	- to prevent memory leaks, we must write to newpath not path, then free old path + swap them
 			 */
-			// TODO: how to do this? we must use 'string' identifiers for collections so that these don't break if data is added/removed
-			//newpath= RNA_path_append(path, NULL, prop, index, NULL);
+			// TODO: how should this be done?
+			//newpath= RNA_path_append(path, ptr, prop, tem->index, /*RNA_property_identifier(ptr, prop)*/0);
 			
 			if (path) MEM_freeN(path);
 			path= newpath;
@@ -3234,7 +3244,7 @@ static void ks_editop_add_cb(SpaceOops *soops, KeyingSet *ks, TreeElement *te, T
 		/* add a new path with the information obtained (only if valid) */
 		// TODO: what do we do with group name? for now, we don't supply one, and just let this use the KeyingSet name
 		if (path)
-			BKE_keyingset_add_destination(ks, id, NULL, path, array_index, flag);
+			BKE_keyingset_add_destination(ks, id, NULL, path, array_index, flag, groupmode);
 	}
 	
 	/* free temp data */
