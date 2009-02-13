@@ -27,6 +27,7 @@
 SET(DEFSRC
      rna_action.c
      rna_actuator.c
+     rna_animation.c
      rna_armature.c
      rna_brush.c
      rna_camera.c
