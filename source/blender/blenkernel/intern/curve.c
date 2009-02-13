@@ -191,6 +191,8 @@ Curve *copy_curve(Curve *cu)
 	cun->bev.first= cun->bev.last= 0;
 	cun->path= 0;
 
+	cun->editnurb= NULL;
+
 #if 0	// XXX old animation system
 	/* single user ipo too */
 	if(cun->ipo) cun->ipo= copy_ipo(cun->ipo);

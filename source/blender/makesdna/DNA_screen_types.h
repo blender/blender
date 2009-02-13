@@ -209,6 +209,10 @@ typedef struct ARegion {
 #define RGN_ALIGN_VSPLIT	6
 #define RGN_ALIGN_FLOAT		7
 #define RGN_ALIGN_QSPLIT	8
+#define RGN_OVERLAP_TOP		9
+#define RGN_OVERLAP_BOTTOM	10
+#define RGN_OVERLAP_LEFT	11
+#define RGN_OVERLAP_RIGHT	12
 
 /* region flag */
 #define RGN_FLAG_HIDDEN		1

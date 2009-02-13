@@ -30,6 +30,7 @@
 #include <stdio.h>
 
 #include "DNA_ID.h"
+#include "DNA_anim_types.h"
 #include "DNA_space_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
@@ -39,11 +40,13 @@
 
 #include "BLI_blenlib.h"
 
+#include "BKE_animsys.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_screen.h"
 
+#include "ED_keyframing.h"
 #include "ED_screen.h"
 #include "ED_util.h"
 #include "ED_types.h"
@@ -158,14 +161,50 @@ static uiBlock *outliner_viewmenu(bContext *C, ARegion *ar, void *arg_unused)
 	return block;
 }
 
-#define B_REDR	1
+enum {
+	B_REDR	= 1,
+	
+	B_KEYINGSET_CHANGE,
+	B_KEYINGSET_REMOVE,
+} eOutlinerHeader_Events;
+
 static void do_outliner_buttons(bContext *C, void *arg, int event)
 {
 	ScrArea *sa= CTX_wm_area(C);
+	Scene *scene= CTX_data_scene(C);
 	
 	switch(event) {
 		case B_REDR:
 			ED_area_tag_redraw(sa);
+			break;
+			
+		case B_KEYINGSET_CHANGE:
+			/* add a new KeyingSet if active is -1 */
+			if (scene->active_keyingset == -1) {
+				// XXX the default settings have yet to evolve... need to keep this in sync with the 
+				BKE_keyingset_add(&scene->keyingsets, "KeyingSet", KEYINGSET_ABSOLUTE, 0);
+				scene->active_keyingset= BLI_countlist(&scene->keyingsets);
+			}
+			
+			/* redraw regions with KeyingSet info */
+			WM_event_add_notifier(C, NC_SCENE|ND_KEYINGSET, scene);
+			break;
+			
+		case B_KEYINGSET_REMOVE:
+			/* remove the active KeyingSet */
+			if (scene->active_keyingset) {
+				KeyingSet *ks= BLI_findlink(&scene->keyingsets, scene->active_keyingset-1);
+				
+				/* firstly free KeyingSet's data, then free the KeyingSet itself */
+				if (ks) {
+					BKE_keyingset_free(ks);
+					BLI_freelinkN(&scene->keyingsets, ks);
+					scene->active_keyingset= 0;
+				}
+			}
+			
+			/* redraw regions with KeyingSet info */
+			WM_event_add_notifier(C, NC_SCENE|ND_KEYINGSET, scene);
 			break;
 	}
 }
@@ -174,6 +213,7 @@ static void do_outliner_buttons(bContext *C, void *arg, int event)
 void outliner_header_buttons(const bContext *C, ARegion *ar)
 {
 	ScrArea *sa= CTX_wm_area(C);
+	Scene *scene= CTX_data_scene(C);
 	SpaceOops *soutliner= (SpaceOops*)CTX_wm_space_data(C);
 	uiBlock *block;
 	int xco, yco= 3, xmax;
@@ -199,16 +239,66 @@ void outliner_header_buttons(const bContext *C, ARegion *ar)
 		uiBlockSetEmboss(block, UI_EMBOSS);
 	}
 	
-	if(1) { // XXX soutliner->type==SO_OUTLINER) {
+	//if (outliner->type==SO_OUTLINER) {
+		/* data selector*/
 		if(G.main->library.first) 
 			uiDefButS(block, MENU, B_REDR, "Outliner Display%t|Libraries %x7|All Scenes %x0|Current Scene %x1|Visible Layers %x2|Groups %x6|Same Types %x5|Selected %x3|Active %x4|Sequence %x10|Datablocks %x11|User Preferences %x12",	 xco, yco, 120, 20,  &soutliner->outlinevis, 0, 0, 0, 0, "");
 		else
-			uiDefButS(block, MENU, B_REDR, "Outliner Display%t|All Scenes %x0|Current Scene %x1|Visible Layers %x2|Groups %x6|Same Types %x5|Selected %x3|Active %x4|Sequence %x10|Datablocks %x11|User Preferences %x12",	 xco, yco, 120, 20,  &soutliner->outlinevis, 0, 0, 0, 0, "");
-	}
-	
+			uiDefButS(block, MENU, B_REDR, "Outliner Display%t|All Scenes %x0|Current Scene %x1|Visible Layers %x2|Groups %x6|Same Types %x5|Selected %x3|Active %x4|Sequence %x10|Datablocks %x11|User Preferences %x12",	 xco, yco, 120, 20,  &soutliner->outlinevis, 0, 0, 0, 0, "");	
+		xco += 120;
+		
+		/* KeyingSet editing buttons */
+		if ((soutliner->flag & SO_HIDE_KEYINGSETINFO)==0 && (soutliner->outlinevis==SO_DATABLOCKS)) {
+			KeyingSet *ks= NULL;
+			char *menustr= NULL;
+			
+			xco+= (int)(XIC*1.5);
+			
+			if (scene->active_keyingset)
+				ks= (KeyingSet *)BLI_findlink(&scene->keyingsets, scene->active_keyingset-1);
+			
+			uiBlockBeginAlign(block);
+				/* currently 'active' KeyingSet */
+				menustr= ANIM_build_keyingsets_menu(&scene->keyingsets, 1);
+				uiDefButI(block, MENU, B_KEYINGSET_CHANGE, menustr, xco,yco, 18,20, &scene->active_keyingset, 0, 0, 0, 0, "Browse Keying Sets");
+				MEM_freeN(menustr);
+				xco += 18;
+				
+				/* currently 'active' KeyingSet - change name */
+				if (ks) {
+					/* active KeyingSet */
+					uiDefBut(block, TEX, B_KEYINGSET_CHANGE,"", xco,yco,120,20, ks->name, 0, 63, 0, 0, "Name of Active Keying Set");
+					xco += 120;
+					uiDefIconBut(block, BUT, B_KEYINGSET_REMOVE, VICON_X, xco, yco, 20, 20, NULL, 0.0, 0.0, 0.0, 0.0, "Remove this Keying Set");
+					xco += 20;
+				}
+				else {
+					/* no active KeyingSet... so placeholder instead */
+					uiDefBut(block, LABEL, 0,"<No Keying Set Active>", xco,yco,140,20, NULL, 0, 63, 0, 0, "Name of Active Keying Set");
+					xco += 140;
+				}
+			uiBlockEndAlign(block);
+			
+			/* current 'active' KeyingSet */
+			if (ks) {
+				xco += 5;
+				
+				/* operator buttons to add/remove selected items from set */
+				uiBlockBeginAlign(block);
+						// XXX the icons here are temporary
+					uiDefIconButO(block, BUT, "OUTLINER_OT_keyingset_remove_selected", WM_OP_INVOKE_REGION_WIN, ICON_ZOOMOUT, xco,yco,XIC,YIC, "Remove selected properties from active Keying Set (Alt-K)");
+					xco += XIC;
+					uiDefIconButO(block, BUT, "OUTLINER_OT_keyingset_add_selected", WM_OP_INVOKE_REGION_WIN, ICON_ZOOMIN, xco,yco,XIC,YIC, "Add selected properties to active Keying Set (K)");
+					xco += XIC;
+				uiBlockEndAlign(block);
+			}
+			
+			xco += XIC*2;
+		}
+	//}
 	
 	/* always as last  */
-	UI_view2d_totRect_set(&ar->v2d, xco+XIC+100, ar->v2d.tot.ymax-ar->v2d.tot.ymin);
+	UI_view2d_totRect_set(&ar->v2d, xco+XIC+100, (int)(ar->v2d.tot.ymax-ar->v2d.tot.ymin));
 	
 	uiEndBlock(C, block);
 	uiDrawBlock(C, block);

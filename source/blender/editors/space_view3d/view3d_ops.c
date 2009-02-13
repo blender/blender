@@ -90,14 +90,23 @@ void view3d_operatortypes(void)
 	WM_operatortype_append(VIEW3D_OT_vpaint);
 	WM_operatortype_append(VIEW3D_OT_wpaint);
 	WM_operatortype_append(VIEW3D_OT_editmesh_face_toolbox);
+	WM_operatortype_append(VIEW3D_OT_properties);
 	
 	transform_operatortypes();
 }
 
 void view3d_keymap(wmWindowManager *wm)
 {
-	ListBase *keymap= WM_keymap_listbase(wm, "View3D", SPACE_VIEW3D, 0);
+	ListBase *keymap= WM_keymap_listbase(wm, "View3D Generic", SPACE_VIEW3D, 0);
 	wmKeymapItem *km;
+	
+	WM_keymap_add_item(keymap, "VIEW3D_OT_vpaint_toggle", VKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "VIEW3D_OT_wpaint_toggle", TABKEY, KM_PRESS, KM_CTRL, 0);
+	
+	WM_keymap_add_item(keymap, "VIEW3D_OT_properties", NKEY, KM_PRESS, 0, 0);
+	
+	/* only for region 3D window */
+	keymap= WM_keymap_listbase(wm, "View3D", SPACE_VIEW3D, 0);
 	
 	/* paint poll checks mode */
 	WM_keymap_verify_item(keymap, "VIEW3D_OT_vpaint", LEFTMOUSE, KM_PRESS, 0, 0);
@@ -169,9 +178,6 @@ void view3d_keymap(wmWindowManager *wm)
 	
 	WM_keymap_add_item(keymap, "VIEW3D_OT_set_camera_to_view", PAD0, KM_PRESS, KM_ALT|KM_CTRL, 0);
 	
-	WM_keymap_add_item(keymap, "VIEW3D_OT_vpaint_toggle", VKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "VIEW3D_OT_wpaint_toggle", TABKEY, KM_PRESS, KM_CTRL, 0);
-
 	/* radial control */
 	RNA_enum_set(WM_keymap_add_item(keymap, "SCULPT_OT_radial_control", FKEY, KM_PRESS, 0, 0)->ptr, "mode", WM_RADIALCONTROL_SIZE);
 	RNA_enum_set(WM_keymap_add_item(keymap, "SCULPT_OT_radial_control", FKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "mode", WM_RADIALCONTROL_STRENGTH);

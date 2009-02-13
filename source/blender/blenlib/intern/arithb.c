@@ -1599,16 +1599,16 @@ void QuatInterpolW(float *result, float *quat1, float *quat2, float t)
 	cosom = quat1[0]*quat2[0] + quat1[1]*quat2[1] + quat1[2]*quat2[2] + quat1[3]*quat2[3] ;
 	
 	/* rotate around shortest angle */
-	if ((1.0 + cosom) > 0.0001) {
+	if ((1.0f + cosom) > 0.0001f) {
 		
-		if ((1.0 - cosom) > 0.0001) {
-			omega = acos(cosom);
-			sinom = sin(omega);
-			sc1 = sin((1.0 - t) * omega) / sinom;
-			sc2 = sin(t * omega) / sinom;
+		if ((1.0f - cosom) > 0.0001f) {
+			omega = (float)acos(cosom);
+			sinom = (float)sin(omega);
+			sc1 = (float)sin((1.0 - t) * omega) / sinom;
+			sc2 = (float)sin(t * omega) / sinom;
 		} 
 		else {
-			sc1 = 1.0 - t;
+			sc1 = 1.0f - t;
 			sc2 = t;
 		}
 		result[0] = sc1*quat1[0] + sc2*quat2[0];
@@ -1622,9 +1622,9 @@ void QuatInterpolW(float *result, float *quat1, float *quat2, float t)
 		result[2] = quat2[1];
 		result[3] = -quat2[0];
 		
-		sc1 = sin((1.0 - t)*M_PI_2);
-		sc2 = sin(t*M_PI_2);
-
+		sc1 = (float)sin((1.0 - t)*M_PI_2);
+		sc2 = (float)sin(t*M_PI_2);
+		
 		result[0] = sc1*quat1[0] + sc2*result[0];
 		result[1] = sc1*quat1[1] + sc2*result[1];
 		result[2] = sc1*quat1[2] + sc2*result[2];
@@ -1639,7 +1639,7 @@ void QuatInterpol(float *result, float *quat1, float *quat2, float t)
 	cosom = quat1[0]*quat2[0] + quat1[1]*quat2[1] + quat1[2]*quat2[2] + quat1[3]*quat2[3] ;
 	
 	/* rotate around shortest angle */
-	if (cosom < 0.0) {
+	if (cosom < 0.0f) {
 		cosom = -cosom;
 		quat[0]= -quat1[0];
 		quat[1]= -quat1[1];
@@ -1653,13 +1653,13 @@ void QuatInterpol(float *result, float *quat1, float *quat2, float t)
 		quat[3]= quat1[3];
 	}
 	
-	if ((1.0 - cosom) > 0.0001) {
-		omega = acos(cosom);
-		sinom = sin(omega);
-		sc1 = sin((1 - t) * omega) / sinom;
-		sc2 = sin(t * omega) / sinom;
+	if ((1.0f - cosom) > 0.0001f) {
+		omega = (float)acos(cosom);
+		sinom = (float)sin(omega);
+		sc1 = (float)sin((1 - t) * omega) / sinom;
+		sc2 = (float)sin(t * omega) / sinom;
 	} else {
-		sc1= 1.0 - t;
+		sc1= 1.0f - t;
 		sc2= t;
 	}
 	
@@ -1775,7 +1775,7 @@ void DQuatToMat4(DualQuat *dq, float mat[][4])
 	QuatCopy(q0, dq->quat);
 
 	/* normalize */
-	len= sqrt(QuatDot(q0, q0)); 
+	len= (float)sqrt(QuatDot(q0, q0)); 
 	if(len != 0.0f)
 		QuatMulf(q0, 1.0f/len);
 	
@@ -1784,9 +1784,9 @@ void DQuatToMat4(DualQuat *dq, float mat[][4])
 
 	/* translation */
 	t= dq->trans;
-	mat[3][0]= 2.0*(-t[0]*q0[1] + t[1]*q0[0] - t[2]*q0[3] + t[3]*q0[2]);
-	mat[3][1]= 2.0*(-t[0]*q0[2] + t[1]*q0[3] + t[2]*q0[0] - t[3]*q0[1]);
-	mat[3][2]= 2.0*(-t[0]*q0[3] - t[1]*q0[2] + t[2]*q0[1] + t[3]*q0[0]);
+	mat[3][0]= 2.0f*(-t[0]*q0[1] + t[1]*q0[0] - t[2]*q0[3] + t[3]*q0[2]);
+	mat[3][1]= 2.0f*(-t[0]*q0[2] + t[1]*q0[3] + t[2]*q0[0] - t[3]*q0[1]);
+	mat[3][2]= 2.0f*(-t[0]*q0[3] - t[1]*q0[2] + t[2]*q0[1] + t[3]*q0[0]);
 
 	/* note: this does not handle scaling */
 }	
@@ -1815,10 +1815,10 @@ void DQuatAddWeighted(DualQuat *dqsum, DualQuat *dq, float weight)
 	/* interpolate scale - but only if needed */
 	if (dq->scale_weight) {
 		float wmat[4][4];
-
+		
 		if(flipped)	/* we don't want negative weights for scaling */
 			weight= -weight;
-
+		
 		Mat4CpyMat4(wmat, dq->scale);
 		Mat4MulFloat((float*)wmat, weight);
 		Mat4AddMat4(dqsum->scale, dqsum->scale, wmat);
@@ -1835,7 +1835,7 @@ void DQuatNormalize(DualQuat *dq, float totweight)
 	
 	if(dq->scale_weight) {
 		float addweight= totweight - dq->scale_weight;
-
+		
 		if(addweight) {
 			dq->scale[0][0] += addweight;
 			dq->scale[1][1] += addweight;
@@ -2197,7 +2197,7 @@ void VecNegf(float *v1)
 
 void VecOrthoBasisf(float *v, float *v1, float *v2)
 {
-	float f = sqrt(v[0]*v[0] + v[1]*v[1]);
+	float f = (float)sqrt(v[0]*v[0] + v[1]*v[1]);
 
 	if (f < 1e-35f) {
 		// degenerate case
@@ -2349,9 +2349,9 @@ double Sqrt3d(double d)
 
 void NormalShortToFloat(float *out, short *in)
 {
-	out[0] = in[0] / 32767.0;
-	out[1] = in[1] / 32767.0;
-	out[2] = in[2] / 32767.0;
+	out[0] = in[0] / 32767.0f;
+	out[1] = in[1] / 32767.0f;
+	out[2] = in[2] / 32767.0f;
 }
 
 void NormalFloatToShort(short *out, float *in)
@@ -2488,15 +2488,15 @@ short IsectLL2Ds(short *v1, short *v2, short *v3, short *v4)
 	*/
 	float div, labda, mu;
 	
-	div= (v2[0]-v1[0])*(v4[1]-v3[1])-(v2[1]-v1[1])*(v4[0]-v3[0]);
-	if(div==0.0) return -1;
+	div= (float)((v2[0]-v1[0])*(v4[1]-v3[1])-(v2[1]-v1[1])*(v4[0]-v3[0]));
+	if(div==0.0f) return -1;
 	
 	labda= ((float)(v1[1]-v3[1])*(v4[0]-v3[0])-(v1[0]-v3[0])*(v4[1]-v3[1]))/div;
 	
 	mu= ((float)(v1[1]-v3[1])*(v2[0]-v1[0])-(v1[0]-v3[0])*(v2[1]-v1[1]))/div;
 	
-	if(labda>=0.0 && labda<=1.0 && mu>=0.0 && mu<=1.0) {
-		if(labda==0.0 || labda==1.0 || mu==0.0 || mu==1.0) return 1;
+	if(labda>=0.0f && labda<=1.0f && mu>=0.0f && mu<=1.0f) {
+		if(labda==0.0f || labda==1.0f || mu==0.0f || mu==1.0f) return 1;
 		return 2;
 	}
 	return 0;
@@ -2655,9 +2655,9 @@ static int BarycentricWeights(float *v1, float *v2, float *v3, float *co, float 
 
 	/* find best projection of face XY, XZ or YZ: barycentric weights of
 	   the 2d projected coords are the same and faster to compute */
-	xn= fabs(n[0]);
-	yn= fabs(n[1]);
-	zn= fabs(n[2]);
+	xn= (float)fabs(n[0]);
+	yn= (float)fabs(n[1]);
+	zn= (float)fabs(n[2]);
 	if(zn>=xn && zn>=yn) {i= 0; j= 1;}
 	else if(yn>=xn && yn>=zn) {i= 0; j= 2;}
 	else {i= 1; j= 2;} 
@@ -2889,12 +2889,12 @@ void Mat4ToEul(float tmat[][4], float *eul)
 {
 	float tempMat[3][3];
 
-	Mat3CpyMat4 (tempMat, tmat);
+	Mat3CpyMat4(tempMat, tmat);
 	Mat3Ortho(tempMat);
 	Mat3ToEul(tempMat, eul);
 }
 
-void QuatToEul( float *quat, float *eul)
+void QuatToEul(float *quat, float *eul)
 {
 	float mat[3][3];
 	
@@ -2903,7 +2903,7 @@ void QuatToEul( float *quat, float *eul)
 }
 
 
-void EulToQuat( float *eul, float *quat)
+void EulToQuat(float *eul, float *quat)
 {
     float ti, tj, th, ci, cj, ch, si, sj, sh, cc, cs, sc, ss;
  
@@ -2918,7 +2918,7 @@ void EulToQuat( float *eul, float *quat)
 	quat[3] = cj*cs - sj*sc;
 }
 
-void VecRotToMat3( float *vec, float phi, float mat[][3])
+void VecRotToMat3(float *vec, float phi, float mat[][3])
 {
 	/* rotation of phi radials around vec */
 	float vx, vx2, vy, vy2, vz, vz2, co, si;
@@ -2944,7 +2944,7 @@ void VecRotToMat3( float *vec, float phi, float mat[][3])
 	
 }
 
-void VecRotToMat4( float *vec, float phi, float mat[][4])
+void VecRotToMat4(float *vec, float phi, float mat[][4])
 {
 	float tmat[3][3];
 	
@@ -2953,7 +2953,7 @@ void VecRotToMat4( float *vec, float phi, float mat[][4])
 	Mat4CpyMat3(mat, tmat);
 }
 
-void VecRotToQuat( float *vec, float phi, float *quat)
+void VecRotToQuat(float *vec, float phi, float *quat)
 {
 	/* rotation of phi radials around vec */
 	float si;
@@ -2962,7 +2962,7 @@ void VecRotToQuat( float *vec, float phi, float *quat)
 	quat[2]= vec[1];
 	quat[3]= vec[2];
 	
-	if( Normalize(quat+1) == 0.0) {
+	if( Normalize(quat+1) == 0.0f) {
 		QuatOne(quat);
 	}
 	else {
@@ -2986,7 +2986,7 @@ float VecAngle3(float *v1, float *v2, float *v3)
 	Normalize(vec1);
 	Normalize(vec2);
 
-	return NormalizedVecAngle2(vec1, vec2) * 180.0/M_PI;
+	return NormalizedVecAngle2(vec1, vec2) * (float)(180.0/M_PI);
 }
 
 float VecAngle3_2D(float *v1, float *v2, float *v3)
@@ -3002,7 +3002,7 @@ float VecAngle3_2D(float *v1, float *v2, float *v3)
 	Normalize2(vec1);
 	Normalize2(vec2);
 
-	return NormalizedVecAngle2_2D(vec1, vec2) * 180.0/M_PI;
+	return NormalizedVecAngle2_2D(vec1, vec2) * (float)(180.0/M_PI);
 }
 
 /* Return the shortest angle in degrees between the 2 vectors */
@@ -3015,7 +3015,7 @@ float VecAngle2(float *v1, float *v2)
 	Normalize(vec1);
 	Normalize(vec2);
 
-	return NormalizedVecAngle2(vec1, vec2)* 180.0/M_PI;
+	return NormalizedVecAngle2(vec1, vec2)* (float)(180.0/M_PI);
 }
 
 float NormalizedVecAngle2(float *v1, float *v2)
@@ -3027,11 +3027,11 @@ float NormalizedVecAngle2(float *v1, float *v2)
 		vec[0]= -v2[0];
 		vec[1]= -v2[1];
 		vec[2]= -v2[2];
-
-		return (float)M_PI - 2.0f*saasin(VecLenf(vec, v1)/2.0f);
+		
+		return (float)M_PI - 2.0f*(float)saasin(VecLenf(vec, v1)/2.0f);
 	}
 	else
-		return 2.0f*saasin(VecLenf(v2, v1)/2.0);
+		return 2.0f*(float)saasin(VecLenf(v2, v1)/2.0f);
 }
 
 float NormalizedVecAngle2_2D(float *v1, float *v2)
@@ -3042,18 +3042,18 @@ float NormalizedVecAngle2_2D(float *v1, float *v2)
 		
 		vec[0]= -v2[0];
 		vec[1]= -v2[1];
-
+		
 		return (float)M_PI - 2.0f*saasin(Vec2Lenf(vec, v1)/2.0f);
 	}
 	else
-		return 2.0f*saasin(Vec2Lenf(v2, v1)/2.0);
+		return 2.0f*(float)saasin(Vec2Lenf(v2, v1)/2.0f);
 }
 
 void euler_rot(float *beul, float ang, char axis)
 {
 	float eul[3], mat1[3][3], mat2[3][3], totmat[3][3];
 	
-	eul[0]= eul[1]= eul[2]= 0.0;
+	eul[0]= eul[1]= eul[2]= 0.0f;
 	if(axis=='x') eul[0]= ang;
 	else if(axis=='y') eul[1]= ang;
 	else eul[2]= ang;
@@ -3073,33 +3073,32 @@ void compatible_eul(float *eul, float *oldrot)
 	float dx, dy, dz;
 	
 	/* correct differences of about 360 degrees first */
-	
 	dx= eul[0] - oldrot[0];
 	dy= eul[1] - oldrot[1];
 	dz= eul[2] - oldrot[2];
 	
-	while( fabs(dx) > 5.1) {
-		if(dx > 0.0) eul[0] -= 2.0*M_PI; else eul[0]+= 2.0*M_PI;
+	while(fabs(dx) > 5.1) {
+		if(dx > 0.0f) eul[0] -= 2.0f*(float)M_PI; else eul[0]+= 2.0f*(float)M_PI;
 		dx= eul[0] - oldrot[0];
 	}
-	while( fabs(dy) > 5.1) {
-		if(dy > 0.0) eul[1] -= 2.0*M_PI; else eul[1]+= 2.0*M_PI;
+	while(fabs(dy) > 5.1) {
+		if(dy > 0.0f) eul[1] -= 2.0f*(float)M_PI; else eul[1]+= 2.0f*(float)M_PI;
 		dy= eul[1] - oldrot[1];
 	}
-	while( fabs(dz) > 5.1 ) {
-		if(dz > 0.0) eul[2] -= 2.0*M_PI; else eul[2]+= 2.0*M_PI;
+	while(fabs(dz) > 5.1) {
+		if(dz > 0.0f) eul[2] -= 2.0f*(float)M_PI; else eul[2]+= 2.0f*(float)M_PI;
 		dz= eul[2] - oldrot[2];
 	}
 	
 	/* is 1 of the axis rotations larger than 180 degrees and the other small? NO ELSE IF!! */	
 	if( fabs(dx) > 3.2 && fabs(dy)<1.6 && fabs(dz)<1.6 ) {
-		if(dx > 0.0) eul[0] -= 2.0*M_PI; else eul[0]+= 2.0*M_PI;
+		if(dx > 0.0) eul[0] -= 2.0f*(float)M_PI; else eul[0]+= 2.0f*(float)M_PI;
 	}
 	if( fabs(dy) > 3.2 && fabs(dz)<1.6 && fabs(dx)<1.6 ) {
-		if(dy > 0.0) eul[1] -= 2.0*M_PI; else eul[1]+= 2.0*M_PI;
+		if(dy > 0.0) eul[1] -= 2.0f*(float)M_PI; else eul[1]+= 2.0f*(float)M_PI;
 	}
 	if( fabs(dz) > 3.2 && fabs(dx)<1.6 && fabs(dy)<1.6 ) {
-		if(dz > 0.0) eul[2] -= 2.0*M_PI; else eul[2]+= 2.0*M_PI;
+		if(dz > 0.0) eul[2] -= 2.0f*(float)M_PI; else eul[2]+= 2.0f*(float)M_PI;
 	}
 	
 	/* the method below was there from ancient days... but why! probably because the code sucks :)
@@ -3142,8 +3141,8 @@ void Mat3ToCompatibleEul(float mat[][3], float *eul, float *oldrot)
 	compatible_eul(eul1, oldrot);
 	compatible_eul(eul2, oldrot);
 	
-	d1= fabs(eul1[0]-oldrot[0]) + fabs(eul1[1]-oldrot[1]) + fabs(eul1[2]-oldrot[2]);
-	d2= fabs(eul2[0]-oldrot[0]) + fabs(eul2[1]-oldrot[1]) + fabs(eul2[2]-oldrot[2]);
+	d1= (float)fabs(eul1[0]-oldrot[0]) + (float)fabs(eul1[1]-oldrot[1]) + (float)fabs(eul1[2]-oldrot[2]);
+	d2= (float)fabs(eul2[0]-oldrot[0]) + (float)fabs(eul2[1]-oldrot[1]) + (float)fabs(eul2[2]-oldrot[2]);
 	
 	/* return best, which is just the one with lowest difference */
 	if( d1 > d2) {
@@ -3160,14 +3159,14 @@ void Mat3ToCompatibleEul(float mat[][3], float *eul, float *oldrot)
 void SizeToMat3( float *size, float mat[][3])
 {
 	mat[0][0]= size[0];
-	mat[0][1]= 0.0;
-	mat[0][2]= 0.0;
+	mat[0][1]= 0.0f;
+	mat[0][2]= 0.0f;
 	mat[1][1]= size[1];
-	mat[1][0]= 0.0;
-	mat[1][2]= 0.0;
+	mat[1][0]= 0.0f;
+	mat[1][2]= 0.0f;
 	mat[2][2]= size[2];
-	mat[2][1]= 0.0;
-	mat[2][0]= 0.0;
+	mat[2][1]= 0.0f;
+	mat[2][0]= 0.0f;
 }
 
 void SizeToMat4( float *size, float mat[][4])
@@ -3199,7 +3198,7 @@ void Mat4ToSize( float mat[][4], float *size)
 float Mat3ToScalef(float mat[][3])
 {
 	/* unit length vector */
-	float unit_vec[3] = {0.577350269189626, 0.577350269189626, 0.577350269189626};
+	float unit_vec[3] = {0.577350269189626f, 0.577350269189626f, 0.577350269189626f};
 	Mat3MulVecfl(mat, unit_vec);
 	return VecLength(unit_vec);
 }
@@ -3224,12 +3223,12 @@ void triatoquat( float *v1,  float *v2,  float *v3, float *quat)
 
 	n[0]= vec[1];
 	n[1]= -vec[0];
-	n[2]= 0.0;
+	n[2]= 0.0f;
 	Normalize(n);
 	
-	if(n[0]==0.0 && n[1]==0.0) n[0]= 1.0;
+	if(n[0]==0.0f && n[1]==0.0f) n[0]= 1.0f;
 	
-	angle= -0.5f*saacos(vec[2]);
+	angle= -0.5f*(float)saacos(vec[2]);
 	co= (float)cos(angle);
 	si= (float)sin(angle);
 	q1[0]= co;
@@ -3244,7 +3243,7 @@ void triatoquat( float *v1,  float *v2,  float *v3, float *quat)
 	Mat3MulVecfl(imat, vec);
 
 	/* what angle has this line with x-axis? */
-	vec[2]= 0.0;
+	vec[2]= 0.0f;
 	Normalize(vec);
 
 	angle= (float)(0.5*atan2(vec[1], vec[0]));
@@ -3319,12 +3318,11 @@ float Normalize2(float *n)
 
 	if(d>1.0e-35F) {
 		d= (float)sqrt(d);
-
 		n[0]/=d; 
 		n[1]/=d; 
 	} else {
-		n[0]=n[1]= 0.0;
-		d= 0.0;
+		n[0]=n[1]= 0.0f;
+		d= 0.0f;
 	}
 	return d;
 }
@@ -3389,9 +3387,9 @@ void hsv_to_rgb(float h, float s, float v, float *r, float *g, float *b)
 void rgb_to_yuv(float r, float g, float b, float *ly, float *lu, float *lv)
 {
 	float y, u, v;
-	y= 0.299*r + 0.587*g + 0.114*b;
-	u=-0.147*r - 0.289*g + 0.436*b;
-	v= 0.615*r - 0.515*g - 0.100*b;
+	y= 0.299f*r + 0.587f*g + 0.114f*b;
+	u=-0.147f*r - 0.289f*g + 0.436f*b;
+	v= 0.615f*r - 0.515f*g - 0.100f*b;
 	
 	*ly=y;
 	*lu=u;
@@ -3401,9 +3399,9 @@ void rgb_to_yuv(float r, float g, float b, float *ly, float *lu, float *lv)
 void yuv_to_rgb(float y, float u, float v, float *lr, float *lg, float *lb)
 {
 	float r, g, b;
-	r=y+1.140*v;
-	g=y-0.394*u - 0.581*v;
-	b=y+2.032*u;
+	r=y+1.140f*v;
+	g=y-0.394f*u - 0.581f*v;
+	b=y+2.032f*u;
 	
 	*lr=r;
 	*lg=g;
@@ -3415,14 +3413,14 @@ void rgb_to_ycc(float r, float g, float b, float *ly, float *lcb, float *lcr)
 	float sr,sg, sb;
 	float y, cr, cb;
 	
-	sr=255.0*r;
-	sg=255.0*g;
-	sb=255.0*b;
+	sr=255.0f*r;
+	sg=255.0f*g;
+	sb=255.0f*b;
 	
 	
-	y=(0.257*sr)+(0.504*sg)+(0.098*sb)+16.0;
-	cb=(-0.148*sr)-(0.291*sg)+(0.439*sb)+128.0;
-	cr=(0.439*sr)-(0.368*sg)-(0.071*sb)+128.0;
+	y=(0.257f*sr)+(0.504f*sg)+(0.098f*sb)+16.0f;
+	cb=(-0.148f*sr)-(0.291f*sg)+(0.439f*sb)+128.0f;
+	cr=(0.439f*sr)-(0.368f*sg)-(0.071f*sb)+128.0f;
 	
 	*ly=y;
 	*lcb=cb;
@@ -3433,13 +3431,13 @@ void ycc_to_rgb(float y, float cb, float cr, float *lr, float *lg, float *lb)
 {
 	float r,g,b;
 	
-	r=1.164*(y-16)+1.596*(cr-128);
-	g=1.164*(y-16)-0.813*(cr-128)-0.392*(cb-128);
-	b=1.164*(y-16)+2.017*(cb-128);
+	r=1.164f*(y-16.0f)+1.596f*(cr-128.0f);
+	g=1.164f*(y-16.0f)-0.813f*(cr-128.0f)-0.392f*(cb-128.0f);
+	b=1.164f*(y-16.0f)+2.017f*(cb-128.0f);
 	
-	*lr=r/255.0;
-	*lg=g/255.0;
-	*lb=b/255.0;
+	*lr=r/255.0f;
+	*lg=g/255.0f;
+	*lb=b/255.0f;
 }
 
 void hex_to_rgb(char *hexcol, float *r, float *g, float *b)
@@ -3449,9 +3447,9 @@ void hex_to_rgb(char *hexcol, float *r, float *g, float *b)
 	if (hexcol[0] == '#') hexcol++;
 	
 	if (sscanf(hexcol, "%02x%02x%02x", &ri, &gi, &bi)) {
-		*r = ri / 255.0;
-		*g = gi / 255.0;		
-		*b = bi / 255.0;
+		*r = ri / 255.0f;
+		*g = gi / 255.0f;		
+		*b = bi / 255.0f;
 	}
 }
 
@@ -3469,14 +3467,14 @@ void rgb_to_hsv(float r, float g, float b, float *lh, float *ls, float *lv)
 	cmin = (b<cmin ? b:cmin);
 
 	v = cmax;		/* value */
-	if (cmax!=0.0)
+	if (cmax != 0.0f)
 		s = (cmax - cmin)/cmax;
 	else {
-		s = 0.0;
-		h = 0.0;
+		s = 0.0f;
+		h = 0.0f;
 	}
-	if (s == 0.0)
-		h = -1.0;
+	if (s == 0.0f)
+		h = -1.0f;
 	else {
 		cdelta = cmax-cmin;
 		rc = (cmax-r)/cdelta;
@@ -3490,13 +3488,13 @@ void rgb_to_hsv(float r, float g, float b, float *lh, float *ls, float *lv)
 			else
 				h = 4.0f+gc-rc;
 		h = h*60.0f;
-		if (h<0.0f)
+		if (h < 0.0f)
 			h += 360.0f;
 	}
 	
 	*ls = s;
-	*lh = h/360.0f;
-	if( *lh < 0.0) *lh= 0.0;
+	*lh = h / 360.0f;
+	if(*lh < 0.0f) *lh= 0.0f;
 	*lv = v;
 }
 
@@ -3506,14 +3504,14 @@ void xyz_to_rgb(float xc, float yc, float zc, float *r, float *g, float *b, int 
 {
 	switch (colorspace) { 
 	case BLI_CS_SMPTE:
-		*r = (3.50570	* xc) + (-1.73964	* yc) + (-0.544011	* zc);
-		*g = (-1.06906	* xc) + (1.97781	* yc) + (0.0351720	* zc);
-		*b = (0.0563117	* xc) + (-0.196994	* yc) + (1.05005	* zc);
+		*r = (3.50570f	 * xc) + (-1.73964f	 * yc) + (-0.544011f * zc);
+		*g = (-1.06906f	 * xc) + (1.97781f	 * yc) + (0.0351720f * zc);
+		*b = (0.0563117f * xc) + (-0.196994f * yc) + (1.05005f	 * zc);
 		break;
 	case BLI_CS_REC709:
-		*r = (3.240476	* xc) + (-1.537150	* yc) + (-0.498535	* zc);
-		*g = (-0.969256 * xc) + (1.875992 * yc) + (0.041556 * zc);
-		*b = (0.055648	* xc) + (-0.204043	* yc) + (1.057311	* zc);
+		*r = (3.240476f	 * xc) + (-1.537150f * yc) + (-0.498535f * zc);
+		*g = (-0.969256f * xc) + (1.875992f  * yc) + (0.041556f  * zc);
+		*b = (0.055648f	 * xc) + (-0.204043f * yc) + (1.057311f  * zc);
 		break;
 	case BLI_CS_CIE:
 		*r = (2.28783848734076f	* xc) + (-0.833367677835217f	* yc) + (-0.454470795871421f	* zc);
@@ -3558,13 +3556,12 @@ int constrain_rgb(float *r, float *g, float *b)
 static void gamma_correct(float *c)
 {
 	/* Rec. 709 gamma correction. */
-	float cc = 0.018;
+	float cc = 0.018f;
 	
-	if (*c < cc) {
-	    *c *= ((1.099 * pow(cc, 0.45)) - 0.099) / cc;
-	} else {
-	    *c = (1.099 * pow(*c, 0.45)) - 0.099;
-	}
+	if (*c < cc)
+	    *c *= ((1.099f * (float)pow(cc, 0.45)) - 0.099f) / cc;
+	else 
+	    *c = (1.099f * (float)pow(*c, 0.45)) - 0.099f;
 }
 
 void gamma_correct_rgb(float *r, float *g, float *b)
@@ -3630,14 +3627,13 @@ void tubemap(float x, float y, float z, float *u, float *v)
 {
 	float len;
 	
-	*v = (z + 1.0) / 2.0;
+	*v = (z + 1.0f) / 2.0f;
 	
-	len= sqrt(x*x+y*y);
-	if(len>0) {
-		*u = (1.0 - (atan2(x/len,y/len) / M_PI)) / 2.0;
-	} else {
+	len= (float)sqrt(x*x+y*y);
+	if(len > 0.0f)
+		*u = (float)((1.0 - (atan2(x/len,y/len) / M_PI)) / 2.0);
+	else
 		*v = *u = 0.0f; /* to avoid un-initialized variables */
-	}
 }
 
 /* ------------------------------------------------------------------------- */
@@ -3646,14 +3642,13 @@ void spheremap(float x, float y, float z, float *u, float *v)
 {
 	float len;
 	
-	len= sqrt(x*x+y*y+z*z);
-	if(len>0.0) {
-		
-		if(x==0.0 && y==0.0) *u= 0.0;	/* othwise domain error */
-		else *u = (1.0 - atan2(x,y)/M_PI )/2.0;
+	len= (float)sqrt(x*x+y*y+z*z);
+	if(len > 0.0f) {
+		if(x==0.0f && y==0.0f) *u= 0.0f;	/* othwise domain error */
+		else *u = (float)((1.0 - (float)atan2(x,y) / M_PI) / 2.0);
 		
 		z/=len;
-		*v = 1.0- saacos(z)/M_PI;
+		*v = 1.0f - (float)saacos(z)/(float)M_PI;
 	} else {
 		*v = *u = 0.0f; /* to avoid un-initialized variables */
 	}
@@ -3913,7 +3908,7 @@ static int getLowestRoot(float a, float b, float c, float maxR, float* root)
 	{
 		// calculate the two roots: (if determinant == 0 then
 		// x1==x2 but let’s disregard that slight optimization)
-		float sqrtD = sqrt(determinant);
+		float sqrtD = (float)sqrt(determinant);
 		float r1 = (-b - sqrtD) / (2.0f*a);
 		float r2 = (-b + sqrtD) / (2.0f*a);
 		
@@ -4694,5 +4689,5 @@ void tangent_from_uv(float *uv1, float *uv2, float *uv3, float *co1, float *co2,
 
 /* used for zoom values*/
 float power_of_2(float val) {
-	return pow(2, ceil(log(val) / log(2)));
+	return (float)pow(2, ceil(log(val) / log(2)));
 }

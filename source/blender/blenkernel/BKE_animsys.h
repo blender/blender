@@ -9,6 +9,7 @@ struct ID;
 struct ListBase;
 struct Main;
 struct AnimData;
+struct KeyingSet;
 
 /* ************************************* */
 /* AnimData API */
@@ -24,6 +25,21 @@ void BKE_free_animdata(struct ID *id);
 
 /* Copy AnimData */
 struct AnimData *BKE_copy_animdata(struct AnimData *adt);
+
+/* ************************************* */
+/* KeyingSets API */
+
+/* Used to create a new 'custom' KeyingSet for the user, that will be automatically added to the stack */
+struct KeyingSet *BKE_keyingset_add(struct ListBase *list, const char name[], short flag, short keyingflag);
+
+/* Add a destination to a KeyingSet */
+void BKE_keyingset_add_destination(struct KeyingSet *ks, struct ID *id, const char group_name[], const char rna_path[], int array_index, int flag);
+
+/* Free data for KeyingSet but not set itself */
+void BKE_keyingset_free(struct KeyingSet *ks);
+
+/* Free all the KeyingSets in the given list */
+void BKE_keyingsets_free(struct ListBase *list);
 
 /* ************************************* */
 // TODO: overrides, remapping, and path-finding api's

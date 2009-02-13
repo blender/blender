@@ -64,6 +64,36 @@
 
 #include "view3d_intern.h"	// own include
 
+/* ******************** manage regions ********************* */
+
+ARegion *view3d_has_buttons_region(ScrArea *sa)
+{
+	ARegion *ar, *arnew;
+	
+	for(ar= sa->regionbase.first; ar; ar= ar->next)
+		if(ar->regiontype==RGN_TYPE_UI)
+			return ar;
+	
+	/* add subdiv level; after header */
+	for(ar= sa->regionbase.first; ar; ar= ar->next)
+		if(ar->regiontype==RGN_TYPE_HEADER)
+			break;
+	
+	/* is error! */
+	if(ar==NULL) return NULL;
+	
+	arnew= MEM_callocN(sizeof(ARegion), "buttons for view3d");
+	
+	BLI_insertlinkafter(&sa->regionbase, ar, arnew);
+	arnew->regiontype= RGN_TYPE_UI;
+	arnew->alignment= RGN_ALIGN_LEFT;
+	
+	arnew->flag = RGN_FLAG_HIDDEN;
+	
+	return arnew;
+}
+
+
 /* ******************** default callbacks for view3d space ***************** */
 
 static SpaceLink *view3d_new(const bContext *C)
@@ -102,6 +132,13 @@ static SpaceLink *view3d_new(const bContext *C)
 	BLI_addtail(&v3d->regionbase, ar);
 	ar->regiontype= RGN_TYPE_HEADER;
 	ar->alignment= RGN_ALIGN_BOTTOM;
+	
+	/* buttons/list view */
+	ar= MEM_callocN(sizeof(ARegion), "buttons for view3d");
+	
+	BLI_addtail(&v3d->regionbase, ar);
+	ar->regiontype= RGN_TYPE_UI;
+	ar->alignment= RGN_OVERLAP_LEFT;
 	
 	/* main area */
 	ar= MEM_callocN(sizeof(ARegion), "main area for view3d");
@@ -177,6 +214,8 @@ static void view3d_main_area_init(wmWindowManager *wm, ARegion *ar)
 	ListBase *keymap;
 	
 	/* own keymap */
+	keymap= WM_keymap_listbase(wm, "View3D Generic", SPACE_VIEW3D, 0);
+	WM_event_add_keymap_handler(&ar->handlers, keymap);
 	keymap= WM_keymap_listbase(wm, "View3D", SPACE_VIEW3D, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 	
@@ -344,6 +383,10 @@ static void view3d_main_area_cursor(wmWindow *win, ScrArea *sa, ARegion *ar)
 /* add handlers, stuff you only do once or on area/region changes */
 static void view3d_header_area_init(wmWindowManager *wm, ARegion *ar)
 {
+	ListBase *keymap= WM_keymap_listbase(wm, "View3D Generic", SPACE_VIEW3D, 0);
+	
+	WM_event_add_keymap_handler(&ar->handlers, keymap);
+	
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_HEADER, ar->winx, ar->winy);
 }
 
@@ -383,6 +426,67 @@ static void view3d_header_area_listener(ARegion *ar, wmNotifier *wmn)
 					break;
 			}
 			break;
+	}
+}
+
+/* add handlers, stuff you only do once or on area/region changes */
+static void view3d_buttons_area_init(wmWindowManager *wm, ARegion *ar)
+{
+	ListBase *keymap;
+	
+	keymap= WM_keymap_listbase(wm, "View2D Buttons List", 0, 0);
+	WM_event_add_keymap_handler(&ar->handlers, keymap);
+	keymap= WM_keymap_listbase(wm, "View3D Generic", SPACE_VIEW3D, 0);
+	WM_event_add_keymap_handler(&ar->handlers, keymap);
+	
+	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_LIST_UI, ar->winx, ar->winy);
+}
+
+static void view3d_buttons_area_draw(const bContext *C, ARegion *ar)
+{
+	float col[3];
+	
+	/* clear */
+	UI_GetThemeColor3fv(TH_HEADER, col);
+	
+	glClearColor(col[0], col[1], col[2], 0.0);
+	glClear(GL_COLOR_BUFFER_BIT);
+	
+	/* set view2d view matrix for scrolling (without scrollers) */
+	UI_view2d_view_ortho(C, &ar->v2d);
+
+	view3d_buttons_area_defbuts(C, ar);
+	
+	/* restore view matrix? */
+	UI_view2d_view_restore(C);
+}
+
+static void view3d_buttons_area_listener(ARegion *ar, wmNotifier *wmn)
+{
+	/* context changes */
+	switch(wmn->category) {
+		case NC_SCENE:
+			switch(wmn->data) {
+				case ND_FRAME:
+				case ND_OB_ACTIVE:
+				case ND_OB_SELECT:
+				case ND_MODE:
+					ED_region_tag_redraw(ar);
+					break;
+			}
+			break;
+		case NC_OBJECT:
+			switch(wmn->data) {
+				case ND_BONE_ACTIVE:
+				case ND_BONE_SELECT:
+				case ND_TRANSFORM:
+				case ND_GEOM_SELECT:
+				case ND_GEOM_DATA:
+				case ND_DRAW:
+				case ND_KEYS:
+					ED_region_tag_redraw(ar);
+					break;
+			}
 	}
 }
 
@@ -582,16 +686,24 @@ void ED_spacetype_view3d(void)
 	art->cursor= view3d_main_area_cursor;
 	BLI_addhead(&st->regiontypes, art);
 	
+	/* regions: listview/buttons */
+	art= MEM_callocN(sizeof(ARegionType), "spacetype view3d region");
+	art->regionid = RGN_TYPE_UI;
+	art->minsizex= 220; // XXX
+	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_FRAMES;
+	art->listener= view3d_buttons_area_listener;
+	art->init= view3d_buttons_area_init;
+	art->draw= view3d_buttons_area_draw;
+	BLI_addhead(&st->regiontypes, art);
+	
 	/* regions: header */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype view3d region");
 	art->regionid = RGN_TYPE_HEADER;
 	art->minsizey= HEADERY;
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D|ED_KEYMAP_FRAMES;
 	art->listener= view3d_header_area_listener;
-	
 	art->init= view3d_header_area_init;
 	art->draw= view3d_header_area_draw;
-	
 	BLI_addhead(&st->regiontypes, art);
 	
 	BKE_spacetype_register(st);

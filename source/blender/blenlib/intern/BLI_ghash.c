@@ -188,8 +188,7 @@ void BLI_ghash_free(GHash *gh, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreef
 			
 			if (keyfreefp) keyfreefp(e->key);
 			if (valfreefp) valfreefp(e->val);
-			BLI_mempool_free(gh->entrypool, e);
-			
+
 			e= n;
 		}
 	}

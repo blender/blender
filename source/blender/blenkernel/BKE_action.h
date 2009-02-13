@@ -36,11 +36,10 @@
 
 #include "DNA_listBase.h"
 
-/**
- * The following structures are defined in DNA_action_types.h, and DNA_anim_types.h
- */
-
+/* The following structures are defined in DNA_action_types.h, and DNA_anim_types.h */
 struct bAction;
+struct bActionGroup;
+struct FCurve;
 struct bPose;
 struct bPoseChannel;
 struct Object;
@@ -52,28 +51,40 @@ struct ID;
 extern "C" {
 #endif
 
-struct bAction *add_empty_action(const char name[]);
-	
-	/**
- * Allocate a new bAction on the heap and copy 
- * the contents of src into it. If src is NULL NULL is returned.
- */
+/* Action API ----------------- */
 
+/* Allocate a new bAction with the given name */
+struct bAction *add_empty_action(const char name[]);
+
+/* Allocate a copy of the given Action and all its data */	
 struct bAction *copy_action(struct bAction *src);
 
-/**
- * Deallocate the action's channels including constraint channels.
- * does not free the action structure.
- */
+/* Deallocate all of the Action's data, but not the Action itself */
 void free_action(struct bAction *act);
 
 // XXX is this needed?
 void make_local_action(struct bAction *act);
-	
-/**
- * Some kind of bounding box operation on the action.
- */
+		
+/* Some kind of bounding box operation on the action */
+// XXX depreceated..
 void calc_action_range(const struct bAction *act, float *start, float *end, int incl_hidden);
+
+/* Action Groups API ----------------- */
+
+/* Make the given Action Group the active one */
+void set_active_action_group(struct bAction *act, struct bActionGroup *agrp, short select);
+
+/* Add given channel into (active) group  */
+void action_groups_add_channel(struct bAction *act, struct bActionGroup *agrp, struct FCurve *fcurve);
+
+/* Remove the given channel from all groups */
+void action_groups_remove_channel(struct bAction *act, struct FCurve *fcu);
+
+/* Find a group with the given name */
+struct bActionGroup *action_groups_find_named(struct bAction *act, const char name[]);
+
+
+/* Pose API ----------------- */	
 	
 /**
  * Removes and deallocates all channels from a pose.

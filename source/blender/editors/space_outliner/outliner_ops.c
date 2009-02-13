@@ -44,6 +44,9 @@
 void outliner_operatortypes(void)
 {
 	WM_operatortype_append(OUTLINER_OT_activate_click);
+	
+	WM_operatortype_append(OUTLINER_OT_keyingset_add_selected);
+	WM_operatortype_append(OUTLINER_OT_keyingset_remove_selected);
 }
 
 void outliner_keymap(wmWindowManager *wm)
@@ -51,6 +54,10 @@ void outliner_keymap(wmWindowManager *wm)
 	ListBase *keymap= WM_keymap_listbase(wm, "Outliner", SPACE_OOPS, 0);
 	
 	WM_keymap_verify_item(keymap, "OUTLINER_OT_activate_click", LEFTMOUSE, KM_PRESS, 0, 0);
+	
+	/* keying sets - only for databrowse */
+	WM_keymap_verify_item(keymap, "OUTLINER_OT_keyingset_add_selected", KKEY, KM_PRESS, 0, 0);
+	WM_keymap_verify_item(keymap, "OUTLINER_OT_keyingset_remove_selected", KKEY, KM_PRESS, KM_ALT, 0);
 
 }
 

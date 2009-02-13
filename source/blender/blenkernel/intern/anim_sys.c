@@ -158,6 +158,124 @@ AnimData *BKE_copy_animdata (AnimData *adt)
 	return dadt;
 }
 
+/* *********************************** */ 
+/* KeyingSet API */
+
+/* NOTES:
+ * It is very likely that there will be two copies of the api - one for internal use,
+ * and one 'operator' based wrapper of the internal API, which should allow for access
+ * from Python/scripts so that riggers can automate the creation of KeyingSets for their rigs.
+ */
+
+/* Defining Tools --------------------------- */
+
+/* Used to create a new 'custom' KeyingSet for the user, that will be automatically added to the stack */
+KeyingSet *BKE_keyingset_add (ListBase *list, const char name[], short flag, short keyingflag)
+{
+	KeyingSet *ks;
+	
+	/* allocate new KeyingSet */
+	ks= MEM_callocN(sizeof(KeyingSet), "KeyingSet");
+	
+	if (name)
+		BLI_snprintf(ks->name, 64, name);
+	else
+		strcpy(ks->name, "Keying Set");
+	
+	ks->flag= flag;
+	ks->keyingflag= keyingflag;
+	
+	/* add KeyingSet to list */
+	BLI_addtail(list, ks);
+	
+	/* return new KeyingSet for further editing */
+	return ks;
+}
+
+/* Add a destination to a KeyingSet. Nothing is returned for now...
+ * Checks are performed to ensure that destination is appropriate for the KeyingSet in question
+ */
+void BKE_keyingset_add_destination (KeyingSet *ks, ID *id, const char group_name[], const char rna_path[], int array_index, int flag)
+{
+	KS_Path *ksp;
+	
+	/* sanity checks */
+	if ELEM(NULL, ks, rna_path)
+		return;
+	
+	/* ID is optional, and should only be provided for absolute KeyingSets */
+	if (id) {
+		if ((ks->flag & KEYINGSET_ABSOLUTE) == 0)
+			return;
+	}
+	
+	/* allocate a new KeyingSet Path */
+	ksp= MEM_callocN(sizeof(KS_Path), "KeyingSet Path");
+	
+	/* just store absolute info */
+	if (ks->flag & KEYINGSET_ABSOLUTE) {
+		ksp->id= id;
+		if (group_name)
+			BLI_snprintf(ksp->group, 64, group_name);
+		else
+			strcpy(ksp->group, "");
+	}
+	
+	/* just copy path info */
+	// XXX no checks are performed for templates yet
+	// should array index be checked too?
+	ksp->rna_path= BLI_strdupn(rna_path, strlen(rna_path));
+	ksp->array_index= array_index;
+	
+	/* store flags */
+	ksp->flag= flag;
+	
+	/* add KeyingSet path to KeyingSet */
+	BLI_addtail(&ks->paths, ksp);
+}	
+
+
+/* Freeing Tools --------------------------- */
+
+/* Free data for KeyingSet but not set itself */
+void BKE_keyingset_free (KeyingSet *ks)
+{
+	KS_Path *ksp, *kspn;
+	
+	/* sanity check */
+	if (ks == NULL)
+		return;
+	
+	/* free each path as we go to avoid looping twice */
+	for (ksp= ks->paths.first; ksp; ksp= kspn) {
+		kspn= ksp->next;
+		
+		/* free RNA-path info */
+		MEM_freeN(ksp->rna_path);
+		
+		/* free path itself */
+		BLI_freelinkN(&ks->paths, ksp);
+	}
+}
+
+/* Free all the KeyingSets in the given list */
+void BKE_keyingsets_free (ListBase *list)
+{
+	KeyingSet *ks, *ksn;
+	
+	/* sanity check */
+	if (list == NULL)
+		return;
+	
+	/* loop over KeyingSets freeing them 
+	 * 	- BKE_keyingset_free() doesn't free the set itself, but it frees its sub-data
+	 */
+	for (ks= list->first; ks; ks= ksn) {
+		ksn= ks->next;
+		BKE_keyingset_free(ks);
+		BLI_freelinkN(list, ks);
+	}
+}
 
 /* ***************************************** */
 /* Evaluation Data-Setting Backend */
@@ -587,7 +705,7 @@ void BKE_animsys_evaluate_animdata (ID *id, AnimData *adt, float ctime, short re
 	 *	- NLA before Active Action, as Active Action behaves as 'tweaking track'
 	 *	  that overrides 'rough' work in NLA
 	 */
-	if ((recalc & ADT_RECALC_ANIM) /*|| (adt->recalc & ADT_RECALC_ANIM)*/) // XXX for now,don't check yet, as depsgraph doesn't know this yet
+	if ((recalc & ADT_RECALC_ANIM) || (adt->recalc & ADT_RECALC_ANIM))
  	{
 		/* evaluate NLA data */
 		if ((adt->nla_tracks.first) && !(adt->flag & ADT_NLA_EVAL_OFF))
@@ -599,6 +717,9 @@ void BKE_animsys_evaluate_animdata (ID *id, AnimData *adt, float ctime, short re
 		// FIXME: what if the solo track was not tweaking one, then nla-solo should be checked too?
 		if (adt->action) 
 			animsys_evaluate_action(&id_ptr, adt->action, adt->remap, ctime);
+		
+		/* reset tag */
+		adt->recalc &= ~ADT_RECALC_ANIM;
 	}
 	
 	/* recalculate drivers 
@@ -639,29 +760,29 @@ void BKE_animsys_evaluate_all_animation (Main *main, float ctime)
 		printf("Evaluate all animation - %f \n", ctime);
 
 	/* macro for less typing */
-#define EVAL_ANIM_IDS(first) \
+#define EVAL_ANIM_IDS(first, flag) \
 	for (id= first; id; id= id->next) { \
 		AnimData *adt= BKE_animdata_from_id(id); \
-		BKE_animsys_evaluate_animdata(id, adt, ctime, ADT_RECALC_ANIM); \
+		BKE_animsys_evaluate_animdata(id, adt, ctime, flag); \
 	}
 	
 	/* nodes */
 	// TODO...
 	
 	/* textures */
-	EVAL_ANIM_IDS(main->tex.first);
+	EVAL_ANIM_IDS(main->tex.first, ADT_RECALC_ANIM);
 	
 	/* lamps */
-	EVAL_ANIM_IDS(main->lamp.first);
+	EVAL_ANIM_IDS(main->lamp.first, ADT_RECALC_ANIM);
 	
 	/* materials */
-	EVAL_ANIM_IDS(main->mat.first);
+	EVAL_ANIM_IDS(main->mat.first, ADT_RECALC_ANIM);
 	
 	/* cameras */
-	EVAL_ANIM_IDS(main->camera.first);
+	EVAL_ANIM_IDS(main->camera.first, ADT_RECALC_ANIM);
 	
 	/* shapekeys */
-	EVAL_ANIM_IDS(main->key.first);
+	EVAL_ANIM_IDS(main->key.first, ADT_RECALC_ANIM);
 	
 	/* curves */
 	// TODO...
@@ -670,13 +791,13 @@ void BKE_animsys_evaluate_all_animation (Main *main, float ctime)
 	// TODO...
 	
 	/* objects */
-	EVAL_ANIM_IDS(main->object.first);
+	EVAL_ANIM_IDS(main->object.first, 0);
 	
 	/* worlds */
-	EVAL_ANIM_IDS(main->world.first);
+	EVAL_ANIM_IDS(main->world.first, ADT_RECALC_ANIM);
 	
 	/* scenes */
-	EVAL_ANIM_IDS(main->scene.first);
+	EVAL_ANIM_IDS(main->scene.first, ADT_RECALC_ANIM);
 }
 
 /* ***************************************** */ 

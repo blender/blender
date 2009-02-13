@@ -2163,7 +2163,12 @@ void uiDrawMenuBox(float minx, float miny, float maxx, float maxy, short flag, s
 	UI_GetThemeColor4ubv(TH_MENU_BACK, col);
 	
 	if (rounded) {
-		if (direction == UI_DOWN) {
+		if (flag & UI_BLOCK_POPUP) {
+			uiSetRoundBox(15);
+			miny -= 4.0;
+			maxy += 4.0;
+		}
+		else if (direction == UI_DOWN) {
 			uiSetRoundBox(12);
 			miny -= 4.0;
 		} else if (direction == UI_TOP) {
@@ -2970,7 +2975,7 @@ static void ui_draw_but_curve_grid(uiBut *but, float zoomx, float zoomy, float o
 	
 }
 
-static void ui_draw_but_CURVE(uiBut *but)
+static void ui_draw_but_CURVE(ARegion *ar, uiBut *but)
 {
 	CurveMapping *cumap;
 	CurveMap *cuma;
@@ -2985,10 +2990,10 @@ static void ui_draw_but_CURVE(uiBut *but)
 	/* need scissor test, curve can draw outside of boundary */
 	glGetIntegerv(GL_VIEWPORT, scissor);
 	fx= but->x1; fy= but->y1;
-	/* XXX 2.50 need context: ui_graphics_to_window(but->win, &fx, &fy); */
+	ui_block_to_window_fl(ar, but->block, &fx, &fy); 
 	dx= but->x2; dy= but->y2;
-	/* XXX 2.50 need context: ui_graphics_to_window(but->win, &dx, &dy); */
-	//glScissor((int)floor(fx), (int)floor(fy), (int)ceil(dx-fx), (int)ceil(dy-fy));
+	ui_block_to_window_fl(ar, but->block, &dx, &dy); 
+	glScissor((int)floor(fx), (int)floor(fy), (int)ceil(dx-fx), (int)ceil(dy-fy));
 	
 	/* calculate offset and zoom */
 	zoomx= (but->x2-but->x1-2.0*but->aspect)/(cumap->curr.xmax - cumap->curr.xmin);
@@ -3249,7 +3254,7 @@ void ui_set_embossfunc(uiBut *but, int drawtype)
 	// note: if you want aligning, adapt the call uiBlockEndAlign in interface.c 
 }
 
-void ui_draw_but(uiBut *but)
+void ui_draw_but(ARegion *ar, uiBut *but)
 {
 	double value;
 	float x1, x2, y1, y2, fac;
@@ -3317,7 +3322,7 @@ void ui_draw_but(uiBut *but)
 		ui_draw_but_NORMAL(but);
 		break;
 	case BUT_CURVE:
-		ui_draw_but_CURVE(but);
+		ui_draw_but_CURVE(ar, but);
 		break;
 		
 	default:

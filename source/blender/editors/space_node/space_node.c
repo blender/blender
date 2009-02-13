@@ -164,10 +164,14 @@ static void node_area_refresh(const struct bContext *C, struct ScrArea *sa)
 	
 	if(snode->nodetree) {
 		if(snode->treetype==NTREE_SHADER) {
-			ED_preview_shader_job(C, sa, snode->id, 100, 100);
+			Material *ma= (Material *)snode->id;
+			if(ma->use_nodes)
+				ED_preview_shader_job(C, sa, snode->id, 100, 100);
 		}
 		else if(snode->treetype==NTREE_COMPOSIT) {
-			snode_composite_job(C, sa);
+			Scene *scene= (Scene *)snode->id;
+			if(scene->use_nodes)
+				snode_composite_job(C, sa);
 		}
 	}
 }

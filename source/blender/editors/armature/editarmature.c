@@ -88,6 +88,8 @@
 #include "ED_util.h"
 #include "ED_view3d.h"
 
+#include "UI_interface.h"
+
 #include "armature_intern.h"
 #include "meshlaplacian.h"
 
@@ -160,18 +162,18 @@ void make_boneList(ListBase *edbo, ListBase *bones, EditBone *parent)
 		VECCOPY(eBone->head, curBone->arm_head);
 		VECCOPY(eBone->tail, curBone->arm_tail);		
 		
-		eBone->roll= 0.0;
+		eBone->roll= 0.0f;
 		
 		/* roll fixing */
 		VecSubf(delta, eBone->tail, eBone->head);
-		vec_roll_to_mat3(delta, 0.0, postmat);
+		vec_roll_to_mat3(delta, 0.0f, postmat);
 		
 		Mat3CpyMat4(premat, curBone->arm_mat);
 		
 		Mat3Inv(imat, postmat);
 		Mat3MulMat3(difmat, imat, premat);
 		
-		eBone->roll = atan2(difmat[2][0], difmat[2][2]);
+		eBone->roll = (float)atan2(difmat[2][0], difmat[2][2]);
 		
 		/* rest of stuff copy */
 		eBone->length= curBone->length;
@@ -232,7 +234,7 @@ static void fix_bonelist_roll (ListBase *bonelist, ListBase *editbonelist)
 			printmatrix4("difmat", difmat);
 			printf ("Roll = %f\n",  (-atan2(difmat[2][0], difmat[2][2]) * (180.0/M_PI)));
 #endif
-			curBone->roll = -atan2(difmat[2][0], difmat[2][2]);
+			curBone->roll = (float)-atan2(difmat[2][0], difmat[2][2]);
 			
 			/* and set restposition again */
 			where_is_armature_bone(curBone, curBone->parent);
@@ -401,13 +403,13 @@ void docenter_armature (Scene *scene, View3D *v3d, Object *ob, int centermode)
 			DO_MINMAX(ebone->tail, min, max);
 		}
 		
-		cent[0]= (min[0]+max[0])/2.0f;
-		cent[1]= (min[1]+max[1])/2.0f;
-		cent[2]= (min[2]+max[2])/2.0f;
+		cent[0]= (min[0] + max[0]) / 2.0f;
+		cent[1]= (min[1] + max[1]) / 2.0f;
+		cent[2]= (min[2] + max[2]) / 2.0f;
 	}
 	
 	/* Do the adjustments */
-	for (ebone= arm->edbo->first; ebone; ebone=ebone->next){
+	for (ebone= arm->edbo->first; ebone; ebone=ebone->next) {
 		VecSubf(ebone->head, ebone->head, cent);
 		VecSubf(ebone->tail, ebone->tail, cent);
 	}
@@ -420,9 +422,9 @@ void docenter_armature (Scene *scene, View3D *v3d, Object *ob, int centermode)
 		Mat3CpyMat4(omat, ob->obmat);
 		
 		Mat3MulVecfl(omat, cent);
-		ob->loc[0]+= cent[0];
-		ob->loc[1]+= cent[1];
-		ob->loc[2]+= cent[2];
+		ob->loc[0] += cent[0];
+		ob->loc[1] += cent[1];
+		ob->loc[2] += cent[2];
 	}
 	else 
 		ED_armature_edit_free(ob);
@@ -475,7 +477,7 @@ void unique_editbone_name (ListBase *edbo, char *name)
 				*dot=0;
 		}
 		
-		for (number = 1; number <=999; number++) {
+		for (number = 1; number <= 999; number++) {
 			sprintf(tempname, "%s.%03d", name, number);
 			if (!editbone_name_exists(edbo, tempname)) {
 				BLI_strncpy(name, tempname, 32);
@@ -743,7 +745,7 @@ int join_armature(Scene *scene, View3D *v3d)
 						Mat4Invert(imat, premat);
 						Mat4MulMat4(difmat, postmat, imat);
 						
-						curbone->roll -= atan2(difmat[2][0], difmat[2][2]);
+						curbone->roll -= (float)atan2(difmat[2][0], difmat[2][2]);
 					}
 					
 					/* Fix Constraints and Other Links to this Bone and Armature */
@@ -1903,7 +1905,7 @@ void auto_align_ebone_tocursor(Scene *scene, View3D *v3d, EditBone *ebone)
 	/* check that cursor is in usable position */
 	if ((IS_EQ(vec[0], 0)==0) && (IS_EQ(vec[2], 0)==0)) {
 		/* Compute a rotation matrix around y */
-		rot[1] = atan2(vec[0], vec[2]);
+		rot[1] = (float)atan2(vec[0], vec[2]);
 		rot[0] = rot[2] = 0.0f;
 		EulToMat4(rot, rmat);
 		
@@ -2357,7 +2359,7 @@ void adduplicate_armature(Scene *scene)
 				/* Lets duplicate the list of constraints that the
 				 * current bone has.
 				 */
-				if (OBACT->pose) {
+				if (obedit->pose) {
 					bPoseChannel *chanold, *channew;
 					ListBase     *listold, *listnew;
 					
@@ -2901,194 +2903,6 @@ void show_all_armature_bones(Scene *scene)
 	BIF_undo_push("Reveal Bones");
 }
 
-/* check for null, before calling! */
-static void bone_connect_to_existing_parent(EditBone *bone)
-{
-	bone->flag |= BONE_CONNECTED;
-	VECCOPY(bone->head, bone->parent->tail);
-	bone->rad_head = bone->parent->rad_tail;
-}
-
-static void bone_connect_to_new_parent(ListBase *edbo, EditBone *selbone, EditBone *actbone, short mode)
-{
-	EditBone *ebone;
-	float offset[3];
-	
-	if ((selbone->parent) && (selbone->flag & BONE_CONNECTED))
-		selbone->parent->flag &= ~(BONE_TIPSEL);
-	
-	/* make actbone the parent of selbone */
-	selbone->parent= actbone;
-	
-	/* in actbone tree we cannot have a loop */
-	for (ebone= actbone->parent; ebone; ebone= ebone->parent) {
-		if (ebone->parent==selbone) {
-			ebone->parent= NULL;
-			ebone->flag &= ~BONE_CONNECTED;
-		}
-	}
-	
-	if (mode == 1) {	
-		/* Connected: Child bones will be moved to the parent tip */
-		selbone->flag |= BONE_CONNECTED;
-		VecSubf(offset, actbone->tail, selbone->head);
-		
-		VECCOPY(selbone->head, actbone->tail);
-		selbone->rad_head= actbone->rad_tail;
-		
-		VecAddf(selbone->tail, selbone->tail, offset);
-		
-		/* offset for all its children */
-		for (ebone = edbo->first; ebone; ebone=ebone->next) {
-			EditBone *par;
-			
-			for (par= ebone->parent; par; par= par->parent) {
-				if (par==selbone) {
-					VecAddf(ebone->head, ebone->head, offset);
-					VecAddf(ebone->tail, ebone->tail, offset);
-					break;
-				}
-			}
-		}
-	}
-	else {
-		/* Offset: Child bones will retain their distance from the parent tip */
-		selbone->flag &= ~BONE_CONNECTED;
-	}
-}
-
-void make_bone_parent(Scene *scene)
-{
-	Object *obedit= scene->obedit; // XXX get from context
-	bArmature *arm= obedit->data;
-	EditBone *actbone, *ebone, *selbone;
-	EditBone *flipbone, *flippar;
-	short allchildbones= 0, foundselbone= 0;
-	short val;
-	
-	/* find active bone to parent to */
-	for (actbone = arm->edbo->first; actbone; actbone=actbone->next) {
-		if (EBONE_VISIBLE(arm, actbone)) {
-			if (actbone->flag & BONE_ACTIVE)
-				break;
-		}
-	}
-	if (actbone == NULL) {
-		error("Needs an active bone");
-		return; 
-	}
-
-	/* find selected bones */
-	for (ebone = arm->edbo->first; ebone; ebone=ebone->next) {
-		if (EBONE_VISIBLE(arm, ebone)) {
-			if ((ebone->flag & BONE_SELECTED) && (ebone != actbone)) {
-				foundselbone++;
-				if (ebone->parent != actbone) allchildbones= 1; 
-			}	
-		}
-	}
-	/* abort if no selected bones, and active bone doesn't have a parent to work with instead */
-	if (foundselbone==0 && actbone->parent==NULL) {
-		error("Need selected bone(s)");
-		return;
-	}
-	
-	/* 'Keep Offset' option is only displayed if it's likely to be useful */
-	if (allchildbones)
-		val= pupmenu("Make Parent%t|Connected%x1|Keep Offset%x2");
-	else
-		val= pupmenu("Make Parent%t|Connected%x1");
-	
-	if (val < 1) return;
-
-	if (foundselbone==0 && actbone->parent) {
-		/* When only the active bone is selected, and it has a parent,
-		 * connect it to the parent, as that is the only possible outcome. 
-		 */
-		bone_connect_to_existing_parent(actbone);
-		
-		if (arm->flag & ARM_MIRROR_EDIT) {
-			flipbone = ED_armature_bone_get_mirrored(arm->edbo, actbone);
-			if (flipbone)
-				bone_connect_to_existing_parent(flipbone);
-		}
-	}
-	else {
-		/* loop through all editbones, parenting all selected bones to the active bone */
-		for (selbone = arm->edbo->first; selbone; selbone=selbone->next) {
-			if (EBONE_VISIBLE(arm, selbone)) {
-				if ((selbone->flag & BONE_SELECTED) && (selbone!=actbone)) {
-					/* parent selbone to actbone */
-					bone_connect_to_new_parent(arm->edbo, selbone, actbone, val);
-					
-					if (arm->flag & ARM_MIRROR_EDIT) {
-						/* - if there's a mirrored copy of selbone, try to find a mirrored copy of actbone 
-						 *	(i.e.  selbone="child.L" and actbone="parent.L", find "child.R" and "parent.R").
-						 *	This is useful for arm-chains, for example parenting lower arm to upper arm
-						 * - if there's no mirrored copy of actbone (i.e. actbone = "parent.C" or "parent")
-						 *	then just use actbone. Useful when doing upper arm to spine.
-						 */
-						flipbone = ED_armature_bone_get_mirrored(arm->edbo, selbone);
-						flippar = ED_armature_bone_get_mirrored(arm->edbo, actbone);
-						
-						if (flipbone) {
-							if (flippar)
-								bone_connect_to_new_parent(arm->edbo, flipbone, flippar, val);
-							else
-								bone_connect_to_new_parent(arm->edbo, flipbone, actbone, val);
-						}
-					}
-				}
-			}
-		}
-	}
-
-	armature_sync_selection(arm->edbo);
-	BIF_undo_push("Make Parent");
-
-	return;
-}
-
-static void editbone_clear_parent(EditBone *ebone, int mode)
-{
-	if (ebone->parent) {
-		/* for nice selection */
-		ebone->parent->flag &= ~(BONE_TIPSEL);
-	}
-	
-	if (mode==1) ebone->parent= NULL;
-	ebone->flag &= ~BONE_CONNECTED;
-}
-
-void clear_bone_parent(Scene *scene)
-{
-	Object *obedit= scene->obedit; // XXX get from context
-	bArmature *arm= obedit->data;
-	EditBone *ebone;
-	EditBone *flipbone = NULL;
-	short val;
-	
-	val= pupmenu("Clear Parent%t|Clear Parent%x1|Disconnect Bone%x2");
-	if (val<1) return;
-	
-	for (ebone = arm->edbo->first; ebone; ebone=ebone->next) {
-		if (EBONE_VISIBLE(arm, ebone)) {
-			if (ebone->flag & BONE_SELECTED) {
-				if (arm->flag & ARM_MIRROR_EDIT)
-					flipbone = ED_armature_bone_get_mirrored(arm->edbo, ebone);
-					
-				if (flipbone)
-					editbone_clear_parent(flipbone, val);
-				editbone_clear_parent(ebone, val);
-			}
-		}
-	}
-	
-	armature_sync_selection(arm->edbo);
-	BIF_undo_push("Clear Parent");
-}
-	
-
 /* context; editmode armature */
 /* if forked && mirror-edit: makes two bones with flipped names */
 void extrude_armature(Scene *scene, int forked)
@@ -3218,97 +3032,186 @@ void extrude_armature(Scene *scene, int forked)
 	
 }
 
-/* context; editmode armature */
-void subdivide_armature(Scene *scene, int numcuts)
-{
-	Object *obedit= scene->obedit; // XXX get from context
-	bArmature *arm= obedit->data;
-	EditBone *ebone, *newbone, *tbone, *mbone;
-	int a, i;
-	
-	if (numcuts < 1) return;
+/* ----------- */
 
-	for (mbone = arm->edbo->last; mbone; mbone= mbone->prev) {
-		if (EBONE_VISIBLE(arm, mbone)) {
-			if (mbone->flag & BONE_SELECTED) {
-				for (i=numcuts+1; i>1; i--) {
-					/* compute cut ratio first */
-					float cutratio= 1/(float)i;
-					float cutratioI= 1-cutratio;
-					
-					/* take care of mirrored stuff */
-					for (a=0; a<2; a++) {
-						float val1[3];
-						float val2[3];
-						float val3[3];
-						
-						/* try to find mirrored bone on a != 0 */
-						if (a) {
-							if (arm->flag & ARM_MIRROR_EDIT)
-								ebone= ED_armature_bone_get_mirrored(arm->edbo, mbone);
-							else 
-								ebone= NULL;
-						}
-						else
-							ebone= mbone;
-							
-						if (ebone) {
-							newbone= MEM_mallocN(sizeof(EditBone), "ebone subdiv");
-							*newbone = *ebone;
-							BLI_addtail(arm->edbo, newbone);
-							
-							/* calculate location of newbone->head */
-							VECCOPY(val1, ebone->head);
-							VECCOPY(val2, ebone->tail);
-							VECCOPY(val3, newbone->head);
-							
-							val3[0]= val1[0]*cutratio+val2[0]*cutratioI;
-							val3[1]= val1[1]*cutratio+val2[1]*cutratioI;
-							val3[2]= val1[2]*cutratio+val2[2]*cutratioI;
-							
-							VECCOPY(newbone->head, val3);
-							VECCOPY(newbone->tail, ebone->tail);
-							VECCOPY(ebone->tail, newbone->head);
-							
-							newbone->rad_head= 0.5*(ebone->rad_head+ebone->rad_tail);
-							ebone->rad_tail= newbone->rad_head;
-							
-							newbone->flag |= BONE_CONNECTED;
-							
-							unique_editbone_name (arm->edbo, newbone->name);
-							
-							/* correct parent bones */
-							for (tbone = arm->edbo->first; tbone; tbone=tbone->next) {
-								if (tbone->parent==ebone)
-									tbone->parent= newbone;
-							}
-							newbone->parent= ebone;
-						}
-					}
-				}
+/* Subdivide Operators:
+ * This group of operators all use the same 'exec' callback, but they are called
+ * through several different operators - a combined menu (which just calls the exec in the 
+ * appropriate ways), and two separate ones.
+ */
+
+static int armature_subdivide_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	bArmature *arm= obedit->data;
+	EditBone *newbone, *tbone;
+	int numcuts, i;
+	
+	/* there may not be a number_cuts property defined (for 'simple' subdivide) */
+	if (RNA_property_is_set(op->ptr, "number_cuts"))
+		numcuts= RNA_int_get(op->ptr, "number_cuts");
+	else
+		numcuts= 1;
+	
+	/* loop over all editable bones */
+	// XXX the old code did this in reverse order though!
+	CTX_DATA_BEGIN(C, EditBone *, ebone, selected_editable_bones) 
+	{
+		for (i=numcuts+1; i>1; i--) {
+			/* compute cut ratio first */
+			float cutratio= 1.0f / (float)i;
+			float cutratioI= 1.0f - cutratio;
+			
+			float val1[3];
+			float val2[3];
+			float val3[3];
+			
+			newbone= MEM_mallocN(sizeof(EditBone), "ebone subdiv");
+			*newbone = *ebone;
+			BLI_addtail(arm->edbo, newbone);
+			
+			/* calculate location of newbone->head */
+			VECCOPY(val1, ebone->head);
+			VECCOPY(val2, ebone->tail);
+			VECCOPY(val3, newbone->head);
+			
+			val3[0]= val1[0]*cutratio + val2[0]*cutratioI;
+			val3[1]= val1[1]*cutratio + val2[1]*cutratioI;
+			val3[2]= val1[2]*cutratio + val2[2]*cutratioI;
+			
+			VECCOPY(newbone->head, val3);
+			VECCOPY(newbone->tail, ebone->tail);
+			VECCOPY(ebone->tail, newbone->head);
+			
+			newbone->rad_head= 0.5f * (ebone->rad_head + ebone->rad_tail);
+			ebone->rad_tail= newbone->rad_head;
+			
+			newbone->flag |= BONE_CONNECTED;
+			
+			unique_editbone_name(arm->edbo, newbone->name);
+			
+			/* correct parent bones */
+			for (tbone = arm->edbo->first; tbone; tbone=tbone->next) {
+				if (tbone->parent==ebone)
+					tbone->parent= newbone;
 			}
+			newbone->parent= ebone;
 		}
 	}
+	CTX_DATA_END;
 	
-	if (numcuts==1) BIF_undo_push("Subdivide");
-	else BIF_undo_push("Subdivide multi");
+	/* note, notifier might evolve */
+	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, obedit);
+	
+	return OPERATOR_FINISHED;
 }
 
-/* switch direction of bone chains */
-void switch_direction_armature (Scene *scene)
+
+void ARMATURE_OT_subdivide_simple(wmOperatorType *ot)
 {
-	Object *obedit= scene->obedit; // XXX get from context
-	bArmature *arm= (obedit) ? obedit->data : NULL;
+	/* identifiers */
+	ot->name= "Subdivide Simple";
+	ot->idname= "ARMATURE_OT_subdivide_simple";
+	
+	/* api callbacks */
+	ot->exec = armature_subdivide_exec;
+	ot->poll = ED_operator_editarmature;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+void ARMATURE_OT_subdivide_multi(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Subdivide Multi";
+	ot->idname= "ARMATURE_OT_subdivide_multi";
+	
+	/* api callbacks */
+	ot->exec = armature_subdivide_exec;
+	ot->poll = ED_operator_editarmature;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* Properties */
+	RNA_def_int(ot->srna, "number_cuts", 2, 1, 10, "Number of Cuts", "", 1, INT_MAX);
+}
+
+
+
+static int armature_subdivs_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	uiMenuItem *head;
+
+	head= uiPupMenuBegin("Subdivision Type", 0);
+	uiMenuItemsEnumO(head, "ARMATURE_OT_subdivs", "type");
+	uiPupMenuEnd(C, head);
+	
+	return OPERATOR_CANCELLED;
+}
+
+static int armature_subdivs_exec(bContext *C, wmOperator *op)
+{	
+	switch (RNA_int_get(op->ptr, "type"))
+	{
+		case 0: /* simple */
+			RNA_int_set(op->ptr, "number_cuts", 1);
+			armature_subdivide_exec(C, op);
+			break;
+		case 1: /* multi */
+			armature_subdivide_exec(C, op);
+			break;
+	}
+	
+	return OPERATOR_FINISHED;
+}
+
+void ARMATURE_OT_subdivs(wmOperatorType *ot)
+{
+	static EnumPropertyItem type_items[]= {
+		{0, "SIMPLE", "Simple", ""},
+		{1, "MULTI", "Multi", ""},
+		{0, NULL, NULL}};
+
+	/* identifiers */
+	ot->name= "subdivs";
+	ot->idname= "ARMATURE_OT_subdivs";
+	
+	/* api callbacks */
+	ot->invoke= armature_subdivs_invoke;
+	ot->exec= armature_subdivs_exec;
+	
+	ot->poll= ED_operator_editarmature;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* props */
+	RNA_def_enum(ot->srna, "type", type_items, 0, "Type", "");
+	
+	/* this is temp, the ops are different, but they are called from subdivs, so all the possible props should be here as well*/
+	RNA_def_int(ot->srna, "number_cuts", 2, 1, 10, "Number of Cuts", "", 1, INT_MAX); 
+}
+
+/* ----------- */
+
+/* Switch Direction operator:
+ * Currently, this does not use context loops, as context loops do not make it
+ * easy to retrieve any hierarchial/chain relationships which are necessary for
+ * this to be done easily.
+ */
+
+static int armature_switch_direction_exec(bContext *C, wmOperator *op) 
+{
+	Object *ob= CTX_data_edit_object(C);
+	bArmature *arm= (bArmature *)ob->data;
 	ListBase chains = {NULL, NULL};
 	LinkData *chain;
 	
-	/* error checking paranoia */
-	if (arm == NULL)
-		return;
-	
 	/* get chains of bones (ends on chains) */
 	chains_find_tips(arm->edbo, &chains);
-	if (chains.first == NULL) return;
+	if (chains.first == NULL) return OPERATOR_CANCELLED;
 	
 	/* loop over chains, only considering selected and visible bones */
 	for (chain= chains.first; chain; chain= chain->next) {
@@ -3363,11 +3266,336 @@ void switch_direction_armature (Scene *scene)
 	}
 	
 	/* free chains */
-	BLI_freelistN(&chains);
+	BLI_freelistN(&chains);	
+
+	/* note, notifier might evolve */
+	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, ob);
 	
-	BIF_undo_push("Switch Direction");
+	return OPERATOR_FINISHED;
 }
 
+void ARMATURE_OT_switch_direction(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Switch Direction";
+	ot->idname= "ARMATURE_OT_switch_direction";
+	
+	/* api callbacks */
+	ot->exec = armature_switch_direction_exec;
+	ot->poll = ED_operator_editarmature;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+/* ***************** Parenting *********************** */
+#define ARM_PAR_CONNECT 1
+#define ARM_PAR_OFFSET	2
+
+/* check for null, before calling! */
+static void bone_connect_to_existing_parent(EditBone *bone)
+{
+	bone->flag |= BONE_CONNECTED;
+	VECCOPY(bone->head, bone->parent->tail);
+	bone->rad_head = bone->parent->rad_tail;
+}
+
+static void bone_connect_to_new_parent(ListBase *edbo, EditBone *selbone, EditBone *actbone, short mode)
+{
+	EditBone *ebone;
+	float offset[3];
+	
+	if ((selbone->parent) && (selbone->flag & BONE_CONNECTED))
+		selbone->parent->flag &= ~(BONE_TIPSEL);
+	
+	/* make actbone the parent of selbone */
+	selbone->parent= actbone;
+	
+	/* in actbone tree we cannot have a loop */
+	for (ebone= actbone->parent; ebone; ebone= ebone->parent) {
+		if (ebone->parent==selbone) {
+			ebone->parent= NULL;
+			ebone->flag &= ~BONE_CONNECTED;
+		}
+	}
+	
+	if (mode == ARM_PAR_CONNECT) {	
+		/* Connected: Child bones will be moved to the parent tip */
+		selbone->flag |= BONE_CONNECTED;
+		VecSubf(offset, actbone->tail, selbone->head);
+		
+		VECCOPY(selbone->head, actbone->tail);
+		selbone->rad_head= actbone->rad_tail;
+		
+		VecAddf(selbone->tail, selbone->tail, offset);
+		
+		/* offset for all its children */
+		for (ebone = edbo->first; ebone; ebone=ebone->next) {
+			EditBone *par;
+			
+			for (par= ebone->parent; par; par= par->parent) {
+				if (par==selbone) {
+					VecAddf(ebone->head, ebone->head, offset);
+					VecAddf(ebone->tail, ebone->tail, offset);
+					break;
+				}
+			}
+		}
+	}
+	else {
+		/* Offset: Child bones will retain their distance from the parent tip */
+		selbone->flag &= ~BONE_CONNECTED;
+	}
+}
+
+static EnumPropertyItem prop_editarm_make_parent_types[] = {
+	{ARM_PAR_CONNECT, "CONNECTED", "Connected", ""},
+	{ARM_PAR_OFFSET, "OFFSET", "Keep Offset", ""},
+	{0, NULL, NULL, NULL}
+};
+
+static int armature_parent_set_exec(bContext *C, wmOperator *op) 
+{
+	Object *ob= CTX_data_edit_object(C);
+	bArmature *arm= (bArmature *)ob->data;
+	EditBone *actbone = CTX_data_active_bone(C);
+	EditBone *actmirb = NULL;
+	short val = RNA_enum_get(op->ptr, "type");
+	
+	/* there must be an active bone */
+	if (actbone == NULL) {
+		BKE_report(op->reports, RPT_ERROR, "Operation requires an Active Bone");
+		return OPERATOR_CANCELLED;
+	}
+	else if (arm->flag & ARM_MIRROR_EDIT) {
+		/* For X-Axis Mirror Editing option, we may need a mirror copy of actbone
+		 * - if there's a mirrored copy of selbone, try to find a mirrored copy of actbone 
+		 *	(i.e.  selbone="child.L" and actbone="parent.L", find "child.R" and "parent.R").
+		 *	This is useful for arm-chains, for example parenting lower arm to upper arm
+		 * - if there's no mirrored copy of actbone (i.e. actbone = "parent.C" or "parent")
+		 *	then just use actbone. Useful when doing upper arm to spine.
+		 */
+		actmirb= ED_armature_bone_get_mirrored(arm->edbo, actbone);
+		if (actmirb == NULL) 
+			actmirb= actbone;
+	}
+	
+	/* if there is only 1 selected bone, we assume that that is the active bone, 
+	 * since a user will need to have clicked on a bone (thus selecting it) to make it active
+	 */
+	if (CTX_DATA_COUNT(C, selected_editable_bones) <= 1) {
+		/* When only the active bone is selected, and it has a parent,
+		 * connect it to the parent, as that is the only possible outcome. 
+		 */
+		if (actbone->parent) {
+			bone_connect_to_existing_parent(actbone);
+			
+			if ((arm->flag & ARM_MIRROR_EDIT) && (actmirb->parent))
+				bone_connect_to_existing_parent(actmirb);
+		}
+	}
+	else {
+		/* Parent 'selected' bones to the active one
+		 * - the context iterator contains both selected bones and their mirrored copies,
+		 *   so we assume that unselected bones are mirrored copies of some selected bone
+		 */
+		
+		/* align selected bones to the active one */
+		CTX_DATA_BEGIN(C, EditBone *, ebone, selected_editable_bones) {
+			if (ebone->flag & BONE_SELECTED) 
+				bone_connect_to_new_parent(arm->edbo, ebone, actbone, val);
+			else
+				bone_connect_to_new_parent(arm->edbo, ebone, actmirb, val);
+		}
+		CTX_DATA_END;
+	}
+	
+
+	/* note, notifier might evolve */
+	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, ob);
+	
+	return OPERATOR_FINISHED;
+}
+
+static int armature_parent_set_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	EditBone *actbone = CTX_data_active_bone(C);
+	uiMenuItem *head= uiPupMenuBegin("Make Parent ", 0);
+	int allchildbones = 0;
+	
+	CTX_DATA_BEGIN(C, EditBone *, ebone, selected_editable_bones) {
+		if (ebone != actbone) {
+			if (ebone->parent != actbone) allchildbones= 1; 
+		}	
+	}
+	CTX_DATA_END;
+
+	uiMenuItemEnumO(head, "", 0, "ARMATURE_OT_set_parent", "type", ARM_PAR_CONNECT);
+	
+	/* ob becomes parent, make the associated menus */
+	if (allchildbones)
+		uiMenuItemEnumO(head, "", 0, "ARMATURE_OT_set_parent", "type", ARM_PAR_OFFSET);	
+		
+	uiPupMenuEnd(C, head);
+	
+	return OPERATOR_CANCELLED;
+}
+
+void ARMATURE_OT_parent_set(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Make Parent";
+	ot->idname= "ARMATURE_OT_set_parent";
+	
+	/* api callbacks */
+	ot->invoke = armature_parent_set_invoke;
+	ot->exec = armature_parent_set_exec;
+	ot->poll = ED_operator_editarmature;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	RNA_def_enum(ot->srna, "type", prop_editarm_make_parent_types, 0, "ParentType", "Type of parenting");
+}
+
+static EnumPropertyItem prop_editarm_clear_parent_types[] = {
+	{1, "CLEAR", "Clear Parent", ""},
+	{2, "DISCONNECT", "Disconnect Bone", ""},
+	{0, NULL, NULL, NULL}
+};
+
+static void editbone_clear_parent(EditBone *ebone, int mode)
+{
+	if (ebone->parent) {
+		/* for nice selection */
+		ebone->parent->flag &= ~(BONE_TIPSEL);
+	}
+	
+	if (mode==1) ebone->parent= NULL;
+	ebone->flag &= ~BONE_CONNECTED;
+}
+
+static int armature_parent_clear_exec(bContext *C, wmOperator *op) 
+{
+	Object *ob= CTX_data_edit_object(C);
+	bArmature *arm= (bArmature *)ob->data;
+	int val = RNA_enum_get(op->ptr, "type");
+		
+	CTX_DATA_BEGIN(C, EditBone *, ebone, selected_editable_bones) {
+		editbone_clear_parent(ebone, val);
+	}
+	CTX_DATA_END;
+	
+	armature_sync_selection(arm->edbo);
+
+	/* note, notifier might evolve */
+	WM_event_add_notifier(C, NC_OBJECT, ob);
+	
+	return OPERATOR_FINISHED;
+}
+
+void ARMATURE_OT_parent_clear(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Clear Parent";
+	ot->idname= "ARMATURE_OT_clear_parent";
+	
+	/* api callbacks */
+	ot->invoke = WM_menu_invoke;
+	ot->exec = armature_parent_clear_exec;
+	ot->poll = ED_operator_editarmature;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	RNA_def_enum(ot->srna, "type", prop_editarm_clear_parent_types, 0, "ClearType", "What way to clear parenting");
+}
+
+/* ****************  Selections  ******************/
+
+static int armature_selection_invert_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit = CTX_data_edit_object(C);
+	bArmature *arm= obedit->data;
+	EditBone *ebone;
+	
+	/*	Set the flags */
+	for (ebone=arm->edbo->first;ebone;ebone=ebone->next) {
+		/* select bone */
+		if(arm->layer & ebone->layer && (ebone->flag & BONE_HIDDEN_A)==0) {
+			ebone->flag ^= (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
+			ebone->flag &= ~BONE_ACTIVE;
+		}
+	}	
+	
+	/* undo? */
+	WM_event_add_notifier(C, NC_OBJECT|ND_BONE_SELECT, NULL);
+	
+	return OPERATOR_FINISHED;
+}
+
+void ARMATURE_OT_selection_invert(wmOperatorType *ot)
+{
+	
+	/* identifiers */
+	ot->name= "Invert Selection";
+	ot->idname= "ARMATURE_OT_selection_invert";
+	
+	/* api callbacks */
+	ot->exec= armature_selection_invert_exec;
+	ot->poll= ED_operator_editarmature;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+}
+static int armature_de_select_all_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit = CTX_data_edit_object(C);
+	bArmature *arm= obedit->data;
+	EditBone *ebone;
+	int	sel=1;
+
+	/*	Determine if there are any selected bones
+	And therefore whether we are selecting or deselecting */
+	if (CTX_DATA_COUNT(C, selected_bones) > 0)	sel=0;
+	
+	/*	Set the flags */
+	for (ebone=arm->edbo->first;ebone;ebone=ebone->next) {
+		if (sel==1) {
+			/* select bone */
+			if(arm->layer & ebone->layer && (ebone->flag & BONE_HIDDEN_A)==0) {
+				ebone->flag |= (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
+				if(ebone->parent)
+					ebone->parent->flag |= (BONE_TIPSEL);
+			}
+		}
+		else {
+			/* deselect bone */
+			ebone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL | BONE_ACTIVE);
+		}
+	}	
+	
+	/* undo? */
+	WM_event_add_notifier(C, NC_OBJECT|ND_BONE_SELECT, NULL);
+	
+	return OPERATOR_FINISHED;
+}
+
+void ARMATURE_OT_de_select_all(wmOperatorType *ot)
+{
+	
+	/* identifiers */
+	ot->name= "deselect all editbone";
+	ot->idname= "ARMATURE_OT_de_select_all";
+	
+	/* api callbacks */
+	ot->exec= armature_de_select_all_exec;
+	ot->poll= ED_operator_editarmature;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+}
 /* ***************** EditBone Alignment ********************* */
 
 /* helper to fix a ebone position if its parent has moved due to alignment*/
@@ -4187,7 +4415,125 @@ void POSE_OT_rot_clear(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
-} 
+}
+
+/* ***************** selections ********************** */
+
+static int pose_selection_invert_exec(bContext *C, wmOperator *op)
+{
+	Object *ob= CTX_data_active_object(C);
+	bArmature *arm= ob->data;
+	bPoseChannel *pchan;
+	
+	/*	Set the flags */
+	for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+		if ((pchan->bone->layer & arm->layer) && !(pchan->bone->flag & BONE_HIDDEN_P)) {
+				pchan->bone->flag ^= (BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL);
+				pchan->bone->flag &= ~BONE_ACTIVE;
+		}
+	}	
+
+	WM_event_add_notifier(C, NC_OBJECT|ND_BONE_SELECT, NULL);
+	
+	return OPERATOR_FINISHED;
+}
+
+void POSE_OT_selection_invert(wmOperatorType *ot)
+{
+	
+	/* identifiers */
+	ot->name= "Invert Selection";
+	ot->idname= "POSE_OT_selection_invert";
+	
+	/* api callbacks */
+	ot->exec= pose_selection_invert_exec;
+	ot->poll= ED_operator_posemode;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+}
+static int pose_de_select_all_exec(bContext *C, wmOperator *op)
+{
+	Object *ob= CTX_data_active_object(C);
+	bArmature *arm= ob->data;
+	bPoseChannel *pchan;
+	int	sel=1;
+
+	/*	Determine if there are any selected bones
+	And therefore whether we are selecting or deselecting */
+	if (CTX_DATA_COUNT(C, selected_pchans) > 0)	sel=0;
+	
+	/*	Set the flags */
+	for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+		if ((pchan->bone->layer & arm->layer) && !(pchan->bone->flag & BONE_HIDDEN_P)) {
+				if (sel==0) pchan->bone->flag &= ~(BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL|BONE_ACTIVE);
+				else pchan->bone->flag |= BONE_SELECTED;
+		}
+	}	
+
+	WM_event_add_notifier(C, NC_OBJECT|ND_BONE_SELECT, NULL);
+	
+	return OPERATOR_FINISHED;
+}
+
+void POSE_OT_de_select_all(wmOperatorType *ot)
+{
+	
+	/* identifiers */
+	ot->name= "deselect all bones";
+	ot->idname= "POSE_OT_de_select_all";
+	
+	/* api callbacks */
+	ot->exec= pose_de_select_all_exec;
+	ot->poll= ED_operator_posemode;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+}
+
+static int pose_select_parent_exec(bContext *C, wmOperator *op)
+{
+	Object *ob= CTX_data_active_object(C);
+	bPoseChannel *pchan,*parent;
+
+	/*	Determine if there is an active bone */
+	pchan=CTX_data_active_pchan(C);
+	if (pchan) {
+		parent=pchan->parent;
+		if ((parent) && !(parent->bone->flag & BONE_HIDDEN_P)) {
+			parent->bone->flag |= BONE_SELECTED;
+			parent->bone->flag |= BONE_ACTIVE;
+			pchan->bone->flag &= ~BONE_ACTIVE;
+		}
+		else {
+			return OPERATOR_CANCELLED;
+		}
+	}
+	else {
+		return OPERATOR_CANCELLED;
+	}
+
+	WM_event_add_notifier(C, NC_OBJECT|ND_BONE_SELECT, ob);
+	
+	return OPERATOR_FINISHED;
+}
+
+void POSE_OT_select_parent(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "select parent bone";
+	ot->idname= "POSE_OT_select_parent";
+
+	/* api callbacks */
+	ot->exec= pose_select_parent_exec;
+	ot->poll= ED_operator_posemode;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+}
 /* ************* hide/unhide pose bones ******************* */
 
 static int hide_selected_pose_bone(Object *ob, Bone *bone, void *ptr) 
@@ -4268,7 +4614,7 @@ static int show_pose_bone(Object *ob, Bone *bone, void *ptr)
 }
 
 /* active object is armature in posemode, poll checked */
-static int pose_reveil_exec(bContext *C, wmOperator *op) 
+static int pose_reveal_exec(bContext *C, wmOperator *op) 
 {
 	Object *ob= CTX_data_active_object(C);
 	bArmature *arm= ob->data;
@@ -4281,14 +4627,14 @@ static int pose_reveil_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void POSE_OT_reveil(wmOperatorType *ot)
+void POSE_OT_reveal(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Reveil Selection";
-	ot->idname= "POSE_OT_reveil";
+	ot->idname= "POSE_OT_reveal";
 	
 	/* api callbacks */
-	ot->exec= pose_reveil_exec;
+	ot->exec= pose_reveal_exec;
 	ot->poll= ED_operator_posemode;
 	
 	/* flags */

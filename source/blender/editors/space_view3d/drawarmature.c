@@ -283,7 +283,7 @@ static short set_pchan_glColor (short colCode, int armflag, int boneflag, int co
 		else {
 			if (bcolor) {
 				char *cp= bcolor->solid;
-				glColor4ub(cp[0], cp[1], cp[2], 0.8);	
+				glColor4ub(cp[0], cp[1], cp[2], 204);	
 			}
 			else
 				UI_ThemeColorShade(TH_BACK, -30);
@@ -430,7 +430,7 @@ static void draw_bonevert_solid(void)
 		qobj	= gluNewQuadric();
 		gluQuadricDrawStyle(qobj, GLU_FILL); 
 		glShadeModel(GL_SMOOTH);
-		gluSphere( qobj, 0.05, 8, 5);
+		gluSphere(qobj, 0.05, 8, 5);
 		glShadeModel(GL_FLAT);
 		gluDeleteQuadric(qobj);  
 		
@@ -450,13 +450,13 @@ static void draw_bone_octahedral()
 		displist= glGenLists(1);
 		glNewList(displist, GL_COMPILE_AND_EXECUTE);
 		
-		vec[0][0]= vec[0][1]= vec[0][2]= 0.0;
-		vec[5][0]= vec[5][2]= 0.0; vec[5][1]= 1.0;
+		vec[0][0]= vec[0][1]= vec[0][2]= 0.0f;
+		vec[5][0]= vec[5][2]= 0.0f; vec[5][1]= 1.0f;
 		
-		vec[1][0]= 0.1; vec[1][2]= 0.1; vec[1][1]= 0.1;
-		vec[2][0]= 0.1; vec[2][2]= -0.1; vec[2][1]= 0.1;
-		vec[3][0]= -0.1; vec[3][2]= -0.1; vec[3][1]= 0.1;
-		vec[4][0]= -0.1; vec[4][2]= 0.1; vec[4][1]= 0.1;
+		vec[1][0]= 0.1f; vec[1][2]= 0.1f; vec[1][1]= 0.1f;
+		vec[2][0]= 0.1f; vec[2][2]= -0.1f; vec[2][1]= 0.1f;
+		vec[3][0]= -0.1f; vec[3][2]= -0.1f; vec[3][1]= 0.1f;
+		vec[4][0]= -0.1f; vec[4][2]= 0.1f; vec[4][1]= 0.1f;
 		
 		/*	Section 1, sides */
 		glBegin(GL_LINE_LOOP);
@@ -494,49 +494,49 @@ static void draw_bone_solid_octahedral(void)
 		displist= glGenLists(1);
 		glNewList(displist, GL_COMPILE_AND_EXECUTE);
 		
-		vec[0][0]= vec[0][1]= vec[0][2]= 0.0;
-		vec[5][0]= vec[5][2]= 0.0; vec[5][1]= 1.0;
+		vec[0][0]= vec[0][1]= vec[0][2]= 0.0f;
+		vec[5][0]= vec[5][2]= 0.0f; vec[5][1]= 1.0f;
 		
-		vec[1][0]= 0.1; vec[1][2]= 0.1; vec[1][1]= 0.1;
-		vec[2][0]= 0.1; vec[2][2]= -0.1; vec[2][1]= 0.1;
-		vec[3][0]= -0.1; vec[3][2]= -0.1; vec[3][1]= 0.1;
-		vec[4][0]= -0.1; vec[4][2]= 0.1; vec[4][1]= 0.1;
+		vec[1][0]= 0.1f; vec[1][2]= 0.1f; vec[1][1]= 0.1f;
+		vec[2][0]= 0.1f; vec[2][2]= -0.1f; vec[2][1]= 0.1f;
+		vec[3][0]= -0.1f; vec[3][2]= -0.1f; vec[3][1]= 0.1f;
+		vec[4][0]= -0.1f; vec[4][2]= 0.1f; vec[4][1]= 0.1f;
 		
 		
 		glBegin(GL_TRIANGLES);
 		/* bottom */
 		CalcNormFloat(vec[2], vec[1], vec[0], nor);
 		glNormal3fv(nor);
-		glVertex3fv(vec[2]);glVertex3fv(vec[1]);glVertex3fv(vec[0]);
+		glVertex3fv(vec[2]); glVertex3fv(vec[1]); glVertex3fv(vec[0]);
 		
 		CalcNormFloat(vec[3], vec[2], vec[0], nor);
 		glNormal3fv(nor);
-		glVertex3fv(vec[3]);glVertex3fv(vec[2]);glVertex3fv(vec[0]);
+		glVertex3fv(vec[3]); glVertex3fv(vec[2]); glVertex3fv(vec[0]);
 		
 		CalcNormFloat(vec[4], vec[3], vec[0], nor);
 		glNormal3fv(nor);
-		glVertex3fv(vec[4]);glVertex3fv(vec[3]);glVertex3fv(vec[0]);
+		glVertex3fv(vec[4]); glVertex3fv(vec[3]); glVertex3fv(vec[0]);
 
 		CalcNormFloat(vec[1], vec[4], vec[0], nor);
 		glNormal3fv(nor);
-		glVertex3fv(vec[1]);glVertex3fv(vec[4]);glVertex3fv(vec[0]);
+		glVertex3fv(vec[1]); glVertex3fv(vec[4]); glVertex3fv(vec[0]);
 
 		/* top */
 		CalcNormFloat(vec[5], vec[1], vec[2], nor);
 		glNormal3fv(nor);
-		glVertex3fv(vec[5]);glVertex3fv(vec[1]);glVertex3fv(vec[2]);
+		glVertex3fv(vec[5]); glVertex3fv(vec[1]); glVertex3fv(vec[2]);
 		
 		CalcNormFloat(vec[5], vec[2], vec[3], nor);
 		glNormal3fv(nor);
-		glVertex3fv(vec[5]);glVertex3fv(vec[2]);glVertex3fv(vec[3]);
+		glVertex3fv(vec[5]); glVertex3fv(vec[2]); glVertex3fv(vec[3]);
 		
 		CalcNormFloat(vec[5], vec[3], vec[4], nor);
 		glNormal3fv(nor);
-		glVertex3fv(vec[5]);glVertex3fv(vec[3]);glVertex3fv(vec[4]);
+		glVertex3fv(vec[5]); glVertex3fv(vec[3]); glVertex3fv(vec[4]);
 		
 		CalcNormFloat(vec[5], vec[4], vec[1], nor);
 		glNormal3fv(nor);
-		glVertex3fv(vec[5]);glVertex3fv(vec[4]);glVertex3fv(vec[1]);
+		glVertex3fv(vec[5]); glVertex3fv(vec[4]); glVertex3fv(vec[1]);
 		
 		glEnd();
 		
@@ -592,38 +592,38 @@ static void draw_bone_points(int dt, int armflag, unsigned int boneflag, int id)
 			UI_ThemeColor(TH_BONE_SOLID);
 	}
 	
-	glTranslatef(0.0, 1.0, 0.0);
+	glTranslatef(0.0f, 1.0f, 0.0f);
 	if (dt > OB_WIRE) 
 		draw_bonevert_solid();
 	else 
 		draw_bonevert();
-	glTranslatef(0.0, -1.0, 0.0);
+	glTranslatef(0.0f, -1.0f, 0.0f);
 	
 }
 
 /* 16 values of sin function (still same result!) */
 static float si[16] = {
-	0.00000000,
-	0.20129852, 0.39435585,
-	0.57126821, 0.72479278,
-	0.84864425, 0.93775213,
-	0.98846832, 0.99871650,
-	0.96807711, 0.89780453,
-	0.79077573, 0.65137248,
-	0.48530196, 0.29936312,
-	0.10116832
+	0.00000000f,
+	0.20129852f, 0.39435585f,
+	0.57126821f, 0.72479278f,
+	0.84864425f, 0.93775213f,
+	0.98846832f, 0.99871650f,
+	0.96807711f, 0.89780453f,
+	0.79077573f, 0.65137248f,
+	0.48530196f, 0.29936312f,
+	0.10116832f
 };
 /* 16 values of cos function (still same result!) */
 static float co[16] ={
-	1.00000000,
-	0.97952994, 0.91895781,
-	0.82076344, 0.68896691,
-	0.52896401, 0.34730525,
-	0.15142777, -0.05064916,
-	-0.25065253, -0.44039415,
-	-0.61210598, -0.75875812,
-	-0.87434661, -0.95413925,
-	-0.99486932
+	1.00000000f,
+	0.97952994f, 0.91895781f,
+	0.82076344f, 0.68896691f,
+	0.52896401f, 0.34730525f,
+	0.15142777f, -0.05064916f,
+	-0.25065253f, -0.44039415f,
+	-0.61210598f, -0.75875812f,
+	-0.87434661f, -0.95413925f,
+	-0.99486932f
 };
 
 
@@ -667,7 +667,7 @@ static void draw_sphere_bone_dist(float smat[][4], float imat[][4], int boneflag
 	VecSubf(dirvec, tailvec, headvec);
 	Mat4Mul3Vecfl(smat, dirvec);
 	/* clear zcomp */
-	dirvec[2]= 0.0;
+	dirvec[2]= 0.0f;
 	/* move vector back */
 	Mat4Mul3Vecfl(imat, dirvec);
 	
@@ -807,7 +807,7 @@ static void draw_sphere_bone_wire(float smat[][4], float imat[][4], int armflag,
 	/* move vector to viewspace */
 	Mat4Mul3Vecfl(smat, dirvec);
 	/* clear zcomp */
-	dirvec[2]= 0.0;
+	dirvec[2]= 0.0f;
 	/* move vector back */
 	Mat4Mul3Vecfl(imat, dirvec);
 	
@@ -916,9 +916,9 @@ static void draw_sphere_bone(int dt, int armflag, int boneflag, int constflag, u
 	if (id != -1)
 		glLoadName(id | BONESEL_TIP);
 	
-	glTranslatef(0.0, 0.0, length);
+	glTranslatef(0.0f, 0.0f, length);
 	gluSphere(qobj, tail, 16, 10);
-	glTranslatef(0.0, 0.0, -length);
+	glTranslatef(0.0f, 0.0f, -length);
 	
 	/* base */
 	if (armflag & ARM_EDITMODE) {
@@ -938,7 +938,7 @@ static void draw_sphere_bone(int dt, int armflag, int boneflag, int constflag, u
 			glLoadName (id | BONESEL_BONE);
 		
 		glEnable(GL_POLYGON_OFFSET_FILL);
-		glPolygonOffset(-1.0, -1.0);
+		glPolygonOffset(-1.0f, -1.0f);
 		
 		glTranslatef(0.0f, 0.0f, head);
 		gluCylinder(qobj, fac1*head + (1.0f-fac1)*tail, fac2*tail + (1.0f-fac2)*head, length-head-tail, 16, 1);
@@ -956,7 +956,7 @@ static void draw_sphere_bone(int dt, int armflag, int boneflag, int constflag, u
 	}
 	else {		
 		/* 1 sphere in center */
-		glTranslatef(0.0f, 0.0f, (head + length-tail)/2.0);
+		glTranslatef(0.0f, 0.0f, (head + length-tail)/2.0f);
 		gluSphere(qobj, fac1*head + (1.0f-fac1)*tail, 16, 10);
 	}
 	
@@ -994,7 +994,7 @@ static void draw_line_bone(int armflag, int boneflag, int constflag, unsigned in
 	
 	/* this chunk not in object mode */
 	if (armflag & (ARM_EDITMODE|ARM_POSEMODE)) {
-		glLineWidth(4.0);
+		glLineWidth(4.0f);
 		if (armflag & ARM_POSEMODE)
 			set_pchan_glColor(PCHAN_COLOR_NORMAL, armflag, boneflag, constflag);
 		else if (armflag & ARM_EDITMODE) {
@@ -1331,11 +1331,11 @@ static void bgl_sphere_project(float ax, float az)
 {
 	float dir[3], sine, q3;
 
-	sine= 1.0f-ax*ax-az*az;
-	q3= (sine < 0.0f)? 0.0f: 2.0f*sqrt(sine);
+	sine= 1.0f - ax*ax - az*az;
+	q3= (sine < 0.0f)? 0.0f: (float)(2.0*sqrt(sine));
 
 	dir[0]= -az*q3;
-	dir[1]= 1.0f-2.0f*sine;
+	dir[1]= 1.0f - 2.0f*sine;
 	dir[2]= ax*q3;
 
 	glVertex3fv(dir);
@@ -1344,11 +1344,11 @@ static void bgl_sphere_project(float ax, float az)
 static void draw_dof_ellipse(float ax, float az)
 {
 	static float staticSine[16] = {
-		0.0, 0.104528463268, 0.207911690818, 0.309016994375,
-		0.406736643076, 0.5, 0.587785252292, 0.669130606359,
-		0.743144825477, 0.809016994375, 0.866025403784,
-		0.913545457643, 0.951056516295, 0.978147600734,
-		0.994521895368, 1.0
+		0.0f, 0.104528463268f, 0.207911690818f, 0.309016994375f,
+		0.406736643076f, 0.5f, 0.587785252292f, 0.669130606359f,
+		0.743144825477f, 0.809016994375f, 0.866025403784f,
+		0.913545457643f, 0.951056516295f, 0.978147600734f,
+		0.994521895368f, 1.0f
 	};
 
 	int i, j, n=16;
@@ -1363,11 +1363,11 @@ static void draw_dof_ellipse(float ax, float az)
 	pz= 0.0f;
 	for(i=1; i<n; i++) {
 		z= staticSine[i];
-
+		
 		px= 0.0f;
 		for(j=1; j<n-i+1; j++) {
 			x = staticSine[j];
-
+			
 			if(j == n-i) {
 				glEnd();
 				glBegin(GL_TRIANGLES);
@@ -1383,7 +1383,7 @@ static void draw_dof_ellipse(float ax, float az)
 				bgl_sphere_project(ax*px, az*pz);
 				bgl_sphere_project(ax*px, az*z);
 			}
-
+			
 			px= x;
 		}
 		pz= z;
@@ -1442,37 +1442,38 @@ static void draw_pose_dofs(Object *ob)
 									float amin[3], amax[3];
 									
 									for (i=0; i<3; i++) {
-										amin[i]= sin(pchan->limitmin[i]*M_PI/360.0);
-										amax[i]= sin(pchan->limitmax[i]*M_PI/360.0);
+										amin[i]= (float)sin(pchan->limitmin[i]*M_PI/360.0);
+										amax[i]= (float)sin(pchan->limitmax[i]*M_PI/360.0);
 									}
 									
-									glScalef(1.0, -1.0, 1.0);
-									if (amin[0] != 0.0 && amin[2] != 0.0)
+									glScalef(1.0f, -1.0f, 1.0f);
+									if ((amin[0] != 0.0f) && (amin[2] != 0.0f))
 										draw_dof_ellipse(amin[0], amin[2]);
-									if (amin[0] != 0.0 && amax[2] != 0.0)
+									if ((amin[0] != 0.0f) && (amax[2] != 0.0f))
 										draw_dof_ellipse(amin[0], amax[2]);
-									if (amax[0] != 0.0 && amin[2] != 0.0)
+									if ((amax[0] != 0.0f) && (amin[2] != 0.0f))
 										draw_dof_ellipse(amax[0], amin[2]);
-									if (amax[0] != 0.0 && amax[2] != 0.0)
+									if ((amax[0] != 0.0f) && (amax[2] != 0.0f))
 										draw_dof_ellipse(amax[0], amax[2]);
-									glScalef(1.0, -1.0, 1.0);
+									glScalef(1.0f, -1.0f, 1.0f);
 								}
 							}
 							
 							/* arcs */
 							if (pchan->ikflag & BONE_IK_ZLIMIT) {
-								theta= 0.5*(pchan->limitmin[2]+pchan->limitmax[2]);
+								theta= 0.5f*(pchan->limitmin[2]+pchan->limitmax[2]);
 								glRotatef(theta, 0.0f, 0.0f, 1.0f);
 								
 								glColor3ub(50, 50, 255);	// blue, Z axis limit
 								glBegin(GL_LINE_STRIP);
 								for (a=-16; a<=16; a++) {
 									float fac= ((float)a)/16.0f;
-									phi= fac*(M_PI/360.0f)*(pchan->limitmax[2]-pchan->limitmin[2]);
+									
+									phi= fac * (float)(M_PI/360.0f) * (pchan->limitmax[2] - pchan->limitmin[2]);
 									
 									i= (a == -16) ? 0 : 1;
-									corner[i][0]= sin(phi);
-									corner[i][1]= cos(phi);
+									corner[i][0]= (float)sin(phi);
+									corner[i][1]= (float)cos(phi);
 									corner[i][2]= 0.0f;
 									glVertex3fv(corner[i]);
 								}
@@ -1482,19 +1483,19 @@ static void draw_pose_dofs(Object *ob)
 							}					
 							
 							if (pchan->ikflag & BONE_IK_XLIMIT) {
-								theta=  0.5*(pchan->limitmin[0]+pchan->limitmax[0]);
+								theta= 0.5f * (pchan->limitmin[0] + pchan->limitmax[0]);
 								glRotatef(theta, 1.0f, 0.0f, 0.0f);
 								
 								glColor3ub(255, 50, 50);	// Red, X axis limit
 								glBegin(GL_LINE_STRIP);
 								for (a=-16; a<=16; a++) {
 									float fac= ((float)a)/16.0f;
-									phi= 0.5f*M_PI + fac*(M_PI/360.0f)*(pchan->limitmax[0]-pchan->limitmin[0]);
+									phi= (float)(0.5*M_PI) + fac * (float)(M_PI/360.0f) * (pchan->limitmax[0] - pchan->limitmin[0]);
 									
 									i= (a == -16) ? 2 : 3;
 									corner[i][0]= 0.0f;
-									corner[i][1]= sin(phi);
-									corner[i][2]= cos(phi);
+									corner[i][1]= (float)sin(phi);
+									corner[i][2]= (float)cos(phi);
 									glVertex3fv(corner[i]);
 								}
 								glEnd();
@@ -1840,7 +1841,7 @@ static void set_matrix_editbone(EditBone *eBone)
 	
 	VecSubf(delta, eBone->tail, eBone->head);	
 	
-	eBone->length = sqrt (delta[0]*delta[0] + delta[1]*delta[1] +delta[2]*delta[2]);
+	eBone->length = (float)sqrt(delta[0]*delta[0] + delta[1]*delta[1] +delta[2]*delta[2]);
 	
 	vec_roll_to_mat3(delta, eBone->roll, mat);
 	Mat4CpyMat3(bmat, mat);
@@ -1920,7 +1921,7 @@ static void draw_ebones(View3D *v3d, RegionView3D *rv3d, Object *ob, int dt)
 			index= 0;
 	}
 	else if (dt > OB_WIRE) 
-		bglPolygonOffset(rv3d->dist, 1.0);
+		bglPolygonOffset(rv3d->dist, 1.0f);
 	else if (arm->flag & ARM_EDITMODE) 
 		index= 0;	/* do selection codes */
 	
@@ -1971,7 +1972,7 @@ static void draw_ebones(View3D *v3d, RegionView3D *rv3d, Object *ob, int dt)
 	
 	/* restore */
 	if (arm->drawtype==ARM_LINE);
-	else if (dt>OB_WIRE) bglPolygonOffset(rv3d->dist, 0.0);
+	else if (dt>OB_WIRE) bglPolygonOffset(rv3d->dist, 0.0f);
 	
 	/* finally names and axes */
 	if (arm->flag & (ARM_DRAWNAMES|ARM_DRAWAXES)) {
@@ -2091,11 +2092,11 @@ static void draw_pose_paths(Scene *scene, View3D *v3d, RegionView3D *rv3d, Objec
 					if ((a+sfra) < CFRA) {
 						/* black - before cfra */
 						if (pchan->bone->flag & BONE_SELECTED) {
-							// intensity= 0.5;
+							// intensity= 0.5f;
 							intensity = SET_INTENSITY(sfra, a, CFRA, 0.25f, 0.75f);
 						}
 						else {
-							//intensity= 0.8;
+							//intensity= 0.8f;
 							intensity = SET_INTENSITY(sfra, a, CFRA, 0.68f, 0.92f);
 						}
 						UI_ThemeColorBlend(TH_WIRE, TH_BACK, intensity);
@@ -2103,11 +2104,11 @@ static void draw_pose_paths(Scene *scene, View3D *v3d, RegionView3D *rv3d, Objec
 					else if ((a+sfra) > CFRA) {
 						/* blue - after cfra */
 						if (pchan->bone->flag & BONE_SELECTED) {
-							//intensity = 0.5;
+							//intensity = 0.5f;
 							intensity = SET_INTENSITY(CFRA, a, efra, 0.25f, 0.75f);
 						}
 						else {
-							//intensity = 0.8;
+							//intensity = 0.8f;
 							intensity = SET_INTENSITY(CFRA, a, efra, 0.68f, 0.92f);
 						}
 						UI_ThemeColorBlend(TH_BONE_POSE, TH_BACK, intensity);
@@ -2115,10 +2116,10 @@ static void draw_pose_paths(Scene *scene, View3D *v3d, RegionView3D *rv3d, Objec
 					else {
 						/* green - on cfra */
 						if (pchan->bone->flag & BONE_SELECTED) {
-							intensity= 0.5;
+							intensity= 0.5f;
 						}
 						else {
-							intensity= 0.99;
+							intensity= 0.99f;
 						}
 						UI_ThemeColorBlendShade(TH_CFRAME, TH_BACK, intensity, 10);
 					}	
@@ -2184,7 +2185,7 @@ static void draw_pose_paths(Scene *scene, View3D *v3d, RegionView3D *rv3d, Objec
 					
 					/* Draw slightly-larger yellow dots at each keyframe */
 					UI_ThemeColor(TH_VERTEX_SELECT);
-					glPointSize(5.0);
+					glPointSize(5.0f);
 					
 					glBegin(GL_POINTS);
 					for (a=0, fp=fp_start; a<len; a++, fp+=3) {
@@ -2195,7 +2196,7 @@ static void draw_pose_paths(Scene *scene, View3D *v3d, RegionView3D *rv3d, Objec
 					}
 					glEnd();
 					
-					glPointSize(1.0);
+					glPointSize(1.0f);
 					
 					/* Draw frame numbers of keyframes  */
 					if ((arm->pathflag & ARM_PATH_FNUMS) || (arm->pathflag & ARM_PATH_KFNOS)) {
@@ -2265,8 +2266,8 @@ static void draw_ghost_poses_range(Scene *scene, View3D *v3d, RegionView3D *rv3d
 	float start, end, stepsize, range, colfac;
 	int cfrao, flago, ipoflago;
 	
-	start = arm->ghostsf;
-	end = arm->ghostef;
+	start = (float)arm->ghostsf;
+	end = (float)arm->ghostef;
 	if (end <= start)
 		return;
 	
@@ -2292,9 +2293,9 @@ static void draw_ghost_poses_range(Scene *scene, View3D *v3d, RegionView3D *rv3d
 	if (v3d->zbuf) glDisable(GL_DEPTH_TEST);
 	
 	/* draw from first frame of range to last */
-	for (CFRA= start; CFRA<end; CFRA+=stepsize) {
-		colfac = (end-CFRA)/range;
-		UI_ThemeColorShadeAlpha(TH_WIRE, 0, -128-(int)(120.0f*sqrt(colfac)));
+	for (CFRA= (int)start; CFRA < end; CFRA += (int)stepsize) {
+		colfac = (end - (float)CFRA) / range;
+		UI_ThemeColorShadeAlpha(TH_WIRE, 0, -128-(int)(120.0*sqrt(colfac)));
 		
 		//do_all_pose_actions(scene, ob);  // XXX old animation system
 		where_is_pose(scene, ob);
@@ -2330,8 +2331,8 @@ static void draw_ghost_poses_keys(Scene *scene, View3D *v3d, RegionView3D *rv3d,
 	float start, end, range, colfac, i;
 	int cfrao, flago;
 	
-	aki.start= start = arm->ghostsf;
-	aki.end= end = arm->ghostef;
+	aki.start= start = (float)arm->ghostsf;
+	aki.end= end = (float)arm->ghostef;
 	if (end <= start)
 		return;
 	
@@ -2368,7 +2369,7 @@ static void draw_ghost_poses_keys(Scene *scene, View3D *v3d, RegionView3D *rv3d,
 	/* draw from first frame of range to last */
 	for (ak=keys.first, i=0; ak; ak=ak->next, i++) {
 		colfac = i/range;
-		UI_ThemeColorShadeAlpha(TH_WIRE, 0, -128-(int)(120.0f*sqrt(colfac)));
+		UI_ThemeColorShadeAlpha(TH_WIRE, 0, -128-(int)(120.0*sqrt(colfac)));
 		
 		CFRA= (int)ak->cfra;
 		
@@ -2428,7 +2429,7 @@ static void draw_ghost_poses(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base
 	ob->flag &= ~OB_POSEMODE;
 	cfrao= CFRA;
 	if (maptime) actframe= get_action_frame(ob, (float)CFRA);
-	else actframe= CFRA;
+	else actframe= (float)CFRA;
 	flago= arm->flag;
 	arm->flag &= ~(ARM_DRAWNAMES|ARM_DRAWAXES);
 	
@@ -2444,25 +2445,25 @@ static void draw_ghost_poses(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base
 	
 	/* draw from darkest blend to lowest */
 	for(cur= stepsize; cur<range; cur+=stepsize) {
-		ctime= cur - fmod((float)cfrao, stepsize);	/* ensures consistant stepping */
+		ctime= cur - (float)fmod(cfrao, stepsize);	/* ensures consistant stepping */
 		colfac= ctime/range;
-		UI_ThemeColorShadeAlpha(TH_WIRE, 0, -128-(int)(120.0f*sqrt(colfac)));
+		UI_ThemeColorShadeAlpha(TH_WIRE, 0, -128-(int)(120.0*sqrt(colfac)));
 		
 		/* only within action range */
 		if (actframe+ctime >= start && actframe+ctime <= end) {
 			if (maptime) CFRA= (int)get_action_frame_inv(ob, actframe+ctime);
 			else CFRA= (int)floor(actframe+ctime);
 			
-			if (CFRA!=cfrao) {
+			if (CFRA != cfrao) {
 				//do_all_pose_actions(scene, ob); // xxx old animation system crap
 				where_is_pose(scene, ob);
 				draw_pose_channels(scene, v3d, rv3d, base, OB_WIRE);
 			}
 		}
 		
-		ctime= cur + fmod((float)cfrao, stepsize) - stepsize+1.0f;	/* ensures consistant stepping */
+		ctime= cur + (float)fmod((float)cfrao, stepsize) - stepsize+1.0f;	/* ensures consistant stepping */
 		colfac= ctime/range;
-		UI_ThemeColorShadeAlpha(TH_WIRE, 0, -128-(int)(120.0f*sqrt(colfac)));
+		UI_ThemeColorShadeAlpha(TH_WIRE, 0, -128-(int)(120.0*sqrt(colfac)));
 		
 		/* only within action range */
 		if ((actframe-ctime >= start) && (actframe-ctime <= end)) {

@@ -220,6 +220,7 @@ void EM_validate_selections(EditMesh *em)
 	EditSelection *ese, *nextese;
 
 	ese = em->selected.first;
+
 	while(ese){
 		nextese = ese->next;
 		if(ese->type == EDITVERT && !(((EditVert*)ese->data)->f & SELECT)) BLI_freelinkN(&(em->selected), ese);

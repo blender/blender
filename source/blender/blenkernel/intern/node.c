@@ -1012,8 +1012,7 @@ bNode *nodeCopyNode(struct bNodeTree *ntree, struct bNode *node, int internal)
 		oldsock->new_sock= sock;
 	}
 	
-	if(nnode->id)
-		nnode->id->us++;
+	/* don't increase node->id users, freenode doesn't decrement either */
 	
 	if(node->typeinfo->copystoragefunc)
 		node->typeinfo->copystoragefunc(node, nnode);

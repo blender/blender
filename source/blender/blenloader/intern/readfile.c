@@ -1929,6 +1929,39 @@ static void direct_link_action(FileData *fd, bAction *act)
 
 /* ------- */
 
+static void lib_link_keyingsets(FileData *fd, ID *id, ListBase *list)
+{
+	KeyingSet *ks;
+	KS_Path *ksp;
+	
+	/* here, we're only interested in the ID pointer stored in some of the paths */
+	for (ks= list->first; ks; ks= ks->next) {
+		for (ksp= ks->paths.first; ksp; ksp= ksp->next) {
+			ksp->id= newlibadr(fd, id->lib, ksp->id); 
+		}
+	}
+}
+
+/* NOTE: this assumes that link_list has already been called on the list */
+static void direct_link_keyingsets(FileData *fd, ListBase *list)
+{
+	KeyingSet *ks;
+	KS_Path *ksp;
+	
+	/* link KeyingSet data to KeyingSet again (non ID-libs) */
+	for (ks= list->first; ks; ks= ks->next) {
+		/* paths */
+		link_list(fd, &ks->paths);
+		
+		for (ksp= ks->paths.first; ksp; ksp= ksp->next) {
+			/* rna path */
+			ksp->rna_path= newdataadr(fd, ksp->rna_path);
+		}
+	}
+}
+
+/* ------- */
+
 static void lib_link_animdata(FileData *fd, ID *id, AnimData *adt)
 {
 	if (adt == NULL)
@@ -3698,6 +3731,8 @@ static void lib_link_scene(FileData *fd, Main *main)
 			if (sce->id.properties) IDP_LibLinkProperty(sce->id.properties, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
 			if (sce->adt) lib_link_animdata(fd, &sce->id, sce->adt);
 			
+			lib_link_keyingsets(fd, &sce->id, &sce->keyingsets);
+			
 			sce->camera= newlibadr(fd, sce->id.lib, sce->camera);
 			sce->world= newlibadr_us(fd, sce->id.lib, sce->world);
 			sce->set= newlibadr(fd, sce->id.lib, sce->set);
@@ -3790,6 +3825,9 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 	
 	sce->adt= newdataadr(fd, sce->adt);
 	direct_link_animdata(fd, sce->adt);
+	
+	link_list(fd, &sce->keyingsets);
+	direct_link_keyingsets(fd, &sce->keyingsets);
 	
 	sce->basact= newdataadr(fd, sce->basact);
 
@@ -5525,7 +5563,7 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				/* we totally reinit the view for the Action Editor, as some old instances had some weird cruft set */
 				ar->v2d.tot.xmin= -20.0f;
 				ar->v2d.tot.ymin= (float)(-sa->winy);
-				ar->v2d.tot.xmax= (float)(sa->winx);
+				ar->v2d.tot.xmax= (float)((sa->winx > 120)? (sa->winx) : 120);
 				ar->v2d.tot.ymax= 0.0f;
 				
 				ar->v2d.cur= ar->v2d.tot;
@@ -9124,6 +9162,19 @@ static void expand_action(FileData *fd, Main *mainvar, bAction *act)
 	}
 }
 
+static void expand_keyingsets(FileData *fd, Main *mainvar, ListBase *list)
+{
+	KeyingSet *ks;
+	KS_Path *ksp;
+	
+	/* expand the ID-pointers in KeyingSets's paths */
+	for (ks= list->first; ks; ks= ks->next) {
+		for (ksp= ks->paths.first; ksp; ksp= ksp->next) {
+			expand_doit(fd, mainvar, ksp->id);
+		}
+	}
+}
+
 static void expand_animdata(FileData *fd, Main *mainvar, AnimData *adt)
 {
 	FCurve *fcd;
@@ -9655,6 +9706,7 @@ static void expand_scene(FileData *fd, Main *mainvar, Scene *sce)
 	
 	if(sce->adt)
 		expand_animdata(fd, mainvar, sce->adt);
+	expand_keyingsets(fd, mainvar, &sce->keyingsets);
 	
 	if(sce->nodetree)
 		expand_nodetree(fd, mainvar, sce->nodetree);

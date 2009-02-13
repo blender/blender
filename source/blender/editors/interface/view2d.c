@@ -69,7 +69,7 @@ static int view2d_scroll_mapped(int scroll)
 }
 
 /* called each time cur changes, to dynamically update masks */
-static void view2_masks(View2D *v2d)
+static void view2d_masks(View2D *v2d)
 {
 	int scroll;
 	
@@ -93,9 +93,9 @@ static void view2_masks(View2D *v2d)
 	scroll= view2d_scroll_mapped(v2d->scroll);
 	
 	/* scrollers shrink mask area, but should be based off regionsize 
-		*	- they can only be on one to two edges of the region they define
-		*	- if they overlap, they must not occupy the corners (which are reserved for other widgets)
-		*/
+	 *	- they can only be on one to two edges of the region they define
+	 *	- if they overlap, they must not occupy the corners (which are reserved for other widgets)
+	 */
 	if (scroll) {
 		/* vertical scroller */
 		if (scroll & V2D_SCROLL_LEFT) {
@@ -107,7 +107,7 @@ static void view2_masks(View2D *v2d)
 		else if (scroll & V2D_SCROLL_RIGHT) {
 			/* on right-hand edge of region */
 			v2d->vert= v2d->mask;
-			v2d->vert.xmax++; /* one pixel extra... was having leaving a minor gap... */
+			v2d->vert.xmax++; /* one pixel extra... was leaving a minor gap... */
 			v2d->vert.xmin= v2d->vert.xmax - V2D_SCROLL_WIDTH;
 			v2d->mask.xmax= v2d->vert.xmin - 1;
 		}
@@ -231,7 +231,28 @@ void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
 			}
 				break;
 			
-			/* other view types are completely defined using their own settings already */
+			/* ui listviews, tries to wrap 'tot' inside region width */
+			case V2D_COMMONVIEW_LIST_UI:
+			{
+				/* for now, aspect ratio should be maintained, and zoom is clamped within sane default limits */
+				v2d->keepzoom= (V2D_KEEPASPECT|V2D_KEEPZOOM);
+				v2d->minzoom= 0.5f;
+				v2d->maxzoom= 2.0f;
+				
+				v2d->align= (V2D_ALIGN_NO_NEG_X|V2D_ALIGN_NO_POS_Y);
+				v2d->keeptot= V2D_KEEPTOT_BOUNDS;
+				
+				v2d->tot.xmin= 0.0f;
+				v2d->tot.xmax= 336.f; // XXX 320 width + 2 x PNL_DIST
+				
+				v2d->tot.ymax= 0.0f;
+				v2d->tot.ymin= -336.0f*((float)winy)/(float)winx;
+				
+				v2d->cur= v2d->tot;
+				
+			}
+				break;
+				/* other view types are completely defined using their own settings already */
 			default:
 				/* we don't do anything here, as settings should be fine, but just make sure that rect */
 				break;	
@@ -243,7 +264,7 @@ void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
 	v2d->winy= winy;
 	
 	/* set masks */
-	view2_masks(v2d);
+	view2d_masks(v2d);
 	
 	/* set 'tot' rect before setting cur? */
 	if (tot_changed) 
@@ -586,7 +607,7 @@ void UI_view2d_curRect_validate(View2D *v2d)
 	}
 	
 	/* set masks */
-	view2_masks(v2d);
+	view2d_masks(v2d);
 }
 
 /* ------------------ */

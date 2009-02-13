@@ -855,6 +855,26 @@ static void write_actions(WriteData *wd, ListBase *idbase)
 	mywrite(wd, MYWRITE_FLUSH, 0);
 }
 
+static void write_keyingsets(WriteData *wd, ListBase *list)
+{
+	KeyingSet *ks;
+	KS_Path *ksp;
+	
+	for (ks= list->first; ks; ks= ks->next) {
+		/* KeyingSet */
+		writestruct(wd, DATA, "KeyingSet", 1, ks);
+		
+		/* Paths */
+		for (ksp= ks->paths.first; ksp; ksp= ksp->next) {
+			/* Path */
+			writestruct(wd, DATA, "KS_Path", 1, ksp);
+			
+			if (ksp->rna_path)
+				writedata(wd, DATA, strlen(ksp->rna_path)+1, ksp->rna_path);
+		}
+	}
+}
+
 static void write_animdata(WriteData *wd, AnimData *adt)
 {
 	AnimOverride *aor;
@@ -1533,6 +1553,7 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 		if (sce->id.properties) IDP_WriteProperty(sce->id.properties, wd);
 		
 		if (sce->adt) write_animdata(wd, sce->adt);
+		write_keyingsets(wd, &sce->keyingsets);
 		
 		/* direct data */
 		base= sce->base.first;
@@ -1616,9 +1637,9 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 				writestruct(wd, DATA, "MetaStack", 1, ms);
 			}
 		}
-
+		
 		write_scriptlink(wd, &sce->scriptlink);
-
+		
 		if (sce->r.avicodecdata) {
 			writestruct(wd, DATA, "AviCodecData", 1, sce->r.avicodecdata);
 			if (sce->r.avicodecdata->lpFormat) writedata(wd, DATA, sce->r.avicodecdata->cbFormat, sce->r.avicodecdata->lpFormat);

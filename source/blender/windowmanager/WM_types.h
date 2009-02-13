@@ -121,7 +121,7 @@ typedef void (*wmUIHandlerRemoveFunc)(struct bContext *C, void *userdata);
 /* ************** Notifiers ****************** */
 
 typedef struct wmNotifier {
-	struct wmNotifier *prev, *next;
+	struct wmNotifier *next, *prev;
 	
 	struct wmWindowManager *wm;
 	struct wmWindow *window;
@@ -153,6 +153,7 @@ typedef struct wmNotifier {
 #define	NC_TEXTURE			(7<<24)
 #define	NC_LAMP				(8<<24)
 #define	NC_GROUP			(9<<24)
+#define	NC_IMAGE			(10<<24)
 
 /* data type, 256 entries is enough, it can overlap */
 #define NOTE_DATA			0x00FF0000
@@ -162,9 +163,9 @@ typedef struct wmNotifier {
 
 	/* NC_SCREEN screen */
 #define ND_SCREENBROWSE		(1<<16)
-#define ND_SCENEBROWSE		(2<<16)
 
 	/* NC_SCENE Scene */
+#define ND_SCENEBROWSE		(1<<16)
 #define	ND_MARKERS			(2<<16)
 #define	ND_FRAME			(3<<16)
 #define	ND_RENDER_OPTIONS	(4<<16)
@@ -175,6 +176,7 @@ typedef struct wmNotifier {
 #define ND_MODE				(9<<16)
 #define ND_RENDER_RESULT	(10<<16)
 #define ND_COMPO_RESULT		(11<<16)
+#define ND_KEYINGSET		(12<<16)
 
 	/* NC_OBJECT Object */
 #define	ND_TRANSFORM		(16<<16)

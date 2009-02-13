@@ -148,7 +148,12 @@ int ED_operator_buttons_active(bContext *C)
 
 int ED_operator_node_active(bContext *C)
 {
-	return ed_spacetype_test(C, SPACE_NODE);
+	if(ed_spacetype_test(C, SPACE_NODE)) {
+		SpaceNode *snode= (SpaceNode *)CTX_wm_space_data(C);
+		if(snode->edittree)
+			return 1;
+	}
+	return 0;
 }
 
 int ED_operator_ipo_active(bContext *C)
@@ -190,8 +195,11 @@ int ED_operator_editarmature(bContext *C)
 int ED_operator_posemode(bContext *C)
 {
 	Object *obact= CTX_data_active_object(C);
-	if(obact && obact->type==OB_ARMATURE)
+	Object *obedit= CTX_data_edit_object(C);
+	
+	if ((obact != obedit) && (obact) && (obact->type==OB_ARMATURE))
 		return (obact->flag & OB_POSEMODE)!=0;
+		
 	return 0;
 }
 
@@ -224,14 +232,33 @@ int ED_operator_uvmap(bContext *C)
 	return 0;
 }
 
+int ED_operator_editsurfcurve(bContext *C)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	if(obedit && ELEM(obedit->type, OB_CURVE, OB_SURF))
+		return NULL != ((Curve *)obedit->data)->editnurb;
+	return 0;
+
+	// XXX this test was in many tools, still needed?
+	// if(v3d==0 || (v3d->lay & obedit->lay)==0 ) return 0;
+}
+
+
 int ED_operator_editcurve(bContext *C)
 {
 	Object *obedit= CTX_data_edit_object(C);
 	if(obedit && obedit->type==OB_CURVE)
-		return NULL != ((Mesh *)obedit->data)->edit_mesh;
+		return NULL != ((Curve *)obedit->data)->editnurb;
 	return 0;
 }
 
+int ED_operator_editsurf(bContext *C)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	if(obedit && obedit->type==OB_SURF)
+		return NULL != ((Curve *)obedit->data)->editnurb;
+	return 0;
+}
 
 /* *************************** action zone operator ************************** */
 
@@ -999,6 +1026,7 @@ static int frame_offset_exec(bContext *C, wmOperator *op)
 	delta = RNA_int_get(op->ptr, "delta");
 
 	CTX_data_scene(C)->r.cfra += delta;
+
 	WM_event_add_notifier(C, NC_SCENE|ND_FRAME, CTX_data_scene(C));
 
 	return OPERATOR_FINISHED;
@@ -1757,7 +1785,7 @@ static int screen_animation_play(bContext *C, wmOperator *op, wmEvent *event)
 				scene->r.cfra= scene->r.sfra;
 		}
 
-		WM_event_add_notifier(C, NC_SCENE|ND_FRAME, CTX_data_scene(C));
+		WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
 		
 		return OPERATOR_FINISHED;
 	}

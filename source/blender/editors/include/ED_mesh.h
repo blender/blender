@@ -119,6 +119,7 @@ void		EM_deselect_flush(struct EditMesh *em);
 void		EM_selectmode_set(struct EditMesh *em);
 void		EM_select_flush(struct EditMesh *em);
 void		EM_convertsel(struct EditMesh *em, short oldmode, short selectmode);
+void		EM_validate_selections(struct EditMesh *em);
 			
 			/* exported to transform */
 int			EM_get_actSelection(struct EditMesh *em, struct EditSelection *ese);
@@ -138,6 +139,9 @@ int			EM_mask_init_backbuf_border(struct ViewContext *vc, short mcords[][2], sho
 void		EM_free_backbuf(void);
 int			EM_init_backbuf_border(struct ViewContext *vc, short xmin, short ymin, short xmax, short ymax);
 int			EM_init_backbuf_circle(struct ViewContext *vc, short xs, short ys, short rads);
+
+void		EM_hide_mesh(struct EditMesh *em, int swap);
+void		EM_reveal_mesh(struct EditMesh *em);
 
 /* editface.c */
 struct MTFace	*EM_get_active_mtface(struct EditMesh *em, struct EditFace **act_efa, struct MCol **mcol, int sloppy);

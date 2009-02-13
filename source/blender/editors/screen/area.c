@@ -375,7 +375,7 @@ static void region_rect_recursive(ARegion *ar, rcti *remainder, int quad)
 			}
 		}
 	}
-	else if(ar->alignment==RGN_ALIGN_LEFT || ar->alignment==RGN_ALIGN_RIGHT) {
+	else if( ELEM4(ar->alignment, RGN_ALIGN_LEFT, RGN_ALIGN_RIGHT, RGN_OVERLAP_LEFT, RGN_OVERLAP_RIGHT)) {
 		
 		if( rct_fits(remainder, 'h', prefsizex) < 0 ) {
 			ar->flag |= RGN_FLAG_TOO_SMALL;
@@ -388,13 +388,15 @@ static void region_rect_recursive(ARegion *ar, rcti *remainder, int quad)
 			
 			ar->winrct= *remainder;
 			
-			if(ar->alignment==RGN_ALIGN_RIGHT) {
+			if(ELEM(ar->alignment, RGN_ALIGN_RIGHT, RGN_OVERLAP_RIGHT)) {
 				ar->winrct.xmin= ar->winrct.xmax - prefsizex + 1;
-				remainder->xmax= ar->winrct.xmin - 1;
+				if(ar->alignment==RGN_ALIGN_RIGHT)
+					remainder->xmax= ar->winrct.xmin - 1;
 			}
 			else {
 				ar->winrct.xmax= ar->winrct.xmin + prefsizex - 1;
-				remainder->xmin= ar->winrct.xmax + 1;
+				if(ar->alignment==RGN_ALIGN_LEFT)
+					remainder->xmin= ar->winrct.xmax + 1;
 			}
 		}
 	}
@@ -771,7 +773,7 @@ static char *windowtype_pup(void)
 		   "|%l" // 33
 		   
 		   "|Graph Editor %x2" //54
-		   "|DopeSheet Editor %x12" //73
+		   "|DopeSheet %x12" //73
 		   "|NLA Editor %x13" //94
 		   
 		   "|%l" //97

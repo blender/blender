@@ -1411,8 +1411,8 @@ static int rna_preprocess(char *outfile)
 		}
 	}
 
-	rna_sort(brna);
 	rna_auto_types();
+	rna_sort(brna);
 
 	status= (DefRNA.error != 0);
 

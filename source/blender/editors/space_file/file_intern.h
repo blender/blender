@@ -57,9 +57,11 @@ void ED_FILE_OT_select_bookmark(struct wmOperatorType *ot);
 void ED_FILE_OT_loadimages(struct wmOperatorType *ot);
 void ED_FILE_OT_load(struct wmOperatorType *ot);
 void ED_FILE_OT_cancel(struct wmOperatorType *ot);
+void ED_FILE_OT_parent(struct wmOperatorType *ot);
 
 int file_load_exec(bContext *C, struct wmOperator *unused);
 int file_cancel_exec(bContext *C, struct wmOperator *unused);
+int file_parent_exec(bContext *C, struct wmOperator *unused);
 int file_hilight_set(SpaceFile *sfile, ARegion *ar, int mx, int my);
 
 #endif /* ED_FILE_INTERN_H */

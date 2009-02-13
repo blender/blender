@@ -421,6 +421,77 @@ enum {
 	NLATRACK_TWEAK		= (1<<5),
 } eNlaTrack_Flag;
 
+
+/* ************************************ */
+/* KeyingSet Datatypes */
+
+/* Path for use in KeyingSet definitions (ksp) 
+ *
+ * Paths may be either specific (specifying the exact sub-ID
+ * dynamic data-block - such as PoseChannels - to act upon, ala
+ * Maya's 'Character Sets' and XSI's 'Marking Sets'), or they may
+ * be generic (using various placeholder template tags that will be
+ * replaced with appropriate information from the context). 
+ */
+// TODO: how should templates work exactly? For now, we only implement the specific KeyingSets...
+typedef struct KS_Path {
+	struct KS_Path *next, *prev;
+	
+		/* absolute paths only */
+	ID *id;					/* ID block that keyframes are for */
+	char group[64];			/* name of the group to add to */
+	
+		/* all paths */
+	char *rna_path;			/* dynamically (or statically in the case of predefined sets) path */
+	int array_index;		/* index that path affects */
+	
+	int flag;				/* various settings, etc. */
+} KS_Path;
+
+/* KS_Path->flag */
+enum {
+		/* entire array (not just the specified index) gets keyframed */
+	KSP_FLAG_WHOLE_ARRAY	= (1<<0),
+	
+		/* path should not be grouped at all */
+	KSP_FLAG_GROUP_NONE		= (1<<10),
+		/* path should be grouped under an ActionGroup KeyingSet's name */
+	KSP_FLAG_GROUP_KSNAME	= (1<<11),
+} eKSP_Settings;
+
+/* ---------------- */
+ 
+/* KeyingSet definition (ks)
+ *
+ * A KeyingSet defines a group of properties that should
+ * be keyframed together, providing a convenient way for animators
+ * to insert keyframes without resorting to Auto-Keyframing.
+ *
+ * A few 'generic' (non-absolute and dependant on templates) KeyingSets 
+ * are defined 'built-in' to facilitate easy animating for the casual
+ * animator without the need to add extra steps to the rigging process.
+ */
+typedef struct KeyingSet {
+	struct KeyingSet *next, *prev;
+	
+	ListBase paths;			/* (KS_Path) paths to keyframe to */
+	
+	char name[64];			/* user-viewable name for KeyingSet (for menus, etc.) */
+	
+	int flag;				/* settings for KeyingSet */
+	int keyingflag;			/* settings to supply insertkey() with */
+} KeyingSet;
+
+/* KeyingSet settings */
+enum {
+		/* keyingset cannot be removed (and doesn't need to be freed) */
+	KEYINGSET_BUILTIN		= (1<<0),
+		/* keyingset is the one currently in use */
+	KEYINGSET_ACTIVE		= (1<<1),
+		/* keyingset does not depend on context info (i.e. paths are absolute) */
+	KEYINGSET_ABSOLUTE		= (1<<2),
+} eKS_Settings;
+
 /* ************************************************ */
 /* Animation Data */
 

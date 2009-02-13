@@ -156,7 +156,7 @@ void ED_view3d_exit_paint_modes(bContext *C)
 
 
 
-static void do_view3d_buttons(bContext *C, void *arg, int event);
+static void do_view3d_header_buttons(bContext *C, void *arg, int event);
 
 #define B_SCENELOCK 101
 #define B_FULL		102
@@ -218,7 +218,7 @@ void do_layer_buttons(bContext *C, short event)
 	
 	if(event==-1 && ctrl) {
 		v3d->scenelock= !v3d->scenelock;
-		do_view3d_buttons(C, NULL, B_SCENELOCK);
+		do_view3d_header_buttons(C, NULL, B_SCENELOCK);
 	} else if (event<0) {
 		if(v3d->lay== (1<<20)-1) {
 			if(event==-2 || shift) v3d->lay= oldlay;
@@ -241,7 +241,7 @@ void do_layer_buttons(bContext *C, short event)
 			if(v3d->lay & (1<<event)) v3d->lay -= (1<<event);
 			else	v3d->lay += (1<<event);
 		}
-		do_view3d_buttons(C, NULL, event+B_LAY);
+		do_view3d_header_buttons(C, NULL, event+B_LAY);
 	}
 	ED_area_tag_redraw(sa);
 	
@@ -593,10 +593,10 @@ static void view3d_viewmenu(bContext *C, uiMenuItem *head, void *arg_unused)
 	
 //	uiMenuSeparator(head);
 	
-	uiMenuItemEnumO(head, 0, "VIEW3D_OT_viewnumpad", "type", V3D_VIEW_CAMERA);
-	uiMenuItemEnumO(head, 0, "VIEW3D_OT_viewnumpad", "type", V3D_VIEW_TOP);
-	uiMenuItemEnumO(head, 0, "VIEW3D_OT_viewnumpad", "type", V3D_VIEW_FRONT);
-	uiMenuItemEnumO(head, 0, "VIEW3D_OT_viewnumpad", "type", V3D_VIEW_RIGHT);
+	uiMenuItemEnumO(head, "", 0, "VIEW3D_OT_viewnumpad", "type", V3D_VIEW_CAMERA);
+	uiMenuItemEnumO(head, "", 0, "VIEW3D_OT_viewnumpad", "type", V3D_VIEW_TOP);
+	uiMenuItemEnumO(head, "", 0, "VIEW3D_OT_viewnumpad", "type", V3D_VIEW_FRONT);
+	uiMenuItemEnumO(head, "", 0, "VIEW3D_OT_viewnumpad", "type", V3D_VIEW_RIGHT);
 	
 	//uiMenuLevel(head, "Cameras", view3d_view_camerasmenu);
 	
@@ -1152,109 +1152,46 @@ static uiBlock *view3d_select_meshmenu(bContext *C, ARegion *ar, void *arg_unuse
 	return block;
 }
 
-void do_view3d_select_curvemenu(bContext *C, void *arg, int event)
+static void view3d_select_curvemenu(bContext *C, uiMenuItem *head, void *arg_unused)
 {
-#if 0
-/*	extern void borderselect(void);*/
+	Object *obedit= CTX_data_edit_object(C);
 
-	switch(event) {
-		case 0: /* border select */
-			borderselect();
-			break;
-		case 2: /* Select/Deselect all */
-			deselectall_nurb();
-			break;
-		case 3: /* Inverse */
-			selectswapNurb();
-			break;
-		/* select connected control points */
-		/*case 4:
-			G.qual |= LR_CTRLKEY;
-			select_connected_nurb();
-			G.qual &= ~LR_CTRLKEY;
-			break;*/
-		case 5: /* select row (nurb) */
-			selectrow_nurb();
-			break;
-		case 7: /* select/deselect first */
-			selectend_nurb(FIRST, 1, DESELECT);
-			break;
-		case 8: /* select/deselect last */ 
-			selectend_nurb(LAST, 1, DESELECT);
-			break;
-		case 9: /* select more */
-			select_more_nurb();
-			break;
-		case 10: /* select less */
-			select_less_nurb();
-			break;
-		case 11: /* select next */
-			select_next_nurb();
-			break;
-		case 12: /* select previous */
-			select_prev_nurb();
-			break;
-		case 13: /* select random */
-			select_random_nurb();
-			break;
-		case 14: /* select every nth */
-			select_every_nth_nurb();
-			break;
-	}
-	allqueue(REDRAWVIEW3D, 0);
-#endif
-}
+	uiMenuItemO(head, 0, "VIEW3D_OT_borderselect");
+	uiMenuItemO(head, 0, "VIEW3D_OT_circle_select");
 
+	uiMenuSeparator(head);
 
-static uiBlock *view3d_select_curvemenu(bContext *C, ARegion *ar, void *arg_unused)
-{
-	Scene *scene= CTX_data_scene(C);
-	uiBlock *block;
-	short yco= 0, menuwidth=120;
-	
-	block= uiBeginBlock(C, ar, "view3d_select_curvemenu", UI_EMBOSSP, UI_HELV);
-	uiBlockSetButmFunc(block, do_view3d_select_curvemenu, NULL);
-	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Border Select|B",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
-	
-	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Select/Deselect All|A",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Inverse",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Random...",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 13, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Every Nth",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 14, "");
-	
-	if (OBACT->type == OB_SURF) {
-		uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-		
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Control Point Row|Shift R",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
+	uiMenuItemO(head, 0, "CURVE_OT_de_select_all");
+	uiMenuItemO(head, 0, "CURVE_OT_select_inverse");
+	uiMenuItemO(head, 0, "CURVE_OT_select_random"); // Random...
+	uiMenuItemO(head, 0, "CURVE_OT_select_every_nth"); // Every Nth..
+
+	uiMenuSeparator(head);
+
+	if(obedit->type == OB_SURF) {
+		uiMenuItemO(head, 0, "CURVE_OT_select_row");
 	}
 	else {
-		uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-		
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Select/Deselect First",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 7, "");
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Select/Deselect Last",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 8, "");
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Select Next",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 11, "");
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Select Previous",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 12, "");
+		uiMenuItemO(head, 0, "CURVE_OT_de_select_first");
+		uiMenuItemO(head, 0, "CURVE_OT_de_select_last");
+		uiMenuItemO(head, 0, "CURVE_OT_select_next");
+		uiMenuItemO(head, 0, "CURVE_OT_select_previous");
 	}
-	
-	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "More|Ctrl NumPad +",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 9, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Less|Ctrl NumPad -",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 10, "");
-	
+
+	uiMenuSeparator(head);
+
+	uiMenuItemO(head, 0, "CURVE_OT_select_more");
+	uiMenuItemO(head, 0, "CURVE_OT_select_less");
+
 	/* commented out because it seems to only like the LKEY method - based on mouse pointer position :( */
-	/*uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Connected Control Points|Ctrl L",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");*/
-		
-	if(ar->alignment==RGN_ALIGN_TOP) {
-		uiBlockSetDirection(block, UI_DOWN);
-	}
-	else {
-		uiBlockSetDirection(block, UI_TOP);
-		uiBlockFlipOrder(block);
-	}
-	
-	uiTextBoundsBlock(block, 50);
-	return block;
+	/* uiMenuItemO(head, 0, "CURVE_OT_select_linked"); */
+
+#if 0
+	G.qual |= LR_CTRLKEY;
+	select_connected_nurb();
+	G.qual &= ~LR_CTRLKEY;
+	break;*/
+#endif
 }
 
 void do_view3d_select_metaballmenu(bContext *C, void *arg, int event)
@@ -3327,262 +3264,85 @@ static uiBlock *view3d_edit_meshmenu(bContext *C, ARegion *ar, void *arg_unused)
 	return block;
 }
 
-static void do_view3d_edit_curve_controlpointsmenu(bContext *C, void *arg, int event)
+static void view3d_edit_curve_controlpointsmenu(bContext *C, uiMenuItem *head, void *arg_unused)
 {
-#if 0
-	Scene *scene= CTX_data_scene(C);
-	
-	switch(event) {
-	case 0: /* tilt */
-		initTransform(TFM_TILT, CTX_NONE);
-		Transform();
-		break;
-	case 1: /* clear tilt */
-		clear_tilt();
-		break;
-	case 2: /* Free */
-		sethandlesNurb(editnurb, 3);
-		DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-		break;
-	case 3: /* vector */
-		sethandlesNurb(editnurb, 2);
-		DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-		break;
-	case 4: /* smooth */
-		sethandlesNurb(editnurb, 1);
-		DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-		break;
-	case 5: /* make vertex parent */
-		make_parent();
-		break;
-	case 6: /* add hook */
-		add_hook_menu();
-		break;
-	case 7:
-		separate_nurb();
-		break;
-	}
-	allqueue(REDRAWVIEW3D, 0);
-#endif
-}
+	Object *obedit= CTX_data_edit_object(C);
 
-static uiBlock *view3d_edit_curve_controlpointsmenu(bContext *C, ARegion *ar, void *arg_unused)
-{
-	Scene *scene= CTX_data_scene(C);
-	uiBlock *block;
-	short yco = 20, menuwidth = 120;
-
-	block= uiBeginBlock(C, ar, "view3d_edit_curve_controlpointsmenu", UI_EMBOSSP, UI_HELV);
-	uiBlockSetButmFunc(block, do_view3d_edit_curve_controlpointsmenu, NULL);
-	
-	if (OBACT->type == OB_CURVE) {
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Tilt|T",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Clear Tilt|Alt T",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Separate|P",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 7, "");
+	if(obedit->type == OB_CURVE) {
+		uiMenuItemEnumO(head, "", 0, "TFM_OT_transform", "mode", TFM_TILT);
+		uiMenuItemO(head, 0, "CURVE_OT_clear_tilt");
+		uiMenuItemO(head, 0, "CURVE_OT_separate");
 		
-		uiDefBut(block, SEPR, 0, "",			0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-		
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Automatic|Shift H",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Toggle Free/Aligned|H",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Vector|V",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
+		uiMenuSeparator(head);
 
-		uiDefBut(block, SEPR, 0, "",			0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");		
+		uiMenuItemEnumO(head, "", 0, "CURVE_OT_set_handle_type", "type", 1);
+		uiMenuItemEnumO(head, "", 0, "CURVE_OT_set_handle_type", "type", 3);
+		uiMenuItemEnumO(head, "", 0, "CURVE_OT_set_handle_type", "type", 2);
+
+		uiMenuSeparator(head);
 	}
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Make Vertex Parent|Ctrl P",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Add Hook|Ctrl H",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
-	
-	uiBlockSetDirection(block, UI_RIGHT);
-	uiTextBoundsBlock(block, 60);
-	return block;
+
+	// XXX uiMenuItemO(head, 0, "OBJECT_OT_make_vertex_parent"); Make VertexParent|Ctrl P
+	// make_parent()
+	// XXX uiMenuItemO(head, 0, "OBJECT_OT_add_hook"); Add Hook| Ctrl H
+	// add_hook_menu()
 }
 
-void do_view3d_edit_curve_segmentsmenu(bContext *C, void *arg, int event)
+static void view3d_edit_curve_segmentsmenu(bContext *C, uiMenuItem *head, void *arg_unused)
 {
-#if 0
-	switch(event) {
-	case 0: /* subdivide */
-		subdivideNurb();
-		break;
-	case 1: /* switch direction */
-		switchdirectionNurb2();
-		break;
-		}
-	allqueue(REDRAWVIEW3D, 0);
-#endif
+	uiMenuItemO(head, 0, "CURVE_OT_subdivide");
+	uiMenuItemO(head, 0, "CURVE_OT_switch_direction");
 }
 
-static uiBlock *view3d_edit_curve_segmentsmenu(bContext *C, ARegion *ar, void *arg_unused)
+static void view3d_edit_curve_showhidemenu(bContext *C, uiMenuItem *head, void *arg_unused)
 {
-	uiBlock *block;
-	short yco = 20, menuwidth = 120;
-
-	block= uiBeginBlock(C, ar, "view3d_edit_curve_segmentsmenu", UI_EMBOSSP, UI_HELV);
-	uiBlockSetButmFunc(block, do_view3d_edit_curve_segmentsmenu, NULL);
-	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Subdivide",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Switch Direction",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
-
-	uiBlockSetDirection(block, UI_RIGHT);
-	uiTextBoundsBlock(block, 60);
-	return block;
+	uiMenuItemO(head, 0, "CURVE_OT_reveal");
+	uiMenuItemO(head, 0, "CURVE_OT_hide");
+	uiMenuItemBooleanO(head, "Hide Deselected", 0, "CURVE_OT_hide", "deselected", 1);
 }
 
-void do_view3d_edit_curve_showhidemenu(bContext *C, void *arg, int event)
+static void view3d_edit_curvemenu(bContext *C, uiMenuItem *head, void *arg_unused)
 {
-#if 0
-	switch(event) {
-	case 10: /* show hidden control points */
-		revealNurb();
-		break;
-	case 11: /* hide selected control points */
-		hideNurb(0);
-		break;
-	case 12: /* hide deselected control points */
-		hideNurb(1);
-		break;
-		}
-	allqueue(REDRAWVIEW3D, 0);
-#endif
-}
-
-static uiBlock *view3d_edit_curve_showhidemenu(bContext *C, ARegion *ar, void *arg_unused)
-{
+	PointerRNA sceneptr;
 	Scene *scene= CTX_data_scene(C);
-	uiBlock *block;
-	short yco = 20, menuwidth = 120;
 
-	block= uiBeginBlock(C, ar, "view3d_edit_curve_showhidemenu", UI_EMBOSSP, UI_HELV);
-	uiBlockSetButmFunc(block, do_view3d_edit_curve_showhidemenu, NULL);
-	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show Hidden|Alt H",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 10, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Hide Selected|Alt Ctrl H",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 11, "");
-	if (OBACT->type == OB_SURF) uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Hide Deselected Control Points|Alt Shift H",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 12, "");
-	
+	RNA_id_pointer_create(&scene->id, &sceneptr);
 
-	uiBlockSetDirection(block, UI_RIGHT);
-	uiTextBoundsBlock(block, 60);
-	return block;
-}
-static void do_view3d_edit_curvemenu(bContext *C, void *arg, int event)
-{
 #if 0
-	switch(event) {
-	
-	case 0: /* Undo Editing */
-		remake_editNurb(ob);
-		break;
-	case 1: /* transformation properties */
-// XXX		mainqenter(NKEY, 1);
-		break;
-	case 2: /* insert keyframe */
-		common_insertkey();
-		break;
-	case 4: /* extrude */
-		if (OBACT->type == OB_CURVE) {
-			addvert_Nurb('e');
-		} else if (OBACT->type == OB_SURF) {
-			extrude_nurb();
-		}
-		break;
-	case 5: /* duplicate */
-		duplicate_context_selected();
-		break;
-	case 6: /* make segment */
-		addsegment_nurb();
-		break;
-	case 7: /* toggle cyclic */
-		makecyclicNurb();
-		DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-		break;
-	case 8: /* delete */
-		delete_context_selected();
-		break;
-	case 9: /* proportional edit (toggle) */
-		if(scene->proportional) scene->proportional= 0;
-		else scene->proportional= 1;
-		break;
-	case 13: /* Shear */
-		initTransform(TFM_SHEAR, CTX_NONE);
-		Transform();
-		break;
-	case 14: /* Warp */
-		initTransform(TFM_WARP, CTX_NONE);
-		Transform();
-		break;
-	case 15:
-		uv_autocalc_tface();
-		break;
-	case 16: /* delete keyframe */
-		common_deletekey();
-		break;
-	}
-	allqueue(REDRAWVIEW3D, 0);
-#endif
-}
-
-static uiBlock *view3d_edit_curvemenu(bContext *C, ARegion *ar, void *arg_unused)
-{
-	Scene *scene= CTX_data_scene(C);
-	uiBlock *block;
-	short yco= 0, menuwidth=120;
-
-	block= uiBeginBlock(C, ar, "view3d_edit_curvemenu", UI_EMBOSSP, UI_HELV);
-	uiBlockSetButmFunc(block, do_view3d_edit_curvemenu, NULL);
-	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Reload Original|U",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
-	
-	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	
 	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Transform Properties...|N",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
 	uiDefIconTextBlockBut(block, view3d_transformmenu, NULL, ICON_RIGHTARROW_THIN, "Transform", 0, yco-=20, 120, 19, "");
 	uiDefIconTextBlockBut(block, view3d_edit_mirrormenu, NULL, ICON_RIGHTARROW_THIN, "Mirror", 0, yco-=20, menuwidth, 19, "");	
 	uiDefIconTextBlockBut(block, view3d_edit_snapmenu, NULL, ICON_RIGHTARROW_THIN, "Snap", 0, yco-=20, 120, 19, "");
 	
-	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	uiMenuSeparator(head);
+#endif
 	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Insert Keyframe|I",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Delete Keyframe|Alt I",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 16, "");
-	
-	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "UV Unwrap|U",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 15, "");
-	
-	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Extrude|E",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Duplicate|Shift D",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Make Segment|F",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Toggle Cyclic|C",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 7, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Delete...|X",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 8, "");
-	
-	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	
-	uiDefIconTextBlockBut(block, view3d_edit_curve_controlpointsmenu, NULL, ICON_RIGHTARROW_THIN, "Control Points", 0, yco-=20, menuwidth, 19, "");
-	uiDefIconTextBlockBut(block, view3d_edit_curve_segmentsmenu, NULL, ICON_RIGHTARROW_THIN, "Segments", 0, yco-=20, menuwidth, 19, "");
-	
-	uiDefBut(block, SEPR, 0, "",			0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	
-	if(scene->proportional) {
-		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Proportional Editing|O", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 9, "");
-	} else {
-		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Proportional Editing|O", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 9, "");
-	}
-	uiDefIconTextBlockBut(block, view3d_edit_propfalloffmenu, NULL, ICON_RIGHTARROW_THIN, "Proportional Falloff", 0, yco-=20, menuwidth, 19, "");
-	
-	uiDefBut(block, SEPR, 0, "",			0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	
-	uiDefIconTextBlockBut(block, view3d_edit_curve_showhidemenu, NULL, ICON_RIGHTARROW_THIN, "Show/Hide Control Points", 0, yco-=20, menuwidth, 19, "");
-	
-	if(ar->alignment==RGN_ALIGN_TOP) {
-		uiBlockSetDirection(block, UI_DOWN);
-	}
-	else {
-		uiBlockSetDirection(block, UI_TOP);
-		uiBlockFlipOrder(block);
-	}
+	// XXX uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Insert Keyframe|I",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+	// common_insertkey();
+	// XXX uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Delete Keyframe|Alt I",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 16, "");
+	// common_deletekey();
 
-	uiTextBoundsBlock(block, 50);
-	return block;
+
+	uiMenuItemO(head, 0, "CURVE_OT_extrude");
+	uiMenuItemO(head, 0, "CURVE_OT_duplicate");
+	uiMenuItemO(head, 0, "CURVE_OT_separate");
+	uiMenuItemO(head, 0, "CURVE_OT_make_segment");
+	uiMenuItemO(head, 0, "CURVE_OT_toggle_cyclic");
+	uiMenuItemO(head, 0, "CURVE_OT_delete"); // Delete...
+
+	uiMenuSeparator(head);
+
+	uiMenuLevel(head, "Control Points", view3d_edit_curve_controlpointsmenu);
+	uiMenuLevel(head, "Segments", view3d_edit_curve_segmentsmenu);
+
+	uiMenuSeparator(head);
+
+	uiMenuItemBooleanR(head, &sceneptr, "proportional_editing"); // |O
+	uiMenuLevelEnumR(head, &sceneptr, "proportional_editing_falloff");
+
+	uiMenuSeparator(head);
+
+	uiMenuLevel(head, "Show/Hide Control Points", view3d_edit_curve_showhidemenu);
 }
 
 static void do_view3d_edit_mball_showhidemenu(bContext *C, void *arg, int event)
@@ -3650,9 +3410,6 @@ static void do_view3d_edit_metaballmenu(bContext *C, void *arg, int event)
 	case 7: /* Transform Properties */
 		add_blockhandler(sa, VIEW3D_HANDLER_OBJECT, 0);
 		break;	
-	case 8:
-		uv_autocalc_tface();
-		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
 #endif
@@ -3679,10 +3436,6 @@ static uiBlock *view3d_edit_metaballmenu(bContext *C, ARegion *ar, void *arg_unu
 	
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "UV Unwrap|U",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 8, "");
-	
-	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Duplicate|Shift D", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Delete...|X", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
 
@@ -4898,9 +4651,9 @@ static void view3d_sculpt_menu(bContext *C, uiMenuItem *head, void *arg_unused)
 
 	/* Curve */
 	uiMenuSeparator(head);
-	uiMenuItemEnumO(head, 0, "SCULPT_OT_brush_curve_preset", "mode", BRUSH_PRESET_SHARP);
-	uiMenuItemEnumO(head, 0, "SCULPT_OT_brush_curve_preset", "mode", BRUSH_PRESET_SMOOTH);
-	uiMenuItemEnumO(head, 0, "SCULPT_OT_brush_curve_preset", "mode", BRUSH_PRESET_MAX);
+	uiMenuItemEnumO(head, "", 0, "SCULPT_OT_brush_curve_preset", "mode", BRUSH_PRESET_SHARP);
+	uiMenuItemEnumO(head, "", 0, "SCULPT_OT_brush_curve_preset", "mode", BRUSH_PRESET_SMOOTH);
+	uiMenuItemEnumO(head, "", 0, "SCULPT_OT_brush_curve_preset", "mode", BRUSH_PRESET_MAX);
 
 	uiMenuSeparator(head);
 
@@ -5359,7 +5112,7 @@ static char *propfalloff_pup(void)
 }
 
 
-static void do_view3d_buttons(bContext *C, void *arg, int event)
+static void do_view3d_header_buttons(bContext *C, void *arg, int event)
 {
 	Scene *scene= CTX_data_scene(C);
 	ScrArea *sa= CTX_wm_area(C);
@@ -5648,7 +5401,7 @@ static void view3d_header_pulldowns(const bContext *C, uiBlock *block, Object *o
 		if (ob && ob->type == OB_MESH) {
 			uiDefPulldownBut(block, view3d_select_meshmenu, NULL, "Select",	xco,yco-2, xmax-3, 24, "");
 		} else if (ob && (ob->type == OB_CURVE || ob->type == OB_SURF)) {
-			uiDefPulldownBut(block, view3d_select_curvemenu, NULL, "Select", xco,yco-2, xmax-3, 24, "");
+			uiDefMenuBut(block, view3d_select_curvemenu, NULL, "Select", xco, yco-2, xmax-3, 24, "");
 		} else if (ob && ob->type == OB_FONT) {
 			uiDefPulldownBut(block, view3d_select_meshmenu, NULL, "Select",	xco, yco-2, xmax-3, 24, "");
 		} else if (ob && ob->type == OB_MBALL) {
@@ -5682,11 +5435,11 @@ static void view3d_header_pulldowns(const bContext *C, uiBlock *block, Object *o
 			xco+= xmax;
 		} else if (ob && ob->type == OB_CURVE) {
 			xmax= GetButStringLength("Curve");
-			uiDefPulldownBut(block, view3d_edit_curvemenu, NULL, "Curve",	xco,yco-2, xmax-3, 24, "");
+			uiDefMenuBut(block, view3d_edit_curvemenu, NULL, "Curve", xco, yco-2, xmax-3, 24, "");
 			xco+= xmax;
 		} else if (ob && ob->type == OB_SURF) {
 			xmax= GetButStringLength("Surface");
-			uiDefPulldownBut(block, view3d_edit_curvemenu, NULL, "Surface",	xco,yco-2, xmax-3, 24, "");
+			uiDefMenuBut(block, view3d_edit_curvemenu, NULL, "Surface", xco, yco-2, xmax-3, 24, "");
 			xco+= xmax;
 		} else if (ob && ob->type == OB_FONT) {
 			xmax= GetButStringLength("Text");
@@ -5776,7 +5529,7 @@ void view3d_header_buttons(const bContext *C, ARegion *ar)
 	int a, xco, yco= 3;
 	
 	block= uiBeginBlock(C, ar, "header buttons", UI_EMBOSS, UI_HELV);
-	uiBlockSetHandleFunc(block, do_view3d_buttons, NULL);
+	uiBlockSetHandleFunc(block, do_view3d_header_buttons, NULL);
 	
 	xco= ED_area_header_standardbuttons(C, block, yco);
 
@@ -5965,7 +5718,7 @@ void view3d_header_buttons(const bContext *C, ARegion *ar)
 				xco+= XIC;
 				uiDefIconButBitS(block, TOG, SCE_SNAP_ROTATE, B_REDR, ICON_SNAP_NORMAL,xco,yco,XIC,YIC, &scene->snap_flag, 0, 0, 0, 0, "Align rotation with the snapping target");	
 				xco+= XIC;
-				uiDefIconTextButS(block, ICONTEXTROW,B_REDR, ICON_VERTEXSEL, snapmode_pup(), xco,yco,XIC+10,YIC, &(scene->snap_mode), 0.0, 0.0, 0, 0, "Snapping mode");
+				uiDefIconTextButS(block, ICONTEXTROW,B_REDR, ICON_SNAP_VERTEX, snapmode_pup(), xco,yco,XIC+10,YIC, &(scene->snap_mode), 0.0, 0.0, 0, 0, "Snapping mode");
 				xco+= XIC;
 				uiDefButS(block, MENU, B_NOP, "Snap Mode%t|Closest%x0|Center%x1|Median%x2|Active%x3",xco,yco,70,YIC, &scene->snap_target, 0, 0, 0, 0, "Snap Target Mode");
 				xco+= 70;

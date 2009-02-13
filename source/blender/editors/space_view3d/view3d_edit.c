@@ -100,7 +100,7 @@ static void view3d_boxview_clip(ScrArea *sa)
 		if(ar->regiontype==RGN_TYPE_WINDOW) {
 			RegionView3D *rv3d= ar->regiondata;
 			
-			if(rv3d->viewlock) {
+			if(rv3d->viewlock & RV3D_BOXCLIP) {
 				if(ELEM(rv3d->view, V3D_VIEW_TOP, V3D_VIEW_BOTTOM)) {
 					if(ar->winx>ar->winy) x1= rv3d->dist;
 					else x1= ar->winx*rv3d->dist/ar->winy;
@@ -157,7 +157,7 @@ static void view3d_boxview_clip(ScrArea *sa)
 		if(ar->regiontype==RGN_TYPE_WINDOW) {
 			RegionView3D *rv3d= ar->regiondata;
 			
-			if(rv3d->viewlock) {
+			if(rv3d->viewlock & RV3D_BOXCLIP) {
 				rv3d->rflag |= RV3D_CLIPPING;
 				memcpy(rv3d->clip, clip, sizeof(clip));
 			}
@@ -166,7 +166,7 @@ static void view3d_boxview_clip(ScrArea *sa)
 	MEM_freeN(bb);
 }
 
-/* sync ortho view of region to others, for view transforms */
+/* sync center/zoom view of region to others, for view transforms */
 static void view3d_boxview_sync(ScrArea *sa, ARegion *ar)
 {
 	ARegion *artest;
@@ -206,7 +206,7 @@ static void view3d_boxview_sync(ScrArea *sa, ARegion *ar)
 }
 
 /* for home, center etc */
-static void view3d_boxview_copy(ScrArea *sa, ARegion *ar)
+void view3d_boxview_copy(ScrArea *sa, ARegion *ar)
 {
 	ARegion *artest;
 	RegionView3D *rv3d= ar->regiondata;
@@ -579,7 +579,7 @@ static void viewmove_apply(ViewOpsData *vod, int x, int y)
 		window_to_3d_delta(vod->ar, dvec, x-vod->oldx, y-vod->oldy);
 		VecAddf(vod->rv3d->ofs, vod->rv3d->ofs, dvec);
 		
-		if(vod->rv3d->viewlock)
+		if(vod->rv3d->viewlock & RV3D_BOXVIEW)
 			view3d_boxview_sync(vod->sa, vod->ar);
 	}
 
@@ -742,7 +742,7 @@ static void viewzoom_apply(ViewOpsData *vod, int x, int y)
 
 // XXX	if(vod->rv3d->persp==V3D_ORTHO || vod->rv3d->persp==V3D_CAMOB) preview3d_event= 0;
 
-	if(vod->rv3d->viewlock)
+	if(vod->rv3d->viewlock & RV3D_BOXVIEW)
 		view3d_boxview_sync(vod->sa, vod->ar);
 
 	ED_region_tag_redraw(vod->ar);
@@ -795,7 +795,7 @@ static int viewzoom_exec(bContext *C, wmOperator *op)
 		else if(rv3d->dist> 0.001*v3d->grid) rv3d->dist*=.83333f;
 	}
 
-	if(rv3d->viewlock)
+	if(rv3d->viewlock & RV3D_BOXVIEW)
 		view3d_boxview_sync(CTX_wm_area(C), CTX_wm_region(C));
 	
 	request_depth_update(CTX_wm_region_view3d(C));
@@ -900,7 +900,7 @@ static int viewhome_exec(bContext *C, wmOperator *op) /* was view3d_home() in 2.
 	}
 // XXX	BIF_view3d_previewrender_signal(curarea, PR_DBASE|PR_DISPRECT);
 	
-	if(rv3d->viewlock)
+	if(rv3d->viewlock & RV3D_BOXVIEW)
 		view3d_boxview_copy(CTX_wm_area(C), ar);
 
 	return OPERATOR_FINISHED;
@@ -1034,7 +1034,7 @@ static int viewcenter_exec(bContext *C, wmOperator *op) /* like a localview with
 	}
 
 // XXX	BIF_view3d_previewrender_signal(curarea, PR_DBASE|PR_DISPRECT);
-	if(rv3d->viewlock)
+	if(rv3d->viewlock & RV3D_BOXVIEW)
 		view3d_boxview_copy(CTX_wm_area(C), ar);
 
 	return OPERATOR_FINISHED;
@@ -1265,7 +1265,7 @@ static int view3d_border_zoom_exec(bContext *C, wmOperator *op)
 
 	smooth_view(C, NULL, NULL, new_ofs, NULL, &new_dist, NULL);
 	
-	if(rv3d->viewlock)
+	if(rv3d->viewlock & RV3D_BOXVIEW)
 		view3d_boxview_sync(CTX_wm_area(C), ar);
 	
 	return OPERATOR_FINISHED;
@@ -1559,7 +1559,7 @@ static int viewpan_exec(bContext *C, wmOperator *op)
 	rv3d->ofs[1]+= vec[1];
 	rv3d->ofs[2]+= vec[2];
 
-	if(rv3d->viewlock)
+	if(rv3d->viewlock & RV3D_BOXVIEW)
 		view3d_boxview_sync(CTX_wm_area(C), ar);
 
 	ED_region_tag_redraw(ar);
@@ -1818,7 +1818,7 @@ static int set_3dcursor_invoke(bContext *C, wmOperator *op, wmEvent *event)
 //		VECCOPY(fp, oldcurs);
 //	}
 	// XXX notifier for scene */
-	ED_region_tag_redraw(ar);
+	ED_area_tag_redraw(CTX_wm_area(C));
 	
 	/* prevent other mouse ops to fail */
 	return OPERATOR_PASS_THROUGH;

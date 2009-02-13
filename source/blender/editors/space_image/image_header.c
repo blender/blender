@@ -51,6 +51,7 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
+#include "ED_image.h"
 #include "ED_mesh.h"
 #include "ED_screen.h"
 #include "ED_types.h"
@@ -61,6 +62,7 @@
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
+#include "BIF_transform.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -132,9 +134,9 @@ static void image_viewmenu(bContext *C, uiMenuItem *head, void *arg_unused)
 	RNA_pointer_create(&sc->id, &RNA_SpaceImageEditor, sima, &spaceptr);
 	RNA_pointer_create(&sc->id, &RNA_SpaceUVEditor, sima, &uvptr);
 
-	show_render= get_space_image_show_render(sima);
-	show_paint= get_space_image_show_paint(sima);
-	show_uvedit= get_space_image_show_uvedit(sima, CTX_data_edit_object(C));
+	show_render= ED_space_image_show_render(sima);
+	show_paint= ED_space_image_show_paint(sima);
+	show_uvedit= ED_space_image_show_uvedit(sima, CTX_data_edit_object(C));
 	
 	/* create menu */
 	uiMenuItemO(head, ICON_MENU_PANEL, "IMAGE_OT_toggle_view_properties_panel"); // View Properties...
@@ -184,60 +186,6 @@ static void do_image_imagemenu(void *arg, int event)
 #ifndef DISABLE_PYTHON
 	if (event >= 20) BPY_menu_do_python(PYMENU_IMAGE, event - 20);
 #endif	
-	switch(event)
-	{
-	case 0:
-		open_image_sima((G.qual==LR_CTRLKEY));
-		break;
-	case 1:
-		replace_image_sima((G.qual==LR_CTRLKEY));
-		break;
-	case 2:
-		pack_image_sima();
-		break;
-	case 4: /* Texture Painting */
-		brush_check_exists(&G.scene->toolsettings->imapaint.brush);
-		if(sima->flag & SI_DRAWTOOL) sima->flag &= ~SI_DRAWTOOL;
-		else sima->flag |= SI_DRAWTOOL;
-		allqueue(REDRAWBUTSSHADING, 0);
-		break;
-	case 5:
-		save_as_image_sima();
-		break;
-	case 6:
-		reload_image_sima();
-		break;
-	case 7:
-		new_image_sima();
-		break;
-	case 8:
-		save_image_sima();
-		break;
-	case 9:
-		save_image_sequence_sima();
-		break;
-	case 10:
-		BKE_image_memorypack(sima->image);
-		allqueue(REDRAWIMAGE, 0);
-		break;
-	}
-}
-#endif
-
-/* move to realtime properties panel */
-#if 0
-static void do_image_image_rtmappingmenu(void *arg, int event)
-{
-	switch(event) {
-	case 0: /* UV Co-ordinates */
-		sima->image->flag &= ~IMA_REFLECT;
-		break;
-	case 1: /* Reflection */
-		sima->image->flag |= IMA_REFLECT;
-		break;
-	}
-
- 	allqueue(REDRAWVIEW3D, 0);
 }
 #endif
 
@@ -245,30 +193,32 @@ static void image_imagemenu(bContext *C, uiMenuItem *head, void *arg_unused)
 {
 	bScreen *sc= CTX_wm_screen(C);
 	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
-	PointerRNA spaceptr;
+	PointerRNA spaceptr, imaptr;
 	Image *ima;
 	ImBuf *ibuf;
 	int show_render;
 	
 	/* retrieve state */
-	ima= get_space_image(sima);
-	ibuf= get_space_image_buffer(sima);
+	ima= ED_space_image(sima);
+	ibuf= ED_space_image_buffer(sima);
 
-	show_render= get_space_image_show_render(sima);
+	show_render= ED_space_image_show_render(sima);
 
 	RNA_pointer_create(&sc->id, &RNA_SpaceImageEditor, sima, &spaceptr);
 
 	/* create menu */
-	uiMenuItemO(head, 0, "IMAGE_OT_new"); // New...|Alt N
-	uiMenuItemO(head, 0, "IMAGE_OT_open"); // Open...|Alt O
+	uiMenuItemO(head, 0, "IMAGE_OT_new"); // New...
+	uiMenuItemO(head, 0, "IMAGE_OT_open"); // Open...
 
 	if(ima) {
-		uiMenuItemO(head, 0, "IMAGE_OT_replace"); // Replace...
-		uiMenuItemO(head, 0, "IMAGE_OT_reload"); // Reload...|Alt R
-		uiMenuItemO(head, 0, "IMAGE_OT_save"); // Save|Alt S
+		if(!show_render) {
+			uiMenuItemO(head, 0, "IMAGE_OT_replace"); // Replace...
+			uiMenuItemO(head, 0, "IMAGE_OT_reload"); // Reload...
+		}
+		uiMenuItemO(head, 0, "IMAGE_OT_save"); // Save
 		uiMenuItemO(head, 0, "IMAGE_OT_save_as"); // Save As...
 		if(ima->source == IMA_SRC_SEQUENCE)
-			uiMenuItemO(head, 0, "IMAGE_OT_save_changed"); // Save Changed Images
+			uiMenuItemO(head, 0, "IMAGE_OT_save_sequence"); // Save Changed Sequence Images
 
 		if(!show_render) {
 			uiMenuSeparator(head);
@@ -279,12 +229,15 @@ static void image_imagemenu(bContext *C, uiMenuItem *head, void *arg_unused)
 			/* only for dirty && specific image types : XXX poll? */
 			if(ibuf && (ibuf->userflags & IB_BITMAPDIRTY))
 				if(ELEM(ima->source, IMA_SRC_FILE, IMA_SRC_GENERATED) && ima->type != IMA_TYPE_MULTILAYER)
-					uiMenuItemO(head, 0, "IMAGE_OT_pack_as_png"); // Pack Image As PNG
+					uiMenuItemBooleanO(head, "Pack As PNG", 0, "IMAGE_OT_pack", "as_png", 1); // Pack Image As PNG
 
 			uiMenuSeparator(head);
 
-			/* XXX check state better */
 			uiMenuItemBooleanR(head, &spaceptr, "image_painting");
+			
+			/* move to realtime properties panel */
+			RNA_id_pointer_create(&ima->id, &imaptr);
+			uiMenuLevelEnumR(head, &imaptr, "mapping");
 		}
 	}
 
@@ -306,62 +259,24 @@ static void image_imagemenu(bContext *C, uiMenuItem *head, void *arg_unused)
 #endif
 }
 
-#if 0
-static void do_image_uvs_showhidemenu(void *arg, int event)
-{
-	switch(event) {
-	case 4: /* show hidden faces */
-		reveal_tface_uv();
-		break;
-	case 5: /* hide selected faces */
-		hide_tface_uv(0);
-		break;
-	case 6: /* hide deselected faces */
-		hide_tface_uv(1);
-		break;
-	}
-	allqueue(REDRAWVIEW3D, 0);
-}
-#endif
-
 static void image_uvs_showhidemenu(bContext *C, uiMenuItem *head, void *arg_unused)
 {
-	uiMenuItemO(head, 0, "UV_OT_show_hidden_faces"); // Show Hidden Faces|Alt H
-	uiMenuItemO(head, 0, "UV_OT_hide_selected_faces"); // Hide Selected Faces|H
-	uiMenuItemO(head, 0, "UV_OT_hide_deselected_faces"); // Hide Deselected Faces|Shift H
+	uiMenuItemO(head, 0, "UV_OT_show_hidden");
+	uiMenuItemO(head, 0, "UV_OT_hide_selected");
+	uiMenuItemO(head, 0, "UV_OT_hide_deselected");
 }
-
-#if 0
-static void do_image_uvs_transformmenu(void *arg, int event)
-{
-	switch(event) {
-	case 0: /* Grab */
-		initTransform(TFM_TRANSLATION, CTX_NONE);
-		Transform();
-		break;
-	case 1: /* Rotate */
-		initTransform(TFM_ROTATION, CTX_NONE);
-		Transform();
-		break;
-	case 2: /* Scale */
-		initTransform(TFM_RESIZE, CTX_NONE);
-		Transform();
-		break;
-	}
-}
-#endif
 
 static void image_uvs_transformmenu(bContext *C, uiMenuItem *head, void *arg_unused)
 {
-	uiMenuItemO(head, 0, "UV_OT_grab"); // Grab/Move|G
-	uiMenuItemO(head, 0, "UV_OT_rotate"); // Rotate|R
-	uiMenuItemO(head, 0, "UV_OT_scale"); // Scale|S
+	uiMenuItemEnumO(head, "", 0, "TFM_OT_transform", "mode", TFM_TRANSLATION);
+	uiMenuItemEnumO(head, "", 0, "TFM_OT_transform", "mode", TFM_ROTATION);
+	uiMenuItemEnumO(head, "", 0, "TFM_OT_transform", "mode", TFM_RESIZE);
 }
 
 static void image_uvs_mirrormenu(bContext *C, uiMenuItem *head, void *arg_unused)
 {
-	uiMenuItemEnumO(head, 0, "UV_OT_mirror", "axis", 'x'); // "X Axis", M, 1
-	uiMenuItemEnumO(head, 0, "UV_OT_mirror", "axis", 'y'); // "Y Axis", M, 2
+	uiMenuItemEnumO(head, "", 0, "UV_OT_mirror", "axis", 'x'); // "X Axis", M, 1
+	uiMenuItemEnumO(head, "", 0, "UV_OT_mirror", "axis", 'y'); // "Y Axis", M, 2
 }
 
 static void image_uvs_weldalignmenu(bContext *C, uiMenuItem *head, void *arg_unused)
@@ -405,26 +320,6 @@ static void image_uvs_scriptsmenu (void *args_unused)
 #endif /* DISABLE_PYTHON */
 #endif
 
-#if 0
-static void do_uvsmenu(bContext *C, void *arg, int event)
-{
-	switch(event) {
-    case 10:
-		unwrap_lscm(0);
-		break;
-	case 12:
-		minimize_stretch_tface_uv();
-		break;
-	case 13:
-		pack_charts_tface_uv();
-		break;
-	case 14:
-		average_charts_tface_uv();
-		break;
-	}
-}
-#endif
-
 static void image_uvsmenu(bContext *C, uiMenuItem *head, void *arg_unused)
 {
 	bScreen *sc= CTX_wm_screen(C);
@@ -435,8 +330,8 @@ static void image_uvsmenu(bContext *C, uiMenuItem *head, void *arg_unused)
 	ImBuf *ibuf;
 	
 	/* retrieve state */
-	ima= get_space_image(sima);
-	ibuf= get_space_image_buffer(sima);
+	ima= ED_space_image(sima);
+	ibuf= ED_space_image_buffer(sima);
 
 	RNA_pointer_create(&sc->id, &RNA_SpaceUVEditor, sima, &uvptr);
 	RNA_id_pointer_create(&scene->id, &sceneptr);
@@ -526,13 +421,6 @@ static void do_image_buttons(bContext *C, void *arg, int event)
 	}
 	
 	switch(event) {
-	case B_SIMAPIN:
-		allqueue (REDRAWIMAGE, 0);
-		break;
-	case B_SIMAGEHOME:
-		image_home();
-		break;
-
 	case B_SIMABROWSE:	
 		if(sima->imanr== -2) {
 			if(G.qual & LR_CTRLKEY) {
@@ -576,14 +464,6 @@ static void do_image_buttons(bContext *C, void *arg, int event)
 	case B_SIMA_REDR_IMA_3D:
 		allqueue(REDRAWVIEW3D, 0);
 		allqueue(REDRAWIMAGE, 0);
-		break;
-	case B_SIMAGEPAINTTOOL:
-		if(sima->flag & SI_DRAWTOOL)
-			/* add new brush if none exists */
-			brush_check_exists(&G.scene->toolsettings->imapaint.brush);
-		allqueue(REDRAWBUTSSHADING, 0);
-		allqueue(REDRAWIMAGE, 0);
-		allqueue(REDRAWVIEW3D, 0);
 		break;
 
 	case B_SIMAPACKIMA:
@@ -806,26 +686,19 @@ static void sima_idpoin_handle(bContext *C, ID *id, int event)
 	switch(event) {
 		case UI_ID_BROWSE:
 		case UI_ID_DELETE:
-			set_space_image(sima, scene, obedit, sima->image);
-
-			if(sima->image && sima->image->id.us==0)
-				sima->image->id.us= 1;
-
-			ED_area_tag_redraw(CTX_wm_area(C));
+			ED_space_image_set(C, sima, scene, obedit, sima->image);
 			ED_undo_push(C, "Assign Image UV");
 			break;
 		case UI_ID_RENAME:
 			break;
 		case UI_ID_ADD_NEW:
-			/* XXX not implemented */
+			WM_operator_name_call(C, "IMAGE_OT_new", WM_OP_INVOKE_REGION_WIN, NULL);
 			break;
 		case UI_ID_OPEN:
-			/* XXX not implemented */
-			break;
-		case UI_ID_ALONE:
-			/* XXX not implemented */
+			WM_operator_name_call(C, "IMAGE_OT_open", WM_OP_INVOKE_REGION_WIN, NULL);
 			break;
 		case UI_ID_PIN:
+			ED_area_tag_refresh(CTX_wm_area(C));
 			break;
 	}
 }
@@ -841,15 +714,15 @@ void image_header_buttons(const bContext *C, ARegion *ar)
 	uiBlock *block;
 	uiBut *but;
 	PointerRNA spaceptr, uvptr, sceneptr;
-	int xco, yco= 3, show_uvedit, show_render, show_paint;
+	int xco, yco= 3, show_uvedit, show_render, show_paint, pinflag;
 
 	/* retrieve state */
-	ima= get_space_image(sima);
-	ibuf= get_space_image_buffer(sima);
+	ima= ED_space_image(sima);
+	ibuf= ED_space_image_buffer(sima);
 
-	show_render= get_space_image_show_render(sima);
-	show_paint= get_space_image_show_paint(sima);
-	show_uvedit= get_space_image_show_uvedit(sima, CTX_data_edit_object(C));
+	show_render= ED_space_image_show_render(sima);
+	show_paint= ED_space_image_show_paint(sima);
+	show_uvedit= ED_space_image_show_uvedit(sima, CTX_data_edit_object(C));
 
 	RNA_pointer_create(&sc->id, &RNA_SpaceImageEditor, sima, &spaceptr);
 	RNA_pointer_create(&sc->id, &RNA_SpaceUVEditor, sima, &uvptr);
@@ -894,35 +767,27 @@ void image_header_buttons(const bContext *C, ARegion *ar)
 
 	/* image select */
 
+	pinflag= (show_render)? 0: UI_ID_PIN;
 	xco= uiDefIDPoinButs(block, CTX_data_main(C), NULL, (ID**)&sima->image, ID_IM, &sima->pin, xco, yco,
-		sima_idpoin_handle, UI_ID_BROWSE|UI_ID_BROWSE_RENDER|UI_ID_RENAME|UI_ID_ADD_NEW|UI_ID_OPEN|UI_ID_DELETE|UI_ID_ALONE|UI_ID_PIN);
+		sima_idpoin_handle, UI_ID_BROWSE|UI_ID_BROWSE_RENDER|UI_ID_RENAME|UI_ID_ADD_NEW|UI_ID_OPEN|UI_ID_DELETE|pinflag);
 	xco += 8;
 
-#if 0
-	char naam[256];
-	
-	/* This should not be a static var */
-	static int headerbuttons_packdummy;
-	
-	headerbuttons_packdummy = 0;
-
-	int allow_pin= (show_render)? 0: B_SIMAPIN;
-	
-	xco= 8 + std_libbuttons(block, xco, yco, allow_pin, &sima->pin, B_SIMABROWSE, ID_IM, 0, (ID *)ima, 0, &(sima->imanr), 0, 0, B_IMAGEDELETE, 0, 0);
-	
 	if(ima && !ELEM3(ima->source, IMA_SRC_SEQUENCE, IMA_SRC_MOVIE, IMA_SRC_VIEWER) && ima->ok) {
+		/* XXX this should not be a static var */
+		static int headerbuttons_packdummy;
+		
+		headerbuttons_packdummy = 0;
 
 		if (ima->packedfile) {
 			headerbuttons_packdummy = 1;
 		}
 		if (ima->packedfile && ibuf && (ibuf->userflags & IB_BITMAPDIRTY))
-			uiDefIconButBitI(block, TOG, 1, B_SIMA_REPACK, ICON_UGLYPACKAGE,	xco,yco,XIC,YIC, &headerbuttons_packdummy, 0, 0, 0, 0, "Re-Pack this image as PNG");
+			uiDefIconButBitI(block, TOG, 1, 0 /* XXX B_SIMA_REPACK */, ICON_UGLYPACKAGE,	xco,yco,XIC,YIC, &headerbuttons_packdummy, 0, 0, 0, 0, "Re-Pack this image as PNG");
 		else
-			uiDefIconButBitI(block, TOG, 1, B_SIMAPACKIMA, ICON_PACKAGE,	xco,yco,XIC,YIC, &headerbuttons_packdummy, 0, 0, 0, 0, "Pack/Unpack this image");
+			uiDefIconButBitI(block, TOG, 1, 0 /* XXX B_SIMAPACKIMA */, ICON_PACKAGE,	xco,yco,XIC,YIC, &headerbuttons_packdummy, 0, 0, 0, 0, "Pack/Unpack this image");
 			
 		xco+= XIC+8;
 	}
-#endif
 	
 	/* uv editing */
 	if(show_uvedit) {
@@ -958,7 +823,7 @@ void image_header_buttons(const bContext *C, ARegion *ar)
 				xco+=XIC,yco,XIC,YIC, &scene->toolsettings->uv_selectmode, 1.0, UV_SELECT_EDGE, 0, 0, "Edge select mode");
 			uiDefIconButS(block, ROW, B_REDR, ICON_FACESEL,
 				xco+=XIC,yco,XIC,YIC, &scene->toolsettings->uv_selectmode, 1.0, UV_SELECT_FACE, 0, 0, "Face select mode");
-			uiDefIconButS(block, ROW, B_REDR, ICON_MESH,
+			uiDefIconButS(block, ROW, B_REDR, ICON_LINKEDSEL,
 				xco+=XIC,yco,XIC,YIC, &scene->toolsettings->uv_selectmode, 1.0, UV_SELECT_ISLAND, 0, 0, "Island select mode");
 
 			uiBlockEndAlign(block);
@@ -988,7 +853,7 @@ void image_header_buttons(const bContext *C, ARegion *ar)
 		}
 
 		uiBlockEndAlign(block);
-		xco+= 10;
+		xco+= 8;
 
 		/* uv layers */
 		{
@@ -1001,14 +866,14 @@ void image_header_buttons(const bContext *C, ARegion *ar)
 			but = uiDefButI(block, MENU, B_NOP, menustr ,xco,yco,85,YIC, &act, 0, 0, 0, 0, "Active UV Layer for editing.");
 			// uiButSetFunc(but, do_image_buttons_set_uvlayer_callback, &act, NULL);
 			
-			xco+= 90;
+			xco+= 85;
 		}
+
+		xco+= 8;
 	}
 	
 	if(ima) {
 		RenderResult *rr;
-		
-		xco+= 8;
 	
 		/* render layers and passes */
 		rr= BKE_image_get_renderresult(scene, ima);
@@ -1046,7 +911,7 @@ void image_header_buttons(const bContext *C, ARegion *ar)
 		/* record & play */
 		uiBlockBeginAlign(block);
 		if(ima->type==IMA_TYPE_COMPOSITE) {
-//XXX			uiDefIconButO(block, BUT, "IMAGE_OT_record_composite", WM_OP_INVOKE_REGION_WIN, ICON_REC, xco, yco, XIC, YIC, NULL); // Record Composite
+			uiDefIconButO(block, BUT, "IMAGE_OT_record_composite", WM_OP_INVOKE_REGION_WIN, ICON_REC, xco, yco, XIC, YIC, NULL); // Record Composite
 			xco+= XIC;
 		}
 		if((ima->type==IMA_TYPE_COMPOSITE) || ELEM(ima->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE)) {
@@ -1076,7 +941,7 @@ static int toolbox_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	uiMenuItem *head;
 	int show_uvedit;
 
-	show_uvedit= get_space_image_show_uvedit(sima, obedit);
+	show_uvedit= ED_space_image_show_uvedit(sima, obedit);
 
 	head= uiPupMenuBegin("Toolbox", 0);
 
@@ -1100,5 +965,4 @@ void IMAGE_OT_toolbox(wmOperatorType *ot)
 	ot->invoke= toolbox_invoke;
 	ot->poll= space_image_main_area_poll;
 }
-
 

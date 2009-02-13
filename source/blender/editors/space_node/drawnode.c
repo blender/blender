@@ -272,12 +272,12 @@ static int node_buts_time(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *b
 		short dx= (short)((butr->xmax-butr->xmin)/2);
 		butr->ymin += 26;
 
-		// XXX curvemap_buttons(block, node->storage, 's', B_NODE_EXEC, B_REDR, butr);
+		curvemap_buttons(block, node->storage, 's', B_NODE_EXEC, B_REDR, butr);
 		
 		if(cumap) {
-			cumap->flag |= CUMA_DRAW_CFRA;
-			if(node->custom1<node->custom2)
-				;// XXX cumap->sample[0]= (float)(CFRA - node->custom1)/(float)(node->custom2-node->custom1);
+			//cumap->flag |= CUMA_DRAW_CFRA;
+			//if(node->custom1<node->custom2)
+			//	cumap->sample[0]= (float)(CFRA - node->custom1)/(float)(node->custom2-node->custom1);
 		}
 
 		uiBlockBeginAlign(block);
@@ -305,7 +305,7 @@ static int node_buts_valtorgb(uiBlock *block, bNodeTree *ntree, bNode *node, rct
 static int node_buts_curvevec(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
 {
 	if(block) {
-		; // XXX curvemap_buttons(block, node->storage, 'v', B_NODE_EXEC, B_REDR, butr);
+		curvemap_buttons(block, node->storage, 'v', B_NODE_EXEC, B_REDR, butr);
 	}	
 	return (int)(node->width-NODE_DY);
 }
@@ -327,7 +327,7 @@ static int node_buts_curvecol(uiBlock *block, bNodeTree *ntree, bNode *node, rct
 		else 
 			cumap->flag &= ~CUMA_DRAW_SAMPLE;
 
-		// XXX curvemap_buttons(block, node->storage, 'c', B_NODE_EXEC, B_REDR, butr);
+		curvemap_buttons(block, node->storage, 'c', B_NODE_EXEC, B_REDR, butr);
 	}	
 	return (int)(node->width-NODE_DY);
 }
@@ -2583,7 +2583,7 @@ void node_draw_link_bezier(View2D *v2d, SpaceNode *snode, bNodeLink *link, int t
 		dist = 1.0f/(float)LINK_RESOL;
 		
 		glBegin(GL_LINE_STRIP);
-		for(i=0; i<LINK_RESOL; i++) {
+		for(i=0; i<=LINK_RESOL; i++) {
 			if(do_shaded) {
 				UI_ThemeColorBlend(th_col1, th_col2, spline_step);
 				spline_step += dist;

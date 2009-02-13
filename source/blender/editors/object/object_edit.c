@@ -422,10 +422,10 @@ void OBJECT_OT_mesh_add(wmOperatorType *ot)
 }
 
 static EnumPropertyItem prop_curve_types[] = {
-	{CU_BEZIER|CU_2D|CU_PRIM_CURVE, "BEZCURVE", "Bezier Curve", ""},
-	{CU_BEZIER|CU_2D|CU_PRIM_CIRCLE, "BEZCIRCLE", "Bezier Circle", ""},
-	{CU_NURBS|CU_2D|CU_PRIM_CURVE, "NURBSCUVE", "NURBS Curve", ""},
-	{CU_NURBS|CU_2D|CU_PRIM_CIRCLE, "NURBSCIRCLE", "NURBS Circle", ""},
+	{CU_BEZIER|CU_2D|CU_PRIM_CURVE, "BEZIER_CURVE", "Bezier Curve", ""},
+	{CU_BEZIER|CU_2D|CU_PRIM_CIRCLE, "BEZIER_CIRCLE", "Bezier Circle", ""},
+	{CU_NURBS|CU_2D|CU_PRIM_CURVE, "NURBS_CURVE", "NURBS Curve", ""},
+	{CU_NURBS|CU_2D|CU_PRIM_CIRCLE, "NURBS_CIRCLE", "NURBS Circle", ""},
 	{CU_NURBS|CU_2D|CU_PRIM_PATH, "PATH", "Path", ""},
 	{0, NULL, NULL, NULL}
 };
@@ -477,19 +477,60 @@ void OBJECT_OT_curve_add(wmOperatorType *ot)
 }
 
 
+static int object_add_armature_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	int newob= 0;
+	
+	if ((obedit==NULL) || (obedit->type != OB_ARMATURE)) {
+		object_add_type(C, OB_ARMATURE);
+		ED_object_enter_editmode(C, 0);
+		newob = 1;
+	}
+	else DAG_object_flush_update(CTX_data_scene(C), obedit, OB_RECALC_DATA);
+	
+	//nu= addNurbprim(C, RNA_enum_get(op->ptr, "type"), newob);
+	//editnurb= curve_get_editcurve(CTX_data_edit_object(C));
+	//BLI_addtail(editnurb, nu);
+	
+	/* userdef */
+	if (newob && (U.flag & USER_ADD_EDITMODE)==0) {
+		ED_object_exit_editmode(C, EM_FREEDATA);
+	}
+	
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_armature_add(wmOperatorType *ot)
+{	
+	/* identifiers */
+	ot->name= "Add Armature";
+	ot->idname= "OBJECT_OT_armature_add";
+	
+	/* api callbacks */
+	ot->exec= object_add_armature_exec;
+	ot->poll= ED_operator_scene_editable;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+
 static int object_add_primitive_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	uiMenuItem *head= uiPupMenuBegin("Add Object", 0);
 	
 	uiMenuLevelEnumO(head, "OBJECT_OT_mesh_add", "type");
 	uiMenuLevelEnumO(head, "OBJECT_OT_curve_add", "type");
-	uiMenuItemEnumO(head, 0, "OBJECT_OT_object_add", "type", OB_SURF);
-	uiMenuItemEnumO(head, 0, "OBJECT_OT_object_add", "type", OB_MBALL);
-	uiMenuItemEnumO(head, 0, "OBJECT_OT_object_add", "type", OB_CAMERA);
-	uiMenuItemEnumO(head, 0, "OBJECT_OT_object_add", "type", OB_LAMP);
-	uiMenuItemEnumO(head, 0, "OBJECT_OT_object_add", "type", OB_EMPTY);
-	uiMenuItemEnumO(head, 0, "OBJECT_OT_object_add", "type", OB_ARMATURE);
-	uiMenuItemEnumO(head, 0, "OBJECT_OT_object_add", "type", OB_LATTICE);
+	uiMenuItemEnumO(head, "", 0, "OBJECT_OT_object_add", "type", OB_SURF);
+	uiMenuItemEnumO(head, "", 0, "OBJECT_OT_object_add", "type", OB_MBALL);
+	uiMenuItemEnumO(head, "", 0, "OBJECT_OT_object_add", "type", OB_CAMERA);
+	uiMenuItemEnumO(head, "", 0, "OBJECT_OT_object_add", "type", OB_LAMP);
+	uiMenuItemEnumO(head, "", 0, "OBJECT_OT_object_add", "type", OB_EMPTY);
+	uiMenuItemEnumO(head, "", 0, "OBJECT_OT_armature_add", "type", OB_ARMATURE);
+	uiMenuItemEnumO(head, "", 0, "OBJECT_OT_object_add", "type", OB_LATTICE);
 	
 	uiPupMenuEnd(C, head);
 	
@@ -1665,7 +1706,6 @@ void OBJECT_OT_select_random(wmOperatorType *ot)
 
 static int object_clear_location_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene= CTX_data_scene(C);
 	int armature_clear= 0;
 
 	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
@@ -1708,7 +1748,6 @@ void OBJECT_OT_clear_location(wmOperatorType *ot)
 
 static int object_clear_rotation_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene= CTX_data_scene(C);
 	int armature_clear= 0;
 
 	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
@@ -1752,7 +1791,6 @@ void OBJECT_OT_clear_rotation(wmOperatorType *ot)
 
 static int object_clear_scale_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene= CTX_data_scene(C);
 	int armature_clear= 0;
 
 	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
@@ -1777,7 +1815,7 @@ static int object_clear_scale_exec(bContext *C, wmOperator *op)
 	if(armature_clear==0) /* in this case flush was done */
 		ED_anim_dag_flush_update(C);	
 	
-	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, CTX_data_scene(C));
+	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
 	
 	return OPERATOR_FINISHED;
 }
@@ -2408,20 +2446,20 @@ static int make_parent_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	uiMenuItem *head= uiPupMenuBegin("Make Parent To", 0);
 	
 	uiMenuContext(head, WM_OP_EXEC_DEFAULT);
-	uiMenuItemEnumO(head, 0, "OBJECT_OT_make_parent", "type", PAR_OBJECT);
+	uiMenuItemEnumO(head, "", 0, "OBJECT_OT_make_parent", "type", PAR_OBJECT);
 	
 	/* ob becomes parent, make the associated menus */
 	if(ob->type==OB_ARMATURE) {
-		uiMenuItemEnumO(head, 0, "OBJECT_OT_make_parent", "type", PAR_ARMATURE);
-		uiMenuItemEnumO(head, 0, "OBJECT_OT_make_parent", "type", PAR_BONE);
+		uiMenuItemEnumO(head, "", 0, "OBJECT_OT_make_parent", "type", PAR_ARMATURE);
+		uiMenuItemEnumO(head, "", 0, "OBJECT_OT_make_parent", "type", PAR_BONE);
 	}
 	else if(ob->type==OB_CURVE) {
-		uiMenuItemEnumO(head, 0, "OBJECT_OT_make_parent", "type", PAR_CURVE);
-		uiMenuItemEnumO(head, 0, "OBJECT_OT_make_parent", "type", PAR_FOLLOW);
-		uiMenuItemEnumO(head, 0, "OBJECT_OT_make_parent", "type", PAR_PATH_CONST);
+		uiMenuItemEnumO(head, "", 0, "OBJECT_OT_make_parent", "type", PAR_CURVE);
+		uiMenuItemEnumO(head, "", 0, "OBJECT_OT_make_parent", "type", PAR_FOLLOW);
+		uiMenuItemEnumO(head, "", 0, "OBJECT_OT_make_parent", "type", PAR_PATH_CONST);
 	}
 	else if(ob->type == OB_LATTICE) {
-		uiMenuItemEnumO(head, 0, "OBJECT_OT_make_parent", "type", PAR_LATTICE);
+		uiMenuItemEnumO(head, "", 0, "OBJECT_OT_make_parent", "type", PAR_LATTICE);
 	}
 	
 	uiPupMenuEnd(C, head);
@@ -3041,7 +3079,7 @@ void ED_object_exit_editmode(bContext *C, int flag)
 	
 	if(flag & EM_WAITCURSOR) waitcursor(0);
 	
-	WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_MODE_OBJECT, ob);
+	WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_MODE_OBJECT, scene);
 
 }
 
@@ -3083,7 +3121,7 @@ void ED_object_enter_editmode(bContext *C, int flag)
 		
 		make_editMesh(scene, ob);
 
-		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_EDITMODE_MESH, ob);
+		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_EDITMODE_MESH, scene);
 	}
 	else if (ob->type==OB_ARMATURE){
 		bArmature *arm= base->object->data;
@@ -5953,7 +5991,6 @@ static int add_duplicate_exec(bContext *C, wmOperator *op)
 
 static int add_duplicate_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	
 	add_duplicate_exec(C, op);
 	
 	RNA_int_set(op->ptr, "mode", TFM_TRANSLATION);
@@ -5981,7 +6018,6 @@ void OBJECT_OT_add_duplicate(wmOperatorType *ot)
 	/* to give to transform */
 	RNA_def_int(ot->srna, "mode", TFM_TRANSLATION, 0, INT_MAX, "Mode", "", 0, INT_MAX);
 }
-
 
 /* ********************** */
 

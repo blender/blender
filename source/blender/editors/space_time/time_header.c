@@ -43,6 +43,7 @@
 #include "BKE_global.h"
 #include "BKE_screen.h"
 
+#include "ED_keyframing.h"
 #include "ED_screen.h"
 #include "ED_types.h"
 #include "ED_util.h"
@@ -222,9 +223,9 @@ static uiBlock *time_viewmenu(bContext *C, ARegion *ar, void *arg_unused)
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
 	if(stime->flag & TIME_DRAWFRAMES)
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show Seconds|T", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show Seconds|Ctrl T", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
 	else 
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show Frames|T", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show Frames|Ctrl T", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
 	
 	uiDefIconTextBut(block, BUTM, 1, (stime->flag & TIME_ONLYACTSEL)?ICON_CHECKBOX_HLT:ICON_CHECKBOX_DEHLT, 
 					 "Only Selected Data Keys|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 12, "");
@@ -429,6 +430,7 @@ void time_header_buttons(const bContext *C, ARegion *ar)
 	Scene *scene= CTX_data_scene(C);
 	uiBlock *block;
 	int xco, yco= 3;
+	char *menustr= NULL;
 	
 	block= uiBeginBlock(C, ar, "header buttons", UI_EMBOSS, UI_HELV);
 	uiBlockSetHandleFunc(block, do_time_buttons, NULL);
@@ -469,28 +471,28 @@ void time_header_buttons(const bContext *C, ARegion *ar)
 	
 	if (scene->r.psfra) {
 		uiDefButI(block, NUM, B_REDRAWALL,"Start:",	
-				  xco,yco, 4.5*XIC, YIC,
+				  xco,yco, (int)4.5*XIC, YIC,
 				  &scene->r.psfra,MINFRAMEF, MAXFRAMEF, 0, 0,
 				  "The start frame of the animation preview (inclusive)");
 		
-		xco += (short)(4.5*XIC);
+		xco += (int)(4.5*XIC);
 		
 		uiDefButI(block, NUM, B_REDRAWALL,"End:",	
-				  xco,yco,4.5*XIC,YIC,
-				  &scene->r.pefra,PSFRA,MAXFRAMEF, 0, 0,
+				  xco,yco, (int)4.5*XIC,YIC,
+				  &scene->r.pefra,(float)PSFRA, MAXFRAMEF, 0, 0,
 				  "The end frame of the animation preview (inclusive)");
 	}
 	else {
 		uiDefButI(block, NUM, B_REDRAWALL,"Start:",	
-				  xco,yco, 4.5*XIC, YIC,
+				  xco,yco, (int)4.5*XIC, YIC,
 				  &scene->r.sfra,MINFRAMEF, MAXFRAMEF, 0, 0,
 				  "The start frame of the animation (inclusive)");
 		
 		xco += (short)(4.5*XIC);
 		
 		uiDefButI(block, NUM, B_REDRAWALL,"End:",	
-				  xco,yco,4.5*XIC,YIC,
-				  &scene->r.efra,(float)SFRA,MAXFRAMEF, 0, 0,
+				  xco,yco, (int)4.5*XIC,YIC,
+				  &scene->r.efra,(float)SFRA, MAXFRAMEF, 0, 0,
 				  "The end frame of the animation (inclusive)");
 	}
 	uiBlockEndAlign(block);
@@ -498,7 +500,7 @@ void time_header_buttons(const bContext *C, ARegion *ar)
 	xco += (short)(4.5 * XIC + 16);
 	
 	uiDefButI(block, NUM, B_NEWFRAME, "",
-			  xco,yco,3.5*XIC,YIC,
+			  xco,yco, (int)3.5*XIC,YIC,
 			  &(scene->r.cfra), MINFRAMEF, MAXFRAMEF, 0, 0,
 			  "Displays Current Frame of animation");
 	
@@ -532,18 +534,27 @@ void time_header_buttons(const bContext *C, ARegion *ar)
 	if (scene->autokey_mode & AUTOKEY_ON) {
 		uiDefButS(block, MENU, REDRAWINFO, 
 				  "Auto-Keying Mode %t|Add/Replace Keys%x3|Replace Keys %x5", 
-				  xco, yco, 3.5*XIC, YIC, &(scene->autokey_mode), 0, 1, 0, 0, 
+				  xco, yco, (int)3.5*XIC, YIC, &(scene->autokey_mode), 0, 1, 0, 0, 
 				  "Mode of automatic keyframe insertion for Objects and Bones");
 		xco+= (4*XIC);
 	}
 	
 	xco+= 16;
 	
-	uiDefIconBut(block, BUT, B_TL_INSERTKEY, ICON_KEY_HLT,
-				 xco, yco, XIC, YIC, 0, 0, 0, 0, 0, "Insert Keyframe for the context of the largest area (IKEY)");
-	xco+= XIC+4;
+	
+	menustr= ANIM_build_keyingsets_menu(&scene->keyingsets, 0);
+	uiDefButI(block, MENU, B_DIFF, 
+				  menustr, 
+				  xco, yco, (int)5.5*XIC, YIC, &(scene->active_keyingset), 0, 1, 0, 0, 
+				  "Active Keying Set (i.e. set of channels to Insert Keyframes for)");
+	MEM_freeN(menustr);
+	xco+= (6*XIC);
+	
 	uiDefIconBut(block, BUT, B_TL_DELETEKEY, ICON_KEY_DEHLT,
 				 xco, yco, XIC, YIC, 0, 0, 0, 0, 0, "Delete Keyframe for the context of the largest area (ALTKEY-IKEY)");
+	xco+= XIC+4;
+	uiDefIconBut(block, BUT, B_TL_INSERTKEY, ICON_KEY_HLT,
+				 xco, yco, XIC, YIC, 0, 0, 0, 0, 0, "Insert Keyframe for the context of the largest area (IKEY)");
 	xco+= XIC+4;
 	
 	xco+= 16;
@@ -553,7 +564,7 @@ void time_header_buttons(const bContext *C, ARegion *ar)
 	
 	
 	/* always as last  */
-	UI_view2d_totRect_set(&ar->v2d, xco+XIC+80, ar->v2d.tot.ymax-ar->v2d.tot.ymin);
+	UI_view2d_totRect_set(&ar->v2d, xco+XIC+80, (int)(ar->v2d.tot.ymax-ar->v2d.tot.ymin));
 	
 	uiEndBlock(C, block);
 	uiDrawBlock(C, block);

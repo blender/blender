@@ -439,19 +439,21 @@ void ui_theme_init_userdef(void)
 	SETCOL(btheme->tipo.back, 	120, 120, 120, 255);
 	SETCOL(btheme->tipo.header, 195, 195, 195, 255);
 	SETCOL(btheme->tipo.panel,  255, 255, 255, 150);
-	SETCOL(btheme->tipo.shade1,  172, 172, 172, 100);
-	SETCOL(btheme->tipo.shade2,  0x70, 0x70, 0x70, 100);
-	SETCOL(btheme->tipo.vertex, 0xff, 0x70, 0xff, 255);
-	SETCOL(btheme->tipo.vertex_select, 0xff, 0xff, 0x70, 255);
+	SETCOL(btheme->tipo.shade1,		172, 172, 172, 100);
+	SETCOL(btheme->tipo.shade2,		0x70, 0x70, 0x70, 100);
+	SETCOL(btheme->tipo.vertex,		0, 0, 0, 255);
+	SETCOL(btheme->tipo.vertex_select, 255, 133, 0, 255);
 	SETCOL(btheme->tipo.hilite, 0x60, 0xc0, 0x40, 255); 
 	btheme->tipo.vertex_size= 3;
 
-	SETCOL(btheme->tipo.handle_vertex, 0xff, 0x70, 0xff, 255);
-	SETCOL(btheme->tipo.handle_vertex_select, 0xff, 0xff, 0x70, 255);
+	SETCOL(btheme->tipo.handle_vertex, 		0, 0, 0, 255);
+	SETCOL(btheme->tipo.handle_vertex_select, 255, 133, 0, 255);
 	btheme->tipo.handle_vertex_size= 3;
 	
-	SETCOL(btheme->tipo.ds_channel, 0x36, 0x13, 0xca, 255);
-	SETCOL(btheme->tipo.ds_subchannel, 0x60, 0x43, 0xd2, 255);
+	SETCOL(btheme->tipo.ds_channel, 	82, 96, 110, 255);
+	SETCOL(btheme->tipo.ds_subchannel,	124, 137, 150, 255);
+	SETCOL(btheme->tipo.group, 79, 101, 73, 255);
+	SETCOL(btheme->tipo.group_active, 135, 177, 125, 255);
 
 	/* space file */
 	/* to have something initialized */
@@ -476,10 +478,10 @@ void ui_theme_init_userdef(void)
 	SETCOL(btheme->tact.hilite,  255, 160, 0, 100);	// bar
 	SETCOL(btheme->tact.strip_select, 	255, 160, 0, 255);
 	SETCOL(btheme->tact.strip, 78, 78, 78, 255);
-	SETCOL(btheme->tact.group, 22, 112, 0, 255);
-	SETCOL(btheme->tact.group_active, 125, 233, 96, 255);
-	SETCOL(btheme->tact.ds_channel, 0x36, 0x13, 0xca, 255);
-	SETCOL(btheme->tact.ds_subchannel, 0x60, 0x43, 0xd2, 255);
+	SETCOL(btheme->tact.group, 79, 101, 73, 255);
+	SETCOL(btheme->tact.group_active, 135, 177, 125, 255)
+	SETCOL(btheme->tact.ds_channel, 82, 96, 110, 255);
+	SETCOL(btheme->tact.ds_subchannel, 124, 137, 150, 255);
 
 
 	/* space nla */
@@ -511,12 +513,12 @@ void ui_theme_init_userdef(void)
 	/* space image */
 	btheme->tima= btheme->tv3d;
 	SETCOL(btheme->tima.back, 	53, 53, 53, 255);
-	SETCOL(btheme->tima.vertex, 0xff, 0x70, 0xff, 255);
-	SETCOL(btheme->tima.vertex_select, 0xff, 0xff, 0x70, 255);
-	btheme->tima.vertex_size= 2;
-	btheme->tima.facedot_size= 2;
-	SETCOL(btheme->tima.face,   0, 50, 150, 40);
-	SETCOL(btheme->tima.face_select, 200, 100, 200, 80);
+	SETCOL(btheme->tima.vertex, 0, 0, 0, 255);
+	SETCOL(btheme->tima.vertex_select, 255, 133, 0, 255);
+	btheme->tima.vertex_size= 3;
+	btheme->tima.facedot_size= 3;
+	SETCOL(btheme->tima.face,   255, 255, 255, 10);
+	SETCOL(btheme->tima.face_select, 255, 133, 0, 60);
 	SETCOL(btheme->tima.editmesh_active, 255, 255, 255, 128);
 
 	/* space imageselect */

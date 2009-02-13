@@ -28,6 +28,7 @@
 #ifndef ED_UVEDIT_H
 #define ED_UVEDIT_H
 
+struct bContext;
 struct Scene;
 struct Object;
 struct MTFace;
@@ -40,7 +41,7 @@ void ED_operatortypes_uvedit(void);
 void ED_keymap_uvedit(struct wmWindowManager *wm);
 
 void ED_uvedit_assign_image(struct Scene *scene, struct Object *obedit, struct Image *ima, struct Image *previma);
-void ED_uvedit_set_tile(struct Scene *scene, struct Object *obedit, struct Image *ima, int curtile, int dotile);
+void ED_uvedit_set_tile(struct bContext *C, struct Scene *scene, struct Object *obedit, struct Image *ima, int curtile, int dotile);
 int ED_uvedit_minmax(struct Scene *scene, struct Image *ima, struct Object *obedit, float *min, float *max);
 
 int ED_uvedit_test_silent(struct Object *obedit);

@@ -101,9 +101,6 @@ static SpaceLink *image_new(const bContext *C)
 	BLI_addtail(&simage->regionbase, ar);
 	ar->regiontype= RGN_TYPE_WINDOW;
 	
-	/* channel list region XXX */
-
-	
 	return (SpaceLink *)simage;
 }
 
@@ -147,6 +144,21 @@ void image_operatortypes(void)
 	WM_operatortype_append(IMAGE_OT_view_zoom_out);
 	WM_operatortype_append(IMAGE_OT_view_zoom_ratio);
 
+	WM_operatortype_append(IMAGE_OT_new);
+	WM_operatortype_append(IMAGE_OT_open);
+	WM_operatortype_append(IMAGE_OT_replace);
+	WM_operatortype_append(IMAGE_OT_reload);
+	WM_operatortype_append(IMAGE_OT_save);
+	WM_operatortype_append(IMAGE_OT_save_as);
+	WM_operatortype_append(IMAGE_OT_save_sequence);
+	WM_operatortype_append(IMAGE_OT_pack);
+	WM_operatortype_append(IMAGE_OT_unpack);
+
+	WM_operatortype_append(IMAGE_OT_sample);
+	WM_operatortype_append(IMAGE_OT_set_curves_point);
+
+	WM_operatortype_append(IMAGE_OT_record_composite);
+
 	WM_operatortype_append(IMAGE_OT_toolbox);
 }
 
@@ -172,6 +184,15 @@ void image_keymap(struct wmWindowManager *wm)
 	RNA_float_set(WM_keymap_add_item(keymap, "IMAGE_OT_view_zoom_ratio", PAD4, KM_PRESS, 0, 0)->ptr, "ratio", 0.25f);
 	RNA_float_set(WM_keymap_add_item(keymap, "IMAGE_OT_view_zoom_ratio", PAD8, KM_PRESS, 0, 0)->ptr, "ratio", 0.125f);
 
+	WM_keymap_add_item(keymap, "IMAGE_OT_new", NKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_add_item(keymap, "IMAGE_OT_open", OKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_add_item(keymap, "IMAGE_OT_reload", RKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_add_item(keymap, "IMAGE_OT_save", SKEY, KM_PRESS, KM_ALT, 0);
+
+	WM_keymap_add_item(keymap, "IMAGE_OT_sample", ACTIONMOUSE, KM_PRESS, 0, 0);
+	RNA_enum_set(WM_keymap_add_item(keymap, "IMAGE_OT_set_curves_point", ACTIONMOUSE, KM_PRESS, KM_CTRL, 0)->ptr, "point", 0);
+	RNA_enum_set(WM_keymap_add_item(keymap, "IMAGE_OT_set_curves_point", ACTIONMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "point", 1);
+
 	WM_keymap_add_item(keymap, "IMAGE_OT_toolbox", SPACEKEY, KM_PRESS, 0, 0);
 }
 
@@ -181,7 +202,7 @@ static void image_refresh(const bContext *C, ScrArea *sa)
 	Object *obedit= CTX_data_edit_object(C);
 	Image *ima;
 
-	ima= get_space_image(sima);
+	ima= ED_space_image(sima);
 
 	/* check if we have to set the image from the editmesh */
 	if(ima && (ima->source==IMA_SRC_VIEWER || sima->pin));
@@ -190,7 +211,7 @@ static void image_refresh(const bContext *C, ScrArea *sa)
 		EditMesh *em= me->edit_mesh;
 		MTFace *tf;
 		
-		if(EM_texFaceCheck(em)) {
+		if(em && EM_texFaceCheck(em)) {
 			sima->image= ima= NULL;
 			
 			tf = EM_get_active_mtface(em, NULL, NULL, 1); /* partially selected face is ok */
@@ -215,6 +236,8 @@ static void image_refresh(const bContext *C, ScrArea *sa)
 
 static void image_listener(ScrArea *sa, wmNotifier *wmn)
 {
+	SpaceImage *sima= sa->spacedata.first;
+
 	/* context changes */
 	switch(wmn->category) {
 		case NC_SCENE:
@@ -227,6 +250,10 @@ static void image_listener(ScrArea *sa, wmNotifier *wmn)
 					break;
 			}
 			break;
+		case NC_IMAGE:	
+			if(!wmn->reference || wmn->reference == sima->image)
+				ED_area_tag_redraw(sa);
+			break;
 	}
 }
 
@@ -235,11 +262,11 @@ static int image_context(const bContext *C, bContextDataMember member, bContextD
 	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
 
 	if(member == CTX_DATA_EDIT_IMAGE) {
-		CTX_data_pointer_set(result, get_space_image(sima));
+		CTX_data_pointer_set(result, ED_space_image(sima));
 		return 1;
 	}
 	else if(member == CTX_DATA_EDIT_IMAGE_BUFFER) {
-		CTX_data_pointer_set(result, get_space_image_buffer(sima));
+		CTX_data_pointer_set(result, ED_space_image_buffer(sima));
 		return 1;
 	}
 
@@ -251,17 +278,17 @@ static int image_context(const bContext *C, bContextDataMember member, bContextD
 /* sets up the fields of the View2D from zoom and offset */
 static void image_main_area_set_view2d(SpaceImage *sima, ARegion *ar)
 {
-	Image *ima= get_space_image(sima);
+	Image *ima= ED_space_image(sima);
 	float x1, y1, w, h;
 	int width, height, winx, winy;
 	
 #if 0
 	if(image_preview_active(curarea, &xim, &yim));
 	else if(sima->image) {
-		ImBuf *ibuf= imagewindow_get_ibuf(sima);
+		ImBuf *ibuf= ED_space_image_buffer(sima);
 		float xuser_asp, yuser_asp;
 		
-		image_pixel_aspect(sima->image, &xuser_asp, &yuser_asp);
+		ED_image_aspect(sima->image, &xuser_asp, &yuser_asp);
 		if(ibuf) {
 			xim= ibuf->x * xuser_asp;
 			yim= ibuf->y * yuser_asp;
@@ -274,7 +301,7 @@ static void image_main_area_set_view2d(SpaceImage *sima, ARegion *ar)
 	}
 #endif
 
-	get_space_image_size(sima, &width, &height);
+	ED_space_image_size(sima, &width, &height);
 
 	w= width;
 	h= height;
@@ -354,6 +381,7 @@ static void image_main_area_draw(const bContext *C, ARegion *ar)
 	/* and uvs in 0.0-1.0 space */
 	UI_view2d_view_ortho(C, v2d);
 	draw_uvedit_main(sima, ar, scene, obedit);
+	ED_region_draw_cb_draw(C, ar, REGION_DRAW_POST);
 	UI_view2d_view_restore(C);
 	
 	/* scrollers? */
@@ -367,6 +395,7 @@ static void image_modal_keymaps(wmWindowManager *wm, ARegion *ar, int stype)
 	ListBase *keymap;
 	
 	keymap= WM_keymap_listbase(wm, "UVEdit", 0, 0);
+
 	if(stype==NS_EDITMODE_MESH)
 		WM_event_add_keymap_handler(&ar->handlers, keymap);
 	else
@@ -472,13 +501,13 @@ void ED_spacetype_image(void)
 
 /**************************** common state *****************************/
 
-Image *get_space_image(SpaceImage *sima)
+Image *ED_space_image(SpaceImage *sima)
 {
 	return sima->image;
 }
 
 /* called to assign images to UV faces */
-void set_space_image(SpaceImage *sima, Scene *scene, Object *obedit, Image *ima)
+void ED_space_image_set(bContext *C, SpaceImage *sima, Scene *scene, Object *obedit, Image *ima)
 {
 	ED_uvedit_assign_image(scene, obedit, ima, sima->image);
 
@@ -491,9 +520,17 @@ void set_space_image(SpaceImage *sima, Scene *scene, Object *obedit, Image *ima)
 
 	if(sima->image)
 		BKE_image_signal(sima->image, &sima->iuser, IMA_SIGNAL_USER_NEW_IMAGE);
+
+	if(sima->image && sima->image->id.us==0)
+		sima->image->id.us= 1;
+
+	if(obedit)
+		WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, obedit);
+
+	ED_area_tag_redraw(CTX_wm_area(C));
 }
 
-ImBuf *get_space_image_buffer(SpaceImage *sima)
+ImBuf *ED_space_image_buffer(SpaceImage *sima)
 {
 	ImBuf *ibuf;
 
@@ -512,11 +549,27 @@ ImBuf *get_space_image_buffer(SpaceImage *sima)
 	return NULL;
 }
 
-void get_space_image_size(SpaceImage *sima, int *width, int *height)
+void ED_image_size(Image *ima, int *width, int *height)
 {
 	ImBuf *ibuf;
 
-	ibuf= get_space_image_buffer(sima);
+	ibuf= (ima)? BKE_image_get_ibuf(ima, NULL): NULL;
+
+	if(ibuf && ibuf->x > 0 && ibuf->y > 0) {
+		*width= ibuf->x;
+		*height= ibuf->y;
+	}
+	else {
+		*width= 256;
+		*height= 256;
+	}
+}
+
+void ED_space_image_size(SpaceImage *sima, int *width, int *height)
+{
+	ImBuf *ibuf;
+
+	ibuf= ED_space_image_buffer(sima);
 
 	if(ibuf && ibuf->x > 0 && ibuf->y > 0) {
 		*width= ibuf->x;
@@ -530,12 +583,8 @@ void get_space_image_size(SpaceImage *sima, int *width, int *height)
 	}
 }
 
-void get_space_image_aspect(SpaceImage *sima, float *aspx, float *aspy)
+void ED_image_aspect(Image *ima, float *aspx, float *aspy)
 {
-	Image *ima;
-
-	ima= get_space_image(sima);
-
 	*aspx= *aspy= 1.0;
 
 	if((ima == NULL) || (ima->type == IMA_TYPE_R_RESULT) || (ima->type == IMA_TYPE_COMPOSITE) ||
@@ -546,45 +595,61 @@ void get_space_image_aspect(SpaceImage *sima, float *aspx, float *aspy)
 	*aspy = ima->aspy/ima->aspx;
 }
 
-void get_space_image_zoom(SpaceImage *sima, ARegion *ar, float *zoomx, float *zoomy)
+void ED_space_image_aspect(SpaceImage *sima, float *aspx, float *aspy)
+{
+	ED_image_aspect(ED_space_image(sima), aspx, aspy);
+}
+
+void ED_space_image_zoom(SpaceImage *sima, ARegion *ar, float *zoomx, float *zoomy)
 {
 	int width, height;
 
-	get_space_image_size(sima, &width, &height);
+	ED_space_image_size(sima, &width, &height);
 
 	*zoomx= (float)(ar->winrct.xmax - ar->winrct.xmin)/(float)((ar->v2d.cur.xmax - ar->v2d.cur.xmin)*width);
 	*zoomy= (float)(ar->winrct.ymax - ar->winrct.ymin)/(float)((ar->v2d.cur.ymax - ar->v2d.cur.ymin)*height);
 }
 
-void get_space_image_uv_aspect(SpaceImage *sima, float *aspx, float *aspy)
+void ED_space_image_uv_aspect(SpaceImage *sima, float *aspx, float *aspy)
 {
 	int w, h;
 
-	get_space_image_aspect(sima, aspx, aspy);
-	get_space_image_size(sima, &w, &h);
+	ED_space_image_aspect(sima, aspx, aspy);
+	ED_space_image_size(sima, &w, &h);
+
+	*aspx *= (float)w/256.0f;
+	*aspy *= (float)h/256.0f;
+}
+
+void ED_image_uv_aspect(Image *ima, float *aspx, float *aspy)
+{
+	int w, h;
+
+	ED_image_aspect(ima, aspx, aspy);
+	ED_image_size(ima, &w, &h);
 
 	*aspx *= (float)w;
 	*aspy *= (float)h;
 }
 
-int get_space_image_show_render(SpaceImage *sima)
+int ED_space_image_show_render(SpaceImage *sima)
 {
 	return (sima->image && ELEM(sima->image->type, IMA_TYPE_R_RESULT, IMA_TYPE_COMPOSITE));
 }
 
-int get_space_image_show_paint(SpaceImage *sima)
+int ED_space_image_show_paint(SpaceImage *sima)
 {
-	if(get_space_image_show_render(sima))
+	if(ED_space_image_show_render(sima))
 		return 0;
 
 	return (sima->flag & SI_DRAWTOOL);
 }
 
-int get_space_image_show_uvedit(SpaceImage *sima, Object *obedit)
+int ED_space_image_show_uvedit(SpaceImage *sima, Object *obedit)
 {
-	if(get_space_image_show_render(sima))
+	if(ED_space_image_show_render(sima))
 		return 0;
-	if(get_space_image_show_paint(sima))
+	if(ED_space_image_show_paint(sima))
 		return 0;
 
 	if(obedit && obedit->type == OB_MESH)
@@ -593,33 +658,15 @@ int get_space_image_show_uvedit(SpaceImage *sima, Object *obedit)
 	return 0;
 }
 
-int get_space_image_show_uvshadow(SpaceImage *sima, Object *obedit)
+int ED_space_image_show_uvshadow(SpaceImage *sima, Object *obedit)
 {
-	if(get_space_image_show_render(sima))
+	if(ED_space_image_show_render(sima))
 		return 0;
 
-	if(get_space_image_show_paint(sima))
+	if(ED_space_image_show_paint(sima))
 		if(obedit && obedit->type == OB_MESH)
 			return EM_texFaceCheck(((Mesh*)obedit->data)->edit_mesh);
 
 	return 0;
 }
-
-/* Exported Functions */
-
-Image *ED_space_image(SpaceImage *sima)
-{
-	return get_space_image(sima);
-}
-
-void ED_space_image_size(SpaceImage *sima, int *width, int *height)
-{
-	get_space_image_size(sima, width, height);
-}
-
-void ED_space_image_uv_aspect(SpaceImage *sima, float *aspx, float *aspy)
-{
-	get_space_image_uv_aspect(sima, aspx, aspy);
-}
-
 

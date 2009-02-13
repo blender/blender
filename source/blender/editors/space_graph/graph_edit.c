@@ -84,15 +84,13 @@
 
 #include "graph_intern.h"
 
-#if 0 // XXX code to be sanitied for new system
-
 /* ************************************************************************** */
 /* KEYFRAME-RANGE STUFF */
 
 /* *************************** Calculate Range ************************** */
 
 /* Get the min/max keyframes*/
-static void get_keyframe_extents (bAnimContext *ac, float *xmin, float *xmax, float *ymin, float *ymax)
+static void get_graph_keyframe_extents (bAnimContext *ac, float *xmin, float *xmax, float *ymin, float *ymax)
 {
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
@@ -105,24 +103,19 @@ static void get_keyframe_extents (bAnimContext *ac, float *xmin, float *xmax, fl
 	/* set large values to try to override */
 	if (xmin) *xmin= 999999999.0f;
 	if (xmax) *xmax= -999999999.0f;
-	//if (ymin) *ymin= 999999999.0f;
-	//if (ymax) *ymax= -999999999.0f;
-	
-		// XXX
-	if (ymin) *ymin= -10;
-	if (ymax) *ymax= 10;
+	if (ymin) *ymin= 999999999.0f;
+	if (ymax) *ymax= -999999999.0f;
 	
 	/* check if any channels to set range with */
 	if (anim_data.first) {
 		/* go through channels, finding max extents */
 		for (ale= anim_data.first; ale; ale= ale->next) {
-			Object *nob= ANIM_nla_mapping_get(ac, ale);
+			Object *nob= NULL; //ANIM_nla_mapping_get(ac, ale);
 			FCurve *fcu= (FCurve *)ale->key_data;
 			float tmin, tmax;
 			
 			/* get range and apply necessary scaling before */
-			calc_fcurve_range(fcu, &tmin, &tmax);
-			tmin= tmax= 0.0f; // xxx
+			calc_fcurve_bounds(fcu, &tmin, &tmax, ymin, ymax);
 			
 			if (nob) {
 				tmin= get_action_frame_inv(nob, tmin);
@@ -147,6 +140,9 @@ static void get_keyframe_extents (bAnimContext *ac, float *xmin, float *xmax, fl
 			if (xmin) *xmin= -5;
 			if (xmax) *xmax= 100;
 		}
+		
+		if (ymin) *ymin= -5;
+		if (ymax) *ymax= 5;
 	}
 }
 
@@ -167,7 +163,7 @@ static int graphkeys_previewrange_exec(bContext *C, wmOperator *op)
 		scene= ac.scene;
 	
 	/* set the range directly */
-	get_keyframe_extents(&ac, &min, &max);
+	get_graph_keyframe_extents(&ac, &min, &max, NULL, NULL);
 	scene->r.psfra= (int)floor(min + 0.5f);
 	scene->r.pefra= (int)floor(max + 0.5f);
 	
@@ -206,13 +202,13 @@ static int graphkeys_viewall_exec(bContext *C, wmOperator *op)
 	v2d= &ac.ar->v2d;
 	
 	/* set the horizontal range, with an extra offset so that the extreme keys will be in view */
-	get_keyframe_extents(&ac, &v2d->cur.xmin, &v2d->cur.xmax, &v2d->cur.ymin, &v2d->cur.ymax);
+	get_graph_keyframe_extents(&ac, &v2d->cur.xmin, &v2d->cur.xmax, &v2d->cur.ymin, &v2d->cur.ymax);
 	
-	extra= 0.05f * (v2d->cur.xmax - v2d->cur.xmin);
+	extra= 0.1f * (v2d->cur.xmax - v2d->cur.xmin);
 	v2d->cur.xmin -= extra;
 	v2d->cur.xmax += extra;
 	
-	extra= 0.05f * (v2d->cur.ymax - v2d->cur.ymin);
+	extra= 0.1f * (v2d->cur.ymax - v2d->cur.ymin);
 	v2d->cur.ymin -= extra;
 	v2d->cur.ymax += extra;
 	
@@ -239,17 +235,17 @@ void GRAPHEDIT_OT_view_all (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
+
 /* ************************************************************************** */
 /* GENERAL STUFF */
+
+#if 0 // XXX stuff to be sanitised for the new anim system
 
 // TODO:
 //	- insert key
 
 /* ******************** Copy/Paste Keyframes Operator ************************* */
-/* - The copy/paste buffer currently stores a set of Action Channels, with temporary
- *	IPO-blocks, and also temporary IpoCurves which only contain the selected keyframes.
- * - Only pastes between compatable data is possible (i.e. same achan->name, ipo-curve type, etc.)
- *	Unless there is only one element in the buffer, names are also tested to check for compatability.
+/* - xxx...
  * - All pasted frames are offset by the same amount. This is calculated as the difference in the times of
  *	the current frame and the 'first keyframe' (i.e. the earliest one in all channels).
  * - The earliest frame is calculated per copy operation.

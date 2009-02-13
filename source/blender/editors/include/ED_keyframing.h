@@ -31,6 +31,8 @@
 struct ListBase;
 struct ID;
 
+struct KeyingSet;
+
 struct FCurve;
 struct BezTriple;
 
@@ -73,13 +75,16 @@ enum {
  *	Use this to create any necessary animation data, and then insert a keyframe
  *	using the current value being keyframed, in the relevant place. Returns success.
  */
-short insertkey(struct ID *id, const char rna_path[], int array_index, float cfra, short flag);
+short insertkey(struct ID *id, const char group[], const char rna_path[], int array_index, float cfra, short flag);
 
 /* Main Keyframing API call: 
  * 	Use this to delete keyframe on current frame for relevant channel. Will perform checks just in case.
  */
-short deletekey(struct ID *id, const char rna_path[], int array_index, float cfra, short flag);
+short deletekey(struct ID *id, const char group[], const char rna_path[], int array_index, float cfra, short flag);
 
+
+/* Generate menu of KeyingSets */
+char *ANIM_build_keyingsets_menu(struct ListBase *list, short for_edit);
 
 /* Main Keyframe Management operators: 
  *	These handle keyframes management from various spaces. They will handle the menus 

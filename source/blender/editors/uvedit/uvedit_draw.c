@@ -38,7 +38,6 @@
 
 #include "BKE_customdata.h"
 #include "BKE_DerivedMesh.h"
-#include "BKE_global.h" // XXX make edge and face drawing flags local
 #include "BKE_object.h"
 #include "BKE_utildefines.h"
 
@@ -48,45 +47,12 @@
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
+#include "ED_image.h"
 #include "ED_mesh.h"
 
 #include "UI_resources.h"
 
-#include "../space_image/image_intern.h"
 #include "uvedit_intern.h"
-
-/* XXX make this draw extra for transform operator */
-#if 0
-static void draw_image_transform(ImBuf *ibuf, float xuser_asp, float yuser_asp)
-{
-#if 0
-	if(G.moving) {
-		float aspx, aspy, center[3];
-
-        BIF_drawConstraint();
-
-		if(ibuf==0 || ibuf->rect==0 || ibuf->x==0 || ibuf->y==0) {
-			aspx= aspy= 1.0;
-		}
-		else {
-			aspx= (256.0/ibuf->x) * xuser_asp;
-			aspy= (256.0/ibuf->y) * yuser_asp;
-		}
-		BIF_getPropCenter(center);
-
-		/* scale and translate the circle into place and draw it */
-		glPushMatrix();
-		glScalef(aspx, aspy, 1.0);
-		glTranslatef((1/aspx)*center[0] - center[0],
-		             (1/aspy)*center[1] - center[1], 0.0);
-
-		BIF_drawPropCircle();
-
-		glPopMatrix();
-	}
-#endif
-}
-#endif
 
 static void drawcursor_sima(SpaceImage *sima, ARegion *ar)
 {
@@ -94,8 +60,8 @@ static void drawcursor_sima(SpaceImage *sima, ARegion *ar)
 	float zoomx, zoomy, w, h;
 	int width, height;
 
-	get_space_image_size(sima, &width, &height);
-	get_space_image_zoom(sima, ar, &zoomx, &zoomy);
+	ED_space_image_size(sima, &width, &height);
+	ED_space_image_zoom(sima, ar, &zoomx, &zoomy);
 
 	w= zoomx*width/256.0f;
 	h= zoomy*height/256.0f;
@@ -191,9 +157,7 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, EditMesh *em, MTFac
 	Image *ima= sima->image;
 	float aspx, aspy, col[4], tf_uv[4][2];
 	
-	aspx= 1.0f;
-	aspy= 1.0f;
-	//XXX transform_aspect_ratio_tf_uv(&aspx, &aspy);
+	ED_space_image_uv_aspect(sima, &aspx, &aspy);
 	
 	switch(sima->dt_uvstretch) {
 		case SI_UVDT_STRETCH_AREA:
@@ -823,8 +787,8 @@ void draw_uvedit_main(SpaceImage *sima, ARegion *ar, Scene *scene, Object *obedi
 {
 	int show_uvedit, show_uvshadow;
 
-	show_uvedit= get_space_image_show_uvedit(sima, obedit);
-	show_uvshadow= get_space_image_show_uvshadow(sima, obedit);
+	show_uvedit= ED_space_image_show_uvedit(sima, obedit);
+	show_uvshadow= ED_space_image_show_uvshadow(sima, obedit);
 
 	if(show_uvedit || show_uvshadow) {
 		/* this is basically the same object_handle_update as in the 3d view,
@@ -840,9 +804,6 @@ void draw_uvedit_main(SpaceImage *sima, ARegion *ar, Scene *scene, Object *obedi
 
 		if(show_uvedit)
 			drawcursor_sima(sima, ar);
-
-		// XXX becomes operator draw extra:
-		// draw_image_transform(ibuf, xuser_asp, yuser_asp);
 	}
 }
 

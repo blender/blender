@@ -702,7 +702,7 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 		UI_icon_draw_aspect_blended(iconofs, rct->ymax-NODE_DY+2, ICON_BUTS, snode->aspect, -60);
 		glDisable(GL_BLEND);
 	}
-	{	/* always hide/reveil unused sockets */ 
+	{	/* always hide/reveal unused sockets */ 
 		int shade;
 
 		iconofs-= 18.0f;
@@ -823,11 +823,9 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 				}
 			}
 			else {
-				/* XXX fix
 				UI_ThemeColor(TH_TEXT);
 				ui_rasterpos_safe(sock->locx+8.0f, sock->locy-5.0f, snode->aspect);
 				UI_DrawString(snode->curfont, sock->name, 0);
-				*/
 			}
 		}
 	}
@@ -835,11 +833,12 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	/* socket outputs */
 	for(sock= node->outputs.first; sock; sock= sock->next) {
 		if(!(sock->flag & (SOCK_HIDDEN|SOCK_UNAVAIL))) {
+			float slen;
+			int ofs= 0;
+			
 			socket_circle_draw(sock, NODE_SOCKSIZE);
 			
-			/* XXX fix
 			UI_ThemeColor(TH_TEXT);
-			ofs= 0;
 			slen= snode->aspect*UI_GetStringWidth(snode->curfont, sock->name, 0);
 			while(slen > node->width) {
 				ofs++;
@@ -847,7 +846,6 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 			}
 			ui_rasterpos_safe(sock->locx-8.0f-slen, sock->locy-5.0f, snode->aspect);
 			UI_DrawString(snode->curfont, sock->name+ofs, 0);
-			*/
 		}
 	}
 	
@@ -1110,7 +1108,7 @@ void drawnodespace(const bContext *C, ARegion *ar, View2D *v2d)
 
 	/* aspect+font, set each time */
 	snode->aspect= (v2d->cur.xmax - v2d->cur.xmin)/((float)ar->winx);
-	//snode->curfont= uiSetCurFont_ext(snode->aspect);
+	snode->curfont= uiSetCurFont_ext(snode->aspect);
 
 	UI_view2d_constant_grid_draw(C, v2d);
 	/* backdrop */

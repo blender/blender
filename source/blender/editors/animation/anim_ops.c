@@ -172,12 +172,20 @@ static int change_frame_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
 	/* execute the events */
 	switch (event->type) {
+		case ESCKEY:
+			change_frame_exit(C, op);
+			return OPERATOR_FINISHED;
+		
 		case MOUSEMOVE:
 			RNA_int_set(op->ptr, "frame", frame_from_event(C, event));
 			change_frame_apply(C, op);
 			break;
-			
-		case LEFTMOUSE:
+		
+		case LEFTMOUSE: 
+		case RIGHTMOUSE:
+			/* we check for either mouse-button to end, as checking for ACTIONMOUSE (which is used to init 
+			 * the modal op) doesn't work for some reason
+			 */
 			if (event->val==0) {
 				change_frame_exit(C, op);
 				return OPERATOR_FINISHED;
@@ -378,11 +386,12 @@ void ED_keymap_anim(wmWindowManager *wm)
 {
 	ListBase *keymap= WM_keymap_listbase(wm, "Animation", 0, 0);
 	
-		/* frame management */
-	WM_keymap_verify_item(keymap, "ANIM_OT_change_frame", LEFTMOUSE, KM_PRESS, 0, 0);
+	/* frame management */
+		/* NOTE: 'ACTIONMOUSE' not 'LEFTMOUSE', as user may have swapped mouse-buttons */
+	WM_keymap_verify_item(keymap, "ANIM_OT_change_frame", ACTIONMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "ANIM_OT_time_toggle", TKEY, KM_PRESS, KM_CTRL, 0);
 	
-		/* preview range */
+	/* preview range */
 	WM_keymap_verify_item(keymap, "ANIM_OT_previewrange_define", PKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_verify_item(keymap, "ANIM_OT_previewrange_clear", PKEY, KM_PRESS, KM_ALT, 0);
 }

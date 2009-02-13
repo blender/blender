@@ -77,6 +77,8 @@ void VIEW3D_OT_border_zoom(struct wmOperatorType *ot);
 void VIEW3D_OT_drawtype(struct wmOperatorType *ot);
 void VIEW3D_OT_editmesh_face_toolbox(struct wmOperatorType *ot);
 
+void view3d_boxview_copy(ScrArea *sa, ARegion *ar);
+
 /* drawobject.c */
 void draw_object(Scene *scene, struct ARegion *ar, View3D *v3d, Base *base, int flag);
 int draw_glsl_material(Scene *scene, Object *ob, View3D *v3d, int dt);
@@ -139,6 +141,15 @@ void smooth_view(struct bContext *C, Object *, Object *, float *ofs, float *quat
 
 void setwinmatrixview3d(ARegion *ar, View3D *v3d, rctf *rect);	/* rect: for picking */
 void setviewmatrixview3d(Scene *scene, View3D *v3d, RegionView3D *rv3d);
+
+/* view3d_buttons.c */
+void VIEW3D_OT_properties(struct wmOperatorType *ot);
+
+void view3d_buttons_area_defbuts(const struct bContext *C, ARegion *ar);
+
+/* space_view3d.c */
+ARegion *view3d_has_buttons_region(ScrArea *sa);
+
 
 #endif /* ED_VIEW3D_INTERN_H */
 

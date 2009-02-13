@@ -324,7 +324,7 @@ static void dag_add_driver_relation(AnimData *adt, DagForest *dag, DagNode *node
 				/* now we need refs to all objects mentioned in this
 				 * pydriver expression, to call 'dag_add_relation'
 				 * for each of them */
-				Object **obarray = BPY_pydriver_get_objects(fcu->driver);
+				Object **obarray = NULL; // XXX BPY_pydriver_get_objects(fcu->driver);
 				if (obarray) {
 					Object *ob, **oba = obarray;
 					
@@ -2045,7 +2045,12 @@ static void dag_object_time_update_flags(Object *ob)
 		}
 	}
 #endif // XXX old animation system
-	if(animdata_use_time(ob->adt)) ob->recalc |= OB_RECALC;
+	
+	if(animdata_use_time(ob->adt)) {
+		ob->recalc |= OB_RECALC;
+		ob->adt->recalc |= ADT_RECALC_ANIM;
+	}
+	
 	if((ob->adt) && (ob->type==OB_ARMATURE)) ob->recalc |= OB_RECALC_DATA;
 	
 	if(object_modifiers_use_time(ob)) ob->recalc |= OB_RECALC_DATA;

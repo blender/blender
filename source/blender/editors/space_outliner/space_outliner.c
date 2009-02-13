@@ -119,6 +119,7 @@ static void outliner_main_area_listener(ARegion *ar, wmNotifier *wmn)
 				case ND_OB_ACTIVE:
 				case ND_OB_SELECT:
 				case ND_MODE:
+				case ND_KEYINGSET:
 					ED_region_tag_redraw(ar);
 					break;
 			}
@@ -168,6 +169,17 @@ static void outliner_header_area_draw(const bContext *C, ARegion *ar)
 
 static void outliner_header_area_free(ARegion *ar)
 {
+}
+
+static void outliner_header_area_listener(ARegion *ar, wmNotifier *wmn)
+{
+	/* context changes */
+	switch(wmn->category) {
+		case NC_SCENE:
+			if(wmn->data == ND_KEYINGSET)
+				ED_region_tag_redraw(ar);
+			break;
+	}
 }
 
 /* ******************** default callbacks for outliner space ***************** */
@@ -289,6 +301,7 @@ void ED_spacetype_outliner(void)
 	art->init= outliner_header_area_init;
 	art->draw= outliner_header_area_draw;
 	art->free= outliner_header_area_free;
+	art->listener= outliner_header_area_listener;
 	BLI_addhead(&st->regiontypes, art);
 	
 	BKE_spacetype_register(st);

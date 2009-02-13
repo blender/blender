@@ -624,6 +624,7 @@ void uiEndBlock(const bContext *C, uiBlock *block)
 
 void uiDrawBlock(const bContext *C, uiBlock *block)
 {
+	ARegion *ar= CTX_wm_region(C);
 	uiBut *but;
 
 	if(!block->endblock)
@@ -640,7 +641,7 @@ void uiDrawBlock(const bContext *C, uiBlock *block)
 	if(block->drawextra) block->drawextra(C, block);
 
 	for (but= block->buttons.first; but; but= but->next)
-		ui_draw_but(but);
+		ui_draw_but(ar, but);
 
 	ui_draw_links(block);
 }
@@ -863,11 +864,11 @@ static int ui_do_but_LINK(uiBlock *block, uiBut *but)
 			bt= ui_get_valid_link_button(block, but, mval);
 			if(bt) {
 				bt->flag |= UI_ACTIVE;
-				ui_draw_but(bt);
+				ui_draw_but(ar, bt);
 			}
 			if(bto && bto!=bt) {
 				bto->flag &= ~UI_ACTIVE;
-				ui_draw_but(bto);
+				ui_draw_but(ar, bto);
 			}
 			bto= bt;
 
@@ -965,7 +966,7 @@ static void edit_but(uiBlock *block, uiBut *but, uiEvent *uevent)
 			but->x2 += dx;
 			but->y2 += dy;
 			
-			ui_draw_but(but);
+			ui_draw_but(ar, but);
 			ui_block_flush_back(but->block);
 			didit= 1;
 
@@ -2306,6 +2307,10 @@ uiBut *ui_def_but_operator(uiBlock *block, int type, char *opname, int opcontext
 	if(!str) {
 		if(ot) str= ot->name;
 		else str= opname;
+	}
+	
+	if ((!tip || tip[0]=='\0') && ot && ot->description) {
+		tip= ot->description;
 	}
 
 	but= ui_def_but(block, type, -1, str, x1, y1, x2, y2, NULL, 0, 0, 0, 0, tip);

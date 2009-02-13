@@ -3,6 +3,7 @@
  */
  
 #include <stdio.h>
+#include <stddef.h>
 #include <string.h>
 #include <math.h>
 #include <float.h>
@@ -29,6 +30,7 @@
 #include "BKE_fcurve.h"
 #include "BKE_utildefines.h"
 #include "BKE_context.h"
+#include "BKE_report.h"
 #include "BKE_key.h"
 #include "BKE_material.h"
 
@@ -37,6 +39,8 @@
 #include "ED_keyframes_edit.h"
 #include "ED_screen.h"
 #include "ED_util.h"
+
+#include "UI_interface.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -62,46 +66,17 @@ typedef struct bCommonKeySrc {
 	bPoseChannel *pchan;	/* only needed when doing recalcs... */
 } bCommonKeySrc;
 
-/* -------------- Keying Sets ------------------- */
-
-#if 0 // XXX I'm not sure how these will work for now...
-
-/* keying set - a set of channels that will be keyframed together  */
-// TODO: move this to a header to allow custom sets someday?
-typedef struct bKeyingSet {
-		/* callback func to consider if keyingset should be included 
-		 * (by default, if this is undefined, item will be shown) 
-		 */
-	short (*include_cb)(struct bKeyingSet *, const char *);
-	
-	char name[48];				/* name of keyingset */
-	int blocktype;				/* nearest ID-blocktype to where data can be found */
-	short flag;					/* flags to use when setting keyframes */
-	
-	short chan_num;				/* number of channels to insert keyframe in */
-	char (*paths)[256];			/* adrcodes for channels to insert keys for (ideally would be variable-len, but limit of 32 will suffice) */
-} bKeyingSet;
-
-/* keying set context - an array of keying sets and the number of them */
-typedef struct bKeyingContext {
-	bKeyingSet *keyingsets;		/* array containing the keyingsets of interest */
-	bKeyingSet *lastused;		/* item that was chosen last time*/
-	int tot;					/* number of keyingsets in */
-} bKeyingContext;
-
-#endif
-
 /* ******************************************* */
 /* Animation Data Validation */
 
 /* Get (or add relevant data to be able to do so) F-Curve from the Active Action, 
- * for the given Animation Data block 
+ * for the given Animation Data block. This assumes that all the destinations are valid.
  */
-// TODO: should we check if path is valid? For now, assume that it's already set OK by caller...
-FCurve *verify_fcurve (ID *id, const char rna_path[], const int array_index, short add)
+FCurve *verify_fcurve (ID *id, const char group[], const char rna_path[], const int array_index, short add)
 {
 	AnimData *adt;
 	bAction *act;
+	bActionGroup *grp;
 	FCurve *fcu;
 	
 	/* sanity checks */
@@ -133,10 +108,10 @@ FCurve *verify_fcurve (ID *id, const char rna_path[], const int array_index, sho
 		fcu= NULL;
 	
 	if ((fcu == NULL) && (add)) {
-		/* use default settings */
+		/* use default settings to make a F-Curve */
 		fcu= MEM_callocN(sizeof(FCurve), "FCurve");
 		
-		fcu->flag |= (FCURVE_VISIBLE|FCURVE_AUTO_HANDLES);
+		fcu->flag = (FCURVE_VISIBLE|FCURVE_AUTO_HANDLES|FCURVE_SELECTED);
 		if (act->curves.first==NULL) 
 			fcu->flag |= FCURVE_ACTIVE;	/* first one added active */
 			
@@ -144,8 +119,36 @@ FCurve *verify_fcurve (ID *id, const char rna_path[], const int array_index, sho
 		fcu->rna_path= BLI_strdupn(rna_path, strlen(rna_path));
 		fcu->array_index= array_index;
 		
-		/* add curve */
-		BLI_addtail(&act->curves, fcu); // XXX it might be better to add this in order, for easier UI coding...
+		/* set additional flags */
+		// TODO: need to set the FCURVE_INT_VALUES flag must be set if property is not float!
+		
+		
+		/* if a group name has been provided, try to add or find a group, then add F-Curve to it */
+		if (group) {
+			/* try to find group */
+			grp= action_groups_find_named(act, group);
+			
+			/* no matching groups, so add one */
+			if (grp == NULL) {
+				/* Add a new group, and make it active */
+				grp= MEM_callocN(sizeof(bActionGroup), "bActionGroup");
+				
+				grp->flag |= (AGRP_ACTIVE|AGRP_SELECTED|AGRP_EXPANDED);
+				BLI_snprintf(grp->name, 64, group);
+				
+				BLI_addtail(&act->groups, grp);
+				BLI_uniquename(&act->groups, grp, "Group", offsetof(bActionGroup, name), 64);
+				
+				set_active_action_group(act, grp, 1);
+			}
+			
+			/* add F-Curve to group */
+			action_groups_add_channel(act, grp, fcu);
+		}
+		else {
+			/* just add F-Curve to end of Action's list */
+			BLI_addtail(&act->curves, fcu);
+		}
 	}
 	
 	/* return the F-Curve */
@@ -158,7 +161,7 @@ FCurve *verify_fcurve (ID *id, const char rna_path[], const int array_index, sho
 /* -------------- BezTriple Insertion -------------------- */
 
 /* threshold for inserting keyframes - threshold here should be good enough for now, but should become userpref */
-#define BEZT_INSERT_THRESH 	0.00001
+#define BEZT_INSERT_THRESH 	0.00001f
 
 /* Binary search algorithm for finding where to insert BezTriple. (for use by insert_bezt_icu)
  * Returns the index to insert at (data already at that index will be offset if replace is 0)
@@ -711,7 +714,7 @@ static float visualkey_get_value (PointerRNA *ptr, PropertyRNA *prop, int array_
  *	the keyframe insertion. These include the 'visual' keyframing modes, quick refresh,
  *	and extra keyframe filtering.
  */
-short insertkey (ID *id, const char rna_path[], int array_index, float cfra, short flag)
+short insertkey (ID *id, const char group[], const char rna_path[], int array_index, float cfra, short flag)
 {	
 	PointerRNA id_ptr, ptr;
 	PropertyRNA *prop;
@@ -725,7 +728,7 @@ short insertkey (ID *id, const char rna_path[], int array_index, float cfra, sho
 	}
 	
 	/* get F-Curve */
-	fcu= verify_fcurve(id, rna_path, array_index, 1);
+	fcu= verify_fcurve(id, group, rna_path, array_index, 1);
 	
 	/* only continue if we have an F-Curve to add keyframe to */
 	if (fcu) {
@@ -809,7 +812,7 @@ short insertkey (ID *id, const char rna_path[], int array_index, float cfra, sho
  *	The flag argument is used for special settings that alter the behaviour of
  *	the keyframe deletion. These include the quick refresh options.
  */
-short deletekey (ID *id, const char rna_path[], int array_index, float cfra, short flag)
+short deletekey (ID *id, const char group[], const char rna_path[], int array_index, float cfra, short flag)
 {
 	AnimData *adt;
 	FCurve *fcu;
@@ -819,7 +822,7 @@ short deletekey (ID *id, const char rna_path[], int array_index, float cfra, sho
 	 * 		so 'add' var must be 0
 	 */
 	// XXX we don't check the validity of the path here yet, but it should be ok...
-	fcu= verify_fcurve(id, rna_path, array_index, 0);
+	fcu= verify_fcurve(id, group, rna_path, array_index, 0);
 	adt= BKE_animdata_from_id(id);
 	
 	/* only continue if we have an ipo-curve to remove keyframes from */
@@ -872,6 +875,46 @@ enum {
 	COMMONKEY_MODE_INSERT = 0,
 	COMMONKEY_MODE_DELETE,
 } eCommonModifyKey_Modes;
+
+
+/* Build menu-string of available keying-sets (allocates memory for string)
+ * NOTE: mode must not be longer than 64 chars
+ */
+char *ANIM_build_keyingsets_menu (ListBase *list, short for_edit)
+{
+	DynStr *pupds= BLI_dynstr_new();
+	KeyingSet *ks;
+	char buf[64];
+	char *str;
+	int i;
+	
+	/* add title first */
+	BLI_dynstr_append(pupds, "Keying Sets%t|");
+	
+	/* add dummy entries for none-active */
+	if (for_edit) { 
+		BLI_dynstr_append(pupds, "Add New%x-1|");
+		BLI_dynstr_append(pupds, " %x0|");
+	}
+	else
+		BLI_dynstr_append(pupds, "<No Keying Set Active>%x0|");
+	
+	/* loop through keyingsets, adding them */
+	for (ks=list->first, i=1; ks; ks=ks->next, i++) {
+		if (for_edit == 0)
+			BLI_dynstr_append(pupds, "KS: ");
+		
+		BLI_dynstr_append(pupds, ks->name);
+		BLI_snprintf( buf, 64, "%%x%d%s", i, ((ks->next)?"|":"") );
+		BLI_dynstr_append(pupds, buf);
+	}
+	
+	/* convert to normal MEM_malloc'd string */
+	str= BLI_dynstr_get_cstring(pupds);
+	BLI_dynstr_free(pupds);
+	
+	return str;
+}
 
 #if 0 // XXX old keyingsets code based on adrcodes... to be restored in due course
 
@@ -1760,57 +1803,6 @@ static void commonkey_context_refresh (bContext *C)
 
 /* --- */
 
-/* Build menu-string of available keying-sets (allocates memory for string)
- * NOTE: mode must not be longer than 64 chars
- */
-static char *build_keyingsets_menu (bKeyingContext *ksc, const char mode[48])
-{
-	DynStr *pupds= BLI_dynstr_new();
-	bKeyingSet *ks;
-	char buf[64];
-	char *str;
-	int i, n;
-	
-	/* add title first */
-	BLI_snprintf(buf, 64, "%s Key %%t|", mode);
-	BLI_dynstr_append(pupds, buf);
-	
-	/* loop through keyingsets, adding them */
-	for (ks=ksc->keyingsets, i=0, n=1; i < ksc->tot; ks++, i++, n++) {
-		/* check if keyingset can be used */
-		if (ks->flag == -1) {
-			/* optional separator? */
-			if (ks->include_cb) {
-				if (ks->include_cb(ks, mode)) {
-					BLI_snprintf( buf, 64, "%s%s", ks->name, ((n < ksc->tot)?"|":"") );
-					BLI_dynstr_append(pupds, buf);
-				}
-			}
-			else {
-				BLI_snprintf( buf, 64, "%%l%s", ((n < ksc->tot)?"|":"") );
-				BLI_dynstr_append(pupds, buf);
-			}
-		}
-		else if ( (ks->include_cb==NULL) || (ks->include_cb(ks, mode)) ) {
-			/* entry can be included */
-			BLI_dynstr_append(pupds, ks->name);
-			
-			/* check if special "shapekey" entry */
-			if (ks->flag == -3)
-				BLI_snprintf( buf, 64, "%%x0%s", ((n < ksc->tot)?"|":"") );
-			else
-				BLI_snprintf( buf, 64, "%%x%d%s", n, ((n < ksc->tot)?"|":"") );
-			BLI_dynstr_append(pupds, buf);
-		}
-	}
-	
-	/* convert to normal MEM_malloc'd string */
-	str= BLI_dynstr_get_cstring(pupds);
-	BLI_dynstr_free(pupds);
-	
-	return str;
-}
-
 /* Get the keying set that was chosen by the user from the menu */
 static bKeyingSet *get_keyingset_fromcontext (bKeyingContext *ksc, short index)
 {
@@ -2007,6 +1999,92 @@ void common_modifykey (bContext *C, short mode)
 
 #endif // XXX old keyingsets code based on adrcodes... to be restored in due course
 
+/* Given a KeyingSet and context info (if required), modify keyframes for the channels specified
+ * by the KeyingSet. This takes into account many of the different combinations of using KeyingSets.
+ * Returns the number of channels that keyframes were added to
+ */
+static int commonkey_modifykey (ListBase *dsources, KeyingSet *ks, short mode, float cfra)
+{
+	KS_Path *ksp;
+	int kflag, success= 0;
+	char *groupname= NULL;
+	
+	/* get flags to use */
+	if (mode == COMMONKEY_MODE_INSERT) {
+		/* use KeyingSet's flags as base */
+		kflag= ks->keyingflag;
+		
+		/* suppliment with info from the context */
+		if (IS_AUTOKEY_FLAG(AUTOMATKEY)) kflag |= INSERTKEY_MATRIX;
+		if (IS_AUTOKEY_FLAG(INSERTNEEDED)) kflag |= INSERTKEY_NEEDED;
+		// if (IS_AUTOKEY_MODE(EDITKEYS)) flag |= INSERTKEY_REPLACE;
+	}
+	else if (mode == COMMONKEY_MODE_DELETE)
+		kflag= 0;
+	
+	/* check if the KeyingSet is absolute or not (i.e. does it requires sources info) */
+	if (ks->flag & KEYINGSET_ABSOLUTE) {
+		/* Absolute KeyingSets are simpler to use, as all the destination info has already been
+		 * provided by the user, and is stored, ready to use, in the KeyingSet paths.
+		 */
+		for (ksp= ks->paths.first; ksp; ksp= ksp->next) {
+			int arraylen, i;
+			
+			/* get pointer to name of group to add channels to */
+			if (ksp->flag & KSP_FLAG_GROUP_NONE)
+				groupname= NULL;
+			else if (ksp->flag & KSP_FLAG_GROUP_KSNAME)
+				groupname= ks->name;
+			else
+				groupname= ksp->group;
+			
+			/* init arraylen and i - arraylen should be greater than i so that
+			 * normal non-array entries get keyframed correctly
+			 */
+			i= ksp->array_index;
+			arraylen= i+1;
+			
+			/* get length of array if whole array option is enabled */
+			if (ksp->flag & KSP_FLAG_WHOLE_ARRAY) {
+				PointerRNA id_ptr, ptr;
+				PropertyRNA *prop;
+				
+				RNA_id_pointer_create(ksp->id, &id_ptr);
+				if (RNA_path_resolve(&id_ptr, ksp->rna_path, &ptr, &prop))
+					arraylen= RNA_property_array_length(&ptr, prop);
+			}
+			
+			/* for each possible index, perform operation 
+			 *	- assume that arraylen is greater than index
+			 */
+			for (; i < arraylen; i++) {
+				/* action to take depends on mode */
+				if (mode == COMMONKEY_MODE_INSERT)
+					success+= insertkey(ksp->id, groupname, ksp->rna_path, i, cfra, kflag);
+				else if (mode == COMMONKEY_MODE_DELETE)
+					success+= deletekey(ksp->id, groupname,  ksp->rna_path, i, cfra, kflag);
+			}
+			
+			// TODO: set recalc tags on the ID?
+		}
+	}
+#if 0 // XXX still need to figure out how to get such keyingsets working
+	else if (dsources) {
+		/* for each one of the 'sources', resolve the template markers and expand arrays, then insert keyframes */
+		bCommonKeySrc *cks;
+		char *path = NULL;
+		int index=0, tot=0;
+		
+		/* for each 'source' for keyframe data, resolve each of the paths from the KeyingSet */
+		for (cks= dsources->first; cks; cks= cks->next) {
+			
+		}
+	}
+#endif // XXX still need to figure out how to get such 
+	
+	return success;
+}
+
 /* Insert Key Operator ------------------------ */
 
 /* XXX WARNING:
@@ -2020,15 +2098,49 @@ void common_modifykey (bContext *C, short mode)
 /* defines for basic insert-key testing operator  */
 	// XXX this will definitely be replaced
 EnumPropertyItem prop_insertkey_types[] = {
-	{0, "OBLOC", "Object Location", ""},
-	{1, "OBROT", "Object Rotation", ""},
-	{2, "OBSCALE", "Object Scale", ""},
-	{3, "MAT_COL", "Active Material - Color", ""},
-	{4, "PCHANLOC", "Pose-Channel Location", ""},
-	{5, "PCHANROT", "Pose-Channel Rotation", ""},
-	{6, "PCHANSCALE", "Pose-Channel Scale", ""},
+	{0, "KEYINGSET", "Active KeyingSet", ""},
+	{1, "OBLOC", "Object Location", ""},
+	{2, "OBROT", "Object Rotation", ""},
+	{3, "OBSCALE", "Object Scale", ""},
+	{4, "MAT_COL", "Active Material - Color", ""},
+	{5, "PCHANLOC", "Pose-Channel Location", ""},
+	{6, "PCHANROT", "Pose-Channel Rotation", ""},
+	{7, "PCHANSCALE", "Pose-Channel Scale", ""},
 	{0, NULL, NULL, NULL}
 };
+
+static int insert_key_invoke (bContext *C, wmOperator *op, wmEvent *event)
+{
+	Object *ob= CTX_data_active_object(C);
+	uiMenuItem *head;
+	
+	if (ob == NULL)
+		return OPERATOR_CANCELLED;
+		
+	head= uiPupMenuBegin("Insert Keyframe", 0);
+	
+	/* active keyingset */
+	uiMenuItemEnumO(head, "", 0, "ANIM_OT_insert_keyframe", "type", 0);
+	
+	/* selective inclusion */
+	if ((ob->pose) && (ob->flag & OB_POSEMODE)) {
+		/* bone types */	
+		uiMenuItemEnumO(head, "", 0, "ANIM_OT_insert_keyframe", "type", 5);
+		uiMenuItemEnumO(head, "", 0, "ANIM_OT_insert_keyframe", "type", 6);
+		uiMenuItemEnumO(head, "", 0, "ANIM_OT_insert_keyframe", "type", 7);
+	}
+	else {
+		/* object types */
+		uiMenuItemEnumO(head, "", 0, "ANIM_OT_insert_keyframe", "type", 1);
+		uiMenuItemEnumO(head, "", 0, "ANIM_OT_insert_keyframe", "type", 2);
+		uiMenuItemEnumO(head, "", 0, "ANIM_OT_insert_keyframe", "type", 3);
+		uiMenuItemEnumO(head, "", 0, "ANIM_OT_insert_keyframe", "type", 4);
+	}
+	
+	uiPupMenuEnd(C, head);
+	
+	return OPERATOR_CANCELLED;
+}
  
 static int insert_key_exec (bContext *C, wmOperator *op)
 {
@@ -2036,86 +2148,124 @@ static int insert_key_exec (bContext *C, wmOperator *op)
 	short mode= RNA_enum_get(op->ptr, "type");
 	float cfra= (float)CFRA; // XXX for now, don't bother about all the yucky offset crap
 	
-	// XXX more comprehensive tests will be needed
-	CTX_DATA_BEGIN(C, Base*, base, selected_bases) 
-	{
-		Object *ob= base->object;
-		ID *id= (ID *)ob;
-		short success= 0;
+	/* for now, handle 'active keyingset' one separately */
+	if (mode == 0) {
+		ListBase dsources = {NULL, NULL};
+		KeyingSet *ks= NULL;
+		short success;
 		
-		/* check which keyframing mode chosen for this object */
-		if (mode < 4) {
-			/* object-based keyframes */
-			switch (mode) {
-			case 3: /* color of active material (only for geometry...) */
-				// NOTE: this is just a demo... but ideally we'd go through materials instead of active one only so reference stays same
-				success+= insertkey(id, "active_material.diffuse_color", 0, cfra, 0);
-				success+= insertkey(id, "active_material.diffuse_color", 1, cfra, 0);
-				success+= insertkey(id, "active_material.diffuse_color", 2, cfra, 0);
-				break;
-			case 2: /* object scale */
-				success+= insertkey(id, "scale", 0, cfra, 0);
-				success+= insertkey(id, "scale", 1, cfra, 0);
-				success+= insertkey(id, "scale", 2, cfra, 0);
-				break;
-			case 1: /* object rotation */
-				success+= insertkey(id, "rotation", 0, cfra, 0);
-				success+= insertkey(id, "rotation", 1, cfra, 0);
-				success+= insertkey(id, "rotation", 2, cfra, 0);
-				break;
-			default: /* object location */
-				success+= insertkey(id, "location", 0, cfra, 0);
-				success+= insertkey(id, "location", 1, cfra, 0);
-				success+= insertkey(id, "location", 2, cfra, 0);
-				break;
-			}
-			
-			ob->recalc |= OB_RECALC_OB;
+		/* try to get KeyingSet */
+		if (scene->active_keyingset > 0)
+			ks= BLI_findlink(&scene->keyingsets, scene->active_keyingset-1);
+		/* report failure */
+		if (ks == NULL) {
+			BKE_report(op->reports, RPT_ERROR, "No active Keying Set");
+			return OPERATOR_CANCELLED;
 		}
-		else if ((ob->pose) && (ob->flag & OB_POSEMODE)) {
-			/* PoseChannel based keyframes */
-			bPoseChannel *pchan;
+		
+		/* try to insert keyframes for the channels specified by KeyingSet */
+		success= commonkey_modifykey(&dsources, ks, COMMONKEY_MODE_INSERT, cfra);
+		printf("KeyingSet '%s' - Successfully added %d Keyframes \n", ks->name, success);
+		
+		/* report failure */
+		if (success == 0) {
+		 	BKE_report(op->reports, RPT_WARNING, "Keying Set failed to insert any keyframes");
+			return OPERATOR_CANCELLED; // XXX?
+		}
+		else
+			return OPERATOR_FINISHED;
+	}
+	else {
+		// more comprehensive tests will be needed
+		CTX_DATA_BEGIN(C, Base*, base, selected_bases) 
+		{
+			Object *ob= base->object;
+			ID *id= (ID *)ob;
+			short success= 0;
 			
-			for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-				/* only if selected */
-				if ((pchan->bone) && (pchan->bone->flag & BONE_SELECTED)) {
-					char buf[512];
-					
-					switch (mode) {
-					case 6: /* pchan scale */
-						sprintf(buf, "pose.pose_channels[\"%s\"].scale", pchan->name);
-						success+= insertkey(id, buf, 0, cfra, 0);
-						success+= insertkey(id, buf, 1, cfra, 0);
-						success+= insertkey(id, buf, 2, cfra, 0);
-						break;
-					case 5: /* pchan rotation */
-						sprintf(buf, "pose.pose_channels[\"%s\"].rotation", pchan->name);
-						success+= insertkey(id, buf, 0, cfra, 0);
-						success+= insertkey(id, buf, 1, cfra, 0);
-						success+= insertkey(id, buf, 2, cfra, 0);
-						success+= insertkey(id, buf, 3, cfra, 0);
-						break;
-					default: /* pchan location */
-						sprintf(buf, "pose.pose_channels[\"%s\"].location", pchan->name);
-						success+= insertkey(id, buf, 0, cfra, 0);
-						success+= insertkey(id, buf, 1, cfra, 0);
-						success+= insertkey(id, buf, 2, cfra, 0);
-						break;
+			/* check which keyframing mode chosen for this object */
+			if (mode < 4) {
+				/* object-based keyframes */
+				switch (mode) {
+				case 4: /* color of active material (only for geometry...) */
+					// NOTE: this is just a demo... but ideally we'd go through materials instead of active one only so reference stays same
+					// XXX no group for now
+					success+= insertkey(id, NULL, "active_material.diffuse_color", 0, cfra, 0);
+					success+= insertkey(id, NULL, "active_material.diffuse_color", 1, cfra, 0);
+					success+= insertkey(id, NULL, "active_material.diffuse_color", 2, cfra, 0);
+					break;
+				case 3: /* object scale */
+					success+= insertkey(id, "Object Transforms", "scale", 0, cfra, 0);
+					success+= insertkey(id, "Object Transforms", "scale", 1, cfra, 0);
+					success+= insertkey(id, "Object Transforms", "scale", 2, cfra, 0);
+					break;
+				case 2: /* object rotation */
+					success+= insertkey(id, "Object Transforms", "rotation", 0, cfra, 0);
+					success+= insertkey(id, "Object Transforms", "rotation", 1, cfra, 0);
+					success+= insertkey(id, "Object Transforms", "rotation", 2, cfra, 0);
+					break;
+				case 1: /* object location */
+					success+= insertkey(id, "Object Transforms", "location", 0, cfra, 0);
+					success+= insertkey(id, "Object Transforms", "location", 1, cfra, 0);
+					success+= insertkey(id, "Object Transforms", "location", 2, cfra, 0);
+					break;
+				}
+				
+				ob->recalc |= OB_RECALC_OB;
+			}
+			else if ((ob->pose) && (ob->flag & OB_POSEMODE)) {
+				/* PoseChannel based keyframes */
+				bPoseChannel *pchan;
+				
+				for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+					/* only if selected */
+					if ((pchan->bone) && (pchan->bone->flag & BONE_SELECTED)) {
+						char buf[512];
+						
+						switch (mode) {
+						case 6: /* pchan scale */
+							sprintf(buf, "pose.pose_channels[\"%s\"].scale", pchan->name);
+							success+= insertkey(id, pchan->name, buf, 0, cfra, 0);
+							success+= insertkey(id, pchan->name, buf, 1, cfra, 0);
+							success+= insertkey(id, pchan->name, buf, 2, cfra, 0);
+							break;
+						case 5: /* pchan rotation */
+							if (pchan->rotmode == PCHAN_ROT_QUAT) {
+								sprintf(buf, "pose.pose_channels[\"%s\"].rotation", pchan->name);
+								success+= insertkey(id, pchan->name, buf, 0, cfra, 0);
+								success+= insertkey(id, pchan->name, buf, 1, cfra, 0);
+								success+= insertkey(id, pchan->name, buf, 2, cfra, 0);
+								success+= insertkey(id, pchan->name, buf, 3, cfra, 0);
+							}
+							else {
+								sprintf(buf, "pose.pose_channels[\"%s\"].euler_rotation", pchan->name);
+								success+= insertkey(id, pchan->name, buf, 0, cfra, 0);
+								success+= insertkey(id, pchan->name, buf, 1, cfra, 0);
+								success+= insertkey(id, pchan->name, buf, 2, cfra, 0);
+							}
+							break;
+						default: /* pchan location */
+							sprintf(buf, "pose.pose_channels[\"%s\"].location", pchan->name);
+							success+= insertkey(id, pchan->name, buf, 0, cfra, 0);
+							success+= insertkey(id, pchan->name, buf, 1, cfra, 0);
+							success+= insertkey(id, pchan->name, buf, 2, cfra, 0);
+							break;
+						}
 					}
 				}
+				
+				ob->recalc |= OB_RECALC_OB;
 			}
 			
-			ob->recalc |= OB_RECALC_OB;
+			printf("Ob '%s' - Successfully added %d Keyframes \n", id->name+2, success);
 		}
-		
-		printf("Ob '%s' - Successfully added %d Keyframes \n", id->name+2, success);
+		CTX_DATA_END;
 	}
-	CTX_DATA_END;
 	
 	/* send updates */
 	ED_anim_dag_flush_update(C);	
 	
-	if (mode == 3) // material color requires different notifiers
+	if (mode == 4) // material color requires different notifiers
 		WM_event_add_notifier(C, NC_MATERIAL|ND_KEYS, NULL);
 	else
 		WM_event_add_notifier(C, NC_OBJECT|ND_KEYS, NULL);
@@ -2132,7 +2282,7 @@ void ANIM_OT_insert_keyframe (wmOperatorType *ot)
 	ot->idname= "ANIM_OT_insert_keyframe";
 	
 	/* callbacks */
-	ot->invoke= WM_menu_invoke; // XXX we will need our own one eventually, to cope with the dynamic menus...
+	ot->invoke= insert_key_invoke;
 	ot->exec= insert_key_exec; 
 	ot->poll= ED_operator_areaactive;
 	
@@ -2172,7 +2322,7 @@ static int delete_key_exec (bContext *C, wmOperator *op)
 			
 			for (fcu= act->curves.first; fcu; fcu= fcn) {
 				fcn= fcu->next;
-				success+= deletekey(id, fcu->rna_path, fcu->array_index, cfra, 0);
+				success+= deletekey(id, NULL, fcu->rna_path, fcu->array_index, cfra, 0);
 			}
 		}
 		
@@ -2232,7 +2382,7 @@ short action_frame_has_keyframe (bAction *act, float frame, short filter)
 	 */
 	for (fcu= act->curves.first; fcu; fcu= fcu->next) {
 		/* only check if there are keyframes (currently only of type BezTriple) */
-		if (fcu->bezt) {
+		if (fcu->bezt && fcu->totvert) {
 			/* we either include all regardless of muting, or only non-muted  */
 			if ((filter & ANIMFILTER_KEYS_MUTED) || (fcu->flag & FCURVE_MUTED)==0) {
 				short replace = -1;

@@ -188,6 +188,196 @@ bAction *copy_action (bAction *src)
 }
 
 
+/* Get the active action-group for an Action */
+bActionGroup *get_active_actiongroup (bAction *act)
+{
+	bActionGroup *agrp= NULL;
+	
+	if (act && act->groups.first) {	
+		for (agrp= act->groups.first; agrp; agrp= agrp->next) {
+			if (agrp->flag & AGRP_ACTIVE)
+				break;
+		}
+	}
+	
+	return agrp;
+}
+
+/* Make the given Action-Group the active one */
+void set_active_action_group (bAction *act, bActionGroup *agrp, short select)
+{
+	bActionGroup *grp;
+	
+	/* sanity checks */
+	if (act == NULL)
+		return;
+	
+	/* Deactive all others */
+	for (grp= act->groups.first; grp; grp= grp->next) {
+		if ((grp==agrp) && (select))
+			grp->flag |= AGRP_ACTIVE;
+		else	
+			grp->flag &= ~AGRP_ACTIVE;
+	}
+}
+
+/* Add given channel into (active) group 
+ *	- assumes that channel is not linked to anything anymore
+ *	- always adds at the end of the group 
+ */
+void action_groups_add_channel (bAction *act, bActionGroup *agrp, FCurve *fcurve)
+{
+	FCurve *fcu;
+	short done=0;
+	
+	/* sanity checks */
+	if (ELEM3(NULL, act, agrp, fcurve))
+		return;
+	
+	/* if no channels, just add to two lists at the same time */
+	if (act->curves.first == NULL) {
+		fcurve->next = fcurve->prev = NULL;
+		
+		agrp->channels.first = agrp->channels.last = fcurve;
+		act->curves.first = act->curves.last = fcurve;
+		
+		fcurve->grp= agrp;
+		return;
+	}
+	
+	/* try to find a channel to slot this in before/after */
+	for (fcu= act->curves.first; fcu; fcu= fcu->next) {
+		/* if channel has no group, then we have ungrouped channels, which should always occur after groups */
+		if (fcu->grp == NULL) {
+			BLI_insertlinkbefore(&act->curves, fcu, fcurve);
+			
+			if (agrp->channels.first == NULL)
+				agrp->channels.first= fcurve;
+			agrp->channels.last= fcurve;
+			
+			done= 1;
+			break;
+		}
+		
+		/* if channel has group after current, we can now insert (otherwise we have gone too far) */
+		else if (fcu->grp == agrp->next) {
+			BLI_insertlinkbefore(&act->curves, fcu, fcurve);
+			
+			if (agrp->channels.first == NULL)
+				agrp->channels.first= fcurve;
+			agrp->channels.last= fcurve;
+			
+			done= 1;
+			break;
+		}
+		
+		/* if channel has group we're targeting, check whether it is the last one of these */
+		else if (fcu->grp == agrp) {
+			if ((fcu->next) && (fcu->next->grp != agrp)) {
+				BLI_insertlinkafter(&act->curves, fcu, fcurve);
+				agrp->channels.last= fcurve;
+				done= 1;
+				break;
+			}
+			else if (fcu->next == NULL) {
+				BLI_addtail(&act->curves, fcurve);
+				agrp->channels.last= fcurve;
+				done= 1;
+				break;
+			}
+		}
+		
+		/* if channel has group before target, check whether the next one is something after target */
+		else if (fcu->grp == agrp->prev) {
+			if (fcu->next) {
+				if ((fcu->next->grp != fcu->grp) && (fcu->next->grp != agrp)) {
+					BLI_insertlinkafter(&act->curves, fcu, fcurve);
+					
+					agrp->channels.first= fcurve;
+					agrp->channels.last= fcurve;
+					
+					done= 1;
+					break;
+				}
+			}
+			else {
+				BLI_insertlinkafter(&act->curves, fcu, fcurve);
+				
+				agrp->channels.first= fcurve;
+				agrp->channels.last= fcurve;
+				
+				done= 1;
+				break;
+			}
+		}
+	}
+	
+	/* only if added, set channel as belonging to this group */
+	if (done) {
+		//printf("FCurve added to group \n");
+		fcurve->grp= agrp;
+	}
+	else {
+		printf("Error: FCurve '%s' couldn't be added to Group '%s' \n", fcurve->rna_path, agrp->name);
+		BLI_addtail(&act->curves, fcurve);
+	}
+}	
+
+/* Remove the given channel from all groups */
+void action_groups_remove_channel (bAction *act, FCurve *fcu)
+{
+	/* sanity checks */
+	if (ELEM(NULL, act, fcu))	
+		return;
+	
+	/* check if any group used this directly */
+	if (fcu->grp) {
+		bActionGroup *agrp= fcu->grp;
+		
+		if (agrp->channels.first == agrp->channels.last) {
+			if (agrp->channels.first == fcu) {
+				agrp->channels.first= NULL;
+				agrp->channels.last= NULL;
+			}
+		}
+		else if (agrp->channels.first == fcu) {
+			if ((fcu->next) && (fcu->next->grp==agrp))
+				agrp->channels.first= fcu->next;
+			else
+				agrp->channels.first= NULL;
+		}
+		else if (agrp->channels.last == fcu) {
+			if ((fcu->prev) && (fcu->prev->grp==agrp))
+				agrp->channels.last= fcu->prev;
+			else
+				agrp->channels.last= NULL;
+		}
+		
+		fcu->grp= NULL;
+	}
+	
+	/* now just remove from list */
+	BLI_remlink(&act->curves, fcu);
+}
+
+/* Find a group with the given name */
+bActionGroup *action_groups_find_named (bAction *act, const char name[])
+{
+	bActionGroup *grp;
+	
+	/* sanity checks */
+	if (ELEM3(NULL, act, act->groups.first, name) || (name[0] == 0))
+		return NULL;
+		
+	/* do string comparisons */
+	for (grp= act->groups.first; grp; grp= grp->next) {
+		if (strcmp(grp->name, name) == 0)
+			return grp;
+	}
+	
+	/* not found */
+	return NULL;
+}
 
 /* ************************ Pose channels *************** */
 

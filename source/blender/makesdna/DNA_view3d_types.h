@@ -205,6 +205,7 @@ typedef struct View3D {
 /* RegionView3d->viewlock */
 #define RV3D_LOCKED			1
 #define RV3D_BOXVIEW		2
+#define RV3D_BOXCLIP		4
 
 /* View3d->flag2 (short) */
 #define V3D_SOLID_TEX			8

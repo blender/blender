@@ -29,11 +29,15 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_action_types.h"
+#include "DNA_color_types.h"
 #include "DNA_listBase.h"
 #include "DNA_material_types.h"
+#include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_windowmanager_types.h"
 
+#include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_idprop.h"
 #include "BKE_library.h"
@@ -45,6 +49,7 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 
+#include "ED_screen.h"
 #include "ED_util.h"
 
 #include "WM_api.h"
@@ -133,7 +138,9 @@ int UI_GetIconRNA(PointerRNA *ptr)
 	else if(rnatype == &RNA_Sound)
 		return ICON_SOUND;
 	else if(rnatype == &RNA_Brush)
-		return ICON_TPAINT_HLT;
+		return ICON_BRUSH;
+	else if(rnatype == &RNA_VectorFont)
+		return ICON_FONT;
 	else if(rnatype == &RNA_Library)
 		return ICON_LIBRARY_DEHLT;
 	else if(rnatype == &RNA_Action)
@@ -669,4 +676,459 @@ int uiDefIDPoinButs(uiBlock *block, Main *bmain, ID *parid, ID **id_p, int id_co
 
 	return x;
 }
+
+/* ****************************** default button callbacks ******************* */
+/* ************ LEGACY WARNING, only to get things work with 2.48 code! ****** */
+
+void test_idbutton_cb(struct bContext *C, void *namev, void *arg2)
+{
+	char *name= namev;
+	
+	test_idbutton(name+2);
+}
+
+
+void test_scriptpoin_but(struct bContext *C, char *name, ID **idpp)
+{
+	ID *id;
+	
+	id= CTX_data_main(C)->text.first;
+	while(id) {
+		if( strcmp(name, id->name+2)==0 ) {
+			*idpp= id;
+			return;
+		}
+		id= id->next;
+	}
+	*idpp= NULL;
+}
+
+void test_actionpoin_but(struct bContext *C, char *name, ID **idpp)
+{
+	ID *id;
+	
+	id= CTX_data_main(C)->action.first;
+	while(id) {
+		if( strcmp(name, id->name+2)==0 ) {
+			id_us_plus(id);
+			*idpp= id;
+			return;
+		}
+		id= id->next;
+	}
+	*idpp= NULL;
+}
+
+
+void test_obpoin_but(struct bContext *C, char *name, ID **idpp)
+{
+	ID *id;
+	
+// XXX	if(idpp == (ID **)&(emptytex.object)) {
+//		error("You must add a texture first");
+//		*idpp= 0;
+//		return;
+//	}
+	
+	id= CTX_data_main(C)->object.first;
+	while(id) {
+		if( strcmp(name, id->name+2)==0 ) {
+			*idpp= id;
+			id_lib_extern(id);	/* checks lib data, sets correct flag for saving then */
+			return;
+		}
+		id= id->next;
+	}
+	*idpp= NULL;
+}
+
+/* tests for an object of type OB_MESH */
+void test_meshobpoin_but(struct bContext *C, char *name, ID **idpp)
+{
+	ID *id;
+
+	id = CTX_data_main(C)->object.first;
+	while(id) {
+		Object *ob = (Object *)id;
+		if(ob->type == OB_MESH && strcmp(name, id->name + 2) == 0) {
+			*idpp = id;
+			/* checks lib data, sets correct flag for saving then */
+			id_lib_extern(id);
+			return;
+		}
+		id = id->next;
+	}
+	*idpp = NULL;
+}
+
+void test_meshpoin_but(struct bContext *C, char *name, ID **idpp)
+{
+	ID *id;
+
+	if( *idpp ) (*idpp)->us--;
+	
+	id= CTX_data_main(C)->mesh.first;
+	while(id) {
+		if( strcmp(name, id->name+2)==0 ) {
+			*idpp= id;
+			id_us_plus(id);
+			return;
+		}
+		id= id->next;
+	}
+	*idpp= NULL;
+}
+
+void test_matpoin_but(struct bContext *C, char *name, ID **idpp)
+{
+	ID *id;
+
+	if( *idpp ) (*idpp)->us--;
+	
+	id= CTX_data_main(C)->mat.first;
+	while(id) {
+		if( strcmp(name, id->name+2)==0 ) {
+			*idpp= id;
+			id_us_plus(id);
+			return;
+		}
+		id= id->next;
+	}
+	*idpp= NULL;
+}
+
+void test_scenepoin_but(struct bContext *C, char *name, ID **idpp)
+{
+	ID *id;
+	
+	if( *idpp ) (*idpp)->us--;
+	
+	id= CTX_data_main(C)->scene.first;
+	while(id) {
+		if( strcmp(name, id->name+2)==0 ) {
+			*idpp= id;
+			id_us_plus(id);
+			return;
+		}
+		id= id->next;
+	}
+	*idpp= NULL;
+}
+
+void test_grouppoin_but(struct bContext *C, char *name, ID **idpp)
+{
+	ID *id;
+	
+	if( *idpp ) (*idpp)->us--;
+	
+	id= CTX_data_main(C)->group.first;
+	while(id) {
+		if( strcmp(name, id->name+2)==0 ) {
+			*idpp= id;
+			id_us_plus(id);
+			return;
+		}
+		id= id->next;
+	}
+	*idpp= NULL;
+}
+
+void test_texpoin_but(struct bContext *C, char *name, ID **idpp)
+{
+	ID *id;
+	
+	if( *idpp ) (*idpp)->us--;
+	
+	id= CTX_data_main(C)->tex.first;
+	while(id) {
+		if( strcmp(name, id->name+2)==0 ) {
+			*idpp= id;
+			id_us_plus(id);
+			return;
+		}
+		id= id->next;
+	}
+	*idpp= NULL;
+}
+
+void test_imapoin_but(struct bContext *C, char *name, ID **idpp)
+{
+	ID *id;
+	
+	if( *idpp ) (*idpp)->us--;
+	
+	id= CTX_data_main(C)->image.first;
+	while(id) {
+		if( strcmp(name, id->name+2)==0 ) {
+			*idpp= id;
+			id_us_plus(id);
+			return;
+		}
+		id= id->next;
+	}
+	*idpp= NULL;
+}
+
+/* autocomplete callback for  buttons */
+void autocomplete_bone(struct bContext *C, char *str, void *arg_v)
+{
+	Object *ob= (Object *)arg_v;
+	
+	if(ob==NULL || ob->pose==NULL) return;
+	
+	/* search if str matches the beginning of name */
+	if(str[0]) {
+		AutoComplete *autocpl= autocomplete_begin(str, 32);
+		bPoseChannel *pchan;
+		
+		for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next)
+			autocomplete_do_name(autocpl, pchan->name);
+		
+		autocomplete_end(autocpl, str);
+	}
+}
+
+/* autocomplete callback for buttons */
+void autocomplete_vgroup(struct bContext *C, char *str, void *arg_v)
+{
+	Object *ob= (Object *)arg_v;
+	
+	if(ob==NULL) return;
+	
+	/* search if str matches the beginning of a name */
+	if(str[0]) {
+		AutoComplete *autocpl= autocomplete_begin(str, 32);
+		bDeformGroup *dg;
+		
+		for(dg= ob->defbase.first; dg; dg= dg->next)
+			if(dg->name!=str)
+				autocomplete_do_name(autocpl, dg->name);
+		
+		autocomplete_end(autocpl, str);
+	}
+}
+
+
+/* ----------- custom button group ---------------------- */
+
+static void curvemap_buttons_zoom_in(bContext *C, void *cumap_v, void *unused)
+{
+	CurveMapping *cumap = cumap_v;
+	float d;
+	
+	/* we allow 20 times zoom */
+	if( (cumap->curr.xmax - cumap->curr.xmin) > 0.04f*(cumap->clipr.xmax - cumap->clipr.xmin) ) {
+		d= 0.1154f*(cumap->curr.xmax - cumap->curr.xmin);
+		cumap->curr.xmin+= d;
+		cumap->curr.xmax-= d;
+		d= 0.1154f*(cumap->curr.ymax - cumap->curr.ymin);
+		cumap->curr.ymin+= d;
+		cumap->curr.ymax-= d;
+	}
+}
+
+static void curvemap_buttons_zoom_out(bContext *C, void *cumap_v, void *unused)
+{
+	CurveMapping *cumap = cumap_v;
+	float d, d1;
+	
+	/* we allow 20 times zoom, but dont view outside clip */
+	if( (cumap->curr.xmax - cumap->curr.xmin) < 20.0f*(cumap->clipr.xmax - cumap->clipr.xmin) ) {
+		d= d1= 0.15f*(cumap->curr.xmax - cumap->curr.xmin);
+		
+		if(cumap->flag & CUMA_DO_CLIP) 
+			if(cumap->curr.xmin-d < cumap->clipr.xmin)
+				d1= cumap->curr.xmin - cumap->clipr.xmin;
+		cumap->curr.xmin-= d1;
+		
+		d1= d;
+		if(cumap->flag & CUMA_DO_CLIP) 
+			if(cumap->curr.xmax+d > cumap->clipr.xmax)
+				d1= -cumap->curr.xmax + cumap->clipr.xmax;
+		cumap->curr.xmax+= d1;
+		
+		d= d1= 0.15f*(cumap->curr.ymax - cumap->curr.ymin);
+		
+		if(cumap->flag & CUMA_DO_CLIP) 
+			if(cumap->curr.ymin-d < cumap->clipr.ymin)
+				d1= cumap->curr.ymin - cumap->clipr.ymin;
+		cumap->curr.ymin-= d1;
+		
+		d1= d;
+		if(cumap->flag & CUMA_DO_CLIP) 
+			if(cumap->curr.ymax+d > cumap->clipr.ymax)
+				d1= -cumap->curr.ymax + cumap->clipr.ymax;
+		cumap->curr.ymax+= d1;
+	}
+}
+
+static void curvemap_buttons_setclip(bContext *C, void *cumap_v, void *unused)
+{
+	CurveMapping *cumap = cumap_v;
+	
+	curvemapping_changed(cumap, 0);
+}	
+
+static void curvemap_buttons_delete(bContext *C, void *cumap_v, void *unused)
+{
+	CurveMapping *cumap = cumap_v;
+	
+	curvemap_remove(cumap->cm+cumap->cur, SELECT);
+	curvemapping_changed(cumap, 0);
+}
+
+/* NOTE: this is a block-menu, needs 0 events, otherwise the menu closes */
+static uiBlock *curvemap_clipping_func(struct bContext *C, struct ARegion *ar, void *cumap_v)
+{
+	CurveMapping *cumap = cumap_v;
+	uiBlock *block;
+	uiBut *bt;
+	
+	block= uiBeginBlock(C, ar, "curvemap_clipping_func", UI_EMBOSS, UI_HELV);
+	
+	/* use this for a fake extra empy space around the buttons */
+	uiDefBut(block, LABEL, 0, "",			-4, 16, 128, 106, NULL, 0, 0, 0, 0, "");
+	
+	bt= uiDefButBitI(block, TOG, CUMA_DO_CLIP, 1, "Use Clipping",	 
+										0,100,120,18, &cumap->flag, 0.0, 0.0, 10, 0, "");
+	uiButSetFunc(bt, curvemap_buttons_setclip, cumap, NULL);
+
+	uiBlockBeginAlign(block);
+	uiDefButF(block, NUM, 0, "Min X ",	 0,74,120,18, &cumap->clipr.xmin, -100.0, cumap->clipr.xmax, 10, 0, "");
+	uiDefButF(block, NUM, 0, "Min Y ",	 0,56,120,18, &cumap->clipr.ymin, -100.0, cumap->clipr.ymax, 10, 0, "");
+	uiDefButF(block, NUM, 0, "Max X ",	 0,38,120,18, &cumap->clipr.xmax, cumap->clipr.xmin, 100.0, 10, 0, "");
+	uiDefButF(block, NUM, 0, "Max Y ",	 0,20,120,18, &cumap->clipr.ymax, cumap->clipr.ymin, 100.0, 10, 0, "");
+	
+	uiBlockSetDirection(block, UI_RIGHT);
+	
+	uiEndBlock(C, block);
+	return block;
+}
+
+
+static void curvemap_tools_dofunc(bContext *C, void *cumap_v, int event)
+{
+	CurveMapping *cumap = cumap_v;
+	CurveMap *cuma= cumap->cm+cumap->cur;
+	
+	switch(event) {
+		case 0:
+			curvemap_reset(cuma, &cumap->clipr);
+			curvemapping_changed(cumap, 0);
+			break;
+		case 1:
+			cumap->curr= cumap->clipr;
+			break;
+		case 2:	/* set vector */
+			curvemap_sethandle(cuma, 1);
+			curvemapping_changed(cumap, 0);
+			break;
+		case 3: /* set auto */
+			curvemap_sethandle(cuma, 0);
+			curvemapping_changed(cumap, 0);
+			break;
+		case 4: /* extend horiz */
+			cuma->flag &= ~CUMA_EXTEND_EXTRAPOLATE;
+			curvemapping_changed(cumap, 0);
+			break;
+		case 5: /* extend extrapolate */
+			cuma->flag |= CUMA_EXTEND_EXTRAPOLATE;
+			curvemapping_changed(cumap, 0);
+			break;
+	}
+	ED_region_tag_redraw(CTX_wm_region(C));
+}
+
+static uiBlock *curvemap_tools_func(struct bContext *C, struct ARegion *ar, void *cumap_v)
+{
+	uiBlock *block;
+	short yco= 0, menuwidth=120;
+	
+	block= uiBeginBlock(C, ar, "curvemap_tools_func", UI_EMBOSSP, UI_HELV);
+	uiBlockSetButmFunc(block, curvemap_tools_dofunc, cumap_v);
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Reset View",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Vector Handle",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Auto Handle",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Extend Horizontal",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Extend Extrapolated",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 5, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Reset Curve",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
+	
+	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 50);
+	
+	uiEndBlock(C, block);
+	return block;
+}
+
+/* still unsure how this call evolves... we use labeltype for defining what curve-channels to show */
+void curvemap_buttons(uiBlock *block, CurveMapping *cumap, char labeltype, short event, short redraw, rctf *rect)
+{
+	uiBut *bt;
+	float dx, fy= rect->ymax-18.0f;
+	int icon;
+	short xco, yco;
+	
+	yco= (short)(rect->ymax-18.0f);
+	
+	/* curve choice options + tools/settings, 8 icons + spacer */
+	dx= (rect->xmax-rect->xmin)/(9.0f);
+	
+	uiBlockBeginAlign(block);
+	if(labeltype=='v') {	/* vector */
+		xco= (short)rect->xmin;
+		if(cumap->cm[0].curve)
+			uiDefButI(block, ROW, redraw, "X", xco, yco+2, dx, 16, &cumap->cur, 0.0, 0.0, 0.0, 0.0, "");
+		xco= (short)(rect->xmin+1.0f*dx);
+		if(cumap->cm[1].curve)
+			uiDefButI(block, ROW, redraw, "Y", xco, yco+2, dx, 16, &cumap->cur, 0.0, 1.0, 0.0, 0.0, "");
+		xco= (short)(rect->xmin+2.0f*dx);
+		if(cumap->cm[2].curve)
+			uiDefButI(block, ROW, redraw, "Z", xco, yco+2, dx, 16, &cumap->cur, 0.0, 2.0, 0.0, 0.0, "");
+	}
+	else if(labeltype=='c') { /* color */
+		xco= (short)rect->xmin;
+		if(cumap->cm[3].curve)
+			uiDefButI(block, ROW, redraw, "C", xco, yco+2, dx, 16, &cumap->cur, 0.0, 3.0, 0.0, 0.0, "");
+		xco= (short)(rect->xmin+1.0f*dx);
+		if(cumap->cm[0].curve)
+			uiDefButI(block, ROW, redraw, "R", xco, yco+2, dx, 16, &cumap->cur, 0.0, 0.0, 0.0, 0.0, "");
+		xco= (short)(rect->xmin+2.0f*dx);
+		if(cumap->cm[1].curve)
+			uiDefButI(block, ROW, redraw, "G", xco, yco+2, dx, 16, &cumap->cur, 0.0, 1.0, 0.0, 0.0, "");
+		xco= (short)(rect->xmin+3.0f*dx);
+		if(cumap->cm[2].curve)
+			uiDefButI(block, ROW, redraw, "B", xco, yco+2, dx, 16, &cumap->cur, 0.0, 2.0, 0.0, 0.0, "");
+	}
+	/* else no channels ! */
+	uiBlockEndAlign(block);
+
+	xco= (short)(rect->xmin+4.5f*dx);
+	uiBlockSetEmboss(block, UI_EMBOSSN);
+	bt= uiDefIconBut(block, BUT, redraw, ICON_ZOOMIN, xco, yco, dx, 14, NULL, 0.0, 0.0, 0.0, 0.0, "Zoom in");
+	uiButSetFunc(bt, curvemap_buttons_zoom_in, cumap, NULL);
+	
+	xco= (short)(rect->xmin+5.25f*dx);
+	bt= uiDefIconBut(block, BUT, redraw, ICON_ZOOMOUT, xco, yco, dx, 14, NULL, 0.0, 0.0, 0.0, 0.0, "Zoom out");
+	uiButSetFunc(bt, curvemap_buttons_zoom_out, cumap, NULL);
+	
+	xco= (short)(rect->xmin+6.0f*dx);
+	bt= uiDefIconBlockBut(block, curvemap_tools_func, cumap, event, ICON_MODIFIER, xco, yco, dx, 18, "Tools");
+	
+	xco= (short)(rect->xmin+7.0f*dx);
+	if(cumap->flag & CUMA_DO_CLIP) icon= ICON_CLIPUV_HLT; else icon= ICON_CLIPUV_DEHLT;
+	bt= uiDefIconBlockBut(block, curvemap_clipping_func, cumap, event, icon, xco, yco, dx, 18, "Clipping Options");
+	
+	xco= (short)(rect->xmin+8.0f*dx);
+	bt= uiDefIconBut(block, BUT, event, ICON_X, xco, yco, dx, 18, NULL, 0.0, 0.0, 0.0, 0.0, "Delete points");
+	uiButSetFunc(bt, curvemap_buttons_delete, cumap, NULL);
+	
+	uiBlockSetEmboss(block, UI_EMBOSS);
+	
+	uiDefBut(block, BUT_CURVE, event, "", 
+			  rect->xmin, rect->ymin, rect->xmax-rect->xmin, fy-rect->ymin, 
+			  cumap, 0.0f, 1.0f, 0, 0, "");
+	
+}
+
 

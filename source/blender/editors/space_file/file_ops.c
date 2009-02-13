@@ -514,5 +514,32 @@ void ED_FILE_OT_load(struct wmOperatorType *ot)
 	ot->poll= ED_operator_file_active; /* <- important, handler is on window level */
 }
 
+int file_parent_exec(bContext *C, wmOperator *unused)
+{
+	SpaceFile *sfile= (SpaceFile*)CTX_wm_space_data(C);
+	
+	if(sfile->params) {
+		BLI_parent_dir(sfile->params->dir);
+		filelist_setdir(sfile->files, sfile->params->dir);
+		filelist_free(sfile->files);
+		sfile->params->active_file = -1;
+	}		
+	ED_area_tag_redraw(CTX_wm_area(C));
+
+	return OPERATOR_FINISHED;
+
+}
+
+void ED_FILE_OT_parent(struct wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Parent File";
+	ot->idname= "ED_FILE_OT_parent";
+	
+	/* api callbacks */
+	ot->exec= file_parent_exec;
+	ot->poll= ED_operator_file_active; /* <- important, handler is on window level */
+}
+
 
 

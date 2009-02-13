@@ -44,6 +44,7 @@ typedef struct PyOperatorType {
 	void *next, *prev;
 	char idname[OP_MAX_TYPENAME];
 	char name[OP_MAX_TYPENAME];
+	char description[OP_MAX_TYPENAME]; // XXX should be longer?
 	PyObject *py_invoke;
 	PyObject *py_exec;
 } PyOperatorType;
@@ -276,6 +277,7 @@ void PYTHON_OT_wrapper(wmOperatorType *ot, void *userdata)
 	/* identifiers */
 	ot->name= pyot->name;
 	ot->idname= pyot->idname;
+	ot->description= pyot->description;
 
 	/* api callbacks */
 	if (pyot->py_invoke != Py_None)
@@ -342,10 +344,11 @@ PyObject *PYOP_wrap_add(PyObject *self, PyObject *args)
 
 	char *idname= NULL;
 	char *name= NULL;
+	char *description= NULL;
 	PyObject *invoke= NULL;
 	PyObject *exec= NULL;
 
-	if (!PyArg_ParseTuple(args, "ssOO", &idname, &name, &invoke, &exec)) {
+	if (!PyArg_ParseTuple(args, "sssOO", &idname, &name, &description, &invoke, &exec)) {
 		PyErr_SetString( PyExc_AttributeError, "expected 2 strings and 2 function objects");
 		return NULL;
 	}
@@ -362,8 +365,9 @@ PyObject *PYOP_wrap_add(PyObject *self, PyObject *args)
 
 	pyot= MEM_callocN(sizeof(PyOperatorType), "PyOperatorType");
 
-	strcpy(pyot->idname, idname);
-	strcpy(pyot->name, name);
+	strncpy(pyot->idname, idname, sizeof(pyot->idname));
+	strncpy(pyot->name, name, sizeof(pyot->name));
+	strncpy(pyot->description, description, sizeof(pyot->description));
 	pyot->py_invoke= invoke;
 	pyot->py_exec= exec;
 	Py_INCREF(invoke);

@@ -590,8 +590,8 @@ static void reload_sound_strip(Scene *scene, char *name)
 static void reload_image_strip(Scene *scene, char *name)
 {
 	Editing *ed= seq_give_editing(scene, FALSE);
-	Sequence *seq, *seqact;
-	SpaceFile *sfile;
+	Sequence *seq=NULL, *seqact;
+	SpaceFile *sfile=NULL;
 	Sequence *last_seq= get_last_seq(scene);
 
 
@@ -2392,65 +2392,3 @@ void SEQUENCER_OT_view_selected(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER;
 }
-
-
-
-
-/* borderselect operator */
-static int sequencer_view_zoom_exec(bContext *C, wmOperator *op)
-{
-	bScreen *sc= CTX_wm_screen(C);
-	ScrArea *area= CTX_wm_area(C);
-	View2D *v2d= UI_view2d_fromcontext(C);
-	rcti rect;
-	rctf rectf;
-
-	int val;
-	short mval[2];
-
-	val= RNA_int_get(op->ptr, "event_type");
-	rect.xmin= RNA_int_get(op->ptr, "xmin");
-	rect.ymin= RNA_int_get(op->ptr, "ymin");
-	rect.xmax= RNA_int_get(op->ptr, "xmax");
-	rect.ymax= RNA_int_get(op->ptr, "ymax");
-
-	mval[0]= rect.xmin;
-	mval[1]= rect.ymin;
-	UI_view2d_region_to_view(v2d, mval[0], mval[1], &rectf.xmin, &rectf.ymin);
-	mval[0]= rect.xmax;
-	mval[1]= rect.ymax;
-	UI_view2d_region_to_view(v2d, mval[0], mval[1], &rectf.xmax, &rectf.ymax);
-
-	v2d->cur= rectf;
-	UI_view2d_curRect_validate(v2d);
-	UI_view2d_sync(sc, area, v2d, V2D_LOCK_COPY);
-
-	return OPERATOR_FINISHED;
-}
-
-
-/* ****** Border Select ****** */
-void SEQUENCER_OT_view_zoom(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "View Zoom";
-	ot->idname= "SEQUENCER_OT_view_zoom";
-
-	/* api callbacks */
-	ot->invoke= WM_border_select_invoke;
-	ot->exec= sequencer_view_zoom_exec;
-	ot->modal= WM_border_select_modal;
-
-	ot->poll= ED_operator_sequencer_active;
-	
-	/* flags */
-	ot->flag= OPTYPE_REGISTER;
-	
-	/* rna */
-	RNA_def_int(ot->srna, "event_type", 0, INT_MIN, INT_MAX, "Event Type", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "xmin", 0, INT_MIN, INT_MAX, "X Min", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "xmax", 0, INT_MIN, INT_MAX, "X Max", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "ymin", 0, INT_MIN, INT_MAX, "Y Min", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "ymax", 0, INT_MIN, INT_MAX, "Y Max", "", INT_MIN, INT_MAX);
-}
-

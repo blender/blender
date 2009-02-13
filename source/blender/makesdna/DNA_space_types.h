@@ -619,6 +619,7 @@ enum {
 #define SO_TESTBLOCKS	1
 #define SO_NEWSELECTED	2
 #define SO_HIDE_RESTRICTCOLS		4
+#define SO_HIDE_KEYINGSETINFO		8
 
 /* SpaceOops->visiflag */
 #define OOPS_SCE	1

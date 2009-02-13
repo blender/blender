@@ -107,14 +107,32 @@ void ARMATURE_OT_test(wmOperatorType *ot)
 /* Both operators ARMATURE_OT_xxx and POSE_OT_xxx here */
 void ED_operatortypes_armature(void)
 {
+	/* EDIT ARMATURE */
 	WM_operatortype_append(ARMATURE_OT_align_bones);
 	WM_operatortype_append(ARMATURE_OT_calculate_roll);
+	WM_operatortype_append(ARMATURE_OT_switch_direction);
+	WM_operatortype_append(ARMATURE_OT_subdivs);
+	WM_operatortype_append(ARMATURE_OT_subdivide_simple);
+	WM_operatortype_append(ARMATURE_OT_subdivide_multi);
 	
+	WM_operatortype_append(ARMATURE_OT_parent_set);
+	WM_operatortype_append(ARMATURE_OT_parent_clear);
+	
+	WM_operatortype_append(ARMATURE_OT_de_select_all);
+	WM_operatortype_append(ARMATURE_OT_selection_invert);
+	
+	/* POSE */
 	WM_operatortype_append(POSE_OT_hide);
-	WM_operatortype_append(POSE_OT_reveil);
+	WM_operatortype_append(POSE_OT_reveal);
+	
 	WM_operatortype_append(POSE_OT_rot_clear);
 	WM_operatortype_append(POSE_OT_loc_clear);
 	WM_operatortype_append(POSE_OT_scale_clear);
+	
+	WM_operatortype_append(POSE_OT_de_select_all);
+	WM_operatortype_append(POSE_OT_selection_invert);
+
+	WM_operatortype_append(POSE_OT_select_parent);
 	
 	WM_operatortype_append(ARMATURE_OT_test); // XXX temp test for context iterators... to be removed
 }
@@ -132,6 +150,17 @@ void ED_keymap_armature(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "ARMATURE_OT_align_bones", AKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
 	WM_keymap_add_item(keymap, "ARMATURE_OT_calculate_roll", NKEY, KM_PRESS, KM_CTRL, 0);
 	
+	WM_keymap_add_item(keymap, "ARMATURE_OT_switch_direction", FKEY, KM_PRESS, KM_ALT, 0);
+	
+		/* only menu is registered in keymaps for now */
+	WM_keymap_add_item(keymap, "ARMATURE_OT_subdivs", SKEY, KM_PRESS, KM_ALT, 0);
+	
+	WM_keymap_add_item(keymap, "ARMATURE_OT_set_parent", PKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "ARMATURE_OT_clear_parent", PKEY, KM_PRESS, KM_ALT, 0);
+	
+	WM_keymap_add_item(keymap, "ARMATURE_OT_de_select_all", AKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "ARMATURE_OT_selection_invert", IKEY, KM_PRESS, KM_CTRL, 0);
+	
 	WM_keymap_add_item(keymap, "ARMATURE_OT_test", TKEY, KM_PRESS, 0, 0);  // XXX temp test for context iterators... to be removed
 	
 	/* Pose ------------------------ */
@@ -141,10 +170,15 @@ void ED_keymap_armature(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "POSE_OT_hide", HKEY, KM_PRESS, 0, 0);
 	kmi= WM_keymap_add_item(keymap, "POSE_OT_hide", HKEY, KM_PRESS, KM_SHIFT, 0);
 	RNA_boolean_set(kmi->ptr, "invert", 1);
-	WM_keymap_add_item(keymap, "POSE_OT_reveil", HKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_add_item(keymap, "POSE_OT_reveal", HKEY, KM_PRESS, KM_ALT, 0);
 	/*clear pose*/
 	WM_keymap_add_item(keymap, "POSE_OT_rot_clear", RKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "POSE_OT_loc_clear", GKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "POSE_OT_scale_clear", SKEY, KM_PRESS, KM_ALT, 0);
+	
+	WM_keymap_add_item(keymap, "POSE_OT_de_select_all", AKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "POSE_OT_selection_invert", IKEY, KM_PRESS, KM_CTRL, 0);
+
+	WM_keymap_add_item(keymap, "POSE_OT_select_parent", PKEY, KM_PRESS, KM_SHIFT, 0);
 }
 

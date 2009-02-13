@@ -1338,8 +1338,6 @@ TransDataCurveHandleFlags *initTransDataCurveHandes(TransData *td, struct BezTri
 
 static void createTransCurveVerts(bContext *C, TransInfo *t)
 {
-	// TRANSFORM_FIX_ME
-#if 0
 	Object *obedit= CTX_data_edit_object(C);
 	Curve *cu= obedit->data;
 	TransData *td = NULL;
@@ -1542,7 +1540,6 @@ static void createTransCurveVerts(bContext *C, TransInfo *t)
 				calc_distanceCurveVerts(head, tail-1);
 		}
 	}
-#endif
 }
 
 /* ********************* lattice *************** */

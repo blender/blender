@@ -87,7 +87,6 @@ void SEQUENCER_OT_meta_separate(struct wmOperatorType *ot);
 
 void SEQUENCER_OT_view_all(struct wmOperatorType *ot);
 void SEQUENCER_OT_view_selected(struct wmOperatorType *ot);
-void SEQUENCER_OT_view_zoom(struct wmOperatorType *ot);
 
 /* sequencer_select.c */
 void SEQUENCER_OT_deselect_all(struct wmOperatorType *ot);

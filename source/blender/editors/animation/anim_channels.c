@@ -608,12 +608,70 @@ void ANIM_OT_channels_move_bottom (wmOperatorType *ot)
 
 #endif // XXX old animation system - needs to be updated for new system...
 
+
+/* ******************** Toggle Channel Visibility Operator *********************** */
+
+static int animchannels_visibility_toggle_exec(bContext *C, wmOperator *op)
+{
+	bAnimContext ac;
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
+	int filter;
+	short vis= ACHANNEL_SETFLAG_ADD;
+	
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+		
+	/* filter data */
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_SEL | ANIMFILTER_CURVESONLY);
+	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+	
+	/* See if we should be making showing all selected or hiding */
+	for (ale= anim_data.first; ale; ale= ale->next) {
+		if (vis == ACHANNEL_SETFLAG_CLEAR) 
+			break;
+		
+		if (ale->flag & FCURVE_VISIBLE)
+			vis= ACHANNEL_SETFLAG_CLEAR;
+	}
+		
+	/* Now set the flags */
+	for (ale= anim_data.first; ale; ale= ale->next) {
+		FCurve *fcu= (FCurve *)ale->data;
+		ACHANNEL_SET_FLAG(fcu, vis, FCURVE_VISIBLE);
+	}
+	
+	/* cleanup */
+	BLI_freelistN(&anim_data);
+	
+	/* set notifier tha things have changed */
+	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_CHANNELS);
+	
+	return OPERATOR_FINISHED;
+}
+ 
+void ANIM_OT_channels_visibility_toggle (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Toggle Visibility";
+	ot->idname= "ANIM_OT_channels_visibility_toggle";
+	
+	/* api callbacks */
+	ot->exec= animchannels_visibility_toggle_exec;
+	ot->poll= ED_operator_ipo_active;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
 /* ********************** Set Flags Operator *********************** */
 
 enum {
 // 	ACHANNEL_SETTING_SELECT = 0,
 	ACHANNEL_SETTING_PROTECT = 1,
 	ACHANNEL_SETTING_MUTE,
+	ACHANNEL_SETTING_VISIBLE,
 } eAnimChannel_Settings;
 
 /* defines for setting animation-channel flags */
@@ -671,6 +729,9 @@ static void setflag_anim_channels (bAnimContext *ac, short setting, short mode)
 				}
 				else if (setting == ACHANNEL_SETTING_PROTECT) {
 					ACHANNEL_SET_FLAG(fcu, mode, FCURVE_PROTECTED);
+				}
+				else if (setting == ACHANNEL_SETTING_VISIBLE) {
+					ACHANNEL_SET_FLAG(fcu, mode, FCURVE_VISIBLE);
 				}
 			}
 				break;
@@ -1075,7 +1136,7 @@ static void mouse_anim_channels (bAnimContext *ac, float x, int channel_index, s
 		case ANIMTYPE_GROUP: 
 		{
 			bActionGroup *agrp= (bActionGroup *)ale->data;
-			short offset= (ac->datatype == ANIMCONT_DOPESHEET)? 21 : 0;
+			short offset= (ELEM3(ac->datatype, ANIMCONT_DOPESHEET, ANIMCONT_FCURVES, ANIMCONT_DRIVERS))? 18 : 0;
 			
 			if ((x < (offset+17)) && (agrp->channels.first)) {
 				/* toggle expand */
@@ -1120,6 +1181,7 @@ static void mouse_anim_channels (bAnimContext *ac, float x, int channel_index, s
 		case ANIMTYPE_FCURVE: 
 		{
 			FCurve *fcu= (FCurve *)ale->data;
+			short offset= (ac->datatype != ANIMCONT_ACTION)? 18 : 0;
 			
 			if (x >= (ACHANNEL_NAMEWIDTH-ACHANNEL_BUTTON_WIDTH)) {
 				/* toggle protection */
@@ -1128,6 +1190,11 @@ static void mouse_anim_channels (bAnimContext *ac, float x, int channel_index, s
 			else if (x >= (ACHANNEL_NAMEWIDTH-2*ACHANNEL_BUTTON_WIDTH)) {
 				/* toggle mute */
 				fcu->flag ^= FCURVE_MUTED;
+			}
+			else if ((x < (offset+17)) && (ac->spacetype==SPACE_IPO)) {
+				/* toggle visibility */
+				// XXX this is supposed to be button before name, though this sometimes fails
+				fcu->flag ^= FCURVE_VISIBLE;
 			}
 			else {
 				/* select/deselect */
@@ -1274,6 +1341,8 @@ void ED_operatortypes_animchannels(void)
 	//WM_operatortype_append(ANIM_OT_channels_move_down);
 	//WM_operatortype_append(ANIM_OT_channels_move_top);
 	//WM_operatortype_append(ANIM_OT_channels_move_bottom);
+	
+	WM_operatortype_append(ANIM_OT_channels_visibility_toggle);
 }
 
 void ED_keymap_animchannels(wmWindowManager *wm)
@@ -1304,6 +1373,9 @@ void ED_keymap_animchannels(wmWindowManager *wm)
 	//WM_keymap_add_item(keymap, "ANIM_OT_channels_move_down", PAGEDOWNKEY, KM_PRESS, KM_SHIFT, 0);
 	//WM_keymap_add_item(keymap, "ANIM_OT_channels_move_to_top", PAGEUPKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0);
 	//WM_keymap_add_item(keymap, "ANIM_OT_channels_move_to_bottom", PAGEDOWNKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0);
+	
+	/* Graph Editor only */
+	WM_keymap_add_item(keymap, "ANIM_OT_channels_visibility_toggle", VKEY, KM_PRESS, 0, 0);
 }
 
 /* ************************************************************************** */

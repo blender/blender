@@ -94,6 +94,22 @@ typedef struct uiHandlePanelData {
 
 static void panel_activate_state(bContext *C, Panel *pa, uiHandlePanelState state);
 
+/* ******************************** */
+
+/* temporary code to remove all sbuts stuff from panel code */
+
+static int panel_aligned(ScrArea *sa, ARegion *ar)
+{
+	if(sa->spacetype==SPACE_BUTS) {
+		SpaceButs *sbuts= sa->spacedata.first;
+		return sbuts->align;
+	}
+	else if(ar->regiontype==RGN_TYPE_UI)
+		return BUT_VERTICAL;
+	
+	return 0;
+}
+
 /* ************** panels ************* */
 
 static void copy_panel_offset(Panel *pa, Panel *papar)
@@ -868,14 +884,11 @@ static int find_highest_panel(const void *a1, const void *a2)
 /* returns 1 when it did something */
 int uiAlignPanelStep(ScrArea *sa, ARegion *ar, float fac)
 {
-	SpaceButs *sbuts= sa->spacedata.first;
 	Panel *pa;
 	PanelSort *ps, *panelsort, *psnext;
 	static int sortcounter= 0;
 	int a, tot=0, done;
-	
-	if(sa->spacetype!=SPACE_BUTS)
-		return 0;
+	int align= panel_aligned(sa, ar);
 	
 	/* count active, not tabbed Panels */
 	for(pa= ar->panels.first; pa; pa= pa->next) {
@@ -887,10 +900,10 @@ int uiAlignPanelStep(ScrArea *sa, ARegion *ar, float fac)
 	/* extra; change close direction? */
 	for(pa= ar->panels.first; pa; pa= pa->next) {
 		if(pa->active && pa->paneltab==NULL) {
-			if( (pa->flag & PNL_CLOSEDX) && (sbuts->align==BUT_VERTICAL) )
+			if( (pa->flag & PNL_CLOSEDX) && (align==BUT_VERTICAL) )
 				pa->flag ^= PNL_CLOSED;
 			
-			else if( (pa->flag & PNL_CLOSEDY) && (sbuts->align==BUT_HORIZONTAL) )
+			else if( (pa->flag & PNL_CLOSEDY) && (align==BUT_HORIZONTAL) )
 				pa->flag ^= PNL_CLOSED;
 			
 		}
@@ -908,20 +921,24 @@ int uiAlignPanelStep(ScrArea *sa, ARegion *ar, float fac)
 		}
 	}
 	
-	if(sbuts->align==BUT_VERTICAL) 
+	if(align==BUT_VERTICAL) 
 		qsort(panelsort, tot, sizeof(PanelSort), find_highest_panel);
 	else
 		qsort(panelsort, tot, sizeof(PanelSort), find_leftmost_panel);
 	
 	/* no smart other default start loc! this keeps switching f5/f6/etc compatible */
 	ps= panelsort;
-	ps->pa->ofsx= 0;
-	ps->pa->ofsy= 0;
+	ps->pa->ofsx= PNL_DIST;
+	if(align==BUT_VERTICAL)
+		ps->pa->ofsy= -ps->pa->sizey-PNL_HEADER-PNL_DIST;
+	else
+		ps->pa->ofsy= 0;
+		
 	
 	for(a=0 ; a<tot-1; a++, ps++) {
 		psnext= ps+1;
 	
-		if(sbuts->align==BUT_VERTICAL) {
+		if(align==BUT_VERTICAL) {
 			psnext->pa->ofsx = ps->pa->ofsx;
 			psnext->pa->ofsy = get_panel_real_ofsy(ps->pa) - psnext->pa->sizey-PNL_HEADER-PNL_DIST;
 		}
@@ -1031,6 +1048,7 @@ void uiDrawPanels(const bContext *C, int re_align)
 	if(re_align) uiAlignPanelStep(sa, ar, 1.0);
 	
 	if(sa->spacetype!=SPACE_BUTS) {
+#if 0 // XXX make float panel exception
 		SpaceLink *sl= sa->spacedata.first;
 		for(block= ar->uiblocks.first; block; block= block->next) {
 			if(block->active && block->panel && block->panel->active && block->panel->paneltab == NULL) {
@@ -1108,6 +1126,7 @@ void uiDrawPanels(const bContext *C, int re_align)
 				
 			}
 		}
+#endif
 	}
 
 	/* draw panels, selected on top */
@@ -1217,16 +1236,11 @@ static void ui_do_drag(bContext *C, wmEvent *event, Panel *panel)
 	uiHandlePanelData *data= panel->activedata;
 	ScrArea *sa= CTX_wm_area(C);
 	ARegion *ar= CTX_wm_region(C);
-	short align=0, dx=0, dy=0;
+	short align= panel_aligned(sa, ar), dx=0, dy=0;
 	
 	/* first clip for window, no dragging outside */
 	if(!BLI_in_rcti(&ar->winrct, event->x, event->y))
 		return;
-
-	if(sa->spacetype==SPACE_BUTS) {
-		SpaceButs *sbuts= sa->spacedata.first;
-		align= sbuts->align;
-	}
 
 	dx= (event->x-data->startx) & ~(PNL_GRID-1);
 	dy= (event->y-data->starty) & ~(PNL_GRID-1);
@@ -1334,11 +1348,8 @@ static void panel_clicked_tabs(bContext *C, ScrArea *sa, ARegion *ar, uiBlock *b
 			}
 			
 			/* panels now differ size.. */
-			if(sa->spacetype==SPACE_BUTS) {
-				SpaceButs *sbuts= sa->spacedata.first;
-				if(sbuts->align)
-					uiAlignPanelStep(sa, ar, 1.0);
-			}
+			if(panel_aligned(sa, ar))
+				uiAlignPanelStep(sa, ar, 1.0);
 
 			ED_region_tag_redraw(ar);
 		}
@@ -1353,12 +1364,7 @@ static void ui_handle_panel_header(bContext *C, uiBlock *block, int mx, int my)
 	ScrArea *sa= CTX_wm_area(C);
 	ARegion *ar= CTX_wm_region(C);
 	Panel *pa;
-	int align= 0, button= 0;
-	
-	if(sa->spacetype==SPACE_BUTS) {
-		SpaceButs *sbuts= (SpaceButs*)CTX_wm_space_data(C);
-		align= sbuts->align;
-	}
+	int align= panel_aligned(sa, ar), button= 0;
 
 	/* mouse coordinates in panel space! */
 	
@@ -1423,7 +1429,6 @@ static void ui_handle_panel_header(bContext *C, uiBlock *block, int mx, int my)
 
 int ui_handler_panel_region(bContext *C, wmEvent *event)
 {
-	ScrArea *sa= CTX_wm_area(C);
 	ARegion *ar= CTX_wm_region(C);
 	uiBlock *block;
 	int retval, mx, my, inside_header= 0, inside_scale= 0;
@@ -1485,8 +1490,9 @@ int ui_handler_panel_region(bContext *C, wmEvent *event)
 		}
 		else
 			zoom=1;
-
+#if 0 // XXX make float panel exception?
 		if(zoom) {
+			ScrArea *sa= CTX_wm_area(C);
 			SpaceLink *sl= sa->spacedata.first;
 
 			if(sa->spacetype!=SPACE_BUTS) {
@@ -1500,6 +1506,7 @@ int ui_handler_panel_region(bContext *C, wmEvent *event)
 				}						
 			}
 		}
+#endif
 	}
 
 	return retval;

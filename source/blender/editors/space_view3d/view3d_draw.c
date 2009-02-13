@@ -1880,20 +1880,6 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	/* from now on all object derived meshes check this */
 	v3d->customdata_mask= get_viewedit_datamask(CTX_wm_screen(C));
 	
-	/* update all objects, ipos, matrices, displists, etc. Flags set by depgraph or manual, 
-		no layer check here, gets correct flushed */
-	/* sets first, we allow per definition current scene to have dependencies on sets */
-	if(scene->set) {
-		for(SETLOOPER(scene->set, base))
-			object_handle_update(scene, base->object);   // bke_object.h
-	}
-	
-	v3d->lay_used = 0;
-	for(base= scene->base.first; base; base= base->next) {
-		object_handle_update(scene, base->object);   // bke_object.h
-		v3d->lay_used |= base->lay;
-	}
-	
 	/* shadow buffers, before we setup matrices */
 	if(draw_glsl_material(scene, NULL, v3d, v3d->drawtype))
 		gpu_update_lamps_shadows(scene, v3d);
@@ -1997,8 +1983,13 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 		/* Transp and X-ray afterdraw stuff for sets is done later */
 	}
 	
+	/* extra service in layerbuttons, showing used layers */
+	v3d->lay_used = 0;
+	
 	/* then draw not selected and the duplis, but skip editmode object */
 	for(base= scene->base.first; base; base= base->next) {
+		v3d->lay_used |= base->lay;
+		
 		if(v3d->lay & base->lay) {
 			
 			/* dupli drawing */

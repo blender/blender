@@ -93,8 +93,8 @@ static void time_draw_sfra_efra(const bContext *C, SpaceTime *stime, ARegion *ar
 	UI_ThemeColorShade(TH_BACK, -25);
 
 	if (PSFRA < PEFRA) {
-		glRectf(v2d->cur.xmin, v2d->cur.ymin, PSFRA, v2d->cur.ymax);
-		glRectf(PEFRA, v2d->cur.ymin, v2d->cur.xmax, v2d->cur.ymax);
+		glRectf(v2d->cur.xmin, v2d->cur.ymin, (float)PSFRA, v2d->cur.ymax);
+		glRectf((float)PEFRA, v2d->cur.ymin, v2d->cur.xmax, v2d->cur.ymax);
 	}
 	else {
 		glRectf(v2d->cur.xmin, v2d->cur.ymin, v2d->cur.xmax, v2d->cur.ymax);
@@ -102,8 +102,8 @@ static void time_draw_sfra_efra(const bContext *C, SpaceTime *stime, ARegion *ar
 
 	UI_ThemeColorShade(TH_BACK, -60);
 	/* thin lines where the actual frames are */
-	fdrawline(PSFRA, v2d->cur.ymin, PSFRA, v2d->cur.ymax);
-	fdrawline(PEFRA, v2d->cur.ymin, PEFRA, v2d->cur.ymax);
+	fdrawline((float)PSFRA, v2d->cur.ymin, (float)PSFRA, v2d->cur.ymax);
+	fdrawline((float)PEFRA, v2d->cur.ymin, (float)PEFRA, v2d->cur.ymax);
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
@@ -207,11 +207,13 @@ static void time_header_area_listener(ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
 	switch(wmn->category) {
-		
 		case NC_SCENE:
-			if(wmn->data==ND_FRAME)
-				ED_region_tag_redraw(ar);
-			break;
+			switch (wmn->data) {
+				case ND_FRAME:
+				case ND_KEYINGSET:
+					ED_region_tag_redraw(ar);
+				break;
+			}
 	}
 }
 
@@ -314,7 +316,7 @@ void ED_spacetype_time(void)
 	art->init= time_main_area_init;
 	art->draw= time_main_area_draw;
 	art->listener= time_main_area_listener;
-	//art->keymap= time_keymap;
+	art->keymap= time_keymap;
 	BLI_addhead(&st->regiontypes, art);
 	
 	/* regions: header */

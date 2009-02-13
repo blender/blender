@@ -84,6 +84,7 @@ typedef struct uiPopupBlockHandle uiPopupBlockHandle;
 #define UI_BLOCK_NO_HILITE		64		/* XXX 2.5 not implemented */
 #define UI_BLOCK_MOVEMOUSE_QUIT	128
 #define UI_BLOCK_KEEP_OPEN		256
+#define UI_BLOCK_POPUP			512
 
 /* uiPopupBlockHandle->menuretval */
 #define UI_RETURN_CANCEL	1       /* cancel all menus cascading */
@@ -211,7 +212,7 @@ void uiMenuContext(uiMenuItem *head, int opcontext);
 
 void uiMenuItemVal(uiMenuItem *head, const char *name, int icon, int argval);
 
-void uiMenuItemEnumO(uiMenuItem *head, int icon, char *opname, char *propname, int value);
+void uiMenuItemEnumO(uiMenuItem *head, const char *name, int icon, char *opname, char *propname, int value);
 void uiMenuItemBooleanO(uiMenuItem *head, const char *name, int icon, char *opname, char *propname, int value);
 void uiMenuItemsEnumO(uiMenuItem *head, char *opname, char *propname);
 void uiMenuItemIntO(uiMenuItem *head, const char *name, int icon, char *opname, char *propname, int value);
@@ -238,9 +239,8 @@ void uiMenuSeparator(uiMenuItem *head);
 uiMenuItem *uiPupMenuBegin(const char *title, int icon);
 void uiPupMenuEnd(struct bContext *C, struct uiMenuItem *head);
 
-void uiPupMenu(struct bContext *C, int maxrow, uiMenuHandleFunc func, void *arg, char *str, ...);
 void uiPupMenuOkee(struct bContext *C, char *opname, char *str, ...);
-void uiPupMenuSaveOver(struct bContext *C, char *opname, char *filename, ...);
+void uiPupMenuSaveOver(struct bContext *C, struct wmOperator *op, char *filename);
 void uiPupMenuNotice(struct bContext *C, char *str, ...);
 void uiPupMenuError(struct bContext *C, char *str, ...);
 void uiPupMenuReports(struct bContext *C, struct ReportList *reports);
@@ -512,6 +512,28 @@ extern void uiSetPanelHandler(int);
 void UI_add_region_handlers(struct ListBase *handlers);
 void UI_add_area_handlers(struct ListBase *handlers);
 void UI_add_popup_handlers(struct ListBase *handlers, uiPopupBlockHandle *menu);
+
+/* Legacy code
+ * Callbacks and utils to get 2.48 work */
+
+void test_idbutton_cb(struct bContext *C, void *namev, void *arg2);
+void test_scriptpoin_but(struct bContext *C, char *name, ID **idpp);
+void test_actionpoin_but(struct bContext *C, char *name, ID **idpp);
+void test_obpoin_but(struct bContext *C, char *name, ID **idpp);
+void test_meshobpoin_but(struct bContext *C, char *name, ID **idpp);
+void test_meshpoin_but(struct bContext *C, char *name, ID **idpp);
+void test_matpoin_but(struct bContext *C, char *name, ID **idpp);
+void test_scenepoin_but(struct bContext *C, char *name, ID **idpp);
+void test_grouppoin_but(struct bContext *C, char *name, ID **idpp);
+void test_texpoin_but(struct bContext *C, char *name, ID **idpp);
+void test_imapoin_but(struct bContext *C, char *name, ID **idpp);
+void autocomplete_bone(struct bContext *C, char *str, void *arg_v);
+void autocomplete_vgroup(struct bContext *C, char *str, void *arg_v);
+
+struct CurveMapping;
+struct rctf;
+void curvemap_buttons(uiBlock *block, struct CurveMapping *cumap, char labeltype, short event, short redraw, struct rctf *rect);
+
 
 /* Module
  *

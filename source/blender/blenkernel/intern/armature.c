@@ -132,6 +132,14 @@ void free_armature(bArmature *arm)
 	if (arm) {
 		/*		unlink_armature(arm);*/
 		free_bones(arm);
+		
+		/* free editmode data */
+		if (arm->edbo) {
+			BLI_freelistN(arm->edbo);
+			
+			MEM_freeN(arm->edbo);
+			arm->edbo= NULL;
+		}
 	}
 }
 

@@ -1187,7 +1187,7 @@ static int set_wpaint(bContext *C, wmOperator *op)		/* toggle */
 		mesh_octree_table(ob, NULL, NULL, 'e');
 	}
 	
-	WM_event_add_notifier(C, NC_SCENE|ND_MODE, ob);
+	WM_event_add_notifier(C, NC_SCENE|ND_MODE, scene);
 	
 	return OPERATOR_FINISHED;
 }
@@ -1664,12 +1664,12 @@ static int set_vpaint(bContext *C, wmOperator *op)		/* toggle */
 	VPaint *vp= scene->toolsettings->vpaint;
 	Mesh *me;
 	
-	if(object_data_is_libdata(ob)) {
+	me= get_mesh(ob);
+	
+	if(me==NULL || object_data_is_libdata(ob)) {
 		G.f &= ~G_VERTEXPAINT;
 		return OPERATOR_FINISHED;
 	}
-	
-	me= get_mesh(ob);
 	
 	if(me && me->totface>=MAXINDEX) {
 		error("Maximum number of faces: %d", MAXINDEX-1);
@@ -1706,7 +1706,7 @@ static int set_vpaint(bContext *C, wmOperator *op)		/* toggle */
 		/* update modifier stack for mapping requirements */
 		DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
 	
-	WM_event_add_notifier(C, NC_SCENE|ND_MODE, ob);
+	WM_event_add_notifier(C, NC_SCENE|ND_MODE, scene);
 	
 	return OPERATOR_FINISHED;
 }

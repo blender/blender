@@ -170,6 +170,73 @@ FCurve *list_find_fcurve (ListBase *list, const char rna_path[], const int array
 	return NULL;
 }
 
+/* Calculate the extents of F-Curve's data */
+void calc_fcurve_bounds (FCurve *fcu, float *xmin, float *xmax, float *ymin, float *ymax)
+{
+	float xminv=999999999.0f, xmaxv=-999999999.0f;
+	float yminv=999999999.0f, ymaxv=-999999999.0f;
+	short foundvert=0;
+	int i;
+	
+	if (fcu->totvert) {
+		if (fcu->bezt) {
+			/* frame range can be directly calculated from end verts */
+			if (xmin || xmax) {
+				xminv= MIN2(xminv, fcu->bezt[0].vec[1][0]);
+				xmaxv= MAX2(xmaxv, fcu->bezt[fcu->totvert-1].vec[1][0]);
+			}
+			
+			/* only loop over keyframes to find extents for values if needed */
+			if (ymin || ymax) {
+				BezTriple *bezt;
+				
+				for (bezt=fcu->bezt, i=0; i < fcu->totvert; bezt++, i++) {
+					yminv= MIN2(yminv, bezt->vec[1][1]);
+					ymaxv= MAX2(ymaxv, bezt->vec[1][1]);
+				}
+			}
+		}
+		else if (fcu->fpt) {
+			/* frame range can be directly calculated from end verts */
+			if (xmin || xmax) {
+				xminv= MIN2(xminv, fcu->fpt[0].vec[0]);
+				xmaxv= MAX2(xmaxv, fcu->fpt[fcu->totvert-1].vec[0]);
+			}
+			
+			/* only loop over keyframes to find extents for values if needed */
+			if (ymin || ymax) {
+				FPoint *fpt;
+				
+				for (fpt=fcu->fpt, i=0; i < fcu->totvert; fpt++, i++) {
+					yminv= MIN2(yminv, fpt->vec[1]);
+					ymaxv= MAX2(ymaxv, fpt->vec[1]);
+				}
+			}
+		}
+		
+		foundvert=1;
+	}
+	
+	/* minimum sizes are 1.0f */
+	if (foundvert) {
+		if (xminv == xmaxv) xmaxv += 1.0f;
+		if (yminv == ymaxv) ymaxv += 1.0f;
+		
+		if (xmin) *xmin= xminv;
+		if (xmax) *xmax= xmaxv;
+		
+		if (ymin) *ymin= yminv;
+		if (ymax) *ymax= ymaxv;
+	}
+	else {
+		if (xmin) *xmin= 0.0f;
+		if (xmax) *xmax= 0.0f;
+		
+		if (ymin) *ymin= 1.0f;
+		if (ymax) *ymax= 1.0f;
+	}
+}
+
 /* Calculate the extents of F-Curve's keyframes */
 void calc_fcurve_range (FCurve *fcu, float *start, float *end)
 {

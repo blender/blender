@@ -918,8 +918,6 @@ int get_view3d_viewplane(View3D *v3d, RegionView3D *rv3d, int winxi, int winyi, 
 	return orth;
 }
 
-
-/* important to not set windows active in here, can be renderwin for example */
 void setwinmatrixview3d(ARegion *ar, View3D *v3d, rctf *rect)		/* rect: for picking */
 {
 	RegionView3D *rv3d= ar->regiondata;

@@ -341,10 +341,11 @@ void transform_keymap_for_space(struct wmWindowManager *wm, struct ListBase *key
 			km = WM_keymap_add_item(keymap, "TFM_OT_transform", SKEY, KM_PRESS, 0, 0);
 			RNA_int_set(km->ptr, "mode", TFM_RESIZE);
 
-			km = WM_keymap_add_item(keymap, "TFM_OT_transform", SKEY, KM_PRESS, KM_ALT|KM_CTRL|KM_SHIFT, 0);
-			RNA_int_set(km->ptr, "mode", TFM_SHEAR);
+			km = WM_keymap_add_item(keymap, "TFM_OT_transform", MKEY, KM_PRESS, 0, 0);
+			RNA_int_set(km->ptr, "mode", TFM_MIRROR);
 			break;
 		default:
 			break;
 	}
 }
+

@@ -91,7 +91,6 @@ static uiBlock *seq_viewmenu(bContext *C, ARegion *ar, void *arg_unused)
 		uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL,
 				 "Grease Pencil...", 0, yco-=20,
 				 menuwidth, 19, NULL, 0.0, 0.0, 1, 7, "");
-
 		uiDefMenuSep(block);
 
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1,
@@ -113,9 +112,7 @@ static uiBlock *seq_viewmenu(bContext *C, ARegion *ar, void *arg_unused)
 	uiDefMenuSep(block);
 
 	/* Lock Time */
-#define V2D_VIEWLOCK 0 // XXX add back
-
-	uiDefIconTextBut(block, BUTM, 1, (v2d->flag & V2D_VIEWLOCK)?ICON_CHECKBOX_HLT:ICON_CHECKBOX_DEHLT,
+	uiDefIconTextBut(block, BUTM, 1, (v2d->flag & V2D_VIEWSYNC_SCREEN_TIME)?ICON_CHECKBOX_HLT:ICON_CHECKBOX_DEHLT,
 			"Lock Time to Other Windows|", 0, yco-=20,
 			menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
 
@@ -123,9 +120,9 @@ static uiBlock *seq_viewmenu(bContext *C, ARegion *ar, void *arg_unused)
 	uiDefMenuSep(block);
 
 	if(sseq->flag & SEQ_DRAWFRAMES)
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show Seconds|T", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show Seconds|Ctrl T", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
 	else
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show Frames|T", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show Frames|Ctrl T", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
 
 	
 	if(!sa->full) uiDefIconTextBut(block, BUTM, B_FULL, ICON_BLANK1, "Maximize Window|Ctrl UpArrow", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0,0, "");
@@ -146,46 +143,23 @@ static uiBlock *seq_viewmenu(bContext *C, ARegion *ar, void *arg_unused)
 	return block;
 }
 
-static uiBlock *seq_selectmenu(bContext *C, ARegion *ar, void *arg_unused)
+//static uiBlock *seq_selectmenu(bContext *C, ARegion *ar, void *arg_unused)
+static void seq_selectmenu(bContext *C, uiMenuItem *head, void *arg_unused)
 {
-	ScrArea *sa= CTX_wm_area(C);
+	uiMenuContext(head, WM_OP_INVOKE_DEFAULT);
 
-	uiBlock *block= uiBeginBlock(C, ar, "seq_selectmenu", UI_EMBOSSP, UI_HELV);
-	uiBut *but;
-
-	but= uiDefMenuButO(block, "SEQUENCER_OT_select_active_side", "Strips to the Left");
-	RNA_enum_set(uiButGetOperatorPtrRNA(but), "side", 'l');
-	but= uiDefMenuButO(block, "SEQUENCER_OT_select_active_side", "Strips to the Right");
-	RNA_enum_set(uiButGetOperatorPtrRNA(but), "side", 'r');
-	uiDefMenuSep(block);
-	but= uiDefMenuButO(block, "SEQUENCER_OT_select_handles", "Surrounding Handles");
-	RNA_enum_set(uiButGetOperatorPtrRNA(but), "side", SEQ_SIDE_BOTH);
-	but= uiDefMenuButO(block, "SEQUENCER_OT_select_handles", "Left Handles");
-	RNA_enum_set(uiButGetOperatorPtrRNA(but), "side", SEQ_SIDE_LEFT);
-	but= uiDefMenuButO(block, "SEQUENCER_OT_select_handles", "Right Handles");
-	RNA_enum_set(uiButGetOperatorPtrRNA(but), "side", SEQ_SIDE_RIGHT);
-	uiDefMenuSep(block);
-	uiDefMenuButO(block, "SEQUENCER_OT_borderselect", NULL);
-	uiDefMenuSep(block);
-	uiDefMenuButO(block, "SEQUENCER_OT_select_linked", NULL);
-	uiDefMenuButO(block, "SEQUENCER_OT_deselect_all", NULL);
-	uiDefMenuButO(block, "SEQUENCER_OT_select_invert", NULL);
-
-
-	if(sa->headertype==HEADERTOP) {
-		uiBlockSetDirection(block, UI_DOWN);
-	}
-	else {
-		uiBlockSetDirection(block, UI_TOP);
-		uiBlockFlipOrder(block);
-	}
-
-	/* position menu */
-	uiTextBoundsBlock(block, 60);
-
-	uiEndBlock(C, block);
-
-	return block;
+	uiMenuItemEnumO(head, "Strips to the Left", 0, "SEQUENCER_OT_select_active_side", "side", SEQ_SIDE_LEFT);
+	uiMenuItemEnumO(head, "Strips to the Right", 0, "SEQUENCER_OT_select_active_side", "side", SEQ_SIDE_RIGHT);
+	uiMenuSeparator(head);
+	uiMenuItemEnumO(head, "Surrounding Handles", 0, "SEQUENCER_OT_select_handles", "side", SEQ_SIDE_BOTH);
+	uiMenuItemEnumO(head, "Left Handles", 0, "SEQUENCER_OT_select_handles", "side", SEQ_SIDE_LEFT);
+	uiMenuItemEnumO(head, "Right Handles", 0, "SEQUENCER_OT_select_handles", "side", SEQ_SIDE_RIGHT);
+	uiMenuSeparator(head);
+	uiMenuItemO(head, 0, "SEQUENCER_OT_select_linked");
+	uiMenuSeparator(head);
+	uiMenuItemO(head, 0, "SEQUENCER_OT_select_linked");
+	uiMenuItemO(head, 0, "SEQUENCER_OT_deselect_all");
+	uiMenuItemO(head, 0, "SEQUENCER_OT_select_invert");
 }
 
 static uiBlock *seq_markermenu(bContext *C, ARegion *ar, void *arg_unused)
@@ -235,157 +209,115 @@ static uiBlock *seq_markermenu(bContext *C, ARegion *ar, void *arg_unused)
 	return block;
 }
 
-static uiBlock *seq_addmenu_effectmenu(bContext *C, ARegion *ar, void *arg_unused)
+//static uiBlock *seq_addmenu_effectmenu(bContext *C, ARegion *ar, void *arg_unused)
+static void seq_addmenu_effectmenu(bContext *C, uiMenuItem *head, void *arg_unused)
 {
-	uiBlock *block= uiBeginBlock(C, ar, "seq_addmenu_effectmenu", UI_EMBOSSP, UI_HELV);
-
-
-	RNA_enum_set(uiButGetOperatorPtrRNA(uiDefMenuButO(block, "SEQUENCER_OT_add_effect_strip", "Add")), "type", SEQ_ADD);
-	RNA_enum_set(uiButGetOperatorPtrRNA(uiDefMenuButO(block, "SEQUENCER_OT_add_effect_strip", "Subtract")), "type", SEQ_SUB);
-	RNA_enum_set(uiButGetOperatorPtrRNA(uiDefMenuButO(block, "SEQUENCER_OT_add_effect_strip", "Multiply")), "type", SEQ_MUL);
-	RNA_enum_set(uiButGetOperatorPtrRNA(uiDefMenuButO(block, "SEQUENCER_OT_add_effect_strip", "Cross")), "type", SEQ_CROSS);
-	RNA_enum_set(uiButGetOperatorPtrRNA(uiDefMenuButO(block, "SEQUENCER_OT_add_effect_strip", "Gamma Cross")), "type", SEQ_GAMCROSS);
-	RNA_enum_set(uiButGetOperatorPtrRNA(uiDefMenuButO(block, "SEQUENCER_OT_add_effect_strip", "Alpha Over")), "type", SEQ_ALPHAOVER);
-	RNA_enum_set(uiButGetOperatorPtrRNA(uiDefMenuButO(block, "SEQUENCER_OT_add_effect_strip", "Alpha Under")), "type", SEQ_ALPHAUNDER);
-	RNA_enum_set(uiButGetOperatorPtrRNA(uiDefMenuButO(block, "SEQUENCER_OT_add_effect_strip", "Alpha Over Drop")), "type", SEQ_OVERDROP);
-	RNA_enum_set(uiButGetOperatorPtrRNA(uiDefMenuButO(block, "SEQUENCER_OT_add_effect_strip", "Wipe")), "type", SEQ_WIPE);
-	RNA_enum_set(uiButGetOperatorPtrRNA(uiDefMenuButO(block, "SEQUENCER_OT_add_effect_strip", "Glow")), "type", SEQ_GLOW);
-	RNA_enum_set(uiButGetOperatorPtrRNA(uiDefMenuButO(block, "SEQUENCER_OT_add_effect_strip", "Transform")), "type", SEQ_TRANSFORM);
+	uiMenuContext(head, WM_OP_INVOKE_DEFAULT);
+	
+	uiMenuItemEnumO(head, "", 0, "SEQUENCER_OT_add_effect_strip", "type", SEQ_ADD);
+	uiMenuItemEnumO(head, "", 0, "SEQUENCER_OT_add_effect_strip", "type", SEQ_SUB);
+	uiMenuItemEnumO(head, "", 0, "SEQUENCER_OT_add_effect_strip", "type", SEQ_MUL);
+	uiMenuItemEnumO(head, "", 0, "SEQUENCER_OT_add_effect_strip", "type", SEQ_CROSS);
+	uiMenuItemEnumO(head, "", 0, "SEQUENCER_OT_add_effect_strip", "type", SEQ_GAMCROSS);
+	uiMenuItemEnumO(head, "", 0, "SEQUENCER_OT_add_effect_strip", "type", SEQ_ALPHAOVER);
+	uiMenuItemEnumO(head, "", 0, "SEQUENCER_OT_add_effect_strip", "type", SEQ_ALPHAUNDER);
+	uiMenuItemEnumO(head, "", 0, "SEQUENCER_OT_add_effect_strip", "type", SEQ_OVERDROP);
+	uiMenuItemEnumO(head, "", 0, "SEQUENCER_OT_add_effect_strip", "type", SEQ_WIPE);
+	uiMenuItemEnumO(head, "", 0, "SEQUENCER_OT_add_effect_strip", "type", SEQ_GLOW);
+	uiMenuItemEnumO(head, "", 0, "SEQUENCER_OT_add_effect_strip", "type", SEQ_TRANSFORM);
 	/* Color is an effect but moved to the other menu since its not that exciting */
-	RNA_enum_set(uiButGetOperatorPtrRNA(uiDefMenuButO(block, "SEQUENCER_OT_add_effect_strip", "Speed Control")), "type", SEQ_SPEED);
-	uiDefMenuSep(block);
-	RNA_enum_set(uiButGetOperatorPtrRNA(uiDefMenuButO(block, "SEQUENCER_OT_add_effect_strip", "Plugin...")), "type", SEQ_PLUGIN);
-	
-	/* position menu */
-	uiBlockSetDirection(block, UI_RIGHT);
-	uiTextBoundsBlock(block, 60);
-
-	uiEndBlock(C, block);
-
-	return block;
+	uiMenuItemEnumO(head, "", 0, "SEQUENCER_OT_add_effect_strip", "type", SEQ_SPEED);
+	uiMenuSeparator(head);
+	uiMenuItemEnumO(head, "", 0, "SEQUENCER_OT_add_effect_strip", "type", SEQ_PLUGIN);
 }
 
 
-static uiBlock *seq_addmenu(bContext *C, ARegion *ar, void *arg_unused)
+//static uiBlock *seq_addmenu(bContext *C, ARegion *ar, void *arg_unused)
+static void seq_addmenu(bContext *C, uiMenuItem *head, void *arg_unused)
 {
-	ScrArea *sa= CTX_wm_area(C);
-	uiBlock *block= uiBeginBlock(C, ar, "seq_addmenu", UI_EMBOSSP, UI_HELV);
-	uiBut *but;
-	
-	uiDefMenuSub(block, seq_addmenu_effectmenu, "Effect");
+	uiMenuLevel(head, "Effects...", seq_addmenu_effectmenu);
+	uiMenuSeparator(head);
 
-	uiDefMenuSep(block);
+	uiMenuContext(head, WM_OP_INVOKE_DEFAULT);
 
 #ifdef WITH_FFMPEG
-	uiDefMenuButO(block, "SEQUENCER_OT_add_sound_strip", "Audio (RAM)");
-	but= uiDefMenuButO(block, "SEQUENCER_OT_add_sound_strip", "Audio (HD)");
-	RNA_boolean_set(uiButGetOperatorPtrRNA(but), "hd", TRUE);
+	uiMenuItemBooleanO(head, "Audio (RAM)", 0, "SEQUENCER_OT_add_sound_strip", "hd", FALSE);
+	uiMenuItemBooleanO(head, "Audio (HD)", 0, "SEQUENCER_OT_add_sound_strip", "hd", TRUE);
 #else
-	uiDefMenuButO(block, "SEQUENCER_OT_add_sound_strip", NULL);
+	uiMenuItemO(head, 0, "SEQUENCER_OT_add_sound_strip");
 #endif
-	but= uiDefMenuButO(block, "SEQUENCER_OT_add_effect_strip", "Add Color Strip");
-	RNA_enum_set(uiButGetOperatorPtrRNA(but), "type", SEQ_COLOR);
+	uiMenuItemEnumO(head, "Add Color Strip", 0, "SEQUENCER_OT_add_effect_strip", "type", SEQ_COLOR);
 
-	uiDefMenuButO(block, "SEQUENCER_OT_add_image_strip", NULL);
-	uiDefMenuButO(block, "SEQUENCER_OT_add_movie_strip", NULL);
-	uiDefMenuButO(block, "SEQUENCER_OT_add_scene_strip", NULL);
+	uiMenuItemO(head, 0, "SEQUENCER_OT_add_image_strip");
+	uiMenuItemO(head, 0, "SEQUENCER_OT_add_movie_strip");
+	uiMenuItemO(head, 0, "SEQUENCER_OT_add_scene_strip");
 #ifdef WITH_FFMPEG
-	but= uiDefMenuButO(block, "SEQUENCER_OT_add_movie_strip", NULL);
-	RNA_boolean_set(uiButGetOperatorPtrRNA(but), "sound", TRUE);
+	uiMenuItemBooleanO(head, "Movie and Sound", 0, "SEQUENCER_OT_add_movie_strip", "sound", TRUE);
 #endif
-
-	if(sa->headertype==HEADERTOP) {
-		uiBlockSetDirection(block, UI_DOWN);
-	}
-	else {
-		uiBlockSetDirection(block, UI_TOP);
-		uiBlockFlipOrder(block);
-	}
-
-	uiTextBoundsBlock(block, 50);
-	uiEndBlock(C, block);
-
-	return block;
 }
 
-static uiBlock *seq_editmenu(bContext *C, ARegion *ar, void *arg_unused)
+//static uiBlock *seq_editmenu(bContext *C, ARegion *ar, void *arg_unused)
+static void seq_editmenu(bContext *C, uiMenuItem *head, void *arg_unused)
 {
-	ScrArea *sa= CTX_wm_area(C);
+	
 	Scene *scene= CTX_data_scene(C);
 	Editing *ed= seq_give_editing(scene, FALSE);
-
-	uiBlock *block= uiBeginBlock(C, ar, "seq_editmenu", UI_EMBOSSP, UI_HELV);
-	uiBut *but;
 	
+	uiMenuContext(head, WM_OP_INVOKE_DEFAULT);
 
-	RNA_int_set(uiButGetOperatorPtrRNA(uiDefMenuButO(block, "TFM_OT_transform", "Grab/Move")), "mode", TFM_TRANSLATION);
-	RNA_int_set(uiButGetOperatorPtrRNA(uiDefMenuButO(block, "TFM_OT_transform", "Grab/Extend from frame")), "mode", TFM_TIME_EXTEND);
+	uiMenuItemEnumO(head, "", 0, "TFM_OT_transform", "mode", TFM_TRANSLATION);
+	uiMenuItemEnumO(head, "", 0, "TFM_OT_transform", "mode", TFM_TIME_EXTEND);
 
-	uiDefMenuButO(block, "SEQUENCER_OT_strip_snap", "Snap to Current Frame");
+	// uiMenuItemO(head, 0, "SEQUENCER_OT_strip_snap"); // TODO - add this operator
 
-	RNA_int_set(uiButGetOperatorPtrRNA(uiDefMenuButO(block, "SEQUENCER_OT_cut", "Cut (hard) at Current Frame")), "type", SEQ_CUT_HARD);
-	RNA_int_set(uiButGetOperatorPtrRNA(uiDefMenuButO(block, "SEQUENCER_OT_cut", "Cut (soft) at Current Frame")), "type", SEQ_CUT_SOFT);
+	uiMenuItemEnumO(head, "Cut Hard", 0, "SEQUENCER_OT_cut", "type", SEQ_CUT_HARD);
+	uiMenuItemEnumO(head, "Cut Soft", 0, "SEQUENCER_OT_cut", "type", SEQ_CUT_SOFT);
 
-
-	uiDefMenuButO(block, "SEQUENCER_OT_separate_images", NULL);
-	uiDefMenuSep(block);
-	uiDefMenuButO(block, "SEQUENCER_OT_add_duplicate", NULL);
-	uiDefMenuButO(block, "SEQUENCER_OT_delete", NULL);
+	uiMenuItemO(head, 0, "SEQUENCER_OT_separate_images");
+	uiMenuSeparator(head);
+	uiMenuItemO(head, 0, "SEQUENCER_OT_add_duplicate");
+	uiMenuItemO(head, 0, "SEQUENCER_OT_delete");
 
 	if (ed && ed->act_seq) {
 		switch(ed->act_seq->type) {
 		case SEQ_EFFECT:
-			uiDefMenuSep(block);
-			uiDefMenuButO(block, "SEQUENCER_OT_effect_change", NULL);
-			uiDefMenuButO(block, "SEQUENCER_OT_effect_reassign_inputs", NULL);
+			uiMenuSeparator(head);
+			uiMenuItemO(head, 0, "SEQUENCER_OT_effect_change");
+			uiMenuItemO(head, 0, "SEQUENCER_OT_effect_reassign_inputs");
 			break;
 		case SEQ_IMAGE:
-			uiDefMenuSep(block);
-			uiDefMenuButO(block, "SEQUENCER_OT_image_change", NULL); // Change Scene...
+			uiMenuSeparator(head);
+			uiMenuItemO(head, 0, "SEQUENCER_OT_image_change"); // Change Scene...
 			break;
 		case SEQ_SCENE:
-			uiDefMenuSep(block);
-			uiDefMenuButO(block, "SEQUENCER_OT_scene_change", NULL); // Remap Paths...
+			uiMenuSeparator(head);
+			uiMenuItemO(head, 0, "SEQUENCER_OT_scene_change"); // Remap Paths...
 			break;
 		case SEQ_MOVIE:
-			uiDefMenuSep(block);
-			uiDefMenuButO(block, "SEQUENCER_OT_movie_change", NULL); // Remap Paths...
+			uiMenuSeparator(head);
+			uiMenuItemO(head, 0, "SEQUENCER_OT_movie_change"); // Remap Paths...
 			break;
 		}
 	}
 
-	uiDefMenuSep(block);
+	uiMenuSeparator(head);
 
-	uiDefMenuButO(block, "SEQUENCER_OT_meta_make", NULL);
-	uiDefMenuButO(block, "SEQUENCER_OT_meta_separate", NULL);
+	uiMenuItemO(head, 0, "SEQUENCER_OT_meta_make");
+	uiMenuItemO(head, 0, "SEQUENCER_OT_meta_separate");
 
 	if (ed && (ed->metastack.first || (ed->act_seq && ed->act_seq->type == SEQ_META))) {
-		uiDefMenuSep(block);
-		uiDefMenuButO(block, "SEQUENCER_OT_meta_toggle", NULL);
+		uiMenuSeparator(head);
+		uiMenuItemO(head, 0, "SEQUENCER_OT_meta_toggle");
 	}
-	uiDefMenuSep(block);
-	uiDefMenuButO(block, "SEQUENCER_OT_reload", NULL);
-	uiDefMenuSep(block);
-	uiDefMenuButO(block, "SEQUENCER_OT_lock", NULL);
-	uiDefMenuButO(block, "SEQUENCER_OT_unlock", NULL);
-	uiDefMenuButO(block, "SEQUENCER_OT_mute", NULL);
-	uiDefMenuButO(block, "SEQUENCER_OT_unmute", NULL);
+	uiMenuSeparator(head);
+	uiMenuItemO(head, 0, "SEQUENCER_OT_reload");
+	uiMenuSeparator(head);
+	uiMenuItemO(head, 0, "SEQUENCER_OT_lock");
+	uiMenuItemO(head, 0, "SEQUENCER_OT_unlock");
+	uiMenuItemO(head, 0, "SEQUENCER_OT_mute");
+	uiMenuItemO(head, 0, "SEQUENCER_OT_unmute");
 
-	but= uiDefMenuButO(block, "SEQUENCER_OT_mute", "Mute Deselected Strips");
-	RNA_enum_set(uiButGetOperatorPtrRNA(but), "type", SEQ_UNSELECTED);
-	
-	if(sa->headertype==HEADERTOP) {
-		uiBlockSetDirection(block, UI_DOWN);
-	}
-	else {
-		uiBlockSetDirection(block, UI_TOP);
-		uiBlockFlipOrder(block);
-	}
-
-	uiTextBoundsBlock(block, 50);
-	uiEndBlock(C, block);
-
-	return block;
+	uiMenuItemEnumO(head, "Mute Deselected Strips", 0, "SEQUENCER_OT_mute", "type", SEQ_UNSELECTED);
 }
 
 void sequencer_header_buttons(const bContext *C, ARegion *ar)
@@ -407,23 +339,29 @@ void sequencer_header_buttons(const bContext *C, ARegion *ar)
 		uiBlockSetEmboss(block, UI_EMBOSSP);
 		
 		xmax= GetButStringLength("View");
-		uiDefPulldownBut(block, seq_viewmenu, sa, "View", xco, 0, xmax-3, 24, "");
+
+		//uiDefMenuBut(block, seq_viewmenu, NULL, "View", xco, 0, xmax-3, 24, ""); // TODO
+		uiDefPulldownBut(block, seq_viewmenu, sa, "View", xco, 0, xmax-3, 24, ""); 
 		xco+=xmax;
 
 		xmax= GetButStringLength("Select");
-		uiDefPulldownBut(block, seq_selectmenu, sa, "Select", xco, 0, xmax-3, 24, "");
+		uiDefMenuBut(block, seq_selectmenu, NULL, "Select", xco, 0, xmax-3, 24, "");
+		//uiDefPulldownBut(block, seq_selectmenu, sa, "Select", xco, 0, xmax-3, 24, "");
 		xco+=xmax;
 
 		xmax= GetButStringLength("Marker");
-		uiDefPulldownBut(block, seq_markermenu, sa, "Marker", xco, 0, xmax-3, 24, "");
+		//uiDefMenuBut(block, seq_markermenu, NULL, "Marker", xco, 0, xmax-3, 24, "");
+		uiDefPulldownBut(block, seq_markermenu, sa, "Marker", xco, 0, xmax-3, 24, ""); // TODO
 		xco+=xmax;
 
 		xmax= GetButStringLength("Add");
-		uiDefPulldownBut(block, seq_addmenu, sa, "Add", xco, 0, xmax-3, 24, "");
+		uiDefMenuBut(block, seq_addmenu, NULL, "Add", xco, 0, xmax-3, 24, "");
+		//uiDefPulldownBut(block, seq_addmenu, sa, "Add", xco, 0, xmax-3, 24, "");
 		xco+=xmax;
 
 		xmax= GetButStringLength("Strip");
-		uiDefPulldownBut(block, seq_editmenu, sa, "Strip", xco, 0, xmax-3, 24, "");
+		uiDefMenuBut(block, seq_editmenu, NULL, "Strip", xco, 0, xmax-3, 24, "");
+		//uiDefPulldownBut(block, seq_editmenu, sa, "Strip", xco, 0, xmax-3, 24, "");
 		xco+=xmax;
 	}
 
@@ -501,7 +439,7 @@ void sequencer_header_buttons(const bContext *C, ARegion *ar)
 			      0, 0, 0, 0,
 			      "Zooms view in and out (Ctrl MiddleMouse)");
 		xco += XIC;
-		uiDefIconButO(block, BUT, "SEQUENCER_OT_view_zoom", WM_OP_INVOKE_REGION_WIN, ICON_BORDERMOVE, xco,yco,XIC,YIC, "Zooms view to fit area");
+		uiDefIconButO(block, BUT, "View2D_OT_view_borderzoom", WM_OP_INVOKE_REGION_WIN, ICON_BORDERMOVE, xco,yco,XIC,YIC, "Zooms view to fit area");
 		
 		uiBlockEndAlign(block);
 		xco += 8 + XIC;

@@ -431,6 +431,26 @@ static void rna_def_userdef_theme_space_ipo(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "handle_vertex_size", PROP_INT, PROP_NONE);
 	RNA_def_property_range(prop, 0, 255);
 	RNA_def_property_ui_text(prop, "Handle Vertex Size", "");
+	
+	prop= RNA_def_property(srna, "channel_group", PROP_FLOAT, PROP_COLOR);
+	RNA_def_property_float_sdna(prop, NULL, "group");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Channel Group", "");
+
+	prop= RNA_def_property(srna, "active_channels_group", PROP_FLOAT, PROP_COLOR);
+	RNA_def_property_float_sdna(prop, NULL, "group_active");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Active Channel Group", "");
+	
+	prop= RNA_def_property(srna, "dopesheet_channel", PROP_FLOAT, PROP_COLOR);
+	RNA_def_property_float_sdna(prop, NULL, "ds_channel");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "DopeSheet Channel", "");
+	
+	prop= RNA_def_property(srna, "dopesheet_subchannel", PROP_FLOAT, PROP_COLOR);
+	RNA_def_property_float_sdna(prop, NULL, "ds_subchannel");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "DopeSheet Sub-Channel", "");
 }
 
 static void rna_def_userdef_theme_space_file(BlenderRNA *brna)
@@ -788,9 +808,9 @@ static void rna_def_userdef_theme_space_action(BlenderRNA *brna)
 
 	/* space_action */
 
-	srna= RNA_def_struct(brna, "ThemeDopeSheetEditor", NULL);
+	srna= RNA_def_struct(brna, "ThemeDopeSheet", NULL);
 	RNA_def_struct_sdna(srna, "ThemeSpace");
-	RNA_def_struct_ui_text(srna, "Theme DopeSheet Editor", "Theme settings for the DopeSheet Editor.");
+	RNA_def_struct_ui_text(srna, "Theme DopeSheet", "Theme settings for the DopeSheet.");
 
 	rna_def_userdef_theme_spaces_main(srna);
 
@@ -970,8 +990,8 @@ static void rna_def_userdef_themes(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "dopesheet_editor", PROP_POINTER, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "tact");
-	RNA_def_property_struct_type(prop, "ThemeDopeSheetEditor");
-	RNA_def_property_ui_text(prop, "DopeSheet Editor", "");
+	RNA_def_property_struct_type(prop, "ThemeDopeSheet");
+	RNA_def_property_ui_text(prop, "DopeSheet", "");
 
 	prop= RNA_def_property(srna, "image_editor", PROP_POINTER, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "tima");

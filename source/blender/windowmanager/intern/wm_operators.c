@@ -101,7 +101,7 @@ void WM_operatortype_append(void (*opfunc)(wmOperatorType*))
 	ot= MEM_callocN(sizeof(wmOperatorType), "operatortype");
 	ot->srna= RNA_def_struct(&BLENDER_RNA, "", "OperatorProperties");
 	opfunc(ot);
-	RNA_def_struct_ui_text(ot->srna, ot->name, "DOC_BROKEN"); /* TODO - add a discription to wmOperatorType? */
+	RNA_def_struct_ui_text(ot->srna, ot->name, ot->description ? ot->description:""); // XXX All ops should have a description but for now allow them not to.
 	RNA_def_struct_identifier(ot->srna, ot->idname);
 	BLI_addtail(&global_ops, ot);
 }
@@ -417,6 +417,7 @@ static int wm_save_as_mainfile_invoke(bContext *C, wmOperator *op, wmEvent *even
 	return OPERATOR_RUNNING_MODAL;
 }
 
+/* function used for WM_OT_save_mainfile too */
 static int wm_save_as_mainfile_exec(bContext *C, wmOperator *op)
 {
 	char filename[FILE_MAX];
@@ -431,7 +432,7 @@ static int wm_save_as_mainfile_exec(bContext *C, wmOperator *op)
 
 static void WM_OT_save_as_mainfile(wmOperatorType *ot)
 {
-	ot->name= "Open Blender File";
+	ot->name= "Save As Blender File";
 	ot->idname= "WM_OT_save_as_mainfile";
 	
 	ot->invoke= wm_save_as_mainfile_invoke;
@@ -443,6 +444,33 @@ static void WM_OT_save_as_mainfile(wmOperatorType *ot)
 	RNA_def_property(ot->srna, "filename", PROP_STRING, PROP_FILEPATH);
 
 }
+
+/* *************** Save file directly ******** */
+
+static int wm_save_mainfile_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	
+	RNA_string_set(op->ptr, "filename", G.sce);
+	uiPupMenuSaveOver(C, op, G.sce);
+
+	return OPERATOR_RUNNING_MODAL;
+}
+
+static void WM_OT_save_mainfile(wmOperatorType *ot)
+{
+	ot->name= "Save Blender File";
+	ot->idname= "WM_OT_save_mainfile";
+	
+	ot->invoke= wm_save_mainfile_invoke;
+	ot->exec= wm_save_as_mainfile_exec;
+	ot->poll= WM_operator_winactive;
+	
+	ot->flag= 0;
+	
+	RNA_def_property(ot->srna, "filename", PROP_STRING, PROP_FILEPATH);
+	
+}
+
 
 /* *********************** */
 
@@ -1192,6 +1220,7 @@ void wm_operatortype_init(void)
 	WM_operatortype_append(WM_OT_open_mainfile);
 	WM_operatortype_append(WM_OT_jobs_timer);
 	WM_operatortype_append(WM_OT_save_as_mainfile);
+	WM_operatortype_append(WM_OT_save_mainfile);
 }
 
 /* default keymap for windows and screens, only call once per WM */
@@ -1208,6 +1237,7 @@ void wm_window_keymap(wmWindowManager *wm)
 	WM_keymap_verify_item(keymap, "WM_OT_save_homefile", UKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_verify_item(keymap, "WM_OT_open_recentfile", OKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_verify_item(keymap, "WM_OT_open_mainfile", F1KEY, KM_PRESS, 0, 0);
+	WM_keymap_verify_item(keymap, "WM_OT_save_mainfile", WKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_verify_item(keymap, "WM_OT_save_as_mainfile", F2KEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "WM_OT_window_fullscreen_toggle", F11KEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "WM_OT_exit_blender", QKEY, KM_PRESS, KM_CTRL, 0);
