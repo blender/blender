@@ -2235,21 +2235,21 @@ static int insert_key_old_invoke (bContext *C, wmOperator *op, wmEvent *event)
 	head= uiPupMenuBegin("Insert Keyframe", 0);
 	
 	/* active keyingset */
-	uiMenuItemEnumO(head, "", 0, "ANIM_OT_insert_keyframe", "type", 0);
+	uiMenuItemEnumO(head, "", 0, "ANIM_OT_insert_keyframe_old", "type", 0);
 	
 	/* selective inclusion */
 	if ((ob->pose) && (ob->flag & OB_POSEMODE)) {
 		/* bone types */	
-		uiMenuItemEnumO(head, "", 0, "ANIM_OT_insert_keyframe", "type", 5);
-		uiMenuItemEnumO(head, "", 0, "ANIM_OT_insert_keyframe", "type", 6);
-		uiMenuItemEnumO(head, "", 0, "ANIM_OT_insert_keyframe", "type", 7);
+		uiMenuItemEnumO(head, "", 0, "ANIM_OT_insert_keyframe_old", "type", 5);
+		uiMenuItemEnumO(head, "", 0, "ANIM_OT_insert_keyframe_old", "type", 6);
+		uiMenuItemEnumO(head, "", 0, "ANIM_OT_insert_keyframe_old", "type", 7);
 	}
 	else {
 		/* object types */
-		uiMenuItemEnumO(head, "", 0, "ANIM_OT_insert_keyframe", "type", 1);
-		uiMenuItemEnumO(head, "", 0, "ANIM_OT_insert_keyframe", "type", 2);
-		uiMenuItemEnumO(head, "", 0, "ANIM_OT_insert_keyframe", "type", 3);
-		uiMenuItemEnumO(head, "", 0, "ANIM_OT_insert_keyframe", "type", 4);
+		uiMenuItemEnumO(head, "", 0, "ANIM_OT_insert_keyframe_old", "type", 1);
+		uiMenuItemEnumO(head, "", 0, "ANIM_OT_insert_keyframe_old", "type", 2);
+		uiMenuItemEnumO(head, "", 0, "ANIM_OT_insert_keyframe_old", "type", 3);
+		uiMenuItemEnumO(head, "", 0, "ANIM_OT_insert_keyframe_old", "type", 4);
 	}
 	
 	uiPupMenuEnd(C, head);
