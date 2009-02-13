@@ -1610,8 +1610,8 @@ uiBlock *uiBeginBlock(const bContext *C, ARegion *region, char *name, short dt, 
 		/* no subwindow created yet, for menus for example, so we
 		 * use the main window instead, since buttons are created
 		 * there anyway */
-		wm_subwindow_getmatrix(window, window->winid, block->winmat);
-		wm_subwindow_getsize(window, window->winid, &getsizex, &getsizey);
+		wm_subwindow_getmatrix(window, window->screen->mainwin, block->winmat);
+		wm_subwindow_getsize(window, window->screen->mainwin, &getsizex, &getsizey);
 
 		block->aspect= 2.0/fabs(getsizex*block->winmat[0][0]);
 		block->auto_open= 2;
