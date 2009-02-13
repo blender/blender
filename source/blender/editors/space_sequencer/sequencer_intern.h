@@ -96,6 +96,7 @@ void SEQUENCER_OT_select_less(struct wmOperatorType *ot);
 void SEQUENCER_OT_select_linked(struct wmOperatorType *ot);
 void SEQUENCER_OT_select_pick_linked(struct wmOperatorType *ot);
 void SEQUENCER_OT_select_handles(struct wmOperatorType *ot);
+void SEQUENCER_OT_select_active_side(struct wmOperatorType *ot);
 void SEQUENCER_OT_borderselect(struct wmOperatorType *ot);
 void SEQUENCER_OT_select_invert(struct wmOperatorType *ot);
 

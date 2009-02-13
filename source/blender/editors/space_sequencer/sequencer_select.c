@@ -81,44 +81,6 @@
 static void *find_nearest_marker() {return NULL;}
 static void deselect_markers() {}
 	
-	
-
-/****** TODO - bring back into operators ******* */
-void select_channel_direction(Scene *scene, Sequence *test,int lr) {
-/* selects all strips in a channel to one direction of the passed strip */
-	Sequence *seq;
-	Editing *ed= seq_give_editing(scene, FALSE);
-
-	if(ed==NULL) return;
-
-	seq= ed->seqbasep->first;
-	while(seq) {
-		if(seq!=test) {
-			if (test->machine==seq->machine) {
-				if(test->depth==seq->depth) {
-					if (((lr==1)&&(test->startdisp > (seq->startdisp)))||((lr==2)&&(test->startdisp < (seq->startdisp)))) {
-						seq->flag |= SELECT;
-						recurs_sel_seq(seq);
-					}
-				}
-			}
-		}
-		seq= seq->next;
-	}
-	test->flag |= SELECT;
-	recurs_sel_seq(test);
-}
-
-void select_dir_from_last(Scene *scene, int lr)
-{
-	Sequence *seq=get_last_seq(scene);
-	if (seq==NULL)
-		return;
-	
-	select_channel_direction(scene, seq,lr);
-	
-}
-	
 void select_surrounding_handles(Scene *scene, Sequence *test) /* XXX BRING BACK */
 {
 	Sequence *neighbor;
@@ -384,7 +346,10 @@ static int sequencer_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			First click selects adjacent handles on that side.
 			Second click selects all strips in that direction.
 			If there are no adjacent strips, it just selects all in that direction. */
-			} else if (0) { // XXX ((G.qual & LR_CTRLKEY) || (G.qual & LR_ALTKEY)) && (seq->flag & SELECT)) {
+			
+			}
+#if 0 //XXX
+			else if (0) { // XXX ((G.qual & LR_CTRLKEY) || (G.qual & LR_ALTKEY)) && (seq->flag & SELECT)) {
 		
 				if (0); // G.qual & LR_CTRLKEY) seldir=1;
 					else seldir=2;
@@ -419,7 +384,7 @@ static int sequencer_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 					select_channel_direction(scene, seq,seldir);
 				}
 			}
-
+#endif
 			recurs_sel_seq(seq);
 		}
 	}
@@ -664,7 +629,7 @@ void SEQUENCER_OT_select_linked(wmOperatorType *ot)
 }
 
 
-/* select linked operator */
+/* select handles operator */
 static int sequencer_select_handles_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
@@ -711,6 +676,64 @@ void SEQUENCER_OT_select_handles(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
+	/* properties */
+	RNA_def_enum(ot->srna, "side", prop_side_types, SEQ_SIDE_BOTH, "Side", "The side of the handle that is selected");
+}
+
+/* select side operator */
+static int sequencer_select_active_side_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	Editing *ed= seq_give_editing(scene, 0);
+	Sequence *seq_act=get_last_seq(scene);
+	Sequence *seq;
+	int sel_side= RNA_enum_get(op->ptr, "side");
+
+	if (ed==NULL)
+		return OPERATOR_CANCELLED;
+
+	seq_act->flag |= SELECT;
+
+	for(seq= ed->seqbasep->first; seq; seq=seq->next) {
+		if(seq!=seq_act && seq_act->machine==seq->machine) {
+			switch(sel_side) {
+			case SEQ_SIDE_LEFT:
+				if (seq_act->startdisp > (seq->startdisp)) {
+					seq->flag &= ~(SEQ_RIGHTSEL|SEQ_LEFTSEL);
+					seq->flag |= SELECT;
+				}
+				break;
+			case SEQ_SIDE_RIGHT:
+				if (seq_act->startdisp < (seq->startdisp)) {
+					seq->flag &= ~(SEQ_RIGHTSEL|SEQ_LEFTSEL);
+					seq->flag |= SELECT;
+				}
+				break;
+			case SEQ_SIDE_BOTH:
+				seq->flag &= ~(SEQ_RIGHTSEL|SEQ_LEFTSEL);
+				break;
+			}
+		}
+	}
+
+	ED_area_tag_redraw(CTX_wm_area(C));
+
+	return OPERATOR_FINISHED;
+}
+
+void SEQUENCER_OT_select_active_side(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Select Active Side";
+	ot->idname= "SEQUENCER_OT_select_active_side";
+
+	/* api callbacks */
+	ot->exec= sequencer_select_active_side_exec;
+	ot->poll= ED_operator_sequencer_active;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
 	/* properties */
 	RNA_def_enum(ot->srna, "side", prop_side_types, SEQ_SIDE_BOTH, "Side", "The side of the handle that is selected");
 }

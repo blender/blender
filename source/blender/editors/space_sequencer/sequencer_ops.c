@@ -90,6 +90,7 @@ void sequencer_operatortypes(void)
 	WM_operatortype_append(SEQUENCER_OT_select_pick_linked);
 	WM_operatortype_append(SEQUENCER_OT_select_linked);
 	WM_operatortype_append(SEQUENCER_OT_select_handles);
+	WM_operatortype_append(SEQUENCER_OT_select_active_side);
 	WM_operatortype_append(SEQUENCER_OT_borderselect);
 	
 	/* sequencer_add.c */
