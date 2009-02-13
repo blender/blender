@@ -70,11 +70,18 @@ short deletekey(struct ID *id, const char group[], const char rna_path[], int ar
 char *ANIM_build_keyingsets_menu(struct ListBase *list, short for_edit);
 
 /* Main Keyframe Management operators: 
- *	These handle keyframes management from various spaces. They will handle the menus 
- * 	required for each space.
+ *	These handle keyframes management from various spaces. They only make use of
+ * 	Keying Sets.
  */
 void ANIM_OT_insert_keyframe(struct wmOperatorType *ot);
 void ANIM_OT_delete_keyframe(struct wmOperatorType *ot);
+
+/* Main Keyframe Management operators (legacy style): 
+ *	These handle keyframes management from various spaces. They will handle the menus 
+ * 	required for each space.
+ */
+void ANIM_OT_insert_keyframe_old(struct wmOperatorType *ot);
+void ANIM_OT_delete_keyframe_old(struct wmOperatorType *ot);
 
 /* ************ Auto-Keyframing ********************** */
 /* Notes:

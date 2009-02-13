@@ -2006,7 +2006,7 @@ void common_modifykey (bContext *C, short mode)
 static int commonkey_modifykey (ListBase *dsources, KeyingSet *ks, short mode, float cfra)
 {
 	KS_Path *ksp;
-	int kflag, success= 0;
+	int kflag=0, success= 0;
 	char *groupname= NULL;
 	
 	/* get flags to use */
@@ -2087,6 +2087,121 @@ static int commonkey_modifykey (ListBase *dsources, KeyingSet *ks, short mode, f
 
 /* Insert Key Operator ------------------------ */
 
+/* NOTE:
+ * This is one of the 'simpler new-style' Insert Keyframe operators which relies on Keying Sets.
+ * For now, these are absolute Keying Sets only, so there is very little context info involved.
+ *
+ * 	-- Joshua Leung, Feb 2009
+ */
+
+static int insert_key_exec (bContext *C, wmOperator *op)
+{
+	ListBase dsources = {NULL, NULL};
+	Scene *scene= CTX_data_scene(C);
+	KeyingSet *ks= NULL;
+	float cfra= (float)CFRA; // XXX for now, don't bother about all the yucky offset crap
+	short success;
+	
+	/* try to get KeyingSet */
+	if (scene->active_keyingset > 0)
+		ks= BLI_findlink(&scene->keyingsets, scene->active_keyingset-1);
+	/* report failure */
+	if (ks == NULL) {
+		BKE_report(op->reports, RPT_ERROR, "No active Keying Set");
+		return OPERATOR_CANCELLED;
+	}
+	
+	/* try to insert keyframes for the channels specified by KeyingSet */
+	success= commonkey_modifykey(&dsources, ks, COMMONKEY_MODE_INSERT, cfra);
+	printf("KeyingSet '%s' - Successfully added %d Keyframes \n", ks->name, success);
+	
+	/* report failure? */
+	if (success == 0)
+		BKE_report(op->reports, RPT_WARNING, "Keying Set failed to insert any keyframes");
+	
+	/* send updates */
+	ED_anim_dag_flush_update(C);	
+	
+	/* for now, only send ND_KEYS for KeyingSets */
+	WM_event_add_notifier(C, ND_KEYS, NULL);
+	
+	return OPERATOR_FINISHED;
+}
+
+void ANIM_OT_insert_keyframe (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Insert Keyframe";
+	ot->idname= "ANIM_OT_insert_keyframe";
+	
+	/* callbacks */
+	ot->exec= insert_key_exec; 
+	ot->poll= ED_operator_areaactive;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/* Delete Key Operator ------------------------ */
+
+/* NOTE:
+ * This is one of the 'simpler new-style' Insert Keyframe operators which relies on Keying Sets.
+ * For now, these are absolute Keying Sets only, so there is very little context info involved.
+ *
+ * 	-- Joshua Leung, Feb 2009
+ */
+ 
+static int delete_key_exec (bContext *C, wmOperator *op)
+{
+	ListBase dsources = {NULL, NULL};
+	Scene *scene= CTX_data_scene(C);
+	KeyingSet *ks= NULL;
+	float cfra= (float)CFRA; // XXX for now, don't bother about all the yucky offset crap
+	short success;
+	
+	/* try to get KeyingSet */
+	if (scene->active_keyingset > 0)
+		ks= BLI_findlink(&scene->keyingsets, scene->active_keyingset-1);
+	/* report failure */
+	if (ks == NULL) {
+		BKE_report(op->reports, RPT_ERROR, "No active Keying Set");
+		return OPERATOR_CANCELLED;
+	}
+	
+	/* try to insert keyframes for the channels specified by KeyingSet */
+	success= commonkey_modifykey(&dsources, ks, COMMONKEY_MODE_DELETE, cfra);
+	printf("KeyingSet '%s' - Successfully removed %d Keyframes \n", ks->name, success);
+	
+	/* report failure? */
+	if (success == 0)
+		BKE_report(op->reports, RPT_WARNING, "Keying Set failed to remove any keyframes");
+	
+	/* send updates */
+	ED_anim_dag_flush_update(C);	
+	
+	/* for now, only send ND_KEYS for KeyingSets */
+	WM_event_add_notifier(C, ND_KEYS, NULL);
+	
+	return OPERATOR_FINISHED;
+}
+
+void ANIM_OT_delete_keyframe (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Delete Keyframe";
+	ot->idname= "ANIM_OT_delete_keyframe";
+	
+	/* callbacks */
+	ot->exec= delete_key_exec; 
+	
+	ot->poll= ED_operator_areaactive;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/* Insert Key Operator ------------------------ */
+
 /* XXX WARNING:
  * This is currently just a basic operator, which work in 3d-view context on objects/bones only
  * and will insert keyframes for a few settings only. This is until it becomes clear how
@@ -2109,7 +2224,7 @@ EnumPropertyItem prop_insertkey_types[] = {
 	{0, NULL, NULL, NULL}
 };
 
-static int insert_key_invoke (bContext *C, wmOperator *op, wmEvent *event)
+static int insert_key_old_invoke (bContext *C, wmOperator *op, wmEvent *event)
 {
 	Object *ob= CTX_data_active_object(C);
 	uiMenuItem *head;
@@ -2142,7 +2257,7 @@ static int insert_key_invoke (bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_CANCELLED;
 }
  
-static int insert_key_exec (bContext *C, wmOperator *op)
+static int insert_key_old_exec (bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	short mode= RNA_enum_get(op->ptr, "type");
@@ -2271,17 +2386,17 @@ static int insert_key_exec (bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void ANIM_OT_insert_keyframe (wmOperatorType *ot)
+void ANIM_OT_insert_keyframe_old (wmOperatorType *ot)
 {
 	PropertyRNA *prop;
 	
 	/* identifiers */
 	ot->name= "Insert Keyframe";
-	ot->idname= "ANIM_OT_insert_keyframe";
+	ot->idname= "ANIM_OT_insert_keyframe_old";
 	
 	/* callbacks */
-	ot->invoke= insert_key_invoke;
-	ot->exec= insert_key_exec; 
+	ot->invoke= insert_key_old_invoke;
+	ot->exec= insert_key_old_exec; 
 	ot->poll= ED_operator_areaactive;
 	
 	/* flags */
@@ -2300,7 +2415,7 @@ void ANIM_OT_insert_keyframe (wmOperatorType *ot)
  * -- Joshua Leung, Jan 2009
  */
  
-static int delete_key_exec (bContext *C, wmOperator *op)
+static int delete_key_old_exec (bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	float cfra= (float)CFRA; // XXX for now, don't bother about all the yucky offset crap
@@ -2339,15 +2454,15 @@ static int delete_key_exec (bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void ANIM_OT_delete_keyframe (wmOperatorType *ot)
+void ANIM_OT_delete_keyframe_old (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Delete Keyframe";
-	ot->idname= "ANIM_OT_delete_keyframe";
+	ot->idname= "ANIM_OT_delete_keyframe_old";
 	
 	/* callbacks */
 	ot->invoke= WM_operator_confirm; // XXX we will need our own one eventually, to cope with the dynamic menus...
-	ot->exec= delete_key_exec; 
+	ot->exec= delete_key_old_exec; 
 	
 	ot->poll= ED_operator_areaactive;
 	

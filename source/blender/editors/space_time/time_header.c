@@ -550,11 +550,9 @@ void time_header_buttons(const bContext *C, ARegion *ar)
 	MEM_freeN(menustr);
 	xco+= (6*XIC);
 	
-	uiDefIconBut(block, BUT, B_TL_DELETEKEY, ICON_KEY_DEHLT,
-				 xco, yco, XIC, YIC, 0, 0, 0, 0, 0, "Delete Keyframe for the context of the largest area (ALTKEY-IKEY)");
+	uiDefIconButO(block, BUT, "ANIM_OT_delete_keyframe", WM_OP_INVOKE_REGION_WIN, ICON_KEY_DEHLT, xco,yco,XIC,YIC, "Delete Keyframes for the Active Keying Set (Alt-I)");
 	xco+= XIC+4;
-	uiDefIconBut(block, BUT, B_TL_INSERTKEY, ICON_KEY_HLT,
-				 xco, yco, XIC, YIC, 0, 0, 0, 0, 0, "Insert Keyframe for the context of the largest area (IKEY)");
+	uiDefIconButO(block, BUT, "ANIM_OT_insert_keyframe", WM_OP_INVOKE_REGION_WIN, ICON_KEY_HLT, xco,yco,XIC,YIC, "Insert Keyframes for the Active Keying Set (I)");
 	xco+= XIC+4;
 	
 	xco+= 16;
