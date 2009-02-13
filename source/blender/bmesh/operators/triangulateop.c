@@ -40,4 +40,6 @@ void triangulate_exec(BMesh *bmesh, BMOperator *op)
 	
 	BMO_Flag_To_Slot(bmesh, op, BMOP_TRIANG_NEW_EDGES, EDGE_NEW, BM_EDGE);
 	BMO_Flag_To_Slot(bmesh, op, BMOP_TRIANG_NEW_FACES, FACE_NEW, BM_FACE);
+	
+	V_FREE(projectverts);
 }
