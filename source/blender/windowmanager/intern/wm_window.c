@@ -28,6 +28,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "DNA_listBase.h"	
 #include "DNA_screen_types.h"
@@ -180,6 +181,21 @@ static void wm_window_close(bContext *C, wmWindow *win)
 		WM_exit(C);
 }
 
+void wm_window_titles(wmWindowManager *wm)
+{
+	if(G.save_over) {
+		wmWindow *win;
+		char *str= MEM_mallocN(strlen(G.sce) + 16, "title");
+		
+		sprintf(str, "Blender [%s]", G.sce);
+		
+		for(win= wm->windows.first; win; win= win->next)
+			GHOST_SetTitle(win->ghostwin, str);
+
+		MEM_freeN(str);
+	}
+}
+
 /* belongs to below */
 static void wm_window_add_ghostwindow(wmWindowManager *wm, char *title, wmWindow *win)
 {
@@ -267,15 +283,16 @@ void wm_window_add_ghostwindows(wmWindowManager *wm)
 		if(win->eventstate==NULL)
 		   win->eventstate= MEM_callocN(sizeof(wmEvent), "window event state");
 		
-		
 		/* add keymap handlers (1 handler for all keys in map!) */
 		keymap= WM_keymap_listbase(wm, "Window", 0, 0);
 		WM_event_add_keymap_handler(&win->handlers, keymap);
 		
 		keymap= WM_keymap_listbase(wm, "Screen", 0, 0);
 		WM_event_add_keymap_handler(&win->handlers, keymap);
-		
 	}
+	
+	wm_window_titles(wm);
+	
 }
 
 /* new window, no screen yet, but we open ghostwindow for it */
@@ -631,11 +648,6 @@ void WM_event_remove_window_timer(wmWindow *win, wmTimer *timer)
 }
 
 /* ************************************ */
-
-void wm_window_set_title(wmWindow *win, char *title) 
-{
-	GHOST_SetTitle(win->ghostwin, title);
-}
 
 void wm_window_get_position(wmWindow *win, int *posx_r, int *posy_r) 
 {

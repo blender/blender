@@ -318,8 +318,6 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, char *filename)
 	/* free G.main Main database */
 	clear_global();	
 	
-	if(mode!='u') G.save_over = 1;
-	
 	G.main= bfd->main;
 
 	CTX_data_main_set(C, G.main);

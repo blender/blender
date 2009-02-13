@@ -93,6 +93,7 @@
 #include "WM_api.h"
 #include "WM_types.h"
 #include "wm.h"
+#include "wm_window.h"
 
 /***/
 
@@ -521,6 +522,7 @@ void WM_read_file(bContext *C, char *name, ReportList *reports)
 		wm_window_match_init(C, &wmbase); 
 		
 		retval= BKE_read_file(C, name, NULL, reports);
+		G.save_over = 1;
 
 		/* match the read WM with current WM */
 		wm_window_match_do(C, &wmbase); 
@@ -865,10 +867,9 @@ void WM_write_file(bContext *C, char *target, ReportList *reports)
 		G.relbase_valid = 1;
 		strcpy(G.main->name, di);	/* is guaranteed current file */
 
-// XXX		mainwindow_set_filename_to_title(G.main->name);
-
 		G.save_over = 1;
-
+		wm_window_titles(CTX_wm_manager(C));
+		
 		writeBlog();
 	}
 
