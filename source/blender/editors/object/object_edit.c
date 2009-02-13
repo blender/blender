@@ -458,6 +458,21 @@ static int object_add_curve_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
+static int object_add_curve_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	uiMenuItem *head;
+
+	head= uiPupMenuBegin(op->type->name, 0);
+	if(!obedit || obedit->type == OB_CURVE)
+		uiMenuItemsEnumO(head, op->type->idname, "type");
+	else
+		uiMenuItemsEnumO(head, "OBJECT_OT_surface_add", "type");
+	uiPupMenuEnd(C, head);
+
+	return OPERATOR_CANCELLED;
+}
+
 void OBJECT_OT_curve_add(wmOperatorType *ot)
 {
 	/* identifiers */
@@ -465,7 +480,7 @@ void OBJECT_OT_curve_add(wmOperatorType *ot)
 	ot->idname= "OBJECT_OT_curve_add";
 	
 	/* api callbacks */
-	ot->invoke= WM_menu_invoke;
+	ot->invoke= object_add_curve_invoke;
 	ot->exec= object_add_curve_exec;
 	
 	ot->poll= ED_operator_scene_editable;
@@ -476,6 +491,61 @@ void OBJECT_OT_curve_add(wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "type", prop_curve_types, 0, "Primitive", "");
 }
 
+static EnumPropertyItem prop_surface_types[]= {
+	{CU_PRIM_CURVE|CU_NURBS, "NURBS_CURVE", "NURBS Curve", ""},
+	{CU_PRIM_CIRCLE|CU_NURBS, "NURBS_CIRCLE", "NURBS Circle", ""},
+	{CU_PRIM_PATCH|CU_NURBS, "NURBS_SURFACE", "NURBS Surface", ""},
+	{CU_PRIM_TUBE|CU_NURBS, "NURBS_TUBE", "NURBS Tube", ""},
+	{CU_PRIM_SPHERE|CU_NURBS, "NURBS_SPHERE", "NURBS Sphere", ""},
+	{CU_PRIM_DONUT|CU_NURBS, "NURBS_DONUT", "NURBS Donut", ""},
+	{0, NULL, NULL, NULL}
+};
+
+static int object_add_surface_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	ListBase *editnurb;
+	Nurb *nu;
+	int newob= 0;
+	
+	if(obedit==NULL || obedit->type!=OB_SURF) {
+		object_add_type(C, OB_SURF);
+		ED_object_enter_editmode(C, 0);
+		newob = 1;
+	}
+	else DAG_object_flush_update(CTX_data_scene(C), obedit, OB_RECALC_DATA);
+	
+	nu= addNurbprim(C, RNA_enum_get(op->ptr, "type"), newob);
+	editnurb= curve_get_editcurve(CTX_data_edit_object(C));
+	BLI_addtail(editnurb, nu);
+	
+	/* userdef */
+	if (newob && (U.flag & USER_ADD_EDITMODE)==0) {
+		ED_object_exit_editmode(C, EM_FREEDATA);
+	}
+	
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_surface_add(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Add Surface";
+	ot->idname= "OBJECT_OT_surface_add";
+	
+	/* api callbacks */
+	ot->invoke= WM_menu_invoke;
+	ot->exec= object_add_surface_exec;
+	
+	ot->poll= ED_operator_scene_editable;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	RNA_def_enum(ot->srna, "type", prop_surface_types, 0, "Primitive", "");
+}
 
 static int object_add_armature_exec(bContext *C, wmOperator *op)
 {
@@ -524,7 +594,7 @@ static int object_add_primitive_invoke(bContext *C, wmOperator *op, wmEvent *eve
 	
 	uiMenuLevelEnumO(head, "OBJECT_OT_mesh_add", "type");
 	uiMenuLevelEnumO(head, "OBJECT_OT_curve_add", "type");
-	uiMenuItemEnumO(head, "", 0, "OBJECT_OT_object_add", "type", OB_SURF);
+	uiMenuLevelEnumO(head, "OBJECT_OT_surface_add", "type");
 	uiMenuItemEnumO(head, "", 0, "OBJECT_OT_object_add", "type", OB_MBALL);
 	uiMenuItemEnumO(head, "", 0, "OBJECT_OT_object_add", "type", OB_CAMERA);
 	uiMenuItemEnumO(head, "", 0, "OBJECT_OT_object_add", "type", OB_LAMP);

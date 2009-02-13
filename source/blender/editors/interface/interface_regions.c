@@ -1729,22 +1729,28 @@ const char *ui_menu_enumpropname(char *opname, const char *propname, int retval)
 	return "";
 }
 
+typedef struct MenuItemLevel {
+	int opcontext;
+	char *opname;
+	char *propname;
+	PointerRNA rnapoin;
+} MenuItemLevel;
+
 /* make a menu level from enum properties */
 static void menu_item_enum_opname_menu(bContext *C, uiMenuItem *head, void *arg)
 {
-	uiBut *but= arg;	/* parent caller */
-	char *opname= but->func_arg1;
-	char *propname= but->func_arg2;
+	MenuItemLevel *lvl= (MenuItemLevel*)(((uiBut*)arg)->func_argN);
 
-	uiMenuItemsEnumO(head, opname, propname);
+	head->opcontext= lvl->opcontext;
+	uiMenuItemsEnumO(head, lvl->opname, lvl->propname);
 }
 
 static void menu_item_enum_rna_menu(bContext *C, uiMenuItem *head, void *arg)
 {
-	uiBut *but= arg;	/* parent caller */
-	char *propname= but->func_arg1;
+	MenuItemLevel *lvl= (MenuItemLevel*)(((uiBut*)arg)->func_argN);
 
-	uiMenuItemsEnumR(head, &but->rnapoin, propname);
+	head->opcontext= lvl->opcontext;
+	uiMenuItemsEnumR(head, &lvl->rnapoin, lvl->propname);
 }
 
 static uiBlock *ui_block_func_MENU_ITEM(bContext *C, uiPopupBlockHandle *handle, void *arg_info)
@@ -1753,6 +1759,7 @@ static uiBlock *ui_block_func_MENU_ITEM(bContext *C, uiPopupBlockHandle *handle,
 	uiBut *but;
 	uiMenuInfo *info= arg_info;
 	uiMenuItem *head, *item;
+	MenuItemLevel *lvl;
 	ScrArea *sa;
 	ARegion *ar;
 	static int counter= 0;
@@ -1810,19 +1817,29 @@ static uiBlock *ui_block_func_MENU_ITEM(bContext *C, uiPopupBlockHandle *handle,
 		}
 		else if(item->type==MENU_ITEM_LEVEL_OPNAME_ENUM) {
 			but= uiDefIconTextMenuBut(block, menu_item_enum_opname_menu, NULL, ICON_RIGHTARROW_THIN, item->name, x1, y1, width+16, MENU_BUTTON_HEIGHT-1, NULL);
+
 			/* XXX warning, abuse of func_arg! */
+			lvl= MEM_callocN(sizeof(MenuItemLevel), "MenuItemLevel");
+			lvl->opname= item->opname;
+			lvl->propname= item->propname;
+			lvl->opcontext= item->opcontext;
+
 			but->poin= (char*)but;
-			but->func_arg1= item->opname;
-			but->func_arg2= item->propname;
+			but->func_argN= lvl;
 			
 			y1 -= MENU_BUTTON_HEIGHT;
 		}
 		else if(item->type==MENU_ITEM_LEVEL_RNA_ENUM) {
 			but= uiDefIconTextMenuBut(block, menu_item_enum_rna_menu, NULL, ICON_RIGHTARROW_THIN, item->name, x1, y1, width+16, MENU_BUTTON_HEIGHT-1, NULL);
+
 			/* XXX warning, abuse of func_arg! */
+			lvl= MEM_callocN(sizeof(MenuItemLevel), "MenuItemLevel");
+			lvl->rnapoin= item->rnapoin;
+			lvl->propname= item->propname;
+			lvl->opcontext= item->opcontext;
+
 			but->poin= (char*)but;
-			but->rnapoin= item->rnapoin;
-			but->func_arg1= item->propname;
+			but->func_argN= lvl;
 			
 			y1 -= MENU_BUTTON_HEIGHT;
 		}

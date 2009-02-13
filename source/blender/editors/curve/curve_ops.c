@@ -91,32 +91,6 @@ void CURVE_OT_specials_menu(wmOperatorType *ot)
 	ot->poll= ED_operator_editsurfcurve;
 }
 
-static int add_menu_invoke(bContext *C, wmOperator *op, wmEvent *event)
-{
-	Object *obedit= CTX_data_edit_object(C);
-	uiMenuItem *head;
-
-	head= uiPupMenuBegin("Add", 0);
-	if(obedit->type == OB_CURVE)
-		uiMenuItemsEnumO(head, "CURVE_OT_add_curve_primitive", "type");
-	else
-		uiMenuItemsEnumO(head, "CURVE_OT_add_surface_primitive", "type");
-	uiPupMenuEnd(C, head);
-
-	return OPERATOR_CANCELLED;
-}
-
-void CURVE_OT_add_menu(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Add Menu";
-	ot->idname= "CURVE_OT_add_menu";
-	
-	/* api clastbacks */
-	ot->invoke= add_menu_invoke;
-	ot->poll= ED_operator_editsurfcurve;
-}
-
 /************************* registration ****************************/
 
 void ED_operatortypes_curve(void)
@@ -161,11 +135,7 @@ void ED_operatortypes_curve(void)
 	WM_operatortype_append(CURVE_OT_extrude);
 	WM_operatortype_append(CURVE_OT_toggle_cyclic);
 
-	WM_operatortype_append(CURVE_OT_add_menu);
 	WM_operatortype_append(CURVE_OT_specials_menu);
-
-	WM_operatortype_append(CURVE_OT_add_surface_primitive);
-	WM_operatortype_append(CURVE_OT_add_curve_primitive);
 }
 
 void ED_keymap_curve(wmWindowManager *wm)

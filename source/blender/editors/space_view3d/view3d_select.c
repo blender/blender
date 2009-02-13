@@ -103,6 +103,24 @@ void view3d_set_viewcontext(bContext *C, ViewContext *vc)
 	vc->obedit= CTX_data_edit_object(C); 
 }
 
+void view3d_get_view_aligned_coordinate(ViewContext *vc, float *fp, short mval[2])
+{
+	float dvec[3];
+	short mx, my;
+	
+	mx= mval[0];
+	my= mval[1];
+	
+	project_short_noclip(vc->ar, fp, mval);
+	
+	initgrabz(vc->rv3d, fp[0], fp[1], fp[2]);
+	
+	if(mval[0]!=IS_CLIPPED) {
+		window_to_3d_delta(vc->ar, dvec, mval[0]-mx, mval[1]-my);
+		VecSubf(fp, fp, dvec);
+	}
+}
+
 /* ********************** view3d_select: selection manipulations ********************* */
 
 /* XXX to solve *************** */

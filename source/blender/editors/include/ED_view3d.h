@@ -116,6 +116,7 @@ short view3d_opengl_select(struct ViewContext *vc, unsigned int *buffer, unsigne
 
 void view3d_set_viewcontext(struct bContext *C, struct ViewContext *vc);
 void view3d_operator_needs_opengl(const struct bContext *C);
+void view3d_get_view_aligned_coordinate(struct ViewContext *vc, float *fp, short mval[2]);
 
 /* XXX should move to arithb.c */
 int edge_inside_circle(short centx, short centy, short rad, short x1, short y1, short x2, short y2);

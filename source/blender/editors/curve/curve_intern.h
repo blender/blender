@@ -71,12 +71,8 @@ void CURVE_OT_duplicate(struct wmOperatorType *ot);
 void CURVE_OT_delete(struct wmOperatorType *ot);
 void CURVE_OT_set_smooth(struct wmOperatorType *ot);
 void CURVE_OT_clear_tilt(struct wmOperatorType *ot);
-void CURVE_OT_add_surface_primitive(struct wmOperatorType *ot);
-void CURVE_OT_add_curve_primitive(struct wmOperatorType *ot);
 
 void CURVE_OT_specials_menu(struct wmOperatorType *ot);
-void CURVE_OT_add_menu(struct wmOperatorType *ot);
-
 
 #endif /* ED_UTIL_INTERN_H */
 

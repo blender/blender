@@ -118,24 +118,6 @@ static short icoface[20][3] = {
 
 /* *************** add-click-mesh (extrude) operator ************** */
 
-static void get_view_aligned_coordinate(ViewContext *vc, float *fp, short mval[2])
-{
-	float dvec[3];
-	short mx, my;
-	
-	mx= mval[0];
-	my= mval[1];
-	
-	project_short_noclip(vc->ar, fp, mval);
-	
-	initgrabz(vc->rv3d, fp[0], fp[1], fp[2]);
-	
-	if(mval[0]!=IS_CLIPPED) {
-		window_to_3d_delta(vc->ar, dvec, mval[0]-mx, mval[1]-my);
-		VecSubf(fp, fp, dvec);
-	}
-}
-
 static int dupli_extrude_cursor(bContext *C, wmOperator *op, wmEvent *event)
 {
 	ViewContext vc;
@@ -182,7 +164,7 @@ static int dupli_extrude_cursor(bContext *C, wmOperator *op, wmEvent *event)
 		VECCOPY(min, cent);
 		
 		Mat4MulVecfl(vc.obedit->obmat, min);	// view space
-		get_view_aligned_coordinate(&vc, min, mval);
+		view3d_get_view_aligned_coordinate(&vc, min, mval);
 		Mat4Invert(vc.obedit->imat, vc.obedit->obmat); 
 		Mat4MulVecfl(vc.obedit->imat, min); // back in object space
 		
@@ -224,7 +206,7 @@ static int dupli_extrude_cursor(bContext *C, wmOperator *op, wmEvent *event)
 		float *curs= give_cursor(vc.scene, vc.v3d);
 		
 		VECCOPY(min, curs);
-		get_view_aligned_coordinate(&vc, min, mval);
+		view3d_get_view_aligned_coordinate(&vc, min, mval);
 		
 		eve= addvertlist(vc.em, 0, NULL);
 
