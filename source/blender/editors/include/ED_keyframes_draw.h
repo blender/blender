@@ -35,10 +35,10 @@ struct FCurve;
 struct gla2DDrawInfo;
 struct bAction;
 struct bActionGroup;
-struct bActListElem;
 struct Object;
 struct ListBase;
 struct bGPDlayer;
+struct Scene;
 
 /* ****************************** Base Structs ****************************** */
 
@@ -82,6 +82,7 @@ void draw_fcurve_channel(struct gla2DDrawInfo *di, ActKeysInc *aki, struct FCurv
 void draw_agroup_channel(struct gla2DDrawInfo *di, ActKeysInc *aki, struct bActionGroup *agrp, float ypos);
 void draw_action_channel(struct gla2DDrawInfo *di, ActKeysInc *aki, struct bAction *act, float ypos);
 void draw_object_channel(struct gla2DDrawInfo *di, ActKeysInc *aki, struct Object *ob, float ypos);
+void draw_scene_channel(struct gla2DDrawInfo *di, ActKeysInc *aki, struct Scene *sce, float ypos);
 void draw_gpl_channel(struct gla2DDrawInfo *di, ActKeysInc *aki, struct bGPDlayer *gpl, float ypos);
 
 /* Keydata Generation */
@@ -90,6 +91,7 @@ void agroup_to_keylist(struct bActionGroup *agrp, ListBase *keys, ListBase *bloc
 void action_to_keylist(struct bAction *act, ListBase *keys, ListBase *blocks, ActKeysInc *aki);
 void action_nlascaled_to_keylist(struct Object *ob, struct bAction *act, ListBase *keys, ListBase *blocks, ActKeysInc *aki);
 void ob_to_keylist(struct Object *ob, ListBase *keys, ListBase *blocks, ActKeysInc *aki);
+void scene_to_keylist(struct Scene *sce, ListBase *keys, ListBase *blocks, ActKeysInc *aki);
 void gpl_to_keylist(struct bGPDlayer *gpl, ListBase *keys, ListBase *blocks, ActKeysInc *aki);
 
 #endif  /*  ED_KEYFRAMES_DRAW_H */

@@ -62,6 +62,7 @@
 #include "DNA_userdef_types.h"
 #include "DNA_gpencil_types.h"
 #include "DNA_windowmanager_types.h"
+#include "DNA_world_types.h"
 
 #include "BKE_action.h"
 #include "BKE_depsgraph.h"
@@ -443,6 +444,25 @@ void draw_channel_names(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 			
 			/* determine what needs to be drawn */
 			switch (ale->type) {
+				case ANIMTYPE_SCENE: /* scene */
+				{
+					Scene *sce= (Scene *)ale->data;
+					
+					group= 4;
+					indent= 0;
+					
+					special= ICON_SCENE;
+						
+					/* only show expand if there are any channels */
+					if (EXPANDED_SCEC(sce))
+						expand= ICON_TRIA_DOWN;
+					else
+						expand= ICON_TRIA_RIGHT;
+					
+					sel = SEL_SCEC(sce);
+					strcpy(name, sce->id.name+2);
+				}
+					break;
 				case ANIMTYPE_OBJECT: /* object */
 				{
 					Base *base= (Base *)ale->data;
@@ -573,7 +593,7 @@ void draw_channel_names(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 					
 					group = 4;
 					indent = 1;
-					special = ICON_EDIT;
+					special = ICON_EDIT; // XXX 
 					
 					if (FILTER_SKE_OBJD(key))	
 						expand = ICON_TRIA_DOWN;
@@ -582,6 +602,22 @@ void draw_channel_names(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 						
 					//sel = SEL_OBJC(base);
 					strcpy(name, "Shape Keys");
+				}
+					break;
+				case ANIMTYPE_DSWOR: /* world (dopesheet) expand widget */
+				{
+					World *wo= (World *)ale->data;
+					
+					group = 4;
+					indent = 1;
+					special = ICON_WORLD;
+					
+					if (FILTER_WOR_SCED(wo))	
+						expand = ICON_TRIA_DOWN;
+					else
+						expand = ICON_TRIA_RIGHT;
+					
+					strcpy(name, wo->id.name+2);
 				}
 					break;
 					
@@ -781,7 +817,7 @@ void draw_channel_names(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 			/* draw backing strip behind channel name */
 			if (group == 4) {
 				/* only used in dopesheet... */
-				if (ale->type == ANIMTYPE_OBJECT) {
+				if (ELEM(ale->type, ANIMTYPE_SCENE, ANIMTYPE_OBJECT)) {
 					/* object channel - darker */
 					UI_ThemeColor(TH_DOPESHEET_CHANNELOB);
 					uiSetRoundBox((expand == ICON_TRIA_DOWN)? (1):(1|8));
@@ -1026,6 +1062,12 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 			if (ale->datatype != ALE_NONE) {
 				/* determine if channel is selected */
 				switch (ale->type) {
+					case ANIMTYPE_SCENE:
+					{
+						Scene *sce= (Scene *)ale->data;
+						sel = SEL_SCEC(sce);
+					}
+						break;
 					case ANIMTYPE_OBJECT:
 					{
 						Base *base= (Base *)ale->data;
@@ -1056,6 +1098,7 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 					gla2DDrawTranslatePt(di, v2d->cur.xmin, y, &frame1_x, &channel_y);
 					
 					switch (ale->type) {
+						case ANIMTYPE_SCENE:
 						case ANIMTYPE_OBJECT:
 						{
 							if (sel) glColor4ub(col1b[0], col1b[1], col1b[2], 0x45); 
@@ -1066,6 +1109,7 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 						case ANIMTYPE_FILLACTD:
 						case ANIMTYPE_FILLMATD:
 						case ANIMTYPE_DSSKEY:
+						case ANIMTYPE_DSWOR:
 						{
 							if (sel) glColor4ub(col2b[0], col2b[1], col2b[2], 0x45); 
 							else glColor4ub(col2b[0], col2b[1], col2b[2], 0x22); 
@@ -1152,6 +1196,9 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 				
 				/* draw 'keyframes' for each specific datatype */
 				switch (ale->datatype) {
+					case ALE_SCE:
+						draw_scene_channel(di, aki, ale->key_data, y);
+						break;
 					case ALE_OB:
 						draw_object_channel(di, aki, ale->key_data, y);
 						break;

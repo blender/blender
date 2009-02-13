@@ -104,8 +104,12 @@ typedef struct World {
 	short aomode, aosamp, aomix, aocolor;
 	float ao_adapt_thresh, ao_adapt_speed_fac;
 	float ao_approx_error, ao_approx_correction;
-	short ao_samp_method, ao_gather_method, ao_approx_passes, pad1;
+	short ao_samp_method, ao_gather_method, ao_approx_passes;
 	
+	/* assorted settings (in the middle of ambient occlusion settings for padding reasons) */
+	short flag;
+	
+	/* ambient occlusion (contd...) */
 	float *aosphere, *aotables;
 	
 	
@@ -179,6 +183,9 @@ typedef struct World {
 #define WOPHY_DYNAMO	3
 #define WOPHY_ODE		4
 #define WOPHY_BULLET	5
+
+/* flag */
+#define WO_DS_EXPAND	(1<<0)
 
 #endif
 

@@ -58,6 +58,7 @@
 #include "DNA_userdef_types.h"
 #include "DNA_view2d_types.h"
 #include "DNA_windowmanager_types.h"
+#include "DNA_world_types.h"
 
 #include "BKE_animsys.h"
 #include "BKE_context.h"
@@ -239,7 +240,7 @@ void draw_fcurve_vertices (SpaceIpo *sipo, ARegion *ar, FCurve *fcu)
 	glPointSize(UI_GetThemeValuef(TH_VERTEX_SIZE));
 	
 	/* draw the two handles first (if they're shown, and if curve is being edited) */
-	if ((fcu->flag & FCURVE_PROTECTED)==0 && (sipo->flag & SIPO_NOHANDLES)==0) {
+	if ((fcu->flag & FCURVE_PROTECTED)==0 && (fcu->flag & FCURVE_INT_VALUES)==0 && (sipo->flag & SIPO_NOHANDLES)==0) {
 		set_fcurve_vertex_color(sipo, fcu, 0);
 		draw_fcurve_vertices_handles(fcu, v2d, 0);
 		
@@ -267,7 +268,7 @@ static void draw_fcurve_handles (SpaceIpo *sipo, ARegion *ar, FCurve *fcu)
 	int sel, b;
 	
 	/* don't draw handle lines if handles are not shown */
-	if ((sipo->flag & SIPO_NOHANDLES) || (fcu->flag & FCURVE_PROTECTED))
+	if ((sipo->flag & SIPO_NOHANDLES) || (fcu->flag & FCURVE_PROTECTED) || (fcu->flag & FCURVE_INT_VALUES))
 		return;
 	
 	/* slightly hacky, but we want to draw unselected points before selected ones*/
@@ -420,7 +421,7 @@ static void draw_fcurve_repeat (FCurve *fcu, View2D *v2d, float cycxofs, float c
 			v1[0]= v2d->cur.xmin;
 			
 			/* y-value depends on the interpolation */
-			if ((fcu->extend==FCURVE_EXTRAPOLATE_CONSTANT) || (prevbezt->ipo==BEZT_IPO_CONST) || (fcu->totvert==1)) {
+			if ((fcu->extend==FCURVE_EXTRAPOLATE_CONSTANT) || (fcu->flag & FCURVE_INT_VALUES) || (prevbezt->ipo==BEZT_IPO_CONST) || (fcu->totvert==1)) {
 				/* just extend across the first keyframe's value */
 				v1[1]= prevbezt->vec[1][1];
 			} 
@@ -451,7 +452,7 @@ static void draw_fcurve_repeat (FCurve *fcu, View2D *v2d, float cycxofs, float c
 	/* draw curve between first and last keyframe (if there are enough to do so) */
 	// XXX this doesn't take into account modifiers, or sample data
 	while (b--) {
-		if (prevbezt->ipo==BEZT_IPO_CONST) {
+		if ((fcu->flag & FCURVE_INT_VALUES) || (prevbezt->ipo==BEZT_IPO_CONST)) {
 			/* Constant-Interpolation: draw segment between previous keyframe and next, but holding same value */
 			v1[0]= prevbezt->vec[1][0]+cycxofs;
 			v1[1]= prevbezt->vec[1][1]+cycyofs;
@@ -527,7 +528,7 @@ static void draw_fcurve_repeat (FCurve *fcu, View2D *v2d, float cycxofs, float c
 			v1[0]= v2d->cur.xmax;
 			
 			/* y-value depends on the interpolation */
-			if ((fcu->extend==FCURVE_EXTRAPOLATE_CONSTANT) || (prevbezt->ipo==BEZT_IPO_CONST) || (fcu->totvert==1)) {
+			if ((fcu->extend==FCURVE_EXTRAPOLATE_CONSTANT) || (fcu->flag & FCURVE_INT_VALUES) || (prevbezt->ipo==BEZT_IPO_CONST) || (fcu->totvert==1)) {
 				/* based on last keyframe's value */
 				v1[1]= prevbezt->vec[1][1];
 			} 
@@ -809,6 +810,25 @@ void graph_draw_channel_names(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 			
 			/* determine what needs to be drawn */
 			switch (ale->type) {
+				case ANIMTYPE_SCENE: /* scene */
+				{
+					Scene *sce= (Scene *)ale->data;
+					
+					group= 4;
+					indent= 0;
+					
+					special= ICON_SCENE;
+					
+					/* only show expand if there are any channels */
+					if (EXPANDED_SCEC(sce))
+						expand= ICON_TRIA_DOWN;
+					else
+						expand= ICON_TRIA_RIGHT;
+					
+					sel = SEL_SCEC(sce);
+					strcpy(name, sce->id.name+2);
+				}
+					break;
 				case ANIMTYPE_OBJECT: /* object */
 				{
 					Base *base= (Base *)ale->data;
@@ -966,7 +986,23 @@ void graph_draw_channel_names(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 					strcpy(name, "Shape Keys");
 				}
 					break;
+				case ANIMTYPE_DSWOR: /* world (dopesheet) expand widget */
+				{
+					World *wo= (World *)ale->data;
 					
+					group = 4;
+					indent = 1;
+					special = ICON_WORLD;
+					
+					if (FILTER_WOR_SCED(wo))	
+						expand = ICON_TRIA_DOWN;
+					else
+						expand = ICON_TRIA_RIGHT;
+					
+					strcpy(name, wo->id.name+2);
+				}
+					break;
+				
 				
 				case ANIMTYPE_GROUP: /* action group */
 				{
@@ -1067,7 +1103,7 @@ void graph_draw_channel_names(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 			/* draw backing strip behind channel name */
 			if (group == 4) {
 				/* only used in dopesheet... */
-				if (ale->type == ANIMTYPE_OBJECT) {
+				if (ELEM(ale->type, ANIMTYPE_SCENE, ANIMTYPE_OBJECT)) {
 					/* object channel - darker */
 					UI_ThemeColor(TH_DOPESHEET_CHANNELOB);
 					uiSetRoundBox((expand == ICON_TRIA_DOWN)? (1):(1|8));

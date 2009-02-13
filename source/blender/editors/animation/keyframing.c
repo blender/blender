@@ -119,10 +119,6 @@ FCurve *verify_fcurve (ID *id, const char group[], const char rna_path[], const 
 		fcu->rna_path= BLI_strdupn(rna_path, strlen(rna_path));
 		fcu->array_index= array_index;
 		
-		/* set additional flags */
-		// TODO: need to set the FCURVE_INT_VALUES flag must be set if property is not float!
-		
-		
 		/* if a group name has been provided, try to add or find a group, then add F-Curve to it */
 		if (group) {
 			/* try to find group */
@@ -734,6 +730,10 @@ short insertkey (ID *id, const char group[], const char rna_path[], int array_in
 	if (fcu) {
 		float curval= 0.0f;
 		
+		/* set additional flags for the F-Curve (i.e. only integer values) */
+		if (RNA_property_type(&ptr, prop) != PROP_FLOAT)
+			fcu->flag |= FCURVE_INT_VALUES;
+		
 		/* apply special time tweaking */
 			// XXX check on this stuff...
 		if (GS(id->name) == ID_OB) {
@@ -821,7 +821,7 @@ short deletekey (ID *id, const char group[], const char rna_path[], int array_in
 	 * Note: here is one of the places where we don't want new Action + F-Curve added!
 	 * 		so 'add' var must be 0
 	 */
-	// XXX we don't check the validity of the path here yet, but it should be ok...
+	/* we don't check the validity of the path here yet, but it should be ok... */
 	fcu= verify_fcurve(id, group, rna_path, array_index, 0);
 	adt= BKE_animdata_from_id(id);
 	
@@ -2167,13 +2167,9 @@ static int insert_key_exec (bContext *C, wmOperator *op)
 		success= commonkey_modifykey(&dsources, ks, COMMONKEY_MODE_INSERT, cfra);
 		printf("KeyingSet '%s' - Successfully added %d Keyframes \n", ks->name, success);
 		
-		/* report failure */
-		if (success == 0) {
-		 	BKE_report(op->reports, RPT_WARNING, "Keying Set failed to insert any keyframes");
-			return OPERATOR_CANCELLED; // XXX?
-		}
-		else
-			return OPERATOR_FINISHED;
+		/* report failure? */
+		if (success == 0)
+			BKE_report(op->reports, RPT_WARNING, "Keying Set failed to insert any keyframes");
 	}
 	else {
 		// more comprehensive tests will be needed
@@ -2265,7 +2261,9 @@ static int insert_key_exec (bContext *C, wmOperator *op)
 	/* send updates */
 	ED_anim_dag_flush_update(C);	
 	
-	if (mode == 4) // material color requires different notifiers
+	if (mode == 0) /* for now, only send ND_KEYS for KeyingSets */
+		WM_event_add_notifier(C, ND_KEYS, NULL);
+	else if (mode == 4) /* material color requires different notifiers */
 		WM_event_add_notifier(C, NC_MATERIAL|ND_KEYS, NULL);
 	else
 		WM_event_add_notifier(C, NC_OBJECT|ND_KEYS, NULL);

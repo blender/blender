@@ -107,6 +107,7 @@ typedef enum eAnim_ChannelType {
 	ANIMTYPE_NONE= 0,
 	ANIMTYPE_SPECIALDATA,
 	
+	ANIMTYPE_SCENE,
 	ANIMTYPE_OBJECT,
 	ANIMTYPE_GROUP,
 	ANIMTYPE_FCURVE,
@@ -120,6 +121,7 @@ typedef enum eAnim_ChannelType {
 	ANIMTYPE_DSCAM,
 	ANIMTYPE_DSCUR,
 	ANIMTYPE_DSSKEY,
+	ANIMTYPE_DSWOR,
 	
 	ANIMTYPE_SHAPEKEY,		// XXX probably can become depreceated???
 	
@@ -134,6 +136,7 @@ typedef enum eAnim_KeyType {
 	ALE_GPFRAME,		/* Grease Pencil Frames */
 	
 	// XXX the following are for summaries... should these be kept?
+	ALE_SCE,			/* Scene summary */
 	ALE_OB,				/* Object summary */
 	ALE_ACT,			/* Action summary */
 	ALE_GROUP,			/* Action Group summary */
@@ -158,6 +161,11 @@ typedef enum eAnimFilter_Flags {
 // xxx check on all of these flags again...
 
 /* Dopesheet only */
+	/* 'Scene' channels */
+#define SEL_SCEC(sce) ((sce->flag & SCE_DS_SELECTED))
+#define EXPANDED_SCEC(sce) ((sce->flag & SCE_DS_COLLAPSED)==0)
+	/* 'Sub-Scene' channels (flags stored in Data block) */
+#define FILTER_WOR_SCED(wo) ((wo->flag & WO_DS_EXPAND))
 	/* 'Object' channels */
 #define SEL_OBJC(base) ((base->flag & SELECT))
 #define EXPANDED_OBJC(ob) ((ob->nlaflag & OB_ADS_COLLAPSED)==0)

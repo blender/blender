@@ -337,6 +337,9 @@ static void graph_listener(ScrArea *sa, wmNotifier *wmn)
 			}*/
 			ED_area_tag_refresh(sa);
 			break;
+		default:
+			if(wmn->data==ND_KEYS)
+				ED_area_tag_refresh(sa);
 	}
 }
 
@@ -354,10 +357,7 @@ static void graph_refresh(const bContext *C, ScrArea *sa)
 		
 		case SIPO_MODE_DRIVERS: /* drivers only  */
 		{
-			Object *ob= CTX_data_active_object(C);
-			
-			/* sync changes to bones to the corresponding action channels */
-			ANIM_pose_to_action_sync(ob, sa);
+		
 		}
 			break; 
 	}
