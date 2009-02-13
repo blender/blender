@@ -353,6 +353,19 @@ static void WM_OT_open_recentfile(wmOperatorType *ot)
 
 /* ********* main file *********** */
 
+static void untitled(char *name)
+{
+	if (G.save_over == 0 && strlen(name) < FILE_MAX-16) {
+		char *c= BLI_last_slash(name);
+		
+		if (c)
+			strcpy(&c[1], "untitled.blend");
+		else
+			strcpy(name, "untitled.blend");
+	}
+}
+
+
 static int wm_mainfile_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	SpaceFile *sfile;
@@ -363,7 +376,7 @@ static int wm_mainfile_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	/* settings for filebrowser */
 	sfile= (SpaceFile*)CTX_wm_space_data(C);
 	sfile->op = op;
-	// XXX replace G.sce
+	
 	ED_fileselect_set_params(sfile, FILE_BLENDER, "Load", G.sce, 0, 0, 0);
 
 	/* screen and area have been reset already in ED_screen_full_newspace */
@@ -403,14 +416,17 @@ static void WM_OT_open_mainfile(wmOperatorType *ot)
 static int wm_save_as_mainfile_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	SpaceFile *sfile;
+	char name[FILE_MAX];
 	
 	ED_screen_full_newspace(C, CTX_wm_area(C), SPACE_FILE);
 
 	/* settings for filebrowser */
 	sfile= (SpaceFile*)CTX_wm_space_data(C);
 	sfile->op = op;
-	// XXX replace G.sce
-	ED_fileselect_set_params(sfile, FILE_BLENDER, "Save As", G.sce, 0, 0, 0);
+	
+	BLI_strncpy(name, G.sce, FILE_MAX);
+	untitled(name);
+	ED_fileselect_set_params(sfile, FILE_BLENDER, "Save As", name, 0, 0, 0);
 
 	/* screen and area have been reset already in ED_screen_full_newspace */
 
@@ -449,9 +465,12 @@ static void WM_OT_save_as_mainfile(wmOperatorType *ot)
 
 static int wm_save_mainfile_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
+	char name[FILE_MAX];
 	
-	RNA_string_set(op->ptr, "filename", G.sce);
-	uiPupMenuSaveOver(C, op, G.sce);
+	BLI_strncpy(name, G.sce, FILE_MAX);
+	untitled(name);
+	RNA_string_set(op->ptr, "filename", name);
+	uiPupMenuSaveOver(C, op, name);
 
 	return OPERATOR_RUNNING_MODAL;
 }
