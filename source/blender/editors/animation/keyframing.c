@@ -718,8 +718,8 @@ short insertkey (ID *id, const char group[], const char rna_path[], int array_in
 	
 	/* validate pointer first - exit if failure*/
 	RNA_id_pointer_create(id, &id_ptr);
-	if (RNA_path_resolve(&id_ptr, rna_path, &ptr, &prop) == 0) {
-		printf("Insert Key: Could not insert keyframe, as RNA Path is invalid for the given ID \n");
+	if (RNA_path_resolve(&id_ptr, rna_path, &ptr, &prop) == 0 || prop == NULL) {
+		printf("Insert Key: Could not insert keyframe, as RNA Path is invalid for the given ID (%s)\n", rna_path);
 		return 0;
 	}
 	
@@ -2050,7 +2050,7 @@ static int commonkey_modifykey (ListBase *dsources, KeyingSet *ks, short mode, f
 				PropertyRNA *prop;
 				
 				RNA_id_pointer_create(ksp->id, &id_ptr);
-				if (RNA_path_resolve(&id_ptr, ksp->rna_path, &ptr, &prop))
+				if (RNA_path_resolve(&id_ptr, ksp->rna_path, &ptr, &prop) && prop)
 					arraylen= RNA_property_array_length(&ptr, prop);
 			}
 			

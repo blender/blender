@@ -3144,10 +3144,10 @@ static void ks_editop_add_cb(SpaceOops *soops, KeyingSet *ks, TreeElement *te, T
 {
 	ListBase hierarchy = {NULL, NULL};
 	LinkData *ld;
-	TreeElement *tem;
-	TreeStoreElem *tse;
-	PointerRNA *ptr;
-	PropertyRNA *prop;
+	TreeElement *tem, *temnext, *temsub;
+	TreeStoreElem *tse, *tsenext;
+	PointerRNA *ptr, *nextptr;
+	PropertyRNA *prop, *nameprop;
 	ID *id = NULL;
 	char *path=NULL, *newpath=NULL;
 	int array_index= 0;
@@ -3189,9 +3189,9 @@ static void ks_editop_add_cb(SpaceOops *soops, KeyingSet *ks, TreeElement *te, T
 		
 		/* check if we're looking for first ID, or appending to path */
 		if (id) {
-			if (tse->type == TSE_RNA_STRUCT)
+			if(tse->type == TSE_RNA_STRUCT)
 				printf("\t tem = RNA Struct '%s' \n", tem->name);
-			else if (tse->type == TSE_RNA_ARRAY_ELEM)
+			else if(tse->type == TSE_RNA_ARRAY_ELEM)
 				printf("\t tem = RNA Array Elem '%s' \n", tem->name);
 			else if (tse->type == TSE_RNA_PROPERTY)
 				printf("\t tem = RNA Property '%s' \n", tem->name);
@@ -3201,22 +3201,67 @@ static void ks_editop_add_cb(SpaceOops *soops, KeyingSet *ks, TreeElement *te, T
 			/* just 'append' property to path 
 			 *	- to prevent memory leaks, we must write to newpath not path, then free old path + swap them
 			 */
-			// TODO: how should this be done?
-			//newpath= RNA_path_append(path, ptr, prop, tem->index, /*RNA_property_identifier(ptr, prop)*/0);
 			
-			if (path) MEM_freeN(path);
-			path= newpath;
+			if(tse->type == TSE_RNA_PROPERTY) {
+				if(RNA_property_type(ptr, prop) == PROP_POINTER) {
+					/* for pointer we just append property name */
+					newpath= RNA_path_append(path, ptr, prop, 0, NULL);
+				}
+				else if(RNA_property_type(ptr, prop) == PROP_COLLECTION) {
+					temnext= (TreeElement*)(ld->next->data);
+					tsenext= TREESTORE(temnext);
+
+					nextptr= &temnext->rnaptr;
+					nameprop= RNA_struct_name_property(nextptr);
+
+					if(nameprop) {
+						/* if possible, use name as a key in the path */
+						char buf[128], *name;
+						name= RNA_property_string_get_alloc(nextptr, nameprop, buf, sizeof(buf));
+
+						newpath= RNA_path_append(path, NULL, prop, 0, name);
+
+						if(name != buf)
+							MEM_freeN(name);
+					}
+					else {
+						/* otherwise use index */
+						int index= 0;
+
+						for(temsub=tem->subtree.first; temsub; temsub=temsub->next, index++)
+							if(temsub == temnext)
+								break;
+
+						newpath= RNA_path_append(path, NULL, prop, index, NULL);
+					}
+
+					ld= ld->next;
+				}
+			}
+			
+			if(newpath) {
+				if (path) MEM_freeN(path);
+				path= newpath;
+				newpath= NULL;
+			}
 		}
 		else {
 			/* no ID, so check if entry is RNA-struct, and if that RNA-struct is an ID datablock to extract info from */
 			if (tse->type == TSE_RNA_STRUCT) {
 				/* ptr->data not ptr->id.data seems to be the one we want, since ptr->data is sometimes the owner of this ID? */
-				if (RNA_struct_is_ID(ptr))
+				if(RNA_struct_is_ID(ptr)) {
 					id= (ID *)ptr->data;
+
+					/* clear path */
+					if(path) {
+						MEM_freeN(path);
+						path= NULL;
+					}
+				}
 			}
 		}
 	}
-	
+
 	/* step 3: if we've got an ID, add the current item to the path */
 	if (id) {
 		/* add the active property to the path */
@@ -3246,7 +3291,7 @@ static void ks_editop_add_cb(SpaceOops *soops, KeyingSet *ks, TreeElement *te, T
 		if (path)
 			BKE_keyingset_add_destination(ks, id, NULL, path, array_index, flag, groupmode);
 	}
-	
+
 	/* free temp data */
 	if (path) MEM_freeN(path);
 	BLI_freelistN(&hierarchy);
