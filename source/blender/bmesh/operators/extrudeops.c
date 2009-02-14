@@ -19,6 +19,7 @@ void extrude_edge_context_exec(BMesh *bm, BMOperator *op)
 	BMOIter siter;
 	BMIter iter, fiter;
 	BMEdge *edge, *newedge;
+	BMLoop *l, *l2;
 	BMVert *verts[4];
 	BMFace *f;
 	int totflagged, rlen;
@@ -65,6 +66,28 @@ void extrude_edge_context_exec(BMesh *bm, BMOperator *op)
 		
 		//not sure what to do about example face, pass NULL for now.
 		f = BM_Make_Quadtriangle(bm, verts, NULL, 4, NULL, 0);		
+
+		/*copy attributes*/
+		l=BMIter_New(&iter, bm, BM_LOOPS_OF_FACE, f);
+		for (; l; l=BMIter_Step(&iter)) {
+			l2 = l->radial.next->data;
+			
+			if (l2 && l2 != l) {
+				/*copy data*/
+				if (l2->v == l->v) {
+					BM_Copy_Attributes(bm, bm, l2, l);
+					l2 = (BMLoop*) l2->head.next;
+					l = (BMLoop*) l->head.next;
+					BM_Copy_Attributes(bm, bm, l2, l);
+				} else {
+					l2 = (BMLoop*) l2->head.next;
+					BM_Copy_Attributes(bm, bm, l2, l);
+					l2 = (BMLoop*) l2->head.prev;
+					l = (BMLoop*) l->head.next;
+					BM_Copy_Attributes(bm, bm, l2, l);
+				}
+			}
+		}
 	}
 	
 	/*cleanup*/

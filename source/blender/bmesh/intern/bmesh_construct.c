@@ -36,6 +36,10 @@
 #include "bmesh.h"
 #include "bmesh_private.h"
 
+/*prototypes*/
+static void bm_copy_loop_attributes(BMesh *source_mesh, BMesh *target_mesh,
+                                    BMLoop *source_loop, BMLoop *target_loop);
+
 /*
  * BM_CONSTRUCT.C
  *
@@ -170,6 +174,29 @@ BMFace *BM_Make_Quadtriangle(BMesh *bm, BMVert **verts, BMEdge **edges, int len,
 	return f;
 }
 
+
+/*copies face data from shared adjacent faces*/
+void BM_Face_CopyShared(BMesh *bm, BMFace *f) {
+	BMIter iter;
+	BMLoop *l, *l2;
+
+	if (!f) return;
+
+	l=BMIter_New(&iter, bm, BM_LOOPS_OF_FACE, f);
+	for (; l; l=BMIter_Step(&iter)) {
+		l2 = l->radial.next->data;
+		
+		if (l2 && l2 != l) {
+			if (l2->v == l->v) {
+				bm_copy_loop_attributes(bm, bm, l2, l);
+			} else {
+				l2 = (BMLoop*) l2->head.next;
+				bm_copy_loop_attributes(bm, bm, l2, l);
+			}
+		}
+	}
+}
+
 /*
  * BMESH MAKE NGON
  *
@@ -196,7 +223,7 @@ BMFace *BM_Make_Ngon(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **edges, int len,
 				verts[i] = edges[i]->v1;
 			} else if(!BMO_TestFlag(bm, edges[i]->v2, BM_EDGEVERT)) {
 				BMO_SetFlag(bm, edges[i]->v2, BM_EDGEVERT);
-				verts[i] = 	edges[i]->v2;
+				verts[i] = edges[i]->v2;
 			}
 		}
 		
@@ -211,9 +238,10 @@ BMFace *BM_Make_Ngon(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **edges, int len,
 		if(len > VERT_BUF_SIZE)
 			MEM_freeN(verts);
 	}
-		
-	if((!f) && (!overlap))
+
+	if((!f) && (!overlap)) {
 		f = bmesh_mf(bm, v1, v2, edges, len);
+	}
 
 	return f;
 }

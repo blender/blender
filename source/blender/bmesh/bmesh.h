@@ -144,7 +144,7 @@ typedef struct BMEdge {
 	struct BMNode d1, d2;
 	struct BMLoop *loop;
 	void *data;
-	float crease, bweight;										/*make these custom data.... no really, please....*/
+	float crease, bweight; /*make these custom data.... no really, please....*/
 } BMEdge;
 
 typedef struct BMLoop  {
@@ -180,6 +180,8 @@ struct BMVert *BM_Make_Vert(struct BMesh *bm, float co[3], struct BMVert *exampl
 struct BMEdge *BM_Make_Edge(struct BMesh *bm, struct BMVert *v1, struct BMVert *v2, struct BMEdge *example, int nodouble);
 struct BMFace *BM_Make_Quadtriangle(struct BMesh *bm, struct BMVert **verts, BMEdge **edges, int len, struct BMFace *example, int nodouble);
 struct BMFace *BM_Make_Ngon(struct BMesh *bm, struct BMVert *v1, struct BMVert *v2, struct BMEdge **edges, int len, int nodouble);
+/*copies loop data from adjacent faces*/
+void BM_Face_CopyShared(BMesh *bm, BMFace *f);
 void BM_Copy_Attributes(struct BMesh *source_mesh, struct BMesh *target_mesh, void *source, void *target);
 void BM_remove_tagged_faces(struct BMesh *bm, int flag);
 void BM_remove_tagged_edges(struct BMesh *bm, int flag);
