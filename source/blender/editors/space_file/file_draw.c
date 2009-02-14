@@ -83,7 +83,7 @@
 /* button events */
 enum {
 	B_REDR 	= 0,
-	B_FS_LOAD,
+	B_FS_EXEC,
 	B_FS_CANCEL,
 	B_FS_PARENT,
 } eFile_ButEvents;
@@ -91,8 +91,8 @@ enum {
 static void do_file_buttons(bContext *C, void *arg, int event)
 {
 	switch(event) {
-		case B_FS_LOAD:
-			file_load_exec(C, NULL);	/* file_ops.c */
+		case B_FS_EXEC:
+			file_exec(C, NULL);	/* file_ops.c */
 			break;
 		case B_FS_CANCEL:
 			file_cancel_exec(C, NULL); /* file_ops.c */
@@ -158,7 +158,7 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 
 	if(loadbutton) {
 		uiSetCurFont(block, UI_HELV);
-		uiDefBut(block, BUT, B_FS_LOAD, params->title,	xmax-loadbutton, filebuty2, loadbutton, 21, params->dir, 0.0, (float)FILE_MAXFILE-1, 0, 0, "");
+		uiDefBut(block, BUT, B_FS_EXEC, params->title,	xmax-loadbutton, filebuty2, loadbutton, 21, params->dir, 0.0, (float)FILE_MAXFILE-1, 0, 0, "");
 		uiDefBut(block, BUT, B_FS_CANCEL, "Cancel",		xmax-loadbutton, filebuty1, loadbutton, 21, params->file, 0.0, (float)FILE_MAXFILE-1, 0, 0, "");
 	}
 
