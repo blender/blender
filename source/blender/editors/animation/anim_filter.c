@@ -1094,7 +1094,7 @@ static int animdata_filter_dopesheet_scene (ListBase *anim_data, bDopeSheet *ads
 	}
 		
 	/* world */
-	if ((wo) && !(ads->filterflag & ADS_FILTER_NOWOR)) {
+	if ((wo && wo->adt) && !(ads->filterflag & ADS_FILTER_NOWOR)) {
 		/* Animation or Drivers */
 		if ((ads->filterflag & ADS_FILTER_ONLYDRIVERS) == 0) {
 			AnimData *adt= wo->adt;
