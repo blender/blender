@@ -3514,20 +3514,14 @@ void ARMATURE_OT_parent_clear(wmOperatorType *ot)
 
 static int armature_selection_invert_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit = CTX_data_edit_object(C);
-	bArmature *arm= obedit->data;
-	EditBone *ebone;
-	
 	/*	Set the flags */
-	for (ebone=arm->edbo->first;ebone;ebone=ebone->next) {
+	CTX_DATA_BEGIN(C, EditBone *, ebone, visible_bones) {
 		/* select bone */
-		if(arm->layer & ebone->layer && (ebone->flag & BONE_HIDDEN_A)==0) {
-			ebone->flag ^= (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
-			ebone->flag &= ~BONE_ACTIVE;
-		}
-	}	
-	
-	/* undo? */
+		ebone->flag ^= (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
+		ebone->flag &= ~BONE_ACTIVE;
+	}
+	CTX_DATA_END;	
+
 	WM_event_add_notifier(C, NC_OBJECT|ND_BONE_SELECT, NULL);
 	
 	return OPERATOR_FINISHED;
@@ -3550,9 +3544,6 @@ void ARMATURE_OT_selection_invert(wmOperatorType *ot)
 }
 static int armature_de_select_all_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit = CTX_data_edit_object(C);
-	bArmature *arm= obedit->data;
-	EditBone *ebone;
 	int	sel=1;
 
 	/*	Determine if there are any selected bones
@@ -3560,22 +3551,20 @@ static int armature_de_select_all_exec(bContext *C, wmOperator *op)
 	if (CTX_DATA_COUNT(C, selected_bones) > 0)	sel=0;
 	
 	/*	Set the flags */
-	for (ebone=arm->edbo->first;ebone;ebone=ebone->next) {
+	CTX_DATA_BEGIN(C, EditBone *, ebone, visible_bones) {
 		if (sel==1) {
 			/* select bone */
-			if(arm->layer & ebone->layer && (ebone->flag & BONE_HIDDEN_A)==0) {
-				ebone->flag |= (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
-				if(ebone->parent)
-					ebone->parent->flag |= (BONE_TIPSEL);
-			}
+			ebone->flag |= (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
+			if(ebone->parent)
+				ebone->parent->flag |= (BONE_TIPSEL);
 		}
 		else {
 			/* deselect bone */
 			ebone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL | BONE_ACTIVE);
 		}
-	}	
-	
-	/* undo? */
+	}
+	CTX_DATA_END;	
+
 	WM_event_add_notifier(C, NC_OBJECT|ND_BONE_SELECT, NULL);
 	
 	return OPERATOR_FINISHED;
@@ -4426,13 +4415,12 @@ static int pose_selection_invert_exec(bContext *C, wmOperator *op)
 	bPoseChannel *pchan;
 	
 	/*	Set the flags */
-	for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-		if ((pchan->bone->layer & arm->layer) && !(pchan->bone->flag & BONE_HIDDEN_P)) {
-				pchan->bone->flag ^= (BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL);
-				pchan->bone->flag &= ~BONE_ACTIVE;
-		}
+	CTX_DATA_BEGIN(C, bPoseChannel *, pchan, visible_pchans) {
+		pchan->bone->flag ^= (BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL);
+		pchan->bone->flag &= ~BONE_ACTIVE;
 	}	
-
+	CTX_DATA_END;
+	
 	WM_event_add_notifier(C, NC_OBJECT|ND_BONE_SELECT, NULL);
 	
 	return OPERATOR_FINISHED;
@@ -4455,9 +4443,6 @@ void POSE_OT_selection_invert(wmOperatorType *ot)
 }
 static int pose_de_select_all_exec(bContext *C, wmOperator *op)
 {
-	Object *ob= CTX_data_active_object(C);
-	bArmature *arm= ob->data;
-	bPoseChannel *pchan;
 	int	sel=1;
 
 	/*	Determine if there are any selected bones
@@ -4465,12 +4450,12 @@ static int pose_de_select_all_exec(bContext *C, wmOperator *op)
 	if (CTX_DATA_COUNT(C, selected_pchans) > 0)	sel=0;
 	
 	/*	Set the flags */
-	for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-		if ((pchan->bone->layer & arm->layer) && !(pchan->bone->flag & BONE_HIDDEN_P)) {
-				if (sel==0) pchan->bone->flag &= ~(BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL|BONE_ACTIVE);
-				else pchan->bone->flag |= BONE_SELECTED;
-		}
-	}	
+	CTX_DATA_BEGIN(C, bPoseChannel *, pchan, visible_pchans) {
+		/* select pchan */
+		if (sel==0) pchan->bone->flag &= ~(BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL|BONE_ACTIVE);
+		else pchan->bone->flag |= BONE_SELECTED;
+	}
+	CTX_DATA_END;	
 
 	WM_event_add_notifier(C, NC_OBJECT|ND_BONE_SELECT, NULL);
 	
