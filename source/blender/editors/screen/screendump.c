@@ -43,6 +43,7 @@
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_utildefines.h"
+#include "BKE_writeavi.h"
 
 #include "BIF_gl.h"
 
@@ -52,8 +53,13 @@
 #include "WM_types.h"
 #include "WM_api.h"
 
+#include "PIL_time.h"
+
 #include "ED_fileselect.h"
 #include "ED_screen.h"
+#include "ED_screen_types.h"
+
+#include "screen_intern.h"
 
 typedef struct ScreenshotData {
 	unsigned int *dumprect;
@@ -177,10 +183,11 @@ void SCREEN_OT_screenshot(wmOperatorType *ot)
 }
 
 /* *************** screenshot movie job ************************* */
-#if 0
+
 typedef struct ScreenshotJob {
+	Scene *scene;
 	unsigned int *dumprect;
-	int dumpsx, dumpsy;
+	int x, y, dumpsx, dumpsy;
 	short *stop;
 	short *do_update;
 } ScreenshotJob;
@@ -190,6 +197,9 @@ static void screenshot_freejob(void *sjv)
 {
 	ScreenshotJob *sj= sjv;
 	
+	if(sj->dumprect)
+		MEM_freeN(sj->dumprect);
+	
 	MEM_freeN(sj);
 }
 
@@ -198,7 +208,15 @@ static void screenshot_freejob(void *sjv)
 static void screenshot_updatejob(void *sjv)
 {
 	ScreenshotJob *sj= sjv;
+	unsigned int *dumprect;
 	
+	if(sj->dumprect==NULL) {
+		dumprect= MEM_mallocN(sizeof(int) * sj->dumpsx * sj->dumpsy, "dumprect");
+		glReadPixels(sj->x, sj->y, sj->dumpsx, sj->dumpsy, GL_RGBA, GL_UNSIGNED_BYTE, dumprect);
+		glFinish();
+		
+		sj->dumprect= dumprect;
+	}
 }
 
 
@@ -206,38 +224,110 @@ static void screenshot_updatejob(void *sjv)
 static void screenshot_startjob(void *sjv, short *stop, short *do_update)
 {
 	ScreenshotJob *sj= sjv;
+	RenderData rd= sj->scene->r;
+	bMovieHandle *mh= BKE_get_movie_handle(sj->scene->r.imtype);
+	int cfra= 1;
+	
+	/* we need this as local variables for renderdata */
+	rd.frs_sec= 10;
+	rd.frs_sec_base= 1.0f;
+	
+	if(BKE_imtype_is_movie(rd.imtype))
+		mh->start_movie(&rd, sj->dumpsx, sj->dumpsy);
+	else
+		mh= NULL;
 	
 	sj->stop= stop;
 	sj->do_update= do_update;
 	
+	*do_update= 1; // wait for opengl rect
 	
+	while(*stop==0 && G.afbreek==0) {
+		
+		if(sj->dumprect) {
+			
+			if(mh) {
+				mh->append_movie(&rd, cfra, sj->dumprect, sj->dumpsx, sj->dumpsy);
+				printf("Append frame %d\n", cfra);
+			}
+			else {
+				ImBuf *ibuf= IMB_allocImBuf(sj->dumpsx, sj->dumpsy, rd.planes, 0, 0);
+				char name[FILE_MAXDIR+FILE_MAXFILE];
+				int ok;
+				
+				BKE_makepicstring(sj->scene, name, rd.pic, cfra, rd.imtype);
+				
+				ibuf->rect= sj->dumprect;
+				ok= BKE_write_ibuf(sj->scene, ibuf, name, rd.imtype, rd.subimtype, rd.quality);
+				
+				if(ok==0) {
+					printf("Write error: cannot save %s\n", name);
+					break;
+				}
+				else printf("Saved: %s\n", name);
+				
+                /* imbuf knows which rects are not part of ibuf */
+				IMB_freeImBuf(ibuf);	
+			}
+			
+			MEM_freeN(sj->dumprect);
+			sj->dumprect= NULL;
+			
+			*do_update= 1;
+			
+			cfra++;
+		}
+		else 
+			PIL_sleep_ms(50);
+	}
+	
+	if(mh)
+		mh->end_movie();
+	printf("screencast job stopped\n");
 }
 
-static int screenshot_job_invoke(const bContext *C, wmOperator *op, wmEvent *event)
+static int screencast_exec(bContext *C, wmOperator *op)
 {
 	bScreen *screen= CTX_wm_screen(C);
 	wmJob *steve= WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), screen);
 	ScreenshotJob *sj= MEM_callocN(sizeof(ScreenshotJob), "screenshot job");
 	
-	/* customdata for preview thread */
+	/* setup sj */
+	if(RNA_boolean_get(op->ptr, "full")) {
+		wmWindow *win= CTX_wm_window(C);
+		sj->x= 0;
+		sj->y= 0;
+		sj->dumpsx= win->sizex;
+		sj->dumpsy= win->sizey;
+	} 
+	else {
+		ScrArea *curarea= CTX_wm_area(C);
+		sj->x= curarea->totrct.xmin;
+		sj->y= curarea->totrct.ymin;
+		sj->dumpsx= curarea->totrct.xmax - sj->x;
+		sj->dumpsy= curarea->totrct.ymax - sj->y;
+	}
 	sj->scene= CTX_data_scene(C);
-	
+
 	/* setup job */
 	WM_jobs_customdata(steve, sj, screenshot_freejob);
 	WM_jobs_timer(steve, 0.1, 0, 0);
 	WM_jobs_callbacks(steve, screenshot_startjob, NULL, screenshot_updatejob);
 	
+	G.afbreek= 0; // XXX?
+	
 	WM_jobs_start(steve);
 	
+	return OPERATOR_FINISHED;
 }
 
-void SCREEN_OT_screenshot_movie(wmOperatorType *ot)
+void SCREEN_OT_screencast(wmOperatorType *ot)
 {
-	ot->name= "Make Screenshot";
-	ot->idname= "SCREEN_OT_screenshot_movie";
+	ot->name= "Make Screencast";
+	ot->idname= "SCREEN_OT_screencast";
 	
-	ot->invoke= screenshot_invoke;
-	ot->exec= screenshot_exec;
+	ot->invoke= WM_operator_confirm;
+	ot->exec= screencast_exec;
 	ot->poll= WM_operator_winactive;
 	
 	ot->flag= 0;
@@ -247,5 +337,4 @@ void SCREEN_OT_screenshot_movie(wmOperatorType *ot)
 }
 
 
-#endif
 

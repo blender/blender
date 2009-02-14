@@ -2038,15 +2038,16 @@ static void image_rect_update(void *rjv, RenderResult *rr, volatile rcti *renrec
 			return;
 		
 		/* xmin here is first subrect x coord, xmax defines subrect width */
-		xmin = renrect->xmin;
-		xmax = renrect->xmax - xmin;
+		xmin = renrect->xmin + rr->crop;
+		xmax = renrect->xmax - xmin - rr->crop;
 		if (xmax<2) return;
 		
-		ymin= renrect->ymin;
-		ymax= renrect->ymax - ymin;
+		ymin= renrect->ymin + rr->crop;
+		ymax= renrect->ymax - ymin - rr->crop;
 		if(ymax<2)
 			return;
 		renrect->ymin= renrect->ymax;
+		
 	}
 	else {
 		xmin = ymin = rr->crop;
@@ -2087,7 +2088,7 @@ static void image_rect_update(void *rjv, RenderResult *rr, volatile rcti *renrec
 		float *rf= rectf;
 		char *rc= rectc;
 		
-		/* crop offset */
+		/* XXX temp. because crop offset */
 		if( rectc >= (char *)(ibuf->rect)) {
 			for(x1= 0; x1<xmax; x1++, rf += 4, rc+=4) {
 				rc[0]= FTOCHAR(rf[0]);
@@ -2267,6 +2268,7 @@ void ED_operatortypes_screen(void)
 	WM_operatortype_append(SCREEN_OT_screen_set);
 	WM_operatortype_append(SCREEN_OT_screen_full_area);
 	WM_operatortype_append(SCREEN_OT_screenshot);
+	WM_operatortype_append(SCREEN_OT_screencast);
 	
 	/*frame changes*/
 	WM_operatortype_append(SCREEN_OT_frame_offset);
@@ -2303,6 +2305,7 @@ void ED_keymap_screen(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "SCREEN_OT_screen_full_area", DOWNARROWKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "SCREEN_OT_screen_full_area", SPACEKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "SCREEN_OT_screenshot", F3KEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "SCREEN_OT_screencast", F3KEY, KM_PRESS, KM_ALT, 0);
 
 	 /* tests */
 	WM_keymap_add_item(keymap, "SCREEN_OT_region_split", SKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);

@@ -59,6 +59,7 @@ void ed_screen_context(const bContext *C, bContextDataMember member, bContextDat
 
 /* screendump.c */
 void SCREEN_OT_screenshot(struct wmOperatorType *ot);
+void SCREEN_OT_screencast(struct wmOperatorType *ot);
 
 #endif /* ED_SCREEN_INTERN_H */
 
