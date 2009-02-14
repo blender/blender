@@ -92,6 +92,14 @@ void view3d_operatortypes(void)
 	WM_operatortype_append(VIEW3D_OT_editmesh_face_toolbox);
 	WM_operatortype_append(VIEW3D_OT_properties);
 	WM_operatortype_append(VIEW3D_OT_localview);
+	
+	WM_operatortype_append(VIEW3D_OT_snap_selected_to_grid);
+	WM_operatortype_append(VIEW3D_OT_snap_selected_to_cursor);
+	WM_operatortype_append(VIEW3D_OT_snap_selected_to_center);
+	WM_operatortype_append(VIEW3D_OT_snap_cursor_to_grid);
+	WM_operatortype_append(VIEW3D_OT_snap_cursor_to_selected);
+	WM_operatortype_append(VIEW3D_OT_snap_cursor_to_active);
+	WM_operatortype_append(VIEW3D_OT_snap_menu);
 		
 	transform_operatortypes();
 }
@@ -180,6 +188,8 @@ void view3d_keymap(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "VIEW3D_OT_render_border", BKEY, KM_PRESS, KM_SHIFT, 0);
 	
 	WM_keymap_add_item(keymap, "VIEW3D_OT_set_camera_to_view", PAD0, KM_PRESS, KM_ALT|KM_CTRL, 0);
+	
+	WM_keymap_add_item(keymap, "VIEW3D_OT_snap_menu", SKEY, KM_PRESS, KM_SHIFT, 0);
 	
 	/* radial control */
 	RNA_enum_set(WM_keymap_add_item(keymap, "SCULPT_OT_radial_control", FKEY, KM_PRESS, 0, 0)->ptr, "mode", WM_RADIALCONTROL_SIZE);

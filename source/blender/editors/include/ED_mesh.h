@@ -120,11 +120,12 @@ void		EM_selectmode_set(struct EditMesh *em);
 void		EM_select_flush(struct EditMesh *em);
 void		EM_convertsel(struct EditMesh *em, short oldmode, short selectmode);
 void		EM_validate_selections(struct EditMesh *em);
-			
+
 			/* exported to transform */
 int			EM_get_actSelection(struct EditMesh *em, struct EditSelection *ese);
 void		EM_editselection_normal(float *normal, struct EditSelection *ese);
 void		EM_editselection_plane(float *plane, struct EditSelection *ese);
+void		EM_editselection_center(float *center, struct EditSelection *ese);			
 
 struct UvVertMap *EM_make_uv_vert_map(struct EditMesh *em, int selected, int do_face_idx_array, float *limit);
 struct UvMapVert *EM_get_uv_map_vert(struct UvVertMap *vmap, unsigned int v);

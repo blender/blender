@@ -956,7 +956,7 @@ static int viewcenter_exec(bContext *C, wmOperator *op) /* like a localview with
 
 
 	if(obedit) {
-// XXX		ok = minmax_verts(min, max);	/* only selected */
+		ok = minmax_verts(obedit, min, max);	/* only selected */
 	}
 	else if(ob && (ob->flag & OB_POSEMODE)) {
 		if(ob->pose) {
@@ -1042,6 +1042,7 @@ static int viewcenter_exec(bContext *C, wmOperator *op) /* like a localview with
 
 	return OPERATOR_FINISHED;
 }
+
 void VIEW3D_OT_viewcenter(wmOperatorType *ot)
 {
 
