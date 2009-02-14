@@ -67,6 +67,7 @@ int node_link_bezier_points(View2D *v2d, SpaceNode *snode, bNodeLink *link, floa
 void draw_nodespace_back_pix(ScrArea *sa, SpaceNode *snode);
 
 /* node_edit.c */
+void snode_handle_recalc(bContext *C, SpaceNode *snode);
 bNode *next_node(bNodeTree *ntree);
 bNode *node_add_node(SpaceNode *snode, Scene *scene, int type, float locx, float locy);
 void snode_set_context(SpaceNode *snode, Scene *scene);
@@ -79,6 +80,7 @@ void node_composit_default(Scene *sce);
 void node_texture_default(Tex *tx);
 void snode_composite_job(const struct bContext *C, ScrArea *sa);
 bNode *snode_get_editgroup(SpaceNode *snode);
+void snode_autoconnect(SpaceNode *snode, bNode *node_to, int flag);
 
 void NODE_OT_link(struct wmOperatorType *ot);
 void NODE_OT_delete_selection(struct wmOperatorType *ot);

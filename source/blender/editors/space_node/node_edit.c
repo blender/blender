@@ -204,7 +204,7 @@ bNode *editnode_get_active(bNodeTree *ntree)
 		return nodeGetActive(ntree);
 }
 
-static void snode_handle_recalc(bContext *C, SpaceNode *snode)
+void snode_handle_recalc(bContext *C, SpaceNode *snode)
 {
 	if(snode->treetype==NTREE_SHADER)
 		WM_event_add_notifier(C, NC_MATERIAL|ND_NODES, snode->id);
