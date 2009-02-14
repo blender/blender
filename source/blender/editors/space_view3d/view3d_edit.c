@@ -1004,8 +1004,11 @@ static int viewcenter_exec(bContext *C, wmOperator *op) /* like a localview with
 	afm[0]= (max[0]-min[0]);
 	afm[1]= (max[1]-min[1]);
 	afm[2]= (max[2]-min[2]);
-	size= 0.7f*MAX3(afm[0], afm[1], afm[2]);
-
+	size= MAX3(afm[0], afm[1], afm[2]);
+	/* perspective should be a bit farther away to look nice */
+	if(rv3d->persp==V3D_ORTHO)
+		size*= 0.7;
+	
 	if(size <= v3d->near*1.5f) size= v3d->near*1.5f;
 
 	new_ofs[0]= -(min[0]+max[0])/2.0f;

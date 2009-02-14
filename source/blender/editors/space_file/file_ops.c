@@ -45,6 +45,7 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
+#include "UI_interface.h"
 #include "UI_view2d.h"
 
 #include "WM_api.h"
@@ -495,11 +496,10 @@ int file_load_exec(bContext *C, wmOperator *unused)
 		strcat(name, sfile->params->file);
 		RNA_string_set(op->ptr, "filename", name);
 		
-		op->type->exec(C, op);
-		
-		WM_operator_free(op);
+		/* this gives ownership to pupmenu */
+		uiPupMenuSaveOver(C, op, name);
 	}
-				
+
 	return OPERATOR_FINISHED;
 }
 
