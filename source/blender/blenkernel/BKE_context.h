@@ -91,6 +91,11 @@ enum {
 	
 	CTX_DATA_ACTIVE_BONE,
 	CTX_DATA_ACTIVE_PCHAN,
+	
+	CTX_DATA_VISIBLE_BONES,
+	CTX_DATA_EDITABLE_BONES,
+	CTX_DATA_VISIBLE_PCHANS,
+	CTX_DATA_EDITABLE_PCHANS,
 };
 
 typedef int bContextDataMember;
@@ -197,9 +202,12 @@ int CTX_data_selected_nodes(const bContext *C, ListBase *list);
 struct EditBone *CTX_data_active_bone(const bContext *C);
 int CTX_data_selected_bones(const bContext *C, ListBase *list);
 int CTX_data_selected_editable_bones(const bContext *C, ListBase *list);
+int CTX_data_visible_bones(const bContext *C, ListBase *list);
+int CTX_data_editable_bones(const bContext *C, ListBase *list);
 
 struct bPoseChannel *CTX_data_active_pchan(const bContext *C);
 int CTX_data_selected_pchans(const bContext *C, ListBase *list);
+int CTX_data_visible_pchans(const bContext *C, ListBase *list);
 
 /* Data Evaluation Context */
 

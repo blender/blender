@@ -557,15 +557,57 @@ static int view3d_context(const bContext *C, bContextDataMember member, bContext
 		if(scene->basact && (scene->basact->lay & v3d->lay))
 			if((scene->basact->object->restrictflag & OB_RESTRICT_VIEW)==0)
 				CTX_data_pointer_set(result, scene->basact);
-
+		
 		return 1;
 	}
 	else if(member == CTX_DATA_ACTIVE_OBJECT) {
 		if(scene->basact && (scene->basact->lay & v3d->lay))
 			if((scene->basact->object->restrictflag & OB_RESTRICT_VIEW)==0)
 				CTX_data_pointer_set(result, scene->basact->object);
-
+		
 		return 1;
+	}
+	else if(ELEM(member, CTX_DATA_VISIBLE_BONES, CTX_DATA_EDITABLE_BONES)) {
+		Object *obedit= scene->obedit; // XXX get from context?
+		bArmature *arm= (obedit) ? obedit->data : NULL;
+		EditBone *ebone, *flipbone=NULL;
+		
+		if (arm && arm->edbo) {
+			/* Attention: X-Axis Mirroring is also handled here... */
+			for (ebone= arm->edbo->first; ebone; ebone= ebone->next) {
+				/* first and foremost, bone must be visible and selected */
+				if (EBONE_VISIBLE(arm, ebone)) {
+					/* Get 'x-axis mirror equivalent' bone if the X-Axis Mirroring option is enabled
+					 * so that most users of this data don't need to explicitly check for it themselves.
+					 * 
+					 * We need to make sure that these mirrored copies are not selected, otherwise some
+					 * bones will be operated on twice.
+					 */
+					if (arm->flag & ARM_MIRROR_EDIT)
+						flipbone = ED_armature_bone_get_mirrored(arm->edbo, ebone);
+					
+					/* if we're filtering for editable too, use the check for that instead, as it has selection check too */
+					if (member == CTX_DATA_EDITABLE_BONES) {
+						/* only selected + editable */
+						if (EBONE_EDITABLE(ebone)) {
+							CTX_data_list_add(result, ebone);
+						
+							if ((flipbone) && !(flipbone->flag & BONE_SELECTED))
+								CTX_data_list_add(result, flipbone);
+						}
+					}
+					else {
+						/* only include bones if visible */
+						CTX_data_list_add(result, ebone);
+						
+						if ((flipbone) && EBONE_VISIBLE(arm, flipbone)==0)
+							CTX_data_list_add(result, flipbone);
+					}
+				}
+			}	
+			
+			return 1;
+		}
 	}
 	else if(ELEM(member, CTX_DATA_SELECTED_BONES, CTX_DATA_SELECTED_EDITABLE_BONES)) {
 		Object *obedit= scene->obedit; // XXX get from context?
@@ -605,6 +647,22 @@ static int view3d_context(const bContext *C, bContextDataMember member, bContext
 					}
 				}
 			}	
+			
+			return 1;
+		}
+	}
+	else if(member == CTX_DATA_VISIBLE_PCHANS) {
+		Object *obact= OBACT;
+		bArmature *arm= (obact) ? obact->data : NULL;
+		bPoseChannel *pchan;
+		
+		if (obact && arm) {
+			for (pchan= obact->pose->chanbase.first; pchan; pchan= pchan->next) {
+				/* ensure that PoseChannel is on visible layer and is not hidden in PoseMode */
+				if ((pchan->bone) && (arm->layer & pchan->bone->layer) && !(pchan->bone->flag & BONE_HIDDEN_P)) {
+					CTX_data_list_add(result, pchan);
+				}
+			}
 			
 			return 1;
 		}
