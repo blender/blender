@@ -43,6 +43,7 @@
 #include "DNA_object_force.h"
 #include "DNA_scene_types.h"
 #include "DNA_particle_types.h"
+#include "DNA_windowmanager_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"

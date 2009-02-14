@@ -74,6 +74,7 @@ editmesh_tool.c: UI called tools for editmesh, geometry changes here, otherwise 
 #include "BKE_object.h"
 #include "BKE_utildefines.h"
 #include "BKE_bmesh.h"
+#include "BKE_report.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
@@ -95,7 +96,6 @@ editmesh_tool.c: UI called tools for editmesh, geometry changes here, otherwise 
 /* XXX */
 static int extern_qread() {return 0;}
 static void waitcursor() {}
-static void error() {}
 static int pupmenu() {return 0;}
 static int qtest() {return 0;}
 #define add_numbut(a, b, c, d, e, f, g) {}
@@ -107,7 +107,7 @@ static int snap_to_center() {return 0;}
 
 /* local prototypes ---------------*/
 static void free_tagged_edges_faces(EditMesh *em, EditEdge *eed, EditFace *efa);
-int EdgeLoopDelete(EditMesh *em);
+int EdgeLoopDelete(EditMesh *em, wmOperator *op);
 
 /********* qsort routines *********/
 
@@ -488,8 +488,15 @@ static int removedoublesflag_exec(bContext *C, wmOperator *op)
 	Object *obedit= CTX_data_edit_object(C);
 	Scene *scene = CTX_data_scene(C);
 	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
+	char msg[100];
 
-	removedoublesflag(em,1,0,scene->toolsettings->doublimit);
+	int cnt = removedoublesflag(em,1,0,scene->toolsettings->doublimit);
+
+	if(cnt)
+	{
+		sprintf(msg, "Removed %d vertices", cnt);
+		BKE_report(op->reports, RPT_INFO, msg);
+	}
 		
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 	
@@ -615,7 +622,7 @@ void hashvert_flag(EditMesh *em, int flag)
 }
 
 /* generic extern called extruder */
-void extrude_mesh(Object *obedit, EditMesh *em)
+void extrude_mesh(Object *obedit, EditMesh *em, wmOperator *op)
 {
 	Scene *scene= NULL;		// XXX CTX!
 	float nor[3]= {0.0, 0.0, 0.0};
@@ -656,7 +663,7 @@ void extrude_mesh(Object *obedit, EditMesh *em)
 	else transmode= extrudeflag_face_indiv(em, SELECT, nor);
 	
 	if(transmode==0) {
-		error("No valid selection");
+		BKE_report(op->reports, RPT_ERROR, "Not a valid selection for extrude");
 	}
 	else {
 		EM_fgon_flags(em);
@@ -695,7 +702,7 @@ static int mesh_extrude_exec(bContext *C, wmOperator *op)
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
 
-	extrude_mesh(obedit,em);
+	extrude_mesh(obedit,em, op);
 		
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 	
@@ -813,7 +820,7 @@ void MESH_OT_extrude_repeat(wmOperatorType *ot)
 	RNA_def_int(ot->srna, "steps", 10, 0, 180, "Steps", "", 0, INT_MAX);
 }
 	
-void spin_mesh(View3D *v3d, Object *obedit, EditMesh *em, int steps, float degr, float *dvec, int mode)
+void spin_mesh(View3D *v3d, Object *obedit, EditMesh *em, wmOperator *op, int steps, float degr, float *dvec, int mode)
 {
 	Scene *scene= NULL; // XXX from context!
 	RegionView3D *rv3d= NULL; // XXX from context
@@ -867,7 +874,7 @@ void spin_mesh(View3D *v3d, Object *obedit, EditMesh *em, int steps, float degr,
 		if(mode==0) ok= extrudeflag(obedit, em, SELECT, nor);
 		else adduplicateflag(em, SELECT);
 		if(ok==0) {
-			error("No valid vertices are selected");
+			BKE_report(op->reports, RPT_ERROR, "No valid vertices are selected");
 			break;
 		}
 		rotateflag(em, SELECT, cent, bmat);
@@ -897,7 +904,7 @@ void spin_mesh(View3D *v3d, Object *obedit, EditMesh *em, int steps, float degr,
 
 }
 
-void screw_mesh(Object *obedit, EditMesh *em, int steps, int turns)
+void screw_mesh(Object *obedit, EditMesh *em, wmOperator *op, int steps, int turns)
 {
 	View3D *v3d= NULL; // XXX
 	EditVert *eve,*v1=0,*v2=0;
@@ -936,7 +943,7 @@ void screw_mesh(Object *obedit, EditMesh *em, int steps, int turns)
 		eve= eve->next;
 	}
 	if(v1==0 || v2==0) {
-		error("You have to select a string of connected vertices too");
+		BKE_report(op->reports, RPT_ERROR, "You have to select a string of connected vertices too");
 		return;
 	}
 
@@ -953,7 +960,7 @@ void screw_mesh(Object *obedit, EditMesh *em, int steps, int turns)
 		dvec[2]= -dvec[2];
 	}
 
-	spin_mesh(v3d, obedit, em, turns*steps, turns*360, dvec, 0);
+	spin_mesh(v3d, obedit, em, op, turns*steps, turns*360, dvec, 0);
 
 }
 
@@ -1004,7 +1011,7 @@ static void erase_vertices(EditMesh *em, ListBase *l)
 	}
 }
 
-void delete_mesh(Object *obedit, EditMesh *em, int event)
+void delete_mesh(Object *obedit, EditMesh *em, wmOperator *op, int event)
 {
 	EditFace *efa, *nextvl;
 	EditVert *eve,*nextve;
@@ -1022,7 +1029,7 @@ void delete_mesh(Object *obedit, EditMesh *em, int event)
 		erase_vertices(em, &em->verts);
 	} 
 	else if(event==6) {
-		if(!EdgeLoopDelete(em))
+		if(!EdgeLoopDelete(em, op))
 			return;
 
 		str= "Erase Edge Loop";
@@ -1160,7 +1167,7 @@ static int delete_mesh_exec(bContext *C, wmOperator *op)
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
 	
-	delete_mesh(obedit,em,RNA_enum_get(op->ptr, "type"));
+	delete_mesh(obedit,em, op,RNA_enum_get(op->ptr, "type"));
 	
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 	
@@ -3596,7 +3603,7 @@ void edge_flip(EditMesh *em)
 
 }
 
-static void edge_rotate(EditMesh *em, EditEdge *eed,int dir)
+static void edge_rotate(EditMesh *em, wmOperator *op, EditEdge *eed,int dir)
 {
 	EditVert **verts[2];
 	EditFace *face[2], *efa, *newFace[2];
@@ -3681,7 +3688,7 @@ static void edge_rotate(EditMesh *em, EditEdge *eed,int dir)
 
 	hiddenedges = MEM_mallocN(sizeof(EditVert*)*numhidden+1, "RotateEdgeHiddenVerts");
 	if(!hiddenedges) {
-        error("Malloc Was not happy!");
+        BKE_report(op->reports, RPT_ERROR, "Memory allocation failed");
         return;   
     }
 
@@ -3810,14 +3817,14 @@ static int edge_rotate_selected(bContext *C, wmOperator *op)
 		if(edgeCount==1) {
 			for(eed= em->edges.first; eed; eed= eed->next) {
 				if(eed->f1==2) {
-					edge_rotate(em, eed,dir);
+					edge_rotate(em, op, eed,dir);
 					break;
 				}
 			}
 		}
 		else 
 		{
-			error("Select one edge or two adjacent faces");
+			BKE_report(op->reports, RPT_ERROR, "Select one edge or two adjacent faces");
 			return OPERATOR_CANCELLED;
 		}
 	}
@@ -3825,14 +3832,14 @@ static int edge_rotate_selected(bContext *C, wmOperator *op)
 		for(eed= em->edges.first; eed; eed= eed->next) {
 			if(eed->f & SELECT) {
 				EM_select_edge(eed, 0);
-				edge_rotate(em, eed,dir);
+				edge_rotate(em, op, eed,dir);
 				break;
 			}
 		}
 	}
 	else 
 	{	
-		error("Select one edge or two adjacent faces");
+		BKE_report(op->reports, RPT_ERROR, "Select one edge or two adjacent faces");
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -3956,7 +3963,7 @@ typedef struct SlideVert {
 	EditVert origvert;
 } SlideVert;
 
-int EdgeSlide(EditMesh *em, short immediate, float imperc)
+int EdgeSlide(EditMesh *em, wmOperator *op, short immediate, float imperc)
 {
 //	NumInput num; XXX
 	Mesh *me= NULL; // XXX
@@ -4011,7 +4018,7 @@ int EdgeSlide(EditMesh *em, short immediate, float imperc)
 			ct++;
 			efa->e1->f1++;
 			if(efa->e1->f1 > 2) {
-				error("3+ face edge");
+				BKE_report(op->reports, RPT_ERROR, "3+ face edge");
 				return 0;				 
 			}
 		}
@@ -4019,7 +4026,7 @@ int EdgeSlide(EditMesh *em, short immediate, float imperc)
 			ct++;
 			efa->e2->f1++;
 			if(efa->e2->f1 > 2) {
-				error("3+ face edge");
+				BKE_report(op->reports, RPT_ERROR, "3+ face edge");
 				return 0;				 
 			}
 		}
@@ -4027,7 +4034,7 @@ int EdgeSlide(EditMesh *em, short immediate, float imperc)
 			ct++;
 			efa->e3->f1++;
 			if(efa->e3->f1 > 2) {
-				error("3+ face edge");
+				BKE_report(op->reports, RPT_ERROR, "3+ face edge");
 				return 0;				 
 			}
 		}
@@ -4035,13 +4042,13 @@ int EdgeSlide(EditMesh *em, short immediate, float imperc)
 			ct++;
 			efa->e4->f1++;
 			if(efa->e4->f1 > 2) {
-				error("3+ face edge");
+				BKE_report(op->reports, RPT_ERROR, "3+ face edge");
 				return 0;				 
 			}
 		}	
 		// Make sure loop is not 2 edges of same face	
 		if(ct > 1) {
-		   error("loop crosses itself");
+		   BKE_report(op->reports, RPT_ERROR, "Loop crosses itself");
 		   return 0;   
 		}
 	}	   
@@ -4052,7 +4059,7 @@ int EdgeSlide(EditMesh *em, short immediate, float imperc)
 	   
 	// Test for multiple segments
 	if(vertsel > numsel+1) {
-		error("Was not a single edge loop");
+		BKE_report(op->reports, RPT_ERROR, "Please choose a single edge loop");
 		return 0;		   
 	}  
 	
@@ -4088,7 +4095,7 @@ int EdgeSlide(EditMesh *em, short immediate, float imperc)
 		// It looks like there was an unexpected case - Hopefully should not happen
 		if(timesthrough >= numsel*2) {
 			BLI_linklist_free(edgelist,NULL); 
-			error("could not order loop");
+			BKE_report(op->reports, RPT_ERROR, "Could not order loop");
 			return 0;   
 		}
 	}
@@ -4231,7 +4238,7 @@ int EdgeSlide(EditMesh *em, short immediate, float imperc)
 		tempsv  = BLI_ghash_lookup(vertgh,(EditVert*)look->link);
 		
 		if(!tempsv->up || !tempsv->down) {
-			error("Missing rails");
+			BKE_report(op->reports, RPT_ERROR, "Missing rails");
 			BLI_ghash_free(vertgh, NULL, (GHashValFreeFP)MEM_freeN);
 			BLI_linklist_free(vertlist,NULL); 
 			BLI_linklist_free(edgelist,NULL); 
@@ -4738,7 +4745,7 @@ int EdgeSlide(EditMesh *em, short immediate, float imperc)
 	return 1;
 }
 
-int EdgeLoopDelete(EditMesh *em) 
+int EdgeLoopDelete(EditMesh *em, wmOperator *op) 
 {
 	
 	/* temporal flag setting so we keep UVs when deleting edge loops,
@@ -4746,7 +4753,7 @@ int EdgeLoopDelete(EditMesh *em)
 	//	short uvcalc_flag_orig = 0; // XXX scene->toolsettings->uvcalc_flag; 
 	//	scene->toolsettings->uvcalc_flag |= UVCALC_TRANSFORM_CORRECT;
 	
-	if(!EdgeSlide(em, 1, 1)) {
+	if(!EdgeSlide(em, op, 1, 1)) {
 		return 0;
 	}
 	
@@ -4884,7 +4891,7 @@ static void mesh_rip_setface(EditMesh *em, EditFace *sefa)
 }
 
 /* based on mouse cursor position, it defines how is being ripped */
-void mesh_rip(EditMesh *em)
+void mesh_rip(EditMesh *em, wmOperator *op)
 {
 	extern void faceloop_select(EditEdge *startedge, int select);
 	EditVert *eve, *nextve;
@@ -4929,11 +4936,11 @@ void mesh_rip(EditMesh *em)
 	}
 	
 	if(efa) {
-		error("Can't perform ripping with faces selected this way");
+		BKE_report(op->reports, RPT_ERROR, "Can't perform ripping with faces selected this way");
 		return;
 	}
 	if(sefa==NULL) {
-		error("No proper selection or faces included");
+		BKE_report(op->reports, RPT_ERROR, "No proper selection or faces included");
 		return;
 	}
 	
@@ -4997,7 +5004,7 @@ void mesh_rip(EditMesh *em)
 	}
 	
 	if(seed==NULL) {	// never happens?
-		error("No proper edge found to start");
+		BKE_report(op->reports, RPT_ERROR, "No proper edge found to start");
 		return;
 	}
 	
@@ -5088,7 +5095,7 @@ void mesh_rip(EditMesh *em)
 // XXX	scene->proportional = prop;
 }
 
-void shape_propagate(Scene *scene, Object *obedit, EditMesh *em)
+void shape_propagate(Scene *scene, Object *obedit, EditMesh *em, wmOperator *op)
 {
 	EditVert *ev = NULL;
 	Mesh* me = (Mesh*)obedit->data;
@@ -5100,7 +5107,7 @@ void shape_propagate(Scene *scene, Object *obedit, EditMesh *em)
 	if(me->key){
 		ky = me->key;
 	} else {
-		error("Object Has No Key");	
+		BKE_report(op->reports, RPT_ERROR, "Object Has No Key");	
 		return;
 	}	
 
@@ -5115,7 +5122,7 @@ void shape_propagate(Scene *scene, Object *obedit, EditMesh *em)
 			}		
 		}						
 	} else {
-		error("Object Has No Blendshapes");	
+		BKE_report(op->reports, RPT_ERROR, "Object Has No Blendshapes");	
 		return;			
 	}
 	
@@ -5212,7 +5219,7 @@ void shape_copy_from_lerp(EditMesh *em, KeyBlock* thisBlock, KeyBlock* fromBlock
 
 
 
-void shape_copy_select_from(Object *obedit, EditMesh *em)
+void shape_copy_select_from(Object *obedit, EditMesh *em, wmOperator *op)
 {
 	Mesh* me = (Mesh*)obedit->data;
 	EditVert *ev = NULL;
@@ -5226,7 +5233,7 @@ void shape_copy_select_from(Object *obedit, EditMesh *em)
 	if(me->key){
 		ky = me->key;
 	} else {
-		error("Object Has No Key");	
+		BKE_report(op->reports, RPT_ERROR, "Object Has No Key");	
 		return;
 	}
 	
@@ -5251,7 +5258,7 @@ void shape_copy_select_from(Object *obedit, EditMesh *em)
 // XXX		nr = pupmenu_col(menu, 20);
 		MEM_freeN(menu);		
 	} else {
-		error("Object Has No Blendshapes");	
+		BKE_report(op->reports, RPT_ERROR, "Object Has No Blendshapes");	
 		return;			
 	}
 	
@@ -5265,7 +5272,7 @@ void shape_copy_select_from(Object *obedit, EditMesh *em)
 			}
 			
 			if(me->totvert != totverts){
-				error("Shape Has had Verts Added/Removed, please cycle editmode before copying");
+				BKE_report(op->reports, RPT_ERROR, "Shape Has had Verts Added/Removed, please cycle editmode before copying");
 				return;	
 			}
 			shape_copy_from_lerp(em, thisBlock,kb);		
@@ -5843,7 +5850,7 @@ typedef struct PathEdge{
 	float w;
 } PathEdge;
 
-void pathselect(EditMesh *em)
+void pathselect(EditMesh *em, wmOperator *op)
 {
 	EditVert *eve, *s, *t;
 	EditEdge *eed;
@@ -5995,7 +6002,7 @@ void pathselect(EditMesh *em)
 		}
 	}
 	else{
-		error("Path Selection requires that exactly two vertices be selected");
+		BKE_report(op->reports, RPT_ERROR, "Path Selection requires that exactly two vertices be selected");
 		return;
 	}
 }
@@ -6247,7 +6254,7 @@ static int mesh_rotate_uvs(bContext *C, wmOperator *op)
 	int shift = 0; // XXX
 
 	if (!EM_texFaceCheck(em)) {
-		error("mesh has no uv/image layers");
+		BKE_report(op->reports, RPT_ERROR, "mesh has no uv/image layers");
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -6319,7 +6326,7 @@ static int mesh_mirror_uvs(bContext *C, wmOperator *op)
 	int shift= 0; // XXX
 	
 	if (!EM_texFaceCheck(em)) {
-		error("mesh has no uv/image layers");
+		BKE_report(op->reports, RPT_ERROR, "mesh has no uv/image layers");
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -6404,7 +6411,7 @@ static int mesh_rotate_colors(bContext *C, wmOperator *op)
 	int shift= 0; // XXX
 	
 	if (!EM_vertColorCheck(em)) {
-		error("mesh has no color layers");
+		BKE_report(op->reports, RPT_ERROR, "mesh has no color layers");
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -6459,7 +6466,7 @@ static int mesh_mirror_colors(bContext *C, wmOperator *op)
 	int shift= 0; // XXX
 	
 	if (!EM_vertColorCheck(em)) {
-		error("mesh has no color layers");
+		BKE_report(op->reports, RPT_ERROR, "Mesh has no color layers");
 		return OPERATOR_CANCELLED;
 	}
 	

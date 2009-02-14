@@ -59,6 +59,7 @@
 #include "BKE_mesh.h"
 #include "BKE_object.h"
 #include "BKE_utildefines.h"
+#include "BKE_report.h"
 
 #include "BIF_retopo.h"
 
@@ -75,7 +76,6 @@
 /* bpymenu removed XXX */
 
 /* XXX */
-static void error() {}
 #define add_numbut(a, b, c, d, e, f, g) {}
 /* XXX */
 
@@ -245,7 +245,7 @@ void MESH_OT_dupli_extrude_cursor(wmOperatorType *ot)
 /* ********************** */
 
 /* selected faces get hidden edges */
-int make_fgon(EditMesh *em, int make)
+int make_fgon(EditMesh *em, wmOperator *op, int make)
 {
 	EditFace *efa;
 	EditEdge *eed;
@@ -317,13 +317,13 @@ int make_fgon(EditMesh *em, int make)
 		if(eve->f1==1) break;
 	}
 	if(eve) {
-		error("Cannot make polygon with interior vertices");
+		BKE_report(op->reports, RPT_ERROR, "Cannot make a polygon with interior vertices");
 		return 0;
 	}
 	
 	// check for faces
 	if(nor==NULL) {
-		error("No faces selected to make FGon");
+		BKE_report(op->reports, RPT_ERROR, "No faces were selected to make FGon");
 		return 0;
 	}
 
@@ -345,7 +345,7 @@ static int make_fgon_exec(bContext *C, wmOperator *op)
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
 
-	if( make_fgon(em, 1) ) {
+	if( make_fgon(em, op, 1) ) {
 		DAG_object_flush_update(CTX_data_scene(C), obedit, OB_RECALC_DATA);	
 	
 		WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
@@ -374,7 +374,7 @@ static int clear_fgon_exec(bContext *C, wmOperator *op)
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
 	
-	if( make_fgon(em, 0) ) {
+	if( make_fgon(em, op, 0) ) {
 		DAG_object_flush_update(CTX_data_scene(C), obedit, OB_RECALC_DATA);	
 		
 		WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
@@ -664,7 +664,7 @@ void addfaces_from_edgenet(EditMesh *em)
 // XXX	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 }
 
-static void addedgeface_mesh(EditMesh *em)
+static void addedgeface_mesh(EditMesh *em, wmOperator *op)
 {
 	EditVert *eve, *neweve[4];
 	EditEdge *eed;
@@ -698,7 +698,7 @@ static void addedgeface_mesh(EditMesh *em)
 		return;
 	}
 	else if(amount<2) {
-		error("Incorrect number of vertices to make edge/face");
+		BKE_report(op->reports, RPT_ERROR, "More vertices are needed to make an edge/face");
 		return;
 	}
 
@@ -710,7 +710,7 @@ static void addedgeface_mesh(EditMesh *em)
 			efa= addfacelist(em, neweve[0], neweve[1], neweve[2], 0, NULL, NULL);
 			EM_select_face(efa, 1);
 		}
-		else error("The selected vertices already form a face");
+		else BKE_report(op->reports, RPT_ERROR, "The selected vertices already form a face");
 	}
 	else if(amount==4) {
 		/* this test survives when theres 2 triangles */
@@ -766,9 +766,9 @@ static void addedgeface_mesh(EditMesh *em)
 					}
 				}
 			}
-			else error("The selected vertices already form a face");
+			else BKE_report(op->reports, RPT_ERROR, "The selected vertices already form a face");
 		}
-		else error("The selected vertices already form a face");
+		else BKE_report(op->reports, RPT_ERROR, "The selected vertices already form a face");
 	}
 	
 	if(efa) {
@@ -785,7 +785,7 @@ static int addedgeface_mesh_exec(bContext *C, wmOperator *op)
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
 	
-	addedgeface_mesh(em);
+	addedgeface_mesh(em, op);
 	
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 	
