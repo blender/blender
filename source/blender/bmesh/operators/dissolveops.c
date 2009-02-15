@@ -9,14 +9,11 @@
 #include <stdio.h>
 
 #define FACE_MARK	1
+
+#define VERT_MARK	1
+
 void dissolvefaces_exec(BMesh *bmesh, BMOperator *op)
 {
-	BMOpSlot *finput;
-	BMFace *face;
-	float projectverts[400][3];
-	void *projverts;
-	int i, count = 0;
-	
 	BMO_Flag_Buffer(bmesh, op, BMOP_DISFACES_FACEIN, FACE_MARK);
 
 	/*TODO: need to discuss with Briggs how best to implement this, seems this would be
@@ -25,26 +22,44 @@ void dissolvefaces_exec(BMesh *bmesh, BMOperator *op)
 	  could just use dissolve disk on them.*/
 }
 
-void dissolveverts_exec(BMesh *bmesh, BMOperator *op)
+void dissolveverts_exec(BMesh *bm, BMOperator *op)
 {
 	BMOpSlot *vinput;
-	BMVert *vert;
-	int i;
+	BMIter iter, liter, fiter;
+	BMVert *v;
+	BMFace *f, *f2;
+	BMEdge *e;
+	BMLoop *l;
+	int i, found;
 	
 	vinput = BMO_GetSlot(op, BMOP_DISVERTS_VERTIN);
 
-	/*
-	BMO_Flag_Buffer(bmesh, op, BMOP_DISVERTS_VERTIN, VERT_MARK);
+	BMO_Flag_Buffer(bm, op, BMOP_DISVERTS_VERTIN, VERT_MARK);
 
-	for (vert=BMIter_New(&iter, bmesh, BM_VERTS, NULL); vert; vert=BMIter_Step(&iter)) {
-		if (BMO_TestFlag(bmesh, vert, VERT_MARK)) {
-			BM_Dissolve_Disk(bmesh, vert);
+	for (v=BMIter_New(&iter, bm, BM_VERTS, NULL); v; v=BMIter_Step(&iter)) {
+		if (BMO_TestFlag(bm, v, VERT_MARK)) {
+			BM_Dissolve_Disk(bm, v);
 		}
 	}
-	*/
 
-	for (i=0; i<vinput->len; i++) {
-		vert = ((BMVert**)vinput->data.p)[i];
-		BM_Dissolve_Disk(bmesh, vert);
+	/*clean up two-edged faces*/
+	for (f=BMIter_New(&iter, bm, BM_FACES, NULL); f; f=BMIter_Step(&iter)){
+		if (f->len == 2) {
+			found = 0;
+			l = BMIter_New(&liter, bm, BM_LOOPS_OF_FACE, f);
+			for (; l; l=BMIter_Step(&liter)) {
+				f2 = BMIter_New(&fiter, bm,
+					        BM_FACES_OF_EDGE, l->e);
+				for (; f2; f2=BMIter_Step(&fiter)) {
+					if (f2 != f) {
+						BM_Join_Faces(bm, f, f2, l->e, 
+							      1, 0);
+						found = 1;
+						break;
+					}
+				}
+				if (found) break;
+			}
+		}
 	}
 }
