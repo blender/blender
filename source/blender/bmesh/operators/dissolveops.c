@@ -84,23 +84,23 @@ void dissolveverts_exec(BMesh *bm, BMOperator *op)
 						bmesh_kf(bm, f);
 						bmesh_ke(bm, fe);
 					}
-				} else if (f->len == 3) {
+				} /*else if (f->len == 3) {
 					BMEdge *ed[3];
 					BMVert *vt[3];
 					BMLoop *lp[3];
 					int i=0;
 
-					/*check for duplicate edges*/
+					//check for duplicate edges
 					l = BMIter_New(&liter, bm, BM_LOOPS_OF_FACE, f);
 					for (; l; l=BMIter_Step(&liter)) {
-						ed[i++] = l->e;	
-						lp[i++] = l;
+						ed[i] = l->e;	
+						lp[i] = l;
 						vt[i++] = l->v;
 					}
 					if (vt[0] == vt[1] || vt[0] == vt[2]) {
 						i += 1;
 					}
-				}
+				}*/
 			}
 		}
 		if (oldlen == len) break;
