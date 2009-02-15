@@ -141,6 +141,8 @@ static void graph_init(struct wmWindowManager *wm, ScrArea *sa)
 	/* init dopesheet data if non-existant (i.e. for old files) */
 	if (sipo->ads == NULL)
 		sipo->ads= MEM_callocN(sizeof(bDopeSheet), "GraphEdit DopeSheet");
+
+	ED_area_tag_refresh(sa);
 }
 
 static SpaceLink *graph_duplicate(SpaceLink *sl)
