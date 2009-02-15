@@ -386,6 +386,8 @@ void recalcData(TransInfo *t)
 		ac.spacetype= (t->sa)? t->sa->spacetype : 0;
 		ac.regiontype= (t->ar)? t->ar->regiontype : 0;
 		
+		ANIM_animdata_context_getdata(&ac);
+		
 		/* do the flush first */
 		flushTransGraphData(t);
 		
