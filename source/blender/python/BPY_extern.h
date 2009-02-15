@@ -36,7 +36,7 @@ extern char btempdir[];		/* use this to store a valid temp directory */
 struct Text; /* defined in DNA_text_types.h */
 struct ID; /* DNA_ID.h */
 struct Object; /* DNA_object_types.h */
-struct IpoDriver; /* DNA_curve_types.h */
+struct ChannelDriver; /* DNA_anim_types.h */
 struct ScriptLink; /* DNA_scriptlink_types.h */
 struct ListBase; /* DNA_listBase.h */
 struct SpaceText; /* DNA_space_types.h */
@@ -116,8 +116,8 @@ extern "C" {
 		short eventValue, unsigned short space_event);
 
 	void BPY_pydriver_update(void);
-	float BPY_pydriver_eval(struct IpoDriver *driver);
-	struct Object **BPY_pydriver_get_objects(struct IpoDriver *driver);
+	float BPY_pydriver_eval(struct ChannelDriver *driver);
+	struct Object **BPY_pydriver_get_objects(struct ChannelDriver *driver);
 
 	int BPY_button_eval(char *expr, double *value);
 
