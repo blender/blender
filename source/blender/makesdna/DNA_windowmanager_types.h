@@ -117,8 +117,11 @@ typedef struct wmWindow {
 	ListBase gesture;		/* gesture stuff */
 } wmWindow;
 
+/* should be somthing like DNA_EXCLUDE 
+ * but the preprocessor first removes all comments, spaces etc */
 
-
+#
+#
 typedef struct wmOperatorType {
 	struct wmOperatorType *next, *prev;
 	
