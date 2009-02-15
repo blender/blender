@@ -3098,9 +3098,6 @@ enum {
 	KEYINGSET_EDITMODE_REMOVE,
 } eKeyingSet_EditModes;
 
-/* typedef'd function-prototype style for KeyingSet operation callbacks */
-typedef void (*ksEditOp)(SpaceOops *soops, KeyingSet *ks, TreeElement *te, TreeStoreElem *tselem);
- 
 /* Utilities ---------------------------------- */
  
 /* specialised poll callback for these operators to work in Datablocks view only */
@@ -3139,8 +3136,12 @@ static KeyingSet *verify_active_keyingset(Scene *scene, short add)
 	return ks;
 }
 
-/* helper func to add a new KeyingSet Path */
-static void ks_editop_add_cb(SpaceOops *soops, KeyingSet *ks, TreeElement *te, TreeStoreElem *tselem)
+/* Helper func to extract an RNA path from seleted tree element 
+ * NOTE: the caller must zero-out all values of the pointers that it passes here first, as
+ * this function does not do that yet 
+ */
+static void tree_element_to_path(SpaceOops *soops, TreeElement *te, TreeStoreElem *tselem, 
+							ID **id, char **path, int *array_index, short *flag, short *groupmode)
 {
 	ListBase hierarchy = {NULL, NULL};
 	LinkData *ld;
@@ -3148,19 +3149,13 @@ static void ks_editop_add_cb(SpaceOops *soops, KeyingSet *ks, TreeElement *te, T
 	TreeStoreElem *tse, *tsenext;
 	PointerRNA *ptr, *nextptr;
 	PropertyRNA *prop, *nameprop;
-	ID *id = NULL;
-	char *path=NULL, *newpath=NULL;
-	int array_index= 0;
-	short flag = 0;
-	short groupmode= KSP_GROUP_KSNAME;
+	char *newpath=NULL;
 	
 	/* optimise tricks:
 	 *	- Don't do anything if the selected item is a 'struct', but arrays are allowed
 	 */
 	if (tselem->type == TSE_RNA_STRUCT)
 		return;
-	
-	printf("ks_editop_add_cb() \n");
 	
 	/* Overview of Algorithm:
 	 * 	1. Go up the chain of parents until we find the 'root', taking note of the 
@@ -3170,7 +3165,6 @@ static void ks_editop_add_cb(SpaceOops *soops, KeyingSet *ks, TreeElement *te, T
 	 *	   (which will become the 'ID' for the KeyingSet Path), and build a  
 	 * 		path as we step through the chain
 	 */
-	// XXX do we want to separate this part out to a helper func for the other editing op at some point?
 	 
 	/* step 1: flatten out hierarchy of parents into a flat chain */
 	for (tem= te->parent; tem; tem= tem->parent) {
@@ -3188,16 +3182,7 @@ static void ks_editop_add_cb(SpaceOops *soops, KeyingSet *ks, TreeElement *te, T
 		prop= tem->directdata;
 		
 		/* check if we're looking for first ID, or appending to path */
-		if (id) {
-			if(tse->type == TSE_RNA_STRUCT)
-				printf("\t tem = RNA Struct '%s' \n", tem->name);
-			else if(tse->type == TSE_RNA_ARRAY_ELEM)
-				printf("\t tem = RNA Array Elem '%s' \n", tem->name);
-			else if (tse->type == TSE_RNA_PROPERTY)
-				printf("\t tem = RNA Property '%s' \n", tem->name);
-			else
-				printf("\t tem = WTF? \n");
-			
+		if (*id) {
 			/* just 'append' property to path 
 			 *	- to prevent memory leaks, we must write to newpath not path, then free old path + swap them
 			 */
@@ -3205,43 +3190,43 @@ static void ks_editop_add_cb(SpaceOops *soops, KeyingSet *ks, TreeElement *te, T
 			if(tse->type == TSE_RNA_PROPERTY) {
 				if(RNA_property_type(ptr, prop) == PROP_POINTER) {
 					/* for pointer we just append property name */
-					newpath= RNA_path_append(path, ptr, prop, 0, NULL);
+					newpath= RNA_path_append(*path, ptr, prop, 0, NULL);
 				}
 				else if(RNA_property_type(ptr, prop) == PROP_COLLECTION) {
 					temnext= (TreeElement*)(ld->next->data);
 					tsenext= TREESTORE(temnext);
-
+					
 					nextptr= &temnext->rnaptr;
 					nameprop= RNA_struct_name_property(nextptr);
-
+					
 					if(nameprop) {
 						/* if possible, use name as a key in the path */
 						char buf[128], *name;
 						name= RNA_property_string_get_alloc(nextptr, nameprop, buf, sizeof(buf));
-
-						newpath= RNA_path_append(path, NULL, prop, 0, name);
-
+						
+						newpath= RNA_path_append(*path, NULL, prop, 0, name);
+						
 						if(name != buf)
 							MEM_freeN(name);
 					}
 					else {
 						/* otherwise use index */
 						int index= 0;
-
+						
 						for(temsub=tem->subtree.first; temsub; temsub=temsub->next, index++)
 							if(temsub == temnext)
 								break;
-
-						newpath= RNA_path_append(path, NULL, prop, index, NULL);
+						
+						newpath= RNA_path_append(*path, NULL, prop, index, NULL);
 					}
-
+					
 					ld= ld->next;
 				}
 			}
 			
 			if(newpath) {
-				if (path) MEM_freeN(path);
-				path= newpath;
+				if (*path) MEM_freeN(*path);
+				*path= newpath;
 				newpath= NULL;
 			}
 		}
@@ -3250,11 +3235,11 @@ static void ks_editop_add_cb(SpaceOops *soops, KeyingSet *ks, TreeElement *te, T
 			if (tse->type == TSE_RNA_STRUCT) {
 				/* ptr->data not ptr->id.data seems to be the one we want, since ptr->data is sometimes the owner of this ID? */
 				if(RNA_struct_is_ID(ptr)) {
-					id= (ID *)ptr->data;
-
+					*id= (ID *)ptr->data;
+					
 					/* clear path */
-					if(path) {
-						MEM_freeN(path);
+					if(*path) {
+						MEM_freeN(*path);
 						path= NULL;
 					}
 				}
@@ -3263,42 +3248,33 @@ static void ks_editop_add_cb(SpaceOops *soops, KeyingSet *ks, TreeElement *te, T
 	}
 
 	/* step 3: if we've got an ID, add the current item to the path */
-	if (id) {
+	if (*id) {
 		/* add the active property to the path */
-		// if array base, add KSP_FLAG_WHOLE_ARRAY
 		ptr= &te->rnaptr;
 		prop= te->directdata;
 		
 		/* array checks */
 		if (tselem->type == TSE_RNA_ARRAY_ELEM) {
 			/* item is part of an array, so must set the array_index */
-			array_index= te->index;
+			*array_index= te->index;
 		}
 		else if (RNA_property_array_length(ptr, prop)) {
 			/* entire array was selected, so keyframe all */
-			flag |= KSP_FLAG_WHOLE_ARRAY;
+			*flag |= KSP_FLAG_WHOLE_ARRAY;
 		}
 		
 		/* path */
-		newpath= RNA_path_append(path, NULL, prop, 0, NULL);
-		if (path) MEM_freeN(path);
-		path= newpath;
-		
-		printf("Adding KeyingSet '%s': Path %s %d \n", ks->name, path, array_index);
-		
-		/* add a new path with the information obtained (only if valid) */
-		// TODO: what do we do with group name? for now, we don't supply one, and just let this use the KeyingSet name
-		if (path)
-			BKE_keyingset_add_destination(ks, id, NULL, path, array_index, flag, groupmode);
+		newpath= RNA_path_append(*path, NULL, prop, 0, NULL);
+		if (*path) MEM_freeN(*path);
+		*path= newpath;
 	}
 
 	/* free temp data */
-	if (path) MEM_freeN(path);
 	BLI_freelistN(&hierarchy);
 }
 
 /* Recursively iterate over tree, finding and working on selected items */
-static void do_outliner_keyingset_editop(SpaceOops *soops, KeyingSet *ks, ListBase *tree, ksEditOp edit_cb)
+static void do_outliner_keyingset_editop(SpaceOops *soops, KeyingSet *ks, ListBase *tree, short mode)
 {
 	TreeElement *te;
 	TreeStoreElem *tselem;
@@ -3308,12 +3284,54 @@ static void do_outliner_keyingset_editop(SpaceOops *soops, KeyingSet *ks, ListBa
 		
 		/* if item is selected, perform operation */
 		if (tselem->flag & TSE_SELECTED) {
-			if (edit_cb) edit_cb(soops, ks, te, tselem);
+			ID *id= NULL;
+			char *path= NULL;
+			int array_index= 0;
+			short flag= 0;
+			short groupmode= KSP_GROUP_KSNAME;
+			
+			/* get id + path + index info from the selected element */
+			tree_element_to_path(soops, te, tselem, 
+					&id, &path, &array_index, &flag, &groupmode);
+			
+			/* only if ID and path were set, should we perform any actions */
+			if (id && path) {
+				/* action depends on mode */
+				switch (mode) {
+					case KEYINGSET_EDITMODE_ADD:
+					{
+						/* add a new path with the information obtained (only if valid) */
+						// TODO: what do we do with group name? for now, we don't supply one, and just let this use the KeyingSet name
+						BKE_keyingset_add_destination(ks, id, NULL, path, array_index, flag, groupmode);
+					}
+						break;
+					case KEYINGSET_EDITMODE_REMOVE:
+					{
+						/* find the relevant path, then remove it from the KeyingSet */
+						KS_Path *ksp= BKE_keyingset_find_destination(ks, id, NULL, path, array_index, groupmode);
+						
+						if (ksp) {
+							/* free path's data */
+							// TODO: we probably need an API method for this 
+							if (ksp->rna_path) MEM_freeN(ksp->rna_path);
+							
+							/* remove path from set */
+							BLI_freelinkN(&ks->paths, ksp);
+						}
+					}
+						break;
+				}
+				
+				/* free path, since it had to be generated */
+				MEM_freeN(path);
+			}
+			
+			
 		}
 		
 		/* go over sub-tree */
 		if ((tselem->flag & TSE_CLOSED)==0)
-			do_outliner_keyingset_editop(soops, ks, &te->subtree, edit_cb);
+			do_outliner_keyingset_editop(soops, ks, &te->subtree, mode);
 	}
 }
 
@@ -3334,8 +3352,7 @@ static int outliner_keyingset_additems_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	
 	/* recursively go into tree, adding selected items */
-	// TODO: make the last arg a callback func instead...
-	do_outliner_keyingset_editop(soutliner, ks, &soutliner->tree, ks_editop_add_cb);
+	do_outliner_keyingset_editop(soutliner, ks, &soutliner->tree, KEYINGSET_EDITMODE_ADD);
 	
 	/* send notifiers */
 	WM_event_add_notifier(C, NC_SCENE|ND_KEYINGSET, NULL);
@@ -3360,6 +3377,25 @@ void OUTLINER_OT_keyingset_add_selected(wmOperatorType *ot)
 
 /* Remove Operator ---------------------------------- */
 
+static int outliner_keyingset_removeitems_exec(bContext *C, wmOperator *op)
+{
+	SpaceOops *soutliner= (SpaceOops*)CTX_wm_space_data(C);
+	Scene *scene= CTX_data_scene(C);
+	KeyingSet *ks= verify_active_keyingset(scene, 1);
+	
+	/* check for invalid states */
+	if (soutliner == NULL)
+		return OPERATOR_CANCELLED;
+	
+	/* recursively go into tree, adding selected items */
+	do_outliner_keyingset_editop(soutliner, ks, &soutliner->tree, KEYINGSET_EDITMODE_REMOVE);
+	
+	/* send notifiers */
+	WM_event_add_notifier(C, NC_SCENE|ND_KEYINGSET, NULL);
+	
+	return OPERATOR_FINISHED;
+}
+
 void OUTLINER_OT_keyingset_remove_selected(wmOperatorType *ot)
 {
 	/* identifiers */
@@ -3367,6 +3403,7 @@ void OUTLINER_OT_keyingset_remove_selected(wmOperatorType *ot)
 	ot->name= "Keyingset Remove Selected";
 	
 	/* api callbacks */
+	ot->exec= outliner_keyingset_removeitems_exec;
 	ot->poll= ed_operator_outliner_datablocks_active;
 	
 	/* flags */
