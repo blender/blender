@@ -154,6 +154,7 @@ static EditFace *bmeshface_to_editface(BMesh *bm, EditMesh *em, BMFace *f, EditV
 	}
 
 	efa = addfacelist(em, eve1, eve2, eve3, eve4, NULL, NULL);
+	if (!efa) return NULL;
 
 	bmeshedge_to_editedge_internal(bm, em, f->loopbase->e, efa->e1);
 	bmeshedge_to_editedge_internal(bm, em, ((BMLoop*)(f->loopbase->head.next))->e, efa->e2);

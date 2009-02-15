@@ -36,8 +36,6 @@
  *          |=========|             |=========|
  * 
  * 
- *  Returns -
- *	1 for success, 0 for failure.
  */
 #if 1
 void BM_Dissolve_Disk(BMesh *bm, BMVert *v) {
@@ -46,7 +44,14 @@ void BM_Dissolve_Disk(BMesh *bm, BMVert *v) {
 	BMLoop *loop;
 	int done, len;
 
-	if(BM_Nonmanifold_Vert(bm, v)) return;
+	if(BM_Nonmanifold_Vert(bm, v)) {
+		if (!v->edge) bmesh_kv(bm, v);
+		else if (!v->edge->loop) {
+			bmesh_ke(bm, v->edge);
+			bmesh_kv(bm, v);
+		}
+		return;
+	}
 	
 	if(v->edge){
 		/*v->edge we keep, what else?*/
@@ -81,6 +86,9 @@ void BM_Dissolve_Disk(BMesh *bm, BMVert *v) {
 		/*collapse the vertex*/
 		BM_Collapse_Vert(bm, v->edge, v, 1.0, 0);
 		BM_Join_Faces(bm, f, f2, NULL, 0, 0);
+	} else if (len == 1) {
+		bmesh_ke(bm, v->edge);
+		bmesh_kv(bm, v);
 	}
 
 	if(keepedge){
