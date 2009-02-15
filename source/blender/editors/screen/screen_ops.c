@@ -24,6 +24,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include <math.h>
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_arithb.h"
@@ -1774,7 +1776,14 @@ static int screen_animation_play(bContext *C, wmOperator *op, wmEvent *event)
 	if(screen->animtimer==event->customdata) {
 		Scene *scene= CTX_data_scene(C);
 		
-		scene->r.cfra++;
+		if(scene->audio.flag & AUDIO_SYNC) {
+			wmTimer *wt= screen->animtimer;
+			int step = floor(wt->duration * FPS);
+			scene->r.cfra += step;
+			wt->duration -= ((float)step)/FPS;
+		}
+		else
+			scene->r.cfra++;
 		
 		if (scene->r.psfra) {
 			if(scene->r.cfra > scene->r.pefra)
