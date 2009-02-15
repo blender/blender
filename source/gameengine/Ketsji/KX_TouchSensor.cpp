@@ -100,8 +100,8 @@ m_eventmgr(eventmgr)
 	m_colliders = new CListValue();
 	
 	KX_ClientObjectInfo *client_info = gameobj->getClientInfo();
-	client_info->m_gameobject = gameobj;
-	client_info->m_auxilary_info = NULL;
+	//client_info->m_gameobject = gameobj;
+	//client_info->m_auxilary_info = NULL;
 	client_info->m_sensors.push_back(this);
 	
 	m_physCtrl = dynamic_cast<PHY_IPhysicsController*>(gameobj->GetPhysicsController());
@@ -143,8 +143,8 @@ void	KX_TouchSensor::ReParent(SCA_IObject* parent)
 	
 //	m_solidHandle = m_sumoObj->getObjectHandle();
 	KX_ClientObjectInfo *client_info = gameobj->getClientInfo();
-	client_info->m_gameobject = gameobj;
-	client_info->m_auxilary_info = NULL;
+	//client_info->m_gameobject = gameobj;
+	//client_info->m_auxilary_info = NULL;
 	
 	client_info->m_sensors.push_back(this);
 	SCA_ISensor::ReParent(parent);
@@ -354,7 +354,7 @@ PyObject* KX_TouchSensor::PyGetHitObjectList(PyObject* self,
 				if (spc) {
 					KX_ClientObjectInfo* cl_inf = static_cast<KX_ClientObjectInfo*>(spc->getNewClientInfo());
 					
-					if (m_touchedpropname == ((char*)cl_inf->m_auxilary_info)) {
+					if (NULL != cl_inf->m_auxilary_info && m_touchedpropname == ((char*)cl_inf->m_auxilary_info)) {
 						newList->Add(m_colliders->GetValue(i)->AddRef());
 					} 
 				}
