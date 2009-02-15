@@ -43,6 +43,7 @@
 
 #include "BKE_context.h"
 #include "BKE_screen.h"
+#include "BKE_utildefines.h"
 
 #include "ED_space_api.h"
 #include "ED_screen.h"
@@ -343,9 +344,12 @@ static void graph_listener(ScrArea *sa, wmNotifier *wmn)
 	}
 }
 
+
+
 static void graph_refresh(const bContext *C, ScrArea *sa)
 {
 	SpaceIpo *sipo = (SpaceIpo *)sa->spacedata.first;
+	bAnimContext ac;
 	
 	/* updates to data needed depends on Graph Editor mode... */
 	switch (sipo->mode) {
@@ -364,6 +368,75 @@ static void graph_refresh(const bContext *C, ScrArea *sa)
 	
 	/* region updates? */
 	// XXX resizing y-extents of tot should go here?
+	
+	/* init/adjust F-Curve colors */
+	if (ANIM_animdata_get_context(C, &ac)) {
+		ListBase anim_data = {NULL, NULL};
+		bAnimListElem *ale;
+		int filter;
+		int items, i;
+		
+		/* build list of F-Curves which will be visible as channels in channel-region
+		 * 	- we don't include ANIMFILTER_CURVEVISIBLE filter, as that will result in a 
+		 * 	  mismatch between channel-colors and the drawn curves
+		 */
+		filter= (ANIMFILTER_VISIBLE|ANIMFILTER_CURVESONLY);
+		items= ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+		
+		/* loop over F-Curves, assigning colors */
+		for (ale=anim_data.first, i=0; ale; ale= ale->next, i++) {
+			FCurve *fcu= (FCurve *)ale->data;
+			
+			/* set color of curve here */
+			switch (fcu->color_mode) {
+				case FCURVE_COLOR_CUSTOM:
+					/* User has defined a custom color for this curve already (we assume it's not going to cause clashes with text colors),
+					 * which should be left alone... Nothing needs to be done here.
+					 */
+					break;
+					
+				case FCURVE_COLOR_AUTO_RGB:
+				{
+					/* F-Curve's array index is automatically mapped to RGB values. This works best of 3-value vectors. 
+					 * TODO: find a way to module the hue so that not all curves have same color...
+					 */
+					
+					/* standard table of colors to use */
+					const float _colorsets[4][3]= 
+					{
+						{1.0f, 0.0f, 0.0f}, /* red */
+						{0.0f, 1.0f, 0.0f}, /* green */
+						{0.0f, 0.0f, 1.0f}, /* blue */
+						{0.3f, 0.8f, 1.0f}, /* 'unknown' color - bluish so as to not conflict with handles */
+					};
+					
+					/* simply copy the relevant color over to the F-Curve */
+					if ((fcu->array_index >= 0) && (fcu->array_index < 3)) {
+						/* if the index is within safe bounds, use index to access table */
+						VECCOPY(fcu->color, _colorsets[fcu->array_index]);
+					}
+					else {
+						/* use the 'unknown' color... */
+						VECCOPY(fcu->color, _colorsets[3]);
+					}
+				}
+					break;
+				
+				case FCURVE_COLOR_AUTO_RAINBOW:
+				default:
+				{
+					/* determine color 'automatically' using 'magic function' which uses the given args
+					 * of current item index + total items to determine some RGB color
+					 */
+					ipo_rainbow(i, items, fcu->color);
+				}
+					break;
+			}
+		}
+		
+		/* free temp list */
+		BLI_freelistN(&anim_data);
+	}
 }
 
 /* only called once, from space/spacetypes.c */

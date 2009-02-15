@@ -225,6 +225,10 @@ typedef struct FCurve {
 		/* RNA - data link */
 	int array_index;		/* if applicable, the index of the RNA-array item to get */
 	char *rna_path;			/* RNA-path to resolve data-access */
+	
+		/* curve coloring (for editor) */
+	int color_mode;			/* coloring method to use */
+	float color[3];			/* the last-color this curve took */
 } FCurve;
 
 
@@ -254,6 +258,13 @@ enum {
 	FCURVE_EXTRAPOLATE_CONSTANT	= 0,	/* just extend min/max keyframe value  */
 	FCURVE_EXTRAPOLATE_LINEAR,			/* just extend gradient of segment between first segment keyframes */
 } eFCurve_Extend;
+
+/* curve coloring modes */
+enum {
+	FCURVE_COLOR_AUTO_RAINBOW = 0,		/* automatically determine color using rainbow (calculated at drawtime) */
+	FCURVE_COLOR_AUTO_RGB,				/* automatically determine color using XYZ (array index) <-> RGB */
+	FCURVE_COLOR_CUSTOM,				/* custom color */
+} eFCurve_Coloring;
 
 /* ************************************************ */
 /* 'Action' Datatypes */

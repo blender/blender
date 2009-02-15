@@ -686,18 +686,15 @@ void graph_draw_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 	bAnimListElem *ale;
 	int filter;
 	
-	unsigned int col;
-	int items, i;
-	
 	/* build list of curves to draw */
 	filter= (ANIMFILTER_VISIBLE|ANIMFILTER_CURVESONLY|ANIMFILTER_CURVEVISIBLE);
-	items= ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
+	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 		
 	/* for each curve:
 	 *	draw curve, then handle-lines, and finally vertices in this order so that 
 	 * 	the data will be layered correctly
 	 */
-	for (ale=anim_data.first, i=0; ale; ale=ale->next, i++) {
+	for (ale=anim_data.first; ale; ale=ale->next) {
 		FCurve *fcu= (FCurve *)ale->key_data;
 		Object *nob= ANIM_nla_mapping_get(ac, ale);
 		float fac=0.0f; // dummy var
@@ -719,9 +716,8 @@ void graph_draw_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 				UI_ThemeColorShade(TH_HEADER, 50);
 			}
 			else {
-				// XXX color calculation here really needs to be done in advance instead
-				col= ipo_rainbow(i, items);
-				cpack(col);
+				/* set whatever color the curve has set */
+				glColor3fv(fcu->color);
 			}
 			
 			/* draw F-Curve */
@@ -768,7 +764,7 @@ void graph_draw_channel_names(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 	
 	View2D *v2d= &ar->v2d;
 	float x= 0.0f, y= 0.0f, height;
-	int items;
+	int items, i=0;
 	
 	/* build list of channels to draw */
 	filter= (ANIMFILTER_VISIBLE|ANIMFILTER_CHANNELS);
@@ -795,7 +791,7 @@ void graph_draw_channel_names(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 	/* loop through channels, and set up drawing depending on their type  */	
 	y= (float)ACHANNEL_FIRST;
 	
-	for (ale= anim_data.first; ale; ale= ale->next) {
+	for (ale= anim_data.first, i=0; ale; ale= ale->next, i++) {
 		const float yminc= (float)(y - ACHANNEL_HEIGHT_HALF);
 		const float ymaxc= (float)(y + ACHANNEL_HEIGHT_HALF);
 		
@@ -1039,7 +1035,7 @@ void graph_draw_channel_names(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 					
 					group= (fcu->grp) ? 1 : 0;
 					grp= fcu->grp;
-										
+					
 					switch (ale->ownertype) {
 						case ANIMTYPE_NONE:	/* no owner */
 						case ANIMTYPE_FCURVE: 
@@ -1141,25 +1137,11 @@ void graph_draw_channel_names(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 				gl_round_box(GL_POLYGON, x+offset,  yminc, (float)ACHANNEL_NAMEWIDTH, ymaxc, 8);
 			}
 			else {
-				/* for normal channels 
-				 *	- use 3 shades of color group/standard color for 3 indention level
-				 *	- only use group colors if allowed to, and if actually feasible
-				 */
-				if ((grp) && (grp->customCol)) 
-				{
-					char cp[3];
-					
-					if (indent == 2) {
-						VECCOPY(cp, grp->cs.solid);
-					}
-					else if (indent == 1) {
-						VECCOPY(cp, grp->cs.select);
-					}
-					else {
-						VECCOPY(cp, grp->cs.active);
-					}
-					
-					glColor3ub(cp[0], cp[1], cp[2]);
+				/* most of the time, only F-Curves are going to be drawn here */
+				if (ale->type == ANIMTYPE_FCURVE) {
+					/* F-Curve channels are colored with whatever color the curve has stored  */
+					FCurve *fcu= (FCurve *)ale->data;
+					glColor3fv(fcu->color);
 				}
 				else
 					UI_ThemeColorShade(TH_HEADER, ((indent==0)?20: (indent==1)?-20: -40));

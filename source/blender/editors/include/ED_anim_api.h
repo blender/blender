@@ -290,7 +290,7 @@ int geticon_anim_blocktype(short blocktype);
 void getname_anim_fcurve(char *name, struct ID *id, struct FCurve *fcu);
 
 
-unsigned int ipo_rainbow(int cur, int tot);
+void ipo_rainbow(int cur, int tot, float *out);
 
 
 /* ------------- NLA-Mapping ----------------------- */

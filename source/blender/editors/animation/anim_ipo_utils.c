@@ -183,7 +183,9 @@ void getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
 
 /* ------------------------------- Color Codes for F-Curve Channels ---------------------------- */
 
-unsigned int ipo_rainbow(int cur, int tot)
+/* used for FCURVE_COLOR_AUTO_RAINBOW */
+// XXX this still doesn't work too great when there are more than 32 curves (which happens most of the time)
+void ipo_rainbow (int cur, int tot, float *out)
 {
 	float dfac, fac, sat;
 	
@@ -198,5 +200,6 @@ unsigned int ipo_rainbow(int cur, int tot)
 	if(fac>0.5f && fac<0.8f) sat= 0.5f;
 	else sat= 0.6f;
 	
-	return hsv_to_cpack(fac, sat, 1.0f);
+	//return hsv_to_cpack(fac, sat, 1.0f);
+	hsv_to_rgb(fac, sat, 1.0f, out, out+1, out+2);
 }
