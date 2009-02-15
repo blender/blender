@@ -110,6 +110,7 @@ void SEQUENCER_OT_add_effect_strip(struct wmOperatorType *ot);
 
 /* RNA enums, just to be more readable */
 enum {
+	SEQ_SIDE_NONE=0,
     SEQ_SIDE_LEFT,
     SEQ_SIDE_RIGHT,
 	SEQ_SIDE_BOTH,

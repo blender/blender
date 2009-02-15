@@ -255,51 +255,45 @@ int mouse_frame_side(View2D *v2d, short mouse_x, int frame )
 	/* choose the side based on which side of the playhead the mouse is on */
 	UI_view2d_region_to_view(v2d, mval[0], mval[1], &mouseloc[0], &mouseloc[1]);
 	
-	return mouseloc[0] > frame;
+	return mouseloc[0] > frame ? SEQ_SIDE_RIGHT : SEQ_SIDE_LEFT;
 }
 
 
 Sequence *find_neighboring_sequence(Scene *scene, Sequence *test, int lr, int sel) 
 {
-/*	looks to the left on lr==1, to the right on lr==2
-	sel - 0==unselected, 1==selected, -1==done care*/
+	/* sel - 0==unselected, 1==selected, -1==done care*/
 	Sequence *seq;
 	Editing *ed= seq_give_editing(scene, FALSE);
 
-	
 	if(ed==NULL) return NULL;
 
 	if (sel>0) sel = SELECT;
 	
-	seq= ed->seqbasep->first;
-	while(seq) {
+	for(seq= ed->seqbasep->first; seq; seq= seq->next) {
 		if(	(seq!=test) &&
 			(test->machine==seq->machine) &&
-			(test->depth==seq->depth) && 
 			((sel == -1) || (sel && (seq->flag & SELECT)) || (sel==0 && (seq->flag & SELECT)==0)  ))
 		{
 			switch (lr) {
-			case 1:
+			case SEQ_SIDE_LEFT:
 				if (test->startdisp == (seq->enddisp)) {
 					return seq;
 				}
 				break;
-			case 2:
+			case SEQ_SIDE_RIGHT:
 				if (test->enddisp == (seq->startdisp)) {
 					return seq;
 				}
 				break;
 			}
 		}
-		seq= seq->next;
 	}
 	return NULL;
 }
 
 Sequence *find_next_prev_sequence(Scene *scene, Sequence *test, int lr, int sel) 
 {
-/*	looks to the left on lr==1, to the right on lr==2
-	sel - 0==unselected, 1==selected, -1==done care*/
+	/* sel - 0==unselected, 1==selected, -1==done care*/
 	Sequence *seq,*best_seq = NULL;
 	Editing *ed= seq_give_editing(scene, FALSE);
 	
@@ -321,12 +315,12 @@ Sequence *find_next_prev_sequence(Scene *scene, Sequence *test, int lr, int sel)
 			dist = MAXFRAME*2;
 			
 			switch (lr) {
-			case 1:
+			case SEQ_SIDE_LEFT:
 				if (seq->enddisp <= test->startdisp) {
 					dist = test->enddisp - seq->startdisp;
 				}
 				break;
-			case 2:
+			case SEQ_SIDE_RIGHT:
 				if (seq->startdisp >= test->enddisp) {
 					dist = seq->startdisp - test->enddisp;
 				}
@@ -355,7 +349,7 @@ Sequence *find_nearest_seq(Scene *scene, View2D *v2d, int *hand, short mval[2])
 	float pixelx;
 	float handsize;
 	float displen;
-	*hand= 0;
+	*hand= SEQ_SIDE_NONE;
 
 	
 	if(ed==NULL) return NULL;
@@ -390,9 +384,9 @@ Sequence *find_nearest_seq(Scene *scene, View2D *v2d, int *hand, short mval[2])
 						}
 						
 						if( handsize+seq->startdisp >=x )
-							*hand= 1;
+							*hand= SEQ_SIDE_LEFT;
 						else if( -handsize+seq->enddisp <=x )
-							*hand= 2;
+							*hand= SEQ_SIDE_RIGHT;
 					}
 				}
 				return seq;

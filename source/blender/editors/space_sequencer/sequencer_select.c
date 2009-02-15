@@ -85,13 +85,13 @@ void select_surrounding_handles(Scene *scene, Sequence *test) /* XXX BRING BACK 
 {
 	Sequence *neighbor;
 	
-	neighbor=find_neighboring_sequence(scene, test, 1, -1);
+	neighbor=find_neighboring_sequence(scene, test, SEQ_SIDE_LEFT, -1);
 	if (neighbor) {
 		neighbor->flag |= SELECT;
 		recurs_sel_seq(neighbor);
 		neighbor->flag |= SEQ_RIGHTSEL;
 	}
-	neighbor=find_neighboring_sequence(scene, test, 2, -1);
+	neighbor=find_neighboring_sequence(scene, test, SEQ_SIDE_RIGHT, -1);
 	if (neighbor) {
 		neighbor->flag |= SELECT;
 		recurs_sel_seq(neighbor);
@@ -99,6 +99,35 @@ void select_surrounding_handles(Scene *scene, Sequence *test) /* XXX BRING BACK 
 	}
 	test->flag |= SELECT;
 }
+
+/* used for mouse selection and for SEQUENCER_OT_select_active_side() */
+static void select_active_side(ListBase *seqbase, int sel_side, int channel, int frame)
+{
+	Sequence *seq;
+
+	for(seq= seqbase->first; seq; seq=seq->next) {
+		if(channel==seq->machine) {
+			switch(sel_side) {
+			case SEQ_SIDE_LEFT:
+				if (frame > (seq->startdisp)) {
+					seq->flag &= ~(SEQ_RIGHTSEL|SEQ_LEFTSEL);
+					seq->flag |= SELECT;
+				}
+				break;
+			case SEQ_SIDE_RIGHT:
+				if (frame < (seq->startdisp)) {
+					seq->flag &= ~(SEQ_RIGHTSEL|SEQ_LEFTSEL);
+					seq->flag |= SELECT;
+				}
+				break;
+			case SEQ_SIDE_BOTH:
+				seq->flag &= ~(SEQ_RIGHTSEL|SEQ_LEFTSEL);
+				break;
+			}
+		}
+	}
+}
+
 #if 0 // BRING BACK
 void select_surround_from_last(Scene *scene)
 {
@@ -144,13 +173,13 @@ void select_neighbor_from_last(Scene *scene, int lr)
 		neighbor=find_neighboring_sequence(scene, seq, lr, -1);
 		if (neighbor) {
 			switch (lr) {
-			case 1:
+			case SEQ_SIDE_LEFT:
 				neighbor->flag |= SELECT;
 				recurs_sel_seq(neighbor);
 				neighbor->flag |= SEQ_RIGHTSEL;
 				seq->flag |= SEQ_LEFTSEL;
 				break;
-			case 2:
+			case SEQ_SIDE_RIGHT:
 				neighbor->flag |= SELECT;
 				recurs_sel_seq(neighbor);
 				neighbor->flag |= SEQ_LEFTSEL;
@@ -253,30 +282,25 @@ void SEQUENCER_OT_select_invert(struct wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-
-/* *****************Selection Operators******************* */
-static EnumPropertyItem prop_select_types[] = {
-	{0, "EXCLUSIVE", "Exclusive", ""},
-	{1, "EXTEND", "Extend", ""},
-	{0, NULL, NULL, NULL}
-};
-
 static int sequencer_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	ARegion *ar= CTX_wm_region(C);
 	View2D *v2d= UI_view2d_fromcontext(C);
 	Scene *scene= CTX_data_scene(C);
 	Editing *ed= seq_give_editing(scene, FALSE);
-	short extend= RNA_enum_is_equal(op->ptr, "type", "EXTEND");
+	short extend= RNA_boolean_get(op->ptr, "extend");
+	short linked_left= RNA_boolean_get(op->ptr, "linked_left");
+	short linked_right= RNA_boolean_get(op->ptr, "linked_right");
+
 	short mval[2];	
 	
 	Sequence *seq,*neighbor;
-	int hand,seldir, shift= 0; // XXX
+	int hand,sel_side, shift= 0; // XXX
 	TimeMarker *marker;
 
 	if(ed==NULL)
 		return OPERATOR_CANCELLED;
-
+	
 	marker=find_nearest_marker(SCE_MARKERS, 1); //XXX - dummy function for now
 	
 	mval[0]= event->x - ar->winrct.xmin;
@@ -300,7 +324,8 @@ static int sequencer_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	} else {
 	
 		seq= find_nearest_seq(scene, v2d, &hand, mval);
-		if (extend == 0)
+
+		if(extend == 0 && linked_left==0 && linked_right==0)
 			deselect_all_seq(scene);
 	
 		if(seq) {
@@ -318,60 +343,67 @@ static int sequencer_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			}
 	
 			if(extend && (seq->flag & SELECT)) {
-				if(hand==0) seq->flag &= SEQ_DESEL;
-				else if(hand==1) {
-					if(seq->flag & SEQ_LEFTSEL) 
-						seq->flag &= ~SEQ_LEFTSEL;
-					else seq->flag |= SEQ_LEFTSEL;
-				}
-				else if(hand==2) {
-					if(seq->flag & SEQ_RIGHTSEL) 
-						seq->flag &= ~SEQ_RIGHTSEL;
-					else seq->flag |= SEQ_RIGHTSEL;
+				switch(hand) {
+				case SEQ_SIDE_NONE:
+					if (linked_left==0 && linked_right==0)
+						seq->flag &= SEQ_DESEL;
+					break;
+				case SEQ_SIDE_LEFT:
+					seq->flag ^= SEQ_LEFTSEL;
+					break;
+				case SEQ_SIDE_RIGHT:
+					seq->flag ^= SEQ_RIGHTSEL;
+					break;
 				}
 			}
 			else {
 				seq->flag |= SELECT;
-				if(hand==1) seq->flag |= SEQ_LEFTSEL;
-				if(hand==2) seq->flag |= SEQ_RIGHTSEL;
+				if(hand==SEQ_SIDE_LEFT)		seq->flag |= SEQ_LEFTSEL;
+				if(hand==SEQ_SIDE_RIGHT)	seq->flag |= SEQ_RIGHTSEL;
 			}
 			
 			/* On Ctrl-Alt selection, select the strip and bordering handles */
-			if (0) { // XXX (G.qual & LR_CTRLKEY) && (G.qual & LR_ALTKEY)) {
+			if (linked_left && linked_right) {
 				if(extend==0) deselect_all_seq(scene);
 				seq->flag |= SELECT;
 				select_surrounding_handles(scene, seq);
-				
-			/* Ctrl signals Left, Alt signals Right
-			First click selects adjacent handles on that side.
-			Second click selects all strips in that direction.
-			If there are no adjacent strips, it just selects all in that direction. */
-			
 			}
-#if 0 //XXX
-			else if (0) { // XXX ((G.qual & LR_CTRLKEY) || (G.qual & LR_ALTKEY)) && (seq->flag & SELECT)) {
-		
-				if (0); // G.qual & LR_CTRLKEY) seldir=1;
-					else seldir=2;
-				neighbor=find_neighboring_sequence(scene, seq, seldir, -1);
+			else if  ((linked_left || linked_right) && (seq->flag & SELECT)) {
+				/*
+				 * First click selects adjacent handles on that side.
+				 * Second click selects all strips in that direction.
+				 * If there are no adjacent strips, it just selects all in that direction.
+				 */
+				sel_side= linked_left ? SEQ_SIDE_LEFT:SEQ_SIDE_RIGHT;
+				neighbor=find_neighboring_sequence(scene, seq, sel_side, -1);
 				if (neighbor) {
-					switch (seldir) {
-					case 1:
-						if ((seq->flag & SEQ_LEFTSEL)&&(neighbor->flag & SEQ_RIGHTSEL)) {
+					switch (sel_side) {
+					case SEQ_SIDE_LEFT:
+						if ((seq->flag & SEQ_LEFTSEL) && (neighbor->flag & SEQ_RIGHTSEL)) {
 							if(extend==0) deselect_all_seq(scene);
-							select_channel_direction(scene, seq,1);
+							seq->flag |= SELECT;
+							
+							select_active_side(ed->seqbasep, SEQ_SIDE_LEFT, seq->machine, seq->startdisp);
 						} else {
+							if(extend==0) deselect_all_seq(scene);
+							seq->flag |= SELECT;
+
 							neighbor->flag |= SELECT;
 							recurs_sel_seq(neighbor);
 							neighbor->flag |= SEQ_RIGHTSEL;
 							seq->flag |= SEQ_LEFTSEL;
 						}
 						break;
-					case 2:
-						if ((seq->flag & SEQ_RIGHTSEL)&&(neighbor->flag & SEQ_LEFTSEL)) {
+					case SEQ_SIDE_RIGHT:
+						if ((seq->flag & SEQ_RIGHTSEL) && (neighbor->flag & SEQ_LEFTSEL)) {
 							if(extend==0) deselect_all_seq(scene);
-							select_channel_direction(scene, seq,2);
+							seq->flag |= SELECT;
+
+							select_active_side(ed->seqbasep, SEQ_SIDE_RIGHT, seq->machine, seq->startdisp);
 						} else {
+							if(extend==0) deselect_all_seq(scene);
+							seq->flag |= SELECT;
+
 							neighbor->flag |= SELECT;
 							recurs_sel_seq(neighbor);
 							neighbor->flag |= SEQ_LEFTSEL;
@@ -381,10 +413,9 @@ static int sequencer_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 					}
 				} else {
 					if(extend==0) deselect_all_seq(scene);
-					select_channel_direction(scene, seq,seldir);
+					select_active_side(ed->seqbasep, sel_side, seq->machine, seq->startdisp);
 				}
 			}
-#endif
 			recurs_sel_seq(seq);
 		}
 	}
@@ -426,7 +457,9 @@ void SEQUENCER_OT_select(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_enum(ot->srna, "type", prop_select_types, 0, "Type", "");
+	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "extend the selection");
+	RNA_def_boolean(ot->srna, "linked_left", 0, "Linked Left", "Select strips to the left of the active strip");
+	RNA_def_boolean(ot->srna, "linked_right", 0, "Linked Right", "Select strips to the right of the active strip");
 }
 
 
@@ -460,14 +493,14 @@ static int select_more_less_seq__internal(Scene *scene, int sel, int linked) {
 		if((int)(seq->flag & SELECT) == sel) {
 			if ((linked==0 && seq->tmp)==0) {
 				/* only get unselected nabours */
-				neighbor = find_neighboring_sequence(scene, seq, 1, isel);
+				neighbor = find_neighboring_sequence(scene, seq, SEQ_SIDE_LEFT, isel);
 				if (neighbor) {
 					if (sel) {neighbor->flag |= SELECT; recurs_sel_seq(neighbor);}
 					else		neighbor->flag &= ~SELECT;
 					if (linked==0) neighbor->tmp = (Sequence *)1;
 					change = 1;
 				}
-				neighbor = find_neighboring_sequence(scene, seq, 2, isel);
+				neighbor = find_neighboring_sequence(scene, seq, SEQ_SIDE_RIGHT, isel);
 				if (neighbor) {
 					if (sel) {neighbor->flag |= SELECT; recurs_sel_seq(neighbor);}
 					else		neighbor->flag &= ~SELECT;
@@ -548,7 +581,7 @@ static int sequencer_select_pick_linked_invoke(bContext *C, wmOperator *op, wmEv
 	ARegion *ar= CTX_wm_region(C);
 	View2D *v2d= UI_view2d_fromcontext(C);
 	
-	short extend= RNA_enum_is_equal(op->ptr, "type", "EXTEND");
+	short extend= RNA_boolean_get(op->ptr, "extend");
 	short mval[2];	
 	
 	Sequence *mouse_seq;
@@ -592,7 +625,7 @@ void SEQUENCER_OT_select_pick_linked(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_enum(ot->srna, "type", prop_select_types, 0, "Type", "Type of select linked operation");
+	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "extend the selection");
 }
 
 
@@ -686,35 +719,13 @@ static int sequencer_select_active_side_exec(bContext *C, wmOperator *op)
 	Scene *scene= CTX_data_scene(C);
 	Editing *ed= seq_give_editing(scene, 0);
 	Sequence *seq_act=get_last_seq(scene);
-	Sequence *seq;
-	int sel_side= RNA_enum_get(op->ptr, "side");
 
-	if (ed==NULL)
+	if (ed==NULL || seq_act==NULL)
 		return OPERATOR_CANCELLED;
 
 	seq_act->flag |= SELECT;
 
-	for(seq= ed->seqbasep->first; seq; seq=seq->next) {
-		if(seq!=seq_act && seq_act->machine==seq->machine) {
-			switch(sel_side) {
-			case SEQ_SIDE_LEFT:
-				if (seq_act->startdisp > (seq->startdisp)) {
-					seq->flag &= ~(SEQ_RIGHTSEL|SEQ_LEFTSEL);
-					seq->flag |= SELECT;
-				}
-				break;
-			case SEQ_SIDE_RIGHT:
-				if (seq_act->startdisp < (seq->startdisp)) {
-					seq->flag &= ~(SEQ_RIGHTSEL|SEQ_LEFTSEL);
-					seq->flag |= SELECT;
-				}
-				break;
-			case SEQ_SIDE_BOTH:
-				seq->flag &= ~(SEQ_RIGHTSEL|SEQ_LEFTSEL);
-				break;
-			}
-		}
-	}
+	select_active_side(ed->seqbasep, RNA_enum_get(op->ptr, "side"), seq_act->machine, seq_act->startdisp);
 
 	ED_area_tag_redraw(CTX_wm_area(C));
 
@@ -805,6 +816,4 @@ void SEQUENCER_OT_borderselect(wmOperatorType *ot)
 	RNA_def_int(ot->srna, "xmax", 0, INT_MIN, INT_MAX, "X Max", "", INT_MIN, INT_MAX);
 	RNA_def_int(ot->srna, "ymin", 0, INT_MIN, INT_MAX, "Y Min", "", INT_MIN, INT_MAX);
 	RNA_def_int(ot->srna, "ymax", 0, INT_MIN, INT_MAX, "Y Max", "", INT_MIN, INT_MAX);
-
-	RNA_def_enum(ot->srna, "type", prop_select_types, 0, "Type", "");
 }
