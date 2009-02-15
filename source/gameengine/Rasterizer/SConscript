@@ -7,9 +7,9 @@ sources = env.Glob('*.cpp')
 incs = '. #source/kernel/gen_system #intern/string #intern/moto/include #source/gameengine/BlenderRoutines #extern/glew/include #source/gameengine/Expressions #source/blender/blenkernel #source/blender/makesdna'
 incs += ' ' + env['BF_PYTHON_INC']
 
+cxxflags = []
 if env['OURPLATFORM']=='win32-vc':
-	cflags = []
-	cflags.append('/Ox')
-	env.BlenderLib ( 'bf_rasterizer', sources, Split(incs), [], libtype=['game','player'], priority=[35,115], compileflags = cflags )
-else:
-	env.BlenderLib ( 'bf_rasterizer', sources, Split(incs), [], libtype=['game','player'], priority=[35,115] )
+	cxxflags.append ('/GR')
+	cxxflags.append ('/O2')
+
+env.BlenderLib ( 'bf_rasterizer', sources, Split(incs), [], libtype=['game','player'], priority=[35,115], cxx_compileflags = cxxflags )

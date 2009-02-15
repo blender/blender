@@ -25,5 +25,6 @@ incs += ' ' + env['BF_OPENGL_INC']
 cxxflags = []
 if env['OURPLATFORM']=='win32-vc':
 	cxxflags.append ('/GR')
+	cxxflags.append ('/O2')
 
-env.BlenderLib ( 'bf_bloutines', sources, Split(incs), [], libtype=['game', 'game2', 'player'], priority=[0, 0, 55] , compileflags=cxxflags)
+env.BlenderLib ( 'bf_bloutines', sources, Split(incs), [], libtype=['game', 'game2', 'player'], priority=[0, 0, 55] , cxx_compileflags=cxxflags)

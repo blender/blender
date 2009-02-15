@@ -34,11 +34,6 @@ incs += ' #source/gameengine/Physics/Sumo #source/gameengine/Physics/Sumo/includ
 incs += ' #source/gameengine/Physics/Sumo/Fuzzics/include #source/gameengine/Network/LoopBackNetwork'
 incs += ' #source/blender/misc #source/blender/blenloader #extern/glew/include #source/blender/gpu'
 
-cflags = []
-if env['OURPLATFORM'] == 'win32-vc':
-	cflags.append('/GR')
-	cflags.append('/Ox')
-
 incs += ' ' + env['BF_SOLID_INC']
 incs += ' ' + env['BF_PYTHON_INC']
 incs += ' ' + env['BF_BULLET_INC']
@@ -47,4 +42,9 @@ incs += ' ' + env['BF_OPENGL_INC']
 if  env['WITH_BF_SDL']:
     incs += ' ' + env['BF_SDL_INC']
 
-env.BlenderLib ( 'bf_ketsji', sources, Split(incs), [], libtype=['game','player'], priority=[25, 72], compileflags = cflags )
+cxxflags = []
+if env['OURPLATFORM']=='win32-vc':
+	cxxflags.append ('/GR')
+	cxxflags.append ('/O2')
+
+env.BlenderLib ( 'bf_ketsji', sources, Split(incs), [], libtype=['game','player'], priority=[25, 72], cxx_compileflags = cxxflags )
