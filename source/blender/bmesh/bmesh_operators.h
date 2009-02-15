@@ -146,7 +146,6 @@ static char *bmop_error_messages[] = {
 
 enum {
 	BMOP_SPLIT_MULTIN,
-	BMOP_SPLIT_KEEPIN, //input list of geometry to keep
 	BMOP_SPLIT_MULTOUT,
 	BMOP_SPLIT_BOUNDS_EDGEMAP, //bounding edges of split faces
 	BMOP_SPLIT_TOTSLOT,

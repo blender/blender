@@ -87,7 +87,7 @@ BMOpDefine def_dupeop = {
 };
 
 BMOpDefine def_splitop = {
-	{BMOP_OPSLOT_PNT_BUF, BMOP_OPSLOT_PNT_BUF,
+	{BMOP_OPSLOT_PNT_BUF,
 	 BMOP_OPSLOT_PNT_BUF, BMOP_OPSLOT_MAPPING},
 	splitop_exec,
 	BMOP_SPLIT_TOTSLOT,

@@ -381,8 +381,7 @@ void splitop_exec(BMesh *bm, BMOperator *op)
 	}
 
 	/*connect outputs of dupe to delete, exluding keep geometry*/
-	BMO_Set_Int(&delop, BMOP_DEL_CONTEXT, DEL_ONLYTAGGED);
-	BMO_Unflag_Buffer(bm, splitop, BMOP_SPLIT_KEEPIN, SPLIT_INPUT);
+	BMO_Set_Int(&delop, BMOP_DEL_CONTEXT, DEL_FACES);
 	BMO_Flag_To_Slot(bm, &delop, BMOP_DEL_MULTIN, SPLIT_INPUT, BM_ALL);
 	
 	BMO_Exec_Op(bm, &delop);

@@ -68,9 +68,10 @@ void BMO_push(BMesh *bm, BMOperator *op)
 */
 void BMO_pop(BMesh *bm)
 {
-	bm->stackdepth--;
 	if(bm->stackdepth > 1)
 		free_flag_layer(bm);
+
+	bm->stackdepth--;
 }
 
 /*
@@ -699,17 +700,17 @@ static void free_flag_layer(BMesh *bm)
 	/*now go through and memcpy all the flags*/
 	for(v = BMIter_New(&verts, bm, BM_VERTS, bm); v; v = BMIter_Step(&verts)){
 		oldflags = v->head.flags;
-		v->head.flags = BLI_mempool_alloc(bm->flagpool);
+		v->head.flags = BLI_mempool_calloc(bm->flagpool);
 		memcpy(v->head.flags, oldflags, sizeof(BMFlagLayer)*bm->totflags);  /*correct?*/
 	}
 	for(e = BMIter_New(&edges, bm, BM_EDGES, bm); e; e = BMIter_Step(&edges)){
 		oldflags = e->head.flags;
-		e->head.flags = BLI_mempool_alloc(bm->flagpool);
+		e->head.flags = BLI_mempool_calloc(bm->flagpool);
 		memcpy(e->head.flags, oldflags, sizeof(BMFlagLayer)*bm->totflags);
 	}
 	for(f = BMIter_New(&faces, bm, BM_FACES, bm); f; f = BMIter_Step(&faces)){
 		oldflags = f->head.flags;
-		f->head.flags = BLI_mempool_alloc(bm->flagpool);
+		f->head.flags = BLI_mempool_calloc(bm->flagpool);
 		memcpy(f->head.flags, oldflags, sizeof(BMFlagLayer)*bm->totflags);
 	}
 
@@ -728,13 +729,13 @@ static void clear_flag_layer(BMesh *bm)
 	
 	/*now go through and memcpy all the flags*/
 	for(v = BMIter_New(&verts, bm, BM_VERTS, bm); v; v = BMIter_Step(&verts)){
-		memset(v->head.flags, 0, sizeof(BMFlagLayer)*bm->totflags);
+		memset(v->head.flags+bm->totflags-1, 0, sizeof(BMFlagLayer));
 	}
 	for(e = BMIter_New(&edges, bm, BM_EDGES, bm); e; e = BMIter_Step(&edges)){
-		memset(e->head.flags, 0, sizeof(BMFlagLayer)*bm->totflags);
+		memset(e->head.flags+bm->totflags-1, 0, sizeof(BMFlagLayer));
 	}
 	for(f = BMIter_New(&faces, bm, BM_FACES, bm); f; f = BMIter_Step(&faces)){
-		memset(f->head.flags, 0, sizeof(BMFlagLayer)*bm->totflags);
+		memset(f->head.flags+bm->totflags-1, 0, sizeof(BMFlagLayer));
 	}
 }
 

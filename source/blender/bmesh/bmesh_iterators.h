@@ -25,12 +25,13 @@
 #define BM_FACEVERTS_OF_FACE 		9
 #define BM_EDGES_OF_FACE 			10
 #define BM_LOOPS_OF_FACE 			11
+#define BM_LOOPS_OF_VERT		12
 
 /*Iterator Structure*/
 typedef struct BMIter{
 	struct BMVert *firstvert, *nextvert, *vdata;
 	struct BMEdge *firstedge, *nextedge, *edata;
-	struct BMLoop *firstloop, *nextloop, *ldata;
+	struct BMLoop *firstloop, *nextloop, *ldata, *l;
 	struct BMFace *firstpoly, *nextpoly, *pdata;
 	struct BMesh *bm;
 	void (*begin)(struct BMIter *iter);

@@ -79,10 +79,10 @@ struct BMLoop;
 
 typedef struct BMHeader {
 	struct BMHeader *next, *prev;
-	int 		EID;								/*Consider removing this/making it ifdeffed for debugging*/
+	int 		EID;  /*Consider removing this/making it ifdeffed for debugging*/
 	int 		flag, type;
-	int			eflag1, eflag2;						/*Flags used by eulers. Try and get rid of/minimize some of these*/
-	struct BMFlagLayer *flags;						/*Dynamically allocated block of flag layers for operators to use*/
+	int			eflag1, eflag2;	/*Flags used by eulers. Try and get rid of/minimize some of these*/
+	struct BMFlagLayer *flags; /*Dynamically allocated block of flag layers for operators to use*/
 } BMHeader;
 
 typedef struct BMFlagLayer {

@@ -91,6 +91,7 @@ editmesh_tool.c: UI called tools for editmesh, geometry changes here, otherwise 
 #include "UI_interface.h"
 
 #include "mesh_intern.h"
+#include "bmesh.h"
 
 /* XXX */
 static int extern_qread() {return 0;}
@@ -1024,6 +1025,22 @@ void delete_mesh(Object *obedit, EditMesh *em, int event)
 		erase_faces(em, &em->faces);
 		erase_vertices(em, &em->verts);
 	} 
+	else if(event==7) {
+		BMesh *bm = editmesh_to_bmesh(em);
+		BMOperator op;
+		EditMesh *em2;
+		
+		BMO_Init_Op(&op, BMOP_DISSOLVE_VERTS);
+		BMO_HeaderFlag_To_Slot(bm, &op, BMOP_DISVERTS_VERTIN, 
+		                                BM_SELECT, BM_VERT);
+		BMO_Exec_Op(bm, &op);
+		
+		BMO_Finish_Op(bm, &op);
+		
+		em2 = bmesh_to_editmesh(bm);
+		set_editMesh(em, em2);
+		MEM_freeN(em2);
+	}
 	else if(event==6) {
 		if(!EdgeLoopDelete(em))
 			return;
@@ -1155,6 +1172,7 @@ static EnumPropertyItem prop_mesh_delete_types[] = {
 	{4, "EDGE_FACE","Edges & Faces", ""},
 	{5, "ONLY_FACE","Only Faces", ""},
 	{6, "EDGE_LOOP","Edge Loop", ""},
+	{7, "COLLAPSE","Collapse", ""},
 	{0, NULL, NULL, NULL}
 };
 
