@@ -120,8 +120,16 @@ void getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
 			char *structname=NULL, *propname=NULL, *arrayname=NULL, arrayindbuf[16];
 			PropertyRNA *nameprop;
 			
-			/* for now, name will consist of struct-name + property name + array index:
-			 *	i.e. Bone1.Location.X, or Object.Location.X
+			/* For now, name will consist of 3 parts: struct-name, property name, array index
+			 * There are several options possible:
+			 *	1) <struct-name>.<property-name>.<array-index>
+			 *		i.e. Bone1.Location.X, or Object.Location.X
+			 *	2) <array-index> <property-name> (<struct name>)
+			 *		i.e. X Location (Bone1), or X Location (Object)
+			 *	
+			 * Currently, option 2 is in use, to try and make it easier to quickly identify F-Curves (it does have
+			 * problems with looking rather odd though). Option 1 is better in terms of revealing a consistent sense of 
+			 * hierarchy though, which isn't so clear with option 2.
 			 */
 			
 			/* for structname, we use a custom name if one is available */
@@ -141,9 +149,14 @@ void getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
 			/* Array Index - only if applicable */
 			if (RNA_property_array_length(&ptr, prop)) {
 					// XXX the format of these is not final... we don't know how this will go yet
-				static char *vectoritem[4]= {".X", ".Y", ".Z", ".W"};
-				static char *quatitem[4]= {".W", ".X", ".Y", ".Z"};
-				static char *coloritem[4]= {".R", ".G", ".B", ".A"};
+					// format 1 style
+				//static char *vectoritem[4]= {".X", ".Y", ".Z", ".W"};
+				//static char *quatitem[4]= {".W", ".X", ".Y", ".Z"};
+				//static char *coloritem[4]= {".R", ".G", ".B", ".A"};
+					// format 2 style
+				static char *vectoritem[4]= {"X ", "Y ", "Z ", "W "};
+				static char *quatitem[4]= {"W ", "X ", "Y ", "Z "};
+				static char *coloritem[4]= {"R ", "G ", "B ", "A "};
 				
 				int tot= RNA_property_array_length(&ptr, prop);
 				int propsubtype= RNA_property_subtype(&ptr, prop);
@@ -167,8 +180,9 @@ void getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
 			}
 			
 			/* putting this all together into the buffer */
-				// XXX we need to check for invalid names...
-			BLI_snprintf(name, 128, "%s.%s%s", structname, propname, arrayname); 
+			// XXX we need to check for invalid names...
+			//BLI_snprintf(name, 128, "%s.%s%s", structname, propname, arrayname);  // format 1
+			BLI_snprintf(name, 128, "%s%s (%s)", arrayname, propname, structname);  // format 2
 			
 			/* free temp name if nameprop is set */
 			if (nameprop)
