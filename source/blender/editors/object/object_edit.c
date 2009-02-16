@@ -139,7 +139,6 @@
 #include "object_intern.h"	// own include
 
 /* ************* XXX **************** */
-static void allqueue() {}
 static void error() {}
 static void waitcursor() {}
 static int pupmenu() {return 0;}
@@ -190,7 +189,6 @@ void ED_base_object_activate(bContext *C, Base *base)
 	if(base) {
 		
 		/* XXX old signals, remember to handle notifiers now! */
-		//		allqueue(REDRAWIPO, base->object->ipowin);
 		//		select_actionchannel_by_name(base->object->action, "Object", 1);
 		
 		/* disable temporal locks */
@@ -1320,10 +1318,6 @@ void add_hook_menu(Scene *scene, View3D *v3d)
 		
 	/* do operations */
 	add_hook(scene, v3d, mode);
-	
-	allqueue(REDRAWVIEW3D, 0);
-	allqueue(REDRAWBUTSOBJECT, 0);
-	
 }
 
 /* ******************** clear parent operator ******************* */
@@ -2263,7 +2257,6 @@ void make_vertex_parent(Scene *scene, Object *obedit, View3D *v3d)
 			}
 		}
 	}
-	allqueue(REDRAWVIEW3D, 0);
 	
 	DAG_scene_sort(scene);
 }
@@ -2350,7 +2343,6 @@ void make_proxy(Scene *scene)
 		
 		DAG_scene_sort(scene);
 		DAG_object_flush_update(scene, newob, OB_RECALC);
-		allqueue(REDRAWALL, 0);
 	}
 }
 
@@ -3016,7 +3008,6 @@ static int object_set_center_exec(bContext *C, wmOperator *op)
 					cu->xof /= cu->fsize;
 					cu->yof /= cu->fsize;
 
-					allqueue(REDRAWBUTSEDIT, 0);
 					tot_change++;
 				}
 			}
@@ -3050,7 +3041,6 @@ static int object_set_center_exec(bContext *C, wmOperator *op)
 	
 	if (tot_change) {
 		ED_anim_dag_flush_update(C);
-		allqueue(REDRAWVIEW3D, 0);
 	}
 	
 	/* Warn if any errors occured */
@@ -3342,11 +3332,6 @@ void movetolayer(Scene *scene, View3D *v3d)
 	
 	DAG_scene_sort(scene);
 	
-	allqueue(REDRAWBUTSEDIT, 0);
-	allqueue(REDRAWVIEW3D, 0);
-	allqueue(REDRAWOOPS, 0);
-	allqueue(REDRAWINFO, 0);
-	
 }
 
 
@@ -3471,9 +3456,6 @@ static void spot_interactive(Object *ob, int mode)
 			la->clipend= origval;
 	}
 
-	allqueue(REDRAWVIEW3D, 0);
-	allqueue(REDRAWBUTSSHADING, 0);
-	BIF_preview_changed(ID_LA);
 }
 #endif
 
@@ -3538,8 +3520,6 @@ void special_editmenu(Scene *scene, View3D *v3d)
 				}
 			}
 			DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
-			allqueue(REDRAWVIEW3D, 0);
-			allqueue(REDRAWBUTSEDIT, 0);
 		}
 		else if(G.f & G_VERTEXPAINT) {
 			Mesh *me= get_mesh(ob);
@@ -3661,7 +3641,6 @@ void special_editmenu(Scene *scene, View3D *v3d)
 					}
 				}
 
-				allqueue(REDRAWVIEW3D, 0);
 			}
 			else if (ob->type == OB_FONT) {
 				/* removed until this gets a decent implementation (ton) */
@@ -3848,8 +3827,6 @@ void special_editmenu(Scene *scene, View3D *v3d)
 		}
 	}
 
-	allqueue(REDRAWVIEW3D, 0);
-	
 }
 
 static void curvetomesh(Scene *scene, Object *ob) 
@@ -4083,10 +4060,6 @@ void convertmenu(Scene *scene, View3D *v3d)
 // XXX	exit_editmode(C, EM_FREEDATA|EM_WAITCURSOR); /* freedata, but no undo */
 	BASACT= basact;
 
-	allqueue(REDRAWVIEW3D, 0);
-	allqueue(REDRAWOOPS, 0);
-//	allspace(OOPS_TEST, 0);
-	allqueue(REDRAWBUTSEDIT, 0);
 
 	DAG_scene_sort(scene);
 }
@@ -4225,10 +4198,6 @@ void flip_subdivison(Scene *scene, View3D *v3d, int level)
 		}
 	}
 	
-	allqueue(REDRAWVIEW3D, 0);
-	allqueue(REDRAWOOPS, 0);
-	allqueue(REDRAWBUTSEDIT, 0);
-	allqueue(REDRAWBUTSOBJECT, 0);
 	ED_anim_dag_flush_update(C);	
 }
  
@@ -4289,7 +4258,6 @@ static void copymenu_properties(Scene *scene, View3D *v3d, Object *ob)
 		}
 	}
 	MEM_freeN(str);
-	allqueue(REDRAWVIEW3D, 0);
 	
 }
 
@@ -4424,8 +4392,6 @@ static void copymenu_modifiers(Scene *scene, View3D *v3d, Object *ob)
 	
 //	if(errorstr) notice(errorstr);
 	
-	allqueue(REDRAWVIEW3D, 0);
-	allqueue(REDRAWBUTSOBJECT, 0);
 	DAG_scene_sort(scene);
 	
 }
@@ -4715,16 +4681,11 @@ void copy_attr(Scene *scene, View3D *v3d, short event)
 		}
 	}
 	
-	allqueue(REDRAWVIEW3D, 0);
 	if(do_scene_sort)
 		DAG_scene_sort(scene);
 
 	ED_anim_dag_flush_update(C);	
 
-	if(event==20) {
-		allqueue(REDRAWBUTSOBJECT, 0);
-	}
-	
 }
 
 void copy_attr_menu(Scene *scene, View3D *v3d)
@@ -4923,10 +4884,6 @@ void make_links(Scene *scene, View3D *v3d, short event)
 		}
 	}
 	
-	allqueue(REDRAWVIEW3D, 0);
-	allqueue(REDRAWOOPS, 0);
-	allqueue(REDRAWBUTSHEAD, 0);
-
 	ED_anim_dag_flush_update(C);	
 
 }
@@ -5155,7 +5112,6 @@ static void apply_objects_internal(Scene *scene, View3D *v3d, int apply_scale, i
 		}
 	}
 	if (change) {
-		allqueue(REDRAWVIEW3D, 0);
 	}
 }
 
@@ -5194,7 +5150,6 @@ void apply_objects_visual_tx( Scene *scene, View3D *v3d )
 		}
 	}
 	if (change) {
-		allqueue(REDRAWVIEW3D, 0);
 	}
 }
 
@@ -5618,7 +5573,6 @@ void single_user(Scene *scene, View3D *v3d)
 		
 		clear_id_newpoins();
 
-		allqueue(REDRAWALL, 0);
 	}
 }
 
@@ -5663,7 +5617,6 @@ void make_local(Scene *scene, View3D *v3d, int mode)
 	
 	if(mode==3) {
 		all_local(NULL, 0);	/* NULL is all libs */
-		allqueue(REDRAWALL, 0);
 		return;
 	}
 	else if(mode<1) return;
@@ -5789,7 +5742,6 @@ void make_local(Scene *scene, View3D *v3d, int mode)
 		}
 	}
 
-	allqueue(REDRAWALL, 0);
 }
 
 void make_local_menu(Scene *scene, View3D *v3d)
@@ -6148,7 +6100,6 @@ void image_aspect(Scene *scene, View3D *v3d)
 		}
 	}
 	
-	allqueue(REDRAWVIEW3D, 0);
 }
 
 void set_ob_ipoflags(Scene *scene, View3D *v3d)
@@ -6183,12 +6134,6 @@ void set_ob_ipoflags(Scene *scene, View3D *v3d)
 			}
 		}
 	}
-	allqueue(REDRAWVIEW3D, 0);
-	allqueue(REDRAWBUTSOBJECT, 0);
-	allqueue(REDRAWNLA, 0);
-	allqueue (REDRAWACTION, 0);
-//	allspace(REMAKEIPO, 0);
-	allqueue(REDRAWIPO, 0);
 #endif // XXX old animation system
 }
 
@@ -6231,11 +6176,6 @@ void select_select_keys(Scene *scene, View3D *v3d)
 		}
 	}
 
-	allqueue(REDRAWNLA, 0);
-	allqueue(REDRAWACTION, 0);
-	allqueue(REDRAWVIEW3D, 0);
-//	allspace(REMAKEIPO, 0);
-	allqueue(REDRAWIPO, 0);
 
 #endif  // XXX old animation system
 }
@@ -6296,8 +6236,6 @@ void auto_timeoffs(Scene *scene, View3D *v3d)
 	}
 	MEM_freeN(basesort);
 
-	allqueue(REDRAWVIEW3D, 0);
-	allqueue(REDRAWBUTSOBJECT, 0);
 }
 
 void ofs_timeoffs(Scene *scene, View3D *v3d)
@@ -6318,8 +6256,6 @@ void ofs_timeoffs(Scene *scene, View3D *v3d)
 		}
 	}
 
-	allqueue(REDRAWVIEW3D, 0);
-	allqueue(REDRAWBUTSOBJECT, 0);
 }
 
 
@@ -6342,8 +6278,6 @@ void rand_timeoffs(Scene *scene, View3D *v3d)
 		}
 	}
 
-	allqueue(REDRAWVIEW3D, 0);
-	allqueue(REDRAWBUTSOBJECT, 0);
 }
 
 
@@ -6468,8 +6402,5 @@ void hookmenu(Scene *scene, View3D *v3d)
 	}
 	
 	if (changed) {
-		
-		allqueue(REDRAWVIEW3D, 0);
-		allqueue(REDRAWBUTSEDIT, 0);
 	}	
 }

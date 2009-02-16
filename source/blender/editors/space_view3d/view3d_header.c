@@ -118,7 +118,6 @@
 
 /* XXX port over */
 static void handle_view3d_lock(void) {}
-static void allqueue(int x, int y) {}
 static void countall(void) {}
 extern void borderselect();
 static int retopo_mesh_paint_check() {return 0;}
@@ -245,9 +244,7 @@ void do_layer_buttons(bContext *C, short event)
 	}
 	ED_area_tag_redraw(sa);
 	
-	if(sa->spacetype==SPACE_OOPS) allqueue(REDRAWVIEW3D, 1); /* 1==also do headwin */
 	if(v3d->drawtype == OB_SHADED) reshadeall_displist(scene);
-	allqueue(REDRAWNLA, 0);	
 }
 
 #if 0
@@ -278,7 +275,6 @@ static void do_view3d_view_camerasmenu(bContext *C, void *arg, int event)
 		}
 	}
 	
-	allqueue(REDRAWVIEW3D, 0);
 }
 
 
@@ -368,7 +364,6 @@ static void do_view3d_view_cameracontrolsmenu(bContext *C, void *arg, int event)
 		fly();
 		break;
 	}
-	allqueue(REDRAWVIEW3D, 0);
 }
 
 
@@ -460,7 +455,6 @@ static void do_view3d_view_alignviewmenu(bContext *C, void *arg, int event)
 		curs[0]=curs[1]=curs[2]= 0.0;
 		break;
 	}
-	allqueue(REDRAWVIEW3D, 0);
 }
 
 static uiBlock *view3d_view_alignviewmenu(bContext *C, ARegion *ar, void *arg_unused)
@@ -554,7 +548,6 @@ static void do_view3d_viewmenu(bContext *C, void *arg, int event)
 		do_layer_buttons(C, -2);
 		break;
 	}
-	allqueue(REDRAWVIEW3D, 1);
 }
 #endif
 
@@ -768,7 +761,6 @@ void do_view3d_select_object_typemenu(bContext *C, void *arg, int event)
 		do_layer_buttons(C, -2);
 		break;
 	}
-	allqueue(REDRAWVIEW3D, 0);
 }
 
 static uiBlock *view3d_select_object_typemenu(bContext *C, ARegion *ar, void *arg_unused)
@@ -831,7 +823,6 @@ void do_view3d_select_object_layermenu(bContext *C, void *arg, int event)
 // XXX		selectall_layer(event);
 		break;
 	}
-	allqueue(REDRAWVIEW3D, 0);
 }
 
 static uiBlock *view3d_select_object_layermenu(bContext *C, ARegion *ar, void *arg_unused)
@@ -882,7 +873,6 @@ void do_view3d_select_object_linkedmenu(bContext *C, void *arg, int event)
 		break;
 	}
 	countall();
-	allqueue(REDRAWVIEW3D, 0);
 }
 
 static uiBlock *view3d_select_object_linkedmenu(bContext *C, ARegion *ar, void *arg_unused)
@@ -921,8 +911,6 @@ void do_view3d_select_object_groupedmenu(bContext *C, void *arg, int event)
 		select_object_grouped((short)event);
 		break;
 	}
-	allqueue(REDRAWVIEW3D, 0);
-
 }
 
 static uiBlock *view3d_select_object_groupedmenu(bContext *C, ARegion *ar, void *arg_unused)
@@ -1068,7 +1056,6 @@ void do_view3d_select_meshmenu(bContext *C, void *arg, int event)
 			select_mesh_group_menu();
 			break;
 	}
-	allqueue(REDRAWVIEW3D, 0);
 #endif
 }
 
@@ -1212,7 +1199,6 @@ void do_view3d_select_metaballmenu(bContext *C, void *arg, int event)
 			selectrandom_mball();
 			break;
 	}
-	allqueue(REDRAWVIEW3D, 0);
 #endif
 }
 
@@ -1262,7 +1248,6 @@ static void do_view3d_select_latticemenu(bContext *C, void *arg, int event)
 			deselectall_Latt();
 			break;
 	}
-	allqueue(REDRAWVIEW3D, 0);
 #endif
 }
 
@@ -1320,7 +1305,6 @@ static void do_view3d_select_armaturemenu(bContext *C, void *arg, int event)
 			armature_select_hierarchy(BONE_SELECT_CHILD, 1);
 			break;
 	}
-	allqueue(REDRAWVIEW3D, 0);
 #endif
 }
 
@@ -1392,7 +1376,6 @@ static void do_view3d_select_pose_armaturemenu(bContext *C, void *arg, int event
 		pose_select_hierarchy(BONE_SELECT_CHILD, 1);
 		break;
 	}
-	allqueue(REDRAWVIEW3D, 0);
 #endif
 }
 
@@ -1456,7 +1439,6 @@ void do_view3d_select_faceselmenu(bContext *C, void *arg, int event)
 			select_linked_tfaces(2);
 			break;
 	}
-	allqueue(REDRAWVIEW3D, 0);
 #endif
 }
 
@@ -1532,7 +1514,6 @@ void do_view3d_edit_snapmenu(bContext *C, void *arg, int event)
 		ED_undo_push(C, "Snap selection to center");
 	    break;
 	}
-	allqueue(REDRAWVIEW3D, 0);
 #endif
 }
 
@@ -1599,7 +1580,6 @@ void do_view3d_transform_moveaxismenu(bContext *C, void *arg, int event)
 			Transform();
 			break;
 	}
-	allqueue(REDRAWVIEW3D, 0);
 #endif
 }
 
@@ -1667,7 +1647,6 @@ void do_view3d_transform_rotateaxismenu(bContext *C, void *arg, int event)
 			Transform();
 			break;
 	}
-	allqueue(REDRAWVIEW3D, 0);
 #endif
 }
 
@@ -1735,7 +1714,6 @@ void do_view3d_transform_scaleaxismenu(bContext *C, void *arg, int event)
 			Transform();
 			break;
 	}
-	allqueue(REDRAWVIEW3D, 0);
 #endif
 }
 
@@ -1846,7 +1824,6 @@ static void do_view3d_transformmenu(bContext *C, void *arg, int event)
 		alignmenu();
 		break;
 	}
-	allqueue(REDRAWVIEW3D, 0);
 #endif
 }
 
@@ -1975,7 +1952,6 @@ void do_view3d_object_mirrormenu(bContext *C, void *arg, int event)
 			Transform();
 			break;
 	}
-	allqueue(REDRAWVIEW3D, 0);
 #endif
 }
 
@@ -2027,7 +2003,6 @@ static void do_view3d_edit_object_transformmenu(bContext *C, void *arg, int even
 		apply_objects_visual_tx();
 		break;	
 	}
-	allqueue(REDRAWVIEW3D, 0);
 #endif
 }
 
@@ -2097,7 +2072,6 @@ static void do_view3d_edit_object_makelinksmenu(bContext *C, void *arg, int even
 		make_links((short)event);
 		break;
 		}
-	allqueue(REDRAWVIEW3D, 0);
 #endif
 }
 
@@ -2177,7 +2151,6 @@ static void do_view3d_edit_object_singleusermenu(bContext *C, void *arg, int eve
 	clear_id_newpoins();
 	countall();
 	
-	allqueue(REDRAWALL, 0);
 #endif
 }
 
@@ -2230,7 +2203,6 @@ static void do_view3d_edit_object_copyattrmenu(bContext *C, void *arg, int event
 // XXX		copy_attr((short)event);
 		break;
 		}
-	allqueue(REDRAWVIEW3D, 0);
 }
 
 static uiBlock *view3d_edit_object_copyattrmenu(bContext *C, ARegion *ar, void *arg_unused)
@@ -2308,7 +2280,6 @@ static void do_view3d_edit_object_parentmenu(bContext *C, void *arg, int event)
 		make_parent();
 		break;
 		}
-	allqueue(REDRAWVIEW3D, 0);
 #endif
 }
 
@@ -2338,7 +2309,6 @@ static void do_view3d_edit_object_groupmenu(bContext *C, void *arg, int event)
 			group_operation(event);
 			break;
 	}
-	allqueue(REDRAWVIEW3D, 0);
 #endif
 }
 
@@ -2370,7 +2340,6 @@ static void do_view3d_edit_object_trackmenu(bContext *C, void *arg, int event)
 		make_track();
 		break;
 		}
-	allqueue(REDRAWVIEW3D, 0);
 #endif
 }
 
@@ -2401,7 +2370,6 @@ static void do_view3d_edit_object_constraintsmenu(bContext *C, void *arg, int ev
 		ob_clear_constraints();
 		break;
 		}
-	allqueue(REDRAWVIEW3D, 0);
 #endif
 }
 
@@ -2437,7 +2405,6 @@ static void do_view3d_edit_object_showhidemenu(bContext *C, void *arg, int event
 		hide_objects(0);
 		break;
 	}
-	allqueue(REDRAWVIEW3D, 0);
 #endif
 }
 
@@ -2464,7 +2431,6 @@ static void do_view3d_edit_object_scriptsmenu(bContext *C, void *arg, int event)
 #if 0
 	BPY_menu_do_python(PYMENU_OBJECT, event);
 
-	allqueue(REDRAWVIEW3D, 0);
 #endif
 }
 
@@ -2539,7 +2505,6 @@ static void do_view3d_edit_objectmenu(bContext *C, void *arg, int event)
 		common_deletekey();
 		break; 
 	}
-	allqueue(REDRAWVIEW3D, 0);
 #endif
 }
 
@@ -2622,7 +2587,6 @@ static void do_view3d_edit_propfalloffmenu(bContext *C, void *arg, int event)
 	
 	scene->prop_mode= event;
 	
-	allqueue(REDRAWVIEW3D, 1);
 }
 
 static uiBlock *view3d_edit_propfalloffmenu(bContext *C, ARegion *ar, void *arg_unused)
@@ -2694,7 +2658,6 @@ void do_view3d_edit_mesh_verticesmenu(bContext *C, void *arg, int event)
 		mesh_rip();
 		break;
 	}
-	allqueue(REDRAWVIEW3D, 0);
 #endif
 }
 
@@ -2813,7 +2776,6 @@ void do_view3d_edit_mesh_edgesmenu(bContext *C, void *arg, int event)
 		}
 		break;
 	}
-	allqueue(REDRAWVIEW3D, 0);
 #endif
 }
 
@@ -2883,7 +2845,6 @@ void do_view3d_edit_mesh_facesmenu(bContext *C, void *arg, int event)
 		break;
 	case 2: /* Quads to Tris */
 		convert_to_triface(0);
-		allqueue(REDRAWVIEW3D, 0);
 		countall();
 		DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 		break;
@@ -2903,7 +2864,6 @@ void do_view3d_edit_mesh_facesmenu(bContext *C, void *arg, int event)
 		mesh_set_smooth_faces(0);
 		break;
 	}
-	allqueue(REDRAWVIEW3D, 0);
 #endif
 }
 
@@ -2950,7 +2910,6 @@ void do_view3d_edit_mesh_normalsmenu(bContext *C, void *arg, int event)
 		righthandfaces(1);
 		break;
 		}
-	allqueue(REDRAWVIEW3D, 0);
 #endif
 }
 
@@ -3017,7 +2976,6 @@ void do_view3d_edit_mirrormenu(bContext *C, void *arg, int event)
 			Transform();
 			break;
 	}
-	allqueue(REDRAWVIEW3D, 0);
 #endif
 }
 
@@ -3064,7 +3022,6 @@ static void do_view3d_edit_mesh_showhidemenu(bContext *C, void *arg, int event)
 		hide_mesh(1);
 		break;
 	}
-	allqueue(REDRAWVIEW3D, 0);
 #endif
 }
 
@@ -3091,7 +3048,6 @@ static void do_view3d_edit_mesh_scriptsmenu(bContext *C, void *arg, int event)
 #if 0
 	BPY_menu_do_python(PYMENU_MESH, event);
 
-	allqueue(REDRAWVIEW3D, 0);
 #endif
 }
 
@@ -3176,7 +3132,6 @@ static void do_view3d_edit_meshmenu(bContext *C, void *arg, int event)
 		common_deletekey();
 		break;
 	}
-	allqueue(REDRAWVIEW3D, 0);
 #endif
 }
 
@@ -3359,7 +3314,6 @@ static void do_view3d_edit_mball_showhidemenu(bContext *C, void *arg, int event)
 		hide_mball(1);
 		break;
 		}
-	allqueue(REDRAWVIEW3D, 0);
 #endif
 }
 
@@ -3411,7 +3365,6 @@ static void do_view3d_edit_metaballmenu(bContext *C, void *arg, int event)
 		add_blockhandler(sa, VIEW3D_HANDLER_OBJECT, 0);
 		break;	
 	}
-	allqueue(REDRAWVIEW3D, 0);
 #endif
 }
 
@@ -3511,7 +3464,6 @@ static void do_view3d_edit_text_charsmenu(bContext *C, void *arg, int event)
 		do_textedit(0,0,161);
 		break;
 		}
-	allqueue(REDRAWVIEW3D, 0);
 #endif
 }
 
@@ -3568,7 +3520,6 @@ static void do_view3d_edit_textmenu(bContext *C, void *arg, int event)
 		paste_editText();
 		break;
 	}
-	allqueue(REDRAWVIEW3D, 0);
 #endif
 }
 
@@ -3634,7 +3585,6 @@ static void do_view3d_edit_latticemenu(bContext *C, void *arg, int event)
 		common_deletekey();
 		break;
 	}
-	allqueue(REDRAWVIEW3D, 0);
 #endif
 }
 
@@ -3696,7 +3646,6 @@ void do_view3d_edit_armature_parentmenu(bContext *C, void *arg, int event)
 		clear_bone_parent();
 		break;
 		}
-	allqueue(REDRAWVIEW3D, 0);
 #endif
 }
 
@@ -3727,7 +3676,6 @@ void do_view3d_edit_armature_rollmenu(bContext *C, void *arg, int event)
 		initTransform(TFM_BONE_ROLL, CTX_NONE);
 		Transform();
 	}
-	allqueue(REDRAWVIEW3D, 0);
 #endif
 }
 
@@ -3813,7 +3761,6 @@ static void do_view3d_edit_armaturemenu(bContext *C, void *arg, int event)
 		break;
 	}
 	
-	allqueue(REDRAWVIEW3D, 0);
 #endif
 }
 
@@ -3824,7 +3771,6 @@ static void do_view3d_scripts_armaturemenu(bContext *C, void *arg, int event)
 #if 0
 	BPY_menu_do_python(PYMENU_ARMATURE, event);
 	
-	allqueue(REDRAWVIEW3D, 0);
 #endif
 }
 
@@ -3976,7 +3922,6 @@ static void do_view3d_pose_armature_transformmenu(bContext *C, void *arg, int ev
 		ED_undo_push(C, "Pose, Clear User Transform");
 		break;
 	}
-	allqueue(REDRAWVIEW3D, 0);
 #endif
 }
 
@@ -4016,7 +3961,6 @@ static void do_view3d_pose_armature_showhidemenu(bContext *C, void *arg, int eve
 		hide_unselected_pose_bones();
 		break;
 	}
-	allqueue(REDRAWVIEW3D, 0);
 #endif
 }
 
@@ -4050,7 +3994,6 @@ static void do_view3d_pose_armature_ikmenu(bContext *C, void *arg, int event)
 		pose_clear_IK();
 		break;
 	}
-	allqueue(REDRAWVIEW3D, 0);
 #endif
 }
 
@@ -4083,7 +4026,6 @@ static void do_view3d_pose_armature_constraintsmenu(bContext *C, void *arg, int 
 		pose_clear_constraints();
 		break;
 	}
-	allqueue(REDRAWVIEW3D, 0);
 #endif
 }
 
@@ -4158,7 +4100,6 @@ static void do_view3d_pose_armature_motionpathsmenu(bContext *C, void *arg, int 
 		pose_clear_paths(OBACT);
 		break;
 	}
-	allqueue(REDRAWVIEW3D, 0);
 #endif
 }
 
@@ -4198,7 +4139,6 @@ static void do_view3d_pose_armature_poselibmenu(bContext *C, void *arg, int even
 			break;
 	}
 	
-	allqueue(REDRAWVIEW3D, 0);
 #endif
 }
 
@@ -4280,7 +4220,6 @@ static void do_view3d_pose_armaturemenu(bContext *C, void *arg, int event)
 		break;
 	}
 		
-	allqueue(REDRAWVIEW3D, 0);
 #endif
 }
 
@@ -4378,7 +4317,6 @@ static void do_view3d_vpaintmenu(bContext *C, void *arg, int event)
 		make_vertexcol(1);
 		break;
 	}
-	allqueue(REDRAWVIEW3D, 0);
 #endif
 }
 
@@ -4431,7 +4369,6 @@ static void do_view3d_tpaintmenu(bContext *C, void *arg, int event)
 		break;
 	}
 
-	allqueue(REDRAWVIEW3D, 0);
 #endif
 }
 
@@ -4482,7 +4419,6 @@ static void do_view3d_wpaintmenu(bContext *C, void *arg, int event)
 		pose_adds_vgroups(ob, 1);
 		break;
 	}
-	allqueue(REDRAWVIEW3D, 0);
 #endif
 }
 
@@ -4561,8 +4497,6 @@ void do_view3d_sculpt_inputmenu(bContext *C, void *arg, int event)
 		break;
 	}
 	
-	allqueue(REDRAWBUTSEDIT, 0);
-	allqueue(REDRAWVIEW3D, 0);
 #endif
 }
 
@@ -4731,7 +4665,6 @@ static void do_view3d_facesel_showhidemenu(bContext *C, void *arg, int event)
 //		G.qual &= ~LR_SHIFTKEY;
 		break;
 		}
-	allqueue(REDRAWVIEW3D, 0);
 #endif
 }
 
@@ -4766,8 +4699,6 @@ static void do_view3d_faceselmenu(bContext *C, void *arg, int event)
 		seam_mark_clear_tface(2);
 		break;
 	}
-	allqueue(REDRAWVIEW3D, 0);
-	allqueue(REDRAWIMAGE, 0);
 #endif
 }
 
@@ -4947,7 +4878,6 @@ void do_view3d_particlemenu(bContext *C, void *arg, int event)
 		break;
 	}
 
-	allqueue(REDRAWVIEW3D, 0);
 #endif
 }
 
@@ -5239,12 +5169,10 @@ static void do_view3d_header_buttons(bContext *C, void *arg, int event)
 				PE_set_particle_edit(scene);
 			}
 		}
-		allqueue(REDRAWVIEW3D, 1);
 		break;
 		
 	case B_AROUND:
 // XXX		handle_view3d_around(); /* copies to other 3d windows */
-		allqueue(REDRAWVIEW3D, 1);
 		break;
 		
 	case B_SEL_VERT:
@@ -5289,43 +5217,33 @@ static void do_view3d_header_buttons(bContext *C, void *arg, int event)
 	case B_SEL_PATH:
 		scene->selectmode= SCE_SELECT_PATH;
 		ED_undo_push(C, "Selectmode Set: Path");
-		allqueue(REDRAWVIEW3D, 1);
 		break;
 	case B_SEL_POINT:
 		scene->selectmode = SCE_SELECT_POINT;
 		ED_undo_push(C, "Selectmode Set: Point");
-		allqueue(REDRAWVIEW3D, 1);
 		break;
 	case B_SEL_END:
 		scene->selectmode = SCE_SELECT_END;
 		ED_undo_push(C, "Selectmode Set: End point");
-		allqueue(REDRAWVIEW3D, 1);
 		break;	
 	
 	case B_MAN_TRANS:
 		if( shift==0 || v3d->twtype==0)
 			v3d->twtype= V3D_MANIP_TRANSLATE;
-		allqueue(REDRAWVIEW3D, 1);
 		break;
 	case B_MAN_ROT:
 		if( shift==0 || v3d->twtype==0)
 			v3d->twtype= V3D_MANIP_ROTATE;
-		allqueue(REDRAWVIEW3D, 1);
 		break;
 	case B_MAN_SCALE:
 		if( shift==0 || v3d->twtype==0)
 			v3d->twtype= V3D_MANIP_SCALE;
-		allqueue(REDRAWVIEW3D, 1);
 		break;
 	case B_NDOF:
-		allqueue(REDRAWVIEW3D, 1);
 		break;
 	case B_MAN_MODE:
-		allqueue(REDRAWVIEW3D, 1);
 		break;		
 	case B_VIEW_BUTSEDIT:
-		allqueue(REDRAWVIEW3D, 1);
-		allqueue(REDRAWBUTSEDIT, 1);
 		break;
 		
 	default:
@@ -5364,8 +5282,6 @@ static void do_view3d_header_buttons(bContext *C, void *arg, int event)
 			/* new layers might need unflushed events events */
 			DAG_scene_update_flags(scene, v3d->lay);	/* tags all that moves and flushes */
 
-			allqueue(REDRAWOOPS, 0);
-			allqueue(REDRAWNLA, 0);	
 		}
 		break;
 	}

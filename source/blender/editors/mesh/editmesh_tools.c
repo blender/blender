@@ -99,7 +99,6 @@ static void waitcursor() {}
 static int pupmenu() {return 0;}
 static int qtest() {return 0;}
 #define add_numbut(a, b, c, d, e, f, g) {}
-static int do_clever_numbuts() {return 0;}
 static int snap_sel_to_curs() {return 0;}
 static int snap_to_center() {return 0;}
 
@@ -4769,7 +4768,7 @@ int EdgeLoopDelete(EditMesh *em, wmOperator *op)
 
 
 /* -------------------- More tools ------------------ */
-
+#if 0
 void mesh_set_face_flags(EditMesh *em, short mode)
 {
 	EditFace *efa;
@@ -4837,6 +4836,7 @@ void mesh_set_face_flags(EditMesh *em, short mode)
 	}
 	
 }
+#endif
 
 void mesh_set_smooth_faces(EditMesh *em, short event)
 {

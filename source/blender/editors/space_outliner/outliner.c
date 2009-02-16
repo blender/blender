@@ -132,7 +132,6 @@
 
 /* ************* XXX **************** */
 
-static void allqueue() {}
 static void BIF_undo_push() {}
 static void BIF_preview_changed() {}
 static void error() {}
@@ -1465,9 +1464,6 @@ void outliner_toggle_visibility(Scene *scene, SpaceOops *soops)
 	
 	BIF_undo_push("Outliner toggle selectability");
 
-	allqueue(REDRAWVIEW3D, 1);
-	allqueue(REDRAWOOPS, 0);
-	allqueue(REDRAWINFO, 1);
 }
 
 static void object_toggle_selectability_cb(TreeElement *te, TreeStoreElem *tsep, TreeStoreElem *tselem)
@@ -1488,9 +1484,6 @@ void outliner_toggle_selectability(Scene *scene, SpaceOops *soops)
 	
 	BIF_undo_push("Outliner toggle selectability");
 
-	allqueue(REDRAWVIEW3D, 1);
-	allqueue(REDRAWOOPS, 0);
-	allqueue(REDRAWINFO, 1);
 }
 
 void object_toggle_renderability_cb(TreeElement *te, TreeStoreElem *tsep, TreeStoreElem *tselem)
@@ -1511,9 +1504,6 @@ void outliner_toggle_renderability(Scene *scene, SpaceOops *soops)
 	
 	BIF_undo_push("Outliner toggle renderability");
 
-	allqueue(REDRAWVIEW3D, 1);
-	allqueue(REDRAWOOPS, 0);
-	allqueue(REDRAWINFO, 1);
 }
 
 void outliner_toggle_visible(SpaceOops *soops)
@@ -1641,7 +1631,6 @@ static int tree_element_active_renderlayer(TreeElement *te, TreeStoreElem *tsele
 	
 	if(set) {
 		sce->r.actlay= tselem->nr;
-		allqueue(REDRAWBUTSSCENE, 0);
 	}
 	else {
 		return sce->r.actlay==tselem->nr;
@@ -1733,10 +1722,6 @@ static int tree_element_active_material(Scene *scene, SpaceOops *soops, TreeElem
 	if(set) {
 // XXX		extern_set_butspace(F5KEY, 0);	// force shading buttons
 		BIF_preview_changed(ID_MA);
-		allqueue(REDRAWBUTSSHADING, 1);
-		allqueue(REDRAWNODE, 0);
-		allqueue(REDRAWOOPS, 0);
-		allqueue(REDRAWIPO, 0);
 	}
 	return 0;
 }
@@ -1823,9 +1808,6 @@ static int tree_element_active_lamp(Scene *scene, SpaceOops *soops, TreeElement 
 	if(set) {
 // XXX		extern_set_butspace(F5KEY, 0);
 		BIF_preview_changed(ID_LA);
-		allqueue(REDRAWBUTSSHADING, 1);
-		allqueue(REDRAWOOPS, 0);
-		allqueue(REDRAWIPO, 0);
 	}
 	else return 1;
 	
@@ -1870,7 +1852,6 @@ static int tree_element_active_defgroup(Scene *scene, TreeElement *te, TreeStore
 	if(set) {
 		ob->actdef= te->index+1;
 		DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
-		allqueue(REDRAWVIEW3D, ob->ipowin);
 	}
 	else {
 		if(ob==OBACT)
@@ -1886,7 +1867,6 @@ static int tree_element_active_posegroup(Scene *scene, TreeElement *te, TreeStor
 	if(set) {
 		if (ob->pose) {
 			ob->pose->active_group= te->index+1;
-			allqueue(REDRAWBUTSEDIT, 0);
 		}
 	}
 	else {
@@ -1909,9 +1889,6 @@ static int tree_element_active_posechannel(Scene *scene, TreeElement *te, TreeSt
 //			else deselectall_posearmature(ob, 0, 0);	// 0 = deselect 
 			pchan->bone->flag |= BONE_SELECTED|BONE_ACTIVE;
 			
-			allqueue(REDRAWVIEW3D, 0);
-			allqueue(REDRAWOOPS, 0);
-			allqueue(REDRAWACTION, 0);
 		}
 	}
 	else {
@@ -1933,9 +1910,6 @@ static int tree_element_active_bone(Scene *scene, TreeElement *te, TreeStoreElem
 //			else deselectall_posearmature(OBACT, 0, 0);
 			bone->flag |= BONE_SELECTED|BONE_ACTIVE;
 			
-			allqueue(REDRAWVIEW3D, 0);
-			allqueue(REDRAWOOPS, 0);
-			allqueue(REDRAWACTION, 0);
 		}
 	}
 	else {
@@ -1965,9 +1939,6 @@ static int tree_element_active_ebone(TreeElement *te, TreeStoreElem *tselem, int
 			// flush to parent?
 			if(ebone->parent && (ebone->flag & BONE_CONNECTED)) ebone->parent->flag |= BONE_TIPSEL;
 			
-			allqueue(REDRAWVIEW3D, 0);
-			allqueue(REDRAWOOPS, 0);
-			allqueue(REDRAWACTION, 0);
 		}
 	}
 	else {
@@ -2053,7 +2024,6 @@ static int tree_element_active_sequence(TreeElement *te, TreeStoreElem *tselem, 
 
 	if(set) {
 // XXX		select_single_seq(seq, 1);
-		allqueue(REDRAWSEQ, 0);
 	}
 	else {
 		if(seq->flag & SELECT)
@@ -2086,7 +2056,6 @@ static int tree_element_active_sequence_dup(Scene *scene, TreeElement *te, TreeS
 // XXX			select_single_seq(p, 0);
 		p= p->next;
 	}
-	allqueue(REDRAWSEQ, 0);
 	return(0);
 }
 
@@ -2917,7 +2886,6 @@ static void sequence_cb(int event, TreeElement *te, TreeStoreElem *tselem)
 //	Sequence *seq= (Sequence*) te->directdata;
 	if(event==1) {
 // XXX		select_single_seq(seq, 1);
-		allqueue(REDRAWSEQ, 0);
 	}
 }
 
@@ -2950,7 +2918,6 @@ void outliner_del(Scene *scene, ARegion *ar, SpaceOops *soops)
 //		DAG_scene_sort(scene);
 //		BIF_undo_push("Delete Objects");
 //	}
-//	allqueue(REDRAWALL, 0);	
 }
 
 
@@ -3005,7 +2972,6 @@ void outliner_operation_menu(Scene *scene, ARegion *ar, SpaceOops *soops)
 			}
 			
 			BIF_undo_push(str);
-			allqueue(REDRAWALL, 0);
 		}
 	}
 	else if(idlevel) {
@@ -3023,11 +2989,9 @@ void outliner_operation_menu(Scene *scene, ARegion *ar, SpaceOops *soops)
 					case ID_MA:
 						outliner_do_libdata_operation(soops, &soops->tree, unlink_material_cb);
 						BIF_undo_push("Unlink material");
-						allqueue(REDRAWBUTSSHADING, 1);
 						break;
 					case ID_TE:
 						outliner_do_libdata_operation(soops, &soops->tree, unlink_texture_cb);
-						allqueue(REDRAWBUTSSHADING, 1);
 						BIF_undo_push("Unlink texture");
 						break;
 					case ID_GR:
@@ -3037,12 +3001,10 @@ void outliner_operation_menu(Scene *scene, ARegion *ar, SpaceOops *soops)
 					default:
 						error("Not yet...");
 				}
-				allqueue(REDRAWALL, 0);
 			}
 			else if(event==2) {
 				outliner_do_libdata_operation(soops, &soops->tree, id_local_cb);
 				BIF_undo_push("Localized Data");
-				allqueue(REDRAWALL, 0); 
 			}
 			else if(event==3 && idlevel==ID_GR) {
 				outliner_do_libdata_operation(soops, &soops->tree, group_linkobs2scene_cb);
@@ -3081,9 +3043,6 @@ void outliner_operation_menu(Scene *scene, ARegion *ar, SpaceOops *soops)
 				}
 			}
 
-			allqueue(REDRAWOOPS, 0);
-			allqueue(REDRAWBUTSALL, 0);
-			allqueue(REDRAWVIEW3D, 0);
 		}
 	}
 }
@@ -3969,8 +3928,6 @@ static void restrictbutton_view_cb(bContext *C, void *poin, void *poin2)
 		}
 	}
 
-	allqueue(REDRAWOOPS, 0);
-	allqueue(REDRAWVIEW3D, 0);
 }
 
 static void restrictbutton_sel_cb(bContext *C, void *poin, void *poin2)
@@ -3992,21 +3949,15 @@ static void restrictbutton_sel_cb(bContext *C, void *poin, void *poin2)
 		}
 	}
 
-	allqueue(REDRAWOOPS, 0);
-	allqueue(REDRAWVIEW3D, 0);
 }
 
 static void restrictbutton_rend_cb(bContext *C, void *poin, void *poin2)
 {
-	allqueue(REDRAWOOPS, 0);
-	allqueue(REDRAWVIEW3D, 0);
 }
 
 static void restrictbutton_r_lay_cb(bContext *C, void *poin, void *poin2)
 {
-	allqueue(REDRAWOOPS, 0);
-	allqueue(REDRAWNODE, 0);
-	allqueue(REDRAWBUTSSCENE, 0);
+	/* XXX redraws */
 }
 
 static void restrictbutton_modifier_cb(bContext *C, void *poin, void *poin2)
@@ -4017,17 +3968,11 @@ static void restrictbutton_modifier_cb(bContext *C, void *poin, void *poin2)
 	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
 	object_handle_update(scene, ob);
 
-	allqueue(REDRAWOOPS, 0);
-	allqueue(REDRAWVIEW3D, 0);
-	allqueue(REDRAWBUTSEDIT, 0);
-	allqueue(REDRAWBUTSOBJECT, 0);
 }
 
 static void restrictbutton_bone_cb(bContext *C, void *poin, void *poin2)
 {
-	allqueue(REDRAWOOPS, 0);
-	allqueue(REDRAWVIEW3D, 0);
-	allqueue(REDRAWBUTSEDIT, 0);
+	/* XXX redraws */
 }
 
 static void namebutton_cb(bContext *C, void *tep, void *oldnamep)
@@ -4057,7 +4002,6 @@ static void namebutton_cb(bContext *C, void *tep, void *oldnamep)
 			switch(tselem->type) {
 			case TSE_DEFGROUP:
 				unique_vertexgroup_name(te->directdata, (Object *)tselem->id); //	id = object
-				allqueue(REDRAWBUTSEDIT, 0);
 				break;
 			case TSE_NLA_ACTION:
 				test_idbutton(tselem->id->name+2);
@@ -4074,9 +4018,6 @@ static void namebutton_cb(bContext *C, void *tep, void *oldnamep)
 					BLI_strncpy(ebone->name, oldnamep, 32);
 // XXX					armature_bone_rename(obedit->data, oldnamep, newname);
 				}
-				allqueue(REDRAWOOPS, 0);
-				allqueue(REDRAWVIEW3D, 1);
-				allqueue(REDRAWBUTSEDIT, 0);
 			}
 				break;
 
@@ -4095,9 +4036,6 @@ static void namebutton_cb(bContext *C, void *tep, void *oldnamep)
 					BLI_strncpy(bone->name, oldnamep, 32);
 // XXX					armature_bone_rename(ob->data, oldnamep, newname);
 				}
-				allqueue(REDRAWOOPS, 0);
-				allqueue(REDRAWVIEW3D, 1);
-				allqueue(REDRAWBUTSEDIT, 0);
 				break;
 			case TSE_POSE_CHANNEL:
 				{
@@ -4114,9 +4052,6 @@ static void namebutton_cb(bContext *C, void *tep, void *oldnamep)
 					BLI_strncpy(pchan->name, oldnamep, 32);
 // XXX					armature_bone_rename(ob->data, oldnamep, newname);
 				}
-				allqueue(REDRAWOOPS, 0);
-				allqueue(REDRAWVIEW3D, 1);
-				allqueue(REDRAWBUTSEDIT, 0);
 				break;
 			case TSE_POSEGRP:
 				{
@@ -4124,12 +4059,9 @@ static void namebutton_cb(bContext *C, void *tep, void *oldnamep)
 					bActionGroup *grp= te->directdata;
 					
 					BLI_uniquename(&ob->pose->agroups, grp, "Group", offsetof(bActionGroup, name), 32);
-					allqueue(REDRAWBUTSEDIT, 0);
 				}
 				break;
 			case TSE_R_LAYER:
-				allqueue(REDRAWOOPS, 0);
-				allqueue(REDRAWBUTSSCENE, 0);
 				break;
 			}
 		}
@@ -4151,17 +4083,17 @@ static void outliner_draw_restrictbuts(uiBlock *block, Scene *scene, ARegion *ar
 				ob = (Object *)tselem->id;
 				
 				uiBlockSetEmboss(block, UI_EMBOSSN);
-				bt= uiDefIconButBitS(block, ICONTOG, OB_RESTRICT_VIEW, REDRAWALL, ICON_RESTRICT_VIEW_OFF, 
+				bt= uiDefIconButBitS(block, ICONTOG, OB_RESTRICT_VIEW, 0, ICON_RESTRICT_VIEW_OFF, 
 						(int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_VIEWX, (short)te->ys, 17, OL_H-1, &(ob->restrictflag), 0, 0, 0, 0, "Restrict/Allow visibility in the 3D View");
 				uiButSetFunc(bt, restrictbutton_view_cb, scene, ob);
 				uiButSetFlag(bt, UI_NO_HILITE);
 				
-				bt= uiDefIconButBitS(block, ICONTOG, OB_RESTRICT_SELECT, REDRAWALL, ICON_RESTRICT_SELECT_OFF, 
+				bt= uiDefIconButBitS(block, ICONTOG, OB_RESTRICT_SELECT, 0, ICON_RESTRICT_SELECT_OFF, 
 						(int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_SELECTX, (short)te->ys, 17, OL_H-1, &(ob->restrictflag), 0, 0, 0, 0, "Restrict/Allow selection in the 3D View");
 				uiButSetFunc(bt, restrictbutton_sel_cb, scene, ob);
 				uiButSetFlag(bt, UI_NO_HILITE);
 				
-				bt= uiDefIconButBitS(block, ICONTOG, OB_RESTRICT_RENDER, REDRAWALL, ICON_RESTRICT_RENDER_OFF, 
+				bt= uiDefIconButBitS(block, ICONTOG, OB_RESTRICT_RENDER, 0, ICON_RESTRICT_RENDER_OFF, 
 						(int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_RENDERX, (short)te->ys, 17, OL_H-1, &(ob->restrictflag), 0, 0, 0, 0, "Restrict/Allow renderability");
 				uiButSetFunc(bt, restrictbutton_rend_cb, NULL, NULL);
 				uiButSetFlag(bt, UI_NO_HILITE);
@@ -4172,7 +4104,7 @@ static void outliner_draw_restrictbuts(uiBlock *block, Scene *scene, ARegion *ar
 			else if(tselem->type==TSE_R_LAYER) {
 				uiBlockSetEmboss(block, UI_EMBOSSN);
 				
-				bt= uiDefIconButBitI(block, ICONTOGN, SCE_LAY_DISABLE, REDRAWBUTSSCENE, ICON_CHECKBOX_HLT-1, 
+				bt= uiDefIconButBitI(block, ICONTOGN, SCE_LAY_DISABLE, 0, ICON_CHECKBOX_HLT-1, 
 									 (int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_VIEWX, (short)te->ys, 17, OL_H-1, te->directdata, 0, 0, 0, 0, "Render this RenderLayer");
 				uiButSetFunc(bt, restrictbutton_r_lay_cb, NULL, NULL);
 				
@@ -4183,13 +4115,13 @@ static void outliner_draw_restrictbuts(uiBlock *block, Scene *scene, ARegion *ar
 				uiBlockSetEmboss(block, UI_EMBOSSN);
 				
 				/* NOTE: tselem->nr is short! */
-				bt= uiDefIconButBitI(block, ICONTOG, tselem->nr, REDRAWBUTSSCENE, ICON_CHECKBOX_HLT-1, 
+				bt= uiDefIconButBitI(block, ICONTOG, tselem->nr, 0, ICON_CHECKBOX_HLT-1, 
 									 (int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_VIEWX, (short)te->ys, 17, OL_H-1, layflag, 0, 0, 0, 0, "Render this Pass");
 				uiButSetFunc(bt, restrictbutton_r_lay_cb, NULL, NULL);
 				
 				layflag++;	/* is lay_xor */
 				if(ELEM6(tselem->nr, SCE_PASS_SPEC, SCE_PASS_SHADOW, SCE_PASS_AO, SCE_PASS_REFLECT, SCE_PASS_REFRACT, SCE_PASS_RADIO))
-					bt= uiDefIconButBitI(block, TOG, tselem->nr, REDRAWBUTSSCENE, (*layflag & tselem->nr)?ICON_DOT:ICON_BLANK1, 
+					bt= uiDefIconButBitI(block, TOG, tselem->nr, 0, (*layflag & tselem->nr)?ICON_DOT:ICON_BLANK1, 
 									 (int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_SELECTX, (short)te->ys, 17, OL_H-1, layflag, 0, 0, 0, 0, "Exclude this Pass from Combined");
 				uiButSetFunc(bt, restrictbutton_r_lay_cb, NULL, NULL);
 				
@@ -4200,12 +4132,12 @@ static void outliner_draw_restrictbuts(uiBlock *block, Scene *scene, ARegion *ar
 				ob = (Object *)tselem->id;
 				
 				uiBlockSetEmboss(block, UI_EMBOSSN);
-				bt= uiDefIconButBitI(block, ICONTOGN, eModifierMode_Realtime, REDRAWALL, ICON_RESTRICT_VIEW_OFF, 
+				bt= uiDefIconButBitI(block, ICONTOGN, eModifierMode_Realtime, 0, ICON_RESTRICT_VIEW_OFF, 
 						(int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_VIEWX, (short)te->ys, 17, OL_H-1, &(md->mode), 0, 0, 0, 0, "Restrict/Allow visibility in the 3D View");
 				uiButSetFunc(bt, restrictbutton_modifier_cb, scene, ob);
 				uiButSetFlag(bt, UI_NO_HILITE);
 				
-				bt= uiDefIconButBitI(block, ICONTOGN, eModifierMode_Render, REDRAWALL, ICON_RESTRICT_RENDER_OFF, 
+				bt= uiDefIconButBitI(block, ICONTOGN, eModifierMode_Render, 0, ICON_RESTRICT_RENDER_OFF, 
 						(int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_RENDERX, (short)te->ys, 17, OL_H-1, &(md->mode), 0, 0, 0, 0, "Restrict/Allow renderability");
 				uiButSetFunc(bt, restrictbutton_modifier_cb, scene, ob);
 				uiButSetFlag(bt, UI_NO_HILITE);
@@ -4215,7 +4147,7 @@ static void outliner_draw_restrictbuts(uiBlock *block, Scene *scene, ARegion *ar
 				Bone *bone = pchan->bone;
 
 				uiBlockSetEmboss(block, UI_EMBOSSN);
-				bt= uiDefIconButBitI(block, ICONTOG, BONE_HIDDEN_P, REDRAWALL, ICON_RESTRICT_VIEW_OFF, 
+				bt= uiDefIconButBitI(block, ICONTOG, BONE_HIDDEN_P, 0, ICON_RESTRICT_VIEW_OFF, 
 						(int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_VIEWX, (short)te->ys, 17, OL_H-1, &(bone->flag), 0, 0, 0, 0, "Restrict/Allow visibility in the 3D View");
 				uiButSetFunc(bt, restrictbutton_bone_cb, NULL, NULL);
 				uiButSetFlag(bt, UI_NO_HILITE);
@@ -4224,7 +4156,7 @@ static void outliner_draw_restrictbuts(uiBlock *block, Scene *scene, ARegion *ar
 				EditBone *ebone= (EditBone *)te->directdata;
 
 				uiBlockSetEmboss(block, UI_EMBOSSN);
-				bt= uiDefIconButBitI(block, ICONTOG, BONE_HIDDEN_A, REDRAWALL, ICON_RESTRICT_VIEW_OFF, 
+				bt= uiDefIconButBitI(block, ICONTOG, BONE_HIDDEN_A, 0, ICON_RESTRICT_VIEW_OFF, 
 						(int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_VIEWX, (short)te->ys, 17, OL_H-1, &(ebone->flag), 0, 0, 0, 0, "Restrict/Allow visibility in the 3D View");
 				uiButSetFunc(bt, restrictbutton_bone_cb, NULL, NULL);
 				uiButSetFlag(bt, UI_NO_HILITE);

@@ -767,7 +767,7 @@ void node_header_buttons(const bContext *C, ARegion *ar)
 		xco+= 100;
 		uiDefButBitI(block, TOG, R_COMP_FREE, B_NOP, "Free Unused", xco+5,yco,100,19, &scene->r.scemode, 0.0f, 0.0f, 0, 0, "Free Nodes that are not used while composite");
 		xco+= 100;
-		uiDefButBitS(block, TOG, SNODE_BACKDRAW, REDRAWNODE, "Backdrop", xco+5,yco,90,19, &snode->flag, 0.0f, 0.0f, 0, 0, "Use active Viewer Node output as backdrop");
+		uiDefButBitS(block, TOG, SNODE_BACKDRAW, B_REDR, "Backdrop", xco+5,yco,90,19, &snode->flag, 0.0f, 0.0f, 0, 0, "Use active Viewer Node output as backdrop");
 		xco+= 90;
 	}
 	else if(snode->treetype==NTREE_TEXTURE) {
