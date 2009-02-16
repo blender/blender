@@ -819,10 +819,18 @@ void MESH_OT_extrude_repeat(wmOperatorType *ot)
 	RNA_def_int(ot->srna, "steps", 10, 0, 180, "Steps", "", 0, INT_MAX);
 }
 	
-void spin_mesh(View3D *v3d, Object *obedit, EditMesh *em, wmOperator *op, int steps, float degr, float *dvec, int mode)
+void spin_mesh(bContext *C, wmOperator *op,float *dvec )
 {
-	Scene *scene= NULL; // XXX from context!
-	RegionView3D *rv3d= NULL; // XXX from context
+	Object *obedit= CTX_data_edit_object(C);
+	View3D *v3d = CTX_wm_view3d(C);
+	Scene *scene = CTX_data_scene(C);
+	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
+	
+	int steps = RNA_int_get(op->ptr,"steps");
+	float degr = RNA_float_get(op->ptr,"degrees");
+	int mode = RNA_int_get(op->ptr,"steps");
+	
+	RegionView3D *rv3d= CTX_wm_region_view3d(C);
 	EditVert *eve,*nextve;
 	float nor[3]= {0.0, 0.0, 0.0};
 	float *curs, si,n[3],q[4],cmat[3][3],imat[3][3], tmat[3][3];
@@ -834,7 +842,7 @@ void spin_mesh(View3D *v3d, Object *obedit, EditMesh *em, wmOperator *op, int st
 	Mat3CpyMat4(bmat, obedit->obmat);
 	Mat3Inv(imat,bmat);
 
-	curs= give_cursor(NULL, v3d); // XXX
+	curs= give_cursor(scene, v3d);
 	VECCOPY(cent, curs);
 	cent[0]-= obedit->obmat[3][0];
 	cent[1]-= obedit->obmat[3][1];
@@ -903,9 +911,44 @@ void spin_mesh(View3D *v3d, Object *obedit, EditMesh *em, wmOperator *op, int st
 
 }
 
-void screw_mesh(Object *obedit, EditMesh *em, wmOperator *op, int steps, int turns)
+static int spin_mesh_exec(bContext *C, wmOperator *op)
 {
-	View3D *v3d= NULL; // XXX
+	Object *obedit= CTX_data_edit_object(C);
+	
+	spin_mesh(C, op,NULL);
+	
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	
+	return OPERATOR_FINISHED;
+}
+
+void MESH_OT_spin(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Spin";
+	ot->idname= "MESH_OT_spin";
+	
+	/* api callbacks */
+	ot->exec= spin_mesh_exec;
+	ot->poll= ED_operator_editmesh;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/*props */
+	//int steps, float degr, float *dvec, int mode
+	
+	RNA_def_int(ot->srna, "steps", 5, 0, INT_MAX, "Steps", "Steps", 0, INT_MAX);
+	RNA_def_int(ot->srna, "mode", 5, 0, INT_MAX, "Mode", "Mode", 0, INT_MAX);
+	RNA_def_float(ot->srna, "degrees", 5.0f, 0.0f, FLT_MAX, "Degrees", "Degrees", 0.0f, FLT_MAX);
+	//RNA_def_enum(ot->srna, "type", prop_mesh_delete_types, 10, "Type", "Method used for deleting mesh data");
+}
+
+void screw_mesh(bContext *C, wmOperator *op, int steps, int turns)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
+	
 	EditVert *eve,*v1=0,*v2=0;
 	EditEdge *eed;
 	float dvec[3], nor[3];
@@ -959,7 +1002,8 @@ void screw_mesh(Object *obedit, EditMesh *em, wmOperator *op, int steps, int tur
 		dvec[2]= -dvec[2];
 	}
 
-	spin_mesh(v3d, obedit, em, op, turns*steps, turns*360, dvec, 0);
+	//TODO : set : turns*steps, turns*360,0
+	spin_mesh(C, op,  dvec);
 
 }
 
