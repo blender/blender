@@ -197,7 +197,7 @@
 #define ISKEYBOARD(event)	(event >='a' && event <=255)
 
 
-/* **************** BLENDER QUEUE EVENTS ********************* */
+/* **************** XXX depricated! BLENDER QUEUE EVENTS ********************* */
 
 #define CHANGED				0x4000
 #define DRAWEDGES			0x4001
@@ -211,7 +211,6 @@
 #define AUTOSAVE_FILE		0x4009
 #define UNDOPUSH			0x400A
 
-/* REDRAWVIEW3D has to be the first one (lowest number) for buttons! */
 #define REDRAWVIEW3D		0x4010
 #define REDRAWVIEWCAM		0x4011
 #define REDRAWVIEW3D_Z		0x4012
@@ -292,6 +291,18 @@
 #define EVT_GESTURE_S_W		14
 #define EVT_GESTURE_W_S		15
 #define EVT_GESTURE_W_N		16
+
+/* **************** OTHER BLENDER EVENTS ********************* */
+
+/* event->type */
+#define EVT_FILESELECT	0x5020
+
+/* event->val */
+#define EVT_FILESELECT_OPEN			1
+#define EVT_FILESELECT_FULL_OPEN	2
+#define EVT_FILESELECT_EXEC			3
+#define EVT_FILESELECT_CANCEL		4	
+
 
 #endif	/* WM_EVENT_TYPES_H */
 

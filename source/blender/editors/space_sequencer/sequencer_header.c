@@ -146,7 +146,7 @@ static uiBlock *seq_viewmenu(bContext *C, ARegion *ar, void *arg_unused)
 //static uiBlock *seq_selectmenu(bContext *C, ARegion *ar, void *arg_unused)
 static void seq_selectmenu(bContext *C, uiMenuItem *head, void *arg_unused)
 {
-	uiMenuContext(head, WM_OP_INVOKE_DEFAULT);
+	uiMenuContext(head, WM_OP_INVOKE_REGION_WIN);
 
 	uiMenuItemEnumO(head, "Strips to the Left", 0, "SEQUENCER_OT_select_active_side", "side", SEQ_SIDE_LEFT);
 	uiMenuItemEnumO(head, "Strips to the Right", 0, "SEQUENCER_OT_select_active_side", "side", SEQ_SIDE_RIGHT);
@@ -212,7 +212,7 @@ static uiBlock *seq_markermenu(bContext *C, ARegion *ar, void *arg_unused)
 //static uiBlock *seq_addmenu_effectmenu(bContext *C, ARegion *ar, void *arg_unused)
 static void seq_addmenu_effectmenu(bContext *C, uiMenuItem *head, void *arg_unused)
 {
-	uiMenuContext(head, WM_OP_INVOKE_DEFAULT);
+	uiMenuContext(head, WM_OP_INVOKE_REGION_WIN);
 	
 	uiMenuItemEnumO(head, "", 0, "SEQUENCER_OT_add_effect_strip", "type", SEQ_ADD);
 	uiMenuItemEnumO(head, "", 0, "SEQUENCER_OT_add_effect_strip", "type", SEQ_SUB);
@@ -238,7 +238,7 @@ static void seq_addmenu(bContext *C, uiMenuItem *head, void *arg_unused)
 	uiMenuLevel(head, "Effects...", seq_addmenu_effectmenu);
 	uiMenuSeparator(head);
 
-	uiMenuContext(head, WM_OP_INVOKE_DEFAULT);
+	uiMenuContext(head, WM_OP_INVOKE_REGION_WIN);
 
 #ifdef WITH_FFMPEG
 	uiMenuItemBooleanO(head, "Audio (RAM)", 0, "SEQUENCER_OT_add_sound_strip", "hd", FALSE);
@@ -263,7 +263,7 @@ static void seq_editmenu(bContext *C, uiMenuItem *head, void *arg_unused)
 	Scene *scene= CTX_data_scene(C);
 	Editing *ed= seq_give_editing(scene, FALSE);
 	
-	uiMenuContext(head, WM_OP_INVOKE_DEFAULT);
+	uiMenuContext(head, WM_OP_INVOKE_REGION_WIN);
 
 	uiMenuItemEnumO(head, "", 0, "TFM_OT_transform", "mode", TFM_TRANSLATION);
 	uiMenuItemEnumO(head, "", 0, "TFM_OT_transform", "mode", TFM_TIME_EXTEND);

@@ -125,10 +125,6 @@ static void file_free(SpaceLink *sl)
 		MEM_freeN(sfile->params);
 		sfile->params= NULL;
 	}
-	
-	if (sfile->op) {
-		WM_operator_free(sfile->op);
-	}
 }
 
 

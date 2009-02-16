@@ -53,7 +53,6 @@
 #include "BIF_glutil.h" /* for paint cursor */
 #include "IMB_imbuf_types.h"
 
-#include "ED_fileselect.h"
 #include "ED_screen.h"
 
 #include "RNA_access.h"
@@ -235,17 +234,9 @@ int WM_operator_filesel(bContext *C, wmOperator *op, wmEvent *event)
 {
 	if (RNA_property_is_set(op->ptr, "filename")) {
 		return WM_operator_call(C, op);
-	} else {
-		SpaceFile *sfile;
-
-		ED_screen_full_newspace(C, CTX_wm_area(C), SPACE_FILE);
-		
-		/* settings for filebrowser */
-		sfile= (SpaceFile*)CTX_wm_space_data(C);
-		sfile->op = op;
-		ED_fileselect_set_params(sfile, FILE_BLENDER, op->type->name, "", 0, 0, 0);
-
-		/* screen and area have been reset already in ED_screen_full_newspace */
+	} 
+	else {
+		WM_event_add_fileselect(C, op);
 		return OPERATOR_RUNNING_MODAL;
 	}
 }
@@ -368,18 +359,9 @@ static void untitled(char *name)
 
 static int wm_mainfile_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	SpaceFile *sfile;
-	
-	if(0==ED_screen_full_newspace(C, CTX_wm_area(C), SPACE_FILE))
-		return OPERATOR_CANCELLED;
 
-	/* settings for filebrowser */
-	sfile= (SpaceFile*)CTX_wm_space_data(C);
-	sfile->op = op;
-	
-	ED_fileselect_set_params(sfile, FILE_BLENDER, "Load", G.sce, 0, 0, 0);
-
-	/* screen and area have been reset already in ED_screen_full_newspace */
+	RNA_string_set(op->ptr, "filename", G.sce);
+	WM_event_add_fileselect(C, op);
 
 	return OPERATOR_RUNNING_MODAL;
 }
@@ -415,20 +397,13 @@ static void WM_OT_open_mainfile(wmOperatorType *ot)
 
 static int wm_save_as_mainfile_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	SpaceFile *sfile;
 	char name[FILE_MAX];
-	
-	ED_screen_full_newspace(C, CTX_wm_area(C), SPACE_FILE);
-
-	/* settings for filebrowser */
-	sfile= (SpaceFile*)CTX_wm_space_data(C);
-	sfile->op = op;
 	
 	BLI_strncpy(name, G.sce, FILE_MAX);
 	untitled(name);
-	ED_fileselect_set_params(sfile, FILE_BLENDER, "Save As", name, 0, 0, 0);
-
-	/* screen and area have been reset already in ED_screen_full_newspace */
+	RNA_string_set(op->ptr, "filename", name);
+	
+	WM_event_add_fileselect(C, op);
 
 	return OPERATOR_RUNNING_MODAL;
 }

@@ -457,11 +457,8 @@ int file_cancel_exec(bContext *C, wmOperator *unused)
 {
 	SpaceFile *sfile= (SpaceFile*)CTX_wm_space_data(C);
 	
-	if(sfile->op) {
-		WM_operator_free(sfile->op);
-		sfile->op = NULL;
-	}
-	ED_screen_full_prevspace(C);
+	WM_event_fileselect_event(C, sfile->op, EVT_FILESELECT_CANCEL);
+	sfile->op = NULL;
 	
 	return OPERATOR_FINISHED;
 }
@@ -477,34 +474,21 @@ void FILE_OT_cancel(struct wmOperatorType *ot)
 	ot->poll= ED_operator_file_active;
 }
 
-
+/* sends events now, so things get handled on windowqueue level */
 int file_exec(bContext *C, wmOperator *unused)
 {
 	SpaceFile *sfile= (SpaceFile*)CTX_wm_space_data(C);
 	char name[FILE_MAX];
 	
-	ED_screen_full_prevspace(C);
-	
 	if(sfile->op) {
 		wmOperator *op= sfile->op;
-		
-		/* if load .blend, all UI pointers after exec are invalid! */
-		/* but, operator can be freed still */
 		
 		sfile->op = NULL;
 		BLI_strncpy(name, sfile->params->dir, sizeof(name));
 		strcat(name, sfile->params->file);
 		RNA_string_set(op->ptr, "filename", name);
 		
-		/* a bit weak, might become arg for ED_fileselect? */
-		if(strncmp(sfile->params->title, "Save", 4)==0) {
-			/* this gives ownership to pupmenu */
-			uiPupMenuSaveOver(C, op, name);
-		}
-		else {
-			op->type->exec(C, op);
-			WM_operator_free(op);
-		}
+		WM_event_fileselect_event(C, op, EVT_FILESELECT_EXEC);
 	}
 				
 	return OPERATOR_FINISHED;

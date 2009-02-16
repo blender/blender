@@ -63,7 +63,6 @@
 #include "RNA_types.h"
 
 #include "ED_image.h"
-#include "ED_fileselect.h"
 #include "ED_screen.h"
 #include "ED_space_api.h"
 #include "ED_uvedit.h"
@@ -591,18 +590,8 @@ static char *filesel_imagetype_string(Image *ima)
 
 static void image_filesel(bContext *C, wmOperator *op, const char *path)
 {
-	SpaceFile *sfile;
-
-	// XXX context is not set back ok afterwards
-	// ED_screen_full_newspace(C, CTX_wm_area(C), SPACE_FILE);
-	ED_area_newspace(C, CTX_wm_area(C), SPACE_FILE);
-	
-	/* settings for filebrowser */
-	sfile= (SpaceFile*)CTX_wm_space_data(C);
-	sfile->op= op;
-
-	/* XXX right params for image save, with pupmenu and image type .. */
-	ED_fileselect_set_params(sfile, FILE_SPECIAL, op->type->name, path, 0, 0, 0);
+	RNA_string_set(op->ptr, "filename", path);
+	WM_event_add_fileselect(C, op); 
 }
 
 /******************** open image operator ********************/
@@ -834,6 +823,7 @@ static int save_as_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			sima->imtypenr= BKE_ftype_to_imtype(ibuf->ftype);
 		
 		// XXX activate_fileselect_menu(FILE_SPECIAL, "Save Image", name, strp, &sima->imtypenr, save_image_doit);
+		// XXX note: we can give default menu enums to operator for this 
 		
 		image_filesel(C, op, ima->name);
 
