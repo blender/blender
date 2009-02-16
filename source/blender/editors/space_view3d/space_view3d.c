@@ -138,7 +138,8 @@ static SpaceLink *view3d_new(const bContext *C)
 	
 	BLI_addtail(&v3d->regionbase, ar);
 	ar->regiontype= RGN_TYPE_UI;
-	ar->alignment= RGN_OVERLAP_LEFT;
+	ar->alignment= RGN_ALIGN_LEFT;
+	ar->flag = RGN_FLAG_HIDDEN;
 	
 	/* main area */
 	ar= MEM_callocN(sizeof(ARegion), "main area for view3d");

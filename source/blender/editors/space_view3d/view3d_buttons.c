@@ -1515,6 +1515,7 @@ static int view3d_properties(bContext *C, wmOperator *op)
 	
 	if(ar) {
 		ar->flag ^= RGN_FLAG_HIDDEN;
+		ar->v2d.flag &= ~V2D_IS_INITIALISED; /* XXX should become hide/unhide api? */
 		
 		ED_area_initialize(CTX_wm_manager(C), CTX_wm_window(C), sa);
 		ED_area_tag_redraw(sa);

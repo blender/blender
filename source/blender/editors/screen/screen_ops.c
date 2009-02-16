@@ -1627,6 +1627,7 @@ static int region_foursplit_exec(bContext *C, wmOperator *op)
 		if(sa->spacetype==SPACE_VIEW3D) {
 			RegionView3D *rv3d= ar->regiondata;
 			rv3d->viewlock= 0;
+			rv3d->rflag &= ~RV3D_CLIPPING;
 		}
 		
 		for(ar= sa->regionbase.first; ar; ar= arn) {

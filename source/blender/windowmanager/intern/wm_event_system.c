@@ -468,22 +468,26 @@ static void wm_handler_op_context(bContext *C, wmEventHandler *handler)
 	bScreen *screen= CTX_wm_screen(C);
 	
 	if(screen && handler->op) {
-		ScrArea *sa;
-		
-		for(sa= screen->areabase.first; sa; sa= sa->next)
-			if(sa==handler->op_area)
-				break;
-		if(sa==NULL)
-			printf("internal error: handler (%s) has invalid area\n", handler->op->type->idname);
+		if(handler->op_area==NULL)
+			CTX_wm_area_set(C, NULL);
 		else {
-			ARegion *ar;
-			CTX_wm_area_set(C, sa);
-			for(ar= sa->regionbase.first; ar; ar= ar->next)
-				if(ar==handler->op_region)
+			ScrArea *sa;
+			
+			for(sa= screen->areabase.first; sa; sa= sa->next)
+				if(sa==handler->op_area)
 					break;
-			/* XXX no warning print here, after full-area and back regions are remade */
-			if(ar)
-				CTX_wm_region_set(C, ar);
+			if(sa==NULL)
+				printf("internal error: handler (%s) has invalid area\n", handler->op->type->idname);
+			else {
+				ARegion *ar;
+				CTX_wm_area_set(C, sa);
+				for(ar= sa->regionbase.first; ar; ar= ar->next)
+					if(ar==handler->op_region)
+						break;
+				/* XXX no warning print here, after full-area and back regions are remade */
+				if(ar)
+					CTX_wm_region_set(C, ar);
+			}
 		}
 	}
 }
