@@ -1203,7 +1203,7 @@ static void poselib_preview_cleanup (Scene *scene, tPoseLib_PreviewData *pld)
 		DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
 		
 		/* updates */
-		if (IS_AUTOKEY_MODE(NORMAL)) {
+		if (IS_AUTOKEY_MODE(scene, NORMAL)) {
 			remake_action_ipos(ob->action);
 			
 		}

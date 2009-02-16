@@ -4086,69 +4086,33 @@ static void clear_trans_object_base_flags(TransInfo *t)
 }
 
 /* auto-keyframing feature - checks for whether anything should be done for the current frame */
-short autokeyframe_cfra_can_key(Object *ob)
+// TODO: this should probably be done per channel instead...
+short autokeyframe_cfra_can_key(Scene *scene, Object *ob)
 {
-#if 0 // TRANSFORM_FIX_ME
-	ListBase keys = {NULL, NULL};
-	ActKeyColumn *ak;
-	float cfra;
-	short found= 0;
+	float cfra= (float)CFRA; // XXX for now, this will do
 	
 	/* only filter if auto-key mode requires this */
-	if (IS_AUTOKEY_ON == 0)
+	if (IS_AUTOKEY_ON(scene) == 0)
 		return 0;
-	else if (IS_AUTOKEY_MODE(NORMAL)) 
+	else if (IS_AUTOKEY_MODE(scene, NORMAL)) 
 		return 1;
-	
-	/* sanity check */
-	if (ob == NULL) 
-		return 0;
-	
-	/* get keyframes that object has (bone anim is stored on ob too) */
-	if (ob->action)
-		action_to_keylist(ob->action, &keys, NULL, NULL);
-	else if (ob->ipo)
-		ipo_to_keylist(ob->ipo, &keys, NULL, NULL);
-	else
-		return 0;
-		
-	/* get current frame (will apply nla-scaling as necessary) */
-	// ack... this is messy...
-	cfra= frame_to_float(CFRA);
-	cfra= get_action_frame(ob, cfra);
-	
-	/* check if a keyframe occurs on current frame */
-	for (ak= keys.first; ak; ak= ak->next) {
-		if (IS_EQ(cfra, ak->cfra)) {
-			found= 1;
-			break;
-		}
-	}
-	
-	/* free temp list */
-	BLI_freelistN(&keys);
-	
-	return found;
-#endif
-return 0;
+	else 
+		return id_frame_has_keyframe(&ob->id, cfra, ANIMFILTER_KEYS_LOCAL);
 }
 
 /* auto-keyframing feature - for objects 
  * 	tmode: should be a transform mode 
  */
-void autokeyframe_ob_cb_func(Object *ob, int tmode)
+void autokeyframe_ob_cb_func(Scene *scene, View3D *v3d, Object *ob, int tmode)
 {
-#if 0 // TRANSFORM_FIX_ME
-	ID *id= (ID *)(ob);
-	IpoCurve *icu;
+	ID *id= &ob->id;
+	FCurve *fcu;
 	
-	if (autokeyframe_cfra_can_key(ob)) {
-		char *actname = NULL;
+	if (autokeyframe_cfra_can_key(scene, ob)) {
+		AnimData *adt= ob->adt;
+		float cfra= (float)CFRA; // xxx this will do for now
 		short flag = 0;
 		
-		if (ob->ipoflag & OB_ACTION_OB)
-			actname= "Object";
-			
 		if (IS_AUTOKEY_FLAG(INSERTNEEDED))
 			flag |= INSERTKEY_NEEDED;
 		if (IS_AUTOKEY_FLAG(AUTOMATKEY))
@@ -4156,22 +4120,10 @@ void autokeyframe_ob_cb_func(Object *ob, int tmode)
 		
 		if (IS_AUTOKEY_FLAG(INSERTAVAIL)) {
 			/* only key on available channels */
-			if ((ob->ipo) || (ob->action)) {
-				if (ob->action && actname) {
-					bActionChannel *achan;
-					achan= get_action_channel(ob->action, actname);
-					
-					if (achan && achan->ipo)
-						icu= achan->ipo->curve.first;
-					else
-						icu= NULL;
-				}
-				else 
-					icu= ob->ipo->curve.first;
-				
-				for (; icu; icu= icu->next) {
-					icu->flag &= ~IPO_SELECT;
-					insertkey(id, ID_OB, actname, NULL, icu->adrcode, flag);
+			if (adt && adt->action) {
+				for (fcu= adt->action->curves.first; fcu; fcu= fcu->next) {
+					fcu->flag &= ~FCURVE_SELECTED;
+					insertkey(id, ((fcu->grp)?(fcu->grp->name):(NULL)), fcu->rna_path, fcu->array_index, cfra, flag);
 				}
 			}
 		}
@@ -4183,88 +4135,85 @@ void autokeyframe_ob_cb_func(Object *ob, int tmode)
 				doLoc = 1;
 			}
 			else if (tmode == TFM_ROTATION) {
-				if (G.vd->around == V3D_ACTIVE) {
+				if (v3d->around == V3D_ACTIVE) {
 					if (ob != OBACT)
 						doLoc = 1;
 				}
-				else if (G.vd->around == V3D_CURSOR)
+				else if (v3d->around == V3D_CURSOR)
 					doLoc = 1;	
 				
-				if ((G.vd->flag & V3D_ALIGN)==0) 
+				if ((v3d->flag & V3D_ALIGN)==0) 
 					doRot = 1;
 			}
 			else if (tmode == TFM_RESIZE) {
-				if (G.vd->around == V3D_ACTIVE) {
+				if (v3d->around == V3D_ACTIVE) {
 					if (ob != OBACT)
 						doLoc = 1;
 				}
-				else if (G.vd->around == V3D_CURSOR)
+				else if (v3d->around == V3D_CURSOR)
 					doLoc = 1;	
 				
-				if ((G.vd->flag & V3D_ALIGN)==0)
+				if ((v3d->flag & V3D_ALIGN)==0)
 					doScale = 1;
 			}
 			
+			// TODO: the group names here are temporary...
+			// TODO: should this be made to use the builtin KeyingSets instead?
 			if (doLoc) {
-				insertkey(id, ID_OB, actname, NULL, OB_LOC_X, flag);
-				insertkey(id, ID_OB, actname, NULL, OB_LOC_Y, flag);
-				insertkey(id, ID_OB, actname, NULL, OB_LOC_Z, flag);
+				insertkey(id, "Object Transform", "location", 0, cfra, flag);
+				insertkey(id, "Object Transform", "location", 1, cfra, flag);
+				insertkey(id, "Object Transform", "location", 2, cfra, flag);
 			}
 			if (doRot) {
-				insertkey(id, ID_OB, actname, NULL, OB_ROT_X, flag);
-				insertkey(id, ID_OB, actname, NULL, OB_ROT_Y, flag);
-				insertkey(id, ID_OB, actname, NULL, OB_ROT_Z, flag);
+				insertkey(id, "Object Transform", "rotation", 0, cfra, flag);
+				insertkey(id, "Object Transform", "rotation", 1, cfra, flag);
+				insertkey(id, "Object Transform", "rotation", 2, cfra, flag);
 			}
 			if (doScale) {
-				insertkey(id, ID_OB, actname, NULL, OB_SIZE_X, flag);
-				insertkey(id, ID_OB, actname, NULL, OB_SIZE_Y, flag);
-				insertkey(id, ID_OB, actname, NULL, OB_SIZE_Z, flag);
+				insertkey(id, "Object Transform", "scale", 0, cfra, flag);
+				insertkey(id, "Object Transform", "scale", 1, cfra, flag);
+				insertkey(id, "Object Transform", "scale", 2, cfra, flag);
 			}
 		}
 		else {
-			insertkey(id, ID_OB, actname, NULL, OB_LOC_X, flag);
-			insertkey(id, ID_OB, actname, NULL, OB_LOC_Y, flag);
-			insertkey(id, ID_OB, actname, NULL, OB_LOC_Z, flag);
+			// TODO: the group names here are temporary...
+			// TODO: should this be made to use the builtin KeyingSets instead?
+			insertkey(id, "Object Transform", "location", 0, cfra, flag);
+			insertkey(id, "Object Transform", "location", 1, cfra, flag);
+			insertkey(id, "Object Transform", "location", 2, cfra, flag);
 			
-			insertkey(id, ID_OB, actname, NULL, OB_ROT_X, flag);
-			insertkey(id, ID_OB, actname, NULL, OB_ROT_Y, flag);
-			insertkey(id, ID_OB, actname, NULL, OB_ROT_Z, flag);
+			insertkey(id, "Object Transform", "rotation", 0, cfra, flag);
+			insertkey(id, "Object Transform", "rotation", 1, cfra, flag);
+			insertkey(id, "Object Transform", "rotation", 2, cfra, flag);
 			
-			insertkey(id, ID_OB, actname, NULL, OB_SIZE_X, flag);
-			insertkey(id, ID_OB, actname, NULL, OB_SIZE_Y, flag);
-			insertkey(id, ID_OB, actname, NULL, OB_SIZE_Z, flag);
+			insertkey(id, "Object Transform", "scale", 0, cfra, flag);
+			insertkey(id, "Object Transform", "scale", 1, cfra, flag);
+			insertkey(id, "Object Transform", "scale", 2, cfra, flag);
 		}
 		
-		remake_object_ipos(ob);
-		allqueue(REDRAWMARKER, 0);
-		allqueue(REDRAWOOPS, 0);
+		// XXX todo... find a way to send notifiers from here...
 	}
-#endif
 }
 
 /* auto-keyframing feature - for poses/pose-channels 
  * 	tmode: should be a transform mode 
  *	targetless_ik: has targetless ik been done on any channels?
  */
-void autokeyframe_pose_cb_func(Object *ob, int tmode, short targetless_ik)
+void autokeyframe_pose_cb_func(Scene *scene, View3D *v3d, Object *ob, int tmode, short targetless_ik)
 {
-#if 0 // TRANSFORM_FIX_ME	
-	ID *id= (ID *)(ob);
+	ID *id= &ob->id;
+	AnimData *adt= ob->adt;
 	bArmature *arm= ob->data;
-	bAction	*act;
-	bPose	*pose;
+	bAction	*act= (adt) ? adt->action : NULL;
+	bPose	*pose= ob->pose;
 	bPoseChannel *pchan;
-	IpoCurve *icu;
+	FCurve *fcu;
 	
-	pose= ob->pose;
-	act= ob->action;
-	
-	if (autokeyframe_cfra_can_key(ob)) {
+	if (autokeyframe_cfra_can_key(scene, ob)) {
+		float cfra= (float)CFRA;
 		short flag= 0;
+		char buf[512];
 		
-		if (act == NULL)
-			act= ob->action= add_empty_action("Action");
-			
 		if (IS_AUTOKEY_FLAG(INSERTNEEDED))
 			flag |= INSERTKEY_NEEDED;
 		if (IS_AUTOKEY_FLAG(AUTOMATKEY))
@@ -4277,12 +4226,9 @@ void autokeyframe_pose_cb_func(Object *ob, int tmode, short targetless_ik)
 				
 				/* only insert into available channels? */
 				if (IS_AUTOKEY_FLAG(INSERTAVAIL)) {
-					bActionChannel *achan; 
-					
-					achan= get_action_channel(act, pchan->name);
-					if (achan && achan->ipo) {
-						for (icu= achan->ipo->curve.first; icu; icu= icu->next)
-							insertkey(id, ID_PO, pchan->name, NULL, icu->adrcode, flag);
+					if (act) {
+						for (fcu= act->curves.first; fcu; fcu= fcu->next)
+							insertkey(id, ((fcu->grp)?(fcu->grp->name):(NULL)), fcu->rna_path, fcu->array_index, cfra, flag);
 					}
 				}
 				/* only insert keyframe if needed? */
@@ -4297,67 +4243,86 @@ void autokeyframe_pose_cb_func(Object *ob, int tmode, short targetless_ik)
 							doLoc = 1;
 					}
 					else if (tmode == TFM_ROTATION) {
-						if (ELEM(G.vd->around, V3D_CURSOR, V3D_ACTIVE))
+						if (ELEM(v3d->around, V3D_CURSOR, V3D_ACTIVE))
 							doLoc = 1;
 							
-						if ((G.vd->flag & V3D_ALIGN)==0) 
+						if ((v3d->flag & V3D_ALIGN)==0) 
 							doRot = 1;
 					}
 					else if (tmode == TFM_RESIZE) {
-						if (ELEM(G.vd->around, V3D_CURSOR, V3D_ACTIVE))
+						if (ELEM(v3d->around, V3D_CURSOR, V3D_ACTIVE))
 							doLoc = 1;
 						
-						if ((G.vd->flag & V3D_ALIGN)==0)
+						if ((v3d->flag & V3D_ALIGN)==0)
 							doScale = 1;
 					}
 					
 					if (doLoc) {
-						insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_X, flag);
-						insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_Y, flag);
-						insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_Z, flag);
+						sprintf(buf, "pose.pose_channels[\"%s\"].location", pchan->name);
+						insertkey(id, pchan->name, buf, 0, cfra, flag);
+						insertkey(id, pchan->name, buf, 1, cfra, flag);
+						insertkey(id, pchan->name, buf, 2, cfra, flag);
 					}
 					if (doRot) {
-						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_W, flag);
-						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_X, flag);
-						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Y, flag);
-						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Z, flag);
+						if (pchan->rotmode == PCHAN_ROT_QUAT) {
+							sprintf(buf, "pose.pose_channels[\"%s\"].rotation", pchan->name);
+							insertkey(id, pchan->name, buf, 0, cfra, flag);
+							insertkey(id, pchan->name, buf, 1, cfra, flag);
+							insertkey(id, pchan->name, buf, 2, cfra, flag);
+							insertkey(id, pchan->name, buf, 3, cfra, flag);
+						}
+						else {
+							sprintf(buf, "pose.pose_channels[\"%s\"].euler_rotation", pchan->name);
+							insertkey(id, pchan->name, buf, 0, cfra, flag);
+							insertkey(id, pchan->name, buf, 1, cfra, flag);
+							insertkey(id, pchan->name, buf, 2, cfra, flag);
+						}
 					}
 					if (doScale) {
-						insertkey(id, ID_PO, pchan->name, NULL, AC_SIZE_X, flag);
-						insertkey(id, ID_PO, pchan->name, NULL, AC_SIZE_Y, flag);
-						insertkey(id, ID_PO, pchan->name, NULL, AC_SIZE_Z, flag);
+						sprintf(buf, "pose.pose_channels[\"%s\"].scale", pchan->name);
+						insertkey(id, pchan->name, buf, 0, cfra, flag);
+						insertkey(id, pchan->name, buf, 1, cfra, flag);
+						insertkey(id, pchan->name, buf, 2, cfra, flag);
 					}
 				}
 				/* insert keyframe in any channel that's appropriate */
 				else {
-					insertkey(id, ID_PO, pchan->name, NULL, AC_SIZE_X, flag);
-					insertkey(id, ID_PO, pchan->name, NULL, AC_SIZE_Y, flag);
-					insertkey(id, ID_PO, pchan->name, NULL, AC_SIZE_Z, flag);
+					sprintf(buf, "pose.pose_channels[\"%s\"].location", pchan->name);
+					insertkey(id, pchan->name, buf, 0, cfra, flag);
+					insertkey(id, pchan->name, buf, 1, cfra, flag);
+					insertkey(id, pchan->name, buf, 2, cfra, flag);
 					
-					insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_W, flag);
-					insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_X, flag);
-					insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Y, flag);
-					insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Z, flag);
+					if (pchan->rotmode == PCHAN_ROT_QUAT) {
+						sprintf(buf, "pose.pose_channels[\"%s\"].rotation", pchan->name);
+						insertkey(id, pchan->name, buf, 0, cfra, flag);
+						insertkey(id, pchan->name, buf, 1, cfra, flag);
+						insertkey(id, pchan->name, buf, 2, cfra, flag);
+						insertkey(id, pchan->name, buf, 3, cfra, flag);
+					}
+					else {
+						sprintf(buf, "pose.pose_channels[\"%s\"].euler_rotation", pchan->name);
+						insertkey(id, pchan->name, buf, 0, cfra, flag);
+						insertkey(id, pchan->name, buf, 1, cfra, flag);
+						insertkey(id, pchan->name, buf, 2, cfra, flag);
+					}
 					
-					insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_X, flag);
-					insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_Y, flag);
-					insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_Z, flag);
+					sprintf(buf, "pose.pose_channels[\"%s\"].scale", pchan->name);
+					insertkey(id, pchan->name, buf, 0, cfra, flag);
+					insertkey(id, pchan->name, buf, 1, cfra, flag);
+					insertkey(id, pchan->name, buf, 2, cfra, flag);
 				}
 			}
 		}
 		
-		remake_action_ipos(act);
-		allqueue(REDRAWMARKER, 0);
-		allqueue(REDRAWOOPS, 0);
-		
-		/* locking can be disabled */
-		ob->pose->flag &= ~(POSE_DO_UNLOCK|POSE_LOCKED);
+		// XXX todo... figure out way to get appropriate notifiers sent
 		
 		/* do the bone paths */
+#if 0 // TRANSFORM_FIX_ME
 		if (arm->pathflag & ARM_PATH_ACFRA) {
-			//pose_clear_paths(ob);
+			pose_clear_paths(ob);
 			pose_recalculate_paths(ob);
 		}	
+#endif
 	}
 	else {
 		/* tag channels that should have unkeyed data */
@@ -4368,7 +4333,6 @@ void autokeyframe_pose_cb_func(Object *ob, int tmode, short targetless_ik)
 			}
 		}
 	}
-#endif
 }
 
 
@@ -4622,22 +4586,6 @@ void special_aftertrans_update(TransInfo *t)
 			mesh_octree_table(t->obedit, em, NULL, 'e');
 		}
 	}
-#if 0 // TRANSFORM_FIX_ME
-	else if (t->spacetype == SPACE_NLA) {
-		recalc_all_ipos();	// bad
-		synchronize_action_strips();
-		
-		/* cleanup */
-		for (base=t->scene->base.first; base; base=base->next)
-			base->flag &= ~(BA_HAS_RECALC_OB|BA_HAS_RECALC_DATA);
-		
-		/* after transform, remove duplicate keyframes on a frame that resulted from transform */
-		if ( (G.snla->flag & SNLA_NOTRANSKEYCULL)==0 && 
-			 ((cancelled == 0) || (duplicate)) )
-		{
-			posttrans_nla_clean(t);
-		}
-	}
 	else if ((t->flag & T_POSE) && (t->poseobj)) {
 		bArmature *arm;
 		bPose	*pose;
@@ -4647,9 +4595,6 @@ void special_aftertrans_update(TransInfo *t)
 		ob= t->poseobj;
 		arm= ob->data;
 		pose= ob->pose;
-		
-		/* this signal does one recalc on pose, then unlocks, so ESC or edit will work */
-		pose->flag |= POSE_DO_UNLOCK;
 		
 		/* if target-less IK grabbing, we calculate the pchan transforms and clear flag */
 		if (!cancelled && t->mode==TFM_TRANSLATION)
@@ -4667,7 +4612,7 @@ void special_aftertrans_update(TransInfo *t)
 			
 		/* automatic inserting of keys and unkeyed tagging - only if transform wasn't cancelled (or TFM_DUMMY) */
 		if (!cancelled && (t->mode != TFM_DUMMY)) {
-			autokeyframe_pose_cb_func(ob, t->mode, targetless_ik);
+			autokeyframe_pose_cb_func(t->scene, (View3D *)t->view, ob, t->mode, targetless_ik);
 			DAG_object_flush_update(t->scene, ob, OB_RECALC_DATA);
 		}
 		else if (arm->flag & ARM_DELAYDEFORM) {
@@ -4678,34 +4623,52 @@ void special_aftertrans_update(TransInfo *t)
 		else 
 			DAG_object_flush_update(t->scene, ob, OB_RECALC_DATA);
 		
-		if (t->mode==TFM_BONESIZE || t->mode==TFM_BONE_ENVELOPE)
-			allqueue(REDRAWBUTSEDIT, 0);
+		//if (t->mode==TFM_BONESIZE || t->mode==TFM_BONE_ENVELOPE)
+		//	allqueue(REDRAWBUTSEDIT, 0);
 		
 	}
+#if 0 // TRANSFORM_FIX_ME
 	else if(G.f & G_PARTICLEEDIT) {
 		;
 	}
-	else {
-		base= FIRSTBASE;
-
-		while (base) {			
-
-			if(base->flag & BA_DO_IPO) redrawipo= 1;
-			
+#endif
+	else { 
+		/* Objects */
+		// XXX ideally, this would go through context iterators, but we don't have context iterator access here,
+		// so we make do with old data + access styles...
+		Scene *scene= t->scene;
+		Base *base;
+		
+		for (base= FIRSTBASE; base; base= base->next) {
 			ob= base->object;
 			
-			if(base->flag & SELECT && (t->mode != TFM_DUMMY)) {
-				if(BKE_ptcache_object_reset(ob, PTCACHE_RESET_DEPSGRAPH))
+			if (base->flag & SELECT && (t->mode != TFM_DUMMY)) {
+				/* pointcache refresh */
+				if (BKE_ptcache_object_reset(ob, PTCACHE_RESET_DEPSGRAPH))
 					ob->recalc |= OB_RECALC_DATA;
 				
 				/* Set autokey if necessary */
 				if (!cancelled)
-					autokeyframe_ob_cb_func(ob, t->mode);
+					autokeyframe_ob_cb_func(t->scene, (View3D *)t->view, ob, t->mode);
 			}
-			
-			base= base->next;
 		}
+	}
+	
+#if 0 // TRANSFORM_FIX_ME
+	else if (t->spacetype == SPACE_NLA) {
+		recalc_all_ipos();	// bad
+		synchronize_action_strips();
 		
+		/* cleanup */
+		for (base=t->scene->base.first; base; base=base->next)
+			base->flag &= ~(BA_HAS_RECALC_OB|BA_HAS_RECALC_DATA);
+		
+		/* after transform, remove duplicate keyframes on a frame that resulted from transform */
+		if ( (G.snla->flag & SNLA_NOTRANSKEYCULL)==0 && 
+			 ((cancelled == 0) || (duplicate)) )
+		{
+			posttrans_nla_clean(t);
+		}
 	}
 #endif
 	

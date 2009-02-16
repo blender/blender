@@ -893,7 +893,7 @@ void paste_posebuf (Scene *scene, int flip)
 	/* Update event for pose and deformation children */
 	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
 	
-	if (IS_AUTOKEY_ON) {
+	if (IS_AUTOKEY_ON(scene)) {
 // XXX		remake_action_ipos(ob->action);
 	}
 	else {

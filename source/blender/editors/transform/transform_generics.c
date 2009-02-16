@@ -86,6 +86,7 @@
 #include "ED_anim_api.h"
 #include "ED_armature.h"
 #include "ED_image.h"
+#include "ED_keyframing.h"
 #include "ED_mesh.h"
 #include "ED_space_api.h"
 #include "ED_uvedit.h"
@@ -559,6 +560,13 @@ void recalcData(TransInfo *t)
 	else if( (t->flag & T_POSE) && t->poseobj) {
 		Object *ob= t->poseobj;
 		bArmature *arm= ob->data;
+		
+		/* if animtimer is running, check if the auto-record feature means that we should record 'samples'
+		 * (i.e. uneditable animation values)
+		 */
+		if (t->animtimer && IS_AUTOKEY_ON(t->scene)) {
+			// XXX
+		}
 		
 		/* old optimize trick... this enforces to bypass the depgraph */
 		if (!(arm->flag & ARM_DELAYDEFORM)) {

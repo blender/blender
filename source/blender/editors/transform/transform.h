@@ -49,6 +49,7 @@ struct wmOperatorType;
 struct wmOperator;
 struct bContext;
 struct wmEvent;
+struct wmTimer;
 struct ARegion;
 
 typedef struct NDofInput {
@@ -249,6 +250,7 @@ typedef struct TransInfo {
 	struct ScrArea	*sa;
 	struct ARegion	*ar;
 	struct Scene	*scene;
+	struct wmTimer *animtimer;
     short       mval[2];        /* current mouse position               */
     struct Object   *obedit;
     void		*draw_handle;
@@ -467,9 +469,9 @@ void special_aftertrans_update(TransInfo *t);
 void transform_autoik_update(TransInfo *t, short mode);
 
 /* auto-keying stuff used by special_aftertrans_update */
-short autokeyframe_cfra_can_key(struct Object *ob);
-void autokeyframe_ob_cb_func(struct Object *ob, int tmode);
-void autokeyframe_pose_cb_func(struct Object *ob, int tmode, short targetless_ik);
+short autokeyframe_cfra_can_key(struct Scene *scene, struct Object *ob);
+void autokeyframe_ob_cb_func(struct Scene *scene, struct View3D *v3d, struct Object *ob, int tmode);
+void autokeyframe_pose_cb_func(struct Scene *scene, struct View3D *v3d, struct Object *ob, int tmode, short targetless_ik);
 
 /*********************** Constraints *****************************/
 
