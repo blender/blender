@@ -287,7 +287,7 @@ static void ui_tooltip_region_draw(const bContext *C, ARegion *ar)
 	
 	/* draw background */
 	glColor3f(1.0f, 1.0f, 0.8666f);
-	glRectf(0, 4, x2-x1+4, y2-y1);
+	glRectf(0, 4, x2-x1-4, y2-y1);
 	
 	/* draw text */
 	glColor3ub(0,0,0);
@@ -349,7 +349,7 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 	y1= y2-but->aspect*((data->bbox.ymax+(data->bbox.ymax-data->bbox.ymin)));
 
 	y2 += 8;
-	x2 += 8;
+	x2 += 4;
 
 	if(butregion) {
 		/* XXX temp, region v2ds can be empty still */
