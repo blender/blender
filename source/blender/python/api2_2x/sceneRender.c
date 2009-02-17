@@ -1889,10 +1889,10 @@ static PyObject *RenderData_getFloatAttr( BPy_RenderData *self, void *type )
 		param = self->renderContext->bake_biasdist;
 		break;
 	case EXPP_RENDER_ATTR_ASPECTX:
-		param = (long)self->renderContext->xasp;
+		param = self->renderContext->xasp;
 		break;
 	case EXPP_RENDER_ATTR_ASPECTY:
-		param = (long)self->renderContext->yasp;
+		param = self->renderContext->yasp;
 		break;
 	default:
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
