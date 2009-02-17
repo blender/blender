@@ -15,4 +15,8 @@ defs = ''
 if env['WITH_BF_INTERNATIONAL']:
 	defs += ' WITH_FREETYPE2'
 
+defs = 'FTGL_STATIC_LIBRARY'
+if sys.platform == 'win32':
+	defs += ' _WIN32 USE_GETTEXT_DLL'
+
 env.BlenderLib ( 'bf_blenfont', sources, Split(incs), Split(defs), libtype=['core'], priority=[210] )

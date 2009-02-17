@@ -24,15 +24,23 @@
 
 FILE(GLOB SRC intern/*.c)
 
-#SET(INC . intern ../../../intern/guardedalloc ../blenlib ../blenkernel ../makedna
-
 SET(INC 
-  ../../../intern/guardedalloc ../blenlib ../makesdna
-  ../blenkernel ../ftfont
+  ../../../intern/guardedalloc ../blenlib ../makesdna ../editors/include
+  ../blenkernel ../ftfont ../../../extern/glew/include
+  ${FTGL_INC}
+  ${FREETYPE_INC}
+  ${GETTEXT_INC}
 )
+
+ADD_DEFINITIONS(-DFTGL_LIBRARY_STATIC)
 
 IF(WITH_INTERNATIONAL)
   ADD_DEFINITIONS(-DWITH_FREETYPE2)
 ENDIF(WITH_INTERNATIONAL)
 
+IF(WIN32)
+  ADD_DEFINITIONS(-D_WIN32 -DUSE_GETTEXT_DLL)
+ENDIF(WIN32)
+
 BLENDERLIB(bf_blenfont "${SRC}" "${INC}")
+
