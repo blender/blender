@@ -217,6 +217,7 @@ void uiMenuItemBooleanO(uiMenuItem *head, const char *name, int icon, char *opna
 void uiMenuItemsEnumO(uiMenuItem *head, char *opname, char *propname);
 void uiMenuItemIntO(uiMenuItem *head, const char *name, int icon, char *opname, char *propname, int value);
 void uiMenuItemFloatO(uiMenuItem *head, const char *name, int icon, char *opname, char *propname, float value);
+void uiMenuItemStringO(uiMenuItem *head, const char *name, int icon, char *opname, char *propname, char *value);
 void uiMenuItemO(uiMenuItem *head, int icon, char *opname);
 
 void uiMenuItemBooleanR(uiMenuItem *head, struct PointerRNA *ptr, char *propname);

@@ -240,9 +240,6 @@ int ED_operator_editsurfcurve(bContext *C)
 	if(obedit && ELEM(obedit->type, OB_CURVE, OB_SURF))
 		return NULL != ((Curve *)obedit->data)->editnurb;
 	return 0;
-
-	// XXX this test was in many tools, still needed?
-	// if(v3d==0 || (v3d->lay & obedit->lay)==0 ) return 0;
 }
 
 
@@ -259,6 +256,14 @@ int ED_operator_editsurf(bContext *C)
 	Object *obedit= CTX_data_edit_object(C);
 	if(obedit && obedit->type==OB_SURF)
 		return NULL != ((Curve *)obedit->data)->editnurb;
+	return 0;
+}
+
+int ED_operator_editfont(bContext *C)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	if(obedit && obedit->type==OB_FONT)
+		return NULL != ((Curve *)obedit->data)->editfont;
 	return 0;
 }
 

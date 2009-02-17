@@ -4724,7 +4724,7 @@ int join_curve(bContext *C, wmOperator *op, int type)
 
 /************ add primitive, used by object/ module ****************/
 
-Nurb *addNurbprim(bContext *C, int type, int newname)
+Nurb *add_nurbs_primitive(bContext *C, int type, int newname)
 {
 	static int xzproj= 0;	/* this function calls itself... */
 	Scene *scene= CTX_data_scene(C);
@@ -5022,7 +5022,7 @@ Nurb *addNurbprim(bContext *C, int type, int newname)
 				rename_id((ID *)obedit->data, "SurfTube");
 			}
 
-			nu= addNurbprim(C, CU_NURBS|CU_PRIM_CIRCLE, 0);  /* circle */
+			nu= add_nurbs_primitive(C, CU_NURBS|CU_PRIM_CIRCLE, 0);  /* circle */
 			nu->resolu= 4;
 			nu->flag= CU_SMOOTH;
 			BLI_addtail(editnurb, nu); /* temporal for extrude and translate */
@@ -5101,7 +5101,7 @@ Nurb *addNurbprim(bContext *C, int type, int newname)
 			}
 
 			xzproj= 1;
-			nu= addNurbprim(C, CU_NURBS|CU_PRIM_CIRCLE, 0);  /* circle */
+			nu= add_nurbs_primitive(C, CU_NURBS|CU_PRIM_CIRCLE, 0);  /* circle */
 			xzproj= 0;
 			nu->resolu= 4;
 			nu->resolv= 4;

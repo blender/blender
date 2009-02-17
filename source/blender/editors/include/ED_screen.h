@@ -119,6 +119,7 @@ int		ED_operator_editarmature(struct bContext *C);
 int		ED_operator_editcurve(struct bContext *C);
 int		ED_operator_editsurf(struct bContext *C);
 int		ED_operator_editsurfcurve(struct bContext *C);
+int		ED_operator_editfont(struct bContext *C);
 int		ED_operator_uvedit(struct bContext *C);
 int		ED_operator_uvmap(struct bContext *C);
 int		ED_operator_posemode(struct bContext *C);

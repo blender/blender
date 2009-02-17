@@ -1661,17 +1661,18 @@ static uiBlock *ui_block_func_MENU_ITEM(bContext *C, uiPopupBlockHandle *handle,
 /* type, internal */
 #define MENU_ITEM_TITLE				0
 #define MENU_ITEM_ITEM				1
-#define MENU_ITEM_OPNAME			2
-#define MENU_ITEM_OPNAME_BOOL		3
-#define MENU_ITEM_OPNAME_ENUM		4
-#define MENU_ITEM_OPNAME_INT		5
-#define MENU_ITEM_OPNAME_FLOAT		6
-#define MENU_ITEM_RNA_BOOL			7
-#define MENU_ITEM_RNA_ENUM			8
-#define MENU_ITEM_LEVEL				9
-#define MENU_ITEM_LEVEL_OPNAME_ENUM	10
-#define MENU_ITEM_LEVEL_RNA_ENUM	11
-#define MENU_ITEM_SEPARATOR			12
+#define MENU_ITEM_SEPARATOR			2
+#define MENU_ITEM_OPNAME			10
+#define MENU_ITEM_OPNAME_BOOL		11
+#define MENU_ITEM_OPNAME_ENUM		12
+#define MENU_ITEM_OPNAME_INT		13
+#define MENU_ITEM_OPNAME_FLOAT		14
+#define MENU_ITEM_OPNAME_STRING		15
+#define MENU_ITEM_RNA_BOOL			20
+#define MENU_ITEM_RNA_ENUM			21
+#define MENU_ITEM_LEVEL				30
+#define MENU_ITEM_LEVEL_OPNAME_ENUM	31
+#define MENU_ITEM_LEVEL_RNA_ENUM	32
 
 struct uiMenuItem {
 	struct uiMenuItem *next, *prev;
@@ -1685,6 +1686,7 @@ struct uiMenuItem {
 	
 	int retval, enumval, boolval, intval;
 	float fltval;
+	char *strval;
 	int opcontext;
 	uiMenuHandleFunc eventfunc;
 	void *argv;
@@ -1875,6 +1877,12 @@ static uiBlock *ui_block_func_MENU_ITEM(bContext *C, uiPopupBlockHandle *handle,
 		else if(item->type==MENU_ITEM_OPNAME_FLOAT) {
 			but= uiDefIconTextButO(block, BUTM, item->opname, item->opcontext, item->icon, item->name, x1, y1, width+16, MENU_BUTTON_HEIGHT-1, "");
 			RNA_float_set(uiButGetOperatorPtrRNA(but), item->propname, item->fltval);
+			
+			y1 -= MENU_BUTTON_HEIGHT;
+		}
+		else if(item->type==MENU_ITEM_OPNAME_STRING) {
+			but= uiDefIconTextButO(block, BUTM, item->opname, item->opcontext, item->icon, item->name, x1, y1, width+16, MENU_BUTTON_HEIGHT-1, "");
+			RNA_string_set(uiButGetOperatorPtrRNA(but), item->propname, item->strval);
 			
 			y1 -= MENU_BUTTON_HEIGHT;
 		}
@@ -2072,6 +2080,17 @@ void uiMenuItemBooleanO(uiMenuItem *head, const char *name, int icon, char *opna
 	item->propname= propname; // static!
 	item->boolval= value;
 	item->type = MENU_ITEM_OPNAME_BOOL;
+}
+
+/* single operator item with property */
+void uiMenuItemStringO(uiMenuItem *head, const char *name, int icon, char *opname, char *propname, char *value)
+{
+	uiMenuItem *item= ui_menu_add_item(head, name, icon, 0);
+	
+	item->opname= opname; // static!
+	item->propname= propname; // static!
+	item->strval= value;
+	item->type = MENU_ITEM_OPNAME_STRING;
 }
 
 /* add all operator items with property */

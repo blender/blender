@@ -31,6 +31,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_curve_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
@@ -95,7 +96,29 @@ void CURVE_OT_specials_menu(wmOperatorType *ot)
 
 void ED_operatortypes_curve(void)
 {
-	WM_operatortype_append(FONT_OT_textedit);
+	WM_operatortype_append(FONT_OT_insert_text);
+	WM_operatortype_append(FONT_OT_line_break);
+	WM_operatortype_append(FONT_OT_insert_lorem);
+	WM_operatortype_append(FONT_OT_text_to_object);
+
+	WM_operatortype_append(FONT_OT_toggle_case);
+	WM_operatortype_append(FONT_OT_set_case);
+	WM_operatortype_append(FONT_OT_toggle_style);
+	WM_operatortype_append(FONT_OT_set_style);
+	WM_operatortype_append(FONT_OT_set_material);
+
+	WM_operatortype_append(FONT_OT_copy_text);
+	WM_operatortype_append(FONT_OT_cut_text);
+	WM_operatortype_append(FONT_OT_paste_text);
+	WM_operatortype_append(FONT_OT_paste_file);
+	WM_operatortype_append(FONT_OT_paste_buffer);
+
+	WM_operatortype_append(FONT_OT_move);
+	WM_operatortype_append(FONT_OT_move_select);
+	WM_operatortype_append(FONT_OT_delete);
+
+	WM_operatortype_append(FONT_OT_change_character);
+	WM_operatortype_append(FONT_OT_change_spacing);
 
 	WM_operatortype_append(CURVE_OT_hide);
 	WM_operatortype_append(CURVE_OT_reveal);
@@ -143,7 +166,47 @@ void ED_keymap_curve(wmWindowManager *wm)
 	ListBase *keymap= WM_keymap_listbase(wm, "Font", 0, 0);
 	
 	/* only set in editmode font, by space_view3d listener */
-	WM_keymap_add_item(keymap, "FONT_OT_textedit", KM_TEXTINPUT, KM_ANY, KM_ANY, 0);
+	RNA_enum_set(WM_keymap_add_item(keymap, "FONT_OT_toggle_style", BKEY, KM_PRESS, KM_CTRL, 0)->ptr, "style", CU_BOLD);
+	RNA_enum_set(WM_keymap_add_item(keymap, "FONT_OT_toggle_style", IKEY, KM_PRESS, KM_CTRL, 0)->ptr, "style", CU_ITALIC);
+	RNA_enum_set(WM_keymap_add_item(keymap, "FONT_OT_toggle_style", UKEY, KM_PRESS, KM_CTRL, 0)->ptr, "style", CU_UNDERLINE);
+
+	RNA_enum_set(WM_keymap_add_item(keymap, "FONT_OT_delete", DELKEY, KM_PRESS, 0, 0)->ptr, "type", DEL_NEXT_SEL);
+	RNA_enum_set(WM_keymap_add_item(keymap, "FONT_OT_delete", BACKSPACEKEY, KM_PRESS, 0, 0)->ptr, "type", DEL_PREV_SEL);
+	RNA_enum_set(WM_keymap_add_item(keymap, "FONT_OT_delete", BACKSPACEKEY, KM_PRESS, KM_CTRL, 0)->ptr, "type", DEL_ALL);
+
+	RNA_enum_set(WM_keymap_add_item(keymap, "FONT_OT_move", HOMEKEY, KM_PRESS, 0, 0)->ptr, "type", LINE_BEGIN);
+	RNA_enum_set(WM_keymap_add_item(keymap, "FONT_OT_move", ENDKEY, KM_PRESS, 0, 0)->ptr, "type", LINE_END);
+	RNA_enum_set(WM_keymap_add_item(keymap, "FONT_OT_move", LEFTARROWKEY, KM_PRESS, 0, 0)->ptr, "type", PREV_CHAR);
+	RNA_enum_set(WM_keymap_add_item(keymap, "FONT_OT_move", RIGHTARROWKEY, KM_PRESS, 0, 0)->ptr, "type", NEXT_CHAR);
+	RNA_enum_set(WM_keymap_add_item(keymap, "FONT_OT_move", LEFTARROWKEY, KM_PRESS, KM_CTRL, 0)->ptr, "type", PREV_WORD);
+	RNA_enum_set(WM_keymap_add_item(keymap, "FONT_OT_move", RIGHTARROWKEY, KM_PRESS, KM_CTRL, 0)->ptr, "type", NEXT_WORD);
+	RNA_enum_set(WM_keymap_add_item(keymap, "FONT_OT_move", UPARROWKEY, KM_PRESS, 0, 0)->ptr, "type", PREV_LINE);
+	RNA_enum_set(WM_keymap_add_item(keymap, "FONT_OT_move", DOWNARROWKEY, KM_PRESS, 0, 0)->ptr, "type", NEXT_LINE);
+	RNA_enum_set(WM_keymap_add_item(keymap, "FONT_OT_move", PAGEUPKEY, KM_PRESS, 0, 0)->ptr, "type", PREV_PAGE);
+	RNA_enum_set(WM_keymap_add_item(keymap, "FONT_OT_move", PAGEDOWNKEY, KM_PRESS, 0, 0)->ptr, "type", NEXT_PAGE);
+
+	RNA_enum_set(WM_keymap_add_item(keymap, "FONT_OT_move_select", HOMEKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "type", LINE_BEGIN);
+	RNA_enum_set(WM_keymap_add_item(keymap, "FONT_OT_move_select", ENDKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "type", LINE_END);
+	RNA_enum_set(WM_keymap_add_item(keymap, "FONT_OT_move_select", LEFTARROWKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "type", PREV_CHAR);
+	RNA_enum_set(WM_keymap_add_item(keymap, "FONT_OT_move_select", RIGHTARROWKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "type", NEXT_CHAR);
+	RNA_enum_set(WM_keymap_add_item(keymap, "FONT_OT_move_select", LEFTARROWKEY, KM_PRESS, KM_SHIFT|KM_CTRL, 0)->ptr, "type", PREV_WORD);
+	RNA_enum_set(WM_keymap_add_item(keymap, "FONT_OT_move_select", RIGHTARROWKEY, KM_PRESS, KM_SHIFT|KM_CTRL, 0)->ptr, "type", NEXT_WORD);
+	RNA_enum_set(WM_keymap_add_item(keymap, "FONT_OT_move_select", UPARROWKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "type", PREV_LINE);
+	RNA_enum_set(WM_keymap_add_item(keymap, "FONT_OT_move_select", DOWNARROWKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "type", NEXT_LINE);
+	RNA_enum_set(WM_keymap_add_item(keymap, "FONT_OT_move_select", PAGEUPKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "type", PREV_PAGE);
+	RNA_enum_set(WM_keymap_add_item(keymap, "FONT_OT_move_select", PAGEDOWNKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "type", NEXT_PAGE);
+
+	RNA_int_set(WM_keymap_add_item(keymap, "FONT_OT_change_spacing", LEFTARROWKEY, KM_PRESS, KM_ALT, 0)->ptr, "delta", -1);
+	RNA_int_set(WM_keymap_add_item(keymap, "FONT_OT_change_spacing", RIGHTARROWKEY, KM_PRESS, KM_ALT, 0)->ptr, "delta", 1);
+	RNA_int_set(WM_keymap_add_item(keymap, "FONT_OT_change_character", UPARROWKEY, KM_PRESS, KM_ALT, 0)->ptr, "delta", 1);
+	RNA_int_set(WM_keymap_add_item(keymap, "FONT_OT_change_character", DOWNARROWKEY, KM_PRESS, KM_ALT, 0)->ptr, "delta", -1);
+
+	WM_keymap_add_item(keymap, "FONT_OT_copy_text", CKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "FONT_OT_cut_text", XKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "FONT_OT_paste_text", PKEY, KM_PRESS, KM_CTRL, 0);
+
+	WM_keymap_add_item(keymap, "FONT_OT_line_break", RETKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "FONT_OT_insert_text", KM_TEXTINPUT, KM_ANY, KM_ANY, 0); // last!
 
 	/* only set in editmode curve, by space_view3d listener */
 	keymap= WM_keymap_listbase(wm, "Curve", 0, 0);

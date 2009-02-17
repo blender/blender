@@ -442,8 +442,9 @@ static int object_add_curve_exec(bContext *C, wmOperator *op)
 	}
 	else DAG_object_flush_update(CTX_data_scene(C), obedit, OB_RECALC_DATA);
 	
-	nu= addNurbprim(C, RNA_enum_get(op->ptr, "type"), newob);
-	editnurb= curve_get_editcurve(CTX_data_edit_object(C));
+	obedit= CTX_data_edit_object(C);
+	nu= add_nurbs_primitive(C, RNA_enum_get(op->ptr, "type"), newob);
+	editnurb= curve_get_editcurve(obedit);
 	BLI_addtail(editnurb, nu);
 	
 	/* userdef */
@@ -513,8 +514,9 @@ static int object_add_surface_exec(bContext *C, wmOperator *op)
 	}
 	else DAG_object_flush_update(CTX_data_scene(C), obedit, OB_RECALC_DATA);
 	
-	nu= addNurbprim(C, RNA_enum_get(op->ptr, "type"), newob);
-	editnurb= curve_get_editcurve(CTX_data_edit_object(C));
+	obedit= CTX_data_edit_object(C);
+	nu= add_nurbs_primitive(C, RNA_enum_get(op->ptr, "type"), newob);
+	editnurb= curve_get_editcurve(obedit);
 	BLI_addtail(editnurb, nu);
 	
 	/* userdef */
@@ -545,6 +547,38 @@ void OBJECT_OT_surface_add(wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "type", prop_surface_types, 0, "Primitive", "");
 }
 
+static int object_add_text_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	
+	if(obedit && obedit->type==OB_FONT)
+		return OPERATOR_CANCELLED;
+
+	object_add_type(C, OB_FONT);
+	obedit= CTX_data_active_object(C);
+
+	if(U.flag & USER_ADD_EDITMODE)
+		ED_object_enter_editmode(C, 0);
+	
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_text_add(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Add Text";
+	ot->idname= "OBJECT_OT_text_add";
+	
+	/* api callbacks */
+	ot->exec= object_add_text_exec;
+	ot->poll= ED_operator_scene_editable;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
 static int object_add_armature_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
@@ -557,7 +591,7 @@ static int object_add_armature_exec(bContext *C, wmOperator *op)
 	}
 	else DAG_object_flush_update(CTX_data_scene(C), obedit, OB_RECALC_DATA);
 	
-	//nu= addNurbprim(C, RNA_enum_get(op->ptr, "type"), newob);
+	//nu= add_nurbs_primitive(C, RNA_enum_get(op->ptr, "type"), newob);
 	//editnurb= curve_get_editcurve(CTX_data_edit_object(C));
 	//BLI_addtail(editnurb, nu);
 	
@@ -593,6 +627,7 @@ static int object_add_primitive_invoke(bContext *C, wmOperator *op, wmEvent *eve
 	uiMenuLevelEnumO(head, "OBJECT_OT_mesh_add", "type");
 	uiMenuLevelEnumO(head, "OBJECT_OT_curve_add", "type");
 	uiMenuLevelEnumO(head, "OBJECT_OT_surface_add", "type");
+	uiMenuItemO(head, 0, "OBJECT_OT_text_add");
 	uiMenuItemEnumO(head, "", 0, "OBJECT_OT_object_add", "type", OB_MBALL);
 	uiMenuItemEnumO(head, "", 0, "OBJECT_OT_object_add", "type", OB_CAMERA);
 	uiMenuItemEnumO(head, "", 0, "OBJECT_OT_object_add", "type", OB_LAMP);

@@ -658,7 +658,7 @@ struct chartrans *BKE_text_to_curve(Scene *scene, Object *ob, int mode)
 	VChar *che;
 	struct chartrans *chartransdata=NULL, *ct;
 	float *f, xof, yof, xtrax, linedist, *linedata, *linedata2, *linedata3, *linedata4;
-	float twidth;
+	float twidth, maxlen= 0;
 	int i, slen, j;
 	int curbox;
 	int selstart, selend;
@@ -826,8 +826,6 @@ struct chartrans *BKE_text_to_curve(Scene *scene, Object *ob, int mode)
 			}
 		}
 		if(ascii== '\n' || ascii== '\r' || ascii==0 || ct->dobreak) {
-			float maxlen;
-			
 			ct->xof= xof;
 			ct->yof= yof;
 			ct->linenr= lnr;

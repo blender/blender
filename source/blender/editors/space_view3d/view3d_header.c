@@ -3408,149 +3408,43 @@ static uiBlock *view3d_edit_metaballmenu(bContext *C, ARegion *ar, void *arg_unu
 	return block;
 }
 
-static void do_view3d_edit_text_charsmenu(bContext *C, void *arg, int event)
+static void view3d_edit_text_charsmenu(bContext *C, uiMenuItem *head, void *arg_unused)
 {
-#if 0
-	switch(event) {
-	case 0: /* copyright */
-		do_textedit(0,0,169);
-		break;
-	case 1: /* registered trademark */
-		do_textedit(0,0,174);
-		break;
-	case 2: /* degree sign */
-		do_textedit(0,0,176);
-		break;
-	case 3: /* Multiplication Sign */
-		do_textedit(0,0,215);
-		break;
-	case 4: /* Circle */
-		do_textedit(0,0,138);
-		break;
-	case 5: /* superscript 1 */
-		do_textedit(0,0,185);
-		break;
-	case 6: /* superscript 2 */
-		do_textedit(0,0,178);
-		break;
-	case 7: /* superscript 3 */
-		do_textedit(0,0,179);
-		break;
-	case 8: /* double >> */
-		do_textedit(0,0,187);
-		break;
-	case 9: /* double << */
-		do_textedit(0,0,171);
-		break;
-	case 10: /* Promillage */
-		do_textedit(0,0,139);
-		break;
-	case 11: /* dutch florin */
-		do_textedit(0,0,164);
-		break;
-	case 12: /* british pound */
-		do_textedit(0,0,163);
-		break;
-	case 13: /* japanese yen*/
-		do_textedit(0,0,165);
-		break;
-	case 14: /* german S */
-		do_textedit(0,0,223);
-		break;
-	case 15: /* spanish question mark */
-		do_textedit(0,0,191);
-		break;
-	case 16: /* spanish exclamation mark */
-		do_textedit(0,0,161);
-		break;
-		}
-#endif
+	/* the character codes are specified in UTF-8 */
+
+	uiMenuItemStringO(head, "Copyright|Alt C", 0, "FONT_OT_insert_text", "text", "\xC2\xA9");
+	uiMenuItemStringO(head, "Registered Trademark|Alt R", 0, "FONT_OT_insert_text", "text", "\xC2\xAE");
+
+	uiMenuSeparator(head);
+
+	uiMenuItemStringO(head, "Degree Sign|Alt G", 0, "FONT_OT_insert_text", "text", "\xC2\xB0");
+	uiMenuItemStringO(head, "Multiplication Sign|Alt x", 0, "FONT_OT_insert_text", "text", "\xC3\x97");
+	uiMenuItemStringO(head, "Circle|Alt .", 0, "FONT_OT_insert_text", "text", "\xC2\x8A");
+	uiMenuItemStringO(head, "Superscript 1|Alt 1", 0, "FONT_OT_insert_text", "text", "\xC2\xB9");
+	uiMenuItemStringO(head, "Superscript 2|Alt 2", 0, "FONT_OT_insert_text", "text", "\xC2\xB2");
+	uiMenuItemStringO(head, "Superscript 3|Alt 3", 0, "FONT_OT_insert_text", "text", "\xC2\xB3");
+	uiMenuItemStringO(head, "Double >>|Alt >", 0, "FONT_OT_insert_text", "text", "\xC2\xBB");
+	uiMenuItemStringO(head, "Double <<|Alt <", 0, "FONT_OT_insert_text", "text", "\xC2\xAB");
+	uiMenuItemStringO(head, "Promillage|Alt %", 0, "FONT_OT_insert_text", "text", "\xE2\x80\xB0");
+	
+	uiMenuSeparator(head);
+	
+	uiMenuItemStringO(head, "Dutch Florin|Alt F", 0, "FONT_OT_insert_text", "text", "\xC2\xA4");
+	uiMenuItemStringO(head, "British Pound|Alt L", 0, "FONT_OT_insert_text", "text", "\xC2\xA3");
+	uiMenuItemStringO(head, "Japanese Yen|Alt Y", 0, "FONT_OT_insert_text", "text", "\xC2\xA5");
+	
+	uiMenuSeparator(head);
+	
+	uiMenuItemStringO(head, "German S|Alt S", 0, "FONT_OT_insert_text", "text", "\xC3\x9F");
+	uiMenuItemStringO(head, "Spanish Question Mark|Alt ?", 0, "FONT_OT_insert_text", "text", "\xC2\xBF");
+	uiMenuItemStringO(head, "Spanish Exclamation Mark|Alt !", 0, "FONT_OT_insert_text", "text", "\xC2\xA1");
 }
 
-static uiBlock *view3d_edit_text_charsmenu(bContext *C, ARegion *ar, void *arg_unused)
+static void view3d_edit_textmenu(bContext *C, uiMenuItem *head, void *arg_unused)
 {
-	uiBlock *block;
-	short yco = 20, menuwidth = 120;
-
-	block= uiBeginBlock(C, ar, "view3d_edit_text_charsmenu", UI_EMBOSSP, UI_HELV);
-	uiBlockSetButmFunc(block, do_view3d_edit_text_charsmenu, NULL);
-	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Copyright|Alt C",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Registered Trademark|Alt R",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
-	
-	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Degree Sign|Alt G",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Multiplication Sign|Alt x",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Circle|Alt .",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Superscript 1|Alt 1",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Superscript 2|Alt 2",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Superscript 3|Alt 3",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 7, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Double >>|Alt >",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 8, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Double <<|Alt <",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 9, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Promillage|Alt %",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 10, "");
-	
-	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Dutch Florin|Alt F",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 11, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "British Pound|Alt L",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 12, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Japanese Yen|Alt Y",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 13, "");
-	
-	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "German S|Alt S",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 14, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Spanish Question Mark|Alt ?",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 15, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Spanish Exclamation Mark|Alt !",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 16, "");
-		
-	uiBlockSetDirection(block, UI_RIGHT);
-	uiTextBoundsBlock(block, 60);
-		
-	return block;
-}
-
-static void do_view3d_edit_textmenu(bContext *C, void *arg, int event)
-{
-#if 0
-	switch(event) {
-									
-	case 0: /* Undo Editing */
-		remake_editText();
-		break;
-	case 1: /* paste from file buffer */
-		paste_editText();
-		break;
-	}
-#endif
-}
-
-static uiBlock *view3d_edit_textmenu(bContext *C, ARegion *ar, void *arg_unused)
-{
-	uiBlock *block;
-	short yco= 0, menuwidth=120;
-	
-	block= uiBeginBlock(C, ar, "view3d_edit_textmenu", UI_EMBOSSP, UI_HELV);
-	uiBlockSetButmFunc(block, do_view3d_edit_textmenu, NULL);
-	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Undo Editing|U",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
-	
-	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Paste From Buffer File|Alt V",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
-	
-	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	
-	uiDefIconTextBlockBut(block, view3d_edit_text_charsmenu, NULL, ICON_RIGHTARROW_THIN, "Special Characters", 0, yco-=20, 120, 19, "");
-
-	if(ar->alignment==RGN_ALIGN_TOP) {
-		uiBlockSetDirection(block, UI_DOWN);
-	}
-	else {
-		uiBlockSetDirection(block, UI_TOP);
-		uiBlockFlipOrder(block);
-	}
-
-	uiTextBoundsBlock(block, 50);
-	return block;
+	uiMenuItemO(head, 0, "FONT_OT_paste_file");
+	uiMenuSeparator(head);
+	uiMenuLevel(head, "Special Characters", view3d_edit_text_charsmenu);
 }
 
 static void do_view3d_edit_latticemenu(bContext *C, void *arg, int event)
@@ -3577,9 +3471,6 @@ static void do_view3d_edit_latticemenu(bContext *C, void *arg, int event)
 	case 5: /* proportional edit (toggle) */
 		if(scene->proportional) scene->proportional= 0;
 		else scene->proportional= 1;
-		break;
-	case 6:
-		uv_autocalc_tface();
 		break;
 	case 7: /* delete keyframe */
 		common_deletekey();
@@ -5319,7 +5210,7 @@ static void view3d_header_pulldowns(const bContext *C, uiBlock *block, Object *o
 		} else if (ob && (ob->type == OB_CURVE || ob->type == OB_SURF)) {
 			uiDefMenuBut(block, view3d_select_curvemenu, NULL, "Select", xco, yco-2, xmax-3, 24, "");
 		} else if (ob && ob->type == OB_FONT) {
-			uiDefPulldownBut(block, view3d_select_meshmenu, NULL, "Select",	xco, yco-2, xmax-3, 24, "");
+			xmax= 0;
 		} else if (ob && ob->type == OB_MBALL) {
 			uiDefPulldownBut(block, view3d_select_metaballmenu, NULL, "Select",	xco,yco-2, xmax-3, 24, "");
 		} else if (ob && ob->type == OB_LATTICE) {
@@ -5359,7 +5250,7 @@ static void view3d_header_pulldowns(const bContext *C, uiBlock *block, Object *o
 			xco+= xmax;
 		} else if (ob && ob->type == OB_FONT) {
 			xmax= GetButStringLength("Text");
-			uiDefPulldownBut(block, view3d_edit_textmenu, NULL, "Text",	xco,yco-2, xmax-3, 24, "");
+			uiDefMenuBut(block, view3d_edit_textmenu, NULL, "Text", xco, yco-2, xmax-3, 24, "");
 			xco+= xmax;
 		} else if (ob && ob->type == OB_MBALL) {
 			xmax= GetButStringLength("Metaball");
