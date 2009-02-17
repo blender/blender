@@ -4212,10 +4212,15 @@ void autokeyframe_pose_cb_func(Scene *scene, View3D *v3d, Object *ob, int tmode,
 		short flag= 0;
 		char buf[512];
 		
+		/* flag is initialised from UserPref keyframing settings 
+		 *	- special exception for targetless IK - INSERTKEY_MATRIX keyframes should get
+		 * 	  visual keyframes even if flag not set, as it's not that useful otherwise
+		 *	  (for quick animation recording)
+		 */
+		if (IS_AUTOKEY_FLAG(AUTOMATKEY) || (targetless_ik))
+			flag |= INSERTKEY_MATRIX;
 		if (IS_AUTOKEY_FLAG(INSERTNEEDED))
 			flag |= INSERTKEY_NEEDED;
-		if (IS_AUTOKEY_FLAG(AUTOMATKEY))
-			flag |= INSERTKEY_MATRIX;
 		
 		for (pchan=pose->chanbase.first; pchan; pchan=pchan->next) {
 			if (pchan->bone->flag & BONE_TRANSFORM) {

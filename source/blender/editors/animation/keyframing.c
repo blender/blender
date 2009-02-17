@@ -527,36 +527,49 @@ enum {
  */
 static short visualkey_can_use (PointerRNA *ptr, PropertyRNA *prop)
 {
-	//Object *ob= NULL;
 	bConstraint *con= NULL;
 	short searchtype= VISUALKEY_NONE;
+	char *identifier= NULL;
 	
-#if 0 //  XXX old animation system	
 	/* validate data */
-	if ((id == NULL) || (GS(id->name)!=ID_OB) || !(ELEM(blocktype, ID_OB, ID_PO))) 
-		return 0;	
-	
-	/* get first constraint and determine type of keyframe constraints to check for*/
-	ob= (Object *)id;
-	
-	if (blocktype == ID_OB) {
+	// TODO: this check is probably not needed, but it won't hurt
+	if (ELEM3(NULL, ptr, ptr->data, prop))
+		return 0;
+		
+	/* get first constraint and determine type of keyframe constraints to check for 
+	 * 	- constraints can be on either Objects or PoseChannels, so we only check if the
+	 *	  ptr->type is RNA_Object or RNA_PoseChannel, which are the RNA wrapping-info for
+	 *  	  those structs, allowing us to identify the owner of the data 
+	 */
+	if (ptr->type == &RNA_Object) {
+		/* Object */
+		Object *ob= (Object *)ptr->data;
+		
 		con= ob->constraints.first;
-		
-		if (ELEM3(adrcode, OB_LOC_X, OB_LOC_Y, OB_LOC_Z))
-			searchtype= VISUALKEY_LOC;
-		else if (ELEM3(adrcode, OB_ROT_X, OB_ROT_Y, OB_ROT_Z))
-			searchtype= VISUALKEY_ROT;
+		identifier= (char *)RNA_property_identifier(ptr, prop);
 	}
-	else if (blocktype == ID_PO) {
-		bPoseChannel *pchan= get_pose_channel(ob->pose, actname);
+	else if (ptr->type == &RNA_PoseChannel) {
+		/* Pose Channel */
+		bPoseChannel *pchan= (bPoseChannel *)ptr->data;
+		
 		con= pchan->constraints.first;
-		
-		if (ELEM3(adrcode, AC_LOC_X, AC_LOC_Y, AC_LOC_Z))
-			searchtype= VISUALKEY_LOC;
-		else if (ELEM4(adrcode, AC_QUAT_W, AC_QUAT_X, AC_QUAT_Y, AC_QUAT_Z))
-			searchtype= VISUALKEY_ROT;
+		identifier= (char *)RNA_property_identifier(ptr, prop);
 	}
-#endif
+	
+	/* check if any data to search using */
+	if (ELEM(NULL, con, identifier))
+		return 0;
+		
+	/* location or rotation identifiers only... */
+	if (strstr(identifier, "location"))
+		searchtype= VISUALKEY_LOC;
+	else if (strstr(identifier, "rotation"))
+		searchtype= VISUALKEY_ROT;
+	else {
+		printf("visualkey_can_use() failed: identifier - '%s' \n", identifier);
+		return 0;
+	}
+	
 	
 	/* only search if a searchtype and initial constraint are available */
 	if (searchtype && con) {
@@ -617,51 +630,39 @@ static short visualkey_can_use (PointerRNA *ptr, PropertyRNA *prop)
  * In the event that it is not possible to perform visual keying, try to fall-back
  * to using the default method. Assumes that all data it has been passed is valid.
  */
-// xxx... ptr here should be struct that data is in.... prop is the channel that's being used
 static float visualkey_get_value (PointerRNA *ptr, PropertyRNA *prop, int array_index)
 {
-#if 0 // XXX old animation system
-	Object *ob;
-	void *poin = NULL;
-	int index, vartype;
+	char *identifier= (char *)RNA_property_identifier(ptr, prop);
 	
-	/* validate situtation */
-	if ((id==NULL) || (GS(id->name)!=ID_OB) || (ELEM(blocktype, ID_OB, ID_PO)==0))
-		return 0.0f;
+	/* handle for Objects or PoseChannels only 
+	 * 	- constraints can be on either Objects or PoseChannels, so we only check if the
+	 *	  ptr->type is RNA_Object or RNA_PoseChannel, which are the RNA wrapping-info for
+	 *  	  those structs, allowing us to identify the owner of the data 
+	 *	- assume that array_index will be sane
+	 */
+	if (ptr->type == &RNA_Object) {
+		Object *ob= (Object *)ptr->data;
 		
-	/* get object */
-	ob= (Object *)id;
-	
-	/* only valid for objects or posechannels */
-	if (blocktype == ID_OB) {
 		/* parented objects are not supported, as the effects of the parent
 		 * are included in the matrix, which kindof beats the point
 		 */
 		if (ob->parent == NULL) {
 			/* only Location or Rotation keyframes are supported now */
-			if (ELEM3(adrcode, OB_LOC_X, OB_LOC_Y, OB_LOC_Z)) {
-				/* assumes that OB_LOC_Z > OB_LOC_Y > OB_LOC_X */
-				index= adrcode - OB_LOC_X;
-				
-				return ob->obmat[3][index];
+			if (strstr(identifier, "location")) {
+				return ob->obmat[3][array_index];
 			}
-			else if (ELEM3(adrcode, OB_ROT_X, OB_ROT_Y, OB_ROT_Z)) {
+			else if (strstr(identifier, "rotation")) {
 				float eul[3];
 				
-				/* assumes that OB_ROT_Z > OB_ROT_Y > OB_ROT_X */
-				index= adrcode - OB_ROT_X;
-				
 				Mat4ToEul(ob->obmat, eul);
-				return eul[index]*(5.72958f);
+				return eul[array_index]*(5.72958f);
 			}
 		}
 	}
-	else if (blocktype == ID_PO) {
-		bPoseChannel *pchan;
+	else if (ptr->type == &RNA_PoseChannel) {
+		Object *ob= (Object *)ptr->id.data; /* we assume that this is always set, and is an object */
+		bPoseChannel *pchan= (bPoseChannel *)ptr->data;
 		float tmat[4][4];
-		
-		/* get data to use */
-		pchan= get_pose_channel(ob->pose, actname);
 		
 		/* Although it is not strictly required for this particular space conversion, 
 		 * arg1 must not be null, as there is a null check for the other conversions to
@@ -672,29 +673,29 @@ static float visualkey_get_value (PointerRNA *ptr, PropertyRNA *prop, int array_
 		constraint_mat_convertspace(ob, pchan, tmat, CONSTRAINT_SPACE_POSE, CONSTRAINT_SPACE_LOCAL);
 		
 		/* Loc, Rot/Quat keyframes are supported... */
-		if (ELEM3(adrcode, AC_LOC_X, AC_LOC_Y, AC_LOC_Z)) {
-			/* assumes that AC_LOC_Z > AC_LOC_Y > AC_LOC_X */
-			index= adrcode - AC_LOC_X;
-			
+		if (strstr(identifier, "location")) {
 			/* only use for non-connected bones */
 			if ((pchan->bone->parent) && !(pchan->bone->flag & BONE_CONNECTED))
-				return tmat[3][index];
+				return tmat[3][array_index];
 			else if (pchan->bone->parent == NULL)
-				return tmat[3][index];
+				return tmat[3][array_index];
 		}
-		else if (ELEM4(adrcode, AC_QUAT_W, AC_QUAT_X, AC_QUAT_Y, AC_QUAT_Z)) {
-			float trimat[3][3], quat[4];
+		else if (strstr(identifier, "euler_rotation")) {
+			float eul[3];
 			
-			/* assumes that AC_QUAT_Z > AC_QUAT_Y > AC_QUAT_X > AC_QUAT_W */
-			index= adrcode - AC_QUAT_W;
+			/* euler-rotation test before standard rotation, as standard rotation does quats */
+			Mat4ToEul(tmat, eul);
+			return eul[array_index];
+		}
+		else if (strstr(identifier, "rotation")) {
+			float trimat[3][3], quat[4];
 			
 			Mat3CpyMat4(trimat, tmat);
 			Mat3ToQuat_is_ok(trimat, quat);
 			
-			return quat[index];
+			return quat[array_index];
 		}
 	}
-#endif	// XXX old animation system
 	
 	/* as the function hasn't returned yet, read value from system in the default way */
 	return setting_get_rna_value(ptr, prop, array_index);
