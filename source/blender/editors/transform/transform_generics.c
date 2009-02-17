@@ -561,11 +561,15 @@ void recalcData(TransInfo *t)
 		Object *ob= t->poseobj;
 		bArmature *arm= ob->data;
 		
-		/* if animtimer is running, check if the auto-record feature means that we should record 'samples'
+		/* if animtimer is running, and the object already has animation data,
+		 * check if the auto-record feature means that we should record 'samples'
 		 * (i.e. uneditable animation values)
 		 */
-		if (t->animtimer && IS_AUTOKEY_ON(t->scene)) {
-			// XXX
+		// XXX experimental feature
+		// TODO: autokeyframe calls need some setting to specify to add samples (FPoints) instead of keyframes?
+		if ((ob->adt) && (t->animtimer) && IS_AUTOKEY_ON(t->scene)) {
+			short targetless_ik= 0; // XXX...
+			autokeyframe_pose_cb_func(t->scene, (View3D *)t->view, ob, t->mode, targetless_ik);
 		}
 		
 		/* old optimize trick... this enforces to bypass the depgraph */
@@ -584,24 +588,16 @@ void recalcData(TransInfo *t)
 				ob->recalc |= OB_RECALC_OB;
 			if(base->flag & BA_HAS_RECALC_DATA)
 				ob->recalc |= OB_RECALC_DATA;
-
-#if 0 // XXX old animation system
-			/* thanks to ob->ctime usage, ipos are not called in where_is_object,
-			   unless we edit ipokeys */
-			if(base->flag & BA_DO_IPO) {
-				if(ob->ipo) {
-					IpoCurve *icu;
-					
-					ob->ctime= -1234567.0;
-					
-					icu= ob->ipo->curve.first;
-					while(icu) {
-						calchandles_ipocurve(icu);
-						icu= icu->next;
-					}
-				}				
+			
+			/* if animtimer is running, and the object already has animation data,
+			 * check if the auto-record feature means that we should record 'samples'
+			 * (i.e. uneditable animation values)
+			 */
+			// XXX experimental feature
+			// TODO: autokeyframe calls need some setting to specify to add samples (FPoints) instead of keyframes?
+			if ((ob->adt) && (t->animtimer) && IS_AUTOKEY_ON(t->scene)) {
+				autokeyframe_ob_cb_func(t->scene, (View3D *)t->view, ob, t->mode);
 			}
-#endif // XXX old animation system
 			
 			/* proxy exception */
 			if(ob->proxy)
@@ -738,6 +734,7 @@ void initTransInfo (bContext *C, TransInfo *t, wmEvent *event)
 		View3D *v3d = sa->spacedata.first;
 		
 		t->view = v3d;
+		t->animtimer= CTX_wm_screen(C)->animtimer;
 		
 		if(v3d->flag & V3D_ALIGN) t->flag |= T_V3D_ALIGN;
 		t->around = v3d->around;

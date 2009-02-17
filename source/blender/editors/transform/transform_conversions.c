@@ -4203,7 +4203,7 @@ void autokeyframe_pose_cb_func(Scene *scene, View3D *v3d, Object *ob, int tmode,
 {
 	ID *id= &ob->id;
 	AnimData *adt= ob->adt;
-	bArmature *arm= ob->data;
+	//bArmature *arm= ob->data;
 	bAction	*act= (adt) ? adt->action : NULL;
 	bPose	*pose= ob->pose;
 	bPoseChannel *pchan;
