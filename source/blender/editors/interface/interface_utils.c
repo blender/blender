@@ -387,7 +387,7 @@ int uiDefAutoButsRNA(uiBlock *block, PointerRNA *ptr)
 			else
 				name= "";
 
-			uiDefAutoButR(block, ptr, prop, a, name, x+DEF_BUT_WIDTH, y, DEF_BUT_WIDTH, DEF_BUT_HEIGHT-1);
+			uiDefAutoButR(block, ptr, prop, 0, name, x+DEF_BUT_WIDTH, y, DEF_BUT_WIDTH, DEF_BUT_HEIGHT-1);
 			y -= DEF_BUT_HEIGHT;
 		}
 
