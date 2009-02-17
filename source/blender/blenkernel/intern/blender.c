@@ -321,10 +321,6 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, char *filename)
 	G.main= bfd->main;
 
 	CTX_data_main_set(C, G.main);
-	CTX_wm_screen_set(C, NULL);
-	CTX_wm_area_set(C, NULL);
-	CTX_wm_region_set(C, NULL);
-	CTX_wm_ui_block_set(C, NULL, NULL);
 	
 	if (bfd->user) {
 		
@@ -340,15 +336,19 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, char *filename)
 	
 	/* case G_FILE_NO_UI or no screens in file */
 	if(mode) {
-		CTX_wm_screen_set(C, curscreen);
+		/* leave entire context further unaltered? */
 		CTX_data_scene_set(C, curscene);
 	}
 	else {
 		G.winpos= bfd->winpos;
 		G.displaymode= bfd->displaymode;
 		G.fileflags= bfd->fileflags;
+		
 		CTX_wm_screen_set(C, bfd->curscreen);
 		CTX_data_scene_set(C, bfd->curscreen->scene);
+		CTX_wm_area_set(C, NULL);
+		CTX_wm_region_set(C, NULL);
+		CTX_wm_ui_block_set(C, NULL, NULL);
 	}
 	
 	/* this can happen when active scene was lib-linked, and doesnt exist anymore */
@@ -372,8 +372,9 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, char *filename)
 		//setscreen(G.curscreen);
 	}
 	
-	// XXX is this in the right place?
-	do_versions_ipos_to_animato(G.main); // XXX fixme... complicated versionpatching
+	// XXX temporarily here
+	if(G.main->versionfile < 250)
+		do_versions_ipos_to_animato(G.main); // XXX fixme... complicated versionpatching
 	
 	/* baseflags, groups, make depsgraph, etc */
 	set_scene_bg(CTX_data_scene(C));

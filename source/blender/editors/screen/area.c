@@ -330,6 +330,8 @@ static void region_rect_recursive(ARegion *ar, rcti *remainder, int quad)
 	if(ar==NULL)
 		return;
 	
+	BLI_init_rcti(&ar->winrct, 0, 0, 0, 0);
+	
 	/* clear state flags first */
 	ar->flag &= ~RGN_FLAG_TOO_SMALL;
 	/* user errors */
@@ -603,11 +605,17 @@ void ED_area_initialize(wmWindowManager *wm, wmWindow *win, ScrArea *sa)
 	for(ar= sa->regionbase.first; ar; ar= ar->next) {
 		region_subwindow(wm, win, ar);
 		
-		/* default region handlers */
-		ed_default_handlers(wm, &ar->handlers, ar->type->keymapflag);
+		if(ar->swinid) {
+			/* default region handlers */
+			ed_default_handlers(wm, &ar->handlers, ar->type->keymapflag);
 
-		if(ar->type->init)
-			ar->type->init(wm, ar);
+			if(ar->type->init)
+				ar->type->init(wm, ar);
+		}
+		else {
+			/* prevent uiblocks to run */
+			uiFreeBlocks(NULL, &ar->uiblocks);	
+		}
 		
 	}
 	area_azone_initialize(sa);

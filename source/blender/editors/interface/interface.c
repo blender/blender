@@ -1494,6 +1494,7 @@ static void ui_free_link(uiLink *link)
 	}
 }
 
+/* can be called with C==NULL */
 static void ui_free_but(const bContext *C, uiBut *but)
 {
 	if(but->opptr) {
@@ -1501,13 +1502,21 @@ static void ui_free_but(const bContext *C, uiBut *but)
 		MEM_freeN(but->opptr);
 	}
 	if(but->func_argN) MEM_freeN(but->func_argN);
-	if(but->active) ui_button_active_cancel(C, but);
+	if(but->active) {
+		/* XXX solve later, buttons should be free-able without context? */
+		if(C) 
+			ui_button_active_cancel(C, but);
+		else
+			if(but->active) 
+				MEM_freeN(but->active);
+	}
 	if(but->str && but->str != but->strdata) MEM_freeN(but->str);
 	ui_free_link(but->link);
 
 	MEM_freeN(but);
 }
 
+/* can be called with C==NULL */
 void uiFreeBlock(const bContext *C, uiBlock *block)
 {
 	uiBut *but;
@@ -1525,6 +1534,7 @@ void uiFreeBlock(const bContext *C, uiBlock *block)
 	MEM_freeN(block);
 }
 
+/* can be called with C==NULL */
 void uiFreeBlocks(const bContext *C, ListBase *lb)
 {
 	uiBlock *block;
