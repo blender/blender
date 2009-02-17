@@ -959,6 +959,7 @@ static const char *rna_property_subtypename(PropertyType type)
 		case PROP_MATRIX: return "PROP_MATRIX";
 		case PROP_ROTATION: return "PROP_ROTATION";
 		case PROP_NEVER_NULL: return "PROP_NEVER_NULL";
+		case PROP_PERCENTAGE: return "PROP_PERCENTAGE";
 		default: return "PROP_UNKNOWN";
 	}
 }

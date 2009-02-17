@@ -75,6 +75,7 @@ StructRNA *rna_ID_refine(PointerRNA *ptr)
 		case ID_NT: return &RNA_NodeTree;
 		case ID_ME: return &RNA_Mesh;
 		case ID_OB: return &RNA_Object;
+		case ID_PA: return &RNA_ParticleSettings;
 		case ID_SCE: return &RNA_Scene;
 		case ID_SCR: return &RNA_Screen;
 		case ID_SO: return &RNA_Sound;

@@ -87,6 +87,8 @@ PropertyRNA *RNA_def_float_rotation(StructRNA *srna, const char *identifier, int
 	float hardmin, float hardmax, const char *ui_name, const char *ui_description, float softmin, float softmax);
 PropertyRNA *RNA_def_float_array(StructRNA *srna, const char *identifier, int len, const float *default_value,
 	float hardmin, float hardmax, const char *ui_name, const char *ui_description, float softmin, float softmax);
+PropertyRNA *RNA_def_float_percentage(StructRNA *srna, const char *identifier, float default_value, float hardmin, float hardmax,
+	const char *ui_name, const char *ui_description, float softmin, float softmax);
 
 PropertyRNA *RNA_def_pointer_runtime(StructRNA *srna, const char *identifier, StructRNA *type,
 	const char *ui_name, const char *ui_description);

@@ -67,7 +67,8 @@ typedef enum PropertySubType {
 	PROP_VECTOR = 5,
 	PROP_MATRIX = 6,
 	PROP_ROTATION = 7,
-	PROP_NEVER_NULL = 8
+	PROP_NEVER_NULL = 8,
+	PROP_PERCENTAGE = 9
 } PropertySubType;
 
 typedef enum PropertyFlag {

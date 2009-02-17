@@ -282,8 +282,6 @@ static void image_main_area_set_view2d(SpaceImage *sima, ARegion *ar, Scene *sce
 	float x1, y1, w, h;
 	int width, height, winx, winy;
 	
-	ED_space_image_size(sima, &width, &height);
-
 #if 0
 	if(image_preview_active(curarea, &width, &height));
 #endif
@@ -293,15 +291,19 @@ static void image_main_area_set_view2d(SpaceImage *sima, ARegion *ar, Scene *sce
 		
 		ED_image_aspect(sima->image, &xuser_asp, &yuser_asp);
 		if(ibuf) {
-			width= ibuf->x * xuser_asp;
-			width= ibuf->y * yuser_asp;
+			width= ibuf->x*xuser_asp;
+			height= ibuf->y*yuser_asp;
 		}
-		else if( sima->image->type==IMA_TYPE_R_RESULT ) {
+		else if(sima->image->type==IMA_TYPE_R_RESULT) {
 			/* not very important, just nice */
 			width= (scene->r.xsch*scene->r.size)/100;
 			height= (scene->r.ysch*scene->r.size)/100;
 		}
+		else
+			ED_space_image_size(sima, &width, &height);
 	}
+	else
+		ED_space_image_size(sima, &width, &height);
 
 	w= width;
 	h= height;
