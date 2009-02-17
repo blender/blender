@@ -64,7 +64,7 @@ void NODE_OT_border_select(struct wmOperatorType *ot);
 void node_draw_link(View2D *v2d, SpaceNode *snode, bNodeLink *link);
 void node_draw_link_bezier(View2D *v2d, SpaceNode *snode, bNodeLink *link, int th_col1, int th_col2, int do_shaded);
 int node_link_bezier_points(View2D *v2d, SpaceNode *snode, bNodeLink *link, float coord_array[][2], int resol);
-void draw_nodespace_back_pix(ScrArea *sa, SpaceNode *snode);
+void draw_nodespace_back_pix(ARegion *ar, SpaceNode *snode);
 
 /* node_edit.c */
 void snode_handle_recalc(bContext *C, SpaceNode *snode);
