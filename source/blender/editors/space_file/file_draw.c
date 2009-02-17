@@ -103,6 +103,7 @@ static void do_file_buttons(bContext *C, void *arg, int event)
 	}
 }
 
+/* note; this function uses pixelspace (0, 0, winx, winy), not view2d */
 void file_draw_buttons(const bContext *C, ARegion *ar)
 {
 	SpaceFile *sfile= (SpaceFile*)CTX_wm_space_data(C);
@@ -118,14 +119,14 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 
 	int filebuty1, filebuty2;
 
-	float xmin = ar->v2d.mask.xmin + 10;
-	float xmax = ar->v2d.mask.xmax - 10;
+	float xmin = 10;
+	float xmax = ar->winx - 10;
 
-	filebuty1= ar->v2d.mask.ymax - IMASEL_BUTTONS_HEIGHT;
+	filebuty1= ar->winy - IMASEL_BUTTONS_HEIGHT;
 	filebuty2= filebuty1+IMASEL_BUTTONS_HEIGHT/2 -6;
 
 	/* HEADER */
-	sprintf(name, "win %d", 1); // XXX sa-win???
+	sprintf(name, "win %p", ar);
 	block = uiBeginBlock(C, ar, name, UI_EMBOSS, UI_HELV);
 	uiBlockSetHandleFunc(block, do_file_buttons, NULL);
 
@@ -136,7 +137,7 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 	/* space available for load/save buttons? */
 	slen = UI_GetStringWidth(G.font, sfile->params->title, 0);
 	loadbutton= slen > 60 ? slen + 20 : MAX2(80, 20+UI_GetStringWidth(G.font, params->title, 0));
-	if(ar->v2d.cur.xmax-ar->v2d.cur.xmin > loadbutton+20) {
+	if(ar->winx > loadbutton+20) {
 		if(params->title[0]==0) {
 			loadbutton= 0;
 		}
