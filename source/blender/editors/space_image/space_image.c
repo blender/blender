@@ -276,32 +276,32 @@ static int image_context(const bContext *C, bContextDataMember member, bContextD
 /************************** main region ***************************/
 
 /* sets up the fields of the View2D from zoom and offset */
-static void image_main_area_set_view2d(SpaceImage *sima, ARegion *ar)
+static void image_main_area_set_view2d(SpaceImage *sima, ARegion *ar, Scene *scene)
 {
 	Image *ima= ED_space_image(sima);
 	float x1, y1, w, h;
 	int width, height, winx, winy;
 	
+	ED_space_image_size(sima, &width, &height);
+
 #if 0
-	if(image_preview_active(curarea, &xim, &yim));
-	else if(sima->image) {
+	if(image_preview_active(curarea, &width, &height));
+#endif
+	if(sima->image) {
 		ImBuf *ibuf= ED_space_image_buffer(sima);
 		float xuser_asp, yuser_asp;
 		
 		ED_image_aspect(sima->image, &xuser_asp, &yuser_asp);
 		if(ibuf) {
-			xim= ibuf->x * xuser_asp;
-			yim= ibuf->y * yuser_asp;
+			width= ibuf->x * xuser_asp;
+			width= ibuf->y * yuser_asp;
 		}
 		else if( sima->image->type==IMA_TYPE_R_RESULT ) {
 			/* not very important, just nice */
-			xim= (G.scene->r.xsch*G.scene->r.size)/100;
-			yim= (G.scene->r.ysch*G.scene->r.size)/100;
+			width= (scene->r.xsch*scene->r.size)/100;
+			height= (scene->r.ysch*scene->r.size)/100;
 		}
 	}
-#endif
-
-	ED_space_image_size(sima, &width, &height);
 
 	w= width;
 	h= height;
@@ -373,7 +373,7 @@ static void image_main_area_draw(const bContext *C, ARegion *ar)
 	glClear(GL_COLOR_BUFFER_BIT);
 	
 	/* we set view2d from own zoom and offset each time */
-	image_main_area_set_view2d(sima, ar);
+	image_main_area_set_view2d(sima, ar, scene);
 		
 	/* we draw image in pixelspace */
 	draw_image_main(sima, ar, scene);

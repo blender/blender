@@ -440,7 +440,7 @@ static void idpoin_cb(bContext *C, void *arg_params, void *arg_event)
 
 			for(idtest=lb->first, nr=1; idtest; idtest=idtest->next, nr++) {
 				if(nr==params->browsenr) {
-					if(id == idtest)
+					if(*id_p == idtest)
 						return;
 
 					*id_p= idtest;
@@ -1128,7 +1128,5 @@ void curvemap_buttons(uiBlock *block, CurveMapping *cumap, char labeltype, short
 	uiDefBut(block, BUT_CURVE, event, "", 
 			  rect->xmin, rect->ymin, rect->xmax-rect->xmin, fy-rect->ymin, 
 			  cumap, 0.0f, 1.0f, 0, 0, "");
-	
 }
-
 
