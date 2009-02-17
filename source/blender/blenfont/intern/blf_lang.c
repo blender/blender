@@ -29,15 +29,25 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifdef WITH_FREETYPE2
+#include <ft2build.h>
+
+#include FT_FREETYPE_H
+#include FT_GLYPH_H
+#endif
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_listBase.h"
+#include "DNA_vec_types.h"
 
 #include "BKE_utildefines.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_linklist.h"	/* linknode */
 #include "BLI_string.h"
+
+#include "BIF_gl.h"
 
 #include "blf_internal_types.h"
 

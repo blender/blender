@@ -33,10 +33,46 @@ include nan_compile.mk
 
 CFLAGS += $(LEVEL_1_C_WARNINGS)
 
-CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
+# OpenGL and Freetype2
+CPPFLAGS += -I$(NAN_GLEW)/include
+CPPFLAGS += $(OGL_CPPFLAGS)
+CPPFLAGS += -I$(NAN_FREETYPE)/include
+
+ifeq ($(OS), windows)
+  CPPFLAGS += -I$(NAN_ICONV)/include
+  ifeq ($(FREE_WINDOWS), true)
+    CPPFLAGS += -I$(NAN_FREETYPE)/include/freetype2
+    CPPFLAGS += -DUSE_GETTEXT_DLL
+  endif
+else
+  CPPFLAGS += -I$(NAN_FREETYPE)/include/freetype2
+endif
+
+ifeq ($(OS),linux)
+    ifeq ($(CPU),alpha)
+	CPPFLAGS += -I$(NAN_MESA)/include
+    endif
+    ifeq ($(CPU),i386)
+	CPPFLAGS += -I$(NAN_MESA)/include
+    endif
+    ifeq ($(CPU),powerpc)
+	CPPFLAGS += -I/usr/src/MesaCVS/include
+    endif
+endif
+
+ifeq ($(WITH_FREETYPE2), true)
+    CPPFLAGS += -DWITH_FREETYPE2
+endif
+
+# Modules
+CPPFLAGS += -I../../editors/include
 CPPFLAGS += -I../../makesdna
 CPPFLAGS += -I../../blenlib
 CPPFLAGS += -I../../blenkernel
 CPPFLAGS += -I../../ftfont
 
+# Memory allocator
+CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
+
+# Our own headers
 CPPFLAGS += -I..

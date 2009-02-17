@@ -26,30 +26,38 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#if 0
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#ifdef WITH_FREETYPE2
 
 #include <ft2build.h>
 
 #include FT_FREETYPE_H
 #include FT_GLYPH_H
 
+#endif /* WITH_FREETYPE2 */
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_listBase.h"
+#include "DNA_vec_types.h"
 
 #include "BKE_utildefines.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_linklist.h"	/* linknode */
 #include "BLI_string.h"
+#include "BLI_arithb.h"
+
+#include "BIF_gl.h"
 
 #include "blf_internal_types.h"
 #include "blf_internal.h"
 
+
+#ifdef WITH_FREETYPE2
 
 /* freetype2 handle. */
 FT_Library global_ft_lib;
@@ -61,7 +69,7 @@ int blf_font_init(void)
 
 void blf_font_exit(void)
 {
-	FT_Done_Freetype(global_ft_lib);
+	FT_Done_FreeType(global_ft_lib);
 }
 
 void blf_font_fill(FontBLF *font)
@@ -95,21 +103,20 @@ FontBLF *blf_font_new(char *name, char *filename)
 	font= (FontBLF *)MEM_mallocN(sizeof(FontBLF), "blf_font_new");
 	err= FT_New_Face(global_ft_lib, filename, 0, &font->face);
 	if (err) {
-		printf("BLF: Can't load font: %s\n", filename);
 		MEM_freeN(font);
 		return(NULL);
 	}
 
 	err= FT_Select_Charmap(font->face, ft_encoding_unicode);
 	if (err) {
-		printf("Warning: FT_Select_Charmap fail!!\n");
+		printf("Can't set the unicode character map!\n");
 		FT_Done_Face(font->face);
 		MEM_freeN(font);
 		return(NULL);
 	}
 
-	font->name= MEM_strdup(name);
-	font->filename= MEM_strdup(filename);
+	font->name= BLI_strdup(name);
+	font->filename= BLI_strdup(filename);
 	blf_font_fill(font);
 	return(font);
 }
@@ -120,22 +127,21 @@ FontBLF *blf_font_new_from_mem(char *name, unsigned char *mem, int mem_size)
 	FT_Error err;
 
 	font= (FontBLF *)MEM_mallocN(sizeof(FontBLF), "blf_font_new_from_mem");
-	err= FT_New_Memory_Face(global_ft_lib, mem, size, 0, &font->face);
+	err= FT_New_Memory_Face(global_ft_lib, mem, mem_size, 0, &font->face);
 	if (err) {
-		printf("BLF: Can't load font: %s, from memory!!\n", name);
 		MEM_freeN(font);
 		return(NULL);
 	}
 
 	err= FT_Select_Charmap(font->face, ft_encoding_unicode);
 	if (err) {
-		printf("BLF: FT_Select_Charmap fail!!\n");
+		printf("Can't set the unicode character map!\n");
 		FT_Done_Face(font->face);
 		MEM_freeN(font);
 		return(NULL);
 	}
 
-	font->name= MEM_strdup(name);
+	font->name= BLI_strdup(name);
 	font->filename= NULL;
 	blf_font_fill(font);
 	return(font);
@@ -149,7 +155,7 @@ void blf_font_size(FontBLF *font, int size, int dpi)
 	err= FT_Set_Char_Size(font->face, 0, (size * 64), dpi, dpi);
 	if (err) {
 		/* FIXME: here we can go through the fixed size and choice a close one */
-		printf("Warning: The current face don't support the size (%d) and dpi (%d)\n", size, dpi);
+		printf("The current font don't support the size, %d and dpi, %d\n", size, dpi);
 		return;
 	}
 
@@ -163,6 +169,8 @@ void blf_font_size(FontBLF *font, int size, int dpi)
 		gc= blf_glyph_cache_new(font);
 		if (gc)
 			font->glyph_cache= gc;
+		else
+			font->glyph_cache= NULL;
 	}
 }
 
@@ -182,11 +190,11 @@ void blf_font_draw(FontBLF *font, char *str)
 	g_prev= NULL;
 
 	while (str[i]) {
-		c= blf_uf8_next((unsigned char *)str, &i);
+		c= blf_utf8_next((unsigned char *)str, &i);
 		if (c == 0)
 			break;
 
-		glyph_index= FT_Get_Char_Index(face, c);
+		glyph_index= FT_Get_Char_Index(font->face, c);
 		g= blf_glyph_search(font->glyph_cache, glyph_index);
 		if (!g)
 			g= blf_glyph_add(font, glyph_index, c);
@@ -195,11 +203,11 @@ void blf_font_draw(FontBLF *font, char *str)
 		if (!g)
 			continue;
 
-		if (use_kering && g_prev) {
+		if (has_kerning && g_prev) {
 			delta.x= 0;
 			delta.y= 0;
 
-			FT_Get_Kerning(font->face, g_prev->index, glyph_index, FT_KERNING_MODE_UNFITTED, &delta);
+			FT_Get_Kerning(font->face, g_prev->index, glyph_index, FT_KERNING_UNFITTED, &delta);
 			pen_x += delta.x >> 6;
 		}
 
@@ -209,4 +217,23 @@ void blf_font_draw(FontBLF *font, char *str)
 	}
 }
 
-#endif /* zero!! */
+void blf_font_free(FontBLF *font)
+{
+	GlyphCacheBLF *gc;
+
+	font->glyph_cache= NULL;
+	while (font->cache.first) {
+		gc= font->cache.first;
+		BLI_remlink(&font->cache, gc);
+		blf_glyph_cache_free(gc);
+	}
+
+	FT_Done_Face(font->face);
+	if (font->filename)
+		MEM_freeN(font->filename);
+	if (font->name)
+		MEM_freeN(font->name);
+	MEM_freeN(font);
+}
+
+#endif /* WITH_FREETYPE2 */

@@ -223,8 +223,10 @@ void WM_exit(bContext *C)
 //	free_imagepaint();
 	
 //	fsmenu_free();
-	
+
+	BLF_exit();
 	BLF_lang_exit();
+
 	RE_FreeAllRender();
 	
 //	free_txt_data();

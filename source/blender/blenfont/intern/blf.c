@@ -26,20 +26,23 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#if 0
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#ifdef WITH_FREETYPE2
 
 #include <ft2build.h>
 
 #include FT_FREETYPE_H
 #include FT_GLYPH_H
 
+#endif /* WITH_FREETYPE2 */
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_listBase.h"
+#include "DNA_vec_types.h"
 
 #include "BKE_utildefines.h"
 
@@ -47,9 +50,14 @@
 #include "BLI_linklist.h"	/* linknode */
 #include "BLI_string.h"
 
+#include "BIF_gl.h"
+#include "BIF_glutil.h"
+
 #include "blf_internal_types.h"
 #include "blf_internal.h"
 
+
+#ifdef WITH_FREETYPE2
 
 /* Max number of font in memory.
  * Take care that now every font have a glyph cache per size/dpi,
@@ -67,31 +75,55 @@ int global_font_num= 0;
 /* Current font. */
 int global_font_cur= 0;
 
+#endif /* WITH_FREETYPE2 */
+
 int BLF_init(void)
 {
+#ifdef WITH_FREETYPE2
 	int i;
 
 	for (i= 0; i < BLF_MAX_FONT; i++)
 		global_font[i]= NULL;
 
 	return(blf_font_init());
+#else
+	return(0);
+#endif
 }
 
-int blf_search(char *name)
+void BLF_exit(void)
 {
+#ifdef WITH_FREETYPE2
 	FontBLF *font;
 	int i;
 
 	for (i= 0; i < global_font_num; i++) {
 		font= global_font[i];
+		blf_font_free(font);
+	}
+
+	blf_font_exit();
+#endif
+}
+
+int blf_search(char *name)
+{
+#ifdef WITH_FREETYPE2
+	FontBLF *font;
+	int i;
+
+	for (i= 0; i < BLF_MAX_FONT; i++) {
+		font= global_font[i];
 		if (font && (!strcmp(font->name, name)))
 			return(i);
 	}
+#endif
 	return(-1);
 }
 
 int BLF_load(char *name)
 {
+#ifdef WITH_FREETYPE2
 	FontBLF *font;
 	char *filename;
 	int i;
@@ -101,30 +133,44 @@ int BLF_load(char *name)
 
 	/* check if we already load this font. */
 	i= blf_search(name);
-	if (i >= 0)
+	if (i >= 0) {
+		font= global_font[i];
+		font->ref++;
+		printf("Increment reference (%d): %s\n", font->ref, name);
 		return(i);
+	}
 
-	if (global_font_num+1 >= BLF_MAX_FONT)
+	if (global_font_num+1 >= BLF_MAX_FONT) {
+		printf("Too many fonts!!!\n");
 		return(-1);
+	}
 
 	filename= blf_dir_search(name);
-	if (!filename)
+	if (!filename) {
+		printf("Can't found font: %s\n", name);
 		return(-1);
+	}
 
 	font= blf_font_new(name, filename);
 	MEM_freeN(filename);
 
-	if (!font)
+	if (!font) {
+		printf("Can't load font: %s\n", name);
 		return(-1);
+	}
 
 	global_font[global_font_num]= font;
 	i= global_font_num;
 	global_font_num++;
 	return(i);
+#else
+	return(-1);
+#endif /* WITH_FREETYPE2 */
 }
 
 int BLF_load_mem(char *name, unsigned char *mem, int mem_size)
 {
+#ifdef WITH_FREETYPE2
 	FontBLF *font;
 	int i;
 
@@ -132,39 +178,55 @@ int BLF_load_mem(char *name, unsigned char *mem, int mem_size)
 		return(-1);
 
 	i= blf_search(name);
-	if (i >= 0)
+	if (i >= 0) {
+		font= global_font[i];
+		font->ref++;
+		printf("Increment reference (%d): %s\n", font->ref, name);
 		return(i);
+	}
 
-	if (global_font_num+1 >= BLF_MAX_FONT)
+	if (global_font_num+1 >= BLF_MAX_FONT) {
+		printf("Too many fonts!!!\n");
 		return(-1);
+	}
 
-	font= blf_font_new_from_mem(name, mem, size);
-	if (!font)
+	font= blf_font_new_from_mem(name, mem, mem_size);
+	if (!font) {
+		printf("Can't load font, %s from memory!!\n", name);
 		return(-1);
+	}
 
 	global_font[global_font_num]= font;
 	i= global_font_num;
 	global_font_num++;
 	return(i);
+#else
+	return(-1);
+#endif /* WITH_FREETYPE2 */
 }
 
 void BLF_set(int fontid)
 {
-	if (fontid >= 0 && fontid < global_font_num)
+#ifdef WITH_FREETYPE2
+	if (fontid >= 0 && fontid < BLF_MAX_FONT)
 		global_font_cur= fontid;
+#endif
 }
 
 void BLF_aspect(float aspect)
 {
+#ifdef WITH_FREETYPE2
 	FontBLF *font;
 
 	font= global_font[global_font_cur];
 	if (font)
 		font->aspect= aspect;
+#endif
 }
 
 void BLF_position(float x, float y, float z)
 {
+#ifdef WITH_FREETYPE2
 	FontBLF *font;
 
 	font= global_font[global_font_cur];
@@ -173,23 +235,27 @@ void BLF_position(float x, float y, float z)
 		font->pos[1]= y;
 		font->pos[2]= z;
 	}
+#endif
 }
 
 void BLF_size(int size, int dpi)
 {
+#ifdef WITH_FREETYPE2
 	FontBLF *font;
 
 	font= global_font[global_font_cur];
 	if (font)
 		blf_font_size(font, size, dpi);
+#endif
 }
 
 void BLF_draw(char *str)
 {
+#ifdef WITH_FREETYPE2
 	FontBLF *font;
 
 	font= global_font[global_font_cur];
-	if (font) {
+	if (font && font->glyph_cache) {
 		glEnable(GL_BLEND);
 		glEnable(GL_TEXTURE_2D);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -200,9 +266,8 @@ void BLF_draw(char *str)
 		blf_font_draw(font, str);
 
 		glPopMatrix();
-		glDisable(GL_TEXTURE_2D);
 		glDisable(GL_BLEND);
+		glDisable(GL_TEXTURE_2D);
 	}
+#endif /* WITH_FREETYPE2 */
 }
-
-#endif

@@ -589,6 +589,9 @@ int WM_read_homefile(bContext *C, wmOperator *op)
 
 	strcpy(G.sce, scestr); /* restore */
 
+	BLF_lang_init();
+	BLF_init();
+
 	init_userdef_themes();
 	
 	/* When loading factory settings, the reset solid OpenGL lights need to be applied. */
@@ -598,8 +601,6 @@ int WM_read_homefile(bContext *C, wmOperator *op)
 	G.save_over = 0;	// start with save preference untitled.blend
 	G.fileflags &= ~G_FILE_AUTOPLAY;	/*  disable autoplay in .B.blend... */
 //	mainwindow_set_filename_to_title("");	// empty string re-initializes title to "Blender"
-
-	BLF_lang_init();
 	
 //	refresh_interface_font();
 	
