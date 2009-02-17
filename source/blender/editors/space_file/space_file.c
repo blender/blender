@@ -142,12 +142,14 @@ static SpaceLink *file_duplicate(SpaceLink *sl)
 	/* clear or remove stuff from old */
 	sfilen->op = NULL; /* file window doesn't own operators */
 
-	sfilen->params= MEM_dupallocN(sfileo->params);
-	
 	sfilen->files = filelist_new();
-	filelist_setdir(sfilen->files, sfilen->params->dir);
-	filelist_settype(sfilen->files, sfilen->params->type);
-
+	
+	if(sfileo->params) {
+		sfilen->params= MEM_dupallocN(sfileo->params);
+	
+		filelist_setdir(sfilen->files, sfilen->params->dir);
+		filelist_settype(sfilen->files, sfilen->params->type);
+	}
 	return (SpaceLink *)sfilen;
 }
 
