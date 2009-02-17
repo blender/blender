@@ -8816,6 +8816,9 @@ static void expand_scene(FileData *fd, Main *mainvar, Scene *sce)
 	expand_doit(fd, mainvar, sce->camera);
 	expand_doit(fd, mainvar, sce->world);
 	
+	if(sce->set)
+		expand_doit(fd, mainvar, sce->set);
+	
 	if(sce->nodetree)
 		expand_nodetree(fd, mainvar, sce->nodetree);
 	
