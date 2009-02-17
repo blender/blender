@@ -565,10 +565,10 @@ void recalcData(TransInfo *t)
 		 * check if the auto-record feature means that we should record 'samples'
 		 * (i.e. uneditable animation values)
 		 */
-		// XXX experimental feature
 		// TODO: autokeyframe calls need some setting to specify to add samples (FPoints) instead of keyframes?
-		if ((ob->adt) && (t->animtimer) && IS_AUTOKEY_ON(t->scene)) {
-			short targetless_ik= 0; // XXX...
+		// TODO: maybe the ob->adt check isn't really needed? makes it too difficult to use...
+		if (/*(ob->adt) && */(t->animtimer) && IS_AUTOKEY_ON(t->scene)) {
+			short targetless_ik= (t->flag & T_AUTOIK);
 			autokeyframe_pose_cb_func(t->scene, (View3D *)t->view, ob, t->mode, targetless_ik);
 		}
 		
@@ -593,9 +593,9 @@ void recalcData(TransInfo *t)
 			 * check if the auto-record feature means that we should record 'samples'
 			 * (i.e. uneditable animation values)
 			 */
-			// XXX experimental feature
 			// TODO: autokeyframe calls need some setting to specify to add samples (FPoints) instead of keyframes?
-			if ((ob->adt) && (t->animtimer) && IS_AUTOKEY_ON(t->scene)) {
+			// TODO: maybe the ob->adt check isn't really needed? makes it too difficult to use...
+			if (/*(ob->adt) && */(t->animtimer) && IS_AUTOKEY_ON(t->scene)) {
 				autokeyframe_ob_cb_func(t->scene, (View3D *)t->view, ob, t->mode);
 			}
 			

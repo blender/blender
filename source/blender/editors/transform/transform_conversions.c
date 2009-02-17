@@ -125,6 +125,7 @@
 #include "ED_image.h"
 #include "ED_keyframing.h"
 #include "ED_keyframes_edit.h"
+#include "ED_object.h"
 #include "ED_mesh.h"
 #include "ED_types.h"
 #include "ED_uvedit.h"
@@ -835,18 +836,17 @@ static short pose_grab_with_ik_add(bPoseChannel *pchan)
 			if(data->tar==NULL || (data->tar->type==OB_ARMATURE && data->subtarget[0]==0)) {
 				targetless = con;
 				/* but, if this is a targetless IK, we make it auto anyway (for the children loop) */
-				if (con->enforce!=0.0) {
+				if (con->enforce!=0.0f) {
 					targetless->flag |= CONSTRAINT_IK_AUTO;
 					return 0;
 				}
 			}
-			if ((con->flag & CONSTRAINT_DISABLE)==0 && (con->enforce!=0.0))
+			if ((con->flag & CONSTRAINT_DISABLE)==0 && (con->enforce!=0.0f))
 				return 0;
 		}
 	}
 	
-	// TRANSFORM_FIX_ME
-	//con = add_new_constraint(CONSTRAINT_TYPE_KINEMATIC);
+	con = add_new_constraint(CONSTRAINT_TYPE_KINEMATIC);
 	BLI_addtail(&pchan->constraints, con);
 	pchan->constflag |= (PCHAN_HAS_IK|PCHAN_HAS_TARGET);	/* for draw, but also for detecting while pose solving */
 	data= con->data;
@@ -965,7 +965,6 @@ static void createTransPose(bContext *C, TransInfo *t, Object *ob)
 	
 	if (arm->flag & ARM_RESTPOS) {
 		if (ELEM(t->mode, TFM_DUMMY, TFM_BONESIZE)==0) {
-			//notice("Pose edit not possible while Rest Position is enabled");
 			BKE_report(CTX_reports(C), RPT_ERROR, "Can't select linked when sync selection is enabled.");
 			return;
 		}
@@ -1004,7 +1003,6 @@ static void createTransPose(bContext *C, TransInfo *t, Object *ob)
 	}
 	
 	if(td != (t->data+t->total)) {
-		// printf("Bone selection count error\n");
 		BKE_report(CTX_reports(C), RPT_DEBUG, "Bone selection count error.");
 	}
 	
