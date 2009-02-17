@@ -159,6 +159,7 @@ int anim_is_quicktime (char *name)
 		BLI_testextensie(name, ".avi") ||	// wouldnt be appropriate ;)
 		BLI_testextensie(name, ".tga") ||
 		BLI_testextensie(name, ".png") ||
+		BLI_testextensie(name, ".bmp") ||
 		BLI_testextensie(name, ".jpg") ||
 		BLI_testextensie(name, ".wav") ||
 		BLI_testextensie(name, ".zip") ||
