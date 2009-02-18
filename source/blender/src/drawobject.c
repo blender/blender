@@ -1096,14 +1096,15 @@ void lattice_foreachScreenVert(void (*func)(void *userData, BPoint *bp, int x, i
 	float *co = dl?dl->verts:NULL;
 	BPoint *bp = editLatt->def;
 	float pmat[4][4], vmat[4][4];
-	short s[2];
+	short s[2] = {IS_CLIPPED, 0};
 
 	view3d_get_object_project_mat(curarea, G.obedit, pmat, vmat);
 
 	for (i=0; i<N; i++, bp++, co+=3) {
 		if (bp->hide==0) {
 			view3d_project_short_clip(curarea, dl?co:bp->vec, s, pmat, vmat);
-			func(userData, bp, s[0], s[1]);
+			if (s[0] != IS_CLIPPED)
+				func(userData, bp, s[0], s[1]);
 		}
 	}
 }
@@ -1303,7 +1304,7 @@ void mesh_foreachScreenFace(void (*func)(void *userData, EditFace *efa, int x, i
 void nurbs_foreachScreenVert(void (*func)(void *userData, Nurb *nu, BPoint *bp, BezTriple *bezt, int beztindex, int x, int y), void *userData)
 {
 	float pmat[4][4], vmat[4][4];
-	short s[2];
+	short s[2] = {IS_CLIPPED, 0};
 	Nurb *nu;
 	int i;
 
@@ -1339,7 +1340,8 @@ void nurbs_foreachScreenVert(void (*func)(void *userData, Nurb *nu, BPoint *bp, 
 
 				if(bp->hide==0) {
 					view3d_project_short_clip(curarea, bp->vec, s, pmat, vmat);
-					func(userData, nu, bp, NULL, -1, s[0], s[1]);
+					if (s[0] != IS_CLIPPED)
+						func(userData, nu, bp, NULL, -1, s[0], s[1]);
 				}
 			}
 		}

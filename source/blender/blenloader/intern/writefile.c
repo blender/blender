@@ -2032,7 +2032,7 @@ static void write_global(WriteData *wd)
 	fg.subversion= BLENDER_SUBVERSION;
 	fg.minversion= BLENDER_MINVERSION;
 	fg.minsubversion= BLENDER_MINSUBVERSION;
-	
+	fg.pads= 0; /* prevent mem checkers from complaining */
 	writestruct(wd, GLOB, "FileGlobal", 1, &fg);
 }
 
