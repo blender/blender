@@ -593,9 +593,19 @@ void uiEndBlock(const bContext *C, uiBlock *block)
 	 * on matching buttons, we need this to make button event handling non
 	 * blocking, while still alowing buttons to be remade each redraw as it
 	 * is expected by blender code */
-	for(but=block->buttons.first; but; but=but->next)
+	for(but=block->buttons.first; but; but=but->next) {
 		if(ui_but_update_from_old_block(C, block, but))
 			ui_check_but(but);
+		
+		/* temp? Proper check for greying out */
+		if(but->opname) {
+			wmOperatorType *ot= WM_operatortype_find(but->opname);
+			if(ot==NULL || ot->poll((bContext *)C)==0) {
+				but->flag |= UI_BUT_DISABLED;
+				but->lock = 1;
+			}
+		}
+	}
 
 	if(block->oldblock) {
 		block->auto_open= block->oldblock->auto_open;
@@ -607,7 +617,7 @@ void uiEndBlock(const bContext *C, uiBlock *block)
 
 	/* handle pending stuff */
 	if(block->flag & UI_BLOCK_LOOP) ui_menu_block_set_keymaps(C, block);
-
+	
 	/* after keymaps! */
 	if(block->dobounds == 1) ui_bounds_block(block);
 	else if(block->dobounds == 2) ui_text_bounds_block(block, 0.0f);

@@ -357,7 +357,7 @@ static void untitled(char *name)
 }
 
 
-static int wm_mainfile_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int wm_open_mainfile_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 
 	RNA_string_set(op->ptr, "filename", G.sce);
@@ -366,7 +366,7 @@ static int wm_mainfile_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
-static int wm_mainfile_exec(bContext *C, wmOperator *op)
+static int wm_open_mainfile_exec(bContext *C, wmOperator *op)
 {
 	char filename[FILE_MAX];
 	RNA_string_get(op->ptr, "filename", filename);
@@ -385,8 +385,8 @@ static void WM_OT_open_mainfile(wmOperatorType *ot)
 	ot->name= "Open Blender File";
 	ot->idname= "WM_OT_open_mainfile";
 	
-	ot->invoke= wm_mainfile_invoke;
-	ot->exec= wm_mainfile_exec;
+	ot->invoke= wm_open_mainfile_invoke;
+	ot->exec= wm_open_mainfile_exec;
 	ot->poll= WM_operator_winactive;
 	
 	ot->flag= 0;

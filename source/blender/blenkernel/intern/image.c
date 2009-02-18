@@ -443,7 +443,7 @@ static ImBuf *add_ibuf_size(int width, int height, char *name, int floatbuf, sho
 		rect= (unsigned char*)ibuf->rect;
 	}
 	
-	strcpy(ibuf->name, "Untitled");
+	strcpy(ibuf->name, "//Untitled");
 	ibuf->userflags |= IB_BITMAPDIRTY;
 	
 	if (uvtestgrid) {

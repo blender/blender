@@ -107,12 +107,27 @@ static void sima_zoom_set_factor(SpaceImage *sima, ARegion *ar, float zoomfac)
 	sima_zoom_set(sima, ar, sima->zoom*zoomfac);
 }
 
-int space_image_poll(bContext *C)
+static int space_image_poll(bContext *C)
 {
-	SpaceLink *slink= CTX_wm_space_data(C);
-
-	return (slink && (slink->spacetype == SPACE_IMAGE));
+	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
+	if(sima && sima->spacetype==SPACE_IMAGE)
+		if(ED_space_image_buffer(sima))
+			return 1;
+	return 0;
 }
+
+static int space_image_file_exists_poll(bContext *C)
+{
+	if(space_image_poll(C)) {
+		SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
+		ImBuf *ibuf= ED_space_image_buffer(sima);
+		
+		if(ibuf && BLI_exists(ibuf->name) && BLI_is_writable(ibuf->name))
+			return 1;
+	}
+	return 0;
+}
+
 
 int space_image_main_area_poll(bContext *C)
 {
@@ -602,9 +617,9 @@ static int open_exec(bContext *C, wmOperator *op)
 	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	Image *ima= NULL;
-	char *str;
+	char str[FILE_MAX];
 
-	str= RNA_string_get_alloc(op->ptr, "filename", NULL, 0);
+	RNA_string_get(op->ptr, "filename", str);
 	ima= BKE_add_image_file(str, scene->r.cfra);
 	MEM_freeN(str);
 
@@ -639,13 +654,13 @@ void IMAGE_OT_open(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= open_exec;
 	ot->invoke= open_invoke;
-	ot->poll= space_image_poll;
+	ot->poll= ED_operator_image_active;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_string_file_path(ot->srna, "filename", "", 0, "Filename", "File path of image to open.");
+	RNA_def_string_file_path(ot->srna, "filename", "", FILE_MAX, "Filename", "File path of image to open.");
 }
 
 /******************** replace image operator ********************/
@@ -653,14 +668,13 @@ void IMAGE_OT_open(wmOperatorType *ot)
 static int replace_exec(bContext *C, wmOperator *op)
 {
 	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
-	char *str;
+	char str[FILE_MAX];
 
 	if(!sima->image)
 		return OPERATOR_CANCELLED;
 	
-	str= RNA_string_get_alloc(op->ptr, "filename", NULL, 0);
+	RNA_string_get(op->ptr, "filename", str);
 	BLI_strncpy(sima->image->name, str, sizeof(sima->image->name)-1); /* we cant do much if the str is longer then 240 :/ */
-	MEM_freeN(str);
 
 	BKE_image_signal(sima->image, &sima->iuser, IMA_SIGNAL_RELOAD);
 	WM_event_add_notifier(C, NC_IMAGE|NA_EDITED, sima->image);
@@ -699,82 +713,77 @@ void IMAGE_OT_replace(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_string_file_path(ot->srna, "filename", "", 0, "Filename", "File path of image to replace current image with.");
+	RNA_def_string_file_path(ot->srna, "filename", "", FILE_MAX, "Filename", "File path of image to replace current image with.");
 }
 
 /******************** save image as operator ********************/
 
+/* assumes name is FILE_MAX */
+/* ima->name and ibuf->name should end up the same */
 static void save_image_doit(bContext *C, SpaceImage *sima, Scene *scene, wmOperator *op, char *name)
 {
 	Image *ima= ED_space_image(sima);
 	ImBuf *ibuf= ED_space_image_buffer(sima);
 	int len;
-	char str[FILE_MAXDIR+FILE_MAXFILE];
 
-	if (ibuf) {
-		BLI_strncpy(str, name, sizeof(str));
-
-		BLI_convertstringcode(str, G.sce);
-		BLI_convertstringframe(str, scene->r.cfra);
-		
+	if (ibuf) {	
+		BLI_convertstringcode(name, G.sce);
+		BLI_convertstringframe(name, scene->r.cfra);
 		
 		if(scene->r.scemode & R_EXTENSION)  {
-			BKE_add_image_extension(scene, str, sima->imtypenr);
+			BKE_add_image_extension(scene, name, sima->imtypenr);
 			BKE_add_image_extension(scene, name, sima->imtypenr);
 		}
 		
-		if(1) { // XXX saveover(str)) {
-			
-			/* enforce user setting for RGB or RGBA, but skip BW */
-			if(scene->r.planes==32)
-				ibuf->depth= 32;
-			else if(scene->r.planes==24)
-				ibuf->depth= 24;
-			
-			WM_cursor_wait(1);
+		/* enforce user setting for RGB or RGBA, but skip BW */
+		if(scene->r.planes==32)
+			ibuf->depth= 32;
+		else if(scene->r.planes==24)
+			ibuf->depth= 24;
+		
+		WM_cursor_wait(1);
 
-			if(sima->imtypenr==R_MULTILAYER) {
-				RenderResult *rr= BKE_image_get_renderresult(scene, ima);
-				if(rr) {
-					RE_WriteRenderResult(rr, str, scene->r.quality);
-					
-					BLI_strncpy(ima->name, name, sizeof(ima->name));
-					BLI_strncpy(ibuf->name, str, sizeof(ibuf->name));
-					
-					/* should be function? nevertheless, saving only happens here */
-					for(ibuf= ima->ibufs.first; ibuf; ibuf= ibuf->next)
-						ibuf->userflags &= ~IB_BITMAPDIRTY;
-					
-				}
-				else
-					BKE_report(op->reports, RPT_ERROR, "Did not write, no Multilayer Image");
-			}
-			else if (BKE_write_ibuf(scene, ibuf, str, sima->imtypenr, scene->r.subimtype, scene->r.quality)) {
+		if(sima->imtypenr==R_MULTILAYER) {
+			RenderResult *rr= BKE_image_get_renderresult(scene, ima);
+			if(rr) {
+				RE_WriteRenderResult(rr, name, scene->r.quality);
+				
 				BLI_strncpy(ima->name, name, sizeof(ima->name));
-				BLI_strncpy(ibuf->name, str, sizeof(ibuf->name));
+				BLI_strncpy(ibuf->name, name, sizeof(ibuf->name));
 				
-				ibuf->userflags &= ~IB_BITMAPDIRTY;
+				/* should be function? nevertheless, saving only happens here */
+				for(ibuf= ima->ibufs.first; ibuf; ibuf= ibuf->next)
+					ibuf->userflags &= ~IB_BITMAPDIRTY;
 				
-				/* change type? */
-				if( ELEM(ima->source, IMA_SRC_GENERATED, IMA_SRC_VIEWER)) {
-					ima->source= IMA_SRC_FILE;
-					ima->type= IMA_TYPE_IMAGE;
-				}
-				if(ima->type==IMA_TYPE_R_RESULT)
-					ima->type= IMA_TYPE_IMAGE;
-				
-				/* name image as how we saved it */
-				len= strlen(str);
-				while (len > 0 && str[len - 1] != '/' && str[len - 1] != '\\') len--;
-				rename_id(&ima->id, str+len);
-			} 
+			}
 			else
-				BKE_reportf(op->reports, RPT_ERROR, "Couldn't write image: %s", str);
-
-			WM_event_add_notifier(C, NC_IMAGE|NA_EDITED, sima->image);
-
-			WM_cursor_wait(0);
+				BKE_report(op->reports, RPT_ERROR, "Did not write, no Multilayer Image");
 		}
+		else if (BKE_write_ibuf(scene, ibuf, name, sima->imtypenr, scene->r.subimtype, scene->r.quality)) {
+			BLI_strncpy(ima->name, name, sizeof(ima->name));
+			BLI_strncpy(ibuf->name, name, sizeof(ibuf->name));
+			
+			ibuf->userflags &= ~IB_BITMAPDIRTY;
+			
+			/* change type? */
+			if( ELEM(ima->source, IMA_SRC_GENERATED, IMA_SRC_VIEWER)) {
+				ima->source= IMA_SRC_FILE;
+				ima->type= IMA_TYPE_IMAGE;
+			}
+			if(ima->type==IMA_TYPE_R_RESULT)
+				ima->type= IMA_TYPE_IMAGE;
+			
+			/* name image as how we saved it */
+			len= strlen(name);
+			while (len > 0 && name[len - 1] != '/' && name[len - 1] != '\\') len--;
+			rename_id(&ima->id, name+len);
+		} 
+		else
+			BKE_reportf(op->reports, RPT_ERROR, "Couldn't write image: %s", name);
+
+		WM_event_add_notifier(C, NC_IMAGE|NA_EDITED, sima->image);
+
+		WM_cursor_wait(0);
 	}
 }
 
@@ -783,14 +792,13 @@ static int save_as_exec(bContext *C, wmOperator *op)
 	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
 	Scene *scene= CTX_data_scene(C);
 	Image *ima = ED_space_image(sima);
-	char *str;
+	char str[FILE_MAX];
 
 	if(!ima)
 		return OPERATOR_CANCELLED;
 
-	str= RNA_string_get_alloc(op->ptr, "filename", NULL, 0);
+	RNA_string_get(op->ptr, "filename", str);
 	save_image_doit(C, sima, scene, op, str);
-	MEM_freeN(str);
 
 	return OPERATOR_FINISHED;
 }
@@ -812,7 +820,7 @@ static int save_as_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	if(ibuf) {
 		char *strp;
 		
-		strp= filesel_imagetype_string(ima);
+		strp= filesel_imagetype_string(ima); // XXX unused still
 		
 		/* cant save multilayer sequence, ima->rr isn't valid for a specific frame */
 		if(ima->rr && !(ima->source==IMA_SRC_SEQUENCE && ima->type==IMA_TYPE_MULTILAYER))
@@ -822,11 +830,14 @@ static int save_as_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		else
 			sima->imtypenr= BKE_ftype_to_imtype(ibuf->ftype);
 		
-		// XXX activate_fileselect_menu(FILE_SPECIAL, "Save Image", name, strp, &sima->imtypenr, save_image_doit);
-		// XXX note: we can give default menu enums to operator for this 
+		if(ibuf->name[0]==0)
+			BLI_strncpy(ibuf->name, G.ima, FILE_MAX);
 		
-		image_filesel(C, op, ima->name);
+		// XXX note: we can give default menu enums to operator for this 
+		image_filesel(C, op, ibuf->name);
 
+		MEM_freeN(strp);
+		
 		return OPERATOR_RUNNING_MODAL;
 	}
 
@@ -848,7 +859,7 @@ void IMAGE_OT_save_as(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_string_file_path(ot->srna, "filename", "", 0, "Filename", "File path to save image to.");
+	RNA_def_string_file_path(ot->srna, "filename", "", FILE_MAX, "Filename", "File path to save image to.");
 }
 
 /******************** save image operator ********************/
@@ -859,28 +870,30 @@ static int save_exec(bContext *C, wmOperator *op)
 	Image *ima = ED_space_image(sima);
 	ImBuf *ibuf= ED_space_image_buffer(sima);
 	Scene *scene= CTX_data_scene(C);
-	char name[FILE_MAXDIR+FILE_MAXFILE];
+	char name[FILE_MAX];
 
-	if(!ima)
+	if(!ima || !ibuf)
 		return OPERATOR_CANCELLED;
 
 	/* if exists, saves over without fileselect */
-
-	strcpy(name, ima->name);
-
-	if(ibuf) {
-		if(BLI_exists(ibuf->name)) {
-			if(BKE_image_get_renderresult(scene, ima)) 
-				sima->imtypenr= R_MULTILAYER;
-			else 
-				sima->imtypenr= BKE_ftype_to_imtype(ibuf->ftype);
-			
-			save_image_doit(C, sima, scene, op, ibuf->name);
-		}
-		else
-			return save_as_exec(C, op);
-	}
 	
+	BLI_strncpy(name, ibuf->name, FILE_MAX);
+	if(name[0]==0)
+		BLI_strncpy(name, G.ima, FILE_MAX);
+	
+	if(BLI_exists(name) && BLI_is_writable(name)) {
+		if(BKE_image_get_renderresult(scene, ima)) 
+			sima->imtypenr= R_MULTILAYER;
+		else 
+			sima->imtypenr= BKE_ftype_to_imtype(ibuf->ftype);
+		
+		save_image_doit(C, sima, scene, op, name);
+	}
+	else {
+		BKE_report(op->reports, RPT_ERROR, "Can not save image.");
+		return OPERATOR_CANCELLED;
+	}
+
 	return OPERATOR_FINISHED;
 }
 
@@ -892,7 +905,7 @@ void IMAGE_OT_save(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= save_exec;
-	ot->poll= space_image_poll;
+	ot->poll= space_image_file_exists_poll;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1050,7 +1063,7 @@ void IMAGE_OT_new(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= new_exec;
-	ot->poll= space_image_poll;
+	ot->poll= ED_operator_image_active;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
