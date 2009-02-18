@@ -4853,7 +4853,7 @@ static char *view3d_modeselect_pup(Scene *scene)
 	}
 
 	if (ob->particlesystem.first) {
-		str += sprintf(str, formatstr, "Particle Mode", V3D_PARTICLEEDITMODE_SEL, ICON_PHYSICS);
+		str += sprintf(str, formatstr, "Particle Mode", V3D_PARTICLEEDITMODE_SEL, ICON_PARTICLEMODE);
 	}
 
 	return (string);
@@ -5574,7 +5574,7 @@ void view3d_header_buttons(const bContext *C, ARegion *ar)
 			xco+= 20;
 		}
 
-		uiDefIconBut(block, BUT, B_VIEWRENDER, ICON_SCENE_DEHLT, xco,yco,XIC,YIC, NULL, 0, 1.0, 0, 0, "Render this window (Ctrl Click for anim)");
+		uiDefIconBut(block, BUT, B_VIEWRENDER, ICON_SCENE, xco,yco,XIC,YIC, NULL, 0, 1.0, 0, 0, "Render this window (Ctrl Click for anim)");
 		
 		
 		if (ob && (ob->flag & OB_POSEMODE)) {

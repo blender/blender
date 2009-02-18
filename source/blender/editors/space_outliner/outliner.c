@@ -3449,7 +3449,7 @@ static void tselem_draw_icon(float x, float y, TreeStoreElem *tselem, TreeElemen
 			case TSE_R_LAYER_BASE:
 				UI_icon_draw(x, y, ICON_RENDERLAYERS); break;
 			case TSE_R_LAYER:
-				UI_icon_draw(x, y, ICON_IMAGE_DEHLT); break;
+				UI_icon_draw(x, y, ICON_RENDER_RESULT); break;
 			case TSE_LINKED_LAMP:
 				UI_icon_draw(x, y, ICON_LAMP_DEHLT); break;
 			case TSE_LINKED_MAT:

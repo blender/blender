@@ -1053,11 +1053,10 @@ void graph_draw_channel_names(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 					}
 					
 					/* for now, 'special' (i.e. in front of name) is used to show visibility status */
-					// XXX these 'blank' icons are currently checkboxes
 					if (fcu->flag & FCURVE_VISIBLE)
-						special= ICON_BLANK012;
+						special= ICON_CHECKBOX_HLT;
 					else
-						special= ICON_BLANK011;
+						special= ICON_CHECKBOX_DEHLT;
 					
 					if (fcu->flag & FCURVE_MUTED)
 						mute = ICON_MUTE_IPO_ON;

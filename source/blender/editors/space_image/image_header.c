@@ -892,17 +892,17 @@ void image_header_buttons(const bContext *C, ARegion *ar)
 
 		/* image draw options */
 		uiBlockBeginAlign(block);
-		uiDefIconButR(block, ROW, B_REDR, ICON_TEXTURE, xco,yco,XIC,YIC, &spaceptr, "draw_channels", 0, 0, 0, 0, 0, NULL);
+		uiDefIconButR(block, ROW, B_REDR, ICON_IMAGE_RGB, xco,yco,XIC,YIC, &spaceptr, "draw_channels", 0, 0, 0, 0, 0, NULL);
 		xco+= XIC;
 		if(ibuf==NULL || ibuf->channels==4) {
-			uiDefIconButR(block, ROW, B_REDR, ICON_TRANSP_HLT, xco,yco,XIC,YIC, &spaceptr, "draw_channels", 0, 0, SI_USE_ALPHA, 0, 0, NULL);
+			uiDefIconButR(block, ROW, B_REDR, ICON_IMAGE_RGB_ALPHA, xco,yco,XIC,YIC, &spaceptr, "draw_channels", 0, 0, SI_USE_ALPHA, 0, 0, NULL);
 			xco+= XIC;
-			uiDefIconButR(block, ROW, B_REDR, ICON_DOT, xco,yco,XIC,YIC, &spaceptr, "draw_channels", 0, 0, SI_SHOW_ALPHA, 0, 0, NULL);
+			uiDefIconButR(block, ROW, B_REDR, ICON_IMAGE_ALPHA, xco,yco,XIC,YIC, &spaceptr, "draw_channels", 0, 0, SI_SHOW_ALPHA, 0, 0, NULL);
 			xco+= XIC;
 		}
 		if(ibuf) {
 			if(ibuf->zbuf || ibuf->zbuf_float || (ibuf->channels==1)) {
-				uiDefIconButR(block, ROW, B_REDR, ICON_SOLID, xco,yco,XIC,YIC, &spaceptr, "draw_channels", 0, 0, SI_SHOW_ZBUF, 0, 0, NULL);
+				uiDefIconButR(block, ROW, B_REDR, ICON_IMAGE_ZDEPTH, xco,yco,XIC,YIC, &spaceptr, "draw_channels", 0, 0, SI_SHOW_ZBUF, 0, 0, NULL);
 				xco+= XIC;
 			}
 		}		
