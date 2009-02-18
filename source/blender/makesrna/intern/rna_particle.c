@@ -34,6 +34,7 @@
 #include "DNA_particle_types.h"
 
 #ifdef RNA_RUNTIME
+
 static void rna_PartSettings_start_set(struct PointerRNA *ptr, float value)
 {
 	ParticleSettings *settings = (ParticleSettings*)ptr->data;
@@ -176,7 +177,8 @@ static void rna_def_particle_data(BlenderRNA *brna)
 		{PARS_DEAD, "DEAD", "Dead", ""},
 		{PARS_UNBORN, "UNBORN", "Unborn", ""},
 		{PARS_ALIVE, "ALIVE", "Alive", ""},
-		{PARS_DYING, "DYING", "Dying", ""}
+		{PARS_DYING, "DYING", "Dying", ""},
+		{0, NULL, NULL, NULL}
 	};
 
 	srna = RNA_def_struct(brna, "Particle", NULL);
