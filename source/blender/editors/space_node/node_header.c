@@ -732,13 +732,13 @@ void node_header_buttons(const bContext *C, ARegion *ar)
 	
 	/* main type choosing */
 	uiBlockBeginAlign(block);
-	uiDefIconButI(block, ROW, B_REDR, ICON_MATERIAL_DEHLT, xco,yco,XIC,YIC-2,
+	uiDefIconButI(block, ROW, B_REDR, ICON_MATERIAL_DATA, xco,yco,XIC,YIC-2,
 				  &(snode->treetype), 2.0f, 0.0f, 0.0f, 0.0f, "Material Nodes");
 	xco+= XIC;
-	uiDefIconButI(block, ROW, B_REDR, ICON_IMAGE_DEHLT, xco,yco,XIC,YIC-2,
+	uiDefIconButI(block, ROW, B_REDR, ICON_IMAGE_DATA, xco,yco,XIC,YIC-2,
 				  &(snode->treetype), 2.0f, 1.0f, 0.0f, 0.0f, "Composite Nodes");
 	xco+= XIC;
-	uiDefIconButI(block, ROW, B_REDR, ICON_TEXTURE_DEHLT, xco,yco,XIC,YIC-2,
+	uiDefIconButI(block, ROW, B_REDR, ICON_TEXTURE_DATA, xco,yco,XIC,YIC-2,
 				  &(snode->treetype), 2.0f, 2.0f, 0.0f, 0.0f, "Texture Nodes");
 	xco+= 2*XIC;
 	uiBlockEndAlign(block);

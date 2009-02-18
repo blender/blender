@@ -65,17 +65,17 @@ int geticon_anim_blocktype(short blocktype)
 {
 	switch (blocktype) {
 		case ID_OB:
-			return ICON_OBJECT;
+			return ICON_OBJECT_DATA;
 		case ID_PO:
 			return ICON_POSE_HLT;
 		case ID_KE:
-			return ICON_SHAPEKEY;
+			return ICON_SHAPEKEY_DATA;
 		case ID_MA:
 			return ICON_MATERIAL;
 		case ID_WO:
 			return ICON_WORLD;
 		case ID_CU:
-			return ICON_CURVE;
+			return ICON_CURVE_DATA;
 		case ID_CA:
 			return ICON_CAMERA;
 		case ID_LA:

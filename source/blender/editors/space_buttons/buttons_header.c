@@ -138,10 +138,10 @@ void buttons_header_buttons(const bContext *C, ARegion *ar)
 	uiBlockBeginAlign(block);
 	uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_GAME,			xco, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)CONTEXT_LOGIC, 0, 0, "Logic (F4) ");
 	uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_SCRIPT,		xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)CONTEXT_SCRIPT, 0, 0, "Script ");
-	uiDefIconButS(block, ROW, B_BUTSPREVIEW,	ICON_MATERIAL_DEHLT,xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)CONTEXT_SHADING, 0, 0, "Shading (F5) ");
-	uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_OBJECT,		xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)CONTEXT_OBJECT, 0, 0, "Object (F7) ");
+	uiDefIconButS(block, ROW, B_BUTSPREVIEW,	ICON_MATERIAL_DATA,xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)CONTEXT_SHADING, 0, 0, "Shading (F5) ");
+	uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_OBJECT_DATA,		xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)CONTEXT_OBJECT, 0, 0, "Object (F7) ");
 	uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_EDIT,			xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)CONTEXT_EDITING, 0, 0, "Editing (F9) ");
-	uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_SCENE_DEHLT,	xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)CONTEXT_SCENE, 0, 0, "Scene (F10) ");
+	uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_SCENE_DATA,	xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)CONTEXT_SCENE, 0, 0, "Scene (F10) ");
 	
 	xco+= XIC;
 	
@@ -158,7 +158,7 @@ void buttons_header_buttons(const bContext *C, ARegion *ar)
 			break;
 		case CONTEXT_OBJECT:
 			uiBlockBeginAlign(block);
-			uiDefIconButC(block, ROW, B_CONTEXT_SWITCH,		ICON_OBJECT,	xco+=XIC, yco, XIC, YIC, &(sbuts->tab[CONTEXT_OBJECT]), 1.0, (float)TAB_OBJECT_OBJECT, 0, 0, "Object buttons ");
+			uiDefIconButC(block, ROW, B_CONTEXT_SWITCH,		ICON_OBJECT_DATA,	xco+=XIC, yco, XIC, YIC, &(sbuts->tab[CONTEXT_OBJECT]), 1.0, (float)TAB_OBJECT_OBJECT, 0, 0, "Object buttons ");
 			uiDefIconButC(block, ROW, B_CONTEXT_SWITCH,		ICON_PHYSICS,	xco+=XIC, yco, XIC, YIC, &(sbuts->tab[CONTEXT_OBJECT]), 1.0, (float)TAB_OBJECT_PHYSICS, 0, 0, "Physics buttons");
 			uiDefIconButC(block, ROW, B_CONTEXT_SWITCH,		ICON_PARTICLES,	xco+=XIC, yco, XIC, YIC, &(sbuts->tab[CONTEXT_OBJECT]), 1.0, (float)TAB_OBJECT_PARTICLE, 0, 0, "Particle buttons");
 			

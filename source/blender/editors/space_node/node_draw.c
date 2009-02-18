@@ -674,7 +674,7 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 		if(node->flag & (NODE_ACTIVE_ID|NODE_DO_OUTPUT))
 			icon_id= ICON_MATERIAL;
 		else
-			icon_id= ICON_MATERIAL_DEHLT;
+			icon_id= ICON_MATERIAL_DATA;
 		iconofs-= 18.0f;
 		glEnable(GL_BLEND);
 		UI_icon_draw_aspect_blended(iconofs, rct->ymax-NODE_DY+2, icon_id, snode->aspect, -60);

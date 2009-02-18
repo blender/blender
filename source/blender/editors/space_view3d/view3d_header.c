@@ -103,7 +103,7 @@
  * This can be cleaned when I make some new 'mode' icons.
  */
 
-#define V3D_OBJECTMODE_SEL			ICON_OBJECT
+#define V3D_OBJECTMODE_SEL			ICON_OBJECT_DATA
 #define V3D_EDITMODE_SEL			ICON_EDITMODE_HLT
 #define V3D_SCULPTMODE_SEL			ICON_SCULPTMODE_HLT
 #define V3D_FACESELECT_SEL			ICON_FACESEL_HLT	/* this is not a mode anymore - just a switch */
@@ -4823,9 +4823,9 @@ static char *view3d_modeselect_pup(Scene *scene)
 	str += sprintf(str, "Mode: %%t");
 	
 	if(ob)
-		str += sprintf(str, formatstr, "Object Mode", V3D_OBJECTMODE_SEL, ICON_OBJECT);
+		str += sprintf(str, formatstr, "Object Mode", V3D_OBJECTMODE_SEL, ICON_OBJECT_DATA);
 	else
-		str += sprintf(str, formatstr, " ", V3D_OBJECTMODE_SEL, ICON_OBJECT);
+		str += sprintf(str, formatstr, " ", V3D_OBJECTMODE_SEL, ICON_OBJECT_DATA);
 	
 	if(ob==NULL) return string;
 	

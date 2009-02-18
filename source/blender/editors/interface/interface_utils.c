@@ -66,13 +66,13 @@ int UI_GetIconRNA(PointerRNA *ptr)
 	StructRNA *rnatype= ptr->type;
 
 	if(rnatype == &RNA_Scene)
-		return ICON_SCENE_DEHLT;
+		return ICON_SCENE_DATA;
 	else if(rnatype == &RNA_World)
-		return ICON_WORLD;
+		return ICON_WORLD_DATA;
 	else if(rnatype == &RNA_Object)
-		return ICON_OBJECT;
+		return ICON_OBJECT_DATA;
 	else if(rnatype == &RNA_Mesh)
-		return ICON_MESH;
+		return ICON_MESH_DATA;
 	else if(rnatype == &RNA_MeshVertex)
 		return ICON_VERTEXSEL;
 	else if(rnatype == &RNA_MeshEdge)
@@ -86,49 +86,49 @@ int UI_GetIconRNA(PointerRNA *ptr)
 	else if(rnatype == &RNA_VertexGroupElement)
 		return ICON_VGROUP;
 	else if(rnatype == &RNA_Curve)
-		return ICON_CURVE;
+		return ICON_CURVE_DATA;
 	else if(rnatype == &RNA_MetaBall)
-		return ICON_MBALL;
+		return ICON_MBALL_DATA;
 	else if(rnatype == &RNA_MetaElement)
 		return ICON_OUTLINER_DATA_META;
 	else if(rnatype == &RNA_Lattice)
-		return ICON_LATTICE;
+		return ICON_LATTICE_DATA;
 	else if(rnatype == &RNA_Armature)
-		return ICON_ARMATURE;
+		return ICON_ARMATURE_DATA;
 	else if(rnatype == &RNA_Bone)
-		return ICON_BONE_DEHLT;
+		return ICON_BONE_DATA;
 	else if(rnatype == &RNA_Camera)
-		return ICON_CAMERA;
+		return ICON_CAMERA_DATA;
 	else if(rnatype == &RNA_LocalLamp)
-		return ICON_LAMP;
+		return ICON_LAMP_DATA;
 	else if(rnatype == &RNA_AreaLamp)
-		return ICON_LAMP;
+		return ICON_LAMP_DATA;
 	else if(rnatype == &RNA_SpotLamp)
-		return ICON_LAMP;
+		return ICON_LAMP_DATA;
 	else if(rnatype == &RNA_SunLamp)
-		return ICON_LAMP;
+		return ICON_LAMP_DATA;
 	else if(rnatype == &RNA_HemiLamp)
-		return ICON_LAMP;
+		return ICON_LAMP_DATA;
 	else if(rnatype == &RNA_Lamp)
-		return ICON_LAMP;
+		return ICON_LAMP_DATA;
 	else if(rnatype == &RNA_Group)
 		return ICON_GROUP;
 	else if(rnatype == &RNA_ParticleSystem)
-		return ICON_PARTICLES;
+		return ICON_PARTICLE_DATA;
 	else if(rnatype == &RNA_ParticleSettings)
-		return ICON_PARTICLES;
+		return ICON_PARTICLE_DATA;
 	else if(rnatype == &RNA_Material)
-		return ICON_MATERIAL;
+		return ICON_MATERIAL_DATA;
 	else if(rnatype == &RNA_Texture)
-		return ICON_TEXTURE;
+		return ICON_TEXTURE_DATA;
 	else if(rnatype == &RNA_TextureSlot)
-		return ICON_TEXTURE;
+		return ICON_TEXTURE_DATA;
 	else if(rnatype == &RNA_WorldTextureSlot)
-		return ICON_TEXTURE;
+		return ICON_TEXTURE_DATA;
 	else if(rnatype == &RNA_MaterialTextureSlot)
-		return ICON_TEXTURE;
+		return ICON_TEXTURE_DATA;
 	else if(rnatype == &RNA_Image)
-		return ICON_TEXTURE;
+		return ICON_IMAGE_DATA;
 	else if(rnatype == &RNA_Screen)
 		return ICON_SPLITSCREEN;
 	else if(rnatype == &RNA_NodeTree)
@@ -138,19 +138,19 @@ int UI_GetIconRNA(PointerRNA *ptr)
 	else if(rnatype == &RNA_Sound)
 		return ICON_SOUND;
 	else if(rnatype == &RNA_Brush)
-		return ICON_BRUSH;
+		return ICON_BRUSH_DATA;
 	else if(rnatype == &RNA_VectorFont)
 		return ICON_FONT;
 	else if(rnatype == &RNA_Library)
-		return ICON_LIBRARY_DEHLT;
+		return ICON_LIBRARY_DATA_DIRECT;
 	else if(rnatype == &RNA_Action)
 		return ICON_ACTION;
 	else if(rnatype == &RNA_FCurve)
-		return ICON_IPO_DEHLT;
+		return ICON_ANIM_DATA;
 	//else if(rnatype == &RNA_Ipo)
-	//	return ICON_IPO_DEHLT;
+	//	return ICON_ANIM_DATA;
 	else if(rnatype == &RNA_Key)
-		return ICON_SHAPEKEY;
+		return ICON_SHAPEKEY_DATA;
 	else if(rnatype == &RNA_Main)
 		return ICON_BLENDER;
 	else if(rnatype == &RNA_Struct)
@@ -182,11 +182,11 @@ int UI_GetIconRNA(PointerRNA *ptr)
 	else if(rnatype == &RNA_SubsurfModifier)
 		return ICON_MOD_SUBSURF;
 	else if(rnatype == &RNA_ArmatureModifier)
-		return ICON_ARMATURE;
+		return ICON_MOD_ARMATURE;
 	else if(rnatype == &RNA_LatticeModifier)
-		return ICON_LATTICE;
+		return ICON_MOD_LATTICE;
 	else if(rnatype == &RNA_CurveModifier)
-		return ICON_CURVE;
+		return ICON_MOD_CURVE;
 	else if(rnatype == &RNA_BuildModifier)
 		return ICON_MOD_BUILD;
 	else if(rnatype == &RNA_MirrorModifier)

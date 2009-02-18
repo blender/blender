@@ -852,7 +852,7 @@ static char *node_image_type_pup(void)
 	str[0]= 0;
 	
 	a= sprintf(str, "Image Type %%t|");
-	a+= sprintf(str+a, "  Image %%x%d %%i%d|", IMA_SRC_FILE, ICON_IMAGE_DEHLT);
+	a+= sprintf(str+a, "  Image %%x%d %%i%d|", IMA_SRC_FILE, ICON_IMAGE_DATA);
 	a+= sprintf(str+a, "  Movie %%x%d %%i%d|", IMA_SRC_MOVIE, ICON_SEQUENCE);
 	a+= sprintf(str+a, "  Sequence %%x%d %%i%d|", IMA_SRC_SEQUENCE, ICON_IMAGE_COL);
 	a+= sprintf(str+a, "  Generated %%x%d %%i%d", IMA_SRC_GENERATED, ICON_BLANK1);
@@ -920,7 +920,7 @@ static int node_composit_buts_image(uiBlock *block, bNodeTree *ntree, bNode *nod
 			Image *ima= (Image *)node->id;
 			short xmin= (short)butr->xmin, xmax= (short)butr->xmax;
 			short width= xmax - xmin - 45;
-			short icon= ICON_IMAGE_DEHLT;
+			short icon= ICON_IMAGE_DATA;
 			
 			if(ima->source==IMA_SRC_MOVIE) icon= ICON_SEQUENCE;
 			else if(ima->source==IMA_SRC_SEQUENCE) icon= ICON_IMAGE_COL;
@@ -1086,7 +1086,7 @@ static int node_composit_buts_renderlayers(uiBlock *block, bNodeTree *ntree, bNo
 		/* browse button layer */
 		strp= scene_layer_menu(node->id?(Scene *)node->id:scene);
 		if(node->id)
-			bt= uiDefIconTextButS(block, MENU, B_NODE_EXEC, ICON_SCENE_DEHLT, strp, 
+			bt= uiDefIconTextButS(block, MENU, B_NODE_EXEC, ICON_SCENE_DATA, strp, 
 				  butr->xmin+20, butr->ymin, (butr->xmax-butr->xmin)-40, 19, 
 				  &node->custom1, 0, 0, 0, 0, "Choose Render Layer");
 		else

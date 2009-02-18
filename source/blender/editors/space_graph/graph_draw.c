@@ -835,9 +835,9 @@ void graph_draw_channel_names(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 					
 					/* icon depends on object-type */
 					if (ob->type == OB_ARMATURE)
-						special= ICON_ARMATURE;
+						special= ICON_ARMATURE_DATA;
 					else	
-						special= ICON_OBJECT;
+						special= ICON_OBJECT_DATA;
 						
 					/* only show expand if there are any channels */
 					if (EXPANDED_OBJC(ob))
@@ -872,7 +872,7 @@ void graph_draw_channel_names(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 					
 					group = 4;
 					indent= 1;
-					special= ICON_IPO_DEHLT;
+					special= ICON_ANIM_DATA;
 					
 					if (EXPANDED_DRVD(adt))
 						expand= ICON_TRIA_DOWN;
@@ -955,7 +955,7 @@ void graph_draw_channel_names(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 					
 					group = 4;
 					indent = 1;
-					special = ICON_CURVE;
+					special = ICON_CURVE_DATA;
 					
 					if (FILTER_CUR_OBJD(cu))
 						expand = ICON_TRIA_DOWN;
