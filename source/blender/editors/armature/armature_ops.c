@@ -156,7 +156,8 @@ void ED_keymap_armature(wmWindowManager *wm)
 	
 	WM_keymap_add_item(keymap, "ARMATURE_OT_switch_direction", FKEY, KM_PRESS, KM_ALT, 0);
 	
-		/* only menu is registered in keymaps for now */
+	WM_keymap_add_item(keymap, "ARMATURE_OT_bone_primitive_add", AKEY, KM_PRESS, KM_SHIFT, 0);
+		/* only the menu-version of subdivide is registered in keymaps for now */
 	WM_keymap_add_item(keymap, "ARMATURE_OT_subdivs", SKEY, KM_PRESS, KM_ALT, 0);
 	
 	WM_keymap_add_item(keymap, "ARMATURE_OT_set_parent", PKEY, KM_PRESS, KM_CTRL, 0);

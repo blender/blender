@@ -632,7 +632,7 @@ static int object_add_primitive_invoke(bContext *C, wmOperator *op, wmEvent *eve
 	uiMenuItemEnumO(head, "", 0, "OBJECT_OT_object_add", "type", OB_CAMERA);
 	uiMenuItemEnumO(head, "", 0, "OBJECT_OT_object_add", "type", OB_LAMP);
 	uiMenuItemEnumO(head, "", 0, "OBJECT_OT_object_add", "type", OB_EMPTY);
-	uiMenuItemEnumO(head, "", 0, "OBJECT_OT_armature_add", "type", OB_ARMATURE);
+	uiMenuItemO(head, 0, "OBJECT_OT_armature_add");
 	uiMenuItemEnumO(head, "", 0, "OBJECT_OT_object_add", "type", OB_LATTICE);
 	
 	uiPupMenuEnd(C, head);
