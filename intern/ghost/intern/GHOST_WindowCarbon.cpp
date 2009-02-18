@@ -378,6 +378,12 @@ GHOST_TSuccess GHOST_WindowCarbon::setState(GHOST_TWindowState state)
 	case GHOST_kWindowStateMinimized:
             ::HideWindow(m_windowRef);
             break;
+	case GHOST_kWindowStateModified:
+		SetWindowModified(m_windowRef, 1);
+		break;
+	case GHOST_kWindowStateUnModified:
+		SetWindowModified(m_windowRef, 0);
+		break;
 	case GHOST_kWindowStateMaximized:
 	case GHOST_kWindowStateNormal:
         default:
