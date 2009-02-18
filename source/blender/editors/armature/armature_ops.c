@@ -123,6 +123,7 @@ void ED_operatortypes_armature(void)
 	WM_operatortype_append(ARMATURE_OT_de_select_all);
 	WM_operatortype_append(ARMATURE_OT_selection_invert);
 	WM_operatortype_append(ARMATURE_OT_select_hierarchy);
+	WM_operatortype_append(ARMATURE_OT_select_connected);
 	
 	/* POSE */
 	WM_operatortype_append(POSE_OT_hide);
@@ -137,6 +138,7 @@ void ED_operatortypes_armature(void)
 
 	WM_operatortype_append(POSE_OT_select_parent);
 	WM_operatortype_append(POSE_OT_select_hierarchy);
+	WM_operatortype_append(POSE_OT_select_connected);
 	
 	WM_operatortype_append(ARMATURE_OT_test); // XXX temp test for context iterators... to be removed
 }
@@ -181,6 +183,8 @@ void ED_keymap_armature(wmWindowManager *wm)
 	kmi= WM_keymap_add_item(keymap, "ARMATURE_OT_select_hierarchy", RIGHTBRACKETKEY, KM_PRESS, KM_SHIFT, 0);
 	RNA_enum_set(kmi->ptr, "direction", BONE_SELECT_CHILD);
 	RNA_boolean_set(kmi->ptr, "add_to_sel", 1);
+
+	WM_keymap_add_item(keymap, "ARMATURE_OT_select_connected", LKEY, KM_PRESS, 0, 0);
 	
 	/* Pose ------------------------ */
 	/* only set in posemode, by space_view3d listener */
@@ -213,5 +217,7 @@ void ED_keymap_armature(wmWindowManager *wm)
 	kmi= WM_keymap_add_item(keymap, "POSE_OT_select_hierarchy", RIGHTBRACKETKEY, KM_PRESS, KM_SHIFT, 0);
 	RNA_enum_set(kmi->ptr, "direction", BONE_SELECT_CHILD);
 	RNA_boolean_set(kmi->ptr, "add_to_sel", 1);
+
+	WM_keymap_add_item(keymap, "POSE_OT_select_connected", LKEY, KM_PRESS, 0, 0);
 }
 

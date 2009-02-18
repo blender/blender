@@ -1090,7 +1090,7 @@ short view3d_opengl_select(ViewContext *vc, unsigned int *buffer, unsigned int b
 		rect.xmin= input->xmin-12;	// seems to be default value for bones only now
 		rect.xmax= input->xmin+12;
 		rect.ymin= input->ymin-12;
-		rect.ymax= input->xmin+12;
+		rect.ymax= input->ymin+12;
 	}
 	else {
 		rect.xmin= input->xmin;

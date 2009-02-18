@@ -44,6 +44,7 @@ void ARMATURE_OT_parent_clear(struct wmOperatorType *ot);
 void ARMATURE_OT_de_select_all(struct wmOperatorType *ot);
 void ARMATURE_OT_selection_invert(struct wmOperatorType *ot);
 void ARMATURE_OT_select_hierarchy(struct wmOperatorType *ot);
+void ARMATURE_OT_select_connected(struct wmOperatorType *ot);
 
 void POSE_OT_hide(struct wmOperatorType *ot);
 void POSE_OT_reveal(struct wmOperatorType *ot);
@@ -54,6 +55,7 @@ void POSE_OT_de_select_all(struct wmOperatorType *ot);
 void POSE_OT_selection_invert(struct wmOperatorType *ot);
 void POSE_OT_select_parent(struct wmOperatorType *ot);
 void POSE_OT_select_hierarchy(struct wmOperatorType *ot);
+void POSE_OT_select_connected(struct wmOperatorType *ot);
 
 #endif /* ED_ARMATURE_INTERN_H */
 

@@ -1137,7 +1137,8 @@ static void *get_bone_from_selectbuffer(Scene *scene, Base *base, unsigned int *
 
 /* used by posemode as well editmode */
 /* only checks scene->basact! */
-static void *get_nearest_bone (bContext *C, short findunsel)
+/* x and y are mouse coords (area space) */
+static void *get_nearest_bone (bContext *C, short findunsel, int x, int y)
 {
 	ViewContext vc;
 	rcti rect;
@@ -1147,6 +1148,8 @@ static void *get_nearest_bone (bContext *C, short findunsel)
 	view3d_set_viewcontext(C, &vc);
 	
 	// rect.xmin= ... mouseco!
+	rect.xmin= rect.xmax= x;
+	rect.ymin= rect.ymax= y;
 	
 	glInitNames();
 	hits= view3d_opengl_select(&vc, buffer, MAXPICKBUF, &rect);
@@ -1293,19 +1296,29 @@ static void selectconnected_posebonechildren (Object *ob, Bone *bone)
 }
 
 /* within active object context */
-void selectconnected_posearmature(bContext *C)
-{
-	Object *ob= CTX_data_edit_object(C);
+/* previously known as "selectconnected_posearmature" */
+static int pose_select_connected_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{  
 	Bone *bone, *curBone, *next;
-	int shift= 0; // XXX
+	int shift= 0; // XXX in pose mode, Shift+L is bound to another command
+				  // named "PoseLib Add Current Pose"
+	int x, y;
+	ARegion *ar;
+	Object *ob= CTX_data_edit_object(C);
+	ar= CTX_wm_region(C);
+
+	x= event->x - ar->winrct.xmin;
+	y= event->y - ar->winrct.ymin;
+
+	view3d_operator_needs_opengl(C);
 	
 	if (shift)
-		bone= get_nearest_bone(C, 0);
+		bone= get_nearest_bone(C, 0, x, y);
 	else
-		bone = get_nearest_bone(C, 1);
+		bone= get_nearest_bone(C, 1, x, y);
 	
 	if (!bone)
-		return;
+		return OPERATOR_CANCELLED;
 	
 	/* Select parents */
 	for (curBone=bone; curBone; curBone=next){
@@ -1327,31 +1340,58 @@ void selectconnected_posearmature(bContext *C)
 		selectconnected_posebonechildren (ob, curBone);
 	}
 	
-		// XXX this only counted the number of pose channels selected
+	// XXX this only counted the number of pose channels selected
 	//countall(); // flushes selection!
+	WM_event_add_notifier(C, NC_OBJECT|ND_BONE_SELECT, ob);
 
-	BIF_undo_push("Select connected");
+	return OPERATOR_FINISHED;
+}
 
+void POSE_OT_select_connected(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Select Connected";
+	ot->idname= "POSE_OT_select_connected";
+	
+	/* api callbacks */
+	ot->exec= NULL;
+	ot->invoke= pose_select_connected_invoke;
+	ot->poll= ED_operator_posemode;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* props */	
 }
 
 /* **************** END Posemode stuff ********************** */
 /* **************** EditMode stuff ********************** */
 
 /* called in space.c */
-void selectconnected_armature(bContext *C)
+/* previously "selectconnected_armature" */
+static int armature_select_connected_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	Object *obedit= CTX_data_edit_object(C);
-	bArmature *arm= obedit->data;
+	bArmature *arm;
 	EditBone *bone, *curBone, *next;
 	int shift= 0; // XXX
+	int x, y;
+	ARegion *ar;
+	Object *obedit= CTX_data_edit_object(C);
+	arm= obedit->data;
+	ar= CTX_wm_region(C);
+
+	x= event->x - ar->winrct.xmin;
+	y= event->y - ar->winrct.ymin;
+
+	view3d_operator_needs_opengl(C);
 
 	if (shift)
-		bone= get_nearest_bone(C, 0);
+		bone= get_nearest_bone(C, 0, x, y);
 	else
-		bone= get_nearest_bone(C, 1);
+		bone= get_nearest_bone(C, 1, x, y);
 
 	if (!bone)
-		return;
+		return OPERATOR_CANCELLED;
 
 	/* Select parents */
 	for (curBone=bone; curBone; curBone=next){
@@ -1394,8 +1434,28 @@ void selectconnected_armature(bContext *C)
 
 	armature_sync_selection(arm->edbo);
 
-	BIF_undo_push("Select connected");
+	/* BIF_undo_push("Select connected"); */
 
+	WM_event_add_notifier(C, NC_OBJECT|ND_BONE_SELECT, obedit);
+
+	return OPERATOR_FINISHED;
+}
+
+void ARMATURE_OT_select_connected(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Select Connected";
+	ot->idname= "ARMATURE_OT_select_connected";
+	
+	/* api callbacks */
+	ot->exec= NULL;
+	ot->invoke= armature_select_connected_invoke;
+	ot->poll= ED_operator_editarmature;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* props */	
 }
 
 /* does bones and points */
