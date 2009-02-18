@@ -209,6 +209,7 @@ void MESH_OT_subdivide_smooth(struct wmOperatorType *ot);
 void MESH_OT_removedoublesflag(struct wmOperatorType *ot);
 void MESH_OT_extrude(struct wmOperatorType *ot);
 void MESH_OT_spin(struct wmOperatorType *ot);
+void MESH_OT_screw(struct wmOperatorType *ot);
 
 void MESH_OT_fill(struct wmOperatorType *ot);
 void MESH_OT_beauty_fill(struct wmOperatorType *ot);

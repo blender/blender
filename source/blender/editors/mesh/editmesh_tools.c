@@ -819,16 +819,12 @@ void MESH_OT_extrude_repeat(wmOperatorType *ot)
 	RNA_def_int(ot->srna, "steps", 10, 0, 180, "Steps", "", 0, INT_MAX);
 }
 	
-void spin_mesh(bContext *C, wmOperator *op,float *dvec )
+void spin_mesh(bContext *C, wmOperator *op,float *dvec,int steps, float degr,int mode )
 {
 	Object *obedit= CTX_data_edit_object(C);
 	View3D *v3d = CTX_wm_view3d(C);
 	Scene *scene = CTX_data_scene(C);
 	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
-	
-	int steps = RNA_int_get(op->ptr,"steps");
-	float degr = RNA_float_get(op->ptr,"degrees");
-	int mode = RNA_int_get(op->ptr,"steps");
 	
 	RegionView3D *rv3d= CTX_wm_region_view3d(C);
 	EditVert *eve,*nextve;
@@ -915,7 +911,7 @@ static int spin_mesh_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
 	
-	spin_mesh(C, op,NULL);
+	spin_mesh(C, op,NULL,RNA_int_get(op->ptr,"steps"),RNA_float_get(op->ptr,"degrees"),RNA_int_get(op->ptr,"steps"));
 	
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 	
@@ -936,12 +932,9 @@ void MESH_OT_spin(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/*props */
-	//int steps, float degr, float *dvec, int mode
-	
 	RNA_def_int(ot->srna, "steps", 5, 0, INT_MAX, "Steps", "Steps", 0, INT_MAX);
-	RNA_def_int(ot->srna, "mode", 5, 0, INT_MAX, "Mode", "Mode", 0, INT_MAX);
+	RNA_def_int(ot->srna, "mode", 1, 0, INT_MAX, "Mode", "Mode", 0, INT_MAX);
 	RNA_def_float(ot->srna, "degrees", 5.0f, 0.0f, FLT_MAX, "Degrees", "Degrees", 0.0f, FLT_MAX);
-	//RNA_def_enum(ot->srna, "type", prop_mesh_delete_types, 10, "Type", "Method used for deleting mesh data");
 }
 
 void screw_mesh(bContext *C, wmOperator *op, int steps, int turns)
@@ -1001,12 +994,39 @@ void screw_mesh(bContext *C, wmOperator *op, int steps, int turns)
 		dvec[1]= -dvec[1];
 		dvec[2]= -dvec[2];
 	}
-
-	//TODO : set : turns*steps, turns*360,0
-	spin_mesh(C, op,  dvec);
+	
+	spin_mesh(C, op,  dvec, turns*steps, turns*360,0);
 
 }
 
+static int screw_mesh_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	
+	screw_mesh(C, op,RNA_int_get(op->ptr,"steps"),RNA_int_get(op->ptr,"turns"));
+	
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	
+	return OPERATOR_FINISHED;
+}
+
+void MESH_OT_screw(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Screw";
+	ot->idname= "MESH_OT_screw";
+	
+	/* api callbacks */
+	ot->exec= screw_mesh_exec;
+	ot->poll= ED_operator_editmesh;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/*props */
+	RNA_def_int(ot->srna, "steps", 5, 0, INT_MAX, "Steps", "Steps", 0, INT_MAX);
+	RNA_def_int(ot->srna, "turns", 1, 0, INT_MAX, "Turns", "Turns", 0, INT_MAX);
+}
 
 static void erase_edges(EditMesh *em, ListBase *l)
 {
