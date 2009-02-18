@@ -2977,6 +2977,60 @@ void extrude_armature(Scene *scene, int forked)
 //	Transform();
 	
 }
+/* ********************** Bone Add ********************/
+
+/*op makes a new bone and returns it with its tip selected */
+
+static int armature_bone_add_exec(bContext *C, wmOperator *op) 
+{
+	Object *ob= CTX_data_edit_object(C);
+	bArmature *arm= (bArmature *)ob->data;
+	EditBone *bone= MEM_callocN(sizeof(EditBone), "eBone");
+	char name[32];
+	 
+	RNA_string_get(op->ptr, "name", name);
+
+	BLI_strncpy(bone->name, name, 32);
+	unique_editbone_name(arm->edbo, bone->name);
+	
+	BLI_addtail(arm->edbo, bone);
+	
+	bone->flag |= BONE_TIPSEL;
+	bone->weight= 1.0f;
+	bone->dist= 0.25f;
+	bone->xwidth= 0.1f;
+	bone->zwidth= 0.1f;
+	bone->ease1= 1.0f;
+	bone->ease2= 1.0f;
+	bone->rad_head= 0.10f;
+	bone->rad_tail= 0.05f;
+	bone->segments= 1;
+	bone->layer= arm->layer;
+	
+	armature_sync_selection(arm->edbo);
+
+	WM_event_add_notifier(C, NC_OBJECT, ob);
+	
+	return OPERATOR_FINISHED;
+}
+
+void ARMATURE_OT_bone_add(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Add Bone";
+	ot->idname= "ARMATURE_OT_bone_add";
+	
+	/* api callbacks */
+	ot->exec = armature_bone_add_exec;
+	ot->poll = ED_operator_editarmature;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	RNA_def_string(ot->srna, "name", "Bone", 32, "Name", "Name of the newly created bone");
+	
+}
+
 
 /* ----------- */
 

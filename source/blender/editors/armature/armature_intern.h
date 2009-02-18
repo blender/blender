@@ -32,7 +32,7 @@
 struct wmOperatorType;
 
 /* editarmature.c */
-
+void ARMATURE_OT_bone_add(struct wmOperatorType *ot);
 void ARMATURE_OT_align_bones(struct wmOperatorType *ot);
 void ARMATURE_OT_calculate_roll(struct wmOperatorType *ot);
 void ARMATURE_OT_switch_direction(struct wmOperatorType *ot);
