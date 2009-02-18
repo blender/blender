@@ -1196,15 +1196,18 @@ static void mesh_foreachScreenVert__mapFunc(void *userData, int index, float *co
 {
 	struct { void (*func)(void *userData, EditVert *eve, int x, int y, int index); void *userData; int clipVerts; float pmat[4][4], vmat[4][4]; } *data = userData;
 	EditVert *eve = EM_get_vert_for_index(index);
-	short s[2];
 
 	if (eve->h==0) {
+		short s[2]= {IS_CLIPPED, 0};
 		if (data->clipVerts) {
 			view3d_project_short_clip(curarea, co, s, data->pmat, data->vmat);
 		} else {
 			view3d_project_short_noclip(curarea, co, s, data->pmat);
 		}
-
+		
+		if (s[0]==IS_CLIPPED)
+			return;
+		
 		data->func(data->userData, eve, s[0], s[1], index);
 	}
 }
