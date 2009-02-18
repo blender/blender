@@ -589,14 +589,17 @@ void recalcData(TransInfo *t)
 			if(base->flag & BA_HAS_RECALC_DATA)
 				ob->recalc |= OB_RECALC_DATA;
 			
-			/* if animtimer is running, and the object already has animation data,
-			 * check if the auto-record feature means that we should record 'samples'
-			 * (i.e. uneditable animation values)
-			 */
-			// TODO: autokeyframe calls need some setting to specify to add samples (FPoints) instead of keyframes?
-			// TODO: maybe the ob->adt check isn't really needed? makes it too difficult to use...
-			if (/*(ob->adt) && */(t->animtimer) && IS_AUTOKEY_ON(t->scene)) {
-				autokeyframe_ob_cb_func(t->scene, (View3D *)t->view, ob, t->mode);
+			/* if object/base is selected */
+			if ((base->flag & SELECT) || (ob->flag & SELECT)) {
+				/* if animtimer is running, and the object already has animation data,
+				 * check if the auto-record feature means that we should record 'samples'
+				 * (i.e. uneditable animation values)
+				 */
+				// TODO: autokeyframe calls need some setting to specify to add samples (FPoints) instead of keyframes?
+				// TODO: maybe the ob->adt check isn't really needed? makes it too difficult to use...
+				if (/*(ob->adt) && */(t->animtimer) && IS_AUTOKEY_ON(t->scene)) {
+					autokeyframe_ob_cb_func(t->scene, (View3D *)t->view, ob, t->mode);
+				}
 			}
 			
 			/* proxy exception */
