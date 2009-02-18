@@ -2981,47 +2981,56 @@ void extrude_armature(Scene *scene, int forked)
 
 /*op makes a new bone and returns it with its tip selected */
 
-static int armature_bone_add_exec(bContext *C, wmOperator *op) 
+static int armature_bone_primitive_add_exec(bContext *C, wmOperator *op) 
 {
-	Object *ob= CTX_data_edit_object(C);
-	bArmature *arm= (bArmature *)ob->data;
-	EditBone *bone= MEM_callocN(sizeof(EditBone), "eBone");
+	RegionView3D *rv3d= CTX_wm_region_view3d(C);
+	Object *obedit = CTX_data_edit_object(C);
+	bArmature *arm= (bArmature *)obedit->data;
+	EditBone *bone;
+	float obmat[3][3], curs[3], viewmat[3][3], totmat[3][3], imat[3][3];
 	char name[32];
-	 
+	
 	RNA_string_get(op->ptr, "name", name);
+	
+	VECCOPY(curs, give_cursor(CTX_data_scene(C),CTX_wm_view3d(C)));	
 
-	BLI_strncpy(bone->name, name, 32);
-	unique_editbone_name(arm->edbo, bone->name);
-	
-	BLI_addtail(arm->edbo, bone);
-	
-	bone->flag |= BONE_TIPSEL;
-	bone->weight= 1.0f;
-	bone->dist= 0.25f;
-	bone->xwidth= 0.1f;
-	bone->zwidth= 0.1f;
-	bone->ease1= 1.0f;
-	bone->ease2= 1.0f;
-	bone->rad_head= 0.10f;
-	bone->rad_tail= 0.05f;
-	bone->segments= 1;
-	bone->layer= arm->layer;
-	
-	armature_sync_selection(arm->edbo);
+	/* Get inverse point for head and orientation for tail */
+	Mat4Invert(obedit->imat, obedit->obmat);
+	Mat4MulVecfl(obedit->imat, curs);
 
-	WM_event_add_notifier(C, NC_OBJECT, ob);
+	if (U.flag & USER_ADD_VIEWALIGNED)
+		Mat3CpyMat4(obmat, rv3d->viewmat);
+	else Mat3One(obmat);
+	
+	Mat3CpyMat4(viewmat, obedit->obmat);
+	Mat3MulMat3(totmat, obmat, viewmat);
+	Mat3Inv(imat, totmat);
+	
+	deselectall_armature(obedit, 0, 0);
+	
+	/*	Create a bone	*/
+	bone= add_editbone(obedit, name);
+
+	VECCOPY(bone->head, curs);
+	
+	if(U.flag & USER_ADD_VIEWALIGNED)
+		VecAddf(bone->tail, bone->head, imat[1]);	// bone with unit length 1
+	else
+		VecAddf(bone->tail, bone->head, imat[2]);	// bone with unit length 1, pointing up Z
+
+	WM_event_add_notifier(C, NC_OBJECT, obedit);
 	
 	return OPERATOR_FINISHED;
 }
 
-void ARMATURE_OT_bone_add(wmOperatorType *ot)
+void ARMATURE_OT_bone_primitive_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add Bone";
-	ot->idname= "ARMATURE_OT_bone_add";
+	ot->idname= "ARMATURE_OT_bone_primitive_add";
 	
 	/* api callbacks */
-	ot->exec = armature_bone_add_exec;
+	ot->exec = armature_bone_primitive_add_exec;
 	ot->poll = ED_operator_editarmature;
 	
 	/* flags */

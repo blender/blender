@@ -108,7 +108,7 @@ void ARMATURE_OT_test(wmOperatorType *ot)
 void ED_operatortypes_armature(void)
 {
 	/* EDIT ARMATURE */
-	WM_operatortype_append(ARMATURE_OT_bone_add);
+	WM_operatortype_append(ARMATURE_OT_bone_primitive_add);
 	
 	WM_operatortype_append(ARMATURE_OT_align_bones);
 	WM_operatortype_append(ARMATURE_OT_calculate_roll);
