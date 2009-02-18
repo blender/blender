@@ -84,7 +84,6 @@
 #include "GHOST_C-api.h"
 
 #include "UI_interface.h"
-#include "BLF_api.h"
 
 #include "GPU_draw.h"
 
@@ -588,10 +587,7 @@ int WM_read_homefile(bContext *C, wmOperator *op)
 	wm_check(C); /* opens window(s), checks keymaps */
 
 	strcpy(G.sce, scestr); /* restore */
-
-	BLF_lang_init();
-	BLF_init();
-
+	
 	init_userdef_themes();
 	
 	/* When loading factory settings, the reset solid OpenGL lights need to be applied. */
@@ -868,8 +864,7 @@ void WM_write_file(bContext *C, char *target, ReportList *reports)
 		G.relbase_valid = 1;
 		strcpy(G.main->name, di);	/* is guaranteed current file */
 
-		G.save_over = 1;
-		wm_window_titles(CTX_wm_manager(C));
+		G.save_over = 1; /* disable untitled.blend convention */
 		
 		writeBlog();
 	}
@@ -889,6 +884,8 @@ int WM_write_homefile(bContext *C, wmOperator *op)
 	write_flags = G.fileflags & ~(G_FILE_COMPRESS | G_FILE_LOCK | G_FILE_SIGN);
 
 	BLO_write_file(CTX_data_main(C), tstr, write_flags, op->reports);
+	
+	G.save_over= 0;
 	
 	return OPERATOR_FINISHED;
 }

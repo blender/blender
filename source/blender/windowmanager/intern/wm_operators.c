@@ -412,11 +412,16 @@ static int wm_save_as_mainfile_invoke(bContext *C, wmOperator *op, wmEvent *even
 static int wm_save_as_mainfile_exec(bContext *C, wmOperator *op)
 {
 	char filename[FILE_MAX];
-	RNA_string_get(op->ptr, "filename", filename);
 	
+	if(RNA_property_is_set(op->ptr, "filename"))
+		RNA_string_get(op->ptr, "filename", filename);
+	else {
+		BLI_strncpy(filename, G.sce, FILE_MAX);
+		untitled(filename);
+	}
 	WM_write_file(C, filename, op->reports);
 	
-	WM_event_add_notifier(C, NC_WINDOW, NULL);
+	WM_event_add_notifier(C, NC_WM|ND_FILESAVE, NULL);
 
 	return 0;
 }

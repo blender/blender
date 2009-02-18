@@ -218,9 +218,14 @@ static void info_header_listener(ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
 	switch(wmn->category) {
+		case NC_SCREEN:
+			if(wmn->data==ND_SCREENCAST)
+				ED_region_tag_redraw(ar);
+			break;
 		case NC_SCENE:
 			if(wmn->data==ND_RENDER_RESULT)
 				ED_region_tag_redraw(ar);
+			break;
 	}
 	
 }

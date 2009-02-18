@@ -249,6 +249,17 @@ void WM_jobs_stop_all(wmWindowManager *wm)
 	BLI_freelistN(&wm->jobs);
 }
 
+/* stops job(s) from this owner */
+void WM_jobs_stop(wmWindowManager *wm, void *owner)
+{
+	wmJob *steve;
+	
+	for(steve= wm->jobs.first; steve; steve= steve->next)
+		if(steve->owner==owner)
+			if(steve->running)
+				steve->stop= 1;
+}
+
 /* hardcoded to event TIMERJOBS */
 static int wm_jobs_timer(bContext *C, wmOperator *op, wmEvent *evt)
 {

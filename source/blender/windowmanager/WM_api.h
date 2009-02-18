@@ -203,6 +203,7 @@ void		WM_jobs_callbacks(struct wmJob *,
 							  void (*update)(void *));
 
 void		WM_jobs_start(struct wmJob *);
+void		WM_jobs_stop(struct wmWindowManager *wm, void *owner);
 void		WM_jobs_stop_all(struct wmWindowManager *wm);
 
 #endif /* WM_API_H */

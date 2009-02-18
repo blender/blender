@@ -99,7 +99,8 @@ void BLF_exit(void)
 
 	for (i= 0; i < global_font_num; i++) {
 		font= global_font[i];
-		blf_font_free(font);
+		if(font)
+			blf_font_free(font);
 	}
 
 	blf_font_exit();

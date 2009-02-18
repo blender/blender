@@ -181,19 +181,31 @@ static void wm_window_close(bContext *C, wmWindow *win)
 		WM_exit(C);
 }
 
-void wm_window_titles(wmWindowManager *wm)
+void wm_window_title(wmWindowManager *wm, wmWindow *win)
 {
+	/* this is set to 1 if you don't have .B.blend open */
 	if(G.save_over) {
-		wmWindow *win;
 		char *str= MEM_mallocN(strlen(G.sce) + 16, "title");
 		
-		sprintf(str, "Blender [%s]", G.sce);
+		if(wm->file_saved)
+			sprintf(str, "Blender [%s]", G.sce);
+		else
+			sprintf(str, "Blender* [%s]", G.sce);
 		
-		for(win= wm->windows.first; win; win= win->next)
-			GHOST_SetTitle(win->ghostwin, str);
-
+		GHOST_SetTitle(win->ghostwin, str);
+		
 		MEM_freeN(str);
 	}
+	else
+		GHOST_SetTitle(win->ghostwin, "Blender");
+
+#ifdef __APPLE__
+	if(wm->file_saved)
+		GHOST_SetWindowState(win->ghostwin, GHOST_kWindowStateUnModified);
+	else
+		GHOST_SetWindowState(win->ghostwin, GHOST_kWindowStateModified);
+#endif
+
 }
 
 /* belongs to below */
@@ -235,6 +247,8 @@ static void wm_window_add_ghostwindow(wmWindowManager *wm, char *title, wmWindow
 		glClearColor(.55, .55, .55, 0.0);
 		glClear(GL_COLOR_BUFFER_BIT);
 		wm_window_swap_buffers(win);
+		
+		//GHOST_SetWindowState(ghostwin, GHOST_kWindowStateModified);
 		
 		/* standard state vars for window */
 		glEnable(GL_SCISSOR_TEST);
@@ -289,10 +303,9 @@ void wm_window_add_ghostwindows(wmWindowManager *wm)
 		
 		keymap= WM_keymap_listbase(wm, "Screen", 0, 0);
 		WM_event_add_keymap_handler(&win->handlers, keymap);
+		
+		wm_window_title(wm, win);
 	}
-	
-	wm_window_titles(wm);
-	
 }
 
 /* new window, no screen yet, but we open ghostwindow for it */

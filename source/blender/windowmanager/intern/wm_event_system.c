@@ -141,6 +141,14 @@ void wm_event_do_notifiers(bContext *C)
 		CTX_wm_window_set(C, win);
 		
 		for(note= wm->queue.first; note; note= note->next) {
+			if(note->category==NC_WM) {
+				if( ELEM(note->data, ND_FILEREAD, ND_FILESAVE)) {
+					wm->file_saved= 1;
+					wm_window_title(wm, win);
+				}
+				else if(note->data==ND_DATACHANGED)
+					wm_window_title(wm, win);
+			}
 			if(note->window==win) {
 				if(note->category==NC_SCREEN) {
 					if(note->data==ND_SCREENBROWSE)
@@ -177,7 +185,7 @@ void wm_event_do_notifiers(bContext *C)
 				/* XXX context in notifiers? */
 				CTX_wm_window_set(C, win);
 
-				/* printf("notifier win %d screen %s\n", win->winid, win->screen->id.name+2); */
+				/* printf("notifier win %d screen %s cat %x\n", win->winid, win->screen->id.name+2, note->category); */
 				ED_screen_do_listen(win, note);
 
 				for(ar=win->screen->regionbase.first; ar; ar= ar->next) {
@@ -776,6 +784,7 @@ static int wm_handler_fileselect_call(bContext *C, ListBase *handlers, wmEventHa
 					wm_handler_op_context(C, handler);
 				
 					/* a bit weak, might become arg for WM_event_fileselect? */
+					/* XXX also extension code in image-save doesnt work for this yet */
 					if(strncmp(handler->op->type->name, "Save", 4)==0) {
 						/* this gives ownership to pupmenu */
 						uiPupMenuSaveOver(C, handler->op, path);

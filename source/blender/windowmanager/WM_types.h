@@ -160,9 +160,13 @@ typedef struct wmNotifier {
 
 	/* NC_WM windowmanager */
 #define ND_FILEREAD			(1<<16)
+#define ND_FILESAVE			(2<<16)
+#define ND_DATACHANGED		(3<<16)
 
 	/* NC_SCREEN screen */
 #define ND_SCREENBROWSE		(1<<16)
+#define ND_SCREENCAST		(2<<16)
+
 
 	/* NC_SCENE Scene */
 #define ND_SCENEBROWSE		(1<<16)

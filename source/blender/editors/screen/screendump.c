@@ -142,7 +142,6 @@ static int screenshot_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	
 	dumprect= screenshot(C, &dumpsx, &dumpsy, RNA_boolean_get(op->ptr, "full"));
 	if(dumprect) {
-		SpaceFile *sfile;
 		ScreenshotData *scd= MEM_callocN(sizeof(ScreenshotData), "screenshot");
 		
 		scd->dumpsx= dumpsx;
@@ -153,13 +152,9 @@ static int screenshot_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		if(RNA_property_is_set(op->ptr, "filename"))
 			return screenshot_exec(C, op);
 		
-		ED_screen_full_newspace(C, CTX_wm_area(C), SPACE_FILE);
+		RNA_string_set(op->ptr, "filename", G.ima);
 		
-		/* settings for filebrowser */
-		sfile= (SpaceFile*)CTX_wm_space_data(C);
-		sfile->op = op;
-		
-		ED_fileselect_set_params(sfile, FILE_BLENDER, "Save Screenshot As", G.ima, 0, 0, 0);
+		WM_event_add_fileselect(C, op);
 	
 		return OPERATOR_RUNNING_MODAL;
 	}	
@@ -169,7 +164,7 @@ static int screenshot_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 void SCREEN_OT_screenshot(wmOperatorType *ot)
 {
-	ot->name= "Make Screenshot";
+	ot->name= "Save Screenshot"; /* weak: opname starting with 'save' makes filewindow give save-over */
 	ot->idname= "SCREEN_OT_screenshot";
 	
 	ot->invoke= screenshot_invoke;
@@ -242,7 +237,7 @@ static void screenshot_startjob(void *sjv, short *stop, short *do_update)
 	
 	*do_update= 1; // wait for opengl rect
 	
-	while(*stop==0 && G.afbreek==0) {
+	while(*stop==0) {
 		
 		if(sj->dumprect) {
 			
@@ -311,12 +306,12 @@ static int screencast_exec(bContext *C, wmOperator *op)
 
 	/* setup job */
 	WM_jobs_customdata(steve, sj, screenshot_freejob);
-	WM_jobs_timer(steve, 0.1, 0, 0);
+	WM_jobs_timer(steve, 0.1, 0, NC_SCREEN|ND_SCREENCAST);
 	WM_jobs_callbacks(steve, screenshot_startjob, NULL, screenshot_updatejob);
 	
-	G.afbreek= 0; // XXX?
-	
 	WM_jobs_start(steve);
+	
+	WM_event_add_notifier(C, NC_SCREEN|ND_SCREENCAST, screen);
 	
 	return OPERATOR_FINISHED;
 }

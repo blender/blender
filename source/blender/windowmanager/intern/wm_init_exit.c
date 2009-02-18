@@ -121,6 +121,9 @@ void WM_init(bContext *C)
 	ED_file_init();			/* for fsmenu */
 	ED_init_node_butfuncs();	
 	
+	BLF_init();
+	BLF_lang_init();
+	
 	/* get the default database, plus a wm */
 	WM_read_homefile(C, NULL);
 	

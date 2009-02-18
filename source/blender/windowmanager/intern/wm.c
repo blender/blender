@@ -135,6 +135,7 @@ void wm_add_default(bContext *C)
 	BLI_strncpy(win->screenname, screen->id.name+2, 21);
 	
 	wm->winactive= win;
+	wm->file_saved= 1;
 	wm_window_make_drawable(C, win); 
 }
 

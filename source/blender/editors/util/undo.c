@@ -78,6 +78,7 @@ static void sound_initialize_sounds() {}
 
 void ED_undo_push(bContext *C, char *str)
 {
+	wmWindowManager *wm= CTX_wm_manager(C);
 	Object *obedit= CTX_data_edit_object(C);
 	
 	if(obedit) {
@@ -104,6 +105,11 @@ void ED_undo_push(bContext *C, char *str)
 	else {
 		if(U.uiflag & USER_GLOBALUNDO) 
 			BKE_write_undo(C, str);
+	}
+	
+	if(wm->file_saved) {
+		wm->file_saved= 0;
+		WM_event_add_notifier(C, NC_WM|ND_DATACHANGED, NULL);
 	}
 }
 

@@ -61,7 +61,8 @@ typedef struct wmWindowManager {
 	ListBase windows;
 	
 	int initialized;		/* set on file read */
-	int pad;
+	short file_saved;		/* indicator whether data was saved */
+	short pad;
 	
 	ListBase operators;		/* operator registry */
 	
