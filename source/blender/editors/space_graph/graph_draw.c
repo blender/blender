@@ -813,7 +813,7 @@ void graph_draw_channel_names(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 					group= 4;
 					indent= 0;
 					
-					special= ICON_SCENE;
+					special= ICON_SCENE_DATA;
 					
 					/* only show expand if there are any channels */
 					if (EXPANDED_SCEC(sce))
@@ -888,7 +888,7 @@ void graph_draw_channel_names(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 					
 					group = 4;
 					indent = 1;
-					special = ICON_MATERIAL;
+					special = ICON_MATERIAL_DATA;
 					
 					if (FILTER_MAT_OBJC(ob))
 						expand = ICON_TRIA_DOWN;
@@ -906,7 +906,7 @@ void graph_draw_channel_names(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 					
 					group = 0;
 					indent = 0;
-					special = ICON_MATERIAL;
+					special = ICON_MATERIAL_DATA;
 					offset = 21;
 					
 					if (FILTER_MAT_OBJD(ma))
@@ -923,7 +923,7 @@ void graph_draw_channel_names(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 					
 					group = 4;
 					indent = 1;
-					special = ICON_LAMP;
+					special = ICON_LAMP_DATA;
 					
 					if (FILTER_LAM_OBJD(la))
 						expand = ICON_TRIA_DOWN;
@@ -939,7 +939,7 @@ void graph_draw_channel_names(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 					
 					group = 4;
 					indent = 1;
-					special = ICON_CAMERA;
+					special = ICON_CAMERA_DATA;
 					
 					if (FILTER_CAM_OBJD(ca))
 						expand = ICON_TRIA_DOWN;
@@ -971,7 +971,7 @@ void graph_draw_channel_names(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 					
 					group = 4;
 					indent = 1;
-					special = ICON_EDIT;
+					special = ICON_SHAPEKEY_DATA;
 					
 					if (FILTER_SKE_OBJD(key))	
 						expand = ICON_TRIA_DOWN;
@@ -988,7 +988,7 @@ void graph_draw_channel_names(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 					
 					group = 4;
 					indent = 1;
-					special = ICON_WORLD;
+					special = ICON_WORLD_DATA;
 					
 					if (FILTER_WOR_SCED(wo))	
 						expand = ICON_TRIA_DOWN;
