@@ -482,7 +482,7 @@ static int SurfNurb_setCyclicV( BPy_SurfNurb * self, PyObject * value )
 		self->nurb->flagv |= CU_CYCLIC;
 	else
 		self->nurb->flagv &= ~CU_CYCLIC;
-	makeknots( self->nurb, 2, self->nurb->flagu >> 1 );
+	makeknots( self->nurb, 2, self->nurb->flagv >> 1 );
 	return 0;
 }
 
