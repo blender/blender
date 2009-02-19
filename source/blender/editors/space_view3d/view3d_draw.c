@@ -1081,7 +1081,7 @@ void backdrawview3d(Scene *scene, ARegion *ar, View3D *v3d)
 #endif
 
 	if(G.f & G_VERTEXPAINT || G.f & G_WEIGHTPAINT);
-	else if((G.f & G_TEXTUREPAINT) && scene->toolsettings && (scene->toolsettings->imapaint.flag & IMAGEPAINT_PROJECT_DISABLE)==0);
+	else if((G.f & G_TEXTUREPAINT) && scene->toolsettings && (scene->toolsettings->imapaint.flag & IMAGEPAINT_PROJECT_DISABLE));
 	else if(scene->obedit && v3d->drawtype>OB_WIRE && (v3d->flag & V3D_ZBUF_SELECT));
 	else {
 		v3d->flag &= ~V3D_NEEDBACKBUFDRAW;

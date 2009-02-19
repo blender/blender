@@ -40,6 +40,11 @@
 #define EVT_DATA_GESTURE	2
 #define EVT_DATA_TIMER		3
 
+/* tablet active */
+#define EVT_TABLET_NONE		0
+#define EVT_TABLET_STYLUS	1
+#define EVT_TABLET_ERASER	2
+
 #define MOUSEX		0x004	
 #define MOUSEY		0x005	
 

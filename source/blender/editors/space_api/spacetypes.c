@@ -82,6 +82,7 @@ void ED_spacetypes_init(void)
 	ED_operatortypes_mesh();
 	ED_operatortypes_sculpt();
 	ED_operatortypes_uvedit();
+	ED_operatortypes_paint();
 	ED_operatortypes_curve();
 	ED_operatortypes_armature();
 	ED_marker_operatortypes();

@@ -112,14 +112,6 @@ void VIEW3D_OT_circle_select(struct wmOperatorType *ot);
 void VIEW3D_OT_borderselect(struct wmOperatorType *ot);
 void VIEW3D_OT_lasso_select(struct wmOperatorType *ot);
 
-/* vpaint.c */
-void VIEW3D_OT_vpaint_radial_control(struct wmOperatorType *ot);
-void VIEW3D_OT_wpaint_radial_control(struct wmOperatorType *ot);
-void VIEW3D_OT_vpaint_toggle(struct wmOperatorType *ot);
-void VIEW3D_OT_vpaint(struct wmOperatorType *ot);
-void VIEW3D_OT_wpaint_toggle(struct wmOperatorType *ot);
-void VIEW3D_OT_wpaint(struct wmOperatorType *ot);
-
 /* view3d_view.c */
 void VIEW3D_OT_smoothview(struct wmOperatorType *ot);
 void VIEW3D_OT_setcameratoview(struct wmOperatorType *ot);
@@ -129,6 +121,8 @@ int boundbox_clip(RegionView3D *rv3d, float obmat[][4], struct BoundBox *bb);
 
 void view3d_project_short_clip(struct ARegion *ar, float *vec, short *adr, float projmat[4][4], float wmat[4][4]);
 void view3d_project_short_noclip(struct ARegion *ar, float *vec, short *adr, float mat[4][4]);
+
+void view3d_project_float(struct ARegion *a, float *vec, float *adr, float mat[4][4]);
 
 void centerview(struct ARegion *ar, View3D *v3d);
 

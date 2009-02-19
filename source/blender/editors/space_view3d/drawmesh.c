@@ -478,7 +478,7 @@ void draw_mesh_text(Scene *scene, Object *ob, int glsl)
 		return;
 
 	/* don't draw when editing */
-	if(me->edit_mesh)
+	if(ob == scene->obedit)
 		return;
 	else if(ob==OBACT)
 		if(FACESEL_PAINT_TEST)
@@ -558,7 +558,7 @@ void draw_mesh_textured(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *o
 	/* draw the textured mesh */
 	draw_textured_begin(scene, v3d, rv3d, ob);
 
-	if(me->edit_mesh) {
+	if(ob == scene->obedit) {
 		dm->drawMappedFacesTex(dm, draw_em_tf_mapped__set_draw, me->edit_mesh);
 	} else if(faceselect) {
 		if(G.f & G_WEIGHTPAINT)
@@ -566,8 +566,9 @@ void draw_mesh_textured(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *o
 		else
 			dm->drawMappedFacesTex(dm, draw_tface_mapped__set_draw, me);
 	}
-	else
+	else {
 		dm->drawFacesTex(dm, draw_tface__set_draw);
+	}
 
 	/* draw game engine text hack */
 	if(get_ob_property(ob, "Text")) 
@@ -576,7 +577,7 @@ void draw_mesh_textured(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *o
 	draw_textured_end();
 	
 	/* draw edges and selected faces over textured mesh */
-	if(!me->edit_mesh && faceselect)
+	if(!(ob == scene->obedit) && faceselect)
 		draw_tfaces3D(rv3d, ob, me, dm);
 
 	/* reset from negative scale correction */

@@ -445,7 +445,7 @@ static char *rna_def_property_set_func(FILE *f, StructRNA *srna, PropertyRNA *pr
 								fprintf(f, "	else data->%s &= ~(%d<<%d);\n", dp->dnaname, dp->booleanbit, i);
 							}
 							else {
-								fprintf(f, "	(&data->%s)[%d]= %s\n", dp->dnaname, i, (dp->booleannegative)? "!": "");
+								fprintf(f, "	(&data->%s)[%d]= %s", dp->dnaname, i, (dp->booleannegative)? "!": "");
 								rna_clamp_value(f, prop, 1, i);
 							}
 						}
@@ -462,7 +462,7 @@ static char *rna_def_property_set_func(FILE *f, StructRNA *srna, PropertyRNA *pr
 								fprintf(f, "	data->%s[%d]= FTOCHAR(values[%d]);\n", dp->dnaname, i, i);
 							}
 							else {
-								fprintf(f, "	data->%s[%d]= %s\n", dp->dnaname, i, (dp->booleannegative)? "!": "");
+								fprintf(f, "	data->%s[%d]= %s", dp->dnaname, i, (dp->booleannegative)? "!": "");
 								rna_clamp_value(f, prop, 1, i);
 							}
 						}

@@ -354,6 +354,8 @@ typedef struct ImagePaintSettings {
 	
 	/* for projection painting only */
 	short seam_bleed,normal_angle;
+
+	void *paintcursor;			/* wm handle */
 } ImagePaintSettings;
 
 typedef struct ParticleBrushData {

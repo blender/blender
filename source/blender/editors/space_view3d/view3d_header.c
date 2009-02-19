@@ -137,10 +137,12 @@ static int retopo_mesh_paint_check() {return 0;}
 /* well... in this file a lot of view mode manipulation happens, so let's have it defined here */
 void ED_view3d_exit_paint_modes(bContext *C)
 {
+	if(G.f & G_TEXTUREPAINT)
+		WM_operator_name_call(C, "PAINT_OT_texture_paint_toggle", WM_OP_EXEC_REGION_WIN, NULL);
 	if(G.f & G_VERTEXPAINT)
-		WM_operator_name_call(C, "VIEW3D_OT_vpaint_toggle", WM_OP_EXEC_REGION_WIN, NULL);
+		WM_operator_name_call(C, "PAINT_OT_vertex_paint_toggle", WM_OP_EXEC_REGION_WIN, NULL);
 	else if(G.f & G_WEIGHTPAINT)
-		WM_operator_name_call(C, "VIEW3D_OT_wpaint_toggle", WM_OP_EXEC_REGION_WIN, NULL);
+		WM_operator_name_call(C, "PAINT_OT_weight_paint_toggle", WM_OP_EXEC_REGION_WIN, NULL);
 
 	if(G.f & G_SCULPTMODE)
 		WM_operator_name_call(C, "SCULPT_OT_sculptmode_toggle", WM_OP_EXEC_REGION_WIN, NULL);
@@ -5019,7 +5021,7 @@ static void do_view3d_header_buttons(bContext *C, void *arg, int event)
 				ED_view3d_exit_paint_modes(C);
 				if(obedit) ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);	/* exit editmode and undo */
 				
-				WM_operator_name_call(C, "VIEW3D_OT_vpaint_toggle", WM_OP_EXEC_REGION_WIN, NULL);
+				WM_operator_name_call(C, "PAINT_OT_vertex_paint_toggle", WM_OP_EXEC_REGION_WIN, NULL);
 			}
 		} 
 		else if (v3d->modeselect == V3D_TEXTUREPAINTMODE_SEL) {
@@ -5027,8 +5029,8 @@ static void do_view3d_header_buttons(bContext *C, void *arg, int event)
 				v3d->flag &= ~V3D_MODE;
 				ED_view3d_exit_paint_modes(C);
 				if(obedit) ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);	/* exit editmode and undo */
-					
-// XXX				set_texturepaint();
+
+				WM_operator_name_call(C, "PAINT_OT_texture_paint_toggle", WM_OP_EXEC_REGION_WIN, NULL);
 			}
 		} 
 		else if (v3d->modeselect == V3D_WEIGHTPAINTMODE_SEL) {
@@ -5038,7 +5040,7 @@ static void do_view3d_header_buttons(bContext *C, void *arg, int event)
 				if(obedit) 
 					ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);	/* exit editmode and undo */
 				
-				WM_operator_name_call(C, "VIEW3D_OT_wpaint_toggle", WM_OP_EXEC_REGION_WIN, NULL);
+				WM_operator_name_call(C, "PAINT_OT_weight_paint_toggle", WM_OP_EXEC_REGION_WIN, NULL);
 			}
 		} 
 		else if (v3d->modeselect == V3D_POSEMODE_SEL) {

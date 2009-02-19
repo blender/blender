@@ -241,10 +241,14 @@ static void rna_def_operator_stroke_element(BlenderRNA *brna)
 	RNA_def_property_array(prop, 2);
 	RNA_def_property_ui_text(prop, "Mouse", "");
 
-	/*prop= RNA_def_property(srna, "pressure", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "pressure", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_IDPROPERTY);
-	RNA_def_property_range(prop, 0, 1);
-	RNA_def_property_ui_text(prop, "Pressure", "");*/
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Pressure", "Tablet pressure.");
+
+	prop= RNA_def_property(srna, "time", PROP_FLOAT, PROP_UNSIGNED);
+	RNA_def_property_flag(prop, PROP_IDPROPERTY);
+	RNA_def_property_ui_text(prop, "Time", "");
 
 	prop= RNA_def_property(srna, "flip", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_IDPROPERTY);
@@ -252,8 +256,6 @@ static void rna_def_operator_stroke_element(BlenderRNA *brna)
 
 	/* XXX: Tool (this will be for pressing a modifier key for a different brush,
 	        e.g. switching to a Smooth brush in the middle of the stroke */
-
-	/* XXX: Time (should be useful for airbrush mode) */
 }
 
 void RNA_def_brush(BlenderRNA *brna)

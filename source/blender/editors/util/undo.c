@@ -60,6 +60,7 @@
 #include "ED_mesh.h"
 #include "ED_object.h"
 #include "ED_screen.h"
+#include "ED_sculpt.h"
 #include "ED_util.h"
 
 #include "WM_api.h"
@@ -72,7 +73,6 @@
 
 /* ********* XXX **************** */
 static void undo_push_mball() {}
-static void undo_imagepaint_step() {}
 static void sound_initialize_sounds() {}
 /* ********* XXX **************** */
 

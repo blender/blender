@@ -272,6 +272,9 @@ static void view3d_main_area_init(wmWindowManager *wm, ARegion *ar)
 	
 	/* modal ops keymaps */
 	view3d_modal_keymaps(wm, ar, rv3d->lastmode);
+	/* operator poll checks for modes */
+	keymap= WM_keymap_listbase(wm, "ImagePaint", 0, 0);
+	WM_event_add_keymap_handler(&ar->handlers, keymap);
 }
 
 /* type callback, not region itself */
@@ -368,6 +371,11 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 					ED_region_tag_redraw(ar);
 					break;
 			}
+		case NC_IMAGE:	
+			/* this could be more fine grained checks if we had
+			 * more context than just the region */
+			ED_region_tag_redraw(ar);
+			break;
 	}
 }
 

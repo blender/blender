@@ -45,6 +45,7 @@
 
 #include "ED_armature.h"
 #include "ED_mesh.h"
+#include "ED_sculpt.h"
 #include "ED_util.h"
 
 #include "UI_text.h"
@@ -57,6 +58,7 @@ void ED_editors_exit(bContext *C)
 	
 	/* frees all editmode undos */
 	undo_editmode_clear();
+	undo_imagepaint_clear();
 	
 	/* global in meshtools... */
 	mesh_octree_table(ob, NULL, NULL, 'e');

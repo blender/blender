@@ -189,6 +189,10 @@ void image_keymap(struct wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "IMAGE_OT_reload", RKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "IMAGE_OT_save", SKEY, KM_PRESS, KM_ALT, 0);
 
+	WM_keymap_add_item(keymap, "PAINT_OT_image_paint", ACTIONMOUSE, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "PAINT_OT_grab_clone", SELECTMOUSE, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "PAINT_OT_sample_color", SELECTMOUSE, KM_PRESS, 0, 0);
+
 	WM_keymap_add_item(keymap, "IMAGE_OT_sample", ACTIONMOUSE, KM_PRESS, 0, 0);
 	RNA_enum_set(WM_keymap_add_item(keymap, "IMAGE_OT_set_curves_point", ACTIONMOUSE, KM_PRESS, KM_CTRL, 0)->ptr, "point", 0);
 	RNA_enum_set(WM_keymap_add_item(keymap, "IMAGE_OT_set_curves_point", ACTIONMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "point", 1);
@@ -353,6 +357,10 @@ static void image_main_area_init(wmWindowManager *wm, ARegion *ar)
 	
 	// image space manages own v2d
 	// UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_STANDARD, ar->winx, ar->winy);
+
+	/* image paint polls for mode */
+	keymap= WM_keymap_listbase(wm, "ImagePaint", SPACE_IMAGE, 0);
+	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 	
 	/* own keymap */
 	keymap= WM_keymap_listbase(wm, "Image", SPACE_IMAGE, 0);

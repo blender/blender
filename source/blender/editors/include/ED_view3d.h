@@ -112,6 +112,8 @@ unsigned int view3d_sample_backbuf_rect(struct ViewContext *vc, short mval[2], i
 										void *handle, unsigned int (*indextest)(void *handle, unsigned int index));
 unsigned int view3d_sample_backbuf(struct ViewContext *vc, int x, int y);
 
+int view_autodist(struct Scene *scene, struct ARegion *ar, struct View3D *v3d, short *mval, float mouse_worldloc[3]);
+
 /* select */
 #define MAXPICKBUF      10000
 short view3d_opengl_select(struct ViewContext *vc, unsigned int *buffer, unsigned int bufsize, rcti *input);
@@ -119,13 +121,13 @@ short view3d_opengl_select(struct ViewContext *vc, unsigned int *buffer, unsigne
 void view3d_set_viewcontext(struct bContext *C, struct ViewContext *vc);
 void view3d_operator_needs_opengl(const struct bContext *C);
 void view3d_get_view_aligned_coordinate(struct ViewContext *vc, float *fp, short mval[2]);
+void view3d_get_object_project_mat(struct RegionView3D *v3d, struct Object *ob, float pmat[4][4], float vmat[4][4]);;
 
 /* XXX should move to arithb.c */
 int edge_inside_circle(short centx, short centy, short rad, short x1, short y1, short x2, short y2);
 
 /* modes */
 void ED_view3d_exit_paint_modes(struct bContext *C);
-
 
 #endif /* ED_VIEW3D_H */
 

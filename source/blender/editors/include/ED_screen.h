@@ -99,6 +99,7 @@ void	ED_keymap_screen(struct wmWindowManager *wm);
 int		ED_operator_screenactive(struct bContext *C);
 int		ED_operator_screen_mainwinactive(struct bContext *C);
 int		ED_operator_areaactive(struct bContext *C);
+int		ED_operator_regionactive(struct bContext *C);
 
 int		ED_operator_scene_editable(struct bContext *C);
 

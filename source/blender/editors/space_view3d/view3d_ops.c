@@ -83,12 +83,6 @@ void view3d_operatortypes(void)
 	WM_operatortype_append(VIEW3D_OT_lasso_select);
 	WM_operatortype_append(VIEW3D_OT_setcameratoview);
 	WM_operatortype_append(VIEW3D_OT_drawtype);
-	WM_operatortype_append(VIEW3D_OT_vpaint_radial_control);
-	WM_operatortype_append(VIEW3D_OT_wpaint_radial_control);
-	WM_operatortype_append(VIEW3D_OT_vpaint_toggle);
-	WM_operatortype_append(VIEW3D_OT_wpaint_toggle);
-	WM_operatortype_append(VIEW3D_OT_vpaint);
-	WM_operatortype_append(VIEW3D_OT_wpaint);
 	WM_operatortype_append(VIEW3D_OT_editmesh_face_toolbox);
 	WM_operatortype_append(VIEW3D_OT_properties);
 	WM_operatortype_append(VIEW3D_OT_localview);
@@ -109,8 +103,8 @@ void view3d_keymap(wmWindowManager *wm)
 	ListBase *keymap= WM_keymap_listbase(wm, "View3D Generic", SPACE_VIEW3D, 0);
 	wmKeymapItem *km;
 	
-	WM_keymap_add_item(keymap, "VIEW3D_OT_vpaint_toggle", VKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "VIEW3D_OT_wpaint_toggle", TABKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "PAINT_OT_vertex_paint_toggle", VKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "PAINT_OT_weight_paint_toggle", TABKEY, KM_PRESS, KM_CTRL, 0);
 	
 	WM_keymap_add_item(keymap, "VIEW3D_OT_properties", NKEY, KM_PRESS, 0, 0);
 	
@@ -118,8 +112,12 @@ void view3d_keymap(wmWindowManager *wm)
 	keymap= WM_keymap_listbase(wm, "View3D", SPACE_VIEW3D, 0);
 	
 	/* paint poll checks mode */
-	WM_keymap_verify_item(keymap, "VIEW3D_OT_vpaint", LEFTMOUSE, KM_PRESS, 0, 0);
-	WM_keymap_verify_item(keymap, "VIEW3D_OT_wpaint", LEFTMOUSE, KM_PRESS, 0, 0);
+	WM_keymap_verify_item(keymap, "PAINT_OT_vertex_paint", LEFTMOUSE, KM_PRESS, 0, 0);
+	WM_keymap_verify_item(keymap, "PAINT_OT_weight_paint", LEFTMOUSE, KM_PRESS, 0, 0);
+
+	WM_keymap_add_item(keymap, "PAINT_OT_image_paint", LEFTMOUSE, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "PAINT_OT_sample_color", RIGHTMOUSE, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "PAINT_OT_set_clone_cursor", LEFTMOUSE, KM_PRESS, KM_CTRL, 0);
 
 	WM_keymap_add_item(keymap, "SCULPT_OT_brush_stroke", LEFTMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "SCULPT_OT_brush_stroke", LEFTMOUSE, KM_PRESS, KM_SHIFT, 0);
@@ -196,10 +194,10 @@ void view3d_keymap(wmWindowManager *wm)
 	RNA_enum_set(WM_keymap_add_item(keymap, "SCULPT_OT_radial_control", FKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "mode", WM_RADIALCONTROL_STRENGTH);
 	RNA_enum_set(WM_keymap_add_item(keymap, "SCULPT_OT_radial_control", FKEY, KM_PRESS, KM_CTRL, 0)->ptr, "mode", WM_RADIALCONTROL_ANGLE);
 
-	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_vpaint_radial_control", FKEY, KM_PRESS, 0, 0)->ptr, "mode", WM_RADIALCONTROL_SIZE);
-	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_wpaint_radial_control", FKEY, KM_PRESS, 0, 0)->ptr, "mode", WM_RADIALCONTROL_SIZE);
-	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_vpaint_radial_control", FKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "mode", WM_RADIALCONTROL_STRENGTH);
-	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_wpaint_radial_control", FKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "mode", WM_RADIALCONTROL_STRENGTH);
+	RNA_enum_set(WM_keymap_add_item(keymap, "PAINT_OT_vertex_paint_radial_control", FKEY, KM_PRESS, 0, 0)->ptr, "mode", WM_RADIALCONTROL_SIZE);
+	RNA_enum_set(WM_keymap_add_item(keymap, "PAINT_OT_weight_paint_radial_control", FKEY, KM_PRESS, 0, 0)->ptr, "mode", WM_RADIALCONTROL_SIZE);
+	RNA_enum_set(WM_keymap_add_item(keymap, "PAINT_OT_vertex_paint_radial_control", FKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "mode", WM_RADIALCONTROL_STRENGTH);
+	RNA_enum_set(WM_keymap_add_item(keymap, "PAINT_OT_weight_paint_radial_control", FKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "mode", WM_RADIALCONTROL_STRENGTH);
 
 	/* TODO - this is just while we have no way to load a text datablock */
 	RNA_string_set(WM_keymap_add_item(keymap, "SCRIPT_OT_run_pyfile", PKEY, KM_PRESS, 0, 0)->ptr, "filename", "test.py");

@@ -51,7 +51,7 @@ typedef struct Brush {
 
 	struct BrushClone clone;
 
-	struct CurveMapping *curve;		/* falloff curve */
+	struct CurveMapping *curve;	/* falloff curve */
 	struct MTex *mtex[18];		/* MAX_MTEX */
 	
 	short flag, blend;			/* general purpose flag, blend mode */
@@ -63,7 +63,7 @@ typedef struct Brush {
 	float rgb[3];				/* color */
 	float alpha;				/* opacity */
 
-	float rot;				/* rotation in radians */
+	float rot;					/* rotation in radians */
 
 	short texact;				/* active texture */
 	char sculpt_tool;			/* active tool */

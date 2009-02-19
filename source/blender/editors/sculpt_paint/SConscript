@@ -8,4 +8,4 @@ incs += ' ../../windowmanager #/intern/guardedalloc #/extern/glew/include'
 incs += ' ../../render/extern/include #/intern/guardedalloc #intern/bmfont'
 incs += ' ../../gpu ../../makesrna'
 
-env.BlenderLib ( 'bf_editors_sculpt', sources, Split(incs), [], libtype=['core'], priority=[40] )
+env.BlenderLib ( 'bf_editors_sculpt_paint', sources, Split(incs), [], libtype=['core'], priority=[40] )

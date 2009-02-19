@@ -90,8 +90,6 @@
 #include "ED_util.h"
 #include "ED_view3d.h"
 
-#include "view3d_intern.h"
-
 	/* vp->mode */
 #define VP_MIX	0
 #define VP_ADD	1
@@ -579,45 +577,6 @@ void vpaint_dogamma(Scene *scene)
 		
 		cp+= 4;
 	}
-}
-
-/* used for both 3d view and image window */
-void sample_vpaint(Scene *scene, ARegion *ar)	/* frontbuf */
-{
-	VPaint *vp= scene->toolsettings->vpaint;
-	unsigned int col;
-	int x, y;
-	short mval[2];
-	char *cp;
-	
-//	getmouseco_areawin(mval);
-	x= mval[0]; y= mval[1];
-	
-	if(x<0 || y<0) return;
-	if(x>=ar->winx || y>=ar->winy) return;
-	
-	glReadBuffer(GL_FRONT);
-	glReadPixels(x, y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, &col);
-	glReadBuffer(GL_BACK);
-
-	cp = (char *)&col;
-	
-	if(G.f & (G_VERTEXPAINT|G_WEIGHTPAINT)) {
-		vp->r= cp[0]/255.0f;
-		vp->g= cp[1]/255.0f;
-		vp->b= cp[2]/255.0f;
-	}
-	else {
-		Brush *brush= scene->toolsettings->imapaint.brush;
-
-		if(brush) {
-			brush->rgb[0]= cp[0]/255.0f;
-			brush->rgb[1]= cp[1]/255.0f;
-			brush->rgb[2]= cp[2]/255.0f;
-
-		}
-	}
-
 }
 
 static unsigned int mcol_blend(unsigned int col1, unsigned int col2, int fac)
@@ -1201,12 +1160,12 @@ static int paint_poll_test(bContext *C)
 	return 1;
 }
 
-void VIEW3D_OT_wpaint_toggle(wmOperatorType *ot)
+void PAINT_OT_weight_paint_toggle(wmOperatorType *ot)
 {
 	
 	/* identifiers */
 	ot->name= "Weight Paint Mode";
-	ot->idname= "VIEW3D_OT_wpaint_toggle";
+	ot->idname= "PAINT_OT_weight_paint_toggle";
 	
 	/* api callbacks */
 	ot->exec= set_wpaint;
@@ -1222,7 +1181,7 @@ void VIEW3D_OT_wpaint_toggle(wmOperatorType *ot)
 void paint_radial_control_invoke(wmOperator *op, VPaint *vp)
 {
 	int mode = RNA_int_get(op->ptr, "mode");
-	float original_value= 1.0f;
+	float original_value;
 
 	if(mode == WM_RADIALCONTROL_SIZE)
 		original_value = vp->size;
@@ -1291,12 +1250,12 @@ static int wpaint_radial_control_exec(bContext *C, wmOperator *op)
 	return ret;
 }
 
-void VIEW3D_OT_wpaint_radial_control(wmOperatorType *ot)
+void PAINT_OT_weight_paint_radial_control(wmOperatorType *ot)
 {
 	WM_OT_radial_control_partial(ot);
 
 	ot->name= "Weight Paint Radial Control";
-	ot->idname= "VIEW3D_OT_wpaint_radial_control";
+	ot->idname= "PAINT_OT_weight_paint_radial_control";
 
 	ot->invoke= wpaint_radial_control_invoke;
 	ot->modal= wpaint_radial_control_modal;
@@ -1307,12 +1266,12 @@ void VIEW3D_OT_wpaint_radial_control(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-void VIEW3D_OT_vpaint_radial_control(wmOperatorType *ot)
+void PAINT_OT_vertex_paint_radial_control(wmOperatorType *ot)
 {
 	WM_OT_radial_control_partial(ot);
 
 	ot->name= "Vertex Paint Radial Control";
-	ot->idname= "VIEW3D_OT_vpaint_radial_control";
+	ot->idname= "PAINT_OT_vertex_paint_radial_control";
 
 	ot->invoke= vpaint_radial_control_invoke;
 	ot->modal= vpaint_radial_control_modal;
@@ -1391,6 +1350,7 @@ static int wpaint_modal(bContext *C, wmOperator *op, wmEvent *event)
 			float paintweight= wp->weight;
 			int *indexar= wpd->indexar;
 			int totindex, index, alpha, totw;
+			short mval[2];
 			
 			view3d_operator_needs_opengl(C);
 			
@@ -1401,12 +1361,15 @@ static int wpaint_modal(bContext *C, wmOperator *op, wmEvent *event)
 			
 			MTC_Mat4SwapMat4(wpd->vc.rv3d->persmat, mat);
 			
+			mval[0]= event->x - vc->ar->winrct.xmin;
+			mval[1]= event->y - vc->ar->winrct.ymin;
+			
 			/* which faces are involved */
 			if(wp->flag & VP_AREA) {
-				totindex= sample_backbuf_area(vc, indexar, me->totface, event->mval[0], event->mval[1], wp->size);
+				totindex= sample_backbuf_area(vc, indexar, me->totface, mval[0], mval[1], wp->size);
 			}
 			else {
-				indexar[0]= view3d_sample_backbuf(vc, event->mval[0], event->mval[1]);
+				indexar[0]= view3d_sample_backbuf(vc, mval[0], mval[1]);
 				if(indexar[0]) totindex= 1;
 				else totindex= 0;
 			}
@@ -1481,7 +1444,7 @@ static int wpaint_modal(bContext *C, wmOperator *op, wmEvent *event)
 					MFace *mface= me->mface + (indexar[index]-1);
 					
 					if((me->dvert+mface->v1)->flag) {
-						alpha= calc_vp_alpha_dl(wp, vc, wpd->wpimat, wpd->vertexcosnos+6*mface->v1, event->mval);
+						alpha= calc_vp_alpha_dl(wp, vc, wpd->wpimat, wpd->vertexcosnos+6*mface->v1, mval);
 						if(alpha) {
 							do_weight_paint_vertex(wp, ob, mface->v1, alpha, paintweight, wpd->vgroup_mirror);
 						}
@@ -1489,7 +1452,7 @@ static int wpaint_modal(bContext *C, wmOperator *op, wmEvent *event)
 					}
 					
 					if((me->dvert+mface->v2)->flag) {
-						alpha= calc_vp_alpha_dl(wp, vc, wpd->wpimat, wpd->vertexcosnos+6*mface->v2, event->mval);
+						alpha= calc_vp_alpha_dl(wp, vc, wpd->wpimat, wpd->vertexcosnos+6*mface->v2, mval);
 						if(alpha) {
 							do_weight_paint_vertex(wp, ob, mface->v2, alpha, paintweight, wpd->vgroup_mirror);
 						}
@@ -1497,7 +1460,7 @@ static int wpaint_modal(bContext *C, wmOperator *op, wmEvent *event)
 					}
 					
 					if((me->dvert+mface->v3)->flag) {
-						alpha= calc_vp_alpha_dl(wp, vc, wpd->wpimat, wpd->vertexcosnos+6*mface->v3, event->mval);
+						alpha= calc_vp_alpha_dl(wp, vc, wpd->wpimat, wpd->vertexcosnos+6*mface->v3, mval);
 						if(alpha) {
 							do_weight_paint_vertex(wp, ob, mface->v3, alpha, paintweight, wpd->vgroup_mirror);
 						}
@@ -1506,7 +1469,7 @@ static int wpaint_modal(bContext *C, wmOperator *op, wmEvent *event)
 					
 					if((me->dvert+mface->v4)->flag) {
 						if(mface->v4) {
-							alpha= calc_vp_alpha_dl(wp, vc, wpd->wpimat, wpd->vertexcosnos+6*mface->v4, event->mval);
+							alpha= calc_vp_alpha_dl(wp, vc, wpd->wpimat, wpd->vertexcosnos+6*mface->v4, mval);
 							if(alpha) {
 								do_weight_paint_vertex(wp, ob, mface->v4, alpha, paintweight, wpd->vgroup_mirror);
 							}
@@ -1628,12 +1591,12 @@ static int wpaint_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
-void VIEW3D_OT_wpaint(wmOperatorType *ot)
+void PAINT_OT_weight_paint(wmOperatorType *ot)
 {
 	
 	/* identifiers */
 	ot->name= "Weight Paint";
-	ot->idname= "VIEW3D_OT_wpaint";
+	ot->idname= "PAINT_OT_weight_paint";
 	
 	/* api callbacks */
 	ot->invoke= wpaint_invoke;
@@ -1645,7 +1608,6 @@ void VIEW3D_OT_wpaint(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 }
-
 
 /* ************ set / clear vertex paint mode ********** */
 
@@ -1704,12 +1666,12 @@ static int set_vpaint(bContext *C, wmOperator *op)		/* toggle */
 	return OPERATOR_FINISHED;
 }
 
-void VIEW3D_OT_vpaint_toggle(wmOperatorType *ot)
+void PAINT_OT_vertex_paint_toggle(wmOperatorType *ot)
 {
 	
 	/* identifiers */
 	ot->name= "Vertex Paint Mode";
-	ot->idname= "VIEW3D_OT_vpaint_toggle";
+	ot->idname= "PAINT_OT_vertex_paint_toggle";
 	
 	/* api callbacks */
 	ot->exec= set_vpaint;
@@ -1789,6 +1751,7 @@ static int vpaint_modal(bContext *C, wmOperator *op, wmEvent *event)
 			float mat[4][4];
 			int *indexar= vpd->indexar;
 			int totindex, index;
+			short mval[2];
 			
 			view3d_operator_needs_opengl(C);
 			
@@ -1797,12 +1760,15 @@ static int vpaint_modal(bContext *C, wmOperator *op, wmEvent *event)
 			wmGetSingleMatrix(mat);
 			wmLoadMatrix(vc->rv3d->viewmat);
 			
+			mval[0]= event->x - vc->ar->winrct.xmin;
+			mval[1]= event->y - vc->ar->winrct.ymin;
+				
 			/* which faces are involved */
 			if(vp->flag & VP_AREA) {
-				totindex= sample_backbuf_area(vc, indexar, me->totface, event->mval[0], event->mval[1], vp->size);
+				totindex= sample_backbuf_area(vc, indexar, me->totface, mval[0], mval[1], vp->size);
 			}
 			else {
-				indexar[0]= view3d_sample_backbuf(vc, event->mval[0], event->mval[1]);
+				indexar[0]= view3d_sample_backbuf(vc, mval[0], mval[1]);
 				if(indexar[0]) totindex= 1;
 				else totindex= 0;
 			}
@@ -1851,17 +1817,17 @@ static int vpaint_modal(bContext *C, wmOperator *op, wmEvent *event)
 						
 					}
 					
-					alpha= calc_vp_alpha_dl(vp, vc, vpd->vpimat, vpd->vertexcosnos+6*mface->v1, event->mval);
+					alpha= calc_vp_alpha_dl(vp, vc, vpd->vpimat, vpd->vertexcosnos+6*mface->v1, mval);
 					if(alpha) vpaint_blend(vp, mcol, mcolorig, vpd->paintcol, alpha);
 					
-					alpha= calc_vp_alpha_dl(vp, vc, vpd->vpimat, vpd->vertexcosnos+6*mface->v2, event->mval);
+					alpha= calc_vp_alpha_dl(vp, vc, vpd->vpimat, vpd->vertexcosnos+6*mface->v2, mval);
 					if(alpha) vpaint_blend(vp, mcol+1, mcolorig+1, vpd->paintcol, alpha);
 					
-					alpha= calc_vp_alpha_dl(vp, vc, vpd->vpimat, vpd->vertexcosnos+6*mface->v3, event->mval);
+					alpha= calc_vp_alpha_dl(vp, vc, vpd->vpimat, vpd->vertexcosnos+6*mface->v3, mval);
 					if(alpha) vpaint_blend(vp, mcol+2, mcolorig+2, vpd->paintcol, alpha);
 					
 					if(mface->v4) {
-						alpha= calc_vp_alpha_dl(vp, vc, vpd->vpimat, vpd->vertexcosnos+6*mface->v4, event->mval);
+						alpha= calc_vp_alpha_dl(vp, vc, vpd->vpimat, vpd->vertexcosnos+6*mface->v4, mval);
 						if(alpha) vpaint_blend(vp, mcol+3, mcolorig+3, vpd->paintcol, alpha);
 					}
 				}
@@ -1922,12 +1888,12 @@ static int vpaint_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
-void VIEW3D_OT_vpaint(wmOperatorType *ot)
+void PAINT_OT_vertex_paint(wmOperatorType *ot)
 {
 	
 	/* identifiers */
 	ot->name= "Vertex Paint";
-	ot->idname= "VIEW3D_OT_vpaint";
+	ot->idname= "PAINT_OT_vertex_paint";
 	
 	/* api callbacks */
 	ot->invoke= vpaint_invoke;
@@ -1939,5 +1905,4 @@ void VIEW3D_OT_vpaint(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 }
-
 

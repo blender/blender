@@ -73,6 +73,14 @@
 
 /* ************** Exported Poll tests ********************** */
 
+int ED_operator_regionactive(bContext *C)
+{
+	if(CTX_wm_window(C)==NULL) return 0;
+	if(CTX_wm_screen(C)==NULL) return 0;
+	if(CTX_wm_region(C)==NULL) return 0;
+	return 1;
+}
+
 int ED_operator_areaactive(bContext *C)
 {
 	if(CTX_wm_window(C)==NULL) return 0;
