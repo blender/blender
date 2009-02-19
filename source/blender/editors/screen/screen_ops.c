@@ -2145,6 +2145,22 @@ static int render_breakjob(void *rjv)
 	return 0;
 }
 
+/* catch esc */
+static int screen_render_modal(bContext *C, wmOperator *op, wmEvent *event)
+{
+	/* no running blender, remove handler and pass through */
+	if(0==WM_jobs_test(CTX_wm_manager(C), CTX_data_scene(C)))
+	   return OPERATOR_FINISHED|OPERATOR_PASS_THROUGH;
+	
+	/* running render */
+	switch (event->type) {
+		case ESCKEY:
+			return OPERATOR_RUNNING_MODAL;
+			break;
+	}
+	return OPERATOR_PASS_THROUGH;
+}
+
 /* using context, starts job */
 static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
@@ -2209,7 +2225,10 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	WM_cursor_wait(0);
 	WM_event_add_notifier(C, NC_SCENE|ND_RENDER_RESULT, scene);
 
-	return OPERATOR_FINISHED;
+	/* add modal handler for ESC */
+	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
+	
+	return OPERATOR_RUNNING_MODAL;
 }
 
 
@@ -2222,6 +2241,7 @@ void SCREEN_OT_render(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->invoke= screen_render_invoke;
+	ot->modal= screen_render_modal;
 	ot->exec= screen_render_exec;
 	
 	ot->poll= ED_operator_screenactive;
@@ -2239,12 +2259,18 @@ static int render_view_cancel_exec(bContext *C, wmOperator *unused)
 	
 	if(sima->flag & SI_PREVSPACE) {
 		sima->flag &= ~SI_PREVSPACE;
-		ED_area_prevspace(C);
+		
+		if(sima->flag & SI_FULLWINDOW) {
+			sima->flag &= ~SI_FULLWINDOW;
+			ED_screen_full_prevspace(C);
+		}
+		else
+			ED_area_prevspace(C);
 	}
 	else if(sima->flag & SI_FULLWINDOW) {
 		sima->flag &= ~SI_FULLWINDOW;
-		ED_screen_full_prevspace(C);
-	}
+		ed_screen_fullarea(C, sa);
+	}		
 	
 	return OPERATOR_FINISHED;
 }
