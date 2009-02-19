@@ -398,9 +398,9 @@ PyParentObject KX_CameraActuator::Parents[] = {
 };
 
 PyMethodDef KX_CameraActuator::Methods[] = {
+	// ---> deprecated (all)
 	{"setObject",(PyCFunction) KX_CameraActuator::sPySetObject, METH_O,			(PY_METHODCHAR)SetObject_doc},
 	{"getObject",(PyCFunction) KX_CameraActuator::sPyGetObject, METH_VARARGS,	(PY_METHODCHAR)GetObject_doc},
-	// ---> deprecated
 	{"setMin"	,(PyCFunction) KX_CameraActuator::sPySetMin,	METH_VARARGS,	(PY_METHODCHAR)SetMin_doc},
 	{"getMin"	,(PyCFunction) KX_CameraActuator::sPyGetMin,	METH_NOARGS,	(PY_METHODCHAR)GetMin_doc},
 	{"setMax"	,(PyCFunction) KX_CameraActuator::sPySetMax,	METH_VARARGS,	(PY_METHODCHAR)SetMax_doc},
@@ -421,14 +421,40 @@ PyAttributeDef KX_CameraActuator::Attributes[] = {
 };
 
 PyObject* KX_CameraActuator::_getattr(const STR_String& attr) {
-	PyObject* object = _getattr_self(Attributes, this, attr);
+	PyObject* object;
+	
+	if (attr == "object") {
+		if (!m_ob)	Py_RETURN_NONE;
+		else		return m_ob->AddRef();
+	}
+	
+	object = _getattr_self(Attributes, this, attr);
 	if (object != NULL)
 		return object;
 	_getattr_up(SCA_IActuator);
 }
 
 int KX_CameraActuator::_setattr(const STR_String& attr, PyObject* value) {
-	int ret = _setattr_self(Attributes, this, attr, value);
+	int ret;
+	
+	if (attr == "object") {
+		KX_GameObject *gameobj;
+		
+		if (!ConvertPythonToGameObject(value, &gameobj, true))
+			return 1; // ConvertPythonToGameObject sets the error
+		
+		if (m_ob != NULL)
+			m_ob->UnregisterActuator(this);	
+
+		m_ob = (SCA_IObject*)gameobj;
+		
+		if (m_ob)
+			m_ob->RegisterActuator(this);
+		
+		return 0;
+	}
+	
+	ret = _setattr_self(Attributes, this, attr, value);
 	if (ret >= 0)
 		return ret;
 	return SCA_IActuator::_setattr(attr, value);
@@ -442,6 +468,9 @@ const char KX_CameraActuator::GetObject_doc[] =
 PyObject* KX_CameraActuator::PyGetObject(PyObject* self, PyObject* args)
 {
 	int ret_name_only = 1;
+	
+	ShowDeprecationWarning("getObject()", "the object property");
+	
 	if (!PyArg_ParseTuple(args, "|i", &ret_name_only))
 		return NULL;
 	
@@ -461,6 +490,8 @@ const char KX_CameraActuator::SetObject_doc[] =
 PyObject* KX_CameraActuator::PySetObject(PyObject* self, PyObject* value)
 {
 	KX_GameObject *gameobj;
+	
+	ShowDeprecationWarning("setObject()", "the object property");
 	
 	if (!ConvertPythonToGameObject(value, &gameobj, true))
 		return NULL; // ConvertPythonToGameObject sets the error

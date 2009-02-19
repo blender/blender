@@ -73,6 +73,7 @@ class KX_TrackToActuator : public SCA_IActuator
 
 	/* Python part */
 	virtual PyObject* _getattr(const STR_String& attr);
+	virtual int _setattr(const STR_String& attr, PyObject* value);
 	
 	/* 1. setObject */
 	KX_PYMETHOD_DOC_O(KX_TrackToActuator,SetObject);

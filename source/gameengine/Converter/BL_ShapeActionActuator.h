@@ -169,8 +169,8 @@ protected:
 	short	m_playtype;
 	short	m_priority;
 	struct bAction *m_action;
-	STR_String	m_propname;
 	STR_String	m_framepropname;
+	STR_String	m_propname;
 	vector<float> m_blendshape;
 };
 

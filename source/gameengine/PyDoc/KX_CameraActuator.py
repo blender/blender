@@ -14,7 +14,8 @@ class KX_CameraActuator(SCA_IActuator):
 	@type height: float
 	@ivar xy: axis this actuator is tracking, true=X, false=Y
 	@type xy: boolean
-	
+	@ivar object: the object this actuator tracks.
+	@type object: KX_GameObject or None
 	@author: snail
 	"""
 	def getObject(name_only = 1):
