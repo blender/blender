@@ -1037,12 +1037,10 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 	 *	  start of list offset, and the second is as a correction for the scrollers.
 	 */
 	height= ((items*ACHANNEL_STEP) + (ACHANNEL_HEIGHT*2));
-	if (height > (v2d->mask.ymax - v2d->mask.ymin)) {
-		/* don't use totrect set, as the width stays the same 
-		 * (NOTE: this is ok here, the configuration is pretty straightforward) 
-		 */
-		v2d->tot.ymin= (float)(-height);
-	}
+	/* don't use totrect set, as the width stays the same 
+	 * (NOTE: this is ok here, the configuration is pretty straightforward) 
+	 */
+	v2d->tot.ymin= (float)(-height);
 	
 	/* first backdrop strips */
 	y= (float)(-ACHANNEL_HEIGHT);

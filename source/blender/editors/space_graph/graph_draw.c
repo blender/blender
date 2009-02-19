@@ -786,7 +786,7 @@ void graph_draw_channel_names(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 	}
 	
 	/* XXX I would call the below line! (ton) */
-	/* UI_view2d_totRect_set(v2d, ar->type->minsizex, height); */
+	UI_view2d_totRect_set(v2d, ar->winx, height);
 	
 	/* loop through channels, and set up drawing depending on their type  */	
 	y= (float)ACHANNEL_FIRST;

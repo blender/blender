@@ -482,7 +482,7 @@ void ED_spacetype_ipo(void)
 	/* regions: channels */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype graphedit region");
 	art->regionid = RGN_TYPE_CHANNELS;
-	art->minsizex= 214; /* 200 is the 'standard', but due to scrollers, we want a bit more to fit the lock icons in */
+	art->minsizex= 200+V2D_SCROLL_WIDTH; /* 200 is the 'standard', but due to scrollers, we want a bit more to fit the lock icons in */
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D|ED_KEYMAP_FRAMES;
 	art->listener= graph_region_listener;
 	art->init= graph_channel_area_init;

@@ -731,9 +731,17 @@ void UI_view2d_curRect_reset (View2D *v2d)
 /* Change the size of the maximum viewable area (i.e. 'tot' rect) */
 void UI_view2d_totRect_set (View2D *v2d, int width, int height)
 {
+	int scroll= view2d_scroll_mapped(v2d->scroll);
+	
 	/* don't do anything if either value is 0 */
 	width= abs(width);
 	height= abs(height);
+	
+	/* hrumf! */
+	if(scroll & V2D_SCROLL_HORIZONTAL) 
+		width -= V2D_SCROLL_WIDTH;
+	if(scroll & V2D_SCROLL_VERTICAL) 
+		height -= V2D_SCROLL_HEIGHT;
 	
 	if (ELEM3(0, v2d, width, height)) {
 		printf("Error: View2D totRect set exiting: v2d=%p width=%d height=%d \n", v2d, width, height); // XXX temp debug info
