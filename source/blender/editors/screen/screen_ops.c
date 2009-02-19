@@ -1047,7 +1047,7 @@ void SCREEN_OT_frame_offset(wmOperatorType *ot)
 	ot->exec= frame_offset_exec;
 
 	ot->poll= ED_operator_screenactive;
-	ot->flag= OPTYPE_REGISTER;
+	ot->flag= 0;
 
 	/* rna */
 	RNA_def_int(ot->srna, "delta", 0, INT_MIN, INT_MAX, "Delta", "", INT_MIN, INT_MAX);
@@ -1125,7 +1125,7 @@ void SCREEN_OT_screen_full_area(wmOperatorType *ot)
 	
 	ot->exec= screen_full_area_exec;
 	ot->poll= ED_operator_areaactive;
-	ot->flag= OPTYPE_REGISTER;
+	ot->flag= 0;
 
 }
 
@@ -1485,24 +1485,9 @@ void SCREEN_OT_repeat_history(wmOperatorType *ot)
 
 /* ********************** redo operator ***************************** */
 
-static int redo_last_exec(bContext *C, wmOperator *op)
+static void redo_last_cb(bContext *C, void *arg_op, void *arg2)
 {
-#if 0
-	/* XXX context is not correct after popup menu */
-	wmOperator *lastop= CTX_wm_manager(C)->operators.last;
-	
-	if(lastop) {
-		ED_undo_pop(C);
-		WM_operator_repeat(C, lastop);
-	}
-#endif
-	
-	return OPERATOR_CANCELLED;
-}
-
-static void redo_last_cb(bContext *C, void *arg1, void *arg2)
-{
-	wmOperator *lastop= CTX_wm_manager(C)->operators.last;
+	wmOperator *lastop= arg_op;
 	
 	if(lastop) {
 		ED_undo_pop(C);
@@ -1521,7 +1506,7 @@ static uiBlock *ui_block_create_redo_last(bContext *C, ARegion *ar, void *arg_op
 	
 	block= uiBeginBlock(C, ar, "redo_last_popup", UI_EMBOSS, UI_HELV);
 	uiBlockSetFlag(block, UI_BLOCK_KEEP_OPEN|UI_BLOCK_RET_1);
-	uiBlockSetFunc(block, redo_last_cb, NULL, NULL);
+	uiBlockSetFunc(block, redo_last_cb, arg_op, NULL);
 
 	if(!op->properties) {
 		IDPropertyTemplate val = {0};
@@ -1540,16 +1525,17 @@ static uiBlock *ui_block_create_redo_last(bContext *C, ARegion *ar, void *arg_op
 static int redo_last_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	wmWindowManager *wm= CTX_wm_manager(C);
-	wmOperator *lastop= wm->operators.last;
+	wmOperator *lastop;
 
+	/* only for operators that are registered and did an undo push */
+	for(lastop= wm->operators.last; lastop; lastop= lastop->prev)
+		if((lastop->type->flag & OPTYPE_REGISTER) && (lastop->type->flag & OPTYPE_UNDO))
+			break;
+	
 	if(!lastop)
 		return OPERATOR_CANCELLED;
 
-	/* only for operators that are registered and did an undo push */
-	if(!(lastop->type->flag & OPTYPE_REGISTER) || !(lastop->type->flag & OPTYPE_UNDO))
-		return OPERATOR_CANCELLED;
-
-	uiPupBlockO(C, ui_block_create_redo_last, lastop, op->type->idname, WM_OP_EXEC_DEFAULT);
+	uiPupBlock(C, ui_block_create_redo_last, lastop);
 
 	return OPERATOR_CANCELLED;
 }
@@ -1562,7 +1548,6 @@ void SCREEN_OT_redo_last(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->invoke= redo_last_invoke;
-	ot->exec= redo_last_exec;
 	
 	ot->poll= ED_operator_screenactive;
 }

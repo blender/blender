@@ -1579,7 +1579,7 @@ static void initialize_posetree(struct Object *ob, bPoseChannel *pchan_tip)
 	PoseTree *tree;
 	PoseTarget *target;
 	bConstraint *con;
-	bKinematicConstraint *data;
+	bKinematicConstraint *data= NULL;
 	int a, segcount= 0, size, newsize, *oldparent, parent;
 	
 	/* find IK constraint, and validate it */

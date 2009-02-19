@@ -27,6 +27,7 @@
 
 #include "BKE_animsys.h"
 #include "BKE_action.h"
+#include "BKE_constraint.h"
 #include "BKE_fcurve.h"
 #include "BKE_utildefines.h"
 #include "BKE_context.h"

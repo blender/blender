@@ -303,7 +303,7 @@ void undo_editmode_menu(bContext *C)
 {
 	UndoElem *uel;
 	DynStr *ds= BLI_dynstr_new();
-	short event;
+	short event= 0;
 	char *menu;
 
 	undo_clean_stack(C);	// removes other objects from it

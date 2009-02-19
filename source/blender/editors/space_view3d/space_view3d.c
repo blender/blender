@@ -209,9 +209,51 @@ static SpaceLink *view3d_duplicate(SpaceLink *sl)
 	return (SpaceLink *)v3dn;
 }
 
+static void view3d_modal_keymaps(wmWindowManager *wm, ARegion *ar, int stype)
+{
+	RegionView3D *rv3d= ar->regiondata;
+	ListBase *keymap;
+	
+	/* copy last mode, then we can re-init the region maps */
+	rv3d->lastmode= stype;
+	
+	keymap= WM_keymap_listbase(wm, "Object Mode", 0, 0);
+	if(ELEM(stype, 0, NS_MODE_OBJECT))
+		WM_event_add_keymap_handler(&ar->handlers, keymap);
+	else
+		WM_event_remove_keymap_handler(&ar->handlers, keymap);
+	
+	keymap= WM_keymap_listbase(wm, "EditMesh", 0, 0);
+	if(stype==NS_EDITMODE_MESH)
+		WM_event_add_keymap_handler(&ar->handlers, keymap);
+	else
+		WM_event_remove_keymap_handler(&ar->handlers, keymap);
+	
+	keymap= WM_keymap_listbase(wm, "Curve", 0, 0);
+	if(stype==NS_EDITMODE_CURVE)
+		WM_event_add_keymap_handler(&ar->handlers, keymap);
+	else
+		WM_event_remove_keymap_handler(&ar->handlers, keymap);
+	
+	keymap= WM_keymap_listbase(wm, "Armature", 0, 0);
+	if(stype==NS_EDITMODE_ARMATURE)
+		WM_event_add_keymap_handler(&ar->handlers, keymap);
+	else
+		WM_event_remove_keymap_handler(&ar->handlers, keymap);
+	
+	/* editfont keymap swallows all... */
+	keymap= WM_keymap_listbase(wm, "Font", 0, 0);
+	if(stype==NS_EDITMODE_TEXT)
+		WM_event_add_keymap_handler_priority(&ar->handlers, keymap, 10);
+	else
+		WM_event_remove_keymap_handler(&ar->handlers, keymap);
+	
+}
+
 /* add handlers, stuff you only do once or on area/region changes */
 static void view3d_main_area_init(wmWindowManager *wm, ARegion *ar)
 {
+	RegionView3D *rv3d= ar->regiondata;
 	ListBase *keymap;
 	
 	/* own keymap */
@@ -228,10 +270,8 @@ static void view3d_main_area_init(wmWindowManager *wm, ARegion *ar)
 	keymap= WM_keymap_listbase(wm, "Pose", 0, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 	
-	/* object modal ops default */
-	keymap= WM_keymap_listbase(wm, "Object Mode", 0, 0);
-	WM_event_add_keymap_handler(&ar->handlers, keymap);
-	
+	/* modal ops keymaps */
+	view3d_modal_keymaps(wm, ar, rv3d->lastmode);
 }
 
 /* type callback, not region itself */
@@ -279,44 +319,6 @@ static void *view3d_main_area_duplicate(void *poin)
 		return new;
 	}
 	return NULL;
-}
-
-
-static void view3d_modal_keymaps(wmWindowManager *wm, ARegion *ar, int stype)
-{
-	ListBase *keymap;
-	
-	keymap= WM_keymap_listbase(wm, "Object Mode", 0, 0);
-	if(stype==NS_MODE_OBJECT)
-		WM_event_add_keymap_handler(&ar->handlers, keymap);
-	else
-		WM_event_remove_keymap_handler(&ar->handlers, keymap);
-	
-	keymap= WM_keymap_listbase(wm, "EditMesh", 0, 0);
-	if(stype==NS_EDITMODE_MESH)
-		WM_event_add_keymap_handler(&ar->handlers, keymap);
-	else
-		WM_event_remove_keymap_handler(&ar->handlers, keymap);
-
-	keymap= WM_keymap_listbase(wm, "Curve", 0, 0);
-	if(stype==NS_EDITMODE_CURVE)
-		WM_event_add_keymap_handler(&ar->handlers, keymap);
-	else
-		WM_event_remove_keymap_handler(&ar->handlers, keymap);
-	
-	keymap= WM_keymap_listbase(wm, "Armature", 0, 0);
-	if(stype==NS_EDITMODE_ARMATURE)
-		WM_event_add_keymap_handler(&ar->handlers, keymap);
-	else
-		WM_event_remove_keymap_handler(&ar->handlers, keymap);
-	
-	/* editfont keymap swallows all... */
-	keymap= WM_keymap_listbase(wm, "Font", 0, 0);
-	if(stype==NS_EDITMODE_TEXT)
-		WM_event_add_keymap_handler_priority(&ar->handlers, keymap, 10);
-	else
-		WM_event_remove_keymap_handler(&ar->handlers, keymap);
-	
 }
 
 static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)

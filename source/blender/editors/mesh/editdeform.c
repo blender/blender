@@ -990,7 +990,7 @@ void vgroup_assign_with_menu(Scene *scene, Object *ob)
 {
 	VPaint *wp= scene->toolsettings->wpaint;
 	int defCount;
-	int mode;
+	int mode= 0;
 	
 	/* prevent crashes */
 	if (wp==NULL || ob==NULL) return;
@@ -1032,7 +1032,7 @@ void vgroup_assign_with_menu(Scene *scene, Object *ob)
 void vgroup_operation_with_menu(Object *ob)
 {
 	int defCount;
-	int mode;
+	int mode= 0;
 	
 	/* prevent crashes and useless cases */
 	if (ob==NULL) return;

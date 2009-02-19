@@ -1399,7 +1399,7 @@ void node_active_link_viewer(SpaceNode *snode)
 /*static*/ int node_mouse_groupheader(SpaceNode *snode)
 {
 	bNode *gnode;
-	float mx, my;
+	float mx=0, my=0;
 // XXX	short mval[2];
 	
 	gnode= snode_get_editgroup(snode);

@@ -818,21 +818,22 @@ void MESH_OT_extrude_repeat(wmOperatorType *ot)
 	RNA_def_float(ot->srna, "offset", 2.0f, 0.0f, 100.0f, "Offset", "", 0.0f, FLT_MAX);
 	RNA_def_int(ot->srna, "steps", 10, 0, 180, "Steps", "", 0, INT_MAX);
 }
+
+/* ************************** spin operator ******************** */
 	
-void spin_mesh(bContext *C, wmOperator *op,float *dvec,int steps, float degr,int mode )
+static int spin_mesh(bContext *C, float *dvec, int steps, float degr, int dupli )
 {
 	Object *obedit= CTX_data_edit_object(C);
 	View3D *v3d = CTX_wm_view3d(C);
 	Scene *scene = CTX_data_scene(C);
 	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
-	
 	RegionView3D *rv3d= CTX_wm_region_view3d(C);
 	EditVert *eve,*nextve;
-	float nor[3]= {0.0, 0.0, 0.0};
-	float *curs, si,n[3],q[4],cmat[3][3],imat[3][3], tmat[3][3];
-	float cent[3],bmat[3][3];
+	float nor[3]= {0.0f, 0.0f, 0.0f};
+	float *curs, si, n[3], q[4], cmat[3][3], imat[3][3], tmat[3][3];
+	float cent[3], bmat[3][3];
 	float phi;
-	short a,ok;
+	short a, ok= 1;
 
 	/* imat and center and size */
 	Mat3CpyMat4(bmat, obedit->obmat);
@@ -870,16 +871,17 @@ void spin_mesh(bContext *C, wmOperator *op,float *dvec,int steps, float degr,int
 	Mat3MulMat3(tmat,cmat,bmat);
 	Mat3MulMat3(bmat,imat,tmat);
 
-	if(mode==0) if(scene->toolsettings->editbutflag & B_KEEPORIG) adduplicateflag(em, 1);
-	ok= 1;
+	if(dupli==0) 
+		if(scene->toolsettings->editbutflag & B_KEEPORIG) 
+			adduplicateflag(em, 1);
 
-	for(a=0;a<steps;a++) {
-		if(mode==0) ok= extrudeflag(obedit, em, SELECT, nor);
+	for(a=0; a<steps; a++) {
+		if(dupli==0) ok= extrudeflag(obedit, em, SELECT, nor);
 		else adduplicateflag(em, SELECT);
-		if(ok==0) {
-			BKE_report(op->reports, RPT_ERROR, "No valid vertices are selected");
+		
+		if(ok==0)
 			break;
-		}
+
 		rotateflag(em, SELECT, cent, bmat);
 		if(dvec) {
 			Mat3MulVecfl(bmat,dvec);
@@ -899,22 +901,29 @@ void spin_mesh(bContext *C, wmOperator *op,float *dvec,int steps, float degr,int
 			eve= nextve;
 		}
 	}
-	recalc_editnormals(em);
+	else {
+		recalc_editnormals(em);
 
-	EM_fgon_flags(em);
+		EM_fgon_flags(em);
 
-	//	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-
+		DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
+	}
+	
+	return ok;
 }
 
 static int spin_mesh_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
-	
-	spin_mesh(C, op,NULL,RNA_int_get(op->ptr,"steps"),RNA_float_get(op->ptr,"degrees"),RNA_int_get(op->ptr,"steps"));
+	int ok;
 	
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 	
+	ok= spin_mesh(C, NULL, RNA_int_get(op->ptr,"steps"), RNA_float_get(op->ptr,"degrees"), RNA_boolean_get(op->ptr,"dupli"));
+	if(ok==0) {
+		BKE_report(op->reports, RPT_ERROR, "No valid vertices are selected");
+		return OPERATOR_CANCELLED;
+	}
 	return OPERATOR_FINISHED;
 }
 
@@ -932,29 +941,29 @@ void MESH_OT_spin(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/*props */
-	RNA_def_int(ot->srna, "steps", 5, 0, INT_MAX, "Steps", "Steps", 0, INT_MAX);
-	RNA_def_int(ot->srna, "mode", 1, 0, INT_MAX, "Mode", "Mode", 0, INT_MAX);
-	RNA_def_float(ot->srna, "degrees", 5.0f, 0.0f, FLT_MAX, "Degrees", "Degrees", 0.0f, FLT_MAX);
+	RNA_def_int(ot->srna, "steps", 9, 0, INT_MAX, "Steps", "Steps", 0, INT_MAX);
+	RNA_def_boolean(ot->srna, "dupli", 0, "Dupli", "Make Duplicates");
+	RNA_def_float(ot->srna, "degrees", 90.0f, -FLT_MAX, FLT_MAX, "Degrees", "Degrees", -360.0f, 360.0f);
 }
 
-void screw_mesh(bContext *C, wmOperator *op, int steps, int turns)
+static int screw_mesh_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
-	
 	EditVert *eve,*v1=0,*v2=0;
 	EditEdge *eed;
 	float dvec[3], nor[3];
+	int steps, turns;
 
+	turns= RNA_int_get(op->ptr, "turns");
+	steps= RNA_int_get(op->ptr, "steps");
+	
 	/* clear flags */
-	eve= em->verts.first;
-	while(eve) {
+	for(eve= em->verts.first; eve; eve= eve->next)
 		eve->f1= 0;
-		eve= eve->next;
-	}
+
 	/* edges set flags in verts */
-	eed= em->edges.first;
-	while(eed) {
+	for(eed= em->edges.first; eed; eed= eed->next) {
 		if(eed->v1->f & SELECT) {
 			if(eed->v2->f & SELECT) {
 				/* watch: f1 is a byte */
@@ -962,30 +971,27 @@ void screw_mesh(bContext *C, wmOperator *op, int steps, int turns)
 				if(eed->v2->f1<2) eed->v2->f1++;
 			}
 		}
-		eed= eed->next;
 	}
 	/* find two vertices with eve->f1==1, more or less is wrong */
-	eve= em->verts.first;
-	while(eve) {
+	for(eve= em->verts.first; eve; eve= eve->next) {
 		if(eve->f1==1) {
-			if(v1==0) v1= eve;
-			else if(v2==0) v2= eve;
+			if(v1==NULL) v1= eve;
+			else if(v2==NULL) v2= eve;
 			else {
-				v1=0;
+				v1= NULL;
 				break;
 			}
 		}
-		eve= eve->next;
 	}
-	if(v1==0 || v2==0) {
+	if(v1==NULL || v2==NULL) {
 		BKE_report(op->reports, RPT_ERROR, "You have to select a string of connected vertices too");
-		return;
+		return OPERATOR_CANCELLED;
 	}
 
 	/* calculate dvec */
-	dvec[0]= ( (v1->co[0]- v2->co[0]) )/(steps);
-	dvec[1]= ( (v1->co[1]- v2->co[1]) )/(steps);
-	dvec[2]= ( (v1->co[2]- v2->co[2]) )/(steps);
+	dvec[0]= ( v1->co[0]- v2->co[0] )/steps;
+	dvec[1]= ( v1->co[1]- v2->co[1] )/steps;
+	dvec[2]= ( v1->co[2]- v2->co[2] )/steps;
 
 	VECCOPY(nor, obedit->obmat[2]);
 
@@ -995,19 +1001,15 @@ void screw_mesh(bContext *C, wmOperator *op, int steps, int turns)
 		dvec[2]= -dvec[2];
 	}
 	
-	spin_mesh(C, op,  dvec, turns*steps, turns*360,0);
-
-}
-
-static int screw_mesh_exec(bContext *C, wmOperator *op)
-{
-	Object *obedit= CTX_data_edit_object(C);
-	
-	screw_mesh(C, op,RNA_int_get(op->ptr,"steps"),RNA_int_get(op->ptr,"turns"));
-	
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
-	
-	return OPERATOR_FINISHED;
+	if(spin_mesh(C, dvec, turns*steps, 360.0f*turns, 0)) {
+		WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+		
+		return OPERATOR_FINISHED;
+	}
+	else {
+		BKE_report(op->reports, RPT_ERROR, "No valid vertices are selected");
+		return OPERATOR_CANCELLED;
+	}
 }
 
 void MESH_OT_screw(wmOperatorType *ot)
@@ -1024,8 +1026,8 @@ void MESH_OT_screw(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/*props */
-	RNA_def_int(ot->srna, "steps", 5, 0, INT_MAX, "Steps", "Steps", 0, INT_MAX);
-	RNA_def_int(ot->srna, "turns", 1, 0, INT_MAX, "Turns", "Turns", 0, INT_MAX);
+	RNA_def_int(ot->srna, "steps", 9, 0, INT_MAX, "Steps", "Steps", 0, 256);
+	RNA_def_int(ot->srna, "turns", 1, 0, INT_MAX, "Turns", "Turns", 0, 256);
 }
 
 static void erase_edges(EditMesh *em, ListBase *l)

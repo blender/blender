@@ -88,7 +88,7 @@ void ED_uvedit_assign_image(Scene *scene, Object *obedit, Image *ima, Image *pre
 	EditMesh *em;
 	EditFace *efa;
 	MTFace *tf;
-	int update;
+	int update= 0;
 	
 	/* skip assigning these procedural images... */
 	if(ima && (ima->type==IMA_TYPE_R_RESULT || ima->type==IMA_TYPE_COMPOSITE))

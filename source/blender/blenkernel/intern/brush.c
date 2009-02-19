@@ -1056,7 +1056,7 @@ static struct ImBuf *brush_gen_radial_control_imbuf(Brush *br)
 void brush_radial_control_invoke(wmOperator *op, Brush *br)
 {
 	int mode = RNA_int_get(op->ptr, "mode");
-	float original_value;
+	float original_value= 0;
 
 	if(mode == WM_RADIALCONTROL_SIZE)
 		original_value = br->size;

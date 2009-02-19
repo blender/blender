@@ -737,6 +737,7 @@ void ED_area_newspace(bContext *C, ScrArea *sa, int type)
 		WM_event_add_mousemove(C);
 		
 		ED_area_tag_redraw(sa);
+		ED_area_tag_refresh(sa);
 	}
 }
 

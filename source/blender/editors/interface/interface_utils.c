@@ -309,7 +309,7 @@ int uiDefAutoButsRNA(uiBlock *block, PointerRNA *ptr)
 	PropertyRNA *iterprop, *prop;
 	PropertySubType subtype;
 	char *name, namebuf[128];
-	int a, length, x= 0, y= 0;
+	int a= 0, length, x= 0, y= 0;
 
 	x= 0;
 	y= 0;

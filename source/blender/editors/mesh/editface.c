@@ -676,7 +676,7 @@ void face_borderselect(Scene *scene, ARegion *ar)
 	rcti rect;
 	struct ImBuf *ibuf;
 	unsigned int *rt;
-	int a, sx, sy, index, val;
+	int a, sx, sy, index, val= 0;
 	char *selar;
 	
 	me= get_mesh(OBACT);

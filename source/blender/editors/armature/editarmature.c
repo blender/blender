@@ -1299,7 +1299,7 @@ static void selectconnected_posebonechildren (Object *ob, Bone *bone)
 /* previously known as "selectconnected_posearmature" */
 static int pose_select_connected_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {  
-	Bone *bone, *curBone, *next;
+	Bone *bone, *curBone, *next= NULL;
 	int shift= 0; // XXX in pose mode, Shift+L is bound to another command
 				  // named "PoseLib Add Current Pose"
 	int x, y;
@@ -3045,7 +3045,6 @@ static int armature_bone_primitive_add_exec(bContext *C, wmOperator *op)
 {
 	RegionView3D *rv3d= CTX_wm_region_view3d(C);
 	Object *obedit = CTX_data_edit_object(C);
-	bArmature *arm= (bArmature *)obedit->data;
 	EditBone *bone;
 	float obmat[3][3], curs[3], viewmat[3][3], totmat[3][3], imat[3][3];
 	char name[32];

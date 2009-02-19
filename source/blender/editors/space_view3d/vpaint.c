@@ -1225,7 +1225,7 @@ void VIEW3D_OT_wpaint_toggle(wmOperatorType *ot)
 void paint_radial_control_invoke(wmOperator *op, VPaint *vp)
 {
 	int mode = RNA_int_get(op->ptr, "mode");
-	float original_value;
+	float original_value= 1.0f;
 
 	if(mode == WM_RADIALCONTROL_SIZE)
 		original_value = vp->size;

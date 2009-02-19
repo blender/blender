@@ -3500,7 +3500,7 @@ void special_editmenu(Scene *scene, View3D *v3d)
 	Object *ob= OBACT;
 	Object *obedit= NULL; // XXX
 	float fac;
-	int nr,ret;
+	int nr,ret=0;
 	short randfac;
 	
 	if(ob==NULL) return;
