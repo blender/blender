@@ -41,6 +41,11 @@ void BLF_position(float x, float y, float z);
 void BLF_size(int size, int dpi);
 void BLF_draw(char *str);
 
+void BLF_boundbox(char *str, rctf *box);
+float BLF_width(char *str);
+float BLF_height(char *str);
+void BLF_rotation(float angle);
+
 /* Read the .Blanguages file, return 1 on success or 0 if fails. */
 int BLF_lang_init(void);
 

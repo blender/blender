@@ -78,9 +78,7 @@ void blf_font_fill(FontBLF *font)
 	font->aspect= 1.0f;
 	font->pos[0]= 0.0f;
 	font->pos[1]= 0.0f;
-	font->angle[0]= 0.0f;
-	font->angle[1]= 0.0f;
-	font->angle[2]= 0.0f;
+	font->angle= 0.0f;
 	Mat4One(font->mat);
 	font->clip_rec.xmin= 0.0f;
 	font->clip_rec.xmax= 0.0f;
@@ -215,6 +213,92 @@ void blf_font_draw(FontBLF *font, char *str)
 		pen_x += g->advance;
 		g_prev= g;
 	}
+}
+
+void blf_font_boundbox(FontBLF *font, char *str, rctf *box)
+{
+	unsigned int c;
+	GlyphBLF *g, *g_prev;
+	FT_Vector delta;
+	FT_UInt glyph_index;
+	rctf gbox;
+	int pen_x, pen_y;
+	int i, has_kerning;
+
+	box->xmin= 32000.0f;
+	box->xmax= -32000.0f;
+	box->ymin= 32000.0f;
+	box->ymax= -32000.0f;
+
+	i= 0;
+	pen_x= 0;
+	pen_y= 0;
+	has_kerning= FT_HAS_KERNING(font->face);
+	g_prev= NULL;
+
+	while (str[i]) {
+		c= blf_utf8_next((unsigned char *)str, &i);
+		if (c == 0)
+			break;
+
+		glyph_index= FT_Get_Char_Index(font->face, c);
+		g= blf_glyph_search(font->glyph_cache, glyph_index);
+		if (!g)
+			g= blf_glyph_add(font, glyph_index, c);
+
+		/* if we don't found a glyph, skip it. */
+		if (!g)
+			continue;
+
+		if (has_kerning && g_prev) {
+			delta.x= 0;
+			delta.y= 0;
+
+			FT_Get_Kerning(font->face, g_prev->index, glyph_index, FT_KERNING_UNFITTED, &delta);
+			pen_x += delta.x >> 6;
+		}
+
+		gbox.xmin= g->box.xmin + pen_x;
+		gbox.xmax= g->box.xmax + pen_x;
+		gbox.ymin= g->box.ymin + pen_y;
+		gbox.ymax= g->box.ymax + pen_y;
+
+		if (gbox.xmin < box->xmin)
+			box->xmin= gbox.xmin;
+		if (gbox.ymin < box->ymin)
+			box->ymin= gbox.ymin;
+
+		if (gbox.xmax > box->xmax)
+			box->xmax= gbox.xmax;
+		if (gbox.ymax > box->ymax)
+			box->ymax= gbox.ymax;
+
+		pen_x += g->advance;
+		g_prev= g;
+	}
+
+	if (box->xmin > box->xmax) {
+		box->xmin= 0.0f;
+		box->ymin= 0.0f;
+		box->xmax= 0.0f;
+		box->ymax= 0.0f;
+	}
+}
+
+float blf_font_width(FontBLF *font, char *str)
+{
+	rctf box;
+
+	blf_font_boundbox(font, str, &box);
+	return((box.xmax - box.xmin) * font->aspect);
+}
+
+float blf_font_height(FontBLF *font, char *str)
+{
+	rctf box;
+
+	blf_font_boundbox(font, str, &box);
+	return((box.ymax - box.ymin) * font->aspect);
 }
 
 void blf_font_free(FontBLF *font)

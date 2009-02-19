@@ -143,7 +143,7 @@ typedef struct FontBLF {
 	float pos[3];
 
 	/* angle in degrees. */
-	float angle[3];
+	float angle;
 
 	/* this is the matrix that we load before rotate/scale/translate. */
 	float mat[4][4];

@@ -29,6 +29,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 
 #ifdef WITH_FREETYPE2
 
@@ -229,9 +230,26 @@ void BLF_position(float x, float y, float z)
 {
 #ifdef WITH_FREETYPE2
 	FontBLF *font;
+	float remainder;
 
 	font= global_font[global_font_cur];
 	if (font) {
+		remainder= x - floor(x);
+		if (remainder > 0.4 && remainder < 0.6) {
+			if (remainder < 0.5)
+				x -= 0.1 * font->aspect;
+			else
+				x += 0.1 * font->aspect;
+		}
+
+		remainder= y - floor(y);
+		if (remainder > 0.4 && remainder < 0.6) {
+			if (remainder < 0.5)
+				y -= 0.1 * font->aspect;
+			else
+				y += 0.1 * font->aspect;
+		}
+
 		font->pos[0]= x;
 		font->pos[1]= y;
 		font->pos[2]= z;
@@ -263,6 +281,8 @@ void BLF_draw(char *str)
 
 		glPushMatrix();
 		glTranslatef(font->pos[0], font->pos[1], font->pos[2]);
+		glScalef(font->aspect, font->aspect, 1.0);
+		glRotatef(font->angle, 0.0f, 0.0f, 1.0f);
 
 		blf_font_draw(font, str);
 
@@ -271,4 +291,50 @@ void BLF_draw(char *str)
 		glDisable(GL_TEXTURE_2D);
 	}
 #endif /* WITH_FREETYPE2 */
+}
+
+void BLF_boundbox(char *str, rctf *box)
+{
+#ifdef WITH_FREETYPE2
+	FontBLF *font;
+
+	font= global_font[global_font_cur];
+	if (font && font->glyph_cache)
+		blf_font_boundbox(font, str, box);
+#endif
+}
+
+float BLF_width(char *str)
+{
+#ifdef WITH_FREETYPE2
+	FontBLF *font;
+
+	font= global_font[global_font_cur];
+	if (font && font->glyph_cache)
+		return(blf_font_width(font, str));
+#endif
+	return(0.0f);
+}
+
+float BLF_height(char *str)
+{
+#ifdef WITH_FREETYPE2
+	FontBLF *font;
+
+	font= global_font[global_font_cur];
+	if (font && font->glyph_cache)
+		return(blf_font_height(font, str));
+#endif
+	return(0.0f);
+}
+
+void BLF_rotation(float angle)
+{
+#ifdef WITH_FREETYPE2
+	FontBLF *font;
+
+	font= global_font[global_font_cur];
+	if (font)
+		font->angle= angle;
+#endif
 }
