@@ -34,7 +34,12 @@ Py_ssize_t listvalue_bufferlen(PyObject* list)
 
 PyObject* listvalue_buffer_item(PyObject* list,Py_ssize_t index)
 {
-	if (index >= 0 && index < ((CListValue*) list)->GetCount())
+	int count = ((CListValue*) list)->GetCount();
+	
+	if (index < 0)
+		index = count+index;
+	
+	if (index >= 0 && index < count)
 	{
 		PyObject* pyobj = ((CListValue*) list)->GetValue(index)->ConvertValueToPython();
 		if (pyobj)
@@ -64,8 +69,7 @@ PyObject* listvalue_mapping_subscript(PyObject* list,PyObject* pyindex)
 	}
 	
 	PyObject *pyindex_str = PyObject_Repr(pyindex); /* new ref */
-	STR_String index_str(PyString_AsString(pyindex_str));
-	PyErr_Format(PyExc_KeyError, "'%s' not in list", index_str.Ptr());
+	PyErr_Format(PyExc_KeyError, "'%s' not in list", PyString_AsString(pyindex_str));
 	Py_DECREF(pyindex_str);
 	return NULL;
 }

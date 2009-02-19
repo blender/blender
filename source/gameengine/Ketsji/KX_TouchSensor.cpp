@@ -199,7 +199,7 @@ bool	KX_TouchSensor::NewHandleCollision(void*object1,void*object2,const PHY_Coll
 			{
 				if (client_info->m_auxilary_info)
 				{
-					found = (m_touchedpropname == STR_String((char*)client_info->m_auxilary_info));
+					found = (!strcmp(m_touchedpropname.Ptr(), (char*)client_info->m_auxilary_info));
 				}
 			} else
 			{

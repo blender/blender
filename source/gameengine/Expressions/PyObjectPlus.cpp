@@ -94,7 +94,7 @@ PyObjectPlus::PyObjectPlus(PyTypeObject *T) 				// constructor
  * PyObjectPlus Methods 	-- Every class, even the abstract one should have a Methods
 ------------------------------*/
 PyMethodDef PyObjectPlus::Methods[] = {
-  {"isA",		 (PyCFunction) sPy_isA,			METH_VARARGS},
+  {"isA",		 (PyCFunction) sPy_isA,			METH_O},
   {NULL, NULL}		/* Sentinel */
 };
 
@@ -688,19 +688,21 @@ bool PyObjectPlus::isA(const char *mytypename)		// check typename of each parent
   
   for (P = Ps[i=0]; P != NULL; P = Ps[i++])
   {
-      if (STR_String(P->tp_name) == STR_String(mytypename)	)
+      if (strcmp(P->tp_name, mytypename)==0)
 		  return true;
   }
 	
   return false;
 }
 
-PyObject *PyObjectPlus::Py_isA(PyObject *args)		// Python wrapper for isA
+PyObject *PyObjectPlus::Py_isA(PyObject *value)		// Python wrapper for isA
 {
   char *mytypename;
-  if (!PyArg_ParseTuple(args, "s", &mytypename))
+  if (!PyString_Check(value)) {
+    PyErr_SetString(PyExc_TypeError, "expected a string");
     return NULL;
-  if(isA(mytypename))
+  }
+  if(isA(PyString_AsString(value)))
     Py_RETURN_TRUE;
   else
     Py_RETURN_FALSE;
