@@ -283,10 +283,17 @@ typedef struct KX_PYATTRIBUTE_DEF {
 #define KX_PYATTRIBUTE_SHORT_RO(name,object,field) \
 	{ name, KX_PYATTRIBUTE_TYPE_SHORT, KX_PYATTRIBUTE_RO, 0, 0, 0.f, 0.f, false, offsetof(object,field), 0, 1, NULL, {NULL, &((object *)0)->field, NULL, NULL, NULL} }
 #define KX_PYATTRIBUTE_SHORT_ARRAY_RW(name,min,max,clamp,object,field,length) \
-	{ name, KX_PYATTRIBUTE_TYPE_SHORT, KX_PYATTRIBUTE_RW, min, max, 0.f, 0.f, clamp, offsetof(object,field), 0, length, NULL, {NULL, &((object *)0)->field, NULL, NULL, NULL} }
+	{ name, KX_PYATTRIBUTE_TYPE_SHORT, KX_PYATTRIBUTE_RW, min, max, 0.f, 0.f, clamp, offsetof(object,field), 0, length, NULL, {NULL, ((object *)0)->field, NULL, NULL, NULL} }
 #define KX_PYATTRIBUTE_SHORT_ARRAY_RW_CHECK(name,min,max,clamp,object,field,length,function) \
-	{ name, KX_PYATTRIBUTE_TYPE_SHORT, KX_PYATTRIBUTE_RW, min, max, 0.f, 0.f, clamp, offsetof(object,field), 0, length, &object::function, {NULL, &((object *)0)->field, NULL, NULL, NULL} }
+	{ name, KX_PYATTRIBUTE_TYPE_SHORT, KX_PYATTRIBUTE_RW, min, max, 0.f, 0.f, clamp, offsetof(object,field), 0, length, &object::function, {NULL, ((object *)0)->field, NULL, NULL, NULL} }
 #define KX_PYATTRIBUTE_SHORT_ARRAY_RO(name,object,field,length) \
+	{ name, KX_PYATTRIBUTE_TYPE_SHORT, KX_PYATTRIBUTE_RO, 0, 0, 0.f, 0.f, false, offsetof(object,field), 0, length, NULL, {NULL, ((object *)0)->field, NULL, NULL, NULL} }
+// SHORT_LIST
+#define KX_PYATTRIBUTE_SHORT_LIST_RW(name,min,max,clamp,object,field,length) \
+	{ name, KX_PYATTRIBUTE_TYPE_SHORT, KX_PYATTRIBUTE_RW, min, max, 0.f, 0.f, clamp, offsetof(object,field), 0, length, NULL, {NULL, &((object *)0)->field, NULL, NULL, NULL} }
+#define KX_PYATTRIBUTE_SHORT_LIST_RW_CHECK(name,min,max,clamp,object,field,length,function) \
+	{ name, KX_PYATTRIBUTE_TYPE_SHORT, KX_PYATTRIBUTE_RW, min, max, 0.f, 0.f, clamp, offsetof(object,field), 0, length, &object::function, {NULL, &((object *)0)->field, NULL, NULL, NULL} }
+#define KX_PYATTRIBUTE_SHORT_LIST_RO(name,object,field,length) \
 	{ name, KX_PYATTRIBUTE_TYPE_SHORT, KX_PYATTRIBUTE_RO, 0, 0, 0.f, 0.f, false, offsetof(object,field), 0, length, NULL, {NULL, &((object *)0)->field, NULL, NULL, NULL} }
 
 #define KX_PYATTRIBUTE_INT_RW(name,min,max,clamp,object,field) \
@@ -296,10 +303,17 @@ typedef struct KX_PYATTRIBUTE_DEF {
 #define KX_PYATTRIBUTE_INT_RO(name,object,field) \
 	{ name, KX_PYATTRIBUTE_TYPE_INT, KX_PYATTRIBUTE_RO, 0, 0, 0.f, 0.f, false, offsetof(object,field), 0, 1, NULL, {NULL, NULL, &((object *)0)->field, NULL, NULL} }
 #define KX_PYATTRIBUTE_INT_ARRAY_RW(name,min,max,clamp,object,field,length) \
-	{ name, KX_PYATTRIBUTE_TYPE_INT, KX_PYATTRIBUTE_RW, min, max, 0.f, 0.f, clamp, offsetof(object,field), 0, length, NULL, {NULL, NULL, &((object *)0)->field, NULL, NULL} }
+	{ name, KX_PYATTRIBUTE_TYPE_INT, KX_PYATTRIBUTE_RW, min, max, 0.f, 0.f, clamp, offsetof(object,field), 0, length, NULL, {NULL, NULL, ((object *)0)->field, NULL, NULL} }
 #define KX_PYATTRIBUTE_INT_ARRAY_RW_CHECK(name,min,max,clamp,object,field,length,function) \
-	{ name, KX_PYATTRIBUTE_TYPE_INT, KX_PYATTRIBUTE_RW, min, max, 0.f, 0.f, clamp, offsetof(object,field), 0, length, &object::function, {NULL, NULL, &((object *)0)->field, NULL, NULL} }
+	{ name, KX_PYATTRIBUTE_TYPE_INT, KX_PYATTRIBUTE_RW, min, max, 0.f, 0.f, clamp, offsetof(object,field), 0, length, &object::function, {NULL, NULL, ((object *)0)->field, NULL, NULL} }
 #define KX_PYATTRIBUTE_INT_ARRAY_RO(name,object,field,length) \
+	{ name, KX_PYATTRIBUTE_TYPE_INT, KX_PYATTRIBUTE_RO, 0, 0, 0.f, 0.f, false, offsetof(object,field), 0, length, NULL, {NULL, NULL, ((object *)0)->field, NULL, NULL} }
+// INT_LIST
+#define KX_PYATTRIBUTE_INT_LIST_RW(name,min,max,clamp,object,field,length) \
+	{ name, KX_PYATTRIBUTE_TYPE_INT, KX_PYATTRIBUTE_RW, min, max, 0.f, 0.f, clamp, offsetof(object,field), 0, length, NULL, {NULL, NULL, &((object *)0)->field, NULL, NULL} }
+#define KX_PYATTRIBUTE_INT_LIST_RW_CHECK(name,min,max,clamp,object,field,length,function) \
+	{ name, KX_PYATTRIBUTE_TYPE_INT, KX_PYATTRIBUTE_RW, min, max, 0.f, 0.f, clamp, offsetof(object,field), 0, length, &object::function, {NULL, NULL, &((object *)0)->field, NULL, NULL} }
+#define KX_PYATTRIBUTE_INT_LIST_RO(name,object,field,length) \
 	{ name, KX_PYATTRIBUTE_TYPE_INT, KX_PYATTRIBUTE_RO, 0, 0, 0.f, 0.f, false, offsetof(object,field), 0, length, NULL, {NULL, NULL, &((object *)0)->field, NULL, NULL} }
 
 // always clamp for float
@@ -310,11 +324,11 @@ typedef struct KX_PYATTRIBUTE_DEF {
 #define KX_PYATTRIBUTE_FLOAT_RO(name,object,field) \
 	{ name, KX_PYATTRIBUTE_TYPE_FLOAT, KX_PYATTRIBUTE_RO, 0, 0, 0.f, 0.f, false, offsetof(object,field), 0, 1, NULL, {NULL, NULL, NULL, &((object *)0)->field, NULL} }
 #define KX_PYATTRIBUTE_FLOAT_ARRAY_RW(name,min,max,object,field,length) \
-	{ name, KX_PYATTRIBUTE_TYPE_FLOAT, KX_PYATTRIBUTE_RW, 0, 0, min, max, true, offsetof(object,field), 0, length, NULL, {NULL, NULL, NULL, &((object *)0)->field, NULL} }
+	{ name, KX_PYATTRIBUTE_TYPE_FLOAT, KX_PYATTRIBUTE_RW, 0, 0, min, max, true, offsetof(object,field), 0, length, NULL, {NULL, NULL, NULL, ((object *)0)->field, NULL} }
 #define KX_PYATTRIBUTE_FLOAT_ARRAY_RW_CHECK(name,min,max,object,field,length,function) \
-	{ name, KX_PYATTRIBUTE_TYPE_FLOAT, KX_PYATTRIBUTE_RW, 0, 0, min, max, true, offsetof(object,field), 0, length, &object::function, {NULL, NULL, NULL, &((object *)0)->field, NULL} }
+	{ name, KX_PYATTRIBUTE_TYPE_FLOAT, KX_PYATTRIBUTE_RW, 0, 0, min, max, true, offsetof(object,field), 0, length, &object::function, {NULL, NULL, NULL, ((object *)0)->field, NULL} }
 #define KX_PYATTRIBUTE_FLOAT_ARRAY_RO(name,object,field,length) \
-	{ name, KX_PYATTRIBUTE_TYPE_FLOAT, KX_PYATTRIBUTE_RO, 0, 0, 0.f, 0.f, false, offsetof(object,field), 0, length, NULL, {NULL, NULL, NULL, &((object *)0)->field, NULL} }
+	{ name, KX_PYATTRIBUTE_TYPE_FLOAT, KX_PYATTRIBUTE_RO, 0, 0, 0.f, 0.f, false, offsetof(object,field), 0, length, NULL, {NULL, NULL, NULL, ((object *)0)->field, NULL} }
 
 #define KX_PYATTRIBUTE_STRING_RW(name,min,max,clamp,object,field) \
 	{ name, KX_PYATTRIBUTE_TYPE_STRING, KX_PYATTRIBUTE_RW, min, max, 0.f, 0.f, clamp, offsetof(object,field), 0, 1, NULL, {NULL, NULL, NULL, NULL, &((object *)0)->field} }
@@ -322,6 +336,10 @@ typedef struct KX_PYATTRIBUTE_DEF {
 	{ name, KX_PYATTRIBUTE_TYPE_STRING, KX_PYATTRIBUTE_RW, min, max, 0.f, 0.f, clamp, offsetof(object,field), 0, 1, &object::function, {NULL, NULL, NULL, NULL, &((object *)0)->field} }
 #define KX_PYATTRIBUTE_STRING_RO(name,object,field) \
 	{ name, KX_PYATTRIBUTE_TYPE_STRING, KX_PYATTRIBUTE_RO, 0, 0, 0.f, 0.f, false, offsetof(object,field), 0, 1 , NULL, {NULL, NULL, NULL, NULL, &((object *)0)->field} }
+
+//Multiple integer
+#define KX_PYATTRIBUTE_MINT_RW_CHECK(name,min,max,clamp,object,field,length,function) \
+	 { name, KX_PYATTRIBUTE_TYPE_INT, KX_PYATTRIBUTE_RW, min, max, 0.f, 0.f, clamp, offsetof(object,field), 0, length, &object::function, {NULL, NULL, &((object *)0)->field, NULL, NULL} }
 
 /*------------------------------
  * PyObjectPlus

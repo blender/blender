@@ -337,7 +337,7 @@ PyMethodDef SCA_MouseSensor::Methods[] = {
 
 PyAttributeDef SCA_MouseSensor::Attributes[] = {
 	KX_PYATTRIBUTE_SHORT_RW_CHECK("mode",KX_MOUSESENSORMODE_NODEF,KX_MOUSESENSORMODE_MAX-1,true,SCA_MouseSensor,m_mousemode,UpdateHotkey),
-	KX_PYATTRIBUTE_SHORT_ARRAY_RO("position",SCA_MouseSensor,m_x,2),
+	KX_PYATTRIBUTE_SHORT_LIST_RO("position",SCA_MouseSensor,m_x,2),
 	{ NULL }	//Sentinel
 };
 

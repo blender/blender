@@ -331,8 +331,8 @@ PyAttributeDef SCA_JoystickSensor::Attributes[] = {
 	KX_PYATTRIBUTE_SHORT_RW("index",0,JOYINDEX_MAX-1,true,SCA_JoystickSensor,m_joyindex),
 	KX_PYATTRIBUTE_INT_RW("threshold",0,32768,true,SCA_JoystickSensor,m_precision),
 	KX_PYATTRIBUTE_INT_RW("button",0,100,false,SCA_JoystickSensor,m_button),
-	KX_PYATTRIBUTE_INT_ARRAY_RW_CHECK("axis",0,3,true,SCA_JoystickSensor,m_axis,2,CheckAxis),
-	KX_PYATTRIBUTE_INT_ARRAY_RW_CHECK("hat",0,12,true,SCA_JoystickSensor,m_hat,2,CheckHat),
+	KX_PYATTRIBUTE_INT_LIST_RW_CHECK("axis",0,3,true,SCA_JoystickSensor,m_axis,2,CheckAxis),
+	KX_PYATTRIBUTE_INT_LIST_RW_CHECK("hat",0,12,true,SCA_JoystickSensor,m_hat,2,CheckHat),
 	// dummy attributes will just be read-only in _setattr
 	// you still need to defined them in _getattr
 	KX_PYATTRIBUTE_DUMMY("axisPosition"),
