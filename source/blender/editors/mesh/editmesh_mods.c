@@ -2024,15 +2024,10 @@ static void mouse_mesh_loop(bContext *C, short mval[2], short extend, short ring
 
 static int mesh_loop_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	ARegion *ar= CTX_wm_region(C);
-	short mval[2];	
-	
-	mval[0]= event->x - ar->winrct.xmin;
-	mval[1]= event->y - ar->winrct.ymin;
 	
 	view3d_operator_needs_opengl(C);
 	
-	mouse_mesh_loop(C, mval, RNA_boolean_get(op->ptr, "extend"),
+	mouse_mesh_loop(C, event->mval, RNA_boolean_get(op->ptr, "extend"),
 					RNA_boolean_get(op->ptr, "ring"));
 	
 	/* cannot do tweaks for as long this keymap is after transform map */
@@ -2130,15 +2125,10 @@ static void mouse_mesh_shortest_path(bContext *C, short mval[2])
 
 static int mesh_shortest_path_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	ARegion *ar= CTX_wm_region(C);
-	short mval[2];	
-	
-	mval[0]= event->x - ar->winrct.xmin;
-	mval[1]= event->y - ar->winrct.ymin;
 	
 	view3d_operator_needs_opengl(C);
 
-	mouse_mesh_shortest_path(C, mval);
+	mouse_mesh_shortest_path(C, event->mval);
 	
 	return OPERATOR_FINISHED;
 }
@@ -2365,8 +2355,8 @@ static int select_linked_pick_invoke(bContext *C, wmOperator *op, wmEvent *event
 	
 	if(vc.em->edges.first==0) return OPERATOR_CANCELLED;
 	
-	vc.mval[0]= event->x - vc.ar->winrct.xmin;
-	vc.mval[1]= event->y - vc.ar->winrct.ymin;
+	vc.mval[0]= event->mval[0];
+	vc.mval[1]= event->mval[1];
 	
 	/* return warning! */
 	if(limit) {

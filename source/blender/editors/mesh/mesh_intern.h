@@ -176,6 +176,7 @@ void editmesh_select_by_material(EditMesh *em, int index);
 void righthandfaces(EditMesh *em, int select);	/* makes faces righthand turning */
 void EM_select_more(EditMesh *em);
 void selectconnected_mesh_all(EditMesh *em);
+void faceloop_select(EditMesh *em, EditEdge *startedge, int select);
 
 /**
  * findnearestvert
@@ -230,6 +231,7 @@ void MESH_OT_rotate_colors(struct wmOperatorType *ot);
 void MESH_OT_mirror_colors(struct wmOperatorType *ot);
 
 void MESH_OT_delete(struct wmOperatorType *ot);
+void MESH_OT_rip(struct wmOperatorType *ot);
 
 #endif // MESH_INTERN_H
 

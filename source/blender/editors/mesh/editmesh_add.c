@@ -124,12 +124,8 @@ static int dupli_extrude_cursor(bContext *C, wmOperator *op, wmEvent *event)
 	EditVert *eve, *v1;
 	float min[3], max[3];
 	int done= 0;
-	short mval[2];
 	
 	em_setup_viewcontext(C, &vc);
-	
-	mval[0]= event->x - vc.ar->winrct.xmin;
-	mval[1]= event->y - vc.ar->winrct.ymin;
 	
 	INIT_MINMAX(min, max);
 	
@@ -164,7 +160,7 @@ static int dupli_extrude_cursor(bContext *C, wmOperator *op, wmEvent *event)
 		VECCOPY(min, cent);
 		
 		Mat4MulVecfl(vc.obedit->obmat, min);	// view space
-		view3d_get_view_aligned_coordinate(&vc, min, mval);
+		view3d_get_view_aligned_coordinate(&vc, min, event->mval);
 		Mat4Invert(vc.obedit->imat, vc.obedit->obmat); 
 		Mat4MulVecfl(vc.obedit->imat, min); // back in object space
 		
@@ -206,7 +202,7 @@ static int dupli_extrude_cursor(bContext *C, wmOperator *op, wmEvent *event)
 		float *curs= give_cursor(vc.scene, vc.v3d);
 		
 		VECCOPY(min, curs);
-		view3d_get_view_aligned_coordinate(&vc, min, mval);
+		view3d_get_view_aligned_coordinate(&vc, min, event->mval);
 		
 		eve= addvertlist(vc.em, 0, NULL);
 

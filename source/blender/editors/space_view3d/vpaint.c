@@ -596,9 +596,6 @@ void sample_vpaint(Scene *scene, ARegion *ar)	/* frontbuf */
 	if(x<0 || y<0) return;
 	if(x>=ar->winx || y>=ar->winy) return;
 	
-	x+= ar->winrct.xmin;
-	y+= ar->winrct.ymin;
-	
 	glReadBuffer(GL_FRONT);
 	glReadPixels(x, y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, &col);
 	glReadBuffer(GL_BACK);
@@ -1394,7 +1391,6 @@ static int wpaint_modal(bContext *C, wmOperator *op, wmEvent *event)
 			float paintweight= wp->weight;
 			int *indexar= wpd->indexar;
 			int totindex, index, alpha, totw;
-			short mval[2];
 			
 			view3d_operator_needs_opengl(C);
 			
@@ -1405,15 +1401,12 @@ static int wpaint_modal(bContext *C, wmOperator *op, wmEvent *event)
 			
 			MTC_Mat4SwapMat4(wpd->vc.rv3d->persmat, mat);
 			
-			mval[0]= event->x - vc->ar->winrct.xmin;
-			mval[1]= event->y - vc->ar->winrct.ymin;
-			
 			/* which faces are involved */
 			if(wp->flag & VP_AREA) {
-				totindex= sample_backbuf_area(vc, indexar, me->totface, mval[0], mval[1], wp->size);
+				totindex= sample_backbuf_area(vc, indexar, me->totface, event->mval[0], event->mval[1], wp->size);
 			}
 			else {
-				indexar[0]= view3d_sample_backbuf(vc, mval[0], mval[1]);
+				indexar[0]= view3d_sample_backbuf(vc, event->mval[0], event->mval[1]);
 				if(indexar[0]) totindex= 1;
 				else totindex= 0;
 			}
@@ -1488,7 +1481,7 @@ static int wpaint_modal(bContext *C, wmOperator *op, wmEvent *event)
 					MFace *mface= me->mface + (indexar[index]-1);
 					
 					if((me->dvert+mface->v1)->flag) {
-						alpha= calc_vp_alpha_dl(wp, vc, wpd->wpimat, wpd->vertexcosnos+6*mface->v1, mval);
+						alpha= calc_vp_alpha_dl(wp, vc, wpd->wpimat, wpd->vertexcosnos+6*mface->v1, event->mval);
 						if(alpha) {
 							do_weight_paint_vertex(wp, ob, mface->v1, alpha, paintweight, wpd->vgroup_mirror);
 						}
@@ -1496,7 +1489,7 @@ static int wpaint_modal(bContext *C, wmOperator *op, wmEvent *event)
 					}
 					
 					if((me->dvert+mface->v2)->flag) {
-						alpha= calc_vp_alpha_dl(wp, vc, wpd->wpimat, wpd->vertexcosnos+6*mface->v2, mval);
+						alpha= calc_vp_alpha_dl(wp, vc, wpd->wpimat, wpd->vertexcosnos+6*mface->v2, event->mval);
 						if(alpha) {
 							do_weight_paint_vertex(wp, ob, mface->v2, alpha, paintweight, wpd->vgroup_mirror);
 						}
@@ -1504,7 +1497,7 @@ static int wpaint_modal(bContext *C, wmOperator *op, wmEvent *event)
 					}
 					
 					if((me->dvert+mface->v3)->flag) {
-						alpha= calc_vp_alpha_dl(wp, vc, wpd->wpimat, wpd->vertexcosnos+6*mface->v3, mval);
+						alpha= calc_vp_alpha_dl(wp, vc, wpd->wpimat, wpd->vertexcosnos+6*mface->v3, event->mval);
 						if(alpha) {
 							do_weight_paint_vertex(wp, ob, mface->v3, alpha, paintweight, wpd->vgroup_mirror);
 						}
@@ -1513,7 +1506,7 @@ static int wpaint_modal(bContext *C, wmOperator *op, wmEvent *event)
 					
 					if((me->dvert+mface->v4)->flag) {
 						if(mface->v4) {
-							alpha= calc_vp_alpha_dl(wp, vc, wpd->wpimat, wpd->vertexcosnos+6*mface->v4, mval);
+							alpha= calc_vp_alpha_dl(wp, vc, wpd->wpimat, wpd->vertexcosnos+6*mface->v4, event->mval);
 							if(alpha) {
 								do_weight_paint_vertex(wp, ob, mface->v4, alpha, paintweight, wpd->vgroup_mirror);
 							}
@@ -1796,7 +1789,6 @@ static int vpaint_modal(bContext *C, wmOperator *op, wmEvent *event)
 			float mat[4][4];
 			int *indexar= vpd->indexar;
 			int totindex, index;
-			short mval[2];
 			
 			view3d_operator_needs_opengl(C);
 			
@@ -1805,15 +1797,12 @@ static int vpaint_modal(bContext *C, wmOperator *op, wmEvent *event)
 			wmGetSingleMatrix(mat);
 			wmLoadMatrix(vc->rv3d->viewmat);
 			
-			mval[0]= event->x - vc->ar->winrct.xmin;
-			mval[1]= event->y - vc->ar->winrct.ymin;
-				
 			/* which faces are involved */
 			if(vp->flag & VP_AREA) {
-				totindex= sample_backbuf_area(vc, indexar, me->totface, mval[0], mval[1], vp->size);
+				totindex= sample_backbuf_area(vc, indexar, me->totface, event->mval[0], event->mval[1], vp->size);
 			}
 			else {
-				indexar[0]= view3d_sample_backbuf(vc, mval[0], mval[1]);
+				indexar[0]= view3d_sample_backbuf(vc, event->mval[0], event->mval[1]);
 				if(indexar[0]) totindex= 1;
 				else totindex= 0;
 			}
@@ -1862,17 +1851,17 @@ static int vpaint_modal(bContext *C, wmOperator *op, wmEvent *event)
 						
 					}
 					
-					alpha= calc_vp_alpha_dl(vp, vc, vpd->vpimat, vpd->vertexcosnos+6*mface->v1, mval);
+					alpha= calc_vp_alpha_dl(vp, vc, vpd->vpimat, vpd->vertexcosnos+6*mface->v1, event->mval);
 					if(alpha) vpaint_blend(vp, mcol, mcolorig, vpd->paintcol, alpha);
 					
-					alpha= calc_vp_alpha_dl(vp, vc, vpd->vpimat, vpd->vertexcosnos+6*mface->v2, mval);
+					alpha= calc_vp_alpha_dl(vp, vc, vpd->vpimat, vpd->vertexcosnos+6*mface->v2, event->mval);
 					if(alpha) vpaint_blend(vp, mcol+1, mcolorig+1, vpd->paintcol, alpha);
 					
-					alpha= calc_vp_alpha_dl(vp, vc, vpd->vpimat, vpd->vertexcosnos+6*mface->v3, mval);
+					alpha= calc_vp_alpha_dl(vp, vc, vpd->vpimat, vpd->vertexcosnos+6*mface->v3, event->mval);
 					if(alpha) vpaint_blend(vp, mcol+2, mcolorig+2, vpd->paintcol, alpha);
 					
 					if(mface->v4) {
-						alpha= calc_vp_alpha_dl(vp, vc, vpd->vpimat, vpd->vertexcosnos+6*mface->v4, mval);
+						alpha= calc_vp_alpha_dl(vp, vc, vpd->vpimat, vpd->vertexcosnos+6*mface->v4, event->mval);
 						if(alpha) vpaint_blend(vp, mcol+3, mcolorig+3, vpd->paintcol, alpha);
 					}
 				}

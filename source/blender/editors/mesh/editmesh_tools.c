@@ -88,6 +88,7 @@ editmesh_tool.c: UI called tools for editmesh, geometry changes here, otherwise 
 #include "ED_view3d.h"
 #include "ED_util.h"
 #include "ED_screen.h"
+#include "BIF_transform.h"
 
 #include "UI_interface.h"
 
@@ -632,26 +633,26 @@ void extrude_mesh(Object *obedit, EditMesh *em, wmOperator *op)
 		else if(em->totvertsel==1) nr= 4;
 		else if(em->totedgesel==0) nr= 4;
 		else if(em->totfacesel==0) 
-			nr= pupmenu("Extrude %t|Only Edges%x3|Only Vertices%x4");
+			nr= 3; // pupmenu("Extrude %t|Only Edges%x3|Only Vertices%x4");
 		else if(em->totfacesel==1)
-			nr= pupmenu("Extrude %t|Region %x1|Only Edges%x3|Only Vertices%x4");
+			nr= 1; // pupmenu("Extrude %t|Region %x1|Only Edges%x3|Only Vertices%x4");
 		else 
-			nr= pupmenu("Extrude %t|Region %x1||Individual Faces %x2|Only Edges%x3|Only Vertices%x4");
+			nr= 1; // pupmenu("Extrude %t|Region %x1||Individual Faces %x2|Only Edges%x3|Only Vertices%x4");
 	}
 	else if(em->selectmode & SCE_SELECT_EDGE) {
 		if (em->totedgesel==0) nr = 0;
 		else if (em->totedgesel==1) nr = 3;
 		else if(em->totfacesel==0) nr = 3;
 		else if(em->totfacesel==1)
-			nr= pupmenu("Extrude %t|Region %x1|Only Edges%x3");
+			nr= 1; // pupmenu("Extrude %t|Region %x1|Only Edges%x3");
 		else
-			nr= pupmenu("Extrude %t|Region %x1||Individual Faces %x2|Only Edges%x3");
+			nr= 1; // pupmenu("Extrude %t|Region %x1||Individual Faces %x2|Only Edges%x3");
 	}
 	else {
 		if (em->totfacesel == 0) nr = 0;
 		else if (em->totfacesel == 1) nr = 1;
 		else
-			nr= pupmenu("Extrude %t|Region %x1||Individual Faces %x2");
+			nr= 1; // pupmenu("Extrude %t|Region %x1||Individual Faces %x2");
 	}
 		
 	if(nr<1) return;
@@ -696,17 +697,34 @@ void extrude_mesh(Object *obedit, EditMesh *em, wmOperator *op)
 }
 
 // XXX should be a menu item
-static int mesh_extrude_exec(bContext *C, wmOperator *op)
+static int mesh_extrude_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
 
 	extrude_mesh(obedit,em, op);
-		
+	
+	RNA_int_set(op->ptr, "mode", TFM_TRANSLATION);
+	WM_operator_name_call(C, "TFM_OT_transform", WM_OP_INVOKE_REGION_WIN, op->ptr);
+
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 	
 	return OPERATOR_FINISHED;	
 }
+
+/* extrude without transform */
+static int mesh_extrude_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
+	
+	extrude_mesh(obedit,em, op);
+	
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	
+	return OPERATOR_FINISHED;	
+}
+
 
 void MESH_OT_extrude(wmOperatorType *ot)
 {
@@ -715,11 +733,15 @@ void MESH_OT_extrude(wmOperatorType *ot)
 	ot->idname= "MESH_OT_extrude";
 	
 	/* api callbacks */
+	ot->invoke= mesh_extrude_invoke;
 	ot->exec= mesh_extrude_exec;
 	ot->poll= ED_operator_editmesh;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* to give to transform */
+	RNA_def_int(ot->srna, "mode", TFM_TRANSLATION, 0, INT_MAX, "Mode", "", 0, INT_MAX);
 }
 
 static int split_mesh(bContext *C, wmOperator *op)
@@ -1258,87 +1280,6 @@ void MESH_OT_delete(wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "type", prop_mesh_delete_types, 10, "Type", "Method used for deleting mesh data");
 }
 
-/* Got this from scanfill.c. You will need to juggle around the
- * callbacks for the scanfill.c code a bit for this to work. */
-void fill_mesh(EditMesh *em)
-{
-	EditVert *eve,*v1;
-	EditEdge *eed,*e1,*nexted;
-	EditFace *efa,*nextvl, *efan;
-	short ok;
-
-	if(em==NULL) return;
-	waitcursor(1);
-
-	/* copy all selected vertices */
-	eve= em->verts.first;
-	while(eve) {
-		if(eve->f & SELECT) {
-			v1= BLI_addfillvert(eve->co);
-			eve->tmp.v= v1;
-			v1->tmp.v= eve;
-			v1->xs= 0;	// used for counting edges
-		}
-		eve= eve->next;
-	}
-	/* copy all selected edges */
-	eed= em->edges.first;
-	while(eed) {
-		if( (eed->v1->f & SELECT) && (eed->v2->f & SELECT) ) {
-			e1= BLI_addfilledge(eed->v1->tmp.v, eed->v2->tmp.v);
-			e1->v1->xs++; 
-			e1->v2->xs++;
-		}
-		eed= eed->next;
-	}
-	/* from all selected faces: remove vertices and edges to prevent doubles */
-	/* all edges add values, faces subtract,
-	   then remove edges with vertices ->xs<2 */
-	efa= em->faces.first;
-	ok= 0;
-	while(efa) {
-		nextvl= efa->next;
-		if( faceselectedAND(efa, 1) ) {
-			efa->v1->tmp.v->xs--;
-			efa->v2->tmp.v->xs--;
-			efa->v3->tmp.v->xs--;
-			if(efa->v4) efa->v4->tmp.v->xs--;
-			ok= 1;
-			
-		}
-		efa= nextvl;
-	}
-	if(ok) {	/* there are faces selected */
-		eed= filledgebase.first;
-		while(eed) {
-			nexted= eed->next;
-			if(eed->v1->xs<2 || eed->v2->xs<2) {
-				BLI_remlink(&filledgebase,eed);
-			}
-			eed= nexted;
-		}
-	}
-
-	if(BLI_edgefill(0, em->mat_nr)) {
-		efa= fillfacebase.first;
-		while(efa) {
-			/* normals default pointing up */
-			efan= addfacelist(em, efa->v3->tmp.v, efa->v2->tmp.v, 
-							  efa->v1->tmp.v, 0, NULL, NULL);
-			if(efan) EM_select_face(efan, 1);
-			efa= efa->next;
-		}
-	}
-
-	BLI_end_edgefill();
-
-	// XXX option beautyfill */
-
-	WM_cursor_wait(0);
-	EM_select_flush(em);
-//	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-
-}
 
 /*GB*/
 /*-------------------------------------------------------------------------------*/
@@ -3104,172 +3045,6 @@ static void free_tagged_edges_faces(EditMesh *em, EditEdge *eed, EditFace *efa)
 	}	
 }	
 
-/* note; the EM_selectmode_set() calls here illustrate how badly constructed it all is... from before the
-   edge/face flags, with very mixed results.... */
-void beauty_fill(EditMesh *em)
-{
-	EditVert *v1, *v2, *v3, *v4;
-	EditEdge *eed, *nexted;
-	EditEdge dia1, dia2;
-	EditFace *efa, *w;
-	// void **efaar, **efaa;
-	EVPTuple *efaar;
-	EVPtr *efaa;
-	float len1, len2, len3, len4, len5, len6, opp1, opp2, fac1, fac2;
-	int totedge, ok, notbeauty=8, onedone, vindex[4];
-	
-	/* - all selected edges with two faces
-		* - find the faces: store them in edges (using datablock)
-		* - per edge: - test convex
-		*			   - test edge: flip?
-		*			   - if true: remedge,  addedge, all edges at the edge get new face pointers
-		*/
-	
-	EM_selectmode_set(em);	// makes sure in selectmode 'face' the edges of selected faces are selected too 
-
-	totedge = count_selected_edges(em->edges.first);
-	if(totedge==0) return;
-
-	/* temp block with face pointers */
-	efaar= (EVPTuple *) MEM_callocN(totedge * sizeof(EVPTuple), "beautyfill");
-
-	while (notbeauty) {
-		notbeauty--;
-
-		ok = collect_quadedges(efaar, em->edges.first, em->faces.first);
-
-		/* there we go */
-		onedone= 0;
-
-		eed= em->edges.first;
-		while(eed) {
-			nexted= eed->next;
-			
-			/* f2 is set in collect_quadedges() */
-			if(eed->f2==2 && eed->h==0) {
-
-				efaa = (EVPtr *) eed->tmp.p;
-
-				/* none of the faces should be treated before, nor be part of fgon */
-				ok= 1;
-				efa= efaa[0];
-				if(efa->e1->f1 || efa->e2->f1 || efa->e3->f1) ok= 0;
-				if(efa->fgonf) ok= 0;
-				efa= efaa[1];
-				if(efa->e1->f1 || efa->e2->f1 || efa->e3->f1) ok= 0;
-				if(efa->fgonf) ok= 0;
-				
-				if(ok) {
-					/* test convex */
-					givequadverts(efaa[0], efaa[1], &v1, &v2, &v3, &v4, vindex);
-					if(v1 && v2 && v3 && v4) {
-						if( convex(v1->co, v2->co, v3->co, v4->co) ) {
-
-							/* test edges */
-							if( (v1) > (v3) ) {
-								dia1.v1= v3;
-								dia1.v2= v1;
-							}
-							else {
-								dia1.v1= v1;
-								dia1.v2= v3;
-							}
-
-							if( (v2) > (v4) ) {
-								dia2.v1= v4;
-								dia2.v2= v2;
-							}
-							else {
-								dia2.v1= v2;
-								dia2.v2= v4;
-							}
-
-							/* testing rule:
-							 * the area divided by the total edge lengths
-							 */
-
-							len1= VecLenf(v1->co, v2->co);
-							len2= VecLenf(v2->co, v3->co);
-							len3= VecLenf(v3->co, v4->co);
-							len4= VecLenf(v4->co, v1->co);
-							len5= VecLenf(v1->co, v3->co);
-							len6= VecLenf(v2->co, v4->co);
-
-							opp1= AreaT3Dfl(v1->co, v2->co, v3->co);
-							opp2= AreaT3Dfl(v1->co, v3->co, v4->co);
-
-							fac1= opp1/(len1+len2+len5) + opp2/(len3+len4+len5);
-
-							opp1= AreaT3Dfl(v2->co, v3->co, v4->co);
-							opp2= AreaT3Dfl(v2->co, v4->co, v1->co);
-
-							fac2= opp1/(len2+len3+len6) + opp2/(len4+len1+len6);
-
-							ok= 0;
-							if(fac1 > fac2) {
-								if(dia2.v1==eed->v1 && dia2.v2==eed->v2) {
-									eed->f1= 1;
-									efa= efaa[0];
-									efa->f1= 1;
-									efa= efaa[1];
-									efa->f1= 1;
-
-									w= EM_face_from_faces(em, efaa[0], efaa[1],
-										vindex[0], vindex[1], 4+vindex[2], -1);
-									w->f |= SELECT;
-
-
-									w= EM_face_from_faces(em, efaa[0], efaa[1],
-										vindex[0], 4+vindex[2], 4+vindex[3], -1);
-									w->f |= SELECT;
-
-									onedone= 1;
-								}
-							}
-							else if(fac1 < fac2) {
-								if(dia1.v1==eed->v1 && dia1.v2==eed->v2) {
-									eed->f1= 1;
-									efa= efaa[0];
-									efa->f1= 1;
-									efa= efaa[1];
-									efa->f1= 1;
-
-
-									w= EM_face_from_faces(em, efaa[0], efaa[1],
-										vindex[1], 4+vindex[2], 4+vindex[3], -1);
-									w->f |= SELECT;
-
-
-									w= EM_face_from_faces(em, efaa[0], efaa[1],
-										vindex[0], 4+vindex[1], 4+vindex[3], -1);
-									w->f |= SELECT;
-
-									onedone= 1;
-								}
-							}
-						}
-					}
-				}
-
-			}
-			eed= nexted;
-		}
-
-		free_tagged_edges_faces(em, em->edges.first, em->faces.first);
-
-		if(onedone==0) break;
-		
-		EM_selectmode_set(em);	// new edges/faces were added
-	}
-
-	MEM_freeN(efaar);
-
-	EM_select_flush(em);
-	
-//	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-
-}
-
 
 /* ******************** BEGIN TRIANGLE TO QUAD ************************************* */
 static float measure_facepair(EditVert *v1, EditVert *v2, EditVert *v3, EditVert *v4, float limit)
@@ -4923,13 +4698,15 @@ void mesh_set_smooth_faces(EditMesh *em, short event)
 	
 }
 
+/* ********************** mesh rip ********************** */
+
 /* helper to find edge for edge_rip */
-static float mesh_rip_edgedist(float mat[][4], float *co1, float *co2, short *mval)
+static float mesh_rip_edgedist(ARegion *ar, float mat[][4], float *co1, float *co2, short *mval)
 {
 	float vec1[3], vec2[3], mvalf[2];
 	
-// XXX	view3d_project_float(curarea, co1, vec1, mat);
-//	view3d_project_float(curarea, co2, vec2, mat);
+	view3d_project_float(ar, co1, vec1, mat);
+	view3d_project_float(ar, co2, vec2, mat);
 	mvalf[0]= (float)mval[0];
 	mvalf[1]= (float)mval[1];
 	
@@ -4957,14 +4734,18 @@ static void mesh_rip_setface(EditMesh *em, EditFace *sefa)
 }
 
 /* based on mouse cursor position, it defines how is being ripped */
-void mesh_rip(EditMesh *em, wmOperator *op)
+static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	extern void faceloop_select(EditEdge *startedge, int select);
+	ARegion *ar= CTX_wm_region(C);
+	RegionView3D *rv3d= ar->regiondata;
+	Object *obedit= CTX_data_edit_object(C);
+	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
 	EditVert *eve, *nextve;
 	EditEdge *eed, *seed= NULL;
 	EditFace *efa, *sefa= NULL;
-	float projectMat[4][4], vec[3], dist, mindist; // viewMat[4][4],  XXX
-	short doit= 1, mval[2]; // XXX ,propmode,prop;
+	float projectMat[4][4], vec[3], dist, mindist, viewMat[4][4];
+	short doit= 1, *mval= event->mval; // XXX ,propmode,prop;
+	
 	
 // XXX	propmode = scene->prop_mode;
 //	scene->prop_mode = 0;
@@ -4974,8 +4755,7 @@ void mesh_rip(EditMesh *em, wmOperator *op)
 	/* select flush... vertices are important */
 	EM_selectmode_set(em);
 	
-// XXX	getmouseco_areawin(mval);
-//	view3d_get_object_project_mat(curarea, obedit, projectMat, viewMat);
+	view3d_get_object_project_mat(rv3d, obedit, projectMat, viewMat);
 
 	/* find best face, exclude triangles and break on face select or faces with 2 edges select */
 	mindist= 1000000.0f;
@@ -4992,7 +4772,7 @@ void mesh_rip(EditMesh *em, wmOperator *op)
 			
 			if(totsel>1)
 				break;
-//			view3d_project_float(curarea, efa->cent, vec, projectMat);
+			view3d_project_float(ar, efa->cent, vec, projectMat);
 			dist= sqrt( (vec[0]-mval[0])*(vec[0]-mval[0]) + (vec[1]-mval[1])*(vec[1]-mval[1]) );
 			if(dist<mindist) {
 				mindist= dist;
@@ -5003,11 +4783,11 @@ void mesh_rip(EditMesh *em, wmOperator *op)
 	
 	if(efa) {
 		BKE_report(op->reports, RPT_ERROR, "Can't perform ripping with faces selected this way");
-		return;
+		return OPERATOR_CANCELLED;
 	}
 	if(sefa==NULL) {
 		BKE_report(op->reports, RPT_ERROR, "No proper selection or faces included");
-		return;
+		return OPERATOR_CANCELLED;
 	}
 	
 
@@ -5032,7 +4812,7 @@ void mesh_rip(EditMesh *em, wmOperator *op)
 	if(seed==NULL) {
 		mindist= 1000000.0f;
 		if(sefa->e1->v1->tmp.v || sefa->e1->v2->tmp.v) {
-			dist = mesh_rip_edgedist(projectMat, 
+			dist = mesh_rip_edgedist(ar, projectMat, 
 									 sefa->e1->v1->co, 
 									 sefa->e1->v2->co, mval);
 			if(dist<mindist) {
@@ -5041,7 +4821,7 @@ void mesh_rip(EditMesh *em, wmOperator *op)
 			}
 		}
 		if(sefa->e2->v1->tmp.v || sefa->e2->v2->tmp.v) {
-			dist = mesh_rip_edgedist(projectMat,
+			dist = mesh_rip_edgedist(ar, projectMat,
 									 sefa->e2->v1->co, 
 									 sefa->e2->v2->co, mval);
 			if(dist<mindist) {
@@ -5050,7 +4830,7 @@ void mesh_rip(EditMesh *em, wmOperator *op)
 			}
 		}
 		if(sefa->e3->v1->tmp.v || sefa->e3->v2->tmp.v) {
-			dist= mesh_rip_edgedist(projectMat, 
+			dist= mesh_rip_edgedist(ar, projectMat, 
 									sefa->e3->v1->co, 
 									sefa->e3->v2->co, mval);
 			if(dist<mindist) {
@@ -5059,7 +4839,7 @@ void mesh_rip(EditMesh *em, wmOperator *op)
 			}
 		}
 		if(sefa->e4 && (sefa->e4->v1->tmp.v || sefa->e4->v2->tmp.v)) {
-			dist= mesh_rip_edgedist(projectMat, 
+			dist= mesh_rip_edgedist(ar, projectMat, 
 									sefa->e4->v1->co, 
 									sefa->e4->v2->co, mval);
 			if(dist<mindist) {
@@ -5071,10 +4851,10 @@ void mesh_rip(EditMesh *em, wmOperator *op)
 	
 	if(seed==NULL) {	// never happens?
 		BKE_report(op->reports, RPT_ERROR, "No proper edge found to start");
-		return;
+		return OPERATOR_CANCELLED;
 	}
 	
-	faceloop_select(seed, 2);	// tmp abuse for finding all edges that need duplicated, returns OK faces with f1
+	faceloop_select(em, seed, 2);	// tmp abuse for finding all edges that need duplicated, returns OK faces with f1
 
 	/* duplicate edges in the loop, with at least 1 vertex selected, needed for selection flip */
 	for(eed = em->edges.last; eed; eed= eed->prev) {
@@ -5085,8 +4865,9 @@ void mesh_rip(EditMesh *em, wmOperator *op)
 			newed= addedgelist(em, eed->v1->tmp.v?eed->v1->tmp.v:eed->v1, 
 							   eed->v2->tmp.v?eed->v2->tmp.v:eed->v2, eed);
 			if(eed->f & SELECT) {
-				eed->f &= ~SELECT;
-				newed->f |= SELECT;
+				EM_select_edge(eed, 0);
+				EM_remove_selection(em, eed, EDITEDGE);
+				EM_select_edge(newed, 1);
 			}
 			eed->tmp.v = (EditVert *)newed;
 		}
@@ -5153,13 +4934,34 @@ void mesh_rip(EditMesh *em, wmOperator *op)
 		}
 	}
 	
-//	BIF_TransformSetUndo("Rip");
-//	initTransform(TFM_TRANSLATION, 0);
-//	Transform();
-	
+	RNA_int_set(op->ptr, "mode", TFM_TRANSLATION);
+	WM_operator_name_call(C, "TFM_OT_transform", WM_OP_INVOKE_REGION_WIN, op->ptr);
+
 //	scene->prop_mode = propmode;
 // XXX	scene->proportional = prop;
+
+	return OPERATOR_FINISHED;
 }
+
+void MESH_OT_rip(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Rip";
+	ot->idname= "MESH_OT_rip";
+	
+	/* api callbacks */
+	ot->invoke= mesh_rip_invoke;
+	ot->poll= ED_operator_editmesh; // XXX + v3d!
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* to give to transform */
+	RNA_def_int(ot->srna, "mode", TFM_TRANSLATION, 0, INT_MAX, "Mode", "", 0, INT_MAX);
+}
+
+
+/* ************************************** */
 
 void shape_propagate(Scene *scene, Object *obedit, EditMesh *em, wmOperator *op)
 {
@@ -6077,7 +5879,6 @@ static int region_to_loop(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
-
 	EditEdge *eed;
 	EditFace *efa;
 	
@@ -6812,12 +6613,260 @@ void MESH_OT_subdivs(wmOperatorType *ot)
 		
 }
 
+/* ************************************* */
+
+/* note; the EM_selectmode_set() calls here illustrate how badly constructed it all is... from before the
+edge/face flags, with very mixed results.... */
+static void beauty_fill(EditMesh *em)
+{
+	EditVert *v1, *v2, *v3, *v4;
+	EditEdge *eed, *nexted;
+	EditEdge dia1, dia2;
+	EditFace *efa, *w;
+	// void **efaar, **efaa;
+	EVPTuple *efaar;
+	EVPtr *efaa;
+	float len1, len2, len3, len4, len5, len6, opp1, opp2, fac1, fac2;
+	int totedge, ok, notbeauty=8, onedone, vindex[4];
+	
+	/* - all selected edges with two faces
+		* - find the faces: store them in edges (using datablock)
+		* - per edge: - test convex
+		*			   - test edge: flip?
+		*			   - if true: remedge,  addedge, all edges at the edge get new face pointers
+		*/
+	
+	EM_selectmode_set(em);	// makes sure in selectmode 'face' the edges of selected faces are selected too 
+	
+	totedge = count_selected_edges(em->edges.first);
+	if(totedge==0) return;
+	
+	/* temp block with face pointers */
+	efaar= (EVPTuple *) MEM_callocN(totedge * sizeof(EVPTuple), "beautyfill");
+	
+	while (notbeauty) {
+		notbeauty--;
+		
+		ok = collect_quadedges(efaar, em->edges.first, em->faces.first);
+		
+		/* there we go */
+		onedone= 0;
+		
+		eed= em->edges.first;
+		while(eed) {
+			nexted= eed->next;
+			
+			/* f2 is set in collect_quadedges() */
+			if(eed->f2==2 && eed->h==0) {
+				
+				efaa = (EVPtr *) eed->tmp.p;
+				
+				/* none of the faces should be treated before, nor be part of fgon */
+				ok= 1;
+				efa= efaa[0];
+				if(efa->e1->f1 || efa->e2->f1 || efa->e3->f1) ok= 0;
+				if(efa->fgonf) ok= 0;
+				efa= efaa[1];
+				if(efa->e1->f1 || efa->e2->f1 || efa->e3->f1) ok= 0;
+				if(efa->fgonf) ok= 0;
+				
+				if(ok) {
+					/* test convex */
+					givequadverts(efaa[0], efaa[1], &v1, &v2, &v3, &v4, vindex);
+					if(v1 && v2 && v3 && v4) {
+						if( convex(v1->co, v2->co, v3->co, v4->co) ) {
+							
+							/* test edges */
+							if( (v1) > (v3) ) {
+								dia1.v1= v3;
+								dia1.v2= v1;
+							}
+							else {
+								dia1.v1= v1;
+								dia1.v2= v3;
+							}
+							
+							if( (v2) > (v4) ) {
+								dia2.v1= v4;
+								dia2.v2= v2;
+							}
+							else {
+								dia2.v1= v2;
+								dia2.v2= v4;
+							}
+							
+							/* testing rule:
+							* the area divided by the total edge lengths
+							*/
+							
+							len1= VecLenf(v1->co, v2->co);
+							len2= VecLenf(v2->co, v3->co);
+							len3= VecLenf(v3->co, v4->co);
+							len4= VecLenf(v4->co, v1->co);
+							len5= VecLenf(v1->co, v3->co);
+							len6= VecLenf(v2->co, v4->co);
+							
+							opp1= AreaT3Dfl(v1->co, v2->co, v3->co);
+							opp2= AreaT3Dfl(v1->co, v3->co, v4->co);
+							
+							fac1= opp1/(len1+len2+len5) + opp2/(len3+len4+len5);
+							
+							opp1= AreaT3Dfl(v2->co, v3->co, v4->co);
+							opp2= AreaT3Dfl(v2->co, v4->co, v1->co);
+							
+							fac2= opp1/(len2+len3+len6) + opp2/(len4+len1+len6);
+							
+							ok= 0;
+							if(fac1 > fac2) {
+								if(dia2.v1==eed->v1 && dia2.v2==eed->v2) {
+									eed->f1= 1;
+									efa= efaa[0];
+									efa->f1= 1;
+									efa= efaa[1];
+									efa->f1= 1;
+									
+									w= EM_face_from_faces(em, efaa[0], efaa[1],
+														  vindex[0], vindex[1], 4+vindex[2], -1);
+									w->f |= SELECT;
+									
+									
+									w= EM_face_from_faces(em, efaa[0], efaa[1],
+														  vindex[0], 4+vindex[2], 4+vindex[3], -1);
+									w->f |= SELECT;
+									
+									onedone= 1;
+								}
+							}
+							else if(fac1 < fac2) {
+								if(dia1.v1==eed->v1 && dia1.v2==eed->v2) {
+									eed->f1= 1;
+									efa= efaa[0];
+									efa->f1= 1;
+									efa= efaa[1];
+									efa->f1= 1;
+									
+									
+									w= EM_face_from_faces(em, efaa[0], efaa[1],
+														  vindex[1], 4+vindex[2], 4+vindex[3], -1);
+									w->f |= SELECT;
+									
+									
+									w= EM_face_from_faces(em, efaa[0], efaa[1],
+														  vindex[0], 4+vindex[1], 4+vindex[3], -1);
+									w->f |= SELECT;
+									
+									onedone= 1;
+								}
+							}
+						}
+					}
+				}
+				
+			}
+			eed= nexted;
+		}
+		
+		free_tagged_edges_faces(em, em->edges.first, em->faces.first);
+		
+		if(onedone==0) break;
+		
+		EM_selectmode_set(em);	// new edges/faces were added
+	}
+	
+	MEM_freeN(efaar);
+	
+	EM_select_flush(em);
+	
+}
+
+/* Got this from scanfill.c. You will need to juggle around the
+* callbacks for the scanfill.c code a bit for this to work. */
+static void fill_mesh(EditMesh *em)
+{
+	EditVert *eve,*v1;
+	EditEdge *eed,*e1,*nexted;
+	EditFace *efa,*nextvl, *efan;
+	short ok;
+	
+	if(em==NULL) return;
+	waitcursor(1);
+	
+	/* copy all selected vertices */
+	eve= em->verts.first;
+	while(eve) {
+		if(eve->f & SELECT) {
+			v1= BLI_addfillvert(eve->co);
+			eve->tmp.v= v1;
+			v1->tmp.v= eve;
+			v1->xs= 0;	// used for counting edges
+		}
+		eve= eve->next;
+	}
+	/* copy all selected edges */
+	eed= em->edges.first;
+	while(eed) {
+		if( (eed->v1->f & SELECT) && (eed->v2->f & SELECT) ) {
+			e1= BLI_addfilledge(eed->v1->tmp.v, eed->v2->tmp.v);
+			e1->v1->xs++; 
+			e1->v2->xs++;
+		}
+		eed= eed->next;
+	}
+	/* from all selected faces: remove vertices and edges to prevent doubles */
+	/* all edges add values, faces subtract,
+		then remove edges with vertices ->xs<2 */
+	efa= em->faces.first;
+	ok= 0;
+	while(efa) {
+		nextvl= efa->next;
+		if( faceselectedAND(efa, 1) ) {
+			efa->v1->tmp.v->xs--;
+			efa->v2->tmp.v->xs--;
+			efa->v3->tmp.v->xs--;
+			if(efa->v4) efa->v4->tmp.v->xs--;
+			ok= 1;
+			
+		}
+		efa= nextvl;
+	}
+	if(ok) {	/* there are faces selected */
+		eed= filledgebase.first;
+		while(eed) {
+			nexted= eed->next;
+			if(eed->v1->xs<2 || eed->v2->xs<2) {
+				BLI_remlink(&filledgebase,eed);
+			}
+			eed= nexted;
+		}
+	}
+
+	if(BLI_edgefill(0, em->mat_nr)) {
+		efa= fillfacebase.first;
+		while(efa) {
+			/* normals default pointing up */
+			efan= addfacelist(em, efa->v3->tmp.v, efa->v2->tmp.v, 
+							  efa->v1->tmp.v, 0, NULL, NULL);
+			if(efan) EM_select_face(efan, 1);
+			efa= efa->next;
+		}
+	}
+
+	BLI_end_edgefill();
+	beauty_fill(em);
+
+	WM_cursor_wait(0);
+	EM_select_flush(em);
+
+}
+
+
 static int fill_mesh_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
 	
 	fill_mesh(em);
+	DAG_object_flush_update(CTX_data_scene(C), obedit, OB_RECALC_DATA);
 	
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 	
@@ -6844,7 +6893,7 @@ static int beauty_fill_exec(bContext *C, wmOperator *op)
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
 	
-	 beauty_fill(em);
+	beauty_fill(em);
 	
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 	

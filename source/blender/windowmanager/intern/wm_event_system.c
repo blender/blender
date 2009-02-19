@@ -322,6 +322,16 @@ static void wm_operator_print(wmOperator *op)
 	MEM_freeN(buf);
 }
 
+static void wm_region_mouse_co(bContext *C, wmEvent *event)
+{
+	ARegion *ar= CTX_wm_region(C);
+	if(ar) {
+		/* compatibility convention */
+		event->mval[0]= event->x - ar->winrct.xmin;
+		event->mval[1]= event->y - ar->winrct.ymin;
+	}
+}
+
 static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, PointerRNA *properties)
 {
 	wmWindowManager *wm= CTX_wm_manager(C);
@@ -333,8 +343,10 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, P
 		if((G.f & G_DEBUG) && event && event->type!=MOUSEMOVE)
 			printf("handle evt %d win %d op %s\n", event?event->type:0, CTX_wm_screen(C)->subwinactive, ot->idname); 
 		
-		if(op->type->invoke && event)
-			retval= (*op->type->invoke)(C, op, event);
+		if(op->type->invoke && event) {
+			wm_region_mouse_co(C, event);
+			retval= op->type->invoke(C, op, event);
+		}
 		else if(op->type->exec)
 			retval= op->type->exec(C, op);
 		else
@@ -636,6 +648,7 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 			
 			wm_handler_op_context(C, handler);
 			
+			wm_region_mouse_co(C, event);
 			retval= ot->modal(C, op, event);
 
 			/* putting back screen context, reval can pass trough after modal failures! */
