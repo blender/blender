@@ -161,7 +161,7 @@ PyAttributeDef SCA_ActuatorSensor::Attributes[] = {
 	{ NULL }	//Sentinel
 };
 
-PyObject* SCA_ActuatorSensor::_getattr(const STR_String& attr) {
+PyObject* SCA_ActuatorSensor::_getattr(const char *attr) {
 	PyObject* object = _getattr_self(Attributes, this, attr);
 	if (object != NULL)
 		return object;
@@ -180,7 +180,7 @@ int SCA_ActuatorSensor::CheckActuator(void *self, const PyAttributeDef*)
 	return 1;
 }
 
-int SCA_ActuatorSensor::_setattr(const STR_String& attr, PyObject *value) {
+int SCA_ActuatorSensor::_setattr(const char *attr, PyObject *value) {
 	int ret = _setattr_self(Attributes, this, attr, value);
 	if (ret >= 0)
 		return ret;

@@ -202,7 +202,7 @@ public:
 	void SetUniform(int uniform, const int val);
 
 	// Python interface
-	virtual PyObject* _getattr(const STR_String& attr);
+	virtual PyObject* _getattr(const char *attr);
 
 	// -----------------------------------
 	KX_PYMETHOD_DOC( BL_Shader, setSource );

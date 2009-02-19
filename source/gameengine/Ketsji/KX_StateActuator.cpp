@@ -146,10 +146,7 @@ KX_StateActuator::Methods[] = {
 	{NULL,NULL} //Sentinel
 };
 
-PyObject* 
-KX_StateActuator::_getattr(
-	const STR_String& attr
-	) 
+PyObject* KX_StateActuator::_getattr(const char *attr)
 {
 	_getattr_up(SCA_IActuator);
 };

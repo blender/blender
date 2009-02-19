@@ -564,9 +564,9 @@ public:
 	KX_PYMETHOD_DOC(KX_Scene, setSceneViewport);
 	*/
 
-	virtual PyObject* _getattr(const STR_String& attr); /* name, active_camera, gravity, suspended, viewport, framing, activity_culling, activity_culling_radius */
-	virtual int _setattr(const STR_String &attr, PyObject *pyvalue);
-	virtual int _delattr(const STR_String &attr);
+	virtual PyObject* _getattr(const char *attr); /* name, active_camera, gravity, suspended, viewport, framing, activity_culling, activity_culling_radius */
+	virtual int _setattr(const char *attr, PyObject *pyvalue);
+	virtual int _delattr(const char *attr);
 
 	/**
 	 * Sets the time the scene was suspended

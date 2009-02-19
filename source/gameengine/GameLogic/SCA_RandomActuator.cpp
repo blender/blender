@@ -369,22 +369,22 @@ PyAttributeDef SCA_RandomActuator::Attributes[] = {
 	{ NULL }	//Sentinel
 };	
 
-PyObject* SCA_RandomActuator::_getattr(const STR_String& attr) {
+PyObject* SCA_RandomActuator::_getattr(const char *attr) {
 	PyObject* object = _getattr_self(Attributes, this, attr);
 	if (object != NULL)
 		return object;
-	if (attr == "seed") {
+	if (!strcmp(attr, "seed")) {
 		return PyInt_FromLong(m_base->GetSeed());
 	}
 	_getattr_up(SCA_IActuator);
 }
 
-int SCA_RandomActuator::_setattr(const STR_String& attr, PyObject *value)
+int SCA_RandomActuator::_setattr(const char *attr, PyObject *value)
 {
 	int ret = _setattr_self(Attributes, this, attr, value);
 	if (ret >= 0)
 		return ret;
-	if (attr == "seed") {
+	if (!strcmp(attr, "seed")) {
 		if (PyInt_Check(value))	{
 			int ival = PyInt_AsLong(value);
 			m_base->SetSeed(ival);

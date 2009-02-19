@@ -1544,28 +1544,28 @@ PyParentObject KX_Scene::Parents[] = {
 		NULL
 };
 
-PyObject* KX_Scene::_getattr(const STR_String& attr)
+PyObject* KX_Scene::_getattr(const char *attr)
 {
-	if (attr == "name")
+	if (!strcmp(attr, "name"))
 		return PyString_FromString(GetName());
 	
-	if (attr == "active_camera")
+	if (!strcmp(attr, "active_camera"))
 	{
 		KX_Camera *camera = GetActiveCamera();
 		camera->AddRef();
 		return (PyObject*) camera;
 	}
 	
-	if (attr == "suspended")
+	if (!strcmp(attr, "suspended"))
 		return PyInt_FromLong(m_suspend);
 	
-	if (attr == "activity_culling")
+	if (!strcmp(attr, "activity_culling"))
 		return PyInt_FromLong(m_activity_culling);
 	
-	if (attr == "activity_culling_radius")
+	if (!strcmp(attr, "activity_culling_radius"))
 		return PyFloat_FromDouble(m_activity_box_radius);
 	
-	PyObject* value = PyDict_GetItemString(m_attrlist, const_cast<char *>(attr.ReadPtr()));
+	PyObject* value = PyDict_GetItemString(m_attrlist, attr);
 	if (value)
 	{
 		Py_INCREF(value);
@@ -1575,16 +1575,15 @@ PyObject* KX_Scene::_getattr(const STR_String& attr)
 	_getattr_up(PyObjectPlus);
 }
 
-int KX_Scene::_delattr(const STR_String &attr)
+int KX_Scene::_delattr(const char *attr)
 {
-	PyDict_DelItemString(m_attrlist, const_cast<char *>(attr.ReadPtr()));
+	PyDict_DelItemString(m_attrlist, attr);
 	return 0;
 }
 
-int KX_Scene::_setattr(const STR_String &attr, PyObject *pyvalue)
+int KX_Scene::_setattr(const char *attr, PyObject *pyvalue)
 {
-
-	if (!PyDict_SetItemString(m_attrlist, const_cast<char *>(attr.ReadPtr()), pyvalue))
+	if (!PyDict_SetItemString(m_attrlist, attr, pyvalue))
 		return 0;
 
 	return PyObjectPlus::_setattr(attr, pyvalue);

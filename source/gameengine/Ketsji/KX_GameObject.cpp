@@ -1124,15 +1124,15 @@ PyParentObject KX_GameObject::Parents[] = {
 
 
 
-PyObject* KX_GameObject::_getattr(const STR_String& attr)
+PyObject* KX_GameObject::_getattr(const char *attr)
 {
 	if (m_pPhysicsController1)
 	{
-		if (attr == "mass")
+		if (!strcmp(attr, "mass"))
 			return PyFloat_FromDouble(m_pPhysicsController1->GetMass());
 	}
 
-	if (attr == "parent")
+	if (!strcmp(attr, "parent"))
 	{	
 		KX_GameObject* parent = GetParent();
 		if (parent)
@@ -1143,21 +1143,23 @@ PyObject* KX_GameObject::_getattr(const STR_String& attr)
 		Py_RETURN_NONE;
 	}
 
-	if (attr == "visible")
+	if (!strcmp(attr, "visible"))
 		return PyInt_FromLong(m_bVisible);
 	
-	if (attr == "position")
+	if (!strcmp(attr, "position"))
 		return PyObjectFrom(NodeGetWorldPosition());
 	
-	if (attr == "orientation")
+	if (!strcmp(attr, "orientation"))
 		return PyObjectFrom(NodeGetWorldOrientation());
 	
-	if (attr == "scaling")
+	if (!strcmp(attr, "scaling"))
 		return PyObjectFrom(NodeGetWorldScaling());
 		
-	if (attr == "name")
+	if (!strcmp(attr, "name"))
 		return PyString_FromString(m_name.ReadPtr());
-	if (attr == "timeOffset") {
+	
+	if (!strcmp(attr, "timeOffset"))
+	{
 		if (m_pSGNode->GetSGParent()->IsSlowParent()) {
 			return PyFloat_FromDouble(static_cast<KX_SlowParentRelation *>(m_pSGNode->GetSGParent()->GetParentRelation())->GetTimeOffset());
 		} else {
@@ -1169,10 +1171,10 @@ PyObject* KX_GameObject::_getattr(const STR_String& attr)
 	_getattr_up(SCA_IObject);
 }
 
-int KX_GameObject::_setattr(const STR_String& attr, PyObject *value)	// _setattr method
+int KX_GameObject::_setattr(const char *attr, PyObject *value)	// _setattr method
 {
 	
-	if (attr == "parent") {
+	if (!strcmp(attr, "parent")) {
 		PyErr_SetString(PyExc_AttributeError, "attribute \"mass\" is read only\nUse setParent()");
 		return 1;
 	}
@@ -1180,7 +1182,7 @@ int KX_GameObject::_setattr(const STR_String& attr, PyObject *value)	// _setattr
 	if (PyInt_Check(value))
 	{
 		int val = PyInt_AsLong(value);
-		if (attr == "visible")
+		if (!strcmp(attr, "visible"))
 		{
 			SetVisible(val != 0, false);
 			UpdateBuckets(false);
@@ -1191,7 +1193,7 @@ int KX_GameObject::_setattr(const STR_String& attr, PyObject *value)	// _setattr
 	if (PyFloat_Check(value))
 	{
 		MT_Scalar val = PyFloat_AsDouble(value);
-		if (attr == "timeOffset") {
+		if (!strcmp(attr, "timeOffset")) {
 			if (m_pSGNode->GetSGParent() && m_pSGNode->GetSGParent()->IsSlowParent()) {
 				static_cast<KX_SlowParentRelation *>(m_pSGNode->GetSGParent()->GetParentRelation())->SetTimeOffset(val);
 				return 0;
@@ -1199,7 +1201,7 @@ int KX_GameObject::_setattr(const STR_String& attr, PyObject *value)	// _setattr
 				return 0;
 			}		
 		}
-		if (attr == "mass") {
+		if (!strcmp(attr, "mass")) {
 			if (m_pPhysicsController1)
 				m_pPhysicsController1->SetMass(val);
 			return 0;
@@ -1208,7 +1210,7 @@ int KX_GameObject::_setattr(const STR_String& attr, PyObject *value)	// _setattr
 	
 	if (PySequence_Check(value))
 	{
-		if (attr == "orientation")
+		if (!strcmp(attr, "orientation"))
 		{
 			MT_Matrix3x3 rot;
 			if (PyObject_IsMT_Matrix(value, 3))
@@ -1251,7 +1253,7 @@ int KX_GameObject::_setattr(const STR_String& attr, PyObject *value)	// _setattr
 			return 1;
 		}
 		
-		if (attr == "position")
+		if (!strcmp(attr, "position"))
 		{
 			MT_Point3 pos;
 			if (PyVecTo(value, pos))
@@ -1263,7 +1265,7 @@ int KX_GameObject::_setattr(const STR_String& attr, PyObject *value)	// _setattr
 			return 1;
 		}
 		
-		if (attr == "scaling")
+		if (!strcmp(attr, "scaling"))
 		{
 			MT_Vector3 scale;
 			if (PyVecTo(value, scale))
@@ -1278,7 +1280,7 @@ int KX_GameObject::_setattr(const STR_String& attr, PyObject *value)	// _setattr
 	
 	if (PyString_Check(value))
 	{
-		if (attr == "name")
+		if (!strcmp(attr, "name"))	
 		{
 			m_name = PyString_AsString(value);
 			return 0;

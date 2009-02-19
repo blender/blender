@@ -60,8 +60,8 @@ public:
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
 	
-	virtual PyObject* _getattr(const STR_String& attr);
-	virtual int _setattr(const STR_String& attr, PyObject *value);
+	virtual PyObject* _getattr(const char *attr);
+	virtual int _setattr(const char *attr, PyObject *value);
 
 	/* setProperty */
 	KX_PYMETHOD_DOC(SCA_DelaySensor,SetDelay);

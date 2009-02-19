@@ -538,48 +538,48 @@ PyParentObject KX_Camera::Parents[] = {
 		NULL
 };
 
-PyObject* KX_Camera::_getattr(const STR_String& attr)
+PyObject* KX_Camera::_getattr(const char *attr)
 {
-	if (attr == "INSIDE")
+	if (!strcmp(attr, "INSIDE"))
 		return PyInt_FromLong(INSIDE); /* new ref */
-	if (attr == "OUTSIDE")
+	if (!strcmp(attr, "OUTSIDE"))
 		return PyInt_FromLong(OUTSIDE); /* new ref */
-	if (attr == "INTERSECT")
+	if (!strcmp(attr, "INTERSECT"))
 		return PyInt_FromLong(INTERSECT); /* new ref */
 	
-	if (attr == "lens")
+	if (!strcmp(attr, "lens"))
 		return PyFloat_FromDouble(GetLens()); /* new ref */
-	if (attr == "near")
+	if (!strcmp(attr, "near"))
 		return PyFloat_FromDouble(GetCameraNear()); /* new ref */
-	if (attr == "far")
+	if (!strcmp(attr, "far"))
 		return PyFloat_FromDouble(GetCameraFar()); /* new ref */
-	if (attr == "frustum_culling")
+	if (!strcmp(attr, "frustum_culling"))
 		return PyInt_FromLong(m_frustum_culling); /* new ref */
-	if (attr == "perspective")
+	if (!strcmp(attr, "perspective"))
 		return PyInt_FromLong(m_camdata.m_perspective); /* new ref */
-	if (attr == "projection_matrix")
+	if (!strcmp(attr, "projection_matrix"))
 		return PyObjectFrom(GetProjectionMatrix()); /* new ref */
-	if (attr == "modelview_matrix")
+	if (!strcmp(attr, "modelview_matrix"))
 		return PyObjectFrom(GetModelviewMatrix()); /* new ref */
-	if (attr == "camera_to_world")
+	if (!strcmp(attr, "camera_to_world"))
 		return PyObjectFrom(GetCameraToWorld()); /* new ref */
-	if (attr == "world_to_camera")
+	if (!strcmp(attr, "world_to_camera"))
 		return PyObjectFrom(GetWorldToCamera()); /* new ref */
 	
 	_getattr_up(KX_GameObject);
 }
 
-int KX_Camera::_setattr(const STR_String &attr, PyObject *pyvalue)
+int KX_Camera::_setattr(const char *attr, PyObject *pyvalue)
 {
 	if (PyInt_Check(pyvalue))
 	{
-		if (attr == "frustum_culling")
+		if (!strcmp(attr, "frustum_culling"))
 		{
 			m_frustum_culling = PyInt_AsLong(pyvalue);
 			return 0;
 		}
 		
-		if (attr == "perspective")
+		if (!strcmp(attr, "perspective"))
 		{
 			m_camdata.m_perspective = PyInt_AsLong(pyvalue);
 			return 0;
@@ -588,19 +588,19 @@ int KX_Camera::_setattr(const STR_String &attr, PyObject *pyvalue)
 	
 	if (PyFloat_Check(pyvalue))
 	{
-		if (attr == "lens")
+		if (!strcmp(attr, "lens"))
 		{
 			m_camdata.m_lens = PyFloat_AsDouble(pyvalue);
 			m_set_projection_matrix = false;
 			return 0;
 		}
-		if (attr == "near")
+		if (!strcmp(attr, "near"))
 		{
 			m_camdata.m_clipstart = PyFloat_AsDouble(pyvalue);
 			m_set_projection_matrix = false;
 			return 0;
 		}
-		if (attr == "far")
+		if (!strcmp(attr, "far"))
 		{
 			m_camdata.m_clipend = PyFloat_AsDouble(pyvalue);
 			m_set_projection_matrix = false;
@@ -610,7 +610,7 @@ int KX_Camera::_setattr(const STR_String &attr, PyObject *pyvalue)
 	
 	if (PyObject_IsMT_Matrix(pyvalue, 4))
 	{
-		if (attr == "projection_matrix")
+		if (!strcmp(attr, "projection_matrix"))
 		{
 			MT_Matrix4x4 mat;
 			if (PyMatTo(pyvalue, mat))

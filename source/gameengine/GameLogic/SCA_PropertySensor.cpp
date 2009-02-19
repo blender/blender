@@ -352,14 +352,14 @@ PyAttributeDef SCA_PropertySensor::Attributes[] = {
 };
 
 
-PyObject* SCA_PropertySensor::_getattr(const STR_String& attr) {
+PyObject* SCA_PropertySensor::_getattr(const char *attr) {
 	PyObject* object = _getattr_self(Attributes, this, attr);
 	if (object != NULL)
 		return object;
 	_getattr_up(SCA_ISensor); /* implicit return! */
 }
 
-int SCA_PropertySensor::_setattr(const STR_String& attr, PyObject *value) {
+int SCA_PropertySensor::_setattr(const char *attr, PyObject *value) {
 	int ret = _setattr_self(Attributes, this, attr, value);
 	if (ret >= 0)
 		return ret;

@@ -470,9 +470,9 @@ PyMethodDef KX_TrackToActuator::Methods[] = {
 
 
 
-PyObject* KX_TrackToActuator::_getattr(const STR_String& attr)
+PyObject* KX_TrackToActuator::_getattr(const char *attr)
 {
-	if (attr == "object") {
+	if (!strcmp(attr, "object")) {
 		if (!m_object)		Py_RETURN_NONE;
 		else				return m_object->AddRef();
 	}
@@ -480,10 +480,10 @@ PyObject* KX_TrackToActuator::_getattr(const STR_String& attr)
 	_getattr_up(SCA_IActuator);
 }
 
-int KX_TrackToActuator::_setattr(const STR_String& attr, PyObject* value) {
+int KX_TrackToActuator::_setattr(const char *attr, PyObject* value) {
 	int ret;
 	
-	if (attr == "object") {
+	if (!strcmp(attr, "object")) {
 		KX_GameObject *gameobj;
 		
 		if (!ConvertPythonToGameObject(value, &gameobj, true))

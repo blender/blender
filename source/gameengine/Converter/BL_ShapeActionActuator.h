@@ -103,8 +103,8 @@ public:
 	KX_PYMETHOD_DOC_NOARGS(BL_ShapeActionActuator,GetType);
 	KX_PYMETHOD_DOC(BL_ShapeActionActuator,SetType);
 
-	virtual PyObject* _getattr(const STR_String& attr);
-	virtual int _setattr(const STR_String& attr, PyObject* value);
+	virtual PyObject* _getattr(const char *attr);
+	virtual int _setattr(const char *attr, PyObject* value);
 
 	static int CheckBlendTime(void *self, const PyAttributeDef*)
 	{

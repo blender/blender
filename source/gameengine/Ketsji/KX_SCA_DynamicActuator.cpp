@@ -87,7 +87,7 @@ PyMethodDef KX_SCA_DynamicActuator::Methods[] = {
 
 
 
-PyObject* KX_SCA_DynamicActuator::_getattr(const STR_String& attr)
+PyObject* KX_SCA_DynamicActuator::_getattr(const char *attr)
 {
   _getattr_up(SCA_IActuator);
 }

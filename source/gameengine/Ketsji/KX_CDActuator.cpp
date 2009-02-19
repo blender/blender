@@ -199,7 +199,7 @@ PyMethodDef KX_CDActuator::Methods[] = {
 
 
 
-PyObject* KX_CDActuator::_getattr(const STR_String& attr)
+PyObject* KX_CDActuator::_getattr(const char *attr)
 {
 	_getattr_up(SCA_IActuator);
 }

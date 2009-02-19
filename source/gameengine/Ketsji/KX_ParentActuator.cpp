@@ -172,9 +172,9 @@ PyMethodDef KX_ParentActuator::Methods[] = {
 	{NULL,NULL} //Sentinel
 };
 
-PyObject* KX_ParentActuator::_getattr(const STR_String& attr) {	
+PyObject* KX_ParentActuator::_getattr(const char *attr) {	
 	
-	if (attr == "object") {
+	if (!strcmp(attr, "object")) {
 		if (!m_ob)	Py_RETURN_NONE;
 		else		return m_ob->AddRef();
 	}
@@ -182,9 +182,9 @@ PyObject* KX_ParentActuator::_getattr(const STR_String& attr) {
 	_getattr_up(SCA_IActuator);
 }
 
-int KX_ParentActuator::_setattr(const STR_String& attr, PyObject* value) {
+int KX_ParentActuator::_setattr(const char *attr, PyObject* value) {
 	
-	if (attr == "object") {
+	if (!strcmp(attr, "object")) {
 		KX_GameObject *gameobj;
 		
 		if (!ConvertPythonToGameObject(value, &gameobj, true))

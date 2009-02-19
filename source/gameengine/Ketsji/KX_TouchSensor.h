@@ -106,7 +106,7 @@ public:
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
 	
-	virtual PyObject* _getattr(const STR_String& attr);
+	virtual PyObject* _getattr(const char *attr);
 
 	/* 1. setProperty */
 	KX_PYMETHOD_DOC(KX_TouchSensor,SetProperty);

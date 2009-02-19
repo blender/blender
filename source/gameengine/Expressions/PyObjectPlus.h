@@ -97,7 +97,7 @@ static inline void Py_Fatal(const char *M) {
 								// to be properly passed up the hierarchy.
 #define _getattr_up(Parent) \
   PyObject *rvalue = NULL; \
-  if (attr=="__methods__") { \
+  if (!strcmp(attr, "__methods__")) { \
     PyObject *_attr_string = NULL; \
     PyMethodDef *meth = Methods; \
     rvalue = Parent::_getattr(attr); \
@@ -113,7 +113,7 @@ static inline void Py_Fatal(const char *M) {
 	  } \
 	} \
   } else { \
-    rvalue = Py_FindMethod(Methods, this, const_cast<char*>(attr.ReadPtr())); \
+    rvalue = Py_FindMethod(Methods, this, attr); \
     if (rvalue == NULL) { \
       PyErr_Clear(); \
       rvalue = Parent::_getattr(attr); \
@@ -348,23 +348,23 @@ public:
 //		  Py_DECREF(this);
 //	  };				// decref method
 	
-	virtual PyObject *_getattr(const STR_String& attr);			// _getattr method
+	virtual PyObject *_getattr(const char *attr);			// _getattr method
 	static  PyObject *__getattr(PyObject * PyObj, char *attr) 	// This should be the entry in Type. 
 	{
-		return ((PyObjectPlus*) PyObj)->_getattr(STR_String(attr)); 
+		return ((PyObjectPlus*) PyObj)->_getattr(attr); 
 	}
-	static PyObject *_getattr_self(const PyAttributeDef attrlist[], void *self, const STR_String &attr);
-	static int _setattr_self(const PyAttributeDef attrlist[], void *self, const STR_String &attr, PyObject *value);
+	static PyObject *_getattr_self(const PyAttributeDef attrlist[], void *self, const char *attr);
+	static int _setattr_self(const PyAttributeDef attrlist[], void *self, const char *attr, PyObject *value);
 	
-	virtual int _delattr(const STR_String& attr);
-	virtual int _setattr(const STR_String& attr, PyObject *value);		// _setattr method
+	virtual int _delattr(const char *attr);
+	virtual int _setattr(const char *attr, PyObject *value);		// _setattr method
 	static  int __setattr(PyObject *PyObj, 			// This should be the entry in Type. 
 				char *attr, 
 				PyObject *value)
 	{ 
 		if (!value)
 			return ((PyObjectPlus*) PyObj)->_delattr(attr);
-		return ((PyObjectPlus*) PyObj)->_setattr(STR_String(attr), value);  
+		return ((PyObjectPlus*) PyObj)->_setattr(attr, value);  
 	}
 	
 	virtual PyObject *_repr(void);				// _repr method

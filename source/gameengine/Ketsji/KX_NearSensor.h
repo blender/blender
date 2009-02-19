@@ -79,7 +79,7 @@ public:
 	virtual void RegisterSumo(KX_TouchEventManager *touchman);
 	virtual void UnregisterSumo(KX_TouchEventManager* touchman);
 	
-	virtual PyObject* _getattr(const STR_String& attr);
+	virtual PyObject* _getattr(const char *attr);
 
 };
 

@@ -831,7 +831,7 @@ PyAttributeDef SCA_KeyboardSensor::Attributes[] = {
 };
 
 PyObject*
-SCA_KeyboardSensor::_getattr(const STR_String& attr)
+SCA_KeyboardSensor::_getattr(const char *attr)
 {
 	PyObject* object = _getattr_self(Attributes, this, attr);
 	if (object != NULL)
@@ -839,7 +839,7 @@ SCA_KeyboardSensor::_getattr(const STR_String& attr)
   _getattr_up(SCA_ISensor);
 }
 
-int SCA_KeyboardSensor::_setattr(const STR_String& attr, PyObject *value)
+int SCA_KeyboardSensor::_setattr(const char *attr, PyObject *value)
 {
 	int ret = _setattr_self(Attributes, this, attr, value);
 	if (ret >= 0)

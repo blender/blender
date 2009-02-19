@@ -270,8 +270,8 @@ public:
 	KX_PYMETHOD_DOC(KX_Camera, setViewport);	
 	KX_PYMETHOD_DOC(KX_Camera, setOnTop);	
 
-	virtual PyObject* _getattr(const STR_String& attr); /* lens, near, far, projection_matrix */
-	virtual int       _setattr(const STR_String& attr, PyObject *pyvalue);
+	virtual PyObject* _getattr(const char *attr); /* lens, near, far, projection_matrix */
+	virtual int       _setattr(const char *attr, PyObject *pyvalue);
 
 };
 

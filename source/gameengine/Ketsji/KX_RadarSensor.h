@@ -81,7 +81,7 @@ public:
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
 	
-	virtual PyObject* _getattr(const STR_String& attr);
+	virtual PyObject* _getattr(const char *attr);
 
 	KX_PYMETHOD_DOC(KX_RadarSensor,GetConeOrigin);
 	KX_PYMETHOD_DOC(KX_RadarSensor,GetConeTarget);

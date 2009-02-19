@@ -674,9 +674,9 @@ static PyMethodDef	CValueMethods[] =
 };
 
 
-PyObject*	CValue::_getattr(const STR_String& attr)
+PyObject*	CValue::_getattr(const char *attr)
 {
-	CValue* resultattr = FindIdentifier(attr);
+	CValue* resultattr = FindIdentifier(STR_String(attr));
 	STR_String text;
 	if (resultattr)
 	{
@@ -761,26 +761,27 @@ CValue* CValue::ConvertPythonToValue(PyObject* pyobj)
 
 }
 
-int	CValue::_delattr(const STR_String& attr)
+int	CValue::_delattr(const char *attr)
 {
-	if (!RemoveProperty(attr)) /* sets error */
+	if (!RemoveProperty(STR_String(attr))) /* sets error */
 		return 1;
 	return 0;
 }
 
-int	CValue::_setattr(const STR_String& attr,PyObject* pyobj)
+int	CValue::_setattr(const char *attr,PyObject* pyobj)
 {
 	CValue* vallie = ConvertPythonToValue(pyobj);
 	if (vallie)
 	{
-		CValue* oldprop = GetProperty(attr);
+		STR_String attr_str = attr;
+		CValue* oldprop = GetProperty(attr_str);
 		
 		if (oldprop)
 		{
 			oldprop->SetValue(vallie);
 		} else
 		{
-			SetProperty(attr,vallie);
+			SetProperty(attr_str, vallie);
 		}
 		vallie->Release();
 	} else

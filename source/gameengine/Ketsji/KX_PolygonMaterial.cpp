@@ -202,7 +202,7 @@ PyParentObject KX_PolygonMaterial::Parents[] = {
 	NULL
 };
 
-PyObject* KX_PolygonMaterial::_getattr(const STR_String& attr)
+PyObject* KX_PolygonMaterial::_getattr(const char *attr)
 {
 	if (attr == "texture")
 		return PyString_FromString(m_texturename.ReadPtr());
@@ -253,7 +253,7 @@ PyObject* KX_PolygonMaterial::_getattr(const STR_String& attr)
 	_getattr_up(PyObjectPlus);
 }
 
-int KX_PolygonMaterial::_setattr(const STR_String &attr, PyObject *pyvalue)
+int KX_PolygonMaterial::_setattr(const char *attr, PyObject *pyvalue)
 {
 	if (PyFloat_Check(pyvalue))
 	{

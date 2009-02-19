@@ -322,13 +322,13 @@ PyParentObject KX_VehicleWrapper::Parents[] = {
 	NULL
 };
 
-PyObject*	KX_VehicleWrapper::_getattr(const STR_String& attr)
+PyObject*	KX_VehicleWrapper::_getattr(const char *attr)
 {
 	//here you can search for existing data members (like mass,friction etc.)
 	_getattr_up(PyObjectPlus);
 }
 
-int	KX_VehicleWrapper::_setattr(const STR_String& attr,PyObject* pyobj)
+int	KX_VehicleWrapper::_setattr(const char *attr,PyObject* pyobj)
 {
 	
 	PyTypeObject* type = pyobj->ob_type;

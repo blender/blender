@@ -234,7 +234,7 @@ PyMethodDef CListValue::Methods[] = {
 
 
 
-PyObject* CListValue::_getattr(const STR_String& attr) {
+PyObject* CListValue::_getattr(const char *attr) {
 	_getattr_up(CValue);
 }
 

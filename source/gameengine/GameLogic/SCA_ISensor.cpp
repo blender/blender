@@ -461,19 +461,19 @@ PyAttributeDef SCA_ISensor::Attributes[] = {
 };
 
 PyObject*
-SCA_ISensor::_getattr(const STR_String& attr)
+SCA_ISensor::_getattr(const char *attr)
 {
 	PyObject* object = _getattr_self(Attributes, this, attr);
 	if (object != NULL)
 		return object;
-	if (attr == "triggered")
+	if (!strcmp(attr, "triggered"))
 	{
 		int retval = 0;
 		if (SCA_PythonController::m_sCurrentController)
 			retval = SCA_PythonController::m_sCurrentController->IsTriggered(this);
 		return PyInt_FromLong(retval);
 	}
-	if (attr == "positive")
+	if (!strcmp(attr, "positive"))
 	{	
 		int retval = IsPositiveTrigger();
 		return PyInt_FromLong(retval);
@@ -481,7 +481,7 @@ SCA_ISensor::_getattr(const STR_String& attr)
 	_getattr_up(SCA_ILogicBrick);
 }
 
-int SCA_ISensor::_setattr(const STR_String& attr, PyObject *value)
+int SCA_ISensor::_setattr(const char *attr, PyObject *value)
 {
 	int ret = _setattr_self(Attributes, this, attr, value);
 	if (ret >= 0)

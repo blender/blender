@@ -63,8 +63,8 @@ public:
 	void UnbindShadowBuffer(class RAS_IRasterizer *ras);
 	void Update();
 	
-	virtual PyObject* _getattr(const STR_String& attr); /* lens, near, far, projection_matrix */
-	virtual int       _setattr(const STR_String& attr, PyObject *pyvalue);
+	virtual PyObject* _getattr(const char *attr); /* lens, near, far, projection_matrix */
+	virtual int       _setattr(const char *attr, PyObject *pyvalue);
 
 	virtual bool IsLight(void) { return true; }
 };

@@ -341,7 +341,7 @@ PyAttributeDef SCA_MouseSensor::Attributes[] = {
 	{ NULL }	//Sentinel
 };
 
-PyObject* SCA_MouseSensor::_getattr(const STR_String& attr) 
+PyObject* SCA_MouseSensor::_getattr(const char *attr) 
 {
 	PyObject* object = _getattr_self(Attributes, this, attr);
 	if (object != NULL)
@@ -349,7 +349,7 @@ PyObject* SCA_MouseSensor::_getattr(const STR_String& attr)
 	_getattr_up(SCA_ISensor);
 }
 
-int SCA_MouseSensor::_setattr(const STR_String& attr, PyObject *value)
+int SCA_MouseSensor::_setattr(const char *attr, PyObject *value)
 {
 	int ret = _setattr_self(Attributes, this, attr, value);
 	if (ret >= 0)

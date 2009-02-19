@@ -729,7 +729,7 @@ void BL_Shader::SetUniform(int uniform, const int* val, int len)
 }
 
 
-PyObject* BL_Shader::_getattr(const STR_String& attr)
+PyObject* BL_Shader::_getattr(const char *attr)
 {
 	_getattr_up(PyObjectPlus);
 }

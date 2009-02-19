@@ -287,7 +287,7 @@ PyMethodDef KX_SoundActuator::Methods[] = {
 
 
 
-PyObject* KX_SoundActuator::_getattr(const STR_String& attr)
+PyObject* KX_SoundActuator::_getattr(const char *attr)
 {
 	_getattr_up(SCA_IActuator);
 }

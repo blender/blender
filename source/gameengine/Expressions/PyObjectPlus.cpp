@@ -106,24 +106,24 @@ PyParentObject PyObjectPlus::Parents[] = {&PyObjectPlus::Type, NULL};
 /*------------------------------
  * PyObjectPlus attributes	-- attributes
 ------------------------------*/
-PyObject *PyObjectPlus::_getattr(const STR_String& attr)
+PyObject *PyObjectPlus::_getattr(const char *attr)
 {
-	if (attr == "__doc__" && GetType()->tp_doc)
+	if (!strcmp(attr, "__doc__") && GetType()->tp_doc)
 		return PyString_FromString(GetType()->tp_doc);
 
   //if (streq(attr, "type"))
   //  return Py_BuildValue("s", (*(GetParents()))->tp_name);
 
-  return Py_FindMethod(Methods, this, const_cast<char *>(attr.ReadPtr()));
+  return Py_FindMethod(Methods, this, attr);
 }
 
-int PyObjectPlus::_delattr(const STR_String& attr)
+int PyObjectPlus::_delattr(const char *attr)
 {
 	PyErr_SetString(PyExc_AttributeError, "attribute cant be deleted");
 	return 1;
 }
 
-int PyObjectPlus::_setattr(const STR_String& attr, PyObject *value)
+int PyObjectPlus::_setattr(const char *attr, PyObject *value)
 {
 	//return PyObject::_setattr(attr,value);
 	//cerr << "Unknown attribute" << endl;
@@ -131,12 +131,12 @@ int PyObjectPlus::_setattr(const STR_String& attr, PyObject *value)
 	return 1;
 }
 
-PyObject *PyObjectPlus::_getattr_self(const PyAttributeDef attrlist[], void *self, const STR_String &attr)
+PyObject *PyObjectPlus::_getattr_self(const PyAttributeDef attrlist[], void *self, const char *attr)
 {
 	const PyAttributeDef *attrdef;
 	for (attrdef=attrlist; attrdef->m_name != NULL; attrdef++)
 	{
-		if (attr == attrdef->m_name) 
+		if (!strcmp(attr, attrdef->m_name))
 		{
 			if (attrdef->m_type == KX_PYATTRIBUTE_TYPE_DUMMY)
 			{
@@ -238,7 +238,7 @@ PyObject *PyObjectPlus::_getattr_self(const PyAttributeDef attrlist[], void *sel
 	return NULL;
 }
 
-int PyObjectPlus::_setattr_self(const PyAttributeDef attrlist[], void *self, const STR_String &attr, PyObject *value)
+int PyObjectPlus::_setattr_self(const PyAttributeDef attrlist[], void *self, const char *attr, PyObject *value)
 {
 	const PyAttributeDef *attrdef;
 	void *undoBuffer = NULL;
@@ -247,7 +247,7 @@ int PyObjectPlus::_setattr_self(const PyAttributeDef attrlist[], void *self, con
 
 	for (attrdef=attrlist; attrdef->m_name != NULL; attrdef++)
 	{
-		if (attr == attrdef->m_name) 
+		if (!strcmp(attr, attrdef->m_name))
 		{
 			if (attrdef->m_access == KX_PYATTRIBUTE_RO ||
 				attrdef->m_type == KX_PYATTRIBUTE_TYPE_DUMMY)

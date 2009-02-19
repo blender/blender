@@ -205,9 +205,9 @@ PyMethodDef KX_SCA_AddObjectActuator::Methods[] = {
 };
 
 
-PyObject* KX_SCA_AddObjectActuator::_getattr(const STR_String& attr)
+PyObject* KX_SCA_AddObjectActuator::_getattr(const char *attr)
 {
-	if (attr == "object") {
+	if (!strcmp(attr, "object")) {
 		if (!m_OriginalObject)	Py_RETURN_NONE;
 		else					return m_OriginalObject->AddRef();
 	}
@@ -219,9 +219,9 @@ PyObject* KX_SCA_AddObjectActuator::_getattr(const STR_String& attr)
   _getattr_up(SCA_IActuator);
 }
 
-int KX_SCA_AddObjectActuator::_setattr(const STR_String& attr, PyObject* value) {
+int KX_SCA_AddObjectActuator::_setattr(const char *attr, PyObject* value) {
 	
-	if (attr == "object") {
+	if (!strcmp(attr, "object")) {
 		KX_GameObject *gameobj;
 		
 		if (!ConvertPythonToGameObject(value, &gameobj, true))

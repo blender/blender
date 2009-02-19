@@ -772,12 +772,12 @@ PyParentObject KX_BlenderMaterial::Parents[] = {
 };
 
 
-PyObject* KX_BlenderMaterial::_getattr(const STR_String& attr)
+PyObject* KX_BlenderMaterial::_getattr(const char *attr)
 {
 	_getattr_up(PyObjectPlus);
 }
 
-int KX_BlenderMaterial::_setattr(const STR_String& attr, PyObject *pyvalue)
+int KX_BlenderMaterial::_setattr(const char *attr, PyObject *pyvalue)
 {
 	return PyObjectPlus::_setattr(attr, pyvalue);
 }
