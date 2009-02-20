@@ -61,6 +61,36 @@
 
 #include "graph_intern.h"	// own include
 
+/* ******************** manage regions ********************* */
+
+ARegion *graph_has_buttons_region(ScrArea *sa)
+{
+	ARegion *ar, *arnew;
+	
+	for(ar= sa->regionbase.first; ar; ar= ar->next)
+		if(ar->regiontype==RGN_TYPE_UI)
+			return ar;
+	
+	/* add subdiv level; after channel */
+	for(ar= sa->regionbase.first; ar; ar= ar->next)
+		if(ar->regiontype==RGN_TYPE_CHANNELS)
+			break;
+	
+	/* is error! */
+	if(ar==NULL) return NULL;
+	
+	arnew= MEM_callocN(sizeof(ARegion), "buttons for view3d");
+	
+	BLI_insertlinkafter(&sa->regionbase, ar, arnew);
+	arnew->regiontype= RGN_TYPE_UI;
+	arnew->alignment= RGN_ALIGN_TOP|RGN_SPLIT_PREV;
+	
+	arnew->flag = RGN_FLAG_HIDDEN;
+	
+	return arnew;
+}
+
+
 /* ******************** default callbacks for ipo space ***************** */
 
 static SpaceLink *graph_new(const bContext *C)
@@ -93,6 +123,14 @@ static SpaceLink *graph_new(const bContext *C)
 	ar->alignment= RGN_ALIGN_LEFT;
 	
 	ar->v2d.scroll = (V2D_SCROLL_RIGHT|V2D_SCROLL_BOTTOM);
+	
+	/* ui buttons */
+	ar= MEM_callocN(sizeof(ARegion), "main area for graphedit");
+	
+	BLI_addtail(&sipo->regionbase, ar);
+	ar->regiontype= RGN_TYPE_UI;
+	ar->alignment= RGN_ALIGN_TOP|RGN_SPLIT_PREV;
+	ar->flag = RGN_FLAG_HIDDEN;
 	
 	/* main area */
 	ar= MEM_callocN(sizeof(ARegion), "main area for graphedit");
@@ -166,6 +204,8 @@ static void graph_main_area_init(wmWindowManager *wm, ARegion *ar)
 	/* own keymap */
 	keymap= WM_keymap_listbase(wm, "GraphEdit Keys", SPACE_IPO, 0);	/* XXX weak? */
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
+	keymap= WM_keymap_listbase(wm, "GraphEdit Generic", SPACE_IPO, 0);
+	WM_event_add_keymap_handler(&ar->handlers, keymap);
 }
 
 static void graph_main_area_draw(const bContext *C, ARegion *ar)
@@ -229,6 +269,8 @@ static void graph_channel_area_init(wmWindowManager *wm, ARegion *ar)
 	/* own keymap */
 	keymap= WM_keymap_listbase(wm, "Animation_Channels", 0, 0);	/* XXX weak? */
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
+	keymap= WM_keymap_listbase(wm, "GraphEdit Generic", SPACE_IPO, 0);
+	WM_event_add_keymap_handler(&ar->handlers, keymap);
 }
 
 static void graph_channel_area_draw(const bContext *C, ARegion *ar)
@@ -287,6 +329,37 @@ static void graph_header_area_draw(const bContext *C, ARegion *ar)
 	/* restore view matrix? */
 	UI_view2d_view_restore(C);
 }
+
+/* add handlers, stuff you only do once or on area/region changes */
+static void graph_buttons_area_init(wmWindowManager *wm, ARegion *ar)
+{
+	ListBase *keymap;
+	
+	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_LIST_UI, ar->winx, ar->winy);
+
+	keymap= WM_keymap_listbase(wm, "GraphEdit Generic", SPACE_IPO, 0);
+	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
+}
+
+static void graph_buttons_area_draw(const bContext *C, ARegion *ar)
+{
+	float col[3];
+	
+	/* clear */
+	UI_GetThemeColor3fv(TH_HEADER, col);
+	
+	glClearColor(col[0], col[1], col[2], 0.0);
+	glClear(GL_COLOR_BUFFER_BIT);
+	
+	/* set view2d view matrix for scrolling (without scrollers) */
+	UI_view2d_view_ortho(C, &ar->v2d);
+	
+	graph_region_buttons(C, ar);
+	
+	/* restore view matrix? */
+	UI_view2d_view_restore(C);
+}
+
 
 static void graph_region_listener(ARegion *ar, wmNotifier *wmn)
 {
@@ -490,6 +563,16 @@ void ED_spacetype_ipo(void)
 	
 	BLI_addhead(&st->regiontypes, art);
 	
+	/* regions: UI buttons */
+	art= MEM_callocN(sizeof(ARegionType), "spacetype graphedit region");
+	art->regionid = RGN_TYPE_UI;
+	art->minsizey= 160;
+	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D|ED_KEYMAP_FRAMES;
+	art->listener= NULL; // graph_region_listener;
+	art->init= graph_buttons_area_init;
+	art->draw= graph_buttons_area_draw;
+	
+	BLI_addhead(&st->regiontypes, art);
 	
 	BKE_spacetype_register(st);
 }

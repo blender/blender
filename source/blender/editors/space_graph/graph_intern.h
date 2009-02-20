@@ -25,16 +25,21 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef ED_IPO_INTERN_H
-#define ED_IPO_INTERN_H
+#ifndef ED_GRAPH_INTERN_H
+#define ED_GRAPH_INTERN_H
 
 struct bContext;
 struct wmWindowManager;
 struct bAnimContext;
 struct SpaceIpo;
+struct ScrArea;
 struct ARegion;
 
 /* internal exports only */
+
+/* ***************************************** */
+/* space_graph.c */
+struct ARegion *graph_has_buttons_region(struct ScrArea *sa);
 
 /* ***************************************** */
 /* ipo_draw.c */
@@ -42,11 +47,11 @@ void graph_draw_channel_names(struct bAnimContext *ac, struct SpaceIpo *sipo, st
 void graph_draw_curves(struct bAnimContext *ac, struct SpaceIpo *sipo, struct ARegion *ar);
 
 /* ***************************************** */
-/* ipo_header.c */
+/* graph_header.c */
 void graph_header_buttons(const bContext *C, struct ARegion *ar);
 
 /* ***************************************** */
-/* ipo_select.c */
+/* graph_select.c */
 
 void GRAPHEDIT_OT_keyframes_deselectall(struct wmOperatorType *ot);
 void GRAPHEDIT_OT_keyframes_borderselect(struct wmOperatorType *ot);
@@ -70,7 +75,7 @@ enum {
 } eGraphKeys_ColumnSelect_Mode;
 
 /* ***************************************** */
-/* ipo_edit.c */
+/* graph_edit.c */
 
 void GRAPHEDIT_OT_set_previewrange(struct wmOperatorType *ot);
 void GRAPHEDIT_OT_view_all(struct wmOperatorType *ot);
@@ -114,10 +119,15 @@ enum {
 } eGraphKeys_Mirror_Mode;
 
 /* ***************************************** */
-/* ipo_ops.c */
+/* graph_buttons.c */
+void GRAPHEDIT_OT_properties(struct wmOperatorType *ot);
+void graph_region_buttons(const struct bContext *C, struct ARegion *ar);
+
+/* ***************************************** */
+/* graph_ops.c */
 void graphedit_keymap(struct wmWindowManager *wm);
 void graphedit_operatortypes(void);
 
 
-#endif /* ED_IPO_INTERN_H */
+#endif /* ED_GRAPH_INTERN_H */
 

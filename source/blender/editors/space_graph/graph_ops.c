@@ -99,6 +99,7 @@ void graphedit_operatortypes(void)
 	WM_operatortype_append(GRAPHEDIT_OT_view_togglehandles);
 	WM_operatortype_append(GRAPHEDIT_OT_set_previewrange);
 	WM_operatortype_append(GRAPHEDIT_OT_view_all);
+	WM_operatortype_append(GRAPHEDIT_OT_properties);
 	
 	/* keyframes */
 		/* selection */
@@ -199,6 +200,10 @@ void graphedit_keymap(wmWindowManager *wm)
 {
 	ListBase *keymap;
 	
+	/* keymap for all regions */
+	keymap= WM_keymap_listbase(wm, "GraphEdit Generic", SPACE_IPO, 0);
+	WM_keymap_add_item(keymap, "GRAPHEDIT_OT_properties", NKEY, KM_PRESS, 0, 0);
+
 	/* channels */
 	/* Channels are not directly handled by the Graph Editor module, but are inherited from the Animation module. 
 	 * All the relevant operations, keymaps, drawing, etc. can therefore all be found in that module instead, as these
