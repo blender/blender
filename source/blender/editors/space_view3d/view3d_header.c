@@ -76,6 +76,9 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "RNA_access.h"
+#include "RNA_define.h"
+
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 #include "BIF_transform.h"
@@ -248,6 +251,70 @@ void do_layer_buttons(bContext *C, short event)
 	
 	if(v3d->drawtype == OB_SHADED) reshadeall_displist(scene);
 }
+
+static int layers_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	ScrArea *sa= CTX_wm_area(C);
+	View3D *v3d= sa->spacedata.first;
+	int nr= RNA_int_get(op->ptr, "nr");
+	
+	if(nr<=0)
+		return OPERATOR_CANCELLED;
+	nr--;
+	
+	if(RNA_boolean_get(op->ptr, "extend"))
+		v3d->lay |= (1<<nr);
+	else 
+		v3d->lay = (1<<nr);
+	
+	if(v3d->scenelock) handle_view3d_lock();
+	
+	/* new layers might need unflushed events events */
+	DAG_scene_update_flags(scene, v3d->lay);	/* tags all that moves and flushes */
+
+	ED_area_tag_redraw(sa);
+	
+	return OPERATOR_FINISHED;
+}
+
+/* applies shift and alt, lazy coding or ok? :) */
+/* the local per-keymap-entry keymap will solve it */
+static int layers_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	if(event->ctrl || event->oskey)
+		return OPERATOR_PASS_THROUGH;
+	
+	if(event->shift)
+		RNA_boolean_set(op->ptr, "extend", 1);
+	
+	if(event->alt) {
+		int nr= RNA_int_get(op->ptr, "nr") + 10;
+		RNA_int_set(op->ptr, "nr", nr);
+	}
+	layers_exec(C, op);
+	
+	return OPERATOR_FINISHED;
+}
+
+void VIEW3D_OT_layers(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Layers";
+	ot->idname= "VIEW3D_OT_layers";
+	
+	/* api callbacks */
+	ot->invoke= layers_invoke;
+	ot->exec= layers_exec;
+	ot->poll= ED_operator_view3d_active;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	RNA_def_int(ot->srna, "nr", 1, 0, 20, "Number", "", 0, 20);
+	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "");
+}
+
 
 #if 0
 static void do_view3d_view_camerasmenu(bContext *C, void *arg, int event)
@@ -4937,6 +5004,7 @@ static char *propfalloff_pup(void)
 
 static void do_view3d_header_buttons(bContext *C, void *arg, int event)
 {
+	wmWindow *win= CTX_wm_window(C);
 	Scene *scene= CTX_data_scene(C);
 	ScrArea *sa= CTX_wm_area(C);
 	View3D *v3d= sa->spacedata.first;
@@ -4944,7 +5012,7 @@ static void do_view3d_header_buttons(bContext *C, void *arg, int event)
 	Object *ob= CTX_data_active_object(C);
 	Object *obedit = CTX_data_edit_object(C);
 	EditMesh *em= NULL;
-	int bit, ctrl=0, shift=0; // XXX shift arg?
+	int bit, ctrl= win->eventstate->ctrl, shift= win->eventstate->shift;
 	
 	if(obedit && obedit->type==OB_MESH) {
 		em= ((Mesh *)obedit->data)->edit_mesh;
