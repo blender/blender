@@ -69,6 +69,13 @@ short deletekey(struct ID *id, const char group[], const char rna_path[], int ar
 /* Generate menu of KeyingSets */
 char *ANIM_build_keyingsets_menu(struct ListBase *list, short for_edit);
 
+/* KeyingSet Editing Operators:
+ *	These can add a new KeyingSet and/or add 'destinations' to the KeyingSets,
+ *	acting as a means by which they can be added outside the Outliner.
+ */
+void ANIM_OT_keyingset_add_new(struct wmOperatorType *ot);
+void ANIM_OT_keyingset_add_destination(struct wmOperatorType *ot);
+
 /* Main Keyframe Management operators: 
  *	These handle keyframes management from various spaces. They only make use of
  * 	Keying Sets.
