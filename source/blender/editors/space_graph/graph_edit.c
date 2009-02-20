@@ -72,6 +72,8 @@
 
 #include "UI_view2d.h"
 
+#include "BIF_transform.h"
+
 #include "ED_anim_api.h"
 #include "ED_keyframing.h"
 #include "ED_keyframes_draw.h"
@@ -557,6 +559,77 @@ void GRAPHEDIT_OT_keyframes_paste (wmOperatorType *ot)
 }
 
 #endif // XXX code to be sanitied for new system
+
+/* ******************** Duplicate Keyframes Operator ************************* */
+
+static void duplicate_graph_keys (bAnimContext *ac)
+{
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
+	int filter;
+	
+	/* filter data */
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVEVISIBLE| ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY);
+	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
+	
+	/* loop through filtered data and delete selected keys */
+	for (ale= anim_data.first; ale; ale= ale->next) {
+		duplicate_fcurve_keys((FCurve *)ale->key_data);
+	}
+	
+	/* free filtered list */
+	BLI_freelistN(&anim_data);
+}
+
+/* ------------------- */
+
+static int graphkeys_duplicate_exec(bContext *C, wmOperator *op)
+{
+	bAnimContext ac;
+	
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+		
+	/* duplicate keyframes */
+	duplicate_graph_keys(&ac);
+	
+	/* validate keyframes after editing */
+	ANIM_editkeyframes_refresh(&ac);
+	
+	/* set notifier tha things have changed */
+	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_KEYFRAMES_VALUES);
+	
+	return OPERATOR_FINISHED;
+}
+
+static int graphkeys_duplicate_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	graphkeys_duplicate_exec(C, op);
+	
+	RNA_int_set(op->ptr, "mode", TFM_TRANSLATION);
+	WM_operator_name_call(C, "TFM_OT_transform", WM_OP_INVOKE_REGION_WIN, op->ptr);
+
+	return OPERATOR_FINISHED;
+}
+ 
+void GRAPHEDIT_OT_keyframes_duplicate (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Duplicate Keyframes";
+	ot->idname= "GRAPHEDIT_OT_keyframes_duplicate";
+	
+	/* api callbacks */
+	ot->invoke= graphkeys_duplicate_invoke;
+	ot->exec= graphkeys_duplicate_exec;
+	ot->poll= ED_operator_areaactive;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* to give to transform */
+	RNA_def_int(ot->srna, "mode", TFM_TRANSLATION, 0, INT_MAX, "Mode", "", 0, INT_MAX);
+}
 
 /* ******************** Delete Keyframes Operator ************************* */
 

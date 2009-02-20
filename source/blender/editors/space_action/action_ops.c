@@ -78,6 +78,7 @@ void action_operatortypes(void)
 	WM_operatortype_append(ACT_OT_keyframes_sample);
 	WM_operatortype_append(ACT_OT_keyframes_clean);
 	WM_operatortype_append(ACT_OT_keyframes_delete);
+	WM_operatortype_append(ACT_OT_keyframes_duplicate);
 	WM_operatortype_append(ACT_OT_keyframes_copy);
 	WM_operatortype_append(ACT_OT_keyframes_paste);
 	
@@ -130,6 +131,8 @@ static void action_keymap_keyframes (wmWindowManager *wm, ListBase *keymap)
 	
 	WM_keymap_add_item(keymap, "ACT_OT_keyframes_delete", XKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "ACT_OT_keyframes_delete", DELKEY, KM_PRESS, 0, 0);
+	
+	WM_keymap_add_item(keymap, "ACT_OT_keyframes_duplicate", DKEY, KM_PRESS, KM_SHIFT, 0);
 	
 		/* copy/paste */
 	WM_keymap_add_item(keymap, "ACT_OT_keyframes_copy", CKEY, KM_PRESS, KM_CTRL, 0);

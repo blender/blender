@@ -118,6 +118,7 @@ void graphedit_operatortypes(void)
 	WM_operatortype_append(GRAPHEDIT_OT_keyframes_smooth);
 	WM_operatortype_append(GRAPHEDIT_OT_keyframes_clean);
 	WM_operatortype_append(GRAPHEDIT_OT_keyframes_delete);
+	WM_operatortype_append(GRAPHEDIT_OT_keyframes_duplicate);
 #if 0 // XXX code to be sanitied for new system	
 	WM_operatortype_append(GRAPHEDIT_OT_keyframes_copy);
 	WM_operatortype_append(GRAPHEDIT_OT_keyframes_paste);
@@ -131,7 +132,7 @@ static void graphedit_keymap_keyframes (wmWindowManager *wm, ListBase *keymap)
 	/* view */
 	WM_keymap_add_item(keymap, "GRAPHEDIT_OT_view_toggle_handles", HKEY, KM_PRESS, KM_CTRL, 0);
 	
-	/* iposelect.c - selection tools */
+	/* graph_select.c - selection tools */
 		/* click-select */
 		// TODO: column to alt, left-right to ctrl (for select-linked consistency)
 	WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_clickselect", SELECTMOUSE, KM_PRESS, 0, 0);
@@ -155,7 +156,7 @@ static void graphedit_keymap_keyframes (wmWindowManager *wm, ListBase *keymap)
 	RNA_enum_set(WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_columnselect", KKEY, KM_PRESS, KM_ALT, 0)->ptr, "mode", GRAPHKEYS_COLUMNSEL_MARKERS_BETWEEN);
 	
 	
-	/* ipo_edit.c */
+	/* graph_edit.c */
 		/* snap - current frame to selected keys */
 	WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_cfrasnap", SKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0);
 		
@@ -175,6 +176,8 @@ static void graphedit_keymap_keyframes (wmWindowManager *wm, ListBase *keymap)
 	
 	WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_delete", XKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_delete", DELKEY, KM_PRESS, 0, 0);
+	
+	WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_duplicate", DKEY, KM_PRESS, KM_SHIFT, 0);
 	
 #if 0 // XXX code to be sanitied for new system
 		/* copy/paste */

@@ -72,6 +72,8 @@
 
 #include "UI_view2d.h"
 
+#include "BIF_transform.h"
+
 #include "ED_anim_api.h"
 #include "ED_keyframing.h"
 #include "ED_keyframes_draw.h"
@@ -571,6 +573,83 @@ void ACT_OT_keyframes_paste (wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/* ******************** Duplicate Keyframes Operator ************************* */
+
+static void duplicate_action_keys (bAnimContext *ac)
+{
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
+	int filter;
+	
+	/* filter data */
+	if (ac->datatype == ANIMCONT_GPENCIL)
+		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT);
+	else
+		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY);
+	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
+	
+	/* loop through filtered data and delete selected keys */
+	for (ale= anim_data.first; ale; ale= ale->next) {
+		//if (ale->type == ANIMTYPE_GPLAYER)
+		//	delete_gplayer_frames((bGPDlayer *)ale->data);
+		//else
+			duplicate_fcurve_keys((FCurve *)ale->key_data);
+	}
+	
+	/* free filtered list */
+	BLI_freelistN(&anim_data);
+}
+
+/* ------------------- */
+
+static int actkeys_duplicate_exec(bContext *C, wmOperator *op)
+{
+	bAnimContext ac;
+	
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+		
+	/* duplicate keyframes */
+	duplicate_action_keys(&ac);
+	
+	/* validate keyframes after editing */
+	ANIM_editkeyframes_refresh(&ac);
+	
+	/* set notifier tha things have changed */
+	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_KEYFRAMES_VALUES);
+	
+	return OPERATOR_FINISHED; // xxx - start transform
+}
+
+static int actkeys_duplicate_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	actkeys_duplicate_exec(C, op);
+	
+	RNA_int_set(op->ptr, "mode", TFM_TIME_TRANSLATE);
+	WM_operator_name_call(C, "TFM_OT_transform", WM_OP_INVOKE_REGION_WIN, op->ptr);
+
+	return OPERATOR_FINISHED;
+}
+ 
+void ACT_OT_keyframes_duplicate (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Duplicate Keyframes";
+	ot->idname= "ACT_OT_keyframes_duplicate";
+	
+	/* api callbacks */
+	ot->invoke= actkeys_duplicate_invoke;
+	ot->exec= actkeys_duplicate_exec;
+	ot->poll= ED_operator_areaactive;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* to give to transform */
+	RNA_def_int(ot->srna, "mode", TFM_TIME_TRANSLATE, 0, INT_MAX, "Mode", "", 0, INT_MAX);
 }
 
 /* ******************** Delete Keyframes Operator ************************* */

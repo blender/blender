@@ -78,6 +78,7 @@ void GRAPHEDIT_OT_view_all(struct wmOperatorType *ot);
 void GRAPHEDIT_OT_keyframes_copy(struct wmOperatorType *ot);
 void GRAPHEDIT_OT_keyframes_paste(struct wmOperatorType *ot);
 
+void GRAPHEDIT_OT_keyframes_duplicate(struct wmOperatorType *ot);
 void GRAPHEDIT_OT_keyframes_delete(struct wmOperatorType *ot);
 void GRAPHEDIT_OT_keyframes_clean(struct wmOperatorType *ot);
 void GRAPHEDIT_OT_keyframes_sample(struct wmOperatorType *ot);
