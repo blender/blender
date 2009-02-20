@@ -3805,6 +3805,12 @@ typedef struct SlideVert {
 
 int EdgeSlide(EditMesh *em, wmOperator *op, short immediate, float imperc)
 {
+	return 0;
+/* XXX REFACTOR - #if 0'd for now, otherwise can't make 64bit windows builds on 64bit machine */
+#if 0
+useless:
+	goto useless // because it doesn't do anything right now
+
 //	NumInput num; XXX
 	Mesh *me= NULL; // XXX
 	EditFace *efa;
@@ -4583,6 +4589,7 @@ int EdgeSlide(EditMesh *em, wmOperator *op, short immediate, float imperc)
 	}
 
 	return 1;
+#endif // END OF XXX
 }
 
 int EdgeLoopDelete(EditMesh *em, wmOperator *op) 
