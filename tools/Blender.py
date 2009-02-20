@@ -14,6 +14,7 @@ to kill any code duplication
 
 """
 
+import os
 import os.path
 import string
 import glob
@@ -99,9 +100,7 @@ def create_blender_liblist(lenv = None, libtype = None):
 		sortlist.sort()
 		for sk in sortlist:
 			v = curlib[sk]
-			target = root_build_dir + 'lib/'+lenv['LIBPREFIX'] + v + lenv['LIBSUFFIX']
-			if not (root_build_dir[0]==os.sep or root_build_dir[1]==':'):
-				target = '#'+target
+			target = os.path.abspath(os.getcwd() + os.sep + root_build_dir + 'lib' + os.sep +lenv['LIBPREFIX'] + v + lenv['LIBSUFFIX'])
 			lst.append(target)
 
 	return lst
@@ -145,7 +144,7 @@ def setup_staticlibs(lenv):
 	if lenv['WITH_BF_PYTHON'] and lenv['WITH_BF_STATICPYTHON']:
 		statlibs += Split(lenv['BF_PYTHON_LIB_STATIC'])
 
-	if lenv['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross'):
+	if lenv['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc'):
 		libincs += Split(lenv['BF_PTHREADS_LIBPATH'])
 
 	return statlibs, libincs
@@ -159,7 +158,7 @@ def setup_syslibs(lenv):
 		]
 
 	if lenv['WITH_BF_PYTHON'] and not lenv['WITH_BF_STATICPYTHON']:
-		if lenv['BF_DEBUG'] and lenv['OURPLATFORM'] in ('win32-vc'):
+		if lenv['BF_DEBUG'] and lenv['OURPLATFORM'] in ('win32-vc', 'win64-vc'):
 			syslibs.append(lenv['BF_PYTHON_LIB']+'_d')
 		else:
 			syslibs.append(lenv['BF_PYTHON_LIB'])
@@ -187,7 +186,7 @@ def setup_syslibs(lenv):
 		syslibs += Split(lenv['BF_SDL_LIB'])
 	if not lenv['WITH_BF_STATICOPENGL']:
 		syslibs += Split(lenv['BF_OPENGL_LIB'])
-	if lenv['OURPLATFORM'] in ('win32-vc', 'win32-mingw','linuxcross'):
+	if lenv['OURPLATFORM'] in ('win32-vc', 'win32-mingw','linuxcross', 'win64-vc'):
 		syslibs += Split(lenv['BF_PTHREADS_LIB'])
 
 	syslibs += lenv['LLIBS']
@@ -391,7 +390,7 @@ class BlenderEnvironment(SConsEnvironment):
 		if not self or not libname or not source:
 			print bc.FAIL+'Cannot continue.  Missing argument for BlenderRes '+libname+bc.ENDC
 			self.Exit()
-		if self['OURPLATFORM'] not in ('win32-vc','win32-mingw','linuxcross'):
+		if self['OURPLATFORM'] not in ('win32-vc','win32-mingw','linuxcross', 'win64-vc'):
 			print bc.FAIL+'BlenderRes is for windows only!'+bc.END
 			self.Exit()
 		
@@ -456,7 +455,7 @@ class BlenderEnvironment(SConsEnvironment):
 	def BlenderProg(self=None, builddir=None, progname=None, sources=None, includes=None, libs=None, libpath=None, binarykind=''):
 		print bc.HEADER+'Configuring program '+bc.ENDC+bc.OKGREEN+progname+bc.ENDC
 		lenv = self.Clone()
-		if lenv['OURPLATFORM'] in ['win32-vc', 'cygwin']:
+		if lenv['OURPLATFORM'] in ('win32-vc', 'cygwin', 'win64-vc'):
 			lenv.Append(LINKFLAGS = lenv['PLATFORM_LINKFLAGS'])
 			if lenv['BF_DEBUG']:
 				lenv.Prepend(LINKFLAGS = ['/DEBUG','/PDB:'+progname+'.pdb'])
@@ -486,7 +485,7 @@ class BlenderEnvironment(SConsEnvironment):
 			 lenv.Append(LIBS = lenv['BF_QUICKTIME_LIB'])
 			 lenv.Append(LIBPATH = lenv['BF_QUICKTIME_LIBPATH'])
 		prog = lenv.Program(target=builddir+'bin/'+progname, source=sources)
-		if lenv['BF_DEBUG'] and lenv['OURPLATFORM']=='win32-vc' and lenv['BF_BSC']:
+		if lenv['BF_DEBUG'] and lenv['OURPLATFORM'] in ('win32-vc', 'win64-vc') and lenv['BF_BSC']:
 			f = lenv.File(progname + '.bsc', builddir)
 			brs = lenv.Command(f, prog, [bsc])
 			SConsEnvironment.Default(self, brs)
