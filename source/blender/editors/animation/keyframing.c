@@ -883,7 +883,7 @@ short deletekey (ID *id, const char group[], const char rna_path[], int array_in
 
 static int keyingset_add_destination_exec (bContext *C, wmOperator *op)
 {
-	//PointerRNA *ptr;
+	PointerRNA ptr;
 	KeyingSet *ks= NULL;
 	ID *id= NULL;
 	char rna_path[256], group_name[64]; // xxx
@@ -891,12 +891,13 @@ static int keyingset_add_destination_exec (bContext *C, wmOperator *op)
 	int array_index=0;
 	
 	/* get settings from operator properties */
-#if 0 // XXX - why can't we have something like this in the RNA-access API?
-	if ( (ptr = RNA_property_pointer_get(op->ptr, "keyingset")) )
-		ks= (KeyingSet *)ptr->data;
-	if ( (ptr = RNA_property_pointer_get(op->ptr, "id")) )
-		id= (ID *)ptr->id;
-#endif 
+	ptr = RNA_pointer_get(op->ptr, "keyingset");
+	if (ptr.data) 
+		ks= (KeyingSet *)ptr.data;
+	
+	ptr = RNA_pointer_get(op->ptr, "id");
+	if (ptr.data)
+		id= (ID *)ptr.data;
 	
 	groupmode= RNA_enum_get(op->ptr, "grouping_method");
 	RNA_string_get(op->ptr, "group_name", group_name);		
