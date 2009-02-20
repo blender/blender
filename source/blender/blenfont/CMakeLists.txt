@@ -26,7 +26,7 @@ FILE(GLOB SRC intern/*.c)
 
 SET(INC 
   ../../../intern/guardedalloc ../blenlib ../makesdna ../editors/include
-  ../blenkernel ../ftfont ../../../extern/glew/include
+  ../blenkernel ../ftfont ../../../extern/glew/include .
   ${FTGL_INC}
   ${FREETYPE_INC}
   ${GETTEXT_INC}
