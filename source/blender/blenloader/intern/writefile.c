@@ -1418,6 +1418,8 @@ static void write_textures(WriteData *wd, ListBase *idbase)
 			writestruct(wd, ID_TE, "Tex", 1, tex);
 			if (tex->id.properties) IDP_WriteProperty(tex->id.properties, wd);
 
+			if (tex->adt) write_animdata(wd, tex->adt);
+
 			/* direct data */
 			if(tex->plugin) writestruct(wd, DATA, "PluginTex", 1, tex->plugin);
 			if(tex->coba) writestruct(wd, DATA, "ColorBand", 1, tex->coba);
@@ -1454,6 +1456,8 @@ static void write_materials(WriteData *wd, ListBase *idbase)
 			/*manually set head group property to IDP_GROUP, just in case it hadn't been
 			  set yet :) */
 			if (ma->id.properties) IDP_WriteProperty(ma->id.properties, wd);
+			
+			if (ma->adt) write_animdata(wd, ma->adt);
 
 			for(a=0; a<MAX_MTEX; a++) {
 				if(ma->mtex[a]) writestruct(wd, DATA, "MTex", 1, ma->mtex[a]);
@@ -2084,7 +2088,10 @@ static void write_nodetrees(WriteData *wd, ListBase *idbase)
 		if (ntree->id.us>0 || wd->current) {
 			writestruct(wd, ID_NT, "bNodeTree", 1, ntree);
 			write_nodetree(wd, ntree);
+			
 			if (ntree->id.properties) IDP_WriteProperty(ntree->id.properties, wd);
+			
+			if (ntree->adt) write_animdata(wd, ntree->adt);
 		}
 	}
 }

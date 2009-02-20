@@ -1519,147 +1519,6 @@ static void direct_link_script(FileData *fd, Script *script)
 	SCRIPT_SET_NULL(script)
 }
 
-/* ************ READ NODE TREE *************** */
-
-/* singe node tree (also used for material/scene trees), ntree is not NULL */
-static void lib_link_ntree(FileData *fd, ID *id, bNodeTree *ntree)
-{
-	bNode *node;
-	
-	for(node= ntree->nodes.first; node; node= node->next)
-		node->id= newlibadr_us(fd, id->lib, node->id);
-}
-
-/* library ntree linking after fileread */
-static void lib_link_nodetree(FileData *fd, Main *main)
-{
-	bNodeTree *ntree;
-	
-	/* only link ID pointers */
-	for(ntree= main->nodetree.first; ntree; ntree= ntree->id.next) {
-		if(ntree->id.flag & LIB_NEEDLINK) {
-			ntree->id.flag -= LIB_NEEDLINK;
-			lib_link_ntree(fd, &ntree->id, ntree);
-		}
-	}
-}
-
-/* verify types for nodes and groups, all data has to be read */
-/* open = 0: appending/linking, open = 1: open new file (need to clean out dynamic
- * typedefs*/
-static void lib_verify_nodetree(Main *main, int open)
-{
-	Scene *sce;
-	Material *ma;
-	Tex *tx;
-	bNodeTree *ntree;
-
-	/* this crashes blender on undo/redo
-	if(open==1) {
-		reinit_nodesystem();
-	}*/
-	
-	/* now create the own typeinfo structs an verify nodes */
-	/* here we still assume no groups in groups */
-	for(ntree= main->nodetree.first; ntree; ntree= ntree->id.next) {
-		ntreeVerifyTypes(ntree);	/* internal nodes, no groups! */
-		ntreeMakeOwnType(ntree);	/* for group usage */
-	}
-	
-	/* now verify all types in material trees, groups are set OK now */
-	for(ma= main->mat.first; ma; ma= ma->id.next) {
-		if(ma->nodetree)
-			ntreeVerifyTypes(ma->nodetree);
-	}
-	/* and scene trees */
-	for(sce= main->scene.first; sce; sce= sce->id.next) {
-		if(sce->nodetree)
-			ntreeVerifyTypes(sce->nodetree);
-	}
-	/* and texture trees */
-	for(tx= main->tex.first; tx; tx= tx->id.next) {
-		if(tx->nodetree)
-			ntreeVerifyTypes(tx->nodetree);
-	}
-}
-
-
-
-/* ntree itself has been read! */
-static void direct_link_nodetree(FileData *fd, bNodeTree *ntree)
-{
-	/* note: writing and reading goes in sync, for speed */
-	bNode *node;
-	bNodeSocket *sock;
-	bNodeLink *link;
-	
-	ntree->init= 0;		/* to set callbacks and force setting types */
-	ntree->owntype= NULL;
-	ntree->timecursor= NULL;
-	
-	link_list(fd, &ntree->nodes);
-	for(node= ntree->nodes.first; node; node= node->next) {
-		if(node->type == NODE_DYNAMIC) {
-			node->custom1= 0;
-			node->custom1= BSET(node->custom1, NODE_DYNAMIC_LOADED);
-			node->typeinfo= NULL;
-		}
-
-		node->storage= newdataadr(fd, node->storage);
-		if(node->storage) {
-			
-			/* could be handlerized at some point */
-			if(ntree->type==NTREE_SHADER && (node->type==SH_NODE_CURVE_VEC || node->type==SH_NODE_CURVE_RGB))
-				direct_link_curvemapping(fd, node->storage);
-			else if(ntree->type==NTREE_COMPOSIT) {
-				if( ELEM3(node->type, CMP_NODE_TIME, CMP_NODE_CURVE_VEC, CMP_NODE_CURVE_RGB))
-					direct_link_curvemapping(fd, node->storage);
-				else if(ELEM3(node->type, CMP_NODE_IMAGE, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER))
-					((ImageUser *)node->storage)->ok= 1;
-			}
-			else if( ntree->type==NTREE_TEXTURE && (node->type==TEX_NODE_CURVE_RGB || node->type==TEX_NODE_CURVE_TIME) ) {
-				direct_link_curvemapping(fd, node->storage);
-			}
-		}
-		link_list(fd, &node->inputs);
-		link_list(fd, &node->outputs);
-	}
-	link_list(fd, &ntree->links);
-	
-	/* and we connect the rest */
-	for(node= ntree->nodes.first; node; node= node->next) {
-		node->preview= newimaadr(fd, node->preview);
-		node->lasty= 0;
-		for(sock= node->inputs.first; sock; sock= sock->next)
-			sock->link= newdataadr(fd, sock->link);
-		for(sock= node->outputs.first; sock; sock= sock->next)
-			sock->ns.data= NULL;
-	}
-	for(link= ntree->links.first; link; link= link->next) {
-		link->fromnode= newdataadr(fd, link->fromnode);
-		link->tonode= newdataadr(fd, link->tonode);
-		link->fromsock= newdataadr(fd, link->fromsock);
-		link->tosock= newdataadr(fd, link->tosock);
-	}
-	
-	/* set selin and selout */
-	for(node= ntree->nodes.first; node; node= node->next) {
-		for(sock= node->inputs.first; sock; sock= sock->next) {
-			if(sock->flag & SOCK_SEL) {
-				ntree->selin= sock;
-				break;
-			}
-		}
-		for(sock= node->outputs.first; sock; sock= sock->next) {
-			if(sock->flag & SOCK_SEL) {
-				ntree->selout= sock;
-				break;
-			}
-		}
-	}
-	
-	/* type verification is in lib-link */
-}
 
 /* ************ READ PACKEDFILE *************** */
 
@@ -1996,6 +1855,153 @@ static void direct_link_animdata(FileData *fd, AnimData *adt)
 	// TODO...
 }	
 
+/* ************ READ NODE TREE *************** */
+
+/* singe node tree (also used for material/scene trees), ntree is not NULL */
+static void lib_link_ntree(FileData *fd, ID *id, bNodeTree *ntree)
+{
+	bNode *node;
+	
+	if(ntree->adt) lib_link_animdata(fd, &ntree->id, ntree->adt);
+	
+	for(node= ntree->nodes.first; node; node= node->next)
+		node->id= newlibadr_us(fd, id->lib, node->id);
+}
+
+/* library ntree linking after fileread */
+static void lib_link_nodetree(FileData *fd, Main *main)
+{
+	bNodeTree *ntree;
+	
+	/* only link ID pointers */
+	for(ntree= main->nodetree.first; ntree; ntree= ntree->id.next) {
+		if(ntree->id.flag & LIB_NEEDLINK) {
+			ntree->id.flag -= LIB_NEEDLINK;
+			lib_link_ntree(fd, &ntree->id, ntree);
+		}
+	}
+}
+
+/* verify types for nodes and groups, all data has to be read */
+/* open = 0: appending/linking, open = 1: open new file (need to clean out dynamic
+* typedefs*/
+static void lib_verify_nodetree(Main *main, int open)
+{
+	Scene *sce;
+	Material *ma;
+	Tex *tx;
+	bNodeTree *ntree;
+	
+	/* this crashes blender on undo/redo
+		if(open==1) {
+			reinit_nodesystem();
+		}*/
+	
+	/* now create the own typeinfo structs an verify nodes */
+	/* here we still assume no groups in groups */
+	for(ntree= main->nodetree.first; ntree; ntree= ntree->id.next) {
+		ntreeVerifyTypes(ntree);	/* internal nodes, no groups! */
+		ntreeMakeOwnType(ntree);	/* for group usage */
+	}
+	
+	/* now verify all types in material trees, groups are set OK now */
+	for(ma= main->mat.first; ma; ma= ma->id.next) {
+		if(ma->nodetree)
+			ntreeVerifyTypes(ma->nodetree);
+	}
+	/* and scene trees */
+	for(sce= main->scene.first; sce; sce= sce->id.next) {
+		if(sce->nodetree)
+			ntreeVerifyTypes(sce->nodetree);
+	}
+	/* and texture trees */
+	for(tx= main->tex.first; tx; tx= tx->id.next) {
+		if(tx->nodetree)
+			ntreeVerifyTypes(tx->nodetree);
+	}
+}
+
+
+
+/* ntree itself has been read! */
+static void direct_link_nodetree(FileData *fd, bNodeTree *ntree)
+{
+	/* note: writing and reading goes in sync, for speed */
+	bNode *node;
+	bNodeSocket *sock;
+	bNodeLink *link;
+	
+	ntree->init= 0;		/* to set callbacks and force setting types */
+	ntree->owntype= NULL;
+	ntree->timecursor= NULL;
+	
+	ntree->adt= newdataadr(fd, ntree->adt);
+	direct_link_animdata(fd, ntree->adt);
+	
+	link_list(fd, &ntree->nodes);
+	for(node= ntree->nodes.first; node; node= node->next) {
+		if(node->type == NODE_DYNAMIC) {
+			node->custom1= 0;
+			node->custom1= BSET(node->custom1, NODE_DYNAMIC_LOADED);
+			node->typeinfo= NULL;
+		}
+		
+		node->storage= newdataadr(fd, node->storage);
+		if(node->storage) {
+			
+			/* could be handlerized at some point */
+			if(ntree->type==NTREE_SHADER && (node->type==SH_NODE_CURVE_VEC || node->type==SH_NODE_CURVE_RGB))
+				direct_link_curvemapping(fd, node->storage);
+			else if(ntree->type==NTREE_COMPOSIT) {
+				if( ELEM3(node->type, CMP_NODE_TIME, CMP_NODE_CURVE_VEC, CMP_NODE_CURVE_RGB))
+					direct_link_curvemapping(fd, node->storage);
+				else if(ELEM3(node->type, CMP_NODE_IMAGE, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER))
+					((ImageUser *)node->storage)->ok= 1;
+			}
+			else if( ntree->type==NTREE_TEXTURE && (node->type==TEX_NODE_CURVE_RGB || node->type==TEX_NODE_CURVE_TIME) ) {
+				direct_link_curvemapping(fd, node->storage);
+			}
+		}
+		link_list(fd, &node->inputs);
+		link_list(fd, &node->outputs);
+	}
+	link_list(fd, &ntree->links);
+	
+	/* and we connect the rest */
+	for(node= ntree->nodes.first; node; node= node->next) {
+		node->preview= newimaadr(fd, node->preview);
+		node->lasty= 0;
+		for(sock= node->inputs.first; sock; sock= sock->next)
+			sock->link= newdataadr(fd, sock->link);
+		for(sock= node->outputs.first; sock; sock= sock->next)
+			sock->ns.data= NULL;
+	}
+	for(link= ntree->links.first; link; link= link->next) {
+		link->fromnode= newdataadr(fd, link->fromnode);
+		link->tonode= newdataadr(fd, link->tonode);
+		link->fromsock= newdataadr(fd, link->fromsock);
+		link->tosock= newdataadr(fd, link->tosock);
+	}
+	
+	/* set selin and selout */
+	for(node= ntree->nodes.first; node; node= node->next) {
+		for(sock= node->inputs.first; sock; sock= sock->next) {
+			if(sock->flag & SOCK_SEL) {
+				ntree->selin= sock;
+				break;
+			}
+		}
+		for(sock= node->outputs.first; sock; sock= sock->next) {
+			if(sock->flag & SOCK_SEL) {
+				ntree->selout= sock;
+				break;
+			}
+		}
+	}
+	
+	/* type verification is in lib-link */
+}
+
 /* ************ READ ARMATURE ***************** */
 
 static void lib_link_constraints(FileData *fd, ID *id, ListBase *conlist)
@@ -2321,7 +2327,8 @@ static void lib_link_key(FileData *fd, Main *main)
 	key= main->key.first;
 	while(key) {
 		if(key->id.flag & LIB_NEEDLINK) {
-
+			if(key->adt) lib_link_animdata(fd, &key->id, key->adt);
+			
 			key->ipo= newlibadr_us(fd, key->id.lib, key->ipo); // XXX depreceated - old animation system
 			key->from= newlibadr(fd, key->id.lib, key->from);
 
@@ -2615,6 +2622,7 @@ static void lib_link_curve(FileData *fd, Main *main)
 	cu= main->curve.first;
 	while(cu) {
 		if(cu->id.flag & LIB_NEEDLINK) {
+			if(cu->adt) lib_link_animdata(fd, &cu->id, cu->adt);
 
 			for(a=0; a<cu->totcol; a++) cu->mat[a]= newlibadr_us(fd, cu->id.lib, cu->mat[a]);
 
@@ -2719,6 +2727,7 @@ static void lib_link_texture(FileData *fd, Main *main)
 	tex= main->tex.first;
 	while(tex) {
 		if(tex->id.flag & LIB_NEEDLINK) {
+			if(tex->adt) lib_link_animdata(fd, &tex->id, tex->adt);
 
 			tex->ima= newlibadr_us(fd, tex->id.lib, tex->ima);
 			tex->ipo= newlibadr_us(fd, tex->id.lib, tex->ipo);
@@ -2778,6 +2787,8 @@ static void lib_link_material(FileData *fd, Main *main)
 	ma= main->mat.first;
 	while(ma) {
 		if(ma->id.flag & LIB_NEEDLINK) {
+			if(ma->adt) lib_link_animdata(fd, &ma->id, ma->adt);
+
 			/*Link ID Properties -- and copy this comment EXACTLY for easy finding
 			of library blocks that implement this.*/
 			if (ma->id.properties) IDP_LibLinkProperty(ma->id.properties, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
@@ -9222,6 +9233,9 @@ static void expand_key(FileData *fd, Main *mainvar, Key *key)
 static void expand_nodetree(FileData *fd, Main *mainvar, bNodeTree *ntree)
 {
 	bNode *node;
+	
+	if(ntree->adt)
+		expand_animdata(fd, mainvar, ntree->adt);
 	
 	for(node= ntree->nodes.first; node; node= node->next)
 		if(node->id && node->type!=CMP_NODE_R_LAYERS)
