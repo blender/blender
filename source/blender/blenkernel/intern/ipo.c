@@ -1190,8 +1190,13 @@ static void ipo_to_animato (Ipo *ipo, char actname[], char constname[], ListBase
 		/* Since an IPO-Curve may end up being made into many F-Curves (i.e. bitflag curves), 
 		 * we figure out the best place to put the channel, then tell the curve-converter to just dump there
 		 */
-		if (icu->driver)
-			icu_to_fcurves(drivers, icu, actname, constname);
+		if (icu->driver) {
+			/* Blender 2.4x allowed empty drivers */
+			if(icu->driver->ob || icu->driver->type == IPO_DRIVER_TYPE_PYTHON)
+				icu_to_fcurves(drivers, icu, actname, constname);
+			else
+				MEM_freeN(icu->driver);
+		}
 		else
 			icu_to_fcurves(anim, icu, actname, constname);
 		
@@ -1401,6 +1406,10 @@ void do_versions_ipos_to_animato(Main *main)
 		
 		/* check PoseChannels for constraints with local data */
 		if (ob->pose) {
+			
+			/* Verify if there's AnimData block */
+			BKE_id_add_animdata(id);
+
 			for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
 				for (con= pchan->constraints.first; con; con= con->next) {
 					/* if constraint has own IPO, convert add these to Object 
