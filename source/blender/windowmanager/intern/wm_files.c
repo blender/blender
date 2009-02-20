@@ -325,18 +325,27 @@ static void init_userdef_themes(void)
 			SETCOL(btheme->ttime.cframe, 0x60, 0xc0, 0x40, 255);
 		}
 	}
-	if ((G.main->versionfile < 248) || (G.main->versionfile == 248 && G.main->subversionfile < 3)) {
+	if (G.main->versionfile < 250) {
 		bTheme *btheme;
 		
-		/* adjust themes */
-		for (btheme= U.themes.first; btheme; btheme= btheme->next) {
+		for(btheme= U.themes.first; btheme; btheme= btheme->next) {
+			/* this was not properly initialized in 2.45 */
+			if(btheme->tima.face_dot[3]==0) {
+				SETCOL(btheme->tima.editmesh_active, 255, 255, 255, 128);
+				SETCOL(btheme->tima.face_dot, 255, 133, 0, 255);
+				btheme->tima.facedot_size= 2;
+			}
+			
 			/* DopeSheet - (Object) Channel color */
 			SETCOL(btheme->tact.ds_channel, 	82, 96, 110, 255);
 			SETCOL(btheme->tact.ds_subchannel,	124, 137, 150, 255);
+			/* DopeSheet - Group Channel color (saner version) */
+			SETCOL(btheme->tact.group, 79, 101, 73, 255);
+			SETCOL(btheme->tact.group_active, 135, 177, 125, 255);
 			
 			/* Graph Editor - (Object) Channel color */
-			SETCOL(btheme->tipo.ds_channel, 	82, 96, 110, 255);
-			SETCOL(btheme->tipo.ds_subchannel,	124, 137, 150, 255);
+			SETCOL(btheme->tipo.group, 79, 101, 73, 255);
+			SETCOL(btheme->tipo.group_active, 135, 177, 125, 255);
 			/* Graph Editor - Group Channel color */
 			SETCOL(btheme->tipo.group, 22, 112, 0, 255);
 			SETCOL(btheme->tipo.group_active, 125, 233, 96, 255);
@@ -348,18 +357,6 @@ static void init_userdef_themes(void)
 		
 		/* adjust default interpolation for new IPO-curves */
 		U.ipo_new= BEZT_IPO_BEZ;
-	}
-	if (G.main->versionfile < 250) {
-		bTheme *btheme;
-
-		/* this was not properly initialized in 2.45 */
-		for(btheme= U.themes.first; btheme; btheme= btheme->next) {
-			if(btheme->tima.face_dot[3]==0) {
-				SETCOL(btheme->tima.editmesh_active, 255, 255, 255, 128);
-				SETCOL(btheme->tima.face_dot, 255, 133, 0, 255);
-				btheme->tima.facedot_size= 2;
-			}
-		}
 	}
 	
 	/* GL Texture Garbage Collection (variable abused above!) */
