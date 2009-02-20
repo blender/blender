@@ -45,6 +45,7 @@
 #include "ED_mesh.h"
 #include "ED_markers.h"
 #include "ED_object.h"
+#include "ED_particle.h"
 #include "ED_sculpt.h"
 #include "ED_screen.h"
 #include "ED_space_api.h"
@@ -83,6 +84,7 @@ void ED_spacetypes_init(void)
 	ED_operatortypes_sculpt();
 	ED_operatortypes_uvedit();
 	ED_operatortypes_paint();
+	ED_operatortypes_particle();
 	ED_operatortypes_curve();
 	ED_operatortypes_armature();
 	ED_marker_operatortypes();
@@ -111,6 +113,7 @@ void ED_spacetypes_keymap(wmWindowManager *wm)
 	ED_keymap_uvedit(wm);
 	ED_keymap_curve(wm);
 	ED_keymap_armature(wm);
+	ED_keymap_particle(wm);
 	ED_marker_keymap(wm);
 
 	UI_view2d_keymap(wm);

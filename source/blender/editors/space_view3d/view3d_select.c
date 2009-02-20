@@ -76,7 +76,7 @@
 
 #include "ED_armature.h"
 #include "ED_curve.h"
-#include "ED_editparticle.h"
+#include "ED_particle.h"
 #include "ED_mesh.h"
 #include "ED_object.h"
 #include "ED_screen.h"
@@ -119,6 +119,26 @@ void view3d_get_view_aligned_coordinate(ViewContext *vc, float *fp, short mval[2
 		window_to_3d_delta(vc->ar, dvec, mval[0]-mx, mval[1]-my);
 		VecSubf(fp, fp, dvec);
 	}
+}
+
+void view3d_get_transformation(ViewContext *vc, Object *ob, bglMats *mats)
+{
+	float cpy[4][4];
+	int i, j;
+
+	Mat4MulMat4(cpy, vc->rv3d->viewmat, ob->obmat);
+
+	for(i = 0; i < 4; ++i) {
+		for(j = 0; j < 4; ++j) {
+			mats->projection[i*4+j] = vc->rv3d->winmat[i][j];
+			mats->modelview[i*4+j] = cpy[i][j];
+		}
+	}
+
+	mats->viewport[0] = vc->ar->winrct.xmin;
+	mats->viewport[1] = vc->ar->winrct.ymin;
+	mats->viewport[2] = vc->ar->winx;
+	mats->viewport[3] = vc->ar->winy;	
 }
 
 /* ********************** view3d_select: selection manipulations ********************* */
@@ -677,7 +697,7 @@ void view3d_lasso_select(ViewContext *vc, short mcords[][2], short moves, short 
 		else if(G.f & (G_VERTEXPAINT|G_TEXTUREPAINT|G_WEIGHTPAINT))
 			;
 		else if(G.f & G_PARTICLEEDIT)
-			PE_do_lasso_select(vc, mcords, moves, select);
+			PE_lasso_select(vc, mcords, moves, select);
 		else  
 			do_lasso_select_objects(vc, mcords, moves, select);
 	}
@@ -1329,7 +1349,7 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 		return OPERATOR_FINISHED;
 	}
 	else if(obedit==NULL && (G.f & G_PARTICLEEDIT)) {
-		PE_borderselect(&vc, &rect, (val==LEFTMOUSE));
+		PE_border_select(&vc, &rect, (val==LEFTMOUSE));
 		return OPERATOR_FINISHED;
 	}
 	
@@ -1765,7 +1785,7 @@ static int view3d_circle_select_exec(bContext *C, wmOperator *op)
 	int y= RNA_int_get(op->ptr, "y");
 	int radius= RNA_int_get(op->ptr, "radius");
 	
-	if(CTX_data_edit_object(C)) {
+	if(CTX_data_edit_object(C) || (G.f & G_PARTICLEEDIT)) {
 		ViewContext vc;
 		short mval[2], selecting;
 		
@@ -1775,7 +1795,11 @@ static int view3d_circle_select_exec(bContext *C, wmOperator *op)
 		mval[0]= x;
 		mval[1]= y;
 		selecting= LEFTMOUSE==RNA_int_get(op->ptr, "event_type"); // XXX solve
-		obedit_circle_select(&vc, selecting, mval, (float)radius);
+
+		if(CTX_data_edit_object(C))
+			obedit_circle_select(&vc, selecting, mval, (float)radius);
+		else
+			PE_circle_select(&vc, selecting, mval, (float)radius);
 	}
 	else {
 		Base *base;

@@ -70,7 +70,7 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
-#include "ED_editparticle.h"
+#include "ED_particle.h"
 #include "ED_space_api.h"
 #include "ED_screen.h"
 #include "ED_types.h"

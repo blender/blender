@@ -1618,7 +1618,7 @@ static int hide_exec(bContext *C, wmOperator *op)
 	Nurb *nu;
 	BPoint *bp;
 	BezTriple *bezt;
-	int a, sel, invert= RNA_boolean_get(op->ptr, "deselected");
+	int a, sel, invert= RNA_boolean_get(op->ptr, "unselected");
 
 	for(nu= editnurb->first; nu; nu= nu->next) {
 		if((nu->type & 7)==CU_BEZIER) {
@@ -1668,7 +1668,7 @@ static int hide_exec(bContext *C, wmOperator *op)
 void CURVE_OT_hide(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Hide Selection";
+	ot->name= "Hide Selected";
 	ot->idname= "CURVE_OT_hide";
 	
 	/* api callbacks */
@@ -1679,7 +1679,7 @@ void CURVE_OT_hide(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
-	RNA_def_boolean(ot->srna, "deselected", 0, "Deselected", "Hide deselected rather than selected.");
+	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected.");
 }
 
 /********************** reveal operator *********************/

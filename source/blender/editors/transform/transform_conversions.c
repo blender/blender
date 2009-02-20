@@ -121,7 +121,7 @@
 
 #include "ED_anim_api.h"
 #include "ED_armature.h"
-#include "ED_editparticle.h"
+#include "ED_particle.h"
 #include "ED_image.h"
 #include "ED_keyframing.h"
 #include "ED_keyframes_edit.h"

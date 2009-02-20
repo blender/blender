@@ -55,7 +55,7 @@
 #include "BKE_utildefines.h"
 
 #include "ED_armature.h"
-#include "ED_editparticle.h"
+#include "ED_particle.h"
 #include "ED_curve.h"
 #include "ED_mesh.h"
 #include "ED_object.h"
@@ -191,7 +191,7 @@ void ED_undo_menu(bContext *C)
 	}
 	else {
 		if(G.f & G_PARTICLEEDIT)
-			PE_undo_menu(CTX_data_scene(C));
+			PE_undo_menu(CTX_data_scene(C), CTX_data_active_object(C));
 		else if(U.uiflag & USER_GLOBALUNDO) {
 			char *menu= BKE_undo_menu_string();
 			if(menu) {

@@ -4703,7 +4703,7 @@ static int pose_hide_exec(bContext *C, wmOperator *op)
 	Object *ob= CTX_data_active_object(C);
 	bArmature *arm= ob->data;
 
-	if(RNA_boolean_get(op->ptr, "invert"))
+	if(RNA_boolean_get(op->ptr, "unselected"))
 	   bone_looper(ob, arm->bonebase.first, NULL, 
 				hide_unselected_pose_bone);
 	else
@@ -4719,7 +4719,7 @@ static int pose_hide_exec(bContext *C, wmOperator *op)
 void POSE_OT_hide(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Hide Selection";
+	ot->name= "Hide Selected";
 	ot->idname= "POSE_OT_hide";
 	
 	/* api callbacks */
@@ -4730,7 +4730,7 @@ void POSE_OT_hide(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
-	RNA_def_boolean(ot->srna, "invert", 0, "Invert", "");
+	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "");
 }
 
 static int show_pose_bone(Object *ob, Bone *bone, void *ptr) 
@@ -4764,7 +4764,7 @@ static int pose_reveal_exec(bContext *C, wmOperator *op)
 void POSE_OT_reveal(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Reveil Selection";
+	ot->name= "Reveal Selected";
 	ot->idname= "POSE_OT_reveal";
 	
 	/* api callbacks */
@@ -4773,9 +4773,6 @@ void POSE_OT_reveal(wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-	
-	/* props */
-	RNA_def_boolean(ot->srna, "invert", 0, "Invert", "");
 }
 
 /* ************* RENAMING DISASTERS ************ */

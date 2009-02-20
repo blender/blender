@@ -112,7 +112,7 @@
 #include "ED_anim_api.h"
 #include "ED_armature.h"
 #include "ED_curve.h"
-#include "ED_editparticle.h"
+#include "ED_particle.h"
 #include "ED_mesh.h"
 #include "ED_object.h"
 #include "ED_screen.h"
@@ -6366,15 +6366,8 @@ void texspace_edit(Scene *scene, View3D *v3d)
 
 void mirrormenu(void)
 {
-	Scene *scene= NULL; // XXX
-	
-	if(G.f & G_PARTICLEEDIT) {
-		PE_mirror_x(scene, 0);
-	}
-	else {
 // XXX		initTransform(TFM_MIRROR, CTX_NO_PET);
 // XXX		Transform();
-	}
 }
 
 void hookmenu(Scene *scene, View3D *v3d)

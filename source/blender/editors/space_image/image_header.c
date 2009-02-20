@@ -261,9 +261,9 @@ static void image_imagemenu(bContext *C, uiMenuItem *head, void *arg_unused)
 
 static void image_uvs_showhidemenu(bContext *C, uiMenuItem *head, void *arg_unused)
 {
-	uiMenuItemO(head, 0, "UV_OT_show_hidden");
-	uiMenuItemO(head, 0, "UV_OT_hide_selected");
-	uiMenuItemO(head, 0, "UV_OT_hide_deselected");
+	uiMenuItemO(head, 0, "UV_OT_reveal");
+	uiMenuItemO(head, 0, "UV_OT_hide");
+	uiMenuItemBooleanO(head, "Hide Unselected", 0, "UV_OT_hide", "unselected", 1);
 }
 
 static void image_uvs_transformmenu(bContext *C, uiMenuItem *head, void *arg_unused)

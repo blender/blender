@@ -27,8 +27,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef ED_EDITPARTICLE_H
-#define ED_EDITPARTICLE_H
+#ifndef ED_PARTICLE_H
+#define ED_PARTICLE_H
 
 struct Object;
 struct ParticleSystem;
@@ -36,18 +36,19 @@ struct ParticleEditSettings;
 struct RadialControl;
 struct ViewContext;
 struct rcti;
+struct wmWindowManager;
 
 /* particle edit mode */
 void PE_set_particle_edit(struct Scene *scene);
-void PE_create_particle_edit(struct Object *ob, struct ParticleSystem *psys);
+void PE_create_particle_edit(struct Scene *scene, struct Object *ob, struct ParticleSystem *psys);
 void PE_free_particle_edit(struct ParticleSystem *psys);
 
 void PE_change_act(void *ob_v, void *act_v);
-void PE_change_act_psys(struct Object *ob, struct ParticleSystem *psys);
+void PE_change_act_psys(struct Scene *scene, struct Object *ob, struct ParticleSystem *psys);
 int PE_can_edit(struct ParticleSystem *psys);
 
 /* access */
-struct ParticleSystem *PE_get_current(struct Object *ob);
+struct ParticleSystem *PE_get_current(struct Scene *scene, struct Object *ob);
 short PE_get_current_num(struct Object *ob);
 int PE_minmax(struct Scene *scene, float *min, float *max);
 void PE_get_colors(char sel[4], char nosel[4]);
@@ -69,18 +70,16 @@ void PE_select_less(void);
 void PE_select_more(void);
 
 void PE_mouse_particles(void);
-void PE_borderselect(struct ViewContext *vc, struct rcti *rect, int select);
-void PE_selectionCB(short selecting, struct Object *editobj, short *mval, float rad);
-void PE_do_lasso_select(struct ViewContext *, short mcords[][2], short moves, short select);
+void PE_border_select(struct ViewContext *vc, struct rcti *rect, int select);
+void PE_circle_select(struct ViewContext *vc, int selecting, short *mval, float rad);
+void PE_lasso_select(struct ViewContext *vc, short mcords[][2], short moves, short select);
 
 /* tools */
 void PE_hide(int mode);
 void PE_rekey(void);
 void PE_subdivide(Object *ob);
 int PE_brush_particles(void);
-void PE_delete_particle(void);
 void PE_remove_doubles(void);
-void PE_mirror_x(Scene *scene, int tagged);
 void PE_selectbrush_menu(Scene *scene);
 void PE_remove_doubles(void);
 void PE_radialcontrol_start(const int mode);
@@ -90,7 +89,11 @@ void PE_undo_push(Scene *scene, char *str);
 void PE_undo_step(Scene *scene, int step);
 void PE_undo(Scene *scene);
 void PE_redo(Scene *scene);
-void PE_undo_menu(Scene *scene);
+void PE_undo_menu(Scene *scene, Object *ob);
 
-#endif /* ED_EDITPARTICLE_H */
+/* operators */
+void ED_operatortypes_particle(void);
+void ED_keymap_particle(struct wmWindowManager *wm);
+
+#endif /* ED_PARTICLE_H */
 

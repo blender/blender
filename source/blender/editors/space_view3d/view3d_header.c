@@ -66,7 +66,7 @@
 #include "BKE_utildefines.h" /* for VECCOPY */
 
 #include "ED_armature.h"
-#include "ED_editparticle.h"
+#include "ED_particle.h"
 #include "ED_object.h"
 #include "ED_mesh.h"
 #include "ED_util.h"
@@ -149,9 +149,8 @@ void ED_view3d_exit_paint_modes(bContext *C)
 
 	if(G.f & G_SCULPTMODE)
 		WM_operator_name_call(C, "SCULPT_OT_sculptmode_toggle", WM_OP_EXEC_REGION_WIN, NULL);
-
-//	if(G.f & G_TEXTUREPAINT) set_texturepaint();
-	if(G.f & G_PARTICLEEDIT) PE_set_particle_edit(CTX_data_scene(C));
+	if(G.f & G_PARTICLEEDIT)
+		WM_operator_name_call(C, "PARTICLE_OT_particle_edit_toggle", WM_OP_EXEC_REGION_WIN, NULL);
 	
 	G.f &= ~(G_VERTEXPAINT+G_TEXTUREPAINT+G_WEIGHTPAINT+G_SCULPTMODE+G_PARTICLEEDIT);
 }
@@ -2487,7 +2486,7 @@ static uiBlock *view3d_edit_object_showhidemenu(bContext *C, ARegion *ar, void *
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show Hidden|Alt H",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Hide Selected|H",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Hide Deselected|Shift H",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Hide Unselected|Shift H",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
 
 	uiBlockSetDirection(block, UI_RIGHT);
 	uiTextBoundsBlock(block, 60);
@@ -3104,7 +3103,7 @@ static uiBlock *view3d_edit_mesh_showhidemenu(bContext *C, ARegion *ar, void *ar
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show Hidden|Alt H",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Hide Selected|H",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Hide Deselected|Shift H",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Hide Unselected|Shift H",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
 
 	uiBlockSetDirection(block, UI_RIGHT);
 	uiTextBoundsBlock(block, 60);
@@ -3322,7 +3321,7 @@ static void view3d_edit_curve_showhidemenu(bContext *C, uiMenuItem *head, void *
 {
 	uiMenuItemO(head, 0, "CURVE_OT_reveal");
 	uiMenuItemO(head, 0, "CURVE_OT_hide");
-	uiMenuItemBooleanO(head, "Hide Deselected", 0, "CURVE_OT_hide", "deselected", 1);
+	uiMenuItemBooleanO(head, "Hide Unselected", 0, "CURVE_OT_hide", "unselected", 1);
 }
 
 static void view3d_edit_curvemenu(bContext *C, uiMenuItem *head, void *arg_unused)
@@ -3379,7 +3378,7 @@ static void do_view3d_edit_mball_showhidemenu(bContext *C, void *arg, int event)
 	case 11: /* hide selected control points */
 		hide_mball(0);
 		break;
-	case 12: /* hide deselected control points */
+	case 12: /* hide selected control points */
 		hide_mball(1);
 		break;
 		}
@@ -3396,7 +3395,7 @@ static uiBlock *view3d_edit_mball_showhidemenu(bContext *C, ARegion *ar, void *a
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show Hidden|Alt H", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 10, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Hide Selected|H", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 11, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Hide Deselected|Shift H", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 12, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Hide Unselected|Shift H", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 12, "");
 
 	uiBlockSetDirection(block, UI_RIGHT);
 	uiTextBoundsBlock(block, 60);
@@ -3934,7 +3933,7 @@ static uiBlock *view3d_pose_armature_showhidemenu(bContext *C, ARegion *ar, void
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show Hidden|Alt H",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Hide Selected|H",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Hide Deselected|Shift H",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Hide Unselected|Shift H",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
 
 	uiBlockSetDirection(block, UI_RIGHT);
 	uiTextBoundsBlock(block, 60);
@@ -4638,7 +4637,7 @@ static uiBlock *view3d_facesel_showhidemenu(bContext *C, ARegion *ar, void *arg_
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show Hidden Faces|Alt H",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Hide Selected Faces|H",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Hide Deselected Faces|Shift H",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Hide Unselected Faces|Shift H",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
 
 	uiBlockSetDirection(block, UI_RIGHT);
 	uiTextBoundsBlock(block, 60);
@@ -4693,194 +4692,60 @@ static uiBlock *view3d_faceselmenu(bContext *C, ARegion *ar, void *arg_unused)
 	return block;
 }
 
-void do_view3d_select_particlemenu(bContext *C, void *arg, int event)
-{
-
-	/* events >= 6 are registered bpython scripts */
-#ifndef DISABLE_PYTHON
-// XXX	if (event >= 6) BPY_menu_do_python(PYMENU_FACESELECT, event - 6);
-#endif
-	switch(event) {
-		case 0:
-			// XXX PE_borderselect();
-			break;
-		case 1:
-			PE_deselectall();
-			break;
-		case 2:
-			PE_select_root();
-			break;
-		case 3:
-			PE_select_tip();
-			break;
-		case 4:
-			PE_select_more();
-			break;
-		case 5:
-			PE_select_less();
-			break;
-		case 7:
-			PE_select_linked();
-			break;
-	}
-}
-
-static uiBlock *view3d_select_particlemenu(bContext *C, ARegion *ar, void *arg_unused)
-{
-	uiBlock *block;
-	short yco= 0, menuwidth=120;
-
-	block= uiBeginBlock(C, ar, "view3d_select_particlemenu", UI_EMBOSSP, UI_HELV);
-	uiBlockSetButmFunc(block, do_view3d_select_particlemenu, NULL);
-	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Border Select|B",
-					0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
-	
-	uiDefBut(block, SEPR, 0, "",
-					0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Select/Deselect All|A",
-					0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Select Linked|L",
-					0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 7, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Select Last|W, 4",
-					0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Select First|W, 3",
-					0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
-
-	uiDefBut(block, SEPR, 0, "",
-					0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "More|Ctrl NumPad +",
-					 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Less|Ctrl NumPad -",
-					 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
-
-
-	if(ar->alignment==RGN_ALIGN_TOP) {
-		uiBlockSetDirection(block, UI_DOWN);
-	}
-	else {
-		uiBlockSetDirection(block, UI_TOP);
-		uiBlockFlipOrder(block);
-	}
-
-	uiTextBoundsBlock(block, 50);
-	return block;
-}
-
-void do_view3d_particle_showhidemenu(bContext *C, void *arg, int event)
-{
-
-	switch(event) {
-	case 1: /* show hidden */
-		PE_hide(0);
-		break;
-	case 2: /* hide selected */
-		PE_hide(2);
-		break;
-	case 3: /* hide deselected */
-		PE_hide(1);
-		break;
-	}
-}
-
-static uiBlock *view3d_particle_showhidemenu(bContext *C, ARegion *ar, void *arg_unused)
-{
-	uiBlock *block;
-	short yco = 20, menuwidth = 120;
-
-	block= uiBeginBlock(C, ar, "view3d_particle_showhidemenu", UI_EMBOSSP, UI_HELV);
-	uiBlockSetButmFunc(block, do_view3d_particle_showhidemenu, NULL);
-	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show Hidden|Alt H",
-		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Hide Selected|H",
-		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Hide Deselected|Shift H",
-		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
-
-	uiBlockSetDirection(block, UI_RIGHT);
-	uiTextBoundsBlock(block, 60);
-	return block;
-}
-
-void do_view3d_particlemenu(bContext *C, void *arg, int event)
-{
-#if 0
-	Scene *scene= CTX_data_scene(C);
-	ScrArea *sa= CTX_wm_area(C);
-	View3D *v3d= sa->spacedata.first;
-	ParticleEditSettings *pset= PE_settings();
-
-	switch(event) {
-	case 1:
-		add_blockhandler(sa, VIEW3D_HANDLER_OBJECT, UI_PNL_UNSTOW);
-		break;
-	case 2:
-		if(button(&pset->totrekey, 2, 100, "Number of Keys:")==0) return;
-		PE_rekey();
-		break;
-	case 3:
-		PE_subdivide();
-		break;
-	case 4:
-		PE_delete_particle();
-		break;
-	case 5:
-		PE_mirror_x(0);
-		break;
-	case 6:
-		pset->flag ^= PE_X_MIRROR;
-		break;
-	case 7:
-		PE_remove_doubles();
-		break;
-	}
-
-#endif
-}
-
-uiBlock *view3d_particlemenu(bContext *C, ARegion *ar, void *arg_unused)
+static void view3d_select_particlemenu(bContext *C, uiMenuItem *head, void *arg_unused)
 {
 	Scene *scene= CTX_data_scene(C);
-	uiBlock *block;
-	ParticleEditSettings *pset= PE_settings(scene);
-	short yco= 0, menuwidth= 120;
 
-	block= uiBeginBlock(C, ar, "view3d_particlemenu", UI_EMBOSSP, UI_HELV);
-	uiBlockSetButmFunc(block, do_view3d_particlemenu, NULL);
-	
-	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Particle Edit Properties|N", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
-	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	uiMenuItemO(head, 0, "VIEW3D_OT_borderselect");
 
-	uiDefIconTextBut(block, BUTM, 1, (pset->flag & PE_X_MIRROR)? ICON_CHECKBOX_HLT: ICON_CHECKBOX_DEHLT, "X-Axis Mirror Editing", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
-	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Mirror|Ctrl M", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
-	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	uiMenuSeparator(head);
 
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Remove Doubles|W, 5", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 7, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Delete...|X", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
+	uiMenuItemO(head, 0, "PARTICLE_OT_de_select_all");
+	uiMenuItemO(head, 0, "PARTICLE_OT_select_linked");
+
+	if(scene->selectmode & SCE_SELECT_POINT) {
+		uiMenuItemO(head, 0, "PARTICLE_OT_select_last"); // |W, 4
+		uiMenuItemO(head, 0, "PARTICLE_OT_select_first"); // |W, 3
+	}
+
+	uiMenuSeparator(head);
+
+	uiMenuItemO(head, 0, "PARTICLE_OT_select_more");
+	uiMenuItemO(head, 0, "PARTICLE_OT_select_less");
+}
+
+static void view3d_particle_showhidemenu(bContext *C, uiMenuItem *head, void *arg_unused)
+{
+	uiMenuItemO(head, 0, "PARTICLE_OT_reveal");
+	uiMenuItemO(head, 0, "PARTICLE_OT_hide");
+	uiMenuItemBooleanO(head, "Hide Unselected", 0, "PARTICLE_OT_hide", "unselected", 1);
+}
+
+static void view3d_particlemenu(bContext *C, uiMenuItem *head, void *arg_unused)
+{
+	Scene *scene= CTX_data_scene(C);
+
+	// XXX uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Particle Edit Properties|N", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
+	// add_blockhandler(sa, VIEW3D_HANDLER_OBJECT, UI_PNL_UNSTOW);
+	// XXX uiMenuSeparator(head);
+	//
+	// XXX uiDefIconTextBut(block, BUTM, 1, (pset->flag & PE_X_MIRROR)? ICON_CHECKBOX_HLT: ICON_CHECKBOX_DEHLT, "X-Axis Mirror Editing", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
+	// pset->flag ^= PE_X_MIRROR;
+
+	uiMenuItemO(head, 0, "PARTICLE_OT_mirror"); // |Ctrl M
+
+	uiMenuSeparator(head);
+
+	uiMenuItemO(head, 0, "PARTICLE_OT_remove_doubles"); // |W, 5
+	uiMenuItemO(head, 0, "PARTICLE_OT_delete");
 	if(scene->selectmode & SCE_SELECT_POINT)
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Subdivide|W, 2", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Rekey|W, 1", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
-	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+		uiMenuItemO(head, 0, "PARTICLE_OT_subdivide"); // |W, 2
+	uiMenuItemO(head, 0, "PARTICLE_OT_rekey"); // |W, 1
 
-	uiDefIconTextBlockBut(block, view3d_particle_showhidemenu, NULL, ICON_RIGHTARROW_THIN, "Show/Hide Particles", 0, yco-=20, menuwidth, 19, "");
+	uiMenuSeparator(head);
 
-	if(ar->alignment==RGN_ALIGN_TOP) {
-		uiBlockSetDirection(block, UI_DOWN);
-	}
-	else {
-		uiBlockSetDirection(block, UI_TOP);
-		uiBlockFlipOrder(block);
-	}
-
-	uiTextBoundsBlock(block, 50);
-
-	return block;
+	uiMenuLevel(head, "Show/Hide Particles", view3d_particle_showhidemenu);
 }
-
 
 static char *view3d_modeselect_pup(Scene *scene)
 {
@@ -5127,7 +4992,7 @@ static void do_view3d_header_buttons(bContext *C, void *arg, int event)
 				ED_view3d_exit_paint_modes(C);
 				if(obedit) ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);	/* exit editmode and undo */
 
-				PE_set_particle_edit(scene);
+				WM_operator_name_call(C, "PARTICLE_OT_particle_edit_toggle", WM_OP_EXEC_REGION_WIN, NULL);
 			}
 		}
 		break;
@@ -5295,7 +5160,7 @@ static void view3d_header_pulldowns(const bContext *C, uiBlock *block, Object *o
 	} else if ((G.f & G_VERTEXPAINT) || (G.f & G_TEXTUREPAINT) || (G.f & G_WEIGHTPAINT)) {
 		uiDefBut(block, LABEL,0,"", xco, 0, xmax, 20, 0, 0, 0, 0, 0, "");
 	} else if (G.f & G_PARTICLEEDIT) {
-		uiDefPulldownBut(block, view3d_select_particlemenu, NULL, "Select", xco,yco-2, xmax-3, 24, "");
+		uiDefMenuBut(block, view3d_select_particlemenu, NULL, "Select", xco,yco-2, xmax-3, 24, "");
 	} else {
 		
 		if (ob && (ob->flag & OB_POSEMODE))
@@ -5366,7 +5231,7 @@ static void view3d_header_pulldowns(const bContext *C, uiBlock *block, Object *o
 	}
 	else if(G.f & G_PARTICLEEDIT) {
 		xmax= GetButStringLength("Particle");
-		uiDefPulldownBut(block, view3d_particlemenu, NULL, "Particle",	xco,yco-2, xmax-3, 24, "");
+		uiDefMenuBut(block, view3d_particlemenu, NULL, "Particle",	xco,yco-2, xmax-3, 24, "");
 		xco+= xmax;
 	}
 	else {

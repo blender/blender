@@ -98,7 +98,7 @@
 #include "GPU_material.h"
 #include "GPU_extensions.h"
 
-#include "ED_editparticle.h"
+#include "ED_particle.h"
 #include "ED_mesh.h"
 #include "ED_types.h"
 #include "ED_util.h"
@@ -5086,7 +5086,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 			draw_new_particle_system(scene, v3d, rv3d, base, psys, dt);
 		
 		if(G.f & G_PARTICLEEDIT && ob==OBACT) {
-			psys= PE_get_current(ob);
+			psys= PE_get_current(scene, ob);
 			if(psys && !scene->obedit && psys_in_edit_mode(scene, psys))
 				draw_particle_edit(scene, v3d, rv3d, ob, psys, dt);
 		}

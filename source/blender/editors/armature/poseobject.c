@@ -128,7 +128,7 @@ void ED_armature_enter_posemode(bContext *C, Base *base)
 			ob->flag |= OB_POSEMODE;
 			base->flag= ob->flag;
 			
-			WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_POSEMODE, NULL);
+			WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_MODE_POSE, NULL);
 			
 			break;
 		default:
