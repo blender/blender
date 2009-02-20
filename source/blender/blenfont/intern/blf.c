@@ -53,10 +53,10 @@
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
+#include "BLF_api.h"
 
 #include "blf_internal_types.h"
 #include "blf_internal.h"
-
 
 #ifdef WITH_FREETYPE2
 
@@ -215,6 +215,28 @@ void BLF_set(int fontid)
 #endif
 }
 
+void BLF_enable(int option)
+{
+#ifdef WITH_FREETYPE2
+	FontBLF *font;
+
+	font= global_font[global_font_cur];
+	if (font)
+		font->flags |= option;
+#endif
+}
+
+void BLF_disable(int option)
+{
+#ifdef WITH_FREETYPE2
+	FontBLF *font;
+
+	font= global_font[global_font_cur];
+	if (font)
+		font->flags &= ~option;
+#endif
+}
+
 void BLF_aspect(float aspect)
 {
 #ifdef WITH_FREETYPE2
@@ -230,24 +252,29 @@ void BLF_position(float x, float y, float z)
 {
 #ifdef WITH_FREETYPE2
 	FontBLF *font;
-	float remainder;
+	float remainder, aspect;
 
 	font= global_font[global_font_cur];
 	if (font) {
+		if (font->flags & BLF_ASPECT)
+			aspect= font->aspect;
+		else
+			aspect= 1.0f;
+
 		remainder= x - floor(x);
 		if (remainder > 0.4 && remainder < 0.6) {
 			if (remainder < 0.5)
-				x -= 0.1 * font->aspect;
+				x -= 0.1 * aspect;
 			else
-				x += 0.1 * font->aspect;
+				x += 0.1 * aspect;
 		}
 
 		remainder= y - floor(y);
 		if (remainder > 0.4 && remainder < 0.6) {
 			if (remainder < 0.5)
-				y -= 0.1 * font->aspect;
+				y -= 0.1 * aspect;
 			else
-				y += 0.1 * font->aspect;
+				y += 0.1 * aspect;
 		}
 
 		font->pos[0]= x;
@@ -281,8 +308,12 @@ void BLF_draw(char *str)
 
 		glPushMatrix();
 		glTranslatef(font->pos[0], font->pos[1], font->pos[2]);
-		glScalef(font->aspect, font->aspect, 1.0);
-		glRotatef(font->angle, 0.0f, 0.0f, 1.0f);
+
+		if (font->flags & BLF_ASPECT)
+			glScalef(font->aspect, font->aspect, 1.0);
+
+		if (font->flags & BLF_ROTATION)
+			glRotatef(font->angle, 0.0f, 0.0f, 1.0f);
 
 		blf_font_draw(font, str);
 
@@ -336,5 +367,20 @@ void BLF_rotation(float angle)
 	font= global_font[global_font_cur];
 	if (font)
 		font->angle= angle;
+#endif
+}
+
+void BLF_clipping(float xmin, float ymin, float xmax, float ymax)
+{
+#ifdef WITH_FREETYPE2
+	FontBLF *font;
+
+	font= global_font[global_font_cur];
+	if (font) {
+		font->clip_rec.xmin= xmin;
+		font->clip_rec.ymin= ymin;
+		font->clip_rec.xmax= xmax;
+		font->clip_rec.ymax= ymax;
+	}
 #endif
 }

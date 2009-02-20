@@ -45,6 +45,10 @@ void BLF_boundbox(char *str, rctf *box);
 float BLF_width(char *str);
 float BLF_height(char *str);
 void BLF_rotation(float angle);
+void BLF_clipping(float xmin, float ymin, float xmax, float ymax);
+
+void BLF_enable(int option);
+void BLF_disable(int option);
 
 /* Read the .Blanguages file, return 1 on success or 0 if fails. */
 int BLF_lang_init(void);
@@ -77,5 +81,10 @@ char **BLF_dir_get(int *ndir);
 
 /* Free the data return by BLF_dir_get. */
 void BLF_dir_free(char **dirs, int count);
+
+/* font->flags. */
+#define BLF_ASPECT (1<<0)
+#define BLF_ROTATION (1<<1)
+#define BLF_CLIPPING (1<<2)
 
 #endif /* BLF_API_H */

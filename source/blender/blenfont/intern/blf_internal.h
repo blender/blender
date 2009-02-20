@@ -58,7 +58,7 @@ GlyphBLF *blf_glyph_search(GlyphCacheBLF *gc, FT_UInt idx);
 GlyphBLF *blf_glyph_add(FontBLF *font, FT_UInt index, unsigned int c);
 
 void blf_glyph_free(GlyphBLF *g);
-void blf_glyph_render(GlyphBLF *g, float x, float y);
+int blf_glyph_render(FontBLF *font, GlyphBLF *g, float x, float y);
 
 #endif /* WITH_FREETYPE2 */
 #endif /* BLF_INTERNAL_H */

@@ -151,9 +151,6 @@ typedef struct FontBLF {
 	/* clipping rectangle. */
 	rctf clip_rec;
 
-	/* and clipping mode. */
-	int clip_mode;
-
 	/* font dpi (default 72). */
 	int dpi;
 
@@ -162,6 +159,9 @@ typedef struct FontBLF {
 
 	/* max texture size. */
 	int max_tex_size;
+
+	/* font options. */
+	int flags;
 
 	/* freetype2 face. */
 	FT_Face face;

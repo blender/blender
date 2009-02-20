@@ -53,6 +53,7 @@
 #include "BLI_string.h"
 
 #include "BIF_gl.h"
+#include "BLF_api.h"
 
 #include "blf_internal_types.h"
 #include "blf_internal.h"
@@ -293,29 +294,47 @@ void blf_glyph_free(GlyphBLF *g)
 	MEM_freeN(g);
 }
 
-void blf_glyph_render(GlyphBLF *g, float x, float y)
+int blf_glyph_render(FontBLF *font, GlyphBLF *g, float x, float y)
 {
 	GLint cur_tex;
-	float dx;
+	float dx, dx1;
+	float y1, y2;
+
+	dx= floor(x + g->pos_x);
+	dx1= dx + g->width;
+	y1= y + g->pos_y;
+	y2= y + g->pos_y - g->height;
+
+	if (font->flags & BLF_CLIPPING) {
+		if (!BLI_in_rctf(&font->clip_rec, dx + font->pos[0], y1 + font->pos[1]))
+			return(0);
+		if (!BLI_in_rctf(&font->clip_rec, dx + font->pos[0], y2 + font->pos[1]))
+			return(0);
+		if (!BLI_in_rctf(&font->clip_rec, dx1 + font->pos[0], y2 + font->pos[1]))
+			return(0);
+		if (!BLI_in_rctf(&font->clip_rec, dx1 + font->pos[0], y1 + font->pos[1]))
+			return(0);
+	}
 
 	glGetIntegerv(GL_TEXTURE_2D_BINDING_EXT, &cur_tex);
 	if (cur_tex != g->tex)
 		glBindTexture(GL_TEXTURE_2D, g->tex);
 
-	dx= floor(x + g->pos_x);
 	glBegin(GL_QUADS);
 	glTexCoord2f(g->uv[0][0], g->uv[0][1]);
-	glVertex2f(dx, y + g->pos_y);
+	glVertex2f(dx, y1);
 
 	glTexCoord2f(g->uv[0][0], g->uv[1][1]);
-	glVertex2f(dx, y + g->pos_y - g->height);
+	glVertex2f(dx, y2);
 
 	glTexCoord2f(g->uv[1][0], g->uv[1][1]);
-	glVertex2f(dx + g->width, y + g->pos_y - g->height);
+	glVertex2f(dx1, y2);
 
 	glTexCoord2f(g->uv[1][0], g->uv[0][1]);
-	glVertex2f(dx + g->width, y + g->pos_y);
+	glVertex2f(dx1, y1);
 	glEnd();
+
+	return(1);
 }
 
 #endif /* WITH_FREETYPE2 */

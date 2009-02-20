@@ -52,6 +52,7 @@
 #include "BLI_arithb.h"
 
 #include "BIF_gl.h"
+#include "BLF_api.h"
 
 #include "blf_internal_types.h"
 #include "blf_internal.h"
@@ -84,7 +85,7 @@ void blf_font_fill(FontBLF *font)
 	font->clip_rec.xmax= 0.0f;
 	font->clip_rec.ymin= 0.0f;
 	font->clip_rec.ymax= 0.0f;
-	font->clip_mode= BLF_CLIP_DISABLE;
+	font->flags= 0;
 	font->dpi= 0;
 	font->size= 0;
 	font->cache.first= NULL;
@@ -209,7 +210,10 @@ void blf_font_draw(FontBLF *font, char *str)
 			pen_x += delta.x >> 6;
 		}
 
-		blf_glyph_render(g, (float)pen_x, (float)pen_y);
+		/* This only return zero if the clipping is enable and the glyph is out of the clip rctf. */
+		if (blf_glyph_render(font, g, (float)pen_x, (float)pen_y) == 0)
+			break;
+
 		pen_x += g->advance;
 		g_prev= g;
 	}
@@ -287,18 +291,30 @@ void blf_font_boundbox(FontBLF *font, char *str, rctf *box)
 
 float blf_font_width(FontBLF *font, char *str)
 {
+	float aspect;
 	rctf box;
 
+	if (font->flags & BLF_ASPECT)
+		aspect= font->aspect;
+	else
+		aspect= 1.0f;
+
 	blf_font_boundbox(font, str, &box);
-	return((box.xmax - box.xmin) * font->aspect);
+	return((box.xmax - box.xmin) * aspect);
 }
 
 float blf_font_height(FontBLF *font, char *str)
 {
+	float aspect;
 	rctf box;
 
+	if (font->flags & BLF_ASPECT)
+		aspect= font->aspect;
+	else
+		aspect= 1.0f;
+
 	blf_font_boundbox(font, str, &box);
-	return((box.ymax - box.ymin) * font->aspect);
+	return((box.ymax - box.ymin) * aspect);
 }
 
 void blf_font_free(FontBLF *font)
