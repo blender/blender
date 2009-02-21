@@ -1999,19 +1999,23 @@ static bNodeThreadStack *ntreeGetThreadStack(bNodeTree *ntree, int thread)
 {
 	ListBase *lb= &ntree->threadstack[thread];
 	bNodeThreadStack *nts;
-
+	
+	/* for material shading this is called quite a lot (perhaps too much locking unlocking)
+	 * however without locking we get bug #18058 - Campbell */
+	BLI_lock_thread(LOCK_CUSTOM1); 
+	
 	for(nts=lb->first; nts; nts=nts->next) {
 		if(!nts->used) {
 			nts->used= 1;
+			BLI_unlock_thread(LOCK_CUSTOM1);
 			return nts;
 		}
 	}
-	
 	nts= MEM_callocN(sizeof(bNodeThreadStack), "bNodeThreadStack");
 	nts->stack= MEM_dupallocN(ntree->stack);
 	nts->used= 1;
 	BLI_addtail(lb, nts);
-
+	BLI_unlock_thread(LOCK_CUSTOM1);
 	return nts;
 }
 
