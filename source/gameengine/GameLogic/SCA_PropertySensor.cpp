@@ -397,7 +397,7 @@ PyObject* SCA_PropertySensor::PySetType(PyObject* self, PyObject* args, PyObject
 		m_checktype =  typeArg;
 	}
 	
-	Py_Return;
+	Py_RETURN_NONE;
 }
 
 /* 3. getProperty */
@@ -434,7 +434,7 @@ PyObject* SCA_PropertySensor::PySetProperty(PyObject* self, PyObject* args, PyOb
 		; /* error: bad property name */
 	}
 	prop->Release();
-	Py_Return;
+	Py_RETURN_NONE;
 }
 
 /* 5. getValue */
@@ -470,7 +470,7 @@ PyObject* SCA_PropertySensor::PySetValue(PyObject* self, PyObject* args, PyObjec
 		m_checkpropval = oldval;
 		return NULL;
 	}	
-	Py_Return;
+	Py_RETURN_NONE;
 }
 
 /* eof */

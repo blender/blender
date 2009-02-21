@@ -790,7 +790,7 @@ KX_PYMETHODDEF_DOC( KX_BlenderMaterial, getShader , "getShader()")
 			spit("Fragment shaders not supported");
 	
 		mModified = true;
-		Py_Return;
+		Py_RETURN_NONE;
 	}
 
 	if( !GLEW_ARB_vertex_shader) {
@@ -798,14 +798,14 @@ KX_PYMETHODDEF_DOC( KX_BlenderMaterial, getShader , "getShader()")
 			spit("Vertex shaders not supported");
 
 		mModified = true;
-		Py_Return;
+		Py_RETURN_NONE;
 	}
 
 	if(!GLEW_ARB_shader_objects)  {
 		if(!mModified)
 			spit("GLSL not supported");
 		mModified = true;
-		Py_Return;
+		Py_RETURN_NONE;
 	}
 	else {
 		// returns Py_None on error
@@ -838,7 +838,7 @@ KX_PYMETHODDEF_DOC( KX_BlenderMaterial, getShader , "getShader()")
 				}
 			}
 		}
-		Py_Return;
+		Py_RETURN_NONE;
 	}
 	PyErr_Format(PyExc_ValueError, "GLSL Error");
 	return NULL;
@@ -910,7 +910,7 @@ KX_PYMETHODDEF_DOC( KX_BlenderMaterial, setBlending , "setBlending( GameLogic.sr
 			return NULL;
 		}
 		mUserDefBlend = true;
-		Py_Return;
+		Py_RETURN_NONE;
 	}
 	return NULL;
 }

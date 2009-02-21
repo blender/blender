@@ -264,7 +264,7 @@ PyObject* SCA_ISensor::PySetUsePosPulseMode(PyObject* self, PyObject* args, PyOb
 	int pyarg = 0;
 	if(!PyArg_ParseTuple(args, "i", &pyarg)) { return NULL; }
 	m_pos_pulsemode = PyArgToBool(pyarg);
-	Py_Return;
+	Py_RETURN_NONE;
 }
 
 /**
@@ -303,7 +303,7 @@ PyObject* SCA_ISensor::PySetFrequency(PyObject* self, PyObject* args, PyObject* 
 	};	
 	m_pulse_frequency = pulse_frequencyArg;
 
-	Py_Return;
+	Py_RETURN_NONE;
 }
 
 
@@ -326,7 +326,7 @@ PyObject* SCA_ISensor::PySetInvert(PyObject* self, PyObject* args, PyObject* kwd
 	int pyarg = 0;
 	if(!PyArg_ParseTuple(args, "i", &pyarg)) { return NULL; }
 	m_invert = PyArgToBool(pyarg);
-	Py_Return;
+	Py_RETURN_NONE;
 }
 
 const char SCA_ISensor::GetLevel_doc[] = 
@@ -352,7 +352,7 @@ PyObject* SCA_ISensor::PySetLevel(PyObject* self, PyObject* args, PyObject* kwds
 	int pyarg = 0;
 	if(!PyArg_ParseTuple(args, "i", &pyarg)) { return NULL; }
 	m_level = PyArgToBool(pyarg);
-	Py_Return;
+	Py_RETURN_NONE;
 }
 
 const char SCA_ISensor::GetUseNegPulseMode_doc[] = 
@@ -375,7 +375,7 @@ PyObject* SCA_ISensor::PySetUseNegPulseMode(PyObject* self, PyObject* args, PyOb
 	int pyarg = 0;
 	if(!PyArg_ParseTuple(args, "i", &pyarg)) { return NULL; }
 	m_neg_pulsemode = PyArgToBool(pyarg);
-	Py_Return;
+	Py_RETURN_NONE;
 }
 //<------Deprecated
 
@@ -385,7 +385,7 @@ KX_PYMETHODDEF_DOC_NOARGS(SCA_ISensor, reset,
 "\tThe sensor is put in its initial state as if it was just activated.\n")
 {
 	Init();
-	Py_Return;
+	Py_RETURN_NONE;
 }
 
 /* ----------------------------------------------- */

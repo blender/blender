@@ -530,7 +530,7 @@ PyObject* KX_CameraActuator::PySetMin(PyObject* self,
 	if(PyArg_ParseTuple(args,"f", &min))
 	{
 		m_minHeight = min;
-		Py_Return;
+		Py_RETURN_NONE;
 	}
 	return NULL;
 }
@@ -558,7 +558,7 @@ PyObject* KX_CameraActuator::PySetMax(PyObject* self,
 	if(PyArg_ParseTuple(args,"f", &max))
 	{
 		m_maxHeight = max;
-		Py_Return;
+		Py_RETURN_NONE;
 	}
 	return NULL;
 }
@@ -586,7 +586,7 @@ PyObject* KX_CameraActuator::PySetHeight(PyObject* self,
 	if(PyArg_ParseTuple(args,"f", &height))
 	{
 		m_height = height;
-		Py_Return;
+		Py_RETURN_NONE;
 	}
 	return NULL;
 }
@@ -604,7 +604,7 @@ PyObject* KX_CameraActuator::PySetXY(PyObject* self,
 	if(PyArg_ParseTuple(args,"i", &value))
 	{
 		m_x = value != 0;
-		Py_Return;
+		Py_RETURN_NONE;
 	}
 	return NULL;
 }

@@ -521,7 +521,7 @@ KX_GameObject::UpdateMaterialData(
 			{
 				KX_BlenderMaterial *m =  static_cast<KX_BlenderMaterial*>(poly);
 				
-				if (matname_hash == NULL)
+				if (matname_hash == 0)
 				{
 					m->UpdateIPO(rgba, specrgb,hard,spec,ref,emit, alpha);
 					// if mesh has only one material attached to it then use original hack with no need to edit vertices (better performance)

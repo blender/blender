@@ -210,8 +210,7 @@ PyObject* KX_SCA_AddObjectActuator::_getattr(const char *attr)
 	if (!strcmp(attr, "object")) {
 		if (!m_OriginalObject)	Py_RETURN_NONE;
 		else					return m_OriginalObject->AddRef();
-	}
-	else if (attr == "objectLastCreated") {
+	} else if (!strcmp(attr, "objectLastCreated")) {
 		if (!m_OriginalObject)	Py_RETURN_NONE;
 		else					return m_lastCreatedObject->AddRef();
 	}

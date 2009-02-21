@@ -126,7 +126,7 @@ protected:
 	void ExtractFrustumSphere();
 public:
 
-	typedef enum { INSIDE, INTERSECT, OUTSIDE } ;
+	enum { INSIDE, INTERSECT, OUTSIDE } ;
 
 	KX_Camera(void* sgReplicationInfo,SG_Callbacks callbacks,const RAS_CameraData& camdata, bool frustum_culling = true, PyTypeObject *T = &Type);
 	virtual ~KX_Camera();

@@ -365,7 +365,7 @@ PyObject* KX_ObjectActuator::PySetForce(PyObject* self,
 	m_force.setValue(vecArg);
 	m_bitLocalFlag.Force = PyArgToBool(bToggle);
 	UpdateFuzzyFlags();
-	Py_Return;
+	Py_RETURN_NONE;
 }
 
 /* 4. getTorque                                                              */
@@ -394,7 +394,7 @@ PyObject* KX_ObjectActuator::PySetTorque(PyObject* self,
 	m_torque.setValue(vecArg);
 	m_bitLocalFlag.Torque = PyArgToBool(bToggle);
 	UpdateFuzzyFlags();
-	Py_Return;
+	Py_RETURN_NONE;
 }
 
 /* 6. getDLoc                                                                */
@@ -423,7 +423,7 @@ PyObject* KX_ObjectActuator::PySetDLoc(PyObject* self,
 	m_dloc.setValue(vecArg);
 	m_bitLocalFlag.DLoc = PyArgToBool(bToggle);
 	UpdateFuzzyFlags();
-	Py_Return;
+	Py_RETURN_NONE;
 }
 
 /* 8. getDRot                                                                */
@@ -452,7 +452,7 @@ PyObject* KX_ObjectActuator::PySetDRot(PyObject* self,
 	m_drot.setValue(vecArg);
 	m_bitLocalFlag.DRot = PyArgToBool(bToggle);
 	UpdateFuzzyFlags();
-	Py_Return;
+	Py_RETURN_NONE;
 }
 
 /* 10. getLinearVelocity                                                 */
@@ -480,7 +480,7 @@ PyObject* KX_ObjectActuator::PySetLinearVelocity(PyObject* self,
 	m_linear_velocity.setValue(vecArg);
 	m_bitLocalFlag.LinearVelocity = PyArgToBool(bToggle);
 	UpdateFuzzyFlags();
-	Py_Return;
+	Py_RETURN_NONE;
 }
 
 
@@ -508,7 +508,7 @@ PyObject* KX_ObjectActuator::PySetAngularVelocity(PyObject* self,
 	m_angular_velocity.setValue(vecArg);
 	m_bitLocalFlag.AngularVelocity = PyArgToBool(bToggle);
 	UpdateFuzzyFlags();
-	Py_Return;
+	Py_RETURN_NONE;
 }
 
 /* 13. setDamping                                                */
@@ -520,7 +520,7 @@ PyObject* KX_ObjectActuator::PySetDamping(PyObject* self,
 		return NULL;
 	}
 	m_damping = damping;
-	Py_Return;
+	Py_RETURN_NONE;
 }
 
 /* 13. getVelocityDamping                                                */
@@ -551,7 +551,7 @@ PyObject* KX_ObjectActuator::PySetForceLimitX(PyObject* self,
 	m_drot[0] = vecArg[0];
 	m_dloc[0] = vecArg[1];
 	m_bitLocalFlag.Torque = PyArgToBool(bToggle);
-	Py_Return;
+	Py_RETURN_NONE;
 }
 
 /* 6. getForceLimitY                                                                */
@@ -578,7 +578,7 @@ PyObject* KX_ObjectActuator::PySetForceLimitY(PyObject* self,
 	m_drot[1] = vecArg[0];
 	m_dloc[1] = vecArg[1];
 	m_bitLocalFlag.DLoc = PyArgToBool(bToggle);
-	Py_Return;
+	Py_RETURN_NONE;
 }
 
 /* 6. getForceLimitZ                                                                */
@@ -605,7 +605,7 @@ PyObject* KX_ObjectActuator::PySetForceLimitZ(PyObject* self,
 	m_drot[2] = vecArg[0];
 	m_dloc[2] = vecArg[1];
 	m_bitLocalFlag.DRot = PyArgToBool(bToggle);
-	Py_Return;
+	Py_RETURN_NONE;
 }
 
 /* 4. getPID                                                              */
@@ -629,7 +629,7 @@ PyObject* KX_ObjectActuator::PySetPID(PyObject* self,
 		return NULL;
 	}
 	m_torque.setValue(vecArg);
-	Py_Return;
+	Py_RETURN_NONE;
 }
 
 

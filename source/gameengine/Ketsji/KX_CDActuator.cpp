@@ -210,7 +210,7 @@ PyObject* KX_CDActuator::_getattr(const char *attr)
 PyObject* KX_CDActuator::PyStartCD(PyObject* self, PyObject* args, PyObject* kwds)
 {
 	SND_CDObject::Instance()->SetPlaystate(SND_MUST_PLAY);
-	Py_Return;
+	Py_RETURN_NONE;
 }         
 
 
@@ -218,7 +218,7 @@ PyObject* KX_CDActuator::PyStartCD(PyObject* self, PyObject* args, PyObject* kwd
 PyObject* KX_CDActuator::PyPauseCD(PyObject* self, PyObject* args, PyObject* kwds)
 {
 	SND_CDObject::Instance()->SetPlaystate(SND_MUST_PAUSE);
-	Py_Return;
+	Py_RETURN_NONE;
 } 
 
 
@@ -226,7 +226,7 @@ PyObject* KX_CDActuator::PyPauseCD(PyObject* self, PyObject* args, PyObject* kwd
 PyObject* KX_CDActuator::PyStopCD(PyObject* self, PyObject* args, PyObject* kwds)
 {
 	SND_CDObject::Instance()->SetPlaystate(SND_MUST_STOP);
-	Py_Return;
+	Py_RETURN_NONE;
 }
 
 
@@ -239,7 +239,7 @@ PyObject* KX_CDActuator::PySetGain(PyObject* self, PyObject* args, PyObject* kwd
 	
 	SND_CDObject::Instance()->SetGain(gain);
 	
-	Py_Return;
+	Py_RETURN_NONE;
 }         
 
 

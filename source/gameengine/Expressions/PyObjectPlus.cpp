@@ -697,7 +697,6 @@ bool PyObjectPlus::isA(const char *mytypename)		// check typename of each parent
 
 PyObject *PyObjectPlus::Py_isA(PyObject *value)		// Python wrapper for isA
 {
-  char *mytypename;
   if (!PyString_Check(value)) {
     PyErr_SetString(PyExc_TypeError, "expected a string");
     return NULL;

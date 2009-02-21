@@ -292,7 +292,7 @@ KX_PYMETHODDEF_DOC_O(SCA_MouseSensor, getButtonStatus,
 		return PyInt_FromLong(event.m_status);
 	}
 	
-	Py_Return;
+	Py_RETURN_NONE;
 }
 
 /* ------------------------------------------------------------------------- */

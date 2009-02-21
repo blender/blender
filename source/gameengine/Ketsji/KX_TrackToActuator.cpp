@@ -480,9 +480,8 @@ PyObject* KX_TrackToActuator::_getattr(const char *attr)
 	_getattr_up(SCA_IActuator);
 }
 
-int KX_TrackToActuator::_setattr(const char *attr, PyObject* value) {
-	int ret;
-	
+int KX_TrackToActuator::_setattr(const char *attr, PyObject* value)
+{
 	if (!strcmp(attr, "object")) {
 		KX_GameObject *gameobj;
 		
@@ -570,7 +569,7 @@ PyObject* KX_TrackToActuator::PySetTime(PyObject* self, PyObject* args, PyObject
 	
 	m_time= timeArg;
 	
-	Py_Return;
+	Py_RETURN_NONE;
 }
 
 
@@ -614,7 +613,7 @@ PyObject* KX_TrackToActuator::PySetUse3D(PyObject* self, PyObject* args, PyObjec
 	
 	m_allow3D = !(boolArg == 0);
 	
-	Py_Return;
+	Py_RETURN_NONE;
 }
 
 /* eof */

@@ -173,7 +173,7 @@ KX_StateActuator::PySetOperation(PyObject* self,
 
 	m_operation = oper;
 
-	Py_Return;
+	Py_RETURN_NONE;
 }
 
 /* set mask ---------------------------------------------------------- */
@@ -198,7 +198,7 @@ KX_StateActuator::PySetMask(PyObject* self,
 
 	m_mask = mask;
 
-	Py_Return;
+	Py_RETURN_NONE;
 }
 
 

@@ -812,7 +812,7 @@ KX_PYMETHODDEF_DOC(KX_Camera, setProjectionMatrix,
 		if (PyMatTo(pymat, mat))
 		{
 			SetProjectionMatrix(mat);
-			Py_Return;
+			Py_RETURN_NONE;
 		}
 	}
 
@@ -837,7 +837,7 @@ KX_PYMETHODDEF_DOC(KX_Camera, enableViewport,
 		return NULL;
 	}
 	
-	Py_Return;
+	Py_RETURN_NONE;
 }
 
 KX_PYMETHODDEF_DOC(KX_Camera, setViewport,
@@ -851,7 +851,7 @@ KX_PYMETHODDEF_DOC(KX_Camera, setViewport,
 	} else {
 		return NULL;
 	}
-	Py_Return;
+	Py_RETURN_NONE;
 }
 
 KX_PYMETHODDEF_DOC(KX_Camera, setOnTop,
@@ -863,5 +863,5 @@ KX_PYMETHODDEF_DOC(KX_Camera, setOnTop,
 	scene = KX_GetActiveScene();
 	MT_assert(scene);
 	scene->SetCameraOnTop(this);
-	Py_Return;
+	Py_RETURN_NONE;
 }

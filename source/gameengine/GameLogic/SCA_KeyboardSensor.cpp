@@ -577,7 +577,7 @@ PyObject* SCA_KeyboardSensor::PySetKey(PyObject* self, PyObject* args, PyObject*
 	/* anything. It's up to the user to provide a sensible number.           */
 	m_hotkey = keyCode;
 
-	Py_Return;
+	Py_RETURN_NONE;
 }
 
 /** 3. GetHold1 : set the first bucky bit */
@@ -609,7 +609,7 @@ PyObject* SCA_KeyboardSensor::PySetHold1(PyObject* self, PyObject* args, PyObjec
 	/* anything. It's up to the user to provide a sensible number.           */
 	m_qual = keyCode;
 
-	Py_Return;
+	Py_RETURN_NONE;
 }
 	
 /** 5. GetHold2 : get the second bucky bit */
@@ -641,7 +641,7 @@ PyObject* SCA_KeyboardSensor::PySetHold2(PyObject* self, PyObject* args, PyObjec
 	/* anything. It's up to the user to provide a sensible number.           */
 	m_qual2 = keyCode;
 
-	Py_Return;
+	Py_RETURN_NONE;
 }
 
 	
@@ -682,7 +682,7 @@ PyObject* SCA_KeyboardSensor::PyGetPressedKeys(PyObject* self, PyObject* args, P
 		if (index>0) return resultlist;
 	}
 	
-	Py_Return;
+	Py_RETURN_NONE;
 }
 
 
@@ -725,7 +725,7 @@ SCA_IInputDevice* inputdev = m_pKeyboardMgr->GetInputDevice();
 		if (index > 0) return resultlist;
 	}
 
-	Py_Return;
+	Py_RETURN_NONE;
 }
 //<---- Deprecated
 
@@ -770,7 +770,7 @@ KX_PYMETHODDEF_DOC_O(SCA_KeyboardSensor, getKeyStatus,
 		return PyInt_FromLong(inevent.m_status);
 	}
 	
-	Py_Return;
+	Py_RETURN_NONE;
 }
 
 /* ------------------------------------------------------------------------- */

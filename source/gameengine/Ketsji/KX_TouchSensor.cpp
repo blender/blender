@@ -291,7 +291,7 @@ PyObject* KX_TouchSensor::PySetProperty(PyObject* self,
 	}
 	prop->Release();
 	
-	Py_Return;
+	Py_RETURN_NONE;
 }
 /* 2. getProperty */
 const char KX_TouchSensor::GetProperty_doc[] = 
@@ -318,7 +318,7 @@ PyObject* KX_TouchSensor::PyGetHitObject(PyObject* self,
 	{
 		return m_hitObject->AddRef();
 	}
-	Py_Return;
+	Py_RETURN_NONE;
 }
 
 const char KX_TouchSensor::GetHitObjectList_doc[] = 
@@ -402,7 +402,7 @@ PyObject* KX_TouchSensor::PySetTouchMaterial(PyObject* self, PyObject* args, PyO
 	
 	m_bFindMaterial = pulseArg != 0;
 
-	Py_Return;
+	Py_RETURN_NONE;
 }
 
 

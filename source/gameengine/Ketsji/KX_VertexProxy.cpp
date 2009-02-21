@@ -328,7 +328,7 @@ PyObject* KX_VertexProxy::PySetXYZ(PyObject*,
 	{
 		m_vertex->SetXYZ(vec);
 		m_mesh->SetMeshModified(true);
-		Py_Return;
+		Py_RETURN_NONE;
 	}
 	
 	return NULL;
@@ -350,7 +350,7 @@ PyObject* KX_VertexProxy::PySetNormal(PyObject*,
 	{
 		m_vertex->SetNormal(vec);
 		m_mesh->SetMeshModified(true);
-		Py_Return;
+		Py_RETURN_NONE;
 	}
 	
 	return NULL;
@@ -374,7 +374,7 @@ PyObject* KX_VertexProxy::PySetRGBA(PyObject*,
 	{
 		m_vertex->SetRGBA(MT_Vector4(r, g, b, a));
 		m_mesh->SetMeshModified(true);
-		Py_Return;
+		Py_RETURN_NONE;
 	}
 	PyErr_Clear();
 	
@@ -383,7 +383,7 @@ PyObject* KX_VertexProxy::PySetRGBA(PyObject*,
 	{
 		m_vertex->SetRGBA(rgba);
 		m_mesh->SetMeshModified(true);
-		Py_Return;
+		Py_RETURN_NONE;
 	}
 	
 	return NULL;
@@ -406,7 +406,7 @@ PyObject* KX_VertexProxy::PySetUV(PyObject*,
 	{
 		m_vertex->SetUV(vec);
 		m_mesh->SetMeshModified(true);
-		Py_Return;
+		Py_RETURN_NONE;
 	}
 	
 	return NULL;
@@ -434,7 +434,7 @@ PyObject* KX_VertexProxy::PySetUV2(PyObject*,
 			m_vertex->SetUnit(unit);
 			m_vertex->SetUV2(vec);
 			m_mesh->SetMeshModified(true);
-			Py_Return;
+			Py_RETURN_NONE;
 		}
 	}
 	return NULL;

@@ -72,9 +72,6 @@ typedef int Py_ssize_t;
 #define PY_METHODCHAR const char *
 #endif
 
-								// some basic python macros
-#define Py_Return { Py_INCREF(Py_None); return Py_None;}
-
 static inline void Py_Fatal(const char *M) {
 	//cout << M << endl; 
 	exit(-1);
@@ -394,10 +391,10 @@ public:
 									// isA methods
 	bool isA(PyTypeObject *T);
 	bool isA(const char *mytypename);
-	PyObject *Py_isA(PyObject *args);
-	static PyObject *sPy_isA(PyObject *self, PyObject *args, PyObject *kwd)
+	PyObject *Py_isA(PyObject *value);
+	static PyObject *sPy_isA(PyObject *self, PyObject *value)
 	{
-		return ((PyObjectPlus*)self)->Py_isA(args);
+		return ((PyObjectPlus*)self)->Py_isA(value);
 	}
 };
 

@@ -211,7 +211,7 @@ PyObject* SCA_DelaySensor::PySetDelay(PyObject* self, PyObject* args, PyObject* 
 		return NULL;
 	}
 	m_delay = delay;
-	Py_Return;
+	Py_RETURN_NONE;
 }
 
 const char SCA_DelaySensor::SetDuration_doc[] = 
@@ -233,7 +233,7 @@ PyObject* SCA_DelaySensor::PySetDuration(PyObject* self, PyObject* args, PyObjec
 		return NULL;
 	}
 	m_duration = duration;
-	Py_Return;
+	Py_RETURN_NONE;
 }
 
 const char SCA_DelaySensor::SetRepeat_doc[] = 
@@ -250,7 +250,7 @@ PyObject* SCA_DelaySensor::PySetRepeat(PyObject* self, PyObject* args, PyObject*
 		return NULL;
 	}
 	m_repeat = (repeat != 0);
-	Py_Return;
+	Py_RETURN_NONE;
 }
 
 const char SCA_DelaySensor::GetDelay_doc[] = 

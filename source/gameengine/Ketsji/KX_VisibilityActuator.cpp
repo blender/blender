@@ -152,7 +152,7 @@ KX_VisibilityActuator::PySetVisible(PyObject* self,
 
 	m_visible = PyArgToBool(vis);
 
-	Py_Return;
+	Py_RETURN_NONE;
 }
 
 

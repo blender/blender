@@ -298,7 +298,7 @@ PyObject* SCA_PropertyActuator::PySetProperty(PyObject* self, PyObject* args, Py
 	}
 	prop->Release();
 	
-	Py_Return;
+	Py_RETURN_NONE;
 }
 
 /* 2. getProperty                                                        */
@@ -328,7 +328,7 @@ PyObject* SCA_PropertyActuator::PySetValue(PyObject* self, PyObject* args, PyObj
 	
 	if (valArg)	m_exprtxt = valArg;
 
-	Py_Return;
+	Py_RETURN_NONE;
 }
 
 /* 4. getValue                                                        */

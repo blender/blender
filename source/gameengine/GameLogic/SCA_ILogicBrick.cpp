@@ -324,7 +324,7 @@ PyObject* SCA_ILogicBrick::PySetExecutePriority(PyObject* self,
 	
 	m_Execute_Ueber_Priority = priority;
 
-	Py_Return;
+	Py_RETURN_NONE;
 }
 
 

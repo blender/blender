@@ -115,7 +115,7 @@ KX_PYMETHODDEF_DOC(KX_SCA_DynamicActuator, setOperation,
 		return NULL;
 	}
 	m_dyn_operation= dyn_operation;
-	Py_Return;
+	Py_RETURN_NONE;
 }
 
 KX_PYMETHODDEF_DOC(KX_SCA_DynamicActuator, getOperation,

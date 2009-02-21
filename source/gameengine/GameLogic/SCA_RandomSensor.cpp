@@ -209,7 +209,7 @@ PyObject* SCA_RandomSensor::PySetSeed(PyObject* self, PyObject* args, PyObject* 
 	
 	m_basegenerator->SetSeed(seedArg);
 	
-	Py_Return;
+	Py_RETURN_NONE;
 }
 
 /* 2. getSeed                                                            */

@@ -302,7 +302,7 @@ PyObject* KX_SoundActuator::PySetFilename(PyObject* self, PyObject* args, PyObje
 	if (!PyArg_ParseTuple(args, "s", &soundName))
 		return NULL;
 
-	Py_Return;
+	Py_RETURN_NONE;
 }
 
 
@@ -332,7 +332,7 @@ PyObject* KX_SoundActuator::PyStartSound(PyObject* self, PyObject* args, PyObjec
 		// To start the sound you must activate the actuator. 
 		// This function is to restart the sound.
 		m_soundObject->StartSound();	
-	Py_Return;
+	Py_RETURN_NONE;
 }         
 
 
@@ -342,7 +342,7 @@ PyObject* KX_SoundActuator::PyPauseSound(PyObject* self, PyObject* args, PyObjec
 	if (m_soundObject)
 		// unfortunately, openal does not implement pause correctly, it is equivalent to a stop
 		m_soundObject->PauseSound();	
-	Py_Return;
+	Py_RETURN_NONE;
 } 
 
 
@@ -351,7 +351,7 @@ PyObject* KX_SoundActuator::PyStopSound(PyObject* self, PyObject* args, PyObject
 {
 	if (m_soundObject)
 		m_soundObject->StopSound();	
-	Py_Return;
+	Py_RETURN_NONE;
 }
 
 
@@ -365,7 +365,7 @@ PyObject* KX_SoundActuator::PySetGain(PyObject* self, PyObject* args, PyObject* 
 	if (m_soundObject)
 		m_soundObject->SetGain(gain);
 	
-	Py_Return;
+	Py_RETURN_NONE;
 }         
 
 
@@ -389,7 +389,7 @@ PyObject* KX_SoundActuator::PySetPitch(PyObject* self, PyObject* args, PyObject*
 	if (m_soundObject)
 		m_soundObject->SetPitch(pitch);
 	
-	Py_Return;
+	Py_RETURN_NONE;
 }         
 
 
@@ -413,7 +413,7 @@ PyObject* KX_SoundActuator::PySetRollOffFactor(PyObject* self, PyObject* args, P
 	if (m_soundObject)
 		m_soundObject->SetRollOffFactor(rollofffactor);
 
-	Py_Return;
+	Py_RETURN_NONE;
 }         
 
 
@@ -437,7 +437,7 @@ PyObject* KX_SoundActuator::PySetLooping(PyObject* self, PyObject* args, PyObjec
 	if (m_soundObject)
 		m_soundObject->SetLoopMode(looping);
 	
-	Py_Return;
+	Py_RETURN_NONE;
 }         
 
 
@@ -465,7 +465,7 @@ PyObject* KX_SoundActuator::PySetPosition(PyObject* self, PyObject* args, PyObje
 	if (m_soundObject)
 		m_soundObject->SetPosition(pos);
 	
-	Py_Return;
+	Py_RETURN_NONE;
 }         
 
 
@@ -483,7 +483,7 @@ PyObject* KX_SoundActuator::PySetVelocity(PyObject* self, PyObject* args, PyObje
 	if (m_soundObject)
 		m_soundObject->SetVelocity(vel);
 	
-	Py_Return;
+	Py_RETURN_NONE;
 }         
 
 
@@ -507,7 +507,7 @@ PyObject* KX_SoundActuator::PySetOrientation(PyObject* self, PyObject* args, PyO
 	if (m_soundObject)
 		m_soundObject->SetOrientation(ori);
 	
-	Py_Return;
+	Py_RETURN_NONE;
 }
 
 PyObject* KX_SoundActuator::PySetType(PyObject* self, PyObject* args, PyObject* kwds)
@@ -523,7 +523,7 @@ PyObject* KX_SoundActuator::PySetType(PyObject* self, PyObject* args, PyObject* 
 		m_type = (KX_SOUNDACT_TYPE) typeArg;
 	}
 
-	Py_Return;
+	Py_RETURN_NONE;
 }
 
 PyObject* KX_SoundActuator::PyGetType(PyObject* self, PyObject* args, PyObject* kwds)

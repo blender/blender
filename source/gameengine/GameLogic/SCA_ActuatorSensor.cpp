@@ -221,7 +221,7 @@ PyObject* SCA_ActuatorSensor::PySetActuator(PyObject* self, PyObject* args, PyOb
 	} else {
 		; /* error: bad actuator name */
 	}
-	Py_Return;
+	Py_RETURN_NONE;
 }
 
 /* eof */

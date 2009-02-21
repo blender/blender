@@ -162,7 +162,7 @@ PyObject* KX_NetworkMessageActuator::PySetToPropName(
 		return NULL;
 	}
 
-	Py_Return;
+	Py_RETURN_NONE;
 }
 
 // 2. SetSubject
@@ -180,7 +180,7 @@ PyObject* KX_NetworkMessageActuator::PySetSubject(
 		return NULL;
 	}
 	
-	Py_Return;
+	Py_RETURN_NONE;
 }
 
 // 3. SetBodyType
@@ -198,7 +198,7 @@ PyObject* KX_NetworkMessageActuator::PySetBodyType(
 		return NULL;
 	}
 
-	Py_Return;
+	Py_RETURN_NONE;
 }
 
 // 4. SetBody
@@ -216,6 +216,6 @@ PyObject* KX_NetworkMessageActuator::PySetBody(
 		return NULL;
 	}
 
-	Py_Return;
+	Py_RETURN_NONE;
 }
 

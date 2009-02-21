@@ -911,6 +911,6 @@ PyObject* BL_ShapeActionActuator::PySetType(PyObject* self,
 		printf("Invalid type for action actuator: %d\n", typeArg); /* error */
     }
 	
-    Py_Return;
+    Py_RETURN_NONE;
 }
 

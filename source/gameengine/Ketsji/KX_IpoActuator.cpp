@@ -503,7 +503,7 @@ PyObject* KX_IpoActuator::PySet(PyObject* self,
 		; /* error */
 	}
 
-	Py_Return;
+	Py_RETURN_NONE;
 }
 
 /* set property  ----------------------------------------------------------- */
@@ -523,7 +523,7 @@ PyObject* KX_IpoActuator::PySetProperty(PyObject* self,
 
 	m_propname = propertyName;
 	
-	Py_Return;
+	Py_RETURN_NONE;
 }
 
 /* 4. setStart:                                                              */
@@ -541,7 +541,7 @@ PyObject* KX_IpoActuator::PySetStart(PyObject* self,
 	
 	m_startframe = startArg;
 
-	Py_Return;
+	Py_RETURN_NONE;
 }
 /* 5. getStart:                                                              */
 const char KX_IpoActuator::GetStart_doc[] = 
@@ -566,7 +566,7 @@ PyObject* KX_IpoActuator::PySetEnd(PyObject* self,
 	
 	m_endframe = endArg;
 
-	Py_Return;
+	Py_RETURN_NONE;
 }
 /* 7. getEnd:                                                                */
 const char KX_IpoActuator::GetEnd_doc[] = 
@@ -594,7 +594,7 @@ PyObject* KX_IpoActuator::PySetIpoAsForce(PyObject* self,
 	if (m_ipo_as_force)
 		m_ipo_add = false;
 	
-	Py_Return;	
+	Py_RETURN_NONE;	
 }
 /* 7. getIpoAsForce:                                                         */
 const char KX_IpoActuator::GetIpoAsForce_doc[] = 
@@ -622,7 +622,7 @@ PyObject* KX_IpoActuator::PySetIpoAdd(PyObject* self,
 	if (m_ipo_add)
 		m_ipo_as_force = false;
 	
-	Py_Return;	
+	Py_RETURN_NONE;	
 }
 /* 7. getIpoAsForce:                                                         */
 const char KX_IpoActuator::GetIpoAdd_doc[] = 
@@ -651,7 +651,7 @@ PyObject* KX_IpoActuator::PySetType(PyObject* self,
 		m_type = (IpoActType) typeArg;
 	}
 	
-	Py_Return;
+	Py_RETURN_NONE;
 }
 /* 9. getType:                                                               */
 const char KX_IpoActuator::GetType_doc[] = 
@@ -679,7 +679,7 @@ PyObject* KX_IpoActuator::PySetForceIpoActsLocal(PyObject* self,
 
 	m_ipo_local = PyArgToBool(boolArg);
 	
-	Py_Return;	
+	Py_RETURN_NONE;	
 }
 /* 11. getForceIpoActsLocal:                                                */
 const char KX_IpoActuator::GetForceIpoActsLocal_doc[] = 

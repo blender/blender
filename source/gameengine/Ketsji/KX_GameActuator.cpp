@@ -270,7 +270,7 @@ PyObject* KX_GameActuator::PySetFile(PyObject* self, PyObject* args, PyObject* k
 	
 	m_filename = STR_String(new_file);
 
-	Py_Return;
+	Py_RETURN_NONE;
 
 }
 	

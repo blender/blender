@@ -796,7 +796,7 @@ KX_PYMETHODDEF_DOC( BL_Shader, setSource," setSource(vertexProgram, fragmentProg
 	if(mShader !=0 && mOk  )
 	{
 		// already set...
-		Py_Return;
+		Py_RETURN_NONE;
 	}
 	char *v,*f;
 	int apply=0;
@@ -807,12 +807,12 @@ KX_PYMETHODDEF_DOC( BL_Shader, setSource," setSource(vertexProgram, fragmentProg
 		if( LinkProgram() ) {
 			glUseProgramObjectARB( mShader );
 			mUse = apply!=0;
-			Py_Return;
+			Py_RETURN_NONE;
 		}
 		vertProg = 0;
 		fragProg = 0;
 		mUse = 0;
-		Py_Return;
+		Py_RETURN_NONE;
 	}
 	return NULL;
 }
@@ -827,7 +827,7 @@ KX_PYMETHODDEF_DOC( BL_Shader, delSource, "delSource( )" )
 	mShader		= 0;
 	mOk			= 0;
 	mUse		= 0;
-	Py_Return;
+	Py_RETURN_NONE;
 }
 
 KX_PYMETHODDEF_DOC( BL_Shader, isValid, "isValid()" )
@@ -871,7 +871,7 @@ KX_PYMETHODDEF_DOC( BL_Shader, validate, "validate()")
 		MEM_freeN(logInf);
 		logInf=0;
 	}
-	Py_Return;
+	Py_RETURN_NONE;
 }
 
 
@@ -912,7 +912,7 @@ KX_PYMETHODDEF_DOC( BL_Shader, setNumberOfPasses, "setNumberOfPasses( max-pass )
 		return NULL;
 
 	mPass = 1;
-	Py_Return;
+	Py_RETURN_NONE;
 }
 
 /// access functions
@@ -935,7 +935,7 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniform1f, "setUniform1f(name, fx)" )
 			SetUniform( loc, (float)value );
 #endif
 		}
-		Py_Return;
+		Py_RETURN_NONE;
 	}
 	return NULL;
 }
@@ -959,7 +959,7 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniform2f , "setUniform2f(name, fx, fy)")
 			SetUniform(loc, array, 2);
 #endif
 		}
-		Py_Return;
+		Py_RETURN_NONE;
 	}
 	return NULL;
 }
@@ -983,7 +983,7 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniform3f, "setUniform3f(name, fx,fy,fz) ")
 			SetUniform(loc, array, 3);
 #endif
 		}
-		Py_Return;
+		Py_RETURN_NONE;
 
 	}
 	return NULL;
@@ -1008,7 +1008,7 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniform4f, "setUniform4f(name, fx,fy,fz, fw) "
 			SetUniform(loc, array, 4);
 #endif
 		}
-		Py_Return;
+		Py_RETURN_NONE;
 	}
 	return NULL;
 }
@@ -1032,7 +1032,7 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniform1i, "setUniform1i(name, ix)" )
 			SetUniform(loc, (int)value);
 #endif
 		}
-		Py_Return;
+		Py_RETURN_NONE;
 	}
 	return NULL;
 }
@@ -1056,7 +1056,7 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniform2i , "setUniform2i(name, ix, iy)")
 			SetUniform(loc, array, 2);
 #endif
 		}
-		Py_Return;
+		Py_RETURN_NONE;
 	}
 	return NULL;
 }
@@ -1081,7 +1081,7 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniform3i, "setUniform3i(name, ix,iy,iz) ")
 			SetUniform(loc, array, 3);
 #endif
 		}
-		Py_Return;
+		Py_RETURN_NONE;
 	}
 	return NULL;
 }
@@ -1104,7 +1104,7 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniform4i, "setUniform4i(name, ix,iy,iz, iw) "
 			SetUniform(loc, array, 4);
 #endif
 		}
-		Py_Return;
+		Py_RETURN_NONE;
 	}
 	return NULL;
 }
@@ -1144,7 +1144,7 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniformfv , "setUniformfv( float (list2 or lis
 #else
 						SetUniform(loc, array2, 2);						
 #endif
-						Py_Return;
+						Py_RETURN_NONE;
 					} break;
 				case 3:
 					{
@@ -1154,7 +1154,7 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniformfv , "setUniformfv( float (list2 or lis
 #else
 						SetUniform(loc, array3, 3);	
 #endif
-						Py_Return;
+						Py_RETURN_NONE;
 					}break;
 				case 4:
 					{
@@ -1164,7 +1164,7 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniformfv , "setUniformfv( float (list2 or lis
 #else
 						SetUniform(loc, array4, 4);	
 #endif
-						Py_Return;
+						Py_RETURN_NONE;
 					}break;
 				default:
 					{
@@ -1212,7 +1212,7 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniformiv, "setUniformiv( int (list2 or list3 
 #else
 						SetUniform(loc, array2, 2);						
 #endif
-						Py_Return;
+						Py_RETURN_NONE;
 					} break;
 				case 3:
 					{
@@ -1223,7 +1223,7 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniformiv, "setUniformiv( int (list2 or list3 
 #else
 						SetUniform(loc, array3, 3);	
 #endif
-						Py_Return;
+						Py_RETURN_NONE;
 					}break;
 				case 4:
 					{
@@ -1234,7 +1234,7 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniformiv, "setUniformiv( int (list2 or list3 
 #else
 						SetUniform(loc, array4, 4);	
 #endif
-						Py_Return;
+						Py_RETURN_NONE;
 					}break;
 				default:
 					{
@@ -1282,7 +1282,7 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniformMatrix4,
 #else
 					SetUniform(loc,mat,(transp!=0));
 #endif
-					Py_Return;
+					Py_RETURN_NONE;
 				}
 			}
 		}
@@ -1323,7 +1323,7 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniformMatrix3,
 #else
 					SetUniform(loc,mat,(transp!=0));
 #endif
-					Py_Return;
+					Py_RETURN_NONE;
 
 				}
 			}
@@ -1346,7 +1346,7 @@ KX_PYMETHODDEF_DOC( BL_Shader, setAttrib, "setAttrib(enum)" )
 		mAttr=SHD_TANGENT;
 		glUseProgramObjectARB(mShader);
 		glBindAttribLocationARB(mShader, mAttr, "Tangent");
-		Py_Return;
+		Py_RETURN_NONE;
 	}
 	return NULL;
 }
@@ -1376,7 +1376,7 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniformDef, "setUniformDef(name, enum)" )
 			}
 			if(defined)
 			{
-				Py_Return;
+				Py_RETURN_NONE;
 			}
 
 			BL_DefUniform *uni = new BL_DefUniform();
@@ -1384,7 +1384,7 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniformDef, "setUniformDef(name, enum)" )
 			uni->mType = nloc;
 			uni->mFlag = 0;
 			mPreDef.push_back(uni);
-			Py_Return;
+			Py_RETURN_NONE;
 		}
 	}
 	return NULL;

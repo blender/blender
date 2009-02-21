@@ -429,7 +429,7 @@ PyObject* CListValue::Pyreverse(PyObject* self,
 {
 	std::reverse(m_pValueArray.begin(),m_pValueArray.end());
 
-	Py_Return;
+	Py_RETURN_NONE;
 	
 }
 
