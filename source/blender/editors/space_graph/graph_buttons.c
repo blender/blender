@@ -96,20 +96,24 @@ static void do_graph_region_buttons(bContext *C, void *arg, int event)
 }
 
 
-static void graph_panel_properties(const bContext *C, ARegion *ar, short cntrl)	// GRAPH_HANDLER_SETTINGS
+static void graph_panel_properties(const bContext *C, ARegion *ar, short cntrl, bAnimListElem *ale)	// GRAPH_HANDLER_SETTINGS
 {
-	//ScrArea *sa= CTX_wm_area(C);
-	//Scene *scene= CTX_data_scene(C);
 	uiBlock *block;
+	char name[128];
 
 	block= uiBeginBlock(C, ar, "graph_panel_properties", UI_EMBOSS, UI_HELV);
 	if(uiNewPanel(C, ar, block, "Properties", "Graph", 340, 30, 318, 254)==0) return;
 	uiBlockSetHandleFunc(block, do_graph_region_buttons, NULL);
 
 	/* to force height */
-	uiNewPanelHeight(block, 264);
+	uiNewPanelHeight(block, 204);
 
-	uiDefBut(block, LABEL, 1, "Testing",					10, 220, 150, 19, NULL, 0.0, 0.0, 0, 0, "");
+	// XXX testing buttons
+	uiDefBut(block, LABEL, 1, "Active F-Curve:",					10, 200, 150, 19, NULL, 0.0, 0.0, 0, 0, "");
+	
+	getname_anim_fcurve(name, ale->id, (FCurve *)ale->data);
+	uiDefBut(block, LABEL, 1, name,					30, 180, 300, 19, NULL, 0.0, 0.0, 0, 0, "Name of Active F-Curve");
+	
 #if 0
 	uiBlockBeginAlign(block);
 	uiDefButF(block, NUM, B_REDR, "Spacing:",		10, 200, 140, 19, &v3d->grid, 0.001, 100.0, 10, 0, "Set the distance between grid lines");
@@ -119,24 +123,65 @@ static void graph_panel_properties(const bContext *C, ARegion *ar, short cntrl)	
 #endif
 }
 
-
+/* Find 'active' F-Curve. It must be editable, since that's the purpose of these buttons (subject to change).  
+ * We return the 'wrapper' since it contains valuable context info (about hierarchy), which will need to be freed 
+ * when the caller is done with it.
+ */
+// TODO: move this to anim api with another name?
+static bAnimListElem *get_active_fcurve_channel (bAnimContext *ac)
+{
+	ListBase anim_data = {NULL, NULL};
+	int filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_ACTIVE | ANIMFILTER_CURVESONLY);
+	int items = ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
+	
+	/* We take the first F-Curve only, since some other ones may have had 'active' flag set
+	 * if they were from linked data.
+	 */
+	if (items) {
+		bAnimListElem *ale= (bAnimListElem *)anim_data.first;
+		
+		/* remove first item from list, then free the rest of the list and return the stored one */
+		BLI_remlink(&anim_data, ale);
+		BLI_freelistN(&anim_data);
+		
+		return ale;
+	}
+	
+	/* no active F-Curve */
+	return NULL;
+}
 
 void graph_region_buttons(const bContext *C, ARegion *ar)
 {
 	SpaceIpo *sipo= (SpaceIpo *)CTX_wm_space_data(C);
+	bAnimContext ac;
+	bAnimListElem *ale= NULL;
 	
+	/* for now, only draw if we could init the anim-context info (necessary for all animation-related tools) 
+	 * to work correctly is able to be correctly retrieved. There's no point showing empty panels?
+	 */
+	if (ANIM_animdata_get_context(C, &ac) == 0) 
+		return;
+	
+	
+	/* try to find 'active' F-Curve */
+	ale= get_active_fcurve_channel(&ac);
+	if (ale == NULL) 
+		return;	
+		
 		// XXX temp panel for testing
-	graph_panel_properties(C, ar, 0);
+	graph_panel_properties(C, ar, 0, ale);
 	
 	/* driver settings for active F-Curve (only for 'Drivers' mode) */
 	if (sipo->mode == SIPO_MODE_DRIVERS) {
 		//graph_panel_drivers(C, ar, 0);
 	}
-	
-	
+
 	uiDrawPanels(C, 1);		/* 1 = align */
 	uiMatchPanelsView2d(ar); /* sets v2d->totrct */
 	
+	/* free temp data */
+	MEM_freeN(ale);
 }
 
 

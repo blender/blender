@@ -154,6 +154,7 @@ typedef enum eAnimFilter_Flags {
 	ANIMFILTER_CHANNELS		= (1<<4),	/* make list for interface drawing */
 	ANIMFILTER_ACTGROUPED	= (1<<5),	/* belongs to the active actiongroup */
 	ANIMFILTER_CURVEVISIBLE	= (1<<6),	/* F-Curve is visible for editing/viewing in Graph Editor */
+	ANIMFILTER_ACTIVE		= (1<<7),	/* channel should be 'active' */  // FIXME: this is only relevant for F-Curves for now
 } eAnimFilter_Flags;
 
 

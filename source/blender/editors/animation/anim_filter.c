@@ -511,12 +511,15 @@ static int animdata_filter_fcurves (ListBase *anim_data, FCurve *first, bActionG
 			if (!(filter_mode & ANIMFILTER_FOREDIT) || EDITABLE_FCU(fcu)) {
 				/* only include this curve if selected */
 				if (!(filter_mode & ANIMFILTER_SEL) || (SEL_FCU(fcu))) {
-					/* owner/ownertype will be either object or action-channel, depending if it was dopesheet or part of an action */
-					ale= make_new_animlistelem(fcu, ANIMTYPE_FCURVE, owner, ownertype, owner_id);
-					
-					if (ale) {
-						BLI_addtail(anim_data, ale);
-						items++;
+					/* only include if this curve is active */
+					if (!(filter_mode & ANIMFILTER_ACTIVE) || (fcu->flag & FCURVE_ACTIVE)) {
+						/* owner/ownertype will be either object or action-channel, depending if it was dopesheet or part of an action */
+						ale= make_new_animlistelem(fcu, ANIMTYPE_FCURVE, owner, ownertype, owner_id);
+						
+						if (ale) {
+							BLI_addtail(anim_data, ale);
+							items++;
+						}
 					}
 				}
 			}
