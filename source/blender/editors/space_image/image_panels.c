@@ -56,7 +56,7 @@
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
-#include "BKE_packedfile.h"
+#include "BKE_packedFile.h"
 #include "BKE_screen.h"
 #include "BKE_utildefines.h"
 
