@@ -354,7 +354,7 @@ static void graph_buttons_area_draw(const bContext *C, ARegion *ar)
 	/* set view2d view matrix for scrolling (without scrollers) */
 	UI_view2d_view_ortho(C, &ar->v2d);
 	
-	// XXX file is not in svn: graph_region_buttons(C, ar);
+	graph_region_buttons(C, ar);
 	
 	/* restore view matrix? */
 	UI_view2d_view_restore(C);

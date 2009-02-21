@@ -42,7 +42,7 @@ struct ARegion;
 struct ARegion *graph_has_buttons_region(struct ScrArea *sa);
 
 /* ***************************************** */
-/* ipo_draw.c */
+/* graph_draw.c */
 void graph_draw_channel_names(struct bAnimContext *ac, struct SpaceIpo *sipo, struct ARegion *ar);
 void graph_draw_curves(struct bAnimContext *ac, struct SpaceIpo *sipo, struct ARegion *ar);
 

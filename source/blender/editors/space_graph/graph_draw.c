@@ -703,7 +703,12 @@ void graph_draw_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 		if (nob)
 			ANIM_nla_mapping_apply_fcurve(nob, ale->key_data, 0, 0); 
 		
-		/* draw curve - we currently calculate colour on the fly, but that should probably be done in advance instead */
+		/* draw curve - if there's an active modifier (or a stack of modifiers) drawing these takes presidence,
+		 * unless modifiers in use will not alter any of the values within the keyframed area...
+		 */
+		
+		
+		/* draw curve - as defined by keyframes */
 		if ( ((fcu->bezt) || (fcu->fpt)) && (fcu->totvert) ) { 
 			/* set color/drawing style for curve itself */
 			if ( ((fcu->grp) && (fcu->grp->flag & AGRP_PROTECTED)) || (fcu->flag & FCURVE_PROTECTED) ) {
