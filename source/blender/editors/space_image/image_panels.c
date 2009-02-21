@@ -1229,7 +1229,7 @@ static void uiblock_layer_pass_arrow_buttons(uiBlock *block, RenderResult *rr, I
 static int packdummy=0;
 
 /* The general Image panel with the loadsa callbacks! */
-void uiblock_image_panel(const bContext *C, uiBlock *block, Image **ima_pp, ImageUser *iuser, 
+void ED_image_uiblock_panel(const bContext *C, uiBlock *block, Image **ima_pp, ImageUser *iuser, 
 						 short redraw, short imagechanged)
 {
 	Scene *scene= CTX_data_scene(C);
@@ -1410,7 +1410,7 @@ static void image_panel_properties(const bContext *C, ARegion *ar)
 	uiBlockSetHandleFunc(block, do_image_panel_events, NULL);
 
 	/* note, it draws no bottom half in facemode, for vertex buttons */
-	uiblock_image_panel(C, block, &sima->image, &sima->iuser, B_REDR, B_REDR);
+	ED_image_uiblock_panel(C, block, &sima->image, &sima->iuser, B_REDR, B_REDR);
 	image_editvertex_buts(C, block);
 	
 	uiEndBlock(C, block);

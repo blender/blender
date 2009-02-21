@@ -77,10 +77,11 @@
 
 #include "ED_armature.h"
 #include "ED_curve.h"
-#include "ED_particle.h"
+#include "ED_image.h"
 #include "ED_keyframing.h"
 #include "ED_mesh.h"
 #include "ED_object.h"
+#include "ED_particle.h"
 #include "ED_screen.h"
 #include "ED_types.h"
 #include "ED_util.h"
@@ -1303,6 +1304,7 @@ static void view3d_panel_background(const bContext *C, ARegion *ar, short cntrl)
 
 	block= uiBeginBlock(C, ar, "view3d_panel_background", UI_EMBOSS, UI_HELV);
 	if(uiNewPanel(C, ar, block, "Background Image", "View3d", 340, 10, 318, 204)==0) return;
+	uiBlockSetHandleFunc(block, do_view3d_region_buttons, NULL);
 
 	if(v3d->flag & V3D_DISPBGPIC) {
 		if(v3d->bgpic==NULL) {
@@ -1327,7 +1329,7 @@ static void view3d_panel_background(const bContext *C, ARegion *ar, short cntrl)
 		uiDefButF(block, NUM, B_REDR, "X Offset:",	10, 205, 150, 20, &v3d->bgpic->xof, -250.0*v3d->grid,250.0*v3d->grid, 10, 2, "Set the horizontal offset of the background image");
 		uiDefButF(block, NUM, B_REDR, "Y Offset:",	160, 205, 150, 20, &v3d->bgpic->yof, -250.0*v3d->grid,250.0*v3d->grid, 10, 2, "Set the vertical offset of the background image");
 		
-// XXX		uiblock_image_panel(block, &v3d->bgpic->ima, &v3d->bgpic->iuser, B_REDR, B_REDR);
+		ED_image_uiblock_panel(C, block, &v3d->bgpic->ima, &v3d->bgpic->iuser, B_REDR, B_REDR);
 		uiBlockEndAlign(block);
 	}
 	uiEndBlock(C, block);
