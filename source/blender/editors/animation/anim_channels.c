@@ -1211,6 +1211,7 @@ static void mouse_anim_channels (bAnimContext *ac, float x, int channel_index, s
 				/* if group is selected now, and we're in Action Editor mode (so that we have pointer to active action),
 				 * we can make this group the 'active' one in that action
 				 */
+				// TODO: we should be able to do this through dopesheet + f-curves editor too...
 				if ((agrp->flag & AGRP_SELECTED) && (ac->datatype == ANIMCONT_ACTION))
 					action_set_active_agrp((bAction *)ac->data, agrp);
 			}
