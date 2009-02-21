@@ -25,6 +25,55 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+
+#include <string.h>
+#include <stdio.h>
+
+#include "DNA_image_types.h"
+#include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
+#include "DNA_object_types.h"
+#include "DNA_space_types.h"
+#include "DNA_scene_types.h"
+#include "DNA_screen_types.h"
+
+#include "MEM_guardedalloc.h"
+
+#include "BLI_blenlib.h"
+#include "BLI_arithb.h"
+#include "BLI_editVert.h"
+#include "BLI_rand.h"
+
+#include "BKE_colortools.h"
+#include "BKE_context.h"
+#include "BKE_image.h"
+#include "BKE_screen.h"
+#include "BKE_utildefines.h"
+
+#include "IMB_imbuf.h"
+#include "IMB_imbuf_types.h"
+
+#include "ED_image.h"
+#include "ED_mesh.h"
+#include "ED_space_api.h"
+#include "ED_screen.h"
+#include "ED_uvedit.h"
+
+#include "BIF_gl.h"
+#include "BIF_glutil.h"
+
+#include "RNA_access.h"
+
+#include "WM_api.h"
+#include "WM_types.h"
+
+#include "UI_interface.h"
+#include "UI_resources.h"
+#include "UI_view2d.h"
+
+#include "image_intern.h"
+
+
 #if 0
 
 /* ************ panel stuff ************* */
@@ -236,21 +285,6 @@ void image_info(Image *ima, ImBuf *ibuf, char *str)
 		strcat(str, " + Z");
 	
 }
-
-static void image_panel_properties(short cntrl)	// IMAGE_HANDLER_PROPERTIES
-{
-	uiBlock *block;
-	
-	block= uiNewBlock(&curarea->uiblocks, "image_panel_properties", UI_EMBOSS, UI_HELV, curarea->win);
-	uiPanelControl(UI_PNL_SOLID | UI_PNL_CLOSE | cntrl);
-	uiSetPanelHandler(IMAGE_HANDLER_PROPERTIES);  // for close and esc
-	if(uiNewPanel(curarea, block, "Image Properties", "Image", 10, 10, 318, 204)==0)
-		return;
-	
-	/* note, it draws no bottom half in facemode, for vertex buttons */
-	uiblock_image_panel(block, &G.sima->image, &G.sima->iuser, B_REDR, B_REDR);
-	image_editvertex_buts(block);
-}	
 
 static void image_panel_game_properties(short cntrl)	// IMAGE_HANDLER_GAME_PROPERTIES
 {
@@ -628,4 +662,61 @@ static void image_blockhandlers(ScrArea *sa)
 	uiDrawBlocksPanels(sa, 0);
 }
 #endif
+
+static void image_panel_properties(const bContext *C, ARegion *ar)	
+{
+	uiBlock *block;
+	
+	block= uiBeginBlock(C, ar, "image_panel_properties", UI_EMBOSS, UI_HELV);
+	if(uiNewPanel(C, ar, block, "Image Properties", "Image", 10, 10, 318, 204)==0)
+		return;
+	
+	/* note, it draws no bottom half in facemode, for vertex buttons */
+//	uiblock_image_panel(block, &G.sima->image, &G.sima->iuser, B_REDR, B_REDR);
+//	image_editvertex_buts(block);
+	
+	uiEndBlock(C, block);
+}	
+
+
+
+void image_buttons_area_defbuts(const bContext *C, ARegion *ar)
+{
+	
+	image_panel_properties(C, ar);
+	
+	uiDrawPanels(C, 1);		/* 1 = align */
+	uiMatchPanelsView2d(ar); /* sets v2d->totrct */
+	
+}
+
+
+static int image_properties(bContext *C, wmOperator *op)
+{
+	ScrArea *sa= CTX_wm_area(C);
+	ARegion *ar= image_has_buttons_region(sa);
+	
+	if(ar) {
+		ar->flag ^= RGN_FLAG_HIDDEN;
+		ar->v2d.flag &= ~V2D_IS_INITIALISED; /* XXX should become hide/unhide api? */
+		
+		ED_area_initialize(CTX_wm_manager(C), CTX_wm_window(C), sa);
+		ED_area_tag_redraw(sa);
+	}
+	return OPERATOR_FINISHED;
+}
+
+void IMAGE_OT_properties(wmOperatorType *ot)
+{
+	ot->name= "Properties";
+	ot->idname= "IMAGE_OT_properties";
+	
+	ot->exec= image_properties;
+	ot->poll= ED_operator_image_active;
+	
+	/* flags */
+	ot->flag= 0;
+}
+
+
 

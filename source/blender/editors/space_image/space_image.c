@@ -73,6 +73,35 @@
 
 #include "image_intern.h"
 
+/* ******************** manage regions ********************* */
+
+ARegion *image_has_buttons_region(ScrArea *sa)
+{
+	ARegion *ar, *arnew;
+	
+	for(ar= sa->regionbase.first; ar; ar= ar->next)
+		if(ar->regiontype==RGN_TYPE_UI)
+			return ar;
+	
+	/* add subdiv level; after header */
+	for(ar= sa->regionbase.first; ar; ar= ar->next)
+		if(ar->regiontype==RGN_TYPE_HEADER)
+			break;
+	
+	/* is error! */
+	if(ar==NULL) return NULL;
+	
+	arnew= MEM_callocN(sizeof(ARegion), "buttons for image");
+	
+	BLI_insertlinkafter(&sa->regionbase, ar, arnew);
+	arnew->regiontype= RGN_TYPE_UI;
+	arnew->alignment= RGN_ALIGN_LEFT;
+	
+	arnew->flag = RGN_FLAG_HIDDEN;
+	
+	return arnew;
+}
+
 /* ******************** default callbacks for image space ***************** */
 
 static SpaceLink *image_new(const bContext *C)
@@ -94,6 +123,14 @@ static SpaceLink *image_new(const bContext *C)
 	BLI_addtail(&simage->regionbase, ar);
 	ar->regiontype= RGN_TYPE_HEADER;
 	ar->alignment= RGN_ALIGN_BOTTOM;
+	
+	/* buttons/list view */
+	ar= MEM_callocN(sizeof(ARegion), "buttons for image");
+	
+	BLI_addtail(&simage->regionbase, ar);
+	ar->regiontype= RGN_TYPE_UI;
+	ar->alignment= RGN_ALIGN_LEFT;
+	ar->flag = RGN_FLAG_HIDDEN;
 	
 	/* main area */
 	ar= MEM_callocN(sizeof(ARegion), "main area for image");
@@ -160,11 +197,20 @@ void image_operatortypes(void)
 	WM_operatortype_append(IMAGE_OT_record_composite);
 
 	WM_operatortype_append(IMAGE_OT_toolbox);
+	WM_operatortype_append(IMAGE_OT_properties);
 }
 
 void image_keymap(struct wmWindowManager *wm)
 {
-	ListBase *keymap= WM_keymap_listbase(wm, "Image", SPACE_IMAGE, 0);
+	ListBase *keymap= WM_keymap_listbase(wm, "Image Generic", SPACE_IMAGE, 0);
+	
+	WM_keymap_add_item(keymap, "IMAGE_OT_new", NKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_add_item(keymap, "IMAGE_OT_open", OKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_add_item(keymap, "IMAGE_OT_reload", RKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_add_item(keymap, "IMAGE_OT_save", SKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_add_item(keymap, "IMAGE_OT_properties", NKEY, KM_PRESS, 0, 0);
+	
+	keymap= WM_keymap_listbase(wm, "Image", SPACE_IMAGE, 0);
 	
 	WM_keymap_add_item(keymap, "IMAGE_OT_view_all", HOMEKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "IMAGE_OT_view_selected", PADPERIOD, KM_PRESS, 0, 0);
@@ -183,11 +229,6 @@ void image_keymap(struct wmWindowManager *wm)
 	RNA_float_set(WM_keymap_add_item(keymap, "IMAGE_OT_view_zoom_ratio", PAD2, KM_PRESS, 0, 0)->ptr, "ratio", 0.5f);
 	RNA_float_set(WM_keymap_add_item(keymap, "IMAGE_OT_view_zoom_ratio", PAD4, KM_PRESS, 0, 0)->ptr, "ratio", 0.25f);
 	RNA_float_set(WM_keymap_add_item(keymap, "IMAGE_OT_view_zoom_ratio", PAD8, KM_PRESS, 0, 0)->ptr, "ratio", 0.125f);
-
-	WM_keymap_add_item(keymap, "IMAGE_OT_new", NKEY, KM_PRESS, KM_ALT, 0);
-	WM_keymap_add_item(keymap, "IMAGE_OT_open", OKEY, KM_PRESS, KM_ALT, 0);
-	WM_keymap_add_item(keymap, "IMAGE_OT_reload", RKEY, KM_PRESS, KM_ALT, 0);
-	WM_keymap_add_item(keymap, "IMAGE_OT_save", SKEY, KM_PRESS, KM_ALT, 0);
 
 	WM_keymap_add_item(keymap, "PAINT_OT_image_paint", ACTIONMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "PAINT_OT_grab_clone", SELECTMOUSE, KM_PRESS, 0, 0);
@@ -362,7 +403,9 @@ static void image_main_area_init(wmWindowManager *wm, ARegion *ar)
 	keymap= WM_keymap_listbase(wm, "ImagePaint", SPACE_IMAGE, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 	
-	/* own keymap */
+	/* own keymaps */
+	keymap= WM_keymap_listbase(wm, "Image Generic", SPACE_IMAGE, 0);
+	WM_event_add_keymap_handler(&ar->handlers, keymap);
 	keymap= WM_keymap_listbase(wm, "Image", SPACE_IMAGE, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 }
@@ -433,6 +476,46 @@ static void image_main_area_listener(ARegion *ar, wmNotifier *wmn)
 	}
 }
 
+/* *********************** buttons region ************************ */
+
+/* add handlers, stuff you only do once or on area/region changes */
+static void image_buttons_area_init(wmWindowManager *wm, ARegion *ar)
+{
+	ListBase *keymap;
+	
+	keymap= WM_keymap_listbase(wm, "Image Generic", SPACE_IMAGE, 0);
+	WM_event_add_keymap_handler(&ar->handlers, keymap);
+	
+	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_LIST_UI, ar->winx, ar->winy);
+}
+
+static void image_buttons_area_draw(const bContext *C, ARegion *ar)
+{
+	float col[3];
+	
+	/* clear */
+	UI_GetThemeColor3fv(TH_BACK, col);
+	
+	glClearColor(col[0], col[1], col[2], 0.0);
+	glClear(GL_COLOR_BUFFER_BIT);
+	
+	/* set view2d view matrix for scrolling (without scrollers) */
+	UI_view2d_view_ortho(C, &ar->v2d);
+	
+	image_buttons_area_defbuts(C, ar);
+	
+	/* restore view matrix? */
+	UI_view2d_view_restore(C);
+}
+
+static void image_buttons_area_listener(ARegion *ar, wmNotifier *wmn)
+{
+	/* context changes */
+	switch(wmn->category) {
+		
+	}
+}
+
 /************************* header region **************************/
 
 /* add handlers, stuff you only do once or on area/region changes */
@@ -494,12 +577,21 @@ void ED_spacetype_image(void)
 
 	BLI_addhead(&st->regiontypes, art);
 	
+	/* regions: listview/buttons */
+	art= MEM_callocN(sizeof(ARegionType), "spacetype image region");
+	art->regionid = RGN_TYPE_UI;
+	art->minsizex= 220; // XXX
+	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_FRAMES;
+	art->listener= image_buttons_area_listener;
+	art->init= image_buttons_area_init;
+	art->draw= image_buttons_area_draw;
+	BLI_addhead(&st->regiontypes, art);
+
 	/* regions: header */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype image region");
 	art->regionid = RGN_TYPE_HEADER;
 	art->minsizey= HEADERY;
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D|ED_KEYMAP_FRAMES;
-	
 	art->init= image_header_area_init;
 	art->draw= image_header_area_draw;
 	
