@@ -483,6 +483,8 @@ static void image_buttons_area_init(wmWindowManager *wm, ARegion *ar)
 {
 	ListBase *keymap;
 	
+	keymap= WM_keymap_listbase(wm, "View2D Buttons List", 0, 0);
+	WM_event_add_keymap_handler(&ar->handlers, keymap);
 	keymap= WM_keymap_listbase(wm, "Image Generic", SPACE_IMAGE, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 	
@@ -603,6 +605,7 @@ void ED_spacetype_image(void)
 
 /**************************** common state *****************************/
 
+/* note; image_panel_properties() uses pointer to sima->image directly */
 Image *ED_space_image(SpaceImage *sima)
 {
 	return sima->image;

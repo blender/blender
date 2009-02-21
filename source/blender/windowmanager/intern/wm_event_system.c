@@ -96,7 +96,7 @@ void wm_event_free_all(wmWindow *win)
 /* ********************* notifiers, listeners *************** */
 
 /* XXX: in future, which notifiers to send to other windows? */
-void WM_event_add_notifier(bContext *C, unsigned int type, void *reference)
+void WM_event_add_notifier(const bContext *C, unsigned int type, void *reference)
 {
 	wmNotifier *note= MEM_callocN(sizeof(wmNotifier), "notifier");
 	

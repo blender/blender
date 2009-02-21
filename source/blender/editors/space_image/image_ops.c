@@ -621,7 +621,6 @@ static int open_exec(bContext *C, wmOperator *op)
 
 	RNA_string_get(op->ptr, "filename", str);
 	ima= BKE_add_image_file(str, scene->r.cfra);
-	MEM_freeN(str);
 
 	if(!ima)
 		return OPERATOR_CANCELLED;

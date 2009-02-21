@@ -39,6 +39,7 @@ struct Image;
 struct ImBuf;
 struct wmOperatorType;
 struct Scene;
+struct bNodeTree;
 
 /* space_image.c */
 struct ARegion *image_has_buttons_region(struct ScrArea *sa);
@@ -82,6 +83,7 @@ void IMAGE_OT_record_composite(struct wmOperatorType *ot);
 void draw_uvedit_main(struct SpaceImage *sima, struct ARegion *ar, struct Scene *scene, struct Object *obedit);
 
 /* image_panels.c */
+struct ImageUser *ntree_get_active_iuser(struct bNodeTree *ntree);
 void image_buttons_area_defbuts(const struct bContext *C, struct ARegion *ar);
 void IMAGE_OT_properties(struct wmOperatorType *ot);
 
