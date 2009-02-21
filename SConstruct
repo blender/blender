@@ -400,7 +400,8 @@ thestatlibs, thelibincs = B.setup_staticlibs(env)
 thesyslibs = B.setup_syslibs(env)
 
 if 'blender' in B.targets or not env['WITH_BF_NOBLENDER']:
-	env.BlenderProg(B.root_build_dir, "blender", dobj , [], mainlist + thestatlibs + thesyslibs, [B.root_build_dir+'/lib'] + thelibincs, 'blender')
+	#env.BlenderProg(B.root_build_dir, "blender", dobj , [], mainlist + thestatlibs + thesyslibs, [B.root_build_dir+'/lib'] + thelibincs, 'blender')
+	env.BlenderProg(B.root_build_dir, "blender", dobj + mainlist, [], thestatlibs + thesyslibs, [B.root_build_dir+'/lib'] + thelibincs, 'blender')
 if env['WITH_BF_PLAYER']:
 	playerlist = B.create_blender_liblist(env, 'player')
 	env.BlenderProg(B.root_build_dir, "blenderplayer", dobj + playerlist, [], thestatlibs + thesyslibs, [B.root_build_dir+'/lib'] + thelibincs, 'blenderplayer')
@@ -552,7 +553,7 @@ if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'win64-vc'):
 	if env['OURPLATFORM'] == 'win64-vc':
 		dllsources = []
 	else:
-		dllsources = ['${LCGDIR}/gettext/lib/gettext.dll',
+		dllsources = ['${LCGDIR}/gettext/lib/gnu_gettext.dll',
 				'${BF_PNG_LIBPATH}/libpng.dll',
 				'${BF_ZLIB_LIBPATH}/zlib.dll',
 				'${BF_TIFF_LIBPATH}/${BF_TIFF_LIB}.dll']
