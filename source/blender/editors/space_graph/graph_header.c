@@ -65,6 +65,7 @@
 /* button events */
 enum {
 	B_REDR 	= 0,
+	B_MODECHANGE,
 	B_GRAPHCOPYKEYS,
 	B_GRAPHPASTEKEYS,
 } eActHeader_ButEvents;
@@ -137,6 +138,10 @@ static uiBlock *graph_viewmenu(bContext *C, ARegion *ar, void *arg_unused)
 static void do_graph_buttons(bContext *C, void *arg, int event)
 {
 	switch (event) {
+		case B_MODECHANGE: /* change mode with mode selector */
+			ED_area_tag_refresh(CTX_wm_area(C));
+			/* no break, as we need redraw flush too... */
+			
 		case B_REDR:
 			ED_area_tag_redraw(CTX_wm_area(C));
 			break;
@@ -171,7 +176,7 @@ void graph_header_buttons(const bContext *C, ARegion *ar)
 	uiBlockSetEmboss(block, UI_EMBOSS);
 	
 	/* mode selector */
-	uiDefButS(block, MENU, B_REDR, 
+	uiDefButS(block, MENU, B_MODECHANGE, 
 			"Editor Mode %t|F-Curve Editor %x0|Drivers %x1", 
 			xco,yco,110,YIC, &sipo->mode, 0, 1, 0, 0, 
 			"Editing modes for this editor");

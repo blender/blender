@@ -1249,7 +1249,17 @@ static void mouse_anim_channels (bAnimContext *ac, float x, int channel_index, s
 		case ANIMTYPE_FCURVE: 
 		{
 			FCurve *fcu= (FCurve *)ale->data;
-			short offset= (ac->datatype != ANIMCONT_ACTION)? 18 : 0;
+			short offset;
+			
+			if (ac->datatype != ANIMCONT_ACTION) {
+				/* for now, special case for materials */
+				if (ale->ownertype == ANIMTYPE_DSMAT)
+					offset= 21;
+				else
+					offset= 18;
+			}
+			else
+				offset = 0;
 			
 			if (x >= (ACHANNEL_NAMEWIDTH-ACHANNEL_BUTTON_WIDTH)) {
 				/* toggle protection */

@@ -783,6 +783,7 @@ void graph_draw_channel_names(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 	 */
 	height= (float)((items*ACHANNEL_STEP) + (ACHANNEL_HEIGHT*2));
 	
+#if 0
 	if (height > (v2d->mask.ymax - v2d->mask.ymin)) {
 		/* don't use totrect set, as the width stays the same 
 		 * (NOTE: this is ok here, the configuration is pretty straightforward) 
@@ -791,6 +792,7 @@ void graph_draw_channel_names(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 	}
 	
 	/* XXX I would call the below line! (ton) */
+#endif
 	UI_view2d_totRect_set(v2d, ar->winx, height);
 	
 	/* loop through channels, and set up drawing depending on their type  */	
@@ -1013,7 +1015,15 @@ void graph_draw_channel_names(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 					indent= 0;
 					special= -1;
 					
-					offset= (ale->id) ? 16 : 0;
+					if (ale->id) {
+						/* special exception for materials */
+						if (GS(ale->id->name) == ID_MA) 
+							offset= 25;
+						else
+							offset= 14;
+					}
+					else
+						offset= 0;
 					
 					/* only show expand if there are any channels */
 					if (agrp->channels.first) {
@@ -1041,21 +1051,17 @@ void graph_draw_channel_names(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 					group= (fcu->grp) ? 1 : 0;
 					grp= fcu->grp;
 					
-					switch (ale->ownertype) {
-						case ANIMTYPE_NONE:	/* no owner */
-						case ANIMTYPE_FCURVE: 
-							offset= 0;
-							break;
-							
-						case ANIMTYPE_DSMAT: /* for now, this is special case for materials */
+					if (ale->id) {
+						/* special exception for materials */
+						if (GS(ale->id->name) == ID_MA) {
 							offset= 21;
 							indent= 1;
-							break;
-							
-						default:
+						}
+						else
 							offset= 14;
-							break;
 					}
+					else
+						offset= 0;
 					
 					/* for now, 'special' (i.e. in front of name) is used to show visibility status */
 					if (fcu->flag & FCURVE_VISIBLE)
