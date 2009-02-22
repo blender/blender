@@ -1053,13 +1053,13 @@ static struct ImBuf *brush_gen_radial_control_imbuf(Brush *br)
 	return im;
 }
 
-void brush_radial_control_invoke(wmOperator *op, Brush *br)
+void brush_radial_control_invoke(wmOperator *op, Brush *br, float size_weight)
 {
 	int mode = RNA_int_get(op->ptr, "mode");
 	float original_value= 0;
 
 	if(mode == WM_RADIALCONTROL_SIZE)
-		original_value = br->size;
+		original_value = br->size * size_weight;
 	else if(mode == WM_RADIALCONTROL_STRENGTH)
 		original_value = br->alpha;
 	else if(mode == WM_RADIALCONTROL_ANGLE)
@@ -1069,14 +1069,14 @@ void brush_radial_control_invoke(wmOperator *op, Brush *br)
 	op->customdata = brush_gen_radial_control_imbuf(br);
 }
 
-int brush_radial_control_exec(wmOperator *op, Brush *br)
+int brush_radial_control_exec(wmOperator *op, Brush *br, float size_weight)
 {
 	int mode = RNA_int_get(op->ptr, "mode");
 	float new_value = RNA_float_get(op->ptr, "new_value");
 	const float conv = 0.017453293;
 
 	if(mode == WM_RADIALCONTROL_SIZE)
-		br->size = new_value;
+		br->size = new_value * size_weight;
 	else if(mode == WM_RADIALCONTROL_STRENGTH)
 		br->alpha = new_value;
 	else if(mode == WM_RADIALCONTROL_ANGLE)

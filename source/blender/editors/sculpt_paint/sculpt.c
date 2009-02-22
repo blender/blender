@@ -1261,7 +1261,7 @@ static void SCULPT_OT_brush_curve_preset(wmOperatorType *ot)
 static int sculpt_radial_control_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	toggle_paint_cursor(C);
-	brush_radial_control_invoke(op, CTX_data_scene(C)->toolsettings->sculpt->brush);
+	brush_radial_control_invoke(op, CTX_data_scene(C)->toolsettings->sculpt->brush, 1);
 	return WM_radial_control_invoke(C, op, event);
 }
 
@@ -1275,7 +1275,7 @@ static int sculpt_radial_control_modal(bContext *C, wmOperator *op, wmEvent *eve
 
 static int sculpt_radial_control_exec(bContext *C, wmOperator *op)
 {
-	int ret = brush_radial_control_exec(op, CTX_data_scene(C)->toolsettings->sculpt->brush);
+	int ret = brush_radial_control_exec(op, CTX_data_scene(C)->toolsettings->sculpt->brush, 1);
 	char str[256];
 	WM_radial_control_string(op, str, 256);
 

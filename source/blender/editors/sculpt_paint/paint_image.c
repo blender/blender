@@ -4759,6 +4759,110 @@ void PAINT_OT_image_paint(wmOperatorType *ot)
 	RNA_def_collection_runtime(ot->srna, "stroke", &RNA_OperatorStrokeElement, "Stroke", "");
 }
 
+static int get_imapaint_zoom(bContext *C, float *zoomx, float *zoomy)
+{
+	RegionView3D *rv3d= CTX_wm_region_view3d(C);
+
+	if(!rv3d) {
+		SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
+		ARegion *ar= CTX_wm_region(C);
+		
+		ED_space_image_zoom(sima, ar, zoomx, zoomy);
+
+		return 1;
+	}
+
+	*zoomx = *zoomy = 1;
+
+	return 0;
+}
+
+/************************ cursor drawing *******************************/
+
+static void brush_drawcursor(bContext *C, int x, int y, void *customdata)
+{
+	Brush *brush= image_paint_brush(C);
+
+	if(brush) {
+		float zoomx, zoomy;
+		glPushMatrix();
+
+		glTranslatef((float)x, (float)y, 0.0f);
+
+		if(get_imapaint_zoom(C, &zoomx, &zoomy))
+			glScalef(zoomx, zoomy, 1.0f);
+
+		glColor4ub(255, 255, 255, 128);
+		glEnable( GL_LINE_SMOOTH );
+		glEnable(GL_BLEND);
+		glutil_draw_lined_arc(0.0, M_PI*2.0, brush->size*0.5f, 40);
+		glDisable(GL_BLEND);
+		glDisable( GL_LINE_SMOOTH );
+		
+		glPopMatrix();
+	}
+}
+
+static void toggle_paint_cursor(bContext *C, int enable)
+{
+	ToolSettings *settings= CTX_data_scene(C)->toolsettings;
+
+	if(settings->imapaint.paintcursor && !enable) {
+		WM_paint_cursor_end(CTX_wm_manager(C), settings->imapaint.paintcursor);
+		settings->imapaint.paintcursor = NULL;
+	}
+	else if(enable)
+		settings->imapaint.paintcursor= WM_paint_cursor_activate(CTX_wm_manager(C), image_paint_poll, brush_drawcursor, NULL);
+}
+
+/* ************ image paint radial control *************/
+static int paint_radial_control_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	float zoom;
+	ToolSettings *ts = CTX_data_scene(C)->toolsettings;
+	get_imapaint_zoom(C, &zoom, &zoom);
+	toggle_paint_cursor(C, !ts->imapaint.paintcursor);
+	brush_radial_control_invoke(op, ts->imapaint.brush, 0.5 * zoom);
+	return WM_radial_control_invoke(C, op, event);
+}
+
+static int paint_radial_control_modal(bContext *C, wmOperator *op, wmEvent *event)
+{
+	ToolSettings *ts = CTX_data_scene(C)->toolsettings;
+	int ret = WM_radial_control_modal(C, op, event);
+	if(ret != OPERATOR_RUNNING_MODAL)
+	        toggle_paint_cursor(C, !ts->imapaint.paintcursor);
+	return ret;
+}
+
+static int paint_radial_control_exec(bContext *C, wmOperator *op)
+{
+	float zoom;
+	int ret;
+	char str[256];
+	get_imapaint_zoom(C, &zoom, &zoom);
+	ret = brush_radial_control_exec(op, CTX_data_scene(C)->toolsettings->imapaint.brush, 2.0 / zoom);
+	WM_radial_control_string(op, str, 256);
+
+	return ret;
+}
+
+void PAINT_OT_image_paint_radial_control(wmOperatorType *ot)
+{
+	WM_OT_radial_control_partial(ot);
+
+	ot->name= "Image Paint Radial Control";
+	ot->idname= "PAINT_OT_image_paint_radial_control";
+
+	ot->invoke= paint_radial_control_invoke;
+	ot->modal= paint_radial_control_modal;
+	ot->exec= paint_radial_control_exec;
+	ot->poll= image_paint_poll;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
 /************************ grab clone operator ************************/
 
 typedef struct GrabClone {
@@ -4962,50 +5066,6 @@ void PAINT_OT_set_clone_cursor(wmOperatorType *ot)
 	RNA_def_float_vector(ot->srna, "location", 3, NULL, -FLT_MAX, FLT_MAX, "Location", "Cursor location in world space coordinates.", -10000.0f, 10000.0f);
 }
 
-/************************ cursor drawing *******************************/
-
-static void brush_drawcursor(bContext *C, int x, int y, void *customdata)
-{
-	Brush *brush= image_paint_brush(C);
-	RegionView3D *rv3d= CTX_wm_region_view3d(C);
-
-	if(brush) {
-		glPushMatrix();
-
-		glTranslatef((float)x, (float)y, 0.0f);
-
-		if(!rv3d) {
-			SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
-			ARegion *ar= CTX_wm_region(C);
-			float zoomx, zoomy;
-
-			ED_space_image_zoom(sima, ar, &zoomx, &zoomy);
-			glScalef(zoomx, zoomy, 1.0f);
-		}
-		
-		glColor4ub(255, 255, 255, 128);
-		glEnable( GL_LINE_SMOOTH );
-		glEnable(GL_BLEND);
-		glutil_draw_lined_arc(0.0, M_PI*2.0, brush->size*0.5f, 40);
-		glDisable(GL_BLEND);
-		glDisable( GL_LINE_SMOOTH );
-		
-		glPopMatrix();
-	}
-}
-
-static void toggle_paint_cursor(bContext *C, int enable)
-{
-	ToolSettings *settings= CTX_data_scene(C)->toolsettings;
-
-	if(settings->imapaint.paintcursor && !enable) {
-		WM_paint_cursor_end(CTX_wm_manager(C), settings->imapaint.paintcursor);
-		settings->imapaint.paintcursor = NULL;
-	}
-	else if(enable)
-		settings->imapaint.paintcursor= WM_paint_cursor_activate(CTX_wm_manager(C), image_paint_poll, brush_drawcursor, NULL);
-}
-
 /******************** texture paint toggle operator ********************/
 
 static int texture_paint_toggle_poll(bContext *C)
@@ -5076,3 +5136,36 @@ void PAINT_OT_texture_paint_toggle(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
+/* ************ texture paint radial control *************/
+static int texture_paint_radial_control_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	ToolSettings *ts = CTX_data_scene(C)->toolsettings;
+	toggle_paint_cursor(C, !ts->imapaint.paintcursor);
+	brush_radial_control_invoke(op, ts->imapaint.brush, 0.5);
+	return WM_radial_control_invoke(C, op, event);
+}
+
+static int texture_paint_radial_control_exec(bContext *C, wmOperator *op)
+{
+	int ret = brush_radial_control_exec(op, CTX_data_scene(C)->toolsettings->imapaint.brush, 2);
+	char str[256];
+	WM_radial_control_string(op, str, 256);
+
+	return ret;
+}
+
+void PAINT_OT_texture_paint_radial_control(wmOperatorType *ot)
+{
+	WM_OT_radial_control_partial(ot);
+
+	ot->name= "Texture Paint Radial Control";
+	ot->idname= "PAINT_OT_texture_paint_radial_control";
+
+	ot->invoke= texture_paint_radial_control_invoke;
+	ot->modal= paint_radial_control_modal;
+	ot->exec= texture_paint_radial_control_exec;
+	ot->poll= texture_paint_toggle_poll;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}

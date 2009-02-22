@@ -109,6 +109,7 @@
 #include "BKE_animsys.h"
 #include "BKE_action.h"
 #include "BKE_armature.h"
+#include "BKE_brush.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_cloth.h"
 #include "BKE_colortools.h"
@@ -1511,6 +1512,8 @@ static void direct_link_brush(FileData *fd, Brush *brush)
 	brush->curve= newdataadr(fd, brush->curve);
 	if(brush->curve)
 		direct_link_curvemapping(fd, brush->curve);
+	else
+		brush_curve_preset(brush, BRUSH_PRESET_SHARP);
 }
 
 static void direct_link_script(FileData *fd, Script *script)

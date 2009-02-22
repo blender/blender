@@ -47,10 +47,12 @@ void PAINT_OT_vertex_paint(struct wmOperatorType *ot);
 
 /* paint_image.c */
 void PAINT_OT_image_paint(struct wmOperatorType *ot);
+void PAINT_OT_image_paint_radial_control(struct wmOperatorType *ot);
 void PAINT_OT_grab_clone(struct wmOperatorType *ot);
 void PAINT_OT_sample_color(struct wmOperatorType *ot);
 void PAINT_OT_set_clone_cursor(struct wmOperatorType *ot);
 void PAINT_OT_texture_paint_toggle(struct wmOperatorType *ot);
+void PAINT_OT_texture_paint_radial_control(struct wmOperatorType *ot);
 
 /* paint_utils.c */
 int imapaint_pick_face(struct ViewContext *vc, struct Mesh *me, int *mval, unsigned int *index);
