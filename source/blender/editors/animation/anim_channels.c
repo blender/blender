@@ -867,6 +867,27 @@ void ANIM_OT_channels_toggle_setting (wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "type", prop_animchannel_settings_types, 0, "Type", "");
 }
 
+// XXX currently, this is a separate operator, but perhaps we could in future specify in keymaps whether to call invoke or exec?
+void ANIM_OT_channels_toggle_editable (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Toggle Channel Editability";
+	ot->idname= "ANIM_OT_channels_toggle_editable";
+	
+	/* api callbacks */
+	ot->exec= animchannels_setflag_exec;
+	ot->poll= ED_operator_areaactive;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* props */
+		/* flag-setting mode */
+	RNA_def_enum(ot->srna, "mode", prop_animchannel_setflag_types, ACHANNEL_SETFLAG_TOGGLE, "Mode", "");
+		/* setting to set */
+	RNA_def_enum(ot->srna, "type", prop_animchannel_settings_types, ACHANNEL_SETTING_PROTECT, "Type", "");
+}
+
 /* ********************** Select All Operator *********************** */
 
 static int animchannels_deselectall_exec(bContext *C, wmOperator *op)
@@ -1389,6 +1410,9 @@ void ED_operatortypes_animchannels(void)
 	WM_operatortype_append(ANIM_OT_channels_disable_setting);
 	WM_operatortype_append(ANIM_OT_channels_toggle_setting);
 	
+		// XXX does this need to be a separate operator?
+	WM_operatortype_append(ANIM_OT_channels_toggle_editable);
+	
 		// XXX these need to be updated for new system... todo...
 	//WM_operatortype_append(ANIM_OT_channels_move_up);
 	//WM_operatortype_append(ANIM_OT_channels_move_down);
@@ -1420,6 +1444,9 @@ void ED_keymap_animchannels(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "ANIM_OT_channels_toggle_setting", WKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "ANIM_OT_channels_enable_setting", WKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "ANIM_OT_channels_disable_setting", WKEY, KM_PRESS, KM_ALT, 0);
+	
+	/* settings - specialised hotkeys */
+	WM_keymap_add_item(keymap, "ANIM_OT_channels_toggle_editable", TABKEY, KM_PRESS, 0, 0);
 	
 	/* rearranging - actions only */
 	//WM_keymap_add_item(keymap, "ANIM_OT_channels_move_up", PAGEUPKEY, KM_PRESS, KM_SHIFT, 0);
