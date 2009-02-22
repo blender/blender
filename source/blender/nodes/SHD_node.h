@@ -39,29 +39,29 @@
 /* the type definitions array */
 /* ****************** types array for all shaders ****************** */
 
-extern bNodeType sh_node_output;
-extern bNodeType sh_node_material;
-extern bNodeType sh_node_camera;
-extern bNodeType sh_node_value;
-extern bNodeType sh_node_rgb;
-extern bNodeType sh_node_mix_rgb;
-extern bNodeType sh_node_valtorgb;
-extern bNodeType sh_node_rgbtobw;
-extern bNodeType sh_node_texture;
-extern bNodeType sh_node_normal;
-extern bNodeType sh_node_geom;
-extern bNodeType sh_node_mapping;
-extern bNodeType sh_node_curve_vec;
-extern bNodeType sh_node_curve_rgb;
-extern bNodeType sh_node_math;
-extern bNodeType sh_node_vect_math;
-extern bNodeType sh_node_squeeze;
-extern bNodeType node_dynamic_typeinfo;
-extern bNodeType sh_node_material_ext;
-extern bNodeType sh_node_invert;
-extern bNodeType sh_node_seprgb;
-extern bNodeType sh_node_combrgb;
-extern bNodeType sh_node_hue_sat;
+bNodeType sh_node_output;
+bNodeType sh_node_material;
+bNodeType sh_node_camera;
+bNodeType sh_node_value;
+bNodeType sh_node_rgb;
+bNodeType sh_node_mix_rgb;
+bNodeType sh_node_valtorgb;
+bNodeType sh_node_rgbtobw;
+bNodeType sh_node_texture;
+bNodeType sh_node_normal;
+bNodeType sh_node_geom;
+bNodeType sh_node_mapping;
+bNodeType sh_node_curve_vec;
+bNodeType sh_node_curve_rgb;
+bNodeType sh_node_math;
+bNodeType sh_node_vect_math;
+bNodeType sh_node_squeeze;
+bNodeType node_dynamic_typeinfo;
+bNodeType sh_node_material_ext;
+bNodeType sh_node_invert;
+bNodeType sh_node_seprgb;
+bNodeType sh_node_combrgb;
+bNodeType sh_node_hue_sat;
 
 #endif
 
