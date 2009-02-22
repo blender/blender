@@ -1220,7 +1220,7 @@ static void mouse_anim_channels (bAnimContext *ac, float x, int channel_index, s
 				}
 				
 				/* if group is selected now, make group the 'active' one in the visible list */
-				if ((agrp->flag & AGRP_SELECTED) && (selectmode != SELECT_INVERT))
+				if (agrp->flag & AGRP_SELECTED)
 					ANIM_set_active_channel(ac->data, ac->datatype, filter, agrp, ANIMTYPE_GROUP);
 			}
 		}
@@ -1240,17 +1240,23 @@ static void mouse_anim_channels (bAnimContext *ac, float x, int channel_index, s
 			}
 			else if ((x < (offset+17)) && (ac->spacetype==SPACE_IPO)) {
 				/* toggle visibility */
-				// XXX this is supposed to be button before name, though this sometimes fails
 				fcu->flag ^= FCURVE_VISIBLE;
 			}
 			else {
 				/* select/deselect */
-				fcu->flag ^= FCURVE_SELECTED;
+				if (selectmode == SELECT_INVERT) {
+					/* inverse selection status of this F-Curve only */
+					fcu->flag ^= FCURVE_SELECTED;
+				}
+				else {
+					/* select F-Curve by itself */
+					ANIM_deselect_anim_channels(ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
+					fcu->flag |= FCURVE_SELECTED;
+				}
 				
+				/* if F-Curve is selected now, make F-Curve the 'active' one in the visible list */
 				if (fcu->flag & FCURVE_SELECTED)
-					fcu->flag |= FCURVE_ACTIVE;
-				else
-					fcu->flag &= ~FCURVE_ACTIVE;
+					ANIM_set_active_channel(ac->data, ac->datatype, filter, fcu, ANIMTYPE_FCURVE);
 			}
 		}
 			break;
