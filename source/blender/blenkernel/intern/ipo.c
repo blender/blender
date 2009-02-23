@@ -743,6 +743,72 @@ static char *world_adrcodes_to_paths (int adrcode, int *array_index)
 	return NULL;	
 }
 
+/* Particle Types */
+static char *particle_adrcodes_to_paths (int adrcode, int *array_index)
+{
+	/* set array index like this in-case nothing sets it correctly  */
+	*array_index= 0;
+	
+	/* result depends on adrcode */
+	switch (adrcode) {
+		case PART_CLUMP:
+			return "settings.clump_factor";
+		case PART_AVE:
+			return "settings.angular_velocity_factor";
+		case PART_SIZE:
+			return "settings.particle_size";
+		case PART_DRAG:
+			return "settings.drag_factor";
+		case PART_BROWN:
+			return "settings.brownian_factor";
+		case PART_DAMP:
+			return "settings.damp_factor";
+		case PART_LENGTH:
+			return "settings.length";
+		case PART_GRAV_X:
+			*array_index= 0; return "settings.acceleration";
+		case PART_GRAV_Y:
+			*array_index= 1; return "settings.acceleration";
+		case PART_GRAV_Z:
+			*array_index= 2; return "settings.acceleration";
+		case PART_KINK_AMP:
+			return "settings.kink_amplitude";
+		case PART_KINK_FREQ:
+			return "settings.kink_frequency";
+		case PART_KINK_SHAPE:
+			return "settings.kink_shape";
+		case PART_BB_TILT:
+			return "settings.billboard_tilt";
+		
+		/* PartDeflect needs to be sorted out properly in rna_object_force;
+		   If anyone else works on this, but is unfamiliar, these particular
+			settings reference the particles of the system themselves
+			being used as forces -- it will use the same rna structure
+			as the similar object forces				*/
+		/*case PART_PD_FSTR:
+			if (part->pd) poin= &(part->pd->f_strength);
+			break;
+		case PART_PD_FFALL:
+			if (part->pd) poin= &(part->pd->f_power);
+			break;
+		case PART_PD_FMAXD:
+			if (part->pd) poin= &(part->pd->maxdist);
+			break;
+		case PART_PD2_FSTR:
+			if (part->pd2) poin= &(part->pd2->f_strength);
+			break;
+		case PART_PD2_FFALL:
+			if (part->pd2) poin= &(part->pd2->f_power);
+			break;
+		case PART_PD2_FMAXD:
+			if (part->pd2) poin= &(part->pd2->maxdist);
+			break;*/
+
+		}
+		
+	return NULL;	
+}
+
 /* ------- */
 
 /* Allocate memory for RNA-path for some property given a blocktype, adrcode, and 'root' parts of path
@@ -799,6 +865,9 @@ char *get_rna_access (int blocktype, int adrcode, char actname[], char constname
 		
 		case ID_WO: /* world */
 			propname= world_adrcodes_to_paths(adrcode, &dummy_index);
+
+		case ID_PA: /* particle */
+			propname= particle_adrcodes_to_paths(adrcode, &dummy_index);
 			
 		/* XXX problematic blocktypes */
 		case ID_CU: /* curve */
@@ -1641,71 +1710,7 @@ void *get_ipo_poin (ID *id, IpoCurve *icu, int *type)
 	*type= IPO_FLOAT;
 
 	/* data is divided into 'blocktypes' based on ID-codes */
-	switch (GS(id->name)) {
-		case ID_PA: /* particle channels -----------------------------  */
-		{
-			ParticleSettings *part= (ParticleSettings *)id;
-			
-			switch (icu->adrcode) {
-			case PART_EMIT_FREQ:
-			case PART_EMIT_LIFE:
-			case PART_EMIT_VEL:
-			case PART_EMIT_AVE:
-			case PART_EMIT_SIZE:
-				poin= NULL; 
-				break;
-			
-			case PART_CLUMP:
-				poin= &(part->clumpfac); break;
-			case PART_AVE:
-				poin= &(part->avefac); break;
-			case PART_SIZE:
-				poin= &(part->size); break;
-			case PART_DRAG:
-				poin= &(part->dragfac); break;
-			case PART_BROWN:
-				poin= &(part->brownfac); break;
-			case PART_DAMP:
-				poin= &(part->dampfac); break;
-			case PART_LENGTH:
-				poin= &(part->length); break;
-			case PART_GRAV_X:
-				poin= &(part->acc[0]); break;
-			case PART_GRAV_Y:
-				poin= &(part->acc[1]); break;
-			case PART_GRAV_Z:
-				poin= &(part->acc[2]); break;
-			case PART_KINK_AMP:
-				poin= &(part->kink_amp); break;
-			case PART_KINK_FREQ:
-				poin= &(part->kink_freq); break;
-			case PART_KINK_SHAPE:
-				poin= &(part->kink_shape); break;
-			case PART_BB_TILT:
-				poin= &(part->bb_tilt); break;
-				
-			case PART_PD_FSTR:
-				if (part->pd) poin= &(part->pd->f_strength);
-				break;
-			case PART_PD_FFALL:
-				if (part->pd) poin= &(part->pd->f_power);
-				break;
-			case PART_PD_FMAXD:
-				if (part->pd) poin= &(part->pd->maxdist);
-				break;
-			case PART_PD2_FSTR:
-				if (part->pd2) poin= &(part->pd2->f_strength);
-				break;
-			case PART_PD2_FFALL:
-				if (part->pd2) poin= &(part->pd2->f_power);
-				break;
-			case PART_PD2_FMAXD:
-				if (part->pd2) poin= &(part->pd2->maxdist);
-				break;
-			}
-		}
-			break;
-	}
+	// all adr codes put into converters!
 
 	/* return pointer */
 	return poin;
