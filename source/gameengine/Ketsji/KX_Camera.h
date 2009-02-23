@@ -257,18 +257,18 @@ public:
 	int GetViewportTop() const;
 
 
-	KX_PYMETHOD_DOC(KX_Camera, sphereInsideFrustum);
-	KX_PYMETHOD_DOC(KX_Camera, boxInsideFrustum);
-	KX_PYMETHOD_DOC(KX_Camera, pointInsideFrustum);
+	KX_PYMETHOD_DOC_VARARGS(KX_Camera, sphereInsideFrustum);
+	KX_PYMETHOD_DOC_O(KX_Camera, boxInsideFrustum);
+	KX_PYMETHOD_DOC_O(KX_Camera, pointInsideFrustum);
 	
-	KX_PYMETHOD_DOC(KX_Camera, getCameraToWorld);
-	KX_PYMETHOD_DOC(KX_Camera, getWorldToCamera);
-	KX_PYMETHOD_DOC(KX_Camera, getProjectionMatrix);
-	KX_PYMETHOD_DOC(KX_Camera, setProjectionMatrix);
+	KX_PYMETHOD_DOC_NOARGS(KX_Camera, getCameraToWorld);
+	KX_PYMETHOD_DOC_NOARGS(KX_Camera, getWorldToCamera);
+	KX_PYMETHOD_DOC_NOARGS(KX_Camera, getProjectionMatrix);
+	KX_PYMETHOD_DOC_O(KX_Camera, setProjectionMatrix);
 	
-	KX_PYMETHOD_DOC(KX_Camera, enableViewport);
-	KX_PYMETHOD_DOC(KX_Camera, setViewport);	
-	KX_PYMETHOD_DOC(KX_Camera, setOnTop);	
+	KX_PYMETHOD_DOC_O(KX_Camera, enableViewport);
+	KX_PYMETHOD_DOC_VARARGS(KX_Camera, setViewport);	
+	KX_PYMETHOD_DOC_NOARGS(KX_Camera, setOnTop);	
 
 	virtual PyObject* _getattr(const char *attr); /* lens, near, far, projection_matrix */
 	virtual int       _setattr(const char *attr, PyObject *pyvalue);

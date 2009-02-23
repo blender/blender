@@ -63,18 +63,18 @@ PyParentObject KX_VertexProxy::Parents[] = {
 };
 
 PyMethodDef KX_VertexProxy::Methods[] = {
-{"getXYZ", (PyCFunction)KX_VertexProxy::sPyGetXYZ,METH_VARARGS},
-{"setXYZ", (PyCFunction)KX_VertexProxy::sPySetXYZ,METH_VARARGS},
-{"getUV", (PyCFunction)KX_VertexProxy::sPyGetUV,METH_VARARGS},
-{"setUV", (PyCFunction)KX_VertexProxy::sPySetUV,METH_VARARGS},
+{"getXYZ", (PyCFunction)KX_VertexProxy::sPyGetXYZ,METH_NOARGS},
+{"setXYZ", (PyCFunction)KX_VertexProxy::sPySetXYZ,METH_O},
+{"getUV", (PyCFunction)KX_VertexProxy::sPyGetUV,METH_NOARGS},
+{"setUV", (PyCFunction)KX_VertexProxy::sPySetUV,METH_O},
 
-{"getUV2", (PyCFunction)KX_VertexProxy::sPyGetUV2,METH_VARARGS},
+{"getUV2", (PyCFunction)KX_VertexProxy::sPyGetUV2,METH_NOARGS},
 {"setUV2", (PyCFunction)KX_VertexProxy::sPySetUV2,METH_VARARGS},
 
-{"getRGBA", (PyCFunction)KX_VertexProxy::sPyGetRGBA,METH_VARARGS},
-{"setRGBA", (PyCFunction)KX_VertexProxy::sPySetRGBA,METH_VARARGS},
-{"getNormal", (PyCFunction)KX_VertexProxy::sPyGetNormal,METH_VARARGS},
-{"setNormal", (PyCFunction)KX_VertexProxy::sPySetNormal,METH_VARARGS},
+{"getRGBA", (PyCFunction)KX_VertexProxy::sPyGetRGBA,METH_NOARGS},
+{"setRGBA", (PyCFunction)KX_VertexProxy::sPySetRGBA,METH_O},
+{"getNormal", (PyCFunction)KX_VertexProxy::sPyGetNormal,METH_NOARGS},
+{"setNormal", (PyCFunction)KX_VertexProxy::sPySetNormal,METH_O},
   {NULL,NULL} //Sentinel
 };
 
@@ -312,130 +312,103 @@ void		KX_VertexProxy::ReplicaSetName(STR_String) {};
 
 // stuff for python integration
 	
-PyObject* KX_VertexProxy::PyGetXYZ(PyObject*, 
-			       PyObject*, 
-			       PyObject*)
+PyObject* KX_VertexProxy::PyGetXYZ(PyObject*)
 {
 	return PyObjectFrom(MT_Point3(m_vertex->getXYZ()));
 }
 
-PyObject* KX_VertexProxy::PySetXYZ(PyObject*, 
-			       PyObject* args, 
-			       PyObject*)
+PyObject* KX_VertexProxy::PySetXYZ(PyObject*, PyObject* value)
 {
 	MT_Point3 vec;
-	if (PyVecArgTo(args, vec))
-	{
-		m_vertex->SetXYZ(vec);
-		m_mesh->SetMeshModified(true);
-		Py_RETURN_NONE;
-	}
-	
-	return NULL;
+	if (!PyVecTo(value, vec))
+		return NULL;
+		
+	m_vertex->SetXYZ(vec);
+	m_mesh->SetMeshModified(true);
+	Py_RETURN_NONE;
 }
 
-PyObject* KX_VertexProxy::PyGetNormal(PyObject*, 
-			       PyObject*, 
-			       PyObject*)
+PyObject* KX_VertexProxy::PyGetNormal(PyObject*)
 {
 	return PyObjectFrom(MT_Vector3(m_vertex->getNormal()));
 }
 
-PyObject* KX_VertexProxy::PySetNormal(PyObject*, 
-			       PyObject* args, 
-			       PyObject*)
+PyObject* KX_VertexProxy::PySetNormal(PyObject*, PyObject* value)
 {
 	MT_Vector3 vec;
-	if (PyVecArgTo(args, vec))
-	{
-		m_vertex->SetNormal(vec);
-		m_mesh->SetMeshModified(true);
-		Py_RETURN_NONE;
-	}
+	if (!PyVecTo(value, vec))
+		return NULL;
 	
-	return NULL;
+	m_vertex->SetNormal(vec);
+	m_mesh->SetMeshModified(true);
+	Py_RETURN_NONE;
 }
 
 
-PyObject* KX_VertexProxy::PyGetRGBA(PyObject*,
-			       PyObject*, 
-			       PyObject*)
+PyObject* KX_VertexProxy::PyGetRGBA(PyObject*)
 {
 	int *rgba = (int *) m_vertex->getRGBA();
 	return PyInt_FromLong(*rgba);
 }
 
-PyObject* KX_VertexProxy::PySetRGBA(PyObject*, 
-			       PyObject* args, 
-			       PyObject*)
+PyObject* KX_VertexProxy::PySetRGBA(PyObject*, PyObject* value)
 {
-	float r, g, b, a;
-	if (PyArg_ParseTuple(args, "(ffff)", &r, &g, &b, &a))
-	{
-		m_vertex->SetRGBA(MT_Vector4(r, g, b, a));
-		m_mesh->SetMeshModified(true);
-		Py_RETURN_NONE;
-	}
-	PyErr_Clear();
-	
-	int rgba;
-	if (PyArg_ParseTuple(args,"i",&rgba))
-	{
+	if PyInt_Check(value) {
+		int rgba = PyInt_AsLong(value);
 		m_vertex->SetRGBA(rgba);
 		m_mesh->SetMeshModified(true);
 		Py_RETURN_NONE;
 	}
-	
-	return NULL;
-}
-
-
-PyObject* KX_VertexProxy::PyGetUV(PyObject*, 
-			       PyObject*, 
-			       PyObject*)
-{
-	return PyObjectFrom(MT_Vector2(m_vertex->getUV1()));
-}
-
-PyObject* KX_VertexProxy::PySetUV(PyObject*, 
-			       PyObject* args, 
-			       PyObject*)
-{
-	MT_Point2 vec;
-	if (PyVecArgTo(args, vec))
-	{
-		m_vertex->SetUV(vec);
-		m_mesh->SetMeshModified(true);
-		Py_RETURN_NONE;
-	}
-	
-	return NULL;
-}
-
-PyObject* KX_VertexProxy::PyGetUV2(PyObject*, 
-			       PyObject*, 
-			       PyObject*)
-{
-	return PyObjectFrom(MT_Vector2(m_vertex->getUV2()));
-}
-
-PyObject* KX_VertexProxy::PySetUV2(PyObject*, 
-			       PyObject* args, 
-			       PyObject*)
-{
-	MT_Point2 vec;
-	unsigned int unit=0;
-	PyObject* list=0;
-	if(PyArg_ParseTuple(args, "Oi", &list, &unit))
-	{
-		if (PyVecTo(list, vec))
+	else {	
+		MT_Vector4 vec;
+		if (PyVecTo(value, vec))
 		{
-			m_vertex->SetFlag((m_vertex->getFlag()|RAS_TexVert::SECOND_UV));
-			m_vertex->SetUnit(unit);
-			m_vertex->SetUV2(vec);
+			m_vertex->SetRGBA(vec);
 			m_mesh->SetMeshModified(true);
 			Py_RETURN_NONE;
 		}
 	}
+	
+	PyErr_SetString(PyExc_TypeError, "expected a 4D vector or an int");
 	return NULL;
+}
+
+
+PyObject* KX_VertexProxy::PyGetUV(PyObject*)
+{
+	return PyObjectFrom(MT_Vector2(m_vertex->getUV1()));
+}
+
+PyObject* KX_VertexProxy::PySetUV(PyObject*, PyObject* value)
+{
+	MT_Point2 vec;
+	if (!PyVecTo(value, vec))
+		return NULL;
+	
+	m_vertex->SetUV(vec);
+	m_mesh->SetMeshModified(true);
+	Py_RETURN_NONE;
+}
+
+PyObject* KX_VertexProxy::PyGetUV2(PyObject*)
+{
+	return PyObjectFrom(MT_Vector2(m_vertex->getUV2()));
+}
+
+PyObject* KX_VertexProxy::PySetUV2(PyObject*, PyObject* args)
+{
+	MT_Point2 vec;
+	unsigned int unit=0;
+	PyObject* list= NULL;
+	if(!PyArg_ParseTuple(args, "Oi:setUV2", &list, &unit))
+		return NULL;
+	
+	if (!PyVecTo(list, vec))
+		return NULL;
+	
+	m_vertex->SetFlag((m_vertex->getFlag()|RAS_TexVert::SECOND_UV));
+	m_vertex->SetUnit(unit);
+	m_vertex->SetUV2(vec);
+	m_mesh->SetMeshModified(true);
+	Py_RETURN_NONE;
 }

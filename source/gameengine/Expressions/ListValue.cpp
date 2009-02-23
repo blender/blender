@@ -224,10 +224,10 @@ PyParentObject CListValue::Parents[] = {
 
 
 PyMethodDef CListValue::Methods[] = {
-	{"append", (PyCFunction)CListValue::sPyappend,METH_VARARGS},
-	{"reverse", (PyCFunction)CListValue::sPyreverse,METH_VARARGS},
-	{"index", (PyCFunction)CListValue::sPyindex,METH_VARARGS},
-	{"count", (PyCFunction)CListValue::sPycount,METH_VARARGS},
+	{"append", (PyCFunction)CListValue::sPyappend,METH_O},
+	{"reverse", (PyCFunction)CListValue::sPyreverse,METH_NOARGS},
+	{"index", (PyCFunction)CListValue::sPyindex,METH_O},
+	{"count", (PyCFunction)CListValue::sPycount,METH_O},
 	
 	{NULL,NULL} //Sentinel
 };
@@ -403,34 +403,17 @@ void CListValue::MergeList(CListValue *otherlist)
 
 
 
-PyObject* CListValue::Pyappend(PyObject* self, 
-			       PyObject* args, 
-			       PyObject* kwds)
+PyObject* CListValue::Pyappend(PyObject* self, PyObject* value)
 {
-
-	PyObject* pyobj = NULL;
-	if (PyArg_ParseTuple(args,"O",&pyobj))
-	{
-		return listvalue_buffer_concat(self,pyobj);
-	}
-	else
-	{
-	   return NULL;	     
-	}
-
-	
+	return listvalue_buffer_concat(self, value);
 }
 
 
 
-PyObject* CListValue::Pyreverse(PyObject* self, 
-			       PyObject* args, 
-			       PyObject* kwds)
+PyObject* CListValue::Pyreverse(PyObject* self)
 {
 	std::reverse(m_pValueArray.begin(),m_pValueArray.end());
-
 	Py_RETURN_NONE;
-	
 }
 
 
@@ -452,58 +435,56 @@ bool CListValue::CheckEqual(CValue* first,CValue* second)
 
 
 
-PyObject* CListValue::Pyindex(PyObject* self, 
-			       PyObject* args, 
-			       PyObject* kwds)
+PyObject* CListValue::Pyindex(PyObject* self, PyObject *value)
 {
 	PyObject* result = NULL;
 
-	PyObject* pyobj = NULL;
-	if (PyArg_ParseTuple(args,"O",&pyobj))
-	{
-	
-		CValue* checkobj = ConvertPythonToValue(pyobj);
-		int numelem = GetCount();
-		for (int i=0;i<numelem;i++)
-		{
-			CValue* elem = 			GetValue(i);
-			if (CheckEqual(checkobj,elem))
-			{
-				result = PyInt_FromLong(i);
-				break;
-			}
-		}
-		checkobj->Release();
-	}
+	CValue* checkobj = ConvertPythonToValue(value);
+	if (checkobj==NULL)
+		return NULL; /* ConvertPythonToValue sets the error */
 
+	int numelem = GetCount();
+	for (int i=0;i<numelem;i++)
+	{
+		CValue* elem = 			GetValue(i);
+		if (CheckEqual(checkobj,elem))
+		{
+			result = PyInt_FromLong(i);
+			break;
+		}
+	}
+	checkobj->Release();
+
+	if (result==NULL) {
+		PyErr_SetString(PyExc_ValueError, "ValueError: list.index(x): x not in CListValue");
+	}
 	return result;
 	
 }
 
 
 
-PyObject* CListValue::Pycount(PyObject* self, 
-			       PyObject* args, 
-			       PyObject* kwds)
+PyObject* CListValue::Pycount(PyObject* self, PyObject* value)
 {
-	
 	int numfound = 0;
 
-	PyObject* pyobj = NULL;
-	if (PyArg_ParseTuple(args,"O",&pyobj))
-	{
-		CValue* checkobj = ConvertPythonToValue(pyobj);
-		int numelem = GetCount();
-		for (int i=0;i<numelem;i++)
-		{
-			CValue* elem = 			GetValue(i);
-			if (CheckEqual(checkobj,elem))
-			{
-				numfound ++;
-			}
-		}
-		checkobj->Release();
+	CValue* checkobj = ConvertPythonToValue(value);
+	
+	if (checkobj==NULL) { /* in this case just return that there are no items in the list */
+		PyErr_Clear();
+		PyInt_FromLong(0);
 	}
+
+	int numelem = GetCount();
+	for (int i=0;i<numelem;i++)
+	{
+		CValue* elem = 			GetValue(i);
+		if (CheckEqual(checkobj,elem))
+		{
+			numfound ++;
+		}
+	}
+	checkobj->Release();
 
 	return PyInt_FromLong(numfound);
 }

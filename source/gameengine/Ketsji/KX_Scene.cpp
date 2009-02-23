@@ -1512,9 +1512,9 @@ double KX_Scene::getSuspendedDelta()
 //Python
 
 PyMethodDef KX_Scene::Methods[] = {
-	KX_PYMETHODTABLE(KX_Scene, getLightList),
-	KX_PYMETHODTABLE(KX_Scene, getObjectList),
-	KX_PYMETHODTABLE(KX_Scene, getName),
+	KX_PYMETHODTABLE_NOARGS(KX_Scene, getLightList),
+	KX_PYMETHODTABLE_NOARGS(KX_Scene, getObjectList),
+	KX_PYMETHODTABLE_NOARGS(KX_Scene, getName),
 	
 	{NULL,NULL} //Sentinel
 };
@@ -1549,12 +1549,11 @@ PyObject* KX_Scene::_getattr(const char *attr)
 	if (!strcmp(attr, "name"))
 		return PyString_FromString(GetName());
 	
+	if (!strcmp(attr, "objects"))
+		return (PyObject*) m_objectlist->AddRef();
+	
 	if (!strcmp(attr, "active_camera"))
-	{
-		KX_Camera *camera = GetActiveCamera();
-		camera->AddRef();
-		return (PyObject*) camera;
-	}
+		return (PyObject*) GetActiveCamera()->AddRef();
 	
 	if (!strcmp(attr, "suspended"))
 		return PyInt_FromLong(m_suspend);
@@ -1589,25 +1588,24 @@ int KX_Scene::_setattr(const char *attr, PyObject *pyvalue)
 	return PyObjectPlus::_setattr(attr, pyvalue);
 }
 
-KX_PYMETHODDEF_DOC(KX_Scene, getLightList,
+KX_PYMETHODDEF_DOC_NOARGS(KX_Scene, getLightList,
 "getLightList() -> list [KX_Light]\n"
 "Returns a list of all lights in the scene.\n"
 )
 {
-	m_lightlist->AddRef();
-	return (PyObject*) m_lightlist;
+	return (PyObject*) m_lightlist->AddRef();
 }
 
-KX_PYMETHODDEF_DOC(KX_Scene, getObjectList,
+KX_PYMETHODDEF_DOC_NOARGS(KX_Scene, getObjectList,
 "getObjectList() -> list [KX_GameObject]\n"
 "Returns a list of all game objects in the scene.\n"
 )
 {
-	m_objectlist->AddRef();
-	return (PyObject*) m_objectlist;
+	// ShowDeprecationWarning("getObjectList()", "the objects property"); // XXX Grr, why doesnt this work?
+	return (PyObject*) m_objectlist->AddRef();
 }
 
-KX_PYMETHODDEF_DOC(KX_Scene, getName,
+KX_PYMETHODDEF_DOC_NOARGS(KX_Scene, getName,
 "getName() -> string\n"
 "Returns the name of the scene.\n"
 )

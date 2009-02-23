@@ -547,9 +547,9 @@ public:
 	 */
 	void SetNodeTree(SG_Tree* root);
 
-	KX_PYMETHOD_DOC(KX_Scene, getLightList);
-	KX_PYMETHOD_DOC(KX_Scene, getObjectList);
-	KX_PYMETHOD_DOC(KX_Scene, getName);
+	KX_PYMETHOD_DOC_NOARGS(KX_Scene, getLightList);
+	KX_PYMETHOD_DOC_NOARGS(KX_Scene, getObjectList);
+	KX_PYMETHOD_DOC_NOARGS(KX_Scene, getName);
 /*	
 	KX_PYMETHOD_DOC(KX_Scene, getActiveCamera);
 	KX_PYMETHOD_DOC(KX_Scene, getActiveCamera);

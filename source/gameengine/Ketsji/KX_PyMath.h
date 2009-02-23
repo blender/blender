@@ -131,20 +131,6 @@ bool PyVecTo(PyObject* pyval, T& vec)
 }
 
 /**
- *  Converts a python argument to an MT class.
- *  This paramater expects arguments as passed to a python method.
- */
-template<class T>
-bool PyVecArgTo(PyObject* args, T& vec)
-{
-	PyObject* pylist;
-	if (PyArg_ParseTuple(args,"O",&pylist))
-		return PyVecTo(pylist, vec);
-		
-	return false;
-}
-
-/**
  * Converts an MT_Matrix4x4 to a python object.
  */
 PyObject* PyObjectFrom(const MT_Matrix4x4 &mat);
