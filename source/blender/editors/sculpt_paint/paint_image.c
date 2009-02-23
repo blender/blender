@@ -5154,6 +5154,15 @@ static int texture_paint_radial_control_exec(bContext *C, wmOperator *op)
 	return ret;
 }
 
+static int texture_paint_poll(bContext *C)
+{
+	if(texture_paint_toggle_poll(C))
+		if(G.f & G_TEXTUREPAINT)
+			return 1;
+	
+	return 0;
+}
+
 void PAINT_OT_texture_paint_radial_control(wmOperatorType *ot)
 {
 	WM_OT_radial_control_partial(ot);
@@ -5164,7 +5173,7 @@ void PAINT_OT_texture_paint_radial_control(wmOperatorType *ot)
 	ot->invoke= texture_paint_radial_control_invoke;
 	ot->modal= paint_radial_control_modal;
 	ot->exec= texture_paint_radial_control_exec;
-	ot->poll= texture_paint_toggle_poll;
+	ot->poll= texture_paint_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
