@@ -126,10 +126,7 @@ KX_VisibilityActuator::Methods[] = {
 	{NULL,NULL} //Sentinel
 };
 
-PyObject* 
-KX_VisibilityActuator::_getattr(
-	const STR_String& attr
-	) 
+PyObject* KX_VisibilityActuator::_getattr(const char *attr) 
 {
 	_getattr_up(SCA_IActuator);
 };
@@ -155,7 +152,7 @@ KX_VisibilityActuator::PySetVisible(PyObject* self,
 
 	m_visible = PyArgToBool(vis);
 
-	Py_Return;
+	Py_RETURN_NONE;
 }
 
 

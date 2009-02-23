@@ -226,6 +226,7 @@ typedef struct Global {
 #define G_FILE_GLSL_NO_RAMPS	 (1 << 19)
 #define G_FILE_GLSL_NO_NODES	 (1 << 20)
 #define G_FILE_GLSL_NO_EXTRA_TEX (1 << 21)
+#define G_FILE_IGNORE_DEPRECATION_WARNINGS	(1 << 22)
 
 /* G.windowstate */
 #define G_WINDOWSTATE_USERDEF		0

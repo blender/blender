@@ -1,16 +1,16 @@
 #!BPY
 """
 Name: 'Getting Started'
-Blender: 234
+Blender: 248
 Group: 'Help'
 Tooltip: 'Help for new users'
 """
 
 __author__ = "Matt Ebb"
 __url__ = ("blender", "blenderartists.org")
-__version__ = "1.0"
+__version__ = "1.0.1"
 __bpydoc__ = """\
-This script opens the user's default web browser at www.blender3d.org's
+This script opens the user's default web browser at www.blender.org's
 "Getting Started" page.
 """
 
@@ -39,5 +39,4 @@ This script opens the user's default web browser at www.blender3d.org's
 # --------------------------------------------------------------------------
 
 import Blender, webbrowser
-version = str(Blender.Get('version'))
-webbrowser.open('http://www.blender3d.org/Help/?pg=GettingStarted&ver=' + version)
+webbrowser.open('http://www.blender.org/education-help/tutorials/getting-started/')

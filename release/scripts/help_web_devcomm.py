@@ -2,17 +2,17 @@
 
 """
 Name: 'Developer Community'
-Blender: 234
+Blender: 248
 Group: 'HelpWebsites'
 Tooltip: 'Get involved with Blender development'
 """
 
 __author__ = "Matt Ebb"
 __url__ = ("blender", "blenderartists.org")
-__version__ = "1.0"
+__version__ = "1.0.1"
 __bpydoc__ = """\
-This script opens the user's default web browser at www.blender.org, the
-Blender development portal.
+This script opens the user's default web browser at www.blender.org's
+"Get Involved" page.
 """
 
 # --------------------------------------------------------------------------
@@ -38,4 +38,4 @@ Blender development portal.
 # --------------------------------------------------------------------------
 
 import webbrowser
-webbrowser.open('http://www.blender.org')
+webbrowser.open('http://www.blender.org/community/get-involved/')

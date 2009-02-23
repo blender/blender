@@ -353,7 +353,7 @@ PyObject* KX_RaySensor::PyGetHitObject(PyObject* self,
 	{
 		return m_hitObject->AddRef();
 	}
-	Py_Return;
+	Py_RETURN_NONE;
 }
 
 
@@ -418,6 +418,6 @@ PyObject* KX_RaySensor::PyGetHitNormal(PyObject* self,
 
 
 
-PyObject* KX_RaySensor::_getattr(const STR_String& attr) {
+PyObject* KX_RaySensor::_getattr(const char *attr) {
 	_getattr_up(SCA_ISensor);
 }

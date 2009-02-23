@@ -137,7 +137,7 @@ PyMethodDef SCA_NORController::Methods[] = {
 	{NULL,NULL} //Sentinel
 };
 
-PyObject* SCA_NORController::_getattr(const STR_String& attr) {
+PyObject* SCA_NORController::_getattr(const char *attr) {
 	_getattr_up(SCA_IController);
 }
 

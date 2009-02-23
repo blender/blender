@@ -112,7 +112,7 @@ def mesh2polys():
 	Window.EditMode(0)
 	me = meshOb.getData(mesh=1)
 	polygons= polysFromMesh(me)
-	w=t=1
+	w = 1.0
 	cu= Curve.New()
 	cu.name = me.name
 	cu.setFlag(1)
@@ -128,7 +128,7 @@ def mesh2polys():
 			vIdx= 0
 		
 		v= poly[vIdx]
-		cu.appendNurb([v.co.x, v.co.y, v.co.z, w, t])
+		cu.appendNurb((v.co.x, v.co.y, v.co.z, w))
 		vIdx += 1
 		cu[i].type= 0 # Poly Line
 		
@@ -139,7 +139,7 @@ def mesh2polys():
 		# Add all the points in the polyline.
 		while vIdx<len(poly):
 			v= poly[vIdx]
-			cu.appendPoint(i, [v.co.x, v.co.y, v.co.z, w])
+			cu.appendPoint(i, (v.co.x, v.co.y, v.co.z, w))
 			vIdx+=1
 		i+=1
 	Window.WaitCursor(0)

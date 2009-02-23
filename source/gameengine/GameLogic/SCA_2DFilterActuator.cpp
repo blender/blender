@@ -74,7 +74,8 @@ bool SCA_2DFilterActuator::Update()
 	{
 		m_rendertools->Update2DFilter(m_propNames, m_gameObj, m_type, m_int_arg, m_shaderText);
 	}
-    return true;
+	// once the filter is in place, no need to update it again => disable the actuator
+    return false;
 }
 
 
@@ -113,6 +114,6 @@ PyMethodDef SCA_2DFilterActuator::Methods[] = {
 };
 
 
-PyObject* SCA_2DFilterActuator::_getattr(const STR_String& attr) {
+PyObject* SCA_2DFilterActuator::_getattr(const char *attr) {
     _getattr_up(SCA_IActuator);
 }

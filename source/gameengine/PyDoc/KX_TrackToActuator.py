@@ -13,6 +13,8 @@ class KX_TrackToActuator(SCA_IActuator):
 		
 		C{ERROR: GameObject I{OBName} no object in EditObjectActuator I{ActuatorName}}
 
+	@ivar object: the object this actuator tracks.
+	@type object: KX_GameObject or None
 	"""
 	def setObject(object):
 		"""

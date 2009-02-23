@@ -977,7 +977,8 @@ void backdrawview3d(int test)
 	int m;
 #endif
 
-	if(G.f & G_VERTEXPAINT || G.f & G_WEIGHTPAINT || G.f & G_TEXTUREPAINT);
+	if(	G.f & G_VERTEXPAINT || G.f & G_WEIGHTPAINT );
+	else if ((G.f & G_TEXTUREPAINT) && G.scene->toolsettings && (G.scene->toolsettings->imapaint.flag & IMAGEPAINT_PROJECT_DISABLE)==0);
 	else if(G.obedit && G.vd->drawtype>OB_WIRE && (G.vd->flag & V3D_ZBUF_SELECT));
 	else {
 		G.vd->flag &= ~V3D_NEEDBACKBUFDRAW;
@@ -3451,7 +3452,12 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 			fdrawXORcirc((float)c[0], (float)c[1], (float)pset->brush[pset->brushtype].size);
 		}
 	}
-
+	if(!G.obedit && OBACT && G.f&G_TEXTUREPAINT && area_is_active_area(v3d->area) && G.scene->toolsettings->imapaint.brush){
+		short c[2];
+		getmouseco_areawin(c);
+		fdrawXORcirc((float)c[0], (float)c[1], (float)G.scene->toolsettings->imapaint.brush->size/2);
+	}
+	
 	if(v3d->persp>1) drawviewborder();
 	if(v3d->flag2 & V3D_FLYMODE) drawviewborder_flymode();
 	

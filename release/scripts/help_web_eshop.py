@@ -2,16 +2,16 @@
 
 """
 Name: 'Blender E-Shop'
-Blender: 234
+Blender: 248
 Group: 'HelpWebsites'
 Tooltip: 'Buy official Blender resources and merchandise online'
 """
 
 __author__ = "Matt Ebb"
 __url__ = ("blender", "blenderartists.org")
-__version__ = "1.0"
+__version__ = "1.0.1"
 __bpydoc__ = """\
-This script opens the user's default web browser at www.blender3d.org's
+This script opens the user's default web browser at www.blender.org's
 "E-Shop" section.
 """
 

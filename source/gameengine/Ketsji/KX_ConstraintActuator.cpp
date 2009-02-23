@@ -612,7 +612,7 @@ PyMethodDef KX_ConstraintActuator::Methods[] = {
 	{NULL,NULL} //Sentinel
 };
 
-PyObject* KX_ConstraintActuator::_getattr(const STR_String& attr) {
+PyObject* KX_ConstraintActuator::_getattr(const char *attr) {
 	_getattr_up(SCA_IActuator);
 }
 
@@ -633,7 +633,7 @@ PyObject* KX_ConstraintActuator::PySetDamp(PyObject* self,
 	m_posDampTime = dampArg;
 	if (m_posDampTime < 0) m_posDampTime = 0;
 
-	Py_Return;
+	Py_RETURN_NONE;
 }
 /* 3. getDamp                                                                */
 const char KX_ConstraintActuator::GetDamp_doc[] = 
@@ -660,7 +660,7 @@ PyObject* KX_ConstraintActuator::PySetRotDamp(PyObject* self,
 	m_rotDampTime = dampArg;
 	if (m_rotDampTime < 0) m_rotDampTime = 0;
 
-	Py_Return;
+	Py_RETURN_NONE;
 }
 /* 3. getRotDamp                                                                */
 const char KX_ConstraintActuator::GetRotDamp_doc[] = 
@@ -695,7 +695,7 @@ PyObject* KX_ConstraintActuator::PySetDirection(PyObject* self,
 	}
 	m_refDirection = dir/len;
 
-	Py_Return;
+	Py_RETURN_NONE;
 }
 /* 3. getDirection                                                                */
 const char KX_ConstraintActuator::GetDirection_doc[] = 
@@ -730,7 +730,7 @@ PyObject* KX_ConstraintActuator::PySetOption(PyObject* self,
 	
 	m_option = option;
 
-	Py_Return;
+	Py_RETURN_NONE;
 }
 /* 3. getOption                                                              */
 const char KX_ConstraintActuator::GetOption_doc[] = 
@@ -759,7 +759,7 @@ PyObject* KX_ConstraintActuator::PySetTime(PyObject* self,
 		t = 0;
 	m_activeTime = t;
 
-	Py_Return;
+	Py_RETURN_NONE;
 }
 /* 3. getTime                                                                */
 const char KX_ConstraintActuator::GetTime_doc[] = 
@@ -789,7 +789,7 @@ PyObject* KX_ConstraintActuator::PySetProperty(PyObject* self,
 		m_property[sizeof(m_property)-1] = 0;
 	}
 
-	Py_Return;
+	Py_RETURN_NONE;
 }
 /* 3. getProperty                                                                */
 const char KX_ConstraintActuator::GetProperty_doc[] = 
@@ -829,7 +829,7 @@ PyObject* KX_ConstraintActuator::PySetMin(PyObject* self,
 		break;
 	}
 
-	Py_Return;
+	Py_RETURN_NONE;
 }
 /* 5. getDistance                                                                 */
 const char KX_ConstraintActuator::GetDistance_doc[] = 
@@ -874,7 +874,7 @@ PyObject* KX_ConstraintActuator::PySetMax(PyObject* self,
 		break;
 	}
 
-	Py_Return;
+	Py_RETURN_NONE;
 }
 /* 7. getRayLength                                                                 */
 const char KX_ConstraintActuator::GetRayLength_doc[] = 
@@ -918,7 +918,7 @@ PyObject* KX_ConstraintActuator::PySetLimit(PyObject* self,
 	
 	if (IsValidMode((KX_CONSTRAINTTYPE)locrotArg)) m_locrot = locrotArg;
 
-	Py_Return;
+	Py_RETURN_NONE;
 }
 /* 9. getLimit                                                               */
 const char KX_ConstraintActuator::GetLimit_doc[] = 

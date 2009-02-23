@@ -139,8 +139,13 @@ BF_FFMPEG = '#extern/ffmpeg'
 BF_FFMPEG_LIB = ''
 # Uncomment the following two lines to use system's ffmpeg
 # BF_FFMPEG = '/usr'
-# BF_FFMPEG_LIB = 'avformat avcodec swscale avutil'
-BF_FFMPEG_INC = '${BF_FFMPEG}/include'
+# BF_FFMPEG_LIB = 'avformat avcodec swscale avutil avdevice'
+# trick : The version of ffmpeg in extern/ffmpeg uses explicit libav.. directory in #include statements
+#         To keep Blender compatible with older version, I add ${BF_FFMPEG} to the inc dir so that ffmpeg
+#         finds the files directly in extern/ffmpeg/libav... while blender finds them in
+#         extern/ffmpeg/include. When using system ffmpeg, you don't need that, assuming the system library
+#         still use the flat directory model, otherwise will not compile anyway
+BF_FFMPEG_INC = '${BF_FFMPEG}/include ${BF_FFMPEG}'
 BF_FFMPEG_LIBPATH='${BF_FFMPEG}/lib'
 
 # enable ogg, vorbis and theora in ffmpeg
@@ -152,13 +157,14 @@ BF_OGG_LIB = 'ogg vorbis theoraenc theoradec'
 WITH_BF_OPENJPEG = True 
 BF_OPENJPEG = '#extern/libopenjpeg'
 BF_OPENJPEG_LIB = ''
-BF_OPENJPEG_INC = '${BF_OPENJPEG}/include'
+BF_OPENJPEG_INC = '${BF_OPENJPEG}'
 BF_OPENJPEG_LIBPATH='${BF_OPENJPEG}/lib'
 
 WITH_BF_REDCODE = False  
 BF_REDCODE = '#extern/libredcode'
 BF_REDCODE_LIB = ''
-BF_REDCODE_INC = '${BF_REDCODE}/include'
+# BF_REDCODE_INC = '${BF_REDCODE}/include'
+BF_REDCODE_INC = '${BF_REDCODE}/../' #C files request "libredcode/format.h" which is in "#extern/libredcode/format.h", stupid but compiles for now.
 BF_REDCODE_LIBPATH='${BF_REDCODE}/lib'
 
 # Mesa Libs should go here if your using them as well....

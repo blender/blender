@@ -35,13 +35,11 @@
 
 #include "SCA_LogicManager.h"
 #include "BL_ShapeActionActuator.h"
-#include "BL_ActionActuator.h"
 #include "BL_ShapeDeformer.h"
 #include "KX_GameObject.h"
 #include "STR_HashedString.h"
-#include "DNA_action_types.h"
 #include "DNA_nla_types.h"
-#include "DNA_actuator_types.h"
+#include "DNA_action_types.h"
 #include "BKE_action.h"
 #include "DNA_armature_types.h"
 #include "MEM_guardedalloc.h"
@@ -51,6 +49,7 @@
 #include "BKE_utildefines.h"
 #include "FloatValue.h"
 #include "PyObjectPlus.h"
+#include "blendef.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -471,8 +470,64 @@ PyMethodDef BL_ShapeActionActuator::Methods[] = {
 	{NULL,NULL} //Sentinel
 };
 
-PyObject* BL_ShapeActionActuator::_getattr(const STR_String& attr) {
+PyAttributeDef BL_ShapeActionActuator::Attributes[] = {
+	KX_PYATTRIBUTE_FLOAT_RW("start", 0, MAXFRAMEF, BL_ShapeActionActuator, m_startframe),
+	KX_PYATTRIBUTE_FLOAT_RW("end", 0, MAXFRAMEF, BL_ShapeActionActuator, m_endframe),
+	KX_PYATTRIBUTE_FLOAT_RW("blendin", 0, MAXFRAMEF, BL_ShapeActionActuator, m_blendin),
+	KX_PYATTRIBUTE_SHORT_RW("priority", 0, 100, false, BL_ShapeActionActuator, m_priority),
+	KX_PYATTRIBUTE_FLOAT_RW_CHECK("frame", 0, MAXFRAMEF, BL_ShapeActionActuator, m_localtime, CheckFrame),
+	KX_PYATTRIBUTE_STRING_RW("property", 0, 31, false, BL_ShapeActionActuator, m_propname),
+	KX_PYATTRIBUTE_STRING_RW("frameProperty", 0, 31, false, BL_ShapeActionActuator, m_framepropname),
+	KX_PYATTRIBUTE_FLOAT_RW_CHECK("blendTime", 0, MAXFRAMEF, BL_ShapeActionActuator, m_blendframe, CheckBlendTime),
+	KX_PYATTRIBUTE_SHORT_RW_CHECK("type",0,100,false,BL_ShapeActionActuator,m_playtype,CheckType),
+	{ NULL }	//Sentinel
+};
+
+
+PyObject* BL_ShapeActionActuator::_getattr(const char *attr) {
+	if (!strcmp(attr, "action"))
+		return PyString_FromString(m_action->id.name+2);
+	PyObject* object = _getattr_self(Attributes, this, attr);
+	if (object != NULL)
+		return object;
 	_getattr_up(SCA_IActuator);
+}
+
+int BL_ShapeActionActuator::_setattr(const char *attr, PyObject* value) {
+	if (!strcmp(attr, "action"))
+	{
+		if (!PyString_Check(value))
+		{
+			PyErr_SetString(PyExc_ValueError, "expected a string");
+			return 1;
+		}
+
+		STR_String val = PyString_AsString(value);
+		
+		if (val == "")
+		{
+			m_action = NULL;
+			return 0;
+		}
+
+		bAction *action;
+		
+		action = (bAction*)SCA_ILogicBrick::m_sCurrentLogicManager->GetActionByName(val);
+		
+
+		if (!action)
+		{
+			PyErr_SetString(PyExc_ValueError, "action not found!");
+			return 1;
+		}
+
+		m_action = action;
+		return 0;
+	}
+	int ret = _setattr_self(Attributes, this, attr, value);
+	if (ret >= 0)
+		return ret;
+	return SCA_IActuator::_setattr(attr, value);
 }
 
 /*     setStart                                                              */
@@ -481,6 +536,7 @@ const char BL_ShapeActionActuator::GetAction_doc[] =
 "\tReturns a string containing the name of the current action.\n";
 
 PyObject* BL_ShapeActionActuator::PyGetAction(PyObject* self) {
+	ShowDeprecationWarning("getAction()", "the action property");
 	if (m_action){
 		return PyString_FromString(m_action->id.name+2);
 	}
@@ -493,6 +549,7 @@ const char BL_ShapeActionActuator::GetProperty_doc[] =
 "\tReturns the name of the property to be used in FromProp mode.\n";
 
 PyObject* BL_ShapeActionActuator::PyGetProperty(PyObject* self) {
+	ShowDeprecationWarning("getProperty()", "the property property");
 	PyObject *result;
 	
 	result = Py_BuildValue("s", (const char *)m_propname);
@@ -506,6 +563,7 @@ const char BL_ShapeActionActuator::GetFrame_doc[] =
 "\tReturns the current frame number.\n";
 
 PyObject* BL_ShapeActionActuator::PyGetFrame(PyObject* self) {
+	ShowDeprecationWarning("getFrame()", "the frame property");
 	PyObject *result;
 	
 	result = Py_BuildValue("f", m_localtime);
@@ -519,6 +577,7 @@ const char BL_ShapeActionActuator::GetEnd_doc[] =
 "\tReturns the last frame of the action.\n";
 
 PyObject* BL_ShapeActionActuator::PyGetEnd(PyObject* self) {
+	ShowDeprecationWarning("getEnd()", "the end property");
 	PyObject *result;
 	
 	result = Py_BuildValue("f", m_endframe);
@@ -532,6 +591,7 @@ const char BL_ShapeActionActuator::GetStart_doc[] =
 "\tReturns the starting frame of the action.\n";
 
 PyObject* BL_ShapeActionActuator::PyGetStart(PyObject* self) {
+	ShowDeprecationWarning("getStart()", "the start property");
 	PyObject *result;
 	
 	result = Py_BuildValue("f", m_startframe);
@@ -546,6 +606,7 @@ const char BL_ShapeActionActuator::GetBlendin_doc[] =
 "\tgenerated when this actuator is triggered.\n";
 
 PyObject* BL_ShapeActionActuator::PyGetBlendin(PyObject* self) {
+	ShowDeprecationWarning("getBlendin()", "the blendin property");
 	PyObject *result;
 	
 	result = Py_BuildValue("f", m_blendin);
@@ -560,6 +621,7 @@ const char BL_ShapeActionActuator::GetPriority_doc[] =
 "\tPriority numbers will override actuators with higher numbers.\n";
 
 PyObject* BL_ShapeActionActuator::PyGetPriority(PyObject* self) {
+	ShowDeprecationWarning("getPriority()", "the priority property");
 	PyObject *result;
 	
 	result = Py_BuildValue("i", m_priority);
@@ -581,6 +643,7 @@ const char BL_ShapeActionActuator::SetAction_doc[] =
 PyObject* BL_ShapeActionActuator::PySetAction(PyObject* self, 
 											  PyObject* args, 
 											  PyObject* kwds) {
+	ShowDeprecationWarning("setAction()", "the action property");
 	char *string;
 	int	reset = 1;
 
@@ -615,6 +678,7 @@ const char BL_ShapeActionActuator::SetStart_doc[] =
 PyObject* BL_ShapeActionActuator::PySetStart(PyObject* self, 
 											 PyObject* args, 
 											 PyObject* kwds) {
+	ShowDeprecationWarning("setStart()", "the start property");
 	float start;
 	
 	if (PyArg_ParseTuple(args,"f",&start))
@@ -636,6 +700,7 @@ const char BL_ShapeActionActuator::SetEnd_doc[] =
 PyObject* BL_ShapeActionActuator::PySetEnd(PyObject* self, 
 										   PyObject* args, 
 										   PyObject* kwds) {
+	ShowDeprecationWarning("setEnd()", "the end property");
 	float end;
 	
 	if (PyArg_ParseTuple(args,"f",&end))
@@ -658,6 +723,7 @@ const char BL_ShapeActionActuator::SetBlendin_doc[] =
 PyObject* BL_ShapeActionActuator::PySetBlendin(PyObject* self, 
 											   PyObject* args, 
 											   PyObject* kwds) {
+	ShowDeprecationWarning("setBlendin()", "the blendin property");
 	float blendin;
 	
 	if (PyArg_ParseTuple(args,"f",&blendin))
@@ -681,6 +747,7 @@ const char BL_ShapeActionActuator::SetBlendtime_doc[] =
 PyObject* BL_ShapeActionActuator::PySetBlendtime(PyObject* self, 
 												 PyObject* args, 
 												   PyObject* kwds) {
+	ShowDeprecationWarning("setBlendtime()", "the blendTime property");
 	float blendframe;
 	
 	if (PyArg_ParseTuple(args,"f",&blendframe))
@@ -708,6 +775,7 @@ const char BL_ShapeActionActuator::SetPriority_doc[] =
 PyObject* BL_ShapeActionActuator::PySetPriority(PyObject* self, 
 												PyObject* args, 
 												PyObject* kwds) {
+	ShowDeprecationWarning("setPriority()", "the priority property");
 	int priority;
 	
 	if (PyArg_ParseTuple(args,"i",&priority))
@@ -727,6 +795,7 @@ const char BL_ShapeActionActuator::GetFrameProperty_doc[] =
 "\tReturns the name of the property, that is set to the current frame number.\n";
 
 PyObject* BL_ShapeActionActuator::PyGetFrameProperty(PyObject* self) {
+	ShowDeprecationWarning("getFrameProperty()", "the frameProperty property");
 	PyObject *result;
 	
 	result = Py_BuildValue("s", (const char *)m_framepropname);
@@ -743,6 +812,7 @@ const char BL_ShapeActionActuator::SetFrame_doc[] =
 PyObject* BL_ShapeActionActuator::PySetFrame(PyObject* self, 
 											 PyObject* args, 
 											 PyObject* kwds) {
+	ShowDeprecationWarning("setFrame()", "the frame property");
 	float frame;
 	
 	if (PyArg_ParseTuple(args,"f",&frame))
@@ -769,6 +839,7 @@ const char BL_ShapeActionActuator::SetProperty_doc[] =
 PyObject* BL_ShapeActionActuator::PySetProperty(PyObject* self, 
 												PyObject* args, 
 												PyObject* kwds) {
+	ShowDeprecationWarning("setProperty()", "the property property");
 	char *string;
 	
 	if (PyArg_ParseTuple(args,"s",&string))
@@ -790,6 +861,7 @@ const char BL_ShapeActionActuator::SetFrameProperty_doc[] =
 PyObject* BL_ShapeActionActuator::PySetFrameProperty(PyObject* self, 
 										   PyObject* args, 
 										   PyObject* kwds) {
+	ShowDeprecationWarning("setFrameProperty()", "the frameProperty property");
 	char *string;
 	
 	if (PyArg_ParseTuple(args,"s",&string))
@@ -808,6 +880,7 @@ const char BL_ShapeActionActuator::GetType_doc[] =
 "getType()\n"
 "\tReturns the operation mode of the actuator.\n";
 PyObject* BL_ShapeActionActuator::PyGetType(PyObject* self) {
+	ShowDeprecationWarning("getType()", "the type property");
     return Py_BuildValue("h", m_playtype);
 }
 
@@ -819,6 +892,7 @@ const char BL_ShapeActionActuator::SetType_doc[] =
 PyObject* BL_ShapeActionActuator::PySetType(PyObject* self,
                                             PyObject* args,
                                             PyObject* kwds) {
+	ShowDeprecationWarning("setType()", "the type property");
 	short typeArg;
                                                                                                              
     if (!PyArg_ParseTuple(args, "h", &typeArg)) {
@@ -837,6 +911,6 @@ PyObject* BL_ShapeActionActuator::PySetType(PyObject* self,
 		printf("Invalid type for action actuator: %d\n", typeArg); /* error */
     }
 	
-    Py_Return;
+    Py_RETURN_NONE;
 }
 

@@ -536,12 +536,24 @@ void CcdPhysicsEnvironment::disableCcdPhysicsController(CcdPhysicsController* ct
 			{
 			} else
 			{
-				m_dynamicsWorld->removeCollisionObject(body);
+				m_dynamicsWorld->removeCollisionObject(ctrl->GetCollisionObject());
 			}
 		}
 	}
 }
 
+void CcdPhysicsEnvironment::refreshCcdPhysicsController(CcdPhysicsController* ctrl)
+{
+	btCollisionObject* obj = ctrl->GetCollisionObject();
+	if (obj)
+	{
+		btBroadphaseProxy* proxy = obj->getBroadphaseHandle();
+		if (proxy)
+		{
+			m_dynamicsWorld->getPairCache()->cleanProxyFromPairs(proxy,m_dynamicsWorld->getDispatcher());
+		}
+	}
+}
 
 void	CcdPhysicsEnvironment::beginFrame()
 {

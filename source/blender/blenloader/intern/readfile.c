@@ -3179,6 +3179,7 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 			FluidsimModifierData *fluidmd = (FluidsimModifierData*) md;
 			
 			fluidmd->fss= newdataadr(fd, fluidmd->fss);
+			fluidmd->fss->meshSurfNormals = 0;
 		}
 		else if (md->type==eModifierType_Collision) {
 			
@@ -7819,6 +7820,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				
 				fluidmd->fss->lastgoodframe = INT_MAX;
 				fluidmd->fss->flag = 0;
+				fluidmd->fss->meshSurfNormals = 0;
 			}
 		}
 	}
@@ -7974,9 +7976,13 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	{
 		Scene *sce;
 		
-		/* initialize skeleton generation toolsettings */
 		for(sce=main->scene.first; sce; sce = sce->id.next)
 		{
+			/* Note, these will need to be added for painting */
+			sce->toolsettings->imapaint.seam_bleed = 2;
+			sce->toolsettings->imapaint.normal_angle = 80;
+
+			/* initialize skeleton generation toolsettings */
 			sce->toolsettings->skgen_resolution = 250;
 			sce->toolsettings->skgen_threshold_internal 	= 0.1f;
 			sce->toolsettings->skgen_threshold_external 	= 0.1f;
@@ -8003,7 +8009,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
-	
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in src/usiblender.c! */
 
@@ -8799,6 +8804,9 @@ static void expand_scene(FileData *fd, Main *mainvar, Scene *sce)
 	}
 	expand_doit(fd, mainvar, sce->camera);
 	expand_doit(fd, mainvar, sce->world);
+	
+	if(sce->set)
+		expand_doit(fd, mainvar, sce->set);
 	
 	if(sce->nodetree)
 		expand_nodetree(fd, mainvar, sce->nodetree);

@@ -32,6 +32,7 @@
 //////////////////////////////////////////////////////////////////////
 
 double CValue::m_sZeroVec[3] = {0.0,0.0,0.0};
+bool CValue::m_ignore_deprecation_warnings(false);
 
 #ifndef NO_EXP_PYTHON_EMBEDDING
 
@@ -673,9 +674,9 @@ static PyMethodDef	CValueMethods[] =
 };
 
 
-PyObject*	CValue::_getattr(const STR_String& attr)
+PyObject*	CValue::_getattr(const char *attr)
 {
-	CValue* resultattr = FindIdentifier(attr);
+	CValue* resultattr = FindIdentifier(STR_String(attr));
 	STR_String text;
 	if (resultattr)
 	{
@@ -760,26 +761,27 @@ CValue* CValue::ConvertPythonToValue(PyObject* pyobj)
 
 }
 
-int	CValue::_delattr(const STR_String& attr)
+int	CValue::_delattr(const char *attr)
 {
-	if (!RemoveProperty(attr)) /* sets error */
+	if (!RemoveProperty(STR_String(attr))) /* sets error */
 		return 1;
 	return 0;
 }
 
-int	CValue::_setattr(const STR_String& attr,PyObject* pyobj)
+int	CValue::_setattr(const char *attr,PyObject* pyobj)
 {
 	CValue* vallie = ConvertPythonToValue(pyobj);
 	if (vallie)
 	{
-		CValue* oldprop = GetProperty(attr);
+		STR_String attr_str = attr;
+		CValue* oldprop = GetProperty(attr_str);
 		
 		if (oldprop)
 		{
 			oldprop->SetValue(vallie);
 		} else
 		{
-			SetProperty(attr,vallie);
+			SetProperty(attr_str, vallie);
 		}
 		vallie->Release();
 	} else
@@ -849,4 +851,50 @@ void CValue::SetValue(CValue* newval)
 }
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
+/* deprecation warning management */
+void CValue::SetDeprecationWarnings(bool ignoreDeprecationWarnings)
+{
+	m_ignore_deprecation_warnings = ignoreDeprecationWarnings;
+}
+
+void CValue::ShowDeprecationWarning(const char* old_way,const char* new_way)
+{
+	if (!m_ignore_deprecation_warnings) {
+		printf("Method %s is deprecated, please use %s instead.\n", old_way, new_way);
+		
+		// import sys; print '\t%s:%d' % (sys._getframe(0).f_code.co_filename, sys._getframe(0).f_lineno)
+		
+		PyObject *getframe, *frame;
+		PyObject *f_lineno, *f_code, *co_filename;
+		
+		getframe = PySys_GetObject("_getframe"); // borrowed
+		if (getframe) {
+			frame = PyObject_CallObject(getframe, NULL);
+			if (frame) {
+				f_lineno= PyObject_GetAttrString(frame, "f_lineno");
+				f_code= PyObject_GetAttrString(frame, "f_code");
+				if (f_lineno && f_code) {
+					co_filename= PyObject_GetAttrString(f_code, "co_filename");
+					if (co_filename) {
+						
+						printf("\t%s:%d\n", PyString_AsString(co_filename), (int)PyInt_AsLong(f_lineno));
+						
+						Py_DECREF(f_lineno);
+						Py_DECREF(f_code);
+						Py_DECREF(co_filename);
+						Py_DECREF(frame);
+						return;
+					}
+				}
+				
+				Py_XDECREF(f_lineno);
+				Py_XDECREF(f_code);
+				Py_DECREF(frame);
+			}
+			
+		}
+		PyErr_Clear();
+		printf("\tERROR - Could not access sys._getframe(0).f_lineno or sys._getframe().f_code.co_filename\n");
+	}
+}
 

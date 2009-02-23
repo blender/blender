@@ -1236,7 +1236,7 @@ int cloth_collision_moving_edges ( ClothModifierData *clmd, CollisionModifierDat
 						if(out_normalVelocity < 0.0)
 						{
 							out_normalVelocity*= -1.0;
-							VecMulf(out_normal, -1.0);
+							VecNegf(out_normal);
 						}
 */
 						/* Inelastic repulsion impulse. */

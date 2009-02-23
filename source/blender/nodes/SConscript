@@ -2,9 +2,9 @@
 Import ('env')
 
 sources = env.Glob('intern/*.c')
-sources += env.Glob('intern/CMP_nodes/*.c')
-sources += env.Glob('intern/SHD_nodes/*.c')
-sources += env.Glob('intern/TEX_nodes/*.c')
+cmpsources = env.Glob('intern/CMP_nodes/*.c')
+shdsources = env.Glob('intern/SHD_nodes/*.c')
+texsources = env.Glob('intern/TEX_nodes/*.c')
 
 incs = '. ./intern '
 incs += '#/intern/guardedalloc ../include ../blenlib ../makesdna'
@@ -28,13 +28,6 @@ else:
 if env['WITH_BF_INTERNATIONAL']:
     defs += ' WITH_FREETYPE2'
 
-if env['WITH_BF_VERSE']:
-    defs += ' WITH_VERSE'
-    incs += ' ' + env['BF_VERSE_INCLUDE']
-
-if env['WITH_BF_VERSE']:
-    defs += ' WITH_VERSE'
-
 if env['WITH_BF_OPENEXR']:
     defs += ' WITH_OPENEXR'
 
@@ -46,6 +39,7 @@ if env['WITH_BF_QUICKTIME']:
     defs += ' WITH_QUICKTIME'
     incs += ' ' + env['BF_QUICKTIME_INC']
 
-defs += ' WITH_CCGSUBSURF '
-
-env.BlenderLib ( libname = 'nodes', sources = sources, includes = Split(incs), defines = Split(defs), libtype=['core','player'], priority = [65, 20] )
+env.BlenderLib ( libname = 'bf_nodes', sources = sources, includes = Split(incs), defines = Split(defs), libtype=['intern', 'core', 'player'], priority = [200, 200, 300] )
+env.BlenderLib ( libname = 'bf_cmpnodes', sources = cmpsources, includes = Split(incs), defines = Split(defs), libtype=['intern', 'core'], priority = [200, 175] )
+env.BlenderLib ( libname = 'bf_shdnodes', sources = shdsources, includes = Split(incs), defines = Split(defs), libtype=['intern', 'core'], priority = [200, 175] )
+env.BlenderLib ( libname = 'bf_texnodes', sources = texsources, includes = Split(incs), defines = Split(defs), libtype=['intern', 'core'], priority = [200, 175] )

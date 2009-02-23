@@ -67,7 +67,7 @@ char *headerMagic = "BLENDFI";
  */
 void BLO_setversionnumber(char array[4], int version)
 {
-	memset(array, 0, sizeof(array));
+	memset(array, 0, sizeof(char)*4);
 
 	array[1] = version / 100;
 	array[2] = version % 100;

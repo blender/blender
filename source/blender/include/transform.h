@@ -468,6 +468,7 @@ int validSnappingNormal(TransInfo *t);
 
 void initTrans(TransInfo *t);
 void postTrans (TransInfo *t);
+void resetTransRestrictions(TransInfo *t);
 
 void drawLine(float *center, float *dir, char axis, short options);
 

@@ -798,12 +798,15 @@ void viewmoveNDOFfly(int mode)
 	BIF_view3d_previewrender_signal(curarea, PR_DBASE|PR_DISPRECT);
 }
 
-int view_autodist( float mouse_worldloc[3] ) //, float *autodist )
+/* Be sure to run persp(PERSP_VIEW) if this isnt set,
+ *
+ * mouse_worldloc - worldspace vector that is set
+ * mval - screenspace location, or from getmouseco_areawin(mval)
+ * dist - the size of the square to use when averaging the Z depth.
+ */
+int view_mouse_depth( float mouse_worldloc[3], short mval[2], int dist)
 {
 	View3D *v3d = G.vd;
-	
-	/* Zooms in on a border drawn by the user */
-	short mval[2];
 	rcti rect;
 	
 	/* ZBuffer depth vars */
@@ -815,13 +818,13 @@ int view_autodist( float mouse_worldloc[3] ) //, float *autodist )
 	
 	getmouseco_areawin(mval);
 	
-	persp(PERSP_VIEW);
+	/* persp(PERSP_VIEW); */
 	
-	rect.xmax = mval[0] + 4;
-	rect.ymax = mval[1] + 4;
+	rect.xmax = mval[0] + dist;
+	rect.ymax = mval[1] + dist;
 	
-	rect.xmin = mval[0] - 4;
-	rect.ymin = mval[1] - 4;
+	rect.xmin = mval[0] - dist;
+	rect.ymin = mval[1] - dist;
 	
 	/* Get Z Depths, needed for perspective, nice for ortho */
 	bgl_get_mats(&mats);
@@ -945,7 +948,8 @@ void viewmove(int mode)
 		VecMulf(obofs, -1.0f);
 	}
 	else if (U.uiflag & USER_ORBIT_ZBUF) {
-		if ((use_sel=view_autodist(obofs))) {
+		persp(PERSP_VIEW);
+		if ((use_sel=view_mouse_depth(obofs, mval_area, 4))) {
 			if (G.vd->persp==V3D_PERSP) {
 				float my_origin[3]; /* original G.vd->ofs */
 				float my_pivot[3]; /* view */
@@ -976,6 +980,8 @@ void viewmove(int mode)
 		} else {
 			ofs[0] = ofs[1] = ofs[2] = 0.0f;
 		}
+
+		persp(PERSP_WIN);
 	}
 	else
 		ofs[0] = ofs[1] = ofs[2] = 0.0f;
@@ -1575,6 +1581,28 @@ void object_view_settings(Object *ob, float *lens, float *clipsta, float *clipen
 	}
 }
 
+int get_view3d_ortho(View3D *v3d)
+{
+	Camera *cam;
+	
+	if(v3d->persp==V3D_CAMOB) {
+		if(v3d->camera && v3d->camera->type==OB_CAMERA) {
+			cam= v3d->camera->data;
+
+			if(cam && cam->type==CAM_ORTHO)
+				return 1;
+			else
+				return 0;
+		}
+		else
+			return 0;
+	}
+	
+	if(v3d->persp==V3D_ORTHO)
+		return 1;
+
+	return 0;
+}
 
 int get_view3d_viewplane(int winxi, int winyi, rctf *viewplane, float *clipsta, float *clipend, float *pixsize)
 {

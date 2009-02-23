@@ -1476,7 +1476,7 @@ static PyObject *NMesh_update( PyObject *self, PyObject *a, PyObject *kwd )
 static PyObject *NMesh_getVertexInfluences( PyObject * self, PyObject * args )
 {
 	int index;
-	PyObject *influence_list = NULL;
+	PyObject *influence_list = NULL, *item;
 	Object *object = ( ( BPy_NMesh * ) self )->object;
 	Mesh *me = ( ( BPy_NMesh * ) self )->mesh;
 
@@ -1516,9 +1516,11 @@ static PyObject *NMesh_getVertexInfluences( PyObject * self, PyObject * args )
 		for( i = 0; i < totinfluences; i++, sweight++ ) {
 			bDeformGroup *defgroup = (bDeformGroup *) BLI_findlink( &object->defbase,
 					sweight->def_nr );
-			if( defgroup )
-				PyList_Append( influence_list, Py_BuildValue( "[sf]",
-						defgroup->name, sweight->weight ) ); 
+			if( defgroup ) {
+				item = Py_BuildValue( "[sf]", defgroup->name, sweight->weight );
+				PyList_Append( influence_list, item);
+				Py_DECREF(item);
+			}
 		}
 	}
 

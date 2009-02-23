@@ -807,15 +807,15 @@ static void testAxialSymmetry(BGraph *graph, BNode* root_node, BNode* node1, BNo
 	
 	if (abs(nor[0]) > abs(nor[1]) && abs(nor[0]) > abs(nor[2]) && nor[0] < 0)
 	{
-		VecMulf(nor, -1);
+		VecNegf(nor);
 	}
 	else if (abs(nor[1]) > abs(nor[0]) && abs(nor[1]) > abs(nor[2]) && nor[1] < 0)
 	{
-		VecMulf(nor, -1);
+		VecNegf(nor);
 	}
 	else if (abs(nor[2]) > abs(nor[1]) && abs(nor[2]) > abs(nor[0]) && nor[2] < 0)
 	{
-		VecMulf(nor, -1);
+		VecNegf(nor);
 	}
 	
 	/* mirror node2 along axis */

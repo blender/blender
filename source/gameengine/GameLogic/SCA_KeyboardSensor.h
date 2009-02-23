@@ -126,16 +126,10 @@ public:
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
 
-	virtual PyObject* _getattr(const STR_String& attr);
+	virtual PyObject* _getattr(const char *attr);
+	virtual int _setattr(const char *attr, PyObject *value);
 
-
-	PyObject* PySetAllMode(PyObject* self, 
-			       PyObject* args, 
-			       PyObject* kwds);
-	static PyObject* sPySetAllMode(PyObject* self, 
-				       PyObject* args, 
-				       PyObject* kwds);
-	
+	//Deprecated functions ----->
 	/** 1. GetKey : check which key this sensor looks at */
 	KX_PYMETHOD_DOC(SCA_KeyboardSensor,GetKey);
 	/** 2. SetKey: change the key to look at */
@@ -152,6 +146,12 @@ public:
 	KX_PYMETHOD_DOC(SCA_KeyboardSensor,GetPressedKeys); 
 	/** 9. GetCurrrentlyPressedKeys: */
 	KX_PYMETHOD_DOC(SCA_KeyboardSensor,GetCurrentlyPressedKeys); 
+	// <------
+	
+	// KeyEvents: 
+	KX_PYMETHOD_DOC_NOARGS(SCA_KeyboardSensor,getEventList); 
+	// KeyStatus: 
+	KX_PYMETHOD_DOC_O(SCA_KeyboardSensor,getKeyStatus);
 };
 
 #endif //__KX_KEYBOARDSENSOR

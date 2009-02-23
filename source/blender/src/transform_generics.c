@@ -649,6 +649,11 @@ void drawLine(float *center, float *dir, char axis, short options)
 	myloadmatrix(G.vd->viewmat);
 }
 
+void resetTransRestrictions(TransInfo *t)
+{
+	t->flag &= ~T_ALL_RESTRICTIONS;
+}
+
 void initTrans (TransInfo *t)
 {
 	

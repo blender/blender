@@ -50,6 +50,7 @@
 #include "DNA_nla_types.h"
 #include "DNA_object_types.h"
 #include "DNA_oops_types.h"
+#include "DNA_particle_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
@@ -87,6 +88,7 @@
 #include "BIF_editarmature.h"
 #include "BIF_editdeform.h"
 #include "BIF_editnla.h"
+#include "BIF_editparticle.h"
 #include "BIF_editview.h"
 #include "BIF_editconstraint.h"
 #include "BIF_gl.h"
@@ -715,6 +717,13 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 							outliner_add_element(soops, &te->subtree, ((ArmatureModifierData*) md)->object, te, TSE_LINKED_OB, 0);
 						} else if (md->type==eModifierType_Hook) {
 							outliner_add_element(soops, &te->subtree, ((HookModifierData*) md)->object, te, TSE_LINKED_OB, 0);
+						} else if (md->type==eModifierType_ParticleSystem) {
+							TreeElement *ten;
+							ParticleSystem *psys= ((ParticleSystemModifierData*) md)->psys;
+							
+							ten = outliner_add_element(soops, &te->subtree, ob, te, TSE_LINKED_PSYS, 0);
+							ten->directdata = psys;
+							ten->name = psys->part->id.name+2;
 						}
 					}
 				}
@@ -1965,6 +1974,19 @@ static int tree_element_active_modifier(TreeElement *te, TreeStoreElem *tselem, 
 	return 0;
 }
 
+static int tree_element_active_psys(TreeElement *te, TreeStoreElem *tselem, int set)
+{
+	if(set) {
+		Object *ob= (Object *)tselem->id;
+		ParticleSystem *psys= te->directdata;
+		
+		PE_change_act_psys(ob, psys);
+		extern_set_butspace(F7KEY, 0);
+	}
+	
+	return 0;
+}
+
 static int tree_element_active_constraint(TreeElement *te, TreeStoreElem *tselem, int set)
 {
 	if(set) {
@@ -2093,6 +2115,9 @@ static int tree_element_type_active(SpaceOops *soops, TreeElement *te, TreeStore
 		case TSE_LINKED_OB:
 			if(set) tree_element_active_object(soops, te);
 			else if(tselem->id==(ID *)OBACT) return 1;
+			break;
+		case TSE_LINKED_PSYS:
+			return tree_element_active_psys(te, tselem, set);
 			break;
 		case TSE_POSE_BASE:
 			return tree_element_active_pose(te, tselem, set);
@@ -3203,6 +3228,8 @@ static void tselem_draw_icon(float x, float y, TreeStoreElem *tselem, TreeElemen
 				BIF_icon_draw(x, y, ICON_MODIFIER); break;
 			case TSE_LINKED_OB:
 				BIF_icon_draw(x, y, ICON_OBJECT); break;
+			case TSE_LINKED_PSYS:
+				BIF_icon_draw(x, y, ICON_PARTICLES); break;
 			case TSE_MODIFIER:
 			{
 				Object *ob= (Object *)tselem->id;
@@ -3230,6 +3257,9 @@ static void tselem_draw_icon(float x, float y, TreeStoreElem *tselem, TreeElemen
 						BIF_icon_draw(x, y, ICON_MOD_SOFT); break;
 					case eModifierType_Boolean: 
 						BIF_icon_draw(x, y, ICON_MOD_BOOLEAN); break;
+					case eModifierType_ParticleSystem: 
+					case eModifierType_ParticleInstance:
+						BIF_icon_draw(x, y, ICON_PARTICLES); break;
 					default:
 						BIF_icon_draw(x, y, ICON_DOT); break;
 				}

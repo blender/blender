@@ -93,8 +93,7 @@ public:
 	virtual bool Evaluate(CValue* event) = 0;
 	virtual bool IsPositiveTrigger();
 	virtual void Init();
-	
-	virtual PyObject* _getattr(const STR_String& attr);
+
 	virtual CValue* GetReplica()=0;
 
 	/** Set parameters for the pulsing behaviour.
@@ -141,6 +140,11 @@ public:
 		{ return !m_links; }
 
 	/* Python functions: */
+	
+	virtual PyObject* _getattr(const char *attr);
+	virtual int _setattr(const char *attr, PyObject *value);
+
+	//Deprecated functions ----->
 	KX_PYMETHOD_DOC_NOARGS(SCA_ISensor,IsPositive);
 	KX_PYMETHOD_DOC_NOARGS(SCA_ISensor,IsTriggered);
 	KX_PYMETHOD_DOC_NOARGS(SCA_ISensor,GetUsePosPulseMode);
@@ -153,8 +157,8 @@ public:
 	KX_PYMETHOD_DOC(SCA_ISensor,SetInvert);
 	KX_PYMETHOD_DOC_NOARGS(SCA_ISensor,GetLevel);
 	KX_PYMETHOD_DOC(SCA_ISensor,SetLevel);
-	KX_PYMETHOD_DOC_NOARGS(SCA_ISensor,Reset);
-
+	//<------
+	KX_PYMETHOD_DOC_NOARGS(SCA_ISensor,reset);
 };
 
 #endif //__SCA_ISENSOR

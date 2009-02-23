@@ -74,10 +74,10 @@ CcdPhysicsController::CcdPhysicsController (const CcdConstructionInfo& ci)
 	
 
 ///???
-#ifdef WIN32
+/*#ifdef WIN32
 	if (GetRigidBody() && !GetRigidBody()->isStaticObject())
 		GetRigidBody()->setLinearVelocity(startVel);
-#endif
+#endif*/
 
 }
 
@@ -1276,7 +1276,7 @@ bool CcdShapeConstructionInfo::SetMesh(RAS_MeshObject* meshobj, bool polytope,bo
 
 	// assume no shape information
 	// no support for dynamic change of shape yet
-	assert(m_meshObject == NULL);
+	assert(IsUnused());
 	m_shapeType = PHY_SHAPE_NONE;
 	m_vertexArray.clear();
 	m_polygonIndexArray.clear();
@@ -1398,6 +1398,17 @@ bool CcdShapeConstructionInfo::SetMesh(RAS_MeshObject* meshobj, bool polytope,bo
 	return true;
 }
 
+bool CcdShapeConstructionInfo::SetProxy(CcdShapeConstructionInfo* shapeInfo)
+{
+	if (shapeInfo == NULL)
+		return false;
+	// no support for dynamic change
+	assert(IsUnused());
+	m_shapeType = PHY_SHAPE_PROXY;
+	m_shapeProxy = shapeInfo;
+	return true;
+}
+
 btCollisionShape* CcdShapeConstructionInfo::CreateBulletShape()
 {
 	btCollisionShape* collisionShape = 0;
@@ -1406,9 +1417,12 @@ btCollisionShape* CcdShapeConstructionInfo::CreateBulletShape()
 	btCompoundShape* compoundShape = 0;
 	CcdShapeConstructionInfo* nextShapeInfo;
 
+	if (m_shapeType == PHY_SHAPE_PROXY && m_shapeProxy != NULL)
+		return m_shapeProxy->CreateBulletShape();
+
 	switch (m_shapeType) 
 	{
-	case PHY_SHAPE_NONE:
+	default:
 		break;
 
 	case PHY_SHAPE_BOX:
@@ -1521,6 +1535,10 @@ CcdShapeConstructionInfo::~CcdShapeConstructionInfo()
 		{
 			m_meshShapeMap.erase(mit);
 		}
+	}
+	if (m_shapeType == PHY_SHAPE_PROXY && m_shapeProxy != NULL)
+	{
+		m_shapeProxy->Release();
 	}
 }
 

@@ -205,6 +205,10 @@ MT_Scalar	KX_SumoPhysicsController::GetMass()
 	return SumoPhysicsController::getMass();
 }
 
+void	KX_SumoPhysicsController::SetMass(MT_Scalar newmass)
+{
+}
+
 MT_Scalar	KX_SumoPhysicsController::GetRadius()
 {
 	return SumoPhysicsController::GetRadius();

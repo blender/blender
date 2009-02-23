@@ -767,6 +767,10 @@ int BKE_imtype_to_ftype(int imtype)
 		return RAWTGA;
 	else if(imtype==R_HAMX)
 		return AN_hamx;
+#ifdef WITH_OPENJPEG
+	else if(imtype==R_JP2)
+		return JP2;
+#endif
 	else
 		return JPG|90;
 }
@@ -801,6 +805,10 @@ int BKE_ftype_to_imtype(int ftype)
 		return R_RAWTGA;
 	else if(ftype == AN_hamx)
 		return R_HAMX;
+#ifdef WITH_OPENJPEG
+	else if(ftype & JP2)
+		return R_JP2;
+#endif
 	else
 		return R_JPEG90;
 }
@@ -877,6 +885,12 @@ void BKE_add_image_extension(char *string, int imtype)
 		if(!BLI_testextensie(string, ".tga"))
 			extension= ".tga";
 	}
+#ifdef WITH_OPENJPEG
+	else if(imtype==R_JP2) {
+		if(!BLI_testextensie(string, ".jp2"))
+			extension= ".jp2";
+	}
+#endif
 	else { //   R_MOVIE, R_AVICODEC, R_AVIRAW, R_AVIJPEG, R_JPEG90, R_QUICKTIME etc
 		if(!( BLI_testextensie(string, ".jpg") || BLI_testextensie(string, ".jpeg")))
 			extension= ".jpg";
@@ -1220,6 +1234,28 @@ int BKE_write_ibuf(ImBuf *ibuf, char *name, int imtype, int subimtype, int quali
 	else if(imtype==R_HAMX) {
 		ibuf->ftype= AN_hamx;
 	}
+#ifdef WITH_OPENJPEG
+	else if(imtype==R_JP2) {
+		if(quality < 10) quality= 90;
+		ibuf->ftype= JP2|quality;
+		
+		if (subimtype & R_JPEG2K_16BIT) {
+			ibuf->ftype |= JP2_16BIT;
+		} else if (subimtype & R_JPEG2K_12BIT) {
+			ibuf->ftype |= JP2_12BIT;
+		}
+		
+		if (subimtype & R_JPEG2K_YCC) {
+			ibuf->ftype |= JP2_YCC;
+		}
+		
+		if (subimtype & R_JPEG2K_CINE_PRESET) {
+			ibuf->ftype |= JP2_CINE;
+			if (subimtype & R_JPEG2K_CINE_48FPS)
+				ibuf->ftype |= JP2_CINE_48FPS;
+		}
+	}
+#endif
 	else {
 		/* R_JPEG90, R_MOVIE, etc. default we save jpegs */
 		if(quality < 10) quality= 90;

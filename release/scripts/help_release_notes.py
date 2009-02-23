@@ -1,17 +1,17 @@
 #!BPY
 """
-Name: 'Release Notes'
-Blender: 234
+Name: 'Release Logs'
+Blender: 248
 Group: 'Help'
 Tooltip: 'Information about the changes in this version of Blender'
 """
 
 __author__ = "Matt Ebb"
 __url__ = ("blender", "blenderartists.org")
-__version__ = "1.0"
+__version__ = "1.0.1"
 __bpydoc__ = """\
-This script opens the user's default web browser at www.blender3d.org's
-"Release Notes" page.
+This script opens the user's default web browser at www.blender.org's
+"Release Logs" page.
 """
 
 # --------------------------------------------------------------------------
@@ -37,5 +37,5 @@ This script opens the user's default web browser at www.blender3d.org's
 # --------------------------------------------------------------------------
 
 import Blender, webbrowser
-version = str(Blender.Get('version'))
-webbrowser.open('http://www.blender3d.org/Help/?pg=ReleaseNotes&ver=' + version)
+
+webbrowser.open('http://www.blender.org/development/release-logs/')

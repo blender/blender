@@ -47,6 +47,9 @@ ifneq ($(NAN_NO_OPENAL),true)
   ifeq ($(OS),$(findstring $(OS), "linux freebsd solaris"))
     DIRS += openal sdl
   endif
+  ifeq ($(OS), irix)
+    DIRS += sdl
+  endif
 else
   export CPPFLAGS += -DNO_SOUND
 endif

@@ -57,6 +57,12 @@ ifeq ($(OS),$(findstring $(OS), "freebsd irix linux openbsd solaris"))
        NOPLUGINS?=true
      endif
    endif
+   # don"t build plugins on irix if using gcc
+   ifeq ($(OS), irix)
+     ifeq ($(IRIX_USE_GCC), true)
+       NOPLUGINS?=true
+     endif
+   endif
 endif
 
 ifeq ($(OS),windows)

@@ -5,9 +5,17 @@ from SCA_IActuator import *
 class SCA_PropertyActuator(SCA_IActuator):
 	"""
 	Property Actuator
+
+	Properties:
+	
+	@ivar property: the property on which to operate.
+	@type property: string
+	@ivar value: the value with which the actuator operates.
+	@type value: string
 	"""
 	def setProperty(prop):
 		"""
+		DEPRECATED: use the 'property' property
 		Set the property on which to operate. 
 		
 		If there is no property of this name, the call is ignored.
@@ -17,12 +25,14 @@ class SCA_PropertyActuator(SCA_IActuator):
 		"""
 	def getProperty():
 		"""
+		DEPRECATED: use the 'property' property
 		Returns the name of the property on which to operate.
 		
 		@rtype: string
 		"""
 	def setValue(value):
 		"""
+		DEPRECATED: use the 'value' property
 		Set the value with which the actuator operates. 
 		
 		If the value is not compatible with the type of the 
@@ -32,6 +42,7 @@ class SCA_PropertyActuator(SCA_IActuator):
 		"""
 	def getValue():
 		"""
+		DEPRECATED: use the 'value' property
 		Gets the value with which this actuator operates.
 		
 		@rtype: string

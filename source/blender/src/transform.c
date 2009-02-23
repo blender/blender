@@ -737,6 +737,7 @@ static void transformEvent(unsigned short event, short val) {
 		case GKEY:
 			/* only switch when... */
 			if( ELEM3(Trans.mode, TFM_ROTATION, TFM_RESIZE, TFM_TRACKBALL) ) { 
+				resetTransRestrictions(&Trans); 
 				restoreTransObjects(&Trans);
 				initTranslation(&Trans);
 				Trans.redraw = 1;
@@ -745,6 +746,7 @@ static void transformEvent(unsigned short event, short val) {
 		case SKEY:
 			/* only switch when... */
 			if( ELEM3(Trans.mode, TFM_ROTATION, TFM_TRANSLATION, TFM_TRACKBALL) ) { 
+				resetTransRestrictions(&Trans); 
 				restoreTransObjects(&Trans);
 				initResize(&Trans);
 				Trans.redraw = 1;
@@ -752,7 +754,9 @@ static void transformEvent(unsigned short event, short val) {
 			break;
 		case RKEY:
 			/* only switch when... */
-			if( ELEM4(Trans.mode, TFM_ROTATION, TFM_RESIZE, TFM_TRACKBALL, TFM_TRANSLATION) ) { 
+			if( ELEM4(Trans.mode, TFM_ROTATION, TFM_RESIZE, TFM_TRACKBALL, TFM_TRANSLATION) ) {
+				
+				resetTransRestrictions(&Trans); 
 				
 				if (Trans.mode == TFM_ROTATION) {
 					restoreTransObjects(&Trans);

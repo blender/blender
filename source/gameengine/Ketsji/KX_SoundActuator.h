@@ -80,7 +80,7 @@ public:
 	/* Python interface --------------------------------------------------- */
 	/* -------------------------------------------------------------------- */
 
-	virtual PyObject*  _getattr(const STR_String& attr);
+	virtual PyObject*  _getattr(const char *attr);
 
 	KX_PYMETHOD(KX_SoundActuator,SetFilename);
 	KX_PYMETHOD(KX_SoundActuator,GetFilename);

@@ -10,7 +10,7 @@ Tip: 'Import an AC3D (.ac) file.'
 __author__ = "Willian P. Germano"
 __url__ = ("blender", "blenderartists.org", "AC3D's homepage, http://www.ac3d.org",
 	"PLib 3d gaming lib, http://plib.sf.net")
-__version__ = "2.43.1 2007-02-21"
+__version__ = "2.48.1 2009-01-11"
 
 __bpydoc__ = """\
 This script imports AC3D models into Blender.
@@ -31,6 +31,7 @@ Known issues:<br>
 Config Options:<br>
     - display transp (toggle): if "on", objects that have materials with alpha < 1.0 are shown with translucency (transparency) in the 3D View.<br>
     - subdiv (toggle): if "on", ac3d objects meant to be subdivided receive a SUBSURF modifier in Blender.<br>
+    - emis as mircol: store the emissive rgb color from AC3D as mirror color in Blender -- this is a hack to preserve the values and be able to export them using the equivalent option in the exporter.<br>
     - textures dir (string): if non blank, when imported texture paths are
 wrong in the .ac file, Blender will also look for them at this dir.
 
@@ -50,11 +51,12 @@ users can configure (see config options above).
 # --------------------------------------------------------------------------
 # Thanks: Melchior Franz for extensive bug testing and reporting, making this
 # version cope much better with old or bad .ac files, among other improvements;
-# Stewart Andreason for reporting a serious crash.
+# Stewart Andreason for reporting a serious crash; Francesco Brisa for the
+# emis as mircol functionality (w/ patch).
 # --------------------------------------------------------------------------
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
-# Copyright (C) 2004-2007: Willian P. Germano, wgermano _at_ ig.com.br
+# Copyright (C) 2004-2009: Willian P. Germano, wgermano _at_ ig.com.br
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -89,15 +91,19 @@ DISPLAY_TRANSP = True
 
 SUBDIV = True
 
+EMIS_AS_MIRCOL = False
+
+
 tooltips = {
 	'DISPLAY_TRANSP': 'Turn transparency on in the 3d View for objects using materials with alpha < 1.0.',
 	'SUBDIV': 'Apply a SUBSURF modifier to objects meant to appear subdivided.',
-	'TEXTURES_DIR': 'Additional folder to look for missing textures.'
+	'TEXTURES_DIR': 'Additional folder to look for missing textures.',
+	'EMIS_AS_MIRCOL': 'Store emis color as mirror color in Blender.'	
 }
 
 def update_registry():
-	global TEXTURES_DIR, DISPLAY_TRANSP
-	rd = dict([('tooltips', tooltips), ('TEXTURES_DIR', TEXTURES_DIR), ('DISPLAY_TRANSP', DISPLAY_TRANSP), ('SUBDIV', SUBDIV)])
+	global TEXTURES_DIR, DISPLAY_TRANSP, EMIS_AS_MIRCOL
+	rd = dict([('tooltips', tooltips), ('TEXTURES_DIR', TEXTURES_DIR), ('DISPLAY_TRANSP', DISPLAY_TRANSP), ('SUBDIV', SUBDIV), ('EMIS_AS_MIRCOL', EMIS_AS_MIRCOL)])
 	Registry.SetKey('ac3d_import', rd, True)
 
 rd = Registry.GetKey('ac3d_import', True)
@@ -109,6 +115,7 @@ if rd:
 		TEXTURES_DIR = rd['TEXTURES_DIR']
 		DISPLAY_TRANSP = rd['DISPLAY_TRANSP']
 		SUBDIV = rd['SUBDIV']
+		EMIS_AS_MIRCOL = rd['EMIS_AS_MIRCOL']
 	except:
 		update_registry()
 else: update_registry()
@@ -299,7 +306,7 @@ class AC3DImport:
 		lines = self.lines
 		line = lines[i].split()
 		mat_name = ''
-		mat_col = mat_amb = mat_emit = mat_spec_col = [0,0,0]
+		mat_col = mat_amb = mat_emit = mat_spec_col = mat_mir_col = [0,0,0]
 		mat_alpha = 1
 		mat_spec = 1.0
 
@@ -310,11 +317,15 @@ class AC3DImport:
 			mat_amb = (v[0]+v[1]+v[2]) / 3.0
 			v = map(float,[line[11],line[12],line[13]])
 			mat_emit = (v[0]+v[1]+v[2]) / 3.0
+			if EMIS_AS_MIRCOL:
+				mat_emit = 0
+				mat_mir_col = map(float,[line[11],line[12],line[13]])
+
 			mat_spec_col = map(float,[line[15],line[16],line[17]])
 			mat_spec = float(line[19]) / 64.0
 			mat_alpha = float(line[-1])
 			mat_alpha = 1 - mat_alpha
-			self.mlist.append([mat_name, mat_col, mat_amb, mat_emit, mat_spec_col, mat_spec, mat_alpha])
+			self.mlist.append([mat_name, mat_col, mat_amb, mat_emit, mat_spec_col, mat_spec, mat_mir_col, mat_alpha])
 			i += 1
 			line = lines[i].split()
 
@@ -590,7 +601,8 @@ class AC3DImport:
 			m.emit = mat[3]
 			m.specCol = (mat[4][0], mat[4][1], mat[4][2])
 			m.spec = mat[5]
-			m.alpha = mat[6]
+			m.mirCol = (mat[6][0], mat[6][1], mat[6][2])
+			m.alpha = mat[7]
 			if m.alpha < 1.0:
 				m.mode |= MAT_MODE_ZTRANSP
 				has_transp_mats = True

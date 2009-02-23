@@ -6,9 +6,12 @@ Import('env')
 
 sources = env.Glob('*.c')
 incs = '.'
+flags = []
+defs = []
 
 if env['OURPLATFORM'] == 'win32-vc':
 	flags = []
+	defs.append('OPJ_STATIC')
 else:
 	flags = ['-Wall', '-O3', '-ffast-math', '-std=c99']
 
@@ -19,6 +22,6 @@ if not env['OURPLATFORM'] == 'win32-vc':
 
 oj_env.BlenderLib ( libname='extern_openjpeg', 
                     sources=sources, includes=Split(incs),
-                    defines=[],
+                    defines=defs,
                     libtype=['core','intern','player'],
-                    priority=[10, 10, 300], compileflags = flags)
+                    priority=[300, 300, 300], compileflags = flags)

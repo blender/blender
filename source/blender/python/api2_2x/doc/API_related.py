@@ -184,11 +184,11 @@ Introduction:
  Space Handler script links:
  ---------------------------
 
- This is a new kind of script linked to spaces in a given window.  Right now
- only the 3D View has the necessary hooks, but the plan is to add access to
- other types, too.  Just to clarify naming conventions: in Blender, a screen
- is partitioned in windows (also called areas) and each window can show any
- space.  Spaces are: 3D View, Text Editor, Scripts, Buttons, User Preferences,
+ These are scripts linked to spaces in a given window.  Right now
+ only the 3D View has the necessary hooks.  Just to clarify naming
+ conventions: in Blender, a screen is partitioned in windows (also
+ called areas) and each window can show any space.
+ Spaces are: 3D View, Text Editor, Scripts, Buttons, User Preferences,
  Oops, etc. 
 
  Space handlers are texts in the Text Editor, like other script links, but they
@@ -196,11 +196,15 @@ Introduction:
  text file}} must inform:
   1. that they are space handlers;
   2. the space they belong to;
-  3. whether they are EVENT or DRAW handlers.
+  3. whether they are EVENT, EVENT_RELEASE (EVENT ones reporting key release events) or DRAW handlers.
 
  Example header for a 3D View EVENT handler::
 
   # SPACEHANDLER.VIEW3D.EVENT
+
+ Example header for a 3D View EVENT handler that also receives release events::
+
+  # SPACEHANDLER.VIEW3D.EVENT.ALL
 
  Example header for a 3D View DRAW handler::
 
@@ -215,6 +219,10 @@ Introduction:
  it against L{Draw} events) and either:
   - process it (the script must set Blender.event to None then);
   - ignore it.
+
+ EVENT ALL space handlers (header: # SPACEHANDLER.VIEW3D.EVENT.ALL) are executed
+ both for key presses (Blender.event = Blender.SpaceHandlers.VIEW3D_EVENT) and
+ for key releases (Blender.event = Blender.SpaceHandlers.VIEW3D_EVENT_RELEASE).
 
  Setting C{Blender.event = None} tells Blender not to go on processing itself
  the event, because it was grabbed by the script.
@@ -248,7 +256,7 @@ Introduction:
   - B{bylink} is the same: True if the script is running as a script link;
   - B{link}: integer from the L{Blender}.SpaceHandlers constant dictionary,
     tells what space this handler belongs to and the handler's type
-    (EVENT, DRAW);
+    (EVENT, EVENT_RELEASE, DRAW);
   - B{event}:
      - EVENT handlers: an input event (check keys and mouse events in
        L{Draw}) to be processed or ignored;
@@ -258,6 +266,7 @@ Introduction:
        presses (since we don't pass releases) as 1 and mouse movements
        (Draw.MOUSE.X and Draw.MOUSE.Y) as the current x or y coordinate,
        for example;
+     - EVENT_RELEASE handlers (EVENT handlers executed during key release events): 0;
      - DRAW handlers: 0 always.
 
  B{Guidelines (important)}:

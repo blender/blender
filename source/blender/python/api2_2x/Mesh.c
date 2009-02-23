@@ -5390,9 +5390,9 @@ static PyObject *MFaceSeq_delete( BPy_MFaceSeq * self, PyObject *args )
 
 	/* see how many args we need to parse */
 	len = PySequence_Size( args );
-	if( len < 1 )
-		return EXPP_ReturnPyObjError( PyExc_TypeError,
-				"sequence must contain at least one int or MFace" );
+	if( len < 1 ) {
+		Py_RETURN_NONE;
+	}
 
 	face_table = MEM_callocN( len*sizeof( unsigned int ),
 			"face_table" );

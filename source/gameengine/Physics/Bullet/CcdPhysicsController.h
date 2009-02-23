@@ -67,11 +67,13 @@ public:
 		m_height(1.0),
 		m_halfExtend(0.f,0.f,0.f),
 		m_childScale(1.0f,1.0f,1.0f),
+		m_userData(NULL),
 		m_refCount(1),
 		m_meshObject(NULL),
 		m_unscaledShape(NULL),
 		m_useGimpact(false),
-		m_weldingThreshold(0.f)
+		m_weldingThreshold(0.f),
+		m_shapeProxy(NULL)
 	{
 		m_childTrans.setIdentity();
 	}
@@ -92,6 +94,11 @@ public:
 		return 0;
 	}
 
+	bool IsUnused(void)
+	{
+		return (m_meshObject==NULL && m_shapeArray.size() == 0 && m_shapeProxy == NULL);
+	}
+
 	void AddShape(CcdShapeConstructionInfo* shapeInfo);
 
 	btTriangleMeshShape* GetMeshShape(void)
@@ -105,11 +112,43 @@ public:
 
 		return m_shapeArray.at(i);
 	}
+	int FindChildShape(CcdShapeConstructionInfo* shapeInfo, void* userData)
+	{
+		if (shapeInfo == NULL)
+			return -1;
+		for (int i=0; i<m_shapeArray.size(); i++)
+		{
+			CcdShapeConstructionInfo* childInfo = m_shapeArray.at(i);
+			if ((userData == NULL || userData == childInfo->m_userData) &&
+				(childInfo == shapeInfo ||
+				 (childInfo->m_shapeType == PHY_SHAPE_PROXY && 
+				  childInfo->m_shapeProxy == shapeInfo)))
+				return i;
+		}
+		return -1;
+	}
+
+	bool RemoveChildShape(int i)
+	{
+		if (i < 0 || i >= m_shapeArray.size())
+			return false;
+		m_shapeArray.at(i)->Release();
+		if (i < m_shapeArray.size()-1)
+			m_shapeArray[i] = m_shapeArray.back();
+		m_shapeArray.pop_back();
+		return true;
+	}
 
 	bool SetMesh(RAS_MeshObject* mesh, bool polytope,bool useGimpact);
 	RAS_MeshObject* GetMesh(void)
 	{
 		return m_meshObject;
+	}
+
+	bool SetProxy(CcdShapeConstructionInfo* shapeInfo);
+	CcdShapeConstructionInfo* GetProxy(void)
+	{
+		return m_shapeProxy;
 	}
 
 	btCollisionShape* CreateBulletShape();
@@ -121,6 +160,7 @@ public:
 	btVector3				m_halfExtend;
 	btTransform				m_childTrans;
 	btVector3				m_childScale;
+	void*					m_userData;	
 	std::vector<btPoint3>	m_vertexArray;	// Contains both vertex array for polytope shape and
 											// triangle array for concave mesh shape.
 											// In this case a triangle is made of 3 consecutive points
@@ -146,7 +186,7 @@ protected:
 	std::vector<CcdShapeConstructionInfo*> m_shapeArray;	// for compound shapes
 	bool	m_useGimpact; //use gimpact for concave dynamic/moving collision detection
 	float	m_weldingThreshold;	//welding closeby vertices together can improve softbody stability etc.
-
+	CcdShapeConstructionInfo* m_shapeProxy;	// only used for PHY_SHAPE_PROXY, pointer to actual shape info
 };
 
 struct CcdConstructionInfo

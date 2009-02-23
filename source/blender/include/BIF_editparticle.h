@@ -46,6 +46,7 @@ void PE_create_particle_edit(struct Object *ob, struct ParticleSystem *psys);
 void PE_free_particle_edit(struct ParticleSystem *psys);
 
 void PE_change_act(void *ob_v, void *act_v);
+void PE_change_act_psys(struct Object *ob, struct ParticleSystem *psys);
 int PE_can_edit(struct ParticleSystem *psys);
 
 /* access */

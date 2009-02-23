@@ -45,10 +45,12 @@ class KX_SCA_DynamicActuator : public SCA_IActuator
 
 	// dynamics operation to apply to the game object
 	short m_dyn_operation;
+	float m_setmass;
  public:
 	KX_SCA_DynamicActuator(
 		SCA_IObject* gameobj, 
 		short dyn_operation,
+ 		float setmass,
 		PyTypeObject* T=&Type
 	);
 
@@ -62,10 +64,7 @@ class KX_SCA_DynamicActuator : public SCA_IActuator
 	virtual bool 
 	Update();
 
-	virtual PyObject*  
-	_getattr(
-		const STR_String& attr
-	);
+	virtual PyObject* _getattr(const char *attr);
 
 	/* 1. setOperation */
 	KX_PYMETHOD_DOC(KX_SCA_DynamicActuator,setOperation);

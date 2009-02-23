@@ -60,13 +60,16 @@ class KX_SCA_AddObjectActuator : public SCA_IActuator
 
 	/// Linear velocity upon creation of the object. 
 	MT_Vector3  m_linear_velocity;
+	/// Apply the velocity locally 
+	bool m_localLinvFlag;
 	
 	/// Angular velocity upon creation of the object. 
 	MT_Vector3  m_angular_velocity;
-
 	/// Apply the velocity locally 
-	bool m_localLinvFlag;
-	bool m_localAngvFlag;
+	bool m_localAngvFlag; 
+	
+	
+	
 	
 	SCA_IObject*	m_lastCreatedObject;
 	
@@ -107,10 +110,8 @@ public:
 	virtual bool 
 	Update();
 
-	virtual PyObject*  
-	_getattr(
-		const STR_String& attr
-	);
+	virtual PyObject* _getattr(const char *attr);
+	virtual int _setattr(const char *attr, PyObject* value);
 
 		SCA_IObject*	
 	GetLastCreatedObject(

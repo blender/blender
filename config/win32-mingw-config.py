@@ -6,10 +6,12 @@ BF_VERSE_INCLUDE = "#extern/verse/dist"
 
 BF_PYTHON = LIBDIR + '/python'
 BF_PYTHON_VERSION = '2.5'
+WITH_BF_STATICPYTHON = False
 BF_PYTHON_INC = '${BF_PYTHON}/include/python${BF_PYTHON_VERSION}'
 BF_PYTHON_BINARY = 'python'
 BF_PYTHON_LIB = 'python25'
 BF_PYTHON_LIBPATH = '${BF_PYTHON}/lib/lib25_vs2005'
+BF_PYTHON_LIB_STATIC = '${BF_PYTHON}/lib/lib25_vs2005/libpython25.a'
 
 WITH_BF_OPENAL = True
 WITH_BF_STATICOPENAL = False
@@ -21,7 +23,7 @@ BF_OPENAL_LIBPATH = '${BF_OPENAL}/lib'
 BF_OPENAL_LIB_STATIC = '${BF_OPENAL}/lib/libopenal.a'
 
 WITH_BF_FFMPEG = False
-BF_FFMPEG_LIB = 'avformat swscale avcodec avutil xvidcore x264'
+BF_FFMPEG_LIB = 'avformat swscale avcodec avutil avdevice xvidcore x264'
 BF_FFMPEG_LIBPATH = LIBDIR + '/gcc/ffmpeg/lib'
 BF_FFMPEG_INC =  LIBDIR + '/gcc/ffmpeg/include'
 

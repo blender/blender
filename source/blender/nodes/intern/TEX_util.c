@@ -46,25 +46,32 @@ void tex_call_delegate(TexDelegate *dg, float *out, float *coord, short thread)
 	dg->fn(out, coord, dg->node, dg->in, thread);
 }
 
-void tex_input_vec(float *out, bNodeStack *in, float *coord, short thread)
+void tex_input(float *out, int sz, bNodeStack *in, float *coord, short thread)
 {
 	TexDelegate *dg = in->data;
 	if(dg) {
-		tex_call_delegate(dg, out, coord, thread);
+		tex_call_delegate(dg, in->vec, coord, thread);
 	
-		if(in->hasoutput && in->sockettype == SOCK_VALUE) {
-			out[1] = out[2] = out[0];
-			out[3] = 1;
-		}
+		if(in->hasoutput && in->sockettype == SOCK_VALUE)
+			in->vec[1] = in->vec[2] = in->vec[0];
 	}
-	else {
-		QUATCOPY(out, in->vec);
-	}
+	memcpy(out, in->vec, sz * sizeof(float));
+}
+
+void tex_input_vec(float *out, bNodeStack *in, float *coord, short thread)
+{
+	tex_input(out, 3, in, coord, thread);
 }
 
 void tex_input_rgba(float *out, bNodeStack *in, float *coord, short thread)
 {
-	tex_input_vec(out, in, coord, thread);
+	tex_input(out, 4, in, coord, thread);
+	
+	if(in->hasoutput && in->sockettype == SOCK_VALUE)
+	{
+		out[1] = out[2] = out[0];
+		out[3] = 1;
+	}
 	
 	if(in->hasoutput && in->sockettype == SOCK_VECTOR) {
 		out[0] = out[0] * .5f + .5f;
@@ -83,8 +90,8 @@ float tex_input_value(bNodeStack *in, float *coord, short thread)
 
 static void init_preview(bNode *node)
 {
-	int xsize = node->prvr.xmax - node->prvr.xmin;
-	int ysize = node->prvr.ymax - node->prvr.ymin;
+	int xsize = (int)(node->prvr.xmax - node->prvr.xmin);
+	int ysize = (int)(node->prvr.ymax - node->prvr.ymin);
 	
 	if(xsize == 0) {
 		xsize = PREV_RES;

@@ -426,6 +426,9 @@ void space_set_commmandline_options(void) {
 		a= (G.fileflags & G_FILE_GAME_TO_IPO);
 		SYS_WriteCommandLineInt(syshandle, "game2ipo", a);
 
+		a= (G.fileflags & G_FILE_IGNORE_DEPRECATION_WARNINGS);
+		SYS_WriteCommandLineInt(syshandle, "ignore_deprecation_warnings", a);
+
 		a=(G.fileflags & G_FILE_GAME_MAT);
 		SYS_WriteCommandLineInt(syshandle, "blender_material", a);
 		a=(G.fileflags & G_FILE_GAME_MAT_GLSL);
@@ -1249,18 +1252,19 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		if( uiDoBlocks(&curarea->uiblocks, event, 1)!=UI_NOTHING ) event= 0;
 		
 		if(event==UI_BUT_EVENT) do_butspace(val); /* temporal, view3d deserves own queue? */
-		
+
+#ifndef DISABLE_PYTHON
+			/* run any view3d event handler script links */
+		if(sa->scriptlink.totscript) {
+			if(BPY_do_spacehandlers(sa, event, val, SPACEHANDLER_VIEW3D_EVENT))
+				return; /* return if event was processed (swallowed) by handler(s) */
+		}
+#endif
+
 		/* - we consider manipulator a button, defaulting to leftmouse 
 		 * - grease-pencil also defaults to leftmouse
 		 */
 		if(event==LEFTMOUSE) {
-#ifndef DISABLE_PYTHON
-			/* run any view3d event handler script links */
-			if (sa->scriptlink.totscript) {
-				if (BPY_do_spacehandlers(sa, event, val, SPACEHANDLER_VIEW3D_EVENT))
-					return; /* return if event was processed (swallowed) by handler(s) */
-			}
-#endif
 			if(BIF_paintSketch(LEFTMOUSE)) return;
 			if(gpencil_do_paint(sa, L_MOUSE)) return;
 			if(BIF_do_manipulator(sa)) return;
@@ -1310,6 +1314,13 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					}
 				}
 			}
+			else if (!G.obedit && OBACT && G.f&G_TEXTUREPAINT){
+				if(G.scene->toolsettings->imapaint.brush &&
+					event!=LEFTMOUSE && event!=RIGHTMOUSE && event!=MIDDLEMOUSE &&
+					(event==MOUSEY || event==MOUSEX) && bwin_qtest(sa->win)==0) {
+					allqueue(REDRAWVIEW3D, 0);
+				}
+			}
 			
 			BDR_queueDrawSketch();
 
@@ -1319,13 +1330,6 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					return;
 			}
 		}
-
-#ifndef DISABLE_PYTHON
-		/* run any view3d event handler script links */
-		if (event && sa->scriptlink.totscript)
-			if (BPY_do_spacehandlers(sa, event, val, SPACEHANDLER_VIEW3D_EVENT))
-				return; /* return if event was processed (swallowed) by handler(s) */
-#endif
 
 		/* TEXTEDITING?? */
 		if((G.obedit) && G.obedit->type==OB_FONT) {
@@ -2981,7 +2985,17 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			}
 		}
 	}
-	
+
+#ifndef DISABLE_PYTHON
+	else { /* val= 0 */
+		/* run any view3d release event handler script links */
+		if(sa->scriptlink.totscript) {
+			if(BPY_do_spacehandlers(sa, event, 0, SPACEHANDLER_VIEW3D_EVENT_ALL))
+				return; /* return if event was processed (swallowed) by handler(s) */
+		}
+	}
+#endif
+
 	if(doredraw) {
 		scrarea_queue_winredraw(curarea);
 		scrarea_queue_headredraw(curarea);

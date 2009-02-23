@@ -32,6 +32,7 @@ http://www.gnu.org/copyleft/lesser.txt.
 
 #include "ImageBase.h"
 #include "BlendType.h"
+#include "Exception.h"
 
 
 // type Texture declaration
@@ -82,5 +83,10 @@ RAS_IPolyMaterial * getMaterial (PyObject *obj, short matID);
 // get material ID
 short getMaterialID (PyObject * obj, char * name);
 
+// Exceptions
+extern ExceptionID MaterialNotAvail;
+
+// object type
+extern BlendType<KX_GameObject> gameObjectType;
 
 #endif

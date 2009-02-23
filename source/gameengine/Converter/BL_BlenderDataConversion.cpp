@@ -361,7 +361,7 @@ BL_Material* ConvertMaterial(
 			facetex = true;
 		if(validface && mat->mtex[0]) {
 			MTex *tmp = mat->mtex[0];
-			if(!tmp->tex || tmp->tex && !tmp->tex->ima )
+			if(!tmp->tex || (tmp->tex && !tmp->tex->ima))
 				facetex = true;
 		}
 		numchan = numchan>MAXTEX?MAXTEX:numchan;

@@ -46,7 +46,7 @@
 
 #include "SM_Object.h"
 
-typedef enum
+enum
 {
 	FH_RESPONSE,
 	SENSOR_RESPONSE,		/* Touch Sensors */

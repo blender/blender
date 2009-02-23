@@ -213,7 +213,7 @@ PyMethodDef KX_NetworkMessageSensor::Methods[] = {
 	{NULL,NULL} //Sentinel
 };
 
-PyObject* KX_NetworkMessageSensor::_getattr(const STR_String& attr) {
+PyObject* KX_NetworkMessageSensor::_getattr(const char *attr) {
 	_getattr_up(SCA_ISensor); // implicit return!
 }
 

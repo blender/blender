@@ -32,6 +32,7 @@
 
 #include "GEN_HashedPtr.h"
 #include "SCA_IActuator.h"
+#include "DNA_actuator_types.h"
 #include "MT_Point3.h"
 
 class BL_ActionActuator : public SCA_IActuator  
@@ -81,6 +82,7 @@ public:
 	
 	void SetBlendTime (float newtime);
 
+	//Deprecated ----->
 	KX_PYMETHOD_DOC(BL_ActionActuator,SetAction);
 	KX_PYMETHOD_DOC(BL_ActionActuator,SetBlendin);
 	KX_PYMETHOD_DOC(BL_ActionActuator,SetPriority);
@@ -90,7 +92,6 @@ public:
 	KX_PYMETHOD_DOC(BL_ActionActuator,SetProperty);
 	KX_PYMETHOD_DOC(BL_ActionActuator,SetFrameProperty);
 	KX_PYMETHOD_DOC(BL_ActionActuator,SetBlendtime);
-	KX_PYMETHOD_DOC(BL_ActionActuator,SetChannel);
 
 	KX_PYMETHOD_DOC(BL_ActionActuator,GetAction);
 	KX_PYMETHOD_DOC(BL_ActionActuator,GetBlendin);
@@ -105,18 +106,53 @@ public:
 	KX_PYMETHOD_DOC(BL_ActionActuator,SetType);
 	KX_PYMETHOD_NOARGS(BL_ActionActuator,GetContinue);
 	KX_PYMETHOD_O(BL_ActionActuator,SetContinue);
+	//<-----
 
-	virtual PyObject* _getattr(const STR_String& attr);
+	KX_PYMETHOD_DOC(BL_ActionActuator,setChannel);
 
-	enum ActionActType
+	virtual PyObject* _getattr(const char *attr);
+	virtual int _setattr(const char *attr, PyObject* value);
+
+	/* attribute check */
+	static int CheckFrame(void *self, const PyAttributeDef*)
 	{
-		KX_ACT_ACTION_PLAY = 0,
-		KX_ACT_ACTION_FLIPPER = 2,
-		KX_ACT_ACTION_LOOPSTOP,
-		KX_ACT_ACTION_LOOPEND,
-		KX_ACT_ACTION_PROPERTY = 6
-	};
+		BL_ActionActuator* act = reinterpret_cast<BL_ActionActuator*>(self);
 
+		if (act->m_localtime < act->m_startframe)
+			act->m_localtime = act->m_startframe;
+		else if (act->m_localtime > act->m_endframe)
+			act->m_localtime = act->m_endframe;
+
+		return 0;
+	}
+
+	static int CheckBlendTime(void *self, const PyAttributeDef*)
+	{
+		BL_ActionActuator* act = reinterpret_cast<BL_ActionActuator*>(self);
+
+		if (act->m_blendframe > act->m_blendin)
+			act->m_blendframe = act->m_blendin;
+
+		return 0;
+	}
+
+	static int CheckType(void *self, const PyAttributeDef*)
+	{
+		BL_ActionActuator* act = reinterpret_cast<BL_ActionActuator*>(self);
+
+		switch (act->m_playtype) {
+			case ACT_ACTION_PLAY:
+			case ACT_ACTION_FLIPPER:
+			case ACT_ACTION_LOOP_STOP:
+			case ACT_ACTION_LOOP_END:
+			case ACT_ACTION_FROM_PROP:
+				return 0;
+			default:
+				PyErr_SetString(PyExc_ValueError, "invalid type supplied");
+				return 1;
+		}
+
+	}
 protected:
 
 	void SetStartTime(float curtime);
@@ -141,7 +177,7 @@ protected:
 	float	m_stridelength;
 	short	m_playtype;
 	short	m_priority;
-	short	m_end_reset;
+	bool	m_end_reset;
 	struct bPose* m_pose;
 	struct bPose* m_blendpose;
 	struct bPose* m_userpose;

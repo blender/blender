@@ -194,7 +194,7 @@ ifeq ($(WITH_FREETYPE2), true)
     else
       COMLIB += $(NAN_FTGL)/lib/libftgl.a
       ifeq ($(OS), irix)
-        COMLIB += $(NAN_FREETYPE)/lib32/libfreetype.a
+        COMLIB += $(NAN_FREETYPE)/lib/libfreetype.a
         else
             COMLIB += $(NAN_FREETYPE)/lib/libfreetype.a
       endif
@@ -395,9 +395,16 @@ else
         NAN_SND_LIBS += $(ALUT)
         NAN_SND_LIBS += $(SOUNDSYSTEM)
       else
-        NAN_SND_LIBS =  $(SOUNDSYSTEM)
-        NAN_SND_LIBS += $(DUMMYSOUND)
-        NAN_SND_LIBS += $(SOUNDSYSTEM)
+        ifeq ($(OS), irix)
+           NAN_SND_LIBS = $(SOUNDSYSTEM)
+           NAN_SND_LIBS += $(DUMMYSOUND)
+           NAN_SND_LIBS += $(SDLSOUND)
+           NAN_SND_LIBS += $(SOUNDSYSTEM)
+        else
+           NAN_SND_LIBS =  $(SOUNDSYSTEM)
+           NAN_SND_LIBS += $(DUMMYSOUND)
+           NAN_SND_LIBS += $(SOUNDSYSTEM)
+        endif
       endif
     endif
   endif

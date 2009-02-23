@@ -29,6 +29,13 @@
 #include <stdlib.h>
 #include <string.h>
 
+
+/* for setuid / getuid */
+#ifdef __sgi
+#include <sys/types.h>
+#include <unistd.h>
+#endif
+
 /* This little block needed for linking to Blender... */
 
 #include "MEM_guardedalloc.h"
@@ -201,7 +208,7 @@ static void print_help(void)
 	printf ("    -t <threads>\tUse amount of <threads> for rendering (background mode only).\n");
 	printf ("      [1-8], 0 for systems processor count.\n");
 	printf ("\nAnimation playback options:\n");
-	printf ("  -a <file(s)>\tPlayback <file(s)>, only operates this way when -b is not used.\n");
+	printf ("  -a <options> <file(s)>\tPlayback <file(s)>, only operates this way when -b is not used.\n");
 	printf ("    -p <sx> <sy>\tOpen with lower left corner at <sx>, <sy>\n");
 	printf ("    -m\t\tRead from disk (Don't buffer)\n");
 	printf ("    -f <fps> <fps-base>\t\tSpecify FPS to start with\n");
@@ -769,6 +776,9 @@ int main(int argc, char **argv)
 						else if (!strcmp(argv[a],"FRAMESERVER")) G.scene->r.imtype = R_FRAMESERVER;
 						else if (!strcmp(argv[a],"CINEON")) G.scene->r.imtype = R_CINEON;
 						else if (!strcmp(argv[a],"DPX")) G.scene->r.imtype = R_DPX;
+#if WITH_OPENJPEG
+						else if (!strcmp(argv[a],"JP2")) G.scene->r.imtype = R_JP2;
+#endif
 						else printf("\nError: Format from '-F' not known or not compiled in this release.\n");
 					}
 				} else {
@@ -778,10 +788,14 @@ int main(int argc, char **argv)
 				
 			case 't':
 				a++;
-				if(G.background) {
-					RE_set_max_threads(atoi(argv[a]));
+				if (a < argc) {
+					if(G.background) {
+						RE_set_max_threads(atoi(argv[a]));
+					} else {
+						printf("Warning: threads can only be set in background mode\n");
+					}
 				} else {
-					printf("Warning: threads can only be set in background mode\n");
+					printf("\nError: you must specify a number of threads between 0 and 8 '-t '.\n");
 				}
 				break;
 			case 'x': /* extension */

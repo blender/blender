@@ -223,7 +223,7 @@ public:
 
 
 
-	virtual PyObject*			_getattr(const STR_String& attr);
+	virtual PyObject*			_getattr(const char *attr);
 
 	void	SpecialRelease()
 	{
@@ -250,8 +250,8 @@ public:
 	virtual CValue*	ConvertPythonToValue(PyObject* pyobj);
 
 
-	virtual int				_delattr(const STR_String& attr);
-	virtual int				_setattr(const STR_String& attr,PyObject* value);
+	virtual int				_delattr(const char *attr);
+	virtual int				_setattr(const char *attr, PyObject* value);
 	
 	virtual PyObject* ConvertKeysToPython( void );
 	
@@ -318,6 +318,10 @@ public:
 	
 	
 	STR_String				op2str(VALUE_OPERATOR op);
+	/** enable/disable display of deprecation warnings */
+	static void			SetDeprecationWarnings(bool ignoreDeprecationWarnings);
+ 	/** Shows a deprecation warning */
+	static void			ShowDeprecationWarning(const char* method,const char* prop);
 		
 	// setting / getting flags
 	inline void			SetSelected(bool bSelected)								{ m_ValFlags.Selected = bSelected; }
@@ -349,6 +353,7 @@ private:
 	ValueFlags			m_ValFlags;												// Frequently used flags in a bitfield (low memoryusage)
 	int					m_refcount;												// Reference Counter	
 	static	double m_sZeroVec[3];	
+	static bool			m_ignore_deprecation_warnings;
 
 };
 

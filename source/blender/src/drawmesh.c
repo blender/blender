@@ -75,6 +75,7 @@
 #include "BDR_drawmesh.h"
 
 #include "BSE_drawview.h"
+#include "BSE_view.h"
 
 #include "GPU_extensions.h"
 #include "GPU_draw.h"
@@ -351,9 +352,10 @@ static void draw_textured_begin(Object *ob)
 		solidtex= 1;
 		Gtexdraw.islit= -1;
 	}
-	else
+	else {
 		/* draw with lights in the scene otherwise */
-		Gtexdraw.islit= GPU_scene_object_lights(G.scene, ob, G.vd->lay, G.vd->viewmat);
+		Gtexdraw.islit= GPU_scene_object_lights(G.scene, ob, G.vd->lay, G.vd->viewmat, get_view3d_ortho(G.vd));
+	}
 	
 	obcol[0]= CLAMPIS(ob->col[0]*255, 0, 255);
 	obcol[1]= CLAMPIS(ob->col[1]*255, 0, 255);

@@ -56,6 +56,10 @@
 #endif
 #define RADHDR  (1<<24)
 
+#ifdef WITH_OPENJPEG
+#define JP2                            (1 << 18)
+#endif
+
 #define RAWTGA	(TGA | 1)
 
 #define JPG_STD	(JPG | (0 << 8))
@@ -113,6 +117,7 @@
 #define IS_tim(x)		(x->ftype & TIM)
 #define IS_tiff(x)		(x->ftype & TIFF)
 #define IS_openexr(x)           (x->ftype & OPENEXR)
+#define IS_jp2(x)           (x->ftype & JP2)
 
 
 #define IMAGIC 	0732

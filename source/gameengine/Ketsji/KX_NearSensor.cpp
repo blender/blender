@@ -320,7 +320,7 @@ PyMethodDef KX_NearSensor::Methods[] = {
 
 
 PyObject*
-KX_NearSensor::_getattr(const STR_String& attr)
+KX_NearSensor::_getattr(const char *attr)
 {
   _getattr_up(KX_TouchSensor);
 }

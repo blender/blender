@@ -32,6 +32,7 @@
 
 #include "GEN_HashedPtr.h"
 #include "SCA_IActuator.h"
+#include "BL_ActionActuator.h"
 #include "MT_Point3.h"
 #include <vector>
 
@@ -102,7 +103,46 @@ public:
 	KX_PYMETHOD_DOC_NOARGS(BL_ShapeActionActuator,GetType);
 	KX_PYMETHOD_DOC(BL_ShapeActionActuator,SetType);
 
-	virtual PyObject* _getattr(const STR_String& attr);
+	virtual PyObject* _getattr(const char *attr);
+	virtual int _setattr(const char *attr, PyObject* value);
+
+	static int CheckBlendTime(void *self, const PyAttributeDef*)
+	{
+		BL_ShapeActionActuator* act = reinterpret_cast<BL_ShapeActionActuator*>(self);
+
+		if (act->m_blendframe > act->m_blendin)
+			act->m_blendframe = act->m_blendin;
+
+		return 0;
+	}
+	static int CheckFrame(void *self, const PyAttributeDef*)
+	{
+		BL_ShapeActionActuator* act = reinterpret_cast<BL_ShapeActionActuator*>(self);
+
+		if (act->m_localtime < act->m_startframe)
+			act->m_localtime = act->m_startframe;
+		else if (act->m_localtime > act->m_endframe)
+			act->m_localtime = act->m_endframe;
+
+		return 0;
+	}
+	static int CheckType(void *self, const PyAttributeDef*)
+	{
+		BL_ShapeActionActuator* act = reinterpret_cast<BL_ShapeActionActuator*>(self);
+
+		switch (act->m_playtype) {
+			case ACT_ACTION_PLAY:
+			case ACT_ACTION_FLIPPER:
+			case ACT_ACTION_LOOP_STOP:
+			case ACT_ACTION_LOOP_END:
+			case ACT_ACTION_FROM_PROP:
+				return 0;
+			default:
+				PyErr_SetString(PyExc_ValueError, "invalid type supplied");
+				return 1;
+		}
+
+	}
 
 protected:
 
@@ -129,8 +169,8 @@ protected:
 	short	m_playtype;
 	short	m_priority;
 	struct bAction *m_action;
-	STR_String	m_propname;
 	STR_String	m_framepropname;
+	STR_String	m_propname;
 	vector<float> m_blendshape;
 };
 

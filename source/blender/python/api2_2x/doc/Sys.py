@@ -174,3 +174,15 @@ def cleanpath (path):
   @rtype: string
   @return: the cleaned (if necessary) path.
   """
+
+def relpath (path, start="//"):
+  """
+  Returns the path relative to the start, 
+  @note: If the path can be made relative it well start with "//", this is spesific to blender and should be converted to "./" for use as a system path.
+  @type path: string
+  @param path: a path name.
+  @type start: string
+  @param start: optional argument for the base path, the current blend files base path is used omitted
+  @rtype: string
+  @return: The path relative to start
+  """

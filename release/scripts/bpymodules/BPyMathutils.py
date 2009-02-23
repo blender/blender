@@ -225,15 +225,5 @@ from math import pi, sin, cos, sqrt
 
 def angleToLength(angle):
 	# Alredy accounted for
-	if angle < 0.000001:
-		return 1.0
-	
-	angle = 2*pi*angle/360
-	x,y = cos(angle), sin(angle)
-	# print "YX", x,y
-	# 0 d is hoz to the right.
-	# 90d is vert upward.
-	fac=1/x
-	x=x*fac
-	y=y*fac
-	return sqrt((x*x)+(y*y))
+	if angle < 0.000001:	return 1.0
+	else:					return abs(1.0 / cos(pi*angle/180));

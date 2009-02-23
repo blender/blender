@@ -1126,9 +1126,10 @@ void uiblock_image_panel(uiBlock *block, Image **ima_pp, ImageUser *iuser,
 	 IMAnames_to_pupstring(&strp, NULL, NULL, &(G.main->image), NULL, &iuser->menunr);
 	 
 	 uiBlockBeginAlign(block);
+	 uiClearButLock(); /* no way to check if the image user is libdata or not, so assume its not, otherwise we cant select linked images - ANNOYING */
 	 but= uiDefButS(block, MENU, imagechanged, strp,		10,155,23,20, &iuser->menunr, 0, 0, 0, 0, "Selects an existing Image or Movie");
 	 uiButSetFunc(but, image_browse_cb, ima_pp, iuser);
-	 
+	 uiSetButLock(ima && (ima->id.lib!=NULL), ERROR_LIBDATA_MESSAGE);
 	 MEM_freeN(strp);
 	 
 	 /* name + options, or only load */

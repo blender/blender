@@ -53,6 +53,9 @@ if env['WITH_BF_INTERNATIONAL']:
 if env['WITH_BF_OPENEXR']:
     defs.append('WITH_OPENEXR')
 
+if env['WITH_BF_OPENJPEG']:
+    defs.append('WITH_OPENJPEG')
+
 if env['WITH_BF_DDS']:
     defs.append('WITH_DDS')
 
@@ -93,6 +96,9 @@ if env['WITH_BF_SDL']:
     incs += ' ' + env['BF_SDL_INC']
 else:
     defs.append('DISABLE_SDL')
+
+if env['WITH_BF_BULLET']:
+    defs.append('WITH_BULLET')
 
 if env['BF_SPLIT_SRC'] and (env['OURPLATFORM'] == 'win32-mingw'): 	 
 	for i in range(numlibs): 	 

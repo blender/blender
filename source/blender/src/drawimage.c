@@ -474,12 +474,13 @@ void draw_uvs_sima(void)
 	MTFace *tface,*activetface = NULL;
 	EditMesh *em = G.editMesh;
 	EditFace *efa, *efa_act;
-	
+	Base *base;
+
 	char col1[4], col2[4];
 	float pointsize;
 	int drawface;
 	int lastsel, sel;
- 	
+
 	if (!G.obedit || !CustomData_has_layer(&em->fdata, CD_MTFACE))
 		return;
 	
@@ -489,7 +490,47 @@ void draw_uvs_sima(void)
 	myortho2(G.v2d->cur.xmin, G.v2d->cur.xmax, G.v2d->cur.ymin, G.v2d->cur.ymax);
 	glLoadIdentity();
 	
-	
+	if(G.sima->flag & SI_DRAW_OTHER) {
+		base= FIRSTBASE;
+		if(base) {
+			MTFace *activetf;
+			Image *curimage;
+
+			activetf = get_active_mtface(NULL, NULL, 1);
+			if (activetf) {
+				curimage = activetf->tpage;
+				glColor3ub(96, 96, 96);
+				while(base) {
+					if (TESTBASE_2D(base)) {
+						Object *ob;
+						ob = base->object;
+						if ((ob->type==OB_MESH) && (ob!=G.obedit)) {
+							Mesh *me;
+							me = ob->data;
+							if (me->mtface) {
+								MFace *mface;
+								int a;
+								mface= me->mface;
+								tface= me->mtface;
+								for (a=me->totface; a>0; a--, tface++, mface++) {
+									if (tface->tpage == curimage) {
+										glBegin(GL_LINE_LOOP);
+										glVertex2fv(tface->uv[0]);
+										glVertex2fv(tface->uv[1]);
+										glVertex2fv(tface->uv[2]);
+										if(mface->v4) glVertex2fv(tface->uv[3]);
+										glEnd();
+									}
+								}
+							}
+						}
+					}
+					base= base->next;
+				}
+			}
+		}
+	}
+
 	if(G.sima->flag & SI_DRAWTOOL) {
 		/* draws the grey mesh when painting */
 		glColor3ub(112, 112, 112);
@@ -902,7 +943,7 @@ void draw_uvs_sima(void)
 		}
 		
 		glLineWidth(1);
-		col2[0] = col2[1] = col2[2] = 128; col2[3] = 255;
+		col2[0] = col2[1] = col2[2] = 192; col2[3] = 255;
 		glColor4ubv((unsigned char *)col2); 
 		
 		if (G.f & G_DRAWEDGES) {
@@ -1467,7 +1508,8 @@ static void image_panel_view_properties(short cntrl)	// IMAGE_HANDLER_VIEW_PROPE
 		uiDefButBitI(block, TOG, G_DRAWFACES, B_REDR, "Faces",		10,30,60,19,  &G.f, 0, 0, 0, 0, "Displays all faces as shades in the 3d view and UV editor");
 		uiDefButBitI(block, TOG, G_DRAWEDGES, B_REDR, "Edges", 70, 30,60,19, &G.f, 0, 0, 0, 0, "Displays selected edges using hilights in the 3d view and UV editor");
 		
-		uiDefButBitI(block, TOG, SI_DRAWSHADOW, B_REDR, "Final Shadow", 130, 30,110,19, &G.sima->flag, 0, 0, 0, 0, "Draw the final result from the objects modifiers");
+		uiDefButBitI(block, TOG, SI_DRAWSHADOW, B_REDR, "Final Shadow", 130, 30,100,19, &G.sima->flag, 0, 0, 0, 0, "Draw the final result from the objects modifiers");
+		uiDefButBitI(block, TOG, SI_DRAW_OTHER, B_REDR, "Other Objs", 230, 30, 80, 19, &G.sima->flag, 0, 0, 0, 0, "Also draw all 3d view selected mesh objects that use this image");
 		
 		uiDefButBitI(block, TOG, SI_DRAW_STRETCH, B_REDR, "UV Stretch",	10,0,100,19,  &G.sima->flag, 0, 0, 0, 0, "Difference between UV's and the 3D coords (blue for low distortion, red is high)");
 		if (G.sima->flag & SI_DRAW_STRETCH) {
@@ -1483,15 +1525,7 @@ static void image_panel_view_properties(short cntrl)	// IMAGE_HANDLER_VIEW_PROPE
 
 static void image_panel_paint(short cntrl)	// IMAGE_HANDLER_PAINT
 {
-	/* B_SIMABRUSHCHANGE only redraws and eats the mouse messages  */
-	/* so that LEFTMOUSE does not 'punch' through the floating panel */
-	/* B_SIMANOTHING */
-	ToolSettings *settings= G.scene->toolsettings;
-	Brush *brush= settings->imapaint.brush;
 	uiBlock *block;
-	ID *id;
-	int yco, xco, butw;
-	
 	if ((G.sima->image && (G.sima->flag & SI_DRAWTOOL))==0) {
 		return;
 	}
@@ -1501,75 +1535,8 @@ static void image_panel_paint(short cntrl)	// IMAGE_HANDLER_PAINT
 	uiSetPanelHandler(IMAGE_HANDLER_PAINT);  // for close and esc
 	if(uiNewPanel(curarea, block, "Image Paint", "Image", 10, 230, 318, 204)==0)
 		return;
-
-	yco= 160;
-
-	uiBlockBeginAlign(block);
-	uiDefButS(block, ROW, B_SIMABRUSHCHANGE, "Draw",		0  ,yco,80,19, &settings->imapaint.tool, 7.0, PAINT_TOOL_DRAW, 0, 0, "Draw brush");
-	uiDefButS(block, ROW, B_SIMABRUSHCHANGE, "Soften",		80 ,yco,80,19, &settings->imapaint.tool, 7.0, PAINT_TOOL_SOFTEN, 0, 0, "Soften brush");
-	uiDefButS(block, ROW, B_SIMABRUSHCHANGE, "Smear",		160,yco,80,19, &settings->imapaint.tool, 7.0, PAINT_TOOL_SMEAR, 0, 0, "Smear brush");	
-	uiDefButS(block, ROW, B_SIMABRUSHCHANGE, "Clone",		240,yco,80,19, &settings->imapaint.tool, 7.0, PAINT_TOOL_CLONE, 0, 0, "Clone brush, use RMB to drag source image");	
-	uiBlockEndAlign(block);
-	yco -= 30;
-
-	uiBlockSetCol(block, TH_BUT_SETTING2);
-	id= (ID*)settings->imapaint.brush;
-	xco= std_libbuttons(block, 0, yco, 0, NULL, B_SIMABRUSHBROWSE, ID_BR, 0, id, NULL, &(G.sima->menunr), 0, B_SIMABRUSHLOCAL, B_SIMABRUSHDELETE, 0, B_KEEPDATA);
-	uiBlockSetCol(block, TH_AUTO);
-
-	if(brush && !brush->id.lib) {
-		butw= 320-(xco+10);
-
-		uiDefButS(block, MENU, B_SIMANOTHING, "Mix %x0|Add %x1|Subtract %x2|Multiply %x3|Lighten %x4|Darken %x5|Erase Alpha %x6|Add Alpha %x7", xco+10,yco,butw,19, &brush->blend, 0, 0, 0, 0, "Blending method for applying brushes");
-
-		uiDefButBitS(block, TOG|BIT, BRUSH_TORUS, B_SIMABRUSHCHANGE, "Wrap",	xco+10,yco-25,butw,19, &brush->flag, 0, 0, 0, 0, "Enables torus wrapping");
-
-		uiBlockBeginAlign(block);
-		uiDefButBitS(block, TOG|BIT, BRUSH_AIRBRUSH, B_SIMABRUSHCHANGE, "Airbrush",	xco+10,yco-50,butw,19, &brush->flag, 0, 0, 0, 0, "Keep applying paint effect while holding mouse (spray)");
-		uiDefButF(block, NUM, B_SIMANOTHING, "Rate ", xco+10,yco-70,butw,19, &brush->rate, 0.01, 1.0, 0, 0, "Number of paints per second for Airbrush");
-		uiBlockEndAlign(block);
-
-		yco -= 25;
-
-		uiBlockBeginAlign(block);
-		uiDefButF(block, COL, B_VPCOLSLI, "",					0,yco,200,19, brush->rgb, 0, 0, 0, 0, "");
-		uiDefButF(block, NUMSLI, B_SIMANOTHING, "Opacity ",		0,yco-20,180,19, &brush->alpha, 0.0, 1.0, 0, 0, "The amount of pressure on the brush");
-		uiDefButBitS(block, TOG|BIT, BRUSH_ALPHA_PRESSURE, B_SIMANOTHING, "P",	180,yco-20,20,19, &brush->flag, 0, 0, 0, 0, "Enables pressure sensitivity for tablets");
-		uiDefButI(block, NUMSLI, B_SIMANOTHING, "Size ",		0,yco-40,180,19, &brush->size, 1, 200, 0, 0, "The size of the brush");
-		uiDefButBitS(block, TOG|BIT, BRUSH_SIZE_PRESSURE, B_SIMANOTHING, "P",	180,yco-40,20,19, &brush->flag, 0, 0, 0, 0, "Enables pressure sensitivity for tablets");
-		uiDefButF(block, NUMSLI, B_SIMANOTHING, "Falloff ",		0,yco-60,180,19, &brush->innerradius, 0.0, 1.0, 0, 0, "The fall off radius of the brush");
-		uiDefButBitS(block, TOG|BIT, BRUSH_RAD_PRESSURE, B_SIMANOTHING, "P",	180,yco-60,20,19, &brush->flag, 0, 0, 0, 0, "Enables pressure sensitivity for tablets");
-		uiDefButF(block, NUMSLI, B_SIMANOTHING, "Spacing ",0,yco-80,180,19, &brush->spacing, 1.0, 100.0, 0, 0, "Repeating paint on %% of brush diameter");
-		uiDefButBitS(block, TOG|BIT, BRUSH_SPACING_PRESSURE, B_SIMANOTHING, "P",	180,yco-80,20,19, &brush->flag, 0, 0, 0, 0, "Enables pressure sensitivity for tablets");
-		uiBlockEndAlign(block);
-
-		yco -= 110;
-
-		if(settings->imapaint.tool == PAINT_TOOL_CLONE) {
-			id= (ID*)brush->clone.image;
-			uiBlockSetCol(block, TH_BUT_SETTING2);
-			xco= std_libbuttons(block, 0, yco, 0, NULL, B_SIMACLONEBROWSE, ID_IM, 0, id, 0, &G.sima->menunr, 0, 0, B_SIMACLONEDELETE, 0, 0);
-			uiBlockSetCol(block, TH_AUTO);
-			if(id) {
-				butw= 320-(xco+5);
-				uiDefButF(block, NUMSLI, B_SIMABRUSHCHANGE, "B ",xco+5,yco,butw,19, &brush->clone.alpha , 0.0, 1.0, 0, 0, "Opacity of clone image display");
-			}
-		}
-		else {
-			MTex *mtex= brush->mtex[brush->texact];
-
-			uiBlockSetCol(block, TH_BUT_SETTING2);
-			id= (mtex)? (ID*)mtex->tex: NULL;
-			xco= std_libbuttons(block, 0, yco, 0, NULL, B_SIMABTEXBROWSE, ID_TE, 0, id, NULL, &(G.sima->menunr), 0, 0, B_SIMABTEXDELETE, 0, 0);
-			/*uiDefButBitS(block, TOG|BIT, BRUSH_FIXED_TEX, B_SIMABRUSHCHANGE, "Fixed",	xco+5,yco,butw,19, &brush->flag, 0, 0, 0, 0, "Keep texture origin in fixed position");*/
-			uiBlockSetCol(block, TH_AUTO);
-		}
-	}
-
-#if 0
-		uiDefButBitS(block, TOG|BIT, IMAGEPAINT_DRAW_TOOL_DRAWING, B_SIMABRUSHCHANGE, "TD", 0,1,50,19, &settings->imapaint.flag.flag, 0, 0, 0, 0, "Enables brush shape while drawing");
-		uiDefButBitS(block, TOG|BIT, IMAGEPAINT_DRAW_TOOL, B_SIMABRUSHCHANGE, "TP", 50,1,50,19, &settings->imapaint.flag.flag, 0, 0, 0, 0, "Enables brush shape while not drawing");
-#endif
+	
+	brush_buttons(block, 1, B_SIMANOTHING, B_SIMABRUSHCHANGE, B_SIMABRUSHBROWSE, B_SIMABRUSHLOCAL, B_SIMABRUSHDELETE, B_KEEPDATA, B_SIMABTEXBROWSE, B_SIMABTEXDELETE);
 }
 
 static void image_panel_curves_reset(void *cumap_v, void *ibuf_v)

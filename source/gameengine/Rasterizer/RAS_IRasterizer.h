@@ -200,6 +200,7 @@ public:
 	 * @return true if stereo mode is enabled.
 	 */
 	virtual bool	Stereo()=0;
+    virtual StereoMode GetStereoMode()=0;
 	virtual bool	InterlacedStereo()=0;
 	/**
 	 * Sets which eye buffer subsequent primitives will be rendered to.
@@ -254,6 +255,8 @@ public:
 	/**
 	 */
 	virtual const	MT_Point3& GetCameraPosition()=0;
+	virtual bool	GetCameraOrtho()=0;
+
 	/**
 	 */
 	virtual void	SetFog(float start,

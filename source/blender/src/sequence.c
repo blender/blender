@@ -2111,6 +2111,14 @@ static TStripElem* do_build_seq_recursively(Sequence * seq, int cfra)
 	}
 }
 
+/* Bug: 18209
+ * when dragging the mouse over a metastrip, on mouse-up for some unknown
+ * reason in some cases the metastrips TStripElem->ibuf->rect is NULL,
+ * This should be fixed but I had a look and couldnt work out why its
+ * happening so for now workaround with a NULL check - campbell */
+
+#define SEQ_SPECIAL_SEQ_UPDATE_WORKAROUND
+
 static TStripElem* do_build_seq_array_recursively(
 	ListBase *seqbasep, int cfra, int chanshown)
 {
@@ -2277,7 +2285,14 @@ static TStripElem* do_build_seq_array_recursively(
 			    !se2->ibuf_comp->rect_float) {
 				IMB_rect_from_float(se2->ibuf);
 			}
-
+			
+#ifdef SEQ_SPECIAL_SEQ_UPDATE_WORKAROUND
+			if (se2->ibuf->rect==NULL && se2->ibuf->rect_float==NULL) {
+				printf("ERROR: sequencer se2->ibuf missing buffer\n");
+			} else if (se1->ibuf->rect==NULL && se1->ibuf->rect_float==NULL) {
+				printf("ERROR: sequencer se1->ibuf missing buffer\n");
+			} else {
+#endif
 			/* bad hack, to fix crazy input ordering of 
 			   those two effects */
 
@@ -2298,6 +2313,10 @@ static TStripElem* do_build_seq_array_recursively(
 					   se1->ibuf_comp, se2->ibuf, 0,
 					   se2->ibuf_comp);
 			}
+			
+#ifdef SEQ_SPECIAL_SEQ_UPDATE_WORKAROUND
+			}
+#endif
 			
 			IMB_cache_limiter_insert(se2->ibuf_comp);
 			IMB_cache_limiter_ref(se2->ibuf_comp);

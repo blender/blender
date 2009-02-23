@@ -477,18 +477,48 @@ intern_dpxOpen(int mode, const char* bytestuff, int bufsize) {
 
 	logImageGetByteConversionDefaults(&dpx->params);
 	/* The SMPTE define this code:
+	 *  0 - User-defined
+	 *  1 - Printing density
 	 *  2 - Linear
 	 *  3 - Logarithmic
+	 *  4 - Unspecified video
+	 *  5 - SMPTE 240M
+	 *  6 - CCIR 709-1
+	 *  7 - CCIR 601-2 system B or G
+	 *  8 - CCIR 601-2 system M
+	 *  9 - NTSC composite video
+	 *  10 - PAL composite video
+	 *  11 - Z linear
+	 *  12 - homogeneous
 	 *
 	 * Note that transfer_characteristics is U8, don't need
 	 * check the byte order.
 	 */
+	
 	switch (header.imageInfo.channel[0].transfer_characteristics) {
-		case 2:
+		case 1:
+		case 2: /* linear */
 			dpx->params.doLogarithm= 0;
 			break;
+		
 		case 3:
 			dpx->params.doLogarithm= 1;
+			break;
+		
+		/* TODO - Unsupported, but for now just load them,
+		 * colors may look wrong, but can solve color conversion later
+		 */
+		case 4: 
+		case 5:
+		case 6:
+		case 7:
+		case 8:
+		case 9:
+		case 10:
+		case 11:
+		case 12:
+			if (verbose) d_printf("Un-supported Transfer Characteristics: %d using linear color conversion\n", header.imageInfo.channel[0].transfer_characteristics);
+			dpx->params.doLogarithm= 0;
 			break;
 		default:
 			if (verbose) d_printf("Un-supported Transfer Characteristics: %d\n", header.imageInfo.channel[0].transfer_characteristics);

@@ -251,7 +251,7 @@ static float eff_calc_visibility(Object *ob, float *co, float *dir)
 		return 0;
 	
 	VECCOPY(norm, dir);
-	VecMulf(norm, -1.0);
+	VecNegf(norm);
 	len = Normalize(norm);
 	
 	// check all collision objects

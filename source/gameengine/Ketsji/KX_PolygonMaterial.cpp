@@ -202,17 +202,17 @@ PyParentObject KX_PolygonMaterial::Parents[] = {
 	NULL
 };
 
-PyObject* KX_PolygonMaterial::_getattr(const STR_String& attr)
+PyObject* KX_PolygonMaterial::_getattr(const char *attr)
 {
-	if (attr == "texture")
+	if (!strcmp(attr, "texture"))
 		return PyString_FromString(m_texturename.ReadPtr());
-	if (attr == "material")
+	if (!strcmp(attr, "material"))
 		return PyString_FromString(m_materialname.ReadPtr());
 		
-	if (attr == "tface")
+	if (!strcmp(attr, "tface"))
 		return PyCObject_FromVoidPtr(m_tface, NULL);
 		
-	if (attr == "gl_texture")
+	if (!strcmp(attr, "gl_texture"))
 	{
 		Image *ima = m_tface->tpage;
 		int bind = 0;
@@ -222,49 +222,49 @@ PyObject* KX_PolygonMaterial::_getattr(const STR_String& attr)
 		return PyInt_FromLong(bind);
 	}
 	
-	if (attr == "tile")
+	if (!strcmp(attr, "tile"))
 		return PyInt_FromLong(m_tile);
-	if (attr == "tilexrep")
+	if (!strcmp(attr, "tilexrep"))
 		return PyInt_FromLong(m_tilexrep);
-	if (attr == "tileyrep")
+	if (!strcmp(attr, "tileyrep"))
 		return PyInt_FromLong(m_tileyrep);
 	
-	if (attr == "drawingmode")
+	if (!strcmp(attr, "drawingmode"))
 		return PyInt_FromLong(m_drawingmode);
-	if (attr == "transparent")
+	if (!strcmp(attr, "transparent"))
 		return PyInt_FromLong(m_alpha);
-	if (attr == "zsort")
+	if (!strcmp(attr, "zsort"))
 		return PyInt_FromLong(m_zsort);
-	if (attr == "lightlayer")
+	if (!strcmp(attr, "lightlayer"))
 		return PyInt_FromLong(m_lightlayer);
-	if (attr == "triangle")
+	if (!strcmp(attr, "triangle"))
 		// deprecated, triangle/quads shouldn't have been a material property
 		return 0;
 		
-	if (attr == "diffuse")
+	if (!strcmp(attr, "diffuse"))
 		return PyObjectFrom(m_diffuse);
-	if (attr == "shininess")
+	if (!strcmp(attr, "shininess"))
 		return PyFloat_FromDouble(m_shininess);
-	if (attr == "specular")
+	if (!strcmp(attr, "specular"))
 		return PyObjectFrom(m_specular);
-	if (attr == "specularity")
+	if (!strcmp(attr, "specularity"))
 		return PyFloat_FromDouble(m_specularity);
 	
 	_getattr_up(PyObjectPlus);
 }
 
-int KX_PolygonMaterial::_setattr(const STR_String &attr, PyObject *pyvalue)
+int KX_PolygonMaterial::_setattr(const char *attr, PyObject *pyvalue)
 {
 	if (PyFloat_Check(pyvalue))
 	{
 		float value = PyFloat_AsDouble(pyvalue);
-		if (attr == "shininess")
+		if (!strcmp(attr, "shininess"))
 		{
 			m_shininess = value;
 			return 0;
 		}
 		
-		if (attr == "specularity")
+		if (!strcmp(attr, "specularity"))
 		{
 			m_specularity = value;
 			return 0;
@@ -274,50 +274,50 @@ int KX_PolygonMaterial::_setattr(const STR_String &attr, PyObject *pyvalue)
 	if (PyInt_Check(pyvalue))
 	{
 		int value = PyInt_AsLong(pyvalue);
-		if (attr == "tile")
+		if (!strcmp(attr, "tile"))
 		{
 			m_tile = value;
 			return 0;
 		}
 		
-		if (attr == "tilexrep")
+		if (!strcmp(attr, "tilexrep"))
 		{
 			m_tilexrep = value;
 			return 0;
 		}
 		
-		if (attr == "tileyrep")
+		if (!strcmp(attr, "tileyrep"))
 		{
 			m_tileyrep = value;
 			return 0;
 		}
 		
-		if (attr == "drawingmode")
+		if (!strcmp(attr, "drawingmode"))
 		{
 			m_drawingmode = value;
 			return 0;
 		}
 		
-		if (attr == "transparent")
+		if (!strcmp(attr, "transparent"))
 		{
 			m_alpha = value;
 			return 0;
 		}
 		
-		if (attr == "zsort")
+		if (!strcmp(attr, "zsort"))
 		{
 			m_zsort = value;
 			return 0;
 		}
 		
-		if (attr == "lightlayer")
+		if (!strcmp(attr, "lightlayer"))
 		{
 			m_lightlayer = value;
 			return 0;
 		}
 		
 		// This probably won't work...
-		if (attr == "triangle")
+		if (!strcmp(attr, "triangle"))
 		{
 			// deprecated, triangle/quads shouldn't have been a material property
 			return 0;
@@ -331,13 +331,13 @@ int KX_PolygonMaterial::_setattr(const STR_String &attr, PyObject *pyvalue)
 			MT_Vector3 value;
 			if (PyVecTo(pyvalue, value))
 			{
-				if (attr == "diffuse")
+				if (!strcmp(attr, "diffuse"))
 				{
 					m_diffuse = value;
 					return 0;
 				}
 				
-				if (attr == "specular")
+				if (!strcmp(attr, "specular"))
 				{
 					m_specular = value;
 					return 0;
@@ -354,12 +354,12 @@ KX_PYMETHODDEF_DOC(KX_PolygonMaterial, setCustomMaterial, "setCustomMaterial(mat
 	PyObject *material;
 	if (PyArg_ParseTuple(args, "O", &material))
 	{
-		if (m_pymaterial)
+		if (m_pymaterial) {
 			Py_DECREF(m_pymaterial);
-
+		}
 		m_pymaterial = material;
 		Py_INCREF(m_pymaterial);
-		Py_Return;
+		Py_RETURN_NONE;
 	}
 	
 	return NULL;
@@ -375,7 +375,7 @@ KX_PYMETHODDEF_DOC(KX_PolygonMaterial, updateTexture, "updateTexture(tface, rast
 		Image *ima = (Image*)tface->tpage;
 		GPU_update_image_time(ima, rasty->GetTime());
 
-		Py_Return;
+		Py_RETURN_NONE;
 	}
 	
 	return NULL;
@@ -388,7 +388,7 @@ KX_PYMETHODDEF_DOC(KX_PolygonMaterial, setTexture, "setTexture(tface)")
 	{
 		MTFace *tface = (MTFace*) PyCObject_AsVoidPtr(pytface);
 		GPU_set_tpage(tface);
-		Py_Return;
+		Py_RETURN_NONE;
 	}
 	
 	return NULL;
@@ -404,7 +404,7 @@ KX_PYMETHODDEF_DOC(KX_PolygonMaterial, activate, "activate(rasty, cachingInfo)")
 		if (rasty && cachingInfo)
 		{
 			DefaultActivate(rasty, *cachingInfo);
-			Py_Return;
+			Py_RETURN_NONE;
 		}
 	}
 	

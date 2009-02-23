@@ -1249,7 +1249,7 @@ void KX_Scene::MarkVisible(RAS_IRasterizer* rasty, KX_GameObject* gameobj,KX_Cam
 	// If the camera is inside this node, then the object is visible.
 	if (!vis)
 	{
-		vis = gameobj->GetSGNode()->inside( GetActiveCamera()->GetCameraLocation() );
+		vis = gameobj->GetSGNode()->inside( cam->GetCameraLocation() );
 	}
 		
 	// Test the object's bound sphere against the view frustum.
@@ -1512,9 +1512,9 @@ double KX_Scene::getSuspendedDelta()
 //Python
 
 PyMethodDef KX_Scene::Methods[] = {
-	KX_PYMETHODTABLE(KX_Scene, getLightList),
-	KX_PYMETHODTABLE(KX_Scene, getObjectList),
-	KX_PYMETHODTABLE(KX_Scene, getName),
+	KX_PYMETHODTABLE_NOARGS(KX_Scene, getLightList),
+	KX_PYMETHODTABLE_NOARGS(KX_Scene, getObjectList),
+	KX_PYMETHODTABLE_NOARGS(KX_Scene, getName),
 	
 	{NULL,NULL} //Sentinel
 };
@@ -1544,28 +1544,27 @@ PyParentObject KX_Scene::Parents[] = {
 		NULL
 };
 
-PyObject* KX_Scene::_getattr(const STR_String& attr)
+PyObject* KX_Scene::_getattr(const char *attr)
 {
-	if (attr == "name")
+	if (!strcmp(attr, "name"))
 		return PyString_FromString(GetName());
 	
-	if (attr == "active_camera")
-	{
-		KX_Camera *camera = GetActiveCamera();
-		camera->AddRef();
-		return (PyObject*) camera;
-	}
+	if (!strcmp(attr, "objects"))
+		return (PyObject*) m_objectlist->AddRef();
 	
-	if (attr == "suspended")
+	if (!strcmp(attr, "active_camera"))
+		return (PyObject*) GetActiveCamera()->AddRef();
+	
+	if (!strcmp(attr, "suspended"))
 		return PyInt_FromLong(m_suspend);
 	
-	if (attr == "activity_culling")
+	if (!strcmp(attr, "activity_culling"))
 		return PyInt_FromLong(m_activity_culling);
 	
-	if (attr == "activity_culling_radius")
+	if (!strcmp(attr, "activity_culling_radius"))
 		return PyFloat_FromDouble(m_activity_box_radius);
 	
-	PyObject* value = PyDict_GetItemString(m_attrlist, const_cast<char *>(attr.ReadPtr()));
+	PyObject* value = PyDict_GetItemString(m_attrlist, attr);
 	if (value)
 	{
 		Py_INCREF(value);
@@ -1575,40 +1574,38 @@ PyObject* KX_Scene::_getattr(const STR_String& attr)
 	_getattr_up(PyObjectPlus);
 }
 
-int KX_Scene::_delattr(const STR_String &attr)
+int KX_Scene::_delattr(const char *attr)
 {
-	PyDict_DelItemString(m_attrlist, const_cast<char *>(attr.ReadPtr()));
+	PyDict_DelItemString(m_attrlist, attr);
 	return 0;
 }
 
-int KX_Scene::_setattr(const STR_String &attr, PyObject *pyvalue)
+int KX_Scene::_setattr(const char *attr, PyObject *pyvalue)
 {
-
-	if (!PyDict_SetItemString(m_attrlist, const_cast<char *>(attr.ReadPtr()), pyvalue))
+	if (!PyDict_SetItemString(m_attrlist, attr, pyvalue))
 		return 0;
 
 	return PyObjectPlus::_setattr(attr, pyvalue);
 }
 
-KX_PYMETHODDEF_DOC(KX_Scene, getLightList,
+KX_PYMETHODDEF_DOC_NOARGS(KX_Scene, getLightList,
 "getLightList() -> list [KX_Light]\n"
 "Returns a list of all lights in the scene.\n"
 )
 {
-	m_lightlist->AddRef();
-	return (PyObject*) m_lightlist;
+	return (PyObject*) m_lightlist->AddRef();
 }
 
-KX_PYMETHODDEF_DOC(KX_Scene, getObjectList,
+KX_PYMETHODDEF_DOC_NOARGS(KX_Scene, getObjectList,
 "getObjectList() -> list [KX_GameObject]\n"
 "Returns a list of all game objects in the scene.\n"
 )
 {
-	m_objectlist->AddRef();
-	return (PyObject*) m_objectlist;
+	// ShowDeprecationWarning("getObjectList()", "the objects property"); // XXX Grr, why doesnt this work?
+	return (PyObject*) m_objectlist->AddRef();
 }
 
-KX_PYMETHODDEF_DOC(KX_Scene, getName,
+KX_PYMETHODDEF_DOC_NOARGS(KX_Scene, getName,
 "getName() -> string\n"
 "Returns the name of the scene.\n"
 )

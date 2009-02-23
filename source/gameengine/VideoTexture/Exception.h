@@ -202,6 +202,12 @@ extern ExpDesc MaterialNotAvailDesc;
 extern ExpDesc ImageSizesNotMatchDesc;
 extern ExpDesc SceneInvalidDesc;
 extern ExpDesc CameraInvalidDesc;
+extern ExpDesc ObserverInvalidDesc;
+extern ExpDesc MirrorInvalidDesc;
+extern ExpDesc MirrorSizeInvalidDesc;
+extern ExpDesc MirrorNormalInvalidDesc;
+extern ExpDesc MirrorHorizontalDesc;
+extern ExpDesc MirrorTooSmallDesc;
 extern ExpDesc SourceVideoEmptyDesc;
 extern ExpDesc SourceVideoCreationDesc;
 

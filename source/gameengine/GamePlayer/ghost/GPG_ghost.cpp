@@ -162,11 +162,10 @@ void usage(const char* program)
 	consoleoption = "";
 #endif
 	
-	printf("usage:   %s [-w [-p l t w h]] %s[-g gamengineoptions] "
+	printf("usage:   %s [-w l t w h] %s[-g gamengineoptions] "
 		"[-s stereomode] filename.blend\n", program, consoleoption);
 	printf("  -h: Prints this command summary\n");
 	printf("  -w: display in a window\n");
-	printf("  -p: specify window position\n");
 	printf("       l = window left coordinate\n");
 	printf("       t = window top coordinate\n");
 	printf("       w = window width\n");
@@ -190,17 +189,18 @@ void usage(const char* program)
 	printf("  -c: keep console window open\n");
 #endif
 	printf("  -d: turn debugging on\n");
-	printf("  -g: game engine options:\n");
-	printf("       Name            Default      Description\n");
-	printf("       ----------------------------------------\n");
-	printf("       fixedtime          0         Do the same timestep each frame \"Enable all frames\"\n");
-	printf("       nomipmap           0         Disable mipmaps\n");
-	printf("       show_framerate     0         Show the frame rate\n");
-	printf("       show_properties    0         Show debug properties\n");
-	printf("       show_profile       0         Show profiling information\n");
-	printf("       blender_material   0         Enable material settings\n");
+	printf("  -g: game engine options:\n\n");
+	printf("       Name                       Default      Description\n");
+	printf("       ------------------------------------------------------------------------\n");
+	printf("       fixedtime                      0         \"Enable all frames\"\n");
+	printf("       nomipmap                       0         Disable mipmaps\n");
+	printf("       show_framerate                 0         Show the frame rate\n");
+	printf("       show_properties                0         Show debug properties\n");
+	printf("       show_profile                   0         Show profiling information\n");
+	printf("       blender_material               0         Enable material settings\n");
+	printf("       ignore_deprecation_warnings    0         Ignore deprecation warnings\n");
 	printf("\n");
-	printf("example: %s -p 10 10 320 200 -g noaudio c:\\loadtest.blend\n", program);
+	printf("example: %s -w 10 10 320 200 -g noaudio c:\\loadtest.blend\n", program);
 	printf("example: %s -g show_framerate = 0 c:\\loadtest.blend\n", program);
 }
 

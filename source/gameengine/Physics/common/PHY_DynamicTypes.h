@@ -36,7 +36,7 @@ struct	PHY__Vector3
 };
 //typedef 	float	PHY__Vector3[4];
 
-typedef enum
+enum
 {
 	PHY_FH_RESPONSE,
 	PHY_SENSOR_RESPONSE,	/* Touch Sensors */
@@ -95,7 +95,8 @@ typedef enum PHY_ShapeType {
 	PHY_SHAPE_CONE,
 	PHY_SHAPE_MESH,
 	PHY_SHAPE_POLYTOPE,
-	PHY_SHAPE_COMPOUND
+	PHY_SHAPE_COMPOUND,
+	PHY_SHAPE_PROXY
 } PHY_ShapeType;
 
 

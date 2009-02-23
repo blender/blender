@@ -160,6 +160,9 @@ static void do_time_redrawmenu(void *arg, int event)
 		if(event==1001) {
 			button(&G.scene->r.frs_sec,1,120,"FPS:");
 		}
+		else if(event==1002) {
+			G.scene->audio.flag ^= AUDIO_SYNC;
+		}
 	}
 }
 			
@@ -202,7 +205,11 @@ static uiBlock *time_redrawmenu(void *arg_unused)
 
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
-	sprintf(str, "Set Frames/Sec (%d/%f)", G.scene->r.frs_sec, G.scene->r.frs_sec_base);
+	if(G.scene->audio.flag & AUDIO_SYNC) icon= ICON_CHECKBOX_HLT;
+	else icon= ICON_CHECKBOX_DEHLT;
+	uiDefIconTextBut(block, BUTM, 1, icon, "Sync Playback to Frames/Sec",      0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1002, "");
+	
+	sprintf(str, "Set Frames/Sec (%d/%2f)", G.scene->r.frs_sec, G.scene->r.frs_sec_base);
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, str,	 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1001, "");
 
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");

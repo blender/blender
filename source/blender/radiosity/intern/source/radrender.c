@@ -299,10 +299,10 @@ static void progressiverad_rr(Render *re)
 		/* ...unless it's two sided */
 		if(shootrf->flag & RAD_TWOSIDED) {
 			VECCOPY(unshot, shootrf->unshot);
-			VecMulf(shootrf->norm, -1.0);
+			VecNegf(shootrf->norm);
 			makeformfactors_rr(re, shoot, shootrf);
 			applyformfactors_rr(re, shoot, shootrf);
-			VecMulf(shootrf->norm, -1.0);
+			VecNegf(shootrf->norm);
 			VECCOPY(shootrf->unshot, unshot);
 		}
 

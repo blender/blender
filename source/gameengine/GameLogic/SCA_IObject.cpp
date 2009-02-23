@@ -409,7 +409,7 @@ PyMethodDef SCA_IObject::Methods[] = {
 
 
 
-PyObject* SCA_IObject::_getattr(const STR_String& attr) {
+PyObject* SCA_IObject::_getattr(const char *attr) {
 	_getattr_up(CValue);
 }
 

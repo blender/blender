@@ -233,9 +233,11 @@ PyMethodDef SCA_PythonController::Methods[] = {
 	{"getActuator", (PyCFunction) SCA_PythonController::sPyGetActuator, METH_O, (PY_METHODCHAR)SCA_PythonController::GetActuator_doc},
 	{"getSensors", (PyCFunction) SCA_PythonController::sPyGetSensors, METH_NOARGS, (PY_METHODCHAR)SCA_PythonController::GetSensors_doc},
 	{"getSensor", (PyCFunction) SCA_PythonController::sPyGetSensor, METH_O, (PY_METHODCHAR)SCA_PythonController::GetSensor_doc},
-	{"getScript", (PyCFunction) SCA_PythonController::sPyGetScript, METH_NOARGS},
+	//Deprecated functions ------>
 	{"setScript", (PyCFunction) SCA_PythonController::sPySetScript, METH_O},
+	{"getScript", (PyCFunction) SCA_PythonController::sPyGetScript, METH_NOARGS},
 	{"getState", (PyCFunction) SCA_PythonController::sPyGetState, METH_NOARGS},
+	//<----- Deprecated
 	{NULL,NULL} //Sentinel
 };
 
@@ -327,11 +329,39 @@ void SCA_PythonController::Trigger(SCA_LogicManager* logicmgr)
 
 
 
-PyObject* SCA_PythonController::_getattr(const STR_String& attr)
+PyObject* SCA_PythonController::_getattr(const char *attr)
 {
+	if (!strcmp(attr,"state")) {
+		return PyInt_FromLong(m_statemask);
+	}
+	if (!strcmp(attr,"script")) {
+		return PyString_FromString(m_scriptText);
+	}
 	_getattr_up(SCA_IController);
 }
 
+int SCA_PythonController::_setattr(const char *attr, PyObject *value)
+{
+	if (!strcmp(attr,"state")) {
+		PyErr_SetString(PyExc_AttributeError, "state is read only");
+		return 1;
+	}
+	if (!strcmp(attr,"script")) {
+		char *scriptArg = PyString_AsString(value);
+		
+		if (scriptArg==NULL) {
+			PyErr_SetString(PyExc_TypeError, "expected a string (script name)");
+			return -1;
+		}
+	
+		/* set scripttext sets m_bModified to true, 
+			so next time the script is needed, a reparse into byte code is done */
+		this->SetScriptText(scriptArg);
+		
+		return 1;
+	}
+	return SCA_IController::_setattr(attr, value);
+}
 
 
 PyObject* SCA_PythonController::PyGetActuators(PyObject* self)
@@ -420,6 +450,7 @@ SCA_PythonController::PyGetSensors(PyObject* self)
 /* 1. getScript */
 PyObject* SCA_PythonController::PyGetScript(PyObject* self)
 {
+	ShowDeprecationWarning("getScript()", "the script property");
 	return PyString_FromString(m_scriptText);
 }
 
@@ -427,6 +458,9 @@ PyObject* SCA_PythonController::PyGetScript(PyObject* self)
 PyObject* SCA_PythonController::PySetScript(PyObject* self, PyObject* value)
 {
 	char *scriptArg = PyString_AsString(value);
+	
+	ShowDeprecationWarning("setScript()", "the script property");
+	
 	if (scriptArg==NULL) {
 		PyErr_SetString(PyExc_TypeError, "expected a string (script name)");
 		return NULL;
@@ -443,6 +477,7 @@ PyObject* SCA_PythonController::PySetScript(PyObject* self, PyObject* value)
 /* 1. getScript */
 PyObject* SCA_PythonController::PyGetState(PyObject* self)
 {
+	ShowDeprecationWarning("getState()", "the state property");
 	return PyInt_FromLong(m_statemask);
 }
 

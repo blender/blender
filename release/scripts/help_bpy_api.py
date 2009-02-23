@@ -1,17 +1,17 @@
 #!BPY
 """
 Name: 'Blender/Python Scripting API'
-Blender: 244
+Blender: 248
 Group: 'Help'
 Tooltip: 'The Blender Python API reference manual'
 """
 
 __author__ = "Matt Ebb"
 __url__ = ("blender", "blenderartist")
-__version__ = "1.0"
+__version__ = "1.0.1"
 __bpydoc__ = """\
 This script opens the user's default web browser at http://www.blender.org's
-"Blenders Python API" page.
+"Blender Python API Reference" page.
 """
 
 # --------------------------------------------------------------------------
@@ -38,4 +38,4 @@ This script opens the user's default web browser at http://www.blender.org's
 
 import Blender, webbrowser
 version = str(int(Blender.Get('version')))
-webbrowser.open('http://www.blender.org/documentation/'+ version +'PythonDoc/index.html')
+webbrowser.open('http://www.blender.org/documentation/'+ version +'PythonDoc/')

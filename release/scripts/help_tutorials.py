@@ -2,17 +2,17 @@
 
 """
 Name: 'Tutorials'
-Blender: 234
+Blender: 248
 Group: 'Help'
 Tooltip: 'Tutorials for learning to use Blender'
 """
 
 __author__ = "Matt Ebb"
 __url__ = ("blender", "blenderartists.org")
-__version__ = "1.0"
+__version__ = "1.0.1"
 __bpydoc__ = """\
-This script opens the user's default web browser at www.blender3d.org's
-"Blender Tutorials" page.
+This script opens the user's default web browser at www.blender.org's
+"Tutorials" page.
 """
 
 # --------------------------------------------------------------------------
@@ -38,5 +38,4 @@ This script opens the user's default web browser at www.blender3d.org's
 # --------------------------------------------------------------------------
 
 import Blender, webbrowser
-version = str(Blender.Get('version'))
-webbrowser.open('http://www.blender3d.org/Help/?pg=Tutorials&ver=' + version)
+webbrowser.open('http://www.blender.org/education-help/tutorials/')

@@ -82,7 +82,7 @@ typedef struct bEditObjectActuator {
 	char name[32];
 	float linVelocity[3]; /* initial lin. velocity on creation */
 	float angVelocity[3]; /* initial ang. velocity on creation */
-	float pad;
+	float mass;
 	short localflag; /* flag for the lin & ang. vel: apply locally   */
 	short dyn_operation;
 } bEditObjectActuator;

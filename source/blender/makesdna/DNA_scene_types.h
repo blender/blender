@@ -310,6 +310,10 @@ typedef struct RenderData {
 	/* cineon */
 	short cineonwhite, cineonblack;
 	float cineongamma;
+	
+	/* jpeg2000 */
+	short jp2_preset, jp2_depth;
+	int rpad3;
 } RenderData;
 
 /* control render convert and shading engine */
@@ -345,7 +349,9 @@ typedef struct TimeMarker {
 typedef struct ImagePaintSettings {
 	struct Brush *brush;
 	short flag, tool;
-	int pad3;
+	
+	/* for projection painting only */
+	short seam_bleed,normal_angle;
 } ImagePaintSettings;
 
 typedef struct ParticleBrushData {
@@ -698,6 +704,7 @@ typedef struct Scene {
 #define R_DPX			27
 #define R_MULTILAYER	28
 #define R_DDS			29
+#define R_JP2			30
 
 /* subimtype, flag options for imtype */
 #define R_OPENEXR_HALF	1
@@ -705,6 +712,13 @@ typedef struct Scene {
 #define R_PREVIEW_JPG	4
 #define R_CINEON_LOG 	8
 #define R_TIFF_16BIT	16
+
+#define R_JPEG2K_12BIT	32 /* Jpeg2000 */
+#define R_JPEG2K_16BIT	64
+#define R_JPEG2K_YCC	128 /* when disabled use RGB */
+#define R_JPEG2K_CINE_PRESET	256
+#define R_JPEG2K_CINE_48FPS		512
+
 
 /* bake_mode: same as RE_BAKE_xxx defines */
 /* bake_flag: */
@@ -807,6 +821,15 @@ typedef struct Scene {
 #define IMAGEPAINT_DRAWING				1
 #define IMAGEPAINT_DRAW_TOOL			2
 #define IMAGEPAINT_DRAW_TOOL_DRAWING	4
+
+/* projection painting only */
+#define IMAGEPAINT_PROJECT_DISABLE		8	/* Non projection 3D painting */
+#define IMAGEPAINT_PROJECT_XRAY			16
+#define IMAGEPAINT_PROJECT_BACKFACE		32
+#define IMAGEPAINT_PROJECT_FLAT			64
+#define IMAGEPAINT_PROJECT_LAYER_CLONE	128
+#define IMAGEPAINT_PROJECT_LAYER_MASK	256
+#define IMAGEPAINT_PROJECT_LAYER_MASK_INV	512
 
 /* toolsettings->uvcalc_flag */
 #define UVCALC_FILLHOLES			1

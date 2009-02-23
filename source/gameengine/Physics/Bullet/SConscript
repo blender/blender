@@ -7,9 +7,9 @@ incs = '. ../common #source/kernel/gen_system #intern/string #intern/moto/includ
 
 incs += ' ' + env['BF_BULLET_INC']
 
-cflags = []
+cxxflags = []
 if env['OURPLATFORM']=='win32-vc':
-    cflags.append('/GR')
-    cflags.append('/O2')
+	cxxflags.append ('/GR')
+	cxxflags.append ('/O2')
 
-env.BlenderLib ( 'bf_bullet', Split(sources), Split(incs), [], libtype=['game','player'], priority=[15,90] )
+env.BlenderLib ( 'bf_bullet', Split(sources), Split(incs), [], libtype=['game','player'], priority=[15,90], cxx_compileflags=cxxflags )

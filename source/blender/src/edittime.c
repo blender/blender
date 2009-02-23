@@ -187,6 +187,9 @@ void transform_markers(int mode, int smode)	// mode and smode unused here, for c
 	}
 	else
 		markers= &G.scene->markers;
+		
+	if (markers == NULL)
+		return;
 	
 	for (marker= markers->first; marker; marker= marker->next) {
 		if (marker->flag & SELECT) totmark++;
@@ -442,6 +445,11 @@ void get_minmax_markers(short sel, float *first, float *last)
 	int selcount = 0;
 	
 	markers= &(G.scene->markers);
+	if (markers == NULL) {
+		*first = 0.0f;
+		*last = 0.0f;
+		return;
+	}
 	
 	if (sel)
 		for (marker= markers->first; marker; marker= marker->next) {
@@ -493,6 +501,10 @@ TimeMarker *find_nearest_marker(ListBase *markers, int clip_y)
 	short mval[2];
 	
 	getmouseco_areawin (mval);
+	
+	/* sanity checks */
+	if (markers == NULL)
+		return NULL;
 	
 	/* first clip selection in Y */
 	if ((clip_y) && (mval[1] > 30))

@@ -73,7 +73,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
-				AdditionalDependencies="SDL.lib freetype2ST.lib gnu_gettext.lib qtmlClient.lib openal_static.lib ws2_32.lib dxguid.lib opengl32.lib libjpeg.lib glu32.lib vfw32.lib winmm.lib libpng_st.lib zlib.lib python25.lib pthreadVSE2.lib pthreadVC2.lib libtiff.lib Half.lib Iex.lib IlmImf.lib Imath.lib IlmThread.lib avcodec-51.lib avformat-52.lib avutil-49.lib swscale-0.lib"
+				AdditionalDependencies="SDL.lib freetype2ST.lib gnu_gettext.lib qtmlClient.lib openal_static.lib ws2_32.lib dxguid.lib opengl32.lib libjpeg.lib glu32.lib vfw32.lib winmm.lib libpng_st.lib zlib.lib python25.lib pthreadVSE2.lib pthreadVC2.lib libtiff.lib Half.lib Iex.lib IlmImf.lib Imath.lib IlmThread.lib avcodec-51.lib avformat-52.lib avutil-49.lib swscale-0.lib avdevice-52.lib"
 				ShowProgress="0"
 				OutputFile="..\..\bin\blender.exe"
 				LinkIncremental="1"

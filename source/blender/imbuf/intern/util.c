@@ -68,10 +68,14 @@
 #include "quicktime_import.h"
 #endif
 
+#ifdef WITH_OPENJPEG
+#include "IMB_jp2.h"
+#endif
+
 #ifdef WITH_FFMPEG
 #include <ffmpeg/avcodec.h>
 #include <ffmpeg/avformat.h>
-//#include <ffmpeg/avdevice.h>
+#include <ffmpeg/avdevice.h>
 #include <ffmpeg/log.h>
 
 #if LIBAVFORMAT_VERSION_INT < (49 << 16)
@@ -140,7 +144,11 @@ static int IMB_ispic_name(char *name)
 /*
 				if (imb_is_a_bmp(buf)) return(BMP);
 */
-
+				
+#ifdef WITH_OPENJPEG
+				if (imb_is_a_jp2(buf)) return(JP2);
+#endif
+				
 #ifdef WITH_QUICKTIME
 #if defined(_WIN32) || defined(__APPLE__)
 				if(G.have_quicktime) {
@@ -191,6 +199,9 @@ int IMB_ispic(char *filename)
 #ifdef WITH_BF_OPENEXR
 				||	BLI_testextensie(filename, ".exr")
 #endif
+#ifdef WITH_BF_OPENJPEG
+				||	BLI_testextensie(filename, ".jp2")
+#endif
 				||	BLI_testextensie(filename, ".sgi")) {
 				return IMB_ispic_name(filename);
 			} else {
@@ -210,6 +221,9 @@ int IMB_ispic(char *filename)
 #endif
 #ifdef WITH_BF_OPENEXR
 				||	BLI_testextensie(filename, ".exr")
+#endif
+#ifdef WITH_BF_OPENJPEG
+				||	BLI_testextensie(filename, ".jp2")
 #endif
 				||	BLI_testextensie(filename, ".iff")
 				||	BLI_testextensie(filename, ".lbm")
@@ -258,7 +272,7 @@ void do_init_ffmpeg()
 	if (!ffmpeg_init) {
 		ffmpeg_init = 1;
 		av_register_all();
-		//avdevice_register_all();
+		avdevice_register_all();
 		
 		if ((G.f & G_DEBUG) == 0)
 		{

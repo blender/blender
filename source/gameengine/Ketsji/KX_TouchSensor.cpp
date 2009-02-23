@@ -100,8 +100,8 @@ m_eventmgr(eventmgr)
 	m_colliders = new CListValue();
 	
 	KX_ClientObjectInfo *client_info = gameobj->getClientInfo();
-	client_info->m_gameobject = gameobj;
-	client_info->m_auxilary_info = NULL;
+	//client_info->m_gameobject = gameobj;
+	//client_info->m_auxilary_info = NULL;
 	client_info->m_sensors.push_back(this);
 	
 	m_physCtrl = dynamic_cast<PHY_IPhysicsController*>(gameobj->GetPhysicsController());
@@ -143,8 +143,8 @@ void	KX_TouchSensor::ReParent(SCA_IObject* parent)
 	
 //	m_solidHandle = m_sumoObj->getObjectHandle();
 	KX_ClientObjectInfo *client_info = gameobj->getClientInfo();
-	client_info->m_gameobject = gameobj;
-	client_info->m_auxilary_info = NULL;
+	//client_info->m_gameobject = gameobj;
+	//client_info->m_auxilary_info = NULL;
 	
 	client_info->m_sensors.push_back(this);
 	SCA_ISensor::ReParent(parent);
@@ -199,7 +199,7 @@ bool	KX_TouchSensor::NewHandleCollision(void*object1,void*object2,const PHY_Coll
 			{
 				if (client_info->m_auxilary_info)
 				{
-					found = (m_touchedpropname == STR_String((char*)client_info->m_auxilary_info));
+					found = (!strcmp(m_touchedpropname.Ptr(), (char*)client_info->m_auxilary_info));
 				}
 			} else
 			{
@@ -261,7 +261,7 @@ PyMethodDef KX_TouchSensor::Methods[] = {
 	{NULL,NULL} //Sentinel
 };
 
-PyObject* KX_TouchSensor::_getattr(const STR_String& attr) {
+PyObject* KX_TouchSensor::_getattr(const char *attr) {
 	_getattr_up(SCA_ISensor);
 }
 
@@ -291,7 +291,7 @@ PyObject* KX_TouchSensor::PySetProperty(PyObject* self,
 	}
 	prop->Release();
 	
-	Py_Return;
+	Py_RETURN_NONE;
 }
 /* 2. getProperty */
 const char KX_TouchSensor::GetProperty_doc[] = 
@@ -318,7 +318,7 @@ PyObject* KX_TouchSensor::PyGetHitObject(PyObject* self,
 	{
 		return m_hitObject->AddRef();
 	}
-	Py_Return;
+	Py_RETURN_NONE;
 }
 
 const char KX_TouchSensor::GetHitObjectList_doc[] = 
@@ -354,7 +354,7 @@ PyObject* KX_TouchSensor::PyGetHitObjectList(PyObject* self,
 				if (spc) {
 					KX_ClientObjectInfo* cl_inf = static_cast<KX_ClientObjectInfo*>(spc->getNewClientInfo());
 					
-					if (m_touchedpropname == ((char*)cl_inf->m_auxilary_info)) {
+					if (NULL != cl_inf->m_auxilary_info && m_touchedpropname == ((char*)cl_inf->m_auxilary_info)) {
 						newList->Add(m_colliders->GetValue(i)->AddRef());
 					} 
 				}
@@ -402,7 +402,7 @@ PyObject* KX_TouchSensor::PySetTouchMaterial(PyObject* self, PyObject* args, PyO
 	
 	m_bFindMaterial = pulseArg != 0;
 
-	Py_Return;
+	Py_RETURN_NONE;
 }
 
 

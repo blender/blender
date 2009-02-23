@@ -47,10 +47,6 @@ class SCA_PropertySensor : public SCA_ISensor
 	bool			m_recentresult;
 	CExpression*	m_range_expr;
 
-	/**
-	 * Test whether this is a sensible value (type check)
-	 */
-	bool validValueForProperty(char *val, STR_String &prop);
  protected:
 
 public:
@@ -89,7 +85,8 @@ public:
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
 
-	virtual PyObject* _getattr(const STR_String& attr);
+	virtual PyObject* _getattr(const char *attr);
+	virtual int _setattr(const char *attr, PyObject *value);
 
 	/* 1. getType */
 	KX_PYMETHOD_DOC(SCA_PropertySensor,GetType);
@@ -103,7 +100,10 @@ public:
 	KX_PYMETHOD_DOC(SCA_PropertySensor,GetValue);
 	/* 6. setValue */
 	KX_PYMETHOD_DOC(SCA_PropertySensor,SetValue);
-	
+	/**
+	 * Test whether this is a sensible value (type check)
+	 */
+	static int validValueForProperty(void* self, const PyAttributeDef*);
 };
 
 #endif

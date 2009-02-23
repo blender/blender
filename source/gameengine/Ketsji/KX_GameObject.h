@@ -756,22 +756,16 @@ public:
 	 * @section Python interface functions.
 	 */
 
-	virtual 
-		PyObject*			
-	_getattr(
-		const STR_String& attr
-	);
- 
-	virtual 
-		int 
-	_setattr(
-		const STR_String& attr, 
-		PyObject *value
-	);		// _setattr method
+	virtual PyObject* _getattr(const char *attr);
+	virtual int _setattr(const char *attr, PyObject *value);		// _setattr method
 
 	KX_PYMETHOD_NOARGS(KX_GameObject,GetPosition);
 	KX_PYMETHOD_O(KX_GameObject,SetPosition);
 	KX_PYMETHOD_O(KX_GameObject,SetWorldPosition);
+	KX_PYMETHOD_VARARGS(KX_GameObject, ApplyForce);
+	KX_PYMETHOD_VARARGS(KX_GameObject, ApplyTorque);
+	KX_PYMETHOD_VARARGS(KX_GameObject, ApplyRotation);
+	KX_PYMETHOD_VARARGS(KX_GameObject, ApplyMovement);
 	KX_PYMETHOD_VARARGS(KX_GameObject,GetLinearVelocity);
 	KX_PYMETHOD_VARARGS(KX_GameObject,SetLinearVelocity);
 	KX_PYMETHOD_VARARGS(KX_GameObject,GetAngularVelocity);
@@ -805,8 +799,8 @@ public:
 	KX_PYMETHOD_NOARGS(KX_GameObject,EndObject);
 	KX_PYMETHOD_DOC(KX_GameObject,rayCastTo);
 	KX_PYMETHOD_DOC(KX_GameObject,rayCast);
-	KX_PYMETHOD_DOC(KX_GameObject,getDistanceTo);
-	KX_PYMETHOD_DOC(KX_GameObject,getVectTo);
+	KX_PYMETHOD_DOC_O(KX_GameObject,getDistanceTo);
+	KX_PYMETHOD_DOC_O(KX_GameObject,getVectTo);
 	
 private :
 

@@ -80,6 +80,7 @@ class RAS_OpenGLRasterizer : public RAS_IRasterizer
 	MT_Matrix4x4	m_viewmatrix;
 	MT_Matrix4x4	m_viewinvmatrix;
 	MT_Point3		m_campos;
+	bool			m_camortho;
 
 	StereoMode		m_stereomode;
 	StereoEye		m_curreye;
@@ -137,6 +138,7 @@ public:
 	virtual void	SetRenderArea();
 
 	virtual void	SetStereoMode(const StereoMode stereomode);
+    virtual RAS_IRasterizer::StereoMode GetStereoMode();
 	virtual bool	Stereo();
 	virtual bool	InterlacedStereo();
 	virtual void	SetEye(const StereoEye eye);
@@ -167,6 +169,7 @@ public:
 					);
 
 	virtual const	MT_Point3& GetCameraPosition();
+	virtual bool	GetCameraOrtho();
 	
 	virtual void	SetFog(
 						float start,

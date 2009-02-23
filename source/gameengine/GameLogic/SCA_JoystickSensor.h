@@ -37,11 +37,11 @@ class SCA_JoystickSensor :public SCA_ISensor
 	class SCA_JoystickManager*	m_pJoystickMgr;
 	
 	/**
-	 * Axis 1-or-2
+	 * Axis 1-or-2, MUST be followed by m_axisf
 	 */
 	int 	m_axis;
 	/**
-	 * Axis flag to find direction
+	 * Axis flag to find direction, MUST be an int
 	 */
 	int 	m_axisf;
 	/**
@@ -53,11 +53,11 @@ class SCA_JoystickSensor :public SCA_ISensor
 	 */
 	int 	m_buttonf;
 	/**
-	 * The actual hat
+	 * The actual hat. MUST be followed by m_hatf
 	 */
 	int 	m_hat;
 	/**
-	 * Flag to find direction 1-12
+	 * Flag to find direction 0-11, MUST be an int
 	 */
 	int 	m_hatf;
 	/**
@@ -121,7 +121,8 @@ public:
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
 
-	virtual PyObject* _getattr(const STR_String& attr);
+	virtual PyObject* _getattr(const char *attr);
+	virtual int _setattr(const char *attr, PyObject *value);
 
 	/* Joystick Index */
 	KX_PYMETHOD_DOC_NOARGS(SCA_JoystickSensor,GetIndex);
@@ -136,6 +137,8 @@ public:
 	KX_PYMETHOD_DOC_NOARGS(SCA_JoystickSensor,GetButton);
 	KX_PYMETHOD_DOC_O(SCA_JoystickSensor,SetButton);
 	KX_PYMETHOD_DOC_NOARGS(SCA_JoystickSensor,GetButtonValue);
+	KX_PYMETHOD_DOC_NOARGS(SCA_JoystickSensor,GetButtonActiveList);
+	KX_PYMETHOD_DOC_VARARGS(SCA_JoystickSensor,GetButtonStatus);
 	/* Hats */
 	KX_PYMETHOD_DOC_NOARGS(SCA_JoystickSensor,GetHat);
 	KX_PYMETHOD_DOC_VARARGS(SCA_JoystickSensor,SetHat);
@@ -144,6 +147,26 @@ public:
 	KX_PYMETHOD_DOC_NOARGS(SCA_JoystickSensor,NumberOfButtons);
 	KX_PYMETHOD_DOC_NOARGS(SCA_JoystickSensor,NumberOfHats);
 	KX_PYMETHOD_DOC_NOARGS(SCA_JoystickSensor,Connected);
+
+	/* attribute check */
+	static int CheckAxis(void *self, const PyAttributeDef*)
+	{
+		SCA_JoystickSensor* sensor = reinterpret_cast<SCA_JoystickSensor*>(self);
+		if (sensor->m_axis < 1)
+			sensor->m_axis = 1;
+		else if (sensor->m_axis > 2)
+			sensor->m_axis = 2;
+		return 0;
+	}
+	static int CheckHat(void *self, const PyAttributeDef*)
+	{
+		SCA_JoystickSensor* sensor = reinterpret_cast<SCA_JoystickSensor*>(self);
+		if (sensor->m_hat < 1)
+			sensor->m_hat = 1;
+		else if (sensor->m_hat > 2)
+			sensor->m_hat = 2;
+		return 0;
+	}
 	
 };
 

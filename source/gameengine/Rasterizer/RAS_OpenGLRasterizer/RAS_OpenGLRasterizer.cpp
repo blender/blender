@@ -59,6 +59,8 @@ RAS_OpenGLRasterizer::RAS_OpenGLRasterizer(RAS_ICanvas* canvas)
 	m_2DCanvas(canvas),
 	m_fogenabled(false),
 	m_time(0.0),
+	m_campos(0.0f, 0.0f, 0.0f),
+	m_camortho(false),
 	m_stereomode(RAS_STEREO_NOSTEREO),
 	m_curreye(RAS_STEREO_LEFTEYE),
 	m_eyeseparation(0.0),
@@ -406,14 +408,16 @@ void RAS_OpenGLRasterizer::SetRenderArea()
 			break;
 	}
 }
-
 	
 void RAS_OpenGLRasterizer::SetStereoMode(const StereoMode stereomode)
 {
 	m_stereomode = stereomode;
 }
 
-
+RAS_IRasterizer::StereoMode RAS_OpenGLRasterizer::GetStereoMode()
+{
+	return m_stereomode;
+}
 
 bool RAS_OpenGLRasterizer::Stereo()
 {
@@ -754,8 +758,9 @@ void RAS_OpenGLRasterizer::SetProjectionMatrix(MT_CmMatrix4x4 &mat)
 	glMatrixMode(GL_PROJECTION);
 	double* matrix = &mat(0,0);
 	glLoadMatrixd(matrix);
-}
 
+	m_camortho= (mat(3, 3) != 0.0f);
+}
 
 void RAS_OpenGLRasterizer::SetProjectionMatrix(const MT_Matrix4x4 & mat)
 {
@@ -765,6 +770,8 @@ void RAS_OpenGLRasterizer::SetProjectionMatrix(const MT_Matrix4x4 & mat)
 	mat.getValue(matrix);
 	/* Internally, MT_Matrix4x4 uses doubles (MT_Scalar). */
 	glLoadMatrixd(matrix);	
+
+	m_camortho= (mat[3][3] != 0.0f);
 }
 
 MT_Matrix4x4 RAS_OpenGLRasterizer::GetFrustumMatrix(
@@ -775,7 +782,7 @@ MT_Matrix4x4 RAS_OpenGLRasterizer::GetFrustumMatrix(
 	float frustnear,
 	float frustfar,
 	float focallength,
-	bool
+	bool 
 ){
 	MT_Matrix4x4 result;
 	double mat[16];
@@ -881,6 +888,10 @@ const MT_Point3& RAS_OpenGLRasterizer::GetCameraPosition()
 	return m_campos;
 }
 
+bool RAS_OpenGLRasterizer::GetCameraOrtho()
+{
+	return m_camortho;
+}
 
 void RAS_OpenGLRasterizer::SetCullFace(bool enable)
 {

@@ -5,6 +5,9 @@ from SCA_IActuator import *
 class KX_ParentActuator(SCA_IActuator):
 	"""
 	The parent actuator can set or remove an objects parent object.
+	
+	@ivar object: the object this actuator sets the parent too.
+	@type object: KX_GameObject or None
 	"""
 	def setObject(object):
 		"""

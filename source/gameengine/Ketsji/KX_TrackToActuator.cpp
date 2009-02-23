@@ -456,23 +456,51 @@ PyParentObject KX_TrackToActuator::Parents[] = {
 
 
 PyMethodDef KX_TrackToActuator::Methods[] = {
-	{"setObject", (PyCFunction) KX_TrackToActuator::sPySetObject, METH_O, (PY_METHODCHAR)SetObject_doc},
-	{"getObject", (PyCFunction) KX_TrackToActuator::sPyGetObject, METH_VARARGS, (PY_METHODCHAR)GetObject_doc},
 	{"setTime", (PyCFunction) KX_TrackToActuator::sPySetTime, METH_VARARGS, (PY_METHODCHAR)SetTime_doc},
 	{"getTime", (PyCFunction) KX_TrackToActuator::sPyGetTime, METH_VARARGS, (PY_METHODCHAR)GetTime_doc},
 	{"setUse3D", (PyCFunction) KX_TrackToActuator::sPySetUse3D, METH_VARARGS, (PY_METHODCHAR)SetUse3D_doc},
 	{"getUse3D", (PyCFunction) KX_TrackToActuator::sPyGetUse3D, METH_VARARGS, (PY_METHODCHAR)GetUse3D_doc},
+	
+	// ---> deprecated
+	{"setObject", (PyCFunction) KX_TrackToActuator::sPySetObject, METH_O, (PY_METHODCHAR)SetObject_doc},
+	{"getObject", (PyCFunction) KX_TrackToActuator::sPyGetObject, METH_VARARGS, (PY_METHODCHAR)GetObject_doc},
+	
 	{NULL,NULL} //Sentinel
 };
 
 
 
-PyObject* KX_TrackToActuator::_getattr(const STR_String& attr)
+PyObject* KX_TrackToActuator::_getattr(const char *attr)
 {
+	if (!strcmp(attr, "object")) {
+		if (!m_object)		Py_RETURN_NONE;
+		else				return m_object->AddRef();
+	}
+	
 	_getattr_up(SCA_IActuator);
 }
 
+int KX_TrackToActuator::_setattr(const char *attr, PyObject* value)
+{
+	if (!strcmp(attr, "object")) {
+		KX_GameObject *gameobj;
+		
+		if (!ConvertPythonToGameObject(value, &gameobj, true))
+			return 1; // ConvertPythonToGameObject sets the error
+		
+		if (m_object != NULL)
+			m_object->UnregisterActuator(this);	
 
+		m_object = (SCA_IObject*)gameobj;
+		
+		if (m_object)
+			m_object->RegisterActuator(this);
+		
+		return 0;
+	}
+	
+	return SCA_IActuator::_setattr(attr, value);
+}
 
 /* 1. setObject */
 const char KX_TrackToActuator::SetObject_doc[] = 
@@ -482,6 +510,8 @@ const char KX_TrackToActuator::SetObject_doc[] =
 PyObject* KX_TrackToActuator::PySetObject(PyObject* self, PyObject* value)
 {
 	KX_GameObject *gameobj;
+	
+	ShowDeprecationWarning("setObject()", "the object property");
 	
 	if (!ConvertPythonToGameObject(value, &gameobj, true))
 		return NULL; // ConvertPythonToGameObject sets the error
@@ -506,6 +536,9 @@ const char KX_TrackToActuator::GetObject_doc[] =
 PyObject* KX_TrackToActuator::PyGetObject(PyObject* self, PyObject* args)
 {
 	int ret_name_only = 1;
+	
+	ShowDeprecationWarning("getObject()", "the object property");
+	
 	if (!PyArg_ParseTuple(args, "|i", &ret_name_only))
 		return NULL;
 	
@@ -536,7 +569,7 @@ PyObject* KX_TrackToActuator::PySetTime(PyObject* self, PyObject* args, PyObject
 	
 	m_time= timeArg;
 	
-	Py_Return;
+	Py_RETURN_NONE;
 }
 
 
@@ -580,7 +613,7 @@ PyObject* KX_TrackToActuator::PySetUse3D(PyObject* self, PyObject* args, PyObjec
 	
 	m_allow3D = !(boolArg == 0);
 	
-	Py_Return;
+	Py_RETURN_NONE;
 }
 
 /* eof */

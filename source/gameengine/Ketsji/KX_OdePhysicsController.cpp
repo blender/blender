@@ -50,7 +50,7 @@ KX_OdePhysicsController::KX_OdePhysicsController(
 												 float	extends[3],
 												 float	radius
 												 ) 
-: KX_IPhysicsController(dyna,(PHY_IPhysicsController*)this),
+: KX_IPhysicsController(dyna,false,(PHY_IPhysicsController*)this),
 ODEPhysicsController(
 dyna,fullRigidBody,phantom,motionstate,
 space,world,mass,friction,restitution,

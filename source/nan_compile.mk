@@ -120,22 +120,34 @@ ifeq ($(OS),freebsd)
 endif
 
 ifeq ($(OS),irix)
-    CC	= cc
-    CCC	= CC
-    CFLAGS	+= -n32 -mips3 -Xcpluscomm
-    CCFLAGS	+= -n32 -mips3 -Xcpluscomm -LANG:std
-ifdef MIPS73_ISOHEADERS
-    CCFLAGS	+= -LANG:libc_in_namespace_std=off -I$(MIPS73_ISOHEADERS)
-else
-    CCFLAGS	+= -LANG:libc_in_namespace_std=off
-endif
-    REL_CFLAGS	+= -n32 -mips3 -O2 -OPT:Olimit=0
-    REL_CCFLAGS += -n32 -mips3 -O2 -OPT:Olimit=0
+    ifeq ($(IRIX_USE_GCC),true)
+        CC = gcc
+        CCC = g++
+        CFLAGS += -fPIC -funsigned-char -fno-strict-aliasing -mabi=n32 -mips4
+        CCFLAGS += -fPIC -fpermissive -funsigned-char -fno-strict-aliasing -mabi=n32 -mips4
+        REL_CFLAGS += -O2
+        REL_CCFLAGS += -O2
+        CPPFLAGS += -DXP_UNIX
+        DBG_CFLAGS += -g3 -gdwarf-2 -ggdb
+        DBG_CCFLAGS += -g3 -gdwarf-2 -ggdb
+    else
+        CC = cc
+        CCC = CC
+        CFLAGS	+= -n32 -mips3 -Xcpluscomm
+        CCFLAGS	+= -n32 -mips3 -Xcpluscomm -LANG:std
+        ifdef MIPS73_ISOHEADERS
+            CCFLAGS	+= -LANG:libc_in_namespace_std=off -I$(MIPS73_ISOHEADERS)
+        else
+            CCFLAGS	+= -LANG:libc_in_namespace_std=off
+        endif
+        REL_CFLAGS	+= -n32 -mips3 -O2 -OPT:Olimit=0
+        REL_CCFLAGS += -n32 -mips3 -O2 -OPT:Olimit=0
+    endif
     OPENGL_HEADERS = /usr/include
     NAN_DEPEND = true
     AR = CC
     ARFLAGS = -ar -o
-	ARFLAGSQUIET = -ar -o
+    ARFLAGSQUIET = -ar -o
 endif
 
 ifeq ($(OS),linux)

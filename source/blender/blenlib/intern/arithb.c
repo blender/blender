@@ -2183,6 +2183,13 @@ void VecMulf(float *v1, float f)
 	v1[2]*= f;
 }
 
+void VecNegf(float *v1)
+{
+	v1[0] = -v1[0];
+	v1[1] = -v1[1];
+	v1[2] = -v1[2];
+}
+
 void VecOrthoBasisf(float *v, float *v1, float *v2)
 {
 	float f = sqrt(v[0]*v[0] + v[1]*v[1]);
@@ -3945,7 +3952,7 @@ int SweepingSphereIntersectsTriangleUV(float p1[3], float p2[3], float radius, f
 	Normalize(nor);
 
 	/* flip normal */
-	if(Inpf(nor,vel)>0.0f) VecMulf(nor,-1.0f);
+	if(Inpf(nor,vel)>0.0f) VecNegf(nor);
 	
 	a=Inpf(p1,nor)-Inpf(v0,nor);
 	nordotv=Inpf(nor,vel);
@@ -4677,7 +4684,7 @@ void tangent_from_uv(float *uv1, float *uv2, float *uv3, float *co1, float *co2,
 
 	/* check flip */
 	if ((ct[0]*n[0] + ct[1]*n[1] + ct[2]*n[2]) < 0.0f)
-		VecMulf(tang, -1.0f);
+		VecNegf(tang);
 }
 
 /* used for zoom values*/

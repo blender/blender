@@ -120,7 +120,7 @@ def write_mtl(filename):
 		if img:  # We have an image on the face!
 			file.write('map_Kd %s\n' % img.filename.split('\\')[-1].split('/')[-1]) # Diffuse mapping image			
 		
-		elif not mat: # No face image. if we havea material search for MTex image.
+		elif mat: # No face image. if we havea material search for MTex image.
 			for mtex in mat.getTextures():
 				if mtex and mtex.tex.type == Blender.Texture.Types.IMAGE:
 					try:

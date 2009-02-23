@@ -40,7 +40,11 @@ else:
 # enable ffmpeg  support
 WITH_BF_FFMPEG = True  # -DWITH_FFMPEG
 BF_FFMPEG = "#extern/ffmpeg"
-BF_FFMPEG_INC = '${BF_FFMPEG}/include'
+# trick : The version of ffmpeg in extern/ffmpeg uses explicit libav.. directory in #include statements
+#         To keep Blender compatible with older versions, I add ${BF_FFMPEG} to the inc dir so that ffmpeg
+#         finds the files directly in extern/ffmpeg/libav... while blender finds them in
+#         extern/ffmpeg/include. 
+BF_FFMPEG_INC = '${BF_FFMPEG}/include ${BF_FFMPEG}'
 if USE_SDK==True:
 	BF_FFMPEG_EXTRA = '-isysroot '+MACOSX_SDK+' -mmacosx-version-min='+MAC_MIN_VERS
 #BF_FFMPEG_LIBPATH='${BF_FFMPEG}/lib'

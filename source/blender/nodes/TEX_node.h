@@ -38,33 +38,40 @@
 
 /* ****************** types array for all texture nodes ****************** */
 
-extern bNodeType tex_node_math;
-extern bNodeType tex_node_mix_rgb;
-extern bNodeType tex_node_valtorgb;
-extern bNodeType tex_node_rgbtobw;
-extern bNodeType tex_node_output;
-extern bNodeType tex_node_viewer;
-extern bNodeType tex_node_checker;
-extern bNodeType tex_node_texture;
-extern bNodeType tex_node_bricks;
-extern bNodeType tex_node_image;
-extern bNodeType tex_node_curve_rgb;
-extern bNodeType tex_node_curve_time;
-extern bNodeType tex_node_invert;
-extern bNodeType tex_node_hue_sat;
+bNodeType tex_node_math;
+bNodeType tex_node_mix_rgb;
+bNodeType tex_node_valtorgb;
+bNodeType tex_node_valtonor;
+bNodeType tex_node_rgbtobw;
+bNodeType tex_node_output;
+bNodeType tex_node_viewer;
+bNodeType tex_node_checker;
+bNodeType tex_node_texture;
+bNodeType tex_node_bricks;
+bNodeType tex_node_image;
+bNodeType tex_node_curve_rgb;
+bNodeType tex_node_curve_time;
+bNodeType tex_node_invert;
+bNodeType tex_node_hue_sat;
+bNodeType tex_node_coord;
+bNodeType tex_node_distance;
 
-extern bNodeType tex_node_rotate;
-extern bNodeType tex_node_translate;
+bNodeType tex_node_rotate;
+bNodeType tex_node_translate;
+bNodeType tex_node_scale;
 
-extern bNodeType tex_node_proc_voronoi;
-extern bNodeType tex_node_proc_blend;
-extern bNodeType tex_node_proc_magic;
-extern bNodeType tex_node_proc_marble;
-extern bNodeType tex_node_proc_clouds;
-extern bNodeType tex_node_proc_wood;
-extern bNodeType tex_node_proc_musgrave;
-extern bNodeType tex_node_proc_noise;
-extern bNodeType tex_node_proc_stucci;
-extern bNodeType tex_node_proc_distnoise;
+bNodeType tex_node_compose;
+bNodeType tex_node_decompose;
+
+bNodeType tex_node_proc_voronoi;
+bNodeType tex_node_proc_blend;
+bNodeType tex_node_proc_magic;
+bNodeType tex_node_proc_marble;
+bNodeType tex_node_proc_clouds;
+bNodeType tex_node_proc_wood;
+bNodeType tex_node_proc_musgrave;
+bNodeType tex_node_proc_noise;
+bNodeType tex_node_proc_stucci;
+bNodeType tex_node_proc_distnoise;
 
 #endif

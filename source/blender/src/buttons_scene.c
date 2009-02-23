@@ -1388,9 +1388,9 @@ static void run_playanim(char *file)
 	calc_renderwin_rectangle((G.scene->r.xsch*G.scene->r.size)/100, 
 							 (G.scene->r.ysch*G.scene->r.size)/100, G.winpos, pos, size);
 #ifdef WIN32
-	sprintf(str, "%s -a -s %d -e %d -p %d %d -f %d %g \"%s\"", bprogname, G.scene->r.sfra, G.scene->r.efra, pos[0], pos[1], G.scene->r.frs_sec, G.scene->r.frs_sec_base, file);
+	sprintf(str, "%s -a -s %d -e %d -p %d %d -f %d %g -j %d \"%s\"", bprogname, G.scene->r.sfra, G.scene->r.efra, pos[0], pos[1], G.scene->r.frs_sec, G.scene->r.frs_sec_base, G.scene->frame_step, file);
 #else
-	sprintf(str, "\"%s\" -a -s %d -e %d  -p %d %d -f %d %g \"%s\"", bprogname, G.scene->r.sfra, G.scene->r.efra, pos[0], pos[1], G.scene->r.frs_sec, G.scene->r.frs_sec_base, file);
+	sprintf(str, "\"%s\" -a -s %d -e %d  -p %d %d -f %d %g -j %d \"%s\"", bprogname, G.scene->r.sfra, G.scene->r.efra, pos[0], pos[1], G.scene->r.frs_sec, G.scene->r.frs_sec_base, G.scene->frame_step, file);
 #endif
 	system(str);
 }
@@ -1956,7 +1956,6 @@ static char *imagetype_pup(void)
 	char appendstring[1024];
 
 	strcpy(formatstring, "Save image as: %%t|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d");
-
 #ifdef __sgi
 	strcat(formatstring, "|%s %%x%d");	// add space for Movie
 #endif
@@ -1967,6 +1966,10 @@ static char *imagetype_pup(void)
 	strcat(formatstring, "|%s %%x%d");	// add space for DDS
 #endif
 */
+#ifdef WITH_OPENJPEG
+	strcat(formatstring, "|%s %%x%d");	// add space for JP2
+#endif
+	
 	strcat(formatstring, "|%s %%x%d");	// add space for BMP
 	strcat(formatstring, "|%s %%x%d");	// add space for Radiance HDR
 	strcat(formatstring, "|%s %%x%d");	// add space for Cineon
@@ -2008,6 +2011,9 @@ static char *imagetype_pup(void)
 			"DDS",            R_DDS,
 #endif
 */
+#ifdef WITH_OPENJPEG
+			"Jpeg 2000",   R_JP2,
+#endif
 			"BMP",            R_BMP,
 			"Jpeg",           R_JPEG90,
 			"HamX",           R_HAMX,
@@ -2015,6 +2021,7 @@ static char *imagetype_pup(void)
 			"Radiance HDR",   R_RADHDR,
 			"Cineon",		  R_CINEON,
 			"DPX",			  R_DPX
+
 #ifdef __sgi
 			,"Movie",          R_MOVIE
 #endif
@@ -2036,6 +2043,9 @@ static char *imagetype_pup(void)
 /*#ifdef WITH_DDS
 			"DDS",            R_DDS,
 #endif*/
+#ifdef WITH_OPENJPEG
+			"Jpeg 2000",   R_JP2,
+#endif
 			"BMP",            R_BMP,
 			"Jpeg",           R_JPEG90,
 			"HamX",           R_HAMX,
@@ -2043,6 +2053,8 @@ static char *imagetype_pup(void)
 			"Radiance HDR",   R_RADHDR,
 			"Cineon",		  R_CINEON,
 			"DPX",			  R_DPX
+
+
 #ifdef __sgi
 			,"Movie",          R_MOVIE
 #endif
@@ -3152,6 +3164,45 @@ static void render_panel_format(void)
 		
 		uiDefButS(block, NUM,B_DIFF, "Q:",           892,yofs,74,20, &G.scene->r.quality, 10.0, 100.0, 0, 0, "Quality setting for JPEG images, AVI Jpeg and SGI movies");
 	}
+	
+#ifdef WITH_OPENJPEG		
+	if (G.scene->r.imtype ==  R_JP2) {
+		
+		uiDefButS(block, MENU,B_REDR,
+			"Preset %t|No Preset %x0|"
+			"Cinema 24fps 2048x1080%x1|"
+			"Cinema 48fps 2048x1080%x2|"
+			"Cinema 24fps 4096x2160%x3|"
+			"Cine-Scope 24fps 2048x858%x4|"
+			"Cine-Scope 48fps 2048x858%x5|"
+			"Cine-Flat 24fps 1998x1080%x6|"
+			"Cine-Flat 48fps 1998x1080%x7",  
+					892,yofs+44,G.scene->r.jp2_preset?227:110,20, &G.scene->r.jp2_preset, 0, 0, 0, 0, "Use a DCI Standard preset for saving jpeg2000");
+		
+		if (G.scene->r.jp2_preset==0) {
+			uiBlockBeginAlign(block);
+			uiDefButS(block, ROW,B_REDR,"8", 1007,yofs+44,20,20, &G.scene->r.jp2_depth,1.0,8.0, 0, 0,"");
+			uiDefButS(block, ROW,B_REDR,"12",1007+20,yofs+44,25,20, &G.scene->r.jp2_depth,1.0,12.0, 0, 0,"");
+			uiDefButS(block, ROW,B_REDR,"16", 1007+45,yofs+44,25,20, &G.scene->r.jp2_depth,1.0,16.0, 0, 0,"");
+			uiDefButBitS(block, TOG, R_JPEG2K_YCC, B_REDR,"YCC",1007+70,yofs+44,42,20, &G.scene->r.subimtype, 0, 0, 0, 0, "Save luminance-chrominance-chrominance instead of RGB color channels ");
+			uiBlockEndAlign(block);
+		}
+		
+		G.scene->r.subimtype &= ~(R_JPEG2K_12BIT|R_JPEG2K_16BIT | R_JPEG2K_CINE_PRESET|R_JPEG2K_CINE_48FPS);
+		if (G.scene->r.jp2_depth==12) G.scene->r.subimtype |= R_JPEG2K_12BIT;
+		if (G.scene->r.jp2_depth==16) G.scene->r.subimtype |= R_JPEG2K_16BIT;
+		
+		if (G.scene->r.jp2_preset==1)  G.scene->r.subimtype |= R_JPEG2K_CINE_PRESET;
+		if (G.scene->r.jp2_preset==2)  G.scene->r.subimtype |= R_JPEG2K_CINE_PRESET|R_JPEG2K_CINE_48FPS;
+		if (G.scene->r.jp2_preset==3)  G.scene->r.subimtype |= R_JPEG2K_CINE_PRESET;
+		if (G.scene->r.jp2_preset==4)  G.scene->r.subimtype |= R_JPEG2K_CINE_PRESET;
+		if (G.scene->r.jp2_preset==5)  G.scene->r.subimtype |= R_JPEG2K_CINE_PRESET|R_JPEG2K_CINE_48FPS;
+		if (G.scene->r.jp2_preset==6)  G.scene->r.subimtype |= R_JPEG2K_CINE_PRESET;
+		if (G.scene->r.jp2_preset==7)  G.scene->r.subimtype |= R_JPEG2K_CINE_PRESET|R_JPEG2K_CINE_48FPS;
+		
+	}	
+#endif
+	
 	uiDefButS(block, NUM,B_FRAMEMAP,"FPS:",   968,yofs,75,20, &G.scene->r.frs_sec, 1.0, 120.0, 100.0, 0, "Frames per second");
 	uiDefButF(block, NUM,B_FRAMEMAP,"/",  1043,yofs,75,20, &G.scene->r.frs_sec_base, 1.0, 120.0, 0.1, 3, "Frames per second base");
 

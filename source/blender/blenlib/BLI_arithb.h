@@ -241,6 +241,7 @@ int VecLen(int *v1, int *v2);
 float VecLenf(float *v1, float *v2);
 float VecLength(float *v);
 void VecMulf(float *v1, float f);
+void VecNegf(float *v1);
 
 int VecLenCompare(float *v1, float *v2, float limit);
 int VecCompare(float *v1, float *v2, float limit);

@@ -126,7 +126,7 @@ protected:
 	void ExtractFrustumSphere();
 public:
 
-	typedef enum { INSIDE, INTERSECT, OUTSIDE } ;
+	enum { INSIDE, INTERSECT, OUTSIDE } ;
 
 	KX_Camera(void* sgReplicationInfo,SG_Callbacks callbacks,const RAS_CameraData& camdata, bool frustum_culling = true, PyTypeObject *T = &Type);
 	virtual ~KX_Camera();
@@ -257,21 +257,21 @@ public:
 	int GetViewportTop() const;
 
 
-	KX_PYMETHOD_DOC(KX_Camera, sphereInsideFrustum);
-	KX_PYMETHOD_DOC(KX_Camera, boxInsideFrustum);
-	KX_PYMETHOD_DOC(KX_Camera, pointInsideFrustum);
+	KX_PYMETHOD_DOC_VARARGS(KX_Camera, sphereInsideFrustum);
+	KX_PYMETHOD_DOC_O(KX_Camera, boxInsideFrustum);
+	KX_PYMETHOD_DOC_O(KX_Camera, pointInsideFrustum);
 	
-	KX_PYMETHOD_DOC(KX_Camera, getCameraToWorld);
-	KX_PYMETHOD_DOC(KX_Camera, getWorldToCamera);
-	KX_PYMETHOD_DOC(KX_Camera, getProjectionMatrix);
-	KX_PYMETHOD_DOC(KX_Camera, setProjectionMatrix);
+	KX_PYMETHOD_DOC_NOARGS(KX_Camera, getCameraToWorld);
+	KX_PYMETHOD_DOC_NOARGS(KX_Camera, getWorldToCamera);
+	KX_PYMETHOD_DOC_NOARGS(KX_Camera, getProjectionMatrix);
+	KX_PYMETHOD_DOC_O(KX_Camera, setProjectionMatrix);
 	
-	KX_PYMETHOD_DOC(KX_Camera, enableViewport);
-	KX_PYMETHOD_DOC(KX_Camera, setViewport);	
-	KX_PYMETHOD_DOC(KX_Camera, setOnTop);	
+	KX_PYMETHOD_DOC_O(KX_Camera, enableViewport);
+	KX_PYMETHOD_DOC_VARARGS(KX_Camera, setViewport);	
+	KX_PYMETHOD_DOC_NOARGS(KX_Camera, setOnTop);	
 
-	virtual PyObject* _getattr(const STR_String& attr); /* lens, near, far, projection_matrix */
-	virtual int       _setattr(const STR_String& attr, PyObject *pyvalue);
+	virtual PyObject* _getattr(const char *attr); /* lens, near, far, projection_matrix */
+	virtual int       _setattr(const char *attr, PyObject *pyvalue);
 
 };
 

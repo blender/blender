@@ -123,6 +123,50 @@ class KX_GameObject:
 		@return: The game object's rotation matrix
 		@note: When using this matrix with Blender.Mathutils.Matrix() types, it will need to be transposed.
 		"""
+	def applyMovement(movement, local = 0):
+		"""
+		Sets the game object's movement.
+		
+		@type movement: 3d vector.
+		@param movement: movement vector.
+		@type local: boolean
+		@param local: - False: you get the "global" movement ie: relative to world orientation (default).
+		              - True: you get the "local" movement ie: relative to object orientation.
+		"""	
+	def applyRotation(movement, local = 0):
+		"""
+		Sets the game object's rotation.
+		
+		@type rotation: 3d vector.
+		@param rotation: rotation vector.
+		@type local: boolean
+		@param local: - False: you get the "global" rotation ie: relative to world orientation (default).
+					  - True: you get the "local" rotation ie: relative to object orientation.
+		"""	
+	def applyForce(force, local = 0):
+		"""
+		Sets the game object's force.
+		
+		This requires a dynamic object.
+		
+		@type force: 3d vector.
+		@param force: force vector.
+		@type local: boolean
+		@param local: - False: you get the "global" force ie: relative to world orientation (default).
+					  - True: you get the "local" force ie: relative to object orientation.
+		"""	
+	def applyTorque(torque, local = 0):
+		"""
+		Sets the game object's torque.
+		
+		This requires a dynamic object.
+		
+		@type torque: 3d vector.
+		@param torque: torque vector.
+		@type local: boolean
+		@param local: - False: you get the "global" torque ie: relative to world orientation (default).
+					  - True: you get the "local" torque ie: relative to object orientation.
+		"""
 	def getLinearVelocity(local = 0):
 		"""
 		Gets the game object's linear velocity.
@@ -143,6 +187,8 @@ class KX_GameObject:
 		This method sets game object's velocity through it's centre of mass,
 		ie no angular velocity component.
 		
+		This requires a dynamic object.
+		
 		@type velocity: 3d vector.
 		@param velocity: linear velocity vector.
 		@type local: boolean
@@ -162,6 +208,8 @@ class KX_GameObject:
 	def setAngularVelocity(velocity, local = 0):
 		"""
 		Sets the game object's angular velocity.
+		
+		This requires a dynamic object.
 		
 		@type velocity: 3d vector.
 		@param velocity: angular velocity vector.

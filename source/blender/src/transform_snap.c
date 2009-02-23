@@ -1186,10 +1186,21 @@ int snapObjects(int *dist, float *loc, float *no, int mode) {
 					Object *ob = dupli_ob->ob;
 					
 					if (ob->type == OB_MESH) {
-						DerivedMesh *dm = mesh_get_derived_final(ob, CD_MASK_BAREMESH);
+						DerivedMesh *dm;
+						int editmesh = 0;
 						int val;
 						
-						val = snapDerivedMesh(ob, dm, dupli_ob->mat, ray_start, ray_normal, mval, loc, no, dist, &depth, 0);
+						if (ob == G.obedit)
+						{
+							dm = editmesh_get_derived_cage(CD_MASK_BAREMESH);
+							editmesh = 1;
+						}
+						else
+						{
+							dm = mesh_get_derived_final(ob, CD_MASK_BAREMESH);
+						}
+						
+						val = snapDerivedMesh(ob, dm, dupli_ob->mat, ray_start, ray_normal, mval, loc, no, dist, &depth, editmesh);
 	
 						retval = retval || val;
 	

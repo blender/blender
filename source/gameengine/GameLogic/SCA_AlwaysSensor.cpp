@@ -135,7 +135,7 @@ PyMethodDef SCA_AlwaysSensor::Methods[] = {
 	{NULL,NULL} //Sentinel
 };
 
-PyObject* SCA_AlwaysSensor::_getattr(const STR_String& attr) {
+PyObject* SCA_AlwaysSensor::_getattr(const char *attr) {
 	_getattr_up(SCA_ISensor);
 }
 

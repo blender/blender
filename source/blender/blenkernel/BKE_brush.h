@@ -53,6 +53,7 @@ int brush_clone_image_delete(struct Brush *brush);
 
 /* sampling */
 float brush_sample_falloff(struct Brush *brush, float dist);
+float brush_sample_falloff_noalpha(struct Brush *brush, float dist);
 void brush_sample_tex(struct Brush *brush, float *xy, float *rgba);
 void brush_imbuf_new(struct Brush *brush, short flt, short texfalloff, int size,
 	struct ImBuf **imbuf);

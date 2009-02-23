@@ -30,16 +30,16 @@
 
 
 static bNodeSocketType inputs[]= {
-	{	SOCK_VALUE, 1, "Hue",			0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-	{	SOCK_VALUE, 1, "Saturation",		1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 2.0f},
-	{	SOCK_VALUE, 1, "Value",			1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 2.0f},
-	{	SOCK_VALUE, 1, "Fac",			1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-	{	SOCK_RGBA, 1, "Color",			0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
-	{	-1, 0, ""	}
+	{ SOCK_VALUE, 1, "Hue",        0.0f, 0.0f, 0.0f, 0.0f, -0.5f, 0.5f },
+	{ SOCK_VALUE, 1, "Saturation", 1.0f, 0.0f, 0.0f, 0.0f,  0.0f, 2.0f },
+	{ SOCK_VALUE, 1, "Value",      1.0f, 0.0f, 0.0f, 0.0f,  0.0f, 2.0f },
+	{ SOCK_VALUE, 1, "Factor",     1.0f, 0.0f, 0.0f, 0.0f,  0.0f, 1.0f },
+	{ SOCK_RGBA,  1, "Color",      0.8f, 0.8f, 0.8f, 1.0f,  0.0f, 1.0f },
+	{ -1, 0, "" }
 };
 static bNodeSocketType outputs[]= {
-	{	SOCK_RGBA, 0, "Color",			0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
-	{	-1, 0, ""	}
+	{ SOCK_RGBA, 0, "Color",       0.0f, 0.0f, 0.0f, 1.0f,  0.0f, 1.0f },
+	{ -1, 0, "" }
 };
 
 static void do_hue_sat_fac(bNode *node, float *out, float hue, float sat, float val, float *in, float fac)
@@ -67,15 +67,19 @@ static void do_hue_sat_fac(bNode *node, float *out, float hue, float sat, float 
 
 static void colorfn(float *out, float *coord, bNode *node, bNodeStack **in, short thread)
 {	
-	float in0 = tex_input_value(in[0], coord, thread);
-	float in1 = tex_input_value(in[1], coord, thread);
-	float in2 = tex_input_value(in[2], coord, thread);
-	float in3 = tex_input_value(in[3], coord, thread);
+	float hue = tex_input_value(in[0], coord, thread);
+	float sat = tex_input_value(in[1], coord, thread);
+	float val = tex_input_value(in[2], coord, thread);
+	float fac = tex_input_value(in[3], coord, thread);
 	
-	float in4[4];
-	tex_input_rgba(in4, in[4], coord, thread);
+	float col[4];
+	tex_input_rgba(col, in[4], coord, thread);
 	
-	do_hue_sat_fac(node, out, in0, in1, in2, in4, in3);
+	hue += 0.5f; /* [-.5, .5] -> [0, 1] */
+	
+	do_hue_sat_fac(node, out, hue, sat, val, col, fac);
+	
+	out[3] = col[3];
 }
 
 static void exec(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
