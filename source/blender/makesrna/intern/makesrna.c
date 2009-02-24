@@ -1285,6 +1285,7 @@ RNAProcessItem PROCESS_ITEMS[]= {
 	{"rna_sequence.c", RNA_def_sequence},
 	{"rna_space.c", RNA_def_space},
 	{"rna_text.c", RNA_def_text},
+	{"rna_timeline.c", RNA_def_timeline_marker},
 	{"rna_sound.c", RNA_def_sound},
 	{"rna_userdef.c", RNA_def_userdef},
 	{"rna_vfont.c", RNA_def_vfont},

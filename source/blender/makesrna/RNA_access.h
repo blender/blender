@@ -252,6 +252,7 @@ extern StructRNA RNA_ThemeTimeline;
 extern StructRNA RNA_ThemeUserInterface;
 extern StructRNA RNA_ThemeUserPreferences;
 extern StructRNA RNA_ThemeView3D;
+extern StructRNA RNA_TimelineMarker;
 extern StructRNA RNA_ToolSettings;
 extern StructRNA RNA_TouchSensor;
 extern StructRNA RNA_TransformSequence;
