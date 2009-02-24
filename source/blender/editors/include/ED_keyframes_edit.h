@@ -134,6 +134,12 @@ void duplicate_fcurve_keys(struct FCurve *fcu);
 void clean_fcurve(struct FCurve *fcu, float thresh);
 void smooth_fcurve(struct FCurve *fcu);
 
+/* ----------- */
+
+void free_anim_copybuf(void);
+short copy_animedit_keys(struct bAnimContext *ac, ListBase *anim_data);
+short paste_animedit_keys(struct bAnimContext *ac, ListBase *anim_data);
+
 /* ************************************************ */
 
 #endif /* ED_KEYFRAMES_EDIT_H */

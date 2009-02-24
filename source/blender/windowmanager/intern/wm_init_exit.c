@@ -170,7 +170,7 @@ extern wchar_t *copybuf;
 extern wchar_t *copybufinfo;
 
 	// XXX copy/paste buffer stuff...
-extern void free_actcopybuf(); 
+extern void free_anim_copybuf(); 
 
 /* called in creator.c even... tsk, split this! */
 void WM_exit(bContext *C)
@@ -220,8 +220,7 @@ void WM_exit(bContext *C)
 	ED_preview_free_dbase();	/* frees a Main dbase, before free_blender! */
 	free_blender();				/* blender.c, does entire library and spacetypes */
 //	free_matcopybuf();
-//	free_ipocopybuf();
-	free_actcopybuf();
+	free_anim_copybuf();
 //	free_vertexpaint();
 //	free_imagepaint();
 	

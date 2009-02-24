@@ -236,255 +236,42 @@ void ACT_OT_view_all (wmOperatorType *ot)
 /* GENERAL STUFF */
 
 /* ******************** Copy/Paste Keyframes Operator ************************* */
-/* - The copy/paste buffer currently stores a set of temporary F-Curves containing only the keyframes 
- *   that were selected in each of the original F-Curves
- * - All pasted frames are offset by the same amount. This is calculated as the difference in the times of
- *	the current frame and the 'first keyframe' (i.e. the earliest one in all channels).
- * - The earliest frame is calculated per copy operation.
- */
+/* NOTE: the backend code for this is shared with the graph editor */
 
-/* globals for copy/paste data (like for other copy/paste buffers) */
-ListBase actcopybuf = {NULL, NULL};
-static float actcopy_firstframe= 999999999.0f;
-
-/* This function frees any MEM_calloc'ed copy/paste buffer data */
-// XXX find some header to put this in!
-void free_actcopybuf ()
-{
-	FCurve *fcu, *fcn;
-	
-	/* free_fcurve() frees F-Curve memory too, but we don't need to do remlink first, as we're freeing all 
-	 * channels anyway, and the freeing func only cares about the data it's given
-	 */
-	for (fcu= actcopybuf.first; fcu; fcu= fcn) {
-		fcn= fcu->next;
-		free_fcurve(fcu);
-	}
-	
-	actcopybuf.first= actcopybuf.last= NULL;
-	actcopy_firstframe= 999999999.0f;
-}
-
-/* ------------------- */
-
-/* This function adds data to the copy/paste buffer, freeing existing data first
- * Only the selected action channels gets their selected keyframes copied.
- */
 static short copy_action_keys (bAnimContext *ac)
 {	
 	ListBase anim_data = {NULL, NULL};
-	bAnimListElem *ale;
-	int filter;
+	int filter, ok=0;
 	
 	/* clear buffer first */
-	free_actcopybuf();
+	free_anim_copybuf();
 	
 	/* filter data */
 	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_SEL | ANIMFILTER_CURVESONLY);
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
-	/* assume that each of these is an ipo-block */
-	for (ale= anim_data.first; ale; ale= ale->next) {
-#if 0
-		bActionChannel *achan;
-		Ipo *ipo= ale->key_data;
-		Ipo *ipn;
-		IpoCurve *icu, *icn;
-		BezTriple *bezt;
-		int i;
-		
-		/* coerce an action-channel out of owner */
-		if (ale->ownertype == ANIMTYPE_ACHAN) {
-			bActionChannel *achanO= ale->owner;
-			achan= MEM_callocN(sizeof(bActionChannel), "ActCopyPasteAchan");
-			strcpy(achan->name, achanO->name);
-		}
-		else if (ale->ownertype == ANIMTYPE_SHAPEKEY) {
-			achan= MEM_callocN(sizeof(bActionChannel), "ActCopyPasteAchan");
-			strcpy(achan->name, "#ACP_ShapeKey");
-		}
-		else
-			continue;
-		BLI_addtail(&actcopybuf, achan);
-		
-		/* add constraint channel if needed, then add new ipo-block */
-		if (ale->type == ANIMTYPE_CONCHAN) {
-			bConstraintChannel *conchanO= ale->data;
-			bConstraintChannel *conchan;
-			
-			conchan= MEM_callocN(sizeof(bConstraintChannel), "ActCopyPasteConchan");
-			strcpy(conchan->name, conchanO->name);
-			BLI_addtail(&achan->constraintChannels, conchan);
-			
-			conchan->ipo= ipn= MEM_callocN(sizeof(Ipo), "ActCopyPasteIpo");
-		}
-		else {
-			achan->ipo= ipn= MEM_callocN(sizeof(Ipo), "ActCopyPasteIpo");
-		}
-		ipn->blocktype = ipo->blocktype;
-		
-		/* now loop through curves, and only copy selected keyframes */
-		for (icu= ipo->curve.first; icu; icu= icu->next) {
-			/* allocate a new curve */
-			icn= MEM_callocN(sizeof(IpoCurve), "ActCopyPasteIcu");
-			icn->blocktype = icu->blocktype;
-			icn->adrcode = icu->adrcode;
-			BLI_addtail(&ipn->curve, icn);
-			
-			/* find selected BezTriples to add to the buffer (and set first frame) */
-			for (i=0, bezt=icu->bezt; i < icu->totvert; i++, bezt++) {
-				if (BEZSELECTED(bezt)) {
-					/* add to buffer ipo-curve */
-					//insert_bezt_icu(icn, bezt); // XXX
-					
-					/* check if this is the earliest frame encountered so far */
-					if (bezt->vec[1][0] < actcopy_firstframe)
-						actcopy_firstframe= bezt->vec[1][0];
-				}
-			}
-		}
-#endif
-		//FCurve *fcu= (FCurve *)ale->key_data;
-		//FCurve *fcn;
-		//BezTriple *bezt;
-		//int i;
-		
-		
-	}
+	/* copy keyframes */
+	ok= copy_animedit_keys(ac, &anim_data);
 	
-	/* check if anything ended up in the buffer */
-	if (ELEM(NULL, actcopybuf.first, actcopybuf.last))
-		return -1;
-	
-	/* free temp memory */
+	/* clean up */
 	BLI_freelistN(&anim_data);
-	
-	/* everything went fine */
-	return 0;
 }
 
+
 static short paste_action_keys (bAnimContext *ac)
-{
-#if 0 // XXX old animation system
+{	
 	ListBase anim_data = {NULL, NULL};
-	bAnimListElem *ale;
-	int filter;
-	
-	const Scene *scene= (ac->scene);
-	const float offset = (float)(CFRA - actcopy_firstframe);
-	char *actname = NULL, *conname = NULL;
-	short no_name= 0;
-	
-	/* check if buffer is empty */
-	if (ELEM(NULL, actcopybuf.first, actcopybuf.last)) {
-		//error("No data in buffer to paste");
-		return -1;
-	}
-	/* check if single channel in buffer (disregard names if so)  */
-	if (actcopybuf.first == actcopybuf.last)
-		no_name= 1;
+	int filter, ok=0;
 	
 	/* filter data */
-	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_SEL | ANIMFILTER_FOREDIT | ANIMFILTER_IPOKEYS);
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_SEL | ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY);
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
-	/* from selected channels */
-	for (ale= anim_data.first; ale; ale= ale->next) {
-		Ipo *ipo_src = NULL;
-		bActionChannel *achan;
-		IpoCurve *ico, *icu;
-		BezTriple *bezt;
-		int i;
-		
-		/* find suitable IPO-block from buffer to paste from */
-		for (achan= actcopybuf.first; achan; achan= achan->next) {
-			/* try to match data */
-			if (ale->ownertype == ANIMTYPE_ACHAN) {
-				bActionChannel *achant= ale->owner;
-				
-				/* check if we have a corresponding action channel */
-				if ((no_name) || (strcmp(achan->name, achant->name)==0)) {
-					actname= achant->name;
-					
-					/* check if this is a constraint channel */
-					if (ale->type == ANIMTYPE_CONCHAN) {
-						bConstraintChannel *conchant= ale->data;
-						bConstraintChannel *conchan;
-						
-						for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next) {
-							if (strcmp(conchan->name, conchant->name)==0) {
-								conname= conchant->name;
-								ipo_src= conchan->ipo;
-								break;
-							}
-						}
-						if (ipo_src) break;
-					}
-					else {
-						ipo_src= achan->ipo;
-						break;
-					}
-				}
-			}
-			else if (ale->ownertype == ANIMTYPE_SHAPEKEY) {
-				/* check if this action channel is "#ACP_ShapeKey" */
-				if ((no_name) || (strcmp(achan->name, "#ACP_ShapeKey")==0)) {
-					actname= NULL;
-					ipo_src= achan->ipo;
-					break;
-				}
-			}	
-		}
-		
-		/* this shouldn't happen, but it might */
-		if (ipo_src == NULL)
-			continue;
-		
-		/* loop over curves, pasting keyframes */
-		for (ico= ipo_src->curve.first; ico; ico= ico->next) {
-			/* get IPO-curve to paste to (IPO-curve might not exist for destination, so gets created) */
-			//icu= verify_ipocurve(ale->id, ico->blocktype, actname, conname, NULL, ico->adrcode, 1);
-			
-			
-			if (icu) {
-				/* just start pasting, with the the first keyframe on the current frame, and so on */
-				for (i=0, bezt=ico->bezt; i < ico->totvert; i++, bezt++) {						
-					/* temporarily apply offset to src beztriple while copying */
-					bezt->vec[0][0] += offset;
-					bezt->vec[1][0] += offset;
-					bezt->vec[2][0] += offset;
-					
-					/* insert the keyframe */
-					//insert_bezt_icu(icu, bezt); // XXX
-					
-					/* un-apply offset from src beztriple after copying */
-					bezt->vec[0][0] -= offset;
-					bezt->vec[1][0] -= offset;
-					bezt->vec[2][0] -= offset;
-				}
-				
-				/* recalculate channel's handles? */
-				//calchandles_fcurve(fcu);
-			}
-		}
-	}
+	/* paste keyframes */
+	ok= paste_animedit_keys(ac, &anim_data);
 	
-	/* free temp memory */
+	/* clean up */
 	BLI_freelistN(&anim_data);
-	
-	/* do depsgraph updates (for 3d-view)? */
-#if 0
-	if ((ob) && (G.saction->pin==0)) {
-		if (ob->type == OB_ARMATURE)
-			DAG_object_flush_update(G.scene, ob, OB_RECALC_OB|OB_RECALC_DATA);
-		else
-			DAG_object_flush_update(G.scene, ob, OB_RECALC_OB);
-	}
-#endif
-
-#endif // XXX old animation system
-
-	return 0;
 }
 
 /* ------------------- */
@@ -581,88 +368,6 @@ EnumPropertyItem prop_actkeys_insertkey_types[] = {
 	{3, "GROUP", "In Active Group", ""}, // xxx not in all cases
 	{0, NULL, NULL, NULL}
 };
-
-#if 0
-void insertkey_action(void)
-{
-	void *data;
-	short datatype;
-	
-	short mode;
-	float cfra;
-	
-	/* get data */
-	data= get_action_context(&datatype);
-	if (data == NULL) return;
-	cfra = frame_to_float(CFRA);
-	
-	if (ELEM(datatype, ACTCONT_ACTION, ACTCONT_DOPESHEET)) {
-		ListBase act_data = {NULL, NULL};
-		bActListElem *ale;
-		int filter;
-		
-		/* ask user what to keyframe */
-		if (datatype == ACTCONT_ACTION)
-			mode = pupmenu("Insert Key%t|All Channels%x1|Only Selected Channels%x2|In Active Group%x3");
-		else
-			mode = pupmenu("Insert Key%t|All Channels%x1|Only Selected Channels%x2");
-		if (mode <= 0) return;
-		
-		/* filter data */
-		filter= (ACTFILTER_VISIBLE | ACTFILTER_FOREDIT | ACTFILTER_ONLYICU );
-		if (mode == 2) 			filter |= ACTFILTER_SEL;
-		else if (mode == 3) 	filter |= ACTFILTER_ACTGROUPED;
-		
-		actdata_filter(&act_data, filter, data, datatype);
-		
-		/* loop through ipo curves retrieved */
-		for (ale= act_data.first; ale; ale= ale->next) {
-			/* verify that this is indeed an ipo curve */
-			if ((ale->key_data) && ((ale->owner) || (ale->id))) {
-				bActionChannel *achan= (ale->ownertype==ACTTYPE_ACHAN) ? ((bActionChannel *)ale->owner) : (NULL);
-				bConstraintChannel *conchan= (ale->type==ACTTYPE_CONCHAN) ? ale->data : NULL;
-				IpoCurve *icu= (IpoCurve *)ale->key_data;
-				ID *id= NULL;
-				
-				if (datatype == ACTCONT_ACTION) {
-					if (ale->owner) 
-						id= ale->owner;
-				}
-				else if (datatype == ACTCONT_DOPESHEET) {
-					if (ale->id)
-						id= ale->id;
-				}
-				
-				if (id)
-					insertkey(id, icu->blocktype, ((achan)?(achan->name):(NULL)), ((conchan)?(conchan->name):(NULL)), icu->adrcode, 0);
-				else
-					insert_vert_icu(icu, cfra, icu->curval, 0);
-			}
-		}
-		
-		/* cleanup */
-		BLI_freelistN(&act_data);
-	}
-	else if (datatype == ACTCONT_SHAPEKEY) {
-		Key *key= (Key *)data;
-		IpoCurve *icu;
-		
-		/* ask user if they want to insert a keyframe */
-		mode = okee("Insert Keyframe?");
-		if (mode <= 0) return;
-		
-		if (key->ipo) {
-			for (icu= key->ipo->curve.first; icu; icu=icu->next) {
-				insert_vert_icu(icu, cfra, icu->curval, 0);
-			}
-		}
-	}
-	else {
-		/* this tool is not supported in this mode */
-		return;
-	}
-}
-#endif
 
 /* this function is responsible for snapping keyframes to frame-times */
 static void insert_action_keys(bAnimContext *ac, short mode) 
