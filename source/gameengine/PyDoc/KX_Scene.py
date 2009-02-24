@@ -39,6 +39,8 @@ class KX_Scene:
 		
 	@ivar name: The scene's name
 	@type name: string
+	@type objects: A list of objects in the scene.
+	@type objects: list [L{KX_GameObject}]
 	@ivar active_camera: The current active camera
 	@type active_camera: L{KX_Camera}
 	@ivar suspended: True if the scene is suspended.

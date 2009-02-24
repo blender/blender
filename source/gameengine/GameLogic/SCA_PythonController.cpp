@@ -157,8 +157,40 @@ static const char* sPyGetCurrentController__doc__;
 
 PyObject* SCA_PythonController::sPyGetCurrentController(PyObject* self)
 {
-	m_sCurrentController->AddRef();
-	return m_sCurrentController;
+	return m_sCurrentController->AddRef();
+}
+
+SCA_IActuator* SCA_PythonController::LinkedActuatorFromPy(PyObject *value)
+{
+	// for safety, todo: only allow for registered actuators (pointertable)
+	// we don't want to crash gameengine/blender by python scripts
+	std::vector<SCA_IActuator*> lacts =  m_sCurrentController->GetLinkedActuators();
+	std::vector<SCA_IActuator*>::iterator it;
+	
+	if (PyString_Check(value)) {
+		/* get the actuator from the name */
+		char *name= PyString_AsString(value);
+		for(it = lacts.begin(); it!= lacts.end(); it++) {
+			if( name == (*it)->GetName() ) {
+				return *it;
+			}
+		}
+	}
+	else {
+		/* Expecting an actuator type */
+		for(it = lacts.begin(); it!= lacts.end(); it++) {
+			if( static_cast<SCA_IActuator*>(value) == (*it) ) {
+				return *it;
+			}
+		}
+	}
+	
+	/* set the exception */
+	PyObject *value_str = PyObject_Repr(value); /* new ref */
+	PyErr_Format(PyExc_ValueError, "'%s' not in this controllers actuator list", PyString_AsString(value_str));
+	Py_DECREF(value_str);
+	
+	return false;
 }
 
 #if 0
@@ -175,26 +207,14 @@ PyObject* SCA_PythonController::sPyAddActiveActuator(
 	int activate;
 	if (!PyArg_ParseTuple(args, "Oi", &ob1,&activate))
 		return NULL;
-
-	// for safety, todo: only allow for registered actuators (pointertable)
-	// we don't want to crash gameengine/blender by python scripts
-	std::vector<SCA_IActuator*> lacts =  m_sCurrentController->GetLinkedActuators();
 	
-	std::vector<SCA_IActuator*>::iterator it;
-	bool found = false;
-	CValue* act = (CValue*)ob1;
-
-	for(it = lacts.begin(); it!= lacts.end(); it++) {
-		if( static_cast<SCA_IActuator*>(act) == (*it) ) {
-			found=true;
-			break;
-		}
-	}
-	if(found){
-		CValue* boolval = new CBoolValue(activate!=0);
-		m_sCurrentLogicManager->AddActiveActuator((SCA_IActuator*)act,boolval);
-		boolval->Release();
-	}
+	SCA_IActuator* actu = LinkedActuatorFromPy(ob1);
+	if(actu==NULL)
+		return NULL;
+	
+	CValue* boolval = new CBoolValue(activate!=0);
+	m_sCurrentLogicManager->AddActiveActuator((SCA_IActuator*)actu,boolval);
+	boolval->Release();
 	Py_RETURN_NONE;
 }
 
@@ -229,6 +249,9 @@ PyParentObject SCA_PythonController::Parents[] = {
 	NULL
 };
 PyMethodDef SCA_PythonController::Methods[] = {
+	{"activate", (PyCFunction) SCA_PythonController::sPyActivate, METH_O},
+	{"deactivate", (PyCFunction) SCA_PythonController::sPyDeActivate, METH_O},
+	
 	{"getActuators", (PyCFunction) SCA_PythonController::sPyGetActuators, METH_NOARGS, (PY_METHODCHAR)SCA_PythonController::GetActuators_doc},
 	{"getActuator", (PyCFunction) SCA_PythonController::sPyGetActuator, METH_O, (PY_METHODCHAR)SCA_PythonController::GetActuator_doc},
 	{"getSensors", (PyCFunction) SCA_PythonController::sPyGetSensors, METH_NOARGS, (PY_METHODCHAR)SCA_PythonController::GetSensors_doc},
@@ -380,6 +403,29 @@ int SCA_PythonController::_setattr(const char *attr, PyObject *value)
 	return SCA_IController::_setattr(attr, value);
 }
 
+PyObject* SCA_PythonController::PyActivate(PyObject* self, PyObject *value)
+{
+	SCA_IActuator* actu = LinkedActuatorFromPy(value);
+	if(actu==NULL)
+		return NULL;
+	
+	CValue* boolval = new CBoolValue(true);
+	m_sCurrentLogicManager->AddActiveActuator((SCA_IActuator*)actu, boolval);
+	boolval->Release();
+	Py_RETURN_NONE;
+}
+
+PyObject* SCA_PythonController::PyDeActivate(PyObject* self, PyObject *value)
+{
+	SCA_IActuator* actu = LinkedActuatorFromPy(value);
+	if(actu==NULL)
+		return NULL;
+	
+	CValue* boolval = new CBoolValue(false);
+	m_sCurrentLogicManager->AddActiveActuator((SCA_IActuator*)actu, boolval);
+	boolval->Release();
+	Py_RETURN_NONE;
+}
 
 PyObject* SCA_PythonController::PyGetActuators(PyObject* self)
 {
@@ -437,8 +483,7 @@ SCA_PythonController::PyGetActuator(PyObject* self, PyObject* value)
 	for (unsigned int index=0;index<m_linkedactuators.size();index++)
 	{
 		SCA_IActuator* actua = m_linkedactuators[index];
-		STR_String realname = actua->GetName();
-		if (realname == scriptArg)
+		if (actua->GetName() == scriptArg)
 		{
 			return actua->AddRef();
 		}

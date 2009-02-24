@@ -159,7 +159,7 @@ def addActiveActuator(actuator, activate):
 	"""
 	Activates the given actuator.
 	
-	@type actuator: L{SCA_IActuator}
+	@type actuator: L{SCA_IActuator} or the actuator name as a string.
 	@type activate: boolean
 	@param activate: whether to activate or deactivate the given actuator.
 	"""
