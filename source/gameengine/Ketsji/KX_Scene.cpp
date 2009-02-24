@@ -1014,6 +1014,12 @@ void KX_Scene::ReplaceMesh(class CValue* obj,void* meshobj)
 				blendmesh->dvert!=NULL;						// mesh has vertex group
 			bool releaseParent = true;
 
+			
+			if (oldblendobj==NULL) {
+				std::cout << "warning: ReplaceMesh() new mesh is not used in an object from the current scene, you will get incorrect behavior" << std::endl;
+				bHasShapeKey= bHasDvert= bHasArmature= false;
+			}
+			
 			if (bHasShapeKey)
 			{
 				BL_ShapeDeformer* shapeDeformer;
