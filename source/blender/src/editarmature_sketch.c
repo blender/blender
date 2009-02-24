@@ -57,6 +57,8 @@
 #include "BIF_generate.h"
 #include "BIF_interface.h"
 
+#include "BIF_transform.h"
+
 #include "blendef.h"
 #include "mydevice.h"
 #include "reeb.h"
@@ -418,224 +420,6 @@ void  BIF_setTemplate(int index)
 	}
 }	
 
-/******************** PEELING *********************************/
-
-typedef struct SK_DepthPeel
-{
-	struct SK_DepthPeel *next, *prev;
-	
-	float depth;
-	float p[3];
-	float no[3];
-	Object *ob;
-	int flag;
-} SK_DepthPeel;
-
-int cmpPeel(void *arg1, void *arg2)
-{
-	SK_DepthPeel *p1 = arg1;
-	SK_DepthPeel *p2 = arg2;
-	int val = 0;
-	
-	if (p1->depth < p2->depth)
-	{
-		val = -1;
-	}
-	else if (p1->depth > p2->depth)
-	{
-		val = 1;
-	}
-	
-	return val;
-}
-
-void addDepthPeel(ListBase *depth_peels, float depth, float p[3], float no[3], Object *ob)
-{
-	SK_DepthPeel *peel = MEM_callocN(sizeof(SK_DepthPeel), "DepthPeel");
-	
-	peel->depth = depth;
-	peel->ob = ob;
-	VECCOPY(peel->p, p);
-	VECCOPY(peel->no, no);
-	
-	BLI_addtail(depth_peels, peel);
-	
-	peel->flag = 0;
-}
-
-int peelDerivedMesh(Object *ob, DerivedMesh *dm, float obmat[][4], float ray_start[3], float ray_normal[3], short mval[2], ListBase *depth_peels)
-{
-	int retval = 0;
-	int totvert = dm->getNumVerts(dm);
-	int totface = dm->getNumFaces(dm);
-	
-	if (totvert > 0) {
-		float imat[4][4];
-		float timat[3][3]; /* transpose inverse matrix for normals */
-		float ray_start_local[3], ray_normal_local[3];
-		int test = 1;
-
-		Mat4Invert(imat, obmat);
-
-		Mat3CpyMat4(timat, imat);
-		Mat3Transp(timat);
-		
-		VECCOPY(ray_start_local, ray_start);
-		VECCOPY(ray_normal_local, ray_normal);
-		
-		Mat4MulVecfl(imat, ray_start_local);
-		Mat4Mul3Vecfl(imat, ray_normal_local);
-		
-		
-		/* If number of vert is more than an arbitrary limit, 
-		 * test against boundbox first
-		 * */
-		if (totface > 16) {
-			struct BoundBox *bb = object_get_boundbox(ob);
-			test = ray_hit_boundbox(bb, ray_start_local, ray_normal_local);
-		}
-		
-		if (test == 1) {
-			MVert *verts = dm->getVertArray(dm);
-			MFace *faces = dm->getFaceArray(dm);
-			int i;
-			
-			for( i = 0; i < totface; i++) {
-				MFace *f = faces + i;
-				float lambda;
-				int result;
-				
-				
-				result = RayIntersectsTriangle(ray_start_local, ray_normal_local, verts[f->v1].co, verts[f->v2].co, verts[f->v3].co, &lambda, NULL);
-				
-				if (result) {
-					float location[3], normal[3];
-					float intersect[3];
-					float new_depth;
-					
-					VECCOPY(intersect, ray_normal_local);
-					VecMulf(intersect, lambda);
-					VecAddf(intersect, intersect, ray_start_local);
-					
-					VECCOPY(location, intersect);
-					
-					if (f->v4)
-						CalcNormFloat4(verts[f->v1].co, verts[f->v2].co, verts[f->v3].co, verts[f->v4].co, normal);
-					else
-						CalcNormFloat(verts[f->v1].co, verts[f->v2].co, verts[f->v3].co, normal);
-
-					Mat4MulVecfl(obmat, location);
-					
-					new_depth = VecLenf(location, ray_start);					
-					
-					Mat3MulVecfl(timat, normal);
-					Normalize(normal);
-
-					addDepthPeel(depth_peels, new_depth, location, normal, ob);
-				}
-		
-				if (f->v4 && result == 0)
-				{
-					result = RayIntersectsTriangle(ray_start_local, ray_normal_local, verts[f->v3].co, verts[f->v4].co, verts[f->v1].co, &lambda, NULL);
-					
-					if (result) {
-						float location[3], normal[3];
-						float intersect[3];
-						float new_depth;
-						
-						VECCOPY(intersect, ray_normal_local);
-						VecMulf(intersect, lambda);
-						VecAddf(intersect, intersect, ray_start_local);
-						
-						VECCOPY(location, intersect);
-						
-						if (f->v4)
-							CalcNormFloat4(verts[f->v1].co, verts[f->v2].co, verts[f->v3].co, verts[f->v4].co, normal);
-						else
-							CalcNormFloat(verts[f->v1].co, verts[f->v2].co, verts[f->v3].co, normal);
-
-						Mat4MulVecfl(obmat, location);
-						
-						new_depth = VecLenf(location, ray_start);					
-						
-						Mat3MulVecfl(timat, normal);
-						Normalize(normal);
-	
-						addDepthPeel(depth_peels, new_depth, location, normal, ob);
-					} 
-				}
-			}
-		}
-	}
-
-	return retval;
-} 
-
-int peelObjects(ListBase *depth_peels, short mval[2])
-{
-	Base *base;
-	int retval = 0;
-	float ray_start[3], ray_normal[3];
-	
-	viewray(mval, ray_start, ray_normal);
-
-	base= FIRSTBASE;
-	for ( base = FIRSTBASE; base != NULL; base = base->next ) {
-		if ( BASE_SELECTABLE(base) ) {
-			Object *ob = base->object;
-			
-			if (ob->transflag & OB_DUPLI)
-			{
-				DupliObject *dupli_ob;
-				ListBase *lb = object_duplilist(G.scene, ob);
-				
-				for(dupli_ob = lb->first; dupli_ob; dupli_ob = dupli_ob->next)
-				{
-					Object *ob = dupli_ob->ob;
-					
-					if (ob->type == OB_MESH) {
-						DerivedMesh *dm = mesh_get_derived_final(ob, CD_MASK_BAREMESH);
-						int val;
-						
-						val = peelDerivedMesh(ob, dm, dupli_ob->mat, ray_start, ray_normal, mval, depth_peels);
-	
-						retval = retval || val;
-	
-						dm->release(dm);
-					}
-				}
-				
-				free_object_duplilist(lb);
-			}
-			
-			if (ob->type == OB_MESH) {
-				DerivedMesh *dm = NULL;
-				int val;
-
-				if (ob != G.obedit)
-				{
-					dm = mesh_get_derived_final(ob, CD_MASK_BAREMESH);
-					
-					val = peelDerivedMesh(ob, dm, ob->obmat, ray_start, ray_normal, mval, depth_peels);
-				}
-				else
-				{
-					dm = editmesh_get_derived_cage(CD_MASK_BAREMESH);
-					
-					val = peelDerivedMesh(ob, dm, ob->obmat, ray_start, ray_normal, mval, depth_peels);
-				}
-					
-				retval = retval || val;
-				
-				dm->release(dm);
-			}
-		}
-	}
-	
-	BLI_sortlist(depth_peels, cmpPeel);
-	
-	return retval;
-}
 /*********************** CONVERSION ***************************/
 
 void sk_autoname(ReebArc *arc)
@@ -1086,6 +870,8 @@ void sk_filterStroke(SK_Stroke *stk, int start, int end)
 	SK_Point *old_points = stk->points;
 	int nb_points = stk->nb_points;
 	int i, j;
+	
+	return;
 	
 	if (start == -1)
 	{
@@ -1783,98 +1569,119 @@ int sk_addStrokeSnapPoint(SK_Sketch *sketch, SK_Stroke *stk, SK_DrawData *dd)
 
 int sk_getStrokeEmbedPoint(SK_Point *pt, SK_Sketch *sketch, SK_Stroke *stk, SK_DrawData *dd)
 {
-	ListBase depth_peels;
-	SK_DepthPeel *p1, *p2;
-	float *last_p = NULL;
-	float dist = FLT_MAX;
-	float p[3];
 	int point_added = 0;
-	
-	depth_peels.first = depth_peels.last = NULL;
-	
-	peelObjects(&depth_peels, dd->mval);
-	
-	if (stk->nb_points > 0 && stk->points[stk->nb_points - 1].type == PT_CONTINUOUS)
-	{
-		last_p = stk->points[stk->nb_points - 1].p;
-	}
-	else if (LAST_SNAP_POINT_VALID)
-	{
-		last_p = LAST_SNAP_POINT;
-	}
-	
-	
-	for (p1 = depth_peels.first; p1; p1 = p1->next)
-	{
-		if (p1->flag == 0)
-		{
-			float vec[3];
-			float new_dist;
-			
-			p2 = NULL;
-			p1->flag = 1;
 
-			/* if peeling objects, take the first and last from each object */			
-			if (G.scene->snap_flag & SCE_SNAP_PEEL_OBJECT)
+	if (G.scene->snap_mode == SCE_SNAP_MODE_VOLUME)
+	{
+		ListBase depth_peels;
+		DepthPeel *p1, *p2;
+		float *last_p = NULL;
+		float dist = FLT_MAX;
+		float p[3];
+		
+		depth_peels.first = depth_peels.last = NULL;
+		
+		peelObjects(&depth_peels, dd->mval);
+		
+		if (stk->nb_points > 0 && stk->points[stk->nb_points - 1].type == PT_CONTINUOUS)
+		{
+			last_p = stk->points[stk->nb_points - 1].p;
+		}
+		else if (LAST_SNAP_POINT_VALID)
+		{
+			last_p = LAST_SNAP_POINT;
+		}
+		
+		
+		for (p1 = depth_peels.first; p1; p1 = p1->next)
+		{
+			if (p1->flag == 0)
 			{
-				SK_DepthPeel *peel;
-				for (peel = p1->next; peel; peel = peel->next)
+				float vec[3];
+				float new_dist;
+				
+				p2 = NULL;
+				p1->flag = 1;
+	
+				/* if peeling objects, take the first and last from each object */			
+				if (G.scene->snap_flag & SCE_SNAP_PEEL_OBJECT)
 				{
-					if (peel->ob == p1->ob)
+					DepthPeel *peel;
+					for (peel = p1->next; peel; peel = peel->next)
 					{
-						peel->flag = 1;
-						p2 = peel;
+						if (peel->ob == p1->ob)
+						{
+							peel->flag = 1;
+							p2 = peel;
+						}
 					}
 				}
-			}
-			/* otherwise, pair first with second and so on */
-			else
-			{
-				for (p2 = p1->next; p2 && p2->ob != p1->ob; p2 = p2->next)
+				/* otherwise, pair first with second and so on */
+				else
 				{
-					/* nothing to do here */
+					for (p2 = p1->next; p2 && p2->ob != p1->ob; p2 = p2->next)
+					{
+						/* nothing to do here */
+					}
+				}
+				
+				if (p2)
+				{
+					p2->flag = 1;
+					
+					VecAddf(vec, p1->p, p2->p);
+					VecMulf(vec, 0.5f);
+				}
+				else
+				{
+					VECCOPY(vec, p1->p);
+				}
+				
+				if (last_p == NULL)
+				{
+					VECCOPY(p, vec);
+					dist = 0;
+					break;
+				}
+				
+				new_dist = VecLenf(last_p, vec);
+				
+				if (new_dist < dist)
+				{
+					VECCOPY(p, vec);
+					dist = new_dist;
 				}
 			}
+		}
+		
+		if (dist != FLT_MAX)
+		{
+			pt->type = dd->type;
+			pt->mode = PT_EMBED;
+			VECCOPY(pt->p, p);
 			
-			if (p2)
-			{
-				p2->flag = 1;
-				
-				VecAddf(vec, p1->p, p2->p);
-				VecMulf(vec, 0.5f);
-			}
-			else
-			{
-				VECCOPY(vec, p1->p);
-			}
+			point_added = 1;
+		}
+		
+		BLI_freelistN(&depth_peels);
+	}
+	else
+	{
+		float vec[3];
+		float no[3];
+		int found = 0;
+		int dist = 40; // Use a user defined value here
+
+		found = snapObjects(&dist, vec, no, NOT_SELECTED);
+		if (found == 1)
+		{
+			pt->type = dd->type;
+			pt->mode = PT_EMBED;
+			VECCOPY(pt->p, vec);
 			
-			if (last_p == NULL)
-			{
-				VECCOPY(p, vec);
-				dist = 0;
-				break;
-			}
-			
-			new_dist = VecLenf(last_p, vec);
-			
-			if (new_dist < dist)
-			{
-				VECCOPY(p, vec);
-				dist = new_dist;
-			}
+			point_added = 1;
 		}
 	}
-	
-	if (dist != FLT_MAX)
-	{
-		pt->type = dd->type;
-		pt->mode = PT_EMBED;
-		VECCOPY(pt->p, p);
-		
-		point_added = 1;
-	}
-	
-	BLI_freelistN(&depth_peels);
 	
 	return point_added;
 }

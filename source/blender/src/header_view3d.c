@@ -5218,6 +5218,7 @@ static char *snapmode_pup(void)
 	str += sprintf(str, "%s", "|Vertex%x0");
 	str += sprintf(str, "%s", "|Edge%x1");
 	str += sprintf(str, "%s", "|Face%x2"); 
+	str += sprintf(str, "%s", "|Volume%x3"); 
 	return string;
 }
 

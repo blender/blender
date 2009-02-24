@@ -43,6 +43,7 @@
 
 #include "BLI_arithb.h"
 #include "BLI_editVert.h"
+#include "BLI_blenlib.h"
 
 #include "BDR_drawobject.h"
 
@@ -56,6 +57,8 @@
 #include "BIF_editsima.h"
 #include "BIF_drawimage.h"
 #include "BIF_editmesh.h"
+
+#include "BIF_transform.h"
 
 #include "BKE_global.h"
 #include "BKE_utildefines.h"
@@ -91,11 +94,6 @@ float RotationBetween(TransInfo *t, float p1[3], float p2[3]);
 float TranslationBetween(TransInfo *t, float p1[3], float p2[3]);
 float ResizeBetween(TransInfo *t, float p1[3], float p2[3]);
 
-/* Modes */
-#define NOT_SELECTED 0
-#define NOT_ACTIVE 1
-int snapObjects(int *dist, float *loc, float *no, int mode);
-
 
 /****************** IMPLEMENTATIONS *********************/
 
@@ -103,7 +101,7 @@ int BIF_snappingSupported(void)
 {
 	int status = 0;
 	
-	if (G.obedit == NULL || G.obedit->type==OB_MESH) /* only support object or mesh */
+	if (G.obedit == NULL || ELEM(G.obedit->type, OB_MESH, OB_ARMATURE)) /* only support object, mesh, armature */
 	{
 		status = 1;
 	}
@@ -277,7 +275,7 @@ void initSnapping(TransInfo *t)
 		/* Edit mode */
 		if (t->tsnap.applySnap != NULL && // A snapping function actually exist
 			(G.scene->snap_flag & SCE_SNAP) && // Only if the snap flag is on
-			(G.obedit != NULL && G.obedit->type==OB_MESH) && // Temporary limited to edit mode meshes
+			(G.obedit != NULL && ELEM(G.obedit->type, OB_MESH, OB_ARMATURE)) && // Temporary limited to edit mode meshes and armatures
 			((t->flag & T_PROP_EDIT) == 0) ) // No PET, obviously
 		{
 			t->tsnap.status |= SNAP_ON;
@@ -481,87 +479,167 @@ void CalcSnapGrid(TransInfo *t, float *vec)
 
 void CalcSnapGeometry(TransInfo *t, float *vec)
 {
-	/* Object mode */
-	if (G.obedit == NULL)
+	if (t->spacetype == SPACE_VIEW3D)
 	{
-		if (t->spacetype == SPACE_VIEW3D)
+		float loc[3];
+		float no[3];
+		int found = 0;
+		int dist = 40; // Use a user defined value here
+		SnapMode mode;
+		
+		if (G.scene->snap_mode == SCE_SNAP_MODE_VOLUME)
 		{
-			float vec[3];
-			float no[3];
-			int found = 0;
-			int dist = 40; // Use a user defined value here
+			ListBase depth_peels;
+			DepthPeel *p1, *p2;
+			float *last_p = NULL;
+			float dist = FLT_MAX;
+			float p[3];
+			short mval[2];
+	
+			getmouseco_areawin(mval);
 			
-			found = snapObjects(&dist, vec, no, NOT_SELECTED);
-			if (found == 1)
+			depth_peels.first = depth_peels.last = NULL;
+			
+			peelObjects(&depth_peels, mval);
+			
+//			if (stk->nb_points > 0 && stk->points[stk->nb_points - 1].type == PT_CONTINUOUS)
+//			{
+//				last_p = stk->points[stk->nb_points - 1].p;
+//			}
+//			else if (LAST_SNAP_POINT_VALID)
+//			{
+//				last_p = LAST_SNAP_POINT;
+//			}
+			
+			
+			for (p1 = depth_peels.first; p1; p1 = p1->next)
 			{
-				float tangent[3];
-				
-				VecSubf(tangent, vec, t->tsnap.snapPoint);
-				tangent[2] = 0; 
-				
-				if (Inpf(tangent, tangent) > 0)
+				if (p1->flag == 0)
 				{
-					VECCOPY(t->tsnap.snapTangent, tangent);
+					float vec[3];
+					float new_dist;
+					
+					p2 = NULL;
+					p1->flag = 1;
+		
+					/* if peeling objects, take the first and last from each object */			
+					if (G.scene->snap_flag & SCE_SNAP_PEEL_OBJECT)
+					{
+						DepthPeel *peel;
+						for (peel = p1->next; peel; peel = peel->next)
+						{
+							if (peel->ob == p1->ob)
+							{
+								peel->flag = 1;
+								p2 = peel;
+							}
+						}
+					}
+					/* otherwise, pair first with second and so on */
+					else
+					{
+						for (p2 = p1->next; p2 && p2->ob != p1->ob; p2 = p2->next)
+						{
+							/* nothing to do here */
+						}
+					}
+					
+					if (p2)
+					{
+						p2->flag = 1;
+						
+						VecAddf(vec, p1->p, p2->p);
+						VecMulf(vec, 0.5f);
+					}
+					else
+					{
+						VECCOPY(vec, p1->p);
+					}
+					
+					if (last_p == NULL)
+					{
+						VECCOPY(p, vec);
+						dist = 0;
+						break;
+					}
+					
+					new_dist = VecLenf(last_p, vec);
+					
+					if (new_dist < dist)
+					{
+						VECCOPY(p, vec);
+						dist = new_dist;
+					}
 				}
-				
-				VECCOPY(t->tsnap.snapPoint, vec);
-				VECCOPY(t->tsnap.snapNormal, no);
-
-				t->tsnap.status |=  POINT_INIT;
+			}
+			
+			if (dist != FLT_MAX)
+			{
+				VECCOPY(loc, p);
+				found = 1;
+			}
+			
+			BLI_freelistN(&depth_peels);
+		}
+		else
+		{
+			if (G.obedit == NULL)
+			{
+				mode = NOT_SELECTED;
 			}
 			else
 			{
-				t->tsnap.status &= ~POINT_INIT;
+				mode = NOT_ACTIVE;
 			}
+				
+			found = snapObjects(&dist, loc, no, NOT_SELECTED);
+		}
+		
+		if (found == 1)
+		{
+			float tangent[3];
+			
+			VecSubf(tangent, loc, t->tsnap.snapPoint);
+			tangent[2] = 0; 
+			
+			if (Inpf(tangent, tangent) > 0)
+			{
+				VECCOPY(t->tsnap.snapTangent, tangent);
+			}
+			
+			VECCOPY(t->tsnap.snapPoint, loc);
+			VECCOPY(t->tsnap.snapNormal, no);
+
+			t->tsnap.status |=  POINT_INIT;
+		}
+		else
+		{
+			t->tsnap.status &= ~POINT_INIT;
 		}
 	}
-	/* Mesh edit mode */
-	else if (G.obedit != NULL && G.obedit->type==OB_MESH)
-	{
-		if (t->spacetype == SPACE_VIEW3D)
+	else if (t->spacetype == SPACE_IMAGE && G.obedit != NULL && G.obedit->type==OB_MESH)
+	{	/* same as above but for UV's */
+		MTFace *nearesttf=NULL;
+		float aspx, aspy;
+		int face_corner;
+		
+		find_nearest_uv(&nearesttf, NULL, NULL, &face_corner);
+
+		if (nearesttf != NULL)
 		{
-			float vec[3];
-			float no[3];
-			int found = 0;
-			int dist = 40; // Use a user defined value here
+			VECCOPY2D(t->tsnap.snapPoint, nearesttf->uv[face_corner]);
 
-			found = snapObjects(&dist, vec, no, NOT_ACTIVE);
-			if (found == 1)
-			{
-				VECCOPY(t->tsnap.snapPoint, vec);
-				VECCOPY(t->tsnap.snapNormal, no);
-				
-				t->tsnap.status |=  POINT_INIT;
-			}
-			else
-			{
-				t->tsnap.status &= ~POINT_INIT;
-			}
-		}
-		else if (t->spacetype == SPACE_IMAGE)
-		{	/* same as above but for UV's */
-			MTFace *nearesttf=NULL;
-			float aspx, aspy;
-			int face_corner;
+			transform_aspect_ratio_tface_uv(&aspx, &aspy);
+			t->tsnap.snapPoint[0] *= aspx;
+			t->tsnap.snapPoint[1] *= aspy;
+
+			//Mat4MulVecfl(G.obedit->obmat, t->tsnap.snapPoint);
 			
-			find_nearest_uv(&nearesttf, NULL, NULL, &face_corner);
-
-			if (nearesttf != NULL)
-			{
-				VECCOPY2D(t->tsnap.snapPoint, nearesttf->uv[face_corner]);
-
-				transform_aspect_ratio_tface_uv(&aspx, &aspy);
-				t->tsnap.snapPoint[0] *= aspx;
-				t->tsnap.snapPoint[1] *= aspy;
-
-				//Mat4MulVecfl(G.obedit->obmat, t->tsnap.snapPoint);
-				
-				t->tsnap.status |=  POINT_INIT;
-			}
-			else
-			{
-				t->tsnap.status &= ~POINT_INIT;
-			}
+			t->tsnap.status |=  POINT_INIT;
+		}
+		else
+		{
+			t->tsnap.status &= ~POINT_INIT;
 		}
 	}
 }
@@ -824,7 +902,7 @@ int snapDerivedMesh(Object *ob, DerivedMesh *dm, float obmat[][4], float ray_sta
 						
 						if (test)
 						{
-							result = RayIntersectsTriangle(ray_start_local, ray_normal_local, verts[f->v1].co, verts[f->v2].co, verts[f->v3].co, &lambda, NULL);
+							result = RayIntersectsTriangleThreshold(ray_start_local, ray_normal_local, verts[f->v1].co, verts[f->v2].co, verts[f->v3].co, &lambda, NULL, 0.001);
 							
 							if (result) {
 								float location[3], normal[3];
@@ -868,7 +946,7 @@ int snapDerivedMesh(Object *ob, DerivedMesh *dm, float obmat[][4], float ray_sta
 					
 							if (f->v4 && result == 0)
 							{
-								result = RayIntersectsTriangle(ray_start_local, ray_normal_local, verts[f->v3].co, verts[f->v4].co, verts[f->v1].co, &lambda, NULL);
+								result = RayIntersectsTriangleThreshold(ray_start_local, ray_normal_local, verts[f->v3].co, verts[f->v4].co, verts[f->v1].co, &lambda, NULL, 0.001);
 								
 								if (result) {
 									float location[3], normal[3];
@@ -1149,7 +1227,7 @@ int snapDerivedMesh(Object *ob, DerivedMesh *dm, float obmat[][4], float ray_sta
 	return retval;
 } 
 
-int snapObjects(int *dist, float *loc, float *no, int mode) {
+int snapObjects(int *dist, float *loc, float *no, SnapMode mode) {
 	Base *base;
 	float depth = FLT_MAX;
 	int retval = 0;
@@ -1164,11 +1242,14 @@ int snapObjects(int *dist, float *loc, float *no, int mode) {
 		DerivedMesh *dm;
 		Object *ob = G.obedit;
 		
-		dm = editmesh_get_derived_cage(CD_MASK_BAREMESH);
-		
-		retval = snapDerivedMesh(ob, dm, ob->obmat, ray_start, ray_normal, mval, loc, no, dist, &depth, 1);
-		
-		dm->release(dm);
+		if (ob->type == OB_MESH)
+		{
+			dm = editmesh_get_derived_cage(CD_MASK_BAREMESH);
+			
+			retval = snapDerivedMesh(ob, dm, ob->obmat, ray_start, ray_normal, mval, loc, no, dist, &depth, 1);
+			
+			dm->release(dm);
+		}
 	}
 	
 	base= FIRSTBASE;
@@ -1223,6 +1304,238 @@ int snapObjects(int *dist, float *loc, float *no, int mode) {
 			}
 		}
 	}
+	
+	return retval;
+}
+
+/******************** PEELING *********************************/
+
+
+int cmpPeel(void *arg1, void *arg2)
+{
+	DepthPeel *p1 = arg1;
+	DepthPeel *p2 = arg2;
+	int val = 0;
+	
+	if (p1->depth < p2->depth)
+	{
+		val = -1;
+	}
+	else if (p1->depth > p2->depth)
+	{
+		val = 1;
+	}
+	
+	return val;
+}
+
+void removeDoublesPeel(ListBase *depth_peels)
+{
+	DepthPeel *peel;
+	
+	for (peel = depth_peels->first; peel; peel = peel->next)
+	{
+		DepthPeel *next_peel = peel->next;
+		
+		if (peel && next_peel && ABS(peel->depth - next_peel->depth) < 0.0015)
+		{
+			peel->next = next_peel->next;
+			
+			if (next_peel->next)
+			{
+				next_peel->next->prev = peel;
+			}
+			
+			MEM_freeN(next_peel);
+		}
+	}
+}
+
+void addDepthPeel(ListBase *depth_peels, float depth, float p[3], float no[3], Object *ob)
+{
+	DepthPeel *peel = MEM_callocN(sizeof(DepthPeel), "DepthPeel");
+	
+	peel->depth = depth;
+	peel->ob = ob;
+	VECCOPY(peel->p, p);
+	VECCOPY(peel->no, no);
+	
+	BLI_addtail(depth_peels, peel);
+	
+	peel->flag = 0;
+}
+
+int peelDerivedMesh(Object *ob, DerivedMesh *dm, float obmat[][4], float ray_start[3], float ray_normal[3], short mval[2], ListBase *depth_peels)
+{
+	int retval = 0;
+	int totvert = dm->getNumVerts(dm);
+	int totface = dm->getNumFaces(dm);
+	
+	if (totvert > 0) {
+		float imat[4][4];
+		float timat[3][3]; /* transpose inverse matrix for normals */
+		float ray_start_local[3], ray_normal_local[3];
+		int test = 1;
+
+		Mat4Invert(imat, obmat);
+
+		Mat3CpyMat4(timat, imat);
+		Mat3Transp(timat);
+		
+		VECCOPY(ray_start_local, ray_start);
+		VECCOPY(ray_normal_local, ray_normal);
+		
+		Mat4MulVecfl(imat, ray_start_local);
+		Mat4Mul3Vecfl(imat, ray_normal_local);
+		
+		
+		/* If number of vert is more than an arbitrary limit, 
+		 * test against boundbox first
+		 * */
+		if (totface > 16) {
+			struct BoundBox *bb = object_get_boundbox(ob);
+			test = ray_hit_boundbox(bb, ray_start_local, ray_normal_local);
+		}
+		
+		if (test == 1) {
+			MVert *verts = dm->getVertArray(dm);
+			MFace *faces = dm->getFaceArray(dm);
+			int i;
+			
+			for( i = 0; i < totface; i++) {
+				MFace *f = faces + i;
+				float lambda;
+				int result;
+				
+				
+				result = RayIntersectsTriangleThreshold(ray_start_local, ray_normal_local, verts[f->v1].co, verts[f->v2].co, verts[f->v3].co, &lambda, NULL, 0.001);
+				
+				if (result) {
+					float location[3], normal[3];
+					float intersect[3];
+					float new_depth;
+					
+					VECCOPY(intersect, ray_normal_local);
+					VecMulf(intersect, lambda);
+					VecAddf(intersect, intersect, ray_start_local);
+					
+					VECCOPY(location, intersect);
+					
+					if (f->v4)
+						CalcNormFloat4(verts[f->v1].co, verts[f->v2].co, verts[f->v3].co, verts[f->v4].co, normal);
+					else
+						CalcNormFloat(verts[f->v1].co, verts[f->v2].co, verts[f->v3].co, normal);
+
+					Mat4MulVecfl(obmat, location);
+					
+					new_depth = VecLenf(location, ray_start);					
+					
+					Mat3MulVecfl(timat, normal);
+					Normalize(normal);
+
+					addDepthPeel(depth_peels, new_depth, location, normal, ob);
+				}
+		
+				if (f->v4 && result == 0)
+				{
+					result = RayIntersectsTriangleThreshold(ray_start_local, ray_normal_local, verts[f->v3].co, verts[f->v4].co, verts[f->v1].co, &lambda, NULL, 0.001);
+					
+					if (result) {
+						float location[3], normal[3];
+						float intersect[3];
+						float new_depth;
+						
+						VECCOPY(intersect, ray_normal_local);
+						VecMulf(intersect, lambda);
+						VecAddf(intersect, intersect, ray_start_local);
+						
+						VECCOPY(location, intersect);
+						
+						if (f->v4)
+							CalcNormFloat4(verts[f->v1].co, verts[f->v2].co, verts[f->v3].co, verts[f->v4].co, normal);
+						else
+							CalcNormFloat(verts[f->v1].co, verts[f->v2].co, verts[f->v3].co, normal);
+
+						Mat4MulVecfl(obmat, location);
+						
+						new_depth = VecLenf(location, ray_start);					
+						
+						Mat3MulVecfl(timat, normal);
+						Normalize(normal);
+	
+						addDepthPeel(depth_peels, new_depth, location, normal, ob);
+					} 
+				}
+			}
+		}
+	}
+
+	return retval;
+} 
+
+int peelObjects(ListBase *depth_peels, short mval[2])
+{
+	Base *base;
+	int retval = 0;
+	float ray_start[3], ray_normal[3];
+	
+	viewray(mval, ray_start, ray_normal);
+
+	base= FIRSTBASE;
+	for ( base = FIRSTBASE; base != NULL; base = base->next ) {
+		if ( BASE_SELECTABLE(base) ) {
+			Object *ob = base->object;
+			
+			if (ob->transflag & OB_DUPLI)
+			{
+				DupliObject *dupli_ob;
+				ListBase *lb = object_duplilist(G.scene, ob);
+				
+				for(dupli_ob = lb->first; dupli_ob; dupli_ob = dupli_ob->next)
+				{
+					Object *ob = dupli_ob->ob;
+					
+					if (ob->type == OB_MESH) {
+						DerivedMesh *dm = mesh_get_derived_final(ob, CD_MASK_BAREMESH);
+						int val;
+						
+						val = peelDerivedMesh(ob, dm, dupli_ob->mat, ray_start, ray_normal, mval, depth_peels);
+	
+						retval = retval || val;
+	
+						dm->release(dm);
+					}
+				}
+				
+				free_object_duplilist(lb);
+			}
+			
+			if (ob->type == OB_MESH) {
+				DerivedMesh *dm = NULL;
+				int val;
+
+				if (ob != G.obedit)
+				{
+					dm = mesh_get_derived_final(ob, CD_MASK_BAREMESH);
+					
+					val = peelDerivedMesh(ob, dm, ob->obmat, ray_start, ray_normal, mval, depth_peels);
+				}
+				else
+				{
+					dm = editmesh_get_derived_cage(CD_MASK_BAREMESH);
+					
+					val = peelDerivedMesh(ob, dm, ob->obmat, ray_start, ray_normal, mval, depth_peels);
+				}
+					
+				retval = retval || val;
+				
+				dm->release(dm);
+			}
+		}
+	}
+	
+	BLI_sortlist(depth_peels, cmpPeel);
+	removeDoublesPeel(depth_peels);
 	
 	return retval;
 }
