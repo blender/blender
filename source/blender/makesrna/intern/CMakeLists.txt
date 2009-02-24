@@ -66,6 +66,7 @@ SET(DEFSRC
      rna_space.c
      rna_text.c
      rna_texture.c
+     rna_timeline.c
      rna_userdef.c
      rna_vfont.c
      rna_vpaint.c
