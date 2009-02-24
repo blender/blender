@@ -1279,8 +1279,14 @@ int KX_GameObject::_setattr(const char *attr, PyObject *value)	// _setattr metho
 	{
 		if (!strcmp(attr, "name"))	
 		{
+#if 0		// was added in revision 2832, but never took into account Object name mappings from revision 2
+			// unlikely anyone ever used this successfully , removing.
 			m_name = PyString_AsString(value);
 			return 0;
+#else
+			PyErr_SetString(PyExc_AttributeError, "object name readonly");
+			return 1;
+#endif
 		}
 	}
 	

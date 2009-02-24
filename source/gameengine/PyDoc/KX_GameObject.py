@@ -7,7 +7,7 @@ class KX_GameObject:
 	
 	Properties assigned to game objects are accessible as attributes of this class.
 	
-	@ivar name: The object's name.
+	@ivar name: The object's name. (Read only)
 	@type name: string.
 	@ivar mass: The object's mass (provided the object has a physics controller). Read only.
 	@type mass: float
