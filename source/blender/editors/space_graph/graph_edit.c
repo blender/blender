@@ -264,8 +264,9 @@ static short copy_graph_keys (bAnimContext *ac)
 	
 	/* clean up */
 	BLI_freelistN(&anim_data);
-}
 
+	return ok;
+}
 
 static short paste_graph_keys (bAnimContext *ac)
 {	
@@ -281,6 +282,8 @@ static short paste_graph_keys (bAnimContext *ac)
 	
 	/* clean up */
 	BLI_freelistN(&anim_data);
+
+	return ok;
 }
 
 /* ------------------- */

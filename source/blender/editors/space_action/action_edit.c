@@ -256,6 +256,8 @@ static short copy_action_keys (bAnimContext *ac)
 	
 	/* clean up */
 	BLI_freelistN(&anim_data);
+
+	return ok;
 }
 
 
@@ -273,6 +275,8 @@ static short paste_action_keys (bAnimContext *ac)
 	
 	/* clean up */
 	BLI_freelistN(&anim_data);
+
+	return ok;
 }
 
 /* ------------------- */

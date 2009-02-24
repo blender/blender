@@ -1047,7 +1047,7 @@ static void snode_bg_viewmove(SpaceNode *snode)
 	
 	window_set_cursor(win, oldcursor);
 }
-#endif;
+#endif
 
 /* ********************** size widget operator ******************** */
 
