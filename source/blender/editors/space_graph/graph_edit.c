@@ -68,6 +68,7 @@
 #include "BKE_material.h"
 #include "BKE_object.h"
 #include "BKE_context.h"
+#include "BKE_report.h"
 #include "BKE_utildefines.h"
 
 #include "UI_view2d.h"
@@ -294,8 +295,8 @@ static int graphkeys_copy_exec(bContext *C, wmOperator *op)
 	
 	/* copy keyframes */
 	if (copy_graph_keys(&ac)) {	
-		// XXX errors - need a way to inform the user 
-		printf("Graph Copy: No keyframes copied to copy-paste buffer\n");
+		BKE_report(op->reports, RPT_ERROR, "No keyframes copied to keyframes copy/paste buffer");
+		return OPERATOR_CANCELLED;
 	}
 	
 	/* set notifier tha things have changed */
@@ -330,8 +331,8 @@ static int graphkeys_paste_exec(bContext *C, wmOperator *op)
 	
 	/* paste keyframes */
 	if (paste_graph_keys(&ac)) {
-		// XXX errors - need a way to inform the user 
-		printf("Graph Paste: Nothing to paste, as Copy-Paste buffer was empty.\n");
+		BKE_report(op->reports, RPT_ERROR, "No keyframes to paste");
+		return OPERATOR_CANCELLED;
 	}
 	
 	/* validate keyframes after editing */
