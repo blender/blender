@@ -33,6 +33,7 @@
 
 #include "PIL_time.h"
 
+#include "DNA_armature_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_meshdata_types.h" // Temporary, for snapping to other unselected meshes
@@ -815,6 +816,244 @@ void TargetSnapClosest(TransInfo *t)
 }
 /*================================================================*/
 
+int snapFace(float v1co[3], float v2co[3], float v3co[3], float *v4co, short mval[2], float ray_start[3], float ray_start_local[3], float ray_normal_local[3], float obmat[][4], float timat[][3], float *loc, float *no, int *dist, float *depth)
+{
+	float lambda;
+	int result;
+	int retval = 0;
+	
+	result = RayIntersectsTriangleThreshold(ray_start_local, ray_normal_local, v1co, v2co, v3co, &lambda, NULL, 0.001);
+	
+	if (result) {
+		float location[3], normal[3];
+		float intersect[3];
+		float new_depth;
+		int screen_loc[2];
+		int new_dist;
+		
+		VECCOPY(intersect, ray_normal_local);
+		VecMulf(intersect, lambda);
+		VecAddf(intersect, intersect, ray_start_local);
+		
+		VECCOPY(location, intersect);
+		
+		if (v4co)
+			CalcNormFloat4(v1co, v2co, v3co, v4co, normal);
+		else
+			CalcNormFloat(v1co, v2co, v3co, normal);
+
+		Mat4MulVecfl(obmat, location);
+		
+		new_depth = VecLenf(location, ray_start);					
+		
+		project_int(location, screen_loc);
+		new_dist = abs(screen_loc[0] - mval[0]) + abs(screen_loc[1] - mval[1]);
+		
+		if (new_dist <= *dist && new_depth < *depth) 
+		{
+			*depth = new_depth;
+			retval = 1;
+			
+			VECCOPY(loc, location);
+			VECCOPY(no, normal);
+			
+			Mat3MulVecfl(timat, no);
+			Normalize(no);
+
+			*dist = new_dist;
+		} 
+	}
+	
+	return retval;
+}
+
+int snapEdge(float v1co[3], short v1no[3], float v2co[3], short v2no[3], short mval[2], float ray_start[3], float ray_start_local[3], float ray_normal_local[3], float obmat[][4], float timat[][3], float *loc, float *no, int *dist, float *depth)
+{
+	float intersect[3] = {0, 0, 0}, ray_end[3], dvec[3];
+	int result;
+	int retval = 0;
+	
+	VECCOPY(ray_end, ray_normal_local);
+	VecMulf(ray_end, 2000);
+	VecAddf(ray_end, ray_start_local, ray_end);
+	
+	result = LineIntersectLine(v1co, v2co, ray_start_local, ray_end, intersect, dvec); /* dvec used but we don't care about result */
+	
+	if (result)
+	{
+		float edge_loc[3], vec[3];
+		float mul;
+	
+		/* check for behind ray_start */
+		VecSubf(dvec, intersect, ray_start_local);
+		
+		VecSubf(edge_loc, v1co, v2co);
+		VecSubf(vec, intersect, v2co);
+		
+		mul = Inpf(vec, edge_loc) / Inpf(edge_loc, edge_loc);
+		
+		if (mul > 1) {
+			mul = 1;
+			VECCOPY(intersect, v1co);
+		}
+		else if (mul < 0) {
+			mul = 0;
+			VECCOPY(intersect, v2co);
+		}
+
+		if (Inpf(ray_normal_local, dvec) > 0)
+		{
+			float location[3];
+			float new_depth;
+			int screen_loc[2];
+			int new_dist;
+			
+			VECCOPY(location, intersect);
+			
+			Mat4MulVecfl(obmat, location);
+			
+			new_depth = VecLenf(location, ray_start);					
+			
+			project_int(location, screen_loc);
+			new_dist = abs(screen_loc[0] - mval[0]) + abs(screen_loc[1] - mval[1]);
+			
+			/* 10% threshold if edge is closer but a bit further
+			 * this takes care of series of connected edges a bit slanted w.r.t the viewport
+			 * otherwise, it would stick to the verts of the closest edge and not slide along merrily 
+			 * */
+			if (new_dist <= *dist && new_depth < *depth * 1.01)
+			{
+				float n1[3], n2[3];
+				
+				*depth = new_depth;
+				retval = 1;
+				
+				VecSubf(edge_loc, v1co, v2co);
+				VecSubf(vec, intersect, v2co);
+				
+				mul = Inpf(vec, edge_loc) / Inpf(edge_loc, edge_loc);
+				
+				if (no)
+				{
+					NormalShortToFloat(n1, v1no);						
+					NormalShortToFloat(n2, v2no);
+					VecLerpf(no, n2, n1, mul);
+					Mat3MulVecfl(timat, no);
+					Normalize(no);
+				}			
+
+				VECCOPY(loc, location);
+				
+				*dist = new_dist;
+			} 
+		}
+	}
+	
+	return retval;
+}
+
+int snapVertex(float vco[3], short vno[3], short mval[2], float ray_start[3], float ray_start_local[3], float ray_normal_local[3], float obmat[][4], float timat[][3], float *loc, float *no, int *dist, float *depth)
+{
+	int retval = 0;
+	float dvec[3];
+	
+	VecSubf(dvec, vco, ray_start_local);
+	
+	if (Inpf(ray_normal_local, dvec) > 0)
+	{
+		float location[3];
+		float new_depth;
+		int screen_loc[2];
+		int new_dist;
+		
+		VECCOPY(location, vco);
+		
+		Mat4MulVecfl(obmat, location);
+		
+		new_depth = VecLenf(location, ray_start);					
+		
+		project_int(location, screen_loc);
+		new_dist = abs(screen_loc[0] - mval[0]) + abs(screen_loc[1] - mval[1]);
+		
+		if (new_dist <= *dist && new_depth < *depth)
+		{
+			*depth = new_depth;
+			retval = 1;
+			
+			VECCOPY(loc, location);
+			
+			if (no)
+			{
+				NormalShortToFloat(no, vno);
+				Mat3MulVecfl(timat, no);
+				Normalize(no);
+			}
+
+			*dist = new_dist;
+		} 
+	}
+	
+	return retval;
+}
+
+int snapArmature(Object *ob, bArmature *ar, float obmat[][4], float ray_start[3], float ray_normal[3], short mval[2], float *loc, float *no, int *dist, float *depth)
+{
+	Bone *b = ar->bonebase.first;
+	float imat[4][4];
+	float ray_start_local[3], ray_normal_local[3];
+	int retval = 0;
+
+	Mat4Invert(imat, obmat);
+
+	VECCOPY(ray_start_local, ray_start);
+	VECCOPY(ray_normal_local, ray_normal);
+	
+	Mat4MulVecfl(imat, ray_start_local);
+	Mat4Mul3Vecfl(imat, ray_normal_local);
+			
+	while(b)
+	{
+		switch (G.scene->snap_mode)
+		{
+			case SCE_SNAP_MODE_VERTEX:
+				retval |= snapVertex(b->arm_head, NULL, mval, ray_start, ray_start_local, ray_normal_local, obmat, NULL, loc, NULL, dist, depth);
+				retval |= snapVertex(b->arm_tail, NULL, mval, ray_start, ray_start_local, ray_normal_local, obmat, NULL, loc, NULL, dist, depth);
+				break;
+			case SCE_SNAP_MODE_EDGE:
+				retval |= snapEdge(b->arm_head, NULL, b->arm_tail, NULL, mval, ray_start, ray_start_local, ray_normal_local, obmat, NULL, loc, NULL, dist, depth);
+				break;
+		}
+		
+		
+		if (b->childbase.first != NULL)
+		{
+			b = b->childbase.first;
+		}
+		else
+		{
+			while(1)
+			{
+				if (b->next != NULL)
+				{
+					b = b->next;
+					break;
+				}
+				else if (b->parent != NULL)
+				{
+					b = b->parent;
+				}
+				else /* nothing to go to */
+				{
+					b = NULL;
+					break;
+				}
+			}
+		}
+	}
+
+	return retval;
+}
+
 int snapDerivedMesh(Object *ob, DerivedMesh *dm, float obmat[][4], float ray_start[3], float ray_normal[3], short mval[2], float *loc, float *no, int *dist, float *depth, short EditMesh)
 {
 	int retval = 0;
@@ -868,8 +1107,6 @@ int snapDerivedMesh(Object *ob, DerivedMesh *dm, float obmat[][4], float ray_sta
 					for( i = 0; i < totface; i++) {
 						EditFace *efa = NULL;
 						MFace *f = faces + i;
-						float lambda;
-						int result;
 						
 						test = 1; /* reset for every face */
 					
@@ -902,91 +1139,20 @@ int snapDerivedMesh(Object *ob, DerivedMesh *dm, float obmat[][4], float ray_sta
 						
 						if (test)
 						{
-							result = RayIntersectsTriangleThreshold(ray_start_local, ray_normal_local, verts[f->v1].co, verts[f->v2].co, verts[f->v3].co, &lambda, NULL, 0.001);
+							int result;
+							float *v4co = NULL;
 							
-							if (result) {
-								float location[3], normal[3];
-								float intersect[3];
-								float new_depth;
-								int screen_loc[2];
-								int new_dist;
-								
-								VECCOPY(intersect, ray_normal_local);
-								VecMulf(intersect, lambda);
-								VecAddf(intersect, intersect, ray_start_local);
-								
-								VECCOPY(location, intersect);
-								
-								if (f->v4)
-									CalcNormFloat4(verts[f->v1].co, verts[f->v2].co, verts[f->v3].co, verts[f->v4].co, normal);
-								else
-									CalcNormFloat(verts[f->v1].co, verts[f->v2].co, verts[f->v3].co, normal);
-
-								Mat4MulVecfl(obmat, location);
-								
-								new_depth = VecLenf(location, ray_start);					
-								
-								project_int(location, screen_loc);
-								new_dist = abs(screen_loc[0] - mval[0]) + abs(screen_loc[1] - mval[1]);
-								
-								if (new_dist <= *dist && new_depth < *depth)
-								{
-									*depth = new_depth;
-									retval = 1;
-									
-									VECCOPY(loc, location);
-									VECCOPY(no, normal);
-									
-									Mat3MulVecfl(timat, no);
-									Normalize(no);
-					
-									*dist = new_dist;
-								} 
+							if (f->v4)
+							{
+								v4co = verts[f->v4].co;
 							}
-					
+							
+							result = snapFace(verts[f->v1].co, verts[f->v2].co, verts[f->v3].co, v4co, mval, ray_start, ray_start_local, ray_normal_local, obmat, timat, loc, no, dist, depth);
+							retval |= result;
+
 							if (f->v4 && result == 0)
 							{
-								result = RayIntersectsTriangleThreshold(ray_start_local, ray_normal_local, verts[f->v3].co, verts[f->v4].co, verts[f->v1].co, &lambda, NULL, 0.001);
-								
-								if (result) {
-									float location[3], normal[3];
-									float intersect[3];
-									float new_depth;
-									int screen_loc[2];
-									int new_dist;
-									
-									VECCOPY(intersect, ray_normal_local);
-									VecMulf(intersect, lambda);
-									VecAddf(intersect, intersect, ray_start_local);
-									
-									VECCOPY(location, intersect);
-									
-									if (f->v4)
-										CalcNormFloat4(verts[f->v1].co, verts[f->v2].co, verts[f->v3].co, verts[f->v4].co, normal);
-									else
-										CalcNormFloat(verts[f->v1].co, verts[f->v2].co, verts[f->v3].co, normal);
-	
-									Mat4MulVecfl(obmat, location);
-									
-									new_depth = VecLenf(location, ray_start);					
-									
-									project_int(location, screen_loc);
-									new_dist = abs(screen_loc[0] - mval[0]) + abs(screen_loc[1] - mval[1]);
-									
-									if (new_dist <= *dist && new_depth < *depth)
-									{
-										*depth = new_depth;
-										retval = 1;
-										
-										VECCOPY(loc, location);
-										VECCOPY(no, normal);
-										
-										Mat3MulVecfl(timat, no);
-										Normalize(no);
-						
-										*dist = new_dist;
-									}
-								} 
+								retval |= snapFace(verts[f->v3].co, verts[f->v4].co, verts[f->v1].co, verts[f->v2].co, mval, ray_start, ray_start_local, ray_normal_local, obmat, timat, loc, no, dist, depth);
 							}
 						}
 					}
@@ -1045,40 +1211,7 @@ int snapDerivedMesh(Object *ob, DerivedMesh *dm, float obmat[][4], float ray_sta
 						
 						if (test)
 						{
-							float dvec[3];
-							
-							VecSubf(dvec, v->co, ray_start_local);
-							
-							if (Inpf(ray_normal_local, dvec) > 0)
-							{
-								float location[3];
-								float new_depth;
-								int screen_loc[2];
-								int new_dist;
-								
-								VECCOPY(location, v->co);
-								
-								Mat4MulVecfl(obmat, location);
-								
-								new_depth = VecLenf(location, ray_start);					
-								
-								project_int(location, screen_loc);
-								new_dist = abs(screen_loc[0] - mval[0]) + abs(screen_loc[1] - mval[1]);
-								
-								if (new_dist <= *dist && new_depth < *depth)
-								{
-									*depth = new_depth;
-									retval = 1;
-									
-									VECCOPY(loc, location);
-									
-									NormalShortToFloat(no, v->no);
-									Mat3MulVecfl(timat, no);
-									Normalize(no);
-					
-									*dist = new_dist;
-								} 
-							}
+							retval |= snapVertex(v->co, v->no, mval, ray_start, ray_start_local, ray_normal_local, obmat, timat, loc, no, dist, depth);
 						}
 					}
 
@@ -1138,79 +1271,7 @@ int snapDerivedMesh(Object *ob, DerivedMesh *dm, float obmat[][4], float ray_sta
 						
 						if (test)
 						{
-							float intersect[3] = {0, 0, 0}, ray_end[3], dvec[3];
-							int result;
-							
-							VECCOPY(ray_end, ray_normal_local);
-							VecMulf(ray_end, 2000);
-							VecAddf(ray_end, ray_start_local, ray_end);
-							
-							result = LineIntersectLine(verts[e->v1].co, verts[e->v2].co, ray_start_local, ray_end, intersect, dvec); /* dvec used but we don't care about result */
-							
-							if (result)
-							{
-								float edge_loc[3], vec[3];
-								float mul;
-							
-								/* check for behind ray_start */
-								VecSubf(dvec, intersect, ray_start_local);
-								
-								VecSubf(edge_loc, verts[e->v1].co, verts[e->v2].co);
-								VecSubf(vec, intersect, verts[e->v2].co);
-								
-								mul = Inpf(vec, edge_loc) / Inpf(edge_loc, edge_loc);
-								
-								if (mul > 1) {
-									mul = 1;
-									VECCOPY(intersect, verts[e->v1].co);
-								}
-								else if (mul < 0) {
-									mul = 0;
-									VECCOPY(intersect, verts[e->v2].co);
-								}
-	
-								if (Inpf(ray_normal_local, dvec) > 0)
-								{
-									float location[3];
-									float new_depth;
-									int screen_loc[2];
-									int new_dist;
-									
-									VECCOPY(location, intersect);
-									
-									Mat4MulVecfl(obmat, location);
-									
-									new_depth = VecLenf(location, ray_start);					
-									
-									project_int(location, screen_loc);
-									new_dist = abs(screen_loc[0] - mval[0]) + abs(screen_loc[1] - mval[1]);
-									
-									if (new_dist <= *dist && new_depth < *depth)
-									{
-										float n1[3], n2[3];
-										
-										*depth = new_depth;
-										retval = 1;
-										
-										VecSubf(edge_loc, verts[e->v1].co, verts[e->v2].co);
-										VecSubf(vec, intersect, verts[e->v2].co);
-										
-										mul = Inpf(vec, edge_loc) / Inpf(edge_loc, edge_loc);
-										
-										NormalShortToFloat(n1, verts[e->v1].no);						
-										NormalShortToFloat(n2, verts[e->v2].no);
-										VecLerpf(no, n2, n1, mul);
-										Normalize(no);			
-	
-										VECCOPY(loc, location);
-										
-										Mat3MulVecfl(timat, no);
-										Normalize(no);
-										
-										*dist = new_dist;
-									} 
-								}
-							}
+							retval |= snapEdge(verts[e->v1].co, verts[e->v1].no, verts[e->v2].co, verts[e->v2].no, mval, ray_start, ray_start_local, ray_normal_local, obmat, timat, loc, no, dist, depth);
 						}
 					}
 
@@ -1301,6 +1362,14 @@ int snapObjects(int *dist, float *loc, float *no, SnapMode mode) {
 				retval = retval || val;
 				
 				dm->release(dm);
+			}
+			else if (ob->type == OB_ARMATURE)
+			{
+				int val;
+				
+				val = snapArmature(ob, ob->data, ob->obmat, ray_start, ray_normal, mval, loc, no, dist, &depth);
+				
+				retval = retval || val;
 			}
 		}
 	}
