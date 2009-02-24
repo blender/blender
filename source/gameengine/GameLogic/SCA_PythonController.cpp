@@ -242,6 +242,43 @@ PyMethodDef SCA_PythonController::Methods[] = {
 };
 
 
+bool SCA_PythonController::Compile()
+{
+	//printf("py script modified '%s'\n", m_scriptName.Ptr());
+	
+	// if a script already exists, decref it before replace the pointer to a new script
+	if (m_bytecode)
+	{
+		Py_DECREF(m_bytecode);
+		m_bytecode=NULL;
+	}
+	// recompile the scripttext into bytecode
+	m_bytecode = Py_CompileString(m_scriptText.Ptr(), m_scriptName.Ptr(), Py_file_input);
+	m_bModified=false;
+	
+	if (m_bytecode)
+	{
+		
+		return true;
+	}
+	else {
+		// didn't compile, so instead of compile, complain
+		// something is wrong, tell the user what went wrong
+		printf("Python compile error from controller \"%s\": \n", GetName().Ptr());
+		//PyRun_SimpleString(m_scriptText.Ptr());
+		PyErr_Print();
+		
+		/* Added in 2.48a, the last_traceback can reference Objects for example, increasing
+		 * their user count. Not to mention holding references to wrapped data.
+		 * This is especially bad when the PyObject for the wrapped data is free'd, after blender 
+		 * has alredy dealocated the pointer */
+		PySys_SetObject( (char *)"last_traceback", Py_None);
+		PyErr_Clear(); /* just to be sure */
+		
+		return false;
+	}
+}
+
 void SCA_PythonController::Trigger(SCA_LogicManager* logicmgr)
 {
 	m_sCurrentController = this;
@@ -249,33 +286,13 @@ void SCA_PythonController::Trigger(SCA_LogicManager* logicmgr)
 	
 	if (m_bModified)
 	{
-		// if a script already exists, decref it before replace the pointer to a new script
-		if (m_bytecode)
-		{
-			Py_DECREF(m_bytecode);
-			m_bytecode=NULL;
-		}
-		// recompile the scripttext into bytecode
-		m_bytecode = Py_CompileString(m_scriptText.Ptr(), m_scriptName.Ptr(), Py_file_input);
-		if (!m_bytecode)
-		{
-			// didn't compile, so instead of compile, complain
-			// something is wrong, tell the user what went wrong
-			printf("Python compile error from controller \"%s\": \n", GetName().Ptr());
-			//PyRun_SimpleString(m_scriptText.Ptr());
-			PyErr_Print();
-			
-			/* Added in 2.48a, the last_traceback can reference Objects for example, increasing
-			 * their user count. Not to mention holding references to wrapped data.
-			 * This is especially bad when the PyObject for the wrapped data is free'd, after blender 
-			 * has alredy dealocated the pointer */
-			PySys_SetObject( "last_traceback", Py_None);
-			PyErr_Clear(); /* just to be sure */
-			
+		if (Compile()==false) // sets m_bModified to false
 			return;
-		}
-		m_bModified=false;
 	}
+	if (!m_bytecode) {
+		return;
+	}
+		
 	
 		/*
 		 * This part here with excdict is a temporary patch
@@ -313,7 +330,7 @@ void SCA_PythonController::Trigger(SCA_LogicManager* logicmgr)
 		 * their user count. Not to mention holding references to wrapped data.
 		 * This is especially bad when the PyObject for the wrapped data is free'd, after blender 
 		 * has alredy dealocated the pointer */
-		PySys_SetObject( "last_traceback", Py_None);
+		PySys_SetObject( (char *)"last_traceback", Py_None);
 		PyErr_Clear(); /* just to be sure */
 		
 		//PyRun_SimpleString(m_scriptText.Ptr());

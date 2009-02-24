@@ -70,6 +70,7 @@ class SCA_PythonController : public SCA_IController
 	void	AddTriggeredSensor(class SCA_ISensor* sensor)
 		{ m_triggeredSensors.push_back(sensor); }
 	int		IsTriggered(class SCA_ISensor* sensor);
+	bool	Compile();
 
 	static const char* sPyGetCurrentController__doc__;
 	static PyObject* sPyGetCurrentController(PyObject* self);
