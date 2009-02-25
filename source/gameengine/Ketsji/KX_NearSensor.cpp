@@ -37,7 +37,6 @@
 #include "PHY_IPhysicsEnvironment.h"
 #include "PHY_IPhysicsController.h"
 
-
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -272,7 +271,7 @@ bool	KX_NearSensor::NewHandleCollision(void* obj1,void* obj2,const PHY_CollData 
 		//}
 	}
 	
-	return DT_CONTINUE;
+	return false; // was DT_CONTINUE; but this was defined in Sumo as false
 }
 
 

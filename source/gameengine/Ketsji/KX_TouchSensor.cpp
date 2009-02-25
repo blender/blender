@@ -34,7 +34,9 @@
 #include "SCA_LogicManager.h"
 #include "KX_GameObject.h"
 #include "KX_TouchEventManager.h"
-#include "KX_SumoPhysicsController.h"
+
+#include "PHY_IPhysicsController.h"
+
 #include <iostream>
 #include "PHY_IPhysicsEnvironment.h"
 
@@ -214,7 +216,7 @@ bool	KX_TouchSensor::NewHandleCollision(void*object1,void*object2,const PHY_Coll
 		}
 		
 	} 
-	return DT_CONTINUE;
+	return false; // was DT_CONTINUE but this was defined in sumo as false.
 }
 
 

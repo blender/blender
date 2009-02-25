@@ -32,7 +32,7 @@
 /* These are defined by the build system... */
 //but the build system is broken, because it doesn't allow for 2 or more defines at once.
 //Please leave Sumo _AND_ Bullet enabled
-#define USE_SUMO_SOLID
+//#define USE_SUMO_SOLID // scons defines this
 #define USE_BULLET
 
 //#define USE_ODE

@@ -59,7 +59,10 @@
 #include "KX_PythonInit.h"
 #include "KX_PyConstraintBinding.h"
 #include "PHY_IPhysicsEnvironment.h"
+
+#ifdef USE_SUMO_SOLID
 #include "SumoPhysicsEnvironment.h"
+#endif
 
 #include "SND_Scene.h"
 #include "SND_IAudioDevice.h"
