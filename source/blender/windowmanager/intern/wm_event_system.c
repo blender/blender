@@ -218,18 +218,20 @@ void wm_event_do_notifiers(bContext *C)
 			}
 		}
 		
-		/* update all objects, ipos, matrices, displists, etc. Flags set by depgraph or manual, 
-			no layer check here, gets correct flushed */
-		/* sets first, we allow per definition current scene to have dependencies on sets */
-		if(scene->set) {
-			for(SETLOOPER(scene->set, base))
+		if(G.rendering==0) { // XXX make lock in future, or separated derivedmesh users in scene
+			
+			/* update all objects, ipos, matrices, displists, etc. Flags set by depgraph or manual, 
+				no layer check here, gets correct flushed */
+			/* sets first, we allow per definition current scene to have dependencies on sets */
+			if(scene->set) {
+				for(SETLOOPER(scene->set, base))
+					object_handle_update(scene, base->object);
+			}
+			
+			for(base= scene->base.first; base; base= base->next) {
 				object_handle_update(scene, base->object);
-		}
-		
-		for(base= scene->base.first; base; base= base->next) {
-			object_handle_update(scene, base->object);
-		}
-		
+			}
+		}		
 	}
 	CTX_wm_window_set(C, NULL);
 }
