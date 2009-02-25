@@ -2224,6 +2224,34 @@ static int commonkey_modifykey (ListBase *dsources, KeyingSet *ks, short mode, f
 	return success;
 }
 
+
+/* Polling callback for use with ANIM_*_keyframe() operators
+ * This is based on the standard ED_operator_areaactive callback,
+ * except that it does special checks for a few spacetypes too...
+ */
+static int modify_key_op_poll(bContext *C)
+{
+	ScrArea *sa= CTX_wm_area(C);
+	Scene *scene= CTX_data_scene(C);
+	
+	/* if no area or active scene */
+	if (ELEM(NULL, sa, scene)) 
+		return 0;
+	
+	/* if Outliner, only allow in DataBlocks view */
+	if (sa->spacetype == SPACE_OOPS) {
+		SpaceOops *so= (SpaceOops *)CTX_wm_space_data(C);
+		
+		if ((so->type != SO_OUTLINER) || (so->outlinevis != SO_DATABLOCKS))
+			return 0;
+	}
+	
+	/* TODO: checks for other space types can be added here */
+	
+	/* should be fine */
+	return 1;
+}
+
 /* Insert Key Operator ------------------------ */
 
 /* NOTE:
@@ -2232,7 +2260,7 @@ static int commonkey_modifykey (ListBase *dsources, KeyingSet *ks, short mode, f
  *
  * 	-- Joshua Leung, Feb 2009
  */
-
+ 
 static int insert_key_exec (bContext *C, wmOperator *op)
 {
 	ListBase dsources = {NULL, NULL};
@@ -2275,7 +2303,7 @@ void ANIM_OT_insert_keyframe (wmOperatorType *ot)
 	
 	/* callbacks */
 	ot->exec= insert_key_exec; 
-	ot->poll= ED_operator_areaactive;
+	ot->poll= modify_key_op_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -2332,8 +2360,7 @@ void ANIM_OT_delete_keyframe (wmOperatorType *ot)
 	
 	/* callbacks */
 	ot->exec= delete_key_exec; 
-	
-	ot->poll= ED_operator_areaactive;
+	ot->poll= modify_key_op_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
