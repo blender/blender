@@ -1131,17 +1131,21 @@ static short draw_sensorbuttons(bSensor *sens, uiBlock *block, short xco, short 
 			/* The collision sensor will become a generic collision (i.e. it     */
 			/* absorb the old touch sensor).                                     */
 
-			uiDefButBitS(block, TOG, SENS_COLLISION_MATERIAL, B_REDR, "M/P",(short)(xco + 10),(short)(yco - 44),
+			uiDefButBitS(block, TOG, SENS_COLLISION_PULSE, B_REDR, "Pulse",(short)(xco + 10),(short)(yco - 44),
+				(short)(0.20 * (width-20)), 19, &cs->mode, 0.0, 0.0, 0, 0,
+				"Changes to the set of colliding objects generate pulses");
+			
+			uiDefButBitS(block, TOG, SENS_COLLISION_MATERIAL, B_REDR, "M/P",(short)(xco + 10 + (0.20 * (width-20))),(short)(yco - 44),
 				(short)(0.20 * (width-20)), 19, &cs->mode, 0.0, 0.0, 0, 0,
 				"Toggle collision on material or property.");
 			
 			if (cs->mode & SENS_COLLISION_MATERIAL) {
-				uiDefBut(block, TEX, 1, "Material:", (short)(xco + 10 + 0.20 * (width-20)),
-					(short)(yco-44), (short)(0.8*(width-20)), 19, &cs->materialName, 0, 31, 0, 0,
+				uiDefBut(block, TEX, 1, "Material:", (short)(xco + 10 + 0.40 * (width-20)),
+					(short)(yco-44), (short)(0.6*(width-20)), 19, &cs->materialName, 0, 31, 0, 0,
 					"Only look for Objects with this material");
 			} else {
-				uiDefBut(block, TEX, 1, "Property:", (short)(xco + 10 + 0.20 * (width-20)), (short)(yco-44),
-					(short)(0.8*(width-20)), 19, &cs->name, 0, 31, 0, 0,
+				uiDefBut(block, TEX, 1, "Property:", (short)(xco + 10 + 0.40 * (width-20)), (short)(yco-44),
+					(short)(0.6*(width-20)), 19, &cs->name, 0, 31, 0, 0,
 					"Only look for Objects with this property");
 			}
 	

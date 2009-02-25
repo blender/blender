@@ -52,6 +52,7 @@ KX_NearSensor::KX_NearSensor(SCA_EventManager* eventmgr,
 			 :KX_TouchSensor(eventmgr,
 							 gameobj,
 							 bFindMaterial,
+							 false,
 							 touchedpropname,
 							 /* scene, */
 							 T),

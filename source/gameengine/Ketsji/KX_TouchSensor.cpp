@@ -59,6 +59,7 @@ void KX_TouchSensor::EndFrame() {
 	m_colliders->ReleaseAndRemoveAll();
 	m_hitObject = NULL;
 	m_bTriggered = false;
+	m_bColliderHash = 0;
 }
 
 void KX_TouchSensor::UnregisterToManager()
@@ -72,7 +73,6 @@ bool KX_TouchSensor::Evaluate(CValue* event)
 {
 	bool result = false;
 	bool reset = m_reset && m_level;
-
 	m_reset = false;
 	if (m_bTriggered != m_bLastTriggered)
 	{
@@ -84,13 +84,24 @@ bool KX_TouchSensor::Evaluate(CValue* event)
 	if (reset)
 		// force an event
 		result = true;
+	
+	if (m_bTouchPulse) { /* pulse on changes to the colliders */
+		int count = m_colliders->GetCount();
+		
+		if (m_bLastCount!=count || m_bColliderHash!=m_bLastColliderHash) {
+			m_bLastCount = count;
+			m_bLastColliderHash= m_bColliderHash;
+			result = true;
+		}
+	}
 	return result;
 }
 
-KX_TouchSensor::KX_TouchSensor(SCA_EventManager* eventmgr,KX_GameObject* gameobj,bool bFindMaterial,const STR_String& touchedpropname,PyTypeObject* T)
+KX_TouchSensor::KX_TouchSensor(SCA_EventManager* eventmgr,KX_GameObject* gameobj,bool bFindMaterial,bool bTouchPulse,const STR_String& touchedpropname,PyTypeObject* T)
 :SCA_ISensor(gameobj,eventmgr,T),
 m_touchedpropname(touchedpropname),
 m_bFindMaterial(bFindMaterial),
+m_bTouchPulse(bTouchPulse),
 m_eventmgr(eventmgr)
 /*m_sumoObj(sumoObj),*/
 {
@@ -116,6 +127,8 @@ void KX_TouchSensor::Init()
 	m_bCollision = false;
 	m_bTriggered = false;
 	m_bLastTriggered = (m_invert)?true:false;
+	m_bLastCount = 0;
+	m_bColliderHash = m_bLastColliderHash = 0;
 	m_hitObject =  NULL;
 	m_reset = true;
 }
@@ -191,8 +204,6 @@ bool	KX_TouchSensor::NewHandleCollision(void*object1,void*object2,const PHY_Coll
 	if (m_links && !m_suspended &&
 		gameobj && (gameobj != parent) && client_info->isActor())
 	{
-		if (!m_colliders->SearchValue(gameobj))
-			m_colliders->Add(gameobj->AddRef());
 		
 		bool found = m_touchedpropname.IsEmpty();
 		if (!found)
@@ -210,6 +221,12 @@ bool	KX_TouchSensor::NewHandleCollision(void*object1,void*object2,const PHY_Coll
 		}
 		if (found)
 		{
+			if (!m_colliders->SearchValue(gameobj)) {
+				m_colliders->Add(gameobj->AddRef());
+				
+				if (m_bTouchPulse)
+					m_bColliderHash += (uint_ptr)(static_cast<void *>(&gameobj));
+			}
 			m_bTriggered = true;
 			m_hitObject = gameobj;
 			//printf("KX_TouchSensor::HandleCollision\n");
@@ -334,46 +351,7 @@ PyObject* KX_TouchSensor::PyGetHitObjectList(PyObject* self,
 
 	/* to do: do Py_IncRef if the object is already known in Python */
 	/* otherwise, this leaks memory */
-
-	if ( m_touchedpropname.IsEmpty() ) {
-		return m_colliders->AddRef();
-	} else {
-		CListValue* newList = new CListValue();
-		int i = 0;
-		while (i < m_colliders->GetCount()) {
-			if (m_bFindMaterial) {
-				/* need to associate the CValues from the list to material
-				 * names. The collider list _should_ contains only
-				 * KX_GameObjects. I am loathe to cast them, though... The
-				 * material name must be retrieved from Sumo. To a Sumo
-				 * object, a client-info block is attached. This block
-				 * contains the material name. 
-				 * - this also doesn't work (obviously) for multi-materials... 
-				 */
-				KX_GameObject* gameob = (KX_GameObject*) m_colliders->GetValue(i);
-				PHY_IPhysicsController* spc = dynamic_cast<PHY_IPhysicsController*>(gameob->GetPhysicsController());
-				
-				if (spc) {
-					KX_ClientObjectInfo* cl_inf = static_cast<KX_ClientObjectInfo*>(spc->getNewClientInfo());
-					
-					if (NULL != cl_inf->m_auxilary_info && m_touchedpropname == ((char*)cl_inf->m_auxilary_info)) {
-						newList->Add(m_colliders->GetValue(i)->AddRef());
-					} 
-				}
-				
-			} else {
-				CValue* val = m_colliders->GetValue(i)->FindIdentifier(m_touchedpropname);
-				if (!val->IsError()) {
-					newList->Add(m_colliders->GetValue(i)->AddRef());
-				}
-				val->Release();
-			}
-			
-			i++;
-		}
-		return newList->AddRef();
-	}
-
+	return m_colliders->AddRef();
 }
 
 /* 5. getTouchMaterial */
