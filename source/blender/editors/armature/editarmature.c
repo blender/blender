@@ -2112,7 +2112,8 @@ static EditBone *add_editbone(Object *obedit, char *name)
 	return bone;
 }
 
-static void add_primitive_bone(Scene *scene, View3D *v3d, RegionView3D *rv3d, short newob)
+/* v3d and rv3d are allowed to be NULL */
+void add_primitive_bone(Scene *scene, View3D *v3d, RegionView3D *rv3d)
 {
 	Object *obedit= scene->obedit; // XXX get from context
 	float		obmat[3][3], curs[3], viewmat[3][3], totmat[3][3], imat[3][3];
@@ -2124,7 +2125,7 @@ static void add_primitive_bone(Scene *scene, View3D *v3d, RegionView3D *rv3d, sh
 	Mat4Invert(obedit->imat, obedit->obmat);
 	Mat4MulVecfl(obedit->imat, curs);
 
-	if ( !(newob) || (U.flag & USER_ADD_VIEWALIGNED) ) 
+	if (rv3d && (U.flag & USER_ADD_VIEWALIGNED))
 		Mat3CpyMat4(obmat, rv3d->viewmat);
 	else Mat3One(obmat);
 	
@@ -2139,51 +2140,13 @@ static void add_primitive_bone(Scene *scene, View3D *v3d, RegionView3D *rv3d, sh
 
 	VECCOPY(bone->head, curs);
 	
-	if ( !(newob) || (U.flag & USER_ADD_VIEWALIGNED) )
+	if ( (U.flag & USER_ADD_VIEWALIGNED) )
 		VecAddf(bone->tail, bone->head, imat[1]);	// bone with unit length 1
 	else
 		VecAddf(bone->tail, bone->head, imat[2]);	// bone with unit length 1, pointing up Z
 	
 }
 
-void add_primitiveArmature(Scene *scene, View3D *v3d, int type)
-{
-	RegionView3D *rv3d= NULL; // XXX get from context
-	Object *obedit= scene->obedit; // XXX get from context
-	short newob=0;
-	
-	if(scene->id.lib) return;
-	
-	G.f &= ~(G_VERTEXPAINT+G_TEXTUREPAINT+G_WEIGHTPAINT+G_SCULPTMODE);
-//	setcursor_space(SPACE_VIEW3D, CURSOR_STD);
-
-// XXX	check_editmode(OB_ARMATURE);
-	
-	/* If we're not the "obedit", make a new object and enter editmode */
-	if (obedit==NULL) {
-		add_object(scene, OB_ARMATURE);
-		ED_object_base_init_from_view(NULL, BASACT);	// XXX NULL is C
-		obedit= BASACT->object;
-		
-		where_is_object(scene, obedit);
-		
-		ED_armature_to_edit(obedit);
-//		setcursor_space(SPACE_VIEW3D, CURSOR_EDIT);
-		newob=1;
-	}
-	
-	/* no primitive support yet */
-	add_primitive_bone(scene, v3d, rv3d, newob);
-	
-	//armature_sync_selection(arm->edbo); // XXX which armature?
-
-	if ((newob) && !(U.flag & USER_ADD_EDITMODE)) {
-		ED_armature_from_edit(scene, obedit);
-		ED_armature_edit_free(obedit);
-	}
-	
-	BIF_undo_push("Add primitive");
-}
 
 /* previously addvert_armature */
 /* the ctrl-click method */
