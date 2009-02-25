@@ -45,6 +45,10 @@ void ARMATURE_OT_de_select_all(struct wmOperatorType *ot);
 void ARMATURE_OT_selection_invert(struct wmOperatorType *ot);
 void ARMATURE_OT_select_hierarchy(struct wmOperatorType *ot);
 void ARMATURE_OT_select_connected(struct wmOperatorType *ot);
+void ARMATURE_OT_delete_selected(struct wmOperatorType *ot);
+void ARMATURE_OT_duplicate_selected(struct wmOperatorType *ot);
+void ARMATURE_OT_extrude(struct wmOperatorType *ot);
+void ARMATURE_OT_click_extrude(struct wmOperatorType *ot);
 
 void POSE_OT_hide(struct wmOperatorType *ot);
 void POSE_OT_reveal(struct wmOperatorType *ot);

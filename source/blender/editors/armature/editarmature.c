@@ -74,6 +74,7 @@
 #include "PIL_time.h"
 
 #include "BIF_gl.h"
+#include "BIF_transform.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -1585,15 +1586,22 @@ EditBone *ED_armature_bone_get_mirrored(ListBase *edbo, EditBone *ebo)
 	return eboflip;
 }
 
+
+/* previously delete_armature */
 /* only editmode! */
-void delete_armature(Scene *scene)
+static int armature_delete_selected_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit= scene->obedit; // XXX get from context
-	bArmature *arm= obedit->data;
+	bArmature *arm;
 	EditBone	*curBone, *next;
 	bConstraint *con;
-	
-	if (okee("Erase selected bone(s)")==0) return;
+	Object *obedit= CTX_data_edit_object(C); // XXX get from context
+	arm = obedit->data;
+
+	/* cancel if nothing selected */
+	if (CTX_DATA_COUNT(C, selected_bones) == 0)
+	  return OPERATOR_CANCELLED;
+
+	/* if (okee("Erase selected bone(s)")==0) return; */
 
 	/* Select mirrored bones */
 	if (arm->flag & ARM_MIRROR_EDIT) {
@@ -1659,8 +1667,25 @@ void delete_armature(Scene *scene)
 	
 	
 	armature_sync_selection(arm->edbo);
+
+	WM_event_add_notifier(C, NC_OBJECT, obedit);
+
+	return OPERATOR_FINISHED;
+}
+
+void ARMATURE_OT_delete_selected(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Delete Selected Bone(s)";
+	ot->idname= "ARMATURE_OT_delete_selected";
 	
-	BIF_undo_push("Delete bone(s)");
+	/* api callbacks */
+	ot->invoke = WM_operator_confirm;
+	ot->exec = armature_delete_selected_exec;
+	ot->poll = ED_operator_editarmature;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* toggle==0: deselect
@@ -2160,14 +2185,22 @@ void add_primitiveArmature(Scene *scene, View3D *v3d, int type)
 	BIF_undo_push("Add primitive");
 }
 
+/* previously addvert_armature */
 /* the ctrl-click method */
-void addvert_armature(Scene *scene, View3D *v3d)
+static int armature_click_extrude_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit= scene->obedit; // XXX get from context
-	bArmature *arm= obedit->data;
+	View3D *v3d;
+	bArmature *arm;
 	EditBone *ebone, *newbone, *flipbone;
 	float *curs, mat[3][3],imat[3][3];
 	int a, to_root= 0;
+	Object *obedit;
+	Scene *scene;
+
+	scene = CTX_data_scene(C);
+	v3d= CTX_wm_view3d(C);
+	obedit= CTX_data_edit_object(C);
+	arm= obedit->data;
 	
 	/* find the active or selected bone */
 	for (ebone = arm->edbo->first; ebone; ebone=ebone->next) {
@@ -2185,7 +2218,7 @@ void addvert_armature(Scene *scene, View3D *v3d)
 			}
 		}
 		if (ebone == NULL) 
-			return;
+			return OPERATOR_CANCELLED;
 		
 		to_root= 1;
 	}
@@ -2239,8 +2272,83 @@ void addvert_armature(Scene *scene, View3D *v3d)
 	}
 	
 	armature_sync_selection(arm->edbo);
+
+	WM_event_add_notifier(C, NC_OBJECT|ND_BONE_SELECT, obedit);
 	
-	BIF_undo_push("Add Bone");
+	return OPERATOR_FINISHED;
+}
+
+static int armature_click_extrude_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	/* TODO most of this code is copied from set3dcursor_invoke,
+	   it would be better to reuse code in set3dcursor_invoke */
+
+	/* temporarily change 3d cursor position */
+	Scene *scene;
+	ARegion *ar;
+	View3D *v3d;
+	RegionView3D *rv3d;
+	float dx, dy, fz, *fp = NULL, dvec[3], oldcurs[3];
+	short mx, my, mval[2];
+	int retv;
+
+	scene= CTX_data_scene(C);
+	ar= CTX_wm_region(C);
+	v3d = CTX_wm_view3d(C);
+	rv3d= CTX_wm_region_view3d(C);
+	
+	fp= give_cursor(scene, v3d);
+	
+	VECCOPY(oldcurs, fp);
+	
+	mx= event->x - ar->winrct.xmin;
+	my= event->y - ar->winrct.ymin;
+	project_short_noclip(ar, fp, mval);
+	
+	initgrabz(rv3d, fp[0], fp[1], fp[2]);
+	
+	if(mval[0]!=IS_CLIPPED) {
+		
+		window_to_3d_delta(ar, dvec, mval[0]-mx, mval[1]-my);
+		VecSubf(fp, fp, dvec);
+	}
+	else {
+		
+		dx= ((float)(mx-(ar->winx/2)))*rv3d->zfac/(ar->winx/2);
+		dy= ((float)(my-(ar->winy/2)))*rv3d->zfac/(ar->winy/2);
+		
+		fz= rv3d->persmat[0][3]*fp[0]+ rv3d->persmat[1][3]*fp[1]+ rv3d->persmat[2][3]*fp[2]+ rv3d->persmat[3][3];
+		fz= fz/rv3d->zfac;
+		
+		fp[0]= (rv3d->persinv[0][0]*dx + rv3d->persinv[1][0]*dy+ rv3d->persinv[2][0]*fz)-rv3d->ofs[0];
+		fp[1]= (rv3d->persinv[0][1]*dx + rv3d->persinv[1][1]*dy+ rv3d->persinv[2][1]*fz)-rv3d->ofs[1];
+		fp[2]= (rv3d->persinv[0][2]*dx + rv3d->persinv[1][2]*dy+ rv3d->persinv[2][2]*fz)-rv3d->ofs[2];
+	}
+
+	/* extrude to the where new cursor is and store the operation result */
+	retv= armature_click_extrude_exec(C, op);
+
+	/* restore previous 3d cursor position */
+	VECCOPY(fp, oldcurs);
+
+	return retv;
+}
+
+void ARMATURE_OT_click_extrude(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Click-Extrude";
+	ot->idname= "ARMATURE_OT_click_extrude";
+	
+	/* api callbacks */
+	ot->invoke = armature_click_extrude_invoke;
+	ot->exec = armature_click_extrude_exec;
+	ot->poll = ED_operator_editarmature;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* props */
 }
 
 /* adds an EditBone between the nominated locations (should be in the right space) */
@@ -2320,14 +2428,20 @@ static void update_dup_subtarget(Object *obedit, EditBone *dupBone)
 	}
 }
 
-
-void adduplicate_armature(Scene *scene)
+/* previously adduplicate_armature */
+static int armature_duplicate_selected_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit= scene->obedit; // XXX get from context
-	bArmature *arm= obedit->data;
+	bArmature *arm;
 	EditBone	*eBone = NULL;
 	EditBone	*curBone;
 	EditBone	*firstDup=NULL;	/*	The beginning of the duplicated bones in the edbo list */
+
+	Object *obedit= CTX_data_edit_object(C);
+	arm= obedit->data;
+
+	/* cancel if nothing selected */
+	if (CTX_DATA_COUNT(C, selected_bones) == 0)
+	  return OPERATOR_CANCELLED;
 	
 	armature_sync_selection(arm->edbo); // XXX why is this needed?
 
@@ -2369,7 +2483,7 @@ void adduplicate_armature(Scene *scene)
 					bPoseChannel *chanold, *channew;
 					ListBase     *listold, *listnew;
 					
-					chanold = verify_pose_channel(OBACT->pose, curBone->name);
+					chanold = verify_pose_channel(obedit->pose, curBone->name);
 					if (chanold) {
 						listold = &chanold->constraints;
 						if (listold) {
@@ -2377,7 +2491,7 @@ void adduplicate_armature(Scene *scene)
 							 *		yet as the new bones created here are still 'EditBones' not 'Bones'. 
 							 */
 							channew = 
-								verify_pose_channel(OBACT->pose, eBone->name);
+								verify_pose_channel(obedit->pose, eBone->name);
 							if (channew) {
 								/* copy transform locks */
 								channew->protectflag = chanold->protectflag;
@@ -2443,12 +2557,44 @@ void adduplicate_armature(Scene *scene)
 		if (EBONE_VISIBLE(arm, curBone))
 			curBone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL | BONE_ACTIVE);
 	}
+
+	WM_event_add_notifier(C, NC_OBJECT|ND_BONE_SELECT, obedit);
 	
 // XXX	BIF_TransformSetUndo("Add Duplicate");
 //	initTransform(TFM_TRANSLATION, CTX_NO_PET);
 //	Transform();
+	return OPERATOR_FINISHED;
 }
 
+static int armature_duplicate_selected_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	int retv= armature_duplicate_selected_exec(C, op);
+
+	if (retv == OPERATOR_FINISHED) {
+		RNA_int_set(op->ptr, "mode", TFM_TRANSLATION);
+		WM_operator_name_call(C, "TFM_OT_transform", WM_OP_INVOKE_REGION_WIN, op->ptr);
+	}
+
+	return retv;
+}
+
+void ARMATURE_OT_duplicate_selected(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Duplicate Selected Bone(s)";
+	ot->idname= "ARMATURE_OT_duplicate_selected";
+	
+	/* api callbacks */
+	ot->invoke = armature_duplicate_selected_invoke;
+	ot->exec = armature_duplicate_selected_exec;
+	ot->poll = ED_operator_editarmature;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* to give to transform */
+	RNA_def_int(ot->srna, "mode", TFM_TRANSLATION, 0, INT_MAX, "Mode", "", 0, INT_MAX);
+}
 
 
 /* *************** END Adding stuff in editmode *************** */
@@ -2909,15 +3055,20 @@ void show_all_armature_bones(Scene *scene)
 	BIF_undo_push("Reveal Bones");
 }
 
+/* previously extrude_armature */
 /* context; editmode armature */
 /* if forked && mirror-edit: makes two bones with flipped names */
-void extrude_armature(Scene *scene, int forked)
+static int armature_extrude_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit= scene->obedit; // XXX get from context
-	bArmature *arm= obedit->data;
+	Object *obedit;
+	bArmature *arm;
 	EditBone *newbone, *ebone, *flipbone, *first=NULL;
 	int a, totbone= 0, do_extrude;
-	
+	int forked = RNA_boolean_get(op->ptr, "forked");
+
+	obedit= CTX_data_edit_object(C);
+	arm= obedit->data;
+
 	/* since we allow root extrude too, we have to make sure selection is OK */
 	for (ebone = arm->edbo->first; ebone; ebone=ebone->next) {
 		if (EBONE_VISIBLE(arm, ebone)) {
@@ -3029,13 +3180,44 @@ void extrude_armature(Scene *scene, int forked)
 	}
 	/* if only one bone, make this one active */
 	if (totbone==1 && first) first->flag |= BONE_ACTIVE;
+
+	if (totbone==0) return OPERATOR_CANCELLED;
 	
 	/* Transform the endpoints */
 	armature_sync_selection(arm->edbo);
-// XXX	BIF_TransformSetUndo("Extrude");
-//	initTransform(TFM_TRANSLATION, CTX_NO_PET);
-//	Transform();
+
+	return OPERATOR_FINISHED;
+}
+
+static int armature_extrude_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	if (OPERATOR_CANCELLED == armature_extrude_exec(C, op))
+		return OPERATOR_CANCELLED;
+
+	RNA_int_set(op->ptr, "mode", TFM_TRANSLATION);
+	WM_operator_name_call(C, "TFM_OT_transform", WM_OP_INVOKE_REGION_WIN, op->ptr);
+
+	return OPERATOR_FINISHED;
+}
+
+void ARMATURE_OT_extrude(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Extrude";
+	ot->idname= "ARMATURE_OT_extrude";
 	
+	/* api callbacks */
+	ot->invoke= armature_extrude_invoke;
+	ot->exec= armature_extrude_exec;
+	ot->poll= ED_operator_editarmature;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* props */
+	RNA_def_boolean(ot->srna, "forked", 0, "Forked", "");
+	/* to give to transform */
+	RNA_def_int(ot->srna, "mode", TFM_TRANSLATION, 0, INT_MAX, "Mode", "", 0, INT_MAX);
 }
 /* ********************** Bone Add ********************/
 
