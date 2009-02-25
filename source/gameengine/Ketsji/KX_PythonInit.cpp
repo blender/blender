@@ -196,7 +196,7 @@ static PyObject* gPyGetSpectrum(PyObject*)
 }
 
 
-
+#if 0 // unused
 static PyObject* gPyStartDSP(PyObject*, PyObject* args)
 {
 	SND_IAudioDevice* audiodevice = SND_DeviceManager::Instance();
@@ -213,7 +213,7 @@ static PyObject* gPyStartDSP(PyObject*, PyObject* args)
 	
 	Py_RETURN_NONE;
 }
-
+#endif
 
 
 static PyObject* gPyStopDSP(PyObject*, PyObject* args)
@@ -257,7 +257,7 @@ static PyObject* gPySetPhysicsTicRate(PyObject*, PyObject* args)
 	PHY_GetActiveEnvironment()->setFixedTimeStep(true,ticrate);
 	Py_RETURN_NONE;
 }
-
+#if 0 // unused
 static PyObject* gPySetPhysicsDebug(PyObject*, PyObject* args)
 {
 	int debugMode;
@@ -267,7 +267,7 @@ static PyObject* gPySetPhysicsDebug(PyObject*, PyObject* args)
 	PHY_GetActiveEnvironment()->setDebugMode(debugMode);
 	Py_RETURN_NONE;
 }
-
+#endif
 
 
 static PyObject* gPyGetPhysicsTicRate(PyObject*)

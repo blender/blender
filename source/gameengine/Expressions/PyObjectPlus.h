@@ -73,7 +73,7 @@ typedef int Py_ssize_t;
 #endif
 
 static inline void Py_Fatal(const char *M) {
-	//cout << M << endl; 
+	fprintf(stderr, "%s\n", M);
 	exit(-1);
 };
 

@@ -132,7 +132,7 @@ bool KX_GameActuator::Update()
 			{
 				char mashal_path[512];
 				char *marshal_buffer = NULL;
-				int marshal_length;
+				unsigned int marshal_length;
 				FILE *fp = NULL;
 				
 				pathGamePythonConfig(mashal_path);

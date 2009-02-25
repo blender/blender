@@ -166,7 +166,7 @@ public:
 	//const BL_Sampler*	GetSampler(int i);
 	void				SetSampler(int loc, int unit);
 
-	const bool			Ok()const;
+	bool				Ok()const;
 	unsigned int		GetProg();
 	void				SetProg(bool enable);
 	int					GetAttribute(){return mAttr;};

@@ -143,7 +143,7 @@ const STR_String& RAS_IPolyMaterial::GetTextureName() const
 	return m_texturename;
 }
 
-const unsigned int	RAS_IPolyMaterial::GetFlag() const
+unsigned int	RAS_IPolyMaterial::GetFlag() const
 {
 	return m_flag;
 }

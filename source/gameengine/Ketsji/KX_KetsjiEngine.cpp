@@ -713,7 +713,7 @@ void KX_KetsjiEngine::Render()
 		if (!BeginFrame())
 			return;
 
-		KX_SceneList::iterator sceneit;
+
 		for (sceneit = m_scenes.begin();sceneit != m_scenes.end(); sceneit++)
 		// for each scene, call the proceed functions
 		{

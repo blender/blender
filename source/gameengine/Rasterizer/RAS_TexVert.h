@@ -110,7 +110,7 @@ public:
 		return (unsigned char *) &m_rgba;
 	}
 
-	const unsigned int getOrigIndex() const {
+	unsigned int getOrigIndex() const {
 		return m_origindex;
 	}
 

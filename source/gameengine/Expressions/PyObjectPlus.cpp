@@ -147,7 +147,7 @@ PyObject *PyObjectPlus::_getattr_self(const PyAttributeDef attrlist[], void *sel
 			if (attrdef->m_length > 1)
 			{
 				PyObject* resultlist = PyList_New(attrdef->m_length);
-				for (int i=0; i<attrdef->m_length; i++)
+				for (unsigned int i=0; i<attrdef->m_length; i++)
 				{
 					switch (attrdef->m_type) {
 					case KX_PYATTRIBUTE_TYPE_BOOL:

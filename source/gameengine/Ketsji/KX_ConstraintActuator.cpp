@@ -56,9 +56,9 @@ KX_ConstraintActuator::KX_ConstraintActuator(SCA_IObject *gameobj,
 											 int option,
 											 char *property,
 											 PyTypeObject* T) : 
+	SCA_IActuator(gameobj, T),
 	m_refDirection(refDir),
-	m_currentTime(0),
-	SCA_IActuator(gameobj, T)
+	m_currentTime(0)
 {
 	m_posDampTime = posDampTime;
 	m_rotDampTime = rotDampTime;

@@ -158,8 +158,8 @@ bool SCA_MouseSensor::Evaluate(CValue* event)
 	case KX_MOUSESENSORMODE_WHEELUP:
 	case KX_MOUSESENSORMODE_WHEELDOWN:
 		{
-			const SCA_InputEvent& event = mousedev->GetEventValue(m_hotkey);
-			switch (event.m_status){	
+			const SCA_InputEvent& mevent = mousedev->GetEventValue(m_hotkey);
+			switch (mevent.m_status){	
 			case SCA_InputEvent::KX_JUSTACTIVATED:
 				m_val = 1;
 				result = true;

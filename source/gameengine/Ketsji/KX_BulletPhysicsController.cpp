@@ -384,10 +384,10 @@ SG_Controller*	KX_BulletPhysicsController::GetReplica(class SG_Node* destnode)
 			childit!= destnode->GetSGChildren().end();
 			++childit
 				) {
-				KX_GameObject *clientgameobj = static_cast<KX_GameObject*>( (*childit)->GetSGClientObject());
-				if (clientgameobj)
+				KX_GameObject *clientgameobj_child = static_cast<KX_GameObject*>( (*childit)->GetSGClientObject());
+				if (clientgameobj_child)
 				{
-					parentKxCtrl = (KX_BulletPhysicsController*)clientgameobj->GetPhysicsController();
+					parentKxCtrl = (KX_BulletPhysicsController*)clientgameobj_child->GetPhysicsController();
 					parentctrl = parentKxCtrl;
 					ccdParent = parentKxCtrl;
 				}

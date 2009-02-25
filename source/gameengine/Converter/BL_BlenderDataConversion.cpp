@@ -1997,18 +1997,18 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 				MT_Vector3 x(ori.getColumn(0));
 				MT_Vector3 y(ori.getColumn(1));
 				MT_Vector3 z(ori.getColumn(2));
-				MT_Vector3 scale(x.length(), y.length(), z.length());
-				if (!MT_fuzzyZero(scale[0]))
-					x /= scale[0];
-				if (!MT_fuzzyZero(scale[1]))
-					y /= scale[1];
-				if (!MT_fuzzyZero(scale[2]))
-					z /= scale[2];
+				MT_Vector3 parscale(x.length(), y.length(), z.length());
+				if (!MT_fuzzyZero(parscale[0]))
+					x /= parscale[0];
+				if (!MT_fuzzyZero(parscale[1]))
+					y /= parscale[1];
+				if (!MT_fuzzyZero(parscale[2]))
+					z /= parscale[2];
 				ori.setColumn(0, x);								
 				ori.setColumn(1, y);								
 				ori.setColumn(2, z);								
 				parentinversenode->SetLocalOrientation(ori);
-				parentinversenode->SetLocalScale(scale);
+				parentinversenode->SetLocalScale(parscale);
 				
 				parentinversenode->AddChild(gameobj->GetSGNode());
 			}
@@ -2194,18 +2194,18 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 								MT_Vector3 x(ori.getColumn(0));
 								MT_Vector3 y(ori.getColumn(1));
 								MT_Vector3 z(ori.getColumn(2));
-								MT_Vector3 scale(x.length(), y.length(), z.length());
-								if (!MT_fuzzyZero(scale[0]))
-									x /= scale[0];
-								if (!MT_fuzzyZero(scale[1]))
-									y /= scale[1];
-								if (!MT_fuzzyZero(scale[2]))
-									z /= scale[2];
+								MT_Vector3 localscale(x.length(), y.length(), z.length());
+								if (!MT_fuzzyZero(localscale[0]))
+									x /= localscale[0];
+								if (!MT_fuzzyZero(localscale[1]))
+									y /= localscale[1];
+								if (!MT_fuzzyZero(localscale[2]))
+									z /= localscale[2];
 								ori.setColumn(0, x);								
 								ori.setColumn(1, y);								
 								ori.setColumn(2, z);								
 								parentinversenode->SetLocalOrientation(ori);
-								parentinversenode->SetLocalScale(scale);
+								parentinversenode->SetLocalScale(localscale);
 								
 								parentinversenode->AddChild(gameobj->GetSGNode());
 							}

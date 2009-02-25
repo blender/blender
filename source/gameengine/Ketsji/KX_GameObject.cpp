@@ -1462,11 +1462,9 @@ PyObject* KX_GameObject::PySetState(PyObject* self, PyObject* value)
 PyObject* KX_GameObject::PyGetVelocity(PyObject* self, PyObject* args)
 {
 	// only can get the velocity if we have a physics object connected to us...
-	MT_Vector3 velocity(0.0,0.0,0.0);
 	MT_Point3 point(0.0,0.0,0.0);
-	
-	
 	PyObject* pypos = NULL;
+	
 	if (PyArg_ParseTuple(args, "|O:getVelocity", &pypos))
 	{
 		if (pypos)
@@ -1478,10 +1476,11 @@ PyObject* KX_GameObject::PyGetVelocity(PyObject* self, PyObject* args)
 	
 	if (m_pPhysicsController1)
 	{
-		velocity = m_pPhysicsController1->GetVelocity(point);
+		return PyObjectFrom(m_pPhysicsController1->GetVelocity(point));
 	}
-	
-	return PyObjectFrom(velocity);
+	else {
+		return PyObjectFrom(MT_Vector3(0.0,0.0,0.0));
+	}
 }
 
 
@@ -2045,8 +2044,8 @@ KX_PYMETHODDEF_DOC(KX_GameObject, rayCast,
 				if (callback.m_hitMesh)
 				{
 					// if this field is set, then we can trust that m_hitPolygon is a valid polygon
-					RAS_Polygon* poly = callback.m_hitMesh->GetPolygon(callback.m_hitPolygon);
-					KX_PolyProxy* polyproxy = new KX_PolyProxy(callback.m_hitMesh, poly);
+					RAS_Polygon* polygon = callback.m_hitMesh->GetPolygon(callback.m_hitPolygon);
+					KX_PolyProxy* polyproxy = new KX_PolyProxy(callback.m_hitMesh, polygon);
 					PyTuple_SET_ITEM(returnValue, 3, polyproxy);
 				}
 				else

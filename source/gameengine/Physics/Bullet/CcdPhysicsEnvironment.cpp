@@ -317,8 +317,8 @@ static void DrawAabb(btIDebugDraw* debugDrawer,const btVector3& from,const btVec
 
 
 CcdPhysicsEnvironment::CcdPhysicsEnvironment(btDispatcher* dispatcher,btOverlappingPairCache* pairCache)
-:m_scalingPropagated(false),
-m_numIterations(10),
+:m_numIterations(10),
+m_scalingPropagated(false),
 m_numTimeSubSteps(1),
 m_ccdMode(0),
 m_solverType(-1),
@@ -326,8 +326,8 @@ m_profileTimings(0),
 m_enableSatCollisionDetection(false),
 m_solver(NULL),
 m_ownPairCache(NULL),
-m_ownDispatcher(NULL),
-m_filterCallback(NULL)
+m_filterCallback(NULL),
+m_ownDispatcher(NULL)
 {
 
 	for (int i=0;i<PHY_NUM_RESPONSE;i++)

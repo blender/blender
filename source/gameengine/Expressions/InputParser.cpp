@@ -274,7 +274,7 @@ void CParser::NextSym()
 			} else if (((ch >= 'a') && (ch <= 'z'))
 				|| ((ch >= 'A') && (ch <= 'Z')))
 			{ // reserved word?
-				int start;
+				
 				start = chcount;
 				CharRep();
 				GrabString(start);

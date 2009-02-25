@@ -444,7 +444,7 @@ PyObject* KX_SoundActuator::PySetLooping(PyObject* self, PyObject* args, PyObjec
 
 PyObject* KX_SoundActuator::PyGetLooping(PyObject* self, PyObject* args, PyObject* kwds)
 {
-	int looping = (m_soundObject) ? m_soundObject->GetLoopMode() : SND_LOOP_OFF;
+	int looping = (m_soundObject) ? m_soundObject->GetLoopMode() : (int)SND_LOOP_OFF;
 	PyObject* result = PyInt_FromLong(looping);
 	
 	return result;

@@ -146,8 +146,8 @@ PyObject* KX_PolyProxy::_getattr(const char *attr)
 }
 
 KX_PolyProxy::KX_PolyProxy(const RAS_MeshObject*mesh, RAS_Polygon* polygon)
-:	m_mesh((RAS_MeshObject*)mesh),
-	m_polygon(polygon)
+:	m_polygon(polygon),
+	m_mesh((RAS_MeshObject*)mesh)
 {
 }
 
