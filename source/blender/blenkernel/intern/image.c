@@ -351,12 +351,16 @@ void BKE_image_merge(Image *dest, Image *source)
 {
 	ImBuf *ibuf;
 	
-	while((ibuf= source->ibufs.first)) {
-		BLI_remlink(&source->ibufs, ibuf);
-		image_assign_ibuf(dest, ibuf, IMA_INDEX_PASS(ibuf->index), IMA_INDEX_FRAME(ibuf->index));
-	}
+	/* sanity check */
+	if(dest && source && dest!=source) {
 	
-	free_libblock(&G.main->image, source);
+		while((ibuf= source->ibufs.first)) {
+			BLI_remlink(&source->ibufs, ibuf);
+			image_assign_ibuf(dest, ibuf, IMA_INDEX_PASS(ibuf->index), IMA_INDEX_FRAME(ibuf->index));
+		}
+		
+		free_libblock(&G.main->image, source);
+	}
 }
 
 
