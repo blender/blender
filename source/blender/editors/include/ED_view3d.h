@@ -127,6 +127,8 @@ void view3d_get_transformation(struct ViewContext *vc, struct Object *ob, struct
 
 /* XXX should move to arithb.c */
 int edge_inside_circle(short centx, short centy, short rad, short x1, short y1, short x2, short y2);
+int lasso_inside(short mcords[][2], short moves, short sx, short sy);
+int lasso_inside_edge(short mcords[][2], short moves, int x0, int y0, int x1, int y1);
 
 /* modes */
 void ED_view3d_exit_paint_modes(struct bContext *C);

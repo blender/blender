@@ -5136,7 +5136,8 @@ void PAINT_OT_texture_paint_toggle(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-/* ************ texture paint radial control *************/
+/************* texture paint radial control *************/
+
 static int texture_paint_radial_control_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	ToolSettings *ts = CTX_data_scene(C)->toolsettings;
@@ -5178,3 +5179,4 @@ void PAINT_OT_texture_paint_radial_control(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
+

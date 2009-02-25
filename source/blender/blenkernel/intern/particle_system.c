@@ -4174,6 +4174,30 @@ static void psys_update_path_cache(Scene *scene, Object *ob, ParticleSystemModif
 		psys_free_path_cache(psys);
 }
 
+/* calculate and store key locations in world coordinates */
+void psys_update_world_cos(Object *ob, ParticleSystem *psys)
+{
+	ParticleSystemModifierData *psmd= psys_get_modifier(ob, psys);
+	ParticleData *pa;
+	ParticleEditKey *key;
+	int i, k, totpart;
+	float hairmat[4][4];
+
+	if(psys==0 || psys->edit==0)
+		return;
+
+	totpart= psys->totpart;
+
+	for(i=0, pa=psys->particles; i<totpart; i++, pa++) {
+		psys_mat_hair_to_global(ob, psmd->dm, psys->part->from, pa, hairmat);
+
+		for(k=0, key=psys->edit->keys[i]; k<pa->totkey; k++, key++) {
+			VECCOPY(key->world_co,key->co);
+			Mat4MulVecfl(hairmat, key->world_co);
+		}
+	}
+}
+
 static void hair_step(Scene *scene, Object *ob, ParticleSystemModifierData *psmd, ParticleSystem *psys, float cfra)
 {
 	ParticleSettings *part = psys->part;
@@ -4200,7 +4224,7 @@ static void hair_step(Scene *scene, Object *ob, ParticleSystemModifierData *psmd
 		precalc_effectors(scene, ob,psys,psmd,cfra);
 		
 	if(psys_in_edit_mode(scene, psys))
-		; //XXX PE_recalc_world_cos(ob, psys);
+		psys_update_world_cos(ob, psys);
 
 	psys_update_path_cache(scene, ob,psmd,psys,cfra);
 }

@@ -391,7 +391,8 @@ void psys_free(Object *ob, ParticleSystem * psys)
 
 		free_keyed_keys(psys);
 
-		//XXX PE_free_particle_edit(psys);
+		if(psys->edit && psys->free_edit)
+			psys->free_edit(psys);
 
 		if(psys->particles){
 			MEM_freeN(psys->particles);
@@ -2338,7 +2339,6 @@ void psys_cache_paths(Scene *scene, Object *ob, ParticleSystem *psys, float cfra
 	int k,i;
 	int steps = (int)pow(2.0, (double)psys->part->draw_step);
 	int totpart = psys->totpart;
-	char nosel[4], sel[4];
 	float sel_col[3];
 	float nosel_col[3];
 	float length, vec[3];
@@ -2350,25 +2350,25 @@ void psys_cache_paths(Scene *scene, Object *ob, ParticleSystem *psys, float cfra
 	if((psys->flag & PSYS_HAIR_DONE)==0 && (psys->flag & PSYS_KEYED)==0)
 		return;
 
-	if(psys->renderdata)
+	if(psys->renderdata) {
 		steps = (int)pow(2.0, (double)psys->part->ren_step);
-	else if(psys_in_edit_mode(scene, psys)){
+	}
+	else if(psys_in_edit_mode(scene, psys)) {
 		edit=psys->edit;
 		
 		//timed = edit->draw_timed;
 
-		//XXX PE_get_colors(sel,nosel);
-		if(pset->brushtype == PE_BRUSH_WEIGHT){
+		if(pset->brushtype == PE_BRUSH_WEIGHT) {
 			sel_col[0] = sel_col[1] = sel_col[2] = 1.0f;
 			nosel_col[0] = nosel_col[1] = nosel_col[2] = 0.0f;
 		}
 		else{
-			sel_col[0] = (float)sel[0] / 255.0f;
-			sel_col[1] = (float)sel[1] / 255.0f;
-			sel_col[2] = (float)sel[2] / 255.0f;
-			nosel_col[0] = (float)nosel[0] / 255.0f;
-			nosel_col[1] = (float)nosel[1] / 255.0f;
-			nosel_col[2] = (float)nosel[2] / 255.0f;
+			sel_col[0] = (float)edit->sel_col[0] / 255.0f;
+			sel_col[1] = (float)edit->sel_col[1] / 255.0f;
+			sel_col[2] = (float)edit->sel_col[2] / 255.0f;
+			nosel_col[0] = (float)edit->nosel_col[0] / 255.0f;
+			nosel_col[1] = (float)edit->nosel_col[1] / 255.0f;
+			nosel_col[2] = (float)edit->nosel_col[2] / 255.0f;
 		}
 	}
 

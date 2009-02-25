@@ -71,9 +71,10 @@ struct CustomData;
 
 /* meshtools.c */
 
-intptr_t	mesh_octree_table(Object *ob, struct EditMesh *em, float *co, char mode);
-struct EditVert   *editmesh_get_x_mirror_vert(Object *ob, struct EditMesh *em, float *co);
-int			mesh_get_x_mirror_vert(Object *ob, int index);
+intptr_t	mesh_octree_table(struct Object *ob, struct EditMesh *em, float *co, char mode);
+struct EditVert   *editmesh_get_x_mirror_vert(struct Object *ob, struct EditMesh *em, float *co);
+int			mesh_get_x_mirror_vert(struct Object *ob, int index);
+int			*mesh_get_x_mirror_faces(struct Object *ob, struct EditMesh *em);
 
 /* mesh_ops.c */
 void		ED_operatortypes_mesh(void);

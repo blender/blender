@@ -1890,7 +1890,6 @@ static int vpaint_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 void PAINT_OT_vertex_paint(wmOperatorType *ot)
 {
-	
 	/* identifiers */
 	ot->name= "Vertex Paint";
 	ot->idname= "PAINT_OT_vertex_paint";
@@ -1903,6 +1902,5 @@ void PAINT_OT_vertex_paint(wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-	
 }
 

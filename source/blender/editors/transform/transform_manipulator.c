@@ -405,16 +405,18 @@ int calc_manipulator_stats(ScrArea *sa)
 		ParticleEditKey *ek;
 		int k;
 
-		if(psys->edit){
-			for(a=0; a<psys->totpart; a++,pa++){
+		if(psys->edit) {
+			for(a=0; a<psys->totpart; a++,pa++) {
 				if(pa->flag & PARS_HIDE) continue;
-				for(k=0, ek=psys->edit->keys[a]; k<pa->totkey; k++,ek++){
-					if(ek->flag & PEK_SELECT){
+
+				for(k=0, ek=psys->edit->keys[a]; k<pa->totkey; k++, ek++) {
+					if(ek->flag & PEK_SELECT) {
 						calc_tw_center(ek->world_co);
 						totsel++;
 					}
 				}
 			}
+
 			/* selection center */
 			if(totsel)
 				VecMulf(G.scene->twcent, 1.0f/(float)totsel);	// centroid!

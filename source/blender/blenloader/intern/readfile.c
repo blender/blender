@@ -2941,6 +2941,7 @@ static void direct_link_particlesystems(FileData *fd, ListBase *particles)
 		}
 
 		psys->edit = 0;
+		psys->free_edit = NULL;
 		psys->pathcache = 0;
 		psys->childcache = 0;
 		psys->pathcachebufs.first = psys->pathcachebufs.last = 0;
@@ -3852,6 +3853,9 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 		sce->toolsettings->vpaint= newdataadr(fd, sce->toolsettings->vpaint);
 		sce->toolsettings->wpaint= newdataadr(fd, sce->toolsettings->wpaint);
 		sce->toolsettings->sculpt= newdataadr(fd, sce->toolsettings->sculpt);
+		sce->toolsettings->imapaint.paintcursor= NULL;
+		sce->toolsettings->particle.paintcursor= NULL;
+
 		if(sce->toolsettings->sculpt)
 			sce->toolsettings->sculpt->session= MEM_callocN(sizeof(SculptSession), "reload sculpt session");
 	}
