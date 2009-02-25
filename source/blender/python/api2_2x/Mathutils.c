@@ -350,7 +350,7 @@ PyObject *quat_rotation(PyObject *arg1, PyObject *arg2)
 PyObject *M_Mathutils_Rand(PyObject * self, PyObject * args)
 {
 	float high, low, range;
-	double rand;
+	double drand;
 	//initializers
 	high = 1.0;
 	low = 0.0;
@@ -364,14 +364,14 @@ PyObject *M_Mathutils_Rand(PyObject * self, PyObject * args)
 			"Mathutils.Rand(): high value should be larger than low value\n"));
 
 	//get the random number 0 - 1
-	rand = BLI_drand();
+	drand = BLI_drand();
 
 	//set it to range
 	range = high - low;
-	rand = rand * range;
-	rand = rand + low;
+	drand = drand * range;
+	drand = drand + low;
 
-	return PyFloat_FromDouble(rand);
+	return PyFloat_FromDouble(drand);
 }
 //----------------------------------VECTOR FUNCTIONS---------------------
 //----------------------------------Mathutils.Vector() ------------------

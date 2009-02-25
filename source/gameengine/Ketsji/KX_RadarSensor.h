@@ -83,9 +83,9 @@ public:
 	
 	virtual PyObject* _getattr(const char *attr);
 
-	KX_PYMETHOD_DOC(KX_RadarSensor,GetConeOrigin);
-	KX_PYMETHOD_DOC(KX_RadarSensor,GetConeTarget);
-	KX_PYMETHOD_DOC(KX_RadarSensor,GetConeHeight);
+	KX_PYMETHOD_DOC_NOARGS(KX_RadarSensor,GetConeOrigin);
+	KX_PYMETHOD_DOC_NOARGS(KX_RadarSensor,GetConeTarget);
+	KX_PYMETHOD_DOC_NOARGS(KX_RadarSensor,GetConeHeight);
 
 };
 

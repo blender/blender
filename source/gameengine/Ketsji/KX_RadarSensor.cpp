@@ -28,6 +28,7 @@
 
 #include "KX_RadarSensor.h"
 #include "KX_GameObject.h"
+#include "KX_PyMath.h"
 #include "PHY_IPhysicsController.h"
 
 #ifdef HAVE_CONFIG_H
@@ -221,11 +222,11 @@ PyParentObject KX_RadarSensor::Parents[] = {
 
 PyMethodDef KX_RadarSensor::Methods[] = {
 	{"getConeOrigin", (PyCFunction) KX_RadarSensor::sPyGetConeOrigin, 
-	 METH_VARARGS, (PY_METHODCHAR)GetConeOrigin_doc},
+	 METH_NOARGS, (PY_METHODCHAR)GetConeOrigin_doc},
 	{"getConeTarget", (PyCFunction) KX_RadarSensor::sPyGetConeTarget, 
-	 METH_VARARGS, (PY_METHODCHAR)GetConeTarget_doc},
+	 METH_NOARGS, (PY_METHODCHAR)GetConeTarget_doc},
 	{"getConeHeight", (PyCFunction) KX_RadarSensor::sPyGetConeHeight, 
-	 METH_VARARGS, (PY_METHODCHAR)GetConeHeight_doc},
+	 METH_NOARGS, (PY_METHODCHAR)GetConeHeight_doc},
 	{NULL,NULL,NULL,NULL} //Sentinel
 };
 
@@ -238,41 +239,23 @@ const char KX_RadarSensor::GetConeOrigin_doc[] =
 "getConeOrigin()\n"
 "\tReturns the origin of the cone with which to test. The origin\n"
 "\tis in the middle of the cone.";
-PyObject* KX_RadarSensor::PyGetConeOrigin(PyObject* self, 
-										  PyObject* args, 
-										  PyObject* kwds) {
-	PyObject *retVal = PyList_New(3);
-	
-	PyList_SetItem(retVal, 0, PyFloat_FromDouble(m_cone_origin[0]));
-	PyList_SetItem(retVal, 1, PyFloat_FromDouble(m_cone_origin[1]));
-	PyList_SetItem(retVal, 2, PyFloat_FromDouble(m_cone_origin[2]));
-	
-	return retVal;
+PyObject* KX_RadarSensor::PyGetConeOrigin(PyObject* self) {
+	return PyObjectFrom(m_cone_origin);
 }
 
 /* getConeOrigin */
 const char KX_RadarSensor::GetConeTarget_doc[] = 
 "getConeTarget()\n"
 "\tReturns the center of the bottom face of the cone with which to test.\n";
-PyObject* KX_RadarSensor::PyGetConeTarget(PyObject* self, 
-										  PyObject* args, 
-										  PyObject* kwds) {
-	PyObject *retVal = PyList_New(3);
-	
-	PyList_SetItem(retVal, 0, PyFloat_FromDouble(m_cone_target[0]));
-	PyList_SetItem(retVal, 1, PyFloat_FromDouble(m_cone_target[1]));
-	PyList_SetItem(retVal, 2, PyFloat_FromDouble(m_cone_target[2]));
-	
-	return retVal;
+PyObject* KX_RadarSensor::PyGetConeTarget(PyObject* self) {
+	return PyObjectFrom(m_cone_target);
 }
 
 /* getConeOrigin */
 const char KX_RadarSensor::GetConeHeight_doc[] = 
 "getConeHeight()\n"
 "\tReturns the height of the cone with which to test.\n";
-PyObject* KX_RadarSensor::PyGetConeHeight(PyObject* self, 
-										  PyObject* args, 
-										  PyObject* kwds) {
+PyObject* KX_RadarSensor::PyGetConeHeight(PyObject* self) {
 	return PyFloat_FromDouble(m_coneheight);
 }
 

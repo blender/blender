@@ -115,6 +115,7 @@ public:
 	}
 
 	void				SetXYZ(const MT_Point3& xyz);
+	void				SetXYZ(const float *xyz);
 	void				SetUV(const MT_Point2& uv);
 	void				SetUV2(const MT_Point2& uv);
 

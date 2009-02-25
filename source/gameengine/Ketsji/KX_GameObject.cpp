@@ -690,9 +690,9 @@ void KX_GameObject::AlignAxisToVect(const MT_Vector3& dir, int axis, float fac)
 	switch (axis)
 	{	
 		case 0: //x axis
-			ori = MT_Vector3(orimat[0][2], orimat[1][2], orimat[2][2]); //pivot axis
+			ori.setValue(orimat[0][2], orimat[1][2], orimat[2][2]); //pivot axis
 			if (MT_abs(vect.dot(ori)) > 1.0-3.0*MT_EPSILON) //is the vector paralell to the pivot?
-				ori = MT_Vector3(orimat[0][1], orimat[1][1], orimat[2][1]); //change the pivot!
+				ori.setValue(orimat[0][1], orimat[1][1], orimat[2][1]); //change the pivot!
 			if (fac == 1.0) {
 				x = vect;
 			} else {
@@ -705,9 +705,9 @@ void KX_GameObject::AlignAxisToVect(const MT_Vector3& dir, int axis, float fac)
 			z = x.cross(y);
 			break;
 		case 1: //y axis
-			ori = MT_Vector3(orimat[0][0], orimat[1][0], orimat[2][0]);
+			ori.setValue(orimat[0][0], orimat[1][0], orimat[2][0]);
 			if (MT_abs(vect.dot(ori)) > 1.0-3.0*MT_EPSILON)
-				ori = MT_Vector3(orimat[0][2], orimat[1][2], orimat[2][2]);
+				ori.setValue(orimat[0][2], orimat[1][2], orimat[2][2]);
 			if (fac == 1.0) {
 				y = vect;
 			} else {
@@ -720,9 +720,9 @@ void KX_GameObject::AlignAxisToVect(const MT_Vector3& dir, int axis, float fac)
 			x = y.cross(z);
 			break;
 		case 2: //z axis
-			ori = MT_Vector3(orimat[0][1], orimat[1][1], orimat[2][1]);
+			ori.setValue(orimat[0][1], orimat[1][1], orimat[2][1]);
 			if (MT_abs(vect.dot(ori)) > 1.0-3.0*MT_EPSILON)
-				ori = MT_Vector3(orimat[0][0], orimat[1][0], orimat[2][0]);
+				ori.setValue(orimat[0][0], orimat[1][0], orimat[2][0]);
 			if (fac == 1.0) {
 				z = vect;
 			} else {
@@ -741,9 +741,9 @@ void KX_GameObject::AlignAxisToVect(const MT_Vector3& dir, int axis, float fac)
 	x.normalize(); //normalize the vectors
 	y.normalize();
 	z.normalize();
-	orimat = MT_Matrix3x3(	x[0],y[0],z[0],
-							x[1],y[1],z[1],
-							x[2],y[2],z[2]);
+	orimat.setValue(	x[0],y[0],z[0],
+						x[1],y[1],z[1],
+						x[2],y[2],z[2]);
 	if (GetSGNode()->GetSGParent() != NULL)
 	{
 		// the object is a child, adapt its local orientation so that 
@@ -945,13 +945,11 @@ const MT_Vector3& KX_GameObject::NodeGetWorldScaling() const
 
 const MT_Point3& KX_GameObject::NodeGetWorldPosition() const
 {
-	static MT_Point3 defaultPosition = MT_Point3(0.0, 0.0, 0.0);
-
 	// check on valid node in case a python controller holds a reference to a deleted object
-	if (!GetSGNode())
-		return defaultPosition;
-
-	return GetSGNode()->GetWorldPosition();
+	if (GetSGNode())
+		return GetSGNode()->GetWorldPosition();
+	else
+		return MT_Point3(0.0, 0.0, 0.0);
 }
 
 /* Suspend/ resume: for the dynamic behaviour, there is a simple

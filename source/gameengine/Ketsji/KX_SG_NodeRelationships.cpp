@@ -55,43 +55,21 @@ UpdateChildCoordinates(
 ){
 	MT_assert(child != NULL);
 
-	// This way of accessing child coordinates is a bit cumbersome
-	// be nice to have non constant reference access to these values.
-
-	const MT_Vector3 & child_scale = child->GetLocalScale();
-	const MT_Point3 & child_pos = child->GetLocalPosition();
-	const MT_Matrix3x3 & child_rotation = child->GetLocalOrientation();
-
-	// the childs world locations which we will update.	
-	
-	MT_Vector3 child_w_scale;
-	MT_Point3 child_w_pos;
-	MT_Matrix3x3 child_w_rotation;
-		
-	if (parent) {
-
+	if (parent==NULL) { /* Simple case */
+		child->SetWorldFromLocalTransform();
+		return false;
+	}
+	else {
+		// the childs world locations which we will update.	
 		const MT_Vector3 & p_world_scale = parent->GetWorldScaling();
 		const MT_Point3 & p_world_pos = parent->GetWorldPosition();
 		const MT_Matrix3x3 & p_world_rotation = parent->GetWorldOrientation();
 
-		child_w_scale = p_world_scale * child_scale;
-		child_w_rotation = p_world_rotation * child_rotation;
-
-		child_w_pos = p_world_pos + p_world_scale * 
-			(p_world_rotation * child_pos);
-		
-	} else {
-
-		child_w_scale = child_scale;
-		child_w_pos = child_pos;
-		child_w_rotation = child_rotation;
+		child->SetWorldScale(p_world_scale * child->GetLocalScale());
+		child->SetWorldOrientation(p_world_rotation * child->GetLocalOrientation());
+		child->SetWorldPosition(p_world_pos + p_world_scale * (p_world_rotation * child->GetLocalPosition()));
+		return true;
 	}
-
-	child->SetWorldScale(child_w_scale);
-	child->SetWorldPosition(child_w_pos);
-	child->SetWorldOrientation(child_w_rotation);
-	
-	return parent != NULL;
 }
 
 	SG_ParentRelation *
@@ -138,40 +116,14 @@ UpdateChildCoordinates(
 ){
 
 	MT_assert(child != NULL);
-
-	const MT_Vector3 & child_scale = child->GetLocalScale();
-	const MT_Point3 & child_pos = child->GetLocalPosition();
-	const MT_Matrix3x3 & child_rotation = child->GetLocalOrientation();
-
-	// the childs world locations which we will update.	
+	child->SetWorldScale(child->GetLocalScale());
 	
-	MT_Vector3 child_w_scale;
-	MT_Point3 child_w_pos;
-	MT_Matrix3x3 child_w_rotation;
-		
-	if (parent) {
-
-		// This is a vertex parent so we do not inherit orientation 
-		// information.
-
-		// const MT_Vector3 & p_world_scale = parent->GetWorldScaling(); /*unused*/
-		const MT_Point3 & p_world_pos = parent->GetWorldPosition();
-		// const MT_Matrix3x3 & p_world_rotation = parent->GetWorldOrientation(); /*unused*/
-
-		child_w_scale = child_scale;
-		child_w_rotation = child_rotation;
-		child_w_pos = p_world_pos + child_pos;
-	} else {
-
-		child_w_scale = child_scale;
-		child_w_pos = child_pos;
-		child_w_rotation = child_rotation;
-	}
-
-	child->SetWorldScale(child_w_scale);
-	child->SetWorldPosition(child_w_pos);
-	child->SetWorldOrientation(child_w_rotation);
+	if (parent)
+		child->SetWorldPosition(child->GetLocalPosition()+parent->GetWorldPosition());
+	else
+		child->SetWorldPosition(child->GetLocalPosition());
 	
+	child->SetWorldOrientation(child->GetLocalOrientation());
 	return parent != NULL;
 }
 

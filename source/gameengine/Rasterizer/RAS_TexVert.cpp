@@ -59,10 +59,10 @@ const MT_Point3& RAS_TexVert::xyz()
 void RAS_TexVert::SetRGBA(const MT_Vector4& rgba)
 {
 	unsigned char *colp = (unsigned char*) &m_rgba;
-	colp[0] = (unsigned char) (rgba[0]*255.0);
-	colp[1] = (unsigned char) (rgba[1]*255.0);
-	colp[2] = (unsigned char) (rgba[2]*255.0);
-	colp[3] = (unsigned char) (rgba[3]*255.0);
+	colp[0] = (unsigned char) (rgba[0]*255.0f);
+	colp[1] = (unsigned char) (rgba[1]*255.0f);
+	colp[2] = (unsigned char) (rgba[2]*255.0f);
+	colp[3] = (unsigned char) (rgba[3]*255.0f);
 }
 
 
@@ -71,7 +71,10 @@ void RAS_TexVert::SetXYZ(const MT_Point3& xyz)
 	xyz.getValue(m_localxyz);
 }
 
-
+void RAS_TexVert::SetXYZ(const float *xyz)
+{
+	m_localxyz[0]= xyz[0]; m_localxyz[1]= xyz[1]; m_localxyz[2]= xyz[2];
+}
 
 void RAS_TexVert::SetUV(const MT_Point2& uv)
 {
@@ -111,15 +114,18 @@ void RAS_TexVert::SetTangent(const MT_Vector3& tangent)
 }
 
 // compare two vertices, and return TRUE if both are almost identical (they can be shared)
+#define _VEC_EQUAL3(_v1, _v2) (_v1[0]==_v2[0] && _v1[1]==_v2[1] && _v1[2]==_v2[2])
+#define _VEC_EQUAL2(_v1, _v2) (_v1[0]==_v2[0] && _v1[1]==_v2[1])
 bool RAS_TexVert::closeTo(const RAS_TexVert* other)
 {
 	return (m_flag == other->m_flag &&
 		m_rgba == other->m_rgba &&
-		MT_fuzzyEqual(MT_Vector3(m_normal), MT_Vector3(other->m_normal)) &&
-		MT_fuzzyEqual(MT_Vector3(m_tangent), MT_Vector3(other->m_tangent)) &&
-		MT_fuzzyEqual(MT_Vector2(m_uv1), MT_Vector2(other->m_uv1)) &&
-		MT_fuzzyEqual(MT_Vector2(m_uv2), MT_Vector2(other->m_uv2)) && // p --
-		MT_fuzzyEqual(MT_Vector3(m_localxyz), MT_Vector3(other->m_localxyz))) ;
+		_VEC_EQUAL3(m_normal, other->m_normal) &&
+		_VEC_EQUAL3(m_tangent, other->m_tangent) &&
+		_VEC_EQUAL2(m_uv1, other->m_uv1) &&
+		_VEC_EQUAL2(m_uv2, other->m_uv2) // p --
+		/* we know the verts must be shared so dont need to check this */
+		/*&& FAST_MT_fuzzyEqual3(m_localxyz, other->m_localxyz)*/) ;
 }
 
 short RAS_TexVert::getFlag() const

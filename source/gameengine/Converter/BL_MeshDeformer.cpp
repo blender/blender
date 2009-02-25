@@ -51,7 +51,6 @@
 bool BL_MeshDeformer::Apply(RAS_IPolyMaterial*)
 {
 	size_t i;
-	float *co;
 
 	// only apply once per frame if the mesh is actually modified
 	if(m_pMeshObject->MeshModified() &&
@@ -70,8 +69,7 @@ bool BL_MeshDeformer::Apply(RAS_IPolyMaterial*)
 				//	For each vertex
 				for(i=it.startvertex; i<it.endvertex; i++) {
 					RAS_TexVert& v = it.vertex[i];
-					co = m_bmesh->mvert[v.getOrigIndex()].co;
-					v.SetXYZ(MT_Point3(co));
+					v.SetXYZ(m_bmesh->mvert[v.getOrigIndex()].co);
 				}
 			}
 		}

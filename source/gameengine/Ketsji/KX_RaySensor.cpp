@@ -38,6 +38,7 @@
 #include "KX_GameObject.h"
 #include "KX_Scene.h"
 #include "KX_RayCast.h"
+#include "KX_PyMath.h"
 #include "PHY_IPhysicsEnvironment.h"
 #include "KX_IPhysicsController.h"
 #include "PHY_IPhysicsController.h"
@@ -179,8 +180,8 @@ bool KX_RaySensor::Evaluate(CValue* event)
 	bool reset = m_reset && m_level;
 	m_rayHit = false; 
 	m_hitObject = NULL;
-	m_hitPosition = MT_Vector3(0,0,0);
-	m_hitNormal = MT_Vector3(1,0,0);
+	m_hitPosition.setValue(0,0,0);
+	m_hitNormal.setValue(1,0,0);
 	
 	KX_GameObject* obj = (KX_GameObject*)GetParent();
 	MT_Point3 frompoint = obj->NodeGetWorldPosition();
@@ -335,19 +336,17 @@ PyParentObject KX_RaySensor::Parents[] = {
 };
 
 PyMethodDef KX_RaySensor::Methods[] = {
-	{"getHitObject",(PyCFunction) KX_RaySensor::sPyGetHitObject,METH_VARARGS, (PY_METHODCHAR)GetHitObject_doc},
-	{"getHitPosition",(PyCFunction) KX_RaySensor::sPyGetHitPosition,METH_VARARGS, (PY_METHODCHAR)GetHitPosition_doc},
-	{"getHitNormal",(PyCFunction) KX_RaySensor::sPyGetHitNormal,METH_VARARGS, (PY_METHODCHAR)GetHitNormal_doc},
-	{"getRayDirection",(PyCFunction) KX_RaySensor::sPyGetRayDirection,METH_VARARGS, (PY_METHODCHAR)GetRayDirection_doc},
+	{"getHitObject",(PyCFunction) KX_RaySensor::sPyGetHitObject,METH_NOARGS, (PY_METHODCHAR)GetHitObject_doc},
+	{"getHitPosition",(PyCFunction) KX_RaySensor::sPyGetHitPosition,METH_NOARGS, (PY_METHODCHAR)GetHitPosition_doc},
+	{"getHitNormal",(PyCFunction) KX_RaySensor::sPyGetHitNormal,METH_NOARGS, (PY_METHODCHAR)GetHitNormal_doc},
+	{"getRayDirection",(PyCFunction) KX_RaySensor::sPyGetRayDirection,METH_NOARGS, (PY_METHODCHAR)GetRayDirection_doc},
 	{NULL,NULL} //Sentinel
 };
 
 const char KX_RaySensor::GetHitObject_doc[] = 
 "getHitObject()\n"
 "\tReturns the name of the object that was hit by this ray.\n";
-PyObject* KX_RaySensor::PyGetHitObject(PyObject* self, 
-										   PyObject* args, 
-										   PyObject* kwds)
+PyObject* KX_RaySensor::PyGetHitObject(PyObject* self)
 {
 	if (m_hitObject)
 	{
@@ -360,60 +359,25 @@ PyObject* KX_RaySensor::PyGetHitObject(PyObject* self,
 const char KX_RaySensor::GetHitPosition_doc[] = 
 "getHitPosition()\n"
 "\tReturns the position (in worldcoordinates) where the object was hit by this ray.\n";
-PyObject* KX_RaySensor::PyGetHitPosition(PyObject* self, 
-			       PyObject* args, 
-			       PyObject* kwds)
+PyObject* KX_RaySensor::PyGetHitPosition(PyObject* self)
 {
-
-	MT_Point3 pos = m_hitPosition;
-
-	PyObject* resultlist = PyList_New(3);
-	int index;
-	for (index=0;index<3;index++)
-	{
-		PyList_SetItem(resultlist,index,PyFloat_FromDouble(pos[index]));
-	}
-	return resultlist;
-
+	return PyObjectFrom(m_hitPosition);
 }
 
 const char KX_RaySensor::GetRayDirection_doc[] = 
 "getRayDirection()\n"
 "\tReturns the direction from the ray (in worldcoordinates) .\n";
-PyObject* KX_RaySensor::PyGetRayDirection(PyObject* self, 
-			       PyObject* args, 
-			       PyObject* kwds)
+PyObject* KX_RaySensor::PyGetRayDirection(PyObject* self)
 {
-
-	MT_Vector3 dir = m_rayDirection;
-
-	PyObject* resultlist = PyList_New(3);
-	int index;
-	for (index=0;index<3;index++)
-	{
-		PyList_SetItem(resultlist,index,PyFloat_FromDouble(dir[index]));
-	}
-	return resultlist;
-
+	return PyObjectFrom(m_rayDirection);
 }
 
 const char KX_RaySensor::GetHitNormal_doc[] = 
 "getHitNormal()\n"
 "\tReturns the normal (in worldcoordinates) of the object at the location where the object was hit by this ray.\n";
-PyObject* KX_RaySensor::PyGetHitNormal(PyObject* self, 
-			       PyObject* args, 
-			       PyObject* kwds)
+PyObject* KX_RaySensor::PyGetHitNormal(PyObject* self)
 {
-	MT_Vector3 pos = m_hitNormal;
-
-	PyObject* resultlist = PyList_New(3);
-	int index;
-	for (index=0;index<3;index++)
-	{
-		PyList_SetItem(resultlist,index,PyFloat_FromDouble(pos[index]));
-	}
-	return resultlist;
-
+	return PyObjectFrom(m_hitNormal);
 }
 
 

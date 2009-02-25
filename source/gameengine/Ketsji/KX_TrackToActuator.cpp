@@ -258,18 +258,18 @@ bool KX_TrackToActuator::Update(double curtime, bool frame)
 		{
 		case 0:
 			{
-				up = MT_Vector3(1.0,0,0);
+				up.setValue(1.0,0,0);
 				break;
 			} 
 		case 1:
 			{
-				up = MT_Vector3(0,1.0,0);
+				up.setValue(0,1.0,0);
 				break;
 			}
 		case 2:
 		default:
 			{
-				up = MT_Vector3(0,0,1.0);
+				up.setValue(0,0,1.0);
 			}
 		}
 #endif 

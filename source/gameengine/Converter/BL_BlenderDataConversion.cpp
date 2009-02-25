@@ -593,7 +593,7 @@ BL_Material* ConvertMaterial(
 	MT_Point2 uv2[4];
 	const char *uvName = "", *uv2Name = "";
 
-	uv[0]= uv[1]= uv[2]= uv[3]= MT_Point2(0.0f, 0.0f);
+	
 	uv2[0]= uv2[1]= uv2[2]= uv2[3]= MT_Point2(0.0f, 0.0f);
 
 	if( validface ) {
@@ -607,12 +607,12 @@ BL_Material* ConvertMaterial(
 		material->tile	= tface->tile;
 		material->mode	= tface->mode;
 			
-		uv[0]	= MT_Point2(tface->uv[0]);
-		uv[1]	= MT_Point2(tface->uv[1]);
-		uv[2]	= MT_Point2(tface->uv[2]);
+		uv[0].setValue(tface->uv[0]);
+		uv[1].setValue(tface->uv[1]);
+		uv[2].setValue(tface->uv[2]);
 
 		if (mface->v4) 
-			uv[3]	= MT_Point2(tface->uv[3]);
+			uv[3].setValue(tface->uv[3]);
 
 		uvName = tfaceName;
 	} 
@@ -622,6 +622,8 @@ BL_Material* ConvertMaterial(
 		material->mode		= default_face_mode;	
 		material->transp	= TF_SOLID;
 		material->tile		= 0;
+		
+		uv[0]= uv[1]= uv[2]= uv[3]= MT_Point2(0.0f, 0.0f);
 	}
 
 	// with ztransp enabled, enforce alpha blending mode
@@ -665,14 +667,14 @@ BL_Material* ConvertMaterial(
 					{
 						MT_Point2 uvSet[4];
 
-						uvSet[0]	= MT_Point2(layer.face->uv[0]);
-						uvSet[1]	= MT_Point2(layer.face->uv[1]);
-						uvSet[2]	= MT_Point2(layer.face->uv[2]);
+						uvSet[0].setValue(layer.face->uv[0]);
+						uvSet[1].setValue(layer.face->uv[1]);
+						uvSet[2].setValue(layer.face->uv[2]);
 
 						if (mface->v4) 
-							uvSet[3]	= MT_Point2(layer.face->uv[3]);
+							uvSet[3].setValue(layer.face->uv[3]);
 						else
-							uvSet[3]	= MT_Point2(0.0f, 0.0f);
+							uvSet[3].setValue(0.0f, 0.0f);
 
 						if (isFirstSet)
 						{
@@ -790,10 +792,10 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 		MT_Vector4 tan0(0,0,0,0), tan1(0,0,0,0), tan2(0,0,0,0), tan3(0,0,0,0);
 
 		/* get coordinates, normals and tangents */
-		pt0 = MT_Point3(mvert[mface->v1].co);
-		pt1 = MT_Point3(mvert[mface->v2].co);
-		pt2 = MT_Point3(mvert[mface->v3].co);
-		pt3 = (mface->v4)? MT_Point3(mvert[mface->v4].co): MT_Point3(0.0, 0.0, 0.0);
+		pt0.setValue(mvert[mface->v1].co);
+		pt1.setValue(mvert[mface->v2].co);
+		pt2.setValue(mvert[mface->v3].co);
+		if (mface->v4) pt3.setValue(mvert[mface->v4].co);
 
 		if(mface->flag & ME_SMOOTH) {
 			float n0[3], n1[3], n2[3], n3[3];
@@ -894,12 +896,12 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 					
 					visible = !((mface->flag & ME_HIDE)||(tface->mode & TF_INVISIBLE));
 					
-					uv0 = MT_Point2(tface->uv[0]);
-					uv1 = MT_Point2(tface->uv[1]);
-					uv2 = MT_Point2(tface->uv[2]);
+					uv0.setValue(tface->uv[0]);
+					uv1.setValue(tface->uv[1]);
+					uv2.setValue(tface->uv[2]);
 	
 					if (mface->v4)
-						uv3 = MT_Point2(tface->uv[3]);
+						uv3.setValue(tface->uv[3]);
 				} 
 				else {
 					/* no texfaces, set COLLSION true and everything else FALSE */
@@ -960,7 +962,7 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 					polymat->m_diffuse = MT_Vector3(ma->r, ma->g, ma->b)*(ma->emit + ma->ref);
 				}
 				else {
-					polymat->m_specular = MT_Vector3(0.0f,0.0f,0.0f);
+					polymat->m_specular.setValue(0.0f,0.0f,0.0f);
 					polymat->m_shininess = 35.0;
 				}
 			}
@@ -1911,21 +1913,14 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 			MT_Matrix3x3 angor;			
 			if (converter->addInitFromFrame) blenderscene->r.cfra=blenderscene->r.sfra;
 			
-			MT_Point3 pos = MT_Point3(
+			MT_Point3 pos;
+			pos.setValue(
 				blenderobject->loc[0]+blenderobject->dloc[0],
 				blenderobject->loc[1]+blenderobject->dloc[1],
 				blenderobject->loc[2]+blenderobject->dloc[2]
 			);
-			MT_Vector3 eulxyz = MT_Vector3(
-				blenderobject->rot[0],
-				blenderobject->rot[1],
-				blenderobject->rot[2]
-			);
-			MT_Vector3 scale = MT_Vector3(
-				blenderobject->size[0],
-				blenderobject->size[1],
-				blenderobject->size[2]
-			);
+			MT_Vector3 eulxyz(blenderobject->rot);
+			MT_Vector3 scale(blenderobject->size);
 			if (converter->addInitFromFrame){//rcruiz
 				float eulxyzPrev[3];
 				blenderscene->r.cfra=blenderscene->r.sfra-1;
@@ -2113,21 +2108,13 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 							if (converter->addInitFromFrame) 
 								blenderscene->r.cfra=blenderscene->r.sfra;
 							
-							MT_Point3 pos = MT_Point3(
+							MT_Point3 pos(
 								blenderobject->loc[0]+blenderobject->dloc[0],
 								blenderobject->loc[1]+blenderobject->dloc[1],
 								blenderobject->loc[2]+blenderobject->dloc[2]
 							);
-							MT_Vector3 eulxyz = MT_Vector3(
-								blenderobject->rot[0],
-								blenderobject->rot[1],
-								blenderobject->rot[2]
-							);
-							MT_Vector3 scale = MT_Vector3(
-								blenderobject->size[0],
-								blenderobject->size[1],
-								blenderobject->size[2]
-							);
+							MT_Vector3 eulxyz(blenderobject->rot);
+							MT_Vector3 scale(blenderobject->size);
 							if (converter->addInitFromFrame){//rcruiz
 								float eulxyzPrev[3];
 								blenderscene->r.cfra=blenderscene->r.sfra-1;
