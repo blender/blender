@@ -148,6 +148,8 @@ typedef enum SnapMode
 	NOT_ACTIVE = 1
 } SnapMode;
 
+#define SNAP_MIN_DISTANCE 30
+
 int snapObjects(int *dist, float *loc, float *no, SnapMode mode);
 int peelObjects(struct ListBase *depth_peels, short mval[2]);
 

@@ -71,7 +71,6 @@ typedef enum SK_PType
 
 typedef enum SK_PMode
 {
-	PT_EMBED,
 	PT_SNAP,
 	PT_PROJECT,
 } SK_PMode;
@@ -177,8 +176,6 @@ SK_Sketch *GLOBAL_sketch = NULL;
 SK_Point boneSnap;
 int    LAST_SNAP_POINT_VALID = 0;
 float  LAST_SNAP_POINT[3];
-
-#define SNAP_MIN_DISTANCE 12
 
 /******************** PROTOTYPES ******************************/
 
@@ -1474,100 +1471,7 @@ int sk_addStrokeDrawPoint(SK_Sketch *sketch, SK_Stroke *stk, SK_DrawData *dd)
 	return 1;
 }
 
-
-int sk_getStrokeSnapPoint(SK_Point *pt, SK_Sketch *sketch, SK_Stroke *source_stk, SK_DrawData *dd)
-{
-	SK_Stroke *stk;
-	int dist = SNAP_MIN_DISTANCE;
-	int point_added = 0;
-	
-	for (stk = sketch->strokes.first; stk; stk = stk->next)
-	{
-		SK_Point *spt = NULL;
-		if (stk == source_stk)
-		{
-			spt = sk_snapPointStroke(stk, dd->mval, &dist, NULL, 0);
-		}
-		else
-		{
-			spt = sk_snapPointStroke(stk, dd->mval, &dist, NULL, 1);
-		}
-			
-		if (spt != NULL)
-		{
-			VECCOPY(pt->p, spt->p);
-			point_added = 1;
-		}
-	}
-	
-	/* check on bones */
-	{
-		SK_Point *spt = sk_snapPointArmature(G.obedit, &G.edbo, dd->mval, &dist);
-		
-		if (spt != NULL)
-		{
-			VECCOPY(pt->p, spt->p);
-			point_added = 1;
-		}
-	}
-	
-	if (point_added)
-	{
-		pt->type = PT_EXACT;
-		pt->mode = PT_SNAP;
-	}
-	
-	return point_added;
-}
-
-int sk_addStrokeSnapPoint(SK_Sketch *sketch, SK_Stroke *stk, SK_DrawData *dd)
-{
-	int point_added = 0;
-	SK_Point pt;
-	
-	sk_initPoint(&pt);
-	
-	point_added = sk_getStrokeSnapPoint(&pt, sketch, stk, dd);
-
-	if (point_added)
-	{
-		float final_p[3];
-		float distance;
-		float length;
-		int i, total;
-		
-		VECCOPY(final_p, pt.p);
-
-		sk_projectDrawPoint(pt.p, stk, dd);
-		sk_appendStrokePoint(stk, &pt);
-		
-		/* update all previous point to give smooth Z progresion */
-		total = 0;
-		length = 0;
-		for (i = stk->nb_points - 2; i > 0; i--)
-		{
-			length += VecLenf(stk->points[i].p, stk->points[i + 1].p);
-			total++;
-			if (stk->points[i].type == PT_EXACT)
-			{
-				break;
-			}
-		}
-		
-		if (total > 1)
-		{
-			distance = sk_distanceDepth(final_p, stk->points[i].p);
-			
-			sk_interpolateDepth(stk, i + 1, stk->nb_points - 2, length, distance);
-		}
-	
-		VECCOPY(stk->points[stk->nb_points - 1].p, final_p);
-	}
-	
-	return point_added;
-}
-
-int sk_getStrokeEmbedPoint(SK_Point *pt, SK_Sketch *sketch, SK_Stroke *stk, SK_DrawData *dd)
+int sk_getStrokeSnapPoint(SK_Point *pt, SK_Sketch *sketch, SK_Stroke *stk, SK_DrawData *dd)
 {
 	int point_added = 0;
 
@@ -1657,7 +1561,7 @@ int sk_getStrokeEmbedPoint(SK_Point *pt, SK_Sketch *sketch, SK_Stroke *stk, SK_D
 		if (dist != FLT_MAX)
 		{
 			pt->type = dd->type;
-			pt->mode = PT_EMBED;
+			pt->mode = PT_SNAP;
 			VECCOPY(pt->p, p);
 			
 			point_added = 1;
@@ -1667,16 +1571,39 @@ int sk_getStrokeEmbedPoint(SK_Point *pt, SK_Sketch *sketch, SK_Stroke *stk, SK_D
 	}
 	else
 	{
+		SK_Stroke *snap_stk;
 		float vec[3];
 		float no[3];
 		int found = 0;
-		int dist = 40; // Use a user defined value here
+		int dist = SNAP_MIN_DISTANCE; // Use a user defined value here
 
+		/* snap to strokes */
+		// if (G.scene->snap_mode == SCE_SNAP_MODE_VERTEX) /* snap all the time to strokes */
+		for (snap_stk = sketch->strokes.first; snap_stk; snap_stk = snap_stk->next)
+		{
+			SK_Point *spt = NULL;
+			if (snap_stk == stk)
+			{
+				spt = sk_snapPointStroke(snap_stk, dd->mval, &dist, NULL, 0);
+			}
+			else
+			{
+				spt = sk_snapPointStroke(snap_stk, dd->mval, &dist, NULL, 1);
+			}
+				
+			if (spt != NULL)
+			{
+				VECCOPY(pt->p, spt->p);
+				point_added = 1;
+			}
+		}
+
+		/* try to snap to closer object */
 		found = snapObjects(&dist, vec, no, NOT_SELECTED);
 		if (found == 1)
 		{
 			pt->type = dd->type;
-			pt->mode = PT_EMBED;
+			pt->mode = PT_SNAP;
 			VECCOPY(pt->p, vec);
 			
 			point_added = 1;
@@ -1686,14 +1613,14 @@ int sk_getStrokeEmbedPoint(SK_Point *pt, SK_Sketch *sketch, SK_Stroke *stk, SK_D
 	return point_added;
 }
 
-int sk_addStrokeEmbedPoint(SK_Sketch *sketch, SK_Stroke *stk, SK_DrawData *dd)
+int sk_addStrokeSnapPoint(SK_Sketch *sketch, SK_Stroke *stk, SK_DrawData *dd)
 {
 	int point_added;
 	SK_Point pt;
 	
 	sk_initPoint(&pt);
 
-	point_added = sk_getStrokeEmbedPoint(&pt, sketch, stk, dd);
+	point_added = sk_getStrokeSnapPoint(&pt, sketch, stk, dd);
 	
 	if (point_added)
 	{
@@ -1714,7 +1641,7 @@ int sk_addStrokeEmbedPoint(SK_Sketch *sketch, SK_Stroke *stk, SK_DrawData *dd)
 		{
 			length += VecLenf(stk->points[i].p, stk->points[i + 1].p);
 			total++;
-			if (stk->points[i].mode == PT_EMBED || stk->points[i].type == PT_EXACT)
+			if (stk->points[i].mode == PT_SNAP || stk->points[i].type == PT_EXACT)
 			{
 				break;
 			}
@@ -1744,11 +1671,6 @@ void sk_addStrokePoint(SK_Sketch *sketch, SK_Stroke *stk, SK_DrawData *dd, short
 		point_added = sk_addStrokeSnapPoint(sketch, stk, dd);
 	}
 	
-	if (point_added == 0 && qual & LR_SHIFTKEY)
-	{
-		point_added = sk_addStrokeEmbedPoint(sketch, stk, dd);
-	}
-	
 	if (point_added == 0)
 	{
 		point_added = sk_addStrokeDrawPoint(sketch, stk, dd);
@@ -1767,11 +1689,6 @@ void sk_getStrokePoint(SK_Point *pt, SK_Sketch *sketch, SK_Stroke *stk, SK_DrawD
 	if (qual & LR_CTRLKEY)
 	{
 		point_added = sk_getStrokeSnapPoint(pt, sketch, stk, dd);
-	}
-	
-	if (point_added == 0 && qual & LR_SHIFTKEY)
-	{
-		point_added = sk_getStrokeEmbedPoint(pt, sketch, stk, dd);
 		LAST_SNAP_POINT_VALID = 1;
 		VECCOPY(LAST_SNAP_POINT, pt->p);
 	}
@@ -2840,9 +2757,6 @@ void sk_drawSketch(SK_Sketch *sketch, int with_names)
 				switch (sketch->next_point.mode)
 				{
 					case PT_SNAP:
-						glColor3f(0, 0.5, 1);
-						break;
-					case PT_EMBED:
 						glColor3f(0, 1, 0);
 						break;
 					case PT_PROJECT:

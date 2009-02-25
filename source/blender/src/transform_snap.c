@@ -33,6 +33,7 @@
 
 #include "PIL_time.h"
 
+#include "DNA_action_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -50,6 +51,7 @@
 
 #include "editmesh.h"
 #include "BIF_editsima.h"
+#include "BIF_editarmature.h"
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 #include "BIF_mywindow.h"
@@ -485,7 +487,7 @@ void CalcSnapGeometry(TransInfo *t, float *vec)
 		float loc[3];
 		float no[3];
 		int found = 0;
-		int dist = 40; // Use a user defined value here
+		int dist = SNAP_MIN_DISTANCE; // Use a user defined value here
 		SnapMode mode;
 		
 		if (G.scene->snap_mode == SCE_SNAP_MODE_VOLUME)
@@ -593,7 +595,7 @@ void CalcSnapGeometry(TransInfo *t, float *vec)
 				mode = NOT_ACTIVE;
 			}
 				
-			found = snapObjects(&dist, loc, no, NOT_SELECTED);
+			found = snapObjects(&dist, loc, no, mode);
 		}
 		
 		if (found == 1)
@@ -921,7 +923,7 @@ int snapEdge(float v1co[3], short v1no[3], float v2co[3], short v2no[3], short m
 			 * this takes care of series of connected edges a bit slanted w.r.t the viewport
 			 * otherwise, it would stick to the verts of the closest edge and not slide along merrily 
 			 * */
-			if (new_dist <= *dist && new_depth < *depth * 1.01)
+			if (new_dist <= *dist && new_depth < *depth * 1.001)
 			{
 				float n1[3], n2[3];
 				
@@ -996,9 +998,8 @@ int snapVertex(float vco[3], short vno[3], short mval[2], float ray_start[3], fl
 	return retval;
 }
 
-int snapArmature(Object *ob, bArmature *ar, float obmat[][4], float ray_start[3], float ray_normal[3], short mval[2], float *loc, float *no, int *dist, float *depth)
+int snapArmature(Object *ob, bArmature *arm, float obmat[][4], float ray_start[3], float ray_normal[3], short mval[2], float *loc, float *no, int *dist, float *depth, int editarmature)
 {
-	Bone *b = ar->bonebase.first;
 	float imat[4][4];
 	float ray_start_local[3], ray_normal_local[3];
 	int retval = 0;
@@ -1010,42 +1011,50 @@ int snapArmature(Object *ob, bArmature *ar, float obmat[][4], float ray_start[3]
 	
 	Mat4MulVecfl(imat, ray_start_local);
 	Mat4Mul3Vecfl(imat, ray_normal_local);
-			
-	while(b)
+
+	if(editarmature)
 	{
-		switch (G.scene->snap_mode)
-		{
-			case SCE_SNAP_MODE_VERTEX:
-				retval |= snapVertex(b->arm_head, NULL, mval, ray_start, ray_start_local, ray_normal_local, obmat, NULL, loc, NULL, dist, depth);
-				retval |= snapVertex(b->arm_tail, NULL, mval, ray_start, ray_start_local, ray_normal_local, obmat, NULL, loc, NULL, dist, depth);
-				break;
-			case SCE_SNAP_MODE_EDGE:
-				retval |= snapEdge(b->arm_head, NULL, b->arm_tail, NULL, mval, ray_start, ray_start_local, ray_normal_local, obmat, NULL, loc, NULL, dist, depth);
-				break;
-		}
-		
-		
-		if (b->childbase.first != NULL)
-		{
-			b = b->childbase.first;
-		}
-		else
-		{
-			while(1)
-			{
-				if (b->next != NULL)
-				{
-					b = b->next;
-					break;
+		EditBone *eBone;
+
+		for (eBone=G.edbo.first; eBone; eBone=eBone->next) {
+			if (eBone->layer & arm->layer) {
+				/* skip hidden or moving (selected) bones */
+				if ((eBone->flag & (BONE_HIDDEN_A|BONE_ROOTSEL|BONE_TIPSEL))==0) {
+					switch (G.scene->snap_mode)
+					{
+						case SCE_SNAP_MODE_VERTEX:
+							retval |= snapVertex(eBone->head, NULL, mval, ray_start, ray_start_local, ray_normal_local, obmat, NULL, loc, NULL, dist, depth);
+							retval |= snapVertex(eBone->tail, NULL, mval, ray_start, ray_start_local, ray_normal_local, obmat, NULL, loc, NULL, dist, depth);
+							break;
+						case SCE_SNAP_MODE_EDGE:
+							retval |= snapEdge(eBone->head, NULL, eBone->tail, NULL, mval, ray_start, ray_start_local, ray_normal_local, obmat, NULL, loc, NULL, dist, depth);
+							break;
+					}
 				}
-				else if (b->parent != NULL)
+			}
+		}
+	}
+	else if (ob->pose && ob->pose->chanbase.first)
+	{
+		bPoseChannel *pchan;
+		Bone *bone;
+		
+		for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+			bone= pchan->bone;
+			/* skip hidden bones */
+			if (bone && !(bone->flag & (BONE_HIDDEN_P|BONE_HIDDEN_PG))) {
+				float *head_vec = pchan->pose_head;
+				float *tail_vec = pchan->pose_tail;
+				
+				switch (G.scene->snap_mode)
 				{
-					b = b->parent;
-				}
-				else /* nothing to go to */
-				{
-					b = NULL;
-					break;
+					case SCE_SNAP_MODE_VERTEX:
+						retval |= snapVertex(head_vec, NULL, mval, ray_start, ray_start_local, ray_normal_local, obmat, NULL, loc, NULL, dist, depth);
+						retval |= snapVertex(tail_vec, NULL, mval, ray_start, ray_start_local, ray_normal_local, obmat, NULL, loc, NULL, dist, depth);
+						break;
+					case SCE_SNAP_MODE_EDGE:
+						retval |= snapEdge(head_vec, NULL, tail_vec, NULL, mval, ray_start, ray_start_local, ray_normal_local, obmat, NULL, loc, NULL, dist, depth);
+						break;
 				}
 			}
 		}
@@ -1288,6 +1297,40 @@ int snapDerivedMesh(Object *ob, DerivedMesh *dm, float obmat[][4], float ray_sta
 	return retval;
 } 
 
+int snapObject(Object *ob, float obmat[][4], float ray_start[3], float ray_normal[3], short mval[2], float *loc, float *no, int *dist, float *depth)
+{
+	int editobject = 0;
+	int retval = 0;
+	
+	if (ob == G.obedit)
+	{
+		editobject = 1;
+	}
+
+	if (ob->type == OB_MESH) {
+		DerivedMesh *dm;
+		
+		if (editobject)
+		{
+			dm = editmesh_get_derived_cage(CD_MASK_BAREMESH);
+		}
+		else
+		{
+			dm = mesh_get_derived_final(ob, CD_MASK_BAREMESH);
+		}
+		
+		retval = snapDerivedMesh(ob, dm, obmat, ray_start, ray_normal, mval, loc, no, dist, depth, editobject);
+
+		dm->release(dm);
+	}
+	else if (ob->type == OB_ARMATURE)
+	{
+		retval = snapArmature(ob, ob->data, obmat, ray_start, ray_normal, mval, loc, no, dist, depth, editobject);
+	}
+	
+	return retval;
+}
+
 int snapObjects(int *dist, float *loc, float *no, SnapMode mode) {
 	Base *base;
 	float depth = FLT_MAX;
@@ -1300,17 +1343,9 @@ int snapObjects(int *dist, float *loc, float *no, SnapMode mode) {
 
 	if (mode == NOT_ACTIVE)
 	{
-		DerivedMesh *dm;
 		Object *ob = G.obedit;
 		
-		if (ob->type == OB_MESH)
-		{
-			dm = editmesh_get_derived_cage(CD_MASK_BAREMESH);
-			
-			retval = snapDerivedMesh(ob, dm, ob->obmat, ray_start, ray_normal, mval, loc, no, dist, &depth, 1);
-			
-			dm->release(dm);
-		}
+		retval |= snapObject(ob, ob->obmat, ray_start, ray_normal, mval, loc, no, dist, &depth);
 	}
 	
 	base= FIRSTBASE;
@@ -1327,50 +1362,13 @@ int snapObjects(int *dist, float *loc, float *no, SnapMode mode) {
 				{
 					Object *ob = dupli_ob->ob;
 					
-					if (ob->type == OB_MESH) {
-						DerivedMesh *dm;
-						int editmesh = 0;
-						int val;
-						
-						if (ob == G.obedit)
-						{
-							dm = editmesh_get_derived_cage(CD_MASK_BAREMESH);
-							editmesh = 1;
-						}
-						else
-						{
-							dm = mesh_get_derived_final(ob, CD_MASK_BAREMESH);
-						}
-						
-						val = snapDerivedMesh(ob, dm, dupli_ob->mat, ray_start, ray_normal, mval, loc, no, dist, &depth, editmesh);
-	
-						retval = retval || val;
-	
-						dm->release(dm);
-					}
+					retval |= snapObject(ob, dupli_ob->mat, ray_start, ray_normal, mval, loc, no, dist, &depth);
 				}
 				
 				free_object_duplilist(lb);
 			}
 			
-			if (ob->type == OB_MESH) {
-				DerivedMesh *dm = mesh_get_derived_final(ob, CD_MASK_BAREMESH);
-				int val;
-				
-				val = snapDerivedMesh(ob, dm, ob->obmat, ray_start, ray_normal, mval, loc, no, dist, &depth, 0);
-				
-				retval = retval || val;
-				
-				dm->release(dm);
-			}
-			else if (ob->type == OB_ARMATURE)
-			{
-				int val;
-				
-				val = snapArmature(ob, ob->data, ob->obmat, ray_start, ray_normal, mval, loc, no, dist, &depth);
-				
-				retval = retval || val;
-			}
+			retval |= snapObject(ob, ob->obmat, ray_start, ray_normal, mval, loc, no, dist, &depth);
 		}
 	}
 	
