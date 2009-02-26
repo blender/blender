@@ -5,6 +5,10 @@ import sys
 Import('env')
 
 sources = env.Glob('*.c')
+
+# This file contains a main() - can override blenders
+sources.remove('t1_generate_luts.c')
+
 incs = '.'
 flags = []
 defs = []
