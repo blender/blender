@@ -1170,7 +1170,7 @@ int KX_GameObject::_setattr(const char *attr, PyObject *value)	// _setattr metho
 {
 	
 	if (!strcmp(attr, "parent")) {
-		PyErr_SetString(PyExc_AttributeError, "attribute \"mass\" is read only\nUse setParent()");
+		PyErr_SetString(PyExc_AttributeError, "attribute \"parent\" is read only\nUse setParent()");
 		return 1;
 	}
 		

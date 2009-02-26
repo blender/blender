@@ -284,6 +284,8 @@ PyAttributeDef KX_TouchSensor::Attributes[] = {
 	KX_PYATTRIBUTE_STRING_RW("propertyName",0,100,false,KX_TouchSensor,m_touchedpropname),
 	KX_PYATTRIBUTE_BOOL_RW("materialCheck",KX_TouchSensor,m_bFindMaterial),
 	KX_PYATTRIBUTE_BOOL_RW("pulseCollisions",KX_TouchSensor,m_bTouchPulse),
+	KX_PYATTRIBUTE_DUMMY("objectHit"),
+	KX_PYATTRIBUTE_DUMMY("objectHitList"),
 	{ NULL }	//Sentinel
 };
 
@@ -308,15 +310,6 @@ int KX_TouchSensor::_setattr(const char *attr, PyObject *value)
 	int ret = _setattr_self(Attributes, this, attr, value);
 	if (ret >= 0)
 		return ret;
-	
-	if (!strcmp(attr, "objectHit")) {
-		PyErr_SetString(PyExc_AttributeError, "attribute \"objectHit\" is read only");
-		return 1;
-	}
-	if (!strcmp(attr, "objectHitList")) {
-		PyErr_SetString(PyExc_AttributeError, "attribute \"objectHit\" is read only");
-		return 1;
-	}
 	
 	return SCA_ISensor::_setattr(attr, value);
 }
