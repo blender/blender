@@ -1,13 +1,26 @@
 # $Id$
 # Documentation for KX_TouchSensor
 from SCA_ISensor import *
+from KX_GameObject import *
 
 class KX_TouchSensor(SCA_ISensor):
 	"""
 	Touch sensor detects collisions between objects.
+	
+	@ivar propertyName: The name of the property or material this sensor detects (depending on the materialCheck property).
+	@type propertyName: string
+	@ivar materialCheck: when enabled this sensor checks for object materials rather then properties.
+	@type materialCheck: bool
+	@ivar pulseCollisions: The last collided object.
+	@type pulseCollisions: bool
+	@ivar objectHit: The last collided object. (Read Only)
+	@type objectHit: L{KX_GameObject} or None
+	@ivar objectHitList: A list of colliding objects. (Read Only)
+	@type objectHitList: list
 	"""
 	def setProperty(name):
 		"""
+		DEPRECATED: use the propertyName property
 		Set the property or material to collide with. Use
 		setTouchMaterial() to switch between properties and
 		materials.
@@ -15,22 +28,25 @@ class KX_TouchSensor(SCA_ISensor):
 		"""
 	def getProperty():
 		"""
+		DEPRECATED: use the propertyName property
 		Returns the property or material to collide with. Use
 		getTouchMaterial() to find out whether this sensor
-		looks for properties or materials.
+		looks for properties or materials. (B{deprecated})
 		
 		@rtype: string
 		"""
 
 	def getHitObject():
 		"""
-		Returns the last object hit by this touch sensor.
+		DEPRECATED: use the objectHit property
+		Returns the last object hit by this touch sensor. (B{deprecated})
 		
 		@rtype: L{KX_GameObject}
 		"""
 	def getHitObjectList():
 		"""
-		Returns a list of all objects hit in the last frame.
+		DEPRECATED: use the objectHitList property
+		Returns a list of all objects hit in the last frame. (B{deprecated})
 		
 		Only objects that have the requisite material/property are listed.
 		
@@ -38,13 +54,7 @@ class KX_TouchSensor(SCA_ISensor):
 		"""
 	def getTouchMaterial():
 		"""
+		DEPRECATED: use the materialCheck property
 		Returns KX_TRUE if this sensor looks for a specific material,
-		KX_FALSE if it looks for a specific property.
-		"""
-	def setTouchMaterial(flag):
-		"""
-		Set flag to KX_TRUE to switch on positive pulse mode,
-		KX_FALSE to switch off positive pulse mode.
-		
-		@type flag: KX_TRUE or KX_FALSE.
+		KX_FALSE if it looks for a specific property. (B{deprecated})
 		"""

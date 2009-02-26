@@ -121,19 +121,22 @@ public:
 	/* --------------------------------------------------------------------- */
 	
 	virtual PyObject* _getattr(const char *attr);
+	virtual int _setattr(const char *attr, PyObject *value);
 
 	/* 1. setProperty */
-	KX_PYMETHOD_DOC(KX_TouchSensor,SetProperty);
+	KX_PYMETHOD_DOC_O(KX_TouchSensor,SetProperty);
 	/* 2. getProperty */
-	KX_PYMETHOD_DOC(KX_TouchSensor,GetProperty);
+	KX_PYMETHOD_DOC_NOARGS(KX_TouchSensor,GetProperty);
 	/* 3. getHitObject */
-	KX_PYMETHOD_DOC(KX_TouchSensor,GetHitObject);
+	KX_PYMETHOD_DOC_NOARGS(KX_TouchSensor,GetHitObject);
 	/* 4. getHitObject */
-	KX_PYMETHOD_DOC(KX_TouchSensor,GetHitObjectList);
+	KX_PYMETHOD_DOC_NOARGS(KX_TouchSensor,GetHitObjectList);
 	/* 5. getTouchMaterial */
-	KX_PYMETHOD_DOC(KX_TouchSensor,GetTouchMaterial);
+	KX_PYMETHOD_DOC_NOARGS(KX_TouchSensor,GetTouchMaterial);
+#if 0
 	/* 6. setTouchMaterial */
-	KX_PYMETHOD_DOC(KX_TouchSensor,SetTouchMaterial);
+	KX_PYMETHOD_DOC_O(KX_TouchSensor,SetTouchMaterial);
+#endif
 	
 };
 

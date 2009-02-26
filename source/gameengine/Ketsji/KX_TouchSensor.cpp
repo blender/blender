@@ -270,18 +270,55 @@ PyParentObject KX_TouchSensor::Parents[] = {
 
 PyMethodDef KX_TouchSensor::Methods[] = {
 	{"setProperty", 
-	 (PyCFunction) KX_TouchSensor::sPySetProperty,      METH_VARARGS, (PY_METHODCHAR)SetProperty_doc},
+	 (PyCFunction) KX_TouchSensor::sPySetProperty,      METH_O, (PY_METHODCHAR)SetProperty_doc},
 	{"getProperty", 
-	 (PyCFunction) KX_TouchSensor::sPyGetProperty,      METH_VARARGS, (PY_METHODCHAR)GetProperty_doc},
+	 (PyCFunction) KX_TouchSensor::sPyGetProperty,      METH_NOARGS, (PY_METHODCHAR)GetProperty_doc},
 	{"getHitObject", 
-	 (PyCFunction) KX_TouchSensor::sPyGetHitObject,     METH_VARARGS, (PY_METHODCHAR)GetHitObject_doc},
+	 (PyCFunction) KX_TouchSensor::sPyGetHitObject,     METH_NOARGS, (PY_METHODCHAR)GetHitObject_doc},
 	{"getHitObjectList", 
-	 (PyCFunction) KX_TouchSensor::sPyGetHitObjectList, METH_VARARGS, (PY_METHODCHAR)GetHitObjectList_doc},
+	 (PyCFunction) KX_TouchSensor::sPyGetHitObjectList, METH_NOARGS, (PY_METHODCHAR)GetHitObjectList_doc},
 	{NULL,NULL} //Sentinel
 };
 
-PyObject* KX_TouchSensor::_getattr(const char *attr) {
+PyAttributeDef KX_TouchSensor::Attributes[] = {
+	KX_PYATTRIBUTE_STRING_RW("propertyName",0,100,false,KX_TouchSensor,m_touchedpropname),
+	KX_PYATTRIBUTE_BOOL_RW("materialCheck",KX_TouchSensor,m_bFindMaterial),
+	KX_PYATTRIBUTE_BOOL_RW("pulseCollisions",KX_TouchSensor,m_bTouchPulse),
+	{ NULL }	//Sentinel
+};
+
+PyObject* KX_TouchSensor::_getattr(const char *attr)
+{	
+	if (!strcmp(attr, "objectHit")) {
+		if (m_hitObject)	return m_hitObject->AddRef();
+		else				Py_RETURN_NONE;
+	}
+	if (!strcmp(attr, "objectHitList")) {
+		return m_colliders->AddRef();
+	}
+
+	PyObject* object= _getattr_self(Attributes, this, attr);
+	if (object != NULL)
+		return object;
 	_getattr_up(SCA_ISensor);
+}
+
+int KX_TouchSensor::_setattr(const char *attr, PyObject *value)
+{
+	int ret = _setattr_self(Attributes, this, attr, value);
+	if (ret >= 0)
+		return ret;
+	
+	if (!strcmp(attr, "objectHit")) {
+		PyErr_SetString(PyExc_AttributeError, "attribute \"objectHit\" is read only");
+		return 1;
+	}
+	if (!strcmp(attr, "objectHitList")) {
+		PyErr_SetString(PyExc_AttributeError, "attribute \"objectHit\" is read only");
+		return 1;
+	}
+	
+	return SCA_ISensor::_setattr(attr, value);
 }
 
 /* Python API */
@@ -293,23 +330,16 @@ const char KX_TouchSensor::SetProperty_doc[] =
 "\tSet the property or material to collide with. Use\n"
 "\tsetTouchMaterial() to switch between properties and\n"
 "\tmaterials.";
-PyObject* KX_TouchSensor::PySetProperty(PyObject* self, 
-										PyObject* args, 
-										PyObject* kwds) {
-	char *nameArg;
-	if (!PyArg_ParseTuple(args, "s", &nameArg)) {
+PyObject* KX_TouchSensor::PySetProperty(PyObject* self, PyObject* value)
+{
+	ShowDeprecationWarning("setProperty()", "the propertyName property");
+	char *nameArg= PyString_AsString(value);
+	if (nameArg==NULL) {
+		PyErr_SetString(PyExc_ValueError, "expected a ");
 		return NULL;
 	}
-
-	CValue* prop = GetParent()->FindIdentifier(nameArg);
-
-	if (!prop->IsError()) {
-		m_touchedpropname = nameArg;
-	} else {
-		; /* not found ... */
-	}
-	prop->Release();
 	
+	m_touchedpropname = nameArg;
 	Py_RETURN_NONE;
 }
 /* 2. getProperty */
@@ -318,19 +348,16 @@ const char KX_TouchSensor::GetProperty_doc[] =
 "\tReturns the property or material to collide with. Use\n"
 "\tgetTouchMaterial() to find out whether this sensor\n"
 "\tlooks for properties or materials.";
-PyObject*  KX_TouchSensor::PyGetProperty(PyObject* self, 
-										 PyObject* args, 
-										 PyObject* kwds) {
+PyObject*  KX_TouchSensor::PyGetProperty(PyObject* self) {
 	return PyString_FromString(m_touchedpropname);
 }
 
 const char KX_TouchSensor::GetHitObject_doc[] = 
 "getHitObject()\n"
 ;
-PyObject* KX_TouchSensor::PyGetHitObject(PyObject* self, 
-										 PyObject* args, 
-										 PyObject* kwds)
+PyObject* KX_TouchSensor::PyGetHitObject(PyObject* self)
 {
+	ShowDeprecationWarning("getHitObject()", "the objectHit property");
 	/* to do: do Py_IncRef if the object is already known in Python */
 	/* otherwise, this leaks memory */
 	if (m_hitObject)
@@ -344,13 +371,11 @@ const char KX_TouchSensor::GetHitObjectList_doc[] =
 "getHitObjectList()\n"
 "\tReturn a list of the objects this object collided with,\n"
 "\tbut only those matching the property/material condition.\n";
-PyObject* KX_TouchSensor::PyGetHitObjectList(PyObject* self, 
-										 PyObject* args, 
-										 PyObject* kwds)
+PyObject* KX_TouchSensor::PyGetHitObjectList(PyObject* self)
 {
-
+	ShowDeprecationWarning("getHitObjectList()", "the objectHitList property");
 	/* to do: do Py_IncRef if the object is already known in Python */
-	/* otherwise, this leaks memory */
+	/* otherwise, this leaks memory */ /* Edit, this seems ok and not to leak memory - Campbell */
 	return m_colliders->AddRef();
 }
 
@@ -359,24 +384,25 @@ const char KX_TouchSensor::GetTouchMaterial_doc[] =
 "getTouchMaterial()\n"
 "\tReturns KX_TRUE if this sensor looks for a specific material,\n"
 "\tKX_FALSE if it looks for a specific property.\n" ;
-PyObject* KX_TouchSensor::PyGetTouchMaterial(PyObject* self, 
-											 PyObject* args, 
-											 PyObject* kwds)
+PyObject* KX_TouchSensor::PyGetTouchMaterial(PyObject* self)
 {
+	ShowDeprecationWarning("getTouchMaterial()", "the materialCheck property");
 	return PyInt_FromLong(m_bFindMaterial);
 }
 
 /* 6. setTouchMaterial */
+#if 0
 const char KX_TouchSensor::SetTouchMaterial_doc[] = 
 "setTouchMaterial(flag)\n"
 "\t- flag: KX_TRUE or KX_FALSE.\n"
 "\tSet flag to KX_TRUE to switch on positive pulse mode,\n"
 "\tKX_FALSE to switch off positive pulse mode.\n" ;
-PyObject* KX_TouchSensor::PySetTouchMaterial(PyObject* self, PyObject* args, PyObject* kwds)
+PyObject* KX_TouchSensor::PySetTouchMaterial(PyObject* self, PyObject *value)
 {
-	int pulseArg = 0;
+	int pulseArg = PyInt_AsLong(value);
 
-	if(!PyArg_ParseTuple(args, "i", &pulseArg)) {
+	if(pulseArg ==-1 && PyErr_Occurred()) {
+		PyErr_SetString(PyExc_ValueError, "expected a bool");
 		return NULL;
 	}
 	
@@ -384,6 +410,6 @@ PyObject* KX_TouchSensor::PySetTouchMaterial(PyObject* self, PyObject* args, PyO
 
 	Py_RETURN_NONE;
 }
-
+#endif
 
 /* eof */
