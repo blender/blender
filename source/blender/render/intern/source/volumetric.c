@@ -514,9 +514,7 @@ static void volumeintegrate(struct ShadeInput *shi, float *col, float *co, float
 			
 			if (R.r.scemode & R_PREVIEWBUTS) {
 				vol_get_scattering(shi, scatter_col, step_mid, stepsize, density);
-			} else if (((shi->mat->vol_shadeflag & MA_VOL_PRECACHESHADING) &&
-				(shi->mat->vol_shade_type == MA_VOL_SHADE_SINGLE)) ||
-				(ELEM(shi->mat->vol_shade_type, MA_VOL_SHADE_MULTIPLE, MA_VOL_SHADE_SINGLEPLUSMULTIPLE))) {
+			} else if (using_lightcache(shi->mat)) {
 				vol_get_precached_scattering(shi, scatter_col, step_mid);
 			} else
 				vol_get_scattering(shi, scatter_col, step_mid, stepsize, density);

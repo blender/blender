@@ -49,6 +49,9 @@
 #include "volumetric.h"
 #include "volume_precache.h"
 
+#if defined( _MSC_VER ) && !defined( __cplusplus )
+# define inline __inline
+#endif // defined( _MSC_VER ) && !defined( __cplusplus )
 
 #include "BKE_global.h"
 
@@ -247,8 +250,7 @@ void multiple_scattering_diffusion(Render *re, float *cache, int res, Material *
 	const float fac = ma->vol_ms_intensity;
 	const float simframes = ma->vol_ms_steps;
 	const int shade_type = ma->vol_shade_type;
-	const float dt = VOL_MS_TIMESTEP;
-
+	
 	int i, j, k, m;
 	int n = res;
 	const int size = (n+2)*(n+2)*(n+2);
@@ -595,6 +597,12 @@ void vol_precache_objectinstance_threads(Render *re, ObjectInstanceRen *obi, Mat
 	}
 }
 
+int using_lightcache(Material *ma)
+{
+	return (((ma->vol_shadeflag & MA_VOL_PRECACHESHADING) && (ma->vol_shade_type == MA_VOL_SHADE_SINGLE))
+		|| (ELEM(ma->vol_shade_type, MA_VOL_SHADE_MULTIPLE, MA_VOL_SHADE_SINGLEPLUSMULTIPLE)));
+}
+
 /* loop through all objects (and their associated materials)
  * marked for pre-caching in convertblender.c, and pre-cache them */
 void volume_precache(Render *re)
@@ -606,7 +614,7 @@ void volume_precache(Render *re)
 	if (re->r.scemode & R_PREVIEWBUTS) return;
 
 	for(vo= re->volumes.first; vo; vo= vo->next) {
-		if (vo->ma->vol_shadeflag & MA_VOL_PRECACHESHADING) {
+		if (using_lightcache(vo->ma)) {
 			for(obi= re->instancetable.first; obi; obi= obi->next) {
 				if (obi->obr == vo->obr) {
 					vol_precache_objectinstance_threads(re, obi, vo->ma, obi->obr->boundbox[0], obi->obr->boundbox[1]);
