@@ -984,7 +984,7 @@ PyTypeObject pyrna_struct_Type = {
 	NULL,                       /* printfunc tp_print; */
 	NULL,						/* getattrfunc tp_getattr; */
 	NULL,						/* setattrfunc tp_setattr; */
-	( cmpfunc ) pyrna_struct_compare,	/* tp_compare */
+	NULL,						/* tp_compare */ /* DEPRECATED in python 3.0! */
 	( reprfunc ) pyrna_struct_repr,	/* tp_repr */
 
 	/* Method suites for standard classes */
@@ -1070,7 +1070,7 @@ PyTypeObject pyrna_prop_Type = {
 	NULL,                       /* printfunc tp_print; */
 	NULL,						/* getattrfunc tp_getattr; */
 	NULL,                       /* setattrfunc tp_setattr; */
-	( cmpfunc ) pyrna_prop_compare,	/* tp_compare */
+	NULL,						/* tp_compare */ /* DEPRECATED in python 3.0! */
 	( reprfunc ) pyrna_prop_repr,	/* tp_repr */
 
 	/* Method suites for standard classes */

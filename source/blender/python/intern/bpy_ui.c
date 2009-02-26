@@ -247,9 +247,23 @@ static struct PyMethodDef ui_methods[] = {
 	{NULL, NULL, 0, NULL}
 };
 
+#if PY_VERSION_HEX >= 0x03000000
+static struct PyModuleDef ui_module = {
+	PyModuleDef_HEAD_INIT,
+	"bpyui",
+	"",
+	-1,/* multiple "initialization" just copies the module dict. */
+	ui_methods,
+	NULL, NULL, NULL, NULL
+};
+
 PyObject *BPY_ui_module( void )
 {
-	PyObject *submodule;
-	submodule = Py_InitModule3( "bpyui", ui_methods, "" );
-	return submodule;
+	return PyModule_Create(&ui_module);
 }
+#else /* Py2.x */
+PyObject *BPY_ui_module( void )
+{
+	return Py_InitModule3( "bpyui", ui_methods, "" );
+}
+#endif

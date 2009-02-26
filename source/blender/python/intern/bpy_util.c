@@ -112,7 +112,7 @@ int BPY_flag_from_seq(BPY_flag_def *flagdef, PyObject *seq, int *flag)
 
 
 /* Copied from pythons 3's Object.c */
-#if PY_VERSION_HEX < 0x03000000
+#ifndef Py_CmpToRich
 PyObject *
 Py_CmpToRich(int op, int cmp)
 {

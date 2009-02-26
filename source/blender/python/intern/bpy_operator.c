@@ -115,6 +115,18 @@ static int pyop_func_compare( BPy_OperatorFunc * a, BPy_OperatorFunc * b )
 	return (strcmp(a->name, b->name)==0) ? 0 : -1;
 }
 
+/* For some reason python3 needs these :/ */
+static PyObject *pyop_func_richcmp(BPy_StructRNA * a, BPy_StructRNA * b, int op)
+{
+	int cmp_result= -1; /* assume false */
+	if (BPy_OperatorFunc_Check(a) && BPy_OperatorFunc_Check(b)) {
+		cmp_result= pyop_func_compare(a, b);
+	}
+
+	return Py_CmpToRich(op, cmp_result);
+}
+
+
 /*----------------------repr--------------------------------------------*/
 static PyObject *pyop_base_repr( BPy_OperatorBase * self )
 {
@@ -379,7 +391,7 @@ PyTypeObject pyop_func_Type = {
 	NULL,                       /* printfunc tp_print; */
 	NULL,						/* getattrfunc tp_getattr; */
 	NULL,                       /* setattrfunc tp_setattr; */
-	( cmpfunc ) pyop_func_compare,	/* tp_compare */
+	NULL,						/* tp_compare */ /* DEPRECATED in python 3.0! */
 	( reprfunc ) pyop_func_repr,	/* tp_repr */
 
 	/* Method suites for standard classes */
@@ -412,7 +424,7 @@ PyTypeObject pyop_func_Type = {
 
   /***  Assigned meaning in release 2.1 ***/
   /*** rich comparisons ***/
-	NULL,                       /* richcmpfunc tp_richcompare; */
+	(richcmpfunc)pyop_func_richcmp,	/* richcmpfunc tp_richcompare; */
 
   /***  weak reference enabler ***/
 	0,                          /* long tp_weaklistoffset; */
