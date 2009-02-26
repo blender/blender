@@ -343,6 +343,10 @@ PyMethodDef KX_RaySensor::Methods[] = {
 	{NULL,NULL} //Sentinel
 };
 
+PyAttributeDef KX_RaySensor::Attributes[] = {
+	{ NULL }	//Sentinel
+};
+
 const char KX_RaySensor::GetHitObject_doc[] = 
 "getHitObject()\n"
 "\tReturns the name of the object that was hit by this ray.\n";

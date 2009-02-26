@@ -285,7 +285,9 @@ PyMethodDef KX_SoundActuator::Methods[] = {
 	{NULL,NULL,NULL,NULL} //Sentinel
 };
 
-
+PyAttributeDef KX_SoundActuator::Attributes[] = {
+	{ NULL }	//Sentinel
+};
 
 PyObject* KX_SoundActuator::_getattr(const char *attr)
 {

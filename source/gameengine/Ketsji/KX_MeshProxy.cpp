@@ -86,6 +86,10 @@ KX_PYMETHODTABLE(KX_MeshProxy, reinstancePhysicsMesh),
   {NULL,NULL} //Sentinel
 };
 
+PyAttributeDef KX_MeshProxy::Attributes[] = {
+	{ NULL }	//Sentinel
+};
+
 void KX_MeshProxy::SetMeshModified(bool v)
 {
 	m_meshobj->SetMeshModified(v);

@@ -468,6 +468,9 @@ PyMethodDef KX_TrackToActuator::Methods[] = {
 	{NULL,NULL} //Sentinel
 };
 
+PyAttributeDef KX_TrackToActuator::Attributes[] = {
+	{ NULL }	//Sentinel
+};
 
 
 PyObject* KX_TrackToActuator::_getattr(const char *attr)

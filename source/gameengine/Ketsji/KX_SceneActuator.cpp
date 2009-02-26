@@ -268,7 +268,9 @@ PyMethodDef KX_SceneActuator::Methods[] =
 	{NULL,NULL} //Sentinel
 };
 
-
+PyAttributeDef KX_SceneActuator::Attributes[] = {
+	{ NULL }	//Sentinel
+};
 
 PyObject* KX_SceneActuator::_getattr(const char *attr)
 {

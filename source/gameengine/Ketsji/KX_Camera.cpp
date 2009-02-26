@@ -483,6 +483,10 @@ PyMethodDef KX_Camera::Methods[] = {
 	{NULL,NULL} //Sentinel
 };
 
+PyAttributeDef KX_Camera::Attributes[] = {
+	{ NULL }	//Sentinel
+};
+
 char KX_Camera::doc[] = "Module KX_Camera\n\n"
 "Constants:\n"
 "\tINSIDE\n"

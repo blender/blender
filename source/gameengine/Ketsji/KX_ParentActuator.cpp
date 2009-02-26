@@ -172,6 +172,10 @@ PyMethodDef KX_ParentActuator::Methods[] = {
 	{NULL,NULL} //Sentinel
 };
 
+PyAttributeDef KX_ParentActuator::Attributes[] = {
+	{ NULL }	//Sentinel
+};
+
 PyObject* KX_ParentActuator::_getattr(const char *attr) {	
 	
 	if (!strcmp(attr, "object")) {

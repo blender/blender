@@ -77,6 +77,10 @@ PyMethodDef KX_PolyProxy::Methods[] = {
 	{NULL,NULL} //Sentinel
 };
 
+PyAttributeDef KX_PolyProxy::Attributes[] = {
+	{ NULL }	//Sentinel
+};
+
 PyObject* KX_PolyProxy::_getattr(const char *attr)
 {
 	if (!strcmp(attr, "matname"))

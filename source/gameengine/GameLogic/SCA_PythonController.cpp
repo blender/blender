@@ -264,6 +264,9 @@ PyMethodDef SCA_PythonController::Methods[] = {
 	{NULL,NULL} //Sentinel
 };
 
+PyAttributeDef SCA_PythonController::Attributes[] = {
+	{ NULL }	//Sentinel
+};
 
 bool SCA_PythonController::Compile()
 {

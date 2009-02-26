@@ -767,6 +767,9 @@ PyMethodDef BL_Shader::Methods[] =
 	{NULL,NULL} //Sentinel
 };
 
+PyAttributeDef BL_Shader::Attributes[] = {
+	{ NULL }	//Sentinel
+};
 
 PyTypeObject BL_Shader::Type = {
 	PyObject_HEAD_INIT(&PyType_Type)

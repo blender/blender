@@ -318,6 +318,9 @@ PyMethodDef KX_NearSensor::Methods[] = {
 	{NULL,NULL} //Sentinel
 };
 
+PyAttributeDef KX_NearSensor::Attributes[] = {
+	{ NULL }	//Sentinel
+};
 
 PyObject*
 KX_NearSensor::_getattr(const char *attr)

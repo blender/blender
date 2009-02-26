@@ -1525,6 +1525,10 @@ PyMethodDef KX_Scene::Methods[] = {
 	{NULL,NULL} //Sentinel
 };
 
+PyAttributeDef KX_Scene::Attributes[] = {
+	{ NULL }	//Sentinel
+};
+
 PyTypeObject KX_Scene::Type = {
 	PyObject_HEAD_INIT(&PyType_Type)
 		0,

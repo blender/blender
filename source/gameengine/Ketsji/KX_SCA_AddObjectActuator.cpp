@@ -204,6 +204,9 @@ PyMethodDef KX_SCA_AddObjectActuator::Methods[] = {
   {NULL,NULL} //Sentinel
 };
 
+PyAttributeDef KX_SCA_AddObjectActuator::Attributes[] = {
+	{ NULL }	//Sentinel
+};
 
 PyObject* KX_SCA_AddObjectActuator::_getattr(const char *attr)
 {

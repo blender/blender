@@ -407,6 +407,9 @@ PyMethodDef SCA_IObject::Methods[] = {
 	{NULL,NULL} //Sentinel
 };
 
+PyAttributeDef SCA_IObject::Attributes[] = {
+	{ NULL }	//Sentinel
+};
 
 
 PyObject* SCA_IObject::_getattr(const char *attr) {

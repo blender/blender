@@ -1033,6 +1033,9 @@ PyMethodDef KX_GameObject::Methods[] = {
 	{NULL,NULL} //Sentinel
 };
 
+PyAttributeDef KX_GameObject::Attributes[] = {
+	{ NULL }	//Sentinel
+};
 
 
 /*

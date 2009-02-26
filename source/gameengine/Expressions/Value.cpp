@@ -673,6 +673,10 @@ static PyMethodDef	CValueMethods[] =
 	{ NULL,NULL}	// Sentinel
 };
 
+PyAttributeDef CValue::Attributes[] = {
+	{ NULL }	//Sentinel
+};
+
 
 PyObject*	CValue::_getattr(const char *attr)
 {

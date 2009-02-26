@@ -126,6 +126,10 @@ KX_VisibilityActuator::Methods[] = {
 	{NULL,NULL} //Sentinel
 };
 
+PyAttributeDef KX_VisibilityActuator::Attributes[] = {
+	{ NULL }	//Sentinel
+};
+
 PyObject* KX_VisibilityActuator::_getattr(const char *attr) 
 {
 	_getattr_up(SCA_IActuator);

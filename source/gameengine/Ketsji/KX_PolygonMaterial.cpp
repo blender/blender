@@ -180,6 +180,9 @@ PyMethodDef KX_PolygonMaterial::Methods[] = {
 	{NULL,NULL} //Sentinel
 };
 
+PyAttributeDef KX_PolygonMaterial::Attributes[] = {
+	{ NULL }	//Sentinel
+};
 
 PyTypeObject KX_PolygonMaterial::Type = {
 	PyObject_HEAD_INIT(&PyType_Type)

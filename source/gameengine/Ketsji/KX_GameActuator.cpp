@@ -246,6 +246,10 @@ PyMethodDef KX_GameActuator::Methods[] =
 	{NULL,NULL} //Sentinel
 };
 
+PyAttributeDef KX_GameActuator::Attributes[] = {
+	{ NULL }	//Sentinel
+};
+
 /* getFile */
 const char KX_GameActuator::GetFile_doc[] = 
 "getFile()\n"

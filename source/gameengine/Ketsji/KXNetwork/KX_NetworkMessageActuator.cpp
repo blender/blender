@@ -143,6 +143,10 @@ PyMethodDef KX_NetworkMessageActuator::Methods[] = {
 	{NULL,NULL} // Sentinel
 };
 
+PyAttributeDef KX_NetworkMessageActuator::Attributes[] = {
+	{ NULL }	//Sentinel
+};
+
 PyObject* KX_NetworkMessageActuator::_getattr(const char *attr) {
 	_getattr_up(SCA_IActuator);
 }

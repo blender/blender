@@ -612,6 +612,10 @@ PyMethodDef KX_ConstraintActuator::Methods[] = {
 	{NULL,NULL} //Sentinel
 };
 
+PyAttributeDef KX_ConstraintActuator::Attributes[] = {
+	{ NULL }	//Sentinel
+};
+
 PyObject* KX_ConstraintActuator::_getattr(const char *attr) {
 	_getattr_up(SCA_IActuator);
 }
