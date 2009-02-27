@@ -567,7 +567,9 @@ public:
 	virtual PyObject* _getattr(const char *attr); /* name, active_camera, gravity, suspended, viewport, framing, activity_culling, activity_culling_radius */
 	virtual int _setattr(const char *attr, PyObject *pyvalue);
 	virtual int _delattr(const char *attr);
+	virtual PyObject* _repr(void) { return PyString_FromString(GetName().ReadPtr()); }
 
+		
 	/**
 	 * Sets the time the scene was suspended
 	 */ 

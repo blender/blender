@@ -329,6 +329,32 @@ static PyObject* gPyGetCurrentScene(PyObject* self)
 	return (PyObject*) gp_KetsjiScene;
 }
 
+static STR_String gPyGetSceneList_doc =  
+"getSceneList()\n"
+"Return a list of converted scenes.\n";
+static PyObject* gPyGetSceneList(PyObject* self)
+{
+	KX_KetsjiEngine* m_engine = KX_GetActiveEngine();
+	//CListValue* list = new CListValue();
+	PyObject* list;
+	KX_SceneList* scenes = m_engine->CurrentScenes();
+	int numScenes = scenes->size();
+	int i;
+	
+	list = PyList_New(numScenes);
+	
+	for (i=0;i<numScenes;i++)
+	{
+		KX_Scene* scene = scenes->at(i);
+		//list->Add(scene);
+		PyList_SET_ITEM(list, i, scene);
+		Py_INCREF(scene);
+		
+	}
+	
+	return (PyObject*)list;
+}
+
 static PyObject *pyPrintExt(PyObject *,PyObject *,PyObject *)
 {
 #define pprint(x) std::cout << x << std::endl;
@@ -408,6 +434,8 @@ static struct PyMethodDef game_methods[] = {
 	METH_NOARGS, (PY_METHODCHAR)SCA_PythonController::sPyGetCurrentController__doc__},
 	{"getCurrentScene", (PyCFunction) gPyGetCurrentScene,
 	METH_NOARGS, (PY_METHODCHAR)gPyGetCurrentScene_doc.Ptr()},
+	{"getSceneList", (PyCFunction) gPyGetSceneList,
+	METH_NOARGS, (PY_METHODCHAR)gPyGetSceneList_doc.Ptr()},
 	{"addActiveActuator",(PyCFunction) SCA_PythonController::sPyAddActiveActuator,
 	METH_VARARGS, (PY_METHODCHAR)SCA_PythonController::sPyAddActiveActuator__doc__},
 	{"getRandomFloat",(PyCFunction) gPyGetRandomFloat,
