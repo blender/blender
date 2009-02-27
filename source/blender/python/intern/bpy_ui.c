@@ -23,6 +23,7 @@
  */
 
 #include "bpy_ui.h"
+#include "bpy_rna.h" /* for rna buttons */
 #include "bpy_compat.h"
 
 #include "BLI_dynstr.h"
@@ -82,6 +83,29 @@ static PyObject *Method_defButO( PyObject * self, PyObject * args )
 	
 	return PyCObject_FromVoidPtr(uiDefButO(PyCObject_AsVoidPtr(py_block), BUT, opname, exec, butname, xco, yco, width, height, tip), NULL );
 }
+
+static PyObject *Method_defAutoButR( PyObject * self, PyObject * args )
+{
+	PyObject *py_block;
+	BPy_StructRNA *py_rna;
+	char *propname, *butname;
+	int index, xco, yco, width, height;
+	PropertyRNA *prop;
+	
+	if( !PyArg_ParseTuple( args, "O!O!sisiiii:defAutoButR", &PyCObject_Type, &py_block, &pyrna_struct_Type, &py_rna, &propname, &index, &butname, &xco, &yco, &width, &height))
+		return NULL;
+	
+	// XXX This isnt that nice api, but we dont always have the rna property from python since its converted immediately into a PyObject
+	prop = RNA_struct_find_property(&py_rna->ptr, propname);
+	if (prop==NULL) {
+		PyErr_SetString(PyExc_ValueError, "rna property not found");
+		return NULL;
+	}
+	
+	return PyCObject_FromVoidPtr(   uiDefAutoButR(PyCObject_AsVoidPtr(py_block), &py_rna->ptr, prop, index, butname, xco, yco, width, height), NULL);
+}
+
+
 
 static uiBlock *py_internal_uiBlockCreateFunc(struct bContext *C, struct ARegion *ar, void *arg1)
 {
@@ -175,6 +199,18 @@ static PyObject *Method_blockEndAlign( PyObject * self, PyObject * args )
 	Py_RETURN_NONE;
 }
 
+static PyObject *Method_blockSetFlag( PyObject * self, PyObject * args )
+{
+	PyObject *py_block;
+	int flag; /* Note new py api should not use flags, but for this low level UI api its ok. */
+	
+	if( !PyArg_ParseTuple( args, "O!i:blockSetFlag", &PyCObject_Type, &py_block, &flag))
+		return NULL;
+	
+	uiBlockSetFlag(PyCObject_AsVoidPtr(py_block), flag);
+	Py_RETURN_NONE;
+}
+
 static PyObject *Method_newPanel( PyObject * self, PyObject * args )
 {
 	PyObject *py_context, *py_area, *py_block;
@@ -232,12 +268,14 @@ static struct PyMethodDef ui_methods[] = {
 	{"pupMenuEnd", (PyCFunction)Method_pupMenuEnd, METH_VARARGS, ""},
 	{"menuItemO", (PyCFunction)Method_menuItemO, METH_VARARGS, ""},
 	{"defButO", (PyCFunction)Method_defButO, METH_VARARGS, ""},
+	{"defAutoButR", (PyCFunction)Method_defAutoButR, METH_VARARGS, ""},
 	{"pupBlock", (PyCFunction)Method_pupBlock, METH_VARARGS, ""},
 	{"beginBlock", (PyCFunction)Method_beginBlock, METH_VARARGS, ""},
 	{"endBlock", (PyCFunction)Method_endBlock, METH_VARARGS, ""},
 	{"popupBoundsBlock", (PyCFunction)Method_popupBoundsBlock, METH_VARARGS, ""},
 	{"blockBeginAlign", (PyCFunction)Method_blockBeginAlign, METH_VARARGS, ""},
 	{"blockEndAlign", (PyCFunction)Method_blockEndAlign, METH_VARARGS, ""},
+	{"blockSetFlag", (PyCFunction)Method_blockSetFlag, METH_VARARGS, ""},
 	{"newPanel", (PyCFunction)Method_newPanel, METH_VARARGS, ""},
 	
 	{"getRegonPtr", (PyCFunction)Method_getRegonPtr,	METH_NOARGS, ""}, // XXX Nasty, we really need to improve dealing with context!
@@ -247,7 +285,6 @@ static struct PyMethodDef ui_methods[] = {
 	{NULL, NULL, 0, NULL}
 };
 
-#if PY_VERSION_HEX >= 0x03000000
 static struct PyModuleDef ui_module = {
 	PyModuleDef_HEAD_INIT,
 	"bpyui",
@@ -259,11 +296,25 @@ static struct PyModuleDef ui_module = {
 
 PyObject *BPY_ui_module( void )
 {
-	return PyModule_Create(&ui_module);
-}
+	PyObject *submodule, *dict;
+#if PY_VERSION_HEX >= 0x03000000
+	submodule= PyModule_Create(&ui_module);
 #else /* Py2.x */
-PyObject *BPY_ui_module( void )
-{
-	return Py_InitModule3( "bpyui", ui_methods, "" );
-}
+	submodule= Py_InitModule3( "bpyui", ui_methods, "" );
 #endif
+	
+	/* uiBlock->flag (controls) */
+	PyModule_AddObject( submodule, "UI_BLOCK_LOOP", PyLong_FromSize_t(UI_BLOCK_LOOP) );
+	PyModule_AddObject( submodule, "UI_BLOCK_RET_1", PyLong_FromSize_t(UI_BLOCK_RET_1) );
+	PyModule_AddObject( submodule, "UI_BLOCK_NUMSELECT", PyLong_FromSize_t(UI_BLOCK_NUMSELECT) );
+	PyModule_AddObject( submodule, "UI_BLOCK_ENTER_OK", PyLong_FromSize_t(UI_BLOCK_ENTER_OK) );
+	PyModule_AddObject( submodule, "UI_BLOCK_NOSHADOW", PyLong_FromSize_t(UI_BLOCK_NOSHADOW) );
+	PyModule_AddObject( submodule, "UI_BLOCK_NO_HILITE", PyLong_FromSize_t(UI_BLOCK_NO_HILITE) );
+	PyModule_AddObject( submodule, "UI_BLOCK_MOVEMOUSE_QUIT", PyLong_FromSize_t(UI_BLOCK_MOVEMOUSE_QUIT) );
+	PyModule_AddObject( submodule, "UI_BLOCK_KEEP_OPEN", PyLong_FromSize_t(UI_BLOCK_KEEP_OPEN) );
+	PyModule_AddObject( submodule, "UI_BLOCK_POPUP", PyLong_FromSize_t(UI_BLOCK_POPUP) );
+	
+	return submodule;
+}
+
+

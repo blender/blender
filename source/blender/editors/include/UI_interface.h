@@ -70,7 +70,7 @@ typedef struct uiPopupBlockHandle uiPopupBlockHandle;
 #define UI_CENTER		16
 #define UI_SHIFT_FLIPPED	32
 
-/* uiBlock->autofill */
+/* uiBlock->autofill (not yet used) */
 #define UI_BLOCK_COLLUMNS	1
 #define UI_BLOCK_ROWS		2
 
