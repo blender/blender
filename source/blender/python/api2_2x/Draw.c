@@ -659,7 +659,7 @@ static void exec_callback( SpaceScript * sc, PyObject * callback,
 	}
 
 	Py_XDECREF( result );
-	Py_DECREF( args );
+	Py_XDECREF( args );
 }
 
 /* BPY_spacescript_do_pywin_draw, the static spacescript_do_pywin_buttons and
@@ -688,7 +688,7 @@ void BPY_spacescript_do_pywin_draw( SpaceScript * sc )
 		BPy_Set_DrawButtonsList(sc->but_refs);
 		
 		glPushAttrib( GL_ALL_ATTRIB_BITS );
-		exec_callback( sc, script->py_draw, Py_BuildValue( "()" ) );
+		exec_callback( sc, script->py_draw, NULL );
 		glPopAttrib(  );
 	} else {
 		glClearColor( 0.4375, 0.4375, 0.4375, 0.0 );

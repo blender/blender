@@ -2,7 +2,7 @@
 Encoding=UTF-8
 Name=Blender
 Comment=3D modeling, animation, rendering and post-production
-Exec=blender -w
+Exec=blender
 Icon=blender.png
 Terminal=false
 Type=Application
