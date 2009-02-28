@@ -355,6 +355,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\..\source\blender\python\intern\bpy_ui.c"
+					>
+				</File>
+				<File
 					RelativePath="..\..\..\source\blender\python\intern\bpy_util.c"
 					>
 				</File>
@@ -393,6 +397,10 @@
 				</File>
 				<File
 					RelativePath="..\..\..\source\blender\python\intern\bpy_rna.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\python\intern\bpy_ui.h"
 					>
 				</File>
 				<File

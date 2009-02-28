@@ -43,7 +43,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\intern\guardedalloc;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenlib;..\..\..\source\blender\blenkernel;..\..\..\source\blender\ftfont"
+				AdditionalIncludeDirectories="..\..\..\intern\guardedalloc;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenlib;..\..\..\source\blender\blenkernel;..\..\..\source\blender\blenfont;..\..\..\source\blender\ftfont;..\..\..\..\lib\windows\freetype\include;..\..\..\source\blender\editors\include;..\..\..\..\build\msvc_9\extern\glew\include"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;WITH_BF_INTERNATIONAL;WITH_FREETYPE2"
 				StringPooling="true"
 				RuntimeLibrary="0"
@@ -119,7 +119,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\intern\guardedalloc;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenlib;..\..\..\source\blender\blenkernel;..\..\..\source\blender\ftfont"
+				AdditionalIncludeDirectories="..\..\..\intern\guardedalloc;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenlib;..\..\..\source\blender\blenkernel;..\..\..\source\blender\blenfont;..\..\..\source\blender\ftfont;..\..\..\..\lib\windows\freetype\include;..\..\..\source\blender\editors\include;..\..\..\..\build\msvc_9\extern\glew\include"
 				PreprocessorDefinitions="WIN32,_DEBUG,_LIB,WITH_BF_INTERNATIONAL,WITH_FREETYPE2"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -174,7 +174,27 @@
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 			>
 			<File
+				RelativePath="..\..\..\source\blender\blenfont\intern\blf.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenfont\intern\blf_dir.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenfont\intern\blf_font.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenfont\intern\blf_glyph.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\blenfont\intern\blf_lang.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenfont\intern\blf_util.c"
 				>
 			</File>
 		</Filter>
@@ -189,6 +209,10 @@
 		<Filter
 			Name="intern"
 			>
+			<File
+				RelativePath="..\..\..\source\blender\blenfont\intern\blf_internal.h"
+				>
+			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenfont\intern\blf_internal_types.h"
 				>
