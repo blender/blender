@@ -3249,9 +3249,12 @@ static void do_outliner_keyingset_editop(SpaceOops *soops, KeyingSet *ks, ListBa
 			short flag= 0;
 			short groupmode= KSP_GROUP_KSNAME;
 			
-			/* get id + path + index info from the selected element */
-			tree_element_to_path(soops, te, tselem, 
-					&id, &path, &array_index, &flag, &groupmode);
+			/* check if RNA-property described by this selected element is an animateable prop */
+			if ((tselem->type == TSE_RNA_PROPERTY) && RNA_property_animateable(&te->rnaptr, te->directdata)) {
+				/* get id + path + index info from the selected element */
+				tree_element_to_path(soops, te, tselem, 
+						&id, &path, &array_index, &flag, &groupmode);
+			}
 			
 			/* only if ID and path were set, should we perform any actions */
 			if (id && path) {

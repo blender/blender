@@ -1296,7 +1296,7 @@ static int animdata_filter_dopesheet (ListBase *anim_data, bDopeSheet *ads, int 
 					for (a=0; a < ob->totcol; a++) {
 						Material *ma= give_current_material(ob, a);
 						
-						if (ANIMDATA_HAS_KEYS(ma)) {
+						if ((ma) && ANIMDATA_HAS_KEYS(ma)) {
 							matOk= 1;
 							break;
 						}
