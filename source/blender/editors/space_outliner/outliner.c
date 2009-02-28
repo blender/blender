@@ -3127,7 +3127,7 @@ static void tree_element_to_path(SpaceOops *soops, TreeElement *te, TreeStoreEle
 	 
 	/* step 1: flatten out hierarchy of parents into a flat chain */
 	for (tem= te->parent; tem; tem= tem->parent) {
-		ld= MEM_callocN(sizeof(LinkData), "LinkData for ks_editop_add_cb()");
+		ld= MEM_callocN(sizeof(LinkData), "LinkData for tree_element_to_path()");
 		ld->data= tem;
 		BLI_addhead(&hierarchy, ld);
 	}
@@ -3145,7 +3145,6 @@ static void tree_element_to_path(SpaceOops *soops, TreeElement *te, TreeStoreEle
 			/* just 'append' property to path 
 			 *	- to prevent memory leaks, we must write to newpath not path, then free old path + swap them
 			 */
-			
 			if(tse->type == TSE_RNA_PROPERTY) {
 				if(RNA_property_type(ptr, prop) == PROP_POINTER) {
 					/* for pointer we just append property name */

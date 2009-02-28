@@ -679,7 +679,7 @@ int join_armature(Scene *scene, View3D *v3d)
 	
 	/*	Ensure we're not in editmode and that the active object is an armature*/
 	if (ob->type!=OB_ARMATURE) return 0;
-	if(arm->edbo) return 0;
+	if (arm->edbo) return 0;
 	
 	if (object_data_is_libdata(ob)) {
 		error_libdata();
@@ -1173,7 +1173,6 @@ static void bone_setflag (int *bone, int flag, short mode)
 				*bone &= ~flag;
 			else
 				*bone ^= flag;
-
 		}
 		else {
 			if (mode == 2)
@@ -2428,7 +2427,7 @@ static int armature_duplicate_selected_exec(bContext *C, wmOperator *op)
 				eBone=MEM_callocN(sizeof(EditBone), "addup_editbone");
 				eBone->flag |= BONE_SELECTED;
 				
-				/*	Copy data from old bone to new bone */
+				/* Copy data from old bone to new bone */
 				memcpy(eBone, curBone, sizeof(EditBone));
 				
 				curBone->temp = eBone;
@@ -2489,33 +2488,35 @@ static int armature_duplicate_selected_exec(bContext *C, wmOperator *op)
 			if (curBone->flag & BONE_SELECTED) {
 				eBone=(EditBone*) curBone->temp;
 				
-				/*	If this bone has no parent,
-				Set the duplicate->parent to NULL
-				*/
-				if (!curBone->parent)
+				if (!curBone->parent) {
+					/* If this bone has no parent,
+					 * Set the duplicate->parent to NULL
+					 */
 					eBone->parent = NULL;
-				/*	If this bone has a parent that IS selected,
-					Set the duplicate->parent to the curBone->parent->duplicate
-					*/
-				else if (curBone->parent->flag & BONE_SELECTED)
+				}
+				else if (curBone->parent->flag & BONE_SELECTED) {
+					/* If this bone has a parent that IS selected,
+					 * Set the duplicate->parent to the curBone->parent->duplicate
+					 */
 					eBone->parent= (EditBone *)curBone->parent->temp;
-				/*	If this bone has a parent that IS not selected,
-					Set the duplicate->parent to the curBone->parent
-					*/
+				}
 				else {
+					/* If this bone has a parent that IS not selected,
+					 * Set the duplicate->parent to the curBone->parent
+					 */
 					eBone->parent=(EditBone*) curBone->parent; 
 					eBone->flag &= ~BONE_CONNECTED;
 				}
 				
 				/* Lets try to fix any constraint subtargets that might
-					have been duplicated */
+				 * have been duplicated 
+				 */
 				update_dup_subtarget(obedit, eBone);
 			}
 		}
 	} 
 	
 	/*	Deselect the old bones and select the new ones */
-	
 	for (curBone=arm->edbo->first; curBone && curBone!=firstDup; curBone=curBone->next) {
 		if (EBONE_VISIBLE(arm, curBone))
 			curBone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL | BONE_ACTIVE);
@@ -2523,9 +2524,6 @@ static int armature_duplicate_selected_exec(bContext *C, wmOperator *op)
 
 	WM_event_add_notifier(C, NC_OBJECT|ND_BONE_SELECT, obedit);
 	
-// XXX	BIF_TransformSetUndo("Add Duplicate");
-//	initTransform(TFM_TRANSLATION, CTX_NO_PET);
-//	Transform();
 	return OPERATOR_FINISHED;
 }
 
@@ -3501,6 +3499,8 @@ void ARMATURE_OT_switch_direction(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 /* ***************** Parenting *********************** */
+
+/* armature parenting options */
 #define ARM_PAR_CONNECT 1
 #define ARM_PAR_OFFSET	2
 
@@ -3610,14 +3610,19 @@ static int armature_parent_set_exec(bContext *C, wmOperator *op)
 		/* Parent 'selected' bones to the active one
 		 * - the context iterator contains both selected bones and their mirrored copies,
 		 *   so we assume that unselected bones are mirrored copies of some selected bone
+		 * - since the active one (and/or its mirror) will also be selected, we also need 
+		 * 	to check that we are not trying to opearate on them, since such an operation 
+		 *	would cause errors
 		 */
 		
-		/* align selected bones to the active one */
+		/* parent selected bones to the active one */
 		CTX_DATA_BEGIN(C, EditBone *, ebone, selected_editable_bones) {
-			if (ebone->flag & BONE_SELECTED) 
-				bone_connect_to_new_parent(arm->edbo, ebone, actbone, val);
-			else
-				bone_connect_to_new_parent(arm->edbo, ebone, actmirb, val);
+			if (ELEM(ebone, actbone, actmirb) == 0) {
+				if (ebone->flag & BONE_SELECTED) 
+					bone_connect_to_new_parent(arm->edbo, ebone, actbone, val);
+				else
+					bone_connect_to_new_parent(arm->edbo, ebone, actmirb, val);
+			}
 		}
 		CTX_DATA_END;
 	}
@@ -3976,14 +3981,19 @@ static int armature_align_bones_exec(bContext *C, wmOperator *op)
 		/* Align 'selected' bones to the active one
 		 * - the context iterator contains both selected bones and their mirrored copies,
 		 *   so we assume that unselected bones are mirrored copies of some selected bone
+		 * - since the active one (and/or its mirror) will also be selected, we also need 
+		 * 	to check that we are not trying to opearate on them, since such an operation 
+		 *	would cause errors
 		 */
 		
 		/* align selected bones to the active one */
 		CTX_DATA_BEGIN(C, EditBone *, ebone, selected_editable_bones) {
-			if (ebone->flag & BONE_SELECTED)
-				bone_align_to_bone(arm->edbo, ebone, actbone);
-			else
-				bone_align_to_bone(arm->edbo, ebone, actmirb);
+			if (ELEM(ebone, actbone, actmirb) == 0) {
+				if (ebone->flag & BONE_SELECTED)
+					bone_align_to_bone(arm->edbo, ebone, actbone);
+				else
+					bone_align_to_bone(arm->edbo, ebone, actmirb);
+			}
 		}
 		CTX_DATA_END;
 	}
