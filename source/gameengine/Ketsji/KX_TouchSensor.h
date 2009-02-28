@@ -123,6 +123,7 @@ public:
 	virtual PyObject* _getattr(const char *attr);
 	virtual int _setattr(const char *attr, PyObject *value);
 
+	//Deprecated ----->
 	/* 1. setProperty */
 	KX_PYMETHOD_DOC_O(KX_TouchSensor,SetProperty);
 	/* 2. getProperty */
@@ -137,6 +138,7 @@ public:
 	/* 6. setTouchMaterial */
 	KX_PYMETHOD_DOC_O(KX_TouchSensor,SetTouchMaterial);
 #endif
+	//<-----
 	
 };
 

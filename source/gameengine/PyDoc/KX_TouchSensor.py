@@ -7,10 +7,11 @@ class KX_TouchSensor(SCA_ISensor):
 	"""
 	Touch sensor detects collisions between objects.
 	
-	@ivar propertyName: The name of the property or material this sensor detects (depending on the materialCheck property).
-	@type propertyName: string
-	@ivar materialCheck: when enabled this sensor checks for object materials rather then properties.
-	@type materialCheck: bool
+	@ivar property: The property or material to collide with.
+	@type property: string
+	@ivar useMaterial: Determines if the sensor is looking for a property or material.
+						KX_True = Find material; KX_False = Find property
+	@type useMaterial: boolean
 	@ivar pulseCollisions: The last collided object.
 	@type pulseCollisions: bool
 	@ivar objectHit: The last collided object. (Read Only)
@@ -18,24 +19,26 @@ class KX_TouchSensor(SCA_ISensor):
 	@ivar objectHitList: A list of colliding objects. (Read Only)
 	@type objectHitList: list
 	"""
+		
+	#--The following methods are deprecated, please use properties instead.
 	def setProperty(name):
 		"""
-		DEPRECATED: use the propertyName property
+		DEPRECATED: use the property property
 		Set the property or material to collide with. Use
 		setTouchMaterial() to switch between properties and
 		materials.
 		@type name: string
 		"""
+		
 	def getProperty():
 		"""
-		DEPRECATED: use the propertyName property
+		DEPRECATED: use the property property
 		Returns the property or material to collide with. Use
 		getTouchMaterial() to find out whether this sensor
 		looks for properties or materials. (B{deprecated})
 		
 		@rtype: string
 		"""
-
 	def getHitObject():
 		"""
 		DEPRECATED: use the objectHit property
@@ -54,7 +57,7 @@ class KX_TouchSensor(SCA_ISensor):
 		"""
 	def getTouchMaterial():
 		"""
-		DEPRECATED: use the materialCheck property
+		DEPRECATED: use the useMaterial property
 		Returns KX_TRUE if this sensor looks for a specific material,
 		KX_FALSE if it looks for a specific property. (B{deprecated})
 		"""

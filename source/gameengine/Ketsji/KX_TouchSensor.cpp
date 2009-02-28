@@ -269,6 +269,7 @@ PyParentObject KX_TouchSensor::Parents[] = {
 };
 
 PyMethodDef KX_TouchSensor::Methods[] = {
+	//Deprecated ----->
 	{"setProperty", 
 	 (PyCFunction) KX_TouchSensor::sPySetProperty,      METH_O, (PY_METHODCHAR)SetProperty_doc},
 	{"getProperty", 
@@ -277,12 +278,13 @@ PyMethodDef KX_TouchSensor::Methods[] = {
 	 (PyCFunction) KX_TouchSensor::sPyGetHitObject,     METH_NOARGS, (PY_METHODCHAR)GetHitObject_doc},
 	{"getHitObjectList", 
 	 (PyCFunction) KX_TouchSensor::sPyGetHitObjectList, METH_NOARGS, (PY_METHODCHAR)GetHitObjectList_doc},
+	 //<-----
 	{NULL,NULL} //Sentinel
 };
 
 PyAttributeDef KX_TouchSensor::Attributes[] = {
-	KX_PYATTRIBUTE_STRING_RW("propertyName",0,100,false,KX_TouchSensor,m_touchedpropname),
-	KX_PYATTRIBUTE_BOOL_RW("materialCheck",KX_TouchSensor,m_bFindMaterial),
+	KX_PYATTRIBUTE_STRING_RW("property",0,100,false,KX_TouchSensor,m_touchedpropname),
+	KX_PYATTRIBUTE_BOOL_RW("useMaterial",KX_TouchSensor,m_bFindMaterial),
 	KX_PYATTRIBUTE_BOOL_RW("pulseCollisions",KX_TouchSensor,m_bTouchPulse),
 	KX_PYATTRIBUTE_DUMMY("objectHit"),
 	KX_PYATTRIBUTE_DUMMY("objectHitList"),
@@ -371,6 +373,9 @@ PyObject* KX_TouchSensor::PyGetHitObjectList(PyObject* self)
 	/* otherwise, this leaks memory */ /* Edit, this seems ok and not to leak memory - Campbell */
 	return m_colliders->AddRef();
 }
+
+/*getTouchMaterial and setTouchMaterial were never added to the api,
+they can probably be removed with out anyone noticing*/
 
 /* 5. getTouchMaterial */
 const char KX_TouchSensor::GetTouchMaterial_doc[] = 

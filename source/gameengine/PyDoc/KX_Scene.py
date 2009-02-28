@@ -70,3 +70,16 @@ class KX_Scene:
 		@rtype: string
 		"""
 
+	def addObject(object, other, time=0)
+		"""
+		Adds an object to the scene like the Add Object Actuator would, and returns the created object.
+		
+		@param object: The object to add
+		@type object: L{KX_GameObject} or string
+		@param other: The object's center to use when adding the object
+		@type other: L{KX_GameObject} or string
+		@param time: The lifetime of the added object, in frames. A time of 0 means the object will last forever.
+		@type time: int
+		
+		@rtype: L{KX_GameObject}
+		"""
