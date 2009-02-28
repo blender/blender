@@ -356,12 +356,12 @@ public:
 	 * @return Returns "unsinged char" from X11 XA_CUT_BUFFER0 buffer
 	 *
 	 */
-	 virtual GHOST_TUns8* getClipboard(int flag) const = 0;
+	 virtual GHOST_TUns8* getClipboard(bool selection) const = 0;
 
 	/**
 	 * Put data to the Clipboard
 	 */
-	virtual void putClipboard(GHOST_TInt8 *buffer, int flag) const = 0;
+	virtual void putClipboard(GHOST_TInt8 *buffer, bool selection) const = 0;
 
 protected:
 	/**

@@ -333,7 +333,6 @@ static void do_info_buttons(bContext *C, void *arg, int event)
 
 static void screen_idpoin_handle(bContext *C, ID *id, int event)
 {
-	
 	switch(event) {
 		case UI_ID_BROWSE:
 			/* exception: can't set screens inside of area/region handers */
@@ -360,7 +359,6 @@ static void screen_idpoin_handle(bContext *C, ID *id, int event)
 
 static void scene_idpoin_handle(bContext *C, ID *id, int event)
 {
-	
 	switch(event) {
 		case UI_ID_BROWSE:
 			/* exception: can't set screens inside of area/region handers */
@@ -391,7 +389,6 @@ void info_header_buttons(const bContext *C, ARegion *ar)
 	wmWindow *win= CTX_wm_window(C);
 	bScreen *screen= CTX_wm_screen(C);
 	ScrArea *sa= CTX_wm_area(C);
-	SpaceInfo *si= sa->spacedata.first;
 	uiBlock *block;
 	int xco, yco= 3;
 	
@@ -433,13 +430,11 @@ void info_header_buttons(const bContext *C, ARegion *ar)
 	
 	uiBlockSetEmboss(block, UI_EMBOSS);
 	
-	if(screen->full==NULL) {
-		si->screen= win->screen;
-		xco= uiDefIDPoinButs(block, CTX_data_main(C), NULL, (ID**)&si->screen, ID_SCR, NULL, xco, yco,
+	if(screen->full==0) {
+		xco= uiDefIDPoinButs(block, CTX_data_main(C), NULL, (ID*)win->screen, ID_SCR, NULL, xco, yco,
 						 screen_idpoin_handle, UI_ID_BROWSE|UI_ID_RENAME|UI_ID_ADD_NEW|UI_ID_DELETE);
 		xco += 8;
-		si->scene= screen->scene;
-		xco= uiDefIDPoinButs(block, CTX_data_main(C), NULL, (ID**)&si->scene, ID_SCE, NULL, xco, yco,
+		xco= uiDefIDPoinButs(block, CTX_data_main(C), NULL, (ID*)screen->scene, ID_SCE, NULL, xco, yco,
 							 scene_idpoin_handle, UI_ID_BROWSE|UI_ID_RENAME|UI_ID_ADD_NEW|UI_ID_DELETE);
 		xco += 8;
 	}	

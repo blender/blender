@@ -1563,6 +1563,7 @@ static void saction_idpoin_handle(bContext *C, ID *id, int event)
 	switch (event) {
 		case UI_ID_BROWSE:
 		case UI_ID_DELETE:
+			saction->action= (bAction*)id;
 			/* we must set this action to be the one used by active object (if not pinned) */
 			if (saction->pin == 0)
 				obact->adt->action= saction->action;
@@ -1691,7 +1692,7 @@ void action_header_buttons(const bContext *C, ARegion *ar)
 			//uiClearButLock();
 			
 			/* NAME ETC (it is assumed that */
-			xco= uiDefIDPoinButs(block, CTX_data_main(C), NULL, (ID**)&saction->action, ID_AC, &saction->pin, xco, yco,
+			xco= uiDefIDPoinButs(block, CTX_data_main(C), NULL, (ID*)saction->action, ID_AC, &saction->pin, xco, yco,
 				saction_idpoin_handle, UI_ID_BROWSE|UI_ID_RENAME|UI_ID_ADD_NEW|UI_ID_DELETE|UI_ID_FAKE_USER|UI_ID_ALONE|UI_ID_PIN);
 			
 			xco += 8;

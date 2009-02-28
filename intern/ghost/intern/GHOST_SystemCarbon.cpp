@@ -1119,7 +1119,7 @@ OSStatus GHOST_SystemCarbon::sEventHandlerProc(EventHandlerCallRef handler, Even
     return err;
 }
 
-GHOST_TUns8* GHOST_SystemCarbon::getClipboard(int flag) const
+GHOST_TUns8* GHOST_SystemCarbon::getClipboard(bool selection) const
 {
 	PasteboardRef inPasteboard;
 	PasteboardItemID itemID;
@@ -1158,9 +1158,9 @@ GHOST_TUns8* GHOST_SystemCarbon::getClipboard(int flag) const
 	}
 }
 
-void GHOST_SystemCarbon::putClipboard(GHOST_TInt8 *buffer, int flag) const
+void GHOST_SystemCarbon::putClipboard(GHOST_TInt8 *buffer, bool selection) const
 {
-	if(flag == 1) {return;} //If Flag is 1 means the selection and is used on X11
+	if(selection) {return;} // for copying the selection, used on X11
 
 	PasteboardRef inPasteboard;
 	CFDataRef textData = NULL;

@@ -285,7 +285,7 @@ typedef struct SpaceText {
 	int showlinenrs;
 	int tabnumber;
 
-	int currtab_set; 
+	int pad;
 	int showsyntax;
 	int overwrite;
 	float pix_per_line;
@@ -294,6 +294,8 @@ typedef struct SpaceText {
 
 	int wordwrap, doplugins;
 
+	char findstr[256];		/* ST_MAX_FIND_STR */
+	char replacestr[256];	/* ST_MAX_FIND_STR */
 } SpaceText;
 
 typedef struct Script {
@@ -609,6 +611,12 @@ enum {
 #define ST_SCROLL_SELECT        0x0001 // scrollable
 #define ST_CLEAR_NAMESPACE      0x0010 // clear namespace after script
                                        // execution (see BPY_main.c)
+#define	ST_FIND_WRAP			0x0020
+#define	ST_FIND_ALL				0x0040
+
+
+/* stext->findstr/replacestr */
+#define ST_MAX_FIND_STR		256
 
 /* SpaceOops->type */
 #define SO_OOPS			0

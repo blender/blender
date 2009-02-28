@@ -284,18 +284,18 @@ public:
 
 	/**
 	 * Returns the selection buffer
-	 * @param flag		Only used on X11
-	 * @return 		Returns the clipboard data
+	 * @param selection		Only used on X11
+	 * @return 				Returns the clipboard data
 	 *
 	 */
-	 virtual GHOST_TUns8* getClipboard(int flag) const = 0;
+	 virtual GHOST_TUns8* getClipboard(bool selection) const = 0;
 	  
 	  /**
 	   * Put data to the Clipboard
-	   * @param buffer	The buffer to copy to the clipboard
-	   * @param flag	The clipboard to copy too only used on X11
+	   * @param buffer		The buffer to copy to the clipboard
+	   * @param selection	The clipboard to copy too only used on X11
 	   */
-	  virtual void putClipboard(GHOST_TInt8 *buffer, int flag) const = 0;
+	  virtual void putClipboard(GHOST_TInt8 *buffer, bool selection) const = 0;
 
 protected:
 	/**

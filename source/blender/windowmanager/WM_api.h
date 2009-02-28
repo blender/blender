@@ -206,5 +206,10 @@ void		WM_jobs_start(struct wmJob *);
 void		WM_jobs_stop(struct wmWindowManager *wm, void *owner);
 void		WM_jobs_stop_all(struct wmWindowManager *wm);
 
+			/* clipboard */
+char *WM_clipboard_text_get(int selection);
+void WM_clipboard_text_set(char *buf, int selection);
+
+
 #endif /* WM_API_H */
 

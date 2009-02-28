@@ -99,7 +99,6 @@ void ED_operatortypes_curve(void)
 	WM_operatortype_append(FONT_OT_insert_text);
 	WM_operatortype_append(FONT_OT_line_break);
 	WM_operatortype_append(FONT_OT_insert_lorem);
-	WM_operatortype_append(FONT_OT_text_to_object);
 
 	WM_operatortype_append(FONT_OT_toggle_case);
 	WM_operatortype_append(FONT_OT_set_case);

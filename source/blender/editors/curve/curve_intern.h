@@ -44,7 +44,6 @@ enum { LINE_BEGIN, LINE_END, PREV_CHAR, NEXT_CHAR, PREV_WORD, NEXT_WORD,
 void FONT_OT_insert_text(struct wmOperatorType *ot);
 void FONT_OT_line_break(struct wmOperatorType *ot);
 void FONT_OT_insert_lorem(struct wmOperatorType *ot);
-void FONT_OT_text_to_object(struct wmOperatorType *ot);
 
 void FONT_OT_toggle_case(struct wmOperatorType *ot);
 void FONT_OT_set_case(struct wmOperatorType *ot);

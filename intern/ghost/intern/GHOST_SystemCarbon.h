@@ -169,10 +169,10 @@ public:
 
 	/**
 	 * Returns Clipboard data
-	 * @param flag		Indicate which buffer to return
-	 * @return		Returns the selected buffer
+	 * @param selection		Indicate which buffer to return
+	 * @return				Returns the selected buffer
 	 */
-	virtual GHOST_TUns8* getClipboard(int flag) const;
+	virtual GHOST_TUns8* getClipboard(bool selection) const;
 	
 	/**
 	 * Puts buffer to system clipboard

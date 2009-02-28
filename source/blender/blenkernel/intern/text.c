@@ -65,9 +65,6 @@ A text should relate to a file as follows -
 (Text *)->flags has the following bits
 	TXT_ISDIRTY - should always be set if the file in mem. differs from
 					the file on disk, or if there is no file on disk.
-	TXT_ISTMP - should always be set if the (Text *)->name file has not
-					been written before, and attempts to save should result
-					in "Save over?"
 	TXT_ISMEM - should always be set if the Text has not been mapped to
 					a file, in which case (Text *)->name may be NULL or garbage.			
 	TXT_ISEXT - should always be set if the Text is not to be written into
@@ -130,7 +127,6 @@ static void txt_delete_line(Text *text, TextLine *line);
 
 /***/
 
-static char *txt_cut_buffer= NULL;
 static unsigned char undoing;
 
 /* allow to switch off undoing externally */
@@ -179,7 +175,7 @@ Text *add_empty_text(char *name)
 	ta->undo_buf= MEM_mallocN(ta->undo_len, "undo buf");
 		
 	ta->nlines=1;
-	ta->flags= TXT_ISDIRTY | TXT_ISTMP | TXT_ISMEM;
+	ta->flags= TXT_ISDIRTY | TXT_ISMEM;
 
 	ta->lines.first= ta->lines.last= NULL;
 	ta->markers.first= ta->markers.last= NULL;
@@ -256,8 +252,6 @@ int reopen_text(Text *text)
 	text->undo_pos= -1;
 	text->undo_len= TXT_INIT_UNDO;
 	text->undo_buf= MEM_mallocN(text->undo_len, "undo buf");
-	
-	text->flags= TXT_ISTMP; 
 	
 	fseek(fp, 0L, SEEK_END);
 	len= ftell(fp);
@@ -347,9 +341,6 @@ Text *add_text(char *file, const char *relpath)
 	ta->lines.first= ta->lines.last= NULL;
 	ta->markers.first= ta->markers.last= NULL;
 	ta->curl= ta->sell= NULL;
-
-/* 	ta->flags= TXT_ISTMP | TXT_ISEXT; */
-	ta->flags= TXT_ISTMP;
 	
 	fseek(fp, 0L, SEEK_END);
 	len= ftell(fp);
@@ -430,7 +421,7 @@ Text *copy_text(Text *ta)
 	tan->name= MEM_mallocN(strlen(ta->name)+1, "text_name");
 	strcpy(tan->name, ta->name);
 	
-	tan->flags = ta->flags | TXT_ISDIRTY | TXT_ISTMP;
+	tan->flags = ta->flags | TXT_ISDIRTY;
 	
 	tan->lines.first= tan->lines.last= NULL;
 	tan->markers.first= tan->markers.last= NULL;
@@ -1056,11 +1047,6 @@ void txt_sel_line (Text *text)
 /* Cut and paste functions */
 /***************************/
 
-void txt_print_cutbuffer (void) 
-{
-	printf ("Cut buffer\n--\n%s\n--\n", txt_cut_buffer);	
-}
-
 char *txt_to_buf (Text *text)
 {
 	int length;
@@ -1165,15 +1151,6 @@ int txt_find_string(Text *text, char *findstr, int wrap)
 		return 0;
 }
 
-void txt_cut_sel (Text *text)
-{
-	if (!G.background) /* Python uses txt_cut_sel, which it should not, working around for now  */
-		; //XXX txt_copy_clipboard(text);
-	
-	txt_delete_sel(text);
-	txt_make_dirty(text);
-}
-
 char *txt_sel_to_buf (Text *text)
 {
 	char *buf;
@@ -1251,85 +1228,6 @@ char *txt_sel_to_buf (Text *text)
 	return buf;
 }
 
-void txt_copy_sel (Text *text)
-{
-	int length=0;
-	TextLine *tmp, *linef, *linel;
-	int charf, charl;
-	
-	if (!text) return;
-	if (!text->curl) return;
-	if (!text->sell) return;
-
-	if (!txt_has_sel(text)) return;
-	
-	if (txt_cut_buffer) MEM_freeN(txt_cut_buffer);
-	txt_cut_buffer= NULL;
-	
-	if (text->curl==text->sell) {
-		linef= linel= text->curl;
-		
-		if (text->curc < text->selc) {
-			charf= text->curc;
-			charl= text->selc;
-		} else{
-			charf= text->selc;
-			charl= text->curc;
-		}
-	} else if (txt_get_span(text->curl, text->sell)<0) {
-		linef= text->sell;
-		linel= text->curl;
-
-		charf= text->selc;		
-		charl= text->curc;
-	} else {
-		linef= text->curl;
-		linel= text->sell;
-		
-		charf= text->curc;
-		charl= text->selc;
-	}
-
-	if (linef == linel) {
-		length= charl-charf;
-
-		txt_cut_buffer= MEM_mallocN(length+1, "cut buffera");
-		
-		BLI_strncpy(txt_cut_buffer, linef->line + charf, length+1);
-	} else {
-		length+= linef->len - charf;
-		length+= charl;
-		length++; /* For the '\n' */
-		
-		tmp= linef->next;
-		while (tmp && tmp!= linel) {
-			length+= tmp->len+1;
-			tmp= tmp->next;
-		}
-		
-		txt_cut_buffer= MEM_mallocN(length+1, "cut bufferb");
-		
-		strncpy(txt_cut_buffer, linef->line+ charf, linef->len-charf);
-		length= linef->len-charf;
-		
-		txt_cut_buffer[length++]='\n';
-		
-		tmp= linef->next;
-		while (tmp && tmp!=linel) {
-			strncpy(txt_cut_buffer+length, tmp->line, tmp->len);
-			length+= tmp->len;
-			
-			txt_cut_buffer[length++]='\n';			
-			
-			tmp= tmp->next;
-		}
-		strncpy(txt_cut_buffer+length, linel->line, charl);
-		length+= charl;
-		
-		txt_cut_buffer[length]=0;
-	}
-}
-
 void txt_insert_buf(Text *text, char *in_buffer)
 {
 	int i=0, l=0, j, u, len;
@@ -1378,16 +1276,6 @@ void txt_insert_buf(Text *text, char *in_buffer)
 	}
 	
 	undoing= u;
-}
-
-void txt_free_cut_buffer(void) 
-{
-	if (txt_cut_buffer) MEM_freeN(txt_cut_buffer);
-}
-
-void txt_paste(Text *text)
-{
-	txt_insert_buf(text, txt_cut_buffer);
 }
 
 /******************/
@@ -2392,6 +2280,12 @@ int txt_add_char (Text *text, char add)
 
 	if(!undoing) txt_undo_add_charop(text, UNDO_INSERT, add);
 	return 1;
+}
+
+void txt_delete_selected(Text *text)
+{
+	txt_delete_sel(text);
+	txt_make_dirty(text);
 }
 
 int txt_replace_char (Text *text, char add)

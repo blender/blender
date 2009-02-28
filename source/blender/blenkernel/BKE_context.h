@@ -50,11 +50,14 @@ struct RegionView3D;
 struct StructRNA;
 struct ToolSettings;
 struct Image;
+struct Text;
 struct ImBuf;
 struct EditBone;
 struct bPoseChannel;
 struct wmWindow;
 struct wmWindowManager;
+struct SpaceText;
+struct SpaceImage;
 
 /* Structs */
 
@@ -82,6 +85,8 @@ enum {
 
 	CTX_DATA_EDIT_IMAGE,
 	CTX_DATA_EDIT_IMAGE_BUFFER,
+
+	CTX_DATA_EDIT_TEXT,
 
 	CTX_DATA_SELECTED_NODES,
 	
@@ -132,11 +137,14 @@ struct wmWindow *CTX_wm_window(const bContext *C);
 struct bScreen *CTX_wm_screen(const bContext *C);
 struct ScrArea *CTX_wm_area(const bContext *C);
 struct SpaceLink *CTX_wm_space_data(const bContext *C);
-struct View3D *CTX_wm_view3d(const bContext *C);
-struct RegionView3D *CTX_wm_region_view3d(const bContext *C);
 struct ARegion *CTX_wm_region(const bContext *C);
 void *CTX_wm_region_data(const bContext *C);
 struct uiBlock *CTX_wm_ui_block(const bContext *C);
+
+struct View3D *CTX_wm_view3d(const bContext *C);
+struct RegionView3D *CTX_wm_region_view3d(const bContext *C);
+struct SpaceText *CTX_wm_space_text(const bContext *C);
+struct SpaceImage *CTX_wm_space_image(const bContext *C);
 
 void CTX_wm_manager_set(bContext *C, struct wmWindowManager *wm);
 void CTX_wm_window_set(bContext *C, struct wmWindow *win);
@@ -195,6 +203,8 @@ struct Object *CTX_data_edit_object(const bContext *C);
 
 struct Image *CTX_data_edit_image(const bContext *C);
 struct ImBuf *CTX_data_edit_image_buffer(const bContext *C);
+
+struct Text *CTX_data_edit_text(const bContext *C);
 
 int CTX_data_selected_nodes(const bContext *C, ListBase *list);
 

@@ -47,8 +47,6 @@ int	            reopen_text		(struct Text *text);
 struct Text*	add_text		(char *file, const char *relpath); 
 struct Text*	copy_text		(struct Text *ta);
 
-void	txt_free_cut_buffer	(void);
-
 char*	txt_to_buf			(struct Text *text);
 void	txt_clean_text		(struct Text *text);
 void	txt_order_cursors	(struct Text *text);
@@ -70,14 +68,11 @@ void	txt_move_to			(struct Text *text, unsigned int line, unsigned int ch, short
 void	txt_pop_sel			(struct Text *text);
 void	txt_delete_char		(struct Text *text);
 void	txt_delete_word		(struct Text *text);
-void	txt_copy_sel		(struct Text *text);
+void	txt_delete_selected	(struct Text *text);
 void	txt_sel_all			(struct Text *text);
 void	txt_sel_line		(struct Text *text);
-void	txt_print_cutbuffer	(void);
-void	txt_cut_sel			(struct Text *text);
 char*	txt_sel_to_buf		(struct Text *text);
 void	txt_insert_buf		(struct Text *text, char *in_buffer);
-void	txt_paste			(struct Text *text);
 void	txt_print_undo		(struct Text *text);
 void	txt_undo_add_toop	(struct Text *text, int op, unsigned int froml, unsigned short fromc, unsigned int tol, unsigned short toc);
 void	txt_do_undo			(struct Text *text);
@@ -87,9 +82,6 @@ void	txt_backspace_char	(struct Text *text);
 void	txt_backspace_word	(struct Text *text);
 int		txt_add_char		(struct Text *text, char add);
 int		txt_replace_char	(struct Text *text, char add);
-void	find_and_replace	(struct SpaceText *st, short mode);
-void	run_python_script	(struct SpaceText *st);
-int	jumptoline_interactive	(struct SpaceText *st);
 void	txt_export_to_object	(struct Text *text);
 void	txt_export_to_objects(struct Text *text);
 void	unindent		(struct Text *text);
@@ -97,9 +89,6 @@ void 	comment			(struct Text *text);
 void 	indent			(struct Text *text);
 void	uncomment		(struct Text *text);
 int	setcurr_tab		(struct Text *text);
-void	convert_tabs		(struct SpaceText *st, int tab);
-void	txt_copy_clipboard	(struct Text *text);
-void	txt_paste_clipboard	(struct Text *text);
 
 void	txt_add_marker						(struct Text *text, struct TextLine *line, int start, int end, char color[4], int group, int flags);
 short	txt_clear_marker_region				(struct Text *text, struct TextLine *line, int start, int end, int group, int flags);
@@ -151,10 +140,6 @@ struct TextMarker	*txt_next_marker_color	(struct Text *text, struct TextMarker *
 #define UNDO_UNINDENT		033
 #define UNDO_COMMENT		034
 #define UNDO_UNCOMMENT		035
-
-/* Find and replace flags */
-#define TXT_FIND_WRAP		0x01
-#define TXT_FIND_ALLTEXTS	0x02
 
 /* Marker flags */
 #define TMARK_TEMP		0x01	/* Remove on non-editing events, don't save */

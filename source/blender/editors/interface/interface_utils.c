@@ -405,7 +405,7 @@ int uiDefAutoButsRNA(uiBlock *block, PointerRNA *ptr)
 
 typedef struct uiIDPoinParams {
 	uiIDPoinFunc func;
-	ID **id_p;
+	ID *id;
 	short id_code;
 	short browsenr;
 } uiIDPoinParams;
@@ -416,12 +416,16 @@ static void idpoin_cb(bContext *C, void *arg_params, void *arg_event)
 	ListBase *lb;
 	uiIDPoinParams *params= (uiIDPoinParams*)arg_params;
 	uiIDPoinFunc func= params->func;
-	ID **id_p= params->id_p;
-	ID *id= *id_p, *idtest;
+	ID *id= params->id, *idtest;
 	int nr, event= GET_INT_FROM_POINTER(arg_event);
 
 	bmain= CTX_data_main(C);
 	lb= wich_libbase(bmain, params->id_code);
+	
+	if(event == UI_ID_BROWSE && params->browsenr == 32767)
+		event= UI_ID_ADD_NEW;
+	else if(event == UI_ID_BROWSE && params->browsenr == 32766)
+		event= UI_ID_OPEN;
 
 	switch(event) {
 		case UI_ID_RENAME:
@@ -442,17 +446,18 @@ static void idpoin_cb(bContext *C, void *arg_params, void *arg_event)
 
 			for(idtest=lb->first, nr=1; idtest; idtest=idtest->next, nr++) {
 				if(nr==params->browsenr) {
-					if(*id_p == idtest)
+					if(id == idtest)
 						return;
 
-					*id_p= idtest;
+					id= idtest;
+
 					break;
 				}
 			}
 			break;
 		}
 		case UI_ID_DELETE:
-			*id_p= NULL;
+			id= NULL;
 			break;
 		case UI_ID_FAKE_USER:
 			if(id) {
@@ -480,21 +485,20 @@ static void idpoin_cb(bContext *C, void *arg_params, void *arg_event)
 	}
 
 	if(func)
-		func(C, *id_p, event);
+		func(C, id, event);
 }
 
-int uiDefIDPoinButs(uiBlock *block, Main *bmain, ID *parid, ID **id_p, int id_code, short *pin_p, int x, int y, uiIDPoinFunc func, int events)
+int uiDefIDPoinButs(uiBlock *block, Main *bmain, ID *parid, ID *id, int id_code, short *pin_p, int x, int y, uiIDPoinFunc func, int events)
 {
 	ListBase *lb;
 	uiBut *but;
-	ID *id= *id_p;
 	uiIDPoinParams *params, *dup_params;
 	char *str=NULL, str1[10];
 	int len, oldcol, add_addbutton=0;
 
 	/* setup struct that we will pass on with the buttons */
 	params= MEM_callocN(sizeof(uiIDPoinParams), "uiIDPoinParams");
-	params->id_p= id_p;
+	params->id= id;
 	params->id_code= id_code;
 	params->func= func;
 

@@ -156,6 +156,7 @@ typedef struct wmNotifier {
 #define	NC_GROUP			(9<<24)
 #define	NC_IMAGE			(10<<24)
 #define	NC_BRUSH			(11<<24)
+#define	NC_TEXT				(12<<24)
 
 /* data type, 256 entries is enough, it can overlap */
 #define NOTE_DATA			0x00FF0000
@@ -204,6 +205,10 @@ typedef struct wmNotifier {
 #define	ND_LIGHTING			(44<<16)
 #define	ND_LIGHTING_DRAW	(45<<16)
 #define ND_SKY				(46<<16)
+
+	/* NC_TEXT Text */
+#define ND_CURSOR			(50<<16)
+#define ND_DISPLAY			(51<<16)
 
 /* subtype, 256 entries too */
 #define NOTE_SUBTYPE		0x0000FF00

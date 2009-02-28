@@ -1006,7 +1006,7 @@ convertXKey(
 
 	GHOST_TUns8*
 GHOST_SystemX11::
-getClipboard(int flag
+getClipboard(bool selection
 ) const {
 	//Flag 
 	//0 = Regular clipboard 1 = selection
@@ -1027,7 +1027,7 @@ getClipboard(int flag
 	compound_text = XInternAtom(m_display, "COMPOUND_TEXT", False);
 
 	//lets check the owner and if it is us then return the static buffer
-	if(flag == 0) {
+	if(!selection) {
 		Primary_atom = XInternAtom(m_display, "CLIPBOARD", False);
 		owner = XGetSelectionOwner(m_display, Primary_atom);
 		if (owner == m_window) {
@@ -1077,14 +1077,14 @@ getClipboard(int flag
 	void
 GHOST_SystemX11::
 putClipboard(
-GHOST_TInt8 *buffer, int flag) const
+GHOST_TInt8 *buffer, bool selection) const
 {
 	static Atom Primary_atom;
 	Window m_window, owner;
 	
 	if(!buffer) {return;}
 	
-	if(flag == 0) {
+	if(!selection) {
 		Primary_atom = XInternAtom(m_display, "CLIPBOARD", False);
 		if(txt_cut_buffer) { free((void*)txt_cut_buffer); }
 		

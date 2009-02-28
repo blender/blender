@@ -1,5 +1,5 @@
 /**
- * $Id$
+ * $Id:
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -17,40 +17,20 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *
- * The Original Code is Copyright (C) 2008 Blender Foundation.
+ * The Original Code is Copyright (C) 2009 Blender Foundation.
  * All rights reserved.
- *
  * 
  * Contributor(s): Blender Foundation
  *
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef ED_DATAFILES_H
-#define ED_DATAFILES_H
+#ifndef ED_TEXT_H
+#define ED_TEXT_H
 
-/* Datafiles embedded in Blender */
+struct bContext;
 
-extern int datatoc_B_blend_size;
-extern char datatoc_B_blend[];
+void ED_text_undo_step(struct bContext *C, int step);
 
-extern int datatoc_blenderbuttons_size;
-extern char datatoc_blenderbuttons[];
-
-extern int datatoc_prvicons_size;
-extern char datatoc_prvicons[];
-
-extern int datatoc_splash_jpg_size;
-extern char datatoc_splash_jpg[];
-
-extern int datatoc_Bfont_size;
-extern char datatoc_Bfont[];
-
-extern int datatoc_bfont_ttf_size;
-extern char datatoc_bfont_ttf[];
-
-extern int datatoc_bmonofont_ttf_size;
-extern char datatoc_bmonofont_ttf[];
-
-#endif /* ED_DATAFILES_H */
+#endif /* ED_TEXT_H */
 

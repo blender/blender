@@ -810,15 +810,15 @@ GHOST_TSuccess GHOST_ClipRectangle(GHOST_RectangleHandle rectanglehandle,
 	return result;
 }
 
-GHOST_TUns8* GHOST_getClipboard(int flag)
+GHOST_TUns8* GHOST_getClipboard(int selection)
 {
 	GHOST_ISystem* system = GHOST_ISystem::getSystem();
-	return system->getClipboard(flag);
+	return system->getClipboard(selection);
 }
 
-void GHOST_putClipboard(GHOST_TInt8 *buffer, int flag)
+void GHOST_putClipboard(GHOST_TInt8 *buffer, int selection)
 {
 	GHOST_ISystem* system = GHOST_ISystem::getSystem();
-	system->putClipboard(buffer, flag);
+	system->putClipboard(buffer, selection);
 }
 

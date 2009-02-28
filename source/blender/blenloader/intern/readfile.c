@@ -2551,7 +2551,7 @@ static void direct_link_text(FileData *fd, Text *text)
 		ln= ln->next;
 	}
 
-	text->flags = (text->flags|TXT_ISTMP) & ~TXT_ISEXT;
+	text->flags = (text->flags) & ~TXT_ISEXT;
 
 	text->id.us= 1;
 }
@@ -5643,6 +5643,11 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				ar->v2d.align = (V2D_ALIGN_NO_NEG_X|V2D_ALIGN_NO_POS_Y);
 				ar->v2d.keepzoom = (V2D_LOCKZOOM_X|V2D_LOCKZOOM_Y|V2D_KEEPZOOM|V2D_KEEPASPECT);
 				break;
+			}
+			case SPACE_TEXT:
+			{
+				SpaceText *st= (SpaceText *)sl;
+				st->flags |= ST_FIND_WRAP;
 			}
 				//case SPACE_XXX: // FIXME... add other ones
 				//	memcpy(&ar->v2d, &((SpaceXxx *)sl)->v2d, sizeof(View2D));

@@ -29,6 +29,8 @@
 #ifndef BLF_API_H
 #define BLF_API_H
 
+struct rctf;
+
 int BLF_init(void);
 void BLF_exit(void);
 
@@ -41,7 +43,7 @@ void BLF_position(float x, float y, float z);
 void BLF_size(int size, int dpi);
 void BLF_draw(char *str);
 
-void BLF_boundbox(char *str, rctf *box);
+void BLF_boundbox(char *str, struct rctf *box);
 float BLF_width(char *str);
 float BLF_height(char *str);
 void BLF_rotation(float angle);
