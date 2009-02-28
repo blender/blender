@@ -38,6 +38,8 @@
 #include "wm_event_types.h"
 #include "SCA_IInputDevice.h"
 
+
+
 /**
  Base Class for Blender specific inputdevices. Blender specific inputdevices are used when the gameengine is running in embedded mode instead of standalone mode.
 */
@@ -65,8 +67,9 @@ public:
 			m_reverseKeyTranslateTable[TIMER1                           ] =	KX_TIMER1                  ;                  
 			m_reverseKeyTranslateTable[TIMER2                           ] = KX_TIMER2                  ;                  
                                                                                                                    
-			// SYSTEM                                                                                                  
-                                                                                                                   
+			// SYSTEM 
+#if 0			
+			/* **** XXX **** */
 			m_reverseKeyTranslateTable[KEYBD                            ] = KX_KEYBD                   ;                  
 			m_reverseKeyTranslateTable[RAWKEYBD                         ] = KX_RAWKEYBD                ;                  
 			m_reverseKeyTranslateTable[REDRAW                           ] = KX_REDRAW                  ;                  
@@ -77,7 +80,8 @@ public:
 			m_reverseKeyTranslateTable[WINCLOSE                         ] = KX_WINCLOSE                ;                  
 			m_reverseKeyTranslateTable[WINQUIT                          ] = KX_WINQUIT                 ;                  
 			m_reverseKeyTranslateTable[Q_FIRSTTIME                      ] = KX_Q_FIRSTTIME             ;                  
-                                                                                                                   
+			/* **** XXX **** */
+#endif                                                                                                                   
 			// standard keyboard                                                                                       
                                                                                                                    
 			m_reverseKeyTranslateTable[AKEY                             ] = KX_AKEY                    ;                  

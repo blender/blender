@@ -10,6 +10,7 @@ struct ListBase;
 struct Main;
 struct AnimData;
 struct KeyingSet;
+struct KS_Path;
 
 /* ************************************* */
 /* AnimData API */
@@ -33,7 +34,9 @@ struct AnimData *BKE_copy_animdata(struct AnimData *adt);
 struct KeyingSet *BKE_keyingset_add(struct ListBase *list, const char name[], short flag, short keyingflag);
 
 /* Add a destination to a KeyingSet */
-void BKE_keyingset_add_destination(struct KeyingSet *ks, struct ID *id, const char group_name[], const char rna_path[], int array_index, int flag);
+void BKE_keyingset_add_destination(struct KeyingSet *ks, struct ID *id, const char group_name[], const char rna_path[], int array_index, short flag, short groupmode);
+
+struct KS_Path *BKE_keyingset_find_destination(struct KeyingSet *ks, struct ID *id, const char group_name[], const char rna_path[], int array_index, int group_mode);
 
 /* Free data for KeyingSet but not set itself */
 void BKE_keyingset_free(struct KeyingSet *ks);

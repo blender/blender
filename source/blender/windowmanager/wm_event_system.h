@@ -59,6 +59,9 @@ typedef struct wmEventHandler {
 	struct ScrArea *ui_area;			/* for derived/modal handlers */
 	struct ARegion *ui_region;			/* for derived/modal handlers */
 	
+	/* fileselect handler re-uses modal operator data */
+	struct bScreen *filescreen;			/* screen it started in, to validate exec */
+	
 } wmEventHandler;
 
 
@@ -71,7 +74,7 @@ typedef struct wmEventHandler {
 /* custom types for handlers, for signalling, freeing */
 enum {
 	WM_HANDLER_DEFAULT,
-	WM_HANDLER_TRANSFORM
+	WM_HANDLER_FILESELECT
 };
 
 

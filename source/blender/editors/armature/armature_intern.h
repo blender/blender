@@ -32,7 +32,7 @@
 struct wmOperatorType;
 
 /* editarmature.c */
-
+void ARMATURE_OT_bone_primitive_add(struct wmOperatorType *ot);
 void ARMATURE_OT_align_bones(struct wmOperatorType *ot);
 void ARMATURE_OT_calculate_roll(struct wmOperatorType *ot);
 void ARMATURE_OT_switch_direction(struct wmOperatorType *ot);
@@ -43,6 +43,8 @@ void ARMATURE_OT_parent_set(struct wmOperatorType *ot);
 void ARMATURE_OT_parent_clear(struct wmOperatorType *ot);
 void ARMATURE_OT_de_select_all(struct wmOperatorType *ot);
 void ARMATURE_OT_selection_invert(struct wmOperatorType *ot);
+void ARMATURE_OT_select_hierarchy(struct wmOperatorType *ot);
+void ARMATURE_OT_select_connected(struct wmOperatorType *ot);
 
 void POSE_OT_hide(struct wmOperatorType *ot);
 void POSE_OT_reveal(struct wmOperatorType *ot);
@@ -52,6 +54,8 @@ void POSE_OT_scale_clear(struct wmOperatorType *ot);
 void POSE_OT_de_select_all(struct wmOperatorType *ot);
 void POSE_OT_selection_invert(struct wmOperatorType *ot);
 void POSE_OT_select_parent(struct wmOperatorType *ot);
+void POSE_OT_select_hierarchy(struct wmOperatorType *ot);
+void POSE_OT_select_connected(struct wmOperatorType *ot);
 
 #endif /* ED_ARMATURE_INTERN_H */
 

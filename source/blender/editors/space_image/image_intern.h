@@ -32,12 +32,16 @@
 /* internal exports only */
 struct bContext;
 struct ARegion;
+struct ScrArea;
 struct SpaceImage;
 struct Object;
 struct Image;
 struct ImBuf;
 struct wmOperatorType;
 struct Scene;
+
+/* space_image.c */
+struct ARegion *image_has_buttons_region(struct ScrArea *sa);
 
 /* image_header.c */
 void image_header_buttons(const struct bContext *C, struct ARegion *ar);
@@ -76,6 +80,10 @@ void IMAGE_OT_record_composite(struct wmOperatorType *ot);
 
 /* uvedit_draw.c */
 void draw_uvedit_main(struct SpaceImage *sima, struct ARegion *ar, struct Scene *scene, struct Object *obedit);
+
+/* image_panels.c */
+void image_buttons_area_defbuts(const struct bContext *C, struct ARegion *ar);
+void IMAGE_OT_properties(struct wmOperatorType *ot);
 
 #endif /* ED_IMAGE_INTERN_H */
 

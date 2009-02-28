@@ -584,6 +584,10 @@ PropertyRNA *RNA_def_property(StructRNA *srna, const char *identifier, int type,
 				fprop->softmin= 0.0f;
 				fprop->softmax= 1.0f;
 			}
+			else if(subtype == PROP_PERCENTAGE) {
+				fprop->softmin= fprop->hardmin= 0.0f;
+				fprop->softmax= fprop->hardmax= 1.0f;
+			}
 			else {
 				fprop->softmin= (subtype == PROP_UNSIGNED)? 0.0f: -10000.0f; /* rather arbitrary .. */
 				fprop->softmax= 10000.0f;
@@ -1705,6 +1709,20 @@ PropertyRNA *RNA_def_float_array(StructRNA *srna, const char *identifier, int le
 	prop= RNA_def_property(srna, identifier, PROP_FLOAT, PROP_NONE);
 	if(len != 0) RNA_def_property_array(prop, len);
 	if(default_value) RNA_def_property_float_array_default(prop, default_value);
+	if(hardmin != hardmax) RNA_def_property_range(prop, hardmin, hardmax);
+	RNA_def_property_ui_text(prop, ui_name, ui_description);
+	RNA_def_property_ui_range(prop, softmin, softmax, 1, 3);
+
+	return prop;
+}
+
+PropertyRNA *RNA_def_float_percentage(StructRNA *srna, const char *identifier, float default_value,
+	float hardmin, float hardmax, const char *ui_name, const char *ui_description, float softmin, float softmax)
+{
+	PropertyRNA *prop;
+	
+	prop= RNA_def_property(srna, identifier, PROP_FLOAT, PROP_PERCENTAGE);
+	RNA_def_property_float_default(prop, default_value);
 	if(hardmin != hardmax) RNA_def_property_range(prop, hardmin, hardmax);
 	RNA_def_property_ui_text(prop, ui_name, ui_description);
 	RNA_def_property_ui_range(prop, softmin, softmax, 1, 3);

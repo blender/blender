@@ -90,8 +90,6 @@
 #include "ED_util.h"
 #include "ED_view3d.h"
 
-#include "view3d_intern.h"
-
 	/* vp->mode */
 #define VP_MIX	0
 #define VP_ADD	1
@@ -579,48 +577,6 @@ void vpaint_dogamma(Scene *scene)
 		
 		cp+= 4;
 	}
-}
-
-/* used for both 3d view and image window */
-void sample_vpaint(Scene *scene, ARegion *ar)	/* frontbuf */
-{
-	VPaint *vp= scene->toolsettings->vpaint;
-	unsigned int col;
-	int x, y;
-	short mval[2];
-	char *cp;
-	
-//	getmouseco_areawin(mval);
-	x= mval[0]; y= mval[1];
-	
-	if(x<0 || y<0) return;
-	if(x>=ar->winx || y>=ar->winy) return;
-	
-	x+= ar->winrct.xmin;
-	y+= ar->winrct.ymin;
-	
-	glReadBuffer(GL_FRONT);
-	glReadPixels(x, y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, &col);
-	glReadBuffer(GL_BACK);
-
-	cp = (char *)&col;
-	
-	if(G.f & (G_VERTEXPAINT|G_WEIGHTPAINT)) {
-		vp->r= cp[0]/255.0f;
-		vp->g= cp[1]/255.0f;
-		vp->b= cp[2]/255.0f;
-	}
-	else {
-		Brush *brush= scene->toolsettings->imapaint.brush;
-
-		if(brush) {
-			brush->rgb[0]= cp[0]/255.0f;
-			brush->rgb[1]= cp[1]/255.0f;
-			brush->rgb[2]= cp[2]/255.0f;
-
-		}
-	}
-
 }
 
 static unsigned int mcol_blend(unsigned int col1, unsigned int col2, int fac)
@@ -1204,12 +1160,12 @@ static int paint_poll_test(bContext *C)
 	return 1;
 }
 
-void VIEW3D_OT_wpaint_toggle(wmOperatorType *ot)
+void PAINT_OT_weight_paint_toggle(wmOperatorType *ot)
 {
 	
 	/* identifiers */
 	ot->name= "Weight Paint Mode";
-	ot->idname= "VIEW3D_OT_wpaint_toggle";
+	ot->idname= "PAINT_OT_weight_paint_toggle";
 	
 	/* api callbacks */
 	ot->exec= set_wpaint;
@@ -1294,12 +1250,12 @@ static int wpaint_radial_control_exec(bContext *C, wmOperator *op)
 	return ret;
 }
 
-void VIEW3D_OT_wpaint_radial_control(wmOperatorType *ot)
+void PAINT_OT_weight_paint_radial_control(wmOperatorType *ot)
 {
 	WM_OT_radial_control_partial(ot);
 
 	ot->name= "Weight Paint Radial Control";
-	ot->idname= "VIEW3D_OT_wpaint_radial_control";
+	ot->idname= "PAINT_OT_weight_paint_radial_control";
 
 	ot->invoke= wpaint_radial_control_invoke;
 	ot->modal= wpaint_radial_control_modal;
@@ -1310,12 +1266,12 @@ void VIEW3D_OT_wpaint_radial_control(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-void VIEW3D_OT_vpaint_radial_control(wmOperatorType *ot)
+void PAINT_OT_vertex_paint_radial_control(wmOperatorType *ot)
 {
 	WM_OT_radial_control_partial(ot);
 
 	ot->name= "Vertex Paint Radial Control";
-	ot->idname= "VIEW3D_OT_vpaint_radial_control";
+	ot->idname= "PAINT_OT_vertex_paint_radial_control";
 
 	ot->invoke= vpaint_radial_control_invoke;
 	ot->modal= vpaint_radial_control_modal;
@@ -1635,12 +1591,12 @@ static int wpaint_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
-void VIEW3D_OT_wpaint(wmOperatorType *ot)
+void PAINT_OT_weight_paint(wmOperatorType *ot)
 {
 	
 	/* identifiers */
 	ot->name= "Weight Paint";
-	ot->idname= "VIEW3D_OT_wpaint";
+	ot->idname= "PAINT_OT_weight_paint";
 	
 	/* api callbacks */
 	ot->invoke= wpaint_invoke;
@@ -1652,7 +1608,6 @@ void VIEW3D_OT_wpaint(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 }
-
 
 /* ************ set / clear vertex paint mode ********** */
 
@@ -1711,12 +1666,12 @@ static int set_vpaint(bContext *C, wmOperator *op)		/* toggle */
 	return OPERATOR_FINISHED;
 }
 
-void VIEW3D_OT_vpaint_toggle(wmOperatorType *ot)
+void PAINT_OT_vertex_paint_toggle(wmOperatorType *ot)
 {
 	
 	/* identifiers */
 	ot->name= "Vertex Paint Mode";
-	ot->idname= "VIEW3D_OT_vpaint_toggle";
+	ot->idname= "PAINT_OT_vertex_paint_toggle";
 	
 	/* api callbacks */
 	ot->exec= set_vpaint;
@@ -1933,12 +1888,12 @@ static int vpaint_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
-void VIEW3D_OT_vpaint(wmOperatorType *ot)
+void PAINT_OT_vertex_paint(wmOperatorType *ot)
 {
 	
 	/* identifiers */
 	ot->name= "Vertex Paint";
-	ot->idname= "VIEW3D_OT_vpaint";
+	ot->idname= "PAINT_OT_vertex_paint";
 	
 	/* api callbacks */
 	ot->invoke= vpaint_invoke;
@@ -1950,5 +1905,4 @@ void VIEW3D_OT_vpaint(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 }
-
 

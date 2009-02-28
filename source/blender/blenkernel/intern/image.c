@@ -443,7 +443,7 @@ static ImBuf *add_ibuf_size(int width, int height, char *name, int floatbuf, sho
 		rect= (unsigned char*)ibuf->rect;
 	}
 	
-	strcpy(ibuf->name, "Untitled");
+	strcpy(ibuf->name, "//Untitled");
 	ibuf->userflags |= IB_BITMAPDIRTY;
 	
 	if (uvtestgrid) {
@@ -1051,7 +1051,7 @@ static void stampdata(Scene *scene, StampData *stamp_data, int do_prefix)
 	}
 	
 	if (scene->r.stamp & R_STAMP_SEQSTRIP) {
-		Sequence *seq; //XXX = get_forground_frame_seq(scene->r.cfra);
+		Sequence *seq= NULL; //XXX = get_forground_frame_seq(scene->r.cfra);
 	
 		if (seq) strcpy(text, seq->name+2);
 		else 		strcpy(text, "<none>");
@@ -1800,7 +1800,7 @@ static ImBuf *image_get_ibuf_multilayer(Image *ima, ImageUser *iuser)
 /* always returns a single ibuf, also during render progress */
 static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser)
 {
-	Render *re;
+	Render *re= NULL;
 	RenderResult *rr= NULL;
 	
 	if(iuser->scene) {

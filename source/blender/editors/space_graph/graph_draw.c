@@ -58,6 +58,7 @@
 #include "DNA_userdef_types.h"
 #include "DNA_view2d_types.h"
 #include "DNA_windowmanager_types.h"
+#include "DNA_world_types.h"
 
 #include "BKE_animsys.h"
 #include "BKE_context.h"
@@ -239,7 +240,7 @@ void draw_fcurve_vertices (SpaceIpo *sipo, ARegion *ar, FCurve *fcu)
 	glPointSize(UI_GetThemeValuef(TH_VERTEX_SIZE));
 	
 	/* draw the two handles first (if they're shown, and if curve is being edited) */
-	if ((fcu->flag & FCURVE_PROTECTED)==0 && (sipo->flag & SIPO_NOHANDLES)==0) {
+	if ((fcu->flag & FCURVE_PROTECTED)==0 && (fcu->flag & FCURVE_INT_VALUES)==0 && (sipo->flag & SIPO_NOHANDLES)==0) {
 		set_fcurve_vertex_color(sipo, fcu, 0);
 		draw_fcurve_vertices_handles(fcu, v2d, 0);
 		
@@ -267,7 +268,7 @@ static void draw_fcurve_handles (SpaceIpo *sipo, ARegion *ar, FCurve *fcu)
 	int sel, b;
 	
 	/* don't draw handle lines if handles are not shown */
-	if ((sipo->flag & SIPO_NOHANDLES) || (fcu->flag & FCURVE_PROTECTED))
+	if ((sipo->flag & SIPO_NOHANDLES) || (fcu->flag & FCURVE_PROTECTED) || (fcu->flag & FCURVE_INT_VALUES))
 		return;
 	
 	/* slightly hacky, but we want to draw unselected points before selected ones*/
@@ -420,7 +421,7 @@ static void draw_fcurve_repeat (FCurve *fcu, View2D *v2d, float cycxofs, float c
 			v1[0]= v2d->cur.xmin;
 			
 			/* y-value depends on the interpolation */
-			if ((fcu->extend==FCURVE_EXTRAPOLATE_CONSTANT) || (prevbezt->ipo==BEZT_IPO_CONST) || (fcu->totvert==1)) {
+			if ((fcu->extend==FCURVE_EXTRAPOLATE_CONSTANT) || (fcu->flag & FCURVE_INT_VALUES) || (prevbezt->ipo==BEZT_IPO_CONST) || (fcu->totvert==1)) {
 				/* just extend across the first keyframe's value */
 				v1[1]= prevbezt->vec[1][1];
 			} 
@@ -451,7 +452,7 @@ static void draw_fcurve_repeat (FCurve *fcu, View2D *v2d, float cycxofs, float c
 	/* draw curve between first and last keyframe (if there are enough to do so) */
 	// XXX this doesn't take into account modifiers, or sample data
 	while (b--) {
-		if (prevbezt->ipo==BEZT_IPO_CONST) {
+		if ((fcu->flag & FCURVE_INT_VALUES) || (prevbezt->ipo==BEZT_IPO_CONST)) {
 			/* Constant-Interpolation: draw segment between previous keyframe and next, but holding same value */
 			v1[0]= prevbezt->vec[1][0]+cycxofs;
 			v1[1]= prevbezt->vec[1][1]+cycyofs;
@@ -527,7 +528,7 @@ static void draw_fcurve_repeat (FCurve *fcu, View2D *v2d, float cycxofs, float c
 			v1[0]= v2d->cur.xmax;
 			
 			/* y-value depends on the interpolation */
-			if ((fcu->extend==FCURVE_EXTRAPOLATE_CONSTANT) || (prevbezt->ipo==BEZT_IPO_CONST) || (fcu->totvert==1)) {
+			if ((fcu->extend==FCURVE_EXTRAPOLATE_CONSTANT) || (fcu->flag & FCURVE_INT_VALUES) || (prevbezt->ipo==BEZT_IPO_CONST) || (fcu->totvert==1)) {
 				/* based on last keyframe's value */
 				v1[1]= prevbezt->vec[1][1];
 			} 
@@ -685,18 +686,15 @@ void graph_draw_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 	bAnimListElem *ale;
 	int filter;
 	
-	unsigned int col;
-	int items, i;
-	
 	/* build list of curves to draw */
 	filter= (ANIMFILTER_VISIBLE|ANIMFILTER_CURVESONLY|ANIMFILTER_CURVEVISIBLE);
-	items= ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
+	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 		
 	/* for each curve:
 	 *	draw curve, then handle-lines, and finally vertices in this order so that 
 	 * 	the data will be layered correctly
 	 */
-	for (ale=anim_data.first, i=0; ale; ale=ale->next, i++) {
+	for (ale=anim_data.first; ale; ale=ale->next) {
 		FCurve *fcu= (FCurve *)ale->key_data;
 		Object *nob= ANIM_nla_mapping_get(ac, ale);
 		float fac=0.0f; // dummy var
@@ -705,7 +703,12 @@ void graph_draw_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 		if (nob)
 			ANIM_nla_mapping_apply_fcurve(nob, ale->key_data, 0, 0); 
 		
-		/* draw curve - we currently calculate colour on the fly, but that should probably be done in advance instead */
+		/* draw curve - if there's an active modifier (or a stack of modifiers) drawing these takes presidence,
+		 * unless modifiers in use will not alter any of the values within the keyframed area...
+		 */
+		
+		
+		/* draw curve - as defined by keyframes */
 		if ( ((fcu->bezt) || (fcu->fpt)) && (fcu->totvert) ) { 
 			/* set color/drawing style for curve itself */
 			if ( ((fcu->grp) && (fcu->grp->flag & AGRP_PROTECTED)) || (fcu->flag & FCURVE_PROTECTED) ) {
@@ -718,9 +721,8 @@ void graph_draw_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 				UI_ThemeColorShade(TH_HEADER, 50);
 			}
 			else {
-				// XXX color calculation here really needs to be done in advance instead
-				col= ipo_rainbow(i, items);
-				cpack(col);
+				/* set whatever color the curve has set */
+				glColor3fv(fcu->color);
 			}
 			
 			/* draw F-Curve */
@@ -767,7 +769,7 @@ void graph_draw_channel_names(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 	
 	View2D *v2d= &ar->v2d;
 	float x= 0.0f, y= 0.0f, height;
-	int items;
+	int items, i=0;
 	
 	/* build list of channels to draw */
 	filter= (ANIMFILTER_VISIBLE|ANIMFILTER_CHANNELS);
@@ -789,12 +791,12 @@ void graph_draw_channel_names(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 	}
 	
 	/* XXX I would call the below line! (ton) */
-	/* UI_view2d_totRect_set(v2d, ar->type->minsizex, height); */
+	UI_view2d_totRect_set(v2d, ar->winx, height);
 	
 	/* loop through channels, and set up drawing depending on their type  */	
 	y= (float)ACHANNEL_FIRST;
 	
-	for (ale= anim_data.first; ale; ale= ale->next) {
+	for (ale= anim_data.first, i=0; ale; ale= ale->next, i++) {
 		const float yminc= (float)(y - ACHANNEL_HEIGHT_HALF);
 		const float ymaxc= (float)(y + ACHANNEL_HEIGHT_HALF);
 		
@@ -809,6 +811,25 @@ void graph_draw_channel_names(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 			
 			/* determine what needs to be drawn */
 			switch (ale->type) {
+				case ANIMTYPE_SCENE: /* scene */
+				{
+					Scene *sce= (Scene *)ale->data;
+					
+					group= 4;
+					indent= 0;
+					
+					special= ICON_SCENE_DATA;
+					
+					/* only show expand if there are any channels */
+					if (EXPANDED_SCEC(sce))
+						expand= ICON_TRIA_DOWN;
+					else
+						expand= ICON_TRIA_RIGHT;
+					
+					sel = SEL_SCEC(sce);
+					strcpy(name, sce->id.name+2);
+				}
+					break;
 				case ANIMTYPE_OBJECT: /* object */
 				{
 					Base *base= (Base *)ale->data;
@@ -819,9 +840,9 @@ void graph_draw_channel_names(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 					
 					/* icon depends on object-type */
 					if (ob->type == OB_ARMATURE)
-						special= ICON_ARMATURE;
+						special= ICON_ARMATURE_DATA;
 					else	
-						special= ICON_OBJECT;
+						special= ICON_OBJECT_DATA;
 						
 					/* only show expand if there are any channels */
 					if (EXPANDED_OBJC(ob))
@@ -856,7 +877,7 @@ void graph_draw_channel_names(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 					
 					group = 4;
 					indent= 1;
-					special= ICON_IPO_DEHLT;
+					special= ICON_ANIM_DATA;
 					
 					if (EXPANDED_DRVD(adt))
 						expand= ICON_TRIA_DOWN;
@@ -872,7 +893,7 @@ void graph_draw_channel_names(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 					
 					group = 4;
 					indent = 1;
-					special = ICON_MATERIAL;
+					special = ICON_MATERIAL_DATA;
 					
 					if (FILTER_MAT_OBJC(ob))
 						expand = ICON_TRIA_DOWN;
@@ -890,7 +911,7 @@ void graph_draw_channel_names(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 					
 					group = 0;
 					indent = 0;
-					special = ICON_MATERIAL;
+					special = ICON_MATERIAL_DATA;
 					offset = 21;
 					
 					if (FILTER_MAT_OBJD(ma))
@@ -907,7 +928,7 @@ void graph_draw_channel_names(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 					
 					group = 4;
 					indent = 1;
-					special = ICON_LAMP;
+					special = ICON_LAMP_DATA;
 					
 					if (FILTER_LAM_OBJD(la))
 						expand = ICON_TRIA_DOWN;
@@ -923,7 +944,7 @@ void graph_draw_channel_names(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 					
 					group = 4;
 					indent = 1;
-					special = ICON_CAMERA;
+					special = ICON_CAMERA_DATA;
 					
 					if (FILTER_CAM_OBJD(ca))
 						expand = ICON_TRIA_DOWN;
@@ -939,7 +960,7 @@ void graph_draw_channel_names(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 					
 					group = 4;
 					indent = 1;
-					special = ICON_CURVE;
+					special = ICON_CURVE_DATA;
 					
 					if (FILTER_CUR_OBJD(cu))
 						expand = ICON_TRIA_DOWN;
@@ -955,7 +976,7 @@ void graph_draw_channel_names(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 					
 					group = 4;
 					indent = 1;
-					special = ICON_EDIT;
+					special = ICON_SHAPEKEY_DATA;
 					
 					if (FILTER_SKE_OBJD(key))	
 						expand = ICON_TRIA_DOWN;
@@ -966,7 +987,23 @@ void graph_draw_channel_names(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 					strcpy(name, "Shape Keys");
 				}
 					break;
+				case ANIMTYPE_DSWOR: /* world (dopesheet) expand widget */
+				{
+					World *wo= (World *)ale->data;
 					
+					group = 4;
+					indent = 1;
+					special = ICON_WORLD_DATA;
+					
+					if (FILTER_WOR_SCED(wo))	
+						expand = ICON_TRIA_DOWN;
+					else
+						expand = ICON_TRIA_RIGHT;
+					
+					strcpy(name, wo->id.name+2);
+				}
+					break;
+				
 				
 				case ANIMTYPE_GROUP: /* action group */
 				{
@@ -1003,7 +1040,7 @@ void graph_draw_channel_names(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 					
 					group= (fcu->grp) ? 1 : 0;
 					grp= fcu->grp;
-										
+					
 					switch (ale->ownertype) {
 						case ANIMTYPE_NONE:	/* no owner */
 						case ANIMTYPE_FCURVE: 
@@ -1021,11 +1058,10 @@ void graph_draw_channel_names(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 					}
 					
 					/* for now, 'special' (i.e. in front of name) is used to show visibility status */
-					// XXX these 'blank' icons are currently checkboxes
 					if (fcu->flag & FCURVE_VISIBLE)
-						special= ICON_BLANK012;
+						special= ICON_CHECKBOX_HLT;
 					else
-						special= ICON_BLANK011;
+						special= ICON_CHECKBOX_DEHLT;
 					
 					if (fcu->flag & FCURVE_MUTED)
 						mute = ICON_MUTE_IPO_ON;
@@ -1067,7 +1103,7 @@ void graph_draw_channel_names(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 			/* draw backing strip behind channel name */
 			if (group == 4) {
 				/* only used in dopesheet... */
-				if (ale->type == ANIMTYPE_OBJECT) {
+				if (ELEM(ale->type, ANIMTYPE_SCENE, ANIMTYPE_OBJECT)) {
 					/* object channel - darker */
 					UI_ThemeColor(TH_DOPESHEET_CHANNELOB);
 					uiSetRoundBox((expand == ICON_TRIA_DOWN)? (1):(1|8));
@@ -1105,25 +1141,11 @@ void graph_draw_channel_names(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 				gl_round_box(GL_POLYGON, x+offset,  yminc, (float)ACHANNEL_NAMEWIDTH, ymaxc, 8);
 			}
 			else {
-				/* for normal channels 
-				 *	- use 3 shades of color group/standard color for 3 indention level
-				 *	- only use group colors if allowed to, and if actually feasible
-				 */
-				if ((grp) && (grp->customCol)) 
-				{
-					char cp[3];
-					
-					if (indent == 2) {
-						VECCOPY(cp, grp->cs.solid);
-					}
-					else if (indent == 1) {
-						VECCOPY(cp, grp->cs.select);
-					}
-					else {
-						VECCOPY(cp, grp->cs.active);
-					}
-					
-					glColor3ub(cp[0], cp[1], cp[2]);
+				/* most of the time, only F-Curves are going to be drawn here */
+				if (ale->type == ANIMTYPE_FCURVE) {
+					/* F-Curve channels are colored with whatever color the curve has stored  */
+					FCurve *fcu= (FCurve *)ale->data;
+					glColor3fv(fcu->color);
 				}
 				else
 					UI_ThemeColorShade(TH_HEADER, ((indent==0)?20: (indent==1)?-20: -40));

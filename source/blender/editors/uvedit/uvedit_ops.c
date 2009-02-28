@@ -88,7 +88,7 @@ void ED_uvedit_assign_image(Scene *scene, Object *obedit, Image *ima, Image *pre
 	EditMesh *em;
 	EditFace *efa;
 	MTFace *tf;
-	int update;
+	int update= 0;
 	
 	/* skip assigning these procedural images... */
 	if(ima && (ima->type==IMA_TYPE_R_RESULT || ima->type==IMA_TYPE_COMPOSITE))
@@ -2513,7 +2513,7 @@ void UV_OT_snap_selection(wmOperatorType *ot)
 	static EnumPropertyItem target_items[] = {
 		{0, "PIXELS", "Pixels", ""},
 		{1, "CURSOR", "Cursor", ""},
-		{2, "ADJACENT_DESELECTED", "Adjacent Deselected", ""},
+		{2, "ADJACENT_UNSELECTED", "Adjacent Unselected", ""},
 		{0, NULL, NULL, NULL}};
 
 	/* identifiers */
@@ -2633,7 +2633,7 @@ static int hide_exec(bContext *C, wmOperator *op)
 	EditMesh *em= ((Mesh*)obedit->data)->edit_mesh;
 	EditFace *efa;
 	MTFace *tf;
-	int swap= (strcmp(op->idname, "UV_OT_hide_deselected") == 0);
+	int swap= RNA_boolean_get(op->ptr, "unselected");
 
 	if(scene->toolsettings->uv_flag & UV_SYNC_SELECTION) {
 		EM_hide_mesh(em, swap);
@@ -2748,33 +2748,24 @@ static int hide_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void UV_OT_hide_selected(wmOperatorType *ot)
+void UV_OT_hide(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Hide Selected";
-	ot->idname= "UV_OT_hide_selected";
+	ot->idname= "UV_OT_hide";
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* api callbacks */
 	ot->exec= hide_exec;
 	ot->poll= ED_operator_uvedit;
+
+	/* props */
+	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected.");
 }
 
-void UV_OT_hide_deselected(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Hide Deselected";
-	ot->idname= "UV_OT_hide_deselected";
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-	
-	/* api callbacks */
-	ot->exec= hide_exec;
-	ot->poll= ED_operator_uvedit;
-}
+/****************** reveal operator ******************/
 
-/****************** show hidden operator ******************/
-
-static int show_hidden_exec(bContext *C, wmOperator *op)
+static int reveal_exec(bContext *C, wmOperator *op)
 {
 	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
 	Scene *scene= CTX_data_scene(C);
@@ -2885,22 +2876,21 @@ static int show_hidden_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void UV_OT_show_hidden(wmOperatorType *ot)
+void UV_OT_reveal(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Show Hidden";
-	ot->idname= "UV_OT_show_hidden";
+	ot->name= "Reveal Hidden";
+	ot->idname= "UV_OT_reveal";
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* api callbacks */
-	ot->exec= show_hidden_exec;
+	ot->exec= reveal_exec;
 	ot->poll= ED_operator_uvedit;
 }
 
-
 /******************** set 3d cursor operator ********************/
 
-static int set_3d_cursor_exec(bContext *C, wmOperator *op)
+static int set_2d_cursor_exec(bContext *C, wmOperator *op)
 {
 	ARegion *ar= CTX_wm_region(C);
 	float location[2];
@@ -2914,7 +2904,7 @@ static int set_3d_cursor_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int set_3d_cursor_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int set_2d_cursor_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	ARegion *ar= CTX_wm_region(C);
 	int x, y;
@@ -2925,18 +2915,18 @@ static int set_3d_cursor_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	UI_view2d_region_to_view(&ar->v2d, x, y, &location[0], &location[1]);
 	RNA_float_set_array(op->ptr, "location", location);
 
-	return set_3d_cursor_exec(C, op);
+	return set_2d_cursor_exec(C, op);
 }
 
-void UV_OT_set_3d_cursor(wmOperatorType *ot)
+void UV_OT_set_2d_cursor(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Set 3D Cursor";
-	ot->idname= "UV_OT_set_3d_cursor";
+	ot->idname= "UV_OT_set_2d_cursor";
 	
 	/* api callbacks */
-	ot->exec= set_3d_cursor_exec;
-	ot->invoke= set_3d_cursor_invoke;
+	ot->exec= set_2d_cursor_exec;
+	ot->invoke= set_2d_cursor_invoke;
 	ot->poll= ED_operator_uvedit;
 
 	/* flags */
@@ -3045,11 +3035,10 @@ void ED_operatortypes_uvedit(void)
 	WM_operatortype_append(UV_OT_sphere_project);
 	WM_operatortype_append(UV_OT_unwrap);
 
-	WM_operatortype_append(UV_OT_show_hidden);
-	WM_operatortype_append(UV_OT_hide_selected);
-	WM_operatortype_append(UV_OT_hide_deselected);
+	WM_operatortype_append(UV_OT_reveal);
+	WM_operatortype_append(UV_OT_hide);
 
-	WM_operatortype_append(UV_OT_set_3d_cursor);
+	WM_operatortype_append(UV_OT_set_2d_cursor);
 	WM_operatortype_append(UV_OT_set_tile);
 }
 
@@ -3087,12 +3076,12 @@ void ED_keymap_uvedit(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "UV_OT_average_islands_scale", AKEY, KM_PRESS, KM_CTRL, 0);
 
 	/* hide */
-	WM_keymap_add_item(keymap, "UV_OT_hide_selected", HKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "UV_OT_hide_deselected", HKEY, KM_PRESS, KM_SHIFT, 0);
-	WM_keymap_add_item(keymap, "UV_OT_show_hidden", HKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_add_item(keymap, "UV_OT_hide", HKEY, KM_PRESS, 0, 0);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "UV_OT_hide", HKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "unselected", 1);
+	WM_keymap_add_item(keymap, "UV_OT_reveal", HKEY, KM_PRESS, KM_ALT, 0);
 
 	/* cursor */
-	WM_keymap_add_item(keymap, "UV_OT_set_3d_cursor", ACTIONMOUSE, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "UV_OT_set_2d_cursor", ACTIONMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "UV_OT_set_tile", ACTIONMOUSE, KM_PRESS, KM_SHIFT, 0);
 
 	transform_keymap_for_space(wm, keymap, SPACE_IMAGE);

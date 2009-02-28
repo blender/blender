@@ -63,6 +63,7 @@
 #include "DNA_userdef_types.h"
 #include "DNA_gpencil_types.h"
 #include "DNA_windowmanager_types.h"
+#include "DNA_world_types.h"
 
 #include "BKE_action.h"
 #include "BKE_depsgraph.h"
@@ -331,6 +332,18 @@ static void draw_keylist(gla2DDrawInfo *di, ListBase *keys, ListBase *blocks, fl
 
 /* *************************** Channel Drawing Funcs *************************** */
 
+void draw_scene_channel(gla2DDrawInfo *di, ActKeysInc *aki, Scene *sce, float ypos)
+{
+	ListBase keys = {0, 0};
+	ListBase blocks = {0, 0};
+
+	scene_to_keylist(sce, &keys, &blocks, aki);
+	draw_keylist(di, &keys, &blocks, ypos);
+	
+	BLI_freelistN(&keys);
+	BLI_freelistN(&blocks);
+}
+
 void draw_object_channel(gla2DDrawInfo *di, ActKeysInc *aki, Object *ob, float ypos)
 {
 	ListBase keys = {0, 0};
@@ -390,9 +403,44 @@ void draw_gpl_channel(gla2DDrawInfo *di, ActKeysInc *aki, bGPDlayer *gpl, float 
 
 /* *************************** Keyframe List Conversions *************************** */
 
+void scene_to_keylist(Scene *sce, ListBase *keys, ListBase *blocks, ActKeysInc *aki)
+{
+	if (sce) {
+		bDopeSheet *ads= (aki)? (aki->ads) : NULL;
+		AnimData *adt;
+		int filterflag;
+		
+		/* get filterflag */
+		if (ads)
+			filterflag= ads->filterflag;
+		else if ((aki) && (aki->actmode == -1)) /* only set like this by NLA */
+			filterflag= ADS_FILTER_NLADUMMY;
+		else
+			filterflag= 0;
+			
+		/* scene animdata */
+		if ((sce->adt) && !(filterflag & ADS_FILTER_NOSCE)) {
+			adt= sce->adt;
+			
+			// TODO: when we adapt NLA system, this needs to be the NLA-scaled version
+			if (adt->action) 
+				action_to_keylist(adt->action, keys, blocks, aki);
+		}
+		
+		/* world animdata */
+		if ((sce->world) && (sce->world->adt) && !(filterflag & ADS_FILTER_NOWOR)) {
+			adt= sce->world->adt;
+			
+			// TODO: when we adapt NLA system, this needs to be the NLA-scaled version
+			if (adt->action) 
+				action_to_keylist(adt->action, keys, blocks, aki);
+		}
+	}
+}
+
 void ob_to_keylist(Object *ob, ListBase *keys, ListBase *blocks, ActKeysInc *aki)
 {
-//	Key *key= ob_get_key(ob);
+	Key *key= ob_get_key(ob);
 
 	if (ob) {
 		bDopeSheet *ads= (aki)? (aki->ads) : NULL;
@@ -407,14 +455,15 @@ void ob_to_keylist(Object *ob, ListBase *keys, ListBase *blocks, ActKeysInc *aki
 			filterflag= 0;
 		
 		/* Add action keyframes */
-		if ((ob->adt && ob->adt->action) /*&& !(filterflag & ADS_FILTER_NOACTS)*/)
+		if (ob->adt && ob->adt->action)
 			action_nlascaled_to_keylist(ob, ob->adt->action, keys, blocks, aki);
 		
-#if 0 // XXX old animation system
 		/* Add shapekey keyframes (only if dopesheet allows, if it is available) */
-		if ((key && key->ipo) && !(filterflag & ADS_FILTER_NOSHAPEKEYS))
-			ipo_to_keylist(key->ipo, keys, blocks, aki);
+		// TODO: when we adapt NLA system, this needs to be the NLA-scaled version
+		if ((key && key->adt && key->adt->action) && !(filterflag & ADS_FILTER_NOSHAPEKEYS))
+			action_to_keylist(key->adt->action, keys, blocks, aki);
 			
+#if 0 // XXX old animation system
 		/* Add material keyframes (only if dopesheet allows, if it is available) */
 		if ((ob->totcol) && !(filterflag & ADS_FILTER_NOMAT)) {
 			short a;

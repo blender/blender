@@ -85,7 +85,8 @@ typedef struct RegionView3D {
 	float pixsize;
 	float ofs[3];
 	short camzoom, viewbut;
-	int pad1;
+	
+	int lastmode;					/* for modal keymap switching, int because it stores notifier code */
 	
 	short rflag, viewlock;
 	short persp;

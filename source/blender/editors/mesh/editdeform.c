@@ -43,6 +43,7 @@
 #include "DNA_object_force.h"
 #include "DNA_scene_types.h"
 #include "DNA_particle_types.h"
+#include "DNA_windowmanager_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"
@@ -989,7 +990,7 @@ void vgroup_assign_with_menu(Scene *scene, Object *ob)
 {
 	VPaint *wp= scene->toolsettings->wpaint;
 	int defCount;
-	int mode;
+	int mode= 0;
 	
 	/* prevent crashes */
 	if (wp==NULL || ob==NULL) return;
@@ -1031,7 +1032,7 @@ void vgroup_assign_with_menu(Scene *scene, Object *ob)
 void vgroup_operation_with_menu(Object *ob)
 {
 	int defCount;
-	int mode;
+	int mode= 0;
 	
 	/* prevent crashes and useless cases */
 	if (ob==NULL) return;

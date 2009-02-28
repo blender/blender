@@ -1,4 +1,7 @@
 
+#include <stdio.h>
+#include <stdlib.h>
+
 #include <Python.h>
 #include "compile.h"		/* for the PyCodeObject */
 #include "eval.h"		/* for PyEval_EvalCode */
@@ -34,6 +37,17 @@ static PyObject *CreateGlobalDictionary( bContext *C )
 
 	item = BPY_operator_module(C);
 	PyDict_SetItemString( dict, "bpyoperator", item );
+	Py_DECREF(item);
+
+	
+	// XXX very experemental, consiter this a test, especiall PyCObject is not meant to be perminant
+	item = BPY_ui_module();
+	PyDict_SetItemString( dict, "bpyui", item );
+	Py_DECREF(item);
+	
+	// XXX - evil, need to access context
+	item = PyCObject_FromVoidPtr( C, NULL );
+	PyDict_SetItemString( dict, "__bpy_context__", item );
 	Py_DECREF(item);
 	
 	return dict;

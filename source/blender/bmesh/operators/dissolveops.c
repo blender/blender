@@ -3,6 +3,7 @@
 #include "BKE_utildefines.h"
 
 #include "bmesh.h"
+#include "mesh_intern.h"
 #include "bmesh_private.h"
 #include "BLI_arithb.h"
 
@@ -12,14 +13,56 @@
 
 #define VERT_MARK	1
 
-void dissolvefaces_exec(BMesh *bmesh, BMOperator *op)
+void dissolvefaces_exec(BMesh *bm, BMOperator *op)
 {
-	BMO_Flag_Buffer(bmesh, op, BMOP_DISFACES_FACEIN, FACE_MARK);
+	BMOIter iter;
+	BMIter liter;
+	BMLoop *l;
+	BMFace *f, *f2, *nf = NULL;
+
+	//BMO_Flag_Buffer(bm, op, BMOP_DISFACES_FACEIN, FACE_MARK);
 
 	/*TODO: need to discuss with Briggs how best to implement this, seems this would be
 	  a great time to use the walker api, get it up to snuff.  perhaps have a walker
 	  that goes over inner vertices of a contiguously-flagged region?  then you
 	  could just use dissolve disk on them.*/
+	if (BMO_GetSlot(op, BMOP_DISFACES_FACEIN)->len != 2) return;
+
+	/*HACK: for debugging purposes, handle cases of two adjacent faces*/
+	f = BMO_IterNew(&iter, bm, op, BMOP_DISFACES_FACEIN);
+	f2 = BMO_IterStep(&iter);
+
+	for (l=BMIter_New(&liter, bm, BM_LOOPS_OF_FACE, f);l;l=BMIter_Step(&liter)) {
+		if (!l->radial.next) continue;
+		if (((BMLoop*)l->radial.next->data)->f == f2) {
+			nf = BM_Join_Faces(bm, f, f2, l->e, 1, 0);
+			break;
+		}
+	}
+
+	if (nf) {
+		BMO_SetFlag(bm, nf, 1);
+		BMO_Flag_To_Slot(bm, op, BMOP_DISFACES_REGIONOUT, 1, BM_FACE);
+	}
+
+}
+
+/*returns 1 if any faces were dissolved*/
+int BM_DissolveFaces(EditMesh *em, int flag) {
+	BMesh *bm = editmesh_to_bmesh(em);
+	EditMesh *em2;
+	BMOperator op;
+
+	BMO_Init_Op(&op, BMOP_DISSOLVE_FACES);
+	BMO_HeaderFlag_To_Slot(bm, &op, BMOP_DISFACES_FACEIN, flag, BM_FACE);
+	BMO_Exec_Op(bm, &op);
+	BMO_Finish_Op(bm, &op);
+	
+	em2 = bmesh_to_editmesh(bm);
+	set_editMesh(em, em2);
+	MEM_freeN(em2);
+
+	return BMO_GetSlot(&op, BMOP_DISFACES_REGIONOUT)->len > 0;
 }
 
 void dissolveverts_exec(BMesh *bm, BMOperator *op)
@@ -57,6 +100,10 @@ void dissolveverts_exec(BMesh *bm, BMOperator *op)
 		while (found3) {
 			found3 = 0;
 			for (f=BMIter_New(&iter, bm, BM_FACES, NULL); f; f=BMIter_Step(&iter)){
+				if (BM_Validate_Face(bm, f, stderr)) {
+					printf("error.\n");
+				}
+
 				if (f->len == 2) {
 					//this design relies on join faces working
 					//with two-edged faces properly.

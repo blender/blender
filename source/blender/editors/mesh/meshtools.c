@@ -47,6 +47,7 @@
 #include "DNA_space_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_world_types.h"
+#include "DNA_windowmanager_types.h"
 
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
@@ -67,6 +68,7 @@
 #include "BKE_material.h"
 #include "BKE_object.h"
 #include "BKE_utildefines.h"
+#include "BKE_report.h"
 
 #include "RE_pipeline.h"
 #include "RE_shader_ext.h"
@@ -103,7 +105,7 @@ static int pupmenu() {return 0;}
 
 /* join selected meshes into the active mesh, context sensitive
 return 0 if no join is made (error) and 1 of the join is done */
-int join_mesh(Scene *scene, View3D *v3d)
+int join_mesh(Scene *scene, View3D *v3d, wmOperator *op)
 {
 	Base *base, *nextb;
 	Object *ob;
@@ -154,11 +156,11 @@ int join_mesh(Scene *scene, View3D *v3d)
 	}
 	
 	if(haskey) {
-		error("Can't join meshes with vertex keys");
+		BKE_report(op->reports, RPT_ERROR, "Can't join meshes with vertex keys");
 		return 0;
 	}
 	if(hasmulti) {
-		error("Can't join meshes with Multires");
+		BKE_report(op->reports, RPT_ERROR, "Can't join meshes with Multires");
 		return 0;
 	}
 	/* that way the active object is always selected */ 

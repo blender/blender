@@ -140,11 +140,11 @@ static int compute_poly_center(float center[3], float *area, float (*verts)[3], 
 	}
 
 	if(area)
-		*area = atmp / 2.0;	
+		*area = atmp / 2.0f;	
 	
 	if (atmp != 0){
-		center[0] = xtmp /  (3.0 * atmp);
-		center[1] = xtmp /  (3.0 * atmp);
+		center[0] = xtmp /  (3.0f * atmp);
+		center[1] = xtmp /  (3.0f * atmp);
 		return 1;
 	}
 	return 0;
@@ -229,6 +229,8 @@ void poly_rotate_plane(float normal[3], float (*verts)[3], int nverts)
 
 	Crossf(axis, up, normal);
 	angle = VecAngle2(normal, up);
+
+	if (angle == 0.0) return;
 	
 	AxisAngleToQuat(q, axis, angle);
 	QuatToMat3(q, mat);
@@ -302,6 +304,87 @@ void BM_flip_normal(BMesh *bm, BMFace *f)
 
 
 
+int winding(float *a, float *b, float *c)
+{
+	float v1[3], v2[3], v[3];
+	
+	VecSubf(v1, b, a);
+	VecSubf(v2, b, c);
+	
+	v1[2] = 0;
+	v2[2] = 0;
+	
+	Normalize(v1);
+	Normalize(v2);
+	
+	Crossf(v, v1, v2);
+	return !!(v[2] > 0);
+}
+
+/* detects if two line segments cross each other (intersects).
+   note, there could be more winding cases then there needs to be. */
+int linecrosses(float *v1, float *v2, float *v3, float *v4)
+{
+	int w1, w2, w3, w4, w5;
+
+	w1 = winding(v1, v3, v2);
+	w2 = winding(v2, v4, v1);
+	w3 = !winding(v1, v2, v3);
+	w4 = winding(v3, v2, v4);
+	w5 = !winding(v3, v1, v4);
+	return w1 == w2 && w2 == w3 && w3 == w4 && w4==w5;
+}
+
+int goodline(float (*projectverts)[3], int v1i, int v2i, int nvert)
+{
+	/*the hardcoded stuff here, 200000, 0.999, and 1.0001 may be problems
+	  in the future, not sure. - joeedh*/
+	static float outv[3] = {20000000.0f, 20000000.0f, 0.0f};
+	float v1[3], v2[3], p[3], vv1[3], vv2[3], mid[3], a[3], b[3];
+	int i = 0, lcount=0;
+	
+	VECCOPY(v1, projectverts[v1i])
+	VECCOPY(v2, projectverts[v2i])
+	
+	VecAddf(p, v1, v2);
+	VecMulf(p, 0.5f);
+	
+	VecSubf(a, v1, p);
+	VecSubf(b, v2, p);
+	
+	VecMulf(a, 0.999f);
+	VecMulf(b, 0.999f);
+	
+	VecAddf(v1, p, a);
+	VecAddf(v2, p, b);
+	
+	while (i < nvert) {
+		VECCOPY(vv1, projectverts[i]);
+		VECCOPY(vv2, projectverts[(i+1)%nvert]);
+		
+		if (linecrosses(vv1, vv2, v1, v2)) return 0;
+
+		VecAddf(mid, vv1, vv2);
+		VecMulf(mid, 0.5f);
+		
+		VecSubf(a, vv1, mid);
+		VecSubf(b, vv2, mid);
+		
+		VecMulf(a, 1.0001f);
+		VecMulf(b, 1.0001f);
+		
+		VecAddf(vv1, mid, a);
+		VecAddf(vv2, mid, b);
+				
+		if (linecrosses(vv1, vv2, p, outv)) lcount += 1;
+
+		i += 1;
+	}
+	if ((lcount % 2) == 0) return 0;
+
+	return 1;
+}
+
 /*
  * FIND EAR
  *
@@ -311,10 +394,10 @@ void BM_flip_normal(BMesh *bm, BMFace *f)
  *
 */
 
-static BMLoop *find_ear(BMFace *f, float (*verts)[3])
+static BMLoop *find_ear(BMFace *f, float (*verts)[3], int nvert)
 {
 	BMVert *v1, *v2, *v3;
-	BMLoop *bestear = NULL, *l, *l2;
+	BMLoop *bestear = NULL, *l;
 	float angle, bestangle = 180.0f;
 	int isear;
 	
@@ -328,15 +411,7 @@ static BMLoop *find_ear(BMFace *f, float (*verts)[3])
 
 		if (BM_Edge_Exist(v1, v3)) isear = 0;
 
-		if(isear && convexangle(verts[v1->head.eflag2], verts[v2->head.eflag2], verts[v3->head.eflag2])){
-			for(l2 = ((BMLoop*)(l->head.next->next)); l2 != ((BMLoop*)(l->head.prev)); l2 = ((BMLoop*)(l2->head.next)) ){
-				if(point_in_triangle(verts[v1->head.eflag2], verts[v2->head.eflag2],verts[v3->head.eflag2], l2->v->co)){
-					isear = 0;
-					break;
-				}
-			}
-		} else isear = 0;
-
+		if (isear && !goodline(verts, v1->head.eflag2, v3->head.eflag2, nvert)) isear = 0;
 		if(isear){
 			angle = VecAngle3(verts[v1->head.eflag2], verts[v2->head.eflag2], verts[v3->head.eflag2]);
 			if(!bestear || angle < bestangle){
@@ -371,7 +446,7 @@ static BMLoop *find_ear(BMFace *f, float (*verts)[3])
 */
 void BM_Triangulate_Face(BMesh *bm, BMFace *f, float (*projectverts)[3], int newedgeflag, int newfaceflag)
 {
-	int i, done;
+	int i, done, nvert;
 	BMLoop *l, *newl, *nextloop;
 
 	/*copy vertex coordinates to vertspace array*/
@@ -388,11 +463,13 @@ void BM_Triangulate_Face(BMesh *bm, BMFace *f, float (*projectverts)[3], int new
 
 	compute_poly_plane(projectverts, i);
 	poly_rotate_plane(f->no, projectverts, i);
-
+	
+	nvert = f->len;
+	
 	done = 0;
 	while(!done && f->len > 3){
 		done = 1;
-		l = find_ear(f, projectverts);
+		l = find_ear(f, projectverts, nvert);
 		if(l) {
 			done = 0;
 			f = bmesh_sfme(bm, f, ((BMLoop*)(l->head.prev))->v, ((BMLoop*)(l->head.next))->v, &newl);

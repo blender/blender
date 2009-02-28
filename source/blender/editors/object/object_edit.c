@@ -112,7 +112,7 @@
 #include "ED_anim_api.h"
 #include "ED_armature.h"
 #include "ED_curve.h"
-#include "ED_editparticle.h"
+#include "ED_particle.h"
 #include "ED_mesh.h"
 #include "ED_object.h"
 #include "ED_screen.h"
@@ -139,7 +139,6 @@
 #include "object_intern.h"	// own include
 
 /* ************* XXX **************** */
-static void allqueue() {}
 static void error() {}
 static void waitcursor() {}
 static int pupmenu() {return 0;}
@@ -190,7 +189,6 @@ void ED_base_object_activate(bContext *C, Base *base)
 	if(base) {
 		
 		/* XXX old signals, remember to handle notifiers now! */
-		//		allqueue(REDRAWIPO, base->object->ipowin);
 		//		select_actionchannel_by_name(base->object->action, "Object", 1);
 		
 		/* disable temporal locks */
@@ -444,8 +442,9 @@ static int object_add_curve_exec(bContext *C, wmOperator *op)
 	}
 	else DAG_object_flush_update(CTX_data_scene(C), obedit, OB_RECALC_DATA);
 	
-	nu= addNurbprim(C, RNA_enum_get(op->ptr, "type"), newob);
-	editnurb= curve_get_editcurve(CTX_data_edit_object(C));
+	obedit= CTX_data_edit_object(C);
+	nu= add_nurbs_primitive(C, RNA_enum_get(op->ptr, "type"), newob);
+	editnurb= curve_get_editcurve(obedit);
 	BLI_addtail(editnurb, nu);
 	
 	/* userdef */
@@ -458,6 +457,21 @@ static int object_add_curve_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
+static int object_add_curve_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	uiMenuItem *head;
+
+	head= uiPupMenuBegin(op->type->name, 0);
+	if(!obedit || obedit->type == OB_CURVE)
+		uiMenuItemsEnumO(head, op->type->idname, "type");
+	else
+		uiMenuItemsEnumO(head, "OBJECT_OT_surface_add", "type");
+	uiPupMenuEnd(C, head);
+
+	return OPERATOR_CANCELLED;
+}
+
 void OBJECT_OT_curve_add(wmOperatorType *ot)
 {
 	/* identifiers */
@@ -465,7 +479,7 @@ void OBJECT_OT_curve_add(wmOperatorType *ot)
 	ot->idname= "OBJECT_OT_curve_add";
 	
 	/* api callbacks */
-	ot->invoke= WM_menu_invoke;
+	ot->invoke= object_add_curve_invoke;
 	ot->exec= object_add_curve_exec;
 	
 	ot->poll= ED_operator_scene_editable;
@@ -476,6 +490,94 @@ void OBJECT_OT_curve_add(wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "type", prop_curve_types, 0, "Primitive", "");
 }
 
+static EnumPropertyItem prop_surface_types[]= {
+	{CU_PRIM_CURVE|CU_NURBS, "NURBS_CURVE", "NURBS Curve", ""},
+	{CU_PRIM_CIRCLE|CU_NURBS, "NURBS_CIRCLE", "NURBS Circle", ""},
+	{CU_PRIM_PATCH|CU_NURBS, "NURBS_SURFACE", "NURBS Surface", ""},
+	{CU_PRIM_TUBE|CU_NURBS, "NURBS_TUBE", "NURBS Tube", ""},
+	{CU_PRIM_SPHERE|CU_NURBS, "NURBS_SPHERE", "NURBS Sphere", ""},
+	{CU_PRIM_DONUT|CU_NURBS, "NURBS_DONUT", "NURBS Donut", ""},
+	{0, NULL, NULL, NULL}
+};
+
+static int object_add_surface_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	ListBase *editnurb;
+	Nurb *nu;
+	int newob= 0;
+	
+	if(obedit==NULL || obedit->type!=OB_SURF) {
+		object_add_type(C, OB_SURF);
+		ED_object_enter_editmode(C, 0);
+		newob = 1;
+	}
+	else DAG_object_flush_update(CTX_data_scene(C), obedit, OB_RECALC_DATA);
+	
+	obedit= CTX_data_edit_object(C);
+	nu= add_nurbs_primitive(C, RNA_enum_get(op->ptr, "type"), newob);
+	editnurb= curve_get_editcurve(obedit);
+	BLI_addtail(editnurb, nu);
+	
+	/* userdef */
+	if (newob && (U.flag & USER_ADD_EDITMODE)==0) {
+		ED_object_exit_editmode(C, EM_FREEDATA);
+	}
+	
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_surface_add(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Add Surface";
+	ot->idname= "OBJECT_OT_surface_add";
+	
+	/* api callbacks */
+	ot->invoke= WM_menu_invoke;
+	ot->exec= object_add_surface_exec;
+	
+	ot->poll= ED_operator_scene_editable;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	RNA_def_enum(ot->srna, "type", prop_surface_types, 0, "Primitive", "");
+}
+
+static int object_add_text_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	
+	if(obedit && obedit->type==OB_FONT)
+		return OPERATOR_CANCELLED;
+
+	object_add_type(C, OB_FONT);
+	obedit= CTX_data_active_object(C);
+
+	if(U.flag & USER_ADD_EDITMODE)
+		ED_object_enter_editmode(C, 0);
+	
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_text_add(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Add Text";
+	ot->idname= "OBJECT_OT_text_add";
+	
+	/* api callbacks */
+	ot->exec= object_add_text_exec;
+	ot->poll= ED_operator_scene_editable;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
 
 static int object_add_armature_exec(bContext *C, wmOperator *op)
 {
@@ -489,7 +591,7 @@ static int object_add_armature_exec(bContext *C, wmOperator *op)
 	}
 	else DAG_object_flush_update(CTX_data_scene(C), obedit, OB_RECALC_DATA);
 	
-	//nu= addNurbprim(C, RNA_enum_get(op->ptr, "type"), newob);
+	//nu= add_nurbs_primitive(C, RNA_enum_get(op->ptr, "type"), newob);
 	//editnurb= curve_get_editcurve(CTX_data_edit_object(C));
 	//BLI_addtail(editnurb, nu);
 	
@@ -524,12 +626,13 @@ static int object_add_primitive_invoke(bContext *C, wmOperator *op, wmEvent *eve
 	
 	uiMenuLevelEnumO(head, "OBJECT_OT_mesh_add", "type");
 	uiMenuLevelEnumO(head, "OBJECT_OT_curve_add", "type");
-	uiMenuItemEnumO(head, "", 0, "OBJECT_OT_object_add", "type", OB_SURF);
+	uiMenuLevelEnumO(head, "OBJECT_OT_surface_add", "type");
+	uiMenuItemO(head, 0, "OBJECT_OT_text_add");
 	uiMenuItemEnumO(head, "", 0, "OBJECT_OT_object_add", "type", OB_MBALL);
 	uiMenuItemEnumO(head, "", 0, "OBJECT_OT_object_add", "type", OB_CAMERA);
 	uiMenuItemEnumO(head, "", 0, "OBJECT_OT_object_add", "type", OB_LAMP);
 	uiMenuItemEnumO(head, "", 0, "OBJECT_OT_object_add", "type", OB_EMPTY);
-	uiMenuItemEnumO(head, "", 0, "OBJECT_OT_armature_add", "type", OB_ARMATURE);
+	uiMenuItemO(head, 0, "OBJECT_OT_armature_add");
 	uiMenuItemEnumO(head, "", 0, "OBJECT_OT_object_add", "type", OB_LATTICE);
 	
 	uiPupMenuEnd(C, head);
@@ -1250,10 +1353,6 @@ void add_hook_menu(Scene *scene, View3D *v3d)
 		
 	/* do operations */
 	add_hook(scene, v3d, mode);
-	
-	allqueue(REDRAWVIEW3D, 0);
-	allqueue(REDRAWBUTSOBJECT, 0);
-	
 }
 
 /* ******************** clear parent operator ******************* */
@@ -1671,7 +1770,7 @@ static int object_select_random_exec(bContext *C, wmOperator *op)
 {	
 	float percent;
 	
-	percent = RNA_float_get(op->ptr, "percent") / 100.0f;
+	percent = RNA_float_get(op->ptr, "percent");
 		
 	CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
 		if ((!base->flag & SELECT && BLI_frand() < percent)) {
@@ -1699,7 +1798,7 @@ void OBJECT_OT_select_random(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	RNA_def_float(ot->srna, "percent", 50.0f, 0.0f, 100.0f, "Percent", "percentage of objects to randomly select", 0.01f, 100.0f);
+	RNA_def_float_percentage(ot->srna, "percent", 0.5f, 0.0f, 1.0f, "Percent", "percentage of objects to randomly select", 0.0001f, 1.0f);
 }
 
 /* ******** Clear object Translation *********** */
@@ -2193,7 +2292,6 @@ void make_vertex_parent(Scene *scene, Object *obedit, View3D *v3d)
 			}
 		}
 	}
-	allqueue(REDRAWVIEW3D, 0);
 	
 	DAG_scene_sort(scene);
 }
@@ -2280,7 +2378,6 @@ void make_proxy(Scene *scene)
 		
 		DAG_scene_sort(scene);
 		DAG_object_flush_update(scene, newob, OB_RECALC);
-		allqueue(REDRAWALL, 0);
 	}
 }
 
@@ -2946,7 +3043,6 @@ static int object_set_center_exec(bContext *C, wmOperator *op)
 					cu->xof /= cu->fsize;
 					cu->yof /= cu->fsize;
 
-					allqueue(REDRAWBUTSEDIT, 0);
 					tot_change++;
 				}
 			}
@@ -2980,7 +3076,6 @@ static int object_set_center_exec(bContext *C, wmOperator *op)
 	
 	if (tot_change) {
 		ED_anim_dag_flush_update(C);
-		allqueue(REDRAWVIEW3D, 0);
 	}
 	
 	/* Warn if any errors occured */
@@ -3272,11 +3367,6 @@ void movetolayer(Scene *scene, View3D *v3d)
 	
 	DAG_scene_sort(scene);
 	
-	allqueue(REDRAWBUTSEDIT, 0);
-	allqueue(REDRAWVIEW3D, 0);
-	allqueue(REDRAWOOPS, 0);
-	allqueue(REDRAWINFO, 0);
-	
 }
 
 
@@ -3401,9 +3491,6 @@ static void spot_interactive(Object *ob, int mode)
 			la->clipend= origval;
 	}
 
-	allqueue(REDRAWVIEW3D, 0);
-	allqueue(REDRAWBUTSSHADING, 0);
-	BIF_preview_changed(ID_LA);
 }
 #endif
 
@@ -3413,7 +3500,7 @@ void special_editmenu(Scene *scene, View3D *v3d)
 	Object *ob= OBACT;
 	Object *obedit= NULL; // XXX
 	float fac;
-	int nr,ret;
+	int nr,ret=0;
 	short randfac;
 	
 	if(ob==NULL) return;
@@ -3468,8 +3555,6 @@ void special_editmenu(Scene *scene, View3D *v3d)
 				}
 			}
 			DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
-			allqueue(REDRAWVIEW3D, 0);
-			allqueue(REDRAWBUTSEDIT, 0);
 		}
 		else if(G.f & G_VERTEXPAINT) {
 			Mesh *me= get_mesh(ob);
@@ -3591,7 +3676,6 @@ void special_editmenu(Scene *scene, View3D *v3d)
 					}
 				}
 
-				allqueue(REDRAWVIEW3D, 0);
 			}
 			else if (ob->type == OB_FONT) {
 				/* removed until this gets a decent implementation (ton) */
@@ -3778,8 +3862,6 @@ void special_editmenu(Scene *scene, View3D *v3d)
 		}
 	}
 
-	allqueue(REDRAWVIEW3D, 0);
-	
 }
 
 static void curvetomesh(Scene *scene, Object *ob) 
@@ -4013,10 +4095,6 @@ void convertmenu(Scene *scene, View3D *v3d)
 // XXX	exit_editmode(C, EM_FREEDATA|EM_WAITCURSOR); /* freedata, but no undo */
 	BASACT= basact;
 
-	allqueue(REDRAWVIEW3D, 0);
-	allqueue(REDRAWOOPS, 0);
-//	allspace(OOPS_TEST, 0);
-	allqueue(REDRAWBUTSEDIT, 0);
 
 	DAG_scene_sort(scene);
 }
@@ -4155,10 +4233,6 @@ void flip_subdivison(Scene *scene, View3D *v3d, int level)
 		}
 	}
 	
-	allqueue(REDRAWVIEW3D, 0);
-	allqueue(REDRAWOOPS, 0);
-	allqueue(REDRAWBUTSEDIT, 0);
-	allqueue(REDRAWBUTSOBJECT, 0);
 	ED_anim_dag_flush_update(C);	
 }
  
@@ -4219,7 +4293,6 @@ static void copymenu_properties(Scene *scene, View3D *v3d, Object *ob)
 		}
 	}
 	MEM_freeN(str);
-	allqueue(REDRAWVIEW3D, 0);
 	
 }
 
@@ -4354,8 +4427,6 @@ static void copymenu_modifiers(Scene *scene, View3D *v3d, Object *ob)
 	
 //	if(errorstr) notice(errorstr);
 	
-	allqueue(REDRAWVIEW3D, 0);
-	allqueue(REDRAWBUTSOBJECT, 0);
 	DAG_scene_sort(scene);
 	
 }
@@ -4645,16 +4716,11 @@ void copy_attr(Scene *scene, View3D *v3d, short event)
 		}
 	}
 	
-	allqueue(REDRAWVIEW3D, 0);
 	if(do_scene_sort)
 		DAG_scene_sort(scene);
 
 	ED_anim_dag_flush_update(C);	
 
-	if(event==20) {
-		allqueue(REDRAWBUTSOBJECT, 0);
-	}
-	
 }
 
 void copy_attr_menu(Scene *scene, View3D *v3d)
@@ -4853,10 +4919,6 @@ void make_links(Scene *scene, View3D *v3d, short event)
 		}
 	}
 	
-	allqueue(REDRAWVIEW3D, 0);
-	allqueue(REDRAWOOPS, 0);
-	allqueue(REDRAWBUTSHEAD, 0);
-
 	ED_anim_dag_flush_update(C);	
 
 }
@@ -5085,7 +5147,6 @@ static void apply_objects_internal(Scene *scene, View3D *v3d, int apply_scale, i
 		}
 	}
 	if (change) {
-		allqueue(REDRAWVIEW3D, 0);
 	}
 }
 
@@ -5124,7 +5185,6 @@ void apply_objects_visual_tx( Scene *scene, View3D *v3d )
 		}
 	}
 	if (change) {
-		allqueue(REDRAWVIEW3D, 0);
 	}
 }
 
@@ -5548,7 +5608,6 @@ void single_user(Scene *scene, View3D *v3d)
 		
 		clear_id_newpoins();
 
-		allqueue(REDRAWALL, 0);
 	}
 }
 
@@ -5593,7 +5652,6 @@ void make_local(Scene *scene, View3D *v3d, int mode)
 	
 	if(mode==3) {
 		all_local(NULL, 0);	/* NULL is all libs */
-		allqueue(REDRAWALL, 0);
 		return;
 	}
 	else if(mode<1) return;
@@ -5719,7 +5777,6 @@ void make_local(Scene *scene, View3D *v3d, int mode)
 		}
 	}
 
-	allqueue(REDRAWALL, 0);
 }
 
 void make_local_menu(Scene *scene, View3D *v3d)
@@ -6078,7 +6135,6 @@ void image_aspect(Scene *scene, View3D *v3d)
 		}
 	}
 	
-	allqueue(REDRAWVIEW3D, 0);
 }
 
 void set_ob_ipoflags(Scene *scene, View3D *v3d)
@@ -6113,12 +6169,6 @@ void set_ob_ipoflags(Scene *scene, View3D *v3d)
 			}
 		}
 	}
-	allqueue(REDRAWVIEW3D, 0);
-	allqueue(REDRAWBUTSOBJECT, 0);
-	allqueue(REDRAWNLA, 0);
-	allqueue (REDRAWACTION, 0);
-//	allspace(REMAKEIPO, 0);
-	allqueue(REDRAWIPO, 0);
 #endif // XXX old animation system
 }
 
@@ -6161,11 +6211,6 @@ void select_select_keys(Scene *scene, View3D *v3d)
 		}
 	}
 
-	allqueue(REDRAWNLA, 0);
-	allqueue(REDRAWACTION, 0);
-	allqueue(REDRAWVIEW3D, 0);
-//	allspace(REMAKEIPO, 0);
-	allqueue(REDRAWIPO, 0);
 
 #endif  // XXX old animation system
 }
@@ -6226,8 +6271,6 @@ void auto_timeoffs(Scene *scene, View3D *v3d)
 	}
 	MEM_freeN(basesort);
 
-	allqueue(REDRAWVIEW3D, 0);
-	allqueue(REDRAWBUTSOBJECT, 0);
 }
 
 void ofs_timeoffs(Scene *scene, View3D *v3d)
@@ -6248,8 +6291,6 @@ void ofs_timeoffs(Scene *scene, View3D *v3d)
 		}
 	}
 
-	allqueue(REDRAWVIEW3D, 0);
-	allqueue(REDRAWBUTSOBJECT, 0);
 }
 
 
@@ -6272,8 +6313,6 @@ void rand_timeoffs(Scene *scene, View3D *v3d)
 		}
 	}
 
-	allqueue(REDRAWVIEW3D, 0);
-	allqueue(REDRAWBUTSOBJECT, 0);
 }
 
 
@@ -6327,15 +6366,8 @@ void texspace_edit(Scene *scene, View3D *v3d)
 
 void mirrormenu(void)
 {
-	Scene *scene= NULL; // XXX
-	
-	if(G.f & G_PARTICLEEDIT) {
-		PE_mirror_x(scene, 0);
-	}
-	else {
 // XXX		initTransform(TFM_MIRROR, CTX_NO_PET);
 // XXX		Transform();
-	}
 }
 
 void hookmenu(Scene *scene, View3D *v3d)
@@ -6398,8 +6430,5 @@ void hookmenu(Scene *scene, View3D *v3d)
 	}
 	
 	if (changed) {
-		
-		allqueue(REDRAWVIEW3D, 0);
-		allqueue(REDRAWBUTSEDIT, 0);
 	}	
 }

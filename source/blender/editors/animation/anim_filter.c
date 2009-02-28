@@ -66,6 +66,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_windowmanager_types.h"
+#include "DNA_world_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -333,6 +334,16 @@ bAnimListElem *make_new_animlistelem (void *data, short datatype, void *owner, s
 		
 		/* do specifics */
 		switch (datatype) {
+			case ANIMTYPE_SCENE:
+			{
+				Scene *sce= (Scene *)data;
+				
+				ale->flag= sce->flag;
+				
+				ale->key_data= sce;
+				ale->datatype= ALE_SCE;
+			}
+				break;
 			case ANIMTYPE_OBJECT:
 			{
 				Base *base= (Base *)data;
@@ -431,6 +442,17 @@ bAnimListElem *make_new_animlistelem (void *data, short datatype, void *owner, s
 				ale->datatype= ALE_ACT;
 			}
 				break;
+			case ANIMTYPE_DSWOR:
+			{
+				World *wo= (World *)data;
+				AnimData *adt= wo->adt;
+				
+				ale->flag= FILTER_WOR_SCED(wo); 
+				
+				ale->key_data= (adt) ? adt->action : NULL;
+				ale->datatype= ALE_ACT;
+			}
+				break;
 				
 			case ANIMTYPE_GROUP:
 			{
@@ -489,12 +511,15 @@ static int animdata_filter_fcurves (ListBase *anim_data, FCurve *first, bActionG
 			if (!(filter_mode & ANIMFILTER_FOREDIT) || EDITABLE_FCU(fcu)) {
 				/* only include this curve if selected */
 				if (!(filter_mode & ANIMFILTER_SEL) || (SEL_FCU(fcu))) {
-					/* owner/ownertype will be either object or action-channel, depending if it was dopesheet or part of an action */
-					ale= make_new_animlistelem(fcu, ANIMTYPE_FCURVE, owner, ownertype, owner_id);
-					
-					if (ale) {
-						BLI_addtail(anim_data, ale);
-						items++;
+					/* only include if this curve is active */
+					if (!(filter_mode & ANIMFILTER_ACTIVE) || (fcu->flag & FCURVE_ACTIVE)) {
+						/* owner/ownertype will be either object or action-channel, depending if it was dopesheet or part of an action */
+						ale= make_new_animlistelem(fcu, ANIMTYPE_FCURVE, owner, ownertype, owner_id);
+						
+						if (ale) {
+							BLI_addtail(anim_data, ale);
+							items++;
+						}
 					}
 				}
 			}
@@ -1007,6 +1032,117 @@ static int animdata_filter_dopesheet_ob (ListBase *anim_data, bDopeSheet *ads, B
 	return items;
 }	
 
+static int animdata_filter_dopesheet_scene (ListBase *anim_data, bDopeSheet *ads, Scene *sce, int filter_mode)
+{
+	World *wo= sce->world;
+	bAnimListElem *ale;
+	int items = 0;
+	
+	/* add scene as a channel first (even if we aren't showing scenes we still need to show the scene's sub-data */
+	if ((filter_mode & ANIMFILTER_CURVESONLY) == 0) {
+		/* check if filtering by selection */
+		if ( !(filter_mode & ANIMFILTER_SEL) || (sce->flag & SCE_DS_SELECTED) ) {
+			ale= make_new_animlistelem(sce, ANIMTYPE_SCENE, NULL, ANIMTYPE_NONE, NULL);
+			if (ale) {
+				BLI_addtail(anim_data, ale);
+				items++;
+			}
+		}
+	}
+	
+	/* if collapsed, don't go any further (unless adding keyframes only) */
+	if ( (EXPANDED_SCEC(sce) == 0) && !(filter_mode & ANIMFILTER_CURVESONLY) )
+		return items;
+		
+	/* Action or Drivers */
+	if ((ads->filterflag & ADS_FILTER_ONLYDRIVERS) == 0) {
+		/* Action? */
+		if (ANIMDATA_HAS_KEYS(sce) && !(ads->filterflag & ADS_FILTER_NOSCE)) {
+			AnimData *adt= sce->adt;
+			
+			/* include action-expand widget? */
+			if ((filter_mode & ANIMFILTER_CHANNELS) && !(filter_mode & ANIMFILTER_CURVESONLY)) {
+				ale= make_new_animlistelem(adt->action, ANIMTYPE_FILLACTD, sce, ANIMTYPE_SCENE, (ID *)sce);
+				if (ale) {
+					BLI_addtail(anim_data, ale);
+					items++;
+				}
+			}
+			
+			/* add F-Curve channels? */
+			if (EXPANDED_ACTC(adt->action) || !(filter_mode & ANIMFILTER_CHANNELS)) {
+				items += animdata_filter_action(anim_data, adt->action, filter_mode, sce, ANIMTYPE_SCENE, (ID *)sce); 
+			}
+		}
+	}
+	else {
+		/* Drivers */
+		if (ANIMDATA_HAS_DRIVERS(sce) && !(ads->filterflag & ADS_FILTER_NOSCE)) {
+			AnimData *adt= sce->adt;
+			
+			/* include drivers-expand widget? */
+			if ((filter_mode & ANIMFILTER_CHANNELS) && !(filter_mode & ANIMFILTER_CURVESONLY)) {
+				ale= make_new_animlistelem(adt->action, ANIMTYPE_FILLDRIVERS, sce, ANIMTYPE_SCENE, (ID *)sce);
+				if (ale) {
+					BLI_addtail(anim_data, ale);
+					items++;
+				}
+			}
+			
+			/* add F-Curve channels (drivers are F-Curves) */
+			if (EXPANDED_DRVD(adt) || !(filter_mode & ANIMFILTER_CHANNELS)) {
+				items += animdata_filter_fcurves(anim_data, adt->drivers.first, NULL, sce, ANIMTYPE_SCENE, filter_mode, (ID *)sce);
+			}
+		}
+	}
+		
+	/* world */
+	if ((wo && wo->adt) && !(ads->filterflag & ADS_FILTER_NOWOR)) {
+		/* Animation or Drivers */
+		if ((ads->filterflag & ADS_FILTER_ONLYDRIVERS) == 0) {
+			AnimData *adt= wo->adt;
+			
+			/* include world-expand widget? */
+			if ((filter_mode & ANIMFILTER_CHANNELS) && !(filter_mode & ANIMFILTER_CURVESONLY)) {
+				ale= make_new_animlistelem(wo, ANIMTYPE_DSWOR, sce, ANIMTYPE_SCENE, (ID *)sce);
+				if (ale) {
+					BLI_addtail(anim_data, ale);
+					items++;
+				}
+			}
+			
+			/* add channels */
+			if (FILTER_WOR_SCED(wo) || (filter_mode & ANIMFILTER_CURVESONLY)) {
+				items += animdata_filter_action(anim_data, adt->action, filter_mode, wo, ANIMTYPE_DSWOR, (ID *)wo); 
+			}
+		}
+		else {
+			/* Drivers */
+			if (ANIMDATA_HAS_DRIVERS(wo)) {
+				AnimData *adt= wo->adt;
+				
+				/* include shapekey-expand widget? */
+				if ((filter_mode & ANIMFILTER_CHANNELS) && !(filter_mode & ANIMFILTER_CURVESONLY)) {
+					ale= make_new_animlistelem(wo, ANIMTYPE_DSWOR, sce, ANIMTYPE_SCENE, (ID *)wo);
+					if (ale) {
+						BLI_addtail(anim_data, ale);
+						items++;
+					}
+				}
+				
+				/* add F-Curve channels (drivers are F-Curves) */
+				if (FILTER_WOR_SCED(wo)/*EXPANDED_DRVD(adt)*/ || !(filter_mode & ANIMFILTER_CHANNELS)) {
+					// XXX owner info is messed up now...
+					items += animdata_filter_fcurves(anim_data, adt->drivers.first, NULL, wo, ANIMTYPE_DSWOR, filter_mode, (ID *)wo);
+				}
+			}
+		}
+	}
+	
+	/* return the number of items added to the list */
+	return items;
+}
+
 // TODO: implement pinning... (if and when pinning is done, what we need to do is to provide freeing mechanisms - to protect against data that was deleted)
 static int animdata_filter_dopesheet (ListBase *anim_data, bDopeSheet *ads, int filter_mode)
 {
@@ -1019,6 +1155,35 @@ static int animdata_filter_dopesheet (ListBase *anim_data, bDopeSheet *ads, int 
 		printf("DopeSheet Error: Not scene! \n");
 		return 0;
 	}
+	
+	/* scene-linked animation */
+	// TODO: sequencer, composite nodes - are we to include those here too?
+	{
+		short sceOk, worOk;
+		
+		/* check filtering-flags if ok */
+		if (ads->filterflag) {
+			if (ads->filterflag & ADS_FILTER_ONLYDRIVERS) {
+				sceOk= (ANIMDATA_HAS_DRIVERS(sce) && !(ads->filterflag & ADS_FILTER_NOSCE));
+				worOk= ((sce->world) && ANIMDATA_HAS_DRIVERS(sce->world) && !(ads->filterflag & ADS_FILTER_NOWOR));
+			}
+			else {
+				sceOk= (ANIMDATA_HAS_KEYS(sce) && !(ads->filterflag & ADS_FILTER_NOSCE));
+				worOk= ((sce->world) && ANIMDATA_HAS_KEYS(sce->world) && !(ads->filterflag & ADS_FILTER_NOWOR));
+			}
+		}
+		else {
+			sceOk= (ANIMDATA_HAS_KEYS(sce));
+			worOk= ((sce->world) && ANIMDATA_HAS_KEYS(sce->world));
+		}
+		
+		/* check if not all bad (i.e. so there is something to show) */
+		if ( !(!sceOk && !worOk) ) {
+			/* add scene data to the list of filtered channels */
+			items += animdata_filter_dopesheet_scene(anim_data, ads, sce, filter_mode);
+		}
+	}
+	
 	
 	/* loop over all bases in the scene */
 	for (base= sce->base.first; base; base= base->next) {
@@ -1049,16 +1214,6 @@ static int animdata_filter_dopesheet (ListBase *anim_data, bDopeSheet *ads, int 
 					/* only selected should be shown */
 					continue;
 				}
-#if 0
-				if ((ads->filterflag & ADS_FILTER_NOARM) && (ob->type == OB_ARMATURE)) {
-					/* not showing armatures  */
-					continue;
-				}
-				if ((ads->filterflag & ADS_FILTER_NOOBJ) && (ob->type != OB_ARMATURE)) {
-					/* not showing objects that aren't armatures */
-					continue;
-				}
-#endif
 				
 				/* check filters for datatypes */
 				if (ads->filterflag & ADS_FILTER_ONLYDRIVERS) {
@@ -1066,7 +1221,7 @@ static int animdata_filter_dopesheet (ListBase *anim_data, bDopeSheet *ads, int 
 					keyOk= ((key) && ANIMDATA_HAS_DRIVERS(key) && !(ads->filterflag & ADS_FILTER_NOSHAPEKEYS));
 				}
 				else {
-					actOk= (ANIMDATA_HAS_KEYS(ob) /*&& !(ads->filterflag & ADS_FILTER_NOACTS)*/);
+					actOk= ANIMDATA_HAS_KEYS(ob);
 					keyOk= ((key) && ANIMDATA_HAS_KEYS(key) && !(ads->filterflag & ADS_FILTER_NOSHAPEKEYS));
 				}
 				

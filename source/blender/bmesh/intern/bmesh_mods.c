@@ -11,6 +11,8 @@
 #include "bmesh.h"
 #include "bmesh_private.h"
 
+#include <stdlib.h>
+#include <string.h>
 
 /*
  * BME_MODS.C
@@ -99,8 +101,14 @@ void BM_Dissolve_Disk(BMesh *bm, BMVert *v) {
 			do{
 				f = NULL;
 				len = bmesh_cycle_length(&(e->loop->radial));
-				if(len == 2 && (e!=baseedge) && (e!=keepedge))
+				if(len == 2 && (e!=baseedge) && (e!=keepedge)) {
 					f = BM_Join_Faces(bm, e->loop->f, ((BMLoop*)(e->loop->radial.next->data))->f, e, 0, 0); 
+					/*return if couldn't join faces in manifold
+					  conditions.*/
+					//!disabled for testing why bad things happen
+					if (!f) return;
+				}
+
 				if(f){
 					done = 0;
 					break;
@@ -332,8 +340,49 @@ BMVert  *BM_Split_Edge_Multi(BMesh *bm, BMEdge *e, int numcuts)
 	BMVert *nv = NULL;
 	
 	for(i=0; i < numcuts; i++){
-		percent = 1.0 / (float)(numcuts + 1 - i);
+		percent = 1.0f / (float)(numcuts + 1 - i);
 		nv = BM_Split_Edge(bm, e->v2, e, NULL, percent, 0);
 	}
 	return nv;
+}
+
+int BM_Validate_Face(BMesh *bm, BMFace *face, FILE *err) 
+{
+	BMIter iter;
+	V_DECLARE(verts);
+	BMVert **verts = NULL;
+	BMLoop *l;
+	int ret = 1, i, j;
+	
+	if (face->len == 2) {
+		fprintf(err, "warning: found two-edged face. face ptr: %p\n", face);
+		fflush(err);
+	}
+
+	for (l=BMIter_New(&iter, bm, BM_LOOPS_OF_FACE, face);l;l=BMIter_Step(&iter)) {
+		V_GROW(verts);
+		verts[V_COUNT(verts)-1] = l->v;
+		
+		if (l->e->v1 == l->e->v2) {
+			fprintf(err, "Found bmesh edge with identical verts!\n");
+			fprintf(err, "  edge ptr: %p, vert: %p\n",  l->e, l->e->v1);
+			fflush(err);
+			ret = 0;
+		}
+	}
+
+	for (i=0; i<V_COUNT(verts); i++) {
+		for (j=0; j<V_COUNT(verts); j++) {
+			if (j == 0) continue;
+			if (verts[i] == verts[j]) {
+				fprintf(err, "Found duplicate verts in bmesh face!\n");
+				fprintf(err, "  face ptr: %p, vert: %p\n", face, verts[i]);
+				fflush(err);
+				ret = 0;
+			}
+		}
+	}
+	
+	V_FREE(verts);
+	return ret;
 }

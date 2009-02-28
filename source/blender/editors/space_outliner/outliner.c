@@ -132,7 +132,6 @@
 
 /* ************* XXX **************** */
 
-static void allqueue() {}
 static void BIF_undo_push() {}
 static void BIF_preview_changed() {}
 static void error() {}
@@ -1465,9 +1464,6 @@ void outliner_toggle_visibility(Scene *scene, SpaceOops *soops)
 	
 	BIF_undo_push("Outliner toggle selectability");
 
-	allqueue(REDRAWVIEW3D, 1);
-	allqueue(REDRAWOOPS, 0);
-	allqueue(REDRAWINFO, 1);
 }
 
 static void object_toggle_selectability_cb(TreeElement *te, TreeStoreElem *tsep, TreeStoreElem *tselem)
@@ -1488,9 +1484,6 @@ void outliner_toggle_selectability(Scene *scene, SpaceOops *soops)
 	
 	BIF_undo_push("Outliner toggle selectability");
 
-	allqueue(REDRAWVIEW3D, 1);
-	allqueue(REDRAWOOPS, 0);
-	allqueue(REDRAWINFO, 1);
 }
 
 void object_toggle_renderability_cb(TreeElement *te, TreeStoreElem *tsep, TreeStoreElem *tselem)
@@ -1511,9 +1504,6 @@ void outliner_toggle_renderability(Scene *scene, SpaceOops *soops)
 	
 	BIF_undo_push("Outliner toggle renderability");
 
-	allqueue(REDRAWVIEW3D, 1);
-	allqueue(REDRAWOOPS, 0);
-	allqueue(REDRAWINFO, 1);
 }
 
 void outliner_toggle_visible(SpaceOops *soops)
@@ -1641,7 +1631,6 @@ static int tree_element_active_renderlayer(TreeElement *te, TreeStoreElem *tsele
 	
 	if(set) {
 		sce->r.actlay= tselem->nr;
-		allqueue(REDRAWBUTSSCENE, 0);
 	}
 	else {
 		return sce->r.actlay==tselem->nr;
@@ -1733,10 +1722,6 @@ static int tree_element_active_material(Scene *scene, SpaceOops *soops, TreeElem
 	if(set) {
 // XXX		extern_set_butspace(F5KEY, 0);	// force shading buttons
 		BIF_preview_changed(ID_MA);
-		allqueue(REDRAWBUTSSHADING, 1);
-		allqueue(REDRAWNODE, 0);
-		allqueue(REDRAWOOPS, 0);
-		allqueue(REDRAWIPO, 0);
 	}
 	return 0;
 }
@@ -1823,9 +1808,6 @@ static int tree_element_active_lamp(Scene *scene, SpaceOops *soops, TreeElement 
 	if(set) {
 // XXX		extern_set_butspace(F5KEY, 0);
 		BIF_preview_changed(ID_LA);
-		allqueue(REDRAWBUTSSHADING, 1);
-		allqueue(REDRAWOOPS, 0);
-		allqueue(REDRAWIPO, 0);
 	}
 	else return 1;
 	
@@ -1870,7 +1852,6 @@ static int tree_element_active_defgroup(Scene *scene, TreeElement *te, TreeStore
 	if(set) {
 		ob->actdef= te->index+1;
 		DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
-		allqueue(REDRAWVIEW3D, ob->ipowin);
 	}
 	else {
 		if(ob==OBACT)
@@ -1886,7 +1867,6 @@ static int tree_element_active_posegroup(Scene *scene, TreeElement *te, TreeStor
 	if(set) {
 		if (ob->pose) {
 			ob->pose->active_group= te->index+1;
-			allqueue(REDRAWBUTSEDIT, 0);
 		}
 	}
 	else {
@@ -1909,9 +1889,6 @@ static int tree_element_active_posechannel(Scene *scene, TreeElement *te, TreeSt
 //			else deselectall_posearmature(ob, 0, 0);	// 0 = deselect 
 			pchan->bone->flag |= BONE_SELECTED|BONE_ACTIVE;
 			
-			allqueue(REDRAWVIEW3D, 0);
-			allqueue(REDRAWOOPS, 0);
-			allqueue(REDRAWACTION, 0);
 		}
 	}
 	else {
@@ -1933,9 +1910,6 @@ static int tree_element_active_bone(Scene *scene, TreeElement *te, TreeStoreElem
 //			else deselectall_posearmature(OBACT, 0, 0);
 			bone->flag |= BONE_SELECTED|BONE_ACTIVE;
 			
-			allqueue(REDRAWVIEW3D, 0);
-			allqueue(REDRAWOOPS, 0);
-			allqueue(REDRAWACTION, 0);
 		}
 	}
 	else {
@@ -1965,9 +1939,6 @@ static int tree_element_active_ebone(TreeElement *te, TreeStoreElem *tselem, int
 			// flush to parent?
 			if(ebone->parent && (ebone->flag & BONE_CONNECTED)) ebone->parent->flag |= BONE_TIPSEL;
 			
-			allqueue(REDRAWVIEW3D, 0);
-			allqueue(REDRAWOOPS, 0);
-			allqueue(REDRAWACTION, 0);
 		}
 	}
 	else {
@@ -2053,7 +2024,6 @@ static int tree_element_active_sequence(TreeElement *te, TreeStoreElem *tselem, 
 
 	if(set) {
 // XXX		select_single_seq(seq, 1);
-		allqueue(REDRAWSEQ, 0);
 	}
 	else {
 		if(seq->flag & SELECT)
@@ -2086,7 +2056,6 @@ static int tree_element_active_sequence_dup(Scene *scene, TreeElement *te, TreeS
 // XXX			select_single_seq(p, 0);
 		p= p->next;
 	}
-	allqueue(REDRAWSEQ, 0);
 	return(0);
 }
 
@@ -2917,7 +2886,6 @@ static void sequence_cb(int event, TreeElement *te, TreeStoreElem *tselem)
 //	Sequence *seq= (Sequence*) te->directdata;
 	if(event==1) {
 // XXX		select_single_seq(seq, 1);
-		allqueue(REDRAWSEQ, 0);
 	}
 }
 
@@ -2950,7 +2918,6 @@ void outliner_del(Scene *scene, ARegion *ar, SpaceOops *soops)
 //		DAG_scene_sort(scene);
 //		BIF_undo_push("Delete Objects");
 //	}
-//	allqueue(REDRAWALL, 0);	
 }
 
 
@@ -3005,7 +2972,6 @@ void outliner_operation_menu(Scene *scene, ARegion *ar, SpaceOops *soops)
 			}
 			
 			BIF_undo_push(str);
-			allqueue(REDRAWALL, 0);
 		}
 	}
 	else if(idlevel) {
@@ -3023,11 +2989,9 @@ void outliner_operation_menu(Scene *scene, ARegion *ar, SpaceOops *soops)
 					case ID_MA:
 						outliner_do_libdata_operation(soops, &soops->tree, unlink_material_cb);
 						BIF_undo_push("Unlink material");
-						allqueue(REDRAWBUTSSHADING, 1);
 						break;
 					case ID_TE:
 						outliner_do_libdata_operation(soops, &soops->tree, unlink_texture_cb);
-						allqueue(REDRAWBUTSSHADING, 1);
 						BIF_undo_push("Unlink texture");
 						break;
 					case ID_GR:
@@ -3037,12 +3001,10 @@ void outliner_operation_menu(Scene *scene, ARegion *ar, SpaceOops *soops)
 					default:
 						error("Not yet...");
 				}
-				allqueue(REDRAWALL, 0);
 			}
 			else if(event==2) {
 				outliner_do_libdata_operation(soops, &soops->tree, id_local_cb);
 				BIF_undo_push("Localized Data");
-				allqueue(REDRAWALL, 0); 
 			}
 			else if(event==3 && idlevel==ID_GR) {
 				outliner_do_libdata_operation(soops, &soops->tree, group_linkobs2scene_cb);
@@ -3081,9 +3043,6 @@ void outliner_operation_menu(Scene *scene, ARegion *ar, SpaceOops *soops)
 				}
 			}
 
-			allqueue(REDRAWOOPS, 0);
-			allqueue(REDRAWBUTSALL, 0);
-			allqueue(REDRAWVIEW3D, 0);
 		}
 	}
 }
@@ -3098,9 +3057,6 @@ enum {
 	KEYINGSET_EDITMODE_REMOVE,
 } eKeyingSet_EditModes;
 
-/* typedef'd function-prototype style for KeyingSet operation callbacks */
-typedef void (*ksEditOp)(SpaceOops *soops, KeyingSet *ks, TreeElement *te, TreeStoreElem *tselem);
- 
 /* Utilities ---------------------------------- */
  
 /* specialised poll callback for these operators to work in Datablocks view only */
@@ -3139,27 +3095,26 @@ static KeyingSet *verify_active_keyingset(Scene *scene, short add)
 	return ks;
 }
 
-/* helper func to add a new KeyingSet Path */
-static void ks_editop_add_cb(SpaceOops *soops, KeyingSet *ks, TreeElement *te, TreeStoreElem *tselem)
+/* Helper func to extract an RNA path from seleted tree element 
+ * NOTE: the caller must zero-out all values of the pointers that it passes here first, as
+ * this function does not do that yet 
+ */
+static void tree_element_to_path(SpaceOops *soops, TreeElement *te, TreeStoreElem *tselem, 
+							ID **id, char **path, int *array_index, short *flag, short *groupmode)
 {
 	ListBase hierarchy = {NULL, NULL};
 	LinkData *ld;
-	TreeElement *tem;
-	TreeStoreElem *tse;
-	PointerRNA *ptr;
-	PropertyRNA *prop;
-	ID *id = NULL;
-	char *path=NULL, *newpath=NULL;
-	int array_index= 0;
-	int flag= KSP_FLAG_GROUP_KSNAME;
+	TreeElement *tem, *temnext, *temsub;
+	TreeStoreElem *tse, *tsenext;
+	PointerRNA *ptr, *nextptr;
+	PropertyRNA *prop, *nameprop;
+	char *newpath=NULL;
 	
 	/* optimise tricks:
 	 *	- Don't do anything if the selected item is a 'struct', but arrays are allowed
 	 */
 	if (tselem->type == TSE_RNA_STRUCT)
 		return;
-	
-	//printf("ks_editop_add_cb() \n");
 	
 	/* Overview of Algorithm:
 	 * 	1. Go up the chain of parents until we find the 'root', taking note of the 
@@ -3169,7 +3124,6 @@ static void ks_editop_add_cb(SpaceOops *soops, KeyingSet *ks, TreeElement *te, T
 	 *	   (which will become the 'ID' for the KeyingSet Path), and build a  
 	 * 		path as we step through the chain
 	 */
-	// XXX do we want to separate this part out to a helper func for the other editing op at some point?
 	 
 	/* step 1: flatten out hierarchy of parents into a flat chain */
 	for (tem= te->parent; tem; tem= tem->parent) {
@@ -3187,63 +3141,99 @@ static void ks_editop_add_cb(SpaceOops *soops, KeyingSet *ks, TreeElement *te, T
 		prop= tem->directdata;
 		
 		/* check if we're looking for first ID, or appending to path */
-		if (id) {
+		if (*id) {
 			/* just 'append' property to path 
 			 *	- to prevent memory leaks, we must write to newpath not path, then free old path + swap them
 			 */
-			// TODO: how to do this? we must use 'string' identifiers for collections so that these don't break if data is added/removed
-			//newpath= RNA_path_append(path, NULL, prop, index, NULL);
 			
-			if (path) MEM_freeN(path);
-			path= newpath;
+			if(tse->type == TSE_RNA_PROPERTY) {
+				if(RNA_property_type(ptr, prop) == PROP_POINTER) {
+					/* for pointer we just append property name */
+					newpath= RNA_path_append(*path, ptr, prop, 0, NULL);
+				}
+				else if(RNA_property_type(ptr, prop) == PROP_COLLECTION) {
+					temnext= (TreeElement*)(ld->next->data);
+					tsenext= TREESTORE(temnext);
+					
+					nextptr= &temnext->rnaptr;
+					nameprop= RNA_struct_name_property(nextptr);
+					
+					if(nameprop) {
+						/* if possible, use name as a key in the path */
+						char buf[128], *name;
+						name= RNA_property_string_get_alloc(nextptr, nameprop, buf, sizeof(buf));
+						
+						newpath= RNA_path_append(*path, NULL, prop, 0, name);
+						
+						if(name != buf)
+							MEM_freeN(name);
+					}
+					else {
+						/* otherwise use index */
+						int index= 0;
+						
+						for(temsub=tem->subtree.first; temsub; temsub=temsub->next, index++)
+							if(temsub == temnext)
+								break;
+						
+						newpath= RNA_path_append(*path, NULL, prop, index, NULL);
+					}
+					
+					ld= ld->next;
+				}
+			}
+			
+			if(newpath) {
+				if (*path) MEM_freeN(*path);
+				*path= newpath;
+				newpath= NULL;
+			}
 		}
 		else {
 			/* no ID, so check if entry is RNA-struct, and if that RNA-struct is an ID datablock to extract info from */
 			if (tse->type == TSE_RNA_STRUCT) {
 				/* ptr->data not ptr->id.data seems to be the one we want, since ptr->data is sometimes the owner of this ID? */
-				if (RNA_struct_is_ID(ptr))
-					id= (ID *)ptr->data;
+				if(RNA_struct_is_ID(ptr)) {
+					*id= (ID *)ptr->data;
+					
+					/* clear path */
+					if(*path) {
+						MEM_freeN(*path);
+						path= NULL;
+					}
+				}
 			}
 		}
 	}
-	
+
 	/* step 3: if we've got an ID, add the current item to the path */
-	if (id) {
+	if (*id) {
 		/* add the active property to the path */
-		// if array base, add KSP_FLAG_WHOLE_ARRAY
 		ptr= &te->rnaptr;
 		prop= te->directdata;
 		
 		/* array checks */
 		if (tselem->type == TSE_RNA_ARRAY_ELEM) {
 			/* item is part of an array, so must set the array_index */
-			array_index= te->index;
+			*array_index= te->index;
 		}
 		else if (RNA_property_array_length(ptr, prop)) {
 			/* entire array was selected, so keyframe all */
-			flag |= KSP_FLAG_WHOLE_ARRAY;
+			*flag |= KSP_FLAG_WHOLE_ARRAY;
 		}
 		
 		/* path */
-		newpath= RNA_path_append(path, NULL, prop, 0, NULL);
-		if (path) MEM_freeN(path);
-		path= newpath;
-		
-		printf("Adding KeyingSet '%s': Path %s %d \n", ks->name, path, array_index);
-		
-		/* add a new path with the information obtained (only if valid) */
-		// TODO: what do we do with group name? for now, we don't supply one, and just let this use the KeyingSet name
-		if (path)
-			BKE_keyingset_add_destination(ks, id, NULL, path, array_index, flag);
+		newpath= RNA_path_append(*path, NULL, prop, 0, NULL);
+		if (*path) MEM_freeN(*path);
+		*path= newpath;
 	}
-	
+
 	/* free temp data */
-	if (path) MEM_freeN(path);
 	BLI_freelistN(&hierarchy);
 }
 
 /* Recursively iterate over tree, finding and working on selected items */
-static void do_outliner_keyingset_editop(SpaceOops *soops, KeyingSet *ks, ListBase *tree, ksEditOp edit_cb)
+static void do_outliner_keyingset_editop(SpaceOops *soops, KeyingSet *ks, ListBase *tree, short mode)
 {
 	TreeElement *te;
 	TreeStoreElem *tselem;
@@ -3253,12 +3243,54 @@ static void do_outliner_keyingset_editop(SpaceOops *soops, KeyingSet *ks, ListBa
 		
 		/* if item is selected, perform operation */
 		if (tselem->flag & TSE_SELECTED) {
-			if (edit_cb) edit_cb(soops, ks, te, tselem);
+			ID *id= NULL;
+			char *path= NULL;
+			int array_index= 0;
+			short flag= 0;
+			short groupmode= KSP_GROUP_KSNAME;
+			
+			/* get id + path + index info from the selected element */
+			tree_element_to_path(soops, te, tselem, 
+					&id, &path, &array_index, &flag, &groupmode);
+			
+			/* only if ID and path were set, should we perform any actions */
+			if (id && path) {
+				/* action depends on mode */
+				switch (mode) {
+					case KEYINGSET_EDITMODE_ADD:
+					{
+						/* add a new path with the information obtained (only if valid) */
+						// TODO: what do we do with group name? for now, we don't supply one, and just let this use the KeyingSet name
+						BKE_keyingset_add_destination(ks, id, NULL, path, array_index, flag, groupmode);
+					}
+						break;
+					case KEYINGSET_EDITMODE_REMOVE:
+					{
+						/* find the relevant path, then remove it from the KeyingSet */
+						KS_Path *ksp= BKE_keyingset_find_destination(ks, id, NULL, path, array_index, groupmode);
+						
+						if (ksp) {
+							/* free path's data */
+							// TODO: we probably need an API method for this 
+							if (ksp->rna_path) MEM_freeN(ksp->rna_path);
+							
+							/* remove path from set */
+							BLI_freelinkN(&ks->paths, ksp);
+						}
+					}
+						break;
+				}
+				
+				/* free path, since it had to be generated */
+				MEM_freeN(path);
+			}
+			
+			
 		}
 		
 		/* go over sub-tree */
 		if ((tselem->flag & TSE_CLOSED)==0)
-			do_outliner_keyingset_editop(soops, ks, &te->subtree, edit_cb);
+			do_outliner_keyingset_editop(soops, ks, &te->subtree, mode);
 	}
 }
 
@@ -3279,8 +3311,7 @@ static int outliner_keyingset_additems_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	
 	/* recursively go into tree, adding selected items */
-	// TODO: make the last arg a callback func instead...
-	do_outliner_keyingset_editop(soutliner, ks, &soutliner->tree, ks_editop_add_cb);
+	do_outliner_keyingset_editop(soutliner, ks, &soutliner->tree, KEYINGSET_EDITMODE_ADD);
 	
 	/* send notifiers */
 	WM_event_add_notifier(C, NC_SCENE|ND_KEYINGSET, NULL);
@@ -3305,6 +3336,25 @@ void OUTLINER_OT_keyingset_add_selected(wmOperatorType *ot)
 
 /* Remove Operator ---------------------------------- */
 
+static int outliner_keyingset_removeitems_exec(bContext *C, wmOperator *op)
+{
+	SpaceOops *soutliner= (SpaceOops*)CTX_wm_space_data(C);
+	Scene *scene= CTX_data_scene(C);
+	KeyingSet *ks= verify_active_keyingset(scene, 1);
+	
+	/* check for invalid states */
+	if (soutliner == NULL)
+		return OPERATOR_CANCELLED;
+	
+	/* recursively go into tree, adding selected items */
+	do_outliner_keyingset_editop(soutliner, ks, &soutliner->tree, KEYINGSET_EDITMODE_REMOVE);
+	
+	/* send notifiers */
+	WM_event_add_notifier(C, NC_SCENE|ND_KEYINGSET, NULL);
+	
+	return OPERATOR_FINISHED;
+}
+
 void OUTLINER_OT_keyingset_remove_selected(wmOperatorType *ot)
 {
 	/* identifiers */
@@ -3312,6 +3362,7 @@ void OUTLINER_OT_keyingset_remove_selected(wmOperatorType *ot)
 	ot->name= "Keyingset Remove Selected";
 	
 	/* api callbacks */
+	ot->exec= outliner_keyingset_removeitems_exec;
 	ot->poll= ed_operator_outliner_datablocks_active;
 	
 	/* flags */
@@ -3325,7 +3376,7 @@ static void tselem_draw_icon(float x, float y, TreeStoreElem *tselem, TreeElemen
 	if(tselem->type) {
 		switch( tselem->type) {
 			case TSE_ANIM_DATA:
-				UI_icon_draw(x, y, ICON_IPO_DEHLT); break; // xxx
+				UI_icon_draw(x, y, ICON_ANIM_DATA); break; // xxx
 			case TSE_NLA:
 				UI_icon_draw(x, y, ICON_NLA); break;
 			case TSE_NLA_ACTION:
@@ -3334,13 +3385,13 @@ static void tselem_draw_icon(float x, float y, TreeStoreElem *tselem, TreeElemen
 				UI_icon_draw(x, y, ICON_VGROUP); break;
 			case TSE_BONE:
 			case TSE_EBONE:
-				UI_icon_draw(x, y, ICON_BONE_DEHLT); break;
+				UI_icon_draw(x, y, ICON_BONE_DATA); break;
 			case TSE_CONSTRAINT_BASE:
 				UI_icon_draw(x, y, ICON_CONSTRAINT); break;
 			case TSE_MODIFIER_BASE:
 				UI_icon_draw(x, y, ICON_MODIFIER); break;
 			case TSE_LINKED_OB:
-				UI_icon_draw(x, y, ICON_OBJECT); break;
+				UI_icon_draw(x, y, ICON_OBJECT_DATA); break;
 			case TSE_LINKED_PSYS:
 				UI_icon_draw(x, y, ICON_PARTICLES); break;
 			case TSE_MODIFIER:
@@ -3390,19 +3441,19 @@ static void tselem_draw_icon(float x, float y, TreeStoreElem *tselem, TreeElemen
 			case TSE_SCRIPT_BASE:
 				UI_icon_draw(x, y, ICON_TEXT); break;
 			case TSE_POSE_BASE:
-				UI_icon_draw(x, y, ICON_ARMATURE); break;
+				UI_icon_draw(x, y, ICON_ARMATURE_DATA); break;
 			case TSE_POSE_CHANNEL:
-				UI_icon_draw(x, y, ICON_BONE_DEHLT); break;
+				UI_icon_draw(x, y, ICON_BONE_DATA); break;
 			case TSE_PROXY:
 				UI_icon_draw(x, y, ICON_GHOST); break;
 			case TSE_R_LAYER_BASE:
 				UI_icon_draw(x, y, ICON_RENDERLAYERS); break;
 			case TSE_R_LAYER:
-				UI_icon_draw(x, y, ICON_IMAGE_DEHLT); break;
+				UI_icon_draw(x, y, ICON_RENDER_RESULT); break;
 			case TSE_LINKED_LAMP:
-				UI_icon_draw(x, y, ICON_LAMP_DEHLT); break;
+				UI_icon_draw(x, y, ICON_LAMP_DATA); break;
 			case TSE_LINKED_MAT:
-				UI_icon_draw(x, y, ICON_MATERIAL_DEHLT); break;
+				UI_icon_draw(x, y, ICON_MATERIAL_DATA); break;
 			case TSE_POSEGRP_BASE:
 				UI_icon_draw(x, y, ICON_VERTEXSEL); break;
 			case TSE_SEQUENCE:
@@ -3420,10 +3471,10 @@ static void tselem_draw_icon(float x, float y, TreeStoreElem *tselem, TreeElemen
 					UI_icon_draw(x, y, ICON_PARTICLES);
 				break;
 			case TSE_SEQ_STRIP:
-				UI_icon_draw(x, y, ICON_LIBRARY_DEHLT);
+				UI_icon_draw(x, y, ICON_LIBRARY_DATA_DIRECT);
 				break;
 			case TSE_SEQUENCE_DUP:
-				UI_icon_draw(x, y, ICON_OBJECT);
+				UI_icon_draw(x, y, ICON_OBJECT_DATA);
 				break;
 			case TSE_RNA_STRUCT:
 				UI_icon_draw(x, y, UI_GetIconRNA(&te->rnaptr));
@@ -3461,7 +3512,7 @@ static void tselem_draw_icon(float x, float y, TreeStoreElem *tselem, TreeElemen
 	else {
 		switch( GS(tselem->id->name)) {
 			case ID_SCE:
-				UI_icon_draw(x, y, ICON_SCENE_DEHLT); break;
+				UI_icon_draw(x, y, ICON_SCENE_DATA); break;
 			case ID_ME:
 				UI_icon_draw(x, y, ICON_OUTLINER_DATA_MESH); break;
 			case ID_CU:
@@ -3473,11 +3524,11 @@ static void tselem_draw_icon(float x, float y, TreeStoreElem *tselem, TreeElemen
 			case ID_LA:
 				UI_icon_draw(x, y, ICON_OUTLINER_DATA_LAMP); break;
 			case ID_MA:
-				UI_icon_draw(x, y, ICON_MATERIAL_DEHLT); break;
+				UI_icon_draw(x, y, ICON_MATERIAL_DATA); break;
 			case ID_TE:
-				UI_icon_draw(x, y, ICON_TEXTURE_DEHLT); break;
+				UI_icon_draw(x, y, ICON_TEXTURE_DATA); break;
 			case ID_IM:
-				UI_icon_draw(x, y, ICON_IMAGE_DEHLT); break;
+				UI_icon_draw(x, y, ICON_IMAGE_DATA); break;
 			case ID_SO:
 				UI_icon_draw(x, y, ICON_SPEAKER); break;
 			case ID_AR:
@@ -3485,9 +3536,9 @@ static void tselem_draw_icon(float x, float y, TreeStoreElem *tselem, TreeElemen
 			case ID_CA:
 				UI_icon_draw(x, y, ICON_OUTLINER_DATA_CAMERA); break;
 			case ID_KE:
-				UI_icon_draw(x, y, ICON_SHAPEKEY); break;
+				UI_icon_draw(x, y, ICON_SHAPEKEY_DATA); break;
 			case ID_WO:
-				UI_icon_draw(x, y, ICON_WORLD_DEHLT); break;
+				UI_icon_draw(x, y, ICON_WORLD_DATA); break;
 			case ID_AC:
 				UI_icon_draw(x, y, ICON_ACTION); break;
 			case ID_NLA:
@@ -3497,7 +3548,7 @@ static void tselem_draw_icon(float x, float y, TreeStoreElem *tselem, TreeElemen
 			case ID_GR:
 				UI_icon_draw(x, y, ICON_GROUP); break;
 			case ID_LI:
-				UI_icon_draw(x, y, ICON_LIBRARY_DEHLT); break;
+				UI_icon_draw(x, y, ICON_LIBRARY_DATA_DIRECT); break;
 		}
 	}
 }
@@ -3638,9 +3689,9 @@ static void outliner_draw_tree_element(Scene *scene, ARegion *ar, SpaceOops *soo
 		if(tselem->type==0 && tselem->id->lib) {
 			glPixelTransferf(GL_ALPHA_SCALE, 0.5f);
 			if(tselem->id->flag & LIB_INDIRECT)
-				UI_icon_draw((float)startx+offsx, (float)*starty+2, ICON_LIBRARY_HLT);
+				UI_icon_draw((float)startx+offsx, (float)*starty+2, ICON_LIBRARY_DATA_INDIRECT);
 			else
-				UI_icon_draw((float)startx+offsx, (float)*starty+2, ICON_LIBRARY_DEHLT);
+				UI_icon_draw((float)startx+offsx, (float)*starty+2, ICON_LIBRARY_DATA_DIRECT);
 			glPixelTransferf(GL_ALPHA_SCALE, 1.0f);
 			offsx+= OL_X;
 		}		
@@ -3877,8 +3928,6 @@ static void restrictbutton_view_cb(bContext *C, void *poin, void *poin2)
 		}
 	}
 
-	allqueue(REDRAWOOPS, 0);
-	allqueue(REDRAWVIEW3D, 0);
 }
 
 static void restrictbutton_sel_cb(bContext *C, void *poin, void *poin2)
@@ -3900,21 +3949,15 @@ static void restrictbutton_sel_cb(bContext *C, void *poin, void *poin2)
 		}
 	}
 
-	allqueue(REDRAWOOPS, 0);
-	allqueue(REDRAWVIEW3D, 0);
 }
 
 static void restrictbutton_rend_cb(bContext *C, void *poin, void *poin2)
 {
-	allqueue(REDRAWOOPS, 0);
-	allqueue(REDRAWVIEW3D, 0);
 }
 
 static void restrictbutton_r_lay_cb(bContext *C, void *poin, void *poin2)
 {
-	allqueue(REDRAWOOPS, 0);
-	allqueue(REDRAWNODE, 0);
-	allqueue(REDRAWBUTSSCENE, 0);
+	/* XXX redraws */
 }
 
 static void restrictbutton_modifier_cb(bContext *C, void *poin, void *poin2)
@@ -3925,17 +3968,11 @@ static void restrictbutton_modifier_cb(bContext *C, void *poin, void *poin2)
 	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
 	object_handle_update(scene, ob);
 
-	allqueue(REDRAWOOPS, 0);
-	allqueue(REDRAWVIEW3D, 0);
-	allqueue(REDRAWBUTSEDIT, 0);
-	allqueue(REDRAWBUTSOBJECT, 0);
 }
 
 static void restrictbutton_bone_cb(bContext *C, void *poin, void *poin2)
 {
-	allqueue(REDRAWOOPS, 0);
-	allqueue(REDRAWVIEW3D, 0);
-	allqueue(REDRAWBUTSEDIT, 0);
+	/* XXX redraws */
 }
 
 static void namebutton_cb(bContext *C, void *tep, void *oldnamep)
@@ -3965,7 +4002,6 @@ static void namebutton_cb(bContext *C, void *tep, void *oldnamep)
 			switch(tselem->type) {
 			case TSE_DEFGROUP:
 				unique_vertexgroup_name(te->directdata, (Object *)tselem->id); //	id = object
-				allqueue(REDRAWBUTSEDIT, 0);
 				break;
 			case TSE_NLA_ACTION:
 				test_idbutton(tselem->id->name+2);
@@ -3982,9 +4018,6 @@ static void namebutton_cb(bContext *C, void *tep, void *oldnamep)
 					BLI_strncpy(ebone->name, oldnamep, 32);
 // XXX					armature_bone_rename(obedit->data, oldnamep, newname);
 				}
-				allqueue(REDRAWOOPS, 0);
-				allqueue(REDRAWVIEW3D, 1);
-				allqueue(REDRAWBUTSEDIT, 0);
 			}
 				break;
 
@@ -4003,9 +4036,6 @@ static void namebutton_cb(bContext *C, void *tep, void *oldnamep)
 					BLI_strncpy(bone->name, oldnamep, 32);
 // XXX					armature_bone_rename(ob->data, oldnamep, newname);
 				}
-				allqueue(REDRAWOOPS, 0);
-				allqueue(REDRAWVIEW3D, 1);
-				allqueue(REDRAWBUTSEDIT, 0);
 				break;
 			case TSE_POSE_CHANNEL:
 				{
@@ -4022,9 +4052,6 @@ static void namebutton_cb(bContext *C, void *tep, void *oldnamep)
 					BLI_strncpy(pchan->name, oldnamep, 32);
 // XXX					armature_bone_rename(ob->data, oldnamep, newname);
 				}
-				allqueue(REDRAWOOPS, 0);
-				allqueue(REDRAWVIEW3D, 1);
-				allqueue(REDRAWBUTSEDIT, 0);
 				break;
 			case TSE_POSEGRP:
 				{
@@ -4032,12 +4059,9 @@ static void namebutton_cb(bContext *C, void *tep, void *oldnamep)
 					bActionGroup *grp= te->directdata;
 					
 					BLI_uniquename(&ob->pose->agroups, grp, "Group", offsetof(bActionGroup, name), 32);
-					allqueue(REDRAWBUTSEDIT, 0);
 				}
 				break;
 			case TSE_R_LAYER:
-				allqueue(REDRAWOOPS, 0);
-				allqueue(REDRAWBUTSSCENE, 0);
 				break;
 			}
 		}
@@ -4059,17 +4083,17 @@ static void outliner_draw_restrictbuts(uiBlock *block, Scene *scene, ARegion *ar
 				ob = (Object *)tselem->id;
 				
 				uiBlockSetEmboss(block, UI_EMBOSSN);
-				bt= uiDefIconButBitS(block, ICONTOG, OB_RESTRICT_VIEW, REDRAWALL, ICON_RESTRICT_VIEW_OFF, 
+				bt= uiDefIconButBitS(block, ICONTOG, OB_RESTRICT_VIEW, 0, ICON_RESTRICT_VIEW_OFF, 
 						(int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_VIEWX, (short)te->ys, 17, OL_H-1, &(ob->restrictflag), 0, 0, 0, 0, "Restrict/Allow visibility in the 3D View");
 				uiButSetFunc(bt, restrictbutton_view_cb, scene, ob);
 				uiButSetFlag(bt, UI_NO_HILITE);
 				
-				bt= uiDefIconButBitS(block, ICONTOG, OB_RESTRICT_SELECT, REDRAWALL, ICON_RESTRICT_SELECT_OFF, 
+				bt= uiDefIconButBitS(block, ICONTOG, OB_RESTRICT_SELECT, 0, ICON_RESTRICT_SELECT_OFF, 
 						(int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_SELECTX, (short)te->ys, 17, OL_H-1, &(ob->restrictflag), 0, 0, 0, 0, "Restrict/Allow selection in the 3D View");
 				uiButSetFunc(bt, restrictbutton_sel_cb, scene, ob);
 				uiButSetFlag(bt, UI_NO_HILITE);
 				
-				bt= uiDefIconButBitS(block, ICONTOG, OB_RESTRICT_RENDER, REDRAWALL, ICON_RESTRICT_RENDER_OFF, 
+				bt= uiDefIconButBitS(block, ICONTOG, OB_RESTRICT_RENDER, 0, ICON_RESTRICT_RENDER_OFF, 
 						(int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_RENDERX, (short)te->ys, 17, OL_H-1, &(ob->restrictflag), 0, 0, 0, 0, "Restrict/Allow renderability");
 				uiButSetFunc(bt, restrictbutton_rend_cb, NULL, NULL);
 				uiButSetFlag(bt, UI_NO_HILITE);
@@ -4080,7 +4104,7 @@ static void outliner_draw_restrictbuts(uiBlock *block, Scene *scene, ARegion *ar
 			else if(tselem->type==TSE_R_LAYER) {
 				uiBlockSetEmboss(block, UI_EMBOSSN);
 				
-				bt= uiDefIconButBitI(block, ICONTOGN, SCE_LAY_DISABLE, REDRAWBUTSSCENE, ICON_CHECKBOX_HLT-1, 
+				bt= uiDefIconButBitI(block, ICONTOGN, SCE_LAY_DISABLE, 0, ICON_CHECKBOX_HLT-1, 
 									 (int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_VIEWX, (short)te->ys, 17, OL_H-1, te->directdata, 0, 0, 0, 0, "Render this RenderLayer");
 				uiButSetFunc(bt, restrictbutton_r_lay_cb, NULL, NULL);
 				
@@ -4091,13 +4115,13 @@ static void outliner_draw_restrictbuts(uiBlock *block, Scene *scene, ARegion *ar
 				uiBlockSetEmboss(block, UI_EMBOSSN);
 				
 				/* NOTE: tselem->nr is short! */
-				bt= uiDefIconButBitI(block, ICONTOG, tselem->nr, REDRAWBUTSSCENE, ICON_CHECKBOX_HLT-1, 
+				bt= uiDefIconButBitI(block, ICONTOG, tselem->nr, 0, ICON_CHECKBOX_HLT-1, 
 									 (int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_VIEWX, (short)te->ys, 17, OL_H-1, layflag, 0, 0, 0, 0, "Render this Pass");
 				uiButSetFunc(bt, restrictbutton_r_lay_cb, NULL, NULL);
 				
 				layflag++;	/* is lay_xor */
 				if(ELEM6(tselem->nr, SCE_PASS_SPEC, SCE_PASS_SHADOW, SCE_PASS_AO, SCE_PASS_REFLECT, SCE_PASS_REFRACT, SCE_PASS_RADIO))
-					bt= uiDefIconButBitI(block, TOG, tselem->nr, REDRAWBUTSSCENE, (*layflag & tselem->nr)?ICON_DOT:ICON_BLANK1, 
+					bt= uiDefIconButBitI(block, TOG, tselem->nr, 0, (*layflag & tselem->nr)?ICON_DOT:ICON_BLANK1, 
 									 (int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_SELECTX, (short)te->ys, 17, OL_H-1, layflag, 0, 0, 0, 0, "Exclude this Pass from Combined");
 				uiButSetFunc(bt, restrictbutton_r_lay_cb, NULL, NULL);
 				
@@ -4108,12 +4132,12 @@ static void outliner_draw_restrictbuts(uiBlock *block, Scene *scene, ARegion *ar
 				ob = (Object *)tselem->id;
 				
 				uiBlockSetEmboss(block, UI_EMBOSSN);
-				bt= uiDefIconButBitI(block, ICONTOGN, eModifierMode_Realtime, REDRAWALL, ICON_RESTRICT_VIEW_OFF, 
+				bt= uiDefIconButBitI(block, ICONTOGN, eModifierMode_Realtime, 0, ICON_RESTRICT_VIEW_OFF, 
 						(int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_VIEWX, (short)te->ys, 17, OL_H-1, &(md->mode), 0, 0, 0, 0, "Restrict/Allow visibility in the 3D View");
 				uiButSetFunc(bt, restrictbutton_modifier_cb, scene, ob);
 				uiButSetFlag(bt, UI_NO_HILITE);
 				
-				bt= uiDefIconButBitI(block, ICONTOGN, eModifierMode_Render, REDRAWALL, ICON_RESTRICT_RENDER_OFF, 
+				bt= uiDefIconButBitI(block, ICONTOGN, eModifierMode_Render, 0, ICON_RESTRICT_RENDER_OFF, 
 						(int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_RENDERX, (short)te->ys, 17, OL_H-1, &(md->mode), 0, 0, 0, 0, "Restrict/Allow renderability");
 				uiButSetFunc(bt, restrictbutton_modifier_cb, scene, ob);
 				uiButSetFlag(bt, UI_NO_HILITE);
@@ -4123,7 +4147,7 @@ static void outliner_draw_restrictbuts(uiBlock *block, Scene *scene, ARegion *ar
 				Bone *bone = pchan->bone;
 
 				uiBlockSetEmboss(block, UI_EMBOSSN);
-				bt= uiDefIconButBitI(block, ICONTOG, BONE_HIDDEN_P, REDRAWALL, ICON_RESTRICT_VIEW_OFF, 
+				bt= uiDefIconButBitI(block, ICONTOG, BONE_HIDDEN_P, 0, ICON_RESTRICT_VIEW_OFF, 
 						(int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_VIEWX, (short)te->ys, 17, OL_H-1, &(bone->flag), 0, 0, 0, 0, "Restrict/Allow visibility in the 3D View");
 				uiButSetFunc(bt, restrictbutton_bone_cb, NULL, NULL);
 				uiButSetFlag(bt, UI_NO_HILITE);
@@ -4132,7 +4156,7 @@ static void outliner_draw_restrictbuts(uiBlock *block, Scene *scene, ARegion *ar
 				EditBone *ebone= (EditBone *)te->directdata;
 
 				uiBlockSetEmboss(block, UI_EMBOSSN);
-				bt= uiDefIconButBitI(block, ICONTOG, BONE_HIDDEN_A, REDRAWALL, ICON_RESTRICT_VIEW_OFF, 
+				bt= uiDefIconButBitI(block, ICONTOG, BONE_HIDDEN_A, 0, ICON_RESTRICT_VIEW_OFF, 
 						(int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_VIEWX, (short)te->ys, 17, OL_H-1, &(ebone->flag), 0, 0, 0, 0, "Restrict/Allow visibility in the 3D View");
 				uiButSetFunc(bt, restrictbutton_bone_cb, NULL, NULL);
 				uiButSetFlag(bt, UI_NO_HILITE);

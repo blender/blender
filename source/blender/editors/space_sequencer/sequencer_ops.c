@@ -90,6 +90,7 @@ void sequencer_operatortypes(void)
 	WM_operatortype_append(SEQUENCER_OT_select_pick_linked);
 	WM_operatortype_append(SEQUENCER_OT_select_linked);
 	WM_operatortype_append(SEQUENCER_OT_select_handles);
+	WM_operatortype_append(SEQUENCER_OT_select_active_side);
 	WM_operatortype_append(SEQUENCER_OT_borderselect);
 	
 	/* sequencer_add.c */
@@ -104,6 +105,7 @@ void sequencer_operatortypes(void)
 void sequencer_keymap(wmWindowManager *wm)
 {
 	ListBase *keymap= WM_keymap_listbase(wm, "Sequencer", SPACE_SEQ, 0);
+	wmKeymapItem *kmi;
 	
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_deselect_all", AKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_select_invert", IKEY, KM_PRESS, KM_CTRL, 0);
@@ -137,15 +139,37 @@ void sequencer_keymap(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_view_all", HOMEKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_view_selected", PADPERIOD, KM_PRESS, 0, 0);
 
-	
+
+	/* Mouse selection, a bit verbose :/ */
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_select", SELECTMOUSE, KM_PRESS, 0, 0);
-	RNA_enum_set(WM_keymap_add_item(keymap, "SEQUENCER_OT_select", SELECTMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "type", 1);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "SEQUENCER_OT_select", SELECTMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "extend", 1);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "SEQUENCER_OT_select", SELECTMOUSE, KM_PRESS, KM_CTRL, 0)->ptr, "linked_left", 1);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "SEQUENCER_OT_select", SELECTMOUSE, KM_PRESS, KM_ALT, 0)->ptr, "linked_right", 1);
 	
+	kmi= WM_keymap_add_item(keymap, "SEQUENCER_OT_select", SELECTMOUSE, KM_PRESS, KM_CTRL|KM_ALT, 0);
+	RNA_boolean_set(kmi->ptr, "linked_left", 1);
+	RNA_boolean_set(kmi->ptr, "linked_right", 1);
+
+	kmi= WM_keymap_add_item(keymap, "SEQUENCER_OT_select", SELECTMOUSE, KM_PRESS, KM_SHIFT|KM_CTRL|KM_ALT, 0);
+	RNA_boolean_set(kmi->ptr, "extend", 1);
+	RNA_boolean_set(kmi->ptr, "linked_left", 1);
+	RNA_boolean_set(kmi->ptr, "linked_right", 1);
+
+	kmi= WM_keymap_add_item(keymap, "SEQUENCER_OT_select", SELECTMOUSE, KM_PRESS, KM_SHIFT|KM_CTRL, 0);
+	RNA_boolean_set(kmi->ptr, "extend", 1);
+	RNA_boolean_set(kmi->ptr, "linked_left", 1);
+
+	kmi= WM_keymap_add_item(keymap, "SEQUENCER_OT_select", SELECTMOUSE, KM_PRESS, KM_SHIFT|KM_ALT, 0);
+	RNA_boolean_set(kmi->ptr, "extend", 1);
+	RNA_boolean_set(kmi->ptr, "linked_right", 1);
+
+	
+
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_select_more", PADPLUSKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_select_less", PADMINUS, KM_PRESS, KM_CTRL, 0);
 	
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_select_pick_linked", LKEY, KM_PRESS, 0, 0);
-	RNA_enum_set(WM_keymap_add_item(keymap, "SEQUENCER_OT_select_pick_linked", LKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "type", 1);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "SEQUENCER_OT_select_pick_linked", LKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "extend", 1);
 	
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_select_linked", LKEY, KM_PRESS, KM_CTRL, 0);
 	

@@ -44,14 +44,15 @@ struct wmTimer;
 typedef struct bScreen {
 	ID id;
 	
-	ListBase vertbase, edgebase;
+	ListBase vertbase;					/* screens have vertices/edges to define areas */
+	ListBase edgebase;
 	ListBase areabase;
-	ListBase regionbase;				/* screen level regions, runtime only */
+	ListBase regionbase;				/* screen level regions (menus), runtime only */
+	
 	struct Scene *scene;
 	
-	short scenenr, screennr;			/* only for pupmenu */
-	
-	short full, winid;					/* winid from WM, starts with 1 */
+	short full;							/* fade out? */
+	short winid;						/* winid from WM, starts with 1 */
 	short do_draw;						/* notifier for drawing edges */
 	short do_refresh;					/* notifier for scale screen, changed screen, etc */
 	short do_draw_gesture;				/* notifier for gesture draw. */
@@ -61,6 +62,8 @@ typedef struct bScreen {
 	
 	short mainwin;						/* screensize subwindow, for screenedges and global menus */
 	short subwinactive;					/* active subwindow */
+	
+	int pad2;
 	
 	struct wmTimer *animtimer;			/* if set, screen has timer handler added in window */
 	void *context;						/* context callback */
@@ -213,6 +216,8 @@ typedef struct ARegion {
 #define RGN_OVERLAP_BOTTOM	10
 #define RGN_OVERLAP_LEFT	11
 #define RGN_OVERLAP_RIGHT	12
+
+#define RGN_SPLIT_PREV		32
 
 /* region flag */
 #define RGN_FLAG_HIDDEN		1

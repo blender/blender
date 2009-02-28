@@ -99,6 +99,7 @@ void	ED_keymap_screen(struct wmWindowManager *wm);
 int		ED_operator_screenactive(struct bContext *C);
 int		ED_operator_screen_mainwinactive(struct bContext *C);
 int		ED_operator_areaactive(struct bContext *C);
+int		ED_operator_regionactive(struct bContext *C);
 
 int		ED_operator_scene_editable(struct bContext *C);
 
@@ -119,6 +120,7 @@ int		ED_operator_editarmature(struct bContext *C);
 int		ED_operator_editcurve(struct bContext *C);
 int		ED_operator_editsurf(struct bContext *C);
 int		ED_operator_editsurfcurve(struct bContext *C);
+int		ED_operator_editfont(struct bContext *C);
 int		ED_operator_uvedit(struct bContext *C);
 int		ED_operator_uvmap(struct bContext *C);
 int		ED_operator_posemode(struct bContext *C);

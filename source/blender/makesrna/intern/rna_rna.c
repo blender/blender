@@ -532,6 +532,7 @@ static void rna_def_property(BlenderRNA *brna)
 		{PROP_MATRIX, "MATRIX", "Matrix", ""},
 		{PROP_ROTATION, "ROTATION", "Rotation", ""},
 		{PROP_NEVER_NULL, "NEVER_NULL", "Never Null", ""},
+		{PROP_PERCENTAGE, "PERCENTAGE", "Percentage", ""},
 		{0, NULL, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "Property", NULL);

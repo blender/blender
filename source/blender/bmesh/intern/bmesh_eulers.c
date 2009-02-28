@@ -909,7 +909,6 @@ BMFace *bmesh_jfke(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e)
 	BMLoop *curloop, *f1loop=NULL, *f2loop=NULL;
 	int loopok = 0, newlen = 0,i, f1len=0, f2len=0, radlen=0, edok, shared;
 	
-	/*need to reinsert logic for checking to make sure that faces only share one edge!*/
 	if(f1 == f2) return NULL; //can't join a face to itself
 	/*verify that e is in both f1 and f2*/
 	f1len = bmesh_cycle_length(f1->loopbase);
@@ -947,7 +946,6 @@ BMFace *bmesh_jfke(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e)
 	/*validate only one shared edge*/
 	shared = BM_Face_Sharededges(f1,f2);
 	if(shared > 1) return NULL;
-
 
 	/*join the two loops*/
 	f1loop->head.prev->next = f2loop->head.next;

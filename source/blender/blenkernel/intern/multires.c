@@ -236,7 +236,7 @@ static void multires_subdisp(DerivedMesh *orig, Mesh *me, DerivedMesh *final, in
 
 	for(i = 0; i < me->totface; ++i) {
 		const int end = me->mface[i].v4 ? 4 : 3;
-		int x, y, x2, y2, mov;
+		int x, y, x2, y2, mov= 0;
 
 		mvd_f1 += 1 + end * (slo2-2); //center+edgecross
 		mvd_f3 = mvd_f4 = mvd_f1;
@@ -268,7 +268,7 @@ static void multires_subdisp(DerivedMesh *orig, Mesh *me, DerivedMesh *final, in
 
 					/* Main face verts */
 					for(k = 0; k < 4; ++k) {
-						int movx, movy;
+						int movx= 0, movy= 0;
 
 						if(k == 0) { movx = -1; movy = -(slo2 - 2); }
 						else if(k == 1) { movx = slo2 - 2; movy = -1; }

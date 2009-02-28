@@ -40,6 +40,11 @@
 #define EVT_DATA_GESTURE	2
 #define EVT_DATA_TIMER		3
 
+/* tablet active */
+#define EVT_TABLET_NONE		0
+#define EVT_TABLET_STYLUS	1
+#define EVT_TABLET_ERASER	2
+
 #define MOUSEX		0x004	
 #define MOUSEY		0x005	
 
@@ -60,16 +65,7 @@
 
 
 /* SYSTEM : 0x01x */
-#define KEYBD			0x0100	/* keyboard */
-#define RAWKEYBD		0x0101	/* raw keyboard for keyboard manager */
-#define REDRAW			0x0102	/* used by port manager to signal redraws */
 #define	INPUTCHANGE		0x0103	/* input connected or disconnected */
-#define	QFULL			0x0104	/* queue was filled */
-#define WINFREEZE		0x0105	/* user wants process in this win to shut up */
-#define WINTHAW			0x0106	/* user wants process in this win to go again */
-#define WINCLOSE		0x0107	/* window close */
-#define WINQUIT			0x0108	/* signal from user that app is to go away */
-#define Q_FIRSTTIME		0x0109	/* on startup */
 
 #define TIMER			0x0110	/* timer event, passed on to all queues */
 #define TIMER0			0x0111	/* timer event, slot for internal use */
@@ -196,69 +192,6 @@
 /* for event checks */
 #define ISKEYBOARD(event)	(event >='a' && event <=255)
 
-
-/* **************** BLENDER QUEUE EVENTS ********************* */
-
-#define CHANGED				0x4000
-#define DRAWEDGES			0x4001
-#define AFTERQUEUE			0x4002
-#define BACKBUFDRAW			0x4003
-#define EXECUTE				0x4004
-#define IGNORE_REDRAW		0x4005
-#define LOAD_FILE			0x4006
-#define RESHAPE				0x4007
-#define UI_BUT_EVENT		0x4008
-#define AUTOSAVE_FILE		0x4009
-#define UNDOPUSH			0x400A
-
-/* REDRAWVIEW3D has to be the first one (lowest number) for buttons! */
-#define REDRAWVIEW3D		0x4010
-#define REDRAWVIEWCAM		0x4011
-#define REDRAWVIEW3D_Z		0x4012
-
-#define REDRAWALL			0x4013
-#define REDRAWHEADERS		0x4014
-
-#define REDRAWBUTSHEAD		0x4015
-#define REDRAWBUTSALL		0x4016
-
-#define REDRAWBUTSSCENE		0x4017
-#define REDRAWBUTSOBJECT	0x4018
-#define REDRAWBUTSEDIT		0x4019
-#define REDRAWBUTSSCRIPT	0x401A
-#define REDRAWBUTSLOGIC		0x401B
-#define REDRAWBUTSSHADING	0x401C
-#define REDRAWBUTSGAME		0x401D
-#define REDRAWBUTSEFFECTS	0x401D
-
-#define REDRAWINFO			0x4021
-#define RENDERPREVIEW		0x4022
-#define REDRAWIPO			0x4023
-#define REDRAWDATASELECT	0x4024
-#define REDRAWSEQ			0x4025
-#define REDRAWIMAGE			0x4026
-#define REDRAWOOPS			0x4027
-#define REDRAWIMASEL        0x4028
-#define AFTERIMASELIMA      0x4029
-#define AFTERIMASELGET      0x402A
-#define AFTERIMAWRITE       0x402B
-#define IMALEFTMOUSE		0x402C
-#define AFTERPIBREAD        0x402D
-#define REDRAWTEXT	        0x402E
-#define REDRAWSOUND			0x402F
-#define REDRAWACTION		0x4030
-#define REDRAWNLA			0x4031
-#define REDRAWSCRIPT		0x4032
-#define REDRAWTIME			0x4033
-#define REDRAWBUTSCONSTRAINT	0x4034
-#define ONLOAD_SCRIPT		0x4035
-#define SCREEN_HANDLER		0x4036
-#define REDRAWANIM			0x4037
-#define REDRAWNODE			0x4038
-#define RECALC_COMPOSITE	0x4039
-#define REDRAWMARKER		0x4040 /* all views that display markers */
-#define REDRAWVIEW3D_IMAGE	0x4041
-
 /* **************** BLENDER GESTURE EVENTS ********************* */
 
 #define EVT_ACTIONZONE	0x5001
@@ -269,8 +202,6 @@
 		/* tweak events for action or select mousebutton */
 #define EVT_TWEAK_A		0x5005
 #define EVT_TWEAK_S		0x5006
-
-
 
 #define EVT_GESTURE		0x5010
 
@@ -292,6 +223,18 @@
 #define EVT_GESTURE_S_W		14
 #define EVT_GESTURE_W_S		15
 #define EVT_GESTURE_W_N		16
+
+/* **************** OTHER BLENDER EVENTS ********************* */
+
+/* event->type */
+#define EVT_FILESELECT	0x5020
+
+/* event->val */
+#define EVT_FILESELECT_OPEN			1
+#define EVT_FILESELECT_FULL_OPEN	2
+#define EVT_FILESELECT_EXEC			3
+#define EVT_FILESELECT_CANCEL		4	
+
 
 #endif	/* WM_EVENT_TYPES_H */
 

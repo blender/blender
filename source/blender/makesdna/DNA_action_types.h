@@ -289,14 +289,13 @@ typedef enum DOPESHEET_FILTERFLAG {
 	ADS_FILTER_ONLYDRIVERS		= (1<<1),
 	
 		/* datatype-based filtering */
-	ADS_FILTER_NOOBJ			= (1<<4),	// XXX
-	ADS_FILTER_NOARM			= (1<<5),	// XXX
-	
 	ADS_FILTER_NOSHAPEKEYS 		= (1<<6),
 	ADS_FILTER_NOCAM			= (1<<10),
 	ADS_FILTER_NOMAT			= (1<<11),
 	ADS_FILTER_NOLAM			= (1<<12),
 	ADS_FILTER_NOCUR			= (1<<13),
+	ADS_FILTER_NOWOR			= (1<<14),
+	ADS_FILTER_NOSCE			= (1<<15),
 	
 		/* combination filters (some only used at runtime) */
 	ADS_FILTER_NOOBDATA = (ADS_FILTER_NOCAM|ADS_FILTER_NOMAT|ADS_FILTER_NOLAM|ADS_FILTER_NOCUR),

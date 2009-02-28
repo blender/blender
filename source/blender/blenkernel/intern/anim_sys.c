@@ -167,6 +167,56 @@ AnimData *BKE_copy_animdata (AnimData *adt)
  * from Python/scripts so that riggers can automate the creation of KeyingSets for their rigs.
  */
 
+/* Finding Tools --------------------------- */
+
+/* Find the first path that matches the given criteria */
+// TODO: do we want some method to perform partial matches too?
+KS_Path *BKE_keyingset_find_destination (KeyingSet *ks, ID *id, const char group_name[], const char rna_path[], int array_index, int group_mode)
+{
+	KS_Path *ksp;
+	
+	/* sanity checks */
+	if ELEM(NULL, ks, rna_path)
+		return NULL;
+	
+	/* ID is optional for relative KeyingSets, but is necessary for absolute KeyingSets */
+	if (id == NULL) {
+		if (ks->flag & KEYINGSET_ABSOLUTE)
+			return NULL;
+	}
+	
+	/* loop over paths in the current KeyingSet, finding the first one where all settings match 
+	 * (i.e. the first one where none of the checks fail and equal 0)
+	 */
+	for (ksp= ks->paths.first; ksp; ksp= ksp->next) {
+		short eq_id=1, eq_path=1, eq_index=1, eq_group=1;
+		
+		/* id */
+		if ((ks->flag & KEYINGSET_ABSOLUTE) && (id != ksp->id))
+			eq_id= 0;
+		
+		/* path */
+		if ((ksp->rna_path==0) || strcmp(rna_path, ksp->rna_path))
+			eq_path= 0;
+			
+		/* index */
+		if (ksp->array_index != array_index)
+			eq_index= 0;
+			
+		/* group */
+		if (group_name) {
+			// FIXME: these checks need to be coded... for now, it's not too important though
+		}
+			
+		/* if all aspects are ok, return */
+		if (eq_id && eq_path && eq_index && eq_group)
+			return ksp;
+	}
+	
+	/* none found */
+	return NULL;
+}
+ 
 /* Defining Tools --------------------------- */
 
 /* Used to create a new 'custom' KeyingSet for the user, that will be automatically added to the stack */
@@ -195,7 +245,7 @@ KeyingSet *BKE_keyingset_add (ListBase *list, const char name[], short flag, sho
 /* Add a destination to a KeyingSet. Nothing is returned for now...
  * Checks are performed to ensure that destination is appropriate for the KeyingSet in question
  */
-void BKE_keyingset_add_destination (KeyingSet *ks, ID *id, const char group_name[], const char rna_path[], int array_index, int flag)
+void BKE_keyingset_add_destination (KeyingSet *ks, ID *id, const char group_name[], const char rna_path[], int array_index, short flag, short groupmode)
 {
 	KS_Path *ksp;
 	
@@ -203,11 +253,15 @@ void BKE_keyingset_add_destination (KeyingSet *ks, ID *id, const char group_name
 	if ELEM(NULL, ks, rna_path)
 		return;
 	
-	/* ID is optional, and should only be provided for absolute KeyingSets */
-	if (id) {
-		if ((ks->flag & KEYINGSET_ABSOLUTE) == 0)
+	/* ID is optional for relative KeyingSets, but is necessary for absolute KeyingSets */
+	if (id == NULL) {
+		if (ks->flag & KEYINGSET_ABSOLUTE)
 			return;
 	}
+	
+	/* don't add if there is already a matching KS_Path in the KeyingSet */
+	if (BKE_keyingset_find_destination(ks, id, group_name, rna_path, array_index, groupmode))
+		return;
 	
 	/* allocate a new KeyingSet Path */
 	ksp= MEM_callocN(sizeof(KS_Path), "KeyingSet Path");
@@ -229,6 +283,7 @@ void BKE_keyingset_add_destination (KeyingSet *ks, ID *id, const char group_name
 	
 	/* store flags */
 	ksp->flag= flag;
+	ksp->groupmode= groupmode;
 	
 	/* add KeyingSet path to KeyingSet */
 	BLI_addtail(&ks->paths, ksp);

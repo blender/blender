@@ -50,6 +50,7 @@
 #include "BKE_scene.h"
 #include "BKE_utildefines.h"
 
+#include "ED_fileselect.h"
 #include "ED_screen.h"
 #include "ED_space_api.h"
 #include "ED_util.h"
@@ -140,6 +141,14 @@ void wm_event_do_notifiers(bContext *C)
 		CTX_wm_window_set(C, win);
 		
 		for(note= wm->queue.first; note; note= note->next) {
+			if(note->category==NC_WM) {
+				if( ELEM(note->data, ND_FILEREAD, ND_FILESAVE)) {
+					wm->file_saved= 1;
+					wm_window_title(wm, win);
+				}
+				else if(note->data==ND_DATACHANGED)
+					wm_window_title(wm, win);
+			}
 			if(note->window==win) {
 				if(note->category==NC_SCREEN) {
 					if(note->data==ND_SCREENBROWSE)
@@ -176,7 +185,7 @@ void wm_event_do_notifiers(bContext *C)
 				/* XXX context in notifiers? */
 				CTX_wm_window_set(C, win);
 
-				/* printf("notifier win %d screen %s\n", win->winid, win->screen->id.name+2); */
+				/* printf("notifier win %d screen %s cat %x\n", win->winid, win->screen->id.name+2, note->category); */
 				ED_screen_do_listen(win, note);
 
 				for(ar=win->screen->regionbase.first; ar; ar= ar->next) {
@@ -313,6 +322,16 @@ static void wm_operator_print(wmOperator *op)
 	MEM_freeN(buf);
 }
 
+static void wm_region_mouse_co(bContext *C, wmEvent *event)
+{
+	ARegion *ar= CTX_wm_region(C);
+	if(ar) {
+		/* compatibility convention */
+		event->mval[0]= event->x - ar->winrct.xmin;
+		event->mval[1]= event->y - ar->winrct.ymin;
+	}
+}
+
 static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, PointerRNA *properties)
 {
 	wmWindowManager *wm= CTX_wm_manager(C);
@@ -324,8 +343,10 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, P
 		if((G.f & G_DEBUG) && event && event->type!=MOUSEMOVE)
 			printf("handle evt %d win %d op %s\n", event?event->type:0, CTX_wm_screen(C)->subwinactive, ot->idname); 
 		
-		if(op->type->invoke && event)
-			retval= (*op->type->invoke)(C, op, event);
+		if(op->type->invoke && event) {
+			wm_region_mouse_co(C, event);
+			retval= op->type->invoke(C, op, event);
+		}
 		else if(op->type->exec)
 			retval= op->type->exec(C, op);
 		else
@@ -455,10 +476,40 @@ int WM_operator_call_py(bContext *C, wmOperatorType *ot, PointerRNA *properties,
 
 /* ********************* handlers *************** */
 
-/* not handler itself, is called by UI to move handlers to other queues, so don't close modal ones */
+/* future extra customadata free? */
 static void wm_event_free_handler(wmEventHandler *handler)
 {
+	MEM_freeN(handler);
+}
+
+/* only set context when area/region is part of screen */
+static void wm_handler_op_context(bContext *C, wmEventHandler *handler)
+{
+	bScreen *screen= CTX_wm_screen(C);
 	
+	if(screen && handler->op) {
+		if(handler->op_area==NULL)
+			CTX_wm_area_set(C, NULL);
+		else {
+			ScrArea *sa;
+			
+			for(sa= screen->areabase.first; sa; sa= sa->next)
+				if(sa==handler->op_area)
+					break;
+			if(sa==NULL)
+				printf("internal error: handler (%s) has invalid area\n", handler->op->type->idname);
+			else {
+				ARegion *ar;
+				CTX_wm_area_set(C, sa);
+				for(ar= sa->regionbase.first; ar; ar= ar->next)
+					if(ar==handler->op_region)
+						break;
+				/* XXX no warning print here, after full-area and back regions are remade */
+				if(ar)
+					CTX_wm_region_set(C, ar);
+			}
+		}
+	}
 }
 
 /* called on exit or remove area, only here call cancel callback */
@@ -475,8 +526,7 @@ void WM_event_remove_handlers(bContext *C, ListBase *handlers)
 				ScrArea *area= CTX_wm_area(C);
 				ARegion *region= CTX_wm_region(C);
 				
-				CTX_wm_area_set(C, handler->op_area);
-				CTX_wm_region_set(C, handler->op_region);
+				wm_handler_op_context(C, handler);
 
 				handler->op->type->cancel(C, handler->op);
 
@@ -500,7 +550,6 @@ void WM_event_remove_handlers(bContext *C, ListBase *handlers)
 		}
 
 		wm_event_free_handler(handler);
-		MEM_freeN(handler);
 	}
 }
 
@@ -597,9 +646,9 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 			ScrArea *area= CTX_wm_area(C);
 			ARegion *region= CTX_wm_region(C);
 			
-			CTX_wm_area_set(C, handler->op_area);
-			CTX_wm_region_set(C, handler->op_region);
+			wm_handler_op_context(C, handler);
 			
+			wm_region_mouse_co(C, event);
 			retval= ot->modal(C, op, event);
 
 			/* putting back screen context, reval can pass trough after modal failures! */
@@ -641,7 +690,6 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 			if(retval & (OPERATOR_CANCELLED|OPERATOR_FINISHED)) {
 				BLI_remlink(handlers, handler);
 				wm_event_free_handler(handler);
-				MEM_freeN(handler);
 				
 				/* prevent silly errors from operator users */
 				//retval &= ~OPERATOR_PASS_THROUGH;
@@ -693,6 +741,88 @@ static int wm_handler_ui_call(bContext *C, wmEventHandler *handler, wmEvent *eve
 	return WM_HANDLER_CONTINUE;
 }
 
+/* fileselect handlers are only in the window queue, so it's save to switch screens or area types */
+static int wm_handler_fileselect_call(bContext *C, ListBase *handlers, wmEventHandler *handler, wmEvent *event)
+{
+	SpaceFile *sfile;
+	int action= WM_HANDLER_CONTINUE;
+	
+	if(event->type != EVT_FILESELECT)
+		return action;
+	if(handler->op != (wmOperator *)event->customdata)
+		return action;
+	
+	switch(event->val) {
+		case EVT_FILESELECT_OPEN: 
+		case EVT_FILESELECT_FULL_OPEN: 
+			{
+				int filetype= FILE_BLENDER;
+				char *path= RNA_string_get_alloc(handler->op->ptr, "filename", NULL, 0);
+					
+				if(RNA_struct_find_property(handler->op->ptr, "filetype"))
+					filetype= RNA_int_get(handler->op->ptr, "filetype");
+				
+				if(event->val==EVT_FILESELECT_OPEN)
+					ED_area_newspace(C, handler->op_area, SPACE_FILE);
+				else
+					ED_screen_full_newspace(C, handler->op_area, SPACE_FILE);
+				
+				/* settings for filebrowser, sfile is not operator owner but sends events */
+				sfile= (SpaceFile*)CTX_wm_space_data(C);
+				sfile->op= handler->op;
+				
+				ED_fileselect_set_params(sfile, filetype, handler->op->type->name, path, 0, 0, 0);
+				MEM_freeN(path);
+				
+				action= WM_HANDLER_BREAK;
+			}
+			break;
+			
+		case EVT_FILESELECT_EXEC:
+		case EVT_FILESELECT_CANCEL:
+			{
+				/* XXX validate area and region? */
+				bScreen *screen= CTX_wm_screen(C);
+				char *path= RNA_string_get_alloc(handler->op->ptr, "filename", NULL, 0);
+				
+				if(screen != handler->filescreen)
+					ED_screen_full_prevspace(C);
+				else
+					ED_area_prevspace(C);
+				
+				/* remlink now, for load file case */
+				BLI_remlink(handlers, handler);
+				
+				if(event->val==EVT_FILESELECT_EXEC) {
+					wm_handler_op_context(C, handler);
+				
+					/* a bit weak, might become arg for WM_event_fileselect? */
+					/* XXX also extension code in image-save doesnt work for this yet */
+					if(strncmp(handler->op->type->name, "Save", 4)==0) {
+						/* this gives ownership to pupmenu */
+						uiPupMenuSaveOver(C, handler->op, path);
+					}
+					else {
+						handler->op->type->exec(C, handler->op);
+						WM_operator_free(handler->op);
+					}
+					
+					CTX_wm_area_set(C, NULL);
+				}
+				else 
+					WM_operator_free(handler->op);
+				
+				wm_event_free_handler(handler);
+				MEM_freeN(path);
+				
+				action= WM_HANDLER_BREAK;
+			}
+			break;
+	}
+	
+	return action;
+}
+
 static int handler_boundbox_test(wmEventHandler *handler, wmEvent *event)
 {
 	if(handler->bbwin) {
@@ -741,6 +871,10 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 			}
 			else if(handler->ui_handle) {
 				action= wm_handler_ui_call(C, handler, event);
+			}
+			else if(handler->type==WM_HANDLER_FILESELECT) {
+				/* screen context changes here */
+				action= wm_handler_fileselect_call(C, handlers, handler, event);
 			}
 			else {
 				/* modal, swallows all */
@@ -930,6 +1064,49 @@ void wm_event_do_handlers(bContext *C)
 	}
 }
 
+/* ********** filesector handling ************ */
+
+void WM_event_fileselect_event(bContext *C, void *ophandle, int eventval)
+{
+	/* add to all windows! */
+	wmWindow *win;
+	
+	for(win= CTX_wm_manager(C)->windows.first; win; win= win->next) {
+		wmEvent event= *win->eventstate;
+		
+		event.type= EVT_FILESELECT;
+		event.val= eventval;
+		event.customdata= ophandle;		// only as void pointer type check
+
+		wm_event_add(win, &event);
+	}
+}
+
+/* operator is supposed to have a filled "filename" property */
+/* optional property: filetype (XXX enum?) */
+
+/* Idea is to keep a handler alive on window queue, owning the operator.
+   The filewindow can send event to make it execute, thus ensuring
+   executing happens outside of lower level queues, with UI refreshed. 
+   Should also allow multiwin solutions */
+
+void WM_event_add_fileselect(bContext *C, wmOperator *op)
+{
+	wmEventHandler *handler= MEM_callocN(sizeof(wmEventHandler), "fileselect handler");
+	wmWindow *win= CTX_wm_window(C);
+	int full= 1;	// XXX preset?
+	
+	handler->type= WM_HANDLER_FILESELECT;
+	handler->op= op;
+	handler->op_area= CTX_wm_area(C);
+	handler->op_region= CTX_wm_region(C);
+	handler->filescreen= CTX_wm_screen(C);
+	
+	BLI_addhead(&win->handlers, handler);
+	
+	WM_event_fileselect_event(C, op, full?EVT_FILESELECT_FULL_OPEN:EVT_FILESELECT_OPEN);
+}
+
 /* lets not expose struct outside wm? */
 void WM_event_set_handler_flag(wmEventHandler *handler, int flag)
 {
@@ -997,7 +1174,6 @@ void WM_event_remove_keymap_handler(ListBase *handlers, ListBase *keymap)
 		if(handler->keymap==keymap) {
 			BLI_remlink(handlers, handler);
 			wm_event_free_handler(handler);
-			MEM_freeN(handler);
 			break;
 		}
 	}
@@ -1025,7 +1201,6 @@ void WM_event_remove_ui_handler(ListBase *handlers, wmUIHandlerFunc func, wmUIHa
 		if(handler->ui_handle == func && handler->ui_remove == remove && handler->ui_userdata == userdata) {
 			BLI_remlink(handlers, handler);
 			wm_event_free_handler(handler);
-			MEM_freeN(handler);
 			break;
 		}
 	}

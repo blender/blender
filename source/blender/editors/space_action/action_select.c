@@ -54,6 +54,7 @@
 #include "DNA_userdef_types.h"
 #include "DNA_gpencil_types.h"
 #include "DNA_windowmanager_types.h"
+#include "DNA_world_types.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -763,6 +764,7 @@ static EnumPropertyItem prop_leftright_select_types[] = {
 /* option 1) select keyframe directly under mouse */
 static void mouse_action_keys (bAnimContext *ac, int mval[2], short selectmode)
 {
+	Scene *sce= NULL;
 	Object *ob= NULL;
 	bDopeSheet *ads= NULL;
 	bAction	*act= NULL;
@@ -819,6 +821,9 @@ static void mouse_action_keys (bAnimContext *ac, int mval[2], short selectmode)
 			break;
 		case ANIMTYPE_OBJECT:
 			ob= ((Base *)anim_channel)->object;
+			break;
+		case ANIMTYPE_SCENE:
+			sce= (Scene *)anim_channel;
 			break;
 		case ANIMTYPE_GPLAYER:
 			gpl= (bGPDlayer *)anim_channel;
@@ -886,6 +891,28 @@ static void mouse_action_keys (bAnimContext *ac, int mval[2], short selectmode)
 		
 		/* 'Sub-Object' animation data */
 		// TODO...
+	}
+	else if (sce) {
+		World *wo= sce->world;
+		AnimData *adt;
+		
+		/* Scene's own animation */
+		if (sce->adt && sce->adt->action) {
+			adt= sce->adt;
+			act= adt->action;
+			
+			for (fcu= act->curves.first; fcu; fcu= fcu->next)
+				ANIM_fcurve_keys_bezier_loop(&bed, fcu, ok_cb, select_cb, NULL);
+		}
+		
+		/* World */
+		if (wo && wo->adt && wo->adt->action) {
+			adt= wo->adt;
+			act= adt->action;
+			
+			for (fcu= act->curves.first; fcu; fcu= fcu->next)
+				ANIM_fcurve_keys_bezier_loop(&bed, fcu, ok_cb, select_cb, NULL);
+		}
 	}
 	//else if (gpl)
 	//	select_gpencil_frame(gpl, (int)selx, selectmode);

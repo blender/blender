@@ -135,6 +135,7 @@ void wm_add_default(bContext *C)
 	BLI_strncpy(win->screenname, screen->id.name+2, 21);
 	
 	wm->winactive= win;
+	wm->file_saved= 1;
 	wm_window_make_drawable(C, win); 
 }
 
@@ -149,6 +150,7 @@ void wm_close_and_free(bContext *C, wmWindowManager *wm)
 	
 	while((win= wm->windows.first)) {
 		BLI_remlink(&wm->windows, win);
+		win->screen= NULL; /* prevent draw clear to use screen */
 		wm_draw_window_clear(win);
 		wm_window_free(C, win);
 	}

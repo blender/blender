@@ -96,6 +96,18 @@ void UI_SetScale(float aspect)
 
 void ui_text_init_userdef(void)
 {
+	int id;
+
+	id= BLF_load_mem("default", (unsigned char*)datatoc_bfont_ttf, datatoc_bfont_ttf_size);
+	if (id == -1)
+		printf("Warning can't load built-in font ??\n");
+	else {
+		BLF_set(id);
+		BLF_size(12, 72);
+		BLF_size(11, 96);
+		BLF_size(14, 96);
+	}
+
 #ifdef INTERNATIONAL
 	if(U.transopts & USER_DOTRANSLATE)
 		start_interface_font();
@@ -124,7 +136,6 @@ int UI_DrawString(BMF_Font* font, char *str, int translate)
 					else if (!strcmp(code, "zh_CN"))
 						string_to_utf8(str, utf_8, "GB2312");		/* Chinese */
 				}
-	
 				return FTF_DrawString(utf_8, FTF_INPUT_UTF8);
 			}
 			else
@@ -208,7 +219,6 @@ void set_interface_font(char *str)
 	if(U.transopts & USER_DOTRANSLATE) {
 		if(FTF_SetFont((unsigned char*)str, 0, U.fontsize)) {
 			BLF_lang_set(U.language);
-			
 			if(strlen(str) < FILE_MAXDIR) strcpy(U.fontname, str);
 			G.ui_international = TRUE;
 		} 

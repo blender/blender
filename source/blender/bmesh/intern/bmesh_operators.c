@@ -780,3 +780,54 @@ void *BMO_IterMapVal(BMOIter *iter)
 {
 	return iter->val;
 }
+
+
+/*error system*/
+typedef struct bmop_error {
+       struct bmop_error *next, *prev;
+       int errorcode;
+       BMOperator *op;
+       char *msg;
+} bmop_error;
+
+void BMO_ClearStack(BMesh *bm)
+{
+	while (BMO_PopError(bm, NULL, NULL));
+}
+
+void BMO_RaiseError(BMesh *bm, BMOperator *owner, int errcode, char *msg)
+{
+	bmop_error *err = MEM_callocN(sizeof(bmop_error), "bmop_error");
+	
+	err->errorcode = errcode;
+	err->msg = msg;
+	err->op = owner;
+	
+	BLI_addhead(&bm->errorstack, err);
+}
+
+/*returns error code or 0 if no error*/
+int BMO_GetError(BMesh *bm, char **msg, BMOperator **op)
+{
+	bmop_error *err = bm->errorstack.first;
+	if (!err) return 0;
+
+	if (msg) *msg = err->msg;
+	if (op) *op = err->op;
+	
+	return err->errorcode;
+}
+
+int BMO_PopError(BMesh *bm, char **msg, BMOperator **op)
+{
+	int errorcode = BMO_GetError(bm, msg, op);
+	
+	if (errorcode) {
+		bmop_error *err = bm->errorstack.first;
+		
+		BLI_remlink(&bm->errorstack, &bm->errorstack.first);
+		MEM_freeN(err);
+	}
+
+	return errorcode;
+}

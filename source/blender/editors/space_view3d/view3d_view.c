@@ -1090,7 +1090,7 @@ short view3d_opengl_select(ViewContext *vc, unsigned int *buffer, unsigned int b
 		rect.xmin= input->xmin-12;	// seems to be default value for bones only now
 		rect.xmax= input->xmin+12;
 		rect.ymin= input->ymin-12;
-		rect.ymax= input->xmin+12;
+		rect.ymax= input->ymin+12;
 	}
 	else {
 		rect.xmin= input->xmin;
@@ -1183,7 +1183,8 @@ short view3d_opengl_select(ViewContext *vc, unsigned int *buffer, unsigned int b
 	return hits;
 }
 
-// XXX solve: localview on region level? no.... layers are area, so all regions in area have to be set
+/* ********************** local view operator ******************** */
+
 static unsigned int free_localbit(void)
 {
 	unsigned int lay;
@@ -1219,11 +1220,11 @@ static unsigned int free_localbit(void)
 }
 
 
-void initlocalview(Scene *scene, ARegion *ar, View3D *v3d)
+static void initlocalview(Scene *scene, ScrArea *sa)
 {
-	RegionView3D *rv3d= ar->regiondata;
+	View3D *v3d= sa->spacedata.first;
 	Base *base;
-	float size = 0.0, min[3], max[3], afm[3];
+	float size = 0.0, min[3], max[3], box[3];
 	unsigned int locallay;
 	int ok=0;
 
@@ -1247,111 +1248,136 @@ void initlocalview(Scene *scene, ARegion *ar, View3D *v3d)
 			scene->obedit->lay= BASACT->lay;
 		}
 		else {
-			base= FIRSTBASE;
-			while(base) {
+			for(base= FIRSTBASE; base; base= base->next) {
 				if(TESTBASE(v3d, base))  {
 					minmax_object(base->object, min, max);
 					base->lay |= locallay;
 					base->object->lay= base->lay;
 					ok= 1;
 				}
-				base= base->next;
 			}
 		}
 		
-		afm[0]= (max[0]-min[0]);
-		afm[1]= (max[1]-min[1]);
-		afm[2]= (max[2]-min[2]);
-		size= 0.7*MAX3(afm[0], afm[1], afm[2]);
+		box[0]= (max[0]-min[0]);
+		box[1]= (max[1]-min[1]);
+		box[2]= (max[2]-min[2]);
+		size= MAX3(box[0], box[1], box[2]);
 		if(size<=0.01) size= 0.01;
 	}
 	
 	if(ok) {
+		ARegion *ar;
+		
 		v3d->localvd= MEM_mallocN(sizeof(View3D), "localview");
+		
 		memcpy(v3d->localvd, v3d, sizeof(View3D));
 
-		rv3d->ofs[0]= -(min[0]+max[0])/2.0;
-		rv3d->ofs[1]= -(min[1]+max[1])/2.0;
-		rv3d->ofs[2]= -(min[2]+max[2])/2.0;
+		for(ar= sa->regionbase.first; ar; ar= ar->next) {
+			if(ar->regiontype == RGN_TYPE_WINDOW) {
+				RegionView3D *rv3d= ar->regiondata;
 
-		rv3d->dist= size;
+				rv3d->localvd= MEM_mallocN(sizeof(RegionView3D), "localview region");
+				memcpy(rv3d->localvd, rv3d, sizeof(RegionView3D));
+				
+				rv3d->ofs[0]= -(min[0]+max[0])/2.0;
+				rv3d->ofs[1]= -(min[1]+max[1])/2.0;
+				rv3d->ofs[2]= -(min[2]+max[2])/2.0;
 
-		// correction for window aspect ratio
-		if(ar->winy>2 && ar->winx>2) {
-			size= (float)ar->winx/(float)ar->winy;
-			if(size<1.0) size= 1.0/size;
-			rv3d->dist*= size;
+				rv3d->dist= size;
+				/* perspective should be a bit farther away to look nice */
+				if(rv3d->persp==V3D_ORTHO)
+					rv3d->dist*= 0.7;
+
+				// correction for window aspect ratio
+				if(ar->winy>2 && ar->winx>2) {
+					float asp= (float)ar->winx/(float)ar->winy;
+					if(asp<1.0) asp= 1.0/asp;
+					rv3d->dist*= asp;
+				}
+				
+				if (rv3d->persp==V3D_CAMOB) rv3d->persp= V3D_PERSP;
+				
+				v3d->cursor[0]= -rv3d->ofs[0];
+				v3d->cursor[1]= -rv3d->ofs[1];
+				v3d->cursor[2]= -rv3d->ofs[2];
+			}
 		}
-		
-		if (rv3d->persp==V3D_CAMOB) rv3d->persp= V3D_PERSP;
 		if (v3d->near> 0.1) v3d->near= 0.1;
 		
-		v3d->cursor[0]= -rv3d->ofs[0];
-		v3d->cursor[1]= -rv3d->ofs[1];
-		v3d->cursor[2]= -rv3d->ofs[2];
-
 		v3d->lay= locallay;
-		
-// XXX		countall();
-// XXX		scrarea_queue_winredraw(curarea);
 	}
 	else {
 		/* clear flags */ 
-		base= FIRSTBASE;
-		while(base) {
+		for(base= FIRSTBASE; base; base= base->next) {
 			if( base->lay & locallay ) {
 				base->lay-= locallay;
 				if(base->lay==0) base->lay= v3d->layact;
 				if(base->object != scene->obedit) base->flag |= SELECT;
 				base->object->lay= base->lay;
 			}
-			base= base->next;
-		}
-// XXX		scrarea_queue_headredraw(curarea);
-		
+		}		
 		v3d->localview= 0;
 	}
-// XXX	BIF_view3d_previewrender_signal(curarea, PR_DBASE|PR_DISPRECT);
+
 }
 
-void restore_localviewdata(View3D *vd)
+static void restore_localviewdata(ScrArea *sa, int free)
 {
-	if(vd->localvd==0) return;
+	ARegion *ar;
+	View3D *v3d= sa->spacedata.first;
 	
-	VECCOPY(vd->ofs, vd->localvd->ofs);
-	vd->near= vd->localvd->near;
-	vd->far= vd->localvd->far;
-	vd->lay= vd->localvd->lay;
-	vd->layact= vd->localvd->layact;
-	vd->drawtype= vd->localvd->drawtype;
-	vd->camera= vd->localvd->camera;
+	if(v3d->localvd==NULL) return;
 	
+	v3d->near= v3d->localvd->near;
+	v3d->far= v3d->localvd->far;
+	v3d->lay= v3d->localvd->lay;
+	v3d->layact= v3d->localvd->layact;
+	v3d->drawtype= v3d->localvd->drawtype;
+	v3d->camera= v3d->localvd->camera;
+	
+	if(free) {
+		MEM_freeN(v3d->localvd);
+		v3d->localvd= NULL;
+		v3d->localview= 0;
+	}
+	
+	for(ar= sa->regionbase.first; ar; ar= ar->next) {
+		if(ar->regiontype == RGN_TYPE_WINDOW) {
+			RegionView3D *rv3d= ar->regiondata;
+			
+			if(rv3d->localvd) {
+				rv3d->dist= rv3d->localvd->dist;
+				VECCOPY(rv3d->ofs, rv3d->localvd->ofs);
+				QUATCOPY(rv3d->viewquat, rv3d->localvd->viewquat);
+				rv3d->view= rv3d->localvd->view;
+				rv3d->persp= rv3d->localvd->persp;
+				rv3d->camzoom= rv3d->localvd->camzoom;
+
+				if(free) {
+					MEM_freeN(rv3d->localvd);
+					rv3d->localvd= NULL;
+				}
+			}
+		}
+	}
 }
 
-void endlocalview(Scene *scene, ScrArea *sa)
+static void endlocalview(Scene *scene, ScrArea *sa)
 {
-	View3D *v3d;
+	View3D *v3d= sa->spacedata.first;
 	struct Base *base;
 	unsigned int locallay;
-	
-	if(sa->spacetype!=SPACE_VIEW3D) return;
-	v3d= sa->spacedata.first;
 	
 	if(v3d->localvd) {
 		
 		locallay= v3d->lay & 0xFF000000;
 		
-		restore_localviewdata(v3d);
-		
-		MEM_freeN(v3d->localvd);
-		v3d->localvd= 0;
-		v3d->localview= 0;
+		restore_localviewdata(sa, 1); // 1 = free
 
 		/* for when in other window the layers have changed */
 		if(v3d->scenelock) v3d->lay= scene->lay;
 		
-		base= FIRSTBASE;
-		while(base) {
+		for(base= FIRSTBASE; base; base= base->next) {
 			if( base->lay & locallay ) {
 				base->lay-= locallay;
 				if(base->lay==0) base->lay= v3d->layact;
@@ -1361,15 +1387,38 @@ void endlocalview(Scene *scene, ScrArea *sa)
 				}
 				base->object->lay= base->lay;
 			}
-			base= base->next;
 		}
-
-// XXX		countall();
-// XXX		allqueue(REDRAWVIEW3D, 0);	/* because of select */
-// XXX		allqueue(REDRAWOOPS, 0);	/* because of select */
-// XXX		BIF_view3d_previewrender_signal(curarea, PR_DBASE|PR_DISPRECT);
 	} 
 }
+
+static int localview_exec(bContext *C, wmOperator *unused)
+{
+	View3D *v3d= CTX_wm_view3d(C);
+	
+	if(v3d->localvd)
+		endlocalview(CTX_data_scene(C), CTX_wm_area(C));
+	else
+		initlocalview(CTX_data_scene(C), CTX_wm_area(C));
+	
+	ED_area_tag_redraw(CTX_wm_area(C));
+	
+	return OPERATOR_FINISHED;
+}
+
+void VIEW3D_OT_localview(wmOperatorType *ot)
+{
+	
+	/* identifiers */
+	ot->name= "Local View";
+	ot->idname= "VIEW3D_OT_localview";
+	
+	/* api callbacks */
+	ot->exec= localview_exec;
+	
+	ot->poll= ED_operator_view3d_active;
+}
+
+/* ************************************** */
 
 void view3d_align_axis_to_vector(View3D *v3d, RegionView3D *rv3d, int axisidx, float vec[3])
 {

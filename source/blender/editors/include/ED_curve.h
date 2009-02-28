@@ -49,13 +49,12 @@ void	free_editNurb	(struct Object *obedit);
 
 void	mouse_nurb		(struct bContext *C, short mval[2], int extend);
 
-struct Nurb *addNurbprim(struct bContext *C, int type, int newname);
+struct Nurb *add_nurbs_primitive(struct bContext *C, int type, int newname);
 
 /* editfont.h */
 void	undo_push_font	(struct bContext *C, char *name);
 void	make_editText	(struct Object *obedit);
 void	load_editText	(struct Object *obedit);
-void	remake_editText	(struct Object *obedit);
 void	free_editText	(struct Object *obedit);
 
 #endif /* ED_CURVE_H */

@@ -445,7 +445,7 @@ static char *rna_def_property_set_func(FILE *f, StructRNA *srna, PropertyRNA *pr
 								fprintf(f, "	else data->%s &= ~(%d<<%d);\n", dp->dnaname, dp->booleanbit, i);
 							}
 							else {
-								fprintf(f, "	(&data->%s)[%d]= %s\n", dp->dnaname, i, (dp->booleannegative)? "!": "");
+								fprintf(f, "	(&data->%s)[%d]= %s", dp->dnaname, i, (dp->booleannegative)? "!": "");
 								rna_clamp_value(f, prop, 1, i);
 							}
 						}
@@ -462,7 +462,7 @@ static char *rna_def_property_set_func(FILE *f, StructRNA *srna, PropertyRNA *pr
 								fprintf(f, "	data->%s[%d]= FTOCHAR(values[%d]);\n", dp->dnaname, i, i);
 							}
 							else {
-								fprintf(f, "	data->%s[%d]= %s\n", dp->dnaname, i, (dp->booleannegative)? "!": "");
+								fprintf(f, "	data->%s[%d]= %s", dp->dnaname, i, (dp->booleannegative)? "!": "");
 								rna_clamp_value(f, prop, 1, i);
 							}
 						}
@@ -959,6 +959,7 @@ static const char *rna_property_subtypename(PropertyType type)
 		case PROP_MATRIX: return "PROP_MATRIX";
 		case PROP_ROTATION: return "PROP_ROTATION";
 		case PROP_NEVER_NULL: return "PROP_NEVER_NULL";
+		case PROP_PERCENTAGE: return "PROP_PERCENTAGE";
 		default: return "PROP_UNKNOWN";
 	}
 }
@@ -1246,7 +1247,8 @@ typedef struct RNAProcessItem {
 RNAProcessItem PROCESS_ITEMS[]= {
 	{"rna_ID.c", RNA_def_ID},
 	{"rna_texture.c", RNA_def_texture},
-	{"rna_action.c", RNA_def_animation},
+	{"rna_action.c", RNA_def_action},
+	{"rna_animation.c", RNA_def_animation},
 	{"rna_actuator.c", RNA_def_actuator},
 	{"rna_armature.c", RNA_def_armature},
 	{"rna_brush.c", RNA_def_brush},

@@ -45,6 +45,7 @@ CPPFLAGS += -I../../blenlib
 CPPFLAGS += -I../../makesdna
 CPPFLAGS += -I../../makesrna
 CPPFLAGS += -I../../imbuf
+CPPFLAGS += -I../../gpu
 CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
 CPPFLAGS += -I$(NAN_OPENNL)/include
 

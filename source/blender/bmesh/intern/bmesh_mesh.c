@@ -49,46 +49,6 @@ void bmesh_error(void)
 	printf("BM modelling error!");
 }
 
-/*error system*/
-typedef struct bmop_error {
-       struct bmop_error *next, *prev;
-       int errorcode;
-       char *msg;
-} bmop_error;
-
-void BMOP_RaiseError(BMesh *bm, int errcode, char *msg)
-{
-       bmop_error *err = MEM_callocN(sizeof(bmop_error), "bmop_error");
-       err->errorcode = errcode;
-       err->msg = msg;
-       BLI_addhead(&bm->errorstack, err);
-}
-
-/*returns error code or 0 if no error*/
-int BMOP_GetError(BMesh *bm, char **msg)
-{
-       bmop_error *err = bm->errorstack.first;
-       if (!err) return 0;
-
-       if (msg) *msg = err->msg;
-
-       return err->errorcode;
-}
-
-int BMOP_CheckError(BMesh *bm)
-{
-       return bm->errorstack.first != NULL;
-}
-
-int BMOP_PopError(BMesh *bm, char **msg)
-{
-       int errorcode = BMOP_GetError(bm, msg);
-       if (errorcode)
-               BLI_remlink(&bm->errorstack, &bm->errorstack.first);
-
-       return errorcode;
-}
-
 /*
  * BMESH SET SYSFLAG
  *

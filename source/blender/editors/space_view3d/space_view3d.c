@@ -138,7 +138,8 @@ static SpaceLink *view3d_new(const bContext *C)
 	
 	BLI_addtail(&v3d->regionbase, ar);
 	ar->regiontype= RGN_TYPE_UI;
-	ar->alignment= RGN_OVERLAP_LEFT;
+	ar->alignment= RGN_ALIGN_LEFT;
+	ar->flag = RGN_FLAG_HIDDEN;
 	
 	/* main area */
 	ar= MEM_callocN(sizeof(ARegion), "main area for view3d");
@@ -190,10 +191,10 @@ static SpaceLink *view3d_duplicate(SpaceLink *sl)
 // XXX	BIF_view3d_previewrender_free(v3do);
 	
 	if(v3do->localvd) {
-// XXX		restore_localviewdata(v3do);
 		v3do->localvd= NULL;
 		v3do->properties_storage= NULL;
 		v3do->localview= 0;
+		v3do->lay= v3dn->localvd->lay;
 		v3do->lay &= 0xFFFFFF;
 	}
 	
@@ -208,9 +209,57 @@ static SpaceLink *view3d_duplicate(SpaceLink *sl)
 	return (SpaceLink *)v3dn;
 }
 
+static void view3d_modal_keymaps(wmWindowManager *wm, ARegion *ar, int stype)
+{
+	RegionView3D *rv3d= ar->regiondata;
+	ListBase *keymap;
+	
+	/* copy last mode, then we can re-init the region maps */
+	rv3d->lastmode= stype;
+	
+	keymap= WM_keymap_listbase(wm, "Object Mode", 0, 0);
+	if(ELEM(stype, 0, NS_MODE_OBJECT))
+		WM_event_add_keymap_handler(&ar->handlers, keymap);
+	else
+		WM_event_remove_keymap_handler(&ar->handlers, keymap);
+	
+	keymap= WM_keymap_listbase(wm, "EditMesh", 0, 0);
+	if(stype==NS_EDITMODE_MESH)
+		WM_event_add_keymap_handler(&ar->handlers, keymap);
+	else
+		WM_event_remove_keymap_handler(&ar->handlers, keymap);
+	
+	keymap= WM_keymap_listbase(wm, "Curve", 0, 0);
+	if(stype==NS_EDITMODE_CURVE)
+		WM_event_add_keymap_handler(&ar->handlers, keymap);
+	else
+		WM_event_remove_keymap_handler(&ar->handlers, keymap);
+	
+	keymap= WM_keymap_listbase(wm, "Armature", 0, 0);
+	if(stype==NS_EDITMODE_ARMATURE)
+		WM_event_add_keymap_handler(&ar->handlers, keymap);
+	else
+		WM_event_remove_keymap_handler(&ar->handlers, keymap);
+
+	keymap= WM_keymap_listbase(wm, "Particle", 0, 0);
+	if(stype==NS_MODE_PARTICLE)
+		WM_event_add_keymap_handler(&ar->handlers, keymap);
+	else
+		WM_event_remove_keymap_handler(&ar->handlers, keymap);
+
+	/* editfont keymap swallows all... */
+	keymap= WM_keymap_listbase(wm, "Font", 0, 0);
+	if(stype==NS_EDITMODE_TEXT)
+		WM_event_add_keymap_handler_priority(&ar->handlers, keymap, 10);
+	else
+		WM_event_remove_keymap_handler(&ar->handlers, keymap);
+	
+}
+
 /* add handlers, stuff you only do once or on area/region changes */
 static void view3d_main_area_init(wmWindowManager *wm, ARegion *ar)
 {
+	RegionView3D *rv3d= ar->regiondata;
 	ListBase *keymap;
 	
 	/* own keymap */
@@ -227,10 +276,11 @@ static void view3d_main_area_init(wmWindowManager *wm, ARegion *ar)
 	keymap= WM_keymap_listbase(wm, "Pose", 0, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 	
-	/* object modal ops default */
-	keymap= WM_keymap_listbase(wm, "Object Mode", 0, 0);
+	/* modal ops keymaps */
+	view3d_modal_keymaps(wm, ar, rv3d->lastmode);
+	/* operator poll checks for modes */
+	keymap= WM_keymap_listbase(wm, "ImagePaint", 0, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
-	
 }
 
 /* type callback, not region itself */
@@ -280,50 +330,13 @@ static void *view3d_main_area_duplicate(void *poin)
 	return NULL;
 }
 
-
-static void view3d_modal_keymaps(wmWindowManager *wm, ARegion *ar, int stype)
-{
-	ListBase *keymap;
-	
-	keymap= WM_keymap_listbase(wm, "Object Mode", 0, 0);
-	if(stype==NS_MODE_OBJECT)
-		WM_event_add_keymap_handler(&ar->handlers, keymap);
-	else
-		WM_event_remove_keymap_handler(&ar->handlers, keymap);
-	
-	keymap= WM_keymap_listbase(wm, "EditMesh", 0, 0);
-	if(stype==NS_EDITMODE_MESH)
-		WM_event_add_keymap_handler(&ar->handlers, keymap);
-	else
-		WM_event_remove_keymap_handler(&ar->handlers, keymap);
-
-	keymap= WM_keymap_listbase(wm, "Curve", 0, 0);
-	if(stype==NS_EDITMODE_CURVE)
-		WM_event_add_keymap_handler(&ar->handlers, keymap);
-	else
-		WM_event_remove_keymap_handler(&ar->handlers, keymap);
-	
-	keymap= WM_keymap_listbase(wm, "Armature", 0, 0);
-	if(stype==NS_EDITMODE_ARMATURE)
-		WM_event_add_keymap_handler(&ar->handlers, keymap);
-	else
-		WM_event_remove_keymap_handler(&ar->handlers, keymap);
-	
-	/* editfont keymap swallows all... */
-	keymap= WM_keymap_listbase(wm, "Font", 0, 0);
-	if(stype==NS_EDITMODE_TEXT)
-		WM_event_add_keymap_handler_priority(&ar->handlers, keymap, 10);
-	else
-		WM_event_remove_keymap_handler(&ar->handlers, keymap);
-	
-}
-
 static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
 	switch(wmn->category) {
 		case NC_SCENE:
 			switch(wmn->data) {
+				case ND_TRANSFORM:
 				case ND_FRAME:
 				case ND_OB_ACTIVE:
 				case ND_OB_SELECT:
@@ -364,6 +377,11 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 					ED_region_tag_redraw(ar);
 					break;
 			}
+		case NC_IMAGE:	
+			/* this could be more fine grained checks if we had
+			 * more context than just the region */
+			ED_region_tag_redraw(ar);
+			break;
 	}
 }
 
@@ -557,15 +575,57 @@ static int view3d_context(const bContext *C, bContextDataMember member, bContext
 		if(scene->basact && (scene->basact->lay & v3d->lay))
 			if((scene->basact->object->restrictflag & OB_RESTRICT_VIEW)==0)
 				CTX_data_pointer_set(result, scene->basact);
-
+		
 		return 1;
 	}
 	else if(member == CTX_DATA_ACTIVE_OBJECT) {
 		if(scene->basact && (scene->basact->lay & v3d->lay))
 			if((scene->basact->object->restrictflag & OB_RESTRICT_VIEW)==0)
 				CTX_data_pointer_set(result, scene->basact->object);
-
+		
 		return 1;
+	}
+	else if(ELEM(member, CTX_DATA_VISIBLE_BONES, CTX_DATA_EDITABLE_BONES)) {
+		Object *obedit= scene->obedit; // XXX get from context?
+		bArmature *arm= (obedit) ? obedit->data : NULL;
+		EditBone *ebone, *flipbone=NULL;
+		
+		if (arm && arm->edbo) {
+			/* Attention: X-Axis Mirroring is also handled here... */
+			for (ebone= arm->edbo->first; ebone; ebone= ebone->next) {
+				/* first and foremost, bone must be visible and selected */
+				if (EBONE_VISIBLE(arm, ebone)) {
+					/* Get 'x-axis mirror equivalent' bone if the X-Axis Mirroring option is enabled
+					 * so that most users of this data don't need to explicitly check for it themselves.
+					 * 
+					 * We need to make sure that these mirrored copies are not selected, otherwise some
+					 * bones will be operated on twice.
+					 */
+					if (arm->flag & ARM_MIRROR_EDIT)
+						flipbone = ED_armature_bone_get_mirrored(arm->edbo, ebone);
+					
+					/* if we're filtering for editable too, use the check for that instead, as it has selection check too */
+					if (member == CTX_DATA_EDITABLE_BONES) {
+						/* only selected + editable */
+						if (EBONE_EDITABLE(ebone)) {
+							CTX_data_list_add(result, ebone);
+						
+							if ((flipbone) && !(flipbone->flag & BONE_SELECTED))
+								CTX_data_list_add(result, flipbone);
+						}
+					}
+					else {
+						/* only include bones if visible */
+						CTX_data_list_add(result, ebone);
+						
+						if ((flipbone) && EBONE_VISIBLE(arm, flipbone)==0)
+							CTX_data_list_add(result, flipbone);
+					}
+				}
+			}	
+			
+			return 1;
+		}
 	}
 	else if(ELEM(member, CTX_DATA_SELECTED_BONES, CTX_DATA_SELECTED_EDITABLE_BONES)) {
 		Object *obedit= scene->obedit; // XXX get from context?
@@ -605,6 +665,22 @@ static int view3d_context(const bContext *C, bContextDataMember member, bContext
 					}
 				}
 			}	
+			
+			return 1;
+		}
+	}
+	else if(member == CTX_DATA_VISIBLE_PCHANS) {
+		Object *obact= OBACT;
+		bArmature *arm= (obact) ? obact->data : NULL;
+		bPoseChannel *pchan;
+		
+		if (obact && arm) {
+			for (pchan= obact->pose->chanbase.first; pchan; pchan= pchan->next) {
+				/* ensure that PoseChannel is on visible layer and is not hidden in PoseMode */
+				if ((pchan->bone) && (arm->layer & pchan->bone->layer) && !(pchan->bone->flag & BONE_HIDDEN_P)) {
+					CTX_data_list_add(result, pchan);
+				}
+			}
 			
 			return 1;
 		}

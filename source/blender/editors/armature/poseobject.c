@@ -78,6 +78,7 @@
 #include "ED_keyframing.h"
 #include "ED_object.h"
 #include "ED_mesh.h"
+#include "ED_screen.h"
 #include "ED_view3d.h"
 
 #include "armature_intern.h"
@@ -127,7 +128,7 @@ void ED_armature_enter_posemode(bContext *C, Base *base)
 			ob->flag |= OB_POSEMODE;
 			base->flag= ob->flag;
 			
-			WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_POSEMODE, NULL);
+			WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_MODE_POSE, NULL);
 			
 			break;
 		default:
@@ -442,17 +443,16 @@ void pose_select_constraint_target(Scene *scene)
 
 }
 
-void pose_select_hierarchy(Scene *scene, short direction, short add_to_sel)
+/* ******************* select hierarchy operator ************* */
+
+static int pose_select_hierarchy_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit= scene->obedit; // XXX context
-	Object *ob= OBACT;
+	Object *ob= CTX_data_active_object(C);
 	bArmature *arm= ob->data;
 	bPoseChannel *pchan;
 	Bone *curbone, *pabone, *chbone;
-	
-	/* paranoia checks */
-	if (!ob && !ob->pose) return;
-	if (ob==obedit || (ob->flag & OB_POSEMODE)==0) return;
+	int direction = RNA_enum_get(op->ptr, "direction");
+	int add_to_sel = RNA_boolean_get(op->ptr, "add_to_sel");
 	
 	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
 		curbone= pchan->bone;
@@ -491,11 +491,36 @@ void pose_select_hierarchy(Scene *scene, short direction, short add_to_sel)
 			}
 		}
 	}
+
+	WM_event_add_notifier(C, NC_OBJECT|ND_BONE_SELECT, ob);
+
+	return OPERATOR_FINISHED;
+}
+
+void POSE_OT_select_hierarchy(wmOperatorType *ot)
+{
+	static EnumPropertyItem direction_items[]= {
+	{BONE_SELECT_PARENT, "PARENT", "Select Parent", ""},
+	{BONE_SELECT_CHILD, "CHILD", "Select Child", ""},
+	{0, NULL, NULL, NULL}
+	};
 	
-	if (direction==BONE_SELECT_PARENT)
-		BIF_undo_push("Select pose bone parent");
-	if (direction==BONE_SELECT_CHILD)
-		BIF_undo_push("Select pose bone child");
+	/* identifiers */
+	ot->name= "Select Hierarchy";
+	ot->idname= "POSE_OT_select_hierarchy";
+	
+	/* api callbacks */
+	ot->exec= pose_select_hierarchy_exec;
+	ot->poll= ED_operator_posemode;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* props */
+	RNA_def_enum(ot->srna, "direction", direction_items,
+				 BONE_SELECT_PARENT, "Direction", "");
+	RNA_def_boolean(ot->srna, "add_to_sel", 0, "Add to Selection", "");
+	
 }
 
 
@@ -893,7 +918,7 @@ void paste_posebuf (Scene *scene, int flip)
 	/* Update event for pose and deformation children */
 	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
 	
-	if (IS_AUTOKEY_ON) {
+	if (IS_AUTOKEY_ON(scene)) {
 // XXX		remake_action_ipos(ob->action);
 	}
 	else {

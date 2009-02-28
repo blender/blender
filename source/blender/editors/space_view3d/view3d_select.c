@@ -76,7 +76,7 @@
 
 #include "ED_armature.h"
 #include "ED_curve.h"
-#include "ED_editparticle.h"
+#include "ED_particle.h"
 #include "ED_mesh.h"
 #include "ED_object.h"
 #include "ED_screen.h"
@@ -101,6 +101,44 @@ void view3d_set_viewcontext(bContext *C, ViewContext *vc)
 	vc->rv3d= vc->ar->regiondata;
 	vc->obact= CTX_data_active_object(C);
 	vc->obedit= CTX_data_edit_object(C); 
+}
+
+void view3d_get_view_aligned_coordinate(ViewContext *vc, float *fp, short mval[2])
+{
+	float dvec[3];
+	short mx, my;
+	
+	mx= mval[0];
+	my= mval[1];
+	
+	project_short_noclip(vc->ar, fp, mval);
+	
+	initgrabz(vc->rv3d, fp[0], fp[1], fp[2]);
+	
+	if(mval[0]!=IS_CLIPPED) {
+		window_to_3d_delta(vc->ar, dvec, mval[0]-mx, mval[1]-my);
+		VecSubf(fp, fp, dvec);
+	}
+}
+
+void view3d_get_transformation(ViewContext *vc, Object *ob, bglMats *mats)
+{
+	float cpy[4][4];
+	int i, j;
+
+	Mat4MulMat4(cpy, vc->rv3d->viewmat, ob->obmat);
+
+	for(i = 0; i < 4; ++i) {
+		for(j = 0; j < 4; ++j) {
+			mats->projection[i*4+j] = vc->rv3d->winmat[i][j];
+			mats->modelview[i*4+j] = cpy[i][j];
+		}
+	}
+
+	mats->viewport[0] = vc->ar->winrct.xmin;
+	mats->viewport[1] = vc->ar->winrct.ymin;
+	mats->viewport[2] = vc->ar->winx;
+	mats->viewport[3] = vc->ar->winy;	
 }
 
 /* ********************** view3d_select: selection manipulations ********************* */
@@ -659,7 +697,7 @@ void view3d_lasso_select(ViewContext *vc, short mcords[][2], short moves, short 
 		else if(G.f & (G_VERTEXPAINT|G_TEXTUREPAINT|G_WEIGHTPAINT))
 			;
 		else if(G.f & G_PARTICLEEDIT)
-			PE_do_lasso_select(vc, mcords, moves, select);
+			PE_lasso_select(vc, mcords, moves, select);
 		else  
 			do_lasso_select_objects(vc, mcords, moves, select);
 	}
@@ -1311,7 +1349,7 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 		return OPERATOR_FINISHED;
 	}
 	else if(obedit==NULL && (G.f & G_PARTICLEEDIT)) {
-		PE_borderselect(&vc, &rect, (val==LEFTMOUSE));
+		PE_border_select(&vc, &rect, (val==LEFTMOUSE));
 		return OPERATOR_FINISHED;
 	}
 	
@@ -1526,29 +1564,24 @@ void VIEW3D_OT_borderselect(wmOperatorType *ot)
 
 static int view3d_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	ARegion *ar= CTX_wm_region(C);
 	Object *obedit= CTX_data_edit_object(C);
 	short extend= RNA_enum_is_equal(op->ptr, "type", "EXTEND");
-	short mval[2];	
-	
-	mval[0]= event->x - ar->winrct.xmin;
-	mval[1]= event->y - ar->winrct.ymin;
 
 	view3d_operator_needs_opengl(C);
 	
 	if(obedit) {
 		if(obedit->type==OB_MESH)
-			mouse_mesh(C, mval, extend);
+			mouse_mesh(C, event->mval, extend);
 		else if(obedit->type==OB_ARMATURE)
-			mouse_armature(C, mval, extend);
+			mouse_armature(C, event->mval, extend);
 		else if(obedit->type==OB_LATTICE)
-			mouse_lattice(C, mval, extend);
+			mouse_lattice(C, event->mval, extend);
 		else if(ELEM(obedit->type, OB_CURVE, OB_SURF))
-			mouse_nurb(C, mval, extend);
+			mouse_nurb(C, event->mval, extend);
 			
 	}
 	else 
-		mouse_select(C, mval, extend, 0);
+		mouse_select(C, event->mval, extend, 0);
 
 	/* allowing tweaks */
 	return OPERATOR_PASS_THROUGH|OPERATOR_FINISHED;
@@ -1752,7 +1785,7 @@ static int view3d_circle_select_exec(bContext *C, wmOperator *op)
 	int y= RNA_int_get(op->ptr, "y");
 	int radius= RNA_int_get(op->ptr, "radius");
 	
-	if(CTX_data_edit_object(C)) {
+	if(CTX_data_edit_object(C) || (G.f & G_PARTICLEEDIT)) {
 		ViewContext vc;
 		short mval[2], selecting;
 		
@@ -1762,7 +1795,11 @@ static int view3d_circle_select_exec(bContext *C, wmOperator *op)
 		mval[0]= x;
 		mval[1]= y;
 		selecting= LEFTMOUSE==RNA_int_get(op->ptr, "event_type"); // XXX solve
-		obedit_circle_select(&vc, selecting, mval, (float)radius);
+
+		if(CTX_data_edit_object(C))
+			obedit_circle_select(&vc, selecting, mval, (float)radius);
+		else
+			PE_circle_select(&vc, selecting, mval, (float)radius);
 	}
 	else {
 		Base *base;

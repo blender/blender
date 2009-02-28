@@ -52,23 +52,6 @@ int insert_bezt_fcurve(struct FCurve *fcu, struct BezTriple *bezt);
  */
 void insert_vert_fcurve(struct FCurve *fcu, float x, float y, short flag);
 
-
-/* flags for use by keyframe creation/deletion calls */
-enum {
-		/* used by isnertkey() and insert_vert_icu() */
-	INSERTKEY_NEEDED 	= (1<<0),	/* only insert keyframes where they're needed */
-	INSERTKEY_MATRIX 	= (1<<1),	/* insert 'visual' keyframes where possible/needed */
-	INSERTKEY_FAST 		= (1<<2),	/* don't recalculate handles,etc. after adding key */
-	INSERTKEY_FASTR		= (1<<3),	/* don't realloc mem (or increase count, as array has already been set out) */
-	INSERTKEY_REPLACE 	= (1<<4),	/* only replace an existing keyframe (this overrides INSERTKEY_NEEDED) */
-	
-		/* used by common_*key() functions - Note: these are generally mutually exclusive (only one will work at a time) */
-	COMMONKEY_ADDMAP	= (1<<10),	/* common key: add texture-slot offset bitflag to adrcode before use */
-	COMMONKEY_PCHANROT	= (1<<11),	/* common key: extend channel list using relevant pchan-rotations */
-		/* all possible items for common_*key() functions */
-	COMMONKEY_MODES 	= (COMMONKEY_ADDMAP|COMMONKEY_PCHANROT)
-} eInsertKeyFlags;
-
 /* -------- */
 
 /* Main Keyframing API calls: 
@@ -86,12 +69,26 @@ short deletekey(struct ID *id, const char group[], const char rna_path[], int ar
 /* Generate menu of KeyingSets */
 char *ANIM_build_keyingsets_menu(struct ListBase *list, short for_edit);
 
+/* KeyingSet Editing Operators:
+ *	These can add a new KeyingSet and/or add 'destinations' to the KeyingSets,
+ *	acting as a means by which they can be added outside the Outliner.
+ */
+void ANIM_OT_keyingset_add_new(struct wmOperatorType *ot);
+void ANIM_OT_keyingset_add_destination(struct wmOperatorType *ot);
+
 /* Main Keyframe Management operators: 
- *	These handle keyframes management from various spaces. They will handle the menus 
- * 	required for each space.
+ *	These handle keyframes management from various spaces. They only make use of
+ * 	Keying Sets.
  */
 void ANIM_OT_insert_keyframe(struct wmOperatorType *ot);
 void ANIM_OT_delete_keyframe(struct wmOperatorType *ot);
+
+/* Main Keyframe Management operators (legacy style): 
+ *	These handle keyframes management from various spaces. They will handle the menus 
+ * 	required for each space.
+ */
+void ANIM_OT_insert_keyframe_old(struct wmOperatorType *ot);
+void ANIM_OT_delete_keyframe_old(struct wmOperatorType *ot);
 
 /* ************ Auto-Keyframing ********************** */
 /* Notes:
@@ -105,9 +102,9 @@ void ANIM_OT_delete_keyframe(struct wmOperatorType *ot);
 
 /* Auto-Keying macros for use by various tools */
 	/* check if auto-keyframing is enabled (per scene takes presidence) */
-#define IS_AUTOKEY_ON			((scene) ? (scene->autokey_mode & AUTOKEY_ON) : (U.autokey_mode & AUTOKEY_ON))
+#define IS_AUTOKEY_ON(scene)	((scene) ? (scene->autokey_mode & AUTOKEY_ON) : (U.autokey_mode & AUTOKEY_ON))
 	/* check the mode for auto-keyframing (per scene takes presidence)  */
-#define IS_AUTOKEY_MODE(mode) 	((scene) ? (scene->autokey_mode == AUTOKEY_MODE_##mode) : (U.autokey_mode == AUTOKEY_MODE_##mode))
+#define IS_AUTOKEY_MODE(scene, mode) 	((scene) ? (scene->autokey_mode == AUTOKEY_MODE_##mode) : (U.autokey_mode == AUTOKEY_MODE_##mode))
 	/* check if a flag is set for auto-keyframing (as userprefs only!) */
 #define IS_AUTOKEY_FLAG(flag)	(U.autokey_flag & AUTOKEY_FLAG_##flag)
 

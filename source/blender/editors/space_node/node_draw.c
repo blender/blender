@@ -94,7 +94,7 @@ extern void ui_rasterpos_safe(float x, float y, float aspect);
 extern void gl_round_box(int mode, float minx, float miny, float maxx, float maxy, float rad);
 extern void ui_draw_tria_icon(float x, float y, float aspect, char dir);
 
-#if 0 // XXX
+
 static void snode_drawstring(void *curfont, SpaceNode *snode, char *str, int okwidth)
 {
 	char drawstr[NODE_MAXSTR];
@@ -118,7 +118,7 @@ static void snode_drawstring(void *curfont, SpaceNode *snode, char *str, int okw
 	}
 	UI_DrawString(curfont, drawstr, 0);
 }
-#endif
+
 
 static void node_scaling_widget(int color_id, float aspect, float xmin, float ymin, float xmax, float ymax)
 {
@@ -674,7 +674,7 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 		if(node->flag & (NODE_ACTIVE_ID|NODE_DO_OUTPUT))
 			icon_id= ICON_MATERIAL;
 		else
-			icon_id= ICON_MATERIAL_DEHLT;
+			icon_id= ICON_MATERIAL_DATA;
 		iconofs-= 18.0f;
 		glEnable(GL_BLEND);
 		UI_icon_draw_aspect_blended(iconofs, rct->ymax-NODE_DY+2, icon_id, snode->aspect, -60);
@@ -730,7 +730,7 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	else
 		UI_ThemeColor(TH_TEXT);
 	
-	// ui_rasterpos_safe(rct->xmin+19.0f, rct->ymax-NODE_DY+5.0f, snode->aspect);
+	ui_rasterpos_safe(rct->xmin+19.0f, rct->ymax-NODE_DY+5.0f, snode->aspect);
 	
 	if(node->flag & NODE_MUTED)
 		sprintf(showname, "[%s]", node->name);
@@ -739,11 +739,7 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	else
 		BLI_strncpy(showname, node->name, 128);
 	
-	block= uiBeginBlock(C, ar, "snode_drawstring_hack", UI_EMBOSSN, UI_HELV);
-	// snode_drawstring(block->curfont, snode, showname, (int)(iconofs - rct->xmin-18.0f));
-	bt= uiDefBut(block, LABEL, 0, showname, (int)rct->xmin+19, (int)rct->ymax-NODE_DY+5, 100, 20, NULL, 0, 0, 0, 0, "");
-	uiEndBlock(C, block);
-	block= NULL;
+	snode_drawstring(snode->curfont, snode, showname, (int)(iconofs - rct->xmin-18.0f));
 
 	/* body */
 	UI_ThemeColor4(TH_NODE);
@@ -871,7 +867,6 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 
 static void node_draw_hidden(View2D *v2d, SpaceNode *snode, bNode *node)
 {
-//	uiBlock *block; // XXX HACK
 	bNodeSocket *sock;
 	rctf *rct= &node->totr;
 	float dx, centy= 0.5f*(rct->ymax+rct->ymin);
@@ -923,13 +918,7 @@ static void node_draw_hidden(View2D *v2d, SpaceNode *snode, bNode *node)
 		else
 			BLI_strncpy(showname, node->name, 128);
 
-		/* XXX 
-		block= uiBeginBlock(C, ar, "snode_drawstring_hack", UI_EMBOSSN, UI_HELV);
-		// snode_drawstring(block->curfont, snode, showname, (int)(iconofs - rct->xmin-18.0f));
-		bt= uiDefBut(block, LABEL, 0, showname, rct->xmin+21, centy-4, 100, 20, NULL, 0, 0, 0, 0, "");
-		uiEndBlock(C, block);
-		*/
-		
+		snode_drawstring(snode->curfont, snode, showname, (int)(rct->xmax - rct->xmin-18.0f -12.0f));
 	}	
 
 	/* scale widget thing */
@@ -1092,7 +1081,6 @@ void drawnodespace(const bContext *C, ARegion *ar, View2D *v2d)
 	float col[3];
 	View2DScrollers *scrollers;
 	SpaceNode *snode= (SpaceNode*)CTX_wm_space_data(C);
-	ScrArea *sa= CTX_wm_area(C);
 	
 	UI_GetThemeColor3fv(TH_BACK, col);
 	glClearColor(col[0], col[1], col[2], 0);
@@ -1112,7 +1100,7 @@ void drawnodespace(const bContext *C, ARegion *ar, View2D *v2d)
 
 	UI_view2d_constant_grid_draw(C, v2d);
 	/* backdrop */
-	draw_nodespace_back_pix(sa, snode);
+	draw_nodespace_back_pix(ar, snode);
 	
 	/* nodes */
 	snode_set_context(snode, CTX_data_scene(C));

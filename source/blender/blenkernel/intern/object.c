@@ -2268,7 +2268,9 @@ void object_handle_update(Scene *scene, Object *ob)
 {
 	if(ob->recalc & OB_RECALC) {
 		
-		if(ob->recalc & OB_RECALC_OB) {
+		/* XXX new animsys warning: depsgraph tag OB_RECALC_DATA should not skip drivers, 
+		   which is only in where_is_object now */
+		if(ob->recalc & OB_RECALC) {
 			
 			if (G.f & G_DEBUG)
 				printf("recalcob %s\n", ob->id.name+2);

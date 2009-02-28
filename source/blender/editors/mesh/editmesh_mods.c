@@ -67,6 +67,7 @@ editmesh_mods.c, UI level access, no geometry changes
 #include "BKE_material.h"
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
+#include "BKE_report.h"
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
@@ -93,7 +94,6 @@ editmesh_mods.c, UI level access, no geometry changes
 
 /* XXX */
 static void waitcursor() {}
-static void error() {}
 static int pupmenu() {return 0;}
 
 /* ****************************** MIRROR **************** */
@@ -1380,7 +1380,7 @@ void EM_mesh_copy_edge(EditMesh *em, short type)
 	}
 }
 
-void EM_mesh_copy_face(EditMesh *em, short type)
+void EM_mesh_copy_face(EditMesh *em, wmOperator *op, short type)
 {
 	short change=0;
 	
@@ -1406,7 +1406,7 @@ void EM_mesh_copy_face(EditMesh *em, short type)
 		break;
 	case 2:	/* copy image */
 		if (!tf_act) {
-			error("mesh has no uv/image layers");
+			BKE_report(op->reports, RPT_ERROR, "mesh has no uv/image layers");
 			return;
 		}
 		for(efa=em->faces.first; efa; efa=efa->next) {
@@ -1427,7 +1427,7 @@ void EM_mesh_copy_face(EditMesh *em, short type)
 
 	case 3: /* copy UV's */
 		if (!tf_act) {
-			error("mesh has no uv/image layers");
+			BKE_report(op->reports, RPT_ERROR, "mesh has no uv/image layers");
 			return;
 		}
 		for(efa=em->faces.first; efa; efa=efa->next) {
@@ -1440,7 +1440,7 @@ void EM_mesh_copy_face(EditMesh *em, short type)
 		break;
 	case 4: /* mode's */
 		if (!tf_act) {
-			error("mesh has no uv/image layers");
+			BKE_report(op->reports, RPT_ERROR, "mesh has no uv/image layers");
 			return;
 		}
 		for(efa=em->faces.first; efa; efa=efa->next) {
@@ -1453,7 +1453,7 @@ void EM_mesh_copy_face(EditMesh *em, short type)
 		break;
 	case 5: /* copy transp's */
 		if (!tf_act) {
-			error("mesh has no uv/image layers");
+			BKE_report(op->reports, RPT_ERROR, "mesh has no uv/image layers");
 			return;
 		}
 		for(efa=em->faces.first; efa; efa=efa->next) {
@@ -1467,7 +1467,7 @@ void EM_mesh_copy_face(EditMesh *em, short type)
 
 	case 6: /* copy vcols's */
 		if (!mcol_act) {
-			error("mesh has no color layers");
+			BKE_report(op->reports, RPT_ERROR, "mesh has no color layers");
 			return;
 		} else {
 			/* guess the 4th color if needs be */
@@ -1509,7 +1509,7 @@ void EM_mesh_copy_face(EditMesh *em, short type)
 }
 
 
-void EM_mesh_copy_face_layer(EditMesh *em, short type) 
+void EM_mesh_copy_face_layer(EditMesh *em, wmOperator *op, short type) 
 {
 	short change=0;
 	
@@ -1524,7 +1524,7 @@ void EM_mesh_copy_face_layer(EditMesh *em, short type)
 	case 8:
 	case 9:
 		if (CustomData_number_of_layers(&em->fdata, CD_MTFACE)<2) {
-			error("mesh does not have multiple uv/image layers");
+			BKE_report(op->reports, RPT_ERROR, "mesh does not have multiple uv/image layers");
 			return;
 		} else {
 			int layer_orig_idx, layer_idx;
@@ -1551,7 +1551,7 @@ void EM_mesh_copy_face_layer(EditMesh *em, short type)
 
 	case 10: /* select vcol layers - make sure this stays in sync with above code */
 		if (CustomData_number_of_layers(&em->fdata, CD_MCOL)<2) {
-			error("mesh does not have multiple color layers");
+			BKE_report(op->reports, RPT_ERROR, "mesh does not have multiple color layers");
 			return;
 		} else {
 			int layer_orig_idx, layer_idx;
@@ -1640,7 +1640,7 @@ void EM_mesh_copy_face_layer(EditMesh *em, short type)
 
 
 /* ctrl+c in mesh editmode */
-void mesh_copy_menu(EditMesh *em)
+void mesh_copy_menu(EditMesh *em, wmOperator *op)
 {
 	EditSelection *ese;
 	int ret;
@@ -1672,9 +1672,9 @@ void mesh_copy_menu(EditMesh *em)
 		if (ret<1) return;
 		
 		if (ret<=6) {
-			EM_mesh_copy_face(em, ret);
+			EM_mesh_copy_face(em, op, ret);
 		} else {
-			EM_mesh_copy_face_layer(em, ret);
+			EM_mesh_copy_face_layer(em, op, ret);
 		}
 	}
 }
@@ -2025,15 +2025,10 @@ static void mouse_mesh_loop(bContext *C, short mval[2], short extend, short ring
 
 static int mesh_loop_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	ARegion *ar= CTX_wm_region(C);
-	short mval[2];	
-	
-	mval[0]= event->x - ar->winrct.xmin;
-	mval[1]= event->y - ar->winrct.ymin;
 	
 	view3d_operator_needs_opengl(C);
 	
-	mouse_mesh_loop(C, mval, RNA_boolean_get(op->ptr, "extend"),
+	mouse_mesh_loop(C, event->mval, RNA_boolean_get(op->ptr, "extend"),
 					RNA_boolean_get(op->ptr, "ring"));
 	
 	/* cannot do tweaks for as long this keymap is after transform map */
@@ -2131,15 +2126,10 @@ static void mouse_mesh_shortest_path(bContext *C, short mval[2])
 
 static int mesh_shortest_path_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	ARegion *ar= CTX_wm_region(C);
-	short mval[2];	
-	
-	mval[0]= event->x - ar->winrct.xmin;
-	mval[1]= event->y - ar->winrct.ymin;
 	
 	view3d_operator_needs_opengl(C);
 
-	mouse_mesh_shortest_path(C, mval);
+	mouse_mesh_shortest_path(C, event->mval);
 	
 	return OPERATOR_FINISHED;
 }
@@ -2366,8 +2356,8 @@ static int select_linked_pick_invoke(bContext *C, wmOperator *op, wmEvent *event
 	
 	if(vc.em->edges.first==0) return OPERATOR_CANCELLED;
 	
-	vc.mval[0]= event->x - vc.ar->winrct.xmin;
-	vc.mval[1]= event->y - vc.ar->winrct.ymin;
+	vc.mval[0]= event->mval[0];
+	vc.mval[1]= event->mval[1];
 	
 	/* return warning! */
 	if(limit) {
@@ -2642,7 +2632,7 @@ static int hide_mesh_exec(bContext *C, wmOperator *op)
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
 	
-	EM_hide_mesh(em, RNA_boolean_get(op->ptr, "invert"));
+	EM_hide_mesh(em, RNA_boolean_get(op->ptr, "unselected"));
 		
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 	return OPERATOR_FINISHED;	
@@ -2662,7 +2652,7 @@ void MESH_OT_hide(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
-	RNA_def_boolean(ot->srna, "invert", 0, "Invert", "Hide unselected rather than selected.");
+	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected.");
 }
 
 void EM_reveal_mesh(EditMesh *em)
@@ -2726,7 +2716,7 @@ void MESH_OT_reveal(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-void select_faces_by_numverts(EditMesh *em, int numverts)
+void select_faces_by_numverts(EditMesh *em, wmOperator *op, int numverts)
 {
 	EditFace *efa;
 
@@ -2738,7 +2728,7 @@ void select_faces_by_numverts(EditMesh *em, int numverts)
 	if(numverts==5)
 		EM_set_flag_all(em, SELECT);
 	else if(em->selectmode!=SCE_SELECT_FACE) {
-		error("Only works in face selection mode");
+		BKE_report(op->reports, RPT_ERROR, "Only works in face selection mode");
 		return;
 	}
 	
@@ -2773,7 +2763,7 @@ static int select_sharp_edges_exec(bContext *C, wmOperator *op)
 	/* 'standard' behaviour - check if selected, then apply relevant selection */
 	
 	if(em->selectmode==SCE_SELECT_FACE) {
-		error("Doesn't work in face selection mode");
+		BKE_report(op->reports, RPT_ERROR, "Doesn't work in face selection mode");
 		return OPERATOR_CANCELLED;
 	}
 
@@ -2873,7 +2863,7 @@ void MESH_OT_select_sharp_edges(wmOperatorType *ot)
 }
 
 
-static void select_linked_flat_faces(EditMesh *em, float sharpness)
+static void select_linked_flat_faces(EditMesh *em, wmOperator *op, float sharpness)
 {
 	/* Find faces that are linked to selected faces that are 
 	 * relatively flat (angle between faces is higher than
@@ -2887,7 +2877,7 @@ static void select_linked_flat_faces(EditMesh *em, float sharpness)
 	float fsharpness;
 	
 	if(em->selectmode!=SCE_SELECT_FACE) {
-		error("Only works in face selection mode");
+		BKE_report(op->reports, RPT_ERROR, "Only works in face selection mode");
 		return;
 	}
 
@@ -3014,7 +3004,7 @@ static int select_linked_flat_faces_exec(bContext *C, wmOperator *op)
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
 	
-	select_linked_flat_faces(em, RNA_float_get(op->ptr, "sharpness"));
+	select_linked_flat_faces(em, op, RNA_float_get(op->ptr, "sharpness"));
 	
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 	return OPERATOR_FINISHED;	
@@ -3037,7 +3027,7 @@ void MESH_OT_select_linked_flat_faces(wmOperatorType *ot)
 	RNA_def_float(ot->srna, "sharpness", 0.0f, 0.0f, FLT_MAX, "sharpness", "", 0.0f, 180.0f);
 }
 
-void select_non_manifold(EditMesh *em)
+void select_non_manifold(EditMesh *em, wmOperator *op )
 {
 	EditVert *eve;
 	EditEdge *eed;
@@ -3048,7 +3038,7 @@ void select_non_manifold(EditMesh *em)
 	 */
 	
 	if(em->selectmode==SCE_SELECT_FACE) {
-		error("Doesn't work in face selection mode");
+		BKE_report(op->reports, RPT_ERROR, "Doesn't work in face selection mode");
 		return;
 	}
 
@@ -3112,7 +3102,7 @@ static int select_non_manifold_exec(bContext *C, wmOperator *op)
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
 	
-	select_non_manifold(em);
+	select_non_manifold(em, op);
 	
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 	return OPERATOR_FINISHED;	
@@ -3533,10 +3523,10 @@ void MESH_OT_select_random(wmOperatorType *ot)
 	ot->poll= ED_operator_editmesh;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
-	RNA_def_float(ot->srna, "percent", 0.5f, 0.0f, 1.0f, "Percent", "Percentage of vertices to select randomly.", 0.0001f, 1.0f);
+	RNA_def_float_percentage(ot->srna, "percent", 0.5f, 0.0f, 1.0f, "Percent", "Percentage of vertices to select randomly.", 0.0001f, 1.0f);
 }
 
 void editmesh_select_by_material(EditMesh *em, int index) 
@@ -4171,7 +4161,7 @@ static int mface_is_selected(MFace *mf)
 	 * which would use same as vertices method), then added
 	 * to interface! Hoera! - zr
 	 */
-void faceselect_align_view_to_selected(View3D *v3d, RegionView3D *rv3d, Mesh *me, int axis)
+void faceselect_align_view_to_selected(View3D *v3d, RegionView3D *rv3d, Mesh *me, wmOperator *op,  int axis)
 {
 	float norm[3];
 	int i, totselected = 0;
@@ -4202,7 +4192,7 @@ void faceselect_align_view_to_selected(View3D *v3d, RegionView3D *rv3d, Mesh *me
 	}
 
 	if (totselected == 0)
-		error("No faces selected.");
+		BKE_report(op->reports, RPT_ERROR, "No faces selected.");
 	else
 		view3d_align_axis_to_vector(v3d, rv3d, axis, norm);
 }
@@ -4228,13 +4218,13 @@ static void face_getnormal_obspace(Object *obedit, EditFace *efa, float *fno)
 }
 
 
-void editmesh_align_view_to_selected(Object *obedit, EditMesh *em, View3D *v3d, RegionView3D *rv3d, int axis)
+void editmesh_align_view_to_selected(Object *obedit, EditMesh *em, wmOperator *op, View3D *v3d, RegionView3D *rv3d, int axis)
 {
 	int nselverts= EM_nvertices_selected(em);
 	float norm[3]={0.0, 0.0, 0.0}; /* used for storing the mesh normal */
 	
 	if (nselverts==0) {
-		error("No faces or vertices selected.");
+		BKE_report(op->reports, RPT_ERROR, "No faces or vertices selected.");
 	} 
 	else if (EM_nfaces_selected(em)) {
 		EditFace *efa;

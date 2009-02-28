@@ -57,6 +57,10 @@ void		ed_screen_fullarea(bContext *C, ScrArea *sa);
 /* screen_context.c */
 void ed_screen_context(const bContext *C, bContextDataMember member, bContextDataResult *result);
 
+/* screendump.c */
+void SCREEN_OT_screenshot(struct wmOperatorType *ot);
+void SCREEN_OT_screencast(struct wmOperatorType *ot);
+
 #endif /* ED_SCREEN_INTERN_H */
 
 

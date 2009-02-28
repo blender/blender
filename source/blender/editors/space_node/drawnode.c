@@ -852,7 +852,7 @@ static char *node_image_type_pup(void)
 	str[0]= 0;
 	
 	a= sprintf(str, "Image Type %%t|");
-	a+= sprintf(str+a, "  Image %%x%d %%i%d|", IMA_SRC_FILE, ICON_IMAGE_DEHLT);
+	a+= sprintf(str+a, "  Image %%x%d %%i%d|", IMA_SRC_FILE, ICON_IMAGE_DATA);
 	a+= sprintf(str+a, "  Movie %%x%d %%i%d|", IMA_SRC_MOVIE, ICON_SEQUENCE);
 	a+= sprintf(str+a, "  Sequence %%x%d %%i%d|", IMA_SRC_SEQUENCE, ICON_IMAGE_COL);
 	a+= sprintf(str+a, "  Generated %%x%d %%i%d", IMA_SRC_GENERATED, ICON_BLANK1);
@@ -920,7 +920,7 @@ static int node_composit_buts_image(uiBlock *block, bNodeTree *ntree, bNode *nod
 			Image *ima= (Image *)node->id;
 			short xmin= (short)butr->xmin, xmax= (short)butr->xmax;
 			short width= xmax - xmin - 45;
-			short icon= ICON_IMAGE_DEHLT;
+			short icon= ICON_IMAGE_DATA;
 			
 			if(ima->source==IMA_SRC_MOVIE) icon= ICON_SEQUENCE;
 			else if(ima->source==IMA_SRC_SEQUENCE) icon= ICON_IMAGE_COL;
@@ -1086,7 +1086,7 @@ static int node_composit_buts_renderlayers(uiBlock *block, bNodeTree *ntree, bNo
 		/* browse button layer */
 		strp= scene_layer_menu(node->id?(Scene *)node->id:scene);
 		if(node->id)
-			bt= uiDefIconTextButS(block, MENU, B_NODE_EXEC, ICON_SCENE_DEHLT, strp, 
+			bt= uiDefIconTextButS(block, MENU, B_NODE_EXEC, ICON_SCENE_DATA, strp, 
 				  butr->xmin+20, butr->ymin, (butr->xmax-butr->xmin)-40, 19, 
 				  &node->custom1, 0, 0, 0, 0, "Choose Render Layer");
 		else
@@ -2443,7 +2443,7 @@ void node_rename_but(char *s)
 
 #endif
 
-void draw_nodespace_back_pix(ScrArea *sa, SpaceNode *snode)
+void draw_nodespace_back_pix(ARegion *ar, SpaceNode *snode)
 {
 	
 	if((snode->flag & SNODE_BACKDRAW) && snode->treetype==NTREE_COMPOSIT) {
@@ -2453,12 +2453,12 @@ void draw_nodespace_back_pix(ScrArea *sa, SpaceNode *snode)
 			float x, y; 
 			/* somehow the offset has to be calculated inverse */
 			
-			//glaDefine2DArea(&sa->winrct);
+			glaDefine2DArea(&ar->winrct);
 			/* ortho at pixel level curarea */
-			//myortho2(-0.375, sa->winx-0.375, -0.375, sa->winy-0.375);
+			wmOrtho2(-0.375, ar->winx-0.375, -0.375, ar->winy-0.375);
 			
-			x = (sa->winx-ibuf->x)/2 + snode->xof;
-			y = (sa->winy-ibuf->y)/2 + snode->yof;
+			x = (ar->winx-ibuf->x)/2 + snode->xof;
+			y = (ar->winy-ibuf->y)/2 + snode->yof;
 			
 			if(ibuf->rect)
 				glaDrawPixelsSafe(x, y, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
@@ -2466,9 +2466,8 @@ void draw_nodespace_back_pix(ScrArea *sa, SpaceNode *snode)
 				glaDrawPixelsSafe(x, y, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_FLOAT, ibuf->rect_float);
 			
 			/* sort this out, this should not be needed */
-			//myortho2(snode->v2d.cur.xmin, snode->v2d.cur.xmax, snode->v2d.cur.ymin, snode->v2d.cur.ymax);
-			//bwin_clear_viewmat(sa->win);	/* clear buttons view */
-			// glLoadIdentity();
+			wmOrtho2(ar->v2d.cur.xmin, ar->v2d.cur.xmax, ar->v2d.cur.ymin, ar->v2d.cur.ymax);
+			glLoadIdentity();
 		}
 	}
 }

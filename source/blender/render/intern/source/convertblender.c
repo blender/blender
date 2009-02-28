@@ -952,7 +952,7 @@ static void static_particle_strand(Render *re, ObjectRen *obr, Material *ma, flo
 								   int first, int line, int adapt, float adapt_angle, float adapt_pix, int override_uv)
 {
 	static VertRen *v1= NULL, *v2= NULL;
-	VlakRen *vlr;
+	VlakRen *vlr= NULL;
 	float nor[3], cross[3], crosslen, w, dx, dy, width;
 	static float anor[3], avec[3];
 	int flag, i;

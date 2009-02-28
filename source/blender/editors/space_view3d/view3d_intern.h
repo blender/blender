@@ -55,6 +55,7 @@ struct ViewContext;
 
 /* view3d_header.c */
 void view3d_header_buttons(const struct bContext *C, struct ARegion *ar);
+void VIEW3D_OT_layers(struct wmOperatorType *ot);
 
 /* view3d_ops.c */
 void view3d_operatortypes(void);
@@ -112,28 +113,17 @@ void VIEW3D_OT_circle_select(struct wmOperatorType *ot);
 void VIEW3D_OT_borderselect(struct wmOperatorType *ot);
 void VIEW3D_OT_lasso_select(struct wmOperatorType *ot);
 
-/* vpaint.c */
-void VIEW3D_OT_vpaint_radial_control(struct wmOperatorType *ot);
-void VIEW3D_OT_wpaint_radial_control(struct wmOperatorType *ot);
-void VIEW3D_OT_vpaint_toggle(struct wmOperatorType *ot);
-void VIEW3D_OT_vpaint(struct wmOperatorType *ot);
-void VIEW3D_OT_wpaint_toggle(struct wmOperatorType *ot);
-void VIEW3D_OT_wpaint(struct wmOperatorType *ot);
-
 /* view3d_view.c */
 void VIEW3D_OT_smoothview(struct wmOperatorType *ot);
 void VIEW3D_OT_setcameratoview(struct wmOperatorType *ot);
+void VIEW3D_OT_localview(struct wmOperatorType *ot);
 
 int boundbox_clip(RegionView3D *rv3d, float obmat[][4], struct BoundBox *bb);
 
 void view3d_project_short_clip(struct ARegion *ar, float *vec, short *adr, float projmat[4][4], float wmat[4][4]);
 void view3d_project_short_noclip(struct ARegion *ar, float *vec, short *adr, float mat[4][4]);
-void view3d_project_float(struct ARegion *a, float *vec, float *adr, float mat[4][4]);
-void view3d_get_object_project_mat(RegionView3D *v3d, struct Object *ob, float pmat[4][4], float vmat[4][4]);
 
-void initlocalview(Scene *scene, struct ARegion *ar, View3D *v3d);
-void restore_localviewdata(View3D *vd);
-void endlocalview(Scene *scene, ScrArea *sa);
+void view3d_project_float(struct ARegion *a, float *vec, float *adr, float mat[4][4]);
 
 void centerview(struct ARegion *ar, View3D *v3d);
 
@@ -146,6 +136,17 @@ void setviewmatrixview3d(Scene *scene, View3D *v3d, RegionView3D *rv3d);
 void VIEW3D_OT_properties(struct wmOperatorType *ot);
 
 void view3d_buttons_area_defbuts(const struct bContext *C, ARegion *ar);
+
+/* view3d_snap.c */
+int minmax_verts(Object *obedit, float *min, float *max);
+
+void VIEW3D_OT_snap_selected_to_grid(struct wmOperatorType *ot);
+void VIEW3D_OT_snap_selected_to_cursor(struct wmOperatorType *ot);
+void VIEW3D_OT_snap_selected_to_center(struct wmOperatorType *ot);
+void VIEW3D_OT_snap_cursor_to_grid(struct wmOperatorType *ot);
+void VIEW3D_OT_snap_cursor_to_selected(struct wmOperatorType *ot);
+void VIEW3D_OT_snap_cursor_to_active(struct wmOperatorType *ot);
+void VIEW3D_OT_snap_menu(struct wmOperatorType *ot);
 
 /* space_view3d.c */
 ARegion *view3d_has_buttons_region(ScrArea *sa);

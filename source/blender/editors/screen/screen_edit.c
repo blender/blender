@@ -1374,7 +1374,6 @@ void ed_screen_fullarea(bContext *C, ScrArea *sa)
 
 		/* is there only 1 area? */
 		if(oldscreen->areabase.first==oldscreen->areabase.last) return;
-		if(sa->spacetype==SPACE_INFO) return;
 		
 		oldscreen->full = SCREENFULL;
 		

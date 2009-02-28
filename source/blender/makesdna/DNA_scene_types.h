@@ -354,6 +354,8 @@ typedef struct ImagePaintSettings {
 	
 	/* for projection painting only */
 	short seam_bleed,normal_angle;
+
+	void *paintcursor;			/* wm handle */
 } ImagePaintSettings;
 
 typedef struct ParticleBrushData {
@@ -535,8 +537,9 @@ typedef struct Scene {
 	float editbutsize;                      /* size of normals */
 	short selectmode;						/* for mesh only! */
 	short proportional, prop_mode;
-	short automerge, pad5, pad6;
+	short automerge, pad5;
 	
+	short flag;								/* various settings */
 	short autokey_mode; 					/* mode for autokeying (defines in DNA_userdef_types.h) */
 	
 	short use_nodes;
@@ -800,6 +803,11 @@ typedef struct Scene {
 #define PROP_LIN               4
 #define PROP_CONST             5
 #define PROP_RANDOM		6
+
+/* sce->flag */
+#define SCE_DS_SELECTED			(1<<0)
+#define SCE_DS_COLLAPSED		(1<<1)
+
 
 	/* return flag next_object function */
 #define F_START			0

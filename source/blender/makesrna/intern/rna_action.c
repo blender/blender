@@ -157,6 +157,11 @@ void rna_def_fcurve(BlenderRNA *brna)
 		{FCURVE_EXTRAPOLATE_CONSTANT, "CONSTANT", "Constant", ""},
 		{FCURVE_EXTRAPOLATE_LINEAR, "LINEAR", "Linear", ""},
 		{0, NULL, NULL, NULL}};
+	static EnumPropertyItem prop_mode_color_items[] = {
+		{FCURVE_COLOR_AUTO_RAINBOW, "AUTO_RAINBOW", "Automatic Rainbow", ""},
+		{FCURVE_COLOR_AUTO_RGB, "AUTO_RGB", "Automatic XYZ to RGB", ""},
+		{FCURVE_COLOR_CUSTOM, "CUSTOM", "User Defined", ""},
+		{0, NULL, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "FCurve", NULL);
 	RNA_def_struct_ui_text(srna, "F-Curve", "F-Curve defining values of a period of time.");
@@ -164,14 +169,13 @@ void rna_def_fcurve(BlenderRNA *brna)
 	/* Enums */
 	prop= RNA_def_property(srna, "extrapolation", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "extend");
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
 	RNA_def_property_enum_items(prop, prop_mode_extend_items);
 	RNA_def_property_ui_text(prop, "Extrapolation", "");
 
 	/* Pointers */
-	//prop= RNA_def_property(srna, "object", PROP_POINTER, PROP_NONE);
-	//RNA_def_property_pointer_sdna(prop, NULL, "driver");
-	//RNA_def_property_ui_text(prop, "Driver", "");
+	prop= RNA_def_property(srna, "driver", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NOT_EDITABLE); // xxx?
+	RNA_def_property_ui_text(prop, "Driver", "Channel Driver (only set for Driver F-Curves)");
 	
 	/* Path + Array Index */
 	prop= RNA_def_property(srna, "rna_path", PROP_STRING, PROP_NONE);
@@ -181,7 +185,16 @@ void rna_def_fcurve(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "array_index", PROP_INT, PROP_NONE);
 	RNA_def_property_ui_text(prop, "RNA Array Index", "Index to the specific property affected by F-Curve if applicable.");
-
+	
+	/* Color */
+	prop= RNA_def_property(srna, "color_mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, prop_mode_color_items);
+	RNA_def_property_ui_text(prop, "Color Mode", "Method used to determine color of F-Curve in Graph Editor.");
+	
+	prop= RNA_def_property(srna, "color", PROP_FLOAT, PROP_COLOR);
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Color", "Color of the F-Curve in the Graph Editor.");
+	
 	/* Collections */
 	prop= RNA_def_property(srna, "sampled_points", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "fpt", "totvert");
@@ -261,59 +274,17 @@ void rna_def_action(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Pose Markers", "Markers specific to this Action, for labeling poses.");
 }
 
-/* --- */
+/* --------- */
 
-void rna_def_animdata_common(StructRNA *srna)
+void RNA_def_action(BlenderRNA *brna)
 {
-	PropertyRNA *prop;
-	
-	prop= RNA_def_property(srna, "animation_data", PROP_POINTER, PROP_NONE);
-	RNA_def_property_pointer_sdna(prop, NULL, "adt");
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
-	RNA_def_property_ui_text(prop, "Animation Data", "Animation data for this datablock.");	
-}
-
-void rna_def_animdata(BlenderRNA *brna)
-{
-	StructRNA *srna;
-	PropertyRNA *prop;
-	
-	srna= RNA_def_struct(brna, "AnimData", NULL);
-	//RNA_def_struct_sdna(srna, "AnimData");
-	RNA_def_struct_ui_text(srna, "Animation Data", "Animation data for datablock.");
-	
-	/* NLA */
-	prop= RNA_def_property(srna, "nla_tracks", PROP_COLLECTION, PROP_NONE);
-	RNA_def_property_collection_sdna(prop, NULL, "nla_tracks", NULL);
-	RNA_def_property_struct_type(prop, "UnknownType"); // XXX!
-	RNA_def_property_ui_text(prop, "NLA Tracks", "NLA Tracks (i.e. Animation Layers).");
-	
-	/* Action */
-	prop= RNA_def_property(srna, "action", PROP_POINTER, PROP_NONE);
-	RNA_def_property_ui_text(prop, "Action", "Active Action for this datablock.");	
-	
-	/* Drivers */
-	prop= RNA_def_property(srna, "drivers", PROP_COLLECTION, PROP_NONE);
-	RNA_def_property_collection_sdna(prop, NULL, "drivers", NULL);
-	RNA_def_property_struct_type(prop, "FCurve");
-	RNA_def_property_ui_text(prop, "Drivers", "The Drivers/Expressions for this datablock.");
-	
-	/* Settings */
-}
-
-/* --- */
-
-void RNA_def_animation(BlenderRNA *brna)
-{
-	// XXX move this into its own file?
-	rna_def_animdata(brna);
-	
 	rna_def_action(brna);
 	rna_def_action_group(brna);
 	
-	// XXX move these to their own file?
+	// should these be in their own file, or is that overkill?
 	rna_def_fcurve(brna);
 	rna_def_channeldriver(brna);
 }
+
 
 #endif

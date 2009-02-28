@@ -98,7 +98,7 @@
 #include "GPU_material.h"
 #include "GPU_extensions.h"
 
-#include "ED_editparticle.h"
+#include "ED_particle.h"
 #include "ED_mesh.h"
 #include "ED_types.h"
 #include "ED_util.h"
@@ -5086,7 +5086,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 			draw_new_particle_system(scene, v3d, rv3d, base, psys, dt);
 		
 		if(G.f & G_PARTICLEEDIT && ob==OBACT) {
-			psys= PE_get_current(ob);
+			psys= PE_get_current(scene, ob);
 			if(psys && !scene->obedit && psys_in_edit_mode(scene, psys))
 				draw_particle_edit(scene, v3d, rv3d, ob, psys, dt);
 		}
@@ -5360,9 +5360,10 @@ void draw_object_backbufsel(Scene *scene, View3D *v3d, RegionView3D *rv3d, Objec
 	switch( ob->type) {
 	case OB_MESH:
 	{
-		Mesh *me= ob->data;
-		EditMesh *em= me->edit_mesh;
-		if(em) {
+		if(ob == scene->obedit) {
+			Mesh *me= ob->data;
+			EditMesh *em= me->edit_mesh;
+
 			DerivedMesh *dm = editmesh_get_derived_cage(scene, ob, em, CD_MASK_BAREMESH);
 
 			EM_init_index_arrays(em, 1, 1, 1);
@@ -5415,7 +5416,7 @@ static void draw_object_mesh_instance(Scene *scene, View3D *v3d, RegionView3D *r
 	DerivedMesh *dm=NULL, *edm=NULL;
 	int glsl;
 	
-	if(me->edit_mesh)
+	if(ob == scene->obedit)
 		edm= editmesh_get_derived_base(ob, me->edit_mesh);
 	else 
 		dm = mesh_get_derived_final(scene, ob, CD_MASK_BAREMESH);

@@ -1,5 +1,6 @@
 #ifndef BMESH_QUERIES_H
 #define BMESH_QUERIES_H
+#include <stdio.h>
 
 /*Queries*/
 int BM_Count_Element(struct BMesh *bm, int type);
@@ -26,5 +27,5 @@ int BM_Face_Sharededges(struct BMFace *f1, struct BMFace *f2);
 float BM_Face_Angle(struct BMesh *bm, struct BMEdge *e);
 int BM_Exist_Face_Overlaps(struct BMesh *bm, struct BMVert **varr, int len, struct BMFace **existface);
 int BM_Edge_Share_Faces(struct BMEdge *e1, struct BMEdge *e2);
-
+int BM_Validate_Face(BMesh *bm, BMFace *face, FILE *err);
 #endif

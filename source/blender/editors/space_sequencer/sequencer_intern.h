@@ -96,6 +96,7 @@ void SEQUENCER_OT_select_less(struct wmOperatorType *ot);
 void SEQUENCER_OT_select_linked(struct wmOperatorType *ot);
 void SEQUENCER_OT_select_pick_linked(struct wmOperatorType *ot);
 void SEQUENCER_OT_select_handles(struct wmOperatorType *ot);
+void SEQUENCER_OT_select_active_side(struct wmOperatorType *ot);
 void SEQUENCER_OT_borderselect(struct wmOperatorType *ot);
 void SEQUENCER_OT_select_invert(struct wmOperatorType *ot);
 
@@ -109,6 +110,7 @@ void SEQUENCER_OT_add_effect_strip(struct wmOperatorType *ot);
 
 /* RNA enums, just to be more readable */
 enum {
+	SEQ_SIDE_NONE=0,
     SEQ_SIDE_LEFT,
     SEQ_SIDE_RIGHT,
 	SEQ_SIDE_BOTH,

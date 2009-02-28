@@ -61,7 +61,8 @@ typedef struct wmWindowManager {
 	ListBase windows;
 	
 	int initialized;		/* set on file read */
-	int pad;
+	short file_saved;		/* indicator whether data was saved */
+	short pad;
 	
 	ListBase operators;		/* operator registry */
 	
@@ -117,8 +118,11 @@ typedef struct wmWindow {
 	ListBase gesture;		/* gesture stuff */
 } wmWindow;
 
+/* should be somthing like DNA_EXCLUDE 
+ * but the preprocessor first removes all comments, spaces etc */
 
-
+#
+#
 typedef struct wmOperatorType {
 	struct wmOperatorType *next, *prev;
 	

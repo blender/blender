@@ -53,7 +53,6 @@
 #include "BIF_glutil.h" /* for paint cursor */
 #include "IMB_imbuf_types.h"
 
-#include "ED_fileselect.h"
 #include "ED_screen.h"
 
 #include "RNA_access.h"
@@ -235,17 +234,9 @@ int WM_operator_filesel(bContext *C, wmOperator *op, wmEvent *event)
 {
 	if (RNA_property_is_set(op->ptr, "filename")) {
 		return WM_operator_call(C, op);
-	} else {
-		SpaceFile *sfile;
-
-		ED_screen_full_newspace(C, CTX_wm_area(C), SPACE_FILE);
-		
-		/* settings for filebrowser */
-		sfile= (SpaceFile*)CTX_wm_space_data(C);
-		sfile->op = op;
-		ED_fileselect_set_params(sfile, FILE_BLENDER, op->type->name, "", 0, 0, 0);
-
-		/* screen and area have been reset already in ED_screen_full_newspace */
+	} 
+	else {
+		WM_event_add_fileselect(C, op);
 		return OPERATOR_RUNNING_MODAL;
 	}
 }
@@ -353,25 +344,29 @@ static void WM_OT_open_recentfile(wmOperatorType *ot)
 
 /* ********* main file *********** */
 
-static int wm_mainfile_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static void untitled(char *name)
 {
-	SpaceFile *sfile;
-	
-	if(0==ED_screen_full_newspace(C, CTX_wm_area(C), SPACE_FILE))
-		return OPERATOR_CANCELLED;
+	if (G.save_over == 0 && strlen(name) < FILE_MAX-16) {
+		char *c= BLI_last_slash(name);
+		
+		if (c)
+			strcpy(&c[1], "untitled.blend");
+		else
+			strcpy(name, "untitled.blend");
+	}
+}
 
-	/* settings for filebrowser */
-	sfile= (SpaceFile*)CTX_wm_space_data(C);
-	sfile->op = op;
-	// XXX replace G.sce
-	ED_fileselect_set_params(sfile, FILE_BLENDER, "Load", G.sce, 0, 0, 0);
 
-	/* screen and area have been reset already in ED_screen_full_newspace */
+static int wm_open_mainfile_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+
+	RNA_string_set(op->ptr, "filename", G.sce);
+	WM_event_add_fileselect(C, op);
 
 	return OPERATOR_RUNNING_MODAL;
 }
 
-static int wm_mainfile_exec(bContext *C, wmOperator *op)
+static int wm_open_mainfile_exec(bContext *C, wmOperator *op)
 {
 	char filename[FILE_MAX];
 	RNA_string_get(op->ptr, "filename", filename);
@@ -390,8 +385,8 @@ static void WM_OT_open_mainfile(wmOperatorType *ot)
 	ot->name= "Open Blender File";
 	ot->idname= "WM_OT_open_mainfile";
 	
-	ot->invoke= wm_mainfile_invoke;
-	ot->exec= wm_mainfile_exec;
+	ot->invoke= wm_open_mainfile_invoke;
+	ot->exec= wm_open_mainfile_exec;
 	ot->poll= WM_operator_winactive;
 	
 	ot->flag= 0;
@@ -402,17 +397,13 @@ static void WM_OT_open_mainfile(wmOperatorType *ot)
 
 static int wm_save_as_mainfile_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	SpaceFile *sfile;
+	char name[FILE_MAX];
 	
-	ED_screen_full_newspace(C, CTX_wm_area(C), SPACE_FILE);
-
-	/* settings for filebrowser */
-	sfile= (SpaceFile*)CTX_wm_space_data(C);
-	sfile->op = op;
-	// XXX replace G.sce
-	ED_fileselect_set_params(sfile, FILE_BLENDER, "Save As", G.sce, 0, 0, 0);
-
-	/* screen and area have been reset already in ED_screen_full_newspace */
+	BLI_strncpy(name, G.sce, FILE_MAX);
+	untitled(name);
+	RNA_string_set(op->ptr, "filename", name);
+	
+	WM_event_add_fileselect(C, op);
 
 	return OPERATOR_RUNNING_MODAL;
 }
@@ -421,11 +412,16 @@ static int wm_save_as_mainfile_invoke(bContext *C, wmOperator *op, wmEvent *even
 static int wm_save_as_mainfile_exec(bContext *C, wmOperator *op)
 {
 	char filename[FILE_MAX];
-	RNA_string_get(op->ptr, "filename", filename);
 	
+	if(RNA_property_is_set(op->ptr, "filename"))
+		RNA_string_get(op->ptr, "filename", filename);
+	else {
+		BLI_strncpy(filename, G.sce, FILE_MAX);
+		untitled(filename);
+	}
 	WM_write_file(C, filename, op->reports);
 	
-	WM_event_add_notifier(C, NC_WINDOW, NULL);
+	WM_event_add_notifier(C, NC_WM|ND_FILESAVE, NULL);
 
 	return 0;
 }
@@ -449,9 +445,12 @@ static void WM_OT_save_as_mainfile(wmOperatorType *ot)
 
 static int wm_save_mainfile_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
+	char name[FILE_MAX];
 	
-	RNA_string_set(op->ptr, "filename", G.sce);
-	uiPupMenuSaveOver(C, op, G.sce);
+	BLI_strncpy(name, G.sce, FILE_MAX);
+	untitled(name);
+	RNA_string_set(op->ptr, "filename", name);
+	uiPupMenuSaveOver(C, op, name);
 
 	return OPERATOR_RUNNING_MODAL;
 }

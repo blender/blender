@@ -161,10 +161,14 @@ struct wmGesture *WM_gesture_new(struct bContext *C, struct wmEvent *event, int 
 void		WM_gesture_end(struct bContext *C, struct wmGesture *gesture);
 
 			/* radial control operator */
-int		WM_radial_control_invoke(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
-int		WM_radial_control_modal(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
+int			WM_radial_control_invoke(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
+int			WM_radial_control_modal(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
 void		WM_OT_radial_control_partial(struct wmOperatorType *ot);
 void		WM_radial_control_string(struct wmOperator *op, char str[], int maxlen);
+
+			/* fileselecting support */
+void		WM_event_add_fileselect(struct bContext *C, struct wmOperator *op);
+void		WM_event_fileselect_event(struct bContext *C, void *ophandle, int eventval);
 
 			/* OpenGL wrappers, mimicking opengl syntax */
 void		wmSubWindowSet			(struct wmWindow *win, int swinid);
@@ -199,6 +203,7 @@ void		WM_jobs_callbacks(struct wmJob *,
 							  void (*update)(void *));
 
 void		WM_jobs_start(struct wmJob *);
+void		WM_jobs_stop(struct wmWindowManager *wm, void *owner);
 void		WM_jobs_stop_all(struct wmWindowManager *wm);
 
 #endif /* WM_API_H */

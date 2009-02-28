@@ -31,5 +31,5 @@ SConscript(['datafiles/SConscript',
 			'space_sequencer/SConscript',
 			'transform/SConscript',
 			'screen/SConscript',
-			'sculpt/SConscript',
+			'sculpt_paint/SConscript',
 			'uvedit/SConscript'])

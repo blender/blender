@@ -125,12 +125,8 @@ static uiBlock *node_selectmenu(bContext *C, ARegion *ar, void *arg_unused)
 
 void do_node_addmenu(bContext *C, void *arg, int event)
 {
-	// XXX enable
-	// ScrArea *curarea= CTX_wm_area(C);
 	SpaceNode *snode= (SpaceNode*)CTX_wm_space_data(C);
 	bNode *node;
-	//float locx, locy;
-	//short mval[2];
 	
 	/* store selection in temp test flag */
 	for(node= snode->edittree->nodes.first; node; node= node->next) {
@@ -138,15 +134,12 @@ void do_node_addmenu(bContext *C, void *arg, int event)
 		else node->flag &= ~NODE_TEST;
 	}
 	
-	// toolbox_mousepos(mval, 0 ); /* get initial mouse position */
-	// areamouseco_to_ipoco(G.v2d, mval, &locx, &locy);
-	// NODE_FIX_ME
-	node= node_add_node(snode, CTX_data_scene(C), event, 0.0, 0.0);
+	node= node_add_node(snode, CTX_data_scene(C), event, snode->mx, snode->my);
 	
 	/* uses test flag */
-	// XXX snode_autoconnect(snode, node, NODE_TEST);
+	snode_autoconnect(snode, node, NODE_TEST);
 		
-	// XXX addqueue(curarea->win, UI_BUT_EVENT, B_NODE_TREE_EXEC);
+	snode_handle_recalc(C, snode);
 }
 
 static void node_make_addmenu(bContext *C, int nodeclass, uiBlock *block)
@@ -739,13 +732,13 @@ void node_header_buttons(const bContext *C, ARegion *ar)
 	
 	/* main type choosing */
 	uiBlockBeginAlign(block);
-	uiDefIconButI(block, ROW, B_REDR, ICON_MATERIAL_DEHLT, xco,yco,XIC,YIC-2,
+	uiDefIconButI(block, ROW, B_REDR, ICON_MATERIAL_DATA, xco,yco,XIC,YIC-2,
 				  &(snode->treetype), 2.0f, 0.0f, 0.0f, 0.0f, "Material Nodes");
 	xco+= XIC;
-	uiDefIconButI(block, ROW, B_REDR, ICON_IMAGE_DEHLT, xco,yco,XIC,YIC-2,
+	uiDefIconButI(block, ROW, B_REDR, ICON_IMAGE_DATA, xco,yco,XIC,YIC-2,
 				  &(snode->treetype), 2.0f, 1.0f, 0.0f, 0.0f, "Composite Nodes");
 	xco+= XIC;
-	uiDefIconButI(block, ROW, B_REDR, ICON_TEXTURE_DEHLT, xco,yco,XIC,YIC-2,
+	uiDefIconButI(block, ROW, B_REDR, ICON_TEXTURE_DATA, xco,yco,XIC,YIC-2,
 				  &(snode->treetype), 2.0f, 2.0f, 0.0f, 0.0f, "Texture Nodes");
 	xco+= 2*XIC;
 	uiBlockEndAlign(block);
@@ -774,7 +767,7 @@ void node_header_buttons(const bContext *C, ARegion *ar)
 		xco+= 100;
 		uiDefButBitI(block, TOG, R_COMP_FREE, B_NOP, "Free Unused", xco+5,yco,100,19, &scene->r.scemode, 0.0f, 0.0f, 0, 0, "Free Nodes that are not used while composite");
 		xco+= 100;
-		uiDefButBitS(block, TOG, SNODE_BACKDRAW, REDRAWNODE, "Backdrop", xco+5,yco,90,19, &snode->flag, 0.0f, 0.0f, 0, 0, "Use active Viewer Node output as backdrop");
+		uiDefButBitS(block, TOG, SNODE_BACKDRAW, B_REDR, "Backdrop", xco+5,yco,90,19, &snode->flag, 0.0f, 0.0f, 0, 0, "Use active Viewer Node output as backdrop");
 		xco+= 90;
 	}
 	else if(snode->treetype==NTREE_TEXTURE) {

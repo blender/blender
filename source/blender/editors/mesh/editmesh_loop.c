@@ -46,6 +46,7 @@ editmesh_loop: tools with own drawing subloops, select, knife, subdiv
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_view3d_types.h"
+#include "DNA_windowmanager_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
@@ -199,13 +200,13 @@ static void edgering_sel(EditMesh *em, EditEdge *startedge, int select, int prev
 		}
 	}
 }
-void CutEdgeloop(Object *obedit, EditMesh *em, int numcuts)
+void CutEdgeloop(Object *obedit, wmOperator *op, EditMesh *em, int numcuts)
 {
 	ViewContext vc; // XXX
 	EditEdge *nearest=NULL, *eed;
 	float fac;
 	int keys = 0, holdnum=0, selectmode, dist;
-	short mvalo[2] = {0,0}, mval[2] = {0, 0};
+	short mvalo[2] = {0,0}, mval[2];
 	short event=0, val, choosing=1, cancel=0, cuthalf = 0, smooth=0;
 	short hasHidden = 0;
 	char msg[128];
@@ -376,9 +377,9 @@ void CutEdgeloop(Object *obedit, EditMesh *em, int numcuts)
 	/* if this was a single cut, enter edgeslide mode */
 	if(numcuts == 1 && hasHidden == 0){
 		if(cuthalf)
-			EdgeSlide(em, 1,0.0);
+			EdgeSlide(em, op, 1,0.0);
 		else {
-			if(EdgeSlide(em, 0,0.0) == -1){
+			if(EdgeSlide(em, op, 0,0.0) == -1){
 				BIF_undo();
 			}
 		}
@@ -477,7 +478,7 @@ static float seg_intersect(EditEdge *e, CutCurve *c, int len, char mode, struct 
 	float  threshold = 0.0;
 	int  i;
 	
-	//threshold = 0.000001; /*tolerance for vertex intersection*/
+	threshold = 0.000001; /*tolerance for vertex intersection*/
 	// XXX	threshold = scene->toolsettings->select_thresh / 100;
 	
 	/* Get screen coords of verts */

@@ -70,7 +70,7 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
-#include "ED_editparticle.h"
+#include "ED_particle.h"
 #include "ED_space_api.h"
 #include "ED_screen.h"
 #include "ED_types.h"
@@ -92,7 +92,7 @@ static void view3d_boxview_clip(ScrArea *sa)
 	ARegion *ar;
 	BoundBox *bb = MEM_callocN(sizeof(BoundBox), "clipbb");
 	float clip[6][4];
-	float x1, y1, z1, ofs[3];
+	float x1= 0.0f, y1= 0.0f, z1= 0.0f, ofs[3];
 	int val;
 	
 	/* create bounding box */
@@ -956,7 +956,7 @@ static int viewcenter_exec(bContext *C, wmOperator *op) /* like a localview with
 
 
 	if(obedit) {
-// XXX		ok = minmax_verts(min, max);	/* only selected */
+		ok = minmax_verts(obedit, min, max);	/* only selected */
 	}
 	else if(ob && (ob->flag & OB_POSEMODE)) {
 		if(ob->pose) {
@@ -1004,8 +1004,11 @@ static int viewcenter_exec(bContext *C, wmOperator *op) /* like a localview with
 	afm[0]= (max[0]-min[0]);
 	afm[1]= (max[1]-min[1]);
 	afm[2]= (max[2]-min[2]);
-	size= 0.7f*MAX3(afm[0], afm[1], afm[2]);
-
+	size= MAX3(afm[0], afm[1], afm[2]);
+	/* perspective should be a bit farther away to look nice */
+	if(rv3d->persp==V3D_ORTHO)
+		size*= 0.7;
+	
 	if(size <= v3d->near*1.5f) size= v3d->near*1.5f;
 
 	new_ofs[0]= -(min[0]+max[0])/2.0f;
@@ -1039,6 +1042,7 @@ static int viewcenter_exec(bContext *C, wmOperator *op) /* like a localview with
 
 	return OPERATOR_FINISHED;
 }
+
 void VIEW3D_OT_viewcenter(wmOperatorType *ot)
 {
 

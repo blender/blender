@@ -72,6 +72,8 @@
 
 #include "UI_view2d.h"
 
+#include "BIF_transform.h"
+
 #include "ED_anim_api.h"
 #include "ED_keyframing.h"
 #include "ED_keyframes_draw.h"
@@ -232,9 +234,6 @@ void ACT_OT_view_all (wmOperatorType *ot)
 
 /* ************************************************************************** */
 /* GENERAL STUFF */
-
-// TODO:
-//	- insert key
 
 /* ******************** Copy/Paste Keyframes Operator ************************* */
 /* - The copy/paste buffer currently stores a set of temporary F-Curves containing only the keyframes 
@@ -571,6 +570,265 @@ void ACT_OT_keyframes_paste (wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/* ******************** Insert Keyframes Operator ************************* */
+
+/* defines for insert keyframes tool */
+EnumPropertyItem prop_actkeys_insertkey_types[] = {
+	{1, "ALL", "All Channels", ""},
+	{2, "SEL", "Only Selected Channels", ""},
+	{3, "GROUP", "In Active Group", ""}, // xxx not in all cases
+	{0, NULL, NULL, NULL}
+};
+
+#if 0
+void insertkey_action(void)
+{
+	void *data;
+	short datatype;
+	
+	short mode;
+	float cfra;
+	
+	/* get data */
+	data= get_action_context(&datatype);
+	if (data == NULL) return;
+	cfra = frame_to_float(CFRA);
+	
+	if (ELEM(datatype, ACTCONT_ACTION, ACTCONT_DOPESHEET)) {
+		ListBase act_data = {NULL, NULL};
+		bActListElem *ale;
+		int filter;
+		
+		/* ask user what to keyframe */
+		if (datatype == ACTCONT_ACTION)
+			mode = pupmenu("Insert Key%t|All Channels%x1|Only Selected Channels%x2|In Active Group%x3");
+		else
+			mode = pupmenu("Insert Key%t|All Channels%x1|Only Selected Channels%x2");
+		if (mode <= 0) return;
+		
+		/* filter data */
+		filter= (ACTFILTER_VISIBLE | ACTFILTER_FOREDIT | ACTFILTER_ONLYICU );
+		if (mode == 2) 			filter |= ACTFILTER_SEL;
+		else if (mode == 3) 	filter |= ACTFILTER_ACTGROUPED;
+		
+		actdata_filter(&act_data, filter, data, datatype);
+		
+		/* loop through ipo curves retrieved */
+		for (ale= act_data.first; ale; ale= ale->next) {
+			/* verify that this is indeed an ipo curve */
+			if ((ale->key_data) && ((ale->owner) || (ale->id))) {
+				bActionChannel *achan= (ale->ownertype==ACTTYPE_ACHAN) ? ((bActionChannel *)ale->owner) : (NULL);
+				bConstraintChannel *conchan= (ale->type==ACTTYPE_CONCHAN) ? ale->data : NULL;
+				IpoCurve *icu= (IpoCurve *)ale->key_data;
+				ID *id= NULL;
+				
+				if (datatype == ACTCONT_ACTION) {
+					if (ale->owner) 
+						id= ale->owner;
+				}
+				else if (datatype == ACTCONT_DOPESHEET) {
+					if (ale->id)
+						id= ale->id;
+				}
+				
+				if (id)
+					insertkey(id, icu->blocktype, ((achan)?(achan->name):(NULL)), ((conchan)?(conchan->name):(NULL)), icu->adrcode, 0);
+				else
+					insert_vert_icu(icu, cfra, icu->curval, 0);
+			}
+		}
+		
+		/* cleanup */
+		BLI_freelistN(&act_data);
+	}
+	else if (datatype == ACTCONT_SHAPEKEY) {
+		Key *key= (Key *)data;
+		IpoCurve *icu;
+		
+		/* ask user if they want to insert a keyframe */
+		mode = okee("Insert Keyframe?");
+		if (mode <= 0) return;
+		
+		if (key->ipo) {
+			for (icu= key->ipo->curve.first; icu; icu=icu->next) {
+				insert_vert_icu(icu, cfra, icu->curval, 0);
+			}
+		}
+	}
+	else {
+		/* this tool is not supported in this mode */
+		return;
+	}
+}
+#endif
+
+/* this function is responsible for snapping keyframes to frame-times */
+static void insert_action_keys(bAnimContext *ac, short mode) 
+{
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
+	int filter;
+	
+	Scene *scene= ac->scene;
+	float cfra= (float)CFRA;
+	short flag = 0;
+	
+	/* filter data */
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY);
+	if (mode == 2) 			filter |= ANIMFILTER_SEL;
+	else if (mode == 3) 	filter |= ANIMFILTER_ACTGROUPED;
+	
+	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
+	
+	/* init keyframing flag */
+	if (IS_AUTOKEY_FLAG(AUTOMATKEY)) flag |= INSERTKEY_MATRIX;
+	if (IS_AUTOKEY_FLAG(INSERTNEEDED)) flag |= INSERTKEY_NEEDED;
+	// if (IS_AUTOKEY_MODE(EDITKEYS)) flag |= INSERTKEY_REPLACE;
+	
+	/* insert keyframes */
+	for (ale= anim_data.first; ale; ale= ale->next) {
+		//Object *nob= ANIM_nla_mapping_get(ac, ale);
+		FCurve *fcu= (FCurve *)ale->key_data;
+		
+		/* adjust current frame for NLA-scaling */
+		//if (nob)
+		//	cfra= get_action_frame(nob, CFRA);
+		//else 
+		//	cfra= (float)CFRA;
+			
+		/* if there's an id */
+		if (ale->id)
+			insertkey(ale->id, ((fcu->grp)?(fcu->grp->name):(NULL)), fcu->rna_path, fcu->array_index, cfra, flag);
+		else
+			insert_vert_fcurve(fcu, cfra, fcu->curval, 0);
+	}
+	
+	BLI_freelistN(&anim_data);
+}
+
+/* ------------------- */
+
+static int actkeys_insertkey_exec(bContext *C, wmOperator *op)
+{
+	bAnimContext ac;
+	short mode;
+	
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+	if (ac.datatype == ANIMCONT_GPENCIL)
+		return OPERATOR_CANCELLED;
+		
+	/* get snapping mode */
+	mode= RNA_enum_get(op->ptr, "type");
+	
+	/* snap keyframes */
+	insert_action_keys(&ac, mode);
+	
+	/* validate keyframes after editing */
+	ANIM_editkeyframes_refresh(&ac);
+	
+	/* set notifier tha things have changed */
+	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_KEYFRAMES_VALUES);
+	
+	return OPERATOR_FINISHED;
+}
+
+void ACT_OT_keyframes_insert (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Insert Keyframes";
+	ot->idname= "ACT_OT_keyframes_insert";
+	
+	/* api callbacks */
+	ot->invoke= WM_menu_invoke;
+	ot->exec= actkeys_insertkey_exec;
+	ot->poll= ED_operator_areaactive;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* id-props */
+	RNA_def_enum(ot->srna, "type", prop_actkeys_insertkey_types, 0, "Type", "");
+}
+
+/* ******************** Duplicate Keyframes Operator ************************* */
+
+static void duplicate_action_keys (bAnimContext *ac)
+{
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
+	int filter;
+	
+	/* filter data */
+	if (ac->datatype == ANIMCONT_GPENCIL)
+		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT);
+	else
+		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY);
+	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
+	
+	/* loop through filtered data and delete selected keys */
+	for (ale= anim_data.first; ale; ale= ale->next) {
+		//if (ale->type == ANIMTYPE_GPLAYER)
+		//	delete_gplayer_frames((bGPDlayer *)ale->data);
+		//else
+			duplicate_fcurve_keys((FCurve *)ale->key_data);
+	}
+	
+	/* free filtered list */
+	BLI_freelistN(&anim_data);
+}
+
+/* ------------------- */
+
+static int actkeys_duplicate_exec(bContext *C, wmOperator *op)
+{
+	bAnimContext ac;
+	
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+		
+	/* duplicate keyframes */
+	duplicate_action_keys(&ac);
+	
+	/* validate keyframes after editing */
+	ANIM_editkeyframes_refresh(&ac);
+	
+	/* set notifier tha things have changed */
+	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_KEYFRAMES_VALUES);
+	
+	return OPERATOR_FINISHED; // xxx - start transform
+}
+
+static int actkeys_duplicate_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	actkeys_duplicate_exec(C, op);
+	
+	RNA_int_set(op->ptr, "mode", TFM_TIME_TRANSLATE);
+	WM_operator_name_call(C, "TFM_OT_transform", WM_OP_INVOKE_REGION_WIN, op->ptr);
+
+	return OPERATOR_FINISHED;
+}
+ 
+void ACT_OT_keyframes_duplicate (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Duplicate Keyframes";
+	ot->idname= "ACT_OT_keyframes_duplicate";
+	
+	/* api callbacks */
+	ot->invoke= actkeys_duplicate_invoke;
+	ot->exec= actkeys_duplicate_exec;
+	ot->poll= ED_operator_areaactive;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* to give to transform */
+	RNA_def_int(ot->srna, "mode", TFM_TIME_TRANSLATE, 0, INT_MAX, "Mode", "", 0, INT_MAX);
 }
 
 /* ******************** Delete Keyframes Operator ************************* */

@@ -123,6 +123,8 @@ void BL_ConvertSensors(struct Object* blenderobject,
 	
 	// SYSTEM                                                                                                  
 	
+#if 0			
+	/* **** XXX **** */
 	gReverseKeyTranslateTable[KEYBD				] = SCA_IInputDevice::KX_KEYBD;                  
 	gReverseKeyTranslateTable[RAWKEYBD			] = SCA_IInputDevice::KX_RAWKEYBD;                  
 	gReverseKeyTranslateTable[REDRAW			] = SCA_IInputDevice::KX_REDRAW;                  
@@ -133,7 +135,8 @@ void BL_ConvertSensors(struct Object* blenderobject,
 	gReverseKeyTranslateTable[WINCLOSE			] = SCA_IInputDevice::KX_WINCLOSE;                  
 	gReverseKeyTranslateTable[WINQUIT			] = SCA_IInputDevice::KX_WINQUIT;                  
 	gReverseKeyTranslateTable[Q_FIRSTTIME		] = SCA_IInputDevice::KX_Q_FIRSTTIME;                  
-	
+	/* **** XXX **** */
+#endif	
 	// standard keyboard                                                                                       
 	
 	gReverseKeyTranslateTable[AKEY				] = SCA_IInputDevice::KX_AKEY;                  

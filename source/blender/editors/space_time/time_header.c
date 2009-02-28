@@ -34,6 +34,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_windowmanager_types.h"
+#include "DNA_userdef_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -352,7 +353,6 @@ static uiBlock *time_framemenu(bContext *C, ARegion *ar, void *arg_unused)
 
 #define B_FLIPINFOMENU 0
 #define B_NEWFRAME 0
-#define AUTOKEY_ON 0
 #define B_DIFF 0
 
 
@@ -528,16 +528,18 @@ void time_header_buttons(const bContext *C, ARegion *ar)
 				 xco, yco, XIC, YIC, 0, 0, 0, 0, 0, "Skip to End frame (Shift UpArrow)");
 	xco+= XIC+8;
 	
-	uiDefIconButBitS(block, TOG, AUTOKEY_ON, REDRAWINFO, ICON_REC,
-					 xco, yco, XIC, YIC, &(scene->autokey_mode), 0, 0, 0, 0, "Automatic keyframe insertion for Objects and Bones");
-	xco+= XIC;
-	if (scene->autokey_mode & AUTOKEY_ON) {
-		uiDefButS(block, MENU, REDRAWINFO, 
-				  "Auto-Keying Mode %t|Add/Replace Keys%x3|Replace Keys %x5", 
-				  xco, yco, (int)3.5*XIC, YIC, &(scene->autokey_mode), 0, 1, 0, 0, 
-				  "Mode of automatic keyframe insertion for Objects and Bones");
-		xco+= (4*XIC);
-	}
+	uiBlockBeginAlign(block);
+		uiDefIconButBitS(block, TOG, AUTOKEY_ON, B_REDRAWALL, ICON_REC,
+						 xco, yco, XIC, YIC, &(scene->autokey_mode), 0, 0, 0, 0, "Automatic keyframe insertion for Objects and Bones");
+		xco+= XIC;
+		if (IS_AUTOKEY_ON(scene)) {
+			uiDefButS(block, MENU, B_REDRAWALL, 
+					  "Auto-Keying Mode %t|Add/Replace Keys%x3|Replace Keys %x5", 
+					  xco, yco, (int)5.5*XIC, YIC, &(scene->autokey_mode), 0, 1, 0, 0, 
+					  "Mode of automatic keyframe insertion for Objects and Bones");
+			xco+= (6*XIC);
+		}
+	uiBlockEndAlign(block);
 	
 	xco+= 16;
 	
@@ -550,12 +552,12 @@ void time_header_buttons(const bContext *C, ARegion *ar)
 	MEM_freeN(menustr);
 	xco+= (6*XIC);
 	
-	uiDefIconBut(block, BUT, B_TL_DELETEKEY, ICON_KEY_DEHLT,
-				 xco, yco, XIC, YIC, 0, 0, 0, 0, 0, "Delete Keyframe for the context of the largest area (ALTKEY-IKEY)");
-	xco+= XIC+4;
-	uiDefIconBut(block, BUT, B_TL_INSERTKEY, ICON_KEY_HLT,
-				 xco, yco, XIC, YIC, 0, 0, 0, 0, 0, "Insert Keyframe for the context of the largest area (IKEY)");
-	xco+= XIC+4;
+	uiBlockBeginAlign(block);
+		uiDefIconButO(block, BUT, "ANIM_OT_delete_keyframe", WM_OP_INVOKE_REGION_WIN, ICON_KEY_DEHLT, xco,yco,XIC,YIC, "Delete Keyframes for the Active Keying Set (Alt-I)");
+		xco += XIC;
+		uiDefIconButO(block, BUT, "ANIM_OT_insert_keyframe", WM_OP_INVOKE_REGION_WIN, ICON_KEY_HLT, xco,yco,XIC,YIC, "Insert Keyframes for the Active Keying Set (I)");
+		xco += XIC;
+	uiBlockEndAlign(block);
 	
 	xco+= 16;
 	

@@ -77,7 +77,7 @@
 
 #include "ED_armature.h"
 #include "ED_curve.h"
-#include "ED_editparticle.h"
+#include "ED_particle.h"
 #include "ED_keyframing.h"
 #include "ED_mesh.h"
 #include "ED_object.h"
@@ -967,19 +967,19 @@ static void view3d_panel_transform_spaces(const bContext *C, ARegion *ar, short 
 	
 	uiBlockBeginAlign(block);
 	
-	uiDefButS(block, ROW, REDRAWHEADERS, "Global",	xco, 		90, 40,20, &v3d->twmode, 5.0, (float)V3D_MANIP_GLOBAL,0, 0, "Global Transform Orientation");
-	uiDefButS(block, ROW, REDRAWHEADERS, "Local",	xco + 40,	90, 40,20, &v3d->twmode, 5.0, (float)V3D_MANIP_LOCAL, 0, 0, "Local Transform Orientation");
-	uiDefButS(block, ROW, REDRAWHEADERS, "Normal",	xco + 80,	90, 40,20, &v3d->twmode, 5.0, (float)V3D_MANIP_NORMAL,0, 0, "Normal Transform Orientation");
-	uiDefButS(block, ROW, REDRAWHEADERS, "View",		xco + 120,	90, 40,20, &v3d->twmode, 5.0, (float)V3D_MANIP_VIEW,	0, 0, "View Transform Orientation");
+	uiDefButS(block, ROW, B_REDR, "Global",	xco, 		90, 40,20, &v3d->twmode, 5.0, (float)V3D_MANIP_GLOBAL,0, 0, "Global Transform Orientation");
+	uiDefButS(block, ROW, B_REDR, "Local",	xco + 40,	90, 40,20, &v3d->twmode, 5.0, (float)V3D_MANIP_LOCAL, 0, 0, "Local Transform Orientation");
+	uiDefButS(block, ROW, B_REDR, "Normal",	xco + 80,	90, 40,20, &v3d->twmode, 5.0, (float)V3D_MANIP_NORMAL,0, 0, "Normal Transform Orientation");
+	uiDefButS(block, ROW, B_REDR, "View",		xco + 120,	90, 40,20, &v3d->twmode, 5.0, (float)V3D_MANIP_VIEW,	0, 0, "View Transform Orientation");
 	
 	for (index = V3D_MANIP_CUSTOM, ts = transform_spaces->first ; ts ; ts = ts->next, index++) {
 
 		UI_ThemeColor(TH_BUT_ACTION);
 		if (v3d->twmode == index) {
-			but = uiDefIconButS(block,ROW, REDRAWHEADERS, ICON_CHECKBOX_HLT, xco,yco,XIC,YIC, &v3d->twmode, 5.0, (float)index, 0, 0, "Use this Custom Transform Orientation");
+			but = uiDefIconButS(block,ROW, B_REDR, ICON_CHECKBOX_HLT, xco,yco,XIC,YIC, &v3d->twmode, 5.0, (float)index, 0, 0, "Use this Custom Transform Orientation");
 		}
 		else {
-			but = uiDefIconButS(block,ROW, REDRAWHEADERS, ICON_CHECKBOX_DEHLT, xco,yco,XIC,YIC, &v3d->twmode, 5.0, (float)index, 0, 0, "Use this Custom Transform Orientation");
+			but = uiDefIconButS(block,ROW, B_REDR, ICON_CHECKBOX_DEHLT, xco,yco,XIC,YIC, &v3d->twmode, 5.0, (float)index, 0, 0, "Use this Custom Transform Orientation");
 		}
 		uiButSetFunc(but, selectTransformOrientation_func, ts, NULL);
 		uiDefBut(block, TEX, 0, "", xco+=XIC, yco,100+XIC,20, &ts->name, 0, 30, 0, 0, "Edits the name of this Transform Orientation");
@@ -1515,6 +1515,7 @@ static int view3d_properties(bContext *C, wmOperator *op)
 	
 	if(ar) {
 		ar->flag ^= RGN_FLAG_HIDDEN;
+		ar->v2d.flag &= ~V2D_IS_INITIALISED; /* XXX should become hide/unhide api? */
 		
 		ED_area_initialize(CTX_wm_manager(C), CTX_wm_window(C), sa);
 		ED_area_tag_redraw(sa);

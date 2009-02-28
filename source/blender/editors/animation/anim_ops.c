@@ -380,6 +380,11 @@ void ED_operatortypes_anim(void)
 		// XXX this is used all over... maybe for screen instead?
 	WM_operatortype_append(ANIM_OT_insert_keyframe);
 	WM_operatortype_append(ANIM_OT_delete_keyframe);
+	WM_operatortype_append(ANIM_OT_insert_keyframe_old);
+	WM_operatortype_append(ANIM_OT_delete_keyframe_old);
+	
+	WM_operatortype_append(ANIM_OT_keyingset_add_new);
+	WM_operatortype_append(ANIM_OT_keyingset_add_destination);
 }
 
 void ED_keymap_anim(wmWindowManager *wm)

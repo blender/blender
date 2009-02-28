@@ -28,6 +28,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "DNA_listBase.h"	
 #include "DNA_screen_types.h"
@@ -180,6 +181,33 @@ static void wm_window_close(bContext *C, wmWindow *win)
 		WM_exit(C);
 }
 
+void wm_window_title(wmWindowManager *wm, wmWindow *win)
+{
+	/* this is set to 1 if you don't have .B.blend open */
+	if(G.save_over) {
+		char *str= MEM_mallocN(strlen(G.sce) + 16, "title");
+		
+		if(wm->file_saved)
+			sprintf(str, "Blender [%s]", G.sce);
+		else
+			sprintf(str, "Blender* [%s]", G.sce);
+		
+		GHOST_SetTitle(win->ghostwin, str);
+		
+		MEM_freeN(str);
+	}
+	else
+		GHOST_SetTitle(win->ghostwin, "Blender");
+
+#ifdef __APPLE__
+	if(wm->file_saved)
+		GHOST_SetWindowState(win->ghostwin, GHOST_kWindowStateUnModified);
+	else
+		GHOST_SetWindowState(win->ghostwin, GHOST_kWindowStateModified);
+#endif
+
+}
+
 /* belongs to below */
 static void wm_window_add_ghostwindow(wmWindowManager *wm, char *title, wmWindow *win)
 {
@@ -219,6 +247,8 @@ static void wm_window_add_ghostwindow(wmWindowManager *wm, char *title, wmWindow
 		glClearColor(.55, .55, .55, 0.0);
 		glClear(GL_COLOR_BUFFER_BIT);
 		wm_window_swap_buffers(win);
+		
+		//GHOST_SetWindowState(ghostwin, GHOST_kWindowStateModified);
 		
 		/* standard state vars for window */
 		glEnable(GL_SCISSOR_TEST);
@@ -267,7 +297,6 @@ void wm_window_add_ghostwindows(wmWindowManager *wm)
 		if(win->eventstate==NULL)
 		   win->eventstate= MEM_callocN(sizeof(wmEvent), "window event state");
 		
-		
 		/* add keymap handlers (1 handler for all keys in map!) */
 		keymap= WM_keymap_listbase(wm, "Window", 0, 0);
 		WM_event_add_keymap_handler(&win->handlers, keymap);
@@ -275,6 +304,7 @@ void wm_window_add_ghostwindows(wmWindowManager *wm)
 		keymap= WM_keymap_listbase(wm, "Screen", 0, 0);
 		WM_event_add_keymap_handler(&win->handlers, keymap);
 		
+		wm_window_title(wm, win);
 	}
 }
 
@@ -511,7 +541,8 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private)
 /* This timer system only gives maximum 1 timer event per redraw cycle,
    to prevent queues to get overloaded. 
    Timer handlers should check for delta to decide if they just
-   update, or follow real time 
+   update, or follow real time.
+   Timer handlers can also set duration to match frames passed
 */
 static int wm_window_timer(const bContext *C)
 {
@@ -631,11 +662,6 @@ void WM_event_remove_window_timer(wmWindow *win, wmTimer *timer)
 }
 
 /* ************************************ */
-
-void wm_window_set_title(wmWindow *win, char *title) 
-{
-	GHOST_SetTitle(win->ghostwin, title);
-}
 
 void wm_window_get_position(wmWindow *win, int *posx_r, int *posy_r) 
 {

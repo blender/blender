@@ -31,7 +31,15 @@
 struct bContext;
 struct wmWindowManager;
 
+/* sculpt.c */
 void ED_operatortypes_sculpt(void);
-void ED_keymap_sculpt(wmWindowManager *wm);
+void ED_keymap_sculpt(struct wmWindowManager *wm);
+
+/* paint_ops.c */
+void ED_operatortypes_paint(void);
+
+/* paint_image.c */
+void undo_imagepaint_step(int step);
+void undo_imagepaint_clear(void);
 
 #endif

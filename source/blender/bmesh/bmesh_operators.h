@@ -122,22 +122,40 @@ void *BMO_IterStep(BMOIter *iter);
   remember for pointer maps this will be a pointer to a pointer.*/
 void *BMO_IterMapVal(BMOIter *iter);
 
-/*if msg is null, then the default message for the errorcode is used*/
-void BMOP_RaiseError(BMesh *bm, int errcode, char *msg);
-/*returns error code or 0 if no error*/
-int BMOP_GetError(BMesh *bm, char **msg);
-/*returns 1 if there was an error*/
-int BMOP_CheckError(BMesh *bm);
-int BMOP_PopError(BMesh *bm, char **msg);
+/*----------- bmop error system ----------*/
+
+/*pushes an error onto the bmesh error stack.
+  if msg is null, then the default message for the errorcode is used.*/
+void BMO_RaiseError(BMesh *bm, BMOperator *owner, int errcode, char *msg);
+
+/*gets the topmost error from the stack.
+  returns error code or 0 if no error.*/
+int BMO_GetError(BMesh *bm, char **msg, BMOperator **op);
+
+/*same as geterror, only pops the error off the stack as well*/
+int BMO_PopError(BMesh *bm, char **msg, BMOperator **op);
+void BMO_ClearStack(BMesh *bm);
+
+#if 0
+//this is meant for handling errors, like self-intersection test failures.
+//it's dangerous to handle errors in general though, so disabled for now.
+
+/*catches an error raised by the op pointed to by catchop.
+  errorcode is either the errorcode, or BMERR_ALL for any 
+  error.*/
+int BMO_CatchOpError(BMesh *bm, BMOperator *catchop, int errorcode, char **msg);
+#endif
 
 /*------ error code defines -------*/
 
 /*error messages*/
-#define BMERR_SELF_INTERSECTING        1
+#define BMERR_SELF_INTERSECTING			1
+#define BMERR_DISSOLVEDISK_FAILED		2
 
 static char *bmop_error_messages[] = {
        0,
        "Self intersection error",
+       "Could not dissolve vert",
 };
 
 /*------------begin operator defines (see bmesh_opdefines.c too)------------*/
@@ -244,9 +262,12 @@ enum {
 
 /*dissolve faces*/
 #define BMOP_DISSOLVE_FACES		7
-
-#define BMOP_DISFACES_FACEIN	0
-#define BMOP_DISFACES_TOTSLOT	1
+enum {
+	BMOP_DISFACES_FACEIN,
+	//list of faces that comprise regions of split faces
+	BMOP_DISFACES_REGIONOUT,
+	BMOP_DISFACES_TOTSLOT,
+};
 
 /*dissolve verts*/
 #define BMOP_DISSOLVE_VERTS		8
@@ -265,6 +286,7 @@ enum {
 	BMOP_EXFACE_TOTSLOT,
 };
 
+
 /*keep this updated!*/
 #define BMOP_TOTAL_OPS			11
 /*-------------------------------end operator defines-------------------------------*/
@@ -279,10 +301,12 @@ extern int bmesh_total_ops;
   to get more useful information (such as the mapping from
   original to new elements) you should run the dupe op manually.*/
 struct Object;
+struct EditMesh;
 
 void BMOP_DupeFromFlag(struct BMesh *bm, int etypeflag, int flag);
 void BM_esubdivideflag(struct Object *obedit, struct BMesh *bm, int selflag, float rad, 
 	       int flag, int numcuts, int seltype);
 void BM_extrudefaceflag(BMesh *bm, int flag);
+int BM_DissolveFaces(struct EditMesh *em, int flag);
 
 #endif

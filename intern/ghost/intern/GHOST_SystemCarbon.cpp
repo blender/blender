@@ -438,6 +438,8 @@ bool GHOST_SystemCarbon::processEvents(bool waitForEvent)
 	bool anyProcessed = false;
 	EventRef event;
 	
+//	SetMouseCoalescingEnabled(false, NULL);
+
 	do {
 		GHOST_TimerManager* timerMgr = getTimerManager();
 		
@@ -469,7 +471,6 @@ bool GHOST_SystemCarbon::processEvents(bool waitForEvent)
 			}
 		}
 
-		
 		/* end loop when no more events available */
 		while (::ReceiveNextEvent(0, NULL, 0, true, &event)==noErr) {
 			OSStatus status= ::SendEventToEventTarget(event, ::GetEventDispatcherTarget());

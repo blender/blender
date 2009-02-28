@@ -225,6 +225,10 @@ typedef struct FCurve {
 		/* RNA - data link */
 	int array_index;		/* if applicable, the index of the RNA-array item to get */
 	char *rna_path;			/* RNA-path to resolve data-access */
+	
+		/* curve coloring (for editor) */
+	int color_mode;			/* coloring method to use */
+	float color[3];			/* the last-color this curve took */
 } FCurve;
 
 
@@ -254,6 +258,13 @@ enum {
 	FCURVE_EXTRAPOLATE_CONSTANT	= 0,	/* just extend min/max keyframe value  */
 	FCURVE_EXTRAPOLATE_LINEAR,			/* just extend gradient of segment between first segment keyframes */
 } eFCurve_Extend;
+
+/* curve coloring modes */
+enum {
+	FCURVE_COLOR_AUTO_RAINBOW = 0,		/* automatically determine color using rainbow (calculated at drawtime) */
+	FCURVE_COLOR_AUTO_RGB,				/* automatically determine color using XYZ (array index) <-> RGB */
+	FCURVE_COLOR_CUSTOM,				/* custom color */
+} eFCurve_Coloring;
 
 /* ************************************************ */
 /* 'Action' Datatypes */
@@ -445,19 +456,25 @@ typedef struct KS_Path {
 	char *rna_path;			/* dynamically (or statically in the case of predefined sets) path */
 	int array_index;		/* index that path affects */
 	
-	int flag;				/* various settings, etc. */
+	short flag;				/* various settings, etc. */
+	short groupmode;		/* group naming (eKSP_Grouping) */
 } KS_Path;
 
 /* KS_Path->flag */
 enum {
 		/* entire array (not just the specified index) gets keyframed */
 	KSP_FLAG_WHOLE_ARRAY	= (1<<0),
-	
-		/* path should not be grouped at all */
-	KSP_FLAG_GROUP_NONE		= (1<<10),
-		/* path should be grouped under an ActionGroup KeyingSet's name */
-	KSP_FLAG_GROUP_KSNAME	= (1<<11),
 } eKSP_Settings;
+
+/* KS_Path->groupmode */
+enum {
+		/* path should be grouped using its own group-name */
+	KSP_GROUP_NAMED = 0,
+		/* path should not be grouped at all */
+	KSP_GROUP_NONE,
+		/* path should be grouped under an ActionGroup KeyingSet's name */
+	KSP_GROUP_KSNAME,
+} eKSP_Grouping;
 
 /* ---------------- */
  
@@ -486,11 +503,18 @@ typedef struct KeyingSet {
 enum {
 		/* keyingset cannot be removed (and doesn't need to be freed) */
 	KEYINGSET_BUILTIN		= (1<<0),
-		/* keyingset is the one currently in use */
-	KEYINGSET_ACTIVE		= (1<<1),
 		/* keyingset does not depend on context info (i.e. paths are absolute) */
-	KEYINGSET_ABSOLUTE		= (1<<2),
+	KEYINGSET_ABSOLUTE		= (1<<1),
 } eKS_Settings;
+
+/* Flags for use by keyframe creation/deletion calls */
+enum {
+	INSERTKEY_NEEDED 	= (1<<0),	/* only insert keyframes where they're needed */
+	INSERTKEY_MATRIX 	= (1<<1),	/* insert 'visual' keyframes where possible/needed */
+	INSERTKEY_FAST 		= (1<<2),	/* don't recalculate handles,etc. after adding key */
+	INSERTKEY_FASTR		= (1<<3),	/* don't realloc mem (or increase count, as array has already been set out) */
+	INSERTKEY_REPLACE 	= (1<<4),	/* only replace an existing keyframe (this overrides INSERTKEY_NEEDED) */
+} eInsertKeyFlags;
 
 /* ************************************************ */
 /* Animation Data */

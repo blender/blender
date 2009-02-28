@@ -48,6 +48,7 @@
 #include "ED_screen.h"
 
 #include "BIF_gl.h"
+#include "BLF_api.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -132,7 +133,8 @@ static void info_main_area_draw(const bContext *C, ARegion *ar)
 	// SpaceInfo *sinfo= (SpaceInfo*)CTX_wm_space_data(C);
 	View2D *v2d= &ar->v2d;
 	float col[3];
-	
+	float width, height;
+
 	/* clear and setup matrix */
 	UI_GetThemeColor3fv(TH_BACK, col);
 	glClearColor(col[0], col[1], col[2], 0.0);
@@ -141,8 +143,38 @@ static void info_main_area_draw(const bContext *C, ARegion *ar)
 	UI_view2d_view_ortho(C, v2d);
 		
 	/* data... */
+	// XXX 2.50 Testing new font library - Diego
+	glColor3f(1.0, 0.0, 0.0);
+	BLF_aspect(1.0);
+
+	BLF_size(14, 96);
+	BLF_position(5.0, 5.0, 0.0);
+
+	width= BLF_width("Hello Blender, size 14, dpi 96");
+	height= BLF_height("Hello Blender, size 14, dpi 96");
+
+	glRectf(7.0, 20.0, 7.0+width, 20.0+height);
+	glRectf(5.0+width+10.0, 3.0, 5.0+width+10.0+width, 3.0+height);
+	BLF_draw("Hello Blender, size 14, dpi 96");
+
+	glColor3f(0.0, 0.0, 1.0);
+	BLF_size(11, 96);
+	BLF_position(200.0, 50.0, 0.0);
+	BLF_rotation(45.0f);
+	BLF_draw("Another Hello Blender, size 11 and dpi 96!!");
+
+	glColor3f(0.8, 0.0, 0.7);
+	BLF_size(12, 72);
+	BLF_position(200.0, 100.0, 0.0);
+	BLF_rotation(180.0f);
+	BLF_draw("Hello World, size 12, dpi 72");
 	
-	
+	glColor3f(0.8, 0.7, 0.5);
+	BLF_size(12, 96);
+	BLF_position(5.0, 200.0, 0.0);
+	BLF_rotation(0.0f);
+	BLF_draw("And this make a new glyph cache!!");
+
 	/* reset view matrix */
 	UI_view2d_view_restore(C);
 	
@@ -196,9 +228,14 @@ static void info_header_listener(ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
 	switch(wmn->category) {
+		case NC_SCREEN:
+			if(wmn->data==ND_SCREENCAST)
+				ED_region_tag_redraw(ar);
+			break;
 		case NC_SCENE:
 			if(wmn->data==ND_RENDER_RESULT)
 				ED_region_tag_redraw(ar);
+			break;
 	}
 	
 }

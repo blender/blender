@@ -36,11 +36,11 @@ typedef struct DirBLF {
 	char *path;
 } DirBLF;
 
-#if 0
+#ifdef WITH_FREETYPE2
 
-typedef struct _GlyphCacheBLF {
-	struct _GlyphCacheBLF *next;
-	struct _GlyphCacheBLF *prev;
+typedef struct GlyphCacheBLF {
+	struct GlyphCacheBLF *next;
+	struct GlyphCacheBLF *prev;
 
 	/* font size. */
 	int size;
@@ -88,9 +88,9 @@ typedef struct _GlyphCacheBLF {
 	float descender;
 } GlyphCacheBLF;
 
-typedef struct _GlyphBLF {
-	struct _GlyphBLF *next;
-	struct _GlyphBLF *prev;
+typedef struct GlyphBLF {
+	struct GlyphBLF *next;
+	struct GlyphBLF *prev;
 
 	/* and the character, as UTF8 */
 	unsigned int c;
@@ -143,16 +143,13 @@ typedef struct FontBLF {
 	float pos[3];
 
 	/* angle in degrees. */
-	float angle[3];
+	float angle;
 
 	/* this is the matrix that we load before rotate/scale/translate. */
 	float mat[4][4];
 
 	/* clipping rectangle. */
 	rctf clip_rec;
-
-	/* and clipping mode. */
-	int clip_mode;
 
 	/* font dpi (default 72). */
 	int dpi;
@@ -162,6 +159,9 @@ typedef struct FontBLF {
 
 	/* max texture size. */
 	int max_tex_size;
+
+	/* font options. */
+	int flags;
 
 	/* freetype2 face. */
 	FT_Face face;
@@ -173,7 +173,7 @@ typedef struct FontBLF {
 	GlyphCacheBLF *glyph_cache;
 } FontBLF;
 
-#endif /* zero!! */
+#endif /* WITH_FREETYPE2 */
 
 typedef struct LangBLF {
 	struct LangBLF *next;

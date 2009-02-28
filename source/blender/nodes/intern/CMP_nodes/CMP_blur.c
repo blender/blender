@@ -665,6 +665,8 @@ static void node_composit_exec_blur(void *data, bNode *node, bNodeStack **in, bN
 		if(img!=in[0]->data)
 			free_compbuf(img);
 	}
+
+	generate_preview(node, out[0]->data);
 }
 
 static void node_composit_init_blur(bNode* node)
@@ -677,7 +679,7 @@ bNodeType cmp_node_blur= {
 	/* type code   */	CMP_NODE_BLUR,
 	/* name        */	"Blur",
 	/* width+range */	120, 80, 200,
-	/* class+opts  */	NODE_CLASS_OP_FILTER, NODE_OPTIONS,
+	/* class+opts  */	NODE_CLASS_OP_FILTER, NODE_PREVIEW|NODE_OPTIONS,
 	/* input sock  */	cmp_node_blur_in,
 	/* output sock */	cmp_node_blur_out,
 	/* storage     */	"NodeBlurData",

@@ -58,6 +58,7 @@
 #include "DNA_userdef_types.h"
 #include "DNA_gpencil_types.h"
 #include "DNA_windowmanager_types.h"
+#include "DNA_world_types.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -164,6 +165,10 @@ void ANIM_deselect_anim_channels (void *data, short datatype, short test, short 
 				break;
 			
 			switch (ale->type) {
+				case ANIMTYPE_SCENE:
+					if (ale->flag & SCE_DS_SELECTED)
+						sel= ACHANNEL_SETFLAG_CLEAR;
+					break;
 				case ANIMTYPE_OBJECT:
 					if (ale->flag & SELECT)
 						sel= ACHANNEL_SETFLAG_CLEAR;
@@ -187,6 +192,13 @@ void ANIM_deselect_anim_channels (void *data, short datatype, short test, short 
 	/* Now set the flags */
 	for (ale= anim_data.first; ale; ale= ale->next) {
 		switch (ale->type) {
+			case ANIMTYPE_SCENE:
+			{
+				Scene *scene= (Scene *)ale->data;
+				
+				ACHANNEL_SET_FLAG(scene, sel, SCE_DS_SELECTED);
+			}
+				break;
 			case ANIMTYPE_OBJECT:
 			{
 				Base *base= (Base *)ale->data;
@@ -1046,6 +1058,26 @@ static void mouse_anim_channels (bAnimContext *ac, float x, int channel_index, s
 	
 	/* action to take depends on what channel we've got */
 	switch (ale->type) {
+		case ANIMTYPE_SCENE:
+		{
+			Scene *sce= (Scene *)ale->data;
+			
+			if (x < 16) {
+				/* toggle expand */
+				sce->flag ^= SCE_DS_COLLAPSED;
+			}
+			else {
+				/* set selection status */
+				if (selectmode == SELECT_INVERT) {
+					/* swap select */
+					sce->flag ^= SCE_DS_SELECTED;
+				}
+				else {
+					sce->flag |= SCE_DS_SELECTED;
+				}
+			}
+		}
+			break;
 		case ANIMTYPE_OBJECT:
 		{
 			bDopeSheet *ads= (bDopeSheet *)ac->data;
@@ -1132,6 +1164,12 @@ static void mouse_anim_channels (bAnimContext *ac, float x, int channel_index, s
 			key->flag ^= KEYBLOCK_DS_EXPAND;
 		}
 			break;
+		case ANIMTYPE_DSWOR:
+		{
+			World *wo= (World *)ale->data;
+			wo->flag ^= WO_DS_EXPAND;
+		}
+			break;
 			
 		case ANIMTYPE_GROUP: 
 		{
@@ -1173,6 +1211,7 @@ static void mouse_anim_channels (bAnimContext *ac, float x, int channel_index, s
 				/* if group is selected now, and we're in Action Editor mode (so that we have pointer to active action),
 				 * we can make this group the 'active' one in that action
 				 */
+				// TODO: we should be able to do this through dopesheet + f-curves editor too...
 				if ((agrp->flag & AGRP_SELECTED) && (ac->datatype == ANIMCONT_ACTION))
 					action_set_active_agrp((bAction *)ac->data, agrp);
 			}

@@ -1300,26 +1300,6 @@ static void SCULPT_OT_radial_control(wmOperatorType *ot)
 /**** Operator for applying a stroke (various attributes including mouse path)
       using the current brush. ****/
 
-static void sculpt_load_mats(bglMats *mats, ViewContext *vc)
-{
-	float cpy[4][4];
-	int i, j;
-
-	Mat4MulMat4(cpy, vc->rv3d->viewmat, vc->obact->obmat);
-
-	for(i = 0; i < 4; ++i) {
-		for(j = 0; j < 4; ++j) {
-			mats->projection[i*4+j] = vc->rv3d->winmat[i][j];
-			mats->modelview[i*4+j] = cpy[i][j];
-		}
-	}
-
-	mats->viewport[0] = vc->ar->winrct.xmin;
-	mats->viewport[1] = vc->ar->winrct.ymin;
-	mats->viewport[2] = vc->ar->winx;
-	mats->viewport[3] = vc->ar->winy;	
-}
-
 static float unproject_brush_radius(SculptSession *ss, float offset)
 {
 	float brush_edge[3];
@@ -1363,7 +1343,7 @@ static void sculpt_update_cache_invariants(Sculpt *sd, bContext *C, wmOperator *
 	view3d_set_viewcontext(C, &cache->vc);
 
 	cache->mats = MEM_callocN(sizeof(bglMats), "sculpt bglMats");
-	sculpt_load_mats(cache->mats, &cache->vc);
+	view3d_get_transformation(&cache->vc, cache->vc.obact, cache->mats);
 
 	sculpt_update_mesh_elements(C);
 

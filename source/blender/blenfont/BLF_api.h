@@ -29,6 +29,27 @@
 #ifndef BLF_API_H
 #define BLF_API_H
 
+int BLF_init(void);
+void BLF_exit(void);
+
+int BLF_load(char *name);
+int BLF_load_mem(char *name, unsigned char *mem, int mem_size);
+
+void BLF_set(int fontid);
+void BLF_aspect(float aspect);
+void BLF_position(float x, float y, float z);
+void BLF_size(int size, int dpi);
+void BLF_draw(char *str);
+
+void BLF_boundbox(char *str, rctf *box);
+float BLF_width(char *str);
+float BLF_height(char *str);
+void BLF_rotation(float angle);
+void BLF_clipping(float xmin, float ymin, float xmax, float ymax);
+
+void BLF_enable(int option);
+void BLF_disable(int option);
+
 /* Read the .Blanguages file, return 1 on success or 0 if fails. */
 int BLF_lang_init(void);
 
@@ -49,8 +70,6 @@ int BLF_lang_error(void);
 /* Return the code string for the specified language code. */
 char *BLF_lang_find_code(short langid);
 
-#if 0
-
 /* Add a path to the font dir paths. */
 void BLF_dir_add(const char *path);
 
@@ -63,6 +82,9 @@ char **BLF_dir_get(int *ndir);
 /* Free the data return by BLF_dir_get. */
 void BLF_dir_free(char **dirs, int count);
 
-#endif /* zero!! */
+/* font->flags. */
+#define BLF_ASPECT (1<<0)
+#define BLF_ROTATION (1<<1)
+#define BLF_CLIPPING (1<<2)
 
 #endif /* BLF_API_H */

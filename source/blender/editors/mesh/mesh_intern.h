@@ -187,6 +187,7 @@ void editmesh_select_by_material(EditMesh *em, int index);
 void righthandfaces(EditMesh *em, int select);	/* makes faces righthand turning */
 void EM_select_more(EditMesh *em);
 void selectconnected_mesh_all(EditMesh *em);
+void faceloop_select(EditMesh *em, EditEdge *startedge, int select);
 
 /**
  * findnearestvert
@@ -210,7 +211,7 @@ extern EditVert *findnearestvert(struct ViewContext *vc, int *dist, short sel, s
 void join_triangles(EditMesh *em);
 int removedoublesflag(EditMesh *em, short flag, short automerge, float limit);		/* return amount */
 void esubdivideflag(Object *obedit, EditMesh *em, int flag, float rad, int beauty, int numcuts, int seltype);
-int EdgeSlide(EditMesh *em, short immediate, float imperc);
+int EdgeSlide(EditMesh *em, struct wmOperator *op, short immediate, float imperc);
 
 void MESH_OT_subdivs(struct wmOperatorType *ot);
 void MESH_OT_subdivide(struct wmOperatorType *ot);
@@ -219,6 +220,8 @@ void MESH_OT_subdivide_multi_fractal(struct wmOperatorType *ot);
 void MESH_OT_subdivide_smooth(struct wmOperatorType *ot);
 void MESH_OT_removedoublesflag(struct wmOperatorType *ot);
 void MESH_OT_extrude(struct wmOperatorType *ot);
+void MESH_OT_spin(struct wmOperatorType *ot);
+void MESH_OT_screw(struct wmOperatorType *ot);
 
 void MESH_OT_fill(struct wmOperatorType *ot);
 void MESH_OT_beauty_fill(struct wmOperatorType *ot);
@@ -239,6 +242,7 @@ void MESH_OT_rotate_colors(struct wmOperatorType *ot);
 void MESH_OT_mirror_colors(struct wmOperatorType *ot);
 
 void MESH_OT_delete(struct wmOperatorType *ot);
+void MESH_OT_rip(struct wmOperatorType *ot);
 
 #endif // MESH_INTERN_H
 

@@ -45,6 +45,7 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
+#include "UI_interface.h"
 #include "UI_view2d.h"
 
 #include "WM_api.h"
@@ -219,11 +220,11 @@ static int file_border_select_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void ED_FILE_OT_border_select(wmOperatorType *ot)
+void FILE_OT_border_select(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Activate/Select File";
-	ot->idname= "ED_FILE_OT_border_select";
+	ot->idname= "FILE_OT_border_select";
 	
 	/* api callbacks */
 	ot->invoke= WM_border_select_invoke;
@@ -258,11 +259,11 @@ static int file_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_FINISHED;
 }
 
-void ED_FILE_OT_select(wmOperatorType *ot)
+void FILE_OT_select(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Activate/Select File";
-	ot->idname= "ED_FILE_OT_select";
+	ot->idname= "FILE_OT_select";
 	
 	/* api callbacks */
 	ot->invoke= file_select_invoke;
@@ -302,11 +303,11 @@ static int file_select_all_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_FINISHED;
 }
 
-void ED_FILE_OT_select_all(wmOperatorType *ot)
+void FILE_OT_select_all(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select/Deselect all files";
-	ot->idname= "ED_FILE_OT_select_all";
+	ot->idname= "FILE_OT_select_all";
 	
 	/* api callbacks */
 	ot->invoke= file_select_all_invoke;
@@ -368,11 +369,11 @@ static int bookmark_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_FINISHED;
 }
 
-void ED_FILE_OT_select_bookmark(wmOperatorType *ot)
+void FILE_OT_select_bookmark(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select Directory";
-	ot->idname= "ED_FILE_OT_select_bookmark";
+	ot->idname= "FILE_OT_select_bookmark";
 	
 	/* api callbacks */
 	ot->invoke= bookmark_select_invoke;
@@ -393,12 +394,12 @@ static int loadimages_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_FINISHED;
 }
 
-void ED_FILE_OT_loadimages(wmOperatorType *ot)
+void FILE_OT_loadimages(wmOperatorType *ot)
 {
 	
 	/* identifiers */
 	ot->name= "Load Images";
-	ot->idname= "ED_FILE_OT_loadimages";
+	ot->idname= "FILE_OT_loadimages";
 	
 	/* api callbacks */
 	ot->invoke= loadimages_invoke;
@@ -441,11 +442,11 @@ static int file_highlight_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_FINISHED;
 }
 
-void ED_FILE_OT_highlight(struct wmOperatorType *ot)
+void FILE_OT_highlight(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Highlight File";
-	ot->idname= "ED_FILE_OT_highlight";
+	ot->idname= "FILE_OT_highlight";
 	
 	/* api callbacks */
 	ot->invoke= file_highlight_invoke;
@@ -456,63 +457,54 @@ int file_cancel_exec(bContext *C, wmOperator *unused)
 {
 	SpaceFile *sfile= (SpaceFile*)CTX_wm_space_data(C);
 	
-	if(sfile->op) {
-		WM_operator_free(sfile->op);
-		sfile->op = NULL;
-	}
-	ED_screen_full_prevspace(C);
+	WM_event_fileselect_event(C, sfile->op, EVT_FILESELECT_CANCEL);
+	sfile->op = NULL;
 	
 	return OPERATOR_FINISHED;
 }
 
-void ED_FILE_OT_cancel(struct wmOperatorType *ot)
+void FILE_OT_cancel(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Cancel File Load";
-	ot->idname= "ED_FILE_OT_cancel";
+	ot->idname= "FILE_OT_cancel";
 	
 	/* api callbacks */
 	ot->exec= file_cancel_exec;
 	ot->poll= ED_operator_file_active;
 }
 
-
-int file_load_exec(bContext *C, wmOperator *unused)
+/* sends events now, so things get handled on windowqueue level */
+int file_exec(bContext *C, wmOperator *unused)
 {
 	SpaceFile *sfile= (SpaceFile*)CTX_wm_space_data(C);
 	char name[FILE_MAX];
 	
-	ED_screen_full_prevspace(C);
-	
 	if(sfile->op) {
 		wmOperator *op= sfile->op;
-		
-		/* if load .blend, all UI pointers after exec are invalid! */
-		/* but, operator can be freed still */
 		
 		sfile->op = NULL;
 		BLI_strncpy(name, sfile->params->dir, sizeof(name));
 		strcat(name, sfile->params->file);
 		RNA_string_set(op->ptr, "filename", name);
 		
-		op->type->exec(C, op);
-		
-		WM_operator_free(op);
+		WM_event_fileselect_event(C, op, EVT_FILESELECT_EXEC);
 	}
 				
 	return OPERATOR_FINISHED;
 }
 
-void ED_FILE_OT_load(struct wmOperatorType *ot)
+void FILE_OT_exec(struct wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Load File";
-	ot->idname= "ED_FILE_OT_load";
+	ot->name= "Execute File Window";
+	ot->idname= "FILE_OT_exec";
 	
 	/* api callbacks */
-	ot->exec= file_load_exec;
+	ot->exec= file_exec;
 	ot->poll= ED_operator_file_active; /* <- important, handler is on window level */
 }
+
 
 int file_parent_exec(bContext *C, wmOperator *unused)
 {
@@ -530,11 +522,11 @@ int file_parent_exec(bContext *C, wmOperator *unused)
 
 }
 
-void ED_FILE_OT_parent(struct wmOperatorType *ot)
+void FILE_OT_parent(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Parent File";
-	ot->idname= "ED_FILE_OT_parent";
+	ot->idname= "FILE_OT_parent";
 	
 	/* api callbacks */
 	ot->exec= file_parent_exec;

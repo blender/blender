@@ -119,7 +119,7 @@ void ED_region_do_listen(ARegion *ar, wmNotifier *note)
 		case NC_SCREEN:
 			if(note->action==NA_EDITED)
 				ED_region_tag_redraw(ar);
-			break;
+			/* pass on */
 		default:
 			if(ar->type && ar->type->listener)
 				ar->type->listener(ar, note);
@@ -325,16 +325,27 @@ static int rct_fits(rcti *rect, char dir, int size)
 
 static void region_rect_recursive(ARegion *ar, rcti *remainder, int quad)
 {
+	rcti *remainder_prev= remainder;
 	int prefsizex, prefsizey;
+	int alignment;
 	
 	if(ar==NULL)
 		return;
 	
+	BLI_init_rcti(&ar->winrct, 0, 0, 0, 0);
+	
+	/* for test; allow split of previously defined region */
+	if(ar->alignment & RGN_SPLIT_PREV)
+		if(ar->prev)
+			remainder= &ar->prev->winrct;
+	
+	alignment = ar->alignment & ~RGN_SPLIT_PREV;
+	
 	/* clear state flags first */
 	ar->flag &= ~RGN_FLAG_TOO_SMALL;
 	/* user errors */
-	if(ar->next==NULL && ar->alignment!=RGN_ALIGN_QSPLIT)
-		ar->alignment= RGN_ALIGN_NONE;
+	if(ar->next==NULL && alignment!=RGN_ALIGN_QSPLIT)
+		alignment= RGN_ALIGN_NONE;
 	
 	prefsizex= ar->type->minsizex;
 	prefsizey= ar->type->minsizey;
@@ -342,17 +353,17 @@ static void region_rect_recursive(ARegion *ar, rcti *remainder, int quad)
 	/* hidden is user flag */
 	if(ar->flag & RGN_FLAG_HIDDEN);
 	/* XXX floating area region, not handled yet here */
-	else if(ar->alignment == RGN_ALIGN_FLOAT);
+	else if(alignment == RGN_ALIGN_FLOAT);
 	/* remainder is too small for any usage */
 	else if( rct_fits(remainder, 'v', 1)<0 || rct_fits(remainder, 'h', 1) < 0 ) {
 		ar->flag |= RGN_FLAG_TOO_SMALL;
 	}
-	else if(ar->alignment==RGN_ALIGN_NONE) {
+	else if(alignment==RGN_ALIGN_NONE) {
 		/* typically last region */
 		ar->winrct= *remainder;
 		BLI_init_rcti(remainder, 0, 0, 0, 0);
 	}
-	else if(ar->alignment==RGN_ALIGN_TOP || ar->alignment==RGN_ALIGN_BOTTOM) {
+	else if(alignment==RGN_ALIGN_TOP || alignment==RGN_ALIGN_BOTTOM) {
 		
 		if( rct_fits(remainder, 'v', prefsizey) < 0 ) {
 			ar->flag |= RGN_FLAG_TOO_SMALL;
@@ -365,7 +376,7 @@ static void region_rect_recursive(ARegion *ar, rcti *remainder, int quad)
 			
 			ar->winrct= *remainder;
 			
-			if(ar->alignment==RGN_ALIGN_TOP) {
+			if(alignment==RGN_ALIGN_TOP) {
 				ar->winrct.ymin= ar->winrct.ymax - prefsizey + 1;
 				remainder->ymax= ar->winrct.ymin - 1;
 			}
@@ -375,7 +386,7 @@ static void region_rect_recursive(ARegion *ar, rcti *remainder, int quad)
 			}
 		}
 	}
-	else if( ELEM4(ar->alignment, RGN_ALIGN_LEFT, RGN_ALIGN_RIGHT, RGN_OVERLAP_LEFT, RGN_OVERLAP_RIGHT)) {
+	else if( ELEM4(alignment, RGN_ALIGN_LEFT, RGN_ALIGN_RIGHT, RGN_OVERLAP_LEFT, RGN_OVERLAP_RIGHT)) {
 		
 		if( rct_fits(remainder, 'h', prefsizex) < 0 ) {
 			ar->flag |= RGN_FLAG_TOO_SMALL;
@@ -388,23 +399,23 @@ static void region_rect_recursive(ARegion *ar, rcti *remainder, int quad)
 			
 			ar->winrct= *remainder;
 			
-			if(ELEM(ar->alignment, RGN_ALIGN_RIGHT, RGN_OVERLAP_RIGHT)) {
+			if(ELEM(alignment, RGN_ALIGN_RIGHT, RGN_OVERLAP_RIGHT)) {
 				ar->winrct.xmin= ar->winrct.xmax - prefsizex + 1;
-				if(ar->alignment==RGN_ALIGN_RIGHT)
+				if(alignment==RGN_ALIGN_RIGHT)
 					remainder->xmax= ar->winrct.xmin - 1;
 			}
 			else {
 				ar->winrct.xmax= ar->winrct.xmin + prefsizex - 1;
-				if(ar->alignment==RGN_ALIGN_LEFT)
+				if(alignment==RGN_ALIGN_LEFT)
 					remainder->xmin= ar->winrct.xmax + 1;
 			}
 		}
 	}
-	else if(ar->alignment==RGN_ALIGN_VSPLIT || ar->alignment==RGN_ALIGN_HSPLIT) {
+	else if(alignment==RGN_ALIGN_VSPLIT || alignment==RGN_ALIGN_HSPLIT) {
 		/* percentage subdiv*/
 		ar->winrct= *remainder;
 		
-		if(ar->alignment==RGN_ALIGN_HSPLIT) {
+		if(alignment==RGN_ALIGN_HSPLIT) {
 			if( rct_fits(remainder, 'h', prefsizex) > 4) {
 				ar->winrct.xmax= (remainder->xmin+remainder->xmax)/2;
 				remainder->xmin= ar->winrct.xmax+1;
@@ -423,7 +434,7 @@ static void region_rect_recursive(ARegion *ar, rcti *remainder, int quad)
 			}
 		}
 	}
-	else if(ar->alignment==RGN_ALIGN_QSPLIT) {
+	else if(alignment==RGN_ALIGN_QSPLIT) {
 		ar->winrct= *remainder;
 		
 		/* test if there's still 4 regions left */
@@ -471,6 +482,14 @@ static void region_rect_recursive(ARegion *ar, rcti *remainder, int quad)
 	ar->winx= ar->winrct.xmax - ar->winrct.xmin + 1;
 	ar->winy= ar->winrct.ymax - ar->winrct.ymin + 1;
 	
+	/* restore test exception */
+	if(ar->alignment & RGN_SPLIT_PREV) {
+		if(ar->prev) {
+			remainder= remainder_prev;
+			ar->prev->winx= ar->prev->winrct.xmax - ar->prev->winrct.xmin + 1;
+			ar->prev->winy= ar->prev->winrct.ymax - ar->prev->winrct.ymin + 1;
+		}
+	}
 	region_rect_recursive(ar->next, remainder, quad);
 }
 
@@ -603,11 +622,17 @@ void ED_area_initialize(wmWindowManager *wm, wmWindow *win, ScrArea *sa)
 	for(ar= sa->regionbase.first; ar; ar= ar->next) {
 		region_subwindow(wm, win, ar);
 		
-		/* default region handlers */
-		ed_default_handlers(wm, &ar->handlers, ar->type->keymapflag);
+		if(ar->swinid) {
+			/* default region handlers */
+			ed_default_handlers(wm, &ar->handlers, ar->type->keymapflag);
 
-		if(ar->type->init)
-			ar->type->init(wm, ar);
+			if(ar->type->init)
+				ar->type->init(wm, ar);
+		}
+		else {
+			/* prevent uiblocks to run */
+			uiFreeBlocks(NULL, &ar->uiblocks);	
+		}
 		
 	}
 	area_azone_initialize(sa);
@@ -729,6 +754,7 @@ void ED_area_newspace(bContext *C, ScrArea *sa, int type)
 		WM_event_add_mousemove(C);
 		
 		ED_area_tag_redraw(sa);
+		ED_area_tag_refresh(sa);
 	}
 }
 

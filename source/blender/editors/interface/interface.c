@@ -593,9 +593,19 @@ void uiEndBlock(const bContext *C, uiBlock *block)
 	 * on matching buttons, we need this to make button event handling non
 	 * blocking, while still alowing buttons to be remade each redraw as it
 	 * is expected by blender code */
-	for(but=block->buttons.first; but; but=but->next)
+	for(but=block->buttons.first; but; but=but->next) {
 		if(ui_but_update_from_old_block(C, block, but))
 			ui_check_but(but);
+		
+		/* temp? Proper check for greying out */
+		if(but->opname) {
+			wmOperatorType *ot= WM_operatortype_find(but->opname);
+			if(ot==NULL || ot->poll((bContext *)C)==0) {
+				but->flag |= UI_BUT_DISABLED;
+				but->lock = 1;
+			}
+		}
+	}
 
 	if(block->oldblock) {
 		block->auto_open= block->oldblock->auto_open;
@@ -607,7 +617,7 @@ void uiEndBlock(const bContext *C, uiBlock *block)
 
 	/* handle pending stuff */
 	if(block->flag & UI_BLOCK_LOOP) ui_menu_block_set_keymaps(C, block);
-
+	
 	/* after keymaps! */
 	if(block->dobounds == 1) ui_bounds_block(block);
 	else if(block->dobounds == 2) ui_text_bounds_block(block, 0.0f);
@@ -1494,6 +1504,7 @@ static void ui_free_link(uiLink *link)
 	}
 }
 
+/* can be called with C==NULL */
 static void ui_free_but(const bContext *C, uiBut *but)
 {
 	if(but->opptr) {
@@ -1501,13 +1512,21 @@ static void ui_free_but(const bContext *C, uiBut *but)
 		MEM_freeN(but->opptr);
 	}
 	if(but->func_argN) MEM_freeN(but->func_argN);
-	if(but->active) ui_button_active_cancel(C, but);
+	if(but->active) {
+		/* XXX solve later, buttons should be free-able without context? */
+		if(C) 
+			ui_button_active_cancel(C, but);
+		else
+			if(but->active) 
+				MEM_freeN(but->active);
+	}
 	if(but->str && but->str != but->strdata) MEM_freeN(but->str);
 	ui_free_link(but->link);
 
 	MEM_freeN(but);
 }
 
+/* can be called with C==NULL */
 void uiFreeBlock(const bContext *C, uiBlock *block)
 {
 	uiBut *but;
@@ -1525,6 +1544,7 @@ void uiFreeBlock(const bContext *C, uiBlock *block)
 	MEM_freeN(block);
 }
 
+/* can be called with C==NULL */
 void uiFreeBlocks(const bContext *C, ListBase *lb)
 {
 	uiBlock *block;
@@ -1610,8 +1630,8 @@ uiBlock *uiBeginBlock(const bContext *C, ARegion *region, char *name, short dt, 
 		/* no subwindow created yet, for menus for example, so we
 		 * use the main window instead, since buttons are created
 		 * there anyway */
-		wm_subwindow_getmatrix(window, window->winid, block->winmat);
-		wm_subwindow_getsize(window, window->winid, &getsizex, &getsizey);
+		wm_subwindow_getmatrix(window, window->screen->mainwin, block->winmat);
+		wm_subwindow_getsize(window, window->screen->mainwin, &getsizex, &getsizey);
 
 		block->aspect= 2.0/fabs(getsizex*block->winmat[0][0]);
 		block->auto_open= 2;

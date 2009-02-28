@@ -55,11 +55,12 @@
 #include "BKE_utildefines.h"
 
 #include "ED_armature.h"
-#include "ED_editparticle.h"
+#include "ED_particle.h"
 #include "ED_curve.h"
 #include "ED_mesh.h"
 #include "ED_object.h"
 #include "ED_screen.h"
+#include "ED_sculpt.h"
 #include "ED_util.h"
 
 #include "WM_api.h"
@@ -72,12 +73,12 @@
 
 /* ********* XXX **************** */
 static void undo_push_mball() {}
-static void undo_imagepaint_step() {}
 static void sound_initialize_sounds() {}
 /* ********* XXX **************** */
 
 void ED_undo_push(bContext *C, char *str)
 {
+	wmWindowManager *wm= CTX_wm_manager(C);
 	Object *obedit= CTX_data_edit_object(C);
 	
 	if(obedit) {
@@ -104,6 +105,11 @@ void ED_undo_push(bContext *C, char *str)
 	else {
 		if(U.uiflag & USER_GLOBALUNDO) 
 			BKE_write_undo(C, str);
+	}
+	
+	if(wm->file_saved) {
+		wm->file_saved= 0;
+		WM_event_add_notifier(C, NC_WM|ND_DATACHANGED, NULL);
 	}
 }
 
@@ -185,7 +191,7 @@ void ED_undo_menu(bContext *C)
 	}
 	else {
 		if(G.f & G_PARTICLEEDIT)
-			PE_undo_menu(CTX_data_scene(C));
+			PE_undo_menu(CTX_data_scene(C), CTX_data_active_object(C));
 		else if(U.uiflag & USER_GLOBALUNDO) {
 			char *menu= BKE_undo_menu_string();
 			if(menu) {

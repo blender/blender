@@ -66,7 +66,8 @@ typedef struct wmEvent {
 	
 	short type;			/* event code itself (short, is also in keymap) */
 	short val;			/* press, release, scrollvalue */
-	short x, y;			/* mouse pointer position */
+	short x, y;			/* mouse pointer position, screen coord */
+	short mval[2];		/* region mouse position, name convention pre 2.5 :) */
 	short prevx, prevy;	/* previous mouse pointer position */
 	short unicode;		/* future, ghost? */
 	char ascii;			/* from ghost */
@@ -154,15 +155,20 @@ typedef struct wmNotifier {
 #define	NC_LAMP				(8<<24)
 #define	NC_GROUP			(9<<24)
 #define	NC_IMAGE			(10<<24)
+#define	NC_BRUSH			(11<<24)
 
 /* data type, 256 entries is enough, it can overlap */
 #define NOTE_DATA			0x00FF0000
 
 	/* NC_WM windowmanager */
 #define ND_FILEREAD			(1<<16)
+#define ND_FILESAVE			(2<<16)
+#define ND_DATACHANGED		(3<<16)
 
 	/* NC_SCREEN screen */
 #define ND_SCREENBROWSE		(1<<16)
+#define ND_SCREENCAST		(2<<16)
+
 
 	/* NC_SCENE Scene */
 #define ND_SCENEBROWSE		(1<<16)
@@ -212,7 +218,8 @@ typedef struct wmNotifier {
 #define NS_EDITMODE_MBALL	(6<<8)
 #define NS_EDITMODE_LATTICE	(7<<8)
 #define NS_EDITMODE_ARMATURE	(8<<8)
-#define NS_POSEMODE			(9<<8)
+#define NS_MODE_POSE		(9<<8)
+#define NS_MODE_PARTICLE	(10<<8)
 
 
 /* action classification */

@@ -125,27 +125,14 @@ static void file_free(SpaceLink *sl)
 		MEM_freeN(sfile->params);
 		sfile->params= NULL;
 	}
-	
-	if (sfile->op) {
-		WM_operator_free(sfile->op);
-	}
 }
 
 
-/* spacetype; init callback */
+/* spacetype; init callback, area size changes, screen set, etc */
 static void file_init(struct wmWindowManager *wm, ScrArea *sa)
 {
-	SpaceFile *sfile= sa->spacedata.first;	/* XXX get through context? */
-	if (sfile->params) {
-		ED_fileselect_reset_params(sfile);
-	}
-	if (sfile->files) {
-		filelist_free(sfile->files);
-		filelist_freelib(sfile->files);
-		MEM_freeN(sfile->files);
-		sfile->files= NULL;
-	}
 }
+
 
 static SpaceLink *file_duplicate(SpaceLink *sl)
 {
@@ -153,19 +140,16 @@ static SpaceLink *file_duplicate(SpaceLink *sl)
 	SpaceFile *sfilen= MEM_dupallocN(sl);
 	
 	/* clear or remove stuff from old */
-	sfilen->op = NULL; // XXX check if operator can be duplicated
+	sfilen->op = NULL; /* file window doesn't own operators */
 
-	sfilen->params= MEM_dupallocN(sfileo->params);
-	if (!sfilen->params) {
-		sfilen->params= MEM_callocN(sizeof(FileSelectParams), "fileselparams");
-		ED_fileselect_set_params(sfilen, FILE_UNIX, "", "/", 0, 0, 0);
-		sfilen->params->pupmenu = NULL;
-	}
-	
 	sfilen->files = filelist_new();
-	filelist_setdir(sfilen->files, sfilen->params->dir);
-	filelist_settype(sfilen->files, sfilen->params->type);
-
+	
+	if(sfileo->params) {
+		sfilen->params= MEM_dupallocN(sfileo->params);
+	
+		filelist_setdir(sfilen->files, sfilen->params->dir);
+		filelist_settype(sfilen->files, sfilen->params->type);
+	}
 	return (SpaceLink *)sfilen;
 }
 
@@ -180,6 +164,8 @@ static void file_main_area_init(wmWindowManager *wm, ARegion *ar)
 	/* own keymap */
 	keymap= WM_keymap_listbase(wm, "File", SPACE_FILE, 0);	/* XXX weak? */
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
+							   
+
 }
 
 static void file_main_area_draw(const bContext *C, ARegion *ar)
@@ -219,18 +205,25 @@ static void file_main_area_draw(const bContext *C, ARegion *ar)
 	glClearColor(col[0], col[1], col[2], 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
 	
+	/* Allow dynamically sliders to be set, saves notifiers etc. */
+	if (sfile->params && sfile->params->display)
+		v2d->scroll = V2D_SCROLL_RIGHT;
+	else
+		v2d->scroll = V2D_SCROLL_BOTTOM;
+		/* v2d has initialized flag, so this call will only set the mask correct */
+	UI_view2d_region_reinit(v2d, V2D_COMMONVIEW_LIST, ar->winx, ar->winy);
+
 	/* sets tile/border settings in sfile */
 	file_calc_previews(C, ar);
 
+	/* set view */
+	UI_view2d_view_ortho(C, v2d);
+	
 	/* on first read, find active file */
 	if (params->active_file == -1) {
 		wmEvent *event= CTX_wm_window(C)->eventstate;
 		file_hilight_set(sfile, ar, event->x - ar->winrct.xmin, event->y - ar->winrct.ymin);
-		
 	}
-	
-	/* data... */
-	UI_view2d_view_ortho(C, v2d);
 	
 	if (params->display) {
 		file_draw_previews(C, ar);
@@ -251,31 +244,31 @@ static void file_main_area_draw(const bContext *C, ARegion *ar)
 
 void file_operatortypes(void)
 {
-	WM_operatortype_append(ED_FILE_OT_select);
-	WM_operatortype_append(ED_FILE_OT_select_all);
-	WM_operatortype_append(ED_FILE_OT_border_select);
-	WM_operatortype_append(ED_FILE_OT_select_bookmark);
-	WM_operatortype_append(ED_FILE_OT_loadimages);
-	WM_operatortype_append(ED_FILE_OT_highlight);
-	WM_operatortype_append(ED_FILE_OT_load);
-	WM_operatortype_append(ED_FILE_OT_cancel);
-	WM_operatortype_append(ED_FILE_OT_parent);
+	WM_operatortype_append(FILE_OT_select);
+	WM_operatortype_append(FILE_OT_select_all);
+	WM_operatortype_append(FILE_OT_border_select);
+	WM_operatortype_append(FILE_OT_select_bookmark);
+	WM_operatortype_append(FILE_OT_loadimages);
+	WM_operatortype_append(FILE_OT_highlight);
+	WM_operatortype_append(FILE_OT_exec);
+	WM_operatortype_append(FILE_OT_cancel);
+	WM_operatortype_append(FILE_OT_parent);
 }
 
 /* NOTE: do not add .blend file reading on this level */
 void file_keymap(struct wmWindowManager *wm)
 {
 	ListBase *keymap= WM_keymap_listbase(wm, "File", SPACE_FILE, 0);
-	WM_keymap_add_item(keymap, "ED_FILE_OT_select", LEFTMOUSE, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "ED_FILE_OT_select_all", AKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "ED_FILE_OT_border_select", BKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "ED_FILE_OT_highlight", MOUSEMOVE, KM_ANY, 0, 0);
-	WM_keymap_add_item(keymap, "ED_FILE_OT_parent", PKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "FILE_OT_select", LEFTMOUSE, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "FILE_OT_select_all", AKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "FILE_OT_border_select", BKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "FILE_OT_highlight", MOUSEMOVE, KM_ANY, 0, 0);
+	WM_keymap_add_item(keymap, "FILE_OT_parent", PKEY, KM_PRESS, 0, 0);
 	
-	WM_keymap_add_item(keymap, "ED_FILE_OT_loadimages", TIMER1, KM_ANY, KM_ANY, 0);
+	WM_keymap_add_item(keymap, "FILE_OT_loadimages", TIMER1, KM_ANY, KM_ANY, 0);
 
 	keymap= WM_keymap_listbase(wm, "FileBookmark", SPACE_FILE, 0);
-	WM_keymap_add_item(keymap, "ED_FILE_OT_select_bookmark", LEFTMOUSE, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "FILE_OT_select_bookmark", LEFTMOUSE, KM_PRESS, 0, 0);
 }
 
 

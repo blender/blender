@@ -291,6 +291,16 @@ void outliner_header_buttons(const bContext *C, ARegion *ar)
 					uiDefIconButO(block, BUT, "OUTLINER_OT_keyingset_add_selected", WM_OP_INVOKE_REGION_WIN, ICON_ZOOMIN, xco,yco,XIC,YIC, "Add selected properties to active Keying Set (K)");
 					xco += XIC;
 				uiBlockEndAlign(block);
+				
+				xco += 10;
+				
+				/* operator buttons to insert/delete keyframes for the active set */
+				uiBlockBeginAlign(block);
+					uiDefIconButO(block, BUT, "ANIM_OT_delete_keyframe", WM_OP_INVOKE_REGION_WIN, ICON_KEY_DEHLT, xco,yco,XIC,YIC, "Delete Keyframes for the Active Keying Set (Alt-I)");
+					xco+= XIC;
+					uiDefIconButO(block, BUT, "ANIM_OT_insert_keyframe", WM_OP_INVOKE_REGION_WIN, ICON_KEY_HLT, xco,yco,XIC,YIC, "Insert Keyframes for the Active Keying Set (I)");
+					xco+= XIC;
+				uiBlockEndAlign(block);
 			}
 			
 			xco += XIC*2;

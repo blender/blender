@@ -27,11 +27,13 @@ BMOpDefine def_dissolvevertsop = {
 };
 
 BMOpDefine def_dissolvefacesop = {
-	{BMOP_OPSLOT_PNT_BUF},
+	{BMOP_OPSLOT_PNT_BUF,
+	 BMOP_OPSLOT_PNT_BUF},
 	dissolvefaces_exec,
 	BMOP_DISFACES_TOTSLOT,
 	0
 };
+
 
 BMOpDefine def_triangop = {
 	{BMOP_OPSLOT_PNT_BUF, 

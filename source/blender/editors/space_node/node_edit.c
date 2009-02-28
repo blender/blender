@@ -204,7 +204,7 @@ bNode *editnode_get_active(bNodeTree *ntree)
 		return nodeGetActive(ntree);
 }
 
-static void snode_handle_recalc(bContext *C, SpaceNode *snode)
+void snode_handle_recalc(bContext *C, SpaceNode *snode)
 {
 	if(snode->treetype==NTREE_SHADER)
 		WM_event_add_notifier(C, NC_MATERIAL|ND_NODES, snode->id);
@@ -1399,7 +1399,7 @@ void node_active_link_viewer(SpaceNode *snode)
 /*static*/ int node_mouse_groupheader(SpaceNode *snode)
 {
 	bNode *gnode;
-	float mx, my;
+	float mx=0, my=0;
 // XXX	short mval[2];
 	
 	gnode= snode_get_editgroup(snode);

@@ -24,6 +24,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include <math.h>
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_arithb.h"
@@ -70,6 +72,14 @@
 #include "screen_intern.h"	/* own module include */
 
 /* ************** Exported Poll tests ********************** */
+
+int ED_operator_regionactive(bContext *C)
+{
+	if(CTX_wm_window(C)==NULL) return 0;
+	if(CTX_wm_screen(C)==NULL) return 0;
+	if(CTX_wm_region(C)==NULL) return 0;
+	return 1;
+}
 
 int ED_operator_areaactive(bContext *C)
 {
@@ -238,9 +248,6 @@ int ED_operator_editsurfcurve(bContext *C)
 	if(obedit && ELEM(obedit->type, OB_CURVE, OB_SURF))
 		return NULL != ((Curve *)obedit->data)->editnurb;
 	return 0;
-
-	// XXX this test was in many tools, still needed?
-	// if(v3d==0 || (v3d->lay & obedit->lay)==0 ) return 0;
 }
 
 
@@ -257,6 +264,14 @@ int ED_operator_editsurf(bContext *C)
 	Object *obedit= CTX_data_edit_object(C);
 	if(obedit && obedit->type==OB_SURF)
 		return NULL != ((Curve *)obedit->data)->editnurb;
+	return 0;
+}
+
+int ED_operator_editfont(bContext *C)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	if(obedit && obedit->type==OB_FONT)
+		return NULL != ((Curve *)obedit->data)->editfont;
 	return 0;
 }
 
@@ -1040,7 +1055,7 @@ void SCREEN_OT_frame_offset(wmOperatorType *ot)
 	ot->exec= frame_offset_exec;
 
 	ot->poll= ED_operator_screenactive;
-	ot->flag= OPTYPE_REGISTER;
+	ot->flag= 0;
 
 	/* rna */
 	RNA_def_int(ot->srna, "delta", 0, INT_MIN, INT_MAX, "Delta", "", INT_MIN, INT_MAX);
@@ -1118,7 +1133,7 @@ void SCREEN_OT_screen_full_area(wmOperatorType *ot)
 	
 	ot->exec= screen_full_area_exec;
 	ot->poll= ED_operator_areaactive;
-	ot->flag= OPTYPE_REGISTER;
+	ot->flag= 0;
 
 }
 
@@ -1478,24 +1493,9 @@ void SCREEN_OT_repeat_history(wmOperatorType *ot)
 
 /* ********************** redo operator ***************************** */
 
-static int redo_last_exec(bContext *C, wmOperator *op)
+static void redo_last_cb(bContext *C, void *arg_op, void *arg2)
 {
-#if 0
-	/* XXX context is not correct after popup menu */
-	wmOperator *lastop= CTX_wm_manager(C)->operators.last;
-	
-	if(lastop) {
-		ED_undo_pop(C);
-		WM_operator_repeat(C, lastop);
-	}
-#endif
-	
-	return OPERATOR_CANCELLED;
-}
-
-static void redo_last_cb(bContext *C, void *arg1, void *arg2)
-{
-	wmOperator *lastop= CTX_wm_manager(C)->operators.last;
+	wmOperator *lastop= arg_op;
 	
 	if(lastop) {
 		ED_undo_pop(C);
@@ -1514,7 +1514,7 @@ static uiBlock *ui_block_create_redo_last(bContext *C, ARegion *ar, void *arg_op
 	
 	block= uiBeginBlock(C, ar, "redo_last_popup", UI_EMBOSS, UI_HELV);
 	uiBlockSetFlag(block, UI_BLOCK_KEEP_OPEN|UI_BLOCK_RET_1);
-	uiBlockSetFunc(block, redo_last_cb, NULL, NULL);
+	uiBlockSetFunc(block, redo_last_cb, arg_op, NULL);
 
 	if(!op->properties) {
 		IDPropertyTemplate val = {0};
@@ -1533,16 +1533,17 @@ static uiBlock *ui_block_create_redo_last(bContext *C, ARegion *ar, void *arg_op
 static int redo_last_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	wmWindowManager *wm= CTX_wm_manager(C);
-	wmOperator *lastop= wm->operators.last;
+	wmOperator *lastop;
 
+	/* only for operators that are registered and did an undo push */
+	for(lastop= wm->operators.last; lastop; lastop= lastop->prev)
+		if((lastop->type->flag & OPTYPE_REGISTER) && (lastop->type->flag & OPTYPE_UNDO))
+			break;
+	
 	if(!lastop)
 		return OPERATOR_CANCELLED;
 
-	/* only for operators that are registered and did an undo push */
-	if(!(lastop->type->flag & OPTYPE_REGISTER) || !(lastop->type->flag & OPTYPE_UNDO))
-		return OPERATOR_CANCELLED;
-
-	uiPupBlockO(C, ui_block_create_redo_last, lastop, op->type->idname, WM_OP_EXEC_DEFAULT);
+	uiPupBlock(C, ui_block_create_redo_last, lastop);
 
 	return OPERATOR_CANCELLED;
 }
@@ -1555,7 +1556,6 @@ void SCREEN_OT_redo_last(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->invoke= redo_last_invoke;
-	ot->exec= redo_last_exec;
 	
 	ot->poll= ED_operator_screenactive;
 }
@@ -1625,6 +1625,7 @@ static int region_foursplit_exec(bContext *C, wmOperator *op)
 		if(sa->spacetype==SPACE_VIEW3D) {
 			RegionView3D *rv3d= ar->regiondata;
 			rv3d->viewlock= 0;
+			rv3d->rflag &= ~RV3D_CLIPPING;
 		}
 		
 		for(ar= sa->regionbase.first; ar; ar= arn) {
@@ -1774,7 +1775,14 @@ static int screen_animation_play(bContext *C, wmOperator *op, wmEvent *event)
 	if(screen->animtimer==event->customdata) {
 		Scene *scene= CTX_data_scene(C);
 		
-		scene->r.cfra++;
+		if(scene->audio.flag & AUDIO_SYNC) {
+			wmTimer *wt= screen->animtimer;
+			int step = floor(wt->duration * FPS);
+			scene->r.cfra += step;
+			wt->duration -= ((float)step)/FPS;
+		}
+		else
+			scene->r.cfra++;
 		
 		if (scene->r.psfra) {
 			if(scene->r.cfra > scene->r.pefra)
@@ -2038,15 +2046,16 @@ static void image_rect_update(void *rjv, RenderResult *rr, volatile rcti *renrec
 			return;
 		
 		/* xmin here is first subrect x coord, xmax defines subrect width */
-		xmin = renrect->xmin;
-		xmax = renrect->xmax - xmin;
+		xmin = renrect->xmin + rr->crop;
+		xmax = renrect->xmax - xmin - rr->crop;
 		if (xmax<2) return;
 		
-		ymin= renrect->ymin;
-		ymax= renrect->ymax - ymin;
+		ymin= renrect->ymin + rr->crop;
+		ymax= renrect->ymax - ymin - rr->crop;
 		if(ymax<2)
 			return;
 		renrect->ymin= renrect->ymax;
+		
 	}
 	else {
 		xmin = ymin = rr->crop;
@@ -2064,6 +2073,7 @@ static void image_rect_update(void *rjv, RenderResult *rr, volatile rcti *renrec
 		xmax= ibuf->x - rxmin;
 	if(rymin + ymax > ibuf->y)
 		ymax= ibuf->y - rymin;
+	
 	if(xmax < 1 || ymax < 1) return;
 	
 	/* find current float rect for display, first case is after composit... still weak */
@@ -2086,11 +2096,14 @@ static void image_rect_update(void *rjv, RenderResult *rr, volatile rcti *renrec
 		float *rf= rectf;
 		char *rc= rectc;
 		
-		for(x1= 0; x1<xmax; x1++, rf += 4, rc+=4) {
-			rc[0]= FTOCHAR(rf[0]);
-			rc[1]= FTOCHAR(rf[1]);
-			rc[2]= FTOCHAR(rf[2]);
-			rc[3]= FTOCHAR(rf[3]);
+		/* XXX temp. because crop offset */
+		if( rectc >= (char *)(ibuf->rect)) {
+			for(x1= 0; x1<xmax; x1++, rf += 4, rc+=4) {
+				rc[0]= FTOCHAR(rf[0]);
+				rc[1]= FTOCHAR(rf[1]);
+				rc[2]= FTOCHAR(rf[2]);
+				rc[3]= FTOCHAR(rf[3]);
+			}
 		}
 		rectf += 4*rr->rectx;
 		rectc += 4*ibuf->x;
@@ -2123,6 +2136,22 @@ static int render_breakjob(void *rjv)
 	if(rj->stop && *(rj->stop))
 		return 1;
 	return 0;
+}
+
+/* catch esc */
+static int screen_render_modal(bContext *C, wmOperator *op, wmEvent *event)
+{
+	/* no running blender, remove handler and pass through */
+	if(0==WM_jobs_test(CTX_wm_manager(C), CTX_data_scene(C)))
+	   return OPERATOR_FINISHED|OPERATOR_PASS_THROUGH;
+	
+	/* running render */
+	switch (event->type) {
+		case ESCKEY:
+			return OPERATOR_RUNNING_MODAL;
+			break;
+	}
+	return OPERATOR_PASS_THROUGH;
 }
 
 /* using context, starts job */
@@ -2189,7 +2218,10 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	WM_cursor_wait(0);
 	WM_event_add_notifier(C, NC_SCENE|ND_RENDER_RESULT, scene);
 
-	return OPERATOR_FINISHED;
+	/* add modal handler for ESC */
+	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
+	
+	return OPERATOR_RUNNING_MODAL;
 }
 
 
@@ -2202,6 +2234,7 @@ void SCREEN_OT_render(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->invoke= screen_render_invoke;
+	ot->modal= screen_render_modal;
 	ot->exec= screen_render_exec;
 	
 	ot->poll= ED_operator_screenactive;
@@ -2219,12 +2252,18 @@ static int render_view_cancel_exec(bContext *C, wmOperator *unused)
 	
 	if(sima->flag & SI_PREVSPACE) {
 		sima->flag &= ~SI_PREVSPACE;
-		ED_area_prevspace(C);
+		
+		if(sima->flag & SI_FULLWINDOW) {
+			sima->flag &= ~SI_FULLWINDOW;
+			ED_screen_full_prevspace(C);
+		}
+		else
+			ED_area_prevspace(C);
 	}
 	else if(sima->flag & SI_FULLWINDOW) {
 		sima->flag &= ~SI_FULLWINDOW;
-		ED_screen_full_prevspace(C);
-	}
+		ed_screen_fullarea(C, sa);
+	}		
 	
 	return OPERATOR_FINISHED;
 }
@@ -2262,6 +2301,8 @@ void ED_operatortypes_screen(void)
 	WM_operatortype_append(SCREEN_OT_region_flip);
 	WM_operatortype_append(SCREEN_OT_screen_set);
 	WM_operatortype_append(SCREEN_OT_screen_full_area);
+	WM_operatortype_append(SCREEN_OT_screenshot);
+	WM_operatortype_append(SCREEN_OT_screencast);
 	
 	/*frame changes*/
 	WM_operatortype_append(SCREEN_OT_frame_offset);
@@ -2287,6 +2328,7 @@ void ED_keymap_screen(wmWindowManager *wm)
 	
 	WM_keymap_verify_item(keymap, "SCREEN_OT_actionzone", LEFTMOUSE, KM_PRESS, 0, 0);
 	
+	/* screen tools */
 	WM_keymap_verify_item(keymap, "SCREEN_OT_area_move", LEFTMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "SCREEN_OT_area_split", EVT_ACTIONZONE, 0, 0, 0);
 	WM_keymap_verify_item(keymap, "SCREEN_OT_area_join", EVT_ACTIONZONE, 0, 0, 0);
@@ -2296,6 +2338,8 @@ void ED_keymap_screen(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "SCREEN_OT_screen_full_area", UPARROWKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "SCREEN_OT_screen_full_area", DOWNARROWKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "SCREEN_OT_screen_full_area", SPACEKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "SCREEN_OT_screenshot", F3KEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "SCREEN_OT_screencast", F3KEY, KM_PRESS, KM_ALT, 0);
 
 	 /* tests */
 	WM_keymap_add_item(keymap, "SCREEN_OT_region_split", SKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
@@ -2307,8 +2351,8 @@ void ED_keymap_screen(wmWindowManager *wm)
 	WM_keymap_verify_item(keymap, "SCREEN_OT_redo_last", F6KEY, KM_PRESS, 0, 0);
 
 	/* files */
-	WM_keymap_add_item(keymap, "ED_FILE_OT_load", RETKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "ED_FILE_OT_cancel", ESCKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "FILE_OT_exec", RETKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "FILE_OT_cancel", ESCKEY, KM_PRESS, 0, 0);
 	
 	/* undo */
 	WM_keymap_add_item(keymap, "ED_OT_undo", ZKEY, KM_PRESS, KM_CTRL, 0);

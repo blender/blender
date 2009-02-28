@@ -367,9 +367,16 @@ static int view_scrolldown_exec(bContext *C, wmOperator *op)
 		return OPERATOR_PASS_THROUGH;
 	}
 	
-	/* set RNA-Props - only movement in positive x-direction */
-	RNA_int_set(op->ptr, "deltax", 0);
-	RNA_int_set(op->ptr, "deltay", -20);
+	/* set RNA-Props */
+	/* automatically fall back to horizontal on this exception: */
+	if( ELEM(vpd->v2d->scroll, V2D_SCROLL_BOTTOM, V2D_SCROLL_TOP) ) {
+		RNA_int_set(op->ptr, "deltax", -20);
+		RNA_int_set(op->ptr, "deltay", 0);
+	}
+	else {
+		RNA_int_set(op->ptr, "deltax", 0);
+		RNA_int_set(op->ptr, "deltay", -20);
+	}
 	
 	/* apply movement, then we're done */
 	view_pan_apply(C, op);
@@ -413,9 +420,16 @@ static int view_scrollup_exec(bContext *C, wmOperator *op)
 		return OPERATOR_PASS_THROUGH;
 	}
 	
-	/* set RNA-Props - only movement in negative x-direction */
-	RNA_int_set(op->ptr, "deltax", 0);
-	RNA_int_set(op->ptr, "deltay", 20);
+	/* set RNA-Props */
+	/* automatically fall back to horizontal on this exception: */
+	if( ELEM(vpd->v2d->scroll, V2D_SCROLL_BOTTOM, V2D_SCROLL_TOP) ) {
+		RNA_int_set(op->ptr, "deltax", 20);
+		RNA_int_set(op->ptr, "deltay", 0);
+	}
+	else {
+		RNA_int_set(op->ptr, "deltax", 0);
+		RNA_int_set(op->ptr, "deltay", 20);
+	}
 	
 	/* apply movement, then we're done */
 	view_pan_apply(C, op);

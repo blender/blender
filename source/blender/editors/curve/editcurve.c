@@ -1077,7 +1077,7 @@ void CURVE_OT_set_weight(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_float(ot->srna, "weight", 1.0f, 0.0f, 1.0f, "Weight", "", 0.0f, 1.0f);
+	RNA_def_float_percentage(ot->srna, "weight", 1.0f, 0.0f, 1.0f, "Weight", "", 0.0f, 1.0f);
 }
 
 /******************* set radius operator ******************/
@@ -1618,7 +1618,7 @@ static int hide_exec(bContext *C, wmOperator *op)
 	Nurb *nu;
 	BPoint *bp;
 	BezTriple *bezt;
-	int a, sel, invert= RNA_boolean_get(op->ptr, "deselected");
+	int a, sel, invert= RNA_boolean_get(op->ptr, "unselected");
 
 	for(nu= editnurb->first; nu; nu= nu->next) {
 		if((nu->type & 7)==CU_BEZIER) {
@@ -1668,7 +1668,7 @@ static int hide_exec(bContext *C, wmOperator *op)
 void CURVE_OT_hide(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Hide Selection";
+	ot->name= "Hide Selected";
 	ot->idname= "CURVE_OT_hide";
 	
 	/* api callbacks */
@@ -1679,7 +1679,7 @@ void CURVE_OT_hide(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
-	RNA_def_boolean(ot->srna, "deselected", 0, "Deselected", "Hide deselected rather than selected.");
+	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected.");
 }
 
 /********************** reveal operator *********************/
@@ -3258,16 +3258,15 @@ void CURVE_OT_spin(wmOperatorType *ot)
 
 /***************** add vertex operator **********************/
 
-static int addvert_Nurb(bContext *C, short mode)
+static int addvert_Nurb(bContext *C, short mode, float location[3])
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	ListBase *editnurb= curve_get_editcurve(obedit);
-	View3D *v3d= CTX_wm_view3d(C);
 	Nurb *nu;
 	BezTriple *bezt, *newbezt = NULL;
 	BPoint *bp, *newbp = NULL;
-	float *curs, mat[3][3],imat[3][3], temp[3];
+	float mat[3][3],imat[3][3], temp[3];
 
 	Mat3CpyMat4(mat, obedit->obmat);
 	Mat3Inv(imat,mat);
@@ -3315,16 +3314,7 @@ static int addvert_Nurb(bContext *C, short mode)
 				VECCOPY(newbezt->vec[2], bezt->vec[2]);
 			}
 			else {
-				if(v3d) {
-					curs= give_cursor(scene, v3d);
-					VECCOPY(newbezt->vec[1], curs);
-				}
-				else {
-					newbezt->vec[1][0]= 0.0f;
-					newbezt->vec[1][1]= 0.0f;
-					newbezt->vec[1][2]= 0.0f;
-				}
-
+				VECCOPY(newbezt->vec[1], location);
 				VecSubf(newbezt->vec[1],newbezt->vec[1], obedit->obmat[3]);
 				Mat3MulVecfl(imat,newbezt->vec[1]);
 				VecSubf(temp, newbezt->vec[1],temp);
@@ -3370,16 +3360,7 @@ static int addvert_Nurb(bContext *C, short mode)
 				VECCOPY(newbp->vec, bp->vec);
 			}
 			else {
-				if(v3d) {
-					curs= give_cursor(scene, v3d);
-					VECCOPY(newbp->vec, curs);
-				}
-				else {
-					newbp->vec[0]= 0.0f;
-					newbp->vec[1]= 0.0f;
-					newbp->vec[1]= 0.0f;
-				}
-			
+				VECCOPY(newbp->vec, location);
 				VecSubf(newbp->vec, newbp->vec, obedit->obmat[3]);
 				Mat3MulVecfl(imat,newbp->vec);
 				newbp->vec[3]= 1.0;
@@ -3399,14 +3380,30 @@ static int addvert_Nurb(bContext *C, short mode)
 
 static int add_vertex_exec(bContext *C, wmOperator *op)
 {
-	return addvert_Nurb(C, 0);
+	float location[3];
+
+	RNA_float_get_array(op->ptr, "location", location);
+	return addvert_Nurb(C, 0, location);
 }
 
 static int add_vertex_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	// XXX doesn't work correct, old code was in mouse_cursor
-	// temporarly setting cursor, adding vertex and restoring cursor
-	return add_vertex_exec(C, 0);
+	RegionView3D *rv3d= CTX_wm_region_view3d(C);
+	ViewContext vc;
+	float location[3];
+	short mval[2];
+
+	if(rv3d && !RNA_property_is_set(op->ptr, "location")) {
+		view3d_set_viewcontext(C, &vc);
+
+		mval[0]= event->x - vc.ar->winrct.xmin;
+		mval[1]= event->y - vc.ar->winrct.ymin;
+		
+		view3d_get_view_aligned_coordinate(&vc, location, mval);
+		RNA_float_set_array(op->ptr, "location", location);
+	}
+
+	return add_vertex_exec(C, op);
 }
 
 void CURVE_OT_add_vertex(wmOperatorType *ot)
@@ -3422,6 +3419,9 @@ void CURVE_OT_add_vertex(wmOperatorType *ot)
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* properties */
+	RNA_def_float_vector(ot->srna, "location", 3, NULL, -FLT_MAX, FLT_MAX, "Location", "Location to add new vertex at.", -1e4, 1e4);
 }
 
 /***************** extrude operator **********************/
@@ -3439,7 +3439,7 @@ static int extrude_exec(bContext *C, wmOperator *op)
 			break;
 
 	if(obedit->type==OB_CURVE || nu) {
-		addvert_Nurb(C, 'e');
+		addvert_Nurb(C, 'e', NULL);
 	}
 	else {
 		if(extrudeflagNurb(editnurb, 1)) { /* '1'= flag */
@@ -4195,7 +4195,7 @@ void CURVE_OT_select_random(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_float(ot->srna, "percent", 0.5f, 0.0f, 1.0f, "Percent", "Percentage of vertices to select randomly.", 0.0001f, 1.0f);
+	RNA_def_float_percentage(ot->srna, "percent", 0.5f, 0.0f, 1.0f, "Percent", "Percentage of vertices to select randomly.", 0.0001f, 1.0f);
 }
 
 /********************** select every nth *********************/
@@ -4722,9 +4722,9 @@ int join_curve(bContext *C, wmOperator *op, int type)
 	return OPERATOR_FINISHED;
 }
 
-/************ add primitive, internal + external ****************/
+/************ add primitive, used by object/ module ****************/
 
-Nurb *addNurbprim(bContext *C, int type, int newname)
+Nurb *add_nurbs_primitive(bContext *C, int type, int newname)
 {
 	static int xzproj= 0;	/* this function calls itself... */
 	Scene *scene= CTX_data_scene(C);
@@ -5022,7 +5022,7 @@ Nurb *addNurbprim(bContext *C, int type, int newname)
 				rename_id((ID *)obedit->data, "SurfTube");
 			}
 
-			nu= addNurbprim(C, CU_NURBS|CU_2D|CU_PRIM_CIRCLE, 0);  /* circle */
+			nu= add_nurbs_primitive(C, CU_NURBS|CU_PRIM_CIRCLE, 0);  /* circle */
 			nu->resolu= 4;
 			nu->flag= CU_SMOOTH;
 			BLI_addtail(editnurb, nu); /* temporal for extrude and translate */
@@ -5101,7 +5101,7 @@ Nurb *addNurbprim(bContext *C, int type, int newname)
 			}
 
 			xzproj= 1;
-			nu= addNurbprim(C, CU_NURBS|CU_2D|CU_PRIM_CIRCLE, 0);  /* circle */
+			nu= add_nurbs_primitive(C, CU_NURBS|CU_PRIM_CIRCLE, 0);  /* circle */
 			xzproj= 0;
 			nu->resolu= 4;
 			nu->resolv= 4;
@@ -5131,87 +5131,6 @@ Nurb *addNurbprim(bContext *C, int type, int newname)
 	test2DNurb(nu);
 	
 	return nu;
-}
-
-/***************** add curve primitive operator ********************/
-
-static int add_curve_primitive_exec(bContext *C, wmOperator *op)
-{
-	Scene *scene= CTX_data_scene(C);
-	Object *obedit= CTX_data_edit_object(C);
-
-	addNurbprim(C, RNA_enum_get(op->ptr, "type"), 0);
-
-	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, obedit);
-	
-	return OPERATOR_FINISHED;	
-}
-
-void CURVE_OT_add_curve_primitive(wmOperatorType *ot)
-{
-	static EnumPropertyItem type_items[]= {
-		{CU_PRIM_CURVE|CU_2D|CU_BEZIER, "BEZIER_CURVE", "Bezier Curve", ""},
-		{CU_PRIM_CIRCLE|CU_2D|CU_BEZIER, "BEZIER_CIRCLE", "Bezier Circle", ""},
-		{CU_PRIM_CURVE|CU_2D|CU_NURBS, "NURBS_CURVE", "NURBS Curve", ""},
-		{CU_PRIM_CIRCLE|CU_2D|CU_NURBS, "NURBS_CIRCLE", "NURBS Circle", ""},
-		{CU_PRIM_PATH|CU_2D|CU_NURBS, "PATH", "Path", ""},
-		{0, NULL, NULL, NULL}};
-
-	/* identifiers */
-	ot->name= "Add Curve Primitive";
-	ot->idname= "CURVE_OT_add_curve_primitive";
-	
-	/* api callbacks */
-	ot->exec= add_curve_primitive_exec;
-	ot->poll= ED_operator_editcurve;
-	
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-
-	/* properties */
-	RNA_def_enum(ot->srna, "type", type_items, CU_PRIM_CURVE|CU_2D|CU_BEZIER, "Type", "Type of primitive to add.");
-}
-
-/***************** add surface primitive operator ********************/
-
-static int add_surface_primitive_exec(bContext *C, wmOperator *op)
-{
-	Scene *scene= CTX_data_scene(C);
-	Object *obedit= CTX_data_edit_object(C);
-
-	addNurbprim(C, RNA_enum_get(op->ptr, "type"), 0);
-
-	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, obedit);
-	
-	return OPERATOR_FINISHED;	
-}
-
-void CURVE_OT_add_surface_primitive(wmOperatorType *ot)
-{
-	static EnumPropertyItem type_items[]= {
-		{CU_PRIM_CURVE|CU_NURBS, "NURBS_CURVE", "NURBS Curve", ""},
-		{CU_PRIM_CIRCLE|CU_NURBS, "NURBS_CIRCLE", "NURBS Circle", ""},
-		{CU_PRIM_PATCH|CU_NURBS, "NURBS_SURFACE", "NURBS Surface", ""},
-		{CU_PRIM_TUBE|CU_NURBS, "NURBS_TUBE", "NURBS Tube", ""},
-		{CU_PRIM_SPHERE|CU_NURBS, "NURBS_SPHERE", "NURBS Sphere", ""},
-		{CU_PRIM_DONUT|CU_NURBS, "NURBS_DONUT", "NURBS Donut", ""},
-		{0, NULL, NULL, NULL}};
-
-	/* identifiers */
-	ot->name= "Add Surface Primitive";
-	ot->idname= "CURVE_OT_add_surface_primitive";
-	
-	/* api callbacks */
-	ot->exec= add_surface_primitive_exec;
-	ot->poll= ED_operator_editsurf;
-	
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-
-	/* properties */
-	RNA_def_enum(ot->srna, "type", type_items, CU_PRIM_CURVE|CU_NURBS, "Type", "Type of primitive to add.");
 }
 
 /***************** clear tilt operator ********************/
