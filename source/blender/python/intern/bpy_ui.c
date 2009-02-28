@@ -395,6 +395,7 @@ static struct PyMethodDef ui_methods[] = {
 	{NULL, NULL, 0, NULL}
 };
 
+#if PY_VERSION_HEX >= 0x03000000
 static struct PyModuleDef ui_module = {
 	PyModuleDef_HEAD_INIT,
 	"bpyui",
@@ -403,6 +404,7 @@ static struct PyModuleDef ui_module = {
 	ui_methods,
 	NULL, NULL, NULL, NULL
 };
+#endif
 
 PyObject *BPY_ui_module( void )
 {
