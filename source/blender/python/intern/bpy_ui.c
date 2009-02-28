@@ -23,8 +23,11 @@
  */
 
 #include "bpy_ui.h"
+#include "bpy_util.h"
 #include "bpy_rna.h" /* for rna buttons */
+#include "bpy_operator.h" /* for setting button operator properties */
 #include "bpy_compat.h"
+#include "WM_types.h" /* for WM_OP_INVOKE_DEFAULT & friends */
 
 #include "BLI_dynstr.h"
 
@@ -33,6 +36,7 @@
 #include "BKE_context.h"
 
 #include "DNA_screen_types.h"
+#include "DNA_space_types.h" /* only for SpaceLink */
 #include "UI_interface.h"
 #include "WM_api.h"
 
@@ -74,14 +78,23 @@ static PyObject *Method_menuItemO( PyObject * self, PyObject * args )
 
 static PyObject *Method_defButO( PyObject * self, PyObject * args )
 {
-	PyObject *py_block;
+	uiBut *but;
+	PyObject *py_block, *py_keywords= NULL;
 	char *opname, *butname, *tip;
 	int exec, xco, yco, width, height;
 	
-	if( !PyArg_ParseTuple( args, "O!sisiiiis:defButO", &PyCObject_Type, &py_block, &opname, &exec, &butname, &xco, &yco, &width, &height, &tip))
+	if( !PyArg_ParseTuple( args, "O!sisiiiis|O!:defButO", &PyCObject_Type, &py_block, &opname, &exec, &butname, &xco, &yco, &width, &height, &tip, &PyDict_Type, &py_keywords))
 		return NULL;
 	
-	return PyCObject_FromVoidPtr(uiDefButO(PyCObject_AsVoidPtr(py_block), BUT, opname, exec, butname, xco, yco, width, height, tip), NULL );
+	but= uiDefButO(PyCObject_AsVoidPtr(py_block), BUT, opname, exec, butname, xco, yco, width, height, tip);
+	
+	/* Optional python doctionary used to set python properties, just like how keyword args are used */
+	if (py_keywords && PyDict_Size(py_keywords)) {
+		if (PYOP_props_from_dict(uiButGetOperatorPtrRNA(but), py_keywords) == -1)
+			return NULL;
+	}
+	
+	return PyCObject_FromVoidPtr(but, NULL);
 }
 
 static PyObject *Method_defAutoButR( PyObject * self, PyObject * args )
@@ -165,6 +178,40 @@ static PyObject *Method_endBlock( PyObject * self, PyObject * args )
 	Py_RETURN_NONE;
 }
 
+static PyObject *Method_drawBlock( PyObject * self, PyObject * args )
+{
+	PyObject *py_context, *py_block;
+	
+	if( !PyArg_ParseTuple( args, "O!O!:drawBlock", &PyCObject_Type, &py_context, &PyCObject_Type, &py_block) )
+		return NULL;
+	
+	uiDrawBlock(PyCObject_AsVoidPtr(py_context), PyCObject_AsVoidPtr(py_block));
+	Py_RETURN_NONE;
+}
+
+static PyObject *Method_drawPanels( PyObject * self, PyObject * args )
+{
+	PyObject *py_context;
+	int align;
+	
+	if( !PyArg_ParseTuple( args, "O!i:drawPanels", &PyCObject_Type, &py_context, &align) )
+		return NULL;
+	
+	uiDrawPanels(PyCObject_AsVoidPtr(py_context), align);
+	Py_RETURN_NONE;
+}
+
+static PyObject *Method_matchPanelsView2d( PyObject * self, PyObject * args )
+{
+	PyObject *py_ar;
+	
+	if( !PyArg_ParseTuple( args, "O!:matchPanelsView2d", &PyCObject_Type, &py_ar) )
+		return NULL;
+	
+	uiMatchPanelsView2d(PyCObject_AsVoidPtr(py_ar));
+	Py_RETURN_NONE;
+}
+
 static PyObject *Method_popupBoundsBlock( PyObject * self, PyObject * args )
 {
 	PyObject *py_block;
@@ -223,6 +270,55 @@ static PyObject *Method_newPanel( PyObject * self, PyObject * args )
 	return PyLong_FromSize_t(uiNewPanel(PyCObject_AsVoidPtr(py_context), PyCObject_AsVoidPtr(py_area), PyCObject_AsVoidPtr(py_block), panelname, tabname, ofsx, ofsy, sizex, sizey));
 }
 
+/* similar to Draw.c */
+static PyObject *Method_register( PyObject * self, PyObject * args )
+{
+	PyObject *py_sl, *py_draw_func;
+	SpaceLink *sl;
+	if( !PyArg_ParseTuple( args, "O!O:register", &PyCObject_Type, &py_sl, &py_draw_func) )
+		return NULL;
+	
+	sl = PyCObject_AsVoidPtr(py_sl);
+	
+	if(sl->spacetype!=SPACE_SCRIPT) { // XXX todo - add a script space when needed
+		PyErr_SetString(PyExc_ValueError, "can only register in a script space");
+		return NULL;
+	}
+	else {
+		SpaceScript *scpt= (SpaceScript *)sl;
+		char *filename = NULL;
+		
+		if (scpt->script==NULL) {
+			scpt->script = MEM_callocN(sizeof(Script), "ScriptRegister");
+		}
+		
+		BPY_getFileAndNum(&filename, NULL);
+		
+		if (filename) {
+			strncpy(scpt->script->scriptname, filename, sizeof(scpt->script->scriptname));
+#if 0
+			char *dot;
+			dot = strchr(scpt->script->scriptname, '.'); /* remove extension */
+			if (dot)
+				*dot= '\0';
+#endif
+			Py_XINCREF( py_draw_func );
+			scpt->script->py_draw= (void *)py_draw_func;
+		}
+		else {
+			return NULL; /* BPY_getFileAndNum sets the error */
+		}
+
+		if (filename==NULL) {
+			return NULL;
+		}
+	}
+
+	Py_RETURN_NONE;
+}
+
+
+
 /* internal use only */
 static bContext *get_py_context__internal(void)
 {
@@ -255,6 +351,14 @@ static PyObject *Method_getScreenPtr( PyObject * self )
 	return PyCObject_FromVoidPtr(screen, NULL);
 }
 
+static PyObject *Method_getSpacePtr( PyObject * self )
+{
+	bContext *C= get_py_context__internal();
+	
+	SpaceLink *sl= CTX_wm_space_data(C);
+	return PyCObject_FromVoidPtr(sl, NULL);
+}
+
 static PyObject *Method_getWindowPtr( PyObject * self )
 {
 	bContext *C= get_py_context__internal();
@@ -272,20 +376,25 @@ static struct PyMethodDef ui_methods[] = {
 	{"pupBlock", (PyCFunction)Method_pupBlock, METH_VARARGS, ""},
 	{"beginBlock", (PyCFunction)Method_beginBlock, METH_VARARGS, ""},
 	{"endBlock", (PyCFunction)Method_endBlock, METH_VARARGS, ""},
+	{"drawBlock", (PyCFunction)Method_drawBlock, METH_VARARGS, ""},
 	{"popupBoundsBlock", (PyCFunction)Method_popupBoundsBlock, METH_VARARGS, ""},
 	{"blockBeginAlign", (PyCFunction)Method_blockBeginAlign, METH_VARARGS, ""},
 	{"blockEndAlign", (PyCFunction)Method_blockEndAlign, METH_VARARGS, ""},
 	{"blockSetFlag", (PyCFunction)Method_blockSetFlag, METH_VARARGS, ""},
 	{"newPanel", (PyCFunction)Method_newPanel, METH_VARARGS, ""},
+	{"drawPanels", (PyCFunction)Method_drawPanels, METH_VARARGS, ""},
+	{"matchPanelsView2d", (PyCFunction)Method_matchPanelsView2d, METH_VARARGS, ""},
+	
+	{"register", (PyCFunction)Method_register, METH_VARARGS, ""}, // XXX not sure about this - registers current script with the ScriptSpace, like Draw.Register()
 	
 	{"getRegonPtr", (PyCFunction)Method_getRegonPtr,	METH_NOARGS, ""}, // XXX Nasty, we really need to improve dealing with context!
 	{"getAreaPtr", (PyCFunction)Method_getAreaPtr,		METH_NOARGS, ""},
 	{"getScreenPtr", (PyCFunction)Method_getScreenPtr, METH_NOARGS, ""},
+	{"getSpacePtr", (PyCFunction)Method_getSpacePtr, METH_NOARGS, ""},
 	{"getWindowPtr", (PyCFunction)Method_getWindowPtr, METH_NOARGS, ""},
 	{NULL, NULL, 0, NULL}
 };
 
-#if PY_VERSION_HEX >= 0x03000000
 static struct PyModuleDef ui_module = {
 	PyModuleDef_HEAD_INIT,
 	"bpyui",
@@ -294,7 +403,6 @@ static struct PyModuleDef ui_module = {
 	ui_methods,
 	NULL, NULL, NULL, NULL
 };
-#endif
 
 PyObject *BPY_ui_module( void )
 {
@@ -315,6 +423,16 @@ PyObject *BPY_ui_module( void )
 	PyModule_AddObject( submodule, "UI_BLOCK_MOVEMOUSE_QUIT", PyLong_FromSize_t(UI_BLOCK_MOVEMOUSE_QUIT) );
 	PyModule_AddObject( submodule, "UI_BLOCK_KEEP_OPEN", PyLong_FromSize_t(UI_BLOCK_KEEP_OPEN) );
 	PyModule_AddObject( submodule, "UI_BLOCK_POPUP", PyLong_FromSize_t(UI_BLOCK_POPUP) );
+	
+	/* for executing operators (XXX move elsewhere) */
+	PyModule_AddObject( submodule, "WM_OP_INVOKE_DEFAULT", PyLong_FromSize_t(WM_OP_INVOKE_DEFAULT) );
+	PyModule_AddObject( submodule, "WM_OP_INVOKE_REGION_WIN", PyLong_FromSize_t(WM_OP_INVOKE_REGION_WIN) );
+	PyModule_AddObject( submodule, "WM_OP_INVOKE_AREA", PyLong_FromSize_t(WM_OP_INVOKE_AREA) );
+	PyModule_AddObject( submodule, "WM_OP_INVOKE_SCREEN", PyLong_FromSize_t(WM_OP_INVOKE_SCREEN) );
+	PyModule_AddObject( submodule, "WM_OP_EXEC_DEFAULT", PyLong_FromSize_t(WM_OP_EXEC_DEFAULT) );
+	PyModule_AddObject( submodule, "WM_OP_EXEC_REGION_WIN", PyLong_FromSize_t(WM_OP_EXEC_REGION_WIN) );
+	PyModule_AddObject( submodule, "WM_OP_EXEC_AREA", PyLong_FromSize_t(WM_OP_EXEC_AREA) );
+	PyModule_AddObject( submodule, "WM_OP_EXEC_SCREEN", PyLong_FromSize_t(WM_OP_EXEC_SCREEN) );
 	
 	return submodule;
 }

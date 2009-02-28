@@ -35,4 +35,4 @@ PyObject *BPY_flag_to_list(BPY_flag_def *flagdef, int flag);
 int BPY_flag_from_seq(BPY_flag_def *flagdef, PyObject *seq, int *flag);
 
 void PyObSpit(char *name, PyObject *var);
-
+void BPY_getFileAndNum(char **filename, int *lineno);
