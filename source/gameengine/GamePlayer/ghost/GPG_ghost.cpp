@@ -162,33 +162,39 @@ void usage(const char* program)
 	consoleoption = "";
 #endif
 	
-	printf("usage:   %s [-w l t w h] %s[-g gamengineoptions] "
+	printf("usage:   %s [-w [w h l t]] [-f [fw fh fb ff]] %s[-g gamengineoptions] "
 		"[-s stereomode] filename.blend\n", program, consoleoption);
-	printf("  -h: Prints this command summary\n");
+	printf("  -h: Prints this command summary\n\n");
 	printf("  -w: display in a window\n");
+	printf("       --Optional parameters--\n"); 
+	printf("       w = window width\n");
+	printf("       h = window height\n\n");
 	printf("       l = window left coordinate\n");
 	printf("       t = window top coordinate\n");
-	printf("       w = window width\n");
-	printf("       h = window height\n");
+	printf("       Note: If w or h is defined, both must be defined.\n");
+	printf("          Also, if l or t is defined, all options must be used.\n\n");
 	printf("  -f: start game in full screen mode\n");
+	printf("       --Optional parameters--\n");
 	printf("       fw = full screen mode pixel width\n");
-	printf("       fh = full screen mode pixel height\n");
+	printf("       fh = full screen mode pixel height\n\n");
 	printf("       fb = full screen mode bits per pixel\n");
 	printf("       ff = full screen mode frequency\n");
+	printf("       Note: If fw or fh is defined, both must be defined.\n");
+	printf("          Also, if fb is used, fw and fh must be used. ff requires all options.\n\n");
 	printf("  -s: start player in stereo\n");
 	printf("       stereomode: hwpageflip       (Quad buffered shutter glasses)\n");
 	printf("                   syncdoubling     (Above Below)\n");
 	printf("                   sidebyside       (Left Right)\n");
 	printf("                   anaglyph         (Red-Blue glasses)\n");
 	printf("                   vinterlace       (Vertical interlace for autostereo display)\n");
-	printf("                             depending on the type of stereo you want\n");
+	printf("                             depending on the type of stereo you want\n\n");
 #ifndef _WIN32
-	printf("  -i: parent windows ID \n");
+	printf("  -i: parent windows ID \n\n");
 #endif
 #ifdef _WIN32
-	printf("  -c: keep console window open\n");
+	printf("  -c: keep console window open\n\n");
 #endif
-	printf("  -d: turn debugging on\n");
+	printf("  -d: turn debugging on\n\n");
 	printf("  -g: game engine options:\n\n");
 	printf("       Name                       Default      Description\n");
 	printf("       ------------------------------------------------------------------------\n");
@@ -200,7 +206,7 @@ void usage(const char* program)
 	printf("       blender_material               0         Enable material settings\n");
 	printf("       ignore_deprecation_warnings    0         Ignore deprecation warnings\n");
 	printf("\n");
-	printf("example: %s -w 10 10 320 200 -g noaudio c:\\loadtest.blend\n", program);
+	printf("example: %s -w 320 200 10 10 -g noaudio c:\\loadtest.blend\n", program);
 	printf("example: %s -g show_framerate = 0 c:\\loadtest.blend\n", program);
 }
 
@@ -431,54 +437,41 @@ int main(int argc, char** argv)
 				G.f |= G_DEBUG;     /* std output printf's */
 				MEM_set_memory_debug();
 				break;
-				
-			case 'p':
-				// Parse window position and size options
-				if (argv[i][2] == 0) {
-					i++;
-					if ((i + 4) < argc)
-					{
-						windowLeft = atoi(argv[i++]);
-						windowTop = atoi(argv[i++]);
-						windowWidth = atoi(argv[i++]);
-						windowHeight = atoi(argv[i++]);
-						windowParFound = true;
-					}
-					else
-					{
-						error = true;
-						printf("error: too few options for window argument.\n");
-					}
-				} else { /* mac specific */
-				
-                    if (strncmp(argv[i], "-psn_", 5)==0) 
-                        i++; /* skip process serial number */
-				}
-				break;
+
 			case 'f':
 				i++;
 				fullScreen = true;
 				fullScreenParFound = true;
-				if ((i + 2) < argc && argv[i][0] != '-' && argv[i+1][0] != '-')
+				if ((i + 2) <= argc && argv[i][0] != '-' && argv[i+1][0] != '-')
 				{
 					fullScreenWidth = atoi(argv[i++]);
 					fullScreenHeight = atoi(argv[i++]);
-					if ((i + 1) < argc && argv[i][0] != '-')
+					if ((i + 1) <= argc && argv[i][0] != '-')
 					{
 						fullScreenBpp = atoi(argv[i++]);
-						if ((i + 1) < argc && argv[i][0] != '-')
+						if ((i + 1) <= argc && argv[i][0] != '-')
 							fullScreenFrequency = atoi(argv[i++]);
 					}
 				}
 				break;
 			case 'w':
 				// Parse window position and size options
+				i++;
+				fullScreen = false;
+				windowParFound = true;
+
+				if ((i + 2) <= argc && argv[i][0] != '-' && argv[i+1][0] != '-')
 				{
-					fullScreen = false;
-					fullScreenParFound = true;
-					i++;
+					windowWidth = atoi(argv[i++]);
+					windowHeight = atoi(argv[i++]);
+					if ((i +2) <= argc && argv[i][0] != '-' && argv[i+1][0] != '-')
+					{
+						windowLeft = atoi(argv[i++]);
+						windowTop = atoi(argv[i++]);
+					}
 				}
 				break;
+					
 			case 'h':
 				usage(argv[0]);
 				return 0;
@@ -652,7 +645,7 @@ int main(int argc, char** argv)
 #ifdef NDEBUG
 						if (closeConsole)
 						{
-							//::FreeConsole();    // Close a console window
+							::FreeConsole();    // Close a console window
 						}
 #endif // NDEBUG
 #endif // WIN32
