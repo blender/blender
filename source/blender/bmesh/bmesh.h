@@ -195,7 +195,12 @@ void BM_Collapse_Vert(struct BMesh *bm, struct BMEdge *ke, struct BMVert *kv, fl
 struct BMVert *BM_Split_Edge(struct BMesh *bm, struct BMVert *v, struct BMEdge *e, struct BMEdge **ne, float percent, int calcnorm);
 struct BMVert  *BM_Split_Edge_Multi(struct BMesh *bm, struct BMEdge *e, int numcuts);
 BMEdge *BM_Connect_Verts(BMesh *bm, BMVert *v1, BMVert *v2, BMFace **nf);
-void BM_Dissolve_Disk(BMesh *bm, BMVert *v);
+
+/*dissolves vert surrounded by faces*/
+int BM_Dissolve_Disk(BMesh *bm, BMVert *v);
+
+/*dissolves vert, in more situations then BM_Dissolve_Disk.*/
+int BM_Dissolve_Vert(BMesh *bm, BMVert *v);
 
 /*Interpolation*/
 void BM_Data_Interp_From_Verts(struct BMesh *bm, struct BMVert *v1, struct BMVert *v2, struct BMVert *v, float fac);

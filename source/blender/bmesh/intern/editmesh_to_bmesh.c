@@ -259,8 +259,23 @@ static void fuse_fgon(BMesh *bm, BMFace *f)
 static BM_fgonconvert(BMesh *bm, EditMesh *em, int numCol, int numTex)
 {
 	EditFace *efa;
+	BMFace *f;
+	BMIter iter;
 	struct fgonsort *sortblock, *sb, *sb1;
 	int a, b, amount=0;
+	
+	/*
+	for (efa=em->faces.first; efa; efa=efa->next) {
+		f = editface_to_BMFace(bm, em, efa, numCol, numTex);
+	}
+
+	for (f=bm->polys.first; f; f=f->head.next) {
+		fuse_fgon(bm, f);
+	}
+
+	return;*/
+
+	EM_fgon_flags(em);
 
 	/*zero out efa->tmp, we store fgon index here*/
 	for(efa = em->faces.first; efa; efa = efa->next){ 

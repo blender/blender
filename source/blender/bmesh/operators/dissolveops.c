@@ -85,7 +85,11 @@ void dissolveverts_exec(BMesh *bm, BMOperator *op)
 		len = 0;
 		for (v=BMIter_New(&iter, bm, BM_VERTS, NULL); v; v=BMIter_Step(&iter)) {
 			if (BMO_TestFlag(bm, v, VERT_MARK)) {
-				BM_Dissolve_Disk(bm, v);
+				if (!BM_Dissolve_Vert(bm, v)) {
+					BMO_RaiseError(bm, op,
+					      BMERR_DISSOLVEDISK_FAILED, NULL);
+					return;
+				}
 				found = 1;
 				len++;
 			}

@@ -339,11 +339,10 @@ int linecrosses(float *v1, float *v2, float *v3, float *v4)
 	return w1 == w2 && w2 == w3 && w3 == w4 && w4==w5;
 }
 
-int goodline(float (*projectverts)[3], int v1i, int v2i, int nvert)
+int goodline(float (*projectverts)[3], int v1i, int v2i, int nvert, float *outv)
 {
-	/*the hardcoded stuff here, 200000, 0.999, and 1.0001 may be problems
+	/*the hardcoded stuff here, 0.999 and 1.0001, may be problems
 	  in the future, not sure. - joeedh*/
-	static float outv[3] = {2000.0f, 2000.0f, 0.0f};
 	float v1[3], v2[3], p[3], vv1[3], vv2[3], mid[3], a[3], b[3];
 	int i = 0, lcount=0;
 	
@@ -398,7 +397,7 @@ int goodline(float (*projectverts)[3], int v1i, int v2i, int nvert)
  *
 */
 
-static BMLoop *find_ear(BMFace *f, float (*verts)[3], int nvert)
+static BMLoop *find_ear(BMFace *f, float (*verts)[3], int nvert, float *outv)
 {
 	BMVert *v1, *v2, *v3;
 	BMLoop *bestear = NULL, *l;
@@ -415,12 +414,13 @@ static BMLoop *find_ear(BMFace *f, float (*verts)[3], int nvert)
 
 		if (BM_Edge_Exist(v1, v3)) isear = 0;
 
-		if (isear && !goodline(verts, v1->head.eflag2, v3->head.eflag2, nvert)) isear = 0;
+		if (isear && !goodline(verts, v1->head.eflag2, v3->head.eflag2,
+		                       nvert, outv)) isear = 0;
 		if(isear){
 			angle = VecAngle3(verts[v1->head.eflag2], verts[v2->head.eflag2], verts[v3->head.eflag2]);
-			if(!bestear || ABS(angle-40.0) < bestangle){
+			if(!bestear || ABS(angle-40.0f) < bestangle){
 				bestear = l;
-				bestangle = ABS(40.0-angle);
+				bestangle = ABS(40.0f-angle);
 			}
 		}
 		l = (BMLoop*)(l->head.next);
@@ -450,6 +450,7 @@ void BM_Triangulate_Face(BMesh *bm, BMFace *f, float (*projectverts)[3], int new
 {
 	int i, done, nvert;
 	BMLoop *l, *newl, *nextloop;
+	float outv[3] = {-1.0e30f, -1.0e30f, -1.0e30f};
 
 	/*copy vertex coordinates to vertspace array*/
 	i = 0;
@@ -458,8 +459,14 @@ void BM_Triangulate_Face(BMesh *bm, BMFace *f, float (*projectverts)[3], int new
 		VECCOPY(projectverts[i], l->v->co);
 		l->v->head.eflag2 = i; /*warning, abuse! never duplicate in tools code! never you hear?*/ /*actually, get rid of this completely, use a new structure for this....*/
 		i++;
+
+		outv[0] = MAX2(outv[0], l->v->co[0])+1.0f;
+		outv[1] = MAX2(outv[1], l->v->co[1])+1.0f;
+		outv[2] = MAX2(outv[2], l->v->co[2])+1.0f;
+
 		l = (BMLoop*)(l->head.next);
 	}while(l != f->loopbase);
+	
 	
 	//bmesh_update_face_normal(bm, f, projectverts);
 
@@ -472,7 +479,7 @@ void BM_Triangulate_Face(BMesh *bm, BMFace *f, float (*projectverts)[3], int new
 	done = 0;
 	while(!done && f->len > 3){
 		done = 1;
-		l = find_ear(f, projectverts, nvert);
+		l = find_ear(f, projectverts, nvert, outv);
 		if(l) {
 			done = 0;
 			f = bmesh_sfme(bm, f, ((BMLoop*)(l->head.prev))->v, ((BMLoop*)(l->head.next))->v, &newl);

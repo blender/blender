@@ -800,6 +800,7 @@ void BMO_RaiseError(BMesh *bm, BMOperator *owner, int errcode, char *msg)
 	bmop_error *err = MEM_callocN(sizeof(bmop_error), "bmop_error");
 	
 	err->errorcode = errcode;
+	if (!msg) msg = bmop_error_messages[errcode];
 	err->msg = msg;
 	err->op = owner;
 	
@@ -825,7 +826,7 @@ int BMO_PopError(BMesh *bm, char **msg, BMOperator **op)
 	if (errorcode) {
 		bmop_error *err = bm->errorstack.first;
 		
-		BLI_remlink(&bm->errorstack, &bm->errorstack.first);
+		BLI_remlink(&bm->errorstack, bm->errorstack.first);
 		MEM_freeN(err);
 	}
 

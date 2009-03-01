@@ -40,19 +40,45 @@
  * 
  */
 #if 1
-void BM_Dissolve_Disk(BMesh *bm, BMVert *v) {
-	BMFace *f, *f2;
-	BMEdge *e, *keepedge=NULL, *baseedge=NULL;
-	BMLoop *loop;
-	int done, len;
+int BM_Dissolve_Vert(BMesh *bm, BMVert *v) {
+	BMIter iter;
+	BMEdge *e;
+	int len=0;
+
+	if (!v) return 0;
+	
+	e = BMIter_New(&iter, bm, BM_EDGES_OF_VERT, v);
+	for (; e; e=BMIter_Step(&iter)) {
+		len++;
+	}
+	
+	if (len == 1) {
+		bmesh_ke(bm, v->edge);
+		bmesh_kv(bm, v);
+		return 1;
+	}
 
 	if(BM_Nonmanifold_Vert(bm, v)) {
 		if (!v->edge) bmesh_kv(bm, v);
 		else if (!v->edge->loop) {
 			bmesh_ke(bm, v->edge);
 			bmesh_kv(bm, v);
-		}
-		return;
+		} else return 0;
+
+		return 1;
+	}
+
+	return BM_Dissolve_Disk(bm, v);
+}
+
+int BM_Dissolve_Disk(BMesh *bm, BMVert *v) {
+	BMFace *f, *f2;
+	BMEdge *e, *keepedge=NULL, *baseedge=NULL;
+	BMLoop *loop;
+	int done, len;
+
+	if(BM_Nonmanifold_Vert(bm, v)) {
+		return 0;
 	}
 	
 	if(v->edge){
@@ -88,9 +114,6 @@ void BM_Dissolve_Disk(BMesh *bm, BMVert *v) {
 		/*collapse the vertex*/
 		BM_Collapse_Vert(bm, v->edge, v, 1.0, 0);
 		BM_Join_Faces(bm, f, f2, NULL, 0, 0);
-	} else if (len == 1) {
-		bmesh_ke(bm, v->edge);
-		bmesh_kv(bm, v);
 	}
 
 	if(keepedge){
@@ -106,7 +129,7 @@ void BM_Dissolve_Disk(BMesh *bm, BMVert *v) {
 					/*return if couldn't join faces in manifold
 					  conditions.*/
 					//!disabled for testing why bad things happen
-					if (!f) return;
+					if (!f) return 0;
 				}
 
 				if(f){
@@ -126,6 +149,8 @@ void BM_Dissolve_Disk(BMesh *bm, BMVert *v) {
 		/*join two remaining faces*/
 		BM_Join_Faces(bm, f, f2, NULL, 0, 0);
 	}
+
+	return 1;
 }
 #else
 void BM_Dissolve_Disk(BMesh *bm, BMVert *v){

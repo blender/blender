@@ -1102,15 +1102,30 @@ static void erase_vertices(EditMesh *em, ListBase *l)
 	}
 }
 
-void delete_mesh(Object *obedit, EditMesh *em, wmOperator *op, int event)
+/* Note, these values must match delete_mesh() event values */
+static EnumPropertyItem prop_mesh_delete_types[] = {
+	{10,"VERT",		"Vertices", ""},
+	{1, "EDGE",		"Edges", ""},
+	{2, "FACE",		"Faces", ""},
+	{3, "ALL",		"All", ""},
+	{4, "EDGE_FACE","Edges & Faces", ""},
+	{5, "ONLY_FACE","Only Faces", ""},
+	{6, "EDGE_LOOP","Edge Loop", ""},
+	{7, "COLLAPSE","Collapse", ""},
+	{0, NULL, NULL, NULL}
+};
+
+static int delete_mesh_exec(bContext *C, wmOperator *op)
 {
+	Object *obedit= CTX_data_edit_object(C);
+	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
 	EditFace *efa, *nextvl;
 	EditVert *eve,*nextve;
 	EditEdge *eed,*nexted;
 	int count;
 	char *str="Erase";
+	int event = RNA_enum_get(op->ptr, "type");
 
-	
 	if(event<1) return;
 
 	if(event==10 ) {
@@ -1121,19 +1136,27 @@ void delete_mesh(Object *obedit, EditMesh *em, wmOperator *op, int event)
 	} 
 	else if(event==7) {
 		BMesh *bm = editmesh_to_bmesh(em);
-		BMOperator op;
+		BMOperator bmop;
 		EditMesh *em2;
+		char *errmsg;
 		
-		BMO_Init_Op(&op, BMOP_DISSOLVE_VERTS);
-		BMO_HeaderFlag_To_Slot(bm, &op, BMOP_DISVERTS_VERTIN, 
+		BMO_Init_Op(&bmop, BMOP_DISSOLVE_VERTS);
+		BMO_HeaderFlag_To_Slot(bm, &bmop, BMOP_DISVERTS_VERTIN, 
 		                                BM_SELECT, BM_VERT);
-		BMO_Exec_Op(bm, &op);
+		BMO_Exec_Op(bm, &bmop);
 		
-		BMO_Finish_Op(bm, &op);
+		BMO_Finish_Op(bm, &bmop);
 		
+		if (BMO_GetError(bm, &errmsg, NULL)) {
+			BKE_report(op->reports, RPT_ERROR, errmsg);
+			BMO_ClearStack(bm);
+			return OPERATOR_CANCELLED;
+		}
+
 		em2 = bmesh_to_editmesh(bm);
 		set_editMesh(em, em2);
 		MEM_freeN(em2);
+		BM_Free_Mesh(bm);
 	}
 	else if(event==6) {
 		if(!EdgeLoopDelete(em, op))
@@ -1254,29 +1277,6 @@ void delete_mesh(Object *obedit, EditMesh *em, wmOperator *op, int event)
 
 	EM_fgon_flags(em);	// redo flags and indices for fgons
 
-//	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-}
-
-/* Note, these values must match delete_mesh() event values */
-static EnumPropertyItem prop_mesh_delete_types[] = {
-	{10,"VERT",		"Vertices", ""},
-	{1, "EDGE",		"Edges", ""},
-	{2, "FACE",		"Faces", ""},
-	{3, "ALL",		"All", ""},
-	{4, "EDGE_FACE","Edges & Faces", ""},
-	{5, "ONLY_FACE","Only Faces", ""},
-	{6, "EDGE_LOOP","Edge Loop", ""},
-	{7, "COLLAPSE","Collapse", ""},
-	{0, NULL, NULL, NULL}
-};
-
-static int delete_mesh_exec(bContext *C, wmOperator *op)
-{
-	Object *obedit= CTX_data_edit_object(C);
-	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
-	
-	delete_mesh(obedit,em, op,RNA_enum_get(op->ptr, "type"));
-	
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 	
 	return OPERATOR_FINISHED;
