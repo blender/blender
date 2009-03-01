@@ -368,15 +368,8 @@ static int view_scrolldown_exec(bContext *C, wmOperator *op)
 	}
 	
 	/* set RNA-Props */
-	/* automatically fall back to horizontal on this exception: */
-	if( ELEM(vpd->v2d->scroll, V2D_SCROLL_BOTTOM, V2D_SCROLL_TOP) ) {
-		RNA_int_set(op->ptr, "deltax", -20);
-		RNA_int_set(op->ptr, "deltay", 0);
-	}
-	else {
-		RNA_int_set(op->ptr, "deltax", 0);
-		RNA_int_set(op->ptr, "deltay", -20);
-	}
+	RNA_int_set(op->ptr, "deltax", 0);
+	RNA_int_set(op->ptr, "deltay", -20);
 	
 	/* apply movement, then we're done */
 	view_pan_apply(C, op);
@@ -421,15 +414,8 @@ static int view_scrollup_exec(bContext *C, wmOperator *op)
 	}
 	
 	/* set RNA-Props */
-	/* automatically fall back to horizontal on this exception: */
-	if( ELEM(vpd->v2d->scroll, V2D_SCROLL_BOTTOM, V2D_SCROLL_TOP) ) {
-		RNA_int_set(op->ptr, "deltax", 20);
-		RNA_int_set(op->ptr, "deltay", 0);
-	}
-	else {
-		RNA_int_set(op->ptr, "deltax", 0);
-		RNA_int_set(op->ptr, "deltay", 20);
-	}
+	RNA_int_set(op->ptr, "deltax", 0);
+	RNA_int_set(op->ptr, "deltay", 20);
 	
 	/* apply movement, then we're done */
 	view_pan_apply(C, op);
@@ -1284,6 +1270,7 @@ void UI_view2d_keymap(wmWindowManager *wm)
 	
 	/* pan/scroll */
 	WM_keymap_add_item(keymap, "View2D_OT_view_pan", MIDDLEMOUSE, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "View2D_OT_view_pan", MIDDLEMOUSE, KM_PRESS, KM_SHIFT, 0);
 	
 	WM_keymap_add_item(keymap, "View2D_OT_view_rightscroll", WHEELDOWNMOUSE, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "View2D_OT_view_leftscroll", WHEELUPMOUSE, KM_PRESS, KM_CTRL, 0);
