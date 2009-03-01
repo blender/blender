@@ -3,6 +3,14 @@
 
 #include <stdio.h>
 
+BMOpDefine def_connectverts = {
+	{BMOP_OPSLOT_PNT_BUF,
+	 BMOP_OPSLOT_PNT_BUF},
+	connectverts_exec,
+	BM_CONVERTS_TOTSLOT,
+	0
+};
+
 BMOpDefine def_extrudefaceregion = {
 	{BMOP_OPSLOT_PNT_BUF,
 	 BMOP_OPSLOT_MAPPING,
@@ -108,6 +116,7 @@ BMOpDefine *opdefines[] = {
 	&def_dissolvevertsop,
 	&def_makefgonsop,
 	&def_extrudefaceregion,
+	&def_connectverts,
 };
 
 int bmesh_total_ops = (sizeof(opdefines) / sizeof(void*));

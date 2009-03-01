@@ -668,7 +668,12 @@ static void addedgeface_mesh(EditMesh *em, wmOperator *op)
 	EditEdge *eed;
 	EditFace *efa;
 	short amount=0;
-		
+	
+	if (em->selectmode & SCE_SELECT_VERTEX) {
+		/*return if bmesh vert connect does anything.*/
+		if (BM_ConnectVerts(em, BM_SELECT)) return;
+	}
+
 	if (em->selectmode & SCE_SELECT_FACE) {
 		/*return if bmesh face dissolve finds stuff to
 		  dissolve.*/

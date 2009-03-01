@@ -2353,7 +2353,7 @@ static void fill_tri_triple(EditMesh *em, EditFace *efa, struct GHash *gh, int n
 	MEM_freeN(innerverts);
 }
 
-//Next two fill types are for knife exact only and are provided to allow for knifing through vertices
+//Next two fill types are for   exact only and are provided to allow for knifing through vertices
 //This means there is no multicut!
 static void fill_quad_doublevert(EditMesh *em, EditFace *efa, int v1, int v2)
 {

@@ -10,7 +10,6 @@
 #include <stdio.h>
 
 #define FACE_MARK	1
-
 #define VERT_MARK	1
 
 void dissolvefaces_exec(BMesh *bm, BMOperator *op)

@@ -151,11 +151,13 @@ int BMO_CatchOpError(BMesh *bm, BMOperator *catchop, int errorcode, char **msg);
 /*error messages*/
 #define BMERR_SELF_INTERSECTING			1
 #define BMERR_DISSOLVEDISK_FAILED		2
+#define BMERR_CONNECTVERT_FAILED		3
 
 static char *bmop_error_messages[] = {
        0,
        "Self intersection error",
        "Could not dissolve vert",
+       "Could not connect verts",
 };
 
 /*------------begin operator defines (see bmesh_opdefines.c too)------------*/
@@ -286,9 +288,15 @@ enum {
 	BMOP_EXFACE_TOTSLOT,
 };
 
+#define BMOP_CONNECT_VERTS		11
+enum {
+	BM_CONVERTS_VERTIN,
+	BM_CONVERTS_EDGEOUT,
+	BM_CONVERTS_TOTSLOT
+};
 
 /*keep this updated!*/
-#define BMOP_TOTAL_OPS			11
+#define BMOP_TOTAL_OPS			12
 /*-------------------------------end operator defines-------------------------------*/
 
 extern BMOpDefine *opdefines[];
@@ -307,6 +315,10 @@ void BMOP_DupeFromFlag(struct BMesh *bm, int etypeflag, int flag);
 void BM_esubdivideflag(struct Object *obedit, struct BMesh *bm, int selflag, float rad, 
 	       int flag, int numcuts, int seltype);
 void BM_extrudefaceflag(BMesh *bm, int flag);
+
+/*these next two return 1 if they did anything, or zero otherwise.*/
 int BM_DissolveFaces(struct EditMesh *em, int flag);
+/*this doesn't display errors to the user, btw*/
+int BM_ConnectVerts(struct EditMesh *em, int flag);
 
 #endif
