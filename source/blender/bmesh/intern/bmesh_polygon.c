@@ -330,6 +330,13 @@ int winding(float *a, float *b, float *c)
 int linecrosses(float *v1, float *v2, float *v3, float *v4)
 {
 	int w1, w2, w3, w4, w5;
+	
+	/*w1 = winding(v1, v3, v4);
+	w2 = winding(v2, v3, v4);
+	w3 = winding(v3, v1, v2);
+	w4 = winding(v4, v1, v2);
+	
+	return (w1 == w2) && (w3 == w4);*/
 
 	w1 = winding(v1, v3, v2);
 	w2 = winding(v2, v4, v1);
@@ -422,6 +429,8 @@ static BMLoop *find_ear(BMFace *f, float (*verts)[3], int nvert, float *outv)
 				bestear = l;
 				bestangle = ABS(40.0f-angle);
 			}
+			
+			if (angle > 10 && angle < 140) break;
 		}
 		l = (BMLoop*)(l->head.next);
 	}
