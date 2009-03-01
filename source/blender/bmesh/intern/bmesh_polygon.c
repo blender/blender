@@ -318,6 +318,10 @@ int winding(float *a, float *b, float *c)
 	Normalize(v2);
 	
 	Crossf(v, v1, v2);
+
+	/*!! (turns nonzero into 1) is likely not necassary, 
+	  since '>' I *think* should always
+	  return 0 or 1, but I'm not totally sure. . .*/
 	return !!(v[2] > 0);
 }
 
@@ -339,7 +343,7 @@ int goodline(float (*projectverts)[3], int v1i, int v2i, int nvert)
 {
 	/*the hardcoded stuff here, 200000, 0.999, and 1.0001 may be problems
 	  in the future, not sure. - joeedh*/
-	static float outv[3] = {20000000.0f, 20000000.0f, 0.0f};
+	static float outv[3] = {2000.0f, 2000.0f, 0.0f};
 	float v1[3], v2[3], p[3], vv1[3], vv2[3], mid[3], a[3], b[3];
 	int i = 0, lcount=0;
 	
@@ -414,12 +418,10 @@ static BMLoop *find_ear(BMFace *f, float (*verts)[3], int nvert)
 		if (isear && !goodline(verts, v1->head.eflag2, v3->head.eflag2, nvert)) isear = 0;
 		if(isear){
 			angle = VecAngle3(verts[v1->head.eflag2], verts[v2->head.eflag2], verts[v3->head.eflag2]);
-			if(!bestear || angle < bestangle){
+			if(!bestear || ABS(angle-40.0) < bestangle){
 				bestear = l;
-				bestangle = angle;
+				bestangle = ABS(40.0-angle);
 			}
-			if(angle < 90.0)
-				break;
 		}
 		l = (BMLoop*)(l->head.next);
 	}
@@ -459,8 +461,9 @@ void BM_Triangulate_Face(BMesh *bm, BMFace *f, float (*projectverts)[3], int new
 		l = (BMLoop*)(l->head.next);
 	}while(l != f->loopbase);
 	
-	bmesh_update_face_normal(bm, f, projectverts);
+	//bmesh_update_face_normal(bm, f, projectverts);
 
+	compute_poly_normal(f->no, projectverts, f->len);	
 	compute_poly_plane(projectverts, i);
 	poly_rotate_plane(f->no, projectverts, i);
 	
@@ -473,6 +476,11 @@ void BM_Triangulate_Face(BMesh *bm, BMFace *f, float (*projectverts)[3], int new
 		if(l) {
 			done = 0;
 			f = bmesh_sfme(bm, f, ((BMLoop*)(l->head.prev))->v, ((BMLoop*)(l->head.next))->v, &newl);
+			if (!f) {
+				printf("yeek! triangulator failed to split face!\n");
+				break;
+			}
+
 			BMO_SetFlag(bm, newl->e, newedgeflag);
 			BMO_SetFlag(bm, f, newfaceflag);
 		}
@@ -482,7 +490,12 @@ void BM_Triangulate_Face(BMesh *bm, BMFace *f, float (*projectverts)[3], int new
 		l = f->loopbase;
 		while (l->f->len > 3){
 			nextloop = ((BMLoop*)(l->head.next->next));
-			bmesh_sfme(bm, l->f, l->v,nextloop->v, &newl);
+			f = bmesh_sfme(bm, l->f, l->v,nextloop->v, &newl);
+			if (!f) {
+				printf("triangle fan step of triangulator failed.\n");
+				return;
+			}
+
 			BMO_SetFlag(bm, newl->e, newedgeflag);
 			BMO_SetFlag(bm, f, newfaceflag);
 			l = nextloop;
