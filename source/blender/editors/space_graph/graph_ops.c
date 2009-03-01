@@ -116,6 +116,7 @@ void graphedit_operatortypes(void)
 	WM_operatortype_append(GRAPHEDIT_OT_keyframes_interpolation_type);
 	WM_operatortype_append(GRAPHEDIT_OT_keyframes_extrapolation_type);
 	WM_operatortype_append(GRAPHEDIT_OT_keyframes_sample);
+	WM_operatortype_append(GRAPHEDIT_OT_keyframes_bake);
 	WM_operatortype_append(GRAPHEDIT_OT_keyframes_smooth);
 	WM_operatortype_append(GRAPHEDIT_OT_keyframes_clean);
 	WM_operatortype_append(GRAPHEDIT_OT_keyframes_delete);
@@ -173,8 +174,10 @@ static void graphedit_keymap_keyframes (wmWindowManager *wm, ListBase *keymap)
 	
 		/* destructive */
 	WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_clean", OKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_sample", OKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_smooth", OKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_sample", OKEY, KM_PRESS, KM_SHIFT, 0);
+	
+	WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_bake", CKEY, KM_PRESS, KM_ALT, 0);
 	
 	WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_delete", XKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_delete", DELKEY, KM_PRESS, 0, 0);

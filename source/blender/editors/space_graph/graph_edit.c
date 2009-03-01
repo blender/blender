@@ -554,7 +554,90 @@ void GRAPHEDIT_OT_keyframes_clean (wmOperatorType *ot)
 	RNA_def_float(ot->srna, "threshold", 0.001f, 0.0f, FLT_MAX, "Threshold", "", 0.0f, 1000.0f);
 }
 
+/* ******************** Bake F-Curve Operator *********************** */
+/* This operator bakes the data of the selected F-Curves to F-Points */
+
+/* Bake each F-Curve into a set of samples */
+static void bake_graph_curves (bAnimContext *ac, int start, int end)
+{	
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
+	int filter;
+	
+	/* filter data */
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVEVISIBLE | ANIMFILTER_SEL | ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY);
+	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
+	
+	/* loop through filtered data and add keys between selected keyframes on every frame  */
+	for (ale= anim_data.first; ale; ale= ale->next) {
+		FCurve *fcu= (FCurve *)ale->key_data;
+		ChannelDriver *driver= fcu->driver;
+		
+		/* disable driver so that it don't muck up the sampling process */
+		fcu->driver= NULL;
+		
+		/* create samples */
+		fcurve_store_samples(fcu, NULL, start, end, fcurve_samplingcb_evalcurve);
+		
+		/* restore driver */
+		fcu->driver= driver;
+	}
+	
+	/* admin and redraws */
+	BLI_freelistN(&anim_data);
+}
+
+/* ------------------- */
+
+static int graphkeys_bake_exec(bContext *C, wmOperator *op)
+{
+	bAnimContext ac;
+	Scene *scene= NULL;
+	int start, end;
+	
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+		
+	/* for now, init start/end from preview-range extents */
+	// TODO: add properties for this 
+	scene= ac.scene;
+	start= PSFRA;
+	end= PEFRA;
+	
+	/* bake keyframes */
+	bake_graph_curves(&ac, start, end);
+	
+	/* validate keyframes after editing */
+	ANIM_editkeyframes_refresh(&ac);
+	
+	/* set notifier tha things have changed */
+	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_KEYFRAMES_VALUES);
+	
+	return OPERATOR_FINISHED;
+}
+ 
+void GRAPHEDIT_OT_keyframes_bake (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Bake Curve";
+	ot->idname= "GRAPHEDIT_OT_keyframes_bake";
+	
+	/* api callbacks */
+	ot->invoke= WM_operator_confirm; // FIXME...
+	ot->exec= graphkeys_bake_exec;
+	ot->poll= ED_operator_areaactive;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	// todo: add props for start/end frames
+}
+
 /* ******************** Sample Keyframes Operator *********************** */
+/* This operator 'bakes' the values of the curve into new keyframes between pairs
+ * of selected keyframes. It is useful for creating keyframes for tweaking overlap.
+ */
 
 // XXX some of the common parts (with DopeSheet) should be unified in animation module...
 
