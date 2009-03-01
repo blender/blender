@@ -344,6 +344,7 @@ void fcurve_store_samples (FCurve *fcu, void *data, int start, int end, FcuSampl
 	if (fcu->fpt) MEM_freeN(fcu->fpt);
 	
 	/* store the samples */
+	fcu->bezt= NULL;
 	fcu->fpt= new_fpt;
 	fcu->totvert= end - start + 1;
 }

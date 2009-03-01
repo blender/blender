@@ -401,6 +401,84 @@ static void draw_fcurve_samples (SpaceIpo *sipo, ARegion *ar, FCurve *fcu)
 
 /* Curve ---------------- */
 
+/* helper func - draw a samples-based F-Curve */
+// TODO: add offset stuff...
+static void draw_fcurve_repeat_samples (FCurve *fcu, View2D *v2d)
+{
+	FPoint *prevfpt= fcu->fpt;
+	FPoint *fpt= prevfpt + 1;
+	float fac, v[2];
+	int b= fcu->totvert-1;
+	
+	glBegin(GL_LINE_STRIP);
+	
+	/* extrapolate to left? */
+	if ( (fcu->modifiers.first == NULL)/* || ( ((FModifier *)fcu->modifiers.first)->type != FMODIFIER_TYPE_CYCLES) */) {
+		/* left-side of view comes before first keyframe, so need to extend as not cyclic */
+		if (prevfpt->vec[0] > v2d->cur.xmin) {
+			v[0]= v2d->cur.xmin;
+			
+			/* y-value depends on the interpolation */
+			if ((fcu->extend==FCURVE_EXTRAPOLATE_CONSTANT) || (fcu->flag & FCURVE_INT_VALUES) || (fcu->totvert==1)) {
+				/* just extend across the first keyframe's value */
+				v[1]= prevfpt->vec[1];
+			} 
+			else {
+				/* extrapolate linear dosnt use the handle, use the next points center instead */
+				fac= (prevfpt->vec[0]-fpt->vec[0])/(prevfpt->vec[0]-v[0]);
+				if (fac) fac= 1.0f/fac;
+				v[1]= prevfpt->vec[1]-fac*(prevfpt->vec[1]-fpt->vec[1]);
+			}
+			
+			glVertex2fv(v);
+		}
+	}
+	
+	/* if only one sample, add it now */
+	if (fcu->totvert == 1)
+		glVertex2fv(prevfpt->vec);
+	
+	/* loop over samples, drawing segments */
+	/* draw curve between first and last keyframe (if there are enough to do so) */
+	// XXX this doesn't take into account modifiers, or sample data
+	while (b--) {
+		/* Linear interpolation: just add one point (which should add a new line segment) */
+		glVertex2fv(prevfpt->vec);
+		
+		/* get next pointers */
+		prevfpt= fpt; 
+		fpt++;
+		
+		/* last point? */
+		if (b == 0)
+			glVertex2fv(prevfpt->vec);
+	}
+	
+	/* extrapolate to right? (see code for left-extrapolation above too) */
+	if ( (fcu->modifiers.first == NULL)/* || ( ((FModifier *)fcu->modifiers.first)->type != FMODIFIER_TYPE_CYCLES) */) {
+		if (prevfpt->vec[0] < v2d->cur.xmax) {
+			v[0]= v2d->cur.xmax;
+			
+			/* y-value depends on the interpolation */
+			if ((fcu->extend==FCURVE_EXTRAPOLATE_CONSTANT) || (fcu->flag & FCURVE_INT_VALUES) || (fcu->totvert==1)) {
+				/* based on last keyframe's value */
+				v[1]= prevfpt->vec[1];
+			} 
+			else {
+				/* extrapolate linear dosnt use the handle, use the previous points center instead */
+				fpt = prevfpt-1;
+				fac= (prevfpt->vec[0]-fpt->vec[0])/(prevfpt->vec[0]-v[0]);
+				if (fac) fac= 1.0f/fac;
+				v[1]= prevfpt->vec[1]-fac*(prevfpt->vec[1]-fpt->vec[1]);
+			}
+			
+			glVertex2fv(v);
+		}
+	}
+	
+	glEnd();
+}
+
 /* helper func - draw one repeat of an F-Curve */
 static void draw_fcurve_repeat (FCurve *fcu, View2D *v2d, float cycxofs, float cycyofs, float *facp)
 {
@@ -726,7 +804,11 @@ void graph_draw_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 			}
 			
 			/* draw F-Curve */
-			draw_fcurve_repeat(fcu, &ar->v2d, 0, 0, &fac); // XXX this call still needs a lot more work
+			if (fcu->bezt)
+				draw_fcurve_repeat(fcu, &ar->v2d, 0, 0, &fac); // XXX this call still needs a lot more work
+			else if (fcu->fpt)
+				draw_fcurve_repeat_samples(fcu, &ar->v2d);
+			/*else  modifiers? */
 			
 			/* restore settings */
 			setlinestyle(0);
