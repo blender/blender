@@ -190,7 +190,8 @@
 #define GRLESSKEY	173
 
 /* for event checks */
-#define ISKEYBOARD(event)	(event >='a' && event <=255)
+	/* only used for KM_TEXTINPUT, so assume that we want all user-inputtable ascii codes included */
+#define ISKEYBOARD(event)	(event >=' ' && event <=255)
 
 /* **************** BLENDER GESTURE EVENTS ********************* */
 
