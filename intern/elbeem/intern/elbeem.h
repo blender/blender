@@ -32,7 +32,7 @@ typedef struct elbeemSimulationSettings {
   short version;
 	/* id number of simulation domain, needed if more than a
 	 * single domain should be simulated */
-	short domainId;
+	short domainId; // unused within blender
 
 	/* geometrical extent */
 	float geoStart[3], geoSize[3];
@@ -97,10 +97,13 @@ typedef struct elbeemSimulationSettings {
 
 
 // defines for elbeemMesh->type below
+/* please keep in sync with DNA_object_fluidsim.h */
 #define OB_FLUIDSIM_FLUID       4
 #define OB_FLUIDSIM_OBSTACLE    8
 #define OB_FLUIDSIM_INFLOW      16
 #define OB_FLUIDSIM_OUTFLOW     32
+#define OB_FLUIDSIM_PARTICLE    64
+#define OB_FLUIDSIM_CONTROL 	128
 
 // defines for elbeemMesh->obstacleType below
 #define FLUIDSIM_OBSTACLE_NOSLIP     1
@@ -113,7 +116,7 @@ typedef struct elbeemSimulationSettings {
 
 // a single mesh object
 typedef struct elbeemMesh {
-  /* obstacle,fluid or inflow... */
+  /* obstacle,fluid or inflow or control ... */
   short type;
 	/* id of simulation domain it belongs to */
 	short parentDomainId;
@@ -155,6 +158,20 @@ typedef struct elbeemMesh {
 
 	/* name of the mesh, mostly for debugging */
 	const char *name;
+	
+	/* fluid control settings */
+	float cpsTimeStart;
+	float cpsTimeEnd;
+	float cpsQuality;
+	
+	int channelSizeAttractforceStrength;
+	float *channelAttractforceStrength;
+	int channelSizeAttractforceRadius;
+	float *channelAttractforceRadius;
+	int channelSizeVelocityforceStrength;
+	float *channelVelocityforceStrength;
+	int channelSizeVelocityforceRadius;
+	float *channelVelocityforceRadius;
 } elbeemMesh;
 
 // API functions
@@ -169,6 +186,9 @@ void elbeemResetSettings(struct elbeemSimulationSettings*);
  
 // start fluidsim init (returns !=0 upon failure)
 int elbeemInit(void);
+
+// frees fluidsim
+int elbeemFree(void);
 
 // start fluidsim init (returns !=0 upon failure)
 int elbeemAddDomain(struct elbeemSimulationSettings*);
@@ -223,6 +243,7 @@ double elbeemEstimateMemreq(int res,
 // structs, for these use OB_xxx defines above
 
 /*! fluid geometry init types */
+// type "int" used, so max is 8
 #define FGI_FLAGSTART   16
 #define FGI_FLUID			  (1<<(FGI_FLAGSTART+ 0))
 #define FGI_NO_FLUID	  (1<<(FGI_FLAGSTART+ 1))
@@ -232,6 +253,7 @@ double elbeemEstimateMemreq(int res,
 #define FGI_NO_BND		  (1<<(FGI_FLAGSTART+ 5))
 #define FGI_MBNDINFLOW	(1<<(FGI_FLAGSTART+ 6))
 #define FGI_MBNDOUTFLOW	(1<<(FGI_FLAGSTART+ 7))
+#define FGI_CONTROL	(1<<(FGI_FLAGSTART+ 8))
 
 // all boundary types at once
 #define FGI_ALLBOUNDS ( FGI_BNDNO | FGI_BNDFREE | FGI_BNDPART | FGI_MBNDINFLOW | FGI_MBNDOUTFLOW )
