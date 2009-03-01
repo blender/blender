@@ -135,8 +135,6 @@ FCurve *verify_fcurve (ID *id, const char group[], const char rna_path[], const 
 				
 				BLI_addtail(&act->groups, grp);
 				BLI_uniquename(&act->groups, grp, "Group", offsetof(bActionGroup, name), 64);
-				
-				set_active_action_group(act, grp, 1);
 			}
 			
 			/* add F-Curve to group */
@@ -2144,7 +2142,7 @@ static int insert_key_old_exec (bContext *C, wmOperator *op)
 					success+= insertkey(id, "Object Transforms", "rotation", 1, cfra, 0);
 					success+= insertkey(id, "Object Transforms", "rotation", 2, cfra, 0);
 					break;
-				case 1: /* object location */
+				default: /* object location */
 					success+= insertkey(id, "Object Transforms", "location", 0, cfra, 0);
 					success+= insertkey(id, "Object Transforms", "location", 1, cfra, 0);
 					success+= insertkey(id, "Object Transforms", "location", 2, cfra, 0);
@@ -2163,13 +2161,13 @@ static int insert_key_old_exec (bContext *C, wmOperator *op)
 						char buf[512];
 						
 						switch (mode) {
-						case 6: /* pchan scale */
+						case 7: /* pchan scale */
 							sprintf(buf, "pose.pose_channels[\"%s\"].scale", pchan->name);
 							success+= insertkey(id, pchan->name, buf, 0, cfra, 0);
 							success+= insertkey(id, pchan->name, buf, 1, cfra, 0);
 							success+= insertkey(id, pchan->name, buf, 2, cfra, 0);
 							break;
-						case 5: /* pchan rotation */
+						case 6: /* pchan rotation */
 							if (pchan->rotmode == PCHAN_ROT_QUAT) {
 								sprintf(buf, "pose.pose_channels[\"%s\"].rotation", pchan->name);
 								success+= insertkey(id, pchan->name, buf, 0, cfra, 0);
