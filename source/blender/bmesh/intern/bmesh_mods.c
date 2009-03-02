@@ -398,7 +398,7 @@ int BM_Validate_Face(BMesh *bm, BMFace *face, FILE *err)
 
 	for (i=0; i<V_COUNT(verts); i++) {
 		for (j=0; j<V_COUNT(verts); j++) {
-			if (j == 0) continue;
+			if (j == i) continue;
 			if (verts[i] == verts[j]) {
 				fprintf(err, "Found duplicate verts in bmesh face!\n");
 				fprintf(err, "  face ptr: %p, vert: %p\n", face, verts[i]);

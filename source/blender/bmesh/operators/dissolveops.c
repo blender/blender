@@ -103,7 +103,7 @@ void dissolveverts_exec(BMesh *bm, BMOperator *op)
 		while (found3) {
 			found3 = 0;
 			for (f=BMIter_New(&iter, bm, BM_FACES, NULL); f; f=BMIter_Step(&iter)){
-				if (BM_Validate_Face(bm, f, stderr)) {
+				if (!BM_Validate_Face(bm, f, stderr)) {
 					printf("error.\n");
 				}
 

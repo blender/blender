@@ -346,7 +346,56 @@ int linecrosses(float *v1, float *v2, float *v3, float *v4)
 	return w1 == w2 && w2 == w3 && w3 == w4 && w4==w5;
 }
 
-int goodline(float (*projectverts)[3], int v1i, int v2i, int nvert, float *outv)
+static int goodline_notworking(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2, BMVert *v3,
+	     float (*p)[3], float *outv, int nvert)
+{
+	BMIter iter;
+	BMLoop *l;
+	int i, ret = 1;
+	float r = 0.00001f;
+	
+	/*cases of a vector being too close to
+	  an axis can cause problems, so this is to
+	  prevent that.*/
+	for (i=0; i<3; i++) {
+		p[v1->head.eflag2][i] += r;
+		p[v2->head.eflag2][i] -= r;
+		p[v3->head.eflag2][i] += r;		
+	}
+
+	//l = BMIter_New(&iter, bm, BM_LOOPS_OF_FACE, f);
+	//for (; l; l=BMIter_Step(&iter)) {
+	if (convexangle(p[v1->head.eflag2], p[v2->head.eflag2],
+	    p[v3->head.eflag2])) {
+		ret = 0;
+		goto cleanup;
+	}
+
+	for (i=0; i<nvert; i++) {
+		if (i!=v1->head.eflag2 && i!=v2->head.eflag2 && 
+		    i!=v3->head.eflag2)
+		{
+			if (point_in_triangle(p[v3->head.eflag2], 
+			    p[v2->head.eflag2], p[v1->head.eflag2], 
+			    p[i]))
+			{
+				ret = 0;
+				goto cleanup;
+			}
+		}
+	}
+
+cleanup:
+	for (i=0; i<3; i++) {
+		p[v1->head.eflag2][i] -= r;
+		p[v2->head.eflag2][i] += r;
+		p[v3->head.eflag2][i] -= r;		
+	}
+
+	return ret;
+}
+
+static int goodline(float (*projectverts)[3], int v1i, int v2i, int nvert, float *outv)
 {
 	/*the hardcoded stuff here, 0.999 and 1.0001, may be problems
 	  in the future, not sure. - joeedh*/
@@ -404,12 +453,12 @@ int goodline(float (*projectverts)[3], int v1i, int v2i, int nvert, float *outv)
  *
 */
 
-static BMLoop *find_ear(BMFace *f, float (*verts)[3], int nvert, float *outv)
+static BMLoop *find_ear(BMesh *bm, BMFace *f, float (*verts)[3], int nvert, float *outv)
 {
 	BMVert *v1, *v2, *v3;
 	BMLoop *bestear = NULL, *l;
 	float angle, bestangle = 180.0f;
-	int isear;
+	int isear, i=0;
 	
 	l = f->loopbase;
 	do{
@@ -421,8 +470,9 @@ static BMLoop *find_ear(BMFace *f, float (*verts)[3], int nvert, float *outv)
 
 		if (BM_Edge_Exist(v1, v3)) isear = 0;
 
-		if (isear && !goodline(verts, v1->head.eflag2, v3->head.eflag2,
-		                       nvert, outv)) isear = 0;
+		if (isear && !goodline(verts, v1->head.eflag2, v3->head.eflag2, nvert, outv))
+			isear = 0;
+
 		if(isear){
 			angle = VecAngle3(verts[v1->head.eflag2], verts[v2->head.eflag2], verts[v3->head.eflag2]);
 			if(!bestear || ABS(angle-40.0f) < bestangle){
@@ -430,7 +480,8 @@ static BMLoop *find_ear(BMFace *f, float (*verts)[3], int nvert, float *outv)
 				bestangle = ABS(40.0f-angle);
 			}
 			
-			if (angle > 10 && angle < 140) break;
+			if ((angle > 10 && angle < 140) || i > 5) break;
+			i += 1;
 		}
 		l = (BMLoop*)(l->head.next);
 	}
@@ -488,7 +539,7 @@ void BM_Triangulate_Face(BMesh *bm, BMFace *f, float (*projectverts)[3], int new
 	done = 0;
 	while(!done && f->len > 3){
 		done = 1;
-		l = find_ear(f, projectverts, nvert, outv);
+		l = find_ear(bm, f, projectverts, nvert, outv);
 		if(l) {
 			done = 0;
 			f = bmesh_sfme(bm, f, ((BMLoop*)(l->head.prev))->v, ((BMLoop*)(l->head.next))->v, &newl);

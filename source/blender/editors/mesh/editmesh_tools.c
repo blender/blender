@@ -1147,16 +1147,7 @@ static int delete_mesh_exec(bContext *C, wmOperator *op)
 		
 		BMO_Finish_Op(bm, &bmop);
 		
-		if (BMO_GetError(bm, &errmsg, NULL)) {
-			BKE_report(op->reports, RPT_ERROR, errmsg);
-			BMO_ClearStack(bm);
-			return OPERATOR_CANCELLED;
-		}
-
-		em2 = bmesh_to_editmesh(bm);
-		set_editMesh(em, em2);
-		MEM_freeN(em2);
-		BM_Free_Mesh(bm);
+		if (!EDBM_Finish(bm, em, op, C)) return OPERATOR_CANCELLED;
 	}
 	else if(event==6) {
 		if(!EdgeLoopDelete(em, op))
@@ -1263,16 +1254,24 @@ static int delete_mesh_exec(bContext *C, wmOperator *op)
 		if(em->selected.first) BLI_freelistN(&(em->selected));
 	}
 	else if(event==5) {
+		BMesh *bm = editmesh_to_bmesh(em);
+		BMOperator bmop;
+		EditMesh *em2;
+		char *errmsg;
+		
 		str= "Erase Only Faces";
-		efa= em->faces.first;
-		while(efa) {
-			nextvl= efa->next;
-			if(efa->f & SELECT) {
-				BLI_remlink(&em->faces, efa);
-				free_editface(em, efa);
-			}
-			efa= nextvl;
-		}
+
+		BMO_Init_Op(&bmop, BMOP_DEL);
+		BMO_HeaderFlag_To_Slot(bm, &bmop, BMOP_DEL_MULTIN, 
+		                                BM_SELECT, BM_FACE);
+		BMO_Set_Int(&bmop, BMOP_DEL_CONTEXT, DEL_ONLYFACES);
+
+		BMO_Exec_Op(bm, &bmop);
+		
+		BMO_Finish_Op(bm, &bmop);
+		
+		if (!EDBM_Finish(bm, em, op, C)) return OPERATOR_CANCELLED;
+
 	}
 
 	EM_fgon_flags(em);	// redo flags and indices for fgons
