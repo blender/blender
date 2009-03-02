@@ -2748,7 +2748,7 @@ static int count_fcurve_keys(FCurve *fcu, char side, float cfra)
 	BezTriple *bezt;
 	int i, count = 0;
 	
-	if (fcu == NULL)
+	if (ELEM(NULL, fcu, fcu->bezt))
 		return count;
 	
 	/* only include points that occur on the right side of cfra */

@@ -390,7 +390,7 @@ static void draw_fcurve_samples (SpaceIpo *sipo, ARegion *ar, FCurve *fcu)
 	
 	/* get verts */
 	first= fcu->fpt;
-	last= (first) ? (first + fcu->totvert) : (NULL);
+	last= (first) ? (first + (fcu->totvert-1)) : (NULL);
 	
 	/* draw */
 	if (first && last) {

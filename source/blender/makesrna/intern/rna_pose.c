@@ -139,11 +139,10 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "euler_rotation", PROP_FLOAT, PROP_ROTATION);
 	RNA_def_property_float_sdna(prop, NULL, "eul");
-	RNA_def_property_ui_text(prop, "Rotation", "Rotation in Eulers.");
+	RNA_def_property_ui_text(prop, "Rotation (Euler)", "Rotation in Eulers.");
 	
 	prop= RNA_def_property(srna, "rotation_mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "rotmode");
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
 	RNA_def_property_enum_items(prop, prop_rotmode_items);
 	RNA_def_property_ui_text(prop, "Rotation Mode", "");
 
