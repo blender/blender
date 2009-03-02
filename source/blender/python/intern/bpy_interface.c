@@ -168,10 +168,11 @@ int BPY_run_script_space_draw(bContext *C, SpaceScript * sc)
 	if (bpy_run_script_init(C, sc)) {
 		PyGILState_STATE gilstate = PyGILState_Ensure();
 		PyObject *result = PyObject_CallObject( sc->script->py_draw, NULL );
-		PyGILState_Release(gilstate);
 		
 		if (result==NULL)
 			exit_pydraw(sc, 1);
+			
+		PyGILState_Release(gilstate);
 	}
 	return 1;
 }
@@ -183,10 +184,11 @@ int BPY_run_script_space_listener(bContext *C, SpaceScript * sc)
 		PyGILState_STATE gilstate = PyGILState_Ensure();
 		
 		PyObject *result = PyObject_CallObject( sc->script->py_draw, NULL );
-		PyGILState_Release(gilstate);
 		
 		if (result==NULL)
 			exit_pydraw(sc, 1);
+			
+		PyGILState_Release(gilstate);
 	}
 	return 1;
 }

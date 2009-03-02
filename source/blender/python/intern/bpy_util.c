@@ -162,6 +162,16 @@ void PyObSpit(char *name, PyObject *var) {
 	fprintf(stderr, "\n");
 }
 
+void PyLineSpit(void) {
+	char filename[512];
+	int lineno;
+
+	PyErr_Clear();
+	BPY_getFileAndNum(&filename, &lineno);
+	
+	fprintf(stderr, "%s:%d\n", filename, lineno);
+}
+
 void BPY_getFileAndNum(char **filename, int *lineno)
 {
 	PyObject *getframe, *frame;
