@@ -414,7 +414,7 @@ void	CcdPhysicsEnvironment::addCcdPhysicsController(CcdPhysicsController* ctrl)
 	const btTransform& t = ctrl->GetCollisionObject()->getWorldTransform();
 	
 
-	btPoint3 minAabb,maxAabb;
+	btVector3 minAabb,maxAabb;
 
 	shapeinterface->getAabb(t,minAabb,maxAabb);
 
