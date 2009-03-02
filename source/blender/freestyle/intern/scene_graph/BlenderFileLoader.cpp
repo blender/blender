@@ -19,12 +19,30 @@ NodeGroup* BlenderFileLoader::Load()
 	ObjectRen *obr;
 
 	cout << "\n===  Importing triangular meshes into Blender  ===" << endl;
+	
+	SceneRenderLayer *srl, *active_srl = NULL;
+	int count = 0;
+	for(srl= (SceneRenderLayer *)_re->scene->r.layers.first; srl; srl= srl->next) {
+		if(srl->layflag & SCE_LAY_FRS) {
+			if (!active_srl) active_srl = srl;
+			count++;
+		}
+	}
+	if (count > 1) {
+		cout << "Warning: Freestyle is enabled in the following " << count << " scene render layers:" << endl;
+		for(srl= (SceneRenderLayer *)_re->scene->r.layers.first; srl; srl= srl->next)
+			if(srl->layflag & SCE_LAY_FRS)
+				cout << "  \"" << srl->name << "\"" << ((active_srl == srl) ? " (only this is taken into account)" : "") << endl;
+	}
 
   // creation of the scene root node
   _Scene = new NodeGroup;
 
 	int id = 0;
 	for(obi= (ObjectInstanceRen *) _re->instancetable.first; obi; obi=obi->next) {
+		if (!(obi->lay & _re->scene->lay & active_srl->lay))
+			continue;
+
 		obr= obi->obr;
 		
 		if( obr->totvlak > 0)
