@@ -2,7 +2,7 @@
 Import ('env')
 
 sources = env.Glob('*.c')
-
+defs = []
 incs = '../include ../../blenlib ../../blenkernel ../../makesdna ../../imbuf'
 incs += ' ../../windowmanager #/intern/guardedalloc #/extern/glew/include'
 incs += ' #/intern/bmfont ../../python ../../makesrna ../../blenfont'
