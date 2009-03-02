@@ -78,8 +78,10 @@ GlyphCacheBLF *blf_glyph_cache_find(FontBLF *font, int size, int dpi)
 GlyphCacheBLF *blf_glyph_cache_new(FontBLF *font)
 {
 	GlyphCacheBLF *gc;
+	FT_Face face;
 	int i;
 
+	face= (FT_Face)font->engine;
 	gc= (GlyphCacheBLF *)MEM_mallocN(sizeof(GlyphCacheBLF), "blf_glyph_cache_new");
 	gc->next= NULL;
 	gc->prev= NULL;
@@ -98,23 +100,23 @@ GlyphCacheBLF *blf_glyph_cache_new(FontBLF *font)
 	gc->y_offs= 0;
 	gc->pad= 3;
 
-	gc->num_glyphs= font->face->num_glyphs;
-	gc->rem_glyphs= font->face->num_glyphs;
-	gc->ascender= ((float)font->face->size->metrics.ascender) / 64.0f;
-	gc->descender= ((float)font->face->size->metrics.descender) / 64.0f;
+	gc->num_glyphs= face->num_glyphs;
+	gc->rem_glyphs= face->num_glyphs;
+	gc->ascender= ((float)face->size->metrics.ascender) / 64.0f;
+	gc->descender= ((float)face->size->metrics.descender) / 64.0f;
 
-	if (FT_IS_SCALABLE(font->face)) {
-		gc->max_glyph_width= (float)((font->face->bbox.xMax - font->face->bbox.xMin) *
-					(((float)font->face->size->metrics.x_ppem) /
-					 ((float)font->face->units_per_EM)));
+	if (FT_IS_SCALABLE(face)) {
+		gc->max_glyph_width= (float)((face->bbox.xMax - face->bbox.xMin) *
+					(((float)face->size->metrics.x_ppem) /
+					 ((float)face->units_per_EM)));
 
-		gc->max_glyph_height= (float)((font->face->bbox.yMax - font->face->bbox.yMin) *
-					(((float)font->face->size->metrics.y_ppem) /
-					 ((float)font->face->units_per_EM)));
+		gc->max_glyph_height= (float)((face->bbox.yMax - face->bbox.yMin) *
+					(((float)face->size->metrics.y_ppem) /
+					 ((float)face->units_per_EM)));
 	}
 	else {
-		gc->max_glyph_width= ((float)font->face->size->metrics.max_advance) / 64.0f;
-		gc->max_glyph_height= ((float)font->face->size->metrics.height) / 64.0f;
+		gc->max_glyph_width= ((float)face->size->metrics.max_advance) / 64.0f;
+		gc->max_glyph_height= ((float)face->size->metrics.height) / 64.0f;
 	}
 
 	gc->p2_width= 0;
@@ -180,15 +182,15 @@ void blf_glyph_cache_texture(FontBLF *font, GlyphCacheBLF *gc)
 	free((void *)buf);
 }
 
-GlyphBLF *blf_glyph_search(GlyphCacheBLF *gc, FT_UInt idx)
+GlyphBLF *blf_glyph_search(GlyphCacheBLF *gc, unsigned int c)
 {
 	GlyphBLF *p;
 	unsigned int key;
 
-	key= blf_hash(idx);
+	key= blf_hash(c);
 	p= gc->bucket[key].first;
 	while (p) {
-		if (p->index == idx)
+		if (p->c == c)
 			return(p);
 		p= p->next;
 	}
@@ -200,21 +202,23 @@ GlyphBLF *blf_glyph_add(FontBLF *font, FT_UInt index, unsigned int c)
 	FT_GlyphSlot slot;
 	GlyphCacheBLF *gc;
 	GlyphBLF *g;
+	FT_Face face;
 	FT_Error err;
 	FT_Bitmap bitmap;
 	FT_BBox bbox;
 	unsigned int key;
 
-	g= blf_glyph_search(font->glyph_cache, index);
+	g= blf_glyph_search(font->glyph_cache, c);
 	if (g)
 		return(g);
 
-	err= FT_Load_Glyph(font->face, index, FT_LOAD_NO_HINTING | FT_LOAD_NO_BITMAP);
+	face= (FT_Face)font->engine;
+	err= FT_Load_Glyph(face, index, FT_LOAD_NO_HINTING | FT_LOAD_NO_BITMAP);
 	if (err)
 		return(NULL);
 
 	/* get the glyph. */
-	slot= font->face->glyph;
+	slot= face->glyph;
 
 	err= FT_Render_Glyph(slot, FT_RENDER_MODE_NORMAL);
 	if (err || slot->format != FT_GLYPH_FORMAT_BITMAP)
@@ -224,7 +228,6 @@ GlyphBLF *blf_glyph_add(FontBLF *font, FT_UInt index, unsigned int c)
 	g->next= NULL;
 	g->prev= NULL;
 	g->c= c;
-	g->index= index;
 
 	gc= font->glyph_cache;
 	if (gc->cur_tex == -1) {
@@ -280,7 +283,7 @@ GlyphBLF *blf_glyph_add(FontBLF *font, FT_UInt index, unsigned int c)
 	/* update the x offset for the next glyph. */
 	gc->x_offs += (int)(g->box.xmax - g->box.xmin + gc->pad);
 
-	key= blf_hash(g->index);
+	key= blf_hash(g->c);
 	BLI_addhead(&(gc->bucket[key]), g);
 	gc->rem_glyphs--;
 	return(g);

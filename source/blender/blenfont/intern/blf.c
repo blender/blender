@@ -252,29 +252,24 @@ void BLF_position(float x, float y, float z)
 {
 #ifdef WITH_FREETYPE2
 	FontBLF *font;
-	float remainder, aspect;
+	float remainder;
 
 	font= global_font[global_font_cur];
 	if (font) {
-		if (font->flags & BLF_ASPECT)
-			aspect= font->aspect;
-		else
-			aspect= 1.0f;
-
 		remainder= x - floor(x);
 		if (remainder > 0.4 && remainder < 0.6) {
 			if (remainder < 0.5)
-				x -= 0.1 * aspect;
+				x -= 0.1 * font->aspect;
 			else
-				x += 0.1 * aspect;
+				x += 0.1 * font->aspect;
 		}
 
 		remainder= y - floor(y);
 		if (remainder > 0.4 && remainder < 0.6) {
 			if (remainder < 0.5)
-				y -= 0.1 * aspect;
+				y -= 0.1 * font->aspect;
 			else
-				y += 0.1 * aspect;
+				y += 0.1 * font->aspect;
 		}
 
 		font->pos[0]= x;
@@ -308,9 +303,7 @@ void BLF_draw(char *str)
 
 		glPushMatrix();
 		glTranslatef(font->pos[0], font->pos[1], font->pos[2]);
-
-		if (font->flags & BLF_ASPECT)
-			glScalef(font->aspect, font->aspect, 1.0);
+		glScalef(font->aspect, font->aspect, 1.0);
 
 		if (font->flags & BLF_ROTATION)
 			glRotatef(font->angle, 0.0f, 0.0f, 1.0f);

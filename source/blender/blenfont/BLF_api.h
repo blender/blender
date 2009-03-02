@@ -85,8 +85,7 @@ char **BLF_dir_get(int *ndir);
 void BLF_dir_free(char **dirs, int count);
 
 /* font->flags. */
-#define BLF_ASPECT (1<<0)
-#define BLF_ROTATION (1<<1)
-#define BLF_CLIPPING (1<<2)
+#define BLF_ROTATION (1<<0)
+#define BLF_CLIPPING (1<<1)
 
 #endif /* BLF_API_H */

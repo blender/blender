@@ -54,7 +54,7 @@ GlyphCacheBLF *blf_glyph_cache_find(FontBLF *font, int size, int dpi);
 GlyphCacheBLF *blf_glyph_cache_new(FontBLF *font);
 void blf_glyph_cache_free(GlyphCacheBLF *gc);
 
-GlyphBLF *blf_glyph_search(GlyphCacheBLF *gc, FT_UInt idx);
+GlyphBLF *blf_glyph_search(GlyphCacheBLF *gc, unsigned int c);
 GlyphBLF *blf_glyph_add(FontBLF *font, FT_UInt index, unsigned int c);
 
 void blf_glyph_free(GlyphBLF *g);
