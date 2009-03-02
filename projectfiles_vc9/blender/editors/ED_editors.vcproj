@@ -343,6 +343,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\editors\datafiles\bmonofont.ttf.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\datafiles\preview.blend.c"
 				>
 			</File>
@@ -887,11 +891,23 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\editors\space_text\text_draw.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\space_text\text_header.c"
 				>
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\editors\space_text\text_intern.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\space_text\text_ops.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\space_text\text_python.c"
 				>
 			</File>
 		</Filter>
