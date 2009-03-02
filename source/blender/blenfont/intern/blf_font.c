@@ -73,78 +73,6 @@ void blf_font_exit(void)
 	FT_Done_FreeType(global_ft_lib);
 }
 
-void blf_font_fill(FontBLF *font)
-{
-	font->type= BLF_FONT_FREETYPE2;
-	font->ref= 1;
-	font->aspect= 1.0f;
-	font->pos[0]= 0.0f;
-	font->pos[1]= 0.0f;
-	font->angle= 0.0f;
-	Mat4One(font->mat);
-	font->clip_rec.xmin= 0.0f;
-	font->clip_rec.xmax= 0.0f;
-	font->clip_rec.ymin= 0.0f;
-	font->clip_rec.ymax= 0.0f;
-	font->flags= 0;
-	font->dpi= 0;
-	font->size= 0;
-	font->cache.first= NULL;
-	font->cache.last= NULL;
-	font->glyph_cache= NULL;
-	glGetIntegerv(GL_MAX_TEXTURE_SIZE, (GLint *)&font->max_tex_size);
-}
-
-FontBLF *blf_font_new(char *name, char *filename)
-{
-	FontBLF *font;
-	FT_Error err;
-	FT_Face face;
-
-	err= FT_New_Face(global_ft_lib, filename, 0, &face);
-	if (err)
-		return(NULL);
-
-	err= FT_Select_Charmap(face, ft_encoding_unicode);
-	if (err) {
-		printf("Can't set the unicode character map!\n");
-		FT_Done_Face(face);
-		return(NULL);
-	}
-
-	font= (FontBLF *)MEM_mallocN(sizeof(FontBLF), "blf_font_new");
-	font->name= BLI_strdup(name);
-	font->filename= BLI_strdup(filename);
-	font->engine= (void *)face;
-	blf_font_fill(font);
-	return(font);
-}
-
-FontBLF *blf_font_new_from_mem(char *name, unsigned char *mem, int mem_size)
-{
-	FontBLF *font;
-	FT_Error err;
-	FT_Face face;
-
-	err= FT_New_Memory_Face(global_ft_lib, mem, mem_size, 0, &face);
-	if (err)
-		return(NULL);
-
-	err= FT_Select_Charmap(face, ft_encoding_unicode);
-	if (err) {
-		printf("Can't set the unicode character map!\n");
-		FT_Done_Face(face);
-		return(NULL);
-	}
-
-	font= (FontBLF *)MEM_mallocN(sizeof(FontBLF), "blf_font_new_from_mem");
-	font->name= BLI_strdup(name);
-	font->filename= NULL;
-	font->engine= (void *)face;
-	blf_font_fill(font);
-	return(font);
-}
-
 void blf_font_size(FontBLF *font, int size, int dpi)
 {
 	GlyphCacheBLF *gc;
@@ -329,6 +257,96 @@ void blf_font_free(FontBLF *font)
 	if (font->name)
 		MEM_freeN(font->name);
 	MEM_freeN(font);
+}
+
+void blf_font_fill(FontBLF *font)
+{
+	font->type= BLF_FONT_FREETYPE2;
+	font->ref= 1;
+	font->aspect= 1.0f;
+	font->pos[0]= 0.0f;
+	font->pos[1]= 0.0f;
+	font->angle= 0.0f;
+	Mat4One(font->mat);
+	font->clip_rec.xmin= 0.0f;
+	font->clip_rec.xmax= 0.0f;
+	font->clip_rec.ymin= 0.0f;
+	font->clip_rec.ymax= 0.0f;
+	font->flags= 0;
+	font->dpi= 0;
+	font->size= 0;
+	font->cache.first= NULL;
+	font->cache.last= NULL;
+	font->glyph_cache= NULL;
+	glGetIntegerv(GL_MAX_TEXTURE_SIZE, (GLint *)&font->max_tex_size);
+
+	font->size_set= blf_font_size;
+	font->draw= blf_font_draw;
+	font->boundbox_get= blf_font_boundbox;
+	font->width_get= blf_font_width;
+	font->height_get= blf_font_height;
+	font->free= blf_font_free;
+}
+
+FontBLF *blf_font_new(char *name, char *filename)
+{
+	FontBLF *font;
+	FT_Error err;
+	FT_Face face;
+
+	err= FT_New_Face(global_ft_lib, filename, 0, &face);
+	if (err)
+		return(NULL);
+
+	err= FT_Select_Charmap(face, ft_encoding_unicode);
+	if (err) {
+		printf("Can't set the unicode character map!\n");
+		FT_Done_Face(face);
+		return(NULL);
+	}
+
+	font= (FontBLF *)MEM_mallocN(sizeof(FontBLF), "blf_font_new");
+	font->name= BLI_strdup(name);
+	font->filename= BLI_strdup(filename);
+	font->engine= (void *)face;
+	blf_font_fill(font);
+	return(font);
+}
+
+FontBLF *blf_font_new_from_mem(char *name, unsigned char *mem, int mem_size)
+{
+	FontBLF *font;
+	FT_Error err;
+	FT_Face face;
+
+	err= FT_New_Memory_Face(global_ft_lib, mem, mem_size, 0, &face);
+	if (err)
+		return(NULL);
+
+	err= FT_Select_Charmap(face, ft_encoding_unicode);
+	if (err) {
+		printf("Can't set the unicode character map!\n");
+		FT_Done_Face(face);
+		return(NULL);
+	}
+
+	font= (FontBLF *)MEM_mallocN(sizeof(FontBLF), "blf_font_new_from_mem");
+	font->name= BLI_strdup(name);
+	font->filename= NULL;
+	font->engine= (void *)face;
+	blf_font_fill(font);
+	return(font);
+}
+
+#else /* !WITH_FREETYPE2 */
+
+int blf_font_init(void)
+{
+	return(0);
+}
+
+void blf_font_exit(void)
+{
 }
 
 #endif /* WITH_FREETYPE2 */

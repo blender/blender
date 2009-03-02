@@ -35,20 +35,13 @@ int blf_utf8_next(unsigned char *buf, int *iindex);
 char *blf_dir_search(const char *file);
 int blf_dir_split(const char *str, char *file, int *size);
 
-#ifdef WITH_FREETYPE2
-
 int blf_font_init(void);
 void blf_font_exit(void);
 
+#ifdef WITH_FREETYPE2
+
 FontBLF *blf_font_new(char *name, char *filename);
 FontBLF *blf_font_new_from_mem(char *name, unsigned char *mem, int mem_size);
-
-void blf_font_free(FontBLF *font);
-void blf_font_size(FontBLF *font, int size, int dpi);
-void blf_font_draw(FontBLF *font, char *str);
-void blf_font_boundbox(FontBLF *font, char *str, rctf *box);
-float blf_font_width(FontBLF *font, char *str);
-float blf_font_height(FontBLF *font, char *str);
 
 GlyphCacheBLF *blf_glyph_cache_find(FontBLF *font, int size, int dpi);
 GlyphCacheBLF *blf_glyph_cache_new(FontBLF *font);

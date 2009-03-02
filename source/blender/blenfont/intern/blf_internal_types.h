@@ -161,6 +161,14 @@ typedef struct FontBLF {
 
 	/* engine data. */
 	void *engine;
+
+	/* engine functions. */
+	void (*size_set)(struct FontBLF *, int, int);
+	void (*draw)(struct FontBLF *, char *);
+	void (*boundbox_get)(struct FontBLF *, char *, rctf *);
+	float (*width_get)(struct FontBLF *, char *);
+	float (*height_get)(struct FontBLF *, char *);
+	void (*free)(struct FontBLF *);
 } FontBLF;
 
 typedef struct DirBLF {
