@@ -35,7 +35,17 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
+#include "WM_types.h"
+
 #ifdef RNA_RUNTIME
+
+#include "BKE_context.h"
+#include "BKE_depsgraph.h"
+
+static void rna_Pose_update(bContext *C, PointerRNA *ptr)
+{
+	DAG_object_flush_update(CTX_data_scene(C), ptr->id.data, OB_RECALC_DATA);
+}
 
 #else
 
@@ -128,23 +138,28 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "location", PROP_FLOAT, PROP_VECTOR);
 	RNA_def_property_float_sdna(prop, NULL, "loc");
 	RNA_def_property_ui_text(prop, "Location", "");
+	RNA_def_property_update(prop, NC_OBJECT|ND_POSE|ND_TRANSFORM, "rna_Pose_update");
 
 	prop= RNA_def_property(srna, "scale", PROP_FLOAT, PROP_VECTOR);
 	RNA_def_property_float_sdna(prop, NULL, "size");
 	RNA_def_property_ui_text(prop, "Scale", "");
+	RNA_def_property_update(prop, NC_OBJECT|ND_POSE|ND_TRANSFORM, "rna_Pose_update");
 
 	prop= RNA_def_property(srna, "rotation", PROP_FLOAT, PROP_ROTATION);
 	RNA_def_property_float_sdna(prop, NULL, "quat");
 	RNA_def_property_ui_text(prop, "Rotation", "Rotation in Quaternions.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_POSE|ND_TRANSFORM, "rna_Pose_update");
 	
 	prop= RNA_def_property(srna, "euler_rotation", PROP_FLOAT, PROP_ROTATION);
 	RNA_def_property_float_sdna(prop, NULL, "eul");
 	RNA_def_property_ui_text(prop, "Rotation (Euler)", "Rotation in Eulers.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_POSE|ND_TRANSFORM, "rna_Pose_update");
 	
 	prop= RNA_def_property(srna, "rotation_mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "rotmode");
 	RNA_def_property_enum_items(prop, prop_rotmode_items);
 	RNA_def_property_ui_text(prop, "Rotation Mode", "");
+	RNA_def_property_update(prop, NC_OBJECT|ND_POSE|ND_TRANSFORM, "rna_Pose_update");
 
 	/* These three matrix properties await an implementation of the PROP_MATRIX subtype, which currently doesn't exist. */
 /*	prop= RNA_def_property(srna, "channel_matrix", PROP_FLOAT, PROP_MATRIX);
