@@ -1135,19 +1135,8 @@ static int delete_mesh_exec(bContext *C, wmOperator *op)
 		erase_vertices(em, &em->verts);
 	} 
 	else if(event==7) {
-		BMesh *bm = editmesh_to_bmesh(em);
-		BMOperator bmop;
-		EditMesh *em2;
-		char *errmsg;
-		
-		BMO_Init_Op(&bmop, BMOP_DISSOLVE_VERTS);
-		BMO_HeaderFlag_To_Slot(bm, &bmop, BMOP_DISVERTS_VERTIN, 
-		                                BM_SELECT, BM_VERT);
-		BMO_Exec_Op(bm, &bmop);
-		
-		BMO_Finish_Op(bm, &bmop);
-		
-		if (!EDBM_Finish(bm, em, op, C)) return OPERATOR_CANCELLED;
+		if (!EDBM_CallOpf(em, op, "dissolveverts %hv", BM_SELECT))
+			return OPERATOR_CANCELLED;
 	}
 	else if(event==6) {
 		if(!EdgeLoopDelete(em, op))
@@ -1254,24 +1243,9 @@ static int delete_mesh_exec(bContext *C, wmOperator *op)
 		if(em->selected.first) BLI_freelistN(&(em->selected));
 	}
 	else if(event==5) {
-		BMesh *bm = editmesh_to_bmesh(em);
-		BMOperator bmop;
-		EditMesh *em2;
-		char *errmsg;
-		
+		if (!EDBM_CallOpf(em, op, "del %hf %d", BM_SELECT, DEL_ONLYFACES))
+			return OPERATOR_CANCELLED;
 		str= "Erase Only Faces";
-
-		BMO_Init_Op(&bmop, BMOP_DEL);
-		BMO_HeaderFlag_To_Slot(bm, &bmop, BMOP_DEL_MULTIN, 
-		                                BM_SELECT, BM_FACE);
-		BMO_Set_Int(&bmop, BMOP_DEL_CONTEXT, DEL_ONLYFACES);
-
-		BMO_Exec_Op(bm, &bmop);
-		
-		BMO_Finish_Op(bm, &bmop);
-		
-		if (!EDBM_Finish(bm, em, op, C)) return OPERATOR_CANCELLED;
-
 	}
 
 	EM_fgon_flags(em);	// redo flags and indices for fgons

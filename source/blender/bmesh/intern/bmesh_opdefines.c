@@ -4,6 +4,7 @@
 #include <stdio.h>
 
 BMOpDefine def_connectverts = {
+	"connectvert",
 	{BMOP_OPSLOT_PNT_BUF,
 	 BMOP_OPSLOT_PNT_BUF},
 	connectverts_exec,
@@ -12,6 +13,7 @@ BMOpDefine def_connectverts = {
 };
 
 BMOpDefine def_extrudefaceregion = {
+	"extrudefaceregion",
 	{BMOP_OPSLOT_PNT_BUF,
 	 BMOP_OPSLOT_MAPPING,
 	 BMOP_OPSLOT_PNT_BUF},
@@ -21,6 +23,7 @@ BMOpDefine def_extrudefaceregion = {
 };
 
 BMOpDefine def_makefgonsop = {
+	"makefgon",
 	{0},
 	bmesh_make_fgons_exec,
 	BMOP_MAKE_FGONS_TOTSLOT,
@@ -28,6 +31,7 @@ BMOpDefine def_makefgonsop = {
 };
 
 BMOpDefine def_dissolvevertsop = {
+	"dissolveverts",
 	{BMOP_OPSLOT_PNT_BUF},
 	dissolveverts_exec,
 	BMOP_DISVERTS_TOTSLOT,
@@ -35,6 +39,7 @@ BMOpDefine def_dissolvevertsop = {
 };
 
 BMOpDefine def_dissolvefacesop = {
+	"dissolvefaces",
 	{BMOP_OPSLOT_PNT_BUF,
 	 BMOP_OPSLOT_PNT_BUF},
 	dissolvefaces_exec,
@@ -44,6 +49,7 @@ BMOpDefine def_dissolvefacesop = {
 
 
 BMOpDefine def_triangop = {
+	"triangulate",
 	{BMOP_OPSLOT_PNT_BUF, 
 	 BMOP_OPSLOT_PNT_BUF,
 	 BMOP_OPSLOT_PNT_BUF},
@@ -53,6 +59,7 @@ BMOpDefine def_triangop = {
 };
 
 BMOpDefine def_subdop = {
+	"esubd",
 	{BMOP_OPSLOT_PNT_BUF,
 	 BMOP_OPSLOT_INT,
 	 BMOP_OPSLOT_INT,
@@ -68,6 +75,7 @@ BMOpDefine def_subdop = {
 };
 
 BMOpDefine def_edit2bmesh = {
+	"editmesh_to_bmesh",
 	{BMOP_OPSLOT_PNT},
 	edit2bmesh_exec,
 	BMOP_TO_EDITMESH_TOTSLOT,
@@ -75,6 +83,7 @@ BMOpDefine def_edit2bmesh = {
 };
 
 BMOpDefine def_bmesh2edit = {
+	"bmesh_to_editmesh",
 	{BMOP_OPSLOT_PNT},
 	bmesh2edit_exec,
 	BMOP_FROM_EDITMESH_TOTSLOT,
@@ -82,6 +91,7 @@ BMOpDefine def_bmesh2edit = {
 };
 
 BMOpDefine def_delop = {
+	"del",
 	{BMOP_OPSLOT_PNT_BUF, BMOP_OPSLOT_INT},
 	delop_exec,
 	BMOP_DEL_TOTSLOT,
@@ -89,6 +99,7 @@ BMOpDefine def_delop = {
 };
 
 BMOpDefine def_dupeop = {
+	"dupe",
 	{BMOP_OPSLOT_PNT_BUF, BMOP_OPSLOT_PNT_BUF,
 	 BMOP_OPSLOT_PNT_BUF, BMOP_OPSLOT_MAPPING},
 	dupeop_exec,
@@ -97,6 +108,7 @@ BMOpDefine def_dupeop = {
 };
 
 BMOpDefine def_splitop = {
+	"split",
 	{BMOP_OPSLOT_PNT_BUF,
 	 BMOP_OPSLOT_PNT_BUF, BMOP_OPSLOT_MAPPING},
 	splitop_exec,

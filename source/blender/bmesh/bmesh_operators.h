@@ -4,6 +4,8 @@
 #include "BLI_memarena.h"
 #include "BLI_ghash.h"
 
+#include <stdarg.h>
+
 #define BMOP_OPSLOT_INT			0
 #define BMOP_OPSLOT_FLT			1
 #define BMOP_OPSLOT_PNT			2
@@ -51,6 +53,7 @@ typedef struct BMOperator{
 
 /*need to refactor code to use this*/
 typedef struct BMOpDefine {
+	char *name;
 	int slottypes[BMOP_MAX_SLOTS];
 	void (*exec)(BMesh *bm, BMOperator *op);
 	int totslot;
@@ -121,6 +124,11 @@ void *BMO_IterStep(BMOIter *iter);
 /*returns a pointer to the key value when iterating over mappings.
   remember for pointer maps this will be a pointer to a pointer.*/
 void *BMO_IterMapVal(BMOIter *iter);
+
+/*formatted operator initialization/execution*/
+int BMO_CallOpf(BMesh *bm, char *fmt, ...);
+int BMO_InitOpf(BMesh *bm, BMOperator *op, char *fmt, ...);
+int BMO_VInitOpf(BMesh *bm, BMOperator *op, char *fmt, va_list vlist);
 
 /*----------- bmop error system ----------*/
 
@@ -274,8 +282,10 @@ enum {
 /*dissolve verts*/
 #define BMOP_DISSOLVE_VERTS		8
 
-#define BMOP_DISVERTS_VERTIN	0
-#define BMOP_DISVERTS_TOTSLOT	1
+enum {
+	BMOP_DISVERTS_VERTIN,
+	BMOP_DISVERTS_TOTSLOT,
+};
 
 #define BMOP_MAKE_FGONS			9
 #define BMOP_MAKE_FGONS_TOTSLOT	0

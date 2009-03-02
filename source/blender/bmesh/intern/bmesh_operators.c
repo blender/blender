@@ -2,11 +2,13 @@
 
 #include "BLI_memarena.h"
 #include "BLI_mempool.h"
+#include "BLI_blenlib.h"
 
 #include "BKE_utildefines.h"
 
 #include "bmesh.h"
 #include "bmesh_private.h"
+#include "stdarg.h"
 
 #include <string.h>
 
@@ -832,3 +834,150 @@ int BMO_PopError(BMesh *bm, char **msg, BMOperator **op)
 
 	return errorcode;
 }
+
+/*
+typedef struct bflag {
+	char *str;
+	int flag;
+} bflag;
+
+#define b(f) {#f, f},
+static char *bmesh_flags = {
+	b(BM_SELECT);
+	b(BM_SEAM);
+	b(BM_FGON);
+	b(BM_HIDDEN);
+	b(BM_SHARP);
+	b(BM_SMOOTH);
+	{NULL, 0};
+};
+
+int bmesh_str_to_flag(char *str)
+{
+	int i;
+
+	while (bmesh_flags[i]->name) {
+		if (!strcmp(bmesh_flags[i]->name, str))
+			return bmesh_flags[i]->flag;
+	}
+
+	return -1;
+}
+*/
+
+//example:
+//BMO_CallOp(bm, "del %d %hv", DEL_ONLYFACES, BM_SELECT);
+/*
+  d - int
+  i - int
+  f - float
+  hv - header flagged verts
+  he - header flagged edges
+  hf - header flagged faces
+  fv - flagged verts
+  fe - flagged edges
+  ff - flagged faces
+  
+*/
+
+#define nextc(fmt) ((fmt)[0] != 0 ? (fmt)[1] : 0)
+
+int BMO_VInitOpf(BMesh *bm, BMOperator *op, char *fmt, va_list vlist)
+{
+	int i, n=strlen(fmt), slotcode = -1, ret, type;
+	char *opname;
+	
+	i = strcspn(fmt, " \t");
+
+	opname = fmt;
+	opname[i] = 0;
+
+	fmt += i + 1;
+	
+	for (i=0; i<bmesh_total_ops; i++) {
+		if (!strcmp(opname, opdefines[i]->name)) break;
+	}
+
+	if (i == bmesh_total_ops) return 0;
+	BMO_Init_Op(op, i);
+	
+	i = 0;
+	while (*fmt) {
+		switch (*fmt) {
+		case ' ':
+		case '\t':
+			break;
+		case '%':
+			slotcode += 1;
+			break;
+		case 'i':
+		case 'd':
+			BMO_Set_Int(op, slotcode, va_arg(vlist, int));
+			break;
+		case 'f':
+		case 'h':
+			type = *fmt;
+
+			if (nextc(fmt) == ' ' || nextc(fmt) == '\t') {
+				BMO_Set_Float(op,slotcode,va_arg(vlist,float));
+			} else {
+				switch (nextc(fmt)) {
+					case 'f': ret = BM_FACE; break;
+					case 'e': ret = BM_EDGE; break;
+					case 'v': ret = BM_VERT; break;
+					default: goto error;
+				}
+				
+				if (type == 'h')
+					BMO_HeaderFlag_To_Slot(bm, op, 
+					   slotcode, va_arg(vlist, int), ret);
+				else
+					BMO_Flag_To_Slot(bm, op, slotcode, 
+					             va_arg(vlist, int), ret);
+				fmt++;
+			}
+			break;
+		}
+		fmt++;
+	}
+
+
+	return 1;
+error:
+	BMO_Finish_Op(bm, op);
+	return 0;
+}
+
+
+int BMO_InitOpf(BMesh *bm, BMOperator *op, char *fmt, ...) {
+	va_list list;
+
+	va_start(list, fmt);
+	if (!BMO_VInitOpf(bm, op, fmt, list)) {
+		printf("BMO_InitOpf failed\n");
+		va_end(list);
+		return 0;
+	}
+	va_end(list);
+
+	return 1;
+}
+
+int BMO_CallOpf(BMesh *bm, char *fmt, ...) {
+	va_list list;
+	BMOperator op;
+
+	va_start(list, fmt);
+	if (!BMO_VInitOpf(bm, &op, fmt, list)) {
+		printf("BMO_CallOpf failed\n");
+		va_end(list);
+		return 0;
+	}
+
+	BMO_Exec_Op(bm, &op);
+	BMO_Finish_Op(bm, &op);
+
+	va_end(list);
+	return 1;
+}
+

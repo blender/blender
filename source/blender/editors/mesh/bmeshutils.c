@@ -26,6 +26,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 #include <stdlib.h>
+#include <stdarg.h>
 #include <string.h>
 #include <math.h>
 #include <float.h>
@@ -88,14 +89,38 @@
 #include "mesh_intern.h"
 #include "bmesh.h"
 
+int EDBM_CallOpf(EditMesh *em, wmOperator *op, char *fmt, ...)
+{
+	BMesh *bm = editmesh_to_bmesh(em);
+	BMOperator bmop;
+	va_list list;
+
+	va_start(list, fmt);
+
+	if (!BMO_VInitOpf(bm, &bmop, fmt, list)) {
+		BKE_report(op->reports, RPT_ERROR,
+			   "Parse error in EDBM_CallOpf");
+		va_end(list);
+		return 0;
+	}
+
+	BMO_Exec_Op(bm, &bmop);
+	BMO_Finish_Op(bm, &bmop);
+
+	va_end(list);
+
+	return EDBM_Finish(bm, em, op);
+	return 1;
+}
+
 /*returns 0 on error, 1 on success*/
-int EDBM_Finish(BMesh *bm, EditMesh *em, wmOperator *op, bContext *c) {
+int EDBM_Finish(BMesh *bm, EditMesh *em, wmOperator *op) {
 	EditMesh *em2;
 	char *errmsg;
 
 	if (BMO_GetError(bm, &errmsg, NULL)) {
 		BKE_report(op->reports, RPT_ERROR, errmsg);
-		BMO_ClearStack(bm);
+		BM_Free_Mesh(bm);
 		return 0;
 	}
 

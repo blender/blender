@@ -45,11 +45,15 @@ struct BMesh;
 #define UVCOPY(t, s) memcpy(t, s, 2 * sizeof(float));
 
 /* ******************** bmeshutils.c */
+/*calls EDBM_Finish*/
+int EDBM_CallOpf(EditMesh *em, struct wmOperator *op, char *fmt, ...);
+
 /*called after bmesh tool exec.  checks for errors and does conversions.
   if any errors are raised by bmesh, it displays the error to the user and
   returns 0 (and does not convert).  otherwise, it converts the bmesh back
   into the editmesh, and returns 1.*/
-int EDBM_Finish(struct BMesh *bm, EditMesh *em, struct wmOperator *op, struct bContext *c);
+int EDBM_Finish(struct BMesh *bm, EditMesh *em, struct wmOperator *op);
+
 
 /* ******************** editface.c */
 
