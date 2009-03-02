@@ -73,6 +73,10 @@ static SpaceLink *text_new(const bContext *C)
 	
 	stext= MEM_callocN(sizeof(SpaceText), "inittext");
 	stext->spacetype= SPACE_TEXT;
+
+	stext->font_id= 5;
+	stext->lheight= 12;
+	stext->tabnumber= 4;
 	
 	/* header */
 	ar= MEM_callocN(sizeof(ARegion), "header for text");
