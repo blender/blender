@@ -36,6 +36,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BIF_gl.h"
+
 #include "BLO_readfile.h"
 
 #include "BLI_blenlib.h"
@@ -50,7 +52,8 @@
 #include "ED_screen.h"
 #include "ED_fileselect.h"
 
-#include "BIF_gl.h"
+#include "IMB_imbuf_types.h"
+#include "IMB_thumbs.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -414,6 +417,7 @@ void ED_file_init(void)
 	BLI_make_file_string("/", name, BLI_gethome(), ".Bfs");
 	fsmenu_read_file(name);
 	filelist_init_icons();
+	IMB_thumb_makedirs();
 }
 
 void ED_file_exit(void)

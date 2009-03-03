@@ -67,7 +67,8 @@ void IMB_thumb_delete(const char* dir, const char* file, ThumbSize size);
 /* return the state of the thumb, needed to determine how to manage the thumb */
 ImBuf* IMB_thumb_manage(const char* dir, const char* file, ThumbSize size, ThumbSource source);
 
-
+/* create the necessary dirs to store the thumbnails */
+void IMB_thumb_makedirs();
 
 
 #endif /* _IMB_THUMBS_H */

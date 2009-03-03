@@ -232,6 +232,16 @@ static int thumbpath_from_uri(const char* uri, char* path, ThumbSize size)
 	return rv;
 }
 
+void IMB_thumb_makedirs()
+{
+	char tpath[FILE_MAX];
+	if (get_thumb_dir(tpath, THB_NORMAL)) {
+		BLI_recurdir_fileops(tpath);
+	}
+	if (get_thumb_dir(tpath, THB_FAIL)) {
+		BLI_recurdir_fileops(tpath);
+	}
+}
 
 /* create thumbnail for file and returns new imbuf for thumbnail */
 ImBuf* IMB_thumb_create(const char* dir, const char* file, ThumbSize size, ThumbSource source)
