@@ -209,7 +209,7 @@ static void file_main_area_draw(const bContext *C, ARegion *ar)
 	glClear(GL_COLOR_BUFFER_BIT);
 	
 	/* Allow dynamically sliders to be set, saves notifiers etc. */
-	if (sfile->params && sfile->params->display)
+	if (sfile->params && (sfile->params->display == FILE_IMGDISPLAY) )
 		v2d->scroll = V2D_SCROLL_RIGHT;
 	else
 		v2d->scroll = V2D_SCROLL_BOTTOM;
@@ -228,7 +228,7 @@ static void file_main_area_draw(const bContext *C, ARegion *ar)
 		file_hilight_set(sfile, ar, event->x - ar->winrct.xmin, event->y - ar->winrct.ymin);
 	}
 	
-	if (params->display) {
+	if (params->display == FILE_IMGDISPLAY) {
 		file_draw_previews(C, ar);
 	} else {
 		file_draw_list(C, ar);
