@@ -56,8 +56,10 @@ subject to the following restrictions:
 #include "BulletDynamics/Vehicle/btRaycastVehicle.h"
 #include "BulletDynamics/Vehicle/btVehicleRaycaster.h"
 #include "BulletDynamics/Vehicle/btWheelInfo.h"
+#ifdef USE_CHARACTER
 //character
 #include "BulletDynamics/Character/btCharacterControllerInterface.h"
+#endif //USE_CHARACTER
 
 #include "LinearMath/btIDebugDraw.h"
 #include "LinearMath/btQuickprof.h"
@@ -506,6 +508,7 @@ void	btDiscreteDynamicsWorld::updateVehicles(btScalar timeStep)
 
 void	btDiscreteDynamicsWorld::updateCharacters(btScalar timeStep)
 {
+#ifdef USE_CHARACTER
 	BT_PROFILE("updateCharacters");
 	
 	for ( int i=0;i<m_characters.size();i++)
@@ -514,6 +517,7 @@ void	btDiscreteDynamicsWorld::updateCharacters(btScalar timeStep)
 		character->preStep (this);
 		character->playerStep (this,timeStep);
 	}
+#endif //USE_CHARACTER
 }
 
 	
@@ -584,12 +588,16 @@ void	btDiscreteDynamicsWorld::removeVehicle(btRaycastVehicle* vehicle)
 
 void	btDiscreteDynamicsWorld::addCharacter(btCharacterControllerInterface* character)
 {
+#ifdef USE_CHARACTER
 	m_characters.push_back(character);
+#endif //USE_CHARACTER
 }
 
 void	btDiscreteDynamicsWorld::removeCharacter(btCharacterControllerInterface* character)
 {
+#ifdef USE_CHARACTER
 	m_characters.remove(character);
+#endif //USE_CHARACTER
 }
 
 
