@@ -22,8 +22,6 @@ subject to the following restrictions:
 
 struct btSimpleBroadphaseProxy : public btBroadphaseProxy
 {
-	btVector3	m_min;
-	btVector3	m_max;
 	int			m_nextFree;
 	
 //	int			m_handleId;
@@ -31,9 +29,8 @@ struct btSimpleBroadphaseProxy : public btBroadphaseProxy
 	
 	btSimpleBroadphaseProxy() {};
 
-	btSimpleBroadphaseProxy(const btPoint3& minpt,const btPoint3& maxpt,int shapeType,void* userPtr,short int collisionFilterGroup,short int collisionFilterMask,void* multiSapProxy)
-	:btBroadphaseProxy(userPtr,collisionFilterGroup,collisionFilterMask,multiSapProxy),
-	m_min(minpt),m_max(maxpt)		
+	btSimpleBroadphaseProxy(const btVector3& minpt,const btVector3& maxpt,int shapeType,void* userPtr,short int collisionFilterGroup,short int collisionFilterMask,void* multiSapProxy)
+	:btBroadphaseProxy(minpt,maxpt,userPtr,collisionFilterGroup,collisionFilterMask,multiSapProxy)
 	{
 		(void)shapeType;
 	}
@@ -56,6 +53,7 @@ protected:
 
 	int		m_numHandles;						// number of active handles
 	int		m_maxHandles;						// max number of handles
+	int		m_LastHandleIndex;							
 	
 	btSimpleBroadphaseProxy* m_pHandles;						// handles pool
 
@@ -68,6 +66,10 @@ protected:
 		int freeHandle = m_firstFreeHandle;
 		m_firstFreeHandle = m_pHandles[freeHandle].GetNextFree();
 		m_numHandles++;
+		if(freeHandle > m_LastHandleIndex)
+		{
+			m_LastHandleIndex = freeHandle;
+		}
 		return freeHandle;
 	}
 
@@ -75,9 +77,14 @@ protected:
 	{
 		int handle = int(proxy-m_pHandles);
 		btAssert(handle >= 0 && handle < m_maxHandles);
-
+		if(handle == m_LastHandleIndex)
+		{
+			m_LastHandleIndex--;
+		}
 		proxy->SetNextFree(m_firstFreeHandle);
 		m_firstFreeHandle = handle;
+
+		proxy->m_clientObject = 0;
 
 		m_numHandles--;
 	}
@@ -94,6 +101,15 @@ protected:
 		btSimpleBroadphaseProxy* proxy0 = static_cast<btSimpleBroadphaseProxy*>(proxy);
 		return proxy0;
 	}
+
+	inline const btSimpleBroadphaseProxy*	getSimpleProxyFromProxy(btBroadphaseProxy* proxy) const
+	{
+		const btSimpleBroadphaseProxy* proxy0 = static_cast<const btSimpleBroadphaseProxy*>(proxy);
+		return proxy0;
+	}
+
+	///reset broadphase internal structures, to ensure determinism/reproducability
+	virtual void resetPool(btDispatcher* dispatcher);
 
 
 	void	validate();
@@ -117,6 +133,9 @@ public:
 
 	virtual void	destroyProxy(btBroadphaseProxy* proxy,btDispatcher* dispatcher);
 	virtual void	setAabb(btBroadphaseProxy* proxy,const btVector3& aabbMin,const btVector3& aabbMax, btDispatcher* dispatcher);
+	virtual void	getAabb(btBroadphaseProxy* proxy,btVector3& aabbMin, btVector3& aabbMax ) const;
+
+	virtual void	rayTest(const btVector3& rayFrom,const btVector3& rayTo, btBroadphaseRayCallback& rayCallback, const btVector3& aabbMin=btVector3(0,0,0),const btVector3& aabbMax=btVector3(0,0,0));
 		
 	btOverlappingPairCache*	getOverlappingPairCache()
 	{

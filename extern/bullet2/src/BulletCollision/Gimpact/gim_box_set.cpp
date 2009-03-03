@@ -110,8 +110,7 @@ GUINT GIM_BOX_TREE::_sort_and_calc_splitting_index(
 		splitIndex = startIndex+ (numIndices>>1);
 	}
 
-	bool unbal = (splitIndex==startIndex) || (splitIndex == (endIndex));
-	btAssert(!unbal);
+	btAssert(!((splitIndex==startIndex) || (splitIndex == (endIndex))));
 
 	return splitIndex;
 }
@@ -179,4 +178,5 @@ void GIM_BOX_TREE::build_tree(
 	
 	_build_sub_tree(primitive_boxes, 0, primitive_boxes.size());
 }
+
 

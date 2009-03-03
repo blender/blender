@@ -21,7 +21,7 @@ subject to the following restrictions:
 //#include <stdio.h>
 
 btSphereBoxCollisionAlgorithm::btSphereBoxCollisionAlgorithm(btPersistentManifold* mf,const btCollisionAlgorithmConstructionInfo& ci,btCollisionObject* col0,btCollisionObject* col1, bool isSwapped)
-: btCollisionAlgorithm(ci),
+: btActivatingCollisionAlgorithm(ci,col0,col1),
 m_ownManifold(false),
 m_manifoldPtr(mf),
 m_isSwapped(isSwapped)

@@ -356,6 +356,7 @@ m_ownDispatcher(NULL)
 	setSolverType(1);//issues with quickstep and memory allocations
 //	m_dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher,m_broadphase,m_solver,m_collisionConfiguration);
 	m_dynamicsWorld = new btSoftRigidDynamicsWorld(dispatcher,m_broadphase,m_solver,m_collisionConfiguration);
+	//m_dynamicsWorld->getSolverInfo().m_solverMode=	SOLVER_USE_WARMSTARTING +	SOLVER_USE_2_FRICTION_DIRECTIONS +	SOLVER_RANDMIZE_ORDER +	SOLVER_USE_FRICTION_WARMSTARTING;
 
 	m_debugDrawer = 0;
 	m_gravity = btVector3(0.f,-10.f,0.f);
@@ -845,7 +846,8 @@ void		CcdPhysicsEnvironment::setSolverType(int solverType)
 			{
 
 				m_solver = new btSequentialImpulseConstraintSolver();
-//				((btSequentialImpulseConstraintSolver*)m_solver)->setSolverMode(btSequentialImpulseConstraintSolver::SOLVER_USE_WARMSTARTING | btSequentialImpulseConstraintSolver::SOLVER_RANDMIZE_ORDER);
+				
+				
 				break;
 			}
 		}

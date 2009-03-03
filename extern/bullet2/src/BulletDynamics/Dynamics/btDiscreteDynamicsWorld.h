@@ -26,6 +26,7 @@ class btTypedConstraint;
 
 
 class btRaycastVehicle;
+class btCharacterControllerInterface;
 class btIDebugDraw;
 #include "LinearMath/btAlignedObjectArray.h"
 
@@ -42,7 +43,6 @@ protected:
 
 	btAlignedObjectArray<btTypedConstraint*> m_constraints;
 
-
 	btVector3	m_gravity;
 
 	//for variable timesteps
@@ -54,6 +54,9 @@ protected:
 
 	
 	btAlignedObjectArray<btRaycastVehicle*>	m_vehicles;
+	
+	btAlignedObjectArray<btCharacterControllerInterface*> m_characters;
+	
 
 	int	m_profileTimings;
 
@@ -61,23 +64,25 @@ protected:
 	
 	virtual void	integrateTransforms(btScalar timeStep);
 		
-	void	calculateSimulationIslands();
+	virtual void	calculateSimulationIslands();
 
-	void	solveConstraints(btContactSolverInfo& solverInfo);
+	virtual void	solveConstraints(btContactSolverInfo& solverInfo);
 	
 	void	updateActivationState(btScalar timeStep);
 
 	void	updateVehicles(btScalar timeStep);
 
+	void	updateCharacters(btScalar timeStep);
+
 	void	startProfiling(btScalar timeStep);
 
 	virtual void	internalSingleStepSimulation( btScalar timeStep);
 
-	void	synchronizeMotionStates();
 
-	void	saveKinematicState(btScalar timeStep);
+	virtual void	saveKinematicState(btScalar timeStep);
 
 	void	debugDrawSphere(btScalar radius, const btTransform& transform, const btVector3& color);
+
 
 public:
 
@@ -91,13 +96,23 @@ public:
 	virtual int	stepSimulation( btScalar timeStep,int maxSubSteps=1, btScalar fixedTimeStep=btScalar(1.)/btScalar(60.));
 
 
-	void	addConstraint(btTypedConstraint* constraint, bool disableCollisionsBetweenLinkedBodies=false);
+	virtual void	synchronizeMotionStates();
 
-	void	removeConstraint(btTypedConstraint* constraint);
+	///this can be useful to synchronize a single rigid body -> graphics object
+	void	synchronizeSingleMotionState(btRigidBody* body);
 
-	void	addVehicle(btRaycastVehicle* vehicle);
+	virtual void	addConstraint(btTypedConstraint* constraint, bool disableCollisionsBetweenLinkedBodies=false);
 
-	void	removeVehicle(btRaycastVehicle* vehicle);
+	virtual void	removeConstraint(btTypedConstraint* constraint);
+
+	virtual void	addVehicle(btRaycastVehicle* vehicle);
+
+	virtual void	removeVehicle(btRaycastVehicle* vehicle);
+	
+	virtual void	addCharacter(btCharacterControllerInterface* character);
+
+	virtual void	removeCharacter(btCharacterControllerInterface* character);
+		
 
 	btSimulationIslandManager*	getSimulationIslandManager()
 	{
@@ -114,7 +129,6 @@ public:
 		return this;
 	}
 
-
 	virtual void	setGravity(const btVector3& gravity);
 	virtual btVector3 getGravity () const;
 
@@ -125,6 +139,8 @@ public:
 	virtual void	removeRigidBody(btRigidBody* body);
 
 	void	debugDrawObject(const btTransform& worldTransform, const btCollisionShape* shape, const btVector3& color);
+
+	void	debugDrawConstraint(btTypedConstraint* constraint);
 
 	virtual void	debugDrawWorld();
 
@@ -152,6 +168,7 @@ public:
 
 	virtual void	setNumTasks(int numTasks)
 	{
+        (void) numTasks;
 	}
 
 };

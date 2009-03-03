@@ -1457,11 +1457,12 @@ btCollisionShape* CcdShapeConstructionInfo::CreateBulletShape()
 		{
 				collisionMeshData = new btTriangleMesh();
 				
+				bool removeDuplicateVertices=true;
 
 				// m_vertexArray is necessarily a multiple of 3
 				for (int i=0;i<m_vertexArray.size(); i+=3 )
 				{
-					collisionMeshData->addTriangle(m_vertexArray[i+2],m_vertexArray[i+1],m_vertexArray[i]);
+					collisionMeshData->addTriangle(m_vertexArray[i+2],m_vertexArray[i+1],m_vertexArray[i],removeDuplicateVertices);
 				}
 				
 				btGImpactMeshShape* gimpactShape =  new btGImpactMeshShape(collisionMeshData);
@@ -1476,10 +1477,11 @@ btCollisionShape* CcdShapeConstructionInfo::CreateBulletShape()
 				collisionMeshData = new btTriangleMesh(true,false);
 				collisionMeshData->m_weldingThreshold = m_weldingThreshold;
 
+				bool removeDuplicateVertices=true;
 				// m_vertexArray is necessarily a multiple of 3
 				for (int i=0;i<m_vertexArray.size(); i+=3 )
 				{
-					collisionMeshData->addTriangle(m_vertexArray[i+2],m_vertexArray[i+1],m_vertexArray[i]);
+					collisionMeshData->addTriangle(m_vertexArray[i+2],m_vertexArray[i+1],m_vertexArray[i],removeDuplicateVertices);
 				}
 				// this shape will be shared and not deleted until shapeInfo is deleted
 				m_unscaledShape = new btBvhTriangleMeshShape( collisionMeshData, true );

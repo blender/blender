@@ -36,9 +36,6 @@ email: projectileman@yahoo.com
 #include "gim_math.h"
 #include <memory.h>
 
-//#define PREFETCH 1
-//! \defgroup PREFETCH
-//! @{
 #ifdef PREFETCH
 #include <xmmintrin.h>	// for prefetch
 #define pfval	64
@@ -53,13 +50,9 @@ email: projectileman@yahoo.com
 //! Prefetch 128
 #define pf2(_x,_i)
 #endif
-//! @}
 
-/*! \defgroup ARRAY_UTILITIES
-\brief
-Functions for manip packed arrays of numbers
-*/
-//! @{
+
+///Functions for manip packed arrays of numbers
 #define GIM_COPY_ARRAYS(dest_array,source_array,element_count)\
 {\
     for (GUINT _i_=0;_i_<element_count ;++_i_)\
@@ -92,50 +85,36 @@ Functions for manip packed arrays of numbers
     	array[_i_] = constant;\
     }\
 }\
-//! @}
 
-/*! \defgroup MEMORY_FUNCTION_PROTOTYPES
-Function prototypes to allocate and free memory.
-*/
-//! @{
+
+///Function prototypes to allocate and free memory.
 typedef void * gim_alloc_function (size_t size);
 typedef void * gim_alloca_function (size_t size);//Allocs on the heap
 typedef void * gim_realloc_function (void *ptr, size_t oldsize, size_t newsize);
 typedef void gim_free_function (void *ptr);
-//! @}
 
-/*! \defgroup MEMORY_FUNCTION_HANDLERS
-\brief
-Memory Function Handlers
- set new memory management functions. if fn is 0, the default handlers are
-  used. */
-//! @{
+
+///Memory Function Handlers
+///set new memory management functions. if fn is 0, the default handlers are used.
 void gim_set_alloc_handler (gim_alloc_function *fn);
 void gim_set_alloca_handler (gim_alloca_function *fn);
 void gim_set_realloc_handler (gim_realloc_function *fn);
 void gim_set_free_handler (gim_free_function *fn);
-//! @}
 
-/*! \defgroup MEMORY_FUNCTION_GET_HANDLERS
-\brief
-get current memory management functions.
-*/
-//! @{
+
+///get current memory management functions.
 gim_alloc_function *gim_get_alloc_handler (void);
 gim_alloca_function *gim_get_alloca_handler(void);
 gim_realloc_function *gim_get_realloc_handler (void);
 gim_free_function  *gim_get_free_handler (void);
-//! @}
 
-/*! \defgroup MEMORY_FUNCTIONS
-Standar Memory functions
-*/
-//! @{
+
+///Standar Memory functions
 void * gim_alloc(size_t size);
 void * gim_alloca(size_t size);
 void * gim_realloc(void *ptr, size_t oldsize, size_t newsize);
 void gim_free(void *ptr);
-//! @}
+
 
 
 #if defined (WIN32) && !defined(__MINGW32__) && !defined(__CYGWIN__)

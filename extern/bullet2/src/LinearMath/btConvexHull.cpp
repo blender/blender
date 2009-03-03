@@ -342,30 +342,30 @@ int shareedge(const int3 &a,const int3 &b)
 	return 0;
 }
 
-class Tri;
+class btHullTriangle;
 
 
 
-class Tri : public int3
+class btHullTriangle : public int3
 {
 public:
 	int3 n;
 	int id;
 	int vmax;
 	btScalar rise;
-	Tri(int a,int b,int c):int3(a,b,c),n(-1,-1,-1)
+	btHullTriangle(int a,int b,int c):int3(a,b,c),n(-1,-1,-1)
 	{
 		vmax=-1;
 		rise = btScalar(0.0);
 	}
-	~Tri()
+	~btHullTriangle()
 	{
 	}
 	int &neib(int a,int b);
 };
 
 
-int &Tri::neib(int a,int b)
+int &btHullTriangle::neib(int a,int b)
 {
 	static int er=-1;
 	int i;
@@ -379,7 +379,7 @@ int &Tri::neib(int a,int b)
 	btAssert(0);
 	return er;
 }
-void HullLibrary::b2bfix(Tri* s,Tri*t)
+void HullLibrary::b2bfix(btHullTriangle* s,btHullTriangle*t)
 {
 	int i;
 	for(i=0;i<3;i++) 
@@ -395,7 +395,7 @@ void HullLibrary::b2bfix(Tri* s,Tri*t)
 	}
 }
 
-void HullLibrary::removeb2b(Tri* s,Tri*t)
+void HullLibrary::removeb2b(btHullTriangle* s,btHullTriangle*t)
 {
 	b2bfix(s,t);
 	deAllocateTriangle(s);
@@ -403,7 +403,7 @@ void HullLibrary::removeb2b(Tri* s,Tri*t)
 	deAllocateTriangle(t);
 }
 
-void HullLibrary::checkit(Tri *t)
+void HullLibrary::checkit(btHullTriangle *t)
 {
 	(void)t;
 
@@ -427,36 +427,36 @@ void HullLibrary::checkit(Tri *t)
 	}
 }
 
-Tri*	HullLibrary::allocateTriangle(int a,int b,int c)
+btHullTriangle*	HullLibrary::allocateTriangle(int a,int b,int c)
 {
-	void* mem = btAlignedAlloc(sizeof(Tri),16);
-	Tri* tr = new (mem)Tri(a,b,c);
+	void* mem = btAlignedAlloc(sizeof(btHullTriangle),16);
+	btHullTriangle* tr = new (mem)btHullTriangle(a,b,c);
 	tr->id = m_tris.size();
 	m_tris.push_back(tr);
 
 	return tr;
 }
 
-void	HullLibrary::deAllocateTriangle(Tri* tri)
+void	HullLibrary::deAllocateTriangle(btHullTriangle* tri)
 {
 	btAssert(m_tris[tri->id]==tri);
 	m_tris[tri->id]=NULL;
-	tri->~Tri();
+	tri->~btHullTriangle();
 	btAlignedFree(tri);
 }
 
 
-void HullLibrary::extrude(Tri *t0,int v)
+void HullLibrary::extrude(btHullTriangle *t0,int v)
 {
 	int3 t= *t0;
 	int n = m_tris.size();
-	Tri* ta = allocateTriangle(v,t[1],t[2]);
+	btHullTriangle* ta = allocateTriangle(v,t[1],t[2]);
 	ta->n = int3(t0->n[0],n+1,n+2);
 	m_tris[t0->n[0]]->neib(t[1],t[2]) = n+0;
-	Tri* tb = allocateTriangle(v,t[2],t[0]);
+	btHullTriangle* tb = allocateTriangle(v,t[2],t[0]);
 	tb->n = int3(t0->n[1],n+2,n+0);
 	m_tris[t0->n[1]]->neib(t[2],t[0]) = n+1;
-	Tri* tc = allocateTriangle(v,t[0],t[1]);
+	btHullTriangle* tc = allocateTriangle(v,t[0],t[1]);
 	tc->n = int3(t0->n[2],n+0,n+1);
 	m_tris[t0->n[2]]->neib(t[0],t[1]) = n+2;
 	checkit(ta);
@@ -469,10 +469,10 @@ void HullLibrary::extrude(Tri *t0,int v)
 
 }
 
-Tri* HullLibrary::extrudable(btScalar epsilon)
+btHullTriangle* HullLibrary::extrudable(btScalar epsilon)
 {
 	int i;
-	Tri *t=NULL;
+	btHullTriangle *t=NULL;
 	for(i=0;i<m_tris.size();i++)
 	{
 		if(!t || (m_tris[i] && t->rise<m_tris[i]->rise))
@@ -550,23 +550,23 @@ int HullLibrary::calchullgen(btVector3 *verts,int verts_count, int vlimit)
 
 
 	btVector3 center = (verts[p[0]]+verts[p[1]]+verts[p[2]]+verts[p[3]]) / btScalar(4.0);  // a valid interior point
-	Tri *t0 = allocateTriangle(p[2],p[3],p[1]); t0->n=int3(2,3,1);
-	Tri *t1 = allocateTriangle(p[3],p[2],p[0]); t1->n=int3(3,2,0);
-	Tri *t2 = allocateTriangle(p[0],p[1],p[3]); t2->n=int3(0,1,3);
-	Tri *t3 = allocateTriangle(p[1],p[0],p[2]); t3->n=int3(1,0,2);
+	btHullTriangle *t0 = allocateTriangle(p[2],p[3],p[1]); t0->n=int3(2,3,1);
+	btHullTriangle *t1 = allocateTriangle(p[3],p[2],p[0]); t1->n=int3(3,2,0);
+	btHullTriangle *t2 = allocateTriangle(p[0],p[1],p[3]); t2->n=int3(0,1,3);
+	btHullTriangle *t3 = allocateTriangle(p[1],p[0],p[2]); t3->n=int3(1,0,2);
 	isextreme[p[0]]=isextreme[p[1]]=isextreme[p[2]]=isextreme[p[3]]=1;
 	checkit(t0);checkit(t1);checkit(t2);checkit(t3);
 
 	for(j=0;j<m_tris.size();j++)
 	{
-		Tri *t=m_tris[j];
+		btHullTriangle *t=m_tris[j];
 		btAssert(t);
 		btAssert(t->vmax<0);
 		btVector3 n=TriNormal(verts[(*t)[0]],verts[(*t)[1]],verts[(*t)[2]]);
 		t->vmax = maxdirsterid(verts,verts_count,n,allow);
 		t->rise = dot(n,verts[t->vmax]-verts[(*t)[0]]);
 	}
-	Tri *te;
+	btHullTriangle *te;
 	vlimit-=4;
 	while(vlimit >0 && ((te=extrudable(epsilon)) != 0))
 	{
@@ -594,7 +594,7 @@ int HullLibrary::calchullgen(btVector3 *verts,int verts_count, int vlimit)
 			int3 nt=*m_tris[j];
 			if(above(verts,nt,center,btScalar(0.01)*epsilon)  || cross(verts[nt[1]]-verts[nt[0]],verts[nt[2]]-verts[nt[1]]).length()< epsilon*epsilon*btScalar(0.1) )
 			{
-				Tri *nb = m_tris[m_tris[j]->n[0]];
+				btHullTriangle *nb = m_tris[m_tris[j]->n[0]];
 				btAssert(nb);btAssert(!hasvert(*nb,v));btAssert(nb->id<j);
 				extrude(nb,v);
 				j=m_tris.size(); 
@@ -603,7 +603,7 @@ int HullLibrary::calchullgen(btVector3 *verts,int verts_count, int vlimit)
 		j=m_tris.size();
 		while(j--)
 		{
-			Tri *t=m_tris[j];
+			btHullTriangle *t=m_tris[j];
 			if(!t) continue;
 			if(t->vmax>=0) break;
 			btVector3 n=TriNormal(verts[(*t)[0]],verts[(*t)[1]],verts[(*t)[2]]);

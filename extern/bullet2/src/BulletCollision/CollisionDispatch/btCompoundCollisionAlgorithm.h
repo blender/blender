@@ -16,7 +16,7 @@ subject to the following restrictions:
 #ifndef COMPOUND_COLLISION_ALGORITHM_H
 #define COMPOUND_COLLISION_ALGORITHM_H
 
-#include "BulletCollision/BroadphaseCollision/btCollisionAlgorithm.h"
+#include "btActivatingCollisionAlgorithm.h"
 #include "BulletCollision/BroadphaseCollision/btDispatcher.h"
 #include "BulletCollision/BroadphaseCollision/btBroadphaseInterface.h"
 
@@ -26,16 +26,23 @@ class btDispatcher;
 #include "btCollisionCreateFunc.h"
 #include "LinearMath/btAlignedObjectArray.h"
 class btDispatcher;
+class btCollisionObject;
 
 /// btCompoundCollisionAlgorithm  supports collision between CompoundCollisionShapes and other collision shapes
-class btCompoundCollisionAlgorithm  : public btCollisionAlgorithm
+class btCompoundCollisionAlgorithm  : public btActivatingCollisionAlgorithm
 {
 	btAlignedObjectArray<btCollisionAlgorithm*> m_childCollisionAlgorithms;
 	bool m_isSwapped;
 
 	class btPersistentManifold*	m_sharedManifold;
 	bool					m_ownsManifold;
+
+	int	m_compoundShapeRevision;//to keep track of changes, so that childAlgorithm array can be updated
 	
+	void	removeChildAlgorithms();
+	
+	void	preallocateChildAlgorithms(btCollisionObject* body0,btCollisionObject* body1);
+
 public:
 
 	btCompoundCollisionAlgorithm( const btCollisionAlgorithmConstructionInfo& ci,btCollisionObject* body0,btCollisionObject* body1,bool isSwapped);

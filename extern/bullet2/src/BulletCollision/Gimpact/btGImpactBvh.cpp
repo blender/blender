@@ -65,7 +65,7 @@ float btGImpactBvh::getAverageTreeCollisionTime()
 /////////////////////// btBvhTree /////////////////////////////////
 
 int btBvhTree::_calc_splitting_axis(
-	BT_BVH_DATA_ARRAY & primitive_boxes, int startIndex,  int endIndex)
+	GIM_BVH_DATA_ARRAY & primitive_boxes, int startIndex,  int endIndex)
 {
 
 	int i;
@@ -97,7 +97,7 @@ int btBvhTree::_calc_splitting_axis(
 
 
 int btBvhTree::_sort_and_calc_splitting_index(
-	BT_BVH_DATA_ARRAY & primitive_boxes, int startIndex,
+	GIM_BVH_DATA_ARRAY & primitive_boxes, int startIndex,
 	int endIndex, int splitAxis)
 {
 	int i;
@@ -150,15 +150,14 @@ int btBvhTree::_sort_and_calc_splitting_index(
 		splitIndex = startIndex+ (numIndices>>1);
 	}
 
-	bool unbal = (splitIndex==startIndex) || (splitIndex == (endIndex));
-	btAssert(!unbal);
+	btAssert(!((splitIndex==startIndex) || (splitIndex == (endIndex))));
 
 	return splitIndex;
 
 }
 
 
-void btBvhTree::_build_sub_tree(BT_BVH_DATA_ARRAY & primitive_boxes, int startIndex,  int endIndex)
+void btBvhTree::_build_sub_tree(GIM_BVH_DATA_ARRAY & primitive_boxes, int startIndex,  int endIndex)
 {
 	int curIndex = m_num_nodes;
 	m_num_nodes++;
@@ -211,7 +210,7 @@ void btBvhTree::_build_sub_tree(BT_BVH_DATA_ARRAY & primitive_boxes, int startIn
 
 //! stackless build tree
 void btBvhTree::build_tree(
-	BT_BVH_DATA_ARRAY & primitive_boxes)
+	GIM_BVH_DATA_ARRAY & primitive_boxes)
 {
 	// initialize node count to 0
 	m_num_nodes = 0;
@@ -236,7 +235,7 @@ void btGImpactBvh::refit()
 		}
 		else
 		{
-			//const BT_BVH_TREE_NODE * nodepointer = get_node_pointer(nodecount);
+			//const GIM_BVH_TREE_NODE * nodepointer = get_node_pointer(nodecount);
 			//get left bound
 			btAABB bound;
 			bound.invalidate();
@@ -266,7 +265,7 @@ void btGImpactBvh::refit()
 void btGImpactBvh::buildSet()
 {
 	//obtain primitive boxes
-	BT_BVH_DATA_ARRAY primitive_boxes;
+	GIM_BVH_DATA_ARRAY primitive_boxes;
 	primitive_boxes.resize(m_primitive_manager->get_primitive_count());
 
 	for (int i = 0;i<primitive_boxes.size() ;i++ )

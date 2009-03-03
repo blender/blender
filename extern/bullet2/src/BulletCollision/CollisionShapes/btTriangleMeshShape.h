@@ -40,7 +40,7 @@ public:
 
 	virtual btVector3	localGetSupportingVertexWithoutMargin(const btVector3& vec)const
 	{
-		assert(0);
+		btAssert(0);
 		return localGetSupportingVertex(vec);
 	}
 

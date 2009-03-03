@@ -40,9 +40,6 @@ email: projectileman@yahoo.com
 
 
 
-/*! \defgroup GEOMETRIC_OPERATIONS
-*/
-//! @{
 
 
 #define PLANEDIREPSILON 0.0000001f
@@ -541,7 +538,6 @@ SIMD_FORCE_INLINE void SORT_3_INDICES(
 
 
 
-//! @}
 
 
 #endif // GIM_VECTOR_H_INCLUDED

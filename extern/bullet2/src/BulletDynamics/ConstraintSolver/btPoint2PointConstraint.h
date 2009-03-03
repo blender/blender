@@ -50,6 +50,9 @@ public:
 	
 public:
 
+	///for backwards compatibility during the transition to 'getInfo/getInfo2'
+	bool		m_useSolveConstraintObsolete;
+
 	btConstraintSetting	m_setting;
 
 	btPoint2PointConstraint(btRigidBody& rbA,btRigidBody& rbB, const btVector3& pivotInA,const btVector3& pivotInB);
@@ -60,8 +63,12 @@ public:
 
 	virtual void	buildJacobian();
 
+	virtual void getInfo1 (btConstraintInfo1* info);
 
-	virtual	void	solveConstraint(btScalar	timeStep);
+	virtual void getInfo2 (btConstraintInfo2* info);
+
+
+	virtual	void	solveConstraintObsolete(btSolverBody& bodyA,btSolverBody& bodyB,btScalar	timeStep);
 
 	void	updateRHS(btScalar	timeStep);
 

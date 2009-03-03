@@ -180,7 +180,18 @@ public:
 		//not yet
 	}
 
-	virtual	void	solveConstraint(btScalar	timeStep)
+	virtual void getInfo1 (btConstraintInfo1* info)
+	{
+		info->m_numConstraintRows = 0;
+		info->nub = 0;
+	}
+
+	virtual void getInfo2 (btConstraintInfo2* info)
+	{
+		btAssert(0);
+	}
+
+	virtual	void	solveConstraintObsolete(btSolverBody& bodyA,btSolverBody& bodyB,btScalar	timeStep)
 	{
 		(void)timeStep;
 		//not yet

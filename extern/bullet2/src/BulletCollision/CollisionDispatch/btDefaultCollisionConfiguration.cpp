@@ -100,11 +100,10 @@ btDefaultCollisionConfiguration::btDefaultCollisionConfiguration(const btDefault
 	int maxSize = sizeof(btConvexConvexAlgorithm);
 	int maxSize2 = sizeof(btConvexConcaveCollisionAlgorithm);
 	int maxSize3 = sizeof(btCompoundCollisionAlgorithm);
-	int maxSize4 = sizeof(btEmptyAlgorithm);
-	
+	int sl = sizeof(btConvexSeparatingDistanceUtil);
+	sl = sizeof(btGjkPairDetector);
 	int	collisionAlgorithmMaxElementSize = btMax(maxSize,maxSize2);
 	collisionAlgorithmMaxElementSize = btMax(collisionAlgorithmMaxElementSize,maxSize3);
-	collisionAlgorithmMaxElementSize = btMax(collisionAlgorithmMaxElementSize,maxSize4);
 
 	if (constructionInfo.m_stackAlloc)
 	{
@@ -288,4 +287,11 @@ btCollisionAlgorithmCreateFunc* btDefaultCollisionConfiguration::getCollisionAlg
 
 	//failed to find an algorithm
 	return m_emptyCreateFunc;
+}
+
+void btDefaultCollisionConfiguration::setConvexConvexMultipointIterations(int numPerturbationIterations, int minimumPointsPerturbationThreshold)
+{
+	btConvexConvexAlgorithm::CreateFunc* convexConvex = (btConvexConvexAlgorithm::CreateFunc*) m_convexConvexCreateFunc;
+	convexConvex->m_numPerturbationIterations = numPerturbationIterations;
+	convexConvex->m_minimumPointsPerturbationThreshold = minimumPointsPerturbationThreshold;
 }

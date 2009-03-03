@@ -27,7 +27,7 @@ subject to the following restrictions:
 #include "BulletCollision/NarrowPhaseCollision/btSubSimplexConvexCast.h"
 
 btConvexConcaveCollisionAlgorithm::btConvexConcaveCollisionAlgorithm( const btCollisionAlgorithmConstructionInfo& ci, btCollisionObject* body0,btCollisionObject* body1,bool isSwapped)
-: btCollisionAlgorithm(ci),
+: btActivatingCollisionAlgorithm(ci,body0,body1),
 m_isSwapped(isSwapped),
 m_btConvexTriangleCallback(ci.m_dispatcher1,body0,body1,isSwapped)
 {
@@ -72,7 +72,7 @@ btConvexTriangleCallback::~btConvexTriangleCallback()
 void	btConvexTriangleCallback::clearCache()
 {
 	m_dispatcher->clearManifold(m_manifoldPtr);
-};
+}
 
 
 
@@ -93,7 +93,7 @@ void btConvexTriangleCallback::processTriangle(btVector3* triangle,int partId, i
 
 	
 	///debug drawing of the overlapping triangles
-	if (m_dispatchInfoPtr && m_dispatchInfoPtr->m_debugDraw && m_dispatchInfoPtr->m_debugDraw->getDebugMode() > 0)
+	if (m_dispatchInfoPtr && m_dispatchInfoPtr->m_debugDraw && (m_dispatchInfoPtr->m_debugDraw->getDebugMode() &btIDebugDraw::DBG_DrawWireframe ))
 	{
 		btVector3 color(255,255,0);
 		btTransform& tr = ob->getWorldTransform();
