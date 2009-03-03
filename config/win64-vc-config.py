@@ -1,8 +1,8 @@
-LCGDIR = '#../lib/windows'
+LCGDIR = '#../lib/win64'
 LIBDIR = '${LCGDIR}'
 
 # enable ffmpeg  support
-WITH_BF_FFMPEG = True  # -DWITH_FFMPEG
+WITH_BF_FFMPEG = False # -DWITH_FFMPEG
 BF_FFMPEG = LIBDIR +'/ffmpeg'
 BF_FFMPEG_INC = '${BF_FFMPEG}/include'
 BF_FFMPEG_LIBPATH='${BF_FFMPEG}/lib'
@@ -15,7 +15,7 @@ BF_PYTHON_BINARY = 'python'
 BF_PYTHON_LIB = 'python25'
 BF_PYTHON_LIBPATH = '${BF_PYTHON}/lib'
 
-WITH_BF_OPENAL = True
+WITH_BF_OPENAL = False 
 WITH_BF_STATICOPENAL = False
 BF_OPENAL = LIBDIR + '/openal'
 BF_OPENAL_INC = '${BF_OPENAL}/include ${BF_OPENAL}/include/AL '
@@ -69,7 +69,7 @@ BF_JPEG_LIBPATH = '${BF_JPEG}/lib'
 WITH_BF_PNG = True
 BF_PNG = LIBDIR + '/png'
 BF_PNG_INC = '${BF_PNG}/include'
-BF_PNG_LIB = 'libpng_st'
+BF_PNG_LIB = 'libpng'
 BF_PNG_LIBPATH = '${BF_PNG}/lib'
 
 BF_TIFF = LIBDIR + '/tiff'
@@ -83,20 +83,20 @@ BF_ZLIB_INC = '${BF_ZLIB}/include'
 BF_ZLIB_LIB = 'libz'
 BF_ZLIB_LIBPATH = '${BF_ZLIB}/lib'
 
-WITH_BF_INTERNATIONAL = True
+WITH_BF_INTERNATIONAL = False
 
 BF_GETTEXT = LIBDIR + '/gettext'
 BF_GETTEXT_INC = '${BF_GETTEXT}/include'
 BF_GETTEXT_LIB = 'gnu_gettext'
 BF_GETTEXT_LIBPATH = '${BF_GETTEXT}/lib'
 
-WITH_BF_FTGL = True
+WITH_BF_FTGL = False
 BF_FTGL = LIBDIR + '/ftgl'
 BF_FTGL_INC = '${BF_FTGL}/include'
 BF_FTGL_LIB = 'extern_ftgl'
 
 WITH_BF_GAMEENGINE = True
-WITH_BF_PLAYER = True
+WITH_BF_PLAYER = False
 
 WITH_BF_ODE = True
 BF_ODE = LIBDIR + '/ode'
@@ -143,13 +143,13 @@ BF_FREETYPE_INC = '${BF_FREETYPE}/include ${BF_FREETYPE}/include/freetype2'
 BF_FREETYPE_LIB = 'freetype2ST'
 BF_FREETYPE_LIBPATH = '${BF_FREETYPE}/lib'
 
-WITH_BF_QUICKTIME = True # -DWITH_QUICKTIME
+WITH_BF_QUICKTIME = False # -DWITH_QUICKTIME
 BF_QUICKTIME = LIBDIR + '/QTDevWin'
 BF_QUICKTIME_INC = '${BF_QUICKTIME}/CIncludes'
 BF_QUICKTIME_LIB = 'qtmlClient'
 BF_QUICKTIME_LIBPATH = '${BF_QUICKTIME}/Libraries'
 
-WITH_BF_OPENJPEG = True 
+WITH_BF_OPENJPEG = False
 BF_OPENJPEG = '#extern/libopenjpeg'
 BF_OPENJPEG_LIB = ''
 BF_OPENJPEG_INC = '${BF_OPENJPEG}'
@@ -184,13 +184,29 @@ CXX_WARN = []
 
 LLIBS = ['ws2_32', 'vfw32', 'winmm', 'kernel32', 'user32', 'gdi32', 'comdlg32', 'advapi32', 'shfolder', 'shell32', 'ole32', 'oleaut32', 'uuid']
 
-PLATFORM_LINKFLAGS = ['/SUBSYSTEM:CONSOLE','/MACHINE:IX86','/ENTRY:mainCRTStartup','/INCREMENTAL:NO','/NODEFAULTLIB:"msvcprt.lib"','/NODEFAULTLIB:"glut32.lib"','/NODEFAULTLIB:"libc.lib"','/NODEFAULTLIB:"libcd.lib"','/NODEFAULTLIB:"libcpd.lib"','/NODEFAULTLIB:"libcp.lib"','/LARGEADDRESSAWARE']
+WITH_BF_DOCS=False
 
-# # Todo
-# BF_PROFILE_CCFLAGS = ['-pg', '-g ']
-# BF_PROFILE_LINKFLAGS = ['-pg']
-# BF_PROFILE = False
+BF_DEBUG=False
+BF_BSC=False
+CFLAGS = []
+CCFLAGS = ['/nologo', '/Ob1', '/J', '/W3', '/Gd', '/MT', '/openmp']
+CXXFLAGS = ['/EHsc']
 
-BF_BUILDDIR = '..\\build\\win32-vc'
-BF_INSTALLDIR='..\\install\\win32-vc'
-BF_DOCDIR='..\\install\\doc'
+if BF_DEBUG:
+	BF_NUMJOBS=1
+else:
+	BF_NUMJOBS=6
+
+PLATFORM_LINKFLAGS = ['/SUBSYSTEM:CONSOLE','/MACHINE:X64','/ENTRY:mainCRTStartup','/INCREMENTAL:NO','/NODEFAULTLIB:"msvcprt.lib"','/NODEFAULTLIB:"glut32.lib"','/NODEFAULTLIB:"libc.lib"','/NODEFAULTLIB:"libcd.lib"','/NODEFAULTLIB:"libcpd.lib"','/NODEFAULTLIB:"libcp.lib"','/LARGEADDRESSAWARE']
+
+BF_BUILDDIR = '..\\build\\blender25-win64-vc'
+BF_INSTALLDIR='..\\install\\blender25-win64-vc'
+BF_DOCDIR='..\\install\\blender25-win64-vc\\doc'
+
+
+
+######################### MERGE WITH ABOVE ################################
+
+
+
+
