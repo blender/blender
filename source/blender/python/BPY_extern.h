@@ -97,7 +97,7 @@ extern "C" {
 	int BPY_menu_invoke( struct BPyMenu *pym, short menutype );
 	
 	/* 2.5 UI Scripts */
-	void BPY_run_python_script( struct bContext *C, const char *filename ); // 2.5 working
+	int BPY_run_python_script( struct bContext *C, const char *filename, struct Text *text ); // 2.5 working
 	int BPY_run_script_space_draw(struct bContext *C, struct SpaceScript * sc); // 2.5 working
 //	int BPY_run_script_space_listener(struct bContext *C, struct SpaceScript * sc, struct ARegion *ar, struct wmNotifier *wmn); // 2.5 working
 	

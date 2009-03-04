@@ -155,10 +155,10 @@ static void script_main_area_draw(const bContext *C, ARegion *ar)
 	UI_view2d_view_ortho(C, v2d);
 		
 	/* data... */
-	// BPY_run_python_script(C, "/root/blender-svn/blender25/test.py");
+	// BPY_run_python_script(C, "/root/blender-svn/blender25/test.py", NULL);
 	
 	if (sscript->script) {
-		//BPY_run_python_script_space(scpt->script.filename);
+		//BPY_run_python_script_space(scpt->script.filename, NULL);
 		BPY_run_script_space_draw(C, sscript);
 	}
 	

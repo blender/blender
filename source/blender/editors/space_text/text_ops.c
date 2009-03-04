@@ -78,6 +78,11 @@ static int text_new_poll(bContext *C)
 	return 1;
 }
 
+static int text_valid_poll(bContext *C)
+{
+	return CTX_data_edit_text(C) ? 1:0;
+}
+
 static int text_edit_poll(bContext *C)
 {
 	Text *text= CTX_data_edit_text(C);
@@ -435,31 +440,12 @@ static int run_script_exec(bContext *C, wmOperator *op)
 	return OPERATOR_CANCELLED;
 #else
 	Text *text= CTX_data_edit_text(C);
-	char *py_filename;
 
-	if(0) { // XXX !BPY_txt_do_python_Text(text)) {
-		int lineno = 0; // XXX BPY_Err_getLinenumber();
-		// jump to error if happened in current text:
-		py_filename = (char*) NULL; // XXX BPY_Err_getFilename();
-
-		/* st->text can become NULL: user called Blender.Load(blendfile)
-		 * before the end of the script. */
-		text= CTX_data_edit_text(C);
-
-		if(!strcmp(py_filename, text->id.name+2)) {
-			// XXX error_pyscript(  );
-			if(lineno >= 0) {
-				txt_move_toline(text, lineno-1, 0);
-				txt_sel_line(text);
-
-				WM_event_add_notifier(C, NC_TEXT|ND_CURSOR, text);
-			}	
-		}
-		else
-			BKE_report(op->reports, RPT_ERROR, "Error in other (possibly external) file, check console.");
-	}
-
-	return OPERATOR_FINISHED;
+	if (BPY_run_python_script( C, NULL, text ))
+		return OPERATOR_FINISHED;
+	
+	BKE_report(op->reports, RPT_ERROR, "Python script fail, look in the console for now...");
+	return OPERATOR_CANCELLED;
 #endif
 }
 
@@ -473,6 +459,7 @@ void TEXT_OT_run_script(wmOperatorType *ot)
 	ot->exec= run_script_exec;
 	ot->poll= text_edit_poll;
 }
+
 
 /******************* refresh pyconstraints operator *********************/
 
@@ -2540,6 +2527,7 @@ void TEXT_OT_to_3d_object(wmOperatorType *ot)
 	/* properties */
 	RNA_def_boolean(ot->srna, "split_lines", 0, "Split Lines", "Create one object per line in the text.");
 }
+
 
 /************************ undo ******************************/
 

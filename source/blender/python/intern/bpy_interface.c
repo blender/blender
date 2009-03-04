@@ -16,6 +16,17 @@
 
 #include "DNA_space_types.h"
 
+#include "BKE_text.h"
+#include "DNA_text_types.h"
+#include "MEM_guardedalloc.h"
+
+void BPY_free_compiled_text( struct Text *text )
+{
+	if( text->compiled ) {
+		Py_DECREF( ( PyObject * ) text->compiled );
+		text->compiled = NULL;
+	}
+}
 
 /*****************************************************************************
 * Description: This function creates a new Python dictionary object.
@@ -84,31 +95,55 @@ void BPY_end_python( void )
 	return;
 }
 
-void BPY_run_python_script( bContext *C, const char *fn )
+/* Can run a file or text block */
+int BPY_run_python_script( bContext *C, const char *fn, struct Text *text )
 {
 	PyObject *py_dict, *py_result;
-	char pystring[512];
 	PyGILState_STATE gilstate;
-
-	/* TODO - look into a better way to run a file */
-	sprintf(pystring, "exec(open(r'%s').read())", fn);	
+	
+	if (fn==NULL && text==NULL) {
+		return 0;
+	}
 	
 	//BPY_start_python();
 	
 	gilstate = PyGILState_Ensure();
-	
+
 	py_dict = CreateGlobalDictionary(C);
+
+	if (text) {
+		
+		if( !text->compiled ) {	/* if it wasn't already compiled, do it now */
+			char *buf = txt_to_buf( text );
+
+			text->compiled =
+				Py_CompileString( buf, text->id.name+2, Py_file_input );
+
+			MEM_freeN( buf );
+
+			if( PyErr_Occurred(  ) ) {
+				BPY_free_compiled_text( text );
+				return NULL;
+			}
+		}
+		py_result =  PyEval_EvalCode( text->compiled, py_dict, py_dict );
+		
+	} else {
+		char pystring[512];
+		/* TODO - look into a better way to run a file */
+		sprintf(pystring, "exec(open(r'%s').read())", fn);	
+		py_result = PyRun_String( pystring, Py_file_input, py_dict, py_dict );			
+	}
 	
-	py_result = PyRun_String( pystring, Py_file_input, py_dict, py_dict );
-	
-	if (!py_result)
+	if (!py_result) {
 		PyErr_Print();
-	else
+	} else {
 		Py_DECREF( py_result );
-	
+	}
 	PyGILState_Release(gilstate);
 	
 	//BPY_end_python();
+	return py_result ? 1:0;
 }
 
 
@@ -155,7 +190,7 @@ static int bpy_run_script_init(bContext *C, SpaceScript * sc)
 		return 0;
 	
 	if (sc->script->py_draw==NULL && sc->script->scriptname[0] != '\0')
-		BPY_run_python_script(C, sc->script->scriptname);
+		BPY_run_python_script(C, sc->script->scriptname, NULL);
 		
 	if (sc->script->py_draw==NULL)
 		return 0;

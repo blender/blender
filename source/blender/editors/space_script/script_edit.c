@@ -66,7 +66,7 @@ static int run_pyfile_exec(bContext *C, wmOperator *op)
 	char filename[512];
 	RNA_string_get(op->ptr, "filename", filename);
 #ifndef DISABLE_PYTHON
-	BPY_run_python_script(C, filename);
+	BPY_run_python_script(C, filename, NULL);
 #endif
 	ED_region_tag_redraw(ar);
 
