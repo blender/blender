@@ -57,6 +57,10 @@ void RNA_struct_free(BlenderRNA *brna, StructRNA *srna);
 
 PropertyRNA *RNA_def_boolean(StructRNA *srna, const char *identifier, int default_value,
 	const char *ui_name, const char *ui_description);
+PropertyRNA *RNA_def_boolean_array(StructRNA *srna, const char *identifier, int len, int *default_value,
+	const char *ui_name, const char *ui_description);
+PropertyRNA *RNA_def_boolean_vector(StructRNA *srna, const char *identifier, int len, int *default_value,
+	const char *ui_name, const char *ui_description);
 
 PropertyRNA *RNA_def_int(StructRNA *srna, const char *identifier, int default_value, int hardmin, int hardmax,
 	const char *ui_name, const char *ui_description, int softmin, int softmax);
