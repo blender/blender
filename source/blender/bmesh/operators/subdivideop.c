@@ -642,6 +642,7 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 					b = V_COUNT(facedata)-1;
 					facedata[b].pat = pat;
 					facedata[b].start = verts[i];
+					BMO_SetFlag(bmesh, face, SUBD_SPLIT);
 					break;
 				}
 			}
@@ -743,24 +744,19 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 void BM_esubdivideflag(Object *obedit, BMesh *bm, int selflag, float rad, 
 		       int flag, int numcuts, int seltype) {
 	BMOperator op;
+	
+	BMO_InitOpf(bm, &op, "esubd edges=%he flag=%d radius=%f numcuts=%d",
+	            selflag, flag, rad, numcuts);
 
-	BMO_Init_Op(&op, BMOP_ESUBDIVIDE);
-	
-	BMO_Set_Int(&op, BMOP_ESUBDIVIDE_NUMCUTS, numcuts);
-	BMO_Set_Int(&op, BMOP_ESUBDIVIDE_FLAG, flag);
-	BMO_Set_Float(&op, BMOP_ESUBDIVIDE_RADIUS, rad);
-	BMO_HeaderFlag_To_Slot(bm, &op, BMOP_ESUBDIVIDE_EDGES, selflag, BM_EDGE);
-	
 	BMO_Exec_Op(bm, &op);
 
 	if (seltype == SUBDIV_SELECT_INNER) {
-		BMOpSlot *einput;
+		BMOIter iter;
 		BMHeader *ele;
 		int i;
 		
-		einput = BMO_GetSlot(&op, BMOP_ESUBDIVIDE_INNER_MULTOUT);
-		for (i=0; i<einput->len; i++) {
-			ele = ((BMHeader**)einput->data.p)[i];
+		ele = BMO_IterNew(&iter,bm,&op,BMOP_ESUBDIVIDE_INNER_MULTOUT);
+		for (; ele; ele=BMO_IterStep(&iter)) {
 			BM_Select(bm, ele, 1);
 		}
 	}

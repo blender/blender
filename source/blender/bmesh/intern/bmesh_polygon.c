@@ -1,9 +1,14 @@
-#include "bmesh.h"
-#include "bmesh_private.h"
+#include <string.h>
+
+#include "BKE_utildefines.h"
 
 #include "BLI_arithb.h"
-#include "BKE_utildefines.h"
-#include <string.h>
+#include "BLI_blenlib.h"
+
+#include "MEM_guardedalloc.h"
+
+#include "bmesh.h"
+#include "bmesh_private.h"
 
 /*
  *
@@ -99,6 +104,16 @@ static void compute_poly_normal(float normal[3], float (*verts)[3], int nverts)
 		u = verts[i];
 		v = verts[(i+1) % nverts];
 		
+		/* newell's method
+		
+		so thats?:
+		(a[1] - b[1]) * (a[2] + b[2]);
+		a[1]*b[2] - b[1]*a[2] - b[1]*b[2] + a[1]*a[2]
+
+		odd.  half of that is the cross product. . .what's the
+		other half?
+		*/
+
 		normal[0] += (u[1] - v[1]) * (u[2] + v[2]);
 		normal[1] += (u[2] - v[2]) * (u[0] + v[0]);
 		normal[2] += (u[0] - v[0]) * (u[1] + v[1]);
@@ -395,7 +410,260 @@ cleanup:
 	return ret;
 }
 
-static int goodline(float (*projectverts)[3], int v1i, int v2i, int nvert, float *outv)
+typedef struct qline {
+	struct qline *next, *prev;
+
+	float *a;
+	float *b;
+} qline;
+
+typedef struct quadnode {
+	float min[3], max[3];
+	struct quadnode *children[2][2];
+	ListBase lines;
+	int len;
+	int leaf;
+	int depth;
+} quadnode;
+
+typedef struct quadtree {
+	BLI_mempool *linepool, *nodepool;
+	quadnode *root;
+} quadtree;
+
+#define MAX_CHILD	5
+#define MAX_DEPTH	1
+
+#define D 0.0001f
+#define AABB(min, max, p) (p[0] >= min[0]-D && p[0] <= max[0]+D && p[1] >= min[1]-D && p[1] <= max[1]+D)
+
+static int quadnode_intersect_line(quadnode *node, qline *line) {
+	if (AABB(node->min, node->max, line->a)) return 1;
+	if (AABB(node->min, node->max, line->b)) return 1;
+	else {	
+		float v1[3], v2[3], v3[3], v4[3];
+		
+		VECCOPY(v1, node->min);
+		v2[0] = node->min[0];
+		v2[1] = node->max[1];
+		v2[2] = 0.0f;
+		VECCOPY(v3, node->max);
+		v4[0] = node->max[0];
+		v4[1] = node->min[1];
+		v4[2] = 0.0f;
+
+		if (linecrosses(v1, v2, line->a, line->b)) return 1;
+		if (linecrosses(v2, v3, line->a, line->b)) return 1;
+		if (linecrosses(v3, v4, line->a, line->b)) return 1;
+		if (linecrosses(v4, v1, line->a, line->b)) return 1;
+	}
+
+	return 0;
+}
+
+static void quadnode_insert(quadtree *tree, quadnode *node, qline *line) {
+	if (!node->leaf) {
+		int x, y;
+		for (x=0; x<2; x++) {
+			for (y=0; y<2; y++) {
+				if (quadnode_intersect_line(node->children[x][y], line)) {
+					quadnode_insert(tree, node->children[x][y], line);
+				}
+			}
+		}
+	} else {
+		if (node->len > MAX_CHILD && node->depth != MAX_DEPTH) {
+			qline *cline, *cnext;
+			quadnode *c;
+			int x, y;
+			float cell[2] = {(node->max[0]-node->min[0])/2, (node->max[1] - node->min[1])/2};
+
+			node->leaf = 0;
+			for (x=0; x<2; x++) {
+				for (y=0; y<2; y++) {
+					c = BLI_mempool_calloc(tree->nodepool);
+					node->children[x][y] = c;
+					c->min[0] = node->min[0] + cell[0]*x - 0.001f;
+					c->min[1] = node->min[1] + cell[1]*y - 0.001f;
+					c->min[2] = 0.0f;
+					c->max[0] = c->min[0] + cell[0] + 0.001f;
+					c->max[1] = c->min[1] + cell[1] + 0.001f;
+					c->max[2] = 0.0f;
+					c->leaf = 1;
+					c->depth = node->depth + 1;
+					c->lines.first = c->lines.last = NULL;
+				}
+			}
+
+			for (cline=node->lines.first; cline; cline=cnext) {
+				cnext = cline->next;
+
+				quadnode_insert(tree, node, cline);
+				BLI_mempool_free(tree->linepool, cline);
+			}
+			node->lines.first = node->lines.last = NULL;
+
+			quadnode_insert(tree, node, line);
+		} else {
+			qline *cpy = BLI_mempool_calloc(tree->linepool);
+			*cpy = *line;
+			BLI_addtail(&node->lines, cpy);
+			node->len++;
+		}
+	}
+}
+
+void quadtree_insert(quadtree *tree, float *a, float *b) {
+	qline line;
+
+	line.a = a;
+	line.b = b;
+	
+	quadnode_insert(tree, tree->root, &line);
+}
+
+quadtree *quadree_new(float *min, float *max) {
+	quadtree *tree = MEM_callocN(sizeof(*tree), "quadtree");
+	tree->linepool = BLI_mempool_create(sizeof(qline), 10, 32);
+	tree->nodepool = BLI_mempool_create(sizeof(quadnode), 10, 32);
+	
+	tree->root = BLI_mempool_calloc(tree->nodepool);
+	tree->root->leaf = 1;
+	VECCOPY(tree->root->min, min);
+	VECCOPY(tree->root->max, max);
+
+	return tree;
+}
+
+void quadtree_free(quadtree *tree) {
+	BLI_mempool_destroy(tree->linepool);
+	BLI_mempool_destroy(tree->nodepool);
+	MEM_freeN(tree);
+}
+
+
+static int goodline_one(quadnode *node, float *p, float *outv)
+{
+	if (!node->leaf) {
+		int x, y, ret=0;
+		qline line = {NULL, NULL, p, outv};
+
+		for (x=0; x<2; x++) {
+			for (y=0; y<2; y++) {
+				if (quadnode_intersect_line(node->children[x][y], &line)) {
+					ret += goodline_one(node->children[x][y], 
+					                    p, outv);
+				}
+			}
+		}
+
+		return ret;
+	} else {
+		float vv1[3], vv2[3], mid[3], a[3], b[3];
+		float v1[3], v2[3];
+		int lcount=0;
+		qline *line;
+		
+		for (line=node->lines.first; line; line=line->next) {
+			VECCOPY(vv1, line->a);
+			VECCOPY(vv2, line->b);
+			
+			VecAddf(mid, vv1, vv2);
+			VecMulf(mid, 0.5f);
+			
+			VecSubf(a, vv1, mid);
+			VecSubf(b, vv2, mid);
+			
+			VecMulf(a, 1.00001f);
+			VecMulf(b, 1.00001f);
+			
+			VecAddf(vv1, mid, a);
+			VecAddf(vv2, mid, b);
+					
+			if (linecrosses(vv1, vv2, p, outv)) lcount += 1;
+		}
+
+		return lcount;
+	}
+
+	return 0;
+}
+
+static int goodline_two(quadnode *node, float *v1, float *v2)
+{
+	/*the hardcoded stuff here, 0.999 and 1.0001, may be problems
+	  in the future, not sure. - joeedh*/
+
+	if (!node->leaf) {
+		int x, y, ret;
+		qline line = {NULL, NULL, v1, v2};
+
+		for (x=0; x<2; x++) {
+			for (y=0; y<2; y++) {
+				if (quadnode_intersect_line(node->children[x][y], &line)) {
+					ret = goodline_two(node->children[x][y], 
+					                   v1, v2);
+					if (!ret) return 0;
+				}
+			}
+		}
+
+		return 1;
+	} else {
+		float vv1[3], vv2[3], mid[3], a[3], b[3];
+		qline *line;
+
+		for (line=node->lines.first; line; line=line->next) {
+			VECCOPY(vv1, line->a);
+			VECCOPY(vv2, line->b);
+			
+			/*VecAddf(mid, vv1, vv2);
+			VecMulf(mid, 0.5f);
+			
+			VecSubf(a, vv1, mid);
+			VecSubf(b, vv2, mid);
+			
+			VecMulf(a, 0.999f);
+			VecMulf(b, 0.999f);
+			
+			VecAddf(vv1, mid, a);
+			VecAddf(vv2, mid, b);*/
+
+			if (linecrosses(vv1, vv2, v1, v2)) return 0;
+
+		}
+
+		return 1;
+	}
+
+	return 1;
+}
+
+static int goodline(quadnode *node, float (*projectverts)[3], int v1i,
+		    int v2i, int nvert, float *outv)
+{
+	float v1[3], v2[3], p[3], a[3], b[3];
+
+	VECCOPY(v1, projectverts[v1i]);
+	VECCOPY(v2, projectverts[v2i]);
+	VecAddf(p, v1, v2);
+	VecMulf(p, 0.5f);
+
+	VecSubf(a, v1, p);
+	VecSubf(b, v2, p);
+	VecMulf(a, 0.999f);
+	VecMulf(b, 0.999f);
+	
+	VecAddf(v1, a, p);
+	VecAddf(v2, b, p);
+
+	if (goodline_one(node, p, outv) % 2 == 0) return 0;
+	//if (!goodline_two(node, v1, v2)) return 0;
+
+	return 1;
+}
+
+static int goodline_old(float (*projectverts)[3], int v1i, int v2i, int nvert, float *outv)
 {
 	/*the hardcoded stuff here, 0.999 and 1.0001, may be problems
 	  in the future, not sure. - joeedh*/
@@ -453,7 +721,8 @@ static int goodline(float (*projectverts)[3], int v1i, int v2i, int nvert, float
  *
 */
 
-static BMLoop *find_ear(BMesh *bm, BMFace *f, float (*verts)[3], int nvert, float *outv)
+static BMLoop *find_ear(BMesh *bm, BMFace *f, quadtree *tree, 
+			float (*verts)[3], int nvert, float *outv)
 {
 	BMVert *v1, *v2, *v3;
 	BMLoop *bestear = NULL, *l;
@@ -470,7 +739,8 @@ static BMLoop *find_ear(BMesh *bm, BMFace *f, float (*verts)[3], int nvert, floa
 
 		if (BM_Edge_Exist(v1, v3)) isear = 0;
 
-		if (isear && !goodline(verts, v1->head.eflag2, v3->head.eflag2, nvert, outv))
+		if (isear && !goodline(tree->root, verts, v1->head.eflag2,
+		                       v3->head.eflag2, nvert, outv))
 			isear = 0;
 
 		if(isear){
@@ -510,7 +780,10 @@ void BM_Triangulate_Face(BMesh *bm, BMFace *f, float (*projectverts)[3], int new
 {
 	int i, done, nvert;
 	BMLoop *l, *newl, *nextloop;
+	BMVert *v;
+	quadtree *tree;
 	float outv[3] = {-1.0e30f, -1.0e30f, -1.0e30f};
+	float min[3] = {1.0e30f, 1.0e30f, 1.0e30f};;
 
 	/*copy vertex coordinates to vertspace array*/
 	i = 0;
@@ -519,14 +792,8 @@ void BM_Triangulate_Face(BMesh *bm, BMFace *f, float (*projectverts)[3], int new
 		VECCOPY(projectverts[i], l->v->co);
 		l->v->head.eflag2 = i; /*warning, abuse! never duplicate in tools code! never you hear?*/ /*actually, get rid of this completely, use a new structure for this....*/
 		i++;
-
-		outv[0] = MAX2(outv[0], l->v->co[0])+1.0f;
-		outv[1] = MAX2(outv[1], l->v->co[1])+1.0f;
-		outv[2] = MAX2(outv[2], l->v->co[2])+1.0f;
-
 		l = (BMLoop*)(l->head.next);
 	}while(l != f->loopbase);
-	
 	
 	//bmesh_update_face_normal(bm, f, projectverts);
 
@@ -535,21 +802,53 @@ void BM_Triangulate_Face(BMesh *bm, BMFace *f, float (*projectverts)[3], int new
 	poly_rotate_plane(f->no, projectverts, i);
 	
 	nvert = f->len;
-	
+
+	for (i=0; i<nvert; i++) {
+		outv[0] = MAX2(outv[0], projectverts[i][0]+0.01f);
+		outv[1] = MAX2(outv[1], projectverts[i][1]+0.01f);
+		outv[2] = MAX2(outv[2], projectverts[i][2]+0.01f);
+
+		min[0] = MIN2(min[0], projectverts[i][0]-0.01f);
+		min[1] = MIN2(min[1], projectverts[i][1]-0.01f);
+		min[2] = MIN2(min[2], projectverts[i][2]-0.01f);
+	}
+
+	outv[2] = 0.0f;
+	min[2] = 0.0f;
+
+	tree = quadree_new(min, outv);
+
+	outv[0] += 1.0f;
+	outv[1] += 1.0f;
+	for (i=0; i<nvert; i++) {
+		quadtree_insert(tree, projectverts[i], projectverts[(i+1)%nvert]);
+	}
+
 	done = 0;
 	while(!done && f->len > 3){
 		done = 1;
-		l = find_ear(bm, f, projectverts, nvert, outv);
+		l = find_ear(bm, f, tree, projectverts, nvert, outv);
 		if(l) {
 			done = 0;
+			v = l->v;
 			f = bmesh_sfme(bm, f, ((BMLoop*)(l->head.prev))->v, ((BMLoop*)(l->head.next))->v, &newl);
 			if (!f) {
 				printf("yeek! triangulator failed to split face!\n");
+				quadtree_free(tree);
 				break;
 			}
 
 			BMO_SetFlag(bm, newl->e, newedgeflag);
 			BMO_SetFlag(bm, f, newfaceflag);
+
+			/*l = f->loopbase;
+			do {
+				if (l->v == v) {
+					f->loopbase = l;
+					break;
+				}
+				l = l->head.next;
+			} while (l != f->loopbase);*/
 		}
 	}
 
@@ -560,6 +859,7 @@ void BM_Triangulate_Face(BMesh *bm, BMFace *f, float (*projectverts)[3], int new
 			f = bmesh_sfme(bm, l->f, l->v,nextloop->v, &newl);
 			if (!f) {
 				printf("triangle fan step of triangulator failed.\n");
+				quadtree_free(tree);
 				return;
 			}
 
@@ -568,4 +868,6 @@ void BM_Triangulate_Face(BMesh *bm, BMFace *f, float (*projectverts)[3], int new
 			l = nextloop;
 		}
 	}
+
+	quadtree_free(tree);
 }

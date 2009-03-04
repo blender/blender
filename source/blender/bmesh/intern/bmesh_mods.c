@@ -103,10 +103,11 @@ int BM_Dissolve_Disk(BMesh *bm, BMVert *v) {
 		  increasing valence to four.  this may be hackish. . .*/
 		loop = e->loop;
 		if (loop->v == v) loop = (BMLoop*) loop->head.next;
-		BM_Split_Face(bm, loop->f, v, loop->v, NULL, NULL, 0);
+		if (!BM_Split_Face(bm, loop->f, v, loop->v, NULL, NULL, 0))
+			return 0;
 
 		BM_Dissolve_Disk(bm, v);
-		return;
+		return 1;
 	} else if (keepedge == NULL && len == 2) {
 		/*handle two-valence*/
 		f = v->edge->loop->f;
@@ -114,6 +115,8 @@ int BM_Dissolve_Disk(BMesh *bm, BMVert *v) {
 		/*collapse the vertex*/
 		BM_Collapse_Vert(bm, v->edge, v, 1.0, 0);
 		BM_Join_Faces(bm, f, f2, NULL, 0, 0);
+
+		return 1;
 	}
 
 	if(keepedge){
@@ -143,11 +146,14 @@ int BM_Dissolve_Disk(BMesh *bm, BMVert *v) {
 		/*get remaining two faces*/
 		f = v->edge->loop->f;
 		f2 = ((BMLoop*)v->edge->loop->radial.next->data)->f;
+
 		/*collapse the vertex*/
 		BM_Collapse_Vert(bm, baseedge, v, 1.0, 0);
-
-		/*join two remaining faces*/
-		BM_Join_Faces(bm, f, f2, NULL, 0, 0);
+		
+		if (f != f2) {
+			/*join two remaining faces*/
+			if (!BM_Join_Faces(bm, f, f2, NULL, 0, 0)) return 0;
+		}
 	}
 
 	return 1;

@@ -109,17 +109,37 @@ int EDBM_CallOpf(EditMesh *em, wmOperator *op, char *fmt, ...)
 
 	va_end(list);
 
-	return EDBM_Finish(bm, em, op);
-	return 1;
+	return EDBM_Finish(bm, em, op, 1);
+}
+
+int EDBM_CallOpfSilent(EditMesh *em, char *fmt, ...)
+{
+	BMesh *bm = editmesh_to_bmesh(em);
+	BMOperator bmop;
+	va_list list;
+
+	va_start(list, fmt);
+
+	if (!BMO_VInitOpf(bm, &bmop, fmt, list)) {
+		va_end(list);
+		return 0;
+	}
+
+	BMO_Exec_Op(bm, &bmop);
+	BMO_Finish_Op(bm, &bmop);
+
+	va_end(list);
+
+	return EDBM_Finish(bm, em, NULL, 0);
 }
 
 /*returns 0 on error, 1 on success*/
-int EDBM_Finish(BMesh *bm, EditMesh *em, wmOperator *op) {
+int EDBM_Finish(BMesh *bm, EditMesh *em, wmOperator *op, int report) {
 	EditMesh *em2;
 	char *errmsg;
 
 	if (BMO_GetError(bm, &errmsg, NULL)) {
-		BKE_report(op->reports, RPT_ERROR, errmsg);
+		if (report) BKE_report(op->reports, RPT_ERROR, errmsg);
 		BM_Free_Mesh(bm);
 		return 0;
 	}

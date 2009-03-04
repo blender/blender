@@ -1135,7 +1135,7 @@ static int delete_mesh_exec(bContext *C, wmOperator *op)
 		erase_vertices(em, &em->verts);
 	} 
 	else if(event==7) {
-		if (!EDBM_CallOpf(em, op, "dissolveverts %hv", BM_SELECT))
+		if (!EDBM_CallOpf(em, op, "dissolveverts verts=%hv",BM_SELECT))
 			return OPERATOR_CANCELLED;
 	}
 	else if(event==6) {
@@ -1243,7 +1243,8 @@ static int delete_mesh_exec(bContext *C, wmOperator *op)
 		if(em->selected.first) BLI_freelistN(&(em->selected));
 	}
 	else if(event==5) {
-		if (!EDBM_CallOpf(em, op, "del %hf %d", BM_SELECT, DEL_ONLYFACES))
+		if (!EDBM_CallOpf(em, op, "del geom=%hf context=%d",
+		                  BM_SELECT, DEL_ONLYFACES))
 			return OPERATOR_CANCELLED;
 		str= "Erase Only Faces";
 	}

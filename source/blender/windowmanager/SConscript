@@ -19,4 +19,4 @@ defs = []
 if not env['WITH_BF_PYTHON']:
 	defs.append('DISABLE_PYTHON')
 
-env.BlenderLib ( 'bf_windowmanager', sources, Split(incs), defs, libtype=['core'], priority=[100] )
+env.BlenderLib ( 'bf_windowmanager', sources, Split(incs), defs, libtype=['core'], priority=[5] )

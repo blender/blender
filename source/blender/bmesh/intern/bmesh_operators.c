@@ -93,7 +93,7 @@ void BMO_Init_Op(BMOperator *op, int opcode)
 	
 	/*initialize the operator slot types*/
 	for(i = 0; i < opdefines[opcode]->totslot; i++) {
-		op->slots[i].slottype = opdefines[opcode]->slottypes[i];
+		op->slots[i].slottype = opdefines[opcode]->slottypes[i].type;
 		op->slots[i].index = i;
 	}
 
@@ -369,8 +369,8 @@ void *BMO_Grow_Array(BMesh *bm, BMOperator *op, int slotcode, int totadd) {
 			slot->size = (slot->size+1+totadd)*2;
 
 			tmp = slot->data.buf;
-			slot->data.buf = MEM_callocN(BMOP_OPSLOT_TYPEINFO[opdefines[op->type]->slottypes[slotcode]] * slot->size, "opslot dynamic array");
-			memcpy(slot->data.buf, tmp, BMOP_OPSLOT_TYPEINFO[opdefines[op->type]->slottypes[slotcode]] * slot->size);
+			slot->data.buf = MEM_callocN(BMOP_OPSLOT_TYPEINFO[opdefines[op->type]->slottypes[slotcode].type] * slot->size, "opslot dynamic array");
+			memcpy(slot->data.buf, tmp, BMOP_OPSLOT_TYPEINFO[opdefines[op->type]->slottypes[slotcode].type] * slot->size);
 			MEM_freeN(tmp);
 		}
 
@@ -380,8 +380,8 @@ void *BMO_Grow_Array(BMesh *bm, BMOperator *op, int slotcode, int totadd) {
 		slot->len += totadd;
 		slot->size = slot->len+2;
 		tmp = slot->data.buf;
-		slot->data.buf = MEM_callocN(BMOP_OPSLOT_TYPEINFO[opdefines[op->type]->slottypes[slotcode]] * slot->len, "opslot dynamic array");
-		memcpy(slot->data.buf, tmp, BMOP_OPSLOT_TYPEINFO[opdefines[op->type]->slottypes[slotcode]] * slot->len);
+		slot->data.buf = MEM_callocN(BMOP_OPSLOT_TYPEINFO[opdefines[op->type]->slottypes[slotcode].type] * slot->len, "opslot dynamic array");
+		memcpy(slot->data.buf, tmp, BMOP_OPSLOT_TYPEINFO[opdefines[op->type]->slottypes[slotcode].type] * slot->len);
 	}
 
 	return slot->data.buf;
@@ -493,7 +493,7 @@ static void *alloc_slot_buffer(BMOperator *op, int slotcode, int len){
 	
 	op->slots[slotcode].len = len;
 	if(len)
-		op->slots[slotcode].data.buf = BLI_memarena_alloc(op->arena, BMOP_OPSLOT_TYPEINFO[opdefines[op->type]->slottypes[slotcode]] * len);
+		op->slots[slotcode].data.buf = BLI_memarena_alloc(op->arena, BMOP_OPSLOT_TYPEINFO[opdefines[op->type]->slottypes[slotcode].type] * len);
 	return op->slots[slotcode].data.buf;
 }
 
@@ -882,11 +882,27 @@ int bmesh_str_to_flag(char *str)
 
 #define nextc(fmt) ((fmt)[0] != 0 ? (fmt)[1] : 0)
 
+static int bmesh_name_to_slotcode(BMOpDefine *def, char *name)
+{
+	int i;
+
+	for (i=0; i<def->totslot; i++) {
+		if (!strcmp(name, def->slottypes[i].name)) return i;
+	}
+
+	return -1;
+}
+
 int BMO_VInitOpf(BMesh *bm, BMOperator *op, char *fmt, va_list vlist)
 {
-	int i, n=strlen(fmt), slotcode = -1, ret, type;
-	char *opname;
+	int i, n=strlen(fmt), stop, slotcode = -1, ret, type, state, c;
+	char *opname, *ofmt;
+	BMOpDefine *def;
+
+	/*we muck around in here, so dup it*/
+	fmt = ofmt = strdup(fmt);
 	
+	/*find operator name*/
 	i = strcspn(fmt, " \t");
 
 	opname = fmt;
@@ -899,52 +915,95 @@ int BMO_VInitOpf(BMesh *bm, BMOperator *op, char *fmt, va_list vlist)
 	}
 
 	if (i == bmesh_total_ops) return 0;
+	
 	BMO_Init_Op(op, i);
+	def = opdefines[i];
 	
 	i = 0;
+	state = 1; //0: not inside slotcode name, 1: inside slotcode name
+	c = 0;
+	
 	while (*fmt) {
-		switch (*fmt) {
-		case ' ':
-		case '\t':
-			break;
-		case '%':
-			slotcode += 1;
-			break;
-		case 'i':
-		case 'd':
-			BMO_Set_Int(op, slotcode, va_arg(vlist, int));
-			break;
-		case 'f':
-		case 'h':
-			type = *fmt;
+		if (state) {
+			/*jump past leading whitespace*/
+			i = strspn(fmt, " \t");
+			fmt += i;
+			
+			/*ignore trailing whitespace*/
+			if (!fmt[i])
+				break;
 
-			if (nextc(fmt) == ' ' || nextc(fmt) == '\t') {
-				BMO_Set_Float(op,slotcode,va_arg(vlist,float));
-			} else {
-				switch (nextc(fmt)) {
-					case 'f': ret = BM_FACE; break;
-					case 'e': ret = BM_EDGE; break;
-					case 'v': ret = BM_VERT; break;
-					default: goto error;
+			/*find end of slot name.  currently this is
+			  a little flexible, allowing "slot=%f", 
+			  "slot %f", "slot%f", and "slot\t%f". */
+			i = strcspn(fmt, "= \t%");
+			if (!fmt[i]) goto error;
+
+			fmt[i] = 0;
+			slotcode = bmesh_name_to_slotcode(def, fmt);
+			if (slotcode < 0) goto error;
+
+			state = 0;
+			fmt += i;
+		} else {
+			switch (*fmt) {
+			case ' ':
+			case '\t':
+			case '=':
+			case '%':
+				break;
+			case 'i':
+			case 'd':
+				BMO_Set_Int(op, slotcode, va_arg(vlist, int));
+				state = 1;
+				break;
+			case 'f':
+			case 'h':
+				type = *fmt;
+
+				if (nextc(fmt) == ' ' || nextc(fmt) == '\t' || 
+				    nextc(fmt)==0) 
+				{
+					BMO_Set_Float(op,slotcode,va_arg(vlist,double));
+				} else {
+					ret = 0;
+					stop = 0;
+					while (1) {
+					switch (nextc(fmt)) {
+						case 'f': ret |= BM_FACE;break;
+						case 'e': ret |= BM_EDGE;break;
+						case 'v': ret |= BM_VERT;break;
+						default:
+							stop = 1;
+							break;
+					}
+					if (stop) break;
+					fmt++;
+					}
+					
+					if (type == 'h')
+						BMO_HeaderFlag_To_Slot(bm, op, 
+						   slotcode, va_arg(vlist, int), ret);
+					else
+						BMO_Flag_To_Slot(bm, op, slotcode, 
+							     va_arg(vlist, int), ret);
 				}
-				
-				if (type == 'h')
-					BMO_HeaderFlag_To_Slot(bm, op, 
-					   slotcode, va_arg(vlist, int), ret);
-				else
-					BMO_Flag_To_Slot(bm, op, slotcode, 
-					             va_arg(vlist, int), ret);
-				fmt++;
+
+				state = 1;
+				break;
+			default:
+				printf("unrecognized bmop format char: %c\n", *fmt);
+				break;
 			}
-			break;
 		}
 		fmt++;
 	}
 
-
+	free(ofmt);
 	return 1;
 error:
 	BMO_Finish_Op(bm, op);
+	free(fmt);
 	return 0;
 }
 

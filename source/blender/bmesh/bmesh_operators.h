@@ -51,10 +51,17 @@ typedef struct BMOperator{
 	MemArena *arena;
 }BMOperator;
 
+#define MAX_SLOTNAME	32
+
+typedef struct slottype {
+	int type;
+	char name[MAX_SLOTNAME];
+} slottype;
+
 /*need to refactor code to use this*/
 typedef struct BMOpDefine {
 	char *name;
-	int slottypes[BMOP_MAX_SLOTS];
+	slottype slottypes[BMOP_MAX_SLOTS];
 	void (*exec)(BMesh *bm, BMOperator *op);
 	int totslot;
 	int flag;
@@ -326,7 +333,9 @@ void BM_esubdivideflag(struct Object *obedit, struct BMesh *bm, int selflag, flo
 	       int flag, int numcuts, int seltype);
 void BM_extrudefaceflag(BMesh *bm, int flag);
 
-/*these next two return 1 if they did anything, or zero otherwise.*/
+/*these next two return 1 if they did anything, or zero otherwise.
+  they're kindof a hackish way to integrate with fkey, until
+  such time as fkey is completely bmeshafied.*/
 int BM_DissolveFaces(struct EditMesh *em, int flag);
 /*this doesn't display errors to the user, btw*/
 int BM_ConnectVerts(struct EditMesh *em, int flag);
