@@ -30,4 +30,4 @@ if env['WITH_BF_PYTHON']:
 else:
     defs.append('DISABLE_PYTHON')
 
-env.BlenderLib ( libname = 'bf_creator', sources = Split(sources), includes = Split(incs), defines = defs, libtype='core', priority = 154 )
+env.BlenderLib ( libname = 'bf_creator', sources = Split(sources), includes = Split(incs), defines = defs, libtype='core', priority = 0 )
