@@ -150,16 +150,14 @@ static PyObject *pyop_base_getattro( BPy_OperatorBase * self, PyObject *pyname )
 	char *name = _PyUnicode_AsString(pyname);
 	PyObject *ret;
 	wmOperatorType *ot;
-
+	PyMethodDef *meth;
+	
 	if ((ot = WM_operatortype_find(name))) {
 		ret= pyop_func_CreatePyObject(self->C, name);
 	}
 	else if (strcmp(name, "__dict__")==0) {
 		ret = PyDict_New();
 
-		wmOperatorType *ot;
-		PyMethodDef *meth;
-		
 		for(ot= WM_operatortype_first(); ot; ot= ot->next) {
 			PyDict_SetItemString(ret, ot->idname, Py_None);
 		}
