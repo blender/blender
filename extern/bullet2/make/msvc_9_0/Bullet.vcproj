@@ -729,6 +729,14 @@
 					Name="CollisionDispatch"
 					>
 					<File
+						RelativePath="..\..\src\BulletCollision\CollisionDispatch\btActivatingCollisionAlgorithm.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionDispatch\btActivatingCollisionAlgorithm.h"
+						>
+					</File>
+					<File
 						RelativePath="..\..\src\BulletCollision\CollisionDispatch\btBoxBoxCollisionAlgorithm.cpp"
 						>
 					</File>
@@ -822,6 +830,14 @@
 					</File>
 					<File
 						RelativePath="..\..\src\BulletCollision\CollisionDispatch\btEmptyCollisionAlgorithm.h"
+						>
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionDispatch\btGhostObject.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionDispatch\btGhostObject.h"
 						>
 					</File>
 					<File
@@ -958,6 +974,14 @@
 					</File>
 					<File
 						RelativePath="..\..\src\BulletCollision\CollisionShapes\btConvexInternalShape.h"
+						>
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionShapes\btConvexPointCloudShape.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionShapes\btConvexPointCloudShape.h"
 						>
 					</File>
 					<File
