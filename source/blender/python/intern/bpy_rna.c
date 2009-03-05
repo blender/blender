@@ -595,8 +595,7 @@ static PyObject *pyrna_struct_getattro( BPy_StructRNA * self, PyObject *pyname )
 
 		ret = PyDict_New();
 		for(; iter.valid; RNA_property_collection_next(&iter)) {
-			nameprop= RNA_struct_name_property(&iter.ptr);
-			if(iter.ptr.data && nameprop) {
+			if(iter.ptr.data && (nameprop = RNA_struct_name_property(&iter.ptr))) {
 				nameptr= RNA_property_string_get_alloc(&iter.ptr, nameprop, name, sizeof(name));
 				PyDict_SetItemString(ret, nameptr, Py_None);
 				
@@ -651,8 +650,7 @@ PyObject *pyrna_prop_keys(BPy_PropertyRNA *self)
 		
 		RNA_property_collection_begin(&self->ptr, self->prop, &iter);
 		for(; iter.valid; RNA_property_collection_next(&iter)) {
-			nameprop= RNA_struct_name_property(&iter.ptr);
-			if(iter.ptr.data && nameprop) {
+			if(iter.ptr.data && (nameprop = RNA_struct_name_property(&iter.ptr))) {
 				nameptr= RNA_property_string_get_alloc(&iter.ptr, nameprop, name, sizeof(name));				
 				
 				/* add to python list */
@@ -687,8 +685,7 @@ PyObject *pyrna_prop_items(BPy_PropertyRNA *self)
 		
 		RNA_property_collection_begin(&self->ptr, self->prop, &iter);
 		for(; iter.valid; RNA_property_collection_next(&iter)) {
-			nameprop= RNA_struct_name_property(&iter.ptr);
-			if(iter.ptr.data && nameprop) {
+			if(iter.ptr.data && (nameprop = RNA_struct_name_property(&iter.ptr))) {
 				nameptr= RNA_property_string_get_alloc(&iter.ptr, nameprop, name, sizeof(name));
 				
 				/* add to python list */
@@ -723,15 +720,10 @@ PyObject *pyrna_prop_values(BPy_PropertyRNA *self)
 		
 		RNA_property_collection_begin(&self->ptr, self->prop, &iter);
 		for(; iter.valid; RNA_property_collection_next(&iter)) {
-			nameprop= RNA_struct_name_property(&iter.ptr);
-			if(iter.ptr.data && nameprop) {
-				
-				/* add to python list */
+			if(iter.ptr.data && (nameprop = RNA_struct_name_property(&iter.ptr))) {
 				item = pyrna_struct_CreatePyObject(&iter.ptr);
 				PyList_Append(ret, item);
 				Py_DECREF(item);
-				/* done */
-				
 			}
 		}
 		RNA_property_collection_end(&iter);
@@ -997,6 +989,10 @@ PyTypeObject pyrna_prop_Type = {
 PyObject *pyrna_struct_CreatePyObject( PointerRNA *ptr )
 {
 	BPy_StructRNA *pyrna;
+	
+	if (ptr->data==NULL) {
+		Py_RETURN_NONE;
+	}
 
 	pyrna = ( BPy_StructRNA * ) PyObject_NEW( BPy_StructRNA, &pyrna_struct_Type );
 
