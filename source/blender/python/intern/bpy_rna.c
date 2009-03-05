@@ -120,8 +120,7 @@ PyObject * pyrna_prop_to_py(PointerRNA *ptr, PropertyRNA *prop)
 	PyObject *ret;
 	int type = RNA_property_type(ptr, prop);
 	int len = RNA_property_array_length(ptr, prop);
-	/* resolve path */
-	
+
 	if (len > 0) {
 		/* resolve the array from a new pytype */
 		return pyrna_prop_CreatePyObject(ptr, prop);
@@ -154,7 +153,7 @@ PyObject * pyrna_prop_to_py(PointerRNA *ptr, PropertyRNA *prop)
 		if (RNA_property_enum_identifier(ptr, prop, val, &identifier)) {
 			ret = PyUnicode_FromString( identifier );
 		} else {
-			PyErr_Format(PyExc_AttributeError, "enum \"%d\" not found", val);
+			PyErr_Format(PyExc_AttributeError, "RNA Error: Current value \"%d\" matches no enum", val);
 			ret = NULL;
 		}
 
@@ -173,10 +172,11 @@ PyObject * pyrna_prop_to_py(PointerRNA *ptr, PropertyRNA *prop)
 		break;
 	}
 	case PROP_COLLECTION:
-		ret = pyrna_prop_CreatePyObject(ptr, prop);
+		PyErr_SetString(PyExc_AttributeError, "RNA Anomaly: Collection of length 0?");
+		ret = NULL; /*pyrna_prop_CreatePyObject(ptr, prop);*/
 		break;
 	default:
-		PyErr_SetString(PyExc_AttributeError, "unknown type (pyrna_prop_to_py)");
+		PyErr_Format(PyExc_AttributeError, "RNA Error: unknown type \"%d\" (pyrna_prop_to_py)", type);
 		ret = NULL;
 		break;
 	}
@@ -189,7 +189,6 @@ int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, PyObject *value)
 {
 	int type = RNA_property_type(ptr, prop);
 	int len = RNA_property_array_length(ptr, prop);
-	/* resolve path */
 	
 	if (len > 0) {
 		PyObject *item;
@@ -374,8 +373,6 @@ static PyObject * pyrna_prop_to_py_index(PointerRNA *ptr, PropertyRNA *prop, int
 	PyObject *ret;
 	int type = RNA_property_type(ptr, prop);
 	
-	/* resolve path */
-	
 	/* see if we can coorce into a python type - PropertyType */
 	switch (type) {
 	case PROP_BOOLEAN:
@@ -400,8 +397,6 @@ static int pyrna_py_to_prop_index(PointerRNA *ptr, PropertyRNA *prop, int index,
 {
 	int ret = 0;
 	int type = RNA_property_type(ptr, prop);
-	
-	/* resolve path */
 	
 	/* see if we can coorce into a python type - PropertyType */
 	switch (type) {
