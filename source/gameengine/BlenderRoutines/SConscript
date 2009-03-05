@@ -23,6 +23,9 @@ if env['WITH_BF_SOLID']:
 	incs += ' ' + env['BF_SOLID_INC']
 	defs.append('USE_SUMO_SOLID')
 
+if env['WITH_BF_FFMPEG']:
+    defs.append('WITH_FFMPEG')
+
 incs += ' ' + env['BF_PYTHON_INC']
 incs += ' ' + env['BF_BULLET_INC']
 incs += ' ' + env['BF_OPENGL_INC']
