@@ -303,7 +303,7 @@ callbacks:
 typedef struct sActionzoneData {
 	ScrArea *sa1, *sa2;
 	AZone *az;
-	int x, y, gesture_dir;
+	int x, y, gesture_dir, modifier;
 } sActionzoneData;
 
 /* used by other operators too */
@@ -372,6 +372,8 @@ static void actionzone_apply(bContext *C, wmOperator *op)
 {
 	wmEvent event;
 	wmWindow *win= CTX_wm_window(C);
+	sActionzoneData *sad= op->customdata;
+	sad->modifier= RNA_int_get(op->ptr, "modifier");
 	
 	event= *(win->eventstate);	/* XXX huh huh? make api call */
 	event.type= EVT_ACTIONZONE;
@@ -433,25 +435,30 @@ void SCREEN_OT_actionzone(wmOperatorType *ot)
 	ot->modal= actionzone_modal;
 	
 	ot->poll= ED_operator_areaactive;
+	RNA_def_int(ot->srna, "modifier", 0, 0, 2, "modifier", "modifier state", 0, 2);
 }
 
 
-/* *********** Rip area operator ****************** */
+/* *********** Duplicate area as new window operator ****************** */
 
 
 /* operator callback */
 /* (ton) removed attempt to merge ripped area with another, don't think this is desired functionality.
 conventions: 'atomic' and 'dont think for user' :) */
-static int screen_area_rip_op(bContext *C, wmOperator *op)
+static int screen_area_dupli_new_op(bContext *C, wmOperator *op, wmEvent *event)
 {
 	wmWindow *newwin, *win;
 	bScreen *newsc, *sc;
 	ScrArea *sa;
 	rcti rect;
+	sActionzoneData *sad= event->customdata;
+
+	if(sad==NULL)
+		return OPERATOR_CANCELLED;
 	
 	win= CTX_wm_window(C);
 	sc= CTX_wm_screen(C);
-	sa= CTX_wm_area(C);
+	sa= sad->sa1;
 
 	/*  poll() checks area context, but we don't accept full-area windows */
 	if(sc->full != SCREENNORMAL) 
@@ -475,13 +482,12 @@ static int screen_area_rip_op(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void SCREEN_OT_area_rip(wmOperatorType *ot)
+void SCREEN_OT_area_dupli_new(wmOperatorType *ot)
 {
-	ot->name= "Rip Area into New Window";
-	ot->idname= "SCREEN_OT_area_rip";
+	ot->name= "Duplicate Area into New Window";
+	ot->idname= "SCREEN_OT_area_dupli_new";
 	
-	ot->invoke= WM_operator_confirm;
-	ot->exec= screen_area_rip_op;
+	ot->invoke= screen_area_dupli_new_op;
 	ot->poll= ED_operator_areaactive;
 }
 
@@ -896,6 +902,10 @@ static int area_split_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	if(event->type==EVT_ACTIONZONE) {
 		sActionzoneData *sad= event->customdata;
 		int dir;
+
+		if(sad->modifier>0) {
+			return OPERATOR_PASS_THROUGH;
+		}
 		
 		/* verify *sad itself */
 		if(sad==NULL || sad->sa1==NULL || sad->az==NULL)
@@ -1259,6 +1269,10 @@ static int area_join_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 	if(event->type==EVT_ACTIONZONE) {
 		sActionzoneData *sad= event->customdata;
+
+		if(sad->modifier>0) {
+			return OPERATOR_PASS_THROUGH;
+		}
 		
 		/* verify *sad itself */
 		if(sad==NULL || sad->sa1==NULL || sad->sa2==NULL)
@@ -1741,7 +1755,6 @@ static int testing123(bContext *C, wmOperator *op, wmEvent *event)
 	uiMenuItemO(head, ICON_PROP_CON, "SCREEN_OT_screen_full_area");
 	uiMenuItemO(head, ICON_SMOOTHCURVE, "SCREEN_OT_region_foursplit");
 	uiMenuLevel(head, "Submenu", newlevel1);
-	uiMenuItemO(head, ICON_PROP_ON, "SCREEN_OT_area_rip");
 	
 	uiPupMenuEnd(C, head);
 	
@@ -2295,7 +2308,7 @@ void ED_operatortypes_screen(void)
 	WM_operatortype_append(SCREEN_OT_area_move);
 	WM_operatortype_append(SCREEN_OT_area_split);
 	WM_operatortype_append(SCREEN_OT_area_join);
-	WM_operatortype_append(SCREEN_OT_area_rip);
+	WM_operatortype_append(SCREEN_OT_area_dupli_new);
 	WM_operatortype_append(SCREEN_OT_region_split);
 	WM_operatortype_append(SCREEN_OT_region_foursplit);
 	WM_operatortype_append(SCREEN_OT_region_flip);
@@ -2326,13 +2339,16 @@ void ED_keymap_screen(wmWindowManager *wm)
 	/* standard timers */
 	WM_keymap_add_item(keymap, "SCREEN_OT_animation_play", TIMER0, KM_ANY, KM_ANY, 0);
 	
-	WM_keymap_verify_item(keymap, "SCREEN_OT_actionzone", LEFTMOUSE, KM_PRESS, 0, 0);
+	/*WM_keymap_verify_item(keymap, "SCREEN_OT_actionzone", LEFTMOUSE, KM_PRESS, 0, 0);*/
+	RNA_int_set(WM_keymap_add_item(keymap, "SCREEN_OT_actionzone", LEFTMOUSE, KM_PRESS, 0, 0)->ptr, "modifier", 0);
+	RNA_int_set(WM_keymap_add_item(keymap, "SCREEN_OT_actionzone", LEFTMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "modifier", 1);
+	RNA_int_set(WM_keymap_add_item(keymap, "SCREEN_OT_actionzone", LEFTMOUSE, KM_PRESS, KM_ALT, 0)->ptr, "modifier", 2);
 	
 	/* screen tools */
 	WM_keymap_verify_item(keymap, "SCREEN_OT_area_move", LEFTMOUSE, KM_PRESS, 0, 0);
-	WM_keymap_verify_item(keymap, "SCREEN_OT_area_split", EVT_ACTIONZONE, 0, 0, 0);
-	WM_keymap_verify_item(keymap, "SCREEN_OT_area_join", EVT_ACTIONZONE, 0, 0, 0);
-	WM_keymap_verify_item(keymap, "SCREEN_OT_area_rip", RKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
+	WM_keymap_verify_item(keymap, "SCREEN_OT_area_split", EVT_ACTIONZONE, 0, KM_ANY, 0);
+	WM_keymap_verify_item(keymap, "SCREEN_OT_area_join", EVT_ACTIONZONE, 0, KM_ANY, 0);
+	WM_keymap_verify_item(keymap, "SCREEN_OT_area_dupli_new", EVT_ACTIONZONE, 0, KM_ANY, 0);
 	RNA_int_set(WM_keymap_add_item(keymap, "SCREEN_OT_screen_set", RIGHTARROWKEY, KM_PRESS, KM_CTRL, 0)->ptr, "delta", 1);
 	RNA_int_set(WM_keymap_add_item(keymap, "SCREEN_OT_screen_set", LEFTARROWKEY, KM_PRESS, KM_CTRL, 0)->ptr, "delta", -1);
 	WM_keymap_add_item(keymap, "SCREEN_OT_screen_full_area", UPARROWKEY, KM_PRESS, KM_CTRL, 0);
