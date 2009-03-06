@@ -903,6 +903,8 @@ int bmesh_loop_reverse(BMesh *bm, BMFace *f){
  *	A BMFace pointer
 */
 
+//disregarding f1loop and f2loop, if a vertex appears in a joined face more than once, we cancel
+
 BMFace *bmesh_jfke(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e)
 {
 	
@@ -935,7 +937,7 @@ BMFace *bmesh_jfke(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e)
 	if(f1loop->v == f2loop->v) return NULL;
 	
 	/*
-		Finally validate that for each face, each vertex has another edge in its disk cycle that is 
+		validate that for each face, each vertex has another edge in its disk cycle that is 
 		not e, and not shared.
 	*/
 	if(bmesh_radial_find_face( ((BMLoop*)(f1loop->head.next))->e,f2)) return NULL;
@@ -946,6 +948,29 @@ BMFace *bmesh_jfke(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e)
 	/*validate only one shared edge*/
 	shared = BM_Face_Sharededges(f1,f2);
 	if(shared > 1) return NULL;
+
+	/*validate no internal joins*/
+	for(i=0, curloop = f1->loopbase; i < f1len; i++, curloop = ((BMLoop*)(curloop->head.next)) ) curloop->v->head.eflag1 = 0;
+	for(i=0, curloop = f2->loopbase; i < f2len; i++, curloop = ((BMLoop*)(curloop->head.next)) ) curloop->v->head.eflag1 = 0;
+
+	for(i=0, curloop = f1->loopbase; i < f1len; i++, curloop = ((BMLoop*)(curloop->head.next)) ){
+		if(curloop != f1loop)
+			curloop->v->head.eflag1++;
+	}
+	for(i=0, curloop = f2->loopbase; i < f2len; i++, curloop = ((BMLoop*)(curloop->head.next)) ){
+		if(curloop != f2loop)
+			curloop->v->head.eflag1++;
+	}
+
+	for(i=0, curloop = f1->loopbase; i < f1len; i++, curloop = ((BMLoop*)(curloop->head.next)) ){
+		if(curloop->v->head.eflag1 > 1)
+			return NULL;
+	}
+	
+	for(i=0, curloop = f2->loopbase; i < f2len; i++, curloop = ((BMLoop*)(curloop->head.next)) ){
+		if(curloop->v->head.eflag1 > 1)
+			return NULL;
+	}
 
 	/*join the two loops*/
 	f1loop->head.prev->next = f2loop->head.next;
