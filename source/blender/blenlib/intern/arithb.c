@@ -111,7 +111,34 @@ float Normalize(float *n)
 	return d;
 }
 
+
+double Normalize_d(double *n)
+{
+	double d;
+	
+	d= n[0]*n[0]+n[1]*n[1]+n[2]*n[2];
+	/* A larger value causes normalize errors in a scaled down models with camera xtreme close */
+	if(d>1.0e-35F) {
+		d= sqrt(d);
+
+		n[0]/=d; 
+		n[1]/=d; 
+		n[2]/=d;
+	} else {
+		n[0]=n[1]=n[2]= 0.0;
+		d= 0.0;
+	}
+	return d;
+}
+
 void Crossf(float *c, float *a, float *b)
+{
+	c[0] = a[1] * b[2] - a[2] * b[1];
+	c[1] = a[2] * b[0] - a[0] * b[2];
+	c[2] = a[0] * b[1] - a[1] * b[0];
+}
+
+void Crossd(double *c, double *a, double *b)
 {
 	c[0] = a[1] * b[2] - a[2] * b[1];
 	c[1] = a[2] * b[0] - a[0] * b[2];

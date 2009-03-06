@@ -75,6 +75,7 @@ void CalcCent3f(float *cent,  float *v1, float *v2, float *v3);
 void CalcCent4f(float *cent, float *v1, float *v2, float *v3, float *v4);
 
 void Crossf(float *c, float *a, float *b);
+void Crossd(double *c, double *a, double *b);
 void Projf(float *c, float *v1, float *v2);
 
 float Inpf(float *v1, float *v2);
@@ -82,6 +83,7 @@ float Inp2f(float *v1, float *v2);
 
 float Normalize(float *n);
 float Normalize2(float *n);
+double Normalize_d(double *n);
 
 float Sqrt3f(float f);
 double Sqrt3d(double d);

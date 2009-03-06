@@ -276,6 +276,8 @@ BMFace *BM_Split_Face(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2, BMLoop **nl,
 	BMFace *nf;
 	nf = bmesh_sfme(bm,f,v1,v2,nl);
 	
+	BM_Copy_Attributes(bm, bm, f, nf);
+
 	/*
 	nf->flag = f->flag;
 	if (example->flag & SELECT) f->flag |= BM_SELECT;

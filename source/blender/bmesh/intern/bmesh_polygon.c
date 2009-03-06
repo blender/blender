@@ -36,10 +36,10 @@
  *
 */
 
-static short testedgeside(float *v1, float *v2, float *v3)
+static short testedgeside(double *v1, double *v2, double *v3)
 /* is v3 to the right of v1-v2 ? With exception: v3==v1 || v3==v2 */
 {
-	float inp;
+	double inp;
 
 	//inp= (v2[cox]-v1[cox])*(v1[coy]-v3[coy]) +(v1[coy]-v2[coy])*(v1[cox]-v3[cox]);
 	inp= (v2[0]-v1[0])*(v1[1]-v3[1]) +(v1[1]-v2[1])*(v1[0]-v3[0]);
@@ -52,7 +52,7 @@ static short testedgeside(float *v1, float *v2, float *v3)
 	return 1;
 }
 
-static int point_in_triangle(float *v1, float *v2, float *v3, float *pt)
+static int point_in_triangle(double *v1, double *v2, double *v3, double *pt)
 {
 	if(testedgeside(v1,v2,pt) && testedgeside(v2,v3,pt) && testedgeside(v3,v1,pt))
 		return 1;
@@ -254,22 +254,9 @@ void poly_rotate_plane(float normal[3], float (*verts)[3], int nverts)
 {
 
 	float up[3] = {0.0f,0.0f,1.0f}, axis[3], q[4];
-	float mat[3][3], axes[3][3] = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}};
+	float mat[3][3];
 	double angle;
-	int i, iaxis=0, bestangle=180.0f;
-
-	for (i=0; i<3; i++) {
-		angle = saacos(normal[0]*axes[i][0]+normal[1]*axes[i][1] +
-		               normal[2]*axes[i][2]);
-		if (angle < bestangle) {
-			iaxis = i;
-			bestangle = angle;
-		}
-	}
-
-	//for (i=0; i<nverts; i++) {
-	//	verts[i][iaxis] = 0.0f;
-	//}
+	int i;
 
 	compute_poly_normal(normal, verts, nverts);
 
@@ -354,20 +341,20 @@ void BM_flip_normal(BMesh *bm, BMFace *f)
 
 
 
-int winding(float *a, float *b, float *c)
+int winding(double *a, double *b, double *c)
 {
-	float v1[3], v2[3], v[3];
+	double v1[3], v2[3], v[3];
 	
-	VecSubf(v1, b, a);
-	VecSubf(v2, b, c);
+	VECSUB(v1, b, a);
+	VECSUB(v2, b, c);
 	
 	v1[2] = 0;
 	v2[2] = 0;
 	
-	Normalize(v1);
-	Normalize(v2);
+	Normalize_d(v1);
+	Normalize_d(v2);
 	
-	Crossf(v, v1, v2);
+	Crossd(v, v1, v2);
 
 	/*!! (turns nonzero into 1) is likely not necassary, 
 	  since '>' I *think* should always
@@ -377,7 +364,7 @@ int winding(float *a, float *b, float *c)
 
 /* detects if two line segments cross each other (intersects).
    note, there could be more winding cases then there needs to be. */
-int linecrosses(float *v1, float *v2, float *v3, float *v4)
+int linecrosses(double *v1, double *v2, double *v3, double *v4)
 {
 	int w1, w2, w3, w4, w5;
 	
@@ -396,27 +383,27 @@ int linecrosses(float *v1, float *v2, float *v3, float *v4)
 	return w1 == w2 && w2 == w3 && w3 == w4 && w4==w5;
 }
 
-int goodline(float (*projectverts)[3], int v1i,
+int goodline(float (*projectverts)[3], BMFace *f, int v1i,
 	     int v2i, int v3i, int nvert) {
-	float v1[3], v2[3], v3[3], *pv1, *pv2;
+	BMLoop *l = f->loopbase;
+	double v1[3], v2[3], v3[3], pv1[3], pv2[3];
 	int i;
 
 	VECCOPY(v1, projectverts[v1i]);
 	VECCOPY(v2, projectverts[v2i]);
 	VECCOPY(v3, projectverts[v3i]);
 	
-	if (winding(v1, v2, v3)) return 0;
+	if (testedgeside(v1, v2, v3)) return 0;
 	
-	for (i=0; i<nvert; i++) {
-		//if (i == v1i or i == v3i) continue
+	do {
+		VECCOPY(pv1, projectverts[l->v->head.eflag2]);
+		VECCOPY(pv2, projectverts[((BMLoop*)l->head.next)->v->head.eflag2]);
 
-		pv1 = projectverts[i];
-		pv2 = projectverts[(i+1)%nvert];
-		
-		if (linecrosses(pv1, pv2, v1, v3)) return 0l;
-	}	
+		if (linecrosses(pv1, pv2, v1, v3)) return 0;
+
+		l = l->head.next;
+	} while (l != f->loopbase);
 	return 1;
-
 }
 /*
  * FIND EAR
@@ -450,18 +437,19 @@ static BMLoop *find_ear(BMesh *bm, BMFace *f, float (*verts)[3],
 
 		if (BM_Edge_Exist(v1, v3)) isear = 0;
 
-		if (isear && !goodline(verts, v1->head.eflag2, v2->head.eflag2,
+		if (isear && !goodline(verts, f, v1->head.eflag2, v2->head.eflag2,
 			               v3->head.eflag2, nvert))
 			isear = 0;
 
 		if(isear){
 			angle = VecAngle3(verts[v1->head.eflag2], verts[v2->head.eflag2], verts[v3->head.eflag2]);
-			if(!bestear || ABS(angle-40.0f) < bestangle){
+			if(!bestear || ABS(angle-45.0f) < bestangle){
 				bestear = l;
-				bestangle = ABS(40.0f-angle);
+				bestangle = ABS(45.0f-angle);
 			}
 			
-			if ((angle > 10 && angle < 140) || i > 5) break;
+			if (angle > 20 && angle < 90) break;
+			if (angle < 100 && i > 5) break;
 			i += 1;
 		}
 		l = (BMLoop*)(l->head.next);
@@ -529,7 +517,9 @@ void BM_Triangulate_Face(BMesh *bm, BMFace *f, float (*projectverts)[3],
 		if(l) {
 			done = 0;
 			v = l->v;
-			f = bmesh_sfme(bm, f, ((BMLoop*)(l->head.prev))->v, ((BMLoop*)(l->head.next))->v, &newl);
+			f = BM_Split_Face(bm, l->f, ((BMLoop*)(l->head.prev))->v, 
+			                  ((BMLoop*)(l->head.next))->v, 
+			                  &newl, NULL, 0);
 			if (!f) {
 				printf("yeek! triangulator failed to split face!\n");
 				break;
@@ -553,7 +543,8 @@ void BM_Triangulate_Face(BMesh *bm, BMFace *f, float (*projectverts)[3],
 		l = f->loopbase;
 		while (l->f->len > 3){
 			nextloop = ((BMLoop*)(l->head.next->next));
-			f = bmesh_sfme(bm, l->f, l->v,nextloop->v, &newl);
+			f = BM_Split_Face(bm, l->f, l->v, nextloop->v, 
+			                  &newl, NULL, 0);
 			if (!f) {
 				printf("triangle fan step of triangulator failed.\n");
 				return;
