@@ -68,6 +68,10 @@ struct CustomData;
 #define B_JOINTRIA_SHARP	0X800
 #define B_JOINTRIA_MAT		0X1000
 
+/* bmeshutils.c */
+
+/*recalculate tesselations for ngons*/
+void EDBM_Tesselate(struct EditMesh *em);
 
 /* meshtools.c */
 

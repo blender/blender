@@ -1404,6 +1404,28 @@ void AxisAngleToQuat(float *q, float *axis, float angle)
 	q[3] = nor[2] * si;	
 }
 
+void AxisAngleToQuatd(float *q, float *axis, double angle)
+{
+	double nor[3];
+	double si, l;
+	
+	nor[0] = axis[0];
+	nor[1] = axis[1];
+	nor[2] = axis[2];
+	
+	l = sqrt(nor[0]*nor[0] + nor[1]*nor[1] + nor[2]*nor[2]);
+	nor[0] /= l;
+	nor[1] /= l;
+	nor[2] /= l;
+
+	angle /= 2;
+	si = sin(angle);
+	q[0] = cos(angle);
+	q[1] = nor[0] * si;
+	q[2] = nor[1] * si;
+	q[3] = nor[2] * si;	
+}
+
 void vectoquat(float *vec, short axis, short upflag, float *q)
 {
 	float q2[4], nor[3], *fp, mat[3][3], angle, si, co, x2, y2, z2, len1;

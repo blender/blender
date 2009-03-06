@@ -89,6 +89,32 @@
 #include "mesh_intern.h"
 #include "bmesh.h"
 
+void EDBM_Tesselate(EditMesh *em)
+{
+	EditMesh *em2;
+	EditFace *efa;
+	BMesh *bm;
+	int found=0;
+	
+	for (efa=em->faces.first; efa; efa=efa->next) {
+		if ((efa->e1->h & EM_FGON) || (efa->e2->h & EM_FGON) ||
+		    (efa->e3->h & EM_FGON) || (efa->e4&&(efa->e4->h&EM_FGON)))
+		{
+			found = 1;
+			break;
+		}
+	}
+
+	if (found) {
+		bm = editmesh_to_bmesh(em);
+		em2 = bmesh_to_editmesh(bm);
+		set_editMesh(em, em2);
+
+		MEM_freeN(em2);
+		BM_Free_Mesh(bm);
+	}
+}
+
 int EDBM_CallOpf(EditMesh *em, wmOperator *op, char *fmt, ...)
 {
 	BMesh *bm = editmesh_to_bmesh(em);

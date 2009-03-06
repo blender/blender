@@ -797,6 +797,11 @@ void postTrans (TransInfo *t)
 	else if(t->spacetype==SPACE_ACTION) {
 		if (t->customData)
 			MEM_freeN(t->customData);
+	} else if (t->spacetype==SPACE_VIEW3D) {
+		if (t->obedit) {
+			/*retesselate*/
+			EDBM_Tesselate(((Mesh*)t->obedit->data)->edit_mesh);
+		}
 	}
 }
 
