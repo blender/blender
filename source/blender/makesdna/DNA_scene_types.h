@@ -469,6 +469,9 @@ typedef struct ToolSettings {
 	/* Particle Editing */
 	struct ParticleEditSettings particle;
 	
+	/* Transform Proportional Area of Effect */
+	float proportional_size;
+
 	/* Select Group Threshold */
 	float select_thresh;
 	
@@ -501,9 +504,9 @@ typedef struct ToolSettings {
 	char  skgen_subdivisions[3];
 	char  skgen_multi_level;
 	char  skgen_optimisation_method;
-	
-	char tpad[6];
-	
+
+	char tpad[2];
+
 	/* Alt+RMB option */
 	char edge_mode;
 } ToolSettings;

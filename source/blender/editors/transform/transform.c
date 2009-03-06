@@ -772,7 +772,7 @@ void transformEvent(TransInfo *t, wmEvent *event)
 			break;
 		case PADPLUSKEY:
 			if(event->keymodifier & KM_ALT && t->flag & T_PROP_EDIT) {
-				t->propsize*= 1.1f;
+				t->prop_size*= 1.1f;
 				calculatePropRatio(t);
 			}
 			t->redraw= 1;
@@ -783,7 +783,7 @@ void transformEvent(TransInfo *t, wmEvent *event)
 				transform_autoik_update(t, 1);
 			}
 			else if(t->flag & T_PROP_EDIT) {
-				t->propsize*= 1.1f;
+				t->prop_size*= 1.1f;
 				calculatePropRatio(t);
 			}
 			else view_editmove(event->type);
@@ -791,7 +791,7 @@ void transformEvent(TransInfo *t, wmEvent *event)
 			break;
 		case PADMINUS:
 			if(event->keymodifier & KM_ALT && t->flag & T_PROP_EDIT) {
-				t->propsize*= 0.90909090f;
+				t->prop_size*= 0.90909090f;
 				calculatePropRatio(t);
 			}
 			t->redraw= 1;
@@ -802,7 +802,7 @@ void transformEvent(TransInfo *t, wmEvent *event)
 				transform_autoik_update(t, -1);
 			}
 			else if (t->flag & T_PROP_EDIT) {
-				t->propsize*= 0.90909090f;
+				t->prop_size*= 0.90909090f;
 				calculatePropRatio(t);
 			}
 			else view_editmove(event->type);
@@ -903,7 +903,7 @@ int calculateTransformCenter(bContext *C, wmEvent *event, int centerMode, float 
 	
 	t->mode = TFM_DUMMY;
 
-	initTransInfo(C, t, event);					// internal data, mouse, vectors
+	initTransInfo(C, t, NULL, event);					// internal data, mouse, vectors
 
 	createTransData(C, t);			// make TransData structs from selection
 
@@ -942,21 +942,85 @@ void drawTransform(const struct bContext *C, struct ARegion *ar, void *arg)
 
 void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 {
-	short twmode= (t->spacetype==SPACE_VIEW3D)? ((View3D*)t->view)->twmode: V3D_MANIP_GLOBAL;
+	Scene *sce = CTX_data_scene(C);
+	int constraint_axis[3] = {0, 0, 0};
+	int proportional = 0;
 
 	RNA_int_set(op->ptr, "mode", t->mode);
 	RNA_int_set(op->ptr, "options", t->options);
-	RNA_float_set_array(op->ptr, "values", t->values);
 
+	if (t->flag & T_AUTOVALUES)
+	{
+		RNA_float_set_array(op->ptr, "value", t->auto_values);
+	}
+	else
+	{
+		RNA_float_set_array(op->ptr, "value", t->values);
+	}
+
+	/* XXX convert stupid flag to enum */
+	switch(t->flag & (T_PROP_EDIT|T_PROP_CONNECTED))
+	{
+	case (T_PROP_EDIT|T_PROP_CONNECTED):
+		proportional = 2;
+		break;
+	case T_PROP_EDIT:
+		proportional = 1;
+		break;
+	default:
+		proportional = 0;
+	}
+
+	if (RNA_struct_find_property(op->ptr, "proportional"))
+	{
+		RNA_enum_set(op->ptr, "proportional", proportional);
+		RNA_enum_set(op->ptr, "proportional_mode", t->prop_mode);
+		RNA_float_set(op->ptr, "proportional_size", t->prop_size);
+	}
+
+	if (RNA_struct_find_property(op->ptr, "mirror"))
+	{
+		RNA_boolean_set(op->ptr, "mirror", t->flag & T_MIRROR);
+	}
 	
-	RNA_int_set(op->ptr, "constraint_mode", t->con.mode);
-	RNA_int_set(op->ptr, "constraint_orientation", twmode);
-	RNA_float_set_array(op->ptr, "constraint_matrix", (float*)t->con.mtx);
+	if (RNA_struct_find_property(op->ptr, "constraint_mode"))
+	{
+		RNA_int_set(op->ptr, "constraint_mode", t->con.mode);
+		RNA_int_set(op->ptr, "constraint_orientation", t->current_orientation);
+
+		if (t->con.mode & CON_APPLY)
+		{
+			if (t->con.mode & CON_AXIS0) {
+				constraint_axis[0] = 1;
+			}
+			if (t->con.mode & CON_AXIS1) {
+				constraint_axis[1] = 1;
+			}
+			if (t->con.mode & CON_AXIS2) {
+				constraint_axis[2] = 1;
+			}
+		}
+
+		RNA_boolean_set_array(op->ptr, "constraint_axis", constraint_axis);
+	}
+
+	// XXX If modal, save settings back in scene
+	if (t->flag & T_MODAL)
+	{
+		sce->prop_mode = t->prop_mode;
+		sce->proportional = proportional;
+
+		if(t->spacetype == SPACE_VIEW3D)
+		{
+			View3D *v3d = t->view;
+			
+			v3d->twmode = t->current_orientation;
+		}
+	}
 }
 
-void initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
+void initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int mode)
 {
-	int mode    = RNA_int_get(op->ptr, "mode");
 	int options = RNA_int_get(op->ptr, "options");
 
 	/* added initialize, for external calls to set stuff in TransInfo, like undo string */
@@ -967,8 +1031,8 @@ void initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 	
 	t->mode = mode;
 
-	initTransInfo(C, t, event);					// internal data, mouse, vectors
-	
+	initTransInfo(C, t, op, event);					// internal data, mouse, vectors
+
 	initTransformOrientation(C, t);
 
 	if(t->spacetype == SPACE_VIEW3D)
@@ -1094,26 +1158,40 @@ void initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 		initAlign(t);
 		break;
 	}
-	
+
 	/* overwrite initial values if operator supplied a non-null vector */
-	if (RNA_property_is_set(op->ptr, "values"))
+	if (RNA_property_is_set(op->ptr, "value"))
 	{
 		float values[4];
-		RNA_float_get_array(op->ptr, "values", values);
+		RNA_float_get_array(op->ptr, "value", values);
 		QUATCOPY(t->values, values);
+		QUATCOPY(t->auto_values, values);
+		t->flag |= T_AUTOVALUES;
 	}
 
 	/* Constraint init from operator */
+	if (RNA_property_is_set(op->ptr, "constraint_axis"))
 	{
-		t->con.mode = RNA_int_get(op->ptr, "constraint_mode");
-		
-		if (t->con.mode & CON_APPLY)
+		int constraint_axis[3];
+
+		RNA_boolean_get_array(op->ptr, "constraint_axis", constraint_axis);
+
+		if (constraint_axis[0] || constraint_axis[1] || constraint_axis[2])
 		{
-			RNA_float_get_array(op->ptr, "constraint_matrix", (float*)t->spacemtx);
-			
+			t->con.mode |= CON_APPLY;
+
+			if (constraint_axis[0]) {
+				t->con.mode |= CON_AXIS0;
+			}
+			if (constraint_axis[1]) {
+				t->con.mode |= CON_AXIS1;
+			}
+			if (constraint_axis[2]) {
+				t->con.mode |= CON_AXIS2;
+			}
+				
 			setUserConstraint(t, t->con.mode, "%s");		
 		}
-
 	}
 }
 
@@ -2226,6 +2304,13 @@ int Resize(TransInfo *t, short mval[2])
 	}
 
 	applySnapping(t, size);
+
+	if (t->flag & T_AUTOVALUES)
+	{
+		VECCOPY(size, t->auto_values);
+	}
+
+	VECCOPY(t->values, size);
 
 	SizeToMat3(size, mat);
 

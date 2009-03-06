@@ -2110,8 +2110,8 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 	int count=0, countsel=0, a, totleft;
 	int propmode = t->flag & T_PROP_EDIT;
 	int mirror = 0;
-	
-	if ((t->options & CTX_NO_MIRROR) == 0 && (scene->toolsettings->editbutflag & B_MESH_X_MIRROR))
+
+	if (t->flag & T_MIRROR)
 	{
 		mirror = 1;
 	}

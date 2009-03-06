@@ -90,6 +90,28 @@
 static void drawObjectConstraint(TransInfo *t);
 
 /* ************************** CONSTRAINTS ************************* */
+void constraintAutoValues(TransInfo *t, float vec[3])
+{
+	int mode = t->con.mode;
+	if (mode & CON_APPLY)
+	{
+		float nval = (t->flag & T_NULL_ONE)?1.0f:0.0f;
+
+		if ((mode & CON_AXIS0) == 0)
+		{
+			vec[0] = nval;
+		}
+		if ((mode & CON_AXIS1) == 0)
+		{
+			vec[1] = nval;
+		}
+		if ((mode & CON_AXIS2) == 0)
+		{
+			vec[2] = nval;
+		}
+	}
+}
+
 void constraintNumInput(TransInfo *t, float vec[3])
 {
 	int mode = t->con.mode;
@@ -99,6 +121,8 @@ void constraintNumInput(TransInfo *t, float vec[3])
 		if (getConstraintSpaceDimension(t) == 2) {
 			int axis = mode & (CON_AXIS0|CON_AXIS1|CON_AXIS2);
 			if (axis == (CON_AXIS0|CON_AXIS1)) {
+				vec[0] = vec[0];
+				vec[1] = vec[1];
 				vec[2] = nval;
 			}
 			else if (axis == (CON_AXIS1|CON_AXIS2)) {
@@ -107,12 +131,14 @@ void constraintNumInput(TransInfo *t, float vec[3])
 				vec[0] = nval;
 			}
 			else if (axis == (CON_AXIS0|CON_AXIS2)) {
+				vec[0] = vec[0];
 				vec[2] = vec[1];
 				vec[1] = nval;
 			}
 		}
 		else if (getConstraintSpaceDimension(t) == 1) {
 			if (mode & CON_AXIS0) {
+				vec[0] = vec[0];
 				vec[1] = nval;
 				vec[2] = nval;
 			}
@@ -151,6 +177,12 @@ static void postConstraintChecks(TransInfo *t, float vec[3], float pvec[3]) {
 	if (hasNumInput(&t->num)) {
 		applyNumInput(&t->num, vec);
 		constraintNumInput(t, vec);
+	}
+
+	if (t->flag & T_AUTOVALUES)
+	{
+		VECCOPY(vec, t->auto_values);
+		constraintAutoValues(t, vec);
 	}
 	
 	if (t->con.mode & CON_AXIS0) {
@@ -522,9 +554,9 @@ void setLocalConstraint(TransInfo *t, int mode, const char text[]) {
 */
 void setUserConstraint(TransInfo *t, int mode, const char ftext[]) {
 	char text[40];
-	short twmode= (t->spacetype==SPACE_VIEW3D)? ((View3D*)t->view)->twmode: V3D_MANIP_GLOBAL;
+	//short twmode= (t->spacetype==SPACE_VIEW3D)? ((View3D*)t->view)->twmode: V3D_MANIP_GLOBAL;
 
-	switch(twmode) {
+	switch(t->current_orientation) {
 	case V3D_MANIP_GLOBAL:
 		{
 			float mtx[3][3];
@@ -772,7 +804,7 @@ void drawPropCircle(TransInfo *t)
 		}
 
 		set_inverted_drawing(1);
-		drawcircball(GL_LINE_LOOP, t->center, t->propsize, imat);
+		drawcircball(GL_LINE_LOOP, t->center, t->prop_size, imat);
 		set_inverted_drawing(0);
 		
 		glPopMatrix();

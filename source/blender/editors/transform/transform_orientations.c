@@ -454,9 +454,9 @@ void initTransformOrientation(bContext *C, TransInfo *t)
 	float normal[3]={0.0, 0.0, 0.0};
 	float plane[3]={0.0, 0.0, 0.0};
 
-	if(v3d==NULL) return;
+	if(t->spacetype != SPACE_VIEW3D) return;
 	
-	switch(v3d->twmode) {
+	switch(t->current_orientation) {
 	case V3D_MANIP_GLOBAL:
 		strcpy(t->spacename, "global");
 		break;
