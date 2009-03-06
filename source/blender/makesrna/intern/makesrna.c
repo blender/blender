@@ -1022,7 +1022,7 @@ static void rna_generate_struct(BlenderRNA *brna, StructRNA *srna, FILE *f)
 		switch(prop->type) {
 			case PROP_ENUM: {
 				EnumPropertyRNA *eprop= (EnumPropertyRNA*)prop;
-				int i;
+				int i, defaultfound= 0;
 
 				if(eprop->item) {
 					fprintf(f, "static EnumPropertyItem rna_%s_%s_items[%d] = {", srna->identifier, prop->identifier, eprop->totitem);
@@ -1034,9 +1034,17 @@ static void rna_generate_struct(BlenderRNA *brna, StructRNA *srna, FILE *f)
 						rna_print_c_string(f, eprop->item[i].description); fprintf(f, "}");
 						if(i != eprop->totitem-1)
 							fprintf(f, ", ");
+
+						if(eprop->defaultvalue == eprop->item[i].value)
+							defaultfound= 1;
 					}
 
 					fprintf(f, "};\n\n");
+
+					if(!defaultfound) {
+						fprintf(stderr, "rna_generate_structs: %s.%s, enum default is not in items.\n", srna->identifier, prop->identifier);
+						DefRNA.error= 1;
+					}
 				}
 				else {
 					fprintf(stderr, "rna_generate_structs: %s.%s, enum must have items defined.\n", srna->identifier, prop->identifier);

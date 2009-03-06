@@ -843,15 +843,22 @@ void RNA_def_property_struct_runtime(PropertyRNA *prop, StructRNA *type)
 void RNA_def_property_enum_items(PropertyRNA *prop, const EnumPropertyItem *item)
 {
 	StructRNA *srna= DefRNA.laststruct;
-	int i;
+	int i, defaultfound= 0;
 
 	switch(prop->type) {
 		case PROP_ENUM: {
 			EnumPropertyRNA *eprop= (EnumPropertyRNA*)prop;
 			eprop->item= item;
 			eprop->totitem= 0;
-			for(i=0; item[i].identifier; i++)
+			for(i=0; item[i].identifier; i++) {
 				eprop->totitem++;
+
+				if(item[i].value == eprop->defaultvalue)
+					defaultfound= 1;
+			}
+
+			if(!defaultfound)
+				eprop->defaultvalue= item[0].value;
 
 			break;
 		}
@@ -1001,11 +1008,28 @@ void RNA_def_property_string_default(PropertyRNA *prop, const char *value)
 void RNA_def_property_enum_default(PropertyRNA *prop, int value)
 {
 	StructRNA *srna= DefRNA.laststruct;
+	int i, defaultfound= 0;
 
 	switch(prop->type) {
 		case PROP_ENUM: {
 			EnumPropertyRNA *eprop= (EnumPropertyRNA*)prop;
 			eprop->defaultvalue= value;
+
+			for(i=0; i<eprop->totitem; i++) {
+				if(eprop->item[i].value == eprop->defaultvalue)
+					defaultfound= 1;
+			}
+
+			if(!defaultfound && eprop->totitem) {
+				if(value == 0) {
+					eprop->defaultvalue= eprop->item[0].value;
+				}
+				else {
+					fprintf(stderr, "RNA_def_property_enum_default: %s.%s, default is not in items.\n", srna->identifier, prop->identifier);
+					DefRNA.error= 1;
+				}
+			}
+
 			break;
 		}
 		default:
