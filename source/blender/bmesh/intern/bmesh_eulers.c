@@ -983,3 +983,171 @@ BMFace *bmesh_jfke(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e)
 	bmesh_free_poly(bm, f2);	
 	return f1;
 }
+
+/**
+*    bmesh_URMV
+*
+*    UNGLUE REGION MAKE VERT:
+*
+*    Takes a locally manifold disk of face corners and 'unglues' it
+*    creating a new vertex
+*
+**/
+
+#define URMV_VISIT    1
+#define URMV_VISIT2   2
+
+BMVert *bmesh_urmv(BMesh *bm, BMFace *sf, BMVert *sv)
+{
+    BMVert *nv = NULL;
+    BMLoop *l = NULL, *sl = NULL;
+    BMEdge *curedge = NULL;
+    int numloops = 0, numedges = 0, i, maxedges, maxloops;
+
+
+    /*Todo: Validation*/
+    /*validate radial cycle of all collected loops*/
+    /*validate the disk cycle of sv, and nv*/
+    /*validate the face length of all faces? overkill?*/
+    /*validate the l->e pointers of all affected faces, ie: l->v and l->next->v should be equivalent to l->e*/
+   
+    /*verify that sv has edges*/
+    if(sv->edge == NULL)
+        return NULL;
+   
+    /*first verify no wire edges on sv*/
+    curedge = sv->edge;
+    do{
+        if(curedge->loop == NULL)
+            return NULL;
+        curedge = bmesh_disk_nextedge(curedge, sv);
+    }while(curedge != sv->edge);
+   
+    /*next verify that sv is in sf*/
+    l = sf->loopbase;
+    do{
+        if(l->v == sv){
+            sl = l;
+            break;
+        }
+        l = (BMLoop*)(l->head.next);
+    }while(l != sf->loopbase);
+   
+    if(sl == NULL)
+        return NULL;
+   
+    /*clear euler flags*/
+    sv->head.eflag1 = 0;
+   
+    curedge = sv->edge;
+    do{
+        curedge->head.eflag1 = 0;
+        l = curedge->loop;
+        do{
+            l->head.eflag1 = 0;
+            l->f->head.eflag1 = 0;
+            l = bmesh_radial_nextloop(l);
+        }while(l != curedge->loop);
+        curedge = bmesh_disk_nextedge(curedge, sv);
+    }while(curedge != sv->edge);
+   
+    /*search through face disk and flag elements as we go.*/
+    /*Note, test this to make sure that it works correct on
+    non-manifold faces!
+    */
+    l = sl;
+    l->e->head.eflag1 |= URMV_VISIT;
+    l->f->head.eflag1 |= URMV_VISIT;
+    do{
+        if(l->v == sv)
+            l = bmesh_radial_nextloop((BMLoop*)(l->head.prev));
+        else
+            l = bmesh_radial_nextloop((BMLoop*)(l->head.next));
+        l->e->head.eflag1 |= URMV_VISIT;
+        l->f->head.eflag1 |= URMV_VISIT;
+    }while(l != sl && (bmesh_cycle_length(&(l->radial)) > 1) );
+   
+    /*Verify that all visited edges are at least 1 or 2 manifold*/
+    curedge = sv->edge;
+    do{
+        if(curedge->head.eflag1 && (bmesh_cycle_length(&(curedge->loop->radial)) > 2) )
+            return NULL;
+        curedge = bmesh_disk_nextedge(curedge, sv);
+    }while(curedge != sv->edge);
+
+	/*allocate temp storage - we overallocate here instead of trying to be clever*/
+	maxedges = 0;
+	maxloops = 0;
+	curedge = sv->edge;
+	do{
+		if(curedge->loop){
+			l = curedge->loop;
+			do{
+				maxloops += l->f->len;
+				l = bmesh_radial_nextloop(l);
+			}while(l != curedge->loop);
+		}
+		maxedges+= 1;
+		curedge = bmesh_disk_nextedge(curedge,sv);
+	}while(curedge != sv->edge);
+
+	if(bm->edarlen < maxedges){
+		MEM_freeN(bm->edar);
+		bm->edar = MEM_callocN(sizeof(BMEdge *) * maxedges, "BM Edge pointer array");
+		bm->edarlen = maxedges;
+	}
+	if(bm->lparlen < maxloops){
+		MEM_freeN(bm->lpar);
+		bm->lpar = MEM_callocN(sizeof(BMLoop *) * maxloops, "BM Loop pointer array");
+		bm->lparlen = maxloops;
+	}
+
+    /*first get loops by looping around edges and loops around that edges faces*/
+    curedge = sv->edge;
+    do{
+        if(curedge->loop){
+            l = curedge->loop;
+            do{
+                if( (l->head.eflag1 & URMV_VISIT) && (!(l->head.eflag1 & URMV_VISIT2)) ){
+                    bm->lpar[numloops] = l;
+                    l->head.eflag1 |= URMV_VISIT2;
+                    numloops++;
+                }
+                l = bmesh_radial_nextloop(l);
+            }while(l != curedge->loop);
+        }
+        curedge = bmesh_disk_nextedge(curedge, sv);
+    }while(curedge != sv->edge);
+
+    /*now collect edges by looping around edges and looking at visited flags*/
+    curedge = sv->edge;
+    do{
+        if(curedge->head.eflag1 & URMV_VISIT){
+            bm->edar[numedges] = curedge;
+            numedges++;
+        }
+        curedge = bmesh_disk_nextedge(curedge, sv);
+    }while(curedge != sv->edge);
+   
+    /*make new vertex*/
+    nv = bmesh_addvertlist(bm, sv);
+   
+    /*go through and relink edges*/
+    for(i = 0;  i <  numedges; i++){
+        curedge = bm->edar[i];
+        /*remove curedge from sv*/
+        bmesh_disk_remove_edge(curedge, sv);
+        /*swap out sv for nv in curedge*/
+        bmesh_edge_swapverts(curedge, sv, nv);
+        /*add curedge to nv's disk cycle*/
+        bmesh_disk_append_edge(curedge, nv);
+    }
+   
+    /*go through and relink loops*/
+    for(i = 0; i < numloops; i ++){
+        l = bm->lpar[i];
+        if(l->v == sv)
+            l->v = nv;
+	}
+	return nv;
+}

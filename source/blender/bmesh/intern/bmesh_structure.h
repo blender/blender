@@ -94,4 +94,7 @@ int bmesh_jekv(struct BMesh *bm, struct BMEdge *ke, struct BMVert *kv);
 int bmesh_loop_reverse(struct BMesh *bm, struct BMFace *f);
 struct BMFace *bmesh_jfke(struct BMesh *bm, struct BMFace *f1, BMFace *f2, BMEdge *e);
 
+struct BMVert *bmesh_urmv(struct BMesh *bm, struct BMFace *sf, struct BMVert *sv);
+//int *bmesh_grkv(struct BMesh *bm, struct BMFace *sf, struct BMVert *kv);
+
 #endif
