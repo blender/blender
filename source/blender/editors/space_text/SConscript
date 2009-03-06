@@ -10,4 +10,4 @@ incs += ' #/intern/bmfont ../../python ../../makesrna ../../blenfont'
 if not env['WITH_BF_PYTHON']:
 	defs.append('DISABLE_PYTHON')
 
-env.BlenderLib ( 'bf_editors_space_text', sources, Split(incs), [], libtype=['core'], priority=[95] )
+env.BlenderLib ( 'bf_editors_space_text', sources, Split(incs), defs, libtype=['core'], priority=[95] )
