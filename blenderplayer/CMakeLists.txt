@@ -104,6 +104,7 @@ IF(UNIX)
     bf_blenlib 
     bf_cineon 
     bf_openexr 
+    extern_libopenjpeg 
     bf_dds
     bf_ftfont 
     extern_ftgl 

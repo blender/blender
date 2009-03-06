@@ -45,6 +45,8 @@
 #define IB_zbuf			(1 << 13)
 #define IB_rgba			(1 << 14)
 
+#define JP2             (1 << 18)
+
 #define AMI             (1 << 31)
 #define PNG             (1 << 30)
 #define Anim            (1 << 29)
@@ -55,10 +57,6 @@
 #define QUICKTIME       (1 << 25)
 #endif
 #define RADHDR  (1<<24)
-
-#ifdef WITH_OPENJPEG
-#define JP2                            (1 << 18)
-#endif
 
 #define RAWTGA	(TGA | 1)
 

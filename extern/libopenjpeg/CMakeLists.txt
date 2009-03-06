@@ -1,4 +1,4 @@
-# $Id$
+# $Id: CMakeLists.txt 14444 2008-04-16 22:40:48Z hos $
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
 # This program is free software; you can redistribute it and/or
@@ -24,44 +24,9 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-FILE(GLOB SRC intern/*.c)
+SET(INC . src ${FREETYPE_INC})
 
-SET(INC 
-  . ../makesdna ../../../intern/guardedalloc ../../../intern/memutil ../blenlib
-  ../avi ../quicktime ../blenkernel
-  ${JPEG_INC}
-  ${PNG_INC}
-  ${TIFF_INC}
-  ${ZLIB_INC}
-  ${OPENJPEG_INC}
-)
-
-IF(WITH_VERSE)
-  ADD_DEFINITIONS(-DWITH_VERSE)
-  SET(INC ${INC} VERSE_INC)
-ENDIF(WITH_VERSE)
-
-IF(WITH_OPENEXR)
-  ADD_DEFINITIONS(-DWITH_OPENEXR)
-ENDIF(WITH_OPENEXR)
-
-IF(WITH_OPENJPEG)
-  ADD_DEFINITIONS(-DWITH_OPENJPEG)
-ENDIF(WITH_OPENJPEG)
-
-IF(WITH_QUICKTIME)
-  SET(INC ${INC} ${QUICKTIME_INC})
-  ADD_DEFINITIONS(-DWITH_QUICKTIME)
-ENDIF(WITH_QUICKTIME)
-
-IF(WITH_FFMPEG)
-  SET(INC ${INC} ${FFMPEG_INC})
-  ADD_DEFINITIONS(-DWITH_FFMPEG)
-ENDIF(WITH_FFMPEG)
-
-if(WITH_DDS)
-  ADD_DEFINITIONS(-DWITH_DDS)
-ENDIF(WITH_DDS)
-
-BLENDERLIB(bf_imbuf "${SRC}" "${INC}")
-#env.BlenderLib ( libname = 'bf_imbuf', sources = sources, includes = Split(incs), defines = defs, libtype=['core','player'], priority = [80, 40] )
+FILE(GLOB SRC *.c except t1_generate_luts.c)
+ADD_DEFINITIONS(-DWITH_OPENJPEG)
+BLENDERLIB(extern_libopenjpeg "${SRC}" "${INC}")
+#, libtype=['international','player'], priority=[5, 210])

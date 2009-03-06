@@ -267,6 +267,7 @@ IF(UNIX)
     bf_quicktime
     extern_binreloc
     extern_glew
+    extern_libopenjpeg
     bf_videotex
   )
 
