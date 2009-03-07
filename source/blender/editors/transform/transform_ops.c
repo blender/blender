@@ -30,6 +30,7 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
+#include "RNA_enum_types.h"
 
 #include "BLI_arithb.h"
 
@@ -250,7 +251,7 @@ static int transform_invoke(bContext *C, wmOperator *op, wmEvent *event)
 void Properties_Proportional(struct wmOperatorType *ot)
 {
 	RNA_def_enum(ot->srna, "proportional", proportional_mode_types, 0, "Proportional Edition", "");
-	RNA_def_enum(ot->srna, "proportional_falloff", proportional_falloff_types, 0, "Proportional Falloff", "");
+	RNA_def_enum(ot->srna, "proportional_editing_falloff", prop_mode_items, 0, "Proportional Editing Falloff", "Falloff type for proportional editing mode.");
 	RNA_def_float(ot->srna, "proportional_size", 1, 0, FLT_MAX, "Proportional Size", "", 0, 100);
 
 }

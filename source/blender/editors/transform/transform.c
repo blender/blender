@@ -764,15 +764,15 @@ void transformEvent(TransInfo *t, wmEvent *event)
 			}
 			break;
 		case OKEY:
-			if (t->flag & T_PROP_EDIT && event->keymodifier == KM_SHIFT) {
-				t->scene->prop_mode = (t->scene->prop_mode+1)%6;
+			if (t->flag & T_PROP_EDIT && event->shift) {
+				t->prop_mode = (t->prop_mode + 1) % 6;
 				calculatePropRatio(t);
-				t->redraw= 1;
+				t->redraw = 1;
 			}
 			break;
 		case PADPLUSKEY:
-			if(event->keymodifier & KM_ALT && t->flag & T_PROP_EDIT) {
-				t->prop_size*= 1.1f;
+			if(event->alt && t->flag & T_PROP_EDIT) {
+				t->prop_size *= 1.1f;
 				calculatePropRatio(t);
 			}
 			t->redraw= 1;
@@ -790,7 +790,7 @@ void transformEvent(TransInfo *t, wmEvent *event)
 			t->redraw= 1;
 			break;
 		case PADMINUS:
-			if(event->keymodifier & KM_ALT && t->flag & T_PROP_EDIT) {
+			if(event->alt && t->flag & T_PROP_EDIT) {
 				t->prop_size*= 0.90909090f;
 				calculatePropRatio(t);
 			}
@@ -974,7 +974,7 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 	if (RNA_struct_find_property(op->ptr, "proportional"))
 	{
 		RNA_enum_set(op->ptr, "proportional", proportional);
-		RNA_enum_set(op->ptr, "proportional_mode", t->prop_mode);
+		RNA_enum_set(op->ptr, "proportional_editing_falloff", t->prop_mode);
 		RNA_float_set(op->ptr, "proportional_size", t->prop_size);
 	}
 

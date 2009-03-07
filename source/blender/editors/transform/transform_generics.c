@@ -810,9 +810,9 @@ void initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 		t->prop_size = sce->toolsettings->proportional_size;
 	}
 	
-	if (op && RNA_struct_find_property(op->ptr, "proportional_falloff") && RNA_property_is_set(op->ptr, "proportional_falloff"))
+	if (op && RNA_struct_find_property(op->ptr, "proportional_editing_falloff") && RNA_property_is_set(op->ptr, "proportional_editing_falloff"))
 	{
-		t->prop_mode = RNA_enum_get(op->ptr, "proportional_falloff");
+		t->prop_mode = RNA_enum_get(op->ptr, "proportional_editing_falloff");
 	}
 	else
 	{
