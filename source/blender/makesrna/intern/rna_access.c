@@ -586,8 +586,14 @@ void RNA_property_boolean_get_array(PointerRNA *ptr, PropertyRNA *prop, int *val
 	BooleanPropertyRNA *bprop= (BooleanPropertyRNA*)prop;
 	IDProperty *idprop;
 
-	if((idprop=rna_idproperty_check(&prop, ptr)))
-		memcpy(values, IDP_Array(idprop), sizeof(int)*idprop->len);
+	if((idprop=rna_idproperty_check(&prop, ptr))) {
+		if(prop->arraylength == 0)
+			values[0]= RNA_property_boolean_get(ptr, prop);
+		else
+			memcpy(values, IDP_Array(idprop), sizeof(int)*idprop->len);
+	}
+	else if(prop->arraylength == 0)
+		values[0]= RNA_property_boolean_get(ptr, prop);
 	else if(bprop->getarray)
 		bprop->getarray(ptr, values);
 	else if(bprop->defaultarray)
@@ -677,8 +683,14 @@ void RNA_property_int_get_array(PointerRNA *ptr, PropertyRNA *prop, int *values)
 	IntPropertyRNA *iprop= (IntPropertyRNA*)prop;
 	IDProperty *idprop;
 
-	if((idprop=rna_idproperty_check(&prop, ptr)))
-		memcpy(values, IDP_Array(idprop), sizeof(int)*idprop->len);
+	if((idprop=rna_idproperty_check(&prop, ptr))) {
+		if(prop->arraylength == 0)
+			values[0]= RNA_property_int_get(ptr, prop);
+		else
+			memcpy(values, IDP_Array(idprop), sizeof(int)*idprop->len);
+	}
+	else if(prop->arraylength == 0)
+		values[0]= RNA_property_int_get(ptr, prop);
 	else if(iprop->getarray)
 		iprop->getarray(ptr, values);
 	else if(iprop->defaultarray)
@@ -779,7 +791,9 @@ void RNA_property_float_get_array(PointerRNA *ptr, PropertyRNA *prop, float *val
 	int i;
 
 	if((idprop=rna_idproperty_check(&prop, ptr))) {
-		if(idprop->subtype == IDP_FLOAT) {
+		if(prop->arraylength == 0)
+			values[0]= RNA_property_float_get(ptr, prop);
+		else if(idprop->subtype == IDP_FLOAT) {
 			memcpy(values, IDP_Array(idprop), sizeof(float)*idprop->len);
 		}
 		else {
@@ -787,13 +801,14 @@ void RNA_property_float_get_array(PointerRNA *ptr, PropertyRNA *prop, float *val
 				values[i]=  (float)(((double*)IDP_Array(idprop))[i]);
 		}
 	}
+	else if(prop->arraylength == 0)
+		values[0]= RNA_property_float_get(ptr, prop);
 	else if(fprop->getarray)
 		fprop->getarray(ptr, values);
 	else if(fprop->defaultarray)
 		memcpy(values, fprop->defaultarray, sizeof(float)*prop->arraylength);
 	else
 		memset(values, 0, sizeof(float)*prop->arraylength);
-
 }
 
 float RNA_property_float_get_index(PointerRNA *ptr, PropertyRNA *prop, int index)
