@@ -420,12 +420,19 @@ short copy_animedit_keys (bAnimContext *ac, ListBase *anim_data)
 	/* clear buffer first */
 	free_anim_copybuf();
 	
-	/* assume that each of these is an ipo-block */
+	/* assume that each of these is an F-Curve */
 	for (ale= anim_data->first; ale; ale= ale->next) {
 		FCurve *fcu= (FCurve *)ale->key_data;
 		tAnimCopybufItem *aci;
 		BezTriple *bezt, *newbuf;
 		int i;
+		
+		/* firstly, check if F-Curve has any selected keyframes
+		 *	- skip if no selected keyframes found (so no need to create unnecessary copy-buffer data)
+		 *	- this check should also eliminate any problems associated with using sample-data
+		 */
+		if (ANIM_fcurve_keys_bezier_loop(NULL, fcu, NULL, ANIM_editkeyframes_ok(BEZT_OK_SELECTED), NULL) == 0)
+			continue;
 		
 		/* init copybuf item info */
 		aci= MEM_callocN(sizeof(tAnimCopybufItem), "AnimCopybufItem");
@@ -436,7 +443,6 @@ short copy_animedit_keys (bAnimContext *ac, ListBase *anim_data)
 		BLI_addtail(&animcopybuf, aci);
 		
 		/* add selected keyframes to buffer */
-		// XXX we don't cope with sample-data yet
 		// TODO: currently, we resize array everytime we add a new vert - this works ok as long as it is assumed only a few keys are copied
 		for (i=0, bezt=fcu->bezt; i < fcu->totvert; i++, bezt++) {
 			if (BEZSELECTED(bezt)) {

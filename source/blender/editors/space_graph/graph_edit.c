@@ -256,7 +256,7 @@ static short copy_graph_keys (bAnimContext *ac)
 	free_anim_copybuf();
 	
 	/* filter data */
-	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVEVISIBLE | ANIMFILTER_SEL | ANIMFILTER_CURVESONLY);
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVEVISIBLE | ANIMFILTER_CURVESONLY);
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	/* copy keyframes */
@@ -1010,6 +1010,50 @@ void GRAPHEDIT_OT_keyframes_handletype (wmOperatorType *ot)
 
 /* ************************************************************************** */
 /* TRANSFORM STUFF */
+
+/* ***************** 'Euler Filter' Operator **************************** */
+/* Euler filter tools (as seen in Maya), are necessary for working with 'baked'
+ * rotation curves (with Euler rotations). The main purpose of such tools is to
+ * resolve any discontinuities that may arise in the curves due to the clamping
+ * of values to -180 degrees to 180 degrees.
+ */
+
+static int graphkeys_euler_filter_exec (bContext *C, wmOperator *op)
+{
+	bAnimContext ac;
+	//ListBase anim_data= {NULL, NULL};
+	//bAnimListElem *ale;
+	//int filter;
+	
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+		
+	/* The process is done in two passes:
+	 * 	 1) Sets of three related rotation curves are identified from the selected channels,
+	 *		and are stored as a single 'operation unit' for the next step
+	 *	 2) Each set of three F-Curves is processed for each keyframe, with the values being
+	 * 		processed according to one of several ways.
+	 */
+	
+	
+	// XXX for now
+	return OPERATOR_CANCELLED;
+}
+ 
+void GRAPHEDIT_OT_keyframes_euler_filter (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Euler Filter";
+	ot->idname= "GRAPHEDIT_OT_keyframes_euler_filter";
+	
+	/* api callbacks */
+	ot->exec= graphkeys_euler_filter_exec;
+	ot->poll= ED_operator_areaactive;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
 
 /* ***************** Snap Current Frame Operator *********************** */
 
