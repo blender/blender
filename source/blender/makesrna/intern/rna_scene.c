@@ -33,6 +33,17 @@
 
 #include "WM_types.h"
 
+/* prop_mode needs to be accessible from transform operator */
+EnumPropertyItem prop_mode_items[] ={
+	{PROP_SMOOTH, "SMOOTH", "Smooth", ""},
+	{PROP_SPHERE, "SPHERE", "Sphere", ""},
+	{PROP_ROOT, "ROOT", "Root", ""},
+	{PROP_SHARP, "SHARP", "Sharp", ""},
+	{PROP_LIN, "LINEAR", "Linear", ""},
+	{PROP_CONST, "CONSTANT", "Constant", ""},
+	{PROP_RANDOM, "RANDOM", "Random", ""},
+	{0, NULL, NULL, NULL}};
+
 #ifdef RNA_RUNTIME
 
 #include "BKE_context.h"
@@ -360,15 +371,6 @@ void RNA_def_scene(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
-	static EnumPropertyItem prop_mode_items[] ={
-		{PROP_SMOOTH, "SMOOTH", "Smooth", ""},
-		{PROP_SPHERE, "SPHERE", "Sphere", ""},
-		{PROP_ROOT, "ROOT", "Root", ""},
-		{PROP_SHARP, "SHARP", "Sharp", ""},
-		{PROP_LIN, "LINEAR", "Linear", ""},
-		{PROP_CONST, "CONSTANT", "Constant", ""},
-		{PROP_RANDOM, "RANDOM", "Random", ""},
-		{0, NULL, NULL, NULL}};
 	static EnumPropertyItem unwrapper_items[] = {
 		{0, "CONFORMAL", "Conformal", ""},
 		{1, "ANGLEBASED", "Angle Based", ""}, 
