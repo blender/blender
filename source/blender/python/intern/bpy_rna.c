@@ -586,7 +586,7 @@ static PyObject *pyrna_struct_getattro( BPy_StructRNA * self, PyObject *pyname )
 		ret = pyrna_prop_to_py(&self->ptr, prop);
 	}
 	else if (strcmp(name, "__dict__")==0) { /* Not quite correct, adding this so dir() gives good feedback */
-		PropertyRNA *prop, *iterprop, *nameprop;
+		PropertyRNA *iterprop, *nameprop;
 		CollectionPropertyIterator iter;
 		char name[256], *nameptr;
 

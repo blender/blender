@@ -317,7 +317,36 @@ static PyObject *Method_register( PyObject * self, PyObject * args )
 	Py_RETURN_NONE;
 }
 
+static PyObject *Method_registerKey( PyObject * self, PyObject * args )
+{
+	PyObject *py_context;
+	PyObject *py_keywords= NULL;
+	char *keymap_name, *operator_name;
+	int spaceid, regionid;
+	int keyval, evtval, q1, q2;
+	
+	wmWindowManager *wm;
+	ListBase *keymap;
+	wmKeymapItem *km;
+	
+	if( !PyArg_ParseTuple( args, "O!iissiiii|O!:registerKey", &PyCObject_Type, &py_context, &spaceid, &regionid, &keymap_name, &operator_name, &keyval, &evtval, &q1, &q2, &PyDict_Type, &py_keywords) )
+		return NULL;
 
+	wm= CTX_wm_manager(PyCObject_AsVoidPtr(py_context));
+	
+	/* keymap= WM_keymap_listbase(wm, "Image Generic", SPACE_IMAGE, 0); */
+	keymap= WM_keymap_listbase(wm, keymap_name, spaceid, regionid);
+	
+	km= WM_keymap_add_item(keymap, operator_name, keyval, evtval, q1, q2);
+	
+	/* Optional python doctionary used to set python properties, just like how keyword args are used */
+	if (py_keywords && PyDict_Size(py_keywords)) {
+		if (PYOP_props_from_dict(km->ptr, py_keywords) == -1)
+			return NULL;
+	}
+	
+	Py_RETURN_NONE;
+}
 
 /* internal use only */
 static bContext *get_py_context__internal(void)
@@ -386,6 +415,9 @@ static struct PyMethodDef ui_methods[] = {
 	{"matchPanelsView2d", (PyCFunction)Method_matchPanelsView2d, METH_VARARGS, ""},
 	
 	{"register", (PyCFunction)Method_register, METH_VARARGS, ""}, // XXX not sure about this - registers current script with the ScriptSpace, like Draw.Register()
+	{"registerKey", (PyCFunction)Method_registerKey, METH_VARARGS, ""}, // XXX could have this in another place too
+	
+	
 	
 	{"getRegonPtr", (PyCFunction)Method_getRegonPtr,	METH_NOARGS, ""}, // XXX Nasty, we really need to improve dealing with context!
 	{"getAreaPtr", (PyCFunction)Method_getAreaPtr,		METH_NOARGS, ""},
@@ -408,7 +440,7 @@ static struct PyModuleDef ui_module = {
 
 PyObject *BPY_ui_module( void )
 {
-	PyObject *submodule, *dict;
+	PyObject *submodule, *mod;
 #if PY_VERSION_HEX >= 0x03000000
 	submodule= PyModule_Create(&ui_module);
 #else /* Py2.x */
@@ -416,25 +448,176 @@ PyObject *BPY_ui_module( void )
 #endif
 	
 	/* uiBlock->flag (controls) */
-	PyModule_AddObject( submodule, "UI_BLOCK_LOOP", PyLong_FromSize_t(UI_BLOCK_LOOP) );
-	PyModule_AddObject( submodule, "UI_BLOCK_RET_1", PyLong_FromSize_t(UI_BLOCK_RET_1) );
-	PyModule_AddObject( submodule, "UI_BLOCK_NUMSELECT", PyLong_FromSize_t(UI_BLOCK_NUMSELECT) );
-	PyModule_AddObject( submodule, "UI_BLOCK_ENTER_OK", PyLong_FromSize_t(UI_BLOCK_ENTER_OK) );
-	PyModule_AddObject( submodule, "UI_BLOCK_NOSHADOW", PyLong_FromSize_t(UI_BLOCK_NOSHADOW) );
-	PyModule_AddObject( submodule, "UI_BLOCK_NO_HILITE", PyLong_FromSize_t(UI_BLOCK_NO_HILITE) );
-	PyModule_AddObject( submodule, "UI_BLOCK_MOVEMOUSE_QUIT", PyLong_FromSize_t(UI_BLOCK_MOVEMOUSE_QUIT) );
-	PyModule_AddObject( submodule, "UI_BLOCK_KEEP_OPEN", PyLong_FromSize_t(UI_BLOCK_KEEP_OPEN) );
-	PyModule_AddObject( submodule, "UI_BLOCK_POPUP", PyLong_FromSize_t(UI_BLOCK_POPUP) );
+	mod = PyModule_New("ui");
+	PyModule_AddObject( submodule, "ui", mod );
+	PyModule_AddObject( mod, "BLOCK_LOOP", PyLong_FromSize_t(UI_BLOCK_LOOP) );
+	PyModule_AddObject( mod, "BLOCK_RET_1", PyLong_FromSize_t(UI_BLOCK_RET_1) );
+	PyModule_AddObject( mod, "BLOCK_NUMSELECT", PyLong_FromSize_t(UI_BLOCK_NUMSELECT) );
+	PyModule_AddObject( mod, "BLOCK_ENTER_OK", PyLong_FromSize_t(UI_BLOCK_ENTER_OK) );
+	PyModule_AddObject( mod, "BLOCK_NOSHADOW", PyLong_FromSize_t(UI_BLOCK_NOSHADOW) );
+	PyModule_AddObject( mod, "BLOCK_NO_HILITE", PyLong_FromSize_t(UI_BLOCK_NO_HILITE) );
+	PyModule_AddObject( mod, "BLOCK_MOVEMOUSE_QUIT", PyLong_FromSize_t(UI_BLOCK_MOVEMOUSE_QUIT) );
+	PyModule_AddObject( mod, "BLOCK_KEEP_OPEN", PyLong_FromSize_t(UI_BLOCK_KEEP_OPEN) );
+	PyModule_AddObject( mod, "BLOCK_POPUP", PyLong_FromSize_t(UI_BLOCK_POPUP) );
 	
 	/* for executing operators (XXX move elsewhere) */
-	PyModule_AddObject( submodule, "WM_OP_INVOKE_DEFAULT", PyLong_FromSize_t(WM_OP_INVOKE_DEFAULT) );
-	PyModule_AddObject( submodule, "WM_OP_INVOKE_REGION_WIN", PyLong_FromSize_t(WM_OP_INVOKE_REGION_WIN) );
-	PyModule_AddObject( submodule, "WM_OP_INVOKE_AREA", PyLong_FromSize_t(WM_OP_INVOKE_AREA) );
-	PyModule_AddObject( submodule, "WM_OP_INVOKE_SCREEN", PyLong_FromSize_t(WM_OP_INVOKE_SCREEN) );
-	PyModule_AddObject( submodule, "WM_OP_EXEC_DEFAULT", PyLong_FromSize_t(WM_OP_EXEC_DEFAULT) );
-	PyModule_AddObject( submodule, "WM_OP_EXEC_REGION_WIN", PyLong_FromSize_t(WM_OP_EXEC_REGION_WIN) );
-	PyModule_AddObject( submodule, "WM_OP_EXEC_AREA", PyLong_FromSize_t(WM_OP_EXEC_AREA) );
-	PyModule_AddObject( submodule, "WM_OP_EXEC_SCREEN", PyLong_FromSize_t(WM_OP_EXEC_SCREEN) );
+	mod = PyModule_New("wmTypes");
+	PyModule_AddObject( submodule, "wmTypes", mod );
+	PyModule_AddObject( mod, "OP_INVOKE_DEFAULT", PyLong_FromSize_t(WM_OP_INVOKE_DEFAULT) );
+	PyModule_AddObject( mod, "OP_INVOKE_REGION_WIN", PyLong_FromSize_t(WM_OP_INVOKE_REGION_WIN) );
+	PyModule_AddObject( mod, "OP_INVOKE_AREA", PyLong_FromSize_t(WM_OP_INVOKE_AREA) );
+	PyModule_AddObject( mod, "OP_INVOKE_SCREEN", PyLong_FromSize_t(WM_OP_INVOKE_SCREEN) );
+	PyModule_AddObject( mod, "OP_EXEC_DEFAULT", PyLong_FromSize_t(WM_OP_EXEC_DEFAULT) );
+	PyModule_AddObject( mod, "OP_EXEC_REGION_WIN", PyLong_FromSize_t(WM_OP_EXEC_REGION_WIN) );
+	PyModule_AddObject( mod, "OP_EXEC_AREA", PyLong_FromSize_t(WM_OP_EXEC_AREA) );
+	PyModule_AddObject( mod, "OP_EXEC_SCREEN", PyLong_FromSize_t(WM_OP_EXEC_SCREEN) );
+	
+	mod = PyModule_New("keyValTypes");
+	PyModule_AddObject( submodule, "keyValTypes", mod );
+	PyModule_AddObject( mod, "ANY", PyLong_FromSize_t(KM_ANY) );
+	PyModule_AddObject( mod, "NOTHING", PyLong_FromSize_t(KM_NOTHING) );
+	PyModule_AddObject( mod, "PRESS", PyLong_FromSize_t(KM_PRESS) );
+	PyModule_AddObject( mod, "RELEASE", PyLong_FromSize_t(KM_RELEASE) );
+	
+	mod = PyModule_New("keyModTypes");
+	PyModule_AddObject( submodule, "keyModTypes", mod );
+	PyModule_AddObject( mod, "SHIFT", PyLong_FromSize_t(KM_SHIFT) );
+	PyModule_AddObject( mod, "CTRL", PyLong_FromSize_t(KM_CTRL) );
+	PyModule_AddObject( mod, "ALT", PyLong_FromSize_t(KM_ALT) );
+	PyModule_AddObject( mod, "OSKEY", PyLong_FromSize_t(KM_OSKEY) );
+	
+	PyModule_AddObject( mod, "SHIFT2", PyLong_FromSize_t(KM_SHIFT2) );
+	PyModule_AddObject( mod, "CTRL2", PyLong_FromSize_t(KM_CTRL2) );
+	PyModule_AddObject( mod, "ALT2", PyLong_FromSize_t(KM_ALT2) );
+	PyModule_AddObject( mod, "OSKEY2", PyLong_FromSize_t(KM_OSKEY2) );
+	
+	mod = PyModule_New("keyTypes");
+	PyModule_AddObject( submodule, "keyTypes", mod );
+	PyModule_AddObject( mod, "A", PyLong_FromSize_t(AKEY) );
+	PyModule_AddObject( mod, "B", PyLong_FromSize_t(BKEY) );
+	PyModule_AddObject( mod, "C", PyLong_FromSize_t(CKEY) );
+	PyModule_AddObject( mod, "D", PyLong_FromSize_t(DKEY) );
+	PyModule_AddObject( mod, "E", PyLong_FromSize_t(EKEY) );
+	PyModule_AddObject( mod, "F", PyLong_FromSize_t(FKEY) );
+	PyModule_AddObject( mod, "G", PyLong_FromSize_t(GKEY) );
+	PyModule_AddObject( mod, "H", PyLong_FromSize_t(HKEY) );
+	PyModule_AddObject( mod, "I", PyLong_FromSize_t(IKEY) );
+	PyModule_AddObject( mod, "J", PyLong_FromSize_t(JKEY) );
+	PyModule_AddObject( mod, "K", PyLong_FromSize_t(KKEY) );
+	PyModule_AddObject( mod, "L", PyLong_FromSize_t(LKEY) );
+	PyModule_AddObject( mod, "M", PyLong_FromSize_t(MKEY) );
+	PyModule_AddObject( mod, "N", PyLong_FromSize_t(NKEY) );
+	PyModule_AddObject( mod, "O", PyLong_FromSize_t(OKEY) );
+	PyModule_AddObject( mod, "P", PyLong_FromSize_t(PKEY) );
+	PyModule_AddObject( mod, "Q", PyLong_FromSize_t(QKEY) );
+	PyModule_AddObject( mod, "R", PyLong_FromSize_t(RKEY) );
+	PyModule_AddObject( mod, "S", PyLong_FromSize_t(SKEY) );
+	PyModule_AddObject( mod, "T", PyLong_FromSize_t(TKEY) );
+	PyModule_AddObject( mod, "U", PyLong_FromSize_t(UKEY) );
+	PyModule_AddObject( mod, "V", PyLong_FromSize_t(VKEY) );
+	PyModule_AddObject( mod, "W", PyLong_FromSize_t(WKEY) );
+	PyModule_AddObject( mod, "X", PyLong_FromSize_t(XKEY) );
+	PyModule_AddObject( mod, "Y", PyLong_FromSize_t(YKEY) );
+	PyModule_AddObject( mod, "Z", PyLong_FromSize_t(ZKEY) );
+	PyModule_AddObject( mod, "ZERO", PyLong_FromSize_t(ZEROKEY) );
+	PyModule_AddObject( mod, "ONE", PyLong_FromSize_t(ONEKEY) );
+	PyModule_AddObject( mod, "TWO", PyLong_FromSize_t(TWOKEY) );
+	PyModule_AddObject( mod, "THREE", PyLong_FromSize_t(THREEKEY) );
+	PyModule_AddObject( mod, "FOUR", PyLong_FromSize_t(FOURKEY) );
+	PyModule_AddObject( mod, "FIVE", PyLong_FromSize_t(FIVEKEY) );
+	PyModule_AddObject( mod, "SIX", PyLong_FromSize_t(SIXKEY) );
+	PyModule_AddObject( mod, "SEVEN", PyLong_FromSize_t(SEVENKEY) );
+	PyModule_AddObject( mod, "EIGHT", PyLong_FromSize_t(EIGHTKEY) );
+	PyModule_AddObject( mod, "NINE", PyLong_FromSize_t(NINEKEY) );
+	PyModule_AddObject( mod, "CAPSLOCK", PyLong_FromSize_t(CAPSLOCKKEY) );
+	PyModule_AddObject( mod, "LEFTCTRL", PyLong_FromSize_t(LEFTCTRLKEY) );
+	PyModule_AddObject( mod, "LEFTALT", PyLong_FromSize_t(LEFTALTKEY) );
+	PyModule_AddObject( mod, "RIGHTALT", PyLong_FromSize_t(RIGHTALTKEY) );
+	PyModule_AddObject( mod, "RIGHTCTRL", PyLong_FromSize_t(RIGHTCTRLKEY) );
+	PyModule_AddObject( mod, "RIGHTSHIFT", PyLong_FromSize_t(RIGHTSHIFTKEY) );
+	PyModule_AddObject( mod, "LEFTSHIFT", PyLong_FromSize_t(LEFTSHIFTKEY) );
+	PyModule_AddObject( mod, "ESC", PyLong_FromSize_t(ESCKEY) );
+	PyModule_AddObject( mod, "TAB", PyLong_FromSize_t(TABKEY) );
+	PyModule_AddObject( mod, "RET", PyLong_FromSize_t(RETKEY) );
+	PyModule_AddObject( mod, "SPACE", PyLong_FromSize_t(SPACEKEY) );
+	PyModule_AddObject( mod, "LINEFEED", PyLong_FromSize_t(LINEFEEDKEY) );
+	PyModule_AddObject( mod, "BACKSPACE", PyLong_FromSize_t(BACKSPACEKEY) );
+	PyModule_AddObject( mod, "DEL", PyLong_FromSize_t(DELKEY) );
+	PyModule_AddObject( mod, "SEMICOLON", PyLong_FromSize_t(SEMICOLONKEY) );
+	PyModule_AddObject( mod, "PERIOD", PyLong_FromSize_t(PERIODKEY) );
+	PyModule_AddObject( mod, "COMMA", PyLong_FromSize_t(COMMAKEY) );
+	PyModule_AddObject( mod, "QUOTE", PyLong_FromSize_t(QUOTEKEY) );
+	PyModule_AddObject( mod, "ACCENTGRAVE", PyLong_FromSize_t(ACCENTGRAVEKEY) );
+	PyModule_AddObject( mod, "MINUS", PyLong_FromSize_t(MINUSKEY) );
+	PyModule_AddObject( mod, "SLASH", PyLong_FromSize_t(SLASHKEY) );
+	PyModule_AddObject( mod, "BACKSLASH", PyLong_FromSize_t(BACKSLASHKEY) );
+	PyModule_AddObject( mod, "EQUAL", PyLong_FromSize_t(EQUALKEY) );
+	PyModule_AddObject( mod, "LEFTBRACKET", PyLong_FromSize_t(LEFTBRACKETKEY) );
+	PyModule_AddObject( mod, "RIGHTBRACKET", PyLong_FromSize_t(RIGHTBRACKETKEY) );
+	PyModule_AddObject( mod, "LEFTARROW", PyLong_FromSize_t(LEFTARROWKEY) );
+	PyModule_AddObject( mod, "DOWNARROW", PyLong_FromSize_t(DOWNARROWKEY) );
+	PyModule_AddObject( mod, "RIGHTARROW", PyLong_FromSize_t(RIGHTARROWKEY) );
+	PyModule_AddObject( mod, "UPARROW", PyLong_FromSize_t(UPARROWKEY) );
+	PyModule_AddObject( mod, "PAD0", PyLong_FromSize_t(PAD0) );
+	PyModule_AddObject( mod, "PAD1", PyLong_FromSize_t(PAD1) );
+	PyModule_AddObject( mod, "PAD2", PyLong_FromSize_t(PAD2) );
+	PyModule_AddObject( mod, "PAD3", PyLong_FromSize_t(PAD3) );
+	PyModule_AddObject( mod, "PAD4", PyLong_FromSize_t(PAD4) );
+	PyModule_AddObject( mod, "PAD5", PyLong_FromSize_t(PAD5) );
+	PyModule_AddObject( mod, "PAD6", PyLong_FromSize_t(PAD6) );
+	PyModule_AddObject( mod, "PAD7", PyLong_FromSize_t(PAD7) );
+	PyModule_AddObject( mod, "PAD8", PyLong_FromSize_t(PAD8) );
+	PyModule_AddObject( mod, "PAD9", PyLong_FromSize_t(PAD9) );
+	PyModule_AddObject( mod, "PADPERIOD", PyLong_FromSize_t(PADPERIOD) );
+	PyModule_AddObject( mod, "PADSLASH", PyLong_FromSize_t(PADSLASHKEY) );
+	PyModule_AddObject( mod, "PADASTER", PyLong_FromSize_t(PADASTERKEY) );
+	PyModule_AddObject( mod, "PADMINUS", PyLong_FromSize_t(PADMINUS) );
+	PyModule_AddObject( mod, "PADENTER", PyLong_FromSize_t(PADENTER) );
+	PyModule_AddObject( mod, "PADPLUS", PyLong_FromSize_t(PADPLUSKEY) );
+	PyModule_AddObject( mod, "F1", PyLong_FromSize_t(F1KEY) );
+	PyModule_AddObject( mod, "F2", PyLong_FromSize_t(F2KEY) );
+	PyModule_AddObject( mod, "F3", PyLong_FromSize_t(F3KEY) );
+	PyModule_AddObject( mod, "F4", PyLong_FromSize_t(F4KEY) );
+	PyModule_AddObject( mod, "F5", PyLong_FromSize_t(F5KEY) );
+	PyModule_AddObject( mod, "F6", PyLong_FromSize_t(F6KEY) );
+	PyModule_AddObject( mod, "F7", PyLong_FromSize_t(F7KEY) );
+	PyModule_AddObject( mod, "F8", PyLong_FromSize_t(F8KEY) );
+	PyModule_AddObject( mod, "F9", PyLong_FromSize_t(F9KEY) );
+	PyModule_AddObject( mod, "F10", PyLong_FromSize_t(F10KEY) );
+	PyModule_AddObject( mod, "F11", PyLong_FromSize_t(F11KEY) );
+	PyModule_AddObject( mod, "F12", PyLong_FromSize_t(F12KEY) );
+	PyModule_AddObject( mod, "PAUSE", PyLong_FromSize_t(PAUSEKEY) );
+	PyModule_AddObject( mod, "INSERT", PyLong_FromSize_t(INSERTKEY) );
+	PyModule_AddObject( mod, "HOME", PyLong_FromSize_t(HOMEKEY) );
+	PyModule_AddObject( mod, "PAGEUP", PyLong_FromSize_t(PAGEUPKEY) );
+	PyModule_AddObject( mod, "PAGEDOWN", PyLong_FromSize_t(PAGEDOWNKEY) );
+	PyModule_AddObject( mod, "END", PyLong_FromSize_t(ENDKEY) );
+	PyModule_AddObject( mod, "UNKNOWN", PyLong_FromSize_t(UNKNOWNKEY) );
+	PyModule_AddObject( mod, "COMMAND", PyLong_FromSize_t(COMMANDKEY) );
+	PyModule_AddObject( mod, "GRLESS", PyLong_FromSize_t(GRLESSKEY) );
+	
+	mod = PyModule_New("spaceTypes");
+	PyModule_AddObject( submodule, "spaceTypes", mod );
+	PyModule_AddObject( mod, "EMPTY", PyLong_FromSize_t(SPACE_EMPTY) );
+	PyModule_AddObject( mod, "VIEW3D", PyLong_FromSize_t(SPACE_VIEW3D) );
+	PyModule_AddObject( mod, "IPO", PyLong_FromSize_t(SPACE_IPO) );
+	PyModule_AddObject( mod, "OOPS", PyLong_FromSize_t(SPACE_OOPS) );
+	PyModule_AddObject( mod, "BUTS", PyLong_FromSize_t(SPACE_BUTS) );
+	PyModule_AddObject( mod, "FILE", PyLong_FromSize_t(SPACE_FILE) );
+	PyModule_AddObject( mod, "IMAGE", PyLong_FromSize_t(SPACE_IMAGE) );
+	PyModule_AddObject( mod, "INFO", PyLong_FromSize_t(SPACE_INFO) );
+	PyModule_AddObject( mod, "SEQ", PyLong_FromSize_t(SPACE_SEQ) );
+	PyModule_AddObject( mod, "TEXT", PyLong_FromSize_t(SPACE_TEXT) );
+	PyModule_AddObject( mod, "IMASEL", PyLong_FromSize_t(SPACE_IMASEL) );
+	PyModule_AddObject( mod, "SOUND", PyLong_FromSize_t(SPACE_SOUND) );
+	PyModule_AddObject( mod, "ACTION", PyLong_FromSize_t(SPACE_ACTION) );
+	PyModule_AddObject( mod, "NLA", PyLong_FromSize_t(SPACE_NLA) );
+	PyModule_AddObject( mod, "SCRIPT", PyLong_FromSize_t(SPACE_SCRIPT) );
+	PyModule_AddObject( mod, "TIME", PyLong_FromSize_t(SPACE_TIME) );
+	PyModule_AddObject( mod, "NODE", PyLong_FromSize_t(SPACE_NODE) );
+	
+	
+	
 	
 	return submodule;
 }
