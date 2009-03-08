@@ -15,7 +15,9 @@
  * walkers now use ghash rather then stealing flags.
    ghash can be rewritten to be faster if necassary.
  * walkers should always raise BMERR_WALKER_FAILED,
-   with a custom error message.
+   with a custom error message.  This message will
+   probably be replaced by operator-specific messages
+   in most cases.
  * tools should ALWAYS have necassary error handling
    for if walkers fail.
 */
@@ -215,6 +217,12 @@ static void BMWalker_pushstate(BMWalker *walker)
 	walker->currentstate = newstate;
 }
 
+void BMWalker_reset(BMWalker *walker) {
+	while (walker->currentstate) {
+		BMWalker_popstate(walker);
+	}
+}
+
 /*	Shell Walker:
  *
  *	Starts at a vertex on the mesh and walks over the 'shell' it belongs 
@@ -319,33 +327,60 @@ static void *islandboundWalker_Yield(BMWalker *walker)
 static void *islandboundWalker_Step(BMWalker *walker)
 {
 	islandboundWalker *iwalk = walker->currentstate, *owalk;
-	BMIter iter;
+	BMIter iter, liter;
 	BMVert *v;
 	BMEdge *e = iwalk->curedge;
-	int found;
+	BMFace *f;
+	BMLoop *l;
+	int found=0, radlen, sellen;;
 
 	owalk = iwalk;
 
 	if (iwalk->lastv == e->v1) v = e->v2;
 	else v = e->v1;
-	
-	BMWalker_popstate(walker);
 
-	e=BMIter_New(&iter, walker->bm, BM_EDGES_OF_VERT, v);
-	for (; e; e=BMIter_Step(&iter)) {
-		if (!BMO_TestFlag(walker->bm, e, walker->restrictflag))
-			continue;
-		if (BLI_ghash_haskey(walker->visithash, e)) continue;
-
-		BLI_ghash_insert(walker->visithash, e, NULL);
-		BMWalker_pushstate(walker);
-		
-		iwalk = walker->currentstate;
-		iwalk->base = iwalk->base;
-		iwalk->curedge = e;
-		iwalk->lastv = v;		
-		
+	if (BM_Nonmanifold_Vert(v)) {
+		BMWalker_reset(walker);
+		BMO_RaiseError(walker->bm, NULL,BMERR_WALKER_FAILED,
+			"Non-manifold vert"
+			"while searching region boundary");
+		return NULL;
 	}
+
+	BMWalker_popstate(walker);
+	
+	/*find start face*/
+	l = BMIter_New(&liter, walker->bm, BM_LOOPS_OF_EDGE; e);
+	for (; l; l=BMIter_Step(&liter)) {
+		if (BMO_TestFlag(walker->bm, l->f, walker->restrictflag)) {
+			f = l->f;
+			break;
+		}
+	}
+	
+	while (1) {
+		l = BM_OtherFaceLoop(e, v, f);
+		if (l) {
+			l = l->radial.next->data;
+			f = l->f;
+			e = l->e;
+			if(!BMO_TestFlag(walker->bm,l->f,walker->restrictflag))
+				break;
+		} else {
+			break;
+		}
+	}
+	
+	if (e == iwalk->curedge) return NULL;
+	if (BLI_ghash_haskey(walker->visithash, e)) return NULL;
+
+	BLI_ghash_insert(walker->visithash, e, NULL);
+	BMWalker_pushstate(walker);
+	
+	iwalk = walker->currentstate;
+	iwalk->base = owalk->base;
+	iwalk->curedge = e;
+	iwalk->lastv = v;				
 
 	return iwalk->curedge;
 }

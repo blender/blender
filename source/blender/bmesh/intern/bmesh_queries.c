@@ -50,6 +50,27 @@ int BM_Vert_In_Edge(BMEdge *e, BMVert *v)
 }
 
 /*
+ * BMESH OTHER EDGE IN FACE SHARING A VERTEX
+ *
+ * Returns an opposing edge that shares the same face.
+ *
+*/
+
+BMLoop *BM_OtherFaceLoop(BMEdge *e, BMFace *f, BMVert *v)
+{
+	BMLoop *l = f->loopbase, *l2, *l3;
+	int found = 0;
+	
+	do {
+		if (l->v == v) break;
+		found = 1;
+		l = l->head.next;
+	} while (l != f->loopbase);
+	
+	return l->head.prev;
+}
+
+/*
  * BMESH VERT IN FACE
  *
  * Returns whether or not a given vertex is

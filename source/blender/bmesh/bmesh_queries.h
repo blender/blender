@@ -12,6 +12,10 @@ int BM_Edge_In_Face(struct BMFace *f, struct BMEdge *e);
 int BM_Verts_In_Edge(struct BMVert *v1, struct BMVert *v2, BMEdge *e);
 
 struct BMVert *BM_OtherEdgeVert(struct BMEdge *e, struct BMVert *v);
+
+/*finds other loop that shares v with e's loop in f.*/
+struct BMLoop *BM_OtherFaceLoop(BMEdge *e, BMFace *f, BMVert *v);
+
 //#define BM_OtherEdgeVert(e, v) (v==e->v1?e->v2:e->v1)
 
 struct BMEdge *BM_Edge_Exist(struct BMVert *v1, struct BMVert *v2);
