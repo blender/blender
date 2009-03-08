@@ -26,6 +26,7 @@
 #define BM_EDGES_OF_FACE 			10
 #define BM_LOOPS_OF_FACE 			11
 #define BM_LOOPS_OF_VERT		12
+#define BM_LOOPS_OF_LOOP		13
 
 /*Iterator Structure*/
 typedef struct BMIter{

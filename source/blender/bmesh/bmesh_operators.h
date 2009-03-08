@@ -146,6 +146,7 @@ void BMO_RaiseError(BMesh *bm, BMOperator *owner, int errcode, char *msg);
 /*gets the topmost error from the stack.
   returns error code or 0 if no error.*/
 int BMO_GetError(BMesh *bm, char **msg, BMOperator **op);
+int BMO_HasError(BMesh *bm);
 
 /*same as geterror, only pops the error off the stack as well*/
 int BMO_PopError(BMesh *bm, char **msg, BMOperator **op);
@@ -168,6 +169,8 @@ int BMO_CatchOpError(BMesh *bm, BMOperator *catchop, int errorcode, char **msg);
 #define BMERR_DISSOLVEDISK_FAILED		2
 #define BMERR_CONNECTVERT_FAILED		3
 #define BMERR_WALKER_FAILED			4
+#define BMERR_DISSOLVEFACES_FAILED		5
+#define BMERR_DISSOLVEVERTS_FAILED		6
 
 static char *bmop_error_messages[] = {
        0,
@@ -175,6 +178,8 @@ static char *bmop_error_messages[] = {
        "Could not dissolve vert",
        "Could not connect verts",
        "Could not traverse mesh",
+       "Could not dissolve faces",
+       "Could not dissolve vertices",
 };
 
 /*------------begin operator defines (see bmesh_opdefines.c too)------------*/

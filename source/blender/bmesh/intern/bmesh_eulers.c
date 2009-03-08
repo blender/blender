@@ -317,6 +317,8 @@ BMFace *bmesh_mf(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **elist, int len)
 			if(edok != (l->e->head.eflag2 + 1)) bmesh_error();
 		}
 	}
+
+	for(i=0;i<len;i++) elist[i]->head.eflag1=elist[i]->head.eflag2 = 0;
 	return f;
 }
 

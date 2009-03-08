@@ -182,6 +182,30 @@ static void *face_of_vert_step(BMIter *iter)
 	return NULL;
 }
 
+static void loops_of_loop_begin(BMIter *iter)
+{
+	BMLoop *l;
+
+	l = iter->ldata;
+
+	/*note sure why this sets ldata. . .*/
+	init_iterator(iter);
+
+	iter->firstloop = l;
+	iter->nextloop = bmesh_radial_nextloop(iter->firstloop);
+}
+
+static void *loops_of_loop_step(BMIter *iter)
+{
+	BMLoop *current = iter->nextloop;
+
+	if(iter->nextloop) iter->nextloop = bmesh_radial_nextloop(iter->nextloop);
+
+	if(iter->nextloop == iter->firstloop) iter->nextloop = NULL;
+	if(current) return current;
+	return NULL;
+}
+
 /*
  * FACE OF EDGE CALLBACKS
  *
@@ -383,6 +407,11 @@ void *BMIter_New(BMIter *iter, BMesh *bm, int type, void *data)
 			iter->begin = loop_of_vert_begin;
 			iter->step = loop_of_vert_step;
 			iter->vdata = data;
+			break;
+		case BM_LOOPS_OF_LOOP:
+			iter->begin = loops_of_loop_begin;
+			iter->step = loops_of_loop_step;
+			iter->ldata = data;
 			break;
 		default:
 			break;

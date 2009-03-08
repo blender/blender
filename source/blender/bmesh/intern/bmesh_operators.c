@@ -809,6 +809,11 @@ void BMO_RaiseError(BMesh *bm, BMOperator *owner, int errcode, char *msg)
 	BLI_addhead(&bm->errorstack, err);
 }
 
+int BMO_HasError(BMesh *bm)
+{
+	return bm->errorstack.first != NULL;
+}
+
 /*returns error code or 0 if no error*/
 int BMO_GetError(BMesh *bm, char **msg, BMOperator **op)
 {

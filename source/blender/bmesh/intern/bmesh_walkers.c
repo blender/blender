@@ -11,13 +11,20 @@
  - joeedh -
  design notes:
 
- * walkers should use tool flags, not header flags
- * walkers now use ghash rather then stealing flags.
-   ghash can be rewritten to be faster if necassary.
- * walkers should always raise BMERR_WALKER_FAILED,
-   with a custom error message.  This message will
-   probably be replaced by operator-specific messages
-   in most cases.
+ original desing: walkers directly emulation recursive functions.
+ functions save their state onto a stack, and also push new states
+ to implement recursive or looping behaviour.  generally only one
+ state push per call with a specific state is desired.
+
+ basic design pattern: the walker step function goes through it's
+ list of possible choices for recursion, and recurses (by pushing a new state)
+ using the first non-visited one.  this choise is the flagged as visited using
+ the ghash.  each time this happens, only one state is pushed.
+
+ * walkers use tool flags, not header flags
+ * walkers now use ghash for storing visited elements, 
+   rather then stealing flags.  ghash can be rewritten 
+   to be faster if necassary, in the far future :) .
  * tools should ALWAYS have necassary error handling
    for if walkers fail.
 */
@@ -34,10 +41,15 @@ typedef struct shellWalker{
 
 typedef struct islandboundWalker {
 	struct islandboundWalker *prev;
-	BMEdge *base;
+	BMLoop *base;
 	BMVert *lastv;
-	BMEdge *curedge;
+	BMLoop *curloop;
 } islandboundWalker;
+
+typedef struct islandWalker {
+	struct islandWalker * prev;
+	BMFace *cur;
+} islandWalker;
 
 /*  NOTE: this comment is out of date, update it - joeedh
  *	BMWalker - change this to use the filters functions.
@@ -46,34 +58,39 @@ typedef struct islandboundWalker {
  *  the surface of a mesh. An example of usage:
  *
  *	     BMEdge *edge;
- *	     BMWalker *walker = BMWalker_create(BM_SHELLWALKER, BM_SELECT);
+ *	     BMWalker *walker = BMW_create(BM_SHELLWALKER, BM_SELECT);
  *       walker->begin(walker, vert);
- *       for(edge = BMWalker_walk(walker); edge; edge = bmeshWwalker_walk(walker)){
+ *       for(edge = BMW_walk(walker); edge; edge = bmeshWwalker_walk(walker)){
  *            bmesh_select_edge(edge);
  *       }
- *       BMWalker_free(walker);
+ *       BMW_free(walker);
  *
  *	The above example creates a walker that walks over the surface a mesh by starting at
  *  a vertex and traveling across its edges to other vertices, and repeating the process
  *  over and over again until it has visited each vertex in the shell. An additional restriction
- *  is passed into the BMWalker_create function stating that we are only interested
+ *  is passed into the BMW_create function stating that we are only interested
  *  in walking over edges that have been flagged with the bitmask 'BM_SELECT'.
  *
  *
 */
 
 /*Forward declerations*/
-static void *BMWalker_walk(struct BMWalker *walker);
-static void BMWalker_popstate(struct BMWalker *walker);
-static void BMWalker_pushstate(struct BMWalker *walker);
+static void *BMW_walk(struct BMWalker *walker);
+static void BMW_popstate(struct BMWalker *walker);
+static void BMW_pushstate(struct BMWalker *walker);
 
-static void *shellWalker_Begin(struct BMWalker *walker, void *data);
-static void *shellWalker_Yield(struct BMWalker *walker);
-static void *shellWalker_Step(struct BMWalker *walker);
+static void shellWalker_begin(struct BMWalker *walker, void *data);
+static void *shellWalker_yield(struct BMWalker *walker);
+static void *shellWalker_step(struct BMWalker *walker);
 
-static void *islandboundWalker_Begin(BMWalker *walker, void *data);
-static void *islandboundWalker_Yield(BMWalker *walker);
-static void *islandboundWalker_Step(BMWalker *walker);
+static void islandboundWalker_begin(BMWalker *walker, void *data);
+static void *islandboundWalker_yield(BMWalker *walker);
+static void *islandboundWalker_step(BMWalker *walker);
+
+
+static void islandWalker_begin(BMWalker *walker, void *data);
+static void *islandWalker_yield(BMWalker *walker);
+static void *islandWalker_step(BMWalker *walker);
 
 struct shellWalker;
 
@@ -83,8 +100,14 @@ typedef struct bmesh_walkerGeneric{
 } bmesh_walkerGeneric;
 
 
+void *BMW_Begin(BMWalker *walker, void *start) {
+	walker->begin(walker, start);
+	
+	return walker->step(walker);
+}
+
 /*
- * BMWalker_CREATE
+ * BMW_CREATE
  * 
  * Allocates and returns a new mesh walker of 
  * a given type. The elements visited are filtered
@@ -92,7 +115,7 @@ typedef struct bmesh_walkerGeneric{
  *
 */
 
-void BMWalker_Init(BMWalker *walker, BMesh *bm, int type, int searchmask)
+void BMW_Init(BMWalker *walker, BMesh *bm, int type, int searchmask)
 {
 	int size = 0;
 	
@@ -103,17 +126,24 @@ void BMWalker_Init(BMWalker *walker, BMesh *bm, int type, int searchmask)
 
 	switch(type){
 		case BMW_SHELL:
-			walker->begin = shellWalker_Begin;
-			walker->step = shellWalker_Step;
-			walker->yield = shellWalker_Yield;
+			walker->begin = shellWalker_begin;
+			walker->step = shellWalker_step;
+			walker->yield = shellWalker_yield;
 			size = sizeof(shellWalker);		
 			break;
 		case BMW_ISLANDBOUND:
-			walker->begin = islandboundWalker_Begin;
-			walker->step = islandboundWalker_Step;
-			walker->yield = islandboundWalker_Yield;
+			walker->begin = islandboundWalker_begin;
+			walker->step = islandboundWalker_step;
+			walker->yield = islandboundWalker_yield;
 			size = sizeof(islandboundWalker);		
 			break;
+		case BMW_ISLAND:
+			walker->begin = islandWalker_begin;
+			walker->step = islandWalker_step;
+			walker->yield = islandWalker_yield;
+			size = sizeof(islandWalker);		
+			break;
+		
 		//case BMW_LOOP:
 		//	walker->begin = loopwalker_Begin;
 		//	walker->step = loopwalker_Step;
@@ -134,34 +164,35 @@ void BMWalker_Init(BMWalker *walker, BMesh *bm, int type, int searchmask)
 }
 
 /*
- * BMWalker_End
+ * BMW_End
  *
  * Frees a walker's stack.
  *
 */
 
-void BMWalker_End(BMWalker *walker)
+void BMW_End(BMWalker *walker)
 {
 	BLI_mempool_destroy(walker->stack);
+	BLI_ghash_free(walker->visithash, NULL, NULL);
 }
 
 
 /*
- * BMWalker_Step
+ * BMW_Step
  *
 */
 
-void *BMWalker_Step(BMWalker *walker)
+void *BMW_Step(BMWalker *walker)
 {
 	BMHeader *head;
 
-	head = BMWalker_walk(walker);
+	head = BMW_walk(walker);
 
 	return head;
 }
 
 /*
- * BMWalker_WALK
+ * BMW_WALK
  *
  * Steps a mesh walker forward by one element
  *
@@ -170,29 +201,27 @@ void *BMWalker_Step(BMWalker *walker)
  *
 */
 
-static void *BMWalker_walk(BMWalker *walker)
+static void *BMW_walk(BMWalker *walker)
 {
 	void *current = NULL;
 
 	while(walker->currentstate){
-		walker->step(walker);
-		current = walker->yield(walker);
+		current = walker->step(walker);
 		if(current) return current;
-		else BMWalker_popstate(walker);
-
+		else BMW_popstate(walker);
 	}
 	return NULL;
 }
 
 /*
- * BMWalker_popstate
+ * BMW_popstate
  *
  * Pops the current walker state off the stack
  * and makes the previous state current
  *
 */
 
-static void BMWalker_popstate(BMWalker *walker)
+static void BMW_popstate(BMWalker *walker)
 {
 	void *oldstate;
 	oldstate = walker->currentstate;
@@ -202,14 +231,14 @@ static void BMWalker_popstate(BMWalker *walker)
 }
 
 /*
- * BMWalker_pushstate
+ * BMW_pushstate
  *
  * Pushes the current state down the stack and allocates
  * a new one.
  *
 */
 
-static void BMWalker_pushstate(BMWalker *walker)
+static void BMW_pushstate(BMWalker *walker)
 {
 	bmesh_walkerGeneric *newstate;
 	newstate = BLI_mempool_alloc(walker->stack);
@@ -217,9 +246,9 @@ static void BMWalker_pushstate(BMWalker *walker)
 	walker->currentstate = newstate;
 }
 
-void BMWalker_reset(BMWalker *walker) {
+void BMW_reset(BMWalker *walker) {
 	while (walker->currentstate) {
-		BMWalker_popstate(walker);
+		BMW_popstate(walker);
 	}
 }
 
@@ -234,27 +263,28 @@ void BMWalker_reset(BMWalker *walker) {
  * 
 */
 
-static void *shellWalker_Begin(BMWalker *walker, void *data){
+static void shellWalker_begin(BMWalker *walker, void *data){
 	BMVert *v = data;
 	shellWalker *shellWalk = NULL;
-	BMWalker_pushstate(walker);
+
+	BMW_pushstate(walker);
+
 	shellWalk = walker->currentstate;
 	shellWalk->base = NULL;
 	shellWalk->curedge = NULL;
+
 	if(v->edge){
 		shellWalk->base = v;
 		shellWalk->curedge = v->edge;
 	}
-
-	return v->edge;
 }
-static void *shellWalker_Yield(BMWalker *walker)
+static void *shellWalker_yield(BMWalker *walker)
 {
 	shellWalker *shellWalk = walker->currentstate;
 	return shellWalk->curedge;
 }
 
-static void *shellWalker_Step(BMWalker *walker)
+static void *shellWalker_step(BMWalker *walker)
 {
 	BMEdge *curedge, *next = NULL;
 	BMVert *ov = NULL;
@@ -269,14 +299,19 @@ static void *shellWalker_Step(BMWalker *walker)
 	do{
 		if (!BLI_ghash_lookup(walker->visithash, curedge)) { 
 			BLI_ghash_insert(walker->visithash, curedge, NULL);
-			if(walker->restrictflag && (!BMO_TestFlag(walker->bm, curedge, walker->restrictflag))) restrictpass = 0;
+			if(walker->restrictflag && 
+			  (!BMO_TestFlag(walker->bm, curedge, walker->restrictflag))) 
+			{
+				restrictpass = 0;
+			}
 			if(restrictpass) {
 				ov = BM_OtherEdgeVert(curedge, shellWalk->base);
 				
 				/*save current state*/
 				shellWalk->curedge = curedge;
+
 				/*push a new state onto the stack*/
-				BMWalker_pushstate(walker);
+				BMW_pushstate(walker);
 				
 				/*populate the new state*/
 				((shellWalker*)walker->currentstate)->base = ov;
@@ -286,12 +321,12 @@ static void *shellWalker_Step(BMWalker *walker)
 				next = curedge;
 				break;
 			}
-			curedge = bmesh_disk_nextedge(curedge, shellWalk->base);
 		}
+		curedge = bmesh_disk_nextedge(curedge, shellWalk->base);
 	}while(curedge != shellWalk->curedge);
 	
 	shellWalk->current = next;
-	return shellWalk->current;
+	return next;
 }
 
 /*	Island Boundary Walker:
@@ -305,82 +340,143 @@ static void *shellWalker_Step(BMWalker *walker)
  * 
 */
 
-static void *islandboundWalker_Begin(BMWalker *walker, void *data){
-	BMEdge *e = data;
+static void islandboundWalker_begin(BMWalker *walker, void *data){
+	BMLoop *l = data;
 	islandboundWalker *iwalk = NULL;
 
-	BMWalker_pushstate(walker);
+	BMW_pushstate(walker);
 
 	iwalk = walker->currentstate;
-	iwalk->base = iwalk->curedge = e;
 
-	return e;
+	iwalk->base = iwalk->curloop = l;
+	iwalk->lastv = l->v;
+
+	BLI_ghash_insert(walker->visithash, data, NULL);
+
 }
 
-static void *islandboundWalker_Yield(BMWalker *walker)
+static void *islandboundWalker_yield(BMWalker *walker)
 {
 	islandboundWalker *iwalk = walker->currentstate;
 
-	return iwalk->curedge;
+	return iwalk->curloop;
 }
 
-static void *islandboundWalker_Step(BMWalker *walker)
+static void *islandboundWalker_step(BMWalker *walker)
 {
-	islandboundWalker *iwalk = walker->currentstate, *owalk;
-	BMIter iter, liter;
+	islandboundWalker *iwalk = walker->currentstate, owalk;
 	BMVert *v;
-	BMEdge *e = iwalk->curedge;
+	BMEdge *e = iwalk->curloop->e;
 	BMFace *f;
-	BMLoop *l;
-	int found=0, radlen, sellen;;
+	BMLoop *l = iwalk->curloop;
+	int found=0;
 
-	owalk = iwalk;
+	owalk = *iwalk;
 
 	if (iwalk->lastv == e->v1) v = e->v2;
 	else v = e->v1;
 
-	if (BM_Nonmanifold_Vert(v)) {
-		BMWalker_reset(walker);
+	if (BM_Nonmanifold_Vert(walker->bm, v)) {
+		BMW_reset(walker);
 		BMO_RaiseError(walker->bm, NULL,BMERR_WALKER_FAILED,
 			"Non-manifold vert"
 			"while searching region boundary");
 		return NULL;
 	}
-
-	BMWalker_popstate(walker);
 	
-	/*find start face*/
-	l = BMIter_New(&liter, walker->bm, BM_LOOPS_OF_EDGE; e);
-	for (; l; l=BMIter_Step(&liter)) {
-		if (BMO_TestFlag(walker->bm, l->f, walker->restrictflag)) {
-			f = l->f;
-			break;
-		}
-	}
+	/*pop off current state*/
+	BMW_popstate(walker);
+	
+	f = l->f;
 	
 	while (1) {
-		l = BM_OtherFaceLoop(e, v, f);
-		if (l) {
-			l = l->radial.next->data;
+		l = BM_OtherFaceLoop(e, f, v);
+		if (bmesh_radial_nextloop(l) != l) {
+			l = bmesh_radial_nextloop(l);
 			f = l->f;
 			e = l->e;
-			if(!BMO_TestFlag(walker->bm,l->f,walker->restrictflag))
+			if(!BMO_TestFlag(walker->bm, f, walker->restrictflag)){
+				l = l->radial.next->data;
 				break;
+			}
 		} else {
+			f = l->f;
+			e = l->e;
 			break;
 		}
 	}
 	
-	if (e == iwalk->curedge) return NULL;
-	if (BLI_ghash_haskey(walker->visithash, e)) return NULL;
+	if (l == owalk.curloop) return NULL;
+	if (BLI_ghash_haskey(walker->visithash, l)) return owalk.curloop;
 
-	BLI_ghash_insert(walker->visithash, e, NULL);
-	BMWalker_pushstate(walker);
-	
+	BLI_ghash_insert(walker->visithash, l, NULL);
+	BMW_pushstate(walker);
 	iwalk = walker->currentstate;
-	iwalk->base = owalk->base;
-	iwalk->curedge = e;
+	iwalk->base = owalk.base;
+
+	//if (!BMO_TestFlag(walker->bm, l->f, walker->restrictflag))
+	//	iwalk->curloop = l->radial.next->data;
+	iwalk->curloop = l; //else iwalk->curloop = l;
 	iwalk->lastv = v;				
 
-	return iwalk->curedge;
+	return owalk.curloop;
+}
+
+
+/*	Island Walker:
+ *
+ *	Starts at a tool flagged-face and walks over the face region
+ *
+ *	TODO:
+ *
+ *  Add restriction flag/callback for wire edges.
+ * 
+*/
+
+static void islandWalker_begin(BMWalker *walker, void *data){
+	islandWalker *iwalk = NULL;
+
+	BMW_pushstate(walker);
+
+	iwalk = walker->currentstate;
+	BLI_ghash_insert(walker->visithash, data, NULL);
+
+	iwalk->cur = data;
+}
+
+static void *islandWalker_yield(BMWalker *walker)
+{
+	islandWalker *iwalk = walker->currentstate;
+
+	return iwalk->cur;
+}
+
+static void *islandWalker_step(BMWalker *walker)
+{
+	islandWalker *iwalk = walker->currentstate, *owalk;
+	BMIter iter, liter;
+	BMFace *f, *curf = iwalk->cur;
+	BMLoop *l;
+	owalk = iwalk;
+	
+	BMW_popstate(walker);
+
+	l = BMIter_New(&liter, walker->bm, BM_LOOPS_OF_FACE, iwalk->cur);
+	for (; l; l=BMIter_Step(&liter)) {
+		f = BMIter_New(&iter, walker->bm, BM_FACES_OF_EDGE, l->e);
+		for (; f; f=BMIter_Step(&iter)) {
+			if (!BMO_TestFlag(walker->bm, f, walker->restrictflag))
+				continue;
+			if (BLI_ghash_haskey(walker->visithash, f)) continue;
+			
+			BMW_pushstate(walker);
+			iwalk = walker->currentstate;
+			iwalk->cur = f;
+			BLI_ghash_insert(walker->visithash, f, NULL);
+			break;
+
+		}
+	}
+	
+	return curf;
 }

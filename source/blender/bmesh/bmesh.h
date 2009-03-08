@@ -1,7 +1,7 @@
 /**
  *  bmesh.h    jan 2007
  *
- *	BM API.
+ *	BMesh API.
  *
  * $Id: BKE_bmesh.h,v 1.00 2007/01/17 17:42:01 Briggs Exp $
  *
@@ -34,8 +34,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef BM_H
-#define BM_H
+#ifndef BMESH_H
+#define BMESH_H
 
 #include "DNA_listBase.h"
 #include "DNA_customdata_types.h"
@@ -217,4 +217,6 @@ struct EditMesh *bmesh_to_editmesh(BMesh *bm);
 #include "bmesh_marking.h"
 #include "bmesh_operators.h"
 #include "bmesh_queries.h"
-#endif
+#include "bmesh_walkers.h"
+
+#endif /* BMESH_H */

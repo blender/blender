@@ -62,12 +62,19 @@ BMLoop *BM_OtherFaceLoop(BMEdge *e, BMFace *f, BMVert *v)
 	int found = 0;
 	
 	do {
-		if (l->v == v) break;
+		if (l->e == e) break;
 		found = 1;
 		l = l->head.next;
 	} while (l != f->loopbase);
 	
-	return l->head.prev;
+	return l->v == v ? l->head.prev : l->head.next;
+}
+
+int BM_FacesAroundEdge(BMEdge *e)
+{
+	if (!e->loop) return 0;
+
+	return bmesh_cycle_length(&(e->loop->radial));
 }
 
 /*
