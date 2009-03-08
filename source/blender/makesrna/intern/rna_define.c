@@ -1530,6 +1530,30 @@ PropertyRNA *RNA_def_boolean(StructRNA *srna, const char *identifier, int defaul
 	return prop;
 }
 
+PropertyRNA *RNA_def_boolean_array(StructRNA *srna, const char *identifier, int len, int *default_value, const char *ui_name, const char *ui_description)
+{
+	PropertyRNA *prop;
+	
+	prop= RNA_def_property(srna, identifier, PROP_BOOLEAN, PROP_NONE);
+	if(len != 0) RNA_def_property_array(prop, len);
+	if(default_value) RNA_def_property_boolean_array_default(prop, default_value);
+	RNA_def_property_ui_text(prop, ui_name, ui_description);
+
+	return prop;
+}
+
+PropertyRNA *RNA_def_boolean_vector(StructRNA *srna, const char *identifier, int len, int *default_value, const char *ui_name, const char *ui_description)
+{
+	PropertyRNA *prop;
+	
+	prop= RNA_def_property(srna, identifier, PROP_BOOLEAN, PROP_VECTOR);
+	if(len != 0) RNA_def_property_array(prop, len);
+	if(default_value) RNA_def_property_boolean_array_default(prop, default_value);
+	RNA_def_property_ui_text(prop, ui_name, ui_description);
+
+	return prop;
+}
+
 PropertyRNA *RNA_def_int(StructRNA *srna, const char *identifier, int default_value, int hardmin, int hardmax,
 	const char *ui_name, const char *ui_description, int softmin, int softmax)
 {

@@ -130,13 +130,11 @@ FCurve *verify_fcurve (ID *id, const char group[], const char rna_path[], const 
 				/* Add a new group, and make it active */
 				grp= MEM_callocN(sizeof(bActionGroup), "bActionGroup");
 				
-				grp->flag |= (AGRP_ACTIVE|AGRP_SELECTED|AGRP_EXPANDED);
+				grp->flag = AGRP_SELECTED;
 				BLI_snprintf(grp->name, 64, group);
 				
 				BLI_addtail(&act->groups, grp);
 				BLI_uniquename(&act->groups, grp, "Group", offsetof(bActionGroup, name), 64);
-				
-				set_active_action_group(act, grp, 1);
 			}
 			
 			/* add F-Curve to group */
@@ -656,7 +654,7 @@ static float visualkey_get_value (PointerRNA *ptr, PropertyRNA *prop, int array_
 				float eul[3];
 				
 				Mat4ToEul(ob->obmat, eul);
-				return eul[array_index]*(5.72958f);
+				return eul[array_index];
 			}
 		}
 	}
@@ -854,7 +852,6 @@ short deletekey (ID *id, const char group[], const char rna_path[], int array_in
 			delete_fcurve_key(fcu, i, 1);
 			
 			/* Only delete curve too if there are no points (we don't need to check for drivers, as they're kept separate) */
-			// XXX how do we handle drivers then?
 			if (fcu->totvert == 0) {
 				BLI_remlink(&act->curves, fcu);
 				free_fcurve(fcu);
@@ -1800,342 +1797,6 @@ static void commonkey_context_getsbuts (const bContext *C, ListBase *sources, bK
 	*ksc= NULL;
 }
 
-
-/* get keyingsets for appropriate context */
-static void commonkey_context_get (const bContext *C, ScrArea *sa, short mode, ListBase *sources, bKeyingContext **ksc)
-{
-	/* get current view if no view is defined */
-	if (sa == NULL)
-		sa= CTX_wm_area(C);
-	
-	/* check view type */
-	switch (sa->spacetype) {
-		/* 3d view - first one tested as most often used */
-		case SPACE_VIEW3D:
-		{
-			commonkey_context_getv3d(C, sources, ksc);
-		}
-			break;
-			
-		/* buttons view */
-		case SPACE_BUTS:
-		{
-			commonkey_context_getsbuts(C, sources, ksc);
-		}
-			break;
-			
-		/* spaces with their own methods */
-		case SPACE_IPO:
-			//if (mode == COMMONKEY_MODE_INSERT)
-			//	insertkey_editipo(); // XXX old calls...
-			return;
-		case SPACE_ACTION:
-			//if (mode == COMMONKEY_MODE_INSERT)
-			//	insertkey_action(); // XXX old calls...
-			return;
-			
-		/* timeline view - keyframe buttons */
-		case SPACE_TIME:
-		{
-			bScreen *sc= CTX_wm_screen(C);
-			ScrArea *sab;
-			int bigarea= 0;
-			
-			/* try to find largest 3d-view available 
-			 * (mostly of the time, this is what when user will want this,
-			 *  as it's a standard feature in all other apps) 
-			 */
-			//sab= find_biggest_area_of_type(SPACE_VIEW3D);
-			sab= NULL; // XXX for now...
-			if (sab) {
-				commonkey_context_getv3d(C, sources, ksc);
-				return;
-			}
-			
-			/* if not found, sab is now NULL, so perform own biggest area test */
-			for (sa= sc->areabase.first; sa; sa= sa->next) { // XXX this has changed!
-				int area= sa->winx * sa->winy;
-				
-				if (sa->spacetype != SPACE_TIME) {
-					if ( (!sab) || (area > bigarea) ) {
-						sab= sa;
-						bigarea= area;
-					}
-				}
-			}
-			
-			/* use whichever largest area was found (it shouldn't be a time window) */
-			if (sab)
-				commonkey_context_get(C, sab, mode, sources, ksc);
-		}
-			break;
-	}
-}
-
-/* flush updates after all operations */
-static void commonkey_context_finish (const bContext *C, ListBase *sources)
-{
-	ScrArea *curarea= CTX_wm_area(C);
-	Scene *scene= CTX_data_scene(C);
-	
-	/* check view type */
-	switch (curarea->spacetype) {
-		/* 3d view - first one tested as most often used */
-		case SPACE_VIEW3D:
-		{
-			/* either pose or object level */
-			if (OBACT && (OBACT->pose)) {	
-				//Object *ob= OBACT;
-				
-				/* recalculate ipo handles, etc. */
-				// XXX this method has been removed!
-				//if (ob->action)
-				//	remake_action_ipos(ob->action);
-				
-				/* recalculate bone-paths on adding new keyframe? */
-				// XXX missing function
-				// TODO: currently, there is no setting to turn this on/off globally
-				//if (ob->pose->flag & POSE_RECALCPATHS)
-				//	pose_recalculate_paths(ob);
-			}
-			else {
-				bCommonKeySrc *cks;
-				
-				/* loop over bases (as seen in sources) */
-				for (cks= sources->first; cks; cks= cks->next) {
-					Object *ob= (Object *)cks->id;
-					
-					/* simply set recalc flag */
-					ob->recalc |= OB_RECALC_OB;
-				}
-			}
-		}
-			break;
-	}
-}
-
-/* flush refreshes after undo */
-static void commonkey_context_refresh (bContext *C)
-{
-	ScrArea *curarea= CTX_wm_area(C);
-	
-	/* check view type */
-	switch (curarea->spacetype) {
-		/* 3d view - first one tested as most often used */
-		case SPACE_VIEW3D:
-		{
-			/* do refreshes */
-			ED_anim_dag_flush_update(C);
-		}
-			break;
-			
-		/* buttons window */
-		case SPACE_BUTS:
-		{
-			//allspace(REMAKEIPO, 0);
-			//allqueue(REDRAWVIEW3D, 0);
-			//allqueue(REDRAWMARKER, 0);
-		}
-			break;
-	}
-}
-
-/* --- */
-
-/* Get the keying set that was chosen by the user from the menu */
-static bKeyingSet *get_keyingset_fromcontext (bKeyingContext *ksc, short index)
-{
-	/* check if index is valid */
-	if (ELEM(NULL, ksc, ksc->keyingsets))
-		return NULL;
-	if ((index < 1) || (index > ksc->tot))
-		return NULL;
-		
-	/* index starts from 1, and should directly correspond to keyingset in array */
-	return (bKeyingSet *)(ksc->keyingsets + (index - 1));
-}
-
-/* ---------------- Keyframe Management API -------------------- */
-
-/* Display a menu for handling the insertion of keyframes based on the active view */
-void common_modifykey (bContext *C, short mode)
-{
-	ListBase dsources = {NULL, NULL};
-	bKeyingContext *ksc= NULL;
-	bCommonKeySrc *cks;
-	bKeyingSet *ks = NULL;
-	char *menustr, buf[64];
-	short menu_nr;
-	
-	/* check if mode is valid */
-	if (ELEM(mode, COMMONKEY_MODE_INSERT, COMMONKEY_MODE_DELETE)==0)
-		return;
-	
-	/* delegate to other functions or get keyingsets to use 
-	 *	- if the current area doesn't have its own handling, there will be data returned...
-	 */
-	commonkey_context_get(C, NULL, mode, &dsources, &ksc);
-	
-	/* check that there is data to operate on */
-	if (ELEM(NULL, dsources.first, ksc)) {
-		BLI_freelistN(&dsources);
-		return;
-	}
-	
-	/* get menu and process it */
-	if (mode == COMMONKEY_MODE_DELETE)
-		menustr= build_keyingsets_menu(ksc, "Delete");
-	else
-		menustr= build_keyingsets_menu(ksc, "Insert");
-	// XXX: this goes to the invoke!
-	//menu_nr= pupmenu(menustr);
-	//if (menustr) MEM_freeN(menustr);
-	menu_nr = -1; // XXX for now
-	
-	/* no item selected or shapekey entry? */
-	if (menu_nr < 1) {
-		/* free temp sources */
-		BLI_freelistN(&dsources);
-		
-		/* check if insert new shapekey */
-		// XXX missing function!
-		//if ((menu_nr == 0) && (mode == COMMONKEY_MODE_INSERT))
-		//	insert_shapekey(OBACT);
-		//else 
-			ksc->lastused= NULL;
-			
-		return;
-	}
-	else {
-		/* try to get keyingset */
-		ks= get_keyingset_fromcontext(ksc, menu_nr);
-		
-		if (ks == NULL) {
-			BLI_freelistN(&dsources);
-			return;
-		}
-	}
-	
-	/* loop over each destination, applying the keying set */
-	for (cks= dsources.first; cks; cks= cks->next) {
-		short success= 0;
-		
-		/* special hacks for 'available' option */
-		if (ks->flag == -2) {
-			IpoCurve *icu= NULL, *icn= NULL;
-			
-			/* get first IPO-curve */
-			if (cks->act && cks->actname) {
-				bActionChannel *achan= get_action_channel(cks->act, cks->actname);
-				
-				// FIXME: what about constraint channels?
-				if (achan && achan->ipo)
-					icu= achan->ipo->curve.first; 
-			}
-			else if(cks->ipo)
-				icu= cks->ipo->curve.first;
-				
-			/* we get adrcodes directly from IPO curves (see method below...) */
-			for (; icu; icu= icn) {
-				short flag;
-				
-				/* get next ipo-curve in case current is deleted */
-				icn= icu->next;
-				
-				/* insert mode or delete mode */
-				if (mode == COMMONKEY_MODE_DELETE) {
-					/* local flags only add on to global flags */
-					flag = 0;
-					
-					/* delete keyframe */
-					success += deletekey(cks->id, ks->blocktype, cks->actname, cks->constname, icu->adrcode, flag);
-				}
-				else {
-					/* local flags only add on to global flags */
-					flag = ks->flag;
-					if (IS_AUTOKEY_FLAG(AUTOMATKEY)) flag |= INSERTKEY_MATRIX;
-					if (IS_AUTOKEY_FLAG(INSERTNEEDED)) flag |= INSERTKEY_NEEDED;
-					// if (IS_AUTOKEY_MODE(EDITKEYS)) flag |= INSERTKEY_REPLACE;
-					
-					/* insert keyframe */
-					success += insertkey(cks->id, ks->blocktype, cks->actname, cks->constname, icu->adrcode, flag);
-				}
-			}
-		}
-		else {
-			bKS_AdrcodeGetter kag;
-			short (*get_next_adrcode)(bKS_AdrcodeGetter *);
-			int adrcode;
-			
-			/* initialise keyingset channel iterator */
-			ks_adrcodegetter_init(&kag, ks, cks);
-			
-			/* get iterator - only one can be in use at a time... the flags should be mutually exclusive in this regard */
-			if (ks->flag & COMMONKEY_PCHANROT)
-				get_next_adrcode= ks_getnextadrcode_pchanrot;
-			else if (ks->flag & COMMONKEY_ADDMAP)
-				get_next_adrcode= ks_getnextadrcode_addmap;
-			else
-				get_next_adrcode= ks_getnextadrcode_default;
-			
-			/* loop over channels available in keyingset */
-			for (adrcode= get_next_adrcode(&kag); adrcode > 0; adrcode= get_next_adrcode(&kag)) {
-				short flag;
-				
-				/* insert mode or delete mode */
-				if (mode == COMMONKEY_MODE_DELETE) {
-					/* local flags only add on to global flags */
-					flag = 0;
-					//flag &= ~COMMONKEY_MODES;
-					
-					/* delete keyframe */
-					success += deletekey(cks->id, ks->blocktype, cks->actname, cks->constname, adrcode, flag);
-				}
-				else {
-					/* local flags only add on to global flags */
-					flag = ks->flag;
-					if (IS_AUTOKEY_FLAG(AUTOMATKEY)) flag |= INSERTKEY_MATRIX;
-					if (IS_AUTOKEY_FLAG(INSERTNEEDED)) flag |= INSERTKEY_NEEDED;
-					// if (IS_AUTOKEY_MODE(EDITKEYS)) flag |= INSERTKEY_REPLACE;
-					flag &= ~COMMONKEY_MODES;
-					
-					/* insert keyframe */
-					success += insertkey(cks->id, ks->blocktype, cks->actname, cks->constname, adrcode, flag);
-				}
-			}
-		}
-		
-		/* special handling for some key-sources */
-		if (success) {
-			/* set pose recalc-paths flag */
-			if (cks->pchan) {
-				Object *ob= (Object *)cks->id;
-				bPoseChannel *pchan= cks->pchan;
-				
-				/* set flag to trigger path recalc */
-				if (pchan->path) 
-					ob->pose->flag |= POSE_RECALCPATHS;
-					
-				/* clear unkeyed flag (it doesn't matter if it's set or not) */
-					// XXX old animation system
-				//if (pchan->bone)
-				//	pchan->bone->flag &= ~BONE_UNKEYED;
-			}
-			
-			// XXX for new system, need to remove overrides
-		}
-	}
-	
-	/* apply post-keying flushes for this data sources */
-	commonkey_context_finish(C, &dsources);
-	
-	/* free temp data */
-	BLI_freelistN(&dsources);
-	
-	/* queue updates for contexts */
-	commonkey_context_refresh(C);
-}
-
 #endif // XXX old keyingsets code based on adrcodes... to be restored in due course
 
 /* Given a KeyingSet and context info (if required), modify keyframes for the channels specified
@@ -2224,6 +1885,34 @@ static int commonkey_modifykey (ListBase *dsources, KeyingSet *ks, short mode, f
 	return success;
 }
 
+
+/* Polling callback for use with ANIM_*_keyframe() operators
+ * This is based on the standard ED_operator_areaactive callback,
+ * except that it does special checks for a few spacetypes too...
+ */
+static int modify_key_op_poll(bContext *C)
+{
+	ScrArea *sa= CTX_wm_area(C);
+	Scene *scene= CTX_data_scene(C);
+	
+	/* if no area or active scene */
+	if (ELEM(NULL, sa, scene)) 
+		return 0;
+	
+	/* if Outliner, only allow in DataBlocks view */
+	if (sa->spacetype == SPACE_OOPS) {
+		SpaceOops *so= (SpaceOops *)CTX_wm_space_data(C);
+		
+		if ((so->type != SO_OUTLINER) || (so->outlinevis != SO_DATABLOCKS))
+			return 0;
+	}
+	
+	/* TODO: checks for other space types can be added here */
+	
+	/* should be fine */
+	return 1;
+}
+
 /* Insert Key Operator ------------------------ */
 
 /* NOTE:
@@ -2232,7 +1921,7 @@ static int commonkey_modifykey (ListBase *dsources, KeyingSet *ks, short mode, f
  *
  * 	-- Joshua Leung, Feb 2009
  */
-
+ 
 static int insert_key_exec (bContext *C, wmOperator *op)
 {
 	ListBase dsources = {NULL, NULL};
@@ -2275,7 +1964,7 @@ void ANIM_OT_insert_keyframe (wmOperatorType *ot)
 	
 	/* callbacks */
 	ot->exec= insert_key_exec; 
-	ot->poll= ED_operator_areaactive;
+	ot->poll= modify_key_op_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -2332,8 +2021,7 @@ void ANIM_OT_delete_keyframe (wmOperatorType *ot)
 	
 	/* callbacks */
 	ot->exec= delete_key_exec; 
-	
-	ot->poll= ED_operator_areaactive;
+	ot->poll= modify_key_op_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -2454,7 +2142,7 @@ static int insert_key_old_exec (bContext *C, wmOperator *op)
 					success+= insertkey(id, "Object Transforms", "rotation", 1, cfra, 0);
 					success+= insertkey(id, "Object Transforms", "rotation", 2, cfra, 0);
 					break;
-				case 1: /* object location */
+				default: /* object location */
 					success+= insertkey(id, "Object Transforms", "location", 0, cfra, 0);
 					success+= insertkey(id, "Object Transforms", "location", 1, cfra, 0);
 					success+= insertkey(id, "Object Transforms", "location", 2, cfra, 0);
@@ -2473,13 +2161,13 @@ static int insert_key_old_exec (bContext *C, wmOperator *op)
 						char buf[512];
 						
 						switch (mode) {
-						case 6: /* pchan scale */
+						case 7: /* pchan scale */
 							sprintf(buf, "pose.pose_channels[\"%s\"].scale", pchan->name);
 							success+= insertkey(id, pchan->name, buf, 0, cfra, 0);
 							success+= insertkey(id, pchan->name, buf, 1, cfra, 0);
 							success+= insertkey(id, pchan->name, buf, 2, cfra, 0);
 							break;
-						case 5: /* pchan rotation */
+						case 6: /* pchan rotation */
 							if (pchan->rotmode == PCHAN_ROT_QUAT) {
 								sprintf(buf, "pose.pose_channels[\"%s\"].rotation", pchan->name);
 								success+= insertkey(id, pchan->name, buf, 0, cfra, 0);

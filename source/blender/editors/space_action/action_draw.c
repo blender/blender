@@ -630,7 +630,15 @@ void draw_channel_names(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 					indent= 0;
 					special= -1;
 					
-					offset= (ac->datatype == ANIMCONT_DOPESHEET) ? 16 : 0;
+					if (ale->id) {
+						/* special exception for materials */
+						if (GS(ale->id->name) == ID_MA) 
+							offset= 25;
+						else
+							offset= 14;
+					}
+					else
+						offset= 0;
 					
 					/* only show expand if there are any channels */
 					if (agrp->channels.first) {
@@ -658,21 +666,17 @@ void draw_channel_names(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 					group= (fcu->grp) ? 1 : 0;
 					grp= fcu->grp;
 					
-					switch (ale->ownertype) {
-						case ANIMTYPE_NONE:	/* no owner */
-						case ANIMTYPE_FCURVE: 
-							offset= 0;
-							break;
-							
-						case ANIMTYPE_DSMAT: /* for now, this is special case for materials */
+					if (ale->id) {
+						/* special exception for materials */
+						if (GS(ale->id->name) == ID_MA) {
 							offset= 21;
 							indent= 1;
-							break;
-							
-						default:
+						}
+						else
 							offset= 14;
-							break;
 					}
+					else
+						offset= 0;
 					
 					if (fcu->flag & FCURVE_MUTED)
 						mute = ICON_MUTE_IPO_ON;

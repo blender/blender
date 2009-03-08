@@ -139,15 +139,20 @@ typedef struct ParticleUndo {
 	char name[64];
 } ParticleUndo;
 
-typedef struct ParticleEdit{
+typedef struct ParticleEdit {
 	ListBase undo;
 	struct ParticleUndo *curundo;
-	struct KDTree *emitter_field;
+
 	ParticleEditKey **keys;
+	int totkeys;
+
 	int *mirror_cache;
+
+	struct KDTree *emitter_field;
 	float *emitter_cosnos;
 
-	int totkeys;
+	char sel_col[3];
+	char nosel_col[3];
 } ParticleEdit;
 
 typedef struct ParticleThreadContext {
@@ -244,6 +249,7 @@ void psys_find_parents(struct Object *ob, struct ParticleSystemModifierData *psm
 
 void psys_cache_paths(struct Scene *scene, struct Object *ob, struct ParticleSystem *psys, float cfra, int editupdate);
 void psys_cache_child_paths(struct Scene *scene, struct Object *ob, struct ParticleSystem *psys, float cfra, int editupdate);
+void psys_update_world_cos(struct Object *ob, struct ParticleSystem *psys);
 int do_guide(struct Scene *scene, struct ParticleKey *state, int pa_num, float time, struct ListBase *lb);
 float psys_get_size(struct Object *ob, struct Material *ma, struct ParticleSystemModifierData *psmd, struct IpoCurve *icu_size, struct ParticleSystem *psys, struct ParticleSettings *part, struct ParticleData *pa, float *vg_size);
 float psys_get_timestep(struct ParticleSettings *part);

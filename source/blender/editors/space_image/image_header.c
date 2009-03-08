@@ -686,7 +686,7 @@ static void sima_idpoin_handle(bContext *C, ID *id, int event)
 	switch(event) {
 		case UI_ID_BROWSE:
 		case UI_ID_DELETE:
-			ED_space_image_set(C, sima, scene, obedit, sima->image);
+			ED_space_image_set(C, sima, scene, obedit, (Image*)id);
 			ED_undo_push(C, "Assign Image UV");
 			break;
 		case UI_ID_RENAME:
@@ -768,7 +768,7 @@ void image_header_buttons(const bContext *C, ARegion *ar)
 	/* image select */
 
 	pinflag= (show_render)? 0: UI_ID_PIN;
-	xco= uiDefIDPoinButs(block, CTX_data_main(C), NULL, (ID**)&sima->image, ID_IM, &sima->pin, xco, yco,
+	xco= uiDefIDPoinButs(block, CTX_data_main(C), NULL, (ID*)sima->image, ID_IM, &sima->pin, xco, yco,
 		sima_idpoin_handle, UI_ID_BROWSE|UI_ID_BROWSE_RENDER|UI_ID_RENAME|UI_ID_ADD_NEW|UI_ID_OPEN|UI_ID_DELETE|pinflag);
 	xco += 8;
 

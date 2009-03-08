@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9,00"
+	Version="9.00"
 	Name="ED_editors"
 	ProjectGUID="{FB88301F-F725-401B-ACD7-D2ABBF333B71}"
 	RootNamespace="BL_editors"
@@ -254,6 +254,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\editors\include\ED_particle.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\include\ED_previewrender.h"
 				>
 			</File>
@@ -336,6 +340,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\editors\datafiles\blenderbuttons.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\datafiles\bmonofont.ttf.c"
 				>
 			</File>
 			<File
@@ -427,6 +435,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\editors\space_view3d\view3d_buttons.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\space_view3d\view3d_draw.c"
 				>
 			</File>
@@ -451,11 +463,11 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\editors\space_view3d\view3d_view.c"
+				RelativePath="..\..\..\source\blender\editors\space_view3d\view3d_snap.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\editors\space_view3d\vpaint.c"
+				RelativePath="..\..\..\source\blender\editors\space_view3d\view3d_view.c"
 				>
 			</File>
 		</Filter>
@@ -570,6 +582,10 @@
 		<Filter
 			Name="space_graph"
 			>
+			<File
+				RelativePath="..\..\..\source\blender\editors\space_graph\graph_buttons.c"
+				>
+			</File>
 			<File
 				RelativePath="..\..\..\source\blender\editors\space_graph\graph_draw.c"
 				>
@@ -875,11 +891,23 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\editors\space_text\text_draw.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\space_text\text_header.c"
 				>
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\editors\space_text\text_intern.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\space_text\text_ops.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\space_text\text_python.c"
 				>
 			</File>
 		</Filter>
@@ -1035,6 +1063,10 @@
 			Name="mesh"
 			>
 			<File
+				RelativePath="..\..\..\source\blender\editors\mesh\bmeshutils.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\mesh\editdeform.c"
 				>
 			</File>
@@ -1116,18 +1148,38 @@
 			</File>
 		</Filter>
 		<Filter
-			Name="sculpt"
+			Name="sculpt_paint"
 			>
 			<File
-				RelativePath="..\..\..\source\blender\editors\sculpt\sculpt.c"
+				RelativePath="..\..\..\source\blender\editors\sculpt_paint\paint_image.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\editors\sculpt\sculpt_intern.h"
+				RelativePath="..\..\..\source\blender\editors\sculpt_paint\paint_intern.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\editors\sculpt\stroke.c"
+				RelativePath="..\..\..\source\blender\editors\sculpt_paint\paint_ops.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\sculpt_paint\paint_utils.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\sculpt_paint\paint_vertex.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\sculpt_paint\sculpt.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\sculpt_paint\sculpt_intern.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\sculpt_paint\sculpt_stroke.c"
 				>
 			</File>
 		</Filter>

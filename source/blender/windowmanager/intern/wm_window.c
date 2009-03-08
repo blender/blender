@@ -661,6 +661,57 @@ void WM_event_remove_window_timer(wmWindow *win, wmTimer *timer)
 	}
 }
 
+/* ******************* clipboard **************** */
+
+char *WM_clipboard_text_get(int selection)
+{
+	char *p, *p2, *buf, *newbuf;
+
+	buf= (char*)GHOST_getClipboard(selection);
+	if(!buf)
+		return NULL;
+	
+	/* always convert from \r\n to \n */
+	newbuf= MEM_callocN(strlen(buf)+1, "WM_clipboard_text_get");
+
+	for(p= buf, p2= newbuf; *p; p++) {
+		if(*p != '\r')
+			*(p2++)= *p;
+	}
+	*p2= '\0';
+
+	free(buf); /* ghost uses regular malloc */
+	
+	return newbuf;
+}
+
+void WM_clipboard_text_set(char *buf, int selection)
+{
+	/* do conversion from \n to \r\n on Windows */
+	char *p, *p2, *newbuf;
+	int newlen= 0;
+	
+	for(p= buf; *p; p++) {
+		if(*p == '\n')
+			newlen += 2;
+		else
+			newlen++;
+	}
+	
+	newbuf= MEM_callocN(newlen+1, "WM_clipboard_text_set");
+
+	for(p= buf, p2= newbuf; *p; p++, p2++) {
+		if(*p == '\n') { 
+			*(p2++)= '\r'; *p2= '\n';
+		}
+		else *p2= *p;
+	}
+	*p2= '\0';
+
+	GHOST_putClipboard((GHOST_TInt8*)newbuf, selection);
+	MEM_freeN(newbuf);
+}
+
 /* ************************************ */
 
 void wm_window_get_position(wmWindow *win, int *posx_r, int *posy_r) 

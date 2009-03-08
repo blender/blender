@@ -689,7 +689,7 @@ static void do_lasso_select_node(short mcords[][2], short moves, short select)
 }
 #endif
 
-void view3d_lasso_select(ViewContext *vc, short mcords[][2], short moves, short select)
+void view3d_lasso_select(bContext *C, ViewContext *vc, short mcords[][2], short moves, short select)
 {
 	if(vc->obedit==NULL) {
 		if(FACESEL_PAINT_TEST)
@@ -697,7 +697,7 @@ void view3d_lasso_select(ViewContext *vc, short mcords[][2], short moves, short 
 		else if(G.f & (G_VERTEXPAINT|G_TEXTUREPAINT|G_WEIGHTPAINT))
 			;
 		else if(G.f & G_PARTICLEEDIT)
-			PE_lasso_select(vc, mcords, moves, select);
+			PE_lasso_select(C, mcords, moves, select);
 		else  
 			do_lasso_select_objects(vc, mcords, moves, select);
 	}
@@ -747,7 +747,7 @@ static int view3d_lasso_select_exec(bContext *C, wmOperator *op)
 		view3d_set_viewcontext(C, &vc);
 		
 		select= RNA_enum_is_equal(op->ptr, "type", "SELECT");
-		view3d_lasso_select(&vc, mcords, i, select);
+		view3d_lasso_select(C, &vc, mcords, i, select);
 		
 		return OPERATOR_FINISHED;
 	}
@@ -1349,8 +1349,7 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 		return OPERATOR_FINISHED;
 	}
 	else if(obedit==NULL && (G.f & G_PARTICLEEDIT)) {
-		PE_border_select(&vc, &rect, (val==LEFTMOUSE));
-		return OPERATOR_FINISHED;
+		return PE_border_select(C, &rect, (val==LEFTMOUSE));
 	}
 	
 	if(obedit) {
@@ -1580,6 +1579,8 @@ static int view3d_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			mouse_nurb(C, event->mval, extend);
 			
 	}
+	else if(G.f & G_PARTICLEEDIT)
+		PE_mouse_particles(C, event->mval, extend);
 	else 
 		mouse_select(C, event->mval, extend, 0);
 
@@ -1799,7 +1800,7 @@ static int view3d_circle_select_exec(bContext *C, wmOperator *op)
 		if(CTX_data_edit_object(C))
 			obedit_circle_select(&vc, selecting, mval, (float)radius);
 		else
-			PE_circle_select(&vc, selecting, mval, (float)radius);
+			return PE_circle_select(C, selecting, mval, (float)radius);
 	}
 	else {
 		Base *base;

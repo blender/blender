@@ -535,7 +535,7 @@ void fcurve_to_keylist(FCurve *fcu, ListBase *keys, ListBase *blocks, ActKeysInc
 	ActKeyBlock *ab, *ab2;
 	int v;
 	
-	if (fcu && fcu->totvert) {
+	if (fcu && fcu->totvert && fcu->bezt) {
 		/* loop through beztriples, making ActKeys and ActKeyBlocks */
 		bezt= fcu->bezt;
 		

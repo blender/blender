@@ -109,6 +109,7 @@
 #include "BKE_animsys.h"
 #include "BKE_action.h"
 #include "BKE_armature.h"
+#include "BKE_brush.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_cloth.h"
 #include "BKE_colortools.h"
@@ -1511,6 +1512,8 @@ static void direct_link_brush(FileData *fd, Brush *brush)
 	brush->curve= newdataadr(fd, brush->curve);
 	if(brush->curve)
 		direct_link_curvemapping(fd, brush->curve);
+	else
+		brush_curve_preset(brush, BRUSH_PRESET_SHARP);
 }
 
 static void direct_link_script(FileData *fd, Script *script)
@@ -2548,7 +2551,7 @@ static void direct_link_text(FileData *fd, Text *text)
 		ln= ln->next;
 	}
 
-	text->flags = (text->flags|TXT_ISTMP) & ~TXT_ISEXT;
+	text->flags = (text->flags) & ~TXT_ISEXT;
 
 	text->id.us= 1;
 }
@@ -2938,6 +2941,7 @@ static void direct_link_particlesystems(FileData *fd, ListBase *particles)
 		}
 
 		psys->edit = 0;
+		psys->free_edit = NULL;
 		psys->pathcache = 0;
 		psys->childcache = 0;
 		psys->pathcachebufs.first = psys->pathcachebufs.last = 0;
@@ -3849,6 +3853,9 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 		sce->toolsettings->vpaint= newdataadr(fd, sce->toolsettings->vpaint);
 		sce->toolsettings->wpaint= newdataadr(fd, sce->toolsettings->wpaint);
 		sce->toolsettings->sculpt= newdataadr(fd, sce->toolsettings->sculpt);
+		sce->toolsettings->imapaint.paintcursor= NULL;
+		sce->toolsettings->particle.paintcursor= NULL;
+
 		if(sce->toolsettings->sculpt)
 			sce->toolsettings->sculpt->session= MEM_callocN(sizeof(SculptSession), "reload sculpt session");
 	}
@@ -5636,6 +5643,11 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				ar->v2d.align = (V2D_ALIGN_NO_NEG_X|V2D_ALIGN_NO_POS_Y);
 				ar->v2d.keepzoom = (V2D_LOCKZOOM_X|V2D_LOCKZOOM_Y|V2D_KEEPZOOM|V2D_KEEPASPECT);
 				break;
+			}
+			case SPACE_TEXT:
+			{
+				SpaceText *st= (SpaceText *)sl;
+				st->flags |= ST_FIND_WRAP;
 			}
 				//case SPACE_XXX: // FIXME... add other ones
 				//	memcpy(&ar->v2d, &((SpaceXxx *)sl)->v2d, sizeof(View2D));

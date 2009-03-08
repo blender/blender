@@ -377,25 +377,6 @@ void renderspothalo(ShadeInput *shi, float *col, float alpha)
 
 /* ---------------- shaders ----------------------- */
 
-static double Normalize_d(double *n)
-{
-	double d;
-	
-	d= n[0]*n[0]+n[1]*n[1]+n[2]*n[2];
-
-	if(d>0.00000000000000001) {
-		d= sqrt(d);
-
-		n[0]/=d; 
-		n[1]/=d; 
-		n[2]/=d;
-	} else {
-		n[0]=n[1]=n[2]= 0.0;
-		d= 0.0;
-	}
-	return d;
-}
-
 /* mix of 'real' fresnel and allowing control. grad defines blending gradient */
 float fresnel_fac(float *view, float *vn, float grad, float fac)
 {

@@ -160,6 +160,7 @@ static void info_main_area_draw(const bContext *C, ARegion *ar)
 	glColor3f(0.0, 0.0, 1.0);
 	BLF_size(11, 96);
 	BLF_position(200.0, 50.0, 0.0);
+	BLF_enable(BLF_ROTATION);
 	BLF_rotation(45.0f);
 	BLF_draw("Another Hello Blender, size 11 and dpi 96!!");
 
@@ -172,7 +173,7 @@ static void info_main_area_draw(const bContext *C, ARegion *ar)
 	glColor3f(0.8, 0.7, 0.5);
 	BLF_size(12, 96);
 	BLF_position(5.0, 200.0, 0.0);
-	BLF_rotation(0.0f);
+	BLF_disable(BLF_ROTATION);
 	BLF_draw("And this make a new glyph cache!!");
 
 	/* reset view matrix */

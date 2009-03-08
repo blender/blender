@@ -116,14 +116,16 @@ void graphedit_operatortypes(void)
 	WM_operatortype_append(GRAPHEDIT_OT_keyframes_interpolation_type);
 	WM_operatortype_append(GRAPHEDIT_OT_keyframes_extrapolation_type);
 	WM_operatortype_append(GRAPHEDIT_OT_keyframes_sample);
+	WM_operatortype_append(GRAPHEDIT_OT_keyframes_bake);
 	WM_operatortype_append(GRAPHEDIT_OT_keyframes_smooth);
 	WM_operatortype_append(GRAPHEDIT_OT_keyframes_clean);
 	WM_operatortype_append(GRAPHEDIT_OT_keyframes_delete);
 	WM_operatortype_append(GRAPHEDIT_OT_keyframes_duplicate);
-#if 0 // XXX code to be sanitied for new system	
+	
 	WM_operatortype_append(GRAPHEDIT_OT_keyframes_copy);
 	WM_operatortype_append(GRAPHEDIT_OT_keyframes_paste);
-#endif // XXX code to be sanitied for new system
+	
+	//TODO: insertkey...
 }
 
 /* ************************** registration - keymaps **********************************/
@@ -172,19 +174,22 @@ static void graphedit_keymap_keyframes (wmWindowManager *wm, ListBase *keymap)
 	
 		/* destructive */
 	WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_clean", OKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_sample", OKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_smooth", OKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_sample", OKEY, KM_PRESS, KM_SHIFT, 0);
+	
+	WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_bake", CKEY, KM_PRESS, KM_ALT, 0);
 	
 	WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_delete", XKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_delete", DELKEY, KM_PRESS, 0, 0);
 	
 	WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_duplicate", DKEY, KM_PRESS, KM_SHIFT, 0);
 	
-#if 0 // XXX code to be sanitied for new system
+		/* insertkey */
+	// TODO..
+	
 		/* copy/paste */
 	WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_copy", CKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_paste", VKEY, KM_PRESS, KM_CTRL, 0);
-#endif // XXX code to be sanitied for new system	
 	
 		/* auto-set range */
 	WM_keymap_add_item(keymap, "GRAPHEDIT_OT_set_previewrange", PKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);

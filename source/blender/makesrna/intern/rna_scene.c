@@ -470,6 +470,11 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "SceneRenderData");
 	RNA_def_property_ui_text(prop, "Render Data", "");
 
+	prop= RNA_def_property(srna, "timeline_markers", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_collection_sdna(prop, NULL, "markers", NULL);
+	RNA_def_property_struct_type(prop, "TimelineMarker");
+	RNA_def_property_ui_text(prop, "Timeline Markers", "Markers used in all timelines for the current scene.");
+
 	rna_def_tool_settings(brna);
 	rna_def_scene_render_data(brna);
 }

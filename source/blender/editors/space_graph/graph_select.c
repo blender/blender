@@ -661,6 +661,7 @@ static void mouse_graph_keys (bAnimContext *ac, int mval[], short selectmode)
 	FCurve *fcu;
 	BezTriple *bezt;
 	short handle;
+	int filter;
 	
 	/* find the beztriple that we're selecting, and the handle that was clicked on */
 	handle= findnearest_fcurve_vert(ac, mval, &fcu, &bezt);
@@ -719,16 +720,16 @@ static void mouse_graph_keys (bAnimContext *ac, int mval[], short selectmode)
 	}
 	
 	/* select or deselect curve? */
-	if (selectmode == SELECT_INVERT) {
+	if (selectmode == SELECT_INVERT)
 		fcu->flag ^= FCURVE_SELECTED;
-		
-		if (fcu->flag & FCURVE_SELECTED)
-			fcu->flag |= FCURVE_ACTIVE;
-		else
-			fcu->flag &= ~FCURVE_ACTIVE;
-	}
 	else if (selectmode == SELECT_ADD)
-		fcu->flag |= (FCURVE_ACTIVE|FCURVE_SELECTED);
+		fcu->flag |= FCURVE_SELECTED;
+		
+	/* set active F-Curve (NOTE: sync the filter flags with findnearest_fcurve_vert) */
+	if (fcu->flag & FCURVE_SELECTED) {
+		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVEVISIBLE | ANIMFILTER_CURVESONLY);
+		ANIM_set_active_channel(ac->data, ac->datatype, filter, fcu, ANIMTYPE_FCURVE);
+	}
 }
 
 /* Option 2) Selects all the keyframes on either side of the current frame (depends on which side the mouse is on) */
@@ -881,7 +882,6 @@ static int graphkeys_clickselect_invoke(bContext *C, wmOperator *op, wmEvent *ev
 	else {
 		/* select keyframe under mouse */
 		mouse_graph_keys(&ac, mval, selectmode); // xxx curves only should become an arg
-		// XXX activate transform...
 	}
 	
 	/* set notifier tha things have changed */

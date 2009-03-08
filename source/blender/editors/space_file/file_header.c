@@ -141,6 +141,7 @@ void file_header_buttons(const bContext *C, ARegion *ar)
 	}
 	
 	/* SORT TYPE */
+	uiBlockSetEmboss(block, UI_EMBOSSX);
 	xco+=XIC;
 	uiBlockBeginAlign(block);
 	uiDefIconButS(block, ROW, B_SORTIMASELLIST, ICON_SORTALPHA,	xco+=XIC,0,XIC,YIC, &params->sort, 1.0, 0.0, 0, 0, "Sorts files alphabetically");
@@ -151,7 +152,16 @@ void file_header_buttons(const bContext *C, ARegion *ar)
 	xco+=XIC+10;
 
 	if (sfile->params->type != FILE_MAIN) {
-		uiDefIconButBitS(block, TOG, 1, B_RELOADIMASELDIR, ICON_BOOKMARKS,xco+=XIC,0,XIC,YIC, &params->display, 0, 0, 0, 0, "Toggles Bookmarks on/off");
+		uiDefIconButBitS(block, TOG, FILE_BOOKMARKS, B_RELOADIMASELDIR, ICON_BOOKMARKS,xco+=XIC,0,XIC,YIC, &params->flag, 0, 0, 0, 0, "Toggles Bookmarks on/off");
+		xco+=XIC+10;
+	} 
+
+	if (sfile->params->type != FILE_MAIN) {
+		uiBlockBeginAlign(block);
+		uiDefIconButS(block, ROW, B_RELOADIMASELDIR, ICON_SHORTDISPLAY,	xco+=XIC,0,XIC,YIC, &params->display, 1.0, 1.0, 0, 0, "Displays short file description");
+		uiDefIconButS(block, ROW, B_RELOADIMASELDIR, ICON_LONGDISPLAY,	xco+=XIC,0,XIC,YIC, &params->display, 1.0, 2.0, 0, 0, "Displays long file description");
+		uiDefIconButS(block, ROW, B_RELOADIMASELDIR, ICON_IMAGE_COL /* ICON_IMGDISPLAY */,	xco+=XIC,0,XIC,YIC, &params->display, 1.0, 3.0, 0, 0, "Displays files as thumbnails");
+		uiBlockEndAlign(block);
 		xco+=XIC+10;
 	} 
 	xcotitle= xco;

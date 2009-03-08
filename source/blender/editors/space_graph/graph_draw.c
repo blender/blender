@@ -390,7 +390,7 @@ static void draw_fcurve_samples (SpaceIpo *sipo, ARegion *ar, FCurve *fcu)
 	
 	/* get verts */
 	first= fcu->fpt;
-	last= (first) ? (first + fcu->totvert) : (NULL);
+	last= (first) ? (first + (fcu->totvert-1)) : (NULL);
 	
 	/* draw */
 	if (first && last) {
@@ -400,6 +400,84 @@ static void draw_fcurve_samples (SpaceIpo *sipo, ARegion *ar, FCurve *fcu)
 }
 
 /* Curve ---------------- */
+
+/* helper func - draw a samples-based F-Curve */
+// TODO: add offset stuff...
+static void draw_fcurve_repeat_samples (FCurve *fcu, View2D *v2d)
+{
+	FPoint *prevfpt= fcu->fpt;
+	FPoint *fpt= prevfpt + 1;
+	float fac, v[2];
+	int b= fcu->totvert-1;
+	
+	glBegin(GL_LINE_STRIP);
+	
+	/* extrapolate to left? */
+	if ( (fcu->modifiers.first == NULL)/* || ( ((FModifier *)fcu->modifiers.first)->type != FMODIFIER_TYPE_CYCLES) */) {
+		/* left-side of view comes before first keyframe, so need to extend as not cyclic */
+		if (prevfpt->vec[0] > v2d->cur.xmin) {
+			v[0]= v2d->cur.xmin;
+			
+			/* y-value depends on the interpolation */
+			if ((fcu->extend==FCURVE_EXTRAPOLATE_CONSTANT) || (fcu->flag & FCURVE_INT_VALUES) || (fcu->totvert==1)) {
+				/* just extend across the first keyframe's value */
+				v[1]= prevfpt->vec[1];
+			} 
+			else {
+				/* extrapolate linear dosnt use the handle, use the next points center instead */
+				fac= (prevfpt->vec[0]-fpt->vec[0])/(prevfpt->vec[0]-v[0]);
+				if (fac) fac= 1.0f/fac;
+				v[1]= prevfpt->vec[1]-fac*(prevfpt->vec[1]-fpt->vec[1]);
+			}
+			
+			glVertex2fv(v);
+		}
+	}
+	
+	/* if only one sample, add it now */
+	if (fcu->totvert == 1)
+		glVertex2fv(prevfpt->vec);
+	
+	/* loop over samples, drawing segments */
+	/* draw curve between first and last keyframe (if there are enough to do so) */
+	// XXX this doesn't take into account modifiers, or sample data
+	while (b--) {
+		/* Linear interpolation: just add one point (which should add a new line segment) */
+		glVertex2fv(prevfpt->vec);
+		
+		/* get next pointers */
+		prevfpt= fpt; 
+		fpt++;
+		
+		/* last point? */
+		if (b == 0)
+			glVertex2fv(prevfpt->vec);
+	}
+	
+	/* extrapolate to right? (see code for left-extrapolation above too) */
+	if ( (fcu->modifiers.first == NULL)/* || ( ((FModifier *)fcu->modifiers.first)->type != FMODIFIER_TYPE_CYCLES) */) {
+		if (prevfpt->vec[0] < v2d->cur.xmax) {
+			v[0]= v2d->cur.xmax;
+			
+			/* y-value depends on the interpolation */
+			if ((fcu->extend==FCURVE_EXTRAPOLATE_CONSTANT) || (fcu->flag & FCURVE_INT_VALUES) || (fcu->totvert==1)) {
+				/* based on last keyframe's value */
+				v[1]= prevfpt->vec[1];
+			} 
+			else {
+				/* extrapolate linear dosnt use the handle, use the previous points center instead */
+				fpt = prevfpt-1;
+				fac= (prevfpt->vec[0]-fpt->vec[0])/(prevfpt->vec[0]-v[0]);
+				if (fac) fac= 1.0f/fac;
+				v[1]= prevfpt->vec[1]-fac*(prevfpt->vec[1]-fpt->vec[1]);
+			}
+			
+			glVertex2fv(v);
+		}
+	}
+	
+	glEnd();
+}
 
 /* helper func - draw one repeat of an F-Curve */
 static void draw_fcurve_repeat (FCurve *fcu, View2D *v2d, float cycxofs, float cycyofs, float *facp)
@@ -726,7 +804,11 @@ void graph_draw_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 			}
 			
 			/* draw F-Curve */
-			draw_fcurve_repeat(fcu, &ar->v2d, 0, 0, &fac); // XXX this call still needs a lot more work
+			if (fcu->bezt)
+				draw_fcurve_repeat(fcu, &ar->v2d, 0, 0, &fac); // XXX this call still needs a lot more work
+			else if (fcu->fpt)
+				draw_fcurve_repeat_samples(fcu, &ar->v2d);
+			/*else  modifiers? */
 			
 			/* restore settings */
 			setlinestyle(0);
@@ -783,6 +865,7 @@ void graph_draw_channel_names(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 	 */
 	height= (float)((items*ACHANNEL_STEP) + (ACHANNEL_HEIGHT*2));
 	
+#if 0
 	if (height > (v2d->mask.ymax - v2d->mask.ymin)) {
 		/* don't use totrect set, as the width stays the same 
 		 * (NOTE: this is ok here, the configuration is pretty straightforward) 
@@ -791,6 +874,7 @@ void graph_draw_channel_names(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 	}
 	
 	/* XXX I would call the below line! (ton) */
+#endif
 	UI_view2d_totRect_set(v2d, ar->winx, height);
 	
 	/* loop through channels, and set up drawing depending on their type  */	
@@ -1013,7 +1097,15 @@ void graph_draw_channel_names(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 					indent= 0;
 					special= -1;
 					
-					offset= (ale->id) ? 16 : 0;
+					if (ale->id) {
+						/* special exception for materials */
+						if (GS(ale->id->name) == ID_MA) 
+							offset= 25;
+						else
+							offset= 14;
+					}
+					else
+						offset= 0;
 					
 					/* only show expand if there are any channels */
 					if (agrp->channels.first) {
@@ -1041,21 +1133,17 @@ void graph_draw_channel_names(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 					group= (fcu->grp) ? 1 : 0;
 					grp= fcu->grp;
 					
-					switch (ale->ownertype) {
-						case ANIMTYPE_NONE:	/* no owner */
-						case ANIMTYPE_FCURVE: 
-							offset= 0;
-							break;
-							
-						case ANIMTYPE_DSMAT: /* for now, this is special case for materials */
+					if (ale->id) {
+						/* special exception for materials */
+						if (GS(ale->id->name) == ID_MA) {
 							offset= 21;
 							indent= 1;
-							break;
-							
-						default:
+						}
+						else
 							offset= 14;
-							break;
 					}
+					else
+						offset= 0;
 					
 					/* for now, 'special' (i.e. in front of name) is used to show visibility status */
 					if (fcu->flag & FCURVE_VISIBLE)
@@ -1141,23 +1229,54 @@ void graph_draw_channel_names(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 				gl_round_box(GL_POLYGON, x+offset,  yminc, (float)ACHANNEL_NAMEWIDTH, ymaxc, 8);
 			}
 			else {
-				/* most of the time, only F-Curves are going to be drawn here */
-				if (ale->type == ANIMTYPE_FCURVE) {
-					/* F-Curve channels are colored with whatever color the curve has stored  */
-					FCurve *fcu= (FCurve *)ale->data;
-					glColor3fv(fcu->color);
-				}
-				else
-					UI_ThemeColorShade(TH_HEADER, ((indent==0)?20: (indent==1)?-20: -40));
+				short shadefac= ((indent==0)?20: (indent==1)?-20: -40);
 				
 				indent += group;
 				offset += 7 * indent;
+				
+				/* draw channel backdrop */
+				UI_ThemeColorShade(TH_HEADER, shadefac);
+				
 				glBegin(GL_QUADS);
 					glVertex2f(x+offset, yminc);
 					glVertex2f(x+offset, ymaxc);
 					glVertex2f((float)ACHANNEL_NAMEWIDTH, ymaxc);
 					glVertex2f((float)ACHANNEL_NAMEWIDTH, yminc);
 				glEnd();
+				
+				/* most of the time, only F-Curves are going to be drawn here */
+				if (ale->type == ANIMTYPE_FCURVE) {
+					/* F-Curve channels need to have a special 'color code' box drawn, which is colored with whatever 
+					 * color the curve has stored 
+					 */
+					FCurve *fcu= (FCurve *)ale->data;
+					glColor3fv(fcu->color);
+					
+					// NOTE: only enable the following line for the fading-out gradient
+					//glShadeModel(GL_SMOOTH);
+					
+					glBegin(GL_QUADS);
+						/* solid color for the area around the checkbox */
+						glVertex2f(x+offset, yminc);
+						glVertex2f(x+offset, ymaxc);
+						glVertex2f(x+offset+18, ymaxc);
+						glVertex2f(x+offset+18, yminc);
+						
+#if 0 // fading out gradient
+						/* fading out gradient for the rest of the box */
+						glVertex2f(x+offset+18, yminc);
+						glVertex2f(x+offset+18, ymaxc);
+						
+						UI_ThemeColorShade(TH_HEADER, shadefac); // XXX does this cause any problems on some cards?
+						
+						glVertex2f(x+offset+20, ymaxc);
+						glVertex2f(x+offset+20, yminc);
+#endif // fading out gradient
+					glEnd();
+					
+					// NOTE: only enable the following line for the fading-out gradient
+					//glShadeModel(GL_FLAT);
+				}
 			}
 			
 			/* draw expand/collapse triangle */

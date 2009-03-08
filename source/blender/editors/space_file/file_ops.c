@@ -417,7 +417,7 @@ int file_hilight_set(SpaceFile *sfile, ARegion *ar, int mx, int my)
 	numfiles = filelist_numfiles(sfile->files);
 	params = ED_fileselect_get_params(sfile);
 	
-	if (params->display) {
+	if (params->display == FILE_IMGDISPLAY) {
 		actfile = find_file_mouse_hor(sfile, ar, mx , my);
 	} else {
 		actfile = find_file_mouse_vert(sfile, ar, mx, my);

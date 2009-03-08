@@ -47,6 +47,7 @@
 #include "BKE_depsgraph.h"
 #include "BKE_global.h"
 #include "BKE_object.h"
+#include "BKE_text.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"
@@ -62,6 +63,7 @@
 #include "ED_screen.h"
 #include "ED_sculpt.h"
 #include "ED_util.h"
+#include "ED_text.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -124,7 +126,10 @@ static int ed_undo_step(bContext *C, int step)
 	Object *obedit= CTX_data_edit_object(C);
 	ScrArea *sa= CTX_wm_area(C);
 	
-	if(obedit) {
+	if(sa && sa->spacetype==SPACE_TEXT) {
+		ED_text_undo_step(C, step);
+	}
+	else if(obedit) {
 		if ELEM7(obedit->type, OB_MESH, OB_FONT, OB_CURVE, OB_SURF, OB_MBALL, OB_LATTICE, OB_ARMATURE)
 			undo_editmode_step(C, step);
 	}
@@ -133,7 +138,7 @@ static int ed_undo_step(bContext *C, int step)
 		
 		if(G.f & G_TEXTUREPAINT)
 			undo_imagepaint_step(step);
-		else if(sa->spacetype==SPACE_IMAGE) {
+		else if(sa && sa->spacetype==SPACE_IMAGE) {
 			SpaceImage *sima= (SpaceImage *)sa->spacedata.first;
 			if(sima->flag & SI_DRAWTOOL)
 				undo_imagepaint_step(step);

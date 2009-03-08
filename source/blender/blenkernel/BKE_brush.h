@@ -85,8 +85,8 @@ void brush_painter_free(BrushPainter *painter);
 unsigned int *brush_gen_texture_cache(struct Brush *br, int half_side);
 
 /* radial control */
-void brush_radial_control_invoke(struct wmOperator *op, struct Brush *br);
-int brush_radial_control_exec(struct wmOperator *op, struct Brush *br);
+void brush_radial_control_invoke(struct wmOperator *op, struct Brush *br, float size_weight);
+int brush_radial_control_exec(struct wmOperator *op, struct Brush *br, float size_weight);
 
 #endif
 

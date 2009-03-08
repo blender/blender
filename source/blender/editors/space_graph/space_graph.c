@@ -337,6 +337,8 @@ static void graph_buttons_area_init(wmWindowManager *wm, ARegion *ar)
 	
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_LIST_UI, ar->winx, ar->winy);
 
+	keymap= WM_keymap_listbase(wm, "View2D Buttons List", 0, 0);
+	WM_event_add_keymap_handler(&ar->handlers, keymap);
 	keymap= WM_keymap_listbase(wm, "GraphEdit Generic", SPACE_IPO, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 }
@@ -567,7 +569,7 @@ void ED_spacetype_ipo(void)
 	art= MEM_callocN(sizeof(ARegionType), "spacetype graphedit region");
 	art->regionid = RGN_TYPE_UI;
 	art->minsizey= 160;
-	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D|ED_KEYMAP_FRAMES;
+	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_FRAMES;
 	art->listener= NULL; // graph_region_listener;
 	art->init= graph_buttons_area_init;
 	art->draw= graph_buttons_area_draw;

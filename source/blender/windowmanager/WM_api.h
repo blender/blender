@@ -105,7 +105,7 @@ void		WM_event_remove_handlers(struct bContext *C, ListBase *handlers);
 void		WM_event_add_mousemove(struct bContext *C);
 int			WM_modal_tweak_exit(struct wmEvent *evt, int tweak_event);
 
-void		WM_event_add_notifier(struct bContext *C, unsigned int type, void *data);
+void		WM_event_add_notifier(const struct bContext *C, unsigned int type, void *data);
 
 void		wm_event_add		(struct wmWindow *win, struct wmEvent *event_to_add); /* XXX only for warning */
 
@@ -205,6 +205,11 @@ void		WM_jobs_callbacks(struct wmJob *,
 void		WM_jobs_start(struct wmJob *);
 void		WM_jobs_stop(struct wmWindowManager *wm, void *owner);
 void		WM_jobs_stop_all(struct wmWindowManager *wm);
+
+			/* clipboard */
+char *WM_clipboard_text_get(int selection);
+void WM_clipboard_text_set(char *buf, int selection);
+
 
 #endif /* WM_API_H */
 

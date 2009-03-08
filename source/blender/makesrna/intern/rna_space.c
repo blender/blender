@@ -31,6 +31,8 @@
 
 #include "DNA_space_types.h"
 
+#include "WM_types.h"
+
 #ifdef RNA_RUNTIME
 
 #include "DNA_scene_types.h"
@@ -58,12 +60,12 @@ static StructRNA* rna_Space_refine(struct PointerRNA *ptr)
 		/*case SPACE_INFO:
 			return &RNA_SpaceUserPreferences;
 		case SPACE_SEQ:
-			return &RNA_SpaceSequenceEditor;
+			return &RNA_SpaceSequenceEditor;*/
 		case SPACE_TEXT:
 			return &RNA_SpaceTextEditor;
 		//case SPACE_IMASEL:
 		//	return &RNA_SpaceImageBrowser;
-		case SPACE_SOUND:
+		/*case SPACE_SOUND:
 			return &RNA_SpaceAudioWindow;
 		case SPACE_ACTION:
 			return &RNA_SpaceDopeSheetEditor;
@@ -91,6 +93,14 @@ static void rna_SpaceImage_paint_update(bContext *C, PointerRNA *ptr)
 
 	if(scene)
 		brush_check_exists(&scene->toolsettings->imapaint.brush);
+}
+
+void rna_SpaceTextEditor_word_wrap_set(PointerRNA *ptr, int value)
+{
+	SpaceText *st= (SpaceText*)(ptr->data);
+
+	st->wordwrap= value;
+	st->left= 0;
 }
 
 #else
@@ -304,10 +314,80 @@ static void rna_def_space_image(BlenderRNA *brna)
 	rna_def_space_image_uv(brna);
 }
 
+static void rna_def_space_text(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	static EnumPropertyItem font_size_items[] = {
+		{12, "SCREEN_12", "Screen 12", ""},
+		{15, "SCREEN_15", "Screen 15", ""},
+		{0, NULL, NULL, NULL}};
+
+	srna= RNA_def_struct(brna, "SpaceTextEditor", "Space");
+	RNA_def_struct_sdna(srna, "SpaceText");
+	RNA_def_struct_ui_text(srna, "Space Text Editor", "Text editor space data.");
+
+	/* text */
+	prop= RNA_def_property(srna, "text", PROP_POINTER, PROP_NONE);
+	RNA_def_property_ui_text(prop, "Text", "Text displayed and edited in this space.");
+
+	/* display */
+	prop= RNA_def_property(srna, "syntax_highlight", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "showsyntax", 0);
+	RNA_def_property_ui_text(prop, "Syntax Highlight", "Syntax highlight for scripting.");
+	RNA_def_property_update(prop, NC_TEXT|ND_DISPLAY, NULL);
+
+	prop= RNA_def_property(srna, "word_wrap", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "wordwrap", 0);
+	RNA_def_property_boolean_funcs(prop, NULL, "rna_SpaceTextEditor_word_wrap_set");
+	RNA_def_property_ui_text(prop, "Word Wrap", "Wrap words if there is not enough horizontal space.");
+	RNA_def_property_update(prop, NC_TEXT|ND_DISPLAY, NULL);
+
+	prop= RNA_def_property(srna, "line_numbers", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "showlinenrs", 0);
+	RNA_def_property_ui_text(prop, "Line Numbers", "Show line numbers next to the text.");
+	RNA_def_property_update(prop, NC_TEXT|ND_DISPLAY, NULL);
+
+	prop= RNA_def_property(srna, "overwrite", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_ui_text(prop, "Overwrite", "Overwrite characters when typing rather than inserting them.");
+	RNA_def_property_update(prop, NC_TEXT|ND_DISPLAY, NULL);
+
+	prop= RNA_def_property(srna, "tab_width", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "tabnumber");
+	RNA_def_property_range(prop, 2, 8);
+	RNA_def_property_ui_text(prop, "Tab Width", "Number of spaces to display tabs with.");
+	RNA_def_property_update(prop, NC_TEXT|ND_DISPLAY, NULL);
+
+	prop= RNA_def_property(srna, "font_size", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "lheight");
+	RNA_def_property_enum_items(prop, font_size_items);
+	RNA_def_property_ui_text(prop, "Font Size", "Font size to use for displaying the text.");
+	RNA_def_property_update(prop, NC_TEXT|ND_DISPLAY, NULL);
+
+	/* find */
+	prop= RNA_def_property(srna, "find_all", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flags", ST_FIND_ALL);
+	RNA_def_property_ui_text(prop, "Find All", "Search in all text datablocks, instead of only the active one.");
+
+	prop= RNA_def_property(srna, "find_wrap", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flags", ST_FIND_WRAP);
+	RNA_def_property_ui_text(prop, "Find Wrap", "Search again from the start of the file when reaching the end.");
+
+	prop= RNA_def_property(srna, "find_text", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "findstr");
+	RNA_def_property_ui_text(prop, "Find Text", "Text to search for with the find tool.");
+
+	prop= RNA_def_property(srna, "replace_text", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "replacestr");
+	RNA_def_property_ui_text(prop, "Replace Text", "Text to replace selected text with using the replace tool.");
+}
+
 void RNA_def_space(BlenderRNA *brna)
 {
 	rna_def_space(brna);
 	rna_def_space_image(brna);
+	rna_def_space_text(brna);
 }
 
 #endif

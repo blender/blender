@@ -243,7 +243,7 @@ void uiFreePanels(ListBase *lb)
 
 void uiNewPanelHeight(uiBlock *block, int sizey)
 {
-	if(sizey<64) sizey= 64;
+	if(sizey<0) sizey= 0;
 	
 	if(block->panel) {
 		block->panel->ofsy+= (block->panel->sizey - sizey);

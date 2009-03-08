@@ -370,6 +370,7 @@ typedef struct ParticleEditSettings {
 	short brushtype;
 
 	ParticleBrushData brush[7]; /* 7 = PE_TOT_BRUSH */
+	void *paintcursor;			/* runtime */
 
 	float emitterdist;
 	int draw_timed;

@@ -108,5 +108,26 @@ float evaluate_fcurve(struct FCurve *fcu, float evaltime);
 /* evaluate fcurve and store value */
 void calculate_fcurve(struct FCurve *fcu, float ctime);
 
+/* ************* F-Curve Samples API ******************** */
+
+/* -------- Defines --------  */
+
+/* Basic signature for F-Curve sample-creation function 
+ *	- fcu: the F-Curve being operated on
+ *	- data: pointer to some specific data that may be used by one of the callbacks
+ */
+typedef float (*FcuSampleFunc)(struct FCurve *fcu, void *data, float evaltime);
+
+/* ----- Sampling Callbacks ------  */
+
+/* Basic sampling callback which acts as a wrapper for evaluate_fcurve() */
+float fcurve_samplingcb_evalcurve(struct FCurve *fcu, void *data, float evaltime);
+
+/* -------- Main Methods --------  */
+
+/* Main API function for creating a set of sampled curve data, given some callback function 
+ * used to retrieve the values to store.
+ */
+void fcurve_store_samples(struct FCurve *fcu, void *data, int start, int end, FcuSampleFunc sample_cb);
 
 #endif /* BKE_FCURVE_H*/

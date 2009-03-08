@@ -108,7 +108,6 @@ void BKE_free_editfont(Curve *cu)
 /* don't free curve itself */
 void free_curve(Curve *cu)
 {
-
 	freeNurblist(&cu->nurb);
 	BLI_freelistN(&cu->bev);
 	freedisplist(&cu->disp);

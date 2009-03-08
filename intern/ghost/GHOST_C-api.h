@@ -771,14 +771,16 @@ extern GHOST_TSuccess GHOST_ClipRectangle(GHOST_RectangleHandle rectanglehandle,
 
 /**
  * Return the data from the clipboad
- * @return clipboard data
+ * @param	return the selection instead, X11 only feature
+ * @return	clipboard data
  */
-extern GHOST_TUns8* GHOST_getClipboard(int flag);
+extern GHOST_TUns8* GHOST_getClipboard(int selection);
 
 /**
  * Put data to the Clipboard
+ * @param	set the selection instead, X11 only feature
  */
-extern void GHOST_putClipboard(GHOST_TInt8 *buffer, int flag);
+extern void GHOST_putClipboard(GHOST_TInt8 *buffer, int selection);
 
 #ifdef __cplusplus
 }

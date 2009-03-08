@@ -463,182 +463,96 @@ void FONT_OT_paste_buffer(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-/******************* XXX text to object operator ********************/
+/******************* text to object operator ********************/
 
-static void txt_export_to_object(Scene *scene, Object *obedit, Text *text)
+static void txt_add_object(bContext *C, TextLine *firstline, int totline, float offset[3])
 {
-	ID *id;
+	Scene *scene= CTX_data_scene(C);
 	Curve *cu;
+	Object *obedit;
+	Base *base;
 	struct TextLine *tmp;
-	int nchars = 0;
-//	char sdir[FILE_MAXDIR];
-//	char sfile[FILE_MAXFILE];
+	int nchars = 0, a;
 
-	if(!text || !text->lines.first) return;
+	obedit= add_object(scene, OB_FONT);
+	base= scene->basact;
 
-	id = (ID *)text;
-
-	if(obedit && obedit->type==OB_FONT) return;
-// XXX	check_editmode(OB_FONT);
-	
-	add_object(scene, OB_FONT);
-
-	ED_object_base_init_from_view(NULL, BASACT); // XXX
-	obedit= BASACT->object;
+	ED_object_base_init_from_view(C, base);
 	where_is_object(scene, obedit);
 
+	obedit->loc[0] += offset[0];
+	obedit->loc[1] += offset[1];
+	obedit->loc[2] += offset[2];
+
 	cu= obedit->data;
-
-/*	
-//		renames object, careful with long filenames.
-
-	if(text->name) {
-	//ID *find_id(char *type, char *name)	
-		BLI_split_dirfile(text->name, sdir, sfile);
-//		rename_id((ID *)obedit, sfile);
-		rename_id((ID *)cu, sfile);
-		id->us++;
-	}
-*/	
 	cu->vfont= get_builtin_font();
 	cu->vfont->id.us++;
 
-	tmp= text->lines.first;
-	while(cu->len<MAXTEXT && tmp) {
+	for(tmp=firstline, a=0; cu->len<MAXTEXT && a<totline; tmp=tmp->next, a++)
 		nchars += strlen(tmp->line) + 1;
-		tmp = tmp->next;
-	}
 
 	if(cu->str) MEM_freeN(cu->str);
 	if(cu->strinfo) MEM_freeN(cu->strinfo);	
 
-	cu->str= MEM_mallocN(nchars+4, "str");
+	cu->str= MEM_callocN(nchars+4, "str");
 	cu->strinfo= MEM_callocN((nchars+4)*sizeof(CharInfo), "strinfo");
-	cu->totbox= cu->actbox= 1;
-	cu->tb= MEM_callocN(MAXTEXTBOX*sizeof(TextBox), "textbox");
-	cu->tb[0].w = cu->tb[0].h = 0.0;
+
+	cu->str[0]= '\0';
+	cu->len= 0;
+	cu->pos= 0;
 	
-	tmp= text->lines.first;
-	strcpy(cu->str, tmp->line);
-	cu->len= strlen(tmp->line);
-	cu->pos= cu->len;
-
-	tmp= tmp->next;
-
-	while(cu->len<MAXTEXT && tmp) {
-		strcat(cu->str, "\n");
+	for(tmp=firstline, a=0; cu->len<MAXTEXT && a<totline; tmp=tmp->next, a++) {
 		strcat(cu->str, tmp->line);
-		cu->len+= strlen(tmp->line) + 1;
+		cu->len+= strlen(tmp->line);
+
+		if(tmp->next) {
+			strcat(cu->str, "\n");
+			cu->len++;
+		}
+
 		cu->pos= cu->len;
-		tmp= tmp->next;
 	}
 
-	make_editText(obedit);
-	ED_object_exit_editmode(NULL, EM_FREEDATA|EM_WAITCURSOR); // XXX
+	WM_event_add_notifier(C, NC_OBJECT|NA_ADDED, obedit);
 }
 
-static void txt_export_to_objects(Scene *scene, Object *obedit, Text *text)
+void ED_text_to_object(bContext *C, Text *text, int split_lines)
 {
-	RegionView3D *rv3d= NULL; // XXX
-	ID *id;
-	Curve *cu;
-	struct TextLine *curline;
-	int nchars;
-	int linenum = 0;
-	float offset[3] = {0.0,0.0,0.0};
+	RegionView3D *rv3d= CTX_wm_region_view3d(C);
+	TextLine *line;
+	float offset[3];
+	int linenum= 0;
 
 	if(!text || !text->lines.first) return;
 
-	id = (ID *)text;
+	if(split_lines) {
+		for(line=text->lines.first; line; line=line->next) {
+			/* skip lines with no text, but still make space for them */
+			if(line->line[0] == '\0') {
+				linenum++;
+				continue;
+			}
+	
+			/* do the translation */
+			offset[0] = 0;
+			offset[1] = -linenum;
+			offset[2] = 0;
+	
+			if(rv3d)
+				Mat4Mul3Vecfl(rv3d->viewinv, offset);
 
-	if(obedit && obedit->type==OB_FONT) return;
-// XXX	check_editmode(OB_FONT);
+			txt_add_object(C, line, 1, offset);
 
-	curline = text->lines.first;
-	while(curline){	
-		/*skip lines with no text, but still make space for them*/
-		if(curline->line[0] == '\0'){
 			linenum++;
-			curline = curline->next;
-			continue;
 		}
-			
-		nchars = 0;	
-		add_object(scene, OB_FONT);
-	
-		ED_object_base_init_from_view(NULL, BASACT); // XXX
-		obedit= BASACT->object;
-		where_is_object(scene, obedit);	
-		
-		/* Do the translation */
-		offset[0] = 0;
-		offset[1] = -linenum;
-		offset[2] = 0;
-	
-		Mat4Mul3Vecfl(rv3d->viewinv, offset);
-		
-		obedit->loc[0] += offset[0];
-		obedit->loc[1] += offset[1];
-		obedit->loc[2] += offset[2];
-		/* End Translation */
-					
-		cu= obedit->data;
-		
-		cu->vfont= get_builtin_font();
-		cu->vfont->id.us++;
-	
-		nchars = strlen(curline->line) + 1;
-	
-		if(cu->str) MEM_freeN(cu->str);
-		if(cu->strinfo) MEM_freeN(cu->strinfo);		
-	
-		cu->str= MEM_mallocN(nchars+4, "str");
-		cu->strinfo= MEM_callocN((nchars+4)*sizeof(CharInfo), "strinfo");
-		cu->totbox= cu->actbox= 1;
-		cu->tb= MEM_callocN(MAXTEXTBOX*sizeof(TextBox), "textbox");
-		cu->tb[0].w = cu->tb[0].h = 0.0;
-		
-		strcpy(cu->str, curline->line);
-		cu->len= strlen(curline->line);
-		cu->pos= cu->len;
-
-		make_editText(obedit);
-		ED_object_exit_editmode(NULL, EM_FREEDATA|EM_WAITCURSOR); // XXX
-
-		linenum++;
-		curline = curline->next;
 	}
-}
+	else {
+		offset[0]= 0.0f;
+		offset[1]= 0.0f;
+		offset[2]= 0.0f;
 
-static int text_to_object_exec(bContext *C, wmOperator *op)
-{
-	Scene *scene= CTX_data_scene(C);
-	Object *obedit= CTX_data_edit_object(C);
-	Text *text= NULL; /// XXX retrieve this ..
-
-	if(RNA_boolean_get(op->ptr, "split_lines"))
-		txt_export_to_objects(scene, obedit, text);
-	else
-		txt_export_to_object(scene, obedit, text);
-
-	return OPERATOR_FINISHED;
-}
-
-void FONT_OT_text_to_object(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Text to Object";
-	ot->idname= "FONT_OT_text_to_object";
-	
-	/* api callbacks */
-	ot->exec= text_to_object_exec;
-	ot->poll= ED_operator_editfont; // XXX not correct
-	
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-
-	/* properties */
-	RNA_def_boolean(ot->srna, "split_lines", 0, "Split Lines", "Create one object per line in the text.");
+		txt_add_object(C, text->lines.first, BLI_countlist(&text->lines), offset);
+	}
 }
 
 /********************** utilities ***************************/

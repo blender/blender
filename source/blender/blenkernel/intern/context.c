@@ -164,6 +164,21 @@ SpaceLink *CTX_wm_space_data(const bContext *C)
 	return (C->wm.area)? C->wm.area->spacedata.first: NULL;
 }
 
+ARegion *CTX_wm_region(const bContext *C)
+{
+	return C->wm.region;
+}
+
+void *CTX_wm_region_data(const bContext *C)
+{
+	return (C->wm.region)? C->wm.region->regiondata: NULL;
+}
+
+struct uiBlock *CTX_wm_ui_block(const bContext *C)
+{
+	return C->wm.block;
+}
+
 View3D *CTX_wm_view3d(const bContext *C)
 {
 	if(C->wm.area && C->wm.area->spacetype==SPACE_VIEW3D)
@@ -179,19 +194,18 @@ RegionView3D *CTX_wm_region_view3d(const bContext *C)
 	return NULL;
 }
 
-ARegion *CTX_wm_region(const bContext *C)
+struct SpaceText *CTX_wm_space_text(const bContext *C)
 {
-	return C->wm.region;
+	if(C->wm.area && C->wm.area->spacetype==SPACE_TEXT)
+		return C->wm.area->spacedata.first;
+	return NULL;
 }
 
-void *CTX_wm_region_data(const bContext *C)
+struct SpaceImage *CTX_wm_space_image(const bContext *C)
 {
-	return (C->wm.region)? C->wm.region->regiondata: NULL;
-}
-
-struct uiBlock *CTX_wm_ui_block(const bContext *C)
-{
-	return C->wm.block;
+	if(C->wm.area && C->wm.area->spacetype==SPACE_IMAGE)
+		return C->wm.area->spacedata.first;
+	return NULL;
 }
 
 void CTX_wm_manager_set(bContext *C, wmWindowManager *wm)
@@ -442,6 +456,11 @@ struct Image *CTX_data_edit_image(const bContext *C)
 struct ImBuf *CTX_data_edit_image_buffer(const bContext *C)
 {
 	return ctx_data_pointer_get(C, CTX_DATA_EDIT_IMAGE_BUFFER);
+}
+
+struct Text *CTX_data_edit_text(const bContext *C)
+{
+	return ctx_data_pointer_get(C, CTX_DATA_EDIT_TEXT);
 }
 
 struct EditBone *CTX_data_active_bone(const bContext *C)

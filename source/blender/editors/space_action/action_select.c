@@ -839,13 +839,20 @@ static void mouse_action_keys (bAnimContext *ac, int mval[2], short selectmode)
 		deselect_action_keys(ac, 0, SELECT_SUBTRACT);
 		
 		if (ELEM(ac->datatype, ANIMCONT_ACTION, ANIMCONT_DOPESHEET)) {
+			int filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CHANNELS); /* this should suffice for now */
+			
+			/* deselect all other channels first */
 			ANIM_deselect_anim_channels(ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
 			
-			/* Highlight Action-Group? */
+			/* Highlight Action-Group or F-Curve? */
 			if (agrp) {
 				agrp->flag |= AGRP_SELECTED;
-				ANIM_action_set_active_channel(ac->data, ac->datatype, agrp, ANIMTYPE_GROUP);
+				ANIM_set_active_channel(ac->data, ac->datatype, filter, agrp, ANIMTYPE_GROUP);
 			}	
+			else if (fcu) {
+				fcu->flag |= FCURVE_SELECTED;
+				ANIM_set_active_channel(ac->data, ac->datatype, filter, fcu, ANIMTYPE_FCURVE);
+			}
 		}
 		else if (ac->datatype == ANIMCONT_GPENCIL) {
 			ANIM_deselect_anim_channels(ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);

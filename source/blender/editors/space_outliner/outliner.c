@@ -3127,7 +3127,7 @@ static void tree_element_to_path(SpaceOops *soops, TreeElement *te, TreeStoreEle
 	 
 	/* step 1: flatten out hierarchy of parents into a flat chain */
 	for (tem= te->parent; tem; tem= tem->parent) {
-		ld= MEM_callocN(sizeof(LinkData), "LinkData for ks_editop_add_cb()");
+		ld= MEM_callocN(sizeof(LinkData), "LinkData for tree_element_to_path()");
 		ld->data= tem;
 		BLI_addhead(&hierarchy, ld);
 	}
@@ -3145,7 +3145,6 @@ static void tree_element_to_path(SpaceOops *soops, TreeElement *te, TreeStoreEle
 			/* just 'append' property to path 
 			 *	- to prevent memory leaks, we must write to newpath not path, then free old path + swap them
 			 */
-			
 			if(tse->type == TSE_RNA_PROPERTY) {
 				if(RNA_property_type(ptr, prop) == PROP_POINTER) {
 					/* for pointer we just append property name */
@@ -3249,9 +3248,12 @@ static void do_outliner_keyingset_editop(SpaceOops *soops, KeyingSet *ks, ListBa
 			short flag= 0;
 			short groupmode= KSP_GROUP_KSNAME;
 			
-			/* get id + path + index info from the selected element */
-			tree_element_to_path(soops, te, tselem, 
-					&id, &path, &array_index, &flag, &groupmode);
+			/* check if RNA-property described by this selected element is an animateable prop */
+			if ((tselem->type == TSE_RNA_PROPERTY) && RNA_property_animateable(&te->rnaptr, te->directdata)) {
+				/* get id + path + index info from the selected element */
+				tree_element_to_path(soops, te, tselem, 
+						&id, &path, &array_index, &flag, &groupmode);
+			}
 			
 			/* only if ID and path were set, should we perform any actions */
 			if (id && path) {

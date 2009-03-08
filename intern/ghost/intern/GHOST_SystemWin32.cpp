@@ -913,7 +913,7 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 	return lResult;
 }
 
-GHOST_TUns8* GHOST_SystemWin32::getClipboard(int flag) const 
+GHOST_TUns8* GHOST_SystemWin32::getClipboard(bool selection) const 
 {
 	char *buffer;
 	char *temp_buff;
@@ -943,9 +943,10 @@ GHOST_TUns8* GHOST_SystemWin32::getClipboard(int flag) const
 	}
 }
 
-void GHOST_SystemWin32::putClipboard(GHOST_TInt8 *buffer, int flag) const
+void GHOST_SystemWin32::putClipboard(GHOST_TInt8 *buffer, bool selection) const
 {
-	if(flag == 1) {return;} //If Flag is 1 means the selection and is used on X11
+	if(selection) {return;} // for copying the selection, used on X11
+
 	if (OpenClipboard(NULL)) {
 		HLOCAL clipbuffer;
 		char *data;

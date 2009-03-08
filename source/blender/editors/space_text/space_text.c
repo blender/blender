@@ -34,6 +34,7 @@
 #include "DNA_space_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_userdef_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -57,6 +58,8 @@
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
+#include "RNA_access.h"
+
 #include "ED_markers.h"
 
 #include "text_intern.h"	// own include
@@ -70,7 +73,10 @@ static SpaceLink *text_new(const bContext *C)
 	
 	stext= MEM_callocN(sizeof(SpaceText), "inittext");
 	stext->spacetype= SPACE_TEXT;
-	
+
+	stext->font_id= 5;
+	stext->lheight= 12;
+	stext->tabnumber= 4;
 	
 	/* header */
 	ar= MEM_callocN(sizeof(ARegion), "header for text");
@@ -84,9 +90,6 @@ static SpaceLink *text_new(const bContext *C)
 	
 	BLI_addtail(&stext->regionbase, ar);
 	ar->regiontype= RGN_TYPE_WINDOW;
-	
-	/* channel list region XXX */
-
 	
 	return (SpaceLink *)stext;
 }
@@ -115,7 +118,185 @@ static SpaceLink *text_duplicate(SpaceLink *sl)
 	return (SpaceLink *)stextn;
 }
 
+static void text_listener(ScrArea *sa, wmNotifier *wmn)
+{
+	SpaceText *st= sa->spacedata.first;
 
+	/* context changes */
+	switch(wmn->category) {
+		case NC_TEXT:
+			if(!wmn->reference || wmn->reference == st->text) {
+				ED_area_tag_redraw(sa);
+
+				if(wmn->data == ND_CURSOR) {
+					ARegion *ar;
+
+					for(ar=sa->regionbase.first; ar; ar= ar->next)
+						if(ar->regiontype==RGN_TYPE_WINDOW)
+							text_update_cursor_moved(st, ar);
+				}
+			}
+			else if(wmn->data == ND_DISPLAY)
+				ED_area_tag_redraw(sa);
+
+			break;
+	}
+}
+
+static void text_operatortypes(void)
+{
+	WM_operatortype_append(TEXT_OT_new);
+	WM_operatortype_append(TEXT_OT_open);
+	WM_operatortype_append(TEXT_OT_reload);
+	WM_operatortype_append(TEXT_OT_save);
+	WM_operatortype_append(TEXT_OT_save_as);
+	WM_operatortype_append(TEXT_OT_make_internal);
+	WM_operatortype_append(TEXT_OT_run_script);
+	WM_operatortype_append(TEXT_OT_refresh_pyconstraints);
+
+	WM_operatortype_append(TEXT_OT_paste);
+	WM_operatortype_append(TEXT_OT_copy);
+	WM_operatortype_append(TEXT_OT_cut);
+
+	WM_operatortype_append(TEXT_OT_convert_whitespace);
+	WM_operatortype_append(TEXT_OT_uncomment);
+	WM_operatortype_append(TEXT_OT_comment);
+	WM_operatortype_append(TEXT_OT_unindent);
+	WM_operatortype_append(TEXT_OT_indent);
+
+	WM_operatortype_append(TEXT_OT_clear_all_markers);
+	WM_operatortype_append(TEXT_OT_next_marker);
+	WM_operatortype_append(TEXT_OT_previous_marker);
+
+	WM_operatortype_append(TEXT_OT_select_line);
+	WM_operatortype_append(TEXT_OT_select_all);
+
+	WM_operatortype_append(TEXT_OT_jump);
+	WM_operatortype_append(TEXT_OT_move);
+	WM_operatortype_append(TEXT_OT_move_select);
+	WM_operatortype_append(TEXT_OT_delete);
+	WM_operatortype_append(TEXT_OT_toggle_overwrite);
+
+	WM_operatortype_append(TEXT_OT_set_cursor);
+	WM_operatortype_append(TEXT_OT_scroll);
+	WM_operatortype_append(TEXT_OT_scroll_bar);
+	WM_operatortype_append(TEXT_OT_line_number);
+
+	WM_operatortype_append(TEXT_OT_line_break);
+	WM_operatortype_append(TEXT_OT_insert);
+
+	WM_operatortype_append(TEXT_OT_find_and_replace);
+	WM_operatortype_append(TEXT_OT_find);
+	WM_operatortype_append(TEXT_OT_find_set_selected);
+	WM_operatortype_append(TEXT_OT_replace);
+	WM_operatortype_append(TEXT_OT_replace_set_selected);
+	WM_operatortype_append(TEXT_OT_mark_all);
+
+	WM_operatortype_append(TEXT_OT_to_3d_object);
+
+	WM_operatortype_append(TEXT_OT_resolve_conflict);
+}
+
+static void text_keymap(struct wmWindowManager *wm)
+{
+	ListBase *keymap= WM_keymap_listbase(wm, "Text", SPACE_TEXT, 0);
+	
+	WM_keymap_add_item(keymap, "TEXT_OT_new", NKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_add_item(keymap, "TEXT_OT_open", OKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_add_item(keymap, "TEXT_OT_reload", RKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_add_item(keymap, "TEXT_OT_save", SKEY, KM_PRESS, KM_ALT, 0);
+
+	WM_keymap_add_item(keymap, "TEXT_OT_run_script", PKEY, KM_PRESS, KM_ALT, 0);
+
+	WM_keymap_add_item(keymap, "TEXT_OT_cut", XKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_add_item(keymap, "TEXT_OT_cut", XKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "TEXT_OT_copy", CKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_add_item(keymap, "TEXT_OT_copy", CKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "TEXT_OT_paste", VKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_add_item(keymap, "TEXT_OT_paste", VKEY, KM_PRESS, KM_CTRL, 0);
+
+	if(U.uiflag & USER_MMB_PASTE) // XXX not dynamic
+		RNA_boolean_set(WM_keymap_add_item(keymap, "TEXT_OT_paste", MIDDLEMOUSE, KM_PRESS, 0, 0)->ptr, "selection", 1);
+
+	WM_keymap_add_item(keymap, "TEXT_OT_jump", JKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_add_item(keymap, "TEXT_OT_find", FKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_add_item(keymap, "TEXT_OT_find_and_replace", FKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_add_item(keymap, "TEXT_OT_find_and_replace", FKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "TEXT_OT_replace", HKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_add_item(keymap, "TEXT_OT_replace", HKEY, KM_PRESS, KM_CTRL, 0);
+
+	WM_keymap_add_item(keymap, "TEXT_OT_to_3d_object", MKEY, KM_PRESS, KM_ALT, 0);
+
+	WM_keymap_add_item(keymap, "TEXT_OT_select_all", AKEY, KM_PRESS, KM_CTRL, 0);
+
+	WM_keymap_add_item(keymap, "TEXT_OT_indent", TABKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "TEXT_OT_unindent", TABKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "TEXT_OT_uncomment", DKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0);
+
+	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move", HOMEKEY, KM_PRESS, 0, 0)->ptr, "type", LINE_BEGIN);
+	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move", LEFTARROWKEY, KM_PRESS, KM_OSKEY, 0)->ptr, "type", LINE_BEGIN);
+	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move", ENDKEY, KM_PRESS, 0, 0)->ptr, "type", LINE_END);
+	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move", RIGHTARROWKEY, KM_PRESS, KM_OSKEY, 0)->ptr, "type", LINE_BEGIN);
+	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move", EKEY, KM_PRESS, KM_CTRL, 0)->ptr, "type", LINE_END);
+	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move", EKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0)->ptr, "type", LINE_END);
+	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move", ENDKEY, KM_PRESS, 0, 0)->ptr, "type", LINE_END);
+	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move", LEFTARROWKEY, KM_PRESS, 0, 0)->ptr, "type", PREV_CHAR);
+	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move", RIGHTARROWKEY, KM_PRESS, 0, 0)->ptr, "type", NEXT_CHAR);
+	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move", LEFTARROWKEY, KM_PRESS, KM_CTRL, 0)->ptr, "type", PREV_WORD);
+	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move", RIGHTARROWKEY, KM_PRESS, KM_CTRL, 0)->ptr, "type", NEXT_WORD);
+	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move", UPARROWKEY, KM_PRESS, 0, 0)->ptr, "type", PREV_LINE);
+	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move", DOWNARROWKEY, KM_PRESS, 0, 0)->ptr, "type", NEXT_LINE);
+	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move", PAGEUPKEY, KM_PRESS, 0, 0)->ptr, "type", PREV_PAGE);
+	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move", PAGEDOWNKEY, KM_PRESS, 0, 0)->ptr, "type", NEXT_PAGE);
+
+	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move_select", HOMEKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "type", LINE_BEGIN);
+	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move_select", ENDKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "type", LINE_END);
+	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move_select", LEFTARROWKEY, KM_PRESS, KM_SHIFT|KM_OSKEY, 0)->ptr, "type", LINE_BEGIN);
+	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move_select", RIGHTARROWKEY, KM_PRESS, KM_SHIFT|KM_OSKEY, 0)->ptr, "type", LINE_BEGIN);
+	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move_select", LEFTARROWKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "type", PREV_CHAR);
+	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move_select", RIGHTARROWKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "type", NEXT_CHAR);
+	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move_select", LEFTARROWKEY, KM_PRESS, KM_SHIFT|KM_CTRL, 0)->ptr, "type", PREV_WORD);
+	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move_select", RIGHTARROWKEY, KM_PRESS, KM_SHIFT|KM_CTRL, 0)->ptr, "type", NEXT_WORD);
+	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move_select", UPARROWKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "type", PREV_LINE);
+	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move_select", DOWNARROWKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "type", NEXT_LINE);
+	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move_select", PAGEUPKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "type", PREV_PAGE);
+	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move_select", PAGEDOWNKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "type", NEXT_PAGE);
+
+	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_delete", DELKEY, KM_PRESS, 0, 0)->ptr, "type", DEL_NEXT_CHAR);
+	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_delete", DKEY, KM_PRESS, KM_CTRL, 0)->ptr, "type", DEL_NEXT_CHAR);
+	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_delete", BACKSPACEKEY, KM_PRESS, 0, 0)->ptr, "type", DEL_PREV_CHAR);
+	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_delete", DELKEY, KM_PRESS, KM_CTRL, 0)->ptr, "type", DEL_NEXT_WORD);
+	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_delete", BACKSPACEKEY, KM_PRESS, KM_CTRL, 0)->ptr, "type", DEL_PREV_WORD);
+
+	WM_keymap_add_item(keymap, "TEXT_OT_toggle_overwrite", INSERTKEY, KM_PRESS, 0, 0);
+
+	WM_keymap_add_item(keymap, "TEXT_OT_scroll", MIDDLEMOUSE, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "TEXT_OT_scroll_bar", LEFTMOUSE, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "TEXT_OT_set_cursor", LEFTMOUSE, KM_PRESS, 0, 0);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "TEXT_OT_set_cursor", LEFTMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "select", 1);
+	RNA_int_set(WM_keymap_add_item(keymap, "TEXT_OT_scroll", WHEELUPMOUSE, KM_PRESS, 0, 0)->ptr, "lines", -1);
+	RNA_int_set(WM_keymap_add_item(keymap, "TEXT_OT_scroll", WHEELDOWNMOUSE, KM_PRESS, 0, 0)->ptr, "lines", 1);
+
+	WM_keymap_add_item(keymap, "TEXT_OT_to_3d_object", MKEY, KM_PRESS, KM_ALT, 0);
+
+	WM_keymap_add_item(keymap, "TEXT_OT_line_break", RETKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "TEXT_OT_line_number", KM_TEXTINPUT, KM_ANY, KM_ANY, 0);
+	WM_keymap_add_item(keymap, "TEXT_OT_insert", KM_TEXTINPUT, KM_ANY, KM_ANY, 0); // last!
+}
+
+static int text_context(const bContext *C, bContextDataMember member, bContextDataResult *result)
+{
+	SpaceText *st= CTX_wm_space_text(C);
+
+	if(member == CTX_DATA_EDIT_TEXT) {
+		CTX_data_pointer_set(result, st->text);
+		return 1;
+	}
+
+	return 0;
+}
+
+/********************* main region ********************/
 
 /* add handlers, stuff you only do once or on area/region changes */
 static void text_main_area_init(wmWindowManager *wm, ARegion *ar)
@@ -132,8 +313,8 @@ static void text_main_area_init(wmWindowManager *wm, ARegion *ar)
 static void text_main_area_draw(const bContext *C, ARegion *ar)
 {
 	/* draw entirely, view changes should be handled here */
-	// SpaceText *stext= (SpaceText*)CTX_wm_space_data(C);
-	View2D *v2d= &ar->v2d;
+	SpaceText *st= CTX_wm_space_text(C);
+	//View2D *v2d= &ar->v2d;
 	float col[3];
 	
 	/* clear and setup matrix */
@@ -141,20 +322,15 @@ static void text_main_area_draw(const bContext *C, ARegion *ar)
 	glClearColor(col[0], col[1], col[2], 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
 	
-	UI_view2d_view_ortho(C, v2d);
+	// UI_view2d_view_ortho(C, v2d);
 		
 	/* data... */
-	
+	draw_text_main(st, ar);
 	
 	/* reset view matrix */
-	UI_view2d_view_restore(C);
+	// UI_view2d_view_restore(C);
 	
 	/* scrollers? */
-}
-
-static void text_operatortypes(void)
-{
-	
 }
 
 static void text_cursor(wmWindow *win, ScrArea *sa, ARegion *ar)
@@ -162,10 +338,7 @@ static void text_cursor(wmWindow *win, ScrArea *sa, ARegion *ar)
 	WM_cursor_set(win, BC_TEXTEDITCURSOR);
 }
 
-static void text_keymap(struct wmWindowManager *wm)
-{
-	
-}
+/****************** header region ******************/
 
 /* add handlers, stuff you only do once or on area/region changes */
 static void text_header_area_init(wmWindowManager *wm, ARegion *ar)
@@ -195,10 +368,37 @@ static void text_header_area_draw(const bContext *C, ARegion *ar)
 	UI_view2d_view_restore(C);
 }
 
-static void text_main_area_listener(ARegion *ar, wmNotifier *wmn)
+/****************** find & replace region ******************/
+
+/* add handlers, stuff you only do once or on area/region changes */
+static void text_find_area_init(wmWindowManager *wm, ARegion *ar)
 {
-	/* context changes */
+	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_HEADER, ar->winx, ar->winy);
 }
+
+static void text_find_area_draw(const bContext *C, ARegion *ar)
+{
+	float col[3];
+	
+	/* clear */
+	if(ED_screen_area_active(C))
+		UI_GetThemeColor3fv(TH_HEADER, col);
+	else
+		UI_GetThemeColor3fv(TH_HEADERDESEL, col);
+	
+	glClearColor(col[0], col[1], col[2], 0.0);
+	glClear(GL_COLOR_BUFFER_BIT);
+	
+	/* set view2d view matrix for scrolling (without scrollers) */
+	UI_view2d_view_ortho(C, &ar->v2d);
+	
+	text_find_buttons(C, ar);
+	
+	/* restore view matrix? */
+	UI_view2d_view_restore(C);
+}
+
+/********************* registration ********************/
 
 /* only called once, from space/spacetypes.c */
 void ED_spacetype_text(void)
@@ -214,14 +414,14 @@ void ED_spacetype_text(void)
 	st->duplicate= text_duplicate;
 	st->operatortypes= text_operatortypes;
 	st->keymap= text_keymap;
+	st->listener= text_listener;
+	st->context= text_context;
 	
 	/* regions: main window */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype text region");
 	art->regionid = RGN_TYPE_WINDOW;
 	art->init= text_main_area_init;
 	art->draw= text_main_area_draw;
-	art->listener= text_main_area_listener;
-	art->keymapflag= ED_KEYMAP_VIEW2D;
 	art->cursor= text_cursor;
 
 	BLI_addhead(&st->regiontypes, art);
@@ -237,6 +437,16 @@ void ED_spacetype_text(void)
 	
 	BLI_addhead(&st->regiontypes, art);
 
+	/* regions: find & replace */
+	art= MEM_callocN(sizeof(ARegionType), "spacetype text region");
+	art->regionid = RGN_TYPE_UI;
+	art->minsizey= HEADERY;
+	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D;
+	
+	art->init= text_find_area_init;
+	art->draw= text_find_area_draw;
+	
+	BLI_addhead(&st->regiontypes, art);
 	
 	BKE_spacetype_register(st);
 }

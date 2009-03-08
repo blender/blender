@@ -294,6 +294,61 @@ void bezt_add_to_cfra_elem (ListBase *lb, BezTriple *bezt)
 	cen->sel= bezt->f2;
 }
 
+/* ***************************** Samples Utilities ******************************* */
+/* Some utilities for working with FPoints (i.e. 'sampled' animation curve data, such as
+ * data imported from BVH/Mocap files), which are specialised for use with high density datasets,
+ * which BezTriples/Keyframe data are ill equipped to do.
+ */
+ 
+ 
+/* Basic sampling callback which acts as a wrapper for evaluate_fcurve() 
+ *	'data' arg here is unneeded here...
+ */
+float fcurve_samplingcb_evalcurve (FCurve *fcu, void *data, float evaltime)
+{
+	/* assume any interference from drivers on the curve is intended... */
+	return evaluate_fcurve(fcu, evaltime);
+} 
+
+ 
+/* Main API function for creating a set of sampled curve data, given some callback function 
+ * used to retrieve the values to store.
+ */
+void fcurve_store_samples (FCurve *fcu, void *data, int start, int end, FcuSampleFunc sample_cb)
+{
+	FPoint *fpt, *new_fpt;
+	int cfra;
+	
+	/* sanity checks */
+	// TODO: make these tests report errors using reports not printf's
+	if ELEM(NULL, fcu, sample_cb) {
+		printf("Error: No F-Curve with F-Curve Modifiers to Bake\n");
+		return;
+	}
+	if (start >= end) {
+		printf("Error: Frame range for Sampled F-Curve creation is inappropriate \n");
+		return;
+	}
+	
+	/* set up sample data */
+	fpt= new_fpt= MEM_callocN(sizeof(FPoint)*(end-start+1), "FPoint Samples");
+	
+	/* use the sampling callback at 1-frame intervals from start to end frames */
+	for (cfra= start; cfra <= end; cfra++, fpt++) {
+		fpt->vec[0]= (float)cfra;
+		fpt->vec[1]= sample_cb(fcu, data, (float)cfra);
+	}
+	
+	/* free any existing sample/keyframe data on curve  */
+	if (fcu->bezt) MEM_freeN(fcu->bezt);
+	if (fcu->fpt) MEM_freeN(fcu->fpt);
+	
+	/* store the samples */
+	fcu->bezt= NULL;
+	fcu->fpt= new_fpt;
+	fcu->totvert= end - start + 1;
+}
+
 /* ***************************** F-Curve Sanity ********************************* */
 /* The functions here are used in various parts of Blender, usually after some editing
  * of keyframe data has occurred. They ensure that keyframe data is properly ordered and
@@ -1596,8 +1651,7 @@ void fcurve_free_modifiers (FCurve *fcu)
  */
 void fcurve_bake_modifiers (FCurve *fcu, int start, int end)
 {
-	FPoint *fpt, *new_fpt;
-	int cfra;
+	ChannelDriver *driver;
 	
 	/* sanity checks */
 	// TODO: make these tests report errors using reports not printf's
@@ -1605,30 +1659,19 @@ void fcurve_bake_modifiers (FCurve *fcu, int start, int end)
 		printf("Error: No F-Curve with F-Curve Modifiers to Bake\n");
 		return;
 	}
-	if (start >= end) {
-		printf("Error: Frame range for F-Curve Modifier Baking inappropriate \n");
-		return;
-	}
 	
-	/* set up sample data */
-	fpt= new_fpt= MEM_callocN(sizeof(FPoint)*(end-start+1), "FPoint FModifier Samples");
+	/* temporarily, disable driver while we sample, so that they don't influence the outcome */
+	driver= fcu->driver;
+	fcu->driver= NULL;
 	
-	/* sample the curve at 1-frame intervals from start to end frames 
-	 *	- assume that any ChannelDriver possibly present did not interfere in any way
-	 */
-	for (cfra= start; cfra <= end; cfra++, fpt++) {
-		fpt->vec[0]= (float)cfra;
-		fpt->vec[1]= evaluate_fcurve(fcu, (float)cfra);
-	}
+	/* bake the modifiers, by sampling the curve at each frame */
+	fcurve_store_samples(fcu, NULL, start, end, fcurve_samplingcb_evalcurve);
 	
-	/* free any existing sample/keyframe data on curve, and all modifiers */
-	if (fcu->bezt) MEM_freeN(fcu->bezt);
-	if (fcu->fpt) MEM_freeN(fcu->fpt);
+	/* free the modifiers now */
 	fcurve_free_modifiers(fcu);
 	
-	/* store the samples */
-	fcu->fpt= new_fpt;
-	fcu->totvert= end - start + 1;
+	/* restore driver */
+	fcu->driver= driver;
 }
 
 /* ***************************** F-Curve - Evaluation ********************************* */

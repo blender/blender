@@ -12,7 +12,9 @@ void ED_operatortypes_paint(void)
 {
 	/* image */
 	WM_operatortype_append(PAINT_OT_texture_paint_toggle);
+	WM_operatortype_append(PAINT_OT_texture_paint_radial_control);
 	WM_operatortype_append(PAINT_OT_image_paint);
+	WM_operatortype_append(PAINT_OT_image_paint_radial_control);
 	WM_operatortype_append(PAINT_OT_sample_color);
 	WM_operatortype_append(PAINT_OT_grab_clone);
 	WM_operatortype_append(PAINT_OT_set_clone_cursor);

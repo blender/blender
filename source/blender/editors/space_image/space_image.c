@@ -233,6 +233,8 @@ void image_keymap(struct wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "PAINT_OT_image_paint", ACTIONMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "PAINT_OT_grab_clone", SELECTMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "PAINT_OT_sample_color", SELECTMOUSE, KM_PRESS, 0, 0);
+	RNA_enum_set(WM_keymap_add_item(keymap, "PAINT_OT_image_paint_radial_control", FKEY, KM_PRESS, 0, 0)->ptr, "mode", WM_RADIALCONTROL_SIZE);
+	RNA_enum_set(WM_keymap_add_item(keymap, "PAINT_OT_image_paint_radial_control", FKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "mode", WM_RADIALCONTROL_STRENGTH);
 
 	WM_keymap_add_item(keymap, "IMAGE_OT_sample", ACTIONMOUSE, KM_PRESS, 0, 0);
 	RNA_enum_set(WM_keymap_add_item(keymap, "IMAGE_OT_set_curves_point", ACTIONMOUSE, KM_PRESS, KM_CTRL, 0)->ptr, "point", 0);
@@ -483,6 +485,8 @@ static void image_buttons_area_init(wmWindowManager *wm, ARegion *ar)
 {
 	ListBase *keymap;
 	
+	keymap= WM_keymap_listbase(wm, "View2D Buttons List", 0, 0);
+	WM_event_add_keymap_handler(&ar->handlers, keymap);
 	keymap= WM_keymap_listbase(wm, "Image Generic", SPACE_IMAGE, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 	
@@ -603,6 +607,7 @@ void ED_spacetype_image(void)
 
 /**************************** common state *****************************/
 
+/* note; image_panel_properties() uses pointer to sima->image directly */
 Image *ED_space_image(SpaceImage *sima)
 {
 	return sima->image;

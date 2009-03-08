@@ -1191,7 +1191,7 @@ static int animdata_filter_dopesheet (ListBase *anim_data, bDopeSheet *ads, int 
 		if (base->object) {
 			Object *ob= base->object;
 			Key *key= ob_get_key(ob);
-			short actOk, keyOk, dataOk;
+			short actOk, keyOk, dataOk, matOk;
 			
 			/* firstly, check if object can be included, by the following fanimors:
 			 *	- if only visible, must check for layer and also viewport visibility
@@ -1225,6 +1225,34 @@ static int animdata_filter_dopesheet (ListBase *anim_data, bDopeSheet *ads, int 
 					keyOk= ((key) && ANIMDATA_HAS_KEYS(key) && !(ads->filterflag & ADS_FILTER_NOSHAPEKEYS));
 				}
 				
+				/* materials - only for geometric types */
+				matOk= 0; /* by default, not ok... */
+				if ( !(ads->filterflag & ADS_FILTER_NOMAT) && (ob->totcol) && 
+					 ELEM5(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL) ) 
+				{
+					int a;
+					
+					/* firstly check that we actuallly have some materials */
+					for (a=0; a < ob->totcol; a++) {
+						Material *ma= give_current_material(ob, a);
+						
+						/* if material has relevant animation data, break */
+						if (ads->filterflag & ADS_FILTER_ONLYDRIVERS) {
+							if (ANIMDATA_HAS_DRIVERS(ma)) {
+								matOk= 1;
+								break;
+							}
+						}
+						else {
+							if (ANIMDATA_HAS_KEYS(ma)) {
+								matOk= 1;
+								break;
+							}
+						}
+					}
+				}
+				
+				/* data */
 				switch (ob->type) {
 					case OB_CAMERA: /* ------- Camera ------------ */
 					{
@@ -1244,22 +1272,13 @@ static int animdata_filter_dopesheet (ListBase *anim_data, bDopeSheet *ads, int 
 							dataOk= (ANIMDATA_HAS_KEYS(la) && !(ads->filterflag & ADS_FILTER_NOLAM));	
 					}
 						break;
-					case OB_CURVE: /* -------- Curve ---------- */
-					{
-						Curve *cu= (Curve *)ob->data;
-						if (ads->filterflag & ADS_FILTER_ONLYDRIVERS)
-							dataOk= (ANIMDATA_HAS_DRIVERS(cu) && !(ads->filterflag & ADS_FILTER_NOCUR));
-						else
-							dataOk= (ANIMDATA_HAS_KEYS(cu) && !(ads->filterflag & ADS_FILTER_NOCUR));	
-					}
-						break;
 					default: /* --- other --- */
 						dataOk= 0;
 						break;
 				}
 				
 				/* check if all bad (i.e. nothing to show) */
-				if (!actOk && !keyOk && !dataOk)
+				if (!actOk && !keyOk && !dataOk && !matOk)
 					continue;
 			}
 			else {
@@ -1267,6 +1286,24 @@ static int animdata_filter_dopesheet (ListBase *anim_data, bDopeSheet *ads, int 
 				actOk= ANIMDATA_HAS_KEYS(ob);
 				keyOk= (key != NULL);
 				
+				/* materials - only for geometric types */
+				matOk= 0; /* by default, not ok... */
+				if (ELEM5(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL) && (ob->totcol)) 
+				{
+					int a;
+					
+					/* firstly check that we actuallly have some materials */
+					for (a=0; a < ob->totcol; a++) {
+						Material *ma= give_current_material(ob, a);
+						
+						if ((ma) && ANIMDATA_HAS_KEYS(ma)) {
+							matOk= 1;
+							break;
+						}
+					}
+				}
+				
+				/* data */
 				switch (ob->type) {
 					case OB_CAMERA: /* ------- Camera ------------ */
 					{
@@ -1292,7 +1329,7 @@ static int animdata_filter_dopesheet (ListBase *anim_data, bDopeSheet *ads, int 
 				}
 				
 				/* check if all bad (i.e. nothing to show) */
-				if (!actOk && !keyOk && !dataOk)
+				if (!actOk && !keyOk && !dataOk && !matOk)
 					continue;
 			}
 			

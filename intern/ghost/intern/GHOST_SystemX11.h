@@ -202,18 +202,17 @@ public:
 		
 	/**
 	 * Returns unsinged char from CUT_BUFFER0
-	 * @param flag		Flag indicates which buffer to return 0 for clipboard 1 for selection
-	 * @return		Returns the Clipboard indicated by Flag
+	 * @param selection		Get selection, X11 only feature
+	 * @return				Returns the Clipboard indicated by Flag
 	 */
-		GHOST_TUns8*
-	getClipboard(int flag) const;
+	GHOST_TUns8* getClipboard(bool selection) const;
 	
 	/**
 	 * Puts buffer to system clipboard
 	 * @param buffer	The buffer to copy to the clipboard	
-	 * @param flag		Flag indicates which buffer to set ownership of 0 for clipboard 1 for selection
+	 * @param selection	Set the selection into the clipboard, X11 only feature
 	 */
-	virtual void putClipboard(GHOST_TInt8 *buffer, int flag) const;
+	virtual void putClipboard(GHOST_TInt8 *buffer, bool selection) const;
 
 	/**
 	 * Atom used for ICCCM, WM-spec and Motif.

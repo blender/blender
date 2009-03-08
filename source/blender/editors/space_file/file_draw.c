@@ -262,7 +262,7 @@ void file_calc_previews(const bContext *C, ARegion *ar)
 	int width=0, height=0;
 	int rows, columns;
 
-	if (params->display) {
+	if (params->display == FILE_IMGDISPLAY) {
 		sfile->prv_w = 96;
 		sfile->prv_h = 96;
 		sfile->tile_border_x = 4;
@@ -531,39 +531,41 @@ void file_draw_fsmenu(const bContext *C, ARegion *ar)
 	int bmwidth = ar->v2d.cur.xmax - ar->v2d.cur.xmin - 2*TILE_BORDER_X;
 	int fontsize = U.fontsize;
 
-	sx = ar->v2d.cur.xmin + TILE_BORDER_X;
-	sy = ar->v2d.cur.ymax-2*TILE_BORDER_Y;
-	for (i=0; i< nentries && (sy > ar->v2d.cur.ymin) ;++i) {
-		char *fname = fsmenu_get_entry(i);
+	if (params->flag & FILE_BOOKMARKS) {
+		sx = ar->v2d.cur.xmin + TILE_BORDER_X;
+		sy = ar->v2d.cur.ymax-2*TILE_BORDER_Y;
+		for (i=0; i< nentries && (sy > ar->v2d.cur.ymin) ;++i) {
+			char *fname = fsmenu_get_entry(i);
 
-		if (fname) {
-			int sl;
-			BLI_strncpy(bookmark, fname, FILE_MAX);
-		
-			sl = strlen(bookmark)-1;
-			while (bookmark[sl] == '\\' || bookmark[sl] == '/') {
-				bookmark[sl] = '\0';
-				sl--;
-			}
-			if (params->active_bookmark == i ) {
-				glColor4ub(0, 0, 0, 100);
-				UI_ThemeColor(TH_HILITE);
-				uiSetRoundBox(15);	
-				uiRoundBox(sx, sy - linestep, sx + bmwidth, sy, 6);
-				// glRecti(sx, sy - linestep, sx + bmwidth, sy);
-				UI_ThemeColor(TH_TEXT_HI);
+			if (fname) {
+				int sl;
+				BLI_strncpy(bookmark, fname, FILE_MAX);
+			
+				sl = strlen(bookmark)-1;
+				while (bookmark[sl] == '\\' || bookmark[sl] == '/') {
+					bookmark[sl] = '\0';
+					sl--;
+				}
+				if (params->active_bookmark == i ) {
+					glColor4ub(0, 0, 0, 100);
+					UI_ThemeColor(TH_HILITE);
+					uiSetRoundBox(15);	
+					uiRoundBox(sx, sy - linestep, sx + bmwidth, sy, 6);
+					// glRecti(sx, sy - linestep, sx + bmwidth, sy);
+					UI_ThemeColor(TH_TEXT_HI);
+				} else {
+					UI_ThemeColor(TH_TEXT);
+				}
+
+				file_draw_string(sx, sy, bookmark, bmwidth, fontsize);
+				sy -= linestep;
 			} else {
-				UI_ThemeColor(TH_TEXT);
+				glColor4ub(0xB0,0xB0,0xB0, 0xFF);
+				sdrawline(sx,  sy-1-fontsize/2 ,  sx + bmwidth,  sy-1-fontsize/2); 
+				glColor4ub(0x30,0x30,0x30, 0xFF);
+				sdrawline(sx,  sy-fontsize/2 ,  sx + bmwidth,  sy - fontsize/2);
+				sy -= linestep;
 			}
-
-			file_draw_string(sx, sy, bookmark, bmwidth, fontsize);
-			sy -= linestep;
-		} else {
-			glColor4ub(0xB0,0xB0,0xB0, 0xFF);
-			sdrawline(sx,  sy-1-fontsize/2 ,  sx + bmwidth,  sy-1-fontsize/2); 
-			glColor4ub(0x30,0x30,0x30, 0xFF);
-			sdrawline(sx,  sy-fontsize/2 ,  sx + bmwidth,  sy - fontsize/2);
-			sy -= linestep;
 		}
 	}
 }

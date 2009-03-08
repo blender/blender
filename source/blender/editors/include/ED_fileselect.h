@@ -30,6 +30,10 @@
 
 struct SpaceFile;
 
+#define FILE_SHORTDISPLAY	1
+#define FILE_LONGDISPLAY	2
+#define FILE_IMGDISPLAY		3
+
 typedef struct FileSelectParams {
 	int type; /* the mode of the filebrowser, FILE_BLENDER, FILE_SPECIAL, FILE_MAIN or FILE_LOADLIB */
 	char title[24]; /* title, also used for the text of the execute button */

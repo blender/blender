@@ -713,7 +713,7 @@ intptr_t mesh_octree_table(Object *ob, EditMesh *em, float *co, char mode)
 		if(MeshOctree.table) {
 			Mesh *me= ob->data;
 			bt= MeshOctree.table + mesh_octree_get_base_offs(co, MeshOctree.offs, MeshOctree.div);
-			if(me->edit_mesh)
+			if(em)
 				return mesh_octree_find_index(bt, NULL, NULL, co);
 			else
 				return mesh_octree_find_index(bt, MeshOctree.orco, me->mvert, co);

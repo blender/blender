@@ -966,7 +966,7 @@ static void rna_def_particlesettings(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0.0f, 200.0f);
 	RNA_def_property_ui_text(prop, "Brownian", "Specify the amount of brownian motion");
 
-	prop= RNA_def_property(srna, "damp_factorq", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "damp_factor", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "dampfac");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Damp", "Specify the amount of damping");

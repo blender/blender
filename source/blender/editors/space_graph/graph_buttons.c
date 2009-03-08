@@ -79,9 +79,12 @@
 #include "graph_intern.h"	// own include
 
 
-/* ******************* view3d space & buttons ************** */
+/* ******************* graph editor space & buttons ************** */
+
 #define B_NOP		1
 #define B_REDR		2
+
+/* -------------- */
 
 static void do_graph_region_buttons(bContext *C, void *arg, int event)
 {
@@ -95,33 +98,155 @@ static void do_graph_region_buttons(bContext *C, void *arg, int event)
 	//WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, ob);
 }
 
-
-static void graph_panel_properties(const bContext *C, ARegion *ar, short cntrl, bAnimListElem *ale)	// GRAPH_HANDLER_SETTINGS
+static void graph_panel_properties(const bContext *C, ARegion *ar, short cntrl, bAnimListElem *ale)	
 {
+	FCurve *fcu= (FCurve *)ale->data;
 	uiBlock *block;
 	char name[128];
 
 	block= uiBeginBlock(C, ar, "graph_panel_properties", UI_EMBOSS, UI_HELV);
-	if(uiNewPanel(C, ar, block, "Properties", "Graph", 340, 30, 318, 254)==0) return;
+	if (uiNewPanel(C, ar, block, "Properties", "Graph", 340, 30, 318, 254)==0) return;
 	uiBlockSetHandleFunc(block, do_graph_region_buttons, NULL);
 
 	/* to force height */
 	uiNewPanelHeight(block, 204);
 
-	// XXX testing buttons
+	/* Info - Active F-Curve */
 	uiDefBut(block, LABEL, 1, "Active F-Curve:",					10, 200, 150, 19, NULL, 0.0, 0.0, 0, 0, "");
 	
-	getname_anim_fcurve(name, ale->id, (FCurve *)ale->data);
-	uiDefBut(block, LABEL, 1, name,					30, 180, 300, 19, NULL, 0.0, 0.0, 0, 0, "Name of Active F-Curve");
+	if (ale->id) { 
+		// icon of active blocktype - is this really necessary?
+		int icon= geticon_anim_blocktype(GS(ale->id->name));
+		
+		// xxx type of icon-but is currently "LABEL", as that one is plain...
+		uiDefIconBut(block, LABEL, 1, icon, 10, 180, 20, 19, NULL, 0, 0, 0, 0, "ID-type that F-Curve belongs to");
+	}
 	
-#if 0
-	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM, B_REDR, "Spacing:",		10, 200, 140, 19, &v3d->grid, 0.001, 100.0, 10, 0, "Set the distance between grid lines");
-	uiDefButS(block, NUM, B_REDR, "Lines:",		10, 180, 140, 19, &v3d->gridlines, 0.0, 100.0, 100, 0, "Set the number of grid lines in perspective view");
-	uiDefButS(block, NUM, B_REDR, "Divisions:",		10, 160, 140, 19, &v3d->gridsubdiv, 1.0, 100.0, 100, 0, "Set the number of grid lines");
-	uiBlockEndAlign(block);
-#endif
+	getname_anim_fcurve(name, ale->id, fcu);
+	uiDefBut(block, LABEL, 1, name,	30, 180, 300, 19, NULL, 0.0, 0.0, 0, 0, "Name of Active F-Curve");
+	
+	/* TODO: the following settings could be added here
+	 *	- F-Curve coloring mode - mode selector + color selector
+	 *	- Access details (ID-block + RNA-Path + Array Index)
+	 *	- ...
+	 */
 }
+
+/* -------------- */
+
+#define B_IPO_DEPCHANGE 	10
+
+static void do_graph_region_driver_buttons(bContext *C, void *arg, int event)
+{
+	Scene *scene= CTX_data_scene(C);
+	
+	switch(event) {
+		case B_IPO_DEPCHANGE:
+		{
+			/* rebuild depsgraph for the new deps */
+			DAG_scene_sort(scene);
+			
+			/* TODO: which one? we need some way of sending these updates since curves from non-active ob could be being edited */
+			//DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+			//DAG_object_flush_update(scene, ob, OB_RECALC_OB);
+		}
+			break;
+	}
+	
+	/* default for now */
+	//WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, ob);
+}
+
+static void graph_panel_drivers(const bContext *C, ARegion *ar, short cntrl, bAnimListElem *ale)	
+{
+	FCurve *fcu= (FCurve *)ale->data;
+	ChannelDriver *driver= fcu->driver;
+	uiBlock *block;
+	uiBut *but;
+	int len;
+
+	block= uiBeginBlock(C, ar, "graph_panel_drivers", UI_EMBOSS, UI_HELV);
+	if (uiNewPanel(C, ar, block, "Drivers", "Graph", 340, 30, 318, 254)==0) return;
+	uiBlockSetHandleFunc(block, do_graph_region_driver_buttons, NULL);
+
+	/* to force height */
+	uiNewPanelHeight(block, 204);
+	
+	/* type */
+	uiDefBut(block, LABEL, 1, "Type:",					10, 200, 120, 20, NULL, 0.0, 0.0, 0, 0, "");
+	uiDefButI(block, MENU, B_IPO_DEPCHANGE,
+					"Driver Type%t|Transform Channel%x0|Scripted Expression%x1|Rotational Difference%x2", 
+					130,200,180,20, &driver->type, 0, 0, 0, 0, "Driver type");
+					
+	/* buttons to draw depends on type of driver */
+	if (driver->type == DRIVER_TYPE_PYTHON) { /* PyDriver */
+		uiDefBut(block, TEX, B_REDR, "Expr: ", 10,160,300,20, driver->expression, 0, 255, 0, 0, "One-liner Python Expression to use as Scripted Expression");
+		
+		if (driver->flag & DRIVER_FLAG_INVALID) {
+			uiDefIconBut(block, LABEL, 1, ICON_ERROR, 10, 140, 20, 19, NULL, 0, 0, 0, 0, "");
+			uiDefBut(block, LABEL, 0, "Error: invalid Python expression",
+					30,140,230,19, NULL, 0, 0, 0, 0, "");
+		}
+	}
+	else { /* Channel or RotDiff - RotDiff just has extra settings */
+		/* Driver Object */
+		but= uiDefBut(block, TEX, B_IPO_DEPCHANGE, "OB: ",	10,160,150,20, driver->id->name+2, 0.0, 21.0, 0, 0, "Object that controls this Driver.");
+		uiButSetFunc(but, test_idbutton_cb, driver->id->name, NULL);
+		
+		// XXX should we hide these technical details?
+		if (driver->id) {
+			/* Array Index */
+			// XXX ideally this is grouped with the path, but that can get quite long...
+			uiDefButI(block, NUM, B_IPO_DEPCHANGE, "Index: ", 170,160,140,20, &driver->array_index, 0, INT_MAX, 0, 0, "Index to the specific property used as Driver if applicable.");
+			
+			/* RNA-Path - allocate if non-existant */
+			if (driver->rna_path == NULL) {
+				driver->rna_path= MEM_callocN(256, "Driver RNA-Path");
+				len= 255;
+			}
+			else
+				len= strlen(driver->rna_path);
+			uiDefBut(block, TEX, B_IPO_DEPCHANGE, "Path: ", 10,130,300,20, driver->rna_path, 0, len, 0, 0, "RNA Path (from Driver Object) to property used as Driver.");
+		}
+		
+		/* for rotational difference, show second target... */
+		if (driver->type == DRIVER_TYPE_ROTDIFF) {
+			// TODO...
+		}
+	}
+}
+
+/* -------------- */
+
+static void do_graph_region_modifier_buttons(bContext *C, void *arg, int event)
+{
+	//Scene *scene= CTX_data_scene(C);
+	
+	switch(event) {
+
+	}
+	
+	/* default for now */
+	//WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, ob);
+}
+
+static void graph_panel_modifiers(const bContext *C, ARegion *ar, short cntrl, bAnimListElem *ale)	
+{
+	//FCurve *fcu= (FCurve *)ale->data;
+	//FModifier *fcm;
+	uiBlock *block;
+
+	block= uiBeginBlock(C, ar, "graph_panel_modifiers", UI_EMBOSS, UI_HELV);
+	if (uiNewPanel(C, ar, block, "Modifiers", "Graph", 340, 30, 318, 254)==0) return;
+	uiBlockSetHandleFunc(block, do_graph_region_modifier_buttons, NULL);
+
+	/* to force height */
+	uiNewPanelHeight(block, 204); // XXX variable height!
+	
+	
+}
+
+/* -------------- */
 
 /* Find 'active' F-Curve. It must be editable, since that's the purpose of these buttons (subject to change).  
  * We return the 'wrapper' since it contains valuable context info (about hierarchy), which will need to be freed 
@@ -169,13 +294,16 @@ void graph_region_buttons(const bContext *C, ARegion *ar)
 	if (ale == NULL) 
 		return;	
 		
-		// XXX temp panel for testing
+	/* for now, the properties panel displays info about the selected channels */
 	graph_panel_properties(C, ar, 0, ale);
 	
 	/* driver settings for active F-Curve (only for 'Drivers' mode) */
-	if (sipo->mode == SIPO_MODE_DRIVERS) {
-		//graph_panel_drivers(C, ar, 0);
-	}
+	if (sipo->mode == SIPO_MODE_DRIVERS)
+		graph_panel_drivers(C, ar, 0, ale);
+	
+	/* modifiers */
+	graph_panel_modifiers(C, ar, 0, ale);
+	
 
 	uiDrawPanels(C, 1);		/* 1 = align */
 	uiMatchPanelsView2d(ar); /* sets v2d->totrct */

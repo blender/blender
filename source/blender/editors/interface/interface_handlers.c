@@ -659,7 +659,7 @@ static void ui_but_copy_paste(bContext *C, uiBut *but, uiHandleButtonData *data,
 
 	if(mode=='v') {
 		/* extract first line from clipboard in case of multi-line copies */
-		char *p = NULL; /* XXX 2.48 getClipboard(0); */
+		char *p = WM_clipboard_text_get(0);
 		if(p) {
 			int i = 0;
 			while (*p && *p!='\r' && *p!='\n' && i<UI_MAX_DRAW_STR) {
@@ -667,6 +667,7 @@ static void ui_but_copy_paste(bContext *C, uiBut *but, uiHandleButtonData *data,
 				p++;
 			}
 			buf[i]= 0;
+			MEM_freeN(p);
 		}
 	}
 	
@@ -676,7 +677,7 @@ static void ui_but_copy_paste(bContext *C, uiBut *but, uiHandleButtonData *data,
 		if(but->poin==NULL && but->rnapoin.data==NULL);
 		else if(mode=='c') {
 			sprintf(buf, "%f", ui_get_but_val(but));
-			/* XXX 2.48 putClipboard(buf, 0); */
+			WM_clipboard_text_set(buf, 0);
 		}
 		else {
 			if (sscanf(buf, " %lf ", &val) == 1) {
@@ -696,7 +697,7 @@ static void ui_but_copy_paste(bContext *C, uiBut *but, uiHandleButtonData *data,
 
 			ui_get_but_vectorf(but, rgb);
 			sprintf(buf, "[%f, %f, %f]", rgb[0], rgb[1], rgb[2]);
-			/* XXX 2.48 putClipboard(buf, 0); */
+			WM_clipboard_text_set(buf, 0);
 			
 		}
 		else {
@@ -716,7 +717,7 @@ static void ui_but_copy_paste(bContext *C, uiBut *but, uiHandleButtonData *data,
 		else if(mode=='c') {
 			button_activate_state(C, but, BUTTON_STATE_TEXT_EDITING);
 			BLI_strncpy(buf, data->str, UI_MAX_DRAW_STR);
-			/* XXX 2.48 putClipboard(data->str, 0); */
+			WM_clipboard_text_set(data->str, 0);
 			data->cancel= 1;
 			button_activate_state(C, but, BUTTON_STATE_EXIT);
 		}
@@ -1065,7 +1066,7 @@ static int ui_textedit_autocomplete(bContext *C, uiBut *but, uiHandleButtonData 
 static int ui_textedit_copypaste(uiBut *but, uiHandleButtonData *data, int paste, int copy, int cut)
 {
 	char buf[UI_MAX_DRAW_STR]={0};
-	char *str, *p;
+	char *str, *p, *pbuf;
 	int len, x, y, i, changed= 0;
 
 	str= data->str;
@@ -1074,10 +1075,11 @@ static int ui_textedit_copypaste(uiBut *but, uiHandleButtonData *data, int paste
 	/* paste */
 	if (paste) {
 		/* extract the first line from the clipboard */
-		p = NULL; /* XXX 2.48 getClipboard(0); */
+		p = pbuf= WM_clipboard_text_get(0);
 
 		if(p && p[0]) {
-			while (*p && *p!='\r' && *p!='\n' && i<UI_MAX_DRAW_STR) {
+			i= 0;
+			while (*p && *p!='\r' && *p!='\n' && i<UI_MAX_DRAW_STR-1) {
 				buf[i++]=*p;
 				p++;
 			}
@@ -1102,6 +1104,9 @@ static int ui_textedit_copypaste(uiBut *but, uiHandleButtonData *data, int paste
 
 			changed= 1;
 		}
+
+		if(pbuf)
+			MEM_freeN(pbuf);
 	}
 	/* cut & copy */
 	else if (copy || cut) {
@@ -1112,7 +1117,8 @@ static int ui_textedit_copypaste(uiBut *but, uiHandleButtonData *data, int paste
 			else
 				buf[(x - but->selsta)] = str[x];
 		}
-		/* XXX 2.48 putClipboard(buf, 0); */
+
+		WM_clipboard_text_set(buf, 0);
 		
 		/* for cut only, delete the selection afterwards */
 		if(cut)
@@ -1279,9 +1285,9 @@ static void ui_do_but_textedit(bContext *C, uiBlock *block, uiBut *but, uiHandle
 				if(event->ctrl || event->oskey) {
 					if(event->type == VKEY)
 						changed= ui_textedit_copypaste(but, data, 1, 0, 0);
-					else if(event->type == XKEY)
-						changed= ui_textedit_copypaste(but, data, 0, 1, 0);
 					else if(event->type == CKEY)
+						changed= ui_textedit_copypaste(but, data, 0, 1, 0);
+					else if(event->type == XKEY)
 						changed= ui_textedit_copypaste(but, data, 0, 0, 1);
 
 					retval= WM_UI_HANDLER_BREAK;

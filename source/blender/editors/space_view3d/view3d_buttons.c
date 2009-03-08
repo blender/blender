@@ -77,10 +77,11 @@
 
 #include "ED_armature.h"
 #include "ED_curve.h"
-#include "ED_particle.h"
+#include "ED_image.h"
 #include "ED_keyframing.h"
 #include "ED_mesh.h"
 #include "ED_object.h"
+#include "ED_particle.h"
 #include "ED_screen.h"
 #include "ED_types.h"
 #include "ED_util.h"
@@ -1063,8 +1064,8 @@ static void weight_paint_buttons(Scene *scene, uiBlock *block)
 
 static void sculptmode_draw_interface_tools(Scene *scene, uiBlock *block, unsigned short cx, unsigned short cy)
 {
-#if 0	
-	Sculpt *sd= scene->toolsettings->sculpt;
+	Sculpt *s = scene->toolsettings->sculpt;
+	Brush *br = s->brush;
 	
 	uiBlockBeginAlign(block);
 	
@@ -1072,14 +1073,14 @@ static void sculptmode_draw_interface_tools(Scene *scene, uiBlock *block, unsign
 	cy-= 20;
 	
 	uiBlockBeginAlign(block);	
-	uiDefButS(block,ROW,B_REDR,"Draw",cx,cy,67,19,&sd->brush_type,14.0,DRAW_BRUSH,0,0,"Draw lines on the model");
-	uiDefButS(block,ROW,REDRAWBUTSEDIT,"Smooth",cx+67,cy,67,19,&sd->brush_type,14.0,SMOOTH_BRUSH,0,0,"Interactively smooth areas of the model");
-	uiDefButS(block,ROW,B_REDR,"Pinch",cx+134,cy,67,19,&sd->brush_type,14.0,PINCH_BRUSH,0,0,"Interactively pinch areas of the model");
-	uiDefButS(block,ROW,B_REDR,"Inflate",cx+201,cy,67,19,&sd->brush_type,14,INFLATE_BRUSH,0,0,"Push vertices along the direction of their normals");
+	uiDefButC(block,ROW,B_REDR,"Draw",cx,cy,67,19,&br->sculpt_tool,14.0,SCULPT_TOOL_DRAW,0,0,"Draw lines on the model");
+	uiDefButC(block,ROW,B_REDR,"Smooth",cx+67,cy,67,19,&br->sculpt_tool,14.0,SCULPT_TOOL_SMOOTH,0,0,"Interactively smooth areas of the model");
+	uiDefButC(block,ROW,B_REDR,"Pinch",cx+134,cy,67,19,&br->sculpt_tool,14.0,SCULPT_TOOL_PINCH,0,0,"Interactively pinch areas of the model");
+	uiDefButC(block,ROW,B_REDR,"Inflate",cx+201,cy,67,19,&br->sculpt_tool,14,SCULPT_TOOL_INFLATE,0,0,"Push vertices along the direction of their normals");
 	cy-= 20;
-	uiDefButS(block,ROW,B_REDR,"Grab", cx,cy,89,19,&sd->brush_type,14,GRAB_BRUSH,0,0,"Grabs a group of vertices and moves them with the mouse");
-	uiDefButS(block,ROW,B_REDR,"Layer", cx+89,cy,89,19,&sd->brush_type,14, LAYER_BRUSH,0,0,"Adds a layer of depth");
-	uiDefButS(block,ROW,B_REDR,"Flatten", cx+178,cy,90,19,&sd->brush_type,14, FLATTEN_BRUSH,0,0,"Interactively flatten areas of the model");
+	uiDefButC(block,ROW,B_REDR,"Grab", cx,cy,89,19,&br->sculpt_tool,14,SCULPT_TOOL_GRAB,0,0,"Grabs a group of vertices and moves them with the mouse");
+	uiDefButC(block,ROW,B_REDR,"Layer", cx+89,cy,89,19,&br->sculpt_tool,14, SCULPT_TOOL_LAYER,0,0,"Adds a layer of depth");
+	uiDefButC(block,ROW,B_REDR,"Flatten", cx+178,cy,90,19,&br->sculpt_tool,14, SCULPT_TOOL_FLATTEN,0,0,"Interactively flatten areas of the model");
 	cy-= 25;
 	uiBlockEndAlign(block);
 	
@@ -1088,17 +1089,18 @@ static void sculptmode_draw_interface_tools(Scene *scene, uiBlock *block, unsign
 	cy-= 20;
 
 	uiBlockBeginAlign(block);
-	if(sd->brush_type != SMOOTH_BRUSH && sd->brush_type != GRAB_BRUSH && sd->brush_type != FLATTEN_BRUSH) {
-		uiDefButC(block,ROW,B_NOP,"Add",cx,cy,89,19,&sculptmode_brush()->dir,15.0,1.0,0, 0,"Add depth to model [Shift]");
-		uiDefButC(block,ROW,B_NOP,"Sub",cx+89,cy,89,19,&sculptmode_brush()->dir,15.0,2.0,0, 0,"Subtract depth from model [Shift]");
-	}
-	if(sd->brush_type!=GRAB_BRUSH)
-		uiDefButBitC(block, TOG, SCULPT_BRUSH_AIRBRUSH, B_NOP, "Airbrush", cx+178,cy,89,19, &sculptmode_brush()->flag,0,0,0,0, "Brush makes changes without waiting for the mouse to move");
+	//XXX if(sd->brush_type != SMOOTH_BRUSH && sd->brush_type != GRAB_BRUSH && sd->brush_type != FLATTEN_BRUSH) {
+	{
+		/*uiDefButBitS(block,ROW,B_NOP,"Add",cx,cy,89,19,&br->dir,15.0,1.0,0, 0,"Add depth to model [Shift]");
+		uiDefButBitS(block,ROW,B_NOP,"Sub",cx+89,cy,89,19,&br->dir,15.0,2.0,0, 0,"Subtract depth from model [Shift]");
+		*/}
+	//XXX if(sd->brush_type!=GRAB_BRUSH)
+		uiDefButBitS(block, TOG, BRUSH_AIRBRUSH, B_NOP, "Airbrush", cx+178,cy,89,19, &br->flag,0,0,0,0, "Brush makes changes without waiting for the mouse to move");
 	cy-= 20;
-	uiDefButS(block,NUMSLI,B_NOP,"Size: ",cx,cy,268,19,&sculptmode_brush()->size,1.0,200.0,0,0,"Set brush radius in pixels");
+	uiDefButI(block,NUMSLI,B_NOP,"Size: ",cx,cy,268,19,&br->size,1.0,200.0,0,0,"Set brush radius in pixels");
 	cy-= 20;
-	if(sd->brush_type!=GRAB_BRUSH)
-		uiDefButC(block,NUMSLI,B_NOP,"Strength: ",cx,cy,268,19,&sculptmode_brush()->strength,1.0,100.0,0,0,"Set brush strength");
+	//XXX if(sd->brush_type!=GRAB_BRUSH)
+		uiDefButF(block,NUMSLI,B_NOP,"Strength: ",cx,cy,268,19,&br->alpha,0,1.0,0,0,"Set brush strength");
 	cy-= 25;
 	uiBlockEndAlign(block);
 	
@@ -1106,9 +1108,9 @@ static void sculptmode_draw_interface_tools(Scene *scene, uiBlock *block, unsign
 	uiDefBut( block,LABEL,B_NOP,"Symmetry",cx,cy,90,19,NULL,0,0,0,0,"");
 	cy-= 20;
 	uiBlockBeginAlign(block);
-	uiDefButBitC(block, TOG, SYMM_X, B_NOP, "X", cx,cy,40,19, &sd->symm, 0,0,0,0, "Mirror brush across X axis");
-	uiDefButBitC(block, TOG, SYMM_Y, B_NOP, "Y", cx+40,cy,40,19, &sd->symm, 0,0,0,0, "Mirror brush across Y axis");
-	uiDefButBitC(block, TOG, SYMM_Z, B_NOP, "Z", cx+80,cy,40,19, &sd->symm, 0,0,0,0, "Mirror brush across Z axis");
+	uiDefButBitI(block, TOG, SCULPT_SYMM_X, B_NOP, "X", cx,cy,40,19, &s->flags, 0,0,0,0, "Mirror brush across X axis");
+	uiDefButBitI(block, TOG, SCULPT_SYMM_Y, B_NOP, "Y", cx+40,cy,40,19, &s->flags, 0,0,0,0, "Mirror brush across Y axis");
+	uiDefButBitI(block, TOG, SCULPT_SYMM_Z, B_NOP, "Z", cx+80,cy,40,19, &s->flags, 0,0,0,0, "Mirror brush across Z axis");
 	uiBlockEndAlign(block);
 	
 	
@@ -1117,13 +1119,12 @@ static void sculptmode_draw_interface_tools(Scene *scene, uiBlock *block, unsign
 	uiDefBut( block,LABEL,B_NOP,"LockAxis",cx+140,cy,90,19,NULL,0,0,0,0,"");
 	cy-= 20;
 	uiBlockBeginAlign(block);
-	uiDefButBitC(block, TOG, AXISLOCK_X, B_NOP, "X", cx+140,cy,40,19, &sd->axislock, 0,0,0,0, "Constrain X axis");
-	uiDefButBitC(block, TOG, AXISLOCK_Y, B_NOP, "Y", cx+180,cy,40,19, &sd->axislock, 0,0,0,0, "Constrain Y axis");
-	uiDefButBitC(block, TOG, AXISLOCK_Z, B_NOP, "Z", cx+220,cy,40,19, &sd->axislock, 0,0,0,0, "Constrain Z axis");
+	uiDefButBitI(block, TOG, SCULPT_LOCK_X, B_NOP, "X", cx+140,cy,40,19, &s->flags, 0,0,0,0, "Constrain X axis");
+	uiDefButBitI(block, TOG, SCULPT_LOCK_Y, B_NOP, "Y", cx+180,cy,40,19, &s->flags, 0,0,0,0, "Constrain Y axis");
+	uiDefButBitI(block, TOG, SCULPT_LOCK_Z, B_NOP, "Z", cx+220,cy,40,19, &s->flags, 0,0,0,0, "Constrain Z axis");
 	uiBlockEndAlign(block);
 		
 	cx+= 210;
-#endif
 }
 
 
@@ -1303,6 +1304,7 @@ static void view3d_panel_background(const bContext *C, ARegion *ar, short cntrl)
 
 	block= uiBeginBlock(C, ar, "view3d_panel_background", UI_EMBOSS, UI_HELV);
 	if(uiNewPanel(C, ar, block, "Background Image", "View3d", 340, 10, 318, 204)==0) return;
+	uiBlockSetHandleFunc(block, do_view3d_region_buttons, NULL);
 
 	if(v3d->flag & V3D_DISPBGPIC) {
 		if(v3d->bgpic==NULL) {
@@ -1327,7 +1329,7 @@ static void view3d_panel_background(const bContext *C, ARegion *ar, short cntrl)
 		uiDefButF(block, NUM, B_REDR, "X Offset:",	10, 205, 150, 20, &v3d->bgpic->xof, -250.0*v3d->grid,250.0*v3d->grid, 10, 2, "Set the horizontal offset of the background image");
 		uiDefButF(block, NUM, B_REDR, "Y Offset:",	160, 205, 150, 20, &v3d->bgpic->yof, -250.0*v3d->grid,250.0*v3d->grid, 10, 2, "Set the vertical offset of the background image");
 		
-// XXX		uiblock_image_panel(block, &v3d->bgpic->ima, &v3d->bgpic->iuser, B_REDR, B_REDR);
+		ED_image_uiblock_panel(C, block, &v3d->bgpic->ima, &v3d->bgpic->iuser, B_REDR, B_REDR);
 		uiBlockEndAlign(block);
 	}
 	uiEndBlock(C, block);

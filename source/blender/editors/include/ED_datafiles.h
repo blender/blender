@@ -49,5 +49,8 @@ extern char datatoc_Bfont[];
 extern int datatoc_bfont_ttf_size;
 extern char datatoc_bfont_ttf[];
 
+extern int datatoc_bmonofont_ttf_size;
+extern char datatoc_bmonofont_ttf[];
+
 #endif /* ED_DATAFILES_H */
 

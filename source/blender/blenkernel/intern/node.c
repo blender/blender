@@ -2490,8 +2490,11 @@ bNodeTree *ntreeLocalize(bNodeTree *ntree)
 		node->need_exec= 0;
 		
 		if(ELEM(node->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER)) {
-			if(node->id && (node->flag & NODE_DO_OUTPUT)) {
-				node->new_node->id= (ID *)BKE_image_copy((Image *)node->id);
+			if(node->id) {
+				if(node->flag & NODE_DO_OUTPUT)
+					node->new_node->id= (ID *)BKE_image_copy((Image *)node->id);
+				else
+					node->new_node->id= NULL;
 			}
 		}
 		
@@ -2565,6 +2568,7 @@ void ntreeLocalMerge(bNodeTree *localtree, bNodeTree *ntree)
 			
 			if(ELEM(lnode->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER)) {
 				if(lnode->id && (lnode->flag & NODE_DO_OUTPUT)) {
+					/* image_merge does sanity check for pointers */
 					BKE_image_merge((Image *)lnode->new_node->id, (Image *)lnode->id);
 				}
 			}

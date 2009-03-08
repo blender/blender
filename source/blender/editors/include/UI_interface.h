@@ -70,7 +70,7 @@ typedef struct uiPopupBlockHandle uiPopupBlockHandle;
 #define UI_CENTER		16
 #define UI_SHIFT_FLIPPED	32
 
-/* uiBlock->autofill */
+/* uiBlock->autofill (not yet used) */
 #define UI_BLOCK_COLLUMNS	1
 #define UI_BLOCK_ROWS		2
 
@@ -415,7 +415,7 @@ typedef void (*uiIDPoinFunc)(struct bContext *C, struct ID *id, int event);
 
 uiBut *uiDefIDPoinBut(uiBlock *block, uiIDPoinFuncFP func, short blocktype, int retval, char *str,
 						short x1, short y1, short x2, short y2, void *idpp, char *tip);
-int uiDefIDPoinButs(uiBlock *block, struct Main *main, struct ID *parid, struct ID **id_p, int id_code, short *pin_p, int x, int y, uiIDPoinFunc func, int events);
+int uiDefIDPoinButs(uiBlock *block, struct Main *main, struct ID *parid, struct ID *id, int id_code, short *pin_p, int x, int y, uiIDPoinFunc func, int events);
 
 uiBut *uiDefPulldownBut(uiBlock *block, uiBlockCreateFunc func, void *arg, char *str, short x1, short y1, short x2, short y2, char *tip);
 uiBut *uiDefMenuBut(uiBlock *block, uiMenuCreateFunc func, void *arg, char *str, short x1, short y1, short x2, short y2, char *tip);

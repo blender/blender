@@ -1047,7 +1047,7 @@ static void snode_bg_viewmove(SpaceNode *snode)
 	
 	window_set_cursor(win, oldcursor);
 }
-#endif;
+#endif
 
 /* ********************** size widget operator ******************** */
 
@@ -2229,20 +2229,6 @@ void clear_scene_in_nodes(Scene *sce)
 		}
 		sce1= sce1->id.next;
 	}
-}
-
-
-/* gets active viewer user */
-struct ImageUser *ntree_get_active_iuser(bNodeTree *ntree)
-{
-	bNode *node;
-	
-	if(ntree)
-		for(node= ntree->nodes.first; node; node= node->next)
-			if( ELEM(node->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER)) 
-				if(node->flag & NODE_DO_OUTPUT)
-					return node->storage;
-	return NULL;
 }
 
 void imagepaint_composite_tags(bNodeTree *ntree, Image *image, ImageUser *iuser)

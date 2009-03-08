@@ -84,7 +84,7 @@ short ANIM_fcurve_keys_bezier_loop(BeztEditData *bed, FCurve *fcu, BeztEditFunc 
 	int b;
 	
 	/* sanity check */
-	if (fcu == NULL)
+	if (ELEM(NULL, fcu, fcu->bezt))
 		return 0;
 	
 	/* if function to apply to bezier curves is set, then loop through executing it on beztriples */

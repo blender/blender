@@ -1375,60 +1375,64 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 		/* scroller 'button' 
 		 *	- if view is zoomable in x, draw handles too 
 		 *	- handles are drawn darker
-		 *  - no slider when view is > total
+		 * 	- no slider when view is > total for non-zoomable views
+		 *	  (otherwise, zoomable ones tend to flicker)
 		 */
-		if (v2d->tot.xmax-v2d->tot.xmin <= v2d->cur.xmax-v2d->cur.xmin); 
-		else if (v2d->keepzoom & V2D_LOCKZOOM_X) {
-			/* draw base bar as rounded shape */
-			UI_ThemeColorShade(TH_SHADE1, dark);
-			uiSetRoundBox(15);
-			
-			/* check that box is large enough for round drawing */
-			if ((vs->hor_max - vs->hor_min) < (V2D_SCROLLCAP_RAD * 2)) {
-				/* Rounded box still gets drawn at the minimum size limit
-				 * This doesn't represent extreme scaling well, but looks nicer...
-				 */
-				float mid= 0.5f * (vs->hor_max + vs->hor_min);
+		if ( (v2d->scroll & V2D_SCROLL_SCALE_HORIZONTAL) ||
+			 ((v2d->tot.xmax - v2d->tot.xmin) > (v2d->cur.xmax - v2d->cur.xmin)) ) 
+		{ 
+			if (v2d->keepzoom & V2D_LOCKZOOM_X) {
+				/* draw base bar as rounded shape */
+				UI_ThemeColorShade(TH_SHADE1, dark);
+				uiSetRoundBox(15);
 				
-				gl_round_box_shade(GL_POLYGON, 
-					mid-V2D_SCROLLCAP_RAD, (float)hor.ymin+2, 
-					mid+V2D_SCROLLCAP_RAD, (float)hor.ymax-2, 
-					V2D_SCROLLCAP_RAD, V2D_SCROLLBAR_SHADE, -V2D_SCROLLBAR_SHADE);
+				/* check that box is large enough for round drawing */
+				if ((vs->hor_max - vs->hor_min) < (V2D_SCROLLCAP_RAD * 2)) {
+					/* Rounded box still gets drawn at the minimum size limit
+					 * This doesn't represent extreme scaling well, but looks nicer...
+					 */
+					float mid= 0.5f * (vs->hor_max + vs->hor_min);
+					
+					gl_round_box_shade(GL_POLYGON, 
+						mid-V2D_SCROLLCAP_RAD, (float)hor.ymin+2, 
+						mid+V2D_SCROLLCAP_RAD, (float)hor.ymax-2, 
+						V2D_SCROLLCAP_RAD, V2D_SCROLLBAR_SHADE, -V2D_SCROLLBAR_SHADE);
+				}
+				else {
+					/* draw rounded box as per normal */
+					gl_round_box_shade(GL_POLYGON, 
+						(float)vs->hor_min, (float)hor.ymin+2, 
+						(float)vs->hor_max, (float)hor.ymax-2, 
+						V2D_SCROLLCAP_RAD, V2D_SCROLLBAR_SHADE, -V2D_SCROLLBAR_SHADE);
+				}
 			}
 			else {
-				/* draw rounded box as per normal */
+				/* base bar drawn as shaded rect */
+				UI_ThemeColorShade(TH_SHADE1, dark);
+				uiSetRoundBox(0);
 				gl_round_box_shade(GL_POLYGON, 
 					(float)vs->hor_min, (float)hor.ymin+2, 
 					(float)vs->hor_max, (float)hor.ymax-2, 
 					V2D_SCROLLCAP_RAD, V2D_SCROLLBAR_SHADE, -V2D_SCROLLBAR_SHADE);
+				
+				/* 'minimum' handle */
+				uiSetRoundBox(9);
+				UI_ThemeColorShade(TH_SHADE1, darker);
+				
+				gl_round_box_shade(GL_POLYGON, 
+					(float)vs->hor_min-V2D_SCROLLER_HANDLE_SIZE, (float)hor.ymin+2, 
+					(float)vs->hor_min+V2D_SCROLLER_HANDLE_SIZE, (float)hor.ymax-2, 
+					V2D_SCROLLCAP_RAD, V2D_SCROLLCAP_SHADE, -V2D_SCROLLCAP_SHADE);
+				
+				/* maximum handle */
+				uiSetRoundBox(6);
+				UI_ThemeColorShade(TH_SHADE1, darker);
+				
+				gl_round_box_shade(GL_POLYGON, 
+					(float)vs->hor_max-V2D_SCROLLER_HANDLE_SIZE, (float)hor.ymin+2, 
+					(float)vs->hor_max+V2D_SCROLLER_HANDLE_SIZE, (float)hor.ymax-2, 
+					V2D_SCROLLCAP_RAD, V2D_SCROLLCAP_SHADE, -V2D_SCROLLCAP_SHADE);
 			}
-		}
-		else {
-			/* base bar drawn as shaded rect */
-			UI_ThemeColorShade(TH_SHADE1, dark);
-			uiSetRoundBox(0);
-			gl_round_box_shade(GL_POLYGON, 
-				(float)vs->hor_min, (float)hor.ymin+2, 
-				(float)vs->hor_max, (float)hor.ymax-2, 
-				V2D_SCROLLCAP_RAD, V2D_SCROLLBAR_SHADE, -V2D_SCROLLBAR_SHADE);
-			
-			/* 'minimum' handle */
-			uiSetRoundBox(9);
-			UI_ThemeColorShade(TH_SHADE1, darker);
-			
-			gl_round_box_shade(GL_POLYGON, 
-				(float)vs->hor_min-V2D_SCROLLER_HANDLE_SIZE, (float)hor.ymin+2, 
-				(float)vs->hor_min+V2D_SCROLLER_HANDLE_SIZE, (float)hor.ymax-2, 
-				V2D_SCROLLCAP_RAD, V2D_SCROLLCAP_SHADE, -V2D_SCROLLCAP_SHADE);
-			
-			/* maximum handle */
-			uiSetRoundBox(6);
-			UI_ThemeColorShade(TH_SHADE1, darker);
-			
-			gl_round_box_shade(GL_POLYGON, 
-				(float)vs->hor_max-V2D_SCROLLER_HANDLE_SIZE, (float)hor.ymin+2, 
-				(float)vs->hor_max+V2D_SCROLLER_HANDLE_SIZE, (float)hor.ymax-2, 
-				V2D_SCROLLCAP_RAD, V2D_SCROLLCAP_SHADE, -V2D_SCROLLCAP_SHADE);
 		}
 		
 		/* scale indicators */
@@ -1512,59 +1516,64 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 		/* scroller 'button' 
 		 *	- if view is zoomable in y, draw handles too 
 		 *	- handles are drawn darker
+		 * 	- no slider when view is > total for non-zoomable views
+		 *	  (otherwise, zoomable ones tend to flicker)
 		 */
-		if (v2d->tot.ymax-v2d->tot.ymin <= v2d->cur.ymax-v2d->cur.ymin); 
-		else if (v2d->keepzoom & V2D_LOCKZOOM_Y) {
-			/* draw base bar as rounded shape */
-			UI_ThemeColorShade(TH_SHADE1, dark);
-			uiSetRoundBox(15);
-			
-			/* check that box is large enough for round drawing */
-			if ((vs->vert_max - vs->vert_min) < (V2D_SCROLLCAP_RAD * 2)) {
-				/* Rounded box still gets drawn at the minimum size limit
-				 * This doesn't represent extreme scaling well, but looks nicer...
-				 */
-				float mid= 0.5f * (vs->vert_max + vs->vert_min);
+		if ( (v2d->scroll & V2D_SCROLL_SCALE_VERTICAL) ||
+			 ((v2d->tot.ymax - v2d->tot.ymin) > (v2d->cur.ymax - v2d->cur.ymin)) ) 
+		{ 
+			if (v2d->keepzoom & V2D_LOCKZOOM_Y) {
+				/* draw base bar as rounded shape */
+				UI_ThemeColorShade(TH_SHADE1, dark);
+				uiSetRoundBox(15);
 				
-				gl_round_box_vertical_shade(GL_POLYGON, 
-					(float)vert.xmin+2, mid-V2D_SCROLLCAP_RAD, 
-					(float)vert.xmax-2, mid+V2D_SCROLLCAP_RAD, 
-					V2D_SCROLLCAP_RAD, V2D_SCROLLBAR_SHADE, -V2D_SCROLLBAR_SHADE);
+				/* check that box is large enough for round drawing */
+				if ((vs->vert_max - vs->vert_min) < (V2D_SCROLLCAP_RAD * 2)) {
+					/* Rounded box still gets drawn at the minimum size limit
+					 * This doesn't represent extreme scaling well, but looks nicer...
+					 */
+					float mid= 0.5f * (vs->vert_max + vs->vert_min);
+					
+					gl_round_box_vertical_shade(GL_POLYGON, 
+						(float)vert.xmin+2, mid-V2D_SCROLLCAP_RAD, 
+						(float)vert.xmax-2, mid+V2D_SCROLLCAP_RAD, 
+						V2D_SCROLLCAP_RAD, V2D_SCROLLBAR_SHADE, -V2D_SCROLLBAR_SHADE);
+				}
+				else {
+					/* draw rounded box as per normal */
+					gl_round_box_vertical_shade(GL_POLYGON, 
+						(float)vert.xmin+2, (float)vs->vert_min, 
+						(float)vert.xmax-2, (float)vs->vert_max, 
+						V2D_SCROLLCAP_RAD, V2D_SCROLLBAR_SHADE, -V2D_SCROLLBAR_SHADE);
+				}
 			}
 			else {
-				/* draw rounded box as per normal */
+				/* base bar drawn as shaded rect */
+				UI_ThemeColorShade(TH_SHADE1, dark);
+				uiSetRoundBox(0);
 				gl_round_box_vertical_shade(GL_POLYGON, 
 					(float)vert.xmin+2, (float)vs->vert_min, 
-					(float)vert.xmax-2, (float)vs->vert_max, 
+					(float)vert.xmax-2, (float)vs->vert_max,
 					V2D_SCROLLCAP_RAD, V2D_SCROLLBAR_SHADE, -V2D_SCROLLBAR_SHADE);
+				
+				/* 'minimum' handle */
+				UI_ThemeColorShade(TH_SHADE1, darker);
+				uiSetRoundBox(12);
+				
+				gl_round_box_vertical_shade(GL_POLYGON, 
+					(float)vert.xmin+2, (float)vs->vert_min-V2D_SCROLLER_HANDLE_SIZE, 
+					(float)vert.xmax-2, (float)vs->vert_min+V2D_SCROLLER_HANDLE_SIZE, 
+					V2D_SCROLLCAP_RAD, V2D_SCROLLCAP_SHADE, -V2D_SCROLLCAP_SHADE);
+				
+				/* maximum handle */
+				UI_ThemeColorShade(TH_SHADE1, darker);
+				uiSetRoundBox(3);
+				
+				gl_round_box_vertical_shade(GL_POLYGON, 
+					(float)vert.xmin+2, (float)vs->vert_max-V2D_SCROLLER_HANDLE_SIZE, 
+					(float)vert.xmax-2, (float)vs->vert_max+V2D_SCROLLER_HANDLE_SIZE, 
+					V2D_SCROLLCAP_RAD, V2D_SCROLLCAP_SHADE, -V2D_SCROLLCAP_SHADE);
 			}
-		}
-		else {
-			/* base bar drawn as shaded rect */
-			UI_ThemeColorShade(TH_SHADE1, dark);
-			uiSetRoundBox(0);
-			gl_round_box_vertical_shade(GL_POLYGON, 
-				(float)vert.xmin+2, (float)vs->vert_min, 
-				(float)vert.xmax-2, (float)vs->vert_max,
-				V2D_SCROLLCAP_RAD, V2D_SCROLLBAR_SHADE, -V2D_SCROLLBAR_SHADE);
-			
-			/* 'minimum' handle */
-			UI_ThemeColorShade(TH_SHADE1, darker);
-			uiSetRoundBox(12);
-			
-			gl_round_box_vertical_shade(GL_POLYGON, 
-				(float)vert.xmin+2, (float)vs->vert_min-V2D_SCROLLER_HANDLE_SIZE, 
-				(float)vert.xmax-2, (float)vs->vert_min+V2D_SCROLLER_HANDLE_SIZE, 
-				V2D_SCROLLCAP_RAD, V2D_SCROLLCAP_SHADE, -V2D_SCROLLCAP_SHADE);
-			
-			/* maximum handle */
-			UI_ThemeColorShade(TH_SHADE1, darker);
-			uiSetRoundBox(3);
-			
-			gl_round_box_vertical_shade(GL_POLYGON, 
-				(float)vert.xmin+2, (float)vs->vert_max-V2D_SCROLLER_HANDLE_SIZE, 
-				(float)vert.xmax-2, (float)vs->vert_max+V2D_SCROLLER_HANDLE_SIZE, 
-				V2D_SCROLLCAP_RAD, V2D_SCROLLCAP_SHADE, -V2D_SCROLLCAP_SHADE);
 		}
 		
 		/* scale indiators */

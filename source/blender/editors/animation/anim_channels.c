@@ -101,45 +101,56 @@
 		else 									(channel)->flag &= ~(sflag); \
 	}
 
-/* -------------------------- Internal Tools -------------------------------- */
-
-/* set the given Action Group to be the 'active' one in its Action */
-static void action_set_active_agrp (bAction *act, bActionGroup *agrp)
-{
-	bActionGroup *grp;
-	
-	/* sanity check */
-	if (act == NULL)
-		return;
-		
-	/* clear active flag on all others */
-	for (grp= act->groups.first; grp; grp= grp->next)
-		grp->flag &= ~AGRP_ACTIVE;
-		
-	/* set the given group to be the active one */
-	if (agrp)
-		agrp->flag |= AGRP_ACTIVE;
-}
-
 /* -------------------------- Exposed API ----------------------------------- */
 
-/* Set the given ActionChannel or ActionGroup as the active one in the given action
- *	- data: should be bAction...
- *	- datatype: should be ANIMCONT_ACTION 
- *	- channel_data: bActionChannel or bActionGroup
- *	- channel_type: eAnim_ChannelType
- */
-void ANIM_action_set_active_channel (void *data, short datatype, void *channel_data, short channel_type)
+/* Set the given animation-channel as the active one for the active context */
+void ANIM_set_active_channel (void *data, short datatype, int filter, void *channel_data, short channel_type)
 {
-	/* sanity checks */
-	if ((data == NULL) || (datatype != ANIMCONT_ACTION))
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
+	short smode;
+	
+	/* try to build list of filtered items */
+	// XXX we don't need/supply animcontext for now, since in this case, there's nothing really essential there that isn't already covered
+	ANIM_animdata_filter(NULL, &anim_data, filter, data, datatype);
+	if (anim_data.first == NULL)
 		return;
 		
-	switch (channel_type) {
-		case ANIMTYPE_GROUP:
-			action_set_active_agrp((bAction *)data, (bActionGroup *)channel_data);
-			break;
+	/* only clear the 'active' flag for the channels of the same type */
+	for (ale= anim_data.first; ale; ale= ale->next) {
+		/* skip if types don't match */
+		if (channel_type != ale->type)
+			continue;	
+		
+		/* flag setting mode 
+		 *	- depends on whether the provided channel is encountered
+		 */
+		if (ale->data == channel_data)
+			smode= ACHANNEL_SETFLAG_ADD;
+		else
+			smode= ACHANNEL_SETFLAG_CLEAR;
+		
+		/* flag to set depends on type */
+		switch (ale->type) {
+			case ANIMTYPE_GROUP:
+			{
+				bActionGroup *agrp= (bActionGroup *)ale->data;
+				
+				ACHANNEL_SET_FLAG(agrp, smode, AGRP_ACTIVE);
+			}
+				break;
+			case ANIMTYPE_FCURVE:
+			{
+				FCurve *fcu= (FCurve *)ale->data;
+				
+				ACHANNEL_SET_FLAG(fcu, smode, FCURVE_ACTIVE);
+			}
+				break;
+		}
 	}
+	
+	/* clean up */
+	BLI_freelistN(&anim_data);
 }
 
 /* Deselect all animation channels 
@@ -856,6 +867,27 @@ void ANIM_OT_channels_toggle_setting (wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "type", prop_animchannel_settings_types, 0, "Type", "");
 }
 
+// XXX currently, this is a separate operator, but perhaps we could in future specify in keymaps whether to call invoke or exec?
+void ANIM_OT_channels_toggle_editable (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Toggle Channel Editability";
+	ot->idname= "ANIM_OT_channels_toggle_editable";
+	
+	/* api callbacks */
+	ot->exec= animchannels_setflag_exec;
+	ot->poll= ED_operator_areaactive;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* props */
+		/* flag-setting mode */
+	RNA_def_enum(ot->srna, "mode", prop_animchannel_setflag_types, ACHANNEL_SETFLAG_TOGGLE, "Mode", "");
+		/* setting to set */
+	RNA_def_enum(ot->srna, "type", prop_animchannel_settings_types, ACHANNEL_SETTING_PROTECT, "Type", "");
+}
+
 /* ********************** Select All Operator *********************** */
 
 static int animchannels_deselectall_exec(bContext *C, wmOperator *op)
@@ -1192,14 +1224,14 @@ static void mouse_anim_channels (bAnimContext *ac, float x, int channel_index, s
 				}
 				else if (selectmode == -1) {
 					/* select all in group (and deselect everthing else) */	
-					bActionChannel *achan;
+					FCurve *fcu;
 					
 					/* deselect all other channels */
 					ANIM_deselect_anim_channels(ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
 					
 					/* only select channels in group and group itself */
-					for (achan= agrp->channels.first; achan && achan->grp==agrp; achan= achan->next)
-						achan->flag |= ACHAN_SELECTED;
+					for (fcu= agrp->channels.first; fcu && fcu->grp==agrp; fcu= fcu->next)
+						fcu->flag |= FCURVE_SELECTED;
 					agrp->flag |= AGRP_SELECTED;					
 				}
 				else {
@@ -1208,19 +1240,26 @@ static void mouse_anim_channels (bAnimContext *ac, float x, int channel_index, s
 					agrp->flag |= AGRP_SELECTED;
 				}
 				
-				/* if group is selected now, and we're in Action Editor mode (so that we have pointer to active action),
-				 * we can make this group the 'active' one in that action
-				 */
-				// TODO: we should be able to do this through dopesheet + f-curves editor too...
-				if ((agrp->flag & AGRP_SELECTED) && (ac->datatype == ANIMCONT_ACTION))
-					action_set_active_agrp((bAction *)ac->data, agrp);
+				/* if group is selected now, make group the 'active' one in the visible list */
+				if (agrp->flag & AGRP_SELECTED)
+					ANIM_set_active_channel(ac->data, ac->datatype, filter, agrp, ANIMTYPE_GROUP);
 			}
 		}
 			break;
 		case ANIMTYPE_FCURVE: 
 		{
 			FCurve *fcu= (FCurve *)ale->data;
-			short offset= (ac->datatype != ANIMCONT_ACTION)? 18 : 0;
+			short offset;
+			
+			if (ac->datatype != ANIMCONT_ACTION) {
+				/* for now, special case for materials */
+				if (ale->ownertype == ANIMTYPE_DSMAT)
+					offset= 21;
+				else
+					offset= 18;
+			}
+			else
+				offset = 0;
 			
 			if (x >= (ACHANNEL_NAMEWIDTH-ACHANNEL_BUTTON_WIDTH)) {
 				/* toggle protection */
@@ -1232,17 +1271,23 @@ static void mouse_anim_channels (bAnimContext *ac, float x, int channel_index, s
 			}
 			else if ((x < (offset+17)) && (ac->spacetype==SPACE_IPO)) {
 				/* toggle visibility */
-				// XXX this is supposed to be button before name, though this sometimes fails
 				fcu->flag ^= FCURVE_VISIBLE;
 			}
 			else {
 				/* select/deselect */
-				fcu->flag ^= FCURVE_SELECTED;
+				if (selectmode == SELECT_INVERT) {
+					/* inverse selection status of this F-Curve only */
+					fcu->flag ^= FCURVE_SELECTED;
+				}
+				else {
+					/* select F-Curve by itself */
+					ANIM_deselect_anim_channels(ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
+					fcu->flag |= FCURVE_SELECTED;
+				}
 				
+				/* if F-Curve is selected now, make F-Curve the 'active' one in the visible list */
 				if (fcu->flag & FCURVE_SELECTED)
-					fcu->flag |= FCURVE_ACTIVE;
-				else
-					fcu->flag &= ~FCURVE_ACTIVE;
+					ANIM_set_active_channel(ac->data, ac->datatype, filter, fcu, ANIMTYPE_FCURVE);
 			}
 		}
 			break;
@@ -1375,6 +1420,9 @@ void ED_operatortypes_animchannels(void)
 	WM_operatortype_append(ANIM_OT_channels_disable_setting);
 	WM_operatortype_append(ANIM_OT_channels_toggle_setting);
 	
+		// XXX does this need to be a separate operator?
+	WM_operatortype_append(ANIM_OT_channels_toggle_editable);
+	
 		// XXX these need to be updated for new system... todo...
 	//WM_operatortype_append(ANIM_OT_channels_move_up);
 	//WM_operatortype_append(ANIM_OT_channels_move_down);
@@ -1406,6 +1454,9 @@ void ED_keymap_animchannels(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "ANIM_OT_channels_toggle_setting", WKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "ANIM_OT_channels_enable_setting", WKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "ANIM_OT_channels_disable_setting", WKEY, KM_PRESS, KM_ALT, 0);
+	
+	/* settings - specialised hotkeys */
+	WM_keymap_add_item(keymap, "ANIM_OT_channels_toggle_editable", TABKEY, KM_PRESS, 0, 0);
 	
 	/* rearranging - actions only */
 	//WM_keymap_add_item(keymap, "ANIM_OT_channels_move_up", PAGEUPKEY, KM_PRESS, KM_SHIFT, 0);

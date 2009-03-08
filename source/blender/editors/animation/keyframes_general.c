@@ -38,7 +38,6 @@
 #include "DNA_anim_types.h"
 #include "DNA_action_types.h"
 #include "DNA_curve_types.h"
-#include "DNA_ipo_types.h" // XXX to be removed
 #include "DNA_key_types.h"
 #include "DNA_object_types.h"
 #include "DNA_space_types.h"
@@ -354,6 +353,190 @@ void smooth_fcurve (FCurve *fcu)
 	
 	/* recalculate handles */
 	calchandles_fcurve(fcu);
+}
+
+/* **************************************************** */
+/* Copy/Paste Tools */
+/* - The copy/paste buffer currently stores a set of temporary F-Curves containing only the keyframes 
+ *   that were selected in each of the original F-Curves
+ * - All pasted frames are offset by the same amount. This is calculated as the difference in the times of
+ *	the current frame and the 'first keyframe' (i.e. the earliest one in all channels).
+ * - The earliest frame is calculated per copy operation.
+ */
+
+/* globals for copy/paste data (like for other copy/paste buffers) */
+ListBase animcopybuf = {NULL, NULL};
+static float animcopy_firstframe= 999999999.0f;
+
+/* datatype for use in copy/paste buffer */
+// XXX F-Curve editor should use this too
+typedef struct tAnimCopybufItem {
+	struct tAnimCopybufItem *next, *prev;
+	
+	ID *id;				/* ID which owns the curve */
+	bActionGroup *grp;	/* Action Group */
+	char *rna_path;		/* RNA-Path */
+	int array_index;	/* array index */
+	
+	int totvert;		/* number of keyframes stored for this channel */
+	BezTriple *bezt;	/* keyframes in buffer */
+} tAnimCopybufItem;
+
+
+/* This function frees any MEM_calloc'ed copy/paste buffer data */
+// XXX find some header to put this in!
+void free_anim_copybuf (void)
+{
+	tAnimCopybufItem *aci, *acn;
+	
+	/* free each buffer element */
+	for (aci= animcopybuf.first; aci; aci= acn) {
+		acn= aci->next;
+		
+		/* free keyframes */
+		if (aci->bezt) 
+			MEM_freeN(aci->bezt);
+			
+		/* free RNA-path */
+		if (aci->rna_path)
+			MEM_freeN(aci->rna_path);
+			
+		/* free ourself */
+		BLI_freelinkN(&animcopybuf, aci);
+	}
+	
+	/* restore initial state */
+	animcopybuf.first= animcopybuf.last= NULL;
+	animcopy_firstframe= 999999999.0f;
+}
+
+/* ------------------- */
+
+/* This function adds data to the keyframes copy/paste buffer, freeing existing data first */
+short copy_animedit_keys (bAnimContext *ac, ListBase *anim_data)
+{	
+	bAnimListElem *ale;
+	
+	/* clear buffer first */
+	free_anim_copybuf();
+	
+	/* assume that each of these is an ipo-block */
+	for (ale= anim_data->first; ale; ale= ale->next) {
+		FCurve *fcu= (FCurve *)ale->key_data;
+		tAnimCopybufItem *aci;
+		BezTriple *bezt, *newbuf;
+		int i;
+		
+		/* init copybuf item info */
+		aci= MEM_callocN(sizeof(tAnimCopybufItem), "AnimCopybufItem");
+		aci->id= ale->id;
+		aci->grp= fcu->grp;
+		aci->rna_path= MEM_dupallocN(fcu->rna_path);
+		aci->array_index= fcu->array_index;
+		BLI_addtail(&animcopybuf, aci);
+		
+		/* add selected keyframes to buffer */
+		// XXX we don't cope with sample-data yet
+		// TODO: currently, we resize array everytime we add a new vert - this works ok as long as it is assumed only a few keys are copied
+		for (i=0, bezt=fcu->bezt; i < fcu->totvert; i++, bezt++) {
+			if (BEZSELECTED(bezt)) {
+				/* add to buffer */
+				newbuf= MEM_callocN(sizeof(BezTriple)*(aci->totvert+1), "copybuf beztriple");
+				
+				/* assume that since we are just resizing the array, just copy all existing data across */
+				if (aci->bezt)
+					memcpy(newbuf, aci->bezt, sizeof(BezTriple)*(aci->totvert));
+				
+				/* copy current beztriple across too */
+				*(newbuf + aci->totvert)= *bezt; 
+				
+				/* free old array and set the new */
+				if (aci->bezt) MEM_freeN(aci->bezt);
+				aci->bezt= newbuf;
+				aci->totvert++;
+				
+				/* check if this is the earliest frame encountered so far */
+				if (bezt->vec[1][0] < animcopy_firstframe)
+					animcopy_firstframe= bezt->vec[1][0];
+			}
+		}
+		
+	}
+	
+	/* check if anything ended up in the buffer */
+	if (ELEM(NULL, animcopybuf.first, animcopybuf.last))
+		return -1;
+	
+	/* everything went fine */
+	return 0;
+}
+
+/* This function pastes data from the keyframes copy/paste buffer */
+short paste_animedit_keys (bAnimContext *ac, ListBase *anim_data)
+{
+	bAnimListElem *ale;
+	const Scene *scene= (ac->scene);
+	const float offset = (float)(CFRA - animcopy_firstframe);
+	short no_name= 0;
+	
+	/* check if buffer is empty */
+	if (ELEM(NULL, animcopybuf.first, animcopybuf.last)) {
+		//error("No data in buffer to paste");
+		return -1;
+	}
+	/* check if single channel in buffer (disregard names if so)  */
+	if (animcopybuf.first == animcopybuf.last)
+		no_name= 1;
+	
+	/* from selected channels */
+	for (ale= anim_data->first; ale; ale= ale->next) {
+		FCurve *fcu = (FCurve *)ale->data;		/* destination F-Curve */
+		tAnimCopybufItem *aci= NULL;
+		BezTriple *bezt;
+		int i;
+		
+		/* find buffer item to paste from 
+		 *	- if names don't matter (i.e. only 1 channel in buffer), don't check id/group
+		 *	- if names do matter, only check if id-type is ok for now (group check is not that important)
+		 *	- most importantly, rna-paths should match (array indices are unimportant for now)
+		 */
+		// TODO: the matching algorithm here is pathetic!
+		for (aci= animcopybuf.first; aci; aci= aci->next) {
+			/* check that paths exist */
+			if (aci->rna_path && fcu->rna_path) {
+				if (strcmp(aci->rna_path, fcu->rna_path) == 0) {
+					/* should be a match unless there's more than one of these */
+					if ((no_name) || (aci->array_index == fcu->array_index)) 
+						break;
+				}
+			}
+		}
+		
+		
+		/* copy the relevant data from the matching buffer curve */
+		if (aci) {
+			/* just start pasting, with the the first keyframe on the current frame, and so on */
+			for (i=0, bezt=aci->bezt; i < aci->totvert; i++, bezt++) {						
+				/* temporarily apply offset to src beztriple while copying */
+				bezt->vec[0][0] += offset;
+				bezt->vec[1][0] += offset;
+				bezt->vec[2][0] += offset;
+				
+				/* insert the keyframe */
+				insert_bezt_fcurve(fcu, bezt);
+				
+				/* un-apply offset from src beztriple after copying */
+				bezt->vec[0][0] -= offset;
+				bezt->vec[1][0] -= offset;
+				bezt->vec[2][0] -= offset;
+			}
+			
+			/* recalculate F-Curve's handles? */
+			calchandles_fcurve(fcu);
+		}
+	}
+	
+	return 0;
 }
 
 /* **************************************************** */

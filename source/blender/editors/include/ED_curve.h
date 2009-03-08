@@ -28,12 +28,13 @@
 #ifndef ED_CURVE_H
 #define ED_CURVE_H
 
-struct wmWindowManager;
-struct Scene;
-struct Object;
-struct bContext;
 struct Base;
+struct bContext;
+struct Object;
+struct Scene;
+struct Text;
 struct View3D;
+struct wmWindowManager;
 
 /* curve_ops.c */
 void	ED_operatortypes_curve(void);
@@ -56,6 +57,8 @@ void	undo_push_font	(struct bContext *C, char *name);
 void	make_editText	(struct Object *obedit);
 void	load_editText	(struct Object *obedit);
 void	free_editText	(struct Object *obedit);
+
+void	ED_text_to_object(struct bContext *C, struct Text *text, int split_lines);
 
 #endif /* ED_CURVE_H */
 

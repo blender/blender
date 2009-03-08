@@ -169,17 +169,17 @@ public:
 
 	/**
 	 * Returns Clipboard data
-	 * @param flag		Indicate which buffer to return
-	 * @return		Returns the selected buffer
+	 * @param selection		Indicate which buffer to return
+	 * @return				Returns the selected buffer
 	 */
-	virtual GHOST_TUns8* getClipboard(int flag) const;
+	virtual GHOST_TUns8* getClipboard(bool selection) const;
 	
 	/**
 	 * Puts buffer to system clipboard
 	 * @param buffer	The buffer to be copied
-	 * @param flag		Indicates which buffer to copy too Only used on X11
+	 * @param selection	Indicates which buffer to copy too, only used on X11
 	 */
-	virtual void putClipboard(GHOST_TInt8 *buffer, int flag) const;
+	virtual void putClipboard(GHOST_TInt8 *buffer, bool selection) const;
 
 protected:
 	/**

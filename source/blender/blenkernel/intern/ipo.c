@@ -39,6 +39,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <string.h>
+#include <stddef.h>
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -743,6 +744,72 @@ static char *world_adrcodes_to_paths (int adrcode, int *array_index)
 	return NULL;	
 }
 
+/* Particle Types */
+static char *particle_adrcodes_to_paths (int adrcode, int *array_index)
+{
+	/* set array index like this in-case nothing sets it correctly  */
+	*array_index= 0;
+	
+	/* result depends on adrcode */
+	switch (adrcode) {
+		case PART_CLUMP:
+			return "settings.clump_factor";
+		case PART_AVE:
+			return "settings.angular_velocity_factor";
+		case PART_SIZE:
+			return "settings.particle_size";
+		case PART_DRAG:
+			return "settings.drag_factor";
+		case PART_BROWN:
+			return "settings.brownian_factor";
+		case PART_DAMP:
+			return "settings.damp_factor";
+		case PART_LENGTH:
+			return "settings.length";
+		case PART_GRAV_X:
+			*array_index= 0; return "settings.acceleration";
+		case PART_GRAV_Y:
+			*array_index= 1; return "settings.acceleration";
+		case PART_GRAV_Z:
+			*array_index= 2; return "settings.acceleration";
+		case PART_KINK_AMP:
+			return "settings.kink_amplitude";
+		case PART_KINK_FREQ:
+			return "settings.kink_frequency";
+		case PART_KINK_SHAPE:
+			return "settings.kink_shape";
+		case PART_BB_TILT:
+			return "settings.billboard_tilt";
+		
+		/* PartDeflect needs to be sorted out properly in rna_object_force;
+		   If anyone else works on this, but is unfamiliar, these particular
+			settings reference the particles of the system themselves
+			being used as forces -- it will use the same rna structure
+			as the similar object forces				*/
+		/*case PART_PD_FSTR:
+			if (part->pd) poin= &(part->pd->f_strength);
+			break;
+		case PART_PD_FFALL:
+			if (part->pd) poin= &(part->pd->f_power);
+			break;
+		case PART_PD_FMAXD:
+			if (part->pd) poin= &(part->pd->maxdist);
+			break;
+		case PART_PD2_FSTR:
+			if (part->pd2) poin= &(part->pd2->f_strength);
+			break;
+		case PART_PD2_FFALL:
+			if (part->pd2) poin= &(part->pd2->f_power);
+			break;
+		case PART_PD2_FMAXD:
+			if (part->pd2) poin= &(part->pd2->maxdist);
+			break;*/
+
+		}
+		
+	return NULL;	
+}
+
 /* ------- */
 
 /* Allocate memory for RNA-path for some property given a blocktype, adrcode, and 'root' parts of path
@@ -799,6 +866,9 @@ char *get_rna_access (int blocktype, int adrcode, char actname[], char constname
 		
 		case ID_WO: /* world */
 			propname= world_adrcodes_to_paths(adrcode, &dummy_index);
+
+		case ID_PA: /* particle */
+			propname= particle_adrcodes_to_paths(adrcode, &dummy_index);
 			
 		/* XXX problematic blocktypes */
 		case ID_CU: /* curve */
@@ -970,12 +1040,65 @@ static ChannelDriver *idriver_to_cdriver (IpoDriver *idriver)
 	return cdriver;
 }
 
+/* Add F-Curve to the correct list 
+ *	- grpname is needed to be used as group name where relevant, and is usually derived from actname
+ */
+static void fcurve_add_to_list (ListBase *groups, ListBase *list, FCurve *fcu, char *grpname)
+{
+	/* If we're adding to an action, we will have groups to write to... */
+	if (groups && grpname) {
+		/* wrap the pointers given into a dummy action that we pass to the API func
+		 * and extract the resultant lists...
+		 */
+		bAction tmp_act;
+		bActionGroup *agrp= NULL;
+		
+		/* init the temp action */
+		//memset(&tmp_act, 0, sizeof(bAction)); // XXX only enable this line if we get errors
+		tmp_act.groups.first= groups->first;
+		tmp_act.groups.last= groups->last;
+		tmp_act.curves.first= list->first;
+		tmp_act.curves.last= list->last;
+		/* ... xxx, the other vars don't need to be filled in */
+		
+		/* get the group to use */
+		agrp= action_groups_find_named(&tmp_act, grpname);
+		if (agrp == NULL) {
+			/* no matching group, so add one */
+			if (agrp == NULL) {
+				/* Add a new group, and make it active */
+				agrp= MEM_callocN(sizeof(bActionGroup), "bActionGroup");
+				
+				agrp->flag = AGRP_SELECTED;
+				BLI_snprintf(agrp->name, 64, grpname);
+				
+				BLI_addtail(&tmp_act.groups, agrp);
+				BLI_uniquename(&tmp_act.groups, agrp, "Group", offsetof(bActionGroup, name), 64);
+			}
+		}
+		
+		/* add F-Curve to group */
+		/* WARNING: this func should only need to look at the stuff we initialised, if not, things may crash */
+		action_groups_add_channel(&tmp_act, agrp, fcu);
+		
+		/* set the output lists based on the ones in the temp action */
+		groups->first= tmp_act.groups.first;
+		groups->last= tmp_act.groups.last;
+		list->first= tmp_act.curves.first;
+		list->last= tmp_act.curves.last;
+	}
+	else {
+		/* simply add the F-Curve to the end of the given list */
+		BLI_addtail(list, fcu);
+	}
+}
+
 /* Convert IPO-Curve to F-Curve (including Driver data), and free any of the old data that 
  * is not relevant, BUT do not free the IPO-Curve itself...
  *	actname: name of Action-Channel (if applicable) that IPO-Curve's IPO-block belonged to
  *	constname: name of Constraint-Channel (if applicable) that IPO-Curve's IPO-block belonged to
  */
-static void icu_to_fcurves (ListBase *list, IpoCurve *icu, char *actname, char *constname)
+static void icu_to_fcurves (ListBase *groups, ListBase *list, IpoCurve *icu, char *actname, char *constname)
 {
 	AdrBit2Path *abp;
 	FCurve *fcu;
@@ -1090,7 +1213,7 @@ static void icu_to_fcurves (ListBase *list, IpoCurve *icu, char *actname, char *
 			}
 			
 			/* add new F-Curve to list */
-			BLI_addtail(list, fcurve);
+			fcurve_add_to_list(groups, list, fcurve, actname);
 		}
 		
 		/* free old data of curve now that it's no longer needed for converting any more curves */
@@ -1149,7 +1272,7 @@ static void icu_to_fcurves (ListBase *list, IpoCurve *icu, char *actname, char *
 		}
 		
 		/* add new F-Curve to list */
-		BLI_addtail(list, fcu);
+		fcurve_add_to_list(groups, list, fcu, actname);
 	}
 }
 
@@ -1159,7 +1282,7 @@ static void icu_to_fcurves (ListBase *list, IpoCurve *icu, char *actname, char *
  * This does not assume that any ID or AnimData uses it, but does assume that
  * it is given two lists, which it will perform driver/animation-data separation.
  */
-static void ipo_to_animato (Ipo *ipo, char actname[], char constname[], ListBase *anim, ListBase *drivers)
+static void ipo_to_animato (Ipo *ipo, char actname[], char constname[], ListBase *animgroups, ListBase *anim, ListBase *drivers)
 {
 	IpoCurve *icu, *icn;
 	
@@ -1191,14 +1314,14 @@ static void ipo_to_animato (Ipo *ipo, char actname[], char constname[], ListBase
 		 * we figure out the best place to put the channel, then tell the curve-converter to just dump there
 		 */
 		if (icu->driver) {
-			/* Blender 2.4x allowed empty drivers */
-			if(icu->driver->ob || icu->driver->type == IPO_DRIVER_TYPE_PYTHON)
-				icu_to_fcurves(drivers, icu, actname, constname);
+			/* Blender 2.4x allowed empty drivers, but we don't now, since they cause more trouble than they're worth */
+			if ((icu->driver->ob) || (icu->driver->type == IPO_DRIVER_TYPE_PYTHON))
+				icu_to_fcurves(NULL, drivers, icu, actname, constname);
 			else
 				MEM_freeN(icu->driver);
 		}
 		else
-			icu_to_fcurves(anim, icu, actname, constname);
+			icu_to_fcurves(animgroups, anim, icu, actname, constname);
 		
 		/* free this IpoCurve now that it's been converted */
 		BLI_freelinkN(&ipo->curve, icu);
@@ -1210,7 +1333,7 @@ static void ipo_to_animato (Ipo *ipo, char actname[], char constname[], ListBase
  * to Objects, where ob->ipo and ob->action need to be combined).
  * NOTE: we need to be careful here, as same data-structs are used for new system too!
  */
-static void action_to_animato (bAction *act, ListBase *curves, ListBase *drivers)
+static void action_to_animato (bAction *act, ListBase *groups, ListBase *curves, ListBase *drivers)
 {
 	bActionChannel *achan, *achann;
 	bConstraintChannel *conchan, *conchann;
@@ -1231,7 +1354,7 @@ static void action_to_animato (bAction *act, ListBase *curves, ListBase *drivers
 		
 		/* convert Action Channel's IPO data */
 		if (achan->ipo) {
-			ipo_to_animato(achan->ipo, achan->name, NULL, curves, drivers);
+			ipo_to_animato(achan->ipo, achan->name, NULL, groups, curves, drivers);
 			achan->ipo->id.us--;
 			achan->ipo= NULL;
 		}
@@ -1243,7 +1366,7 @@ static void action_to_animato (bAction *act, ListBase *curves, ListBase *drivers
 			
 			/* convert Constraint Channel's IPO data */
 			if (conchan->ipo) {
-				ipo_to_animato(conchan->ipo, achan->name, conchan->name, curves, drivers);
+				ipo_to_animato(conchan->ipo, achan->name, conchan->name, groups, curves, drivers);
 				conchan->ipo->id.us--;
 				conchan->ipo= NULL;
 			}
@@ -1287,7 +1410,8 @@ static void ipo_to_animdata (ID *id, Ipo *ipo, char actname[], char constname[])
 	/* Convert curves to animato system (separated into separate lists of F-Curves for animation and drivers),
 	 * and the try to put these lists in the right places, but do not free the lists here
 	 */
-	ipo_to_animato(ipo, actname, constname, &anim, &drivers);
+	// XXX there shouldn't be any need for the groups, so don't supply pointer for that now... 
+	ipo_to_animato(ipo, actname, constname, NULL, &anim, &drivers);
 	
 	/* deal with animation first */
 	if (anim.first) {
@@ -1329,7 +1453,7 @@ static void action_to_animdata (ID *id, bAction *act)
 	}
 	
 	/* convert Action data */
-	action_to_animato(act, &adt->action->curves, &adt->drivers);
+	action_to_animato(act, &adt->action->groups, &adt->action->curves, &adt->drivers);
 }
 
 /* *************************************************** */
@@ -1406,10 +1530,9 @@ void do_versions_ipos_to_animato(Main *main)
 		
 		/* check PoseChannels for constraints with local data */
 		if (ob->pose) {
-			
 			/* Verify if there's AnimData block */
 			BKE_id_add_animdata(id);
-
+			
 			for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
 				for (con= pchan->constraints.first; con; con= con->next) {
 					/* if constraint has own IPO, convert add these to Object 
@@ -1433,6 +1556,9 @@ void do_versions_ipos_to_animato(Main *main)
 			 * (NOTE: they're most likely to be drivers too) 
 			 */
 			if (con->ipo) {
+				/* Verify if there's AnimData block, just in case */
+				BKE_id_add_animdata(id);
+				
 				/* although this was the constraint's local IPO, we still need to provide con 
 				 * so that drivers can be added properly...
 				 */
@@ -1446,19 +1572,24 @@ void do_versions_ipos_to_animato(Main *main)
 		}
 		
 		/* check constraint channels - we need to remove them anyway... */
-		for (conchan= ob->constraintChannels.first; conchan; conchan= conchann) {
-			/* get pointer to next Constraint Channel */
-			conchann= conchan->next;
+		if (ob->constraintChannels.first) {
+			/* Verify if there's AnimData block */
+			BKE_id_add_animdata(id);
 			
-			/* convert Constraint Channel's IPO data */
-			if (conchan->ipo) {
-				ipo_to_animdata(id, conchan->ipo, NULL, conchan->name);
-				conchan->ipo->id.us--;
-				conchan->ipo= NULL;
+			for (conchan= ob->constraintChannels.first; conchan; conchan= conchann) {
+				/* get pointer to next Constraint Channel */
+				conchann= conchan->next;
+				
+				/* convert Constraint Channel's IPO data */
+				if (conchan->ipo) {
+					ipo_to_animdata(id, conchan->ipo, NULL, conchan->name);
+					conchan->ipo->id.us--;
+					conchan->ipo= NULL;
+				}
+				
+				/* free Constraint Channel */
+				BLI_freelinkN(&ob->constraintChannels, conchan);
 			}
-			
-			/* free Constraint Channel */
-			BLI_freelinkN(&ob->constraintChannels, conchan);
 		}
 	}
 	
@@ -1573,7 +1704,7 @@ void do_versions_ipos_to_animato(Main *main)
 		if (G.f & G_DEBUG) printf("\tconverting action %s \n", id->name+2);
 		
 		/* be careful! some of the actions we encounter will be converted ones... */
-		action_to_animato(act, &act->curves, &drivers);
+		action_to_animato(act, &act->groups, &act->curves, &drivers);
 	}
 	
 	/* ipo's */
@@ -1588,7 +1719,7 @@ void do_versions_ipos_to_animato(Main *main)
 			
 			/* add a new action for this, and convert all data into that action */
 			new_act= add_empty_action("ConvIPO_Action"); // XXX need a better name...
-			ipo_to_animato(ipo, NULL, NULL, &new_act->curves, &drivers);
+			ipo_to_animato(ipo, NULL, NULL, NULL, &new_act->curves, &drivers);
 		}
 		
 		/* clear fake-users, and set user-count to zero to make sure it is cleared on file-save */
@@ -1641,71 +1772,7 @@ void *get_ipo_poin (ID *id, IpoCurve *icu, int *type)
 	*type= IPO_FLOAT;
 
 	/* data is divided into 'blocktypes' based on ID-codes */
-	switch (GS(id->name)) {
-		case ID_PA: /* particle channels -----------------------------  */
-		{
-			ParticleSettings *part= (ParticleSettings *)id;
-			
-			switch (icu->adrcode) {
-			case PART_EMIT_FREQ:
-			case PART_EMIT_LIFE:
-			case PART_EMIT_VEL:
-			case PART_EMIT_AVE:
-			case PART_EMIT_SIZE:
-				poin= NULL; 
-				break;
-			
-			case PART_CLUMP:
-				poin= &(part->clumpfac); break;
-			case PART_AVE:
-				poin= &(part->avefac); break;
-			case PART_SIZE:
-				poin= &(part->size); break;
-			case PART_DRAG:
-				poin= &(part->dragfac); break;
-			case PART_BROWN:
-				poin= &(part->brownfac); break;
-			case PART_DAMP:
-				poin= &(part->dampfac); break;
-			case PART_LENGTH:
-				poin= &(part->length); break;
-			case PART_GRAV_X:
-				poin= &(part->acc[0]); break;
-			case PART_GRAV_Y:
-				poin= &(part->acc[1]); break;
-			case PART_GRAV_Z:
-				poin= &(part->acc[2]); break;
-			case PART_KINK_AMP:
-				poin= &(part->kink_amp); break;
-			case PART_KINK_FREQ:
-				poin= &(part->kink_freq); break;
-			case PART_KINK_SHAPE:
-				poin= &(part->kink_shape); break;
-			case PART_BB_TILT:
-				poin= &(part->bb_tilt); break;
-				
-			case PART_PD_FSTR:
-				if (part->pd) poin= &(part->pd->f_strength);
-				break;
-			case PART_PD_FFALL:
-				if (part->pd) poin= &(part->pd->f_power);
-				break;
-			case PART_PD_FMAXD:
-				if (part->pd) poin= &(part->pd->maxdist);
-				break;
-			case PART_PD2_FSTR:
-				if (part->pd2) poin= &(part->pd2->f_strength);
-				break;
-			case PART_PD2_FFALL:
-				if (part->pd2) poin= &(part->pd2->f_power);
-				break;
-			case PART_PD2_FMAXD:
-				if (part->pd2) poin= &(part->pd2->maxdist);
-				break;
-			}
-		}
-			break;
-	}
+	// all adr codes put into converters!
 
 	/* return pointer */
 	return poin;

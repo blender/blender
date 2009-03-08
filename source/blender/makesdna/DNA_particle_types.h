@@ -179,7 +179,8 @@ typedef struct ParticleSystem{				/* note, make sure all (runtime) are NULL's in
 	ParticleData *particles;				/* (parent) particles */
 	ChildParticle *child;					/* child particles */
 
-	struct ParticleEdit *edit;				/* particle editmode (runtime) */
+	struct ParticleEdit *edit;						/* particle editmode (runtime) */
+	void (*free_edit)(struct ParticleSystem *sys);	/* free callback */
 
 	struct ParticleCacheKey **pathcache;	/* path cache (runtime) */
 	struct ParticleCacheKey **childcache;	/* child cache (runtime) */

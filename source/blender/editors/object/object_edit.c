@@ -582,6 +582,8 @@ void OBJECT_OT_text_add(wmOperatorType *ot)
 static int object_add_armature_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
+	View3D *v3d= CTX_wm_view3d(C);
+	RegionView3D *rv3d= NULL;
 	int newob= 0;
 	
 	if ((obedit==NULL) || (obedit->type != OB_ARMATURE)) {
@@ -591,10 +593,12 @@ static int object_add_armature_exec(bContext *C, wmOperator *op)
 	}
 	else DAG_object_flush_update(CTX_data_scene(C), obedit, OB_RECALC_DATA);
 	
-	//nu= add_nurbs_primitive(C, RNA_enum_get(op->ptr, "type"), newob);
-	//editnurb= curve_get_editcurve(CTX_data_edit_object(C));
-	//BLI_addtail(editnurb, nu);
+	if(v3d) 
+		rv3d= CTX_wm_region(C)->regiondata;
 	
+	/* v3d and rv3d are allowed to be NULL */
+	add_primitive_bone(CTX_data_scene(C), v3d, rv3d);
+
 	/* userdef */
 	if (newob && (U.flag & USER_ADD_EDITMODE)==0) {
 		ED_object_exit_editmode(C, EM_FREEDATA);

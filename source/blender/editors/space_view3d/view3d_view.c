@@ -520,6 +520,7 @@ float read_cached_depth(ViewContext *vc, int x, int y)
 {
 	ViewDepths *vd = vc->rv3d->depths;
 		
+	x -= vc->ar->winrct.xmin;
 	y -= vc->ar->winrct.ymin;
 
 	if(vd && vd->depths && x > 0 && y > 0 && x < vd->w && y < vd->h)

@@ -551,7 +551,11 @@ static void add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tr
 	VECCOPY(td->center, vec);
 	
 	td->ob = ob;
-	td->flag= TD_SELECTED|TD_USEQUAT;
+	td->flag = TD_SELECTED;
+	if (pchan->rotmode == PCHAN_ROT_QUAT)
+	{
+		td->flag |= TD_USEQUAT;
+	}
 	if (bone->flag & BONE_HINGE_CHILD_TRANSFORM)
 	{
 		td->flag |= TD_NOCENTER;
@@ -568,12 +572,21 @@ static void add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tr
 	td->loc = pchan->loc;
 	VECCOPY(td->iloc, pchan->loc);
 	
-	td->ext->rot= NULL;
-	td->ext->quat= pchan->quat;
 	td->ext->size= pchan->size;
-
-	QUATCOPY(td->ext->iquat, pchan->quat);
 	VECCOPY(td->ext->isize, pchan->size);
+	
+	if (pchan->rotmode) {
+		td->ext->rot= pchan->eul;
+		td->ext->quat= NULL;
+		
+		VECCOPY(td->ext->irot, pchan->eul);
+	}
+	else {
+		td->ext->rot= NULL;
+		td->ext->quat= pchan->quat;
+		
+		QUATCOPY(td->ext->iquat, pchan->quat);
+	}
 
 	/* proper way to get parent transform + own transform + constraints transform */
 	Mat3CpyMat4(omat, ob->obmat);
@@ -1601,13 +1614,11 @@ static void createTransLatticeVerts(bContext *C, TransInfo *t)
 /* ******************* particle edit **************** */
 static void createTransParticleVerts(bContext *C, TransInfo *t)
 {
-	// TRANSFORM_FIX_ME
-#if 0
 	TransData *td = NULL;
 	TransDataExtension *tx;
-	Base *base = BASACT;
-	Object *ob = OBACT;
-	ParticleSystem *psys = PE_get_current(ob);
+	Base *base = CTX_data_active_base(C);
+	Object *ob = CTX_data_active_object(C);
+	ParticleSystem *psys = PE_get_current(t->scene, ob);
 	ParticleSystemModifierData *psmd = NULL;
 	ParticleEditSettings *pset = PE_settings(t->scene);
 	ParticleData *pa = NULL;
@@ -1715,15 +1726,13 @@ static void createTransParticleVerts(bContext *C, TransInfo *t)
 		if (propmode && head != tail)
 			calc_distanceCurveVerts(head, tail - 1);
 	}
-#endif
 }
 
 void flushTransParticles(TransInfo *t)
 {
-#if 0 // TRANSFORM_FIX_ME
 	Scene *scene = t->scene;
 	Object *ob = OBACT;
-	ParticleSystem *psys = PE_get_current(ob);
+	ParticleSystem *psys = PE_get_current(scene, ob);
 	ParticleSystemModifierData *psmd;
 	ParticleData *pa;
 	ParticleEditKey *key;
@@ -1755,7 +1764,6 @@ void flushTransParticles(TransInfo *t)
 	}
 
 	PE_update_object(scene, OBACT, 1);
-#endif
 }
 
 /* ********************* mesh ****************** */
@@ -2753,7 +2761,7 @@ static int count_fcurve_keys(FCurve *fcu, char side, float cfra)
 	BezTriple *bezt;
 	int i, count = 0;
 	
-	if (fcu == NULL)
+	if (ELEM(NULL, fcu, fcu->bezt))
 		return count;
 	
 	/* only include points that occur on the right side of cfra */
@@ -4630,11 +4638,9 @@ void special_aftertrans_update(TransInfo *t)
 		//	allqueue(REDRAWBUTSEDIT, 0);
 		
 	}
-#if 0 // TRANSFORM_FIX_ME
 	else if(G.f & G_PARTICLEEDIT) {
 		;
 	}
-#endif
 	else { 
 		/* Objects */
 		// XXX ideally, this would go through context iterators, but we don't have context iterator access here,
@@ -4999,8 +5005,7 @@ void createTransData(bContext *C, TransInfo *t)
 		}
 		CTX_DATA_END;
 	}
-#if 0 // TRANSFORM_FIX_ME
-	else if (G.f & G_PARTICLEEDIT && PE_can_edit(PE_get_current(ob))) {
+	else if (G.f & G_PARTICLEEDIT && PE_can_edit(PE_get_current(scene, ob))) {
 		createTransParticleVerts(C, t);
 
 		if(t->data && t->flag & T_PROP_EDIT) {
@@ -5011,7 +5016,6 @@ void createTransData(bContext *C, TransInfo *t)
 
 		t->flag |= T_POINTS;
 	}
-#endif
 	else {
 		View3D *v3d = t->view;
 		RegionView3D *rv3d = t->ar->regiondata;

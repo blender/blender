@@ -28,16 +28,6 @@
 #ifndef BLF_INTERNAL_TYPES_H
 #define BLF_INTERNAL_TYPES_H
 
-typedef struct DirBLF {
-	struct DirBLF *next;
-	struct DirBLF *prev;
-
-	/* full path where search fonts. */
-	char *path;
-} DirBLF;
-
-#ifdef WITH_FREETYPE2
-
 typedef struct GlyphCacheBLF {
 	struct GlyphCacheBLF *next;
 	struct GlyphCacheBLF *prev;
@@ -95,9 +85,6 @@ typedef struct GlyphBLF {
 	/* and the character, as UTF8 */
 	unsigned int c;
 
-	/* Freetype2 index. */
-	FT_UInt index;
-
 	/* texture id where this glyph is store. */
 	GLuint tex;
 
@@ -133,6 +120,9 @@ typedef struct FontBLF {
 	/* filename or NULL. */
 	char *filename;
 
+	/* font type, can be freetype2 or internal. */
+	int type;
+
 	/* reference count. */
 	int ref;
 
@@ -163,17 +153,31 @@ typedef struct FontBLF {
 	/* font options. */
 	int flags;
 
-	/* freetype2 face. */
-	FT_Face face;
-
 	/* list of glyph cache for this font. */
 	ListBase cache;
 
 	/* current glyph cache, size and dpi. */
 	GlyphCacheBLF *glyph_cache;
+
+	/* engine data. */
+	void *engine;
+
+	/* engine functions. */
+	void (*size_set)(struct FontBLF *, int, int);
+	void (*draw)(struct FontBLF *, char *);
+	void (*boundbox_get)(struct FontBLF *, char *, rctf *);
+	float (*width_get)(struct FontBLF *, char *);
+	float (*height_get)(struct FontBLF *, char *);
+	void (*free)(struct FontBLF *);
 } FontBLF;
 
-#endif /* WITH_FREETYPE2 */
+typedef struct DirBLF {
+	struct DirBLF *next;
+	struct DirBLF *prev;
+
+	/* full path where search fonts. */
+	char *path;
+} DirBLF;
 
 typedef struct LangBLF {
 	struct LangBLF *next;
@@ -192,5 +196,9 @@ typedef struct LangBLF {
 /* font->clip_mode */
 #define BLF_CLIP_DISABLE 0
 #define BLF_CLIP_OUT 1
+
+/* font->type */
+#define BLF_FONT_FREETYPE2 0
+#define BLF_FONT_INTERNAL 1
 
 #endif /* BLF_INTERNAL_TYPES_H */

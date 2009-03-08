@@ -167,12 +167,14 @@ int BMO_CatchOpError(BMesh *bm, BMOperator *catchop, int errorcode, char **msg);
 #define BMERR_SELF_INTERSECTING			1
 #define BMERR_DISSOLVEDISK_FAILED		2
 #define BMERR_CONNECTVERT_FAILED		3
+#define BMERR_WALKER_FAILED			4
 
 static char *bmop_error_messages[] = {
        0,
        "Self intersection error",
        "Could not dissolve vert",
        "Could not connect verts",
+       "Could not traverse mesh",
 };
 
 /*------------begin operator defines (see bmesh_opdefines.c too)------------*/

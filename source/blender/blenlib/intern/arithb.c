@@ -111,14 +111,14 @@ float Normalize(float *n)
 	return d;
 }
 
-
+/*original function from shadeoutput.c*/
 double Normalize_d(double *n)
 {
 	double d;
 	
 	d= n[0]*n[0]+n[1]*n[1]+n[2]*n[2];
-	/* A larger value causes normalize errors in a scaled down models with camera xtreme close */
-	if(d>1.0e-35F) {
+
+	if(d>0.00000000000000001) {
 		d= sqrt(d);
 
 		n[0]/=d; 

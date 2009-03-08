@@ -96,7 +96,7 @@ void wm_event_free_all(wmWindow *win)
 /* ********************* notifiers, listeners *************** */
 
 /* XXX: in future, which notifiers to send to other windows? */
-void WM_event_add_notifier(bContext *C, unsigned int type, void *reference)
+void WM_event_add_notifier(const bContext *C, unsigned int type, void *reference)
 {
 	wmNotifier *note= MEM_callocN(sizeof(wmNotifier), "notifier");
 	
@@ -151,12 +151,15 @@ void wm_event_do_notifiers(bContext *C)
 			}
 			if(note->window==win) {
 				if(note->category==NC_SCREEN) {
-					if(note->data==ND_SCREENBROWSE)
+					if(note->data==ND_SCREENBROWSE) {
 						ED_screen_set(C, note->reference);	// XXX hrms, think this over!
+						printf("screen set %p\n", note->reference);
+					}
 				}
 				else if(note->category==NC_SCENE) {
 					if(note->data==ND_SCENEBROWSE) {
 						ED_screen_set_scene(C, note->reference);	// XXX hrms, think this over!
+						printf("scene set %p\n", note->reference);
 					}
 					else if(note->data==ND_FRAME)
 						do_anim= 1;
@@ -218,18 +221,20 @@ void wm_event_do_notifiers(bContext *C)
 			}
 		}
 		
-		/* update all objects, ipos, matrices, displists, etc. Flags set by depgraph or manual, 
-			no layer check here, gets correct flushed */
-		/* sets first, we allow per definition current scene to have dependencies on sets */
-		if(scene->set) {
-			for(SETLOOPER(scene->set, base))
+		if(G.rendering==0) { // XXX make lock in future, or separated derivedmesh users in scene
+			
+			/* update all objects, ipos, matrices, displists, etc. Flags set by depgraph or manual, 
+				no layer check here, gets correct flushed */
+			/* sets first, we allow per definition current scene to have dependencies on sets */
+			if(scene->set) {
+				for(SETLOOPER(scene->set, base))
+					object_handle_update(scene, base->object);
+			}
+			
+			for(base= scene->base.first; base; base= base->next) {
 				object_handle_update(scene, base->object);
-		}
-		
-		for(base= scene->base.first; base; base= base->next) {
-			object_handle_update(scene, base->object);
-		}
-		
+			}
+		}		
 	}
 	CTX_wm_window_set(C, NULL);
 }
