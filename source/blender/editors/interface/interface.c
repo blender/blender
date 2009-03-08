@@ -1705,10 +1705,7 @@ void ui_check_but(uiBut *but)
 	
 	
 	/* safety is 4 to enable small number buttons (like 'users') */
-	if(but->type==NUMSLI || but->type==HSVSLI) 
-		okwidth= -4 + (but->x2 - but->x1)/2.0;
-	else 
-		okwidth= -4 + (but->x2 - but->x1); 
+	okwidth= -4 + (but->x2 - but->x1); 
 	
 	/* name: */
 	switch( but->type ) {

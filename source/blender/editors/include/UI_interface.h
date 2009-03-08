@@ -190,6 +190,7 @@ typedef struct uiPopupBlockHandle uiPopupBlockHandle;
 void uiEmboss(float x1, float y1, float x2, float y2, int sel);
 void uiRoundBox(float minx, float miny, float maxx, float maxy, float rad);
 void uiSetRoundBox(int type);
+int uiGetRoundBox(void);
 void uiRoundRect(float minx, float miny, float maxx, float maxy, float rad);
 void uiDrawMenuBox(float minx, float miny, float maxx, float maxy, short flag, short direction);
 void uiDrawBoxShadow(unsigned char alpha, float minx, float miny, float maxx, float maxy);

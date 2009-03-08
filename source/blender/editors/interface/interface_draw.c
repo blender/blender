@@ -81,6 +81,14 @@ void uiSetRoundBox(int type)
 	
 }
 
+int uiGetRoundBox(void)
+{
+	if (ELEM3(UI_GetThemeValue(TH_BUT_DRAWTYPE), TH_MINIMAL, TH_SHADED, TH_OLDSKOOL))
+		return 0;
+	else
+		return roundboxtype;
+}
+
 void gl_round_box(int mode, float minx, float miny, float maxx, float maxy, float rad)
 {
 	float vec[7][2]= {{0.195, 0.02}, {0.383, 0.067}, {0.55, 0.169}, {0.707, 0.293},
@@ -564,36 +572,6 @@ void uiRoundBoxEmboss(float minx, float miny, float maxx, float maxy, float rad,
 	}
 	glDisable( GL_BLEND );
 }
-
-/* plain antialiased filled box */
-#if 0
-void uiRoundBox(float minx, float miny, float maxx, float maxy, float rad)
-{
-	float color[4];
-	
-	if(roundboxtype & UI_RB_ALPHA) {
-		glGetFloatv(GL_CURRENT_COLOR, color);
-		color[3]= 0.5;
-		glColor4fv(color);
-		glEnable( GL_BLEND );
-	}
-	
-	/* solid part */
-	gl_round_box(GL_POLYGON, minx, miny, maxx, maxy, rad);
-	
-	/* set antialias line */
-	if (UI_GetThemeValue(TH_BUT_DRAWTYPE) != TH_MINIMAL) {
-		glEnable( GL_LINE_SMOOTH );
-		glEnable( GL_BLEND );
-	}
-		
-	gl_round_box(GL_LINE_LOOP, minx, miny, maxx, maxy, rad);
-   
-	glDisable( GL_BLEND );
-	glDisable( GL_LINE_SMOOTH );
-}
-#endif
-
 
 /* ************** safe rasterpos for pixmap alignment with pixels ************* */
 
@@ -1658,83 +1636,6 @@ static void ui_default_flat(int type, int colorid, float asp, float x1, float y1
 	}
 }
 
-#if 0
-static void ui_default_slider(int colorid, float fac, float aspect, float x1, float y1, float x2, float y2, int flag)
-{
-	float ymid, yc;
-
-	/* the slider background line */
-	ymid= (y1+y2)/2.0;
-	//yc= 2.5*aspect;	// height of center line
-	yc = 2.3; // height of center line
-	
-	if(flag & UI_SELECT) 
-			UI_ThemeColorShade(TH_BUT_NUM, -5);
-	else {
-		if(flag & UI_ACTIVE) 
-			UI_ThemeColorShade(TH_BUT_NUM, +35); 
-		else
-			UI_ThemeColorShade(TH_BUT_NUM, +25); 
-	}
-
-	glRectf(x1, ymid-yc, x2, ymid+yc);
-	
-	/* top inner bevel */
-	if(flag & UI_SELECT) UI_ThemeColorShade(TH_BUT_NUM, -40); 
-	else UI_ThemeColorShade(TH_BUT_NUM, -5); 
-	fdrawline(x1+1, ymid+yc, x2, ymid+yc);
-	
-	/* bottom inner bevel */
-	if(flag & UI_SELECT) UI_ThemeColorShade(TH_BUT_NUM, +15); 
-	else UI_ThemeColorShade(TH_BUT_NUM, +45); 
-	fdrawline(x1+1, ymid-yc, x2, ymid-yc);
-	
-	
-	/* the movable slider */
-	if(flag & UI_SELECT) UI_ThemeColorShade(TH_BUT_NUM, +80); 
-	else UI_ThemeColorShade(TH_BUT_NUM, -45); 
-
-	glShadeModel(GL_SMOOTH);
-	glBegin(GL_QUADS);
-
-	UI_ThemeColorShade(TH_BUT_NUM, -45); 
-
-	glVertex2f(x1,     y1+2.5);
-	glVertex2f(x1+fac, y1+2.5);
-
-	UI_ThemeColor(TH_BUT_NUM); 
-
-	glVertex2f(x1+fac, y2-2.5);
-	glVertex2f(x1,     y2-2.5);
-
-	glEnd();
-	
-
-	/* slider handle center */
-	glShadeModel(GL_SMOOTH);
-	glBegin(GL_QUADS);
-
-	UI_ThemeColor(TH_BUT_NUM); 
-	glVertex2f(x1+fac-3, y1+2);
-	glVertex2f(x1+fac, y1+4);
-	UI_ThemeColorShade(TH_BUT_NUM, +80); 
-	glVertex2f(x1+fac, y2-2);
-	glVertex2f(x1+fac-3, y2-2);
-
-	glEnd();
-	
-	/* slider handle left bevel */
-	UI_ThemeColorShade(TH_BUT_NUM, +70); 
-	fdrawline(x1+fac-3, y2-2, x1+fac-3, y1+2);
-	
-	/* slider handle right bevel */
-	UI_ThemeColorShade(TH_BUT_NUM, -35); 
-	fdrawline(x1+fac, y2-2, x1+fac, y1+2);
-
-	glShadeModel(GL_FLAT);
-}
-#endif
-
 /* default theme callback */
 static void ui_draw_default(int type, int colorid, float aspect, float x1, float y1, float x2, float y2, int flag)
 {
@@ -2078,27 +1979,71 @@ static void ui_draw_minimal(int type, int colorid, float asp, float x1, float y1
 /* fac is the slider handle position between x1 and x2 */
 static void ui_draw_slider(int colorid, float fac, float aspect, float x1, float y1, float x2, float y2, int flag)
 {
+	int alpha_offs= (flag & UI_BUT_DISABLED)?UI_DISABLED_ALPHA_OFFS:0;
 	float ymid, yc;
-
+	float maxrad= 10.0;
+	float rad;
+	int origround, round = uiGetRoundBox();
+	
+	rad= (y2-y1)/2.0;
+	if (rad>(x2-x1)/2) rad = (x2-x1)/2;
+	if (rad > maxrad) rad = maxrad;
+	
 	/* the slider background line */
 	ymid= (y1+y2)/2.0;
 	yc= 1.7*aspect;	
 
-	if(flag & UI_ACTIVE) 
-		UI_ThemeColorShade(colorid, -50); 
-	else 
-		UI_ThemeColorShade(colorid, -40); 
+	if(flag & UI_ACTIVE) UI_ThemeColorShade(colorid, -50); 
+	else UI_ThemeColorShade(colorid, -40); 
 
-	/* left part */
-	glRectf(x1, ymid-2.0*yc, x1+fac, ymid+2.0*yc);
-	/* right part */
-	glRectf(x1+fac, ymid-yc, x2, ymid+yc);
-
-	/* the movable slider */
+	round &= ~(2|4);
+	uiSetRoundBox(round);
 	
-	UI_ThemeColorShade(colorid, +70); 
-	glRectf(x1+fac-aspect, ymid-2.0*yc, x1+fac+aspect, ymid+2.0*yc);
-
+	if (fac < rad) {
+		/* if slider end is in the left end cap */
+		float ofsy;
+		float start_rad;
+		
+		start_rad = fac;
+		ofsy = (rad - fac) * 0.5;
+		
+		gl_round_box(GL_POLYGON, x1, y1+ofsy, x1+fac, y2-ofsy, start_rad);
+		
+	} else if ( (fac >= rad) && (x1+fac < x2 - rad) ) {
+		/* if the slider is in the middle */
+		
+		gl_round_box(GL_POLYGON, x1, y1, x1+fac, y2, rad);
+		
+	} else if (x1+fac >= x2-rad) {
+		/* if the slider is in the right end cap */
+		float extx, ofsy;
+		float end_rad;
+		
+		/* draw the full slider area at 100% */
+		uiSetRoundBox(1+2+4+8);
+		gl_round_box(GL_POLYGON, x1, y1, x2, y2, rad);
+		
+		/* tricky hack to trim off right end curve by drawing over it */
+		extx = ((x1 + fac) - (x2 - rad)) * aspect;	/* width of extension bit */
+		end_rad = rad - extx - 1.0;
+		ofsy = extx * 0.4;
+		
+		if (end_rad > 1.0) {
+			
+			if(flag & UI_SELECT) UI_ThemeColorShade(colorid, -20);
+			else UI_ThemeColorShade(colorid, -0);
+			
+			uiSetRoundBox(2+4);
+			gl_round_box(GL_POLYGON, x1+fac-1.0, y1+ofsy, x2, y2-ofsy, end_rad);
+		}
+		
+		UI_ThemeColorBlendShadeAlpha(TH_BUT_OUTLINE, TH_BACK, 0.1, -30, alpha_offs);
+		uiSetRoundBox(1+2+4+8);
+		uiRoundRectFakeAA(x1, y1, x2, y2, rad, aspect);
+	}
+	
+	
+	
 }
 
 /* ************** STANDARD MENU DRAWING FUNCTION ************* */
@@ -3274,17 +3219,17 @@ void ui_draw_but(ARegion *ar, uiBut *but)
 	case HSVSLI:
 		type= (but->editstr)? TEX: but->type;
 		but->embossfunc(type, but->themecol, but->aspect, but->x1, but->y1, but->x2, but->y2, but->flag);
-		ui_draw_text_icon(but);
-
-		x1= (but->x1+but->x2)/2;
-		x2= but->x2 - 5.0*but->aspect;
-		y1= but->y1 + 2.0*but->aspect;
-		y2= but->y2 - 2.0*but->aspect;
+		
+		x1= but->x1;
+		x2= but->x2;
+		y1= but->y1;
+		y2= but->y2;
 		
 		value= ui_get_but_val(but);
 		fac= (value-but->min)*(x2-x1)/(but->max - but->min);
 		
 		but->sliderfunc(but->themecol, fac, but->aspect, x1, y1, x2, y2, but->flag);
+		ui_draw_text_icon(but);
 		break;
 		
 	case SEPR:

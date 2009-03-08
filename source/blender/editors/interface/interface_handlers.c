@@ -1851,7 +1851,7 @@ static int ui_numedit_but_SLI(uiBut *but, uiHandleButtonData *data, int shift, i
 
 	but_clamped_range(but, &butmin, &butmax, &butrange);
 
-	if(but->type==NUMSLI) deler= ((but->x2-but->x1)/2 - 5.0*but->aspect);
+	if(but->type==NUMSLI) deler= ((but->x2-but->x1) - 5.0*but->aspect);
 	else if(but->type==HSVSLI) deler= ((but->x2-but->x1)/2 - 5.0*but->aspect);
 	else deler= (but->x2-but->x1- 5.0*but->aspect);
 
@@ -1916,21 +1916,19 @@ static int ui_do_but_SLI(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 	ui_window_to_block(data->region, block, &mx, &my);
 
 	if(data->state == BUTTON_STATE_HIGHLIGHT) {
-		if(ELEM3(event->type, LEFTMOUSE, PADENTER, RETKEY) && event->val==KM_PRESS) {
-			/* start either dragging as slider, or editing as text */
-			if(mx>= -6+(but->x1+but->x2)/2) {
-				if(event->type == LEFTMOUSE) {
-					data->dragstartx= mx;
-					data->draglastx= mx;
-					button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
-				}
-				else
-					click= 1;
-			}
-			else
+		if(event->val==KM_PRESS) {
+			if(ELEM3(event->type, LEFTMOUSE, PADENTER, RETKEY) && event->shift) {
 				button_activate_state(C, but, BUTTON_STATE_TEXT_EDITING);
-			
-			retval= WM_UI_HANDLER_BREAK;
+				retval= WM_UI_HANDLER_BREAK;
+			}
+			else if(event->type == LEFTMOUSE) {
+				data->dragstartx= mx;
+				data->draglastx= mx;
+				button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
+				retval= WM_UI_HANDLER_BREAK;
+			}
+			else if(ELEM(event->type, PADENTER, RETKEY) && event->val==KM_PRESS)
+				click= 1;
 		}
 	}
 	else if(data->state == BUTTON_STATE_NUM_EDITING) {
@@ -1956,45 +1954,51 @@ static int ui_do_but_SLI(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 	}
 
 	if(click) {
-		float f, h;
-		float tempf, butmin, butmax, butrange;
-		int temp;
-		
-		button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
-
-		but_clamped_range(but, &butmin, &butmax, &butrange);
-
-		tempf= data->value;
-		temp= (int)data->value;
-
-		h= but->y2-but->y1;
-
-		if(but->type==SLI) f= (float)(mx-but->x1)/(but->x2-but->x1-h);
-		else f= (float)(mx- (but->x1+but->x2)/2)/((but->x2-but->x1)/2 - h);
-		
-		f= butmin + f*butrange;
-
-		if(!ui_is_but_float(but)) {
-			if(f<temp) temp--;
-			else temp++;
-
-			if(temp>=but->min && temp<=but->max)
-				data->value= temp;
-			else
-				data->cancel= 1;
-		} 
-		else {
-			if(f<tempf) tempf-=.01;
-			else tempf+=.01;
-
-			if(tempf>=but->min && tempf<=but->max)
-				data->value= tempf;
-			else
-				data->cancel= 1;
+		if (event->ctrl) {
+			/* nudge slider to the left or right */
+			float f;
+			float tempf, butmin, butmax, butrange;
+			int temp;
+			
+			button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
+			
+			but_clamped_range(but, &butmin, &butmax, &butrange);
+			
+			tempf= data->value;
+			temp= (int)data->value;
+			
+			if(but->type==SLI) f= (float)(mx-but->x1)/(but->x2-but->x1);
+			else f= (float)(mx- but->x1)/(but->x2-but->x1);
+			
+			f= butmin + f*butrange;
+			
+			if(!ui_is_but_float(but)) {
+				if(f<temp) temp--;
+				else temp++;
+				
+				if(temp>=but->min && temp<=but->max)
+					data->value= temp;
+				else
+					data->cancel= 1;
+			} 
+			else {
+				if(f<tempf) tempf-=.01;
+				else tempf+=.01;
+				
+				if(tempf>=but->min && tempf<=but->max)
+					data->value= tempf;
+				else
+					data->cancel= 1;
+			}
+			
+			button_activate_state(C, but, BUTTON_STATE_EXIT);
+			retval= WM_UI_HANDLER_BREAK;
 		}
-
-		button_activate_state(C, but, BUTTON_STATE_EXIT);
-		retval= WM_UI_HANDLER_BREAK;
+		else {
+			/* edit the value directly */
+			button_activate_state(C, but, BUTTON_STATE_TEXT_EDITING);
+			retval= WM_UI_HANDLER_BREAK;
+		}
 	}
 	
 	return retval;

@@ -266,13 +266,11 @@ static void render_panel_render(const bContext *C, ARegion *ar)
 	uiDefButBitI(block, TOG, R_RADIO, 0,"Radio",	649,142,38,29, &scene->r.mode, 0, 0, 0, 0, "Enable radiosity rendering");
 	uiBlockEndAlign(block);
 	
-	uiBlockBeginAlign(block);
-	uiDefButS(block, ROW,0,"100%",			565,109,122,20,&scene->r.size,1.0,100.0, 0, 0, "Set render size to defined size");
-	uiDefButS(block, ROW,0,"75%",			565,88,40,20,&scene->r.size,1.0,75.0, 0, 0, "Set render size to 3/4 of defined size");
-	uiDefButS(block, ROW,0,"50%",			606,88,40,20,&scene->r.size,1.0,50.0, 0, 0, "Set render size to 1/2 of defined size");
-	uiDefButS(block, ROW,0,"25%",			647,88,40,20,&scene->r.size,1.0,25.0, 0, 0, "Set render size to 1/4 of defined size");
-	uiBlockEndAlign(block);
-
+	uiDefButS(block, NUMSLI, 0, "Size %: ",
+			  565,109,122,20,
+			  &(scene->r.size), 1.0, 100.0, 0, 0,
+			  "Render at percentage of frame size");
+	
 	uiBlockBeginAlign(block);
 	uiDefButBitI(block, TOG, R_FIELDS, 0,"Fields",  565,55,60,20,&scene->r.mode, 0, 0, 0, 0, "Enables field rendering");
 	uiDefButBitI(block, TOG, R_ODDFIELD, 0,"Odd",	627,55,39,20,&scene->r.mode, 0, 0, 0, 0, "Enables Odd field first rendering (Default: Even field)");
