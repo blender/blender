@@ -97,11 +97,19 @@ void dissolvefaces_exec(BMesh *bm, BMOperator *op)
 		
 		f= BM_Make_Ngon(bm, edges[0]->v1, edges[0]->v2,  edges, j, 0);
 		
+		if (!f) continue;
+
+		/*
+		NOTE: sadly, make ngon's overlap checking option
+		      crashes ;/
+		make ngon can fail, if there was already an existing face.
+		this is desired behaviour, I think, so we'll just silently
+		ignore any possible other error cases.
 		if (!f) {
-			/*raise error*/
+			//raise error
 			BMO_RaiseError(bm, op, BMERR_DISSOLVEFACES_FAILED, NULL);
 			goto cleanup;
-		}
+		}*/
 		
 		BMO_SetFlag(bm, f, FACE_NEW);
 

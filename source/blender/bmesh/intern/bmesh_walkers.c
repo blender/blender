@@ -208,7 +208,6 @@ static void *BMW_walk(BMWalker *walker)
 	while(walker->currentstate){
 		current = walker->step(walker);
 		if(current) return current;
-		else BMW_popstate(walker);
 	}
 	return NULL;
 }

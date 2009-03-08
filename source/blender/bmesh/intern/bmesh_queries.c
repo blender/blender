@@ -115,7 +115,7 @@ int BM_Verts_In_Face(BMesh *bm, BMFace *f, BMVert **varr, int len)
 	do{
 		if(BMO_TestFlag(bm, curloop->v, BM_OVERLAP)) count++;
 		curloop = ((BMLoop*)(curloop->head.next));
-	} while(curloop = ((BMLoop*)(curloop->head.next)));
+	} while(curloop != f->loopbase);
 
 	for(i=0; i < len; i++) BMO_ClearFlag(bm, varr[i], BM_OVERLAP);
 
