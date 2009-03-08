@@ -82,6 +82,7 @@
 
 #include "PIL_time.h"
 
+#include "UI_text.h"
 
 #include "filelist.h"
 
@@ -121,6 +122,7 @@ typedef struct FileList
 	short hide_dot;
 	unsigned int filter;
 	short changed;
+	int maxnamelen;
 	ListBase loadimages;
 	ListBase threads;
 } FileList;
@@ -676,10 +678,16 @@ void filelist_setfilter(struct FileList* filelist, unsigned int filter)
 	filelist->filter = filter;
 }
 
+int	filelist_maxnamelen(struct FileList* filelist)
+{
+	return filelist->maxnamelen;
+}
+
 void filelist_readdir(struct FileList* filelist)
 {
 	char wdir[FILE_MAX];
 	int finished = 0;
+	int i;
 
 	if (!filelist) return;
 	filelist->fidx = 0;
@@ -710,6 +718,14 @@ void filelist_readdir(struct FileList* filelist)
 		if (!filelist->threads.first) {
 			BLI_init_threads(&filelist->threads, exec_loadimages, 2);
 		}
+	}
+
+	filelist->maxnamelen = 0;
+	for (i=0; (i < filelist->numfiles); ++i)
+	{
+		struct direntry* file = filelist_file(filelist, i);	
+		int len = UI_GetStringWidth(G.font, file->relname,0)+UI_GetStringWidth(G.font, file->size,0);
+		if (len > filelist->maxnamelen) filelist->maxnamelen = len;
 	}
 }
 

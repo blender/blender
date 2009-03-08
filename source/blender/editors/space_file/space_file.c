@@ -62,6 +62,7 @@
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
+
 #include "ED_markers.h"
 #include "ED_fileselect.h"
 
@@ -90,6 +91,7 @@ static SpaceLink *file_new(const bContext *C)
 	BLI_addtail(&sfile->regionbase, ar);
 	ar->regiontype= RGN_TYPE_CHANNELS;
 	ar->alignment= RGN_ALIGN_LEFT;
+	ar->flag |= RGN_FLAG_HIDDEN;
 
 	/* ui list region */
 	ar= MEM_callocN(sizeof(ARegion), "ui area for file");
@@ -128,6 +130,11 @@ static void file_free(SpaceLink *sl)
 		MEM_freeN(sfile->params);
 		sfile->params= NULL;
 	}
+
+	if (sfile->layout) {
+		MEM_freeN(sfile->layout);
+		sfile->layout = NULL;
+	}
 }
 
 
@@ -152,6 +159,9 @@ static SpaceLink *file_duplicate(SpaceLink *sl)
 	
 		filelist_setdir(sfilen->files, sfilen->params->dir);
 		filelist_settype(sfilen->files, sfilen->params->type);
+	}
+	if (sfileo->layout) {
+		sfilen->layout= MEM_dupallocN(sfileo->layout);
 	}
 	return (SpaceLink *)sfilen;
 }
@@ -209,7 +219,7 @@ static void file_main_area_draw(const bContext *C, ARegion *ar)
 	glClear(GL_COLOR_BUFFER_BIT);
 	
 	/* Allow dynamically sliders to be set, saves notifiers etc. */
-	if (sfile->params && (sfile->params->display == FILE_IMGDISPLAY) )
+	if (sfile->params && ( (sfile->params->display == FILE_IMGDISPLAY) || (sfile->params->display == FILE_LONGDISPLAY)) )
 		v2d->scroll = V2D_SCROLL_RIGHT;
 	else
 		v2d->scroll = V2D_SCROLL_BOTTOM;
@@ -256,6 +266,7 @@ void file_operatortypes(void)
 	WM_operatortype_append(FILE_OT_exec);
 	WM_operatortype_append(FILE_OT_cancel);
 	WM_operatortype_append(FILE_OT_parent);
+	WM_operatortype_append(FILE_OT_bookmark_toggle);
 }
 
 /* NOTE: do not add .blend file reading on this level */
@@ -392,7 +403,7 @@ void ED_spacetype_file(void)
 	/* regions: ui */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype file region");
 	art->regionid = RGN_TYPE_UI;
-	art->minsizey= 100;
+	art->minsizey= 80;
 	art->keymapflag= ED_KEYMAP_UI;
 	art->init= file_ui_area_init;
 	art->draw= file_ui_area_draw;

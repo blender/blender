@@ -59,12 +59,45 @@ typedef struct FileSelectParams {
 	/* XXX --- end unused -- */
 } FileSelectParams;
 
+#define FILE_LAYOUT_HOR 1
+#define FILE_LAYOUT_VER 2
+
+typedef struct FileLayout
+{
+	/* view settings - XXX - move into own struct */
+	short prv_w;
+	short prv_h;
+	short tile_w;
+	short tile_h;
+	short tile_border_x;
+	short tile_border_y;
+	short prv_border_x;
+	short prv_border_y;
+	short rows;
+	short columns;
+	short width;
+	short height;
+	short flag;
+
+} FileLayout;
+
 FileSelectParams* ED_fileselect_get_params(struct SpaceFile *sfile);
 
 short ED_fileselect_set_params(struct SpaceFile *sfile, int type, const char *title, const char *path, 
 						   short flag, short display, short filter);
 
 void ED_fileselect_reset_params(struct SpaceFile *sfile);
+
+
+void ED_fileselect_init_layout(struct SpaceFile *sfile, struct ARegion *ar);
+
+
+FileLayout* ED_fileselect_get_layout(struct SpaceFile *sfile, struct ARegion *ar);
+
+int ED_fileselect_layout_offset(FileLayout* layout, int x, int y);
+
+void ED_fileselect_layout_tilepos(FileLayout* layout, int tile, short *x, short *y);
+
 
 #endif /* ED_FILES_H */
 

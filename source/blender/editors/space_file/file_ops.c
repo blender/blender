@@ -69,19 +69,15 @@
 static int find_file_mouse_hor(SpaceFile *sfile, struct ARegion* ar, short x, short y)
 {
 	float fx,fy;
-	int offsetx, offsety;
-	int columns;
 	int active_file = -1;
 	int numfiles = filelist_numfiles(sfile->files);
 	View2D* v2d = &ar->v2d;
 
 	UI_view2d_region_to_view(v2d, x, y, &fx, &fy);
 
-	offsetx = (fx - (v2d->cur.xmin+sfile->tile_border_x))/(sfile->tile_w + 2*sfile->tile_border_x);
-	offsety = (v2d->tot.ymax - sfile->tile_border_y - fy)/(sfile->tile_h + 2*sfile->tile_border_y);
-	columns = (v2d->cur.xmax - v2d->cur.xmin) / (sfile->tile_w+ 2*sfile->tile_border_x);
-	active_file = offsetx + columns*offsety;
+	active_file = ED_fileselect_layout_offset(sfile->layout, v2d->tot.xmin + fx, v2d->tot.ymax - fy);
 
+	printf("FINDFILE %d\n", active_file);
 	if ( (active_file < 0) || (active_file >= numfiles) )
 	{
 		active_file = -1;
@@ -96,15 +92,12 @@ static int find_file_mouse_vert(SpaceFile *sfile, struct ARegion* ar, short x, s
 	float fx,fy;
 	int active_file = -1;
 	int numfiles = filelist_numfiles(sfile->files);
-	int rows;
 	View2D* v2d = &ar->v2d;
 
 	UI_view2d_region_to_view(v2d, x, y, &fx, &fy);
 	
-	offsetx = (fx-sfile->tile_border_x)/(sfile->tile_w + sfile->tile_border_x);
-	offsety = (v2d->cur.ymax-fy-sfile->tile_border_y)/(sfile->tile_h + sfile->tile_border_y);
-	rows = (v2d->cur.ymax - v2d->cur.ymin - 2*sfile->tile_border_y) / (sfile->tile_h+sfile->tile_border_y);
-	active_file = rows*offsetx + offsety;
+	active_file = ED_fileselect_layout_offset(sfile->layout, v2d->tot.xmin + fx, v2d->tot.ymax - fy);
+
 	if ( (active_file < 0) || (active_file >= numfiles) )
 	{
 		active_file = -1;
@@ -135,7 +128,7 @@ static void file_select(SpaceFile* sfile, FileSelectParams* params, ARegion* ar,
 	int numfiles = filelist_numfiles(sfile->files);
 
 	params->selstate = NOTACTIVE;
-	if (params->display) {
+	if  ( (params->display == FILE_IMGDISPLAY) || (params->display == FILE_LONGDISPLAY) ) {
 		first_file = find_file_mouse_hor(sfile, ar, rect->xmin, rect->ymax);
 		last_file = find_file_mouse_hor(sfile, ar, rect->xmax, rect->ymin);
 	} else {
@@ -154,6 +147,8 @@ static void file_select(SpaceFile* sfile, FileSelectParams* params, ARegion* ar,
 		}
 	}
 	
+	printf("Selecting %d %d\n", first_file, last_file);
+
 	/* make the last file active */
 	if (last_file >= 0 && last_file < numfiles) {
 		struct direntry* file = filelist_file(sfile->files, last_file);
@@ -417,7 +412,7 @@ int file_hilight_set(SpaceFile *sfile, ARegion *ar, int mx, int my)
 	numfiles = filelist_numfiles(sfile->files);
 	params = ED_fileselect_get_params(sfile);
 	
-	if (params->display == FILE_IMGDISPLAY) {
+	if ( (params->display == FILE_IMGDISPLAY) || (params->display == FILE_LONGDISPLAY)) {
 		actfile = find_file_mouse_hor(sfile, ar, mx , my);
 	} else {
 		actfile = find_file_mouse_vert(sfile, ar, mx, my);
@@ -522,6 +517,7 @@ int file_parent_exec(bContext *C, wmOperator *unused)
 
 }
 
+
 void FILE_OT_parent(struct wmOperatorType *ot)
 {
 	/* identifiers */
@@ -533,5 +529,38 @@ void FILE_OT_parent(struct wmOperatorType *ot)
 	ot->poll= ED_operator_file_active; /* <- important, handler is on window level */
 }
 
+struct ARegion *file_buttons_region(struct ScrArea *sa)
+{
+	ARegion *ar, *arnew;
+	
+	for(ar= sa->regionbase.first; ar; ar= ar->next)
+		if(ar->regiontype==RGN_TYPE_CHANNELS)
+			return ar;
+	return NULL;
+}
 
+int file_bookmark_toggle_exec(bContext *C, wmOperator *unused)
+{
+	ScrArea *sa= CTX_wm_area(C);
+	ARegion *ar= file_buttons_region(sa);
+	
+	if(ar) {
+		ar->flag ^= RGN_FLAG_HIDDEN;
+		ar->v2d.flag &= ~V2D_IS_INITIALISED; /* XXX should become hide/unhide api? */
+		
+		ED_area_initialize(CTX_wm_manager(C), CTX_wm_window(C), sa);
+		ED_area_tag_redraw(sa);
+	}
+	return OPERATOR_FINISHED;
+}
 
+void FILE_OT_bookmark_toggle(struct wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Toggle Bookmarks";
+	ot->idname= "FILE_OT_bookmark_toggle";
+	
+	/* api callbacks */
+	ot->exec= file_bookmark_toggle_exec;
+	ot->poll= ED_operator_file_active; /* <- important, handler is on window level */
+}

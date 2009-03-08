@@ -64,6 +64,7 @@ void				filelist_loadimage_timer(struct FileList* filelist);
 struct ImBuf *		filelist_getimage(struct FileList* filelist, int index);
 short				filelist_changed(struct FileList* filelist);
 void				filelist_readdir(struct FileList* filelist);
+int					filelist_maxnamelen(struct FileList* filelist);
 
 int					filelist_empty(struct FileList* filelist);
 void				filelist_parent(struct FileList* filelist);

@@ -152,7 +152,10 @@ void file_header_buttons(const bContext *C, ARegion *ar)
 	xco+=XIC+10;
 
 	if (sfile->params->type != FILE_MAIN) {
-		uiDefIconButBitS(block, TOG, FILE_BOOKMARKS, B_RELOADIMASELDIR, ICON_BOOKMARKS,xco+=XIC,0,XIC,YIC, &params->flag, 0, 0, 0, 0, "Toggles Bookmarks on/off");
+		uiBlockBeginAlign(block);
+		// uiDefIconButBitS(block, TOG, FILE_BOOKMARKS, B_RELOADIMASELDIR, ICON_BOOKMARKS,xco+=XIC,0,XIC,YIC, &params->flag, 0, 0, 0, 0, "Toggles Bookmarks on/off");
+		uiDefIconButO(block, TOG, "FILE_OT_bookmark_toggle", WM_OP_INVOKE_DEFAULT, ICON_BOOKMARKS, xco,yco,20,20, "Toggle Bookmarks");
+		uiBlockEndAlign(block);
 		xco+=XIC+10;
 	} 
 

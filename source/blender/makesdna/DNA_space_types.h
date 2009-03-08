@@ -52,6 +52,7 @@ struct FileList;
 struct bGPdata;
 struct bDopeSheet;
 struct FileSelectParams;
+struct FileLayout;
 struct bScreen;
 struct Scene;
 struct wmOperator;
@@ -179,16 +180,7 @@ typedef struct SpaceFile {
 
 	struct wmTimer *loadimage_timer;
 
-	/* view settings - XXX - move into own struct */
-	short prv_w;
-	short prv_h;
-	short tile_w;
-	short tile_h;
-	short tile_border_x;
-	short tile_border_y;
-	short prv_border_x;
-	short prv_border_y;
-
+	struct FileLayout *layout;
 	
 } SpaceFile;
 

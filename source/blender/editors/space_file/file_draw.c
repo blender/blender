@@ -240,70 +240,21 @@ static void file_draw_string(short sx, short sy, char* string, short width, shor
 
 }
 
-/* returns max number of rows in view */
-static int file_view_rows(SpaceFile* sfile, View2D *v2d)
-{
-	int height= (v2d->cur.ymax - v2d->cur.ymin - 2*sfile->tile_border_y);
-	return height / (sfile->tile_h + 2*sfile->tile_border_y);
-}
-
-/* returns max number of columns in view */
-static int file_view_columns(SpaceFile* sfile, View2D *v2d)
-{
-	int width= (v2d->cur.xmax - v2d->cur.xmin - 2*sfile->tile_border_x);
-	return width / (sfile->tile_w + 2*sfile->tile_border_x);
-}
-
 void file_calc_previews(const bContext *C, ARegion *ar)
 {
 	SpaceFile *sfile= (SpaceFile*)CTX_wm_space_data(C);
-	FileSelectParams* params = ED_fileselect_get_params(sfile);
 	View2D *v2d= &ar->v2d;
-	int width=0, height=0;
-	int rows, columns;
-
-	if (params->display == FILE_IMGDISPLAY) {
-		sfile->prv_w = 96;
-		sfile->prv_h = 96;
-		sfile->tile_border_x = 4;
-		sfile->tile_border_y = 4;
-		sfile->prv_border_x = 4;
-		sfile->prv_border_y = 4;
-		sfile->tile_w = sfile->prv_w + 2*sfile->prv_border_x;
-		sfile->tile_h = sfile->prv_h + 4*sfile->prv_border_y + U.fontsize*3/2;
-		width= (v2d->cur.xmax - v2d->cur.xmin - 2*sfile->tile_border_x);
-		columns= file_view_columns(sfile, v2d);
-		if(columns)
-			rows= filelist_numfiles(sfile->files)/columns + 1; // XXX dirty, modulo is zero
-		else
-			rows= filelist_numfiles(sfile->files) + 1; // XXX dirty, modulo is zero
-		height= rows*(sfile->tile_h+2*sfile->tile_border_y) + sfile->tile_border_y*2;
-	} else {
-		sfile->prv_w = 0;
-		sfile->prv_h = 0;
-		sfile->tile_border_x = 8;
-		sfile->tile_border_y = 2;
-		sfile->prv_border_x = 0;
-		sfile->prv_border_y = 0;
-		sfile->tile_w = 240;
-		sfile->tile_h = U.fontsize*3/2;
-		height= v2d->cur.ymax - v2d->cur.ymin;
-		rows = file_view_rows(sfile, v2d);
-		if(rows)
-			columns = filelist_numfiles(sfile->files)/rows + 1; // XXX dirty, modulo is zero
-		else
-			columns = filelist_numfiles(sfile->files) + 1; // XXX dirty, modulo is zero
-			
-		width = columns * (sfile->tile_w + 2*sfile->tile_border_x) + sfile->tile_border_x*2;
-	}
-
-	UI_view2d_totRect_set(v2d, width, height);
+	
+	ED_fileselect_init_layout(sfile, ar);
+	UI_view2d_totRect_set(v2d, sfile->layout->width, sfile->layout->height);
 }
 
 void file_draw_previews(const bContext *C, ARegion *ar)
 {
 	SpaceFile *sfile= (SpaceFile*)CTX_wm_space_data(C);
 	FileSelectParams* params= ED_fileselect_get_params(sfile);
+	FileLayout* layout= ED_fileselect_get_layout(sfile, ar);
+
 	View2D *v2d= &ar->v2d;
 	static double lasttime= 0;
 	struct FileList* files = sfile->files;
@@ -319,97 +270,66 @@ void file_draw_previews(const bContext *C, ARegion *ar)
 	int colorid = 0;
 	int todo;
 	int offset;
-	int columns;
-	int rows;
 
 	if (!files) return;
 
 	type = filelist_gettype(files);	
-	filelist_imgsize(files,sfile->prv_w,sfile->prv_h);
+	filelist_imgsize(files,sfile->layout->prv_w,sfile->layout->prv_h);
 	numfiles = filelist_numfiles(files);
 	
 	todo = 0;
 	if (lasttime < 0.001) lasttime = PIL_check_seconds_timer();
 
-	sx = v2d->cur.xmin + sfile->tile_border_x;
-	sy = v2d->cur.ymax - sfile->tile_border_y;
-	columns = file_view_columns(sfile, v2d);
-	rows = file_view_rows(sfile, v2d);
-
-	offset = columns*(-v2d->cur.ymax-sfile->tile_border_y)/(sfile->tile_h+sfile->tile_border_y);
-	offset = (offset/columns-1)*columns;
+	sx = v2d->cur.xmin + layout->tile_border_x;
+	sy = v2d->cur.ymax - layout->tile_border_y;
+	
+	offset = ED_fileselect_layout_offset(layout, 0, 0);
 	if (offset<0) offset=0;
-	for (i=offset; (i < numfiles) && (i < (offset+(rows+2)*columns)); ++i)
+	for (i=offset; (i < numfiles) && (i < (offset+(layout->rows+2)*layout->columns)); ++i)
 	{
-		sx = v2d->tot.xmin + sfile->tile_border_x + ((i)%columns)*(sfile->tile_w+2*sfile->tile_border_x);
-		sy = v2d->tot.ymax - sfile->tile_border_y - ((i)/columns)*(sfile->tile_h+2*sfile->tile_border_y);
+		ED_fileselect_layout_tilepos(layout, i, &sx, &sy);
+		sx += v2d->tot.xmin+2;
+		sy = v2d->tot.ymax - sy;
 		file = filelist_file(files, i);				
 
 		if (params->active_file == i) {
 			colorid = TH_ACTIVE;
-			draw_tile(sx - 1, sy, sfile->tile_w + 1, sfile->tile_h, colorid,0);
+			draw_tile(sx - 1, sy, sfile->layout->tile_w + 1, sfile->layout->tile_h, colorid,0);
 		} else if (file->flags & ACTIVE) {
 			colorid = TH_HILITE;
-			draw_tile(sx - 1, sy, sfile->tile_w + 1, sfile->tile_h, colorid,0);
+			draw_tile(sx - 1, sy, sfile->layout->tile_w + 1, sfile->layout->tile_h, colorid,0);
 		} else {
 			colorid = TH_BACK;
-			draw_tile(sx, sy, sfile->tile_w, sfile->tile_h, colorid, -5);
+			draw_tile(sx, sy, sfile->layout->tile_w, sfile->layout->tile_h, colorid, -5);
 		}
 
-#if 0
-		if ( type == FILE_MAIN) {
-			ID *id;
-			int icon_id = 0;
-			int idcode;
-			idcode= groupname_to_code(sfile->dir);
-			if (idcode == ID_MA || idcode == ID_TE || idcode == ID_LA || idcode == ID_WO || idcode == ID_IM) {
-				id = (ID *)file->poin;
-				icon_id = BKE_icon_getid(id);
-			}		
-			if (icon_id) {
-				glEnable(GL_BLEND);
-				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-				if (do_load) {
-					UI_icon_draw_preview(sx+2*TILE_BORDER_X, sy-simasel->prv_w-TILE_BORDER_X, icon_id, 0);			
-				} else {
-					UI_icon_draw_preview(sx+2*TILE_BORDER_X, sy-simasel->prv_w-TILE_BORDER_X, icon_id, 1);
-					todo++;
-				}
-				
-				glDisable(GL_BLEND);
-			}		
-		}
-		else {
-#endif
-			if ( (file->flags & IMAGEFILE) /* || (file->flags & MOVIEFILE) */)
-			{
-				if (do_load) {					
-					filelist_loadimage(files, i);				
-				} else {
-					todo++;
-				}
-				imb = filelist_getimage(files, i);
+		if ( (file->flags & IMAGEFILE) /* || (file->flags & MOVIEFILE) */)
+		{
+			if (do_load) {					
+				filelist_loadimage(files, i);				
 			} else {
-				imb = filelist_getimage(files, i);
+				todo++;
 			}
+			imb = filelist_getimage(files, i);
+		} else {
+			imb = filelist_getimage(files, i);
+		}
 
-			if (imb) {		
-				float fx = ((float)sfile->prv_w - (float)imb->x)/2.0f;
-				float fy = ((float)sfile->prv_h - (float)imb->y)/2.0f;
-				short dx = (short)(fx + 0.5f + sfile->prv_border_x);
-				short dy = (short)(fy + 0.5f - sfile->prv_border_y);
-				
-				glEnable(GL_BLEND);
-				glBlendFunc(GL_SRC_ALPHA,  GL_ONE_MINUS_SRC_ALPHA);													
-				// glaDrawPixelsSafe((float)sx+8 + dx, (float)sy - imgwidth + dy - 8, imb->x, imb->y, imb->x, GL_RGBA, GL_UNSIGNED_BYTE, imb->rect);
-				glColor4f(1.0, 1.0, 1.0, 1.0);
-				glaDrawPixelsTex((float)sx + dx, (float)sy - sfile->prv_h + dy, imb->x, imb->y,GL_UNSIGNED_BYTE, imb->rect);
-				glDisable(GL_BLEND);
-				imb = 0;
-			}
-#if 0
-		}		
-#endif
+		if (imb) {		
+			float fx = ((float)layout->prv_w - (float)imb->x)/2.0f;
+			float fy = ((float)layout->prv_h - (float)imb->y)/2.0f;
+			short dx = (short)(fx + 0.5f + sfile->layout->prv_border_x);
+			short dy = (short)(fy + 0.5f - sfile->layout->prv_border_y);
+			
+			glEnable(GL_BLEND);
+			glBlendFunc(GL_SRC_ALPHA,  GL_ONE_MINUS_SRC_ALPHA);													
+			// glaDrawPixelsSafe((float)sx+8 + dx, (float)sy - imgwidth + dy - 8, imb->x, imb->y, imb->x, GL_RGBA, GL_UNSIGNED_BYTE, imb->rect);
+			glColor4f(1.0, 1.0, 1.0, 1.0);
+			glaDrawPixelsTex((float)sx + dx, (float)sy - sfile->layout->prv_h + dy, imb->x, imb->y,GL_UNSIGNED_BYTE, imb->rect);
+			glDisable(GL_BLEND);
+			imb = 0;
+		}
+
 		if (type == FILE_MAIN) {
 			glColor4f(1.0f, 1.0f, 1.0f, 1.0f);			
 		}
@@ -437,7 +357,7 @@ void file_draw_previews(const bContext *C, ARegion *ar)
 			}
 		}
 			
-		file_draw_string(sx + sfile->prv_border_x, sy+U.fontsize*3/2, file->relname, sfile->tile_w, sfile->tile_h);
+		file_draw_string(sx + layout->prv_border_x, sy+U.fontsize*3/2, file->relname, layout->tile_w, layout->tile_h);
 
 		if (!sfile->loadimage_timer)
 			sfile->loadimage_timer= WM_event_add_window_timer(CTX_wm_window(C), TIMER1, 1.0/30.0);	/* max 30 frames/sec. */
@@ -451,6 +371,8 @@ void file_draw_list(const bContext *C, ARegion *ar)
 {
 	SpaceFile *sfile= (SpaceFile*)CTX_wm_space_data(C);
 	FileSelectParams* params = ED_fileselect_get_params(sfile);
+	FileLayout* layout= ED_fileselect_get_layout(sfile, ar);
+	View2D *v2d= &ar->v2d;
 	struct FileList* files = sfile->files;
 	struct direntry *file;
 	int numfiles;
@@ -459,44 +381,45 @@ void file_draw_list(const bContext *C, ARegion *ar)
 	int offset;
 	short type;
 	int i;
-	int rows;
-	float sw;
+	float sw, spos;
 
 	numfiles = filelist_numfiles(files);
 	type = filelist_gettype(files);	
 
-	sx = ar->v2d.tot.xmin + sfile->tile_border_x/2;
-	sy = ar->v2d.cur.ymax - sfile->tile_border_y;
+	sx = ar->v2d.tot.xmin + layout->tile_border_x/2;
+	sy = ar->v2d.cur.ymax - layout->tile_border_y;
 
-	rows = (ar->v2d.cur.ymax - ar->v2d.cur.ymin - 2*sfile->tile_border_y) / (sfile->tile_h+sfile->tile_border_y);
-	offset = rows*(sx - sfile->tile_border_x)/(sfile->tile_w+sfile->tile_border_x);
-	offset = (offset/rows-1)*rows;
+	offset = ED_fileselect_layout_offset(layout, 0, 0);
+	if (offset<0) offset=0;
 
 	while (sx < ar->v2d.cur.xmax) {
-		sx += (sfile->tile_w+sfile->tile_border_x);
+		sx += (sfile->layout->tile_w+2*sfile->layout->tile_border_x);
 		glColor4ub(0xB0,0xB0,0xB0, 0xFF);
-		sdrawline(sx+1,  ar->v2d.cur.ymax - sfile->tile_border_y ,  sx+1,  ar->v2d.cur.ymin + sfile->tile_border_y); 
+		sdrawline(sx+1,  ar->v2d.cur.ymax - layout->tile_border_y ,  sx+1,  ar->v2d.cur.ymin + layout->tile_border_y); 
 		glColor4ub(0x30,0x30,0x30, 0xFF);
-		sdrawline(sx,  ar->v2d.cur.ymax - sfile->tile_border_y ,  sx,  ar->v2d.cur.ymin + sfile->tile_border_y); 
+		sdrawline(sx,  ar->v2d.cur.ymax - layout->tile_border_y ,  sx,  ar->v2d.cur.ymin + layout->tile_border_y); 
 	}
 
-	sx = ar->v2d.cur.xmin + sfile->tile_border_x;
-	sy = ar->v2d.cur.ymax - sfile->tile_border_y;
+
+	sx = ar->v2d.cur.xmin + layout->tile_border_x;
+	sy = ar->v2d.cur.ymax - layout->tile_border_y;
+
 	if (offset<0) offset=0;
 	for (i=offset; (i < numfiles); ++i)
 	{
-		sy = ar->v2d.tot.ymax-sfile->tile_border_y - (i%rows)*(sfile->tile_h+sfile->tile_border_y);
-		sx = 2 + ar->v2d.tot.xmin +sfile->tile_border_x + (i/rows)*(sfile->tile_w+sfile->tile_border_x);
+		ED_fileselect_layout_tilepos(layout, i, &sx, &sy);
+		sx += v2d->tot.xmin+2;
+		sy = v2d->tot.ymax - sy;
 
 		file = filelist_file(files, i);	
 
 		if (params->active_file == i) {
 			if (file->flags & ACTIVE) colorid= TH_HILITE;
 			else colorid = TH_BACK;
-			draw_tile(sx-2, sy-3, sfile->tile_w+2, sfile->tile_h, colorid,20);
+			draw_tile(sx-2, sy-3, layout->tile_w+2, sfile->layout->tile_h, colorid,20);
 		} else if (file->flags & ACTIVE) {
 			colorid = TH_HILITE;
-			draw_tile(sx-2, sy-3, sfile->tile_w+2, sfile->tile_h, colorid,0);
+			draw_tile(sx-2, sy-3, layout->tile_w+2, sfile->layout->tile_h, colorid,0);
 		} else {
 			/*
 			colorid = TH_PANEL;
@@ -513,9 +436,38 @@ void file_draw_list(const bContext *C, ARegion *ar)
 				UI_ThemeColor4(TH_TEXT);
 		}
 		
+		spos = sx;
 		sw = UI_GetStringWidth(G.font, file->size, 0);
-		file_draw_string(sx, sy, file->relname, sfile->tile_w - sw - 5, sfile->tile_h);
-		file_draw_string(sx + sfile->tile_w - sw, sy, file->size, sfile->tile_w - sw, sfile->tile_h);
+		file_draw_string(spos, sy, file->relname, layout->tile_w - sw - 5, layout->tile_h);
+		spos += filelist_maxnamelen(sfile->files);
+		if (params->display != FILE_SHOWSHORT) {
+#if 0 // XXX TODO: add this for non-windows systems
+			/* rwx rwx rwx */
+			x += 20; glRasterPos2i(x, y); 
+			BMF_DrawString(G.font, files->mode1); 
+		
+			x += 30; glRasterPos2i(x, y); 
+			BMF_DrawString(G.font, files->mode2); 
+		
+			x += 30; glRasterPos2i(x, y); 
+			BMF_DrawString(G.font, files->mode3); 
+		
+			/* owner time date */
+			x += 30; glRasterPos2i(x, y); 
+			BMF_DrawString(G.font, files->owner); 
+#endif
+			spos += 60;
+			sw = UI_GetStringWidth(G.font, file->time, 0);
+			file_draw_string(spos, sy, file->time, sw, layout->tile_h); 
+			spos += sw;
+			spos += 50;
+			sw = UI_GetStringWidth(G.font, file->date, 0);
+			file_draw_string(spos, sy, file->date, sw, layout->tile_h);
+
+		}
+
+		file_draw_string(sx + layout->tile_w - 2*layout->tile_border_x - sw - 4, sy, file->size, layout->tile_w - layout->tile_border_x - sw - 5, layout->tile_h);
+
 	}
 }
 
@@ -531,41 +483,40 @@ void file_draw_fsmenu(const bContext *C, ARegion *ar)
 	int bmwidth = ar->v2d.cur.xmax - ar->v2d.cur.xmin - 2*TILE_BORDER_X;
 	int fontsize = U.fontsize;
 
-	if (params->flag & FILE_BOOKMARKS) {
 		sx = ar->v2d.cur.xmin + TILE_BORDER_X;
 		sy = ar->v2d.cur.ymax-2*TILE_BORDER_Y;
 		for (i=0; i< nentries && (sy > ar->v2d.cur.ymin) ;++i) {
 			char *fname = fsmenu_get_entry(i);
 
-			if (fname) {
-				int sl;
-				BLI_strncpy(bookmark, fname, FILE_MAX);
-			
-				sl = strlen(bookmark)-1;
-				while (bookmark[sl] == '\\' || bookmark[sl] == '/') {
-					bookmark[sl] = '\0';
-					sl--;
-				}
-				if (params->active_bookmark == i ) {
-					glColor4ub(0, 0, 0, 100);
-					UI_ThemeColor(TH_HILITE);
-					uiSetRoundBox(15);	
-					uiRoundBox(sx, sy - linestep, sx + bmwidth, sy, 6);
-					// glRecti(sx, sy - linestep, sx + bmwidth, sy);
-					UI_ThemeColor(TH_TEXT_HI);
-				} else {
-					UI_ThemeColor(TH_TEXT);
-				}
-
-				file_draw_string(sx, sy, bookmark, bmwidth, fontsize);
-				sy -= linestep;
-			} else {
-				glColor4ub(0xB0,0xB0,0xB0, 0xFF);
-				sdrawline(sx,  sy-1-fontsize/2 ,  sx + bmwidth,  sy-1-fontsize/2); 
-				glColor4ub(0x30,0x30,0x30, 0xFF);
-				sdrawline(sx,  sy-fontsize/2 ,  sx + bmwidth,  sy - fontsize/2);
-				sy -= linestep;
+		if (fname) {
+			int sl;
+			BLI_strncpy(bookmark, fname, FILE_MAX);
+		
+			sl = strlen(bookmark)-1;
+			while (bookmark[sl] == '\\' || bookmark[sl] == '/') {
+				bookmark[sl] = '\0';
+				sl--;
 			}
+			if (params->active_bookmark == i ) {
+				glColor4ub(0, 0, 0, 100);
+				UI_ThemeColor(TH_HILITE);
+				uiSetRoundBox(15);	
+				uiRoundBox(sx, sy - linestep, sx + bmwidth, sy, 6);
+				// glRecti(sx, sy - linestep, sx + bmwidth, sy);
+				UI_ThemeColor(TH_TEXT_HI);
+			} else {
+				UI_ThemeColor(TH_TEXT);
+			}
+
+			file_draw_string(sx, sy, bookmark, bmwidth, fontsize);
+			sy -= linestep;
+		} else {
+			glColor4ub(0xB0,0xB0,0xB0, 0xFF);
+			sdrawline(sx,  sy-1-fontsize/2 ,  sx + bmwidth,  sy-1-fontsize/2); 
+			glColor4ub(0x30,0x30,0x30, 0xFF);
+			sdrawline(sx,  sy-fontsize/2 ,  sx + bmwidth,  sy - fontsize/2);
+			sy -= linestep;
 		}
 	}
+
 }
