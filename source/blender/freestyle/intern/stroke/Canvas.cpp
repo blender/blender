@@ -113,6 +113,8 @@ void Canvas::Draw()
       delete _Layers[i];
 
     _Layers[i] = _StyleModules[i]->execute();
+	if (!_Layers[i])
+		continue;
 
 	stroke_count += _Layers[i]->strokes_size();
 
