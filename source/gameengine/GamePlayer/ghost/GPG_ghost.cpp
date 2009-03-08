@@ -645,7 +645,7 @@ int main(int argc, char** argv)
 #ifdef NDEBUG
 						if (closeConsole)
 						{
-							::FreeConsole();    // Close a console window
+							//::FreeConsole();    // Close a console window
 						}
 #endif // NDEBUG
 #endif // WIN32
