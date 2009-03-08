@@ -12,7 +12,21 @@
 
 #include "bpy_rna.h"
 #include "bpy_operator.h"
+#include "bpy_ui.h"
 
+#include "DNA_space_types.h"
+
+#include "BKE_text.h"
+#include "DNA_text_types.h"
+#include "MEM_guardedalloc.h"
+
+void BPY_free_compiled_text( struct Text *text )
+{
+	if( text->compiled ) {
+		Py_DECREF( ( PyObject * ) text->compiled );
+		text->compiled = NULL;
+	}
+}
 
 /*****************************************************************************
 * Description: This function creates a new Python dictionary object.
@@ -81,29 +95,182 @@ void BPY_end_python( void )
 	return;
 }
 
-void BPY_run_python_script( bContext *C, const char *fn )
+/* Can run a file or text block */
+int BPY_run_python_script( bContext *C, const char *fn, struct Text *text )
 {
 	PyObject *py_dict, *py_result;
-	char pystring[512];
 	PyGILState_STATE gilstate;
-
-	/* TODO - look into a better way to run a file */
-	sprintf(pystring, "exec(open(r'%s').read())", fn);	
+	
+	if (fn==NULL && text==NULL) {
+		return 0;
+	}
 	
 	//BPY_start_python();
+	
+	gilstate = PyGILState_Ensure();
+
+	py_dict = CreateGlobalDictionary(C);
+
+	if (text) {
+		
+		if( !text->compiled ) {	/* if it wasn't already compiled, do it now */
+			char *buf = txt_to_buf( text );
+
+			text->compiled =
+				Py_CompileString( buf, text->id.name+2, Py_file_input );
+
+			MEM_freeN( buf );
+
+			if( PyErr_Occurred(  ) ) {
+				BPY_free_compiled_text( text );
+				return NULL;
+			}
+		}
+		py_result =  PyEval_EvalCode( text->compiled, py_dict, py_dict );
+		
+	} else {
+		char pystring[512];
+		/* TODO - look into a better way to run a file */
+		sprintf(pystring, "exec(open(r'%s').read())", fn);	
+		py_result = PyRun_String( pystring, Py_file_input, py_dict, py_dict );			
+	}
+	
+	if (!py_result) {
+		PyErr_Print();
+	} else {
+		Py_DECREF( py_result );
+	}
+	PyGILState_Release(gilstate);
+	
+	//BPY_end_python();
+	return py_result ? 1:0;
+}
+
+
+/* TODO - move into bpy_space.c ? */
+/* GUI interface routines */
+
+/* Copied from Draw.c */
+static void exit_pydraw( SpaceScript * sc, short err )
+{
+	Script *script = NULL;
+
+	if( !sc || !sc->script )
+		return;
+
+	script = sc->script;
+
+	if( err ) {
+		PyErr_Print(  );
+		script->flags = 0;	/* mark script struct for deletion */
+		SCRIPT_SET_NULL(script);
+		script->scriptname[0] = '\0';
+		script->scriptarg[0] = '\0';
+// XXX 2.5		error_pyscript();
+// XXX 2.5		scrarea_queue_redraw( sc->area );
+	}
+
+#if 0 // XXX 2.5
+	BPy_Set_DrawButtonsList(sc->but_refs);
+	BPy_Free_DrawButtonsList(); /*clear all temp button references*/
+#endif
+
+	sc->but_refs = NULL;
+	
+	Py_XDECREF( ( PyObject * ) script->py_draw );
+	Py_XDECREF( ( PyObject * ) script->py_event );
+	Py_XDECREF( ( PyObject * ) script->py_button );
+
+	script->py_draw = script->py_event = script->py_button = NULL;
+}
+
+static int bpy_run_script_init(bContext *C, SpaceScript * sc)
+{
+	if (sc->script==NULL) 
+		return 0;
+	
+	if (sc->script->py_draw==NULL && sc->script->scriptname[0] != '\0')
+		BPY_run_python_script(C, sc->script->scriptname, NULL);
+		
+	if (sc->script->py_draw==NULL)
+		return 0;
+	
+	return 1;
+}
+
+int BPY_run_script_space_draw(bContext *C, SpaceScript * sc)
+{
+	if (bpy_run_script_init(C, sc)) {
+		PyGILState_STATE gilstate = PyGILState_Ensure();
+		PyObject *result = PyObject_CallObject( sc->script->py_draw, NULL );
+		
+		if (result==NULL)
+			exit_pydraw(sc, 1);
+			
+		PyGILState_Release(gilstate);
+	}
+	return 1;
+}
+
+// XXX - not used yet, listeners dont get a context
+int BPY_run_script_space_listener(bContext *C, SpaceScript * sc)
+{
+	if (bpy_run_script_init(C, sc)) {
+		PyGILState_STATE gilstate = PyGILState_Ensure();
+		
+		PyObject *result = PyObject_CallObject( sc->script->py_draw, NULL );
+		
+		if (result==NULL)
+			exit_pydraw(sc, 1);
+			
+		PyGILState_Release(gilstate);
+	}
+	return 1;
+}
+
+#if 0
+/* called from the the scripts window, assume context is ok */
+int BPY_run_python_script_space(const char *modulename, const char *func)
+{
+	PyObject *py_dict, *py_result= NULL;
+	char pystring[512];
+	PyGILState_STATE gilstate;
+	
+	/* for calling the module function */
+	PyObject *py_func, 
 	
 	gilstate = PyGILState_Ensure();
 	
 	py_dict = CreateGlobalDictionary(C);
 	
-	py_result = PyRun_String( pystring, Py_file_input, py_dict, py_dict );
+	PyObject *module = PyImport_ImportModule(scpt->script.filename);
+	if (module==NULL) {
+		PyErr_SetFormat(PyExc_SystemError, "could not import '%s'", scpt->script.filename);
+	}
+	else {
+		py_func = PyObject_GetAttrString(modulename, func);
+		if (py_func==NULL) {
+			PyErr_SetFormat(PyExc_SystemError, "module has no function '%s.%s'\n", scpt->script.filename, func);
+		}
+		else {
+			if (!PyCallable_Check(py_func)) {
+				PyErr_SetFormat(PyExc_SystemError, "module item is not callable '%s.%s'\n", scpt->script.filename, func);
+			}
+			else {
+				py_result= PyObject_CallObject(py_func, NULL); // XXX will need args eventually
+			}
+		}
+	}
 	
 	if (!py_result)
 		PyErr_Print();
 	else
 		Py_DECREF( py_result );
 	
-	PyGILState_Release(gilstate);
+	Py_XDECREF(module);
 	
-	//BPY_end_python();
+	
+	PyGILState_Release(gilstate);
+	return 1;
 }
+#endif

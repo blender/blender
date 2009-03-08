@@ -80,5 +80,8 @@
 PyObject *Py_CmpToRich(int op, int cmp);
 #endif
 
+#ifndef Py_CmpToRich
+PyObject *Py_CmpToRich(int op, int cmp); /* bpy_util.c */
+#endif
 
 #endif /* BPY_COMPAT_H__ */

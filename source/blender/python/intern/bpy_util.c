@@ -112,7 +112,7 @@ int BPY_flag_from_seq(BPY_flag_def *flagdef, PyObject *seq, int *flag)
 
 
 /* Copied from pythons 3's Object.c */
-#if PY_VERSION_HEX < 0x03000000
+#ifndef Py_CmpToRich
 PyObject *
 Py_CmpToRich(int op, int cmp)
 {
@@ -160,4 +160,54 @@ void PyObSpit(char *name, PyObject *var) {
 		PyObject_Print(var, stderr, 0);
 	}
 	fprintf(stderr, "\n");
+}
+
+void PyLineSpit(void) {
+	char filename[512];
+	int lineno;
+
+	PyErr_Clear();
+	BPY_getFileAndNum(&filename, &lineno);
+	
+	fprintf(stderr, "%s:%d\n", filename, lineno);
+}
+
+void BPY_getFileAndNum(char **filename, int *lineno)
+{
+	PyObject *getframe, *frame;
+	PyObject *f_lineno, *f_code, *co_filename;
+	
+	if (filename)	*filename= NULL;
+	if (lineno)		*lineno = -1;
+	
+	getframe = PySys_GetObject("_getframe"); // borrowed
+	if (getframe) {
+		frame = PyObject_CallObject(getframe, NULL);
+		if (frame) {
+			f_lineno= PyObject_GetAttrString(frame, "f_lineno");
+			f_code= PyObject_GetAttrString(frame, "f_code");
+			if (f_lineno && f_code) {
+				co_filename= PyObject_GetAttrString(f_code, "co_filename");
+				if (co_filename) {
+					
+					if (filename)	*filename = _PyUnicode_AsString(co_filename);
+					if (lineno)		*lineno = (int)PyLong_AsSsize_t(f_lineno);
+					
+					Py_DECREF(f_lineno);
+					Py_DECREF(f_code);
+					Py_DECREF(co_filename);
+					Py_DECREF(frame);
+					
+					return;
+				}
+			}
+		}
+	}
+	
+	Py_XDECREF(co_filename);
+	Py_XDECREF(f_lineno);
+	Py_XDECREF(f_code);
+	Py_XDECREF(frame);
+	
+	PyErr_SetString(PyExc_SystemError, "Could not access sys._getframe().f_code.co_filename");
 }

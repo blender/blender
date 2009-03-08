@@ -115,6 +115,18 @@ static int pyop_func_compare( BPy_OperatorFunc * a, BPy_OperatorFunc * b )
 	return (strcmp(a->name, b->name)==0) ? 0 : -1;
 }
 
+/* For some reason python3 needs these :/ */
+static PyObject *pyop_func_richcmp(BPy_OperatorFunc * a, BPy_OperatorFunc * b, int op)
+{
+	int cmp_result= -1; /* assume false */
+	if (BPy_OperatorFunc_Check(a) && BPy_OperatorFunc_Check(b)) {
+		cmp_result= pyop_func_compare(a, b);
+	}
+
+	return Py_CmpToRich(op, cmp_result);
+}
+
+
 /*----------------------repr--------------------------------------------*/
 static PyObject *pyop_base_repr( BPy_OperatorBase * self )
 {
@@ -126,6 +138,11 @@ static PyObject *pyop_func_repr( BPy_OperatorFunc * self )
 	return PyUnicode_FromFormat( "[BPy_OperatorFunc \"%s\"]", self->name);
 }
 
+static struct PyMethodDef pyop_base_methods[] = {
+	{"add", (PyCFunction)PYOP_wrap_add, METH_VARARGS, ""},
+	{"remove", (PyCFunction)PYOP_wrap_remove, METH_VARARGS, ""},
+	{NULL, NULL, 0, NULL}
+};
 
 //---------------getattr--------------------------------------------
 static PyObject *pyop_base_getattro( BPy_OperatorBase * self, PyObject *pyname )
@@ -133,9 +150,21 @@ static PyObject *pyop_base_getattro( BPy_OperatorBase * self, PyObject *pyname )
 	char *name = _PyUnicode_AsString(pyname);
 	PyObject *ret;
 	wmOperatorType *ot;
-
+	PyMethodDef *meth;
+	
 	if ((ot = WM_operatortype_find(name))) {
 		ret= pyop_func_CreatePyObject(self->C, name);
+	}
+	else if (strcmp(name, "__dict__")==0) {
+		ret = PyDict_New();
+
+		for(ot= WM_operatortype_first(); ot; ot= ot->next) {
+			PyDict_SetItemString(ret, ot->idname, Py_None);
+		}
+
+		for(meth=pyop_base_methods; meth->ml_name; meth++) {
+			PyDict_SetItemString(ret, meth->ml_name, Py_None);
+		}
 	}
 	else if ((ret = PyObject_GenericGetAttr((PyObject *)self, pyname))) {
 		/* do nothing, this accounts for methoddef's add and remove */
@@ -144,7 +173,7 @@ static PyObject *pyop_base_getattro( BPy_OperatorBase * self, PyObject *pyname )
 		PyErr_Format( PyExc_AttributeError, "Operator \"%s\" not found", name);
 		ret= NULL;
 	}
-	
+
 	return ret;
 }
 
@@ -242,37 +271,6 @@ static PyObject * pyop_func_call(BPy_OperatorFunc * self, PyObject *args, PyObje
 	}
 
 	Py_RETURN_NONE;
-}
-
-PyObject *pyop_base_dir(PyObject *self);
-
-static struct PyMethodDef pyop_base_methods[] = {
-	{"add", (PyCFunction)PYOP_wrap_add, METH_VARARGS, ""},
-	{"remove", (PyCFunction)PYOP_wrap_remove, METH_VARARGS, ""},
-	{"__dir__", (PyCFunction)pyop_base_dir, METH_NOARGS, ""},
-	{NULL, NULL, 0, NULL}
-};
-
-PyObject *pyop_base_dir(PyObject *self)
-{
-	PyObject *ret = PyList_New(0);
-	PyObject *item;
-	wmOperatorType *ot;
-	PyMethodDef *meth;
-	
-	for(ot= WM_operatortype_first(); ot; ot= ot->next) {
-		item = PyUnicode_FromString( ot->idname );
-		PyList_Append(ret, item);
-		Py_DECREF(item);
-	}
-
-	for(meth=pyop_base_methods; meth->ml_name; meth++) {
-		item = PyUnicode_FromString( meth->ml_name );
-		PyList_Append(ret, item);
-		Py_DECREF(item);
-	}
-
-	return ret;
 }
 
 /*-----------------------BPy_OperatorBase method def------------------------------*/
@@ -379,7 +377,7 @@ PyTypeObject pyop_func_Type = {
 	NULL,                       /* printfunc tp_print; */
 	NULL,						/* getattrfunc tp_getattr; */
 	NULL,                       /* setattrfunc tp_setattr; */
-	( cmpfunc ) pyop_func_compare,	/* tp_compare */
+	NULL,						/* tp_compare */ /* DEPRECATED in python 3.0! */
 	( reprfunc ) pyop_func_repr,	/* tp_repr */
 
 	/* Method suites for standard classes */
@@ -412,7 +410,7 @@ PyTypeObject pyop_func_Type = {
 
   /***  Assigned meaning in release 2.1 ***/
   /*** rich comparisons ***/
-	NULL,                       /* richcmpfunc tp_richcompare; */
+	(richcmpfunc)pyop_func_richcmp,	/* richcmpfunc tp_richcompare; */
 
   /***  weak reference enabler ***/
 	0,                          /* long tp_weaklistoffset; */

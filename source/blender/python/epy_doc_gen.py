@@ -121,7 +121,14 @@ def rna2epy(target_path):
 		try:		return rna_struct.base.identifier
 		except:	return '' # invalid id
 
-	structs = [(base_id(rna_struct), rna_struct.identifier, rna_struct) for rna_struct in bpydoc.structs.values()]
+	#structs = [(base_id(rna_struct), rna_struct.identifier, rna_struct) for rna_struct in bpydoc.structs.values()]
+	
+	structs = []
+	for rna_struct in bpydoc.structs.values():
+		structs.append( (base_id(rna_struct), rna_struct.identifier, rna_struct) )
+		
+	
+	
 	structs.sort() # not needed but speeds up sort below, setting items without an inheritance first
 	
 	# Arrange so classes are always defined in the correct order
@@ -173,12 +180,13 @@ def op2epy(target_path):
 	operators = dir(bpyoperator)
 	operators.remove('add')
 	operators.remove('remove')
-	operators.remove('__dir__')
 	operators.sort()
 	
 	
 	for op in operators:
 		
+		if op.startswith('__'):
+			continue
 		
 		# Keyword attributes
 		kw_args = [] # "foo = 1", "bar=0.5", "spam='ENUM'"

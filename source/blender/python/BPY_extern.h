@@ -95,7 +95,14 @@ extern "C" {
 	int BPY_menu_do_python( short menutype, int event );
 	int BPY_menu_do_shortcut( short menutype, unsigned short key, unsigned short modifiers );
 	int BPY_menu_invoke( struct BPyMenu *pym, short menutype );
-	void BPY_run_python_script( struct bContext *C, const char *filename );
+	
+	/* 2.5 UI Scripts */
+	int BPY_run_python_script( struct bContext *C, const char *filename, struct Text *text ); // 2.5 working
+	int BPY_run_script_space_draw(struct bContext *C, struct SpaceScript * sc); // 2.5 working
+//	int BPY_run_script_space_listener(struct bContext *C, struct SpaceScript * sc, struct ARegion *ar, struct wmNotifier *wmn); // 2.5 working
+	
+	
+	
 	int BPY_run_script(struct Script *script);
 	void BPY_free_compiled_text( struct Text *text );
 

@@ -120,8 +120,7 @@ PyObject * pyrna_prop_to_py(PointerRNA *ptr, PropertyRNA *prop)
 	PyObject *ret;
 	int type = RNA_property_type(ptr, prop);
 	int len = RNA_property_array_length(ptr, prop);
-	/* resolve path */
-	
+
 	if (len > 0) {
 		/* resolve the array from a new pytype */
 		return pyrna_prop_CreatePyObject(ptr, prop);
@@ -154,7 +153,7 @@ PyObject * pyrna_prop_to_py(PointerRNA *ptr, PropertyRNA *prop)
 		if (RNA_property_enum_identifier(ptr, prop, val, &identifier)) {
 			ret = PyUnicode_FromString( identifier );
 		} else {
-			PyErr_Format(PyExc_AttributeError, "enum \"%d\" not found", val);
+			PyErr_Format(PyExc_AttributeError, "RNA Error: Current value \"%d\" matches no enum", val);
 			ret = NULL;
 		}
 
@@ -176,7 +175,7 @@ PyObject * pyrna_prop_to_py(PointerRNA *ptr, PropertyRNA *prop)
 		ret = pyrna_prop_CreatePyObject(ptr, prop);
 		break;
 	default:
-		PyErr_SetString(PyExc_AttributeError, "unknown type (pyrna_prop_to_py)");
+		PyErr_Format(PyExc_AttributeError, "RNA Error: unknown type \"%d\" (pyrna_prop_to_py)", type);
 		ret = NULL;
 		break;
 	}
@@ -189,7 +188,6 @@ int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, PyObject *value)
 {
 	int type = RNA_property_type(ptr, prop);
 	int len = RNA_property_array_length(ptr, prop);
-	/* resolve path */
 	
 	if (len > 0) {
 		PyObject *item;
@@ -374,8 +372,6 @@ static PyObject * pyrna_prop_to_py_index(PointerRNA *ptr, PropertyRNA *prop, int
 	PyObject *ret;
 	int type = RNA_property_type(ptr, prop);
 	
-	/* resolve path */
-	
 	/* see if we can coorce into a python type - PropertyType */
 	switch (type) {
 	case PROP_BOOLEAN:
@@ -400,8 +396,6 @@ static int pyrna_py_to_prop_index(PointerRNA *ptr, PropertyRNA *prop, int index,
 {
 	int ret = 0;
 	int type = RNA_property_type(ptr, prop);
-	
-	/* resolve path */
 	
 	/* see if we can coorce into a python type - PropertyType */
 	switch (type) {
@@ -555,7 +549,7 @@ static int pyrna_prop_assign_subscript( BPy_PropertyRNA * self, PyObject *key, P
 		if (keynum >= len){
 			PyErr_SetString(PyExc_AttributeError, "index out of range");
 			ret = -1;
-		} else { /* not an array*/
+		} else {
 			ret = pyrna_py_to_prop_index(&self->ptr, self->prop, keynum, value);
 		}
 	}
@@ -571,138 +565,6 @@ static PyMappingMethods pyrna_prop_as_mapping = {
 	( objobjargproc ) pyrna_prop_assign_subscript,	/* mp_ass_subscript */
 };
 
-
-PyObject *pyrna_struct_to_docstring(BPy_StructRNA *self)
-{
-	PyObject *ret;
-	PropertyRNA *prop;
-	
-	DynStr *dynstr;
-	const char *identifier;
-	const char *desc;
-	char *readonly;
-	char *result;
-	int len;
-	int i; /* general iter */
-	
-	dynstr= BLI_dynstr_new();
-	BLI_dynstr_appendf(dynstr, "RNA %s: %s\n", RNA_struct_identifier(&self->ptr), RNA_struct_ui_name(&self->ptr));
-	
-	/* Add EPI ===='s */
-	i = BLI_dynstr_get_len(dynstr);
-	while (--i)
-		BLI_dynstr_append(dynstr, "=");
-	
-	BLI_dynstr_append(dynstr, "\n");
-	/* done */
-	
-	{
-		PropertyRNA *iterprop;
-		CollectionPropertyIterator iter;
-		
-		iterprop= RNA_struct_iterator_property(&self->ptr);
-		RNA_property_collection_begin(&self->ptr, iterprop, &iter);
-		
-		for(; iter.valid; RNA_property_collection_next(&iter)) {
-			prop = iter.ptr.data;
-			identifier = RNA_property_identifier(&iter.ptr, prop);
-			desc = RNA_property_ui_description(&iter.ptr, prop);
-			
-			readonly = (RNA_property_editable(&self->ptr, prop)) ? "" : " *readonly*";
-			len = RNA_property_array_length(&iter.ptr, prop);	
-			
-			switch(RNA_property_type(&iter.ptr, prop)) {
-			case PROP_BOOLEAN:
-			{	
-				BLI_dynstr_appendf(dynstr, "@ivar %s: %s%s\n", identifier, desc, readonly);
-				
-				if (len==0)	BLI_dynstr_appendf(dynstr, "@type %s: bool\n", identifier);
-				else		BLI_dynstr_appendf(dynstr, "@type %s: bool[%d]\n", identifier, len);
-				break;
-			}
-			case PROP_INT:
-			{
-				int hardmin, hardmax;
-				RNA_property_int_range(&iter.ptr, prop, &hardmin, &hardmax); 
-				
-				BLI_dynstr_appendf(dynstr, "@ivar %s: %s in (%d, %d)%s\n", identifier, desc, hardmin, hardmax, readonly);
-				
-				if (len==0)	BLI_dynstr_appendf(dynstr, "@type %s: int\n", identifier);
-				else		BLI_dynstr_appendf(dynstr, "@type %s: int[%d]\n", identifier, len);
-				break;
-			}
-			case PROP_FLOAT:
-			{
-				float hardmin, hardmax;
-				RNA_property_float_range(&iter.ptr, prop, &hardmin, &hardmax);
-				
-				BLI_dynstr_appendf(dynstr, "@ivar %s: %s in (", identifier, desc);
-				
-				if (hardmin < -MAXFLOAT_DOC)BLI_dynstr_append(dynstr, "-inf, ");
-				else						BLI_dynstr_appendf(dynstr, "%.3f, ", hardmin);
-						
-				if (hardmax >  MAXFLOAT_DOC)BLI_dynstr_append(dynstr, "inf");
-				else						BLI_dynstr_appendf(dynstr, "%.3f", hardmax);
-				
-				BLI_dynstr_appendf(dynstr, ")%s\n", readonly);
-						
-						
-				if (len==0)	BLI_dynstr_appendf(dynstr, "@type %s: float\n", identifier);
-				else		BLI_dynstr_appendf(dynstr, "@type %s: float[%d]\n", identifier, len);
-				break;
-			}
-			case PROP_STRING:
-			{
-				int maxlen = RNA_property_string_maxlength(&iter.ptr, prop);
-				
-				BLI_dynstr_appendf(dynstr, "@ivar %s: %s (%d maximum length)%s\n", identifier, desc, maxlen, readonly);
-				BLI_dynstr_appendf(dynstr, "@type %s: string\n", identifier);
-				break;
-			}
-			case PROP_ENUM:
-			{
-				char *enum_str= pyrna_enum_as_string(&iter.ptr, prop);
-				BLI_dynstr_appendf(dynstr, "@ivar %s: %s%s\n", identifier, desc, readonly);
-				BLI_dynstr_appendf(dynstr, "@type %s: enum in [%s]\n", identifier, enum_str);
-				MEM_freeN(enum_str);
-				break;
-			}
-			case PROP_POINTER:
-			{
-				BLI_dynstr_appendf(dynstr, "@ivar %s: %s%s\n", identifier, desc, readonly);
-				
-				// TODO - why does this crash sometimes
-				// PointerRNA newptr;
-				// newptr= RNA_property_pointer_get(&iter.ptr, prop);
-				
-				// Use this instead, its not that useful
-				BLI_dynstr_appendf(dynstr, "@type %s: PyRNA %s\n", identifier, RNA_struct_identifier(&iter.ptr));
-				break;
-			}
-			case PROP_COLLECTION:
-				BLI_dynstr_appendf(dynstr, "@ivar %s: %s%s\n", identifier, desc, readonly);
-				BLI_dynstr_appendf(dynstr, "@type %s: PyRNA Collection\n", identifier);
-				break;
-			default:
-				BLI_dynstr_appendf(dynstr, "@ivar %s: %s%s\n", identifier, desc, readonly);
-				BLI_dynstr_appendf(dynstr, "@type %s: <unknown>\n", identifier);
-				break; 
-			}
-		}
-		
-		RNA_property_collection_end(&iter);
-	}
-	
-	result= BLI_dynstr_get_cstring(dynstr);
-	BLI_dynstr_free(dynstr);
-	
-	ret = PyUnicode_FromString(result);
-	MEM_freeN(result);
-	
-	return ret;
-}
-
-
 //---------------getattr--------------------------------------------
 static PyObject *pyrna_struct_getattro( BPy_StructRNA * self, PyObject *pyname )
 {
@@ -717,18 +579,36 @@ static PyObject *pyrna_struct_getattro( BPy_StructRNA * self, PyObject *pyname )
 	if (ret)	return ret;
 	else		PyErr_Clear();
 	/* done with subtypes */
+
+	prop = RNA_struct_find_property(&self->ptr, name);
 	
-	if ( strcmp( name, "__doc__" ) == 0 ) {
-		ret = pyrna_struct_to_docstring(self);
-	} else {
-		prop = RNA_struct_find_property(&self->ptr, name);
-		
-		if (prop==NULL) {
-			PyErr_Format( PyExc_AttributeError, "Attribute \"%s\" not found", name);
-			ret = NULL;
-		} else {
-			ret = pyrna_prop_to_py(&self->ptr, prop);
+	if (prop) {
+		ret = pyrna_prop_to_py(&self->ptr, prop);
+	}
+	else if (strcmp(name, "__dict__")==0) { /* Not quite correct, adding this so dir() gives good feedback */
+		PropertyRNA *iterprop, *nameprop;
+		CollectionPropertyIterator iter;
+		char name[256], *nameptr;
+
+		iterprop= RNA_struct_iterator_property(&self->ptr);
+		RNA_property_collection_begin(&self->ptr, iterprop, &iter);
+
+		ret = PyDict_New();
+		for(; iter.valid; RNA_property_collection_next(&iter)) {
+			if(iter.ptr.data && (nameprop = RNA_struct_name_property(&iter.ptr))) {
+				nameptr= RNA_property_string_get_alloc(&iter.ptr, nameprop, name, sizeof(name));
+				PyDict_SetItemString(ret, nameptr, Py_None);
+				
+				if ((char *)&name != nameptr)
+					MEM_freeN(nameptr);
+			}
 		}
+		
+		RNA_property_collection_end(&iter);
+	}
+	else {
+		PyErr_Format( PyExc_AttributeError, "Attribute \"%s\" not found", name);
+		ret = NULL;
 	}
 	
 	return ret;
@@ -754,32 +634,6 @@ static int pyrna_struct_setattro( BPy_StructRNA * self, PyObject *pyname, PyObje
 	return pyrna_py_to_prop(&self->ptr, prop, value);
 }
 
-static PyObject *pyrna_struct_dir( BPy_StructRNA * self )
-{
-	PyObject *ret = PyList_New(0);
-	PyObject *item;
-	PropertyRNA *prop;
-	PropertyRNA *iterprop;
-	CollectionPropertyIterator iter;
-
-	iterprop= RNA_struct_iterator_property(&self->ptr);
-	RNA_property_collection_begin(&self->ptr, iterprop, &iter);
-
-
-	for(; iter.valid; RNA_property_collection_next(&iter)) {
-		prop = iter.ptr.data;
-		item = PyUnicode_FromString( RNA_property_identifier(&iter.ptr, prop) );
-		PyList_Append(ret, item);
-		Py_DECREF(item);
-	}
-
-	RNA_property_collection_end(&iter);
-
-	return ret;
-}
-
-
-
 PyObject *pyrna_prop_keys(BPy_PropertyRNA *self)
 {
 	PyObject *ret;
@@ -796,8 +650,7 @@ PyObject *pyrna_prop_keys(BPy_PropertyRNA *self)
 		
 		RNA_property_collection_begin(&self->ptr, self->prop, &iter);
 		for(; iter.valid; RNA_property_collection_next(&iter)) {
-			nameprop= RNA_struct_name_property(&iter.ptr);
-			if(iter.ptr.data && nameprop) {
+			if(iter.ptr.data && (nameprop = RNA_struct_name_property(&iter.ptr))) {
 				nameptr= RNA_property_string_get_alloc(&iter.ptr, nameprop, name, sizeof(name));				
 				
 				/* add to python list */
@@ -832,8 +685,7 @@ PyObject *pyrna_prop_items(BPy_PropertyRNA *self)
 		
 		RNA_property_collection_begin(&self->ptr, self->prop, &iter);
 		for(; iter.valid; RNA_property_collection_next(&iter)) {
-			nameprop= RNA_struct_name_property(&iter.ptr);
-			if(iter.ptr.data && nameprop) {
+			if(iter.ptr.data && (nameprop = RNA_struct_name_property(&iter.ptr))) {
 				nameptr= RNA_property_string_get_alloc(&iter.ptr, nameprop, name, sizeof(name));
 				
 				/* add to python list */
@@ -868,15 +720,10 @@ PyObject *pyrna_prop_values(BPy_PropertyRNA *self)
 		
 		RNA_property_collection_begin(&self->ptr, self->prop, &iter);
 		for(; iter.valid; RNA_property_collection_next(&iter)) {
-			nameprop= RNA_struct_name_property(&iter.ptr);
-			if(iter.ptr.data && nameprop) {
-				
-				/* add to python list */
+			if(iter.ptr.data && (nameprop = RNA_struct_name_property(&iter.ptr))) {
 				item = pyrna_struct_CreatePyObject(&iter.ptr);
 				PyList_Append(ret, item);
 				Py_DECREF(item);
-				/* done */
-				
 			}
 		}
 		RNA_property_collection_end(&iter);
@@ -918,10 +765,10 @@ PyObject *pyrna_prop_iter(BPy_PropertyRNA *self)
 	return NULL;
 }
 
-static struct PyMethodDef pyrna_struct_methods[] = {
+/*static struct PyMethodDef pyrna_struct_methods[] = {
 	{"__dir__", (PyCFunction)pyrna_struct_dir, METH_NOARGS, ""},
 	{NULL, NULL, 0, NULL}
-};
+};*/
 
 static struct PyMethodDef pyrna_prop_methods[] = {
 	{"keys", (PyCFunction)pyrna_prop_keys, METH_NOARGS, ""},
@@ -984,7 +831,7 @@ PyTypeObject pyrna_struct_Type = {
 	NULL,                       /* printfunc tp_print; */
 	NULL,						/* getattrfunc tp_getattr; */
 	NULL,						/* setattrfunc tp_setattr; */
-	( cmpfunc ) pyrna_struct_compare,	/* tp_compare */
+	NULL,						/* tp_compare */ /* DEPRECATED in python 3.0! */
 	( reprfunc ) pyrna_struct_repr,	/* tp_repr */
 
 	/* Method suites for standard classes */
@@ -1028,7 +875,7 @@ PyTypeObject pyrna_struct_Type = {
 	NULL,                       /* iternextfunc tp_iternext; */
 
   /*** Attribute descriptor and subclassing stuff ***/
-	pyrna_struct_methods,		/* struct PyMethodDef *tp_methods; */
+	NULL,			/* struct PyMethodDef *tp_methods; */
 	NULL,                       /* struct PyMemberDef *tp_members; */
 	NULL,      					/* struct PyGetSetDef *tp_getset; */
 	NULL,                       /* struct _typeobject *tp_base; */
@@ -1070,7 +917,7 @@ PyTypeObject pyrna_prop_Type = {
 	NULL,                       /* printfunc tp_print; */
 	NULL,						/* getattrfunc tp_getattr; */
 	NULL,                       /* setattrfunc tp_setattr; */
-	( cmpfunc ) pyrna_prop_compare,	/* tp_compare */
+	NULL,						/* tp_compare */ /* DEPRECATED in python 3.0! */
 	( reprfunc ) pyrna_prop_repr,	/* tp_repr */
 
 	/* Method suites for standard classes */
@@ -1142,6 +989,10 @@ PyTypeObject pyrna_prop_Type = {
 PyObject *pyrna_struct_CreatePyObject( PointerRNA *ptr )
 {
 	BPy_StructRNA *pyrna;
+	
+	if (ptr->data==NULL) {
+		Py_RETURN_NONE;
+	}
 
 	pyrna = ( BPy_StructRNA * ) PyObject_NEW( BPy_StructRNA, &pyrna_struct_Type );
 
@@ -1169,8 +1020,6 @@ PyObject *pyrna_prop_CreatePyObject( PointerRNA *ptr, PropertyRNA *prop )
 	
 	pyrna->ptr = *ptr;
 	pyrna->prop = prop;
-	
-	/* TODO - iterator? */
 		
 	return ( PyObject * ) pyrna;
 }

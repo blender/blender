@@ -35,6 +35,10 @@
 extern PyTypeObject pyop_base_Type;
 extern PyTypeObject pyop_func_Type;
 
+#define BPy_OperatorBase_Check(v)	(PyObject_TypeCheck(v, &pyop_base_Type))
+#define BPy_OperatorFunc_Check(v)	(PyObject_TypeCheck(v, &pyop_func_Type))
+
+
 typedef struct {
 	PyObject_HEAD /* required python macro   */
 	bContext *C;
