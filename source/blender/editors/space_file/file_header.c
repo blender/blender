@@ -152,9 +152,9 @@ void file_header_buttons(const bContext *C, ARegion *ar)
 	
 	if (sfile->params->type != FILE_MAIN) {
 		uiBlockBeginAlign(block);
-		uiDefIconButS(block, ROW, B_RELOADIMASELDIR, ICON_SHORTDISPLAY,	xco+=XIC, yco, XIC,YIC, &params->display, 1.0, 1.0, 0, 0, "Displays short file description");
-		uiDefIconButS(block, ROW, B_RELOADIMASELDIR, ICON_LONGDISPLAY,	xco+=XIC, yco, XIC,YIC, &params->display, 1.0, 2.0, 0, 0, "Displays long file description");
-		uiDefIconButS(block, ROW, B_RELOADIMASELDIR, ICON_IMGDISPLAY,	xco+=XIC, yco, XIC,YIC, &params->display, 1.0, 3.0, 0, 0, "Displays files as thumbnails");
+		uiDefIconButS(block, ROW, B_RELOADIMASELDIR, ICON_SHORTDISPLAY,	xco+=XIC, yco, XIC,YIC, &params->display, 1.0, FILE_SHORTDISPLAY, 0, 0, "Displays short file description");
+		uiDefIconButS(block, ROW, B_RELOADIMASELDIR, ICON_LONGDISPLAY,	xco+=XIC, yco, XIC,YIC, &params->display, 1.0, FILE_LONGDISPLAY, 0, 0, "Displays long file description");
+		uiDefIconButS(block, ROW, B_RELOADIMASELDIR, ICON_IMGDISPLAY,	xco+=XIC, yco, XIC,YIC, &params->display, 1.0, FILE_IMGDISPLAY, 0, 0, "Displays files as thumbnails");
 		uiBlockEndAlign(block);
 		
 		xco+=XIC;

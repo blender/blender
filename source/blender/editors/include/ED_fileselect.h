@@ -30,8 +30,15 @@
 
 struct SpaceFile;
 
+// XXX for Elubie:
+// 	defining FILE_LONGDISPLAY as 0 for now, since that seems to be the default case
+// 	for drawing the files (so that scrollbars will draw correct). 
+// 	Dunno if these values are saved in files, so hopefully this is ok.
+// 	Revert this change if there's a more correct way to do this
+// Aligorith (09Mar2009)
+#define FILE_LONGDISPLAY	0
 #define FILE_SHORTDISPLAY	1
-#define FILE_LONGDISPLAY	2
+//#define FILE_LONGDISPLAY	2
 #define FILE_IMGDISPLAY		3
 
 typedef struct FileSelectParams {

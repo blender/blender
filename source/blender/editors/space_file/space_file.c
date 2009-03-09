@@ -218,11 +218,17 @@ static void file_main_area_draw(const bContext *C, ARegion *ar)
 	glClear(GL_COLOR_BUFFER_BIT);
 	
 	/* Allow dynamically sliders to be set, saves notifiers etc. */
-	if (sfile->params && ( (sfile->params->display == FILE_IMGDISPLAY) || (sfile->params->display == FILE_LONGDISPLAY)) )
+	if (sfile->params && ( (sfile->params->display == FILE_IMGDISPLAY) || (sfile->params->display == FILE_LONGDISPLAY)) ) {
 		v2d->scroll = V2D_SCROLL_RIGHT;
-	else
+		v2d->keepofs &= ~V2D_LOCKOFS_Y;
+		v2d->keepofs |= V2D_LOCKOFS_X;
+	}
+	else {
 		v2d->scroll = V2D_SCROLL_BOTTOM;
-		/* v2d has initialized flag, so this call will only set the mask correct */
+		v2d->keepofs &= ~V2D_LOCKOFS_X;
+		v2d->keepofs |= V2D_LOCKOFS_Y;
+	}
+	/* v2d has initialized flag, so this call will only set the mask correct */
 	UI_view2d_region_reinit(v2d, V2D_COMMONVIEW_LIST, ar->winx, ar->winy);
 
 	/* sets tile/border settings in sfile */
