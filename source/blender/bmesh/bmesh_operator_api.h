@@ -126,7 +126,7 @@ int BMO_InitOpf(BMesh *bm, BMOperator *op, char *fmt, ...);
 /*va_list version, used to implement the above two functions,
    plus EDBM_CallOpf in bmeshutils.c.*/
 int BMO_VInitOpf(BMesh *bm, BMOperator *op, char *fmt, va_list vlist);
-
+/*------end of formatted op system -------*/
 
 BMOpSlot *BMO_GetSlot(struct BMOperator *op, int slotcode);
 void BMO_CopySlot(struct BMOperator *source_op, struct BMOperator *dest_op, int src, int dst);

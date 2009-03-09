@@ -395,14 +395,18 @@ int goodline(float (*projectverts)[3], BMFace *f, int v1i,
 	
 	if (testedgeside(v1, v2, v3)) return 0;
 	
-	do {
-		VECCOPY(pv1, projectverts[l->v->head.eflag2]);
-		VECCOPY(pv2, projectverts[((BMLoop*)l->head.next)->v->head.eflag2]);
+	for (i=0; i<nvert; i++) {
+		if (i == v1i || i == v2i || i == v3i) continue;
+		
+		VECCOPY(pv1, projectverts[i]); //l->v->head.eflag2]);
+		VECCOPY(pv2, projectverts[(i+1) % nvert]); //((BMLoop*)l->head.next)->v->head.eflag2]);
+		
+		//if (linecrosses(pv1, pv2, v1, v3)) return 0;
+		if (point_in_triangle(v1, v2, v3, pv1)) return 0;
+		if (point_in_triangle(v3, v2, v1, pv1)) return 0;
 
-		if (linecrosses(pv1, pv2, v1, v3)) return 0;
-
-		l = l->head.next;
-	} while (l != f->loopbase);
+		//l = l->head.next;
+	} //while (l != f->loopbase);
 	return 1;
 }
 /*

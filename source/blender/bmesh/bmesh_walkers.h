@@ -19,10 +19,24 @@ typedef struct BMWalker {
 	GHash *visithash;
 } BMWalker;
 
-void BMW_Init(struct BMWalker *walker,BMesh *bm,int type, int searchmask);
+void BMW_Init(struct BMWalker *walker, BMesh *bm,int type, int searchmask);
 void *BMW_Begin(BMWalker *walker, void *start);
 void *BMW_Step(struct BMWalker *walker);
 void BMW_End(struct BMWalker *walker);
+
+/*
+example of usage, walking over an island of tool flagged faces:
+
+BMWalker walker;
+BMFace *f;
+
+BMW_Init(&walker, bm, BMW_ISLAND, SOME_OP_FLAG);
+f = BMW_Begin(&walker, some_start_face);
+for (; f; f=BMW_Step(&walker)) {
+	//do something with f
+}
+BMW_End(&walker);
+*/
 
 #define BMW_SHELL	0
 /*#define BMW_LOOP	1
