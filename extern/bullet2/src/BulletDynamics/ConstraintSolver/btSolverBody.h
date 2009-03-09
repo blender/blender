@@ -110,8 +110,8 @@ ATTRIBUTE_ALIGNED16 (struct)	btSolverBody
 	BT_DECLARE_ALIGNED_ALLOCATOR();
 	btVector3		m_deltaLinearVelocity;
 	btVector3		m_deltaAngularVelocity;
-	btScalar		m_angularFactor;
-	btScalar		m_invMass;
+	btVector3		m_angularFactor;
+	btVector3		m_invMass;
 	btScalar		m_friction;
 	btRigidBody*	m_originalBody;
 	btVector3		m_pushVelocity;
@@ -162,7 +162,7 @@ ATTRIBUTE_ALIGNED16 (struct)	btSolverBody
 
 	void	writebackVelocity(btScalar timeStep=0)
 	{
-		if (m_invMass)
+		if (m_originalBody)
 		{
 			m_originalBody->setLinearVelocity(m_originalBody->getLinearVelocity()+m_deltaLinearVelocity);
 			m_originalBody->setAngularVelocity(m_originalBody->getAngularVelocity()+m_deltaAngularVelocity);

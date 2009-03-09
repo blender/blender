@@ -337,6 +337,7 @@ m_ownDispatcher(NULL)
 
 //	m_collisionConfiguration = new btDefaultCollisionConfiguration();
 	m_collisionConfiguration = new btSoftBodyRigidBodyCollisionConfiguration();
+	//m_collisionConfiguration->setConvexConvexMultipointIterations();
 
 	if (!dispatcher)
 	{
@@ -356,6 +357,7 @@ m_ownDispatcher(NULL)
 	setSolverType(1);//issues with quickstep and memory allocations
 //	m_dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher,m_broadphase,m_solver,m_collisionConfiguration);
 	m_dynamicsWorld = new btSoftRigidDynamicsWorld(dispatcher,m_broadphase,m_solver,m_collisionConfiguration);
+	//m_dynamicsWorld->getSolverInfo().m_linearSlop = 0.01f;
 	//m_dynamicsWorld->getSolverInfo().m_solverMode=	SOLVER_USE_WARMSTARTING +	SOLVER_USE_2_FRICTION_DIRECTIONS +	SOLVER_RANDMIZE_ORDER +	SOLVER_USE_FRICTION_WARMSTARTING;
 
 	m_debugDrawer = 0;

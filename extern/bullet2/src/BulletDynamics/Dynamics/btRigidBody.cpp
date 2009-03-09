@@ -44,7 +44,8 @@ void	btRigidBody::setupRigidBody(const btRigidBody::btRigidBodyConstructionInfo&
 
 	m_linearVelocity.setValue(btScalar(0.0), btScalar(0.0), btScalar(0.0));
 	m_angularVelocity.setValue(btScalar(0.),btScalar(0.),btScalar(0.));
-	m_angularFactor = btScalar(1.);
+	m_angularFactor.setValue(1,1,1);
+	m_linearFactor.setValue(1,1,1);
 	m_gravity.setValue(btScalar(0.0), btScalar(0.0), btScalar(0.0));
 	m_gravity_acceleration.setValue(btScalar(0.0), btScalar(0.0), btScalar(0.0));
 	m_totalForce.setValue(btScalar(0.0), btScalar(0.0), btScalar(0.0));

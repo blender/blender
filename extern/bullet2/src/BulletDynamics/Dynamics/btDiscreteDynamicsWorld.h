@@ -23,10 +23,8 @@ class btOverlappingPairCache;
 class btConstraintSolver;
 class btSimulationIslandManager;
 class btTypedConstraint;
+class btActionInterface;
 
-
-class btRaycastVehicle;
-class btCharacterControllerInterface;
 class btIDebugDraw;
 #include "LinearMath/btAlignedObjectArray.h"
 
@@ -52,12 +50,8 @@ protected:
 	bool	m_ownsIslandManager;
 	bool	m_ownsConstraintSolver;
 
+	btAlignedObjectArray<btActionInterface*>	m_actions;
 	
-	btAlignedObjectArray<btRaycastVehicle*>	m_vehicles;
-	
-	btAlignedObjectArray<btCharacterControllerInterface*> m_characters;
-	
-
 	int	m_profileTimings;
 
 	virtual void	predictUnconstraintMotion(btScalar timeStep);
@@ -70,9 +64,7 @@ protected:
 	
 	void	updateActivationState(btScalar timeStep);
 
-	void	updateVehicles(btScalar timeStep);
-
-	void	updateCharacters(btScalar timeStep);
+	void	updateActions(btScalar timeStep);
 
 	void	startProfiling(btScalar timeStep);
 
@@ -105,15 +97,10 @@ public:
 
 	virtual void	removeConstraint(btTypedConstraint* constraint);
 
-	virtual void	addVehicle(btRaycastVehicle* vehicle);
+	virtual void	addAction(btActionInterface*);
 
-	virtual void	removeVehicle(btRaycastVehicle* vehicle);
+	virtual void	removeAction(btActionInterface*);
 	
-	virtual void	addCharacter(btCharacterControllerInterface* character);
-
-	virtual void	removeCharacter(btCharacterControllerInterface* character);
-		
-
 	btSimulationIslandManager*	getSimulationIslandManager()
 	{
 		return m_islandManager;
@@ -130,6 +117,7 @@ public:
 	}
 
 	virtual void	setGravity(const btVector3& gravity);
+
 	virtual btVector3 getGravity () const;
 
 	virtual void	addRigidBody(btRigidBody* body);
@@ -170,6 +158,21 @@ public:
 	{
         (void) numTasks;
 	}
+
+	///obsolete, use updateActions instead
+	virtual void updateVehicles(btScalar timeStep)
+	{
+		updateActions(timeStep);
+	}
+
+	///obsolete, use addAction instead
+	virtual void	addVehicle(btActionInterface* vehicle);
+	///obsolete, use removeAction instead
+	virtual void	removeVehicle(btActionInterface* vehicle);
+	///obsolete, use addAction instead
+	virtual void	addCharacter(btActionInterface* character);
+	///obsolete, use removeAction instead
+	virtual void	removeCharacter(btActionInterface* character);
 
 };
 

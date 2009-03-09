@@ -51,17 +51,7 @@ subject to the following restrictions:
 #include "LinearMath/btIDebugDraw.h"
 
 
-
-//vehicle
-#include "BulletDynamics/Vehicle/btRaycastVehicle.h"
-#include "BulletDynamics/Vehicle/btVehicleRaycaster.h"
-#include "BulletDynamics/Vehicle/btWheelInfo.h"
-#ifdef USE_CHARACTER
-//character
-#include "BulletDynamics/Character/btCharacterControllerInterface.h"
-#endif //USE_CHARACTER
-
-#include "LinearMath/btIDebugDraw.h"
+#include "BulletDynamics/Dynamics/btActionInterface.h"
 #include "LinearMath/btQuickprof.h"
 #include "LinearMath/btMotionState.h"
 
@@ -214,32 +204,11 @@ void	btDiscreteDynamicsWorld::debugDrawWorld()
 
 		}
 	
-		for (  i=0;i<this->m_vehicles.size();i++)
+		if (getDebugDrawer() && getDebugDrawer()->getDebugMode())
 		{
-			for (int v=0;v<m_vehicles[i]->getNumWheels();v++)
+			for (i=0;i<m_actions.size();i++)
 			{
-				btVector3 wheelColor(0,255,255);
-				if (m_vehicles[i]->getWheelInfo(v).m_raycastInfo.m_isInContact)
-				{
-					wheelColor.setValue(0,0,255);
-				} else
-				{
-					wheelColor.setValue(255,0,255);
-				}
-		
-				btVector3 wheelPosWS = m_vehicles[i]->getWheelInfo(v).m_worldTransform.getOrigin();
-
-				btVector3 axle = btVector3(	
-					m_vehicles[i]->getWheelInfo(v).m_worldTransform.getBasis()[0][m_vehicles[i]->getRightAxis()],
-					m_vehicles[i]->getWheelInfo(v).m_worldTransform.getBasis()[1][m_vehicles[i]->getRightAxis()],
-					m_vehicles[i]->getWheelInfo(v).m_worldTransform.getBasis()[2][m_vehicles[i]->getRightAxis()]);
-
-
-				//m_vehicles[i]->getWheelInfo(v).m_raycastInfo.m_wheelAxleWS
-				//debug wheels (cylinders)
-				m_debugDrawer->drawLine(wheelPosWS,wheelPosWS+axle,wheelColor);
-				m_debugDrawer->drawLine(wheelPosWS,m_vehicles[i]->getWheelInfo(v).m_raycastInfo.m_contactPointWS,wheelColor);
-
+				m_actions[i]->debugDraw(m_debugDrawer);
 			}
 		}
 	}
@@ -311,7 +280,7 @@ void	btDiscreteDynamicsWorld::synchronizeMotionStates()
 				synchronizeSingleMotionState(body);
 		}
 	}
-
+/*
 	if (getDebugDrawer() && getDebugDrawer()->getDebugMode() & btIDebugDraw::DBG_DrawWireframe)
 	{
 		for ( int i=0;i<this->m_vehicles.size();i++)
@@ -323,6 +292,8 @@ void	btDiscreteDynamicsWorld::synchronizeMotionStates()
 			}
 		}
 	}
+	*/
+
 
 }
 
@@ -428,10 +399,8 @@ void	btDiscreteDynamicsWorld::internalSingleStepSimulation(btScalar timeStep)
 	integrateTransforms(timeStep);
 
 	///update vehicle simulation
-	updateVehicles(timeStep);
+	updateActions(timeStep);
 	
-	updateCharacters(timeStep);
-
 	updateActivationState( timeStep );
 
 	if(0 != m_internalTickCallback) {
@@ -495,31 +464,15 @@ void	btDiscreteDynamicsWorld::addRigidBody(btRigidBody* body, short group, short
 }
 
 
-void	btDiscreteDynamicsWorld::updateVehicles(btScalar timeStep)
+void	btDiscreteDynamicsWorld::updateActions(btScalar timeStep)
 {
-	BT_PROFILE("updateVehicles");
+	BT_PROFILE("updateActions");
 	
-	for ( int i=0;i<m_vehicles.size();i++)
+	for ( int i=0;i<m_actions.size();i++)
 	{
-		btRaycastVehicle* vehicle = m_vehicles[i];
-		vehicle->updateVehicle( timeStep);
+		m_actions[i]->updateAction( this, timeStep);
 	}
 }
-
-void	btDiscreteDynamicsWorld::updateCharacters(btScalar timeStep)
-{
-#ifdef USE_CHARACTER
-	BT_PROFILE("updateCharacters");
-	
-	for ( int i=0;i<m_characters.size();i++)
-	{
-		btCharacterControllerInterface* character = m_characters[i];
-		character->preStep (this);
-		character->playerStep (this,timeStep);
-	}
-#endif //USE_CHARACTER
-}
-
 	
 	
 void	btDiscreteDynamicsWorld::updateActivationState(btScalar timeStep)
@@ -576,28 +529,35 @@ void	btDiscreteDynamicsWorld::removeConstraint(btTypedConstraint* constraint)
 	constraint->getRigidBodyB().removeConstraintRef(constraint);
 }
 
-void	btDiscreteDynamicsWorld::addVehicle(btRaycastVehicle* vehicle)
+void	btDiscreteDynamicsWorld::addAction(btActionInterface* action)
 {
-	m_vehicles.push_back(vehicle);
+	m_actions.push_back(action);
 }
 
-void	btDiscreteDynamicsWorld::removeVehicle(btRaycastVehicle* vehicle)
+void	btDiscreteDynamicsWorld::removeAction(btActionInterface* action)
 {
-	m_vehicles.remove(vehicle);
+	m_actions.remove(action);
 }
 
-void	btDiscreteDynamicsWorld::addCharacter(btCharacterControllerInterface* character)
+
+void	btDiscreteDynamicsWorld::addVehicle(btActionInterface* vehicle)
 {
-#ifdef USE_CHARACTER
-	m_characters.push_back(character);
-#endif //USE_CHARACTER
+	addAction(vehicle);
 }
 
-void	btDiscreteDynamicsWorld::removeCharacter(btCharacterControllerInterface* character)
+void	btDiscreteDynamicsWorld::removeVehicle(btActionInterface* vehicle)
 {
-#ifdef USE_CHARACTER
-	m_characters.remove(character);
-#endif //USE_CHARACTER
+	removeAction(vehicle);
+}
+
+void	btDiscreteDynamicsWorld::addCharacter(btActionInterface* character)
+{
+	addAction(character);
+}
+
+void	btDiscreteDynamicsWorld::removeCharacter(btActionInterface* character)
+{
+	removeAction(character);
 }
 
 

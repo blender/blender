@@ -262,8 +262,8 @@ int maxdirsterid(const T *p,int count,const T &dir,btAlignedObjectArray<int> &al
 		int ma=-1;
 		for(btScalar x = btScalar(0.0) ; x<= btScalar(360.0) ; x+= btScalar(45.0))
 		{
-			btScalar s = sinf(SIMD_RADS_PER_DEG*(x));
-			btScalar c = cosf(SIMD_RADS_PER_DEG*(x));
+			btScalar s = btSin(SIMD_RADS_PER_DEG*(x));
+			btScalar c = btCos(SIMD_RADS_PER_DEG*(x));
 			int mb = maxdirfiltered(p,count,dir+(u*s+v*c)*btScalar(0.025),allow);
 			if(ma==m && mb==m)
 			{
@@ -275,8 +275,8 @@ int maxdirsterid(const T *p,int count,const T &dir,btAlignedObjectArray<int> &al
 				int mc = ma;
 				for(btScalar xx = x-btScalar(40.0) ; xx <= x ; xx+= btScalar(5.0))
 				{
-					btScalar s = sinf(SIMD_RADS_PER_DEG*(xx));
-					btScalar c = cosf(SIMD_RADS_PER_DEG*(xx));
+					btScalar s = btSin(SIMD_RADS_PER_DEG*(xx));
+					btScalar c = btCos(SIMD_RADS_PER_DEG*(xx));
 					int md = maxdirfiltered(p,count,dir+(u*s+v*c)*btScalar(0.025),allow);
 					if(mc==m && md==m)
 					{
