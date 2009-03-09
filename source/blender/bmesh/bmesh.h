@@ -216,7 +216,9 @@ struct EditMesh *bmesh_to_editmesh(BMesh *bm);
 #include "bmesh_filters.h"
 #include "bmesh_iterators.h"
 #include "bmesh_marking.h"
+#include "bmesh_operator_api.h"
 #include "bmesh_operators.h"
+#include "bmesh_error.h"
 #include "bmesh_queries.h"
 #include "bmesh_walkers.h"
 

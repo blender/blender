@@ -758,7 +758,7 @@ void *BMO_IterNew(BMOIter *iter, BMesh *bm, BMOperator *op,
 
 void *BMO_IterStep(BMOIter *iter)
 {
-	if (iter->slot->slottype == BMOP_OPSLOT_PNT_BUF) {
+	if (iter->slot->slottype == BMOP_OPSLOT_ELEMENT_BUF) {
 		if (iter->cur >= iter->slot->len) return NULL;
 
 		return ((void**)iter->slot->data.buf)[iter->cur++];
