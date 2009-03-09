@@ -35,6 +35,7 @@ int BMO_CatchOpError(BMesh *bm, BMOperator *catchop, int errorcode, char **msg);
 #define BMERR_WALKER_FAILED			4
 #define BMERR_DISSOLVEFACES_FAILED		5
 #define BMERR_DISSOLVEVERTS_FAILED		6
+#define BMERR_TESSELATION			7
 
 static char *bmop_error_messages[] = {
        0,
@@ -44,6 +45,7 @@ static char *bmop_error_messages[] = {
        "Could not traverse mesh",
        "Could not dissolve faces",
        "Could not dissolve vertices",
+       "Tesselation error",
 };
 
 #endif /* _BMESH_ERROR_H */

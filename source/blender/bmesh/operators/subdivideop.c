@@ -489,7 +489,8 @@ static void t_3edge_split(BMesh *bm, BMFace *face, BMVert **verts,
 		a = numcuts*2 + 2 + i;
 		b = numcuts + numcuts - i;
 		e = BM_Connect_Verts(bm, verts[a], verts[b], &nf);
-		
+		if (!e) goto cleanup;
+
 		BMO_SetFlag(bm, e, ELE_INNER);
 		BMO_SetFlag(bm, nf, ELE_INNER);
 
@@ -531,8 +532,9 @@ sv7/---v---\ v3 s
 		}
 	}
 
+cleanup:
 	for (i=1; i<numcuts+2; i++) {
-		MEM_freeN(lines[i]);
+		if (lines[i]) MEM_freeN(lines[i]);
 	}
 
 	MEM_freeN(lines);

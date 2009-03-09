@@ -57,7 +57,7 @@ void dissolvefaces_exec(BMesh *bm, BMOperator *op)
 	BMLoop ***regions = NULL;
 	BMLoop **region = NULL;
 	BMWalker walker, regwalker;
-	int i, j, fcopied;
+	int i, j, a, fcopied;
 
 	BMO_Flag_Buffer(bm, op, BMOP_DISFACES_FACEIN, FACE_MARK);
 	
@@ -134,8 +134,17 @@ void dissolvefaces_exec(BMesh *bm, BMOperator *op)
 			edges[V_COUNT(edges)-1] = region[j]->e;
 		}
 		
-		f= BM_Make_Ngon(bm, region[0]->v, region[1]->v,  edges, j, 1);
-		
+		if (region[0]->e->v1 == region[0]->v)
+			f= BM_Make_Ngon(bm, region[0]->e->v1, region[0]->e->v2,  edges, j, 1);
+		else
+			f= BM_Make_Ngon(bm, region[0]->e->v2, region[0]->e->v1,  edges, j, 1);
+
+		if (!f) {
+			BMO_RaiseError(bm, op, BMERR_DISSOLVEFACES_FAILED, 
+			                "Could not create merged face");
+			goto cleanup;
+		}
+
 		/*if making the new face failed (e.g. overlapping test)
 		  unmark the original faces for deletion.*/
 		BMO_ClearFlag(bm, f, FACE_ORIG);
@@ -170,7 +179,7 @@ void dissolvefaces_exec(BMesh *bm, BMOperator *op)
 	}
 
 	BMO_CallOpf(bm, "del geom=%ff context=%d", FACE_ORIG, DEL_FACES);
-	if (BMO_HasError(bm)) return;
+	if (BMO_HasError(bm)) goto cleanup;
 
 	BMO_Flag_To_Slot(bm, op, BMOP_DISFACES_REGIONOUT, FACE_NEW, BM_FACE);
 
@@ -189,6 +198,7 @@ void dissolveverts_exec(BMesh *bm, BMOperator *op)
 	BMIter iter, fiter;
 	BMVert *v;
 	BMFace *f;
+	int i;
 	
 	vinput = BMO_GetSlot(op, BMOP_DISVERTS_VERTIN);
 
@@ -211,6 +221,18 @@ void dissolveverts_exec(BMesh *bm, BMOperator *op)
 			BMO_ClearStack(bm);
 			BMO_RaiseError(bm, op, BMERR_DISSOLVEVERTS_FAILED,msg);
 	}
+	
+	/*clean up any remaining*/
+	for (v=BMIter_New(&iter, bm, BM_VERTS, NULL); v; v=BMIter_Step(&iter)) {
+		if (BMO_TestFlag(bm, v, VERT_MARK)) {
+			if (!BM_Dissolve_Vert(bm, v)) {
+				BMO_RaiseError(bm, op, 
+					BMERR_DISSOLVEVERTS_FAILED, NULL);
+				return;
+			}
+		}
+	}
+
 }
 
 /*this code is for cleaning up two-edged faces, it shall become

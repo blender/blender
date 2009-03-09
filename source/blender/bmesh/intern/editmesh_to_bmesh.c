@@ -249,6 +249,11 @@ static void fuse_fgon(BMesh *bm, BMFace *f)
 				if (((BMLoop*)l->radial.next->data)->f->head.flag & BM_ACTIVE) act = BM_ACTIVE;
 
 				sf = BM_Join_Faces(bm,l->f, ((BMLoop*)l->radial.next->data)->f, l->e, 0,0);
+				if (!sf) {
+					//tesselation error
+					break;
+				}
+
 				sf->head.flag |= act;
 				if(sf){
 					done = 0;

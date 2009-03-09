@@ -1111,7 +1111,7 @@ static EnumPropertyItem prop_mesh_delete_types[] = {
 	{4, "EDGE_FACE","Edges & Faces", ""},
 	{5, "ONLY_FACE","Only Faces", ""},
 	{6, "EDGE_LOOP","Edge Loop", ""},
-	{7, "COLLAPSE","Collapse", ""},
+	{7, "DISSOLVE","Dissolve Verts", ""},
 	{0, NULL, NULL, NULL}
 };
 
@@ -6921,7 +6921,9 @@ static int convert_quads_to_tris_exec(bContext *C, wmOperator *op)
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
 	
-	convert_to_triface(em,0);
+	//convert_to_triface(em,0);
+	if (!EDBM_CallOpf(em, op, "triangulate faces=%hf", BM_SELECT))
+		return OPERATOR_CANCELLED;
 	
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 	
