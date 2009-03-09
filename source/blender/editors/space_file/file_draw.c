@@ -113,9 +113,9 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 	char name[20];
 	char *menu;
 	float slen;
-	float parentbut_width = 20;
-	float bookmarkbut_width = 0.0f;
-	float file_start_width = 0.0f;
+	float button_width = 20.0f;
+	float fsmenubut_width = 0.0f;
+	float bookmarkbut_width = button_width;
 
 	int filebuty1, filebuty2;
 
@@ -150,11 +150,11 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 	menu= fsmenu_build_menu();
 
 	if (menu[0]&& (params->type != FILE_MAIN)) {
-		bookmarkbut_width = file_start_width;
+		fsmenubut_width = button_width;
 	}
 
-	uiDefBut(block, TEX, 0 /* XXX B_FS_FILENAME */,"",	xmin+file_start_width+bookmarkbut_width+2, filebuty1, xmax-xmin-loadbutton-file_start_width, 21, params->file, 0.0, (float)FILE_MAXFILE-1, 0, 0, "");
-	uiDefBut(block, TEX, 0 /* XXX B_FS_DIRNAME */,"",	xmin+file_start_width+bookmarkbut_width+2, filebuty2, xmax-xmin-loadbutton-file_start_width, 21, params->dir, 0.0, (float)FILE_MAXFILE-1, 0, 0, "");
+	uiDefBut(block, TEX, 0 /* XXX B_FS_FILENAME */,"",	xmin+bookmarkbut_width+2, filebuty1, xmax-xmin-loadbutton-bookmarkbut_width-4, 21, params->file, 0.0, (float)FILE_MAXFILE-1, 0, 0, "");
+	uiDefBut(block, TEX, 0 /* XXX B_FS_DIRNAME */,"",	xmin+fsmenubut_width+2, filebuty2, xmax-xmin-loadbutton-fsmenubut_width-4, 21, params->dir, 0.0, (float)FILE_MAXFILE-1, 0, 0, "");
 	
 	if(loadbutton) {
 		uiSetCurFont(block, UI_HELV);
@@ -166,8 +166,8 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 	   disallow external directory browsing for databrowse */
 
 	if(menu[0] && (params->type != FILE_MAIN))	{ 
-		uiDefButS(block, MENU, 0 /* B_FS_DIR_MENU */, menu, xmin, filebuty1, parentbut_width, 21, &params->menu, 0, 0, 0, 0, "");
-		uiDefBut(block, BUT, 0 /* B_FS_BOOKMARK */, "B", xmin+22, filebuty1, bookmarkbut_width, 21, 0, 0, 0, 0, 0, "Bookmark current directory");
+		uiDefButS(block, MENU, 0 /* B_FS_DIR_MENU */, menu, xmin, filebuty2, fsmenubut_width, 21, &params->menu, 0, 0, 0, 0, "");
+		uiDefBut(block, BUT, 0 /* B_FS_BOOKMARK */, "B", xmin, filebuty1, bookmarkbut_width, 21, 0, 0, 0, 0, 0, "Bookmark current directory");
 	}
 
 	MEM_freeN(menu);
@@ -506,31 +506,37 @@ void file_draw_list(const bContext *C, ARegion *ar)
 		if (params->display != FILE_SHOWSHORT) {
 #if 0 // XXX TODO: add this for non-windows systems
 			/* rwx rwx rwx */
-			x += 20; glRasterPos2i(x, y); 
-			BMF_DrawString(G.font, files->mode1); 
-		
-			x += 30; glRasterPos2i(x, y); 
-			BMF_DrawString(G.font, files->mode2); 
-		
-			x += 30; glRasterPos2i(x, y); 
-			BMF_DrawString(G.font, files->mode3); 
-		
-			/* owner time date */
-			x += 30; glRasterPos2i(x, y); 
-			BMF_DrawString(G.font, files->owner); 
+			spos += 20;
+			sw = UI_GetStringWidth(G.font, file->mode1, 0);
+			file_draw_string(spos, sy, file->mode1, sw, layout->tile_h); 
+			
+			spos += 30;
+			sw = UI_GetStringWidth(G.font, file->mode2, 0);
+			file_draw_string(spos, sy, file->mode2, sw, layout->tile_h);
+
+			spos += 30;
+			sw = UI_GetStringWidth(G.font, file->mode3, 0);
+			file_draw_string(spos, sy, file->mode3, sw, layout->tile_h);
+			
+			spos += 30;
+			sw = UI_GetStringWidth(G.font, file->owner, 0);
+			file_draw_string(spos, sy, file->owner, sw, layout->tile_h);
 #endif
-			spos += 60;
-			sw = UI_GetStringWidth(G.font, file->time, 0);
-			file_draw_string(spos, sy, file->time, sw, layout->tile_h); 
-			spos += sw;
+
 			spos += 50;
 			sw = UI_GetStringWidth(G.font, file->date, 0);
 			file_draw_string(spos, sy, file->date, sw, layout->tile_h);
 
+			spos += 100;
+			sw = UI_GetStringWidth(G.font, file->time, 0);
+			file_draw_string(spos, sy, file->time, sw, layout->tile_h); 
+			
+			sw = UI_GetStringWidth(G.font, file->size, 0);
+			spos += 200-sw;
+			file_draw_string(spos, sy, file->size, sw, layout->tile_h);
+		} else {
+			file_draw_string(sx + layout->tile_w - 2*layout->tile_border_x - sw - 4, sy, file->size, layout->tile_w - layout->tile_border_x - sw - 5, layout->tile_h);
 		}
-
-		file_draw_string(sx + layout->tile_w - 2*layout->tile_border_x - sw - 4, sy, file->size, layout->tile_w - layout->tile_border_x - sw - 5, layout->tile_h);
-
 	}
 }
 

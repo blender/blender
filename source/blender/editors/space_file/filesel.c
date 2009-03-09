@@ -144,6 +144,9 @@ int ED_fileselect_layout_offset(FileLayout* layout, int x, int y)
 	offsetx = (x)/(layout->tile_w + 2*layout->tile_border_x);
 	offsety = (y)/(layout->tile_h + 2*layout->tile_border_y);
 	
+	if (offsetx > layout->columns-1) offsetx = layout->columns-1 ;
+	if (offsety > layout->rows-1) offsety = layout->rows-1 ;
+
 	if (layout->flag & FILE_LAYOUT_HOR) 
 		active_file = layout->rows*offsetx + offsety;
 	else
@@ -189,10 +192,12 @@ void ED_fileselect_init_layout(struct SpaceFile *sfile, struct ARegion *ar)
 		sfile->layout->tile_h = sfile->layout->prv_h + 2*sfile->layout->prv_border_y + U.fontsize;
 		sfile->layout->width= (v2d->cur.xmax - v2d->cur.xmin - 2*sfile->layout->tile_border_x);
 		sfile->layout->columns= sfile->layout->width / (sfile->layout->tile_w + 2*sfile->layout->tile_border_x);
-		if(sfile->layout->columns)
+		if(sfile->layout->columns > 0)
 			sfile->layout->rows= numfiles/sfile->layout->columns + 1; // XXX dirty, modulo is zero
-		else
+		else {
+			sfile->layout->columns = 1;
 			sfile->layout->rows= numfiles + 1; // XXX dirty, modulo is zero
+		}
 		sfile->layout->height= sfile->layout->rows*(sfile->layout->tile_h+2*sfile->layout->tile_border_y) + sfile->layout->tile_border_y*2;
 		sfile->layout->flag = FILE_LAYOUT_VER;
 	} else if (params->display == FILE_SHORTDISPLAY) {
@@ -211,8 +216,10 @@ void ED_fileselect_init_layout(struct SpaceFile *sfile, struct ARegion *ar)
 		sfile->layout->tile_w = maxlen + 100;
 		if(sfile->layout->rows > 0)
 			sfile->layout->columns = numfiles/sfile->layout->rows + 1; // XXX dirty, modulo is zero
-		else
+		else {
+			sfile->layout->rows = 1;
 			sfile->layout->columns = numfiles + 1; // XXX dirty, modulo is zero
+		}
 		sfile->layout->width = sfile->layout->columns * (sfile->layout->tile_w + 2*sfile->layout->tile_border_x) + sfile->layout->tile_border_x*2;
 		sfile->layout->flag = FILE_LAYOUT_HOR;
 	} else {
@@ -225,7 +232,7 @@ void ED_fileselect_init_layout(struct SpaceFile *sfile, struct ARegion *ar)
 		sfile->layout->tile_w = v2d->cur.xmax - v2d->cur.xmin - 2*sfile->layout->tile_border_x;
 		sfile->layout->tile_h = U.fontsize*3/2;
 		sfile->layout->width= (v2d->cur.xmax - v2d->cur.xmin + 2*sfile->layout->tile_border_x);
-		sfile->layout->rows= numfiles;
+		sfile->layout->rows= numfiles+1;
 		sfile->layout->columns= 1;
 		sfile->layout->height= sfile->layout->rows*(sfile->layout->tile_h+2*sfile->layout->tile_border_y) + sfile->layout->tile_border_y*2;	
 		sfile->layout->flag = FILE_LAYOUT_VER;

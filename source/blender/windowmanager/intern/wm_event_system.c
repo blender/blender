@@ -776,7 +776,7 @@ static int wm_handler_fileselect_call(bContext *C, ListBase *handlers, wmEventHa
 				sfile= (SpaceFile*)CTX_wm_space_data(C);
 				sfile->op= handler->op;
 				
-				ED_fileselect_set_params(sfile, filetype, handler->op->type->name, path, 0, 0, 0);
+				ED_fileselect_set_params(sfile, filetype, handler->op->type->name, path, 0, FILE_SHORTDISPLAY, 0);
 				MEM_freeN(path);
 				
 				action= WM_HANDLER_BREAK;
