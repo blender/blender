@@ -127,6 +127,14 @@ struct KX_ObjectProperties
 
 	/////////////////////////
 	
+	bool	m_lockXaxis;
+	bool	m_lockYaxis;
+	bool	m_lockZaxis;
+	bool	m_lockXRotaxis;
+	bool	m_lockYRotaxis;
+	bool	m_lockZRotaxis;
+
+	/////////////////////////
 	double  m_margin;
 	KX_BoundBoxClass	m_boundclass;
 	union {

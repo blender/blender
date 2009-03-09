@@ -1315,6 +1315,12 @@ void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 		CreateMaterialFromBlenderObject(blenderobject, kxscene);
 					
 	KX_ObjectProperties objprop;
+	objprop.m_lockXaxis = (blenderobject->gameflag2 & OB_LOCK_RIGID_BODY_X_AXIS) !=0;
+	objprop.m_lockYaxis = (blenderobject->gameflag2 & OB_LOCK_RIGID_BODY_Y_AXIS) !=0;
+	objprop.m_lockZaxis = (blenderobject->gameflag2 & OB_LOCK_RIGID_BODY_Z_AXIS) !=0;
+	objprop.m_lockXRotaxis = (blenderobject->gameflag2 & OB_LOCK_RIGID_BODY_X_ROT_AXIS) !=0;
+	objprop.m_lockYRotaxis = (blenderobject->gameflag2 & OB_LOCK_RIGID_BODY_Y_ROT_AXIS) !=0;
+	objprop.m_lockZRotaxis = (blenderobject->gameflag2 & OB_LOCK_RIGID_BODY_Z_ROT_AXIS) !=0;
 
 	objprop.m_isCompoundChild = isCompoundChild;
 	objprop.m_hasCompoundChildren = (blenderobject->gameflag & OB_CHILD) != 0;
