@@ -76,6 +76,7 @@ struct BMLoop;
 #define BM_HIDDEN	(1<<3)
 #define BM_SHARP	(1<<4)
 #define BM_SMOOTH	(1<<5)
+#define BM_ACTIVE	(1<<6)
 
 typedef struct BMHeader {
 	struct BMHeader *next, *prev;

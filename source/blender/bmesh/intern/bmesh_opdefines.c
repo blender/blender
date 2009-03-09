@@ -4,7 +4,7 @@
 #include <stdio.h>
 
 BMOpDefine def_connectverts = {
-	"connectvert",
+	"connectverts",
 	{{BMOP_OPSLOT_PNT_BUF, "verts"},
 	{BMOP_OPSLOT_PNT_BUF, "edgeout"}},
 	connectverts_exec,

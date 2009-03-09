@@ -86,6 +86,8 @@ void BMO_Set_Pnt(struct BMOperator *op, int slotcode, void *p);
 void BMO_Set_Vec(struct BMOperator *op, int slotcode, float *vec);
 void BMO_SetFlag(struct BMesh *bm, void *element, int flag);
 void BMO_ClearFlag(struct BMesh *bm, void *element, int flag);
+
+/*flags 15 and 16 (1<<14 and 1<<15) are reserved for bmesh api use*/
 int BMO_TestFlag(struct BMesh *bm, void *element, int flag);
 int BMO_CountFlag(struct BMesh *bm, int flag, int type);
 void BMO_Flag_To_Slot(struct BMesh *bm, struct BMOperator *op, int slotcode, int flag, int type);
@@ -340,10 +342,9 @@ void BM_esubdivideflag(struct Object *obedit, struct BMesh *bm, int selflag, flo
 	       int flag, int numcuts, int seltype);
 void BM_extrudefaceflag(BMesh *bm, int flag);
 
-/*these next two return 1 if they did anything, or zero otherwise.
+/*this next one return 1 if they did anything, or zero otherwise.
   they're kindof a hackish way to integrate with fkey, until
   such time as fkey is completely bmeshafied.*/
-int BM_DissolveFaces(struct EditMesh *em, int flag);
 /*this doesn't display errors to the user, btw*/
 int BM_ConnectVerts(struct EditMesh *em, int flag);
 

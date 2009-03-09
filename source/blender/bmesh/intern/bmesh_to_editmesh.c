@@ -167,7 +167,6 @@ static EditFace *bmeshface_to_editface(BMesh *bm, EditMesh *em, BMFace *f, EditV
 
 	efa->mat_nr = (unsigned char)f->mat_nr;
 
-
 	/*Copy normal*/
 	efa->n[0] = f->no[0];
 	efa->n[1] = f->no[1];
@@ -177,6 +176,7 @@ static EditFace *bmeshface_to_editface(BMesh *bm, EditMesh *em, BMFace *f, EditV
 	if (f->head.flag & BM_SELECT) efa->f |= SELECT;
 	if (f->head.flag & BM_HIDDEN) efa->h = 1;
 	if (f->head.flag & BM_SMOOTH) efa->flag |= ME_SMOOTH;
+	if (f->head.flag & BM_ACTIVE) EM_set_actFace(em, efa);
 
 	CustomData_em_copy_data(&bm->pdata, &em->fdata, f->data, &efa->data);
 	loops_to_editmesh_corners(bm, &em->fdata, efa->data, f, numCol,numTex);
@@ -230,6 +230,10 @@ EditMesh *bmesh_to_editmesh_intern(BMesh *bm)
 	MEM_freeN(evlist);
 
 	EM_fgon_flags(em);
+
+	EM_nvertices_selected(em);
+	EM_nedges_selected(em);
+	EM_nfaces_selected(em);
 
 	return em;
 }

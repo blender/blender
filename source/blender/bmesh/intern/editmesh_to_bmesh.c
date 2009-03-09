@@ -189,6 +189,8 @@ static BMFace *editface_to_BMFace(BMesh *bm, EditMesh *em, EditFace *efa, int nu
 		f->mat_nr = efa->mat_nr;
 		if(efa->f & SELECT) BM_Select_Face(bm, f, 1);
 		if(efa->h) f->head.flag |= BM_HIDDEN;
+
+		if (efa == em->act_face) f->head.flag |= BM_ACTIVE;
 		
 		CustomData_bmesh_copy_data(&em->fdata, &bm->pdata, efa->data, &f->data);
 		editmesh_corners_to_loops(bm, &em->fdata, efa->data, f,numCol,numTex);
@@ -234,7 +236,7 @@ static void fuse_fgon(BMesh *bm, BMFace *f)
 {
 	BMFace *sf;
 	BMLoop *l;
-	int done;
+	int done, act=0;
 
 	sf = f;
 	done = 0;
@@ -242,8 +244,12 @@ static void fuse_fgon(BMesh *bm, BMFace *f)
 		done = 1;
 		l = sf->loopbase;
 		do{
-			if(l->e->head.flag & BM_FGON){ 
+			if(l->e->head.flag & BM_FGON) { 
+				if (l->f->head.flag & BM_ACTIVE) act = BM_ACTIVE;
+				if (((BMLoop*)l->radial.next->data)->f->head.flag & BM_ACTIVE) act = BM_ACTIVE;
+
 				sf = BM_Join_Faces(bm,l->f, ((BMLoop*)l->radial.next->data)->f, l->e, 0,0);
+				sf->head.flag |= act;
 				if(sf){
 					done = 0;
 					break;

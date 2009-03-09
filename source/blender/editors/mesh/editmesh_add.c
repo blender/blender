@@ -669,15 +669,42 @@ static void addedgeface_mesh(EditMesh *em, wmOperator *op)
 	EditFace *efa;
 	short amount=0;
 	
+	/*return if bmesh vert connect does anything.*/
 	if (em->selectmode & SCE_SELECT_VERTEX) {
-		/*return if bmesh vert connect does anything.*/
-		if (BM_ConnectVerts(em, BM_SELECT)) return;
+		BMesh *bm = editmesh_to_bmesh(em);
+		BMOperator bmop;
+		int len, ok;
+
+		BMO_InitOpf(bm, &bmop, "connectverts verts=%hv", BM_SELECT);
+		BMO_Exec_Op(bm, &bmop);
+		BMO_Finish_Op(bm, &bmop);
+
+		ok = EDBM_Finish(bm, em, op, 1);
+		if (!ok) return OPERATOR_CANCELLED;
+
+		len = BMO_GetSlot(&bmop, BM_CONVERTS_EDGEOUT)->len;		
+		if (len) return;	
 	}
 
+	/*return if bmesh face dissolve finds stuff to
+	  dissolve.  this entire tool should be
+	  bmeshafied eventually, but until then
+	  hacks like this to integrate with it
+	  are necassary.*/
 	if (em->selectmode & SCE_SELECT_FACE) {
-		/*return if bmesh face dissolve finds stuff to
-		  dissolve.*/
-		if (BM_DissolveFaces(em, BM_SELECT)) return;
+		BMesh *bm = editmesh_to_bmesh(em);
+		BMOperator bmop;
+		int len, ok;
+
+		BMO_InitOpf(bm, &bmop, "dissolvefaces faces=%hf", BM_SELECT);
+		BMO_Exec_Op(bm, &bmop);
+		BMO_Finish_Op(bm, &bmop);
+
+		ok = EDBM_Finish(bm, em, op, 1);
+		if (!ok) return OPERATOR_CANCELLED;
+
+		len = BMO_GetSlot(&bmop, BMOP_DISFACES_REGIONOUT)->len;		
+		if (len) return;
 	}
 
 	/* how many selected ? */

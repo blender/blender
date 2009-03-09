@@ -210,20 +210,33 @@ void BM_Face_CopyShared(BMesh *bm, BMFace *f) {
 BMFace *BM_Make_Ngon(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **edges, int len, int nodouble)
 {
 	BMVert *vert_buf[VERT_BUF_SIZE];
-	BMVert **verts = vert_buf;
+	BMVert **verts = vert_buf, *lastv;
 	BMFace *f = NULL;
-	int overlap = 0, i;
+	int overlap = 0, i, j;
 
 	if(nodouble){
 		if(len > VERT_BUF_SIZE)
 			verts = MEM_callocN(sizeof(BMVert *) * len, "bmesh make ngon vertex array");
-		for(i = 0; i < len; i++){
+		
+		/*if ((edges[i]->v1 == edges[i]->v1) || 
+		   (edges[i]->v1 == edges[i]->v2))
+		{
+			lastv = edges[i]->v2;
+		} else lastv = edges[i]->v1;
+		verts[0] = lastv;
+
+		for (i=1; i<len; i++) {
+			if (!BMO_TestFlag
+		}*/
+
+		for(i = 0, j=0; i < len; i++){
 			if(!BMO_TestFlag(bm, edges[i]->v1, BM_EDGEVERT)){
 				BMO_SetFlag(bm, edges[i]->v1, BM_EDGEVERT);
-				verts[i] = edges[i]->v1;
-			} else if(!BMO_TestFlag(bm, edges[i]->v2, BM_EDGEVERT)) {
+				verts[j++] = edges[i]->v1;
+			}
+			if(!BMO_TestFlag(bm, edges[i]->v2, BM_EDGEVERT)) {
 				BMO_SetFlag(bm, edges[i]->v2, BM_EDGEVERT);
-				verts[i] = edges[i]->v2;
+				verts[j++] = edges[i]->v2;
 			}
 		}
 		

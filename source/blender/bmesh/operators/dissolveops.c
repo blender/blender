@@ -13,8 +13,38 @@
 
 #define FACE_MARK	1
 #define FACE_ORIG	2
-#define VERT_MARK	1
 #define FACE_NEW	4
+#define EDGE_MARK	1
+
+#define VERT_MARK	1
+
+static int check_hole_in_region(BMesh *bm, BMFace *f) {
+	BMWalker regwalker;
+	BMIter liter2;
+	BMLoop *l2, *l3;
+	BMFace *f2;
+	
+	/*checks if there are any unmarked boundary edges in the face region*/
+
+	BMW_Init(&regwalker, bm, BMW_ISLAND, FACE_MARK);
+	f2 = BMW_Begin(&regwalker, f);
+	for (; f2; f2=BMW_Step(&regwalker)) {
+		l2 = BMIter_New(&liter2, bm, BM_LOOPS_OF_FACE, f2);
+		for (; l2; l2=BMIter_Step(&liter2)) {			
+			l3 = bmesh_radial_nextloop(l2);
+			if (BMO_TestFlag(bm, l3->f, FACE_MARK) 
+			    != BMO_TestFlag(bm, l2->f, FACE_MARK))
+			{
+				if (!BMO_TestFlag(bm, l2->e, EDGE_MARK)) {
+					return 0;
+				}
+			}
+		}
+	}
+	BMW_End(&regwalker);
+
+	return 1;
+}
 
 void dissolvefaces_exec(BMesh *bm, BMOperator *op)
 {
@@ -51,6 +81,7 @@ void dissolvefaces_exec(BMesh *bm, BMOperator *op)
 				for (; l; l=BMW_Step(&walker)) {
 					V_GROW(region);
 					region[V_COUNT(region)-1] = l;
+					BMO_SetFlag(bm, l->e, EDGE_MARK);
 				}
 				BMW_End(&walker);
 
@@ -62,6 +93,14 @@ void dissolvefaces_exec(BMesh *bm, BMOperator *op)
 				
 				if (region == NULL) continue;
 
+				/*check for holes in boundary*/
+				if (!check_hole_in_region(bm, region[0]->f)) {
+					BMO_RaiseError(bm, op, 
+					      BMERR_DISSOLVEFACES_FAILED, 
+					      "Hole(s) in face region");
+					goto cleanup;
+				}
+				
 				BMW_Init(&regwalker, bm, BMW_ISLAND, FACE_MARK);
 				f2 = BMW_Begin(&regwalker, region[0]->f);
 				for (; f2; f2=BMW_Step(&regwalker)) {
@@ -95,22 +134,11 @@ void dissolvefaces_exec(BMesh *bm, BMOperator *op)
 			edges[V_COUNT(edges)-1] = region[j]->e;
 		}
 		
-		f= BM_Make_Ngon(bm, edges[0]->v1, edges[0]->v2,  edges, j, 0);
+		f= BM_Make_Ngon(bm, region[0]->v, region[1]->v,  edges, j, 1);
 		
-		if (!f) continue;
-
-		/*
-		NOTE: sadly, make ngon's overlap checking option
-		      crashes ;/
-		make ngon can fail, if there was already an existing face.
-		this is desired behaviour, I think, so we'll just silently
-		ignore any possible other error cases.
-		if (!f) {
-			//raise error
-			BMO_RaiseError(bm, op, BMERR_DISSOLVEFACES_FAILED, NULL);
-			goto cleanup;
-		}*/
-		
+		/*if making the new face failed (e.g. overlapping test)
+		  unmark the original faces for deletion.*/
+		BMO_ClearFlag(bm, f, FACE_ORIG);
 		BMO_SetFlag(bm, f, FACE_NEW);
 
 		fcopied = 0;
@@ -155,24 +183,6 @@ cleanup:
 	V_FREE(regions);
 }
 
-/*returns 1 if any faces were dissolved*/
-int BM_DissolveFaces(EditMesh *em, int flag) {
-	BMesh *bm = editmesh_to_bmesh(em);
-	EditMesh *em2;
-	BMOperator op;
-
-	BMO_Init_Op(&op, BMOP_DISSOLVE_FACES);
-	BMO_HeaderFlag_To_Slot(bm, &op, BMOP_DISFACES_FACEIN, flag, BM_FACE);
-	BMO_Exec_Op(bm, &op);
-	BMO_Finish_Op(bm, &op);
-	
-	em2 = bmesh_to_editmesh(bm);
-	set_editMesh(em, em2);
-	MEM_freeN(em2);
-
-	return BMO_GetSlot(&op, BMOP_DISFACES_REGIONOUT)->len > 0;
-}
-
 void dissolveverts_exec(BMesh *bm, BMOperator *op)
 {
 	BMOpSlot *vinput;
@@ -195,8 +205,11 @@ void dissolveverts_exec(BMesh *bm, BMOperator *op)
 
 	BMO_CallOpf(bm, "dissolvefaces faces=%ff", FACE_MARK);
 	if (BMO_HasError(bm)) {
+			char *msg;
+
+			BMO_GetError(bm, &msg, NULL);
 			BMO_ClearStack(bm);
-			BMO_RaiseError(bm, op, BMERR_DISSOLVEVERTS_FAILED, NULL);
+			BMO_RaiseError(bm, op, BMERR_DISSOLVEVERTS_FAILED,msg);
 	}
 }
 
