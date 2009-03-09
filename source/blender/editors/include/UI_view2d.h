@@ -68,6 +68,7 @@ enum {
 	/* for drawing time */
 	V2D_UNIT_SECONDS = 0,
 	V2D_UNIT_FRAMES,
+	V2D_UNIT_FRAMESCALE,
 	
 	/* for drawing values */
 	V2D_UNIT_VALUES,

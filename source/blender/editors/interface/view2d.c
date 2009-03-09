@@ -1468,9 +1468,13 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 			/* draw numbers in the appropriate range */
 			if (dfac > 0.0f) {
 				for (; fac < hor.xmax; fac+=dfac, val+=grid->dx) {
-					switch (vs->xunits) {
+					switch (vs->xunits) {							
 						case V2D_UNIT_FRAMES:		/* frames (as whole numbers)*/
 							scroll_printstr(vs, scene, fac, 3.0f+(float)(hor.ymin), val, grid->powerx, V2D_UNIT_FRAMES, 'h');
+							break;
+							
+						case V2D_UNIT_FRAMESCALE:	/* frames (not always as whole numbers) */
+							scroll_printstr(vs, scene, fac, 3.0f+(float)(hor.ymin), val, grid->powerx, V2D_UNIT_FRAMESCALE, 'h');
 							break;
 						
 						case V2D_UNIT_SECONDS:		/* seconds */
@@ -1490,7 +1494,7 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 						}
 							break;
 							
-						case V2D_UNIT_DEGREES:		/* IPO-Editor for rotation IPO-Drivers */
+						case V2D_UNIT_DEGREES:		/* Graph Editor for rotation Drivers */
 							/* HACK: although we're drawing horizontal, we make this draw as 'vertical', just to get degree signs */
 							scroll_printstr(vs, scene, fac, 3.0f+(float)(hor.ymin), val, grid->powerx, V2D_UNIT_DEGREES, 'v');
 							break;
