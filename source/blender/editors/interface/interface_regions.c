@@ -261,7 +261,7 @@ static void ui_tooltip_region_draw(const bContext *C, ARegion *ar)
 {
 	uiTooltipData *data;
 	int x1, y1, x2, y2;
-
+	
 	data= ar->regiondata;
 
 	x1= ar->winrct.xmin;
@@ -269,34 +269,21 @@ static void ui_tooltip_region_draw(const bContext *C, ARegion *ar)
 	x2= ar->winrct.xmax;
 	y2= ar->winrct.ymax;
 
-	/* draw drop shadow */
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glEnable(GL_BLEND);
-
-	glColor4ub(0, 0, 0, 20);
-	
-	gl_round_box(GL_POLYGON, 3, 3, x2-x1-3, y2-y1-2, 2.0);
-	gl_round_box(GL_POLYGON, 3, 2, x2-x1-2, y2-y1-2, 3.0);
-	
-	glColor4ub(0, 0, 0, 8);
-	
-	gl_round_box(GL_POLYGON, 3, 1, x2-x1-1, y2-y1-3, 4.0);
-	gl_round_box(GL_POLYGON, 3, 0, x2-x1-0, y2-y1-3, 5.0);
-
-	glDisable(GL_BLEND);
-	
 	/* draw background */
-	glColor3f(1.0f, 1.0f, 0.8666f);
-	glRectf(0, 4, x2-x1-4, y2-y1);
+	glEnable(GL_BLEND);
+	glColor4f(0.15f, 0.15f, 0.15f, 0.85f);
+	
+	uiSetRoundBox(15);
+	uiRoundBox(data->bbox.xmin, 2, data->bbox.xmax+10, y2-y1-2, 5.0f);
 	
 	/* draw text */
-	glColor3ub(0,0,0);
+	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 
-	/* set the position for drawing text +4 in from the left edge, and leaving
+	/* set the position for drawing text +6 in from the left edge, and leaving
 	 * an equal gap between the top of the background box and the top of the
 	 * string's bbox, and the bottom of the background box, and the bottom of
 	 * the string's bbox */
-	ui_rasterpos_safe(4, ((y2-data->bbox.ymax)+(y1+data->bbox.ymin))/2 - data->bbox.ymin - y1, data->aspect);
+	ui_rasterpos_safe(5, ((y2-data->bbox.ymax)+(y1+data->bbox.ymin))/2 - data->bbox.ymin - y1, data->aspect);
 	UI_SetScale(1.0);
 
 	UI_DrawString(data->font, data->tip, ui_translate_tooltips());

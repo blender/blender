@@ -84,14 +84,13 @@ static SpaceLink *file_new(const bContext *C)
 	ar= MEM_callocN(sizeof(ARegion), "header for file");
 	BLI_addtail(&sfile->regionbase, ar);
 	ar->regiontype= RGN_TYPE_HEADER;
-	ar->alignment= RGN_ALIGN_BOTTOM;
+	ar->alignment= RGN_ALIGN_TOP;
 
 	/* channel list region */
 	ar= MEM_callocN(sizeof(ARegion), "channel area for file");
 	BLI_addtail(&sfile->regionbase, ar);
 	ar->regiontype= RGN_TYPE_CHANNELS;
-	ar->alignment= RGN_ALIGN_LEFT;
-	ar->flag |= RGN_FLAG_HIDDEN;
+	ar->alignment= RGN_ALIGN_LEFT;	
 
 	/* ui list region */
 	ar= MEM_callocN(sizeof(ARegion), "ui area for file");
@@ -302,7 +301,7 @@ static void file_channel_area_draw(const bContext *C, ARegion *ar)
 	View2D *v2d= &ar->v2d;
 	float col[3];
 
-	UI_GetThemeColor3fv(TH_BACK, col);
+	UI_GetThemeColor3fv(TH_PANEL, col);
 	glClearColor(col[0], col[1], col[2], 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
 
@@ -350,7 +349,7 @@ static void file_ui_area_draw(const bContext *C, ARegion *ar)
 {
 	float col[3];
 	/* clear */
-	UI_GetThemeColor3fv(TH_BACK, col);
+	UI_GetThemeColor3fv(TH_PANEL, col);
 	glClearColor(col[0], col[1], col[2], 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
 
@@ -403,7 +402,7 @@ void ED_spacetype_file(void)
 	/* regions: ui */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype file region");
 	art->regionid = RGN_TYPE_UI;
-	art->minsizey= 80;
+	art->minsizey= 60;
 	art->keymapflag= ED_KEYMAP_UI;
 	art->init= file_ui_area_init;
 	art->draw= file_ui_area_draw;

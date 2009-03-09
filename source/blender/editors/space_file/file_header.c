@@ -128,10 +128,10 @@ void file_header_buttons(const bContext *C, ARegion *ar)
 	
 	xco= ED_area_header_standardbuttons(C, block, yco);
 	
+	/*
 	if((sa->flag & HEADER_NO_PULLDOWN)==0) {
 		int xmax;
 		
-		/* pull down menus */
 		uiBlockSetEmboss(block, UI_EMBOSSP);
 		
 		xmax= GetButStringLength("View");
@@ -139,34 +139,46 @@ void file_header_buttons(const bContext *C, ARegion *ar)
 						 "View", xco, yco-2, xmax-3, 24, "");
 		xco+=XIC+xmax;
 	}
+	 */
 	
 	/* SORT TYPE */
 	uiBlockSetEmboss(block, UI_EMBOSSX);
+	
+	xco += 5;
+	
+	uiDefIconButO(block, BUT, "FILE_OT_parent", WM_OP_INVOKE_DEFAULT, ICON_TRIA_UP, xco, yco, 20, 20, "Navigate to Parent Folder");
+	
 	xco+=XIC;
+	
+	if (sfile->params->type != FILE_MAIN) {
+		uiBlockBeginAlign(block);
+		uiDefIconButS(block, ROW, B_RELOADIMASELDIR, ICON_SHORTDISPLAY,	xco+=XIC, yco, XIC,YIC, &params->display, 1.0, 1.0, 0, 0, "Displays short file description");
+		uiDefIconButS(block, ROW, B_RELOADIMASELDIR, ICON_LONGDISPLAY,	xco+=XIC, yco, XIC,YIC, &params->display, 1.0, 2.0, 0, 0, "Displays long file description");
+		uiDefIconButS(block, ROW, B_RELOADIMASELDIR, ICON_IMGDISPLAY,	xco+=XIC, yco, XIC,YIC, &params->display, 1.0, 3.0, 0, 0, "Displays files as thumbnails");
+		uiBlockEndAlign(block);
+		
+		xco+=XIC;
+	}
+	
 	uiBlockBeginAlign(block);
-	uiDefIconButS(block, ROW, B_SORTIMASELLIST, ICON_SORTALPHA,	xco+=XIC,0,XIC,YIC, &params->sort, 1.0, 0.0, 0, 0, "Sorts files alphabetically");
-	uiDefIconButS(block, ROW, B_SORTIMASELLIST, ICON_SORTBYEXT,	xco+=XIC,0,XIC,YIC, &params->sort, 1.0, 3.0, 0, 0, "Sorts files by extension");	
-	uiDefIconButS(block, ROW, B_SORTIMASELLIST, ICON_SORTTIME,	xco+=XIC,0,XIC,YIC, &params->sort, 1.0, 1.0, 0, 0, "Sorts files by time");
-	uiDefIconButS(block, ROW, B_SORTIMASELLIST, ICON_SORTSIZE,	xco+=XIC,0,XIC,YIC, &params->sort, 1.0, 2.0, 0, 0, "Sorts files by size");	
+	uiDefIconButS(block, ROW, B_SORTIMASELLIST, ICON_SORTALPHA,	xco+=XIC, yco, XIC,YIC, &params->sort, 1.0, 0.0, 0, 0, "Sorts files alphabetically");
+	uiDefIconButS(block, ROW, B_SORTIMASELLIST, ICON_SORTBYEXT,	xco+=XIC, yco, XIC,YIC, &params->sort, 1.0, 3.0, 0, 0, "Sorts files by extension");	
+	uiDefIconButS(block, ROW, B_SORTIMASELLIST, ICON_SORTTIME,	xco+=XIC, yco, XIC,YIC, &params->sort, 1.0, 1.0, 0, 0, "Sorts files by time");
+	uiDefIconButS(block, ROW, B_SORTIMASELLIST, ICON_SORTSIZE,	xco+=XIC, yco, XIC,YIC, &params->sort, 1.0, 2.0, 0, 0, "Sorts files by size");	
 	uiBlockEndAlign(block);
-	xco+=XIC+10;
+	
+	xco+=XIC;
 
+	/* replace with consistent sub-region collapsing
 	if (sfile->params->type != FILE_MAIN) {
 		uiBlockBeginAlign(block);
 		// uiDefIconButBitS(block, TOG, FILE_BOOKMARKS, B_RELOADIMASELDIR, ICON_BOOKMARKS,xco+=XIC,0,XIC,YIC, &params->flag, 0, 0, 0, 0, "Toggles Bookmarks on/off");
-		uiDefIconButO(block, TOG, "FILE_OT_bookmark_toggle", WM_OP_INVOKE_DEFAULT, ICON_BOOKMARKS, xco,yco,20,20, "Toggle Bookmarks");
+		uiDefIconButO(block, TOG, "FILE_OT_bookmark_toggle", WM_OP_INVOKE_DEFAULT, ICON_BOOKMARKS, xco+XIC,yco,20,20, "Toggle Bookmarks");
 		uiBlockEndAlign(block);
-		xco+=XIC+10;
-	} 
+		xco+=XIC;
+	}
+	 */
 
-	if (sfile->params->type != FILE_MAIN) {
-		uiBlockBeginAlign(block);
-		uiDefIconButS(block, ROW, B_RELOADIMASELDIR, ICON_SHORTDISPLAY,	xco+=XIC,0,XIC,YIC, &params->display, 1.0, 1.0, 0, 0, "Displays short file description");
-		uiDefIconButS(block, ROW, B_RELOADIMASELDIR, ICON_LONGDISPLAY,	xco+=XIC,0,XIC,YIC, &params->display, 1.0, 2.0, 0, 0, "Displays long file description");
-		uiDefIconButS(block, ROW, B_RELOADIMASELDIR, ICON_IMAGE_COL /* ICON_IMGDISPLAY */,	xco+=XIC,0,XIC,YIC, &params->display, 1.0, 3.0, 0, 0, "Displays files as thumbnails");
-		uiBlockEndAlign(block);
-		xco+=XIC+10;
-	} 
 	xcotitle= xco;
 	xco+= UI_GetStringWidth(G.font, params->title, 0);
 

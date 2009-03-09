@@ -76,7 +76,7 @@
 #include "file_intern.h"	// own include
 
 /* ui geometry */
-#define IMASEL_BUTTONS_HEIGHT 60
+#define IMASEL_BUTTONS_HEIGHT 40
 #define TILE_BORDER_X 8
 #define TILE_BORDER_Y 8
 
@@ -119,11 +119,11 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 
 	int filebuty1, filebuty2;
 
-	float xmin = 10;
+	float xmin = 8;
 	float xmax = ar->winx - 10;
 
-	filebuty1= ar->winy - IMASEL_BUTTONS_HEIGHT;
-	filebuty2= filebuty1+IMASEL_BUTTONS_HEIGHT/2 -6;
+	filebuty1= ar->winy - IMASEL_BUTTONS_HEIGHT - 12;
+	filebuty2= filebuty1 + IMASEL_BUTTONS_HEIGHT/2 + 4;
 
 	/* HEADER */
 	sprintf(name, "win %p", ar);
@@ -150,13 +150,12 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 	menu= fsmenu_build_menu();
 
 	if (menu[0]&& (params->type != FILE_MAIN)) {
-		bookmarkbut_width = parentbut_width;
-		file_start_width = parentbut_width;
+		bookmarkbut_width = file_start_width;
 	}
 
-	uiDefBut(block, TEX, 0 /* XXX B_FS_FILENAME */,"",	xmin+file_start_width+bookmarkbut_width+2, filebuty1, xmax-xmin-loadbutton-file_start_width-bookmarkbut_width, 21, params->file, 0.0, (float)FILE_MAXFILE-1, 0, 0, "");
-	uiDefBut(block, TEX, 0 /* XXX B_FS_DIRNAME */,"",	xmin+parentbut_width, filebuty2, xmax-xmin-loadbutton-parentbut_width, 21, params->dir, 0.0, (float)FILE_MAXFILE-1, 0, 0, "");
-
+	uiDefBut(block, TEX, 0 /* XXX B_FS_FILENAME */,"",	xmin+file_start_width+bookmarkbut_width+2, filebuty1, xmax-xmin-loadbutton-file_start_width, 21, params->file, 0.0, (float)FILE_MAXFILE-1, 0, 0, "");
+	uiDefBut(block, TEX, 0 /* XXX B_FS_DIRNAME */,"",	xmin+file_start_width+bookmarkbut_width+2, filebuty2, xmax-xmin-loadbutton-file_start_width, 21, params->dir, 0.0, (float)FILE_MAXFILE-1, 0, 0, "");
+	
 	if(loadbutton) {
 		uiSetCurFont(block, UI_HELV);
 		uiDefBut(block, BUT, B_FS_EXEC, params->title,	xmax-loadbutton, filebuty2, loadbutton, 21, params->dir, 0.0, (float)FILE_MAXFILE-1, 0, 0, "");
@@ -173,7 +172,6 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 
 	MEM_freeN(menu);
 
-	uiDefBut(block, BUT, B_FS_PARENT, "P", xmin, filebuty2, parentbut_width, 21, 0, 0, 0, 0, 0, "Move to the parent directory (PKEY)");	
 	uiEndBlock(C, block);
 	uiDrawBlock(C, block);
 }
@@ -213,6 +211,37 @@ static float shorten_string(char* string, float w)
 		}
 	}
 	return sw;
+}
+
+static int get_file_icon(struct direntry *file)
+{
+	if (file->type & S_IFDIR)
+		return ICON_FILE_FOLDER;
+	else if (file->flags & BLENDERFILE)
+		return ICON_FILE_BLEND;
+	else if (file->flags & IMAGEFILE)
+		return ICON_FILE_IMAGE;
+	else if (file->flags & MOVIEFILE)
+		return ICON_FILE_MOVIE;
+	else if (file->flags & PYSCRIPTFILE)
+		return ICON_FILE_MOVIE;
+	else
+		return ICON_FILE_BLANK;
+}
+
+static void file_draw_icon(short sx, short sy, int icon, short width, short height)
+{
+	float x,y;
+	int blend=0;
+	
+	x = (float)(sx);
+	y = (float)(sy-height);
+	
+	if (icon == ICON_FILE_BLANK) blend = -80;
+	
+	glEnable(GL_BLEND);
+	
+	UI_icon_draw_aspect_blended(x, y, icon, 1.f, blend);
 }
 
 static void file_draw_string(short sx, short sy, char* string, short width, short height)
@@ -292,17 +321,14 @@ void file_draw_previews(const bContext *C, ARegion *ar)
 		sy = v2d->tot.ymax - sy;
 		file = filelist_file(files, i);				
 
-		if (params->active_file == i) {
-			colorid = TH_ACTIVE;
-			draw_tile(sx - 1, sy, sfile->layout->tile_w + 1, sfile->layout->tile_h, colorid,0);
-		} else if (file->flags & ACTIVE) {
+		if (file->flags & ACTIVE) {
 			colorid = TH_HILITE;
 			draw_tile(sx - 1, sy, sfile->layout->tile_w + 1, sfile->layout->tile_h, colorid,0);
-		} else {
-			colorid = TH_BACK;
-			draw_tile(sx, sy, sfile->layout->tile_w, sfile->layout->tile_h, colorid, -5);
+		} else if (params->active_file == i) {
+			colorid = TH_ACTIVE;
+			draw_tile(sx - 1, sy, sfile->layout->tile_w + 1, sfile->layout->tile_h, colorid,0);
 		}
-
+		
 		if ( (file->flags & IMAGEFILE) /* || (file->flags & MOVIEFILE) */)
 		{
 			if (do_load) {					
@@ -315,21 +341,41 @@ void file_draw_previews(const bContext *C, ARegion *ar)
 			imb = filelist_getimage(files, i);
 		}
 
-		if (imb) {		
+		if (imb) {
 			float fx = ((float)layout->prv_w - (float)imb->x)/2.0f;
 			float fy = ((float)layout->prv_h - (float)imb->y)/2.0f;
-			short dx = (short)(fx + 0.5f + sfile->layout->prv_border_x);
-			short dy = (short)(fy + 0.5f - sfile->layout->prv_border_y);
+			float dx = (fx + 0.5f + sfile->layout->prv_border_x);
+			float dy = (fy + 0.5f - sfile->layout->prv_border_y);
+			float xco = (float)sx + dx;
+			float yco = (float)sy - sfile->layout->prv_h + dy;
+			
+			glBlendFunc(GL_SRC_ALPHA,  GL_ONE_MINUS_SRC_ALPHA);
+			
+			/* shadow */
+			if (file->flags & IMAGEFILE)
+				uiDrawBoxShadow(220, xco, yco, xco + imb->x, yco + imb->y);
 			
 			glEnable(GL_BLEND);
-			glBlendFunc(GL_SRC_ALPHA,  GL_ONE_MINUS_SRC_ALPHA);													
+			
+			/* the image */
 			// glaDrawPixelsSafe((float)sx+8 + dx, (float)sy - imgwidth + dy - 8, imb->x, imb->y, imb->x, GL_RGBA, GL_UNSIGNED_BYTE, imb->rect);
 			glColor4f(1.0, 1.0, 1.0, 1.0);
-			glaDrawPixelsTex((float)sx + dx, (float)sy - sfile->layout->prv_h + dy, imb->x, imb->y,GL_UNSIGNED_BYTE, imb->rect);
+			glaDrawPixelsTex(xco, yco, imb->x, imb->y, GL_UNSIGNED_BYTE, imb->rect);
+			
+			/* border */
+			if (file->flags & IMAGEFILE) {
+				glColor4f(0.0, 0.0, 0.0, 0.4);
+				fdrawbox(xco, yco, xco + imb->x, yco + imb->y);
+			}
+			
 			glDisable(GL_BLEND);
 			imb = 0;
 		}
 
+		/* shadow */
+		UI_ThemeColorShade(TH_BACK, -60);
+		file_draw_string(sx + layout->prv_border_x, sy+3, file->relname, layout->tile_w, layout->tile_h);
+		
 		if (type == FILE_MAIN) {
 			glColor4f(1.0f, 1.0f, 1.0f, 1.0f);			
 		}
@@ -356,14 +402,14 @@ void file_draw_previews(const bContext *C, ARegion *ar)
 				}
 			}
 		}
-			
-		file_draw_string(sx + layout->prv_border_x, sy+U.fontsize*3/2, file->relname, layout->tile_w, layout->tile_h);
+		file_draw_string(sx + layout->prv_border_x, sy+4, file->relname, layout->tile_w, layout->tile_h);
 
 		if (!sfile->loadimage_timer)
 			sfile->loadimage_timer= WM_event_add_window_timer(CTX_wm_window(C), TIMER1, 1.0/30.0);	/* max 30 frames/sec. */
 
 	}
 
+	uiSetRoundBox(0);
 }
 
 
@@ -392,6 +438,19 @@ void file_draw_list(const bContext *C, ARegion *ar)
 	offset = ED_fileselect_layout_offset(layout, 0, 0);
 	if (offset<0) offset=0;
 
+	/* alternating flat shade background */
+	for (i=offset; (i <= numfiles); ++i)
+	{
+		ED_fileselect_layout_tilepos(layout, i, &sx, &sy);
+		sx = v2d->tot.xmin;
+		sy = v2d->tot.ymax - (sy + 2*layout->tile_border_y);
+		
+		if (i % 2) UI_ThemeColor(TH_BACK);
+		else UI_ThemeColorShade(TH_BACK, -10);
+		glRectf(v2d->tot.xmin, sy, v2d->tot.xmax, sy+layout->tile_h+2*layout->tile_border_y);
+	}
+	
+	/* vertical column dividers */
 	while (sx < ar->v2d.cur.xmax) {
 		sx += (sfile->layout->tile_w+2*sfile->layout->tile_border_x);
 		glColor4ub(0xB0,0xB0,0xB0, 0xFF);
@@ -400,11 +459,9 @@ void file_draw_list(const bContext *C, ARegion *ar)
 		sdrawline(sx,  ar->v2d.cur.ymax - layout->tile_border_y ,  sx,  ar->v2d.cur.ymin + layout->tile_border_y); 
 	}
 
-
 	sx = ar->v2d.cur.xmin + layout->tile_border_x;
 	sy = ar->v2d.cur.ymax - layout->tile_border_y;
 
-	if (offset<0) offset=0;
 	for (i=offset; (i < numfiles); ++i)
 	{
 		ED_fileselect_layout_tilepos(layout, i, &sx, &sy);
@@ -437,8 +494,14 @@ void file_draw_list(const bContext *C, ARegion *ar)
 		}
 		
 		spos = sx;
+		
+		file_draw_icon(spos, sy-3, get_file_icon(file), 16, 16);
+		
+		spos += 16 + 4;
+		
 		sw = UI_GetStringWidth(G.font, file->size, 0);
 		file_draw_string(spos, sy, file->relname, layout->tile_w - sw - 5, layout->tile_h);
+		
 		spos += filelist_maxnamelen(sfile->files);
 		if (params->display != FILE_SHOWSHORT) {
 #if 0 // XXX TODO: add this for non-windows systems
@@ -483,10 +546,10 @@ void file_draw_fsmenu(const bContext *C, ARegion *ar)
 	int bmwidth = ar->v2d.cur.xmax - ar->v2d.cur.xmin - 2*TILE_BORDER_X;
 	int fontsize = U.fontsize;
 
-		sx = ar->v2d.cur.xmin + TILE_BORDER_X;
-		sy = ar->v2d.cur.ymax-2*TILE_BORDER_Y;
-		for (i=0; i< nentries && (sy > ar->v2d.cur.ymin) ;++i) {
-			char *fname = fsmenu_get_entry(i);
+	sx = ar->v2d.cur.xmin + TILE_BORDER_X;
+	sy = ar->v2d.cur.ymax-2*TILE_BORDER_Y;
+	for (i=0; i< nentries && (sy > ar->v2d.cur.ymin) ;++i) {
+		char *fname = fsmenu_get_entry(i);
 
 		if (fname) {
 			int sl;

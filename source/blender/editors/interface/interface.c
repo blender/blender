@@ -1743,6 +1743,13 @@ void ui_check_but(uiBut *but)
 		else {
 			sprintf(but->drawstr, "%s%d", but->str, (int)value);
 		}
+			
+		if(but->rnaprop) {
+			PropertySubType pstype = RNA_property_subtype(&but->rnapoin, but->rnaprop);
+			
+			if (pstype == PROP_PERCENTAGE)
+				strcat(but->drawstr, "%");
+		}
 		break;
 
 	case LABEL:

@@ -404,7 +404,7 @@ void info_header_buttons(const bContext *C, ARegion *ar)
 		uiBlockSetEmboss(block, UI_EMBOSSP);
 		
 		xmax= GetButStringLength("File");
-		uiDefMenuBut(block, info_filemenu, NULL, "File", xco, yco, xmax-3, 24, "");
+		uiDefMenuBut(block, info_filemenu, NULL, "File", xco, yco, xmax-3, 22, "");
 		xco+= xmax;
 		
 		xmax= GetButStringLength("Add");

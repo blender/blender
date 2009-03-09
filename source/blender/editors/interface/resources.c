@@ -458,11 +458,18 @@ void ui_theme_init_userdef(void)
 	/* space file */
 	/* to have something initialized */
 	btheme->tfile= btheme->tv3d;
-	SETCOL(btheme->tfile.back, 	128, 128, 128, 255);
-	SETCOL(btheme->tfile.text, 	0, 0, 0, 255);
+	SETCOL(btheme->tfile.back, 	90, 90, 90, 255);
+	SETCOL(btheme->tfile.text, 	240, 240, 240, 255);
 	SETCOL(btheme->tfile.text_hi, 255, 255, 255, 255);
-	SETCOL(btheme->tfile.header, 182, 182, 182, 255);
-	SETCOL(btheme->tfile.hilite, 0xA0, 0xA0, 0xD0, 255); // selected files
+	SETCOL(btheme->tfile.header, 195, 195, 195, 255);
+	SETCOL(btheme->tfile.panel, 195, 195, 195, 255);	// bookmark/ui regions
+	SETCOL(btheme->tfile.active, 130, 130, 130, 255); // selected files
+	SETCOL(btheme->tfile.hilite, 0xFF, 0xA0, 0x00, 255); // selected files
+	
+	SETCOL(btheme->tfile.grid,	240, 240, 240, 255);
+	SETCOL(btheme->tfile.image,	240, 240, 240, 255);
+	SETCOL(btheme->tfile.movie,	240, 240, 240, 255);
+	SETCOL(btheme->tfile.scene,	240, 240, 240, 255);
 
 	
 	/* space action */

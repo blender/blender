@@ -896,6 +896,10 @@ static void round_button_shaded(int type, int colorid, float asp, float x1, floa
 	int alpha_offs= (flag & UI_BUT_DISABLED)?UI_DISABLED_ALPHA_OFFS:0;
 	float shadefac;
 	
+	/* emboss */
+	UI_ThemeColorShade(TH_BUT_OUTLINE, 50);
+	uiRoundRectFakeAA(x1, y1-1, x2, y2-1, rad, asp);
+	
 	/* colour shading */
 	if (flag & UI_SELECT) {
 		shadefac = -0.05;
@@ -924,6 +928,10 @@ static void round_button_flat(int colorid, float asp, float x1, float y1, float 
 {	
 	int alpha_offs= (flag & UI_BUT_DISABLED)?UI_DISABLED_ALPHA_OFFS:0;
 	
+	/* emboss */
+	UI_ThemeColorShade(TH_BUT_OUTLINE, 50);
+	uiRoundRectFakeAA(x1, y1-1, x2, y2-1, rad, asp);
+	
 	/* colour shading */
 	if(flag & UI_SELECT) {
 		if (flag & UI_ACTIVE) UI_ThemeColorShade(colorid, -20);
@@ -933,16 +941,13 @@ static void round_button_flat(int colorid, float asp, float x1, float y1, float 
 		if(flag & UI_ACTIVE) UI_ThemeColorShade(colorid, 35);
 		else UI_ThemeColorShade(colorid, 25);
 	}
-	/* end colour shading */
 	
 	/* the solid base */
 	gl_round_box(GL_POLYGON, x1, y1, x2, y2, rad);
 	
 	/* outline */
 	UI_ThemeColorBlendShadeAlpha(TH_BUT_OUTLINE, TH_BACK, 0.1, -30, alpha_offs);
-	
 	uiRoundRectFakeAA(x1, y1, x2, y2, rad, asp);
-	/* end outline */
 }
 
 static void ui_checkmark_box(int colorid, float x1, float y1, float x2, float y2)
@@ -1993,9 +1998,10 @@ static void ui_draw_slider(int colorid, float fac, float aspect, float x1, float
 	ymid= (y1+y2)/2.0;
 	yc= 1.7*aspect;	
 
-	if(flag & UI_ACTIVE) UI_ThemeColorShade(colorid, -50); 
+	if(flag & UI_ACTIVE) UI_ThemeColorShade(colorid, -60); 
 	else UI_ThemeColorShade(colorid, -40); 
 
+	origround = round;
 	round &= ~(2|4);
 	uiSetRoundBox(round);
 	
@@ -2005,7 +2011,7 @@ static void ui_draw_slider(int colorid, float fac, float aspect, float x1, float
 		float start_rad;
 		
 		start_rad = fac;
-		ofsy = (rad - fac) * 0.5;
+		ofsy = (origround!=0) ? ((rad - fac) * 0.5) : 0.f;	/* shrink in Y if rounded but */
 		
 		gl_round_box(GL_POLYGON, x1, y1+ofsy, x1+fac, y2-ofsy, start_rad);
 		
@@ -2013,32 +2019,38 @@ static void ui_draw_slider(int colorid, float fac, float aspect, float x1, float
 		/* if the slider is in the middle */
 		
 		gl_round_box(GL_POLYGON, x1, y1, x1+fac, y2, rad);
-		
+	
 	} else if (x1+fac >= x2-rad) {
 		/* if the slider is in the right end cap */
 		float extx, ofsy;
 		float end_rad;
 		
 		/* draw the full slider area at 100% */
-		uiSetRoundBox(1+2+4+8);
+		uiSetRoundBox(origround);
 		gl_round_box(GL_POLYGON, x1, y1, x2, y2, rad);
 		
-		/* tricky hack to trim off right end curve by drawing over it */
+		/* don't draw anything else if the slider is completely full */
+		if (x2 - (x1+fac) < 0.05f)	
+			return;
+		
+		/* tricky to trim off right end curve by drawing over it */
 		extx = ((x1 + fac) - (x2 - rad)) * aspect;	/* width of extension bit */
 		end_rad = rad - extx - 1.0;
-		ofsy = extx * 0.4;
+		ofsy = (origround!=0) ? (extx * 0.4) : 0.f; 	/* shrink in Y if rounded but */
 		
 		if (end_rad > 1.0) {
 			
 			if(flag & UI_SELECT) UI_ThemeColorShade(colorid, -20);
 			else UI_ThemeColorShade(colorid, -0);
 			
-			uiSetRoundBox(2+4);
-			gl_round_box(GL_POLYGON, x1+fac-1.0, y1+ofsy, x2, y2-ofsy, end_rad);
+			round = origround;
+			round &= ~(1|8);
+			uiSetRoundBox(round);
+			gl_round_box(GL_POLYGON, x1+fac-1.0, y1+ofsy, x2-1.0, y2-ofsy, end_rad);
 		}
 		
 		UI_ThemeColorBlendShadeAlpha(TH_BUT_OUTLINE, TH_BACK, 0.1, -30, alpha_offs);
-		uiSetRoundBox(1+2+4+8);
+		uiSetRoundBox(origround);
 		uiRoundRectFakeAA(x1, y1, x2, y2, rad, aspect);
 	}
 	
@@ -2191,17 +2203,73 @@ static void ui_draw_pulldown_round(int type, int colorid, float asp, float x1, f
 
 /* ************** TEXT AND ICON DRAWING FUNCTIONS ************* */
 
+#define BUT_TEXT_NORMAL	0
+#define BUT_TEXT_SUNKEN	1
 
+static void ui_draw_text(uiBut *but, float x, float y, int sunken)
+{
+	int alpha_offs= (but->flag & UI_BUT_DISABLED)?UI_DISABLED_ALPHA_OFFS:0;
+	int col_offs = 0;
+	int transopts;
+	int len;
+	char *cpoin;
+	
+	if (sunken) {
+		y -= 1.0;
+		col_offs = 230;
+	}
+	
+	/* text color, with pulldown item exception */
+	if(but->dt==UI_EMBOSSP) {
+		if((but->flag & UI_ACTIVE) && but->type!=LABEL) {	// LABEL = title in pulldowns
+			UI_ThemeColorShadeAlpha(TH_MENU_TEXT_HI, col_offs, alpha_offs);
+		} else {
+			UI_ThemeColorShadeAlpha(TH_MENU_TEXT, col_offs, alpha_offs);
+		}
+	}
+	else {
+		if(but->flag & UI_SELECT) {		
+			UI_ThemeColorShadeAlpha(TH_BUT_TEXT_HI, col_offs, alpha_offs);
+		} else {
+			UI_ThemeColorShadeAlpha(TH_BUT_TEXT, col_offs, alpha_offs);
+		}
+	}
+	
+	/* LABEL button exception */
+	if(but->type==LABEL && but->min!=0.0) UI_ThemeColorShade(TH_BUT_TEXT_HI, col_offs);
+	
+	ui_rasterpos_safe(x, y, but->aspect);
+	if(but->type==IDPOIN) transopts= 0;	// no translation, of course!
+	else transopts= ui_translate_buttons();
+	
+	/* cut string in 2 parts */
+	cpoin= strchr(but->drawstr, '|');
+	if(cpoin) *cpoin= 0;		
+	
+#ifdef INTERNATIONAL
+	if (but->type == FTPREVIEW)
+		FTF_DrawNewFontString (but->drawstr+but->ofs, FTF_INPUT_UTF8);
+	else
+		UI_DrawString(but->font, but->drawstr+but->ofs, transopts);
+#else
+	UI_DrawString(but->font, but->drawstr+but->ofs, transopts);
+#endif
+	
+	/* part text right aligned */
+	if(cpoin) {
+		len= UI_GetStringWidth(but->font, cpoin+1, ui_translate_buttons());
+		ui_rasterpos_safe( but->x2 - len*but->aspect-3, y, but->aspect);
+		UI_DrawString(but->font, cpoin+1, ui_translate_buttons());
+		*cpoin= '|';
+	}
+}
 
 /* draws text and icons for buttons */
 static void ui_draw_text_icon(uiBut *but)
 {
-	float x;
-	int len;
-	char *cpoin;
+	float x, y;
 	short t, pos, ch;
 	short selsta_tmp, selend_tmp, selsta_draw, selwidth_draw;
-	int alpha_offs= (but->flag & UI_BUT_DISABLED)?UI_DISABLED_ALPHA_OFFS:0;
 	
 	/* check for button text label */
 	if (but->type == ICONTEXTROW) {
@@ -2267,13 +2335,8 @@ static void ui_draw_text_icon(uiBut *but)
 		}
 		
 		if(but->drawstr[0]!=0) {
-			int transopts;
 			int tog3= 0;
 			
-			// cut string in 2 parts
-			cpoin= strchr(but->drawstr, '|');
-			if(cpoin) *cpoin= 0;
-
 			/* If there's an icon too (made with uiDefIconTextBut) then draw the icon
 			and offset the text label to accomodate it */
 			
@@ -2309,46 +2372,14 @@ static void ui_draw_text_icon(uiBut *but)
 				if (tog3) glColor3ub(255, 255, 0);
 			}
 			
-			/* text color, with pulldown item exception */
-			if(tog3);	// color already set
-			else if(but->dt==UI_EMBOSSP) {
-				if((but->flag & UI_ACTIVE) && but->type!=LABEL) {	// LABEL = title in pulldowns
-					UI_ThemeColorShadeAlpha(TH_MENU_TEXT_HI, 0, alpha_offs);
-				} else {
-					UI_ThemeColorShadeAlpha(TH_MENU_TEXT, 0, alpha_offs);
-				}
-			}
-			else {
-				if(but->flag & UI_SELECT) {		
-					UI_ThemeColorShadeAlpha(TH_BUT_TEXT_HI, 0, alpha_offs);
-				} else {
-					UI_ThemeColorShadeAlpha(TH_BUT_TEXT, 0, alpha_offs);
-				}
-			}
-
-			/* LABEL button exception */
-			if(but->type==LABEL && but->min!=0.0) UI_ThemeColor(TH_BUT_TEXT_HI);
-		
-			ui_rasterpos_safe(x, (but->y1+but->y2- 9.0)/2.0, but->aspect);
-			if(but->type==IDPOIN) transopts= 0;	// no translation, of course!
-			else transopts= ui_translate_buttons();
+			/* position and draw */
+			y = (but->y1+but->y2- 9.0)/2.0;
 			
-		#ifdef INTERNATIONAL
-			if (but->type == FTPREVIEW)
-				FTF_DrawNewFontString (but->drawstr+but->ofs, FTF_INPUT_UTF8);
-			else
-				UI_DrawString(but->font, but->drawstr+but->ofs, transopts);
-		#else
-			UI_DrawString(but->font, but->drawstr+but->ofs, transopts);
-		#endif
-
-			/* part text right aligned */
-			if(cpoin) {
-				len= UI_GetStringWidth(but->font, cpoin+1, ui_translate_buttons());
-				ui_rasterpos_safe( but->x2 - len*but->aspect-3, (but->y1+but->y2- 9.0)/2.0, but->aspect);
-				UI_DrawString(but->font, cpoin+1, ui_translate_buttons());
-				*cpoin= '|';
-			}
+			if (ELEM(but->type, LABEL, PULLDOWN) && !(but->flag & UI_ACTIVE))
+				ui_draw_text(but, x, y, BUT_TEXT_SUNKEN);
+			
+			ui_draw_text(but, x, y, BUT_TEXT_NORMAL);
+			
 		}
 		/* if there's no text label, then check to see if there's an icon only and draw it */
 		else if( but->flag & UI_HAS_ICON ) {
