@@ -327,13 +327,12 @@ void RAS_OpenGLRasterizer::ClearCachingInfo(void)
 	m_materialCachingInfo = 0;
 }
 
-
-void RAS_OpenGLRasterizer::EndFrame()
+void	RAS_OpenGLRasterizer::FlushDebugLines()
 {
+//DrawDebugLines
 	glDisable(GL_LIGHTING);
 	glDisable(GL_TEXTURE_2D);
 
-	//DrawDebugLines
 	glBegin(GL_LINES);
 	for (unsigned int i=0;i<m_debugLines.size();i++)
 	{
@@ -348,7 +347,18 @@ void RAS_OpenGLRasterizer::EndFrame()
 	}
 	glEnd();
 
+	glEnable(GL_LIGHTING);
+	glEnable(GL_TEXTURE_2D);
+
 	m_debugLines.clear();
+
+}
+
+void RAS_OpenGLRasterizer::EndFrame()
+{
+	
+
+	FlushDebugLines();
 
 	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 	m_2DCanvas->EndFrame();

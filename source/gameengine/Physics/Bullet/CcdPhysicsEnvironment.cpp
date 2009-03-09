@@ -563,6 +563,11 @@ void	CcdPhysicsEnvironment::beginFrame()
 
 }
 
+void CcdPhysicsEnvironment::debugDrawWorld()
+{
+	if (m_dynamicsWorld->getDebugDrawer() &&  m_dynamicsWorld->getDebugDrawer()->getDebugMode() >0)
+			m_dynamicsWorld->debugDrawWorld();
+}
 
 bool	CcdPhysicsEnvironment::proceedDeltaTime(double curTime,float timeStep)
 {
@@ -598,9 +603,6 @@ bool	CcdPhysicsEnvironment::proceedDeltaTime(double curTime,float timeStep)
 		WrapperVehicle* veh = m_wrapperVehicles[i];
 		veh->SyncWheels();
 	}
-
-	if (m_dynamicsWorld->getDebugDrawer() &&  m_dynamicsWorld->getDebugDrawer()->getDebugMode() >0)
-		m_dynamicsWorld->debugDrawWorld();
 
 
 	CallbackTriggers();

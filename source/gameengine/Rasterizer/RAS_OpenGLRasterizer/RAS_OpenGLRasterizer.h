@@ -240,6 +240,8 @@ public:
 
 	virtual void	SetPolygonOffset(float mult, float add);
 
+	virtual	void	FlushDebugLines();
+
 	virtual	void	DrawDebugLine(const MT_Vector3& from,const MT_Vector3& to,const MT_Vector3& color)
 	{
 		OglDebugLine line;

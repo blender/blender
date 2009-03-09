@@ -1112,6 +1112,11 @@ void KX_KetsjiEngine::RenderFrame(KX_Scene* scene, KX_Camera* cam)
 
 	scene->RenderBuckets(camtrans, m_rasterizer, m_rendertools);
 	
+	if (scene->GetPhysicsEnvironment())
+		scene->GetPhysicsEnvironment()->debugDrawWorld();
+	
+	m_rasterizer->FlushDebugLines();
+
 	PostRenderFrame();
 }
 
