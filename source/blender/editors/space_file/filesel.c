@@ -226,7 +226,7 @@ void ED_fileselect_init_layout(struct SpaceFile *sfile, struct ARegion *ar)
 		sfile->layout->prv_w = 0;
 		sfile->layout->prv_h = 0;
 		sfile->layout->tile_border_x = 8;
-		sfile->layout->tile_border_y = 1;
+		sfile->layout->tile_border_y = 2;
 		sfile->layout->prv_border_x = 0;
 		sfile->layout->prv_border_y = 0;
 		sfile->layout->tile_w = v2d->cur.xmax - v2d->cur.xmin - 2*sfile->layout->tile_border_x;

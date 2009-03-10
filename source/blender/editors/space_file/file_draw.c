@@ -373,8 +373,8 @@ void file_draw_previews(const bContext *C, ARegion *ar)
 		}
 
 		/* shadow */
-		UI_ThemeColorShade(TH_BACK, -60);
-		file_draw_string(sx + layout->prv_border_x, sy+3, file->relname, layout->tile_w, layout->tile_h);
+		UI_ThemeColorShade(TH_BACK, -20);
+		//file_draw_string(sx + layout->prv_border_x, sy+3, file->relname, layout->tile_w, layout->tile_h);
 		
 		if (type == FILE_MAIN) {
 			glColor4f(1.0f, 1.0f, 1.0f, 1.0f);			
@@ -443,20 +443,22 @@ void file_draw_list(const bContext *C, ARegion *ar)
 	{
 		ED_fileselect_layout_tilepos(layout, i, &sx, &sy);
 		sx = v2d->tot.xmin;
-		sy = v2d->tot.ymax - (sy + 2*layout->tile_border_y);
+		sy = v2d->tot.ymax - (sy + layout->tile_border_y);
+		//sy = v2d->tot.ymax - sy;
 		
 		if (i % 2) UI_ThemeColor(TH_BACK);
-		else UI_ThemeColorShade(TH_BACK, -10);
+		else UI_ThemeColorShade(TH_BACK, -7);
 		glRectf(v2d->tot.xmin, sy, v2d->tot.xmax, sy+layout->tile_h+2*layout->tile_border_y);
 	}
 	
 	/* vertical column dividers */
 	while (sx < ar->v2d.cur.xmax) {
 		sx += (sfile->layout->tile_w+2*sfile->layout->tile_border_x);
-		glColor4ub(0xB0,0xB0,0xB0, 0xFF);
-		sdrawline(sx+1,  ar->v2d.cur.ymax - layout->tile_border_y ,  sx+1,  ar->v2d.cur.ymin + layout->tile_border_y); 
-		glColor4ub(0x30,0x30,0x30, 0xFF);
-		sdrawline(sx,  ar->v2d.cur.ymax - layout->tile_border_y ,  sx,  ar->v2d.cur.ymin + layout->tile_border_y); 
+		
+		UI_ThemeColorShade(TH_BACK, 30);
+		sdrawline(sx+1,  ar->v2d.cur.ymax - layout->tile_border_y ,  sx+1,  ar->v2d.cur.ymin); 
+		UI_ThemeColorShade(TH_BACK, -30);
+		sdrawline(sx,  ar->v2d.cur.ymax - layout->tile_border_y ,  sx,  ar->v2d.cur.ymin); 
 	}
 
 	sx = ar->v2d.cur.xmin + layout->tile_border_x;
@@ -473,31 +475,22 @@ void file_draw_list(const bContext *C, ARegion *ar)
 		if (params->active_file == i) {
 			if (file->flags & ACTIVE) colorid= TH_HILITE;
 			else colorid = TH_BACK;
-			draw_tile(sx-2, sy-3, layout->tile_w+2, sfile->layout->tile_h, colorid,20);
+			draw_tile(sx-2, sy-3, layout->tile_w+2, sfile->layout->tile_h+layout->tile_border_y, colorid,20);
 		} else if (file->flags & ACTIVE) {
 			colorid = TH_HILITE;
-			draw_tile(sx-2, sy-3, layout->tile_w+2, sfile->layout->tile_h, colorid,0);
+			draw_tile(sx-2, sy-3, layout->tile_w+2, sfile->layout->tile_h+layout->tile_border_y, colorid,0);
 		} else {
 			/*
 			colorid = TH_PANEL;
 			draw_tile(sx, sy, sfile->tile_w, sfile->tile_h, colorid);
 			*/
 		}
-		if (type == FILE_MAIN) {
-			glColor4f(1.0f, 1.0f, 1.0f, 1.0f);			
-		}
-		else {
-			if (S_ISDIR(file->type))
-				UI_ThemeColor4(TH_TEXT_HI);			
-			else
-				UI_ThemeColor4(TH_TEXT);
-		}
-		
+
 		spos = sx;
+		file_draw_icon(spos, sy-3, get_file_icon(file), ICON_DEFAULT_WIDTH, ICON_DEFAULT_WIDTH);
+		spos += ICON_DEFAULT_WIDTH + 4;
 		
-		file_draw_icon(spos, sy-3, get_file_icon(file), 16, 16);
-		
-		spos += 16 + 4;
+		UI_ThemeColor4(TH_TEXT);
 		
 		sw = UI_GetStringWidth(G.font, file->size, 0);
 		file_draw_string(spos, sy, file->relname, layout->tile_w - sw - 5, layout->tile_h);
@@ -546,14 +539,20 @@ void file_draw_fsmenu(const bContext *C, ARegion *ar)
 	FileSelectParams* params = ED_fileselect_get_params(sfile);
 	char bookmark[FILE_MAX];
 	int nentries = fsmenu_get_nentries();
-	int linestep = U.fontsize*3/2;
+	int linestep = U.fontsize*2.0f;
 	int i;
-	short sx, sy;
-	int bmwidth = ar->v2d.cur.xmax - ar->v2d.cur.xmin - 2*TILE_BORDER_X;
+	short sx, sy, xpos, ypos;
+	int bmwidth = ar->v2d.cur.xmax - ar->v2d.cur.xmin - TILE_BORDER_X;
 	int fontsize = U.fontsize;
 
 	sx = ar->v2d.cur.xmin + TILE_BORDER_X;
 	sy = ar->v2d.cur.ymax-2*TILE_BORDER_Y;
+	
+	UI_ThemeColor(TH_TEXT_HI);
+	file_draw_string(sx, sy, "BOOKMARKS", bmwidth, fontsize);
+	
+	sy -= linestep;
+	
 	for (i=0; i< nentries && (sy > ar->v2d.cur.ymin) ;++i) {
 		char *fname = fsmenu_get_entry(i);
 
@@ -567,23 +566,28 @@ void file_draw_fsmenu(const bContext *C, ARegion *ar)
 				sl--;
 			}
 			if (params->active_bookmark == i ) {
-				glColor4ub(0, 0, 0, 100);
 				UI_ThemeColor(TH_HILITE);
-				uiSetRoundBox(15);	
-				uiRoundBox(sx, sy - linestep, sx + bmwidth, sy, 6);
-				// glRecti(sx, sy - linestep, sx + bmwidth, sy);
-				UI_ThemeColor(TH_TEXT_HI);
-			} else {
+				/* uiSetRoundBox(15);	
+				 * uiRoundBox(sx, sy - linestep, sx + bmwidth, sy, 4.0f); */
+				glRectf(ar->v2d.cur.xmin, sy-linestep, ar->v2d.cur.xmax + 2*TILE_BORDER_X, sy);
 				UI_ThemeColor(TH_TEXT);
+			} else {
+				UI_ThemeColor(TH_TEXT_HI);
 			}
 
-			file_draw_string(sx, sy, bookmark, bmwidth, fontsize);
+			xpos = sx;
+			ypos = sy - (TILE_BORDER_Y * 0.5);
+			
+			file_draw_icon(xpos, ypos, ICON_FILE_FOLDER, ICON_DEFAULT_WIDTH, ICON_DEFAULT_WIDTH);
+			xpos += ICON_DEFAULT_WIDTH + 4;
+			file_draw_string(xpos, ypos, bookmark, bmwidth, fontsize);
 			sy -= linestep;
 		} else {
-			glColor4ub(0xB0,0xB0,0xB0, 0xFF);
-			sdrawline(sx,  sy-1-fontsize/2 ,  sx + bmwidth,  sy-1-fontsize/2); 
-			glColor4ub(0x30,0x30,0x30, 0xFF);
-			sdrawline(sx,  sy-fontsize/2 ,  sx + bmwidth,  sy - fontsize/2);
+			UI_ThemeColorShade(TH_PANEL, 30);
+			sdrawline(sx, sy-1-fontsize/2, sx + bmwidth, sy-1-fontsize/2); 
+			UI_ThemeColorShade(TH_PANEL, -30);
+			sdrawline(sx, sy-fontsize/2, sx + bmwidth, sy - fontsize/2);
+			
 			sy -= linestep;
 		}
 	}

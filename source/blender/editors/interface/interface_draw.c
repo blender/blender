@@ -2216,7 +2216,7 @@ static void ui_draw_text(uiBut *but, float x, float y, int sunken)
 	
 	if (sunken) {
 		y -= 1.0;
-		col_offs = 230;
+		col_offs = 200;
 	}
 	
 	/* text color, with pulldown item exception */
@@ -2225,7 +2225,7 @@ static void ui_draw_text(uiBut *but, float x, float y, int sunken)
 			float col[4];
 			UI_GetThemeColor4ubv(TH_MENU_TEXT, col);
 			if ((col[0] + col[1] + col[2]) / 3.f < 0.5f)
-				UI_ThemeColorShadeAlpha(TH_HEADER, 40, alpha_offs);
+				UI_ThemeColorShadeAlpha(TH_HEADER, 20, alpha_offs);
 		} else if((but->flag & UI_ACTIVE) && but->type!=LABEL) {	// LABEL = title in pulldowns
 			UI_ThemeColorShadeAlpha(TH_MENU_TEXT_HI, 0, alpha_offs);
 		} else {
