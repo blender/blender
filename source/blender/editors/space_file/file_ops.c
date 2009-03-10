@@ -247,10 +247,13 @@ static int file_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	rect.ymin = rect.ymax = event->y - ar->winrct.ymin;
 	val = event->val;
 
-	/* single select, deselect all selected first */
-	file_deselect_all(sfile);
-	file_select(sfile, sfile->params, ar, &rect, val );
-	WM_event_add_notifier(C, NC_WINDOW, NULL);
+	if (BLI_in_rcti(&ar->v2d.mask, rect.xmin, rect.ymin)) { 
+
+		/* single select, deselect all selected first */
+		file_deselect_all(sfile);
+		file_select(sfile, sfile->params, ar, &rect, val );
+		WM_event_add_notifier(C, NC_WINDOW, NULL);
+	}
 	return OPERATOR_FINISHED;
 }
 
@@ -316,7 +319,7 @@ void FILE_OT_select_all(wmOperatorType *ot)
 
 static void set_active_bookmark(FileSelectParams* params, struct ARegion* ar, short x, short y)
 {
-	int nentries = fsmenu_get_nentries();
+	int nentries = fsmenu_get_nentries(FS_CATEGORY_BOOKMARKS);
 	float fx, fy;
 	short posy;
 
@@ -331,21 +334,57 @@ static void set_active_bookmark(FileSelectParams* params, struct ARegion* ar, sh
 	}
 }
 
+static int file_select_bookmark_category(SpaceFile* sfile, ARegion* ar, short x, short y, FSMenuCategory category)
+{
+	int nentries = fsmenu_get_nentries(category);
+	int linestep = U.fontsize*2.0f;
+	short xs, ys;
+	int i;
+	int selected = -1;
+
+	for (i=0; i < nentries; ++i) {
+		fsmenu_get_pos(category, i, &xs, &ys);
+		if ( (y<=ys) && (y>ys-linestep) ) {
+			fsmenu_select_entry(category, i);
+			selected = i;
+			break;
+		}
+	}
+	return selected;
+}
+
 static void file_select_bookmark(SpaceFile* sfile, ARegion* ar, short x, short y)
 {
+	float fx, fy;
+	int selected;
+	FSMenuCategory category = FS_CATEGORY_SYSTEM;
+
 	if (BLI_in_rcti(&ar->v2d.mask, x, y)) {
-		char *selected;
-		set_active_bookmark(sfile->params, ar, x, y);
-		selected= fsmenu_get_entry(sfile->params->active_bookmark);			
-		/* which string */
-		if (selected) {
-			FileSelectParams* params = sfile->params;
-			BLI_strncpy(params->dir, selected, sizeof(params->dir));
-			BLI_cleanup_dir(G.sce, params->dir);
-			filelist_free(sfile->files);	
-			filelist_setdir(sfile->files, params->dir);
-			params->file[0] = '\0';			
-			params->active_file = -1;
+		char *entry;
+
+		UI_view2d_region_to_view(&ar->v2d, x, y, &fx, &fy);
+		selected = file_select_bookmark_category(sfile, ar, fx, fy, FS_CATEGORY_SYSTEM);
+		if (selected<0) {
+			category = FS_CATEGORY_BOOKMARKS;
+			selected = file_select_bookmark_category(sfile, ar, fx, fy, category);
+		}
+		if (selected<0) {
+			category = FS_CATEGORY_RECENT;
+			selected = file_select_bookmark_category(sfile, ar, fx, fy, category);
+		}
+		
+		if (selected>=0) {
+			entry= fsmenu_get_entry(category, selected);			
+			/* which string */
+			if (entry) {
+				FileSelectParams* params = sfile->params;
+				BLI_strncpy(params->dir, entry, sizeof(params->dir));
+				BLI_cleanup_dir(G.sce, params->dir);
+				filelist_free(sfile->files);	
+				filelist_setdir(sfile->files, params->dir);
+				params->file[0] = '\0';			
+				params->active_file = -1;
+			}
 		}
 	}
 }

@@ -31,37 +31,38 @@
 #ifndef BSE_FSMENU_H
 #define BSE_FSMENU_H
 
-	/** Returns the number of entries in the Fileselect Menu */
-int		fsmenu_get_nentries		(void);
+typedef enum FSMenuCategory {
+	FS_CATEGORY_SYSTEM,
+	FS_CATEGORY_BOOKMARKS,
+	FS_CATEGORY_RECENT
+} FSMenuCategory;
 
-	/** Returns true if the fsmenu entry at @a index exists and
-	 * is a seperator.
-	 */
-int	fsmenu_is_entry_a_separator	(int index);
+	/** Returns the number of entries in the Fileselect Menu */
+int		fsmenu_get_nentries		(FSMenuCategory category);
 
 	/** Returns the fsmenu entry at @a index (or NULL if a bad index)
      * or a separator.
 	 */
-char*	fsmenu_get_entry		(int index);
+char*	fsmenu_get_entry		(FSMenuCategory category, int index);
 
-	/** Returns a new menu description string representing the
-	 * fileselect menu. Should be free'd with MEM_freeN.
-	 */
-char*	fsmenu_build_menu		(void);
+void	fsmenu_select_entry		(FSMenuCategory category, int index);
 
-	/** Append a seperator to the FSMenu, inserts always follow the
-	 * last seperator.
-	 */
-void	fsmenu_append_separator	(void);
+int		fsmenu_is_selected		(FSMenuCategory category, int index);
+
+	/** Sets the position of the  fsmenu entry at @a index */
+void	fsmenu_set_pos		(FSMenuCategory category, int index, short xs, short ys);
+
+	/** Returns the position of the  fsmenu entry at @a index. return value is 1 if successful, 0 otherwise */
+int		fsmenu_get_pos		(FSMenuCategory category, int index, short* xs, short* ys);
 
 	/** Inserts a new fsmenu entry with the given @a path.
 	 * Duplicate entries are not added.
 	 * @param sorted Should entry be inserted in sorted order?
 	 */
-void	fsmenu_insert_entry		(char *path, int sorted, short save);
+void	fsmenu_insert_entry		(FSMenuCategory category, char *path, int sorted, short save);
 
 	/** Removes the fsmenu entry at the given @a index. */
-void	fsmenu_remove_entry		(int index);
+void	fsmenu_remove_entry		(FSMenuCategory category, int index);
 
 	/** saves the 'bookmarks' to the specified file */
 void	fsmenu_write_file(const char *filename);

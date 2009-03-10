@@ -417,7 +417,7 @@ void ED_spacetype_file(void)
 	/* regions: channels (directories) */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype file region");
 	art->regionid = RGN_TYPE_CHANNELS;
-	art->minsizex= 200;
+	art->minsizex= 240;
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D;
 	art->init= file_channel_area_init;
 	art->draw= file_channel_area_draw;

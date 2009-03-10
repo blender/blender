@@ -36,6 +36,7 @@
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
+#include "BMF_Api.h"
 
 #include "BKE_colortools.h"
 #include "BKE_context.h"
@@ -88,6 +89,9 @@ enum {
 	B_FS_PARENT,
 } eFile_ButEvents;
 
+/* XXX very bad, need to check font code */
+static gFontsize=12;
+
 static void do_file_buttons(bContext *C, void *arg, int event)
 {
 	switch(event) {
@@ -114,8 +118,6 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 	char *menu;
 	float slen;
 	float button_width = 20.0f;
-	float fsmenubut_width = 0.0f;
-	float bookmarkbut_width = button_width;
 
 	int filebuty1, filebuty2;
 
@@ -146,15 +148,8 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 		loadbutton= 0;
 	}
 
-	/* XXX to channel region */
-	menu= fsmenu_build_menu();
-
-	if (menu[0]&& (params->type != FILE_MAIN)) {
-		fsmenubut_width = button_width;
-	}
-
-	uiDefBut(block, TEX, 0 /* XXX B_FS_FILENAME */,"",	xmin+bookmarkbut_width+2, filebuty1, xmax-xmin-loadbutton-bookmarkbut_width-4, 21, params->file, 0.0, (float)FILE_MAXFILE-1, 0, 0, "");
-	uiDefBut(block, TEX, 0 /* XXX B_FS_DIRNAME */,"",	xmin+fsmenubut_width+2, filebuty2, xmax-xmin-loadbutton-fsmenubut_width-4, 21, params->dir, 0.0, (float)FILE_MAXFILE-1, 0, 0, "");
+	uiDefBut(block, TEX, 0 /* XXX B_FS_FILENAME */,"",	xmin+2, filebuty1, xmax-xmin-loadbutton-4, 21, params->file, 0.0, (float)FILE_MAXFILE-1, 0, 0, "");
+	uiDefBut(block, TEX, 0 /* XXX B_FS_DIRNAME */,"",	xmin+2, filebuty2, xmax-xmin-loadbutton-4, 21, params->dir, 0.0, (float)FILE_MAXFILE-1, 0, 0, "");
 	
 	if(loadbutton) {
 		uiSetCurFont(block, UI_HELV);
@@ -162,6 +157,7 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 		uiDefBut(block, BUT, B_FS_CANCEL, "Cancel",		xmax-loadbutton, filebuty1, loadbutton, 21, params->file, 0.0, (float)FILE_MAXFILE-1, 0, 0, "");
 	}
 
+#if 0
 	/* menu[0] = NULL happens when no .Bfs is there, and first time browse
 	   disallow external directory browsing for databrowse */
 
@@ -171,6 +167,8 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 	}
 
 	MEM_freeN(menu);
+#endif
+
 
 	uiEndBlock(C, block);
 	uiDrawBlock(C, block);
@@ -192,24 +190,49 @@ static void draw_tile(short sx, short sy, short width, short height, int colorid
 	uiRoundBox(sx, sy - height, sx + width, sy, 6);
 }
 
-static float shorten_string(char* string, float w)
+#define FILE_SHORTEN_END 0
+#define FILE_SHORTEN_FRONT 1
+
+
+static float shorten_string(char* string, float w, int flag)
 {	
+	char temp[FILE_MAX];
 	short shortened = 0;
 	float sw = 0;
-	
+	float pad = 0;
+
 	sw = UI_GetStringWidth(G.font, string,0);
-	while (sw>w) {
-		int slen = strlen(string);
-		string[slen-1] = '\0';
-		sw = UI_GetStringWidth(G.font, string,0);
-		shortened = 1;
-	}
-	if (shortened) {
-		int slen = strlen(string);
-		if (slen > 3) {
-			BLI_strncpy(string+slen-3, "...", 4);				
+	if (flag == FILE_SHORTEN_FRONT) {
+		char *s = string;
+		BLI_strncpy(temp, "...", 4);
+		pad = UI_GetStringWidth(G.font, temp,0);
+		while (s && (sw+pad>w)) {
+			s++;
+			sw = UI_GetStringWidth(G.font, s,0);
+			shortened = 1;
+		}
+		if (shortened) {
+			int slen = strlen(s);			
+			BLI_strncpy(temp+3, s, slen+1);
+			temp[slen+4] = '\0';
+			BLI_strncpy(string, temp, slen+4);
+		}
+	} else {
+		char *s = string;
+		while (sw>w) {
+			int slen = strlen(string);
+			string[slen-1] = '\0';
+			sw = UI_GetStringWidth(G.font, s,0);
+			shortened = 1;
+		}
+		if (shortened) {
+			int slen = strlen(string);
+			if (slen > 3) {
+				BLI_strncpy(string+slen-3, "...", 4);				
+			}
 		}
 	}
+	
 	return sw;
 }
 
@@ -244,7 +267,7 @@ static void file_draw_icon(short sx, short sy, int icon, short width, short heig
 	UI_icon_draw_aspect_blended(x, y, icon, 1.f, blend);
 }
 
-static void file_draw_string(short sx, short sy, char* string, short width, short height)
+static void file_draw_string(short sx, short sy, char* string, short width, short height, int flag)
 {
 	short soffs;
 	char fname[FILE_MAXFILE];
@@ -252,7 +275,7 @@ static void file_draw_string(short sx, short sy, char* string, short width, shor
 	float x,y;
 
 	BLI_strncpy(fname,string, FILE_MAXFILE);
-	sw = shorten_string(fname, width );
+	sw = shorten_string(fname, width, flag );
 	soffs = (width - sw) / 2;
 	x = (float)(sx);
 	y = (float)(sy-height);
@@ -402,7 +425,7 @@ void file_draw_previews(const bContext *C, ARegion *ar)
 				}
 			}
 		}
-		file_draw_string(sx + layout->prv_border_x, sy+4, file->relname, layout->tile_w, layout->tile_h);
+		file_draw_string(sx + layout->prv_border_x, sy+4, file->relname, layout->tile_w, layout->tile_h, FILE_SHORTEN_END);
 
 		if (!sfile->loadimage_timer)
 			sfile->loadimage_timer= WM_event_add_window_timer(CTX_wm_window(C), TIMER1, 1.0/30.0);	/* max 30 frames/sec. */
@@ -493,7 +516,7 @@ void file_draw_list(const bContext *C, ARegion *ar)
 		UI_ThemeColor4(TH_TEXT);
 		
 		sw = UI_GetStringWidth(G.font, file->size, 0);
-		file_draw_string(spos, sy, file->relname, layout->tile_w - sw - 5, layout->tile_h);
+		file_draw_string(spos, sy, file->relname, layout->tile_w - sw - 5, layout->tile_h, FILE_SHORTEN_END);
 		
 		spos += filelist_maxnamelen(sfile->files);
 		if (params->display != FILE_SHOWSHORT) {
@@ -518,43 +541,44 @@ void file_draw_list(const bContext *C, ARegion *ar)
 
 			spos += 50;
 			sw = UI_GetStringWidth(G.font, file->date, 0);
-			file_draw_string(spos, sy, file->date, sw, layout->tile_h);
+			file_draw_string(spos, sy, file->date, sw, layout->tile_h, FILE_SHORTEN_END);
 
 			spos += 100;
 			sw = UI_GetStringWidth(G.font, file->time, 0);
-			file_draw_string(spos, sy, file->time, sw, layout->tile_h); 
+			file_draw_string(spos, sy, file->time, sw, layout->tile_h, FILE_SHORTEN_END); 
 			
 			sw = UI_GetStringWidth(G.font, file->size, 0);
 			spos += 200-sw;
-			file_draw_string(spos, sy, file->size, sw, layout->tile_h);
+			file_draw_string(spos, sy, file->size, sw, layout->tile_h, FILE_SHORTEN_END);
 		} else {
-			file_draw_string(sx + layout->tile_w - 2*layout->tile_border_x - sw - 4, sy, file->size, layout->tile_w - layout->tile_border_x - sw - 5, layout->tile_h);
+			file_draw_string(sx + layout->tile_w - 2*layout->tile_border_x - sw - 4, sy, file->size, layout->tile_w - layout->tile_border_x - sw - 5, layout->tile_h, FILE_SHORTEN_END);
 		}
 	}
 }
 
-void file_draw_fsmenu(const bContext *C, ARegion *ar)
+static void file_draw_fsmenu_category(const bContext *C, ARegion *ar, FSMenuCategory category, const char* category_name, short *starty)
 {
 	SpaceFile *sfile= (SpaceFile*)CTX_wm_space_data(C);
 	FileSelectParams* params = ED_fileselect_get_params(sfile);
 	char bookmark[FILE_MAX];
-	int nentries = fsmenu_get_nentries();
-	int linestep = U.fontsize*2.0f;
-	int i;
+	int nentries = fsmenu_get_nentries(category);
+	int linestep = gFontsize*2.0f;
 	short sx, sy, xpos, ypos;
-	int bmwidth = ar->v2d.cur.xmax - ar->v2d.cur.xmin - TILE_BORDER_X;
-	int fontsize = U.fontsize;
+	int bmwidth = ar->v2d.cur.xmax - ar->v2d.cur.xmin - 2*TILE_BORDER_X - ICON_DEFAULT_WIDTH - 4;
+	int fontsize = gFontsize;
+	int i;
 
-	sx = ar->v2d.cur.xmin + TILE_BORDER_X;
-	sy = ar->v2d.cur.ymax-2*TILE_BORDER_Y;
 	
+	sx = ar->v2d.cur.xmin + TILE_BORDER_X;
+	sy = *starty;
+
 	UI_ThemeColor(TH_TEXT_HI);
-	file_draw_string(sx, sy, "BOOKMARKS", bmwidth, fontsize);
+	file_draw_string(sx, sy, category_name, bmwidth, fontsize, FILE_SHORTEN_END);
 	
 	sy -= linestep;
-	
+
 	for (i=0; i< nentries && (sy > ar->v2d.cur.ymin) ;++i) {
-		char *fname = fsmenu_get_entry(i);
+		char *fname = fsmenu_get_entry(category, i);
 
 		if (fname) {
 			int sl;
@@ -565,7 +589,7 @@ void file_draw_fsmenu(const bContext *C, ARegion *ar)
 				bookmark[sl] = '\0';
 				sl--;
 			}
-			if (params->active_bookmark == i ) {
+			if (fsmenu_is_selected(category, i) ) {
 				UI_ThemeColor(TH_HILITE);
 				/* uiSetRoundBox(15);	
 				 * uiRoundBox(sx, sy - linestep, sx + bmwidth, sy, 4.0f); */
@@ -580,16 +604,29 @@ void file_draw_fsmenu(const bContext *C, ARegion *ar)
 			
 			file_draw_icon(xpos, ypos, ICON_FILE_FOLDER, ICON_DEFAULT_WIDTH, ICON_DEFAULT_WIDTH);
 			xpos += ICON_DEFAULT_WIDTH + 4;
-			file_draw_string(xpos, ypos, bookmark, bmwidth, fontsize);
+			file_draw_string(xpos, ypos, bookmark, bmwidth, fontsize, FILE_SHORTEN_FRONT);
 			sy -= linestep;
-		} else {
-			UI_ThemeColorShade(TH_PANEL, 30);
-			sdrawline(sx, sy-1-fontsize/2, sx + bmwidth, sy-1-fontsize/2); 
-			UI_ThemeColorShade(TH_PANEL, -30);
-			sdrawline(sx, sy-fontsize/2, sx + bmwidth, sy - fontsize/2);
-			
-			sy -= linestep;
+			fsmenu_set_pos(category, i, xpos, ypos);
 		}
 	}
 
+	*starty = sy;
+}
+
+void file_draw_fsmenu(const bContext *C, ARegion *ar)
+{
+	int linestep = gFontsize*2.0f;
+	
+	short sx, sy, xpos, ypos;
+	int fontsize = gFontsize;
+
+	sx = ar->v2d.cur.xmin + TILE_BORDER_X;
+	sy = ar->v2d.cur.ymax-2*TILE_BORDER_Y;
+	
+	file_draw_fsmenu_category(C, ar, FS_CATEGORY_SYSTEM, "SYSTEM", &sy);
+	sy -= linestep;
+	file_draw_fsmenu_category(C, ar, FS_CATEGORY_BOOKMARKS, "BOOKMARKS", &sy);
+	sy -= linestep;
+	file_draw_fsmenu_category(C, ar, FS_CATEGORY_RECENT, "RECENT", &sy);
+	
 }
