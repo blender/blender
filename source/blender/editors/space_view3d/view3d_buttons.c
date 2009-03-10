@@ -56,6 +56,7 @@
 #include "BLI_rand.h"
 
 #include "BKE_action.h"
+#include "BKE_brush.h"
 #include "BKE_context.h"
 #include "BKE_curve.h"
 #include "BKE_customdata.h"
@@ -1062,47 +1063,121 @@ static void weight_paint_buttons(Scene *scene, uiBlock *block)
 	}
 }
 
+static Brush **get_brush_source(const bContext *C)
+{
+	if(G.f & G_SCULPTMODE)
+		return &CTX_data_scene(C)->toolsettings->sculpt->brush;
+	else if(G.f & G_TEXTUREPAINT)
+		return &CTX_data_scene(C)->toolsettings->imapaint.brush;
+	return NULL;
+}
+
+static void brush_idpoin_handle(bContext *C, ID *id, int event)
+{
+	Brush **br = get_brush_source(C);
+
+	if(!br)
+		return;
+
+	switch(event) {
+	case UI_ID_BROWSE:
+		(*br) = (Brush*)id;
+		break;
+	case UI_ID_DELETE:
+		brush_delete(br);
+		break;
+	case UI_ID_RENAME:
+		/* XXX ? */
+		break;
+	case UI_ID_ADD_NEW:
+		if(id) {
+			(*br) = copy_brush((Brush*)id);
+			id->us--;
+		}
+		else
+			(*br) = add_brush("Brush");
+		break;
+	case UI_ID_OPEN:
+		/* XXX not implemented */
+		break;
+	}
+}
+
+static void view3d_panel_brush(const bContext *C, ARegion *ar, short cntrl)
+{
+	uiBlock *block;
+	Brush **brp = get_brush_source(C), *br;
+	short w = 268, h = 400, cx = 10, cy = h;
+	rctf rect;
+
+	if(!brp)
+		return;
+	br = *brp;
+
+	block= uiBeginBlock(C, ar, "view3d_panel_brush", UI_EMBOSS, UI_HELV);
+	if(uiNewPanel(C, ar, block, "Brush", "View3d", 340, 10, 318, h)==0) return;
+	uiBlockSetHandleFunc(block, do_view3d_region_buttons, NULL);
+
+	uiBlockBeginAlign(block);
+	uiDefIDPoinButs(block, CTX_data_main(C), NULL, &br->id, ID_BR, NULL, cx, cy,
+			brush_idpoin_handle, UI_ID_BROWSE|UI_ID_RENAME|UI_ID_ADD_NEW|UI_ID_OPEN|UI_ID_DELETE|UI_ID_ALONE);
+	cy-= 25;
+	uiBlockEndAlign(block);
+
+	if(!br)
+		return;
+
+	if(G.f & G_SCULPTMODE) {
+		uiBlockBeginAlign(block);	
+		uiDefButC(block,ROW,B_REDR,"Draw",cx,cy,67,19,&br->sculpt_tool,14.0,SCULPT_TOOL_DRAW,0,0,"Draw lines on the model");
+		uiDefButC(block,ROW,B_REDR,"Smooth",cx+67,cy,67,19,&br->sculpt_tool,14.0,SCULPT_TOOL_SMOOTH,0,0,"Interactively smooth areas of the model");
+		uiDefButC(block,ROW,B_REDR,"Pinch",cx+134,cy,67,19,&br->sculpt_tool,14.0,SCULPT_TOOL_PINCH,0,0,"Interactively pinch areas of the model");
+		uiDefButC(block,ROW,B_REDR,"Inflate",cx+201,cy,67,19,&br->sculpt_tool,14,SCULPT_TOOL_INFLATE,0,0,"Push vertices along the direction of their normals");
+		cy-= 20;
+		uiDefButC(block,ROW,B_REDR,"Grab", cx,cy,89,19,&br->sculpt_tool,14,SCULPT_TOOL_GRAB,0,0,"Grabs a group of vertices and moves them with the mouse");
+		uiDefButC(block,ROW,B_REDR,"Layer", cx+89,cy,89,19,&br->sculpt_tool,14, SCULPT_TOOL_LAYER,0,0,"Adds a layer of depth");
+		uiDefButC(block,ROW,B_REDR,"Flatten", cx+178,cy,90,19,&br->sculpt_tool,14, SCULPT_TOOL_FLATTEN,0,0,"Interactively flatten areas of the model");
+		cy-= 25;
+		uiBlockEndAlign(block);
+	}
+
+	uiBlockBeginAlign(block);
+	uiDefButI(block,NUMSLI,B_NOP,"Size: ",cx,cy,w,19,&br->size,1.0,200.0,0,0,"Set brush radius in pixels");
+	cy-= 20;
+	uiDefButF(block,NUMSLI,B_NOP,"Strength: ",cx,cy,w,19,&br->alpha,0,1.0,0,0,"Set brush strength");
+	cy-= 25;
+	uiBlockEndAlign(block);
+
+	uiBlockBeginAlign(block);
+
+	uiDefButBitS(block, TOG, BRUSH_AIRBRUSH, B_NOP, "Airbrush", cx,cy,w/3,19, &br->flag,0,0,0,0, "Brush makes changes without waiting for the mouse to move");
+	uiDefButBitS(block, TOG, BRUSH_ANCHORED, B_NOP, "Rake", cx+w/3,cy,w/3,19, &br->flag,0,0,0,0, "");
+	uiDefButBitS(block, TOG, BRUSH_RAKE, B_NOP, "Anchored", cx+w*2.0/3,cy,w/3,19, &br->flag,0,0,0,0, "");
+	cy-= 20;
+	uiDefButBitS(block, TOG, BRUSH_SPACE, B_NOP, "Space", cx,cy,w/3,19, &br->flag,0,0,0,0, "");
+	uiDefButF(block,NUMSLI,B_NOP,"Spacing: ",cx+w/3,cy,w*2.0/3,19,&br->spacing,1.0,500,0,0,"");
+	cy-= 20;
+	uiBlockEndAlign(block);
+
+	rect.xmin= cx; rect.xmax= cx + w;
+	rect.ymin= cy - 200; rect.ymax= cy;
+	uiBlockBeginAlign(block);
+	curvemap_buttons(block, br->curve, (char)0, B_NOP, 0, &rect);
+	uiBlockEndAlign(block);
+	
+	uiEndBlock(C, block);
+}
+
 static void sculptmode_draw_interface_tools(Scene *scene, uiBlock *block, unsigned short cx, unsigned short cy)
 {
 	Sculpt *s = scene->toolsettings->sculpt;
-	Brush *br = s->brush;
 	
-	uiBlockBeginAlign(block);
-	
-	uiDefBut(block,LABEL,B_NOP,"Brush",cx,cy,90,19,NULL,0,0,0,0,"");
-	cy-= 20;
-	
-	uiBlockBeginAlign(block);	
-	uiDefButC(block,ROW,B_REDR,"Draw",cx,cy,67,19,&br->sculpt_tool,14.0,SCULPT_TOOL_DRAW,0,0,"Draw lines on the model");
-	uiDefButC(block,ROW,B_REDR,"Smooth",cx+67,cy,67,19,&br->sculpt_tool,14.0,SCULPT_TOOL_SMOOTH,0,0,"Interactively smooth areas of the model");
-	uiDefButC(block,ROW,B_REDR,"Pinch",cx+134,cy,67,19,&br->sculpt_tool,14.0,SCULPT_TOOL_PINCH,0,0,"Interactively pinch areas of the model");
-	uiDefButC(block,ROW,B_REDR,"Inflate",cx+201,cy,67,19,&br->sculpt_tool,14,SCULPT_TOOL_INFLATE,0,0,"Push vertices along the direction of their normals");
-	cy-= 20;
-	uiDefButC(block,ROW,B_REDR,"Grab", cx,cy,89,19,&br->sculpt_tool,14,SCULPT_TOOL_GRAB,0,0,"Grabs a group of vertices and moves them with the mouse");
-	uiDefButC(block,ROW,B_REDR,"Layer", cx+89,cy,89,19,&br->sculpt_tool,14, SCULPT_TOOL_LAYER,0,0,"Adds a layer of depth");
-	uiDefButC(block,ROW,B_REDR,"Flatten", cx+178,cy,90,19,&br->sculpt_tool,14, SCULPT_TOOL_FLATTEN,0,0,"Interactively flatten areas of the model");
-	cy-= 25;
-	uiBlockEndAlign(block);
-	
-	uiBlockBeginAlign(block);
-	uiDefBut(block,LABEL,B_NOP,"Shape",cx,cy,90,19,NULL,0,0,0,0,"");
-	cy-= 20;
-
-	uiBlockBeginAlign(block);
 	//XXX if(sd->brush_type != SMOOTH_BRUSH && sd->brush_type != GRAB_BRUSH && sd->brush_type != FLATTEN_BRUSH) {
 	{
 		/*uiDefButBitS(block,ROW,B_NOP,"Add",cx,cy,89,19,&br->dir,15.0,1.0,0, 0,"Add depth to model [Shift]");
 		uiDefButBitS(block,ROW,B_NOP,"Sub",cx+89,cy,89,19,&br->dir,15.0,2.0,0, 0,"Subtract depth from model [Shift]");
 		*/}
 	//XXX if(sd->brush_type!=GRAB_BRUSH)
-		uiDefButBitS(block, TOG, BRUSH_AIRBRUSH, B_NOP, "Airbrush", cx+178,cy,89,19, &br->flag,0,0,0,0, "Brush makes changes without waiting for the mouse to move");
-	cy-= 20;
-	uiDefButI(block,NUMSLI,B_NOP,"Size: ",cx,cy,268,19,&br->size,1.0,200.0,0,0,"Set brush radius in pixels");
-	cy-= 20;
-	//XXX if(sd->brush_type!=GRAB_BRUSH)
-		uiDefButF(block,NUMSLI,B_NOP,"Strength: ",cx,cy,268,19,&br->alpha,0,1.0,0,0,"Set brush strength");
-	cy-= 25;
-	uiBlockEndAlign(block);
 	
 	uiBlockBeginAlign(block);
 	uiDefBut( block,LABEL,B_NOP,"Symmetry",cx,cy,90,19,NULL,0,0,0,0,"");
@@ -1499,6 +1574,8 @@ void view3d_buttons_area_defbuts(const bContext *C, ARegion *ar)
 	view3d_panel_object(C, ar, 0);
 	view3d_panel_properties(C, ar, 0);
 	view3d_panel_background(C, ar, 0);
+	if(G.f & (G_SCULPTMODE|G_TEXTUREPAINT))
+		view3d_panel_brush(C, ar, 0);
 	// XXX view3d_panel_preview(C, ar, 0);
 	view3d_panel_transform_spaces(C, ar, 0);
 	if(0)

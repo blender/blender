@@ -103,6 +103,8 @@ Brush *copy_brush(Brush *brush)
 		}
 	}
 
+	brushn->curve= curvemapping_copy(brush->curve);
+
 	/* enable fake user by default */
 	if (!(brushn->id.flag & LIB_FAKEUSER)) {
 		brushn->id.flag |= LIB_FAKEUSER;
