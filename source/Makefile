@@ -92,7 +92,6 @@ GRPLIB += $(OCGDIR)/blender/python/$(DEBUG_DIR)libpython.a
 # to properly resolve circular dependencies. ugly, but it works...
 # the repeat entries could probably be trimmed down.
 COMLIB = $(OCGDIR)/blender/blenkernel/$(DEBUG_DIR)libblenkernel.a
-COMLIB += $(NAN_DECIMATION)/lib/libdecimation.a
 COMLIB += $(OCGDIR)/blender/blenloader/$(DEBUG_DIR)libblenloader.a
 COMLIB += $(OCGDIR)/blender/blenpluginapi/$(DEBUG_DIR)libblenpluginapi.a
 COMLIB += $(OCGDIR)/blender/nodes_shd/$(DEBUG_DIR)libnodes_shd.a
@@ -102,7 +101,6 @@ COMLIB += $(OCGDIR)/blender/nodes/$(DEBUG_DIR)libnodes.a
 COMLIB += $(OCGDIR)/blender/imbuf/$(DEBUG_DIR)libimbuf.a
 COMLIB += $(OCGDIR)/blender/blenlib/$(DEBUG_DIR)libblenlib.a
 COMLIB += $(NAN_IKSOLVER)/lib/libiksolver.a
-COMLIB += $(NAN_OPENNL)/lib/$(DEBUG_DIR)libopennl.a
 COMLIB += $(NAN_SUPERLU)/lib/$(DEBUG_DIR)libsuperlu.a	
 COMLIB += $(OCGDIR)/blender/avi/$(DEBUG_DIR)libavi.a
 COMLIB += $(NAN_JPEG)/lib/libjpeg.a
@@ -235,6 +233,7 @@ ifeq ($(WITH_OPENEXR), true)
 endif
 
 PULIB = $(NAN_MOTO)/lib/libmoto.a
+PULIB += $(NAN_DECIMATION)/lib/libdecimation.a
 PULIB += $(NAN_ELBEEM)/lib/$(DEBUG_DIR)libelbeem.a
 PULIB += $(OCGDIR)/blender/readblenfile/$(DEBUG_DIR)libreadblenfile.a
 PULIB += $(OCGDIR)/blender/src/$(DEBUG_DIR)libsrcpublisher.a
