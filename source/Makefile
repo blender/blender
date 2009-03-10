@@ -171,6 +171,10 @@ ifeq ($(WITH_OPENEXR), true)
     COMLIB += $(OCGDIR)/blender/imbuf/openexr/$(DEBUG_DIR)libopenexr.a
 endif
 
+ifeq ($(WITH_OPENJPEG), true)
+    COMLIB += $(OCGDIR)/extern/openjpeg/$(DEBUG_DIR)libopenjpeg.a
+endif
+
 COMLIB += $(OCGDIR)/blender/imbuf/cineon/$(DEBUG_DIR)libcineon.a
 
 ifeq ($(WITH_DDS), true)
