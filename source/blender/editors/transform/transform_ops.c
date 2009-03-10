@@ -322,7 +322,7 @@ void TFM_OT_rotation(struct wmOperatorType *ot)
 	ot->cancel  = transform_cancel;
 	ot->poll   = ED_operator_areaactive;
 
-	RNA_def_float_vector(ot->srna, "value", 1, NULL, -FLT_MAX, FLT_MAX, "Angle", "", -M_PI*2, M_PI*2);
+	RNA_def_float_rotation(ot->srna, "value", 1, NULL, -FLT_MAX, FLT_MAX, "Angle", "", -M_PI*2, M_PI*2);
 
 	Properties_Proportional(ot);
 
@@ -345,7 +345,7 @@ void TFM_OT_tilt(struct wmOperatorType *ot)
 	ot->cancel  = transform_cancel;
 	ot->poll   = ED_operator_editcurve;
 
-	RNA_def_float_vector(ot->srna, "value", 1, NULL, -FLT_MAX, FLT_MAX, "Angle", "", -M_PI*2, M_PI*2);
+	RNA_def_float_rotation(ot->srna, "value", 1, NULL, -FLT_MAX, FLT_MAX, "Angle", "", -M_PI*2, M_PI*2);
 
 	Properties_Proportional(ot);
 
@@ -368,7 +368,7 @@ void TFM_OT_warp(struct wmOperatorType *ot)
 	ot->cancel  = transform_cancel;
 	ot->poll   = ED_operator_areaactive;
 
-	RNA_def_float_vector(ot->srna, "value", 1, NULL, -FLT_MAX, FLT_MAX, "Angle", "", 0, 1);
+	RNA_def_float_rotation(ot->srna, "value", 1, NULL, -FLT_MAX, FLT_MAX, "Angle", "", 0, 1);
 
 	Properties_Proportional(ot);
 
@@ -392,7 +392,7 @@ void TFM_OT_shear(struct wmOperatorType *ot)
 	ot->cancel  = transform_cancel;
 	ot->poll   = ED_operator_areaactive;
 
-	RNA_def_float_vector(ot->srna, "value", 1, NULL, -FLT_MAX, FLT_MAX, "Offset", "", -FLT_MAX, FLT_MAX);
+	RNA_def_float(ot->srna, "value", 0, -FLT_MAX, FLT_MAX, "Offset", "", -FLT_MAX, FLT_MAX);
 
 	Properties_Proportional(ot);
 
@@ -416,7 +416,7 @@ void TFM_OT_shrink_fatten(struct wmOperatorType *ot)
 	ot->cancel  = transform_cancel;
 	ot->poll   = ED_operator_editmesh;
 
-	RNA_def_float_vector(ot->srna, "value", 1, NULL, -FLT_MAX, FLT_MAX, "Offset", "", -FLT_MAX, FLT_MAX);
+	RNA_def_float(ot->srna, "value", 0, -FLT_MAX, FLT_MAX, "Offset", "", -FLT_MAX, FLT_MAX);
 
 	Properties_Proportional(ot);
 
@@ -437,9 +437,7 @@ void TFM_OT_tosphere(struct wmOperatorType *ot)
 	ot->cancel  = transform_cancel;
 	ot->poll   = ED_operator_areaactive;
 
-	//RNA_def_float_percentage(ot->srna, "value", 0, 0, 1, "Percentage", "", 0, 1);
-	// Switch to the previous line when get set to array works correctly
-	RNA_def_float_vector(ot->srna, "value", 1, NULL, 0, 1, "Percentage", "", 0, 1);
+	RNA_def_float_percentage(ot->srna, "value", 0, 0, 1, "Percentage", "", 0, 1);
 
 	Properties_Proportional(ot);
 

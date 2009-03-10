@@ -946,9 +946,6 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 	int constraint_axis[3] = {0, 0, 0};
 	int proportional = 0;
 
-	RNA_int_set(op->ptr, "mode", t->mode);
-	RNA_int_set(op->ptr, "options", t->options);
-
 	if (t->flag & T_AUTOVALUES)
 	{
 		RNA_float_set_array(op->ptr, "value", t->auto_values);
@@ -1021,7 +1018,7 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 
 void initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int mode)
 {
-	int options = RNA_int_get(op->ptr, "options");
+	int options = 0;
 
 	/* added initialize, for external calls to set stuff in TransInfo, like undo string */
 
@@ -1170,7 +1167,7 @@ void initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, in
 	}
 
 	/* Constraint init from operator */
-	if (RNA_property_is_set(op->ptr, "constraint_axis"))
+	if (RNA_struct_find_property(op->ptr, "constraint_axis") && RNA_property_is_set(op->ptr, "constraint_axis"))
 	{
 		int constraint_axis[3];
 
