@@ -199,7 +199,7 @@ void BKE_spacedata_copylist(ListBase *lb1, ListBase *lb2)
 {
 	SpaceLink *sl;
 	
-	lb1->first= lb2->last= NULL;	/* to be sure */
+	lb1->first= lb1->last= NULL;	/* to be sure */
 	
 	for (sl= lb2->first; sl; sl= sl->next) {
 		SpaceType *st= BKE_spacetype_from_id(sl->spacetype);
@@ -219,7 +219,7 @@ void BKE_spacedata_copyfirst(ListBase *lb1, ListBase *lb2)
 {
 	SpaceLink *sl;
 	
-	lb1->first= lb2->last= NULL;	/* to be sure */
+	lb1->first= lb1->last= NULL;	/* to be sure */
 	
 	sl= lb2->first;
 	if(sl) {
