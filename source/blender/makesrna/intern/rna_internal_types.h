@@ -208,6 +208,10 @@ typedef struct CollectionPropertyRNA {
 struct StructRNA {
 	struct StructRNA *next, *prev;
 
+	/* python type, this is a subtype of pyrna_struct_Type but used so each struct can have its own type
+	 * which is useful for subclassing RNA */
+	void *py_type;
+	
 	/* unique identifier */
 	const char *identifier;
 	/* various options */

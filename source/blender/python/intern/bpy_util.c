@@ -163,7 +163,7 @@ void PyObSpit(char *name, PyObject *var) {
 }
 
 void PyLineSpit(void) {
-	char filename[512];
+	char *filename;
 	int lineno;
 
 	PyErr_Clear();

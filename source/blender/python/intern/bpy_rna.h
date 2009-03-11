@@ -36,6 +36,17 @@ extern PyTypeObject pyrna_prop_Type;
 #define BPy_StructRNA_Check(v)		(PyObject_TypeCheck(v, &pyrna_struct_Type))
 #define BPy_PropertyRNA_Check(v)	(PyObject_TypeCheck(v, &pyrna_prop_Type))
 
+ //XXX add propper accessor function, we know this is just after next/prev pointers
+ 
+ #define BPy_RNA_PYTYPE( _data ) (((BPy_StructFakeType *)(_data))->py_type)
+
+typedef struct {
+	void * _a;
+	void * _b;
+	PyTypeObject *py_type;
+} BPy_StructFakeType;
+
+
 typedef struct {
 	PyObject_HEAD /* required python macro   */
 	PointerRNA ptr;
@@ -50,6 +61,9 @@ typedef struct {
 
 PyObject *BPY_rna_module( void );
 PyObject *BPY_rna_doc( void );
+void BPY_rna_init_types( void );
+void BPY_rna_free_types( void );
+
 
 PyObject *pyrna_struct_CreatePyObject( PointerRNA *ptr );
 PyObject *pyrna_prop_CreatePyObject( PointerRNA *ptr, PropertyRNA *prop );

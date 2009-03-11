@@ -162,6 +162,7 @@ def rna2epy(target_path):
 	
 	
 	for rna_struct in structs:
+		# print(type(rna_struct))
 		if rna_struct.nested:
 			continue
 		

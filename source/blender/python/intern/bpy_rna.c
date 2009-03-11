@@ -30,8 +30,11 @@
 #include "MEM_guardedalloc.h"
 #include "BKE_global.h" /* evil G.* */
 
-/* floats bigger then this are displayed as inf in the docstrings */
-#define MAXFLOAT_DOC 10000000
+/* There are 2 ways subclassing can work, PY_CLASS_SUBTYPE - Uses pythons internal subclassing
+ * - class MyClass(SomeClass): ...
+ * When PY_CLASS_SUBTYPE is not defined use a C subclass which copies the PyTypeObject and makes some changes.
+*/
+#define PY_CLASS_SUBTYPE
 
 static int pyrna_struct_compare( BPy_StructRNA * a, BPy_StructRNA * b )
 {
@@ -565,6 +568,55 @@ static PyMappingMethods pyrna_prop_as_mapping = {
 	( objobjargproc ) pyrna_prop_assign_subscript,	/* mp_ass_subscript */
 };
 
+static PyObject *pyrna_struct_dir(BPy_StructRNA * self)
+{
+	PyObject *ret, *dict;
+	PyObject *pystring = PyUnicode_FromString("__dict__");
+	
+	/* Include this incase this instance is a subtype of a python class
+	 * In these instances we may want to return a function or variable provided by the subtype
+	 * */
+	dict = PyObject_GenericGetAttr((PyObject *)self, pystring);
+	Py_DECREF(pystring);
+	
+	if (dict==NULL) {
+		PyErr_Clear();
+		ret = PyList_New(0);
+	}
+	else {
+		ret = PyDict_Keys(dict);
+		Py_DECREF(dict);
+	}
+	
+	/* Collect RNA items*/
+	{
+		PropertyRNA *iterprop, *nameprop;
+		CollectionPropertyIterator iter;
+		char name[256], *nameptr;
+
+		iterprop= RNA_struct_iterator_property(&self->ptr);
+		RNA_property_collection_begin(&self->ptr, iterprop, &iter);
+
+		for(; iter.valid; RNA_property_collection_next(&iter)) {
+			if(iter.ptr.data && (nameprop = RNA_struct_name_property(&iter.ptr))) {
+				nameptr= RNA_property_string_get_alloc(&iter.ptr, nameprop, name, sizeof(name));
+				
+				pystring = PyUnicode_FromString(nameptr);
+				PyList_Append(ret, pystring);
+				Py_DECREF(pystring);
+				
+				if ((char *)&name != nameptr)
+					MEM_freeN(nameptr);
+			}
+		}
+		
+		RNA_property_collection_end(&iter);
+	}
+	
+	return ret;
+}
+
+
 //---------------getattr--------------------------------------------
 static PyObject *pyrna_struct_getattro( BPy_StructRNA * self, PyObject *pyname )
 {
@@ -584,27 +636,6 @@ static PyObject *pyrna_struct_getattro( BPy_StructRNA * self, PyObject *pyname )
 	
 	if (prop) {
 		ret = pyrna_prop_to_py(&self->ptr, prop);
-	}
-	else if (strcmp(name, "__dict__")==0) { /* Not quite correct, adding this so dir() gives good feedback */
-		PropertyRNA *iterprop, *nameprop;
-		CollectionPropertyIterator iter;
-		char name[256], *nameptr;
-
-		iterprop= RNA_struct_iterator_property(&self->ptr);
-		RNA_property_collection_begin(&self->ptr, iterprop, &iter);
-
-		ret = PyDict_New();
-		for(; iter.valid; RNA_property_collection_next(&iter)) {
-			if(iter.ptr.data && (nameprop = RNA_struct_name_property(&iter.ptr))) {
-				nameptr= RNA_property_string_get_alloc(&iter.ptr, nameprop, name, sizeof(name));
-				PyDict_SetItemString(ret, nameptr, Py_None);
-				
-				if ((char *)&name != nameptr)
-					MEM_freeN(nameptr);
-			}
-		}
-		
-		RNA_property_collection_end(&iter);
 	}
 	else {
 		PyErr_Format( PyExc_AttributeError, "Attribute \"%s\" not found", name);
@@ -765,10 +796,10 @@ PyObject *pyrna_prop_iter(BPy_PropertyRNA *self)
 	return NULL;
 }
 
-/*static struct PyMethodDef pyrna_struct_methods[] = {
+static struct PyMethodDef pyrna_struct_methods[] = {
 	{"__dir__", (PyCFunction)pyrna_struct_dir, METH_NOARGS, ""},
 	{NULL, NULL, 0, NULL}
-};*/
+};
 
 static struct PyMethodDef pyrna_prop_methods[] = {
 	{"keys", (PyCFunction)pyrna_prop_keys, METH_NOARGS, ""},
@@ -875,7 +906,7 @@ PyTypeObject pyrna_struct_Type = {
 	NULL,                       /* iternextfunc tp_iternext; */
 
   /*** Attribute descriptor and subclassing stuff ***/
-	NULL,			/* struct PyMethodDef *tp_methods; */
+	pyrna_struct_methods,			/* struct PyMethodDef *tp_methods; */
 	NULL,                       /* struct PyMemberDef *tp_members; */
 	NULL,      					/* struct PyGetSetDef *tp_getset; */
 	NULL,                       /* struct _typeobject *tp_base; */
@@ -990,12 +1021,32 @@ PyObject *pyrna_struct_CreatePyObject( PointerRNA *ptr )
 {
 	BPy_StructRNA *pyrna;
 	
-	if (ptr->data==NULL) {
+	if (ptr->data==NULL && ptr->type==NULL) {
 		Py_RETURN_NONE;
 	}
-
+	
+#ifdef PY_CLASS_SUBTYPE
 	pyrna = ( BPy_StructRNA * ) PyObject_NEW( BPy_StructRNA, &pyrna_struct_Type );
-
+	if (ptr->type && BPy_RNA_PYTYPE(ptr->type)) {
+		PyTypeObject *tp = BPy_RNA_PYTYPE(ptr->type);
+		pyrna = (BPy_StructRNA *) tp->tp_alloc(tp, 0);
+	}
+	else {
+		pyrna = ( BPy_StructRNA * ) PyObject_NEW( BPy_StructRNA, &pyrna_struct_Type );
+	}
+	
+#else
+	/* get subtype from RNA struct if its been set */
+	PyTypeObject *tp;
+	if (ptr->type && ptr->type)
+		tp = BPy_RNA_PYTYPE(ptr->type);
+	
+	if (tp==NULL)
+		tp= &pyrna_struct_Type;
+	
+	pyrna = ( BPy_StructRNA * ) PyObject_NEW( BPy_StructRNA, tp );
+#endif	
+	
 	if( !pyrna ) {
 		PyErr_SetString( PyExc_MemoryError, "couldn't create BPy_StructRNA object" );
 		return NULL;
@@ -1029,15 +1080,7 @@ PyObject *BPY_rna_module( void )
 {
 	PointerRNA ptr;
 	
-	if( PyType_Ready( &pyrna_struct_Type ) < 0 )
-		return NULL;
-	
-	/* This can't be set in the pytype struct because some compilers complain */
-	pyrna_prop_Type.tp_getattro = PyObject_GenericGetAttr; 
-	pyrna_prop_Type.tp_setattro = PyObject_GenericSetAttr; 
-	
-	if( PyType_Ready( &pyrna_prop_Type ) < 0 )
-		return NULL;
+	/* types init moved to BPY_rna_init_types */
 	
 	/* for now, return the base RNA type rather then a real module */
 	RNA_main_pointer_create(G.main, &ptr);
@@ -1057,5 +1100,204 @@ PyObject *BPY_rna_doc( void )
 	
 	return pyrna_struct_CreatePyObject(&ptr);
 }
+
+#ifdef PY_CLASS_SUBTYPE
+void BPY_rna_init_types(void)
+{	
+	/* Now initialize new subtypes based on pyrna_struct_Type */
+	char tp_name[64];
+	PointerRNA ptr;
+
+	CollectionPropertyIterator iter;
+	PropertyRNA *nameprop, *prop;
+	char name[256], *nameptr;
+
+	
+	/* This can't be set in the pytype struct because some compilers complain */
+	pyrna_prop_Type.tp_getattro = PyObject_GenericGetAttr; 
+	pyrna_prop_Type.tp_setattro = PyObject_GenericSetAttr; 
+	
+	if( PyType_Ready( &pyrna_struct_Type ) < 0 )
+		return;
+	
+	if( PyType_Ready( &pyrna_prop_Type ) < 0 )
+		return;
+		
+	
+	/* for now, return the base RNA type rather then a real module */
+	RNA_blender_rna_pointer_create(&ptr);
+	prop = RNA_struct_find_property(&ptr, "structs");
+	
+	RNA_property_collection_begin(&ptr, prop, &iter);
+	for(; iter.valid; RNA_property_collection_next(&iter)) {
+		if(iter.ptr.data && (nameprop = RNA_struct_name_property(&iter.ptr))) {
+			
+			/* subclass = type(name='myClass', bases=(myBase,), dict={'some':'value'}) */
+			PyObject *args = PyTuple_New(3);
+			PyObject *bases = PyTuple_New(1);
+			PyObject *dict = PyDict_New();
+			PyObject *newclass;
+			
+			nameptr= RNA_property_string_get_alloc(&iter.ptr, nameprop, name, sizeof(name));
+			snprintf(tp_name, 64, "BPyRNA_%s", nameptr);
+			
+			
+			// arg 1
+			PyTuple_SET_ITEM(args, 0, PyUnicode_FromString(tp_name));
+			
+			// arg 2
+			PyTuple_SET_ITEM(bases, 0, (PyObject *)&pyrna_struct_Type);
+			Py_INCREF(&pyrna_struct_Type);
+			PyTuple_SET_ITEM(args, 1, bases);
+			
+			// arg 3
+			PyTuple_SET_ITEM(args, 2, dict); // fill with useful subclass things!
+			
+			if (PyErr_Occurred()) {
+				PyErr_Print();
+				PyErr_Clear();
+			}
+			
+			newclass = PyObject_CallObject((PyObject *)&PyType_Type, args);
+			
+			Py_DECREF(args);
+			
+			BPy_RNA_PYTYPE(iter.ptr.data) = (void *		)newclass;
+			
+			// printf("BPyRNA_PyTypes: %s\n", tp_name);
+			
+			if ((char *)&name != nameptr)
+				MEM_freeN(nameptr);
+		}
+	}
+	RNA_property_collection_end(&iter);
+}
+
+void BPY_rna_free_types(void) {};
+	
+#else // Other method uses C defined PyTypes
+
+static void *tp_mem = NULL;
+void BPY_rna_init_types(void)
+{
+	PyTypeObject init_struct_type = pyrna_struct_Type; /* store this type to make copies from */
+	
+	/* Now initialize new subtypes based on pyrna_struct_Type */
+	typedef struct PyTypeObject_Name {PyTypeObject tp; char name[64];} PyTypeObject_Name;
+	PyTypeObject_Name *tp_mem_ptr;
+	PyTypeObject *tp;
+	char *tp_name;
+	PointerRNA ptr;
+
+	CollectionPropertyIterator iter;
+	PropertyRNA *nameprop, *prop;
+	char name[256], *nameptr;
+
+	
+	/* This can't be set in the pytype struct because some compilers complain */
+	pyrna_prop_Type.tp_getattro = PyObject_GenericGetAttr; 
+	pyrna_prop_Type.tp_setattro = PyObject_GenericSetAttr; 
+	
+	if( PyType_Ready( &pyrna_struct_Type ) < 0 )
+		return;
+	
+	if( PyType_Ready( &pyrna_prop_Type ) < 0 )
+		return;
+	
+	/* Note, making subtypes could be done by using an equivelent of 
+	class MyClass(RNA_Struct)
+	*/
+	
+	
+	/* for now, return the base RNA type rather then a real module */
+	RNA_blender_rna_pointer_create(&ptr);
+	prop = RNA_struct_find_property(&ptr, "structs");
+	
+	tp_mem = tp_mem_ptr = MEM_mallocN(sizeof(PyTypeObject_Name) * RNA_property_collection_length(&ptr, prop), "BPyRNA_PyTypes");
+	
+	RNA_property_collection_begin(&ptr, prop, &iter);
+	for(; iter.valid; RNA_property_collection_next(&iter)) {
+		if(iter.ptr.data && (nameprop = RNA_struct_name_property(&iter.ptr))) {
+			
+			nameptr= RNA_property_string_get_alloc(&iter.ptr, nameprop, name, sizeof(name));
+			
+			//tp = MEM_mallocN(sizeof(PyTypeObject_Name), "pyrna");
+			tp = &(tp_mem_ptr->tp);
+			tp_name = tp_mem_ptr->name;
+			snprintf(tp_name, 64, "BPyRNA_%s", nameptr);
+			
+			
+			*tp= init_struct_type; /* Copy the uninitialized pyrna_struct_Type */
+			tp->tp_name= tp_name;
+			tp->tp_base= &pyrna_struct_Type;
+			
+			/* Todo - add special tp->tp_new function that lets us subtupe rna! */
+			
+			if( PyType_Ready( tp ) < 0 ) {
+				printf("PyType_Ready failed\n");
+			}
+			
+			BPy_RNA_PYTYPE(iter.ptr.data) = tp;
+			
+			// printf("BPyRNA_PyTypes: %s\n", tp_name);
+			
+			if ((char *)&name != nameptr)
+				MEM_freeN(nameptr);
+		}
+		tp_mem_ptr++;
+	}
+	RNA_property_collection_end(&iter);
+}
+
+/* Runs after python is finished, dont use any python functions */
+void BPY_rna_free_types(void)
+{
+	if (tp_mem==NULL)
+		return;
+
+	/* We dont really have to clear each structs type but may want to, also might allocate each type on its own */
+#if 0
+	PointerRNA ptr;
+
+	CollectionPropertyIterator iter;
+	PropertyRNA *prop;
+	
+	/* for now, return the base RNA type rather then a real module */
+	RNA_blender_rna_pointer_create(&ptr);
+	prop = RNA_struct_find_property(&ptr, "structs");
+	
+	RNA_property_collection_begin(&ptr, prop, &iter);
+	for(; iter.valid; RNA_property_collection_next(&iter)) {
+		if(iter.ptr.data) {
+			if (BPy_RNA_PYTYPE(iter.ptr.data)) {
+				/*
+				PyTypeObject *tp = BPy_RNA_PYTYPE(iter.ptr.data);
+				printf("BPyRNA clear: %s %d\n", tp->tp_name, (int)(long)BPy_RNA_PYTYPE(iter.ptr.data));
+				*/
+				
+				/* May want to alloc each type on its own however this makes it hard to know if RNA subtypes are using the type */
+				
+				/* PyMem_Free( BPy_RNA_PYTYPE(iter.ptr.data) );
+				MEM_freeN( BPy_RNA_PYTYPE(iter.ptr.data) ); */
+				BPy_RNA_PYTYPE(iter.ptr.data)= NULL;
+			}
+		}
+	}
+	RNA_property_collection_end(&iter);
+#endif
+
+	MEM_freeN( tp_mem );
+	tp_mem = NULL;
+}
+#endif // END PYTYPE COPY METHOD
+
+
+
+
+
+
+
+
+
 
 

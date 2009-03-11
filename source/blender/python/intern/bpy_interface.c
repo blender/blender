@@ -80,6 +80,8 @@ void BPY_start_python( void )
 	
 	// todo - sys paths - our own imports
 	
+	BPY_rna_init_types();
+	
 	py_tstate = PyGILState_GetThisThreadState();
 	PyEval_ReleaseThread(py_tstate);
 	
@@ -90,8 +92,11 @@ void BPY_end_python( void )
 	PyGILState_Ensure(); /* finalizing, no need to grab the state */
 	
 	// free other python data.
+	//BPY_rna_free_types();
 	
 	Py_Finalize(  );
+	
+	BPY_rna_free_types(); /* this MUST run after Py_Finalize since it frees Dynamic allocated PyTypes so we cant free them first */
 	return;
 }
 
@@ -123,7 +128,7 @@ int BPY_run_python_script( bContext *C, const char *fn, struct Text *text )
 
 			if( PyErr_Occurred(  ) ) {
 				BPY_free_compiled_text( text );
-				return NULL;
+				return 0;
 			}
 		}
 		py_result =  PyEval_EvalCode( text->compiled, py_dict, py_dict );

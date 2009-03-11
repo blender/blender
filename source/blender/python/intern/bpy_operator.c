@@ -190,10 +190,9 @@ PyObject *pyop_func_get_rna(BPy_OperatorFunc *self)
 		return NULL;
 	}
 
-	pyrna= (BPy_StructRNA *)pyrna_struct_CreatePyObject(&ptr); /* were not really using &ptr, overwite next */
-
 	/* XXX POINTER - if this 'ot' is python generated, it could be free'd */
-	RNA_pointer_create(NULL, ot->srna, NULL, &pyrna->ptr);
+	RNA_pointer_create(NULL, ot->srna, NULL, &ptr);
+	pyrna= (BPy_StructRNA *)pyrna_struct_CreatePyObject(&ptr); /* were not really using &ptr, overwite next */
 	pyrna->freeptr= 1;
 
 	return (PyObject *)pyrna;

@@ -1201,7 +1201,9 @@ static void rna_generate_struct(BlenderRNA *brna, StructRNA *srna, FILE *f)
 	else fprintf(f, "\tNULL, ");
 	if(srna->prev) fprintf(f, "&RNA_%s,\n", srna->prev->identifier);
 	else fprintf(f, "NULL,\n");
-
+	
+	fprintf(f, "\tNULL,\n"); /* PyType - Cant initialize here */
+	
 	fprintf(f, "\t");
 	rna_print_c_string(f, srna->identifier);
 	fprintf(f, ", %d, ", srna->flag);
