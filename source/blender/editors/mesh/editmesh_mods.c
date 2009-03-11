@@ -1783,6 +1783,34 @@ static int edge_not_in_tagged_face(EditMesh *em, EditEdge *eed)
 */
 static void edgeloop_select(EditMesh *em, EditEdge *starteed, int select)
 {
+	BMesh *bm;
+	BMEdge *e;
+	EditMesh *em2;
+	BMOperator op;
+	BMWalker walker;
+
+	bm = init_editmesh_to_bmesh(em, &op);
+	BMO_Exec_Op(bm, &op);
+
+	e = BMO_Get_MapPointer(bm, &op, BMOP_FROM_EDITMESH_MAP, starteed);
+
+	BMW_Init(&walker, bm, BMW_LOOP, 0);
+	e = BMW_Begin(&walker, e);
+	for (; e; e=BMW_Step(&walker)) {
+		BM_Select(bm, e, 1);
+	}
+	BMW_End(&walker);
+	
+	BMO_Finish_Op(bm, &op);
+	
+	em2 = bmesh_to_editmesh(bm);
+	BM_Free_Mesh(bm);
+	set_editMesh(em, em2);
+	MEM_freeN(em2);
+}
+
+static void edgeloop_select_old(EditMesh *em, EditEdge *starteed, int select)
+{
 	EditVert *eve;
 	EditEdge *eed;
 	EditFace *efa;

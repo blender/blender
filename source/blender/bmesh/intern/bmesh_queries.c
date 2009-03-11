@@ -36,6 +36,12 @@ int BM_Count_Element(BMesh *bm, int type)
 	return 0;
 }
 
+int BM_EdgesAroundVert(BMVert *v)
+{
+	if (v == v->edge->v1) return bmesh_cycle_length(&v->edge->d1);
+	else return bmesh_cycle_length(&v->edge->d2);
+}
+
 /*
  * BMESH VERT IN EDGE
  *
@@ -52,7 +58,7 @@ int BM_Vert_In_Edge(BMEdge *e, BMVert *v)
 /*
  * BMESH OTHER EDGE IN FACE SHARING A VERTEX
  *
- * Returns an opposing edge that shares the same face.
+ * Returns an opposing loop that shares the same face.
  *
 */
 

@@ -39,11 +39,11 @@ BMW_End(&walker);
 */
 
 #define BMW_SHELL	0
-/*#define BMW_LOOP	1
-#define BMW_RING	2
+#define BMW_LOOP	1
+/*#define BMW_RING	2
 #define BMW_UVISLANDS	3*/
-#define BMW_ISLANDBOUND	1
-#define BMW_ISLAND	2
-#define BMW_MAXWALKERS	3
+#define BMW_ISLANDBOUND	2
+#define BMW_ISLAND	3
+#define BMW_MAXWALKERS	4
 
 #endif

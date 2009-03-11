@@ -55,6 +55,11 @@ enum {
 /*editmesh->bmesh op*/
 enum {
 	BMOP_FROM_EDITMESH_EM, /*em*/
+	
+	/*maps old elements to new ones.
+	 coud do new elements to old too,
+	 in the future*/
+	BMOP_FROM_EDITMESH_MAP,
 	BMOP_FROM_EDITMESH_TOTSLOT,
 };
 

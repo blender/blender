@@ -33,4 +33,5 @@ int BM_Exist_Face_Overlaps(struct BMesh *bm, struct BMVert **varr, int len, stru
 int BM_Edge_Share_Faces(struct BMEdge *e1, struct BMEdge *e2);
 int BM_Validate_Face(BMesh *bm, BMFace *face, FILE *err);
 int BM_FacesAroundEdge(BMEdge *e);
+int BM_EdgesAroundVert(BMVert *v);
 #endif

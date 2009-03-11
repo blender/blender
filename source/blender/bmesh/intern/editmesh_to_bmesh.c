@@ -86,7 +86,7 @@ static void editmesh_corners_to_loops(BMesh *bm, CustomData *facedata, void *fac
  *
 */
 
-static BMVert *editvert_to_BMVert(BMesh *bm, EditMesh *em, EditVert *eve)
+static BMVert *editvert_to_BMVert(BMesh *bm, BMOperator *op, EditMesh *em, EditVert *eve)
 {
 		BMVert *v = NULL;
 
@@ -97,6 +97,8 @@ static BMVert *editvert_to_BMVert(BMesh *bm, EditMesh *em, EditVert *eve)
 		v->head.flag = eve->h ? BM_HIDDEN : 0;
 		if(eve->f & SELECT) BM_Select_Vert(bm, v, 1);
 		v->bweight = eve->bweight;
+
+		BMO_Insert_MapPointer(bm, op, BMOP_FROM_EDITMESH_MAP, eve, v);
 
 		/*Copy Custom Data*/
 		CustomData_bmesh_copy_data(&em->vdata, &bm->vdata, eve->data, &v->data);
@@ -112,7 +114,7 @@ static BMVert *editvert_to_BMVert(BMesh *bm, EditMesh *em, EditVert *eve)
  *
 */
 
-static void editedge_to_BMEdge_internal(BMesh *bm, EditMesh *em, BMEdge *e, EditEdge *eed)
+static void editedge_to_BMEdge_internal(BMesh *bm, BMOperator *op, EditMesh *em, BMEdge *e, EditEdge *eed)
 {
 	e->crease = eed->crease;
 	e->bweight = eed->bweight;
@@ -124,9 +126,11 @@ static void editedge_to_BMEdge_internal(BMesh *bm, EditMesh *em, BMEdge *e, Edit
 	e->head.flag |= eed->sharp ? BM_SHARP : 0;
 
 	CustomData_bmesh_copy_data(&em->edata, &bm->edata, eed->data, &e->data);
+
+	BMO_Insert_MapPointer(bm, op, BMOP_FROM_EDITMESH_MAP, eed, e);
 }
 
-static BMEdge *editedge_to_BMEdge(BMesh *bm, EditMesh *em, EditEdge *eed)
+static BMEdge *editedge_to_BMEdge(BMesh *bm, BMOperator *op, EditMesh *em, EditEdge *eed)
 {
 		BMVert *v1 = NULL, *v2 = NULL;
 		BMEdge *e = NULL;
@@ -136,7 +140,7 @@ static BMEdge *editedge_to_BMEdge(BMesh *bm, EditMesh *em, EditEdge *eed)
 	
 		e = BM_Make_Edge(bm, v1, v2,NULL, 0); 
 
-		editedge_to_BMEdge_internal(bm, em, e, eed);
+		editedge_to_BMEdge_internal(bm, op, em, e, eed);
 
 		return e;
 }
@@ -149,7 +153,7 @@ static BMEdge *editedge_to_BMEdge(BMesh *bm, EditMesh *em, EditEdge *eed)
  *
 */
 
-static BMFace *editface_to_BMFace(BMesh *bm, EditMesh *em, EditFace *efa, int numCol, int numTex)
+static BMFace *editface_to_BMFace(BMesh *bm, BMOperator *op, EditMesh *em, EditFace *efa, int numCol, int numTex)
 {
 		BMVert *v1 = NULL, *v2 = NULL;
 		BMFace *f = NULL;
@@ -165,11 +169,11 @@ static BMFace *editface_to_BMFace(BMesh *bm, EditMesh *em, EditFace *efa, int nu
 			edar[2] = BM_Make_Edge(bm, efa->v3->tmp.p, efa->v1->tmp.p, NULL, 1); 
 		}
 
-		editedge_to_BMEdge_internal(bm, em, edar[0], efa->e1);
-		editedge_to_BMEdge_internal(bm, em, edar[1], efa->e2);
-		editedge_to_BMEdge_internal(bm, em, edar[2], efa->e3);
+		editedge_to_BMEdge_internal(bm, op, em, edar[0], efa->e1);
+		editedge_to_BMEdge_internal(bm, op, em, edar[1], efa->e2);
+		editedge_to_BMEdge_internal(bm, op, em, edar[2], efa->e3);
 		if(efa->v4)
-			editedge_to_BMEdge_internal(bm, em, edar[3], efa->e4);
+			editedge_to_BMEdge_internal(bm, op, em, edar[3], efa->e4);
 
 
 		if(efa->e1->fgoni) edar[0]->head.flag |= BM_FGON;
@@ -185,6 +189,9 @@ static BMFace *editface_to_BMFace(BMesh *bm, EditMesh *em, EditFace *efa, int nu
 		v2 = efa->v2->tmp.p;
 
 		f = BM_Make_Ngon(bm, v1, v2, edar, len, 0);
+
+		BMO_Insert_MapPointer(bm, op, BMOP_FROM_EDITMESH_MAP, efa, f);
+
 		f->head.flag = 0;
 		f->mat_nr = efa->mat_nr;
 		if(efa->f & SELECT) BM_Select_Face(bm, f, 1);
@@ -267,7 +274,7 @@ static void fuse_fgon(BMesh *bm, BMFace *f)
 	}
 }
 
-static BM_fgonconvert(BMesh *bm, EditMesh *em, int numCol, int numTex)
+static BM_fgonconvert(BMesh *bm, BMOperator *op, EditMesh *em, int numCol, int numTex)
 {
 	EditFace *efa;
 	BMFace *f;
@@ -318,7 +325,7 @@ static BM_fgonconvert(BMesh *bm, EditMesh *em, int numCol, int numTex)
 			/*first pass: add in faces for this fgon*/
 			for(b=a, sb1 = sb; b<amount && sb1->x == sb->x; b++, sb1++){
 				efa = sb1->efa;
-				sb1->f = editface_to_BMFace(bm, em, efa, numCol, numTex);
+				sb1->f = editface_to_BMFace(bm, op, em, efa, numCol, numTex);
 				sb1->done = 1;
 			}
 			/*fuse fgon*/
@@ -357,7 +364,7 @@ static void tag_wire_edges(EditMesh *em){
  *
 */
 
-BMesh *editmesh_to_bmesh_intern(EditMesh *em, BMesh *bm) {
+BMesh *editmesh_to_bmesh_intern(EditMesh *em, BMesh *bm, BMOperator *op) {
 	BMVert *v;
 	EditVert *eve;
 	EditEdge *eed;
@@ -398,20 +405,20 @@ BMesh *editmesh_to_bmesh_intern(EditMesh *em, BMesh *bm) {
 
 	/*add verts*/
 	for(eve = em->verts.first; eve; eve = eve->next){
-		v = editvert_to_BMVert(bm, em, eve);
+		v = editvert_to_BMVert(bm, op, em, eve);
 		eve->tmp.p = v;
 	}
 	/*convert f-gons*/
-	BM_fgonconvert(bm, em, numCol, numTex);
+	BM_fgonconvert(bm, op, em, numCol, numTex);
 	
 	/*do quads + triangles*/
 	for(efa = em->faces.first; efa; efa = efa->next){
-		if(!efa->tmp.l) editface_to_BMFace(bm, em, efa, numCol, numTex);
+		if(!efa->tmp.l) editface_to_BMFace(bm, op, em, efa, numCol, numTex);
 	}
 
 	/*add wire edges*/	
 	for(eed = em->edges.first; eed; eed = eed->next){
-		if(eed->f1) editedge_to_BMEdge(bm, em, eed);
+		if(eed->f1) editedge_to_BMEdge(bm, op, em, eed);
 	}
 	//BM_end_edit(bm, BM_CALC_NORM);
 	return bm;
@@ -419,7 +426,7 @@ BMesh *editmesh_to_bmesh_intern(EditMesh *em, BMesh *bm) {
 
 void edit2bmesh_exec(BMesh *bmesh, BMOperator *op)
 {
-	editmesh_to_bmesh_intern(op->slots[BMOP_FROM_EDITMESH_EM].data.p, bmesh);
+	editmesh_to_bmesh_intern(op->slots[BMOP_FROM_EDITMESH_EM].data.p, bmesh, op);
 }
 
 BMesh *editmesh_to_bmesh(EditMesh *em)
@@ -435,6 +442,20 @@ BMesh *editmesh_to_bmesh(EditMesh *em)
 	BMO_Set_Pnt(&conv, BMOP_FROM_EDITMESH_EM, em);
 	BMO_Exec_Op(bm, &conv);
 	BMO_Finish_Op(bm, &conv);
+
+	return bm;
+}
+
+BMesh *init_editmesh_to_bmesh(EditMesh *em, BMOperator *op)
+{
+	BMesh *bm;
+	int allocsize[4] = {512,512,2048,512}, numTex, numCol;
+
+	/*allocate a bmesh*/
+	bm = BM_Make_Mesh(allocsize);
+
+	BMO_Init_Op(op, BMOP_FROM_EDITMESH);
+	BMO_Set_Pnt(op, BMOP_FROM_EDITMESH_EM, em);
 
 	return bm;
 }

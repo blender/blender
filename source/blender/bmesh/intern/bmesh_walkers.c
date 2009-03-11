@@ -29,10 +29,6 @@
    for if walkers fail.
 */
 
-/*
-NOTE: This code needs to be read through a couple of times!!
-*/
-
 typedef struct shellWalker{
 	struct shellWalker *prev;
 	BMVert *base;			
@@ -50,6 +46,13 @@ typedef struct islandWalker {
 	struct islandWalker * prev;
 	BMFace *cur;
 } islandWalker;
+
+typedef struct loopWalker {
+	struct islandWalker * prev;
+	BMEdge *cur, *start;
+	BMVert *lastv, *startv;
+	int startrad, stage2;
+} loopWalker;
 
 /*  NOTE: this comment is out of date, update it - joeedh
  *	BMWalker - change this to use the filters functions.
@@ -87,12 +90,13 @@ static void islandboundWalker_begin(BMWalker *walker, void *data);
 static void *islandboundWalker_yield(BMWalker *walker);
 static void *islandboundWalker_step(BMWalker *walker);
 
-
 static void islandWalker_begin(BMWalker *walker, void *data);
 static void *islandWalker_yield(BMWalker *walker);
 static void *islandWalker_step(BMWalker *walker);
 
-struct shellWalker;
+static void loopWalker_begin(BMWalker *walker, void *data);
+static void *loopWalker_yield(BMWalker *walker);
+static void *loopWalker_step(BMWalker *walker);
 
 /* Pointer hiding*/
 typedef struct bmesh_walkerGeneric{
@@ -143,13 +147,12 @@ void BMW_Init(BMWalker *walker, BMesh *bm, int type, int searchmask)
 			walker->yield = islandWalker_yield;
 			size = sizeof(islandWalker);		
 			break;
-		
-		//case BMW_LOOP:
-		//	walker->begin = loopwalker_Begin;
-		//	walker->step = loopwalker_Step;
-		//	walker->yield = loopwalker_Yield;
-		//	size = sizeof(loopWalker);
-		//	break;
+		case BMW_LOOP:
+			walker->begin = loopWalker_begin;
+			walker->step = loopWalker_step;
+			walker->yield = loopWalker_yield;
+			size = sizeof(loopWalker);
+			break;
 		//case BMW_RING:
 		//	walker->begin = ringwalker_Begin;
 		//	walker->step = ringwalker_Step;
@@ -478,4 +481,116 @@ static void *islandWalker_step(BMWalker *walker)
 	}
 	
 	return curf;
+}
+
+
+/*	Island Walker:
+ *
+ *	Starts at a tool flagged-face and walks over the face region
+ *
+ *	TODO:
+ *
+ *  Add restriction flag/callback for wire edges.
+ * 
+*/
+
+static void loopWalker_begin(BMWalker *walker, void *data){
+	loopWalker *lwalk = NULL, owalk;
+	BMEdge *e = data;
+	BMVert *v;
+	int found=1, val;
+
+	v = e->v1;
+
+	val = BM_EdgesAroundVert(v);
+
+	BMW_pushstate(walker);
+	
+	lwalk = walker->currentstate;
+	BLI_ghash_insert(walker->visithash, e, NULL);
+	
+	lwalk->cur = lwalk->start = e;
+	lwalk->lastv = lwalk->startv = v;
+	lwalk->stage2 = 0;
+	lwalk->startrad = BM_FacesAroundEdge(e);
+
+	/*rewind*/
+	while (walker->currentstate) {
+		owalk = *((loopWalker*)walker->currentstate);
+		BMW_walk(walker);
+	}
+
+	BMW_pushstate(walker);
+	lwalk = walker->currentstate;
+	*lwalk = owalk;
+
+	if (lwalk->lastv == owalk.cur->v1) lwalk->lastv = owalk.cur->v2;
+	else lwalk->lastv = owalk.cur->v1;
+
+	lwalk->startv = lwalk->lastv;
+
+	BLI_ghash_free(walker->visithash, NULL, NULL);
+	walker->visithash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
+	BLI_ghash_insert(walker->visithash, owalk.cur, NULL);
+}
+
+static void *loopWalker_yield(BMWalker *walker)
+{
+	loopWalker *lwalk = walker->currentstate;
+
+	return lwalk->cur;
+}
+
+static void *loopWalker_step(BMWalker *walker)
+{
+	loopWalker *lwalk = walker->currentstate, owalk;
+	BMIter iter;
+	BMEdge *e = lwalk->cur, *nexte = NULL;
+	BMLoop *l, *l2;
+	BMVert *v;
+	int val, rlen, found=0, i=0, stopi;
+
+	owalk = *lwalk;
+	
+	if (e->v1 == lwalk->lastv) v = e->v2;
+	else v = e->v1;
+
+	val = BM_EdgesAroundVert(v);
+	
+	BMW_popstate(walker);
+	
+	rlen = owalk.startrad;
+	l = e->loop;
+
+	if (val == 4 || val == 2 || rlen == 1) {		
+		i = 0;
+		stopi = val / 2;
+		while (1) {
+			if (rlen != 1 && i == stopi) break;
+
+			l = BM_OtherFaceLoop(l->e, l->f, v);
+			l2 = bmesh_radial_nextloop(l);
+			
+			if (l2 == l) {
+				break;
+			}
+
+			l = l2;
+
+			i += 1;
+		}
+	}
+	
+	if (l != e->loop && !BLI_ghash_haskey(walker->visithash, l->e)) {
+		if (!(rlen != 1 && i != stopi)) {
+			BMW_pushstate(walker);
+			lwalk = walker->currentstate;
+			*lwalk = owalk;
+			lwalk->cur = l->e;
+			lwalk->lastv = v;
+			BLI_ghash_insert(walker->visithash, l->e, NULL);
+		}
+	}
+	
+	return owalk.cur;
 }

@@ -76,17 +76,17 @@ BMOpDefine def_subdop = {
 
 BMOpDefine def_edit2bmesh = {
 	"editmesh_to_bmesh",
-	{{BMOP_OPSLOT_PNT, "emout"}},
+	{{BMOP_OPSLOT_PNT, "em"}, {BMOP_OPSLOT_MAPPING, "map"}},
 	edit2bmesh_exec,
-	BMOP_TO_EDITMESH_TOTSLOT,
+	BMOP_FROM_EDITMESH_TOTSLOT,
 	0
 };
 
 BMOpDefine def_bmesh2edit = {
 	"bmesh_to_editmesh",
-	{{BMOP_OPSLOT_PNT, "em"}},
+	{{BMOP_OPSLOT_PNT, "emout"}},
 	bmesh2edit_exec,
-	BMOP_FROM_EDITMESH_TOTSLOT,
+	BMOP_TO_EDITMESH_TOTSLOT,
 	0
 };
 

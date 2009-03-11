@@ -240,6 +240,11 @@ BMFace *BM_Make_Ngon(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **edges, int len,
 			}
 		}
 		
+		if (j != len) {
+			/*sanity check*/
+			return NULL;
+		}
+
 		overlap = BM_Exist_Face_Overlaps(bm, verts, len, &f);
 		
 		/*clear flags*/

@@ -209,7 +209,9 @@ void BM_Data_Facevert_Edgeinterp(struct BMesh *bm, struct BMVert *v1, struct BMV
 //void bmesh_data_interp_from_face(struct BMesh *bm, struct BMFace *source, struct BMFace *target);
 
 struct EditMesh;
+struct BMOperator;
 BMesh *editmesh_to_bmesh(struct EditMesh *em);
+BMesh *init_editmesh_to_bmesh(struct EditMesh *em, struct BMOperator *op);
 struct EditMesh *bmesh_to_editmesh(BMesh *bm);
 
 /*include the rest of the API*/
