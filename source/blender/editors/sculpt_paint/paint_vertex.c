@@ -64,6 +64,7 @@
 #include "RNA_access.h"
 
 #include "BKE_armature.h"
+#include "BKE_brush.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_cloth.h"
 #include "BKE_context.h"
@@ -74,7 +75,6 @@
 #include "BKE_global.h"
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
-#include "BKE_multires.h"
 #include "BKE_object.h"
 #include "BKE_utildefines.h"
 
@@ -143,7 +143,7 @@ static void vp_drawcursor(bContext *C, int x, int y, void *customdata)
 	glColor4ub(255, 255, 255, 128);
 	glEnable( GL_LINE_SMOOTH );
 	glEnable(GL_BLEND);
-	glutil_draw_lined_arc(0.0, M_PI*2.0, ts->vpaint->size, 40);
+	glutil_draw_lined_arc(0.0, M_PI*2.0, ts->vpaint->brush->size, 40);
 	glDisable(GL_BLEND);
 	glDisable( GL_LINE_SMOOTH );
 	
@@ -159,7 +159,7 @@ static void wp_drawcursor(bContext *C, int x, int y, void *customdata)
 	glColor4ub(200, 200, 255, 128);
 	glEnable( GL_LINE_SMOOTH );
 	glEnable(GL_BLEND);
-	glutil_draw_lined_arc(0.0, M_PI*2.0, ts->wpaint->size, 40);
+	glutil_draw_lined_arc(0.0, M_PI*2.0, ts->wpaint->brush->size, 40);
 	glDisable(GL_BLEND);
 	glDisable( GL_LINE_SMOOTH );
 	
@@ -186,20 +186,13 @@ static VPaint *new_vpaint(int wpaint)
 {
 	VPaint *vp= MEM_callocN(sizeof(VPaint), "VPaint");
 	
-	vp->r= 1.0f;
-	vp->g= 1.0f;
-	vp->b= 1.0f;
-	vp->a= 0.2f;
-	vp->size= 25.0f;
 	vp->gamma= vp->mul= 1.0f;
 	
 	vp->flag= VP_AREA+VP_SOFT+VP_SPRAY;
 	
-	if(wpaint) {
-		vp->weight= 1.0f;
-		vp->a= 1.0f;
+	if(wpaint)
 		vp->flag= VP_AREA+VP_SOFT;
-	}
+
 	return vp;
 }
 
@@ -239,7 +232,7 @@ unsigned int rgba_to_mcol(float r, float g, float b, float a)
 
 static unsigned int vpaint_get_current_col(VPaint *vp)
 {
-	return rgba_to_mcol(vp->r, vp->g, vp->b, 1.0f);
+	return rgba_to_mcol(vp->brush->rgb[0], vp->brush->rgb[1], vp->brush->rgb[2], 1.0f);
 }
 
 void do_shared_vertexcol(Mesh *me)
@@ -333,8 +326,6 @@ void make_vertexcol(Scene *scene, int shade)	/* single ob */
 		shadeMeshMCol(scene, ob, me);
 	else
 		memset(me->mcol, 255, 4*sizeof(MCol)*me->totface);
-	
-// XXX	if (me->mr) multires_load_cols(me);
 	
 	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
 	
@@ -434,7 +425,7 @@ void clear_vpaint_selectedfaces(Scene *scene)
 void clear_wpaint_selectedfaces(Scene *scene)
 {
 	VPaint *wp= scene->toolsettings->wpaint;
-	float paintweight= wp->weight;
+	float paintweight= wp->brush->alpha;
 	Mesh *me;
 	MFace *mface;
 	Object *ob;
@@ -742,7 +733,7 @@ static void vpaint_blend(VPaint *vp, unsigned int *col, unsigned int *colorig, u
 		unsigned int testcol=0, a;
 		char *cp, *ct, *co;
 		
-		alpha= (int)(255.0*vp->a);
+		alpha= (int)(255.0*vp->brush->alpha);
 		
 		if(vp->mode==VP_MIX || vp->mode==VP_BLUR) testcol= mcol_blend( *colorig, paintcol, alpha);
 		else if(vp->mode==VP_ADD) testcol= mcol_add( *colorig, paintcol, alpha);
@@ -818,14 +809,14 @@ static int calc_vp_alpha_dl(VPaint *vp, ViewContext *vc, float vpimat[][3], floa
 		dy= mval[1]-vertco[1];
 		
 		fac= sqrt(dx*dx + dy*dy);
-		if(fac > vp->size) return 0;
+		if(fac > vp->brush->size) return 0;
 		if(vp->flag & VP_HARD)
 			alpha= 255;
 		else
-			alpha= 255.0*vp->a*(1.0-fac/vp->size);
+			alpha= 255.0*vp->brush->alpha*(1.0-fac/vp->brush->size);
 	}
 	else {
-		alpha= 255.0*vp->a;
+		alpha= 255.0*vp->brush->alpha;
 	}
 
 	if(vp->flag & VP_NORMALS) {
@@ -872,7 +863,7 @@ static void wpaint_blend(VPaint *wp, MDeformWeight *dw, MDeformWeight *uw, float
 	if((wp->flag & VP_SPRAY)==0) {
 		float testw=0.0f;
 		
-		alpha= wp->a;
+		alpha= wp->brush->alpha;
 		if(wp->mode==VP_MIX || wp->mode==VP_BLUR)
 			testw = paintval*alpha + uw->weight*(1.0-alpha);
 		else if(wp->mode==VP_ADD)
@@ -1028,20 +1019,20 @@ void sample_wpaint(Scene *scene, ARegion *ar, View3D *v3d, int mode)
 				fac= MIN4(w1, w2, w3, w4);
 				if(w1==fac) {
 					dw= get_defweight(me->dvert+mface->v1, ob->actdef-1);
-					if(dw) wp->weight= dw->weight; else wp->weight= 0.0f;
+					if(dw) wp->brush->alpha= dw->weight; else wp->brush->alpha= 0.0f;
 				}
 				else if(w2==fac) {
 					dw= get_defweight(me->dvert+mface->v2, ob->actdef-1);
-					if(dw) wp->weight= dw->weight; else wp->weight= 0.0f;
+					if(dw) wp->brush->alpha= dw->weight; else wp->brush->alpha= 0.0f;
 				}
 				else if(w3==fac) {
 					dw= get_defweight(me->dvert+mface->v3, ob->actdef-1);
-					if(dw) wp->weight= dw->weight; else wp->weight= 0.0f;
+					if(dw) wp->brush->alpha= dw->weight; else wp->brush->alpha= 0.0f;
 				}
 				else if(w4==fac) {
 					if(mface->v4) {
 						dw= get_defweight(me->dvert+mface->v4, ob->actdef-1);
-						if(dw) wp->weight= dw->weight; else wp->weight= 0.0f;
+						if(dw) wp->brush->alpha= dw->weight; else wp->brush->alpha= 0.0f;
 					}
 				}
 			}
@@ -1120,6 +1111,8 @@ static int set_wpaint(bContext *C, wmOperator *op)		/* toggle */
 		
 		if(wp==NULL)
 			wp= scene->toolsettings->wpaint= new_vpaint(1);
+
+		brush_check_exists(&wp->brush);
 		
 		toggle_paint_cursor(C, 1);
 		
@@ -1184,9 +1177,9 @@ void paint_radial_control_invoke(wmOperator *op, VPaint *vp)
 	float original_value;
 
 	if(mode == WM_RADIALCONTROL_SIZE)
-		original_value = vp->size;
+		original_value = vp->brush->size;
 	else if(mode == WM_RADIALCONTROL_STRENGTH)
-		original_value = vp->a;
+		original_value = vp->brush->alpha;
 
 	RNA_float_set(op->ptr, "initial_value", original_value);
 }
@@ -1197,9 +1190,9 @@ static int paint_radial_control_exec(wmOperator *op, VPaint *vp)
 	float new_value = RNA_float_get(op->ptr, "new_value");
 
 	if(mode == WM_RADIALCONTROL_SIZE)
-		vp->size = new_value;
+		vp->brush->size = new_value;
 	else if(mode == WM_RADIALCONTROL_STRENGTH)
-		vp->a = new_value;
+		vp->brush->alpha = new_value;
 
 	return OPERATOR_FINISHED;
 }
@@ -1347,7 +1340,7 @@ static int wpaint_modal(bContext *C, wmOperator *op, wmEvent *event)
 			Object *ob= vc->obact;
 			Mesh *me= ob->data;
 			float mat[4][4];
-			float paintweight= wp->weight;
+			float paintweight= wp->brush->alpha;
 			int *indexar= wpd->indexar;
 			int totindex, index, alpha, totw;
 			short mval[2];
@@ -1366,7 +1359,7 @@ static int wpaint_modal(bContext *C, wmOperator *op, wmEvent *event)
 			
 			/* which faces are involved */
 			if(wp->flag & VP_AREA) {
-				totindex= sample_backbuf_area(vc, indexar, me->totface, mval[0], mval[1], wp->size);
+				totindex= sample_backbuf_area(vc, indexar, me->totface, mval[0], mval[1], wp->brush->size);
 			}
 			else {
 				indexar[0]= view3d_sample_backbuf(vc, mval[0], mval[1]);
@@ -1404,7 +1397,7 @@ static int wpaint_modal(bContext *C, wmOperator *op, wmEvent *event)
 			if(wp->mode==VP_BLUR) 
 				paintweight= 0.0f;
 			else
-				paintweight= wp->weight;
+				paintweight= wp->brush->alpha;
 			
 			for(index=0; index<totindex; index++) {
 				if(indexar[index] && indexar[index]<=me->totface) {
@@ -1655,6 +1648,7 @@ static int set_vpaint(bContext *C, wmOperator *op)		/* toggle */
 			vp= scene->toolsettings->vpaint= new_vpaint(0);
 		
 		toggle_paint_cursor(C, 0);
+		brush_check_exists(&scene->toolsettings->vpaint->brush);
 	}
 	
 	if (me)
@@ -1765,7 +1759,7 @@ static int vpaint_modal(bContext *C, wmOperator *op, wmEvent *event)
 				
 			/* which faces are involved */
 			if(vp->flag & VP_AREA) {
-				totindex= sample_backbuf_area(vc, indexar, me->totface, mval[0], mval[1], vp->size);
+				totindex= sample_backbuf_area(vc, indexar, me->totface, mval[0], mval[1], vp->brush->size);
 			}
 			else {
 				indexar[0]= view3d_sample_backbuf(vc, mval[0], mval[1]);

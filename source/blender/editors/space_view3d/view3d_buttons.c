@@ -641,7 +641,6 @@ static void do_view3d_region_buttons(bContext *C, void *arg, int event)
 	BoundBox *bb;
 	Object *ob= OBACT;
 	TransformProperties *tfp= v3d->properties_storage;
-	VPaint *wpaint= scene->toolsettings->wpaint;
 	
 	switch(event) {
 	
@@ -847,6 +846,7 @@ static void do_view3d_region_buttons(bContext *C, void *arg, int event)
 		BIF_clearTransformOrientation(C);
 		break;
 		
+#if 0 // XXX
 	case B_WEIGHT0_0:
 		wpaint->weight = 0.0f;
 		break;
@@ -879,6 +879,7 @@ static void do_view3d_region_buttons(bContext *C, void *arg, int event)
 	case B_OPA1_0:
 		wpaint->a = 1.0f;
 		break;
+#endif
 	case B_CLR_WPAINT:
 //		if(!multires_level1_test()) {
 		{
@@ -1004,7 +1005,8 @@ static void weight_paint_buttons(Scene *scene, uiBlock *block)
 	ob= OBACT;
 	
 	if(ob==NULL || ob->type!=OB_MESH) return;
-	
+
+	/* XXX	
 	uiBlockBeginAlign(block);
 	uiDefButF(block, NUMSLI, B_REDR, "Weight:",10,170,225,19, &wpaint->weight, 0, 1, 10, 0, "Sets the current vertex group's bone deformation strength");
 	
@@ -1033,6 +1035,7 @@ static void weight_paint_buttons(Scene *scene, uiBlock *block)
 	uiDefButS(block, ROW, B_NOP, "Lighter",	250, 80,60,17, &wpaint->mode, 1.0, 5.0, 0, 0, "Paint over darker areas only");
 	uiDefButS(block, ROW, B_NOP, "Darker",		250, 62,60,17, &wpaint->mode, 1.0, 6.0, 0, 0, "Paint over lighter areas only");
 	uiBlockEndAlign(block);
+	*/
 	
 	/* draw options same as below */
 	uiBlockBeginAlign(block);
@@ -1063,18 +1066,9 @@ static void weight_paint_buttons(Scene *scene, uiBlock *block)
 	}
 }
 
-static Brush **get_brush_source(const bContext *C)
-{
-	if(G.f & G_SCULPTMODE)
-		return &CTX_data_scene(C)->toolsettings->sculpt->brush;
-	else if(G.f & G_TEXTUREPAINT)
-		return &CTX_data_scene(C)->toolsettings->imapaint.brush;
-	return NULL;
-}
-
 static void brush_idpoin_handle(bContext *C, ID *id, int event)
 {
-	Brush **br = get_brush_source(C);
+	Brush **br = current_brush_source(CTX_data_scene(C));
 
 	if(!br)
 		return;
@@ -1106,7 +1100,7 @@ static void brush_idpoin_handle(bContext *C, ID *id, int event)
 static void view3d_panel_brush(const bContext *C, ARegion *ar, short cntrl)
 {
 	uiBlock *block;
-	Brush **brp = get_brush_source(C), *br;
+	Brush **brp = current_brush_source(CTX_data_scene(C)), *br;
 	short w = 268, h = 400, cx = 10, cy = h;
 	rctf rect;
 
@@ -1274,16 +1268,12 @@ static void view3d_panel_object(const bContext *C, ARegion *ar, short cntrl)	// 
 	}
 	else if(G.f & (G_VERTEXPAINT|G_TEXTUREPAINT)) {
 		static float hsv[3], old[3];	// used as temp mem for picker
-		float *rgb= NULL;
-		ToolSettings *settings= scene->toolsettings;
+		Brush **br = current_brush_source(scene);
 
-		if(G.f & G_VERTEXPAINT) rgb= &settings->vpaint->r;
-		else if(settings->imapaint.brush) rgb= settings->imapaint.brush->rgb;
-		
 		uiNewPanelTitle(block, "Paint Properties");
-		if (rgb)
+		if(br && *br)
 			/* 'f' is for floating panel */
-			uiBlockPickerButtons(block, rgb, hsv, old, hexcol, 'f', B_REDR);
+			uiBlockPickerButtons(block, (*br)->rgb, hsv, old, hexcol, 'f', B_REDR);
 	}
 	else if(G.f & G_SCULPTMODE) {
 		uiNewPanelTitle(block, "Sculpt Properties");
@@ -1574,7 +1564,7 @@ void view3d_buttons_area_defbuts(const bContext *C, ARegion *ar)
 	view3d_panel_object(C, ar, 0);
 	view3d_panel_properties(C, ar, 0);
 	view3d_panel_background(C, ar, 0);
-	if(G.f & (G_SCULPTMODE|G_TEXTUREPAINT))
+	if(G.f & (G_SCULPTMODE|G_TEXTUREPAINT|G_VERTEXPAINT|G_WEIGHTPAINT))
 		view3d_panel_brush(C, ar, 0);
 	// XXX view3d_panel_preview(C, ar, 0);
 	view3d_panel_transform_spaces(C, ar, 0);

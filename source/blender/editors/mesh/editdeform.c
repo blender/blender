@@ -1007,11 +1007,11 @@ void vgroup_assign_with_menu(Scene *scene, Object *ob)
 	switch (mode) {
 		case 1: /* add to new group */
 			add_defgroup(ob);
-			assign_verts_defgroup(ob, wp->weight);
+			assign_verts_defgroup(ob, wp->brush->alpha);
 			BIF_undo_push("Assign to vertex group");
 			break;
 		case 2: /* add to current group */
-			assign_verts_defgroup(ob, wp->weight);
+			assign_verts_defgroup(ob, wp->brush->alpha);
 			BIF_undo_push("Assign to vertex group");
 			break;
 		case 3:	/* remove from current group */

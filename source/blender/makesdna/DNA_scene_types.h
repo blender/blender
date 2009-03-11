@@ -401,10 +401,9 @@ typedef struct Sculpt
 } Sculpt;
 
 typedef struct VPaint {
-	float r, g, b, a;					/* paint color */
-	float weight;						/* weight paint */
-	float size;							/* of brush */
-	float gamma, mul;
+	struct Brush *brush;
+
+	float gamma, mul;			/* should become part of struct Brush? */
 	short mode, flag;
 	int tot;							/* allocation size of prev buffers */
 	unsigned int *vpaint_prev;			/* previous mesh colors */

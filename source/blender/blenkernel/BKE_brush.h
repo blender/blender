@@ -34,6 +34,7 @@
 struct ID;
 struct Brush;
 struct ImBuf;
+struct Scene;
 struct wmOperator;
 
 /* datablock functions */
@@ -43,6 +44,7 @@ void make_local_brush(struct Brush *brush);
 void free_brush(struct Brush *brush);
 
 /* brush library operations used by different paint panels */
+struct Brush **current_brush_source(struct Scene *sce);
 int brush_set_nr(struct Brush **current_brush, int nr);
 int brush_delete(struct Brush **current_brush);
 void brush_check_exists(struct Brush **brush);
