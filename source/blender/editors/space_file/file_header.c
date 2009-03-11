@@ -69,7 +69,6 @@
 
 static void do_viewmenu(bContext *C, void *arg, int event)
 {
-	
 }
 
 static uiBlock *dummy_viewmenu(bContext *C, ARegion *ar, void *arg_unused)
@@ -115,7 +114,6 @@ static void do_file_header_buttons(bContext *C, void *arg, int event)
 
 void file_header_buttons(const bContext *C, ARegion *ar)
 {
-	ScrArea *sa= CTX_wm_area(C);
 	SpaceFile *sfile= (SpaceFile*)CTX_wm_space_data(C);
 	FileSelectParams* params = ED_fileselect_get_params(sfile);
 
@@ -146,7 +144,7 @@ void file_header_buttons(const bContext *C, ARegion *ar)
 	
 	xco += 5;
 	
-	uiDefIconButO(block, BUT, "FILE_OT_parent", WM_OP_INVOKE_DEFAULT, ICON_TRIA_UP, xco, yco, 20, 20, "Navigate to Parent Folder");
+	uiDefIconButO(block, BUT, "FILE_OT_parent", WM_OP_INVOKE_DEFAULT, ICON_FILE_PARENT, xco, yco, 20, 20, "Navigate to Parent Folder");
 	
 	xco+=XIC;
 	

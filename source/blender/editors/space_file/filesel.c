@@ -171,9 +171,6 @@ void ED_fileselect_init_layout(struct SpaceFile *sfile, struct ARegion *ar)
 {
 	FileSelectParams* params = ED_fileselect_get_params(sfile);
 	View2D *v2d= &ar->v2d;
-	int width=0, height=0;
-	int rows, columns;
-	int i;
 	int maxlen = 0;
 	int numfiles = filelist_numfiles(sfile->files);
 

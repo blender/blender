@@ -90,7 +90,7 @@ enum {
 } eFile_ButEvents;
 
 /* XXX very bad, need to check font code */
-static gFontsize=12;
+static int gFontsize=12;
 
 static void do_file_buttons(bContext *C, void *arg, int event)
 {
@@ -115,10 +115,7 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 	uiBlock *block;
 	int loadbutton;
 	char name[20];
-	char *menu;
 	float slen;
-	float button_width = 20.0f;
-
 	int filebuty1, filebuty2;
 
 	float xmin = 8;
@@ -247,7 +244,13 @@ static int get_file_icon(struct direntry *file)
 	else if (file->flags & MOVIEFILE)
 		return ICON_FILE_MOVIE;
 	else if (file->flags & PYSCRIPTFILE)
-		return ICON_FILE_MOVIE;
+		return ICON_FILE_SCRIPT;
+	else if (file->flags & PYSCRIPTFILE)
+		return ICON_FILE_SCRIPT;
+	else if (file->flags & SOUNDFILE) 
+		return ICON_FILE_SOUND;
+	else if (file->flags & FTFONTFILE) 
+		return ICON_FILE_FONT;
 	else
 		return ICON_FILE_BLANK;
 }
@@ -267,7 +270,7 @@ static void file_draw_icon(short sx, short sy, int icon, short width, short heig
 	UI_icon_draw_aspect_blended(x, y, icon, 1.f, blend);
 }
 
-static void file_draw_string(short sx, short sy, char* string, short width, short height, int flag)
+static void file_draw_string(short sx, short sy, const char* string, short width, short height, int flag)
 {
 	short soffs;
 	char fname[FILE_MAXFILE];
@@ -306,31 +309,21 @@ void file_draw_previews(const bContext *C, ARegion *ar)
 	SpaceFile *sfile= (SpaceFile*)CTX_wm_space_data(C);
 	FileSelectParams* params= ED_fileselect_get_params(sfile);
 	FileLayout* layout= ED_fileselect_get_layout(sfile, ar);
-
 	View2D *v2d= &ar->v2d;
-	static double lasttime= 0;
 	struct FileList* files = sfile->files;
 	int numfiles;
 	struct direntry *file;
-
 	short sx, sy;
-	int do_load = 1;
-	
 	ImBuf* imb=0;
 	int i;
-	short type;
 	int colorid = 0;
-	int todo;
 	int offset;
+	int is_icon;
 
 	if (!files) return;
 
-	type = filelist_gettype(files);	
 	filelist_imgsize(files,sfile->layout->prv_w,sfile->layout->prv_h);
 	numfiles = filelist_numfiles(files);
-	
-	todo = 0;
-	if (lasttime < 0.001) lasttime = PIL_check_seconds_timer();
 
 	sx = v2d->cur.xmin + layout->tile_border_x;
 	sy = v2d->cur.ymax - layout->tile_border_y;
@@ -353,15 +346,14 @@ void file_draw_previews(const bContext *C, ARegion *ar)
 		}
 		
 		if ( (file->flags & IMAGEFILE) /* || (file->flags & MOVIEFILE) */)
-		{
-			if (do_load) {					
-				filelist_loadimage(files, i);				
-			} else {
-				todo++;
-			}
-			imb = filelist_getimage(files, i);
-		} else {
-			imb = filelist_getimage(files, i);
+		{			
+			filelist_loadimage(files, i);
+		}
+		is_icon = 0;
+		imb = filelist_getimage(files, i);
+		if (!imb) {
+			imb = filelist_geticon(files,i);
+			is_icon = 1;
 		}
 
 		if (imb) {
@@ -369,25 +361,24 @@ void file_draw_previews(const bContext *C, ARegion *ar)
 			float fy = ((float)layout->prv_h - (float)imb->y)/2.0f;
 			float dx = (fx + 0.5f + sfile->layout->prv_border_x);
 			float dy = (fy + 0.5f - sfile->layout->prv_border_y);
-			float xco = (float)sx + dx;
-			float yco = (float)sy - sfile->layout->prv_h + dy;
+			short xco = (float)sx + dx;
+			short yco = (float)sy - sfile->layout->prv_h + dy;
 			
 			glBlendFunc(GL_SRC_ALPHA,  GL_ONE_MINUS_SRC_ALPHA);
 			
 			/* shadow */
-			if (file->flags & IMAGEFILE)
+			if (!is_icon && (file->flags & IMAGEFILE))
 				uiDrawBoxShadow(220, xco, yco, xco + imb->x, yco + imb->y);
 			
 			glEnable(GL_BLEND);
 			
 			/* the image */
-			// glaDrawPixelsSafe((float)sx+8 + dx, (float)sy - imgwidth + dy - 8, imb->x, imb->y, imb->x, GL_RGBA, GL_UNSIGNED_BYTE, imb->rect);
 			glColor4f(1.0, 1.0, 1.0, 1.0);
 			glaDrawPixelsTex(xco, yco, imb->x, imb->y, GL_UNSIGNED_BYTE, imb->rect);
 			
 			/* border */
-			if (file->flags & IMAGEFILE) {
-				glColor4f(0.0, 0.0, 0.0, 0.4);
+			if (!is_icon && (file->flags & IMAGEFILE)) {
+				glColor4f(0.0f, 0.0f, 0.0f, 0.4f);
 				fdrawbox(xco, yco, xco + imb->x, yco + imb->y);
 			}
 			
@@ -397,34 +388,30 @@ void file_draw_previews(const bContext *C, ARegion *ar)
 
 		/* shadow */
 		UI_ThemeColorShade(TH_BACK, -20);
-		//file_draw_string(sx + layout->prv_border_x, sy+3, file->relname, layout->tile_w, layout->tile_h);
 		
-		if (type == FILE_MAIN) {
-			glColor4f(1.0f, 1.0f, 1.0f, 1.0f);			
+		
+		if (S_ISDIR(file->type)) {
+			glColor4f(1.0f, 1.0f, 0.9f, 1.0f);
+		}
+		else if (file->flags & IMAGEFILE) {
+			UI_ThemeColor(TH_SEQ_IMAGE);
+		}
+		else if (file->flags & MOVIEFILE) {
+			UI_ThemeColor(TH_SEQ_MOVIE);
+		}
+		else if (file->flags & BLENDERFILE) {
+			UI_ThemeColor(TH_SEQ_SCENE);
 		}
 		else {
-			if (S_ISDIR(file->type)) {
-				glColor4f(1.0f, 1.0f, 0.9f, 1.0f);
-			}
-			else if (file->flags & IMAGEFILE) {
-				UI_ThemeColor(TH_SEQ_IMAGE);
-			}
-			else if (file->flags & MOVIEFILE) {
-				UI_ThemeColor(TH_SEQ_MOVIE);
-			}
-			else if (file->flags & BLENDERFILE) {
-				UI_ThemeColor(TH_SEQ_SCENE);
-			}
-			else {
-				if (params->active_file == i) {
-					UI_ThemeColor(TH_GRID); /* grid used for active text */
-				} else if (file->flags & ACTIVE) {
-					UI_ThemeColor(TH_TEXT_HI);			
-				} else {
-					UI_ThemeColor(TH_TEXT);
-				}
+			if (params->active_file == i) {
+				UI_ThemeColor(TH_GRID); /* grid used for active text */
+			} else if (file->flags & ACTIVE) {
+				UI_ThemeColor(TH_TEXT_HI);			
+			} else {
+				UI_ThemeColor(TH_TEXT);
 			}
 		}
+
 		file_draw_string(sx + layout->prv_border_x, sy+4, file->relname, layout->tile_w, layout->tile_h, FILE_SHORTEN_END);
 
 		if (!sfile->loadimage_timer)
@@ -559,7 +546,6 @@ void file_draw_list(const bContext *C, ARegion *ar)
 static void file_draw_fsmenu_category(const bContext *C, ARegion *ar, FSMenuCategory category, const char* category_name, short *starty)
 {
 	SpaceFile *sfile= (SpaceFile*)CTX_wm_space_data(C);
-	FileSelectParams* params = ED_fileselect_get_params(sfile);
 	char bookmark[FILE_MAX];
 	int nentries = fsmenu_get_nentries(category);
 	int linestep = gFontsize*2.0f;
@@ -616,12 +602,7 @@ static void file_draw_fsmenu_category(const bContext *C, ARegion *ar, FSMenuCate
 void file_draw_fsmenu(const bContext *C, ARegion *ar)
 {
 	int linestep = gFontsize*2.0f;
-	
-	short sx, sy, xpos, ypos;
-	int fontsize = gFontsize;
-
-	sx = ar->v2d.cur.xmin + TILE_BORDER_X;
-	sy = ar->v2d.cur.ymax-2*TILE_BORDER_Y;
+	short sy= ar->v2d.cur.ymax-2*TILE_BORDER_Y;
 	
 	file_draw_fsmenu_category(C, ar, FS_CATEGORY_SYSTEM, "SYSTEM", &sy);
 	sy -= linestep;

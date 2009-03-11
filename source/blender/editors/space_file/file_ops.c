@@ -88,7 +88,6 @@ static int find_file_mouse_hor(SpaceFile *sfile, struct ARegion* ar, short x, sh
 
 static int find_file_mouse_vert(SpaceFile *sfile, struct ARegion* ar, short x, short y)
 {
-	int offsetx, offsety;
 	float fx,fy;
 	int active_file = -1;
 	int numfiles = filelist_numfiles(sfile->files);
@@ -572,7 +571,7 @@ void FILE_OT_parent(struct wmOperatorType *ot)
 
 struct ARegion *file_buttons_region(struct ScrArea *sa)
 {
-	ARegion *ar, *arnew;
+	ARegion *ar;
 	
 	for(ar= sa->regionbase.first; ar; ar= ar->next)
 		if(ar->regiontype==RGN_TYPE_CHANNELS)

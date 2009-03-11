@@ -118,7 +118,6 @@ static void file_free(SpaceLink *sl)
 	
 	if(sfile->files) {
 		filelist_free(sfile->files);
-		filelist_freelib(sfile->files);
 		MEM_freeN(sfile->files);
 		sfile->files= NULL;
 	}
