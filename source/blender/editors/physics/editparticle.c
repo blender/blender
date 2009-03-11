@@ -2312,7 +2312,6 @@ static int brush_radial_control_exec(bContext *C, wmOperator *op)
 	ParticleBrushData *brush;
 	int mode = RNA_enum_get(op->ptr, "mode");
 	float new_value = RNA_float_get(op->ptr, "new_value");
-	char str[256];
 
 	if(pset->brushtype < 0)
 		return OPERATOR_CANCELLED;
@@ -2323,8 +2322,6 @@ static int brush_radial_control_exec(bContext *C, wmOperator *op)
 		brush->size= new_value;
 	else if(mode == WM_RADIALCONTROL_STRENGTH)
 		brush->strength= new_value;
-
-	WM_radial_control_string(op, str, 256);
 
 	return OPERATOR_FINISHED;
 }

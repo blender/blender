@@ -1171,36 +1171,10 @@ void PAINT_OT_weight_paint_toggle(wmOperatorType *ot)
 
 /* ************ paint radial controls *************/
 
-void paint_radial_control_invoke(wmOperator *op, VPaint *vp)
-{
-	int mode = RNA_int_get(op->ptr, "mode");
-	float original_value;
-
-	if(mode == WM_RADIALCONTROL_SIZE)
-		original_value = vp->brush->size;
-	else if(mode == WM_RADIALCONTROL_STRENGTH)
-		original_value = vp->brush->alpha;
-
-	RNA_float_set(op->ptr, "initial_value", original_value);
-}
-
-static int paint_radial_control_exec(wmOperator *op, VPaint *vp)
-{
-	int mode = RNA_int_get(op->ptr, "mode");
-	float new_value = RNA_float_get(op->ptr, "new_value");
-
-	if(mode == WM_RADIALCONTROL_SIZE)
-		vp->brush->size = new_value;
-	else if(mode == WM_RADIALCONTROL_STRENGTH)
-		vp->brush->alpha = new_value;
-
-	return OPERATOR_FINISHED;
-}
-
 static int vpaint_radial_control_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	toggle_paint_cursor(C, 0);
-	paint_radial_control_invoke(op, CTX_data_scene(C)->toolsettings->vpaint);
+	brush_radial_control_invoke(op, CTX_data_scene(C)->toolsettings->vpaint->brush, 1);
 	return WM_radial_control_invoke(C, op, event);
 }
 
@@ -1214,16 +1188,13 @@ static int vpaint_radial_control_modal(bContext *C, wmOperator *op, wmEvent *eve
 
 static int vpaint_radial_control_exec(bContext *C, wmOperator *op)
 {
-	int ret = paint_radial_control_exec(op, CTX_data_scene(C)->toolsettings->vpaint);
-	char str[256];
-	WM_radial_control_string(op, str, 256);
-	return ret;
+	return brush_radial_control_exec(op, CTX_data_scene(C)->toolsettings->vpaint->brush, 1);
 }
 
 static int wpaint_radial_control_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	toggle_paint_cursor(C, 1);
-	paint_radial_control_invoke(op, CTX_data_scene(C)->toolsettings->wpaint);
+	brush_radial_control_invoke(op, CTX_data_scene(C)->toolsettings->wpaint->brush, 1);
 	return WM_radial_control_invoke(C, op, event);
 }
 
@@ -1237,10 +1208,7 @@ static int wpaint_radial_control_modal(bContext *C, wmOperator *op, wmEvent *eve
 
 static int wpaint_radial_control_exec(bContext *C, wmOperator *op)
 {
-	int ret = paint_radial_control_exec(op, CTX_data_scene(C)->toolsettings->wpaint);
-	char str[256];
-	WM_radial_control_string(op, str, 256);
-	return ret;
+	return brush_radial_control_exec(op, CTX_data_scene(C)->toolsettings->wpaint->brush, 1);
 }
 
 void PAINT_OT_weight_paint_radial_control(wmOperatorType *ot)
