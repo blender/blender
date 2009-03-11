@@ -169,6 +169,7 @@ typedef struct VoxelData {
 	float int_multiplier;
 	float vxpad;
 	
+	int still, still_frame;
 	char source_path[240];
 	float *dataset;
  

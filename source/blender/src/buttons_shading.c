@@ -1060,7 +1060,7 @@ static void texture_panel_voxeldata(Tex *tex)
 	short yco=PANEL_YMAX;
 
 	block= uiNewBlock(&curarea->uiblocks, "texture_panel_voxeldata", UI_EMBOSS, UI_HELV, curarea->win);
-	if(uiNewPanel(curarea, block, "Voxel Data", "Texture", PANELX, PANELY, PANELW, PANELH)==0) return;
+	if(uiNewPanel(curarea, block, "Voxel Data", "Texture", PANELX, PANELY, PANELW, PANELH+YSPACE)==0) return;
 	uiSetButLock(tex->id.lib!=0, ERROR_LIBDATA_MESSAGE);
 
 	if(tex->vd==NULL) {
@@ -1085,13 +1085,33 @@ static void texture_panel_voxeldata(Tex *tex)
 		uiDefButI(block, MENU, B_REDR, "None %x0|Linear %x1|Tricubic %x2",
 			X2CLM1, yco-=BUTH, BUTW2, BUTH, &vd->interp_type, 0.0, 0.0, 0, 0, "Interpolation type");		
 		
-		uiDefButI(block, NUM, B_REDR, "Resolution: ",
-			X2CLM2, yco, BUTW2, BUTH, &(vd->resolX), 1, 10000, 0, 0, "Resolution of the voxel data");
-			
 		yco -= YSPACE;
 		
 		uiDefButF(block, NUM, B_REDR, "Intensity: ",
 			X2CLM1, yco-=BUTH, BUTW2, BUTH, &(vd->int_multiplier), 0.0001, 10000.0, 0, 0, "Multiplier to scale up or down the texture's intensity");
+		
+		yco = PANEL_YMAX - 2*BUTH - 2*YSPACE;
+		
+		uiDefBut(block, LABEL, B_NOP, "Resolution:",
+			X2CLM2, yco-=BUTH, BUTW2, BUTH, 0, 0, 0, 0, 0, "");
+		uiBlockBeginAlign(block);
+		uiDefButI(block, NUM, B_REDR, "X: ",
+			X2CLM2, yco-=BUTH, BUTW2, BUTH, &(vd->resolX), 1, 10000, 0, 0, "Resolution of the voxel data");
+		uiDefButI(block, NUM, B_REDR, "Y: ",
+			X2CLM2, yco-=BUTH, BUTW2, BUTH, &(vd->resolY), 1, 10000, 0, 0, "Resolution of the voxel data");
+		uiDefButI(block, NUM, B_REDR, "Z: ",
+			X2CLM2, yco-= BUTH, BUTW2, BUTH, &(vd->resolZ), 1, 10000, 0, 0, "Resolution of the voxel data");
+		uiBlockEndAlign(block);
+		
+		yco -= YSPACE;
+		
+		uiBlockBeginAlign(block);
+		uiDefButI(block,TOG, B_REDR, "Still",
+			X2CLM2, yco-=BUTH, BUTW2, BUTH, &(vd->still), 0,1, 0, 0, "Use a still frame from the data sequence for the entire rendered animation");
+		if (vd->still) uiDefButI(block, NUM, B_REDR, "Frame: ",
+			X2CLM2, yco-=BUTH, BUTW2, BUTH, &(vd->still_frame), 1, 10000, 0, 0, "The frame to pause on for the entire rendered animation");	
+		uiBlockEndAlign(block);
+		
 	}
 }
 

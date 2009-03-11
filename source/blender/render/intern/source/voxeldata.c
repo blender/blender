@@ -42,25 +42,26 @@
 #include "render_types.h"
 #include "renderdatabase.h"
 #include "texture.h"
+#include "voxeldata.h"
 
 #if defined( _MSC_VER ) && !defined( __cplusplus )
 # define inline __inline
 #endif // defined( _MSC_VER ) && !defined( __cplusplus )
 
 /*---------------------------Utils----------------------------------------*/
-static inline int _I(int x,int y,int z,int n)
+inline int _I(int x, int y, int z, int *n)
 {
-	return (z*(n)+y)*(n)+x;
+	return (z*(n[1])+y)*(n[2])+x;
 }
 
-float Linear(float xx,float yy,float zz,float *x0,int n)
+float Linear(float xx, float yy, float zz, float *x0, int *n)
 {
 	float sx1,sx0,sy1,sy0,sz1,sz0,v0,v1;
 	int i0,i1,j0,j1,k0,k1;
 	
-	if (xx<0.5) xx=0.5f; if (xx>n+0.5) xx=n+0.5f; i0=(int)xx; i1=i0+1;
-	if (yy<0.5) yy=0.5f; if (yy>n+0.5) yy=n+0.5f; j0=(int)yy; j1=j0+1;
-	if (zz<0.5) zz=0.5f; if (zz>n+0.5) zz=n+0.5f; k0=(int)zz; k1=k0+1;
+	if (xx<0.5) xx=0.5f; if (xx>n[0]+0.5) xx=n[0]+0.5f; i0=(int)xx; i1=i0+1;
+	if (yy<0.5) yy=0.5f; if (yy>n[1]+0.5) yy=n[1]+0.5f; j0=(int)yy; j1=j0+1;
+	if (zz<0.5) zz=0.5f; if (zz>n[2]+0.5) zz=n[2]+0.5f; k0=(int)zz; k1=k0+1;
 	
 	sx1 = xx-i0; sx0 = 1-sx1;
 	sy1 = yy-j0; sy0 = 1-sy1;
@@ -68,15 +69,14 @@ float Linear(float xx,float yy,float zz,float *x0,int n)
 	v0 = sx0*(sy0*x0[_I(i0,j0,k0,n)]+sy1*x0[_I(i0,j1,k0,n)])+sx1*(sy0*x0[_I(i1,j0,k0,n)]+sy1*x0[_I(i1,j1,k0,n)]);
 	v1 = sx0*(sy0*x0[_I(i0,j0,k1,n)]+sy1*x0[_I(i0,j1,k1,n)])+sx1*(sy0*x0[_I(i1,j0,k1,n)]+sy1*x0[_I(i1,j1,k1,n)]);
 	return sz0*v0 + sz1*v1;
-	
 }
 
 
-static float D(float *data, const int res, int x, int y, int z)
+static float D(float *data, int *res, int x, int y, int z)
 {
-	CLAMP(x, 0, res-1);
-	CLAMP(y, 0, res-1);
-	CLAMP(z, 0, res-1);
+	CLAMP(x, 0, res[0]-1);
+	CLAMP(y, 0, res[1]-1);
+	CLAMP(z, 0, res[2]-1);
 	return data[ _I(x, y, z, res) ];
 }
 
@@ -85,19 +85,18 @@ static inline float lerp(float t, float v1, float v2) {
 }
 
 /* trilinear interpolation */
-static float trilinear(float *data, const int res, float *co)
+static float trilinear(float *data, int *res, float *co)
 {
 	float voxx, voxy, voxz;
 	int vx, vy, vz;
 	float dx, dy, dz;
 	float d00, d10, d01, d11, d0, d1, d_final;
-	float dim[3];
-		
-	if (!data) return;
+
+	if (!data) return 0.f;
 	
-	voxx = co[0] * res - 0.5f;
-	voxy = co[1] * res - 0.5f;
-	voxz = co[2] * res - 0.5f;
+	voxx = co[0] * res[0] - 0.5f;
+	voxy = co[1] * res[1] - 0.5f;
+	voxz = co[2] * res[2] - 0.5f;
 	
 	vx = (int)voxx; vy = (int)voxy; vz = (int)voxz;
 	
@@ -112,7 +111,6 @@ static float trilinear(float *data, const int res, float *co)
 	d_final = lerp(dz, d0, d1);
 	
 	return d_final;
-
 }
 
 
@@ -242,17 +240,16 @@ float tricubic_eval(float a[64], float x, float y, float z) {
 }
 
 
-float tricubic(float xx,float yy,float zz,float *heap,int n)
+float tricubic(float xx, float yy, float zz, float *heap, int *n)
 {
 	
 	int xi,yi,zi;
 	float dx,dy,dz;
 	float a[64];
 
-	
-	if (xx<0.5) xx=0.5f; if (xx>n+0.5) xx=n+0.5f; xi=(int)xx; 
-	if (yy<0.5) yy=0.5f; if (yy>n+0.5) yy=n+0.5f; yi=(int)yy; 
-	if (zz<0.5) zz=0.5f; if (zz>n+0.5) zz=n+0.5f; zi=(int)zz; 
+	if (xx<0.5) xx=0.5f; if (xx>n[0]+0.5) xx=n[0]+0.5f; xi=(int)xx;
+	if (yy<0.5) yy=0.5f; if (yy>n[1]+0.5) yy=n[1]+0.5f; yi=(int)yy;
+	if (zz<0.5) zz=0.5f; if (zz>n[2]+0.5) zz=n[2]+0.5f; zi=(int)zz;
 	
 	{
 	float fval[8]={heap[_I(xi,yi,zi,n)],heap[_I(xi+1,yi,zi,n)],heap[_I(xi,yi+1,zi,n)],heap[_I(xi+1,yi+1,zi,n)],heap[_I(xi,yi,zi+1,n)],heap[_I(xi+1,yi,zi+1,n)],heap[_I(xi,yi+1,zi+1,n)],heap[_I(xi+1,yi+1,zi+1,n)]}; 
@@ -325,21 +322,30 @@ float tricubic(float xx,float yy,float zz,float *heap,int n)
 	
 }
 
-
-
-
-
-/*--------------------------------------------------------------------*/
-
-void load_frame (FILE *fp,float *F, int size,int frame)
-{
-	
-	fseek(fp,frame*size*sizeof(float),0);
+void load_frame (FILE *fp, float *F, int size, int frame, int offset)
+{	
+	fseek(fp,frame*size*sizeof(float)+offset,0);
 	fread(F,sizeof(float),size,fp);
 }
 
+void write_voxeldata_header(struct VoxelDataHeader *h, FILE *fp)
+{
+	fwrite(h,sizeof(struct VoxelDataHeader),1,fp);
+}
 
+void read_voxeldata_header(FILE *fp, struct VoxelData *vd)
+{
+	VoxelDataHeader *h=(VoxelDataHeader *)MEM_mallocN(sizeof(VoxelDataHeader), "voxel data header");
+	
+	rewind(fp);
+	fread(h,sizeof(VoxelDataHeader),1,fp);
+	
+	vd->resolX=h->resolX;
+	vd->resolY=h->resolY;
+	vd->resolZ=h->resolZ;
 
+	MEM_freeN(h);
+}
 
 void cache_voxeldata(struct Render *re,Tex *tex)
 {	
@@ -349,20 +355,19 @@ void cache_voxeldata(struct Render *re,Tex *tex)
 	
 	if (!vd) return;
 	
-	vd->resolY=vd->resolX; //for now only support cubic datasets (rectangular datasets could be added latter)
-	vd->resolZ=vd->resolX;
-	size = (vd->resolX)*(vd->resolY)*(vd->resolZ);	
-	
-	vd->dataset=MEM_mallocN(sizeof(float)*size, "voxel dataset");	
+	read_voxeldata_header(fp, vd);
+	size = (vd->resolX)*(vd->resolY)*(vd->resolZ);
+	vd->dataset = MEM_mallocN(sizeof(float)*size, "voxel dataset");
 	
 	if (!BLI_exists(vd->source_path)) return;
 	fp = fopen(vd->source_path,"rb");
 	if (!fp) return;
 	
-	load_frame(fp, vd->dataset, size, re->r.cfra); //here improve the dataset loading function for more dataset types	
+	//here improve the dataset loading function for more dataset types
+	if (vd->still) load_frame(fp, vd->dataset, size, vd->still_frame, sizeof(VoxelDataHeader));
+	else load_frame(fp, vd->dataset, size, re->r.cfra, sizeof(VoxelDataHeader));
 	
 	fclose(fp);
-	
 }
 
 void make_voxeldata(struct Render *re)
@@ -421,24 +426,22 @@ int voxeldatatex(struct Tex *tex, float *texvec, struct TexResult *texres)
 	int xi, yi, zi;
 	float xf, yf, zf;
 	int i=0, fail=0;
-	int resolX, resolY, resolZ;
+	int resol[3];
 	
 	if ((!vd) || (vd->dataset==NULL)) {
 		texres->tin = 0.0f;
 		return 0;
 	}
 	
-	//here do the calculation of the interpolation types 
-	
-	resolX=vd->resolX;
-	resolY=vd->resolY;
-	resolZ=vd->resolZ;
+	resol[0] = vd->resolX;
+	resol[1] = vd->resolY;
+	resol[2] = vd->resolZ;
 	
 	VECCOPY(co, texvec);	
 	
-	dx=1.0f/(resolX);
-	dy=1.0f/(resolY);
-	dz=1.0f/(resolZ);
+	dx=1.0f/(resol[0]);
+	dy=1.0f/(resol[1]);
+	dz=1.0f/(resol[2]);
 	
 	xi=co[0]/dx;
 	yi=co[1]/dy;
@@ -448,27 +451,27 @@ int voxeldatatex(struct Tex *tex, float *texvec, struct TexResult *texres)
 	yf=co[1]/dy;
 	zf=co[2]/dz;
 	
-	if (xi>1 && xi<resolX)
+	if (xi>1 && xi<resol[0])
 	{
-		if (yi>1 && yi<resolY)
+		if (yi>1 && yi<resol[1])
 		{
-			if (zi>1 && zi<resolZ)
+			if (zi>1 && zi<resol[2])
 			{
 				switch (vd->interp_type)
 				{
 					case TEX_VD_NEARESTNEIGHBOR:
 					{
-						texres->tin = vd->dataset[_I(xi,yi,zi,resolX)];
+						texres->tin = vd->dataset[_I(xi,yi,zi,resol)];
 						break;  
 					}
 					case TEX_VD_LINEAR:
 					{
-						texres->tin = trilinear(vd->dataset, resolX, co);
+						texres->tin = trilinear(vd->dataset, resol, co);
 						break;					
 					}
 					case TEX_VD_TRICUBIC:
 					{
-						texres->tin = tricubic(xf,yf,zf,vd->dataset,resolX);
+						texres->tin = tricubic(xf, yf, zf, vd->dataset, resol);
 						break;
 					}
 				}				  				   
