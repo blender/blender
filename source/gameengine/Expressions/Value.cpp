@@ -52,6 +52,10 @@ PyObject* cvalue_div(PyObject*v, PyObject*w)
 {
 	return  ((CValue*)v)->Calc(VALUE_DIV_OPERATOR,(CValue*)w);
 }
+PyObject* cvalue_mod(PyObject*v, PyObject*w)
+{
+	return  ((CValue*)v)->Calc(VALUE_MOD_OPERATOR,(CValue*)w);
+}
 PyObject* cvalue_neg(PyObject*v)
 {
 	return  ((CValue*)v)->Calc(VALUE_NEG_OPERATOR,(CValue*)v);
@@ -112,7 +116,7 @@ static PyNumberMethods cvalue_as_number = {
 	(binaryfunc)cvalue_sub, /*nb_subtract*/
 	(binaryfunc)cvalue_mul, /*nb_multiply*/
 	(binaryfunc)cvalue_div, /*nb_divide*/
-	0,//(binaryfunc)cvalue_remainder,	/*nb_remainder*/
+	(binaryfunc)cvalue_mod, /*nb_remainder*/
 	0,//(binaryfunc)cvalue_divmod,	/*nb_divmod*/
 	0,//0,//0,//0,//(ternaryfunc)cvalue_pow, /*nb_power*/
 	(unaryfunc)cvalue_neg, /*nb_negative*/
@@ -257,6 +261,9 @@ STR_String CValue::op2str (VALUE_OPERATOR op)
 	
 	STR_String opmsg;
 	switch (op) {
+	case VALUE_MOD_OPERATOR:
+		opmsg = " % ";
+		break;
 	case VALUE_ADD_OPERATOR:
 		opmsg = " + ";
 		break;

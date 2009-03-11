@@ -59,7 +59,9 @@ SCA_IObject::~SCA_IObject()
 	SCA_ControllerList::iterator itc; 
 	for (itc = m_controllers.begin(); !(itc == m_controllers.end()); ++itc)
 	{
-		((CValue*)(*itc))->Release();
+		//Use Delete for controller to ensure proper cleaning (expression controller)
+		(*itc)->Delete();
+		//((CValue*)(*itc))->Release();
 	}
 	SCA_ActuatorList::iterator ita;
 	for (ita = m_registeredActuators.begin(); !(ita==m_registeredActuators.end()); ++ita)
