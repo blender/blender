@@ -660,11 +660,14 @@ void area_copy_data(ScrArea *sa1, ScrArea *sa2, int swap_space)
 	sa1->spacetype= sa2->spacetype;
 	sa1->butspacetype= sa2->butspacetype;
 	
-	if(swap_space) {
+	if(swap_space == 1) {
 		SWAP(ListBase, sa1->spacedata, sa2->spacedata);
 		/* exception: ensure preview is reset */
 //		if(sa1->spacetype==SPACE_VIEW3D)
 // XXX			BIF_view3d_previewrender_free(sa1->spacedata.first);
+	}
+	else if (swap_space == 2) {
+		BKE_spacedata_copylist(&sa1->spacedata, &sa2->spacedata);
 	}
 	else {
 		BKE_spacedata_freelist(&sa1->spacedata);
@@ -674,10 +677,12 @@ void area_copy_data(ScrArea *sa1, ScrArea *sa2, int swap_space)
 	/* Note; SPACE_EMPTY is possible on new screens */
 	
 	/* regions */
-	st= BKE_spacetype_from_id(sa1->spacetype);
-	for(ar= sa1->regionbase.first; ar; ar= ar->next)
-		BKE_area_region_free(st, ar);
-	BLI_freelistN(&sa1->regionbase);
+	if(swap_space<2) {
+		st= BKE_spacetype_from_id(sa1->spacetype);
+		for(ar= sa1->regionbase.first; ar; ar= ar->next)
+			BKE_area_region_free(st, ar);
+		BLI_freelistN(&sa1->regionbase);
+	}
 	
 	st= BKE_spacetype_from_id(sa2->spacetype);
 	for(ar= sa2->regionbase.first; ar; ar= ar->next) {
@@ -694,6 +699,38 @@ void area_copy_data(ScrArea *sa1, ScrArea *sa2, int swap_space)
 }
 
 /* *********** Space switching code *********** */
+
+void ED_area_swapspace(bContext *C, ScrArea *sa1, ScrArea *sa2)
+{
+	SpaceType *st;
+	SpaceLink *sl;
+	SpaceLink *slold;
+	ScrArea *tmp= MEM_callocN(sizeof(ScrArea), "addscrarea");
+
+	ED_area_exit(C, sa1);
+	ED_area_exit(C, sa2);
+
+	tmp->spacetype= sa1->spacetype;
+	tmp->butspacetype= sa1->butspacetype;
+	BKE_spacedata_copyfirst(&tmp->spacedata, &sa1->spacedata);
+
+	area_copy_data(tmp, sa1, 2);
+	area_copy_data(sa1, sa2, 0);
+	area_copy_data(sa2, tmp, 0);
+	ED_area_initialize(CTX_wm_manager(C), CTX_wm_window(C), sa1);
+	ED_area_initialize(CTX_wm_manager(C), CTX_wm_window(C), sa2);
+
+	BKE_screen_area_free(tmp);
+	MEM_freeN(tmp);
+
+	/* tell WM to refresh, cursor types etc */
+	WM_event_add_mousemove(C);
+	
+	ED_area_tag_redraw(sa1);
+	ED_area_tag_refresh(sa1);
+	ED_area_tag_redraw(sa2);
+	ED_area_tag_refresh(sa2);
+}
 
 void ED_area_newspace(bContext *C, ScrArea *sa, int type)
 {
