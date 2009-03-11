@@ -504,13 +504,13 @@ void BM_Triangulate_Face(BMesh *bm, BMFace *f, float (*projectverts)[3],
 	
 	///bmesh_update_face_normal(bm, f, projectverts);
 
+	/*this fixes some weird numerical error*/
+	projectverts[0][0] += 0.0001f;
+	projectverts[0][1] += 0.0001f;
+	projectverts[0][2] += 0.0001f;
+
 	compute_poly_normal(f->no, projectverts, f->len);
 	poly_rotate_plane(f->no, projectverts, i);
-	/*check if we rotated the wrong way*/
-	compute_poly_normal(no, projectverts, f->len);
-	if (no[2] < 0) {
-		poly_rotate_plane(no, projectverts, i);
-	}
 
 	nvert = f->len;
 
@@ -518,7 +518,7 @@ void BM_Triangulate_Face(BMesh *bm, BMFace *f, float (*projectverts)[3],
 	for (i=0; i<nvert; i++) {
 		projectverts[i][2] = 0.0f;
 	}
-	
+
 	done = 0;
 	while(!done && f->len > 3){
 		done = 1;
