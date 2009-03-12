@@ -615,8 +615,14 @@ void RNA_property_boolean_set_array(PointerRNA *ptr, PropertyRNA *prop, const in
 	BooleanPropertyRNA *bprop= (BooleanPropertyRNA*)prop;
 	IDProperty *idprop;
 
-	if((idprop=rna_idproperty_check(&prop, ptr)))
-		memcpy(IDP_Array(idprop), values, sizeof(int)*idprop->len);
+	if((idprop=rna_idproperty_check(&prop, ptr))) {
+		if(prop->arraylength == 0)
+			IDP_Int(idprop)= values[0];
+		else
+			memcpy(IDP_Array(idprop), values, sizeof(int)*idprop->len);
+	}
+	else if(prop->arraylength == 0)
+		RNA_property_boolean_set(ptr, prop, values[0]);
 	else if(bprop->setarray)
 		bprop->setarray(ptr, values);
 	else if(!(prop->flag & PROP_NOT_EDITABLE)) {
@@ -712,8 +718,14 @@ void RNA_property_int_set_array(PointerRNA *ptr, PropertyRNA *prop, const int *v
 	IntPropertyRNA *iprop= (IntPropertyRNA*)prop;
 	IDProperty *idprop;
 
-	if((idprop=rna_idproperty_check(&prop, ptr)))
-		memcpy(IDP_Array(idprop), values, sizeof(int)*idprop->len);
+	if((idprop=rna_idproperty_check(&prop, ptr))) {
+		if(prop->arraylength == 0)
+			IDP_Int(idprop)= values[0];
+		else
+			memcpy(IDP_Array(idprop), values, sizeof(int)*idprop->len);\
+	}
+	else if(prop->arraylength == 0)
+		RNA_property_int_set(ptr, prop, values[0]);
 	else if(iprop->setarray)
 		iprop->setarray(ptr, values);
 	else if(!(prop->flag & PROP_NOT_EDITABLE)) {
@@ -826,7 +838,9 @@ void RNA_property_float_set_array(PointerRNA *ptr, PropertyRNA *prop, const floa
 	int i;
 
 	if((idprop=rna_idproperty_check(&prop, ptr))) {
-		if(idprop->subtype == IDP_FLOAT) {
+		if(prop->arraylength == 0)
+			IDP_Double(idprop)= values[0];
+		else if(idprop->subtype == IDP_FLOAT) {
 			memcpy(IDP_Array(idprop), values, sizeof(float)*idprop->len);
 		}
 		else {
@@ -834,6 +848,8 @@ void RNA_property_float_set_array(PointerRNA *ptr, PropertyRNA *prop, const floa
 				((double*)IDP_Array(idprop))[i]= values[i];
 		}
 	}
+	else if(prop->arraylength == 0)
+		RNA_property_float_set(ptr, prop, values[0]);
 	else if(fprop->setarray) {
 		fprop->setarray(ptr, values);
 	}
