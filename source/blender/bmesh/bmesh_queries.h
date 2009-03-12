@@ -30,6 +30,7 @@ int BM_Boundary_Edge(struct BMEdge *e);
 int BM_Face_Sharededges(struct BMFace *f1, struct BMFace *f2);
 float BM_Face_Angle(struct BMesh *bm, struct BMEdge *e);
 int BM_Exist_Face_Overlaps(struct BMesh *bm, struct BMVert **varr, int len, struct BMFace **existface);
+int BM_Face_Exists(BMesh *bm, BMVert **varr, int len, BMFace **existface);
 int BM_Edge_Share_Faces(struct BMEdge *e1, struct BMEdge *e2);
 int BM_Validate_Face(BMesh *bm, BMFace *face, FILE *err);
 int BM_FacesAroundEdge(BMEdge *e);

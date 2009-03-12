@@ -287,6 +287,56 @@ void poly_rotate_plane(float normal[3], float (*verts)[3], int nverts)
  *
 */
 
+void BM_Face_UpdateNormal(BMesh *bm, BMFace *f)
+{
+	float projverts[12][3];
+	float (*proj)[3] = f->len < 12 ? projverts : MEM_mallocN(sizeof(float)*f->len*3, "projvertsn");
+	BMLoop *l = f->loopbase;
+	int i=0;
+
+	if (f->len < 3) return;
+	
+	do {
+		VECCOPY(proj[i], l->v->co);
+		i += 1;
+	} while (l != f->loopbase);
+
+	bmesh_update_face_normal(bm, f, proj);
+
+	if (projverts != proj) MEM_freeN(proj);
+}
+
+void BM_Edge_UpdateNormals(BMesh *bm, BMEdge *e)
+{
+	BMIter *iter;
+	BMFace *f;
+	
+	f = BMIter_New(&iter, bm, BM_FACES_OF_EDGE, e);
+	for (; f; f=BMIter_Step(&iter)) {
+		BM_Face_UpdateNormal(bm, f);
+	}
+
+	BM_Vert_UpdateNormal(bm, e->v1);
+	BM_Vert_UpdateNormal(bm, e->v2);
+}
+
+void BM_Vert_UpdateNormal(BMesh *bm, BMVert *v)
+{
+	BMIter iter;
+	BMFace *f;
+	float norm[3] = {0.0f, 0.0f, 0.0f};
+	int len=0;
+
+	f = BMIter_New(&iter, bm, BM_FACES_OF_VERT, v);
+	for (; f; f=BMIter_Step(&iter), len++) {
+		VecAddf(norm, f->no, norm);
+	}
+
+	if (!len) return;
+
+	VecMulf(norm, 1.0f/(int)len);
+}
+
 void bmesh_update_face_normal(BMesh *bm, BMFace *f, float (*projectverts)[3])
 {
 	BMLoop *l;
@@ -529,6 +579,8 @@ void BM_Triangulate_Face(BMesh *bm, BMFace *f, float (*projectverts)[3],
 			f = BM_Split_Face(bm, l->f, ((BMLoop*)(l->head.prev))->v, 
 			                  ((BMLoop*)(l->head.next))->v, 
 			                  &newl, NULL, 0);
+			VECCOPY(f->no, l->f->no);
+
 			if (!f) {
 				printf("yeek! triangulator failed to split face!\n");
 				break;

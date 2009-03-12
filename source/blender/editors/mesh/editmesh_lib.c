@@ -2028,6 +2028,9 @@ void recalc_editnormals(EditMesh *em)
 	}
 
 	for(efa= em->faces.first; efa; efa=efa->next) {
+		if (efa->e1->fgoni||efa->e2->fgoni||efa->e3->fgoni) continue;
+		if (efa->e4 && efa->e4->fgoni) continue;
+
 		if(efa->v4) {
 			CalcNormFloat4(efa->v1->co, efa->v2->co, efa->v3->co, efa->v4->co, efa->n);
 			CalcCent4f(efa->cent, efa->v1->co, efa->v2->co, efa->v3->co, efa->v4->co);

@@ -691,7 +691,7 @@ static void addedgeface_mesh(EditMesh *em, wmOperator *op)
 	  bmeshafied eventually, but until then
 	  hacks like this to integrate with it
 	  are necassary.*/
-	if (em->selectmode & SCE_SELECT_FACE) {
+	{
 		BMesh *bm = editmesh_to_bmesh(em);
 		BMOperator bmop;
 		int len, ok;

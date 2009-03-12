@@ -501,8 +501,7 @@ float BM_Face_Angle(BMesh *bm, BMEdge *e)
  * BMESH EXIST FACE OVERLAPS
  *
  * Given a set of vertices (varr), find out if
- * a face exists with those vertices already, or
- * if those vertices overlap an existing face.
+ * all those vertices overlap an existing face.
  *
  * Returns:
  * 0 for no overlap
@@ -511,21 +510,56 @@ float BM_Face_Angle(BMesh *bm, BMEdge *e)
  *
 */
 
-int BM_Exist_Face_Overlaps(BMesh *bm, BMVert **varr, int len, BMFace **existface)
+int BM_Exist_Face_Overlaps(BMesh *bm, BMVert **varr, int len, BMFace **overlapface)
 {
 	BMIter vertfaces;
 	BMFace *f;
 	int i, amount;
 
-	*existface = NULL;
+	if (overlapface) *overlapface = NULL;
 
 	for(i=0; i < len; i++){
 		f = BMIter_New(&vertfaces, bm, BM_FACES_OF_VERT, varr[i] );
 		while(f){
 			amount = BM_Verts_In_Face(bm, f, varr, len);
 			if(amount >= len){
-				if((len == f->len) && existface)
-					*existface = f;
+				if (overlapface) *overlapface = f;
+				return 1;				
+			}
+			f = BMIter_Step(&vertfaces);
+		}
+	}
+	return 0;
+}
+
+/*
+ * BMESH FACE EXISTS
+ *
+ * Given a set of vertices (varr), find out if
+ * there is a face with exactly those vertices
+ * (and only those vertices).
+ *
+ * Returns:
+ * 0 for no face found
+ * 1 for face found
+ * 
+ *
+*/
+
+int BM_Face_Exists(BMesh *bm, BMVert **varr, int len, BMFace **existface)
+{
+	BMIter vertfaces;
+	BMFace *f;
+	int i, amount;
+
+	if (existface) *existface = NULL;
+
+	for(i=0; i < len; i++){
+		f = BMIter_New(&vertfaces, bm, BM_FACES_OF_VERT, varr[i] );
+		while(f){
+			amount = BM_Verts_In_Face(bm, f, varr, len);
+			if(amount == len && amount == f->len){
+				if (existface) *existface = f;
 				return 1;				
 			}
 			f = BMIter_Step(&vertfaces);

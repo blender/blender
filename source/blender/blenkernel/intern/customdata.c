@@ -257,6 +257,7 @@ static void layerInterp_tface(void **sources, float *weights,
 	}
 
 	*tf = *(MTFace *)sources[0];
+
 	for(j = 0; j < 4; ++j) {
 		tf->uv[j][0] = uv[j][0];
 		tf->uv[j][1] = uv[j][1];

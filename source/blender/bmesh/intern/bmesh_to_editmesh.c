@@ -256,7 +256,6 @@ void bmesh_make_fgons_exec(BMesh *bmesh, BMOperator *op)
 
 	BMO_Init_Op(&triop, BMOP_TRIANGULATE);
 	
-	/*HACK: I don't know if this'll conflict with other flags at all!*/
 	for (face = BMIter_New(&iter, bmesh, BM_FACES, NULL); face; face=BMIter_Step(&iter)) {
 		if (face->len > 4) {
 			BMO_SetFlag(bmesh, face, FACE_NGON);
@@ -270,6 +269,11 @@ void bmesh_make_fgons_exec(BMesh *bmesh, BMOperator *op)
 	for (i=0; i<eout->len; i++) {
 		edge = ((BMEdge**)eout->data.buf)[i];
 		edge->head.flag |= BM_FGON;
+		face = BMIter_New(&iter, bmesh, BM_FACES_OF_EDGE, edge);
+		
+		for (; face; face=BMIter_Step(&iter)) {
+			face->head.flag |= BM_NONORMCALC;
+		}
 	}
 
 	BMO_Finish_Op(bmesh, &triop);

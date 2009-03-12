@@ -195,6 +195,7 @@ static BMFace *editface_to_BMFace(BMesh *bm, BMOperator *op, EditMesh *em, EditF
 		f->head.flag = 0;
 		f->mat_nr = efa->mat_nr;
 		if(efa->f & SELECT) BM_Select_Face(bm, f, 1);
+		if (efa->flag & ME_SMOOTH) f->head.flag |= BM_SMOOTH;
 		if(efa->h) f->head.flag |= BM_HIDDEN;
 
 		if (efa == em->act_face) f->head.flag |= BM_ACTIVE;

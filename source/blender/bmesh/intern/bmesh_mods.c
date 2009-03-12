@@ -227,7 +227,11 @@ BMFace *BM_Join_Faces(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e, int calcnorm
 		bmesh_loop_reverse(bm, f2);
 	}
 
-	return bmesh_jfke(bm, f1, f2, jed);
+	f1 = bmesh_jfke(bm, f1, f2, jed);
+	
+	if (calcnorm && f1) BM_Face_UpdateNormal(bm, f1);
+	
+	return f1;
 }
 
 /*connects two verts together, automatically (if very naively) finding the
@@ -278,18 +282,11 @@ BMFace *BM_Split_Face(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2, BMLoop **nl,
 	
 	BM_Copy_Attributes(bm, bm, f, nf);
 
-	/*
-	nf->flag = f->flag;
-	if (example->flag & SELECT) f->flag |= BM_SELECT;
-	nf->h = f->h;
-	nf->mat_nr = f->mat_nr;
-	if (nl && example) {
-		(*nl)->e->flag = example->flag;
-		(*nl)->e->h = example->h;
-		(*nl)->e->crease = example->crease;
-		(*nl)->e->bweight = example->bweight;
+	if (calcnorm && nf) {
+		BM_Face_UpdateNormal(bm, nf);
+		BM_Face_UpdateNormal(bm, f);
 	}
-	*/
+
 	return nf;
 }
 

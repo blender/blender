@@ -197,6 +197,7 @@ void BM_Compute_Normals(BMesh *bm)
 	
 	/*calculate all face normals*/
 	for(f = BMIter_New(&faces, bm, BM_FACES, bm ); f; f = BMIter_Step(&faces)){
+		if (f->head.flag & BM_NONORMCALC) continue;
 		bmesh_update_face_normal(bm, f, projectverts);		
 	}
 	

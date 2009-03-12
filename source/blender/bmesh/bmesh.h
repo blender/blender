@@ -77,6 +77,7 @@ struct BMLoop;
 #define BM_SHARP	(1<<4)
 #define BM_SMOOTH	(1<<5)
 #define BM_ACTIVE	(1<<6)
+#define BM_NONORMCALC	(1<<7)
 
 typedef struct BMHeader {
 	struct BMHeader *next, *prev;
@@ -196,6 +197,9 @@ void BM_Collapse_Vert(struct BMesh *bm, struct BMEdge *ke, struct BMVert *kv, fl
 struct BMVert *BM_Split_Edge(struct BMesh *bm, struct BMVert *v, struct BMEdge *e, struct BMEdge **ne, float percent, int calcnorm);
 struct BMVert  *BM_Split_Edge_Multi(struct BMesh *bm, struct BMEdge *e, int numcuts);
 BMEdge *BM_Connect_Verts(BMesh *bm, BMVert *v1, BMVert *v2, BMFace **nf);
+void BM_Face_UpdateNormal(BMesh *bm, BMFace *f);
+void BM_Edge_UpdateNormals(BMesh *bm, BMEdge *e);
+void BM_Vert_UpdateNormal(BMesh *bm, BMVert *v);
 
 /*dissolves vert surrounded by faces*/
 int BM_Dissolve_Disk(BMesh *bm, BMVert *v);
