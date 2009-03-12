@@ -318,7 +318,7 @@ void FILE_OT_select_all(wmOperatorType *ot)
 
 static void set_active_bookmark(FileSelectParams* params, struct ARegion* ar, short x, short y)
 {
-	int nentries = fsmenu_get_nentries(FS_CATEGORY_BOOKMARKS);
+	int nentries = fsmenu_get_nentries(fsmenu_get(), FS_CATEGORY_BOOKMARKS);
 	float fx, fy;
 	short posy;
 
@@ -335,16 +335,17 @@ static void set_active_bookmark(FileSelectParams* params, struct ARegion* ar, sh
 
 static int file_select_bookmark_category(SpaceFile* sfile, ARegion* ar, short x, short y, FSMenuCategory category)
 {
-	int nentries = fsmenu_get_nentries(category);
+	struct FSMenu* fsmenu = fsmenu_get();
+	int nentries = fsmenu_get_nentries(fsmenu, category);
 	int linestep = U.fontsize*2.0f;
 	short xs, ys;
 	int i;
 	int selected = -1;
 
 	for (i=0; i < nentries; ++i) {
-		fsmenu_get_pos(category, i, &xs, &ys);
+		fsmenu_get_pos(fsmenu, category, i, &xs, &ys);
 		if ( (y<=ys) && (y>ys-linestep) ) {
-			fsmenu_select_entry(category, i);
+			fsmenu_select_entry(fsmenu, category, i);
 			selected = i;
 			break;
 		}
@@ -373,7 +374,7 @@ static void file_select_bookmark(SpaceFile* sfile, ARegion* ar, short x, short y
 		}
 		
 		if (selected>=0) {
-			entry= fsmenu_get_entry(category, selected);			
+			entry= fsmenu_get_entry(fsmenu_get(), category, selected);			
 			/* which string */
 			if (entry) {
 				FileSelectParams* params = sfile->params;
@@ -523,6 +524,9 @@ int file_exec(bContext *C, wmOperator *unused)
 		strcat(name, sfile->params->file);
 		RNA_string_set(op->ptr, "filename", name);
 		
+		fsmenu_insert_entry(fsmenu_get(), FS_CATEGORY_RECENT, sfile->params->dir,0, 1);
+		BLI_make_file_string(G.sce, name, BLI_gethome(), ".Bfs");
+		fsmenu_write_file(fsmenu_get(), name);
 		WM_event_fileselect_event(C, op, EVT_FILESELECT_EXEC);
 	}
 				

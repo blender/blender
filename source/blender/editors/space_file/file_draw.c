@@ -546,8 +546,9 @@ void file_draw_list(const bContext *C, ARegion *ar)
 static void file_draw_fsmenu_category(const bContext *C, ARegion *ar, FSMenuCategory category, const char* category_name, short *starty)
 {
 	SpaceFile *sfile= (SpaceFile*)CTX_wm_space_data(C);
+	struct FSMenu* fsmenu = fsmenu_get();
 	char bookmark[FILE_MAX];
-	int nentries = fsmenu_get_nentries(category);
+	int nentries = fsmenu_get_nentries(fsmenu, category);
 	int linestep = gFontsize*2.0f;
 	short sx, sy, xpos, ypos;
 	int bmwidth = ar->v2d.cur.xmax - ar->v2d.cur.xmin - 2*TILE_BORDER_X - ICON_DEFAULT_WIDTH - 4;
@@ -564,7 +565,7 @@ static void file_draw_fsmenu_category(const bContext *C, ARegion *ar, FSMenuCate
 	sy -= linestep;
 
 	for (i=0; i< nentries && (sy > ar->v2d.cur.ymin) ;++i) {
-		char *fname = fsmenu_get_entry(category, i);
+		char *fname = fsmenu_get_entry(fsmenu, category, i);
 
 		if (fname) {
 			int sl;
@@ -575,7 +576,7 @@ static void file_draw_fsmenu_category(const bContext *C, ARegion *ar, FSMenuCate
 				bookmark[sl] = '\0';
 				sl--;
 			}
-			if (fsmenu_is_selected(category, i) ) {
+			if (fsmenu_is_selected(fsmenu, category, i) ) {
 				UI_ThemeColor(TH_HILITE);
 				/* uiSetRoundBox(15);	
 				 * uiRoundBox(sx, sy - linestep, sx + bmwidth, sy, 4.0f); */
@@ -592,7 +593,7 @@ static void file_draw_fsmenu_category(const bContext *C, ARegion *ar, FSMenuCate
 			xpos += ICON_DEFAULT_WIDTH + 4;
 			file_draw_string(xpos, ypos, bookmark, bmwidth, fontsize, FILE_SHORTEN_FRONT);
 			sy -= linestep;
-			fsmenu_set_pos(category, i, xpos, ypos);
+			fsmenu_set_pos(fsmenu, category, i, xpos, ypos);
 		}
 	}
 

@@ -431,13 +431,13 @@ void ED_file_init(void)
 {
 	char name[FILE_MAX];
 	BLI_make_file_string("/", name, BLI_gethome(), ".Bfs");
-	fsmenu_read_file(name);
+	fsmenu_read_file(fsmenu_get(), name);
 	filelist_init_icons();
 	IMB_thumb_makedirs();
 }
 
 void ED_file_exit(void)
 {
-	fsmenu_free();
+	fsmenu_free(fsmenu_get());
 	filelist_free_icons();
 }
