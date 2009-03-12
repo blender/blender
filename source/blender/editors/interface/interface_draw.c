@@ -897,8 +897,8 @@ static void round_button_shaded(int type, int colorid, float asp, float x1, floa
 	float shadefac;
 	
 	/* emboss */
-	UI_ThemeColorShade(TH_BUT_OUTLINE, 50);
-	uiRoundRectFakeAA(x1, y1-1, x2, y2-1, rad, asp);
+	glColor4f(1.0f, 1.0f, 1.0f, 0.08f);
+	uiRoundRectFakeAA(x1+1, y1-1, x2, y2-1, rad, asp);
 	
 	/* colour shading */
 	if (flag & UI_SELECT) {
@@ -929,12 +929,12 @@ static void round_button_flat(int colorid, float asp, float x1, float y1, float 
 	int alpha_offs= (flag & UI_BUT_DISABLED)?UI_DISABLED_ALPHA_OFFS:0;
 	
 	/* emboss */
-	UI_ThemeColorShade(TH_BUT_OUTLINE, 50);
-	uiRoundRectFakeAA(x1, y1-1, x2, y2-1, rad, asp);
+	glColor4f(1.0f, 1.0f, 1.0f, 0.08f);
+	uiRoundRectFakeAA(x1+1, y1-1, x2, y2-1, rad, asp);
 	
 	/* colour shading */
 	if(flag & UI_SELECT) {
-		if (flag & UI_ACTIVE) UI_ThemeColorShade(colorid, -20);
+		if (flag & UI_ACTIVE) UI_ThemeColorShade(colorid, -30);
 		else UI_ThemeColorShade(colorid, -45);	
 	}
 	else {
@@ -1197,11 +1197,14 @@ static void ui_roundshaded_button(int type, int colorid, float asp, float x1, fl
 
 static void ui_roundshaded_flat(int type, int colorid, float asp, float x1, float y1, float x2, float y2, int flag)
 {
-	float rad, maxrad=10.0;
+	float rad, maxrad;
 	int align= (flag & UI_BUT_ALIGN);
 	int alpha_offs= (flag & UI_BUT_DISABLED)?UI_DISABLED_ALPHA_OFFS:0;
 	
 	/* rounded corners */
+	if (type == TEX) maxrad = 5.0;
+	else maxrad= 10.0;
+	
 	rad= (y2-y1)/2.0;
 	if (rad>(x2-x1)/2) rad = (x2-x1)/2;
 	if (maxrad) {
@@ -1985,7 +1988,6 @@ static void ui_draw_minimal(int type, int colorid, float asp, float x1, float y1
 static void ui_draw_slider(int colorid, float fac, float aspect, float x1, float y1, float x2, float y2, int flag)
 {
 	int alpha_offs= (flag & UI_BUT_DISABLED)?UI_DISABLED_ALPHA_OFFS:0;
-	float ymid, yc;
 	float maxrad= 10.0;
 	float rad;
 	int origround, round = uiGetRoundBox();
@@ -1993,13 +1995,9 @@ static void ui_draw_slider(int colorid, float fac, float aspect, float x1, float
 	rad= (y2-y1)/2.0;
 	if (rad>(x2-x1)/2) rad = (x2-x1)/2;
 	if (rad > maxrad) rad = maxrad;
-	
-	/* the slider background line */
-	ymid= (y1+y2)/2.0;
-	yc= 1.7*aspect;	
 
-	if(flag & UI_ACTIVE) UI_ThemeColorShade(colorid, -60); 
-	else UI_ThemeColorShade(colorid, -40); 
+	if(flag & UI_ACTIVE) UI_ThemeColorShade(colorid, -75); 
+	else UI_ThemeColorShade(colorid, -45); 
 
 	origround = round;
 	round &= ~(2|4);
@@ -2049,6 +2047,7 @@ static void ui_draw_slider(int colorid, float fac, float aspect, float x1, float
 			gl_round_box(GL_POLYGON, x1+fac-1.0, y1+ofsy, x2-1.0, y2-ofsy, end_rad);
 		}
 		
+		/* trace over outline again, to cover up inaccuracies */
 		UI_ThemeColorBlendShadeAlpha(TH_BUT_OUTLINE, TH_BACK, 0.1, -30, alpha_offs);
 		uiSetRoundBox(origround);
 		uiRoundRectFakeAA(x1, y1, x2, y2, rad, aspect);

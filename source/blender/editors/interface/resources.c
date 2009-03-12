@@ -370,7 +370,7 @@ void ui_theme_init_userdef(void)
 	SETCOL(btheme->tui.setting, 	180, 180, 180, 255);
 	SETCOL(btheme->tui.setting1, 	180, 180, 180, 255);
 	SETCOL(btheme->tui.setting2, 	180, 180, 180, 255);
-	SETCOL(btheme->tui.num,		 	143, 143, 143, 255);
+	SETCOL(btheme->tui.num,		 	180, 180, 180, 255);
 	SETCOL(btheme->tui.textfield,	143, 142, 143, 255);
 	SETCOL(btheme->tui.textfield_hi,255, 151, 26,  255);
 	SETCOL(btheme->tui.popup,		174, 174, 174, 255);
@@ -378,9 +378,9 @@ void ui_theme_init_userdef(void)
 	SETCOL(btheme->tui.text,		0,0,0, 255);
 	SETCOL(btheme->tui.text_hi, 	255, 255, 255, 255);
 	
-	SETCOL(btheme->tui.menu_back, 	255, 255, 255, 235);
+	SETCOL(btheme->tui.menu_back, 	220, 220, 220, 235);
 	SETCOL(btheme->tui.menu_item, 	255, 255, 255, 20);
-	SETCOL(btheme->tui.menu_hilite, 0x7F,0x7F,0x7F, 255);
+	SETCOL(btheme->tui.menu_hilite, 110, 110, 110, 255);
 	SETCOL(btheme->tui.menu_text, 	0, 0, 0, 255);
 	SETCOL(btheme->tui.menu_text_hi, 255, 255, 255, 255);
 
