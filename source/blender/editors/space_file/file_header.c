@@ -143,10 +143,13 @@ void file_header_buttons(const bContext *C, ARegion *ar)
 	uiBlockSetEmboss(block, UI_EMBOSSX);
 	
 	xco += 5;
-	
-	uiDefIconButO(block, BUT, "FILE_OT_parent", WM_OP_INVOKE_DEFAULT, ICON_FILE_PARENT, xco, yco, 20, 20, "Navigate to Parent Folder");
-	
-	xco+=XIC;
+
+	uiBlockBeginAlign(block);
+	uiDefIconButO(block, BUT, "FILE_OT_parent", WM_OP_INVOKE_DEFAULT, ICON_FILE_PARENT, xco+=XIC, yco, 20, 20, "Navigate to Parent Folder");
+	uiDefIconButO(block, BUT, "FILE_OT_refresh", WM_OP_INVOKE_DEFAULT, ICON_FILE_REFRESH, xco+=XIC, yco, 20, 20, "Refresh List of Files");
+	uiBlockEndAlign(block);
+
+	xco += 5;
 	
 	if (sfile->params->type != FILE_MAIN) {
 		uiBlockBeginAlign(block);

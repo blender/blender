@@ -569,6 +569,34 @@ void FILE_OT_parent(struct wmOperatorType *ot)
 	ot->poll= ED_operator_file_active; /* <- important, handler is on window level */
 }
 
+
+int file_refresh_exec(bContext *C, wmOperator *unused)
+{
+	SpaceFile *sfile= (SpaceFile*)CTX_wm_space_data(C);
+	
+	if(sfile->params) {
+		filelist_setdir(sfile->files, sfile->params->dir);
+		filelist_free(sfile->files);
+		sfile->params->active_file = -1;
+	}		
+	ED_area_tag_redraw(CTX_wm_area(C));
+
+	return OPERATOR_FINISHED;
+
+}
+
+
+void FILE_OT_refresh(struct wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Refresh Filelist";
+	ot->idname= "FILE_OT_refresh";
+	
+	/* api callbacks */
+	ot->exec= file_refresh_exec;
+	ot->poll= ED_operator_file_active; /* <- important, handler is on window level */
+}
+
 struct ARegion *file_buttons_region(struct ScrArea *sa)
 {
 	ARegion *ar;

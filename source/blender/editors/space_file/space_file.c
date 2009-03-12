@@ -270,6 +270,7 @@ void file_operatortypes(void)
 	WM_operatortype_append(FILE_OT_exec);
 	WM_operatortype_append(FILE_OT_cancel);
 	WM_operatortype_append(FILE_OT_parent);
+	WM_operatortype_append(FILE_OT_refresh);
 	WM_operatortype_append(FILE_OT_bookmark_toggle);
 }
 
