@@ -332,24 +332,49 @@ Nature::EdgeNature EdgeNature_from_BPy_Nature( PyObject* obj ) {
 }
 
 Vec2f * Vec2f_ptr_from_Vector( PyObject* obj ) {
-	float x = PyFloat_AsDouble( PyObject_GetAttrString(obj,"x") );
-	float y = PyFloat_AsDouble( PyObject_GetAttrString(obj,"y") );
+	PyObject *v;
+	if (!VectorObject_Check(obj) || ((VectorObject *)obj)->size != 2)
+		return NULL;
+	v = PyObject_GetAttrString(obj,"x");
+	float x = PyFloat_AsDouble( v );
+	Py_DECREF( v );
+	v = PyObject_GetAttrString(obj,"y");
+	float y = PyFloat_AsDouble( v );
+	Py_DECREF( v );
 	
 	return new Vec2f(x,y);
 }
 
 Vec3f * Vec3f_ptr_from_Vector( PyObject* obj ) {
-	float x = PyFloat_AsDouble( PyObject_GetAttrString(obj,"x") );
-	float y = PyFloat_AsDouble( PyObject_GetAttrString(obj,"y") );
-	float z = PyFloat_AsDouble( PyObject_GetAttrString(obj,"z") );
+	PyObject *v;
+	if (!VectorObject_Check(obj) || ((VectorObject *)obj)->size != 3)
+		return NULL;
+	v = PyObject_GetAttrString(obj,"x");
+	float x = PyFloat_AsDouble( v );
+	Py_DECREF( v );
+	v = PyObject_GetAttrString(obj,"y");
+	float y = PyFloat_AsDouble( v );
+	Py_DECREF( v );
+	v = PyObject_GetAttrString(obj,"z");
+	float z = PyFloat_AsDouble( v );
+	Py_DECREF( v );
 	
 	return new Vec3f(x,y,z);
 }
 
 Vec3r * Vec3r_ptr_from_Vector( PyObject* obj ) {
-	double x = PyFloat_AsDouble( PyObject_GetAttrString(obj,"x") );
-	double y = PyFloat_AsDouble( PyObject_GetAttrString(obj,"y") );
-	double z = PyFloat_AsDouble( PyObject_GetAttrString(obj,"z") );
+	PyObject *v;
+	if (!VectorObject_Check(obj) || ((VectorObject *)obj)->size != 3)
+		return NULL;
+	v = PyObject_GetAttrString(obj,"x");
+	double x = PyFloat_AsDouble( v );
+	Py_DECREF( v );
+	v = PyObject_GetAttrString(obj,"y");
+	double y = PyFloat_AsDouble( v );
+	Py_DECREF( v );
+	v = PyObject_GetAttrString(obj,"z");
+	double z = PyFloat_AsDouble( v );
+	Py_DECREF( v );
 	
 	return new Vec3r(x,y,z);
 }
