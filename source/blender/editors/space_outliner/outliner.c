@@ -4204,13 +4204,13 @@ static void outliner_draw_rnabuts(uiBlock *block, Scene *scene, ARegion *ar, Spa
 				prop= te->directdata;
 				
 				if(!(RNA_property_type(ptr, prop) == PROP_POINTER && (tselem->flag & TSE_CLOSED)==0))
-					uiDefAutoButR(block, ptr, prop, -1, "", sizex, (int)te->ys, OL_RNA_COL_SIZEX, OL_H-1);
+					uiDefAutoButR(block, ptr, prop, -1, "", 0, sizex, (int)te->ys, OL_RNA_COL_SIZEX, OL_H-1);
 			}
 			else if(tselem->type == TSE_RNA_ARRAY_ELEM) {
 				ptr= &te->rnaptr;
 				prop= te->directdata;
 				
-				uiDefAutoButR(block, ptr, prop, te->index, "", sizex, (int)te->ys, OL_RNA_COL_SIZEX, OL_H-1);
+				uiDefAutoButR(block, ptr, prop, te->index, "", 0, sizex, (int)te->ys, OL_RNA_COL_SIZEX, OL_H-1);
 			}
 		}
 		

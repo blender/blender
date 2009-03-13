@@ -327,6 +327,7 @@ void RNA_property_float_range(PointerRNA *ptr, PropertyRNA *prop, float *hardmin
 void RNA_property_float_ui_range(PointerRNA *ptr, PropertyRNA *prop, float *softmin, float *softmax, float *step, float *precision);
 
 int RNA_property_string_maxlength(PointerRNA *ptr, PropertyRNA *prop);
+StructRNA *RNA_property_pointer_type(PointerRNA *ptr, PropertyRNA *prop);
 
 void RNA_property_enum_items(PointerRNA *ptr, PropertyRNA *prop, const EnumPropertyItem **item, int *totitem);
 int RNA_property_enum_value(PointerRNA *ptr, PropertyRNA *prop, const char *identifier, int *value);

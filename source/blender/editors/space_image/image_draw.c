@@ -144,7 +144,7 @@ static void draw_render_info(SpaceImage *sima, ARegion *ar)
 	/* clear header rect */
 	UI_GetThemeColor3fv(TH_BACK, colf);
 	glColor3f(colf[0]+0.1f, colf[1]+0.1f, colf[2]+0.1f);
-	glRecti(rect.xmin, rect.ymin, rect.xmax, rect.ymax);
+	glRecti(rect.xmin, rect.ymin, rect.xmax, rect.ymax+1);
 	
 	UI_ThemeColor(TH_TEXT_HI);
 	glRasterPos2i(12, rect.ymin + 5);

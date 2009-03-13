@@ -217,7 +217,7 @@ int UI_GetIconRNA(PointerRNA *ptr)
 		return ICON_DOT;
 }
 
-uiBut *uiDefAutoButR(uiBlock *block, PointerRNA *ptr, PropertyRNA *prop, int index, char *name, int x1, int y1, int x2, int y2)
+uiBut *uiDefAutoButR(uiBlock *block, PointerRNA *ptr, PropertyRNA *prop, int index, char *name, int icon, int x1, int y1, int x2, int y2)
 {
 	uiBut *but=NULL;
 	const char *propname= RNA_property_identifier(ptr, prop);
@@ -237,10 +237,12 @@ uiBut *uiDefAutoButR(uiBlock *block, PointerRNA *ptr, PropertyRNA *prop, int ind
 			else
 				value= RNA_property_boolean_get(ptr, prop);
 
-			if(name && strcmp(name, "") == 0)
-				name= (value)? "Enabled": "Disabled";
-
-			but= uiDefButR(block, TOG, 0, name, x1, y1, x2, y2, ptr, propname, index, 0, 0, -1, -1, NULL);
+			if(icon && name && strcmp(name, "") == 0)
+				but= uiDefIconButR(block, ICONTOG, 0, icon, x1, y1, x2, y2, ptr, propname, index, 0, 0, -1, -1, NULL);
+			else if(icon)
+				but= uiDefIconTextButR(block, ICONTOG, 0, icon, name, x1, y1, x2, y2, ptr, propname, index, 0, 0, -1, -1, NULL);
+			else
+				but= uiDefButR(block, TOG, 0, name, x1, y1, x2, y2, ptr, propname, index, 0, 0, -1, -1, NULL);
 			break;
 		}
 		case PROP_INT:
@@ -267,24 +269,29 @@ uiBut *uiDefAutoButR(uiBlock *block, PointerRNA *ptr, PropertyRNA *prop, int ind
 			int icon;
 
 			pptr= RNA_property_pointer_get(ptr, prop);
+			descr= (char*)RNA_property_ui_description(ptr, prop);
 
-			if(!pptr.data)
-				return NULL;
+			if(!pptr.type)
+				pptr.type= RNA_property_pointer_type(ptr, prop);
 
 			icon= UI_GetIconRNA(&pptr);
-			nameprop= RNA_struct_name_property(&pptr);
 
-			if(nameprop) {
-				text= RNA_property_string_get_alloc(&pptr, nameprop, textbuf, sizeof(textbuf));
-				descr= (char*)RNA_property_ui_description(&pptr, prop);
-				but= uiDefIconTextBut(block, LABEL, 0, icon, text, x1, y1, x2, y2, NULL, 0, 0, 0, 0, descr);
-				if(text != textbuf)
-					MEM_freeN(text);
+			if(pptr.data == NULL) {
+				but= uiDefIconTextBut(block, LABEL, 0, icon, "", x1, y1, x2, y2, NULL, 0, 0, 0, 0, "");
 			}
 			else {
-				text= (char*)RNA_struct_ui_name(&pptr);
-				descr= (char*)RNA_property_ui_description(&pptr, prop);
-				but= uiDefIconTextBut(block, LABEL, 0, icon, text, x1, y1, x2, y2, NULL, 0, 0, 0, 0, descr);
+				nameprop= RNA_struct_name_property(&pptr);
+
+				if(nameprop) {
+					text= RNA_property_string_get_alloc(&pptr, nameprop, textbuf, sizeof(textbuf));
+					but= uiDefIconTextBut(block, LABEL, 0, icon, text, x1, y1, x2, y2, NULL, 0, 0, 0, 0, descr);
+					if(text != textbuf)
+						MEM_freeN(text);
+				}
+				else {
+					text= (char*)RNA_struct_ui_name(&pptr);
+					but= uiDefIconTextBut(block, LABEL, 0, icon, text, x1, y1, x2, y2, NULL, 0, 0, 0, 0, descr);
+				}
 			}
 			break;
 		}
@@ -338,8 +345,10 @@ int uiDefAutoButsRNA(uiBlock *block, PointerRNA *ptr)
 
 		subtype= RNA_property_subtype(ptr, prop);
 
-		name= (char*)RNA_property_ui_name(ptr, prop);
-		uiDefBut(block, LABEL, 0, name, x, y, DEF_BUT_WIDTH, DEF_BUT_HEIGHT-1, NULL, 0, 0, 0, 0, "");
+		if(RNA_property_type(ptr, prop) != PROP_BOOLEAN) {
+			name= (char*)RNA_property_ui_name(ptr, prop);
+			uiDefBut(block, LABEL, 0, name, x, y, DEF_BUT_WIDTH, DEF_BUT_HEIGHT-1, NULL, 0, 0, 0, 0, "");
+		}
 
 		uiBlockBeginAlign(block);
 
@@ -355,7 +364,7 @@ int uiDefAutoButsRNA(uiBlock *block, PointerRNA *ptr)
 				col= a%size;
 				row= a/size;
 
-				uiDefAutoButR(block, ptr, prop, a, "", x+butwidth*col, y-row*DEF_BUT_HEIGHT, butwidth, DEF_BUT_HEIGHT-1);
+				uiDefAutoButR(block, ptr, prop, a, "", 0, x+butwidth*col, y-row*DEF_BUT_HEIGHT, butwidth, DEF_BUT_HEIGHT-1);
 			}
 
 			y -= DEF_BUT_HEIGHT*(length/size);
@@ -377,7 +386,7 @@ int uiDefAutoButsRNA(uiBlock *block, PointerRNA *ptr)
 				else
 					name= coloritem[a];
 
-				uiDefAutoButR(block, ptr, prop, a, name, x+butwidth*a, y, butwidth, DEF_BUT_HEIGHT-1);
+				uiDefAutoButR(block, ptr, prop, a, name, 0, x+butwidth*a, y, butwidth, DEF_BUT_HEIGHT-1);
 			}
 			y -= DEF_BUT_HEIGHT;
 		}
@@ -386,10 +395,12 @@ int uiDefAutoButsRNA(uiBlock *block, PointerRNA *ptr)
 				sprintf(namebuf, "%d:", a+1);
 				name= namebuf;
 			}
+			else if(RNA_property_type(ptr, prop) == PROP_BOOLEAN)
+				name= (char*)RNA_property_ui_name(ptr, prop);
 			else
 				name= "";
 
-			uiDefAutoButR(block, ptr, prop, 0, name, x+DEF_BUT_WIDTH, y, DEF_BUT_WIDTH, DEF_BUT_HEIGHT-1);
+			uiDefAutoButR(block, ptr, prop, 0, name, 0, x+DEF_BUT_WIDTH, y, DEF_BUT_WIDTH, DEF_BUT_HEIGHT-1);
 			y -= DEF_BUT_HEIGHT;
 		}
 

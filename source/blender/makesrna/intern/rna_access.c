@@ -431,6 +431,19 @@ int RNA_property_string_maxlength(PointerRNA *ptr, PropertyRNA *prop)
 	return sprop->maxlength;
 }
 
+StructRNA *RNA_property_pointer_type(PointerRNA *ptr, PropertyRNA *prop)
+{
+	PointerPropertyRNA *pprop;
+	
+	rna_idproperty_check(&prop, ptr);
+	pprop= (PointerPropertyRNA*)prop;
+
+	if(pprop->structtype)
+		return pprop->structtype;
+
+	return &RNA_UnknownType;
+}
+
 void RNA_property_enum_items(PointerRNA *ptr, PropertyRNA *prop, const EnumPropertyItem **item, int *totitem)
 {
 	EnumPropertyRNA *eprop;

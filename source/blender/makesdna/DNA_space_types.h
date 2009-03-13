@@ -270,14 +270,12 @@ typedef struct SpaceText {
 
 	int top, viewlines;
 	short flags, menunr;	
-	int font_id;
 
 	int lheight;
 	int left;
 	int showlinenrs;
 	int tabnumber;
 
-	int pad;
 	int showsyntax;
 	int overwrite;
 	float pix_per_line;

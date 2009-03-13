@@ -830,7 +830,7 @@ static StructRNA *rna_def_object(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Draw Bounds", "Displays the object's bounds.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 
-	prop= RNA_def_property(srna, "draw_bounds_types", PROP_ENUM, PROP_NONE);
+	prop= RNA_def_property(srna, "draw_bounds_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "boundtype");
 	RNA_def_property_enum_items(prop, boundtype_items);
 	RNA_def_property_ui_text(prop, "Draw Bounds Type", "Object boundary display type.");

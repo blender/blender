@@ -230,4 +230,3 @@ void RNA_def_image(BlenderRNA *brna)
 
 #endif
 
-

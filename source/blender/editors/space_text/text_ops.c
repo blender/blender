@@ -2489,6 +2489,7 @@ void TEXT_OT_resolve_conflict(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Resolve Conflict";
 	ot->idname= "TEXT_OT_resolve_conflict";
+	ot->description= "When external text is out of sync, resolve the conflict.";
 
 	/* api callbacks */
 	ot->exec= resolve_conflict_exec;

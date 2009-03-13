@@ -932,8 +932,7 @@ int uiAlignPanelStep(ScrArea *sa, ARegion *ar, float fac)
 	if(align==BUT_VERTICAL)
 		ps->pa->ofsy= -ps->pa->sizey-PNL_HEADER-PNL_DIST;
 	else
-		ps->pa->ofsy= 0;
-		
+		ps->pa->ofsy= -ps->pa->sizey-PNL_HEADER-PNL_DIST; // XXX was 0;
 	
 	for(a=0 ; a<tot-1; a++, ps++) {
 		psnext= ps+1;

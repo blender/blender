@@ -115,7 +115,7 @@ static PyObject *Method_defAutoButR( PyObject * self, PyObject * args )
 		return NULL;
 	}
 	
-	return PyCObject_FromVoidPtr(   uiDefAutoButR(PyCObject_AsVoidPtr(py_block), &py_rna->ptr, prop, index, butname, xco, yco, width, height), NULL);
+	return PyCObject_FromVoidPtr(   uiDefAutoButR(PyCObject_AsVoidPtr(py_block), &py_rna->ptr, prop, index, butname, 0, xco, yco, width, height), NULL);
 }
 
 

@@ -4329,7 +4329,7 @@ void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 						v3d->bgpic->ima= restore_pointer_by_name(newmain, (ID *)v3d->bgpic->ima, 1);
 					}
 					if(v3d->localvd) {
-						Base *base;
+						/*Base *base;*/
 
 						v3d->localvd->camera= sc->scene->camera;
 						
@@ -5960,10 +5960,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				while(sl) {
 					if(sl->spacetype==SPACE_TEXT) {
 						SpaceText *st= (SpaceText*) sl;
-						if(st->font_id>1) {
-							st->font_id= 0;
-							st->lheight= 13;
-						}
+						st->lheight= 12;
 					}
 					sl= sl->next;
 				}

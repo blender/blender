@@ -218,9 +218,9 @@ static void rna_def_space_image_uv(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SI_LOCAL_UV);
 	RNA_def_property_ui_text(prop, "Local View", "Draw only faces with the currently displayed image assigned.");*/
 
-	prop= RNA_def_property(srna, "display_normalized_coordinates", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "normalized_coordinates", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SI_COORDFLOATS);
-	RNA_def_property_ui_text(prop, "Display Normalized Coordinates", "Display UV coordinates from 0.0 to 1.0 rather than in pixels.");
+	RNA_def_property_ui_text(prop, "Normalized Coordinates", "Display UV coordinates from 0.0 to 1.0 rather than in pixels.");
 
 	/* todo: move edge and face drawing options here from G.f */
 

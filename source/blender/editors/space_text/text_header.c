@@ -215,7 +215,7 @@ static void text_editmenu(bContext *C, uiMenuItem *head, void *arg_unused)
 	uiMenuSeparator(head);
 
 	uiMenuItemO(head, 0, "TEXT_OT_jump");
-	uiMenuItemO(head, 0, "TEXT_OT_find_and_replace");
+	uiMenuItemO(head, 0, "TEXT_OT_properties");
 
 	uiMenuSeparator(head);
 
@@ -353,85 +353,38 @@ static void text_idpoin_handle(bContext *C, ID *id, int event)
 
 /********************** header buttons ***********************/
 
-void text_header_buttons(const bContext *C, ARegion *ar)
+static void header_buttons(const bContext *C, uiLayout *layout)
 {
 	bScreen *sc= CTX_wm_screen(C);
 	SpaceText *st= (SpaceText*)CTX_wm_space_data(C);
 	PointerRNA spaceptr;
 	Text *text= st->text;
-	ScrArea *sa= CTX_wm_area(C);
-	uiBlock *block;
-	int xco, yco= 3, xmax, oldcol;
 	
 	RNA_pointer_create(&sc->id, &RNA_SpaceTextEditor, st, &spaceptr);
 
-	block= uiBeginBlock(C, ar, "header buttons", UI_EMBOSS, UI_HELV);
-	
-	xco= ED_area_header_standardbuttons(C, block, yco);
-	
-	if((sa->flag & HEADER_NO_PULLDOWN)==0) {
-		/* pull down menus */
-		uiBlockSetEmboss(block, UI_EMBOSSP);
-		
-		xmax= GetButStringLength("Text");
-		uiDefMenuBut(block, text_filemenu, NULL, "Text", xco, yco-2, xmax-3, 24, "");
-		xco+=xmax;
-	
-		if(text) {
-			xmax= GetButStringLength("Edit");
-			uiDefMenuBut(block, text_editmenu, NULL, "Edit", xco, yco-2, xmax-3, 24, "");
-			xco+=xmax;
-			
-			xmax= GetButStringLength("Format");
-			uiDefMenuBut(block, text_formatmenu, NULL, "Format", xco, yco-2, xmax-3, 24, "");
-			xco+=xmax;
-		}
+	uiTemplateHeaderMenus(layout);
+	uiItemMenu(layout, UI_TSLOT_HEADER, "Text", 0, text_filemenu);
+	if(text) {
+		uiItemMenu(layout, UI_TSLOT_HEADER, "Edit", 0, text_editmenu);
+		uiItemMenu(layout, UI_TSLOT_HEADER, "Format", 0, text_formatmenu);
 	}
-	
-	uiBlockSetEmboss(block, UI_EMBOSS);
 
-	uiBlockBeginAlign(block);
-	uiDefIconButR(block, ICONTOG, 0, ICON_LINENUMBERS_OFF, xco, yco,XIC,YIC, &spaceptr, "line_numbers", 0, 0, 0, 0, 0, NULL);
-	uiDefIconButR(block, ICONTOG, 0, ICON_WORDWRAP_OFF, xco+=XIC, yco,XIC,YIC, &spaceptr, "word_wrap", 0, 0, 0, 0, 0, NULL);
-	uiDefIconButR(block, ICONTOG, 0, ICON_SYNTAX_OFF, xco+=XIC, yco,XIC,YIC, &spaceptr, "syntax_highlight", 0, 0, 0, 0, 0, NULL);
-	// uiDefIconButR(block, ICONTOG, 0, ICON_SCRIPTPLUGINS, xco+=XIC, yco,XIC,YIC, &spaceptr, "do_python_plugins", 0, 0, 0, 0, 0, "Enables Python text plugins");
-	uiBlockEndAlign(block);
-	
 	/* warning button if text is out of date */
 	if(text && text_file_modified(text)) {
-		xco+= XIC;
+		uiTemplateHeaderButtons(layout);
+		uiTemplateSetColor(layout, TH_REDALERT);
+		uiItemO(layout, UI_TSLOT_HEADER, "", ICON_HELP, "TEXT_OT_resolve_conflict");
+	}
 
-		oldcol= uiBlockGetCol(block);
-		uiBlockSetCol(block, TH_REDALERT);
-		uiDefIconButO(block, BUT, "TEXT_OT_resolve_conflict", WM_OP_INVOKE_DEFAULT, ICON_HELP,	xco+=XIC,yco,XIC,YIC, "External text is out of sync, click for options to resolve the conflict");
-		uiBlockSetCol(block, oldcol);
-	}
-	
-	/* browse text datablock */
-	xco+= 2*XIC;
-	xco= uiDefIDPoinButs(block, CTX_data_main(C), NULL, (ID*)st->text, ID_TXT, NULL, xco, yco,
-		text_idpoin_handle, UI_ID_BROWSE|UI_ID_RENAME|UI_ID_ADD_NEW|UI_ID_OPEN|UI_ID_DELETE);
-	xco+=XIC;
-	
-	/*
-	if(st->text) {
-		if(st->text->flags & TXT_ISDIRTY && (st->text->flags & TXT_ISEXT || !(st->text->flags & TXT_ISMEM)))
-			uiDefIconBut(block, BUT,0, ICON_ERROR, xco+=XIC,yco,XIC,YIC, 0, 0, 0, 0, 0, "The text has been changed");
-		if(st->text->flags & TXT_ISEXT) 
-			uiDefBut(block, BUT,B_TEXTSTORE, ICON(),	xco+=XIC,yco,XIC,YIC, 0, 0, 0, 0, 0, "Stores text in project file");
-		else 
-			uiDefBut(block, BUT,B_TEXTSTORE, ICON(),	xco+=XIC,yco,XIC,YIC, 0, 0, 0, 0, 0, "Disables storing of text in project file");
-		xco+=10;
-	}
-	*/		
-	
-	/* display settings */
-	if(st->font_id>1) st->font_id= 0;
-	uiDefButR(block, MENU, 0, NULL, xco,yco,100,YIC, &spaceptr, "font_size", 0, 0, 0, 0, 0, NULL);
-	xco+=105;
-	
-	uiDefButR(block, NUM, 0, "Tab:", xco,yco,XIC+50,YIC, &spaceptr, "tab_width", 0, 0, 0, 0, 0, NULL);
-	xco+= XIC+50;
+	uiTemplateHeaderButtons(layout);
+	uiItemR(layout, UI_TSLOT_HEADER, "", ICON_LINENUMBERS_OFF, &spaceptr, "line_numbers");
+	uiItemR(layout, UI_TSLOT_HEADER, "", ICON_WORDWRAP_OFF, &spaceptr, "word_wrap");
+	uiItemR(layout, UI_TSLOT_HEADER, "", ICON_SYNTAX_OFF, &spaceptr, "syntax_highlight");
+	// XXX uiItemR(layout, "", ICON_SCRIPTPLUGINS, &spaceptr, "do_python_plugins");
+
+	uiTemplateHeaderID(layout, &spaceptr, "text",
+		UI_ID_BROWSE|UI_ID_RENAME|UI_ID_ADD_NEW|UI_ID_OPEN|UI_ID_DELETE,
+		text_idpoin_handle);
 
 	/* file info */
 	if(text) {
@@ -452,74 +405,78 @@ void text_header_buttons(const bContext *C, ARegion *ar)
 		else
 			sprintf(headtxt, text->id.lib? "Text: External": "Text: Internal");
 
-		UI_ThemeColor(TH_MENU_TEXT);
-		UI_RasterPos(xco+=XIC, yco+6);
-
-		UI_DrawString(G.font, headtxt, 0);
-		xco += UI_GetStringWidth(G.font, headtxt, 0);
+		uiTemplateHeaderButtons(layout);
+		uiItemLabel(layout, UI_TSLOT_HEADER, headtxt, 0);
 	}
-
-	uiEndBlock(C, block);
-	uiDrawBlock(C, block);
-
-	/* always as last  */
-	UI_view2d_totRect_set(&ar->v2d, xco+XIC+80, ar->v2d.tot.ymax-ar->v2d.tot.ymin);
 }
 
-/************************* find & replace ***************************/
+void text_header_buttons(const bContext *C, ARegion *ar)
+{
+	uiHeaderLayout(C, ar, header_buttons);
+}
 
-void text_find_buttons(const bContext *C, ARegion *ar)
+/************************** properties ******************************/
+
+void properties_buttons(const bContext *C, uiLayout *layout)
 {
 	bScreen *sc= CTX_wm_screen(C);
 	SpaceText *st= CTX_wm_space_text(C);
 	PointerRNA spaceptr;
-	uiBlock *block;
-	int xco= 5, yco= 3;
 	
 	RNA_pointer_create(&sc->id, &RNA_SpaceTextEditor, st, &spaceptr);
 
-	block= uiBeginBlock(C, ar, "find buttons", UI_EMBOSS, UI_HELV);
+	uiTemplateColumn(layout);
+	uiItemR(layout, UI_TSLOT_COLUMN_1, NULL, ICON_LINENUMBERS_OFF, &spaceptr, "line_numbers");
+	uiItemR(layout, UI_TSLOT_COLUMN_1, NULL, ICON_WORDWRAP_OFF, &spaceptr, "word_wrap");
+	uiItemR(layout, UI_TSLOT_COLUMN_1, NULL, ICON_SYNTAX_OFF, &spaceptr, "syntax_highlight");
 
-	/* find */
-	uiBlockBeginAlign(block);
-	uiDefButR(block, TEX, 0, "Find: ", xco, yco,220,20, &spaceptr, "find_text", 0, 0, 0, 0, 0, NULL);
-	xco += 220;
-	uiDefIconButO(block, BUT, "TEXT_OT_find_set_selected", WM_OP_INVOKE_DEFAULT, ICON_TEXT, xco,yco,20,20, "Copy from selection");
-	xco += 20+XIC;
-	uiBlockEndAlign(block);
-
-	/* replace */
-	uiBlockBeginAlign(block);
-	uiDefButR(block, TEX, 0, "Replace: ", xco, yco,220,20, &spaceptr, "replace_text", 0, 0, 0, 0, 0, NULL);
-	xco += 220;
-	uiDefIconButO(block, BUT, "TEXT_OT_replace_set_selected", WM_OP_INVOKE_DEFAULT, ICON_TEXT, xco,yco,20,20, "Copy from selection");
-	xco += 20+XIC;
-	uiBlockEndAlign(block);
-
-	uiBlockBeginAlign(block);
-	uiDefButR(block, TOG, 0, "Wrap", xco, yco,60,20, &spaceptr, "find_wrap", 0, 0, 0, 0, 0, NULL);
-	xco += 60;
-	uiDefButR(block, TOG, 0, "All", xco, yco,60,20, &spaceptr, "find_all", 0, 0, 0, 0, 0, NULL);
-	xco += 50+XIC;
-	uiBlockEndAlign(block);
-
-	uiBlockBeginAlign(block);
-	uiDefButO(block, BUT, "TEXT_OT_find", WM_OP_INVOKE_REGION_WIN, "Find", xco,yco,50,20, "Find next.");
-	xco += 50;
-	uiDefButO(block, BUT, "TEXT_OT_replace", WM_OP_INVOKE_REGION_WIN, "Replace", xco,yco,70,20, "Replace then find next.");
-	xco += 70;
-	uiDefButO(block, BUT, "TEXT_OT_mark_all", WM_OP_INVOKE_REGION_WIN, "Mark All", xco,yco,80,20, "Mark each occurrence to edit all from one");
-	xco += 80;
-	uiBlockEndAlign(block);
-	
-	uiEndBlock(C, block);
-	uiDrawBlock(C, block);
-
-	/* always as last  */
-	UI_view2d_totRect_set(&ar->v2d, xco+XIC+80, ar->v2d.tot.ymax-ar->v2d.tot.ymin);
+	uiTemplateColumn(layout);
+	uiItemR(layout, UI_TSLOT_COLUMN_1, NULL, 0, &spaceptr, "font_size");
+	uiItemR(layout, UI_TSLOT_COLUMN_1, NULL, 0, &spaceptr, "tab_width");
 }
 
-ARegion *text_has_find_region(ScrArea *sa)
+void find_buttons(const bContext *C, uiLayout *layout)
+{
+	bScreen *sc= CTX_wm_screen(C);
+	SpaceText *st= CTX_wm_space_text(C);
+	PointerRNA spaceptr;
+	
+	RNA_pointer_create(&sc->id, &RNA_SpaceTextEditor, st, &spaceptr);
+
+	/* find */
+	uiTemplateLeftRight(layout);
+	uiItemR(layout, UI_TSLOT_LR_LEFT, "", 0, &spaceptr, "find_text");
+	uiItemO(layout, UI_TSLOT_LR_RIGHT, "", ICON_TEXT, "TEXT_OT_find_set_selected");
+	uiTemplateColumn(layout);
+	uiItemO(layout, UI_TSLOT_COLUMN_1, NULL, 0, "TEXT_OT_find");
+
+	/* replace */
+	uiTemplateLeftRight(layout);
+	uiItemR(layout, UI_TSLOT_LR_LEFT, "", 0, &spaceptr, "replace_text");
+	uiItemO(layout, UI_TSLOT_LR_RIGHT, "", ICON_TEXT, "TEXT_OT_replace_set_selected");
+	uiTemplateColumn(layout);
+	uiItemO(layout, UI_TSLOT_COLUMN_1, NULL, 0, "TEXT_OT_replace");
+
+	/* mark */
+	uiTemplateColumn(layout);
+	uiItemO(layout, UI_TSLOT_COLUMN_1, NULL, 0, "TEXT_OT_mark_all");
+
+	/* settings */
+	uiTemplateColumn(layout);
+	uiItemR(layout, UI_TSLOT_COLUMN_1, "Wrap", 0, &spaceptr, "find_wrap");
+	uiItemR(layout, UI_TSLOT_COLUMN_2, "All", 0, &spaceptr, "find_all");
+}
+
+void text_properties_buttons(const bContext *C, ARegion *ar)
+{
+	uiCompactPanelLayout(C, ar, "TEXT_OT_properties", "Properties", "Text", properties_buttons, 0);
+	uiCompactPanelLayout(C, ar, "TEXT_OT_find", "Find", "Text", find_buttons, 1);
+
+	uiDrawPanels(C, 1);
+	uiMatchPanelsView2d(ar);
+}
+
+ARegion *text_has_properties_region(ScrArea *sa)
 {
 	ARegion *ar, *arnew;
 	
@@ -535,18 +492,18 @@ ARegion *text_has_find_region(ScrArea *sa)
 	/* is error! */
 	if(ar==NULL) return NULL;
 	
-	arnew= MEM_callocN(sizeof(ARegion), "find and replace region");
+	arnew= MEM_callocN(sizeof(ARegion), "properties region");
 	
 	BLI_insertlinkafter(&sa->regionbase, ar, arnew);
 	arnew->regiontype= RGN_TYPE_UI;
-	arnew->alignment= RGN_ALIGN_BOTTOM;
+	arnew->alignment= RGN_ALIGN_LEFT;
 	
 	arnew->flag = RGN_FLAG_HIDDEN;
 	
 	return arnew;
 }
 
-static int find_and_replace_poll(bContext *C)
+static int properties_poll(bContext *C)
 {
 	SpaceText *st= CTX_wm_space_text(C);
 	Text *text= CTX_data_edit_text(C);
@@ -554,10 +511,10 @@ static int find_and_replace_poll(bContext *C)
 	return (st && text);
 }
 
-static int find_and_replace_exec(bContext *C, wmOperator *op)
+static int properties_exec(bContext *C, wmOperator *op)
 {
 	ScrArea *sa= CTX_wm_area(C);
-	ARegion *ar= text_has_find_region(sa);
+	ARegion *ar= text_has_properties_region(sa);
 	
 	if(ar) {
 		ar->flag ^= RGN_FLAG_HIDDEN;
@@ -570,15 +527,15 @@ static int find_and_replace_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void TEXT_OT_find_and_replace(wmOperatorType *ot)
+void TEXT_OT_properties(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Find and Replace";
-	ot->idname= "TEXT_OT_find_and_replace";
+	ot->name= "Properties";
+	ot->idname= "TEXT_OT_properties";
 	
 	/* api callbacks */
-	ot->exec= find_and_replace_exec;
-	ot->poll= find_and_replace_poll;
+	ot->exec= properties_exec;
+	ot->poll= properties_poll;
 }
 
 /******************** XXX popup menus *******************/

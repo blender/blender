@@ -36,6 +36,8 @@
 
 #include "DNA_text_types.h"
 
+#include "WM_types.h"
+
 #ifdef RNA_RUNTIME
 
 static void rna_Text_filename_get(PointerRNA *ptr, char *value)
@@ -83,7 +85,6 @@ static int rna_TextLine_line_length(PointerRNA *ptr)
 	return line->len;
 }
 
-#if 0
 static void rna_TextLine_line_set(PointerRNA *ptr, const char *value)
 {
 	TextLine *line= (TextLine*)ptr->data;
@@ -91,16 +92,14 @@ static void rna_TextLine_line_set(PointerRNA *ptr, const char *value)
 	if(line->line)
 		MEM_freeN(line->line);
 	
-	if(strlen(value)) {
-		line->line= BLI_strdup(value);
-		line->len= strlen(line->line);
-	}
-	else {
-		line->line= NULL;
-		line->len= 0;
+	line->line= BLI_strdup(value);
+	line->len= strlen(line->line);
+
+	if(line->format) {
+		MEM_freeN(line->format);
+		line->format= NULL;
 	}
 }
-#endif
 
 #else
 
@@ -113,9 +112,9 @@ static void rna_def_text_line(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Text Line", "Line of text in a Text datablock.");
 	
 	prop= RNA_def_property(srna, "line", PROP_STRING, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
 	RNA_def_property_string_funcs(prop, "rna_TextLine_line_get", "rna_TextLine_line_length", "rna_TextLine_line_set");
 	RNA_def_property_ui_text(prop, "Line", "Text in the line.");
+	RNA_def_property_update(prop, NC_TEXT|NA_EDITED, NULL);
 }
 
 static void rna_def_text_marker(BlenderRNA *brna)

@@ -44,6 +44,7 @@ struct wmWindowManager;
 /* text_header.c */
 void text_header_buttons(const struct bContext *C, struct ARegion *ar);
 void text_find_buttons(const struct bContext *C, struct ARegion *ar);
+void text_properties_buttons(const struct bContext *C, struct ARegion *ar);
 
 /* text_draw.c */
 void draw_text_main(struct SpaceText *st, struct ARegion *ar);
@@ -142,7 +143,8 @@ void TEXT_OT_scroll_bar(struct wmOperatorType *ot);
 void TEXT_OT_set_cursor(struct wmOperatorType *ot);
 void TEXT_OT_line_number(struct wmOperatorType *ot);
 
-void TEXT_OT_find_and_replace(struct wmOperatorType *ot);
+void TEXT_OT_properties(struct wmOperatorType *ot);
+
 void TEXT_OT_find(struct wmOperatorType *ot);
 void TEXT_OT_find_set_selected(struct wmOperatorType *ot);
 void TEXT_OT_replace(struct wmOperatorType *ot);
