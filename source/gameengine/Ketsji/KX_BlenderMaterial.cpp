@@ -748,6 +748,9 @@ PyMethodDef KX_BlenderMaterial::Methods[] =
 	{NULL,NULL} //Sentinel
 };
 
+PyAttributeDef KX_BlenderMaterial::Attributes[] = {
+	{ NULL }	//Sentinel
+};
 
 PyTypeObject KX_BlenderMaterial::Type = {
 	PyObject_HEAD_INIT(&PyType_Type)

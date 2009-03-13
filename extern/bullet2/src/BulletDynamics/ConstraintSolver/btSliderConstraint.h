@@ -46,6 +46,8 @@ class btRigidBody;
 class btSliderConstraint : public btTypedConstraint
 {
 protected:
+	///for backwards compatibility during the transition to 'getInfo/getInfo2'
+	bool		m_useSolveConstraintObsolete;
 	btTransform	m_frameInA;
     btTransform	m_frameInB;
 	// use frameA fo define limits, if true
@@ -104,6 +106,7 @@ protected:
 	btVector3 m_relPosB;
 
 	btScalar m_linPos;
+	btScalar m_angPos;
 
 	btScalar m_angDepth;
 	btScalar m_kAngle;
@@ -126,7 +129,13 @@ public:
     btSliderConstraint();
 	// overrides
     virtual void	buildJacobian();
-    virtual	void	solveConstraint(btScalar	timeStep);
+    virtual void getInfo1 (btConstraintInfo1* info);
+	
+	virtual void getInfo2 (btConstraintInfo2* info);
+
+    virtual	void	solveConstraintObsolete(btSolverBody& bodyA,btSolverBody& bodyB,btScalar	timeStep);
+	
+
 	// access
     const btRigidBody& getRigidBodyA() const { return m_rbA; }
     const btRigidBody& getRigidBodyB() const { return m_rbB; }
@@ -194,6 +203,7 @@ public:
 	void setMaxAngMotorForce(btScalar maxAngMotorForce) { m_maxAngMotorForce = maxAngMotorForce; }
 	btScalar getMaxAngMotorForce() { return m_maxAngMotorForce; }
 	btScalar getLinearPos() { return m_linPos; }
+	
 
 	// access for ODE solver
 	bool getSolveLinLimit() { return m_solveLinLim; }
@@ -202,10 +212,11 @@ public:
 	btScalar getAngDepth() { return m_angDepth; }
 	// internal
     void	buildJacobianInt(btRigidBody& rbA, btRigidBody& rbB, const btTransform& frameInA, const btTransform& frameInB);
-    void	solveConstraintInt(btRigidBody& rbA, btRigidBody& rbB);
+    void	solveConstraintInt(btRigidBody& rbA, btSolverBody& bodyA,btRigidBody& rbB, btSolverBody& bodyB);
 	// shared code used by ODE solver
 	void	calculateTransforms(void);
 	void	testLinLimits(void);
+	void	testLinLimits2(btConstraintInfo2* info);
 	void	testAngLimits(void);
 	// access for PE Solver
 	btVector3 getAncorInA(void);

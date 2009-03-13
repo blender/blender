@@ -40,7 +40,7 @@
 
 MT_Point3 SCA_IObject::m_sDummy=MT_Point3(0,0,0);
 
-SCA_IObject::SCA_IObject(PyTypeObject* T): m_initState(0), m_state(0), CValue(T)
+SCA_IObject::SCA_IObject(PyTypeObject* T): CValue(T), m_initState(0), m_state(0)
 {
 	m_suspended = false;
 }
@@ -59,7 +59,9 @@ SCA_IObject::~SCA_IObject()
 	SCA_ControllerList::iterator itc; 
 	for (itc = m_controllers.begin(); !(itc == m_controllers.end()); ++itc)
 	{
-		((CValue*)(*itc))->Release();
+		//Use Delete for controller to ensure proper cleaning (expression controller)
+		(*itc)->Delete();
+		//((CValue*)(*itc))->Release();
 	}
 	SCA_ActuatorList::iterator ita;
 	for (ita = m_registeredActuators.begin(); !(ita==m_registeredActuators.end()); ++ita)
@@ -407,6 +409,9 @@ PyMethodDef SCA_IObject::Methods[] = {
 	{NULL,NULL} //Sentinel
 };
 
+PyAttributeDef SCA_IObject::Attributes[] = {
+	{ NULL }	//Sentinel
+};
 
 
 PyObject* SCA_IObject::_getattr(const char *attr) {

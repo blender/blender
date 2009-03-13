@@ -25,7 +25,7 @@ subject to the following restrictions:
 
 
 
-void BT_TRIANGLE_CONTACT::merge_points(const btVector4 & plane,
+void GIM_TRIANGLE_CONTACT::merge_points(const btVector4 & plane,
                                        btScalar margin, const btVector3 * points, int point_count)
 {
     m_point_count = 0;
@@ -123,7 +123,7 @@ int btPrimitiveTriangle::clip_triangle(btPrimitiveTriangle & other, btVector3 * 
     return clipped_count;
 }
 
-bool btPrimitiveTriangle::find_triangle_collision_clip_method(btPrimitiveTriangle & other, BT_TRIANGLE_CONTACT & contacts)
+bool btPrimitiveTriangle::find_triangle_collision_clip_method(btPrimitiveTriangle & other, GIM_TRIANGLE_CONTACT & contacts)
 {
     btScalar margin = m_margin + other.m_margin;
 
@@ -132,7 +132,7 @@ bool btPrimitiveTriangle::find_triangle_collision_clip_method(btPrimitiveTriangl
     //create planes
     // plane v vs U points
 
-    BT_TRIANGLE_CONTACT contacts1;
+    GIM_TRIANGLE_CONTACT contacts1;
 
     contacts1.m_separating_normal = m_plane;
 
@@ -152,7 +152,7 @@ bool btPrimitiveTriangle::find_triangle_collision_clip_method(btPrimitiveTriangl
 
 
     //Clip tri1 by tri2 edges
-    BT_TRIANGLE_CONTACT contacts2;
+    GIM_TRIANGLE_CONTACT contacts2;
     contacts2.m_separating_normal = other.m_plane;
 
     clipped_count = other.clip_triangle(*this,clipped_points);

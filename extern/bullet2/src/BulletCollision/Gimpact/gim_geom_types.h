@@ -36,11 +36,7 @@ email: projectileman@yahoo.com
 
 #include "gim_math.h"
 
-/*! \defgroup GEOMETRIC_TYPES
-\brief
-Basic types and constants for geometry
-*/
-//! @{
+
 
 //! Short Integer vector 2D
 typedef GSHORT vec2s[2];
@@ -95,7 +91,6 @@ typedef GREAL mat4f[4][4];
 typedef GREAL quatf[4];
 
 //typedef struct _aabb3f aabb3f;
-//! @}
 
 
 

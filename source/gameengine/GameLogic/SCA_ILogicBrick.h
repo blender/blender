@@ -62,6 +62,7 @@ public:
 	SCA_IObject*	GetParent();
 	virtual void	ReParent(SCA_IObject* parent);
 	virtual void	Relink(GEN_Map<GEN_HashedPtr, void*> *obj_map);
+	virtual void Delete() { Release(); }
 
 	// act as a BoolValue (with value IsPositiveTrigger)
 	virtual CValue*	Calc(VALUE_OPERATOR op, CValue *val);

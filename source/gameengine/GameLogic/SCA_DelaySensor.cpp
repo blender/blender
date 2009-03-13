@@ -53,10 +53,10 @@ SCA_DelaySensor::SCA_DelaySensor(class SCA_EventManager* eventmgr,
 								 int duration,
 								 bool repeat,
 								 PyTypeObject* T)
-	: SCA_ISensor(gameobj,eventmgr, T), 
+	: SCA_ISensor(gameobj,eventmgr, T),
+	m_repeat(repeat),
 	m_delay(delay),
-	m_duration(duration),
-	m_repeat(repeat)
+	m_duration(duration)
 {
 	Init();
 }

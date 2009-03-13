@@ -77,6 +77,10 @@ PyMethodDef KX_PolyProxy::Methods[] = {
 	{NULL,NULL} //Sentinel
 };
 
+PyAttributeDef KX_PolyProxy::Attributes[] = {
+	{ NULL }	//Sentinel
+};
+
 PyObject* KX_PolyProxy::_getattr(const char *attr)
 {
 	if (!strcmp(attr, "matname"))
@@ -146,8 +150,8 @@ PyObject* KX_PolyProxy::_getattr(const char *attr)
 }
 
 KX_PolyProxy::KX_PolyProxy(const RAS_MeshObject*mesh, RAS_Polygon* polygon)
-:	m_mesh((RAS_MeshObject*)mesh),
-	m_polygon(polygon)
+:	m_polygon(polygon),
+	m_mesh((RAS_MeshObject*)mesh)
 {
 }
 

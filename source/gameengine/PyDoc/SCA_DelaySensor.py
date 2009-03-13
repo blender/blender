@@ -20,10 +20,9 @@ class SCA_DelaySensor(SCA_ISensor):
 	@type delay: integer.
 	@ivar duration: length of the ON period in number of frame after the initial OFF period.
 	                If duration is greater than 0, a negative trigger is sent at the end of the ON pulse.
-    @type duration: integer
-    @ivar repeat: 1 if the OFF-ON cycle should be repeated indefinately, 0 if it should run once.
-    @type repeat: integer
-    
+	@type duration: integer
+	@ivar repeat: 1 if the OFF-ON cycle should be repeated indefinately, 0 if it should run once.
+	@type repeat: integer
 	"""
 	def setDelay(delay):
 		"""

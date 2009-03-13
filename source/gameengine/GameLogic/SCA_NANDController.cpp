@@ -137,6 +137,10 @@ PyMethodDef SCA_NANDController::Methods[] = {
 	{NULL,NULL} //Sentinel
 };
 
+PyAttributeDef SCA_NANDController::Attributes[] = {
+	{ NULL }	//Sentinel
+};
+
 PyObject* SCA_NANDController::_getattr(const char *attr) {
 	_getattr_up(SCA_IController);
 }

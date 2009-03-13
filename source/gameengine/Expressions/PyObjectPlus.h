@@ -73,7 +73,7 @@ typedef int Py_ssize_t;
 #endif
 
 static inline void Py_Fatal(const char *M) {
-	//cout << M << endl; 
+	fprintf(stderr, "%s\n", M);
 	exit(-1);
 };
 
@@ -89,35 +89,22 @@ static inline void Py_Fatal(const char *M) {
   virtual PyParentObject *GetParents(void) {return Parents;}
 
 
+
 								// This defines the _getattr_up macro
 								// which allows attribute and method calls
 								// to be properly passed up the hierarchy.
 #define _getattr_up(Parent) \
-  PyObject *rvalue = NULL; \
-  if (!strcmp(attr, "__methods__")) { \
-    PyObject *_attr_string = NULL; \
-    PyMethodDef *meth = Methods; \
-    rvalue = Parent::_getattr(attr); \
-    if (rvalue==NULL) { \
-    	PyErr_Clear(); \
-    	rvalue = PyList_New(0); \
-    } \
-    if (meth) { \
-      for (; meth->ml_name != NULL; meth++) { \
-        _attr_string = PyString_FromString(meth->ml_name); \
-		PyList_Append(rvalue, _attr_string); \
-		Py_DECREF(_attr_string); \
-	  } \
+	PyObject *rvalue = Py_FindMethod(Methods, this, attr); \
+	 \
+	if (rvalue == NULL) { \
+		PyErr_Clear(); \
+		rvalue = Parent::_getattr(attr); \
 	} \
-  } else { \
-    rvalue = Py_FindMethod(Methods, this, attr); \
-    if (rvalue == NULL) { \
-      PyErr_Clear(); \
-      rvalue = Parent::_getattr(attr); \
-    } \
-  } \
-  return rvalue; \
-
+	if ((rvalue == NULL) && !strcmp(attr, "__dict__")) {\
+		PyErr_Clear(); \
+		rvalue = _getattr_dict(Parent::_getattr(attr), Methods, Attributes); \
+	} \
+	return rvalue; \
 
 /**
  * These macros are helpfull when embedding Python routines. The second
@@ -397,6 +384,8 @@ public:
 		return ((PyObjectPlus*)self)->Py_isA(value);
 	}
 };
+
+PyObject *_getattr_dict(PyObject *pydict, PyMethodDef *meth, PyAttributeDef *attrdef);
 
 #endif //  _adr_py_lib_h_
 

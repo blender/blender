@@ -98,8 +98,8 @@ class btUnionFind
 
 		int find(int x)
 		{ 
-			//assert(x < m_N);
-			//assert(x >= 0);
+			//btAssert(x < m_N);
+			//btAssert(x >= 0);
 
 			while (x != m_elements[x].m_id) 
 			{
@@ -110,8 +110,8 @@ class btUnionFind
 				m_elements[x].m_id = m_elements[m_elements[x].m_id].m_id;
 		#endif //
 				x = m_elements[x].m_id;
-				//assert(x < m_N);
-				//assert(x >= 0);
+				//btAssert(x < m_N);
+				//btAssert(x >= 0);
 
 			}
 			return x; 

@@ -56,9 +56,9 @@ KX_ConstraintActuator::KX_ConstraintActuator(SCA_IObject *gameobj,
 											 int option,
 											 char *property,
 											 PyTypeObject* T) : 
+	SCA_IActuator(gameobj, T),
 	m_refDirection(refDir),
-	m_currentTime(0),
-	SCA_IActuator(gameobj, T)
+	m_currentTime(0)
 {
 	m_posDampTime = posDampTime;
 	m_rotDampTime = rotDampTime;
@@ -610,6 +610,10 @@ PyMethodDef KX_ConstraintActuator::Methods[] = {
 	{"setLimit", (PyCFunction) KX_ConstraintActuator::sPySetLimit, METH_VARARGS, (PY_METHODCHAR)SetLimit_doc},
 	{"getLimit", (PyCFunction) KX_ConstraintActuator::sPyGetLimit, METH_NOARGS, (PY_METHODCHAR)GetLimit_doc},
 	{NULL,NULL} //Sentinel
+};
+
+PyAttributeDef KX_ConstraintActuator::Attributes[] = {
+	{ NULL }	//Sentinel
 };
 
 PyObject* KX_ConstraintActuator::_getattr(const char *attr) {

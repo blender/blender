@@ -141,6 +141,10 @@ PyMethodDef SCA_XORController::Methods[] = {
 	{NULL,NULL} //Sentinel
 };
 
+PyAttributeDef SCA_XORController::Attributes[] = {
+	{ NULL }	//Sentinel
+};
+
 PyObject* SCA_XORController::_getattr(const char *attr) {
 	_getattr_up(SCA_IController);
 }

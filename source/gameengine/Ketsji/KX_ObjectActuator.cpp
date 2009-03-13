@@ -65,12 +65,12 @@ KX_ObjectActuator(
 	m_current_linear_factor(0.0),
 	m_current_angular_factor(0.0),
 	m_damping(damping),
+	m_previous_error(0.0,0.0,0.0),
+	m_error_accumulator(0.0,0.0,0.0),
 	m_bitLocalFlag (flag),
 	m_active_combined_velocity (false),
 	m_linear_damping_active(false),
-	m_angular_damping_active(false),
-	m_error_accumulator(0.0,0.0,0.0),
-	m_previous_error(0.0,0.0,0.0)
+	m_angular_damping_active(false)
 {
 	if (m_bitLocalFlag.ServoControl)
 	{
@@ -330,6 +330,10 @@ PyMethodDef KX_ObjectActuator::Methods[] = {
 
 
 	{NULL,NULL} //Sentinel
+};
+
+PyAttributeDef KX_ObjectActuator::Attributes[] = {
+	{ NULL }	//Sentinel
 };
 
 PyObject* KX_ObjectActuator::_getattr(const char *attr) {

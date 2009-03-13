@@ -29,11 +29,6 @@ subject to the following restrictions:
 #include "btTriangleShapeEx.h"
 
 
-/*! \defgroup CONTACTS
-\brief
-Functions for managing and sorting contacts resulting from a collision query.
-*/
-//! @{
 
 /**
 Configuration var for applying interpolation of  contact normals
@@ -42,8 +37,9 @@ Configuration var for applying interpolation of  contact normals
 
 #define CONTACT_DIFF_EPSILON 0.00001f
 
-/// Structure for collision results
-class BT_CONTACT
+///The GIM_CONTACT is an internal GIMPACT structure, similar to btManifoldPoint.
+///@todo: remove and replace GIM_CONTACT by btManifoldPoint.
+class GIM_CONTACT
 {
 public:
     btVector3 m_point;
@@ -53,11 +49,11 @@ public:
     int m_feature1;//Face number
     int m_feature2;//Face number
 public:
-    BT_CONTACT()
+    GIM_CONTACT()
     {
     }
 
-    BT_CONTACT(const BT_CONTACT & contact):
+    GIM_CONTACT(const GIM_CONTACT & contact):
 				m_point(contact.m_point),
 				m_normal(contact.m_normal),
 				m_depth(contact.m_depth),
@@ -66,7 +62,7 @@ public:
     {
     }
 
-    BT_CONTACT(const btVector3 &point,const btVector3 & normal,
+    GIM_CONTACT(const btVector3 &point,const btVector3 & normal,
     	 			btScalar depth, int feature1, int feature2):
 				m_point(point),
 				m_normal(normal),
@@ -112,7 +108,7 @@ public:
 };
 
 
-class btContactArray:public btAlignedObjectArray<BT_CONTACT>
+class btContactArray:public btAlignedObjectArray<GIM_CONTACT>
 {
 public:
 	btContactArray()
@@ -124,11 +120,11 @@ public:
 		const btVector3 &point,const btVector3 & normal,
 		btScalar depth, int feature1, int feature2)
 	{
-		push_back( BT_CONTACT(point,normal,depth,feature1,feature2) );
+		push_back( GIM_CONTACT(point,normal,depth,feature1,feature2) );
 	}
 
 	SIMD_FORCE_INLINE void push_triangle_contacts(
-		const BT_TRIANGLE_CONTACT & tricontact,
+		const GIM_TRIANGLE_CONTACT & tricontact,
 		int feature1,int feature2)
 	{
 		for(int i = 0;i<tricontact.m_point_count ;i++ )
@@ -145,5 +141,5 @@ public:
 	void merge_contacts_unique(const btContactArray & contacts);
 };
 
-//! @}
+
 #endif // GIM_CONTACT_H_INCLUDED

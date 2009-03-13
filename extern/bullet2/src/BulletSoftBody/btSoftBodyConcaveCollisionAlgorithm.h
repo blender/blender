@@ -35,7 +35,7 @@ struct btTriIndex
 {
 	int m_PartIdTriangleIndex;
 	class btCollisionShape*	m_childShape;
-	
+
 	btTriIndex(int partId,int triangleIndex,btCollisionShape* shape)
 	{
 		m_PartIdTriangleIndex = (partId<<(31-MAX_NUM_PARTS_IN_BITS)) | triangleIndex;
@@ -75,11 +75,11 @@ class btSoftBodyTriangleCallback : public btTriangleCallback
 	btScalar m_collisionMarginTriangle;
 
 	btHashMap<btHashKey<btTriIndex>,btTriIndex> m_shapeCache;
-	
+
 public:
-int	m_triangleCount;
-	
-//	btPersistentManifold*	m_manifoldPtr;
+	int	m_triangleCount;
+
+	//	btPersistentManifold*	m_manifoldPtr;
 
 	btSoftBodyTriangleCallback(btDispatcher* dispatcher,btCollisionObject* body0,btCollisionObject* body1,bool isSwapped);
 
@@ -88,7 +88,7 @@ int	m_triangleCount;
 	virtual ~btSoftBodyTriangleCallback();
 
 	virtual void processTriangle(btVector3* triangle, int partId, int triangleIndex);
-	
+
 	void clearCache();
 
 	SIMD_FORCE_INLINE const btVector3& getAabbMin() const

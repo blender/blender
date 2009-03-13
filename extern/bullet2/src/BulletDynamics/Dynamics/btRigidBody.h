@@ -17,7 +17,6 @@ subject to the following restrictions:
 #define RIGIDBODY_H
 
 #include "LinearMath/btAlignedObjectArray.h"
-#include "LinearMath/btPoint3.h"
 #include "LinearMath/btTransform.h"
 #include "BulletCollision/BroadphaseCollision/btBroadphaseProxy.h"
 #include "BulletCollision/CollisionDispatch/btCollisionObject.h"
@@ -31,7 +30,7 @@ extern btScalar gDeactivationTime;
 extern bool gDisableDeactivation;
 
 
-///btRigidBody is the main class for rigid body objects. It is derived from btCollisionObject, so it keeps a pointer to a btCollisionShape.
+///The btRigidBody is the main class for rigid body objects. It is derived from btCollisionObject, so it keeps a pointer to a btCollisionShape.
 ///It is recommended for performance and memory use to share btCollisionShape objects whenever possible.
 ///There are 3 types of rigid bodies: 
 ///- A) Dynamic rigid bodies, with positive mass. Motion is controlled by rigid body dynamics.
@@ -46,9 +45,11 @@ class btRigidBody  : public btCollisionObject
 	btVector3		m_linearVelocity;
 	btVector3		m_angularVelocity;
 	btScalar		m_inverseMass;
-	btScalar		m_angularFactor;
+	btVector3		m_angularFactor;
+	btVector3		m_linearFactor;
 
 	btVector3		m_gravity;	
+	btVector3		m_gravity_acceleration;
 	btVector3		m_invInertiaLocal;
 	btVector3		m_totalForce;
 	btVector3		m_totalTorque;
@@ -75,7 +76,7 @@ class btRigidBody  : public btCollisionObject
 public:
 
 
-	///btRigidBodyConstructionInfo provides information to create a rigid body. Setting mass to zero creates a fixed (non-dynamic) rigid body.
+	///The btRigidBodyConstructionInfo structure provides information to create a rigid body. Setting mass to zero creates a fixed (non-dynamic) rigid body.
 	///For dynamic objects, you can use the collision shape to approximate the local inertia tensor, otherwise use the zero vector (default argument)
 	///You can use the motion state to synchronize the world transform between physics and graphics objects. 
 	///And if the motion state is provided, the rigid body will initialize its initial world transform from the motion state,
@@ -182,7 +183,7 @@ public:
 
 	const btVector3&	getGravity() const
 	{
-		return m_gravity;
+		return m_gravity_acceleration;
 	}
 
 	void			setDamping(btScalar lin_damping, btScalar ang_damping);
@@ -219,6 +220,14 @@ public:
 	
 	void			setMassProps(btScalar mass, const btVector3& inertia);
 	
+	const btVector3& getLinearFactor() const
+	{
+		return m_linearFactor;
+	}
+	void setLinearFactor(const btVector3& linearFactor)
+	{
+		m_linearFactor = linearFactor;
+	}
 	btScalar		getInvMass() const { return m_inverseMass; }
 	const btMatrix3x3& getInvInertiaTensorWorld() const { 
 		return m_invInertiaTensorWorld; 
@@ -230,10 +239,20 @@ public:
 
 	void			applyCentralForce(const btVector3& force)
 	{
-		m_totalForce += force;
+		m_totalForce += force*m_linearFactor;
 	}
+
+	const btVector3& getTotalForce()
+	{
+		return m_totalForce;
+	};
+
+	const btVector3& getTotalTorque()
+	{
+		return m_totalTorque;
+	};
     
-	const btVector3& getInvInertiaDiagLocal()
+	const btVector3& getInvInertiaDiagLocal() const
 	{
 		return m_invInertiaLocal;
 	};
@@ -251,23 +270,23 @@ public:
 
 	void	applyTorque(const btVector3& torque)
 	{
-		m_totalTorque += torque;
+		m_totalTorque += torque*m_angularFactor;
 	}
 	
 	void	applyForce(const btVector3& force, const btVector3& rel_pos) 
 	{
 		applyCentralForce(force);
-		applyTorque(rel_pos.cross(force)*m_angularFactor);
+		applyTorque(rel_pos.cross(force*m_linearFactor));
 	}
 	
 	void applyCentralImpulse(const btVector3& impulse)
 	{
-		m_linearVelocity += impulse * m_inverseMass;
+		m_linearVelocity += impulse *m_linearFactor * m_inverseMass;
 	}
 	
   	void applyTorqueImpulse(const btVector3& torque)
 	{
-			m_angularVelocity += m_invInertiaTensorWorld * torque;
+			m_angularVelocity += m_invInertiaTensorWorld * torque * m_angularFactor;
 	}
 	
 	void applyImpulse(const btVector3& impulse, const btVector3& rel_pos) 
@@ -277,7 +296,7 @@ public:
 			applyCentralImpulse(impulse);
 			if (m_angularFactor)
 			{
-				applyTorqueImpulse(rel_pos.cross(impulse)*m_angularFactor);
+				applyTorqueImpulse(rel_pos.cross(impulse*m_linearFactor));
 			}
 		}
 	}
@@ -287,10 +306,10 @@ public:
 	{
 		if (m_inverseMass != btScalar(0.))
 		{
-			m_linearVelocity += linearComponent*impulseMagnitude;
+			m_linearVelocity += linearComponent*m_linearFactor*impulseMagnitude;
 			if (m_angularFactor)
 			{
-				m_angularVelocity += angularComponent*impulseMagnitude*m_angularFactor;
+				m_angularVelocity += angularComponent*m_angularFactor*impulseMagnitude;
 			}
 		}
 	}
@@ -303,7 +322,7 @@ public:
 	
 	void updateInertiaTensor();    
 	
-	const btPoint3&     getCenterOfMassPosition() const { 
+	const btVector3&     getCenterOfMassPosition() const { 
 		return m_worldTransform.getOrigin(); 
 	}
 	btQuaternion getOrientation() const;
@@ -321,15 +340,12 @@ public:
 
 	inline void setLinearVelocity(const btVector3& lin_vel)
 	{ 
-		assert (m_collisionFlags != btCollisionObject::CF_STATIC_OBJECT);
 		m_linearVelocity = lin_vel; 
 	}
 
-	inline void setAngularVelocity(const btVector3& ang_vel) { 
-		assert (m_collisionFlags != btCollisionObject::CF_STATIC_OBJECT);
-		{
-			m_angularVelocity = ang_vel; 
-		}
+	inline void setAngularVelocity(const btVector3& ang_vel) 
+	{ 
+		m_angularVelocity = ang_vel; 
 	}
 
 	btVector3 getVelocityInLocalPoint(const btVector3& rel_pos) const
@@ -353,7 +369,7 @@ public:
 
 
 	
-	SIMD_FORCE_INLINE btScalar computeImpulseDenominator(const btPoint3& pos, const btVector3& normal) const
+	SIMD_FORCE_INLINE btScalar computeImpulseDenominator(const btVector3& pos, const btVector3& normal) const
 	{
 		btVector3 r0 = pos - getCenterOfMassPosition();
 
@@ -443,11 +459,16 @@ public:
 	int	m_contactSolverType;
 	int	m_frictionSolverType;
 
-	void	setAngularFactor(btScalar angFac)
+	void	setAngularFactor(const btVector3& angFac)
 	{
 		m_angularFactor = angFac;
 	}
-	btScalar	getAngularFactor() const
+
+	void	setAngularFactor(btScalar angFac)
+	{
+		m_angularFactor.setValue(angFac,angFac,angFac);
+	}
+	const btVector3&	getAngularFactor() const
 	{
 		return m_angularFactor;
 	}

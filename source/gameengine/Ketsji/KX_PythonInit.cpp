@@ -47,6 +47,7 @@
 #include "KX_PyConstraintBinding.h"
 
 #include "KX_KetsjiEngine.h"
+#include "KX_RadarSensor.h"
 
 #include "SCA_IInputDevice.h"
 #include "SCA_PropertySensor.h"
@@ -196,7 +197,7 @@ static PyObject* gPyGetSpectrum(PyObject*)
 }
 
 
-
+#if 0 // unused
 static PyObject* gPyStartDSP(PyObject*, PyObject* args)
 {
 	SND_IAudioDevice* audiodevice = SND_DeviceManager::Instance();
@@ -213,7 +214,7 @@ static PyObject* gPyStartDSP(PyObject*, PyObject* args)
 	
 	Py_RETURN_NONE;
 }
-
+#endif
 
 
 static PyObject* gPyStopDSP(PyObject*, PyObject* args)
@@ -257,7 +258,7 @@ static PyObject* gPySetPhysicsTicRate(PyObject*, PyObject* args)
 	PHY_GetActiveEnvironment()->setFixedTimeStep(true,ticrate);
 	Py_RETURN_NONE;
 }
-
+#if 0 // unused
 static PyObject* gPySetPhysicsDebug(PyObject*, PyObject* args)
 {
 	int debugMode;
@@ -267,7 +268,7 @@ static PyObject* gPySetPhysicsDebug(PyObject*, PyObject* args)
 	PHY_GetActiveEnvironment()->setDebugMode(debugMode);
 	Py_RETURN_NONE;
 }
-
+#endif
 
 
 static PyObject* gPyGetPhysicsTicRate(PyObject*)
@@ -327,6 +328,32 @@ static PyObject* gPyGetCurrentScene(PyObject* self)
 {
 	Py_INCREF(gp_KetsjiScene);
 	return (PyObject*) gp_KetsjiScene;
+}
+
+static STR_String gPyGetSceneList_doc =  
+"getSceneList()\n"
+"Return a list of converted scenes.\n";
+static PyObject* gPyGetSceneList(PyObject* self)
+{
+	KX_KetsjiEngine* m_engine = KX_GetActiveEngine();
+	//CListValue* list = new CListValue();
+	PyObject* list;
+	KX_SceneList* scenes = m_engine->CurrentScenes();
+	int numScenes = scenes->size();
+	int i;
+	
+	list = PyList_New(numScenes);
+	
+	for (i=0;i<numScenes;i++)
+	{
+		KX_Scene* scene = scenes->at(i);
+		//list->Add(scene);
+		PyList_SET_ITEM(list, i, scene);
+		Py_INCREF(scene);
+		
+	}
+	
+	return (PyObject*)list;
 }
 
 static PyObject *pyPrintExt(PyObject *,PyObject *,PyObject *)
@@ -408,6 +435,8 @@ static struct PyMethodDef game_methods[] = {
 	METH_NOARGS, (PY_METHODCHAR)SCA_PythonController::sPyGetCurrentController__doc__},
 	{"getCurrentScene", (PyCFunction) gPyGetCurrentScene,
 	METH_NOARGS, (PY_METHODCHAR)gPyGetCurrentScene_doc.Ptr()},
+	{"getSceneList", (PyCFunction) gPyGetSceneList,
+	METH_NOARGS, (PY_METHODCHAR)gPyGetSceneList_doc.Ptr()},
 	{"addActiveActuator",(PyCFunction) SCA_PythonController::sPyAddActiveActuator,
 	METH_VARARGS, (PY_METHODCHAR)SCA_PythonController::sPyAddActiveActuator__doc__},
 	{"getRandomFloat",(PyCFunction) gPyGetRandomFloat,
@@ -1031,6 +1060,14 @@ PyObject* initGameLogic(KX_KetsjiEngine *engine, KX_Scene* scene) // quick hack 
 	KX_MACRO_addTypesToDict(d, KX_STATE28, (1<<27));
 	KX_MACRO_addTypesToDict(d, KX_STATE29, (1<<28));
 	KX_MACRO_addTypesToDict(d, KX_STATE30, (1<<29));
+
+	/* Radar Sensor */
+	KX_MACRO_addTypesToDict(d, KX_RADAR_AXIS_POS_X, KX_RadarSensor::KX_RADAR_AXIS_POS_X);
+	KX_MACRO_addTypesToDict(d, KX_RADAR_AXIS_POS_Y, KX_RadarSensor::KX_RADAR_AXIS_POS_Y);
+	KX_MACRO_addTypesToDict(d, KX_RADAR_AXIS_POS_Z, KX_RadarSensor::KX_RADAR_AXIS_POS_Z);
+	KX_MACRO_addTypesToDict(d, KX_RADAR_AXIS_NEG_X, KX_RadarSensor::KX_RADAR_AXIS_NEG_Y);
+	KX_MACRO_addTypesToDict(d, KX_RADAR_AXIS_NEG_Y, KX_RadarSensor::KX_RADAR_AXIS_NEG_X);
+	KX_MACRO_addTypesToDict(d, KX_RADAR_AXIS_NEG_Z, KX_RadarSensor::KX_RADAR_AXIS_NEG_Z);
 
 	// Check for errors
 	if (PyErr_Occurred())

@@ -242,6 +242,12 @@ void bglEnd(void) {}
 /* booleanops.c */
 struct DerivedMesh *NewBooleanDerivedMesh(struct Object *ob, struct Object *ob_select, int int_op_type) { return 0; }
 
+/* LOD_decimation.cpp */
+int LOD_LoadMesh(struct LOD_Decimation_Info* info) { return 0;};
+int LOD_PreprocessMesh(struct LOD_Decimation_Info* info) {return 0;};
+int LOD_CollapseEdge(struct LOD_Decimation_Info* info) {return 0;};
+int LOD_FreeDecimationData(struct LOD_Decimation_Info* info) {return 0;};
+	
 // bobj read/write debug messages
 void elbeemDebugOut(char *msg) {}
 void fluidsimSettingsFree(struct FluidsimSettings* sb) {}

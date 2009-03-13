@@ -44,7 +44,7 @@ def validate_arguments(args, bc):
 			'BF_GETTEXT', 'BF_GETTEXT_INC', 'BF_GETTEXT_LIB', 'BF_GETTEXT_LIBPATH',
 			'WITH_BF_ICONV', 'BF_ICONV', 'BF_ICONV_INC', 'BF_ICONV_LIB', 'BF_ICONV_LIBPATH',
 			'WITH_BF_ODE', 'BF_ODE', 'BF_ODE_INC', 'BF_ODE_LIB',
-			'WITH_BF_GAMEENGINE', 'WITH_BF_BULLET', 'BF_BULLET', 'BF_BULLET_INC', 'BF_BULLET_LIB',
+			'WITH_BF_GAMEENGINE', 'WITH_BF_SOLID', 'WITH_BF_BULLET', 'BF_BULLET', 'BF_BULLET_INC', 'BF_BULLET_LIB',
 			'BF_SOLID', 'BF_SOLID_INC', 'BF_WINTAB', 'BF_WINTAB_INC',
 			'WITH_BF_YAFRAY',
 			'WITH_BF_FREETYPE', 'BF_FREETYPE', 'BF_FREETYPE_INC', 'BF_FREETYPE_LIB', 'BF_FREETYPE_LIBPATH',
@@ -276,6 +276,7 @@ def read_opts(cfg, args):
 		('BF_BULLET_INC', 'Bullet include path', ''),
 		('BF_BULLET_LIB', 'Bullet library', ''),
 		
+		(BoolVariable('WITH_BF_SOLID', 'Use Sumo/Solid deprecated physics system if true', True)),
 		('BF_SOLID', 'Solid base dir', '#/extern/solid'),
 		('BF_SOLID_INC', 'Solid include path', ''),
 		('BF_WINTAB', 'WinTab base dir', ''),

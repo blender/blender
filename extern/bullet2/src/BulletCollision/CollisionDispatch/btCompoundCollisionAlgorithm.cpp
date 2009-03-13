@@ -19,19 +19,32 @@ subject to the following restrictions:
 #include "BulletCollision/BroadphaseCollision/btDbvt.h"
 #include "LinearMath/btIDebugDraw.h"
 #include "LinearMath/btAabbUtil2.h"
+#include "btManifoldResult.h"
 
 btCompoundCollisionAlgorithm::btCompoundCollisionAlgorithm( const btCollisionAlgorithmConstructionInfo& ci,btCollisionObject* body0,btCollisionObject* body1,bool isSwapped)
-:btCollisionAlgorithm(ci),
+:btActivatingCollisionAlgorithm(ci,body0,body1),
 m_isSwapped(isSwapped),
 m_sharedManifold(ci.m_manifold)
 {
 	m_ownsManifold = false;
 
 	btCollisionObject* colObj = m_isSwapped? body1 : body0;
-	btCollisionObject* otherObj = m_isSwapped? body0 : body1;
-	assert (colObj->getCollisionShape()->isCompound());
+	btAssert (colObj->getCollisionShape()->isCompound());
 	
 	btCompoundShape* compoundShape = static_cast<btCompoundShape*>(colObj->getCollisionShape());
+	m_compoundShapeRevision = compoundShape->getUpdateRevision();
+	
+	preallocateChildAlgorithms(body0,body1);
+}
+
+void	btCompoundCollisionAlgorithm::preallocateChildAlgorithms(btCollisionObject* body0,btCollisionObject* body1)
+{
+	btCollisionObject* colObj = m_isSwapped? body1 : body0;
+	btCollisionObject* otherObj = m_isSwapped? body0 : body1;
+	btAssert (colObj->getCollisionShape()->isCompound());
+	
+	btCompoundShape* compoundShape = static_cast<btCompoundShape*>(colObj->getCollisionShape());
+
 	int numChildren = compoundShape->getNumChildShapes();
 	int i;
 	
@@ -46,14 +59,13 @@ m_sharedManifold(ci.m_manifold)
 			btCollisionShape* tmpShape = colObj->getCollisionShape();
 			btCollisionShape* childShape = compoundShape->getChildShape(i);
 			colObj->internalSetTemporaryCollisionShape( childShape );
-			m_childCollisionAlgorithms[i] = ci.m_dispatcher1->findAlgorithm(colObj,otherObj,m_sharedManifold);
+			m_childCollisionAlgorithms[i] = m_dispatcher->findAlgorithm(colObj,otherObj,m_sharedManifold);
 			colObj->internalSetTemporaryCollisionShape( tmpShape );
 		}
 	}
 }
 
-
-btCompoundCollisionAlgorithm::~btCompoundCollisionAlgorithm()
+void	btCompoundCollisionAlgorithm::removeChildAlgorithms()
 {
 	int numChildren = m_childCollisionAlgorithms.size();
 	int i;
@@ -65,6 +77,11 @@ btCompoundCollisionAlgorithm::~btCompoundCollisionAlgorithm()
 			m_dispatcher->freeCollisionAlgorithm(m_childCollisionAlgorithms[i]);
 		}
 	}
+}
+
+btCompoundCollisionAlgorithm::~btCompoundCollisionAlgorithm()
+{
+	removeChildAlgorithms();
 }
 
 
@@ -167,13 +184,50 @@ void btCompoundCollisionAlgorithm::processCollision (btCollisionObject* body0,bt
 	btCollisionObject* colObj = m_isSwapped? body1 : body0;
 	btCollisionObject* otherObj = m_isSwapped? body0 : body1;
 
-	assert (colObj->getCollisionShape()->isCompound());
+	
+
+	btAssert (colObj->getCollisionShape()->isCompound());
 	btCompoundShape* compoundShape = static_cast<btCompoundShape*>(colObj->getCollisionShape());
+
+	///btCompoundShape might have changed:
+	////make sure the internal child collision algorithm caches are still valid
+	if (compoundShape->getUpdateRevision() != m_compoundShapeRevision)
+	{
+		///clear and update all
+		removeChildAlgorithms();
+		
+		preallocateChildAlgorithms(body0,body1);
+	}
+
 
 	btDbvt* tree = compoundShape->getDynamicAabbTree();
 	//use a dynamic aabb tree to cull potential child-overlaps
 	btCompoundLeafCallback  callback(colObj,otherObj,m_dispatcher,dispatchInfo,resultOut,&m_childCollisionAlgorithms[0],m_sharedManifold);
 
+	///we need to refresh all contact manifolds
+	///note that we should actually recursively traverse all children, btCompoundShape can nested more then 1 level deep
+	///so we should add a 'refreshManifolds' in the btCollisionAlgorithm
+	{
+		int i;
+		btManifoldArray manifoldArray;
+		for (i=0;i<m_childCollisionAlgorithms.size();i++)
+		{
+			if (m_childCollisionAlgorithms[i])
+			{
+				m_childCollisionAlgorithms[i]->getAllContactManifolds(manifoldArray);
+				for (int m=0;m<manifoldArray.size();m++)
+				{
+					if (manifoldArray[m]->getNumContacts())
+					{
+						resultOut->setPersistentManifold(manifoldArray[m]);
+						resultOut->refreshContactPoints();
+						resultOut->setPersistentManifold(0);//??necessary?
+					}
+				}
+				manifoldArray.clear();
+			}
+		}
+	}
 
 	if (tree)
 	{
@@ -242,7 +296,7 @@ btScalar	btCompoundCollisionAlgorithm::calculateTimeOfImpact(btCollisionObject* 
 	btCollisionObject* colObj = m_isSwapped? body1 : body0;
 	btCollisionObject* otherObj = m_isSwapped? body0 : body1;
 
-	assert (colObj->getCollisionShape()->isCompound());
+	btAssert (colObj->getCollisionShape()->isCompound());
 	
 	btCompoundShape* compoundShape = static_cast<btCompoundShape*>(colObj->getCollisionShape());
 
@@ -283,5 +337,6 @@ btScalar	btCompoundCollisionAlgorithm::calculateTimeOfImpact(btCollisionObject* 
 	return hitFraction;
 
 }
+
 
 

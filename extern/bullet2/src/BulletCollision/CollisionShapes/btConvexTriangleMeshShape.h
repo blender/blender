@@ -29,18 +29,16 @@ public:
 	virtual btVector3	localGetSupportingVertexWithoutMargin(const btVector3& vec)const;
 	virtual void	batchedUnitVectorGetSupportingVertexWithoutMargin(const btVector3* vectors,btVector3* supportVerticesOut,int numVectors) const;
 	
-	virtual int	getShapeType()const { return CONVEX_TRIANGLEMESH_SHAPE_PROXYTYPE; }
-
 	//debugging
 	virtual const char*	getName()const {return "ConvexTrimesh";}
 	
 	virtual int	getNumVertices() const;
 	virtual int getNumEdges() const;
-	virtual void getEdge(int i,btPoint3& pa,btPoint3& pb) const;
-	virtual void getVertex(int i,btPoint3& vtx) const;
+	virtual void getEdge(int i,btVector3& pa,btVector3& pb) const;
+	virtual void getVertex(int i,btVector3& vtx) const;
 	virtual int	getNumPlanes() const;
-	virtual void getPlane(btVector3& planeNormal,btPoint3& planeSupport,int i ) const;
-	virtual	bool isInside(const btPoint3& pt,btScalar tolerance) const;
+	virtual void getPlane(btVector3& planeNormal,btVector3& planeSupport,int i ) const;
+	virtual	bool isInside(const btVector3& pt,btScalar tolerance) const;
 
 	
 	virtual void	setLocalScaling(const btVector3& scaling);

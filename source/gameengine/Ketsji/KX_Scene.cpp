@@ -1014,6 +1014,12 @@ void KX_Scene::ReplaceMesh(class CValue* obj,void* meshobj)
 				blendmesh->dvert!=NULL;						// mesh has vertex group
 			bool releaseParent = true;
 
+			
+			if (oldblendobj==NULL) {
+				std::cout << "warning: ReplaceMesh() new mesh is not used in an object from the current scene, you will get incorrect behavior" << std::endl;
+				bHasShapeKey= bHasDvert= bHasArmature= false;
+			}
+			
 			if (bHasShapeKey)
 			{
 				BL_ShapeDeformer* shapeDeformer;
@@ -1511,14 +1517,6 @@ double KX_Scene::getSuspendedDelta()
 //----------------------------------------------------------------------------
 //Python
 
-PyMethodDef KX_Scene::Methods[] = {
-	KX_PYMETHODTABLE_NOARGS(KX_Scene, getLightList),
-	KX_PYMETHODTABLE_NOARGS(KX_Scene, getObjectList),
-	KX_PYMETHODTABLE_NOARGS(KX_Scene, getName),
-	
-	{NULL,NULL} //Sentinel
-};
-
 PyTypeObject KX_Scene::Type = {
 	PyObject_HEAD_INIT(&PyType_Type)
 		0,
@@ -1542,6 +1540,19 @@ PyParentObject KX_Scene::Parents[] = {
 	&KX_Scene::Type,
 		&CValue::Type,
 		NULL
+};
+
+PyMethodDef KX_Scene::Methods[] = {
+	KX_PYMETHODTABLE(KX_Scene, getLightList),
+	KX_PYMETHODTABLE(KX_Scene, getObjectList),
+	KX_PYMETHODTABLE(KX_Scene, getName),
+	KX_PYMETHODTABLE(KX_Scene, addObject),
+	
+	{NULL,NULL} //Sentinel
+};
+
+PyAttributeDef KX_Scene::Attributes[] = {
+	{ NULL }	//Sentinel
 };
 
 PyObject* KX_Scene::_getattr(const char *attr)
@@ -1611,4 +1622,26 @@ KX_PYMETHODDEF_DOC_NOARGS(KX_Scene, getName,
 )
 {
 	return PyString_FromString(GetName());
+}
+
+KX_PYMETHODDEF_DOC(KX_Scene, addObject,
+"addObject(object, other, time=0)\n"
+"Returns the added object.\n")
+{
+	PyObject *pyob, *pyother;
+	KX_GameObject *ob, *other;
+
+	int time = 0;
+
+	if (!PyArg_ParseTuple(args, "OO|i", &pyob, &pyother, &time))
+		return NULL;
+
+	if (!ConvertPythonToGameObject(pyob, &ob, false)
+		|| !ConvertPythonToGameObject(pyother, &other, false))
+		return NULL;
+
+
+	SCA_IObject* replica = AddReplicaObject((SCA_IObject*)ob, other, time);
+	replica->AddRef();
+	return replica;
 }

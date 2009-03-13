@@ -42,15 +42,15 @@ class KX_NearSensor : public KX_TouchSensor
 {
 	Py_Header;
 protected:
-	double	m_Margin;
-	double  m_ResetMargin;
+	float	m_Margin;
+	float  m_ResetMargin;
 	KX_Scene*	m_scene;
 	KX_ClientObjectInfo*	m_client_info;
 public:
 	KX_NearSensor(class SCA_EventManager* eventmgr,
 			class KX_GameObject* gameobj,
-			double margin,
-			double resetmargin,
+			float margin,
+			float resetmargin,
 			bool bFindMaterial,
 			const STR_String& touchedpropname,
 			class KX_Scene* scene,
@@ -78,8 +78,25 @@ public:
 	virtual bool	BroadPhaseFilterCollision(void*obj1,void*obj2);
 	virtual void RegisterSumo(KX_TouchEventManager *touchman);
 	virtual void UnregisterSumo(KX_TouchEventManager* touchman);
-	
+
+	/* --------------------------------------------------------------------- */
+	/* Python interface ---------------------------------------------------- */
+	/* --------------------------------------------------------------------- */
 	virtual PyObject* _getattr(const char *attr);
+	virtual int _setattr(const char *attr, PyObject* value);
+
+	//No methods
+
+	//This method is used to make sure the distance does not exceed the reset distance
+	static int CheckResetDistance(void *self, const PyAttributeDef*)
+	{
+		KX_NearSensor* sensor = reinterpret_cast<KX_NearSensor*>(self);
+
+		if (sensor->m_Margin > sensor->m_ResetMargin)
+			sensor->m_ResetMargin = sensor->m_Margin;
+
+		return 0;
+	}
 
 };
 

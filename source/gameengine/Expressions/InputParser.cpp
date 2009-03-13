@@ -175,6 +175,9 @@ void CParser::NextSym()
     case ',':
 		sym = commasym; NextCh();
 		break;
+	case '%' :
+		sym = opsym; opkind = OPmodulus; NextCh();
+		break;
     case '+' :
 		sym = opsym; opkind = OPplus; NextCh();
 		break;
@@ -274,7 +277,7 @@ void CParser::NextSym()
 			} else if (((ch >= 'a') && (ch <= 'z'))
 				|| ((ch >= 'A') && (ch <= 'Z')))
 			{ // reserved word?
-				int start;
+				
 				start = chcount;
 				CharRep();
 				GrabString(start);
@@ -370,6 +373,7 @@ int CParser::Priority(int optorkind) {
 	case OPunequal: return 3;
     case OPplus:
     case OPminus: return 4;
+	case OPmodulus:
     case OPtimes:
     case OPdivide: return 5;
 	}
@@ -390,6 +394,7 @@ CExpression *CParser::Ex(int i) {
 			NextSym();
 			e2 = Ex(i + 1);
 			switch(opkind2) {
+			case OPmodulus: e1 = new COperator2Expr(VALUE_MOD_OPERATOR,e1, e2); break;
 			case OPplus: e1 = new COperator2Expr(VALUE_ADD_OPERATOR,e1, e2); break;
 			case OPminus: e1 = new COperator2Expr(VALUE_SUB_OPERATOR,e1, e2); break;
 			case OPtimes:	e1 = new COperator2Expr(VALUE_MUL_OPERATOR,e1, e2); break;

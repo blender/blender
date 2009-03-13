@@ -90,6 +90,8 @@ class PHY_IPhysicsEnvironment
 		virtual void		endFrame() = 0;
 		/// Perform an integration step of duration 'timeStep'.
 		virtual	bool		proceedDeltaTime(double curTime,float timeStep)=0;
+		///draw debug lines (make sure to call this during the render phase, otherwise lines are not drawn properly)
+		virtual void		debugDrawWorld(){}
 		virtual	void		setFixedTimeStep(bool useFixedTimeStep,float fixedTimeStep)=0;
 		//returns 0.f if no fixed timestep is used
 		virtual	float		getFixedTimeStep()=0;

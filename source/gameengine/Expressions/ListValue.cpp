@@ -232,7 +232,9 @@ PyMethodDef CListValue::Methods[] = {
 	{NULL,NULL} //Sentinel
 };
 
-
+PyAttributeDef CListValue::Attributes[] = {
+	{ NULL }	//Sentinel
+};
 
 PyObject* CListValue::_getattr(const char *attr) {
 	_getattr_up(CValue);

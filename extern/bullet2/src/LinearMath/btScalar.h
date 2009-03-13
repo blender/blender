@@ -18,13 +18,14 @@ subject to the following restrictions:
 #define SIMD___SCALAR_H
 
 #include <math.h>
+
 #include <stdlib.h>//size_t for MSVC 6.0
 
 #include <cstdlib>
 #include <cfloat>
 #include <float.h>
 
-#define BT_BULLET_VERSION 272
+#define BT_BULLET_VERSION 274
 
 inline int	btGetVersion()
 {
@@ -44,7 +45,7 @@ inline int	btGetVersion()
 			#define ATTRIBUTE_ALIGNED16(a) a
 			#define ATTRIBUTE_ALIGNED128(a) a
 		#else
-			#define BT_HAS_ALIGNED_ALLOCATOR
+			//#define BT_HAS_ALIGNED_ALLOCATOR
 			#pragma warning(disable : 4324) // disable padding warning
 //			#pragma warning(disable:4530) // Disable the exception disable but used in MSCV Stl warning.
 //			#pragma warning(disable:4996) //Turn off warnings about deprecated C routines
@@ -60,12 +61,18 @@ inline int	btGetVersion()
  			#define BT_HAVE_NATIVE_FSEL
  			#define btFsel(a,b,c) __fsel((a),(b),(c))
 		#else
+
+#if (defined (WIN32) && (_MSC_VER) && _MSC_VER >= 1400) && (!defined (BT_USE_DOUBLE_PRECISION))
 			#define BT_USE_SSE
-		#endif
+			#include <emmintrin.h>
+#endif
+
+		#endif//_XBOX
+
 		#endif //__MINGW32__
 
 		#include <assert.h>
-#if defined(DEBUG) || defined (_DEBUG)
+#ifdef BT_DEBUG
 		#define btAssert assert
 #else
 		#define btAssert(x)
@@ -85,7 +92,11 @@ inline int	btGetVersion()
 		#ifndef assert
 		#include <assert.h>
 		#endif
+#ifdef BT_DEBUG
 		#define btAssert assert
+#else
+		#define btAssert(x)
+#endif
 		//btFullAssert is optional, slows down a lot
 		#define btFullAssert(x)
 
@@ -102,7 +113,11 @@ inline int	btGetVersion()
 		#ifndef assert
 		#include <assert.h>
 		#endif
+#ifdef BT_DEBUG
 		#define btAssert assert
+#else
+		#define btAssert(x)
+#endif
 		//btFullAssert is optional, slows down a lot
 		#define btFullAssert(x)
 
@@ -115,6 +130,9 @@ inline int	btGetVersion()
 	//non-windows systems
 
 		#define SIMD_FORCE_INLINE inline
+		///@todo: check out alignment methods for other platforms/compilers
+		///#define ATTRIBUTE_ALIGNED16(a) a __attribute__ ((aligned (16)))
+		///#define ATTRIBUTE_ALIGNED128(a) a __attribute__ ((aligned (128)))
 		#define ATTRIBUTE_ALIGNED16(a) a
 		#define ATTRIBUTE_ALIGNED128(a) a
 		#ifndef assert
@@ -141,10 +159,6 @@ inline int	btGetVersion()
 /// older compilers (gcc 3.x) and Sun needs double version of sqrt etc.
 /// exclude Apple Intel (i's assumed to be a Macbook or new Intel Dual Core Processor)
 #if defined (__sun) || defined (__sun__) || defined (__sparc) || (defined (__APPLE__) && ! defined (__i386__))
-/* XXX Need to fix these... needed for SunOS 5.8 */
-#define sinf(a)         sin((double)(a))
-#define cosf(a)         cos((double)(a))
-#define fabsf(a)        fabs((double)(a))
 //use slow double float precision operation on those platforms
 #ifndef BT_USE_DOUBLE_PRECISION
 #define BT_FORCE_DOUBLE_FUNCTIONS
@@ -198,7 +212,7 @@ SIMD_FORCE_INLINE btScalar btSqrt(btScalar y)
 	tempf = y;
 	*tfptr = (0xbfcdd90a - *tfptr)>>1; /* estimate of 1/sqrt(y) */
 	x =  tempf;
-	z =  y*btScalar(0.5);                        /* hoist out the ô/2ö    */
+	z =  y*btScalar(0.5);                        /* hoist out the “/2”    */
 	x = (btScalar(1.5)*x)-(x*x)*(x*z);         /* iteration formula     */
 	x = (btScalar(1.5)*x)-(x*x)*(x*z);
 	x = (btScalar(1.5)*x)-(x*x)*(x*z);

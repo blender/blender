@@ -78,6 +78,10 @@ PyMethodDef KX_VertexProxy::Methods[] = {
   {NULL,NULL} //Sentinel
 };
 
+PyAttributeDef KX_VertexProxy::Attributes[] = {
+	{ NULL }	//Sentinel
+};
+
 PyObject*
 KX_VertexProxy::_getattr(const char *attr)
 {

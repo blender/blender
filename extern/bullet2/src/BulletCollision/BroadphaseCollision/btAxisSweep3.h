@@ -19,12 +19,12 @@
 #ifndef AXIS_SWEEP_3_H
 #define AXIS_SWEEP_3_H
 
-#include "LinearMath/btPoint3.h"
 #include "LinearMath/btVector3.h"
 #include "btOverlappingPairCache.h"
 #include "btBroadphaseInterface.h"
 #include "btBroadphaseProxy.h"
 #include "btOverlappingPairCallback.h"
+#include "btDbvtBroadphase.h"
 
 //#define DEBUG_BROADPHASE 1
 #define USE_OVERLAP_TEST_ON_REMOVES 1
@@ -42,6 +42,7 @@ protected:
 
 public:
 	
+ BT_DECLARE_ALIGNED_ALLOCATOR();
 
 	class Edge
 	{
@@ -61,8 +62,7 @@ public:
 		// indexes into the edge arrays
 		BP_FP_INT_TYPE m_minEdges[3], m_maxEdges[3];		// 6 * 2 = 12
 //		BP_FP_INT_TYPE m_uniqueId;
-		BP_FP_INT_TYPE m_pad;
-		
+		btBroadphaseProxy*	m_dbvtProxy;//for faster raycast
 		//void* m_pOwner; this is now in btBroadphaseProxy.m_clientObject
 	
 		SIMD_FORCE_INLINE void SetNextFree(BP_FP_INT_TYPE next) {m_minEdges[0] = next;}
@@ -71,8 +71,8 @@ public:
 
 	
 protected:
-	btPoint3 m_worldAabbMin;						// overall system bounds
-	btPoint3 m_worldAabbMax;						// overall system bounds
+	btVector3 m_worldAabbMin;						// overall system bounds
+	btVector3 m_worldAabbMax;						// overall system bounds
 
 	btVector3 m_quantize;						// scaling factor for quantization
 
@@ -94,6 +94,12 @@ protected:
 
 	int	m_invalidPair;
 
+	///additional dynamic aabb structure, used to accelerate ray cast queries.
+	///can be disabled using a optional argument in the constructor
+	btDbvtBroadphase*	m_raycastAccelerator;
+	btOverlappingPairCache*	m_nullPairCache;
+
+
 	// allocation/deallocation
 	BP_FP_INT_TYPE allocHandle();
 	void freeHandle(BP_FP_INT_TYPE handle);
@@ -108,7 +114,7 @@ protected:
 	//Overlap* AddOverlap(BP_FP_INT_TYPE handleA, BP_FP_INT_TYPE handleB);
 	//void RemoveOverlap(BP_FP_INT_TYPE handleA, BP_FP_INT_TYPE handleB);
 
-	void quantize(BP_FP_INT_TYPE* out, const btPoint3& point, int isMax) const;
+	
 
 	void sortMinDown(int axis, BP_FP_INT_TYPE edge, btDispatcher* dispatcher, bool updateOverlaps );
 	void sortMinUp(int axis, BP_FP_INT_TYPE edge, btDispatcher* dispatcher, bool updateOverlaps );
@@ -117,7 +123,7 @@ protected:
 
 public:
 
-	btAxisSweep3Internal(const btPoint3& worldAabbMin,const btPoint3& worldAabbMax, BP_FP_INT_TYPE handleMask, BP_FP_INT_TYPE handleSentinel, BP_FP_INT_TYPE maxHandles = 16384, btOverlappingPairCache* pairCache=0);
+	btAxisSweep3Internal(const btVector3& worldAabbMin,const btVector3& worldAabbMax, BP_FP_INT_TYPE handleMask, BP_FP_INT_TYPE handleSentinel, BP_FP_INT_TYPE maxHandles = 16384, btOverlappingPairCache* pairCache=0,bool disableRaycastAccelerator = false);
 
 	virtual	~btAxisSweep3Internal();
 
@@ -128,10 +134,12 @@ public:
 
 	virtual void	calculateOverlappingPairs(btDispatcher* dispatcher);
 	
-	BP_FP_INT_TYPE addHandle(const btPoint3& aabbMin,const btPoint3& aabbMax, void* pOwner,short int collisionFilterGroup,short int collisionFilterMask,btDispatcher* dispatcher,void* multiSapProxy);
+	BP_FP_INT_TYPE addHandle(const btVector3& aabbMin,const btVector3& aabbMax, void* pOwner,short int collisionFilterGroup,short int collisionFilterMask,btDispatcher* dispatcher,void* multiSapProxy);
 	void removeHandle(BP_FP_INT_TYPE handle,btDispatcher* dispatcher);
-	void updateHandle(BP_FP_INT_TYPE handle, const btPoint3& aabbMin,const btPoint3& aabbMax,btDispatcher* dispatcher);
+	void updateHandle(BP_FP_INT_TYPE handle, const btVector3& aabbMin,const btVector3& aabbMax,btDispatcher* dispatcher);
 	SIMD_FORCE_INLINE Handle* getHandle(BP_FP_INT_TYPE index) const {return m_pHandles + index;}
+
+	virtual void resetPool(btDispatcher* dispatcher);
 
 	void	processAllOverlappingPairs(btOverlapCallback* callback);
 
@@ -139,6 +147,13 @@ public:
 	virtual btBroadphaseProxy*	createProxy(  const btVector3& aabbMin,  const btVector3& aabbMax,int shapeType,void* userPtr ,short int collisionFilterGroup,short int collisionFilterMask,btDispatcher* dispatcher,void* multiSapProxy);
 	virtual void	destroyProxy(btBroadphaseProxy* proxy,btDispatcher* dispatcher);
 	virtual void	setAabb(btBroadphaseProxy* proxy,const btVector3& aabbMin,const btVector3& aabbMax,btDispatcher* dispatcher);
+	virtual void  getAabb(btBroadphaseProxy* proxy,btVector3& aabbMin, btVector3& aabbMax ) const;
+	
+	virtual void	rayTest(const btVector3& rayFrom,const btVector3& rayTo, btBroadphaseRayCallback& rayCallback, const btVector3& aabbMin=btVector3(0,0,0), const btVector3& aabbMax = btVector3(0,0,0));
+	
+	void quantize(BP_FP_INT_TYPE* out, const btVector3& point, int isMax) const;
+	///unQuantize should be conservative: aabbMin/aabbMax should be larger then 'getAabb' result
+	void unQuantize(btBroadphaseProxy* proxy,btVector3& aabbMin, btVector3& aabbMax ) const;
 	
 	bool	testAabbOverlap(btBroadphaseProxy* proxy0,btBroadphaseProxy* proxy1);
 
@@ -206,7 +221,7 @@ void btAxisSweep3<BP_FP_INT_TYPE>::debugPrintAxis(int axis, bool checkCardinalit
 	}
 
 	if (checkCardinality)
-		assert(numEdges == m_numHandles*2+1);
+		btAssert(numEdges == m_numHandles*2+1);
 }
 #endif //DEBUG_BROADPHASE
 
@@ -217,7 +232,12 @@ btBroadphaseProxy*	btAxisSweep3Internal<BP_FP_INT_TYPE>::createProxy(  const btV
 		BP_FP_INT_TYPE handleId = addHandle(aabbMin,aabbMax, userPtr,collisionFilterGroup,collisionFilterMask,dispatcher,multiSapProxy);
 		
 		Handle* handle = getHandle(handleId);
-				
+		
+		if (m_raycastAccelerator)
+		{
+			btBroadphaseProxy* rayProxy = m_raycastAccelerator->createProxy(aabbMin,aabbMax,shapeType,userPtr,collisionFilterGroup,collisionFilterMask,dispatcher,0);
+			handle->m_dbvtProxy = rayProxy;
+		}
 		return handle;
 }
 
@@ -227,6 +247,8 @@ template <typename BP_FP_INT_TYPE>
 void	btAxisSweep3Internal<BP_FP_INT_TYPE>::destroyProxy(btBroadphaseProxy* proxy,btDispatcher* dispatcher)
 {
 	Handle* handle = static_cast<Handle*>(proxy);
+	if (m_raycastAccelerator)
+		m_raycastAccelerator->destroyProxy(handle->m_dbvtProxy,dispatcher);
 	removeHandle(static_cast<BP_FP_INT_TYPE>(handle->m_uniqueId), dispatcher);
 }
 
@@ -234,22 +256,80 @@ template <typename BP_FP_INT_TYPE>
 void	btAxisSweep3Internal<BP_FP_INT_TYPE>::setAabb(btBroadphaseProxy* proxy,const btVector3& aabbMin,const btVector3& aabbMax,btDispatcher* dispatcher)
 {
 	Handle* handle = static_cast<Handle*>(proxy);
+	handle->m_aabbMin = aabbMin;
+	handle->m_aabbMax = aabbMax;
 	updateHandle(static_cast<BP_FP_INT_TYPE>(handle->m_uniqueId), aabbMin, aabbMax,dispatcher);
+	if (m_raycastAccelerator)
+		m_raycastAccelerator->setAabb(handle->m_dbvtProxy,aabbMin,aabbMax,dispatcher);
 
+}
+
+template <typename BP_FP_INT_TYPE>
+void	btAxisSweep3Internal<BP_FP_INT_TYPE>::rayTest(const btVector3& rayFrom,const btVector3& rayTo, btBroadphaseRayCallback& rayCallback,const btVector3& aabbMin,const btVector3& aabbMax)
+{
+	if (m_raycastAccelerator)
+	{
+		m_raycastAccelerator->rayTest(rayFrom,rayTo,rayCallback,aabbMin,aabbMax);
+	} else
+	{
+		//choose axis?
+		BP_FP_INT_TYPE axis = 0;
+		//for each proxy
+		for (BP_FP_INT_TYPE i=1;i<m_numHandles*2+1;i++)
+		{
+			if (m_pEdges[axis][i].IsMax())
+			{
+				rayCallback.process(getHandle(m_pEdges[axis][i].m_handle));
+			}
+		}
+	}
+}
+
+
+
+template <typename BP_FP_INT_TYPE>
+void btAxisSweep3Internal<BP_FP_INT_TYPE>::getAabb(btBroadphaseProxy* proxy,btVector3& aabbMin, btVector3& aabbMax ) const
+{
+	Handle* pHandle = static_cast<Handle*>(proxy);
+	aabbMin = pHandle->m_aabbMin;
+	aabbMax = pHandle->m_aabbMax;
+}
+
+
+template <typename BP_FP_INT_TYPE>
+void btAxisSweep3Internal<BP_FP_INT_TYPE>::unQuantize(btBroadphaseProxy* proxy,btVector3& aabbMin, btVector3& aabbMax ) const
+{
+	Handle* pHandle = static_cast<Handle*>(proxy);
+
+	unsigned short vecInMin[3];
+	unsigned short vecInMax[3];
+
+	vecInMin[0] = m_pEdges[0][pHandle->m_minEdges[0]].m_pos ;
+	vecInMax[0] = m_pEdges[0][pHandle->m_maxEdges[0]].m_pos +1 ;
+	vecInMin[1] = m_pEdges[1][pHandle->m_minEdges[1]].m_pos ;
+	vecInMax[1] = m_pEdges[1][pHandle->m_maxEdges[1]].m_pos +1 ;
+	vecInMin[2] = m_pEdges[2][pHandle->m_minEdges[2]].m_pos ;
+	vecInMax[2] = m_pEdges[2][pHandle->m_maxEdges[2]].m_pos +1 ;
+	
+	aabbMin.setValue((btScalar)(vecInMin[0]) / (m_quantize.getX()),(btScalar)(vecInMin[1]) / (m_quantize.getY()),(btScalar)(vecInMin[2]) / (m_quantize.getZ()));
+	aabbMin += m_worldAabbMin;
+	
+	aabbMax.setValue((btScalar)(vecInMax[0]) / (m_quantize.getX()),(btScalar)(vecInMax[1]) / (m_quantize.getY()),(btScalar)(vecInMax[2]) / (m_quantize.getZ()));
+	aabbMax += m_worldAabbMin;
 }
 
 
 
 
-
 template <typename BP_FP_INT_TYPE>
-btAxisSweep3Internal<BP_FP_INT_TYPE>::btAxisSweep3Internal(const btPoint3& worldAabbMin,const btPoint3& worldAabbMax, BP_FP_INT_TYPE handleMask, BP_FP_INT_TYPE handleSentinel,BP_FP_INT_TYPE userMaxHandles, btOverlappingPairCache* pairCache )
+btAxisSweep3Internal<BP_FP_INT_TYPE>::btAxisSweep3Internal(const btVector3& worldAabbMin,const btVector3& worldAabbMax, BP_FP_INT_TYPE handleMask, BP_FP_INT_TYPE handleSentinel,BP_FP_INT_TYPE userMaxHandles, btOverlappingPairCache* pairCache , bool disableRaycastAccelerator)
 :m_bpHandleMask(handleMask),
 m_handleSentinel(handleSentinel),
 m_pairCache(pairCache),
 m_userPairCallback(0),
 m_ownsPairCache(false),
-m_invalidPair(0)
+m_invalidPair(0),
+m_raycastAccelerator(0)
 {
 	BP_FP_INT_TYPE maxHandles = static_cast<BP_FP_INT_TYPE>(userMaxHandles+1);//need to add one sentinel handle
 
@@ -260,7 +340,14 @@ m_invalidPair(0)
 		m_ownsPairCache = true;
 	}
 
-	//assert(bounds.HasVolume());
+	if (!disableRaycastAccelerator)
+	{
+		m_nullPairCache = new (btAlignedAlloc(sizeof(btNullPairCache),16)) btNullPairCache();
+		m_raycastAccelerator = new (btAlignedAlloc(sizeof(btDbvtBroadphase),16)) btDbvtBroadphase(m_nullPairCache);//m_pairCache);
+		m_raycastAccelerator->m_deferedcollide = true;//don't add/remove pairs
+	}
+
+	//btAssert(bounds.HasVolume());
 
 	// init bounds
 	m_worldAabbMin = worldAabbMin;
@@ -320,7 +407,14 @@ m_invalidPair(0)
 template <typename BP_FP_INT_TYPE>
 btAxisSweep3Internal<BP_FP_INT_TYPE>::~btAxisSweep3Internal()
 {
-	
+	if (m_raycastAccelerator)
+	{
+		m_nullPairCache->~btOverlappingPairCache();
+		btAlignedFree(m_nullPairCache);
+		m_raycastAccelerator->~btDbvtBroadphase();
+		btAlignedFree (m_raycastAccelerator);
+	}
+
 	for (int i = 2; i >= 0; i--)
 	{
 		btAlignedFree(m_pEdgesRawPtr[i]);
@@ -335,27 +429,31 @@ btAxisSweep3Internal<BP_FP_INT_TYPE>::~btAxisSweep3Internal()
 }
 
 template <typename BP_FP_INT_TYPE>
-void btAxisSweep3Internal<BP_FP_INT_TYPE>::quantize(BP_FP_INT_TYPE* out, const btPoint3& point, int isMax) const
+void btAxisSweep3Internal<BP_FP_INT_TYPE>::quantize(BP_FP_INT_TYPE* out, const btVector3& point, int isMax) const
 {
-	btPoint3 clampedPoint(point);
-	
-
-
+#ifdef OLD_CLAMPING_METHOD
+	///problem with this clamping method is that the floating point during quantization might still go outside the range [(0|isMax) .. (m_handleSentinel&m_bpHandleMask]|isMax]
+	///see http://code.google.com/p/bullet/issues/detail?id=87
+	btVector3 clampedPoint(point);
 	clampedPoint.setMax(m_worldAabbMin);
 	clampedPoint.setMin(m_worldAabbMax);
-
 	btVector3 v = (clampedPoint - m_worldAabbMin) * m_quantize;
 	out[0] = (BP_FP_INT_TYPE)(((BP_FP_INT_TYPE)v.getX() & m_bpHandleMask) | isMax);
 	out[1] = (BP_FP_INT_TYPE)(((BP_FP_INT_TYPE)v.getY() & m_bpHandleMask) | isMax);
 	out[2] = (BP_FP_INT_TYPE)(((BP_FP_INT_TYPE)v.getZ() & m_bpHandleMask) | isMax);
-	
+#else
+	btVector3 v = (point - m_worldAabbMin) * m_quantize;
+	out[0]=(v[0]<=0)?(BP_FP_INT_TYPE)isMax:(v[0]>=m_handleSentinel)?(BP_FP_INT_TYPE)((m_handleSentinel&m_bpHandleMask)|isMax):(BP_FP_INT_TYPE)(((BP_FP_INT_TYPE)v[0]&m_bpHandleMask)|isMax);
+	out[1]=(v[1]<=0)?(BP_FP_INT_TYPE)isMax:(v[1]>=m_handleSentinel)?(BP_FP_INT_TYPE)((m_handleSentinel&m_bpHandleMask)|isMax):(BP_FP_INT_TYPE)(((BP_FP_INT_TYPE)v[1]&m_bpHandleMask)|isMax);
+	out[2]=(v[2]<=0)?(BP_FP_INT_TYPE)isMax:(v[2]>=m_handleSentinel)?(BP_FP_INT_TYPE)((m_handleSentinel&m_bpHandleMask)|isMax):(BP_FP_INT_TYPE)(((BP_FP_INT_TYPE)v[2]&m_bpHandleMask)|isMax);
+#endif //OLD_CLAMPING_METHOD
 }
 
 
 template <typename BP_FP_INT_TYPE>
 BP_FP_INT_TYPE btAxisSweep3Internal<BP_FP_INT_TYPE>::allocHandle()
 {
-	assert(m_firstFreeHandle);
+	btAssert(m_firstFreeHandle);
 
 	BP_FP_INT_TYPE handle = m_firstFreeHandle;
 	m_firstFreeHandle = getHandle(handle)->GetNextFree();
@@ -367,7 +465,7 @@ BP_FP_INT_TYPE btAxisSweep3Internal<BP_FP_INT_TYPE>::allocHandle()
 template <typename BP_FP_INT_TYPE>
 void btAxisSweep3Internal<BP_FP_INT_TYPE>::freeHandle(BP_FP_INT_TYPE handle)
 {
-	assert(handle > 0 && handle < m_maxHandles);
+	btAssert(handle > 0 && handle < m_maxHandles);
 
 	getHandle(handle)->SetNextFree(m_firstFreeHandle);
 	m_firstFreeHandle = handle;
@@ -377,7 +475,7 @@ void btAxisSweep3Internal<BP_FP_INT_TYPE>::freeHandle(BP_FP_INT_TYPE handle)
 
 
 template <typename BP_FP_INT_TYPE>
-BP_FP_INT_TYPE btAxisSweep3Internal<BP_FP_INT_TYPE>::addHandle(const btPoint3& aabbMin,const btPoint3& aabbMax, void* pOwner,short int collisionFilterGroup,short int collisionFilterMask,btDispatcher* dispatcher,void* multiSapProxy)
+BP_FP_INT_TYPE btAxisSweep3Internal<BP_FP_INT_TYPE>::addHandle(const btVector3& aabbMin,const btVector3& aabbMax, void* pOwner,short int collisionFilterGroup,short int collisionFilterMask,btDispatcher* dispatcher,void* multiSapProxy)
 {
 	// quantize the bounds
 	BP_FP_INT_TYPE min[3], max[3];
@@ -440,7 +538,7 @@ void btAxisSweep3Internal<BP_FP_INT_TYPE>::removeHandle(BP_FP_INT_TYPE handle,bt
 
 	//explicitly remove the pairs containing the proxy
 	//we could do it also in the sortMinUp (passing true)
-	//todo: compare performance
+	///@todo: compare performance
 	if (!m_pairCache->hasDeferredRemoval())
 	{
 		m_pairCache->removeOverlappingPairsContainingProxy(pHandle,dispatcher);
@@ -489,6 +587,21 @@ void btAxisSweep3Internal<BP_FP_INT_TYPE>::removeHandle(BP_FP_INT_TYPE handle,bt
 	
 }
 
+template <typename BP_FP_INT_TYPE>
+void btAxisSweep3Internal<BP_FP_INT_TYPE>::resetPool(btDispatcher* dispatcher)
+{
+	if (m_numHandles == 0)
+	{
+		m_firstFreeHandle = 1;
+		{
+			for (BP_FP_INT_TYPE i = m_firstFreeHandle; i < m_maxHandles; i++)
+				m_pHandles[i].SetNextFree(static_cast<BP_FP_INT_TYPE>(i + 1));
+			m_pHandles[m_maxHandles - 1].SetNextFree(0);
+		}
+	}
+}       
+
+
 extern int gOverlappingPairs;
 //#include <stdio.h>
 
@@ -529,6 +642,7 @@ void	btAxisSweep3Internal<BP_FP_INT_TYPE>::calculateOverlappingPairs(btDispatche
 
 			if (!isDuplicate)
 			{
+				///important to use an AABB test that is consistent with the broadphase
 				bool hasOverlap = testAabbOverlap(pair.m_pProxy0,pair.m_pProxy1);
 
 				if (hasOverlap)
@@ -574,10 +688,6 @@ void	btAxisSweep3Internal<BP_FP_INT_TYPE>::calculateOverlappingPairs(btDispatche
 		//printf("overlappingPairArray.size()=%d\n",overlappingPairArray.size());
 	}
 
-
-
-	
-
 }
 
 
@@ -616,10 +726,10 @@ bool btAxisSweep3Internal<BP_FP_INT_TYPE>::testOverlap2D(const Handle* pHandleA,
 }
 
 template <typename BP_FP_INT_TYPE>
-void btAxisSweep3Internal<BP_FP_INT_TYPE>::updateHandle(BP_FP_INT_TYPE handle, const btPoint3& aabbMin,const btPoint3& aabbMax,btDispatcher* dispatcher)
+void btAxisSweep3Internal<BP_FP_INT_TYPE>::updateHandle(BP_FP_INT_TYPE handle, const btVector3& aabbMin,const btVector3& aabbMax,btDispatcher* dispatcher)
 {
-//	assert(bounds.IsFinite());
-	//assert(bounds.HasVolume());
+//	btAssert(bounds.IsFinite());
+	//btAssert(bounds.HasVolume());
 
 	Handle* pHandle = getHandle(handle);
 
@@ -895,7 +1005,7 @@ class btAxisSweep3 : public btAxisSweep3Internal<unsigned short int>
 {
 public:
 
-	btAxisSweep3(const btPoint3& worldAabbMin,const btPoint3& worldAabbMax, unsigned short int maxHandles = 16384, btOverlappingPairCache* pairCache = 0);
+	btAxisSweep3(const btVector3& worldAabbMin,const btVector3& worldAabbMax, unsigned short int maxHandles = 16384, btOverlappingPairCache* pairCache = 0, bool disableRaycastAccelerator = false);
 
 };
 
@@ -906,7 +1016,7 @@ class bt32BitAxisSweep3 : public btAxisSweep3Internal<unsigned int>
 {
 public:
 
-	bt32BitAxisSweep3(const btPoint3& worldAabbMin,const btPoint3& worldAabbMax, unsigned int maxHandles = 1500000, btOverlappingPairCache* pairCache = 0);
+	bt32BitAxisSweep3(const btVector3& worldAabbMin,const btVector3& worldAabbMax, unsigned int maxHandles = 1500000, btOverlappingPairCache* pairCache = 0, bool disableRaycastAccelerator = false);
 
 };
 

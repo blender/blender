@@ -1240,7 +1240,7 @@ void	DefaultMotionState::getWorldOrientation(float& quatIma0,float& quatIma1,flo
 		
 void	DefaultMotionState::setWorldPosition(float posX,float posY,float posZ)
 {
-	btPoint3 pos(posX,posY,posZ);
+	btVector3 pos(posX,posY,posZ);
 	m_worldTransform.setOrigin( pos );
 }
 
@@ -1328,7 +1328,7 @@ bool CcdShapeConstructionInfo::SetMesh(RAS_MeshObject* meshobj, bool polytope,bo
 				for (int i=0;i<poly->VertexCount();i++)
 				{
 					const float* vtx = poly->GetVertex(i)->getXYZ();
-					btPoint3 point(vtx[0],vtx[1],vtx[2]);
+					btVector3	point(vtx[0],vtx[1],vtx[2]);
 					//avoid duplicates (could better directly use vertex offsets, rather than a vertex compare)
 					bool found = false;
 					for (int j=0;j<m_vertexArray.size();j++)
@@ -1348,13 +1348,13 @@ bool CcdShapeConstructionInfo::SetMesh(RAS_MeshObject* meshobj, bool polytope,bo
 			{
 				{
 					const float* vtx = poly->GetVertex(2)->getXYZ();
-					btPoint3 vertex0(vtx[0],vtx[1],vtx[2]);
+					btVector3 vertex0(vtx[0],vtx[1],vtx[2]);
 
 					vtx = poly->GetVertex(1)->getXYZ();
-					btPoint3 vertex1(vtx[0],vtx[1],vtx[2]);
+					btVector3 vertex1(vtx[0],vtx[1],vtx[2]);
 
 					vtx = poly->GetVertex(0)->getXYZ();
-					btPoint3 vertex2(vtx[0],vtx[1],vtx[2]);
+					btVector3 vertex2(vtx[0],vtx[1],vtx[2]);
 
 					m_vertexArray.push_back(vertex0);
 					m_vertexArray.push_back(vertex1);
@@ -1365,13 +1365,13 @@ bool CcdShapeConstructionInfo::SetMesh(RAS_MeshObject* meshobj, bool polytope,bo
 				if (poly->VertexCount() == 4)
 				{
 					const float* vtx = poly->GetVertex(3)->getXYZ();
-					btPoint3 vertex0(vtx[0],vtx[1],vtx[2]);
+					btVector3 vertex0(vtx[0],vtx[1],vtx[2]);
 
 					vtx = poly->GetVertex(2)->getXYZ();
-					btPoint3 vertex1(vtx[0],vtx[1],vtx[2]);
+					btVector3 vertex1(vtx[0],vtx[1],vtx[2]);
 
 					vtx = poly->GetVertex(0)->getXYZ();
-					btPoint3 vertex2(vtx[0],vtx[1],vtx[2]);
+					btVector3 vertex2(vtx[0],vtx[1],vtx[2]);
 
 					m_vertexArray.push_back(vertex0);
 					m_vertexArray.push_back(vertex1);
@@ -1442,7 +1442,7 @@ btCollisionShape* CcdShapeConstructionInfo::CreateBulletShape()
 		break;
 
 	case PHY_SHAPE_POLYTOPE:
-		collisionShape = new btConvexHullShape(&m_vertexArray.begin()->getX(), m_vertexArray.size());
+		collisionShape = new btConvexHullShape(&m_vertexArray[0].getX(), m_vertexArray.size());
 		break;
 
 	case PHY_SHAPE_MESH:
@@ -1457,12 +1457,14 @@ btCollisionShape* CcdShapeConstructionInfo::CreateBulletShape()
 		{
 				collisionMeshData = new btTriangleMesh();
 				
+				bool removeDuplicateVertices=true;
 
 				// m_vertexArray is necessarily a multiple of 3
-				for (std::vector<btPoint3>::iterator it=m_vertexArray.begin(); it != m_vertexArray.end(); )
+				for (int i=0;i<m_vertexArray.size(); i+=3 )
 				{
-					collisionMeshData->addTriangle(*it++,*it++,*it++);
+					collisionMeshData->addTriangle(m_vertexArray[i+2],m_vertexArray[i+1],m_vertexArray[i],removeDuplicateVertices);
 				}
+				
 				btGImpactMeshShape* gimpactShape =  new btGImpactMeshShape(collisionMeshData);
 
 				collisionShape = gimpactShape;
@@ -1475,10 +1477,11 @@ btCollisionShape* CcdShapeConstructionInfo::CreateBulletShape()
 				collisionMeshData = new btTriangleMesh(true,false);
 				collisionMeshData->m_weldingThreshold = m_weldingThreshold;
 
+				bool removeDuplicateVertices=true;
 				// m_vertexArray is necessarily a multiple of 3
-				for (std::vector<btPoint3>::iterator it=m_vertexArray.begin(); it != m_vertexArray.end(); )
+				for (int i=0;i<m_vertexArray.size(); i+=3 )
 				{
-					collisionMeshData->addTriangle(*it++,*it++,*it++);
+					collisionMeshData->addTriangle(m_vertexArray[i+2],m_vertexArray[i+1],m_vertexArray[i],removeDuplicateVertices);
 				}
 				// this shape will be shared and not deleted until shapeInfo is deleted
 				m_unscaledShape = new btBvhTriangleMeshShape( collisionMeshData, true );

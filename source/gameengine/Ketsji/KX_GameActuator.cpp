@@ -132,7 +132,7 @@ bool KX_GameActuator::Update()
 			{
 				char mashal_path[512];
 				char *marshal_buffer = NULL;
-				int marshal_length;
+				unsigned int marshal_length;
 				FILE *fp = NULL;
 				
 				pathGamePythonConfig(mashal_path);
@@ -244,6 +244,10 @@ PyMethodDef KX_GameActuator::Methods[] =
 	{"getFile",	(PyCFunction) KX_GameActuator::sPyGetFile, METH_VARARGS, (PY_METHODCHAR)GetFile_doc},
 	{"setFile", (PyCFunction) KX_GameActuator::sPySetFile, METH_VARARGS, (PY_METHODCHAR)SetFile_doc},
 	{NULL,NULL} //Sentinel
+};
+
+PyAttributeDef KX_GameActuator::Attributes[] = {
+	{ NULL }	//Sentinel
 };
 
 /* getFile */

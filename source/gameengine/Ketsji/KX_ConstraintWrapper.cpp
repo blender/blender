@@ -130,3 +130,7 @@ PyMethodDef KX_ConstraintWrapper::Methods[] = {
 	{"getConstraintId",(PyCFunction) KX_ConstraintWrapper::sPyGetConstraintId, METH_VARARGS},
 	{NULL,NULL} //Sentinel
 };
+
+PyAttributeDef KX_ConstraintWrapper::Attributes[] = {
+	{ NULL }	//Sentinel
+};

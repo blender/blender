@@ -110,6 +110,8 @@ protected:
 		virtual void		endFrame() {};
 		/// Perform an integration step of duration 'timeStep'.
 		virtual	bool		proceedDeltaTime(double curTime,float timeStep);
+		
+		virtual void		debugDrawWorld();
 //		virtual bool		proceedDeltaTimeOneStep(float timeStep);
 
 		virtual	void		setFixedTimeStep(bool useFixedTimeStep,float fixedTimeStep){};

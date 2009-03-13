@@ -76,3 +76,6 @@ endif
 
 CPPFLAGS += -I$(NAN_PYTHON)/include/python$(NAN_PYTHON_VERSION)
 
+ifeq ($(WITH_FFMPEG), true)
+   CPPFLAGS += -DWITH_FFMPEG
+endif

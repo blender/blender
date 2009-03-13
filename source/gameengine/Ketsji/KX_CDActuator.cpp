@@ -197,7 +197,9 @@ PyMethodDef KX_CDActuator::Methods[] = {
 	{NULL,NULL,NULL,NULL} //Sentinel
 };
 
-
+PyAttributeDef KX_CDActuator::Attributes[] = {
+	{ NULL }	//Sentinel
+};
 
 PyObject* KX_CDActuator::_getattr(const char *attr)
 {

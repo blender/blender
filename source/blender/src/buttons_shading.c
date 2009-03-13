@@ -2185,8 +2185,13 @@ static void world_panel_mistaph(World *wrld)
 #ifdef USE_ODE
 			  "Physics %t|None %x0|Sumo %x2|Ode %x4 |Bullet %x5",
 #else
-			  //"Physics %t|None %x0|Sumo %x2|Bullet %x5", //disable Sumo, until too many people complain ;-)
+
+#ifdef USE_SUMO_SOLID
 			  "Physics %t|None %x0|Sumo (deprecated) %x2|Bullet %x5",
+#else
+			  "Physics %t|None %x0|Bullet %x5", //disable Sumo, until too many people complain ;-)
+#endif
+
 #endif
 			  10,180,140,19, &wrld->physicsEngine, 0, 0, 0, 0, 
 			  "Physics Engine");

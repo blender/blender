@@ -306,12 +306,12 @@ void BL_ConvertSensors(struct Object* blenderobject,
 				{
 					// collision sensor can sense both materials and properties. 
 					
-					bool bFindMaterial = false;
+					bool bFindMaterial = false, bTouchPulse = false;
 					
 					bCollisionSensor* blendertouchsensor = (bCollisionSensor*)sens->data;
 					
-					bFindMaterial = (blendertouchsensor->mode 
-						& SENS_COLLISION_MATERIAL);
+					bFindMaterial = (blendertouchsensor->mode & SENS_COLLISION_MATERIAL);
+					bTouchPulse = (blendertouchsensor->mode & SENS_COLLISION_PULSE);
 					
 					
 					STR_String touchPropOrMatName = ( bFindMaterial ? 
@@ -324,6 +324,7 @@ void BL_ConvertSensors(struct Object* blenderobject,
 						gamesensor = new KX_TouchSensor(eventmgr,
 							gameobj,
 							bFindMaterial,
+							bTouchPulse,
 							touchPropOrMatName);
 					}
 					
@@ -349,6 +350,7 @@ void BL_ConvertSensors(struct Object* blenderobject,
 						gamesensor = new KX_TouchSensor(eventmgr,
 							gameobj,
 							bFindMaterial,
+							false,
 							touchpropertyname);
 					}
 				}

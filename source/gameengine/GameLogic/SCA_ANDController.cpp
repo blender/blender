@@ -137,6 +137,10 @@ PyMethodDef SCA_ANDController::Methods[] = {
 	{NULL,NULL} //Sentinel
 };
 
+PyAttributeDef SCA_ANDController::Attributes[] = {
+	{ NULL }	//Sentinel
+};
+
 PyObject* SCA_ANDController::_getattr(const char *attr) {
 	_getattr_up(SCA_IController);
 }

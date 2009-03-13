@@ -301,6 +301,10 @@ PyMethodDef KX_LightObject::Methods[] = {
 	{NULL,NULL} //Sentinel
 };
 
+PyAttributeDef KX_LightObject::Attributes[] = {
+	{ NULL }	//Sentinel
+};
+
 char KX_LightObject::doc[] = "Module KX_LightObject\n\n"
 "Constants:\n"
 "\tSPOT\n"

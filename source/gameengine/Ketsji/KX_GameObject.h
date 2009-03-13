@@ -758,7 +758,8 @@ public:
 
 	virtual PyObject* _getattr(const char *attr);
 	virtual int _setattr(const char *attr, PyObject *value);		// _setattr method
-
+	virtual PyObject* _repr(void) { return PyString_FromString(GetName().ReadPtr()); }
+	
 	KX_PYMETHOD_NOARGS(KX_GameObject,GetPosition);
 	KX_PYMETHOD_O(KX_GameObject,SetPosition);
 	KX_PYMETHOD_O(KX_GameObject,SetWorldPosition);

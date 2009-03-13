@@ -22,7 +22,7 @@ subject to the following restrictions:
 #include "LinearMath/btMinMax.h"
 #include "BulletCollision/NarrowPhaseCollision/btManifoldPoint.h"
 
-#define ASSERT2 assert
+#define ASSERT2 btAssert
 
 #define USE_INTERNAL_APPLY_IMPULSE 1
 
@@ -52,7 +52,7 @@ void resolveSingleBilateral(btRigidBody& body1, const btVector3& pos1,
 	btVector3 vel = vel1 - vel2;
 	
 
-	  btJacobianEntry jac(body1.getCenterOfMassTransform().getBasis().transpose(),
+	   btJacobianEntry jac(body1.getCenterOfMassTransform().getBasis().transpose(),
 		body2.getCenterOfMassTransform().getBasis().transpose(),
 		rel_pos1,rel_pos2,normal,body1.getInvInertiaDiagLocal(),body1.getInvMass(),
 		body2.getInvInertiaDiagLocal(),body2.getInvMass());
@@ -114,7 +114,7 @@ btScalar resolveSingleCollision(
 	btScalar Kcor = Kerp *Kfps;
 
 	btConstraintPersistentData* cpd = (btConstraintPersistentData*) contactPoint.m_userPersistentData;
-	assert(cpd);
+	btAssert(cpd);
 	btScalar distance = cpd->m_penetration;
 	btScalar positionalError = Kcor *-distance;
 	btScalar velocityError = cpd->m_restitution - rel_vel;// * damping;
@@ -166,7 +166,7 @@ btScalar resolveSingleFriction(
 	btVector3 rel_pos2 = pos2 - body2.getCenterOfMassPosition();
 	
 	btConstraintPersistentData* cpd = (btConstraintPersistentData*) contactPoint.m_userPersistentData;
-	assert(cpd);
+	btAssert(cpd);
 
 	btScalar combinedFriction = cpd->m_friction;
 	
@@ -255,7 +255,7 @@ btScalar resolveSingleFrictionOriginal(
 	btVector3 rel_pos2 = pos2 - body2.getCenterOfMassPosition();
 	
 	btConstraintPersistentData* cpd = (btConstraintPersistentData*) contactPoint.m_userPersistentData;
-	assert(cpd);
+	btAssert(cpd);
 
 	btScalar combinedFriction = cpd->m_friction;
 	
@@ -337,7 +337,7 @@ btScalar resolveSingleCollisionCombined(
 	btScalar Kcor = Kerp *Kfps;
 
 	btConstraintPersistentData* cpd = (btConstraintPersistentData*) contactPoint.m_userPersistentData;
-	assert(cpd);
+	btAssert(cpd);
 	btScalar distance = cpd->m_penetration;
 	btScalar positionalError = Kcor *-distance;
 	btScalar velocityError = cpd->m_restitution - rel_vel;// * damping;
@@ -425,5 +425,5 @@ btScalar resolveSingleFrictionEmpty(
 
 
 	return btScalar(0.);
-};
+}
 

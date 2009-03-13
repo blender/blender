@@ -85,6 +85,9 @@ PyMethodDef KX_SCA_DynamicActuator::Methods[] = {
 	{NULL,NULL} //Sentinel
 };
 
+PyAttributeDef KX_SCA_DynamicActuator::Attributes[] = {
+	{ NULL }	//Sentinel
+};
 
 
 PyObject* KX_SCA_DynamicActuator::_getattr(const char *attr)

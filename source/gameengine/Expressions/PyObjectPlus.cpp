@@ -147,7 +147,7 @@ PyObject *PyObjectPlus::_getattr_self(const PyAttributeDef attrlist[], void *sel
 			if (attrdef->m_length > 1)
 			{
 				PyObject* resultlist = PyList_New(attrdef->m_length);
-				for (int i=0; i<attrdef->m_length; i++)
+				for (unsigned int i=0; i<attrdef->m_length; i++)
 				{
 					switch (attrdef->m_type) {
 					case KX_PYATTRIBUTE_TYPE_BOOL:
@@ -705,6 +705,36 @@ PyObject *PyObjectPlus::Py_isA(PyObject *value)		// Python wrapper for isA
     Py_RETURN_TRUE;
   else
     Py_RETURN_FALSE;
+}
+
+/* Utility function called by the macro _getattr_up()
+ * for getting ob.__dict__() values from our PyObject
+ * this is used by python for doing dir() on an object, so its good
+ * if we return a list of attributes and methods.
+ * 
+ * Other then making dir() useful the value returned from __dict__() is not useful
+ * since every value is a Py_None
+ * */
+PyObject *_getattr_dict(PyObject *pydict, PyMethodDef *meth, PyAttributeDef *attrdef)
+{
+    if(pydict==NULL) { /* incase calling __dict__ on the parent of this object raised an error */
+    	PyErr_Clear();
+    	pydict = PyDict_New();
+    }
+	
+    if(meth) {
+		for (; meth->ml_name != NULL; meth++) {
+			PyDict_SetItemString(pydict, meth->ml_name, Py_None);
+		}
+	}
+	
+    if(attrdef) {
+		for (; attrdef->m_name != NULL; attrdef++) {
+			PyDict_SetItemString(pydict, attrdef->m_name, Py_None);
+		}
+	}
+
+	return pydict;
 }
 
 #endif //NO_EXP_PYTHON_EMBEDDING

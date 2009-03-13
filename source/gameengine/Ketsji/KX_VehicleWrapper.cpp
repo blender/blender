@@ -382,3 +382,6 @@ PyMethodDef KX_VehicleWrapper::Methods[] = {
 	{NULL,NULL} //Sentinel
 };
 
+PyAttributeDef KX_VehicleWrapper::Attributes[] = {
+	{ NULL }	//Sentinel
+};

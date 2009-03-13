@@ -19,9 +19,10 @@ subject to the following restrictions:
 #include "BulletCollision/CollisionShapes/btSphereShape.h"
 
 
-SphereTriangleDetector::SphereTriangleDetector(btSphereShape* sphere,btTriangleShape* triangle)
+SphereTriangleDetector::SphereTriangleDetector(btSphereShape* sphere,btTriangleShape* triangle,btScalar contactBreakingThreshold)
 :m_sphere(sphere),
-m_triangle(triangle)
+m_triangle(triangle),
+m_contactBreakingThreshold(contactBreakingThreshold)
 {
 
 }
@@ -40,7 +41,7 @@ void	SphereTriangleDetector::getClosestPoints(const ClosestPointInput& input,Res
 	//move sphere into triangle space
 	btTransform	sphereInTr = transformB.inverseTimes(transformA);
 
-	if (collide(sphereInTr.getOrigin(),point,normal,depth,timeOfImpact))
+	if (collide(sphereInTr.getOrigin(),point,normal,depth,timeOfImpact,m_contactBreakingThreshold))
 	{
 		if (swapResults)
 		{
@@ -93,7 +94,7 @@ bool SphereTriangleDetector::facecontains(const btVector3 &p,const btVector3* ve
 }
 
 ///combined discrete/continuous sphere-triangle
-bool SphereTriangleDetector::collide(const btVector3& sphereCenter,btVector3 &point, btVector3& resultNormal, btScalar& depth, btScalar &timeOfImpact)
+bool SphereTriangleDetector::collide(const btVector3& sphereCenter,btVector3 &point, btVector3& resultNormal, btScalar& depth, btScalar &timeOfImpact, btScalar contactBreakingThreshold)
 {
 
 	const btVector3* vertices = &m_triangle->getVertexPtr(0);
@@ -115,10 +116,7 @@ bool SphereTriangleDetector::collide(const btVector3& sphereCenter,btVector3 &po
 		normal *= btScalar(-1.);
 	}
 
-	///todo: move this gContactBreakingThreshold into a proper structure
-	extern btScalar gContactBreakingThreshold;
-
-	btScalar contactMargin = gContactBreakingThreshold;
+	btScalar contactMargin = contactBreakingThreshold;
 	bool isInsideContactPlane = distanceFromPlane < r + contactMargin;
 	bool isInsideShellPlane = distanceFromPlane < r;
 	
@@ -140,8 +138,8 @@ bool SphereTriangleDetector::collide(const btVector3& sphereCenter,btVector3 &po
 			btVector3 nearestOnEdge;
 			for (int i = 0; i < m_triangle->getNumEdges(); i++) {
 				
-				btPoint3 pa;
-				btPoint3 pb;
+				btVector3 pa;
+				btVector3 pb;
 				
 				m_triangle->getEdge(i,pa,pb);
 

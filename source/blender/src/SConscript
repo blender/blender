@@ -70,7 +70,9 @@ if env['WITH_BF_ICONV']:
 
 if env['WITH_BF_GAMEENGINE']:
 	defs.append('GAMEBLENDER=1')
-
+	if env['WITH_BF_SOLID']:
+		defs.append('USE_SUMO_SOLID')
+	
 if env['WITH_BF_FFMPEG']:
     defs.append('WITH_FFMPEG')
     incs += ' ' + env['BF_FFMPEG_INC']

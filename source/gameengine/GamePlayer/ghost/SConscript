@@ -34,8 +34,6 @@ incs = ['.',
         '#source/gameengine/Network',
         '#source/gameengine/SceneGraph',
         '#source/gameengine/Physics/common',
-        '#source/gameengine/Physics/Sumo',
-        '#source/gameengine/Physics/Sumo/Fuzzics/include',
         '#source/gameengine/Network/LoopBackNetwork',
         '#source/gameengine/GamePlayer/common',
         '#source/blender/misc',
@@ -43,8 +41,11 @@ incs = ['.',
         '#source/blender/gpu',
         '#extern/glew/include']
 
+if env['WITH_BF_SOLID']:
+	incs.append(['#source/gameengine/Physics/Sumo', '#source/gameengine/Physics/Sumo/Fuzzics/include'])
+	incs += Split(env['BF_SOLID_INC'])
+
 incs += Split(env['BF_PYTHON_INC'])
-incs += Split(env['BF_SOLID_INC'])
 
 cxxflags = []
 if env['OURPLATFORM']=='win32-vc':

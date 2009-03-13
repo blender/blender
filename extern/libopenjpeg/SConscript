@@ -5,6 +5,7 @@ import sys
 Import('env')
 
 sources = env.Glob('*.c')
+
 incs = '.'
 flags = []
 defs = []

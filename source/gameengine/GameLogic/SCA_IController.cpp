@@ -38,8 +38,8 @@
 SCA_IController::SCA_IController(SCA_IObject* gameobj,
 								 PyTypeObject* T)
 	:
-	m_statemask(0),
-	SCA_ILogicBrick(gameobj,T)
+	SCA_ILogicBrick(gameobj,T),
+	m_statemask(0)
 {
 }
 	

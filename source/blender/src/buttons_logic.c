@@ -1131,17 +1131,21 @@ static short draw_sensorbuttons(bSensor *sens, uiBlock *block, short xco, short 
 			/* The collision sensor will become a generic collision (i.e. it     */
 			/* absorb the old touch sensor).                                     */
 
-			uiDefButBitS(block, TOG, SENS_COLLISION_MATERIAL, B_REDR, "M/P",(short)(xco + 10),(short)(yco - 44),
+			uiDefButBitS(block, TOG, SENS_COLLISION_PULSE, B_REDR, "Pulse",(short)(xco + 10),(short)(yco - 44),
+				(short)(0.20 * (width-20)), 19, &cs->mode, 0.0, 0.0, 0, 0,
+				"Changes to the set of colliding objects generate pulses");
+			
+			uiDefButBitS(block, TOG, SENS_COLLISION_MATERIAL, B_REDR, "M/P",(short)(xco + 10 + (0.20 * (width-20))),(short)(yco - 44),
 				(short)(0.20 * (width-20)), 19, &cs->mode, 0.0, 0.0, 0, 0,
 				"Toggle collision on material or property.");
 			
 			if (cs->mode & SENS_COLLISION_MATERIAL) {
-				uiDefBut(block, TEX, 1, "Material:", (short)(xco + 10 + 0.20 * (width-20)),
-					(short)(yco-44), (short)(0.8*(width-20)), 19, &cs->materialName, 0, 31, 0, 0,
+				uiDefBut(block, TEX, 1, "Material:", (short)(xco + 10 + 0.40 * (width-20)),
+					(short)(yco-44), (short)(0.6*(width-20)), 19, &cs->materialName, 0, 31, 0, 0,
 					"Only look for Objects with this material");
 			} else {
-				uiDefBut(block, TEX, 1, "Property:", (short)(xco + 10 + 0.20 * (width-20)), (short)(yco-44),
-					(short)(0.8*(width-20)), 19, &cs->name, 0, 31, 0, 0,
+				uiDefBut(block, TEX, 1, "Property:", (short)(xco + 10 + 0.40 * (width-20)), (short)(yco-44),
+					(short)(0.6*(width-20)), 19, &cs->name, 0, 31, 0, 0,
 					"Only look for Objects with this property");
 			}
 	
@@ -3054,12 +3058,14 @@ static uiBlock *advanced_bullet_menu(void *arg_ob)
 
 	block= uiNewBlock(&curarea->uiblocks, "advanced_bullet_options", UI_EMBOSS, UI_HELV, curarea->win);
 	/* use this for a fake extra empy space around the buttons */
-	uiDefBut(block, LABEL, 0, "", -10, -10, 380, 60, NULL, 0, 0, 0, 0, "");
+	
 
 	if (ob->gameflag & OB_SOFT_BODY) {
+		uiDefBut(block, LABEL, 0, "", -10, -10, 380, 60, NULL, 0, 0, 0, 0, "");
 
 		if (ob->bsoft)
 		{
+			
 
 			uiBlockBeginAlign(block);
 			uiDefButBitI(block, TOG, OB_BSB_COL_CL_RS, 0, "Cluster Collision RS", 
@@ -3102,16 +3108,78 @@ static uiBlock *advanced_bullet_menu(void *arg_ob)
 
 		
 		xco = 0;
+		
 
 		if (ob->gameflag & OB_DYNAMIC) {
+
+			yco = 100;
+			uiDefBut(block, LABEL, 0, "", -10, -10, 380, 120, NULL, 0, 0, 0, 0, "");
+			uiBlockBeginAlign(block);
 			if (ob->margin < 0.001f)
 				ob->margin = 0.06f;
 			uiDefButF(block, NUM, 0, "Margin", 
-					xco, yco, 170, 19, &ob->margin, 0.001, 1.0, 1, 0, 
+					xco, yco, 180, 19, &ob->margin, 0.001, 1.0, 1, 0, 
 					"Collision margin");
+			yco -= 20;
+
+			uiDefButBitI(block, TOG, OB_LOCK_RIGID_BODY_X_AXIS, 0, "Lock X Axis", 
+				xco, yco, 180, 19, &ob->gameflag2, 0, 0, 0, 0, 
+				"Disable simulation of linear motion along the X axis");
+			uiDefButBitI(block, TOG, OB_LOCK_RIGID_BODY_X_ROT_AXIS, 0, "Lock X Rot Xxis", 
+				xco+=180, yco, 180, 19, &ob->gameflag2, 0, 0, 0, 0, 
+				"Disable simulation of angular motion along the X axis");
+			yco -= 20;
+			xco=0;
+			uiDefButBitI(block, TOG, OB_LOCK_RIGID_BODY_Y_AXIS, 0, "Lock Y Axis", 
+				xco, yco, 180, 19, &ob->gameflag2, 0, 0, 0, 0, 
+				"Disable simulation of linear motion along the Y axis");
+			uiDefButBitI(block, TOG, OB_LOCK_RIGID_BODY_Y_ROT_AXIS, 0, "Lock Y Rot Axis", 
+				xco+=180, yco, 180, 19, &ob->gameflag2, 0, 0, 0, 0, 
+				"Disable simulation of angular motion along the Y axis");
+
+			yco -= 20;
+			xco=0;
+			uiDefButBitI(block, TOG, OB_LOCK_RIGID_BODY_Z_AXIS, 0, "Lock Z Axis", 
+				xco, yco, 180, 19, &ob->gameflag2, 0, 0, 0, 0, 
+				"Disable simulation of linear motion along the Z axis");
+			uiDefButBitI(block, TOG, OB_LOCK_RIGID_BODY_Z_ROT_AXIS, 0, "Lock Z Rot Axis", 
+				xco+=180, yco, 180, 19, &ob->gameflag2, 0, 0, 0, 0, 
+				"Disable simulation of angular motion along the Z axis");
+
+			/*
+			uiDefButBitI(block, TOG, OB_BSB_COL_CL_RS, 0, "Cluster Collision RS", 
+				xco, yco, 180, 19, &ob->bsoft->collisionflags, 0, 0, 0, 0, 
+				"Enable cluster collision between soft and rigid body");
+			uiDefButBitI(block, TOG, OB_BSB_COL_CL_SS, 0, "Cluster Collision SS", 
+				xco+=180, yco, 180, 19, &ob->bsoft->collisionflags, 0, 0, 0, 0, 
+				"Enable cluster collision between soft and soft body");
+			yco -= 20;
+			xco = 0;
+			uiDefButI(block, NUM, 0, "Cluster Iter.",		
+				xco, yco, 180, 19, &ob->bsoft->numclusteriterations, 1.0, 128., 
+				0, 0, "Specify the number of cluster iterations");
+			uiDefButI(block, NUM, 0, "Position Iter.",		
+				xco+=180, yco, 180, 19, &ob->bsoft->piterations, 0, 10, 
+				0, 0, "Position solver iterations");
+			#define OB_LOCK_RIGID_BODY_X_AXIS	4
+			#define OB_LOCK_RIGID_BODY_Y_AXIS	8
+			#define OB_LOCK_RIGID_BODY_Z_AXIS	16
+			#define OB_LOCK_RIGID_BODY_X_ROT_AXIS	32
+			#define OB_LOCK_RIGID_BODY_Y_ROT_AXIS	64
+			#define OB_LOCK_RIGID_BODY_Z_ROT_AXIS	128
+			*/
+
+			uiBlockEndAlign(block);
+
+
+			
+
+
 		} else {
+			
+			uiDefBut(block, LABEL, 0, "", -10, -10, 380, 60, NULL, 0, 0, 0, 0, "");
 			uiDefButF(block, NUM, 0, "Margin", 
-					xco, yco, 170, 19, &ob->margin, 0.0, 1.0, 1, 0, 
+					xco, yco, 180, 19, &ob->margin, 0.0, 1.0, 1, 0, 
 					"Collision margin");
 		}
 		yco -= 20;

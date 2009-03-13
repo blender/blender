@@ -311,67 +311,67 @@ void BL_ConvertIpos(struct Object* blenderobject,KX_GameObject* gameobj,KX_Blend
 		}
 		
 		{
-			KX_ObColorIpoSGController* ipocontr=NULL;
+			KX_ObColorIpoSGController* ipocontr_obcol=NULL;
 
 			ipo = ipoList->GetScalarInterpolator(OB_COL_R);
 			if (ipo)
 			{
-				if (!ipocontr)
+				if (!ipocontr_obcol)
 				{
-					ipocontr = new KX_ObColorIpoSGController();
-					gameobj->GetSGNode()->AddSGController(ipocontr);
-					ipocontr->SetObject(gameobj->GetSGNode());
+					ipocontr_obcol = new KX_ObColorIpoSGController();
+					gameobj->GetSGNode()->AddSGController(ipocontr_obcol);
+					ipocontr_obcol->SetObject(gameobj->GetSGNode());
 				}
 				KX_IInterpolator *interpolator =
 				new KX_ScalarInterpolator(
-					&ipocontr->m_rgba[0],
+					&ipocontr_obcol->m_rgba[0],
 					ipo);
-				ipocontr->AddInterpolator(interpolator);
+				ipocontr_obcol->AddInterpolator(interpolator);
 			}
 			ipo = ipoList->GetScalarInterpolator(OB_COL_G);
 			if (ipo)
 			{
-				if (!ipocontr)
+				if (!ipocontr_obcol)
 				{
-					ipocontr = new KX_ObColorIpoSGController();
-					gameobj->GetSGNode()->AddSGController(ipocontr);
-					ipocontr->SetObject(gameobj->GetSGNode());
+					ipocontr_obcol = new KX_ObColorIpoSGController();
+					gameobj->GetSGNode()->AddSGController(ipocontr_obcol);
+					ipocontr_obcol->SetObject(gameobj->GetSGNode());
 				}
 				KX_IInterpolator *interpolator =
 				new KX_ScalarInterpolator(
-					&ipocontr->m_rgba[1],
+					&ipocontr_obcol->m_rgba[1],
 					ipo);
-				ipocontr->AddInterpolator(interpolator);
+				ipocontr_obcol->AddInterpolator(interpolator);
 			}
 			ipo = ipoList->GetScalarInterpolator(OB_COL_B);
 			if (ipo)
 			{
-				if (!ipocontr)
+				if (!ipocontr_obcol)
 				{
-					ipocontr = new KX_ObColorIpoSGController();
-					gameobj->GetSGNode()->AddSGController(ipocontr);
-					ipocontr->SetObject(gameobj->GetSGNode());
+					ipocontr_obcol = new KX_ObColorIpoSGController();
+					gameobj->GetSGNode()->AddSGController(ipocontr_obcol);
+					ipocontr_obcol->SetObject(gameobj->GetSGNode());
 				}
 				KX_IInterpolator *interpolator =
 				new KX_ScalarInterpolator(
-					&ipocontr->m_rgba[2],
+					&ipocontr_obcol->m_rgba[2],
 					ipo);
-				ipocontr->AddInterpolator(interpolator);
+				ipocontr_obcol->AddInterpolator(interpolator);
 			}
 			ipo = ipoList->GetScalarInterpolator(OB_COL_A);
 			if (ipo)
 			{
-				if (!ipocontr)
+				if (!ipocontr_obcol)
 				{
-					ipocontr = new KX_ObColorIpoSGController();
-					gameobj->GetSGNode()->AddSGController(ipocontr);
-					ipocontr->SetObject(gameobj->GetSGNode());
+					ipocontr_obcol = new KX_ObColorIpoSGController();
+					gameobj->GetSGNode()->AddSGController(ipocontr_obcol);
+					ipocontr_obcol->SetObject(gameobj->GetSGNode());
 				}
 				KX_IInterpolator *interpolator =
 				new KX_ScalarInterpolator(
-					&ipocontr->m_rgba[3],
+					&ipocontr_obcol->m_rgba[3],
 					ipo);
-				ipocontr->AddInterpolator(interpolator);
+				ipocontr_obcol->AddInterpolator(interpolator);
 			}
 		}
 

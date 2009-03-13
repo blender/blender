@@ -176,6 +176,8 @@ public:
 	GetWorldScaling(
 	) const	;
 
+	void SetWorldFromLocalTransform();
+
 	MT_Transform GetWorldTransform() const;
 
 	bool	ComputeWorldTransforms(		const SG_Spatial *parent);

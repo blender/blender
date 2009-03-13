@@ -18,7 +18,7 @@
 #define spit(x) std::cout << x << std::endl;
 
 #define SORT_UNIFORMS 1
-#define UNIFORM_MAX_LEN sizeof(float)*16
+#define UNIFORM_MAX_LEN (int)sizeof(float)*16
 #define MAX_LOG_LEN 262144 // bounds
 
 BL_Uniform::BL_Uniform(int data_size)
@@ -108,7 +108,7 @@ void BL_Uniform::SetData(int location, int type,bool transpose)
 #endif
 }
 
-const bool BL_Shader::Ok()const
+bool BL_Shader::Ok()const
 {
 	return (mShader !=0 && mOk && mUse);
 }
@@ -767,6 +767,9 @@ PyMethodDef BL_Shader::Methods[] =
 	{NULL,NULL} //Sentinel
 };
 
+PyAttributeDef BL_Shader::Attributes[] = {
+	{ NULL }	//Sentinel
+};
 
 PyTypeObject BL_Shader::Type = {
 	PyObject_HEAD_INIT(&PyType_Type)

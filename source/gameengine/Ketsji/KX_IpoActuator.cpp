@@ -457,6 +457,10 @@ PyMethodDef KX_IpoActuator::Methods[] = {
 	{NULL,NULL} //Sentinel
 };
 
+PyAttributeDef KX_IpoActuator::Attributes[] = {
+	{ NULL }	//Sentinel
+};
+
 PyObject* KX_IpoActuator::_getattr(const char *attr) {
 	_getattr_up(SCA_IActuator);
 }

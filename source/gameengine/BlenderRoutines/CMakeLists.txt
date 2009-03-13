@@ -38,5 +38,9 @@ SET(INC
   ${PYTHON_INC}
 )
 
+IF(WITH_FFMPEG)
+  ADD_DEFINITIONS(-DWITH_FFMPEG)
+ENDIF(WITH_FFMPEG)
+
 BLENDERLIB(bf_blroutines "${SRC}" "${INC}")
 #env.BlenderLib ( 'bf_bloutines', sources, Split(incs), [], libtype=['game', 'game2', 'player'], priority=[0, 0, 55] , compileflags=cxxflags)

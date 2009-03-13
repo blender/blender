@@ -189,9 +189,10 @@ protected:
 		int d = m_buffU[offset] - 128;
 		int e = m_buffV[offset] - 128;
 		// if horizontal interpolation is needed
-		if ((x & 1) == 1)
+		if ((x & 1) == 1) {
 			// if vertical interpolation is needed too
 			if ((y & 1) == 1)
+			{
 				// if this pixel is on the edge
 				if (isEdge(x, y, size))
 				{
@@ -206,7 +207,8 @@ protected:
 					e = interpolVH(m_buffV + offset) - 128;
 				}
 				// otherwise use horizontal interpolation only
-			else
+			}
+			else {
 				// if this pixel is on the edge
 				if (isEdge(x, y, size))
 				{
@@ -221,6 +223,8 @@ protected:
 					e = interpolH(m_buffV + offset) - 128;
 				}
 				// otherwise if only vertical interpolation is needed
+			}
+		}
 		else if ((y & 1) == 1)
 			// if this pixel is on the edge
 			if (isEdge(x, y, size))

@@ -2039,7 +2039,7 @@ void initlocalview()
 	locallay= free_localbit();
 
 	if(locallay==0) {
-		error("Sorry,  no more than 8 localviews");
+		error("Sorry, no more than 8 localviews");
 		ok= 0;
 	}
 	else {
