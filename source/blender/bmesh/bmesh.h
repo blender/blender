@@ -191,11 +191,18 @@ void BM_remove_tagged_verts(struct BMesh *bm, int flag);
 
 
 /*Modification*/
-struct BMFace *BM_Join_Faces(struct BMesh *bm, struct BMFace *f1, struct BMFace *f2, struct BMEdge *e, int calcnorm, int weldUVs);
-struct BMFace *BM_Split_Face(struct BMesh *bm, struct BMFace *f, struct BMVert *v1, struct BMVert *v2, struct BMLoop **nl, struct BMEdge *example, int calcnorm);
-void BM_Collapse_Vert(struct BMesh *bm, struct BMEdge *ke, struct BMVert *kv, float fac, int calcnorm);
-struct BMVert *BM_Split_Edge(struct BMesh *bm, struct BMVert *v, struct BMEdge *e, struct BMEdge **ne, float percent, int calcnorm);
-struct BMVert  *BM_Split_Edge_Multi(struct BMesh *bm, struct BMEdge *e, int numcuts);
+struct BMFace *BM_Join_Faces(struct BMesh *bm, struct BMFace *f1, 
+                             struct BMFace *f2, struct BMEdge *e);
+struct BMFace *BM_Split_Face(struct BMesh *bm, struct BMFace *f,  
+                             struct BMVert *v1, struct BMVert *v2, 
+			     struct BMLoop **nl, struct BMEdge *example);
+void BM_Collapse_Vert(struct BMesh *bm, struct BMEdge *ke, struct BMVert *kv, 
+		      float fac);
+struct BMVert *BM_Split_Edge(struct BMesh *bm, struct BMVert *v, 
+                             struct BMEdge *e, struct BMEdge **ne,
+                             float percent);
+struct BMVert  *BM_Split_Edge_Multi(struct BMesh *bm, struct BMEdge *e, 
+	                            int numcuts);
 BMEdge *BM_Connect_Verts(BMesh *bm, BMVert *v1, BMVert *v2, BMFace **nf);
 void BM_Face_UpdateNormal(BMesh *bm, BMFace *f);
 void BM_Edge_UpdateNormals(BMesh *bm, BMEdge *e);

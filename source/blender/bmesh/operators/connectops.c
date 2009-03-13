@@ -17,7 +17,7 @@ void connectverts_exec(BMesh *bm, BMOperator *op)
 	BMIter iter, liter;
 	BMFace *f, *nf;
 	BMEdge *e;
-	BMLoop *l;
+	BMLoop *l, *nl;
 	BMVert *v1, *v2;
 	int ok;
 	
@@ -41,13 +41,15 @@ void connectverts_exec(BMesh *bm, BMOperator *op)
 		}
 
 		if (ok) {
-			e = BM_Connect_Verts(bm, v1, v2, &nf);
-			if (!e) {
+
+			nf = BM_Split_Face(bm, f, v1, v2, &nl, NULL);
+			
+			if (!nl || !nf) {
 				BMO_RaiseError(bm, op,
 					BMERR_CONNECTVERT_FAILED, NULL);
 				return;
 			}
-			BMO_SetFlag(bm, e, EDGE_OUT);
+			BMO_SetFlag(bm, nl->e, EDGE_OUT);
 		}
 	}
 

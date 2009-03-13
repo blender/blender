@@ -243,6 +243,85 @@ void compute_poly_plane(float (*verts)[3], int nverts)
 }
 
 /*
+  BM LEGAL EDGES
+
+  takes in a face and a list of edges, and sets to NULL any edge in
+  the list that bridges a concave region of the face or intersects
+  any of the faces's edges.
+*/
+static void shrink_edge(float *v1, float *v2, float fac)
+{
+	float mid[3];
+
+	VecAddf(mid, v1, v2);
+	VecMulf(mid, 0.5f);
+
+	VecSubf(v1, v1, mid);
+	VecSubf(v2, v2, mid);
+
+	VecMulf(v1, fac);
+	VecMulf(v2, fac);
+
+	VecAddf(v1, v1, mid);
+	VecAddf(v2, v2, mid);
+
+}
+
+#if 0
+void BM_LegalSplits(BMesh *bm, BMFace *f, BMLoop (*loops)[2], int len)
+{
+	BMIter iter;
+	BMLoop *l;
+	float v1[3], v2[3], no[3], *p1, *p2;
+	float projectverts[100][3];
+	float edgevertsstack[100][2][3];
+	float (*projverts)[3] = projectverts;
+	float (*edgeverts)[2][3] = edgevertsstack;
+	int i, nvert, j;
+
+	if (f->len > 100) projverts = MEM_mallocN(sizeof(float)*3*f->len, "projvertsb");
+	if (len > 100) edgeverts = MEM_mallocN(sizeof(float)*3*2*len, "edgevertsb");
+	
+	i = 0;
+	l = BMIter_New(&iter, bm, BM_LOOPS_OF_FACE, f);
+	for (; l; l=BMIter_Step(&iter)) {
+		VECCOPY(projverts[i], l->v->co);
+		i++;
+	}
+
+	for (i=0; i<len; i++) {
+		VECCOPY(v1, loops[i][0]->v->co);
+		VECCOPY(v2, loops[i][0]->v->co);
+
+		shrink_edge(v1, v2, 0.9999f);
+
+		VECCOPY(edgeverts[i][0], v1);
+		VECCOPY(edgeverts[i][1], v2);
+	}
+	
+	compute_poly_normal(no, projverts, f->len);
+	poly_rotate_plane(no, projverts, f->len);
+	poly_rotate_plane(no, edgeverts, len);
+
+	for (i=0; i<len; i++) {
+		if (convexangle(
+	}
+
+	for (i=0; i<f->len; i++) {
+		for (j=0; j<len; j++) {
+			p1 = projverts[i];
+			p2 = projverts[(i+1)%f->len];
+			if (convexangle(
+			if (linecrosses(p1, p2, 
+		}
+	}
+	
+	if (projverts != projectverts) MEM_freeN(projverts);
+	if (edgeverts != edgevertsstack) MEM_freeN(edgeverts);
+}
+#endif
+
+/*
  * POLY ROTATE PLANE
  *
  * Rotates a polygon so that it's
@@ -308,7 +387,7 @@ void BM_Face_UpdateNormal(BMesh *bm, BMFace *f)
 
 void BM_Edge_UpdateNormals(BMesh *bm, BMEdge *e)
 {
-	BMIter *iter;
+	BMIter iter;
 	BMFace *f;
 	
 	f = BMIter_New(&iter, bm, BM_FACES_OF_EDGE, e);
@@ -578,7 +657,7 @@ void BM_Triangulate_Face(BMesh *bm, BMFace *f, float (*projectverts)[3],
 			v = l->v;
 			f = BM_Split_Face(bm, l->f, ((BMLoop*)(l->head.prev))->v, 
 			                  ((BMLoop*)(l->head.next))->v, 
-			                  &newl, NULL, 0);
+			                  &newl, NULL);
 			VECCOPY(f->no, l->f->no);
 
 			if (!f) {
@@ -605,7 +684,7 @@ void BM_Triangulate_Face(BMesh *bm, BMFace *f, float (*projectverts)[3],
 		while (l->f->len > 3){
 			nextloop = ((BMLoop*)(l->head.next->next));
 			f = BM_Split_Face(bm, l->f, l->v, nextloop->v, 
-			                  &newl, NULL, 0);
+			                  &newl, NULL);
 			if (!f) {
 				printf("triangle fan step of triangulator failed.\n");
 				return;

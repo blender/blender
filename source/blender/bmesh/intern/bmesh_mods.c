@@ -103,7 +103,7 @@ int BM_Dissolve_Disk(BMesh *bm, BMVert *v) {
 		  increasing valence to four.  this may be hackish. . .*/
 		loop = e->loop;
 		if (loop->v == v) loop = (BMLoop*) loop->head.next;
-		if (!BM_Split_Face(bm, loop->f, v, loop->v, NULL, NULL, 0))
+		if (!BM_Split_Face(bm, loop->f, v, loop->v, NULL, NULL))
 			return 0;
 
 		BM_Dissolve_Disk(bm, v);
@@ -113,8 +113,8 @@ int BM_Dissolve_Disk(BMesh *bm, BMVert *v) {
 		f = v->edge->loop->f;
 		f2 = ((BMLoop*)v->edge->loop->radial.next->data)->f;
 		/*collapse the vertex*/
-		BM_Collapse_Vert(bm, v->edge, v, 1.0, 0);
-		BM_Join_Faces(bm, f, f2, NULL, 0, 0);
+		BM_Collapse_Vert(bm, v->edge, v, 1.0);
+		BM_Join_Faces(bm, f, f2, NULL);
 
 		return 1;
 	}
@@ -128,7 +128,7 @@ int BM_Dissolve_Disk(BMesh *bm, BMVert *v) {
 				f = NULL;
 				len = bmesh_cycle_length(&(e->loop->radial));
 				if(len == 2 && (e!=baseedge) && (e!=keepedge)) {
-					f = BM_Join_Faces(bm, e->loop->f, ((BMLoop*)(e->loop->radial.next->data))->f, e, 0, 0); 
+					f = BM_Join_Faces(bm, e->loop->f, ((BMLoop*)(e->loop->radial.next->data))->f, e); 
 					/*return if couldn't join faces in manifold
 					  conditions.*/
 					//!disabled for testing why bad things happen
@@ -148,11 +148,11 @@ int BM_Dissolve_Disk(BMesh *bm, BMVert *v) {
 		f2 = ((BMLoop*)v->edge->loop->radial.next->data)->f;
 
 		/*collapse the vertex*/
-		BM_Collapse_Vert(bm, baseedge, v, 1.0, 0);
+		BM_Collapse_Vert(bm, baseedge, v, 1.0);
 		
 		if (f != f2) {
 			/*join two remaining faces*/
-			if (!BM_Join_Faces(bm, f, f2, NULL, 0, 0)) return 0;
+			if (!BM_Join_Faces(bm, f, f2, NULL)) return 0;
 		}
 	}
 
@@ -178,7 +178,7 @@ void BM_Dissolve_Disk(BMesh *bm, BMVert *v){
 				if(len == 2){
 					f = BM_Join_Faces(bm,e->loop->f,((BMLoop*)
 					      (e->loop->radial.next->data))->f, 
-					       e, 1, 0);
+					       e);
 				}
 				if(f){ 
 					done = 0;
@@ -186,7 +186,7 @@ void BM_Dissolve_Disk(BMesh *bm, BMVert *v){
 				}
 			};
 		}
-		BM_Collapse_Vert(bm, v->edge, v, 1.0, 1);
+		BM_Collapse_Vert(bm, v->edge, v, 1.0);
 	}
 }
 #endif
@@ -194,16 +194,13 @@ void BM_Dissolve_Disk(BMesh *bm, BMVert *v){
 /**
  *			bmesh_join_faces
  *
- *  joins two adjacenct faces togather. If weldUVs == 1
- *  and the uv/vcols of the two faces are non-contigous, the
- *  per-face properties of f2 will be transformed into place
- *  around f1.
+ *  joins two adjacenct faces togather.
  * 
  *  Returns -
  *	BMFace pointer
  */
  
-BMFace *BM_Join_Faces(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e, int calcnorm, int weldUVs) {
+BMFace *BM_Join_Faces(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e) {
 
 	BMLoop *l1, *l2;
 	BMEdge *jed=NULL;
@@ -229,8 +226,6 @@ BMFace *BM_Join_Faces(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e, int calcnorm
 
 	f1 = bmesh_jfke(bm, f1, f2, jed);
 	
-	if (calcnorm && f1) BM_Face_UpdateNormal(bm, f1);
-	
 	return f1;
 }
 
@@ -255,7 +250,7 @@ BMEdge *BM_Connect_Verts(BMesh *bm, BMVert *v1, BMVert *v2, BMFace **nf) {
 	for (face = BMIter_New(&iter, bm, BM_FACES_OF_VERT, v1); face; face=BMIter_Step(&iter)) {
 		for (v=BMIter_New(&iter2, bm, BM_VERTS_OF_FACE, face); v; v=BMIter_Step(&iter2)) {
 			if (v == v2) {
-				face = BM_Split_Face(bm, face, v1, v2, &nl, NULL, 1);
+				face = BM_Split_Face(bm, face, v1, v2, &nl, NULL);
 
 				if (nf) *nf = face;
 				return nl->e;
@@ -275,17 +270,12 @@ BMEdge *BM_Connect_Verts(BMesh *bm, BMVert *v1, BMVert *v2, BMFace **nf) {
  *	BMFace pointer
  */
  
-BMFace *BM_Split_Face(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2, BMLoop **nl, BMEdge *example, int calcnorm)
+BMFace *BM_Split_Face(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2, BMLoop **nl, BMEdge *example)
 {
 	BMFace *nf;
 	nf = bmesh_sfme(bm,f,v1,v2,nl);
 	
 	BM_Copy_Attributes(bm, bm, f, nf);
-
-	if (calcnorm && nf) {
-		BM_Face_UpdateNormal(bm, nf);
-		BM_Face_UpdateNormal(bm, f);
-	}
 
 	return nf;
 }
@@ -307,7 +297,7 @@ BMFace *BM_Split_Face(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2, BMLoop **nl,
  *	Nothing
  */
  
-void BM_Collapse_Vert(BMesh *bm, BMEdge *ke, BMVert *kv, float fac, int calcnorm){
+void BM_Collapse_Vert(BMesh *bm, BMEdge *ke, BMVert *kv, float fac){
 	void *src[2];
 	float w[2];
 	BMLoop *l=NULL, *kvloop=NULL, *tvloop=NULL;
@@ -345,7 +335,7 @@ void BM_Collapse_Vert(BMesh *bm, BMEdge *ke, BMVert *kv, float fac, int calcnorm
  *	the new vert
  */
 
-BMVert *BM_Split_Edge(BMesh *bm, BMVert *v, BMEdge *e, BMEdge **ne, float percent, int calcnorm) {
+BMVert *BM_Split_Edge(BMesh *bm, BMVert *v, BMEdge *e, BMEdge **ne, float percent) {
 	BMVert *nv, *v2;
 
 	v2 = bmesh_edge_getothervert(e,v);
@@ -371,7 +361,7 @@ BMVert  *BM_Split_Edge_Multi(BMesh *bm, BMEdge *e, int numcuts)
 	
 	for(i=0; i < numcuts; i++){
 		percent = 1.0f / (float)(numcuts + 1 - i);
-		nv = BM_Split_Edge(bm, e->v2, e, NULL, percent, 0);
+		nv = BM_Split_Edge(bm, e->v2, e, NULL, percent);
 	}
 	return nv;
 }

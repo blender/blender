@@ -53,6 +53,34 @@ NOTE: beauty has been renamed to flag!
     split the edge only?
 */
 
+/*connects face with smallest len, which I think should always be correct for
+  edge subdivision*/
+BMEdge *connect_smallest_face(BMesh *bm, BMVert *v1, BMVert *v2, BMFace **nf) {
+	BMIter iter, iter2;
+	BMVert *v;
+	BMLoop *nl;
+	BMFace *face, *curf = NULL;
+
+	/*this isn't the best thing in the world.  it doesn't handle cases where there's
+	  multiple faces yet.  that might require a convexity test to figure out which
+	  face is "best," and who knows what for non-manifold conditions.*/
+	for (face = BMIter_New(&iter, bm, BM_FACES_OF_VERT, v1); face; face=BMIter_Step(&iter)) {
+		for (v=BMIter_New(&iter2, bm, BM_VERTS_OF_FACE, face); v; v=BMIter_Step(&iter2)) {
+			if (v == v2) {
+				if (!curf || face->len < curf->len) curf = face;
+			}
+		}
+	}
+
+	if (curf) {
+		face = BM_Split_Face(bm, curf, v1, v2, &nl, NULL);
+		
+		if (nf) *nf = face;
+		return nl ? nl->e : NULL;
+	}
+
+	return NULL;
+}
 /* calculates offset for co, based on fractal, sphere or smooth settings  */
 static void alter_co(float *co, BMEdge *edge, subdparams *params, float perc,
 		     BMVert *vsta, BMVert *vend)
@@ -119,7 +147,7 @@ static BMVert *bm_subdivide_edge_addvert(BMesh *bm, BMEdge *edge,
 	BMVert *ev;
 //	float co[3];
 	
-	ev = BM_Split_Edge(bm, edge->v1, edge, out, percent, 1);
+	ev = BM_Split_Edge(bm, edge->v1, edge, out, percent);
 	BMO_SetFlag(bm, ev, ELE_INNER);
 
 	/* offset for smooth or sphere or fractal */
@@ -204,17 +232,17 @@ static void q_1edge_split(BMesh *bm, BMFace *face,
 		add = 2;
 		for (i=0; i<numcuts; i++) {
 			if (i == numcuts/2) add -= 1;
-			BM_Connect_Verts(bm, verts[i], verts[numcuts+add], 
+			connect_smallest_face(bm, verts[i], verts[numcuts+add], 
 				           &nf);
 		}
 	} else {
 		add = 2;
 		for (i=0; i<numcuts; i++) {
-			BM_Connect_Verts(bm, verts[i], verts[numcuts+add], 
+			connect_smallest_face(bm, verts[i], verts[numcuts+add], 
 				           &nf);
 			if (i == numcuts/2) {
 				add -= 1;
-				BM_Connect_Verts(bm, verts[i], 
+				connect_smallest_face(bm, verts[i], 
 					           verts[numcuts+add],
 						   &nf);
 			}
@@ -248,7 +276,7 @@ static void q_2edge_op_split(BMesh *bm, BMFace *face, BMVert **verts,
 	int i, numcuts = params->numcuts;
 	
 	for (i=0; i<numcuts; i++) {
-		BM_Connect_Verts(bm, verts[i],verts[(numcuts-i-1)+numcuts+2],
+		connect_smallest_face(bm, verts[i],verts[(numcuts-i-1)+numcuts+2],
 			           &nf);
 	}
 }
@@ -275,10 +303,10 @@ static void q_2edge_split(BMesh *bm, BMFace *face, BMVert **verts,
 	int i, numcuts = params->numcuts;
 	
 	for (i=0; i<numcuts; i++) {
-		BM_Connect_Verts(bm, verts[i], verts[numcuts+(numcuts-i)],
+		connect_smallest_face(bm, verts[i], verts[numcuts+(numcuts-i)],
 			           &nf);
 	}
-	BM_Connect_Verts(bm, verts[numcuts*2+3], verts[numcuts*2+1], &nf);
+	connect_smallest_face(bm, verts[numcuts*2+3], verts[numcuts*2+1], &nf);
 }
 
 subdpattern q_2edge = {
@@ -306,17 +334,17 @@ static void q_3edge_split(BMesh *bm, BMFace *face, BMVert **verts,
 	for (i=0; i<numcuts; i++) {
 		if (i == numcuts/2) {
 			if (numcuts % 2 != 0) {
-				BM_Connect_Verts(bm, verts[numcuts-i-1+add], 
+				connect_smallest_face(bm, verts[numcuts-i-1+add], 
 					         verts[i+numcuts+1], &nf);
 			}
 			add = numcuts*2+2;
 		}
-		BM_Connect_Verts(bm, verts[numcuts-i-1+add], 
+		connect_smallest_face(bm, verts[numcuts-i-1+add], 
 			             verts[i+numcuts+1], &nf);
 	}
 
 	for (i=0; i<numcuts/2+1; i++) {
-		BM_Connect_Verts(bm, verts[i],verts[(numcuts-i)+numcuts*2+1],
+		connect_smallest_face(bm, verts[i],verts[(numcuts-i)+numcuts*2+1],
 			           &nf);
 	}
 }
@@ -369,7 +397,9 @@ static void q_4edge_split(BMesh *bm, BMFace *face, BMVert **verts,
 		a = i;
 		b = numcuts + 1 + numcuts + 1 + (numcuts - i - 1);
 		
-		e = BM_Connect_Verts(bm, verts[a], verts[b], &nf);
+		e = connect_smallest_face(bm, verts[a], verts[b], &nf);
+		if (!e) continue;
+
 		BMO_SetFlag(bm, e, ELE_INNER);
 		BMO_SetFlag(bm, nf, ELE_INNER);
 
@@ -389,7 +419,9 @@ static void q_4edge_split(BMesh *bm, BMFace *face, BMVert **verts,
 		for (j=1; j<numcuts+1; j++) {
 			a = i*s + j;
 			b = (i-1)*s + j;
-			e = BM_Connect_Verts(bm, lines[a], lines[b], &nf);
+			e = connect_smallest_face(bm, lines[a], lines[b], &nf);
+			if (!e) continue;
+
 			BMO_SetFlag(bm, e, ELE_INNER);
 			BMO_SetFlag(bm, nf, ELE_INNER);
 		}
@@ -414,7 +446,7 @@ static void t_1edge_split(BMesh *bm, BMFace *face, BMVert **verts,
 	int i, numcuts = params->numcuts;
 	
 	for (i=0; i<numcuts; i++) {
-		BM_Connect_Verts(bm, verts[i], verts[numcuts+1], &nf);
+		connect_smallest_face(bm, verts[i], verts[numcuts+1], &nf);
 	}
 }
 
@@ -440,7 +472,7 @@ static void t_2edge_split(BMesh *bm, BMFace *face, BMVert **verts,
 	int i, numcuts = params->numcuts;
 	
 	for (i=0; i<numcuts; i++) {
-		BM_Connect_Verts(bm, verts[i], verts[numcuts+numcuts-i], &nf);
+		connect_smallest_face(bm, verts[i], verts[numcuts+numcuts-i], &nf);
 	}
 }
 
@@ -488,7 +520,7 @@ static void t_3edge_split(BMesh *bm, BMFace *face, BMVert **verts,
 			               "triangle vert table row");
 		a = numcuts*2 + 2 + i;
 		b = numcuts + numcuts - i;
-		e = BM_Connect_Verts(bm, verts[a], verts[b], &nf);
+		e = connect_smallest_face(bm, verts[a], verts[b], &nf);
 		if (!e) goto cleanup;
 
 		BMO_SetFlag(bm, e, ELE_INNER);
@@ -518,13 +550,13 @@ sv7/---v---\ v3 s
 */
 	for (i=1; i<numcuts+1; i++) {
 		for (j=0; j<i; j++) {
-			e= BM_Connect_Verts(bm, lines[i][j], lines[i+1][j+1],
+			e= connect_smallest_face(bm, lines[i][j], lines[i+1][j+1],
 				           &nf);
 
 			BMO_SetFlag(bm, e, ELE_INNER);
 			BMO_SetFlag(bm, nf, ELE_INNER);
 
-			e= BM_Connect_Verts(bm,lines[i][j+1],lines[i+1][j+1],
+			e= connect_smallest_face(bm,lines[i][j+1],lines[i+1][j+1],
 				           &nf);
 
 			BMO_SetFlag(bm, e, ELE_INNER);
