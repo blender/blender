@@ -60,10 +60,8 @@ typedef struct {
 } BPy_PropertyRNA;
 
 PyObject *BPY_rna_module( void );
-PyObject *BPY_rna_doc( void );
-void BPY_rna_init_types( void );
-void BPY_rna_free_types( void );
-
+/*PyObject *BPY_rna_doc( void );*/
+PyObject *BPY_rna_types( void );
 
 PyObject *pyrna_struct_CreatePyObject( PointerRNA *ptr );
 PyObject *pyrna_prop_CreatePyObject( PointerRNA *ptr, PropertyRNA *prop );

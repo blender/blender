@@ -104,7 +104,7 @@ def seek(r, txt):
 				seek(r[i], newtxt)
 
 #print (dir(bpy))
-seek(bpy, 'bpy')
+seek(bpy.data, 'bpy.data')
 
 
 #print dir(bpy)

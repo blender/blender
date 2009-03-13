@@ -34,30 +34,23 @@ void BPY_free_compiled_text( struct Text *text )
 
 static PyObject *CreateGlobalDictionary( bContext *C )
 {
+	PyObject *mod;
 	PyObject *dict = PyDict_New(  );
 	PyObject *item = PyUnicode_FromString( "__main__" );
 	PyDict_SetItemString( dict, "__builtins__", PyEval_GetBuiltins(  ) );
 	PyDict_SetItemString( dict, "__name__", item );
 	Py_DECREF(item);
 	
-	/* Add Modules */
-	item = BPY_rna_module();
-	PyDict_SetItemString( dict, "bpy", item );
-	Py_DECREF(item);
+	/* add bpy to global namespace */
+	mod = PyModule_New("bpy");
+	PyDict_SetItemString( dict, "bpy", mod );
+	Py_DECREF(mod);
 	
-	item = BPY_rna_doc();
-	PyDict_SetItemString( dict, "bpydoc", item );
-	Py_DECREF(item);
-
-	item = BPY_operator_module(C);
-	PyDict_SetItemString( dict, "bpyoperator", item );
-	Py_DECREF(item);
-
-	
-	// XXX very experemental, consiter this a test, especiall PyCObject is not meant to be perminant
-	item = BPY_ui_module();
-	PyDict_SetItemString( dict, "bpyui", item );
-	Py_DECREF(item);
+	PyModule_AddObject( mod, "data", BPY_rna_module() );
+	/* PyModule_AddObject( mod, "doc", BPY_rna_doc() ); */
+	PyModule_AddObject( mod, "types", BPY_rna_types() );
+	PyModule_AddObject( mod, "ops", BPY_operator_module(C) );
+	PyModule_AddObject( mod, "ui", BPY_ui_module() ); // XXX very experemental, consider this a test, especially PyCObject is not meant to be perminant
 	
 	// XXX - evil, need to access context
 	item = PyCObject_FromVoidPtr( C, NULL );
@@ -80,8 +73,6 @@ void BPY_start_python( void )
 	
 	// todo - sys paths - our own imports
 	
-	BPY_rna_init_types();
-	
 	py_tstate = PyGILState_GetThisThreadState();
 	PyEval_ReleaseThread(py_tstate);
 	
@@ -96,7 +87,6 @@ void BPY_end_python( void )
 	
 	Py_Finalize(  );
 	
-	BPY_rna_free_types(); /* this MUST run after Py_Finalize since it frees Dynamic allocated PyTypes so we cant free them first */
 	return;
 }
 

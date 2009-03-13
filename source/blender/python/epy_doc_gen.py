@@ -121,12 +121,19 @@ def rna2epy(target_path):
 		try:		return rna_struct.base.identifier
 		except:	return '' # invalid id
 
-	#structs = [(base_id(rna_struct), rna_struct.identifier, rna_struct) for rna_struct in bpydoc.structs.values()]
-	
+	#structs = [(base_id(rna_struct), rna_struct.identifier, rna_struct) for rna_struct in bpy.doc.structs.values()]
+	'''
 	structs = []
-	for rna_struct in bpydoc.structs.values():
+	for rna_struct in bpy.doc.structs.values():
 		structs.append( (base_id(rna_struct), rna_struct.identifier, rna_struct) )
-		
+	'''
+	structs = []
+	for rna_type_name in dir(bpy.types):
+		rna_type = getattr(bpy.types, rna_type_name)
+		if hasattr(rna_type, '__rna__'):
+			rna_struct = rna_type.__rna__
+			structs.append( (base_id(rna_struct), rna_struct.identifier, rna_struct) )	
+	
 	
 	
 	structs.sort() # not needed but speeds up sort below, setting items without an inheritance first
@@ -178,7 +185,7 @@ def rna2epy(target_path):
 def op2epy(target_path):
 	out = open(target_path, 'w')
 	
-	operators = dir(bpyoperator)
+	operators = dir(bpy.ops)
 	operators.remove('add')
 	operators.remove('remove')
 	operators.sort()
@@ -193,7 +200,7 @@ def op2epy(target_path):
 		kw_args = [] # "foo = 1", "bar=0.5", "spam='ENUM'"
 		kw_arg_attrs = [] # "@type mode: int"
 		
-		rna = getattr(bpyoperator, op).rna
+		rna = getattr(bpy.ops, op).rna
 		rna_struct = rna.rna_type
 		# print (dir(rna))
 		# print (dir(rna_struct))
