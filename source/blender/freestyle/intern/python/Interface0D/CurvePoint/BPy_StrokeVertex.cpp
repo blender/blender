@@ -235,11 +235,27 @@ PyObject *StrokeVertex_setPoint( BPy_StrokeVertex *self , PyObject *args) {
 	}
 	
 	if( PyList_Check(obj1) && !obj2 ){
+		if ( PyList_Size(obj1) != 2 ) {
+			cout << "Error: StrokeVertex::setPoint() accepts a list of 2 elements ("
+			     << PyList_Size(obj1) << " found)" << endl;
+			Py_RETURN_NONE;
+		}
 		Vec2f v( 	PyFloat_AsDouble( PyList_GetItem(obj1, 0) ),
 					PyFloat_AsDouble( PyList_GetItem(obj1, 1) )  );
 		self->sv->setPoint( v );
+	} else if ( VectorObject_Check(obj1) && !obj2) {
+		if ( ((VectorObject *)obj1)->size != 2 ) {
+			cout << "Error: StrokeVertex::setPoint() accepts a vector of 2 elements ("
+			     << ((VectorObject *)obj1)->size << " found)" << endl;
+			Py_RETURN_NONE;
+		}
+		Vec2f *v = Vec2f_ptr_from_Vector( obj1 );
+		self->sv->setPoint( *v );
+		delete v; 
 	} else if( obj1 && obj2 ){
 		self->sv->setPoint( PyFloat_AsDouble(obj1), PyFloat_AsDouble(obj2) );
+	} else {
+		cout << "Error: StrokeVertex::setPoint(): unknown argument type" << endl;
 	}
 
 	Py_RETURN_NONE;
