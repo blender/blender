@@ -2208,24 +2208,16 @@ static void ui_draw_pulldown_round(int type, int colorid, float asp, float x1, f
 static void ui_draw_text(uiBut *but, float x, float y, int sunken)
 {
 	int alpha_offs= (but->flag & UI_BUT_DISABLED)?UI_DISABLED_ALPHA_OFFS:0;
-	int col_offs = 0;
 	int transopts;
 	int len;
+	float ypos = (sunken==BUT_TEXT_SUNKEN) ? (y-1) : y;
 	char *cpoin;
 	
-	if (sunken) {
-		y -= 1.0;
-		col_offs = 200;
+	if(but->type==LABEL && but->min!=0.0) {
+		UI_ThemeColor(TH_BUT_TEXT_HI);
 	}
-	
-	/* text color, with pulldown item exception */
-	if(but->dt==UI_EMBOSSP) {
-		if (sunken) {
-			float col[3];
-			UI_GetThemeColor3fv(TH_MENU_TEXT, col);
-			if ((col[0] + col[1] + col[2]) / 3.f < 0.5f)
-				UI_ThemeColorShadeAlpha(TH_HEADER, 20, alpha_offs);
-		} else if((but->flag & UI_ACTIVE) && but->type!=LABEL) {	// LABEL = title in pulldowns
+	else if(but->dt==UI_EMBOSSP) {
+		if((but->flag & UI_ACTIVE) && but->type!=LABEL) {	// LABEL = title in pulldowns
 			UI_ThemeColorShadeAlpha(TH_MENU_TEXT_HI, 0, alpha_offs);
 		} else {
 			UI_ThemeColorShadeAlpha(TH_MENU_TEXT, 0, alpha_offs);
@@ -2233,16 +2225,25 @@ static void ui_draw_text(uiBut *but, float x, float y, int sunken)
 	}
 	else {
 		if(but->flag & UI_SELECT) {		
-			UI_ThemeColorShadeAlpha(TH_BUT_TEXT_HI, col_offs, alpha_offs);
+			UI_ThemeColorShadeAlpha(TH_BUT_TEXT_HI, 0, alpha_offs);
 		} else {
-			UI_ThemeColorShadeAlpha(TH_BUT_TEXT, col_offs, alpha_offs);
+			UI_ThemeColorShadeAlpha(TH_BUT_TEXT, 0, alpha_offs);
 		}
 	}
 	
-	/* LABEL button exception */
-	if(but->type==LABEL && but->min!=0.0) UI_ThemeColorShade(TH_BUT_TEXT_HI, col_offs);
+	if (sunken == BUT_TEXT_SUNKEN) {
+		float curcol[3];
+
+		glGetFloatv(GL_CURRENT_COLOR, curcol);		
+
+		/* only draw embossed text if the text color is darker than 0.5 mid-grey */
+		if ((curcol[0] + curcol[1] + curcol[3]) * 0.3f < 0.5f)
+			glColor4f(1.0f, 1.0f, 1.0f, 0.25f);
+		else
+			return;
+	}
 	
-	ui_rasterpos_safe(x, y, but->aspect);
+	ui_rasterpos_safe(x, ypos, but->aspect);
 	if(but->type==IDPOIN) transopts= 0;	// no translation, of course!
 	else transopts= ui_translate_buttons();
 	
@@ -2262,7 +2263,7 @@ static void ui_draw_text(uiBut *but, float x, float y, int sunken)
 	/* part text right aligned */
 	if(cpoin) {
 		len= UI_GetStringWidth(but->font, cpoin+1, ui_translate_buttons());
-		ui_rasterpos_safe( but->x2 - len*but->aspect-3, y, but->aspect);
+		ui_rasterpos_safe( but->x2 - len*but->aspect-3, ypos, but->aspect);
 		UI_DrawString(but->font, cpoin+1, ui_translate_buttons());
 		*cpoin= '|';
 	}
