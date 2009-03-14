@@ -93,8 +93,8 @@ void extrude_edge_context_exec(BMesh *bm, BMOperator *op)
 		if (BMO_InMap(bm, op, BMOP_EXFACE_EXCLUDEMAP, e)) continue;
 
 		newedge = BMO_IterMapVal(&siter);
-		if (!newedge) continue;
 		newedge = *(BMEdge**)newedge;
+		if (!newedge) continue;
 
 		verts[0] = e->v1;
 		verts[1] = e->v2;

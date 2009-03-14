@@ -99,6 +99,11 @@ static void compute_poly_normal(float normal[3], float (*verts)[3], int nverts)
 	double n[3] = {0.0, 0.0, 0.0}, l;
 	int i;
 
+	/*this fixes some weird numerical error*/
+	verts[0][0] += 0.0001f;
+	verts[0][1] += 0.0001f;
+	verts[0][2] += 0.0001f;
+
 	for(i = 0; i < nverts; i++){
 		u = verts[i];
 		v = verts[(i+1) % nverts];
@@ -133,9 +138,9 @@ static void compute_poly_normal(float normal[3], float (*verts)[3], int nverts)
 	n[1] /= l;
 	n[2] /= l;
 	
-	normal[0] = n[0];
-	normal[1] = n[1];
-	normal[2] = n[2];
+	normal[0] = (float) n[0];
+	normal[1] = (float) n[1];
+	normal[2] = (float) n[2];
 }
 
 /*
@@ -249,77 +254,39 @@ void compute_poly_plane(float (*verts)[3], int nverts)
   the list that bridges a concave region of the face or intersects
   any of the faces's edges.
 */
-static void shrink_edge(float *v1, float *v2, float fac)
+static void shrink_edged(double *v1, double *v2, double fac)
+{
+	double mid[3];
+
+	VECADD(mid, v1, v2);
+	VECMUL(mid, 0.5);
+
+	VECSUB(v1, v1, mid);
+	VECSUB(v2, v2, mid);
+
+	VECMUL(v1, fac);
+	VECMUL(v2, fac);
+
+	VECADD(v1, v1, mid);
+	VECADD(v2, v2, mid);
+}
+
+static void shrink_edgef(float *v1, float *v2, float fac)
 {
 	float mid[3];
 
-	VecAddf(mid, v1, v2);
-	VecMulf(mid, 0.5f);
+	VECADD(mid, v1, v2);
+	VECMUL(mid, 0.5);
 
-	VecSubf(v1, v1, mid);
-	VecSubf(v2, v2, mid);
+	VECSUB(v1, v1, mid);
+	VECSUB(v2, v2, mid);
 
-	VecMulf(v1, fac);
-	VecMulf(v2, fac);
+	VECMUL(v1, fac);
+	VECMUL(v2, fac);
 
-	VecAddf(v1, v1, mid);
-	VecAddf(v2, v2, mid);
-
+	VECADD(v1, v1, mid);
+	VECADD(v2, v2, mid);
 }
-
-#if 0
-void BM_LegalSplits(BMesh *bm, BMFace *f, BMLoop (*loops)[2], int len)
-{
-	BMIter iter;
-	BMLoop *l;
-	float v1[3], v2[3], no[3], *p1, *p2;
-	float projectverts[100][3];
-	float edgevertsstack[100][2][3];
-	float (*projverts)[3] = projectverts;
-	float (*edgeverts)[2][3] = edgevertsstack;
-	int i, nvert, j;
-
-	if (f->len > 100) projverts = MEM_mallocN(sizeof(float)*3*f->len, "projvertsb");
-	if (len > 100) edgeverts = MEM_mallocN(sizeof(float)*3*2*len, "edgevertsb");
-	
-	i = 0;
-	l = BMIter_New(&iter, bm, BM_LOOPS_OF_FACE, f);
-	for (; l; l=BMIter_Step(&iter)) {
-		VECCOPY(projverts[i], l->v->co);
-		i++;
-	}
-
-	for (i=0; i<len; i++) {
-		VECCOPY(v1, loops[i][0]->v->co);
-		VECCOPY(v2, loops[i][0]->v->co);
-
-		shrink_edge(v1, v2, 0.9999f);
-
-		VECCOPY(edgeverts[i][0], v1);
-		VECCOPY(edgeverts[i][1], v2);
-	}
-	
-	compute_poly_normal(no, projverts, f->len);
-	poly_rotate_plane(no, projverts, f->len);
-	poly_rotate_plane(no, edgeverts, len);
-
-	for (i=0; i<len; i++) {
-		if (convexangle(
-	}
-
-	for (i=0; i<f->len; i++) {
-		for (j=0; j<len; j++) {
-			p1 = projverts[i];
-			p2 = projverts[(i+1)%f->len];
-			if (convexangle(
-			if (linecrosses(p1, p2, 
-		}
-	}
-	
-	if (projverts != projectverts) MEM_freeN(projverts);
-	if (edgeverts != edgevertsstack) MEM_freeN(edgeverts);
-}
-#endif
 
 /*
  * POLY ROTATE PLANE
@@ -336,8 +303,6 @@ void poly_rotate_plane(float normal[3], float (*verts)[3], int nverts)
 	float mat[3][3];
 	double angle;
 	int i;
-
-	compute_poly_normal(normal, verts, nverts);
 
 	Crossf(axis, up, normal);
 	axis[0] *= -1;
@@ -512,6 +477,48 @@ int linecrosses(double *v1, double *v2, double *v3, double *v4)
 	return w1 == w2 && w2 == w3 && w3 == w4 && w4==w5;
 }
 
+int windingf(float *a, float *b, float *c)
+{
+	float v1[3], v2[3], v[3];
+	
+	VECSUB(v1, b, a);
+	VECSUB(v2, b, c);
+	
+	v1[2] = 0;
+	v2[2] = 0;
+	
+	Normalize(v1);
+	Normalize(v2);
+	
+	Crossf(v, v1, v2);
+
+	/*!! (turns nonzero into 1) is likely not necassary, 
+	  since '>' I *think* should always
+	  return 0 or 1, but I'm not totally sure. . .*/
+	return !!(v[2] > 0);
+}
+
+/* detects if two line segments cross each other (intersects).
+   note, there could be more winding cases then there needs to be. */
+int linecrossesf(float *v1, float *v2, float *v3, float *v4)
+{
+	int w1, w2, w3, w4, w5;
+	
+	/*w1 = winding(v1, v3, v4);
+	w2 = winding(v2, v3, v4);
+	w3 = winding(v3, v1, v2);
+	w4 = winding(v4, v1, v2);
+	
+	return (w1 == w2) && (w3 == w4);*/
+
+	w1 = windingf(v1, v3, v2);
+	w2 = windingf(v2, v4, v1);
+	w3 = !windingf(v1, v2, v3);
+	w4 = windingf(v3, v2, v4);
+	w5 = !windingf(v3, v1, v4);
+	return w1 == w2 && w2 == w3 && w3 == w4 && w4==w5;
+}
+
 int goodline(float (*projectverts)[3], BMFace *f, int v1i,
 	     int v2i, int v3i, int nvert) {
 	BMLoop *l = f->loopbase;
@@ -528,7 +535,7 @@ int goodline(float (*projectverts)[3], BMFace *f, int v1i,
 	do {
 		i = l->v->head.eflag2;
 		if (i == v1i || i == v2i || i == v3i) {
-			l = l->head.next;
+			l = (BMLoop*)l->head.next;
 			continue;
 		}
 		
@@ -539,7 +546,7 @@ int goodline(float (*projectverts)[3], BMFace *f, int v1i,
 		if (point_in_triangle(v1, v2, v3, pv1)) return 0;
 		if (point_in_triangle(v3, v2, v1, pv1)) return 0;
 
-		l = l->head.next;
+		l = (BMLoop*)l->head.next;
 	} while (l != f->loopbase);
 	return 1;
 }
@@ -617,7 +624,6 @@ void BM_Triangulate_Face(BMesh *bm, BMFace *f, float (*projectverts)[3],
 			 int newedgeflag, int newfaceflag)
 {
 	int i, done, nvert;
-	float no[3];
 	BMLoop *l, *newl, *nextloop;
 	BMVert *v;
 
@@ -632,11 +638,6 @@ void BM_Triangulate_Face(BMesh *bm, BMFace *f, float (*projectverts)[3],
 	}while(l != f->loopbase);
 	
 	///bmesh_update_face_normal(bm, f, projectverts);
-
-	/*this fixes some weird numerical error*/
-	projectverts[0][0] += 0.0001f;
-	projectverts[0][1] += 0.0001f;
-	projectverts[0][2] += 0.0001f;
 
 	compute_poly_normal(f->no, projectverts, f->len);
 	poly_rotate_plane(f->no, projectverts, i);
@@ -696,3 +697,129 @@ void BM_Triangulate_Face(BMesh *bm, BMFace *f, float (*projectverts)[3],
 		}
 	}
 }
+
+#if 1
+/*each pair of loops defines a new edge, a split.  this function goes
+  through and sets pairs that are geometrically invalid to null.  a
+  split is invalid, if it forms a concave angle or it intersects other
+  edges in the face, or it intersects another split.  in the case of
+  intersecting splits, only the first of the set of intersecting
+  splits survives.*/
+void BM_LegalSplits(BMesh *bm, BMFace *f, BMLoop *(*loops)[2], int len)
+{
+	BMIter iter;
+	BMLoop *l;
+	float v1[3], v2[3], v3[3], v4[3], no[3], mid[3], *p1, *p2, *p3, *p4;
+	float out[3] = {-234324.0f, -234324.0f, 0.0f};
+	float projectverts[100][3];
+	float edgevertsstack[200][3];
+	float (*projverts)[3] = projectverts;
+	float (*edgeverts)[3] = edgevertsstack;
+	int i, j, a=0, clen;
+
+	if (f->len > 100) projverts = MEM_mallocN(sizeof(float)*3*f->len, "projvertsb");
+	if (len > 100) edgeverts = MEM_mallocN(sizeof(float)*3*2*len, "edgevertsb");
+	
+	i = 0;
+	l = BMIter_New(&iter, bm, BM_LOOPS_OF_FACE, f);
+	for (; l; l=BMIter_Step(&iter)) {
+		l->head.eflag2 = i;
+		VECCOPY(projverts[i], l->v->co);
+		i++;
+	}
+	
+	for (i=0; i<len; i++) {
+		VECCOPY(v1, loops[i][0]->v->co);
+		VECCOPY(v2, loops[i][1]->v->co);
+
+		shrink_edgef(v1, v2, 0.9999f);
+		
+		VECCOPY(edgeverts[a], v1);
+		a++;
+		VECCOPY(edgeverts[a], v2);
+		a++;
+	}
+	
+	compute_poly_normal(no, projverts, f->len);
+	poly_rotate_plane(no, projverts, f->len);
+	poly_rotate_plane(no, edgeverts, len*2);
+	
+	for (i=0; i<f->len; i++) {
+		p1 = projverts[i];
+		out[0] = MAX2(out[0], p1[0]) + 0.01;
+		out[1] = MAX2(out[1], p1[1]) + 0.01;
+		out[2] = 0.0f;
+		p1[2] = 0.0f;
+	}
+
+	/*do convexity test*/
+	for (i=0; i<len; i++) {
+		l = (BMLoop*)loops[i][0];
+		VECCOPY(v2, edgeverts[i*2]);
+		
+		l = (BMLoop*)loops[i][1];
+		VECCOPY(v3, edgeverts[i*2+1]);
+
+		VecAddf(mid, v2, v3);
+		VecMulf(mid, 0.5f);
+		
+		clen = 0;
+		for (j=0; j<f->len; j++) {
+			p1 = projverts[j];
+			p2 = projverts[(j+1)%f->len];
+			
+			VECCOPY(v1, p1);
+			VECCOPY(v2, p2);
+
+			shrink_edgef(v1, v2, 1.001f);
+
+			if (linecrossesf(p1, p2, mid, out)) clen++;
+			else if (linecrossesf(p2, p1, out, mid)) clen++;
+			else if (linecrossesf(p1, p2, out, mid)) clen++;
+
+		}
+		
+		if (clen%2 == 0) {
+			loops[i][0] = NULL;
+		}
+	}
+	
+	/*do line crossing tests*/
+	for (i=0; i<f->len; i++) {
+		p1 = projverts[i];
+		p2 = projverts[(i+1)%f->len];
+		for (j=0; j<len; j++) {
+			if (!loops[j][0]) continue;
+
+			l = loops[j][0];
+			VECCOPY(v1, edgeverts[j*2]);
+			l = loops[j][1];
+			VECCOPY(v2, edgeverts[j*2+1]);
+
+			if (linecrossesf(p1, p2, v1, v2) || 
+			    linecrossesf(p2, p1, v2, v1))
+			{
+				loops[j][0] = NULL;
+			}
+		}
+	}
+
+	for (i=0; i<len; i++) {
+		for (j=0; j<len; j++) {
+			if (j != i) continue;
+			if (!loops[i][0]) continue;
+			if (!loops[j][0]) continue;
+
+			p1 = edgeverts[i*2];
+			p2 = edgeverts[i*2+1];
+			p3 = edgeverts[j*2];
+			p4 = edgeverts[j*2+1];
+
+			if (linecrossesf(p1, p2, p3, p4)) loops[i][0]=NULL;
+		}
+	}
+	
+	if (projverts != projectverts) MEM_freeN(projverts);
+	if (edgeverts != edgevertsstack) MEM_freeN(edgeverts);
+}
+#endif

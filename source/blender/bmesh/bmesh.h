@@ -52,8 +52,9 @@ code, that never (or almost never) directly inspects the underlying structure.
 The API includes iterators, including many useful topological iterators;
 walkers, which walk over a mesh, without the risk of hitting the recursion
 limit; operators, which are logical, reusable mesh modules; topological
-"euler" functions, which are used for topological manipulations; and some
-(not yet finished) geometric utility functions.
+modification functions (like split face, join faces, etc), which are used for 
+topological manipulations; and some (not yet finished) geometric utility 
+functions.
 
 some definitions:
 

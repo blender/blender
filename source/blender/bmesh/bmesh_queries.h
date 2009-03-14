@@ -79,4 +79,11 @@ int BM_Edge_Share_Faces(struct BMEdge *e1, struct BMEdge *e2);
 
 /*checks if a face is valid in the data structure*/
 int BM_Validate_Face(BMesh *bm, BMFace *face, FILE *err);
+
+/*each pair of loops defines a new edge, a split.  this function goes
+  through and sets pairs that are geometrically invalid to null.  a
+  split is invalid, if it forms a concave angle or it intersects other
+  edges in the face.*/
+void BM_LegalSplits(BMesh *bm, BMFace *f, BMLoop *(*loops)[2], int len);
+
 #endif
