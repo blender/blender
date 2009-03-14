@@ -100,7 +100,7 @@ int ShapeUP1D___init__( BPy_ShapeUP1D* self, PyObject *args )
 {
 	unsigned u1, u2 = 0;
 
-	if( !PyArg_ParseTuple(args, "II", &u1, &u2) ) {
+	if( !PyArg_ParseTuple(args, "I|I", &u1, &u2) ) {
 		cout << "ERROR: ShapeUP1D___init__" << endl;		
 		return -1;
 	}
