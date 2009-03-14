@@ -692,8 +692,10 @@ void filelist_readdir(struct FileList* filelist)
 	for (i=0; (i < filelist->numfiles); ++i)
 	{
 		struct direntry* file = filelist_file(filelist, i);	
-		int len = UI_GetStringWidth(G.font, file->relname,0)+UI_GetStringWidth(G.font, file->size,0);
-		if (len > filelist->maxnamelen) filelist->maxnamelen = len;
+		if (file) {
+			int len = UI_GetStringWidth(G.font, file->relname,0)+UI_GetStringWidth(G.font, file->size,0);
+			if (len > filelist->maxnamelen) filelist->maxnamelen = len;
+		}
 	}
 }
 

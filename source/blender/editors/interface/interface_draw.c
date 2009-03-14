@@ -2232,12 +2232,12 @@ static void ui_draw_text(uiBut *but, float x, float y, int sunken)
 	}
 	
 	if (sunken == BUT_TEXT_SUNKEN) {
-		float curcol[3];
+		float curcol[4];
 
-		glGetFloatv(GL_CURRENT_COLOR, curcol);		
+		glGetFloatv(GL_CURRENT_COLOR, curcol); /* returns four components: r,g,b,a */		
 
 		/* only draw embossed text if the text color is darker than 0.5 mid-grey */
-		if ((curcol[0] + curcol[1] + curcol[3]) * 0.3f < 0.5f)
+		if ((curcol[0] + curcol[1] + curcol[2]) * 0.3f < 0.5f)
 			glColor4f(0.6f, 0.6f, 0.6f, 0.3f);
 		else
 			return;

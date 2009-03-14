@@ -383,6 +383,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\editors\interface\interface_layout.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\interface\interface_panel.c"
 				>
 			</File>
@@ -696,6 +700,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\editors\space_buttons\buttons_intern.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\space_buttons\buttons_object.c"
 				>
 			</File>
 			<File
