@@ -120,7 +120,7 @@ typedef struct FileList
 	short hide_dot;
 	unsigned int filter;
 	short changed;
-	int maxnamelen;
+	int columns[MAX_FILE_COLUMN];
 	ListBase loadimages;
 	ListBase threads;
 } FileList;
@@ -659,9 +659,9 @@ void filelist_setfilter(struct FileList* filelist, unsigned int filter)
 	filelist->filter = filter;
 }
 
-int	filelist_maxnamelen(struct FileList* filelist)
+int	filelist_column_len(struct FileList* filelist, FileListColumns column)
 {
-	return filelist->maxnamelen;
+	return filelist->columns[column];
 }
 
 void filelist_readdir(struct FileList* filelist)
@@ -688,13 +688,31 @@ void filelist_readdir(struct FileList* filelist)
 		BLI_init_threads(&filelist->threads, exec_loadimages, 2);
 	}
 
-	filelist->maxnamelen = 0;
+	for (i=0; i<MAX_FILE_COLUMN; ++i) {
+		filelist->columns[i] = 0;
+	}
+
 	for (i=0; (i < filelist->numfiles); ++i)
 	{
 		struct direntry* file = filelist_file(filelist, i);	
 		if (file) {
-			int len = UI_GetStringWidth(G.font, file->relname,0)+UI_GetStringWidth(G.font, file->size,0);
-			if (len > filelist->maxnamelen) filelist->maxnamelen = len;
+			int len;
+			len = UI_GetStringWidth(G.font, file->relname,0);
+			if (len > filelist->columns[COLUMN_NAME]) filelist->columns[COLUMN_NAME] = len;
+			len = UI_GetStringWidth(G.font, file->date,0);
+			if (len > filelist->columns[COLUMN_DATE]) filelist->columns[COLUMN_DATE] = len;
+			len = UI_GetStringWidth(G.font, file->time,0);
+			if (len > filelist->columns[COLUMN_TIME]) filelist->columns[COLUMN_TIME] = len;
+			len = UI_GetStringWidth(G.font, file->size,0);
+			if (len > filelist->columns[COLUMN_SIZE]) filelist->columns[COLUMN_SIZE] = len;
+			len = UI_GetStringWidth(G.font, file->mode1,0);
+			if (len > filelist->columns[COLUMN_MODE1]) filelist->columns[COLUMN_MODE1] = len;
+			len = UI_GetStringWidth(G.font, file->mode2,0);
+			if (len > filelist->columns[COLUMN_MODE2]) filelist->columns[COLUMN_MODE2] = len;
+			len = UI_GetStringWidth(G.font, file->mode3,0);
+			if (len > filelist->columns[COLUMN_MODE3]) filelist->columns[COLUMN_MODE3] = len;
+			len = UI_GetStringWidth(G.font, file->owner,0);
+			if (len > filelist->columns[COLUMN_OWNER]) filelist->columns[COLUMN_OWNER] = len;
 		}
 	}
 }
@@ -730,17 +748,6 @@ void filelist_setfiletypes(struct FileList* filelist, short has_quicktime)
 		
 		if(BLO_has_bfile_extension(file->relname)) {
 			file->flags |= BLENDERFILE;
-			if(filelist->type==FILE_LOADLIB) {		
-				char name[FILE_MAXDIR+FILE_MAXFILE];
-				BLI_strncpy(name, filelist->dir, sizeof(name));
-				strcat(name, file->relname);
-				
-				/* prevent current file being used as acceptable dir */
-				if (BLI_streq(G.main->name, name)==0) {
-					file->type &= ~S_IFMT;
-					file->type |= S_IFDIR;
-				}
-			}
 		} else if(BLI_testextensie(file->relname, ".py")) {
 				file->flags |= PYSCRIPTFILE;
 		} else if(BLI_testextensie(file->relname, ".txt")) {

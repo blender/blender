@@ -183,7 +183,9 @@ static void file_main_area_draw(const bContext *C, ARegion *ar)
 {
 	/* draw entirely, view changes should be handled here */
 	SpaceFile *sfile= (SpaceFile*)CTX_wm_space_data(C);
-	FileSelectParams* params = sfile->params;
+	FileSelectParams *params = ED_fileselect_get_params(sfile);
+	FileLayout *layout=NULL;
+
 	View2D *v2d= &ar->v2d;
 	View2DScrollers *scrollers;
 	float col[3];
@@ -194,6 +196,8 @@ static void file_main_area_draw(const bContext *C, ARegion *ar)
 		filelist_settype(sfile->files, params->type);
 		params->active_file = -1; // added this so it opens nicer (ton)
 	}
+
+	layout = ED_fileselect_get_layout(sfile, ar);
 
 	if (filelist_empty(sfile->files))
 	{
@@ -217,7 +221,7 @@ static void file_main_area_draw(const bContext *C, ARegion *ar)
 	glClear(GL_COLOR_BUFFER_BIT);
 	
 	/* Allow dynamically sliders to be set, saves notifiers etc. */
-	if (sfile->params && ( (sfile->params->display == FILE_IMGDISPLAY) || (sfile->params->display == FILE_LONGDISPLAY)) ) {
+	if (layout && (layout->flag == FILE_LAYOUT_VER)) {
 		v2d->scroll = V2D_SCROLL_RIGHT;
 		v2d->keepofs &= ~V2D_LOCKOFS_Y;
 		v2d->keepofs |= V2D_LOCKOFS_X;

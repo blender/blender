@@ -117,17 +117,19 @@ static void file_deselect_all(SpaceFile* sfile)
 	}
 }
 
-static void file_select(SpaceFile* sfile, FileSelectParams* params, ARegion* ar, const rcti* rect, short val)
+static void file_select(SpaceFile* sfile, ARegion* ar, const rcti* rect, short val)
 {
 	int first_file = -1;
 	int last_file = -1;
 	int act_file;
 	short selecting = (val == LEFTMOUSE);
+	FileSelectParams *params = ED_fileselect_get_params(sfile);
+	FileLayout *layout = ED_fileselect_get_layout(sfile, ar);
 
 	int numfiles = filelist_numfiles(sfile->files);
 
 	params->selstate = NOTACTIVE;
-	if  ( (params->display == FILE_IMGDISPLAY) || (params->display == FILE_LONGDISPLAY) ) {
+	if  ( (layout->flag == FILE_LAYOUT_HOR) ) {
 		first_file = find_file_mouse_hor(sfile, ar, rect->xmin, rect->ymax);
 		last_file = find_file_mouse_hor(sfile, ar, rect->xmax, rect->ymin);
 	} else {
@@ -209,7 +211,7 @@ static int file_border_select_exec(bContext *C, wmOperator *op)
 	rect.xmax= RNA_int_get(op->ptr, "xmax");
 	rect.ymax= RNA_int_get(op->ptr, "ymax");
 
-	file_select(sfile, sfile->params, ar, &rect, val );
+	file_select(sfile, ar, &rect, val );
 	WM_event_add_notifier(C, NC_WINDOW, NULL);
 	return OPERATOR_FINISHED;
 }
@@ -250,7 +252,7 @@ static int file_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 		/* single select, deselect all selected first */
 		file_deselect_all(sfile);
-		file_select(sfile, sfile->params, ar, &rect, val );
+		file_select(sfile, ar, &rect, val );
 		WM_event_add_notifier(C, NC_WINDOW, NULL);
 	}
 	return OPERATOR_FINISHED;
@@ -446,20 +448,22 @@ void FILE_OT_loadimages(wmOperatorType *ot)
 int file_hilight_set(SpaceFile *sfile, ARegion *ar, int mx, int my)
 {
 	FileSelectParams* params;
+	FileLayout* layout;
 	int numfiles, actfile;
 	
 	if(sfile==NULL || sfile->files==NULL) return 0;
 	
 	numfiles = filelist_numfiles(sfile->files);
 	params = ED_fileselect_get_params(sfile);
-	
-	if ( (params->display == FILE_IMGDISPLAY) || (params->display == FILE_LONGDISPLAY)) {
+	layout = ED_fileselect_get_layout(sfile, ar);
+
+	if ( (layout->flag == FILE_LAYOUT_HOR)) {
 		actfile = find_file_mouse_hor(sfile, ar, mx , my);
 	} else {
 		actfile = find_file_mouse_vert(sfile, ar, mx, my);
 	}
 	
-	if (actfile >= 0 && actfile < numfiles ) {
+	if (params && (actfile >= 0) && (actfile < numfiles) ) {
 		params->active_file=actfile;
 		return 1;
 	}

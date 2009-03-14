@@ -450,19 +450,21 @@ void file_draw_list(const bContext *C, ARegion *ar)
 	if (offset<0) offset=0;
 
 	/* alternating flat shade background */
-	for (i=offset; (i <= numfiles); ++i)
+	for (i=0; (i <= layout->rows); ++i)
 	{
-		ED_fileselect_layout_tilepos(layout, i, &sx, &sy);
-		sx = v2d->tot.xmin;
-		sy = v2d->tot.ymax - (sy + layout->tile_border_y);
-		//sy = v2d->tot.ymax - sy;
+		sx = v2d->cur.xmin;
+		sy = v2d->cur.ymax - i*(layout->tile_h+2*layout->tile_border_y) - layout->tile_border_y;
 		
-		if (i % 2) UI_ThemeColor(TH_BACK);
-		else UI_ThemeColorShade(TH_BACK, -7);
-		glRectf(v2d->tot.xmin, sy, v2d->tot.xmax, sy+layout->tile_h+2*layout->tile_border_y);
+		if (i % 2) {
+			UI_ThemeColor(TH_BACK);
+		} else {
+			UI_ThemeColorShade(TH_BACK, -7);
+		}
+		glRectf(v2d->cur.xmin, sy, v2d->cur.xmax, sy+layout->tile_h+2*layout->tile_border_y);
 	}
 	
 	/* vertical column dividers */
+	sx = v2d->tot.xmin;
 	while (sx < ar->v2d.cur.xmax) {
 		sx += (sfile->layout->tile_w+2*sfile->layout->tile_border_x);
 		
@@ -490,12 +492,7 @@ void file_draw_list(const bContext *C, ARegion *ar)
 		} else if (file->flags & ACTIVE) {
 			colorid = TH_HILITE;
 			draw_tile(sx-2, sy-3, layout->tile_w+2, sfile->layout->tile_h+layout->tile_border_y, colorid,0);
-		} else {
-			/*
-			colorid = TH_PANEL;
-			draw_tile(sx, sy, sfile->tile_w, sfile->tile_h, colorid);
-			*/
-		}
+		} 
 
 		spos = sx;
 		file_draw_icon(spos, sy-3, get_file_icon(file), ICON_DEFAULT_WIDTH, ICON_DEFAULT_WIDTH);
@@ -503,14 +500,16 @@ void file_draw_list(const bContext *C, ARegion *ar)
 		
 		UI_ThemeColor4(TH_TEXT);
 		
-		// sw = shorten_filesize(file->size, FILE_SHORTEN_FSIZE_WIDTHONLY);
-		sw = UI_GetStringWidth(G.font, file->size, 0);
-		file_draw_string(spos, sy, file->relname, layout->tile_w - sw - 5, layout->tile_h, FILE_SHORTEN_END);
 		
-		spos += filelist_maxnamelen(sfile->files);
+		sw = UI_GetStringWidth(G.font, file->relname, 0);
+		file_draw_string(spos, sy, file->relname, sw, layout->tile_h, FILE_SHORTEN_END);
+		spos += filelist_column_len(sfile->files, COLUMN_NAME) + 10;
 		if (params->display == FILE_SHOWSHORT) {
-			if (!(file->type & S_IFDIR))
-				file_draw_string(sx + layout->tile_w - layout->tile_border_x - sw, sy, file->size, sw, layout->tile_h, FILE_SHORTEN_END);
+			if (!(file->type & S_IFDIR)) {
+				sw = UI_GetStringWidth(G.font, file->size, 0);
+				spos += filelist_column_len(sfile->files, COLUMN_SIZE) + 10 - sw;
+				file_draw_string(spos, sy, file->size, sw, layout->tile_h, FILE_SHORTEN_END);	
+			}
 		} else {
 #if 0 // XXX TODO: add this for non-windows systems
 			/* rwx rwx rwx */
@@ -531,17 +530,18 @@ void file_draw_list(const bContext *C, ARegion *ar)
 			file_draw_string(spos, sy, file->owner, sw, layout->tile_h);
 #endif
 
-			spos += 50;
+			
 			sw = UI_GetStringWidth(G.font, file->date, 0);
 			file_draw_string(spos, sy, file->date, sw, layout->tile_h, FILE_SHORTEN_END);
+			spos += filelist_column_len(sfile->files, COLUMN_DATE) + 10;
 
-			spos += 100;
 			sw = UI_GetStringWidth(G.font, file->time, 0);
 			file_draw_string(spos, sy, file->time, sw, layout->tile_h, FILE_SHORTEN_END); 
-			
+			spos += filelist_column_len(sfile->files, COLUMN_TIME) + 10;
+
 			if (!(file->type & S_IFDIR)) {
 				sw = UI_GetStringWidth(G.font, file->size, 0);
-				spos += 200-sw;
+				spos += filelist_column_len(sfile->files, COLUMN_SIZE) + 10 - sw;
 				file_draw_string(spos, sy, file->size, sw, layout->tile_h, FILE_SHORTEN_END);
 			}
 		}
@@ -583,9 +583,9 @@ static void file_draw_fsmenu_category(const bContext *C, ARegion *ar, FSMenuCate
 			}
 			if (fsmenu_is_selected(fsmenu, category, i) ) {
 				UI_ThemeColor(TH_HILITE);
-				/* uiSetRoundBox(15);	
-				 * uiRoundBox(sx, sy - linestep, sx + bmwidth, sy, 4.0f); */
-				glRectf(ar->v2d.cur.xmin, sy-linestep, ar->v2d.cur.xmax + 2*TILE_BORDER_X, sy);
+				//uiSetRoundBox(15);	
+				uiRoundBox(sx, sy - linestep, ar->v2d.cur.xmax - TILE_BORDER_X, sy, 4.0f);
+				// glRectf(ar->v2d.cur.xmin, sy-linestep, ar->v2d.cur.xmax + 2*TILE_BORDER_X, sy);
 				UI_ThemeColor(TH_TEXT);
 			} else {
 				UI_ThemeColor(TH_TEXT_HI);
