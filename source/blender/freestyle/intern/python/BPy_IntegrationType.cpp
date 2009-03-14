@@ -82,7 +82,7 @@ PyTypeObject IntegrationType_Type = {
 	NULL,							/* descrgetfunc tp_descr_get; */
 	NULL,							/* descrsetfunc tp_descr_set; */
 	0,                          	/* long tp_dictoffset; */
-	(initproc)IntegrationType___init__,                       	/* initproc tp_init; */
+	NULL,                       	/* initproc tp_init; */
 	NULL,							/* allocfunc tp_alloc; */
 	PyType_GenericNew,			/* newfunc tp_new; */
 	
@@ -101,6 +101,18 @@ PyTypeObject IntegrationType_Type = {
 	NULL
 };
 
+static PyObject *
+BPy_IntegrationType_FromIntegrationType(IntegrationType t)
+{
+	BPy_IntegrationType *obj;
+
+	obj = PyObject_New(BPy_IntegrationType, &IntegrationType_Type);
+	if (!obj)
+		return NULL;
+	((PyIntObject *)obj)->ob_ival = (long)t;
+	return (PyObject *)obj;
+}
+
 //-------------------MODULE INITIALIZATION--------------------------------
 PyMODINIT_FUNC IntegrationType_Init( PyObject *module )
 {	
@@ -114,35 +126,27 @@ PyMODINIT_FUNC IntegrationType_Init( PyObject *module )
 	Py_INCREF( &IntegrationType_Type );
 	PyModule_AddObject(module, "IntegrationType", (PyObject *)&IntegrationType_Type);
 
-	tmp = PyInt_FromLong( MEAN );
+	tmp = BPy_IntegrationType_FromIntegrationType( MEAN );
 	PyDict_SetItemString( IntegrationType_Type.tp_dict, "MEAN", tmp);
 	Py_DECREF(tmp);
 	
-	tmp = PyInt_FromLong( MIN );
+	tmp = BPy_IntegrationType_FromIntegrationType( MIN );
 	PyDict_SetItemString( IntegrationType_Type.tp_dict, "MIN", tmp);
 	Py_DECREF(tmp);
 	
-	tmp = PyInt_FromLong( MAX );
+	tmp = BPy_IntegrationType_FromIntegrationType( MAX );
 	PyDict_SetItemString( IntegrationType_Type.tp_dict, "MAX", tmp);
 	Py_DECREF(tmp);
 	
-	tmp = PyInt_FromLong( FIRST );
+	tmp = BPy_IntegrationType_FromIntegrationType( FIRST );
 	PyDict_SetItemString( IntegrationType_Type.tp_dict, "FIRST", tmp);
 	Py_DECREF(tmp);
 	
-	tmp = PyInt_FromLong( LAST );
+	tmp = BPy_IntegrationType_FromIntegrationType( LAST );
 	PyDict_SetItemString( IntegrationType_Type.tp_dict, "LAST", tmp);
 	Py_DECREF(tmp);
 	
 	
-}
-
-int IntegrationType___init__(BPy_IntegrationType *self, PyObject *args, PyObject *kwds)
-{
-    if (PyInt_Type.tp_init((PyObject *)self, args, kwds) < 0)
-        return -1;
-	
-	return 0;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
