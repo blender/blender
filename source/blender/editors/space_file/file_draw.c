@@ -29,6 +29,7 @@
 #include <string.h>
 
 #include "BLI_blenlib.h"
+#include "BLI_dynstr.h"
 #include "BLI_storage_types.h"
 #ifdef WIN32
 #include "BLI_winstuff.h"
@@ -187,9 +188,10 @@ static void draw_tile(short sx, short sy, short width, short height, int colorid
 	uiRoundBox(sx, sy - height, sx + width, sy, 6);
 }
 
-#define FILE_SHORTEN_END 0
-#define FILE_SHORTEN_FRONT 1
-
+#define FILE_SHORTEN_END				0
+#define FILE_SHORTEN_FRONT				1
+#define FILE_SHORTEN_FSIZE				2
+#define FILE_SHORTEN_FSIZE_WIDTHONLY	3
 
 static float shorten_string(char* string, float w, int flag)
 {	
@@ -229,6 +231,50 @@ static float shorten_string(char* string, float w, int flag)
 			}
 		}
 	}
+	
+	return sw;
+}
+
+static float shorten_filesize(char* string, int flag)
+{	
+	float sw = 0;
+	char tmp[FILE_MAX];
+	int slen = strlen(string);
+	char *s = string;
+	int i;
+	float size;
+
+	/* note:
+	 * input file size is stored as a string, 15 chars long including 
+	 * whitespace at the start, and spaces in between sections.
+	 * i.e. the maximum size is 999 999 999 999 bytes.
+	 */
+	
+	/* get rid of whitespace and convert to a float representing size in bytes */
+	for (i=0; i < slen; i++) {
+		s++;
+		if (s[0] != ' ')
+			strncat(tmp, s, 1);
+	}
+	size = atof(tmp);
+	
+	if (size > 1024*1024*1024) {
+		sprintf(tmp, "%.2f GB", size/(1024*1024*1024));	
+	}
+	else if (size > 1024*1024) {
+		sprintf(tmp, "%.1f MB", size/(1024*1024));
+	}
+	else if (size > 1024) {
+		sprintf(tmp, "%d KB", (int)(size/1024));
+	}
+	else {
+		sprintf(tmp, "%d B", (int)size);
+	}
+	
+	sw = UI_GetStringWidth(G.font, tmp, 0);
+	
+	if (flag != FILE_SHORTEN_FSIZE_WIDTHONLY)
+		strcpy(string, tmp);
 	
 	return sw;
 }
@@ -278,7 +324,11 @@ static void file_draw_string(short sx, short sy, const char* string, short width
 	float x,y;
 
 	BLI_strncpy(fname,string, FILE_MAXFILE);
-	sw = shorten_string(fname, width, flag );
+	if (ELEM(flag, FILE_SHORTEN_END, FILE_SHORTEN_FRONT))
+		sw = shorten_string(fname, width, flag );
+	else if (flag == FILE_SHORTEN_FSIZE)
+		sw = shorten_filesize(fname, flag);
+	
 	soffs = (width - sw) / 2;
 	x = (float)(sx);
 	y = (float)(sy-height);
@@ -502,11 +552,14 @@ void file_draw_list(const bContext *C, ARegion *ar)
 		
 		UI_ThemeColor4(TH_TEXT);
 		
-		sw = UI_GetStringWidth(G.font, file->size, 0);
+		sw = shorten_filesize(file->size, FILE_SHORTEN_FSIZE_WIDTHONLY);
 		file_draw_string(spos, sy, file->relname, layout->tile_w - sw - 5, layout->tile_h, FILE_SHORTEN_END);
 		
 		spos += filelist_maxnamelen(sfile->files);
-		if (params->display != FILE_SHOWSHORT) {
+		if (params->display == FILE_SHOWSHORT) {
+			if (!(file->type & S_IFDIR))
+				file_draw_string(sx + layout->tile_w - layout->tile_border_x - sw, sy, file->size, sw, layout->tile_h, FILE_SHORTEN_FSIZE);
+		} else {
 #if 0 // XXX TODO: add this for non-windows systems
 			/* rwx rwx rwx */
 			spos += 20;
@@ -534,11 +587,11 @@ void file_draw_list(const bContext *C, ARegion *ar)
 			sw = UI_GetStringWidth(G.font, file->time, 0);
 			file_draw_string(spos, sy, file->time, sw, layout->tile_h, FILE_SHORTEN_END); 
 			
-			sw = UI_GetStringWidth(G.font, file->size, 0);
-			spos += 200-sw;
-			file_draw_string(spos, sy, file->size, sw, layout->tile_h, FILE_SHORTEN_END);
-		} else {
-			file_draw_string(sx + layout->tile_w - 2*layout->tile_border_x - sw - 4, sy, file->size, layout->tile_w - layout->tile_border_x - sw - 5, layout->tile_h, FILE_SHORTEN_END);
+			if (!(file->type & S_IFDIR)) {
+				sw = UI_GetStringWidth(G.font, file->size, 0);
+				spos += 200-sw;
+				file_draw_string(spos, sy, file->size, sw, layout->tile_h, FILE_SHORTEN_END);
+			}
 		}
 	}
 }
