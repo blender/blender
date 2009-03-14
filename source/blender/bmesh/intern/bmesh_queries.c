@@ -36,11 +36,6 @@ int BM_Count_Element(BMesh *bm, int type)
 	return 0;
 }
 
-int BM_EdgesAroundVert(BMVert *v)
-{
-	if (v == v->edge->v1) return bmesh_cycle_length(&v->edge->d1);
-	else return bmesh_cycle_length(&v->edge->d2);
-}
 
 /*
  * BMESH VERT IN EDGE
@@ -74,13 +69,6 @@ BMLoop *BM_OtherFaceLoop(BMEdge *e, BMFace *f, BMVert *v)
 	} while (l != f->loopbase);
 	
 	return l->v == v ? l->head.prev : l->head.next;
-}
-
-int BM_FacesAroundEdge(BMEdge *e)
-{
-	if (!e->loop) return 0;
-
-	return bmesh_cycle_length(&(e->loop->radial));
 }
 
 /*
@@ -214,17 +202,8 @@ BMEdge *BM_Edge_Exist(BMVert *v1, BMVert *v2)
 
 int BM_Vert_EdgeCount(BMVert *v)
 {
-	int count = 0;
-	BMEdge *curedge = NULL;
-
-	if(v->edge){
-		curedge = v->edge;
-		do{
-			count++;
-			curedge = bmesh_disk_nextedge(curedge,v);
-		}while(curedge !=v->edge);
-	}
-	return count;
+	if (v == v->edge->v1) return bmesh_cycle_length(&v->edge->d1);
+	else return bmesh_cycle_length(&v->edge->d2);
 }
 
 /**

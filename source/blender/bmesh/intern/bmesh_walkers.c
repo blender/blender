@@ -502,7 +502,7 @@ static void loopWalker_begin(BMWalker *walker, void *data){
 
 	v = e->v1;
 
-	val = BM_EdgesAroundVert(v);
+	val = BM_Vert_EdgeCount(v);
 
 	BMW_pushstate(walker);
 	
@@ -512,7 +512,7 @@ static void loopWalker_begin(BMWalker *walker, void *data){
 	lwalk->cur = lwalk->start = e;
 	lwalk->lastv = lwalk->startv = v;
 	lwalk->stage2 = 0;
-	lwalk->startrad = BM_FacesAroundEdge(e);
+	lwalk->startrad = BM_Edge_FaceCount(e);
 
 	/*rewind*/
 	while (walker->currentstate) {
@@ -555,7 +555,7 @@ static void *loopWalker_step(BMWalker *walker)
 	if (e->v1 == lwalk->lastv) v = e->v2;
 	else v = e->v1;
 
-	val = BM_EdgesAroundVert(v);
+	val = BM_Vert_EdgeCount(v);
 	
 	BMW_popstate(walker);
 	

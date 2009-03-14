@@ -9,6 +9,7 @@
 /*split*/
 #define BMOP_SPLIT				0
 
+/*the split operator.  splits geometry from the mesh.*/
 enum {
 	BMOP_SPLIT_MULTIN, /*geom*/
 	BMOP_SPLIT_MULTOUT, /*geomout*/
@@ -21,6 +22,8 @@ enum {
 /*dupe*/
 #define BMOP_DUPE	1
 
+/*duplicates input geometry, and creates a bounds mapping between old/new
+  edges along the boundary.*/
 enum {
 	BMOP_DUPE_MULTIN, /*geom*/
 	BMOP_DUPE_ORIG, /*origout*/
@@ -34,6 +37,8 @@ enum {
 /*del*/
 #define BMOP_DEL	2
 
+/*deletes input geometry, using on of several deletion methods
+  specified by context.*/
 enum {
 	BMOP_DEL_MULTIN, /*geom*/
 	BMOP_DEL_CONTEXT, /*context*/

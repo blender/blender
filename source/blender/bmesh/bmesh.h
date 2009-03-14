@@ -42,11 +42,35 @@
 #include "BLI_mempool.h"
 #include "BKE_customdata.h"
 
+/*
+short introduction:
+
+the bmesh structure is a boundary representation, supporting non-manifold 
+locally modifiable topology. the API is designed to allow clean, maintainable
+code, that never (or almost never) directly inspects the underlying structure.
+
+The API includes iterators, including many useful topological iterators;
+walkers, which walk over a mesh, without the risk of hitting the recursion
+limit; operators, which are logical, reusable mesh modules; topological
+"euler" functions, which are used for topological manipulations; and some
+(not yet finished) geometric utility functions.
+
+some definitions:
+
+tool flags: private flags for tools.  each operator has it's own private
+            tool flag "layer", which it can use to flag elements.
+	    tool flags are also used by various other parts of the api.
+header flags: stores persistent flags, such as selection state, hide state,
+              etc.  be careful of touching these.
+*/
+
 /*forward declarations*/
 struct BMVert;
 struct BMEdge;
 struct BMFace;
 struct BMLoop;
+struct EditMesh;
+struct BMOperator;
 
 /*
  * BMHeader
@@ -82,7 +106,11 @@ struct BMLoop;
 typedef struct BMHeader {
 	struct BMHeader *next, *prev;
 	int 		EID;  /*Consider removing this/making it ifdeffed for debugging*/
-	int 		flag, type;
+	
+	/*don't confuse this with tool flags.  this flag
+	  member is what "header flag" means.*/
+	int		flag;
+	int		type;
 	int			eflag1, eflag2;	/*Flags used by eulers. Try and get rid of/minimize some of these*/
 	struct BMFlagLayer *flags; /*Dynamically allocated block of flag layers for operators to use*/
 } BMHeader;
@@ -181,48 +209,91 @@ void BM_Compute_Normals(struct BMesh *bm);
 struct BMVert *BM_Make_Vert(struct BMesh *bm, float co[3], struct BMVert *example);
 struct BMEdge *BM_Make_Edge(struct BMesh *bm, struct BMVert *v1, struct BMVert *v2, struct BMEdge *example, int nodouble);
 struct BMFace *BM_Make_Quadtriangle(struct BMesh *bm, struct BMVert **verts, BMEdge **edges, int len, struct BMFace *example, int nodouble);
+
+/*makes an ngon from an unordered list of edges.  v1 and v2 must be the verts
+defining edges[0], and define the winding of the new face.*/
 struct BMFace *BM_Make_Ngon(struct BMesh *bm, struct BMVert *v1, struct BMVert *v2, struct BMEdge **edges, int len, int nodouble);
+
+
 /*copies loop data from adjacent faces*/
 void BM_Face_CopyShared(BMesh *bm, BMFace *f);
+
+/*copies attributes, e.g. customdata, header flags, etc, from one element
+  to another of the same type.*/
 void BM_Copy_Attributes(struct BMesh *source_mesh, struct BMesh *target_mesh, void *source, void *target);
+
+/*remove tool flagged elements*/
 void BM_remove_tagged_faces(struct BMesh *bm, int flag);
 void BM_remove_tagged_edges(struct BMesh *bm, int flag);
 void BM_remove_tagged_verts(struct BMesh *bm, int flag);
 
 
 /*Modification*/
+/*join two adjacent faces together along an edge.  note that
+  the faces must only be joined by on edge.  e is the edge you
+  wish to dissolve.*/
 struct BMFace *BM_Join_Faces(struct BMesh *bm, struct BMFace *f1, 
                              struct BMFace *f2, struct BMEdge *e);
+
+/*split a face along two vertices.  returns the newly made face, and sets
+  the nl member to a loop in the newly created edge.*/
 struct BMFace *BM_Split_Face(struct BMesh *bm, struct BMFace *f,  
                              struct BMVert *v1, struct BMVert *v2, 
 			     struct BMLoop **nl, struct BMEdge *example);
+
+/*dissolves a vert shared only by two edges*/
 void BM_Collapse_Vert(struct BMesh *bm, struct BMEdge *ke, struct BMVert *kv, 
 		      float fac);
+
+/*splits an edge.  ne is set to the new edge created.*/
 struct BMVert *BM_Split_Edge(struct BMesh *bm, struct BMVert *v, 
                              struct BMEdge *e, struct BMEdge **ne,
                              float percent);
+
+/*split an edge multiple times evenly*/
 struct BMVert  *BM_Split_Edge_Multi(struct BMesh *bm, struct BMEdge *e, 
 	                            int numcuts);
+
+/*connect two verts together, through a face they share.  this function may
+  be removed in the future.*/
 BMEdge *BM_Connect_Verts(BMesh *bm, BMVert *v1, BMVert *v2, BMFace **nf);
+
+
+/*updates a face normal*/
 void BM_Face_UpdateNormal(BMesh *bm, BMFace *f);
+
+/*updates face and vertex normals incident on an edge*/
 void BM_Edge_UpdateNormals(BMesh *bm, BMEdge *e);
+
+/*update a vert normal (but not the faces incident on it)*/
 void BM_Vert_UpdateNormal(BMesh *bm, BMVert *v);
 
-/*dissolves vert surrounded by faces*/
+
+/*dissolves all faces around a vert, and removes it.*/
 int BM_Dissolve_Disk(BMesh *bm, BMVert *v);
 
-/*dissolves vert, in more situations then BM_Dissolve_Disk.*/
+/*dissolves vert, in more situations then BM_Dissolve_Disk
+  (e.g. if the vert is part of a wire edge, etc).*/
 int BM_Dissolve_Vert(BMesh *bm, BMVert *v);
+
 
 /*Interpolation*/
 void BM_Data_Interp_From_Verts(struct BMesh *bm, struct BMVert *v1, struct BMVert *v2, struct BMVert *v, float fac);
 void BM_Data_Facevert_Edgeinterp(struct BMesh *bm, struct BMVert *v1, struct BMVert *v2, struct BMVert *v, struct BMEdge *e1, float fac);
 //void bmesh_data_interp_from_face(struct BMesh *bm, struct BMFace *source, struct BMFace *target);
 
-struct EditMesh;
-struct BMOperator;
+
+/*convert an editmesh to a bmesh*/
 BMesh *editmesh_to_bmesh(struct EditMesh *em);
+
+/*initializes editmesh to bmesh operator, but doesn't execute.
+  this is used in situations where you need to get access to the
+  conversion operator's editmesh->bmesh mapping slot (e.g. if you
+  need to find the bmesh edge that corrusponds to a specific editmesh
+  edge).*/
 BMesh *init_editmesh_to_bmesh(struct EditMesh *em, struct BMOperator *op);
+
+/*converts a bmesh to an editmesh*/
 struct EditMesh *bmesh_to_editmesh(BMesh *bm);
 
 /*include the rest of the API*/

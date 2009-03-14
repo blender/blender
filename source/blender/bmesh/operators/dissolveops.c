@@ -122,6 +122,12 @@ void dissolvefaces_exec(BMesh *bm, BMOperator *op)
 			edges[V_COUNT(edges)-1] = region[j]->e;
 		}
 		
+		if (!region[0]) {
+			BMO_RaiseError(bm, op, BMERR_DISSOLVEFACES_FAILED, 
+			                "Could not find boundary of dissolve region");
+			goto cleanup;
+		}
+
 		if (region[0]->e->v1 == region[0]->v)
 			f= BM_Make_Ngon(bm, region[0]->e->v1, region[0]->e->v2,  edges, j, 1);
 		else
@@ -202,7 +208,7 @@ static int test_extra_verts(BMesh *bm, BMVert *v)
 				found = 0;
 				e = BMIter_New(&iter2, bm, BM_EDGES_OF_VERT, l->v);
 				for (; e; e=BMIter_Step(&iter2)) {
-					if (BM_FacesAroundEdge(e)==1) found = 1;
+					if (BM_Edge_FaceCount(e)==1) found = 1;
 					f2 = BMIter_New(&iter3, bm, BM_FACES_OF_EDGE, e);
 					for (; f2; f2=BMIter_Step(&iter3)) {
 						if (!BMO_TestFlag(bm, f2, FACE_MARK)) {
