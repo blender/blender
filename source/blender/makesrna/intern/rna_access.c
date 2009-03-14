@@ -283,6 +283,18 @@ int RNA_struct_is_ID(PointerRNA *ptr)
 	return (ptr->type->flag & STRUCT_ID) != 0;
 }
 
+int RNA_struct_is_a(PointerRNA *ptr, StructRNA *srna)
+{
+	StructRNA *type;
+
+	/* ptr->type is always maximally refined */
+	for(type=ptr->type; type; type=type->base)
+		if(type == srna)
+			return 1;
+	
+	return 0;
+}
+
 PropertyRNA *RNA_struct_find_property(PointerRNA *ptr, const char *identifier)
 {
 	CollectionPropertyIterator iter;

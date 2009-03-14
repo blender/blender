@@ -33,6 +33,7 @@
 #ifdef RNA_RUNTIME
 
 #include "BKE_idprop.h"
+#include "BKE_library.h"
 
 /* name functions that ignore the first two ID characters */
 void rna_ID_name_get(PointerRNA *ptr, char *value)
@@ -51,6 +52,7 @@ void rna_ID_name_set(PointerRNA *ptr, const char *value)
 {
 	ID *id= (ID*)ptr->data;
 	BLI_strncpy(id->name+2, value, sizeof(id->name)-2);
+	test_idbutton(id->name+2);
 }
 
 StructRNA *rna_ID_refine(PointerRNA *ptr)
@@ -171,7 +173,6 @@ static void rna_def_ID(BlenderRNA *brna)
 	RNA_def_struct_refine_func(srna, "rna_ID_refine");
 
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE); /* must be unique */
 	RNA_def_property_ui_text(prop, "Name", "Unique datablock ID name.");
 	RNA_def_property_string_funcs(prop, "rna_ID_name_get", "rna_ID_name_length", "rna_ID_name_set");
 	RNA_def_property_string_maxlength(prop, sizeof(((ID*)NULL)->name)-2);

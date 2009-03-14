@@ -27,6 +27,10 @@
 
 #include "RNA_types.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct bContext;
 struct ID;
 struct Main;
@@ -303,6 +307,7 @@ PropertyRNA *RNA_struct_name_property(PointerRNA *ptr);
 PropertyRNA *RNA_struct_iterator_property(PointerRNA *ptr);
 
 int RNA_struct_is_ID(PointerRNA *ptr);
+int RNA_struct_is_a(PointerRNA *ptr, StructRNA *srna);
 
 PropertyRNA *RNA_struct_find_property(PointerRNA *ptr, const char *identifier);
 const struct ListBase *RNA_struct_defined_properties(StructRNA *srna);
@@ -476,7 +481,9 @@ int RNA_property_is_set(PointerRNA *ptr, const char *name);
 /* python compatible string representation of this property, (must be freed!) */
 char *RNA_property_as_string(PointerRNA *ptr, PropertyRNA *prop);
 
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* RNA_ACCESS */
-
-
 

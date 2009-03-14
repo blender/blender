@@ -236,9 +236,9 @@ void rna_def_action_group(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", AGRP_SELECTED);
 	RNA_def_property_ui_text(prop, "Selected", "Action Group is selected.");
 
-	prop= RNA_def_property(srna, "protected", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "locked", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", AGRP_PROTECTED);
-	RNA_def_property_ui_text(prop, "Protected", "Action Group is protected.");
+	RNA_def_property_ui_text(prop, "Locked", "Action Group is locked.");
 
 	prop= RNA_def_property(srna, "expanded", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", AGRP_EXPANDED);

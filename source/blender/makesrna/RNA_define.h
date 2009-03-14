@@ -33,6 +33,10 @@
 #include "DNA_listBase.h"
 #include "RNA_types.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* Blender RNA */
 
 BlenderRNA *RNA_create(void);
@@ -146,6 +150,9 @@ void RNA_def_property_string_funcs(PropertyRNA *prop, const char *get, const cha
 void RNA_def_property_pointer_funcs(PropertyRNA *prop, const char *get, const char *set);
 void RNA_def_property_collection_funcs(PropertyRNA *prop, const char *begin, const char *next, const char *end, const char *get, const char *length, const char *lookupint, const char *lookupstring);
 
-#endif /* RNA_DEFINE_H */
+#ifdef __cplusplus
+}
+#endif
 
+#endif /* RNA_DEFINE_H */
 

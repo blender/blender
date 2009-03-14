@@ -25,6 +25,10 @@
 #ifndef RNA_TYPES
 #define RNA_TYPES
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct PropertyRNA;
 struct StructRNA;
 struct BlenderRNA;
@@ -147,6 +151,10 @@ typedef struct StructRNA StructRNA;
  * Root RNA data structure that lists all struct types. */
 
 typedef struct BlenderRNA BlenderRNA;
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* RNA_TYPES */
 
