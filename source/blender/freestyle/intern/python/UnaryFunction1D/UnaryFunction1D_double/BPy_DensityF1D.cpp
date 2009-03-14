@@ -106,12 +106,12 @@ int DensityF1D___init__( BPy_DensityF1D* self, PyObject *args)
 	double d = 2.0;
 	float f = 2.0;
 
-	if( !PyArg_ParseTuple(args, "|dOf", &d, &obj, &f) ) {
+	if( !PyArg_ParseTuple(args, "|dO!f", &d, &IntegrationType_Type, &obj, &f) ) {
 		cout << "ERROR: DensityF1D___init__ " << endl;		
 		return -1;
 	}
 	
-	IntegrationType t = ( obj && BPy_IntegrationType_Check(obj) ) ? IntegrationType_from_BPy_IntegrationType(obj) : MEAN;
+	IntegrationType t = ( obj ) ? IntegrationType_from_BPy_IntegrationType(obj) : MEAN;
 	self->py_uf1D_double.uf1D_double = new Functions1D::DensityF1D(d,t,f);
 	return 0;
 

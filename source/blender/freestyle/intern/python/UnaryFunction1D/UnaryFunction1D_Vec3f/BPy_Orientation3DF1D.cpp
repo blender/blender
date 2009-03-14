@@ -104,12 +104,12 @@ int Orientation3DF1D___init__( BPy_Orientation3DF1D* self, PyObject *args)
 {
 	PyObject *obj = 0;
 
-	if( !PyArg_ParseTuple(args, "|O", &obj) ) {
+	if( !PyArg_ParseTuple(args, "|O!", &IntegrationType_Type, &obj) ) {
 		cout << "ERROR: Orientation3DF1D___init__" << endl;		
 		return -1;
 	}
 
-	IntegrationType t = ( obj && BPy_IntegrationType_Check(obj) ) ? IntegrationType_from_BPy_IntegrationType(obj) : MEAN;
+	IntegrationType t = ( obj ) ? IntegrationType_from_BPy_IntegrationType(obj) : MEAN;
 	self->py_uf1D_vec3f.uf1D_vec3f = new Functions1D::Orientation3DF1D(t);
 	return 0;
 

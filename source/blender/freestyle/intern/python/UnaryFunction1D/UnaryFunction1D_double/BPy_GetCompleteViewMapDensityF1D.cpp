@@ -106,12 +106,12 @@ int GetCompleteViewMapDensityF1D___init__( BPy_GetCompleteViewMapDensityF1D* sel
 	unsigned i;
 	float f = 2.0;
 
-	if( !PyArg_ParseTuple(args, "i|Of", &i, &obj, &f) ) {
+	if( !PyArg_ParseTuple(args, "i|O!f", &i, &IntegrationType_Type, &obj, &f) ) {
 		cout << "ERROR: GetCompleteViewMapDensityF1D___init__ " << endl;		
 		return -1;
 	}
 	
-	IntegrationType t = ( obj && BPy_IntegrationType_Check(obj) ) ? IntegrationType_from_BPy_IntegrationType(obj) : MEAN;
+	IntegrationType t = ( obj ) ? IntegrationType_from_BPy_IntegrationType(obj) : MEAN;
 	self->py_uf1D_double.uf1D_double = new Functions1D::GetCompleteViewMapDensityF1D(i,t,f);
 	return 0;
 

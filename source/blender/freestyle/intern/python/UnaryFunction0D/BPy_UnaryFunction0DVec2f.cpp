@@ -165,8 +165,7 @@ PyObject * UnaryFunction0DVec2f_getName( BPy_UnaryFunction0DVec2f *self )
 PyObject * UnaryFunction0DVec2f___call__( BPy_UnaryFunction0DVec2f *self, PyObject *args)
 {
 	PyObject *obj;
-
-	if( !PyArg_ParseTuple(args, "O", &obj) && BPy_Interface0DIterator_Check(obj) ) {
+	if(!PyArg_ParseTuple(args, "O!", &Interface0DIterator_Type, &obj)) {
 		cout << "ERROR: UnaryFunction0DVec2f___call__ " << endl;		
 		return NULL;
 	}

@@ -160,7 +160,7 @@ PyObject * UnaryFunction0DUnsigned___call__( BPy_UnaryFunction0DUnsigned *self, 
 {
 	PyObject *obj;
 
-	if( !PyArg_ParseTuple(args, "O", &obj) && BPy_Interface0DIterator_Check(obj) ) {
+	if(!PyArg_ParseTuple(args, "O!", &Interface0DIterator_Type, &obj)) {
 		cout << "ERROR: UnaryFunction0DUnsigned___call__ " << endl;		
 		return NULL;
 	}

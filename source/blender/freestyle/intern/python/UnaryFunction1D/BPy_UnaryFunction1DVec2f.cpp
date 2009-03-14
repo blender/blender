@@ -147,7 +147,7 @@ int UnaryFunction1DVec2f___init__(BPy_UnaryFunction1DVec2f* self, PyObject *args
 {
 	PyObject *obj;
 
-	if( !PyArg_ParseTuple(args, "|O", &obj) && BPy_IntegrationType_Check(obj) ) {
+	if( !PyArg_ParseTuple(args, "|O!", &IntegrationType_Type, &obj) ) {
 		cout << "ERROR: UnaryFunction1DVec2f___init__ " << endl;		
 		return -1;
 	}
@@ -183,7 +183,7 @@ PyObject * UnaryFunction1DVec2f___call__( BPy_UnaryFunction1DVec2f *self, PyObje
 {
 	PyObject *obj;
 
-	if( !PyArg_ParseTuple(args, "O", &obj) && BPy_Interface1D_Check(obj) ) {
+	if( !PyArg_ParseTuple(args, "O!", &Interface1D_Type, &obj) ) {
 		cout << "ERROR: UnaryFunction1DVec2f___call__ " << endl;		
 		return NULL;
 	}
@@ -197,7 +197,7 @@ PyObject * UnaryFunction1DVec2f_setIntegrationType(BPy_UnaryFunction1DVec2f* sel
 {
 	PyObject *obj;
 
-	if( !PyArg_ParseTuple(args, "O", &obj) && BPy_IntegrationType_Check(obj) ) {
+	if( !PyArg_ParseTuple(args, "O!", &IntegrationType_Type, &obj) ) {
 		cout << "ERROR: UnaryFunction1DVec2f_setIntegrationType " << endl;		
 		Py_RETURN_NONE;
 	}

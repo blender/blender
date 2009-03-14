@@ -141,7 +141,7 @@ int UnaryFunction1DUnsigned___init__(BPy_UnaryFunction1DUnsigned* self, PyObject
 {
 	PyObject *obj;
 
-	if( !PyArg_ParseTuple(args, "|O", &obj) && BPy_IntegrationType_Check(obj) ) {
+	if( !PyArg_ParseTuple(args, "|O!", &IntegrationType_Type, &obj) ) {
 		cout << "ERROR: UnaryFunction1DUnsigned___init__ " << endl;		
 		return -1;
 	}
@@ -177,7 +177,7 @@ PyObject * UnaryFunction1DUnsigned___call__( BPy_UnaryFunction1DUnsigned *self, 
 {
 	PyObject *obj;
 
-	if( !PyArg_ParseTuple(args, "O", &obj) && BPy_Interface1D_Check(obj) ) {
+	if( !PyArg_ParseTuple(args, "O!", &Interface1D_Type, &obj) ) {
 		cout << "ERROR: UnaryFunction1DUnsigned___call__ " << endl;		
 		return NULL;
 	}
@@ -191,7 +191,7 @@ PyObject * UnaryFunction1DUnsigned_setIntegrationType(BPy_UnaryFunction1DUnsigne
 {
 	PyObject *obj;
 
-	if( !PyArg_ParseTuple(args, "O", &obj) && BPy_IntegrationType_Check(obj) ) {
+	if( !PyArg_ParseTuple(args, "O!", &IntegrationType_Type, &obj) ) {
 		cout << "ERROR: UnaryFunction1DUnsigned_setIntegrationType " << endl;		
 		Py_RETURN_NONE;
 	}

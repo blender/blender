@@ -106,12 +106,12 @@ int GetViewMapGradientNormF1D___init__( BPy_GetViewMapGradientNormF1D* self, PyO
 	int i;
 	float f = 2.0;
 
-	if( !PyArg_ParseTuple(args, "i|Of", &i, &obj, &f) ) {
+	if( !PyArg_ParseTuple(args, "i|O!f", &i, &IntegrationType_Type, &obj, &f) ) {
 		cout << "ERROR: GetViewMapGradientNormF1D___init__ " << endl;		
 		return -1;
 	}
 	
-	IntegrationType t = ( obj && BPy_IntegrationType_Check(obj) ) ? IntegrationType_from_BPy_IntegrationType(obj) : MEAN;
+	IntegrationType t = ( obj ) ? IntegrationType_from_BPy_IntegrationType(obj) : MEAN;
 	self->py_uf1D_double.uf1D_double = new Functions1D::GetViewMapGradientNormF1D(i,t,f);
 	return 0;
 

@@ -104,12 +104,12 @@ int GetProjectedXF1D___init__( BPy_GetProjectedXF1D* self, PyObject *args )
 {
 	PyObject *obj = 0;
 
-	if( !PyArg_ParseTuple(args, "|O", &obj) ) {
+	if( !PyArg_ParseTuple(args, "|O!", &IntegrationType_Type, &obj) ) {
 		cout << "ERROR: GetProjectedXF1D___init__ " << endl;		
 		return -1;
 	}
 	
-	IntegrationType t = ( obj && BPy_IntegrationType_Check(obj) ) ? IntegrationType_from_BPy_IntegrationType(obj) : MEAN;
+	IntegrationType t = ( obj ) ? IntegrationType_from_BPy_IntegrationType(obj) : MEAN;
 	self->py_uf1D_double.uf1D_double = new Functions1D::GetProjectedXF1D(t);
 	return 0;
 }

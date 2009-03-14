@@ -154,7 +154,7 @@ int UnaryFunction1DVectorViewShape___init__(BPy_UnaryFunction1DVectorViewShape* 
 {
 	PyObject *obj;
 
-	if( !PyArg_ParseTuple(args, "|O", &obj) && BPy_IntegrationType_Check(obj) ) {
+	if( !PyArg_ParseTuple(args, "|O!", &IntegrationType_Type, &obj) ) {
 		cout << "ERROR: UnaryFunction1DVectorViewShape___init__ " << endl;		
 		return -1;
 	}
@@ -191,7 +191,7 @@ PyObject * UnaryFunction1DVectorViewShape___call__( BPy_UnaryFunction1DVectorVie
 {
 	PyObject *obj;
 
-	if( !PyArg_ParseTuple(args, "O", &obj) && BPy_Interface1D_Check(obj) ) {
+	if( !PyArg_ParseTuple(args, "O!", &Interface1D_Type, &obj) ) {
 		cout << "ERROR: UnaryFunction1DVectorViewShape___call__ " << endl;		
 		return NULL;
 	}
@@ -210,7 +210,7 @@ PyObject * UnaryFunction1DVectorViewShape_setIntegrationType(BPy_UnaryFunction1D
 {
 	PyObject *obj;
 
-	if( !PyArg_ParseTuple(args, "O", &obj) && BPy_IntegrationType_Check(obj) ) {
+	if( !PyArg_ParseTuple(args, "O!", &IntegrationType_Type, &obj) ) {
 		cout << "ERROR: UnaryFunction1DVectorViewShape_setIntegrationType " << endl;		
 		Py_RETURN_NONE;
 	}

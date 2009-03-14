@@ -160,7 +160,7 @@ PyObject * UnaryFunction0DEdgeNature___call__( BPy_UnaryFunction0DEdgeNature *se
 {
 	PyObject *obj;
 
-	if( !PyArg_ParseTuple(args, "O", &obj) && BPy_Interface0DIterator_Check(obj) ) {
+	if(!PyArg_ParseTuple(args, "O!", &Interface0DIterator_Type, &obj)) {
 		cout << "ERROR: UnaryFunction0DEdgeNature___call__ " << endl;		
 		return NULL;
 	}

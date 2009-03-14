@@ -220,7 +220,7 @@ int UnaryFunction1DDouble___init__(BPy_UnaryFunction1DDouble* self, PyObject *ar
 {
 	PyObject *obj;
 
-	if( !PyArg_ParseTuple(args, "|O", &obj) && BPy_IntegrationType_Check(obj) ) {
+	if( !PyArg_ParseTuple(args, "|O!", &IntegrationType_Type, &obj) ) {
 		cout << "ERROR: UnaryFunction1DDouble___init__ " << endl;		
 		return -1;
 	}
@@ -257,7 +257,7 @@ PyObject * UnaryFunction1DDouble___call__( BPy_UnaryFunction1DDouble *self, PyOb
 {
 	PyObject *obj;
 
-	if( !PyArg_ParseTuple(args, "O", &obj) && BPy_Interface1D_Check(obj) ) {
+	if( !PyArg_ParseTuple(args, "O!", &Interface1D_Type, &obj) ) {
 		cout << "ERROR: UnaryFunction1DDouble___call__ " << endl;		
 		return NULL;
 	}
@@ -271,7 +271,7 @@ PyObject * UnaryFunction1DDouble_setIntegrationType(BPy_UnaryFunction1DDouble* s
 {
 	PyObject *obj;
 
-	if( !PyArg_ParseTuple(args, "O", &obj) && BPy_IntegrationType_Check(obj) ) {
+	if( !PyArg_ParseTuple(args, "O!", &IntegrationType_Type, &obj) ) {
 		cout << "ERROR: UnaryFunction1DDouble_setIntegrationType " << endl;		
 		Py_RETURN_NONE;
 	}

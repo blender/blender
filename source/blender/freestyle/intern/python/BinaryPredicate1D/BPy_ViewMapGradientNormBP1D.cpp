@@ -108,12 +108,12 @@ int ViewMapGradientNormBP1D___init__( BPy_ViewMapGradientNormBP1D* self, PyObjec
 	PyObject *obj;
 	float f = 2.0;
 
-	if(!( PyArg_ParseTuple(args, "i|Of", &i, &obj) )) {
+	if(!( PyArg_ParseTuple(args, "i|O!f", &i, &IntegrationType_Type, &obj, &f) )) {
 		cout << "ERROR: ViewMapGradientNormBP1D___init__" << endl;		
 		return -1;
 	}
 	
-	IntegrationType t = ( obj && BPy_IntegrationType_Check(obj) ) ? IntegrationType_from_BPy_IntegrationType(obj) : MEAN;
+	IntegrationType t = ( obj ) ? IntegrationType_from_BPy_IntegrationType(obj) : MEAN;
 	self->py_bp1D.bp1D = new Predicates1D::ViewMapGradientNormBP1D(i,t,f);
 	return 0;
 }

@@ -141,7 +141,7 @@ int UnaryFunction1DEdgeNature___init__(BPy_UnaryFunction1DEdgeNature* self, PyOb
 {
 	PyObject *obj;
 
-	if( !PyArg_ParseTuple(args, "|O", &obj) && BPy_IntegrationType_Check(obj) ) {
+	if( !PyArg_ParseTuple(args, "|O!", &IntegrationType_Type, &obj) ) {
 		cout << "ERROR: UnaryFunction1DEdgeNature___init__ " << endl;		
 		return -1;
 	}
@@ -177,7 +177,7 @@ PyObject * UnaryFunction1DEdgeNature___call__( BPy_UnaryFunction1DEdgeNature *se
 {
 	PyObject *obj;
 
-	if( !PyArg_ParseTuple(args, "O", &obj) && BPy_Interface1D_Check(obj) ) {
+	if( !PyArg_ParseTuple(args, "O!", &Interface1D_Type, &obj) ) {
 		cout << "ERROR: UnaryFunction1DEdgeNature___call__ " << endl;		
 		return NULL;
 	}
@@ -191,7 +191,7 @@ PyObject * UnaryFunction1DEdgeNature_setIntegrationType(BPy_UnaryFunction1DEdgeN
 {
 	PyObject *obj;
 
-	if( !PyArg_ParseTuple(args, "O", &obj) && BPy_IntegrationType_Check(obj) ) {
+	if( !PyArg_ParseTuple(args, "O!", &IntegrationType_Type, &obj) ) {
 		cout << "ERROR: UnaryFunction1DEdgeNature_setIntegrationType " << endl;		
 		Py_RETURN_NONE;
 	}

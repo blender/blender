@@ -155,7 +155,7 @@ int UnaryFunction1DVoid___init__(BPy_UnaryFunction1DVoid* self, PyObject *args)
 {
 	PyObject *obj;
 
-	if( !PyArg_ParseTuple(args, "|O", &obj) && BPy_IntegrationType_Check(obj) ) {
+	if( !PyArg_ParseTuple(args, "|O!", &IntegrationType_Type, &obj) ) {
 		cout << "ERROR: UnaryFunction1DVoid___init__ " << endl;		
 		return -1;
 	}
@@ -192,7 +192,7 @@ PyObject * UnaryFunction1DVoid___call__( BPy_UnaryFunction1DVoid *self, PyObject
 {
 	PyObject *obj;
 
-	if( !PyArg_ParseTuple(args, "O", &obj) && BPy_Interface1D_Check(obj) ) {
+	if( !PyArg_ParseTuple(args, "O!", &Interface1D_Type, &obj) ) {
 		cout << "ERROR: UnaryFunction1DVoid___call__ " << endl;		
 		return NULL;
 	}
@@ -205,7 +205,7 @@ PyObject * UnaryFunction1DVoid_setIntegrationType(BPy_UnaryFunction1DVoid* self,
 {
 	PyObject *obj;
 
-	if( !PyArg_ParseTuple(args, "O", &obj) && BPy_IntegrationType_Check(obj) ) {
+	if( !PyArg_ParseTuple(args, "O!", &IntegrationType_Type, &obj) ) {
 		cout << "ERROR: UnaryFunction1DVoid_setIntegrationType " << endl;		
 		Py_RETURN_NONE;
 	}

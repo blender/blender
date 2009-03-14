@@ -134,7 +134,7 @@ int UnaryFunction1DFloat___init__(BPy_UnaryFunction1DFloat* self, PyObject *args
 {
 	PyObject *obj;
 
-	if( !PyArg_ParseTuple(args, "|O", &obj) && BPy_IntegrationType_Check(obj) ) {
+	if( !PyArg_ParseTuple(args, "|O!", &IntegrationType_Type, &obj) ) {
 		cout << "ERROR: UnaryFunction1DFloat___init__ " << endl;		
 		return -1;
 	}
@@ -170,7 +170,7 @@ PyObject * UnaryFunction1DFloat___call__( BPy_UnaryFunction1DFloat *self, PyObje
 {
 	PyObject *obj;
 
-	if( !PyArg_ParseTuple(args, "O", &obj) && BPy_Interface1D_Check(obj) ) {
+	if( !PyArg_ParseTuple(args, "O!", &Interface1D_Type, &obj) ) {
 		cout << "ERROR: UnaryFunction1DFloat___call__ " << endl;		
 		return NULL;
 	}
@@ -184,7 +184,7 @@ PyObject * UnaryFunction1DFloat_setIntegrationType(BPy_UnaryFunction1DFloat* sel
 {
 	PyObject *obj;
 
-	if( !PyArg_ParseTuple(args, "O", &obj) && BPy_IntegrationType_Check(obj) ) {
+	if( !PyArg_ParseTuple(args, "O!", &IntegrationType_Type, &obj) ) {
 		cout << "ERROR: UnaryFunction1DFloat_setIntegrationType " << endl;		
 		Py_RETURN_NONE;
 	}
