@@ -1081,11 +1081,10 @@ PyObject *pyrna_struct_CreatePyObject( PointerRNA *ptr )
 {
 	BPy_StructRNA *pyrna;
 	
-	if (ptr->data==NULL && ptr->type==NULL) {
+	if (ptr->data==NULL && ptr->type==NULL) { /* Operator RNA has NULL data */
 		Py_RETURN_NONE;
 	}
 	
-	pyrna = ( BPy_StructRNA * ) PyObject_NEW( BPy_StructRNA, &pyrna_struct_Type );
 	if (ptr->type && BPy_RNA_PYTYPE(ptr->type)) {
 		PyTypeObject *tp = BPy_RNA_PYTYPE(ptr->type);
 		pyrna = (BPy_StructRNA *) tp->tp_alloc(tp, 0);

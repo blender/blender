@@ -190,7 +190,6 @@ def op2epy(target_path):
 	operators.remove('remove')
 	operators.sort()
 	
-	
 	for op in operators:
 		
 		if op.startswith('__'):
@@ -200,7 +199,7 @@ def op2epy(target_path):
 		kw_args = [] # "foo = 1", "bar=0.5", "spam='ENUM'"
 		kw_arg_attrs = [] # "@type mode: int"
 		
-		rna = getattr(bpy.ops, op).rna
+		rna = getattr(bpy.types, op).__rna__
 		rna_struct = rna.rna_type
 		# print (dir(rna))
 		# print (dir(rna_struct))

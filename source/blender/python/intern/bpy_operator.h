@@ -33,27 +33,14 @@
 #include "BKE_context.h"
 
 extern PyTypeObject pyop_base_Type;
-extern PyTypeObject pyop_func_Type;
 
 #define BPy_OperatorBase_Check(v)	(PyObject_TypeCheck(v, &pyop_base_Type))
-#define BPy_OperatorFunc_Check(v)	(PyObject_TypeCheck(v, &pyop_func_Type))
-
 
 typedef struct {
 	PyObject_HEAD /* required python macro   */
-	bContext *C;
 } BPy_OperatorBase;
 
-typedef struct {
-	PyObject_HEAD /* required python macro   */
-	char name[OP_MAX_TYPENAME];
-	bContext *C;
-} BPy_OperatorFunc;
-
 PyObject *BPY_operator_module(bContext *C );
-
-PyObject *pyop_base_CreatePyObject(bContext *C );
-PyObject *pyop_func_CreatePyObject(bContext *C, char *name );
 
 /* fill in properties from a python dict */
 int PYOP_props_from_dict(PointerRNA *ptr, PyObject *kw);
