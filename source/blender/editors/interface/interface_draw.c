@@ -2238,7 +2238,7 @@ static void ui_draw_text(uiBut *but, float x, float y, int sunken)
 
 		/* only draw embossed text if the text color is darker than 0.5 mid-grey */
 		if ((curcol[0] + curcol[1] + curcol[3]) * 0.3f < 0.5f)
-			glColor4f(1.0f, 1.0f, 1.0f, 0.25f);
+			glColor4f(0.6f, 0.6f, 0.6f, 0.3f);
 		else
 			return;
 	}
