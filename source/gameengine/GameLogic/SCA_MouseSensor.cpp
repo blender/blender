@@ -282,7 +282,7 @@ KX_PYMETHODDEF_DOC_O(SCA_MouseSensor, getButtonStatus,
 		int button = PyInt_AsLong(value);
 		
 		if ((button < SCA_IInputDevice::KX_LEFTMOUSE)
-			|| (button > SCA_IInputDevice::KX_MIDDLEMOUSE)){
+			|| (button > SCA_IInputDevice::KX_RIGHTMOUSE)){
 			PyErr_SetString(PyExc_ValueError, "invalid button specified!");
 			return NULL;
 		}
