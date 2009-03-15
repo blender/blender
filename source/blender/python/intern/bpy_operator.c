@@ -235,7 +235,7 @@ static PyObject *pyop_base_dir(PyObject *self)
 	return list;
 }
 
-PyTypeObject pyop_base_Type = {};
+PyTypeObject pyop_base_Type = {NULL};
 
 PyObject *BPY_operator_module( bContext *C )
 {
