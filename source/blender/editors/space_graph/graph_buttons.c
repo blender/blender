@@ -52,6 +52,7 @@
 #include "BKE_curve.h"
 #include "BKE_customdata.h"
 #include "BKE_depsgraph.h"
+#include "BKE_fcurve.h"
 #include "BKE_object.h"
 #include "BKE_global.h"
 #include "BKE_scene.h"
@@ -218,32 +219,92 @@ static void graph_panel_drivers(const bContext *C, ARegion *ar, short cntrl, bAn
 
 /* -------------- */
 
+#define B_FMODIFIER_REDRAW		20
+
 static void do_graph_region_modifier_buttons(bContext *C, void *arg, int event)
 {
-	//Scene *scene= CTX_data_scene(C);
-	
 	switch(event) {
+		case B_REDR:
+		case B_FMODIFIER_REDRAW:
+			ED_area_tag_redraw(CTX_wm_area(C));
+			return; /* no notifier! */
+	}
+}
 
+
+/* for now, just print name of modifier */
+static void graph_panel_modifier_draw(uiBlock *block, FCurve *fcu, FModifier *fcm, int *yco)
+{
+	FModifierTypeInfo *fmi= fmodifier_get_typeinfo(fcm);
+	uiBut *but;
+	short active= (fcm->flag & FMODIFIER_FLAG_ACTIVE);
+	short width= 314;
+	short height = 0; 
+	int rb_col;
+	
+	/* draw header */
+	{
+		uiBlockSetEmboss(block, UI_EMBOSSN);
+		
+		/* rounded header */
+		if (active) uiBlockSetCol(block, TH_BUT_ACTION);
+			rb_col= (active)?-20:20;
+			uiDefBut(block, ROUNDBOX, B_REDR, "", 10-8, *yco-2, width, 24, NULL, 5.0, 0.0, 15.0, (float)(rb_col-20), ""); 
+		if (active) uiBlockSetCol(block, TH_AUTO);
+		
+		/* expand */
+		uiDefIconButBitS(block, ICONTOG, FMODIFIER_FLAG_EXPANDED, B_REDR, ICON_TRIA_RIGHT,	10-7, *yco-1, 20, 20, &fcm->flag, 0.0, 0.0, 0, 0, "Modifier is expanded");
+		
+		/* name */
+		if (fmi)
+			uiDefBut(block, LABEL, 1, fmi->name,	10+35, *yco, 240, 20, NULL, 0.0, 0.0, 0, 0, "F-Curve Modifier Type");
+		else
+			uiDefBut(block, LABEL, 1, "<Unknown Modifier>",	10+35, *yco, 240, 20, NULL, 0.0, 0.0, 0, 0, "F-Curve Modifier Type");
+		
+		/* delete button */
+		but= uiDefIconBut(block, BUT, B_REDR, ICON_X, 10+(width-30), *yco, 19, 19, NULL, 0.0, 0.0, 0.0, 0.0, "Delete layer");
+		//uiButSetFunc(but, gp_ui_dellayer_cb, gpd, NULL);
+		uiBlockSetEmboss(block, UI_EMBOSS);
 	}
 	
-	/* default for now */
-	//WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, ob);
+	/* when modifier is expanded, draw settings */
+	if (fcm->flag & FMODIFIER_FLAG_EXPANDED) {
+		height= 97;
+		
+		/* draw backdrop */
+		if (active) uiBlockSetCol(block, TH_BUT_ACTION);
+			uiDefBut(block, ROUNDBOX, B_REDR, "", 10-8, *yco-height, width, height-1, NULL, 5.0, 0.0, 12.0, (float)rb_col, ""); 
+		if (active) uiBlockSetCol(block, TH_AUTO);
+	}
+	
+	/* adjust height for new to start */
+	(*yco) -= (height + 27); 
 }
 
 static void graph_panel_modifiers(const bContext *C, ARegion *ar, short cntrl, bAnimListElem *ale)	
 {
-	//FCurve *fcu= (FCurve *)ale->data;
-	//FModifier *fcm;
+	FCurve *fcu= (FCurve *)ale->data;
+	FModifier *fcm;
 	uiBlock *block;
+	int yco= 190;
 
 	block= uiBeginBlock(C, ar, "graph_panel_modifiers", UI_EMBOSS, UI_HELV);
 	if (uiNewPanel(C, ar, block, "Modifiers", "Graph", 340, 30, 318, 254)==0) return;
 	uiBlockSetHandleFunc(block, do_graph_region_modifier_buttons, NULL);
-
-	/* to force height */
-	uiNewPanelHeight(block, 204); // XXX variable height!
 	
+	/* 'add modifier' button at top of panel */
+	// XXX for now, this will be a operator button which calls a temporary 'add modifier' operator
+	uiDefButO(block, BUT, "GRAPHEDIT_OT_fmodifier_add", WM_OP_INVOKE_REGION_WIN, "Add Modifier", 10, 225, 150, 20, "Adds a new F-Curve Modifier for the active F-Curve");
 	
+	/* draw each modifier */
+	for (fcm= fcu->modifiers.first; fcm; fcm= fcm->next)
+		graph_panel_modifier_draw(block, fcu, fcm, &yco);
+	
+	/* since these buttons can have variable height */
+	if (yco < 0)
+		uiNewPanelHeight(block, (204 - yco));
+	else
+		uiNewPanelHeight(block, 204);
 }
 
 /* -------------- */
@@ -253,7 +314,7 @@ static void graph_panel_modifiers(const bContext *C, ARegion *ar, short cntrl, b
  * when the caller is done with it.
  */
 // TODO: move this to anim api with another name?
-static bAnimListElem *get_active_fcurve_channel (bAnimContext *ac)
+bAnimListElem *get_active_fcurve_channel (bAnimContext *ac)
 {
 	ListBase anim_data = {NULL, NULL};
 	int filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_ACTIVE | ANIMFILTER_CURVESONLY);

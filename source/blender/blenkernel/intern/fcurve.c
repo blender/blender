@@ -1105,6 +1105,8 @@ static float fcurve_eval_samples (FCurve *fcu, FPoint *fpts, float evaltime)
 static FModifierTypeInfo FMI_MODNAME = {
 	FMODIFIER_TYPE_MODNAME, /* type */
 	sizeof(FMod_ModName), /* size */
+	FMI_TYPE_SOME_ACTION, /* action type */
+	FMI_REQUIRES_SOME_REQUIREMENT, /* requirements */
 	"Modifier Name", /* name */
 	"FMod_ModName", /* struct name */
 	fcm_modname_free, /* free data */
@@ -1155,6 +1157,7 @@ static void fcm_generator_evaluate (FCurve *fcu, FModifier *fcm, float *cvalue, 
 	
 	/* behaviour depends on mode (NOTE: we don't need to do anything...) */
 	switch (data->mode) {
+		// TODO: implement factorised polynomial too
 		case FCM_GENERATOR_POLYNOMIAL: /* polynomial expression */
 		{
 			/* we overwrite cvalue with the sum of the polynomial */
@@ -1184,6 +1187,8 @@ static void fcm_generator_evaluate (FCurve *fcu, FModifier *fcm, float *cvalue, 
 static FModifierTypeInfo FMI_GENERATOR = {
 	FMODIFIER_TYPE_GENERATOR, /* type */
 	sizeof(FMod_Generator), /* size */
+	FMI_TYPE_GENERATE_CURVE, /* action type */
+	FMI_REQUIRES_NOTHING, /* requirements */
 	"Generator", /* name */
 	"FMod_Generator", /* struct name */
 	fcm_generator_free, /* free data */
@@ -1266,6 +1271,8 @@ static void fcm_envelope_evaluate (FCurve *fcu, FModifier *fcm, float *cvalue, f
 static FModifierTypeInfo FMI_ENVELOPE = {
 	FMODIFIER_TYPE_ENVELOPE, /* type */
 	sizeof(FMod_Envelope), /* size */
+	FMI_TYPE_REPLACE_VALUES, /* action type */
+	0, /* requirements */
 	"Envelope", /* name */
 	"FMod_Envelope", /* struct name */
 	fcm_envelope_free, /* free data */
@@ -1399,6 +1406,8 @@ static void fcm_cycles_evaluate (FCurve *fcu, FModifier *fcm, float *cvalue, flo
 static FModifierTypeInfo FMI_CYCLES = {
 	FMODIFIER_TYPE_CYCLES, /* type */
 	sizeof(FMod_Cycles), /* size */
+	FMI_TYPE_EXTRAPOLATION, /* action type */
+	FMI_REQUIRES_ORIGINAL_DATA, /* requirements */
 	"Cycles", /* name */
 	"FMod_Cycles", /* struct name */
 	NULL, /* free data */
@@ -1413,6 +1422,8 @@ static FModifierTypeInfo FMI_CYCLES = {
 static FModifierTypeInfo FMI_NOISE = {
 	FMODIFIER_TYPE_NOISE, /* type */
 	sizeof(FMod_Noise), /* size */
+	FMI_TYPE_REPLACE_VALUES, /* action type */
+	0, /* requirements */
 	"Noise", /* name */
 	"FMod_Noise", /* struct name */
 	NULL, /* free data */
@@ -1428,6 +1439,8 @@ static FModifierTypeInfo FMI_NOISE = {
 static FModifierTypeInfo FMI_FILTER = {
 	FMODIFIER_TYPE_FILTER, /* type */
 	sizeof(FMod_Filter), /* size */
+	FMI_TYPE_REPLACE_VALUES, /* action type */
+	0, /* requirements */
 	"Filter", /* name */
 	"FMod_Filter", /* struct name */
 	NULL, /* free data */
@@ -1480,6 +1493,8 @@ static void fcm_python_evaluate (FCurve *fcu, FModifier *fcm, float *cvalue, flo
 static FModifierTypeInfo FMI_PYTHON = {
 	FMODIFIER_TYPE_PYTHON, /* type */
 	sizeof(FMod_Python), /* size */
+	FMI_TYPE_GENERATE_CURVE, /* action type */
+	FMI_REQUIRES_RUNTIME_CHECK, /* requirements */
 	"Python", /* name */
 	"FMod_Python", /* struct name */
 	fcm_python_free, /* free data */
@@ -1499,7 +1514,8 @@ static FModifierTypeInfo *fmodifiersTypeInfo[FMODIFIER_NUM_TYPES];
 static short FMI_INIT= 1; /* when non-zero, the list needs to be updated */
 
 /* This function only gets called when FMI_INIT is non-zero */
-static void fmods_init_typeinfo () {
+static void fmods_init_typeinfo () 
+{
 	fmodifiersTypeInfo[0]=  NULL; 					/* 'Null' F-Curve Modifier */
 	fmodifiersTypeInfo[1]=  &FMI_GENERATOR; 		/* Generator F-Curve Modifier */
 	fmodifiersTypeInfo[2]=  &FMI_ENVELOPE;			/* Envelope F-Curve Modifier */
@@ -1568,6 +1584,8 @@ FModifier *fcurve_add_modifier (FCurve *fcu, int type)
 	
 	/* add modifier itself */
 	fcm= MEM_callocN(sizeof(FModifier), "F-Curve Modifier");
+	fcm->type = type;
+	fcm->flag = FMODIFIER_FLAG_EXPANDED;
 	BLI_addtail(&fcu->modifiers, fcm);
 	
 	/* add modifier's data */
@@ -1674,12 +1692,30 @@ void fcurve_bake_modifiers (FCurve *fcu, int start, int end)
 	fcu->driver= driver;
 }
 
+/* Find the active F-Curve Modifier */
+FModifier *fcurve_active_modifier (FCurve *fcu)
+{
+	FModifier *fcm;
+	
+	/* sanity checks */
+	if ELEM(NULL, fcu, fcu->modifiers.first)
+		return NULL;
+	
+	/* loop over modifiers until 'active' one is found */
+	for (fcm= fcu->modifiers.first; fcm; fcm= fcm->next) {
+		if (fcm->flag & FMODIFIER_FLAG_ACTIVE)
+			return fcm;
+	}
+	
+	/* no modifier is active */
+	return NULL;
+}
+
 /* ***************************** F-Curve - Evaluation ********************************* */
 
 /* Evaluate and return the value of the given F-Curve at the specified frame ("evaltime") 
  * Note: this is also used for drivers
  */
-// TODO: set up the modifier system...
 float evaluate_fcurve (FCurve *fcu, float evaltime) 
 {
 	FModifier *fcm;

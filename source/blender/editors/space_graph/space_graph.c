@@ -230,12 +230,13 @@ static void graph_main_area_draw(const bContext *C, ARegion *ar)
 	unitx= (sipo->flag & SIPO_DRAWTIME)? V2D_UNIT_SECONDS : V2D_UNIT_FRAMESCALE;
 	grid= UI_view2d_grid_calc(C, v2d, unitx, V2D_GRID_NOCLAMP, unity, V2D_GRID_NOCLAMP, ar->winx, ar->winy);
 	UI_view2d_grid_draw(C, v2d, grid, V2D_GRIDLINES_ALL);
-	UI_view2d_grid_free(grid);
 	
 	/* draw data */
-	if (ANIM_animdata_get_context(C, &ac)) {
-		graph_draw_curves(&ac, sipo, ar);
-	}
+	if (ANIM_animdata_get_context(C, &ac))
+		graph_draw_curves(&ac, sipo, ar, grid);
+	
+	/* only free grid after drawing data, as we need to use it to determine sampling rate */
+	UI_view2d_grid_free(grid);
 	
 	/* current frame */
 	if (sipo->flag & SIPO_DRAWTIME) 	flag |= DRAWCFRA_UNIT_SECONDS;

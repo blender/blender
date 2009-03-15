@@ -310,6 +310,12 @@ short ANIM_animdata_get_context (const bContext *C, bAnimContext *ac)
 /* quick macro to test if AnimData is usable for drivers */
 #define ANIMDATA_HAS_DRIVERS(id) ((id)->adt && (id)->adt->drivers.first)
 
+/* quick macro to test if a anim-channel (F-Curve, Group, etc.) is selected in an acceptable way */
+#define ANIMCHANNEL_SELOK(test_func) \
+		( !(filter_mode & (ANIMFILTER_SEL|ANIMFILTER_UNSEL)) || \
+		  ((filter_mode & ANIMFILTER_SEL) && test_func) || \
+		  ((filter_mode & ANIMFILTER_UNSEL) && test_func==0) ) 
+
 /* ----------- 'Private' Stuff --------------- */
 
 /* this function allocates memory for a new bAnimListElem struct for the 
@@ -509,8 +515,8 @@ static int animdata_filter_fcurves (ListBase *anim_data, FCurve *first, bActionG
 		if (!(filter_mode & ANIMFILTER_CURVEVISIBLE) || (fcu->flag & FCURVE_VISIBLE)) {
 			/* only work with this channel and its subchannels if it is editable */
 			if (!(filter_mode & ANIMFILTER_FOREDIT) || EDITABLE_FCU(fcu)) {
-				/* only include this curve if selected */
-				if (!(filter_mode & ANIMFILTER_SEL) || (SEL_FCU(fcu))) {
+				/* only include this curve if selected in a way consistent with the filtering requirements */
+				if ( ANIMCHANNEL_SELOK(SEL_FCU(fcu)) ) {
 					/* only include if this curve is active */
 					if (!(filter_mode & ANIMFILTER_ACTIVE) || (fcu->flag & FCURVE_ACTIVE)) {
 						/* owner/ownertype will be either object or action-channel, depending if it was dopesheet or part of an action */
@@ -543,7 +549,7 @@ static int animdata_filter_action (ListBase *anim_data, bAction *act, int filter
 		/* add this group as a channel first */
 		if ((filter_mode & ANIMFILTER_CHANNELS) || !(filter_mode & ANIMFILTER_CURVESONLY)) {
 			/* check if filtering by selection */
-			if ( !(filter_mode & ANIMFILTER_SEL) || SEL_AGRP(agrp) ) {
+			if ( ANIMCHANNEL_SELOK(SEL_AGRP(agrp)) ) {
 				ale= make_new_animlistelem(agrp, ANIMTYPE_GROUP, NULL, ANIMTYPE_NONE, owner_id);
 				if (ale) {
 					BLI_addtail(anim_data, ale);
@@ -569,8 +575,7 @@ static int animdata_filter_action (ListBase *anim_data, bAction *act, int filter
 			 *	- we're interested in keyframes, but not if they appear in selected channels
 			 */
 			if ( (!(filter_mode & ANIMFILTER_VISIBLE) || EXPANDED_AGRP(agrp)) || 
-				 ( (!(filter_mode & ANIMFILTER_SEL) || (SEL_AGRP(agrp))) && 
-				   (filter_mode & ANIMFILTER_CURVESONLY) ) ) 
+				 ( ANIMCHANNEL_SELOK(SEL_AGRP(agrp)) && (filter_mode & ANIMFILTER_CURVESONLY) ) ) 
 			{
 				if (!(filter_mode & ANIMFILTER_FOREDIT) || EDITABLE_AGRP(agrp)) {
 					// XXX the 'owner' info here needs review...
@@ -709,7 +714,7 @@ static int animdata_filter_gpencil (ListBase *anim_data, bScreen *sc, int filter
 				/* loop over layers as the conditions are acceptable */
 				for (gpl= gpd->layers.first; gpl; gpl= gpl->next) {
 					/* only if selected */
-					if (!(filter_mode & ANIMFILTER_SEL) || SEL_GPL(gpl)) {
+					if ( ANIMCHANNEL_SELOK(SEL_GPL(gpl)) ) {
 						/* only if editable */
 						if (!(filter_mode & ANIMFILTER_FOREDIT) || EDITABLE_GPL(gpl)) {
 							/* add to list */
@@ -784,7 +789,6 @@ static int animdata_filter_dopesheet_mats (ListBase *anim_data, bDopeSheet *ads,
 			
 			/* add material's F-Curve channels? */
 			if (FILTER_MAT_OBJD(ma) || (filter_mode & ANIMFILTER_CURVESONLY)) {
-				//items += animdata_filter_ipocurves(anim_data, ma->ipo, filter_mode, base, ANIMTYPE_OBJECT, (ID *)ma);
 					// XXX the 'owner' info here is still subject to improvement
 				items += animdata_filter_action(anim_data, ma->adt->action, filter_mode, ma, ANIMTYPE_DSMAT, (ID *)ma);
 			}
@@ -873,7 +877,7 @@ static int animdata_filter_dopesheet_ob (ListBase *anim_data, bDopeSheet *ads, B
 	/* add this object as a channel first */
 	if ((filter_mode & ANIMFILTER_CURVESONLY) == 0) {
 		/* check if filtering by selection */
-		if ( !(filter_mode & ANIMFILTER_SEL) || ((base->flag & SELECT) || (base == sce->basact)) ) {
+		if (ANIMCHANNEL_SELOK( ((base->flag & SELECT) || (base == sce->basact)) )) {
 			ale= make_new_animlistelem(base, ANIMTYPE_OBJECT, NULL, ANIMTYPE_NONE, NULL);
 			if (ale) {
 				BLI_addtail(anim_data, ale);
@@ -1041,7 +1045,7 @@ static int animdata_filter_dopesheet_scene (ListBase *anim_data, bDopeSheet *ads
 	/* add scene as a channel first (even if we aren't showing scenes we still need to show the scene's sub-data */
 	if ((filter_mode & ANIMFILTER_CURVESONLY) == 0) {
 		/* check if filtering by selection */
-		if ( !(filter_mode & ANIMFILTER_SEL) || (sce->flag & SCE_DS_SELECTED) ) {
+		if (ANIMCHANNEL_SELOK( (sce->flag & SCE_DS_SELECTED) )) {
 			ale= make_new_animlistelem(sce, ANIMTYPE_SCENE, NULL, ANIMTYPE_NONE, NULL);
 			if (ale) {
 				BLI_addtail(anim_data, ale);

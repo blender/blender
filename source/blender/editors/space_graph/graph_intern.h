@@ -31,9 +31,11 @@
 struct bContext;
 struct wmWindowManager;
 struct bAnimContext;
+struct bAnimListElem;
 struct SpaceIpo;
 struct ScrArea;
 struct ARegion;
+struct View2DGrid;
 
 /* internal exports only */
 
@@ -44,7 +46,7 @@ struct ARegion *graph_has_buttons_region(struct ScrArea *sa);
 /* ***************************************** */
 /* graph_draw.c */
 void graph_draw_channel_names(struct bAnimContext *ac, struct SpaceIpo *sipo, struct ARegion *ar);
-void graph_draw_curves(struct bAnimContext *ac, struct SpaceIpo *sipo, struct ARegion *ar);
+void graph_draw_curves(struct bAnimContext *ac, struct SpaceIpo *sipo, struct ARegion *ar, struct View2DGrid *grid);
 
 /* ***************************************** */
 /* graph_header.c */
@@ -119,10 +121,16 @@ enum {
 	GRAPHKEYS_MIRROR_MARKER,
 } eGraphKeys_Mirror_Mode;
 
+/* ----------- */
+
+void GRAPHEDIT_OT_fmodifier_add(struct wmOperatorType *ot);
+
 /* ***************************************** */
 /* graph_buttons.c */
 void GRAPHEDIT_OT_properties(struct wmOperatorType *ot);
 void graph_region_buttons(const struct bContext *C, struct ARegion *ar);
+
+struct bAnimListElem *get_active_fcurve_channel(struct bAnimContext *ac);
 
 /* ***************************************** */
 /* graph_ops.c */

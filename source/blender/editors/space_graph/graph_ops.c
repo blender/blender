@@ -126,6 +126,10 @@ void graphedit_operatortypes(void)
 	WM_operatortype_append(GRAPHEDIT_OT_keyframes_paste);
 	
 	//TODO: insertkey...
+	
+	/* F-Curve Modifiers */
+	// XXX temporary?
+	WM_operatortype_append(GRAPHEDIT_OT_fmodifier_add);
 }
 
 /* ************************** registration - keymaps **********************************/
@@ -194,6 +198,11 @@ static void graphedit_keymap_keyframes (wmWindowManager *wm, ListBase *keymap)
 		/* auto-set range */
 	WM_keymap_add_item(keymap, "GRAPHEDIT_OT_set_previewrange", PKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
 	WM_keymap_add_item(keymap, "GRAPHEDIT_OT_view_all", HOMEKEY, KM_PRESS, 0, 0);
+	
+		/* F-Curve Modifiers */
+		// XXX these are temporary? operators...
+	WM_keymap_add_item(keymap, "GRAPHEDIT_OT_fmodifier_add", MKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0);
+	
 	
 	/* transform system */
 	transform_keymap_for_space(wm, keymap, SPACE_IPO);
