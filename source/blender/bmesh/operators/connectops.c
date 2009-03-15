@@ -52,8 +52,8 @@ void connectverts_exec(BMesh *bm, BMOperator *op)
 					V_GROW(loops);
 					loops[V_COUNT(loops)-1] = l;
 
-					lastl = l;
 				}
+				lastl = l;
 			}
 		}
 

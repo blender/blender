@@ -732,7 +732,7 @@ void BM_LegalSplits(BMesh *bm, BMFace *f, BMLoop *(*loops)[2], int len)
 		VECCOPY(v1, loops[i][0]->v->co);
 		VECCOPY(v2, loops[i][1]->v->co);
 
-		shrink_edgef(v1, v2, 0.9999f);
+		shrink_edgef(v1, v2, 0.999f);
 		
 		VECCOPY(edgeverts[a], v1);
 		a++;
@@ -750,6 +750,11 @@ void BM_LegalSplits(BMesh *bm, BMFace *f, BMLoop *(*loops)[2], int len)
 		out[1] = MAX2(out[1], p1[1]) + 0.01;
 		out[2] = 0.0f;
 		p1[2] = 0.0f;
+	}
+	
+	for (i=0; i<len; i++) {
+		edgeverts[i*2][2] = 0.0f;
+		edgeverts[i*2+1][2] = 0.0f;
 	}
 
 	/*do convexity test*/
@@ -771,11 +776,11 @@ void BM_LegalSplits(BMesh *bm, BMFace *f, BMLoop *(*loops)[2], int len)
 			VECCOPY(v1, p1);
 			VECCOPY(v2, p2);
 
-			shrink_edgef(v1, v2, 1.001f);
+			shrink_edgef(v1, v2, 1.0001f);
 
 			if (linecrossesf(p1, p2, mid, out)) clen++;
-			else if (linecrossesf(p2, p1, out, mid)) clen++;
-			else if (linecrossesf(p1, p2, out, mid)) clen++;
+			//else if (linecrossesf(p2, p1, out, mid)) clen++;
+			//else if (linecrossesf(p1, p2, out, mid)) clen++;
 
 		}
 		
@@ -791,13 +796,11 @@ void BM_LegalSplits(BMesh *bm, BMFace *f, BMLoop *(*loops)[2], int len)
 		for (j=0; j<len; j++) {
 			if (!loops[j][0]) continue;
 
-			l = loops[j][0];
-			VECCOPY(v1, edgeverts[j*2]);
-			l = loops[j][1];
-			VECCOPY(v2, edgeverts[j*2+1]);
+			p3 = edgeverts[j*2];
+			p4 = edgeverts[j*2+1];
 
-			if (linecrossesf(p1, p2, v1, v2) || 
-			    linecrossesf(p2, p1, v2, v1))
+			if (linecrossesf(p1, p2, p3, p4) || 
+			    linecrossesf(p2, p1, p4, p3))
 			{
 				loops[j][0] = NULL;
 			}
