@@ -38,6 +38,10 @@ CSRCS = $(GENSRCS) rna_access.c rna_dependency.c
 
 include nan_compile.mk
 
+ifdef NAN_DEPEND
+-include $(MAKESRCS:%.c=$(DIR)/$(DEBUG_DIR)%.d)
+endif
+
 CFLAGS += $(LEVEL_1_C_WARNINGS)
 
 CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include

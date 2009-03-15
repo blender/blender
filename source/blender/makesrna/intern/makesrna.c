@@ -1684,7 +1684,6 @@ static void rna_generate_header_cpp(BlenderRNA *brna, FILE *f)
 
 		fprintf(f, "/**************** %s ****************/\n\n", srna->name);
 
-		srna= ds->srna;
 		fprintf(f, "class %s : public %s {\n", srna->identifier, (srna->base)? srna->base->identifier: "Pointer");
 		fprintf(f, "public:\n");
 		fprintf(f, "\t%s(const PointerRNA& ptr) :\n\t\t%s(ptr)", srna->identifier, (srna->base)? srna->base->identifier: "Pointer");
@@ -1747,6 +1746,8 @@ static int rna_preprocess(char *outfile)
 	strcpy(deffile, outfile);
 	strcat(deffile, "RNA_blender_cpp.h");
 
+	status= (DefRNA.error != 0);
+
 	if(status) {
 		make_bad_file(deffile);
 	}
@@ -1765,10 +1766,7 @@ static int rna_preprocess(char *outfile)
 		}
 	}
 
-
 	rna_sort(brna);
-
-	status= (DefRNA.error != 0);
 
 	/* create rna_gen_*.c files */
 	for(i=0; PROCESS_ITEMS[i].filename; i++) {
