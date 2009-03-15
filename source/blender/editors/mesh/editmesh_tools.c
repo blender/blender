@@ -7014,7 +7014,7 @@ static int mesh_faces_shade_smooth_exec(bContext *C, wmOperator *op)
 void MESH_OT_faces_shade_smooth(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Flat Face Shading";
+	ot->name= "Smooth Face Shading";
 	ot->idname= "MESH_OT_faces_shade_smooth";
 	
 	/* api callbacks */
@@ -7040,7 +7040,7 @@ static int mesh_faces_shade_solid_exec(bContext *C, wmOperator *op)
 void MESH_OT_faces_shade_solid(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Smooth Face Shading";
+	ot->name= "Flat Face Shading";
 	ot->idname= "MESH_OT_faces_shade_solid";
 	
 	/* api callbacks */
