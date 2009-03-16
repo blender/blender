@@ -53,6 +53,7 @@
 #include "BLI_editVert.h"
 #include "BLI_dynstr.h"
 #include "BLI_rand.h"
+#include "BLI_mempool.h"
 
 #include "BKE_cloth.h"
 #include "BKE_context.h"
@@ -112,22 +113,21 @@ static void error() {}
 
 /* ************ ADD / REMOVE / FIND ****************** */
 
-static void *calloc_em(EditMesh *em, size_t size, size_t nr)
-{
-	return calloc(size, nr);
+static void init_editMesh(EditMesh *em) {
+	if (!em->vertpool) em->vertpool = BLI_mempool_create(sizeof(EditVert), 1, 512);
+	if (!em->edgepool) em->edgepool = BLI_mempool_create(sizeof(EditEdge), 1, 512);
+	if (!em->facepool) em->facepool = BLI_mempool_create(sizeof(EditFace), 1, 512);
 }
-
-/* used to bypass normal calloc with fast one */
-static void *(*callocvert)(EditMesh *, size_t, size_t) = calloc_em;
-static void *(*callocedge)(EditMesh *, size_t, size_t) = calloc_em;
-static void *(*callocface)(EditMesh *, size_t, size_t) = calloc_em;
 
 EditVert *addvertlist(EditMesh *em, float *vec, EditVert *example)
 {
 	EditVert *eve;
 	static int hashnr= 0;
+	
+	if (!em->vertpool) init_editMesh(em);
 
-	eve= callocvert(em, sizeof(EditVert), 1);
+	eve= BLI_mempool_calloc(em->vertpool);
+
 	BLI_addtail(&em->verts, eve);
 	em->totvert++;
 	
@@ -157,8 +157,7 @@ void free_editvert (EditMesh *em, EditVert *eve)
 
 	EM_remove_selection(em, eve, EDITVERT);
 	CustomData_em_free_block(&em->vdata, &eve->data);
-	if(eve->fast==0)
-		free(eve);
+	BLI_mempool_free(em->vertpool, eve);
 	
 	em->totvert--;
 }
@@ -256,11 +255,12 @@ EditEdge *addedgelist(EditMesh *em, EditVert *v1, EditVert *v2, EditEdge *exampl
 	}
 	
 	/* find in hashlist */
+	if (!em->edgepool) init_editMesh(em);
 	eed= findedgelist(em, v1, v2);
 
 	if(eed==NULL) {
 	
-		eed= (EditEdge *)callocedge(em, sizeof(EditEdge), 1);
+		eed= (EditEdge *)BLI_mempool_calloc(em->edgepool);
 		eed->v1= v1;
 		eed->v2= v2;
 		BLI_addtail(&em->edges, eed);
@@ -293,9 +293,8 @@ void remedge(EditMesh *em, EditEdge *eed)
 void free_editedge(EditMesh *em, EditEdge *eed)
 {
 	EM_remove_selection(em, eed, EDITEDGE);
-	if(eed->fast==0){ 
-		free(eed);
-	}
+
+	BLI_mempool_free(em->edgepool, eed);
 }
 
 void free_editface(EditMesh *em, EditFace *efa)
@@ -307,8 +306,7 @@ void free_editface(EditMesh *em, EditFace *efa)
 	}
 		
 	CustomData_em_free_block(&em->fdata, &efa->data);
-	if(efa->fast==0)
-		free(efa);
+	BLI_mempool_free(em->facepool, efa);
 	
 	em->totface--;
 }
@@ -384,7 +382,9 @@ EditFace *addfacelist(EditMesh *em, EditVert *v1, EditVert *v2, EditVert *v3, Ed
 	if(v1==v2 || v2==v3 || v1==v3) return NULL;
 	if(e2==0) return NULL;
 
-	efa= (EditFace *)callocface(em, sizeof(EditFace), 1);
+	if (!em->facepool) init_editMesh(em);
+	efa= (EditFace *)BLI_mempool_calloc(em->facepool);
+
 	efa->v1= v1;
 	efa->v2= v2;
 	efa->v3= v3;
@@ -467,57 +467,6 @@ int editface_containsEdge(EditFace *efa, EditEdge *eed)
 
 /* ************************ stuct EditMesh manipulation ***************************** */
 
-/* fake callocs for fastmalloc below */
-static void *calloc_fastvert(EditMesh *em, size_t size, size_t nr)
-{
-	EditVert *eve= em->curvert++;
-	eve->fast= 1;
-	return eve;
-}
-static void *calloc_fastedge(EditMesh *em, size_t size, size_t nr)
-{
-	EditEdge *eed= em->curedge++;
-	eed->fast= 1;
-	return eed;
-}
-static void *calloc_fastface(EditMesh *em, size_t size, size_t nr)
-{
-	EditFace *efa= em->curface++;
-	efa->fast= 1;
-	return efa;
-}
-
-/* allocate 1 chunk for all vertices, edges, faces. These get tagged to
-   prevent it from being freed
-*/
-static void init_editmesh_fastmalloc(EditMesh *em, int totvert, int totedge, int totface)
-{
-	if(totvert) em->allverts= MEM_callocN(totvert*sizeof(EditVert), "allverts");
-	else em->allverts= NULL;
-	em->curvert= em->allverts;
-	
-	if(totedge==0) totedge= 4*totface;	// max possible
-
-	if(totedge) em->alledges= MEM_callocN(totedge*sizeof(EditEdge), "alledges");
-	else em->alledges= NULL;
-	em->curedge= em->alledges;
-	
-	if(totface) em->allfaces= MEM_callocN(totface*sizeof(EditFace), "allfaces");
-	else em->allfaces= NULL;
-	em->curface= em->allfaces;
-
-	callocvert= calloc_fastvert;
-	callocedge= calloc_fastedge;
-	callocface= calloc_fastface;
-}
-
-static void end_editmesh_fastmalloc(void)
-{
-	callocvert= calloc_em;
-	callocedge= calloc_em;
-	callocface= calloc_em;
-}
-
 void set_editMesh(EditMesh *dst, EditMesh *src)
 {
 	free_editMesh(dst);
@@ -533,7 +482,12 @@ void free_editMesh(EditMesh *em)
 	if(em->edges.first) free_edgelist(em, &em->edges);
 	if(em->faces.first) free_facelist(em, &em->faces);
 	if(em->selected.first) BLI_freelistN(&(em->selected));
-
+	
+	if (em->vertpool) BLI_mempool_destroy(em->vertpool);
+	if (em->edgepool) BLI_mempool_destroy(em->edgepool);
+	if (em->facepool) BLI_mempool_destroy(em->facepool);
+	em->vertpool = em->edgepool = em->facepool = NULL;
+	
 	CustomData_free(&em->vdata, 0);
 	CustomData_free(&em->fdata, 0);
 
@@ -857,9 +811,6 @@ void make_editMesh(Scene *scene, Object *ob)
 		return;
 	}
 	
-	/* initialize fastmalloc for editmesh */
-	init_editmesh_fastmalloc(em, me->totvert, me->totedge, me->totface);
-
 	actkey = ob_get_keyblock(ob);
 	if(actkey) {
 		tot= actkey->totelem;
@@ -985,8 +936,6 @@ void make_editMesh(Scene *scene, Object *ob)
 		error("This Mesh has old style edgecodes, please put it in the bugtracker!");
 	
 	MEM_freeN(evlist);
-
-	end_editmesh_fastmalloc();	// resets global function pointers
 	
 	if(me->mselect){
 		//restore editselections
@@ -1822,8 +1771,6 @@ static void undoMesh_to_editMesh(void *umv, void *emv)
 	memset(em, 0, sizeof(EditMesh));
 		
 	em->selectmode = um->selectmode;
-	
-	init_editmesh_fastmalloc(em, um->totvert, um->totedge, um->totface);
 
 	CustomData_free(&em->vdata, 0);
 	CustomData_free(&em->edata, 0);
@@ -1881,7 +1828,6 @@ static void undoMesh_to_editMesh(void *umv, void *emv)
 		CustomData_to_em_block(&um->fdata, &em->fdata, a, &efa->data);
 	}
 	
-	end_editmesh_fastmalloc();
 	if(evar) MEM_freeN(evar);
 	
 	em->totvert = um->totvert;

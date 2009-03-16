@@ -382,11 +382,15 @@ BMesh *editmesh_to_bmesh_intern(EditMesh *em, BMesh *bm, BMOperator *op) {
 
 	/*copy face corner data*/
 	CustomData_to_bmeshpoly(&em->fdata, &bm->pdata, &bm->ldata);
-	/*initialize memory pools*/
+	
+	/*EVIL HACK WARNING: this uses a fixed size for the customdata
+	  blocks, when it should be more smart about it.
+	  initialize customdata memory pools*/
 	CustomData_bmesh_init_pool(&bm->vdata, allocsize[0]);
 	CustomData_bmesh_init_pool(&bm->edata, allocsize[1]);
 	CustomData_bmesh_init_pool(&bm->ldata, allocsize[2]);
 	CustomData_bmesh_init_pool(&bm->pdata, allocsize[3]);
+
 	/*needed later*/
 	numTex = CustomData_number_of_layers(&bm->pdata, CD_MTEXPOLY);
 	numCol = CustomData_number_of_layers(&bm->ldata, CD_MLOOPCOL);
