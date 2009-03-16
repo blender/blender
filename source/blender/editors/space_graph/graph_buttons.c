@@ -257,7 +257,7 @@ static void _draw_modifier__generator(uiBlock *block, FCurve *fcu, FModifier *fc
 {
 	FMod_Generator *data= (FMod_Generator *)fcm->data;
 	char gen_mode[]="Generator Type%t|Expanded Polynomial%x0|Factorised Polynomial%x1|Built-In Function%x2|Expression%x3";
-	//char fn_type[]="Built-In Function%t|Sin%x0|Cos%x1|Tan%x2|Square Root%x3|Natural Log%x4";
+	char fn_type[]="Built-In Function%t|Sin%x0|Cos%x1|Tan%x2|Square Root%x3|Natural Log%x4";
 	int cy= *yco - 30;
 	uiBut *but;
 	
@@ -268,7 +268,7 @@ static void _draw_modifier__generator(uiBlock *block, FCurve *fcu, FModifier *fc
 			(*height) += 20*(data->poly_order+1) + 35;
 			break;
 		case FCM_GENERATOR_POLYNOMIAL_FACTORISED: /* factorised polynomial */
-			(*height) += 25 * data->poly_order;
+			(*height) += 20 * data->poly_order;
 			break;
 		case FCM_GENERATOR_FUNCTION: /* builtin function */
 			(*height) += 50; // xxx
@@ -280,7 +280,7 @@ static void _draw_modifier__generator(uiBlock *block, FCurve *fcu, FModifier *fc
 	
 	/* basic settings (backdrop + mode selector + some padding) */
 	//DRAW_BACKDROP((*height)); // XXX buggy...
-	but= uiDefButS(block, MENU, /*B_FMODIFIER_REDRAW*/B_REDR, gen_mode, 10,cy,width-30,19, &data->mode, 0, 0, 0, 0, "Selects type of generator algorithm.");
+	but= uiDefButS(block, MENU, B_FMODIFIER_REDRAW, gen_mode, 10,cy,width-30,19, &data->mode, 0, 0, 0, 0, "Selects type of generator algorithm.");
 	uiButSetFunc(but, validate_fmodifier_cb, fcu, fcm);
 	cy -= 35;
 	
@@ -293,12 +293,13 @@ static void _draw_modifier__generator(uiBlock *block, FCurve *fcu, FModifier *fc
 			unsigned int i;
 			
 			/* draw polynomial order selector */
-				// XXX this needs validation!
 			but= uiDefButS(block, NUM, B_FMODIFIER_REDRAW, "Poly Order: ", 10,cy,width-30,19, &data->poly_order, 1, 100, 0, 0, "'Order' of the Polynomial - for a polynomial with n terms, 'order' is n-1");
 			uiButSetFunc(but, validate_fmodifier_cb, fcu, fcm);
 			cy -= 35;
 			
 			/* draw controls for each coefficient and a + sign at end of row */
+			uiDefBut(block, LABEL, 1, "y = ", 0, cy, 50, 20, NULL, 0.0, 0.0, 0, 0, "");
+			
 			cp= data->coefficients;
 			for (i=0; (i < data->arraysize) && (cp); i++, cp++) {
 				/* coefficient */
@@ -314,10 +315,58 @@ static void _draw_modifier__generator(uiBlock *block, FCurve *fcu, FModifier *fc
 				uiDefBut(block, LABEL, 1, xval, 200, cy, 50, 20, NULL, 0.0, 0.0, 0, 0, "Power of x");
 				
 				if ( (i != (data->arraysize - 1)) || ((i==0) && data->arraysize==2) )
-					uiDefBut(block, LABEL, 1, "+", 300, cy, 30, 20, NULL, 0.0, 0.0, 0, 0, "Power of x");
+					uiDefBut(block, LABEL, 1, "+", 250, cy, 30, 20, NULL, 0.0, 0.0, 0, 0, "");
 				
 				cy -= 20;
 			}
+		}
+			break;
+		
+		case FCM_GENERATOR_POLYNOMIAL_FACTORISED: /* factorised polynomial expression */
+		{
+			float *cp = NULL;
+			unsigned int i;
+			
+			/* draw polynomial order selector */
+			but= uiDefButS(block, NUM, B_FMODIFIER_REDRAW, "Poly Order: ", 10,cy,width-30,19, &data->poly_order, 1, 100, 0, 0, "'Order' of the Polynomial - for a polynomial with n terms, 'order' is n-1");
+			uiButSetFunc(but, validate_fmodifier_cb, fcu, fcm);
+			cy -= 35;
+			
+			/* draw controls for each pair of coefficients */
+			uiDefBut(block, LABEL, 1, "y = ", 0, cy, 50, 20, NULL, 0.0, 0.0, 0, 0, "");
+			
+			cp= data->coefficients;
+			for (i=0; (i < data->poly_order) && (cp); i++, cp+=2) {
+				/* opening bracket */
+				uiDefBut(block, LABEL, 1, "(", 40, cy, 50, 20, NULL, 0.0, 0.0, 0, 0, "");
+				
+				/* coefficients */
+				uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "", 50, cy, 100, 20, cp, -FLT_MAX, FLT_MAX, 10, 3, "Coefficient of x");
+				
+				uiDefBut(block, LABEL, 1, "x + ", 150, cy, 30, 20, NULL, 0.0, 0.0, 0, 0, "");
+				
+				uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "", 180, cy, 100, 20, cp+1, -FLT_MAX, FLT_MAX, 10, 3, "Second coefficient");
+				
+				/* closing bracket and '+' sign */
+				if ( (i != (data->poly_order - 1)) || ((i==0) && data->poly_order==2) )
+					uiDefBut(block, LABEL, 1, ") ×", 280, cy, 30, 20, NULL, 0.0, 0.0, 0, 0, "");
+				else
+					uiDefBut(block, LABEL, 1, ")", 280, cy, 30, 20, NULL, 0.0, 0.0, 0, 0, "");
+				
+				cy -= 20;
+			}
+		}
+			break;
+		
+		case FCM_GENERATOR_FUNCTION: /* built-in function */
+		{
+			
+			/* draw function selector */
+			but= uiDefButS(block, MENU, B_FMODIFIER_REDRAW, fn_type, 10,cy,width-30,19, &data->func_type, 0, 0, 0, 0, "Built-In Function to use");
+			uiButSetFunc(but, validate_fmodifier_cb, fcu, fcm);
+			cy -= 35;
+			
+			// TODO: finish adding buttons...
 		}
 			break;
 		

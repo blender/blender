@@ -1184,23 +1184,65 @@ static void fcm_generator_verify (FModifier *fcm)
 						memcpy(nc, data->coefficients, sizeof(float)*(data->poly_order+1));
 					else
 						memcpy(nc, data->coefficients, sizeof(float)*data->arraysize);
+						
+					/* free the old data */
+					MEM_freeN(data->coefficients);
 				}	
 				
-				/* free the old data, and set the new */
-				if (data->coefficients) MEM_freeN(data->coefficients);
-				
+				/* set the new data */
 				data->coefficients= nc;
 				data->arraysize= data->poly_order+1;
 			}
 		}
 			break;
 		
-		// FIXME: add checks for all others		
 		case FCM_GENERATOR_POLYNOMIAL_FACTORISED: /* expanded polynomial expression */
 		{
-			
+			/* arraysize needs to be 2*order, so resize if not */
+			if (data->arraysize != (data->poly_order * 2)) {
+				float *nc;
+				
+				/* make new coefficients array, and copy over as much data as can fit */
+				nc= MEM_callocN(sizeof(float)*(data->poly_order*2), "FMod_Generator_Coefs");
+				
+				if (data->coefficients) {
+					if (data->arraysize > (data->poly_order * 2))
+						memcpy(nc, data->coefficients, sizeof(float)*(data->poly_order * 2));
+					else
+						memcpy(nc, data->coefficients, sizeof(float)*data->arraysize);
+						
+					/* free the old data */
+					MEM_freeN(data->coefficients);
+				}	
+				
+				/* set the new data */
+				data->coefficients= nc;
+				data->arraysize= data->poly_order * 2;
+			}
 		}
 			break;
+			
+		case FCM_GENERATOR_FUNCTION: /* builtin function */
+		{
+			/* arraysize needs to be 4*/
+			if (data->arraysize != 4) {
+				float *nc;
+				
+				/* free the old data */
+				if (data->coefficients)
+					MEM_freeN(data->coefficients);
+				
+				/* make new coefficients array, and init using default values */
+				nc= data->coefficients= MEM_callocN(sizeof(float)*4, "FMod_Generator_Coefs");
+				data->arraysize= 4;
+				
+				nc[0]= 1.0f;
+				nc[1]= 1.0f;
+				nc[2]= 0.0f;
+				nc[3]= 0.0f;
+			}
+		}
+			break;	
 	}
 }
 
