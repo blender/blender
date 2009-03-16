@@ -2289,7 +2289,7 @@ static TStripElem* do_build_seq_array_recursively(
 #ifdef SEQ_SPECIAL_SEQ_UPDATE_WORKAROUND
 			if (se2->ibuf->rect==NULL && se2->ibuf->rect_float==NULL) {
 				printf("ERROR: sequencer se2->ibuf missing buffer\n");
-			} else if (se1->ibuf->rect==NULL && se1->ibuf->rect_float==NULL) {
+			} else if (se1->ibuf && se1->ibuf->rect==NULL && se1->ibuf->rect_float==NULL) {
 				printf("ERROR: sequencer se1->ibuf missing buffer\n");
 			} else {
 #endif
