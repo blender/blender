@@ -246,7 +246,7 @@ static void get_filename(int argc, char **argv, char *filename)
 		if (BLI_exists(gamefile))
 			BLI_strncpy(filename, gamefile, FILE_MAXDIR + FILE_MAXFILE);
 
-		delete gamefile;
+		delete [] gamefile;
 	}
 	
 #else
