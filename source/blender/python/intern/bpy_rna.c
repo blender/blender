@@ -26,6 +26,9 @@
 #include "bpy_compat.h"
 //#include "blendef.h"
 #include "BLI_dynstr.h"
+#include "float.h" /* FLT_MIN/MAX */
+
+#include "RNA_define.h" /* for defining our own rna */
 
 #include "MEM_guardedalloc.h"
 #include "BKE_global.h" /* evil G.* */
@@ -65,12 +68,16 @@ static PyObject *pyrna_prop_richcmp(BPy_PropertyRNA * a, BPy_PropertyRNA * b, in
 /*----------------------repr--------------------------------------------*/
 static PyObject *pyrna_struct_repr( BPy_StructRNA * self )
 {
-	return PyUnicode_FromFormat( "[BPy_StructRNA \"%s\"]", RNA_struct_identifier(&self->ptr));
+	char str[512];
+	RNA_string_get(&self->ptr, "identifier", str);
+	return PyUnicode_FromFormat( "[BPy_StructRNA \"%s\" -> \"%s\"]", RNA_struct_identifier(&self->ptr), str);
 }
 
 static PyObject *pyrna_prop_repr( BPy_PropertyRNA * self )
 {
-	return PyUnicode_FromFormat( "[BPy_PropertyRNA \"%s\" -> \"%s\" ]", RNA_struct_identifier(&self->ptr), RNA_property_identifier(&self->ptr, self->prop) );
+	char str[512];
+	RNA_string_get(&self->ptr, "identifier", str);
+	return PyUnicode_FromFormat( "[BPy_PropertyRNA \"%s\" -> \"%s\" -> \"%s\" ]", RNA_struct_identifier(&self->ptr), str, RNA_property_identifier(&self->ptr, self->prop) );
 }
 
 static long pyrna_struct_hash( BPy_StructRNA * self )
@@ -88,7 +95,7 @@ static void pyrna_struct_dealloc( BPy_StructRNA * self )
 		self->ptr.data= NULL;
 	}
 
-	((PyObject *)self)->ob_type->tp_free(self);
+	Py_TYPE(self)->tp_free(self);
 	return;
 }
 
@@ -516,7 +523,7 @@ static int pyrna_prop_assign_subscript( BPy_PropertyRNA * self, PyObject *key, P
 	char *keyname = NULL;
 	
 	if (!RNA_property_editable(&self->ptr, self->prop)) {
-		PyErr_Format( PyExc_AttributeError, "Attribute \"%s\" from \"%s\" is read-only", RNA_property_identifier(&self->ptr, self->prop), RNA_struct_identifier(&self->ptr) );
+		PyErr_Format( PyExc_AttributeError, "PropertyRNA - attribute \"%s\" from \"%s\" is read-only", RNA_property_identifier(&self->ptr, self->prop), RNA_struct_identifier(&self->ptr) );
 		return -1;
 	}
 	
@@ -525,26 +532,26 @@ static int pyrna_prop_assign_subscript( BPy_PropertyRNA * self, PyObject *key, P
 	} else if (PyLong_Check(key)) {
 		keynum = PyLong_AsSsize_t(key);
 	} else {
-		PyErr_SetString(PyExc_AttributeError, "invalid key, key must be a string or an int");
+		PyErr_SetString(PyExc_AttributeError, "PropertyRNA - invalid key, key must be a string or an int");
 		return -1;
 	}
 	
 	if (RNA_property_type(&self->ptr, self->prop) == PROP_COLLECTION) {
-		PyErr_SetString(PyExc_AttributeError, "assignment is not supported for collections (yet)");
+		PyErr_SetString(PyExc_AttributeError, "PropertyRNA - assignment is not supported for collections (yet)");
 		ret = -1;
 	} else if (keyname) {
-		PyErr_SetString(PyExc_AttributeError, "string keys are only supported for collections");
+		PyErr_SetString(PyExc_AttributeError, "PropertyRNA - string keys are only supported for collections");
 		ret = -1;
 	} else {
 		int len = RNA_property_array_length(&self->ptr, self->prop);
 		
 		if (len==0) { /* not an array*/
-			PyErr_Format(PyExc_AttributeError, "not an array or collection %d", keynum);
+			PyErr_Format(PyExc_AttributeError, "PropertyRNA - not an array or collection %d", keynum);
 			ret = -1;
 		}
 		
 		if (keynum >= len){
-			PyErr_SetString(PyExc_AttributeError, "index out of range");
+			PyErr_SetString(PyExc_AttributeError, "PropertyRNA - index out of range");
 			ret = -1;
 		} else {
 			ret = pyrna_py_to_prop_index(&self->ptr, self->prop, keynum, value);
@@ -621,9 +628,11 @@ static PyObject *pyrna_struct_getattro( BPy_StructRNA * self, PyObject *pyname )
 	/* Include this incase this instance is a subtype of a python class
 	 * In these instances we may want to return a function or variable provided by the subtype
 	 * */
-	ret = PyObject_GenericGetAttr((PyObject *)self, pyname);
-	if (ret)	return ret;
-	else		PyErr_Clear();
+	if (BPy_StructRNA_CheckExact(self) == 0) {
+		ret = PyObject_GenericGetAttr((PyObject *)self, pyname);
+		if (ret)	return ret;
+		else		PyErr_Clear();
+	}
 	/* done with subtypes */
 
 	prop = RNA_struct_find_property(&self->ptr, name);
@@ -632,7 +641,7 @@ static PyObject *pyrna_struct_getattro( BPy_StructRNA * self, PyObject *pyname )
 		ret = pyrna_prop_to_py(&self->ptr, prop);
 	}
 	else {
-		PyErr_Format( PyExc_AttributeError, "Attribute \"%s\" not found", name);
+		PyErr_Format( PyExc_AttributeError, "StructRNA - Attribute \"%s\" not found", name);
 		ret = NULL;
 	}
 	
@@ -646,12 +655,17 @@ static int pyrna_struct_setattro( BPy_StructRNA * self, PyObject *pyname, PyObje
 	PropertyRNA *prop = RNA_struct_find_property(&self->ptr, name);
 	
 	if (prop==NULL) {
-		PyErr_Format( PyExc_AttributeError, "Attribute \"%s\" not found", name);
-		return -1;
+		if (!BPy_StructRNA_CheckExact(self) && PyObject_GenericSetAttr((PyObject *)self, pyname, value) >= 0) {
+			return 0;
+		}
+		else {
+			PyErr_Format( PyExc_AttributeError, "StructRNA - Attribute \"%s\" not found", name);
+			return -1;
+		}
 	}		
 	
 	if (!RNA_property_editable(&self->ptr, prop)) {
-		PyErr_Format( PyExc_AttributeError, "Attribute \"%s\" from \"%s\" is read-only", RNA_property_identifier(&self->ptr, prop), RNA_struct_identifier(&self->ptr) );
+		PyErr_Format( PyExc_AttributeError, "StructRNA - Attribute \"%s\" from \"%s\" is read-only", RNA_property_identifier(&self->ptr, prop), RNA_struct_identifier(&self->ptr) );
 		return -1;
 	}
 		
@@ -1199,4 +1213,90 @@ PyObject *BPY_rna_doc( void )
 	RNA_property_collection_end(&iter);
 	
 	return mod;
+}
+
+
+/* Orphan functions, not sure where they should go */
+
+/* Function that sets RNA, NOTE - self is NULL when called from python, but being abused from C so we can pass the srna allong
+ * This isnt incorrect since its a python object - but be careful */
+PyObject *BPy_FloatProperty(PyObject *self, PyObject *args, PyObject *kw)
+{
+	static char *kwlist[] = {"attribute", "name", "description", "min", "max", "soft_min", "soft_max", "default", NULL};
+	char *id, *name="", *description="";
+	float min=FLT_MIN, max=FLT_MAX, soft_min=FLT_MIN, soft_max=FLT_MAX, def=0.0f;
+	
+	if (!PyArg_ParseTupleAndKeywords(args, kw, "s|ssfffff:FloatProperty", kwlist, &id, &name, &description, &min, &max, &soft_min, &soft_max, &def))
+		return NULL;
+	
+	if (PyTuple_Size(args) > 0) {
+	 	PyErr_SetString(PyExc_ValueError, "all args must be keywors"); // TODO - py3 can enforce this.
+		return NULL;
+	}
+	
+	if (self) {
+		StructRNA *srna = PyCObject_AsVoidPtr(self);
+		RNA_def_float(srna, id, def, min, max, name, description, soft_min, soft_max);
+		Py_RETURN_NONE;
+	} else {
+		PyObject *ret = PyTuple_New(2);
+		PyTuple_SET_ITEM(ret, 0, PyCObject_FromVoidPtr((void *)BPy_FloatProperty, NULL));
+		PyTuple_SET_ITEM(ret, 1, kw);
+		Py_INCREF(kw);
+		return ret;
+	}
+}
+
+PyObject *BPy_IntProperty(PyObject *self, PyObject *args, PyObject *kw)
+{
+	static char *kwlist[] = {"attribute", "name", "description", "min", "max", "soft_min", "soft_max", "default", NULL};
+	char *id, *name="", *description="";
+	int min=INT_MIN, max=INT_MAX, soft_min=INT_MIN, soft_max=INT_MAX, def=0;
+	
+	if (!PyArg_ParseTupleAndKeywords(args, kw, "s|ssiiiii:IntProperty", kwlist, &id, &name, &description, &min, &max, &soft_min, &soft_max, &def))
+		return NULL;
+	
+	if (PyTuple_Size(args) > 0) {
+	 	PyErr_SetString(PyExc_ValueError, "all args must be keywors"); // TODO - py3 can enforce this.
+		return NULL;
+	}
+	
+	if (self) {
+		StructRNA *srna = PyCObject_AsVoidPtr(self);
+		RNA_def_int(srna, id, def, min, max, name, description, soft_min, soft_max);
+		Py_RETURN_NONE;
+	} else {
+		PyObject *ret = PyTuple_New(2);
+		PyTuple_SET_ITEM(ret, 0, PyCObject_FromVoidPtr((void *)BPy_IntProperty, NULL));
+		PyTuple_SET_ITEM(ret, 1, kw);
+		Py_INCREF(kw);
+		return ret;
+	}
+}
+
+PyObject *BPy_BoolProperty(PyObject *self, PyObject *args, PyObject *kw)
+{
+	static char *kwlist[] = {"attribute", "name", "description", "default", NULL};
+	char *id, *name="", *description="";
+	int def=0;
+	
+	if (!PyArg_ParseTupleAndKeywords(args, kw, "s|ssi:IntProperty", kwlist, &id, &name, &description, &def))
+		return NULL;
+	
+	if (PyTuple_Size(args) > 0) {
+	 	PyErr_SetString(PyExc_ValueError, "all args must be keywors"); // TODO - py3 can enforce this.
+		return NULL;
+	}
+	
+	if (self) {
+		StructRNA *srna = PyCObject_AsVoidPtr(self);
+		RNA_def_boolean(srna, id, def, name, description);
+		Py_RETURN_NONE;
+	} else {
+		PyObject *ret = PyTuple_New(2);
+		PyTuple_SET_ITEM(ret, 0, PyCObject_FromVoidPtr((void *)BPy_IntProperty, NULL));
+		PyTuple_SET_ITEM(ret, 1, kw);
+		Py_INCREF(kw);
+		return ret;
+	}
 }

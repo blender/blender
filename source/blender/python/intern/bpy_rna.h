@@ -33,8 +33,10 @@
 extern PyTypeObject pyrna_struct_Type;
 extern PyTypeObject pyrna_prop_Type;
 
-#define BPy_StructRNA_Check(v)		(PyObject_TypeCheck(v, &pyrna_struct_Type))
-#define BPy_PropertyRNA_Check(v)	(PyObject_TypeCheck(v, &pyrna_prop_Type))
+#define BPy_StructRNA_Check(v)			(PyObject_TypeCheck(v, &pyrna_struct_Type))
+#define BPy_StructRNA_CheckExact(v)		(Py_TYPE(v) == &pyrna_struct_Type)
+#define BPy_PropertyRNA_Check(v)		(PyObject_TypeCheck(v, &pyrna_prop_Type))
+#define BPy_PropertyRNA_CheckExact(v)	(Py_TYPE(v) == &pyrna_prop_Type)
 
  //XXX add propper accessor function, we know this is just after next/prev pointers
  
@@ -69,4 +71,11 @@ PyObject *pyrna_prop_CreatePyObject( PointerRNA *ptr, PropertyRNA *prop );
 /* operators also need this to set args */
 int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, PyObject *value);
 PyObject * pyrna_prop_to_py(PointerRNA *ptr, PropertyRNA *prop);
+
+/* functions for setting up new props - experemental */
+PyObject *BPy_FloatProperty(PyObject *self, PyObject *args, PyObject *kw);
+PyObject *BPy_IntProperty(PyObject *self, PyObject *args, PyObject *kw);
+PyObject *BPy_BoolProperty(PyObject *self, PyObject *args, PyObject *kw);
+
+
 #endif

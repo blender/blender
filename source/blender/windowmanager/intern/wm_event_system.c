@@ -469,7 +469,12 @@ int WM_operator_call_py(bContext *C, wmOperatorType *ot, PointerRNA *properties,
 {
 	wmWindowManager *wm=	CTX_wm_manager(C);
 	wmOperator *op=			wm_operator_create(wm, ot, properties, reports);
-	int retval=				op->type->exec(C, op);
+	int retval= OPERATOR_CANCELLED;
+	
+	if (op->type->exec)
+		retval= op->type->exec(C, op);
+	else
+		printf("error \"%s\" operator has no exec function, python cannot call it\n", op->type->name);
 	
 	if (reports)
 		op->reports= NULL; /* dont let the operator free reports passed to this function */

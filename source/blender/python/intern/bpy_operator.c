@@ -111,7 +111,7 @@ static PyObject *pyop_base_dir(PyObject *self);
 static struct PyMethodDef pyop_base_methods[] = {
 	{"__dir__", (PyCFunction)pyop_base_dir, METH_NOARGS, ""},
 	{"add", (PyCFunction)PYOP_wrap_add, METH_VARARGS, ""},
-	{"remove", (PyCFunction)PYOP_wrap_remove, METH_VARARGS, ""},
+	{"remove", (PyCFunction)PYOP_wrap_remove, METH_O, ""},
 	{NULL, NULL, 0, NULL}
 };
 

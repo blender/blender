@@ -57,6 +57,22 @@ static PyObject *CreateGlobalDictionary( bContext *C )
 	PyDict_SetItemString( dict, "__bpy_context__", item );
 	Py_DECREF(item);
 	
+	
+	// XXX - put somewhere more logical
+	{
+		PyMethodDef *ml;
+		static PyMethodDef bpy_prop_meths[] = {
+			{"FloatProperty", BPy_FloatProperty, METH_VARARGS|METH_KEYWORDS, ""},
+			{"IntProperty", BPy_IntProperty, METH_VARARGS|METH_KEYWORDS, ""},
+			{"BoolProperty", BPy_BoolProperty, METH_VARARGS|METH_KEYWORDS, ""},
+			{NULL, NULL, 0, NULL}
+		};
+		
+		for(ml = &bpy_prop_meths; ml->ml_name; ml++) {
+			PyDict_SetItemString( dict, ml->ml_name, PyCFunction_New(ml, NULL));
+		}
+	}
+	
 	return dict;
 }
 
