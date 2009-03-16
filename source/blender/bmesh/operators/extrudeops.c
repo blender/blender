@@ -75,12 +75,8 @@ void extrude_edge_context_exec(BMesh *bm, BMOperator *op)
 			BMO_SetFlag(bm, f, EXT_DEL);
 	}
 #endif
-	//if (delorig) BMO_Flag_To_Slot(bm, &delop, BMOP_DEL_MULTIN, EXT_DEL, BM_ALL);
-	//BMO_Set_Int(&delop, BMOP_DEL_CONTEXT, DEL_ONLYTAGGED);
-	
 	if (delorig) BMO_InitOpf(bm, &delop, "del geom=%fvef context=%d", 
 	                         EXT_DEL, DEL_ONLYTAGGED);
-	else BMO_InitOpf(bm, &delop, "del context=%d", DEL_ONLYTAGGED);
 
 	BMO_CopySlot(op, &dupeop, BMOP_EXFACE_EDGEFACEIN, BMOP_DUPE_MULTIN);
 	
