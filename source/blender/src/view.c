@@ -75,6 +75,7 @@
 #include "BIF_space.h"
 #include "BIF_screen.h"
 #include "BIF_toolbox.h"
+#include "BIF_sketch.h"
 
 #include "BSE_view.h"
 #include "BSE_edit.h"		/* For countall */
@@ -83,6 +84,7 @@
 #include "BDR_drawobject.h"	/* For draw_object */
 #include "BDR_editface.h"	/* For minmax_tface */
 #include "BDR_sculptmode.h"
+#include "BDR_sketch.h"
 
 #include "mydevice.h"
 #include "blendef.h"
@@ -1907,7 +1909,14 @@ short  view3d_opengl_select(unsigned int *buffer, unsigned int bufsize, short x1
 		draw_object(BASACT, DRAW_PICKING|DRAW_CONSTCOLOR);
 	}
 	else if ((G.obedit && G.obedit->type==OB_ARMATURE)) {
-		draw_object(BASACT, DRAW_PICKING|DRAW_CONSTCOLOR);
+		if (BIF_fullSketchMode())
+		{
+			BDR_drawSketchNames();
+		}
+		else
+		{
+			draw_object(BASACT, DRAW_PICKING|DRAW_CONSTCOLOR);
+		}
 	}
 	else {
 		Base *base;

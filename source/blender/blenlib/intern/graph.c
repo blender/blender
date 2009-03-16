@@ -465,8 +465,6 @@ int subtreeShape(BNode *node, BArc *rootArc, int include_root)
 
 int BLI_subtreeShape(BGraph *graph, BNode *node, BArc *rootArc, int include_root)
 {
-	BNode *test_node;
-	
 	BLI_flagNodes(graph, 0);
 	return subtreeShape(node, rootArc, include_root);
 }
@@ -1033,6 +1031,11 @@ void BLI_markdownSymmetry(BGraph *graph, BNode *root_node, float limit)
 	BNode *node;
 	BArc *arc;
 	
+	if (root_node == NULL)
+	{
+		return;
+	}
+	
 	if (BLI_isGraphCyclic(graph))
 	{
 		return;
@@ -1085,3 +1088,56 @@ void BLI_markdownSymmetry(BGraph *graph, BNode *root_node, float limit)
 	}
 }
 
+void* IT_head(void* arg)
+{
+	BArcIterator *iter = (BArcIterator*)arg; 
+	return iter->head(iter);
+}
+
+void* IT_tail(void* arg)
+{
+	BArcIterator *iter = (BArcIterator*)arg; 
+	return iter->tail(iter); 
+}
+
+void* IT_peek(void* arg, int n)
+{
+	BArcIterator *iter = (BArcIterator*)arg;
+	
+	if (iter->index + n < 0)
+	{
+		return iter->head(iter);
+	}
+	else if (iter->index + n >= iter->length)
+	{
+		return iter->tail(iter);
+	}
+	else
+	{
+		return iter->peek(iter, n);
+	}
+}
+
+void* IT_next(void* arg)
+{
+	BArcIterator *iter = (BArcIterator*)arg; 
+	return iter->next(iter);
+}
+
+void* IT_nextN(void* arg, int n)
+{
+	BArcIterator *iter = (BArcIterator*)arg; 
+	return iter->nextN(iter, n);
+}
+
+void* IT_previous(void* arg)
+{
+	BArcIterator *iter = (BArcIterator*)arg; 
+	return iter->previous(iter);
+}
+
+int   IT_stopped(void* arg)
+{
+	BArcIterator *iter = (BArcIterator*)arg; 
+	return iter->stopped(iter);
+}

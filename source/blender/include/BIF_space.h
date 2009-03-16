@@ -54,6 +54,7 @@ struct SpaceOops;
 #define VIEW3D_HANDLER_MULTIRES         5
 #define VIEW3D_HANDLER_TRANSFORM	6
 #define VIEW3D_HANDLER_GREASEPENCIL 7
+#define VIEW3D_HANDLER_BONESKETCH 8
 
 /* ipo handler codes */
 #define IPO_HANDLER_PROPERTIES	20

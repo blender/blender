@@ -130,6 +130,7 @@
 #include "BIF_resources.h"
 #include "BIF_retopo.h"
 #include "BIF_screen.h"
+#include "BIF_sketch.h"
 #include "BIF_space.h"
 
 #ifdef WITH_VERSE
@@ -143,6 +144,7 @@
 #include "BDR_vpaint.h"
 #include "BDR_sculptmode.h"
 #include "BDR_gpencil.h"
+#include "BDR_sketch.h"
 
 #include "BSE_drawview.h"
 #include "BSE_filesel.h"
@@ -2272,6 +2274,141 @@ static void view3d_panel_transform_spaces(short cntrl)
 	if(yco < 0) uiNewPanelHeight(block, height-yco);
 }
 
+static void delete_sketch_armature(void *arg1, void *arg2)
+{
+	BIF_deleteSketch();
+}
+
+static void convert_sketch_armature(void *arg1, void *arg2)
+{
+	BIF_convertSketch();
+}
+
+static void assign_template_sketch_armature(void *arg1, void *arg2)
+{
+	int index = *(int*)arg1;
+	BIF_setTemplate(index);
+}
+static void view3d_panel_bonesketch_spaces(short cntrl)
+{
+	static int template_index;
+	static char joint_label[128];
+	uiBlock *block;
+	uiBut *but;
+	char *bone_name;
+	int yco = 130, height = 140;
+	int nb_joints;
+
+	/* replace with check call to sketching lib */
+	if (G.obedit && G.obedit->type == OB_ARMATURE)
+	{
+		static char subdiv_tooltip[4][64] = {
+			"Subdivide arcs based on a fixed number of bones",
+			"Subdivide arcs in bones of equal length",
+			"Subdivide arcs based on correlation",
+			"Retarget template to stroke"
+			};
+
+		
+		block= uiNewBlock(&curarea->uiblocks, "view3d_panel_bonesketch_spaces", UI_EMBOSS, UI_HELV, curarea->win);
+		uiPanelControl(UI_PNL_SOLID | UI_PNL_CLOSE  | cntrl);
+		uiSetPanelHandler(VIEW3D_HANDLER_BONESKETCH);  // for close and esc
+	
+		if(uiNewPanel(curarea, block, "Bone Sketching", "View3d", 10, 230, 250, height)==0) return;
+	
+		uiNewPanelHeight(block, height);
+	
+		uiBlockBeginAlign(block);
+		
+		/* use real flag instead of 1 */
+		uiDefButBitC(block, TOG, BONE_SKETCHING, B_REDR, "Use Bone Sketching", 10, yco, 160, 20, &G.scene->toolsettings->bone_sketching, 0, 0, 0, 0, "Use sketching to create and edit bones");
+		uiDefButBitC(block, TOG, BONE_SKETCHING_ADJUST, B_REDR, "A", 170, yco, 20, 20, &G.scene->toolsettings->bone_sketching, 0, 0, 0, 0, "Adjust strokes by drawing near them");
+		uiDefButBitC(block, TOG, BONE_SKETCHING_QUICK, B_REDR, "Q", 190, yco, 20, 20, &G.scene->toolsettings->bone_sketching, 0, 0, 0, 0, "Automatically convert and delete on stroke end");
+		yco -= 20;
+		
+		but = uiDefBut(block, BUT, B_REDR, "Convert", 10,yco,100,20, 0, 0, 0, 0, 0, "Convert sketch to armature");
+		uiButSetFunc(but, convert_sketch_armature, NULL, NULL);
+
+		but = uiDefBut(block, BUT, B_REDR, "Delete", 110,yco,100,20, 0, 0, 0, 0, 0, "Delete sketch");
+		uiButSetFunc(but, delete_sketch_armature, NULL, NULL);
+		yco -= 20;
+		
+		uiBlockEndAlign(block);
+
+		uiBlockBeginAlign(block);
+		
+		uiDefButC(block, MENU, B_REDR, "Subdivision Method%t|Length%x1|Adaptative%x2|Fixed%x0|Template%x3", 10,yco,60,19, &G.scene->toolsettings->bone_sketching_convert, 0, 0, 0, 0, subdiv_tooltip[(unsigned char)G.scene->toolsettings->bone_sketching_convert]);
+
+		switch(G.scene->toolsettings->bone_sketching_convert)
+		{
+		case SK_CONVERT_CUT_LENGTH:
+			uiDefButF(block, NUM, B_REDR, 					"Lim:",		70, yco, 140, 19, &G.scene->toolsettings->skgen_length_limit,0.1,50.0, 10, 0,		"Maximum length of the subdivided bones");
+			yco -= 20;
+			break;
+		case SK_CONVERT_CUT_ADAPTATIVE:
+			uiDefButF(block, NUM, B_REDR, 					"Thres:",			70, yco, 140, 19, &G.scene->toolsettings->skgen_correlation_limit,0.0, 1.0, 0.01, 0,	"Correlation threshold for subdivision");
+			yco -= 20;
+			break;
+		default:
+		case SK_CONVERT_CUT_FIXED:
+			uiDefButC(block, NUM, B_REDR, 					"Num:",		70, yco, 140, 19, &G.scene->toolsettings->skgen_subdivision_number,1, 100, 1, 5,	"Number of subdivided bones");
+			yco -= 20;
+			break;
+		case SK_CONVERT_RETARGET:
+			uiDefButC(block, ROW, B_DIFF, "No",			70,  yco, 40,19, &G.scene->toolsettings->skgen_retarget_roll, 0, 0, 0, 0,									"No special roll treatment");
+			uiDefButC(block, ROW, B_DIFF, "View",		110,  yco, 50,19, &G.scene->toolsettings->skgen_retarget_roll, 0, SK_RETARGET_ROLL_VIEW, 0, 0,				"Roll bones perpendicular to view");
+			uiDefButC(block, ROW, B_DIFF, "Joint",		160, yco, 50,19, &G.scene->toolsettings->skgen_retarget_roll, 0, SK_RETARGET_ROLL_JOINT, 0, 0,				"Roll bones relative to joint bend");
+			yco -= 30;
+
+			uiBlockEndAlign(block);
+
+			uiBlockBeginAlign(block);
+			/* button here to select what to do (copy or not), template, ...*/
+
+			BIF_makeListTemplates();
+			template_index = BIF_currentTemplate();
+			
+			but = uiDefButI(block, MENU, B_REDR, BIF_listTemplates(), 10,yco,200,19, &template_index, 0, 0, 0, 0, "Template");
+			uiButSetFunc(but, assign_template_sketch_armature, &template_index, NULL);
+			
+			yco -= 20;
+			
+			uiDefButF(block, NUM, B_DIFF, 							"A:",			10, yco, 66,19, &G.scene->toolsettings->skgen_retarget_angle_weight, 0, 10, 1, 0,		"Angle Weight");
+			uiDefButF(block, NUM, B_DIFF, 							"L:",			76, yco, 67,19, &G.scene->toolsettings->skgen_retarget_length_weight, 0, 10, 1, 0,		"Length Weight");
+			uiDefButF(block, NUM, B_DIFF, 							"D:",		143,yco, 67,19, &G.scene->toolsettings->skgen_retarget_distance_weight, 0, 10, 1, 0,		"Distance Weight");
+			yco -= 20;
+			
+			uiDefBut(block, TEX,B_DIFF,"S:",							10,  yco, 90, 20, G.scene->toolsettings->skgen_side_string, 0.0, 8.0, 0, 0, "Text to replace &S with");
+			uiDefBut(block, TEX,B_DIFF,"N:",							100, yco, 90, 20, G.scene->toolsettings->skgen_num_string, 0.0, 8.0, 0, 0, "Text to replace &N with");
+			uiDefIconButBitC(block, TOG, SK_RETARGET_AUTONAME, B_DIFF, ICON_AUTO,190,yco,20,20, &G.scene->toolsettings->skgen_retarget_options, 0, 0, 0, 0, "Use Auto Naming");	
+			yco -= 20;
+	
+			/* auto renaming magic */
+			uiBlockEndAlign(block);
+			
+			nb_joints = BIF_nbJointsTemplate();
+	
+			if (nb_joints == -1)
+			{
+				nb_joints = G.totvertsel;
+			}
+			
+			bone_name = BIF_nameBoneTemplate();
+			
+			BLI_snprintf(joint_label, 32, "%i joints: %s", nb_joints, bone_name);
+			
+			uiDefBut(block, LABEL, 1, joint_label,					10, yco, 200, 20, NULL, 0.0, 0.0, 0, 0, "");
+			yco -= 20;
+			break;
+		}
+
+		uiBlockEndAlign(block);
+		
+		uiDefButBitS(block, TOG, SCE_SNAP_PEEL_OBJECT, B_DIFF, "Peel Objects", 10, yco, 200, 20, &G.scene->snap_flag, 0, 0, 0, 0, "Peel whole objects as one");
+
+		if(yco < 0) uiNewPanelHeight(block, height-yco);
+	}
+}
 
 static void view3d_panel_object(short cntrl)	// VIEW3D_HANDLER_OBJECT
 {
@@ -2662,6 +2799,9 @@ static void view3d_blockhandlers(ScrArea *sa)
  			break;
 		case VIEW3D_HANDLER_GREASEPENCIL:
 			view3d_panel_gpencil(v3d->blockhandler[a+1]);
+			break;
+		case VIEW3D_HANDLER_BONESKETCH:
+			view3d_panel_bonesketch_spaces(v3d->blockhandler[a+1]);
 			break;
 		}
 		/* clear action value for event */
@@ -3271,6 +3411,8 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 	/* draw grease-pencil stuff */
 	if (v3d->flag2 & V3D_DISPGP)
 		draw_gpencil_3dview(sa, 1);
+		
+	BDR_drawSketch();
 	
 	persp(PERSP_WIN);  // set ortho
 
