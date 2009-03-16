@@ -103,7 +103,8 @@ BMOpDefine def_dupeop = {
 	{{BMOP_OPSLOT_ELEMENT_BUF, "geom"},
 	{BMOP_OPSLOT_ELEMENT_BUF, "origout"},
 	{BMOP_OPSLOT_ELEMENT_BUF, "newout"},
-	{BMOP_OPSLOT_MAPPING, "boundarymap"}},
+	{BMOP_OPSLOT_MAPPING, "boundarymap"},
+	{BMOP_OPSLOT_MAPPING, "isovertmap"}},
 	dupeop_exec,
 	BMOP_DUPE_TOTSLOT,
 	0
@@ -113,7 +114,8 @@ BMOpDefine def_splitop = {
 	"split",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "geom"},
 	{BMOP_OPSLOT_ELEMENT_BUF, "geomout"},
-	{BMOP_OPSLOT_MAPPING, "boundarymap"}},
+	{BMOP_OPSLOT_MAPPING, "boundarymap"},
+	{BMOP_OPSLOT_MAPPING, "isovertmap"}},
 	splitop_exec,
 	BMOP_SPLIT_TOTSLOT,
 	0

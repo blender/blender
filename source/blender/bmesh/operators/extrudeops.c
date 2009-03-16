@@ -19,9 +19,9 @@ void extrude_edge_context_exec(BMesh *bm, BMOperator *op)
 	BMOperator dupeop, delop;
 	BMOIter siter;
 	BMIter iter, fiter, viter;
-	BMEdge *e, *newedge, *e2;
+	BMEdge *e, *newedge, *e2, *ce;
 	BMLoop *l, *l2;
-	BMVert *verts[4], *v;
+	BMVert *verts[4], *v, *v2;
 	BMFace *f;
 	int rlen, found, delorig=0, i, reverse;
 
@@ -100,8 +100,10 @@ void extrude_edge_context_exec(BMesh *bm, BMOperator *op)
 		newedge = BMO_IterMapVal(&siter);
 		newedge = *(BMEdge**)newedge;
 		if (!newedge) continue;
+		if (!newedge->loop) ce = e;
+		else ce = newedge;
 		
-		if (newedge->loop->v == newedge->v1) {
+		if (ce->loop && (ce->loop->v == ce->v1)) {
 			verts[0] = e->v1;
 			verts[1] = e->v2;
 			verts[2] = newedge->v2;
@@ -150,7 +152,13 @@ void extrude_edge_context_exec(BMesh *bm, BMOperator *op)
 		}
 	}
 
-	
+	/*link isolated verts*/
+	v = BMO_IterNew(&siter, bm, &dupeop, BMOP_DUPE_ISOLATED_VERTS_MAP);
+	for (; v; v=BMO_IterStep(&siter)) {
+		v2 = *((void**)BMO_IterMapVal(&siter));
+		BM_Make_Edge(bm, v, v2, v->edge, 1);
+	}
+
 	/*cleanup*/
 	if (delorig) BMO_Finish_Op(bm, &delop);
 	BMO_Finish_Op(bm, &dupeop);

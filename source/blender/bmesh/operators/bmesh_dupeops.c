@@ -147,7 +147,7 @@ static BMFace *copy_face(BMesh *source_mesh, BMFace *source_face, BMesh *target_
 static void copy_mesh(BMOperator *op, BMesh *source, BMesh *target)
 {
 
-	BMVert *v = NULL;
+	BMVert *v = NULL, *v2;
 	BMEdge *e = NULL, **edar = NULL;
 	BMLoop *l = NULL;
 	BMFace *f = NULL;
@@ -215,7 +215,9 @@ static void copy_mesh(BMOperator *op, BMesh *source, BMesh *target)
 	/*finally dupe all loose vertices*/
 	for(v = BMIter_New(&verts, source, BM_VERTS, source); v; v = BMIter_Step(&verts)){
 		if(BMO_TestFlag(source, (BMHeader*)v, DUPE_INPUT) && (!BMO_TestFlag(source, (BMHeader*)v, DUPE_DONE))){
-			copy_vertex(source, v, target, vhash);
+			v2 = copy_vertex(source, v, target, vhash);
+			BMO_Insert_MapPointer(source, op, 
+				         BMOP_DUPE_ISOLATED_VERTS_MAP, v, v2);
 			BMO_SetFlag(source, (BMHeader*)v, DUPE_DONE);
 		}
 	}
@@ -390,7 +392,9 @@ void splitop_exec(BMesh *bm, BMOperator *op)
 	BMO_CopySlot(&dupeop, splitop, BMOP_DUPE_NEW, BMOP_SPLIT_MULTOUT);
 	BMO_CopySlot(&dupeop, splitop, BMOP_DUPE_BOUNDS_EDGEMAP,
 	             BMOP_SPLIT_BOUNDS_EDGEMAP);
-
+	BMO_CopySlot(&dupeop, splitop, BMOP_DUPE_ISOLATED_VERTS_MAP,
+	             BMOP_SPLIT_ISOLATED_VERTS_MAP);
+	
 	/*cleanup*/
 	BMO_Finish_Op(bm, &delop);
 	BMO_Finish_Op(bm, &dupeop);

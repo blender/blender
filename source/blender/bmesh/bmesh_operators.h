@@ -16,6 +16,7 @@ enum {
 
 	//bounding edges of split faces
 	BMOP_SPLIT_BOUNDS_EDGEMAP, /*boundarymap*/
+	BMOP_SPLIT_ISOLATED_VERTS_MAP, /*isovertmap*/
 	BMOP_SPLIT_TOTSLOT,
 };
 
@@ -31,6 +32,7 @@ enum {
 	/*we need a map for verts duplicated not connected
 	  to any faces, too.*/	
 	BMOP_DUPE_BOUNDS_EDGEMAP, /*boundarymap*/
+	BMOP_DUPE_ISOLATED_VERTS_MAP, /*isovertmap*/
 	BMOP_DUPE_TOTSLOT
 };
 

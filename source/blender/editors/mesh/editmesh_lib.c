@@ -1165,7 +1165,7 @@ short BM_extrude_edgeflag(Object *obedit, BMesh *bm, int eflag, float *nor)
 
 	BMO_Init_Op(&extop, BMOP_EXTRUDE_EDGECONTEXT);
 	BMO_HeaderFlag_To_Slot(bm, &extop, BMOP_EXFACE_EDGEFACEIN,
-		               flag, BM_EDGE|BM_FACE);
+		               flag, BM_VERT|BM_EDGE|BM_FACE);
 
 	for (edge=BMIter_New(&iter, bm, BM_EDGES, NULL); edge; edge=BMIter_Step(&iter)) {
 		BM_Select_Edge(bm, edge, 0);
@@ -1802,9 +1802,22 @@ short extrudeflag_vert(Object *obedit, EditMesh *em, short flag, float *nor)
 /* generic extrude */
 short extrudeflag(Object *obedit, EditMesh *em, short flag, float *nor)
 {
-	if(em->selectmode & SCE_SELECT_VERTEX)
-		return extrudeflag_vert(obedit, em, flag, nor);
-	else 
+	if(em->selectmode & SCE_SELECT_VERTEX) {
+		EditEdge *eed;
+		
+		/*ensure vert flags are consistent for edge selections*/
+		for (eed=em->edges.first; eed; eed=eed->next) {
+			if (eed->f & flag) {
+				eed->v1->f |= flag;
+				eed->v2->f |= flag;
+			} else {
+				if ((eed->v1->f & flag) && (eed->v2->f & flag))
+					eed->f |= flag;
+			}
+		}
+
+		return extrudeflag_edge(obedit, em, flag, nor);
+	} else 
 		return extrudeflag_edge(obedit, em, flag, nor);
 		
 }

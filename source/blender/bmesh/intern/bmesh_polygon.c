@@ -637,7 +637,6 @@ void BM_Triangulate_Face(BMesh *bm, BMFace *f, float (*projectverts)[3],
 	}
 }
 
-#if 1
 /*each pair of loops defines a new edge, a split.  this function goes
   through and sets pairs that are geometrically invalid to null.  a
   split is invalid, if it forms a concave angle or it intersects other
@@ -718,9 +717,6 @@ void BM_LegalSplits(BMesh *bm, BMFace *f, BMLoop *(*loops)[2], int len)
 			shrink_edgef(v1, v2, 1.00001f);
 
 			if (linecrossesf(p1, p2, mid, out)) clen++;
-			//else if (linecrossesf(p2, p1, out, mid)) clen++;
-			//else if (linecrossesf(p1, p2, out, mid)) clen++;
-
 		}
 		
 		if (clen%2 == 0) {
@@ -764,4 +760,3 @@ void BM_LegalSplits(BMesh *bm, BMFace *f, BMLoop *(*loops)[2], int len)
 	if (projverts != projectverts) MEM_freeN(projverts);
 	if (edgeverts != edgevertsstack) MEM_freeN(edgeverts);
 }
-#endif

@@ -259,6 +259,12 @@ void *BMO_Get_MapPointer(BMesh *bm, BMOperator *op, int slotcode,
 	  for (; key; key=BMO_IterStep(&oiter)) {
 		val = BMO_IterMapVal(&oiter);
 		//do something with the key/val pair
+		//note that val is a pointer to the val data,
+		//whether it's a float, pointer, whatever.
+		//
+		// so to get a pointer, for example, use:
+		//  *((void**)BMO_IterMapVal(&oiter));
+		//or something like that.
 	  }
 
   */
