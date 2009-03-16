@@ -6,6 +6,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <string.h>
+#include <float.h>
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -1119,13 +1120,24 @@ static FModifierTypeInfo FMI_MODNAME = {
 
 /* Generator F-Curve Modifier --------------------------- */
 
+/* Generators available:
+ * 	1) simple polynomial generator:
+ *		- Exanded form - (y = C[0]*(x^(n)) + C[1]*(x^(n-1)) + ... + C[n])  
+ *		- Factorised form - (y = (C[0][0]*x + C[0][1]) * (C[1][0]*x + C[1][1]) * ... * (C[n][0]*x + C[n][1]))
+ *	2) simple builin 'functions':
+ *		of the form (y = C[0] * fn( C[1]*x + C[2] ) + C[3])
+ * 	   where fn() can be any one of:
+ *		sin, cos, tan, ln, sqrt
+ *	3) expression...
+ */
+
 static void fcm_generator_free (FModifier *fcm)
 {
 	FMod_Generator *data= (FMod_Generator *)fcm->data;
 	
 	/* free polynomial coefficients array */
-	if (data->poly_coefficients)
-		MEM_freeN(data->poly_coefficients);
+	if (data->coefficients)
+		MEM_freeN(data->coefficients);
 }
 
 static void fcm_generator_copy (FModifier *fcm, FModifier *src)
@@ -1133,9 +1145,9 @@ static void fcm_generator_copy (FModifier *fcm, FModifier *src)
 	FMod_Generator *gen= (FMod_Generator *)fcm->data;
 	FMod_Generator *ogen= (FMod_Generator *)src->data;
 	
-	/* copy polynomial coefficients array? */
-	if (ogen->poly_coefficients)
-		gen->poly_coefficients= MEM_dupallocN(ogen->poly_coefficients);
+	/* copy coefficients array? */
+	if (ogen->coefficients)
+		gen->coefficients= MEM_dupallocN(ogen->coefficients);
 }
 
 static void fcm_generator_new_data (void *mdata)
@@ -1145,7 +1157,8 @@ static void fcm_generator_new_data (void *mdata)
 	
 	/* set default generator to be linear 0-1 (gradient = 1, y-offset = 0) */
 	data->poly_order= 1;
-	cp= data->poly_coefficients= MEM_callocN(sizeof(float)*2, "FMod_Generator_Coefs");
+	data->arraysize= 2;
+	cp= data->coefficients= MEM_callocN(sizeof(float)*2, "FMod_Generator_Coefs");
 	cp[0] = 0; // y-offset 
 	cp[1] = 1; // gradient
 }
@@ -1155,24 +1168,111 @@ static void fcm_generator_evaluate (FCurve *fcu, FModifier *fcm, float *cvalue, 
 {
 	FMod_Generator *data= (FMod_Generator *)fcm->data;
 	
-	/* behaviour depends on mode (NOTE: we don't need to do anything...) */
+	/* behaviour depends on mode 
+	 * NOTE: the data in its default state is fine too
+	 */
 	switch (data->mode) {
-		// TODO: implement factorised polynomial too
-		case FCM_GENERATOR_POLYNOMIAL: /* polynomial expression */
+		case FCM_GENERATOR_POLYNOMIAL: /* expanded polynomial expression */
 		{
 			/* we overwrite cvalue with the sum of the polynomial */
-			float value= 0.0f, *cp = NULL;
+			float *powers = MEM_callocN(sizeof(float)*data->arraysize, "Poly Powers");
+			float value= 0.0f;
 			unsigned int i;
 			
-			/* for each coefficient, add to value, which we'll write to *cvalue in one go */
-			// TODO: could this be more efficient (i.e. without need to recalc pow() everytime)
-			cp= data->poly_coefficients;
-			for (i=0; (i <= data->poly_order) && (cp); i++, cp++)
-				value += (*cp) * (float)pow(evaltime, i);
+			/* for each x^n, precalculate value based on previous one first... this should be 
+			 * faster that calling pow() for each entry
+			 */
+			for (i=0; i < data->arraysize; i++) {
+				/* first entry is x^0 = 1, otherwise, calculate based on previous */
+				if (i)
+					powers[i]= powers[i-1] * evaltime;
+				else
+					powers[0]= 1;
+			}
 			
-			/* only if something changed */
+			/* for each coefficient, add to value, which we'll write to *cvalue in one go */
+			for (i=0; i < data->arraysize; i++)
+				value += data->coefficients[i] * powers[i];
+			
+			/* only if something changed, write *cvalue in one go */
 			if (data->poly_order)
 				*cvalue= value;
+				
+			/* cleanup */
+			if (powers) 
+				MEM_freeN(powers);
+		}
+			break;
+			
+		case FCM_GENERATOR_POLYNOMIAL_FACTORISED: /* factorised polynomial */
+		{
+			float value= 1.0f, *cp=NULL;
+			unsigned int i;
+			
+			/* for each coefficient pair, solve for that bracket before accumulating in value by multiplying */
+			for (cp=data->coefficients, i=0; (cp) && (i < data->poly_order); cp+=2, i++) 
+				value *= (cp[0]*evaltime + cp[1]);
+				
+			/* only if something changed, write *cvalue in one go */
+			if (data->poly_order)
+				*cvalue= value;
+		}
+			break;
+			
+		case FCM_GENERATOR_FUNCTION: /* builtin function */
+		{
+			double arg= data->coefficients[1]*evaltime + data->coefficients[2];
+			double (*fn)(double v) = NULL;
+			
+			/* get function pointer to the func to use:
+			 * WARNING: must perform special argument validation hereto guard against crashes  
+			 */
+			switch (data->func_type)
+			{
+				/* simple ones */			
+				case FCM_GENERATOR_FN_SIN: /* sine wave */
+					fn= sin;
+					break;
+				case FCM_GENERATOR_FN_COS: /* cosine wave */
+					fn= cos;
+					break;
+					
+				/* validation required */
+				case FCM_GENERATOR_FN_TAN: /* tangent wave */
+				{
+					/* check that argument is not on one of the discontinuities (i.e. 90deg, 270 deg, etc) */
+					if IS_EQ(fmod((arg - M_PI_2), M_PI), 0.0)
+						*cvalue= 0.0f; /* no value possible here */
+					else
+						fn= tan;
+				}
+					break;
+				case FCM_GENERATOR_FN_LN: /* natural log */
+				{
+					/* check that value is greater than 1? */
+					if (arg > 1.0f)
+						fn= log;
+					else
+						*cvalue= 0.0f; /* no value possible here */
+				}
+					break;
+				case FCM_GENERATOR_FN_SQRT: /* square root */
+				{
+					/* no negative numbers */
+					if (arg > 0.0f)
+						fn= sqrt;
+					else
+						*cvalue= 0.0f; /* no vlaue possible here */
+				}
+					break;
+					
+				default:
+					printf("Invalid Function-Generator for F-Modifier - %d \n", data->func_type);
+			}
+			
+			/* execute function callback to set value if appropriate */
+			if (fn)
+				*cvalue= data->coefficients[0]*fn(arg) + data->coefficients[3];
 		}
 			break;
 

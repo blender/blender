@@ -231,8 +231,47 @@ static void do_graph_region_modifier_buttons(bContext *C, void *arg, int event)
 	}
 }
 
+/* macro for use here to draw background box and set height */
+#define DRAW_BACKDROP(height, h) \
+	{ \
+		height= h; \
+		if (active) uiBlockSetCol(block, TH_BUT_ACTION); \
+			uiDefBut(block, ROUNDBOX, B_REDR, "", 10-8, *yco-height, width, height-1, NULL, 5.0, 0.0, 12.0, (float)rb_col, ""); \
+		if (active) uiBlockSetCol(block, TH_AUTO); \
+	}
 
-/* for now, just print name of modifier */
+/* draw settings for generator modifier */
+static void _draw_modifier__generator(uiBlock *block, FCurve *fcu, FModifier *fcm, int *yco, short *height, short width, short active, int rb_col)
+{
+	FMod_Generator *data= (FMod_Generator *)fcm->data;
+	
+	switch (data->mode) {
+		case FCM_GENERATOR_POLYNOMIAL: /* polynomial expression */
+		{
+			/* we overwrite cvalue with the sum of the polynomial */
+			float value= 0.0f, *cp = NULL;
+			unsigned int i;
+			
+			/* draw backdrop */
+			DRAW_BACKDROP((*height), 96);
+			
+			/* for each coefficient, add to value, which we'll write to *cvalue in one go */
+			cp= data->coefficients;
+			for (i=0; (i < data->arraysize) && (cp); i++, cp++) {
+			
+			}
+		}
+			break;
+		
+#ifndef DISABLE_PYTHON
+		case FCM_GENERATOR_EXPRESSION: /* py-expression */
+			// TODO...
+			break;
+#endif /* DISABLE_PYTHON */
+	}
+}
+
+
 static void graph_panel_modifier_draw(uiBlock *block, FCurve *fcu, FModifier *fcm, int *yco)
 {
 	FModifierTypeInfo *fmi= fmodifier_get_typeinfo(fcm);
@@ -269,12 +308,16 @@ static void graph_panel_modifier_draw(uiBlock *block, FCurve *fcu, FModifier *fc
 	
 	/* when modifier is expanded, draw settings */
 	if (fcm->flag & FMODIFIER_FLAG_EXPANDED) {
-		height= 97;
-		
-		/* draw backdrop */
-		if (active) uiBlockSetCol(block, TH_BUT_ACTION);
-			uiDefBut(block, ROUNDBOX, B_REDR, "", 10-8, *yco-height, width, height-1, NULL, 5.0, 0.0, 12.0, (float)rb_col, ""); 
-		if (active) uiBlockSetCol(block, TH_AUTO);
+		/* draw settings for individual modifiers */
+		switch (fcm->type) {
+			case FMODIFIER_TYPE_GENERATOR: /* Generator */
+				_draw_modifier__generator(block, fcu, fcm, yco, &height, width, active, rb_col);
+				break;
+			
+			default: /* unknown type */
+				DRAW_BACKDROP(height, 96);
+				break;
+		}
 	}
 	
 	/* adjust height for new to start */

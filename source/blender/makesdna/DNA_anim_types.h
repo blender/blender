@@ -69,20 +69,36 @@ typedef struct FMod_Generator {
 		/* generator based on PyExpression */
 	char expression[256];		/* python expression to use as generator */
 	
-		/* simple polynomial generator (y = C[0]*(x^(n)) + C[1]*(x^(n-1)) + ... C[n])  */
-	float *poly_coefficients;	/* array of the coefficients for the polynomial (poly_order + 1 items long) */
-	unsigned int poly_order;	/* order of the polynomial (i.e. 1 for linear, 2 for quadratic) */
+		/* general generator information */
+	float *coefficients;		/* coefficients array */
+	unsigned int arraysize;		/* size of the coefficients array */
+	
+	unsigned short poly_order;	/* order of polynomial generated (i.e. 1 for linear, 2 for quadratic) */
+	short func_type;			/* builtin math function eFMod_Generator_Functions */
+	
+	int pad;
 	
 		/* settings */
 	short flag;					/* settings */
-	short mode;					/* which 'generator' to use */
+	short mode;					/* which 'generator' to use eFMod_Generator_Modes */
 } FMod_Generator;
 
 /* generator modes */
 enum {
 	FCM_GENERATOR_POLYNOMIAL	= 0,
+	FCM_GENERATOR_POLYNOMIAL_FACTORISED,
+	FCM_GENERATOR_FUNCTION,
 	FCM_GENERATOR_EXPRESSION,
 } eFMod_Generator_Modes;
+
+/* 'function' generator types */
+enum {
+	FCM_GENERATOR_FN_SIN	= 0,
+	FCM_GENERATOR_FN_COS,
+	FCM_GENERATOR_FN_TAN,
+	FCM_GENERATOR_FN_SQRT,
+	FCM_GENERATOR_FN_LN,
+} eFMod_Generator_Functions;
 
 
 /* envelope modifier - envelope data */
@@ -444,13 +460,16 @@ enum {
  * be generic (using various placeholder template tags that will be
  * replaced with appropriate information from the context). 
  */
-// TODO: how should templates work exactly? For now, we only implement the specific KeyingSets...
 typedef struct KS_Path {
 	struct KS_Path *next, *prev;
 	
 		/* absolute paths only */
 	ID *id;					/* ID block that keyframes are for */
 	char group[64];			/* name of the group to add to */
+	
+		/* relative paths only */
+	int idtype;				/* ID-type that path can be used on */
+	int templates;			/* Templates that will be encountered in the path (as set of bitflags) */
 	
 		/* all paths */
 	char *rna_path;			/* dynamically (or statically in the case of predefined sets) path */
@@ -475,6 +494,20 @@ enum {
 		/* path should be grouped under an ActionGroup KeyingSet's name */
 	KSP_GROUP_KSNAME,
 } eKSP_Grouping;
+
+/* KS_Path->templates  (Template Flags)
+ *
+ * Templates in paths are used to substitute information from the 
+ * active context into relavent places in the path strings. This
+ * enum here defines the flags which define which templates are
+ * required by a path before it can be used
+ */
+enum {
+	KSP_TEMPLATE_OBJECT			= (1<<0),	/* #obj - selected object */
+	KSP_TEMPLATE_PCHAN 			= (1<<1),	/* #pch - selected posechannel */
+	KSP_TEMPLATE_CONSTRAINT 	= (1<<2),	/* #con - active only */
+	KSP_TEMPLATE_NODE		 	= (1<<3),	/* #nod - selected node */
+} eKSP_TemplateTypes;
 
 /* ---------------- */
  

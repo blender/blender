@@ -805,9 +805,9 @@ static void write_fcurves(WriteData *wd, ListBase *fcurves)
 					{
 						FMod_Generator *data= (FMod_Generator *)fcm->data;
 						
-						/* write polynomial coefficients array */
-						if (data->poly_coefficients)
-							writedata(wd, DATA, sizeof(float)*(data->poly_order+1), data->poly_coefficients);
+						/* write coefficients array */
+						if (data->coefficients)
+							writedata(wd, DATA, sizeof(float)*(data->arraysize), data->coefficients);
 					}
 						break;
 					case FMODIFIER_TYPE_PYTHON:

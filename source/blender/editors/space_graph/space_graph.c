@@ -83,7 +83,7 @@ ARegion *graph_has_buttons_region(ScrArea *sa)
 	
 	BLI_insertlinkafter(&sa->regionbase, ar, arnew);
 	arnew->regiontype= RGN_TYPE_UI;
-	arnew->alignment= RGN_ALIGN_TOP|RGN_SPLIT_PREV;
+	arnew->alignment= RGN_ALIGN_BOTTOM|RGN_SPLIT_PREV;
 	
 	arnew->flag = RGN_FLAG_HIDDEN;
 	
@@ -569,7 +569,7 @@ void ED_spacetype_ipo(void)
 	/* regions: UI buttons */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype graphedit region");
 	art->regionid = RGN_TYPE_UI;
-	art->minsizey= 160;
+	art->minsizey= 200;
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_FRAMES;
 	art->listener= NULL; // graph_region_listener;
 	art->init= graph_buttons_area_init;

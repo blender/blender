@@ -1725,7 +1725,7 @@ static void direct_link_fcurves(FileData *fd, ListBase *list)
 				{
 					FMod_Generator *data= (FMod_Generator *)fcm->data;
 					
-					data->poly_coefficients= newdataadr(fd, data->poly_coefficients);
+					data->coefficients= newdataadr(fd, data->coefficients);
 				}
 					break;
 				case FMODIFIER_TYPE_PYTHON:
