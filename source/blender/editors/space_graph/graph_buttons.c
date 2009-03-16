@@ -223,51 +223,107 @@ static void graph_panel_drivers(const bContext *C, ARegion *ar, short cntrl, bAn
 
 static void do_graph_region_modifier_buttons(bContext *C, void *arg, int event)
 {
-	switch(event) {
+	switch (event) {
 		case B_REDR:
-		case B_FMODIFIER_REDRAW:
+		case B_FMODIFIER_REDRAW: // XXX this should send depsgraph updates too
 			ED_area_tag_redraw(CTX_wm_area(C));
 			return; /* no notifier! */
 	}
 }
 
 /* macro for use here to draw background box and set height */
-#define DRAW_BACKDROP(height, h) \
+// XXX for now, roundbox has it's callback func set to NULL to not intercept events
+#define DRAW_BACKDROP(height) \
 	{ \
-		height= h; \
 		if (active) uiBlockSetCol(block, TH_BUT_ACTION); \
-			uiDefBut(block, ROUNDBOX, B_REDR, "", 10-8, *yco-height, width, height-1, NULL, 5.0, 0.0, 12.0, (float)rb_col, ""); \
+			but= uiDefBut(block, ROUNDBOX, B_REDR, "", 10-8, *yco-height, width, height-1, NULL, 5.0, 0.0, 12.0, (float)rb_col, ""); \
+			uiButSetFunc(but, NULL, NULL, NULL); \
 		if (active) uiBlockSetCol(block, TH_AUTO); \
 	}
 
+/* callback to verify modifier data */
+static void validate_fmodifier_cb (bContext *C, void *fcu_v, void *fcm_v)
+{
+	FModifier *fcm= (FModifier *)fcm_v;
+	FModifierTypeInfo *fmi= fmodifier_get_typeinfo(fcm);
+	
+	/* call the verify callback on the modifier if applicable */
+	if (fmi && fmi->verify_data)
+		fmi->verify_data(fcm);
+}
+	
 /* draw settings for generator modifier */
 static void _draw_modifier__generator(uiBlock *block, FCurve *fcu, FModifier *fcm, int *yco, short *height, short width, short active, int rb_col)
 {
 	FMod_Generator *data= (FMod_Generator *)fcm->data;
+	char gen_mode[]="Generator Type%t|Expanded Polynomial%x0|Factorised Polynomial%x1|Built-In Function%x2|Expression%x3";
+	//char fn_type[]="Built-In Function%t|Sin%x0|Cos%x1|Tan%x2|Square Root%x3|Natural Log%x4";
+	int cy= *yco - 30;
+	uiBut *but;
 	
+	/* set the height */
+	(*height) = 70;
+	switch (data->mode) {
+		case FCM_GENERATOR_POLYNOMIAL: /* polynomial expression */
+			(*height) += 20*(data->poly_order+1) + 35;
+			break;
+		case FCM_GENERATOR_POLYNOMIAL_FACTORISED: /* factorised polynomial */
+			(*height) += 25 * data->poly_order;
+			break;
+		case FCM_GENERATOR_FUNCTION: /* builtin function */
+			(*height) += 50; // xxx
+			break;
+		case FCM_GENERATOR_EXPRESSION: /* py-expression */
+			// xxx nothing to draw 
+			break;
+	}
+	
+	/* basic settings (backdrop + mode selector + some padding) */
+	//DRAW_BACKDROP((*height)); // XXX buggy...
+	but= uiDefButS(block, MENU, /*B_FMODIFIER_REDRAW*/B_REDR, gen_mode, 10,cy,width-30,19, &data->mode, 0, 0, 0, 0, "Selects type of generator algorithm.");
+	uiButSetFunc(but, validate_fmodifier_cb, fcu, fcm);
+	cy -= 35;
+	
+	/* now add settings for individual modifiers */
 	switch (data->mode) {
 		case FCM_GENERATOR_POLYNOMIAL: /* polynomial expression */
 		{
-			/* we overwrite cvalue with the sum of the polynomial */
-			float value= 0.0f, *cp = NULL;
+			float *cp = NULL;
+			char xval[32];
 			unsigned int i;
 			
-			/* draw backdrop */
-			DRAW_BACKDROP((*height), 96);
+			/* draw polynomial order selector */
+				// XXX this needs validation!
+			but= uiDefButS(block, NUM, B_FMODIFIER_REDRAW, "Poly Order: ", 10,cy,width-30,19, &data->poly_order, 1, 100, 0, 0, "'Order' of the Polynomial - for a polynomial with n terms, 'order' is n-1");
+			uiButSetFunc(but, validate_fmodifier_cb, fcu, fcm);
+			cy -= 35;
 			
-			/* for each coefficient, add to value, which we'll write to *cvalue in one go */
+			/* draw controls for each coefficient and a + sign at end of row */
 			cp= data->coefficients;
 			for (i=0; (i < data->arraysize) && (cp); i++, cp++) {
-			
+				/* coefficient */
+				uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "", 50, cy, 150, 20, cp, -FLT_MAX, FLT_MAX, 10, 3, "Coefficient for polynomial");
+				
+				/* 'x' param (and '+' if necessary) */
+				if (i == 0)
+					strcpy(xval, "");
+				else if (i == 1)
+					strcpy(xval, "x");
+				else
+					sprintf(xval, "x^%d", i);
+				uiDefBut(block, LABEL, 1, xval, 200, cy, 50, 20, NULL, 0.0, 0.0, 0, 0, "Power of x");
+				
+				if ( (i != (data->arraysize - 1)) || ((i==0) && data->arraysize==2) )
+					uiDefBut(block, LABEL, 1, "+", 300, cy, 30, 20, NULL, 0.0, 0.0, 0, 0, "Power of x");
+				
+				cy -= 20;
 			}
 		}
 			break;
 		
-#ifndef DISABLE_PYTHON
 		case FCM_GENERATOR_EXPRESSION: /* py-expression */
 			// TODO...
 			break;
-#endif /* DISABLE_PYTHON */
 	}
 }
 
@@ -286,10 +342,12 @@ static void graph_panel_modifier_draw(uiBlock *block, FCurve *fcu, FModifier *fc
 		uiBlockSetEmboss(block, UI_EMBOSSN);
 		
 		/* rounded header */
+#if 0 // XXX buggy...
 		if (active) uiBlockSetCol(block, TH_BUT_ACTION);
 			rb_col= (active)?-20:20;
-			uiDefBut(block, ROUNDBOX, B_REDR, "", 10-8, *yco-2, width, 24, NULL, 5.0, 0.0, 15.0, (float)(rb_col-20), ""); 
+			but= uiDefBut(block, ROUNDBOX, B_REDR, "", 10-8, *yco-2, width, 24, NULL, 5.0, 0.0, 15.0, (float)(rb_col-20), ""); 
 		if (active) uiBlockSetCol(block, TH_AUTO);
+#endif // XXX buggy
 		
 		/* expand */
 		uiDefIconButBitS(block, ICONTOG, FMODIFIER_FLAG_EXPANDED, B_REDR, ICON_TRIA_RIGHT,	10-7, *yco-1, 20, 20, &fcm->flag, 0.0, 0.0, 0, 0, "Modifier is expanded");
@@ -303,6 +361,7 @@ static void graph_panel_modifier_draw(uiBlock *block, FCurve *fcu, FModifier *fc
 		/* delete button */
 		but= uiDefIconBut(block, BUT, B_REDR, ICON_X, 10+(width-30), *yco, 19, 19, NULL, 0.0, 0.0, 0.0, 0.0, "Delete layer");
 		//uiButSetFunc(but, gp_ui_dellayer_cb, gpd, NULL);
+		
 		uiBlockSetEmboss(block, UI_EMBOSS);
 	}
 	
@@ -315,7 +374,8 @@ static void graph_panel_modifier_draw(uiBlock *block, FCurve *fcu, FModifier *fc
 				break;
 			
 			default: /* unknown type */
-				DRAW_BACKDROP(height, 96);
+				height= 96;
+				//DRAW_BACKDROP(height); // XXX buggy...
 				break;
 		}
 	}
@@ -330,10 +390,12 @@ static void graph_panel_modifiers(const bContext *C, ARegion *ar, short cntrl, b
 	FModifier *fcm;
 	uiBlock *block;
 	int yco= 190;
-
+	
 	block= uiBeginBlock(C, ar, "graph_panel_modifiers", UI_EMBOSS, UI_HELV);
 	if (uiNewPanel(C, ar, block, "Modifiers", "Graph", 340, 30, 318, 254)==0) return;
 	uiBlockSetHandleFunc(block, do_graph_region_modifier_buttons, NULL);
+	
+	uiNewPanelHeight(block, 204);
 	
 	/* 'add modifier' button at top of panel */
 	// XXX for now, this will be a operator button which calls a temporary 'add modifier' operator

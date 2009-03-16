@@ -570,8 +570,8 @@ void ED_spacetype_ipo(void)
 	art= MEM_callocN(sizeof(ARegionType), "spacetype graphedit region");
 	art->regionid = RGN_TYPE_UI;
 	art->minsizey= 200;
-	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_FRAMES;
-	art->listener= NULL; // graph_region_listener;
+	art->keymapflag= ED_KEYMAP_UI;
+	art->listener= graph_region_listener;
 	art->init= graph_buttons_area_init;
 	art->draw= graph_buttons_area_draw;
 	

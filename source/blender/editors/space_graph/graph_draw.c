@@ -766,7 +766,7 @@ void graph_draw_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGri
 		}
 		
 		/* 2) draw handles and vertices as appropriate based on active */
-		if ((fcu->modifiers.first) && (fcm) && (fcm->type != FMODIFIER_TYPE_CYCLES)) {
+		if ( ((fcm) && (fcm->type != FMODIFIER_TYPE_CYCLES)) || (fcu->modifiers.first) ) {
 			// TODO: need to add code to show these... for cycles modifier, should fall through though...
 		}
 		else if ( ((fcu->bezt) || (fcu->fpt)) && (fcu->totvert) ) { 

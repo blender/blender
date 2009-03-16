@@ -56,6 +56,8 @@ typedef struct FModifierTypeInfo {
 	void (*copy_data)(struct FModifier *fcm, struct FModifier *src);
 		/* set settings for data that will be used for FCuModifier.data (memory already allocated using MEM_callocN) */
 	void (*new_data)(void *mdata);
+		/* verifies that the modifier settings are valid */
+	void (*verify_data)(struct FModifier *fcm);
 	
 	/* evaluation */
 		/* evaluate the modifier for the given time and 'accumulated' value */

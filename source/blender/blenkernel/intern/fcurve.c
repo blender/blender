@@ -1114,6 +1114,7 @@ static FModifierTypeInfo FMI_MODNAME = {
 	fcm_modname_relink, /* relink data */
 	fcm_modname_copy, /* copy data */
 	fcm_modname_new_data, /* new data */
+	fcm_modname_verify, /* verify */
 	fcm_modname_evaluate /* evaluate */
 };
 #endif
@@ -1163,6 +1164,45 @@ static void fcm_generator_new_data (void *mdata)
 	cp[1] = 1; // gradient
 }
 
+static void fcm_generator_verify (FModifier *fcm)
+{
+	FMod_Generator *data= (FMod_Generator *)fcm->data;
+	
+	/* requirements depend on mode */
+	switch (data->mode) {
+		case FCM_GENERATOR_POLYNOMIAL: /* expanded polynomial expression */
+		{
+			/* arraysize needs to be order+1, so resize if not */
+			if (data->arraysize != (data->poly_order+1)) {
+				float *nc;
+				
+				/* make new coefficients array, and copy over as much data as can fit */
+				nc= MEM_callocN(sizeof(float)*(data->poly_order+1), "FMod_Generator_Coefs");
+				
+				if (data->coefficients) {
+					if (data->arraysize > (data->poly_order+1))
+						memcpy(nc, data->coefficients, sizeof(float)*(data->poly_order+1));
+					else
+						memcpy(nc, data->coefficients, sizeof(float)*data->arraysize);
+				}	
+				
+				/* free the old data, and set the new */
+				if (data->coefficients) MEM_freeN(data->coefficients);
+				
+				data->coefficients= nc;
+				data->arraysize= data->poly_order+1;
+			}
+		}
+			break;
+		
+		// FIXME: add checks for all others		
+		case FCM_GENERATOR_POLYNOMIAL_FACTORISED: /* expanded polynomial expression */
+		{
+			
+		}
+			break;
+	}
+}
 
 static void fcm_generator_evaluate (FCurve *fcu, FModifier *fcm, float *cvalue, float evaltime)
 {
@@ -1294,6 +1334,7 @@ static FModifierTypeInfo FMI_GENERATOR = {
 	fcm_generator_free, /* free data */
 	fcm_generator_copy, /* copy data */
 	fcm_generator_new_data, /* new data */
+	fcm_generator_verify, /* verify */
 	fcm_generator_evaluate /* evaluate */
 };
 
@@ -1378,6 +1419,7 @@ static FModifierTypeInfo FMI_ENVELOPE = {
 	fcm_envelope_free, /* free data */
 	fcm_envelope_copy, /* copy data */
 	NULL, /* new data */
+	NULL /*fcm_envelope_verify*/, /* verify */
 	fcm_envelope_evaluate /* evaluate */
 };
 
@@ -1513,6 +1555,7 @@ static FModifierTypeInfo FMI_CYCLES = {
 	NULL, /* free data */
 	NULL, /* copy data */
 	NULL, /* new data */
+	NULL /*fcm_cycles_verify*/, /* verify */
 	fcm_cycles_evaluate /* evaluate */
 };
 
@@ -1529,6 +1572,7 @@ static FModifierTypeInfo FMI_NOISE = {
 	NULL, /* free data */
 	NULL, /* copy data */
 	fcm_noise_new_data, /* new data */
+	NULL /*fcm_noise_verify*/, /* verify */
 	fcm_noise_evaluate /* evaluate */
 };
 #endif // XXX not yet implemented
@@ -1546,6 +1590,7 @@ static FModifierTypeInfo FMI_FILTER = {
 	NULL, /* free data */
 	NULL, /* copy data */
 	NULL, /* new data */
+	NULL /*fcm_filter_verify*/, /* verify */
 	fcm_filter_evaluate /* evaluate */
 };
 #endif // XXX not yet implemented
@@ -1600,6 +1645,7 @@ static FModifierTypeInfo FMI_PYTHON = {
 	fcm_python_free, /* free data */
 	fcm_python_copy, /* copy data */
 	fcm_python_new_data, /* new data */
+	NULL /*fcm_python_verify*/, /* verify */
 	fcm_python_evaluate /* evaluate */
 };
 
@@ -1689,7 +1735,7 @@ FModifier *fcurve_add_modifier (FCurve *fcu, int type)
 	BLI_addtail(&fcu->modifiers, fcm);
 	
 	/* add modifier's data */
-	fcm->data= MEM_callocN(fmi->size, "F-Curve Modifier Data");
+	fcm->data= MEM_callocN(fmi->size, fmi->structName);
 		
 	/* init custom settings if necessary */
 	if (fmi->new_data)	
