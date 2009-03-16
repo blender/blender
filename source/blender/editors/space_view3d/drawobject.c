@@ -1569,7 +1569,7 @@ static int draw_dm_faces_sel__setDrawOptions(void *userData, int index, int *dra
 	unsigned char *col;
 	
 	if (efa->h==0) {
-		if (efa == data->efa_act) {
+		if (efa == data->efa_act || efa->flag & ME_DRAW_ACT) {
 			glColor4ubv(data->cols[2]);
 			return 2; /* stipple */
 		} else {

@@ -66,8 +66,10 @@ int bmesh_test_sysflag(struct BMHeader *element, int flag);
 
 /*Polygon Utilities ? FIXME... where do these each go?*/
 /*newedgeflag sets a flag layer flag, obviously not the header flag.*/
-void BM_Triangulate_Face(BMesh *bm, BMFace *f, float (*projectverts)[3], int newedgeflag, int newfaceflag);
-void bmesh_update_face_normal(struct BMesh *bm, struct BMFace *f, float (*projectverts)[3]);
+void BM_Triangulate_Face(BMesh *bm, BMFace *f, float (*projectverts)[3], 
+                         int newedgeflag, int newfaceflag, BMFace **newfaces);
+void bmesh_update_face_normal(struct BMesh *bm, struct BMFace *f, 
+                              float (*projectverts)[3]);
 void compute_poly_plane(float (*verts)[3], int nverts);
 void poly_rotate_plane(float normal[3], float (*verts)[3], int nverts);
 void bmesh_flip_normal(struct BMesh *bm, struct BMFace *f);

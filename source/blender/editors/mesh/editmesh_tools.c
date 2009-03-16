@@ -2188,7 +2188,7 @@ static void fill_quad_quadruple(EditMesh *em, EditFace *efa, struct GHash *gh, i
 	
 	for(i=1;i<=numcuts;i++) {
 		/* we create a fake edge for the next loop */
-		temp.v2 = innerverts[i][0]			= verts[1][i];
+		temp.v2 = innerverts[i][0] = verts[1][i];
 		temp.v1 = innerverts[i][numcuts+1]  = verts[3][i];
 		
 		for(j=1;j<=numcuts;j++) { 
@@ -6439,7 +6439,7 @@ static int subdivide_exec(bContext *C, wmOperator *op)
 	Scene *scene = CTX_data_scene(C);
 	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
 	
-	esubdivideflag(obedit, em, 1, 0.0, scene->toolsettings->editbutflag, 1, 0);
+	BM_esubdivideflag_conv(obedit, em, 1, 0.0, scene->toolsettings->editbutflag, 1, 0);
 		
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 	
@@ -6466,7 +6466,7 @@ static int subdivide_multi_exec(bContext *C, wmOperator *op)
 	Scene *scene = CTX_data_scene(C);
 	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
 	
-	esubdivideflag(obedit, em, 1, 0.0, scene->toolsettings->editbutflag, RNA_int_get(op->ptr,"number_cuts"), 0);
+	BM_esubdivideflag_conv(obedit, em, 1, 0.0, scene->toolsettings->editbutflag, RNA_int_get(op->ptr,"number_cuts"), 0);
 		
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 	
@@ -6496,7 +6496,7 @@ static int subdivide_multi_fractal_exec(bContext *C, wmOperator *op)
 	Scene *scene = CTX_data_scene(C);
 	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
 
-	esubdivideflag(obedit, em, 1, -(RNA_float_get(op->ptr, "random_factor")/100), scene->toolsettings->editbutflag, RNA_int_get(op->ptr, "number_cuts"), 0);
+	BM_esubdivideflag_conv(obedit, em, 1, -(RNA_float_get(op->ptr, "random_factor")/100), scene->toolsettings->editbutflag, RNA_int_get(op->ptr, "number_cuts"), 0);
 		
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 	
@@ -6527,7 +6527,7 @@ static int subdivide_smooth_exec(bContext *C, wmOperator *op)
 	Scene *scene = CTX_data_scene(C);
 	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
 
-	esubdivideflag(obedit, em, 1, 0.292f*RNA_float_get(op->ptr, "smoothness"), scene->toolsettings->editbutflag | B_SMOOTH, 1, 0);
+	BM_esubdivideflag_conv(obedit, em, 1, 0.292f*RNA_float_get(op->ptr, "smoothness"), scene->toolsettings->editbutflag | B_SMOOTH, 1, 0);
 		
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 	

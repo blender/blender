@@ -351,17 +351,18 @@ void BM_Vert_UpdateNormal(BMesh *bm, BMVert *v)
 {
 	BMIter iter;
 	BMFace *f;
-	float norm[3] = {0.0f, 0.0f, 0.0f};
 	int len=0;
+
+	v->no[0] = v->no[1] = v->no[2] = 0.0f;
 
 	f = BMIter_New(&iter, bm, BM_FACES_OF_VERT, v);
 	for (; f; f=BMIter_Step(&iter), len++) {
-		VecAddf(norm, f->no, norm);
+		VecAddf(v->no, f->no, v->no);
 	}
 
 	if (!len) return;
 
-	VecMulf(norm, 1.0f/(int)len);
+	VecMulf(v->no, 1.0f/(int)len);
 }
 
 void bmesh_update_face_normal(BMesh *bm, BMFace *f, float (*projectverts)[3])
@@ -429,11 +430,11 @@ int linecrosses(double *v1, double *v2, double *v3, double *v4)
 	
 	return (w1 == w2) && (w3 == w4);*/
 
-	w1 = testedgesidef(v1, v3, v2);
-	w2 = testedgesidef(v2, v4, v1);
-	w3 = !testedgesidef(v1, v2, v3);
-	w4 = testedgesidef(v3, v2, v4);
-	w5 = !testedgesidef(v3, v1, v4);
+	w1 = testedgeside(v1, v3, v2);
+	w2 = testedgeside(v2, v4, v1);
+	w3 = !testedgeside(v1, v2, v3);
+	w4 = testedgeside(v3, v2, v4);
+	w5 = !testedgeside(v3, v1, v4);
 	return w1 == w2 && w2 == w3 && w3 == w4 && w4==w5;
 }
 
@@ -552,17 +553,17 @@ static BMLoop *find_ear(BMesh *bm, BMFace *f, float (*verts)[3],
  * triangles (angles less than 
  * 90 degrees). If the triangulator
  * has bits left over (or cannot
- * triangulate at all) it uses an 
- * arbitrary triangulation.
+ * triangulate at all) it uses a
+ * simple fan triangulation
  *
- * TODO:
- * -Modify this to try and find ears that will not create a non-manifold face after conversion back to editmesh
- *
+ * newfaces, if non-null, must be an array of BMFace pointers,
+ * with a length equal to f->len.  it will be filled with the new
+ * triangles, and will be NULL-terminated.
 */
 void BM_Triangulate_Face(BMesh *bm, BMFace *f, float (*projectverts)[3], 
-			 int newedgeflag, int newfaceflag)
+                         int newedgeflag, int newfaceflag, BMFace **newfaces)
 {
-	int i, done, nvert;
+	int i, done, nvert, nf_i = 0;
 	BMLoop *l, *newl, *nextloop;
 	BMVert *v;
 
@@ -607,6 +608,8 @@ void BM_Triangulate_Face(BMesh *bm, BMFace *f, float (*projectverts)[3],
 
 			BMO_SetFlag(bm, newl->e, newedgeflag);
 			BMO_SetFlag(bm, f, newfaceflag);
+			
+			if (newfaces) newfaces[nf_i++] = f;
 
 			/*l = f->loopbase;
 			do {
@@ -627,14 +630,22 @@ void BM_Triangulate_Face(BMesh *bm, BMFace *f, float (*projectverts)[3],
 			                  &newl, NULL);
 			if (!f) {
 				printf("triangle fan step of triangulator failed.\n");
+
+				/*NULL-terminate*/
+				if (newfaces) newfaces[nf_i] = NULL;
 				return;
 			}
 
+			if (newfaces) newfaces[nf_i++] = f;
+			
 			BMO_SetFlag(bm, newl->e, newedgeflag);
 			BMO_SetFlag(bm, f, newfaceflag);
 			l = nextloop;
 		}
 	}
+	
+	/*NULL-terminate*/
+	if (newfaces) newfaces[nf_i] = NULL;
 }
 
 /*each pair of loops defines a new edge, a split.  this function goes

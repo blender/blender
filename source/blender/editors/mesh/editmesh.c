@@ -1675,6 +1675,7 @@ typedef struct UndoMesh {
 	EditVertC *verts;
 	EditEdgeC *edges;
 	EditFaceC *faces;
+	EditFaceC *act_face;
 	EditSelectionC *selected;
 	int totvert, totedge, totface, totsel;
 	short selectmode;
@@ -1785,6 +1786,8 @@ static void *editMesh_to_undoMesh(void *emv)
 		CustomData_from_em_block(&em->fdata, &um->fdata, efa->data, a);
 	}
 	
+	if (em->act_face) um->act_face = um->faces + em->act_face->tmp.l;
+
 	a = 0;
 	for(ese=em->selected.first; ese; ese=ese->next, esec++){
 		esec->type = ese->type;
@@ -1872,7 +1875,9 @@ static void undoMesh_to_editMesh(void *umv, void *emv)
 		efa->f= efac->f;
 		efa->h= efac->h;
 		efa->fgonf= efac->fgonf;
-		
+
+		if (efac == um->act_face) em->act_face = efa;
+
 		CustomData_to_em_block(&um->fdata, &em->fdata, a, &efa->data);
 	}
 	
@@ -1895,6 +1900,10 @@ static void undoMesh_to_editMesh(void *umv, void *emv)
 		}
 		EM_free_index_arrays();
 	}
+
+	EM_nvertices_selected(em);
+	EM_nedges_selected(em);
+	EM_nfaces_selected(em);
 
 // XXX	retopo_free_paint();
 //	em->retopo_paint_data= retopo_paint_data_copy(um->retopo_paint_data);

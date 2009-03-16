@@ -216,7 +216,9 @@ typedef struct PartialVisibility {
 /* flag (mface) */
 #define ME_SMOOTH			1
 #define ME_FACE_SEL			2
-						/* flag ME_HIDE==16 is used here too */ 
+/* flag ME_HIDE==16 is used here too */ 
+#define ME_DRAW_ACT			4
+
 /* mselect->type */
 #define ME_VSEl	0
 #define ME_ESEl 1

@@ -119,6 +119,11 @@ enum {
 	BMOP_TRIANG_FACEIN, /*faces*/
 	BMOP_TRIANG_NEW_EDGES, /*edgeout*/
 	BMOP_TRIANG_NEW_FACES, /*faceout*/
+	
+	/*facemap, maps new faces to old one.  since triangulator
+	  uses only split face, the original ngon face is still there,
+	  though it's just another triangle now.*/
+	BMOP_TRIANG_FACEMAP,
 	BMOP_TRIANG_TOTSLOT,
 };
 
@@ -187,6 +192,9 @@ struct EditMesh;
 void BMOP_DupeFromFlag(struct BMesh *bm, int etypeflag, int flag);
 void BM_esubdivideflag(struct Object *obedit, struct BMesh *bm, int selflag, float rad, 
 	       int flag, int numcuts, int seltype);
+void BM_esubdivideflag_conv(struct Object *obedit, struct EditMesh *em, 
+                            int selflag, float rad, int flag, int numcuts, 
+                            int seltype);
 void BM_extrudefaceflag(BMesh *bm, int flag);
 
 /*this next one return 1 if they did anything, or zero otherwise.

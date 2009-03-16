@@ -140,18 +140,21 @@ static void alter_co(float *co, BMEdge *edge, subdparams *params, float perc,
 /* assumes in the edge is the correct interpolated vertices already */
 /* percent defines the interpolation, rad and flag are for special options */
 /* results in new vertex with correct coordinate, vertex normal and weight group info */
-static BMVert *bm_subdivide_edge_addvert(BMesh *bm, BMEdge *edge, 
-					subdparams *params, float percent, 
+static BMVert *bm_subdivide_edge_addvert(BMesh *bm, BMEdge *edge,BMEdge *oedge,
+					subdparams *params, float percent,
+					float percent2,
 					BMEdge **out,BMVert *vsta,BMVert *vend)
 {
 	BMVert *ev;
 //	float co[3];
 	
 	ev = BM_Split_Edge(bm, edge->v1, edge, out, percent);
+	BM_Vert_UpdateNormal(bm, ev);
+
 	BMO_SetFlag(bm, ev, ELE_INNER);
 
 	/* offset for smooth or sphere or fractal */
-	alter_co(ev->co, edge, params, percent, vsta, vend);
+	alter_co(ev->co, oedge, params, percent2, vsta, vend);
 
 #if 0 //TODO
 	/* clip if needed by mirror modifier */
@@ -171,34 +174,35 @@ static BMVert *bm_subdivide_edge_addvert(BMesh *bm, BMEdge *edge,
 	return ev;
 }
 
-static BMVert *subdivideedgenum(BMesh *bm, BMEdge *edge, 
+static BMVert *subdivideedgenum(BMesh *bm, BMEdge *edge, BMEdge *oedge,
 				int curpoint, int totpoint, subdparams *params,
 				BMEdge **newe, BMVert *vsta, BMVert *vend)
 {
 	BMVert *ev;
-	float percent;
+	float percent, percent2 = 0.0f;
 	 
 	if (BMO_TestFlag(bm, edge, EDGE_PERCENT) && totpoint == 1)
 		percent = BMO_Get_MapFloat(bm, params->op, 
 			                BMOP_ESUBDIVIDE_PERCENT_EDGEMAP, edge);
 	else {
 		percent= 1.0f/(float)(totpoint+1-curpoint);
+		percent2 = (float)curpoint / (float)(totpoint + 1);
 
 	}
 	
-	ev= bm_subdivide_edge_addvert(bm, edge, params, percent, 
-    	                              newe, vsta, vend);
+	ev= bm_subdivide_edge_addvert(bm, edge, oedge, params, percent,
+	                              percent2, newe, vsta, vend);
 	return ev;
 }
 
 static void bm_subdivide_multicut(BMesh *bm, BMEdge *edge, subdparams *params, 
 				  BMVert *vsta, BMVert *vend) {
-	BMEdge *eed = edge, *newe;
+	BMEdge *eed = edge, *newe, temp = *edge;
 	BMVert *v;
 	int i, numcuts = params->numcuts;
 
 	for(i=0;i<numcuts;i++) {
-		v = subdivideedgenum(bm, eed, i, params->numcuts, params, 
+		v = subdivideedgenum(bm, eed, &temp, i, params->numcuts, params, 
 		                     &newe, vsta, vend);
 		BMO_SetFlag(bm, v, SUBD_SPLIT);
 		BMO_SetFlag(bm, eed, SUBD_SPLIT);
@@ -371,7 +375,7 @@ static void q_4edge_split(BMesh *bm, BMFace *face, BMVert **verts,
 {
 	BMFace *nf;
 	BMVert *v, *v1, *v2;
-	BMEdge *e, *ne;
+	BMEdge *e, *ne, temp;
 	BMVert **lines;
 	int numcuts = params->numcuts;
 	int i, j, a, b, s=numcuts+2, totv=numcuts*4+4;
@@ -406,9 +410,10 @@ static void q_4edge_split(BMesh *bm, BMFace *face, BMVert **verts,
 		
 		v1 = lines[(i+1)*s] = verts[a];
 		v2 = lines[(i+1)*s + s-1] = verts[b];
-
+		
+		temp = *e;
 		for (a=0; a<numcuts; a++) {
-			v = subdivideedgenum(bm, e, a, numcuts, params, &ne,
+			v = subdivideedgenum(bm, e, &temp, a, numcuts, params, &ne,
 			                     v1, v2);
 			BMO_SetFlag(bm, ne, ELE_INNER);
 			lines[(i+1)*s+a+1] = v;
@@ -496,7 +501,7 @@ static void t_3edge_split(BMesh *bm, BMFace *face, BMVert **verts,
                           subdparams *params)
 {
 	BMFace *nf;
-	BMEdge *e, *ne;
+	BMEdge *e, *ne, temp;
 	BMVert ***lines, *v;
 	void *stackarr[1];
 	int i, j, a, b, numcuts = params->numcuts;
@@ -528,9 +533,10 @@ static void t_3edge_split(BMesh *bm, BMFace *face, BMVert **verts,
 
 		lines[i+1][0] = verts[a];
 		lines[i+1][1+i] = verts[b];
-
+		
+		temp = *e;
 		for (j=0; j<i; j++) {
-			v = subdivideedgenum(bm, e, j, i, params, &ne,
+			v = subdivideedgenum(bm, e, &temp, j, i, params, &ne,
 			                     verts[a], verts[b]);
 			lines[i+1][j+1] = v;
 

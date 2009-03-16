@@ -3257,8 +3257,10 @@ static int bmesh_test_exec(bContext *C, wmOperator *op)
 	bm = editmesh_to_bmesh(em);
 
 #if 1 /*edge subdivide test*/
-	//BM_esubdivideflag(obedit, bm, SELECT, 0.292f*5.0, B_SMOOTH, G.rt==0?1:G.rt, 0);
-	BM_esubdivideflag(obedit, bm, SELECT, 0, 0, G.rt==0?1:G.rt, SUBDIV_SELECT_INNER);
+	//esubdivideflag(obedit, em, 1, -(RNA_float_get(op->ptr, "random_factor")/100), scene->toolsettings->editbutflag, RNA_int_get(op->ptr, "number_cuts"), 0);
+
+	BM_esubdivideflag(obedit, bm, SELECT, -0.05f, 0, G.rt==0?1:G.rt, 0);
+	//BM_esubdivideflag(obedit, bm, SELECT, 0, 0, G.rt==0?1:G.rt, SUBDIV_SELECT_INNER);
 
 #endif
 

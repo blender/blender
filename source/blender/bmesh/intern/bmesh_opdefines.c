@@ -52,7 +52,8 @@ BMOpDefine def_triangop = {
 	"triangulate",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "faces"},
 	{BMOP_OPSLOT_ELEMENT_BUF, "edgeout"},
-	{BMOP_OPSLOT_ELEMENT_BUF, "faceout"}},
+	{BMOP_OPSLOT_ELEMENT_BUF, "faceout"},
+	{BMOP_OPSLOT_MAPPING, "facemap"}},
 	triangulate_exec,
 	BMOP_TRIANG_TOTSLOT,
 	0
