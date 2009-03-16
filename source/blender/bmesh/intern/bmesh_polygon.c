@@ -573,7 +573,7 @@ static BMLoop *find_ear(BMesh *bm, BMFace *f, float (*verts)[3],
 	int isear, i=0;
 	
 	l = f->loopbase;
-	do{
+	do {
 		isear = 1;
 		
 		v1 = ((BMLoop*)(l->head.prev))->v;
@@ -586,9 +586,9 @@ static BMLoop *find_ear(BMesh *bm, BMFace *f, float (*verts)[3],
 			               v3->head.eflag2, nvert))
 			isear = 0;
 
-		if(isear){
+		if(isear) {
 			angle = VecAngle3(verts[v1->head.eflag2], verts[v2->head.eflag2], verts[v3->head.eflag2]);
-			if(!bestear || ABS(angle-45.0f) < bestangle){
+			if(!bestear || ABS(angle-45.0f) < bestangle) {
 				bestear = l;
 				bestangle = ABS(45.0f-angle);
 			}

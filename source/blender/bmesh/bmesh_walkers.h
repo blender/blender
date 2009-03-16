@@ -19,7 +19,9 @@ typedef struct BMWalker {
 	GHash *visithash;
 } BMWalker;
 
-void BMW_Init(struct BMWalker *walker, BMesh *bm,int type, int searchmask);
+/*initialize a walker.  searchmask restricts some (not all) walkers to
+  elements with a specific tool flag set.*/
+void BMW_Init(struct BMWalker *walker, BMesh *bm, int type, int searchmask);
 void *BMW_Begin(BMWalker *walker, void *start);
 void *BMW_Step(struct BMWalker *walker);
 void BMW_End(struct BMWalker *walker);
@@ -38,12 +40,24 @@ for (; f; f=BMW_Step(&walker)) {
 BMW_End(&walker);
 */
 
+/*walk over connected geometry.  can restrict to a search flag,
+  or not, it's optional.*/
 #define BMW_SHELL	0
+
+/*walk over an edge loop.  search flag doesn't do anything.*/
 #define BMW_LOOP	1
 /*#define BMW_RING	2
 #define BMW_UVISLANDS	3*/
+/*walk over an island of flagged faces.  note, that this doesn't work on
+  non-manifold geometry.  it might be better to rewrite this to extract
+  boundary info from the island walker, rather then directly walking
+  over the boundary.  raises an error if it encouters nonmanifold
+  geometry.*/
 #define BMW_ISLANDBOUND	2
+
+/*walk over all faces in an island of tool flagged faces.*/
 #define BMW_ISLAND	3
+
 #define BMW_MAXWALKERS	4
 
 #endif

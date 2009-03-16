@@ -36,16 +36,18 @@ int BMO_CatchOpError(BMesh *bm, BMOperator *catchop, int errorcode, char **msg);
 #define BMERR_DISSOLVEFACES_FAILED		5
 #define BMERR_DISSOLVEVERTS_FAILED		6
 #define BMERR_TESSELATION			7
+#define BMERR_NONMANIFOLD			8
 
 static char *bmop_error_messages[] = {
        0,
        "Self intersection error",
        "Could not dissolve vert",
-       "Could not connect verts",
+       "Could not connect vertices",
        "Could not traverse mesh",
        "Could not dissolve faces",
        "Could not dissolve vertices",
        "Tesselation error",
+       "Can not deal with non-manifold geometry"
 };
 
 #endif /* _BMESH_ERROR_H */

@@ -23,7 +23,7 @@ void extrude_edge_context_exec(BMesh *bm, BMOperator *op)
 	BMLoop *l, *l2;
 	BMVert *verts[4], *v;
 	BMFace *f;
-	int rlen, found, delorig=0, i;
+	int rlen, found, delorig=0, i, reverse;
 
 	/*initialize our sub-operators*/
 	BMO_Init_Op(&dupeop, BMOP_DUPE);
@@ -86,6 +86,15 @@ void extrude_edge_context_exec(BMesh *bm, BMOperator *op)
 	
 	BMO_Exec_Op(bm, &dupeop);
 	if (delorig) BMO_Exec_Op(bm, &delop);
+	
+	/*if not delorig, reverse loops of original faces*/
+	if (!delorig) {
+		for (f=BMIter_New(&iter, bm, BM_FACES, NULL); f; f=BMIter_Step(&iter)) {
+			if (BMO_TestFlag(bm, f, EXT_INPUT)) {
+				BM_flip_normal(bm, f);
+			}
+		}
+	}
 
 	BMO_CopySlot(&dupeop, op, BMOP_DUPE_NEW, BMOP_EXFACE_MULTOUT);
 	e = BMO_IterNew(&siter, bm, &dupeop, BMOP_DUPE_BOUNDS_EDGEMAP);
@@ -95,21 +104,39 @@ void extrude_edge_context_exec(BMesh *bm, BMOperator *op)
 		newedge = BMO_IterMapVal(&siter);
 		newedge = *(BMEdge**)newedge;
 		if (!newedge) continue;
-
-		verts[0] = e->v1;
-		verts[1] = e->v2;
-		verts[2] = newedge->v2;
-		verts[3] = newedge->v1;
 		
-		//not sure what to do about example face, pass NULL for now.
+		if (newedge->loop->v == newedge->v1) {
+			verts[0] = e->v1;
+			verts[1] = e->v2;
+			verts[2] = newedge->v2;
+			verts[3] = newedge->v1;
+		} else {
+			verts[3] = e->v1;
+			verts[2] = e->v2;
+			verts[1] = newedge->v2;
+			verts[0] = newedge->v1;
+		}
+
+		/*not sure what to do about example face, pass NULL for now.*/
 		f = BM_Make_Quadtriangle(bm, verts, NULL, 4, NULL, 0);		
 
 		/*copy attributes*/
 		l=BMIter_New(&iter, bm, BM_LOOPS_OF_FACE, f);
 		for (; l; l=BMIter_Step(&iter)) {
+			if (l->e != e && l->e != newedge) continue;
 			l2 = l->radial.next->data;
 			
-			if (l2 && l2 != l) {
+			if (l2 == l) {
+				l2 = newedge->loop;
+				BM_Copy_Attributes(bm, bm, l2->f, l->f);
+
+				BM_Copy_Attributes(bm, bm, l2, l);
+				l2 = (BMLoop*) l2->head.next;
+				l = (BMLoop*) l->head.next;
+				BM_Copy_Attributes(bm, bm, l2, l);
+			} else {
+				BM_Copy_Attributes(bm, bm, l2->f, l->f);
+
 				/*copy data*/
 				if (l2->v == l->v) {
 					BM_Copy_Attributes(bm, bm, l2, l);
