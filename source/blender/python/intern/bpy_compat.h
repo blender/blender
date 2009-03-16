@@ -56,6 +56,18 @@
 
 #endif
 
+#ifndef Py_REFCNT
+#define Py_REFCNT(ob)		(((PyObject*)(ob))->ob_refcnt)
+#endif
+
+#ifndef Py_TYPE
+#define Py_TYPE(ob)		(((PyObject*)(ob))->ob_type)
+#endif
+
+#ifndef Py_TYPE
+#define Py_SIZE(ob)		(((PyVarObject*)(ob))->ob_size)
+#endif
+
 /* older then python 2.6 - define these */
 // #if (PY_VERSION_HEX < 0x02060000)
 // #endif
