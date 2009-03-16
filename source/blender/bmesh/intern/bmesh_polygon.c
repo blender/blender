@@ -52,36 +52,27 @@ static short testedgeside(double *v1, double *v2, double *v3)
 	return 1;
 }
 
+static short testedgesidef(float *v1, float *v2, float *v3)
+/* is v3 to the right of v1-v2 ? With exception: v3==v1 || v3==v2 */
+{
+	double inp;
+
+	//inp= (v2[cox]-v1[cox])*(v1[coy]-v3[coy]) +(v1[coy]-v2[coy])*(v1[cox]-v3[cox]);
+	inp= (v2[0]-v1[0])*(v1[1]-v3[1]) +(v1[1]-v2[1])*(v1[0]-v3[0]);
+
+	if(inp<0.0) return 0;
+	else if(inp==0) {
+		if(v1[0]==v3[0] && v1[1]==v3[1]) return 0;
+		if(v2[0]==v3[0] && v2[1]==v3[1]) return 0;
+	}
+	return 1;
+}
+
 static int point_in_triangle(double *v1, double *v2, double *v3, double *pt)
 {
 	if(testedgeside(v1,v2,pt) && testedgeside(v2,v3,pt) && testedgeside(v3,v1,pt))
 		return 1;
 	return 0;
-}
-
-/*
- * CONVEX ANGLE 
- *
- * Tests whether or not a given angle in
- * a polygon is convex or not. Note that 
- * this assumes that the polygon has been
- * projected to the x/y plane
- *
-*/
-static int convexangle(float *v1t, float *v2t, float *v3t)
-{
-	float v1[3], v3[3], n[3];
-	VecSubf(v1, v1t, v2t);
-	VecSubf(v3, v3t, v2t);
-
-	Normalize(v1);
-	Normalize(v3);
-	Crossf(n, v1, v3);
-	
-	if(n[2] < 0.0)
-		return 0;
-
-	return 1;
 }
 
 /*
@@ -107,14 +98,6 @@ static void compute_poly_normal(float normal[3], float (*verts)[3], int nverts)
 	for(i = 0; i < nverts; i++){
 		u = verts[i];
 		v = verts[(i+1) % nverts];
-		/*w = verts[(i+2) % nverts];
-
-		VecSubf(v1, u, v);
-		VecSubf(v2, w, v);
-		Crossf(normal, v1, v2);
-		Normalize(normal);
-		
-		return;*/
 		
 		/* newell's method
 		
@@ -433,29 +416,6 @@ void BM_flip_normal(BMesh *bm, BMFace *f)
 	bmesh_loop_reverse(bm, f);
 }
 
-
-
-int winding(double *a, double *b, double *c)
-{
-	double v1[3], v2[3], v[3];
-	
-	VECSUB(v1, b, a);
-	VECSUB(v2, b, c);
-	
-	v1[2] = 0;
-	v2[2] = 0;
-	
-	Normalize_d(v1);
-	Normalize_d(v2);
-	
-	Crossd(v, v1, v2);
-
-	/*!! (turns nonzero into 1) is likely not necassary, 
-	  since '>' I *think* should always
-	  return 0 or 1, but I'm not totally sure. . .*/
-	return !!(v[2] > 0);
-}
-
 /* detects if two line segments cross each other (intersects).
    note, there could be more winding cases then there needs to be. */
 int linecrosses(double *v1, double *v2, double *v3, double *v4)
@@ -469,33 +429,12 @@ int linecrosses(double *v1, double *v2, double *v3, double *v4)
 	
 	return (w1 == w2) && (w3 == w4);*/
 
-	w1 = winding(v1, v3, v2);
-	w2 = winding(v2, v4, v1);
-	w3 = !winding(v1, v2, v3);
-	w4 = winding(v3, v2, v4);
-	w5 = !winding(v3, v1, v4);
+	w1 = testedgesidef(v1, v3, v2);
+	w2 = testedgesidef(v2, v4, v1);
+	w3 = !testedgesidef(v1, v2, v3);
+	w4 = testedgesidef(v3, v2, v4);
+	w5 = !testedgesidef(v3, v1, v4);
 	return w1 == w2 && w2 == w3 && w3 == w4 && w4==w5;
-}
-
-int windingf(float *a, float *b, float *c)
-{
-	float v1[3], v2[3], v[3];
-	
-	VECSUB(v1, b, a);
-	VECSUB(v2, b, c);
-	
-	v1[2] = 0;
-	v2[2] = 0;
-	
-	Normalize(v1);
-	Normalize(v2);
-	
-	Crossf(v, v1, v2);
-
-	/*!! (turns nonzero into 1) is likely not necassary, 
-	  since '>' I *think* should always
-	  return 0 or 1, but I'm not totally sure. . .*/
-	return !!(v[2] > 0);
 }
 
 /* detects if two line segments cross each other (intersects).
@@ -511,11 +450,11 @@ int linecrossesf(float *v1, float *v2, float *v3, float *v4)
 	
 	return (w1 == w2) && (w3 == w4);*/
 
-	w1 = windingf(v1, v3, v2);
-	w2 = windingf(v2, v4, v1);
-	w3 = !windingf(v1, v2, v3);
-	w4 = windingf(v3, v2, v4);
-	w5 = !windingf(v3, v1, v4);
+	w1 = testedgesidef(v1, v3, v2);
+	w2 = testedgesidef(v2, v4, v1);
+	w3 = !testedgesidef(v1, v2, v3);
+	w4 = testedgesidef(v3, v2, v4);
+	w5 = !testedgesidef(v3, v1, v4);
 	return w1 == w2 && w2 == w3 && w3 == w4 && w4==w5;
 }
 
@@ -732,7 +671,7 @@ void BM_LegalSplits(BMesh *bm, BMFace *f, BMLoop *(*loops)[2], int len)
 		VECCOPY(v1, loops[i][0]->v->co);
 		VECCOPY(v2, loops[i][1]->v->co);
 
-		shrink_edgef(v1, v2, 0.999f);
+		shrink_edgef(v1, v2, 0.9999f);
 		
 		VECCOPY(edgeverts[a], v1);
 		a++;
@@ -776,7 +715,7 @@ void BM_LegalSplits(BMesh *bm, BMFace *f, BMLoop *(*loops)[2], int len)
 			VECCOPY(v1, p1);
 			VECCOPY(v2, p2);
 
-			shrink_edgef(v1, v2, 1.0001f);
+			shrink_edgef(v1, v2, 1.00001f);
 
 			if (linecrossesf(p1, p2, mid, out)) clen++;
 			//else if (linecrossesf(p2, p1, out, mid)) clen++;

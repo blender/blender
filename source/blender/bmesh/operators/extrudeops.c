@@ -29,8 +29,9 @@ void extrude_edge_context_exec(BMesh *bm, BMOperator *op)
 	BMO_Init_Op(&dupeop, BMOP_DUPE);
 	
 	BMO_Flag_Buffer(bm, op, BMOP_EXFACE_EDGEFACEIN, EXT_INPUT);
-
-#if 1
+	
+	/*if one flagged face is bordered by an unflagged face, then we delete
+	  original geometry.*/
 	for (e=BMIter_New(&iter, bm, BM_EDGES, NULL);e;e=BMIter_Step(&iter)) {
 		if (!BMO_TestFlag(bm, e, EXT_INPUT)) continue;
 
@@ -74,7 +75,6 @@ void extrude_edge_context_exec(BMesh *bm, BMOperator *op)
 		if (BMO_TestFlag(bm, f, EXT_INPUT))
 			BMO_SetFlag(bm, f, EXT_DEL);
 	}
-#endif
 	if (delorig) BMO_InitOpf(bm, &delop, "del geom=%fvef context=%d", 
 	                         EXT_DEL, DEL_ONLYTAGGED);
 
@@ -152,6 +152,6 @@ void extrude_edge_context_exec(BMesh *bm, BMOperator *op)
 
 	
 	/*cleanup*/
-	BMO_Finish_Op(bm, &delop);
+	if (delorig) BMO_Finish_Op(bm, &delop);
 	BMO_Finish_Op(bm, &dupeop);
 }
