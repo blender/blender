@@ -59,7 +59,7 @@ void free_fcurve (FCurve *fcu)
 	fcurve_free_driver(fcu);
 	fcurve_free_modifiers(fcu);
 	
-	/* free f-cruve itself */
+	/* free f-curve itself */
 	MEM_freeN(fcu);
 }
 
@@ -1477,6 +1477,14 @@ static FModifierTypeInfo FMI_ENVELOPE = {
  * 				as appropriate
  */
 
+static void fcm_cycles_new_data (void *mdata)
+{
+	FMod_Cycles *data= (FMod_Cycles *)mdata;
+	
+	/* turn on cycles by default */
+	data->before_mode= data->after_mode= FCM_EXTRAPOLATE_CYCLIC;
+}
+ 
 static void fcm_cycles_evaluate (FCurve *fcu, FModifier *fcm, float *cvalue, float evaltime)
 {
 	FMod_Cycles *data= (FMod_Cycles *)fcm->data;
@@ -1522,7 +1530,7 @@ static void fcm_cycles_evaluate (FCurve *fcu, FModifier *fcm, float *cvalue, flo
 	 *	2) if before first frame or after last frame, make sure some cycling is in use
 	 */
 	if (evaltime < prevkey[0]) {
-		if (data->before_mode) {
+		if (data->before_mode)  {
 			side= -1;
 			mode= data->before_mode;
 			cycles= data->before_cycles;
@@ -1538,8 +1546,7 @@ static void fcm_cycles_evaluate (FCurve *fcu, FModifier *fcm, float *cvalue, flo
 	if ELEM(0, side, mode)
 		return;
 		
-	/* extrapolation mode is 'cyclic' - find relative place within a cycle */
-	// FIXME: adding the more fine-grained control of extrpolation mode
+	/* find relative place within a cycle */
 	{
 		float cycdx=0, cycdy=0, ofs=0;
 		
@@ -1553,15 +1560,19 @@ static void fcm_cycles_evaluate (FCurve *fcu, FModifier *fcm, float *cvalue, flo
 		/* check if cycle is infinitely small, to be point of being impossible to use */
 		if (cycdx == 0)
 			return;
+			
 		/* check that cyclic is still enabled for the specified time */
 		if (cycles == 0) {
 			/* catch this case so that we don't exit when we have cycles=0
 			 * as this indicates infinite cycles...
 			 */
 		}
-		else if ( ((float)side * (evaltime - ofs) / cycdx) > cycles )
+		else if ( ((float)side * (evaltime - ofs) / cycdx) > (cycles+1) ) {
+			/* we are too far away from range to evaluate
+			 * TODO: but we should still hold last value... 
+			 */
 			return;
-		
+		}
 		
 		/* check if 'cyclic extrapolation', and thus calculate y-offset for this cycle */
 		if (mode == FCM_EXTRAPOLATE_CYCLIC_OFFSET) {
@@ -1596,7 +1607,7 @@ static FModifierTypeInfo FMI_CYCLES = {
 	"FMod_Cycles", /* struct name */
 	NULL, /* free data */
 	NULL, /* copy data */
-	NULL, /* new data */
+	fcm_cycles_new_data, /* new data */
 	NULL /*fcm_cycles_verify*/, /* verify */
 	fcm_cycles_evaluate /* evaluate */
 };

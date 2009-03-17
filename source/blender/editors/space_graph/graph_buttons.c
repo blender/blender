@@ -251,9 +251,19 @@ static void validate_fmodifier_cb (bContext *C, void *fcu_v, void *fcm_v)
 	if (fmi && fmi->verify_data)
 		fmi->verify_data(fcm);
 }
+
+/* callback to remove the given modifier  */
+static void delete_fmodifier_cb (bContext *C, void *fcu_v, void *fcm_v)
+{
+	FCurve *fcu= (FCurve *)fcu_v;
+	FModifier *fcm= (FModifier *)fcm_v;
+	
+	/* remove the given F-Modifier from the F-Curve */
+	fcurve_remove_modifier(fcu, fcm);
+}
 	
 /* draw settings for generator modifier */
-static void _draw_modifier__generator(uiBlock *block, FCurve *fcu, FModifier *fcm, int *yco, short *height, short width, short active, int rb_col)
+static void draw_modifier__generator(uiBlock *block, FCurve *fcu, FModifier *fcm, int *yco, short *height, short width, short active, int rb_col)
 {
 	FMod_Generator *data= (FMod_Generator *)fcm->data;
 	char gen_mode[]="Generator Type%t|Expanded Polynomial%x0|Factorised Polynomial%x1|Built-In Function%x2|Expression%x3";
@@ -284,7 +294,7 @@ static void _draw_modifier__generator(uiBlock *block, FCurve *fcu, FModifier *fc
 	uiButSetFunc(but, validate_fmodifier_cb, fcu, fcm);
 	cy -= 35;
 	
-	/* now add settings for individual modifiers */
+	/* now add settings for individual modes */
 	switch (data->mode) {
 		case FCM_GENERATOR_POLYNOMIAL: /* polynomial expression */
 		{
@@ -428,6 +438,33 @@ static void _draw_modifier__generator(uiBlock *block, FCurve *fcu, FModifier *fc
 	}
 }
 
+/* draw settings for generator modifier */
+static void draw_modifier__cycles(uiBlock *block, FCurve *fcu, FModifier *fcm, int *yco, short *height, short width, short active, int rb_col)
+{
+	FMod_Cycles *data= (FMod_Cycles *)fcm->data;
+	char cyc_mode[]="Cycling Mode%t|No Cycles%x0|Repeat Motion%x1|Repeat with Offset%x2";
+	int cy= (*yco - 30), cy1= (*yco - 50), cy2= (*yco - 70);
+	
+	/* set the height */
+	(*height) = 90;
+	
+	/* basic settings (backdrop + some padding) */
+	//DRAW_BACKDROP((*height)); // XXX buggy...
+	
+	/* 'before' range */
+	uiDefBut(block, LABEL, 1, "Before:", 10, cy, 80, 20, NULL, 0.0, 0.0, 0, 0, "Settings for cycling before first keyframe");
+	uiBlockBeginAlign(block);
+		uiDefButS(block, MENU, B_FMODIFIER_REDRAW, cyc_mode, 10,cy1,150,20, &data->before_mode, 0, 0, 0, 0, "Cycling mode to use before first keyframe");
+		uiDefButS(block, NUM, B_FMODIFIER_REDRAW, "Max Cycles:", 10, cy2, 150, 20, &data->before_cycles, 0, 10000, 10, 3, "Maximum number of cycles to allow (0 = infinite)");
+	uiBlockEndAlign(block);
+	
+	/* 'after' range */
+	uiDefBut(block, LABEL, 1, "After:", 160, cy, 80, 20, NULL, 0.0, 0.0, 0, 0, "Settings for cycling after last keyframe");
+	uiBlockBeginAlign(block);
+		uiDefButS(block, MENU, B_FMODIFIER_REDRAW, cyc_mode, 170,cy1,150,20, &data->after_mode, 0, 0, 0, 0, "Cycling mode to use after first keyframe");
+		uiDefButS(block, NUM, B_FMODIFIER_REDRAW, "Max Cycles:", 170, cy2, 150, 20, &data->after_cycles, 0, 10000, 10, 3, "Maximum number of cycles to allow (0 = infinite)");
+	uiBlockEndAlign(block);
+}
 
 static void graph_panel_modifier_draw(uiBlock *block, FCurve *fcu, FModifier *fcm, int *yco)
 {
@@ -461,7 +498,7 @@ static void graph_panel_modifier_draw(uiBlock *block, FCurve *fcu, FModifier *fc
 		
 		/* delete button */
 		but= uiDefIconBut(block, BUT, B_REDR, ICON_X, 10+(width-30), *yco, 19, 19, NULL, 0.0, 0.0, 0.0, 0.0, "Delete layer");
-		//uiButSetFunc(but, gp_ui_dellayer_cb, gpd, NULL);
+		uiButSetFunc(but, delete_fmodifier_cb, fcu, fcm);
 		
 		uiBlockSetEmboss(block, UI_EMBOSS);
 	}
@@ -471,7 +508,11 @@ static void graph_panel_modifier_draw(uiBlock *block, FCurve *fcu, FModifier *fc
 		/* draw settings for individual modifiers */
 		switch (fcm->type) {
 			case FMODIFIER_TYPE_GENERATOR: /* Generator */
-				_draw_modifier__generator(block, fcu, fcm, yco, &height, width, active, rb_col);
+				draw_modifier__generator(block, fcu, fcm, yco, &height, width, active, rb_col);
+				break;
+				
+			case FMODIFIER_TYPE_CYCLES: /* Cycles */
+				draw_modifier__cycles(block, fcu, fcm, yco, &height, width, active, rb_col);
 				break;
 			
 			default: /* unknown type */
