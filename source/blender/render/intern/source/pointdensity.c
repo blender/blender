@@ -373,7 +373,7 @@ static void init_pointdensityrangedata(PointDensity *pd, PointDensityRangeData *
 
 int pointdensitytex(Tex *tex, float *texvec, TexResult *texres)
 {
-	int retval = TEX_INT+TEX_RGB;
+	int retval = TEX_INT;
 	PointDensity *pd = tex->pd;
 	PointDensityRangeData pdr;
 	float density=0.0f, age=0.0f, time=0.0f;
@@ -382,11 +382,11 @@ int pointdensitytex(Tex *tex, float *texvec, TexResult *texres)
 	float turb, noise_fac;
 	int num=0;
 	
-	if ((!pd) || (!pd->point_tree)) {
-		texres->tin = 0.0f;
-		return 0;
-	}
+	texres->tin = 0.0f;
 	
+	if ((!pd) || (!pd->point_tree))		
+		return 0;
+		
 	init_pointdensityrangedata(pd, &pdr, &density, vec, &age);
 	noise_fac = pd->noise_fac * 0.5f;	/* better default */
 	
@@ -400,6 +400,9 @@ int pointdensitytex(Tex *tex, float *texvec, TexResult *texres)
 			age /= num;
 			VecMulf(vec, 1.0f/num);
 		}
+		
+		/* reset */
+		density = vec[0] = vec[1] = vec[2] = 0.0f;
 	}
 	
 	if (pd->flag & TEX_PD_TURBULENCE) {
@@ -422,11 +425,9 @@ int pointdensitytex(Tex *tex, float *texvec, TexResult *texres)
 		co[0] = texvec[0] + noise_fac * turb;
 		co[1] = texvec[1] + noise_fac * turb;
 		co[2] = texvec[2] + noise_fac * turb;
-		
-		/* reset and prepare for a new BVH query with the perturbed coordinates */
-		density = vec[0] = vec[1] = vec[2] = 0.0f;
 	}
 
+	/* BVH query with the potentially perturbed coordinates */
 	num = BLI_bvhtree_range_query(pd->point_tree, co, pd->radius, accum_density, &pdr);
 	if (num > 0) {
 		age /= num;
@@ -436,13 +437,19 @@ int pointdensitytex(Tex *tex, float *texvec, TexResult *texres)
 	texres->tin = density;
 	BRICONT;
 	
+	if (pd->color_source == TEX_PD_COLOR_CONSTANT)
+		return retval;
+	
+	retval |= TEX_RGB;
+	
 	switch (pd->color_source) {
 		case TEX_PD_COLOR_PARTAGE:
 			if (pd->coba) {
 				if (do_colorband(pd->coba, age, col)) {
 					texres->talpha= 1;
-					QUATCOPY(&texres->tr, col);
-					texres->tin *= texres->ta;
+					VECCOPY(&texres->tr, col);
+					texres->tin *= col[3];
+					texres->ta = texres->tin;
 				}
 			}
 			break;
@@ -453,16 +460,18 @@ int pointdensitytex(Tex *tex, float *texvec, TexResult *texres)
 			if (pd->coba) {
 				if (do_colorband(pd->coba, speed, col)) {
 					texres->talpha= 1;	
-					QUATCOPY(&texres->tr, col);
-					texres->tin *= texres->ta;
+					VECCOPY(&texres->tr, col);
+					texres->tin *= col[3];
+					texres->ta = texres->tin;
 				}
 			}
 			break;
 		}
 		case TEX_PD_COLOR_PARTVEL:
+			texres->talpha= 1;
 			VecMulf(vec, pd->speed_scale);
 			VECCOPY(&texres->tr, vec);
-			texres->ta = 1.0f;
+			texres->ta = texres->tin;
 			break;
 		case TEX_PD_COLOR_CONSTANT:
 		default:

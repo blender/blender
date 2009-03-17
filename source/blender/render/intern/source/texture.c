@@ -1653,7 +1653,7 @@ void do_volume_tex(ShadeInput *shi, float *xyz, int mapto_flag, float *col, floa
 				float varfac= mtex->varfac*stencilTin;
 				
 				/* convert RGB to intensity if intensity info isn't provided */
-				if (rgbnor & TEX_INT) {
+				if (!(rgbnor & TEX_INT)) {
 					if (rgbnor & TEX_RGB) {
 						if(texres.talpha) texres.tin= texres.ta;
 						else texres.tin= (0.35*texres.tr+0.45*texres.tg+0.2*texres.tb);
