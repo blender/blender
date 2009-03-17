@@ -3758,6 +3758,8 @@ static void lib_link_scene(FileData *fd, Main *main)
 				sce->toolsettings->sculpt->brush=
 					newlibadr_us(fd, sce->id.lib, sce->toolsettings->sculpt->brush);
 
+			sce->toolsettings->skgen_template = newlibadr(fd, sce->id.lib, sce->toolsettings->skgen_template);
+
 			for(base= sce->base.first; base; base= next) {
 				next= base->next;
 
@@ -8092,28 +8094,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				ima->flag |= IMA_DO_PREMUL;
 			}
 		}
-
-		if (main->versionfile < 245 || main->subversionfile < 12)
-		{
-			/* initialize skeleton generation toolsettings */
-			for(sce=main->scene.first; sce; sce = sce->id.next)
-			{
-				sce->toolsettings->skgen_resolution = 50;
-				sce->toolsettings->skgen_threshold_internal 	= 0.01f;
-				sce->toolsettings->skgen_threshold_external 	= 0.01f;
-				sce->toolsettings->skgen_angle_limit	 		= 45.0f;
-				sce->toolsettings->skgen_length_ratio			= 1.3f;
-				sce->toolsettings->skgen_length_limit			= 1.5f;
-				sce->toolsettings->skgen_correlation_limit		= 0.98f;
-				sce->toolsettings->skgen_symmetry_limit			= 0.1f;
-				sce->toolsettings->skgen_postpro = SKGEN_SMOOTH;
-				sce->toolsettings->skgen_postpro_passes = 1;
-				sce->toolsettings->skgen_options = SKGEN_FILTER_INTERNAL|SKGEN_FILTER_EXTERNAL|SKGEN_SUB_CORRELATION;
-				sce->toolsettings->skgen_subdivisions[0] = SKGEN_SUB_CORRELATION;
-				sce->toolsettings->skgen_subdivisions[1] = SKGEN_SUB_LENGTH;
-				sce->toolsettings->skgen_subdivisions[2] = SKGEN_SUB_ANGLE;
-			}
-		}
 	}
 	
 	/* sanity check for skgen
@@ -8714,6 +8694,31 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		for (sce= main->scene.first; sce; sce= sce->id.next) {
 			sce->toolsettings->imapaint.seam_bleed = 2;
 			sce->toolsettings->imapaint.normal_angle = 80;
+
+			/* initialize skeleton generation toolsettings */
+			sce->toolsettings->skgen_resolution = 250;
+			sce->toolsettings->skgen_threshold_internal 	= 0.1f;
+			sce->toolsettings->skgen_threshold_external 	= 0.1f;
+			sce->toolsettings->skgen_angle_limit	 		= 30.0f;
+			sce->toolsettings->skgen_length_ratio			= 1.3f;
+			sce->toolsettings->skgen_length_limit			= 1.5f;
+			sce->toolsettings->skgen_correlation_limit		= 0.98f;
+			sce->toolsettings->skgen_symmetry_limit			= 0.1f;
+			sce->toolsettings->skgen_postpro = SKGEN_SMOOTH;
+			sce->toolsettings->skgen_postpro_passes = 3;
+			sce->toolsettings->skgen_options = SKGEN_FILTER_INTERNAL|SKGEN_FILTER_EXTERNAL|SKGEN_FILTER_SMART|SKGEN_SUB_CORRELATION|SKGEN_HARMONIC;
+			sce->toolsettings->skgen_subdivisions[0] = SKGEN_SUB_CORRELATION;
+			sce->toolsettings->skgen_subdivisions[1] = SKGEN_SUB_LENGTH;
+			sce->toolsettings->skgen_subdivisions[2] = SKGEN_SUB_ANGLE;
+
+			
+			sce->toolsettings->skgen_retarget_angle_weight = 1.0f;
+			sce->toolsettings->skgen_retarget_length_weight = 1.0f;
+			sce->toolsettings->skgen_retarget_distance_weight = 1.0f;
+	
+			/* Skeleton Sketching */
+			sce->toolsettings->bone_sketching = 0;
+			sce->toolsettings->skgen_retarget_roll = SK_RETARGET_ROLL_VIEW;
 		}
 	}
 	if (main->versionfile < 248 || (main->versionfile == 248 && main->subversionfile < 3)) {
@@ -9733,6 +9738,9 @@ static void expand_scene(FileData *fd, Main *mainvar, Scene *sce)
 	if(sce->adt)
 		expand_animdata(fd, mainvar, sce->adt);
 	expand_keyingsets(fd, mainvar, &sce->keyingsets);
+	
+	if(sce->set)
+		expand_doit(fd, mainvar, sce->set);
 	
 	if(sce->nodetree)
 		expand_nodetree(fd, mainvar, sce->nodetree);

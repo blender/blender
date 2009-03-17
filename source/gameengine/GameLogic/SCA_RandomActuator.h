@@ -96,8 +96,8 @@ class SCA_RandomActuator : public SCA_IActuator
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
 
-	virtual PyObject* _getattr(const STR_String& attr);
-	virtual int _setattr(const STR_String& attr, PyObject *value);
+	virtual PyObject* _getattr(const char *attr);
+	virtual int _setattr(const char *attr, PyObject *value);
 
 	/* 1. setSeed                                                            */
 	KX_PYMETHOD_DOC(SCA_RandomActuator,SetSeed);

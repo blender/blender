@@ -73,7 +73,7 @@ class KX_StateActuator : public SCA_IActuator
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
 
-	virtual PyObject* _getattr(const STR_String& attr);
+	virtual PyObject* _getattr(const char *attr);
 	//KX_PYMETHOD_DOC
 	KX_PYMETHOD_DOC(KX_StateActuator,SetOperation);
 	KX_PYMETHOD_DOC(KX_StateActuator,SetMask);

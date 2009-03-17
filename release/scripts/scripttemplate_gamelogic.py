@@ -11,6 +11,9 @@ import bpy
 
 script_data = \
 '''
+# This script must be assigned to a python controller
+# where it can access the object that owns it and the sensors/actuators that it connects to.
+
 # GameLogic has been added to the global namespace no need to import
 
 # for keyboard event comparison
@@ -50,7 +53,7 @@ def main():
 	for actu in cont.getActuators():
 		# The actuator can be on another object, we may want to use it
 		own_actu = actu.getOwner()
-		print '    actuator:', sens.getName()
+		print '    actuator:', actu.getName()
 		
 		# This runs the actuator or turns it off
 		# note that actuators will continue to run unless explicitly turned off.

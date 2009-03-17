@@ -169,7 +169,7 @@ Sequence *get_forground_frame_seq(Scene *scene, int frame)
 	if(!ed) return NULL;
 	
 	for (seq=ed->seqbasep->first; seq; seq= seq->next) {
-		if(seq->startdisp > frame || seq->enddisp <= frame)
+		if(seq->flag & SEQ_MUTE || seq->startdisp > frame || seq->enddisp <= frame)
 			continue;
 		/* only use elements you can see - not */
 		if (ELEM6(seq->type, SEQ_IMAGE, SEQ_META, SEQ_SCENE, SEQ_MOVIE, SEQ_MOVIE_AND_HD_SOUND, SEQ_COLOR)) {

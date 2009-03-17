@@ -31,7 +31,7 @@
 /* internal exports only */
 struct wmOperatorType;
 
-/* editarmature.c */
+/* editarmature.c operators */
 void ARMATURE_OT_bone_primitive_add(struct wmOperatorType *ot);
 void ARMATURE_OT_align_bones(struct wmOperatorType *ot);
 void ARMATURE_OT_calculate_roll(struct wmOperatorType *ot);
@@ -60,6 +60,25 @@ void POSE_OT_selection_invert(struct wmOperatorType *ot);
 void POSE_OT_select_parent(struct wmOperatorType *ot);
 void POSE_OT_select_hierarchy(struct wmOperatorType *ot);
 void POSE_OT_select_connected(struct wmOperatorType *ot);
+
+/* editarmature.c */
+struct bArmature;
+struct EditBone;
+
+struct EditBone *addEditBone(struct bArmature *arm, char *name);
+
+/* duplicate method */
+void preEditBoneDuplicate(struct ListBase *editbones);
+struct EditBone *duplicateEditBone(struct EditBone *curBone, char *name, struct ListBase *editbones, struct Object *ob);
+void updateDuplicateSubtarget(struct EditBone *dupBone, struct ListBase *editbones, struct Object *ob);
+
+/* duplicate method (cross objects */
+
+/* editbones is the target list */
+struct EditBone *duplicateEditBoneObjects(struct EditBone *curBone, char *name, struct ListBase *editbones, struct Object *src_ob, struct Object *dst_ob);
+
+/* editbones is the source list */
+void updateDuplicateSubtargetObjects(struct EditBone *dupBone, struct ListBase *editbones, struct Object *src_ob, struct Object *dst_ob);
 
 #endif /* ED_ARMATURE_INTERN_H */
 

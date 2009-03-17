@@ -89,9 +89,11 @@ PyMethodDef KX_SCA_ReplaceMeshActuator::Methods[] = {
 	{NULL,NULL} //Sentinel
 };
 
+PyAttributeDef KX_SCA_ReplaceMeshActuator::Attributes[] = {
+	{ NULL }	//Sentinel
+};
 
-
-PyObject* KX_SCA_ReplaceMeshActuator::_getattr(const STR_String& attr)
+PyObject* KX_SCA_ReplaceMeshActuator::_getattr(const char *attr)
 {
   _getattr_up(SCA_IActuator);
 }

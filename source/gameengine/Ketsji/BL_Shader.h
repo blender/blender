@@ -166,7 +166,7 @@ public:
 	//const BL_Sampler*	GetSampler(int i);
 	void				SetSampler(int loc, int unit);
 
-	const bool			Ok()const;
+	bool				Ok()const;
 	unsigned int		GetProg();
 	void				SetProg(bool enable);
 	int					GetAttribute(){return mAttr;};
@@ -202,7 +202,7 @@ public:
 	void SetUniform(int uniform, const int val);
 
 	// Python interface
-	virtual PyObject* _getattr(const STR_String& attr);
+	virtual PyObject* _getattr(const char *attr);
 
 	// -----------------------------------
 	KX_PYMETHOD_DOC( BL_Shader, setSource );

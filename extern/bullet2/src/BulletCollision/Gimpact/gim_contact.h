@@ -36,17 +36,6 @@ email: projectileman@yahoo.com
 #include "gim_radixsort.h"
 #include "gim_array.h"
 
-/*! \defgroup CONTACTS
-\brief
-Functions for managing and sorting contacts resulting from a collision query.
-<ul>
-<li> Contact lists must be create by calling \ref GIM_CREATE_CONTACT_LIST
-<li> After querys, contact lists must be destroy by calling \ref GIM_DYNARRAY_DESTROY
-<li> Contacts can be merge for avoid duplicate results by calling \ref gim_merge_contacts
-</ul>
-
-*/
-//! @{
 
 /**
 Configuration var for applying interpolation of  contact normals
@@ -55,6 +44,10 @@ Configuration var for applying interpolation of  contact normals
 #define CONTACT_DIFF_EPSILON 0.00001f
 
 /// Structure for collision results
+///Functions for managing and sorting contacts resulting from a collision query.
+///Contact lists must be create by calling \ref GIM_CREATE_CONTACT_LIST
+///After querys, contact lists must be destroy by calling \ref GIM_DYNARRAY_DESTROY
+///Contacts can be merge for avoid duplicate results by calling \ref gim_merge_contacts
 class GIM_CONTACT
 {
 public:
@@ -168,5 +161,4 @@ public:
 	void merge_contacts_unique(const gim_contact_array & contacts);
 };
 
-//! @}
 #endif // GIM_CONTACT_H_INCLUDED

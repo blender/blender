@@ -29,7 +29,7 @@
 #ifndef SND_SDLCDDEVICE
 #define SND_SDLCDDEVICE
 
-typedef struct SDL_CD;
+struct SDL_CD;
 
 class SND_SDLCDDevice
 {

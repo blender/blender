@@ -75,6 +75,7 @@
 
 enum VALUE_OPERATOR {
 	
+	VALUE_MOD_OPERATOR,			// %
 	VALUE_ADD_OPERATOR,			// +
 	VALUE_SUB_OPERATOR,			// -
 	VALUE_MUL_OPERATOR,			// *
@@ -223,7 +224,7 @@ public:
 
 
 
-	virtual PyObject*			_getattr(const STR_String& attr);
+	virtual PyObject*			_getattr(const char *attr);
 
 	void	SpecialRelease()
 	{
@@ -250,8 +251,8 @@ public:
 	virtual CValue*	ConvertPythonToValue(PyObject* pyobj);
 
 
-	virtual int				_delattr(const STR_String& attr);
-	virtual int				_setattr(const STR_String& attr,PyObject* value);
+	virtual int				_delattr(const char *attr);
+	virtual int				_setattr(const char *attr, PyObject* value);
 	
 	virtual PyObject* ConvertKeysToPython( void );
 	

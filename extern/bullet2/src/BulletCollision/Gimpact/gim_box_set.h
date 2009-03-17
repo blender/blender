@@ -40,12 +40,6 @@ email: projectileman@yahoo.com
 #include "gim_tri_collision.h"
 
 
-/*! \defgroup BOX_PRUNNING
-
-
-
-*/
-//! @{
 
 //! Overlapping pair
 struct GIM_PAIR
@@ -446,7 +440,6 @@ public:
 		m_primitive_manager.get_primitive_triangle(getNodeData(nodeindex),triangle);
 	}
 
-//! @}
 };
 
 //! Class for Box Tree Sets

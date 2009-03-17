@@ -110,8 +110,8 @@ public:
 
 	KX_PYMETHOD_DOC(BL_ActionActuator,setChannel);
 
-	virtual PyObject* _getattr(const STR_String& attr);
-	virtual int _setattr(const STR_String& attr, PyObject* value);
+	virtual PyObject* _getattr(const char *attr);
+	virtual int _setattr(const char *attr, PyObject* value);
 
 	/* attribute check */
 	static int CheckFrame(void *self, const PyAttributeDef*)

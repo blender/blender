@@ -341,9 +341,9 @@ void BLI_bpathIterator_step( struct BPathIterator *bpi) {
 				bSound *snd = (bSound *)bpi->data;
 				
 				bpi->lib = snd->id.lib ? snd->id.lib->filename : NULL;
-				bpi->path = snd->sample->name;
+				bpi->path = snd->name;
 				bpi->name = snd->id.name+2;
-				bpi->len = sizeof(snd->sample->name);
+				bpi->len = sizeof(snd->name);
 				
 				/* we are done, advancing to the next item, this type worked fine */
 				break;

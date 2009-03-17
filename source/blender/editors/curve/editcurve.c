@@ -3490,8 +3490,7 @@ static int toggle_cyclic_exec(bContext *C, wmOperator *op)
 	Nurb *nu;
 	BezTriple *bezt;
 	BPoint *bp;
-	float *fp;
-	int a, b, direction= RNA_enum_get(op->ptr, "direction");
+	int a, direction= RNA_enum_get(op->ptr, "direction");
 
 	for(nu= editnurb->first; nu; nu= nu->next) {
 		if( nu->pntsu>1 || nu->pntsv>1) {
@@ -3500,8 +3499,7 @@ static int toggle_cyclic_exec(bContext *C, wmOperator *op)
 				bp= nu->bp;
 				while(a--) {
 					if( bp->f1 & SELECT ) {
-						if(nu->flagu & CU_CYCLIC) nu->flagu &= ~CU_CYCLIC;
-						else nu->flagu |= CU_CYCLIC;
+						nu->flagu ^= CU_CYCLIC;
 						break;
 					}
 					bp++;
@@ -3512,8 +3510,7 @@ static int toggle_cyclic_exec(bContext *C, wmOperator *op)
 				bezt= nu->bezt;
 				while(a--) {
 					if( BEZSELECTED_HIDDENHANDLES(bezt) ) {
-						if(nu->flagu & CU_CYCLIC) nu->flagu &= ~CU_CYCLIC;
-						else nu->flagu |= CU_CYCLIC;
+						nu->flagu ^= CU_CYCLIC;
 						break;
 					}
 					bezt++;
@@ -3526,19 +3523,8 @@ static int toggle_cyclic_exec(bContext *C, wmOperator *op)
 					bp= nu->bp;
 					while(a--) {
 						if( bp->f1 & SELECT ) {
-							if(nu->flagu & CU_CYCLIC) nu->flagu &= ~CU_CYCLIC;
-							else {
-								nu->flagu |= CU_CYCLIC;
-								nu->flagu &= ~2;	/* endpoint flag, fixme */
-								fp= MEM_mallocN(sizeof(float)*KNOTSU(nu), "makecyclicN");
-								b= (nu->orderu+nu->pntsu);
-								memcpy(fp, nu->knotsu, sizeof(float)*b);
-								MEM_freeN(nu->knotsu);
-								nu->knotsu= fp;
-							
-								makeknots(nu, 1, 0);	/* 1==u  0==uniform */
-							
-							}
+							nu->flagu ^= CU_CYCLIC;
+							makeknots(nu, 1, nu->flagu>>1);	/* 1==u  type is ignored for cyclic curves */
 							break;
 						}
 						bp++;
@@ -3552,38 +3538,12 @@ static int toggle_cyclic_exec(bContext *C, wmOperator *op)
 	
 					if( bp->f1 & SELECT) {
 						if(direction==0 && nu->pntsu>1) {
-							if(nu->flagu & CU_CYCLIC) nu->flagu &= ~CU_CYCLIC;
-							else {
-								nu->flagu |= CU_CYCLIC;
-								if (check_valid_nurb_u(nu)) {
-									fp= MEM_mallocN(sizeof(float)*KNOTSU(nu), "makecyclicN");
-									b= (nu->orderu+nu->pntsu);
-									if (nu->knotsu) { /* null if check_valid_nurb_u failed before but is valid now */
-										memcpy(fp, nu->knotsu, sizeof(float)*b);
-										MEM_freeN(nu->knotsu);
-									}
-									nu->knotsu= fp;
-								
-									makeknots(nu, 1, 0);	/* 1==u  0==uniform */
-								}
-							}
+							nu->flagu ^= CU_CYCLIC;
+							makeknots(nu, 1, nu->flagu>>1); /* 1==u  type is ignored for cyclic curves */
 						}
 						if(direction==1 && nu->pntsv>1) {
-							if(nu->flagv & 1) nu->flagv--;
-							else {
-								nu->flagv++;
-								if (check_valid_nurb_v(nu)) {
-									fp= MEM_mallocN(sizeof(float)*KNOTSV(nu), "makecyclicN");
-									b= (nu->orderv+nu->pntsv);
-									if (nu->knotsv) { /* null if check_valid_nurb_v failed before but is valid now */
-										memcpy(fp, nu->knotsv, sizeof(float)*b);
-										MEM_freeN(nu->knotsv);
-									}
-									nu->knotsv= fp;
-								
-									makeknots(nu, 2, 0);	/* 2==v  0==uniform */
-								}
-							}
+							nu->flagv ^= CU_CYCLIC;
+							makeknots(nu, 2, nu->flagv>>1); /* 2==v  type is ignored for cyclic curves */
 						}
 						break;
 					}

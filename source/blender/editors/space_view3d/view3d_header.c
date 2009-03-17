@@ -133,6 +133,7 @@ static int retopo_mesh_paint_check() {return 0;}
 #define VIEW3D_HANDLER_MULTIRES         5
 #define VIEW3D_HANDLER_TRANSFORM	6
 #define VIEW3D_HANDLER_GREASEPENCIL 7
+#define VIEW3D_HANDLER_BONESKETCH	8
 
 /* end XXX ************* */
 
@@ -3718,6 +3719,9 @@ static void do_view3d_edit_armaturemenu(bContext *C, void *arg, int event)
 	case 22: /* separate */
 		separate_armature();
 		break;
+	case 23: /* bone sketching panel */
+		add_blockhandler(curarea, VIEW3D_HANDLER_BONESKETCH, UI_PNL_UNSTOW);
+		break;
 	}
 	
 #endif
@@ -3796,6 +3800,7 @@ static uiBlock *view3d_edit_armaturemenu(bContext *C, ARegion *ar, void *arg_unu
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Transform Properties|N", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Bone Sketching|P", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 23, "");
 	uiDefIconTextBlockBut(block, view3d_transformmenu, NULL, ICON_RIGHTARROW_THIN, "Transform", 0, yco-=20, 120, 19, "");
 	uiDefIconTextBlockBut(block, view3d_edit_mirrormenu, NULL, ICON_RIGHTARROW_THIN, "Mirror", 0, yco-=20, menuwidth, 19, "");
 	uiDefIconTextBlockBut(block, view3d_edit_snapmenu, NULL, ICON_RIGHTARROW_THIN, "Snap", 0, yco-=20, 120, 19, "");
@@ -4847,6 +4852,7 @@ static char *snapmode_pup(void)
 	str += sprintf(str, "%s", "|Vertex%x0");
 	str += sprintf(str, "%s", "|Edge%x1");
 	str += sprintf(str, "%s", "|Face%x2"); 
+	str += sprintf(str, "%s", "|Volume%x3"); 
 	return string;
 }
 

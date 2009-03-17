@@ -433,11 +433,11 @@ class BlenderEnvironment(SConsEnvironment):
 					lenv.Append(CCFLAGS = lenv['BF_PROFILE_CCFLAGS'])
 					lenv.Append(CXXFLAGS = lenv['BF_PROFILE_CXXFLAGS'])
 			if compileflags:
-				lenv.Append(CFLAGS = compileflags)
+				lenv.Replace(CFLAGS = compileflags)
 			if cc_compileflags:
-				lenv.Append(CCFLAGS = cc_compileflags)
+				lenv.Replace(CCFLAGS = cc_compileflags)
 			if cxx_compileflags:
-				lenv.Append(CXXFLAGS = cxx_compileflags)
+				lenv.Replace(CXXFLAGS = cxx_compileflags)
 			lenv.Append(CFLAGS = lenv['C_WARN'])
 			lenv.Append(CCFLAGS = lenv['CC_WARN'])
 			lenv.Append(CXXFLAGS = lenv['CXX_WARN'])

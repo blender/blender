@@ -62,6 +62,7 @@ public:
 	SCA_IObject*	GetParent();
 	virtual void	ReParent(SCA_IObject* parent);
 	virtual void	Relink(GEN_Map<GEN_HashedPtr, void*> *obj_map);
+	virtual void Delete() { Release(); }
 
 	// act as a BoolValue (with value IsPositiveTrigger)
 	virtual CValue*	Calc(VALUE_OPERATOR op, CValue *val);
@@ -78,8 +79,8 @@ public:
 
 	virtual	bool		LessComparedTo(SCA_ILogicBrick* other);
 	
-	virtual PyObject* _getattr(const STR_String& attr);
-	virtual int _setattr(const STR_String& attr, PyObject *value);
+	virtual PyObject* _getattr(const char *attr);
+	virtual int _setattr(const char *attr, PyObject *value);
 
 	static class SCA_LogicManager*	m_sCurrentLogicManager;
 

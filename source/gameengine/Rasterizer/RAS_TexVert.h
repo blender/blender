@@ -110,11 +110,12 @@ public:
 		return (unsigned char *) &m_rgba;
 	}
 
-	const unsigned int getOrigIndex() const {
+	unsigned int getOrigIndex() const {
 		return m_origindex;
 	}
 
 	void				SetXYZ(const MT_Point3& xyz);
+	void				SetXYZ(const float *xyz);
 	void				SetUV(const MT_Point2& uv);
 	void				SetUV2(const MT_Point2& uv);
 

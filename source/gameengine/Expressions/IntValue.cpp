@@ -125,6 +125,9 @@ this object
 	case VALUE_INT_TYPE:
 		{
 			switch (op) {
+			case VALUE_MOD_OPERATOR:
+				ret = new CIntValue (((CIntValue *) val)->GetInt() % m_int);
+				break;
 			case VALUE_ADD_OPERATOR:
 				ret = new CIntValue (((CIntValue *) val)->GetInt() + m_int);
 				break;
@@ -181,6 +184,9 @@ this object
 	case VALUE_FLOAT_TYPE:
 		{
 			switch (op) {
+			case VALUE_MOD_OPERATOR:
+				ret = new CFloatValue(fmod(((CFloatValue *) val)->GetFloat(), m_int));
+				break;
 			case VALUE_ADD_OPERATOR:
 				ret = new CFloatValue (((CFloatValue *) val)->GetFloat() + m_int);
 				break;

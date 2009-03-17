@@ -7,7 +7,7 @@ Group: 'Import'
 Tooltip: 'Import for DXF geometry data (Drawing eXchange Format).'
 """
 __author__ = 'Kitsu(Ed Blake) & migius(Remigiusz Fiedler)'
-__version__ = '1.12 - 2008.11.16 by migius'
+__version__ = '1.12 - 2009.03.14 by migius'
 __url__ = ["http://blenderartists.org/forum/showthread.php?t=84319",
 	 "http://wiki.blender.org/index.php/Scripts/Manual/Import/DXF-3D"]
 __email__ = ["migius(at)4d-vectors.de","Kitsune_e(at)yahoo.com"]
@@ -15,7 +15,7 @@ __bpydoc__ = """\
 This script imports objects from DXF (2d/3d) into Blender.
 
 This script imports 2d and 3d geometery from DXF files.
-Supported DXF format versions: from (r2.5) r12 up to 2008.
+Supported DXF format versions: from (r2.5) r12 up to r2008.
 Enhanced features are:
 - configurable object filtering and geometry manipulation,
 - configurable material pre-processing,
@@ -32,7 +32,7 @@ MINSERT (=array of blocks),
 CIRCLE,
 ARC,
 3DFACE,
-2d-POLYLINE (=plane, incl. arc, variable-width, curve, spline),
+2d-POLYLINE (=in plane, incl. arc, variable-width, curve, spline),
 3d-POLYLINE (=non-plane),
 3d-POLYMESH,
 3d-POLYFACE,
@@ -57,7 +57,7 @@ Supported layout modes:
 "model space" is default,
 "paper space" as option (= "layout views")
 
-Supported scene definition objescts produced with AVE_RENDER:
+Supported scene definition objects produced with AVE_RENDER:
 scene: selection of lights assigned to the camera,
 lights: DIRECT, OVERHEAD, SH_SPOT,
 (wip v1.13 import of AVE_RENDER material definitions)
@@ -88,7 +88,7 @@ in creating new objects in scene database - probably a database management probl
 
 """
 History:
- v1.0 - 2007/2008 by migius
+ v1.0 - 2007/2008/2009 by migius
  planned tasks:
  -- (to see more, search for "--todo--" in script code)
  -- command-line-mode/batch-mode
@@ -111,6 +111,11 @@ History:
  -- support ortho mode for VIEWs and VPORTs as cameras 
 
 
+ v1.12 - 2009.03.14 by migius
+ d3 removed all set()functions (problem with osx/python<2.4 reported by Blinkozo)
+ d3 code-cleaning
+ v1.12 - 2009.01.14 by migius
+ d2 temp patch for noname BLOCKS (*X,*U,*D)
  v1.12 - 2008.11.16 by migius
  d1 remove try_finally: cause not supported in python <2.5
  d1 add Bezier curves bevel radius support (default 1.0)
@@ -309,8 +314,16 @@ from dxfReader import readDXF
 #from dxfReader import get_name, get_layer
 from dxfReader import Object as dxfObject
 from dxfColorMap import color_map
-
 from math import *
+
+# osx-patch by Blinkozo
+#todo: avoid additional modules, prefer Blender-build-in test routines
+#import platform
+#if platform.python_version() < '2.4':
+#    from sets import Set as set
+#from sys import version_info
+#ver = '%s.%s' % version_info[0:2]
+# end osx-patch
 
 try:
 	import os
@@ -950,7 +963,7 @@ class Point:  #-----------------------------------------------------------------
 		if thic < settings.var['dist_min']: thic = settings.var['dist_min']
 
 		if points_as in [1,3,4,5]:
-			if True: # points_as in [1,5]: # as 'empty'
+			if points_as in [1,5]: # as 'empty'
 				c = 'Empty'
 			elif points_as == 3: # as 'thin sphere'
 				res = settings.var['thin_res']
@@ -1276,66 +1289,6 @@ class Polyline:  #--------------------------------------------------------------
 		pline = Curve.New(obname)   # create new curve data
 		#pline.setResolu(24) #--todo-----						
 
-		if False: #old self.spline:  # NURBSplines-----OK-----
-			#print 'deb:polyline2dCurve.draw self.spline!' #---------------
-			weight1 = 0.5
-			weight2 = 1.0
-			if self.curvQuadrati:
-				# Bezier-curve form simulated in NURBS-curve
-				# generate middlepoints except start/end-segments ---
-				#print 'deb:polyline2dCurve.draw extraQBspline!' #---------------
-				temp_points = []
-				point = d_points[0].loc
-				point.append(weight1)
-				temp_points.append(point)
-				for i in xrange(1,len(d_points)-2):
-					point1 = d_points[i].loc
-					point2 = d_points[i+1].loc
-					mpoint = list((Mathutils.Vector(point1) + Mathutils.Vector(point2)) * 0.5)
-					mpoint.append(weight2)
-					point1.append(weight1)
-					temp_points.append(point1)
-					temp_points.append(mpoint)
-				point2.append(weight1)
-				temp_points.append(point2)
-				point = d_points[-1].loc
-				point.append(weight1)
-				temp_points.append(point)
-				d_points = temp_points
-			else:
-				temp_points = []
-				for d in d_points:
-					d = d.loc
-					d.append(weight1)
-					temp_points.append(d)
-				d_points = temp_points
-
-			if not self.closed:
-				# generate extended startpoint and endpoint------
-				point1 = Mathutils.Vector(d_points[0][:3])
-				point2 = Mathutils.Vector(d_points[1][:3])
-				startpoint = list(point1 - point2 + point1)
-				startpoint.append(weight1)
-				point1 = Mathutils.Vector(d_points[-1][:3])
-				point2 = Mathutils.Vector(d_points[-2][:3])
-				endpoint = list(point1 - point2 + point1)
-				endpoint.append(weight1)
-				temp_points = []
-				temp_points.append(startpoint)
-				temp_points.extend(d_points)
-				d_points = temp_points
-				d_points.append(endpoint)
-
-			point = d_points[0]
-			curve = pline.appendNurb(point)
-			curve.setType(4) #NURBS curve
-			for point in d_points[1:]:
-				curve.append(point)
-			if self.closed:
-				curve.flagU = 1 # Set curve cyclic=close
-			else:
-				curve.flagU = 0 # Set curve not cyclic=open
-
 		if self.spline:  # NURBSplines-----OK-----
 			#print 'deb:polyline2dCurve.draw self.spline!' #---------------
 			nurbs_points = []
@@ -1357,21 +1310,6 @@ class Polyline:  #--------------------------------------------------------------
 			try: curve.orderU = 5 # works only with >2.46svn080625
 			except AttributeError: pass
 			#print 'deb: dir(curve):', dir(curve) #----------------
-
-		elif  False: #orig self.curved:  #--Bezier-curves---OK-------
-			#print 'deb:polyline2dCurve.draw self.curved!' #---------------
-			curve = pline.appendNurb(BezTriple.New(d_points[0]))
-			for p in d_points[1:]:
-				curve.append(BezTriple.New(p))
-			for point in curve:
-				point.handleTypes = [AUTO, AUTO]
-				point.radius = 1.0
-			if self.closed:
-				curve.flagU = 1 # Set curve cyclic=close
-			else:
-				curve.flagU = 0 # Set curve not cyclic=open
-				curve[0].handleTypes = [FREE, ALIGN]   #remi--todo-----
-				curve[-1].handleTypes = [ALIGN, FREE]   #remi--todo-----
 
 		elif  self.curved:  #--SPLINE as Bezier-curves---wip------
 			#print 'deb:polyline2dCurve.draw self.curved!' #---------------
@@ -1424,68 +1362,48 @@ class Polyline:  #--------------------------------------------------------------
 			for i in xrange(len(d_points)):
 				point1 = d_points[i]
 				#point2 = d_points[i+1]
-				if False: #-----outdated!- standard calculation ----------------------------------
-					if point1.bulge and (i < len(d_points)-2 or self.closed):
-						verts, center = calcBulge(point1, point2, arc_res, triples=False)
-						if i == 0: curve = pline.appendNurb(BezTriple.New(verts[0]))
-						else: curve.append(BezTriple.New(verts[0]))
-						curve[-1].handleTypes = [VECT, VECT]  #--todo--calculation of bezier-tangents
+				#----- optimised Bezier-Handles calculation --------------------------------
+				#print 'deb:drawPlineCurve: i:', i #---------
+				if point1.bulge and not (i == len(d_points)-1 and point1.bulge and not self.closed):
+					if i == len(d_points)-1: point2 = d_points[0]
+					else: point2 = d_points[i+1]
+
+
+					# calculate additional points for bulge
+					VectorTriples = calcBulge(point1, point2, arc_res, triples=True)
+
+					if prevHandleType == FREE:
+						#print 'deb:drawPlineCurve: VectorTriples[0]:', VectorTriples[0] #---------
+						VectorTriples[0][:3] = prevHandleVect
+						#print 'deb:drawPlineCurve: VectorTriples[0]:', VectorTriples[0] #---------
+
+					if i == 0: curve = pline.appendNurb(BezTriple.New(VectorTriples[0]))
+					else: curve.append(BezTriple.New(VectorTriples[0]))
+					curve[-1].handleTypes = [prevHandleType, FREE]
+					curve[-1].radius = 1.0
+
+					for p in VectorTriples[1:-1]:
+						curve.append(BezTriple.New(p))
+						curve[-1].handleTypes = [FREE, FREE]
 						curve[-1].radius = 1.0
-						for p in verts[1:]:
-							curve.append(BezTriple.New(p))
-							curve[-1].handleTypes = [AUTO, AUTO]
-							curve[-1].radius = 1.0
+
+					prevHandleVect = VectorTriples[-1][:3]
+					prevHandleType = FREE
+					#print 'deb:drawPlineCurve: prevHandleVect:', prevHandleVect #---------
+				else:
+					#print 'deb:drawPlineCurve: else' #----------
+					if prevHandleType == FREE:
+						VectorTriples = prevHandleVect + list(point1) + list(point1)
+						#print 'deb:drawPlineCurve: VectorTriples:', VectorTriples #---------
+						curve.append(BezTriple.New(VectorTriples))
+						curve[-1].handleTypes = [FREE, VECT]
+						prevHandleType = VECT
+						curve[-1].radius = 1.0
 					else:
 						if i == 0: curve = pline.appendNurb(BezTriple.New(point1.loc))
 						else: curve.append(BezTriple.New(point1.loc))
-						curve[-1].handleTypes = [VECT, VECT]   #--todo--calculation of bezier-tangents
+						curve[-1].handleTypes = [VECT, VECT]
 						curve[-1].radius = 1.0
-
-				elif True:   #----- optimised Bezier-Handles calculation --------------------------------
-					#print 'deb:drawPlineCurve: i:', i #---------
-					if point1.bulge and not (i == len(d_points)-1 and point1.bulge and not self.closed):
-						if i == len(d_points)-1: point2 = d_points[0]
-						else: point2 = d_points[i+1]
-
-
-						# calculate additional points for bulge
-						VectorTriples = calcBulge(point1, point2, arc_res, triples=True)
-
-						if prevHandleType == FREE:
-							#print 'deb:drawPlineCurve: VectorTriples[0]:', VectorTriples[0] #---------
-							VectorTriples[0][:3] = prevHandleVect
-							#print 'deb:drawPlineCurve: VectorTriples[0]:', VectorTriples[0] #---------
-
-						if i == 0: curve = pline.appendNurb(BezTriple.New(VectorTriples[0]))
-						else: curve.append(BezTriple.New(VectorTriples[0]))
-						curve[-1].handleTypes = [prevHandleType, FREE]
-						curve[-1].radius = 1.0
-
-						for p in VectorTriples[1:-1]:
-							curve.append(BezTriple.New(p))
-							curve[-1].handleTypes = [FREE, FREE]
-							curve[-1].radius = 1.0
-
-						prevHandleVect = VectorTriples[-1][:3]
-						prevHandleType = FREE
-						#print 'deb:drawPlineCurve: prevHandleVect:', prevHandleVect #---------
-					else:
-						#print 'deb:drawPlineCurve: else' #----------
-						if prevHandleType == FREE:
-							VectorTriples = prevHandleVect + list(point1) + list(point1)
-							#print 'deb:drawPlineCurve: VectorTriples:', VectorTriples #---------
-							curve.append(BezTriple.New(VectorTriples))
-							curve[-1].handleTypes = [FREE, VECT]
-							prevHandleType = VECT
-							curve[-1].radius = 1.0
-						else:
-							if i == 0: curve = pline.appendNurb(BezTriple.New(point1.loc))
-							else: curve.append(BezTriple.New(point1.loc))
-							curve[-1].handleTypes = [VECT, VECT]
-							curve[-1].radius = 1.0
-
-
-
 					#print 'deb:drawPlineCurve: curve[-1].vec[0]', curve[-1].vec[0] #----------
 
 			if self.closed:
@@ -1583,23 +1501,6 @@ class Polyline:  #--------------------------------------------------------------
 
 		d_points = self.doubles_out(settings, d_points)
 		#print 'deb:drawPolyCurve d_pointsList =after DV-outsorting=====:\n ', d_points #------------------------
-
-		"""# routine to sort out of "double.vertices" ------------------------------------
-		minimal_dist =  settings.var['dist_min'] * 0.1
-		temp_points = []
-		for i in xrange(len(d_points)-1):
-			point = d_points[i]
-			point2 = d_points[i+1]
-			#print 'deb:double.vertex p1,p2', point, point2 #------------------------
-			delta = Mathutils.Vector(point2.loc) - Mathutils.Vector(point.loc)
-			if delta.length > minimal_dist:
-				 temp_points.append(point)
-			#else: print 'deb:drawPoly2d double.vertex sort out!' #------------------------
-		temp_points.append(d_points[-1])  #------ incl. last vertex -------------
-		#if self.closed: temp_points.append(d_points[1])  #------ loop start vertex -------------
-		d_points = temp_points   #-----vertex.list without "double.vertices"
-		#print 'deb:drawPoly2d d_pointsList =after DV-outsorting=====:\n ', d_points #------------------------
-		"""
 
 		#print 'deb:drawPoly2d len of d_pointsList ====== ', len(d_points) #------------------------
 		if len(d_points) < 2:  #if too few vertex, then return
@@ -1796,29 +1697,6 @@ class Polyline:  #--------------------------------------------------------------
 							# clean corner intersection
 							pointsLc.append(cornerpointL)
 							pointsRc.append(cornerpointR)
-						elif False: # the standard no-intersection
-							# --todo-- not optimal, because produces X-face
-							pointsLc.extend((pointsLe[i],pointsLs[i+1]))
-							pointsRc.extend((pointsRe[i],pointsRs[i+1]))
-						elif False: # --todo-- the optimised non-intersection
-							if (cornerpointL - vecL1).length < (cornerpointR - vecR1).length:
-								left_angle = True
-							else:
-								left_angle = False
-							limit_dist = settings.var['dist_min']
-							if left_angle:  # if left turning angle
-								#print 'deb:drawPoly2d it is left turning angle' #-------------
-								# to avoid triangelface/doubleVertex
-								delta1 = (cornerpointL - vecL1).normalize() * limit_dist
-								delta4 = (cornerpointL - vecL4).normalize() * limit_dist
-								pointsLc.extend((cornerpointL - delta1, cornerpointL - delta4))
-								pointsRc.extend((pointsRe[i],pointsRs[i+1]))
-							else:  # if right turning angle
-								#print 'deb:drawPoly2d right turning angle' #-------------
-								delta1 = (cornerpointR - vecR1).normalize() * limit_dist
-								delta4 = (cornerpointR - vecR4).normalize() * limit_dist
-								pointsRc.extend((cornerpointR - delta1, cornerpointR - delta4))
-								pointsLc.extend((pointsLe[i],pointsLs[i+1]))
 						else:
 							pointsLc.extend((pointsLe[i],points[i+1],pointsLs[i+1]))
 							pointsRc.extend((pointsRe[i],points[i+1],pointsRs[i+1]))
@@ -1855,14 +1733,10 @@ class Polyline:  #--------------------------------------------------------------
 					vecR3, vecR4 = pointsRs[i+1], pointsRe[i+1]
 					if bulg_points[i] != None:
 						#compute left- and right-cornerpoints
-						if True:
-							cornerpointL = Mathutils.LineIntersect(vecL1, vecL2, vecL3, vecL4)
-							cornerpointR = Mathutils.LineIntersect(vecR1, vecR2, vecR3, vecR4)
-							pointsLc.append(cornerpointL[0])
-							pointsRc.append(cornerpointR[0])
-						else:
-							pointVec = Mathutils.Vector(point[i])
-
+						cornerpointL = Mathutils.LineIntersect(vecL1, vecL2, vecL3, vecL4)
+						cornerpointR = Mathutils.LineIntersect(vecR1, vecR2, vecR3, vecR4)
+						pointsLc.append(cornerpointL[0])
+						pointsRc.append(cornerpointR[0])
 					else: # IF non-bulg
 						pointsLc.extend((pointsLe[i],points[i+1],pointsLs[i+1]))
 						pointsRc.extend((pointsRe[i],points[i+1],pointsRs[i+1]))
@@ -1924,21 +1798,20 @@ class Polyline:  #--------------------------------------------------------------
 					for v in f_right: vg_right.extend(v)
 					for v in f_top: vg_top.extend(v)
 					for v in f_bottom: vg_bottom.extend(v)
-					me.addVertGroup('side.left')  ; me.assignVertsToGroup('side.left',  list(set(vg_left)), 1.0, replace)
-					me.addVertGroup('side.right') ; me.assignVertsToGroup('side.right', list(set(vg_right)), 1.0, replace)
-					me.addVertGroup('side.top')   ; me.assignVertsToGroup('side.top',   list(set(vg_top)), 1.0, replace)
-					me.addVertGroup('side.bottom'); me.assignVertsToGroup('side.bottom',list(set(vg_bottom)), 1.0, replace)
+					me.addVertGroup('side.left')  ; me.assignVertsToGroup('side.left',  vg_left, 1.0, replace)
+					me.addVertGroup('side.right') ; me.assignVertsToGroup('side.right', vg_right, 1.0, replace)
+					me.addVertGroup('side.top')   ; me.assignVertsToGroup('side.top',   vg_top, 1.0, replace)
+					me.addVertGroup('side.bottom'); me.assignVertsToGroup('side.bottom',vg_bottom, 1.0, replace)
 					if not self.closed:
 						me.addVertGroup('side.start'); me.assignVertsToGroup('side.start', f_start[0], 1.0, replace)
 						me.addVertGroup('side.end')  ; me.assignVertsToGroup('side.end',   f_end[0],   1.0, replace)
 
 				if settings.var['meshSmooth_on']:  # left and right side become smooth ----------------------
 					#if self.spline or self.curved:
-					if True:
-						smooth_len = len(f_left) + len(f_right)
-						for i in xrange(smooth_len):
-							me.faces[i].smooth = True
-						#me.Modes(AUTOSMOOTH)
+					smooth_len = len(f_left) + len(f_right)
+					for i in xrange(smooth_len):
+						me.faces[i].smooth = True
+					#me.Modes(AUTOSMOOTH)
 
 			# 2.level:IF width, but no-thickness  ---------------------
 			else:
@@ -1977,10 +1850,9 @@ class Polyline:  #--------------------------------------------------------------
 
 			if settings.var['meshSmooth_on']:  # left and right side become smooth ----------------------
 				#if self.spline or self.curved:
-				if True:
-					for i in xrange(len(faces)):
-						me.faces[i].smooth = True
-					#me.Modes(AUTOSMOOTH)
+				for i in xrange(len(faces)):
+					me.faces[i].smooth = True
+				#me.Modes(AUTOSMOOTH)
 
 		# 1.level:IF no-width and no-thickness  ---------------------
 		else:
@@ -2684,38 +2556,17 @@ class Circle:  #----------------------------------------------------------------
 			cyl_rad = 0.5 * settings.var['width_min']
 
 		if settings.var['lines_as'] == 5:  # draw CIRCLE as curve -------------
-			if True:  # universal version
-				arc_res = settings.var['curve_arc']
-				#arc_res = 3
-				start, end = 0.0, 360.0
-				VectorTriples = calcArc(None, radius, start, end, arc_res, True)
-				c = Curve.New(obname) # create new curve data
-				curve = c.appendNurb(BezTriple.New(VectorTriples[0]))
-				for p in VectorTriples[1:-1]:
-					curve.append(BezTriple.New(p))
-				for point in curve:
-					point.handleTypes = [FREE, FREE]
-					point.radius = 1.0
-			else:	# standard version
-				c = Curve.New(obname)   # create new curve data
-				p1 = (0, -radius, 0)
-				p2 = (radius, 0, 0)
-				p3 = (0, radius, 0)
-				p4 = (-radius, 0, 0)
-	
-				p1 = BezTriple.New(p1)
-				p2 = BezTriple.New(p2)
-				p3 = BezTriple.New(p3)
-				p4 = BezTriple.New(p4)
-	
-				curve = c.appendNurb(p1)
-				curve.append(p2)
-				curve.append(p3)
-				curve.append(p4)
-				for point in curve:
-					point.handleTypes = [AUTO, AUTO]
-					point.radius = 1.0
-
+			arc_res = settings.var['curve_arc']
+			#arc_res = 3
+			start, end = 0.0, 360.0
+			VectorTriples = calcArc(None, radius, start, end, arc_res, True)
+			c = Curve.New(obname) # create new curve data
+			curve = c.appendNurb(BezTriple.New(VectorTriples[0]))
+			for p in VectorTriples[1:-1]:
+				curve.append(BezTriple.New(p))
+			for point in curve:
+				point.handleTypes = [FREE, FREE]
+				point.radius = 1.0
 			curve.flagU = 1	 # 1 sets the curve cyclic=closed
 			if settings.var['fill_on']:
 				c.setFlag(6) # 2+4 set top and button caps
@@ -2735,24 +2586,6 @@ class Circle:  #----------------------------------------------------------------
 			transform(self.extrusion, 0, ob)
 			if thic != 0.0:
 				ob.SizeZ *= abs(thic)
-			return ob
-
-		elif False: # create a new mesh_object with buildin_circle_primitive
-			verts_num = settings.var['arc_res'] * sqrt(radius / settings.var['arc_rad'])
-			if verts_num > 100: verts_num = 100 # Blender accepts only values [3:500]
-			if verts_num < 4: verts_num = 4 # Blender accepts only values [3:500]
-			if thic != 0:
-				loc2 = thic * 0.5   #-----blenderAPI draw Cylinder with 2*thickness
-				self.loc[2] += loc2  #---new location for the basis of cylinder
-				#print 'deb:circleDraw:self.loc2:', self.loc  #-----------------------
-				c = Mesh.Primitives.Cylinder(int(verts_num), radius*2, abs(thic))
-			else:
-				c = Mesh.Primitives.Circle(int(verts_num), radius*2)
-
-			#c.update()
-			ob = SCENE.objects.new(c, obname) # create a new circle_mesh_object
-			ob.loc = tuple(self.loc)
-			transform(self.extrusion, 0, ob)
 			return ob
 
 		else:  # draw CIRCLE as mesh -----------------------------------------------
@@ -2810,12 +2643,13 @@ class Circle:  #----------------------------------------------------------------
 					replace = Blender.Mesh.AssignModes.REPLACE  #or .AssignModes.ADD
 					vg_band, vg_top, vg_bottom = [], [], []
 					for v in f_band: vg_band.extend(v)
-					me.addVertGroup('side.band')  ; me.assignVertsToGroup('side.band',  list(set(vg_band)), 1.0, replace)
+					me.addVertGroup('side.band')  ; me.assignVertsToGroup('side.band',  vg_band, 1.0, replace)
+
 					if settings.var['fill_on']:
 						for v in f_top: vg_top.extend(v)
 						for v in f_bottom: vg_bottom.extend(v)
-						me.addVertGroup('side.top')   ; me.assignVertsToGroup('side.top',   list(set(vg_top)), 1.0, replace)
-						me.addVertGroup('side.bottom'); me.assignVertsToGroup('side.bottom',list(set(vg_bottom)), 1.0, replace)
+						me.addVertGroup('side.top')   ; me.assignVertsToGroup('side.top',   vg_top, 1.0, replace)
+						me.addVertGroup('side.bottom'); me.assignVertsToGroup('side.bottom',vg_bottom, 1.0, replace)
 
 			else: # if thic == 0
 				if settings.var['fill_on']:
@@ -2992,10 +2826,10 @@ class Arc:  #-----------------------------------------------------------------
 						for v in f_right: vg_right.extend(v)
 						for v in f_top: vg_top.extend(v)
 						for v in f_bottom: vg_bottom.extend(v)
-						me.addVertGroup('side.left')  ; me.assignVertsToGroup('side.left',  list(set(vg_left)), 1.0, replace)
-						me.addVertGroup('side.right') ; me.assignVertsToGroup('side.right', list(set(vg_right)), 1.0, replace)
-						me.addVertGroup('side.top')   ; me.assignVertsToGroup('side.top',   list(set(vg_top)), 1.0, replace)
-						me.addVertGroup('side.bottom'); me.assignVertsToGroup('side.bottom',list(set(vg_bottom)), 1.0, replace)
+						me.addVertGroup('side.left')  ; me.assignVertsToGroup('side.left',  vg_left, 1.0, replace)
+						me.addVertGroup('side.right') ; me.assignVertsToGroup('side.right', vg_right, 1.0, replace)
+						me.addVertGroup('side.top')   ; me.assignVertsToGroup('side.top',   vg_top, 1.0, replace)
+						me.addVertGroup('side.bottom'); me.assignVertsToGroup('side.bottom',vg_bottom, 1.0, replace)
 						me.addVertGroup('side.start'); me.assignVertsToGroup('side.start', f_start[0], 1.0, replace)
 						me.addVertGroup('side.end')  ; me.assignVertsToGroup('side.end',   f_end[0],   1.0, replace)
 					
@@ -3247,8 +3081,6 @@ class Insert:  #----------------------------------------------------------------
 
 				if a_data.key == 'SCENE': # define set of lights as blender group
 					scene_lights = 1
-				elif False: # define set of lights as blender group
-					scene_lights = 1
 				return
 		elif name == 'ave_global':
 			if settings.var['lights_on']:  #if lights support activated
@@ -3409,35 +3241,12 @@ class Ellipse:  #---------------------------------------------------------------
 		obname = obname[:MAX_NAMELENGTH]
 
 		center = self.loc
-		if True:
-			start = degrees(self.start_angle)
-			end = degrees(self.end_angle)
-			if abs(end - 360.0) < 0.00001: end = 360.0
-			ellipse_closed = False
-			if end - start == 360.0: ellipse_closed = True
+		start = degrees(self.start_angle)
+		end = degrees(self.end_angle)
+		if abs(end - 360.0) < 0.00001: end = 360.0
+		ellipse_closed = False
+		if end - start == 360.0: ellipse_closed = True
 	
-		else: # bug in AutoCAD_2002 dxf-exporter into r12 for ELLIPSE->POLYLINE_ARC
-			#print 'deb:calcEllipse---------:\n start=%s\n   end=%s' %(self.start_angle, self.end_angle)  #---------
-			if self.start_angle > pi+pi: self.start_angle %= pi+pi
-			if self.end_angle > pi+pi: self.end_angle %= pi+pi
-			if abs(self.end_angle - pi - pi) < 0.00001: self.end_angle = pi + pi
-			ellipse_closed = False
-			if abs(self.end_angle - self.start_angle) == pi + pi: ellipse_closed = True
-			test = self.start_angle % pi
-			if  test < 0.001 or pi - test < 0.001: start = self.start_angle
-			else:
-				start = atan(tan(self.start_angle) * self.ratio)
-				if start < 0.0: start += pi
-				if self.start_angle > pi: start += pi
-			test = self.end_angle % pi
-			if test < 0.001 or pi - test < 0.001: end = self.end_angle
-			else:
-				end = atan(tan(self.end_angle) * self.ratio)
-				if end < 0.0: end += pi
-				if self.end_angle > pi: end += pi
-			start = degrees(start)
-			end = degrees(end)
-
 		# rotation = Angle between major and WORLDX
 		# doesnt work, couse produces always positive value: rotation = Mathutils.AngleBetweenVecs(major, WORLDX)
 		if self.major[0] == 0:
@@ -3512,8 +3321,6 @@ class Ellipse:  #---------------------------------------------------------------
 
 			verts = calcArc(None, radius, start, end, arc_res, False)
 			#verts = [list(point) for point in verts]
-			if False: #--todo--: if ellipse_closed:
-				verts = verts[:-1] #list without last point/edge (cause closed curve)
 			len1 = len(verts)
 			#print 'deb:len1:', len1  #-----------------------
 			if width != 0:
@@ -3563,10 +3370,10 @@ class Ellipse:  #---------------------------------------------------------------
 						for v in f_right: vg_right.extend(v)
 						for v in f_top: vg_top.extend(v)
 						for v in f_bottom: vg_bottom.extend(v)
-						me.addVertGroup('side.left')  ; me.assignVertsToGroup('side.left',  list(set(vg_left)), 1.0, replace)
-						me.addVertGroup('side.right') ; me.assignVertsToGroup('side.right', list(set(vg_right)), 1.0, replace)
-						me.addVertGroup('side.top')   ; me.assignVertsToGroup('side.top',   list(set(vg_top)), 1.0, replace)
-						me.addVertGroup('side.bottom'); me.assignVertsToGroup('side.bottom',list(set(vg_bottom)), 1.0, replace)
+						me.addVertGroup('side.left')  ; me.assignVertsToGroup('side.left',  vg_left, 1.0, replace)
+						me.addVertGroup('side.right') ; me.assignVertsToGroup('side.right', vg_right, 1.0, replace)
+						me.addVertGroup('side.top')   ; me.assignVertsToGroup('side.top',   vg_top, 1.0, replace)
+						me.addVertGroup('side.bottom'); me.assignVertsToGroup('side.bottom',vg_bottom, 1.0, replace)
 						me.addVertGroup('side.start'); me.assignVertsToGroup('side.start', f_start[0], 1.0, replace)
 						me.addVertGroup('side.end')  ; me.assignVertsToGroup('side.end',   f_end[0],   1.0, replace)
 					
@@ -4378,8 +4185,9 @@ def	analyzeDXF(dxfFile): #---------------------------------------
 
 		for item2 in drawing.entities.data:
 			if type(item2) != list and item2.type == 'insert':
-				if not layersmap or (layersmap and not layersmap[item2.layer][1]): #if insert_layer is not frozen
-					blocksmap[item2.name][0] = True # marked as world used BLOCK
+				if item2.name in blocksmap.keys():
+					if not layersmap or (layersmap and not layersmap[item2.layer][1]): #if insert_layer is not frozen
+						blocksmap[item2.name][0] = True # marked as world used BLOCK
 
 		key_list = blocksmap.keys()
 		key_list.reverse()
@@ -4789,10 +4597,12 @@ def drawer(_type, entities, settings, block_def):  #----------------------------
 				group = getGroup('l:%s' % layernamesmap[entity.layer])
 
 			if _type == 'insert':   #---- INSERT and MINSERT=array --------------------
-				if not settings.var['block_nn'] and entity.name.startswith('*X'):   #---- support for noname BLOCKs
-					#print 'deb:drawer entity.name:', entity.name #------------
-					continue
-				elif settings.var['blockFilter_on'] and not settings.accepted_block(entity.name):
+				if not settings.var['block_nn']:  #----turn off support for noname BLOCKs
+					prefix = entity.name[:2]
+					if prefix in ('*X', '*U', '*D'):
+						#print 'deb:drawer entity.name:', entity.name #------------
+						continue
+				if settings.var['blockFilter_on'] and not settings.accepted_block(entity.name):
 					continue
 
 				#print 'deb:insert entity.loc:', entity.loc #----------------

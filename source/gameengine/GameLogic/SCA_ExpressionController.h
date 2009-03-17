@@ -38,6 +38,7 @@ class SCA_ExpressionController : public SCA_IController
 {
 //	Py_Header;
 	STR_String			m_exprText;
+	CExpression*		m_exprCache;
 
 public:
 	SCA_ExpressionController(SCA_IObject* gameobj,
@@ -48,12 +49,17 @@ public:
 	virtual CValue* GetReplica();
 	virtual void Trigger(SCA_LogicManager* logicmgr);
 	virtual CValue*		FindIdentifier(const STR_String& identifiername);
+	/** 
+	 *  used to release the expression cache
+	 *  so that self references are removed before the controller itself is released
+	 */
+	virtual void Delete();
 
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
 
-//	virtual PyObject* _getattr(const STR_String& attr);
+//	virtual PyObject* _getattr(const char *attr);
 
 };
 

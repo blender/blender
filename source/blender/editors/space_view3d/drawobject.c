@@ -1097,14 +1097,15 @@ void lattice_foreachScreenVert(ViewContext *vc, void (*func)(void *userData, BPo
 	float *co = dl?dl->verts:NULL;
 	float pmat[4][4], vmat[4][4];
 	int i, N = lt->editlatt->pntsu*lt->editlatt->pntsv*lt->editlatt->pntsw;
-	short s[2];
+	short s[2] = {IS_CLIPPED, 0};
 
 	view3d_get_object_project_mat(vc->rv3d, vc->obedit, pmat, vmat);
 
 	for (i=0; i<N; i++, bp++, co+=3) {
 		if (bp->hide==0) {
 			view3d_project_short_clip(vc->ar, dl?co:bp->vec, s, pmat, vmat);
-			func(userData, bp, s[0], s[1]);
+			if (s[0] != IS_CLIPPED)
+				func(userData, bp, s[0], s[1]);
 		}
 	}
 }
@@ -1198,16 +1199,18 @@ static void mesh_foreachScreenVert__mapFunc(void *userData, int index, float *co
 {
 	struct { void (*func)(void *userData, EditVert *eve, int x, int y, int index); void *userData; ViewContext vc; int clipVerts; float pmat[4][4], vmat[4][4]; } *data = userData;
 	EditVert *eve = EM_get_vert_for_index(index);
-	short s[2];
 
 	if (eve->h==0) {
+		short s[2]= {IS_CLIPPED, 0};
+
 		if (data->clipVerts) {
 			view3d_project_short_clip(data->vc.ar, co, s, data->pmat, data->vmat);
 		} else {
 			view3d_project_short_noclip(data->vc.ar, co, s, data->pmat);
 		}
 
-		data->func(data->userData, eve, s[0], s[1], index);
+		if (s[0]!=IS_CLIPPED)
+			data->func(data->userData, eve, s[0], s[1], index);
 	}
 }
 
@@ -1309,7 +1312,7 @@ void nurbs_foreachScreenVert(ViewContext *vc, void (*func)(void *userData, Nurb 
 {
 	Curve *cu= vc->obedit->data;
 	float pmat[4][4], vmat[4][4];
-	short s[2];
+	short s[2] = {IS_CLIPPED, 0};
 	Nurb *nu;
 	int i;
 
@@ -1345,7 +1348,8 @@ void nurbs_foreachScreenVert(ViewContext *vc, void (*func)(void *userData, Nurb 
 
 				if(bp->hide==0) {
 					view3d_project_short_clip(vc->ar, bp->vec, s, pmat, vmat);
-					func(userData, nu, bp, NULL, -1, s[0], s[1]);
+					if (s[0] != IS_CLIPPED)
+						func(userData, nu, bp, NULL, -1, s[0], s[1]);
 				}
 			}
 		}

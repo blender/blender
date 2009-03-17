@@ -6,6 +6,16 @@ class KX_CameraActuator(SCA_IActuator):
 	"""
 	Applies changes to a camera.
 	
+	@ivar min: minimum distance to the target object maintained by the actuator
+	@type min: float
+	@ivar max: maximum distance to stay from the target object
+	@type max: float
+	@ivar height: height to stay above the target object
+	@type height: float
+	@ivar xy: axis this actuator is tracking, true=X, false=Y
+	@type xy: boolean
+	@ivar object: the object this actuator tracks.
+	@type object: KX_GameObject or None
 	@author: snail
 	"""
 	def getObject(name_only = 1):

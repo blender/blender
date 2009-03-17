@@ -4387,7 +4387,7 @@ static void particles_fluid_step(Scene *scene, Object *ob, ParticleSystem *psys,
 			gzf = gzopen(filename, "rb");
 			if (!gzf) {
 				snprintf(debugStrBuffer,256,"readFsPartData::error - Unable to open file for reading '%s' \n", filename); 
-				elbeemDebugOut(debugStrBuffer);
+				// XXX bad level call elbeemDebugOut(debugStrBuffer);
 				return;
 			}
 	

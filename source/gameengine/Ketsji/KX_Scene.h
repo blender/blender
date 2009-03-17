@@ -547,9 +547,10 @@ public:
 	 */
 	void SetNodeTree(SG_Tree* root);
 
-	KX_PYMETHOD_DOC(KX_Scene, getLightList);
-	KX_PYMETHOD_DOC(KX_Scene, getObjectList);
-	KX_PYMETHOD_DOC(KX_Scene, getName);
+	KX_PYMETHOD_DOC_NOARGS(KX_Scene, getLightList);
+	KX_PYMETHOD_DOC_NOARGS(KX_Scene, getObjectList);
+	KX_PYMETHOD_DOC_NOARGS(KX_Scene, getName);
+	KX_PYMETHOD_DOC(KX_Scene, addObject);
 /*	
 	KX_PYMETHOD_DOC(KX_Scene, getActiveCamera);
 	KX_PYMETHOD_DOC(KX_Scene, getActiveCamera);
@@ -564,10 +565,12 @@ public:
 	KX_PYMETHOD_DOC(KX_Scene, setSceneViewport);
 	*/
 
-	virtual PyObject* _getattr(const STR_String& attr); /* name, active_camera, gravity, suspended, viewport, framing, activity_culling, activity_culling_radius */
-	virtual int _setattr(const STR_String &attr, PyObject *pyvalue);
-	virtual int _delattr(const STR_String &attr);
+	virtual PyObject* _getattr(const char *attr); /* name, active_camera, gravity, suspended, viewport, framing, activity_culling, activity_culling_radius */
+	virtual int _setattr(const char *attr, PyObject *pyvalue);
+	virtual int _delattr(const char *attr);
+	virtual PyObject* _repr(void) { return PyString_FromString(GetName().ReadPtr()); }
 
+		
 	/**
 	 * Sets the time the scene was suspended
 	 */ 

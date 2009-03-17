@@ -756,19 +756,10 @@ public:
 	 * @section Python interface functions.
 	 */
 
-	virtual 
-		PyObject*			
-	_getattr(
-		const STR_String& attr
-	);
- 
-	virtual 
-		int 
-	_setattr(
-		const STR_String& attr, 
-		PyObject *value
-	);		// _setattr method
-
+	virtual PyObject* _getattr(const char *attr);
+	virtual int _setattr(const char *attr, PyObject *value);		// _setattr method
+	virtual PyObject* _repr(void) { return PyString_FromString(GetName().ReadPtr()); }
+	
 	KX_PYMETHOD_NOARGS(KX_GameObject,GetPosition);
 	KX_PYMETHOD_O(KX_GameObject,SetPosition);
 	KX_PYMETHOD_O(KX_GameObject,SetWorldPosition);
@@ -809,8 +800,8 @@ public:
 	KX_PYMETHOD_NOARGS(KX_GameObject,EndObject);
 	KX_PYMETHOD_DOC(KX_GameObject,rayCastTo);
 	KX_PYMETHOD_DOC(KX_GameObject,rayCast);
-	KX_PYMETHOD_DOC(KX_GameObject,getDistanceTo);
-	KX_PYMETHOD_DOC(KX_GameObject,getVectTo);
+	KX_PYMETHOD_DOC_O(KX_GameObject,getDistanceTo);
+	KX_PYMETHOD_DOC_O(KX_GameObject,getVectTo);
 	
 private :
 

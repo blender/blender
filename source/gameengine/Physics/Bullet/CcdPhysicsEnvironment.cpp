@@ -317,8 +317,8 @@ static void DrawAabb(btIDebugDraw* debugDrawer,const btVector3& from,const btVec
 
 
 CcdPhysicsEnvironment::CcdPhysicsEnvironment(btDispatcher* dispatcher,btOverlappingPairCache* pairCache)
-:m_scalingPropagated(false),
-m_numIterations(10),
+:m_numIterations(10),
+m_scalingPropagated(false),
 m_numTimeSubSteps(1),
 m_ccdMode(0),
 m_solverType(-1),
@@ -326,8 +326,8 @@ m_profileTimings(0),
 m_enableSatCollisionDetection(false),
 m_solver(NULL),
 m_ownPairCache(NULL),
-m_ownDispatcher(NULL),
-m_filterCallback(NULL)
+m_filterCallback(NULL),
+m_ownDispatcher(NULL)
 {
 
 	for (int i=0;i<PHY_NUM_RESPONSE;i++)
@@ -337,6 +337,7 @@ m_filterCallback(NULL)
 
 //	m_collisionConfiguration = new btDefaultCollisionConfiguration();
 	m_collisionConfiguration = new btSoftBodyRigidBodyCollisionConfiguration();
+	//m_collisionConfiguration->setConvexConvexMultipointIterations();
 
 	if (!dispatcher)
 	{
@@ -356,6 +357,8 @@ m_filterCallback(NULL)
 	setSolverType(1);//issues with quickstep and memory allocations
 //	m_dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher,m_broadphase,m_solver,m_collisionConfiguration);
 	m_dynamicsWorld = new btSoftRigidDynamicsWorld(dispatcher,m_broadphase,m_solver,m_collisionConfiguration);
+	//m_dynamicsWorld->getSolverInfo().m_linearSlop = 0.01f;
+	//m_dynamicsWorld->getSolverInfo().m_solverMode=	SOLVER_USE_WARMSTARTING +	SOLVER_USE_2_FRICTION_DIRECTIONS +	SOLVER_RANDMIZE_ORDER +	SOLVER_USE_FRICTION_WARMSTARTING;
 
 	m_debugDrawer = 0;
 	m_gravity = btVector3(0.f,-10.f,0.f);
@@ -414,7 +417,7 @@ void	CcdPhysicsEnvironment::addCcdPhysicsController(CcdPhysicsController* ctrl)
 	const btTransform& t = ctrl->GetCollisionObject()->getWorldTransform();
 	
 
-	btPoint3 minAabb,maxAabb;
+	btVector3 minAabb,maxAabb;
 
 	shapeinterface->getAabb(t,minAabb,maxAabb);
 
@@ -560,6 +563,11 @@ void	CcdPhysicsEnvironment::beginFrame()
 
 }
 
+void CcdPhysicsEnvironment::debugDrawWorld()
+{
+	if (m_dynamicsWorld->getDebugDrawer() &&  m_dynamicsWorld->getDebugDrawer()->getDebugMode() >0)
+			m_dynamicsWorld->debugDrawWorld();
+}
 
 bool	CcdPhysicsEnvironment::proceedDeltaTime(double curTime,float timeStep)
 {
@@ -595,9 +603,6 @@ bool	CcdPhysicsEnvironment::proceedDeltaTime(double curTime,float timeStep)
 		WrapperVehicle* veh = m_wrapperVehicles[i];
 		veh->SyncWheels();
 	}
-
-	if (m_dynamicsWorld->getDebugDrawer() &&  m_dynamicsWorld->getDebugDrawer()->getDebugMode() >0)
-		m_dynamicsWorld->debugDrawWorld();
 
 
 	CallbackTriggers();
@@ -845,7 +850,8 @@ void		CcdPhysicsEnvironment::setSolverType(int solverType)
 			{
 
 				m_solver = new btSequentialImpulseConstraintSolver();
-//				((btSequentialImpulseConstraintSolver*)m_solver)->setSolverMode(btSequentialImpulseConstraintSolver::SOLVER_USE_WARMSTARTING | btSequentialImpulseConstraintSolver::SOLVER_RANDMIZE_ORDER);
+				
+				
 				break;
 			}
 		}

@@ -90,8 +90,7 @@ void	btContinuousDynamicsWorld::internalSingleStepSimulation( btScalar timeStep)
 	integrateTransforms(timeStep * toi);
 
 	///update vehicle simulation
-	updateVehicles(timeStep);
-
+	updateActions(timeStep);
 
 	updateActivationState( timeStep );
 	

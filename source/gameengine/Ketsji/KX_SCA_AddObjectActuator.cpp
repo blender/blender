@@ -188,9 +188,7 @@ PyParentObject KX_SCA_AddObjectActuator::Parents[] = {
 	NULL
 };
 PyMethodDef KX_SCA_AddObjectActuator::Methods[] = {
-  {"setObject", (PyCFunction) KX_SCA_AddObjectActuator::sPySetObject, METH_O, (PY_METHODCHAR)SetObject_doc},
   {"setTime", (PyCFunction) KX_SCA_AddObjectActuator::sPySetTime, METH_O, (PY_METHODCHAR)SetTime_doc},
-  {"getObject", (PyCFunction) KX_SCA_AddObjectActuator::sPyGetObject, METH_VARARGS, (PY_METHODCHAR)GetObject_doc},
   {"getTime", (PyCFunction) KX_SCA_AddObjectActuator::sPyGetTime, METH_NOARGS, (PY_METHODCHAR)GetTime_doc},
   {"getLinearVelocity", (PyCFunction) KX_SCA_AddObjectActuator::sPyGetLinearVelocity, METH_NOARGS, (PY_METHODCHAR)GetLinearVelocity_doc},
   {"setLinearVelocity", (PyCFunction) KX_SCA_AddObjectActuator::sPySetLinearVelocity, METH_VARARGS, (PY_METHODCHAR)SetLinearVelocity_doc},
@@ -199,13 +197,50 @@ PyMethodDef KX_SCA_AddObjectActuator::Methods[] = {
   {"getLastCreatedObject", (PyCFunction) KX_SCA_AddObjectActuator::sPyGetLastCreatedObject, METH_NOARGS,"getLastCreatedObject() : get the object handle to the last created object\n"},
   {"instantAddObject", (PyCFunction) KX_SCA_AddObjectActuator::sPyInstantAddObject, METH_NOARGS,"instantAddObject() : immediately add object without delay\n"},
   
+  // ---> deprecated
+  {"setObject", (PyCFunction) KX_SCA_AddObjectActuator::sPySetObject, METH_O, (PY_METHODCHAR)SetObject_doc},
+  {"getObject", (PyCFunction) KX_SCA_AddObjectActuator::sPyGetObject, METH_VARARGS, (PY_METHODCHAR)GetObject_doc},
+  
   {NULL,NULL} //Sentinel
 };
 
+PyAttributeDef KX_SCA_AddObjectActuator::Attributes[] = {
+	{ NULL }	//Sentinel
+};
 
-PyObject* KX_SCA_AddObjectActuator::_getattr(const STR_String& attr)
+PyObject* KX_SCA_AddObjectActuator::_getattr(const char *attr)
 {
+	if (!strcmp(attr, "object")) {
+		if (!m_OriginalObject)	Py_RETURN_NONE;
+		else					return m_OriginalObject->AddRef();
+	} else if (!strcmp(attr, "objectLastCreated")) {
+		if (!m_OriginalObject)	Py_RETURN_NONE;
+		else					return m_lastCreatedObject->AddRef();
+	}
+	
   _getattr_up(SCA_IActuator);
+}
+
+int KX_SCA_AddObjectActuator::_setattr(const char *attr, PyObject* value) {
+	
+	if (!strcmp(attr, "object")) {
+		KX_GameObject *gameobj;
+		
+		if (!ConvertPythonToGameObject(value, &gameobj, true))
+			return 1; // ConvertPythonToGameObject sets the error
+		
+		if (m_OriginalObject != NULL)
+			m_OriginalObject->UnregisterActuator(this);	
+
+		m_OriginalObject = (SCA_IObject*)gameobj;
+		
+		if (m_OriginalObject)
+			m_OriginalObject->RegisterActuator(this);
+		
+		return 0;
+	}
+	
+	return SCA_IActuator::_setattr(attr, value);
 }
 
 /* 1. setObject */
@@ -217,6 +252,8 @@ const char KX_SCA_AddObjectActuator::SetObject_doc[] =
 PyObject* KX_SCA_AddObjectActuator::PySetObject(PyObject* self, PyObject* value)
 {
 	KX_GameObject *gameobj;
+	
+	ShowDeprecationWarning("setObject()", "the object property");
 	
 	if (!ConvertPythonToGameObject(value, &gameobj, true))
 		return NULL; // ConvertPythonToGameObject sets the error
@@ -277,6 +314,9 @@ const char KX_SCA_AddObjectActuator::GetObject_doc[] =
 PyObject* KX_SCA_AddObjectActuator::PyGetObject(PyObject* self, PyObject* args)
 {
 	int ret_name_only = 1;
+	
+	ShowDeprecationWarning("getObject()", "the object property");
+	
 	if (!PyArg_ParseTuple(args, "|i", &ret_name_only))
 		return NULL;
 	

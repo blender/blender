@@ -105,6 +105,10 @@ ifeq ($(WITH_DDS), true)
     CPPFLAGS += -DWITH_DDS
 endif
 
+ifeq ($(WITH_OPENJPEG), true)
+    CPPFLAGS += -DWITH_OPENJPEG
+endif
+
 ifeq ($(WITH_QUICKTIME), true)
 	CPPFLAGS += -I../../quicktime
 	CPPFLAGS += -DWITH_QUICKTIME

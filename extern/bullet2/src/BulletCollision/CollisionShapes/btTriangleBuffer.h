@@ -28,7 +28,7 @@ struct	btTriangle
 	int	m_triangleIndex;
 };
 
-///btTriangleBuffer can be useful to collect and store overlapping triangles between AABB and concave objects that support 'processAllTriangles'
+///The btTriangleBuffer callback can be useful to collect and store overlapping triangles between AABB and concave objects that support 'processAllTriangles'
 ///Example usage of this class:
 ///			btTriangleBuffer	triBuf;
 ///			concaveShape->processAllTriangles(&triBuf,aabbMin, aabbMax);

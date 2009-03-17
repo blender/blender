@@ -86,6 +86,10 @@ KX_PYMETHODTABLE(KX_MeshProxy, reinstancePhysicsMesh),
   {NULL,NULL} //Sentinel
 };
 
+PyAttributeDef KX_MeshProxy::Attributes[] = {
+	{ NULL }	//Sentinel
+};
+
 void KX_MeshProxy::SetMeshModified(bool v)
 {
 	m_meshobj->SetMeshModified(v);
@@ -93,9 +97,9 @@ void KX_MeshProxy::SetMeshModified(bool v)
 
 
 PyObject*
-KX_MeshProxy::_getattr(const STR_String& attr)
+KX_MeshProxy::_getattr(const char *attr)
 {
-	if (attr == "materials")
+	if (!strcmp(attr, "materials"))
 	{
 		PyObject *materials = PyList_New(0);
 		list<RAS_MeshMaterial>::iterator mit = m_meshobj->GetFirstMaterial();

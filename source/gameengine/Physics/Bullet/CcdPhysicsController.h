@@ -161,7 +161,7 @@ public:
 	btTransform				m_childTrans;
 	btVector3				m_childScale;
 	void*					m_userData;	
-	std::vector<btPoint3>	m_vertexArray;	// Contains both vertex array for polytope shape and
+	btAlignedObjectArray<btVector3>	m_vertexArray;	// Contains both vertex array for polytope shape and
 											// triangle array for concave mesh shape.
 											// In this case a triangle is made of 3 consecutive points
 	std::vector<int>		m_polygonIndexArray;	// Contains the array of polygon index in the 

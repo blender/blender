@@ -24,15 +24,15 @@ subject to the following restrictions:
 //
 
 #define	DBVT_BP_PROFILE					0
-#define DBVT_BP_SORTPAIRS				1
+//#define DBVT_BP_SORTPAIRS				1
 #define DBVT_BP_PREVENTFALSEUPDATE		0
 #define DBVT_BP_ACCURATESLEEPING		0
 #define DBVT_BP_ENABLE_BENCHMARK		0
 #define DBVT_BP_MARGIN					(btScalar)0.05
 
 #if DBVT_BP_PROFILE
-	#define	DBVT_BP_PROFILING_RATE	256
-	#include "LinearMath/btQuickprof.h"
+#define	DBVT_BP_PROFILING_RATE	256
+#include "LinearMath/btQuickprof.h"
 #endif
 
 //
@@ -40,16 +40,16 @@ subject to the following restrictions:
 //
 struct btDbvtProxy : btBroadphaseProxy
 {
-/* Fields		*/ 
-btDbvtAabbMm	aabb;
-btDbvtNode*		leaf;
-btDbvtProxy*	links[2];
-int				stage;
-/* ctor			*/ 
-btDbvtProxy(void* userPtr,short int collisionFilterGroup, short int collisionFilterMask) :
-	btBroadphaseProxy(userPtr,collisionFilterGroup,collisionFilterMask)
+	/* Fields		*/ 
+	//btDbvtAabbMm	aabb;
+	btDbvtNode*		leaf;
+	btDbvtProxy*	links[2];
+	int				stage;
+	/* ctor			*/ 
+	btDbvtProxy(const btVector3& aabbMin,const btVector3& aabbMax,void* userPtr,short int collisionFilterGroup, short int collisionFilterMask) :
+	btBroadphaseProxy(aabbMin,aabbMax,userPtr,collisionFilterGroup,collisionFilterMask)
 	{
-	links[0]=links[1]=0;
+		links[0]=links[1]=0;
 	}
 };
 
@@ -60,57 +60,67 @@ typedef btAlignedObjectArray<btDbvtProxy*>	btDbvtProxyArray;
 ///This is a very fast broadphase, especially for very dynamic worlds where many objects are moving. Its insert/add and remove of objects is generally faster than the sweep and prune broadphases btAxisSweep3 and bt32BitAxisSweep3.
 struct	btDbvtBroadphase : btBroadphaseInterface
 {
-/* Config		*/ 
-enum	{
+	/* Config		*/ 
+	enum	{
 		DYNAMIC_SET			=	0,	/* Dynamic set index	*/ 
 		FIXED_SET			=	1,	/* Fixed set index		*/ 
 		STAGECOUNT			=	2	/* Number of stages		*/ 
-		};
-/* Fields		*/ 
-btDbvt					m_sets[2];					// Dbvt sets
-btDbvtProxy*			m_stageRoots[STAGECOUNT+1];	// Stages list
-btOverlappingPairCache*	m_paircache;				// Pair cache
-btScalar				m_prediction;				// Velocity prediction
-int						m_stageCurrent;				// Current stage
-int						m_fupdates;					// % of fixed updates per frame
-int						m_dupdates;					// % of dynamic updates per frame
-int						m_cupdates;					// % of cleanup updates per frame
-int						m_newpairs;					// Number of pairs created
-int						m_fixedleft;				// Fixed optimization left
-unsigned				m_updates_call;				// Number of updates call
-unsigned				m_updates_done;				// Number of updates done
-btScalar				m_updates_ratio;			// m_updates_done/m_updates_call
-int						m_pid;						// Parse id
-int						m_cid;						// Cleanup index
-int						m_gid;						// Gen id
-bool					m_releasepaircache;			// Release pair cache on delete
-bool					m_deferedcollide;			// Defere dynamic/static collision to collide call
-bool					m_needcleanup;				// Need to run cleanup?
+	};
+	/* Fields		*/ 
+	btDbvt					m_sets[2];					// Dbvt sets
+	btDbvtProxy*			m_stageRoots[STAGECOUNT+1];	// Stages list
+	btOverlappingPairCache*	m_paircache;				// Pair cache
+	btScalar				m_prediction;				// Velocity prediction
+	int						m_stageCurrent;				// Current stage
+	int						m_fupdates;					// % of fixed updates per frame
+	int						m_dupdates;					// % of dynamic updates per frame
+	int						m_cupdates;					// % of cleanup updates per frame
+	int						m_newpairs;					// Number of pairs created
+	int						m_fixedleft;				// Fixed optimization left
+	unsigned				m_updates_call;				// Number of updates call
+	unsigned				m_updates_done;				// Number of updates done
+	btScalar				m_updates_ratio;			// m_updates_done/m_updates_call
+	int						m_pid;						// Parse id
+	int						m_cid;						// Cleanup index
+	int						m_gid;						// Gen id
+	bool					m_releasepaircache;			// Release pair cache on delete
+	bool					m_deferedcollide;			// Defere dynamic/static collision to collide call
+	bool					m_needcleanup;				// Need to run cleanup?
 #if DBVT_BP_PROFILE
-btClock					m_clock;
-struct	{
+	btClock					m_clock;
+	struct	{
 		unsigned long		m_total;
 		unsigned long		m_ddcollide;
 		unsigned long		m_fdcollide;
 		unsigned long		m_cleanup;
 		unsigned long		m_jobcount;
-		}				m_profiling;
+	}				m_profiling;
 #endif
-/* Methods		*/ 
-btDbvtBroadphase(btOverlappingPairCache* paircache=0);
-~btDbvtBroadphase();
-void							collide(btDispatcher* dispatcher);
-void							optimize();
-/* btBroadphaseInterface Implementation	*/ 
-btBroadphaseProxy*				createProxy(const btVector3& aabbMin,const btVector3& aabbMax,int shapeType,void* userPtr,short int collisionFilterGroup,short int collisionFilterMask,btDispatcher* dispatcher,void* multiSapProxy);
-void							destroyProxy(btBroadphaseProxy* proxy,btDispatcher* dispatcher);
-void							setAabb(btBroadphaseProxy* proxy,const btVector3& aabbMin,const btVector3& aabbMax,btDispatcher* dispatcher);
-void							calculateOverlappingPairs(btDispatcher* dispatcher);
-btOverlappingPairCache*			getOverlappingPairCache();
-const btOverlappingPairCache*	getOverlappingPairCache() const;
-void							getBroadphaseAabb(btVector3& aabbMin,btVector3& aabbMax) const;
-void							printStats();
-static void						benchmark(btBroadphaseInterface*);
+	/* Methods		*/ 
+	btDbvtBroadphase(btOverlappingPairCache* paircache=0);
+	~btDbvtBroadphase();
+	void							collide(btDispatcher* dispatcher);
+	void							optimize();
+	/* btBroadphaseInterface Implementation	*/ 
+	btBroadphaseProxy*				createProxy(const btVector3& aabbMin,const btVector3& aabbMax,int shapeType,void* userPtr,short int collisionFilterGroup,short int collisionFilterMask,btDispatcher* dispatcher,void* multiSapProxy);
+	void							destroyProxy(btBroadphaseProxy* proxy,btDispatcher* dispatcher);
+	void							setAabb(btBroadphaseProxy* proxy,const btVector3& aabbMin,const btVector3& aabbMax,btDispatcher* dispatcher);
+	virtual void	rayTest(const btVector3& rayFrom,const btVector3& rayTo, btBroadphaseRayCallback& rayCallback, const btVector3& aabbMin=btVector3(0,0,0), const btVector3& aabbMax = btVector3(0,0,0));
+
+	virtual void	getAabb(btBroadphaseProxy* proxy,btVector3& aabbMin, btVector3& aabbMax ) const;
+	void							calculateOverlappingPairs(btDispatcher* dispatcher);
+	btOverlappingPairCache*			getOverlappingPairCache();
+	const btOverlappingPairCache*	getOverlappingPairCache() const;
+	void							getBroadphaseAabb(btVector3& aabbMin,btVector3& aabbMax) const;
+	void							printStats();
+	static void						benchmark(btBroadphaseInterface*);
+
+
+	void	performDeferredRemoval(btDispatcher* dispatcher);
+
+	///reset broadphase internal structures, to ensure determinism/reproducability
+	virtual void resetPool(btDispatcher* dispatcher);
+
 };
 
 #endif

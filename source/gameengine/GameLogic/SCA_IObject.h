@@ -145,7 +145,7 @@ public:
 //	const class MT_Point3&	ConvertPythonPylist(PyObject* pylist);
 	
 	// here come the python forwarded methods
-	virtual PyObject* _getattr(const STR_String& attr);
+	virtual PyObject* _getattr(const char *attr);
 
 	virtual int GetGameObjectType() {return -1;}
 	

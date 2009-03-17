@@ -30,6 +30,8 @@ http://gimpact.sf.net
 class btRigidBody;
 
 
+
+
 //! Rotation Limit structure for generic joints
 class btRotationalLimitMotor
 {
@@ -92,7 +94,7 @@ public:
 	//! Is limited
     bool isLimited()
     {
-    	if(m_loLimit>=m_hiLimit) return false;
+    	if(m_loLimit > m_hiLimit) return false;
     	return true;
     }
 
@@ -110,8 +112,7 @@ public:
 	int testLimitValue(btScalar test_value);
 
 	//! apply the correction impulses for two bodies
-    btScalar solveAngularLimits(btScalar timeStep,btVector3& axis, btScalar jacDiagABInv,btRigidBody * body0, btRigidBody * body1);
-
+    btScalar solveAngularLimits(btScalar timeStep,btVector3& axis, btScalar jacDiagABInv,btRigidBody * body0, btSolverBody& bodyA,btRigidBody * body1,btSolverBody& bodyB);
 
 };
 
@@ -129,6 +130,11 @@ public:
     btScalar	m_damping;//!< Damping for linear limit
     btScalar	m_restitution;//! Bounce parameter for linear limit
     //!@}
+	bool		m_enableMotor[3];
+    btVector3	m_targetVelocity;//!< target motor velocity
+    btVector3	m_maxMotorForce;//!< max force on motor
+    btVector3	m_currentLimitError;//!  How much is violated this limit
+    int			m_currentLimit[3];//!< 0=free, 1=at lower limit, 2=at upper limit
 
     btTranslationalLimitMotor()
     {
@@ -139,6 +145,12 @@ public:
     	m_limitSoftness = 0.7f;
     	m_damping = btScalar(1.0f);
     	m_restitution = btScalar(0.5f);
+		for(int i=0; i < 3; i++) 
+		{
+			m_enableMotor[i] = false;
+			m_targetVelocity[i] = btScalar(0.f);
+			m_maxMotorForce[i] = btScalar(0.f);
+		}
     }
 
     btTranslationalLimitMotor(const btTranslationalLimitMotor & other )
@@ -150,6 +162,12 @@ public:
     	m_limitSoftness = other.m_limitSoftness ;
     	m_damping = other.m_damping;
     	m_restitution = other.m_restitution;
+		for(int i=0; i < 3; i++) 
+		{
+			m_enableMotor[i] = other.m_enableMotor[i];
+			m_targetVelocity[i] = other.m_targetVelocity[i];
+			m_maxMotorForce[i] = other.m_maxMotorForce[i];
+		}
     }
 
     //! Test limit
@@ -163,13 +181,19 @@ public:
     {
        return (m_upperLimit[limitIndex] >= m_lowerLimit[limitIndex]);
     }
+    inline bool needApplyForce(int limitIndex)
+    {
+    	if(m_currentLimit[limitIndex] == 0 && m_enableMotor[limitIndex] == false) return false;
+    	return true;
+    }
+	int testLimitValue(int limitIndex, btScalar test_value);
 
 
     btScalar solveLinearAxis(
     	btScalar timeStep,
         btScalar jacDiagABInv,
-        btRigidBody& body1,const btVector3 &pointInA,
-        btRigidBody& body2,const btVector3 &pointInB,
+        btRigidBody& body1,btSolverBody& bodyA,const btVector3 &pointInA,
+        btRigidBody& body2,btSolverBody& bodyB,const btVector3 &pointInB,
         int limit_index,
         const btVector3 & axis_normal_on_a,
 		const btVector3 & anchorPos);
@@ -247,6 +271,7 @@ protected:
     btTransform m_calculatedTransformB;
     btVector3 m_calculatedAxisAngleDiff;
     btVector3 m_calculatedAxis[3];
+    btVector3 m_calculatedLinearDiff;
     
 	btVector3 m_AnchorPos; // point betwen pivots of bodies A and B to solve linear axes
 
@@ -262,6 +287,9 @@ protected:
     }
 
 
+	int setAngularLimits(btConstraintInfo2 *info, int row_offset);
+
+	int setLinearLimits(btConstraintInfo2 *info);
 
     void buildLinearJacobian(
         btJacobianEntry & jacLinear,const btVector3 & normalWorld,
@@ -269,6 +297,8 @@ protected:
 
     void buildAngularJacobian(btJacobianEntry & jacAngular,const btVector3 & jointAxisW);
 
+	// tests linear limits
+	void calculateLinearInfo();
 
 	//! calcs the euler angles between the two bodies.
     void calculateAngleInfo();
@@ -276,6 +306,10 @@ protected:
 
 
 public:
+
+	///for backwards compatibility during the transition to 'getInfo/getInfo2'
+	bool		m_useSolveConstraintObsolete;
+
     btGeneric6DofConstraint(btRigidBody& rbA, btRigidBody& rbB, const btTransform& frameInA, const btTransform& frameInB ,bool useLinearReferenceFrameA);
 
     btGeneric6DofConstraint();
@@ -330,7 +364,11 @@ public:
 	//! performs Jacobian calculation, and also calculates angle differences and axis
     virtual void	buildJacobian();
 
-    virtual	void	solveConstraint(btScalar	timeStep);
+	virtual void getInfo1 (btConstraintInfo1* info);
+
+	virtual void getInfo2 (btConstraintInfo2* info);
+
+    virtual	void	solveConstraintObsolete(btSolverBody& bodyA,btSolverBody& bodyB,btScalar	timeStep);
 
     void	updateRHS(btScalar	timeStep);
 
@@ -431,6 +469,11 @@ public:
     }
 
 	virtual void calcAnchorPos(void); // overridable
+
+	int get_limit_motor_info2(	btRotationalLimitMotor * limot,
+								btRigidBody * body0, btRigidBody * body1,
+								btConstraintInfo2 *info, int row, btVector3& ax1, int rotational);
+
 
 };
 

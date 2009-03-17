@@ -373,6 +373,45 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, EditMesh *em, MTFac
 	}
 }
 
+static void draw_uvs_other(SpaceImage *sima, Scene *scene, Object *obedit, MTFace *activetf)
+{
+	Base *base;
+	Image *curimage;
+
+	curimage= (activetf)? activetf->tpage: NULL;
+
+	glColor3ub(96, 96, 96);
+
+	for(base=scene->base.first; base; base=base->next) {
+		Object *ob= base->object;
+
+		if(!(base->flag & SELECT)) continue;
+		if(!(base->lay & scene->lay)) continue;
+		if(ob->restrictflag & OB_RESTRICT_VIEW) continue;
+
+		if((ob->type==OB_MESH) && (ob!=obedit)) {
+			Mesh *me= ob->data;
+
+			if(me->mtface) {
+				MFace *mface= me->mface;
+				MTFace *tface= me->mtface;
+				int a;
+
+				for(a=me->totface; a>0; a--, tface++, mface++) {
+					if(tface->tpage == curimage) {
+						glBegin(GL_LINE_LOOP);
+						glVertex2fv(tface->uv[0]);
+						glVertex2fv(tface->uv[1]);
+						glVertex2fv(tface->uv[2]);
+						if(mface->v4) glVertex2fv(tface->uv[3]);
+						glEnd();
+					}
+				}
+			}
+		}
+	}
+}
+
 /* draws uv's in the image space */
 static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 {
@@ -397,6 +436,10 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 		interpedges= (scene->selectmode & SCE_SELECT_VERTEX);
 	else
 		interpedges= (settings->uv_selectmode == UV_SELECT_VERTEX);
+	
+	/* draw other uvs */
+	if(sima->flag & SI_DRAW_OTHER)
+		draw_uvs_other(sima, scene, obedit, activetf);
 
 	/* 1. draw shadow mesh */
 	
@@ -576,7 +619,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 			}
 			
 			glLineWidth(1);
-			col2[0] = col2[1] = col2[2] = 128; col2[3] = 255;
+			col2[0] = col2[1] = col2[2] = 192; col2[3] = 255;
 			glColor4ubv((unsigned char *)col2); 
 			
 			if(me->drawflag & ME_DRAWEDGES) {

@@ -95,6 +95,7 @@ struct TransInfo;
 struct ScrArea;
 struct Base;
 struct Scene;
+struct Object;
 
 void BIF_setSingleAxisConstraint(float vec[3], char *text);
 void BIF_setDualAxisConstraint(float vec1[3], float vec2[3], char *text);
@@ -129,6 +130,34 @@ void ManipulatorTransform();
 
 //int BIF_do_manipulator(struct ScrArea *sa);
 //void BIF_draw_manipulator(struct ScrArea *sa);
+
+/* Snapping */
+
+
+typedef struct DepthPeel
+{
+	struct DepthPeel *next, *prev;
+	
+	float depth;
+	float p[3];
+	float no[3];
+	struct Object *ob;
+	int flag;
+} DepthPeel;
+
+struct ListBase;
+
+typedef enum SnapMode
+{
+	SNAP_ALL = 0,
+	SNAP_NOT_SELECTED = 1,
+	SNAP_NOT_OBEDIT = 2
+} SnapMode;
+
+#define SNAP_MIN_DISTANCE 30
+
+int snapObjects(struct TransInfo *t, int *dist, float *loc, float *no, SnapMode mode);
+int peelObjects(struct TransInfo *t, struct ListBase *depth_peels, short mval[2]);
 
 #endif
 

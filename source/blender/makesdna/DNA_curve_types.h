@@ -263,7 +263,7 @@ typedef struct Curve {
 /* *************** BEZTRIPLE **************** */
 
 /* h1 h2 (beztriple) */
-enum {
+typedef enum eBezTriple_Handle {
 	HD_FREE	= 0,
 	HD_AUTO,
 	HD_VECT,
@@ -272,7 +272,7 @@ enum {
 } eBezTriple_Handle;
 
 /* interpolation modes (used only for BezTriple->ipo) */
-enum {
+typedef enum eBezTriple_Interpolation {
 	BEZT_IPO_CONST = 0,	/* constant interpolation */
 	BEZT_IPO_LIN,		/* linear interpolation */
 	BEZT_IPO_BEZ,		/* bezier interpolation */

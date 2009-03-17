@@ -18,8 +18,9 @@ subject to the following restrictions:
 #include "LinearMath/btQuaternion.h"
 
 btMultiSphereShape::btMultiSphereShape (const btVector3& inertiaHalfExtents,const btVector3* positions,const btScalar* radi,int numSpheres)
-:m_inertiaHalfExtents(inertiaHalfExtents)
+:btConvexInternalShape (), m_inertiaHalfExtents(inertiaHalfExtents)
 {
+	m_shapeType = MULTI_SPHERE_SHAPE_PROXYTYPE;
 	btScalar startMargin = btScalar(1e30);
 
 	m_numSpheres = numSpheres;

@@ -5,6 +5,10 @@ from SCA_IActuator import *
 class KX_SCA_AddObjectActuator(SCA_IActuator):
 	"""
 	Edit Object Actuator (in Add Object Mode)
+	@ivar object: the object this actuator adds.
+	@type object: KX_GameObject or None
+	@ivar objectLastCreated: the last added object from this actuator (read only).
+	@type objectLastCreated: KX_GameObject or None
 	
 	@warning: An Add Object actuator will be ignored if at game start, the linked object doesn't exist
 		  (or is empty) or the linked object is in an active layer.

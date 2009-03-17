@@ -39,6 +39,12 @@ struct PHY_CollData;
 
 #include "KX_ClientObjectInfo.h"
 
+#if defined(_WIN64)
+typedef unsigned __int64 uint_ptr;
+#else
+typedef unsigned long uint_ptr;
+#endif
+
 class KX_TouchEventManager;
 
 class KX_TouchSensor : public SCA_ISensor
@@ -51,6 +57,7 @@ protected:
 	 */
 	STR_String				m_touchedpropname;	
 	bool					m_bFindMaterial;
+	bool					m_bTouchPulse;		/* changes in the colliding objects trigger pulses */
 	class SCA_EventManager*	m_eventmgr;
 	
 	class PHY_IPhysicsController*	m_physCtrl;
@@ -58,13 +65,20 @@ protected:
 	bool					m_bCollision;
 	bool					m_bTriggered;
 	bool					m_bLastTriggered;
+
+	// Use with m_bTouchPulse to detect changes
+	int						m_bLastCount;		/* size of m_colliders last tick */
+	uint_ptr				m_bColliderHash;	/* hash collision objects pointers to trigger incase one object collides and another takes its place */
+	uint_ptr				m_bLastColliderHash;
+
 	SCA_IObject*		    m_hitObject;
 	class CListValue*		m_colliders;
 	
 public:
 	KX_TouchSensor(class SCA_EventManager* eventmgr,
 		class KX_GameObject* gameobj,
-		bool fFindMaterial,
+		bool bFindMaterial,
+		bool bTouchPulse,
 		const STR_String& touchedpropname,
 		PyTypeObject* T=&Type) ;
 	virtual ~KX_TouchSensor();
@@ -106,20 +120,25 @@ public:
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
 	
-	virtual PyObject* _getattr(const STR_String& attr);
+	virtual PyObject* _getattr(const char *attr);
+	virtual int _setattr(const char *attr, PyObject *value);
 
+	//Deprecated ----->
 	/* 1. setProperty */
-	KX_PYMETHOD_DOC(KX_TouchSensor,SetProperty);
+	KX_PYMETHOD_DOC_O(KX_TouchSensor,SetProperty);
 	/* 2. getProperty */
-	KX_PYMETHOD_DOC(KX_TouchSensor,GetProperty);
+	KX_PYMETHOD_DOC_NOARGS(KX_TouchSensor,GetProperty);
 	/* 3. getHitObject */
-	KX_PYMETHOD_DOC(KX_TouchSensor,GetHitObject);
+	KX_PYMETHOD_DOC_NOARGS(KX_TouchSensor,GetHitObject);
 	/* 4. getHitObject */
-	KX_PYMETHOD_DOC(KX_TouchSensor,GetHitObjectList);
+	KX_PYMETHOD_DOC_NOARGS(KX_TouchSensor,GetHitObjectList);
 	/* 5. getTouchMaterial */
-	KX_PYMETHOD_DOC(KX_TouchSensor,GetTouchMaterial);
+	KX_PYMETHOD_DOC_NOARGS(KX_TouchSensor,GetTouchMaterial);
+#if 0
 	/* 6. setTouchMaterial */
-	KX_PYMETHOD_DOC(KX_TouchSensor,SetTouchMaterial);
+	KX_PYMETHOD_DOC_O(KX_TouchSensor,SetTouchMaterial);
+#endif
+	//<-----
 	
 };
 

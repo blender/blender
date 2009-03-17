@@ -926,18 +926,18 @@ static void free_gammacross(Sequence * seq)
 
 static void do_gammacross_effect_byte(float facf0, float facf1, 
 				      int x, int y, 
-				      char *rect1, 
-				      char *rect2, 
-				      char *out)
+				      unsigned char *rect1, 
+				      unsigned char *rect2, 
+				      unsigned char *out)
 {
 	int fac1, fac2, col;
 	int xo;
-	char *rt1, *rt2, *rt;
+	unsigned char *rt1, *rt2, *rt;
 	
 	xo= x;
-	rt1= (signed char *)rect1;
-	rt2= (signed char *)rect2;
-	rt= (signed char *)out;
+	rt1= (unsigned char *)rect1;
+	rt2= (unsigned char *)rect2;
+	rt= (unsigned char *)out;
 
 	fac2= (int)(256.0*facf0);
 	fac1= 256-fac2;
@@ -1996,6 +1996,9 @@ static void do_transform(Sequence * seq,float facf0, int x, int y,
 	float xs,ys,factxScale,factyScale,tx,ty,rad,s,c,xaux,yaux,factRot,px,py;
 	TransformVars *scale;
 	
+	struct RenderData *rd = NULL; // XXX 2.5 global: &G.scene->r;
+
+
 	scale = (TransformVars *)seq->effectdata;
 	xo = x;
 	yo = y;
@@ -2006,8 +2009,10 @@ static void do_transform(Sequence * seq,float facf0, int x, int y,
 
 	//Factor translate
 	if(!scale->percent){
-		tx = scale->xIni+(xo / 2.0f) + (scale->xFin-(xo / 2.0f) - scale->xIni+(xo / 2.0f)) * facf0;
-		ty = scale->yIni+(yo / 2.0f) + (scale->yFin-(yo / 2.0f) - scale->yIni+(yo / 2.0f)) * facf0;
+		float rd_s = 0.0f; // XXX 2.5 global: (rd->size / 100.0f);
+
+		tx = scale->xIni * rd_s+(xo / 2.0f) + (scale->xFin * rd_s -(xo / 2.0f) - scale->xIni * rd_s +(xo / 2.0f)) * facf0;
+		ty = scale->yIni * rd_s+(yo / 2.0f) + (scale->yFin * rd_s -(yo / 2.0f) - scale->yIni * rd_s +(yo / 2.0f)) * facf0;
 	}else{
 		tx = xo*(scale->xIni/100.0f)+(xo / 2.0f) + (xo*(scale->xFin/100.0f)-(xo / 2.0f) - xo*(scale->xIni/100.0f)+(xo / 2.0f)) * facf0;
 		ty = yo*(scale->yIni/100.0f)+(yo / 2.0f) + (yo*(scale->yFin/100.0f)-(yo / 2.0f) - yo*(scale->yIni/100.0f)+(yo / 2.0f)) * facf0;
@@ -2018,6 +2023,7 @@ static void do_transform(Sequence * seq,float facf0, int x, int y,
 	rad = (M_PI * factRot) / 180.0f;
 	s= sin(rad);
 	c= cos(rad);
+
 
 	for (yi = 0; yi < yo; yi++) {
 		for (xi = 0; xi < xo; xi++) {

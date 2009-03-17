@@ -149,6 +149,22 @@ amin.getZ() >= bmin.getZ() && amax.getZ() <= bmax.getZ();
 
 
 
+void	btMultiSapBroadphase::getAabb(btBroadphaseProxy* proxy,btVector3& aabbMin, btVector3& aabbMax ) const
+{
+	btMultiSapProxy* multiProxy = static_cast<btMultiSapProxy*>(proxy);
+	aabbMin = multiProxy->m_aabbMin;
+	aabbMax = multiProxy->m_aabbMax;
+}
+
+void	btMultiSapBroadphase::rayTest(const btVector3& rayFrom,const btVector3& rayTo, btBroadphaseRayCallback& rayCallback, const btVector3& aabbMin,const btVector3& aabbMax)
+{
+	for (int i=0;i<m_multiSapProxies.size();i++)
+	{
+		rayCallback.process(m_multiSapProxies[i]);
+	}
+}
+
+
 //#include <stdio.h>
 
 void	btMultiSapBroadphase::setAabb(btBroadphaseProxy* proxy,const btVector3& aabbMin,const btVector3& aabbMax, btDispatcher* dispatcher)
@@ -208,7 +224,9 @@ void	btMultiSapBroadphase::setAabb(btBroadphaseProxy* proxy,const btVector3& aab
 
 
 	
-	m_optimizedAabbTree->reportAabbOverlappingNodex(&myNodeCallback,aabbMin,aabbMax);
+	if (m_optimizedAabbTree)
+		m_optimizedAabbTree->reportAabbOverlappingNodex(&myNodeCallback,aabbMin,aabbMax);
+
 	int i;
 
 	for ( i=0;i<multiProxy->m_bridgeProxies.size();i++)
@@ -463,4 +481,9 @@ void	btMultiSapBroadphase::printStats()
 		}
 		*/
 
+}
+
+void btMultiSapBroadphase::resetPool(btDispatcher* dispatcher)
+{
+	// not yet
 }

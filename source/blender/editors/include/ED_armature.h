@@ -111,7 +111,7 @@ void create_vgroups_from_armature(struct Scene *scene, struct Object *ob, struct
 void docenter_armature (struct Scene *scene, struct View3D *v3d, struct Object *ob, int centermode);
 
 void auto_align_armature(struct Scene *scene, struct View3D *v3d, short mode);
-void unique_editbone_name (ListBase *edbo, char *name);
+void unique_editbone_name(struct ListBase *ebones, char *name, EditBone *bone); /* if bone is already in list, pass it as param to ignore it */
 void armature_bone_rename(Object *ob, char *oldnamep, char *newnamep);
 
 void undo_push_armature(struct bContext *C, char *name);

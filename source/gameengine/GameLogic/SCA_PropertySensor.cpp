@@ -352,14 +352,14 @@ PyAttributeDef SCA_PropertySensor::Attributes[] = {
 };
 
 
-PyObject* SCA_PropertySensor::_getattr(const STR_String& attr) {
+PyObject* SCA_PropertySensor::_getattr(const char *attr) {
 	PyObject* object = _getattr_self(Attributes, this, attr);
 	if (object != NULL)
 		return object;
 	_getattr_up(SCA_ISensor); /* implicit return! */
 }
 
-int SCA_PropertySensor::_setattr(const STR_String& attr, PyObject *value) {
+int SCA_PropertySensor::_setattr(const char *attr, PyObject *value) {
 	int ret = _setattr_self(Attributes, this, attr, value);
 	if (ret >= 0)
 		return ret;
@@ -397,7 +397,7 @@ PyObject* SCA_PropertySensor::PySetType(PyObject* self, PyObject* args, PyObject
 		m_checktype =  typeArg;
 	}
 	
-	Py_Return;
+	Py_RETURN_NONE;
 }
 
 /* 3. getProperty */
@@ -434,7 +434,7 @@ PyObject* SCA_PropertySensor::PySetProperty(PyObject* self, PyObject* args, PyOb
 		; /* error: bad property name */
 	}
 	prop->Release();
-	Py_Return;
+	Py_RETURN_NONE;
 }
 
 /* 5. getValue */
@@ -470,7 +470,7 @@ PyObject* SCA_PropertySensor::PySetValue(PyObject* self, PyObject* args, PyObjec
 		m_checkpropval = oldval;
 		return NULL;
 	}	
-	Py_Return;
+	Py_RETURN_NONE;
 }
 
 /* eof */

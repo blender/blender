@@ -59,13 +59,13 @@ private :
 	//const MT_Scalar m_maxHeight;
 	
 	/** height (float), */
-	MT_Scalar m_height;
+	float m_height;
 	
 	/** min (float), */
-	MT_Scalar m_minHeight;
+	float m_minHeight;
 	
 	/** max (float), */
-	MT_Scalar m_maxHeight;
+	float m_maxHeight;
 	
 	/** xy toggle (pick one): true == x, false == y */
 	bool m_x;
@@ -88,9 +88,9 @@ private :
 		SCA_IObject *gameobj,
 		//const CValue *ob,
 		SCA_IObject *ob,
-		MT_Scalar hght,
-		MT_Scalar minhght,
-		MT_Scalar maxhght,
+		float hght,
+		float minhght,
+		float maxhght,
 		bool xytog,
 		PyTypeObject* T=&Type
 
@@ -120,8 +120,9 @@ private :
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
 
-	virtual PyObject* _getattr(const STR_String& attr);
-	
+	virtual PyObject* _getattr(const char *attr);
+	virtual int _setattr(const char *attr, PyObject* value);
+
 	/* set object to look at */
 	KX_PYMETHOD_DOC_O(KX_CameraActuator,SetObject);
 	/* get current object  */

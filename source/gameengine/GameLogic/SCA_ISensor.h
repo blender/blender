@@ -105,11 +105,6 @@ public:
 					  bool negmode,
 					  int freq);
 	
-	/** Release sensor
-	 *  For property sensor, it is used to release the pre-calculated expression
-	 *  so that self references are removed before the sensor itself is released
-	 */
-	virtual void Delete() { Release(); }
 	/** Set inversion of pulses on or off. */
 	void SetInvert(bool inv);
 	/** set the level detection on or off */
@@ -141,8 +136,8 @@ public:
 
 	/* Python functions: */
 	
-	virtual PyObject* _getattr(const STR_String& attr);
-	virtual int _setattr(const STR_String& attr, PyObject *value);
+	virtual PyObject* _getattr(const char *attr);
+	virtual int _setattr(const char *attr, PyObject *value);
 
 	//Deprecated functions ----->
 	KX_PYMETHOD_DOC_NOARGS(SCA_ISensor,IsPositive);

@@ -321,7 +321,7 @@ void KX_BlenderSceneConverter::ConvertScene(const STR_String& scenename,
 				SYS_SystemHandle syshandle = SYS_GetSystem(); /*unused*/
 				int visualizePhysics = SYS_GetCommandLineInt(syshandle,"show_physics",0);
 				if (visualizePhysics)
-					ccdPhysEnv->setDebugMode(btIDebugDraw::DBG_DrawWireframe|btIDebugDraw::DBG_DrawAabb|btIDebugDraw::DBG_DrawContactPoints|btIDebugDraw::DBG_DrawText);
+					ccdPhysEnv->setDebugMode(btIDebugDraw::DBG_DrawWireframe|btIDebugDraw::DBG_DrawAabb|btIDebugDraw::DBG_DrawContactPoints|btIDebugDraw::DBG_DrawText|btIDebugDraw::DBG_DrawConstraintLimits|btIDebugDraw::DBG_DrawConstraints);
 		
 				//todo: get a button in blender ?
 				//disable / enable debug drawing (contact points, aabb's etc)	
@@ -663,7 +663,7 @@ extern "C"
 	Ipo *add_ipo( char *name, int idcode );
 	//XXX char *getIpoCurveName( IpoCurve * icu );
 	//XXX struct IpoCurve *verify_ipocurve(struct ID *, short, char *, char *, char *, int);
-	void testhandles_ipocurve(struct IpoCurve *icu);
+	//XXX void testhandles_ipocurve(struct IpoCurve *icu);
 	void insert_vert_icu(struct IpoCurve *, float, float, short);
 	void Mat3ToEul(float tmat[][3], float *eul);
 }
@@ -751,7 +751,7 @@ void	KX_BlenderSceneConverter::ResetPhysicsObjectsAnimationIpo(bool clearIpo)
 							}
 					  	}
 					} else
-					{	ipo = add_ipo(blenderObject->id.name+2, ID_OB);
+					{	ipo = NULL; // XXX add_ipo(blenderObject->id.name+2, ID_OB);
 						blenderObject->ipo = ipo;
 
 					}
@@ -907,7 +907,7 @@ void	KX_BlenderSceneConverter::WritePhysicsObjectToAnimationIpo(int frameNumber)
 							float curVal = position.x();
 							//XXX insert_vert_icu(icu1, frameNumber, curVal, 0);
 #ifdef TEST_HANDLES_GAME2IPO
-							testhandles_ipocurve(icu1);
+							//XXX testhandles_ipocurve(icu1);
 #endif
 						}
 						icu1 = findIpoCurve((IpoCurve *)ipo->curve.first,"LocY");
@@ -917,7 +917,7 @@ void	KX_BlenderSceneConverter::WritePhysicsObjectToAnimationIpo(int frameNumber)
 							//XXX insert_vert_icu(icu1, frameNumber, curVal, 0);
 #ifdef TEST_HANDLES_GAME2IPO
 
-							testhandles_ipocurve(icu1);
+							//XXX testhandles_ipocurve(icu1);
 #endif
 						}
 						icu1 = findIpoCurve((IpoCurve *)ipo->curve.first,"LocZ");
@@ -926,7 +926,7 @@ void	KX_BlenderSceneConverter::WritePhysicsObjectToAnimationIpo(int frameNumber)
 							float curVal = position.z();
 							//XXX insert_vert_icu(icu1, frameNumber, curVal, 0);
 #ifdef TEST_HANDLES_GAME2IPO
-							testhandles_ipocurve(icu1);
+							//XXX testhandles_ipocurve(icu1);
 #endif
 						}
 						icu1 = findIpoCurve((IpoCurve *)ipo->curve.first,"RotX");
@@ -936,7 +936,7 @@ void	KX_BlenderSceneConverter::WritePhysicsObjectToAnimationIpo(int frameNumber)
 							//XXX insert_vert_icu(icu1, frameNumber, curVal, 0);
 #ifdef TEST_HANDLES_GAME2IPO
 
-							testhandles_ipocurve(icu1);
+							//XXX testhandles_ipocurve(icu1);
 #endif
 						}
 						icu1 = findIpoCurve((IpoCurve *)ipo->curve.first,"RotY");
@@ -946,7 +946,7 @@ void	KX_BlenderSceneConverter::WritePhysicsObjectToAnimationIpo(int frameNumber)
 							//XXX insert_vert_icu(icu1, frameNumber, curVal, 0);
 #ifdef TEST_HANDLES_GAME2IPO
 
-							testhandles_ipocurve(icu1);
+							//XXX testhandles_ipocurve(icu1);
 #endif
 						}
 						icu1 = findIpoCurve((IpoCurve *)ipo->curve.first,"RotZ");
@@ -956,7 +956,7 @@ void	KX_BlenderSceneConverter::WritePhysicsObjectToAnimationIpo(int frameNumber)
 							//XXX insert_vert_icu(icu1, frameNumber, curVal, 0);
 #ifdef TEST_HANDLES_GAME2IPO
 							
-							testhandles_ipocurve(icu1);
+							//XXX testhandles_ipocurve(icu1);
 #endif
 
 						}
@@ -1060,32 +1060,32 @@ void	KX_BlenderSceneConverter::TestHandlesPhysicsObjectToAnimationIpo()
 						icu1 = findIpoCurve((IpoCurve *)ipo->curve.first,"LocX");
 						if (icu1)
 						{
-							testhandles_ipocurve(icu1);
+							//XXX testhandles_ipocurve(icu1);
 						}
 						icu1 = findIpoCurve((IpoCurve *)ipo->curve.first,"LocY");
 						if (icu1)
 						{
-							testhandles_ipocurve(icu1);
+							//XXX testhandles_ipocurve(icu1);
 						}
 						icu1 = findIpoCurve((IpoCurve *)ipo->curve.first,"LocZ");
 						if (icu1)
 						{
-							testhandles_ipocurve(icu1);
+							//XXX testhandles_ipocurve(icu1);
 						}
 						icu1 = findIpoCurve((IpoCurve *)ipo->curve.first,"RotX");
 						if (icu1)
 						{
-							testhandles_ipocurve(icu1);
+							//XXX testhandles_ipocurve(icu1);
 						}
 						icu1 = findIpoCurve((IpoCurve *)ipo->curve.first,"RotY");
 						if (icu1)
 						{
-							testhandles_ipocurve(icu1);
+							//XXX testhandles_ipocurve(icu1);
 						}
 						icu1 = findIpoCurve((IpoCurve *)ipo->curve.first,"RotZ");
 						if (icu1)
 						{
-							testhandles_ipocurve(icu1);
+							//XXX testhandles_ipocurve(icu1);
 						}
 
 					}

@@ -32,7 +32,7 @@
 #include "SND_AudioDevice.h"
 #include "SoundDefines.h"
 
-typedef struct SDL_CD;
+struct SDL_CD;
 
 class SND_OpenALDevice : public SND_AudioDevice
 {

@@ -55,8 +55,6 @@ static void colorfn(float *out, float *coord, bNode *node, bNodeStack **in, shor
 static void exec(void *data, bNode *node, bNodeStack **in, bNodeStack **out) 
 {
 	tex_output(node, in, out[0], &colorfn);
-	
-	tex_do_preview(node, out[0], data);
 }
 
 bNodeType tex_node_translate = {

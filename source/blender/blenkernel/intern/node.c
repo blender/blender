@@ -1999,19 +1999,23 @@ static bNodeThreadStack *ntreeGetThreadStack(bNodeTree *ntree, int thread)
 {
 	ListBase *lb= &ntree->threadstack[thread];
 	bNodeThreadStack *nts;
-
+	
+	/* for material shading this is called quite a lot (perhaps too much locking unlocking)
+	 * however without locking we get bug #18058 - Campbell */
+	BLI_lock_thread(LOCK_CUSTOM1); 
+	
 	for(nts=lb->first; nts; nts=nts->next) {
 		if(!nts->used) {
 			nts->used= 1;
+			BLI_unlock_thread(LOCK_CUSTOM1);
 			return nts;
 		}
 	}
-	
 	nts= MEM_callocN(sizeof(bNodeThreadStack), "bNodeThreadStack");
 	nts->stack= MEM_dupallocN(ntree->stack);
 	nts->used= 1;
 	BLI_addtail(lb, nts);
-
+	BLI_unlock_thread(LOCK_CUSTOM1);
 	return nts;
 }
 
@@ -3003,12 +3007,15 @@ static void registerTextureNodes(ListBase *ntypelist)
 	nodeRegisterType(ntypelist, &tex_node_mix_rgb);
 	nodeRegisterType(ntypelist, &tex_node_valtorgb);
 	nodeRegisterType(ntypelist, &tex_node_rgbtobw);
+	nodeRegisterType(ntypelist, &tex_node_valtonor);
 	nodeRegisterType(ntypelist, &tex_node_curve_rgb);
 	nodeRegisterType(ntypelist, &tex_node_curve_time);
 	nodeRegisterType(ntypelist, &tex_node_invert);
 	nodeRegisterType(ntypelist, &tex_node_hue_sat);
 	nodeRegisterType(ntypelist, &tex_node_coord);
 	nodeRegisterType(ntypelist, &tex_node_distance);
+	nodeRegisterType(ntypelist, &tex_node_compose);
+	nodeRegisterType(ntypelist, &tex_node_decompose);
 	
 	nodeRegisterType(ntypelist, &tex_node_output);
 	nodeRegisterType(ntypelist, &tex_node_viewer);
@@ -3020,6 +3027,7 @@ static void registerTextureNodes(ListBase *ntypelist)
 	
 	nodeRegisterType(ntypelist, &tex_node_rotate);
 	nodeRegisterType(ntypelist, &tex_node_translate);
+	nodeRegisterType(ntypelist, &tex_node_scale);
 	
 	nodeRegisterType(ntypelist, &tex_node_proc_voronoi);
 	nodeRegisterType(ntypelist, &tex_node_proc_blend);

@@ -77,18 +77,21 @@ PyMethodDef KX_PolyProxy::Methods[] = {
 	{NULL,NULL} //Sentinel
 };
 
-PyObject*
-KX_PolyProxy::_getattr(const STR_String& attr)
+PyAttributeDef KX_PolyProxy::Attributes[] = {
+	{ NULL }	//Sentinel
+};
+
+PyObject* KX_PolyProxy::_getattr(const char *attr)
 {
-	if (attr == "matname")
+	if (!strcmp(attr, "matname"))
 	{
 		return PyString_FromString(m_polygon->GetMaterial()->GetPolyMaterial()->GetMaterialName());
 	}
-	if (attr == "texture")
+	if (!strcmp(attr, "texture"))
 	{
 		return PyString_FromString(m_polygon->GetMaterial()->GetPolyMaterial()->GetTextureName());
 	}
-	if (attr == "material")
+	if (!strcmp(attr, "material"))
 	{
 		RAS_IPolyMaterial *polymat = m_polygon->GetMaterial()->GetPolyMaterial();
 		if(polymat->GetFlag() & RAS_BLENDERMAT)
@@ -104,7 +107,7 @@ KX_PolyProxy::_getattr(const STR_String& attr)
 			return mat;
 		}
 	}
-	if (attr == "matid")
+	if (!strcmp(attr, "matid"))
 	{
 		// we'll have to scan through the material bucket of the mes and compare with 
 		// the one of the polygon
@@ -119,27 +122,27 @@ KX_PolyProxy::_getattr(const STR_String& attr)
 		}
 		return PyInt_FromLong(matid);
 	}
-	if (attr == "v1")
+	if (!strcmp(attr, "v1"))
 	{
 		return PyInt_FromLong(m_polygon->GetVertexOffset(0));
 	}
-	if (attr == "v2")
+	if (!strcmp(attr, "v2"))
 	{
 		return PyInt_FromLong(m_polygon->GetVertexOffset(1));
 	}
-	if (attr == "v3")
+	if (!strcmp(attr, "v3"))
 	{
 		return PyInt_FromLong(m_polygon->GetVertexOffset(2));
 	}
-	if (attr == "v4")
+	if (!strcmp(attr, "v4"))
 	{
 		return PyInt_FromLong(((m_polygon->VertexCount()>3)?m_polygon->GetVertexOffset(3):0));
 	}
-	if (attr == "visible")
+	if (!strcmp(attr, "visible"))
 	{
 		return PyInt_FromLong(m_polygon->IsVisible());
 	}
-	if (attr == "collide")
+	if (!strcmp(attr, "collide"))
 	{
 		return PyInt_FromLong(m_polygon->IsCollider());
 	}
@@ -147,8 +150,8 @@ KX_PolyProxy::_getattr(const STR_String& attr)
 }
 
 KX_PolyProxy::KX_PolyProxy(const RAS_MeshObject*mesh, RAS_Polygon* polygon)
-:	m_mesh((RAS_MeshObject*)mesh),
-	m_polygon(polygon)
+:	m_polygon(polygon),
+	m_mesh((RAS_MeshObject*)mesh)
 {
 }
 

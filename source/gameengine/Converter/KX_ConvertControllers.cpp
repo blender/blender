@@ -200,6 +200,13 @@ void BL_ConvertControllers(
 			gameobj->AddController(gamecontroller);
 			
 			converter->RegisterGameController(gamecontroller, bcontr);
+			
+			if (bcontr->type==CONT_PYTHON) {
+				/* not strictly needed but gives syntax errors early on and
+				 * gives more pradictable performance for larger scripts */
+				(static_cast<SCA_PythonController*>(gamecontroller))->Compile();
+			}
+			
 			//done with gamecontroller
 			gamecontroller->Release();
 		}

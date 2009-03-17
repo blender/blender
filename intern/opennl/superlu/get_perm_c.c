@@ -366,6 +366,10 @@ get_perm_c(int ispec, SuperMatrix *A, int *perm_c)
     int *b_rowind, *dhead, *qsize, *llist, *marker;
     double t, SuperLU_timer_();
     
+    /* make gcc happy */
+    b_rowind=NULL;
+    b_colptr=NULL;
+    
     m = A->nrow;
     n = A->ncol;
 

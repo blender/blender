@@ -29,9 +29,6 @@ subject to the following restrictions:
 
 
 
-/*! \defgroup GEOMETRIC_OPERATIONS
-*/
-//! @{
 
 
 #define PLANEDIREPSILON 0.0000001f
@@ -210,7 +207,6 @@ SIMD_FORCE_INLINE void bt_segment_collision(
 
 
 
-//! @}
 
 
 #endif // GIM_VECTOR_H_INCLUDED

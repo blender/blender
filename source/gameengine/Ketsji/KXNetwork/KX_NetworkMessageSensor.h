@@ -72,7 +72,7 @@ public:
 	/* Python interface -------------------------------------------- */
 	/* ------------------------------------------------------------- */
 
-	virtual PyObject* _getattr(const STR_String& attr);
+	virtual PyObject* _getattr(const char *attr);
 
 	KX_PYMETHOD_DOC_O(KX_NetworkMessageSensor, SetSubjectFilterText);
 	KX_PYMETHOD_DOC_NOARGS(KX_NetworkMessageSensor, GetFrameMessageCount);

@@ -459,6 +459,7 @@ static void image_panel_view_properties(const bContext *C, ARegion *ar)
 			uiDefButBitI(block, TOG, ME_DRAWEDGES, B_REDR, "Edges", 70, 30,60,19, &me->drawflag, 0, 0, 0, 0, "Displays selected edges using hilights in the 3d view and UV editor");
 			
 			uiDefButBitI(block, TOG, SI_DRAWSHADOW, B_REDR, "Final Shadow", 130, 30,110,19, &sima->flag, 0, 0, 0, 0, "Draw the final result from the objects modifiers");
+			uiDefButBitI(block, TOG, SI_DRAW_OTHER, B_REDR, "Other Objs", 230, 30, 80, 19, &sima->flag, 0, 0, 0, 0, "Also draw all 3d view selected mesh objects that use this image");
 			
 			uiDefButBitI(block, TOG, SI_DRAW_STRETCH, B_REDR, "UV Stretch",	10,0,100,19,  &sima->flag, 0, 0, 0, 0, "Difference between UV's and the 3D coords (blue for low distortion, red is high)");
 			if (sima->flag & SI_DRAW_STRETCH) {

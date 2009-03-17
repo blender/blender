@@ -1014,6 +1014,12 @@ void KX_Scene::ReplaceMesh(class CValue* obj,void* meshobj)
 				blendmesh->dvert!=NULL;						// mesh has vertex group
 			bool releaseParent = true;
 
+			
+			if (oldblendobj==NULL) {
+				std::cout << "warning: ReplaceMesh() new mesh is not used in an object from the current scene, you will get incorrect behavior" << std::endl;
+				bHasShapeKey= bHasDvert= bHasArmature= false;
+			}
+			
 			if (bHasShapeKey)
 			{
 				BL_ShapeDeformer* shapeDeformer;
@@ -1511,14 +1517,6 @@ double KX_Scene::getSuspendedDelta()
 //----------------------------------------------------------------------------
 //Python
 
-PyMethodDef KX_Scene::Methods[] = {
-	KX_PYMETHODTABLE(KX_Scene, getLightList),
-	KX_PYMETHODTABLE(KX_Scene, getObjectList),
-	KX_PYMETHODTABLE(KX_Scene, getName),
-	
-	{NULL,NULL} //Sentinel
-};
-
 PyTypeObject KX_Scene::Type = {
 	PyObject_HEAD_INIT(&PyType_Type)
 		0,
@@ -1544,28 +1542,40 @@ PyParentObject KX_Scene::Parents[] = {
 		NULL
 };
 
-PyObject* KX_Scene::_getattr(const STR_String& attr)
+PyMethodDef KX_Scene::Methods[] = {
+	KX_PYMETHODTABLE(KX_Scene, getLightList),
+	KX_PYMETHODTABLE(KX_Scene, getObjectList),
+	KX_PYMETHODTABLE(KX_Scene, getName),
+	KX_PYMETHODTABLE(KX_Scene, addObject),
+	
+	{NULL,NULL} //Sentinel
+};
+
+PyAttributeDef KX_Scene::Attributes[] = {
+	{ NULL }	//Sentinel
+};
+
+PyObject* KX_Scene::_getattr(const char *attr)
 {
-	if (attr == "name")
+	if (!strcmp(attr, "name"))
 		return PyString_FromString(GetName());
 	
-	if (attr == "active_camera")
-	{
-		KX_Camera *camera = GetActiveCamera();
-		camera->AddRef();
-		return (PyObject*) camera;
-	}
+	if (!strcmp(attr, "objects"))
+		return (PyObject*) m_objectlist->AddRef();
 	
-	if (attr == "suspended")
+	if (!strcmp(attr, "active_camera"))
+		return (PyObject*) GetActiveCamera()->AddRef();
+	
+	if (!strcmp(attr, "suspended"))
 		return PyInt_FromLong(m_suspend);
 	
-	if (attr == "activity_culling")
+	if (!strcmp(attr, "activity_culling"))
 		return PyInt_FromLong(m_activity_culling);
 	
-	if (attr == "activity_culling_radius")
+	if (!strcmp(attr, "activity_culling_radius"))
 		return PyFloat_FromDouble(m_activity_box_radius);
 	
-	PyObject* value = PyDict_GetItemString(m_attrlist, const_cast<char *>(attr.ReadPtr()));
+	PyObject* value = PyDict_GetItemString(m_attrlist, attr);
 	if (value)
 	{
 		Py_INCREF(value);
@@ -1575,43 +1585,63 @@ PyObject* KX_Scene::_getattr(const STR_String& attr)
 	_getattr_up(PyObjectPlus);
 }
 
-int KX_Scene::_delattr(const STR_String &attr)
+int KX_Scene::_delattr(const char *attr)
 {
-	PyDict_DelItemString(m_attrlist, const_cast<char *>(attr.ReadPtr()));
+	PyDict_DelItemString(m_attrlist, attr);
 	return 0;
 }
 
-int KX_Scene::_setattr(const STR_String &attr, PyObject *pyvalue)
+int KX_Scene::_setattr(const char *attr, PyObject *pyvalue)
 {
-
-	if (!PyDict_SetItemString(m_attrlist, const_cast<char *>(attr.ReadPtr()), pyvalue))
+	if (!PyDict_SetItemString(m_attrlist, attr, pyvalue))
 		return 0;
 
 	return PyObjectPlus::_setattr(attr, pyvalue);
 }
 
-KX_PYMETHODDEF_DOC(KX_Scene, getLightList,
+KX_PYMETHODDEF_DOC_NOARGS(KX_Scene, getLightList,
 "getLightList() -> list [KX_Light]\n"
 "Returns a list of all lights in the scene.\n"
 )
 {
-	m_lightlist->AddRef();
-	return (PyObject*) m_lightlist;
+	return (PyObject*) m_lightlist->AddRef();
 }
 
-KX_PYMETHODDEF_DOC(KX_Scene, getObjectList,
+KX_PYMETHODDEF_DOC_NOARGS(KX_Scene, getObjectList,
 "getObjectList() -> list [KX_GameObject]\n"
 "Returns a list of all game objects in the scene.\n"
 )
 {
-	m_objectlist->AddRef();
-	return (PyObject*) m_objectlist;
+	// ShowDeprecationWarning("getObjectList()", "the objects property"); // XXX Grr, why doesnt this work?
+	return (PyObject*) m_objectlist->AddRef();
 }
 
-KX_PYMETHODDEF_DOC(KX_Scene, getName,
+KX_PYMETHODDEF_DOC_NOARGS(KX_Scene, getName,
 "getName() -> string\n"
 "Returns the name of the scene.\n"
 )
 {
 	return PyString_FromString(GetName());
+}
+
+KX_PYMETHODDEF_DOC(KX_Scene, addObject,
+"addObject(object, other, time=0)\n"
+"Returns the added object.\n")
+{
+	PyObject *pyob, *pyother;
+	KX_GameObject *ob, *other;
+
+	int time = 0;
+
+	if (!PyArg_ParseTuple(args, "OO|i", &pyob, &pyother, &time))
+		return NULL;
+
+	if (!ConvertPythonToGameObject(pyob, &ob, false)
+		|| !ConvertPythonToGameObject(pyother, &other, false))
+		return NULL;
+
+
+	SCA_IObject* replica = AddReplicaObject((SCA_IObject*)ob, other, time);
+	replica->AddRef();
+	return replica;
 }

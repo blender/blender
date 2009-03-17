@@ -1,49 +1,50 @@
-#ifdef _WIN32
-#include <Winsock2.h>
-#else
-#include <netinet/in.h>
-#endif
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "format.h"
 
 struct red_reob {
-	unsigned long len;
-	char head[4];
+	unsigned int len;
+	unsigned int head;
 
-	unsigned long rdvo;
-	unsigned long rdvs;
-	unsigned long rdao;
-	unsigned long rdas;
+	unsigned int rdvo;
+	unsigned int rdvs;
+	unsigned int rdao;
+	unsigned int rdas;
 
-	unsigned long unknown1;
-	unsigned long unknown2;
-	unsigned long totlen;
+	unsigned int unknown1;
+	unsigned int unknown2;
+	unsigned int totlen;
 	
-	unsigned long avgv;
-	unsigned long avgs;
+	unsigned int avgv;
+	unsigned int avgs;
 
-	unsigned long unknown3;
-	unsigned long unknown4;
-	unsigned long unknown5;
+	unsigned int unknown3;
+	unsigned int unknown4;
+	unsigned int unknown5;
 };
 
 struct redcode_handle {
 	FILE * fp;
 	struct red_reob * reob;
-        unsigned long * rdvo;
-	unsigned long * rdvs;
-	unsigned long * rdao;
-	unsigned long * rdas;
+        unsigned int * rdvo;
+	unsigned int * rdvs;
+	unsigned int * rdao;
+	unsigned int * rdas;
 	long cfra;
+	long length;
 };
 
+unsigned int read_be32(unsigned int val)
+{
+	unsigned char * v = (unsigned char*) & val;
+ 
+	return  (v[0] << 24) | (v[1] << 16) | (v[2] << 8) | v[3];
+}
 
 static unsigned char* read_packet(FILE * fp, char * expect)
 {
-	unsigned long len;
+	unsigned int len;
 	char head[5];
 	unsigned char * rv;
 
@@ -52,7 +53,7 @@ static unsigned char* read_packet(FILE * fp, char * expect)
 
 	head[4] = 0;
 
-	len = ntohl(len);
+	len = read_be32(len);
 
 	if (strcmp(expect, head) != 0) {
 		fprintf(stderr, "Read: %s, expect: %s\n", head, expect);
@@ -69,9 +70,9 @@ static unsigned char* read_packet(FILE * fp, char * expect)
 	return rv;
 }
 
-static unsigned long * read_index_packet(FILE * fp, char * expect)
+static unsigned int * read_index_packet(FILE * fp, char * expect)
 {
-	unsigned long * rv = (unsigned long*) read_packet(fp, expect);
+	unsigned int * rv = (unsigned int*) read_packet(fp, expect);
 	int i;
 
 	if (!rv) {
@@ -79,7 +80,7 @@ static unsigned long * read_index_packet(FILE * fp, char * expect)
 	}
 
 	for (i = 2; i < rv[0]/4; i++) {
-		rv[i] = ntohl(rv[i]);
+		rv[i] = read_be32(rv[i]);
 	}
 	return rv;
 }
@@ -91,14 +92,14 @@ static struct red_reob * read_reob(FILE * fp)
 	return (struct red_reob *) read_index_packet(fp, "REOB");
 }
 
-static unsigned long * read_index(FILE * fp, unsigned long i, char * expect)
+static unsigned int * read_index(FILE * fp, unsigned int i, char * expect)
 {
 	fseek(fp, i, SEEK_SET);
 	
-	return (unsigned long*) read_index_packet(fp, expect);
+	return (unsigned int*) read_index_packet(fp, expect);
 }
 
-static unsigned char * read_data(FILE * fp, unsigned long i, char * expect)
+static unsigned char * read_data(FILE * fp, unsigned int i, char * expect)
 {
 	fseek(fp, i, SEEK_SET);
 	
@@ -109,6 +110,7 @@ struct redcode_handle * redcode_open(const char * fname)
 {
 	struct redcode_handle * rv = NULL;
 	struct red_reob * reob = NULL;
+	int i;
 
 	FILE * fp = fopen(fname, "rb");
 
@@ -134,6 +136,12 @@ struct redcode_handle * redcode_open(const char * fname)
 	if (!rv->rdvo || !rv->rdvs || !rv->rdao || !rv->rdas) {
 		redcode_close(rv);
 		return NULL;
+	}
+
+	for (i = 0; i < (rv->rdvo[0] - 8)/4; i++) {
+		if (rv->rdvo[i + 2]) {
+			rv->length = i;
+		}
 	}
 
 	return rv;
@@ -162,7 +170,7 @@ void redcode_close(struct redcode_handle * handle)
 
 long redcode_get_length(struct redcode_handle * handle)
 {
-	return handle->rdvo[0]/4;
+	return handle->length;
 }
 
 struct redcode_frame * redcode_read_video_frame(
@@ -182,7 +190,7 @@ struct redcode_frame * redcode_read_video_frame(
 	rv = (struct redcode_frame*) calloc(1, sizeof(struct redcode_frame));
 
 	rv->offset = 12+8;
-	rv->length = *(unsigned long*)data - rv->offset;
+	rv->length = *(unsigned int*)data - rv->offset;
 	rv->data = data;
 
 	return rv;
@@ -205,7 +213,7 @@ struct redcode_frame * redcode_read_audio_frame(
 	rv = (struct redcode_frame*) calloc(1, sizeof(struct redcode_frame));
 
 	rv->offset = 24+8;
-	rv->length = *(unsigned long*)data - rv->offset;
+	rv->length = *(unsigned int*)data - rv->offset;
 	rv->data = data;
 
 	return rv;

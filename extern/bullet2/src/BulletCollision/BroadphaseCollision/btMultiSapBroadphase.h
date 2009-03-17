@@ -26,6 +26,7 @@ class btSimpleBroadphase;
 
 typedef btAlignedObjectArray<btBroadphaseInterface*> btSapBroadphaseArray;
 
+///The btMultiSapBroadphase is a research project, not recommended to use in production. Use btAxisSweep3 or btDbvtBroadphase instead.
 ///The btMultiSapBroadphase is a broadphase that contains multiple SAP broadphases.
 ///The user can add SAP broadphases that cover the world. A btBroadphaseProxy can be in multiple child broadphases at the same time.
 ///A btQuantizedBvh acceleration structures finds overlapping SAPs for each btBroadphaseProxy.
@@ -72,7 +73,7 @@ public:
 		short int	m_collisionFilterMask;
 */
 		btMultiSapProxy(const btVector3& aabbMin,  const btVector3& aabbMax,int shapeType,void* userPtr, short int collisionFilterGroup,short int collisionFilterMask)
-			:btBroadphaseProxy(userPtr,collisionFilterGroup,collisionFilterMask),
+			:btBroadphaseProxy(aabbMin,aabbMax,userPtr,collisionFilterGroup,collisionFilterMask),
 			m_aabbMin(aabbMin),
 			m_aabbMax(aabbMax),
 			m_shapeType(shapeType)
@@ -108,6 +109,9 @@ public:
 	virtual btBroadphaseProxy*	createProxy(  const btVector3& aabbMin,  const btVector3& aabbMax,int shapeType,void* userPtr, short int collisionFilterGroup,short int collisionFilterMask, btDispatcher* dispatcher,void* multiSapProxy);
 	virtual void	destroyProxy(btBroadphaseProxy* proxy,btDispatcher* dispatcher);
 	virtual void	setAabb(btBroadphaseProxy* proxy,const btVector3& aabbMin,const btVector3& aabbMax, btDispatcher* dispatcher);
+	virtual void	getAabb(btBroadphaseProxy* proxy,btVector3& aabbMin, btVector3& aabbMax ) const;
+
+	virtual void	rayTest(const btVector3& rayFrom,const btVector3& rayTo, btBroadphaseRayCallback& rayCallback,const btVector3& aabbMin=btVector3(0,0,0),const btVector3& aabbMax=btVector3(0,0,0));
 
 	void	addToChildBroadphase(btMultiSapProxy* parentMultiSapProxy, btBroadphaseProxy* childProxy, btBroadphaseInterface*	childBroadphase);
 
@@ -138,6 +142,9 @@ public:
 	virtual void	printStats();
 
 	void quicksort (btBroadphasePairArray& a, int lo, int hi);
+
+	///reset broadphase internal structures, to ensure determinism/reproducability
+	virtual void resetPool(btDispatcher* dispatcher);
 
 };
 

@@ -111,6 +111,7 @@ endif
 
     export WITH_OPENEXR ?= true
     export WITH_DDS ?= true
+    export WITH_OPENJPEG ?= true
 
     ifeq ($(OS),windows)
       export NAN_WINTAB ?= $(LCGDIR)/wintab
@@ -135,9 +136,9 @@ endif
       else
         ifeq ($(OS),linux)
           ifeq ($(WITH_OPENEXR), true)
-            NAN_OPENEXR?=$(shell pkg-config --variable=prefix OpenEXR )
-            NAN_OPENEXR_INC?=$(shell pkg-config --cflags OpenEXR )
-            NAN_OPENEXR_LIBS?=$(addprefix ${NAN_OPENEXR}/lib/lib,$(addsuffix .a,$(shell pkg-config --libs-only-l OpenEXR | sed -s "s/-l//g" )))
+            export NAN_OPENEXR?=$(shell pkg-config --variable=prefix OpenEXR )
+            export NAN_OPENEXR_INC?=$(shell pkg-config --cflags OpenEXR )
+            export NAN_OPENEXR_LIBS?=$(addprefix ${NAN_OPENEXR}/lib/lib,$(addsuffix .a,$(shell pkg-config --libs-only-l OpenEXR | sed -s "s/-l//g" )))
           endif
         else
           ifeq ($(OS), solaris)

@@ -251,16 +251,16 @@ bool btGenericPoolAllocator::freeMemory(void * pointer)
 #define BT_DEFAULT_POOL_ELEMENT_SIZE 8
 
 // main allocator
-class BT_STANDARD_ALLOCATOR: public btGenericPoolAllocator
+class GIM_STANDARD_ALLOCATOR: public btGenericPoolAllocator
 {
 public:
-	BT_STANDARD_ALLOCATOR():btGenericPoolAllocator(BT_DEFAULT_POOL_ELEMENT_SIZE,BT_DEFAULT_POOL_SIZE)
+	GIM_STANDARD_ALLOCATOR():btGenericPoolAllocator(BT_DEFAULT_POOL_ELEMENT_SIZE,BT_DEFAULT_POOL_SIZE)
 	{
 	}
 };
 
 // global allocator
-BT_STANDARD_ALLOCATOR g_main_allocator;
+GIM_STANDARD_ALLOCATOR g_main_allocator;
 
 
 void * btPoolAlloc(size_t size)

@@ -2424,12 +2424,13 @@ void autocomplete_do_name(AutoComplete *autocpl, const char *name)
 }
 
 void autocomplete_end(AutoComplete *autocpl, char *autoname)
-{
+{	
 	if(autocpl->truncate[0])
 		BLI_strncpy(autoname, autocpl->truncate, autocpl->maxlen);
-	else
-		BLI_strncpy(autoname, autocpl->startname, autocpl->maxlen);
-
+	else {
+		if (autoname != autocpl->startname) /* dont copy a string over its self */
+			BLI_strncpy(autoname, autocpl->startname, autocpl->maxlen);
+	}
 	MEM_freeN(autocpl->truncate);
 	MEM_freeN(autocpl);
 }

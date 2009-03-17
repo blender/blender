@@ -9,4 +9,10 @@ incs += ' #source/gameengine/Network'
 
 incs += ' ' + env['BF_PYTHON_INC']
 
-env.BlenderLib ( 'kx_network', Split(sources), Split(incs), defines=[],libtype=['core', 'player'], priority=[400, 145] )
+cxxflags = []
+if env['OURPLATFORM']=='win32-vc':
+	cxxflags.append ('/GR')
+	cxxflags.append ('/O2')
+
+
+env.BlenderLib ( 'kx_network', Split(sources), Split(incs), defines=[],libtype=['core', 'player'], priority=[400, 145], cxx_compileflags=cxxflags )

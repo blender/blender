@@ -3,7 +3,14 @@ INCLUDE_DIRECTORIES(
 ${BULLET_PHYSICS_SOURCE_DIR}/src }
 )
 
-ADD_LIBRARY(LibLinearMath
+SET(LinearMath_SRCS
+		btConvexHull.cpp
+		btQuickprof.cpp
+		btGeometryUtil.cpp
+		btAlignedAllocator.cpp
+)
+
+SET(LinearMath_HDRS
 		btAlignedObjectArray.h
 		btList.h
 		btPoolAllocator.h
@@ -16,7 +23,6 @@ ADD_LIBRARY(LibLinearMath
 		btScalar.h
 		btAabbUtil2.h
 		btConvexHull.h
-		btConvexHull.cpp
 		btMinMax.h
 		btQuaternion.h
 		btStackAlloc.h
@@ -25,11 +31,21 @@ ADD_LIBRARY(LibLinearMath
 		btTransform.h
 		btAlignedAllocator.h
 		btIDebugDraw.h
-		btPoint3.h
 		btQuickprof.h
 		btTransformUtil.h
-		btQuickprof.cpp
-		btGeometryUtil.cpp
-		btAlignedAllocator.cpp
 )
 
+ADD_LIBRARY(LinearMath ${LinearMath_SRCS} ${LinearMath_HDRS})
+SET_TARGET_PROPERTIES(LinearMath PROPERTIES VERSION ${BULLET_VERSION})
+SET_TARGET_PROPERTIES(LinearMath PROPERTIES SOVERSION ${BULLET_VERSION})
+
+#FILES_MATCHING requires CMake 2.6
+IF (${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION} GREATER 2.5)
+	INSTALL(TARGETS LinearMath DESTINATION lib)
+	INSTALL(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} DESTINATION include FILES_MATCHING PATTERN "*.h")
+ENDIF (${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION} GREATER 2.5)
+
+IF (APPLE AND BUILD_SHARED_LIBS AND FRAMEWORK)
+	SET_TARGET_PROPERTIES(LinearMath PROPERTIES FRAMEWORK true)
+	SET_TARGET_PROPERTIES(LinearMath PROPERTIES PUBLIC_HEADER "${LinearMath_HDRS}")
+ENDIF (APPLE AND BUILD_SHARED_LIBS AND FRAMEWORK)

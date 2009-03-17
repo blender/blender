@@ -53,10 +53,10 @@ SCA_DelaySensor::SCA_DelaySensor(class SCA_EventManager* eventmgr,
 								 int duration,
 								 bool repeat,
 								 PyTypeObject* T)
-	: SCA_ISensor(gameobj,eventmgr, T), 
+	: SCA_ISensor(gameobj,eventmgr, T),
+	m_repeat(repeat),
 	m_delay(delay),
-	m_duration(duration),
-	m_repeat(repeat)
+	m_duration(duration)
 {
 	Init();
 }
@@ -178,14 +178,14 @@ PyAttributeDef SCA_DelaySensor::Attributes[] = {
 	{ NULL }	//Sentinel
 };
 
-PyObject* SCA_DelaySensor::_getattr(const STR_String& attr) {
+PyObject* SCA_DelaySensor::_getattr(const char *attr) {
 	PyObject* object = _getattr_self(Attributes, this, attr);
 	if (object != NULL)
 		return object;
 	_getattr_up(SCA_ISensor);
 }
 
-int SCA_DelaySensor::_setattr(const STR_String& attr, PyObject *value) {
+int SCA_DelaySensor::_setattr(const char *attr, PyObject *value) {
 	int ret = _setattr_self(Attributes, this, attr, value);
 	if (ret >= 0)
 		return ret;
@@ -211,7 +211,7 @@ PyObject* SCA_DelaySensor::PySetDelay(PyObject* self, PyObject* args, PyObject* 
 		return NULL;
 	}
 	m_delay = delay;
-	Py_Return;
+	Py_RETURN_NONE;
 }
 
 const char SCA_DelaySensor::SetDuration_doc[] = 
@@ -233,7 +233,7 @@ PyObject* SCA_DelaySensor::PySetDuration(PyObject* self, PyObject* args, PyObjec
 		return NULL;
 	}
 	m_duration = duration;
-	Py_Return;
+	Py_RETURN_NONE;
 }
 
 const char SCA_DelaySensor::SetRepeat_doc[] = 
@@ -250,7 +250,7 @@ PyObject* SCA_DelaySensor::PySetRepeat(PyObject* self, PyObject* args, PyObject*
 		return NULL;
 	}
 	m_repeat = (repeat != 0);
-	Py_Return;
+	Py_RETURN_NONE;
 }
 
 const char SCA_DelaySensor::GetDelay_doc[] = 

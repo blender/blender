@@ -391,7 +391,7 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 				
 				/* Find percentages */
 				newweight = (m_blendframe/(float)m_blendin);
-				blend_poses(m_pose, m_blendpose, 1.0 - newweight, ACTSTRIPMODE_BLEND);
+				// XXX blend_poses(m_pose, m_blendpose, 1.0 - newweight, ACTSTRIPMODE_BLEND);
 
 				/* Increment current blending percentage */
 				m_blendframe = (curtime - m_blendstart)*KX_KetsjiEngine::GetAnimFrameRate();
@@ -1035,8 +1035,8 @@ PyAttributeDef BL_ActionActuator::Attributes[] = {
 	{ NULL }	//Sentinel
 };
 
-PyObject* BL_ActionActuator::_getattr(const STR_String& attr) {
-	if (attr == "action")
+PyObject* BL_ActionActuator::_getattr(const char *attr) {
+	if (!strcmp(attr, "action"))
 		return PyString_FromString(m_action->id.name+2);
 	PyObject* object = _getattr_self(Attributes, this, attr);
 	if (object != NULL)
@@ -1044,8 +1044,8 @@ PyObject* BL_ActionActuator::_getattr(const STR_String& attr) {
 	_getattr_up(SCA_IActuator);
 }
 
-int BL_ActionActuator::_setattr(const STR_String& attr, PyObject* value) {
-	if (attr == "action")
+int BL_ActionActuator::_setattr(const char *attr, PyObject* value) {
+	if (!strcmp(attr, "action"))
 	{
 		if (!PyString_Check(value))
 		{

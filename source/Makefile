@@ -89,7 +89,6 @@ GRPLIB += $(OCGDIR)/blender/radiosity/$(DEBUG_DIR)libradiosity.a
 # to properly resolve circular dependencies. ugly, but it works...
 # the repeat entries could probably be trimmed down.
 COMLIB = $(OCGDIR)/blender/blenkernel/$(DEBUG_DIR)libblenkernel.a
-COMLIB += $(NAN_DECIMATION)/lib/libdecimation.a
 COMLIB += $(OCGDIR)/blender/blenloader/$(DEBUG_DIR)libblenloader.a
 COMLIB += $(OCGDIR)/blender/blenpluginapi/$(DEBUG_DIR)libblenpluginapi.a
 COMLIB += $(OCGDIR)/blender/nodes_shd/$(DEBUG_DIR)libnodes_shd.a
@@ -100,13 +99,11 @@ COMLIB += $(OCGDIR)/blender/imbuf/$(DEBUG_DIR)libimbuf.a
 COMLIB += $(OCGDIR)/blender/blenlib/$(DEBUG_DIR)libblenlib.a
 COMLIB += $(NAN_IKSOLVER)/lib/libiksolver.a
 COMLIB += $(NAN_MOTO)/lib/libmoto.a
-COMLIB += $(NAN_OPENNL)/lib/$(DEBUG_DIR)libopennl.a
 COMLIB += $(NAN_SUPERLU)/lib/$(DEBUG_DIR)libsuperlu.a	
 COMLIB += $(OCGDIR)/blender/avi/$(DEBUG_DIR)libavi.a
 COMLIB += $(NAN_JPEG)/lib/libjpeg.a
 COMLIB += $(OCGDIR)/blender/gpu/$(DEBUG_DIR)libgpu.a
 COMLIB += $(NAN_GLEW)/lib/libglew.a
-COMLIB += $(NAN_ELBEEM)/lib/$(DEBUG_DIR)libelbeem.a
 COMLIB += $(OCGDIR)/blender/blenfont/$(DEBUG_DIR)libblenfont.a
 
 ifneq ($(NAN_NO_KETSJI),true)
@@ -171,6 +168,10 @@ ifeq ($(WITH_OPENEXR), true)
     COMLIB += $(OCGDIR)/blender/imbuf/openexr/$(DEBUG_DIR)libopenexr.a
 endif
 
+ifeq ($(WITH_OPENJPEG), true)
+    COMLIB += $(OCGDIR)/extern/openjpeg/$(DEBUG_DIR)libopenjpeg.a
+endif
+
 COMLIB += $(OCGDIR)/blender/imbuf/cineon/$(DEBUG_DIR)libcineon.a
 
 ifeq ($(WITH_DDS), true)
@@ -220,6 +221,7 @@ endif
 
 # note: space_api.a in begin of editors, screen.a in end
 PULIB = $(NAN_MOTO)/lib/libmoto.a
+PULIB += $(NAN_DECIMATION)/lib/libdecimation.a
 PULIB += $(OCGDIR)/blender/readblenfile/$(DEBUG_DIR)libreadblenfile.a
 PULIB += $(OCGDIR)/blender/ed_space/libed_space.a
 PULIB += $(OCGDIR)/blender/ed_sound/libed_sound.a
@@ -256,6 +258,8 @@ PULIB += $(OCGDIR)/blender/python/$(DEBUG_DIR)libpython.a
 PULIB += $(OCGDIR)/blender/makesrna/$(DEBUG_DIR)librna.a
 # note, no idea but it suddenly doesn't compile :(
 PULIB += $(OCGDIR)/blender/blenlib/$(DEBUG_DIR)libblenlib.a
+PULIB += $(NAN_OPENNL)/lib/$(DEBUG_DIR)libopennl.a
+PULIB += $(NAN_ELBEEM)/lib/$(DEBUG_DIR)libelbeem.a
 
 ifeq ($(NAN_NO_KETSJI),true)
     PULIB += $(NAN_MOTO)/lib/libmoto.a

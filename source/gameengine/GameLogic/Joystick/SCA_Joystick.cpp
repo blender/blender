@@ -42,14 +42,14 @@ SCA_Joystick::SCA_Joystick(short int index)
 	m_axis21(0),
 	m_prec(3200),
 	m_buttonnum(-2),
+	m_axismax(-1),
 	m_hatdir(-2),
+	m_buttonmax(-1),
+	m_hatmax(-1),
 	m_isinit(0),
 	m_istrig_axis(0),
 	m_istrig_button(0),
-	m_istrig_hat(0),
-	m_axismax(-1),
-	m_buttonmax(-1),
-	m_hatmax(-1)
+	m_istrig_hat(0)
 {
 #ifndef DISABLE_SDL
 	m_private = new PrivateData();

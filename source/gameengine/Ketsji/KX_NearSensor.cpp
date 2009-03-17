@@ -37,14 +37,13 @@
 #include "PHY_IPhysicsEnvironment.h"
 #include "PHY_IPhysicsController.h"
 
-
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
 KX_NearSensor::KX_NearSensor(SCA_EventManager* eventmgr,
 							 KX_GameObject* gameobj,
-							 double margin,
-							 double resetmargin,
+							 float margin,
+							 float resetmargin,
 							 bool bFindMaterial,
 							 const STR_String& touchedpropname,
 							 class KX_Scene* scene,
@@ -53,6 +52,7 @@ KX_NearSensor::KX_NearSensor(SCA_EventManager* eventmgr,
 			 :KX_TouchSensor(eventmgr,
 							 gameobj,
 							 bFindMaterial,
+							 false,
 							 touchedpropname,
 							 /* scene, */
 							 T),
@@ -240,7 +240,7 @@ bool	KX_NearSensor::BroadPhaseFilterCollision(void*obj1,void*obj2)
 bool	KX_NearSensor::NewHandleCollision(void* obj1,void* obj2,const PHY_CollData * coll_data)
 {
 //	KX_TouchEventManager* toucheventmgr = static_cast<KX_TouchEventManager*>(m_eventmgr);
-	KX_GameObject* parent = static_cast<KX_GameObject*>(GetParent());
+//	KX_GameObject* parent = static_cast<KX_GameObject*>(GetParent());
 	
 	// need the mapping from PHY_IPhysicsController to gameobjects now
 	
@@ -272,12 +272,20 @@ bool	KX_NearSensor::NewHandleCollision(void* obj1,void* obj2,const PHY_CollData 
 		//}
 	}
 	
-	return DT_CONTINUE;
+	return false; // was DT_CONTINUE; but this was defined in Sumo as false
 }
 
 
+/* ------------------------------------------------------------------------- */
+/* Python Functions															 */
+/* ------------------------------------------------------------------------- */
 
-// python embedding
+//No methods
+
+/* ------------------------------------------------------------------------- */
+/* Python Integration Hooks                                                  */
+/* ------------------------------------------------------------------------- */
+
 PyTypeObject KX_NearSensor::Type = {
 	PyObject_HEAD_INIT(&PyType_Type)
 	0,
@@ -311,17 +319,31 @@ PyParentObject KX_NearSensor::Parents[] = {
 
 
 PyMethodDef KX_NearSensor::Methods[] = {
-	{"setProperty", (PyCFunction) KX_NearSensor::sPySetProperty,      METH_VARARGS, (PY_METHODCHAR)SetProperty_doc},
-	{"getProperty", (PyCFunction) KX_NearSensor::sPyGetProperty,      METH_VARARGS, (PY_METHODCHAR)GetProperty_doc},
-	{"getHitObject",(PyCFunction) KX_NearSensor::sPyGetHitObject,     METH_VARARGS, (PY_METHODCHAR)GetHitObject_doc},
-	{"getHitObjectList", (PyCFunction) KX_NearSensor::sPyGetHitObjectList, METH_VARARGS, (PY_METHODCHAR)GetHitObjectList_doc},
+	//No methods
 	{NULL,NULL} //Sentinel
 };
 
+PyAttributeDef KX_NearSensor::Attributes[] = {
+	KX_PYATTRIBUTE_FLOAT_RW_CHECK("distance", 0, 100, KX_NearSensor, m_Margin, CheckResetDistance),
+	KX_PYATTRIBUTE_FLOAT_RW_CHECK("resetDistance", 0, 100, KX_NearSensor, m_ResetMargin, CheckResetDistance),
+	{NULL} //Sentinel
+};
 
-PyObject*
-KX_NearSensor::_getattr(const STR_String& attr)
+
+PyObject* KX_NearSensor::_getattr(const char *attr)
 {
-  _getattr_up(KX_TouchSensor);
+	PyObject* object = _getattr_self(Attributes, this, attr);
+	if (object != NULL)
+		return object;
+
+	_getattr_up(KX_TouchSensor);
 }
 
+int KX_NearSensor::_setattr(const char *attr, PyObject* value)
+{
+	int ret = _setattr_self(Attributes, this, attr, value);
+	if (ret >= 0)
+		return ret;
+
+	return KX_TouchSensor::_setattr(attr, value);
+}

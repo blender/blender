@@ -74,12 +74,12 @@ public:
 	bool RayHit(KX_ClientObjectInfo* client, KX_RayCast* result, void * const data);
 	bool NeedRayCast(KX_ClientObjectInfo* client);
 	
-	KX_PYMETHOD_DOC(KX_RaySensor,GetHitObject);
-	KX_PYMETHOD_DOC(KX_RaySensor,GetHitPosition);
-	KX_PYMETHOD_DOC(KX_RaySensor,GetHitNormal);
-	KX_PYMETHOD_DOC(KX_RaySensor,GetRayDirection);
+	KX_PYMETHOD_DOC_NOARGS(KX_RaySensor,GetHitObject);
+	KX_PYMETHOD_DOC_NOARGS(KX_RaySensor,GetHitPosition);
+	KX_PYMETHOD_DOC_NOARGS(KX_RaySensor,GetHitNormal);
+	KX_PYMETHOD_DOC_NOARGS(KX_RaySensor,GetRayDirection);
 
-	virtual PyObject* _getattr(const STR_String& attr);
+	virtual PyObject* _getattr(const char *attr);
 	
 };
 

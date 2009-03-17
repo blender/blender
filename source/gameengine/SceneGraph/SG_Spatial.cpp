@@ -44,13 +44,13 @@ SG_Spatial(
 ): 
 
 	SG_IObject(clientobj,clientinfo,callbacks),
-	m_localPosition(MT_Point3(0.0,0.0,0.0)),
-	m_localRotation(MT_Matrix3x3(1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0)),
-	m_localScaling(MT_Vector3(1.f,1.f,1.f)),
+	m_localPosition(0.0,0.0,0.0),
+	m_localRotation(1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0),
+	m_localScaling(1.f,1.f,1.f),
 	
-	m_worldPosition(MT_Point3(0.0,0.0,0.0)),
-	m_worldRotation(MT_Matrix3x3(1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0)),
-	m_worldScaling(MT_Vector3(1.f,1.f,1.f)),
+	m_worldPosition(0.0,0.0,0.0),
+	m_worldRotation(1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0),
+	m_worldScaling(1.f,1.f,1.f),
 
 	m_parent_relation (NULL),
 	
@@ -295,6 +295,13 @@ SG_Spatial::
 GetWorldScaling(
 ) const	{
 	return m_worldScaling;
+}
+
+void SG_Spatial::SetWorldFromLocalTransform()
+{
+	m_worldPosition= m_localPosition;
+	m_worldScaling= m_localScaling;
+	m_worldRotation= m_localRotation;
 }
 
 SG_BBox& SG_Spatial::BBox()

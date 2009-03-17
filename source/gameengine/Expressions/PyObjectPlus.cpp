@@ -94,7 +94,7 @@ PyObjectPlus::PyObjectPlus(PyTypeObject *T) 				// constructor
  * PyObjectPlus Methods 	-- Every class, even the abstract one should have a Methods
 ------------------------------*/
 PyMethodDef PyObjectPlus::Methods[] = {
-  {"isA",		 (PyCFunction) sPy_isA,			METH_VARARGS},
+  {"isA",		 (PyCFunction) sPy_isA,			METH_O},
   {NULL, NULL}		/* Sentinel */
 };
 
@@ -106,24 +106,24 @@ PyParentObject PyObjectPlus::Parents[] = {&PyObjectPlus::Type, NULL};
 /*------------------------------
  * PyObjectPlus attributes	-- attributes
 ------------------------------*/
-PyObject *PyObjectPlus::_getattr(const STR_String& attr)
+PyObject *PyObjectPlus::_getattr(const char *attr)
 {
-	if (attr == "__doc__" && GetType()->tp_doc)
+	if (!strcmp(attr, "__doc__") && GetType()->tp_doc)
 		return PyString_FromString(GetType()->tp_doc);
 
   //if (streq(attr, "type"))
   //  return Py_BuildValue("s", (*(GetParents()))->tp_name);
 
-  return Py_FindMethod(Methods, this, const_cast<char *>(attr.ReadPtr()));
+  return Py_FindMethod(Methods, this, attr);
 }
 
-int PyObjectPlus::_delattr(const STR_String& attr)
+int PyObjectPlus::_delattr(const char *attr)
 {
 	PyErr_SetString(PyExc_AttributeError, "attribute cant be deleted");
 	return 1;
 }
 
-int PyObjectPlus::_setattr(const STR_String& attr, PyObject *value)
+int PyObjectPlus::_setattr(const char *attr, PyObject *value)
 {
 	//return PyObject::_setattr(attr,value);
 	//cerr << "Unknown attribute" << endl;
@@ -131,12 +131,12 @@ int PyObjectPlus::_setattr(const STR_String& attr, PyObject *value)
 	return 1;
 }
 
-PyObject *PyObjectPlus::_getattr_self(const PyAttributeDef attrlist[], void *self, const STR_String &attr)
+PyObject *PyObjectPlus::_getattr_self(const PyAttributeDef attrlist[], void *self, const char *attr)
 {
 	const PyAttributeDef *attrdef;
 	for (attrdef=attrlist; attrdef->m_name != NULL; attrdef++)
 	{
-		if (attr == attrdef->m_name) 
+		if (!strcmp(attr, attrdef->m_name))
 		{
 			if (attrdef->m_type == KX_PYATTRIBUTE_TYPE_DUMMY)
 			{
@@ -147,7 +147,7 @@ PyObject *PyObjectPlus::_getattr_self(const PyAttributeDef attrlist[], void *sel
 			if (attrdef->m_length > 1)
 			{
 				PyObject* resultlist = PyList_New(attrdef->m_length);
-				for (int i=0; i<attrdef->m_length; i++)
+				for (unsigned int i=0; i<attrdef->m_length; i++)
 				{
 					switch (attrdef->m_type) {
 					case KX_PYATTRIBUTE_TYPE_BOOL:
@@ -238,7 +238,7 @@ PyObject *PyObjectPlus::_getattr_self(const PyAttributeDef attrlist[], void *sel
 	return NULL;
 }
 
-int PyObjectPlus::_setattr_self(const PyAttributeDef attrlist[], void *self, const STR_String &attr, PyObject *value)
+int PyObjectPlus::_setattr_self(const PyAttributeDef attrlist[], void *self, const char *attr, PyObject *value)
 {
 	const PyAttributeDef *attrdef;
 	void *undoBuffer = NULL;
@@ -247,7 +247,7 @@ int PyObjectPlus::_setattr_self(const PyAttributeDef attrlist[], void *self, con
 
 	for (attrdef=attrlist; attrdef->m_name != NULL; attrdef++)
 	{
-		if (attr == attrdef->m_name) 
+		if (!strcmp(attr, attrdef->m_name))
 		{
 			if (attrdef->m_access == KX_PYATTRIBUTE_RO ||
 				attrdef->m_type == KX_PYATTRIBUTE_TYPE_DUMMY)
@@ -688,22 +688,53 @@ bool PyObjectPlus::isA(const char *mytypename)		// check typename of each parent
   
   for (P = Ps[i=0]; P != NULL; P = Ps[i++])
   {
-      if (STR_String(P->tp_name) == STR_String(mytypename)	)
+      if (strcmp(P->tp_name, mytypename)==0)
 		  return true;
   }
 	
   return false;
 }
 
-PyObject *PyObjectPlus::Py_isA(PyObject *args)		// Python wrapper for isA
+PyObject *PyObjectPlus::Py_isA(PyObject *value)		// Python wrapper for isA
 {
-  char *mytypename;
-  if (!PyArg_ParseTuple(args, "s", &mytypename))
+  if (!PyString_Check(value)) {
+    PyErr_SetString(PyExc_TypeError, "expected a string");
     return NULL;
-  if(isA(mytypename))
+  }
+  if(isA(PyString_AsString(value)))
     Py_RETURN_TRUE;
   else
     Py_RETURN_FALSE;
+}
+
+/* Utility function called by the macro _getattr_up()
+ * for getting ob.__dict__() values from our PyObject
+ * this is used by python for doing dir() on an object, so its good
+ * if we return a list of attributes and methods.
+ * 
+ * Other then making dir() useful the value returned from __dict__() is not useful
+ * since every value is a Py_None
+ * */
+PyObject *_getattr_dict(PyObject *pydict, PyMethodDef *meth, PyAttributeDef *attrdef)
+{
+    if(pydict==NULL) { /* incase calling __dict__ on the parent of this object raised an error */
+    	PyErr_Clear();
+    	pydict = PyDict_New();
+    }
+	
+    if(meth) {
+		for (; meth->ml_name != NULL; meth++) {
+			PyDict_SetItemString(pydict, meth->ml_name, Py_None);
+		}
+	}
+	
+    if(attrdef) {
+		for (; attrdef->m_name != NULL; attrdef++) {
+			PyDict_SetItemString(pydict, attrdef->m_name, Py_None);
+		}
+	}
+
+	return pydict;
 }
 
 #endif //NO_EXP_PYTHON_EMBEDDING

@@ -59,6 +59,9 @@ CPPFLAGS += -I$(NAN_GLEW)/include
 ifeq ($(WITH_QUICKTIME), true)
 	CPPFLAGS += -I$(NAN_QUICKTIME)/include -DWITH_QUICKTIME
 endif
+ifeq ($(WITH_OPENJPEG), true)
+	CPPFLAGS += -DWITH_OPENJPEG
+endif
 
 ifeq ($(WITH_BINRELOC), true)
 	CPPFLAGS += -I$(NANBLENDERHOME)/extern/binreloc/include -DWITH_BINRELOC

@@ -5101,7 +5101,11 @@ static int texture_paint_toggle_exec(bContext *C, wmOperator *op)
 
 	if(G.f & G_TEXTUREPAINT) {
 		G.f &= ~G_TEXTUREPAINT;
+
+		if(U.glreslimit != 0)
+			GPU_free_images();
 		GPU_paint_set_mipmap(1);
+
 		toggle_paint_cursor(C, 0);
 	}
 	else {
@@ -5112,7 +5116,11 @@ static int texture_paint_toggle_exec(bContext *C, wmOperator *op)
 							 NULL, me->totface);
 
 		brush_check_exists(&scene->toolsettings->imapaint.brush);
+
+		if(U.glreslimit != 0)
+			GPU_free_images();
 		GPU_paint_set_mipmap(0);
+
 		toggle_paint_cursor(C, 1);
 	}
 

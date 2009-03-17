@@ -671,7 +671,7 @@ static void bone_children_clear_transflag(TransInfo *t, ListBase *lb)
 		{
 			bone->flag |= BONE_HINGE_CHILD_TRANSFORM;
 		}
-		else if (bone->flag & BONE_TRANSFORM && (t->mode == TFM_ROTATION || t->mode == TFM_TRACKBALL)) 
+		else if (bone->flag & BONE_TRANSFORM && (t->mode == TFM_ROTATION || t->mode == TFM_TRACKBALL) && t->around == V3D_LOCAL) 
 		{
 			bone->flag |= BONE_TRANSFORM_CHILD;
 		}
@@ -4049,7 +4049,7 @@ static void set_trans_object_base_flags(bContext *C, TransInfo *t)
 			
 			if(parsel)
 			{
-				if (t->mode == TFM_ROTATION || t->mode == TFM_TRACKBALL)
+				if ((t->mode == TFM_ROTATION || t->mode == TFM_TRACKBALL)  && t->around == V3D_LOCAL)
 				{
 					base->flag |= BA_TRANSFORM_CHILD;
 				}
