@@ -360,13 +360,65 @@ static void _draw_modifier__generator(uiBlock *block, FCurve *fcu, FModifier *fc
 		
 		case FCM_GENERATOR_FUNCTION: /* built-in function */
 		{
+			float *cp= data->coefficients;
 			
 			/* draw function selector */
 			but= uiDefButS(block, MENU, B_FMODIFIER_REDRAW, fn_type, 10,cy,width-30,19, &data->func_type, 0, 0, 0, 0, "Built-In Function to use");
 			uiButSetFunc(but, validate_fmodifier_cb, fcu, fcm);
 			cy -= 35;
 			
-			// TODO: finish adding buttons...
+			/* draw controls for equation of coefficients */
+			/* row 1 */
+			{
+				uiDefBut(block, LABEL, 1, "y = ", 0, cy, 50, 20, NULL, 0.0, 0.0, 0, 0, "");
+				
+				uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "", 50, cy, 150, 20, cp+3, -FLT_MAX, FLT_MAX, 10, 3, "Coefficient (D) for function");
+				uiDefBut(block, LABEL, 1, "+", 200, cy, 30, 20, NULL, 0.0, 0.0, 0, 0, "");
+				cy -= 20;
+			}
+			
+			/* row 2 */
+			{
+				char func_name[32];
+				
+				/* coefficient outside bracket */
+				uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "", 0, cy, 80, 20, cp, -FLT_MAX, FLT_MAX, 10, 3, "Coefficient (A) for function");
+				
+				/* opening bracket */
+				switch (data->func_type)
+				{		
+					case FCM_GENERATOR_FN_SIN: /* sine wave */
+						sprintf(func_name, "sin(");
+						break;
+					case FCM_GENERATOR_FN_COS: /* cosine wave */
+						sprintf(func_name, "cos(");
+						break;
+					case FCM_GENERATOR_FN_TAN: /* tangent wave */
+						sprintf(func_name, "tan(");
+						break;
+					case FCM_GENERATOR_FN_LN: /* natural log */
+						sprintf(func_name, "ln(");
+						break;
+					case FCM_GENERATOR_FN_SQRT: /* square root */
+						sprintf(func_name, "sqrt(");
+						break;
+					default: /* unknown */
+						sprintf(func_name, "<fn?>(");
+						break;
+				}
+				uiDefBut(block, LABEL, 1, func_name, 80, cy, 40, 20, NULL, 0.0, 0.0, 0, 0, "");
+				
+				/* coefficients inside bracket */
+				uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "", 115, cy, 75, 20, cp+1, -FLT_MAX, FLT_MAX, 10, 3, "Coefficient (B) of x");
+				
+				uiDefBut(block, LABEL, 1, "x+", 190, cy, 30, 20, NULL, 0.0, 0.0, 0, 0, "");
+				
+				uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "", 220, cy, 80, 20, cp+2, -FLT_MAX, FLT_MAX, 10, 3, "Coefficient (C) of function");
+				
+				/* closing bracket */
+					uiDefBut(block, LABEL, 1, ")", 300, cy, 30, 20, NULL, 0.0, 0.0, 0, 0, "");
+				cy -= 20;
+			}
 		}
 			break;
 		

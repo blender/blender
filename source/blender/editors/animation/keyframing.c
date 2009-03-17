@@ -206,7 +206,7 @@ static int binarysearch_bezt_index (BezTriple array[], float frame, int arraylen
 	 */
 	for (loopbreaker=0; (start <= end) && (loopbreaker < maxloop); loopbreaker++) {
 		/* compute and get midpoint */
-		int mid = (start + end) / 2;
+		int mid = start + ((end - start) / 2);	/* we calculate the midpoint this way to avoid int overflows... */
 		float midfra= array[mid].vec[1][0];
 		
 		/* check if exactly equal to midpoint */
@@ -1046,7 +1046,7 @@ char *ANIM_build_keyingsets_menu (ListBase *list, short for_edit)
 /* ******************************************* */
 /* KEYFRAME MODIFICATION */
 
-/* mode for common_modifykey */
+/* mode for commonkey_modifykey */
 enum {
 	COMMONKEY_MODE_INSERT = 0,
 	COMMONKEY_MODE_DELETE,
@@ -1623,34 +1623,6 @@ static void commonkey_context_getv3d (const bContext *C, ListBase *sources, bKey
 			/* set id-block to key to */
 			ob= base->object;
 			cks->id= (ID *)ob;
-			
-			/* when ob's keyframes are in an action, default to using 'Object' as achan name */
-			if (ob->ipoflag & OB_ACTION_OB)
-				cks->actname= "Object";
-			
-			/* set ipo-flags */
-			// TODO: add checks for lib-linked data
-			if ((ob->ipo) || (ob->action)) {
-				if (ob->ipo) {
-					cks->ipo= ob->ipo;
-				}
-				else {
-					bActionChannel *achan;
-					
-					cks->act= ob->action;
-					achan= get_action_channel(ob->action, cks->actname);
-					
-					if (achan && achan->ipo)
-						cks->ipo= achan->ipo;
-				}
-				/* cks->ipo can be NULL while editing */
-				if(cks->ipo) {
-					/* deselect all ipo-curves */
-					for (icu= cks->ipo->curve.first; icu; icu= icu->next) {
-						icu->flag &= ~IPO_SELECT;
-					}
-				}
-			}
 		}
 		CTX_DATA_END;
 	}
@@ -1798,6 +1770,23 @@ static void commonkey_context_getsbuts (const bContext *C, ListBase *sources, bK
 }
 
 #endif // XXX old keyingsets code based on adrcodes... to be restored in due course
+
+#if 0 // XXX new relative keyingsets code
+
+/* Check if context data is suitable for the given absolute Keying Set */
+static short keyingset_context_ok_poll (bContext *C, KeyingSet *ks)
+{
+	
+	return 1;
+}
+
+/* Get list of data-sources from context for inserting keyframes using the given relative Keying Set */
+static short commonkey_get_context_data (bContext *C, ListBase *dsources, KeyingSet *ks)
+{
+	
+} 
+
+#endif // XXX new relative keyingsets code
 
 /* Given a KeyingSet and context info (if required), modify keyframes for the channels specified
  * by the KeyingSet. This takes into account many of the different combinations of using KeyingSets.
