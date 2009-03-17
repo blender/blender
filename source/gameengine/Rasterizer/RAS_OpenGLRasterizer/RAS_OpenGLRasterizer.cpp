@@ -327,17 +327,23 @@ void RAS_OpenGLRasterizer::ClearCachingInfo(void)
 	m_materialCachingInfo = 0;
 }
 
-void	RAS_OpenGLRasterizer::FlushDebugLines()
+void RAS_OpenGLRasterizer::FlushDebugLines()
 {
-//DrawDebugLines
-	glDisable(GL_LIGHTING);
-	glDisable(GL_TEXTURE_2D);
+	if(!m_debugLines.size())
+		return;
+
+	// DrawDebugLines
+	GLboolean light, tex;
+
+	light= glIsEnabled(GL_LIGHTING);
+	tex= glIsEnabled(GL_TEXTURE_2D);
+
+	if(light) glDisable(GL_LIGHTING);
+	if(tex) glDisable(GL_TEXTURE_2D);
 
 	glBegin(GL_LINES);
 	for (unsigned int i=0;i<m_debugLines.size();i++)
 	{
-		
-
 		glColor4f(m_debugLines[i].m_color[0],m_debugLines[i].m_color[1],m_debugLines[i].m_color[2],1.f);
 		const MT_Scalar* fromPtr = &m_debugLines[i].m_from.x();
 		const MT_Scalar* toPtr= &m_debugLines[i].m_to.x();
@@ -347,11 +353,10 @@ void	RAS_OpenGLRasterizer::FlushDebugLines()
 	}
 	glEnd();
 
-	glEnable(GL_LIGHTING);
-	glEnable(GL_TEXTURE_2D);
+	if(light) glEnable(GL_LIGHTING);
+	if(tex) glEnable(GL_TEXTURE_2D);
 
 	m_debugLines.clear();
-
 }
 
 void RAS_OpenGLRasterizer::EndFrame()
