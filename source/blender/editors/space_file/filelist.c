@@ -274,7 +274,6 @@ static int compare_extension(const void *a1, const void *a2) {
 
 void filelist_filter(FileList* filelist)
 {
-	char dir[FILE_MAX], group[GROUP_MAX];
 	int num_filtered = 0;
 	int i, j;
 	
@@ -667,7 +666,6 @@ int	filelist_column_len(struct FileList* filelist, FileListColumns column)
 void filelist_readdir(struct FileList* filelist)
 {
 	char wdir[FILE_MAX];
-	int finished = 0;
 	int i;
 
 	if (!filelist) return;

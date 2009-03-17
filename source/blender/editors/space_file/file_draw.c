@@ -550,7 +550,6 @@ void file_draw_list(const bContext *C, ARegion *ar)
 
 static void file_draw_fsmenu_category(const bContext *C, ARegion *ar, FSMenuCategory category, const char* category_name, short *starty)
 {
-	SpaceFile *sfile= (SpaceFile*)CTX_wm_space_data(C);
 	struct FSMenu* fsmenu = fsmenu_get();
 	char bookmark[FILE_MAX];
 	int nentries = fsmenu_get_nentries(fsmenu, category);

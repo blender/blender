@@ -299,6 +299,7 @@ void PYTHON_OT_wrapper(wmOperatorType *ot, void *userdata)
 {
 	PyOperatorType *pyot = (PyOperatorType *)userdata;
 	PyObject *py_class = pyot->py_class;
+	PyObject *props, *item;
 
 	/* identifiers */
 	ot->name= pyot->name;
@@ -316,7 +317,6 @@ void PYTHON_OT_wrapper(wmOperatorType *ot, void *userdata)
 	ot->pyop_data= userdata;
 	
 	// TODO - set properties
-	PyObject *props, *item;
 	
 	
 	if ((props=PyObject_GetAttrString(py_class, "properties"))) {		
@@ -325,9 +325,9 @@ void PYTHON_OT_wrapper(wmOperatorType *ot, void *userdata)
 		int i;
 		
 		for(i=0; i<PyList_Size(props); i++) {
-			item = PyList_GET_ITEM(props, i);
-			
 			PyObject *py_func_ptr, *py_kw, *py_srna_cobject, *py_ret;
+
+			item = PyList_GET_ITEM(props, i);
 			
 			if (PyArg_ParseTuple(item, "O!O!", &PyCObject_Type, &py_func_ptr, &PyDict_Type, &py_kw)) {
 				
@@ -372,8 +372,10 @@ PyObject *PYOP_wrap_add(PyObject *self, PyObject *args)
 	char *description= NULL;
 	
 	static char *pyop_func_names[] = {"exec", "invoke", "poll", NULL};
-	static int *pyop_func_nargs[] = {1, 2, 2, 0};
+	static int pyop_func_nargs[] = {1, 2, 2, 0};
 	
+	int i;
+	int argcount;
 	
 	if (!PyArg_ParseTuple(args, "O", &value) || !PyObject_IsSubclass(value, optype)) {
 		PyErr_SetString( PyExc_AttributeError, "expected Operator subclass of bpy.types.Operator");
@@ -386,7 +388,7 @@ PyObject *PYOP_wrap_add(PyObject *self, PyObject *args)
 	Py_DECREF(item);
 	
 	if (WM_operatortype_find(idname)) {
-		PyErr_Format( PyExc_AttributeError, "Operator alredy exists with this name", idname);
+		PyErr_Format( PyExc_AttributeError, "Operator already exists with this name: %s", idname);
 		return NULL;
 	}
 	
@@ -412,10 +414,10 @@ PyObject *PYOP_wrap_add(PyObject *self, PyObject *args)
 	Py_DECREF(item);
 	
 	/* Check known functions and argument lengths */
-	int i;
-	int argcount;
 	for (i=0; pyop_func_names[i]; i++) {
-		if (item=PyObject_GetAttrString(value, pyop_func_names[i])) {
+		if ((item=PyObject_GetAttrString(value, pyop_func_names[i]))) {
+			PyObject *pyargcount;
+
 			/* check its callable */
 			if (!PyFunction_Check(item)) {
 				PyErr_Format(PyExc_ValueError, "Cant register operator class -  %s.%s() is not a function", idname, pyop_func_names[i]);
@@ -425,7 +427,7 @@ PyObject *PYOP_wrap_add(PyObject *self, PyObject *args)
 			/* check the number of args is correct */
 			// MyClass.exec.func_code.co_argcount
 			
-			PyObject *pyargcount = PyObject_GetAttrString(PyFunction_GetCode(item), "co_argcount");
+			pyargcount = PyObject_GetAttrString(PyFunction_GetCode(item), "co_argcount");
 			argcount = PyLong_AsSsize_t(pyargcount);
 			Py_DECREF(pyargcount);
 			
@@ -444,13 +446,14 @@ PyObject *PYOP_wrap_add(PyObject *self, PyObject *args)
 	/* If we have properties set, check its a list of dicts */
 	item = PyObject_GetAttrString(value, "properties");
 	if (item) {
+		int i;
+
 		if (!PyList_Check(item)) {
 			PyErr_Format(PyExc_ValueError, "Cant register operator class - %s.properties must be a list", idname);
 			Py_DECREF(item);
 			return NULL;
 		}
 		
-		int i;
 		for(i=0; i<PyList_Size(item); i++) {
 			PyObject *py_args = PyList_GET_ITEM(item, i);
 			PyObject *py_func_ptr, *py_kw; /* place holders */

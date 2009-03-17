@@ -38,7 +38,7 @@ extern "C" {
 struct Main;
 struct Ipo;
 
-void do_versions_ipo_to_animato(struct Main *main);
+void do_versions_ipos_to_animato(struct Main *main);
 
 /* --------------------- xxx stuff ------------------------ */
 

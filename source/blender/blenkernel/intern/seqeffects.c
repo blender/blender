@@ -1038,8 +1038,8 @@ static void do_gammacross_effect(Sequence * seq,int cfra,
 	} else {
 		do_gammacross_effect_byte(
 			facf0, facf1, x, y,
-			(char*) ibuf1->rect, (char*) ibuf2->rect,
-			(char*) out->rect);
+			(unsigned char*) ibuf1->rect, (unsigned char*) ibuf2->rect,
+			(unsigned char*) out->rect);
 	}
 }
 
@@ -1996,7 +1996,7 @@ static void do_transform(Sequence * seq,float facf0, int x, int y,
 	float xs,ys,factxScale,factyScale,tx,ty,rad,s,c,xaux,yaux,factRot,px,py;
 	TransformVars *scale;
 	
-	struct RenderData *rd = NULL; // XXX 2.5 global: &G.scene->r;
+	// XXX struct RenderData *rd = NULL; // 2.5 global: &G.scene->r;
 
 
 	scale = (TransformVars *)seq->effectdata;

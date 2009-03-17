@@ -702,9 +702,6 @@ void area_copy_data(ScrArea *sa1, ScrArea *sa2, int swap_space)
 
 void ED_area_swapspace(bContext *C, ScrArea *sa1, ScrArea *sa2)
 {
-	SpaceType *st;
-	SpaceLink *sl;
-	SpaceLink *slold;
 	ScrArea *tmp= MEM_callocN(sizeof(ScrArea), "addscrarea");
 
 	ED_area_exit(C, sa1);

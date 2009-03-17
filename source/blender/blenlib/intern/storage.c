@@ -334,7 +334,6 @@ void BLI_adddirstrings()
 	char size[250];
 	static char * types[8] = {"---", "--x", "-w-", "-wx", "r--", "r-x", "rw-", "rwx"};
 	int num, mode;
-	off_t num1, num2, num3, num4, num5;
 #ifdef WIN32
 	__int64 st_size;
 #else
@@ -403,10 +402,10 @@ void BLI_adddirstrings()
 		st_size= (off_t)files[num].s.st_size;
 
 		if (st_size > 1024*1024*1024) {
-			sprintf(files[num].size, "%.2f GB", st_size/(1024*1024*1024));	
+			sprintf(files[num].size, "%.2f GB", ((double)st_size)/(1024*1024*1024));	
 		}
 		else if (st_size > 1024*1024) {
-			sprintf(files[num].size, "%.1f MB", st_size/(1024*1024));
+			sprintf(files[num].size, "%.1f MB", ((double)st_size)/(1024*1024));
 		}
 		else if (st_size > 1024) {
 			sprintf(files[num].size, "%d KB", (int)(st_size/1024));

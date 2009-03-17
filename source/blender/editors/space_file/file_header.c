@@ -67,36 +67,6 @@
 
 /* ************************ header area region *********************** */
 
-static void do_viewmenu(bContext *C, void *arg, int event)
-{
-}
-
-static uiBlock *dummy_viewmenu(bContext *C, ARegion *ar, void *arg_unused)
-{
-	ScrArea *curarea= CTX_wm_area(C);
-	uiBlock *block;
-	short yco= 0, menuwidth=120;
-	
-	block= uiBeginBlock(C, ar, "dummy_viewmenu", UI_EMBOSSP, UI_HELV);
-	uiBlockSetButmFunc(block, do_viewmenu, NULL);
-	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Nothing yet", 0, yco-=20, 
-					 menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
-	
-	if(curarea->headertype==HEADERTOP) {
-		uiBlockSetDirection(block, UI_DOWN);
-	}
-	else {
-		uiBlockSetDirection(block, UI_TOP);
-		uiBlockFlipOrder(block);
-	}
-	
-	uiTextBoundsBlock(block, 50);
-	uiEndBlock(C, block);
-	
-	return block;
-}
-
 static void do_file_header_buttons(bContext *C, void *arg, int event)
 {
 	SpaceFile *sfile= (SpaceFile*)CTX_wm_space_data(C);

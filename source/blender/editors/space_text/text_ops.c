@@ -78,11 +78,6 @@ static int text_new_poll(bContext *C)
 	return 1;
 }
 
-static int text_valid_poll(bContext *C)
-{
-	return CTX_data_edit_text(C) ? 1:0;
-}
-
 static int text_edit_poll(bContext *C)
 {
 	Text *text= CTX_data_edit_text(C);
