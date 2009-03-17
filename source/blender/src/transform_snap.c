@@ -505,13 +505,13 @@ void CalcSnapGeometry(TransInfo *t, float *vec)
 			
 			peelObjects(&depth_peels, mval);
 			
-//			if (stk->nb_points > 0 && stk->points[stk->nb_points - 1].type == PT_CONTINUOUS)
-//			{
-//				last_p = stk->points[stk->nb_points - 1].p;
-//			}
-//			else if (LAST_SNAP_POINT_VALID)
+//			if (LAST_SNAP_POINT_VALID)
 //			{
 //				last_p = LAST_SNAP_POINT;
+//			}
+//			else
+//			{
+				last_p = t->tsnap.snapPoint;
 //			}
 			
 			
