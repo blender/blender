@@ -275,7 +275,10 @@ BMFace *BM_Split_Face(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2, BMLoop **nl,
 	BMFace *nf;
 	nf = bmesh_sfme(bm,f,v1,v2,nl);
 	
-	if (nf) BM_Copy_Attributes(bm, bm, f, nf);
+	if (nf) {
+		BM_Copy_Attributes(bm, bm, f, nf);
+		VECCOPY(nf->no, f->no);
+	}
 
 	return nf;
 }

@@ -1976,3 +1976,11 @@ void em_setup_viewcontext(bContext *C, ViewContext *vc)
 	}
 }
 
+void EM_beginEditMesh(Object *ob)
+{
+	return ((Mesh *)ob->data)->edit_mesh;
+}
+
+void EM_endEditMesh(Object *ob, EditMesh *em)
+{
+}

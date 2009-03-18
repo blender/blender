@@ -1,3 +1,4 @@
+
 #include "MEM_guardedalloc.h"
 #include "BKE_customdata.h" 
 #include "DNA_listBase.h"
@@ -189,6 +190,8 @@ static BMFace *editface_to_BMFace(BMesh *bm, BMOperator *op, EditMesh *em, EditF
 		v2 = efa->v2->tmp.p;
 
 		f = BM_Make_Ngon(bm, v1, v2, edar, len, 0);
+		
+		VECCOPY(f->no, efa->n);
 
 		BMO_Insert_MapPointer(bm, op, BMOP_FROM_EDITMESH_MAP, efa, f);
 
@@ -370,6 +373,8 @@ BMesh *editmesh_to_bmesh_intern(EditMesh *em, BMesh *bm, BMOperator *op) {
 	EditVert *eve;
 	EditEdge *eed;
 	EditFace *efa;
+	BMEdge *e;
+	BMIter iter;
 	int allocsize[4] = {512,512,2048,512}, numTex, numCol;
 
 	/*make sure to update FGon flags*/
@@ -416,6 +421,11 @@ BMesh *editmesh_to_bmesh_intern(EditMesh *em, BMesh *bm, BMOperator *op) {
 	/*convert f-gons*/
 	BM_fgonconvert(bm, op, em, numCol, numTex);
 	
+	/*clean up any dangling fgon flags*/
+	for (e=BMIter_New(&iter, bm, BM_EDGES, NULL); e; e=BMIter_Step(&iter)){
+		e->head.flag &= ~BM_FGON;
+	}
+
 	/*do quads + triangles*/
 	for(efa = em->faces.first; efa; efa = efa->next){
 		if(!efa->tmp.l) editface_to_BMFace(bm, op, em, efa, numCol, numTex);
