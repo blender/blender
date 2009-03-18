@@ -110,7 +110,7 @@ int PYOP_props_from_dict(PointerRNA *ptr, PyObject *kw)
 static PyObject *pyop_base_dir(PyObject *self);
 static struct PyMethodDef pyop_base_methods[] = {
 	{"__dir__", (PyCFunction)pyop_base_dir, METH_NOARGS, ""},
-	{"add", (PyCFunction)PYOP_wrap_add, METH_VARARGS, ""},
+	{"add", (PyCFunction)PYOP_wrap_add, METH_O, ""},
 	{"remove", (PyCFunction)PYOP_wrap_remove, METH_O, ""},
 	{NULL, NULL, 0, NULL}
 };

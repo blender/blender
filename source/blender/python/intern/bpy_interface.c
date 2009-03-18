@@ -264,6 +264,7 @@ int BPY_run_python_script_space(const char *modulename, const char *func)
 			PyErr_SetFormat(PyExc_SystemError, "module has no function '%s.%s'\n", scpt->script.filename, func);
 		}
 		else {
+			Py_DECREF(py_func);
 			if (!PyCallable_Check(py_func)) {
 				PyErr_SetFormat(PyExc_SystemError, "module item is not callable '%s.%s'\n", scpt->script.filename, func);
 			}

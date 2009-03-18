@@ -1071,7 +1071,7 @@ PyObject* pyrna_struct_Subtype(PointerRNA *ptr)
 		// Set this later
 		
 		if (newclass) {
-			BPy_RNA_PYTYPE(ptr->data) = newclass; /* Store for later use */
+			BPy_RNA_PYTYPE(ptr->data) = (void *)newclass; /* Store for later use */
 			
 			/* Not 100% needed but useful,
 			 * having an instance within a type looks wrong however this instance IS an rna type */
@@ -1198,8 +1198,8 @@ PyObject *BPY_rna_doc( void )
 			if (type) {
 				name = PyObject_GetAttrString(type, "__name__"); /* myClass.__name__ */
 				if (name) {
-					PyDict_SetItem(dict, name, type);
 					Py_DECREF(name);
+					PyDict_SetItem(dict, name, type);
 				}
 				else {
 					printf("could not get type __name__\n");
@@ -1222,7 +1222,7 @@ PyObject *BPY_rna_doc( void )
  * This isnt incorrect since its a python object - but be careful */
 PyObject *BPy_FloatProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
-	static char *kwlist[] = {"attribute", "name", "description", "min", "max", "soft_min", "soft_max", "default", NULL};
+	static char *kwlist[] = {"attr", "name", "description", "min", "max", "soft_min", "soft_max", "default", NULL};
 	char *id, *name="", *description="";
 	float min=FLT_MIN, max=FLT_MAX, soft_min=FLT_MIN, soft_max=FLT_MAX, def=0.0f;
 	
@@ -1249,7 +1249,7 @@ PyObject *BPy_FloatProperty(PyObject *self, PyObject *args, PyObject *kw)
 
 PyObject *BPy_IntProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
-	static char *kwlist[] = {"attribute", "name", "description", "min", "max", "soft_min", "soft_max", "default", NULL};
+	static char *kwlist[] = {"attr", "name", "description", "min", "max", "soft_min", "soft_max", "default", NULL};
 	char *id, *name="", *description="";
 	int min=INT_MIN, max=INT_MAX, soft_min=INT_MIN, soft_max=INT_MAX, def=0;
 	
@@ -1276,7 +1276,7 @@ PyObject *BPy_IntProperty(PyObject *self, PyObject *args, PyObject *kw)
 
 PyObject *BPy_BoolProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
-	static char *kwlist[] = {"attribute", "name", "description", "default", NULL};
+	static char *kwlist[] = {"attr", "name", "description", "default", NULL};
 	char *id, *name="", *description="";
 	int def=0;
 	

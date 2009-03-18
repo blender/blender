@@ -40,6 +40,11 @@
 #include "bpy_compat.h"
 #include "bpy_util.h"
 
+#define PYOP_ATTR_PROP			"__props__"
+#define PYOP_ATTR_UINAME		"__label__"
+#define PYOP_ATTR_IDNAME		"__name__"	/* use pythons class name */
+#define PYOP_ATTR_DESCRIPTION	"__doc__"	/* use pythons docstring */
+
 typedef struct PyOperatorType {
 	void *next, *prev;
 	char idname[OP_MAX_TYPENAME];
@@ -316,17 +321,16 @@ void PYTHON_OT_wrapper(wmOperatorType *ot, void *userdata)
 	
 	ot->pyop_data= userdata;
 	
-	// TODO - set properties
+	props= PyObject_GetAttrString(py_class, PYOP_ATTR_PROP);
 	
-	
-	if ((props=PyObject_GetAttrString(py_class, "properties"))) {		
+	if (props) {
 		PyObject *dummy_args = PyTuple_New(0);
-		
 		int i;
 		
+		Py_DECREF(props);
+
 		for(i=0; i<PyList_Size(props); i++) {
 			PyObject *py_func_ptr, *py_kw, *py_srna_cobject, *py_ret;
-
 			item = PyList_GET_ITEM(props, i);
 			
 			if (PyArg_ParseTuple(item, "O!O!", &PyCObject_Type, &py_func_ptr, &PyDict_Type, &py_kw)) {
@@ -360,11 +364,9 @@ void PYTHON_OT_wrapper(wmOperatorType *ot, void *userdata)
 
 
 /* pyOperators - Operators defined IN Python */
-PyObject *PYOP_wrap_add(PyObject *self, PyObject *args)
-{
-	// XXX ugly - store the Operator type elsewhere!, probably leaks memory
-	PyObject *optype = PyObject_GetAttrString(PyObject_GetAttrString(PyDict_GetItemString(PyEval_GetGlobals(), "bpy"), "types"), "Operator");
-	PyObject *value, *item;
+PyObject *PYOP_wrap_add(PyObject *self, PyObject *value)
+{	
+	PyObject *optype, *item;
 	
 	PyOperatorType *pyot;
 	char *idname= NULL;
@@ -373,30 +375,37 @@ PyObject *PYOP_wrap_add(PyObject *self, PyObject *args)
 	
 	static char *pyop_func_names[] = {"exec", "invoke", "poll", NULL};
 	static int pyop_func_nargs[] = {1, 2, 2, 0};
+
+	PyObject *pyargcount;
+	int i, argcount;
+
+
+	// in python would be...
+	//PyObject *optype = PyObject_GetAttrString(PyObject_GetAttrString(PyDict_GetItemString(PyEval_GetGlobals(), "bpy"), "types"), "Operator");
+	optype = PyObject_GetAttrStringArgs(PyDict_GetItemString(PyEval_GetGlobals(), "bpy"), 2, "types", "Operator");
+	Py_DECREF(optype);
 	
-	int i;
-	int argcount;
-	
-	if (!PyArg_ParseTuple(args, "O", &value) || !PyObject_IsSubclass(value, optype)) {
+	if (!PyObject_IsSubclass(value, optype)) {
 		PyErr_SetString( PyExc_AttributeError, "expected Operator subclass of bpy.types.Operator");
 		return NULL;
 	}
 	
 	/* class name is used for operator ID - this can be changed later if we want */
-	item = PyObject_GetAttrString(value, "__name__");
-	idname =  _PyUnicode_AsString(item);
+	item = PyObject_GetAttrString(value, PYOP_ATTR_IDNAME);
 	Py_DECREF(item);
+	idname =  _PyUnicode_AsString(item);
+	
 	
 	if (WM_operatortype_find(idname)) {
-		PyErr_Format( PyExc_AttributeError, "Operator already exists with this name: %s", idname);
+		PyErr_Format( PyExc_AttributeError, "Operator alredy exists with this name \"%s\"", idname);
 		return NULL;
 	}
 	
 	/* Operator user readible name */
-	item = PyObject_GetAttrString(value, "name");
+	item = PyObject_GetAttrString(value, PYOP_ATTR_UINAME);
 	if (item) {
-		name = _PyUnicode_AsString(item);
 		Py_DECREF(item);
+		name = _PyUnicode_AsString(item);
 	}
 	if (name == NULL) {
 		name = idname;
@@ -404,36 +413,37 @@ PyObject *PYOP_wrap_add(PyObject *self, PyObject *args)
 	}
 	
 	/* use py docstring for description, should always be None or a string */
-	item = PyObject_GetAttrString(value, "__doc__");
+	item = PyObject_GetAttrString(value, PYOP_ATTR_DESCRIPTION);
+	Py_DECREF(item);
+	
 	if (PyUnicode_Check(item)) {
 		description = _PyUnicode_AsString(item);
 	}
 	else {
 		description = "";
 	}
-	Py_DECREF(item);
 	
 	/* Check known functions and argument lengths */
 	for (i=0; pyop_func_names[i]; i++) {
-		if ((item=PyObject_GetAttrString(value, pyop_func_names[i]))) {
-			PyObject *pyargcount;
+		
+		item=PyObject_GetAttrString(value, pyop_func_names[i]);
+		if (item) {
+			Py_DECREF(item);
 
 			/* check its callable */
 			if (!PyFunction_Check(item)) {
 				PyErr_Format(PyExc_ValueError, "Cant register operator class -  %s.%s() is not a function", idname, pyop_func_names[i]);
-				Py_DECREF(item);
 				return NULL;
 			}
 			/* check the number of args is correct */
-			// MyClass.exec.func_code.co_argcount
+			/* MyClass.exec.func_code.co_argcount */
 			
-			pyargcount = PyObject_GetAttrString(PyFunction_GetCode(item), "co_argcount");
-			argcount = PyLong_AsSsize_t(pyargcount);
+			pyargcount = PyObject_GetAttrString(PyFunction_GET_CODE(item), "co_argcount");
 			Py_DECREF(pyargcount);
+			argcount = PyLong_AsSsize_t(pyargcount);
 			
 			if (argcount != pyop_func_nargs[i]) {
 				PyErr_Format(PyExc_ValueError, "Cant register operator class - %s.%s() takes %d args, should be %d", idname, pyop_func_names[i], argcount, pyop_func_nargs[i]);
-				Py_DECREF(item);
 				return NULL;
 			}
 			
@@ -444,13 +454,12 @@ PyObject *PYOP_wrap_add(PyObject *self, PyObject *args)
 	}
 	
 	/* If we have properties set, check its a list of dicts */
-	item = PyObject_GetAttrString(value, "properties");
+	item = PyObject_GetAttrString(value, PYOP_ATTR_PROP);
 	if (item) {
-		int i;
+		Py_DECREF(item);
 
 		if (!PyList_Check(item)) {
-			PyErr_Format(PyExc_ValueError, "Cant register operator class - %s.properties must be a list", idname);
-			Py_DECREF(item);
+			PyErr_Format(PyExc_ValueError, "Cant register operator class - %s.properties must be a list", idname);	
 			return NULL;
 		}
 		
@@ -460,12 +469,9 @@ PyObject *PYOP_wrap_add(PyObject *self, PyObject *args)
 			
 			if (!PyArg_ParseTuple(py_args, "O!O!", &PyCObject_Type, &py_func_ptr, &PyDict_Type, &py_kw)) {
 				PyErr_Format(PyExc_ValueError, "Cant register operator class - %s.properties must contain values from FloatProperty", idname);
-				Py_DECREF(item);
 				return NULL;				
 			}
 		}
-		
-		Py_DECREF(item);
 	}
 	else {
 		PyErr_Clear();

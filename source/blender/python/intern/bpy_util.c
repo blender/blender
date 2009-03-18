@@ -175,39 +175,67 @@ void PyLineSpit(void) {
 void BPY_getFileAndNum(char **filename, int *lineno)
 {
 	PyObject *getframe, *frame;
-	PyObject *f_lineno, *f_code, *co_filename;
+	PyObject *f_lineno= NULL, *co_filename= NULL;
 	
 	if (filename)	*filename= NULL;
 	if (lineno)		*lineno = -1;
 	
 	getframe = PySys_GetObject("_getframe"); // borrowed
-	if (getframe) {
-		frame = PyObject_CallObject(getframe, NULL);
-		if (frame) {
-			f_lineno= PyObject_GetAttrString(frame, "f_lineno");
-			f_code= PyObject_GetAttrString(frame, "f_code");
-			if (f_lineno && f_code) {
-				co_filename= PyObject_GetAttrString(f_code, "co_filename");
-				if (co_filename) {
-					
-					if (filename)	*filename = _PyUnicode_AsString(co_filename);
-					if (lineno)		*lineno = (int)PyLong_AsSsize_t(f_lineno);
-					
-					Py_DECREF(f_lineno);
-					Py_DECREF(f_code);
-					Py_DECREF(co_filename);
-					Py_DECREF(frame);
-					
-					return;
-				}
-			}
-		}
+	if (getframe==NULL) {
+		return;
 	}
 	
-	Py_XDECREF(co_filename);
-	Py_XDECREF(f_lineno);
-	Py_XDECREF(f_code);
-	Py_XDECREF(frame);
+	frame = PyObject_CallObject(getframe, NULL);
+	if (frame==NULL)
+		return;
 	
-	PyErr_SetString(PyExc_SystemError, "Could not access sys._getframe().f_code.co_filename");
+	if (filename) {
+		co_filename= PyObject_GetAttrStringArgs(frame, 1, "f_code", "co_filename");
+		if (co_filename==NULL) {
+			PyErr_SetString(PyExc_SystemError, "Could not access sys._getframe().f_code.co_filename");
+			Py_DECREF(frame);
+			return;
+		}
+		
+		*filename = _PyUnicode_AsString(co_filename);
+		Py_DECREF(co_filename);
+	}
+	
+	if (lineno) {
+		f_lineno= PyObject_GetAttrString(frame, "f_lineno");
+		if (f_lineno==NULL) {
+			PyErr_SetString(PyExc_SystemError, "Could not access sys._getframe().f_lineno");
+			Py_DECREF(frame);
+			return;
+		}
+		
+		*lineno = (int)PyLong_AsSsize_t(f_lineno);
+		Py_DECREF(f_lineno);
+	}
+}
+
+/* Would be nice if python had this built in */
+PyObject *PyObject_GetAttrStringArgs(PyObject *o, Py_ssize_t n, ...)
+{
+	Py_ssize_t i;
+	PyObject *item= o;
+	char *attr;
+	
+	va_list vargs;
+
+	va_start(vargs, n);
+	for (i=0; i<n; i++) {
+		attr = va_arg(vargs, char *);
+		item = PyObject_GetAttrString(item, attr);
+		
+		if (item) 
+			Py_DECREF(item);
+		else /* python will set the error value here */
+			break;
+		
+	}
+	va_end(vargs);
+	
+	Py_INCREF(item); /* final value has is increfed, to match PyObject_GetAttrString */
+	return item;
 }

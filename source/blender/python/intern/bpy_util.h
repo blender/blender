@@ -37,3 +37,6 @@ int BPY_flag_from_seq(BPY_flag_def *flagdef, PyObject *seq, int *flag);
 void PyObSpit(char *name, PyObject *var);
 void PyLineSpit(void);
 void BPY_getFileAndNum(char **filename, int *lineno);
+
+/* own python like utility function */
+PyObject *PyObject_GetAttrStringArgs(PyObject *o, Py_ssize_t n, ...);

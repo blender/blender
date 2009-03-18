@@ -418,7 +418,6 @@ static struct PyMethodDef ui_methods[] = {
 	{"registerKey", (PyCFunction)Method_registerKey, METH_VARARGS, ""}, // XXX could have this in another place too
 	
 	
-	
 	{"getRegonPtr", (PyCFunction)Method_getRegonPtr,	METH_NOARGS, ""}, // XXX Nasty, we really need to improve dealing with context!
 	{"getAreaPtr", (PyCFunction)Method_getAreaPtr,		METH_NOARGS, ""},
 	{"getScreenPtr", (PyCFunction)Method_getScreenPtr, METH_NOARGS, ""},
