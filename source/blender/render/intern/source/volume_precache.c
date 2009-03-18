@@ -220,6 +220,53 @@ static inline int I(int x,int y,int z,int n) //has a pad of 1 voxel surrounding 
 	return (x*(n+2)+y)*(n+2)+z;
 }
 
+
+/* get the total amount of light energy in the light cache. used to normalise after multiple scattering */
+static float total_ss_energy(float *cache, const int res)
+{
+	int x, y, z, rgb;
+	int res_2, res_3;
+	int i;
+	float energy=0.f;
+	
+	res_2 = res*res;
+	res_3 = res*res*res;
+
+	for (x=0; x < res; x++) {
+		for (y=0; y < res; y++) {
+			for (z=0; z < res; z++) {
+				for (rgb=0; rgb < 3; rgb++) {
+					i = rgb*res_3 + x*res_2 + y*res + z;
+					
+					if (cache[i] > 0.f) energy += cache[i];
+				}
+			}
+		}
+	}
+	
+	return energy;
+}
+
+static float total_ms_energy(float *sr, float *sg, float *sb, const int res)
+{
+	int x, y, z, i;
+	float energy=0.f;
+	
+	for (z=1;z<=res;z++) {
+		for (y=1;y<=res;y++) {
+			for (x=1;x<=res;x++) {
+			
+				i = I(x,y,z,res);
+				if (sr[i] > 0.f) energy += sr[i];
+				if (sg[i] > 0.f) energy += sg[i];
+				if (sb[i] > 0.f) energy += sb[i];
+			}
+		}
+	}
+	
+	return energy;
+}
+
 static void ms_diffuse(int b, float* x0, float* x, float diff, int n)
 {
 	int i, j, k, l;
@@ -247,9 +294,9 @@ static void ms_diffuse(int b, float* x0, float* x, float diff, int n)
 void multiple_scattering_diffusion(Render *re, float *cache, int res, Material *ma)
 {
 	const float diff = ma->vol_ms_diff * 0.001f; 	/* compensate for scaling for a nicer UI range */
-	const float fac = ma->vol_ms_intensity;
 	const float simframes = ma->vol_ms_steps;
 	const int shade_type = ma->vol_shade_type;
+	float fac = ma->vol_ms_intensity;
 	
 	int i, j, k, m;
 	int n = res;
@@ -259,8 +306,8 @@ void multiple_scattering_diffusion(Render *re, float *cache, int res, Material *
 	float c=1.0f;
 	int index;
 	float origf;	/* factor for blending in original light cache */
-	
-	
+	float energy_ss, energy_ms;
+
 	float *sr0=(float *)MEM_callocN(size*sizeof(float), "temporary multiple scattering buffer");
 	float *sr=(float *)MEM_callocN(size*sizeof(float), "temporary multiple scattering buffer");
 	float *sg0=(float *)MEM_callocN(size*sizeof(float), "temporary multiple scattering buffer");
@@ -269,6 +316,8 @@ void multiple_scattering_diffusion(Render *re, float *cache, int res, Material *
 	float *sb=(float *)MEM_callocN(size*sizeof(float), "temporary multiple scattering buffer");
 
 	total = (float)(n*n*n*simframes);
+	
+	energy_ss = total_ss_energy(cache, res);
 	
 	/* Scattering as diffusion pass */
 	for (m=0; m<simframes; m++)
@@ -318,12 +367,18 @@ void multiple_scattering_diffusion(Render *re, float *cache, int res, Material *
 		if (re->test_break()) break;
 	}
 	
-	/* copy to light cache */
-
-	if (shade_type == MA_VOL_SHADE_SINGLEPLUSMULTIPLE)
-		origf = 1.0f;
-	else
+	/* normalisation factor to conserve energy */
+	energy_ms = total_ms_energy(sr, sg, sb, res);
+	fac *= (energy_ss / energy_ms);
+	
+	/* blend multiple scattering back in the light cache */
+	if (shade_type == MA_VOL_SHADE_SINGLEPLUSMULTIPLE) {
+		/* conserve energy - half single, half multiple */
+		origf = 0.5f;
+		fac *= 0.5f;
+	} else {
 		origf = 0.0f;
+	}
 
 	for (k=1;k<=n;k++)
 	{
@@ -390,7 +445,7 @@ static void *vol_precache_part(void *data)
 			
 			for (z=pa->minz; z < pa->maxz; z++) {
 				co[2] = pa->bbmin[2] + (pa->voxel[2] * z);
-			
+				
 				// don't bother if the point is not inside the volume mesh
 				if (!point_inside_obi(tree, obi, co)) {
 					obi->volume_precache[0*res_3 + x*res_2 + y*res + z] = -1.0f;
@@ -398,6 +453,9 @@ static void *vol_precache_part(void *data)
 					obi->volume_precache[2*res_3 + x*res_2 + y*res + z] = -1.0f;
 					continue;
 				}
+				
+				VecCopyf(shi->view, co);
+				Normalize(shi->view);
 				density = vol_get_density(shi, co);
 				vol_get_scattering(shi, scatter_col, co, stepsize, density);
 			
@@ -416,8 +474,6 @@ static void *vol_precache_part(void *data)
 
 static void precache_setup_shadeinput(Render *re, ObjectInstanceRen *obi, Material *ma, ShadeInput *shi)
 {
-	float view[3] = {0.0,0.0,-1.0};
-	
 	memset(shi, 0, sizeof(ShadeInput)); 
 	shi->depth= 1;
 	shi->mask= 1;
@@ -428,7 +484,6 @@ static void precache_setup_shadeinput(Render *re, ObjectInstanceRen *obi, Materi
 	shi->obi= obi;
 	shi->obr= obi->obr;
 	shi->lay = re->scene->lay;
-	VECCOPY(shi->view, view);
 }
 
 static void precache_init_parts(Render *re, RayTree *tree, ShadeInput *shi, ObjectInstanceRen *obi, float *bbmin, float *bbmax, int res, int totthread, int *parts)
@@ -654,3 +709,4 @@ int point_inside_volume_objectinstance(ObjectInstanceRen *obi, float *co)
 	
 	return inside;
 }
+
