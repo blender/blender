@@ -3047,7 +3047,7 @@ static void createTransActionData(bContext *C, TransInfo *t)
 /* Helper function for createTransGraphEditData, which is reponsible for associating
  * source data with transform data
  */
-static void bezt_to_transdata (TransData *td, TransData2D *td2d, Object *nob, float *loc, float *cent, short selected, short ishandle)
+static void bezt_to_transdata (TransData *td, TransData2D *td2d, Object *nob, float *loc, float *cent, short selected, short ishandle, short intvals)
 {
 	/* New location from td gets dumped onto the old-location of td2d, which then
 	 * gets copied to the actual data at td2d->loc2d (bezt->vec[n])
@@ -3094,6 +3094,8 @@ static void bezt_to_transdata (TransData *td, TransData2D *td2d, Object *nob, fl
 	
 	if (ishandle)	
 		td->flag |= TD_NOTIMESNAP;
+	if (intvals)
+		td->flag |= TD_INTVALUES;
 	
 	Mat3One(td->mtx);
 	Mat3One(td->smtx);
@@ -3204,6 +3206,7 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 	for (ale= anim_data.first; ale; ale= ale->next) {
 		Object *nob= NULL; //ANIM_nla_mapping_get(&ac, ale);	// XXX we don't handle NLA mapping here yet
 		FCurve *fcu= (FCurve *)ale->key_data;
+		short intvals= (fcu->flag & FCURVE_INT_VALUES);
 		
 		/* only include BezTriples whose 'keyframe' occurs on the same side of the current frame as mouse (if applicable) */
 		bezt= fcu->bezt;
@@ -3218,7 +3221,7 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 				if ( (!prevbezt && (bezt->ipo==BEZT_IPO_BEZ)) || (prevbezt && (prevbezt->ipo==BEZT_IPO_BEZ)) ) {
 					if (bezt->f1 & SELECT) {
 						hdata = initTransDataCurveHandes(td, bezt);
-						bezt_to_transdata(td++, td2d++, nob, bezt->vec[0], bezt->vec[1], 1, 1);
+						bezt_to_transdata(td++, td2d++, nob, bezt->vec[0], bezt->vec[1], 1, 1, intvals);
 					}
 					else
 						h1= 0;
@@ -3227,7 +3230,7 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 					if (bezt->f3 & SELECT) {
 						if (hdata==NULL)
 							hdata = initTransDataCurveHandes(td, bezt);
-						bezt_to_transdata(td++, td2d++, nob, bezt->vec[2], bezt->vec[1], 1, 1);
+						bezt_to_transdata(td++, td2d++, nob, bezt->vec[2], bezt->vec[1], 1, 1, intvals);
 					}
 					else
 						h2= 0;
@@ -3243,7 +3246,7 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 								hdata = initTransDataCurveHandes(td, bezt);
 						}
 						
-						bezt_to_transdata(td++, td2d++, nob, bezt->vec[1], bezt->vec[1], 1, 0);
+						bezt_to_transdata(td++, td2d++, nob, bezt->vec[1], bezt->vec[1], 1, 0, intvals);
 					}
 					
 					/* special hack (must be done after initTransDataCurveHandes(), as that stores handle settings to restore...): 
@@ -3489,7 +3492,11 @@ void flushTransGraphData(TransInfo *t)
 		//else
 			td2d->loc2d[0]= td2d->loc[0];
 		
-		td2d->loc2d[1]= td2d->loc[1];
+		/* if int-values only, truncate to integers */
+		if (td->flag & TD_INTVALUES)
+			td2d->loc2d[1]= (float)((int)td2d->loc[1]);
+		else
+			td2d->loc2d[1]= td2d->loc[1];
 	}
 }
 

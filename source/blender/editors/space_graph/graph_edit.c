@@ -1438,6 +1438,7 @@ static int graph_fmodifier_add_exec(bContext *C, wmOperator *op)
 	bAnimContext ac;
 	bAnimListElem *ale;
 	FCurve *fcu;
+	FModifier *fcm;
 	short type;
 	
 	/* get editor data */
@@ -1454,13 +1455,17 @@ static int graph_fmodifier_add_exec(bContext *C, wmOperator *op)
 	if (fcu == NULL) 
 		return OPERATOR_CANCELLED;
 		
-	
 	/* get type of modifier to add */
 	type= RNA_enum_get(op->ptr, "type");
 	
-	/* add F-Modifier of specified type to active F-Curve */
-	fcurve_add_modifier(fcu, type);
-	
+	/* add F-Modifier of specified type to active F-Curve, and make it the active one */
+	fcm= fcurve_add_modifier(fcu, type);
+	if (fcm)
+		fcurve_set_active_modifier(fcu, fcm);
+	else {
+		BKE_report(op->reports, RPT_ERROR, "Modifier couldn't be added. See console for details.");
+		return OPERATOR_CANCELLED;
+	}
 	
 	/* validate keyframes after editing */
 	ANIM_editkeyframes_refresh(&ac);

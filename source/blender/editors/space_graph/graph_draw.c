@@ -546,7 +546,7 @@ static void draw_fcurve_curve_bezts (FCurve *fcu, View2D *v2d, View2DGrid *grid)
 		v1[0]= v2d->cur.xmin;
 		
 		/* y-value depends on the interpolation */
-		if ((fcu->extend==FCURVE_EXTRAPOLATE_CONSTANT) || (fcu->flag & FCURVE_INT_VALUES) || (prevbezt->ipo==BEZT_IPO_CONST) || (fcu->totvert==1)) {
+		if ((fcu->extend==FCURVE_EXTRAPOLATE_CONSTANT) || (prevbezt->ipo==BEZT_IPO_CONST) || (fcu->totvert==1)) {
 			/* just extend across the first keyframe's value */
 			v1[1]= prevbezt->vec[1][1];
 		} 
@@ -575,7 +575,7 @@ static void draw_fcurve_curve_bezts (FCurve *fcu, View2D *v2d, View2DGrid *grid)
 	
 	/* draw curve between first and last keyframe (if there are enough to do so) */
 	while (b--) {
-		if ((fcu->flag & FCURVE_INT_VALUES) || (prevbezt->ipo==BEZT_IPO_CONST)) {
+		if (prevbezt->ipo==BEZT_IPO_CONST) {
 			/* Constant-Interpolation: draw segment between previous keyframe and next, but holding same value */
 			v1[0]= prevbezt->vec[1][0];
 			v1[1]= prevbezt->vec[1][1];
@@ -710,7 +710,7 @@ void graph_draw_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGri
 	 */
 	for (ale=anim_data.first; ale; ale=ale->next) {
 		FCurve *fcu= (FCurve *)ale->key_data;
-		FModifier *fcm= fcurve_active_modifier(fcu);
+		FModifier *fcm= fcurve_find_active_modifier(fcu);
 		//Object *nob= ANIM_nla_mapping_get(ac, ale);
 		
 		/* map keyframes for drawing if scaled F-Curve */
@@ -746,8 +746,10 @@ void graph_draw_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGri
 			glEnable(GL_BLEND);
 			
 			/* draw F-Curve */
-			if (fcu->modifiers.first) {
-				/* draw a curve affected by modifiers by sampling its points  */
+			if ((fcu->modifiers.first) || (fcu->flag & FCURVE_INT_VALUES)) {
+				/* draw a curve affected by modifiers or only allowed to have integer values 
+				 * by sampling it at various small-intervals over the visible region 
+				 */
 				draw_fcurve_curve(fcu, sipo, &ar->v2d, grid);
 			}
 			else if ( ((fcu->bezt) || (fcu->fpt)) && (fcu->totvert) ) { 

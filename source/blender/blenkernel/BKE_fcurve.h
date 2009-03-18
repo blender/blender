@@ -94,12 +94,14 @@ FModifierTypeInfo *get_fmodifier_typeinfo(int type);
 
 /* ---------------------- */
 
-struct FModifier *fcurve_active_modifier(struct FCurve *fcu);
 struct FModifier *fcurve_add_modifier(struct FCurve *fcu, int type);
 void fcurve_copy_modifiers(ListBase *dst, ListBase *src);
 void fcurve_remove_modifier(struct FCurve *fcu, struct FModifier *fcm);
 void fcurve_free_modifiers(struct FCurve *fcu);
 void fcurve_bake_modifiers(struct FCurve *fcu, int start, int end);
+
+struct FModifier *fcurve_find_active_modifier(struct FCurve *fcu);
+void fcurve_set_active_modifier(struct FCurve *fcu, struct FModifier *fcm);
 
 /* ************** F-Curves API ******************** */
 

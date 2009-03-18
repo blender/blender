@@ -1892,7 +1892,7 @@ void fcurve_bake_modifiers (FCurve *fcu, int start, int end)
 }
 
 /* Find the active F-Curve Modifier */
-FModifier *fcurve_active_modifier (FCurve *fcu)
+FModifier *fcurve_find_active_modifier (FCurve *fcu)
 {
 	FModifier *fcm;
 	
@@ -1908,6 +1908,24 @@ FModifier *fcurve_active_modifier (FCurve *fcu)
 	
 	/* no modifier is active */
 	return NULL;
+}
+
+/* Set the active F-Curve Modifier */
+void fcurve_set_active_modifier (FCurve *fcu, FModifier *fcm)
+{
+	FModifier *fm;
+	
+	/* sanity checks */
+	if ELEM(NULL, fcu, fcu->modifiers.first)
+		return NULL;
+	
+	/* deactivate all, and set current one active */
+	for (fm= fcu->modifiers.first; fm; fm= fm->next)
+		fm->flag &= ~FMODIFIER_FLAG_ACTIVE;
+	
+	/* make given modifier active */
+	if (fcm)
+		fcm->flag |= FMODIFIER_FLAG_ACTIVE;
 }
 
 /* ***************************** F-Curve - Evaluation ********************************* */
@@ -1945,6 +1963,12 @@ float evaluate_fcurve (FCurve *fcu, float evaltime)
 				fmi->evaluate_modifier(fcu, fcm, &cvalue, evaltime);
 		}
 	}
+	
+	/* if curve can only have integral values, perform truncation (i.e. drop the decimal part)
+	 * here so that the curve can be sampled correctly
+	 */
+	if (fcu->flag & FCURVE_INT_VALUES)
+		cvalue= (float)((int)cvalue);
 	
 	/* return evaluated value */
 	return cvalue;

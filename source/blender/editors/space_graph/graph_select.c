@@ -613,6 +613,7 @@ static short findnearest_fcurve_vert (bAnimContext *ac, int mval[2], FCurve **fc
 				}
 				
 				/* handles - only do them if they're visible */
+				// XXX also need to check for int-values only?
 				if ((sipo->flag & SIPO_NOHANDLES)==0) {
 					/* first handle only visible if previous segment had handles */
 					if ( (!prevbezt && (bezt1->ipo==BEZT_IPO_BEZ)) || (prevbezt && (prevbezt->ipo==BEZT_IPO_BEZ)) )

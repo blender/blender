@@ -347,6 +347,7 @@ typedef struct TransInfo {
 #define TD_BEZTRIPLE		(1 << 12)	/* if this is a bez triple, we need to restore the handles, if this is set transdata->misc.hdata needs freeing */
 #define TD_NO_LOC			(1 << 13)	/* when this is set, don't apply translation changes to this element */
 #define TD_NOTIMESNAP		(1 << 14)	/* for Graph Editor autosnap, indicates that point should not undergo autosnapping */
+#define TD_INTVALUES	 	(1 << 15) 	/* for Graph Editor - curves that can only have int-values need their keyframes tagged with this */
 
 /* transsnap->status */
 #define SNAP_ON			1

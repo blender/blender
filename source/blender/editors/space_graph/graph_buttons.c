@@ -252,6 +252,17 @@ static void validate_fmodifier_cb (bContext *C, void *fcu_v, void *fcm_v)
 		fmi->verify_data(fcm);
 }
 
+/* callback to set the active modifier */
+static void activate_fmodifier_cb (bContext *C, void *fcu_v, void *fcm_v)
+{
+	FCurve *fcu= (FCurve *)fcu_v;
+	FModifier *fcm= (FModifier *)fcm_v;
+	
+	/* call API function to set the active modifier for active F-Curve */
+	fcurve_set_active_modifier(fcu, fcm);
+}
+
+
 /* callback to remove the given modifier  */
 static void delete_fmodifier_cb (bContext *C, void *fcu_v, void *fcm_v)
 {
@@ -492,12 +503,13 @@ static void graph_panel_modifier_draw(uiBlock *block, FCurve *fcu, FModifier *fc
 		
 		/* name */
 		if (fmi)
-			uiDefBut(block, LABEL, 1, fmi->name,	10+35, *yco, 240, 20, NULL, 0.0, 0.0, 0, 0, "F-Curve Modifier Type");
+			but= uiDefBut(block, LABEL, 1, fmi->name,	10+35, *yco, 240, 20, NULL, 0.0, 0.0, 0, 0, "F-Curve Modifier Type. Click to make modifier active one.");
 		else
-			uiDefBut(block, LABEL, 1, "<Unknown Modifier>",	10+35, *yco, 240, 20, NULL, 0.0, 0.0, 0, 0, "F-Curve Modifier Type");
+			but= uiDefBut(block, LABEL, 1, "<Unknown Modifier>",	10+35, *yco, 240, 20, NULL, 0.0, 0.0, 0, 0, "F-Curve Modifier Type. Click to make modifier active one.");
+		uiButSetFunc(but, activate_fmodifier_cb, fcu, fcm);
 		
 		/* delete button */
-		but= uiDefIconBut(block, BUT, B_REDR, ICON_X, 10+(width-30), *yco, 19, 19, NULL, 0.0, 0.0, 0.0, 0.0, "Delete layer");
+		but= uiDefIconBut(block, BUT, B_REDR, ICON_X, 10+(width-30), *yco, 19, 19, NULL, 0.0, 0.0, 0.0, 0.0, "Delete F-Curve Modifier.");
 		uiButSetFunc(but, delete_fmodifier_cb, fcu, fcm);
 		
 		uiBlockSetEmboss(block, UI_EMBOSS);
