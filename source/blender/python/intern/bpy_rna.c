@@ -26,11 +26,13 @@
 #include "bpy_compat.h"
 //#include "blendef.h"
 #include "BLI_dynstr.h"
+#include "BLI_listbase.h"
 #include "float.h" /* FLT_MIN/MAX */
 
 #include "RNA_define.h" /* for defining our own rna */
 
 #include "MEM_guardedalloc.h"
+#include "BKE_context.h"
 #include "BKE_global.h" /* evil G.* */
 
 static int pyrna_struct_compare( BPy_StructRNA * a, BPy_StructRNA * b )
@@ -639,6 +641,34 @@ static PyObject *pyrna_struct_getattro( BPy_StructRNA * self, PyObject *pyname )
 	
 	if (prop) {
 		ret = pyrna_prop_to_py(&self->ptr, prop);
+	}
+	else if (self->ptr.type == &RNA_Context) {
+		PointerRNA newptr;
+		ListBase newlb;
+
+		CTX_data_get(self->ptr.data, name, &newptr, &newlb);
+
+        if (newptr.data) {
+            ret = pyrna_struct_CreatePyObject(&newptr);
+		}
+		else if (newlb.first) {
+			CollectionPointerLink *link;
+			PyObject *linkptr;
+
+			ret = PyList_New(0);
+
+			for(link=newlb.first; link; link=link->next) {
+				linkptr= pyrna_struct_CreatePyObject(&link->ptr);
+				PyList_Append(ret, linkptr);
+				Py_DECREF(linkptr);
+			}
+		}
+        else {
+            ret = Py_None;
+            Py_INCREF(ret);
+        }
+
+		BLI_freelistN(&newlb);
 	}
 	else {
 		PyErr_Format( PyExc_AttributeError, "StructRNA - Attribute \"%s\" not found", name);

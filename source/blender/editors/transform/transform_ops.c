@@ -492,8 +492,7 @@ void TFM_OT_transform(struct wmOperatorType *ot)
 
 	RNA_def_float_vector(ot->srna, "value", 4, NULL, -FLT_MAX, FLT_MAX, "Values", "", -FLT_MAX, FLT_MAX);
 
-	RNA_def_enum(ot->srna, "proportional", proportional_mode_types, 0, "Proportional Edition", "");
-	RNA_def_float(ot->srna, "proportional_size", 1, 0, FLT_MAX, "Proportional Size", "", 0, 100);
+	Properties_Proportional(ot);
 	RNA_def_boolean(ot->srna, "mirror", 0, "Mirror Edition", "");
 
 	RNA_def_boolean_vector(ot->srna, "constraint_axis", 3, NULL, "Constraint Axis", "");

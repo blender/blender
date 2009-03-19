@@ -600,7 +600,7 @@ void uiEndBlock(const bContext *C, uiBlock *block)
 		/* temp? Proper check for greying out */
 		if(but->opname) {
 			wmOperatorType *ot= WM_operatortype_find(but->opname);
-			if(ot==NULL || ot->poll((bContext *)C)==0) {
+			if(ot==NULL || (ot->poll && ot->poll((bContext *)C)==0)) {
 				but->flag |= UI_BUT_DISABLED;
 				but->lock = 1;
 			}

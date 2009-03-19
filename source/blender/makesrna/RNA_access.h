@@ -25,6 +25,7 @@
 #ifndef RNA_ACCESS
 #define RNA_ACCESS
 
+#include "DNA_listBase.h"
 #include "RNA_types.h"
 
 #ifdef __cplusplus
@@ -72,6 +73,7 @@ extern StructRNA RNA_ColorRamp;
 extern StructRNA RNA_ColorRampElement;
 extern StructRNA RNA_ColorSequence;
 extern StructRNA RNA_Constraint;
+extern StructRNA RNA_Context;
 extern StructRNA RNA_ControlFluidSettings;
 extern StructRNA RNA_Controller;
 extern StructRNA RNA_Curve;

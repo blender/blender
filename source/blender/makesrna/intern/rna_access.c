@@ -55,7 +55,6 @@ void RNA_exit()
 
 void RNA_main_pointer_create(struct Main *main, PointerRNA *r_ptr)
 {
-	r_ptr->id.type= NULL;
 	r_ptr->id.data= NULL;
 	r_ptr->type= &RNA_Main;
 	r_ptr->data= main;
@@ -72,7 +71,6 @@ void RNA_id_pointer_create(ID *id, PointerRNA *r_ptr)
 		idtype= rna_ID_refine(&tmp);
 	}
 
-	r_ptr->id.type= idtype;
 	r_ptr->id.data= id;
 	r_ptr->type= idtype;
 	r_ptr->data= id;
@@ -89,7 +87,6 @@ void RNA_pointer_create(ID *id, StructRNA *type, void *data, PointerRNA *r_ptr)
 		idtype= rna_ID_refine(&tmp);
 	}
 
-	r_ptr->id.type= idtype;
 	r_ptr->id.data= id;
 	r_ptr->type= type;
 	r_ptr->data= data;
@@ -99,20 +96,35 @@ static void rna_pointer_inherit_id(StructRNA *type, PointerRNA *parent, PointerR
 {
 	if(type && type->flag & STRUCT_ID) {
 		ptr->id.data= ptr->data;
-		ptr->id.type= type;
 	}
 	else {
 		ptr->id.data= parent->id.data;
-		ptr->id.type= parent->id.type;
 	}
 }
 
 void RNA_blender_rna_pointer_create(PointerRNA *r_ptr)
 {
-	r_ptr->id.type= NULL;
 	r_ptr->id.data= NULL;
 	r_ptr->type= &RNA_BlenderRNA;
 	r_ptr->data= &BLENDER_RNA;
+}
+
+PointerRNA rna_pointer_inherit_refine(PointerRNA *ptr, StructRNA *type, void *data)
+{
+	PointerRNA result;
+
+	if(data) {
+		result.data= data;
+		result.type= type;
+		rna_pointer_inherit_id(type, ptr, &result);
+
+		if(type->refine)
+			result.type= type->refine(&result);
+	}
+	else
+		memset(&result, 0, sizeof(result));
+	
+	return result;
 }
 
 /* ID Properties */
@@ -1363,26 +1375,6 @@ void *rna_iterator_array_dereference_get(CollectionPropertyIterator *iter)
 void rna_iterator_array_end(CollectionPropertyIterator *iter)
 {
 	MEM_freeN(iter->internal);
-}
-
-/* Pointer Handling */
-
-PointerRNA rna_pointer_inherit_refine(PointerRNA *ptr, StructRNA *type, void *data)
-{
-	PointerRNA result;
-
-	if(data) {
-		result.data= data;
-		result.type= type;
-		rna_pointer_inherit_id(type, ptr, &result);
-
-		if(type->refine)
-			result.type= type->refine(&result);
-	}
-	else
-		memset(&result, 0, sizeof(result));
-	
-	return result;
 }
 
 /* RNA Path - Experiment */

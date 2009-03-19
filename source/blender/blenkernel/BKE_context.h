@@ -33,6 +33,7 @@ extern "C" {
 #endif
 
 #include "DNA_listBase.h"
+#include "RNA_types.h"
 
 struct ARegion;
 struct bScreen;
@@ -58,6 +59,7 @@ struct wmWindow;
 struct wmWindowManager;
 struct SpaceText;
 struct SpaceImage;
+struct ID;
 
 /* Structs */
 
@@ -67,45 +69,8 @@ typedef struct bContext bContext;
 struct bContextDataResult;
 typedef struct bContextDataResult bContextDataResult;
 
-enum {
-	CTX_DATA_MAIN,
-	CTX_DATA_SCENE,
-	CTX_DATA_TOOL_SETTINGS,
-
-	CTX_DATA_SELECTED_OBJECTS,
-	CTX_DATA_SELECTED_BASES,
-	CTX_DATA_SELECTED_EDITABLE_OBJECTS,
-	CTX_DATA_SELECTED_EDITABLE_BASES,
-	CTX_DATA_VISIBLE_OBJECTS,
-	CTX_DATA_VISIBLE_BASES,
-
-	CTX_DATA_ACTIVE_OBJECT,
-	CTX_DATA_ACTIVE_BASE,
-	CTX_DATA_EDIT_OBJECT,
-
-	CTX_DATA_EDIT_IMAGE,
-	CTX_DATA_EDIT_IMAGE_BUFFER,
-
-	CTX_DATA_EDIT_TEXT,
-
-	CTX_DATA_SELECTED_NODES,
-	
-	CTX_DATA_SELECTED_BONES,
-	CTX_DATA_SELECTED_EDITABLE_BONES,
-	CTX_DATA_SELECTED_PCHANS,
-	
-	CTX_DATA_ACTIVE_BONE,
-	CTX_DATA_ACTIVE_PCHAN,
-	
-	CTX_DATA_VISIBLE_BONES,
-	CTX_DATA_EDITABLE_BONES,
-	CTX_DATA_VISIBLE_PCHANS,
-};
-
-typedef int bContextDataMember;
-
 typedef int (*bContextDataCallback)(const bContext *C,
-	bContextDataMember member, bContextDataResult *result);
+	const char *member, bContextDataResult *result);
 
 /* Context */
 
@@ -158,16 +123,28 @@ void CTX_wm_ui_block_set(bContext *C, struct uiBlock *block, bContextDataCallbac
    - note: listbases consist of LinkData items and must be
      freed with BLI_freelistN! */
 
-void CTX_data_pointer_set(bContextDataResult *result, void *data);
-void CTX_data_list_add(bContextDataResult *result, void *data);
+PointerRNA CTX_data_pointer_get(bContext *C, const char *member);
+ListBase CTX_data_collection_get(bContext *C, const char *member);
+void CTX_data_get(bContext *C, const char *member, PointerRNA *r_ptr, ListBase *r_lb);
+
+void CTX_data_id_pointer_set(bContextDataResult *result, struct ID *id);
+void CTX_data_pointer_set(bContextDataResult *result, struct ID *id, StructRNA *type, void *data);
+
+void CTX_data_id_list_add(bContextDataResult *result, struct ID *id);
+void CTX_data_list_add(bContextDataResult *result, struct ID *id, StructRNA *type, void *data);
+
+int CTX_data_equals(const char *member, const char *str);
+
+/*void CTX_data_pointer_set(bContextDataResult *result, void *data);
+void CTX_data_list_add(bContextDataResult *result, void *data);*/
 
 #define CTX_DATA_BEGIN(C, Type, instance, member) \
 	{ \
 		ListBase ctx_data_list; \
-		LinkData *link; \
+		CollectionPointerLink *ctx_link; \
 		CTX_data_##member(C, &ctx_data_list); \
-		for(link=ctx_data_list.first; link; link=link->next) { \
-			Type instance= link->data;
+		for(ctx_link=ctx_data_list.first; ctx_link; ctx_link=ctx_link->next) { \
+			Type instance= ctx_link->ptr.data;
 
 #define CTX_DATA_END \
 		} \
@@ -202,7 +179,6 @@ struct Base *CTX_data_active_base(const bContext *C);
 struct Object *CTX_data_edit_object(const bContext *C);
 
 struct Image *CTX_data_edit_image(const bContext *C);
-struct ImBuf *CTX_data_edit_image_buffer(const bContext *C);
 
 struct Text *CTX_data_edit_text(const bContext *C);
 

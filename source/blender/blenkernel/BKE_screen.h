@@ -77,7 +77,7 @@ typedef struct SpaceType {
 	void		(*keymap)(struct wmWindowManager *);
 
 	/* return context data */
-	int			(*context)(const struct bContext *, int, struct bContextDataResult *);
+	int			(*context)(const struct bContext *, const char*, struct bContextDataResult *);
 
 	/* region type definitions */
 	ListBase	regiontypes;
@@ -117,7 +117,7 @@ typedef struct ARegionType {
 	void		(*cursor)(struct wmWindow *, struct ScrArea *, struct ARegion *ar);
 
 	/* return context data */
-	int			(*context)(const struct bContext *, int, struct bContextDataResult *);
+	int			(*context)(const struct bContext *, const char *, struct bContextDataResult *);
 
 	/* custom drawing callbacks */
 	ListBase	drawcalls;

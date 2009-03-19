@@ -34,6 +34,7 @@ SET(DEFSRC
      rna_cloth.c
      rna_color.c
      rna_constraint.c
+     rna_context.c
      rna_controller.c
      rna_curve.c
      rna_fluidsim.c

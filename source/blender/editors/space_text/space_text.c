@@ -284,12 +284,12 @@ static void text_keymap(struct wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "TEXT_OT_insert", KM_TEXTINPUT, KM_ANY, KM_ANY, 0); // last!
 }
 
-static int text_context(const bContext *C, bContextDataMember member, bContextDataResult *result)
+static int text_context(const bContext *C, const char *member, bContextDataResult *result)
 {
 	SpaceText *st= CTX_wm_space_text(C);
 
-	if(member == CTX_DATA_EDIT_TEXT) {
-		CTX_data_pointer_set(result, st->text);
+	if(CTX_data_equals(member, "edit_text")) {
+		CTX_data_id_pointer_set(result, &st->text->id);
 		return 1;
 	}
 

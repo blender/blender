@@ -32,6 +32,7 @@ extern "C" {
 struct PropertyRNA;
 struct StructRNA;
 struct BlenderRNA;
+struct IDProperty;
 
 /* Pointer
  *
@@ -42,7 +43,6 @@ struct BlenderRNA;
 
 typedef struct PointerRNA {
 	struct {
-		struct StructRNA *type;
 		void *data;
 	} id;
 
@@ -121,6 +121,11 @@ typedef struct CollectionPropertyIterator {
 	int valid;
 	PointerRNA ptr;
 } CollectionPropertyIterator;
+
+typedef struct CollectionPointerLink {
+	struct CollectionPointerLink *next, *prev;
+	PointerRNA ptr;
+} CollectionPointerLink;
 
 /* Iterator Utility */
 

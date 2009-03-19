@@ -199,14 +199,10 @@ void rna_builtin_properties_begin(CollectionPropertyIterator *iter, PointerRNA *
 	newptr.type= &RNA_Struct;
 	newptr.data= ptr->type;
 
-	if(ptr->type->flag & STRUCT_ID) {
-		newptr.id.type= ptr->type;
+	if(ptr->type->flag & STRUCT_ID)
 		newptr.id.data= ptr->data;
-	}
-	else {
-		newptr.id.type= NULL;
+	else
 		newptr.id.data= NULL;
-	}
 
 	iter->parent= newptr;
 
