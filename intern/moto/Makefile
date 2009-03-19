@@ -1,3 +1,5 @@
+# -*- mode: gnumakefile; tab-width: 8; indent-tabs-mode: t; -*-
+# vim: tabstop=8
 #
 # $Id$
 #
@@ -22,7 +24,7 @@
 #
 # The Original Code is: all of this file.
 #
-# Contributor(s): Hans Lambermont
+# Contributor(s): Hans Lambermont, GSR
 #
 # ***** END GPL LICENSE BLOCK *****
 # moto main makefile.
@@ -38,16 +40,13 @@ DIRS = intern
  
 include nan_subdirs.mk
 
-install: all debug
+install: $(ALL_OR_DEBUG)
 	@[ -d $(NAN_MOTO) ] || mkdir $(NAN_MOTO)
 	@[ -d $(NAN_MOTO)/include ] || mkdir $(NAN_MOTO)/include
-	@[ -d $(NAN_MOTO)/lib ] || mkdir $(NAN_MOTO)/lib
-	@[ -d $(NAN_MOTO)/lib/debug ] || mkdir $(NAN_MOTO)/lib/debug
-	@../tools/cpifdiff.sh $(DIR)/libmoto.a $(NAN_MOTO)/lib/
-	@../tools/cpifdiff.sh $(DIR)/debug/libmoto.a $(NAN_MOTO)/lib/debug/
+	@[ -d $(NAN_MOTO)/lib/$(DEBUG_DIR) ] || mkdir $(NAN_MOTO)/lib/$(DEBUG_DIR)
+	@../tools/cpifdiff.sh $(DIR)/$(DEBUG_DIR)libmoto.a $(NAN_MOTO)/lib/$(DEBUG_DIR)
 ifeq ($(OS),darwin)
-	ranlib $(NAN_MOTO)/lib/libmoto.a
-	ranlib $(NAN_MOTO)/lib/debug/libmoto.a
+	ranlib $(NAN_MOTO)/lib/$(DEBUG_DIR)libmoto.a
 endif
 	@../tools/cpifdiff.sh include/*.h $(NAN_MOTO)/include/
 

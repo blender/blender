@@ -1,3 +1,5 @@
+# -*- mode: gnumakefile; tab-width: 8; indent-tabs-mode: t; -*-
+# vim: tabstop=8
 #
 # $Id$
 #
@@ -22,7 +24,7 @@
 #
 # The Original Code is: all of this file.
 #
-# Contributor(s): none yet.
+# Contributor(s): GSR
 #
 # ***** END GPL LICENSE BLOCK *****
 #
@@ -46,15 +48,13 @@ CPPFLAGS += -I../include
 CPPFLAGS += -I$(NAN_FREETYPE)/include -I$(NAN_FREETYPE)/include/freetype2
 CPPFLAGS += -I$(OPENGL_HEADERS) 
 
-install: all debug
+install: $(ALL_OR_DEBUG)
 	@[ -d $(NAN_FTGL) ] || mkdir -p $(NAN_FTGL)
 	@[ -d $(NAN_FTGL)/include ] || mkdir -p $(NAN_FTGL)/include
-	@[ -d $(NAN_FTGL)/lib ] || mkdir -p $(NAN_FTGL)/lib
-	@[ -d $(NAN_FTGL)/lib/debug ] || mkdir -p $(NAN_FTGL)/lib/debug
-	@$(NANBLENDERHOME)/intern/tools/cpifdiff.sh $(DIR)/lib$(LIBNAME).a $(NAN_FTGL)/lib/
-#	@$(NANBLENDERHOME)/intern/tools/cpifdiff.sh $(DIR)/debug/lib$(LIBNAME).a $(NAN_FTGL)/lib/debug/
+	@[ -d $(NAN_FTGL)/lib/$(DEBUG_DIR) ] || mkdir -p $(NAN_FTGL)/lib/$(DEBUG_DIR)
+	@$(NANBLENDERHOME)/intern/tools/cpifdiff.sh $(DIR)/$(DEBUG_DIR)lib$(LIBNAME).a $(NAN_FTGL)/lib/$(DEBUG_DIR)
 ifeq ($(OS),darwin)
-	ranlib $(NAN_FTGL)/lib/lib$(LIBNAME).a
+	ranlib $(NAN_FTGL)/lib/$(DEBUG_DIR)lib$(LIBNAME).a
 endif
 	@$(NANBLENDERHOME)/intern/tools/cpifdiff.sh ../include/*.h $(NAN_FTGL)/include/
 

@@ -1,3 +1,5 @@
+# -*- mode: gnumakefile; tab-width: 8; indent-tabs-mode: t; -*-
+# vim: tabstop=8
 #
 # $Id$
 #
@@ -22,7 +24,7 @@
 #
 # The Original Code is: all of this file.
 #
-# Contributor(s): Hans Lambermont
+# Contributor(s): Hans Lambermont, GSR
 #
 # ***** END GPL LICENSE BLOCK *****
 # iksolver main makefile.
@@ -38,16 +40,13 @@ TESTDIRS = test
 
 include nan_subdirs.mk
 
-install: all debug
+install: $(ALL_OR_DEBUG)
 	@[ -d $(NAN_IKSOLVER) ] || mkdir $(NAN_IKSOLVER)
 	@[ -d $(NAN_IKSOLVER)/include ] || mkdir $(NAN_IKSOLVER)/include
-	@[ -d $(NAN_IKSOLVER)/lib ] || mkdir $(NAN_IKSOLVER)/lib
-	@[ -d $(NAN_IKSOLVER)/lib/debug ] || mkdir $(NAN_IKSOLVER)/lib/debug
-	@../tools/cpifdiff.sh $(DIR)/libiksolver.a $(NAN_IKSOLVER)/lib/
-	@../tools/cpifdiff.sh $(DIR)/debug/libiksolver.a $(NAN_IKSOLVER)/lib/debug/
+	@[ -d $(NAN_IKSOLVER)/lib/$(DEBUG_DIR) ] || mkdir $(NAN_IKSOLVER)/lib/$(DEBUG_DIR)
+	@../tools/cpifdiff.sh $(DIR)/$(DEBUG_DIR)libiksolver.a $(NAN_IKSOLVER)/lib/$(DEBUG_DIR)
 ifeq ($(OS),darwin)
-	ranlib $(NAN_IKSOLVER)/lib/libiksolver.a
-	ranlib $(NAN_IKSOLVER)/lib/debug/libiksolver.a
+	ranlib $(NAN_IKSOLVER)/lib/$(DEBUG_DIR)libiksolver.a
 endif
 	@../tools/cpifdiff.sh extern/*.h $(NAN_IKSOLVER)/include/
 

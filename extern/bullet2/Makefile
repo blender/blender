@@ -1,3 +1,5 @@
+# -*- mode: gnumakefile; tab-width: 8; indent-tabs-mode: t; -*-
+# vim: tabstop=8
 #
 # $Id$
 #
@@ -48,7 +50,7 @@ include nan_subdirs.mk
 
 CP = $(NANBLENDERHOME)/intern/tools/cpifdiff.sh
 
-install: all debug
+install: $(ALL_OR_DEBUG)
 	@[ -d $(NAN_BULLET2) ] || mkdir -p $(NAN_BULLET2)
 	@[ -d $(NAN_BULLET2)/include ] || mkdir -p $(NAN_BULLET2)/include
 	@for i in $(BULLETDIRS); do \

@@ -1,3 +1,5 @@
+# -*- mode: gnumakefile; tab-width: 8; indent-tabs-mode: t; -*-
+# vim: tabstop=8
 #
 # $Id$
 #
@@ -22,7 +24,7 @@
 #
 # The Original Code is: all of this file.
 #
-# Contributor(s): none yet.
+# Contributor(s): GSR
 #
 # ***** END GPL LICENSE BLOCK *****
 #
@@ -40,16 +42,13 @@ CSRCS = user.c global.c stat.c io.c geom2.c poly2.c \
 CCSRCS = 
 include nan_compile.mk 
 
-install: all debug
+install: $(ALL_OR_DEBUG)
 	@[ -d $(NAN_QHULL) ] || mkdir -p $(NAN_QHULL)
 	@[ -d $(NAN_QHULL)/include/qhull ] || mkdir -p $(NAN_QHULL)/include/qhull
-	@[ -d $(NAN_QHULL)/lib ] || mkdir -p $(NAN_QHULL)/lib
-	@[ -d $(NAN_QHULL)/lib/debug ] || mkdir -p $(NAN_QHULL)/lib/debug
-	@$(NANBLENDERHOME)/intern/tools/cpifdiff.sh $(DIR)/lib$(LIBNAME).a $(NAN_QHULL)/lib/
-#	@$(NANBLENDERHOME)/intern/tools/cpifdiff.sh $(DIR)/debug/lib$(LIBNAME).a $(NAN_QHULL)/lib/debug/
+	@[ -d $(NAN_QHULL)/lib/$(DEBUG_DIR) ] || mkdir -p $(NAN_QHULL)/lib/$(DEBUG_DIR)
+	@$(NANBLENDERHOME)/intern/tools/cpifdiff.sh $(DIR)/$(DEBUG_DIR)lib$(LIBNAME).a $(NAN_QHULL)/lib/$(DEBUG_DIR)
 ifeq ($(OS),darwin)
-	ranlib $(NAN_QHULL)/lib/lib$(LIBNAME).a
-#	ranlib $(NAN_QHULL)/lib/debug/lib$(LIBNAME).a
+	ranlib $(NAN_QHULL)/lib/$(DEBUG_DIR)lib$(LIBNAME).a
 endif
 	@$(NANBLENDERHOME)/intern/tools/cpifdiff.sh ../include/qhull/*.h $(NAN_QHULL)/include/qhull
 

@@ -1,3 +1,5 @@
+# -*- mode: gnumakefile; tab-width: 8; indent-tabs-mode: t; -*-
+# vim: tabstop=8
 #
 # $Id$
 #
@@ -22,7 +24,7 @@
 #
 # The Original Code is: all of this file.
 #
-# Contributor(s): Hans Lambermont
+# Contributor(s): Hans Lambermont, GSR
 #
 # ***** END GPL LICENSE BLOCK *****
 # bsp main makefile.
@@ -38,19 +40,14 @@ DIRS = intern
 
 include nan_subdirs.mk
 
-install: all debug
+install: $(ALL_OR_DEBUG)
 	@[ -d $(NAN_BSP) ] || mkdir $(NAN_BSP)
 	@[ -d $(NAN_BSP)/include ] || mkdir $(NAN_BSP)/include
-	@[ -d $(NAN_BSP)/lib ] || mkdir $(NAN_BSP)/lib
-	@[ -d $(NAN_BSP)/lib/debug ] || mkdir $(NAN_BSP)/lib/debug
-	@../tools/cpifdiff.sh $(DIR)/libbsp.a $(NAN_BSP)/lib/
-	@../tools/cpifdiff.sh $(DIR)/debug/libbsp.a $(NAN_BSP)/lib/debug/
+	@[ -d $(NAN_BSP)/lib/$(DEBUG_DIR) ] || mkdir $(NAN_BSP)/lib/$(DEBUG_DIR)
+	@../tools/cpifdiff.sh $(DIR)/$(DEBUG_DIR)libbsp.a $(NAN_BSP)/lib/$(DEBUG_DIR)
 ifeq ($(OS),darwin)
-	ranlib $(NAN_BSP)/lib/libbsp.a
-	ranlib $(NAN_BSP)/lib/debug/libbsp.a
+	ranlib $(NAN_BSP)/lib/$(DEBUG_DIR)libbsp.a
 endif
 	@../tools/cpifdiff.sh extern/*.h $(NAN_BSP)/include/
-
-
 
 

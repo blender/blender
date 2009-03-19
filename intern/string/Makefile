@@ -1,3 +1,5 @@
+# -*- mode: gnumakefile; tab-width: 8; indent-tabs-mode: t; -*-
+# vim: tabstop=8
 #
 # $Id$
 #
@@ -22,7 +24,7 @@
 #
 # The Original Code is: all of this file.
 #
-# Contributor(s): Hans Lambermont
+# Contributor(s): Hans Lambermont, GSR
 #
 # ***** END GPL LICENSE BLOCK *****
 # string main makefile.
@@ -38,16 +40,13 @@ DIRS = intern
 
 include nan_subdirs.mk
 
-install: all debug
+install:  $(ALL_OR_DEBUG)
 	@[ -d $(NAN_STRING) ] || mkdir $(NAN_STRING)
 	@[ -d $(NAN_STRING)/include ] || mkdir $(NAN_STRING)/include
-	@[ -d $(NAN_STRING)/lib ] || mkdir $(NAN_STRING)/lib
-	@[ -d $(NAN_STRING)/lib/debug ] || mkdir $(NAN_STRING)/lib/debug
-	@../tools/cpifdiff.sh $(DIR)/libstring.a $(NAN_STRING)/lib/
-	@../tools/cpifdiff.sh $(DIR)/debug/libstring.a $(NAN_STRING)/lib/debug/
+	@[ -d $(NAN_STRING)/lib/$(DEBUG_DIR) ] || mkdir $(NAN_STRING)/lib/$(DEBUG_DIR)
+	@../tools/cpifdiff.sh $(DIR)/$(DEBUG_DIR)libstring.a $(NAN_STRING)/lib/$(DEBUG_DIR)
 ifeq ($(OS),darwin)
-	ranlib $(NAN_STRING)/lib/libstring.a
-	ranlib $(NAN_STRING)/lib/debug/libstring.a
+	ranlib $(NAN_STRING)/lib/$(DEBUG_DIR)libstring.a
 endif
 	@../tools/cpifdiff.sh *.h $(NAN_STRING)/include/
 

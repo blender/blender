@@ -23,7 +23,7 @@
 #
 # The Original Code is: revision 1.1
 #
-# Contributor(s): Hans Lambermont
+# Contributor(s): Hans Lambermont, GSR
 #
 # ***** END GPL LICENSE BLOCK *****
 #

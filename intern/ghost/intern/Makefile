@@ -1,3 +1,5 @@
+# -*- mode: gnumakefile; tab-width: 8; indent-tabs-mode: t; -*-
+# vim: tabstop=8
 #
 # $Id$
 #
@@ -22,7 +24,7 @@
 #
 # The Original Code is: all of this file.
 #
-# Contributor(s): none yet.
+# Contributor(s): GSR
 #
 # ***** END GPL LICENSE BLOCK *****
 # ghost intern Makefile
@@ -37,8 +39,6 @@ CCSRCS += GHOST_ISystem.cpp GHOST_ModifierKeys.cpp GHOST_TimerManager.cpp
 CCSRCS += GHOST_Rect.cpp GHOST_DisplayManager.cpp GHOST_C-api.cpp
 CCSRCS += GHOST_CallbackEventConsumer.cpp
 CCSRCS += GHOST_NDOFManager.cpp
-
-include nan_definitions.mk
 
 ifeq ($(OS),$(findstring $(OS), "darwin"))
     CCSRCS += $(wildcard *Carbon.cpp)

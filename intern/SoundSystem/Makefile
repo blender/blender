@@ -1,3 +1,5 @@
+# -*- mode: gnumakefile; tab-width: 8; indent-tabs-mode: t; -*-
+# vim: tabstop=8
 #
 # $Id$
 #
@@ -22,7 +24,7 @@
 #
 # The Original Code is: all of this file.
 #
-# Contributor(s): none yet.
+# Contributor(s): GSR
 #
 # ***** END GPL LICENSE BLOCK *****
 #
@@ -56,16 +58,13 @@ endif
 
 include nan_subdirs.mk
 
-install: all debug
+install: $(ALL_OR_DEBUG)
 	@[ -d $(NAN_SOUNDSYSTEM) ] || mkdir $(NAN_SOUNDSYSTEM)
 	@[ -d $(NAN_SOUNDSYSTEM)/include ] || mkdir $(NAN_SOUNDSYSTEM)/include
-	@[ -d $(NAN_SOUNDSYSTEM)/lib ] || mkdir $(NAN_SOUNDSYSTEM)/lib
-	@[ -d $(NAN_SOUNDSYSTEM)/lib/debug ] || mkdir $(NAN_SOUNDSYSTEM)/lib/debug
-	@../tools/cpifdiff.sh $(DIR)/libSoundSystem.a $(NAN_SOUNDSYSTEM)/lib/
-	@../tools/cpifdiff.sh $(DIR)/debug/libSoundSystem.a $(NAN_SOUNDSYSTEM)/lib/debug/
+	@[ -d $(NAN_SOUNDSYSTEM)/lib/$(DEBUG_DIR) ] || mkdir $(NAN_SOUNDSYSTEM)/lib/$(DEBUG_DIR)
+	@../tools/cpifdiff.sh $(DIR)/$(DEBUG_DIR)libSoundSystem.a $(NAN_SOUNDSYSTEM)/lib/$(DEBUG_DIR)
 ifeq ($(OS),darwin)
-	ranlib $(NAN_SOUNDSYSTEM)/lib/libSoundSystem.a
-	ranlib $(NAN_SOUNDSYSTEM)/lib/debug/libSoundSystem.a
+	ranlib $(NAN_SOUNDSYSTEM)/lib/$(DEBUG_DIR)libSoundSystem.a
 endif
 	@../tools/cpifdiff.sh *.h $(NAN_SOUNDSYSTEM)/include/
 
