@@ -2809,6 +2809,15 @@ int RIG_nbJoints(RigGraph *rg)
 	return total;
 }
 
+void BIF_freeRetarget()
+{
+	if (GLOBAL_RIGG)
+	{
+		RIG_freeRigGraph((BGraph*)GLOBAL_RIGG);
+		GLOBAL_RIGG = NULL;
+	}
+}
+
 void BIF_retargetArmature(bContext *C)
 {
 	ReebGraph *reebg;
@@ -2948,14 +2957,5 @@ void BIF_adjustRetarget(bContext *C)
 	if (GLOBAL_RIGG)
 	{
 		adjustGraphs(C, GLOBAL_RIGG);
-	}
-}
-
-void BIF_freeRetarget()
-{
-	if (GLOBAL_RIGG)
-	{
-		RIG_freeRigGraph((BGraph*)GLOBAL_RIGG);
-		GLOBAL_RIGG = NULL;
 	}
 }
