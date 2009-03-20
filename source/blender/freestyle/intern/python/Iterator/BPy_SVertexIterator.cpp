@@ -119,7 +119,7 @@ PyTypeObject SVertexIterator_Type = {
 int SVertexIterator___init__(BPy_SVertexIterator *self, PyObject *args )
 {	
 	PyObject *obj1 = 0, *obj2 = 0, *obj3 = 0, *obj4 = 0;
-	float f;
+	float f = 0;
 
 	if (! PyArg_ParseTuple(args, "|OOOOf", &obj1, &obj2, &obj3, &obj4, f) )
 	    return -1;
