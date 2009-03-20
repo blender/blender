@@ -24,6 +24,8 @@
 
 #include <Python.h>
 
+#include "bpy_compat.h"
+
 /* for internal use only, so python can interchange a sequence of strings with flags */
 typedef struct BPY_flag_def {
     const char	*name;
