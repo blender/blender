@@ -642,7 +642,7 @@ static PyObject *pyrna_struct_getattro( BPy_StructRNA * self, PyObject *pyname )
 	if (prop) {
 		ret = pyrna_prop_to_py(&self->ptr, prop);
 	}
-	else if (self->ptr.type == &RNA_Context) {
+	else if (/*self->ptr.type == &RNA_Context*/0) {
 		PointerRNA newptr;
 		ListBase newlb;
 

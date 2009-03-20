@@ -1415,7 +1415,7 @@ RNAProcessItem PROCESS_ITEMS[]= {
 	{"rna_cloth.c", RNA_def_cloth},
 	{"rna_color.c", RNA_def_color},
 	{"rna_constraint.c", RNA_def_constraint},
-	{"rna_context.c", RNA_def_context},
+	//XXX MISSING FILE! {"rna_context.c", RNA_def_context},
 	{"rna_controller.c", RNA_def_controller},
 	{"rna_curve.c", RNA_def_curve},
 	{"rna_fluidsim.c", RNA_def_fluidsim},
