@@ -3352,11 +3352,9 @@ void join_triangles(void)
 				if(v1 && v2 && v3 && v4){
 					/*test if simple island first. This mimics 2.42 behaviour and the tests are less restrictive.*/
 					if(efaa[0]->tmp.l == 1 && efaa[1]->tmp.l == 1){
-						if( convex(v1->co, v2->co, v3->co, v4->co) ){ 
-							eed->f1 |= T2QJOIN;
-							efaa[0]->f1 = 1; //mark for join
-							efaa[1]->f1 = 1; //mark for join
-						}
+						eed->f1 |= T2QJOIN;
+						efaa[0]->f1 = 1; //mark for join
+						efaa[1]->f1 = 1; //mark for join
 					}
 					else{ 
 						
@@ -3613,10 +3611,6 @@ static void edge_rotate(EditEdge *eed,int dir)
 				numshared++;
 
 	if(numshared > 1)
-		return;
-	
-	/* coplaner faces only please */
-	if(Inpf(face[0]->n,face[1]->n) <= 0.000001)
 		return;
 	
 	/* we want to construct an array of vertex indicis in both faces, starting at
