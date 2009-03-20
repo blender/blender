@@ -160,13 +160,17 @@ PyObject * UnaryFunction0DMaterial___call__( BPy_UnaryFunction0DMaterial *self, 
 {
 	PyObject *obj;
 
-	if(!PyArg_ParseTuple(args, "O!", &Interface0DIterator_Type, &obj)) {
-		cout << "ERROR: UnaryFunction0DMaterial___call__ " << endl;		
+	if(!PyArg_ParseTuple(args, "O!", &Interface0DIterator_Type, &obj))
+		return NULL;
+	
+	if (self->uf0D_material->operator()(*( ((BPy_Interface0DIterator *) obj)->if0D_it )) < 0) {
+		if (!PyErr_Occurred()) {
+			string msg(self->uf0D_material->getName() + " __call__ method failed");
+			PyErr_SetString(PyExc_RuntimeError, msg.c_str());
+		}
 		return NULL;
 	}
-	
-	FrsMaterial m( self->uf0D_material->operator()(*( ((BPy_Interface0DIterator *) obj)->if0D_it )) );
-	return BPy_FrsMaterial_from_FrsMaterial( m );
+	return BPy_FrsMaterial_from_FrsMaterial( self->uf0D_material->result );
 
 }
 

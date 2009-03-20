@@ -257,13 +257,17 @@ PyObject * UnaryFunction1DDouble___call__( BPy_UnaryFunction1DDouble *self, PyOb
 {
 	PyObject *obj;
 
-	if( !PyArg_ParseTuple(args, "O!", &Interface1D_Type, &obj) ) {
-		cout << "ERROR: UnaryFunction1DDouble___call__ " << endl;		
+	if( !PyArg_ParseTuple(args, "O!", &Interface1D_Type, &obj) )
+		return NULL;
+	
+	if (self->uf1D_double->operator()(*( ((BPy_Interface1D *) obj)->if1D )) < 0) {
+		if (!PyErr_Occurred()) {
+			string msg(self->uf1D_double->getName() + " __call__ method failed");
+			PyErr_SetString(PyExc_RuntimeError, msg.c_str());
+		}
 		return NULL;
 	}
-	
-	double d = self->uf1D_double->operator()(*( ((BPy_Interface1D *) obj)->if1D ));
-	return PyFloat_FromDouble( d );
+	return PyFloat_FromDouble( self->uf1D_double->result );
 
 }
 
@@ -271,10 +275,8 @@ PyObject * UnaryFunction1DDouble_setIntegrationType(BPy_UnaryFunction1DDouble* s
 {
 	PyObject *obj;
 
-	if( !PyArg_ParseTuple(args, "O!", &IntegrationType_Type, &obj) ) {
-		cout << "ERROR: UnaryFunction1DDouble_setIntegrationType " << endl;		
-		Py_RETURN_NONE;
-	}
+	if( !PyArg_ParseTuple(args, "O!", &IntegrationType_Type, &obj) )
+		return NULL;
 	
 	self->uf1D_double->setIntegrationType( IntegrationType_from_BPy_IntegrationType(obj) );
 	Py_RETURN_NONE;

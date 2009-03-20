@@ -170,13 +170,17 @@ PyObject * UnaryFunction1DFloat___call__( BPy_UnaryFunction1DFloat *self, PyObje
 {
 	PyObject *obj;
 
-	if( !PyArg_ParseTuple(args, "O!", &Interface1D_Type, &obj) ) {
-		cout << "ERROR: UnaryFunction1DFloat___call__ " << endl;		
+	if( !PyArg_ParseTuple(args, "O!", &Interface1D_Type, &obj) )
+		return NULL;
+	
+	if (self->uf1D_float->operator()(*( ((BPy_Interface1D *) obj)->if1D )) < 0) {
+		if (!PyErr_Occurred()) {
+			string msg(self->uf1D_float->getName() + " __call__ method failed");
+			PyErr_SetString(PyExc_RuntimeError, msg.c_str());
+		}
 		return NULL;
 	}
-	
-	float f = self->uf1D_float->operator()(*( ((BPy_Interface1D *) obj)->if1D ));
-	return PyFloat_FromDouble( f );
+	return PyFloat_FromDouble( self->uf1D_float->result );
 
 }
 
@@ -184,10 +188,8 @@ PyObject * UnaryFunction1DFloat_setIntegrationType(BPy_UnaryFunction1DFloat* sel
 {
 	PyObject *obj;
 
-	if( !PyArg_ParseTuple(args, "O!", &IntegrationType_Type, &obj) ) {
-		cout << "ERROR: UnaryFunction1DFloat_setIntegrationType " << endl;		
-		Py_RETURN_NONE;
-	}
+	if( !PyArg_ParseTuple(args, "O!", &IntegrationType_Type, &obj) )
+		return NULL;
 	
 	self->uf1D_float->setIntegrationType( IntegrationType_from_BPy_IntegrationType(obj) );
 	Py_RETURN_NONE;

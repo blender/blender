@@ -160,13 +160,17 @@ PyObject * UnaryFunction0DVec3f___call__( BPy_UnaryFunction0DVec3f *self, PyObje
 {
 	PyObject *obj;
 
-	if(!PyArg_ParseTuple(args, "O!", &Interface0DIterator_Type, &obj)) {
-		cout << "ERROR: UnaryFunction0DVec3f___call__ " << endl;		
+	if(!PyArg_ParseTuple(args, "O!", &Interface0DIterator_Type, &obj))
+		return NULL;
+	
+	if (self->uf0D_vec3f->operator()(*( ((BPy_Interface0DIterator *) obj)->if0D_it )) < 0) {
+		if (!PyErr_Occurred()) {
+			string msg(self->uf0D_vec3f->getName() + " __call__ method failed");
+			PyErr_SetString(PyExc_RuntimeError, msg.c_str());
+		}
 		return NULL;
 	}
-	
-	Vec3f v( self->uf0D_vec3f->operator()(*( ((BPy_Interface0DIterator *) obj)->if0D_it )) );
-	return Vector_from_Vec3f( v );
+	return Vector_from_Vec3f( self->uf0D_vec3f->result );
 
 }
 

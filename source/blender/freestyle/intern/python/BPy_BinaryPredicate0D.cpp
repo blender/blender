@@ -153,15 +153,18 @@ PyObject * BinaryPredicate0D_getName( BPy_BinaryPredicate0D *self, PyObject *arg
 PyObject * BinaryPredicate0D___call__( BPy_BinaryPredicate0D *self, PyObject *args)
 {
 	BPy_Interface0D *obj1, *obj2;
-	bool b;
 
-	if( !PyArg_ParseTuple(args,(char *)"OO", &obj1, &obj2) ) {
-		cout << "ERROR: BinaryPredicate0D___call__ " << endl;		
+	if( !PyArg_ParseTuple(args, "O!O!", &Interface0D_Type, &obj1, &Interface0D_Type, &obj2) )
+		return NULL;
+	
+	if (self->bp0D->operator()( *(obj1->if0D) , *(obj2->if0D) ) < 0) {
+		if (!PyErr_Occurred()) {
+			string msg(self->bp0D->getName() + " __call__ method failed");
+			PyErr_SetString(PyExc_RuntimeError, msg.c_str());
+		}
 		return NULL;
 	}
-	
-	b = self->bp0D->operator()( *(obj1->if0D) , *(obj2->if0D) );
-	return PyBool_from_bool( b );
+	return PyBool_from_bool( self->bp0D->result );
 
 }
 

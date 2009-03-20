@@ -165,13 +165,17 @@ PyObject * UnaryFunction0DVec2f_getName( BPy_UnaryFunction0DVec2f *self )
 PyObject * UnaryFunction0DVec2f___call__( BPy_UnaryFunction0DVec2f *self, PyObject *args)
 {
 	PyObject *obj;
-	if(!PyArg_ParseTuple(args, "O!", &Interface0DIterator_Type, &obj)) {
-		cout << "ERROR: UnaryFunction0DVec2f___call__ " << endl;		
+	if(!PyArg_ParseTuple(args, "O!", &Interface0DIterator_Type, &obj))
+		return NULL;
+	
+	if (self->uf0D_vec2f->operator()(*( ((BPy_Interface0DIterator *) obj)->if0D_it )) < 0) {
+		if (!PyErr_Occurred()) {
+			string msg(self->uf0D_vec2f->getName() + " __call__ method failed");
+			PyErr_SetString(PyExc_RuntimeError, msg.c_str());
+		}
 		return NULL;
 	}
-	
-	Vec2f v( self->uf0D_vec2f->operator()(*( ((BPy_Interface0DIterator *) obj)->if0D_it )) );
-	return Vector_from_Vec2f( v );
+	return Vector_from_Vec2f( self->uf0D_vec2f->result );
 
 }
 

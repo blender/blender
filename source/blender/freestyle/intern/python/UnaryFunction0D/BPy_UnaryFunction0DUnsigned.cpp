@@ -160,13 +160,17 @@ PyObject * UnaryFunction0DUnsigned___call__( BPy_UnaryFunction0DUnsigned *self, 
 {
 	PyObject *obj;
 
-	if(!PyArg_ParseTuple(args, "O!", &Interface0DIterator_Type, &obj)) {
-		cout << "ERROR: UnaryFunction0DUnsigned___call__ " << endl;		
+	if(!PyArg_ParseTuple(args, "O!", &Interface0DIterator_Type, &obj))
+		return NULL;
+	
+	if (self->uf0D_unsigned->operator()(*( ((BPy_Interface0DIterator *) obj)->if0D_it )) < 0) {
+		if (!PyErr_Occurred()) {
+			string msg(self->uf0D_unsigned->getName() + " __call__ method failed");
+			PyErr_SetString(PyExc_RuntimeError, msg.c_str());
+		}
 		return NULL;
 	}
-	
-	unsigned int i = self->uf0D_unsigned->operator()(*( ((BPy_Interface0DIterator *) obj)->if0D_it ));
-	return PyInt_FromLong( i );
+	return PyInt_FromLong( self->uf0D_unsigned->result );
 
 }
 

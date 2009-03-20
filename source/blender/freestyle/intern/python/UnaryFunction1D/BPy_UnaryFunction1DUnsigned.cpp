@@ -177,13 +177,17 @@ PyObject * UnaryFunction1DUnsigned___call__( BPy_UnaryFunction1DUnsigned *self, 
 {
 	PyObject *obj;
 
-	if( !PyArg_ParseTuple(args, "O!", &Interface1D_Type, &obj) ) {
-		cout << "ERROR: UnaryFunction1DUnsigned___call__ " << endl;		
+	if( !PyArg_ParseTuple(args, "O!", &Interface1D_Type, &obj) )
+		return NULL;
+	
+	if (self->uf1D_unsigned->operator()(*( ((BPy_Interface1D *) obj)->if1D )) < 0) {
+		if (!PyErr_Occurred()) {
+			string msg(self->uf1D_unsigned->getName() + " __call__ method failed");
+			PyErr_SetString(PyExc_RuntimeError, msg.c_str());
+		}
 		return NULL;
 	}
-	
-	unsigned int i = self->uf1D_unsigned->operator()(*( ((BPy_Interface1D *) obj)->if1D ));
-	return PyInt_FromLong( i );
+	return PyInt_FromLong( self->uf1D_unsigned->result );
 
 }
 
@@ -191,10 +195,8 @@ PyObject * UnaryFunction1DUnsigned_setIntegrationType(BPy_UnaryFunction1DUnsigne
 {
 	PyObject *obj;
 
-	if( !PyArg_ParseTuple(args, "O!", &IntegrationType_Type, &obj) ) {
-		cout << "ERROR: UnaryFunction1DUnsigned_setIntegrationType " << endl;		
-		Py_RETURN_NONE;
-	}
+	if( !PyArg_ParseTuple(args, "O!", &IntegrationType_Type, &obj) )
+		return NULL;
 	
 	self->uf1D_unsigned->setIntegrationType( IntegrationType_from_BPy_IntegrationType(obj) );
 	Py_RETURN_NONE;

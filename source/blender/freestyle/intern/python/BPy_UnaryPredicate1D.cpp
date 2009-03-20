@@ -207,19 +207,24 @@ PyObject * UnaryPredicate1D___call__( BPy_UnaryPredicate1D *self, PyObject *args
 {
 	PyObject *py_if1D;
 
-	if(!( PyArg_ParseTuple(args, "O", &py_if1D) && BPy_Interface1D_Check(py_if1D) )) {
-		cout << "ERROR: UnaryPredicate1D___call__ " << endl;		
+	if( !PyArg_ParseTuple(args, "O!", &Interface1D_Type, &py_if1D) )
 		return NULL;
-	}
 	
 	Interface1D *if1D = ((BPy_Interface1D *) py_if1D)->if1D;
 	
-	if( if1D )
-		return PyBool_from_bool( self->up1D->operator()(*if1D) );
-	else
-		cerr << "ERROR: UnaryPredicate1D___call__ (no Interface1D)" << endl;
-		
-	Py_RETURN_NONE;
+	if( !if1D ) {
+		string msg(self->up1D->getName() + " has no Interface0DIterator");
+		PyErr_SetString(PyExc_RuntimeError, msg.c_str());
+		return NULL;
+	}
+	if( self->up1D->operator()(*if1D) < 0 ) {
+		if (!PyErr_Occurred()) {
+			string msg(self->up1D->getName() + " __call__ method failed");
+			PyErr_SetString(PyExc_RuntimeError, msg.c_str());
+		}
+		return NULL;
+	}
+	return PyBool_from_bool( self->up1D->result );
 }
 
 

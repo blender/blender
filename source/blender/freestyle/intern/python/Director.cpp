@@ -43,123 +43,108 @@
 
 
 //   BinaryPredicate0D: __call__
-bool Director_BPy_BinaryPredicate0D___call__( PyObject *obj, Interface0D& i1, Interface0D& i2) {
+int Director_BPy_BinaryPredicate0D___call__( PyObject *obj, Interface0D& i1, Interface0D& i2) {
 	PyObject *arg1 = BPy_Interface0D_from_Interface0D(i1);
 	PyObject *arg2 = BPy_Interface0D_from_Interface0D(i2);
 	PyObject *result = PyObject_CallMethod( obj, "__call__", "OO", arg1, arg2 );
 	Py_DECREF(arg1);
 	Py_DECREF(arg2);
-	if (!result) {
-		cerr << "Warning: BinaryPredicate0D::__call__() failed." << endl;
-		PyErr_Clear();
-		return false;
-	}
-	bool ret = bool_from_PyBool(result);
+	if (!result)
+		return -1;
+	int ret = PyObject_IsTrue(result);
 	Py_DECREF(result);
 	return ret;
 }
 
 
 //   BinaryPredicate1D: __call__
-bool Director_BPy_BinaryPredicate1D___call__( PyObject *obj, Interface1D& i1, Interface1D& i2) {
-	PyObject *arg1 = BPy_Interface1D_from_Interface1D(i1);
-	PyObject *arg2 = BPy_Interface1D_from_Interface1D(i2);
+int Director_BPy_BinaryPredicate1D___call__( PyObject *obj, Interface1D& i1, Interface1D& i2) {
+	PyObject *arg1, *arg2;
 	PyObject *result = PyObject_CallMethod( obj, "__call__", "OO", arg1, arg2 );
 	Py_DECREF(arg1);
 	Py_DECREF(arg2);
-	if (!result) {
-		cerr << "Warning: BinaryPredicate1D::__call__() failed." << endl;
-		PyErr_Clear();
-		return false;
-	}
-	bool ret = bool_from_PyBool(result);
+	if (!result)
+		return -1;
+	int ret = PyObject_IsTrue(result);
 	Py_DECREF(result);
 	return ret;
 }
 
 
 //   UnaryPredicate0D: __call__
-bool Director_BPy_UnaryPredicate0D___call__( PyObject *obj, Interface0DIterator& if0D_it) {
+int Director_BPy_UnaryPredicate0D___call__( PyObject *obj, Interface0DIterator& if0D_it) {
 	PyObject *arg = BPy_Interface0DIterator_from_Interface0DIterator(if0D_it);
 	PyObject *result = PyObject_CallMethod( obj, "__call__", "O", arg );
 	Py_DECREF(arg);
-	if (!result) {
-		cerr << "Warning: UnaryPredicate0D::__call__() failed." << endl;
-		PyErr_Clear();
-		return false;
-	}
-	bool ret = bool_from_PyBool(result);
+	if (!result)
+		return -1;
+	int ret = PyObject_IsTrue(result);
 	Py_DECREF(result);
 	return ret;
 }
 
 
 //   UnaryPredicate1D: __call__
-bool Director_BPy_UnaryPredicate1D___call__( PyObject *obj, Interface1D& if1D) {
-	PyObject *arg = BPy_Interface1D_from_Interface1D(if1D);
+int Director_BPy_UnaryPredicate1D___call__( PyObject *obj, Interface1D& if1D) {
+	PyObject *arg;
 	PyObject *result = PyObject_CallMethod( obj, "__call__", "O", arg );
 	Py_DECREF(arg);
-	if (!result) {
-		cerr << "Warning: UnaryPredicate1D::__call__() failed." << endl;
-		PyErr_Clear();
-		return false;
-	}
-	bool ret = bool_from_PyBool(result);
+	if (!result)
+		return -1;
+	int ret = PyObject_IsTrue(result);
 	Py_DECREF(result);
 	return ret;
 }
 
 
 //   StrokeShader: shade
-void Director_BPy_StrokeShader_shade( PyObject *obj, Stroke& s) {
+int Director_BPy_StrokeShader_shade( PyObject *obj, Stroke& s) {
 	PyObject *arg = BPy_Stroke_from_Stroke_ptr(&s);
 	PyObject *result = PyObject_CallMethod( obj, "shade", "O", arg );
 	Py_DECREF(arg);
-	if (!result) {
-		cerr << "Warning: StrokeShader::shade() failed" << endl;
-		PyErr_Clear();
-		return;
-	}
+	if (!result)
+		return -1;
 	Py_DECREF(result);
+	return 0;
 }
 
 //   ChainingIterator: init, traverse
-void Director_BPy_ChainingIterator_init( PyObject *obj ) {
+int Director_BPy_ChainingIterator_init( PyObject *obj ) {
 	PyObject *result = PyObject_CallMethod( obj, "init", "", 0 );
-	if (!result) {
-		cerr << "Warning: ChainingIterator::init() failed." << endl;
-		PyErr_Clear();
-		return;
-	}
+	if (!result)
+		return -1;
 	Py_DECREF(result);
+	return 0;
 }
 
-ViewEdge * Director_BPy_ChainingIterator_traverse( PyObject *obj, AdjacencyIterator& a_it ) {
+int Director_BPy_ChainingIterator_traverse( PyObject *obj, AdjacencyIterator& a_it, ViewEdge **ve ) {
 	PyObject *arg = BPy_AdjacencyIterator_from_AdjacencyIterator(a_it);
 	PyObject *result = PyObject_CallMethod( obj, "traverse", "O", arg );
 	Py_DECREF(arg);
-	if (!result) {
-		cerr << "Warning: ChainingIterator::traverse() failed." << endl;
-		PyErr_Clear();
-		return NULL;
+	if (!result)
+		return -1;
+	if (BPy_ViewEdge_Check(result)) {
+		*ve = ((BPy_ViewEdge *) result)->ve;
+	} else if (result == Py_None) {
+		*ve = NULL;
+	} else {
+		PyErr_SetString(PyExc_RuntimeError, "traverse method returned a wrong value");
+		Py_DECREF(result);
+		return -1;
 	}
-	ViewEdge *ret = ((BPy_ViewEdge *) result)->ve;
 	Py_DECREF(result);
-	return ret;
+	return 0;
 }
 
 
 // BPy_UnaryFunction{0D,1D}: __call__
-void Director_BPy_UnaryFunction0D___call__( void *uf0D, PyObject *obj, Interface0DIterator& if0D_it) {
+int Director_BPy_UnaryFunction0D___call__( void *uf0D, PyObject *obj, Interface0DIterator& if0D_it) {
 
 	PyObject *arg = BPy_Interface0DIterator_from_Interface0DIterator(if0D_it);
 	PyObject *result = PyObject_CallMethod( obj, "__call__", "O", arg );
 	Py_DECREF(arg);
-	if (!result) {
-		cerr << "Warning: UnaryFunction0D::__call__() failed." << endl;
-		PyErr_Clear();
-		return;
-	}
+	if (!result)
+		return -1;
 	
 	if( BPy_UnaryFunction0DDouble_Check(obj) ) {	
 		((UnaryFunction0D<double> *) uf0D)->result = PyFloat_AsDouble(result);
@@ -204,18 +189,16 @@ void Director_BPy_UnaryFunction0D___call__( void *uf0D, PyObject *obj, Interface
 	}	
 
 	Py_DECREF(result);
+	return 0;
 }
 
-void Director_BPy_UnaryFunction1D___call__( void *uf1D, PyObject *obj, Interface1D& if1D) {
+int Director_BPy_UnaryFunction1D___call__( void *uf1D, PyObject *obj, Interface1D& if1D) {
 
 	PyObject *arg = BPy_Interface1D_from_Interface1D(if1D);
 	PyObject *result = PyObject_CallMethod( obj, "__call__", "O", arg );
 	Py_DECREF(arg);
-	if (!result) {
-		cerr << "Warning: UnaryFunction1D::__call__() failed." << endl;
-		PyErr_Clear();
-		return;
-	}
+	if (!result)
+		return -1;
 	
 	if( BPy_UnaryFunction1DDouble_Check(obj) ) {	
 		((UnaryFunction1D<double> *) uf1D)->result = PyFloat_AsDouble(result);
@@ -251,6 +234,7 @@ void Director_BPy_UnaryFunction1D___call__( void *uf1D, PyObject *obj, Interface
 	} 
 
 	Py_DECREF(result);
+	return 0;
 }
 
 

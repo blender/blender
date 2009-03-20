@@ -165,19 +165,24 @@ PyObject * UnaryPredicate0D___call__( BPy_UnaryPredicate0D *self, PyObject *args
 {
 	PyObject *py_if0D_it;
 
-	if(!( PyArg_ParseTuple(args, "O", &py_if0D_it) && BPy_Interface0DIterator_Check(py_if0D_it) )) {
-		cout << "ERROR: UnaryPredicate0D___call__ " << endl;		
+	if( !PyArg_ParseTuple(args, "O!", &Interface0DIterator_Type, &py_if0D_it) )
 		return NULL;
-	}
 
 	Interface0DIterator *if0D_it = ((BPy_Interface0DIterator *) py_if0D_it)->if0D_it;
 
-	if( if0D_it )
-		return PyBool_from_bool( self->up0D->operator()(*if0D_it) );
-	else
-		cerr << "ERROR: UnaryPredicate0D___call__ (no Interface0DIterator)" << endl;
-
-	Py_RETURN_NONE;
+	if( !if0D_it ) {
+		string msg(self->up0D->getName() + " has no Interface0DIterator");
+		PyErr_SetString(PyExc_RuntimeError, msg.c_str());
+		return NULL;
+	}
+	if (self->up0D->operator()(*if0D_it) < 0) {
+		if (!PyErr_Occurred()) {
+			string msg(self->up0D->getName() + " __call__ method failed");
+			PyErr_SetString(PyExc_RuntimeError, msg.c_str());
+		}
+		return NULL;
+	}
+	return PyBool_from_bool( self->up0D->result );
 }
 
 

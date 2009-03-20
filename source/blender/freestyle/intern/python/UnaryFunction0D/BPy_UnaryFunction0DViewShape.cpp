@@ -166,13 +166,17 @@ PyObject * UnaryFunction0DViewShape___call__( BPy_UnaryFunction0DViewShape *self
 {
 	PyObject *obj;
 
-	if(!PyArg_ParseTuple(args, "O!", &Interface0DIterator_Type, &obj)) {
-		cout << "ERROR: UnaryFunction0DViewShape___call__ " << endl;		
+	if(!PyArg_ParseTuple(args, "O!", &Interface0DIterator_Type, &obj))
+		return NULL;
+
+	if (self->uf0D_viewshape->operator()(*( ((BPy_Interface0DIterator *) obj)->if0D_it )) < 0) {
+		if (!PyErr_Occurred()) {
+			string msg(self->uf0D_viewshape->getName() + " __call__ method failed");
+			PyErr_SetString(PyExc_RuntimeError, msg.c_str());
+		}
 		return NULL;
 	}
-	
-	ViewShape *vs = self->uf0D_viewshape->operator()(*( ((BPy_Interface0DIterator *) obj)->if0D_it ));
-	return BPy_ViewShape_from_ViewShape( *vs );
+	return BPy_ViewShape_from_ViewShape( *(self->uf0D_viewshape->result) );
 
 }
 

@@ -160,17 +160,20 @@ PyObject * UnaryFunction0DVectorViewShape___call__( BPy_UnaryFunction0DVectorVie
 {
 	PyObject *obj;
 
-	if(!PyArg_ParseTuple(args, "O!", &Interface0DIterator_Type, &obj)) {
-		cout << "ERROR: UnaryFunction0DVectorViewShape___call__ " << endl;		
+	if(!PyArg_ParseTuple(args, "O!", &Interface0DIterator_Type, &obj))
+		return NULL;
+
+	if (self->uf0D_vectorviewshape->operator()(*( ((BPy_Interface0DIterator *) obj)->if0D_it )) < 0) {
+		if (!PyErr_Occurred()) {
+			string msg(self->uf0D_vectorviewshape->getName() + " __call__ method failed");
+			PyErr_SetString(PyExc_RuntimeError, msg.c_str());
+		}
 		return NULL;
 	}
-	
-	
-	std::vector<ViewShape*> vs( self->uf0D_vectorviewshape->operator()(*( ((BPy_Interface0DIterator *) obj)->if0D_it )) );
 	PyObject *list = PyList_New(NULL);
 	
-	for( unsigned int i = 0; i < vs.size(); i++)
-		PyList_Append(list, BPy_ViewShape_from_ViewShape(*( vs[i] )) );
+	for( unsigned int i = 0; i < self->uf0D_vectorviewshape->result.size(); i++)
+		PyList_Append(list, BPy_ViewShape_from_ViewShape(*( self->uf0D_vectorviewshape->result[i] )) );
 	
 	return list;
 }

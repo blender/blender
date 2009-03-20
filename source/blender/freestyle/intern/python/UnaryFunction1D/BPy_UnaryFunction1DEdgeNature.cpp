@@ -177,13 +177,17 @@ PyObject * UnaryFunction1DEdgeNature___call__( BPy_UnaryFunction1DEdgeNature *se
 {
 	PyObject *obj;
 
-	if( !PyArg_ParseTuple(args, "O!", &Interface1D_Type, &obj) ) {
-		cout << "ERROR: UnaryFunction1DEdgeNature___call__ " << endl;		
+	if( !PyArg_ParseTuple(args, "O!", &Interface1D_Type, &obj) )
+		return NULL;
+	
+	if (self->uf1D_edgenature->operator()(*( ((BPy_Interface1D *) obj)->if1D )) < 0) {
+		if (!PyErr_Occurred()) {
+			string msg(self->uf1D_edgenature->getName() + " __call__ method failed");
+			PyErr_SetString(PyExc_RuntimeError, msg.c_str());
+		}
 		return NULL;
 	}
-	
-	Nature::EdgeNature n = self->uf1D_edgenature->operator()(*( ((BPy_Interface1D *) obj)->if1D ));
-	return BPy_Nature_from_Nature( n );
+	return BPy_Nature_from_Nature( self->uf1D_edgenature->result );
 
 }
 
@@ -191,10 +195,8 @@ PyObject * UnaryFunction1DEdgeNature_setIntegrationType(BPy_UnaryFunction1DEdgeN
 {
 	PyObject *obj;
 
-	if( !PyArg_ParseTuple(args, "O!", &IntegrationType_Type, &obj) ) {
-		cout << "ERROR: UnaryFunction1DEdgeNature_setIntegrationType " << endl;		
-		Py_RETURN_NONE;
-	}
+	if( !PyArg_ParseTuple(args, "O!", &IntegrationType_Type, &obj) )
+		return NULL;
 	
 	self->uf1D_edgenature->setIntegrationType( IntegrationType_from_BPy_IntegrationType(obj) );
 	Py_RETURN_NONE;

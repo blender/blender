@@ -160,13 +160,17 @@ PyObject * UnaryFunction0DEdgeNature___call__( BPy_UnaryFunction0DEdgeNature *se
 {
 	PyObject *obj;
 
-	if(!PyArg_ParseTuple(args, "O!", &Interface0DIterator_Type, &obj)) {
-		cout << "ERROR: UnaryFunction0DEdgeNature___call__ " << endl;		
+	if(!PyArg_ParseTuple(args, "O!", &Interface0DIterator_Type, &obj))
+		return NULL;
+	
+	if (self->uf0D_edgenature->operator()(*( ((BPy_Interface0DIterator *) obj)->if0D_it )) < 0) {
+		if (!PyErr_Occurred()) {
+			string msg(self->uf0D_edgenature->getName() + " __call__ method failed");
+			PyErr_SetString(PyExc_RuntimeError, msg.c_str());
+		}
 		return NULL;
 	}
-	
-	Nature::EdgeNature n = self->uf0D_edgenature->operator()(*( ((BPy_Interface0DIterator *) obj)->if0D_it ));
-	return BPy_Nature_from_Nature( n );
+	return BPy_Nature_from_Nature( self->uf0D_edgenature->result );
 
 }
 

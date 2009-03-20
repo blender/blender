@@ -29,10 +29,10 @@ extern "C" {
 #endif
 
 //   BinaryPredicate0D: __call__
-bool Director_BPy_BinaryPredicate0D___call__( PyObject *obj, Interface0D& i1, Interface0D& i2);
+int Director_BPy_BinaryPredicate0D___call__( PyObject *obj, Interface0D& i1, Interface0D& i2);
 
 //   BinaryPredicate1D: __call__
-bool Director_BPy_BinaryPredicate1D___call__( PyObject *obj, Interface1D& i1, Interface1D& i2);
+int Director_BPy_BinaryPredicate1D___call__( PyObject *obj, Interface1D& i1, Interface1D& i2);
 
 //	Interface0D: getX, getY, getZ, getPoint3D, getProjectedX, getProjectedY, getProjectedZ, getPoint2D, getFEdge, getId, getNature, castToSVertex, castToViewVertex, castToNonTVertex, castToTVertex
 double Director_BPy_Interface0D_getX( PyObject *obj );
@@ -61,17 +61,17 @@ Id Director_BPy_Interface1D_getId( PyObject *obj );
 Nature::EdgeNature Director_BPy_Interface1D_getNature( PyObject *obj );
 
 //	UnaryFunction{0D,1D}: __call__
-void Director_BPy_UnaryFunction0D___call__( void *uf0D, PyObject *obj, Interface0DIterator& if0D_it);
-void Director_BPy_UnaryFunction1D___call__( void *uf1D, PyObject *obj, Interface1D& if1D);
+int Director_BPy_UnaryFunction0D___call__( void *uf0D, PyObject *obj, Interface0DIterator& if0D_it);
+int Director_BPy_UnaryFunction1D___call__( void *uf1D, PyObject *obj, Interface1D& if1D);
 
 //   UnaryPredicate0D: __call__
-bool Director_BPy_UnaryPredicate0D___call__( PyObject *obj, Interface0DIterator& if0D_it);
+int Director_BPy_UnaryPredicate0D___call__( PyObject *obj, Interface0DIterator& if0D_it);
 	
 //   UnaryPredicate1D: __call__
-bool Director_BPy_UnaryPredicate1D___call__( PyObject *obj, Interface1D& if1D);
+int Director_BPy_UnaryPredicate1D___call__( PyObject *obj, Interface1D& if1D);
 
 //   StrokeShader: shade
-void Director_BPy_StrokeShader_shade( PyObject *obj, Stroke& s);
+int Director_BPy_StrokeShader_shade( PyObject *obj, Stroke& s);
 
 //	Iterator: increment, decrement, isBegin, isEnd
 void Director_BPy_Iterator_increment( PyObject *obj );
@@ -80,8 +80,8 @@ bool Director_BPy_Iterator_isBegin( PyObject *obj );
 bool Director_BPy_Iterator_isEnd( PyObject *obj );
 
 //   ChainingIterator: init, traverse
-void Director_BPy_ChainingIterator_init( PyObject *obj );
-ViewEdge * Director_BPy_ChainingIterator_traverse( PyObject *obj, AdjacencyIterator& a_it );
+int Director_BPy_ChainingIterator_init( PyObject *obj );
+int Director_BPy_ChainingIterator_traverse( PyObject *obj, AdjacencyIterator& a_it, ViewEdge **ve );
 
 
 

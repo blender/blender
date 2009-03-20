@@ -191,17 +191,20 @@ PyObject * UnaryFunction1DVectorViewShape___call__( BPy_UnaryFunction1DVectorVie
 {
 	PyObject *obj;
 
-	if( !PyArg_ParseTuple(args, "O!", &Interface1D_Type, &obj) ) {
-		cout << "ERROR: UnaryFunction1DVectorViewShape___call__ " << endl;		
+	if( !PyArg_ParseTuple(args, "O!", &Interface1D_Type, &obj) )
+		return NULL;
+	
+	if (self->uf1D_vectorviewshape->operator()(*( ((BPy_Interface1D *) obj)->if1D )) < 0) {
+		if (!PyErr_Occurred()) {
+			string msg(self->uf1D_vectorviewshape->getName() + " __call__ method failed");
+			PyErr_SetString(PyExc_RuntimeError, msg.c_str());
+		}
 		return NULL;
 	}
-	
-	
-	std::vector<ViewShape*> vs( self->uf1D_vectorviewshape->operator()(*( ((BPy_Interface1D *) obj)->if1D )) );
 	PyObject *list = PyList_New(NULL);
 	
-	for( unsigned int i = 0; i < vs.size(); i++)
-		PyList_Append(list, BPy_ViewShape_from_ViewShape(*( vs[i] )) );
+	for( unsigned int i = 0; i < self->uf1D_vectorviewshape->result.size(); i++)
+		PyList_Append(list, BPy_ViewShape_from_ViewShape(*( self->uf1D_vectorviewshape->result[i] )) );
 	
 	return list;
 }
@@ -210,10 +213,8 @@ PyObject * UnaryFunction1DVectorViewShape_setIntegrationType(BPy_UnaryFunction1D
 {
 	PyObject *obj;
 
-	if( !PyArg_ParseTuple(args, "O!", &IntegrationType_Type, &obj) ) {
-		cout << "ERROR: UnaryFunction1DVectorViewShape_setIntegrationType " << endl;		
-		Py_RETURN_NONE;
-	}
+	if( !PyArg_ParseTuple(args, "O!", &IntegrationType_Type, &obj) )
+		return NULL;
 	
 	self->uf1D_vectorviewshape->setIntegrationType( IntegrationType_from_BPy_IntegrationType(obj) );
 	Py_RETURN_NONE;

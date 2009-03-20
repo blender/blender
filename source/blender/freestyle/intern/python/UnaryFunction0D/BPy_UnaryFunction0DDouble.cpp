@@ -217,14 +217,17 @@ PyObject * UnaryFunction0DDouble___call__( BPy_UnaryFunction0DDouble *self, PyOb
 {
 	PyObject *obj;
 
-	if(!PyArg_ParseTuple(args, "O!", &Interface0DIterator_Type, &obj)) {
-		cout << "ERROR: UnaryFunction0DDouble___call__ " << endl;		
+	if(!PyArg_ParseTuple(args, "O!", &Interface0DIterator_Type, &obj))
+		return NULL;
+	
+	if (self->uf0D_double->operator()(*( ((BPy_Interface0DIterator *) obj)->if0D_it)) < 0) {
+		if (!PyErr_Occurred()) {
+			string msg(self->uf0D_double->getName() + " __call__ method failed");
+			PyErr_SetString(PyExc_RuntimeError, msg.c_str());
+		}
 		return NULL;
 	}
-	
-	double d = self->uf0D_double->operator()(*( ((BPy_Interface0DIterator *) obj)->if0D_it));
-		
-	return PyFloat_FromDouble( d );
+	return PyFloat_FromDouble( self->uf0D_double->result );
 
 }
 

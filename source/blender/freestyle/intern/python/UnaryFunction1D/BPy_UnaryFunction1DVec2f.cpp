@@ -183,13 +183,17 @@ PyObject * UnaryFunction1DVec2f___call__( BPy_UnaryFunction1DVec2f *self, PyObje
 {
 	PyObject *obj;
 
-	if( !PyArg_ParseTuple(args, "O!", &Interface1D_Type, &obj) ) {
-		cout << "ERROR: UnaryFunction1DVec2f___call__ " << endl;		
+	if( !PyArg_ParseTuple(args, "O!", &Interface1D_Type, &obj) )
+		return NULL;
+	
+	if (self->uf1D_vec2f->operator()(*( ((BPy_Interface1D *) obj)->if1D )) < 0) {
+		if (!PyErr_Occurred()) {
+			string msg(self->uf1D_vec2f->getName() + " __call__ method failed");
+			PyErr_SetString(PyExc_RuntimeError, msg.c_str());
+		}
 		return NULL;
 	}
-	
-	Vec2f v( self->uf1D_vec2f->operator()(*( ((BPy_Interface1D *) obj)->if1D )) );
-	return Vector_from_Vec2f( v );
+	return Vector_from_Vec2f( self->uf1D_vec2f->result );
 
 }
 
@@ -197,10 +201,8 @@ PyObject * UnaryFunction1DVec2f_setIntegrationType(BPy_UnaryFunction1DVec2f* sel
 {
 	PyObject *obj;
 
-	if( !PyArg_ParseTuple(args, "O!", &IntegrationType_Type, &obj) ) {
-		cout << "ERROR: UnaryFunction1DVec2f_setIntegrationType " << endl;		
-		Py_RETURN_NONE;
-	}
+	if( !PyArg_ParseTuple(args, "O!", &IntegrationType_Type, &obj) )
+		return NULL;
 	
 	self->uf1D_vec2f->setIntegrationType( IntegrationType_from_BPy_IntegrationType(obj) );
 	Py_RETURN_NONE;
