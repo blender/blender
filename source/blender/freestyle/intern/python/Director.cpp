@@ -59,7 +59,8 @@ int Director_BPy_BinaryPredicate0D___call__( PyObject *obj, Interface0D& i1, Int
 
 //   BinaryPredicate1D: __call__
 int Director_BPy_BinaryPredicate1D___call__( PyObject *obj, Interface1D& i1, Interface1D& i2) {
-	PyObject *arg1, *arg2;
+	PyObject *arg1 = BPy_Interface1D_from_Interface1D(i1);
+	PyObject *arg2 = BPy_Interface1D_from_Interface1D(i2);
 	PyObject *result = PyObject_CallMethod( obj, "__call__", "OO", arg1, arg2 );
 	Py_DECREF(arg1);
 	Py_DECREF(arg2);
@@ -86,7 +87,7 @@ int Director_BPy_UnaryPredicate0D___call__( PyObject *obj, Interface0DIterator& 
 
 //   UnaryPredicate1D: __call__
 int Director_BPy_UnaryPredicate1D___call__( PyObject *obj, Interface1D& if1D) {
-	PyObject *arg;
+	PyObject *arg = BPy_Interface1D_from_Interface1D(if1D);
 	PyObject *result = PyObject_CallMethod( obj, "__call__", "O", arg );
 	Py_DECREF(arg);
 	if (!result)
