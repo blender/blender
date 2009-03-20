@@ -75,7 +75,7 @@
 
 #include "BIF_gl.h"
 #include "BIF_transform.h"
-// XXX etch-a-ton #include "BIF_generate.h"
+#include "BIF_generate.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -1762,6 +1762,8 @@ void mouse_armature(bContext *C, short mval[2], int extend)
 
 	view3d_set_viewcontext(C, &vc);
 	
+	BIF_sk_selectStroke(C, mval, extend);
+	
 	nearBone= get_nearest_editbonepoint(&vc, mval, arm->edbo, 1, &selmask);
 	if (nearBone) {
 
@@ -1856,7 +1858,7 @@ void ED_armature_to_edit(Object *ob)
 	arm->edbo= MEM_callocN(sizeof(ListBase), "edbo armature");
 	make_boneList(arm->edbo, &arm->bonebase,NULL);
 
-	// XXX etch-a-ton BIF_freeTemplates(); /* force template update when entering editmode */
+//	BIF_freeTemplates(); /* force template update when entering editmode */
 }
 
 

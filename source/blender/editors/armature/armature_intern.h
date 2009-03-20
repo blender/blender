@@ -64,6 +64,9 @@ void POSE_OT_select_connected(struct wmOperatorType *ot);
 /* editarmature.c */
 struct bArmature;
 struct EditBone;
+struct ListBase;
+
+void make_boneList(struct ListBase *edbo, struct ListBase *bones, struct EditBone *parent);
 
 struct EditBone *addEditBone(struct bArmature *arm, char *name);
 

@@ -2053,7 +2053,7 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 //	if (v3d->flag2 & V3D_DISPGP)
 //		draw_gpencil_3dview(ar, 1);
 	
-	// XXX etch-a-ton BDR_drawSketch();
+	BDR_drawSketch(C);
 	
 	ED_region_pixelspace(ar);
 	

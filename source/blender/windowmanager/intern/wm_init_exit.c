@@ -196,7 +196,13 @@ void WM_exit(bContext *C)
 	/* all non-screen and non-space stuff editors did, like editmode */
 	if(C)
 		ED_editors_exit(C);
-	
+
+//	XXX	
+//	BIF_GlobalReebFree();
+//	BIF_freeRetarget();
+//	BIF_freeTemplates();
+//	BIF_freeSketch();
+
 	/* Context should still working here. but radio tool needs cleaning... */
 	freeAllRad(CTX_data_scene(C));
 	

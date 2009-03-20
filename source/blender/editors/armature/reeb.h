@@ -176,8 +176,10 @@ void verifyFaces(ReebGraph *rg);
 
 #define REEB_MAX_MULTI_LEVEL	10
 
+struct bContext;
+
 ReebGraph *BIF_ReebGraphFromEditMesh(void);
-ReebGraph *BIF_ReebGraphMultiFromEditMesh(void);
+ReebGraph *BIF_ReebGraphMultiFromEditMesh(struct bContext *C);
 void BIF_flagMultiArcs(ReebGraph *rg, int flag);
 
 void BIF_GlobalReebGraphFromEditMesh(void);
