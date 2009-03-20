@@ -57,6 +57,10 @@ public:
         delete _splittingId;
     }
   }
+  /*! Returns the string "Chain" */
+  virtual string getExactTypeName() const {
+    return "Chain";
+  }
 
   /*! Adds a ViewEdge at the end of the chain
    *  \param iViewEdge

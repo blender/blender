@@ -314,6 +314,10 @@ public:
   Curve(const Curve& iBrother) {_Length = iBrother._Length;_Vertices = iBrother._Vertices;_Id=iBrother._Id;_nSegments=0;}
   /*! Destructor. */
   virtual ~Curve() ;
+  /*! Returns the string "Curve" */
+  virtual string getExactTypeName() const {
+    return "Curve";
+  }
 
   /*
 	fredo's curvature storage
