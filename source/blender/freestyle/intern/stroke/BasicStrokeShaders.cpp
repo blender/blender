@@ -68,7 +68,7 @@ namespace StrokeShaders {
   //
   //////////////////////////////////////////////////////////
 
-  void ConstantThicknessShader::shade(Stroke& stroke) const
+  int ConstantThicknessShader::shade(Stroke& stroke) const
   {
     StrokeInternal::StrokeVertexIterator v, vend;
     int i=0;
@@ -84,9 +84,10 @@ namespace StrokeShaders {
       
 	v->attribute().setThickness(_thickness/2.0, _thickness/2.0);
       }
+	return 0;
   } 
 
-  void ConstantExternThicknessShader::shade(Stroke& stroke) const
+  int ConstantExternThicknessShader::shade(Stroke& stroke) const
   {
     StrokeInternal::StrokeVertexIterator v, vend;
     int i=0;
@@ -102,9 +103,10 @@ namespace StrokeShaders {
       
 	v->attribute().setThickness(_thickness, 0);
       }
+	return 0;
   } 
 
-  void IncreasingThicknessShader::shade(Stroke& stroke) const
+  int IncreasingThicknessShader::shade(Stroke& stroke) const
   {
 
     int n=stroke.strokeVerticesSize()-1;
@@ -123,9 +125,10 @@ namespace StrokeShaders {
 	v->attribute().setThickness(t/2.0, t/2.0);
 	++i;
       }
+	return 0;
   } 
 
-  void ConstrainedIncreasingThicknessShader::shade(Stroke& stroke) const
+  int ConstrainedIncreasingThicknessShader::shade(Stroke& stroke) const
   {
     float slength = stroke.getLength2D();
     float maxT = min(_ratio*slength,_ThicknessMax);
@@ -147,10 +150,11 @@ namespace StrokeShaders {
 	  v->attribute().setThickness(_ThicknessMin/2.0, _ThicknessMin/2.0);
 	++i;
       }
+	return 0;
   } 
 
 
-  void LengthDependingThicknessShader::shade(Stroke& stroke) const
+  int LengthDependingThicknessShader::shade(Stroke& stroke) const
   {
     float step = (_maxThickness-_minThickness)/3.f;
     float l = stroke.getLength2D();
@@ -178,6 +182,7 @@ namespace StrokeShaders {
       
 	v->attribute().setThickness(thickness/2.0, thickness/2.0);
       }
+	return 0;
   }
 
 
@@ -209,7 +214,7 @@ namespace StrokeShaders {
       convert(image, &_aThickness, _size);
   }
   
-  void ThicknessVariationPatternShader::shade(Stroke& stroke) const
+  int ThicknessVariationPatternShader::shade(Stroke& stroke) const
   { 
     StrokeInternal::StrokeVertexIterator v, vend;
     float *array = 0;
@@ -253,6 +258,7 @@ namespace StrokeShaders {
 	  v->attribute().setThickness(thicknessR, thicknessL);
 	++sig;
       }
+	return 0;
   } 
 
 
@@ -266,7 +272,7 @@ namespace StrokeShaders {
   {_amplitude=iAmplitude;_scale=1.f/iPeriod/(float)NB_VALUE_NOISE;}
 
 
-  void ThicknessNoiseShader::shade(Stroke& stroke) const
+  int ThicknessNoiseShader::shade(Stroke& stroke) const
   {  
     StrokeInternal::StrokeVertexIterator v=stroke.strokeVerticesBegin(), vend=stroke.strokeVerticesEnd();
     real initU1=v->strokeLength()*real(NB_VALUE_NOISE)+RandGen::drand48()*real(NB_VALUE_NOISE);
@@ -289,6 +295,7 @@ namespace StrokeShaders {
 	v->attribute().setThickness(r,l);
       }
   
+	return 0;
   }
 
   //
@@ -296,7 +303,7 @@ namespace StrokeShaders {
   //
   ///////////////////////////////////////////////////////////////////////////////
 
-  void ConstantColorShader::shade(Stroke& stroke) const
+  int ConstantColorShader::shade(Stroke& stroke) const
   {
     StrokeInternal::StrokeVertexIterator v, vend;
     for(v=stroke.strokeVerticesBegin(), vend=stroke.strokeVerticesEnd();
@@ -306,9 +313,10 @@ namespace StrokeShaders {
 	v->attribute().setColor(_color[0], _color[1], _color[2]);
 	v->attribute().setAlpha(_color[3]);
       }
+	return 0;
   }
 
-  void IncreasingColorShader::shade(Stroke& stroke) const
+  int IncreasingColorShader::shade(Stroke& stroke) const
   {
     StrokeInternal::StrokeVertexIterator v, vend;
     int n=stroke.strokeVerticesSize()-1;
@@ -327,6 +335,7 @@ namespace StrokeShaders {
 	v->attribute().setAlpha(newcolor[3]);
 	++yo;
       }
+	return 0;
   }
 
   ColorVariationPatternShader::ColorVariationPatternShader(const string pattern_name,
@@ -352,7 +361,7 @@ namespace StrokeShaders {
       convert(image, &_aVariation, _size);
   }
   
-  void ColorVariationPatternShader::shade(Stroke& stroke) const
+  int ColorVariationPatternShader::shade(Stroke& stroke) const
   {
     StrokeInternal::StrokeVertexIterator v, vend;
     unsigned index;
@@ -375,9 +384,10 @@ namespace StrokeShaders {
 	float b = _aVariation[index]*originalColor[2];
 	v->attribute().setColor(r,g,b);
       }
+	return 0;
   }
 
-  void MaterialColorShader::shade(Stroke& stroke) const
+  int MaterialColorShader::shade(Stroke& stroke) const
   {
     Interface0DIterator v, vend;
     Functions0D::MaterialF0D fun;
@@ -386,15 +396,18 @@ namespace StrokeShaders {
 	v!=vend;
 	++v)
       {
-    const float *diffuse = fun(v).diffuse();
+    if (fun(v) < 0)
+	  return -1;
+	const float *diffuse = fun.result.diffuse();
     sv = dynamic_cast<StrokeVertex*>(&(*v));
 	  sv->attribute().setColor(diffuse[0]*_coefficient, diffuse[1]*_coefficient, diffuse[2]*_coefficient);
 	  sv->attribute().setAlpha(diffuse[3]);
       }
+	return 0;
   }
 
 
-  void CalligraphicColorShader::shade(Stroke& stroke) const
+  int CalligraphicColorShader::shade(Stroke& stroke) const
   {
     Interface0DIterator v;
     Functions0D::VertexOrientation2DF0D fun;
@@ -403,7 +416,9 @@ namespace StrokeShaders {
 	!v.isEnd();
 	++v)
       {
-	Vec2f vertexOri(fun(v));
+	if (fun(v) < 0)
+	  return -1;
+	Vec2f vertexOri(fun.result);
 	Vec2d ori2d(-vertexOri[1], vertexOri[0]);
 	ori2d.normalizeSafe();
 	real scal = ori2d * _orientation;
@@ -413,6 +428,7 @@ namespace StrokeShaders {
 	else
 	  sv->attribute().setColor(1,1,1);
       }
+	return 0;
   }
 
 
@@ -425,7 +441,7 @@ namespace StrokeShaders {
   {_amplitude=iAmplitude;_scale=1.f/iPeriod/(float)NB_VALUE_NOISE;}
 
 
-  void ColorNoiseShader::shade(Stroke& stroke) const
+  int ColorNoiseShader::shade(Stroke& stroke) const
   {  
     StrokeInternal::StrokeVertexIterator v=stroke.strokeVerticesBegin(), vend=stroke.strokeVerticesEnd();
     real initU=v->strokeLength()*real(NB_VALUE_NOISE)+RandGen::drand48()*real(NB_VALUE_NOISE);
@@ -446,6 +462,7 @@ namespace StrokeShaders {
 	v->attribute().setColor(r,g,b);
       }
   
+	return 0;
   }
 
  
@@ -454,7 +471,7 @@ namespace StrokeShaders {
   //
   ///////////////////////////////////////////////////////////////////////////////
 
-  void TextureAssignerShader::shade(Stroke& stroke) const
+  int TextureAssignerShader::shade(Stroke& stroke) const
   {
   //  getBrushTextureIndex(TEXTURES_DIR "/brushes/charcoalAlpha.bmp", Stroke::HUMID_MEDIUM);
   //  getBrushTextureIndex(TEXTURES_DIR "/brushes/washbrushAlpha.bmp", Stroke::HUMID_MEDIUM);
@@ -467,7 +484,7 @@ namespace StrokeShaders {
 
     TextureManager * instance = TextureManager::getInstance();
     if(!instance)
-      return;
+      return 0;
     string pathname;
     Stroke::MediumType mediumType;
     bool hasTips = false;
@@ -523,19 +540,21 @@ namespace StrokeShaders {
     stroke.setMediumType(mediumType);
     stroke.setTips(hasTips);
     stroke.setTextureId(texId);
+	return 0;
   }
 
   // FIXME
-  void StrokeTextureShader::shade(Stroke& stroke) const
+  int StrokeTextureShader::shade(Stroke& stroke) const
   {
     TextureManager * instance = TextureManager::getInstance();
     if(!instance)
-      return;
+      return 0;
     string pathname = TextureManager::Options::getBrushesPath() + "/" + _texturePath;
     unsigned int texId = instance->getBrushTextureIndex(pathname, _mediumType);
     stroke.setMediumType(_mediumType);
     stroke.setTips(_tips);
     stroke.setTextureId(texId);
+	return 0;
   }
 
   //
@@ -543,11 +562,11 @@ namespace StrokeShaders {
   //
   ///////////////////////////////////////////////////////////////////////////////
 
-  void BackboneStretcherShader::shade(Stroke& stroke) const
+  int BackboneStretcherShader::shade(Stroke& stroke) const
   {
     float l=stroke.getLength2D();
     if(l <= 50)
-      return;
+      return 0;
 
     StrokeInternal::StrokeVertexIterator v0=stroke.strokeVerticesBegin();
     StrokeInternal::StrokeVertexIterator v1=v0;++v1;
@@ -567,14 +586,16 @@ namespace StrokeShaders {
     (v0)->setPoint(newFirst[0], newFirst[1]);
     Vec2d newLast(last+_amount*dn);
     (vn)->setPoint(newLast[0], newLast[1]);
+	return 0;
   }
 
-  void SamplingShader::shade(Stroke& stroke) const
+  int SamplingShader::shade(Stroke& stroke) const
   {
     stroke.Resample(_sampling);
+	return 0;
   }
 
-  void ExternalContourStretcherShader::shade(Stroke& stroke) const
+  int ExternalContourStretcherShader::shade(Stroke& stroke) const
   { 
     //float l=stroke.getLength2D();
     Interface0DIterator it=stroke.verticesBegin();
@@ -582,18 +603,21 @@ namespace StrokeShaders {
     StrokeVertex* sv;
     while (!it.isEnd())
       {
-	Vec2f n(fun(it));
+	if (fun(it) < 0)
+	  return -1;
+	Vec2f n(fun.result);
 	sv = dynamic_cast<StrokeVertex*>(&(*it));
 	Vec2d newPoint(sv->x()+_amount*n.x(), sv->y()+_amount*n.y());
 	sv->setPoint(newPoint[0], newPoint[1]);
 	++it;
       }
+	return 0;
   }
 
-  void BSplineShader::shade(Stroke& stroke) const
+  int BSplineShader::shade(Stroke& stroke) const
   {
     if(stroke.strokeVerticesSize() < 4)
-      return;
+      return 0;
 
     // Find the new vertices
     vector<Vec2d> newVertices;
@@ -702,13 +726,14 @@ namespace StrokeShaders {
 	++it;
 	++n;
       }
+	return 0;
   }
 
   //!! Bezier curve stroke shader
-  void BezierCurveShader::shade(Stroke& stroke) const
+  int BezierCurveShader::shade(Stroke& stroke) const
   { 
     if(stroke.strokeVerticesSize() < 4)
-      return;
+      return 0;
 
     // Build the Bezier curve from this set of data points:    
     vector<Vec2d> data;
@@ -822,7 +847,7 @@ namespace StrokeShaders {
 
     // Deal with extra vertices:
     if(nExtraVertex == 0)
-      return;
+      return 0;
 
     // nExtraVertex should stay unassigned
     vector<StrokeAttribute> attributes;
@@ -864,15 +889,18 @@ namespace StrokeShaders {
         ++a;
       ++index;
     }
+	return 0;
   } 
 
-  void InflateShader::shade(Stroke& stroke) const
+  int InflateShader::shade(Stroke& stroke) const
   {
     // we're computing the curvature variance of the stroke.(Combo 5)
     // If it's too high, forget about it
     Functions1D::Curvature2DAngleF1D fun;
-    if(fun(stroke) > _curvatureThreshold)
-      return;
+	if (fun(stroke) < 0)
+	  return -1;
+	if (fun.result > _curvatureThreshold)
+      return 0;
 
     Functions0D::VertexOrientation2DF0D ori_fun;
     Functions0D::Curvature2DAngleF0D curv_fun;
@@ -881,9 +909,13 @@ namespace StrokeShaders {
     StrokeVertex* sv;
     while (!it.isEnd())
       {
-	Vec2f ntmp = ori_fun(it);
+	if (ori_fun(it) < 0)
+	  return -1;
+	Vec2f ntmp(ori_fun.result);
 	Vec2f n(ntmp.y(), -ntmp.x());
-	Vec2f strokeN(norm_fun(stroke));
+	if (norm_fun(stroke) < 0)
+	  return -1;
+	Vec2f strokeN(norm_fun.result);
 	if(n*strokeN < 0)
 	  { 
 	    n[0] = -n[0];
@@ -892,11 +924,14 @@ namespace StrokeShaders {
 	sv = dynamic_cast<StrokeVertex*>(&(*it));
 	float u=sv->u();
 	float t = 4.f*(0.25f - (u-0.5)*(u-0.5));
-	float curvature_coeff = (M_PI-curv_fun(it))/M_PI;
+	if (curv_fun(it) < 0)
+	  return -1;
+	float curvature_coeff = (M_PI-curv_fun.result)/M_PI;
 	Vec2d newPoint(sv->x()+curvature_coeff*t*_amount*n.x(), sv->y()+curvature_coeff*t*_amount*n.y());
 	sv->setPoint(newPoint[0], newPoint[1]);
 	++it;
       }
+	return 0;
   }
 
   class CurvePiece
@@ -953,7 +988,7 @@ namespace StrokeShaders {
     }
   };
 
-  void PolygonalizationShader::shade(Stroke& stroke) const
+  int PolygonalizationShader::shade(Stroke& stroke) const
   {
     vector<CurvePiece*> _pieces;
     vector<CurvePiece*> _results;
@@ -1012,9 +1047,10 @@ namespace StrokeShaders {
 	delete (*cp);
       }
     _results.clear();
+	return 0;
   }
 
-  void GuidingLinesShader::shade(Stroke& stroke) const
+  int GuidingLinesShader::shade(Stroke& stroke) const
   {
     Functions1D::Normal2DF1D norm_fun;
     StrokeInternal::StrokeVertexIterator a=stroke.strokeVerticesBegin();
@@ -1024,7 +1060,9 @@ namespace StrokeShaders {
 
     Vec2d u = piece.B-piece.A;
     Vec2f n(u[1], -u[0]);n.normalize();
-    Vec2f strokeN(norm_fun(stroke));
+	if (norm_fun(stroke) < 0)
+	  return -1;
+    Vec2f strokeN(norm_fun.result);
     if(n*strokeN < 0)
       {
 	n[0] = -n[0];
@@ -1038,6 +1076,7 @@ namespace StrokeShaders {
       {
 	v->setPoint(piece.A.x()+v->u()*u.x()+n.x()*offset, piece.A.y()+v->u()*u.y()+n.y()*offset);
       }
+	return 0;
   }
 
   /////////////////////////////////////////
@@ -1053,13 +1092,13 @@ namespace StrokeShaders {
     _tipLength = tipLength;
   }
 
-  void 
+  int 
   TipRemoverShader::shade(Stroke& stroke) const 
   {
     int originalSize = stroke.strokeVerticesSize();
 
     if(originalSize<4)
-      return;
+      return 0;
 
     StrokeInternal::StrokeVertexIterator v, vend;
     vector<StrokeVertex*> verticesToRemove;
@@ -1078,7 +1117,7 @@ namespace StrokeShaders {
       } 
 
     if(originalSize-verticesToRemove.size() < 2)
-      return;
+      return 0;
 
     vector<StrokeVertex*>::iterator sv=verticesToRemove.begin(), svend=verticesToRemove.end();
     for(;
@@ -1105,13 +1144,16 @@ namespace StrokeShaders {
 	//cout << "thickness = " << (*a).getThickness()[0] << "-" << (*a).getThickness()[1] << endl;
       }
     // we're done!
+	return 0;
   }
 
-  void streamShader::shade(Stroke& stroke) const{
+  int streamShader::shade(Stroke& stroke) const{
     cout << stroke << endl;
+	return 0;
   } 
-  void fstreamShader::shade(Stroke& stroke) const{
+  int fstreamShader::shade(Stroke& stroke) const{
     _stream << stroke << endl;
+	return 0;
   } 
 
 } // end of namespace StrokeShaders

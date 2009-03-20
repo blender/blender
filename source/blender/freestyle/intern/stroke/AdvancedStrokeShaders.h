@@ -59,7 +59,7 @@ public:
   /*! Destructor. */
   virtual ~CalligraphicShader () {}
   /*! The shading method */
-  virtual void shade(Stroke &ioStroke) const;
+  virtual int shade(Stroke &ioStroke) const;
 protected:
   real _maxThickness;
   real _minThickness;
@@ -91,7 +91,7 @@ public:
   /*! Destructor. */
   virtual ~SpatialNoiseShader () {}
   /*! The shading method. */
-  virtual void shade(Stroke &ioStroke) const;
+  virtual int shade(Stroke &ioStroke) const;
 
 protected:
 
@@ -137,7 +137,7 @@ public:
   virtual ~SmoothingShader () {}
 
   /*! The shading method. */
-  virtual void shade(Stroke &ioStroke) const;
+  virtual int shade(Stroke &ioStroke) const;
 
 protected:
 
@@ -209,7 +209,7 @@ public:
   OmissionShader (real sizeWindow, real thrVari, real thrFlat, real lFlat);
   virtual ~OmissionShader () {}
 
-  virtual void shade(Stroke &ioStroke) const;
+  virtual int shade(Stroke &ioStroke) const;
 
 protected:
 

@@ -146,7 +146,7 @@ namespace Functions0D {
   }
     
   //
-  Vec2f VertexOrientation2DF0D::operator()(Interface0DIterator& iter) {
+  int VertexOrientation2DF0D::operator()(Interface0DIterator& iter) {
     Vec2f A,C;
     Vec2f B(iter->getProjectedX(), iter->getProjectedY());
     if(iter.isBegin())
@@ -170,13 +170,13 @@ namespace Functions0D {
     Vec2f BC(C-B);
     if(BC.norm() != 0)
       BC.normalize();
-    Vec2f res (AB + BC);
-    if(res.norm() != 0)
-      res.normalize();
-    return res;
+    result = AB + BC;
+    if(result.norm() != 0)
+      result.normalize();
+    return 0;
   }
 
-  Vec3f VertexOrientation3DF0D::operator()(Interface0DIterator& iter) {
+  int VertexOrientation3DF0D::operator()(Interface0DIterator& iter) {
     Vec3r A,C;
     Vec3r B(iter->getX(), iter->getY(), iter->getZ());
     if(iter.isBegin())
@@ -200,13 +200,13 @@ namespace Functions0D {
     Vec3r BC(C-B);
     if(BC.norm() != 0)
       BC.normalize();
-    Vec3f res (AB + BC);
-    if(res.norm() != 0)
-      res.normalize();
-    return res;
+    result = AB + BC;
+    if(result.norm() != 0)
+      result.normalize();
+    return 0;
   }
 
-  real Curvature2DAngleF0D::operator()(Interface0DIterator& iter) {
+  int Curvature2DAngleF0D::operator()(Interface0DIterator& iter) {
     Interface0DIterator tmp1 = iter, tmp2 = iter;
     ++tmp2;
     unsigned count = 1;
@@ -220,8 +220,11 @@ namespace Functions0D {
 	++tmp2;
 	++count;
       }
-    if(count < 3)
-      return 0; // if we only have 2 vertices
+	if(count < 3) {
+	  // if we only have 2 vertices
+	  result = 0;
+      return -1;
+	}
 
     Interface0DIterator v = iter;
     if(iter.isBegin())
@@ -250,29 +253,30 @@ namespace Functions0D {
     if((N1.norm() == 0) && (N2.norm() == 0))
       {
 	Exception::raiseException();
-	return 0; 
+	result = 0;
+	return -1; 
       }
     double cosin = N1*N2;
     if(cosin > 1)
       cosin = 1;
     if(cosin < -1)
       cosin = -1;
-    return acos(cosin);
+    result = acos(cosin);
+	return 0;
   }
 
-  real ZDiscontinuityF0D::operator()(Interface0DIterator& iter) {
+  int ZDiscontinuityF0D::operator()(Interface0DIterator& iter) {
     FEdge *fe1, *fe2;
     getFEdges(iter, fe1, fe2);
-    real result ;
     result = fe1->z_discontinuity();
     if(fe2!=0){
       result += fe2->z_discontinuity();
       result /= 2.f;
     }
-    return result;
+    return 0;
   }
 
-  Vec2f Normal2DF0D::operator()(Interface0DIterator& iter) {
+  int Normal2DF0D::operator()(Interface0DIterator& iter) {
     FEdge *fe1, *fe2;
     getFEdges(iter,fe1,fe2);
     Vec3f e1(fe1->orientation2d());
@@ -285,31 +289,32 @@ namespace Functions0D {
 	n += n2;
       }
     n.normalize();
-    return n;
+    result = n;
+	return 0;
   }
 
-  FrsMaterial MaterialF0D::operator()(Interface0DIterator& iter) {
+  int MaterialF0D::operator()(Interface0DIterator& iter) {
     FEdge *fe1, *fe2;
     getFEdges(iter,fe1,fe2);
     
     if(fe1 == 0)
       getFEdges(iter, fe1, fe2);
-    FrsMaterial mat;
     if(fe1->isSmooth())
-      mat = ((FEdgeSmooth*)fe1)->frs_material();
+      result = ((FEdgeSmooth*)fe1)->frs_material();
     else
-      mat = ((FEdgeSharp*)fe1)->bFrsMaterial();
+      result = ((FEdgeSharp*)fe1)->bFrsMaterial();
     //    const SShape * sshape = getShapeF0D(iter);
     //    return sshape->material();
-    return mat;
+    return 0;
   }
 
-  Id ShapeIdF0D::operator()(Interface0DIterator& iter) {
+  int ShapeIdF0D::operator()(Interface0DIterator& iter) {
     ViewShape * vshape = getShapeF0D(iter);
-    return vshape->getId();
+    result = vshape->getId();
+	return 0;
   }
 
-  unsigned int QuantitativeInvisibilityF0D::operator()(Interface0DIterator& iter) {
+  int QuantitativeInvisibilityF0D::operator()(Interface0DIterator& iter) {
     ViewEdge * ve1, *ve2;
     getViewEdges(iter,ve1,ve2);
     unsigned int qi1, qi2;
@@ -319,38 +324,42 @@ namespace Functions0D {
       if(qi2!=qi1)
         cout << "QuantitativeInvisibilityF0D: ambiguous evaluation for point " << iter->getId() << endl;
     }
-    return qi1;
+    result = qi1;
+	return 0;
   }
 
-  Nature::EdgeNature CurveNatureF0D::operator()(Interface0DIterator& iter) {
+  int CurveNatureF0D::operator()(Interface0DIterator& iter) {
     Nature::EdgeNature nat = 0;
     ViewEdge * ve1, *ve2;
     getViewEdges(iter, ve1, ve2);
     nat |= ve1->getNature();
     if(ve2!=0)
       nat |= ve2->getNature();
-    return nat;
+    result = nat;
+	return 0;
   }
 
-  vector<ViewShape*> GetOccludersF0D::operator()(Interface0DIterator& iter) {
+  int GetOccludersF0D::operator()(Interface0DIterator& iter) {
     set<ViewShape*> occluders;
     getOccludersF0D(iter,occluders);
-    vector<ViewShape*> vsOccluders;
+	result.clear();
     // vsOccluders.insert(vsOccluders.begin(), occluders.begin(), occluders.end());
     for(set<ViewShape*>::iterator it=occluders.begin(), itend=occluders.end();
     it!=itend;
     ++it){
-      vsOccluders.push_back((*it));
+      result.push_back((*it));
     }
-    return vsOccluders;
+	return 0;
   }
 
-  ViewShape* GetShapeF0D::operator()(Interface0DIterator& iter) {
-    return getShapeF0D(iter);
+  int GetShapeF0D::operator()(Interface0DIterator& iter) {
+    result = getShapeF0D(iter);
+	return 0;
   }
 
-  ViewShape* GetOccludeeF0D::operator()(Interface0DIterator& iter) {
-    return getOccludeeF0D(iter);
+  int GetOccludeeF0D::operator()(Interface0DIterator& iter) {
+    result = getOccludeeF0D(iter);
+	return 0;
   }
 
 } // end of namespace Functions0D

@@ -28,10 +28,11 @@ bool AdjacencyIterator::isIncoming() const{
   return (*_internalIterator).second;
 }
 
-void AdjacencyIterator::increment(){
+int AdjacencyIterator::increment(){
   ++_internalIterator;
   while((!_internalIterator.isEnd()) && (!isValid((*_internalIterator).first)))
     ++_internalIterator;
+  return 0;
 }
 
 bool AdjacencyIterator::isValid(ViewEdge* edge){
@@ -44,44 +45,52 @@ bool AdjacencyIterator::isValid(ViewEdge* edge){
     return true;
 }
 
-void ChainingIterator::increment() {
+int ChainingIterator::increment() {
   _increment = true;
   ViewVertex * vertex = getVertex();
   if(!vertex){
     _edge = 0;
-    return;
+    return 0;
   }
   AdjacencyIterator it = AdjacencyIterator(vertex, _restrictToSelection, _restrictToUnvisited);
-  if(it.isEnd())
+  if(it.isEnd()) {
     _edge = 0;
-  else
-    _edge = traverse(it);
+	return 0;
+  }
+  if (traverse(it) < 0)
+	return -1;
+  _edge = result;
   if(_edge == 0)
-    return;
+    return 0;
   if(_edge->A() == vertex)
     _orientation = true;
   else
     _orientation = false;
+  return 0;
 }
 
-void ChainingIterator::decrement() {
+int ChainingIterator::decrement() {
   _increment = false;
   ViewVertex * vertex = getVertex();
   if(!vertex){
     _edge = 0;
-    return;
+    return 0;
   }
   AdjacencyIterator it = AdjacencyIterator(vertex, _restrictToSelection, _restrictToUnvisited);
-  if(it.isEnd())
+  if(it.isEnd()) {
     _edge = 0;
-  else
-    _edge = traverse(it);
+	return 0;
+  }
+  if (traverse(it) < 0)
+	return -1;
+  _edge = result;
   if(_edge == 0)
-    return;
+    return 0;
   if(_edge->B() == vertex)
     _orientation = true;
   else
     _orientation = false;
+  return 0;
 }
 
 //
@@ -89,7 +98,7 @@ void ChainingIterator::decrement() {
 //
 ///////////////////////////////////////////////////////////
 
-ViewEdge * ChainSilhouetteIterator::traverse(const AdjacencyIterator& ait){
+int ChainSilhouetteIterator::traverse(const AdjacencyIterator& ait){
   AdjacencyIterator it(ait);
   ViewVertex* nextVertex = getVertex();
   // we can't get a NULL nextVertex here, it was intercepted
@@ -99,11 +108,14 @@ ViewEdge * ChainSilhouetteIterator::traverse(const AdjacencyIterator& ait){
     ViewEdge *mate = (tvertex)->mate(getCurrentEdge());
     while(!it.isEnd()){
       ViewEdge *ve = *it;
-      if(ve == mate)
-        return ve;
+	  if(ve == mate) {
+	    result = ve;
+        return 0;
+	  }
       ++it;
     }
-    return 0;
+    result = 0;
+	return 0;
   }
   if(nextVertex->getNature() & Nature::NON_T_VERTEX){
     //soc NonTVertex * nontvertex = (NonTVertex*)nextVertex;
@@ -123,25 +135,36 @@ ViewEdge * ChainSilhouetteIterator::traverse(const AdjacencyIterator& ait){
           ++it;
         } 
         if(n == 1){
-          return newEdge;
+          result = newEdge;
         }else{
-          return 0;
+          result = 0;
         }   
-      } 
+		return 0;
+	  } 
     }
   }
+  result = 0;
   return 0;
 }
 
-ViewEdge * ChainPredicateIterator::traverse(const AdjacencyIterator& ait){
+int ChainPredicateIterator::traverse(const AdjacencyIterator& ait){
   AdjacencyIterator it(ait);
   // Iterates over next edges to see if one of them 
   // respects the predicate:
   while(!it.isEnd()) {
     ViewEdge *ve = *it;
-    if(((*_unary_predicate)(*ve)) && ((*_binary_predicate)(*(getCurrentEdge()),*(ve))))
-        return ve;
+	if (_unary_predicate->operator()(*ve) < 0)
+	  return -1;
+	if (_unary_predicate->result) {
+	  if (_binary_predicate->operator()(*(getCurrentEdge()), *(ve)) < 0)
+		return -1;
+	  if (_binary_predicate->result) {
+        result = ve;
+	    return 0;
+	  }
+	}
     ++it;
   }
+  result = 0;
   return 0;
 } 

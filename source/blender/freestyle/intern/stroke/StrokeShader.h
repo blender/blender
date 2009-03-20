@@ -115,14 +115,17 @@ public:
    *    modifies the Stroke's attribute's values such
    *    as Color, Thickness, Geometry...)
    */
-  virtual void shade(Stroke& ioStroke) const {
+  virtual int shade(Stroke& ioStroke) const {
 	string name( py_ss ? PyString_AsString(PyObject_CallMethod(py_ss, "getName", "")) : getName() );
 	
 	if( py_ss && PyObject_HasAttrString(py_ss, "shade") ) {
-		Director_BPy_StrokeShader_shade(py_ss, ioStroke);
+		if (Director_BPy_StrokeShader_shade(py_ss, ioStroke) < 0) {
+			return -1;
+		}
 	} else {
-		cerr << "Warning: " << name << " method shade() not implemented" << endl;
+		cerr << "Warning: " << name << " shade() method not implemented" << endl;
 	}
+	return 0;
   }
 
 };

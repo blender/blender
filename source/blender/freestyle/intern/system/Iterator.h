@@ -16,12 +16,14 @@ public:
     return "Iterator";
   }
 
-  virtual void increment() {
+  virtual int increment() {
 	cerr << "Warning: increment() not implemented" << endl;
+	return 0;
   }
 
-  virtual void decrement() {
+  virtual int decrement() {
 	cerr << "Warning: decrement() not implemented" << endl;
+	return 0;
   }
 
   virtual bool isBegin() const {

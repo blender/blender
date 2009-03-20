@@ -24,61 +24,76 @@ using namespace std;
 
 namespace Functions1D {
 
-  real GetXF1D::operator()(Interface1D& inter) {
-    return integrate(_func, inter.verticesBegin(), inter.verticesEnd(), _integration);
+  int GetXF1D::operator()(Interface1D& inter) {
+    result = integrate(_func, inter.verticesBegin(), inter.verticesEnd(), _integration);
+	return 0;
   }
 
-  real GetYF1D::operator()(Interface1D& inter) {
-    return integrate(_func, inter.verticesBegin(), inter.verticesEnd(), _integration);
+  int GetYF1D::operator()(Interface1D& inter) {
+    result = integrate(_func, inter.verticesBegin(), inter.verticesEnd(), _integration);
+	return 0;
   }
 
-  real GetZF1D::operator()(Interface1D& inter) {
-    return integrate(_func, inter.verticesBegin(), inter.verticesEnd(), _integration);
+  int GetZF1D::operator()(Interface1D& inter) {
+    result = integrate(_func, inter.verticesBegin(), inter.verticesEnd(), _integration);
+	return 0;
   }
 
-  real GetProjectedXF1D::operator()(Interface1D& inter) {
-    return integrate(_func, inter.verticesBegin(), inter.verticesEnd(), _integration);
+  int GetProjectedXF1D::operator()(Interface1D& inter) {
+    result = integrate(_func, inter.verticesBegin(), inter.verticesEnd(), _integration);
+	return 0;
   }
 
-  real GetProjectedYF1D::operator()(Interface1D& inter) {
-    return integrate(_func, inter.verticesBegin(), inter.verticesEnd(), _integration);
+  int GetProjectedYF1D::operator()(Interface1D& inter) {
+    result = integrate(_func, inter.verticesBegin(), inter.verticesEnd(), _integration);
+	return 0;
   }
 
-  real GetProjectedZF1D::operator()(Interface1D& inter) {
-    return integrate(_func, inter.verticesBegin(), inter.verticesEnd(), _integration);
+  int GetProjectedZF1D::operator()(Interface1D& inter) {
+    result = integrate(_func, inter.verticesBegin(), inter.verticesEnd(), _integration);
+	return 0;
   }
 
-  Vec2f Orientation2DF1D::operator()(Interface1D& inter) {
+  int Orientation2DF1D::operator()(Interface1D& inter) {
     FEdge * fe = dynamic_cast<FEdge*>(&inter);
     if(fe){
       Vec3r res = fe->orientation2d();
-      return Vec2f(res[0], res[1]);
-    }
-    return integrate(_func, inter.verticesBegin(), inter.verticesEnd(), _integration);
+      result = Vec2f(res[0], res[1]);
+	} else {
+      result = integrate(_func, inter.verticesBegin(), inter.verticesEnd(), _integration);
+	}
+	return 0;
   }
 
-  Vec3f Orientation3DF1D::operator()(Interface1D& inter) {
-    return integrate(_func, inter.verticesBegin(), inter.verticesEnd(), _integration);
+  int Orientation3DF1D::operator()(Interface1D& inter) {
+    result = integrate(_func, inter.verticesBegin(), inter.verticesEnd(), _integration);
+	return 0;
   }
 
-  real ZDiscontinuityF1D::operator()(Interface1D& inter) {
-    return integrate(_func, inter.verticesBegin(), inter.verticesEnd(), _integration);
+  int ZDiscontinuityF1D::operator()(Interface1D& inter) {
+    result = integrate(_func, inter.verticesBegin(), inter.verticesEnd(), _integration);
+	return 0;
   }
   
-  unsigned QuantitativeInvisibilityF1D::operator()(Interface1D& inter) {
+  int QuantitativeInvisibilityF1D::operator()(Interface1D& inter) {
     ViewEdge* ve = dynamic_cast<ViewEdge*>(&inter);
-    if (ve)
-      return ve->qi();
+	if (ve) {
+	  result = ve->qi();
+      return 0;
+	}
     FEdge *fe = dynamic_cast<FEdge*>(&inter);
-    if(fe)
-      return ve->qi();
-    return integrate(_func, inter.verticesBegin(), inter.verticesEnd(), _integration);
+	if (fe) {
+      result = ve->qi();
+	  return 0;
+	}
+    result = integrate(_func, inter.verticesBegin(), inter.verticesEnd(), _integration);
+	return 0;
   }
 
-  Nature::EdgeNature CurveNatureF1D::operator()(Interface1D& inter) {
+  int CurveNatureF1D::operator()(Interface1D& inter) {
     ViewEdge* ve = dynamic_cast<ViewEdge*>(&inter);
     if (ve)
-      return ve->getNature();
+      result = ve->getNature();
     else{
       // we return a nature that contains every 
       // natures of the viewedges spanned by the chain.
@@ -88,29 +103,33 @@ namespace Functions1D {
         nat |= _func(it);
         ++it;
       }
-      return nat;
+      result = nat;
     }
+	return 0;
   }
   
-  void TimeStampF1D::operator()(Interface1D& inter) {
+  int TimeStampF1D::operator()(Interface1D& inter) {
     TimeStamp *timestamp = TimeStamp::instance();
     inter.setTimeStamp(timestamp->getTimeStamp());
+	return 0;
   }
 
-  void ChainingTimeStampF1D::operator()(Interface1D& inter) {
+  int ChainingTimeStampF1D::operator()(Interface1D& inter) {
     TimeStamp *timestamp = TimeStamp::instance();
     ViewEdge *ve = dynamic_cast<ViewEdge*>(&inter);
     if(ve)
       ve->setChainingTimeStamp(timestamp->getTimeStamp());
+	return 0;
   }
   
-  void IncrementChainingTimeStampF1D::operator()(Interface1D& inter) {
+  int IncrementChainingTimeStampF1D::operator()(Interface1D& inter) {
     ViewEdge *ve = dynamic_cast<ViewEdge*>(&inter);
     if(ve)
       ve->setChainingTimeStamp(ve->getChainingTimeStamp()+1);
+	return 0;
   }
 
-  vector<ViewShape*> GetShapeF1D::operator()(Interface1D& inter) {
+  int GetShapeF1D::operator()(Interface1D& inter) {
     vector<ViewShape*> shapesVector;
     set<ViewShape*> shapesSet;
     ViewEdge* ve = dynamic_cast<ViewEdge*>(&inter);
@@ -122,26 +141,28 @@ namespace Functions1D {
         shapesSet.insert(Functions0D::getShapeF0D(it));
       shapesVector.insert<set<ViewShape*>::iterator>(shapesVector.begin(), shapesSet.begin(), shapesSet.end());
     }
-    return shapesVector;
+    result = shapesVector;
+	return 0;
   }
 
-  vector<ViewShape*> GetOccludersF1D::operator()(Interface1D& inter) {
+  int GetOccludersF1D::operator()(Interface1D& inter) {
     vector<ViewShape*> shapesVector;
     set<ViewShape*> shapesSet;
     ViewEdge* ve = dynamic_cast<ViewEdge*>(&inter);
     if (ve){
-      return ve->occluders();
+      result = ve->occluders();
     }else{
       Interface0DIterator it=inter.verticesBegin(), itend=inter.verticesEnd();
       for(;it!=itend;++it){
         Functions0D::getOccludersF0D(it, shapesSet);
       }
       shapesVector.insert(shapesVector.begin(), shapesSet.begin(), shapesSet.end());
+      result = shapesVector;
     }
-    return shapesVector;
+	return 0;
   }
 
-  vector<ViewShape*> GetOccludeeF1D::operator()(Interface1D& inter) {
+  int GetOccludeeF1D::operator()(Interface1D& inter) {
     vector<ViewShape*> shapesVector;
     set<ViewShape*> shapesSet;
     ViewEdge* ve = dynamic_cast<ViewEdge*>(&inter);
@@ -155,7 +176,8 @@ namespace Functions1D {
       }
     shapesVector.insert<set<ViewShape*>::iterator>(shapesVector.begin(), shapesSet.begin(), shapesSet.end());
     }
-    return shapesVector;
+    result = shapesVector;
+	return 0;
   }
   // Internal
   ////////////

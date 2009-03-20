@@ -51,6 +51,7 @@ class UnaryPredicate0D
 {
 public:
 	
+	bool result;
 	PyObject *py_up0D;
 	
   /*! Default constructor. */
@@ -72,15 +73,19 @@ public:
    *  \return true if the condition is satisfied,
    *    false otherwise.
    */
-  virtual bool operator()(Interface0DIterator& it) {
+  virtual int operator()(Interface0DIterator& it) {
 	string name( py_up0D ? PyString_AsString(PyObject_CallMethod(py_up0D, "getName", "")) : getName() );
 	
 	if( py_up0D && PyObject_HasAttrString(py_up0D, "__call__") ) {
-		return Director_BPy_UnaryPredicate0D___call__(py_up0D, it);
+		int res = Director_BPy_UnaryPredicate0D___call__(py_up0D, it);
+		if (res < 0)
+			return -1;
+		result = (res == 1);
 	} else {
 		cerr << "Warning: " << name << " operator() not implemented" << endl;
-		return false;
+		result = false;
 	}
+	return 0;
   }
 
 };
@@ -101,6 +106,7 @@ class BinaryPredicate0D
 {
 public:
 	
+		bool result;
 		PyObject *py_bp0D;
 	
   /*! Default constructor. */
@@ -122,15 +128,19 @@ public:
    *    The second Interface0D.
    *  \return true or false.
    */
-  virtual bool operator()(Interface0D& inter1, Interface0D& inter2) {
+  virtual int operator()(Interface0D& inter1, Interface0D& inter2) {
 	string name( py_bp0D ? PyString_AsString(PyObject_CallMethod(py_bp0D, "getName", "")) : getName() );
 
 	if( py_bp0D && PyObject_HasAttrString(py_bp0D, "__call__") ) {
-		return Director_BPy_BinaryPredicate0D___call__(py_bp0D, inter1, inter2);
+		int res = Director_BPy_BinaryPredicate0D___call__(py_bp0D, inter1, inter2);
+		if (res < 0)
+			return -1;
+		result = (res == 1);
 	} else {
 		cerr << "Warning: " << name << " operator() not implemented" << endl;
-		return false;
+		result = false;
 	}
+	return 0;
   }
 
 };
@@ -155,8 +165,9 @@ namespace Predicates0D {
       return "TrueUP0D";
     }
     /*! The () operator. */
-    bool operator()(Interface0DIterator&) {
-      return true;
+    int operator()(Interface0DIterator&) {
+	  result = true;
+	  return 0;
     }
   };
 
@@ -172,8 +183,9 @@ namespace Predicates0D {
       return "FalseUP0D";
     }
     /*! The () operator. */
-    bool operator()(Interface0DIterator&) {
-      return false;
+    int operator()(Interface0DIterator&) {
+	  result = false;
+      return 0;
     }
   };
 

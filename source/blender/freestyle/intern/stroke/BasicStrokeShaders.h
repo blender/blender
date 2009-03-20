@@ -67,7 +67,7 @@ namespace StrokeShaders {
       return "ConstantThicknessShader";
     }
     /*! The shading method. */
-    virtual void shade(Stroke& stroke) const;
+    virtual int shade(Stroke& stroke) const;
 
   private:
     float _thickness;
@@ -94,7 +94,7 @@ namespace StrokeShaders {
       return "ConstantExternThicknessShader";
     }
 
-    virtual void shade(Stroke& stroke) const;
+    virtual int shade(Stroke& stroke) const;
 
   private:
 
@@ -132,7 +132,7 @@ namespace StrokeShaders {
     }
 
     /*! The shading method. */
-    virtual void shade(Stroke& stroke) const;
+    virtual int shade(Stroke& stroke) const;
 
   private:
 
@@ -176,7 +176,7 @@ namespace StrokeShaders {
     }
 
     /*! The shading method. */
-    virtual void shade(Stroke& stroke) const;
+    virtual int shade(Stroke& stroke) const;
   };
 
   /*  [ Thickness Shader ].
@@ -206,7 +206,7 @@ namespace StrokeShaders {
       return "LengthDependingThicknessShader";
     }
 
-    virtual void shade(Stroke& stroke) const;
+    virtual int shade(Stroke& stroke) const;
   };
 
   /*! [ Thickness Shader ].
@@ -248,7 +248,7 @@ namespace StrokeShaders {
     }
 
     /*! The shading method. */
-    virtual void shade(Stroke& stroke) const;
+    virtual int shade(Stroke& stroke) const;
 
   private:
 
@@ -283,7 +283,7 @@ namespace StrokeShaders {
     }
 
     /*! The shading method. */
-    virtual void shade(Stroke& stroke) const;
+    virtual int shade(Stroke& stroke) const;
   };
 
 
@@ -320,7 +320,7 @@ namespace StrokeShaders {
       return "ConstantColorShader";
     }
     /*! The shading method. */
-    virtual void shade(Stroke& stroke) const;
+    virtual int shade(Stroke& stroke) const;
 
   private:
 
@@ -377,7 +377,7 @@ namespace StrokeShaders {
     }
 
     /*! The shading method. */
-    virtual void shade(Stroke& stroke) const;
+    virtual int shade(Stroke& stroke) const;
   };
 
   /*! [ Color Shader ].
@@ -411,7 +411,7 @@ namespace StrokeShaders {
     }
 
     /*! The shading method. */
-    virtual void shade(Stroke& stroke) const;
+    virtual int shade(Stroke& stroke) const;
 
   private:
 
@@ -438,7 +438,7 @@ namespace StrokeShaders {
       return "MaterialColorShader";
     }
 
-    virtual void shade(Stroke& stroke) const;
+    virtual int shade(Stroke& stroke) const;
   };
 
   class LIB_STROKE_EXPORT CalligraphicColorShader : public StrokeShader
@@ -459,7 +459,7 @@ namespace StrokeShaders {
       return "CalligraphicColorShader";
     }
 
-    virtual void shade(Stroke& stroke) const;
+    virtual int shade(Stroke& stroke) const;
 
   };
 
@@ -487,7 +487,7 @@ namespace StrokeShaders {
 	}
 
     /*! The shading method. */
-    virtual void shade(Stroke& stroke) const;
+    virtual int shade(Stroke& stroke) const;
   };
 
   //
@@ -531,7 +531,7 @@ namespace StrokeShaders {
     }
 
     /*! The shading method */
-    virtual void shade(Stroke& stroke) const;
+    virtual int shade(Stroke& stroke) const;
   
   };
   /*! [ Texture Shader ].
@@ -585,7 +585,7 @@ namespace StrokeShaders {
     }
 
     /*! The shading method */
-    virtual void shade(Stroke& stroke) const;
+    virtual int shade(Stroke& stroke) const;
   
   };
 
@@ -618,7 +618,7 @@ namespace StrokeShaders {
     }
 
     /*! The shading method */
-    virtual void shade(Stroke& stroke) const;
+    virtual int shade(Stroke& stroke) const;
   };
 
   /*! [ Geometry Shader. ]
@@ -646,7 +646,7 @@ namespace StrokeShaders {
     }
 
     /*! The shading method */
-    virtual void shade(Stroke& stroke) const;
+    virtual int shade(Stroke& stroke) const;
   };
 
 
@@ -665,7 +665,7 @@ namespace StrokeShaders {
       return "ExternalContourStretcherShader";
     }
 
-    virtual void shade(Stroke& stroke) const;
+    virtual int shade(Stroke& stroke) const;
   };
 
   // B-Spline stroke shader
@@ -680,7 +680,7 @@ namespace StrokeShaders {
 	  return "BSplineShader";
 	}
 
-    virtual void shade(Stroke& stroke) const;
+    virtual int shade(Stroke& stroke) const;
   };
 
 
@@ -711,7 +711,7 @@ namespace StrokeShaders {
     }
 
     /*! The shading method */
-    virtual void shade(Stroke& stroke) const;
+    virtual int shade(Stroke& stroke) const;
   };
 
   /* Shader to inflate the curves. It keeps the extreme
@@ -747,7 +747,7 @@ namespace StrokeShaders {
     }
 
     /*! The shading method */
-    virtual void shade(Stroke& stroke) const;
+    virtual int shade(Stroke& stroke) const;
   };
 
   /*! [ Geometry Shader ].
@@ -781,7 +781,7 @@ namespace StrokeShaders {
     }
 
     /*! The shading method */
-    virtual void shade(Stroke& stroke) const;
+    virtual int shade(Stroke& stroke) const;
   };
 
 
@@ -816,7 +816,7 @@ namespace StrokeShaders {
     }
 
     /*! The shading method */
-    virtual void shade(Stroke& stroke) const;
+    virtual int shade(Stroke& stroke) const;
   };
 
   /*! [ Geometry Shader ].
@@ -838,7 +838,7 @@ namespace StrokeShaders {
       return "TipRemoverShader";
     }
 
-    virtual void shade(Stroke &stroke) const;
+    virtual int shade(Stroke &stroke) const;
 
   protected:
 
@@ -858,7 +858,7 @@ namespace StrokeShaders {
       return "streamShader";
     }
     /*! The shading method. */
-    virtual void shade(Stroke& stroke) const;
+    virtual int shade(Stroke& stroke) const;
   };
 
   /*! [ output Shader ].
@@ -883,7 +883,7 @@ namespace StrokeShaders {
       return "fstreamShader";
     }
     /*! The shading method. */
-    virtual void shade(Stroke& stroke) const;
+    virtual int shade(Stroke& stroke) const;
   };
 } // end of namespace StrokeShaders
 

@@ -277,9 +277,9 @@ public:
     return &(operator*());
   }
 
-  virtual void increment() = 0;
+  virtual int increment() = 0;
 
-  virtual void decrement() = 0;
+  virtual int decrement() = 0;
 
   virtual bool isBegin() const = 0;
 
@@ -404,13 +404,13 @@ public:
   }
 
   /*! Increments. */
-  virtual void increment() {
-    _iterator->increment();
+  virtual int increment() {
+    return _iterator->increment();
   }
   
   /*! Decrements. */
-  virtual void decrement() {
-    _iterator->decrement();
+  virtual int decrement() {
+    return _iterator->decrement();
   }
 
   /*! Returns true if the pointed Interface0D is the

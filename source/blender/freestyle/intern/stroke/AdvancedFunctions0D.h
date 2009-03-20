@@ -66,7 +66,7 @@ namespace Functions0D {
       return "DensityF0D";
     }
     /*! The () operator. */
-    double operator()(Interface0DIterator& iter);
+    int operator()(Interface0DIterator& iter);
 
   private:
 
@@ -94,7 +94,7 @@ namespace Functions0D {
       return "LocalAverageDepthF0D";
     }
     /*! the () operator.*/
-    double operator()(Interface0DIterator& iter);
+    int operator()(Interface0DIterator& iter);
   };
 
   // ReadMapPixel
@@ -123,7 +123,7 @@ namespace Functions0D {
       return "ReadMapPixelF0D";
     }
     /*! the () operator.*/
-    float operator()(Interface0DIterator& iter);
+    int operator()(Interface0DIterator& iter);
   };
   
   // ReadSteerableViewMapPixel
@@ -152,7 +152,7 @@ namespace Functions0D {
       return "ReadSteerableViewMapPixelF0D";
     }
     /*! the () operator.*/
-    float operator()(Interface0DIterator& iter);
+    int operator()(Interface0DIterator& iter);
   };
 
   // ReadCompleteViewMapPixel
@@ -176,7 +176,7 @@ namespace Functions0D {
       return "ReadCompleteViewMapPixelF0D";
     }
     /*! the () operator.*/
-    float operator()(Interface0DIterator& iter);
+    int operator()(Interface0DIterator& iter);
   };
   
   // GetViewMapGradientNormF0D
@@ -202,7 +202,7 @@ namespace Functions0D {
       return "GetViewMapGradientNormF0D";
     }
     /*! the () operator.*/
-    float operator()(Interface0DIterator& iter);
+    int operator()(Interface0DIterator& iter);
   };
 } // end of namespace Functions0D
 

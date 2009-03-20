@@ -55,6 +55,7 @@ class UnaryPredicate1D
 {
 public:
 	
+	bool result;
 	PyObject *py_up1D;
 	
   /*! Default constructor. */
@@ -75,15 +76,19 @@ public:
    *  \return true if the condition is satisfied,
    *    false otherwise.
    */
-  virtual bool operator()(Interface1D& inter) {
+  virtual int operator()(Interface1D& inter) {
 	string name( py_up1D ? PyString_AsString(PyObject_CallMethod(py_up1D, "getName", "")) : getName() );
 	
 	if( py_up1D && PyObject_HasAttrString(py_up1D, "__call__")) {
-		return Director_BPy_UnaryPredicate1D___call__(py_up1D, inter);
+		int res = Director_BPy_UnaryPredicate1D___call__(py_up1D, inter);
+		if (res < 0)
+			return -1;
+		result = (res == 1);
 	} else {
 		cerr << "Warning: " << name << " operator() not implemented" << endl;
-		return false;
+		result = false;
 	}
+	return 0;
   }
 
 };
@@ -104,6 +109,7 @@ class BinaryPredicate1D
 {
 public:
 	
+		bool result;
 		PyObject *py_bp1D;
 	
   /*! Default constructor. */
@@ -124,15 +130,19 @@ public:
    *    The second Interface1D.
    *  \return true or false.
    */
-  virtual bool operator()(Interface1D& inter1, Interface1D& inter2) {
+  virtual int operator()(Interface1D& inter1, Interface1D& inter2) {
 	string name( py_bp1D ? PyString_AsString(PyObject_CallMethod(py_bp1D, "getName", "")) : getName() );
 	
 	if( py_bp1D && PyObject_HasAttrString(py_bp1D, "__call__") ) {
-		return Director_BPy_BinaryPredicate1D___call__(py_bp1D, inter1, inter2);
+		int res = Director_BPy_BinaryPredicate1D___call__(py_bp1D, inter1, inter2);
+		if (res < 0)
+			return -1;
+		result = (res == 1);
 	} else {
 		cerr << "Warning: " << name << " operator() not implemented" << endl;
-		return false;
+		result = false;
 	}
+	return 0;
   }
 
 };
@@ -157,8 +167,9 @@ namespace Predicates1D {
       return "TrueUP1D";
     }
     /*! the () operator */
-    bool operator()(Interface1D&) {
-      return true;
+    int operator()(Interface1D&) {
+	  result = true;
+      return 0;
     }
   };
 
@@ -174,8 +185,9 @@ namespace Predicates1D {
       return "FalseUP1D";
     }
     /*! the () operator */
-    bool operator()(Interface1D&) {
-      return false;
+    int operator()(Interface1D&) {
+	  result = false;
+      return 0;
     }
   };
 
@@ -198,9 +210,12 @@ namespace Predicates1D {
       return "QuantitativeInvisibilityUP1D";
     }
     /*! the () operator */
-    bool operator()(Interface1D& inter) {
+    int operator()(Interface1D& inter) {
       Functions1D::QuantitativeInvisibilityF1D func;
-      return (func(inter) == _qi);
+	  if (func(inter) < 0)
+		  return -1;
+	  result = (func.result == _qi);
+	  return 0;
     }
   private:
     unsigned _qi;
@@ -221,15 +236,20 @@ namespace Predicates1D {
       return "ContourUP1D";
     }
     /*! The () operator. */
-    bool operator()(Interface1D& inter) {
-      if((_getNature(inter) & Nature::SILHOUETTE) || (_getNature(inter) & Nature::BORDER)){
+    int operator()(Interface1D& inter) {
+	  if (_getNature(inter) < 0)
+		return -1;
+	  if((_getNature.result & Nature::SILHOUETTE) || (_getNature.result & Nature::BORDER)){
         Interface0DIterator it=inter.verticesBegin();
         for(; !it.isEnd(); ++it){
-          if(Functions0D::getOccludeeF0D(it) != Functions0D::getShapeF0D(it))
-            return true;
+          if(Functions0D::getOccludeeF0D(it) != Functions0D::getShapeF0D(it)) {
+		    result = true;
+            return 0;
+		  }
         }
       }
-      return false;
+	  result = false;
+      return 0;
     }
   };
 
@@ -248,18 +268,23 @@ namespace Predicates1D {
       return "ExternalContourUP1D";
     }
     /*! The () operator. */
-    bool operator()(Interface1D& inter) {
-      if((_getNature(inter) & Nature::SILHOUETTE) || (_getNature(inter) & Nature::BORDER)){
+    int operator()(Interface1D& inter) {
+	  if (_getNature(inter) < 0)
+		return -1;
+	  if((_getNature.result & Nature::SILHOUETTE) || (_getNature.result & Nature::BORDER)){
         set<ViewShape*> occluded;
         Functions1D::getOccludeeF1D(inter, occluded);
         for(set<ViewShape*>::iterator os=occluded.begin(), osend=occluded.end();
             os!=osend;
             ++os){
-          if((*os) == 0)
-            return true;
+          if((*os) == 0) {
+		    result = true;
+            return 0;
+		  }
         }
       }
-      return false;
+	  result = false;
+      return 0;
     }
   };
 
@@ -280,8 +305,9 @@ namespace Predicates1D {
       return "EqualToTimeStampUP1D";
     }
     /*! The () operator. */
-    bool operator()(Interface1D& inter) {
-      return (inter.getTimeStamp() == _timeStamp);
+    int operator()(Interface1D& inter) {
+	  result = (inter.getTimeStamp() == _timeStamp);
+	  return 0;
     }
   };
 
@@ -302,11 +328,14 @@ namespace Predicates1D {
       return "EqualToChainingTimeStampUP1D";
     }
     /*! The () operator. */
-    bool operator()(Interface1D& inter) {
+    int operator()(Interface1D& inter) {
       ViewEdge* edge = dynamic_cast<ViewEdge*>(&inter);
-      if (!edge)
-	return false;
-      return (edge->getChainingTimeStamp() >= _timeStamp);
+	  if (!edge) {
+		result = false;
+		return 0;
+	  }
+	  result = (edge->getChainingTimeStamp() >= _timeStamp);
+	  return 0;
     }
   };
 
@@ -335,16 +364,19 @@ namespace Predicates1D {
       return "ShapeUP1D";
     }
     /*! The () operator. */
-    bool operator()(Interface1D& inter) {
+    int operator()(Interface1D& inter) {
       set<ViewShape*> shapes;
       Functions1D::getShapeF1D(inter, shapes);
       for(set<ViewShape*>::iterator s=shapes.begin(), send=shapes.end();
       s!=send;
       ++s){
-        if((*s)->getId() == _id)
-          return true;
-      }
-      return false;
+        if((*s)->getId() == _id) {
+		  result = true;
+          return 0;
+		}
+	  }
+	  result = false;
+      return 0;
     }
   };
   
@@ -363,8 +395,9 @@ namespace Predicates1D {
       return "TrueBP1D";
     }
     /*! The () operator. */
-    bool operator()(Interface1D& i1, Interface1D& i2) {
-      return true;
+    int operator()(Interface1D& i1, Interface1D& i2) {
+	  result = true;
+      return 0;
     }
   };
 
@@ -378,8 +411,9 @@ namespace Predicates1D {
       return "FalseBP1D";
     }
     /*! The () operator. */
-    bool operator()(Interface1D& i1, Interface1D& i2) {
-      return false;
+    int operator()(Interface1D& i1, Interface1D& i2) {
+	  result = false;
+      return 0;
     }
   };
   
@@ -395,8 +429,9 @@ namespace Predicates1D {
       return "Length2DBP1D";
     }
     /*! The () operator. */
-    bool operator()(Interface1D& i1, Interface1D& i2) {
-      return (i1.getLength2D() > i2.getLength2D());
+    int operator()(Interface1D& i1, Interface1D& i2) {
+	  result = (i1.getLength2D() > i2.getLength2D());
+	  return 0;
     }
   };
 
@@ -412,7 +447,7 @@ namespace Predicates1D {
       return "SameShapeIdBP1D";
     }
     /*! The () operator. */
-    bool operator()(Interface1D& i1, Interface1D& i2) {
+    int operator()(Interface1D& i1, Interface1D& i2) {
       set<ViewShape*> shapes1;
       Functions1D::getShapeF1D(i1, shapes1);
       set<ViewShape*> shapes2;
@@ -425,11 +460,14 @@ namespace Predicates1D {
         for(set<ViewShape*>::iterator s2=shapes2.begin(), s2end=shapes2.end();
           s2!=s2end;
           ++s2){
-          if((*s2)->getId() == current)
-            return true;
+          if((*s2)->getId() == current) {
+			result = true;
+            return 0;
+		  }
         }
-      }
-      return false;
+	  }
+	  result = false;
+      return 0;
     }
   };
 
@@ -451,8 +489,15 @@ namespace Predicates1D {
       return "ViewMapGradientNormBP1D";
     }
     /*! The () operator. */
-    bool operator()(Interface1D& i1, Interface1D& i2) {
-      return (_func(i1) > _func(i2));
+    int operator()(Interface1D& i1, Interface1D& i2) {
+	  if (_func(i1) < 0)
+		return -1;
+	  real n1 = _func.result;
+	  if (_func(i2) < 0)
+		return -1;
+	  real n2 = _func.result;
+	  result = (n1 > n2);
+	  return 0;
     }
   };
 } // end of namespace Predicates1D

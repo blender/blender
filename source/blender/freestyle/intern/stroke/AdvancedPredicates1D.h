@@ -67,9 +67,12 @@ namespace Predicates1D {
       return "DensityLowerThanUP1D";
     }
     /*! The () operator. */
-    bool operator()(Interface1D& inter) {
+    int operator()(Interface1D& inter) {
       Functions1D::DensityF1D fun(_sigma);
-      return (fun(inter) < _threshold);
+	  if (fun(inter) < 0)
+		return -1;
+	  result = (fun.result < _threshold);
+	  return 0;
     }
   private:
     double _sigma;

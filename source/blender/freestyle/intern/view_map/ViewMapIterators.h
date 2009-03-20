@@ -206,7 +206,7 @@ namespace ViewVertexInternal{
 
   public:
     /*! increments.*/
-    virtual inline void increment()
+    virtual inline int increment()
     {
       if(_Nature & Nature::T_VERTEX)
       { 
@@ -221,6 +221,7 @@ namespace ViewVertexInternal{
       }
       else
         ++_nontvertex_iter;
+	  return 0;
     }
   };
 
@@ -312,30 +313,32 @@ namespace ViewEdgeInternal {
       return ret;
     }
 
-    virtual void increment(){
+    virtual int increment(){
       if (!_next_edge) {
 	      _vertex = 0;
-	    return;
+	    return 0;
       }
       _t += (float)_next_edge->getLength2D();
       _vertex = _next_edge->vertexB();
       _previous_edge = _next_edge;
       _next_edge = _next_edge->nextEdge();
+	  return 0;
       
     }
-    virtual void decrement(){
+    virtual int decrement(){
       if (!_previous_edge) {
 	      _vertex = 0;
-	    return;
+	    return 0;
       }
       if((!_next_edge) && (!_vertex)){
         _vertex = _previous_edge->vertexB();
-        return;
+        return 0;
       }
       _t -= (float)_previous_edge->getLength2D();
       _vertex = _previous_edge->vertexA();
       _next_edge = _previous_edge;
       _previous_edge = _previous_edge->previousEdge();
+	  return 0;
   } 
 
     virtual bool isBegin() const {
@@ -482,8 +485,9 @@ public:
   }
 
   /*! increments. */
-  virtual void increment() {
+  virtual int increment() {
     cerr << "Warning: method increment() not implemented" << endl;
+	return 0;
   }
 
   /*! Decrements. In the scripting language, call
@@ -504,8 +508,9 @@ public:
   }
 
   /*! decrements. */
-  virtual void decrement(){
+  virtual int decrement(){
     cerr << "Warning: method decrement() not implemented" << endl;
+	return 0;
   }
 
   /*! Returns true if the pointed ViewEdge is the

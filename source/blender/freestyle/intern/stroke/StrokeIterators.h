@@ -158,13 +158,15 @@ namespace StrokeInternal {
     }
 
     /*! Increments. */
-    virtual void increment() {
+    virtual int increment() {
       ++_it;
+	  return 0;
     }
 
     /*! Decrements. */
-    virtual void decrement() {
+    virtual int decrement() {
       --_it;
+	  return 0;
     }
 
     /*! Returns true if the pointed StrokeVertex is the

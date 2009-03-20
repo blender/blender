@@ -81,36 +81,42 @@ T integrate(UnaryFunction0D<T>& fun,
 	    Interface0DIterator it_end,
 	    IntegrationType integration_type = MEAN) {
   T res;
-  T res_tmp;
   unsigned size;
   switch (integration_type) {
   case MIN:
-    res = fun(it);++it;
+	fun(it);
+	res = fun.result;++it;
     for (; !it.isEnd(); ++it) {
-      res_tmp = fun(it);
-      if (res_tmp < res)
-	res = res_tmp;
+	  fun(it);
+      if (fun.result < res)
+		res = fun.result;
     }
     break;
   case MAX:
-    res = fun(it);++it;
+	fun(it);
+	res = fun.result;++it;
     for (; !it.isEnd(); ++it) {
-      res_tmp = fun(it);
-      if (res_tmp > res)
-	res = res_tmp;
+	  fun(it);
+      if (fun.result > res)
+	    res = fun.result;
     }
     break;
   case FIRST:
-    res = fun(it);
+	fun(it);
+	res = fun.result;
     break;
   case LAST:
-    res = fun(--it_end);
+	fun(--it_end);
+	res = fun.result;
     break;
   case MEAN:
   default:
-    res = fun(it);++it;
-    for (size = 1; !it.isEnd(); ++it, ++size)
-      res += fun(it);
+	fun(it);
+	res = fun.result;++it;
+	for (size = 1; !it.isEnd(); ++it, ++size) {
+	  fun(it);
+	  res += fun.result;
+	}
     res /= (size ? size : 1);
     break;
   }

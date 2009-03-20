@@ -694,21 +694,23 @@ namespace FEdgeInternal {
       return ret;
     }
 
-    virtual void increment() {
+    virtual int increment() {
       if (_vertex == _edge->vertexB()) {
 	_vertex = 0;
-	return;
+	return 0;
       }
 
       _vertex = _edge->vertexB();
+	  return 0;
     }
 
-    virtual void decrement() {
+    virtual int decrement() {
       if (_vertex == _edge->vertexA()) {
 	_vertex = 0;
-	return;
+	return 0;
       }
       _vertex = _edge->vertexA();
+	  return 0;
     }
 
     virtual bool isBegin() const {

@@ -98,16 +98,17 @@ public:
    *    the function.
    *  \return the result of the function of type T.
    */
-  virtual T operator()(Interface1D& inter) {
+  virtual int operator()(Interface1D& inter) {
 	string name( py_uf1D ? PyString_AsString(PyObject_CallMethod(py_uf1D, "getName", "")) : getName() );
 
 	if( py_uf1D && PyObject_HasAttrString(py_uf1D, "__call__") ) {
-		Director_BPy_UnaryFunction1D___call__( this, py_uf1D, inter);
-		return result;
+		if (Director_BPy_UnaryFunction1D___call__( this, py_uf1D, inter) < 0) {
+		    return -1;
+		}
 	} else {
 		cerr << "Warning: " << name << " operator() not implemented" << endl;
-	    return T(0);
 	}
+	return 0;
   }
 	
   /*! Sets the integration method */
@@ -139,14 +140,17 @@ public:
 		return "UnaryFunction1D_void";
 	}
 	
-	void operator()(Interface1D& inter) {
+	int operator()(Interface1D& inter) {
 		string name( py_uf1D ? PyString_AsString(PyObject_CallMethod(py_uf1D, "getName", "")) : getName() );
 
 		if( py_uf1D && PyObject_HasAttrString(py_uf1D, "__call__") ) {
-			Director_BPy_UnaryFunction1D___call__( this, py_uf1D, inter);
+			if (Director_BPy_UnaryFunction1D___call__( this, py_uf1D, inter) < 0) {
+				return -1;
+			}
 		} else {
 			cerr << "Warning: " << name << " operator() not implemented" << endl;
 		}
+		return 0;
 	  }
 	
 	void setIntegrationType(IntegrationType integration) { _integration = integration; }
@@ -182,7 +186,7 @@ namespace Functions1D {
       return "GetXF1D";
     }
     /*! the () operator.*/
-    real operator()(Interface1D& inter) ;
+    int operator()(Interface1D& inter) ;
   };
 
   // GetYF1D
@@ -203,7 +207,7 @@ namespace Functions1D {
       return "GetYF1D";
     }
     /*! the () operator.*/
-    real operator()(Interface1D& inter) ;
+    int operator()(Interface1D& inter) ;
   };
 
   // GetZF1D
@@ -224,7 +228,7 @@ namespace Functions1D {
       return "GetZF1D";
     }
     /*! the () operator.*/
-    real operator()(Interface1D& inter) ;
+    int operator()(Interface1D& inter) ;
   };
 
   // GetProjectedXF1D
@@ -246,7 +250,7 @@ namespace Functions1D {
       return "GetProjectedXF1D";
     }
     /*! the () operator.*/
-    real operator()(Interface1D& inter);
+    int operator()(Interface1D& inter);
   };
   
   // GetProjectedYF1D
@@ -268,7 +272,7 @@ namespace Functions1D {
       return "GetProjectedYF1D";
     }
     /*! the () operator.*/
-    real operator()(Interface1D& inter);
+    int operator()(Interface1D& inter);
   };
 
   // GetProjectedZF1D
@@ -290,7 +294,7 @@ namespace Functions1D {
       return "GetProjectedZF1D";
     }
     /*! the () operator.*/
-    real operator()(Interface1D& inter);
+    int operator()(Interface1D& inter);
   };
   
   // Orientation2DF1D
@@ -311,7 +315,7 @@ namespace Functions1D {
       return "Orientation2DF1D";
     }
     /*! the () operator.*/
-    Vec2f operator()(Interface1D& inter);
+    int operator()(Interface1D& inter);
   };
 
   // Orientation3DF1D
@@ -332,7 +336,7 @@ namespace Functions1D {
       return "Orientation3DF1D";
     }
     /*! the () operator.*/    
-    Vec3f operator()(Interface1D& inter);
+    int operator()(Interface1D& inter);
   };
 
   // ZDiscontinuityF1D
@@ -358,7 +362,7 @@ namespace Functions1D {
       return "ZDiscontinuityF1D";
     }
     /*! the () operator.*/        
-    real operator()(Interface1D& inter);
+    int operator()(Interface1D& inter);
   };
   
   // QuantitativeInvisibilityF1D
@@ -384,7 +388,7 @@ namespace Functions1D {
       return "QuantitativeInvisibilityF1D";
     }
   /*! the () operator.*/        
-    unsigned operator()(Interface1D& inter);
+    int operator()(Interface1D& inter);
   };
 
   // CurveNatureF1D
@@ -410,7 +414,7 @@ namespace Functions1D {
       return "CurveNatureF1D";
     }
     /*! the () operator.*/        
-    Nature::EdgeNature operator()(Interface1D& inter);
+    int operator()(Interface1D& inter);
   };
 
   // TimeStampF1D
@@ -423,7 +427,7 @@ namespace Functions1D {
       return "TimeStampF1D";
     }
     /*! the () operator.*/        
-    void operator()(Interface1D& inter);
+    int operator()(Interface1D& inter);
   };
 
   // IncrementChainingTimeStampF1D
@@ -436,7 +440,7 @@ namespace Functions1D {
       return "IncrementChainingTimeStampF1D";
     }
     /*! the () operator.*/        
-    void operator()(Interface1D& inter);
+    int operator()(Interface1D& inter);
   };
 
   // ChainingTimeStampF1D
@@ -449,7 +453,7 @@ namespace Functions1D {
       return "ChainingTimeStampF1D";
     }
     /*! the () operator.*/        
-    void operator()(Interface1D& inter);
+    int operator()(Interface1D& inter);
   };
   
 
@@ -469,8 +473,9 @@ namespace Functions1D {
       return "Curvature2DAngleF1D";
     }
     /*! the () operator.*/        
-    real operator()(Interface1D& inter) {
-      return integrate(_fun, inter.verticesBegin(), inter.verticesEnd(), _integration);
+    int operator()(Interface1D& inter) {
+      result = integrate(_fun, inter.verticesBegin(), inter.verticesEnd(), _integration);
+	  return 0;
     }
   private:
     Functions0D::Curvature2DAngleF0D	_fun;
@@ -492,8 +497,9 @@ namespace Functions1D {
       return "Normal2DF1D";
     }
     /*! the () operator.*/        
-    Vec2f operator()(Interface1D& inter) {
-      return integrate(_fun, inter.verticesBegin(), inter.verticesEnd(), _integration);
+    int operator()(Interface1D& inter) {
+      result = integrate(_fun, inter.verticesBegin(), inter.verticesEnd(), _integration);
+	  return 0;
     }
   private:
     Functions0D::Normal2DF0D	_fun;
@@ -512,7 +518,7 @@ namespace Functions1D {
       return "GetShapeF1D";
     }
     /*! the () operator.*/        
-    std::vector<ViewShape*> operator()(Interface1D& inter);
+    int operator()(Interface1D& inter);
   };
 
   // GetOccludersF1D
@@ -528,7 +534,7 @@ namespace Functions1D {
       return "GetOccludersF1D";
     }
     /*! the () operator.*/        
-    std::vector<ViewShape*> operator()(Interface1D& inter);
+    int operator()(Interface1D& inter);
   };
 
   // GetOccludeeF1D
@@ -544,7 +550,7 @@ namespace Functions1D {
       return "GetOccludeeF1D";
     }
     /*! the () operator.*/        
-    std::vector<ViewShape*> operator()(Interface1D& inter);
+    int operator()(Interface1D& inter);
   };
 
   // internal

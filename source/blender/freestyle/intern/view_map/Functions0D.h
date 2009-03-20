@@ -94,16 +94,17 @@ UnaryFunction0D() { py_uf0D  = 0;}
    *    the function.
    *  \return the result of the function of type T.
    */
-  virtual T operator()(Interface0DIterator& iter) {
+  virtual int operator()(Interface0DIterator& iter) {
 	string name( py_uf0D ? PyString_AsString(PyObject_CallMethod(py_uf0D, "getName", "")) : getName() );
 	
 	if( py_uf0D && PyObject_HasAttrString(py_uf0D, "__call__") ) {
-		Director_BPy_UnaryFunction0D___call__( this, py_uf0D, iter);
-		return result;
+		if (Director_BPy_UnaryFunction0D___call__( this, py_uf0D, iter) < 0) {
+			return -1;
+		}
 	} else {
 		cerr << "Warning: " << name << " operator() not implemented" << endl;
-	    return T();
 	}
+	return 0;
   }
 
 };
@@ -146,8 +147,9 @@ namespace Functions0D {
       return "GetXF0D";
     }
     /*! the () operator.*/
-    real operator()(Interface0DIterator& iter) {
-      return iter->getX();
+    int operator()(Interface0DIterator& iter) {
+      result = iter->getX();
+	  return 0;
     }
   };
 
@@ -161,8 +163,9 @@ namespace Functions0D {
       return "GetYF0D";
     }
     /*! the () operator.*/
-    real operator()(Interface0DIterator& iter) {
-      return iter->getY();
+    int operator()(Interface0DIterator& iter) {
+      result = iter->getY();
+	  return 0;
     }
   };
 
@@ -176,8 +179,9 @@ namespace Functions0D {
       return "GetZF0D";
     }
     /*! the () operator.*/
-    real operator()(Interface0DIterator& iter) {
-      return iter->getZ();
+    int operator()(Interface0DIterator& iter) {
+      result = iter->getZ();
+	  return 0;
     }
   };
 
@@ -191,8 +195,9 @@ namespace Functions0D {
       return "GetProjectedXF0D";
     }
     /*! the () operator.*/
-    real operator()(Interface0DIterator& iter) {
-      return iter->getProjectedX();
+    int operator()(Interface0DIterator& iter) {
+      result = iter->getProjectedX();
+	  return 0;
     }
   };
 
@@ -206,8 +211,9 @@ namespace Functions0D {
       return "GetProjectedYF0D";
     }
     /*! the () operator.*/
-    real operator()(Interface0DIterator& iter) {
-      return iter->getProjectedY();
+    int operator()(Interface0DIterator& iter) {
+      result = iter->getProjectedY();
+	  return 0;
     }
   };
 
@@ -221,8 +227,9 @@ namespace Functions0D {
       return "GetProjectedZF0D";
     }
     /*! the () operator.*/
-    real operator()(Interface0DIterator& iter) {
-      return iter->getProjectedZ();
+    int operator()(Interface0DIterator& iter) {
+      result = iter->getProjectedZ();
+	  return 0;
     }
   };
 
@@ -236,8 +243,9 @@ namespace Functions0D {
       return "GetCurvilinearAbscissaF0D";
     }
     /*! the () operator.*/
-    float operator()(Interface0DIterator& iter) {
-      return iter.t();
+    int operator()(Interface0DIterator& iter) {
+      result = iter.t();
+	  return 0;
     }
   };
 
@@ -251,8 +259,9 @@ namespace Functions0D {
       return "GetParameterF0D";
     }
     /*! the () operator.*/
-    float operator()(Interface0DIterator& iter) {
-      return iter.u();
+    int operator()(Interface0DIterator& iter) {
+      result = iter.u();
+	  return 0;
     }
   };
 
@@ -269,7 +278,7 @@ namespace Functions0D {
       return "VertexOrientation2DF0D";
     }
     /*! the () operator.*/
-    Vec2f operator()(Interface0DIterator& iter);
+    int operator()(Interface0DIterator& iter);
   };
 
   // VertexOrientation3DF0D
@@ -285,7 +294,7 @@ namespace Functions0D {
       return "VertexOrientation3DF0D";
     }
     /*! the () operator.*/
-    Vec3f operator()(Interface0DIterator& iter);
+    int operator()(Interface0DIterator& iter);
   };
 
   // Curvature2DAngleF0D
@@ -301,7 +310,7 @@ namespace Functions0D {
       return "Curvature2DAngleF0D";
     }
     /*! the () operator.*/
-    real operator()(Interface0DIterator& iter);
+    int operator()(Interface0DIterator& iter);
   };
 
   // ZDiscontinuity
@@ -319,7 +328,7 @@ namespace Functions0D {
       return "ZDiscontinuityF0D";
     }
     /*! the () operator.*/
-    real operator()(Interface0DIterator& iter);
+    int operator()(Interface0DIterator& iter);
   };
 
   // Normal2DF0D
@@ -335,7 +344,7 @@ namespace Functions0D {
       return "Normal2DF0D";
     }
     /*! the () operator.*/
-    Vec2f operator()(Interface0DIterator& iter);
+    int operator()(Interface0DIterator& iter);
   };
 
   // MaterialF0D
@@ -358,7 +367,7 @@ namespace Functions0D {
       return "MaterialF0D";
     }
     /*! the () operator.*/
-    FrsMaterial operator()(Interface0DIterator& iter);
+    int operator()(Interface0DIterator& iter);
   };
 
   // ShapeIdF0D
@@ -379,7 +388,7 @@ namespace Functions0D {
       return "ShapeIdF0D";
     }
     /*! the () operator.*/
-    Id operator()(Interface0DIterator& iter);
+    int operator()(Interface0DIterator& iter);
   };
 
   // QiF0D
@@ -400,7 +409,7 @@ namespace Functions0D {
       return "QuantitativeInvisibilityF0D";
     }
     /*! the () operator.*/
-    unsigned int operator()(Interface0DIterator& iter);
+    int operator()(Interface0DIterator& iter);
   };
 
   // CurveNatureF0D
@@ -415,7 +424,7 @@ namespace Functions0D {
       return "CurveNatureF0D";
     }
     /*! the () operator.*/
-    Nature::EdgeNature operator()(Interface0DIterator& iter);
+    int operator()(Interface0DIterator& iter);
   };
   
   // GetShapeF0D
@@ -430,7 +439,7 @@ namespace Functions0D {
       return "GetShapeF0D";
     }
     /*! the () operator.*/
-    ViewShape* operator()(Interface0DIterator& iter);
+    int operator()(Interface0DIterator& iter);
   };
 
   // GetOccludersF0D
@@ -445,7 +454,7 @@ namespace Functions0D {
       return "GetOccludersF0D";
     }
     /*! the () operator.*/
-    std::vector<ViewShape*> operator()(Interface0DIterator& iter);
+    int operator()(Interface0DIterator& iter);
   };
 
   // GetOccludeeF0D
@@ -460,7 +469,7 @@ namespace Functions0D {
       return "GetOccludeeF0D";
     }
     /*! the () operator.*/
-    ViewShape* operator()(Interface0DIterator& iter);
+    int operator()(Interface0DIterator& iter);
   };
 
   

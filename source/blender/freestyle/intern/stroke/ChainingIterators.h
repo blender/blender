@@ -102,10 +102,11 @@ public:
     increment();
     return tmp;
   }
-  virtual void increment();
+  virtual int increment();
 
-  virtual void decrement(){
+  virtual int decrement(){
     cerr << "Warning: method decrement() not implemented" << endl;
+	return 0;
   }
 
 protected:
@@ -138,6 +139,7 @@ protected:
   
 public:
 	
+	ViewEdge *result;
 	PyObject *py_c_it;
 	
   /*! Builds a Chaining Iterator from the first ViewEdge used for iteration
@@ -183,15 +185,17 @@ public:
    *  history information that you 
    *  might want to keep.  
    */
-  virtual void init() {
+  virtual int init() {
 	string name( py_c_it ? PyString_AsString(PyObject_CallMethod(py_c_it, "getExactTypeName", "")) : getExactTypeName() );
 	
 	if( py_c_it && PyObject_HasAttrString(py_c_it, "init") ) {
-		Director_BPy_ChainingIterator_init( py_c_it );
+		if (Director_BPy_ChainingIterator_init( py_c_it ) < 0) {
+			return -1;
+		}
 	} else {
-		cerr << "Warning: " << name << " method init() not implemented" << endl;
+		cerr << "Warning: " << name << " init() method not implemented" << endl;
 	}
-	
+	return 0;
   }
   
   /*! This method iterates over the potential next 
@@ -205,15 +209,17 @@ public:
    *    The Adjacency iterator reflects the restriction 
    *    rules by only iterating over the valid ViewEdges.
    */
-  virtual ViewEdge * traverse(const AdjacencyIterator &it){
+  virtual int traverse(const AdjacencyIterator &it){
 	string name( py_c_it ? PyString_AsString(PyObject_CallMethod(py_c_it, "getExactTypeName", "")) : getExactTypeName() );
 	
 	if( py_c_it && PyObject_HasAttrString(py_c_it, "traverse") ) {
-		return Director_BPy_ChainingIterator_traverse(py_c_it, const_cast<AdjacencyIterator &>(it) );
+		if (Director_BPy_ChainingIterator_traverse(py_c_it, const_cast<AdjacencyIterator &>(it), &result ) < 0) {
+			return -1;
+		}
 	} else {
-	    cerr << "Warning: the " << name << " traverse method was not defined" << endl;
-	    return 0;
+	    cerr << "Warning: the " << name << " traverse() method not defined" << endl;
 	}
+    return 0;
   }
 
   /* accessors */
@@ -244,8 +250,8 @@ public:
   }
   
   /* increments.*/
-  virtual void increment() ;
-  virtual void decrement() ;
+  virtual int increment() ;
+  virtual int decrement() ;
 };
 
 //
@@ -294,10 +300,12 @@ public:
    *  followed next.
    *  When reaching the end of a chain, 0 is returned.
    */
-  virtual ViewEdge * traverse(const AdjacencyIterator& it);
+  virtual int traverse(const AdjacencyIterator& it);
 
 	/*! Inits the iterator context */ 
-	virtual void init() {}
+  virtual int init() {
+    return 0;
+  }
 };
 
 //
@@ -392,10 +400,12 @@ public:
    *  followed next.
    *  When reaching the end of a chain, 0 is returned.
    */
-  virtual ViewEdge * traverse(const AdjacencyIterator &it);
+  virtual int traverse(const AdjacencyIterator &it);
 
 	/*! Inits the iterator context */ 
-	virtual void init() {}
+  virtual int init() {
+	return 0;
+  }
  
 };
 

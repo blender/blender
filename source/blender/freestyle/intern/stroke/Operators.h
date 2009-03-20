@@ -64,7 +64,7 @@ public:
    *  a specified condition.
    *  \param pred The predicate expressing this condition
    */
-  static void select(UnaryPredicate1D& pred);
+  static int select(UnaryPredicate1D& pred);
 
   /*! Builds a set of chains from the current set of ViewEdges.
    *  Each ViewEdge of the current list starts a new chain. The chaining
@@ -83,7 +83,7 @@ public:
    *           is used to modify the processed ViewEdge state (the timestamp
    *           incrementation is a typical illustration of such a modifier)
    */
-  static void chain(ViewEdgeInternal::ViewEdgeIterator& it,
+  static int chain(ViewEdgeInternal::ViewEdgeIterator& it,
 		    UnaryPredicate1D& pred,
 		    UnaryFunction1D_void& modifier);
 
@@ -103,7 +103,7 @@ public:
    *           The predicate on the ViewEdge that expresses the stopping
    *           condition.
    */
-  static void chain(ViewEdgeInternal::ViewEdgeIterator& it,
+  static int chain(ViewEdgeInternal::ViewEdgeIterator& it,
 		    UnaryPredicate1D& pred);  
 
   /*! Builds a set of chains from the current set of ViewEdges.
@@ -126,7 +126,7 @@ public:
    *           The predicate on the ViewEdge that expresses the stopping
    *           condition.
    */
-  static void bidirectionalChain(ChainingIterator& it, UnaryPredicate1D& pred);
+  static int bidirectionalChain(ChainingIterator& it, UnaryPredicate1D& pred);
 
   /*! The only difference with the above bidirectional chaining algorithm is 
    *  that we don't need to pass a stopping criterion. This might be desirable 
@@ -149,7 +149,7 @@ public:
    *           The ChainingIterator on the ViewEdges of the ViewMap. It contains
    *           the chaining rule.
    */
-  static void bidirectionalChain(ChainingIterator& it);
+  static int bidirectionalChain(ChainingIterator& it);
 
   /*! Splits each chain of the current set of chains in a sequential way.
    *  The points of each chain are processed (with a specified sampling) sequentially.
@@ -170,7 +170,7 @@ public:
    *           evaluation. (The chain is not actually resampled, a virtual point
    *           only progresses along the curve using this resolution)
    */
-  static void sequentialSplit(UnaryPredicate0D& startingPred, UnaryPredicate0D& stoppingPred, 
+  static int sequentialSplit(UnaryPredicate0D& startingPred, UnaryPredicate0D& stoppingPred, 
                               float sampling = 0.f);
 
   /*! Splits each chain of the current set of chains in a sequential way.
@@ -185,7 +185,7 @@ public:
    *           evaluation. (The chain is not actually resampled, a virtual point
    *           only progresses along the curve using this resolution)
    */
-  static void sequentialSplit(UnaryPredicate0D& pred, 
+  static int sequentialSplit(UnaryPredicate0D& pred, 
                               float sampling = 0.f);
 
   /*! Splits the current set of chains in a recursive way.
@@ -206,7 +206,7 @@ public:
    *           evaluation. (The chain is not actually resampled, a virtual point
    *           only progresses along the curve using this resolution)
    */
-  static void recursiveSplit(UnaryFunction0D<double>& func, UnaryPredicate1D& pred, float sampling = 0);
+  static int recursiveSplit(UnaryFunction0D<double>& func, UnaryPredicate1D& pred, float sampling = 0);
 
   /*! Splits the current set of chains in a recursive way.
    *  We process the points of each chain (with a specified sampling) to find
@@ -238,14 +238,14 @@ public:
    *           only progresses along the curve using this resolution)
    *           
    */
-  static void recursiveSplit(UnaryFunction0D<double>& func, UnaryPredicate0D& pred0d, UnaryPredicate1D& pred, float sampling = 0);
+  static int recursiveSplit(UnaryFunction0D<double>& func, UnaryPredicate0D& pred0d, UnaryPredicate1D& pred, float sampling = 0);
     
   /*! Sorts the current set of chains (or viewedges) according to the
    * comparison predicate given as argument.
    *  \param pred
    *           The binary predicate used for the comparison
    */
-  static void sort(BinaryPredicate1D& pred);
+  static int sort(BinaryPredicate1D& pred);
 
   /*! Creates and shades the strokes from the current set of chains.
    *  A predicate can be specified to make a selection pass on the
@@ -256,7 +256,7 @@ public:
    *  \param shaders
    *           The list of shaders used to shade the strokes
    */
-  static void create(UnaryPredicate1D& pred, vector<StrokeShader*> shaders);
+  static int create(UnaryPredicate1D& pred, vector<StrokeShader*> shaders);
 
   //
   // Data access

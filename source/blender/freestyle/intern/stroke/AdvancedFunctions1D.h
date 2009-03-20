@@ -78,8 +78,9 @@ namespace Functions1D {
       return "DensityF1D";
     }
     /*! the () operator.*/
-    double operator()(Interface1D& inter) {
-      return integrate(_fun, inter.pointsBegin(_sampling), inter.pointsEnd(_sampling), _integration);
+    int operator()(Interface1D& inter) {
+      result = integrate(_fun, inter.pointsBegin(_sampling), inter.pointsEnd(_sampling), _integration);
+	  return 0;
     }
   private:
     Functions0D::DensityF0D	_fun;
@@ -112,8 +113,9 @@ namespace Functions1D {
       return "LocalAverageDepthF1D";
     }
     /*! the () operator.*/
-    double operator()(Interface1D& inter) {
-      return integrate(_fun, inter.verticesBegin(), inter.verticesEnd(), _integration);
+    int operator()(Interface1D& inter) {
+      result = integrate(_fun, inter.verticesBegin(), inter.verticesEnd(), _integration);
+	  return 0;
     }
   private:
     Functions0D::LocalAverageDepthF0D	_fun;
@@ -150,7 +152,7 @@ namespace Functions1D {
       return "GetCompleteViewMapDensityF1D";
     }
     /*! the () operator.*/
-    double operator()(Interface1D& inter);
+    int operator()(Interface1D& inter);
     
   private:
     Functions0D::ReadCompleteViewMapPixelF0D _fun;
@@ -193,7 +195,7 @@ namespace Functions1D {
       return "GetDirectionalViewMapDensityF1D";
     }
     /*! the () operator.*/
-    double operator()(Interface1D& inter);
+    int operator()(Interface1D& inter);
     
   private:
     Functions0D::ReadSteerableViewMapPixelF0D _fun;
@@ -238,7 +240,7 @@ namespace Functions1D {
       return "GetSteerableViewMapDensityF1D";
     }
     /*! the () operator.*/
-    real operator()(Interface1D& inter);
+    int operator()(Interface1D& inter);
   };
 
   // GetViewMapGradientNormF1D
@@ -279,7 +281,7 @@ namespace Functions1D {
       return "GetViewMapGradientNormF1D";
     }
     /*! the () operator.*/
-    real operator()(Interface1D& inter);
+    int operator()(Interface1D& inter);
   };
 } // end of namespace Functions1D
 

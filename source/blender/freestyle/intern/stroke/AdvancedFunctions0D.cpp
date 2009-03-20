@@ -26,60 +26,67 @@
 
 namespace Functions0D {
 
-  double DensityF0D::operator()(Interface0DIterator& iter) {
+  int DensityF0D::operator()(Interface0DIterator& iter) {
     Canvas* canvas = Canvas::getInstance();
     int bound = _filter.getBound();
     if( (iter->getProjectedX()-bound < 0) || (iter->getProjectedX()+bound>canvas->width())
-	|| (iter->getProjectedY()-bound < 0) || (iter->getProjectedY()+bound>canvas->height()))
-      return 0.0;
+	 || (iter->getProjectedY()-bound < 0) || (iter->getProjectedY()+bound>canvas->height())) {
+      result = 0.0;
+	  return 0;
+	}
     RGBImage image;
     canvas->readColorPixels((int)iter->getProjectedX() - bound,
 			    (int)iter->getProjectedY() - bound,
 			    _filter.maskSize(),
 			    _filter.maskSize(),
 			    image);
-    return _filter.getSmoothedPixel<RGBImage>(&image, (int)iter->getProjectedX(),
+    result = _filter.getSmoothedPixel<RGBImage>(&image, (int)iter->getProjectedX(),
 					(int)iter->getProjectedY());
+	return 0;
   }
 
 
-  double LocalAverageDepthF0D::operator()(Interface0DIterator& iter) {
+  int LocalAverageDepthF0D::operator()(Interface0DIterator& iter) {
     Canvas * iViewer = Canvas::getInstance();
     int bound = _filter.getBound();
     
     if( (iter->getProjectedX()-bound < 0) || (iter->getProjectedX()+bound>iViewer->width())
-	|| (iter->getProjectedY()-bound < 0) || (iter->getProjectedY()+bound>iViewer->height()))
-      return 0.0;
+	 || (iter->getProjectedY()-bound < 0) || (iter->getProjectedY()+bound>iViewer->height())) {
+      result = 0.0;
+	  return 0;
+	}
     GrayImage image ;
     iViewer->readDepthPixels((int)iter->getProjectedX()-bound,(int)iter->getProjectedY()-bound,_filter.maskSize(),_filter.maskSize(),image);
-    return _filter.getSmoothedPixel(&image, (int)iter->getProjectedX(), (int)iter->getProjectedY());
+    result = _filter.getSmoothedPixel(&image, (int)iter->getProjectedX(), (int)iter->getProjectedY());
+	return 0;
   }
 
-  float ReadMapPixelF0D::operator()(Interface0DIterator& iter) {
+  int ReadMapPixelF0D::operator()(Interface0DIterator& iter) {
     Canvas * canvas = Canvas::getInstance();
-    return canvas->readMapPixel(_mapName, _level, (int)iter->getProjectedX(), (int)iter->getProjectedY());
+    result = canvas->readMapPixel(_mapName, _level, (int)iter->getProjectedX(), (int)iter->getProjectedY());
+	return 0;
   }
 
-  float ReadSteerableViewMapPixelF0D::operator()(Interface0DIterator& iter) {
+  int ReadSteerableViewMapPixelF0D::operator()(Interface0DIterator& iter) {
     SteerableViewMap *svm = Canvas::getInstance()->getSteerableViewMap();
-    float v = svm->readSteerableViewMapPixel(_orientation, _level,(int)iter->getProjectedX(), (int)iter->getProjectedY());
-    return v;
+    result = svm->readSteerableViewMapPixel(_orientation, _level,(int)iter->getProjectedX(), (int)iter->getProjectedY());
+    return 0;
   }
 
-  float ReadCompleteViewMapPixelF0D::operator()(Interface0DIterator& iter) {
+  int ReadCompleteViewMapPixelF0D::operator()(Interface0DIterator& iter) {
     SteerableViewMap *svm = Canvas::getInstance()->getSteerableViewMap();
-    float v = svm->readCompleteViewMapPixel(_level,(int)iter->getProjectedX(), (int)iter->getProjectedY());
-    return v;
+    result = svm->readCompleteViewMapPixel(_level,(int)iter->getProjectedX(), (int)iter->getProjectedY());
+    return 0;
   }
 
-  float GetViewMapGradientNormF0D::operator()(Interface0DIterator& iter){
+  int GetViewMapGradientNormF0D::operator()(Interface0DIterator& iter){
     SteerableViewMap *svm = Canvas::getInstance()->getSteerableViewMap();
     float pxy = svm->readCompleteViewMapPixel(_level,(int)iter->getProjectedX(), (int)iter->getProjectedY());
     float gx = svm->readCompleteViewMapPixel(_level,(int)iter->getProjectedX()+_step, (int)iter->getProjectedY())
       - pxy;
     float gy = svm->readCompleteViewMapPixel(_level,(int)iter->getProjectedX(), (int)iter->getProjectedY()+_step)
       - pxy;
-	float f = Vec2f(gx,gy).norm();
-    return f;
+	result = Vec2f(gx,gy).norm();
+    return 0;
   }
 } // end of namespace Functions0D

@@ -44,7 +44,7 @@ CalligraphicShader::CalligraphicShader (real iMinThickness, real iMaxThickness,
 
 float ksinToto=0;
 
-void 
+int 
 CalligraphicShader::shade(Stroke &ioStroke) const 
 {
   Interface0DIterator v;
@@ -55,7 +55,9 @@ CalligraphicShader::shade(Stroke &ioStroke) const
       ++v)
     {
       real thickness;
-      Vec2f vertexOri(fun(v));
+	  if (fun(v) < 0)
+		return -1;
+	  Vec2f vertexOri(fun.result);
       Vec2r ori2d(-vertexOri[1], vertexOri[0]);
       ori2d.normalizeSafe();
       real scal = ori2d * _orientation;
@@ -74,6 +76,7 @@ CalligraphicShader::shade(Stroke &ioStroke) const
       sv->attribute().setThickness(thickness/2.0,thickness/2.0);
     }
 
+  return 0;
 }
 
 //void 
@@ -116,7 +119,7 @@ SpatialNoiseShader::SpatialNoiseShader (float ioamount, float ixScale, int nbOct
   _smooth=smooth;
   _pureRandom=pureRandom;
 }
-void
+int
 SpatialNoiseShader::shade(Stroke &ioStroke) const 
 {
   Interface0DIterator v, v2;
@@ -135,7 +138,9 @@ SpatialNoiseShader::shade(Stroke &ioStroke) const
     {
       sv = dynamic_cast<StrokeVertex*>(&(*v));
       Vec2r p(sv->getPoint());
-      Vec2r vertexOri(fun(v));
+	  if (fun(v) < 0)
+		return -1;
+	  Vec2r vertexOri(fun.result);
       Vec2r ori2d(vertexOri[0], vertexOri[1]);
       ori2d = Vec2r(p-p0);
       ori2d.normalizeSafe();
@@ -159,6 +164,7 @@ SpatialNoiseShader::shade(Stroke &ioStroke) const
       ++v;
     }
 
+  return 0;
 }
 
 
@@ -186,7 +192,7 @@ SmoothingShader::SmoothingShader (int ionbIteration, real iFactorPoint, real ifa
 
 
 
-void
+int
 SmoothingShader::shade(Stroke &ioStroke) const 
 {
   //cerr<<" Smoothing a stroke  "<<endl;
@@ -194,6 +200,7 @@ SmoothingShader::shade(Stroke &ioStroke) const
   Smoother smoother(ioStroke);
   smoother.smooth(_nbIterations, _factorPoint, _factorCurvature, _factorCurvatureDifference, 
 		  _anisoPoint, _anisoNormal, _anisoCurvature, _carricatureFactor);
+  return 0;
 }
 
 // SMOOTHER
@@ -372,12 +379,13 @@ OmissionShader::OmissionShader (real sizeWindow, real thrVari, real thrFlat, rea
   _lengthFlat=lFlat;
 }
 
-void
+int
 OmissionShader::shade(Stroke &ioStroke) const 
 {
   Omitter omi(ioStroke);
   omi.omit(_sizeWindow, _thresholdVariation, _thresholdFlat, _lengthFlat);
 
+  return 0;
 }
 
 

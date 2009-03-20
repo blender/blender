@@ -29,11 +29,11 @@ LIB_STROKE_EXPORT Operators::I1DContainer		Operators::_current_chains_set;
 LIB_STROKE_EXPORT Operators::I1DContainer*	Operators::_current_set = NULL;
 LIB_STROKE_EXPORT Operators::StrokesContainer	Operators::_current_strokes_set;
 
-void Operators::select(UnaryPredicate1D& pred) {
+int Operators::select(UnaryPredicate1D& pred) {
   if (!_current_set)
-    return;
+    return 0;
   if(_current_set->empty())
-    return;
+    return 0;
   I1DContainer new_set;
   I1DContainer rejected;
   Functions1D::ChainingTimeStampF1D cts;
@@ -43,7 +43,12 @@ void Operators::select(UnaryPredicate1D& pred) {
   while (it != _current_set->end()) {
     Interface1D * i1d = *it;
     cts(*i1d); // mark everyone's chaining time stamp anyway
-    if (pred(*i1d)){
+	if(pred(*i1d) < 0){
+	  new_set.clear();
+	  rejected.clear();
+	  return -1;
+	}
+	if(pred.result){
       new_set.push_back(i1d);
       ts(*i1d);
     }else{
@@ -60,14 +65,15 @@ void Operators::select(UnaryPredicate1D& pred) {
   rejected.clear();
   _current_set->clear();
   *_current_set = new_set;
+  return 0;
 }
 
 
-void Operators::chain(ViewEdgeInternal::ViewEdgeIterator& it,
+int Operators::chain(ViewEdgeInternal::ViewEdgeIterator& it,
 		      UnaryPredicate1D& pred,
 		      UnaryFunction1D_void& modifier) {
   if (_current_view_edges_set.empty())
-    return;
+    return 0;
 
   unsigned id = 0;
   ViewEdge* edge;
@@ -76,7 +82,9 @@ void Operators::chain(ViewEdgeInternal::ViewEdgeIterator& it,
   for (I1DContainer::iterator it_edge = _current_view_edges_set.begin();
        it_edge != _current_view_edges_set.end();
        ++it_edge) {
-    if (pred(**it_edge))
+	if (pred(**it_edge) < 0)
+	  return -1;
+	if (pred.result)
       continue;
 
     edge = dynamic_cast<ViewEdge*>(*it_edge);
@@ -84,24 +92,36 @@ void Operators::chain(ViewEdgeInternal::ViewEdgeIterator& it,
     it.setCurrentEdge(edge);
 
     Chain* new_chain = new Chain(id);++id;
-    do {
+    for (;;) {
       new_chain->push_viewedge_back(*it, it.getOrientation());
-      modifier(**it);
+	  if (modifier(**it) < 0) {
+		delete new_chain;
+		return -1;
+	  }
       ++it;
-    } while (!it.isEnd() && !pred(**it));
+	  if (it.isEnd())
+		break;
+	  if (pred(**it) < 0) {
+		delete new_chain;
+		return -1;
+	  }
+	  if (pred.result)
+	    break;
+	}
 
     _current_chains_set.push_back(new_chain);
   }
 
   if (!_current_chains_set.empty())
     _current_set = &_current_chains_set;
+  return 0;
 }
 
 
-void Operators::chain(ViewEdgeInternal::ViewEdgeIterator& it,
+int Operators::chain(ViewEdgeInternal::ViewEdgeIterator& it,
 		      UnaryPredicate1D& pred) {
   if (_current_view_edges_set.empty())
-    return;
+    return 0;
 
   unsigned id = 0;
   Functions1D::IncrementChainingTimeStampF1D ts;
@@ -113,7 +133,13 @@ void Operators::chain(ViewEdgeInternal::ViewEdgeIterator& it,
   for (I1DContainer::iterator it_edge = _current_view_edges_set.begin();
        it_edge != _current_view_edges_set.end();
        ++it_edge) {
-    if (pred(**it_edge) || pred_ts(**it_edge))
+	if (pred(**it_edge) < 0)
+	  return -1;
+    if (pred.result)
+	  continue;
+	if (pred_ts(**it_edge) < 0)
+	  return -1;
+	if (pred_ts.result)
       continue;
 
     edge = dynamic_cast<ViewEdge*>(*it_edge);
@@ -121,17 +147,32 @@ void Operators::chain(ViewEdgeInternal::ViewEdgeIterator& it,
     it.setCurrentEdge(edge);
 
     Chain* new_chain = new Chain(id);++id;
-    do {
+    for (;;) {
       new_chain->push_viewedge_back(*it, it.getOrientation());
       ts(**it);
       ++it;
-    } while (!it.isEnd() && !pred(**it) && !pred_ts(**it));
+	  if (it.isEnd())
+		break;
+	  if (pred(**it) < 0) {
+		delete new_chain;
+		return -1;
+	  }
+	  if (pred.result)
+		break;
+	  if (pred_ts(**it) < 0) {
+		delete new_chain;
+		return -1;
+	  }
+	  if (pred_ts.result)
+		break;
+	}
 
     _current_chains_set.push_back(new_chain);
   }
 
   if (!_current_chains_set.empty())
     _current_set = &_current_chains_set;
+  return 0;
 }
 
 
@@ -223,9 +264,9 @@ void Operators::chain(ViewEdgeInternal::ViewEdgeIterator& it,
           //    _current_set = &_current_chains_set;
           //}
 
-void Operators::bidirectionalChain(ChainingIterator& it, UnaryPredicate1D& pred) {
+int Operators::bidirectionalChain(ChainingIterator& it, UnaryPredicate1D& pred) {
   if (_current_view_edges_set.empty())
-    return;
+    return 0;
 
   unsigned id = 0;
   Functions1D::IncrementChainingTimeStampF1D ts;
@@ -237,7 +278,13 @@ void Operators::bidirectionalChain(ChainingIterator& it, UnaryPredicate1D& pred)
   for (I1DContainer::iterator it_edge = _current_view_edges_set.begin();
   it_edge != _current_view_edges_set.end();
   ++it_edge) {
-    if (pred(**it_edge) || pred_ts(**it_edge))
+	if (pred(**it_edge) < 0)
+	  return -1;
+    if (pred.result)
+      continue;
+	if (pred_ts(**it_edge) < 0)
+	  return -1;
+    if (pred_ts.result)
       continue;
     
     edge = dynamic_cast<ViewEdge*>(*it_edge);
@@ -245,34 +292,59 @@ void Operators::bidirectionalChain(ChainingIterator& it, UnaryPredicate1D& pred)
     it.setBegin(edge);
     it.setCurrentEdge(edge);
     it.setOrientation(true);
-    it.init();
+    if (it.init() < 0)
+	  return -1;
     
     Chain* new_chain = new Chain(id);++id;
     //ViewEdgeIterator it_back(it);--it_back;//FIXME
-    do {
+    for (;;) {
       new_chain->push_viewedge_back(*it, it.getOrientation());
       ts(**it);
-      it.increment(); // FIXME
-    } while (!it.isEnd() && !pred(**it));
+	  if (it.increment() < 0) { // FIXME
+	    delete new_chain;
+		return -1;
+	  }
+	  if (it.isEnd())
+		break;
+	  if (pred(**it) < 0) {
+	    delete new_chain;
+		return -1;
+	  }
+	  if (pred.result)
+		break;
+    }
     it.setBegin(edge);
     it.setCurrentEdge(edge);
     it.setOrientation(true);
-    it.decrement(); // FIXME
-    while (!it.isEnd() && !pred(**it)) {
+	if (it.decrement() < 0) { // FIXME
+	  delete new_chain;
+	  return -1;
+	}
+    while (!it.isEnd()) {
+	  if (pred(**it) < 0) {
+	    delete new_chain;
+		return -1;
+	  }
+	  if (pred.result)
+		break;
       new_chain->push_viewedge_front(*it, it.getOrientation());
       ts(**it);
-      it.decrement();// FIXME
+	  if (it.decrement() < 0) { // FIXME
+	    delete new_chain;
+		return -1;
+	  }
     }
     _current_chains_set.push_back(new_chain);
   }
   
   if (!_current_chains_set.empty())
     _current_set = &_current_chains_set;
+  return 0;
 }
 
-void Operators::bidirectionalChain(ChainingIterator& it) {
+int Operators::bidirectionalChain(ChainingIterator& it) {
   if (_current_view_edges_set.empty())
-    return;
+    return 0;
 
   unsigned id = 0;
   Functions1D::IncrementChainingTimeStampF1D ts;
@@ -284,7 +356,9 @@ void Operators::bidirectionalChain(ChainingIterator& it) {
   for (I1DContainer::iterator it_edge = _current_view_edges_set.begin();
   it_edge != _current_view_edges_set.end();
   ++it_edge) {
-    if (pred_ts(**it_edge))
+    if (pred_ts(**it_edge) < 0)
+	  return -1;
+	if (pred_ts.result)
       continue;
     
     edge = dynamic_cast<ViewEdge*>(*it_edge);
@@ -292,37 +366,48 @@ void Operators::bidirectionalChain(ChainingIterator& it) {
     it.setBegin(edge);
     it.setCurrentEdge(edge);
     it.setOrientation(true);
-    it.init();
+    if (it.init() < 0)
+	  return -1;
     
     Chain* new_chain = new Chain(id);++id;
     //ViewEdgeIterator it_back(it);--it_back;//FIXME
     do {
       new_chain->push_viewedge_back(*it, it.getOrientation());
       ts(**it);
-      it.increment(); // FIXME
+	  if (it.increment() < 0) { // FIXME
+		delete new_chain;
+		return -1;
+	  }
     } while (!it.isEnd());
     it.setBegin(edge);
     it.setCurrentEdge(edge);
     it.setOrientation(true);
-    it.decrement(); // FIXME
+	if (it.decrement() < 0) { // FIXME
+	  delete new_chain;
+	  return -1;
+	}
     while (!it.isEnd()) {
       new_chain->push_viewedge_front(*it, it.getOrientation());
       ts(**it);
-      it.decrement();// FIXME
+	  if (it.decrement() < 0) { // FIXME
+		delete new_chain;
+		return -1;
+	  }
     }
     _current_chains_set.push_back(new_chain);
   }
   
   if (!_current_chains_set.empty())
     _current_set = &_current_chains_set;
+  return 0;
 }
 
-void Operators::sequentialSplit(UnaryPredicate0D& pred, 
+int Operators::sequentialSplit(UnaryPredicate0D& pred, 
 				float sampling)
 {
   if (_current_chains_set.empty()) {
     cerr << "Warning: current set empty" << endl;
-    return;
+    return 0;
   }
   CurvePoint *point;
   Chain * new_curve;
@@ -349,7 +434,12 @@ void Operators::sequentialSplit(UnaryPredicate0D& pred,
       {
         point = dynamic_cast<CurvePoint*>(&(*it));
         new_curve->push_vertex_back(point);
-        if((pred(it)) && (it!=last))
+		if(pred(it) < 0)
+		  {
+			delete new_curve;
+			goto error;
+		  }
+        if(pred.result && (it!=last))
           {
             splitted_chains.push_back(new_curve);
             currentId.setSecond(currentId.getSecond()+1);
@@ -359,7 +449,7 @@ void Operators::sequentialSplit(UnaryPredicate0D& pred,
       }
     if(new_curve->nSegments() == 0){
       delete new_curve;
-      return;
+      return 0;
     }
 
     splitted_chains.push_back(new_curve);
@@ -378,14 +468,26 @@ void Operators::sequentialSplit(UnaryPredicate0D& pred,
 
   if (!_current_chains_set.empty())
     _current_set = &_current_chains_set;
+  return 0;
+
+error:
+  cit = splitted_chains.begin();
+  citend = splitted_chains.end();
+  for(;
+  cit != citend;
+  ++cit){
+    delete (*cit);
+  }
+  splitted_chains.clear();
+  return -1;
 }
 
-void Operators::sequentialSplit(UnaryPredicate0D& startingPred, UnaryPredicate0D& stoppingPred, 
+int Operators::sequentialSplit(UnaryPredicate0D& startingPred, UnaryPredicate0D& stoppingPred, 
 				float sampling)
 {
   if (_current_chains_set.empty()) {
     cerr << "Warning: current set empty" << endl;
-    return;
+    return 0;
   }
   CurvePoint *point;
   Chain * new_curve;
@@ -416,7 +518,13 @@ void Operators::sequentialSplit(UnaryPredicate0D& startingPred, UnaryPredicate0D
         point = dynamic_cast<CurvePoint*>(&(*itStop));
         new_curve->push_vertex_back(point);    
         ++itStop;
-      }while((itStop!=end) && (!stoppingPred(itStop)));
+		if(itStop == end)
+		  break;
+		if(stoppingPred(itStop) < 0){
+		  delete new_curve;
+		  goto error;
+		}
+      }while(!stoppingPred.result);
       if(itStop!=end){
         point = dynamic_cast<CurvePoint*>(&(*itStop));
         new_curve->push_vertex_back(point);    
@@ -429,7 +537,11 @@ void Operators::sequentialSplit(UnaryPredicate0D& startingPred, UnaryPredicate0D
       // find next start
       do{
         ++itStart;
-      }while((itStart!=end) && (!startingPred(itStart)));
+		if(itStart == end)
+		  break;
+		if(startingPred(itStart) < 0)
+		  goto error;
+      }while(!startingPred.result);
     }while((itStart!=end) && (itStart!=last));
   }
   
@@ -446,17 +558,29 @@ void Operators::sequentialSplit(UnaryPredicate0D& startingPred, UnaryPredicate0D
   
   if (!_current_chains_set.empty())
     _current_set = &_current_chains_set;
+  return 0;
+
+error:
+  cit = splitted_chains.begin();
+  citend = splitted_chains.end();
+  for(;
+  cit != citend;
+  ++cit){
+    delete (*cit);
+  }
+  splitted_chains.clear();
+  return -1;
 }
 
 #include "CurveIterators.h"
 
 // Internal function
-void __recursiveSplit(Chain *_curve, UnaryFunction0D<double>& func, UnaryPredicate1D& pred, float sampling,
+int __recursiveSplit(Chain *_curve, UnaryFunction0D<double>& func, UnaryPredicate1D& pred, float sampling,
                       Operators::I1DContainer& newChains, Operators::I1DContainer& splitted_chains)
 {
   if(((_curve->nSegments() == 1) && (sampling == 0)) || (_curve->getLength2D() <= sampling)){
     newChains.push_back(_curve);
-    return;
+    return 0;
   }
 
   CurveInternal::CurvePointIterator first             = _curve->curvePointsBegin(sampling);
@@ -467,14 +591,14 @@ void __recursiveSplit(Chain *_curve, UnaryFunction0D<double>& func, UnaryPredica
   Interface0DIterator it0d                            = it.castToInterface0DIterator();
   real _min                                           = FLT_MAX;++it;//func(it0d);++it;
   CurveInternal::CurvePointIterator next              = it;++next;
-  real tmp;
   
   bool bsplit = false;
   for(; ((it != end) && (next != end)); ++it,++next){
     it0d = it.castToInterface0DIterator();
-    tmp = func(it0d);
-    if(tmp < _min){
-      _min = tmp;
+	if (func(it0d) < 0)
+	  return -1;
+    if(func.result < _min){
+      _min = func.result;
       split = it;
       bsplit = true;
     }
@@ -482,7 +606,7 @@ void __recursiveSplit(Chain *_curve, UnaryFunction0D<double>& func, UnaryPredica
   
   if(!bsplit){ // we didn't find any minimum
     newChains.push_back(_curve);
-    return;
+    return 0;
   }
 
   // retrieves the current splitting id
@@ -511,7 +635,7 @@ void __recursiveSplit(Chain *_curve, UnaryFunction0D<double>& func, UnaryPredica
     newChains.push_back(_curve);
     delete new_curve_a;
     delete new_curve_b;
-    return;
+    return 0;
   }
 
   // build the two resulting chains
@@ -529,25 +653,31 @@ void __recursiveSplit(Chain *_curve, UnaryFunction0D<double>& func, UnaryPredica
   // let's check whether one or two of the two new curves 
   // satisfy the stopping condition or not.
   // (if one of them satisfies it, we don't split)
-  if((pred(*new_curve_a)) || (pred(*new_curve_b))){
+  if (pred(*new_curve_a) < 0 || (!pred.result && pred(*new_curve_b) < 0)) {
+    delete new_curve_a;
+    delete new_curve_b;
+	return -1;
+  }
+  if(pred.result){
     // we don't actually create these two chains
     newChains.push_back(_curve);
     delete new_curve_a;
     delete new_curve_b;
-    return;
+    return 0;
   }
   // here we know we'll split _curve:
   splitted_chains.push_back(_curve);
 
   __recursiveSplit(new_curve_a, func, pred, sampling, newChains, splitted_chains);
   __recursiveSplit(new_curve_b, func, pred, sampling, newChains, splitted_chains);
+  return 0;
 }
 
-void Operators::recursiveSplit(UnaryFunction0D<double>& func, UnaryPredicate1D& pred, float sampling)
+int Operators::recursiveSplit(UnaryFunction0D<double>& func, UnaryPredicate1D& pred, float sampling)
 {
   if (_current_chains_set.empty()) {
     cerr << "Warning: current set empty" << endl;
-    return;
+    return 0;
   }
 
   Chain *currentChain = 0;
@@ -561,7 +691,9 @@ void Operators::recursiveSplit(UnaryFunction0D<double>& func, UnaryPredicate1D& 
     if(!currentChain)
       continue;
     // let's check the first one:
-    if(!pred(*currentChain)){
+	if (pred(*currentChain) < 0)
+	  return -1;
+    if(!pred.result){
       __recursiveSplit(currentChain, func, pred, sampling, newChains, splitted_chains);
     }else{
       newChains.push_back(currentChain);
@@ -583,16 +715,17 @@ void Operators::recursiveSplit(UnaryFunction0D<double>& func, UnaryPredicate1D& 
 
   if (!_current_chains_set.empty())
     _current_set = &_current_chains_set;
+  return 0;
 }
 
 
 // recursive split with pred 0D
-void __recursiveSplit(Chain *_curve, UnaryFunction0D<double>& func, UnaryPredicate0D& pred0d, UnaryPredicate1D& pred, float sampling,
+int __recursiveSplit(Chain *_curve, UnaryFunction0D<double>& func, UnaryPredicate0D& pred0d, UnaryPredicate1D& pred, float sampling,
                       Operators::I1DContainer& newChains, Operators::I1DContainer& splitted_chains)
 {
   if(((_curve->nSegments() == 1) && (sampling == 0)) || (_curve->getLength2D() <= sampling)){
     newChains.push_back(_curve);
-    return;
+    return 0;
   }
 
   CurveInternal::CurvePointIterator first             = _curve->curvePointsBegin(sampling);
@@ -607,18 +740,20 @@ void __recursiveSplit(Chain *_curve, UnaryFunction0D<double>& func, UnaryPredica
   //soc unused - real variance                                       = 0.f;
   unsigned count                                      = 0;
   CurveInternal::CurvePointIterator next              = it;++next;
-  real tmp;
   
   bool bsplit = false;
   for(; ((it != end) && (next != end)); ++it,++next){
     ++count;
     it0d = it.castToInterface0DIterator();
-    if(!pred0d(it0d))
+	if(pred0d(it0d) < 0)
+	  return -1;
+    if(!pred0d.result)
       continue;
-    tmp = func(it0d);
-    mean += tmp;
-    if(tmp < _min){
-      _min = tmp;
+	if(func(it0d) < 0)
+	  return -1;
+    mean += func.result;
+    if(func.result < _min){
+      _min = func.result;
       split = it;
       bsplit = true;
     }
@@ -628,7 +763,7 @@ void __recursiveSplit(Chain *_curve, UnaryFunction0D<double>& func, UnaryPredica
   //if((!bsplit) || (mean-_min>mean)){ // we didn't find any minimum
   if(!bsplit){ // we didn't find any minimum
     newChains.push_back(_curve);
-    return;
+    return 0;
   }
 
   // retrieves the current splitting id
@@ -657,7 +792,7 @@ void __recursiveSplit(Chain *_curve, UnaryFunction0D<double>& func, UnaryPredica
     newChains.push_back(_curve);
     delete new_curve_a;
     delete new_curve_b;
-    return;
+    return 0;
   }
 
   // build the two resulting chains
@@ -675,25 +810,31 @@ void __recursiveSplit(Chain *_curve, UnaryFunction0D<double>& func, UnaryPredica
   // let's check whether one or two of the two new curves 
   // satisfy the stopping condition or not.
   // (if one of them satisfies it, we don't split)
-  if((pred(*new_curve_a)) || (pred(*new_curve_b))){
+  if (pred(*new_curve_a) < 0 || (!pred.result && pred(*new_curve_b) < 0)) {
+    delete new_curve_a;
+    delete new_curve_b;
+    return -1;
+  }
+  if(pred.result){
     // we don't actually create these two chains
     newChains.push_back(_curve);
     delete new_curve_a;
     delete new_curve_b;
-    return;
+    return 0;
   }
   // here we know we'll split _curve:
   splitted_chains.push_back(_curve);
 
   __recursiveSplit(new_curve_a, func, pred0d, pred, sampling, newChains, splitted_chains);
   __recursiveSplit(new_curve_b, func, pred0d, pred, sampling, newChains, splitted_chains);
+  return 0;
 }
 
-void Operators::recursiveSplit(UnaryFunction0D<double>& func, UnaryPredicate0D& pred0d,  UnaryPredicate1D& pred, float sampling)
+int Operators::recursiveSplit(UnaryFunction0D<double>& func, UnaryPredicate0D& pred0d,  UnaryPredicate1D& pred, float sampling)
 {
   if (_current_chains_set.empty()) {
     cerr << "Warning: current set empty" << endl;
-    return;
+    return 0;
   }
 
   Chain *currentChain = 0;
@@ -707,7 +848,9 @@ void Operators::recursiveSplit(UnaryFunction0D<double>& func, UnaryPredicate0D& 
     if(!currentChain)
       continue;
     // let's check the first one:
-    if(!pred(*currentChain)){
+	if(pred(*currentChain) < 0)
+	  return -1;
+    if(!pred.result){
       __recursiveSplit(currentChain, func, pred0d, pred, sampling, newChains, splitted_chains);
     }else{
       newChains.push_back(currentChain);
@@ -729,6 +872,7 @@ void Operators::recursiveSplit(UnaryFunction0D<double>& func, UnaryPredicate0D& 
 
   if (!_current_chains_set.empty())
     _current_set = &_current_chains_set;
+  return 0;
 }
 // Internal class
 class PredicateWrapper
@@ -740,7 +884,9 @@ public:
   }
 
   inline bool operator()(Interface1D* i1, Interface1D* i2) {
-    return (*_pred)(*i1, *i2);
+	if ((*_pred)(*i1, *i2) < 0)
+		throw std::runtime_error("comparison failed");
+    return _pred->result;
   }
 
 private:
@@ -748,10 +894,18 @@ private:
   BinaryPredicate1D* _pred;
 };
 
-void Operators::sort(BinaryPredicate1D& pred) {
+int Operators::sort(BinaryPredicate1D& pred) {
   if (!_current_set)
-    return;
-  std::sort(_current_set->begin(), _current_set->end(), PredicateWrapper(pred));
+    return 0;
+  PredicateWrapper wrapper(pred);
+  try {
+	std::sort(_current_set->begin(), _current_set->end(), wrapper);
+  }
+  catch (std::runtime_error &e) {
+	cerr << "Warning: Operator.sort(): " << e.what() << endl;
+	return -1;
+  }
+  return 0;
 }
 
 Stroke* createStroke(Interface1D& inter) {
@@ -813,31 +967,39 @@ Stroke* createStroke(Interface1D& inter) {
 }
 
 
-inline void applyShading(Stroke& stroke, vector<StrokeShader*>& shaders) {
-  for (vector<StrokeShader*>::iterator it = shaders.begin(); it != shaders.end(); ++it)
-	(*it)->shade(stroke);
+inline int applyShading(Stroke& stroke, vector<StrokeShader*>& shaders) {
+  for (vector<StrokeShader*>::iterator it = shaders.begin(); it != shaders.end(); ++it) {
+    if ((*it)->shade(stroke) < 0) {
+	  return -1;
+	}
+  }
+  return 0;
 }
 
 
-void Operators::create(UnaryPredicate1D& pred, vector<StrokeShader*> shaders) {
+int Operators::create(UnaryPredicate1D& pred, vector<StrokeShader*> shaders) {
   Canvas* canvas = Canvas::getInstance();
   if (!_current_set) {
     cerr << "Warning: current set empty" << endl;
-    return;
+    return 0;
   }
   for (Operators::I1DContainer::iterator it = _current_set->begin();
        it != _current_set->end();
        ++it) {
-    if (!pred(**it))
+	if (pred(**it) < 0)
+	  return -1;
+    if (!pred.result)
       continue;
 	
 	Stroke* stroke = createStroke(**it);
     if (stroke) {
-      applyShading(*stroke, shaders);
+      if (applyShading(*stroke, shaders) < 0)
+		  return -1;
       //canvas->RenderStroke(stroke);
       _current_strokes_set.push_back(stroke);
     }
   }
+  return 0;
 }
 
 

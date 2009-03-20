@@ -26,7 +26,7 @@
 // FIXME
 namespace Functions1D {
 
-  real GetSteerableViewMapDensityF1D::operator()(Interface1D& inter) {
+  int GetSteerableViewMapDensityF1D::operator()(Interface1D& inter) {
     SteerableViewMap * svm = Canvas::getInstance()->getSteerableViewMap();
     Interface0DIterator it = inter.pointsBegin(_sampling);
     Interface0DIterator itnext = it;++itnext;
@@ -85,24 +85,26 @@ namespace Functions1D {
         res /= (size ? size : 1);
         break;
     } 
-  return res;
+	result = res;
+	return 0;
   }  
 
-  double GetDirectionalViewMapDensityF1D::operator()(Interface1D& inter) {
+  int GetDirectionalViewMapDensityF1D::operator()(Interface1D& inter) {
     //soc unsigned size;
-    double res =  integrate(_fun, inter.pointsBegin(_sampling), inter.pointsEnd(_sampling), _integration);
-    return res;
+    result = integrate(_fun, inter.pointsBegin(_sampling), inter.pointsEnd(_sampling), _integration);
+    return 0;
   } 
   
-  double GetCompleteViewMapDensityF1D::operator()(Interface1D& inter) {
+  int GetCompleteViewMapDensityF1D::operator()(Interface1D& inter) {
     //soc unsigned size;
     Id id = inter.getId();
-    double res =  integrate(_fun, inter.pointsBegin(_sampling), inter.pointsEnd(_sampling), _integration);
-    return res;
+    result = integrate(_fun, inter.pointsBegin(_sampling), inter.pointsEnd(_sampling), _integration);
+    return 0;
   } 
 
-  real GetViewMapGradientNormF1D::operator()(Interface1D& inter){
-	return integrate(_func, inter.pointsBegin(_sampling), inter.pointsEnd(_sampling), _integration);
+  int GetViewMapGradientNormF1D::operator()(Interface1D& inter){
+	result = integrate(_func, inter.pointsBegin(_sampling), inter.pointsEnd(_sampling), _integration);
+	return 0;
   }
 }
 

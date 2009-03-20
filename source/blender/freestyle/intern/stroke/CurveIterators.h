@@ -186,7 +186,7 @@ namespace CurveInternal {
  
 // protected:
 
-    virtual void increment() 
+    virtual int increment() 
     {
       if((_currentn == _n-1) && (_t == 1.f))
       {
@@ -195,7 +195,7 @@ namespace CurveInternal {
         ++__B;
         ++_currentn;
         _t = 0.f;
-        return;
+        return 0;
       }
       
       if(0 == _step) // means we iterate over initial vertices
@@ -205,12 +205,12 @@ namespace CurveInternal {
         if(_currentn == _n-1)
         { 
           _t = 1.f;   
-          return;
+          return 0;
         }
         ++__B;
         ++__A;
         ++_currentn;
-        return;
+        return 0;
       }
       
       // compute the new position:
@@ -237,8 +237,9 @@ namespace CurveInternal {
           ++__A;++__B;
         }
       }
+	  return 0;
     }
-    virtual void decrement() 
+    virtual int decrement() 
     {
       if(_t == 0.f) //we're at the beginning of the edge
       {
@@ -246,7 +247,7 @@ namespace CurveInternal {
         --_currentn;
         --__A; --__B;
         if(_currentn == _n-1)
-          return;
+          return 0;
       }
 
       if(0 == _step) // means we iterate over initial vertices
@@ -254,7 +255,7 @@ namespace CurveInternal {
 	      Vec3r vec_tmp((*__B)->point2d() - (*__A)->point2d());
         _CurvilinearLength -= (float)vec_tmp.norm();
         _t = 0;
-        return;
+        return 0;
       }
       
       // compute the new position:
@@ -280,6 +281,7 @@ namespace CurveInternal {
         _CurvilinearLength += normAB*(-_t);
         _t = 0.f;
       } 
+	  return 0;
     }
 
     virtual float t() const{
