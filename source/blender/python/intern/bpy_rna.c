@@ -1067,7 +1067,7 @@ PyObject* pyrna_struct_Subtype(PointerRNA *ptr)
 
 	if (ptr->type==NULL) {
 		newclass= NULL; /* Nothing to do */
-	} else if ((newclass= BPy_RNA_PYTYPE(ptr->data))) {
+	} else if ((newclass= (PyObject *)BPy_RNA_PYTYPE(ptr->data))) {
 		Py_INCREF(newclass);
 	} else if ((nameprop = RNA_struct_name_property(ptr))) {
 		/* for now, return the base RNA type rather then a real module */
@@ -1142,7 +1142,7 @@ PyObject *pyrna_struct_CreatePyObject( PointerRNA *ptr )
 	}
 	
 	if (ptr->type == &RNA_Struct) { /* always return a python subtype from rna struct types */
-		PyTypeObject *tp = pyrna_struct_Subtype(ptr);
+		PyTypeObject *tp = (PyTypeObject *)pyrna_struct_Subtype(ptr);
 		
 		if (tp) {
 			pyrna = (BPy_StructRNA *) tp->tp_alloc(tp, 0);

@@ -32,10 +32,3 @@ PyObject *PYOP_wrap_add(PyObject *self, PyObject *args);
 PyObject *PYOP_wrap_remove(PyObject *self, PyObject *args);
 
 #endif
-
-
-
-
-
-
-

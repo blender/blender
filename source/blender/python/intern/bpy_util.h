@@ -24,6 +24,9 @@
 
 #include <Python.h>
 
+#ifndef BPY_UTIL_H
+#define BPY_UTIL_H
+
 #include "bpy_compat.h"
 
 /* for internal use only, so python can interchange a sequence of strings with flags */
@@ -42,3 +45,5 @@ void BPY_getFileAndNum(char **filename, int *lineno);
 
 /* own python like utility function */
 PyObject *PyObject_GetAttrStringArgs(PyObject *o, Py_ssize_t n, ...);
+
+#endif

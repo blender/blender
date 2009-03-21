@@ -192,7 +192,7 @@ static PyObject *pyop_base_call( PyObject * self, PyObject * args,  PyObject * k
 }
 
 static PyMethodDef pyop_base_call_meth[] = {
-	{"__op_call__", pyop_base_call, METH_VARARGS|METH_KEYWORDS, "generic operator calling function"}
+	{"__op_call__", (PyCFunction)pyop_base_call, METH_VARARGS|METH_KEYWORDS, "generic operator calling function"}
 };
 
 
@@ -252,10 +252,10 @@ static PyObject *pyop_base_rna(PyObject *self, PyObject *pyname)
 		
 		pyrna= (BPy_StructRNA *)pyrna_struct_CreatePyObject(&ptr); /* were not really using &ptr, overwite next */
 		//pyrna->freeptr= 1;
-		return pyrna;
+		return (PyObject *)pyrna;
 	}
 	else {
-		PyErr_SetString(PyExc_AttributeError, "Operator not found");
+		PyErr_Format(PyExc_AttributeError, "Operator \"%s\" not found", name);
 		return NULL;
 	}
 }
@@ -276,6 +276,4 @@ PyObject *BPY_operator_module( bContext *C )
 	//submodule = Py_InitModule3( "operator", M_rna_methods, "rna module" );
 	return (PyObject *)PyObject_NEW( BPy_OperatorBase, &pyop_base_Type );
 }
-
-
 

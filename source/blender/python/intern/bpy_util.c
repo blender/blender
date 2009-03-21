@@ -212,6 +212,8 @@ void BPY_getFileAndNum(char **filename, int *lineno)
 		*lineno = (int)PyLong_AsSsize_t(f_lineno);
 		Py_DECREF(f_lineno);
 	}
+
+	Py_DECREF(frame);
 }
 
 /* Would be nice if python had this built in */
