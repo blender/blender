@@ -8,13 +8,7 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-/*---------------  Python API function prototypes for IntegrationType instance  -----------*/
-static int IntegrationType___init__(BPy_IntegrationType *self, PyObject *args, PyObject *kwds);
-
-/*----------------------IntegrationType instance definitions ----------------------------*/
-static PyMethodDef BPy_IntegrationType_methods[] = {
-	{NULL, NULL, 0, NULL}
-};
+static PyObject *BPy_IntegrationType_new(PyTypeObject *type, PyObject *args, PyObject *kwds);
 
 /*-----------------------BPy_IntegrationType type definition ------------------------------*/
 
@@ -74,7 +68,7 @@ PyTypeObject IntegrationType_Type = {
 	NULL,                       /* iternextfunc tp_iternext; */
 
   /*** Attribute descriptor and subclassing stuff ***/
-	BPy_IntegrationType_methods,	/* struct PyMethodDef *tp_methods; */
+	NULL,							/* struct PyMethodDef *tp_methods; */
 	NULL,                       	/* struct PyMemberDef *tp_members; */
 	NULL,         					/* struct PyGetSetDef *tp_getset; */
 	&PyInt_Type,							/* struct _typeobject *tp_base; */
@@ -84,7 +78,7 @@ PyTypeObject IntegrationType_Type = {
 	0,                          	/* long tp_dictoffset; */
 	NULL,                       	/* initproc tp_init; */
 	NULL,							/* allocfunc tp_alloc; */
-	PyType_GenericNew,			/* newfunc tp_new; */
+	BPy_IntegrationType_new,		/* newfunc tp_new; */
 	
 	/*  Low-level free-memory routine */
 	NULL,                       /* freefunc tp_free;  */
@@ -102,15 +96,26 @@ PyTypeObject IntegrationType_Type = {
 };
 
 static PyObject *
-BPy_IntegrationType_FromIntegrationType(IntegrationType t)
+BPy_IntegrationType_FromIntegrationType(int t)
 {
 	BPy_IntegrationType *obj;
 
 	obj = PyObject_New(BPy_IntegrationType, &IntegrationType_Type);
 	if (!obj)
 		return NULL;
-	((PyIntObject *)obj)->ob_ival = (long)t;
+	((PyIntObject *)obj)->ob_ival = t;
 	return (PyObject *)obj;
+}
+
+static PyObject *
+BPy_IntegrationType_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
+{
+	int x = 0;
+	static char *kwlist[] = {"x", 0};
+
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "|i", kwlist, &x))
+		return NULL;
+	return BPy_IntegrationType_FromIntegrationType(x);
 }
 
 //-------------------MODULE INITIALIZATION--------------------------------
