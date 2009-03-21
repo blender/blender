@@ -20,6 +20,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 #include <algorithm>
+#include <stdexcept>
 #include "Operators.h"
 #include "Canvas.h"
 #include "Stroke.h"
@@ -978,7 +979,7 @@ inline int applyShading(Stroke& stroke, vector<StrokeShader*>& shaders) {
 
 
 int Operators::create(UnaryPredicate1D& pred, vector<StrokeShader*> shaders) {
-  Canvas* canvas = Canvas::getInstance();
+  //Canvas* canvas = Canvas::getInstance();
   if (!_current_set) {
     cerr << "Warning: current set empty" << endl;
     return 0;

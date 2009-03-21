@@ -649,14 +649,6 @@ void Controller::RenderBlender(Render *re) {
 
 void Controller::InsertStyleModule(unsigned index, const char *iFileName)
 {
-  // QFileInfo fi(iFileName);
-  // string ext = fi.suffix();
-  // if (ext != "py") {
-  //   cerr << "Error: Cannot load \"" << fi.fileName().toAscii().data()
-  // 	 << "\", unknown extension" << endl;
-  //   return;
-  // }
-
 	if( !BLI_testextensie(iFileName, ".py") ) {
 		cerr << "Error: Cannot load \"" << StringUtils::toAscii( string(iFileName) )
 		  << "\", unknown extension" << endl;
