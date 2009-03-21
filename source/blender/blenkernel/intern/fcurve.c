@@ -1384,21 +1384,40 @@ static FModifierTypeInfo FMI_GENERATOR = {
 
 static void fcm_envelope_free (FModifier *fcm)
 {
-	FMod_Envelope *data= (FMod_Envelope *)fcm->data;
+	FMod_Envelope *env= (FMod_Envelope *)fcm->data;
 	
 	/* free envelope data array */
-	if (data->data)
-		MEM_freeN(data->data);
+	if (env->data)
+		MEM_freeN(env->data);
 }
 
 static void fcm_envelope_copy (FModifier *fcm, FModifier *src)
 {
-	FMod_Envelope *gen= (FMod_Envelope *)fcm->data;
-	FMod_Envelope *ogen= (FMod_Envelope *)src->data;
+	FMod_Envelope *env= (FMod_Envelope *)fcm->data;
+	FMod_Envelope *oenv= (FMod_Envelope *)src->data;
 	
 	/* copy envelope data array */
-	if (ogen->data)
-		gen->data= MEM_dupallocN(ogen->data);
+	if (oenv->data)
+		env->data= MEM_dupallocN(oenv->data);
+}
+
+static void fcm_envelope_new_data (void *mdata)
+{
+	FMod_Envelope *env= (FMod_Envelope *)mdata;
+	
+	/* set default min/max ranges */
+	env->min= -1.0f;
+	env->max= 1.0f;
+}
+
+static void fcm_envelope_verify (FModifier *fcm)
+{
+	FMod_Envelope *env= (FMod_Envelope *)fcm->data;
+	
+	/* if the are points, perform bubble-sort on them, as user may have changed the order */
+	if (env->data) {
+		// XXX todo...
+	}
 }
 
 static void fcm_envelope_evaluate (FCurve *fcu, FModifier *fcm, float *cvalue, float evaltime)
@@ -1412,7 +1431,7 @@ static void fcm_envelope_evaluate (FCurve *fcu, FModifier *fcm, float *cvalue, f
 	if (env->data == NULL) return;
 	prevfed= env->data;
 	fed= prevfed + 1;
-	lastfed= prevfed + env->totvert-1;
+	lastfed= prevfed + (env->totvert-1);
 	
 	/* get min/max values for envelope at evaluation time (relative to mid-value) */
 	if (prevfed->time >= evaltime) {
@@ -1434,10 +1453,10 @@ static void fcm_envelope_evaluate (FCurve *fcu, FModifier *fcm, float *cvalue, f
 				
 				diff= fed->time - prevfed->time;
 				afac= (evaltime - prevfed->time) / diff;
-				bfac= (fed->time - evaltime)/(diff);
+				bfac= (fed->time - evaltime) / diff;
 				
-				min= afac*prevfed->min + bfac*fed->min;
-				max= afac*prevfed->max + bfac*fed->max;
+				min= bfac*prevfed->min + afac*fed->min;
+				max= bfac*prevfed->max + afac*fed->max;
 				
 				break;
 			}
@@ -1460,8 +1479,8 @@ static FModifierTypeInfo FMI_ENVELOPE = {
 	"FMod_Envelope", /* struct name */
 	fcm_envelope_free, /* free data */
 	fcm_envelope_copy, /* copy data */
-	NULL, /* new data */
-	NULL /*fcm_envelope_verify*/, /* verify */
+	fcm_envelope_new_data, /* new data */
+	fcm_envelope_verify, /* verify */
 	fcm_envelope_evaluate /* evaluate */
 };
 
@@ -1831,11 +1850,13 @@ void fcurve_remove_modifier (FCurve *fcu, FModifier *fcm)
 		return;
 	
 	/* free modifier's special data (stored inside fcm->data) */
-	if (fmi && fmi->free_data)
-		fmi->free_data(fcm);
-		
-	/* free modifier's data (fcm->data) */
-	MEM_freeN(fcm->data);
+	if (fcm->data) {
+		if (fmi && fmi->free_data)
+			fmi->free_data(fcm);
+			
+		/* free modifier's data (fcm->data) */
+		MEM_freeN(fcm->data);
+	}
 	
 	/* remove modifier from stack */
 	if (fcu)
@@ -1917,7 +1938,7 @@ void fcurve_set_active_modifier (FCurve *fcu, FModifier *fcm)
 	
 	/* sanity checks */
 	if ELEM(NULL, fcu, fcu->modifiers.first)
-		return NULL;
+		return;
 	
 	/* deactivate all, and set current one active */
 	for (fm= fcu->modifiers.first; fm; fm= fm->next)

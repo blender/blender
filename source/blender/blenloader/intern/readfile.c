@@ -1728,6 +1728,13 @@ static void direct_link_fcurves(FileData *fd, ListBase *list)
 					data->coefficients= newdataadr(fd, data->coefficients);
 				}
 					break;
+				case FMODIFIER_TYPE_ENVELOPE:
+				{
+					FMod_Envelope *data= (FMod_Envelope *)fcm->data;
+					
+					data->data= newdataadr(fd, data->data);
+				}
+					break;
 				case FMODIFIER_TYPE_PYTHON:
 				{
 					FMod_Python *data= (FMod_Python *)fcm->data;

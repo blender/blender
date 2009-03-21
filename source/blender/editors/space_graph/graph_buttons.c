@@ -133,7 +133,7 @@ static void graph_panel_properties(const bContext *C, ARegion *ar, short cntrl, 
 	 */
 }
 
-/* -------------- */
+/* ******************* drivers ******************************** */
 
 #define B_IPO_DEPCHANGE 	10
 
@@ -217,7 +217,7 @@ static void graph_panel_drivers(const bContext *C, ARegion *ar, short cntrl, bAn
 	}
 }
 
-/* -------------- */
+/* ******************* f-modifiers ******************************** */
 
 #define B_FMODIFIER_REDRAW		20
 
@@ -262,7 +262,6 @@ static void activate_fmodifier_cb (bContext *C, void *fcu_v, void *fcm_v)
 	fcurve_set_active_modifier(fcu, fcm);
 }
 
-
 /* callback to remove the given modifier  */
 static void delete_fmodifier_cb (bContext *C, void *fcu_v, void *fcm_v)
 {
@@ -272,6 +271,8 @@ static void delete_fmodifier_cb (bContext *C, void *fcu_v, void *fcm_v)
 	/* remove the given F-Modifier from the F-Curve */
 	fcurve_remove_modifier(fcu, fcm);
 }
+
+/* --------------- */
 	
 /* draw settings for generator modifier */
 static void draw_modifier__generator(uiBlock *block, FCurve *fcu, FModifier *fcm, int *yco, short *height, short width, short active, int rb_col)
@@ -449,7 +450,9 @@ static void draw_modifier__generator(uiBlock *block, FCurve *fcu, FModifier *fcm
 	}
 }
 
-/* draw settings for generator modifier */
+/* --------------- */
+
+/* draw settings for cycles modifier */
 static void draw_modifier__cycles(uiBlock *block, FCurve *fcu, FModifier *fcm, int *yco, short *height, short width, short active, int rb_col)
 {
 	FMod_Cycles *data= (FMod_Cycles *)fcm->data;
@@ -477,6 +480,223 @@ static void draw_modifier__cycles(uiBlock *block, FCurve *fcu, FModifier *fcm, i
 	uiBlockEndAlign(block);
 }
 
+/* --------------- */
+
+#define BINARYSEARCH_FRAMEEQ_THRESH	0.0001
+
+/* Binary search algorithm for finding where to insert Envelope Data Point.
+ * Returns the index to insert at (data already at that index will be offset if replace is 0)
+ */
+static int binarysearch_fcm_envelopedata_index (FCM_EnvelopeData array[], float frame, int arraylen, short *exists)
+{
+	int start=0, end=arraylen;
+	int loopbreaker= 0, maxloop= arraylen * 2;
+	
+	/* initialise exists-flag first */
+	*exists= 0;
+	
+	/* sneaky optimisations (don't go through searching process if...):
+	 *	- keyframe to be added is to be added out of current bounds
+	 *	- keyframe to be added would replace one of the existing ones on bounds
+	 */
+	if ((arraylen <= 0) || (array == NULL)) {
+		printf("Warning: binarysearch_fcm_envelopedata_index() encountered invalid array \n");
+		return 0;
+	}
+	else {
+		/* check whether to add before/after/on */
+		float framenum;
+		
+		/* 'First' Point (when only one point, this case is used) */
+		framenum= array[0].time;
+		if (IS_EQT(frame, framenum, BINARYSEARCH_FRAMEEQ_THRESH)) {
+			*exists = 1;
+			return 0;
+		}
+		else if (frame < framenum)
+			return 0;
+			
+		/* 'Last' Point */
+		framenum= array[(arraylen-1)].time;
+		if (IS_EQT(frame, framenum, BINARYSEARCH_FRAMEEQ_THRESH)) {
+			*exists= 1;
+			return (arraylen - 1);
+		}
+		else if (frame > framenum)
+			return arraylen;
+	}
+	
+	
+	/* most of the time, this loop is just to find where to put it
+	 * 	- 'loopbreaker' is just here to prevent infinite loops 
+	 */
+	for (loopbreaker=0; (start <= end) && (loopbreaker < maxloop); loopbreaker++) {
+		/* compute and get midpoint */
+		int mid = start + ((end - start) / 2);	/* we calculate the midpoint this way to avoid int overflows... */
+		float midfra= array[mid].time;
+		
+		/* check if exactly equal to midpoint */
+		if (IS_EQT(frame, midfra, BINARYSEARCH_FRAMEEQ_THRESH)) {
+			*exists = 1;
+			return mid;
+		}
+		
+		/* repeat in upper/lower half */
+		if (frame > midfra)
+			start= mid + 1;
+		else if (frame < midfra)
+			end= mid - 1;
+	}
+	
+	/* print error if loop-limit exceeded */
+	if (loopbreaker == (maxloop-1)) {
+		printf("Error: binarysearch_fcm_envelopedata_index() was taking too long \n");
+		
+		// include debug info 
+		printf("\tround = %d: start = %d, end = %d, arraylen = %d \n", loopbreaker, start, end, arraylen);
+	}
+	
+	/* not found, so return where to place it */
+	return start;
+}
+
+/* callback to add new envelope data point */
+// TODO: should we have a separate file for things like this?
+static void fmod_envelope_addpoint_cb (bContext *C, void *fcm_dv, void *dummy)
+{
+	Scene *scene= CTX_data_scene(C);
+	FMod_Envelope *env= (FMod_Envelope *)fcm_dv;
+	FCM_EnvelopeData *fedn;
+	FCM_EnvelopeData fed;
+	
+	/* init template data */
+	fed.min= -1.0f;
+	fed.max= 1.0f;
+	fed.time= (float)scene->r.cfra; // XXX make this int for ease of use?
+	fed.f1= fed.f2= 0;
+	
+	/* check that no data exists for the current frame... */
+	if (env->data) {
+		short exists = -1;
+		int i= binarysearch_fcm_envelopedata_index(env->data, (float)(scene->r.cfra), env->totvert, &exists);
+		
+		/* binarysearch_...() will set exists by default to 0, so if it is non-zero, that means that the point exists already */
+		if (exists)
+			return;
+			
+		/* add new */
+		fedn= MEM_callocN((env->totvert+1)*sizeof(FCM_EnvelopeData), "FCM_EnvelopeData");
+		
+		/* add the points that should occur before the point to be pasted */
+		if (i > 0)
+			memcpy(fedn, env->data, i*sizeof(FCM_EnvelopeData));
+		
+		/* add point to paste at index i */
+		*(fedn + i)= fed;
+		
+		/* add the points that occur after the point to be pasted */
+		if (i < env->totvert) 
+			memcpy(fedn+i+1, env->data+i, (env->totvert-i)*sizeof(FCM_EnvelopeData));
+		
+		/* replace (+ free) old with new */
+		MEM_freeN(env->data);
+		env->data= fedn;
+		
+		env->totvert++;
+	}
+	else {
+		env->data= MEM_callocN(sizeof(FCM_EnvelopeData), "FCM_EnvelopeData");
+		*(env->data)= fed;
+		
+		env->totvert= 1;
+	}
+}
+
+/* callback to remove envelope data point */
+// TODO: should we have a separate file for things like this?
+static void fmod_envelope_deletepoint_cb (bContext *C, void *fcm_dv, void *ind_v)
+{
+	FMod_Envelope *env= (FMod_Envelope *)fcm_dv;
+	FCM_EnvelopeData *fedn;
+	int index= GET_INT_FROM_POINTER(ind_v);
+	
+	/* check that no data exists for the current frame... */
+	if (env->totvert > 1) {
+		/* allocate a new smaller array */
+		fedn= MEM_callocN(sizeof(FCM_EnvelopeData)*(env->totvert-1), "FCM_EnvelopeData");
+		
+		memcpy(fedn, &env->data, sizeof(FCM_EnvelopeData)*(index));
+		memcpy(&fedn[index], &env->data[index+1], sizeof(FCM_EnvelopeData)*(env->totvert-index-1));
+		
+		/* free old array, and set the new */
+		MEM_freeN(env->data);
+		env->data= fedn;
+		env->totvert--;
+	}
+	else {
+		/* just free array, since the only vert was deleted */
+		if (env->data) 
+			MEM_freeN(env->data);
+		env->totvert= 0;
+	}
+}
+
+/* draw settings for envelope modifier */
+static void draw_modifier__envelope(uiBlock *block, FCurve *fcu, FModifier *fcm, int *yco, short *height, short width, short active, int rb_col)
+{
+	FMod_Envelope *env= (FMod_Envelope *)fcm->data;
+	FCM_EnvelopeData *fed;
+	uiBut *but;
+	int cy= (*yco - 30);
+	int i;
+	
+	/* set the height:
+	 *	- basic settings + variable height from envelope controls
+	 */
+	(*height) = 96 + (25 * env->totvert);
+	
+	/* basic settings (backdrop + general settings + some padding) */
+	//DRAW_BACKDROP((*height)); // XXX buggy...
+	
+	/* General Settings */
+	uiDefBut(block, LABEL, 1, "Envelope:", 10, cy, 100, 20, NULL, 0.0, 0.0, 0, 0, "Settings for cycling before first keyframe");
+	cy -= 20;
+	
+	uiBlockBeginAlign(block);
+		uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "Reference Val:", 10, cy, 300, 20, &env->midval, -FLT_MAX, FLT_MAX, 10, 3, "");
+		cy -= 20;
+		
+		uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "Min:", 10, cy, 150, 20, &env->min, -FLT_MAX, env->max, 10, 3, "Minimum value (relative to Reference Value) that is used as the 'normal' minimum value");
+		uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "Max:", 160, cy, 150, 20, &env->max, env->min, FLT_MAX, 10, 3, "Maximum value (relative to Reference Value) that is used as the 'normal' maximum value");
+		cy -= 35;
+	uiBlockEndAlign(block);
+	
+	
+	/* Points header */
+	uiDefBut(block, LABEL, 1, "Control Points:", 10, cy, 150, 20, NULL, 0.0, 0.0, 0, 0, "");
+	
+	but= uiDefBut(block, BUT, B_FMODIFIER_REDRAW, "Add Point", 160,cy,150,19, NULL, 0, 0, 0, 0, "Adds a new control-point to the envelope on the current frame");
+	uiButSetFunc(but, fmod_envelope_addpoint_cb, env, NULL);
+	cy -= 35;
+	
+	/* Points List */
+	for (i=0, fed=env->data; i < env->totvert; i++, fed++) {
+		uiBlockBeginAlign(block);
+			but=uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "Fra:", 5, cy, 100, 20, &fed->time, -FLT_MAX, FLT_MAX, 10, 3, "Frame that envelope point occurs");
+			uiButSetFunc(but, validate_fmodifier_cb, fcu, fcm);
+			
+			uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "Min:", 105, cy, 100, 20, &fed->min, -FLT_MAX, FLT_MAX, 10, 3, "Minimum bound of envelope at this point");
+			uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "Max:", 205, cy, 100, 20, &fed->max, -FLT_MAX, FLT_MAX, 10, 3, "Maximum bound of envelope at this point");
+			
+			but= uiDefIconBut(block, BUT, B_FMODIFIER_REDRAW, ICON_X, 305, cy, 20, 20, NULL, 0.0, 0.0, 0.0, 0.0, "Delete envelope control point");
+			uiButSetFunc(but, fmod_envelope_deletepoint_cb, env, SET_INT_IN_POINTER(i));
+		uiBlockBeginAlign(block);
+		cy -= 25;
+	}
+}
+
+/* --------------- */
+
 static void graph_panel_modifier_draw(uiBlock *block, FCurve *fcu, FModifier *fcm, int *yco)
 {
 	FModifierTypeInfo *fmi= fmodifier_get_typeinfo(fcm);
@@ -499,14 +719,17 @@ static void graph_panel_modifier_draw(uiBlock *block, FCurve *fcu, FModifier *fc
 #endif // XXX buggy
 		
 		/* expand */
-		uiDefIconButBitS(block, ICONTOG, FMODIFIER_FLAG_EXPANDED, B_REDR, ICON_TRIA_RIGHT,	10-7, *yco-1, 20, 20, &fcm->flag, 0.0, 0.0, 0, 0, "Modifier is expanded");
+		uiDefIconButBitS(block, ICONTOG, FMODIFIER_FLAG_EXPANDED, B_REDR, ICON_TRIA_RIGHT,	5, *yco-1, 20, 20, &fcm->flag, 0.0, 0.0, 0, 0, "Modifier is expanded");
+		
+		/* checkbox for 'active' status (for now) */
+		but= uiDefIconButBitS(block, ICONTOG, FMODIFIER_FLAG_ACTIVE, B_REDR, ICON_RADIOBUT_OFF,	25, *yco-1, 20, 20, &fcm->flag, 0.0, 0.0, 0, 0, "Modifier is active one");
+		uiButSetFunc(but, activate_fmodifier_cb, fcu, fcm);
 		
 		/* name */
 		if (fmi)
-			but= uiDefBut(block, LABEL, 1, fmi->name,	10+35, *yco, 240, 20, NULL, 0.0, 0.0, 0, 0, "F-Curve Modifier Type. Click to make modifier active one.");
+			but= uiDefBut(block, LABEL, 1, fmi->name,	10+40, *yco, 240, 20, NULL, 0.0, 0.0, 0, 0, "F-Curve Modifier Type. Click to make modifier active one.");
 		else
-			but= uiDefBut(block, LABEL, 1, "<Unknown Modifier>",	10+35, *yco, 240, 20, NULL, 0.0, 0.0, 0, 0, "F-Curve Modifier Type. Click to make modifier active one.");
-		uiButSetFunc(but, activate_fmodifier_cb, fcu, fcm);
+			but= uiDefBut(block, LABEL, 1, "<Unknown Modifier>",	10+40, *yco, 240, 20, NULL, 0.0, 0.0, 0, 0, "F-Curve Modifier Type. Click to make modifier active one.");
 		
 		/* delete button */
 		but= uiDefIconBut(block, BUT, B_REDR, ICON_X, 10+(width-30), *yco, 19, 19, NULL, 0.0, 0.0, 0.0, 0.0, "Delete F-Curve Modifier.");
@@ -525,6 +748,10 @@ static void graph_panel_modifier_draw(uiBlock *block, FCurve *fcu, FModifier *fc
 				
 			case FMODIFIER_TYPE_CYCLES: /* Cycles */
 				draw_modifier__cycles(block, fcu, fcm, yco, &height, width, active, rb_col);
+				break;
+				
+			case FMODIFIER_TYPE_ENVELOPE: /* Envelope */
+				draw_modifier__envelope(block, fcu, fcm, yco, &height, width, active, rb_col);
 				break;
 			
 			default: /* unknown type */
@@ -566,7 +793,7 @@ static void graph_panel_modifiers(const bContext *C, ARegion *ar, short cntrl, b
 		uiNewPanelHeight(block, 204);
 }
 
-/* -------------- */
+/* ******************* general ******************************** */
 
 /* Find 'active' F-Curve. It must be editable, since that's the purpose of these buttons (subject to change).  
  * We return the 'wrapper' since it contains valuable context info (about hierarchy), which will need to be freed 

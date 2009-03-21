@@ -91,7 +91,59 @@ extern void ui_rasterpos_safe(float x, float y, float aspect);
 extern void gl_round_box(int mode, float minx, float miny, float maxx, float maxy, float rad);
 
 /* *************************** */
-/* Curve Drawing */
+/* F-Curve Modifier Drawing */
+
+/* Envelope -------------- */
+
+// TODO: draw a shaded poly showing the region of influence too?
+static void draw_fcurve_modifier_controls_envelope (FCurve *fcu, FModifier *fcm, View2D *v2d)
+{
+	FMod_Envelope *env= (FMod_Envelope *)fcm->data;
+	FCM_EnvelopeData *fed;
+	const float fac= 0.05f * (v2d->cur.xmax - v2d->cur.xmin);
+	int i;
+	
+	/* draw two black lines showing the standard reference levels */
+	// TODO: how to make these more distinctive?
+	glColor3f(0.0f, 0.0f, 0.0f);
+	setlinestyle(5);
+	
+	glBegin(GL_LINES);
+		glVertex2f(v2d->cur.xmin, env->midval+env->min);
+		glVertex2f(v2d->cur.xmax, env->midval+env->min);
+		
+		glVertex2f(v2d->cur.xmin, env->midval+env->max);
+		glVertex2f(v2d->cur.xmax, env->midval+env->max);
+	glEnd(); // GL_LINES
+	setlinestyle(0);
+	
+	
+	/* set size of vertices (non-adjustable for now) */
+	glPointSize(2.0f);
+	
+	// for now, point color is fixed, and is white
+	glColor3f(1.0f, 1.0f, 1.0f);
+	
+	/* we use bgl points not standard gl points, to workaround vertex 
+	 * drawing bugs that some drivers have (probably legacy ones only though)
+	 */
+	bglBegin(GL_POINTS);
+	for (i=0, fed=env->data; i < env->totvert; i++, fed++) {
+		/* only draw if visible
+		 *	- min/max here are fixed, not relative
+		 */
+		if IN_RANGE(fed->time, (v2d->cur.xmin - fac), (v2d->cur.xmax + fac)) {
+			glVertex2f(fed->time, fed->min);
+			glVertex2f(fed->time, fed->max);
+		}
+	}
+	bglEnd();
+	
+	glPointSize(1.0f);
+}
+
+/* *************************** */
+/* F-Curve Drawing */
 
 /* Points ---------------- */
 
@@ -768,8 +820,18 @@ void graph_draw_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGri
 		}
 		
 		/* 2) draw handles and vertices as appropriate based on active */
-		if ( ((fcm) && (fcm->type != FMODIFIER_TYPE_CYCLES)) || (fcu->modifiers.first) ) {
-			// TODO: need to add code to show these... for cycles modifier, should fall through though...
+		if ( ((fcm) && (fcm->type != FMODIFIER_TYPE_CYCLES)) || (fcu->modifiers.first && !fcm) ) {
+			/* draw controls for the 'active' modifier (if applicable) 
+			 * NOTE: cycles modifier is currently an exception where the original points can still be edited, so
+			 *  	 	this branch is skipped... (TODO: set up the generic system for this so that we don't need special hacks like this)
+			 */
+			if (fcm) {
+				switch (fcm->type) {
+					case FMODIFIER_TYPE_ENVELOPE: /* envelope */
+						draw_fcurve_modifier_controls_envelope(fcu, fcm, &ar->v2d);
+						break;
+				}
+			}
 		}
 		else if ( ((fcu->bezt) || (fcu->fpt)) && (fcu->totvert) ) { 
 			if (fcu->bezt) {

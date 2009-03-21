@@ -810,6 +810,15 @@ static void write_fcurves(WriteData *wd, ListBase *fcurves)
 							writedata(wd, DATA, sizeof(float)*(data->arraysize), data->coefficients);
 					}
 						break;
+					case FMODIFIER_TYPE_ENVELOPE:
+					{
+						FMod_Envelope *data= (FMod_Envelope *)fcm->data;
+						
+						/* write envelope data */
+						if (data->data)
+							writedata(wd, DATA, sizeof(FCM_EnvelopeData)*(data->totvert), data->data);
+					}
+						break;
 					case FMODIFIER_TYPE_PYTHON:
 					{
 						FMod_Python *data = (FMod_Python *)fcm->data;
@@ -822,7 +831,7 @@ static void write_fcurves(WriteData *wd, ListBase *fcurves)
 				}
 			}
 			
-			/* Write the constraint */
+			/* Write the modifier */
 			writestruct(wd, DATA, "FModifier", 1, fcm);
 		}
 	}
