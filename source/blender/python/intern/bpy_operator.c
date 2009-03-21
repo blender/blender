@@ -108,8 +108,10 @@ int PYOP_props_from_dict(PointerRNA *ptr, PyObject *kw)
 }
 
 static PyObject *pyop_base_dir(PyObject *self);
+static PyObject *pyop_base_rna(PyObject *self, PyObject *pyname);
 static struct PyMethodDef pyop_base_methods[] = {
 	{"__dir__", (PyCFunction)pyop_base_dir, METH_NOARGS, ""},
+	{"__rna__", (PyCFunction)pyop_base_rna, METH_O, ""},
 	{"add", (PyCFunction)PYOP_wrap_add, METH_O, ""},
 	{"remove", (PyCFunction)PYOP_wrap_remove, METH_O, ""},
 	{NULL, NULL, 0, NULL}
@@ -199,8 +201,9 @@ static PyObject *pyop_base_getattro( BPy_OperatorBase * self, PyObject *pyname )
 {
 	char *name = _PyUnicode_AsString(pyname);
 	PyObject *ret;
+	wmOperatorType *ot;
 	
-	if ((WM_operatortype_find(name))) {
+	if ((ot= WM_operatortype_find(name))) {
 		ret = PyCFunction_New( pyop_base_call_meth, pyname); /* set the name string as self, PyCFunction_New incref's self */
 	}
 	else if ((ret = PyObject_GenericGetAttr((PyObject *)self, pyname))) {
@@ -233,6 +236,28 @@ static PyObject *pyop_base_dir(PyObject *self)
 	}
 	
 	return list;
+}
+
+static PyObject *pyop_base_rna(PyObject *self, PyObject *pyname)
+{
+	char *name = _PyUnicode_AsString(pyname);
+	wmOperatorType *ot;
+	
+	if ((ot= WM_operatortype_find(name))) {
+		BPy_StructRNA *pyrna;
+		PointerRNA ptr;
+		
+		/* XXX POINTER - if this 'ot' is python generated, it could be free'd */
+		RNA_pointer_create(NULL, ot->srna, NULL, &ptr);
+		
+		pyrna= (BPy_StructRNA *)pyrna_struct_CreatePyObject(&ptr); /* were not really using &ptr, overwite next */
+		//pyrna->freeptr= 1;
+		return pyrna;
+	}
+	else {
+		PyErr_SetString(PyExc_AttributeError, "Operator not found");
+		return NULL;
+	}
 }
 
 PyTypeObject pyop_base_Type = {NULL};

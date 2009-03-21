@@ -236,6 +236,6 @@ PyObject *PyObject_GetAttrStringArgs(PyObject *o, Py_ssize_t n, ...)
 	}
 	va_end(vargs);
 	
-	Py_INCREF(item); /* final value has is increfed, to match PyObject_GetAttrString */
+	Py_XINCREF(item); /* final value has is increfed, to match PyObject_GetAttrString */
 	return item;
 }

@@ -41,8 +41,6 @@ def get_array_str(length):
 
 def rna2epy(target_path):
 	
-
-	
 	def write_struct(rna_struct, structs, ident):
 		identifier = rna_struct.identifier
 		
@@ -131,8 +129,11 @@ def rna2epy(target_path):
 	for rna_type_name in dir(bpy.types):
 		rna_type = getattr(bpy.types, rna_type_name)
 		if hasattr(rna_type, '__rna__'):
+			#if not rna_type_name.startswith('__'):
 			rna_struct = rna_type.__rna__
 			structs.append( (base_id(rna_struct), rna_struct.identifier, rna_struct) )	
+		else:
+			print("Ignoring", rna_type_name)
 	
 	
 	
@@ -160,7 +161,7 @@ def rna2epy(target_path):
 					i+=1
 					
 				if not ok:
-					print('Dependancy "%s"could not be found for "%s"' % (identifier, rna_base))
+					print('Dependancy "%s" could not be found for "%s"' % (identifier, rna_base))
 				
 				break
 	
@@ -199,7 +200,9 @@ def op2epy(target_path):
 		kw_args = [] # "foo = 1", "bar=0.5", "spam='ENUM'"
 		kw_arg_attrs = [] # "@type mode: int"
 		
-		rna = getattr(bpy.types, op).__rna__
+		# rna = getattr(bpy.types, op).__rna__
+		rna = bpy.ops.__rna__(op)
+		
 		rna_struct = rna.rna_type
 		# print (dir(rna))
 		# print (dir(rna_struct))
@@ -217,14 +220,18 @@ def op2epy(target_path):
 			
 			try:
 				val = getattr(rna, rna_prop_identifier)
+				val_error = False
 			except:
-				val = '<UNDEFINED>'
+				val = "'<UNDEFINED>'"
+				val_error = True
 			
 			kw_type_str= "@type %s: %s%s" % (rna_prop_identifier, rna_prop_type, array_str)
 			kw_param_str= "@param %s: %s" % (rna_prop_identifier, rna_prop.description)
 			kw_param_set = False
 			
-			if rna_prop_type=='float':
+			if val_error:
+				val_str = val
+			elif rna_prop_type=='float':
 				if length==0:
 					val_str= '%g' % val
 					if '.' not in val_str:

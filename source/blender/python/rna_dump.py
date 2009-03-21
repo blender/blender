@@ -18,20 +18,41 @@
  #
  # #**** END GPL LICENSE BLOCK #****
 
+if 1:
+	# Print once every 1000
+	GEN_PATH = True
+	PRINT_DATA = False
+	PRINT_DATA_INT = 1000
+	VERBOSE = False
+	VERBOSE_TYPE = False
+	MAX_RECURSIVE = 8
+else:
+	# Print everything
+	GEN_PATH = True
+	PRINT_DATA = True
+	PRINT_DATA_INT = 0
+	VERBOSE = False
+	VERBOSE_TYPE = False
+	MAX_RECURSIVE = 8
 
-PRINT_DATA = True
-VERBOSE = False
-VERBOSE_TYPE = False
-SKIP_RECURSIVE = False
+seek_count = [0]
 
-
-def seek(r, txt):
-	print(txt)
+def seek(r, txt, recurs):
+	
+	seek_count[0] += 1
+	
+	if PRINT_DATA_INT:
+		if not (seek_count[0] % PRINT_DATA_INT):
+			print(seek_count[0], txt)
+	
+	if PRINT_DATA:
+		print(txt)
+	
 	newtxt = ''
 	
-	if len(txt) > 200:
-		print ("Somthing is wrong")
-		print (txt)
+	if recurs > MAX_RECURSIVE:
+		#print ("Recursion is over max")
+		#print (txt)
 		return
 	
 	type_r = type(r)
@@ -64,27 +85,21 @@ def seek(r, txt):
 		if item.startswith('__'):
 			continue
 			
-		if PRINT_DATA:	newtxt = txt + '.' + item
+		if GEN_PATH: newtxt = txt + '.' + item
 		
 		if item == 'rna_type' and VERBOSE_TYPE==False: # just avoid because it spits out loads of data
 			continue
 		
-		if SKIP_RECURSIVE:
-			if item in txt:
-				if PRINT_DATA:
-					print(newtxt + ' - (skipping to avoid recursive search)')
-				continue
-		
 		try:	value = getattr(r, item)
 		except:	value = None
 		
-		seek( value, newtxt)
+		seek( value, newtxt, recurs + 1)
 	
 	
 	if keys:
 		for k in keys:
-			if PRINT_DATA:	newtxt = txt + '["' + k + '"]'
-			seek(r.__getitem__(k), newtxt)
+			if GEN_PATH: newtxt = txt + '["' + k + '"]'
+			seek(r.__getitem__(k), newtxt, recurs+1)
 	
 	else:
 		try:	length = len( r )
@@ -96,17 +111,26 @@ def seek(r, txt):
 					if PRINT_DATA:
 						print((' '*len(txt)) + ' ... skipping '+str(length-2)+' items ...')
 				
-				if PRINT_DATA:	newtxt = txt + '[' + str(i) + ']'
-				seek(r[i], newtxt)
+				if GEN_PATH: newtxt = txt + '[' + str(i) + ']'
+				seek(r[i], newtxt, recurs+1)
 		else:
 			for i in range(length):
-				if PRINT_DATA:	newtxt = txt + '[' + str(i) + ']'
-				seek(r[i], newtxt)
+				if GEN_PATH: newtxt = txt + '[' + str(i) + ']'
+				seek(r[i], newtxt, recurs+1)
 
-#print (dir(bpy))
-seek(bpy.data, 'bpy.data')
-
+seek(bpy.data, 'bpy.data', 0)
+# seek(bpy.types, 'bpy.types', 0)
+'''
+for d in dir(bpy.types):
+	t = getattr(bpy.types, d)
+	try:	r = t.__rna__
+	except:	r = None
+	if r:
+		seek(r, 'bpy.types.' + d + '.__rna__', 0)
+'''
 
 #print dir(bpy)
 #import sys
 #sys.exit()
+
+print("iter over ", seek_count, "rna items")

@@ -384,7 +384,8 @@ PyObject *PYOP_wrap_add(PyObject *self, PyObject *value)
 	//PyObject *optype = PyObject_GetAttrString(PyObject_GetAttrString(PyDict_GetItemString(PyEval_GetGlobals(), "bpy"), "types"), "Operator");
 	optype = PyObject_GetAttrStringArgs(PyDict_GetItemString(PyEval_GetGlobals(), "bpy"), 2, "types", "Operator");
 	Py_DECREF(optype);
-	
+
+
 	if (!PyObject_IsSubclass(value, optype)) {
 		PyErr_SetString( PyExc_AttributeError, "expected Operator subclass of bpy.types.Operator");
 		return NULL;
@@ -450,7 +451,6 @@ PyObject *PYOP_wrap_add(PyObject *self, PyObject *value)
 		} else {
 			PyErr_Clear();
 		}
-		Py_XDECREF(item);
 	}
 	
 	/* If we have properties set, check its a list of dicts */

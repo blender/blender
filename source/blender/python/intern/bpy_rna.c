@@ -574,21 +574,27 @@ static PyMappingMethods pyrna_prop_as_mapping = {
 static PyObject *pyrna_struct_dir(BPy_StructRNA * self)
 {
 	PyObject *ret, *dict;
-	PyObject *pystring = PyUnicode_FromString("__dict__");
+	PyObject *pystring;
 	
 	/* Include this incase this instance is a subtype of a python class
 	 * In these instances we may want to return a function or variable provided by the subtype
 	 * */
-	dict = PyObject_GenericGetAttr((PyObject *)self, pystring);
-	Py_DECREF(pystring);
-	
-	if (dict==NULL) {
-		PyErr_Clear();
+
+	if (BPy_StructRNA_CheckExact(self)) {
 		ret = PyList_New(0);
-	}
-	else {
-		ret = PyDict_Keys(dict);
-		Py_DECREF(dict);
+	} else {
+		pystring = PyUnicode_FromString("__dict__");
+		dict = PyObject_GenericGetAttr((PyObject *)self, pystring);
+		Py_DECREF(pystring);
+
+		if (dict==NULL) {
+			PyErr_Clear();
+			ret = PyList_New(0);
+		}
+		else {
+			ret = PyDict_Keys(dict);
+			Py_DECREF(dict);
+		}
 	}
 	
 	/* Collect RNA items*/
@@ -629,12 +635,12 @@ static PyObject *pyrna_struct_getattro( BPy_StructRNA * self, PyObject *pyname )
 	
 	/* Include this incase this instance is a subtype of a python class
 	 * In these instances we may want to return a function or variable provided by the subtype
+	 * 
+	 * Also needed to return methods when its not a subtype
 	 * */
-	if (BPy_StructRNA_CheckExact(self) == 0) {
-		ret = PyObject_GenericGetAttr((PyObject *)self, pyname);
-		if (ret)	return ret;
-		else		PyErr_Clear();
-	}
+	ret = PyObject_GenericGetAttr((PyObject *)self, pyname);
+	if (ret)	return ret;
+	else		PyErr_Clear();
 	/* done with subtypes */
 
 	prop = RNA_struct_find_property(&self->ptr, name);
@@ -1061,6 +1067,8 @@ PyObject* pyrna_struct_Subtype(PointerRNA *ptr)
 
 	if (ptr->type==NULL) {
 		newclass= NULL; /* Nothing to do */
+	} else if ((newclass= BPy_RNA_PYTYPE(ptr->data))) {
+		Py_INCREF(newclass);
 	} else if ((nameprop = RNA_struct_name_property(ptr))) {
 		/* for now, return the base RNA type rather then a real module */
 		
@@ -1076,7 +1084,6 @@ PyObject* pyrna_struct_Subtype(PointerRNA *ptr)
 		PyObject *args = PyTuple_New(3);
 		PyObject *bases = PyTuple_New(1);
 		PyObject *dict = PyDict_New();
-		PyObject *rna;
 		
 		nameptr= RNA_property_string_get_alloc(ptr, nameprop, name, sizeof(name));
 		
@@ -1087,6 +1094,7 @@ PyObject* pyrna_struct_Subtype(PointerRNA *ptr)
 		// arg 2
 		PyTuple_SET_ITEM(bases, 0, (PyObject *)&pyrna_struct_Type);
 		Py_INCREF(&pyrna_struct_Type);
+
 		PyTuple_SET_ITEM(args, 1, bases);
 		
 		// arg 3 - add an instance of the rna 
@@ -1100,9 +1108,11 @@ PyObject* pyrna_struct_Subtype(PointerRNA *ptr)
 		newclass = PyObject_CallObject((PyObject *)&PyType_Type, args);
 		// Set this later
 		
+
 		if (newclass) {
+			PyObject *rna;
 			BPy_RNA_PYTYPE(ptr->data) = (void *)newclass; /* Store for later use */
-			
+
 			/* Not 100% needed but useful,
 			 * having an instance within a type looks wrong however this instance IS an rna type */
 			rna = pyrna_struct_CreatePyObject(ptr);
@@ -1110,6 +1120,7 @@ PyObject* pyrna_struct_Subtype(PointerRNA *ptr)
 			Py_DECREF(rna);
 			/* done with rna instance */
 		}
+		
 		Py_DECREF(args);
 		
 		if ((char *)&name != nameptr)
@@ -1123,15 +1134,23 @@ PyObject* pyrna_struct_Subtype(PointerRNA *ptr)
 /*-----------------------CreatePyObject---------------------------------*/
 PyObject *pyrna_struct_CreatePyObject( PointerRNA *ptr )
 {
-	BPy_StructRNA *pyrna;
+	BPy_StructRNA *pyrna= NULL;
+	int tp_init= 0;
 	
 	if (ptr->data==NULL && ptr->type==NULL) { /* Operator RNA has NULL data */
 		Py_RETURN_NONE;
 	}
 	
-	if (ptr->type && BPy_RNA_PYTYPE(ptr->type)) {
-		PyTypeObject *tp = BPy_RNA_PYTYPE(ptr->type);
-		pyrna = (BPy_StructRNA *) tp->tp_alloc(tp, 0);
+	if (ptr->type == &RNA_Struct) { /* always return a python subtype from rna struct types */
+		PyTypeObject *tp = pyrna_struct_Subtype(ptr);
+		
+		if (tp) {
+			pyrna = (BPy_StructRNA *) tp->tp_alloc(tp, 0);
+		}
+		else {
+			fprintf(stderr, "Could not make type\n");
+			pyrna = ( BPy_StructRNA * ) PyObject_NEW( BPy_StructRNA, &pyrna_struct_Type );
+		}
 	}
 	else {
 		pyrna = ( BPy_StructRNA * ) PyObject_NEW( BPy_StructRNA, &pyrna_struct_Type );
@@ -1144,7 +1163,6 @@ PyObject *pyrna_struct_CreatePyObject( PointerRNA *ptr )
 	
 	pyrna->ptr= *ptr;
 	pyrna->freeptr= 0;
-	
 	return ( PyObject * ) pyrna;
 }
 
@@ -1201,49 +1219,73 @@ PyObject *BPY_rna_doc( void )
 }
 #endif
 
- PyObject *BPY_rna_types(void)
- {
-	/* Now initialize new subtypes based on pyrna_struct_Type */
-	PointerRNA ptr;
 
-	CollectionPropertyIterator iter;
-	PropertyRNA *prop;
-
-	PyObject *mod, *dict, *type, *name;
- 
-	mod = PyModule_New("types");
-	dict = PyModule_GetDict(mod);
+/* pyrna_basetype_* - BPy_BaseTypeRNA is just a BPy_PropertyRNA struct with a differnt type
+ * the self->ptr and self->prop are always set to the "structs" collection */
+//---------------getattr--------------------------------------------
+static PyObject *pyrna_basetype_getattro( BPy_BaseTypeRNA * self, PyObject *pyname )
+{
+	PointerRNA newptr;
+	PyObject *ret;
 	
-	/* for now, return the base RNA type rather then a real module */
-	RNA_blender_rna_pointer_create(&ptr);
-	prop = RNA_struct_find_property(&ptr, "structs");
+	ret = PyObject_GenericGetAttr((PyObject *)self, pyname);
+	if (ret)	return ret;
+	else		PyErr_Clear();
 	
-	RNA_property_collection_begin(&ptr, prop, &iter);
-	for(; iter.valid; RNA_property_collection_next(&iter)) {
-		if(iter.ptr.data) {
-			type = (PyObject *)BPy_RNA_PYTYPE(iter.ptr.data);
-			if (type==NULL) {
-				type = pyrna_struct_Subtype(&iter.ptr);
-			}
-			if (type) {
-				name = PyObject_GetAttrString(type, "__name__"); /* myClass.__name__ */
-				if (name) {
-					Py_DECREF(name);
-					PyDict_SetItem(dict, name, type);
-				}
-				else {
-					printf("could not get type __name__\n");
-				}
-			}
-			else {
-				printf("could not generate type\n");
-			}
-		}
+	if (RNA_property_collection_lookup_string(&self->ptr, self->prop, _PyUnicode_AsString(pyname), &newptr)) {
+		return pyrna_struct_Subtype(&newptr);
 	}
-	RNA_property_collection_end(&iter);
-	
-	return mod;
+	else { /* Override the error */
+		PyErr_Format(PyExc_AttributeError, "bpy.types.%s not a valid RNA_Struct", _PyUnicode_AsString(pyname));
+		return NULL;
+	}
 }
+
+static PyObject *pyrna_basetype_dir(BPy_BaseTypeRNA *self);
+static struct PyMethodDef pyrna_basetype_methods[] = {
+	{"__dir__", (PyCFunction)pyrna_basetype_dir, METH_NOARGS, ""},
+	{NULL, NULL, 0, NULL}
+};
+
+static PyObject *pyrna_basetype_dir(BPy_BaseTypeRNA *self)
+{
+	PyObject *list, *name;
+	PyMethodDef *meth;
+	
+	list= pyrna_prop_keys(self); /* like calling structs.keys(), avoids looping here */
+
+	for(meth=pyrna_basetype_methods; meth->ml_name; meth++) {
+		name = PyUnicode_FromString(meth->ml_name);
+		PyList_Append(list, name);
+		Py_DECREF(name);
+	}
+	
+	return list;
+}
+
+PyTypeObject pyrna_basetype_Type = {NULL};
+
+PyObject *BPY_rna_types(void)
+{
+	BPy_BaseTypeRNA *self;
+	pyrna_basetype_Type.tp_name = "RNA_Types";
+	pyrna_basetype_Type.tp_basicsize = sizeof( BPy_BaseTypeRNA );
+	pyrna_basetype_Type.tp_getattro = ( getattrofunc )pyrna_basetype_getattro;
+	pyrna_basetype_Type.tp_flags = Py_TPFLAGS_DEFAULT;
+	pyrna_basetype_Type.tp_methods = pyrna_basetype_methods;
+	
+	if( PyType_Ready( &pyrna_basetype_Type ) < 0 )
+		return NULL;
+	
+	self= (BPy_BaseTypeRNA *)PyObject_NEW( BPy_BaseTypeRNA, &pyrna_basetype_Type );
+	
+	/* avoid doing this lookup for every getattr */
+	RNA_blender_rna_pointer_create(&self->ptr);
+	self->prop = RNA_struct_find_property(&self->ptr, "structs");
+	
+	return (PyObject *)self;
+}
+
 
 
 /* Orphan functions, not sure where they should go */

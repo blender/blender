@@ -61,6 +61,9 @@ typedef struct {
 	PropertyRNA *prop;
 } BPy_PropertyRNA;
 
+/* cheap trick */
+#define BPy_BaseTypeRNA BPy_PropertyRNA
+
 PyObject *BPY_rna_module( void );
 /*PyObject *BPY_rna_doc( void );*/
 PyObject *BPY_rna_types( void );
