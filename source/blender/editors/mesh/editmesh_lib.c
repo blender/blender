@@ -1178,6 +1178,7 @@ short BM_extrude_edgeflag(Object *obedit, BMesh *bm, int eflag, float *nor)
 	/* If a mirror modifier with clipping is on, we need to adjust some 
 	 * of the cases above to handle edges on the line of symmetry.
 	 */
+	md = obedit->modifiers.first;
 	for (; md; md=md->next) {
 		if (md->type==eModifierType_Mirror) {
 			MirrorModifierData *mmd = (MirrorModifierData*) md;	
