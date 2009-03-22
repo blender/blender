@@ -143,6 +143,13 @@ PyObject *PyObjectPlus::_getattr_self(const PyAttributeDef attrlist[], void *sel
 				// fake attribute, ignore
 				return NULL;
 			}
+			if (attrdef->m_type == KX_PYATTRIBUTE_TYPE_FUNCTION)
+			{
+				// the attribute has no field correspondance, handover processing to function.
+				if (attrdef->m_getFunction == NULL)
+					return NULL;
+				return (*attrdef->m_getFunction)(self, attrdef);
+			}
 			char *ptr = reinterpret_cast<char*>(self)+attrdef->m_offset;
 			if (attrdef->m_length > 1)
 			{
@@ -270,6 +277,13 @@ int PyObjectPlus::_setattr_self(const PyAttributeDef attrlist[], void *self, con
 				}
 				switch (attrdef->m_type) 
 				{
+				case KX_PYATTRIBUTE_TYPE_FUNCTION:
+					if (attrdef->m_setFunction == NULL) 
+					{
+						PyErr_SetString(PyExc_AttributeError, "function attribute without function, report to blender.org");
+						return 1;
+					}
+					return (*attrdef->m_setFunction)(self, attrdef, value);
 				case KX_PYATTRIBUTE_TYPE_BOOL:
 					bufferSize = sizeof(bool);
 					break;
@@ -419,9 +433,9 @@ int PyObjectPlus::_setattr_self(const PyAttributeDef attrlist[], void *self, con
 					}
 				}
 				// no error, call check function if any
-				if (attrdef->m_function != NULL)
+				if (attrdef->m_checkFunction != NULL)
 				{
-					if ((*attrdef->m_function)(self, attrdef) != 0)
+					if ((*attrdef->m_checkFunction)(self, attrdef) != 0)
 					{
 						// post check returned an error, restore values
 					UNDO_AND_ERROR:
@@ -439,8 +453,16 @@ int PyObjectPlus::_setattr_self(const PyAttributeDef attrlist[], void *self, con
 			}
 			else	// simple attribute value
 			{
-
-				if (attrdef->m_function != NULL)
+				if (attrdef->m_type == KX_PYATTRIBUTE_TYPE_FUNCTION)
+				{
+					if (attrdef->m_setFunction == NULL)
+					{
+						PyErr_SetString(PyExc_AttributeError, "function attribute without function, report to blender.org");
+						return 1;
+					}
+					return (*attrdef->m_setFunction)(self, attrdef, value);
+				}
+				if (attrdef->m_checkFunction != NULL)
 				{
 					// post check function is provided, prepare undo buffer
 					sourceBuffer = ptr;
@@ -628,9 +650,9 @@ int PyObjectPlus::_setattr_self(const PyAttributeDef attrlist[], void *self, con
 				}
 			}
 			// check if post processing is needed
-			if (attrdef->m_function != NULL)
+			if (attrdef->m_checkFunction != NULL)
 			{
-				if ((*attrdef->m_function)(self, attrdef) != 0)
+				if ((*attrdef->m_checkFunction)(self, attrdef) != 0)
 				{
 					// restore value
 				RESTORE_AND_ERROR:
