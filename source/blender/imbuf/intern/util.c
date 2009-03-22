@@ -73,10 +73,10 @@
 #endif
 
 #ifdef WITH_FFMPEG
-#include <ffmpeg/avcodec.h>
-#include <ffmpeg/avformat.h>
-#include <ffmpeg/avdevice.h>
-#include <ffmpeg/log.h>
+#include <libavcodec/avcodec.h>
+#include <libavformat/avformat.h>
+#include <libavdevice/avdevice.h>
+#include <libavutil/log.h>
 
 #if LIBAVFORMAT_VERSION_INT < (49 << 16)
 #define FFMPEG_OLD_FRAME_RATE 1

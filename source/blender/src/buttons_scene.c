@@ -109,9 +109,9 @@
 
 #ifdef WITH_FFMPEG
 
-#include <ffmpeg/avcodec.h> /* for PIX_FMT_* and CODEC_ID_* */
-#include <ffmpeg/avformat.h>
-#include <ffmpeg/opt.h>
+#include <libavcodec/avcodec.h> /* for PIX_FMT_* and CODEC_ID_* */
+#include <libavformat/avformat.h>
+#include <libavcodec/opt.h>
 
 static int ffmpeg_preset_sel = 0;
 

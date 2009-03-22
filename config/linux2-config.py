@@ -140,12 +140,7 @@ BF_FFMPEG_LIB = ''
 # Uncomment the following two lines to use system's ffmpeg
 # BF_FFMPEG = '/usr'
 # BF_FFMPEG_LIB = 'avformat avcodec swscale avutil avdevice'
-# trick : The version of ffmpeg in extern/ffmpeg uses explicit libav.. directory in #include statements
-#         To keep Blender compatible with older version, I add ${BF_FFMPEG} to the inc dir so that ffmpeg
-#         finds the files directly in extern/ffmpeg/libav... while blender finds them in
-#         extern/ffmpeg/include. When using system ffmpeg, you don't need that, assuming the system library
-#         still use the flat directory model, otherwise will not compile anyway
-BF_FFMPEG_INC = '${BF_FFMPEG}/include ${BF_FFMPEG}'
+BF_FFMPEG_INC = '${BF_FFMPEG}'
 BF_FFMPEG_LIBPATH='${BF_FFMPEG}/lib'
 
 # enable ogg, vorbis and theora in ffmpeg
