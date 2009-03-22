@@ -1332,9 +1332,9 @@ static void write_textures(WriteData *wd, ListBase *idbase)
 			if (tex->id.properties) IDP_WriteProperty(tex->id.properties, wd);
 
 			/* direct data */
-			if(tex->plugin) writestruct(wd, DATA, "PluginTex", 1, tex->plugin);
+			if(tex->type == TEX_PLUGIN && tex->plugin) writestruct(wd, DATA, "PluginTex", 1, tex->plugin);
 			if(tex->coba) writestruct(wd, DATA, "ColorBand", 1, tex->coba);
-			if(tex->env) writestruct(wd, DATA, "EnvMap", 1, tex->env);
+			if(tex->type == TEX_ENVMAP && tex->env) writestruct(wd, DATA, "EnvMap", 1, tex->env);
 			
 			/* nodetree is integral part of texture, no libdata */
 			if(tex->nodetree) {
