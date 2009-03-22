@@ -107,6 +107,7 @@ void GROUP_OT_objects_add_active(wmOperatorType *ot)
 	
 	/* identifiers */
 	ot->name= "Add Selected To Active Group";
+	ot->description = "Add the object to an object group that contains the active object.";
 	ot->idname= "GROUP_OT_objects_add_active";
 	
 	/* api callbacks */
@@ -161,6 +162,7 @@ void GROUP_OT_objects_remove_active(wmOperatorType *ot)
 	
 	/* identifiers */
 	ot->name= "Remove Selected From active group";
+	ot->description = "Remove the object from an object group that contains the active object.";
 	ot->idname= "GROUP_OT_objects_remove_active";
 	
 	/* api callbacks */
@@ -199,6 +201,7 @@ void GROUP_OT_group_remove(wmOperatorType *ot)
 	
 	/* identifiers */
 	ot->name= "remove Selected from group";
+	ot->description = "remove an object from the group.";
 	ot->idname= "GROUP_OT_group_remove";
 	
 	/* api callbacks */
@@ -239,6 +242,7 @@ void GROUP_OT_group_create(wmOperatorType *ot)
 	
 	/* identifiers */
 	ot->name= "Create New Group";
+	ot->description = "Add an object group to the scene.";
 	ot->idname= "GROUP_OT_group_create";
 	
 	/* api callbacks */

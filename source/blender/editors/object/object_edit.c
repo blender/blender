@@ -319,6 +319,7 @@ void OBJECT_OT_object_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add Object";
+	ot->description = "Add an Object to the scene.";
 	ot->idname= "OBJECT_OT_object_add";
 	
 	/* api callbacks */
@@ -405,6 +406,7 @@ void OBJECT_OT_mesh_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add Mesh";
+	ot->description = "Add a Mesh object to the scene.";
 	ot->idname= "OBJECT_OT_mesh_add";
 	
 	/* api callbacks */
@@ -476,6 +478,7 @@ void OBJECT_OT_curve_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add Curve";
+	ot->description = "Add a Curve object to the scene.";
 	ot->idname= "OBJECT_OT_curve_add";
 	
 	/* api callbacks */
@@ -533,6 +536,7 @@ void OBJECT_OT_surface_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add Surface";
+	ot->description = "Add a Surface object to the scene.";
 	ot->idname= "OBJECT_OT_surface_add";
 	
 	/* api callbacks */
@@ -569,6 +573,7 @@ void OBJECT_OT_text_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add Text";
+	ot->description = "Add a Text object to the scene";
 	ot->idname= "OBJECT_OT_text_add";
 	
 	/* api callbacks */
@@ -613,6 +618,7 @@ void OBJECT_OT_armature_add(wmOperatorType *ot)
 {	
 	/* identifiers */
 	ot->name= "Add Armature";
+	ot->description = "Add an Armature object to the scene.";
 	ot->idname= "OBJECT_OT_armature_add";
 	
 	/* api callbacks */
@@ -650,6 +656,7 @@ void OBJECT_OT_primitive_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add Primitive";
+	ot->description = "Add a Primitive object.";
 	ot->idname= "OBJECT_OT_primitive_add";
 	
 	/* api callbacks */
@@ -708,6 +715,7 @@ void OBJECT_OT_delete(wmOperatorType *ot)
 	
 	/* identifiers */
 	ot->name= "Delete Objects";
+	ot->description = "Delete the object.";
 	ot->idname= "OBJECT_OT_delete";
 	
 	/* api callbacks */
@@ -1399,6 +1407,7 @@ void OBJECT_OT_clear_parent(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Clear parent";
+	ot->description = "Clear the object's parenting.";
 	ot->idname= "OBJECT_OT_clear_parent";
 	
 	/* api callbacks */
@@ -1449,6 +1458,7 @@ void OBJECT_OT_clear_track(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Clear track";
+	ot->description = "Clear tracking from object.";
 	ot->idname= "OBJECT_OT_clear_track";
 	
 	/* api callbacks */
@@ -1489,6 +1499,7 @@ void OBJECT_OT_select_by_type(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select By Type";
+	ot->description = "Select all visible objects that are of a type.";
 	ot->idname= "OBJECT_OT_select_by_type";
 	
 	/* api callbacks */
@@ -1641,6 +1652,7 @@ void OBJECT_OT_select_linked(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select Linked";
+	ot->description = "Select all visible objects that are linked.";
 	ot->idname= "OBJECT_OT_select_linked";
 	
 	/* api callbacks */
@@ -1678,6 +1690,7 @@ void OBJECT_OT_select_by_layer(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Selection by layer";
+	ot->description = "Select all visible objects on a layer.";
 	ot->idname= "OBJECT_OT_select_by_layer";
 	
 	/* api callbacks */
@@ -1713,6 +1726,7 @@ void OBJECT_OT_select_invert(wmOperatorType *ot)
 	
 	/* identifiers */
 	ot->name= "Invert selection";
+	ot->description = "Invert th selection of all visible objects.";
 	ot->idname= "OBJECT_OT_select_invert";
 	
 	/* api callbacks */
@@ -1758,6 +1772,7 @@ void OBJECT_OT_de_select_all(wmOperatorType *ot)
 	
 	/* identifiers */
 	ot->name= "deselect all";
+	ot->description = "(de)select all visible objects in scene.";
 	ot->idname= "OBJECT_OT_de_select_all";
 	
 	/* api callbacks */
@@ -1792,6 +1807,7 @@ void OBJECT_OT_select_random(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Random selection";
+	ot->description = "Set selection on random visible objects.";
 	ot->idname= "OBJECT_OT_select_random";
 	
 	/* api callbacks */
@@ -1838,6 +1854,7 @@ void OBJECT_OT_clear_location(wmOperatorType *ot)
 	
 	/* identifiers */
 	ot->name= "Clear Object Location";
+	ot->description = "Clear the object's location.";
 	ot->idname= "OBJECT_OT_clear_location";
 	
 	/* api callbacks */
@@ -1881,6 +1898,7 @@ void OBJECT_OT_clear_rotation(wmOperatorType *ot)
 	
 	/* identifiers */
 	ot->name= "Clear Object Rotation";
+	ot->description = "Clear the object's rotation.";
 	ot->idname= "OBJECT_OT_clear_rotation";
 	
 	/* api callbacks */
@@ -1928,6 +1946,7 @@ void OBJECT_OT_clear_scale(wmOperatorType *ot)
 	
 	/* identifiers */
 	ot->name= "Clear Object Scale";
+	ot->description = "Clear the object's scale.";
 	ot->idname= "OBJECT_OT_clear_scale";
 	
 	/* api callbacks */
@@ -1973,6 +1992,7 @@ void OBJECT_OT_clear_origin(wmOperatorType *ot)
 
 	/* identifiers */
 	ot->name= "Clear Object Origin";
+	ot->description = "Clear the object's origion.";
 	ot->idname= "OBJECT_OT_clear_origin";
 	
 	/* api callbacks */
@@ -2015,6 +2035,7 @@ void OBJECT_OT_clear_restrictview(wmOperatorType *ot)
 	
 	/* identifiers */
 	ot->name= "Clear restrict view";
+	ot->description = "Clear the object's restrict view flag (reveal the object from hidding).";
 	ot->idname= "OBJECT_OT_clear_restrictview";
 	
 	/* api callbacks */
@@ -2072,6 +2093,7 @@ void OBJECT_OT_set_restrictview(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Set restrict view";
+	ot->description = "Set the object's restrict view flag (hide the object).";
 	ot->idname= "OBJECT_OT_set_restrictview";
 	
 	/* api callbacks */
@@ -2109,6 +2131,7 @@ void OBJECT_OT_set_slowparent(wmOperatorType *ot)
 	
 	/* identifiers */
 	ot->name= "Set Slow Parent";
+	ot->description = "Set the object's slow parent.";
 	ot->idname= "OBJECT_OT_set_slow_parent";
 	
 	/* api callbacks */
@@ -2149,6 +2172,7 @@ void OBJECT_OT_clear_slowparent(wmOperatorType *ot)
 	
 	/* identifiers */
 	ot->name= "Clear Slow Parent";
+	ot->description = "Clear the object's slow parent.";
 	ot->idname= "OBJECT_OT_clear_slow_parent";
 	
 	/* api callbacks */
@@ -2573,6 +2597,7 @@ void OBJECT_OT_make_parent(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Make parent";
+	ot->description = "Set the object's parenting.";
 	ot->idname= "OBJECT_OT_make_parent";
 	
 	/* api callbacks */
@@ -2666,6 +2691,7 @@ void OBJECT_OT_make_track(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Make Track";
+	ot->description = "Nake the object track another object, either by constraint or old way.";
 	ot->idname= "OBJECT_OT_make_track";
 	
 	/* api callbacks */
@@ -2749,6 +2775,7 @@ void OBJECT_OT_make_dupli_real(wmOperatorType *ot)
 	
 	/* identifiers */
 	ot->name= "Make Dupli Real";
+	ot->description = "Make dupli objects attached to this object real.";
 	ot->idname= "OBJECT_OT_make_dupli_real";
 	
 	/* api callbacks */
@@ -3300,6 +3327,7 @@ void OBJECT_OT_editmode_toggle(wmOperatorType *ot)
 	
 	/* identifiers */
 	ot->name= "Toggle Editmode";
+	ot->description = "Toggle object's editmode.";
 	ot->idname= "OBJECT_OT_editmode_toggle";
 	
 	/* api callbacks */
@@ -6065,6 +6093,7 @@ void OBJECT_OT_add_duplicate(wmOperatorType *ot)
 	
 	/* identifiers */
 	ot->name= "Add Duplicate";
+	ot->description = "Duplicate the object.";
 	ot->idname= "OBJECT_OT_add_duplicate";
 	
 	/* api callbacks */
