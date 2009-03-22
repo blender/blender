@@ -3,7 +3,7 @@ Import ('env')
 
 sources = 'CcdPhysicsEnvironment.cpp CcdPhysicsController.cpp'
 
-incs = '. ../common #source/kernel/gen_system #intern/string #intern/moto/include #source/gameengine/Rasterizer'
+incs = '. ../common #source/kernel/gen_system #intern/string #intern/moto/include #source/gameengine/Rasterizer #source/blender/makesdna'
 
 incs += ' ' + env['BF_BULLET_INC']
 

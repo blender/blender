@@ -24,9 +24,13 @@ subject to the following restrictions:
 #include "BulletSoftBody/btSoftBodyHelpers.h"
 #include "LinearMath/btConvexHull.h"
 #include "BulletCollision/Gimpact/btGImpactShape.h"
+#include "BulletCollision/Gimpact/btGImpactShape.h"
 
 
 #include "BulletSoftBody/btSoftRigidDynamicsWorld.h"
+
+#include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
 
 class BP_Proxy;
 
@@ -1315,37 +1319,64 @@ bool CcdShapeConstructionInfo::SetMesh(RAS_MeshObject* meshobj, bool polytope,bo
 
 	numvalidpolys = 0;
 
-	for (int p2=0; p2<numpolys; p2++)
+	if (polytope)
 	{
-		RAS_Polygon* poly = meshobj->GetPolygon(p2);
-
-		// only add polygons that have the collisionflag set
-		if (poly->IsCollider())
-		{   
-			//Bullet can raycast any shape, so
-			if (polytope)
+		Mesh *blen_mesh= meshobj->GetMesh();
+		vector<bool> vuser_array(blen_mesh->totvert, false);
+		
+		unsigned int tot_bt_verts= 0;
+		unsigned int orig_index;
+		int i;
+		
+		// Tag verts we're using
+		for (int p2=0; p2<numpolys; p2++)
+		{
+			RAS_Polygon* poly= meshobj->GetPolygon(p2);
+			
+			// only add polygons that have the collisionflag set
+			if (poly->IsCollider())
 			{
-				for (int i=0;i<poly->VertexCount();i++)
+				for (i=0;i<poly->VertexCount();i++)
 				{
-					const float* vtx = poly->GetVertex(i)->getXYZ();
-					btVector3	point(vtx[0],vtx[1],vtx[2]);
-					//avoid duplicates (could better directly use vertex offsets, rather than a vertex compare)
-					bool found = false;
-					for (int j=0;j<m_vertexArray.size();j++)
+					orig_index= poly->GetVertex(i)->getOrigIndex();
+					
+					if (vuser_array[orig_index]==false)
 					{
-						if (m_vertexArray[j]==point)
-						{
-							found = true;
-							break;
-						}
+						vuser_array[orig_index]= true;
+						tot_bt_verts++;
 					}
-					if (!found)
-						m_vertexArray.push_back(point);
-
-					numvalidpolys++;
 				}
-			} else
+			}
+		}
+		
+		m_vertexArray.resize(tot_bt_verts);
+		
+		// Copy used verts directly from the meshes vert location to the bullet vector array
+		MVert *mv= blen_mesh->mvert;
+		btVector3 *bt= &m_vertexArray[0];
+		
+		for (i=0;i<vuser_array.size();i++, mv++)
+		{
+			if (vuser_array[i]==true)
 			{
+				bt->setX( mv->co[0] );
+				bt->setY( mv->co[1] );
+				bt->setZ( mv->co[2] );
+				bt++;
+			}
+		}
+		numvalidpolys++;
+	}
+	else {
+		for (int p2=0; p2<numpolys; p2++)
+		{
+			RAS_Polygon* poly = meshobj->GetPolygon(p2);
+
+			// only add polygons that have the collisionflag set
+			if (poly->IsCollider())
+			{   
+				//Bullet can raycast any shape, so
+			
 				{
 					const float* vtx = poly->GetVertex(2)->getXYZ();
 					btVector3 vertex0(vtx[0],vtx[1],vtx[2]);
@@ -1379,7 +1410,7 @@ bool CcdShapeConstructionInfo::SetMesh(RAS_MeshObject* meshobj, bool polytope,bo
 					m_polygonIndexArray.push_back(p2);
 					numvalidpolys++;
 				}
-			}		
+			}
 		}
 	}
 

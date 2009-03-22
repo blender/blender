@@ -43,4 +43,5 @@ CPPFLAGS += -I../../../kernel/gen_system
 CPPFLAGS += -I../../Physics/common
 CPPFLAGS += -I../../Physics/Dummy
 CPPFLAGS += -I../../Rasterizer
+CPPFLAGS += -I../../../../source/blender/makesdna
 

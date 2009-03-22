@@ -34,6 +34,7 @@ SET(INC
   ../../../kernel/gen_system
   ../../../../intern/string
   ../../Rasterizer
+  ../../../../source/blender/makesdna
 )
 
 BLENDERLIB(bf_bullet "${SRC}" "${INC}")
