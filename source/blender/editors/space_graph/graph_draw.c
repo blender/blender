@@ -95,7 +95,7 @@ extern void gl_round_box(int mode, float minx, float miny, float maxx, float max
 
 /* Envelope -------------- */
 
-// TODO: draw a shaded poly showing the region of influence too?
+// TODO: draw a shaded poly showing the region of influence too!!!
 static void draw_fcurve_modifier_controls_envelope (FCurve *fcu, FModifier *fcm, View2D *v2d)
 {
 	FMod_Envelope *env= (FMod_Envelope *)fcm->data;
@@ -104,7 +104,6 @@ static void draw_fcurve_modifier_controls_envelope (FCurve *fcu, FModifier *fcm,
 	int i;
 	
 	/* draw two black lines showing the standard reference levels */
-	// TODO: how to make these more distinctive?
 	glColor3f(0.0f, 0.0f, 0.0f);
 	setlinestyle(5);
 	
@@ -116,7 +115,6 @@ static void draw_fcurve_modifier_controls_envelope (FCurve *fcu, FModifier *fcm,
 		glVertex2f(v2d->cur.xmax, env->midval+env->max);
 	glEnd(); // GL_LINES
 	setlinestyle(0);
-	
 	
 	/* set size of vertices (non-adjustable for now) */
 	glPointSize(2.0f);
@@ -821,11 +819,14 @@ void graph_draw_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGri
 		
 		/* 2) draw handles and vertices as appropriate based on active */
 		if ( ((fcm) && (fcm->type != FMODIFIER_TYPE_CYCLES)) || (fcu->modifiers.first && !fcm) ) {
-			/* draw controls for the 'active' modifier (if applicable) 
+			/* draw controls for the 'active' modifier
+			 *	- there may not be an 'active' modifier on this curve to draw
+			 *	- this curve may not be active, so modifier controls shouldn't get drawn either
+			 *
 			 * NOTE: cycles modifier is currently an exception where the original points can still be edited, so
 			 *  	 	this branch is skipped... (TODO: set up the generic system for this so that we don't need special hacks like this)
 			 */
-			if (fcm) {
+			if ((fcu->flag & FCURVE_ACTIVE) && (fcm)) {
 				switch (fcm->type) {
 					case FMODIFIER_TYPE_ENVELOPE: /* envelope */
 						draw_fcurve_modifier_controls_envelope(fcu, fcm, &ar->v2d);

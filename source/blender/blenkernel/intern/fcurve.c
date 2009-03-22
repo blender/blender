@@ -1464,10 +1464,11 @@ static void fcm_envelope_evaluate (FCurve *fcu, FModifier *fcm, float *cvalue, f
 	}
 	
 	/* adjust *cvalue 
-	 * NOTE: env->min/max are relative to env->midval, and can be either +ve OR -ve, so we add...
+	 *	- fac is the ratio of how the current y-value corresponds to the reference range
+	 *	- thus, the new value is found by mapping the old range to the new!
 	 */
-	fac= (*cvalue - min) / (max - min);
-	*cvalue= (env->midval + env->min) + (fac * (env->max - env->min)); 
+	fac= (*cvalue - (env->midval + env->min)) / (env->max - env->min);
+	*cvalue= min + fac*(max - min); 
 }
 
 static FModifierTypeInfo FMI_ENVELOPE = {
