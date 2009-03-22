@@ -22,7 +22,9 @@ extern "C" {
 	void FRS_initialize();
 	void FRS_prepare(Render* re);
 	void FRS_render_Blender(Render* re);
-
+	void FRS_composite_result(Render* re, SceneRenderLayer* srl);
+	void FRS_add_Freestyle(Render* re);
+	
 #ifdef __cplusplus
 }
 #endif

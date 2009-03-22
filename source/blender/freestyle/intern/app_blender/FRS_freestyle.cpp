@@ -16,6 +16,7 @@ extern "C" {
 
 #include "render_types.h"
 #include "renderpipeline.h"
+#include "pixelblending.h"
 
 #include "BLI_blenlib.h"
 #include "BIF_renderwin.h"
@@ -161,7 +162,57 @@ extern "C" {
 			cout << "Freestyle cannot be used because the view map is not available" << endl;
 		}
 		cout << "\n###################################################################" << endl;
-	}	
+	}
+	
+	void FRS_composite_result(Render* re, SceneRenderLayer* srl)
+	{
+
+		RenderLayer *rl;
+	    float *src, *dest, *pixSrc, *pixDest;
+		int x, y, rectx, recty;
+		
+		if( re->freestyle_render == NULL || re->freestyle_render->result == NULL )
+			return;
+
+		rl = render_get_active_layer( re->freestyle_render, re->freestyle_render->result );
+	    if( !rl || rl->rectf == NULL) { cout << "Cannot find Freestyle result image" << endl; return; }
+		src  = rl->rectf;
+		
+		rl = RE_GetRenderLayer(re->result, srl->name);
+	    if( !rl || rl->rectf == NULL) { cout << "No layer to composite to" << endl; return; }
+		dest  = rl->rectf;
+		
+		rectx = re->rectx;
+		recty = re->recty;
+
+	    for( y = 0; y < recty; y++) {
+	        for( x = 0; x < rectx; x++) {
+
+	            pixSrc = src + 4 * (rectx * y + x);
+	            if( pixSrc[3] > 0.0) {
+					pixDest = dest + 4 * (rectx * y + x);
+					addAlphaOverFloat(pixDest, pixSrc);
+	             }
+	         }
+	    }
+		
+	}
+	
+	void FRS_add_Freestyle(Render* re) {
+		
+		SceneRenderLayer *srl, *freestyle_srl = NULL;
+		for(srl= (SceneRenderLayer *)re->scene->r.layers.first; srl && (freestyle_srl == NULL); srl= srl->next) {
+			if(srl->layflag & SCE_LAY_FRS) {
+				if (!freestyle_srl) freestyle_srl = srl;
+			}
+		}
+		
+		if( freestyle_srl ) {
+			FRS_prepare(re);
+			FRS_render_Blender(re);
+			FRS_composite_result(re, freestyle_srl);
+		}
+	}
 	
 #ifdef __cplusplus
 }
