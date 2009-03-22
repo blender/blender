@@ -41,6 +41,8 @@ StructRNA *rna_Node_refine(struct PointerRNA *ptr)
 	switch(node->type) {
 		case SH_NODE_OUTPUT:
 			return &RNA_ShaderNodeOutput;
+		case SH_NODE_MATERIAL:
+			return &RNA_ShaderNodeMaterial;
 		/* XXX complete here */
 		default:
 			return &RNA_Node;
@@ -56,6 +58,27 @@ static void rna_def_shader_node_output(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "ShaderNodeOutput", "ShaderNode");
 	RNA_def_struct_ui_text(srna, "Shader Node Output", "");
 	RNA_def_struct_sdna(srna, "bNode");
+}
+
+static void rna_def_shader_node_material(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna= RNA_def_struct(brna, "ShaderNodeMaterial", "ShaderNode");
+	RNA_def_struct_ui_text(srna, "Shader Node Material", "");
+	RNA_def_struct_sdna(srna, "bNode");
+
+	prop= RNA_def_property(srna, "material", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "id");
+	RNA_def_property_struct_type(prop, "Material");
+	RNA_def_property_ui_text(prop, "Material", "");
+
+	prop= RNA_def_property(srna, "diffuse", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "custom1", SH_NODE_MAT_DIFF);
+	RNA_def_property_ui_text(prop, "Diffuse", "Material Node outputs Diffuse");
+
+	/* XXX add specular, negate normal */
 }
 
 static void rna_def_shader_node(BlenderRNA *brna)
@@ -99,6 +122,7 @@ static void rna_def_shader_node(BlenderRNA *brna)
 
 	/* specific types */
 	rna_def_shader_node_output(brna);
+	rna_def_shader_node_material(brna);
 }
 
 static void rna_def_node(BlenderRNA *brna)
