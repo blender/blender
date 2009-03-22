@@ -64,33 +64,33 @@
 void ED_operatortypes_object(void)
 {
 	WM_operatortype_append(OBJECT_OT_editmode_toggle);
-	WM_operatortype_append(OBJECT_OT_make_parent);
-	WM_operatortype_append(OBJECT_OT_clear_parent);
-	WM_operatortype_append(OBJECT_OT_make_track);
-	WM_operatortype_append(OBJECT_OT_clear_track);
-	WM_operatortype_append(OBJECT_OT_select_invert);
-	WM_operatortype_append(OBJECT_OT_select_random);
-	WM_operatortype_append(OBJECT_OT_de_select_all);
-	WM_operatortype_append(OBJECT_OT_select_by_type);
-	WM_operatortype_append(OBJECT_OT_select_by_layer);
-	WM_operatortype_append(OBJECT_OT_select_linked);
-	WM_operatortype_append(OBJECT_OT_clear_location);
-	WM_operatortype_append(OBJECT_OT_clear_rotation);
-	WM_operatortype_append(OBJECT_OT_clear_scale);
-	WM_operatortype_append(OBJECT_OT_clear_origin);
-	WM_operatortype_append(OBJECT_OT_clear_restrictview);
-	WM_operatortype_append(OBJECT_OT_set_restrictview);
-	WM_operatortype_append(OBJECT_OT_set_slowparent);
-	WM_operatortype_append(OBJECT_OT_clear_slowparent);
-	WM_operatortype_append(OBJECT_OT_set_center);
-	WM_operatortype_append(OBJECT_OT_make_dupli_real);
-	WM_operatortype_append(OBJECT_OT_add_duplicate);
+	WM_operatortype_append(OBJECT_OT_parent_set);
+	WM_operatortype_append(OBJECT_OT_parent_clear);
+	WM_operatortype_append(OBJECT_OT_track_set);
+	WM_operatortype_append(OBJECT_OT_track_clear);
+	WM_operatortype_append(OBJECT_OT_selection_invert);
+	WM_operatortype_append(OBJECT_OT_selection_random);
+	WM_operatortype_append(OBJECT_OT_selection_de_select_all);
+	WM_operatortype_append(OBJECT_OT_selection_by_type);
+	WM_operatortype_append(OBJECT_OT_selection_by_layer);
+	WM_operatortype_append(OBJECT_OT_selection_linked);
+	WM_operatortype_append(OBJECT_OT_location_clear);
+	WM_operatortype_append(OBJECT_OT_rotation_clear);
+	WM_operatortype_append(OBJECT_OT_scale_clear);
+	WM_operatortype_append(OBJECT_OT_origin_clear);
+	WM_operatortype_append(OBJECT_OT_restrictview_clear);
+	WM_operatortype_append(OBJECT_OT_restrictview_set);
+	WM_operatortype_append(OBJECT_OT_slowparent_set);
+	WM_operatortype_append(OBJECT_OT_slowparent_clear);
+	WM_operatortype_append(OBJECT_OT_center_set);
+	WM_operatortype_append(OBJECT_OT_dupli_set_real);
+	WM_operatortype_append(OBJECT_OT_duplicate_add);
 	WM_operatortype_append(GROUP_OT_group_create);
 	WM_operatortype_append(GROUP_OT_group_remove);
 	WM_operatortype_append(GROUP_OT_objects_add_active);
 	WM_operatortype_append(GROUP_OT_objects_remove_active);
 
-	WM_operatortype_append(OBJECT_OT_delete);
+	WM_operatortype_append(OBJECT_OT_object_delete);
 	WM_operatortype_append(OBJECT_OT_mesh_add);
 	WM_operatortype_append(OBJECT_OT_curve_add);
 	WM_operatortype_append(OBJECT_OT_text_add);
@@ -106,34 +106,34 @@ void ED_keymap_object(wmWindowManager *wm)
 	
 	/* Note: this keymap works disregarding mode */
 	WM_keymap_add_item(keymap, "OBJECT_OT_editmode_toggle", TABKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "OBJECT_OT_set_center", CKEY, KM_PRESS, KM_ALT|KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "OBJECT_OT_center_set", CKEY, KM_PRESS, KM_ALT|KM_CTRL, 0);
 
 	/* Note: this keymap gets disabled in non-objectmode,  */
 	keymap= WM_keymap_listbase(wm, "Object Mode", 0, 0);
 	
-	WM_keymap_add_item(keymap, "OBJECT_OT_de_select_all", AKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "OBJECT_OT_select_invert", IKEY, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_add_item(keymap, "OBJECT_OT_select_random", PADASTERKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "OBJECT_OT_select_by_type", PADASTERKEY, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_add_item(keymap, "OBJECT_OT_select_by_layer", PADASTERKEY, KM_PRESS, KM_ALT, 0);
-	WM_keymap_add_item(keymap, "OBJECT_OT_select_linked", LKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "OBJECT_OT_selection_de_select_all", AKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "OBJECT_OT_selection_invert", IKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "OBJECT_OT_selection_random", PADASTERKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "OBJECT_OT_selection_by_type", PADASTERKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "OBJECT_OT_selection_by_layer", PADASTERKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_add_item(keymap, "OBJECT_OT_selection_linked", LKEY, KM_PRESS, KM_SHIFT, 0);
 	
-	WM_keymap_verify_item(keymap, "OBJECT_OT_make_parent", PKEY, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_verify_item(keymap, "OBJECT_OT_clear_parent", PKEY, KM_PRESS, KM_ALT, 0);
-	WM_keymap_verify_item(keymap, "OBJECT_OT_make_track", TKEY, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_verify_item(keymap, "OBJECT_OT_clear_track", TKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_verify_item(keymap, "OBJECT_OT_parent_set", PKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_verify_item(keymap, "OBJECT_OT_parent_clear", PKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_verify_item(keymap, "OBJECT_OT_track_set", TKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_verify_item(keymap, "OBJECT_OT_track_set", TKEY, KM_PRESS, KM_ALT, 0);
 	
-	WM_keymap_verify_item(keymap, "OBJECT_OT_clear_location", GKEY, KM_PRESS, KM_ALT, 0);
-	WM_keymap_verify_item(keymap, "OBJECT_OT_clear_rotation", RKEY, KM_PRESS, KM_ALT, 0);
-	WM_keymap_verify_item(keymap, "OBJECT_OT_clear_scale", SKEY, KM_PRESS, KM_ALT, 0);
-	WM_keymap_verify_item(keymap, "OBJECT_OT_clear_origin", OKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_verify_item(keymap, "OBJECT_OT_location_clear", GKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_verify_item(keymap, "OBJECT_OT_rotation_clear", RKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_verify_item(keymap, "OBJECT_OT_scale_clear", SKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_verify_item(keymap, "OBJECT_OT_origin_clear", OKEY, KM_PRESS, KM_ALT, 0);
 	
-	WM_keymap_verify_item(keymap, "OBJECT_OT_clear_restrictview", HKEY, KM_PRESS, KM_ALT, 0);
-	WM_keymap_verify_item(keymap, "OBJECT_OT_set_restrictview", HKEY, KM_PRESS, 0, 0);
+	WM_keymap_verify_item(keymap, "OBJECT_OT_restrictview_clear", HKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_verify_item(keymap, "OBJECT_OT_restrictview_set", HKEY, KM_PRESS, 0, 0);
 	
-	WM_keymap_verify_item(keymap, "OBJECT_OT_delete", XKEY, KM_PRESS, 0, 0);
+	WM_keymap_verify_item(keymap, "OBJECT_OT_object_delete", XKEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "OBJECT_OT_primitive_add", AKEY, KM_PRESS, KM_SHIFT, 0);
-	WM_keymap_verify_item(keymap, "OBJECT_OT_add_duplicate", DKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_verify_item(keymap, "OBJECT_OT_duplicate_add", DKEY, KM_PRESS, KM_SHIFT, 0);
 	
 	// XXX this should probably be in screen instead... here for testing purposes in the meantime... - Aligorith
 	WM_keymap_verify_item(keymap, "ANIM_OT_insert_keyframe_old", IKEY, KM_PRESS, 0, 0);
