@@ -34,15 +34,31 @@
 
 #ifdef RNA_RUNTIME
 
-static void rna_Nodetree_nodes_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+StructRNA *rna_Node_refine(struct PointerRNA *ptr)
 {
-	bNodeTree *ntree= (bNodeTree*)ptr->data;
-	rna_iterator_listbase_begin(iter, &ntree->nodes, NULL);
+	bNode *node= (bNode*)ptr->data;
+
+	switch(node->type) {
+		case SH_NODE_OUTPUT:
+			return &RNA_ShaderNodeOutput;
+		/* XXX complete here */
+		default:
+			return &RNA_Node;
+	}
 }
 
 #else
 
-static void rna_def_node(BlenderRNA *brna)
+static void rna_def_shader_node_output(BlenderRNA *brna)
+{
+	StructRNA *srna;
+
+	srna= RNA_def_struct(brna, "ShaderNodeOutput", "ShaderNode");
+	RNA_def_struct_ui_text(srna, "Shader Node Output", "");
+	RNA_def_struct_sdna(srna, "bNode");
+}
+
+static void rna_def_shader_node(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
@@ -71,10 +87,29 @@ static void rna_def_node(BlenderRNA *brna)
 		{SH_NODE_HUE_SAT, "HUE_SATURATION", "Hue/Saturation", ""},
 		{NODE_DYNAMIC, "SCRIPT", "Script", ""},
 		{0, NULL, NULL, NULL}};
+
+	srna= RNA_def_struct(brna, "ShaderNode", "Node");
+	RNA_def_struct_ui_text(srna, "Shader Node", "Material shader node.");
+	RNA_def_struct_sdna(srna, "bNode");
+
+	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_enum_items(prop, node_type_items);
+	RNA_def_property_ui_text(prop, "Type", "");
+
+	/* specific types */
+	rna_def_shader_node_output(brna);
+}
+
+static void rna_def_node(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
 	
 	srna= RNA_def_struct(brna, "Node", NULL);
 	RNA_def_struct_ui_text(srna, "Node", "Node in a node tree.");
 	RNA_def_struct_sdna(srna, "bNode");
+	RNA_def_struct_refine_func(srna, "rna_Node_refine");
 	
 	prop= RNA_def_property(srna, "location", PROP_FLOAT, PROP_VECTOR);
 	RNA_def_property_float_sdna(prop, NULL, "locx");
@@ -85,14 +120,9 @@ static void rna_def_node(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Name", "Node name.");
 	RNA_def_struct_name_property(srna, prop);
-	
-	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
-	RNA_def_property_enum_items(prop, node_type_items);
-	RNA_def_property_ui_text(prop, "Type", "");
 }
 
-void RNA_def_nodetree(BlenderRNA *brna)
+static void rna_def_nodetree(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
@@ -103,11 +133,15 @@ void RNA_def_nodetree(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "nodes", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "nodes", NULL);
-	RNA_def_property_collection_funcs(prop, "rna_Nodetree_nodes_begin", "rna_iterator_listbase_next", "rna_iterator_listbase_end", "rna_iterator_listbase_get", 0, 0, 0);
 	RNA_def_property_struct_type(prop, "Node");
 	RNA_def_property_ui_text(prop, "Nodes", "");
-	
+}
+
+void RNA_def_nodetree(BlenderRNA *brna)
+{
+	rna_def_nodetree(brna);
 	rna_def_node(brna);
+	rna_def_shader_node(brna);
 }
 
 #endif

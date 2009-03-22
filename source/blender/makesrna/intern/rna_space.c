@@ -103,6 +103,14 @@ void rna_SpaceTextEditor_word_wrap_set(PointerRNA *ptr, int value)
 	st->left= 0;
 }
 
+void rna_SpaceTextEditor_text_set(PointerRNA *ptr, PointerRNA value)
+{
+	SpaceText *st= (SpaceText*)(ptr->data);
+
+	st->text= value.data;
+	st->top= 0;
+}
+
 #else
 
 static void rna_def_space(BlenderRNA *brna)
@@ -331,6 +339,8 @@ static void rna_def_space_text(BlenderRNA *brna)
 	/* text */
 	prop= RNA_def_property(srna, "text", PROP_POINTER, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Text", "Text displayed and edited in this space.");
+	RNA_def_property_pointer_funcs(prop, NULL, "rna_SpaceTextEditor_text_set");
+	RNA_def_property_update(prop, NC_TEXT|ND_CURSOR, NULL);
 
 	/* display */
 	prop= RNA_def_property(srna, "syntax_highlight", PROP_BOOLEAN, PROP_NONE);
