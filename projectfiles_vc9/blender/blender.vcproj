@@ -73,7 +73,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
-				AdditionalDependencies="SDL.lib freetype2ST.lib gnu_gettext.lib qtmlClient.lib openal_static.lib ws2_32.lib dxguid.lib opengl32.lib libjpeg.lib glu32.lib vfw32.lib winmm.lib libpng_st.lib zlib.lib python25.lib pthreadVSE2.lib pthreadVC2.lib libtiff.lib Half.lib Iex.lib IlmImf.lib Imath.lib IlmThread.lib avcodec-51.lib avformat-52.lib avutil-49.lib swscale-0.lib avdevice-52.lib"
+				AdditionalDependencies="SDL.lib freetype2ST.lib gnu_gettext.lib qtmlClient.lib openal_static.lib ws2_32.lib dxguid.lib opengl32.lib libjpeg.lib glu32.lib vfw32.lib winmm.lib libpng_st.lib zlib.lib python25.lib pthreadVSE2.lib pthreadVC2.lib libtiff.lib Half.lib Iex.lib IlmImf.lib Imath.lib IlmThread.lib avcodec-52.lib avformat-52.lib avutil-50.lib swscale-0.lib avdevice-52.lib"
 				ShowProgress="0"
 				OutputFile="..\..\bin\blender.exe"
 				LinkIncremental="1"
@@ -167,7 +167,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386&#x0D;&#x0A;"
-				AdditionalDependencies="SDL.lib freetype2ST.lib gnu_gettext.lib qtmlClient.lib openal_static.lib ws2_32.lib dxguid.lib opengl32.lib libjpeg.lib glu32.lib vfw32.lib winmm.lib libpng_st.lib zlib.lib python25_d.lib pthreadVSE2.lib pthreadVC2.lib libtiff.lib Half.lib Iex.lib Imath.lib IlmImf.lib IlmThread.lib avcodec-51.lib avformat-52.lib avdevice-52.lib avutil-49.lib swscale-0.lib"
+				AdditionalDependencies="SDL.lib freetype2ST.lib gnu_gettext.lib qtmlClient.lib openal_static.lib ws2_32.lib dxguid.lib opengl32.lib libjpeg.lib glu32.lib vfw32.lib winmm.lib libpng_st.lib zlib.lib python25_d.lib pthreadVSE2.lib pthreadVC2.lib libtiff.lib Half.lib Iex.lib Imath.lib IlmImf.lib IlmThread.lib avcodec-52.lib avformat-52.lib avdevice-52.lib avutil-50.lib swscale-0.lib"
 				ShowProgress="0"
 				OutputFile="..\..\bin\debug\blender.exe"
 				LinkIncremental="2"

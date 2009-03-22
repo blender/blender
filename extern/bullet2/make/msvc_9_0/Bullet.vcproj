@@ -445,6 +445,10 @@
 					Name="Dynamics"
 					>
 					<File
+						RelativePath="..\..\src\BulletDynamics\Dynamics\btActionInterface.h"
+						>
+					</File>
+					<File
 						RelativePath="..\..\src\BulletDynamics\Dynamics\btContinuousDynamicsWorld.cpp"
 						>
 					</File>
