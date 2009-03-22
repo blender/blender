@@ -1792,7 +1792,7 @@ static void edgeloop_select(EditMesh *em, EditEdge *starteed, int select)
 	bm = init_editmesh_to_bmesh(em, &op);
 	BMO_Exec_Op(bm, &op);
 
-	e = BMO_Get_MapPointer(bm, &op, BMOP_FROM_EDITMESH_MAP, starteed);
+	e = BMO_Get_MapPointer(bm, &op, "map", starteed);
 
 	BMW_Init(&walker, bm, BMW_LOOP, 0);
 	e = BMW_Begin(&walker, e);
@@ -3271,8 +3271,8 @@ static int bmesh_test_exec(bContext *C, wmOperator *op)
 			BMOpSlot *eoutput, *foutput;
 			int i;
 			
-			BMO_Init_Op(&op, BMOP_DISSOLVE_VERTS);
-			BMO_HeaderFlag_To_Slot(bm, &op, BMOP_DISVERTS_VERTIN, BM_SELECT, BM_VERT);
+			BMO_Init_Op(&op, "dissolveverts");
+			BMO_HeaderFlag_To_Slot(bm, &op, "verts", BM_SELECT, BM_VERT);
 			BMO_Exec_Op(bm, &op);
 			
 			BMO_Finish_Op(bm, &op);			
@@ -3286,12 +3286,12 @@ static int bmesh_test_exec(bContext *C, wmOperator *op)
 			BMOpSlot *eoutput, *foutput;
 			int i;
 			
-			BMO_Init_Op(&op, BMOP_TRIANGULATE);
-			BMO_HeaderFlag_To_Slot(bm, &op, BMOP_TRIANG_FACEIN, BM_SELECT, BM_FACE);
+			BMO_Init_Op(&op, "triangulate");
+			BMO_HeaderFlag_To_Slot(bm, &op, "faces", BM_SELECT, BM_FACE);
 			BMO_Exec_Op(bm, &op);
 			
-			eoutput = BMO_GetSlot(&op, BMOP_TRIANG_NEW_EDGES);
-			foutput = BMO_GetSlot(&op, BMOP_TRIANG_NEW_FACES);
+			eoutput = BMO_GetSlot(&op, "edgeout");
+			foutput = BMO_GetSlot(&op, "faceout");
 			
 			/*select new faces/edges*/
 			for (i=0; i<eoutput->len; i++) {

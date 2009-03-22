@@ -25,9 +25,9 @@ void connectverts_exec(BMesh *bm, BMOperator *op)
 	V_DECLARE(verts);
 	int i;
 	
-	BMO_Flag_Buffer(bm, op, BM_CONVERTS_VERTIN, VERT_INPUT);
+	BMO_Flag_Buffer(bm, op, "verts", VERT_INPUT);
 
-	for (f=BMIter_New(&iter, bm, BM_FACES, NULL); f; f=BMIter_Step(&iter)){
+	for (f=BMIter_New(&iter, bm, BM_FACES_OF_MESH, NULL); f; f=BMIter_Step(&iter)){
 		V_RESET(loops);
 		V_RESET(verts);
 		
@@ -95,7 +95,7 @@ void connectverts_exec(BMesh *bm, BMOperator *op)
 		}
 	}
 
-	BMO_Flag_To_Slot(bm, op, BM_CONVERTS_EDGEOUT, EDGE_OUT, BM_EDGE);
+	BMO_Flag_To_Slot(bm, op, "edgeout", EDGE_OUT, BM_EDGE);
 
 	V_FREE(loops);
 	V_FREE(verts);
@@ -107,12 +107,12 @@ int BM_ConnectVerts(EditMesh *em, int flag)
 	BMesh *bm = editmesh_to_bmesh(em);
 	BMOperator op;
 	
-	BMO_Init_Op(&op, BMOP_CONNECT_VERTS);
-	BMO_HeaderFlag_To_Slot(bm, &op, BM_CONVERTS_VERTIN, flag, BM_VERT);
+	BMO_Init_Op(&op, "connectverts");
+	BMO_HeaderFlag_To_Slot(bm, &op, "verts", flag, BM_VERT);
 	BMO_Exec_Op(bm, &op);
 	BMO_Finish_Op(bm, &op);
 	
-	if (BMO_GetSlot(&op, BM_CONVERTS_EDGEOUT)->len > 0 && 
+	if (BMO_GetSlot(&op, "edgeout")->len > 0 && 
 	    BMO_GetError(bm, NULL, NULL)==0)
 	{
 		em2 = bmesh_to_editmesh(bm);

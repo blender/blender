@@ -39,11 +39,11 @@ void bmesh_selectmode_flush(BMesh *bm)
 	int totsel;
 
 	if(bm->selectmode & BM_VERT){
-		for(e = BMIter_New(&edges, bm, BM_EDGES, bm ); e; e= BMIter_Step(&edges)){
+		for(e = BMIter_New(&edges, bm, BM_EDGES_OF_MESH, bm ); e; e= BMIter_Step(&edges)){
 			if(bmesh_test_sysflag(&(e->v1->head), BM_SELECT) && bmesh_test_sysflag(&(e->v2->head), BM_SELECT)) bmesh_set_sysflag(&(e->head), BM_SELECT);
 			else bmesh_clear_sysflag(&(e->head), BM_SELECT);
 		}
-		for(f = BMIter_New(&faces, bm, BM_FACES, bm ); f; f= BMIter_Step(&faces)){
+		for(f = BMIter_New(&faces, bm, BM_FACES_OF_MESH, bm ); f; f= BMIter_Step(&faces)){
 			totsel = 0;
 			l=f->loopbase;
 			do{
@@ -59,7 +59,7 @@ void bmesh_selectmode_flush(BMesh *bm)
 		}
 	}
 	else if(bm->selectmode & BM_EDGE) {
-		for(f = BMIter_New(&faces, bm, BM_FACES, bm ); f; f= BMIter_Step(&faces)){
+		for(f = BMIter_New(&faces, bm, BM_FACES_OF_MESH, bm ); f; f= BMIter_Step(&faces)){
 			totsel = 0;
 			l=f->loopbase;
 			do{
@@ -174,25 +174,25 @@ void BM_Selectmode_Set(BMesh *bm, int selectmode)
 	bm->selectmode = selectmode;
 
 	if(bm->selectmode & BM_VERT){
-		for(e = BMIter_New(&edges, bm, BM_EDGES, bm ); e; e= BMIter_Step(&edges))
+		for(e = BMIter_New(&edges, bm, BM_EDGES_OF_MESH, bm ); e; e= BMIter_Step(&edges))
 			BM_Select_Edge(bm, e, 0);
-		for(f = BMIter_New(&faces, bm, BM_FACES, bm ); f; f= BMIter_Step(&faces))
+		for(f = BMIter_New(&faces, bm, BM_FACES_OF_MESH, bm ); f; f= BMIter_Step(&faces))
 			bmesh_clear_sysflag(&(f->head), 0);
 		bmesh_selectmode_flush(bm);
 	}
 	else if(bm->selectmode & BM_EDGE){
-		for(v= BMIter_New(&verts, bm, BM_VERTS, bm ); v; v= BMIter_Step(&verts))
+		for(v= BMIter_New(&verts, bm, BM_VERTS_OF_MESH, bm ); v; v= BMIter_Step(&verts))
 			BM_Select_Vert(bm, v, 0);
-		for(e= BMIter_New(&edges, bm, BM_EDGES, bm ); e; e= BMIter_Step(&edges)){
+		for(e= BMIter_New(&edges, bm, BM_EDGES_OF_MESH, bm ); e; e= BMIter_Step(&edges)){
 			if(bmesh_test_sysflag(&(e->head), BM_SELECT))
 				BM_Select_Edge(bm, e, 1);
 		}
 		bmesh_selectmode_flush(bm);
 	}
 	else if(bm->selectmode & BM_FACE){
-		for(e = BMIter_New(&edges, bm, BM_EDGES, bm ); e; e= BMIter_Step(&edges))
+		for(e = BMIter_New(&edges, bm, BM_EDGES_OF_MESH, bm ); e; e= BMIter_Step(&edges))
 			BM_Select_Edge(bm, e, 0);
-		for(f = BMIter_New(&faces, bm, BM_FACES, bm ); f; f= BMIter_Step(&faces)){
+		for(f = BMIter_New(&faces, bm, BM_FACES_OF_MESH, bm ); f; f= BMIter_Step(&faces)){
 			if(bmesh_test_sysflag(&(f->head), BM_SELECT))
 				BM_Select_Face(bm, f, 1);
 		}
@@ -207,17 +207,17 @@ int BM_CountFlag(struct BMesh *bm, int type, int flag)
 	int tot = 0;
 
 	if (type & BM_VERT) {
-		for (head = BMIter_New(&iter, bm, BM_VERTS, NULL); head; head=BMIter_Step(&iter)) {
+		for (head = BMIter_New(&iter, bm, BM_VERTS_OF_MESH, NULL); head; head=BMIter_Step(&iter)) {
 			if (head->flag & flag) tot++;
 		}
 	}
 	if (type & BM_EDGE) {
-		for (head = BMIter_New(&iter, bm, BM_EDGES, NULL); head; head=BMIter_Step(&iter)) {
+		for (head = BMIter_New(&iter, bm, BM_EDGES_OF_MESH, NULL); head; head=BMIter_Step(&iter)) {
 			if (head->flag & flag) tot++;
 		}
 	}
 	if (type & BM_FACE) {
-		for (head = BMIter_New(&iter, bm, BM_FACES, NULL); head; head=BMIter_Step(&iter)) {
+		for (head = BMIter_New(&iter, bm, BM_FACES_OF_MESH, NULL); head; head=BMIter_Step(&iter)) {
 			if (head->flag & flag) tot++;
 		}
 	}

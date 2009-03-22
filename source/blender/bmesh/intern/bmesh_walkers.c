@@ -465,7 +465,7 @@ static void *islandWalker_step(BMWalker *walker)
 
 	l = BMIter_New(&liter, walker->bm, BM_LOOPS_OF_FACE, iwalk->cur);
 	for (; l; l=BMIter_Step(&liter)) {
-		f = BMIter_New(&iter, walker->bm, BM_FACES_OF_EDGE, l->e);
+		f = BMIter_New(&iter, walker->bm, BM_FACES_OF_MESH_OF_EDGE, l->e);
 		for (; f; f=BMIter_Step(&iter)) {
 			if (!BMO_TestFlag(walker->bm, f, walker->restrictflag))
 				continue;

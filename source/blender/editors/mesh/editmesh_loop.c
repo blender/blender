@@ -816,7 +816,7 @@ static int knife_cut_exec(bContext *C, wmOperator *op)
 
 	/*the floating point coordinates of verts in screen space will be stored in a hash table according to the vertices pointer*/
 	gh = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
-	for(bv=BMIter_New(&iter, bm, BM_VERTS, NULL);bv;bv=BMIter_Step(&iter)){
+	for(bv=BMIter_New(&iter, bm, BM_VERTS_OF_MESH, NULL);bv;bv=BMIter_Step(&iter)){
 		scr = MEM_mallocN(sizeof(float)*2, "Vertex Screen Coordinates");
 		VECCOPY(co, bv->co);
 		co[3]= 1.0;
@@ -825,18 +825,18 @@ static int knife_cut_exec(bContext *C, wmOperator *op)
 		BLI_ghash_insert(gh, bv, scr);
 	}
 	
-	BMO_Init_Op(&bmop, BMOP_ESUBDIVIDE);
+	BMO_Init_Op(&bmop, "esubd");
 	
 	i = 0;
 	/*store percentage of edge cut for KNIFE_EXACT here.*/
-	for (be=BMIter_New(&iter, bm, BM_EDGES, NULL); be; be=BMIter_Step(&iter)) {
+	for (be=BMIter_New(&iter, bm, BM_EDGES_OF_MESH, NULL); be; be=BMIter_Step(&iter)) {
 		if( BM_Is_Selected(bm, be) ) {
 			isect= bm_seg_intersect(be, curve, len, mode, gh, &isected);
 			
 			if (isect != 0.0f) {
 				if (mode != KNIFE_MULTICUT) {
 					BMO_Insert_MapFloat(bm, &bmop, 
-				               BMOP_ESUBDIVIDE_PERCENT_EDGEMAP,
+				               "edgepercents",
 				               be, isect);
 
 				}
@@ -845,13 +845,13 @@ static int knife_cut_exec(bContext *C, wmOperator *op)
 		}
 	}
 	
-	BMO_Flag_To_Slot(bm, &bmop, BMOP_ESUBDIVIDE_EDGES, 1, BM_EDGE);
+	BMO_Flag_To_Slot(bm, &bmop, "edges", 1, BM_EDGE);
 
-	BMO_Set_Int(&bmop, BMOP_ESUBDIVIDE_NUMCUTS, numcuts);
+	BMO_Set_Int(&bmop, "numcuts", numcuts);
 	flag = B_KNIFE;
 	if (mode == KNIFE_MIDPOINT) numcuts = 1;
-	BMO_Set_Int(&bmop, BMOP_ESUBDIVIDE_FLAG, flag);
-	BMO_Set_Float(&bmop, BMOP_ESUBDIVIDE_RADIUS, 0);
+	BMO_Set_Int(&bmop, "flag", flag);
+	BMO_Set_Float(&bmop, "radius", 0);
 	
 	BMO_Exec_Op(bm, &bmop);
 	BMO_Finish_Op(bm, &bmop);

@@ -6,9 +6,9 @@
 BMOpDefine def_connectverts = {
 	"connectverts",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "verts"},
-	{BMOP_OPSLOT_ELEMENT_BUF, "edgeout"}},
+	{BMOP_OPSLOT_ELEMENT_BUF, "edgeout"},
+	{0} /*null-terminating sentinel*/},
 	connectverts_exec,
-	BM_CONVERTS_TOTSLOT,
 	0
 };
 
@@ -16,34 +16,33 @@ BMOpDefine def_extrudefaceregion = {
 	"extrudefaceregion",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "edgefacein"},
 	{BMOP_OPSLOT_MAPPING, "exclude"},
-	{BMOP_OPSLOT_ELEMENT_BUF, "geomout"}},
+	{BMOP_OPSLOT_ELEMENT_BUF, "geomout"},
+	{0} /*null-terminating sentinel*/},
 	extrude_edge_context_exec,
-	BMOP_EXFACE_TOTSLOT,
 	0
 };
 
 BMOpDefine def_makefgonsop = {
 	"makefgon",
-	{0},
+	{{0} /*null-terminating sentinel*/},
 	bmesh_make_fgons_exec,
-	BMOP_MAKE_FGONS_TOTSLOT,
 	0
 };
 
 BMOpDefine def_dissolvevertsop = {
 	"dissolveverts",
-	{{BMOP_OPSLOT_ELEMENT_BUF, "verts"}},
+	{{BMOP_OPSLOT_ELEMENT_BUF, "verts"},
+	{0} /*null-terminating sentinel*/},
 	dissolveverts_exec,
-	BMOP_DISVERTS_TOTSLOT,
 	0
 };
 
 BMOpDefine def_dissolvefacesop = {
 	"dissolvefaces",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "faces"},
-	{BMOP_OPSLOT_ELEMENT_BUF, "regionnout"}},
+	{BMOP_OPSLOT_ELEMENT_BUF, "regionout"},
+	{0} /*null-terminating sentinel*/},
 	dissolvefaces_exec,
-	BMOP_DISFACES_TOTSLOT,
 	0
 };
 
@@ -53,9 +52,9 @@ BMOpDefine def_triangop = {
 	{{BMOP_OPSLOT_ELEMENT_BUF, "faces"},
 	{BMOP_OPSLOT_ELEMENT_BUF, "edgeout"},
 	{BMOP_OPSLOT_ELEMENT_BUF, "faceout"},
-	{BMOP_OPSLOT_MAPPING, "facemap"}},
+	{BMOP_OPSLOT_MAPPING, "facemap"},
+	{0} /*null-terminating sentinel*/},
 	triangulate_exec,
-	BMOP_TRIANG_TOTSLOT,
 	0
 };
 
@@ -67,35 +66,37 @@ BMOpDefine def_subdop = {
 	{BMOP_OPSLOT_FLT, "radius"},
 	{BMOP_OPSLOT_MAPPING, "custompatterns"},
 	{BMOP_OPSLOT_MAPPING, "edgepercents"},
+	
+	/*these next two can have multiple types of elements in them.*/
 	{BMOP_OPSLOT_ELEMENT_BUF, "outinner"},
 	{BMOP_OPSLOT_ELEMENT_BUF, "outsplit"},
+	{0} /*null-terminating sentinel*/,
 	},
 	esubdivide_exec,
-	BMOP_ESUBDIVIDE_TOTSLOT,
 	0
 };
 
 BMOpDefine def_edit2bmesh = {
 	"editmesh_to_bmesh",
-	{{BMOP_OPSLOT_PNT, "em"}, {BMOP_OPSLOT_MAPPING, "map"}},
+	{{BMOP_OPSLOT_PNT, "em"}, {BMOP_OPSLOT_MAPPING, "map"},
+	{0} /*null-terminating sentinel*/},
 	edit2bmesh_exec,
-	BMOP_FROM_EDITMESH_TOTSLOT,
 	0
 };
 
 BMOpDefine def_bmesh2edit = {
 	"bmesh_to_editmesh",
-	{{BMOP_OPSLOT_PNT, "emout"}},
+	{{BMOP_OPSLOT_PNT, "emout"},
+	{0} /*null-terminating sentinel*/},
 	bmesh2edit_exec,
-	BMOP_TO_EDITMESH_TOTSLOT,
 	0
 };
 
 BMOpDefine def_delop = {
 	"del",
-	{{BMOP_OPSLOT_ELEMENT_BUF, "geom"}, {BMOP_OPSLOT_INT, "context"}},
+	{{BMOP_OPSLOT_ELEMENT_BUF, "geom"}, {BMOP_OPSLOT_INT, "context"},
+	{0} /*null-terminating sentinel*/},
 	delop_exec,
-	BMOP_DEL_TOTSLOT,
 	0
 };
 
@@ -105,9 +106,9 @@ BMOpDefine def_dupeop = {
 	{BMOP_OPSLOT_ELEMENT_BUF, "origout"},
 	{BMOP_OPSLOT_ELEMENT_BUF, "newout"},
 	{BMOP_OPSLOT_MAPPING, "boundarymap"},
-	{BMOP_OPSLOT_MAPPING, "isovertmap"}},
+	{BMOP_OPSLOT_MAPPING, "isovertmap"},
+	{0} /*null-terminating sentinel*/},
 	dupeop_exec,
-	BMOP_DUPE_TOTSLOT,
 	0
 };
 
@@ -116,9 +117,9 @@ BMOpDefine def_splitop = {
 	{{BMOP_OPSLOT_ELEMENT_BUF, "geom"},
 	{BMOP_OPSLOT_ELEMENT_BUF, "geomout"},
 	{BMOP_OPSLOT_MAPPING, "boundarymap"},
-	{BMOP_OPSLOT_MAPPING, "isovertmap"}},
+	{BMOP_OPSLOT_MAPPING, "isovertmap"},
+	{0} /*null-terminating sentinel*/},
 	splitop_exec,
-	BMOP_SPLIT_TOTSLOT,
 	0
 };
 

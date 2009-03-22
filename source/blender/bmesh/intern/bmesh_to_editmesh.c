@@ -216,15 +216,15 @@ EditMesh *bmesh_to_editmesh_intern(BMesh *bm)
 	evlist= MEM_mallocN(totvert*sizeof(EditVert *),"evlist");
 
 	/* make vertices */
-	for(i=0, v = BMIter_New(&verts, bm, BM_VERTS, bm); v; v = BMIter_Step(&verts), i++) 
+	for(i=0, v = BMIter_New(&verts, bm, BM_VERTS_OF_MESH, bm); v; v = BMIter_Step(&verts), i++) 
 		eve = bmeshvert_to_editvert(bm, em, v, i, evlist);
 
 	/* make edges */
-	for(e = BMIter_New(&edges, bm, BM_EDGES, bm); e; e = BMIter_Step(&edges))
+	for(e = BMIter_New(&edges, bm, BM_EDGES_OF_MESH, bm); e; e = BMIter_Step(&edges))
 		bmeshedge_to_editedge(bm, em, e, evlist);
 
 	/* make faces */
-	for(f = BMIter_New(&faces, bm, BM_FACES, bm); f; f = BMIter_Step(&faces))
+	for(f = BMIter_New(&faces, bm, BM_FACES_OF_MESH, bm); f; f = BMIter_Step(&faces))
 		bmeshface_to_editface(bm, em, f, evlist, numCol, numTex);
 			
 	MEM_freeN(evlist);
@@ -240,7 +240,7 @@ EditMesh *bmesh_to_editmesh_intern(BMesh *bm)
 
 void bmesh2edit_exec(BMesh *bmesh, BMOperator *op)
 {
-	BMO_Set_Pnt(op, BMOP_TO_EDITMESH_EMOUT, bmesh_to_editmesh_intern(bmesh));
+	BMO_Set_Pnt(op, "emout", bmesh_to_editmesh_intern(bmesh));
 }
 
 #define FACE_NGON	1
@@ -254,22 +254,22 @@ void bmesh_make_fgons_exec(BMesh *bmesh, BMOperator *op)
 	BMOpSlot *eout;
 	int i;
 
-	BMO_Init_Op(&triop, BMOP_TRIANGULATE);
+	BMO_Init_Op(&triop, "triangulate");
 	
-	for (face = BMIter_New(&iter, bmesh, BM_FACES, NULL); face; face=BMIter_Step(&iter)) {
+	for (face = BMIter_New(&iter, bmesh, BM_FACES_OF_MESH, NULL); face; face=BMIter_Step(&iter)) {
 		if (face->len > 4) {
 			BMO_SetFlag(bmesh, face, FACE_NGON);
 		}
 	}
 
-	BMO_Flag_To_Slot(bmesh, &triop, BMOP_TRIANG_FACEIN, FACE_NGON, BM_FACE);
+	BMO_Flag_To_Slot(bmesh, &triop, "faces", FACE_NGON, BM_FACE);
 	BMO_Exec_Op(bmesh, &triop);
 
-	eout = BMO_GetSlot(&triop, BMOP_TRIANG_NEW_EDGES);
+	eout = BMO_GetSlot(&triop, "edgeout");
 	for (i=0; i<eout->len; i++) {
 		edge = ((BMEdge**)eout->data.buf)[i];
 		edge->head.flag |= BM_FGON;
-		face = BMIter_New(&iter, bmesh, BM_FACES_OF_EDGE, edge);
+		face = BMIter_New(&iter, bmesh, BM_FACES_OF_MESH_OF_EDGE, edge);
 		
 		for (; face; face=BMIter_Step(&iter)) {
 			face->head.flag |= BM_NONORMCALC;
@@ -285,13 +285,13 @@ EditMesh *bmesh_to_editmesh(BMesh *bmesh)
 	EditMesh *em;
 	
 	/*first fgon-afy the mesh*/
-	BMO_Init_Op(&makefgon, BMOP_MAKE_FGONS);
+	BMO_Init_Op(&makefgon, "makefgon");
 	BMO_Exec_Op(bmesh, &makefgon);
 	BMO_Finish_Op(bmesh, &makefgon);
 
-	BMO_Init_Op(&conv, BMOP_TO_EDITMESH);
+	BMO_Init_Op(&conv, "bmesh_to_editmesh");
 	BMO_Exec_Op(bmesh, &conv);
-	em = conv.slots[BMOP_TO_EDITMESH_EMOUT].data.p;
+	em = BMO_Get_Pnt(&conv, "emout");
 	BMO_Finish_Op(bmesh, &conv);
 	
 	return em;

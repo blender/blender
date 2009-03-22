@@ -61,7 +61,7 @@ static BMEdge *copy_edge(BMOperator *op, BMesh *source_mesh,
 	  not being duplicated.  in that case,
 	  add it to the new/old map.*/
 	rlen = 0;
-	for (face=BMIter_New(&fiter,source_mesh, BM_FACES_OF_EDGE,source_edge);
+	for (face=BMIter_New(&fiter,source_mesh, BM_FACES_OF_MESH_OF_EDGE,source_edge);
 		face; face=BMIter_Step(&fiter)) {
 		if (BMO_TestFlag(source_mesh, face, DUPE_INPUT)) {
 			rlen++;
@@ -79,7 +79,7 @@ static BMEdge *copy_edge(BMOperator *op, BMesh *source_mesh,
 	if (rlen < 2) {
 		/*not sure what non-manifold cases of greater then three
 		  radial should do.*/
-		BMO_Insert_MapPointer(source_mesh,op,BMOP_DUPE_BOUNDS_EDGEMAP,
+		BMO_Insert_MapPointer(source_mesh,op, "boundarymap",
 			source_edge, target_edge);
 	}
 
@@ -110,7 +110,7 @@ static BMFace *copy_face(BMesh *source_mesh, BMFace *source_face, BMesh *target_
 	int i;
 	
 	/*lookup the first and second verts*/
-	target_vert1 = BLI_ghash_lookup(vhash, BMIter_New(&iter, source_mesh, BM_VERTS_OF_FACE, source_face));
+	target_vert1 = BLI_ghash_lookup(vhash, BMIter_New(&iter, source_mesh, BM_VERTS_OF_MESH_OF_FACE, source_face));
 	target_vert2 = BLI_ghash_lookup(vhash, BMIter_Step(&iter));
 	
 	/*lookup edges*/
@@ -166,16 +166,16 @@ static void copy_mesh(BMOperator *op, BMesh *source, BMesh *target)
 	ehash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
 	
 	/*initialize edge pointer array*/
-	for(f = BMIter_New(&faces, source, BM_FACES, source); f; f = BMIter_Step(&faces)){
+	for(f = BMIter_New(&faces, source, BM_FACES_OF_MESH, source); f; f = BMIter_Step(&faces)){
 		if(f->len > maxlength) maxlength = f->len;
 	}
 	edar = MEM_callocN(sizeof(BMEdge*) * maxlength, "BM copy mesh edge pointer array");
 	
 	/*first we dupe all flagged faces and their elements from source*/
-	for(f = BMIter_New(&faces, source, BM_FACES, source); f; f= BMIter_Step(&faces)){
+	for(f = BMIter_New(&faces, source, BM_FACES_OF_MESH, source); f; f= BMIter_Step(&faces)){
 		if(BMO_TestFlag(source, (BMHeader*)f, DUPE_INPUT)){
 			/*vertex pass*/
-			for(v = BMIter_New(&verts, source, BM_VERTS_OF_FACE, f); v; v = BMIter_Step(&verts)){
+			for(v = BMIter_New(&verts, source, BM_VERTS_OF_MESH_OF_FACE, f); v; v = BMIter_Step(&verts)){
 				if(!BMO_TestFlag(source, (BMHeader*)v, DUPE_DONE)){ 
 					copy_vertex(source,v, target, vhash);
 					BMO_SetFlag(source, (BMHeader*)v, DUPE_DONE);
@@ -183,7 +183,7 @@ static void copy_mesh(BMOperator *op, BMesh *source, BMesh *target)
 			}
 
 			/*edge pass*/
-			for(e = BMIter_New(&edges, source, BM_EDGES_OF_FACE, f); e; e = BMIter_Step(&edges)){
+			for(e = BMIter_New(&edges, source, BM_EDGES_OF_MESH_OF_FACE, f); e; e = BMIter_Step(&edges)){
 				if(!BMO_TestFlag(source, (BMHeader*)e, DUPE_DONE)){
 					copy_edge(op, source, e, target,  vhash,  ehash);
 					BMO_SetFlag(source, (BMHeader*)e, DUPE_DONE);
@@ -195,7 +195,7 @@ static void copy_mesh(BMOperator *op, BMesh *source, BMesh *target)
 	}
 	
 	/*now we dupe all the edges*/
-	for(e = BMIter_New(&edges, source, BM_EDGES, source); e; e = BMIter_Step(&edges)){
+	for(e = BMIter_New(&edges, source, BM_EDGES_OF_MESH, source); e; e = BMIter_Step(&edges)){
 		if(BMO_TestFlag(source, (BMHeader*)e, DUPE_INPUT) && (!BMO_TestFlag(source, (BMHeader*)e, DUPE_DONE))){
 			/*make sure that verts are copied*/
 			if(!BMO_TestFlag(source, (BMHeader*)e->v1, DUPE_DONE)) {
@@ -213,11 +213,11 @@ static void copy_mesh(BMOperator *op, BMesh *source, BMesh *target)
 	}
 	
 	/*finally dupe all loose vertices*/
-	for(v = BMIter_New(&verts, source, BM_VERTS, source); v; v = BMIter_Step(&verts)){
+	for(v = BMIter_New(&verts, source, BM_VERTS_OF_MESH, source); v; v = BMIter_Step(&verts)){
 		if(BMO_TestFlag(source, (BMHeader*)v, DUPE_INPUT) && (!BMO_TestFlag(source, (BMHeader*)v, DUPE_DONE))){
 			v2 = copy_vertex(source, v, target, vhash);
 			BMO_Insert_MapPointer(source, op, 
-				         BMOP_DUPE_ISOLATED_VERTS_MAP, v, v2);
+				         "isovertmap", v, v2);
 			BMO_SetFlag(source, (BMHeader*)v, DUPE_DONE);
 		}
 	}
@@ -289,16 +289,16 @@ void dupeop_exec(BMesh *bm, BMOperator *op)
 	BMOperator *dupeop = op;
 	
 	/*flag input*/
-	BMO_Flag_Buffer(bm, dupeop, BMOP_DUPE_MULTIN, DUPE_INPUT);
+	BMO_Flag_Buffer(bm, dupeop, "geom", DUPE_INPUT);
 	/*use the internal copy function*/
 	copy_mesh(dupeop, bm, bm);
 	
 	/*Output*/
 	/*First copy the input buffers to output buffers - original data*/
-	BMO_CopySlot(dupeop, dupeop, BMOP_DUPE_MULTIN, BMOP_DUPE_ORIG);
+	BMO_CopySlot(dupeop, dupeop, "geom", "origout");
 
 	/*Now alloc the new output buffers*/
-	BMO_Flag_To_Slot(bm, dupeop, BMOP_DUPE_NEW, DUPE_NEW, BM_VERT|BM_EDGE|BM_FACE);
+	BMO_Flag_To_Slot(bm, dupeop, "newout", DUPE_NEW, BM_ALL);
 }
 
 /*executes the duplicate operation, feeding elements of 
@@ -309,8 +309,8 @@ void BMOP_DupeFromFlag(BMesh *bm, int etypeflag, int flag)
 {
 	BMOperator dupeop;
 
-	BMO_Init_Op(&dupeop, BMOP_DUPE);
-	BMO_HeaderFlag_To_Slot(bm, &dupeop, BMOP_DUPE_MULTIN, flag, etypeflag);
+	BMO_Init_Op(&dupeop, "dupe");
+	BMO_HeaderFlag_To_Slot(bm, &dupeop, "geom", flag, etypeflag);
 
 	BMO_Exec_Op(bm, &dupeop);
 	BMO_Finish_Op(bm, &dupeop);
@@ -348,18 +348,18 @@ void splitop_exec(BMesh *bm, BMOperator *op)
 	int found;
 
 	/*initialize our sub-operators*/
-	BMO_Init_Op(&dupeop, BMOP_DUPE);
-	BMO_Init_Op(&delop, BMOP_DEL);
+	BMO_Init_Op(&dupeop, "dupe");
+	BMO_Init_Op(&delop, "del");
 	
-	BMO_CopySlot(splitop, &dupeop, BMOP_SPLIT_MULTIN, BMOP_DUPE_MULTIN);
+	BMO_CopySlot(splitop, &dupeop, "geom", "geom");
 	BMO_Exec_Op(bm, &dupeop);
 	
-	BMO_Flag_Buffer(bm, splitop, BMOP_SPLIT_MULTIN, SPLIT_INPUT);
+	BMO_Flag_Buffer(bm, splitop, "geom", SPLIT_INPUT);
 
 	/*make sure to remove edges and verts we don't need.*/
-	for (e= BMIter_New(&iter, bm, BM_EDGES, NULL);e;e=BMIter_Step(&iter)) {
+	for (e= BMIter_New(&iter, bm, BM_EDGES_OF_MESH, NULL);e;e=BMIter_Step(&iter)) {
 		found = 0;
-		f = BMIter_New(&iter2, bm, BM_FACES_OF_EDGE, e);
+		f = BMIter_New(&iter2, bm, BM_FACES_OF_MESH_OF_EDGE, e);
 		for (; f; f=BMIter_Step(&iter2)) {
 			if (!BMO_TestFlag(bm, f, SPLIT_INPUT)) {
 				found = 1;
@@ -369,9 +369,9 @@ void splitop_exec(BMesh *bm, BMOperator *op)
 		if (!found) BMO_SetFlag(bm, e, SPLIT_INPUT);
 	}
 	
-	for (v= BMIter_New(&iter, bm, BM_VERTS, NULL);v;v=BMIter_Step(&iter)) {
+	for (v= BMIter_New(&iter, bm, BM_VERTS_OF_MESH, NULL);v;v=BMIter_Step(&iter)) {
 		found = 0;
-		e = BMIter_New(&iter2, bm, BM_EDGES_OF_VERT, v);
+		e = BMIter_New(&iter2, bm, BM_EDGES_OF_MESH_OF_VERT, v);
 		for (; e; e=BMIter_Step(&iter2)) {
 			if (!BMO_TestFlag(bm, e, SPLIT_INPUT)) {
 				found = 1;
@@ -383,17 +383,17 @@ void splitop_exec(BMesh *bm, BMOperator *op)
 	}
 
 	/*connect outputs of dupe to delete, exluding keep geometry*/
-	BMO_Set_Int(&delop, BMOP_DEL_CONTEXT, DEL_FACES);
-	BMO_Flag_To_Slot(bm, &delop, BMOP_DEL_MULTIN, SPLIT_INPUT, BM_ALL);
+	BMO_Set_Int(&delop, "context", DEL_FACES);
+	BMO_Flag_To_Slot(bm, &delop, "geom", SPLIT_INPUT, BM_ALL);
 	
 	BMO_Exec_Op(bm, &delop);
 
 	/*now we make our outputs by copying the dupe outputs*/
-	BMO_CopySlot(&dupeop, splitop, BMOP_DUPE_NEW, BMOP_SPLIT_MULTOUT);
-	BMO_CopySlot(&dupeop, splitop, BMOP_DUPE_BOUNDS_EDGEMAP,
-	             BMOP_SPLIT_BOUNDS_EDGEMAP);
-	BMO_CopySlot(&dupeop, splitop, BMOP_DUPE_ISOLATED_VERTS_MAP,
-	             BMOP_SPLIT_ISOLATED_VERTS_MAP);
+	BMO_CopySlot(&dupeop, splitop, "newout", "geom");
+	BMO_CopySlot(&dupeop, splitop, "boundarymap",
+	             "boundarymap");
+	BMO_CopySlot(&dupeop, splitop, "isovertmap",
+	             "isovertmap");
 	
 	/*cleanup*/
 	BMO_Finish_Op(bm, &delop);
@@ -411,9 +411,9 @@ void delop_exec(BMesh *bm, BMOperator *op)
 	BMOperator *delop = op;
 
 	/*Mark Buffers*/
-	BMO_Flag_Buffer(bm, delop, BMOP_DEL_MULTIN, DEL_INPUT);
+	BMO_Flag_Buffer(bm, delop, "geom", DEL_INPUT);
 
-	delete_context(bm, op->slots[BMOP_DEL_CONTEXT].data.i);
+	delete_context(bm, BMO_Get_Int(op, "context"));
 }
 
 static void delete_verts(BMesh *bm)
@@ -426,13 +426,13 @@ static void delete_verts(BMesh *bm)
 	BMIter edges;
 	BMIter faces;
 	
-	for(v = BMIter_New(&verts, bm, BM_VERTS, bm); v; v = BMIter_Step(&verts)){
+	for(v = BMIter_New(&verts, bm, BM_VERTS_OF_MESH, bm); v; v = BMIter_Step(&verts)){
 		if(BMO_TestFlag(bm, (BMHeader*)v, DEL_INPUT)) {
 			/*Visit edges*/
-			for(e = BMIter_New(&edges, bm, BM_EDGES_OF_VERT, v); e; e = BMIter_Step(&edges))
+			for(e = BMIter_New(&edges, bm, BM_EDGES_OF_MESH_OF_VERT, v); e; e = BMIter_Step(&edges))
 				BMO_SetFlag(bm, (BMHeader*)e, DEL_INPUT);
 			/*Visit faces*/
-			for(f = BMIter_New(&faces, bm, BM_FACES_OF_VERT, v); f; f = BMIter_Step(&faces))
+			for(f = BMIter_New(&faces, bm, BM_FACES_OF_MESH_OF_VERT, v); f; f = BMIter_Step(&faces))
 				BMO_SetFlag(bm, (BMHeader*)f, DEL_INPUT);
 		}
 	}
@@ -449,9 +449,9 @@ static void delete_edges(BMesh *bm){
 	BMIter edges;
 	BMIter faces;
 
-	for(e = BMIter_New(&edges, bm, BM_EDGES, bm); e; e = BMIter_Step(&edges)){
+	for(e = BMIter_New(&edges, bm, BM_EDGES_OF_MESH, bm); e; e = BMIter_Step(&edges)){
 		if(BMO_TestFlag(bm, (BMHeader*)e, DEL_INPUT)) {
-			for(f = BMIter_New(&faces, bm, BM_FACES_OF_EDGE, e); f; f = BMIter_Step(&faces)){
+			for(f = BMIter_New(&faces, bm, BM_FACES_OF_MESH_OF_EDGE, e); f; f = BMIter_Step(&faces)){
 					BMO_SetFlag(bm, (BMHeader*)f, DEL_INPUT);
 			}
 		}
@@ -482,7 +482,7 @@ static void delete_context(BMesh *bm, int type){
 	if(type == DEL_VERTS) delete_verts(bm);
 	else if(type == DEL_EDGES){
 		/*flush down to verts*/
-		for(e = BMIter_New(&edges, bm, BM_EDGES, bm); e; e = BMIter_Step(&edges)){
+		for(e = BMIter_New(&edges, bm, BM_EDGES_OF_MESH, bm); e; e = BMIter_Step(&edges)){
 			if(BMO_TestFlag(bm, (BMHeader*)e, DEL_INPUT)){
 				BMO_SetFlag(bm, (BMHeader*)(e->v1), DEL_INPUT);
 				BMO_SetFlag(bm, (BMHeader*)(e->v2), DEL_INPUT);
@@ -490,7 +490,7 @@ static void delete_context(BMesh *bm, int type){
 		}
 		delete_edges(bm);
 		/*remove loose vertices*/
-		for(v = BMIter_New(&verts, bm, BM_VERTS, bm); v; v = BMIter_Step(&verts)){
+		for(v = BMIter_New(&verts, bm, BM_VERTS_OF_MESH, bm); v; v = BMIter_Step(&verts)){
 			if(BMO_TestFlag(bm, (BMHeader*)v, DEL_INPUT) && (!(v->edge)))
 				BMO_SetFlag(bm, (BMHeader*)v, DEL_WIREVERT);
 		}
@@ -504,20 +504,20 @@ static void delete_context(BMesh *bm, int type){
 		BM_remove_tagged_verts(bm, DEL_INPUT);
 	} else if(type == DEL_FACES){
 		/*go through and mark all edges and all verts of all faces for delete*/
-		for(f = BMIter_New(&faces, bm, BM_FACES, bm); f; f = BMIter_Step(&faces)){
+		for(f = BMIter_New(&faces, bm, BM_FACES_OF_MESH, bm); f; f = BMIter_Step(&faces)){
 			if(BMO_TestFlag(bm, (BMHeader*)f, DEL_INPUT)){
-				for(e = BMIter_New(&edges, bm, BM_EDGES_OF_FACE, f); e; e = BMIter_Step(&edges))
+				for(e = BMIter_New(&edges, bm, BM_EDGES_OF_MESH_OF_FACE, f); e; e = BMIter_Step(&edges))
 					BMO_SetFlag(bm, (BMHeader*)e, DEL_INPUT);
-				for(v = BMIter_New(&verts, bm, BM_VERTS_OF_FACE, f); v; v = BMIter_Step(&verts))
+				for(v = BMIter_New(&verts, bm, BM_VERTS_OF_MESH_OF_FACE, f); v; v = BMIter_Step(&verts))
 					BMO_SetFlag(bm, (BMHeader*)v, DEL_INPUT);
 			}
 		}
 		/*now go through and mark all remaining faces all edges for keeping.*/
-		for(f = BMIter_New(&faces, bm, BM_FACES, bm); f; f = BMIter_Step(&faces)){
+		for(f = BMIter_New(&faces, bm, BM_FACES_OF_MESH, bm); f; f = BMIter_Step(&faces)){
 			if(!BMO_TestFlag(bm, (BMHeader*)f, DEL_INPUT)){
-				for(e = BMIter_New(&edges, bm, BM_EDGES_OF_FACE, f); e; e= BMIter_Step(&edges))
+				for(e = BMIter_New(&edges, bm, BM_EDGES_OF_MESH_OF_FACE, f); e; e= BMIter_Step(&edges))
 					BMO_ClearFlag(bm, (BMHeader*)e, DEL_INPUT);
-				for(v = BMIter_New(&verts, bm, BM_VERTS_OF_FACE, f); v; v= BMIter_Step(&verts))
+				for(v = BMIter_New(&verts, bm, BM_VERTS_OF_MESH_OF_FACE, f); v; v= BMIter_Step(&verts))
 					BMO_ClearFlag(bm, (BMHeader*)v, DEL_INPUT);
 			}
 		}
@@ -530,11 +530,11 @@ static void delete_context(BMesh *bm, int type){
 	}
 	/*does this option even belong in here?*/
 	else if(type == DEL_ALL){
-		for(f = BMIter_New(&faces, bm, BM_FACES, bm); f; f = BMIter_Step(&faces))
+		for(f = BMIter_New(&faces, bm, BM_FACES_OF_MESH, bm); f; f = BMIter_Step(&faces))
 			BMO_SetFlag(bm, (BMHeader*)f, DEL_INPUT);
-		for(e = BMIter_New(&edges, bm, BM_EDGES, bm); e; e = BMIter_Step(&edges))
+		for(e = BMIter_New(&edges, bm, BM_EDGES_OF_MESH, bm); e; e = BMIter_Step(&edges))
 			BMO_SetFlag(bm, (BMHeader*)e, DEL_INPUT);
-		for(v = BMIter_New(&verts, bm, BM_VERTS, bm); v; v = BMIter_Step(&verts))
+		for(v = BMIter_New(&verts, bm, BM_VERTS_OF_MESH, bm); v; v = BMIter_Step(&verts))
 			BMO_SetFlag(bm, (BMHeader*)v, DEL_INPUT);
 		
 		BM_remove_tagged_faces(bm, DEL_INPUT);

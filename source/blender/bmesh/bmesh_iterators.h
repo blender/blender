@@ -16,23 +16,23 @@
 /*Defines for passing to BMIter_New.
  
  "OF" can be substituted for "around"
-  so BM_VERTS_OF_FACE means "vertices
+  so BM_VERTS_OF_MESH_OF_FACE means "vertices
   around a face."
  */
 
 /*these iterator over all elements of a specific
   type in the mesh.*/
-#define BM_VERTS 			1
-#define BM_EDGES 			2
-#define BM_FACES 			3
+#define BM_VERTS_OF_MESH 			1
+#define BM_EDGES_OF_MESH 			2
+#define BM_FACES_OF_MESH 			3
 
 /*these are topological iterators.*/
-#define BM_EDGES_OF_VERT 			4
-#define BM_FACES_OF_VERT 			5
-#define BM_FACES_OF_EDGE 			6
-#define BM_VERTS_OF_FACE 			7
+#define BM_EDGES_OF_MESH_OF_VERT 			4
+#define BM_FACES_OF_MESH_OF_VERT 			5
+#define BM_FACES_OF_MESH_OF_EDGE 			6
+#define BM_VERTS_OF_MESH_OF_FACE 			7
 #define BM_FACEVERTS_OF_FACE 		8
-#define BM_EDGES_OF_FACE 			9
+#define BM_EDGES_OF_MESH_OF_FACE 			9
 #define BM_LOOPS_OF_FACE 			10
 #define BM_LOOPS_OF_VERT		11
 

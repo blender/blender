@@ -22,7 +22,7 @@ void triangulate_exec(BMesh *bm, BMOperator *op)
 	V_DECLARE(projectverts);
 	int i, lastlen=0, count = 0;
 	
-	face = BMO_IterNew(&siter, bm, op, BMOP_TRIANG_FACEIN);
+	face = BMO_IterNew(&siter, bm, op, "faces");
 	for (; face; face=BMO_IterStep(&siter)) {
 		if (lastlen < face->len) {
 			V_RESET(projectverts);
@@ -38,17 +38,18 @@ void triangulate_exec(BMesh *bm, BMOperator *op)
 		BM_Triangulate_Face(bm, face, projectverts, EDGE_NEW, 
 		                    FACE_NEW, newfaces);
 
-		BMO_Insert_MapPointer(bm, op, BMOP_TRIANG_FACEMAP, 
+		BMO_Insert_MapPointer(bm, op, "facemap", 
 	                              face, face);
 		for (i=0; newfaces[i]; i++) {
-			BMO_Insert_MapPointer(bm, op, BMOP_TRIANG_FACEMAP, 
+			BMO_Insert_MapPointer(bm, op, "facemap", 
 				              newfaces[i], face);
 
 		}
 	}
 	
-	BMO_Flag_To_Slot(bm, op, BMOP_TRIANG_NEW_EDGES, EDGE_NEW, BM_EDGE);
-	BMO_Flag_To_Slot(bm, op, BMOP_TRIANG_NEW_FACES, FACE_NEW, BM_FACE);
+	BMO_Flag_To_Slot(bm, op, "edgeout", EDGE_NEW, BM_EDGE);
+	BMO_Flag_To_Slot(bm, op, "faceout", FACE_NEW, BM_FACE);
 	
 	V_FREE(projectverts);
+	V_FREE(newfaces);
 }

@@ -99,7 +99,7 @@ static BMVert *editvert_to_BMVert(BMesh *bm, BMOperator *op, EditMesh *em, EditV
 		if(eve->f & SELECT) BM_Select_Vert(bm, v, 1);
 		v->bweight = eve->bweight;
 
-		BMO_Insert_MapPointer(bm, op, BMOP_FROM_EDITMESH_MAP, eve, v);
+		BMO_Insert_MapPointer(bm, op, "map", eve, v);
 
 		/*Copy Custom Data*/
 		CustomData_bmesh_copy_data(&em->vdata, &bm->vdata, eve->data, &v->data);
@@ -128,7 +128,7 @@ static void editedge_to_BMEdge_internal(BMesh *bm, BMOperator *op, EditMesh *em,
 
 	CustomData_bmesh_copy_data(&em->edata, &bm->edata, eed->data, &e->data);
 
-	BMO_Insert_MapPointer(bm, op, BMOP_FROM_EDITMESH_MAP, eed, e);
+	BMO_Insert_MapPointer(bm, op, "map", eed, e);
 }
 
 static BMEdge *editedge_to_BMEdge(BMesh *bm, BMOperator *op, EditMesh *em, EditEdge *eed)
@@ -193,7 +193,7 @@ static BMFace *editface_to_BMFace(BMesh *bm, BMOperator *op, EditMesh *em, EditF
 		
 		VECCOPY(f->no, efa->n);
 
-		BMO_Insert_MapPointer(bm, op, BMOP_FROM_EDITMESH_MAP, efa, f);
+		BMO_Insert_MapPointer(bm, op, "map", efa, f);
 
 		f->head.flag = 0;
 		f->mat_nr = efa->mat_nr;
@@ -422,7 +422,7 @@ BMesh *editmesh_to_bmesh_intern(EditMesh *em, BMesh *bm, BMOperator *op) {
 	BM_fgonconvert(bm, op, em, numCol, numTex);
 	
 	/*clean up any dangling fgon flags*/
-	for (e=BMIter_New(&iter, bm, BM_EDGES, NULL); e; e=BMIter_Step(&iter)){
+	for (e=BMIter_New(&iter, bm, BM_EDGES_OF_MESH, NULL); e; e=BMIter_Step(&iter)){
 		e->head.flag &= ~BM_FGON;
 	}
 
@@ -441,7 +441,7 @@ BMesh *editmesh_to_bmesh_intern(EditMesh *em, BMesh *bm, BMOperator *op) {
 
 void edit2bmesh_exec(BMesh *bmesh, BMOperator *op)
 {
-	editmesh_to_bmesh_intern(op->slots[BMOP_FROM_EDITMESH_EM].data.p, bmesh, op);
+	editmesh_to_bmesh_intern(BMO_Get_Pnt(op, "em"), bmesh, op);
 }
 
 BMesh *editmesh_to_bmesh(EditMesh *em)
@@ -453,8 +453,8 @@ BMesh *editmesh_to_bmesh(EditMesh *em)
 	/*allocate a bmesh*/
 	bm = BM_Make_Mesh(allocsize);
 
-	BMO_Init_Op(&conv, BMOP_FROM_EDITMESH);
-	BMO_Set_Pnt(&conv, BMOP_FROM_EDITMESH_EM, em);
+	BMO_Init_Op(&conv, "editmesh_to_bmesh");
+	BMO_Set_Pnt(&conv, "em", em);
 	BMO_Exec_Op(bm, &conv);
 	BMO_Finish_Op(bm, &conv);
 
@@ -469,8 +469,8 @@ BMesh *init_editmesh_to_bmesh(EditMesh *em, BMOperator *op)
 	/*allocate a bmesh*/
 	bm = BM_Make_Mesh(allocsize);
 
-	BMO_Init_Op(op, BMOP_FROM_EDITMESH);
-	BMO_Set_Pnt(op, BMOP_FROM_EDITMESH_EM, em);
+	BMO_Init_Op(op, "editmesh_to_bmesh");
+	BMO_Set_Pnt(op, "em", em);
 
 	return bm;
 }

@@ -26,17 +26,17 @@ void extrude_edge_context_exec(BMesh *bm, BMOperator *op)
 	int rlen, found, delorig=0, i, reverse;
 
 	/*initialize our sub-operators*/
-	BMO_Init_Op(&dupeop, BMOP_DUPE);
+	BMO_Init_Op(&dupeop, "dupe");
 	
-	BMO_Flag_Buffer(bm, op, BMOP_EXFACE_EDGEFACEIN, EXT_INPUT);
+	BMO_Flag_Buffer(bm, op, "edgefacein", EXT_INPUT);
 	
 	/*if one flagged face is bordered by an unflagged face, then we delete
 	  original geometry.*/
-	for (e=BMIter_New(&iter, bm, BM_EDGES, NULL);e;e=BMIter_Step(&iter)) {
+	for (e=BMIter_New(&iter, bm, BM_EDGES_OF_MESH, NULL);e;e=BMIter_Step(&iter)) {
 		if (!BMO_TestFlag(bm, e, EXT_INPUT)) continue;
 
 		found = 0;
-		f = BMIter_New(&fiter, bm, BM_FACES_OF_EDGE, e);
+		f = BMIter_New(&fiter, bm, BM_FACES_OF_MESH_OF_EDGE, e);
 		for (rlen=0; f; f=BMIter_Step(&fiter), rlen++) {
 			if (!BMO_TestFlag(bm, f, EXT_INPUT)) {
 				found = 1;
@@ -49,7 +49,7 @@ void extrude_edge_context_exec(BMesh *bm, BMOperator *op)
 	}
 
 	/*calculate verts to delete*/
-	for (v = BMIter_New(&iter, bm, BM_VERTS, NULL); v; v=BMIter_Step(&iter)) {
+	for (v = BMIter_New(&iter, bm, BM_VERTS_OF_MESH, NULL); v; v=BMIter_Step(&iter)) {
 		found = 0;
 
 		l = BMIter_New(&viter, bm, BM_LOOPS_OF_VERT, v);
@@ -71,31 +71,31 @@ void extrude_edge_context_exec(BMesh *bm, BMOperator *op)
 		}
 	}
 	
-	for (f=BMIter_New(&fiter, bm, BM_FACES, NULL); f; f=BMIter_Step(&fiter)) {
+	for (f=BMIter_New(&fiter, bm, BM_FACES_OF_MESH, NULL); f; f=BMIter_Step(&fiter)) {
 		if (BMO_TestFlag(bm, f, EXT_INPUT))
 			BMO_SetFlag(bm, f, EXT_DEL);
 	}
 	if (delorig) BMO_InitOpf(bm, &delop, "del geom=%fvef context=%d", 
 	                         EXT_DEL, DEL_ONLYTAGGED);
 
-	BMO_CopySlot(op, &dupeop, BMOP_EXFACE_EDGEFACEIN, BMOP_DUPE_MULTIN);
+	BMO_CopySlot(op, &dupeop, "edgefacein", "geom");
 	
 	BMO_Exec_Op(bm, &dupeop);
 	if (delorig) BMO_Exec_Op(bm, &delop);
 	
 	/*if not delorig, reverse loops of original faces*/
 	if (!delorig) {
-		for (f=BMIter_New(&iter, bm, BM_FACES, NULL); f; f=BMIter_Step(&iter)) {
+		for (f=BMIter_New(&iter, bm, BM_FACES_OF_MESH, NULL); f; f=BMIter_Step(&iter)) {
 			if (BMO_TestFlag(bm, f, EXT_INPUT)) {
 				BM_flip_normal(bm, f);
 			}
 		}
 	}
 
-	BMO_CopySlot(&dupeop, op, BMOP_DUPE_NEW, BMOP_EXFACE_MULTOUT);
-	e = BMO_IterNew(&siter, bm, &dupeop, BMOP_DUPE_BOUNDS_EDGEMAP);
+	BMO_CopySlot(&dupeop, op, "newout", "geomout");
+	e = BMO_IterNew(&siter, bm, &dupeop, "boundarymap");
 	for (; e; e=BMO_IterStep(&siter)) {
-		if (BMO_InMap(bm, op, BMOP_EXFACE_EXCLUDEMAP, e)) continue;
+		if (BMO_InMap(bm, op, "exclude", e)) continue;
 
 		newedge = BMO_IterMapVal(&siter);
 		newedge = *(BMEdge**)newedge;
@@ -153,7 +153,7 @@ void extrude_edge_context_exec(BMesh *bm, BMOperator *op)
 	}
 
 	/*link isolated verts*/
-	v = BMO_IterNew(&siter, bm, &dupeop, BMOP_DUPE_ISOLATED_VERTS_MAP);
+	v = BMO_IterNew(&siter, bm, &dupeop, "isovertmap");
 	for (; v; v=BMO_IterStep(&siter)) {
 		v2 = *((void**)BMO_IterMapVal(&siter));
 		BM_Make_Edge(bm, v, v2, v->edge, 1);

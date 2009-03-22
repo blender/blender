@@ -64,8 +64,8 @@ BMEdge *connect_smallest_face(BMesh *bm, BMVert *v1, BMVert *v2, BMFace **nf) {
 	/*this isn't the best thing in the world.  it doesn't handle cases where there's
 	  multiple faces yet.  that might require a convexity test to figure out which
 	  face is "best," and who knows what for non-manifold conditions.*/
-	for (face = BMIter_New(&iter, bm, BM_FACES_OF_VERT, v1); face; face=BMIter_Step(&iter)) {
-		for (v=BMIter_New(&iter2, bm, BM_VERTS_OF_FACE, face); v; v=BMIter_Step(&iter2)) {
+	for (face = BMIter_New(&iter, bm, BM_FACES_OF_MESH_OF_VERT, v1); face; face=BMIter_Step(&iter)) {
+		for (v=BMIter_New(&iter2, bm, BM_VERTS_OF_MESH_OF_FACE, face); v; v=BMIter_Step(&iter2)) {
 			if (v == v2) {
 				if (!curf || face->len < curf->len) curf = face;
 			}
@@ -183,7 +183,7 @@ static BMVert *subdivideedgenum(BMesh *bm, BMEdge *edge, BMEdge *oedge,
 	 
 	if (BMO_TestFlag(bm, edge, EDGE_PERCENT) && totpoint == 1)
 		percent = BMO_Get_MapFloat(bm, params->op, 
-			                BMOP_ESUBDIVIDE_PERCENT_EDGEMAP, edge);
+			                "edgepercents", edge);
 	else {
 		percent= 1.0f/(float)(totpoint+1-curpoint);
 		percent2 = (float)curpoint / (float)(totpoint + 1);
@@ -625,16 +625,16 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 	float rad;
 	int i, j, matched, a, b, numcuts, flag;
 	
-	BMO_Flag_Buffer(bmesh, op, BMOP_ESUBDIVIDE_EDGES, SUBD_SPLIT);
+	BMO_Flag_Buffer(bmesh, op, "edges", SUBD_SPLIT);
 	
-	numcuts = BMO_GetSlot(op, BMOP_ESUBDIVIDE_NUMCUTS)->data.i;
-	flag = BMO_GetSlot(op, BMOP_ESUBDIVIDE_FLAG)->data.i;
-	rad = BMO_GetSlot(op, BMOP_ESUBDIVIDE_RADIUS)->data.f;
+	numcuts = BMO_GetSlot(op, "numcuts")->data.i;
+	flag = BMO_GetSlot(op, "flag")->data.i;
+	rad = BMO_GetSlot(op, "radius")->data.f;
 
-	einput = BMO_GetSlot(op, BMOP_ESUBDIVIDE_EDGES);
+	einput = BMO_GetSlot(op, "edges");
 	
 	/*first go through and tag edges*/
-	BMO_Flag_To_Slot(bmesh, op, BMOP_ESUBDIVIDE_EDGES,
+	BMO_Flag_To_Slot(bmesh, op, "edges",
 	         SUBD_SPLIT, BM_EDGE);
 
 	params.flag = flag;
@@ -642,13 +642,13 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 	params.op = op;
 	params.rad = rad;
 
-	BMO_Mapping_To_Flag(bmesh, op, BMOP_ESUBDIVIDE_CUSTOMFILL_FACEMAP,
+	BMO_Mapping_To_Flag(bmesh, op, "custompatterns",
 	                    FACE_CUSTOMFILL);
 
-	BMO_Mapping_To_Flag(bmesh, op, BMOP_ESUBDIVIDE_PERCENT_EDGEMAP,
+	BMO_Mapping_To_Flag(bmesh, op, "edgepercents",
 	                    EDGE_PERCENT);
 
-	for (face=BMIter_New(&fiter, bmesh, BM_FACES, NULL);
+	for (face=BMIter_New(&fiter, bmesh, BM_FACES_OF_MESH, NULL);
 	     face; face=BMIter_Step(&fiter)) {
 		/*figure out which pattern to use*/
 
@@ -666,7 +666,7 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 
 		if (BMO_TestFlag(bmesh, face, FACE_CUSTOMFILL)) {
 			pat = BMO_Get_MapData(bmesh, op, 
-				    BMOP_ESUBDIVIDE_CUSTOMFILL_FACEMAP, face);
+				    "custompatterns", face);
 			for (i=0; i<pat->len; i++) {
 				matched = 1;
 				for (j=0; j<pat->len; j++) {
@@ -722,7 +722,7 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 		}
 	}
 
-	einput = BMO_GetSlot(op, BMOP_ESUBDIVIDE_EDGES);
+	einput = BMO_GetSlot(op, "edges");
 
 	/*go through and split edges*/
 	for (i=0; i<einput->len; i++) {
@@ -735,7 +735,7 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 	//return;
 
 	i = 0;
-	for (face=BMIter_New(&fiter, bmesh, BM_FACES, NULL);
+	for (face=BMIter_New(&fiter, bmesh, BM_FACES_OF_MESH, NULL);
 	     face; face=BMIter_Step(&fiter)) {
 		/*figure out which pattern to use*/
 		V_RESET(verts);
@@ -774,9 +774,9 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 	if (edges) V_FREE(edges);
 	if (verts) V_FREE(verts);
 
-	BMO_Flag_To_Slot(bmesh, op, BMOP_ESUBDIVIDE_INNER_MULTOUT,
+	BMO_Flag_To_Slot(bmesh, op, "outinner",
 		         ELE_INNER, BM_ALL);
-	BMO_Flag_To_Slot(bmesh, op, BMOP_ESUBDIVIDE_SPLIT_MULTOUT,
+	BMO_Flag_To_Slot(bmesh, op, "outsplit",
 		         ELE_SPLIT, BM_ALL);
 }
 
@@ -795,7 +795,7 @@ void BM_esubdivideflag(Object *obedit, BMesh *bm, int selflag, float rad,
 		BMHeader *ele;
 		int i;
 		
-		ele = BMO_IterNew(&iter,bm,&op,BMOP_ESUBDIVIDE_INNER_MULTOUT);
+		ele = BMO_IterNew(&iter,bm,&op, "outinner");
 		for (; ele; ele=BMO_IterStep(&iter)) {
 			BM_Select(bm, ele, 1);
 		}

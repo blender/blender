@@ -1158,20 +1158,20 @@ short BM_extrude_edgeflag(Object *obedit, BMesh *bm, int eflag, float *nor)
 			break;
 	}
 
-	for (f=BMIter_New(&iter, bm, BM_FACES, NULL);f;f=BMIter_Step(&iter)) {
+	for (f=BMIter_New(&iter, bm, BM_FACES_OF_MESH, NULL);f;f=BMIter_Step(&iter)) {
 		add_normal_aligned(nor, f->no);
 	}
 	Normalize(nor);
 
-	BMO_Init_Op(&extop, BMOP_EXTRUDE_EDGECONTEXT);
-	BMO_HeaderFlag_To_Slot(bm, &extop, BMOP_EXFACE_EDGEFACEIN,
+	BMO_Init_Op(&extop, "extrudefaceregion");
+	BMO_HeaderFlag_To_Slot(bm, &extop, "edgefacein",
 		               flag, BM_VERT|BM_EDGE|BM_FACE);
 
-	for (edge=BMIter_New(&iter, bm, BM_EDGES, NULL); edge; edge=BMIter_Step(&iter)) {
+	for (edge=BMIter_New(&iter, bm, BM_EDGES_OF_MESH, NULL); edge; edge=BMIter_Step(&iter)) {
 		BM_Select_Edge(bm, edge, 0);
 	}
 
-	for (f=BMIter_New(&iter, bm, BM_FACES, NULL); f; f=BMIter_Step(&iter)) {
+	for (f=BMIter_New(&iter, bm, BM_FACES_OF_MESH, NULL); f; f=BMIter_Step(&iter)) {
 		BM_Select_Face(bm, f, 0);
 	}
 
@@ -1191,7 +1191,7 @@ short BM_extrude_edgeflag(Object *obedit, BMesh *bm, int eflag, float *nor)
 					Mat4MulMat4(mtx, obedit->obmat, imtx);
 				}
 
-				for (edge=BMIter_New(&iter,bm,BM_EDGES,NULL);
+				for (edge=BMIter_New(&iter,bm,BM_EDGES_OF_MESH,NULL);
 				     edge; edge=BMIter_Step(&iter))
 				{
 					if(edge->head.flag & flag) {
@@ -1208,17 +1208,17 @@ short BM_extrude_edgeflag(Object *obedit, BMesh *bm, int eflag, float *nor)
 						if (mmd->flag & MOD_MIR_AXIS_X)
 							if ( (fabs(co1[0]) < mmd->tolerance) &&
 								 (fabs(co2[0]) < mmd->tolerance) )
-								BMO_Insert_MapPointer(bm, &extop, BMOP_EXFACE_EXCLUDEMAP, edge, NULL);
+								BMO_Insert_MapPointer(bm, &extop, "exclude", edge, NULL);
 
 						if (mmd->flag & MOD_MIR_AXIS_Y)
 							if ( (fabs(co1[1]) < mmd->tolerance) &&
 								 (fabs(co2[1]) < mmd->tolerance) )
-								BMO_Insert_MapPointer(bm, &extop, BMOP_EXFACE_EXCLUDEMAP, edge, NULL);
+								BMO_Insert_MapPointer(bm, &extop, "exclude", edge, NULL);
 
 						if (mmd->flag & MOD_MIR_AXIS_Z)
 							if ( (fabs(co1[2]) < mmd->tolerance) &&
 								 (fabs(co2[2]) < mmd->tolerance) )
-								BMO_Insert_MapPointer(bm, &extop, BMOP_EXFACE_EXCLUDEMAP, edge, NULL);
+								BMO_Insert_MapPointer(bm, &extop, "exclude", edge, NULL);
 					}
 				}
 			}
@@ -1228,7 +1228,7 @@ short BM_extrude_edgeflag(Object *obedit, BMesh *bm, int eflag, float *nor)
 
 	BMO_Exec_Op(bm, &extop);
 
-	el =  BMO_IterNew(&siter, bm, &extop, BMOP_EXFACE_MULTOUT);
+	el =  BMO_IterNew(&siter, bm, &extop, "geomout");
 	for (; el; el=BMO_IterStep(&siter)) {
 		BM_Select(bm, el, 1);
 	}
