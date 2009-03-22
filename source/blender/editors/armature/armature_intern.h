@@ -61,6 +61,15 @@ void POSE_OT_select_parent(struct wmOperatorType *ot);
 void POSE_OT_select_hierarchy(struct wmOperatorType *ot);
 void POSE_OT_select_connected(struct wmOperatorType *ot);
 
+void SKETCH_OT_gesture(struct wmOperatorType *ot);
+void SKETCH_OT_delete(struct wmOperatorType *ot);
+void SKETCH_OT_draw_poly(struct wmOperatorType *ot);
+void SKETCH_OT_draw_stroke(struct wmOperatorType *ot);
+void SKETCH_OT_draw_preview(struct wmOperatorType *ot);
+void SKETCH_OT_finish_stroke(struct wmOperatorType *ot);
+void SKETCH_OT_cancel_stroke(struct wmOperatorType *ot);
+void SKETCH_OT_select(struct wmOperatorType *ot);
+
 /* editarmature.c */
 struct bArmature;
 struct EditBone;

@@ -37,6 +37,7 @@ struct bPoseChannel;
 struct wmWindowManager;
 struct ListBase;
 struct View3D;
+struct ViewContext;
 struct RegionView3D;
 
 typedef struct EditBone
@@ -124,15 +125,14 @@ void ED_pose_deselectall(struct Object *ob, int test, int doundo);
 
 /* sketch */
 
-int BIF_paintSketch(struct bContext *C, short mbut);
-void BIF_endStrokeSketch(struct bContext *C);
+int ED_operator_sketch_mode_active_stroke(struct bContext *C);
+int ED_operator_sketch_full_mode(struct bContext *C);
+int ED_operator_sketch_mode(struct bContext *C);
+
+void BIF_freeSketch(struct bContext *C);
 void BIF_convertSketch(struct bContext *C);
 void BIF_deleteSketch(struct bContext *C);
 void BIF_selectAllSketch(struct bContext *C, int mode); /* -1: deselect, 0: select, 1: toggle */
-int BIF_validSketchMode(struct bContext *C);
-int BIF_fullSketchMode(struct bContext *C); /* full sketch turned on (not Quick) */
-void BIF_cancelStrokeSketch(struct bContext *C);
-void BIF_sk_selectStroke(struct bContext *C, short mval[2], int extend);
 
 void  BIF_makeListTemplates(struct bContext *C);
 char *BIF_listTemplates(struct bContext *C);
@@ -142,9 +142,8 @@ void  BIF_setTemplate(struct bContext *C, int index);
 int   BIF_nbJointsTemplate(struct bContext *C);
 char * BIF_nameBoneTemplate(struct bContext *C);
 
-void BDR_queueDrawSketch(struct bContext *C);
-void BDR_drawSketch(struct bContext *C);
-void BDR_drawSketchNames(struct bContext *C);
+void BDR_drawSketch(struct bContext *vc);
+int BDR_drawSketchNames(struct ViewContext *vc);
 
 #endif /* ED_ARMATURE_H */
 

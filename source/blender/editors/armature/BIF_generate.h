@@ -23,21 +23,21 @@
 #ifndef BIF_GENERATE_H
 #define BIF_GENERATE_H
 
-struct bContext;
+struct ToolSettings;
 struct EditBone;
 struct BArcIterator;
 struct bArmature;
 struct ListBase;
 
-typedef int(NextSubdivisionFunc)(struct bContext*, struct BArcIterator*, int, int, float[3], float[3]);
+typedef int(NextSubdivisionFunc)(struct ToolSettings*, struct BArcIterator*, int, int, float[3], float[3]);
  
 float calcArcCorrelation(struct BArcIterator *iter, int start, int end, float v0[3], float n[3]);
 
-int nextFixedSubdivision(struct bContext *C, struct BArcIterator *iter, int start, int end, float head[3], float p[3]);
-int nextLengthSubdivision(struct bContext *C, struct BArcIterator *iter, int start, int end, float head[3], float p[3]);
-int nextAdaptativeSubdivision(struct bContext *C, struct BArcIterator *iter, int start, int end, float head[3], float p[3]);
+int nextFixedSubdivision(struct ToolSettings *toolsettings, struct BArcIterator *iter, int start, int end, float head[3], float p[3]);
+int nextLengthSubdivision(struct ToolSettings *toolsettings, struct BArcIterator *iter, int start, int end, float head[3], float p[3]);
+int nextAdaptativeSubdivision(struct ToolSettings *toolsettings, struct BArcIterator *iter, int start, int end, float head[3], float p[3]);
 
-struct EditBone * subdivideArcBy(struct bContext *C, struct bArmature *arm, ListBase *editbones, struct BArcIterator *iter, float invmat[][4], float tmat[][3], NextSubdivisionFunc next_subdividion);
+struct EditBone * subdivideArcBy(struct ToolSettings *toolsettings, struct bArmature *arm, ListBase *editbones, struct BArcIterator *iter, float invmat[][4], float tmat[][3], NextSubdivisionFunc next_subdividion);
 
 void setBoneRollFromNormal(struct EditBone *bone, float *no, float invmat[][4], float tmat[][3]);
  

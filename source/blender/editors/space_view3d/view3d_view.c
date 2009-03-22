@@ -1143,13 +1143,10 @@ short view3d_opengl_select(ViewContext *vc, unsigned int *buffer, unsigned int b
 		draw_object(scene, ar, v3d, BASACT, DRAW_PICKING|DRAW_CONSTCOLOR);
 	}
 	else if((vc->obedit && vc->obedit->type==OB_ARMATURE)) {
-		/* XXX etch-a-ton */
-//		if(BIF_fullSketchMode(C)) {
-//			BDR_drawSketchNames(C);
-//		}
-//		else {
+		/* if not drawing sketch, draw bones */
+		if(!BDR_drawSketchNames(vc)) {
 			draw_object(scene, ar, v3d, BASACT, DRAW_PICKING|DRAW_CONSTCOLOR);
-//		}
+		}
 	}
 	else {
 		Base *base;

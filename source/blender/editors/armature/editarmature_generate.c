@@ -46,6 +46,7 @@
 #include "BKE_context.h"
 
 #include "ED_armature.h"
+#include "armature_intern.h"
 #include "BIF_generate.h"
 
 void setBoneRollFromNormal(EditBone *bone, float *no, float invmat[][4], float tmat[][3])
@@ -120,12 +121,11 @@ float calcArcCorrelation(BArcIterator *iter, int start, int end, float v0[3], fl
 	}
 }
 
-int nextFixedSubdivision(bContext *C, BArcIterator *iter, int start, int end, float head[3], float p[3])
+int nextFixedSubdivision(ToolSettings *toolsettings, BArcIterator *iter, int start, int end, float head[3], float p[3])
 {
 	static float stroke_length = 0;
 	static float current_length;
 	static char n;
-	Scene *scene = CTX_data_scene(C);
 	float *v1, *v2;
 	float length_threshold;
 	int i;
@@ -153,7 +153,7 @@ int nextFixedSubdivision(bContext *C, BArcIterator *iter, int start, int end, fl
 	
 	n++;
 	
-	length_threshold = n * stroke_length / scene->toolsettings->skgen_subdivision_number;
+	length_threshold = n * stroke_length / toolsettings->skgen_subdivision_number;
 	
 	IT_peek(iter, start);
 	v1 = iter->p;
@@ -179,10 +179,9 @@ int nextFixedSubdivision(bContext *C, BArcIterator *iter, int start, int end, fl
 	
 	return -1;
 }
-int nextAdaptativeSubdivision(bContext *C, BArcIterator *iter, int start, int end, float head[3], float p[3])
+int nextAdaptativeSubdivision(ToolSettings *toolsettings, BArcIterator *iter, int start, int end, float head[3], float p[3])
 {
-	Scene *scene = CTX_data_scene(C);
-	float correlation_threshold = scene->toolsettings->skgen_correlation_limit;
+	float correlation_threshold = toolsettings->skgen_correlation_limit;
 	float *start_p;
 	float n[3];
 	int i;
@@ -207,10 +206,9 @@ int nextAdaptativeSubdivision(bContext *C, BArcIterator *iter, int start, int en
 	return -1;
 }
 
-int nextLengthSubdivision(bContext *C, BArcIterator *iter, int start, int end, float head[3], float p[3])
+int nextLengthSubdivision(ToolSettings *toolsettings, BArcIterator *iter, int start, int end, float head[3], float p[3])
 {
-	Scene *scene = CTX_data_scene(C);
-	float lengthLimit = scene->toolsettings->skgen_length_limit;
+	float lengthLimit = toolsettings->skgen_length_limit;
 	int same = 1;
 	int i;
 	
@@ -282,7 +280,7 @@ int nextLengthSubdivision(bContext *C, BArcIterator *iter, int start, int end, f
 	return -1;
 }
 
-EditBone * subdivideArcBy(bContext *C, bArmature *arm, ListBase *editbones, BArcIterator *iter, float invmat[][4], float tmat[][3], NextSubdivisionFunc next_subdividion)
+EditBone * subdivideArcBy(ToolSettings *toolsettings, bArmature *arm, ListBase *editbones, BArcIterator *iter, float invmat[][4], float tmat[][3], NextSubdivisionFunc next_subdividion)
 {
 	EditBone *lastBone = NULL;
 	EditBone *child = NULL;
@@ -296,7 +294,7 @@ EditBone * subdivideArcBy(bContext *C, bArmature *arm, ListBase *editbones, BArc
 	parent = addEditBone(arm, "Bone");
 	VECCOPY(parent->head, iter->p);
 	
-	index = next_subdividion(C, iter, bone_start, end, parent->head, parent->tail);
+	index = next_subdividion(toolsettings, iter, bone_start, end, parent->head, parent->tail);
 	while (index != -1)
 	{
 		IT_peek(iter, index);
@@ -314,7 +312,7 @@ EditBone * subdivideArcBy(bContext *C, bArmature *arm, ListBase *editbones, BArc
 		parent = child; // new child is next parent
 		bone_start = index; // start next bone from current index
 
-		index = next_subdividion(C, iter, bone_start, end, parent->head, parent->tail);
+		index = next_subdividion(toolsettings, iter, bone_start, end, parent->head, parent->tail);
 	}
 	
 	iter->tail(iter);

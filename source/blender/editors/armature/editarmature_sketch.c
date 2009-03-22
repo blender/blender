@@ -35,6 +35,9 @@
 #include "DNA_armature_types.h"
 #include "DNA_userdef_types.h"
 
+#include "RNA_define.h"
+#include "RNA_access.h"
+
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
 #include "BLI_graph.h"
@@ -48,6 +51,7 @@
 #include "BKE_context.h"
 
 #include "ED_view3d.h"
+#include "ED_screen.h"
 
 #include "BIF_gl.h"
 #include "UI_resources.h"
@@ -63,6 +67,7 @@
 
 #include "BIF_transform.h"
 
+#include "WM_api.h"
 #include "WM_types.h"
 
 //#include "blendef.h"
@@ -1059,7 +1064,7 @@ void sk_drawStroke(SK_Stroke *stk, int id, float color[3], int start, int end)
 //	glEnd();
 }
 
-void drawSubdividedStrokeBy(bContext *C, BArcIterator *iter, NextSubdivisionFunc next_subdividion)
+void drawSubdividedStrokeBy(ToolSettings *toolsettings, BArcIterator *iter, NextSubdivisionFunc next_subdividion)
 {
 	float head[3], tail[3];
 	int bone_start = 0;
@@ -1073,7 +1078,7 @@ void drawSubdividedStrokeBy(bContext *C, BArcIterator *iter, NextSubdivisionFunc
 	glPointSize(UI_GetThemeValuef(TH_VERTEX_SIZE) * 2);
 	glBegin(GL_POINTS);
 	
-	index = next_subdividion(C, iter, bone_start, end, head, tail);
+	index = next_subdividion(toolsettings, iter, bone_start, end, head, tail);
 	while (index != -1)
 	{
 		glVertex3fv(tail);
@@ -1081,20 +1086,19 @@ void drawSubdividedStrokeBy(bContext *C, BArcIterator *iter, NextSubdivisionFunc
 		VECCOPY(head, tail);
 		bone_start = index; // start next bone from current index
 
-		index = next_subdividion(C, iter, bone_start, end, head, tail);
+		index = next_subdividion(toolsettings, iter, bone_start, end, head, tail);
 	}
 	
 	glEnd();
 	glPointSize(UI_GetThemeValuef(TH_VERTEX_SIZE));
 }
 
-void sk_drawStrokeSubdivision(bContext *C, SK_Stroke *stk)
+void sk_drawStrokeSubdivision(ToolSettings *toolsettings, SK_Stroke *stk)
 {
-	Scene *scene = CTX_data_scene(C);
 	int head_index = -1;
 	int i;
 	
-	if (scene->toolsettings->bone_sketching_convert == SK_CONVERT_RETARGET)
+	if (toolsettings->bone_sketching_convert == SK_CONVERT_RETARGET)
 	{
 		return;
 	}
@@ -1119,17 +1123,17 @@ void sk_drawStrokeSubdivision(bContext *C, SK_Stroke *stk)
 					
 					initStrokeIterator(iter, stk, head_index, i);
 
-					if (scene->toolsettings->bone_sketching_convert == SK_CONVERT_CUT_ADAPTATIVE)
+					if (toolsettings->bone_sketching_convert == SK_CONVERT_CUT_ADAPTATIVE)
 					{
-						drawSubdividedStrokeBy(C, iter, nextAdaptativeSubdivision);
+						drawSubdividedStrokeBy(toolsettings, iter, nextAdaptativeSubdivision);
 					}
-					else if (scene->toolsettings->bone_sketching_convert == SK_CONVERT_CUT_LENGTH)
+					else if (toolsettings->bone_sketching_convert == SK_CONVERT_CUT_LENGTH)
 					{
-						drawSubdividedStrokeBy(C, iter, nextLengthSubdivision);
+						drawSubdividedStrokeBy(toolsettings, iter, nextLengthSubdivision);
 					}
-					else if (scene->toolsettings->bone_sketching_convert == SK_CONVERT_CUT_FIXED)
+					else if (toolsettings->bone_sketching_convert == SK_CONVERT_CUT_FIXED)
 					{
-						drawSubdividedStrokeBy(C, iter, nextFixedSubdivision);
+						drawSubdividedStrokeBy(toolsettings, iter, nextFixedSubdivision);
 					}
 					
 				}
@@ -1474,7 +1478,7 @@ void sk_projectDrawPoint(bContext *C, float vec[3], SK_Stroke *stk, SK_DrawData 
 	
 	/* method taken from editview.c - mouse_cursor() */
 	project_short_noclip(ar, fp, cval);
-	window_to_3d(ar, dvec, cval[0] - dd->mval[0], cval[1] - dd->mval[1]);
+	window_to_3d_delta(ar, dvec, cval[0] - dd->mval[0], cval[1] - dd->mval[1]);
 	VecSubf(vec, fp, dvec);
 }
 
@@ -1692,12 +1696,12 @@ int sk_addStrokeSnapPoint(bContext *C, SK_Sketch *sketch, SK_Stroke *stk, SK_Dra
 	return point_added;
 }
 
-void sk_addStrokePoint(bContext *C, SK_Sketch *sketch, SK_Stroke *stk, SK_DrawData *dd, short qual)
+void sk_addStrokePoint(bContext *C, SK_Sketch *sketch, SK_Stroke *stk, SK_DrawData *dd, short snap)
 {
 	Scene *scene = CTX_data_scene(C);
 	int point_added = 0;
 	
-	if (qual & KM_CTRL)
+	if (snap)
 	{
 		point_added = sk_addStrokeSnapPoint(C, sketch, stk, dd);
 	}
@@ -1713,11 +1717,11 @@ void sk_addStrokePoint(bContext *C, SK_Sketch *sketch, SK_Stroke *stk, SK_DrawDa
 	}
 }
 
-void sk_getStrokePoint(bContext *C, SK_Point *pt, SK_Sketch *sketch, SK_Stroke *stk, SK_DrawData *dd, short qual)
+void sk_getStrokePoint(bContext *C, SK_Point *pt, SK_Sketch *sketch, SK_Stroke *stk, SK_DrawData *dd, short snap)
 {
 	int point_added = 0;
 	
-	if (qual & KM_CTRL)
+	if (snap)
 	{
 		point_added = sk_getStrokeSnapPoint(C, pt, sketch, stk, dd);
 		LAST_SNAP_POINT_VALID = 1;
@@ -1759,10 +1763,10 @@ int sk_stroke_filtermval(SK_DrawData *dd)
 	return retval;
 }
 
-void sk_initDrawData(SK_DrawData *dd)
+void sk_initDrawData(SK_DrawData *dd, short mval[2])
 {
-//	XXX
-//	getmouseco_areawin(dd->mval);
+	dd->mval[0] = mval[0];
+	dd->mval[1] = mval[1];
 	dd->previous_mval[0] = -1;
 	dd->previous_mval[1] = -1;
 	dd->type = PT_EXACT;
@@ -1974,15 +1978,15 @@ void sk_convertStroke(bContext *C, SK_Stroke *stk)
 					
 					if (scene->toolsettings->bone_sketching_convert == SK_CONVERT_CUT_ADAPTATIVE)
 					{
-						bone = subdivideArcBy(C, arm, arm->edbo, iter, invmat, tmat, nextAdaptativeSubdivision);
+						bone = subdivideArcBy(scene->toolsettings, arm, arm->edbo, iter, invmat, tmat, nextAdaptativeSubdivision);
 					}
 					else if (scene->toolsettings->bone_sketching_convert == SK_CONVERT_CUT_LENGTH)
 					{
-						bone = subdivideArcBy(C, arm, arm->edbo, iter, invmat, tmat, nextLengthSubdivision);
+						bone = subdivideArcBy(scene->toolsettings, arm, arm->edbo, iter, invmat, tmat, nextLengthSubdivision);
 					}
 					else if (scene->toolsettings->bone_sketching_convert == SK_CONVERT_CUT_FIXED)
 					{
-						bone = subdivideArcBy(C, arm, arm->edbo, iter, invmat, tmat, nextFixedSubdivision);
+						bone = subdivideArcBy(scene->toolsettings, arm, arm->edbo, iter, invmat, tmat, nextFixedSubdivision);
 					}
 				}
 				
@@ -2659,19 +2663,22 @@ void sk_selectAllSketch(SK_Sketch *sketch, int mode)
 	}
 }
 
-void sk_selectStroke(SK_Sketch *sketch, short mval[2], int extend)
+void sk_selectStroke(bContext *C, SK_Sketch *sketch, short mval[2], int extend)
 {
+	ViewContext vc;
+	rcti rect;
 	unsigned int buffer[MAXPICKBUF];
 	short hits;
-
-//XXX
-#if 0
-	persp(PERSP_VIEW);
-
-	hits = view3d_opengl_select(buffer, MAXPICKBUF, mval[0]-5, mval[1]-5, mval[0]+5, mval[1]+5);
-	if(hits==0)
-		hits = view3d_opengl_select(buffer, MAXPICKBUF, mval[0]-12, mval[1]-12, mval[0]+12, mval[1]+12);
+	
+	view3d_set_viewcontext(C, &vc);
+	
+	rect.xmin= mval[0]-5;
+	rect.xmax= mval[0]+5;
+	rect.ymin= mval[1]-5;
+	rect.ymax= mval[1]+5;
 		
+	hits= view3d_opengl_select(&vc, buffer, MAXPICKBUF, &rect);
+
 	if (hits>0)
 	{
 		int besthitresult = -1;
@@ -2702,7 +2709,6 @@ void sk_selectStroke(SK_Sketch *sketch, short mval[2], int extend)
 			
 		}
 	}
-#endif
 }
 
 void sk_queueRedrawSketch(SK_Sketch *sketch)
@@ -2719,11 +2725,9 @@ void sk_queueRedrawSketch(SK_Sketch *sketch)
 	}
 }
 
-void sk_drawSketch(bContext *C, SK_Sketch *sketch, int with_names)
+void sk_drawSketch(Scene *scene, SK_Sketch *sketch, int with_names)
 {
-	Scene *scene = CTX_data_scene(C);
 	SK_Stroke *stk;
-	short qual = 0;
 	
 	glDisable(GL_DEPTH_TEST);
 
@@ -2759,7 +2763,7 @@ void sk_drawSketch(bContext *C, SK_Sketch *sketch, int with_names)
 		
 			if (stk->selected == 1)
 			{
-				sk_drawStrokeSubdivision(C, stk);
+				sk_drawStrokeSubdivision(scene->toolsettings, stk);
 			}
 		}
 	
@@ -2776,20 +2780,11 @@ void sk_drawSketch(bContext *C, SK_Sketch *sketch, int with_names)
 			
 			if (scene->toolsettings->bone_sketching & BONE_SKETCHING_QUICK)
 			{
-				sk_drawStrokeSubdivision(C, sketch->active_stroke);
+				sk_drawStrokeSubdivision(scene->toolsettings, sketch->active_stroke);
 			}
 			
 			if (last != NULL)
 			{
-				/* update point if in active area */
-				if (1 /*area_is_active_area(G.vd->area)*/)
-				{
-					SK_DrawData dd;
-					
-					sk_initDrawData(&dd);
-					sk_getStrokePoint(C, &sketch->next_point, sketch, sketch->active_stroke, &dd, qual);
-				}
-				
 				glEnable(GL_LINE_STIPPLE);
 				glColor3fv(selected_rgb);
 				glBegin(GL_LINE_STRIP);
@@ -2826,11 +2821,65 @@ void sk_drawSketch(bContext *C, SK_Sketch *sketch, int with_names)
 	glEnable(GL_DEPTH_TEST);
 }
 
+int sk_finish_stroke(bContext *C, SK_Sketch *sketch)
+{
+	Scene *scene = CTX_data_scene(C);
+
+	if (sketch->active_stroke != NULL)
+	{
+		SK_Stroke *stk = sketch->active_stroke;
+		
+		sk_endStroke(C, sketch);
+		
+		if (scene->toolsettings->bone_sketching & BONE_SKETCHING_QUICK)
+		{
+			if (scene->toolsettings->bone_sketching_convert == SK_CONVERT_RETARGET)
+			{
+				sk_retargetStroke(C, stk);
+			}
+			else
+			{
+				sk_convertStroke(C, stk);
+			}
+//			XXX
+//			BIF_undo_push("Convert Sketch");
+			sk_removeStroke(sketch, stk);
+//			XXX
+//			allqueue(REDRAWBUTSEDIT, 0);
+		}
+
+//		XXX		
+//		allqueue(REDRAWVIEW3D, 0);
+		return 1;
+	}
+	
+	return 0;
+}
+
+void sk_draw_poly(bContext *C, SK_Sketch *sketch, short mval[2], short snap)
+{
+	SK_DrawData dd;
+	
+	if (sketch->active_stroke == NULL)
+	{
+		sk_startStroke(sketch);
+		sk_selectAllSketch(sketch, -1);
+		
+		sketch->active_stroke->selected = 1;
+	}
+
+	sk_initDrawData(&dd, mval);
+	sk_addStrokePoint(C, sketch, sketch->active_stroke, &dd, snap);
+	
+	sk_updateNextPoint(sketch);
+}
+
 int sk_paint(bContext *C, SK_Sketch *sketch, short mbut)
 {
 	Scene *scene = CTX_data_scene(C);
 	int retval = 1;
 	short qual = 0;
+	short mval[2];
 	
 	if (mbut == LEFTMOUSE)
 	{
@@ -2843,7 +2892,7 @@ int sk_paint(bContext *C, SK_Sketch *sketch, short mbut)
 			sketch->active_stroke->selected = 1;
 		}
 
-		sk_initDrawData(&dd);
+		sk_initDrawData(&dd, mval);
 		
 		/* paint loop */
 		do {
@@ -2916,7 +2965,7 @@ int sk_paint(bContext *C, SK_Sketch *sketch, short mbut)
 			SK_DrawData dd;
 			sketch->gesture = sk_createStroke();
 	
-			sk_initDrawData(&dd);
+			sk_initDrawData(&dd, mval);
 			
 			/* paint loop */
 			do {
@@ -2974,124 +3023,10 @@ int sk_paint(bContext *C, SK_Sketch *sketch, short mbut)
 	return retval;
 }
 
-void BDR_drawSketchNames(bContext *C)
+static int ValidSketchViewContext(ViewContext *vc)
 {
-	if (BIF_validSketchMode(C))
-	{
-		if (GLOBAL_sketch != NULL)
-		{
-			sk_drawSketch(C, GLOBAL_sketch, 1);
-		}
-	}
-}
-
-void BDR_drawSketch(bContext *C)
-{
-	if (BIF_validSketchMode(C))
-	{
-		if (GLOBAL_sketch != NULL)
-		{
-			sk_drawSketch(C, GLOBAL_sketch, 0);
-		}
-	}
-}
-
-void BIF_endStrokeSketch(bContext *C)
-{
-	if (BIF_validSketchMode(C))
-	{
-		if (GLOBAL_sketch != NULL)
-		{
-			sk_endStroke(C, GLOBAL_sketch);
-//			allqueue(REDRAWVIEW3D, 0);
-		}
-	}
-}
-
-void BIF_cancelStrokeSketch(bContext *C)
-{
-	if (BIF_validSketchMode(C))
-	{
-		if (GLOBAL_sketch != NULL)
-		{
-			sk_cancelStroke(GLOBAL_sketch);
-//			allqueue(REDRAWVIEW3D, 0);
-		}
-	}
-}
-
-void BIF_deleteSketch(bContext *C)
-{
-	if (BIF_validSketchMode(C))
-	{
-		if (GLOBAL_sketch != NULL)
-		{
-			sk_deleteSelectedStrokes(GLOBAL_sketch);
-//			allqueue(REDRAWVIEW3D, 0);
-		}
-	}
-}
-
-void BIF_convertSketch(bContext *C)
-{
-	if (BIF_validSketchMode(C))
-	{
-		if (GLOBAL_sketch != NULL)
-		{
-			sk_convert(C, GLOBAL_sketch);
-//			BIF_undo_push("Convert Sketch");
-//			allqueue(REDRAWVIEW3D, 0);
-//			allqueue(REDRAWBUTSEDIT, 0);
-		}
-	}
-}
-
-int BIF_paintSketch(bContext *C, short mbut)
-{
-	if (BIF_validSketchMode(C))
-	{
-		if (GLOBAL_sketch == NULL)
-		{
-			GLOBAL_sketch = sk_createSketch();
-		}
-		
-		return sk_paint(C, GLOBAL_sketch, mbut);
-	}
-	else
-	{
-		return 0;
-	}
-}
-	
-
-void BDR_queueDrawSketch(bContext *C)
-{
-	if (BIF_validSketchMode(C))
-	{
-		if (GLOBAL_sketch != NULL)
-		{
-			sk_queueRedrawSketch(GLOBAL_sketch);
-		}
-	}
-}
-
-void BIF_selectAllSketch(bContext *C, int mode)
-{
-	if (BIF_validSketchMode(C))
-	{
-		if (GLOBAL_sketch != NULL)
-		{
-			sk_selectAllSketch(GLOBAL_sketch, mode);
-//			XXX
-//			allqueue(REDRAWVIEW3D, 0);
-		}
-	}
-}
-
-int BIF_validSketchMode(bContext *C)
-{
-	Object *obedit = CTX_data_edit_object(C);
-	Scene *scene = CTX_data_scene(C);
+	Object *obedit = vc->obedit;
+	Scene *scene= vc->scene;
 	
 	if (obedit && 
 		obedit->type == OB_ARMATURE && 
@@ -3105,7 +3040,204 @@ int BIF_validSketchMode(bContext *C)
 	}
 }
 
-int BIF_fullSketchMode(bContext *C)
+int BDR_drawSketchNames(ViewContext *vc)
+{
+	if (ValidSketchViewContext(vc))
+	{
+		if (GLOBAL_sketch != NULL)
+		{
+			sk_drawSketch(vc->scene, GLOBAL_sketch, 1);
+			return 1;
+		}
+	}
+	
+	return 0;
+}
+
+void BDR_drawSketch(bContext *C)
+{
+	if (ED_operator_sketch_mode(C))
+	{
+		if (GLOBAL_sketch != NULL)
+		{
+			sk_drawSketch(CTX_data_scene(C), GLOBAL_sketch, 0);
+		}
+	}
+}
+
+static int sketch_delete(bContext *C, wmOperator *op, wmEvent *event)
+{
+	if (GLOBAL_sketch != NULL)
+	{
+		sk_deleteSelectedStrokes(GLOBAL_sketch);
+//			allqueue(REDRAWVIEW3D, 0);
+	}
+	return OPERATOR_FINISHED;
+}
+
+void BIF_sk_selectStroke(bContext *C, short mval[2], short extend)
+{
+	if (GLOBAL_sketch != NULL)
+	{
+		sk_selectStroke(C, GLOBAL_sketch, mval, extend);
+	}
+}
+
+void BIF_convertSketch(bContext *C)
+{
+	if (ED_operator_sketch_full_mode(C))
+	{
+		if (GLOBAL_sketch != NULL)
+		{
+			sk_convert(C, GLOBAL_sketch);
+//			BIF_undo_push("Convert Sketch");
+//			allqueue(REDRAWVIEW3D, 0);
+//			allqueue(REDRAWBUTSEDIT, 0);
+		}
+	}
+}
+
+void BIF_deleteSketch(bContext *C)
+{
+	if (ED_operator_sketch_full_mode(C))
+	{
+		if (GLOBAL_sketch != NULL)
+		{
+			sk_deleteSelectedStrokes(GLOBAL_sketch);
+//			BIF_undo_push("Convert Sketch");
+//			allqueue(REDRAWVIEW3D, 0);
+		}
+	}
+}
+
+//int BIF_paintSketch(bContext *C, short mbut)
+//{
+//	if (BIF_validSketchMode(C))
+//	{
+//		if (GLOBAL_sketch == NULL)
+//		{
+//			GLOBAL_sketch = sk_createSketch();
+//		}
+//		
+//		return sk_paint(C, GLOBAL_sketch, mbut);
+//	}
+//	else
+//	{
+//		return 0;
+//	}
+//}
+//
+//void BIF_selectAllSketch(bContext *C, int mode)
+//{
+//	if (BIF_validSketchMode(C))
+//	{
+//		if (GLOBAL_sketch != NULL)
+//		{
+//			sk_selectAllSketch(GLOBAL_sketch, mode);
+////			XXX
+////			allqueue(REDRAWVIEW3D, 0);
+//		}
+//	}
+//}
+
+void BIF_freeSketch(bContext *C)
+{
+	if (GLOBAL_sketch != NULL)
+	{
+		sk_freeSketch(GLOBAL_sketch);
+		GLOBAL_sketch = NULL;
+	}
+}
+
+static int sketch_cancel(bContext *C, wmOperator *op, wmEvent *event)
+{
+	if (GLOBAL_sketch != NULL)
+	{
+		sk_cancelStroke(GLOBAL_sketch);
+		ED_area_tag_redraw(CTX_wm_area(C));
+		return OPERATOR_FINISHED;
+	}
+	return OPERATOR_PASS_THROUGH;
+}
+
+static int sketch_finish(bContext *C, wmOperator *op, wmEvent *event)
+{
+	if (GLOBAL_sketch != NULL)
+	{
+		if (sk_finish_stroke(C, GLOBAL_sketch))
+		{
+			ED_area_tag_redraw(CTX_wm_area(C));
+			return OPERATOR_FINISHED;
+		}
+	}
+	return OPERATOR_PASS_THROUGH;
+}
+
+static int sketch_select(bContext *C, wmOperator *op, wmEvent *event)
+{
+	if (GLOBAL_sketch != NULL)
+	{
+		short extend = 0;
+		sk_selectStroke(C, GLOBAL_sketch, event->mval, extend);
+		ED_area_tag_redraw(CTX_wm_area(C));
+	}
+	
+	return OPERATOR_FINISHED;
+}
+
+static int sketch_draw_poly(bContext *C, wmOperator *op, wmEvent *event)
+{
+	short snap = RNA_boolean_get(op->ptr, "snap");
+	
+	if (GLOBAL_sketch == NULL)
+	{
+		GLOBAL_sketch = sk_createSketch();
+	}
+	
+	sk_draw_poly(C, GLOBAL_sketch, event->mval, snap);
+	
+	return OPERATOR_FINISHED|OPERATOR_PASS_THROUGH;
+}
+
+static int sketch_draw_preview(bContext *C, wmOperator *op, wmEvent *event)
+{
+	short snap = RNA_boolean_get(op->ptr, "snap");
+	
+	if (GLOBAL_sketch != NULL)
+	{
+		SK_Sketch *sketch = GLOBAL_sketch;
+		SK_DrawData dd;
+		
+		sk_initDrawData(&dd, event->mval);
+		sk_getStrokePoint(C, &sketch->next_point, sketch, sketch->active_stroke, &dd, snap);
+		ED_area_tag_redraw(CTX_wm_area(C));
+	}
+	
+	return OPERATOR_FINISHED|OPERATOR_PASS_THROUGH;
+}
+
+/* ============================================== Poll Functions ============================================= */
+
+int ED_operator_sketch_mode_active_stroke(bContext *C)
+{
+	Object *obedit = CTX_data_edit_object(C);
+	Scene *scene = CTX_data_scene(C);
+	
+	if (obedit && 
+		obedit->type == OB_ARMATURE && 
+		scene->toolsettings->bone_sketching & BONE_SKETCHING &&
+		GLOBAL_sketch != NULL &&
+		GLOBAL_sketch->active_stroke != NULL)
+	{
+		return 1;
+	}
+	else
+	{
+		return 0;
+	}
+}
+
+int ED_operator_sketch_full_mode(bContext *C)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	Scene *scene = CTX_data_scene(C);
@@ -3123,19 +3255,145 @@ int BIF_fullSketchMode(bContext *C)
 	}
 }
 
-void BIF_freeSketch(bContext *C)
+int ED_operator_sketch_mode(bContext *C)
 {
-	if (GLOBAL_sketch != NULL)
+	Object *obedit = CTX_data_edit_object(C);
+	Scene *scene = CTX_data_scene(C);
+	
+	if (obedit && 
+		obedit->type == OB_ARMATURE && 
+		scene->toolsettings->bone_sketching & BONE_SKETCHING)
 	{
-		sk_freeSketch(GLOBAL_sketch);
-		GLOBAL_sketch = NULL;
+		return 1;
+	}
+	else
+	{
+		return 0;
 	}
 }
 
-void BIF_sk_selectStroke(bContext *C, short mval[2], int extend)
+/* ================================================ Operators ================================================ */
+
+void SKETCH_OT_delete(wmOperatorType *ot)
 {
-	if (GLOBAL_sketch != NULL)
-	{
-		sk_selectStroke(GLOBAL_sketch, mval, extend);
-	}
+	/* identifiers */
+	ot->name= "delete";
+	ot->idname= "SKETCH_OT_delete";
+	
+	/* api callbacks */
+	ot->invoke= sketch_delete;
+	
+	ot->poll= ED_operator_sketch_full_mode;
+	
+	/* flags */
+//	ot->flag= OPTYPE_UNDO;
+}
+
+void SKETCH_OT_select(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "select";
+	ot->idname= "SKETCH_OT_select";
+	
+	/* api callbacks */
+	ot->invoke= sketch_select;
+	
+	ot->poll= ED_operator_sketch_full_mode;
+	
+	/* flags */
+//	ot->flag= OPTYPE_UNDO;
+}
+
+void SKETCH_OT_cancel_stroke(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "cancel stroke";
+	ot->idname= "SKETCH_OT_cancel_stroke";
+	
+	/* api callbacks */
+	ot->invoke= sketch_cancel;
+	
+	ot->poll= ED_operator_sketch_mode_active_stroke;
+	
+	/* flags */
+//	ot->flag= OPTYPE_UNDO;
+}
+
+void SKETCH_OT_finish_stroke(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "end stroke";
+	ot->idname= "SKETCH_OT_finish_stroke";
+	
+	/* api callbacks */
+	ot->invoke= sketch_finish;
+	
+	ot->poll= ED_operator_sketch_mode_active_stroke;
+	
+	/* flags */
+//	ot->flag= OPTYPE_UNDO;
+}
+
+void SKETCH_OT_draw_poly(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "draw poly";
+	ot->idname= "SKETCH_OT_draw_poly";
+	
+	/* api callbacks */
+	ot->invoke= sketch_draw_poly;
+	
+	ot->poll= ED_operator_sketch_mode;
+	
+	RNA_def_boolean(ot->srna, "snap", 0, "Snap", "");
+
+	/* flags */
+//	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+void SKETCH_OT_draw_preview(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "draw preview";
+	ot->idname= "SKETCH_OT_draw_preview";
+	
+	/* api callbacks */
+	ot->invoke= sketch_draw_preview;
+	
+	ot->poll= ED_operator_sketch_mode_active_stroke;
+	
+	RNA_def_boolean(ot->srna, "snap", 0, "Snap", "");
+
+	/* flags */
+//	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+void SKETCH_OT_draw_stroke(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "draw stroke";
+	ot->idname= "SKETCH_OT_draw_stroke";
+	
+	/* api callbacks */
+	ot->invoke= sketch_draw_poly;
+	
+	ot->poll= ED_operator_sketch_mode;
+	
+	/* flags */
+//	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+void SKETCH_OT_gesture(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "gesture";
+	ot->idname= "SKETCH_OT_gesture";
+	
+	/* api callbacks */
+	ot->invoke= sketch_draw_poly;
+	
+	ot->poll= ED_operator_sketch_full_mode;
+	
+	/* flags */
+//	ot->flag= OPTYPE_UNDO;
 }

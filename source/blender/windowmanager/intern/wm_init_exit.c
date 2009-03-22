@@ -82,6 +82,7 @@
 #include "wm_files.h"
 #include "wm_window.h"
 
+#include "ED_armature.h"
 #include "ED_node.h"
 #include "ED_previewrender.h"
 #include "ED_space_api.h"
@@ -200,8 +201,8 @@ void WM_exit(bContext *C)
 //	XXX	
 //	BIF_GlobalReebFree();
 //	BIF_freeRetarget();
-//	BIF_freeTemplates();
-//	BIF_freeSketch();
+	BIF_freeTemplates(C);
+	BIF_freeSketch(C);
 
 	/* Context should still working here. but radio tool needs cleaning... */
 	freeAllRad(CTX_data_scene(C));
