@@ -40,9 +40,9 @@ StructRNA *rna_Texture_refine(struct PointerRNA *ptr)
 	Tex *tex= (Tex*)ptr->data;
 
 	switch(tex->type) {
-		/*case TEX_CLOUDS:
+		case TEX_CLOUDS:
 			return &RNA_CloudsTexture;
-		case TEX_WOOD:
+		/*case TEX_WOOD:
 			return &RNA_WoodTexture;
 		case TEX_MARBLE:
 			return &RNA_MarbleTexture;
@@ -270,6 +270,47 @@ static void rna_def_environment_map(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Depth", "Number of times a map will be rendered recursively (mirror effects.)");
 }
 
+static EnumPropertyItem prop_noise_basis_items[] = {
+	{TEX_BLENDER, "BLENDER_ORIGINAL", "Blender Original", ""},
+	{TEX_STDPERLIN, "ORIGINAL_PERLIN", "Original Perlin", ""},
+	{TEX_NEWPERLIN, "IMPROVED_PERLIN", "Improved Perlin", ""},
+	{TEX_VORONOI_F1, "VORONOI_F1", "Voronoi F1", ""},
+	{TEX_VORONOI_F2, "VORONOI_F2", "Voronoi F2", ""},
+	{TEX_VORONOI_F3, "VORONOI_F3", "Voronoi F3", ""},
+	{TEX_VORONOI_F4, "VORONOI_F4", "Voronoi F4", ""},
+	{TEX_VORONOI_F2F1, "VORONOI_F2_F1", "Voronoi F2-F1", ""},
+	{TEX_VORONOI_CRACKLE, "VORONOI_CRACKLE", "Voronoi Crackle", ""},
+	{TEX_CELLNOISE, "CELL_NOISE", "Cell Noise", ""},
+	{0, NULL, NULL, NULL}};
+
+static void rna_def_texture_clouds(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna= RNA_def_struct(brna, "CloudsTexture", "Texture");
+	RNA_def_struct_ui_text(srna, "Clouds Texture", "Procedural noise texture.");
+	RNA_def_struct_sdna(srna, "Tex");
+
+	prop= RNA_def_property(srna, "noise_size", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "noisesize");
+	RNA_def_property_range(prop, 0.0001, FLT_MAX);
+	RNA_def_property_ui_range(prop, 0.0001, 2, 10, 2);
+	RNA_def_property_ui_text(prop, "Noise Size", "");
+
+	prop= RNA_def_property(srna, "noise_basis", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "noisebasis");
+	RNA_def_property_enum_items(prop, prop_noise_basis_items);
+	RNA_def_property_ui_text(prop, "Noise Basis", "");
+
+	prop= RNA_def_property(srna, "nabla", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_range(prop, 0.001, 0.1);
+	RNA_def_property_ui_range(prop, 0.001, 0.1, 1, 2);
+	RNA_def_property_ui_text(prop, "Nabla", "Size of derivative offset used for calculating normal.");
+
+	/* XXX todo: noise depth, default/color, hard/soft */
+}
+
 static void rna_def_texture(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -326,6 +367,7 @@ static void rna_def_texture(BlenderRNA *brna)
 	rna_def_animdata_common(srna);
 
 	/* specific types */
+	rna_def_texture_clouds(brna);
 	/* XXX add more types here .. */
 
 	/* ********** XXX these should be moved to the specific types *****************/
