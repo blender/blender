@@ -455,28 +455,28 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Proportional Editing Falloff", "Falloff type for proportional editing mode.");
 
 	prop= RNA_def_property(srna, "current_frame", PROP_INT, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NOT_ANIMATEABLE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE);
 	RNA_def_property_int_sdna(prop, NULL, "r.cfra");
 	RNA_def_property_range(prop, MINFRAME, MAXFRAME);
 	RNA_def_property_ui_text(prop, "Current Frame", "");
 	RNA_def_property_update(prop, NC_SCENE|ND_FRAME, "rna_Scene_frame_update");
 	
 	prop= RNA_def_property(srna, "start_frame", PROP_INT, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NOT_ANIMATEABLE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE);
 	RNA_def_property_int_sdna(prop, NULL, "r.sfra");
 	RNA_def_property_int_funcs(prop, NULL, "rna_Scene_start_frame_set", NULL);
 	RNA_def_property_ui_text(prop, "Start Frame", "");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	
 	prop= RNA_def_property(srna, "end_frame", PROP_INT, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NOT_ANIMATEABLE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE);
 	RNA_def_property_int_sdna(prop, NULL, "r.efra");
 	RNA_def_property_int_funcs(prop, NULL, "rna_Scene_end_frame_set", NULL);
 	RNA_def_property_ui_text(prop, "End Frame", "");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	
 	prop= RNA_def_property(srna, "frame_step", PROP_INT, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NOT_ANIMATEABLE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE);
 	RNA_def_property_int_sdna(prop, NULL, "frame_step");
 	RNA_def_property_ui_text(prop, "Frame Step", "Number of frames to skip forward while rendering/playing back each frame");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
@@ -509,7 +509,7 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Keying Sets", "Keying Sets for this Scene.");
 	
 	prop= RNA_def_property(srna, "active_keyingset", PROP_INT, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Active Keying Set", "Current Keying Set index.");
 
 	prop= RNA_def_property(srna, "tool_settings", PROP_POINTER, PROP_NONE);

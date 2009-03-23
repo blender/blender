@@ -146,7 +146,8 @@ static void rna_def_ID_properties(BlenderRNA *brna)
 
 	/* IDP_GROUP */
 	prop= RNA_def_property(srna, "group", PROP_POINTER, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_EXPORT|PROP_NOT_EDITABLE|PROP_IDPROPERTY);
+	RNA_def_property_flag(prop, PROP_EXPORT|PROP_IDPROPERTY);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_struct_type(prop, "IDPropertyGroup");
 
 	prop= RNA_def_property(srna, "collection", PROP_COLLECTION, PROP_NONE);
@@ -180,7 +181,7 @@ static void rna_def_ID(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "users", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "us");
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Users", "Number of times this datablock is referenced.");
 
 	prop= RNA_def_property(srna, "fake_user", PROP_BOOLEAN, PROP_NONE);
@@ -190,7 +191,7 @@ static void rna_def_ID(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "library", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "lib");
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Library", "Library file the datablock is linked from.");
 }
 
@@ -204,7 +205,7 @@ static void rna_def_library(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "filename", PROP_STRING, PROP_FILEPATH);
 	RNA_def_property_string_sdna(prop, NULL, "name");
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Filename", "Path to the library .blend file.");
 }
 void RNA_def_ID(BlenderRNA *brna)

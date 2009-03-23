@@ -155,7 +155,7 @@ static void rna_MeshColor_color4_set(PointerRNA *ptr, const float *values)
 static int rna_Mesh_texspace_editable(PointerRNA *ptr)
 {
 	Mesh *me= (Mesh*)ptr->data;
-	return (me->texflag & AUTOSPACE)? PROP_NOT_EDITABLE: 0;
+	return (me->texflag & AUTOSPACE)? 0: PROP_EDITABLE;
 }
 
 static void rna_MeshVertex_groups_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
@@ -482,7 +482,7 @@ static void rna_def_mvert_group(BlenderRNA *brna)
 	 * there is no unique group to point to, hence the index */
 	prop= RNA_def_property(srna, "group", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "def_nr");
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Group Index", "");
 
 	prop= RNA_def_property(srna, "weight", PROP_FLOAT, PROP_NONE);
@@ -505,7 +505,7 @@ static void rna_def_mvert(BlenderRNA *brna)
 	/*prop= RNA_def_property(srna, "no", PROP_FLOAT, PROP_VECTOR);
 	RNA_def_property_float_funcs(prop, "rna_MeshVertex_no_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Normal", "Vertex Normal");
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);*/
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);*/
 
 	prop= RNA_def_property(srna, "selected", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SELECT);
@@ -537,7 +537,7 @@ static void rna_def_medge(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "verts", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "v1");
 	RNA_def_property_array(prop, 2);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Vertices", "Vertex indices");
 
 	prop= RNA_def_property(srna, "crease", PROP_FLOAT, PROP_NONE);
@@ -577,7 +577,7 @@ static void rna_def_mface(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "verts", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "v1");
 	RNA_def_property_array(prop, 4);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Vertices", "Vertex indices");
 
 	prop= RNA_def_property(srna, "material_index", PROP_INT, PROP_UNSIGNED);

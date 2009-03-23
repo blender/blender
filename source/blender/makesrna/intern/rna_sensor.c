@@ -105,7 +105,7 @@ void rna_def_sensor(BlenderRNA *brna)
 
 	/* type is not editable, would need to do proper data free/alloc */
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_enum_items(prop, sensor_type_items);
 	RNA_def_property_ui_text(prop, "Type", "");
 
@@ -210,18 +210,18 @@ void rna_def_keyboard_sensor(BlenderRNA *brna)
 	RNA_def_struct_sdna_from(srna, "bKeyboardSensor", "data");
 
 	prop= RNA_def_property(srna, "key", PROP_INT, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE); /* need better range or enum check */
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE); /* need better range or enum check */
 	RNA_def_property_ui_text(prop, "Key", "Input key code.");
 	RNA_def_property_range(prop, 0, 255);
 
 	prop= RNA_def_property(srna, "modifier_key", PROP_INT, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE); /* need better range or enum check */
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE); /* need better range or enum check */
 	RNA_def_property_int_sdna(prop, NULL, "qual");
 	RNA_def_property_ui_text(prop, "Modifier Key", "Modifier key code.");
 	RNA_def_property_range(prop, 0, 255);
 
 	prop= RNA_def_property(srna, "second_modifier_key", PROP_INT, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE); /* need better range or enum check */
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE); /* need better range or enum check */
 	RNA_def_property_int_sdna(prop, NULL, "qual2");
 	RNA_def_property_ui_text(prop, "Second Modifier Key", "Modifier key code.");
 	RNA_def_property_range(prop, 0, 255);

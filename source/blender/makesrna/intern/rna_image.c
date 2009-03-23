@@ -75,12 +75,12 @@ static void rna_def_imageuser(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "multilayer_layer", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "layer");
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE); /* image_multi_cb */
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE); /* image_multi_cb */
 	RNA_def_property_ui_text(prop, "Layer", "Layer in multilayer image.");
 
 	prop= RNA_def_property(srna, "multilayer_pass", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "pass");
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE); /* image_multi_cb */
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE); /* image_multi_cb */
 	RNA_def_property_ui_text(prop, "Pass", "Pass in multilayer image.");
 }
 
@@ -116,17 +116,17 @@ static void rna_def_image(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "filename", PROP_STRING, PROP_FILEPATH);
 	RNA_def_property_string_sdna(prop, NULL, "name");
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE); /* imagechanged */
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE); /* imagechanged */
 	RNA_def_property_ui_text(prop, "Filename", "Image/Movie file name.");
 
 	prop= RNA_def_property(srna, "source", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, prop_source_items);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE); /* imagechanged */
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE); /* imagechanged */
 	RNA_def_property_ui_text(prop, "Source", "Where the image comes from.");
 
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, prop_type_items);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE); /* imagechanged */
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE); /* imagechanged */
 	RNA_def_property_ui_text(prop, "Type", "How to generate the image.");
 
 	prop= RNA_def_property(srna, "packed_file", PROP_POINTER, PROP_NONE);
@@ -179,7 +179,7 @@ static void rna_def_image(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Display Aspect", "Display Aspect for this image, does not affect rendering.");
 
 	prop= RNA_def_property(srna, "animated", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE); /* B_TWINANIM */
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE); /* B_TWINANIM */
 	RNA_def_property_boolean_sdna(prop, NULL, "tpageflag", IMA_TWINANIM);
 	RNA_def_property_ui_text(prop, "Animated", "Use as animated texture in the game engine.");
 
@@ -199,7 +199,7 @@ static void rna_def_image(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Animation Speed", "Speed of the animation in frames per second.");
 
 	prop= RNA_def_property(srna, "tiles", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE); /* B_SIMAGETILE */
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE); /* B_SIMAGETILE */
 	RNA_def_property_boolean_sdna(prop, NULL, "tpageflag", IMA_TILES);
 	RNA_def_property_ui_text(prop, "Tiles", "Use of tilemode for faces (default shift-LMB to pick the tile for selected faces).");
 

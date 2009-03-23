@@ -26,7 +26,7 @@ LIBNAME = rna
 DIR = $(OCGDIR)/blender/makesrna
 
 ALLRNA = $(wildcard rna_*.c)
-DEFRNA = $(filter-out %rna_define.c, $(filter-out %rna_dependency.c, $(filter-out %rna_access.c, $(ALLRNA))))
+DEFRNA = $(filter-out %rna_define.c, $(filter-out %rna_access.c, $(ALLRNA)))
 
 GENSRCS = $(patsubst rna_%.c, rna_%_gen.c, $(DEFRNA))
 GENTARGET = $(patsubst %.c, $(DIR)/$(DEBUG_DIR)%.c, $(GENSRCS))
@@ -34,7 +34,7 @@ GENTARGET = $(patsubst %.c, $(DIR)/$(DEBUG_DIR)%.c, $(GENSRCS))
 MAKESRCS = $(DEFRNA) makesrna.c rna_define.c
 MAKEOBJS = $(patsubst %.c, $(DIR)/$(DEBUG_DIR)%.o, $(MAKESRCS))
 
-CSRCS = $(GENSRCS) rna_access.c rna_dependency.c
+CSRCS = $(GENSRCS) rna_access.c
 
 include nan_compile.mk
 

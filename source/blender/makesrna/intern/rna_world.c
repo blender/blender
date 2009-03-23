@@ -411,7 +411,7 @@ void RNA_def_world(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "script_link", PROP_POINTER, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "scriptlink");
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Script Link", "Scripts linked to this object.");
 
 	rna_def_ambient_occlusion(brna);

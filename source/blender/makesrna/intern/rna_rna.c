@@ -437,14 +437,14 @@ static PointerRNA rna_PointerProperty_fixed_type_get(PointerRNA *ptr)
 {
 	PropertyRNA *prop= (PropertyRNA*)ptr->data;
 	rna_idproperty_check(&prop, ptr);
-	return rna_pointer_inherit_refine(ptr, &RNA_Struct, ((PointerPropertyRNA*)prop)->structtype);
+	return rna_pointer_inherit_refine(ptr, &RNA_Struct, ((PointerPropertyRNA*)prop)->type);
 }
 
 static PointerRNA rna_CollectionProperty_fixed_type_get(PointerRNA *ptr)
 {
 	PropertyRNA *prop= (PropertyRNA*)ptr->data;
 	rna_idproperty_check(&prop, ptr);
-	return rna_pointer_inherit_refine(ptr, &RNA_Struct, ((CollectionPropertyRNA*)prop)->structtype);
+	return rna_pointer_inherit_refine(ptr, &RNA_Struct, ((CollectionPropertyRNA*)prop)->type);
 }
 
 /* Blender RNA */
@@ -465,41 +465,41 @@ static void rna_def_struct(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Struct Definition", "RNA structure definition");
 
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_string_funcs(prop, "rna_Struct_name_get", "rna_Struct_name_length", NULL);
 	RNA_def_property_ui_text(prop, "Name", "Human readable name.");
 
 	prop= RNA_def_property(srna, "identifier", PROP_STRING, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_string_funcs(prop, "rna_Struct_identifier_get", "rna_Struct_identifier_length", NULL);
 	RNA_def_property_ui_text(prop, "Identifier", "Unique name used in the code and scripting.");
 	RNA_def_struct_name_property(srna, prop);
 	
 	prop= RNA_def_property(srna, "description", PROP_STRING, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_string_funcs(prop, "rna_Struct_description_get", "rna_Struct_description_length", NULL);
 	RNA_def_property_ui_text(prop, "Description", "Description of the Struct's purpose.");
 	
 	prop= RNA_def_property(srna, "base", PROP_POINTER, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_struct_type(prop, "Struct");
 	RNA_def_property_pointer_funcs(prop, "rna_Struct_base_get", NULL);
 	RNA_def_property_ui_text(prop, "Base", "Struct definition this is derived from.");
 
 	prop= RNA_def_property(srna, "nested", PROP_POINTER, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_struct_type(prop, "Struct");
 	RNA_def_property_pointer_funcs(prop, "rna_Struct_nested_get", NULL);
 	RNA_def_property_ui_text(prop, "Nested", "Struct in which this struct is always nested, and to which it logically belongs.");
 
 	prop= RNA_def_property(srna, "name_property", PROP_POINTER, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_struct_type(prop, "StringProperty");
 	RNA_def_property_pointer_funcs(prop, "rna_Struct_name_property_get", NULL);
 	RNA_def_property_ui_text(prop, "Name Property", "Property that gives the name of the struct.");
 
 	prop= RNA_def_property(srna, "properties", PROP_COLLECTION, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_struct_type(prop, "Property");
 	RNA_def_property_collection_funcs(prop, "rna_Struct_properties_begin", "rna_Struct_properties_next", "rna_iterator_listbase_end", "rna_Struct_properties_get", 0, 0, 0);
 	RNA_def_property_ui_text(prop, "Properties", "Properties in the struct.");
@@ -536,35 +536,35 @@ static void rna_def_property(BlenderRNA *brna)
 	RNA_def_struct_refine_func(srna, "rna_Property_refine");
 
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_string_funcs(prop, "rna_Property_name_get", "rna_Property_name_length", NULL);
 	RNA_def_property_ui_text(prop, "Name", "Human readable name.");
 
 	prop= RNA_def_property(srna, "identifier", PROP_STRING, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_string_funcs(prop, "rna_Property_identifier_get", "rna_Property_identifier_length", NULL);
 	RNA_def_property_ui_text(prop, "Identifier", "Unique name used in the code and scripting.");
 	RNA_def_struct_name_property(srna, prop);
 		
 	prop= RNA_def_property(srna, "description", PROP_STRING, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_string_funcs(prop, "rna_Property_description_get", "rna_Property_description_length", NULL);
 	RNA_def_property_ui_text(prop, "Description", "Description of the property for tooltips.");
 
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_enum_items(prop, type_items);
 	RNA_def_property_enum_funcs(prop, "rna_Property_type_get", NULL);
 	RNA_def_property_ui_text(prop, "Type", "Data type of the property.");
 
 	prop= RNA_def_property(srna, "subtype", PROP_ENUM, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_enum_items(prop, subtype_items);
 	RNA_def_property_enum_funcs(prop, "rna_Property_subtype_get", NULL);
 	RNA_def_property_ui_text(prop, "Subtype", "Semantic interpretation of the property.");
 
 	prop= RNA_def_property(srna, "editable", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_boolean_funcs(prop, "rna_Property_editable_get", NULL);
 	RNA_def_property_ui_text(prop, "Editable", "Property is editable through RNA.");
 }
@@ -574,7 +574,7 @@ static void rna_def_number_property(StructRNA *srna, PropertyType type)
 	PropertyRNA *prop;
 
 	prop= RNA_def_property(srna, "array_length", PROP_INT, PROP_UNSIGNED);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_int_funcs(prop, "rna_Property_array_length_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Array Length", "Maximum length of the array, 0 means unlimited.");
 
@@ -582,38 +582,38 @@ static void rna_def_number_property(StructRNA *srna, PropertyType type)
 		return;
 
 	prop= RNA_def_property(srna, "hard_min", type, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	if(type == PROP_INT) RNA_def_property_int_funcs(prop, "rna_IntProperty_hard_min_get", NULL, NULL);
 	else RNA_def_property_float_funcs(prop, "rna_FloatProperty_hard_min_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Hard Minimum", "Minimum value used by buttons.");
 
 	prop= RNA_def_property(srna, "hard_max", type, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	if(type == PROP_INT) RNA_def_property_int_funcs(prop, "rna_IntProperty_hard_max_get", NULL, NULL);
 	else RNA_def_property_float_funcs(prop, "rna_FloatProperty_hard_max_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Hard Maximum", "Maximum value used by buttons.");
 
 	prop= RNA_def_property(srna, "soft_min", type, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	if(type == PROP_INT) RNA_def_property_int_funcs(prop, "rna_IntProperty_soft_min_get", NULL, NULL);
 	else RNA_def_property_float_funcs(prop, "rna_FloatProperty_soft_min_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Soft Minimum", "Minimum value used by buttons.");
 
 	prop= RNA_def_property(srna, "soft_max", type, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	if(type == PROP_INT) RNA_def_property_int_funcs(prop, "rna_IntProperty_soft_max_get", NULL, NULL);
 	else RNA_def_property_float_funcs(prop, "rna_FloatProperty_soft_max_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Soft Maximum", "Maximum value used by buttons.");
 
 	prop= RNA_def_property(srna, "step", type, PROP_UNSIGNED);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	if(type == PROP_INT) RNA_def_property_int_funcs(prop, "rna_IntProperty_step_get", NULL, NULL);
 	else RNA_def_property_float_funcs(prop, "rna_FloatProperty_step_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Step", "Step size used by number buttons, for floats 1/100th of the step size.");
 
 	if(type == PROP_FLOAT) {
 		prop= RNA_def_property(srna, "precision", PROP_INT, PROP_UNSIGNED);
-		RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+		RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 		RNA_def_property_int_funcs(prop, "rna_FloatProperty_precision_get", NULL, NULL);
 		RNA_def_property_ui_text(prop, "Precision", "Number of digits after the dot used by buttons.");
 	}
@@ -624,7 +624,7 @@ static void rna_def_string_property(StructRNA *srna)
 	PropertyRNA *prop;
 
 	prop= RNA_def_property(srna, "max_length", PROP_INT, PROP_UNSIGNED);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_int_funcs(prop, "rna_StringProperty_max_length_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Maximum Length", "Maximum length of the string, 0 means unlimited.");
 }
@@ -634,7 +634,7 @@ static void rna_def_enum_property(BlenderRNA *brna, StructRNA *srna)
 	PropertyRNA *prop;
 
 	prop= RNA_def_property(srna, "items", PROP_COLLECTION, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_struct_type(prop, "EnumPropertyItem");
 	RNA_def_property_collection_funcs(prop, "rna_EnumProperty_items_begin", "rna_iterator_array_next", "rna_iterator_array_end", "rna_iterator_array_get", 0, 0, 0);
 	RNA_def_property_ui_text(prop, "Items", "Possible values for the property.");
@@ -643,18 +643,18 @@ static void rna_def_enum_property(BlenderRNA *brna, StructRNA *srna)
 	RNA_def_struct_ui_text(srna, "Enum Item Definition", "Definition of a choice in an RNA enum property.");
 
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_string_funcs(prop, "rna_EnumPropertyItem_name_get", "rna_EnumPropertyItem_name_length", NULL);
 	RNA_def_property_ui_text(prop, "Name", "Human readable name.");
 
 	prop= RNA_def_property(srna, "identifier", PROP_STRING, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_string_funcs(prop, "rna_EnumPropertyItem_identifier_get", "rna_EnumPropertyItem_identifier_length", NULL);
 	RNA_def_property_ui_text(prop, "Identifier", "Unique name used in the code and scripting.");
 	RNA_def_struct_name_property(srna, prop);
 
 	prop= RNA_def_property(srna, "value", PROP_INT, PROP_UNSIGNED);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_int_funcs(prop, "rna_EnumPropertyItem_value_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Value", "Value of the item.");
 }
@@ -664,7 +664,7 @@ static void rna_def_pointer_property(StructRNA *srna, PropertyType type)
 	PropertyRNA *prop;
 
 	prop= RNA_def_property(srna, "fixed_type", PROP_POINTER, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_struct_type(prop, "Struct");
 	if(type == PROP_POINTER)
 		RNA_def_property_pointer_funcs(prop, "rna_PointerProperty_fixed_type_get", NULL);
@@ -724,7 +724,7 @@ void RNA_def_rna(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Blender RNA", "Blender RNA structure definitions.");
 
 	prop= RNA_def_property(srna, "structs", PROP_COLLECTION, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_struct_type(prop, "Struct");
 	RNA_def_property_collection_funcs(prop, "rna_BlenderRNA_structs_begin", "rna_iterator_listbase_next", "rna_iterator_listbase_end", "rna_iterator_listbase_get", 0, 0, 0);
 	RNA_def_property_ui_text(prop, "Structs", "");

@@ -187,7 +187,7 @@ static void rna_def_constraint_python(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "script_error", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PYCON_SCRIPTERROR);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Script Error", "The linked Python script has thrown an error.");
 }
 
@@ -1187,7 +1187,7 @@ void RNA_def_constraint(BlenderRNA *brna)
 	
 	/* enums */
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_enum_sdna(prop, NULL, "type");
 	RNA_def_property_enum_items(prop, type_items);
 	RNA_def_property_ui_text(prop, "Type", "");
@@ -1200,7 +1200,7 @@ void RNA_def_constraint(BlenderRNA *brna)
 	
 		// XXX this is really an internal flag, but it may be useful for some tools to be able to access this...
 	prop= RNA_def_property(srna, "disabled", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CONSTRAINT_DISABLE);
 	RNA_def_property_ui_text(prop, "Disabled", "Constraint has invalid settings and will not be evaluated.");
 	

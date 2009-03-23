@@ -79,28 +79,13 @@ typedef enum PropertyFlag {
 	/* editable means the property is editable in the user
 	 * interface, properties are editable by default except
 	 * for pointers and collections. */
-	PROP_NOT_EDITABLE = 1,
+	PROP_EDITABLE = 1,
 
 	/* animateable means the property can be driven by some
 	 * other input, be it animation curves, expressions, ..
 	 * properties are animateable by default except for pointers
 	 * and collections */
-	PROP_NOT_ANIMATEABLE = 2,
-
-#if 0
-	/* for pointers and collections, means that the struct
-	 * depends on the data pointed to for evaluation, such
-	 * that a change in the data pointed to will affect the
-	 * evaluated result of this struct. */
-	PROP_EVALUATE_DEPENDENCY = 8,
-	PROP_INVERSE_EVALUATE_DEPENDENCY = 16,
-
-	/* for pointers and collections, means that the struct
-	 * requires the data pointed to for rendering in the,
-	 * be it the render engine or viewport */
-	PROP_RENDER_DEPENDENCY = 32,
-	PROP_INVERSE_RENDER_DEPENDENCY = 64,
-#endif
+	PROP_ANIMATEABLE = 2,
 
 	/* internal flags */
 	PROP_BUILTIN = 128,

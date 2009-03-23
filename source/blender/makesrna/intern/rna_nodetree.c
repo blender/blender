@@ -116,7 +116,7 @@ static void rna_def_shader_node(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "bNode");
 
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_enum_items(prop, node_type_items);
 	RNA_def_property_ui_text(prop, "Type", "");
 

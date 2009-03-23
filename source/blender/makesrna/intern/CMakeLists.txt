@@ -98,7 +98,7 @@ ADD_CUSTOM_COMMAND(
 )
 
 # Build bf_rna
-SET(SRC rna_access.c rna_dependency.c ${GENSRC})
+SET(SRC rna_access.c ${GENSRC})
 BLENDERLIB(bf_rna "${SRC}" "${INC}")
 
 MESSAGE(STATUS "Configuring makesrna")

@@ -71,7 +71,7 @@ void RNA_def_actuator(BlenderRNA *brna)
 
 	/* type is not editable, would need to do proper data free/alloc */
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_enum_items(prop, actuator_type_items);
 	RNA_def_property_ui_text(prop, "Type", "");
 

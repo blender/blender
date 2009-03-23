@@ -133,13 +133,13 @@ static void rna_def_curvemappoint(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "location", PROP_FLOAT, PROP_VECTOR);
 	RNA_def_property_float_sdna(prop, NULL, "x");
 	RNA_def_property_array(prop, 2);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Location", "X/Y coordinates of the curve point.");
 
 	prop= RNA_def_property(srna, "handle_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
 	RNA_def_property_enum_items(prop, prop_handle_type_items);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Handle Type", "Curve interpolation at this point: bezier or vector.");
 
 	prop= RNA_def_property(srna, "selected", PROP_BOOLEAN, PROP_NONE);
@@ -165,7 +165,7 @@ static void rna_def_curvemap(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "extend", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
 	RNA_def_property_enum_items(prop, prop_extend_items);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Extend", "Extrapolate the curve or extend it horizontally.");
 
 	prop= RNA_def_property(srna, "points", PROP_COLLECTION, PROP_NONE);

@@ -90,7 +90,7 @@ static void rna_BezTriple_ctrlpoint_set(PointerRNA *ptr, const float *values)
 static int rna_Curve_texspace_editable(PointerRNA *ptr)
 {
 	Curve *cu= (Curve*)ptr->data;
-	return (cu->texflag & CU_AUTOSPACE)? PROP_NOT_EDITABLE: 0;
+	return (cu->texflag & CU_AUTOSPACE)? 0: PROP_EDITABLE;
 }
 
 #else
@@ -132,7 +132,7 @@ static void rna_def_bpoint(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "bevel_radius", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "radius");
 	/*RNA_def_property_range(prop, 0.0f, 1.0f);*/
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Bevel Radius", "Radius for bevelling");
 }
 
@@ -187,7 +187,7 @@ static void rna_def_beztriple(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "interpolation", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "ipo");
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_enum_items(prop, prop_mode_interpolation_items);
 	RNA_def_property_ui_text(prop, "Interpolation", "(For F-Curves Only) Interpolation to use for segment of curve starting from current BezTriple.");
 
@@ -220,7 +220,7 @@ static void rna_def_beztriple(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "bevel_radius", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "radius");
 	/*RNA_def_property_range(prop, 0.0f, 1.0f);*/
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Bevel Radius", "Radius for bevelling");
 }
 

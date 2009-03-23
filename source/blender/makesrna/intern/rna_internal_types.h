@@ -186,7 +186,7 @@ typedef struct PointerPropertyRNA {
 	PropPointerGetFunc get;
 	PropPointerSetFunc set;
 
-	struct StructRNA *structtype;
+	struct StructRNA *type;
 } PointerPropertyRNA;
 
 typedef struct CollectionPropertyRNA {
@@ -200,7 +200,7 @@ typedef struct CollectionPropertyRNA {
 	PropCollectionLookupIntFunc lookupint;			/* optional */
 	PropCollectionLookupStringFunc lookupstring;	/* optional */
 
-	struct StructRNA *structtype;
+	struct StructRNA *type;
 } CollectionPropertyRNA;
 
 

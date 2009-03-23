@@ -261,9 +261,9 @@ static char *rna_def_property_get_func(FILE *f, StructRNA *srna, PropertyRNA *pr
 				PointerPropertyRNA *pprop= (PointerPropertyRNA*)prop;
 				rna_print_data_get(f, dp);
 				if(dp->dnapointerlevel == 0)
-					fprintf(f, "	return rna_pointer_inherit_refine(ptr, &RNA_%s, &data->%s);\n", (char*)pprop->structtype, dp->dnaname);
+					fprintf(f, "	return rna_pointer_inherit_refine(ptr, &RNA_%s, &data->%s);\n", (char*)pprop->type, dp->dnaname);
 				else
-					fprintf(f, "	return rna_pointer_inherit_refine(ptr, &RNA_%s, data->%s);\n", (char*)pprop->structtype, dp->dnaname);
+					fprintf(f, "	return rna_pointer_inherit_refine(ptr, &RNA_%s, data->%s);\n", (char*)pprop->type, dp->dnaname);
 			}
 			fprintf(f, "}\n\n");
 			break;
@@ -277,7 +277,7 @@ static char *rna_def_property_get_func(FILE *f, StructRNA *srna, PropertyRNA *pr
 				if(strcmp(manualfunc, "rna_iterator_listbase_get") == 0 ||
 				   strcmp(manualfunc, "rna_iterator_array_get") == 0 ||
 				   strcmp(manualfunc, "rna_iterator_array_dereference_get") == 0)
-					fprintf(f, "	return rna_pointer_inherit_refine(&iter->parent, &RNA_%s, %s(iter));\n", (cprop->structtype)? (char*)cprop->structtype: "UnknownType", manualfunc);
+					fprintf(f, "	return rna_pointer_inherit_refine(&iter->parent, &RNA_%s, %s(iter));\n", (cprop->type)? (char*)cprop->type: "UnknownType", manualfunc);
 				else
 					fprintf(f, "	return %s(iter);\n", manualfunc);
 			}
@@ -384,12 +384,14 @@ static char *rna_def_property_set_func(FILE *f, StructRNA *srna, PropertyRNA *pr
 	char *func;
 	int i;
 
-	if(prop->flag & (PROP_IDPROPERTY|PROP_NOT_EDITABLE))
+	if(!(prop->flag & PROP_EDITABLE))
+		return NULL;
+	if(prop->flag & PROP_IDPROPERTY)
 		return NULL;
 
 	if(!manualfunc) {
 		if(!dp->dnastructname || !dp->dnaname) {
-			if(!(prop->flag & PROP_NOT_EDITABLE)) {
+			if(prop->flag & PROP_EDITABLE) {
 				fprintf(stderr, "rna_def_property_set_func: %s.%s has no valid dna info.\n", srna->identifier, prop->identifier);
 				DefRNA.error= 1;
 			}
@@ -732,8 +734,8 @@ static void rna_def_property_funcs(FILE *f, PropertyDefRNA *dp)
 
 			pprop->get= (void*)rna_def_property_get_func(f, srna, prop, dp, (char*)pprop->get);
 			pprop->set= (void*)rna_def_property_set_func(f, srna, prop, dp, (char*)pprop->set);
-			if(!pprop->structtype && !pprop->get) {
-				fprintf(stderr, "rna_def_property_funcs: %s.%s, pointer must have either type function or fixed type.\n", srna->identifier, prop->identifier);
+			if(!pprop->type) {
+				fprintf(stderr, "rna_def_property_funcs: %s.%s, pointer must have a struct type.\n", srna->identifier, prop->identifier);
 				DefRNA.error= 1;
 			}
 			break;
@@ -764,8 +766,8 @@ static void rna_def_property_funcs(FILE *f, PropertyDefRNA *dp)
 					DefRNA.error= 1;
 				}
 			}
-			if(!cprop->structtype && !cprop->get) {
-				fprintf(stderr, "rna_def_property_funcs: %s.%s, collection must have either type function or fixed type.\n", srna->identifier, prop->identifier);
+			if(!cprop->type) {
+				fprintf(stderr, "rna_def_property_funcs: %s.%s, collection must have a struct type.\n", srna->identifier, prop->identifier);
 				DefRNA.error= 1;
 			}
 			break;
@@ -924,8 +926,8 @@ static void rna_def_property_funcs_header_cpp(FILE *f, PropertyDefRNA *dp)
 		case PROP_POINTER: {
 			PointerPropertyRNA *pprop= (PointerPropertyRNA*)dp->prop;
 
-			if(pprop->structtype)
-				fprintf(f, "\t%s %s(void);", (char*)pprop->structtype, prop->identifier);
+			if(pprop->type)
+				fprintf(f, "\t%s %s(void);", (char*)pprop->type, prop->identifier);
 			else
 				fprintf(f, "\t%s %s(void);", "UnknownType", prop->identifier);
 			break;
@@ -933,8 +935,8 @@ static void rna_def_property_funcs_header_cpp(FILE *f, PropertyDefRNA *dp)
 		case PROP_COLLECTION: {
 			CollectionPropertyRNA *cprop= (CollectionPropertyRNA*)dp->prop;
 
-			if(cprop->structtype)
-				fprintf(f, "\tCOLLECTION_PROPERTY(%s, %s, %s)", (char*)cprop->structtype, srna->identifier, prop->identifier);
+			if(cprop->type)
+				fprintf(f, "\tCOLLECTION_PROPERTY(%s, %s, %s)", (char*)cprop->type, srna->identifier, prop->identifier);
 			else
 				fprintf(f, "\tCOLLECTION_PROPERTY(%s, %s, %s)", "UnknownType", srna->identifier, prop->identifier);
 			break;
@@ -989,8 +991,8 @@ static void rna_def_property_funcs_impl_cpp(FILE *f, PropertyDefRNA *dp)
 		case PROP_POINTER: {
 			PointerPropertyRNA *pprop= (PointerPropertyRNA*)dp->prop;
 
-			if(pprop->structtype)
-				fprintf(f, "\tPOINTER_PROPERTY(%s, %s, %s)", (char*)pprop->structtype, srna->identifier, prop->identifier);
+			if(pprop->type)
+				fprintf(f, "\tPOINTER_PROPERTY(%s, %s, %s)", (char*)pprop->type, srna->identifier, prop->identifier);
 			else
 				fprintf(f, "\tPOINTER_PROPERTY(%s, %s, %s)", "UnknownType", srna->identifier, prop->identifier);
 			break;
@@ -998,8 +1000,8 @@ static void rna_def_property_funcs_impl_cpp(FILE *f, PropertyDefRNA *dp)
 		case PROP_COLLECTION: {
 			/*CollectionPropertyRNA *cprop= (CollectionPropertyRNA*)dp->prop;
 
-			if(cprop->structtype)
-				fprintf(f, "\tCOLLECTION_PROPERTY(%s, %s, %s)", (char*)cprop->structtype, srna->identifier, prop->identifier);
+			if(cprop->type)
+				fprintf(f, "\tCOLLECTION_PROPERTY(%s, %s, %s)", (char*)cprop->type, srna->identifier, prop->identifier);
 			else
 				fprintf(f, "\tCOLLECTION_PROPERTY(%s, %s, %s)", "UnknownType", srna->identifier, prop->identifier);*/
 			break;
@@ -1038,14 +1040,14 @@ static void rna_auto_types()
 				if(dp->prop->type == PROP_POINTER) {
 					PointerPropertyRNA *pprop= (PointerPropertyRNA*)dp->prop;
 
-					if(!pprop->structtype && !pprop->get)
-						pprop->structtype= (StructRNA*)rna_find_type(dp->dnatype);
+					if(!pprop->type && !pprop->get)
+						pprop->type= (StructRNA*)rna_find_type(dp->dnatype);
 				}
 				else if(dp->prop->type== PROP_COLLECTION) {
 					CollectionPropertyRNA *cprop= (CollectionPropertyRNA*)dp->prop;
 
-					if(!cprop->structtype && !cprop->get && strcmp(dp->dnatype, "ListBase")==0)
-						cprop->structtype= (StructRNA*)rna_find_type(dp->dnatype);
+					if(!cprop->type && !cprop->get && strcmp(dp->dnatype, "ListBase")==0)
+						cprop->type= (StructRNA*)rna_find_type(dp->dnatype);
 				}
 			}
 		}
@@ -1327,14 +1329,14 @@ static void rna_generate_struct(BlenderRNA *brna, StructRNA *srna, FILE *f)
 			case PROP_POINTER: {
 				PointerPropertyRNA *pprop= (PointerPropertyRNA*)prop;
 				fprintf(f, "\t%s, %s, ", rna_function_string(pprop->get), rna_function_string(pprop->set));
-				if(pprop->structtype) fprintf(f, "&RNA_%s\n", (char*)pprop->structtype);
+				if(pprop->type) fprintf(f, "&RNA_%s\n", (char*)pprop->type);
 				else fprintf(f, "NULL\n");
 				break;
 			}
 			case PROP_COLLECTION: {
 				CollectionPropertyRNA *cprop= (CollectionPropertyRNA*)prop;
 				fprintf(f, "\t%s, %s, %s, %s, %s, %s, %s, ", rna_function_string(cprop->begin), rna_function_string(cprop->next), rna_function_string(cprop->end), rna_function_string(cprop->get), rna_function_string(cprop->length), rna_function_string(cprop->lookupint), rna_function_string(cprop->lookupstring));
-				if(cprop->structtype) fprintf(f, "&RNA_%s\n", (char*)cprop->structtype);
+				if(cprop->type) fprintf(f, "&RNA_%s\n", (char*)cprop->type);
 				else fprintf(f, "NULL\n");
 				break;
 			}

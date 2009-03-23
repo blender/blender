@@ -106,7 +106,7 @@ void rna_def_keyingset_path(BlenderRNA *brna)
 	
 	/* Path + Array Index */
 	prop= RNA_def_property(srna, "rna_path", PROP_STRING, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_string_funcs(prop, "rna_ksPath_RnaPath_get", "rna_ksPath_RnaPath_length", "rna_ksPath_RnaPath_set");
 	RNA_def_property_ui_text(prop, "RNA Path", "RNA Path to property setting.");
 	
@@ -140,7 +140,7 @@ void rna_def_keyingset(BlenderRNA *brna)
 	
 	/* Flags */
 	prop= RNA_def_property(srna, "builtin", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", KEYINGSET_BUILTIN);
 	RNA_def_property_ui_text(prop, "Built-In", "Keying Set is a built-in to Blender.");
 	
@@ -169,7 +169,7 @@ void rna_def_animdata_common(StructRNA *srna)
 	
 	prop= RNA_def_property(srna, "animation_data", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "adt");
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Animation Data", "Animation data for this datablock.");	
 }
 

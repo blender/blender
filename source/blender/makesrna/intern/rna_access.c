@@ -462,8 +462,8 @@ StructRNA *RNA_property_pointer_type(PointerRNA *ptr, PropertyRNA *prop)
 	rna_idproperty_check(&prop, ptr);
 	pprop= (PointerPropertyRNA*)prop;
 
-	if(pprop->structtype)
-		return pprop->structtype;
+	if(pprop->type)
+		return pprop->type;
 
 	return &RNA_UnknownType;
 }
@@ -545,7 +545,7 @@ int RNA_property_editable(PointerRNA *ptr, PropertyRNA *prop)
 	else
 		flag= prop->flag;
 
-	return !(flag & PROP_NOT_EDITABLE);
+	return (flag & PROP_EDITABLE);
 }
 
 int RNA_property_animateable(PointerRNA *ptr, PropertyRNA *prop)
@@ -554,7 +554,7 @@ int RNA_property_animateable(PointerRNA *ptr, PropertyRNA *prop)
 
 	rna_idproperty_check(&prop, ptr);
 
-	if(prop->flag & PROP_NOT_ANIMATEABLE)
+	if(!(prop->flag & PROP_ANIMATEABLE))
 		return 0;
 
 	if(prop->editable)
@@ -562,7 +562,7 @@ int RNA_property_animateable(PointerRNA *ptr, PropertyRNA *prop)
 	else
 		flag= prop->flag;
 
-	return !(flag & PROP_NOT_EDITABLE);
+	return (flag & PROP_EDITABLE);
 }
 
 int RNA_property_animated(PointerRNA *ptr, PropertyRNA *prop)
@@ -606,7 +606,7 @@ void RNA_property_boolean_set(PointerRNA *ptr, PropertyRNA *prop, int value)
 		IDP_Int(idprop)= value;
 	else if(bprop->set)
 		bprop->set(ptr, value);
-	else if(!(prop->flag & PROP_NOT_EDITABLE)) {
+	else if(prop->flag & PROP_EDITABLE) {
 		IDPropertyTemplate val;
 		IDProperty *group;
 
@@ -662,7 +662,7 @@ void RNA_property_boolean_set_array(PointerRNA *ptr, PropertyRNA *prop, const in
 		RNA_property_boolean_set(ptr, prop, values[0]);
 	else if(bprop->setarray)
 		bprop->setarray(ptr, values);
-	else if(!(prop->flag & PROP_NOT_EDITABLE)) {
+	else if(prop->flag & PROP_EDITABLE) {
 		IDPropertyTemplate val;
 		IDProperty *group;
 
@@ -709,7 +709,7 @@ void RNA_property_int_set(PointerRNA *ptr, PropertyRNA *prop, int value)
 		IDP_Int(idprop)= value;
 	else if(iprop->set)
 		iprop->set(ptr, value);
-	else if(!(prop->flag & PROP_NOT_EDITABLE)) {
+	else if(prop->flag & PROP_EDITABLE) {
 		IDPropertyTemplate val;
 		IDProperty *group;
 
@@ -765,7 +765,7 @@ void RNA_property_int_set_array(PointerRNA *ptr, PropertyRNA *prop, const int *v
 		RNA_property_int_set(ptr, prop, values[0]);
 	else if(iprop->setarray)
 		iprop->setarray(ptr, values);
-	else if(!(prop->flag & PROP_NOT_EDITABLE)) {
+	else if(prop->flag & PROP_EDITABLE) {
 		IDPropertyTemplate val;
 		IDProperty *group;
 
@@ -821,7 +821,7 @@ void RNA_property_float_set(PointerRNA *ptr, PropertyRNA *prop, float value)
 	else if(fprop->set) {
 		fprop->set(ptr, value);
 	}
-	else if(!(prop->flag & PROP_NOT_EDITABLE)) {
+	else if(prop->flag & PROP_EDITABLE) {
 		IDPropertyTemplate val;
 		IDProperty *group;
 
@@ -890,7 +890,7 @@ void RNA_property_float_set_array(PointerRNA *ptr, PropertyRNA *prop, const floa
 	else if(fprop->setarray) {
 		fprop->setarray(ptr, values);
 	}
-	else if(!(prop->flag & PROP_NOT_EDITABLE)) {
+	else if(prop->flag & PROP_EDITABLE) {
 		IDPropertyTemplate val;
 		IDProperty *group;
 
@@ -967,7 +967,7 @@ void RNA_property_string_set(PointerRNA *ptr, PropertyRNA *prop, const char *val
 		IDP_AssignString(idprop, (char*)value);
 	else if(sprop->set)
 		sprop->set(ptr, value);
-	else if(!(prop->flag & PROP_NOT_EDITABLE)) {
+	else if(prop->flag & PROP_EDITABLE) {
 		IDPropertyTemplate val;
 		IDProperty *group;
 
@@ -1003,7 +1003,7 @@ void RNA_property_enum_set(PointerRNA *ptr, PropertyRNA *prop, int value)
 	else if(eprop->set) {
 		eprop->set(ptr, value);
 	}
-	else if(!(prop->flag & PROP_NOT_EDITABLE)) {
+	else if(prop->flag & PROP_EDITABLE) {
 		IDPropertyTemplate val;
 		IDProperty *group;
 
@@ -1024,7 +1024,7 @@ PointerRNA RNA_property_pointer_get(PointerRNA *ptr, PropertyRNA *prop)
 		pprop= (PointerPropertyRNA*)prop;
 
 		/* for groups, data is idprop itself */
-		return rna_pointer_inherit_refine(ptr, pprop->structtype, idprop);
+		return rna_pointer_inherit_refine(ptr, pprop->type, idprop);
 	}
 	else if(pprop->get) {
 		return pprop->get(ptr);
@@ -1070,8 +1070,8 @@ static void rna_property_collection_get_idp(CollectionPropertyIterator *iter)
 	CollectionPropertyRNA *cprop= (CollectionPropertyRNA*)iter->prop;
 
 	iter->ptr.data= rna_iterator_array_get(iter);
-	iter->ptr.type= cprop->structtype;
-	rna_pointer_inherit_id(cprop->structtype, &iter->parent, &iter->ptr);
+	iter->ptr.type= cprop->type;
+	rna_pointer_inherit_id(cprop->type, &iter->parent, &iter->ptr);
 }
 
 void RNA_property_collection_begin(PointerRNA *ptr, PropertyRNA *prop, CollectionPropertyIterator *iter)
@@ -1186,7 +1186,7 @@ void RNA_property_collection_add(PointerRNA *ptr, PropertyRNA *prop, PointerRNA 
 			CollectionPropertyRNA *cprop= (CollectionPropertyRNA*)prop;
 
 			r_ptr->data= IDP_GetIndexArray(idprop, idprop->len-1);
-			r_ptr->type= cprop->structtype;
+			r_ptr->type= cprop->type;
 			rna_pointer_inherit_id(NULL, ptr, r_ptr);
 		}
 		else

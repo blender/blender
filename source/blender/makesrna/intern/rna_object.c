@@ -255,7 +255,7 @@ static void rna_def_vertex_group(BlenderRNA *brna)
 	RNA_def_struct_name_property(srna, prop);
 
 	prop= RNA_def_property(srna, "index", PROP_INT, PROP_UNSIGNED);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_int_funcs(prop, "rna_VertexGroup_index_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Index", "Index number of the vertex group.");
 }
@@ -324,7 +324,7 @@ static void rna_def_object_game_settings(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "physics_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "body_type");
 	RNA_def_property_enum_items(prop, body_type_items);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE); // this controls various gameflags
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE); // this controls various gameflags
 	RNA_def_property_ui_text(prop, "Physics Type",  "Selects the type of physical representation.");
 
 	prop= RNA_def_property(srna, "actor", PROP_BOOLEAN, PROP_NONE);
@@ -508,13 +508,13 @@ static StructRNA *rna_def_object(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "parent_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "partype");
 	RNA_def_property_enum_items(prop, parent_type_items);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Parent Type", "Type of parent relation.");
 
 	prop= RNA_def_property(srna, "parent_vertices", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "par1");
 	RNA_def_property_array(prop, 3);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Parent Vertices", "Indices of vertices in cases of a vertex parenting relation.");
 
 	prop= RNA_def_property(srna, "parent_bone", PROP_STRING, PROP_NONE);
@@ -550,7 +550,7 @@ static StructRNA *rna_def_object(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Materials", "");
 
 	prop= RNA_def_property(srna, "active_material", PROP_POINTER, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_struct_type(prop, "Material");
 	RNA_def_property_pointer_funcs(prop, "rna_Object_active_material_get", NULL);
 	RNA_def_property_ui_text(prop, "Active Material", "Active material being displayed.");
@@ -704,7 +704,7 @@ static StructRNA *rna_def_object(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "draw_keys", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "ipoflag", OB_DRAWKEY);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE); // update ipo flag indirect
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE); // update ipo flag indirect
 	RNA_def_property_ui_text(prop, "Draw Keys", "Draw object as key positions.");
 
 	prop= RNA_def_property(srna, "draw_keys_selected", PROP_BOOLEAN, PROP_NONE);
@@ -722,22 +722,22 @@ static StructRNA *rna_def_object(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "dupli_frames", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "transflag", OB_DUPLIFRAMES);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE); // clear other flags
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE); // clear other flags
 	RNA_def_property_ui_text(prop, "Dupli Frames", "Make copy of object for every frame.");
 
 	prop= RNA_def_property(srna, "dupli_verts", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "transflag", OB_DUPLIVERTS);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE); // clear other flags
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE); // clear other flags
 	RNA_def_property_ui_text(prop, "Dupli Verts", "Duplicate child objects on all vertices.");
 
 	prop= RNA_def_property(srna, "dupli_faces", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "transflag", OB_DUPLIFACES);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE); // clear other flags
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE); // clear other flags
 	RNA_def_property_ui_text(prop, "Dupli Faces", "Duplicate child objects on all faces.");
 
 	prop= RNA_def_property(srna, "use_dupli_group", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "transflag", OB_DUPLIGROUP);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE); // clear other flags
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE); // clear other flags
 	RNA_def_property_ui_text(prop, "Use Dupli Group", "Enable group instancing.");
 
 	prop= RNA_def_property(srna, "dupli_frames_no_speed", PROP_BOOLEAN, PROP_NONE);
@@ -814,7 +814,7 @@ static StructRNA *rna_def_object(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "script_link", PROP_POINTER, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "scriptlink");
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Script Link", "Scripts linked to this object.");
 
 	/* drawing */
@@ -879,7 +879,7 @@ static StructRNA *rna_def_object(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "pose_mode", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", OB_POSEMODE);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Pose Mode", "Object with armature data is in pose mode.");
 
 	// XXX this stuff should be moved to AnimData...
@@ -890,18 +890,18 @@ static StructRNA *rna_def_object(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "nla_collapsed", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "nlaflag", OB_NLA_COLLAPSED);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "NLA Collapsed", "");
 
 	prop= RNA_def_property(srna, "nla_override", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "nlaflag", OB_NLA_OVERRIDE);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "NLA Override", "");
 
 	prop= RNA_def_property(srna, "nla_strips", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "nlastrips", NULL);
 	RNA_def_property_struct_type(prop, "UnknownType");
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "NLA Strips", "NLA strips of the object.");
 */
 	
@@ -909,12 +909,12 @@ static StructRNA *rna_def_object(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "shape_key_lock", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "shapeflag", OB_SHAPE_LOCK);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Shape Key Lock", "Always show the current Shape for this Object.");
 
 	prop= RNA_def_property(srna, "active_shape_key", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "shapenr");
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Active Shape Key", "Current shape key index.");
 	
 	return srna;

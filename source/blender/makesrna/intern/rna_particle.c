@@ -299,7 +299,7 @@ static void rna_def_particle_data(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Alive State", "");
 
 	prop= RNA_def_property(srna, "loop", PROP_INT, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	//TODO: bounds
 	RNA_def_property_ui_text(prop, "Loop", "How may times the particle life has looped");
 
@@ -1173,7 +1173,7 @@ static void rna_def_particlesettings(BlenderRNA *brna)
 
 #if 0
 	prop= RNA_def_property(srna, "ipo", PROP_POINTER, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_pointer_sdna(prop, NULL, "ipo");
 	RNA_def_property_struct_type(prop, "Ipo");
 	RNA_def_property_ui_text(prop, "Ipo", "");

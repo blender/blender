@@ -146,7 +146,7 @@ static void rna_def_space(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "spacetype");
 	RNA_def_property_enum_items(prop, type_items);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Type", "Space data type.");
 }
 
@@ -338,6 +338,7 @@ static void rna_def_space_text(BlenderRNA *brna)
 
 	/* text */
 	prop= RNA_def_property(srna, "text", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Text", "Text displayed and edited in this space.");
 	RNA_def_property_pointer_funcs(prop, NULL, "rna_SpaceTextEditor_text_set");
 	RNA_def_property_update(prop, NC_TEXT|ND_CURSOR, NULL);

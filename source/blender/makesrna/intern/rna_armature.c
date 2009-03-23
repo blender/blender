@@ -126,7 +126,7 @@ static void rna_def_bone(BlenderRNA *brna)
 	
 	/* strings */
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE); /* must be unique */
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE); /* must be unique */
 	RNA_def_property_ui_text(prop, "Name", "");
 	RNA_def_struct_name_property(srna, prop);
 	

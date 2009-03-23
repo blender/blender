@@ -403,12 +403,11 @@ StructRNA *RNA_def_struct(BlenderRNA *brna, const char *identifier, const char *
 			cprop->begin= rna_builtin_properties_begin;
 			cprop->next= rna_builtin_properties_next;
 			cprop->get= rna_builtin_properties_get;
-			cprop->structtype= &RNA_Property;
+			cprop->type= &RNA_Property;
 #endif
 		}
 
 		prop= RNA_def_property(srna, "rna_type", PROP_POINTER, PROP_NONE);
-		RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
 		RNA_def_property_ui_text(prop, "RNA", "RNA type definition.");
 
 		if(DefRNA.preprocess) {
@@ -419,7 +418,7 @@ StructRNA *RNA_def_struct(BlenderRNA *brna, const char *identifier, const char *
 #ifdef RNA_RUNTIME
 			PointerPropertyRNA *pprop= (PointerPropertyRNA*)prop;
 			pprop->get= rna_builtin_type_get;
-			pprop->structtype= &RNA_Struct;
+			pprop->type= &RNA_Struct;
 #endif
 		}
 	}
@@ -625,8 +624,8 @@ PropertyRNA *RNA_def_property(StructRNA *srna, const char *identifier, int type,
 	prop->name= identifier;
 	prop->description= "";
 
-	if(type == PROP_COLLECTION || type == PROP_POINTER)
-		prop->flag= PROP_NOT_EDITABLE|PROP_NOT_ANIMATEABLE;
+	if(type != PROP_COLLECTION && type != PROP_POINTER)
+		prop->flag= PROP_EDITABLE|PROP_ANIMATEABLE;
 
 	if(DefRNA.preprocess) {
 		switch(type) {
@@ -680,20 +679,12 @@ PropertyRNA *RNA_def_property(StructRNA *srna, const char *identifier, int type,
 
 void RNA_def_property_flag(PropertyRNA *prop, int flag)
 {
-#if 0
-	StructRNA *srna;
-#endif
-
 	prop->flag |= flag;
+}
 
-#if 0
-	if(prop->type != PROP_POINTER && prop->type != PROP_COLLECTION) {
-		if(flag & (PROP_EVALUATE_DEPENDENCY|PROP_INVERSE_EVALUATE_DEPENDENCY|PROP_RENDER_DEPENDENCY|PROP_INVERSE_RENDER_DEPENDENCY)) {
-			fprintf(stderr, "RNA_def_property_flag: %s.%s, only pointer and collection types can create dependencies.\n", ds->srna->identifier, prop->identifier);
-			DefRNA.error= 1;
-		}
-	}
-#endif
+void RNA_def_property_clear_flag(PropertyRNA *prop, int flag)
+{
+	prop->flag &= ~flag;
 }
 
 void RNA_def_property_array(PropertyRNA *prop, int arraylength)
@@ -798,12 +789,12 @@ void RNA_def_property_struct_type(PropertyRNA *prop, const char *type)
 	switch(prop->type) {
 		case PROP_POINTER: {
 			PointerPropertyRNA *pprop= (PointerPropertyRNA*)prop;
-			pprop->structtype = (StructRNA*)type;
+			pprop->type = (StructRNA*)type;
 			break;
 		}
 		case PROP_COLLECTION: {
 			CollectionPropertyRNA *cprop= (CollectionPropertyRNA*)prop;
-			cprop->structtype = (StructRNA*)type;
+			cprop->type = (StructRNA*)type;
 			break;
 		}
 		default:
@@ -825,12 +816,12 @@ void RNA_def_property_struct_runtime(PropertyRNA *prop, StructRNA *type)
 	switch(prop->type) {
 		case PROP_POINTER: {
 			PointerPropertyRNA *pprop= (PointerPropertyRNA*)prop;
-			pprop->structtype = type;
+			pprop->type = type;
 			break;
 		}
 		case PROP_COLLECTION: {
 			CollectionPropertyRNA *cprop= (CollectionPropertyRNA*)prop;
-			cprop->structtype = type;
+			cprop->type = type;
 			break;
 		}
 		default:
