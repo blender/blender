@@ -75,6 +75,7 @@ else
     export NAN_SOLID ?= $(LCGDIR)/solid
     export NAN_QHULL ?= $(LCGDIR)/qhull
 endif
+    export BF_PROFILE ?= false
     export NAN_USE_BULLET ?= true
     export NAN_BULLET2 ?= $(LCGDIR)/bullet2
     export NAN_SUMO ?= $(SRCHOME)/gameengine/Physics/Sumo
