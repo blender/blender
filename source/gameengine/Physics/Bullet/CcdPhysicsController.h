@@ -167,6 +167,9 @@ public:
 	std::vector<int>		m_polygonIndexArray;	// Contains the array of polygon index in the 
 													// original mesh that correspond to shape triangles.
 													// only set for concave mesh shape.
+	
+	std::vector<int>		m_triFaceArray;	// Contains an array of triplets of face indicies
+											// quads turn into 2 tris
 
 	void	setVertexWeldingThreshold(float threshold)
 	{
@@ -185,7 +188,7 @@ protected:
 											// the actual shape is of type btScaledBvhTriangleMeshShape
 	std::vector<CcdShapeConstructionInfo*> m_shapeArray;	// for compound shapes
 	bool	m_useGimpact; //use gimpact for concave dynamic/moving collision detection
-	float	m_weldingThreshold;	//welding closeby vertices together can improve softbody stability etc.
+	float	m_weldingThreshold;	//welding closeby vertices together can improve softbody stability etc. // Not used at the moment, maybe remove?
 	CcdShapeConstructionInfo* m_shapeProxy;	// only used for PHY_SHAPE_PROXY, pointer to actual shape info
 };
 

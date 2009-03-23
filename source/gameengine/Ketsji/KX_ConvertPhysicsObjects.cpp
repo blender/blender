@@ -881,6 +881,9 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 				{
 					shapeInfo->SetMesh(meshobj, false,false);
 				}
+
+				// Note! since 2.48a bullet mesh conversion has been sped up not to remove doubles
+				// if softbody needs this there should be some post processing filter for softbody meshes.
 				if (objprop->m_softbody)
 					shapeInfo->setVertexWeldingThreshold(0.01f); //todo: expose this to the UI
 
