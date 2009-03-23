@@ -1039,11 +1039,11 @@ static uiBlock *view3d_select_objectmenu(bContext *C, ARegion *ar, void *arg_unu
 	
 	uiDefMenuSep(block);
 	
-	uiDefMenuButO(block, "OBJECT_OT_de_select_all", "Select/Deselect All");
-	uiDefMenuButO(block, "OBJECT_OT_select_invert", "Inverse");
-	uiDefMenuButO(block, "OBJECT_OT_select_random", "Random");
-	uiDefMenuButO(block, "OBJECT_OT_select_by_layer", "Select All by Layer");
-	uiDefMenuButO(block, "OBJECT_OT_select_by_type", "Select All by Type");
+	uiDefMenuButO(block, "OBJECT_OT_selection_de_select_all", "Select/Deselect All");
+	uiDefMenuButO(block, "OBJECT_OT_selection_invert", "Inverse");
+	uiDefMenuButO(block, "OBJECT_OT_selection_random", "Random");
+	uiDefMenuButO(block, "OBJECT_OT_selection_by_layer", "Select All by Layer");
+	uiDefMenuButO(block, "OBJECT_OT_selection_by_type", "Select All by Type");
 
 
 	if(ar->alignment==RGN_ALIGN_TOP) {
