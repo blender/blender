@@ -682,7 +682,7 @@ static void addedgeface_mesh(EditMesh *em, wmOperator *op)
 		ok = EDBM_Finish(bm, em, op, 1);
 		if (!ok) return OPERATOR_CANCELLED;
 
-		len = BMO_GetSlot(&bmop, "connectverts")->len;		
+		len = BMO_GetSlot(&bmop, "edgeout")->len;		
 		if (len) return;	
 	}
 
