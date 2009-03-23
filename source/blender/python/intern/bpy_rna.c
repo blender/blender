@@ -70,16 +70,39 @@ static PyObject *pyrna_prop_richcmp(BPy_PropertyRNA * a, BPy_PropertyRNA * b, in
 /*----------------------repr--------------------------------------------*/
 static PyObject *pyrna_struct_repr( BPy_StructRNA * self )
 {
+	PropertyRNA *prop;
 	char str[512];
-	RNA_string_get(&self->ptr, "identifier", str);
-	return PyUnicode_FromFormat( "[BPy_StructRNA \"%s\" -> \"%s\"]", RNA_struct_identifier(&self->ptr), str);
+
+	/* print name if available */
+	prop= RNA_struct_name_property(&self->ptr);
+	if(prop) {
+		RNA_property_string_get(&self->ptr, prop, str);
+		return PyUnicode_FromFormat( "[BPy_StructRNA \"%s\" -> \"%s\"]", RNA_struct_identifier(&self->ptr), str);
+	}
+
+	return PyUnicode_FromFormat( "[BPy_StructRNA \"%s\"]", RNA_struct_identifier(&self->ptr));
 }
 
 static PyObject *pyrna_prop_repr( BPy_PropertyRNA * self )
 {
+	PropertyRNA *prop;
+	PointerRNA ptr;
 	char str[512];
-	RNA_string_get(&self->ptr, "identifier", str);
-	return PyUnicode_FromFormat( "[BPy_PropertyRNA \"%s\" -> \"%s\" -> \"%s\" ]", RNA_struct_identifier(&self->ptr), str, RNA_property_identifier(&self->ptr, self->prop) );
+
+	/* if a pointer, try to print name of pointer target too */
+	if(RNA_property_type(&self->ptr, self->prop) == PROP_POINTER) {
+		ptr= RNA_property_pointer_get(&self->ptr, self->prop);
+
+		if(ptr.data) {
+			prop= RNA_struct_name_property(&ptr);
+			if(prop) {
+				RNA_property_string_get(&ptr, prop, str);
+				return PyUnicode_FromFormat( "[BPy_PropertyRNA \"%s\" -> \"%s\" -> \"%s\" ]", RNA_struct_identifier(&self->ptr), RNA_property_identifier(&self->ptr, self->prop), str);
+			}
+		}
+	}
+
+	return PyUnicode_FromFormat( "[BPy_PropertyRNA \"%s\" -> \"%s\"]", RNA_struct_identifier(&self->ptr), RNA_property_identifier(&self->ptr, self->prop));
 }
 
 static long pyrna_struct_hash( BPy_StructRNA * self )
@@ -354,8 +377,25 @@ int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, PyObject *value)
 		}
 		case PROP_POINTER:
 		{
-			PyErr_SetString(PyExc_AttributeError, "cant assign pointers yet");
-			return -1;
+			StructRNA *ptype= RNA_property_pointer_type(ptr, prop);
+
+			if(!BPy_StructRNA_Check(value)) {
+				PointerRNA tmp;
+				RNA_pointer_create(NULL, ptype, NULL, &tmp);
+				PyErr_Format(PyExc_TypeError, "expected a %s type", RNA_struct_identifier(&tmp));
+				return -1;
+			} else {
+				BPy_StructRNA *param= (BPy_StructRNA*)value;
+
+				if(RNA_struct_is_a(&param->ptr, ptype)) {
+					RNA_property_pointer_set(ptr, prop, param->ptr);
+				} else {
+					PointerRNA tmp;
+					RNA_pointer_create(NULL, ptype, NULL, &tmp);
+					PyErr_Format(PyExc_TypeError, "expected a %s type", RNA_struct_identifier(&tmp));
+					return -1;
+				}
+			}
 			break;
 		}
 		case PROP_COLLECTION:
@@ -1135,7 +1175,6 @@ PyObject* pyrna_struct_Subtype(PointerRNA *ptr)
 PyObject *pyrna_struct_CreatePyObject( PointerRNA *ptr )
 {
 	BPy_StructRNA *pyrna= NULL;
-	int tp_init= 0;
 	
 	if (ptr->data==NULL && ptr->type==NULL) { /* Operator RNA has NULL data */
 		Py_RETURN_NONE;
