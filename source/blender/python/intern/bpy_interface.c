@@ -133,7 +133,9 @@ int BPY_run_python_script( bContext *C, const char *fn, struct Text *text )
 			MEM_freeN( buf );
 
 			if( PyErr_Occurred(  ) ) {
+				PyErr_Print();
 				BPY_free_compiled_text( text );
+				PyGILState_Release(gilstate);
 				return 0;
 			}
 		}
