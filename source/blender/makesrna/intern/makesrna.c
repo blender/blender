@@ -290,7 +290,7 @@ static char *rna_def_property_get_func(FILE *f, StructRNA *srna, PropertyRNA *pr
 				fprintf(f, "{\n");
 
 				if(manualfunc) {
-					fprintf(f, "	return %s(ptr, values);\n", manualfunc);
+					fprintf(f, "	%s(ptr, values);\n", manualfunc);
 				}
 				else {
 					rna_print_data_get(f, dp);
