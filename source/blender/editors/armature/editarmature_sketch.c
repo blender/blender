@@ -1249,11 +1249,11 @@ void sk_updateOverdraw(bContext *C, SK_Sketch *sketch, SK_Stroke *stk, SK_DrawDa
 		int closest_index = -1;
 		int dist = SNAP_MIN_DISTANCE * 2;
 		
-		/* If snapping, don't start overdraw */
-		if (sk_lastStrokePoint(stk)->mode == PT_SNAP)
-		{
-			return;
-		}
+//		/* If snapping, don't start overdraw */ Can't do that, snap is embed too now
+//		if (sk_lastStrokePoint(stk)->mode == PT_SNAP)
+//		{
+//			return;
+//		}
 		
 		for (target = sketch->strokes.first; target; target = target->next)
 		{
@@ -1711,7 +1711,7 @@ void sk_addStrokePoint(bContext *C, SK_Sketch *sketch, SK_Stroke *stk, SK_DrawDa
 		point_added = sk_addStrokeDrawPoint(C, sketch, stk, dd);
 	}
 	
-	if (scene->toolsettings->bone_sketching & BONE_SKETCHING_ADJUST)
+	if (stk == sketch->active_stroke && scene->toolsettings->bone_sketching & BONE_SKETCHING_ADJUST)
 	{
 		sk_updateOverdraw(C, sketch, stk, dd);
 	}
@@ -1743,11 +1743,10 @@ void sk_endContinuousStroke(SK_Stroke *stk)
 	stk->points[stk->nb_points - 1].type = PT_EXACT;
 }
 
-void sk_updateNextPoint(SK_Sketch *sketch)
+void sk_updateNextPoint(SK_Sketch *sketch, SK_Stroke *stk)
 {
-	if (sketch->active_stroke)
+	if (stk)
 	{
-		SK_Stroke *stk = sketch->active_stroke;
 		memcpy(&sketch->next_point, stk->points[stk->nb_points - 1].p, sizeof(SK_Point));
 	}
 }
@@ -2856,10 +2855,8 @@ int sk_finish_stroke(bContext *C, SK_Sketch *sketch)
 	return 0;
 }
 
-void sk_draw_poly(bContext *C, SK_Sketch *sketch, short mval[2], short snap)
+void sk_start_draw_stroke(SK_Sketch *sketch)
 {
-	SK_DrawData dd;
-	
 	if (sketch->active_stroke == NULL)
 	{
 		sk_startStroke(sketch);
@@ -2867,160 +2864,24 @@ void sk_draw_poly(bContext *C, SK_Sketch *sketch, short mval[2], short snap)
 		
 		sketch->active_stroke->selected = 1;
 	}
-
-	sk_initDrawData(&dd, mval);
-	sk_addStrokePoint(C, sketch, sketch->active_stroke, &dd, snap);
-	
-	sk_updateNextPoint(sketch);
 }
 
-int sk_paint(bContext *C, SK_Sketch *sketch, short mbut)
+void sk_start_draw_gesture(SK_Sketch *sketch)
 {
-	Scene *scene = CTX_data_scene(C);
-	int retval = 1;
-	short qual = 0;
-	short mval[2];
-	
-	if (mbut == LEFTMOUSE)
+	sketch->gesture = sk_createStroke();
+}
+
+int sk_draw_stroke(bContext *C, SK_Sketch *sketch, SK_Stroke *stk, SK_DrawData *dd, short snap)
+{
+	if (sk_stroke_filtermval(dd))
 	{
-		SK_DrawData dd;
-		if (sketch->active_stroke == NULL)
-		{
-			sk_startStroke(sketch);
-			sk_selectAllSketch(sketch, -1);
-			
-			sketch->active_stroke->selected = 1;
-		}
-
-		sk_initDrawData(&dd, mval);
-		
-		/* paint loop */
-		do {
-			/* get current user input */
-//			XXX
-//			getmouseco_areawin(dd.mval);
-			
-			/* only add current point to buffer if mouse moved (otherwise wait until it does) */
-			if (sk_stroke_filtermval(&dd)) {
-
-				sk_addStrokePoint(C, sketch, sketch->active_stroke, &dd, qual);
-				sk_updateDrawData(&dd);
-//				XXX
-//				force_draw(0);
-			}
-			else
-			{
-//				BIF_wait_for_statechange();
-			}
-			
-//			while( qtest() ) {
-//				short event, val;
-//				event = extern_qread(&val);
-//			}
-			
-			/* do mouse checking at the end, so don't check twice, and potentially
-			 * miss a short tap 
-			 */
-		} while (0 /*get_mbut() & L_MOUSE*/);
-		
-		sk_endContinuousStroke(sketch->active_stroke);
-		sk_filterLastContinuousStroke(sketch->active_stroke);
-		sk_updateNextPoint(sketch);
-	}
-	else if (mbut == RIGHTMOUSE)
-	{
-		if (sketch->active_stroke != NULL)
-		{
-			SK_Stroke *stk = sketch->active_stroke;
-			
-			sk_endStroke(C, sketch);
-			
-			if (scene->toolsettings->bone_sketching & BONE_SKETCHING_QUICK)
-			{
-				if (scene->toolsettings->bone_sketching_convert == SK_CONVERT_RETARGET)
-				{
-					sk_retargetStroke(C, stk);
-				}
-				else
-				{
-					sk_convertStroke(C, stk);
-				}
-//				XXX
-//				BIF_undo_push("Convert Sketch");
-				sk_removeStroke(sketch, stk);
-//				XXX
-//				allqueue(REDRAWBUTSEDIT, 0);
-			}
-	
-//			XXX		
-//			allqueue(REDRAWVIEW3D, 0);
-		}
-		/* no gestures in quick mode */
-		else if (scene->toolsettings->bone_sketching & BONE_SKETCHING_QUICK)
-		{
-			retval = 0; /* return zero for default click behavior */
-		}
-		else
-		{
-			SK_DrawData dd;
-			sketch->gesture = sk_createStroke();
-	
-			sk_initDrawData(&dd, mval);
-			
-			/* paint loop */
-			do {
-				/* get current user input */
-//				XXX
-//				getmouseco_areawin(dd.mval);
-				
-				/* only add current point to buffer if mouse moved (otherwise wait until it does) */
-				if (sk_stroke_filtermval(&dd)) {
-
-					sk_addStrokeDrawPoint(C, sketch, sketch->gesture, &dd);
-					sk_updateDrawData(&dd);
-					
-					/* draw only if mouse has moved */
-					if (sketch->gesture->nb_points > 1)
-					{
-//						XXX
-//						force_draw(0);
-					}
-				}
-				else
-				{
-//					BIF_wait_for_statechange();
-				}
-				
-//				while( qtest() ) {
-//					short event, val;
-//					event = extern_qread(&val);
-//				}
-				
-				/* do mouse checking at the end, so don't check twice, and potentially
-				 * miss a short tap 
-				 */
-			} while (0 /*get_mbut() & R_MOUSE*/);
-			
-			sk_endContinuousStroke(sketch->gesture);
-			sk_filterLastContinuousStroke(sketch->gesture);
-			sk_filterLastContinuousStroke(sketch->gesture);
-			sk_filterLastContinuousStroke(sketch->gesture);
-	
-			if (sketch->gesture->nb_points > 1)		
-			{
-				/* apply gesture here */
-				sk_applyGesture(C, sketch);
-			}
-	
-			sk_freeStroke(sketch->gesture);
-			sketch->gesture = NULL;
-			
-//			XXX
-//			allqueue(REDRAWVIEW3D, 0);
-		}
+		sk_addStrokePoint(C, sketch, stk, dd, snap);
+		sk_updateDrawData(dd);
+		sk_updateNextPoint(sketch, stk);
+		return 1;
 	}
 	
-	return retval;
+	return 0;
 }
 
 static int ValidSketchViewContext(ViewContext *vc)
@@ -3110,23 +2971,6 @@ void BIF_deleteSketch(bContext *C)
 	}
 }
 
-//int BIF_paintSketch(bContext *C, short mbut)
-//{
-//	if (BIF_validSketchMode(C))
-//	{
-//		if (GLOBAL_sketch == NULL)
-//		{
-//			GLOBAL_sketch = sk_createSketch();
-//		}
-//		
-//		return sk_paint(C, GLOBAL_sketch, mbut);
-//	}
-//	else
-//	{
-//		return 0;
-//	}
-//}
-//
 //void BIF_selectAllSketch(bContext *C, int mode)
 //{
 //	if (BIF_validSketchMode(C))
@@ -3185,18 +3029,132 @@ static int sketch_select(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_FINISHED;
 }
 
-static int sketch_draw_poly(bContext *C, wmOperator *op, wmEvent *event)
+static int sketch_draw_stroke_cancel(bContext *C, wmOperator *op)
+{
+	sk_cancelStroke(GLOBAL_sketch);
+	MEM_freeN(op->customdata);	
+	return OPERATOR_CANCELLED;
+}
+
+static int sketch_draw_stroke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	short snap = RNA_boolean_get(op->ptr, "snap");
+	SK_DrawData *dd;
 	
 	if (GLOBAL_sketch == NULL)
 	{
 		GLOBAL_sketch = sk_createSketch();
 	}
 	
-	sk_draw_poly(C, GLOBAL_sketch, event->mval, snap);
+	op->customdata = dd = MEM_callocN(sizeof("SK_DrawData"), "SketchDrawData");
+	sk_initDrawData(dd, event->mval);
 	
-	return OPERATOR_FINISHED|OPERATOR_PASS_THROUGH;
+	sk_start_draw_stroke(GLOBAL_sketch);
+	
+	sk_draw_stroke(C, GLOBAL_sketch, GLOBAL_sketch->active_stroke, dd, snap);
+	
+	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
+
+	return OPERATOR_RUNNING_MODAL;
+}
+
+static int sketch_draw_gesture_cancel(bContext *C, wmOperator *op)
+{
+	sk_cancelStroke(GLOBAL_sketch);
+	MEM_freeN(op->customdata);	
+	return OPERATOR_CANCELLED;
+}
+
+static int sketch_draw_gesture(bContext *C, wmOperator *op, wmEvent *event)
+{
+	short snap = RNA_boolean_get(op->ptr, "snap");
+	SK_DrawData *dd;
+	
+	if (GLOBAL_sketch == NULL)
+	{
+		GLOBAL_sketch = sk_createSketch();
+	}
+	
+	op->customdata = dd = MEM_callocN(sizeof("SK_DrawData"), "SketchDrawData");
+	sk_initDrawData(dd, event->mval);
+	
+	sk_start_draw_gesture(GLOBAL_sketch);
+	sk_draw_stroke(C, GLOBAL_sketch, GLOBAL_sketch->gesture, dd, snap);
+	
+	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
+
+	return OPERATOR_RUNNING_MODAL;
+}
+
+static int sketch_draw_modal(bContext *C, wmOperator *op, wmEvent *event, short gesture, SK_Stroke *stk)
+{
+	short snap = RNA_boolean_get(op->ptr, "snap");
+	SK_DrawData *dd = op->customdata;
+	int retval = OPERATOR_RUNNING_MODAL;
+	
+	switch (event->type)
+	{
+	case LEFTCTRLKEY:
+	case RIGHTCTRLKEY:
+		snap = event->ctrl;
+		RNA_boolean_set(op->ptr, "snap", snap);
+		break;
+	case MOUSEMOVE:
+		dd->mval[0] = event->mval[0];
+		dd->mval[1] = event->mval[1];
+		sk_draw_stroke(C, GLOBAL_sketch, stk, dd, snap);
+		ED_area_tag_redraw(CTX_wm_area(C));
+		break;
+	case ESCKEY:
+		op->type->cancel(C, op);
+		ED_area_tag_redraw(CTX_wm_area(C));
+		retval = OPERATOR_CANCELLED;
+		break;
+	case LEFTMOUSE:
+		if (event->val == 0)
+		{
+			if (gesture == 0)
+			{
+				sk_endContinuousStroke(stk);
+				sk_filterLastContinuousStroke(stk);
+				sk_updateNextPoint(GLOBAL_sketch, stk);
+				ED_area_tag_redraw(CTX_wm_area(C));
+				MEM_freeN(op->customdata);	
+				retval = OPERATOR_FINISHED;
+			}
+			else
+			{
+				sk_endContinuousStroke(stk);
+				sk_filterLastContinuousStroke(stk);
+		
+				if (stk->nb_points > 1)		
+				{
+					/* apply gesture here */
+					sk_applyGesture(C, GLOBAL_sketch);
+				}
+		
+				sk_freeStroke(stk);
+				GLOBAL_sketch->gesture = NULL;
+	
+				ED_area_tag_redraw(CTX_wm_area(C));
+				MEM_freeN(op->customdata);	
+				retval = OPERATOR_FINISHED;
+			}
+		}
+		break;
+	}
+	
+	return retval;
+}
+
+static int sketch_draw_stroke_modal(bContext *C, wmOperator *op, wmEvent *event)
+{
+	return sketch_draw_modal(C, op, event, 0, GLOBAL_sketch->active_stroke);
+}
+
+static int sketch_draw_gesture_modal(bContext *C, wmOperator *op, wmEvent *event)
+{
+	return sketch_draw_modal(C, op, event, 1, GLOBAL_sketch->gesture);
 }
 
 static int sketch_draw_preview(bContext *C, wmOperator *op, wmEvent *event)
@@ -3228,6 +3186,26 @@ int ED_operator_sketch_mode_active_stroke(bContext *C)
 		scene->toolsettings->bone_sketching & BONE_SKETCHING &&
 		GLOBAL_sketch != NULL &&
 		GLOBAL_sketch->active_stroke != NULL)
+	{
+		return 1;
+	}
+	else
+	{
+		return 0;
+	}
+}
+
+int ED_operator_sketch_mode_gesture(bContext *C)
+{
+	Object *obedit = CTX_data_edit_object(C);
+	Scene *scene = CTX_data_scene(C);
+	
+	if (obedit && 
+		obedit->type == OB_ARMATURE && 
+		scene->toolsettings->bone_sketching & BONE_SKETCHING &&
+		(scene->toolsettings->bone_sketching & BONE_SKETCHING_QUICK) == 0 &&
+		GLOBAL_sketch != NULL &&
+		GLOBAL_sketch->active_stroke == NULL)
 	{
 		return 1;
 	}
@@ -3334,23 +3312,6 @@ void SKETCH_OT_finish_stroke(wmOperatorType *ot)
 //	ot->flag= OPTYPE_UNDO;
 }
 
-void SKETCH_OT_draw_poly(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "draw poly";
-	ot->idname= "SKETCH_OT_draw_poly";
-	
-	/* api callbacks */
-	ot->invoke= sketch_draw_poly;
-	
-	ot->poll= ED_operator_sketch_mode;
-	
-	RNA_def_boolean(ot->srna, "snap", 0, "Snap", "");
-
-	/* flags */
-//	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-}
-
 void SKETCH_OT_draw_preview(wmOperatorType *ot)
 {
 	/* identifiers */
@@ -3375,9 +3336,13 @@ void SKETCH_OT_draw_stroke(wmOperatorType *ot)
 	ot->idname= "SKETCH_OT_draw_stroke";
 	
 	/* api callbacks */
-	ot->invoke= sketch_draw_poly;
+	ot->invoke = sketch_draw_stroke;
+	ot->modal  = sketch_draw_stroke_modal;
+	ot->cancel = sketch_draw_stroke_cancel;
 	
 	ot->poll= ED_operator_sketch_mode;
+	
+	RNA_def_boolean(ot->srna, "snap", 0, "Snap", "");
 	
 	/* flags */
 //	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -3390,9 +3355,13 @@ void SKETCH_OT_gesture(wmOperatorType *ot)
 	ot->idname= "SKETCH_OT_gesture";
 	
 	/* api callbacks */
-	ot->invoke= sketch_draw_poly;
+	ot->invoke = sketch_draw_gesture;
+	ot->modal  = sketch_draw_gesture_modal;
+	ot->cancel = sketch_draw_gesture_cancel;
 	
-	ot->poll= ED_operator_sketch_full_mode;
+	ot->poll= ED_operator_sketch_mode_gesture;
+	
+	RNA_def_boolean(ot->srna, "snap", 0, "Snap", "");
 	
 	/* flags */
 //	ot->flag= OPTYPE_UNDO;

@@ -63,7 +63,6 @@ void POSE_OT_select_connected(struct wmOperatorType *ot);
 
 void SKETCH_OT_gesture(struct wmOperatorType *ot);
 void SKETCH_OT_delete(struct wmOperatorType *ot);
-void SKETCH_OT_draw_poly(struct wmOperatorType *ot);
 void SKETCH_OT_draw_stroke(struct wmOperatorType *ot);
 void SKETCH_OT_draw_preview(struct wmOperatorType *ot);
 void SKETCH_OT_finish_stroke(struct wmOperatorType *ot);
