@@ -945,17 +945,13 @@ static PyObject *M_Object_GetSelected( PyObject * self_unused )
 	PyObject *blen_object;
 	PyObject *list;
 	Base *base_iter;
-
+	unsigned int lay = G.vd ? G.vd->lay : G.scene->lay;
+	
 	list = PyList_New( 0 );
-
-	if( G.vd == NULL ) {
-		/* No 3d view has been initialized yet, simply return an empty list */
-		return list;
-	}
 	
 	if( ( G.scene->basact ) &&
 	    ( ( G.scene->basact->flag & SELECT ) &&
-	      ( G.scene->basact->lay & G.vd->lay ) ) ) {
+	      ( G.scene->basact->lay & lay ) ) ) {
 
 		/* Active object is first in the list. */
 		blen_object = Object_CreatePyObject( G.scene->basact->object );
@@ -970,7 +966,7 @@ static PyObject *M_Object_GetSelected( PyObject * self_unused )
 	base_iter = G.scene->base.first;
 	while( base_iter ) {
 		if( ( ( base_iter->flag & SELECT ) &&
-				( base_iter->lay & G.vd->lay ) ) &&
+				( base_iter->lay & lay ) ) &&
 				( base_iter != G.scene->basact ) ) {
 
 			blen_object = Object_CreatePyObject( base_iter->object );
