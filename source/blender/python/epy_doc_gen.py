@@ -39,9 +39,26 @@ def get_array_str(length):
 	if length > 0:	return ' array of %d items' % length
 	else:		return ''
 
+def full_rna_struct_path(rna_struct):
+	'''
+	Needed when referencing one struct from another
+	'''
+	nested = rna_struct.nested
+	if nested:
+		return "%s.%s" % (full_rna_struct_path(nested), rna_struct.identifier)
+	else:
+		return rna_struct.identifier
+
+
 def rna2epy(target_path):
 	
-	def write_struct(rna_struct, structs, ident):
+	# Use for faster lookups
+	# use rna_struct.identifier as the key for each dict
+	rna_full_path_dict =	{}	# store the result of full_rna_struct_path(rna_struct)
+	rna_children_dict =		{}	# store all rna_structs nested from here
+	rna_references_dict =	{}	# store a list of rna path strings that reference this type
+	
+	def write_struct(rna_struct, ident):
 		identifier = rna_struct.identifier
 		
 		rna_base = rna_struct.base
@@ -58,6 +75,26 @@ def rna2epy(target_path):
 		out.write(ident+ '\t%s\n' %  title)
 		out.write(ident+ '\t%s\n' %  ('=' * len(title)))
 		out.write(ident+ '\t\t%s\n' %  rna_struct.description)
+		
+		
+		
+		# For convenience, give a list of all places were used.
+		rna_refs= rna_references_dict[identifier]
+		
+		if rna_refs:
+			out.write(ident+ '\t\t\n')
+			out.write(ident+ '\t\tReferences\n')
+			out.write(ident+ '\t\t==========\n')
+			
+			for rna_ref_string in rna_refs:
+				out.write(ident+ '\t\t\t- L{%s}\n' % rna_ref_string)
+			
+			out.write(ident+ '\t\t\n')
+		
+		else:
+			out.write(ident+ '\t\t\n')
+			out.write(ident+ '\t\t(no references to this struct found)\n')
+			out.write(ident+ '\t\t\n')
 		
 		for rna_prop_identifier, rna_prop in rna_struct.properties.items():
 			
@@ -108,10 +145,8 @@ def rna2epy(target_path):
 		out.write(ident+ '\t"""\n\n')
 		
 		# Now write children recursively
-		for child in structs:
-			if rna_struct == child.nested:
-				write_struct(child, structs, ident + '\t')
-		
+		for child in rna_children_dict[identifier]:
+			write_struct(child, ident + '\t')
 	
 	out = open(target_path, 'w')
 
@@ -131,7 +166,18 @@ def rna2epy(target_path):
 		if hasattr(rna_type, '__rna__'):
 			#if not rna_type_name.startswith('__'):
 			rna_struct = rna_type.__rna__
-			structs.append( (base_id(rna_struct), rna_struct.identifier, rna_struct) )	
+			identifier = rna_struct.identifier
+			structs.append( (base_id(rna_struct), identifier, rna_struct) )	
+			
+			
+			
+			# Store full rna path 'GameObjectSettings' -> 'Object.GameObjectSettings'
+			rna_full_path_dict[identifier] = full_rna_struct_path(rna_struct)
+			
+			# fill in these later
+			rna_children_dict[identifier]= []
+			rna_references_dict[identifier]= []
+			
 		else:
 			print("Ignoring", rna_type_name)
 	
@@ -165,16 +211,49 @@ def rna2epy(target_path):
 				
 				break
 	
-	structs = [data[2] for data in structs]
 	# Done ordering structs
 	
+	
+	# precalc vars to avoid a lot of looping
+	for (rna_base, identifier, rna_struct) in structs:
+		
+		
+		# rna_struct_path = full_rna_struct_path(rna_struct)
+		rna_struct_path = rna_full_path_dict[identifier]
+		
+		for rna_prop_identifier, rna_prop in rna_struct.properties.items():
+			if rna_prop_identifier=='RNA':
+				continue
+			
+			if rna_prop_identifier=='rna_type':
+				continue
+			
+			try:		rna_prop_ptr = rna_prop.fixed_type
+			except:	rna_prop_ptr = None
+			
+			# Does this property point to me?
+			if rna_prop_ptr:
+				rna_references_dict[rna_prop_ptr.identifier].append( "%s.%s" % (rna_struct_path, rna_prop_identifier) )
+		
+		
+		
+		# Store nested children
+		nested = rna_struct.nested
+		if nested:
+			rna_children_dict[nested.identifier].append(rna_struct)
+	
+	# Sort the refs, just reads nicer
+	for rna_refs in rna_references_dict.values():
+		rna_refs.sort()
+	
+	structs = [data[2] for data in structs]
 	
 	for rna_struct in structs:
 		# print(type(rna_struct))
 		if rna_struct.nested:
 			continue
 		
-		write_struct(rna_struct, structs, '')
+		write_struct(rna_struct, '')
 		
 		
 	out.write('\n')
