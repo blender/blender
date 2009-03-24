@@ -1175,13 +1175,15 @@ void sculptmode_update_tex()
 {
 	SculptData *sd= sculpt_data();
 	SculptSession *ss= sculpt_session();
-	MTex *mtex = sd->mtex[sd->texact];
+	MTex *mtex;
 	TexResult texres = {0};
 	float x, y, step=2.0/TC_SIZE, co[3];
 	int hasrgb, ix, iy;
 	
 	/* Skip Default brush shape and non-textures */
 	if(sd->texact == -1 || !sd->mtex[sd->texact]) return;
+
+	mtex = sd->mtex[sd->texact];
 
 	if(ss->texcache) {
 		MEM_freeN(ss->texcache);
