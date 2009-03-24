@@ -36,10 +36,7 @@ struct Object;
 struct Mesh;
 
 /* internal exports only */
-#define CLEAR_OBJ_ROTATION 0
-#define CLEAR_OBJ_LOCATION 1
-#define CLEAR_OBJ_SCALE 2
-#define CLEAR_OBJ_ORIGIN 3
+
 
 /* object_edit.c */
 void OBJECT_OT_editmode_toggle(struct wmOperatorType *ot);
@@ -47,12 +44,12 @@ void OBJECT_OT_parent_set(struct wmOperatorType *ot);
 void OBJECT_OT_parent_clear(struct wmOperatorType *ot);
 void OBJECT_OT_track_set(struct wmOperatorType *ot);
 void OBJECT_OT_track_clear(struct wmOperatorType *ot);
-void OBJECT_OT_selection_de_select_all(struct wmOperatorType *ot);
-void OBJECT_OT_selection_invert(struct wmOperatorType *ot);
-void OBJECT_OT_selection_random(struct wmOperatorType *ot);
-void OBJECT_OT_selection_by_type(struct wmOperatorType *ot);
-void OBJECT_OT_selection_by_layer(struct wmOperatorType *ot);
-void OBJECT_OT_selection_linked(struct wmOperatorType *ot);
+void OBJECT_OT_select_de_select_all(struct wmOperatorType *ot);
+void OBJECT_OT_select_invert(struct wmOperatorType *ot);
+void OBJECT_OT_select_random(struct wmOperatorType *ot);
+void OBJECT_OT_select_by_type(struct wmOperatorType *ot);
+void OBJECT_OT_select_by_layer(struct wmOperatorType *ot);
+void OBJECT_OT_select_linked(struct wmOperatorType *ot);
 void OBJECT_OT_location_clear(struct wmOperatorType *ot);
 void OBJECT_OT_rotation_clear(struct wmOperatorType *ot);
 void OBJECT_OT_scale_clear(struct wmOperatorType *ot);

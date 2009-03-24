@@ -319,7 +319,7 @@ void OBJECT_OT_object_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add Object";
-	ot->description = "Add an Object to the scene.";
+	ot->description = "Add an object to the scene.";
 	ot->idname= "OBJECT_OT_object_add";
 	
 	/* api callbacks */
@@ -406,7 +406,7 @@ void OBJECT_OT_mesh_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add Mesh";
-	ot->description = "Add a Mesh object to the scene.";
+	ot->description = "Add a mesh object to the scene.";
 	ot->idname= "OBJECT_OT_mesh_add";
 	
 	/* api callbacks */
@@ -478,7 +478,7 @@ void OBJECT_OT_curve_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add Curve";
-	ot->description = "Add a Curve object to the scene.";
+	ot->description = "Add a curve object to the scene.";
 	ot->idname= "OBJECT_OT_curve_add";
 	
 	/* api callbacks */
@@ -536,7 +536,7 @@ void OBJECT_OT_surface_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add Surface";
-	ot->description = "Add a Surface object to the scene.";
+	ot->description = "Add a surface object to the scene.";
 	ot->idname= "OBJECT_OT_surface_add";
 	
 	/* api callbacks */
@@ -573,7 +573,7 @@ void OBJECT_OT_text_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add Text";
-	ot->description = "Add a Text object to the scene";
+	ot->description = "Add a text object to the scene";
 	ot->idname= "OBJECT_OT_text_add";
 	
 	/* api callbacks */
@@ -618,7 +618,7 @@ void OBJECT_OT_armature_add(wmOperatorType *ot)
 {	
 	/* identifiers */
 	ot->name= "Add Armature";
-	ot->description = "Add an Armature object to the scene.";
+	ot->description = "Add an armature object to the scene.";
 	ot->idname= "OBJECT_OT_armature_add";
 	
 	/* api callbacks */
@@ -656,7 +656,7 @@ void OBJECT_OT_primitive_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add Primitive";
-	ot->description = "Add a Primitive object.";
+	ot->description = "Add a primitive object.";
 	ot->idname= "OBJECT_OT_primitive_add";
 	
 	/* api callbacks */
@@ -1458,7 +1458,7 @@ void OBJECT_OT_track_clear(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Clear track";
-	ot->description = "Clear tracking from object.";
+	ot->description = "Clear tracking constraint or flag from object.";
 	ot->idname= "OBJECT_OT_track_clear";
 	
 	/* api callbacks */
@@ -1477,7 +1477,7 @@ void OBJECT_OT_track_clear(wmOperatorType *ot)
 /* ***************************** */
 /* ****** Select by Type ****** */
 
-static int object_selection_by_type_exec(bContext *C, wmOperator *op)
+static int object_select_by_type_exec(bContext *C, wmOperator *op)
 {
 	short obtype;
 	
@@ -1495,16 +1495,16 @@ static int object_selection_by_type_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void OBJECT_OT_selection_by_type(wmOperatorType *ot)
+void OBJECT_OT_select_by_type(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select By Type";
 	ot->description = "Select all visible objects that are of a type.";
-	ot->idname= "OBJECT_OT_selection_by_type";
+	ot->idname= "OBJECT_OT_select_by_type";
 	
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
-	ot->exec= object_selection_by_type_exec;
+	ot->exec= object_select_by_type_exec;
 	ot->poll= ED_operator_scene_editable;
 	
 	/* flags */
@@ -1525,7 +1525,7 @@ static EnumPropertyItem prop_select_linked_types[] = {
 	{0, NULL, NULL, NULL}
 };
 
-static int object_selection_linked_exec(bContext *C, wmOperator *op)
+static int object_select_linked_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *ob;
@@ -1648,16 +1648,16 @@ static int object_selection_linked_exec(bContext *C, wmOperator *op)
 	return OPERATOR_CANCELLED;
 }
 
-void OBJECT_OT_selection_linked(wmOperatorType *ot)
+void OBJECT_OT_select_linked(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select Linked";
 	ot->description = "Select all visible objects that are linked.";
-	ot->idname= "OBJECT_OT_selection_linked";
+	ot->idname= "OBJECT_OT_select_linked";
 	
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
-	ot->exec= object_selection_linked_exec;
+	ot->exec= object_select_linked_exec;
 	ot->poll= ED_operator_scene_editable;
 	
 	/* flags */
@@ -1668,7 +1668,7 @@ void OBJECT_OT_selection_linked(wmOperatorType *ot)
 }
 /* ****** selection by layer *******/
 
-static int object_selection_by_layer_exec(bContext *C, wmOperator *op)
+static int object_select_by_layer_exec(bContext *C, wmOperator *op)
 {
 	unsigned int layernum;
 	
@@ -1686,16 +1686,16 @@ static int object_selection_by_layer_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void OBJECT_OT_selection_by_layer(wmOperatorType *ot)
+void OBJECT_OT_select_by_layer(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Selection by layer";
+	ot->name= "select by layer";
 	ot->description = "Select all visible objects on a layer.";
-	ot->idname= "OBJECT_OT_selection_by_layer";
+	ot->idname= "OBJECT_OT_select_by_layer";
 	
 	/* api callbacks */
 	/*ot->invoke = XXX - need a int grid popup*/
-	ot->exec= object_selection_by_layer_exec;
+	ot->exec= object_select_by_layer_exec;
 	ot->poll= ED_operator_scene_editable;
 	
 	/* flags */
@@ -1705,7 +1705,7 @@ void OBJECT_OT_selection_by_layer(wmOperatorType *ot)
 }
 
 /* ****** invert selection *******/
-static int object_selection_invert_exec(bContext *C, wmOperator *op)
+static int object_select_invert_exec(bContext *C, wmOperator *op)
 {
 	CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
 		if (base->flag & SELECT)
@@ -1721,16 +1721,16 @@ static int object_selection_invert_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void OBJECT_OT_selection_invert(wmOperatorType *ot)
+void OBJECT_OT_select_invert(wmOperatorType *ot)
 {
 	
 	/* identifiers */
 	ot->name= "Invert selection";
-	ot->description = "Invert th selection of all visible objects.";
-	ot->idname= "OBJECT_OT_selection_invert";
+	ot->description = "Invert th select of all visible objects.";
+	ot->idname= "OBJECT_OT_select_invert";
 	
 	/* api callbacks */
-	ot->exec= object_selection_invert_exec;
+	ot->exec= object_select_invert_exec;
 	ot->poll= ED_operator_scene_editable;
 	
 	/* flags */
@@ -1739,7 +1739,7 @@ void OBJECT_OT_selection_invert(wmOperatorType *ot)
 }
 /* ****** (de)select All *******/
 
-static int object_selection_de_select_all_exec(bContext *C, wmOperator *op)
+static int object_select_de_select_all_exec(bContext *C, wmOperator *op)
 {
 	
 	int a=0, ok=0; 
@@ -1767,16 +1767,16 @@ static int object_selection_de_select_all_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void OBJECT_OT_selection_de_select_all(wmOperatorType *ot)
+void OBJECT_OT_select_de_select_all(wmOperatorType *ot)
 {
 	
 	/* identifiers */
 	ot->name= "deselect all";
 	ot->description = "(de)select all visible objects in scene.";
-	ot->idname= "OBJECT_OT_selection_de_select_all";
+	ot->idname= "OBJECT_OT_select_de_select_all";
 	
 	/* api callbacks */
-	ot->exec= object_selection_de_select_all_exec;
+	ot->exec= object_select_de_select_all_exec;
 	ot->poll= ED_operator_scene_editable;
 	
 	/* flags */
@@ -1785,7 +1785,7 @@ void OBJECT_OT_selection_de_select_all(wmOperatorType *ot)
 }
 /* ****** random selection *******/
 
-static int object_selection_random_exec(bContext *C, wmOperator *op)
+static int object_select_random_exec(bContext *C, wmOperator *op)
 {	
 	float percent;
 	
@@ -1803,16 +1803,16 @@ static int object_selection_random_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void OBJECT_OT_selection_random(wmOperatorType *ot)
+void OBJECT_OT_select_random(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Random selection";
-	ot->description = "Set selection on random visible objects.";
-	ot->idname= "OBJECT_OT_selection_random";
+	ot->name= "Random select";
+	ot->description = "Set select on random visible objects.";
+	ot->idname= "OBJECT_OT_select_random";
 	
 	/* api callbacks */
 	/*ot->invoke= object_select_random_invoke XXX - need a number popup ;*/
-	ot->exec = object_selection_random_exec;
+	ot->exec = object_select_random_exec;
 	ot->poll= ED_operator_scene_editable;
 	
 	/* flags */
@@ -2035,7 +2035,7 @@ void OBJECT_OT_restrictview_clear(wmOperatorType *ot)
 	
 	/* identifiers */
 	ot->name= "Clear restrict view";
-	ot->description = "Clear the object's restrict view flag (reveal the object from hidding).";
+	ot->description = "Reveal the object by setting the restrictview flag.";
 	ot->idname= "OBJECT_OT_restrictview_clear";
 	
 	/* api callbacks */
@@ -2093,7 +2093,7 @@ void OBJECT_OT_restrictview_set(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Set restrict view";
-	ot->description = "Set the object's restrict view flag (hide the object).";
+	ot->description = "Hide the object by setting the restrictview flag.";
 	ot->idname= "OBJECT_OT_restrictview_set";
 	
 	/* api callbacks */
@@ -2691,7 +2691,7 @@ void OBJECT_OT_track_set(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Make Track";
-	ot->description = "Nake the object track another object, either by constraint or old way.";
+	ot->description = "Make the object track another object, either by constraint or old way or locked track.";
 	ot->idname= "OBJECT_OT_track_set";
 	
 	/* api callbacks */
@@ -3124,7 +3124,7 @@ void OBJECT_OT_center_set(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Set Center";
-	ot->description = "Set the object's center";
+	ot->description = "Set the object's center, by either moving the data, or set to center of data, or use 3d cursor";
 	ot->idname= "OBJECT_OT_center_set";
 	
 	/* api callbacks */

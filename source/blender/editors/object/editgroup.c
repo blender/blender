@@ -242,7 +242,7 @@ void GROUP_OT_group_create(wmOperatorType *ot)
 	
 	/* identifiers */
 	ot->name= "Create New Group";
-	ot->description = "Add an object group to the scene.";
+	ot->description = "Create an object group.";
 	ot->idname= "GROUP_OT_group_create";
 	
 	/* api callbacks */

@@ -68,12 +68,12 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_parent_clear);
 	WM_operatortype_append(OBJECT_OT_track_set);
 	WM_operatortype_append(OBJECT_OT_track_clear);
-	WM_operatortype_append(OBJECT_OT_selection_invert);
-	WM_operatortype_append(OBJECT_OT_selection_random);
-	WM_operatortype_append(OBJECT_OT_selection_de_select_all);
-	WM_operatortype_append(OBJECT_OT_selection_by_type);
-	WM_operatortype_append(OBJECT_OT_selection_by_layer);
-	WM_operatortype_append(OBJECT_OT_selection_linked);
+	WM_operatortype_append(OBJECT_OT_select_invert);
+	WM_operatortype_append(OBJECT_OT_select_random);
+	WM_operatortype_append(OBJECT_OT_select_de_select_all);
+	WM_operatortype_append(OBJECT_OT_select_by_type);
+	WM_operatortype_append(OBJECT_OT_select_by_layer);
+	WM_operatortype_append(OBJECT_OT_select_linked);
 	WM_operatortype_append(OBJECT_OT_location_clear);
 	WM_operatortype_append(OBJECT_OT_rotation_clear);
 	WM_operatortype_append(OBJECT_OT_scale_clear);
@@ -111,12 +111,12 @@ void ED_keymap_object(wmWindowManager *wm)
 	/* Note: this keymap gets disabled in non-objectmode,  */
 	keymap= WM_keymap_listbase(wm, "Object Mode", 0, 0);
 	
-	WM_keymap_add_item(keymap, "OBJECT_OT_selection_de_select_all", AKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "OBJECT_OT_selection_invert", IKEY, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_add_item(keymap, "OBJECT_OT_selection_random", PADASTERKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "OBJECT_OT_selection_by_type", PADASTERKEY, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_add_item(keymap, "OBJECT_OT_selection_by_layer", PADASTERKEY, KM_PRESS, KM_ALT, 0);
-	WM_keymap_add_item(keymap, "OBJECT_OT_selection_linked", LKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "OBJECT_OT_select_de_select_all", AKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "OBJECT_OT_select_invert", IKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "OBJECT_OT_select_random", PADASTERKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "OBJECT_OT_select_by_type", PADASTERKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "OBJECT_OT_select_by_layer", PADASTERKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_add_item(keymap, "OBJECT_OT_select_linked", LKEY, KM_PRESS, KM_SHIFT, 0);
 	
 	WM_keymap_verify_item(keymap, "OBJECT_OT_parent_set", PKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_verify_item(keymap, "OBJECT_OT_parent_clear", PKEY, KM_PRESS, KM_ALT, 0);
