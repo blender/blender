@@ -43,6 +43,7 @@ CPPFLAGS += -I../blender/radiosity/extern/include
 # two needed for the kernel
 CPPFLAGS += -I../blender/imbuf
 CPPFLAGS += -I../blender/makesdna
+CPPFLAGS += -I../blender/makesrna
 CPPFLAGS += -I../blender/blenlib
 CPPFLAGS += -I../blender/editors/include
 CPPFLAGS += -I../blender/renderconverter
