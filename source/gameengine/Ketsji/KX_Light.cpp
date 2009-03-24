@@ -57,6 +57,7 @@ KX_LightObject::KX_LightObject(void* sgReplicationInfo,SG_Callbacks callbacks,
 {
 	m_lightobj = lightobj;
 	m_lightobj.m_worldmatrix = GetOpenGLMatrixPtr();
+	m_lightobj.m_scene = sgReplicationInfo;
 	m_rendertools->AddLight(&m_lightobj);
 	m_glsl = glsl;
 	m_blenderscene = ((KX_Scene*)sgReplicationInfo)->GetBlenderScene();

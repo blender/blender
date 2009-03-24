@@ -513,13 +513,13 @@ list<RAS_MeshSlot>::iterator RAS_MaterialBucket::msEnd()
 bool RAS_MaterialBucket::ActivateMaterial(const MT_Transform& cameratrans, RAS_IRasterizer* rasty,
 	RAS_IRenderTools *rendertools)
 {
-	if (!rasty->SetMaterial(*m_material))
+	bool uselights;
+
+	if(!rasty->SetMaterial(*m_material))
 		return false;
 	
-	if (m_material->UsesLighting(rasty))
-		rendertools->ProcessLighting(rasty, RAS_IRenderTools::RAS_LIGHT_OBJECT_LAYER, cameratrans);
-	else
-		rendertools->ProcessLighting(rasty, -1, cameratrans);
+	uselights= m_material->UsesLighting(rasty);
+	rendertools->ProcessLighting(rasty, uselights, cameratrans);
 	
 	return true;
 }
