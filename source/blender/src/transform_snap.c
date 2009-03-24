@@ -1563,11 +1563,21 @@ int peelObjects(ListBase *depth_peels, short mval[2])
 					Object *ob = dupli_ob->ob;
 					
 					if (ob->type == OB_MESH) {
-						DerivedMesh *dm;
-						int editmesh = 0;
+						DerivedMesh *dm = NULL;
 						int val;
 						
-						val = peelDerivedMesh(ob, dm, dupli_ob->mat, ray_start, ray_normal, mval, depth_peels);
+						if (ob != G.obedit)
+						{
+							dm = mesh_get_derived_final(ob, CD_MASK_BAREMESH);
+							
+							val = peelDerivedMesh(ob, dm, dupli_ob->mat, ray_start, ray_normal, mval, depth_peels);
+						}
+						else
+						{
+							dm = editmesh_get_derived_cage(CD_MASK_BAREMESH);
+							
+							val = peelDerivedMesh(ob, dm, dupli_ob->mat, ray_start, ray_normal, mval, depth_peels);
+						}
 	
 						retval = retval || val;
 	
