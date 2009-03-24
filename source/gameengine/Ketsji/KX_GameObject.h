@@ -802,7 +802,27 @@ public:
 	KX_PYMETHOD_DOC(KX_GameObject,rayCast);
 	KX_PYMETHOD_DOC_O(KX_GameObject,getDistanceTo);
 	KX_PYMETHOD_DOC_O(KX_GameObject,getVectTo);
+
+	/* attributes */
+	static PyObject*	pyattr_get_name(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject*	pyattr_get_parent(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+
+	static PyObject*	pyattr_get_mass(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static int			pyattr_set_mass(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
+	static PyObject*	pyattr_get_visible(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static int			pyattr_set_visible(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
+	static PyObject*	pyattr_get_position(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static int			pyattr_set_position(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
+	static PyObject*	pyattr_get_orientation(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static int			pyattr_set_orientation(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
+	static PyObject*	pyattr_get_scaling(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static int			pyattr_set_scaling(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
+	static PyObject*	pyattr_get_timeOffset(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static int			pyattr_set_timeOffset(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
+	static PyObject*	pyattr_get_state(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static int			pyattr_set_state(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 	
+
 private :
 
 	/**	

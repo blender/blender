@@ -24,6 +24,8 @@ class KX_GameObject:
 	@type scaling: list [sx, sy, sz]
 	@ivar timeOffset: adjust the slowparent delay at runtime.
 	@type timeOffset: float
+	@ivar state: the game object's state bitmask.
+	@type state: int
 	"""
 	def endObject(visible):
 		"""
@@ -37,33 +39,35 @@ class KX_GameObject:
 		"""	
 	def getVisible():
 		"""
-		Gets the game object's visible flag.
+		Gets the game object's visible flag. (B{deprecated})
 		
 		@rtype: boolean
 		"""	
-	def setVisible(visible):
+	def setVisible(visible, recursive):
 		"""
 		Sets the game object's visible flag.
 		
 		@type visible: boolean
+		@type recursive: boolean
+		@param recursive: optional argument to set all childrens visibility flag too.
 		"""
 	def getState():
 		"""
-		Gets the game object's state bitmask.
+		Gets the game object's state bitmask. (B{deprecated})
 		
 		@rtype: int
 		@return: the objects state.
 		"""	
 	def setState(state):
 		"""
-		Sets the game object's state flag.
-		The bitmasks for states from 1 to 30 can be set with (1<<0, 1<<1, 1<<2 ... 1<<29)
+		Sets the game object's state flag. (B{deprecated}).
+		The bitmasks for states from 1 to 30 can be set with (1<<0, 1<<1, 1<<2 ... 1<<29) 
 		
 		@type state: integer
 		"""
 	def setPosition(pos):
 		"""
-		Sets the game object's position. 
+		Sets the game object's position. (B{deprecated})
 		Global coordinates for root object, local for child objects.
 		
 		
@@ -79,14 +83,14 @@ class KX_GameObject:
 		"""
 	def getPosition():
 		"""
-		Gets the game object's position.
+		Gets the game object's position. (B{deprecated})
 		
 		@rtype: list [x, y, z]
 		@return: the object's position in world coordinates.
 		"""
 	def setOrientation(orn):
 		"""
-		Sets the game object's orientation.
+		Sets the game object's orientation. (B{deprecated})
 		
 		@type orn: 3x3 rotation matrix, or Quaternion.
 		@param orn: a rotation matrix specifying the new rotation.
@@ -117,7 +121,7 @@ class KX_GameObject:
 		"""
 	def getOrientation():
 		"""
-		Gets the game object's orientation.
+		Gets the game object's orientation. (B{deprecated})
 		
 		@rtype: 3x3 rotation matrix
 		@return: The game object's rotation matrix
@@ -231,7 +235,7 @@ class KX_GameObject:
 		"""
 	def getMass():
 		"""
-		Gets the game object's mass.
+		Gets the game object's mass. (B{deprecated})
 		
 		@rtype: float
 		@return: the object's mass.
@@ -280,7 +284,7 @@ class KX_GameObject:
 		"""
 	def getParent():
 		"""
-		Gets this object's parent.
+		Gets this object's parent. (B{deprecated})
 		
 		@rtype: L{KX_GameObject}
 		@return: this object's parent object, or None if this object has no parent.

@@ -327,11 +327,11 @@ typedef struct KX_PYATTRIBUTE_DEF {
 #define KX_PYATTRIBUTE_STRING_RO(name,object,field) \
 	{ name, KX_PYATTRIBUTE_TYPE_STRING, KX_PYATTRIBUTE_RO, 0, 0, 0.f, 0.f, false, offsetof(object,field), 0, 1 , NULL, NULL, NULL, {NULL, NULL, NULL, NULL, &((object *)0)->field} }
 
-#define KX_PYATTRIBUTE_RW_FUNCTION(name,object,setfunction,getfunction) \
+#define KX_PYATTRIBUTE_RW_FUNCTION(name,object,getfunction,setfunction) \
 	{ name, KX_PYATTRIBUTE_TYPE_FUNCTION, KX_PYATTRIBUTE_RW, 0, 0, 0.f, 0.f, false, 0, 0, 1, NULL, &object::setfunction, &object::getfunction, {NULL, NULL, NULL, NULL, NULL} }
 #define KX_PYATTRIBUTE_RO_FUNCTION(name,object,getfunction) \
 	{ name, KX_PYATTRIBUTE_TYPE_FUNCTION, KX_PYATTRIBUTE_RO, 0, 0, 0.f, 0.f, false, 0, 0, 1, NULL, NULL, &object::getfunction, {NULL, NULL, NULL, NULL, NULL} }
-#define KX_PYATTRIBUTE_ARRAY_RW_FUNCTION(name,object,length,setfunction,getfunction) \
+#define KX_PYATTRIBUTE_ARRAY_RW_FUNCTION(name,object,length,getfunction,setfunction) \
 	{ name, KX_PYATTRIBUTE_TYPE_FUNCTION, KX_PYATTRIBUTE_RW, 0, 0, 0.f, 0,f, false, 0, 0, length, NULL, &object::setfunction, &object::getfunction, {NULL, NULL, NULL, NULL, NULL} }
 #define KX_PYATTRIBUTE_ARRAY_RO_FUNCTION(name,object,length,getfunction) \
 	{ name, KX_PYATTRIBUTE_TYPE_FUNCTION, KX_PYATTRIBUTE_RO, 0, 0, 0.f, 0,f, false, 0, 0, length, NULL, NULL, &object::getfunction, {NULL, NULL, NULL, NULL, NULL} }
