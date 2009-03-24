@@ -121,6 +121,43 @@ static void rna_def_color_ramp(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Interpolation", "");
 }
 
+static void rna_def_texmapping(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+	
+	srna= RNA_def_struct(brna, "TexMapping", NULL);
+	RNA_def_struct_ui_text(srna, "Texture Mapping", "Mapping settings");
+
+	prop= RNA_def_property(srna, "location", PROP_FLOAT, PROP_VECTOR);
+	RNA_def_property_float_sdna(prop, NULL, "loc");
+	RNA_def_property_ui_text(prop, "Location", "");
+	
+	prop= RNA_def_property(srna, "rotation", PROP_FLOAT, PROP_ROTATION);
+	RNA_def_property_float_sdna(prop, NULL, "rot");
+	RNA_def_property_ui_text(prop, "Rotation", "");
+	
+	prop= RNA_def_property(srna, "scale", PROP_FLOAT, PROP_VECTOR);
+	RNA_def_property_float_sdna(prop, NULL, "size");
+	RNA_def_property_ui_text(prop, "Scale", "");
+	
+	prop= RNA_def_property(srna, "minimum", PROP_FLOAT, PROP_VECTOR);
+	RNA_def_property_float_sdna(prop, NULL, "min");
+	RNA_def_property_ui_text(prop, "Minimum", "Minimum value for clipping");
+	
+	prop= RNA_def_property(srna, "maximum", PROP_FLOAT, PROP_VECTOR);
+	RNA_def_property_float_sdna(prop, NULL, "max");
+	RNA_def_property_ui_text(prop, "Maximum", "Maximum value for clipping");
+	
+	prop= RNA_def_property(srna, "has_minimum", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", TEXMAP_CLIP_MIN);
+	RNA_def_property_ui_text(prop, "Has Minimum", "Whether to use minimum clipping value");
+	
+	prop= RNA_def_property(srna, "has_maximum", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", TEXMAP_CLIP_MAX);
+	RNA_def_property_ui_text(prop, "Has Maximum", "Whether to use maximum clipping value");
+}
+
 static void rna_def_mtex(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -506,6 +543,7 @@ void RNA_def_texture(BlenderRNA *brna)
 	rna_def_environment_map(brna);
 	rna_def_color_ramp(brna);
 	rna_def_color_ramp_element(brna);
+	rna_def_texmapping(brna);
 }
 
 #endif
