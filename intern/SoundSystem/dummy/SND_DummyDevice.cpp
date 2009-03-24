@@ -25,7 +25,7 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
- * SND_FmodDevice derived from SND_IAudioDevice
+ * SND_DummyDevice derived from SND_IAudioDevice
  */
 
 #ifdef HAVE_CONFIG_H

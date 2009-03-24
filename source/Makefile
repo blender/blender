@@ -337,7 +337,7 @@ ifeq ($(OS),solaris)
     SPLIB += $(NAN_ZLIB)/lib/libz.a
 endif
 
-# OpenAL libs are already compiled as shared code! Check FMod if we switch to that. (nzc)
+# OpenAL libs are already compiled as shared code!
 
 # Some vars to keep the rest of this section mostly readable
 # in an 80 char term
