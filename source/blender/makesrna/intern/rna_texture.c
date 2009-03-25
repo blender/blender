@@ -445,10 +445,6 @@ static void rna_def_texture_marble(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	srna= RNA_def_struct(brna, "MarbleTexture", "Texture");
-	RNA_def_struct_ui_text(srna, "Marble Texture", "Procedural noise texture.");
-	RNA_def_struct_sdna(srna, "Tex");
-
 	static EnumPropertyItem prop_marble_stype[] = {
 	{TEX_SOFT, "SOFT", "Soft", "Uses soft marble"},
 	{TEX_SHARP, "SHARP", "Sharp", "Uses more clearly defined marble"},
@@ -462,6 +458,10 @@ static void rna_def_texture_marble(BlenderRNA *brna)
 	{TEX_TRI, "TRI", "Tri", "Uses a triangle wave to produce bands"},
 	{0, NULL, NULL, NULL}
 	};
+
+	srna= RNA_def_struct(brna, "MarbleTexture", "Texture");
+	RNA_def_struct_ui_text(srna, "Marble Texture", "Procedural noise texture.");
+	RNA_def_struct_sdna(srna, "Tex");
 
 	prop= RNA_def_property(srna, "noise_size", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "noisesize");
