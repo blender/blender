@@ -146,6 +146,7 @@ static void buttons_main_area_init(wmWindowManager *wm, ARegion *ar)
 {
 	ListBase *keymap;
 
+//	ar->v2d.minzoom= ar->v2d.maxzoom= 1.0f;
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_PANELS_UI, ar->winx, ar->winy);
 	
 	/* own keymap */
@@ -171,13 +172,15 @@ static void buttons_main_area_draw(const bContext *C, ARegion *ar)
 	/* swapbuffers indicator */
 	fac= BLI_frand();
 	glColor3f(fac, fac, fac);
-	glRecti(20,  2,  30,  12);
+	glRecti(20, v2d->cur.ymin+2,  30, v2d->cur.ymin+12);
 	
 	/* panels */
 	if(sbuts->mainb == CONTEXT_SCENE)
 		buttons_scene(C, ar);
 	else if(sbuts->mainb == CONTEXT_OBJECT)
 		buttons_object(C, ar);
+	else
+		drawnewstuff();
 	
 	if(sbuts->align)
 		if(sbuts->re_align || sbuts->mainbo!=sbuts->mainb || sbuts->tabo!=sbuts->tab[sbuts->mainb])

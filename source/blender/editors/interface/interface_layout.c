@@ -846,6 +846,9 @@ void ui_layout_end(const bContext *C, uiBlock *block, uiLayout *layout, int *x, 
 
 	if(x) *x= layout->x;
 	if(y) *y= layout->y;
+	
+	/* XXX temp, migration flag for drawing code */
+	uiBlockSetFlag(block, UI_BLOCK_2_50);
 }
 
 void ui_layout_free(uiLayout *layout)

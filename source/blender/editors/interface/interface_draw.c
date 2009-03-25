@@ -450,8 +450,8 @@ void uiRoundRectFakeAA(float minx, float miny, float maxx, float maxy, float rad
 	
 	/* get the colour and divide up the alpha */
 	glGetFloatv(GL_CURRENT_COLOR, color);
-	alpha = color[3];
-	color[3]= alpha/(float)passes;
+	alpha = 1; //color[3];
+	color[3]= 0.5*alpha/(float)passes;
 	glColor4fv(color);
 	
 	/* set the 'jitter amount' */
@@ -630,7 +630,7 @@ void uiEmboss(float x1, float y1, float x2, float y2, int sel)
 /* icons have been standardized... and this call draws in untransformed coordinates */
 #define ICON_HEIGHT		16.0f
 
-static void ui_draw_icon(uiBut *but, BIFIconID icon, int blend)
+void ui_draw_icon(uiBut *but, BIFIconID icon, int blend)
 {
 	float xs=0, ys=0, aspect, height;
 
@@ -929,8 +929,8 @@ static void round_button_flat(int colorid, float asp, float x1, float y1, float 
 	int alpha_offs= (flag & UI_BUT_DISABLED)?UI_DISABLED_ALPHA_OFFS:0;
 	
 	/* emboss */
-	glColor4f(1.0f, 1.0f, 1.0f, 0.08f);
-	uiRoundRectFakeAA(x1+1, y1-1, x2, y2-1, rad, asp);
+	//glColor4f(1.0f, 1.0f, 1.0f, 0.08f);
+	//uiRoundRectFakeAA(x1+1, y1-1, x2, y2-1, rad, asp);
 	
 	/* colour shading */
 	if(flag & UI_SELECT) {
@@ -2205,7 +2205,7 @@ static void ui_draw_pulldown_round(int type, int colorid, float asp, float x1, f
 #define BUT_TEXT_NORMAL	0
 #define BUT_TEXT_SUNKEN	1
 
-static void ui_draw_text(uiBut *but, float x, float y, int sunken)
+void ui_draw_text(uiBut *but, float x, float y, int sunken)
 {
 	int alpha_offs= (but->flag & UI_BUT_DISABLED)?UI_DISABLED_ALPHA_OFFS:0;
 	int transopts;
@@ -2270,7 +2270,7 @@ static void ui_draw_text(uiBut *but, float x, float y, int sunken)
 }
 
 /* draws text and icons for buttons */
-static void ui_draw_text_icon(uiBut *but)
+void ui_draw_text_icon(uiBut *but)
 {
 	float x, y;
 	short t, pos, ch;
@@ -3242,13 +3242,14 @@ void ui_draw_but(ARegion *ar, uiBut *but)
 	int type;
 	
 	if(but==NULL) return;
+	
+	if(but->block->flag & UI_BLOCK_2_50) {
+		extern void ui_draw_but_new(ARegion *ar, uiBut *but); // XXX
 
-	/* XXX 2.50 no frontbuffer drawing allowed */
-#if 0
-	/* signal for frontbuf flush buttons and menus, not when normal drawing */
-	if(but->block->in_use) ui_block_set_flush(but->block, but);
-#endif
-		
+		ui_draw_but_new(ar, but);
+		return;
+	}
+
 	switch (but->type) {
 
 	case NUMSLI:
