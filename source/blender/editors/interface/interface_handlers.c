@@ -2642,16 +2642,17 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, wmEvent *event)
 
 	/* verify if we can edit this button */
 	if(ELEM(event->type, LEFTMOUSE, RETKEY)) {
+		/* this should become disabled button .. */
 		if(but->lock) {
 			if(but->lockstr) {
-				BKE_report(CTX_reports(C), RPT_WARNING, but->lockstr);
+				BKE_report(NULL, RPT_WARNING, but->lockstr);
 				button_activate_state(C, but, BUTTON_STATE_EXIT);
 				return WM_UI_HANDLER_BREAK;
 			}
 		} 
 		else if(but->pointype && but->poin==0) {
 			/* there's a pointer needed */
-			BKE_reportf(CTX_reports(C), RPT_WARNING, "DoButton pointer error: %s", but->str);
+			BKE_reportf(NULL, RPT_WARNING, "DoButton pointer error: %s", but->str);
 			button_activate_state(C, but, BUTTON_STATE_EXIT);
 			return WM_UI_HANDLER_BREAK;
 		}
@@ -3306,20 +3307,20 @@ static int ui_mouse_motion_towards_check(uiBlock *block, uiPopupBlockHandle *men
 		return menu->dotowards;
 	}
 
-	/* verify that we are moving closer towards one of the edges
-	 * of the menu block, in other words, in the triangle formed
-	 * by the initial mouse location and two edge points. */
-	p1[0]= block->minx;
-	p1[1]= block->miny;
+	/* verify that we are moving towards one of the edges of the
+	 * menu block, in other words, in the triangle formed by the
+	 * initial mouse location and two edge points. */
+	p1[0]= block->minx-20;
+	p1[1]= block->miny-20;
 
-	p2[0]= block->maxx;
-	p2[1]= block->miny;
+	p2[0]= block->maxx+20;
+	p2[1]= block->miny-20;
 	
-	p3[0]= block->maxx;
-	p3[1]= block->maxy;
+	p3[0]= block->maxx+20;
+	p3[1]= block->maxy+20;
 
-	p4[0]= block->minx;
-	p4[1]= block->maxy;
+	p4[0]= block->minx-20;
+	p4[1]= block->maxy+20;
 
 	oldp[0]= menu->towardsx;
 	oldp[1]= menu->towardsy;
@@ -3327,11 +3328,14 @@ static int ui_mouse_motion_towards_check(uiBlock *block, uiPopupBlockHandle *men
 	newp[0]= mx;
 	newp[1]= my;
 
+	if(Vec2Lenf(oldp, newp) < 4.0f)
+		return menu->dotowards;
+
 	closer= 0;
-	closer |= (PdistVL2Dfl(newp, p1, p2) < PdistVL2Dfl(oldp, p1, p2) + 4);
-	closer |= (PdistVL2Dfl(newp, p2, p3) < PdistVL2Dfl(oldp, p2, p3) + 4);
-	closer |= (PdistVL2Dfl(newp, p3, p4) < PdistVL2Dfl(oldp, p3, p4) + 4);
-	closer |= (PdistVL2Dfl(newp, p4, p1) < PdistVL2Dfl(oldp, p4, p1) + 4);
+	closer |= IsectPT2Df(newp, oldp, p1, p2);
+	closer |= IsectPT2Df(newp, oldp, p2, p3);
+	closer |= IsectPT2Df(newp, oldp, p3, p4);
+	closer |= IsectPT2Df(newp, oldp, p4, p1);
 
 	if(!closer)
 		menu->dotowards= 0;
@@ -3398,7 +3402,7 @@ int ui_handle_menu_event(bContext *C, wmEvent *event, uiPopupBlockHandle *menu, 
 						else but= ui_but_first(block);
 					}
 
-					if(but && but->type==BLOCK)
+					if(but && ELEM(but->type, BLOCK, HMENU))
 						ui_handle_button_activate(C, ar, but, BUTTON_ACTIVATE_OPEN);
 				}
 
@@ -3720,7 +3724,10 @@ static int ui_handler_region_menu(bContext *C, wmEvent *event, void *userdata)
 
 	/* here we handle buttons at the window level, modal, for example
 	 * while number sliding, text editing, or when a menu block is open */
-	ar= CTX_wm_region(C);
+	ar= CTX_wm_menu(C);
+	if(!ar)
+		ar= CTX_wm_region(C);
+
 	but= ui_but_find_activated(ar);
 
 	if(but) {
@@ -3811,8 +3818,8 @@ void UI_add_region_handlers(ListBase *handlers)
 	WM_event_add_ui_handler(NULL, handlers, ui_handler_region, ui_handler_remove_region, NULL);
 }
 
-void UI_add_popup_handlers(ListBase *handlers, uiPopupBlockHandle *menu)
+void UI_add_popup_handlers(bContext *C, ListBase *handlers, uiPopupBlockHandle *menu)
 {
-	WM_event_add_ui_handler(NULL, handlers, ui_handler_popup, ui_handler_remove_popup, menu);
+	WM_event_add_ui_handler(C, handlers, ui_handler_popup, ui_handler_remove_popup, menu);
 }
 

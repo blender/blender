@@ -111,9 +111,9 @@ static void wm_method_draw_full(bContext *C, wmWindow *win)
 	/* draw overlapping regions */
 	for(ar=screen->regionbase.first; ar; ar= ar->next) {
 		if(ar->swinid) {
-			CTX_wm_region_set(C, ar);
+			CTX_wm_menu_set(C, ar);
 			ED_region_do_draw(C, ar);
-			CTX_wm_region_set(C, NULL);
+			CTX_wm_menu_set(C, NULL);
 		}
 	}
 
@@ -245,9 +245,9 @@ static void wm_method_draw_overlap_all(bContext *C, wmWindow *win)
 	/* draw marked overlapping regions */
 	for(ar=screen->regionbase.first; ar; ar= ar->next) {
 		if(ar->swinid && ar->do_draw) {
-			CTX_wm_region_set(C, ar);
+			CTX_wm_menu_set(C, ar);
 			ED_region_do_draw(C, ar);
-			CTX_wm_region_set(C, NULL);
+			CTX_wm_menu_set(C, NULL);
 		}
 	}
 
@@ -558,9 +558,9 @@ static void wm_method_draw_triple(bContext *C, wmWindow *win)
 	/* draw overlapping regions */
 	for(ar=screen->regionbase.first; ar; ar= ar->next) {
 		if(ar->swinid) {
-			CTX_wm_region_set(C, ar);
+			CTX_wm_menu_set(C, ar);
 			ED_region_do_draw(C, ar);
-			CTX_wm_region_set(C, NULL);
+			CTX_wm_menu_set(C, NULL);
 		}
 	}
 

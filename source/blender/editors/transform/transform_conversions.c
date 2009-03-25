@@ -978,7 +978,8 @@ static void createTransPose(bContext *C, TransInfo *t, Object *ob)
 	
 	if (arm->flag & ARM_RESTPOS) {
 		if (ELEM(t->mode, TFM_DUMMY, TFM_BONESIZE)==0) {
-			BKE_report(CTX_reports(C), RPT_ERROR, "Can't select linked when sync selection is enabled.");
+			// XXX use transform operator reports
+			// BKE_report(op->reports, RPT_ERROR, "Can't select linked when sync selection is enabled.");
 			return;
 		}
 	}
@@ -1016,7 +1017,8 @@ static void createTransPose(bContext *C, TransInfo *t, Object *ob)
 	}
 	
 	if(td != (t->data+t->total)) {
-		BKE_report(CTX_reports(C), RPT_DEBUG, "Bone selection count error.");
+		// XXX use transform operator reports
+		// BKE_report(op->reports, RPT_DEBUG, "Bone selection count error.");
 	}
 	
 	/* initialise initial auto=ik chainlen's? */

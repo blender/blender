@@ -348,7 +348,7 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, char *filename)
 		CTX_data_scene_set(C, bfd->curscreen->scene);
 		CTX_wm_area_set(C, NULL);
 		CTX_wm_region_set(C, NULL);
-		CTX_wm_ui_block_set(C, NULL, NULL);
+		CTX_wm_menu_set(C, NULL);
 	}
 	
 	/* this can happen when active scene was lib-linked, and doesnt exist anymore */

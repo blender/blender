@@ -77,23 +77,7 @@ typedef int (*bContextDataCallback)(const bContext *C,
 bContext *CTX_create(void);
 void CTX_free(bContext *C);
 
-bContext *CTX_copy(const bContext *C, int thread);
-int CTX_thread(const bContext *C);
-
-/* Context Task and Reports */
-
-typedef enum bContextTask {
-	CTX_DRAWING = 0,
-	CTX_EDITING = 1,
-	CTX_EVALUATING = 2,
-	CTX_UNDEFINED = 3
-} bContextTask;
-
-bContextTask CTX_task(const bContext *C);
-void CTX_task_set(bContext *C, bContextTask task);
-
-struct ReportList *CTX_reports(const bContext *C);
-void CTX_reports_set(bContext *C, struct ReportList *reports);
+bContext *CTX_copy(const bContext *C);
 
 /* Window Manager Context */
 
@@ -104,7 +88,7 @@ struct ScrArea *CTX_wm_area(const bContext *C);
 struct SpaceLink *CTX_wm_space_data(const bContext *C);
 struct ARegion *CTX_wm_region(const bContext *C);
 void *CTX_wm_region_data(const bContext *C);
-struct uiBlock *CTX_wm_ui_block(const bContext *C);
+struct ARegion *CTX_wm_menu(const bContext *C);
 
 struct View3D *CTX_wm_view3d(const bContext *C);
 struct RegionView3D *CTX_wm_region_view3d(const bContext *C);
@@ -114,9 +98,9 @@ struct SpaceImage *CTX_wm_space_image(const bContext *C);
 void CTX_wm_manager_set(bContext *C, struct wmWindowManager *wm);
 void CTX_wm_window_set(bContext *C, struct wmWindow *win);
 void CTX_wm_screen_set(bContext *C, struct bScreen *screen); /* to be removed */
-void CTX_wm_area_set(bContext *C, struct ScrArea *win);
-void CTX_wm_region_set(bContext *C, struct ARegion *win);
-void CTX_wm_ui_block_set(bContext *C, struct uiBlock *block, bContextDataCallback cb);
+void CTX_wm_area_set(bContext *C, struct ScrArea *sa);
+void CTX_wm_region_set(bContext *C, struct ARegion *region);
+void CTX_wm_menu_set(bContext *C, struct ARegion *menu);
 
 /* Data Context
 
@@ -193,13 +177,6 @@ int CTX_data_editable_bones(const bContext *C, ListBase *list);
 struct bPoseChannel *CTX_data_active_pchan(const bContext *C);
 int CTX_data_selected_pchans(const bContext *C, ListBase *list);
 int CTX_data_visible_pchans(const bContext *C, ListBase *list);
-
-/* Data Evaluation Context */
-
-float CTX_eval_frame(const bContext *C);
-
-int CTX_eval_render_resolution(const bContext *C);
-void CTX_eval_render_resolution_set(bContext *C, int render);
 
 #ifdef __cplusplus
 }

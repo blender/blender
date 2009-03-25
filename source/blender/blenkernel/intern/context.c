@@ -49,8 +49,6 @@
 /* struct */
 
 struct bContext {
-	bContextTask task;
-	ReportList *reports;
 	int thread;
 
 	/* windowmanager context */
@@ -60,9 +58,7 @@ struct bContext {
 		struct bScreen *screen;
 		struct ScrArea *area;
 		struct ARegion *region;
-		struct uiBlock *block;
-
-		bContextDataCallback block_cb;
+		struct ARegion *menu;
 	} wm;
 	
 	/* data context */
@@ -87,55 +83,19 @@ bContext *CTX_create()
 	
 	C= MEM_callocN(sizeof(bContext), "bContext");
 
-	C->task= CTX_UNDEFINED;
-	C->thread= 0;
-
 	return C;
 }
 
-bContext *CTX_copy(const bContext *C, int thread)
+bContext *CTX_copy(const bContext *C)
 {
-	bContext *newC;
-
-	if(C->task != CTX_UNDEFINED)
-		BKE_report(C->reports, RPT_ERROR_INVALID_CONTEXT, "CTX_copy not allowed for this task");
-	
-	newC= MEM_dupallocN((void*)C);
-	newC->thread= thread;
+	bContext *newC= MEM_dupallocN((void*)C);
 
 	return newC;
-}
-
-int CTX_thread(const bContext *C)
-{
-	return C->thread;
 }
 
 void CTX_free(bContext *C)
 {
 	MEM_freeN(C);
-}
-
-/* context task and reports */
-
-bContextTask CTX_task(const bContext *C)
-{
-	return C->task;
-}
-
-void CTX_task_set(bContext *C, bContextTask task)
-{
-	C->task= task;
-}
-
-ReportList *CTX_reports(const bContext *C)
-{
-	return C->reports;
-}
-
-void CTX_reports_set(bContext *C, ReportList *reports)
-{
-	C->reports= reports;
 }
 
 /* window manager context */
@@ -175,9 +135,9 @@ void *CTX_wm_region_data(const bContext *C)
 	return (C->wm.region)? C->wm.region->regiondata: NULL;
 }
 
-struct uiBlock *CTX_wm_ui_block(const bContext *C)
+struct ARegion *CTX_wm_menu(const bContext *C)
 {
-	return C->wm.block;
+	return C->wm.menu;
 }
 
 View3D *CTX_wm_view3d(const bContext *C)
@@ -246,10 +206,9 @@ void CTX_wm_region_set(bContext *C, ARegion *region)
 	C->wm.region= region;
 }
 
-void CTX_wm_ui_block_set(bContext *C, struct uiBlock *block, bContextDataCallback cb)
+void CTX_wm_menu_set(bContext *C, ARegion *menu)
 {
-	C->wm.block= block;
-	C->wm.block_cb= cb;
+	C->wm.menu= menu;
 }
 
 /* data context utility functions */
@@ -267,23 +226,19 @@ static int ctx_data_get(bContext *C, const char *member, bContextDataResult *res
 
 	/* we check recursion to ensure that we do not get infinite
 	 * loops requesting data from ourselfs in a context callback */
-	if(!done && recursion < 1 && C->wm.block) {
+	if(!done && recursion < 1 && C->wm.region) {
 		C->data.recursion= 1;
-		done= C->wm.block_cb(C, member, result);
-	}
-	if(!done && recursion < 2 && C->wm.region) {
-		C->data.recursion= 2;
 		if(C->wm.region->type && C->wm.region->type->context)
 			done= C->wm.region->type->context(C, member, result);
 	}
-	if(!done && recursion < 3 && C->wm.area) {
-		C->data.recursion= 3;
+	if(!done && recursion < 2 && C->wm.area) {
+		C->data.recursion= 2;
 		if(C->wm.area->type && C->wm.area->type->context)
 			done= C->wm.area->type->context(C, member, result);
 	}
-	if(!done && recursion < 4 && C->wm.screen) {
+	if(!done && recursion < 3 && C->wm.screen) {
 		bContextDataCallback cb= C->wm.screen->context;
-		C->data.recursion= 4;
+		C->data.recursion= 3;
 		if(cb)
 			done= cb(C, member, result);
 	}
@@ -560,23 +515,5 @@ int CTX_data_selected_pchans(const bContext *C, ListBase *list)
 int CTX_data_visible_pchans(const bContext *C, ListBase *list)
 {
 	return ctx_data_collection_get(C, "visible_pchans", list);
-}
-
-
-/* data evaluation */
-
-float CTX_eval_frame(const bContext *C)
-{
-	return (C->data.scene)? C->data.scene->r.cfra: 0.0f;
-}
-
-int CTX_eval_render_resolution(const bContext *C)
-{
-	return C->eval.render;
-}
-
-void CTX_eval_render_resolution_set(bContext *C, int render)
-{
-	C->eval.render= render;
 }
 

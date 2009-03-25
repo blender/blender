@@ -313,6 +313,7 @@ void	uiBlockSetEmboss	(uiBlock *block, int emboss);
 void	uiBlockSetDirection	(uiBlock *block, int direction);
 void 	uiBlockFlipOrder	(uiBlock *block);
 void	uiBlockSetFlag		(uiBlock *block, int flag);
+void	uiBlockClearFlag	(uiBlock *block, int flag);
 void	uiBlockSetXOfs		(uiBlock *block, int xofs);
 
 int		uiButGetRetVal		(uiBut *but);
@@ -515,7 +516,7 @@ extern void uiSetPanelHandler(int);
 
 void UI_add_region_handlers(struct ListBase *handlers);
 void UI_add_area_handlers(struct ListBase *handlers);
-void UI_add_popup_handlers(struct ListBase *handlers, uiPopupBlockHandle *menu);
+void UI_add_popup_handlers(struct bContext *C, struct ListBase *handlers, uiPopupBlockHandle *menu);
 
 /* Legacy code
  * Callbacks and utils to get 2.48 work */

@@ -210,19 +210,28 @@ static void ui_item_array(uiBlock *block, uiItemRNA *rnaitem, int len, int x, in
 	}
 	else if(len <= 4 && ELEM3(subtype, PROP_ROTATION, PROP_VECTOR, PROP_COLOR)) {
 		/* layout for known array subtypes */
-		static char *vectoritem[4]= {"X:", "Y:", "Z:", "W:"};
-		static char *quatitem[4]= {"W:", "X:", "Y:", "Z:"};
-		static char *coloritem[4]= {"R:", "G:", "B:", "A:"};
+		static char vectoritem[4]= {'X', 'Y', 'Z', 'W'};
+		static char quatitem[4]= {'W', 'X', 'Y', 'Z'};
+		static char coloritem[4]= {'R', 'G', 'B', 'A'};
+		char str[3];
 
 		for(a=0; a<len; a++) {
 			if(len == 4 && subtype == PROP_ROTATION)
-				name= quatitem[a];
+				str[0]= quatitem[a];
 			else if(subtype == PROP_VECTOR || subtype == PROP_ROTATION)
-				name= vectoritem[a];
+				str[0]= vectoritem[a];
 			else
-				name= coloritem[a];
+				str[0]= coloritem[a];
 
-			uiDefAutoButR(block, &rnaitem->ptr, rnaitem->prop, a, name, 0, x, y+(len-a-1)*YIC, w, YIC);
+			if(type == PROP_BOOLEAN) {
+				str[1]= '\0';
+			}
+			else {
+				str[1]= ':';
+				str[2]= '\0';
+			}
+
+			uiDefAutoButR(block, &rnaitem->ptr, rnaitem->prop, a, str, 0, x, y+(len-a-1)*YIC, w, YIC);
 		}
 	}
 	else {

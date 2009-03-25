@@ -1639,6 +1639,7 @@ static uiBlock *ui_block_create_redo_last(bContext *C, ARegion *ar, void *arg_op
 	int height;
 	
 	block= uiBeginBlock(C, ar, "redo_last_popup", UI_EMBOSS, UI_HELV);
+	uiBlockClearFlag(block, UI_BLOCK_LOOP);
 	uiBlockSetFlag(block, UI_BLOCK_KEEP_OPEN|UI_BLOCK_RET_1);
 	uiBlockSetFunc(block, redo_last_cb, arg_op, NULL);
 

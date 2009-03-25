@@ -58,6 +58,7 @@ typedef struct wmEventHandler {
 	void *ui_userdata;					/* user data pointer */
 	struct ScrArea *ui_area;			/* for derived/modal handlers */
 	struct ARegion *ui_region;			/* for derived/modal handlers */
+	struct ARegion *ui_menu;			/* for derived/modal handlers */
 	
 	/* fileselect handler re-uses modal operator data */
 	struct bScreen *filescreen;			/* screen it started in, to validate exec */

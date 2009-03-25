@@ -634,8 +634,13 @@ void uiEndBlock(const bContext *C, uiBlock *block)
 
 void uiDrawBlock(const bContext *C, uiBlock *block)
 {
-	ARegion *ar= CTX_wm_region(C);
+	ARegion *ar;
 	uiBut *but;
+
+	/* get menu region or area region */
+	ar= CTX_wm_menu(C);
+	if(!ar)
+		ar= CTX_wm_region(C);
 
 	if(!block->endblock)
 		uiEndBlock(C, block);
@@ -646,11 +651,11 @@ void uiDrawBlock(const bContext *C, uiBlock *block)
 	if(block->flag & UI_BLOCK_LOOP)
 		uiDrawMenuBox(block->minx, block->miny, block->maxx, block->maxy, block->flag, block->direction);
 	else if(block->panel)
-		ui_draw_panel(CTX_wm_region(C), block);
+		ui_draw_panel(ar, block);
 
 	if(block->drawextra) block->drawextra(C, block);
 
-	for (but= block->buttons.first; but; but= but->next)
+	for(but= block->buttons.first; but; but= but->next)
 		ui_draw_but(ar, but);
 
 	ui_draw_links(block);
@@ -2306,7 +2311,11 @@ uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, char *str, short x1,
 	if(prop) {
 		but->rnapoin= *ptr;
 		but->rnaprop= prop;
-		but->rnaindex= index;
+
+		if(RNA_property_array_length(&but->rnapoin, but->rnaprop))
+			but->rnaindex= index;
+		else
+			but->rnaindex= 0;
 	}
 	
 	if (!prop || !RNA_property_editable(&but->rnapoin, prop)) {
@@ -2851,7 +2860,11 @@ void uiBlockFlipOrder(uiBlock *block)
 
 void uiBlockSetFlag(uiBlock *block, int flag)
 {
-	block->flag= flag;
+	block->flag|= flag;
+}
+void uiBlockClearFlag(uiBlock *block, int flag)
+{
+	block->flag&= ~flag;
 }
 void uiBlockSetXOfs(uiBlock *block, int xofs)
 {

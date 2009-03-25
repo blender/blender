@@ -2223,7 +2223,7 @@ void uiPupMenuEnd(bContext *C, uiMenuItem *head)
 	menu= ui_popup_block_create(C, NULL, NULL, NULL, ui_block_func_MENU_ITEM, &info);
 	menu->popup= 1;
 	
-	UI_add_popup_handlers(&window->handlers, menu);
+	UI_add_popup_handlers(C, &window->handlers, menu);
 	WM_event_add_mousemove(C);
 	
 	BLI_freelistN(&head->items);
@@ -2248,7 +2248,7 @@ static uiPopupBlockHandle *ui_pup_menu(bContext *C, int maxrow, uiMenuHandleFunc
 	menu= ui_popup_block_create(C, NULL, NULL, NULL, ui_block_func_PUPMENU, &info);
 	menu->popup= 1;
 
-	UI_add_popup_handlers(&window->handlers, menu);
+	UI_add_popup_handlers(C, &window->handlers, menu);
 	WM_event_add_mousemove(C);
 
 	menu->popup_func= func;
@@ -2399,7 +2399,7 @@ void uiPupBlockO(bContext *C, uiBlockCreateFunc func, void *arg, char *opname, i
 	handle->opname= opname;
 	handle->opcontext= opcontext;
 	
-	UI_add_popup_handlers(&window->handlers, handle);
+	UI_add_popup_handlers(C, &window->handlers, handle);
 	WM_event_add_mousemove(C);
 }
 

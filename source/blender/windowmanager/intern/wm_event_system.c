@@ -549,14 +549,17 @@ void WM_event_remove_handlers(bContext *C, ListBase *handlers)
 		else if(handler->ui_remove) {
 			ScrArea *area= CTX_wm_area(C);
 			ARegion *region= CTX_wm_region(C);
+			ARegion *menu= CTX_wm_menu(C);
 			
 			if(handler->ui_area) CTX_wm_area_set(C, handler->ui_area);
 			if(handler->ui_region) CTX_wm_region_set(C, handler->ui_region);
+			if(handler->ui_menu) CTX_wm_menu_set(C, handler->ui_menu);
 
 			handler->ui_remove(C, handler->ui_userdata);
 
 			CTX_wm_area_set(C, area);
 			CTX_wm_region_set(C, region);
+			CTX_wm_menu_set(C, menu);
 		}
 
 		wm_event_free_handler(handler);
@@ -726,11 +729,13 @@ static int wm_handler_ui_call(bContext *C, wmEventHandler *handler, wmEvent *eve
 {
 	ScrArea *area= CTX_wm_area(C);
 	ARegion *region= CTX_wm_region(C);
+	ARegion *menu= CTX_wm_menu(C);
 	int retval;
 			
 	/* we set context to where ui handler came from */
 	if(handler->ui_area) CTX_wm_area_set(C, handler->ui_area);
 	if(handler->ui_region) CTX_wm_region_set(C, handler->ui_region);
+	if(handler->ui_menu) CTX_wm_menu_set(C, handler->ui_menu);
 
 	retval= handler->ui_handle(C, event, handler->ui_userdata);
 
@@ -738,11 +743,13 @@ static int wm_handler_ui_call(bContext *C, wmEventHandler *handler, wmEvent *eve
 	if((retval != WM_UI_HANDLER_BREAK) || wm_event_always_pass(event)) {
 		CTX_wm_area_set(C, area);
 		CTX_wm_region_set(C, region);
+		CTX_wm_menu_set(C, menu);
 	}
 	else {
 		/* this special cases is for areas and regions that get removed */
 		CTX_wm_area_set(C, NULL);
 		CTX_wm_region_set(C, NULL);
+		CTX_wm_menu_set(C, NULL);
 	}
 
 	if(retval == WM_UI_HANDLER_BREAK)
@@ -1197,6 +1204,7 @@ wmEventHandler *WM_event_add_ui_handler(bContext *C, ListBase *handlers, wmUIHan
 	handler->ui_userdata= userdata;
 	handler->ui_area= (C)? CTX_wm_area(C): NULL;
 	handler->ui_region= (C)? CTX_wm_region(C): NULL;
+	handler->ui_menu= (C)? CTX_wm_menu(C): NULL;
 	
 	BLI_addhead(handlers, handler);
 	
