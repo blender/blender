@@ -306,7 +306,7 @@ static void widget_num_tria(uiWidgetTrias *tria, rcti *rect, float triasize, cha
 	/* center position and size */
 	centx= (float)rect->xmin + 0.5f*(rect->ymax-rect->ymin);
 	centy= (float)rect->ymin + 0.5f*(rect->ymax-rect->ymin);
-	size= 0.5f*triasize*(rect->ymax-rect->ymin);
+	size= -0.5f*triasize*(rect->ymax-rect->ymin);
 
 	if(where=='r') {
 		centx= (float)rect->xmax - 0.5f*(rect->ymax-rect->ymin);
