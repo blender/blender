@@ -3281,62 +3281,60 @@ static void ui_handle_button_closed_submenu(bContext *C, wmEvent *event, uiBut *
  * - only for 1 second
  */
 
-static void ui_mouse_motion_towards_init(uiPopupBlockHandle *menu, int mx, int my)
+static void ui_mouse_motion_towards_init(uiPopupBlockHandle *menu, int mx, int my, int force)
 {
-	if(!menu->dotowards) {
+	if(!menu->dotowards || force) {
 		menu->dotowards= 1;
 		menu->towardsx= mx;
 		menu->towardsy= my;
-		menu->towardstime= PIL_check_seconds_timer();
+
+		if(force)
+			menu->towardstime= DBL_MAX; /* unlimited time */
+		else
+			menu->towardstime= PIL_check_seconds_timer();
 	}
 }
 
 static int ui_mouse_motion_towards_check(uiBlock *block, uiPopupBlockHandle *menu, int mx, int my)
 {
-	int fac, dx, dy, domx, domy;
+	float p1[2], p2[2], p3[2], p4[2], oldp[2], newp[2];
+	int closer;
 
 	if(!menu->dotowards) return 0;
 	if((block->direction & UI_TOP) || (block->direction & UI_DOWN)) {
 		menu->dotowards= 0;
 		return menu->dotowards;
 	}
-	
-	/* calculate dominant direction */
-	domx= (-menu->towardsx + (block->maxx+block->minx)/2);
-	domy= (-menu->towardsy + (block->maxy+block->miny)/2);
 
-	/* we need some accuracy */
-	if(abs(domx) < 4) {
+	/* verify that we are moving closer towards one of the edges
+	 * of the menu block, in other words, in the triangle formed
+	 * by the initial mouse location and two edge points. */
+	p1[0]= block->minx;
+	p1[1]= block->miny;
+
+	p2[0]= block->maxx;
+	p2[1]= block->miny;
+	
+	p3[0]= block->maxx;
+	p3[1]= block->maxy;
+
+	p4[0]= block->minx;
+	p4[1]= block->maxy;
+
+	oldp[0]= menu->towardsx;
+	oldp[1]= menu->towardsy;
+
+	newp[0]= mx;
+	newp[1]= my;
+
+	closer= 0;
+	closer |= (PdistVL2Dfl(newp, p1, p2) < PdistVL2Dfl(oldp, p1, p2) + 4);
+	closer |= (PdistVL2Dfl(newp, p2, p3) < PdistVL2Dfl(oldp, p2, p3) + 4);
+	closer |= (PdistVL2Dfl(newp, p3, p4) < PdistVL2Dfl(oldp, p3, p4) + 4);
+	closer |= (PdistVL2Dfl(newp, p4, p1) < PdistVL2Dfl(oldp, p4, p1) + 4);
+
+	if(!closer)
 		menu->dotowards= 0;
-		return menu->dotowards;
-	}
-	
-	/* check direction */
-	dx= mx - menu->towardsx;
-	dy= my - menu->towardsy;
-	
-	/* threshold */
-	if(abs(dx)+abs(dy) > 4) {
-		/* menu to right */
-		if(domx>0) {
-			fac= (mx - menu->towardsx)*( menu->towardsy - (int)(block->maxy+20)) +
-			     (my - menu->towardsy)*(-menu->towardsx + (int)block->minx);
-			if(fac>0) menu->dotowards= 0;
-			
-			fac= (mx - menu->towardsx)*( menu->towardsy - (int)(block->miny-20)) +
-			     (my - menu->towardsy)*(-menu->towardsx + (int)block->minx);
-			if(fac<0) menu->dotowards= 0;
-		}
-		else {
-			fac= (mx - menu->towardsx)*( menu->towardsy - (int)(block->maxy+20)) +
-			     (my - menu->towardsy)*(-menu->towardsx + (int)block->maxx);
-			if(fac<0) menu->dotowards= 0;
-			
-			fac= (mx - menu->towardsx)*( menu->towardsy - (int)(block->miny-20)) +
-			     (my - menu->towardsy)*(-menu->towardsx + (int)block->maxx);
-			if(fac>0) menu->dotowards= 0;
-		}
-	}
 
 	/* 1 second timer */
 	if(PIL_check_seconds_timer() - menu->towardstime > BUTTON_MOUSE_TOWARDS_THRESH)
@@ -3368,10 +3366,16 @@ int ui_handle_menu_event(bContext *C, wmEvent *event, uiPopupBlockHandle *menu, 
 		if(block->miny <= my && block->maxy >= my)
 			inside= 1;
 
-	if(topmenu && event->type != TIMER) {
+	if((but=ui_but_find_activated(ar)) && button_modal_state(but->active->state)) {
+		/* if a button is activated modal, always reset the start mouse
+		 * position of the towards mechanism to avoid loosing focus,
+		 * and don't handle events */
+		ui_mouse_motion_towards_init(menu, mx, my, 1);
+	}
+	else if(event->type != TIMER) {
 		/* for ui_mouse_motion_towards_block */
 		if(event->type == MOUSEMOVE)
-			ui_mouse_motion_towards_init(menu, mx, my);
+			ui_mouse_motion_towards_init(menu, mx, my, 0);
 
 		switch(event->type) {
 			/* closing sublevels of pulldowns */
@@ -3586,6 +3590,7 @@ static int ui_handle_menu_closed_submenu(bContext *C, wmEvent *event, uiPopupBlo
 	uiBlock *block;
 	uiHandleButtonData *data;
 	uiPopupBlockHandle *submenu;
+	int mx, my;
 
 	ar= menu->region;
 	block= ar->uiblocks.first;
@@ -3608,6 +3613,13 @@ static int ui_handle_menu_closed_submenu(bContext *C, wmEvent *event, uiPopupBlo
 		 * will actually close the submenu too */
 		ui_handle_button_closed_submenu(C, event, but);
 	}
+
+	/* for cases where close does not cascade, allow the user to
+	 * move the mouse back towards the menu without closing */
+	mx= event->x;
+	my= event->y;
+	ui_window_to_block(ar, block, &mx, &my);
+	ui_mouse_motion_towards_init(menu, mx, my, 1);
 
 	if(menu->menuretval)
 		return WM_UI_HANDLER_CONTINUE;

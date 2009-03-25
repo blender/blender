@@ -1648,7 +1648,7 @@ static uiBlock *ui_block_create_redo_last(bContext *C, ARegion *ar, void *arg_op
 	}
 
 	RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
-	height= uiDefAutoButsRNA(block, &ptr);
+	height= uiDefAutoButsRNA(C, block, &ptr);
 
 	uiPopupBoundsBlock(block, 4.0f, 0, 0);
 	uiEndBlock(C, block);

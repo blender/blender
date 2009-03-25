@@ -160,7 +160,8 @@ static void ui_item_array(uiBlock *block, uiItemRNA *rnaitem, int len, int x, in
 	else
 		name= (char*)RNA_property_ui_name(&rnaitem->ptr, rnaitem->prop);
 
-	uiDefBut(block, LABEL, 0, name, x, y + h - YIC, w, YIC, NULL, 0.0, 0.0, 0, 0, "");
+	if(strcmp(name, "") != 0)
+		uiDefBut(block, LABEL, 0, name, x, y + h - YIC, w, YIC, NULL, 0.0, 0.0, 0, 0, "");
 
 	/* create buttons */
 	uiBlockBeginAlign(block);
@@ -940,4 +941,5 @@ void uiHeaderLayout(const bContext *C, ARegion *ar, uiHeaderCreateFunc func)
 	/* always as last  */
 	UI_view2d_totRect_set(&ar->v2d, xco+XIC+80, ar->v2d.tot.ymax-ar->v2d.tot.ymin);
 }
+
 

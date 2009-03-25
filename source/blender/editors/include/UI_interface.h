@@ -432,7 +432,7 @@ void uiDefKeyevtButS(uiBlock *block, int retval, char *str, short x1, short y1, 
 void uiBlockPickerButtons(struct uiBlock *block, float *col, float *hsv, float *old, char *hexcol, char mode, short retval);
 
 uiBut *uiDefAutoButR(uiBlock *block, struct PointerRNA *ptr, struct PropertyRNA *prop, int index, char *name, int icon, int x1, int y1, int x2, int y2);
-int uiDefAutoButsRNA(uiBlock *block, struct PointerRNA *ptr);
+int uiDefAutoButsRNA(const struct bContext *C, uiBlock *block, struct PointerRNA *ptr);
 
 /* Links
  *
