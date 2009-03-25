@@ -41,6 +41,7 @@ struct bContext;
 typedef void (*UpdateFunc)(struct bContext *C, struct PointerRNA *ptr);
 typedef int (*EditableFunc)(struct PointerRNA *ptr);
 typedef struct StructRNA *(*StructRefineFunc)(struct PointerRNA *ptr);
+typedef char *(*StructPathFunc)(struct PointerRNA *ptr);
 
 typedef int (*PropBooleanGetFunc)(struct PointerRNA *ptr);
 typedef void (*PropBooleanSetFunc)(struct PointerRNA *ptr, int value);
@@ -239,6 +240,9 @@ struct StructRNA {
 
 	/* function to give the more specific type */
 	StructRefineFunc refine; 
+
+	/* function to find path to this struct in an ID */
+	StructPathFunc path; 
 
 	/* properties of this struct */
 	ListBase properties; 

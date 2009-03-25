@@ -318,7 +318,7 @@ PropertyRNA *RNA_struct_find_property(PointerRNA *ptr, const char *identifier)
 	prop= NULL;
 
 	for(; iter.valid; RNA_property_collection_next(&iter), i++) {
-		if(strcmp(identifier, RNA_property_identifier(&iter.ptr, iter.ptr.data)) == 0) {
+		if(strcmp(identifier, RNA_property_identifier(ptr, iter.ptr.data)) == 0) {
 			prop= iter.ptr.data;
 			break;
 		}
@@ -1462,7 +1462,7 @@ int RNA_path_resolve(PointerRNA *ptr, const char *path, PointerRNA *r_ptr, Prope
 		prop= NULL;
 
 		for(; iter.valid; RNA_property_collection_next(&iter)) {
-			if(strcmp(token, RNA_property_identifier(&iter.ptr, iter.ptr.data)) == 0) {
+			if(strcmp(token, RNA_property_identifier(&curptr, iter.ptr.data)) == 0) {
 				prop= iter.ptr.data;
 				break;
 			}
@@ -1620,6 +1620,33 @@ char *RNA_path_back(const char *path)
 	result[i]= 0;
 
 	return result;
+}
+
+char *RNA_path_from_ID_to_property(PointerRNA *ptr, PropertyRNA *prop)
+{
+	char *ptrpath=NULL, *path;
+	const char *propname;
+
+	if(!ptr->id.data || !ptr->data || !prop)
+		return NULL;
+	
+	if(!RNA_struct_is_ID(ptr)) {
+		if(ptr->type->path)
+			ptrpath= ptr->type->path(ptr);
+		else
+			return NULL;
+	}
+
+	propname= RNA_property_identifier(ptr, prop);
+
+	if(ptrpath) {
+		path= BLI_sprintfN("%s.%s", ptrpath, propname);
+		MEM_freeN(ptrpath);
+	}
+	else
+		path= BLI_strdup(propname);
+	
+	return path;
 }
 
 /* Quick name based property access */

@@ -514,6 +514,16 @@ void RNA_def_struct_refine_func(StructRNA *srna, const char *refine)
 	if(refine) srna->refine= (StructRefineFunc)refine;
 }
 
+void RNA_def_struct_path_func(StructRNA *srna, const char *path)
+{
+	if(!DefRNA.preprocess) {
+		fprintf(stderr, "RNA_def_struct_path_func: only during preprocessing.\n");
+		return;
+	}
+
+	if(path) srna->path= (StructPathFunc)path;
+}
+
 void RNA_def_struct_identifier(StructRNA *srna, const char *identifier)
 {
 	if(DefRNA.preprocess) {

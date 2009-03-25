@@ -40,6 +40,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_dynstr.h"
 #include "BLI_string.h"
 
 char *BLI_strdupn(const char *str, int len) {
@@ -78,6 +79,24 @@ int BLI_snprintf(char *buffer, size_t count, const char *format, ...)
 	}
 	
 	va_end(arg);
+	return n;
+}
+
+char *BLI_sprintfN(const char *format, ...)
+{
+	DynStr *ds;
+	va_list arg;
+	char *n;
+
+	va_start(arg, format);
+
+	ds= BLI_dynstr_new();
+	BLI_dynstr_vappendf(ds, format, arg);
+	n= BLI_dynstr_get_cstring(ds);
+	BLI_dynstr_free(ds);
+
+	va_end(arg);
+
 	return n;
 }
 
