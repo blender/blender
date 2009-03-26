@@ -108,9 +108,9 @@ public:
 	static STR_String S_KX_ACT_IPO_KEY2KEY_STRING;
 	static STR_String S_KX_ACT_IPO_FROM_PROP_STRING;
 
-	IpoActType string2mode(char* modename);
+	int string2mode(char* modename);
 	
-	IpoActType	m_type;
+	int m_type;
 
 	KX_IpoActuator(SCA_IObject* gameobj,
 				   const STR_String& propname,
@@ -142,6 +142,8 @@ public:
 	/* --------------------------------------------------------------------- */
 
 	virtual PyObject* _getattr(const char *attr);
+	virtual int _setattr(const char *attr, PyObject *value);
+	
 	//KX_PYMETHOD_DOC
 	KX_PYMETHOD_DOC(KX_IpoActuator,Set);
 	KX_PYMETHOD_DOC(KX_IpoActuator,SetProperty);

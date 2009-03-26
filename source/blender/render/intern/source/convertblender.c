@@ -1988,12 +1988,12 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 									part->bb_align,part->draw&PART_DRAW_BB_LOCK,
 									a,totpart+totchild,part->bb_uv_split,part->bb_anim,part->bb_split_offset,random,pa_time,part->bb_offset,uv);
 			}
-			else if(strandbuf) {
+			else if(strandbuf) { if(svert) {
 				VECCOPY(svert->co, loc);
 				svert->strandco= -1.0f + 2.0f*time;
 				svert++;
 				strand->totvert++;
-			}
+			} }
 			else{
 				if(k==1){
 					VECSUB(loc0,loc1,loc);

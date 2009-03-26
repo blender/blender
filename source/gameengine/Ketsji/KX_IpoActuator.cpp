@@ -84,7 +84,7 @@ KX_IpoActuator::KX_IpoActuator(SCA_IObject* gameobj,
 	m_ipo_as_force(ipo_as_force),
 	m_ipo_add(ipo_add),
 	m_ipo_local(ipo_local),
-	m_type((IpoActType)acttype)
+	m_type(acttype)
 {
 	m_starttime = -2.0*fabs(m_endframe - m_startframe) - 1.0;
 	m_bIpoPlaying = false;
@@ -190,7 +190,7 @@ bool KX_IpoActuator::Update(double curtime, bool frame)
 		}
 	}	
 
-	switch (m_type)
+	switch ((IpoActType)m_type)
 	{
 		
 	case KX_ACT_IPO_PLAY:
@@ -383,7 +383,7 @@ bool KX_IpoActuator::Update(double curtime, bool frame)
 	return result;
 }
 
-KX_IpoActuator::IpoActType KX_IpoActuator::string2mode(char* modename) {
+int KX_IpoActuator::string2mode(char* modename) {
 	IpoActType res = KX_ACT_IPO_NODEF;
 
 	if (modename == S_KX_ACT_IPO_PLAY_STRING) { 
@@ -441,6 +441,8 @@ PyParentObject KX_IpoActuator::Parents[] = {
 
 PyMethodDef KX_IpoActuator::Methods[] = {
 	{"set", (PyCFunction) KX_IpoActuator::sPySet, METH_VARARGS, (PY_METHODCHAR)Set_doc},
+	
+	// deprecated 
 	{"setProperty", (PyCFunction) KX_IpoActuator::sPySetProperty, METH_VARARGS, (PY_METHODCHAR)SetProperty_doc},
 	{"setStart", (PyCFunction) KX_IpoActuator::sPySetStart, METH_VARARGS, (PY_METHODCHAR)SetStart_doc},
 	{"getStart", (PyCFunction) KX_IpoActuator::sPyGetStart, METH_NOARGS, (PY_METHODCHAR)GetStart_doc},
@@ -450,22 +452,47 @@ PyMethodDef KX_IpoActuator::Methods[] = {
 	{"getIpoAsForce", (PyCFunction) KX_IpoActuator::sPyGetIpoAsForce, METH_NOARGS, (PY_METHODCHAR)GetIpoAsForce_doc},
 	{"setIpoAdd", (PyCFunction) KX_IpoActuator::sPySetIpoAdd, METH_VARARGS, (PY_METHODCHAR)SetIpoAdd_doc},
 	{"getIpoAdd", (PyCFunction) KX_IpoActuator::sPyGetIpoAdd, METH_NOARGS, (PY_METHODCHAR)GetIpoAdd_doc},
-	{"setType", (PyCFunction) KX_IpoActuator::sPySetType, METH_VARARGS, (PY_METHODCHAR)SetType_doc},
-	{"getType", (PyCFunction) KX_IpoActuator::sPyGetType, METH_NOARGS, (PY_METHODCHAR)GetType_doc},	
 	{"setForceIpoActsLocal", (PyCFunction) KX_IpoActuator::sPySetForceIpoActsLocal, METH_VARARGS, (PY_METHODCHAR)SetForceIpoActsLocal_doc},
 	{"getForceIpoActsLocal", (PyCFunction) KX_IpoActuator::sPyGetForceIpoActsLocal,	METH_NOARGS, (PY_METHODCHAR)GetForceIpoActsLocal_doc},
+	{"setType", (PyCFunction) KX_IpoActuator::sPySetType, METH_VARARGS, (PY_METHODCHAR)SetType_doc},
+	{"getType", (PyCFunction) KX_IpoActuator::sPyGetType, METH_NOARGS, (PY_METHODCHAR)GetType_doc},	
 	{NULL,NULL} //Sentinel
 };
 
 PyAttributeDef KX_IpoActuator::Attributes[] = {
+	KX_PYATTRIBUTE_FLOAT_RW("startFrame", 0, 300000, KX_IpoActuator, m_startframe),
+	KX_PYATTRIBUTE_FLOAT_RW("endFrame", 0, 300000, KX_IpoActuator, m_endframe),
+	KX_PYATTRIBUTE_STRING_RW("propName", 0, 64, false, KX_IpoActuator, m_propname),
+	KX_PYATTRIBUTE_STRING_RW("framePropName", 0, 64, false, KX_IpoActuator, m_framepropname),
+	KX_PYATTRIBUTE_INT_RW("type", KX_ACT_IPO_NODEF+1, KX_ACT_IPO_MAX-1, true, KX_IpoActuator, m_type),
+	KX_PYATTRIBUTE_BOOL_RW("useIpoAsForce", KX_IpoActuator, m_ipo_as_force),
+	KX_PYATTRIBUTE_BOOL_RW("useIpoAdd", KX_IpoActuator, m_ipo_add),
+	KX_PYATTRIBUTE_BOOL_RW("useIpoLocal", KX_IpoActuator, m_ipo_local),
+	KX_PYATTRIBUTE_BOOL_RW("useChildren", KX_IpoActuator, m_recurse),
+	
 	{ NULL }	//Sentinel
 };
 
 PyObject* KX_IpoActuator::_getattr(const char *attr) {
+	PyObject* object = _getattr_self(Attributes, this, attr);
+	if (object != NULL)
+		return object;
+	
+	if (!strcmp(attr, "__dict__")) { /* python 3.0 uses .__dir__()*/
+		return _getattr_dict(SCA_IActuator::_getattr(attr), Methods, Attributes);
+	}
+	
 	_getattr_up(SCA_IActuator);
 }
 
-
+int KX_IpoActuator::_setattr(const char *attr, PyObject *value)	// _setattr method
+{
+	int ret = _setattr_self(Attributes, this, attr, value);
+	if (ret >= 0)
+		return ret;
+	
+	return SCA_IActuator::_setattr(attr, value);
+}
 
 /* set --------------------------------------------------------------------- */
 const char KX_IpoActuator::Set_doc[] = 
@@ -478,12 +505,15 @@ const char KX_IpoActuator::Set_doc[] =
 PyObject* KX_IpoActuator::PySet(PyObject* self, 
 								PyObject* args, 
 								PyObject* kwds) {
+	
+	ShowDeprecationWarning("set()", "a number properties");
+									
 	/* sets modes PLAY, PINGPONG, FLIPPER, LOOPSTOP, LOOPEND                 */
 	/* arg 1 = mode string, arg 2 = startframe, arg3 = stopframe,            */
 	/* arg4 = force toggle                                                   */
 	char* mode;
 	int forceToggle;
-	IpoActType modenum;
+	int modenum;
 	int startFrame, stopFrame;
 	if(!PyArg_ParseTuple(args, "siii", &mode, &startFrame, 
 						 &stopFrame, &forceToggle)) {
@@ -518,6 +548,9 @@ const char KX_IpoActuator::SetProperty_doc[] =
 PyObject* KX_IpoActuator::PySetProperty(PyObject* self, 
 										PyObject* args, 
 										PyObject* kwds) {
+
+	ShowDeprecationWarning("setProperty()", "the propName property");
+
 	/* mode is implicit here, but not supported yet... */
 	/* args: property */
 	char *propertyName;
@@ -538,6 +571,9 @@ const char KX_IpoActuator::SetStart_doc[] =
 PyObject* KX_IpoActuator::PySetStart(PyObject* self, 
 									 PyObject* args, 
 									 PyObject* kwds) {
+
+	ShowDeprecationWarning("setStart()", "the startFrame property");
+
 	float startArg;
 	if(!PyArg_ParseTuple(args, "f", &startArg)) {
 		return NULL;		
@@ -552,6 +588,7 @@ const char KX_IpoActuator::GetStart_doc[] =
 "getStart()\n"
 "\tReturns the frame from which the ipo starts playing.\n";
 PyObject* KX_IpoActuator::PyGetStart(PyObject* self) {
+	ShowDeprecationWarning("getStart()", "the startFrame property");
 	return PyFloat_FromDouble(m_startframe);
 }
 
@@ -563,6 +600,7 @@ const char KX_IpoActuator::SetEnd_doc[] =
 PyObject* KX_IpoActuator::PySetEnd(PyObject* self, 
 								   PyObject* args, 
 								   PyObject* kwds) {
+	ShowDeprecationWarning("setEnd()", "the endFrame property");
 	float endArg;
 	if(!PyArg_ParseTuple(args, "f", &endArg)) {
 		return NULL;		
@@ -577,6 +615,7 @@ const char KX_IpoActuator::GetEnd_doc[] =
 "getEnd()\n"
 "\tReturns the frame at which the ipo stops playing.\n";
 PyObject* KX_IpoActuator::PyGetEnd(PyObject* self) {
+	ShowDeprecationWarning("getEnd()", "the endFrame property");
 	return PyFloat_FromDouble(m_endframe);
 }
 
@@ -588,6 +627,7 @@ const char KX_IpoActuator::SetIpoAsForce_doc[] =
 PyObject* KX_IpoActuator::PySetIpoAsForce(PyObject* self, 
 										  PyObject* args, 
 										  PyObject* kwds) { 
+	ShowDeprecationWarning("setIpoAsForce()", "the useIpoAsForce property");
 	int boolArg;
 	
 	if (!PyArg_ParseTuple(args, "i", &boolArg)) {
@@ -605,6 +645,7 @@ const char KX_IpoActuator::GetIpoAsForce_doc[] =
 "getIpoAsForce()\n"
 "\tReturns whether to interpret the ipo as a force rather than a displacement.\n";
 PyObject* KX_IpoActuator::PyGetIpoAsForce(PyObject* self) {
+	ShowDeprecationWarning("getIpoAsForce()", "the useIpoAsForce property");
 	return BoolToPyArg(m_ipo_as_force);
 }
 
@@ -616,6 +657,7 @@ const char KX_IpoActuator::SetIpoAdd_doc[] =
 PyObject* KX_IpoActuator::PySetIpoAdd(PyObject* self, 
 									  PyObject* args, 
 									  PyObject* kwds) { 
+	ShowDeprecationWarning("setIpoAdd()", "the useIpoAdd property");
 	int boolArg;
 	
 	if (!PyArg_ParseTuple(args, "i", &boolArg)) {
@@ -633,6 +675,7 @@ const char KX_IpoActuator::GetIpoAdd_doc[] =
 "getIpoAsAdd()\n"
 "\tReturns whether to interpret the ipo as additive rather than absolute.\n";
 PyObject* KX_IpoActuator::PyGetIpoAdd(PyObject* self) {
+	ShowDeprecationWarning("getIpoAdd()", "the useIpoAdd property");
 	return BoolToPyArg(m_ipo_add);
 }
 
@@ -644,6 +687,7 @@ const char KX_IpoActuator::SetType_doc[] =
 PyObject* KX_IpoActuator::PySetType(PyObject* self, 
 									PyObject* args, 
 									PyObject* kwds) {
+	ShowDeprecationWarning("setType()", "the type property");
 	int typeArg;
 	
 	if (!PyArg_ParseTuple(args, "i", &typeArg)) {
@@ -651,8 +695,8 @@ PyObject* KX_IpoActuator::PySetType(PyObject* self,
 	}
 	
 	if ( (typeArg > KX_ACT_IPO_NODEF) 
-		 && (typeArg < KX_ACT_IPO_KEY2KEY) ) {
-		m_type = (IpoActType) typeArg;
+		 && (typeArg < KX_ACT_IPO_MAX) ) {
+		m_type = typeArg;
 	}
 	
 	Py_RETURN_NONE;
@@ -662,6 +706,7 @@ const char KX_IpoActuator::GetType_doc[] =
 "getType()\n"
 "\tReturns the operation mode of the actuator.\n";
 PyObject* KX_IpoActuator::PyGetType(PyObject* self) {
+	ShowDeprecationWarning("getType()", "the type property");
 	return PyInt_FromLong(m_type);
 }
 
@@ -675,6 +720,7 @@ const char KX_IpoActuator::SetForceIpoActsLocal_doc[] =
 PyObject* KX_IpoActuator::PySetForceIpoActsLocal(PyObject* self, 
 										         PyObject* args, 
 						       				     PyObject* kwds) { 
+	ShowDeprecationWarning("setForceIpoActsLocal()", "the useIpoLocal property");
 	int boolArg;
 	
 	if (!PyArg_ParseTuple(args, "i", &boolArg)) {
@@ -691,6 +737,7 @@ const char KX_IpoActuator::GetForceIpoActsLocal_doc[] =
 "\tReturn whether to apply the force in the object's local\n"
 "\tcoordinates rather than the world global coordinates.\n";
 PyObject* KX_IpoActuator::PyGetForceIpoActsLocal(PyObject* self) {
+	ShowDeprecationWarning("getForceIpoActsLocal()", "the useIpoLocal property");
 	return BoolToPyArg(m_ipo_local);
 }
 
