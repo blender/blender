@@ -1889,10 +1889,10 @@ static int modify_key_op_poll(bContext *C)
 		return 0;
 	
 	/* if Outliner, only allow in DataBlocks view */
-	if (sa->spacetype == SPACE_OOPS) {
+	if (sa->spacetype == SPACE_OUTLINER) {
 		SpaceOops *so= (SpaceOops *)CTX_wm_space_data(C);
 		
-		if ((so->type != SO_OUTLINER) || (so->outlinevis != SO_DATABLOCKS))
+		if ((so->outlinevis != SO_DATABLOCKS))
 			return 0;
 	}
 	

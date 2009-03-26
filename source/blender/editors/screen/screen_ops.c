@@ -134,11 +134,7 @@ int ED_operator_timeline_active(bContext *C)
 
 int ED_operator_outliner_active(bContext *C)
 {
-	if(ed_spacetype_test(C, SPACE_OOPS)) {
-		SpaceOops *so= (SpaceOops *)CTX_wm_space_data(C);
-		return (so->type == SO_OUTLINER);
-	}
-	return 0;
+	return ed_spacetype_test(C, SPACE_OUTLINER);
 }
 
 int ED_operator_file_active(bContext *C)

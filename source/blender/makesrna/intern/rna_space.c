@@ -49,7 +49,7 @@ static StructRNA* rna_Space_refine(struct PointerRNA *ptr)
 			return &RNA_SpaceView3D;
 		case SPACE_IPO:
 			return &RNA_SpaceGraphEditor;
-		case SPACE_OOPS:
+		case SPACE_OUTLINER:
 			return &RNA_SpaceOutliner;
 		case SPACE_BUTS:
 			return &RNA_SpaceButtonsWindow;
@@ -122,7 +122,7 @@ static void rna_def_space(BlenderRNA *brna)
 		{SPACE_EMPTY, "EMPTY", "Empty", ""},
 		{SPACE_VIEW3D, "VIEW_3D", "3D View", ""},
 		{SPACE_IPO, "GRAPH_EDITOR", "Graph Editor", ""},
-		{SPACE_OOPS, "OUTLINER", "Outliner", ""},
+		{SPACE_OUTLINER, "OUTLINER", "Outliner", ""},
 		{SPACE_BUTS, "BUTTONS_WINDOW", "Buttons Window", ""},
 		{SPACE_FILE, "FILE_BROWSER", "File Browser", ""},
 		{SPACE_IMAGE, "IMAGE_EDITOR", "Image Editor", ""},

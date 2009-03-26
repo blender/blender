@@ -33,7 +33,7 @@
 
 #include "DNA_listBase.h"
 #include "DNA_vec_types.h"
-#include "DNA_oops_types.h"		/* for TreeStoreElem */
+#include "DNA_outliner_types.h"		/* for TreeStoreElem */
 #include "DNA_image_types.h"	/* ImageUser */
 /* Hum ... Not really nice... but needed for spacebuts. */
 #include "DNA_view2d_types.h"
@@ -194,10 +194,6 @@ typedef struct SpaceOops {
 
 	View2D v2d; /* depricated, copied to region */
 	
-	ListBase oops;
-	short pin, visiflag, flag, rt;
-	void *lockpoin;
-	
 	ListBase tree;
 	struct TreeStore *treestore;
 	
@@ -206,12 +202,7 @@ typedef struct SpaceOops {
 	struct TreeStoreElem search_tse;
 	int search_flags, do_;
 	
-	short type, outlinevis, storeflag;
-	short deps_flags;
-
-	/* RNA */
-	char *rnapath;
-	
+	short flag, outlinevis, storeflag, pad;
 } SpaceOops;
 
 typedef struct SpaceImage {
@@ -609,34 +600,11 @@ enum {
 /* stext->findstr/replacestr */
 #define ST_MAX_FIND_STR		256
 
-/* SpaceOops->type */
-#define SO_OOPS			0
-#define SO_OUTLINER		1
-#define SO_DEPSGRAPH    2
-
 /* SpaceOops->flag */
 #define SO_TESTBLOCKS	1
 #define SO_NEWSELECTED	2
 #define SO_HIDE_RESTRICTCOLS		4
 #define SO_HIDE_KEYINGSETINFO		8
-
-/* SpaceOops->visiflag */
-#define OOPS_SCE	1
-#define OOPS_OB		2
-#define OOPS_ME		4
-#define OOPS_CU		8
-#define OOPS_MB		16
-#define OOPS_LT		32
-#define OOPS_LA		64
-#define OOPS_MA		128
-#define OOPS_TE		256
-#define OOPS_IP		512
-#define OOPS_LAY	1024
-#define OOPS_LI		2048
-#define OOPS_IM		4096
-#define OOPS_AR		8192
-#define OOPS_GR		16384
-#define OOPS_CA		32768
 
 /* SpaceOops->outlinevis */
 #define SO_ALL_SCENES	0
@@ -738,7 +706,7 @@ enum {
 	SPACE_EMPTY,
 	SPACE_VIEW3D,
 	SPACE_IPO,
-	SPACE_OOPS,
+	SPACE_OUTLINER,
 	SPACE_BUTS,
 	SPACE_FILE,
 	SPACE_IMAGE,		

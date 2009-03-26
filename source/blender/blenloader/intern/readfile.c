@@ -81,7 +81,7 @@
 #include "DNA_object_types.h"
 #include "DNA_object_force.h"
 #include "DNA_object_fluidsim.h" // NT
-#include "DNA_oops_types.h"
+#include "DNA_outliner_types.h"
 #include "DNA_object_force.h"
 #include "DNA_packedFile_types.h"
 #include "DNA_particle_types.h"
@@ -4205,18 +4205,11 @@ static void lib_link_screen(FileData *fd, Main *main)
 							}
 						}
 					}
-					else if(sl->spacetype==SPACE_OOPS) {
+					else if(sl->spacetype==SPACE_OUTLINER) {
 						SpaceOops *so= (SpaceOops *)sl;
-						Oops *oops;
 						TreeStoreElem *tselem;
 						int a;
 
-						oops= so->oops.first;
-						while(oops) {
-							oops->id= newlibadr(fd, NULL, oops->id);
-							oops= oops->next;
-						}
-						so->lockpoin= NULL;
 						so->tree.first= so->tree.last= NULL;
 						so->search_tse.id= newlibadr(fd, NULL, so->search_tse.id);
 						
@@ -4414,17 +4407,10 @@ void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 						SCRIPT_SET_NULL(scpt->script)
 					}
 				}
-				else if(sl->spacetype==SPACE_OOPS) {
+				else if(sl->spacetype==SPACE_OUTLINER) {
 					SpaceOops *so= (SpaceOops *)sl;
-					Oops *oops;
 					int a;
 					
-					oops= so->oops.first;
-					while(oops) {
-						oops->id= restore_pointer_by_name(newmain, (ID *)oops->id, 0);
-						oops= oops->next;
-					}
-					so->lockpoin= NULL;
 					so->search_tse.id= restore_pointer_by_name(newmain, so->search_tse.id, 0);
 					
 					if(so->treestore) {
@@ -4529,7 +4515,6 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 	ScrArea *sa;
 	ScrVert *sv;
 	ScrEdge *se;
-	Oops *oops;
 	int a;
 	
 	link_list(fd, &(sc->vertbase));
@@ -4617,15 +4602,8 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 				
 				sipo->ads= newdataadr(fd, sipo->ads);
 			}
-			else if (sl->spacetype==SPACE_OOPS) {
+			else if (sl->spacetype==SPACE_OUTLINER) {
 				SpaceOops *soops= (SpaceOops*) sl;
-				
-				link_list(fd, &(soops->oops));
-				oops= soops->oops.first;
-				while(oops) {
-					oops->link.first= oops->link.last= 0;
-					oops= oops->next;
-				}
 				
 				soops->treestore= newdataadr(fd, soops->treestore);
 				if(soops->treestore) {
@@ -5525,7 +5503,7 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				view3d_split_250((View3D *)sl, lb);
 				break;		
 						
-			case SPACE_OOPS:
+			case SPACE_OUTLINER:
 			{
 				SpaceOops *soops= (SpaceOops *)sl;
 				
@@ -5538,8 +5516,6 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				ar->v2d.keeptot = V2D_KEEPTOT_STRICT;
 				ar->v2d.minzoom= ar->v2d.maxzoom= 1.0f;
 				//ar->v2d.flag |= V2D_IS_INITIALISED;
-				
-				soops->type= SO_OUTLINER;
 			}
 				break;
 			case SPACE_TIME:
@@ -7025,12 +7001,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 						View3D *v3d= (View3D *)sl;
 						if(v3d->twtype==0) v3d->twtype= V3D_MANIP_TRANSLATE;
 					}
-#ifndef SHOWDEPGRAPH
-					else if(sl->spacetype==SPACE_OOPS) {
-						if ( ((SpaceOops *)sl)->type==SO_DEPSGRAPH)
-							 ((SpaceOops *)sl)->type=SO_OOPS;
-					}
-#endif				
 					else if(sl->spacetype==SPACE_TIME) {
 						SpaceTime *stime= (SpaceTime *)sl;
 						if(stime->redraws==0)

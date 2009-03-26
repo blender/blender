@@ -1,6 +1,4 @@
 /**
- * blenlib/DNA_oops_types.h (mar-2001 nzc)
- *	
  * $Id$ 
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -28,11 +26,8 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef DNA_OOPS_TYPES_H
-#define DNA_OOPS_TYPES_H
-
-#define OOPSX	5.0
-#define OOPSY	1.8
+#ifndef DNA_OUTLINER_TYPES_H
+#define DNA_OUTLINER_TYPES_H
 
 #include "DNA_listBase.h"
 
@@ -47,30 +42,6 @@ typedef struct TreeStore {
 	int totelem, usedelem;
 	TreeStoreElem *data;
 } TreeStore;
-
-typedef struct Oops {
-	struct Oops *next, *prev;
-	short type, flag, dt, hide;
-	float x, y;		/* left - bottom */
-	float dx, dy;	/* shuffle */
-	struct ID *id;
-	ListBase link;
-} Oops;
-
-#
-#
-typedef struct OopsLink {
-	struct OopsLink *next, *prev;
-	short type, flag;
-	struct ID **idfrom;
-	Oops *to, *from;	/* from is for temp */
-	float xof, yof;
-	char name[12];
-} OopsLink;
-
-/* oops->flag  (1==SELECT) */
-#define OOPS_DOSELECT	2
-#define OOPS_REFER		4
 
 /* TreeStoreElem->flag */
 #define TSE_CLOSED		1

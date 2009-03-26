@@ -31,7 +31,7 @@
 
 #include "DNA_color_types.h"
 #include "DNA_object_types.h"
-#include "DNA_oops_types.h"
+#include "DNA_outliner_types.h"
 #include "DNA_space_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
@@ -78,7 +78,7 @@ static void outliner_main_area_init(wmWindowManager *wm, ARegion *ar)
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_LIST, ar->winx, ar->winy);
 	
 	/* own keymap */
-	keymap= WM_keymap_listbase(wm, "Outliner", SPACE_OOPS, 0);	/* XXX weak? */
+	keymap= WM_keymap_listbase(wm, "Outliner", SPACE_OUTLINER, 0);	/* XXX weak? */
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 }
 
@@ -190,7 +190,7 @@ static SpaceLink *outliner_new(const bContext *C)
 	SpaceOops *soutliner;
 
 	soutliner= MEM_callocN(sizeof(SpaceOops), "initoutliner");
-	soutliner->spacetype= SPACE_OOPS;
+	soutliner->spacetype= SPACE_OUTLINER;
 	
 	/* header */
 	ar= MEM_callocN(sizeof(ARegion), "header for outliner");
@@ -214,27 +214,10 @@ static SpaceLink *outliner_new(const bContext *C)
 	return (SpaceLink*)soutliner;
 }
 
-static void free_oops(Oops *oops)	/* also oops itself */
-{
-	BLI_freelistN(&oops->link);
-	MEM_freeN(oops);
-}
-
 /* not spacelink itself */
 static void outliner_free(SpaceLink *sl)
 {
 	SpaceOops *soutliner= (SpaceOops*)sl;
-	Oops *oops;
-
-	if(soutliner->rnapath) {
-		MEM_freeN(soutliner->rnapath);
-		soutliner->rnapath= NULL;
-	}
-
-	while( (oops= soutliner->oops.first) ) {
-		BLI_remlink(&soutliner->oops, oops);
-		free_oops(oops);
-	}
 	
 	outliner_free_tree(&soutliner->tree);
 	if(soutliner->treestore) {
@@ -255,10 +238,6 @@ static SpaceLink *outliner_duplicate(SpaceLink *sl)
 	SpaceOops *soutliner= (SpaceOops *)sl;
 	SpaceOops *soutlinern= MEM_dupallocN(soutliner);
 
-	if(soutlinern->rnapath)
-		soutlinern->rnapath= MEM_dupallocN(soutlinern->rnapath);
-	
-	soutlinern->oops.first= soutlinern->oops.last= NULL;
 	soutlinern->tree.first= soutlinern->tree.last= NULL;
 	soutlinern->treestore= NULL;
 	
@@ -271,7 +250,7 @@ void ED_spacetype_outliner(void)
 	SpaceType *st= MEM_callocN(sizeof(SpaceType), "spacetype time");
 	ARegionType *art;
 	
-	st->spaceid= SPACE_OOPS;
+	st->spaceid= SPACE_OUTLINER;
 	strncpy(st->name, "Outliner", BKE_ST_MAXNAME);
 	
 	st->new= outliner_new;

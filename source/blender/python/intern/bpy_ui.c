@@ -600,7 +600,7 @@ PyObject *BPY_ui_module( void )
 	PyModule_AddObject( mod, "EMPTY", PyLong_FromSize_t(SPACE_EMPTY) );
 	PyModule_AddObject( mod, "VIEW3D", PyLong_FromSize_t(SPACE_VIEW3D) );
 	PyModule_AddObject( mod, "IPO", PyLong_FromSize_t(SPACE_IPO) );
-	PyModule_AddObject( mod, "OOPS", PyLong_FromSize_t(SPACE_OOPS) );
+	PyModule_AddObject( mod, "OUTLINER", PyLong_FromSize_t(SPACE_OUTLINER) );
 	PyModule_AddObject( mod, "BUTS", PyLong_FromSize_t(SPACE_BUTS) );
 	PyModule_AddObject( mod, "FILE", PyLong_FromSize_t(SPACE_FILE) );
 	PyModule_AddObject( mod, "IMAGE", PyLong_FromSize_t(SPACE_IMAGE) );

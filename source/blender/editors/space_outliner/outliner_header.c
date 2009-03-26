@@ -88,9 +88,6 @@ static void do_viewmenu(bContext *C, void *arg, int event)
 			/* using event B_FULL */
 			break;
 			break;
-		case 14: /* show outliner viewer */
-			soops->type= SO_OUTLINER;
-			break;
 		case 6:
 			//outliner_toggle_visible(curarea);
 			break;
@@ -124,23 +121,21 @@ static uiBlock *outliner_viewmenu(bContext *C, ARegion *ar, void *arg_unused)
 	block= uiBeginBlock(C, ar, "outliner_viewmenu", UI_EMBOSSP, UI_HELV);
 	uiBlockSetButmFunc(block, do_viewmenu, NULL);
 	
-	if(soops->type==SO_OUTLINER) {
-		if (soops->flag & SO_HIDE_RESTRICTCOLS)
-			uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Show Restriction Columns", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 12, "");
-		else
-			uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Show Restriction Columns", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 12, "");
-		
-		uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-		
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Expand One Level|NumPad +", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 9, "");
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Collapse One Level|NumPad -", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 10, "");
-		
-		uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");  
-		
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show/Hide All", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show Hierarchy|Home", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 7, "");
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show Active|NumPad .", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 8, "");
-	}
+	if (soops->flag & SO_HIDE_RESTRICTCOLS)
+		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Show Restriction Columns", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 12, "");
+	else
+		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Show Restriction Columns", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 12, "");
+	
+	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Expand One Level|NumPad +", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 9, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Collapse One Level|NumPad -", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 10, "");
+	
+	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");  
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show/Hide All", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show Hierarchy|Home", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 7, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show Active|NumPad .", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 8, "");
 	
 //	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");  
 //	if(!curarea->full) uiDefIconTextBut(block, BUTM, B_FULL, ICON_BLANK1, "Maximize Window|Ctrl UpArrow", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");
@@ -239,73 +234,71 @@ void outliner_header_buttons(const bContext *C, ARegion *ar)
 		uiBlockSetEmboss(block, UI_EMBOSS);
 	}
 	
-	//if (outliner->type==SO_OUTLINER) {
-		/* data selector*/
-		if(G.main->library.first) 
-			uiDefButS(block, MENU, B_REDR, "Outliner Display%t|Libraries %x7|All Scenes %x0|Current Scene %x1|Visible Layers %x2|Groups %x6|Same Types %x5|Selected %x3|Active %x4|Sequence %x10|Datablocks %x11|User Preferences %x12",	 xco, yco, 120, 20,  &soutliner->outlinevis, 0, 0, 0, 0, "");
-		else
-			uiDefButS(block, MENU, B_REDR, "Outliner Display%t|All Scenes %x0|Current Scene %x1|Visible Layers %x2|Groups %x6|Same Types %x5|Selected %x3|Active %x4|Sequence %x10|Datablocks %x11|User Preferences %x12",	 xco, yco, 120, 20,  &soutliner->outlinevis, 0, 0, 0, 0, "");	
-		xco += 120;
+	/* data selector*/
+	if(G.main->library.first) 
+		uiDefButS(block, MENU, B_REDR, "Outliner Display%t|Libraries %x7|All Scenes %x0|Current Scene %x1|Visible Layers %x2|Groups %x6|Same Types %x5|Selected %x3|Active %x4|Sequence %x10|Datablocks %x11|User Preferences %x12",	 xco, yco, 120, 20,  &soutliner->outlinevis, 0, 0, 0, 0, "");
+	else
+		uiDefButS(block, MENU, B_REDR, "Outliner Display%t|All Scenes %x0|Current Scene %x1|Visible Layers %x2|Groups %x6|Same Types %x5|Selected %x3|Active %x4|Sequence %x10|Datablocks %x11|User Preferences %x12",	 xco, yco, 120, 20,  &soutliner->outlinevis, 0, 0, 0, 0, "");	
+	xco += 120;
+	
+	/* KeyingSet editing buttons */
+	if ((soutliner->flag & SO_HIDE_KEYINGSETINFO)==0 && (soutliner->outlinevis==SO_DATABLOCKS)) {
+		KeyingSet *ks= NULL;
+		char *menustr= NULL;
 		
-		/* KeyingSet editing buttons */
-		if ((soutliner->flag & SO_HIDE_KEYINGSETINFO)==0 && (soutliner->outlinevis==SO_DATABLOCKS)) {
-			KeyingSet *ks= NULL;
-			char *menustr= NULL;
+		xco+= (int)(XIC*1.5);
+		
+		if (scene->active_keyingset)
+			ks= (KeyingSet *)BLI_findlink(&scene->keyingsets, scene->active_keyingset-1);
+		
+		uiBlockBeginAlign(block);
+			/* currently 'active' KeyingSet */
+			menustr= ANIM_build_keyingsets_menu(&scene->keyingsets, 1);
+			uiDefButI(block, MENU, B_KEYINGSET_CHANGE, menustr, xco,yco, 18,20, &scene->active_keyingset, 0, 0, 0, 0, "Browse Keying Sets");
+			MEM_freeN(menustr);
+			xco += 18;
 			
-			xco+= (int)(XIC*1.5);
+			/* currently 'active' KeyingSet - change name */
+			if (ks) {
+				/* active KeyingSet */
+				uiDefBut(block, TEX, B_KEYINGSET_CHANGE,"", xco,yco,120,20, ks->name, 0, 63, 0, 0, "Name of Active Keying Set");
+				xco += 120;
+				uiDefIconBut(block, BUT, B_KEYINGSET_REMOVE, VICON_X, xco, yco, 20, 20, NULL, 0.0, 0.0, 0.0, 0.0, "Remove this Keying Set");
+				xco += 20;
+			}
+			else {
+				/* no active KeyingSet... so placeholder instead */
+				uiDefBut(block, LABEL, 0,"<No Keying Set Active>", xco,yco,140,20, NULL, 0, 63, 0, 0, "Name of Active Keying Set");
+				xco += 140;
+			}
+		uiBlockEndAlign(block);
+		
+		/* current 'active' KeyingSet */
+		if (ks) {
+			xco += 5;
 			
-			if (scene->active_keyingset)
-				ks= (KeyingSet *)BLI_findlink(&scene->keyingsets, scene->active_keyingset-1);
-			
+			/* operator buttons to add/remove selected items from set */
 			uiBlockBeginAlign(block);
-				/* currently 'active' KeyingSet */
-				menustr= ANIM_build_keyingsets_menu(&scene->keyingsets, 1);
-				uiDefButI(block, MENU, B_KEYINGSET_CHANGE, menustr, xco,yco, 18,20, &scene->active_keyingset, 0, 0, 0, 0, "Browse Keying Sets");
-				MEM_freeN(menustr);
-				xco += 18;
-				
-				/* currently 'active' KeyingSet - change name */
-				if (ks) {
-					/* active KeyingSet */
-					uiDefBut(block, TEX, B_KEYINGSET_CHANGE,"", xco,yco,120,20, ks->name, 0, 63, 0, 0, "Name of Active Keying Set");
-					xco += 120;
-					uiDefIconBut(block, BUT, B_KEYINGSET_REMOVE, VICON_X, xco, yco, 20, 20, NULL, 0.0, 0.0, 0.0, 0.0, "Remove this Keying Set");
-					xco += 20;
-				}
-				else {
-					/* no active KeyingSet... so placeholder instead */
-					uiDefBut(block, LABEL, 0,"<No Keying Set Active>", xco,yco,140,20, NULL, 0, 63, 0, 0, "Name of Active Keying Set");
-					xco += 140;
-				}
+					// XXX the icons here are temporary
+				uiDefIconButO(block, BUT, "OUTLINER_OT_keyingset_remove_selected", WM_OP_INVOKE_REGION_WIN, ICON_ZOOMOUT, xco,yco,XIC,YIC, "Remove selected properties from active Keying Set (Alt-K)");
+				xco += XIC;
+				uiDefIconButO(block, BUT, "OUTLINER_OT_keyingset_add_selected", WM_OP_INVOKE_REGION_WIN, ICON_ZOOMIN, xco,yco,XIC,YIC, "Add selected properties to active Keying Set (K)");
+				xco += XIC;
 			uiBlockEndAlign(block);
 			
-			/* current 'active' KeyingSet */
-			if (ks) {
-				xco += 5;
-				
-				/* operator buttons to add/remove selected items from set */
-				uiBlockBeginAlign(block);
-						// XXX the icons here are temporary
-					uiDefIconButO(block, BUT, "OUTLINER_OT_keyingset_remove_selected", WM_OP_INVOKE_REGION_WIN, ICON_ZOOMOUT, xco,yco,XIC,YIC, "Remove selected properties from active Keying Set (Alt-K)");
-					xco += XIC;
-					uiDefIconButO(block, BUT, "OUTLINER_OT_keyingset_add_selected", WM_OP_INVOKE_REGION_WIN, ICON_ZOOMIN, xco,yco,XIC,YIC, "Add selected properties to active Keying Set (K)");
-					xco += XIC;
-				uiBlockEndAlign(block);
-				
-				xco += 10;
-				
-				/* operator buttons to insert/delete keyframes for the active set */
-				uiBlockBeginAlign(block);
-					uiDefIconButO(block, BUT, "ANIM_OT_delete_keyframe", WM_OP_INVOKE_REGION_WIN, ICON_KEY_DEHLT, xco,yco,XIC,YIC, "Delete Keyframes for the Active Keying Set (Alt-I)");
-					xco+= XIC;
-					uiDefIconButO(block, BUT, "ANIM_OT_insert_keyframe", WM_OP_INVOKE_REGION_WIN, ICON_KEY_HLT, xco,yco,XIC,YIC, "Insert Keyframes for the Active Keying Set (I)");
-					xco+= XIC;
-				uiBlockEndAlign(block);
-			}
+			xco += 10;
 			
-			xco += XIC*2;
+			/* operator buttons to insert/delete keyframes for the active set */
+			uiBlockBeginAlign(block);
+				uiDefIconButO(block, BUT, "ANIM_OT_delete_keyframe", WM_OP_INVOKE_REGION_WIN, ICON_KEY_DEHLT, xco,yco,XIC,YIC, "Delete Keyframes for the Active Keying Set (Alt-I)");
+				xco+= XIC;
+				uiDefIconButO(block, BUT, "ANIM_OT_insert_keyframe", WM_OP_INVOKE_REGION_WIN, ICON_KEY_HLT, xco,yco,XIC,YIC, "Insert Keyframes for the Active Keying Set (I)");
+				xco+= XIC;
+			uiBlockEndAlign(block);
 		}
-	//}
+		
+		xco += XIC*2;
+	}
 	
 	/* always as last  */
 	UI_view2d_totRect_set(&ar->v2d, xco+XIC+100, (int)(ar->v2d.tot.ymax-ar->v2d.tot.ymin));

@@ -58,7 +58,7 @@
 #include "DNA_object_types.h"
 #include "DNA_object_force.h"
 #include "DNA_object_fluidsim.h"
-#include "DNA_oops_types.h"
+#include "DNA_outliner_types.h"
 #include "DNA_particle_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
@@ -554,15 +554,9 @@ void unlink_object(Scene *scene, Object *ob)
 						// XXX if(v3d->localvd->persp==V3D_CAMOB) v3d->localvd->persp= V3D_PERSP;
 					}
 				}
-				else if(sl->spacetype==SPACE_OOPS) {
+				else if(sl->spacetype==SPACE_OUTLINER) {
 					SpaceOops *so= (SpaceOops *)sl;
-					Oops *oops;
 
-					oops= so->oops.first;
-					while(oops) {
-						if(oops->id==(ID *)ob) oops->id= NULL;
-						oops= oops->next;
-					}
 					if(so->treestore) {
 						TreeStoreElem *tselem= so->treestore->data;
 						int a;
@@ -570,7 +564,6 @@ void unlink_object(Scene *scene, Object *ob)
 							if(tselem->id==(ID *)ob) tselem->id= NULL;
 						}
 					}
-					so->lockpoin= NULL;
 				}
 			}
 

@@ -50,7 +50,7 @@
 #include "DNA_modifier_types.h"
 #include "DNA_nla_types.h"
 #include "DNA_object_types.h"
-#include "DNA_oops_types.h"
+#include "DNA_outliner_types.h"
 #include "DNA_particle_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
@@ -3063,9 +3063,9 @@ enum {
 static int ed_operator_outliner_datablocks_active(bContext *C)
 {
 	ScrArea *sa= CTX_wm_area(C);
-	if ((sa) && (sa->spacetype==SPACE_OOPS)) {
+	if ((sa) && (sa->spacetype==SPACE_OUTLINER)) {
 		SpaceOops *so= (SpaceOops *)CTX_wm_space_data(C);
-		return ((so->type == SO_OUTLINER) && (so->outlinevis == SO_DATABLOCKS));
+		return (so->outlinevis == SO_DATABLOCKS);
 	}
 	return 0;
 }

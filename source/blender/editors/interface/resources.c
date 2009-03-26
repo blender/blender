@@ -176,7 +176,7 @@ char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
 			case SPACE_TEXT:
 				ts= &btheme->text;
 				break;
-			case SPACE_OOPS:
+			case SPACE_OUTLINER:
 				ts= &btheme->toops;
 				break;
 			case SPACE_SOUND:
