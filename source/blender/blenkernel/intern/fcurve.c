@@ -1277,8 +1277,12 @@ static void fcm_generator_evaluate (FCurve *fcu, FModifier *fcm, float *cvalue, 
 				value += data->coefficients[i] * powers[i];
 			
 			/* only if something changed, write *cvalue in one go */
-			if (data->poly_order)
-				*cvalue= value;
+			if (data->poly_order) {
+				if (data->flag & FCM_GENERATOR_ADDITIVE)
+					*cvalue += value;
+				else
+					*cvalue= value;
+			}
 				
 			/* cleanup */
 			if (powers) 
@@ -1296,8 +1300,12 @@ static void fcm_generator_evaluate (FCurve *fcu, FModifier *fcm, float *cvalue, 
 				value *= (cp[0]*evaltime + cp[1]);
 				
 			/* only if something changed, write *cvalue in one go */
-			if (data->poly_order)
-				*cvalue= value;
+			if (data->poly_order) {
+				if (data->flag & FCM_GENERATOR_ADDITIVE)
+					*cvalue += value;
+				else
+					*cvalue= value;
+			}
 		}
 			break;
 			
@@ -1323,8 +1331,10 @@ static void fcm_generator_evaluate (FCurve *fcu, FModifier *fcm, float *cvalue, 
 				case FCM_GENERATOR_FN_TAN: /* tangent wave */
 				{
 					/* check that argument is not on one of the discontinuities (i.e. 90deg, 270 deg, etc) */
-					if IS_EQ(fmod((arg - M_PI_2), M_PI), 0.0)
-						*cvalue= 0.0f; /* no value possible here */
+					if IS_EQ(fmod((arg - M_PI_2), M_PI), 0.0) {
+						if ((data->flag & FCM_GENERATOR_ADDITIVE) == 0)
+							*cvalue = 0.0f; /* no value possible here */
+					}
 					else
 						fn= tan;
 				}
@@ -1332,19 +1342,25 @@ static void fcm_generator_evaluate (FCurve *fcu, FModifier *fcm, float *cvalue, 
 				case FCM_GENERATOR_FN_LN: /* natural log */
 				{
 					/* check that value is greater than 1? */
-					if (arg > 1.0f)
+					if (arg > 1.0f) {
 						fn= log;
-					else
-						*cvalue= 0.0f; /* no value possible here */
+					}
+					else {
+						if ((data->flag & FCM_GENERATOR_ADDITIVE) == 0)
+							*cvalue = 0.0f; /* no value possible here */
+					}
 				}
 					break;
 				case FCM_GENERATOR_FN_SQRT: /* square root */
 				{
 					/* no negative numbers */
-					if (arg > 0.0f)
+					if (arg > 0.0f) {
 						fn= sqrt;
-					else
-						*cvalue= 0.0f; /* no vlaue possible here */
+					}
+					else {
+						if ((data->flag & FCM_GENERATOR_ADDITIVE) == 0)
+							*cvalue = 0.0f; /* no value possible here */
+					}
 				}
 					break;
 					
@@ -1353,8 +1369,14 @@ static void fcm_generator_evaluate (FCurve *fcu, FModifier *fcm, float *cvalue, 
 			}
 			
 			/* execute function callback to set value if appropriate */
-			if (fn)
-				*cvalue= data->coefficients[0]*fn(arg) + data->coefficients[3];
+			if (fn) {
+				float value= data->coefficients[0]*fn(arg) + data->coefficients[3];
+				
+				if (data->flag & FCM_GENERATOR_ADDITIVE)
+					*cvalue += value;
+				else
+					*cvalue= value;
+			}
 		}
 			break;
 
@@ -1446,6 +1468,7 @@ static void fcm_envelope_evaluate (FCurve *fcu, FModifier *fcm, float *cvalue, f
 	}
 	else {
 		/* evaltime occurs somewhere between segments */
+		// TODO: implement binary search for this to make it faster?
 		for (a=0; prevfed && fed && (a < env->totvert-1); a++, prevfed=fed, fed++) {  
 			/* evaltime occurs within the interval defined by these two envelope points */
 			if ((prevfed->time <= evaltime) && (fed->time >= evaltime)) {

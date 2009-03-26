@@ -91,6 +91,12 @@ enum {
 	FCM_GENERATOR_EXPRESSION,
 } eFMod_Generator_Modes;
 
+/* generator flags */
+enum {
+		/* generator works in conjunction with other modifiers (i.e. doesn't replace those before it) */
+	FCM_GENERATOR_ADDITIVE	= (1<<0),
+} eFMod_Generator_Flags;
+
 /* 'function' generator types */
 enum {
 	FCM_GENERATOR_FN_SIN	= 0,
@@ -231,7 +237,7 @@ typedef struct FCurve {
 		/* motion data */
 	BezTriple *bezt;		/* user-editable keyframes (array) */
 	FPoint *fpt;			/* 'baked/imported' motion samples (array) */
-	int totvert;			/* total number of points which define the curve (i.e. size of arrays in FPoints) */
+	unsigned int totvert;	/* total number of points which define the curve (i.e. size of arrays in FPoints) */
 	
 		/* value cache + settings */
 	float curval;			/* value stored from last time curve was evaluated */
