@@ -113,6 +113,7 @@ static int rna_member_cmp(const char *name, const char *oname)
 	
 	while(1) {
 		if(name[a]=='[' && oname[a]==0) return 1;
+		if(name[a]=='[' && oname[a]=='[') return 1;
 		if(name[a]==0) break;
 		if(name[a] != oname[a]) return 0;
 		a++;
@@ -145,7 +146,11 @@ static int rna_find_sdna_member(SDNA *sdna, const char *structname, const char *
 		if(cmp == 1) {
 			smember->type= sdna->types[sp[0]];
 			smember->name= dnaname;
-			smember->arraylength= DNA_elem_array_size(smember->name, strlen(smember->name));
+
+			if(strstr(membername, "["))
+				smember->arraylength= 0;
+			else
+				smember->arraylength= DNA_elem_array_size(smember->name, strlen(smember->name));
 
 			smember->pointerlevel= 0;
 			for(b=0; dnaname[b] == '*'; b++)
