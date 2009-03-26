@@ -1,4 +1,5 @@
-#
+# -*- mode: gnumakefile; tab-width: 8; indent-tabs-mode: t; -*-
+# vim: tabstop=8
 # $Id$
 #
 # ***** BEGIN GPL LICENSE BLOCK *****
@@ -22,7 +23,7 @@
 #
 # The Original Code is: all of this file.
 #
-# Contributor(s): none yet.
+# Contributor(s): GSR
 #
 # ***** END GPL LICENSE BLOCK *****
 #
@@ -102,13 +103,12 @@ endif
       export NAN_FTGL ?= $(LCGDIR)/gcc/ftgl
       export NAN_FFMPEG ?= $(LCGDIR)/gcc/ffmpeg
       export NAN_FFMPEGLIBS ?= $(NAN_FFMPEG)/lib/libavformat.a $(NAN_FFMPEG)/lib/libavutil.a $(NAN_FFMPEG)/lib/libavcodec.a $(NAN_FFMPEG)/lib/libavdevice.a
-      export NAN_FFMPEGCFLAGS ?= -I$(NAN_FFMPEG)/include -I$(NANBLENDERHOME)/extern/ffmpeg
     else
       export NAN_FTGL ?= $(LCGDIR)/ftgl
       export NAN_FFMPEG ?= $(LCGDIR)/ffmpeg
       export NAN_FFMPEGLIBS ?= $(NAN_FFMPEG)/lib/libavformat.a $(NAN_FFMPEG)/lib/libavcodec.a $(NAN_FFMPEG)/lib/libswscale.a $(NAN_FFMPEG)/lib/libavutil.a $(NAN_FFMPEG)/lib/libavdevice.a
-      export NAN_FFMPEGCFLAGS ?= -I$(NAN_FFMPEG)/include -I$(NANBLENDERHOME)/extern/ffmpeg
     endif
+    export NAN_FFMPEGCFLAGS ?= -I$(NAN_FFMPEG)/include -I$(NANBLENDERHOME)/extern/ffmpeg
 
     ifeq ($(WITH_VERSE), true)
       export NAN_VERSE ?= $(LCGDIR)/verse
@@ -119,9 +119,7 @@ endif
     export WITH_OPENJPEG ?= true
 
     ifeq ($(OS),windows)
-      export NAN_WINTAB ?= $(LCGDIR)/wintab
       ifeq ($(FREE_WINDOWS), true)
-        export NAN_PTHREADS ?= $(LCGDIR)/pthreads
         export NAN_OPENEXR ?= $(LCGDIR)/gcc/openexr
         export NAN_OPENEXR_LIBS ?= $(NAN_OPENEXR)/lib/libIlmImf.a $(NAN_OPENEXR)/lib/libHalf.a $(NAN_OPENEXR)/lib/libIex.a
         export NAN_OPENEXR_INC ?= -I$(NAN_OPENEXR)/include -I$(NAN_OPENEXR)/include/OpenEXR
@@ -141,9 +139,9 @@ endif
       else
         ifeq ($(OS),linux)
           ifeq ($(WITH_OPENEXR), true)
-            export NAN_OPENEXR?=$(shell pkg-config --variable=prefix OpenEXR )
-            export NAN_OPENEXR_INC?=$(shell pkg-config --cflags OpenEXR )
-            export NAN_OPENEXR_LIBS?=$(addprefix ${NAN_OPENEXR}/lib/lib,$(addsuffix .a,$(shell pkg-config --libs-only-l OpenEXR | sed -s "s/-l//g" )))
+            export NAN_OPENEXR ?= $(shell pkg-config --variable=prefix OpenEXR )
+            export NAN_OPENEXR_INC ?= $(shell pkg-config --cflags OpenEXR )
+            export NAN_OPENEXR_LIBS ?= $(addprefix ${NAN_OPENEXR}/lib/lib,$(addsuffix .a,$(shell pkg-config --libs-only-l OpenEXR | sed -s "s/-l//g" )))
           endif
         else
           ifeq ($(OS), solaris)
@@ -163,9 +161,9 @@ endif
           endif
         endif
       endif
-		 	ifeq ($(WITH_OPENEXR), true)
-				export NAN_OPENEXR_INC ?= -I$(NAN_OPENEXR)/include -I$(NAN_OPENEXR)/include/OpenEXR
-			endif
+      ifeq ($(WITH_OPENEXR), true)
+        export NAN_OPENEXR_INC ?= -I$(NAN_OPENEXR)/include -I$(NAN_OPENEXR)/include/OpenEXR
+      endif
 
     endif
   # Platform Dependent settings go below:
@@ -196,7 +194,7 @@ endif
     export NAN_FREETYPE ?= $(LCGDIR)/freetype
     export NAN_GETTEXT ?= $(LCGDIR)/gettext
     export NAN_SDL ?= $(shell sdl-config --prefix)
-    export NAN_SDLLIBS ?= $(shell sdl-config --libs) 
+    export NAN_SDLLIBS ?= $(shell sdl-config --libs)
     export NAN_SDLCFLAGS ?= $(shell sdl-config --cflags)
 
     # Uncomment the following line to use Mozilla inplace of netscape
@@ -223,14 +221,14 @@ endif
     export ID = $(shell whoami)
     export HOST = $(shell hostname -s)
 
-    export PY_FRAMEWORK	= 1    
+    export PY_FRAMEWORK ?= 1
 
     ifdef PY_FRAMEWORK
        export NAN_PYTHON ?= /System/Library/Frameworks/Python.framework/Versions/2.3
        export NAN_PYTHON_VERSION ?= 2.3
        export NAN_PYTHON_BINARY ?= $(NAN_PYTHON)/bin/python$(NAN_PYTHON_VERSION)
-       export NAN_PYTHON_LIB ?= -framework Python 
-    else 
+       export NAN_PYTHON_LIB ?= -framework Python
+    else
        export NAN_PYTHON ?= /sw
        export NAN_PYTHON_VERSION ?= 2.3
        export NAN_PYTHON_BINARY ?= $(NAN_PYTHON)/bin/python$(NAN_PYTHON_VERSION)
@@ -259,7 +257,7 @@ endif
     # export NAN_NO_KETSJI=true
 
     ifeq ($(CPU), i386)
-	    export NAN_NO_OPENAL=true
+      export NAN_NO_OPENAL=true
     endif
 
     # Uncomment the following line to use Mozilla inplace of netscape
@@ -357,7 +355,7 @@ endif
     export NAN_FFMPEG ?= $(LCGDIR)/ffmpeg
     export NAN_FFMPEGLIBS = $(NAN_FFMPEG)/lib/libavformat.a $(NAN_FFMPEG)/lib/libavcodec.a $(NAN_FFMPEG)/lib/libswscale.a $(NAN_FFMPEG)/lib/libavutil.a $(NAN_FFMPEG)/lib/libavdevice.a $(NAN_FFMPEG)/lib/libogg.a $(NAN_FFMPEG)/lib/libfaad.a $(NAN_FFMPEG)/lib/libmp3lame.a $(NAN_FFMPEG)/lib/libvorbis.a $(NAN_FFMPEG)/lib/libx264.a $(NAN_FFMPEG)/lib/libfaac.a $(NAN_ZLIB)/lib/libz.a
     export NAN_FFMPEGCFLAGS ?= -I$(NAN_FFMPEG)/include -I$(NANBLENDERHOME)/extern/ffmpeg
- 
+
     # Uncomment the following line to use Mozilla inplace of netscape
     # CPPFLAGS +=-DMOZ_NOT_NET
     # Location of MOZILLA/Netscape header files...
@@ -430,7 +428,7 @@ endif
 
     # enable ffmpeg support
     ifndef NAN_NO_FFMPEG
-	  export WITH_FFMPEG ?= true
+      export WITH_FFMPEG ?= true
     endif
 
   else
@@ -486,7 +484,7 @@ endif
     export NAN_PYTHON_VERSION ?= 2.5
     export NAN_PYTHON_BINARY ?= $(NAN_PYTHON)/bin/python$(NAN_PYTHON_VERSION)
     export NAN_PYTHON_LIB ?= $(NAN_PYTHON)/lib/python$(NAN_PYTHON_VERSION)/config/libpython$(NAN_PYTHON_VERSION).a
-    export NAN_OPENAL ?= $(LCGDIR)/openal 
+    export NAN_OPENAL ?= $(LCGDIR)/openal
     export NAN_JPEG ?= $(LCGDIR)/jpeg
     export NAN_PNG ?= $(LCGDIR)/png
     export NAN_TIFF ?= /usr
@@ -527,21 +525,6 @@ endif
     export NAN_PYTHON ?= $(LCGDIR)/python
     export NAN_ICONV ?= $(LCGDIR)/iconv
     export NAN_PYTHON_VERSION ?= 2.5
-    ifeq ($(FREE_WINDOWS), true)
-      export NAN_PYTHON_BINARY ?= $(NAN_PYTHON)/bin/python$(NAN_PYTHON_VERSION)
-      export NAN_PYTHON_LIB ?= $(NAN_PYTHON)/lib/freepy.a
-      export NAN_FREETYPE ?= $(LCGDIR)/gcc/freetype
-      export NAN_ODE ?= $(LCGDIR)/gcc/ode
-      export NAN_SDL ?= $(LCGDIR)/gcc/sdl
-      export NAN_SDLCFLAGS ?= -I$(NAN_SDL)/include
-    else
-      export NAN_PYTHON_BINARY ?= python
-      export NAN_PYTHON_LIB ?= $(NAN_PYTHON)/lib/python23.lib
-      export NAN_FREETYPE ?= $(LCGDIR)/freetype
-      export NAN_ODE ?= $(LCGDIR)/ode
-      export NAN_SDL ?= $(LCGDIR)/sdl
-      export NAN_SDLCFLAGS ?= -I$(NAN_SDL)/include
-    endif
     export NAN_OPENAL ?= $(LCGDIR)/openal
     export NAN_JPEG ?= $(LCGDIR)/jpeg
     export NAN_PNG ?= $(LCGDIR)/png
@@ -552,11 +535,24 @@ endif
     export NAN_NSPR ?= $(LCGDIR)/nspr
     export NAN_GETTEXT ?= $(LCGDIR)/gettext
     ifeq ($(FREE_WINDOWS), true)
-       export NAN_GETTEXT_LIB ?= $(NAN_GETTEXT)/lib/freegettext.a $(NAN_ICONV)/lib/freeiconv.a
+      export NAN_GETTEXT_LIB ?= $(NAN_GETTEXT)/lib/freegettext.a $(NAN_ICONV)/lib/freeiconv.a
+      export NAN_PYTHON_BINARY ?= $(NAN_PYTHON)/bin/python$(NAN_PYTHON_VERSION)
+      export NAN_PYTHON_LIB ?= $(NAN_PYTHON)/lib/freepy.a
+      export NAN_FREETYPE ?= $(LCGDIR)/gcc/freetype
+      export NAN_ODE ?= $(LCGDIR)/gcc/ode
+      export NAN_SDL ?= $(LCGDIR)/gcc/sdl
+      export NAN_PTHREADS ?= $(LCGDIR)/pthreads
     else
-       export NAN_GETTEXT_LIB ?= $(NAN_GETTEXT)/lib/gnu_gettext.lib $(NAN_ICONV)/lib/iconv.lib
+      export NAN_GETTEXT_LIB ?= $(NAN_GETTEXT)/lib/gnu_gettext.lib $(NAN_ICONV)/lib/iconv.lib
+      export NAN_PYTHON_BINARY ?= python
+      export NAN_PYTHON_LIB ?= $(NAN_PYTHON)/lib/python23.lib
+      export NAN_FREETYPE ?= $(LCGDIR)/freetype
+      export NAN_ODE ?= $(LCGDIR)/ode
+      export NAN_SDL ?= $(LCGDIR)/sdl
     endif
+    export NAN_SDLCFLAGS ?= -I$(NAN_SDL)/include
 
+    export NAN_WINTAB ?= $(LCGDIR)/wintab
     # Uncomment the following line to use Mozilla inplace of netscape
     # CPPFLAGS +=-DMOZ_NOT_NET
     # Location of MOZILLA/Netscape header files...
@@ -564,7 +560,7 @@ endif
     export NAN_MOZILLA_LIB ?= $(LCGDIR)/mozilla/lib/
     # Will fall back to look in NAN_MOZILLA_INC/nspr and NAN_MOZILLA_LIB
     # if this is not set.
-	export NAN_PYTHON_BINARY ?= python
+    export NAN_PYTHON_BINARY ?= python
     export NAN_BUILDINFO ?= true
     # Be paranoid regarding library creation (do not update archives)
     export NAN_PARANOID ?= true
@@ -619,16 +615,16 @@ endif
     # enable freetype2 support for text objects
     #export WITH_FREETYPE2 ?= true
 
-  endif
+  endif # windows + fallback 
+  endif # solaris
+  endif # openbsd
+  endif # linux
+  endif # irix
+  endif # freebsd
+  endif # darwin
+  endif # beos
 
-endif
-endif
-endif
-endif
-endif
-endif
-endif
-endif
+endif # CONFIG_GUESS
 
 # Don't want to build the gameengine?
 ifeq ($(NAN_NO_KETSJI), true)
@@ -639,4 +635,4 @@ endif
 # INTERNATIONAL implies WITH_FREETYPE2
 ifeq ($(INTERNATIONAL), true)
    export WITH_FREETYPE2=true
-endif 
+endif
