@@ -223,14 +223,16 @@ int where_on_path(Object *ob, float ctime, float *vec, float *dir)	/* returns OK
 	cu= ob->data;
 	if(cu->path==NULL || cu->path->data==NULL) {
 		printf("no path!\n");
+		return 0;
 	}
 	path= cu->path;
 	fp= path->data;
 	
 	/* test for cyclic */
 	bl= cu->bev.first;
+	if (!bl) return 0;
 	if (!bl->nr) return 0;
-	if(bl && bl->poly> -1) cycl= 1;
+	if(bl->poly> -1) cycl= 1;
 
 	ctime *= (path->len-1);
 	
