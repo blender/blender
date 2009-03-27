@@ -78,8 +78,12 @@ protected:
 	/* --------------------------------------------------------------------- */
 
 	virtual PyObject* _getattr(const char *attr);
+	virtual int _setattr(const char *attr, PyObject *value);
+
+	// Deprecated functions ----->
 	KX_PYMETHOD_DOC(KX_GameActuator,GetFile);
 	KX_PYMETHOD_DOC(KX_GameActuator,SetFile);
+	// <-----
 	
 }; /* end of class KX_GameActuator */
 

@@ -241,21 +241,44 @@ PyParentObject KX_GameActuator::Parents[] =
 
 PyMethodDef KX_GameActuator::Methods[] =
 {
+	// Deprecated ----->
 	{"getFile",	(PyCFunction) KX_GameActuator::sPyGetFile, METH_VARARGS, (PY_METHODCHAR)GetFile_doc},
 	{"setFile", (PyCFunction) KX_GameActuator::sPySetFile, METH_VARARGS, (PY_METHODCHAR)SetFile_doc},
+	// <-----
 	{NULL,NULL} //Sentinel
 };
 
 PyAttributeDef KX_GameActuator::Attributes[] = {
+	KX_PYATTRIBUTE_STRING_RW("file",0,100,false,KX_GameActuator,m_filename),
 	{ NULL }	//Sentinel
 };
 
+PyObject*
+KX_GameActuator::_getattr(const char *attr)
+{
+	PyObject* object = _getattr_self(Attributes, this, attr);
+	if (object != NULL)
+		return object;
+	_getattr_up(SCA_IActuator);
+}
+
+int KX_GameActuator::_setattr(const char *attr, PyObject *value)
+{
+	int ret = _setattr_self(Attributes, this, attr, value);
+	if (ret >= 0)
+		return ret;
+	return SCA_IActuator::_setattr(attr, value);
+}
+
+
+// Deprecated ----->
 /* getFile */
 const char KX_GameActuator::GetFile_doc[] = 
 "getFile()\n"
 "get the name of the file to start.\n";
 PyObject* KX_GameActuator::PyGetFile(PyObject* self, PyObject* args, PyObject* kwds)
 {	
+	ShowDeprecationWarning("getFile()", "the file property");
 	return PyString_FromString(m_filename);
 }
 
@@ -266,6 +289,8 @@ const char KX_GameActuator::SetFile_doc[] =
 PyObject* KX_GameActuator::PySetFile(PyObject* self, PyObject* args, PyObject* kwds)
 {
 	char* new_file;
+
+	ShowDeprecationWarning("setFile()", "the file property");
 	
 	if (!PyArg_ParseTuple(args, "s", &new_file))
 	{
@@ -277,12 +302,4 @@ PyObject* KX_GameActuator::PySetFile(PyObject* self, PyObject* args, PyObject* k
 	Py_RETURN_NONE;
 
 }
-	
-
-
-PyObject* KX_GameActuator::_getattr(const char *attr)
-{
-	_getattr_up(SCA_IActuator);
-}
-
-
+// <-----	
