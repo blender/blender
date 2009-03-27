@@ -246,10 +246,7 @@ def rna2epy(target_path):
 	for rna_refs in rna_references_dict.values():
 		rna_refs.sort()
 	
-	structs = [data[2] for data in structs]
-	
-	for rna_struct in structs:
-		# print(type(rna_struct))
+	for (rna_base, identifier, rna_struct) in structs:
 		if rna_struct.nested:
 			continue
 		
@@ -261,6 +258,70 @@ def rna2epy(target_path):
 	
 	# # We could also just run....
 	# os.system('epydoc source/blender/python/doc/rna.py -o ./source/blender/python/doc/html -v')
+	
+	
+	# Write graphviz
+	out= open(target_path.replace('.py', '.dot'), 'w')
+	out.write('digraph "rna data api" {\n')
+	out.write('\tnode [style=filled, shape = "box"];\n')
+	out.write('\toverlap=false;\n')
+	out.write('\trankdir = LR;\n')
+	out.write('\tsplines=true;\n')
+	out.write('\tratio=auto;\n')
+	
+	
+	
+	out.write('\tsize="10,10"\n')
+	#out.write('\tpage="8.5,11"\n')
+	#out.write('\tcenter=""\n')
+	
+	def isop(rna_struct):
+		return '_OT_' in rna_struct.identifier
+	
+	
+	for (rna_base, identifier, rna_struct) in structs:
+		if isop(rna_struct):
+			continue
+		
+		base = rna_struct.base
+		
+		
+		out.write('\t"%s";\n' % identifier)
+	
+	for (rna_base, identifier, rna_struct) in structs:
+		
+		if isop(rna_struct):
+			continue
+			
+		base = rna_struct.base
+		
+		if base and not isop(base):
+			out.write('\t"%s" -> "%s" [label="(base)" weight=1.0];\n' % (base.identifier, identifier))
+		
+		nested = rna_struct.nested
+		if nested and not isop(nested):
+			out.write('\t"%s" -> "%s" [label="(nested)"  weight=1.0];\n' % (nested.identifier, identifier))
+		
+		
+		
+		rna_refs= rna_references_dict[identifier]
+		
+		for rna_ref_string in rna_refs:
+			
+			if '_OT_' in rna_ref_string:
+				continue
+			
+			ref = rna_ref_string.split('.')[-2]
+			out.write('\t"%s" -> "%s" [label="%s" weight=0.01];\n' % (ref, identifier, rna_ref_string))
+		
+		
+	
+	out.write('}\n')
+	out.close()
+	
+	# # We could also just run....
+	# os.system('dot source/blender/python/doc/rna.dot -Tsvg -o ./source/blender/python/doc/rna.svg')
+	
 
 def op2epy(target_path):
 	out = open(target_path, 'w')

@@ -388,7 +388,8 @@ static void header_buttons(const bContext *C, uiLayout *layout)
 
 	/* file info */
 	if(text) {
-		char fname[HEADER_PATH_MAX], headtxt[HEADER_PATH_MAX+17];
+		char fname[HEADER_PATH_MAX];
+		static char headtxt[HEADER_PATH_MAX+17];
 		int len;
 
 		if(text->name) {

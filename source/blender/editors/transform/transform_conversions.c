@@ -4386,7 +4386,6 @@ void special_aftertrans_update(TransInfo *t)
 			ListBase *seqbasep= ed->seqbasep;
 			int a;
 			TransData *td= t->data;
-			TransData2D *td2d= t->data2d;
 			TransDataSeq *tdsq= NULL;
 			Sequence *seq;
 
@@ -4398,7 +4397,7 @@ void special_aftertrans_update(TransInfo *t)
 			Sequence *seq_prev= NULL;
 
 			/* flush to 2d vector from internally used 3d vector */
-			for(a=0; a<t->total; a++, td++, td2d++) {
+			for(a=0; a<t->total; a++, td++) {
 
 				tdsq= (TransDataSeq *)td->extra;
 				seq= tdsq->seq;
@@ -4429,7 +4428,8 @@ void special_aftertrans_update(TransInfo *t)
 		
 		if (t->customData)
 			MEM_freeN(t->customData);
-
+		if (t->data)
+			MEM_freeN(t->data); // XXX postTrans useually does this
 	}
 	else if (t->spacetype == SPACE_ACTION) {
 		SpaceAction *saction= (SpaceAction *)t->sa->spacedata.first;
