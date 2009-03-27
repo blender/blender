@@ -259,24 +259,83 @@ PyParentObject KX_SceneActuator::Parents[] =
 
 PyMethodDef KX_SceneActuator::Methods[] =
 {
+	//Deprecated functions ------>
 	{"setUseRestart", (PyCFunction) KX_SceneActuator::sPySetUseRestart, METH_VARARGS, (PY_METHODCHAR)SetUseRestart_doc},
 	{"setScene",      (PyCFunction) KX_SceneActuator::sPySetScene, METH_VARARGS, (PY_METHODCHAR)SetScene_doc},
 	{"setCamera",     (PyCFunction) KX_SceneActuator::sPySetCamera, METH_VARARGS, (PY_METHODCHAR)SetCamera_doc},
 	{"getUseRestart", (PyCFunction) KX_SceneActuator::sPyGetUseRestart, METH_VARARGS, (PY_METHODCHAR)GetUseRestart_doc},
 	{"getScene",      (PyCFunction) KX_SceneActuator::sPyGetScene, METH_VARARGS, (PY_METHODCHAR)GetScene_doc},
 	{"getCamera",     (PyCFunction) KX_SceneActuator::sPyGetCamera, METH_VARARGS, (PY_METHODCHAR)GetCamera_doc},
+	//<----- Deprecated
 	{NULL,NULL} //Sentinel
 };
 
 PyAttributeDef KX_SceneActuator::Attributes[] = {
+	KX_PYATTRIBUTE_STRING_RW("scene",0,32,true,KX_SceneActuator,m_nextSceneName),
+	KX_PYATTRIBUTE_RW_FUNCTION("camera",KX_SceneActuator,pyattr_get_camera,pyattr_set_camera),
 	{ NULL }	//Sentinel
 };
 
 PyObject* KX_SceneActuator::_getattr(const char *attr)
 {
+	PyObject* object = _getattr_self(Attributes, this, attr);
+	if (object != NULL)
+		return object;
 	_getattr_up(SCA_IActuator);
 }
 
+int KX_SceneActuator::_setattr(const char *attr, PyObject *value)
+{
+	int ret = _setattr_self(Attributes, this, attr, value);
+	if (ret >= 0)
+		return ret;
+	return SCA_IActuator::_setattr(attr, value);
+}
+
+PyObject* KX_SceneActuator::pyattr_get_camera(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef)
+{
+	KX_SceneActuator* actuator = static_cast<KX_SceneActuator*>(self);
+	if (!actuator->m_camera)
+		Py_RETURN_NONE;
+	actuator->m_camera->AddRef();
+	return actuator->m_camera;
+}
+
+int KX_SceneActuator::pyattr_set_camera(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
+{
+	KX_SceneActuator* actuator = static_cast<KX_SceneActuator*>(self);
+	KX_Camera *camOb;
+
+	if (PyObject_TypeCheck(value, &KX_Camera::Type)) 
+	{
+		camOb = static_cast<KX_Camera*>(value);
+		if (actuator->m_camera)
+			actuator->m_camera->UnregisterActuator(actuator);
+		actuator->m_camera = camOb;
+		if (actuator->m_camera)
+			actuator->m_camera->RegisterActuator(actuator);
+		return 0;
+	}
+
+	if (PyString_Check(value))
+	{
+		char *camName = PyString_AsString(value);
+
+		camOb = actuator->FindCamera(camName);
+		if (camOb) 
+		{
+			if (actuator->m_camera)
+				actuator->m_camera->UnregisterActuator(actuator);
+			actuator->m_camera = camOb;
+			actuator->m_camera->RegisterActuator(actuator);
+			return 0;
+		}
+		PyErr_SetString(PyExc_TypeError, "not a valid camera name");
+		return 1;
+	}
+	PyErr_SetString(PyExc_TypeError, "expected a string or a camera object reference");
+	return 1;
+}
 
 
 /* 2. setUseRestart--------------------------------------------------------- */
@@ -288,6 +347,7 @@ PyObject* KX_SceneActuator::PySetUseRestart(PyObject* self,
 											PyObject* args, 
 											PyObject* kwds)
 {
+	ShowDeprecationWarning("setUseRestart()", "(no replacement)");
 	int boolArg;
 	
 	if (!PyArg_ParseTuple(args, "i", &boolArg))
@@ -310,6 +370,7 @@ PyObject* KX_SceneActuator::PyGetUseRestart(PyObject* self,
 											PyObject* args, 
 											PyObject* kwds)
 {
+	ShowDeprecationWarning("getUseRestart()", "(no replacement)");
 	return PyInt_FromLong(!(m_restart == 0));
 }
 
@@ -324,6 +385,7 @@ PyObject* KX_SceneActuator::PySetScene(PyObject* self,
 									   PyObject* args, 
 									   PyObject* kwds)
 {
+	ShowDeprecationWarning("setScene()", "the scene property");
 	/* one argument: a scene, ignore the rest */
 	char *scene_name;
 
@@ -348,6 +410,7 @@ PyObject* KX_SceneActuator::PyGetScene(PyObject* self,
 									   PyObject* args, 
 									   PyObject* kwds)
 {
+	ShowDeprecationWarning("getScene()", "the scene property");
 	return PyString_FromString(m_nextSceneName);
 }
 
@@ -362,6 +425,7 @@ PyObject* KX_SceneActuator::PySetCamera(PyObject* self,
 										PyObject* args, 
 										PyObject* kwds)
 {
+	ShowDeprecationWarning("setCamera()", "the camera property");
 	PyObject *cam;
 	if (PyArg_ParseTuple(args, "O!", &KX_Camera::Type, &cam))
 	{
@@ -403,6 +467,7 @@ PyObject* KX_SceneActuator::PyGetCamera(PyObject* self,
 										PyObject* args, 
 										PyObject* kwds)
 {
+	ShowDeprecationWarning("getCamera()", "the camera property");
 	return PyString_FromString(m_camera->GetName());
 }
 /* eof */

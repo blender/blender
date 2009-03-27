@@ -59,12 +59,12 @@ class KX_SCA_AddObjectActuator : public SCA_IActuator
 	SCA_IScene*	m_scene;
 
 	/// Linear velocity upon creation of the object. 
-	MT_Vector3  m_linear_velocity;
+	float  m_linear_velocity[3];
 	/// Apply the velocity locally 
 	bool m_localLinvFlag;
 	
 	/// Angular velocity upon creation of the object. 
-	MT_Vector3  m_angular_velocity;
+	float  m_angular_velocity[3];
 	/// Apply the velocity locally 
 	bool m_localAngvFlag; 
 	
@@ -85,9 +85,9 @@ public:
 		SCA_IObject *original,
 		int time,
 		SCA_IScene* scene,
-		const MT_Vector3& linvel,
+		const float *linvel,
 		bool linv_local,
-		const MT_Vector3& angvel,
+		const float *angvel,
 		bool angv_local,
 		PyTypeObject* T=&Type
 	);
@@ -140,6 +140,9 @@ public:
 	/* 10. instantAddObject*/
 	KX_PYMETHOD_DOC_NOARGS(KX_SCA_AddObjectActuator,InstantAddObject);
 
+	static PyObject* pyattr_get_object(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef);
+	static int pyattr_set_object(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
+	static PyObject* pyattr_get_objectLastCreated(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef);
 	
 }; /* end of class KX_SCA_AddObjectActuator : public KX_EditObjectActuator */
 

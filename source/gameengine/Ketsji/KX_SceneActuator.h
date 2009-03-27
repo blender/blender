@@ -93,6 +93,7 @@ class KX_SceneActuator : public SCA_IActuator
 	/* --------------------------------------------------------------------- */
 
 	virtual PyObject* _getattr(const char *attr);
+	virtual int _setattr(const char *attr, PyObject *value);
 
 	/* 1. set                                                                */
 	/* Removed */
@@ -110,6 +111,9 @@ class KX_SceneActuator : public SCA_IActuator
 	/* 7. getCamera:                                                          */
 	KX_PYMETHOD_DOC(KX_SceneActuator,GetCamera);
 	
+	static PyObject* pyattr_get_camera(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef);
+	static int pyattr_set_camera(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
+
 }; /* end of class KXSceneActuator */
 
 #endif
