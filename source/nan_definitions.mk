@@ -118,55 +118,6 @@ endif
     export WITH_DDS ?= true
     export WITH_OPENJPEG ?= true
 
-    ifeq ($(OS),windows)
-      ifeq ($(FREE_WINDOWS), true)
-        export NAN_OPENEXR ?= $(LCGDIR)/gcc/openexr
-        export NAN_OPENEXR_LIBS ?= $(NAN_OPENEXR)/lib/libIlmImf.a $(NAN_OPENEXR)/lib/libHalf.a $(NAN_OPENEXR)/lib/libIex.a
-        export NAN_OPENEXR_INC ?= -I$(NAN_OPENEXR)/include -I$(NAN_OPENEXR)/include/OpenEXR
-      else
-        export NAN_OPENEXR ?= $(LCGDIR)/openexr
-        export NAN_OPENEXR_LIBS ?= $(NAN_OPENEXR)/lib/IlmImf.lib $(NAN_OPENEXR)/lib/Half.lib $(NAN_OPENEXR)/lib/Iex.lib
-        export NAN_OPENEXR_INC ?= -I$(NAN_OPENEXR)/include -I$(NAN_OPENEXR)/include/IlmImf -I$(NAN_OPENEXR)/include/Imath -I$(NAN_OPENEXR)/include/Iex
-      endif
-    else
-      ifeq ($(OS),darwin)
-        export NAN_OPENEXR ?= $(LCGDIR)/openexr
-        ifeq ($(CPU),powerpc)
-          export NAN_OPENEXR_LIBS ?= $(NAN_OPENEXR)/lib/libIlmImf.a $(NAN_OPENEXR)/lib/libHalf.a $(NAN_OPENEXR)/lib/libIex.a
-        else
-          export NAN_OPENEXR_LIBS ?= $(NAN_OPENEXR)/lib/libIlmImf.a $(NAN_OPENEXR)/lib/libHalf.a $(NAN_OPENEXR)/lib/libIex.a $(NAN_OPENEXR)/lib/libIlmThread.a
-        endif
-      else
-        ifeq ($(OS),linux)
-          ifeq ($(WITH_OPENEXR), true)
-            export NAN_OPENEXR ?= $(shell pkg-config --variable=prefix OpenEXR )
-            export NAN_OPENEXR_INC ?= $(shell pkg-config --cflags OpenEXR )
-            export NAN_OPENEXR_LIBS ?= $(addprefix ${NAN_OPENEXR}/lib/lib,$(addsuffix .a,$(shell pkg-config --libs-only-l OpenEXR | sed -s "s/-l//g" )))
-          endif
-        else
-          ifeq ($(OS), solaris)
-              # this only exists at the moment for i386-64 CPU Types at the moment
-              export NAN_OPENEXR ?= $(LCGDIR)/openexr
-              export NAN_OPENEXR_LIBS ?= $(NAN_OPENEXR)/lib/libIlmImf.a $(NAN_OPENEXR)/lib/libHalf.a $(NAN_OPENEXR)/lib/libIex.a $(NAN_OPENEXR)/lib/libIlmThread.a -lrt
-          else
-            ifeq ($(OS), irix)
-              ifeq ($(IRIX_USE_GCC), true)
-                  export NAN_OPENEXR ?= $(LCGDIR)/openexr/gcc
-             else
-                  export NAN_OPENEXR ?= $(LCGDIR)/openexr
-             endif
-            endif
-            export NAN_OPENEXR_INC ?= -I$(NAN_OPENEXR)/include -I$(NAN_OPENEXR)/include/OpenEXR
-            export NAN_OPENEXR_LIBS ?= $(NAN_OPENEXR)/lib/libIlmImf.a $(NAN_OPENEXR)/lib/libHalf.a $(NAN_OPENEXR)/lib/libIex.a $(NAN_OPENEXR)/lib/libIlmThread.a
-          endif
-        endif
-      endif
-      ifeq ($(WITH_OPENEXR), true)
-        export NAN_OPENEXR_INC ?= -I$(NAN_OPENEXR)/include -I$(NAN_OPENEXR)/include/OpenEXR
-      endif
-
-    endif
-  # Platform Dependent settings go below:
 
   ifeq ($(NAN_USE_FFMPEG_CONFIG), true)
     export NAN_FFMPEG ?= $(shell ffmpeg-config --prefix)
@@ -174,6 +125,7 @@ endif
     export NAN_FFMPEGCFLAGS ?= $(shell ffmpeg-config --cflags)
   endif
 
+  # Platform Dependent settings go below:
   ifeq ($(OS),beos)
 
     export ID = $(USER)
@@ -253,6 +205,14 @@ endif
     export NAN_SDL ?= $(LCGDIR)/sdl
     export NAN_SDLCFLAGS ?= -I$(NAN_SDL)/include
     export NAN_SDLLIBS ?= $(NAN_SDL)/lib/libSDL.a -framework Cocoa -framework IOKit
+
+    export NAN_OPENEXR ?= $(LCGDIR)/openexr
+    export NAN_OPENEXR_INC ?= -I$(NAN_OPENEXR)/include -I$(NAN_OPENEXR)/include/OpenEXR
+    ifeq ($(CPU),powerpc)
+      export NAN_OPENEXR_LIBS ?= $(NAN_OPENEXR)/lib/libIlmImf.a $(NAN_OPENEXR)/lib/libHalf.a $(NAN_OPENEXR)/lib/libIex.a
+    else
+      export NAN_OPENEXR_LIBS ?= $(NAN_OPENEXR)/lib/libIlmImf.a $(NAN_OPENEXR)/lib/libHalf.a $(NAN_OPENEXR)/lib/libIex.a $(NAN_OPENEXR)/lib/libIlmThread.a
+    endif
 
     # export NAN_NO_KETSJI=true
 
@@ -356,6 +316,14 @@ endif
     export NAN_FFMPEGLIBS = $(NAN_FFMPEG)/lib/libavformat.a $(NAN_FFMPEG)/lib/libavcodec.a $(NAN_FFMPEG)/lib/libswscale.a $(NAN_FFMPEG)/lib/libavutil.a $(NAN_FFMPEG)/lib/libavdevice.a $(NAN_FFMPEG)/lib/libogg.a $(NAN_FFMPEG)/lib/libfaad.a $(NAN_FFMPEG)/lib/libmp3lame.a $(NAN_FFMPEG)/lib/libvorbis.a $(NAN_FFMPEG)/lib/libx264.a $(NAN_FFMPEG)/lib/libfaac.a $(NAN_ZLIB)/lib/libz.a
     export NAN_FFMPEGCFLAGS ?= -I$(NAN_FFMPEG)/include -I$(NANBLENDERHOME)/extern/ffmpeg
 
+    ifeq ($(IRIX_USE_GCC), true)
+      export NAN_OPENEXR ?= $(LCGDIR)/openexr/gcc
+    else
+      export NAN_OPENEXR ?= $(LCGDIR)/openexr
+    endif
+    export NAN_OPENEXR_INC ?= -I$(NAN_OPENEXR)/include -I$(NAN_OPENEXR)/include/OpenEXR
+    export NAN_OPENEXR_LIBS ?= $(NAN_OPENEXR)/lib/libIlmImf.a $(NAN_OPENEXR)/lib/libHalf.a $(NAN_OPENEXR)/lib/libIex.a $(NAN_OPENEXR)/lib/libIlmThread.a
+
     # Uncomment the following line to use Mozilla inplace of netscape
     # CPPFLAGS +=-DMOZ_NOT_NET
     # Location of MOZILLA/Netscape header files...
@@ -405,6 +373,12 @@ ifneq ($(NAN_USE_FFMPEG_CONFIG), true)
     export NAN_FFMPEGLIBS ?= -L$(NAN_FFMPEG)/lib -lavformat -lavcodec -lavutil -lswscale -lavdevice -ldts -lz
     export NAN_FFMPEGCFLAGS ?= -I$(NAN_FFMPEG)/include
 endif
+
+    ifeq ($(WITH_OPENEXR), true)
+      export NAN_OPENEXR ?= $(shell pkg-config --variable=prefix OpenEXR )
+      export NAN_OPENEXR_INC ?= $(shell pkg-config --cflags OpenEXR )
+      export NAN_OPENEXR_LIBS ?= $(addprefix ${NAN_OPENEXR}/lib/lib,$(addsuffix .a,$(shell pkg-config --libs-only-l OpenEXR | sed -s "s/-l//g" )))
+    endif
 
     # Uncomment the following line to use Mozilla inplace of netscape
     export CPPFLAGS += -DMOZ_NOT_NET
@@ -500,6 +474,11 @@ endif
     export NAN_SDLCFLAGS ?= -I$(NAN_SDL)/include/SDL
     export NAN_SDLLIBS ?= $(NAN_SDL)/lib/libSDL.a
 
+    # this only exists at the moment for i386-64 CPU Types at the moment
+    export NAN_OPENEXR ?= $(LCGDIR)/openexr
+    export NAN_OPENEXR_INC ?= -I$(NAN_OPENEXR)/include -I$(NAN_OPENEXR)/include/OpenEXR
+    export NAN_OPENEXR_LIBS ?= $(NAN_OPENEXR)/lib/libIlmImf.a $(NAN_OPENEXR)/lib/libHalf.a $(NAN_OPENEXR)/lib/libIex.a $(NAN_OPENEXR)/lib/libIlmThread.a -lrt
+
     # Uncomment the following line to use Mozilla inplace of netscape
     # CPPFLAGS +=-DMOZ_NOT_NET
     # Location of MOZILLA/Netscape header files...
@@ -541,6 +520,9 @@ endif
       export NAN_FREETYPE ?= $(LCGDIR)/gcc/freetype
       export NAN_ODE ?= $(LCGDIR)/gcc/ode
       export NAN_SDL ?= $(LCGDIR)/gcc/sdl
+      export NAN_OPENEXR ?= $(LCGDIR)/gcc/openexr
+      export NAN_OPENEXR_INC ?= -I$(NAN_OPENEXR)/include -I$(NAN_OPENEXR)/include/OpenEXR
+      export NAN_OPENEXR_LIBS ?= $(NAN_OPENEXR)/lib/libIlmImf.a $(NAN_OPENEXR)/lib/libHalf.a $(NAN_OPENEXR)/lib/libIex.a
       export NAN_PTHREADS ?= $(LCGDIR)/pthreads
     else
       export NAN_GETTEXT_LIB ?= $(NAN_GETTEXT)/lib/gnu_gettext.lib $(NAN_ICONV)/lib/iconv.lib
@@ -549,6 +531,9 @@ endif
       export NAN_FREETYPE ?= $(LCGDIR)/freetype
       export NAN_ODE ?= $(LCGDIR)/ode
       export NAN_SDL ?= $(LCGDIR)/sdl
+      export NAN_OPENEXR ?= $(LCGDIR)/openexr
+      export NAN_OPENEXR_INC ?= -I$(NAN_OPENEXR)/include -I$(NAN_OPENEXR)/include/IlmImf -I$(NAN_OPENEXR)/include/Imath -I$(NAN_OPENEXR)/include/Iex
+      export NAN_OPENEXR_LIBS ?= $(NAN_OPENEXR)/lib/IlmImf.lib $(NAN_OPENEXR)/lib/Half.lib $(NAN_OPENEXR)/lib/Iex.lib
     endif
     export NAN_SDLCFLAGS ?= -I$(NAN_SDL)/include
 
@@ -615,7 +600,7 @@ endif
     # enable freetype2 support for text objects
     #export WITH_FREETYPE2 ?= true
 
-  endif # windows + fallback 
+  endif # windows + fallback
   endif # solaris
   endif # openbsd
   endif # linux
