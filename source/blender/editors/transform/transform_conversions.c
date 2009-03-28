@@ -4395,7 +4395,7 @@ void special_aftertrans_update(TransInfo *t)
 			for (machine = 0; machine <= max_machine; machine++)
 			{
 				for(seq= seqbasep->first; seq; seq= seq->next) {
-					if (seq->machine == machine && seq->depth==0 && seq->flag & SEQ_OVERLAP) {
+					if (seq->machine == machine && seq->depth == 0 && (seq->flag & (SEQ_LEFTSEL|SEQ_RIGHTSEL)) != 0 && (seq->flag & SEQ_OVERLAP)) {
 						shuffle_seq(seqbasep, seq);
 					}
 				}
