@@ -147,7 +147,7 @@ void rna_def_keyingset(BlenderRNA *brna)
 		/* TODO: for now, this is editable, but do we really want this to happen? */
 	prop= RNA_def_property(srna, "absolute", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", KEYINGSET_ABSOLUTE);
-	RNA_def_property_ui_text(prop, "Absolute", "Keying Set defines specifc paths/settings to be keyframed (i.e. is not reliant on context info)");
+	RNA_def_property_ui_text(prop, "Absolute", "Keying Set defines specific paths/settings to be keyframed (i.e. is not reliant on context info)");
 	
 	/* Keyframing Flags */
 	prop= RNA_def_property(srna, "insertkey_needed", PROP_BOOLEAN, PROP_NONE);

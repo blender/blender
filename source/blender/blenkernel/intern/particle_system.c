@@ -1575,7 +1575,7 @@ void initialize_particle(ParticleData *pa, int p, Object *ob, ParticleSystem *ps
 		}
 #endif // XXX old animation system
 
-	/* need to get every rand even if we don't use them so that randoms don't affect eachother */
+	/* need to get every rand even if we don't use them so that randoms don't affect each other */
 		rand= BLI_frand();
 		if(part->randlife!=0.0)
 			pa->lifetime*= 1.0f - part->randlife*rand;

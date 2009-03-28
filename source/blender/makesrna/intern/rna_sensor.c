@@ -407,7 +407,7 @@ void rna_def_ray_sensor(BlenderRNA *brna)
 		{0, NULL, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "RaySensor", "Sensor");
-	RNA_def_struct_ui_text(srna, "Ray Sensor", "Sensor to detect interestions with a ray emanating from the current object.");
+	RNA_def_struct_ui_text(srna, "Ray Sensor", "Sensor to detect intersections with a ray emanating from the current object.");
 	RNA_def_struct_sdna_from(srna, "bRaySensor", "data");
 
 	prop= RNA_def_property(srna, "property", PROP_STRING, PROP_NONE);
@@ -495,7 +495,7 @@ void rna_def_joystick_sensor(BlenderRNA *brna)
 	/* Axis */
 	prop= RNA_def_property(srna, "axis_number", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "axis");
-	RNA_def_property_ui_text(prop, "Axis Number", "Specify which axis pair to use, 1 is useually the main direction input.");
+	RNA_def_property_ui_text(prop, "Axis Number", "Specify which axis pair to use, 1 is usually the main direction input.");
 	RNA_def_property_range(prop, 1, 2);
 
 	prop= RNA_def_property(srna, "axis_threshold", PROP_INT, PROP_NONE);

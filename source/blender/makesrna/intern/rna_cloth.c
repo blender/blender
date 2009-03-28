@@ -188,7 +188,7 @@ static void rna_def_cloth_sim_settings(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "air_damping", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "Cvi");
 	RNA_def_property_range(prop, 0.0f, 10.0f);
-	RNA_def_property_ui_text(prop, "Air Damping", "Air has normaly some thickness which slows falling things down.");
+	RNA_def_property_ui_text(prop, "Air Damping", "Air has normally some thickness which slows falling things down.");
 
 	prop= RNA_def_property(srna, "pin_cloth", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", CLOTH_SIMSETTINGS_FLAG_GOAL);

@@ -218,12 +218,12 @@ static void rna_def_curvemapping(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "black_level", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_float_sdna(prop, NULL, "black");
-	RNA_def_property_ui_text(prop, "Black Level", "For RGB curves, the colour that black is mapped to");
+	RNA_def_property_ui_text(prop, "Black Level", "For RGB curves, the color that black is mapped to");
 	RNA_def_property_float_funcs(prop, NULL, "rna_CurveMapping_black_level_set", NULL);
 
 	prop= RNA_def_property(srna, "white_level", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_float_sdna(prop, NULL, "white");
-	RNA_def_property_ui_text(prop, "White Level", "For RGB curves, the colour that white is mapped to");
+	RNA_def_property_ui_text(prop, "White Level", "For RGB curves, the color that white is mapped to");
 	RNA_def_property_float_funcs(prop, NULL, "rna_CurveMapping_white_level_set", NULL);
 }
 

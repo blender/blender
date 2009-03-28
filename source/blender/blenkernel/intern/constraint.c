@@ -3108,7 +3108,7 @@ static bConstraintTypeInfo CTI_TRANSFORM = {
 
 /* ************************* Constraints Type-Info *************************** */
 /* All of the constraints api functions use bConstraintTypeInfo structs to carry out
- * and operations that involve constraint specifc code.
+ * and operations that involve constraint specific code.
  */
 
 /* These globals only ever get directly accessed in this file */

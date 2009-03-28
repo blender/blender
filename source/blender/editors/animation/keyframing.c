@@ -994,7 +994,7 @@ void ANIM_OT_keyingset_add_new (wmOperatorType *ot)
 		/* name */
 	RNA_def_string(ot->srna, "name", "KeyingSet", 64, "Name", "Name of Keying Set");
 		/* flags */
-	RNA_def_boolean(ot->srna, "absolute", 1, "Absolute", "Keying Set defines specifc paths/settings to be keyframed (i.e. is not reliant on context info)");
+	RNA_def_boolean(ot->srna, "absolute", 1, "Absolute", "Keying Set defines specific paths/settings to be keyframed (i.e. is not reliant on context info)");
 		/* keying flags */
 	RNA_def_boolean(ot->srna, "insertkey_needed", 0, "Insert Keyframes - Only Needed", "Only insert keyframes where they're needed in the relevant F-Curves.");
 	RNA_def_boolean(ot->srna, "insertkey_visual", 0, "Insert Keyframes - Visual", "Insert keyframes based on 'visual transforms'.");

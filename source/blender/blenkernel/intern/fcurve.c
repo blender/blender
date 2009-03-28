@@ -1748,7 +1748,7 @@ static FModifierTypeInfo FMI_PYTHON = {
 
 /* F-Curve Modifier API --------------------------- */
 /* All of the F-Curve Modifier api functions use FModifierTypeInfo structs to carry out
- * and operations that involve F-Curve modifier specifc code.
+ * and operations that involve F-Curve modifier specific code.
  */
 
 /* These globals only ever get directly accessed in this file */

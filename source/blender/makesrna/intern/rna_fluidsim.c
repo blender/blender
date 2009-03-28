@@ -174,7 +174,7 @@ static void rna_def_fluidsim_domain(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "grid_levels", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "maxRefine");
 	RNA_def_property_range(prop, -1, 4);
-	RNA_def_property_ui_text(prop, "Grid Levels", "Number of coursened grids to use (-1 for automatic).");
+	RNA_def_property_ui_text(prop, "Grid Levels", "Number of coarsened grids to use (-1 for automatic).");
 
 	prop= RNA_def_property(srna, "compressibility", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "gstar");

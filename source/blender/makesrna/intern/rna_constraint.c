@@ -727,17 +727,17 @@ static void rna_def_constraint_rigid_body_joint(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "axis_x", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "axX");
 	RNA_def_property_range(prop, -360.0, 360.f);
-	RNA_def_property_ui_text(prop, "Axis X", "Rotate pivot on X axis in degress.");
+	RNA_def_property_ui_text(prop, "Axis X", "Rotate pivot on X axis in degrees.");
 
 	prop= RNA_def_property(srna, "axis_y", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "axY");
 	RNA_def_property_range(prop, -360.0, 360.f);
-	RNA_def_property_ui_text(prop, "Axis Y", "Rotate pivot on Y axis in degress.");
+	RNA_def_property_ui_text(prop, "Axis Y", "Rotate pivot on Y axis in degrees.");
 
 	prop= RNA_def_property(srna, "axis_z", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "axZ");
 	RNA_def_property_range(prop, -360.0, 360.f);
-	RNA_def_property_ui_text(prop, "Axis Z", "Rotate pivot on Z axis in degress.");
+	RNA_def_property_ui_text(prop, "Axis Z", "Rotate pivot on Z axis in degrees.");
 	
 	/* XXX not sure how to wrap the two 6 element arrays for the generic joint */
 	//float       minLimit[6];

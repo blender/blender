@@ -4429,7 +4429,7 @@ void special_aftertrans_update(TransInfo *t)
 		if (t->customData)
 			MEM_freeN(t->customData);
 		if (t->data)
-			MEM_freeN(t->data); // XXX postTrans useually does this
+			MEM_freeN(t->data); // XXX postTrans usually does this
 	}
 	else if (t->spacetype == SPACE_ACTION) {
 		SpaceAction *saction= (SpaceAction *)t->sa->spacedata.first;

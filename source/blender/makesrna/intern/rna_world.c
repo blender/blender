@@ -241,7 +241,7 @@ static void rna_def_world_mist(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "WorldMistSettings", NULL);
 	RNA_def_struct_sdna(srna, "World");
 	RNA_def_struct_nested(brna, srna, "World");
-	RNA_def_struct_ui_text(srna, "World Mist", "Mist settings for a World datatblock.");
+	RNA_def_struct_ui_text(srna, "World Mist", "Mist settings for a World data-block.");
 
 	prop= RNA_def_property(srna, "enabled", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", WO_MIST);
@@ -284,7 +284,7 @@ static void rna_def_world_stars(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "WorldStarsSettings", NULL);
 	RNA_def_struct_sdna(srna, "World");
 	RNA_def_struct_nested(brna, srna, "World");
-	RNA_def_struct_ui_text(srna, "World Stars", "Stars setting for a World datatblock.");
+	RNA_def_struct_ui_text(srna, "World Stars", "Stars setting for a World data-block.");
 
 	prop= RNA_def_property(srna, "enabled", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", WO_STARS);

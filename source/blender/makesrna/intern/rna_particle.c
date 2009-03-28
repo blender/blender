@@ -506,7 +506,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "branching", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PART_BRANCHING);
-	RNA_def_property_ui_text(prop, "Branching", "Branch child paths from eachother.");
+	RNA_def_property_ui_text(prop, "Branching", "Branch child paths from each other.");
 
 	prop= RNA_def_property(srna, "animate_branching", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PART_ANIM_BRANCHING);
@@ -1019,12 +1019,12 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "clump_factor", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "clumpfac");
 	RNA_def_property_range(prop, -1.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Clump", "Amount of clumpimg");
+	RNA_def_property_ui_text(prop, "Clump", "Amount of clumping");
 
 	prop= RNA_def_property(srna, "clumppow", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "clumppow");
 	RNA_def_property_range(prop, -0.999f, 0.999f);
-	RNA_def_property_ui_text(prop, "Shape", "Shape of clumpimg");
+	RNA_def_property_ui_text(prop, "Shape", "Shape of clumping");
 
 
 	/* kink */
@@ -1046,11 +1046,11 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	/* rough */
 	prop= RNA_def_property(srna, "rough1", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 0.0f, 10.0f);
-	RNA_def_property_ui_text(prop, "Rough1", "Amount of location dependant rough.");
+	RNA_def_property_ui_text(prop, "Rough1", "Amount of location dependent rough.");
 
 	prop= RNA_def_property(srna, "rough1_size", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 0.01f, 10.0f);
-	RNA_def_property_ui_text(prop, "Size1", "Size of location dependant rough.");
+	RNA_def_property_ui_text(prop, "Size1", "Size of location dependent rough.");
 
 	prop= RNA_def_property(srna, "rough2", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "rough2");

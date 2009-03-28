@@ -57,6 +57,7 @@ def rna2epy(target_path):
 	rna_full_path_dict =	{}	# store the result of full_rna_struct_path(rna_struct)
 	rna_children_dict =		{}	# store all rna_structs nested from here
 	rna_references_dict =	{}	# store a list of rna path strings that reference this type
+	rna_words = set()
 	
 	def write_struct(rna_struct, ident):
 		identifier = rna_struct.identifier
@@ -71,11 +72,11 @@ def rna2epy(target_path):
 		out.write(ident+ '\t"""\n')
 		
 		title = 'The %s Object' % rna_struct.name
-		
+		description = rna_struct.description
 		out.write(ident+ '\t%s\n' %  title)
 		out.write(ident+ '\t%s\n' %  ('=' * len(title)))
-		out.write(ident+ '\t\t%s\n' %  rna_struct.description)
-		
+		out.write(ident+ '\t\t%s\n' %  description)
+		rna_words.update(description.split())
 		
 		
 		# For convenience, give a list of all places were used.
@@ -105,6 +106,8 @@ def rna2epy(target_path):
 				continue
 			
 			rna_desc = rna_prop.description
+			
+			if rna_desc: rna_words.update(rna_desc.split())
 			if not rna_desc: rna_desc = rna_prop.name
 			if not rna_desc: rna_desc = 'Note - No documentation for this property!'
 			
@@ -321,6 +324,16 @@ def rna2epy(target_path):
 	
 	# # We could also just run....
 	# os.system('dot source/blender/python/doc/rna.dot -Tsvg -o ./source/blender/python/doc/rna.svg')
+	
+	
+	out= open(target_path.replace('.py', '.words'), 'w')
+	rna_words = list(rna_words)
+	rna_words.sort()
+	for w in rna_words:
+		out.write('%s\n' % w)
+	
+	
+	
 	
 
 def op2epy(target_path):
