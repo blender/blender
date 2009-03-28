@@ -4384,34 +4384,21 @@ void special_aftertrans_update(TransInfo *t)
 		Editing *ed= seq_give_editing(t->scene, FALSE);
 		if (ed && !cancelled) {
 			ListBase *seqbasep= ed->seqbasep;
-			int a;
-			TransData *td= t->data;
-			TransDataSeq *tdsq= NULL;
+			int machine, max_machine = 0;
 			Sequence *seq;
 
+			/* update in order so we always move bottom strips first */
+			for(seq= seqbasep->first; seq; seq= seq->next) {
+				max_machine = MAX2(max_machine, seq->machine);
+			}
 			
-
-			/* prevent updating the same seq twice
-			 * if the transdata order is changed this will mess up
-			 * but so will TransDataSeq */
-			Sequence *seq_prev= NULL;
-
-			/* flush to 2d vector from internally used 3d vector */
-			for(a=0; a<t->total; a++, td++) {
-
-				tdsq= (TransDataSeq *)td->extra;
-				seq= tdsq->seq;
-
-				if (seq != seq_prev) {
-					if(seq->depth==0) {
-						if (seq->flag & SEQ_OVERLAP) {
-							shuffle_seq(seqbasep, seq);
-						}
+			for (machine = 0; machine <= max_machine; machine++)
+			{
+				for(seq= seqbasep->first; seq; seq= seq->next) {
+					if (seq->machine == machine && seq->depth==0 && seq->flag & SEQ_OVERLAP) {
+						shuffle_seq(seqbasep, seq);
 					}
 				}
-
-				/* as last: */
-				seq_prev= seq;
 			}
 
 			for(seq= seqbasep->first; seq; seq= seq->next) {

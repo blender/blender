@@ -841,7 +841,7 @@ void postTrans (TransInfo *t)
 	}
 	
 	/* postTrans can be called when nothing is selected, so data is NULL already */
-	if (t->data && (t->spacetype != SPACE_SEQ)) { // XXX SEQ Exception is needed because of special_aftertrans_update using t->data
+	if (t->data) {
 		int a;
 
 		/* since ipokeys are optional on objects, we mallocced them per trans-data */
