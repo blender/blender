@@ -3527,12 +3527,12 @@ static void editing_panel_curve_tools(Object *ob, Curve *cu)
 					450,90,72, 18, 0, 0, 0, 0, 0, "");
 				/* KEY_LINEAR, KEY_CARDINAL, KEY_BSPLINE */
 				uiDefButS(block, MENU, B_TILTINTERP, "Tilt Interpolation %t|Linear%x0|Cardinal%x1|BSpline %x2|Ease%x3",
-					495,90,66, 18, &(nu->tilt_interp), 0, 0, 0, 0, "Tadius interpolation for 3D curves");
+					495,90,66, 18, &(nu->tilt_interp), 0, 0, 0, 0, "Tilt interpolation for 3D, bezier curves");
 
 				uiDefBut(block, LABEL, 0, "Radius",
 					450,70,72, 18, 0, 0, 0, 0, 0, "");
 				uiDefButS(block, MENU, B_TILTINTERP, "Radius Interpolation %t|Linear%x0|Cardinal%x1|BSpline %x2|Ease%x3",
-					495,70,66, 18, &(nu->radius_interp), 0, 0, 0, 0, "Radius interpolation");
+					495,70,66, 18, &(nu->radius_interp), 0, 0, 0, 0, "Radius interpolation for bezier curves");
 			}
 						
 			uiBlockBeginAlign(block);
