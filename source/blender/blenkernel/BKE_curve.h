@@ -63,7 +63,7 @@ void duplicateNurblist( struct ListBase *lb1,  struct ListBase *lb2);
 void test2DNurb( struct Nurb *nu);
 void minmaxNurb( struct Nurb *nu, float *min, float *max);
 
-void makeknots( struct Nurb *nu, short uv, short type);
+void makeknots( struct Nurb *nu, short uv);
 
 void makeNurbfaces(struct Nurb *nu, float *coord_array, int rowstride);
 void makeNurbcurve(struct Nurb *nu, float *coord_array, float *tilt_array, float *radius_array, int resolu);

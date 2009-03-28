@@ -1773,7 +1773,7 @@ static void v3d_editvertex_buts(uiBlock *block, Object *ob, float lim)
 			
 			nu= editNurb.first;
 			while(nu) {
-				if((nu->type & 7)==1) {
+				if((nu->type & 7)==CU_BEZIER) {
 					bezt= nu->bezt;
 					a= nu->pntsu;
 					while(a--) {

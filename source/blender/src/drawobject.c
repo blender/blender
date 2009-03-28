@@ -3777,7 +3777,7 @@ static void tekenhandlesN(Nurb *nu, short sel)
 	
 	glBegin(GL_LINES); 
 	
-	if( (nu->type & 7)==1) {
+	if( (nu->type & 7)==CU_BEZIER) {
 		if(sel) col= nurbcol+4;
 		else col= nurbcol;
 
@@ -3834,7 +3834,7 @@ static void tekenvertsN(Nurb *nu, short sel)
 	
 	bglBegin(GL_POINTS);
 	
-	if((nu->type & 7)==1) {
+	if((nu->type & 7)==CU_BEZIER) {
 
 		bezt= nu->bezt;
 		a= nu->pntsu;

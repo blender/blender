@@ -2034,7 +2034,7 @@ void docenter(int centermode)
 						
 						nu= nu1;
 						while(nu) {
-							if( (nu->type & 7)==1) {
+							if( (nu->type & 7)==CU_BEZIER) {
 								a= nu->pntsu;
 								while (a--) {
 									VecSubf(nu->bezt[a].vec[0], nu->bezt[a].vec[0], cent);
@@ -4076,7 +4076,7 @@ static void apply_objects_internal( int apply_scale, int apply_rot )
 				
 				nu= cu->nurb.first;
 				while(nu) {
-					if( (nu->type & 7)==1) {
+					if( (nu->type & 7)==CU_BEZIER) {
 						a= nu->pntsu;
 						bezt= nu->bezt;
 						while(a--) {

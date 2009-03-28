@@ -3311,13 +3311,13 @@ void do_curvebuts(unsigned short event)
 							nu->flagu &= CU_CYCLIC; /* disable all flags except for CU_CYCLIC */
 							nu->flagu |= ((event-B_UNIFU)<<1);
 							clamp_nurb_order_u(nu);
-							makeknots(nu, 1, nu->flagu>>1);
+							makeknots(nu, 1);
 						}
 						else if(nu->pntsv>1) {
 							nu->flagv &= CU_CYCLIC; /* disable all flags except for CU_CYCLIC */
 							nu->flagv |= ((event-B_UNIFV)<<1);
 							clamp_nurb_order_v(nu);
-							makeknots(nu, 2, nu->flagv>>1);
+							makeknots(nu, 2);
 						}
 					}
 				}
@@ -3359,11 +3359,11 @@ void do_curvebuts(unsigned short event)
 				if(clamp_nurb_order_u(nu)) {
 					scrarea_queue_winredraw(curarea);
 				}
-				makeknots(nu, 1, nu->flagu>>1);
+				makeknots(nu, 1);
 				if(clamp_nurb_order_v(nu)) {
 					scrarea_queue_winredraw(curarea);
 				}
-				makeknots(nu, 2, nu->flagv>>1);
+				makeknots(nu, 2);
 			}
 			BIF_undo_push("Make knots");
 			DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);

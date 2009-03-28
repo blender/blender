@@ -564,7 +564,7 @@ PyObject *CurNurb_appendPointToNurb( Nurb * nurb, PyObject * value )
 		tmp->radius = radius;
 		tmp->weight = 0.0; /* softbody weight TODO - add access to this, is zero elsewhere but through blender is 1.0 by default */
 		
-		makeknots( nurb, 1, nurb->flagu >> 1 );
+		makeknots(nurb, 1);
 
 	} else {
 		/* bail with error */
@@ -649,7 +649,7 @@ static int CurNurb_setFlagU( BPy_CurNurb * self, PyObject * args )
 
 	if( self->nurb->flagu != value ) {
 		self->nurb->flagu = (short)value;
-		makeknots( self->nurb, 1, self->nurb->flagu >> 1 );
+		makeknots(self->nurb, 1);
 	}
 
 	return 0;
@@ -698,7 +698,7 @@ static int CurNurb_setFlagV( BPy_CurNurb * self, PyObject * args )
 
 	if( self->nurb->flagv != value ) {
 		self->nurb->flagv = (short)value;
-		makeknots( self->nurb, 2, self->nurb->flagv >> 1 );
+		makeknots( self->nurb, 2);
 	}
 
 	return 0;
@@ -728,7 +728,7 @@ static int CurNurb_setOrderU( BPy_CurNurb * self, PyObject * args )
 		order = self->nurb->pntsu;
 
 	self->nurb->orderu = (short)order;
-	makeknots( self->nurb, 1, self->nurb->flagu >> 1 );
+	makeknots(self->nurb, 1);
 
 	return 0;
 }

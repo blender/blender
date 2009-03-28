@@ -554,8 +554,8 @@ static void makecyclicknots(float *knots, short pnts, short order)
 }
 
 
-/* type - 0: uniform, 1: endpoints, 2: bezier, note, cyclic nurbs are always uniform */
-void makeknots(Nurb *nu, short uv, short type)
+
+void makeknots(Nurb *nu, short uv)
 {
 	if( (nu->type & 7)==CU_NURBS ) {
 		if(uv == 1) {
@@ -566,7 +566,7 @@ void makeknots(Nurb *nu, short uv, short type)
 					calcknots(nu->knotsu, nu->pntsu, nu->orderu, 0);  /* cyclic should be uniform */
 					makecyclicknots(nu->knotsu, nu->pntsu, nu->orderu);
 				} else {
-					calcknots(nu->knotsu, nu->pntsu, nu->orderu, type);
+					calcknots(nu->knotsu, nu->pntsu, nu->orderu, nu->flagu>>1);
 				}
 			}
 			else nu->knotsu= NULL;
@@ -579,7 +579,7 @@ void makeknots(Nurb *nu, short uv, short type)
 					calcknots(nu->knotsv, nu->pntsv, nu->orderv, 0);  /* cyclic should be uniform */
 					makecyclicknots(nu->knotsv, nu->pntsv, nu->orderv);
 				} else {
-					calcknots(nu->knotsv, nu->pntsv, nu->orderv, type);
+					calcknots(nu->knotsv, nu->pntsv, nu->orderv, nu->flagv>>1);
 				}
 			}
 			else nu->knotsv= NULL;
@@ -2333,7 +2333,7 @@ void sethandlesNurb(short code)
 	if(code==1 || code==2) {
 		nu= editNurb.first;
 		while(nu) {
-			if( (nu->type & 7)==1) {
+			if( (nu->type & 7)==CU_BEZIER) {
 				bezt= nu->bezt;
 				a= nu->pntsu;
 				while(a--) {
@@ -2363,7 +2363,7 @@ void sethandlesNurb(short code)
 		} else {
 			/* Toggle */
 			while(nu) {
-				if( (nu->type & 7)==1) {
+				if( (nu->type & 7)==CU_BEZIER) {
 					bezt= nu->bezt;
 					a= nu->pntsu;
 					while(a--) {
@@ -2380,7 +2380,7 @@ void sethandlesNurb(short code)
 		}
 		nu= editNurb.first;
 		while(nu) {
-			if( (nu->type & 7)==1) {
+			if( (nu->type & 7)==CU_BEZIER) {
 				bezt= nu->bezt;
 				a= nu->pntsu;
 				while(a--) {
