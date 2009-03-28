@@ -150,8 +150,9 @@ static void transformops_exit(bContext *C, wmOperator *op)
 	op->customdata = NULL;
 }
 
-static void transformops_data(bContext *C, wmOperator *op, wmEvent *event)
+static int transformops_data(bContext *C, wmOperator *op, wmEvent *event)
 {
+	int retval = 1;
 	if (op->customdata == NULL)
 	{
 		TransInfo *t = MEM_callocN(sizeof(TransInfo), "TransInfo data");
@@ -171,11 +172,13 @@ static void transformops_data(bContext *C, wmOperator *op, wmEvent *event)
 			mode = RNA_int_get(op->ptr, "mode");
 		}
 
-		initTransform(C, t, op, event, mode);
+		retval = initTransform(C, t, op, event, mode);
 	
 		/* store data */
 		op->customdata = t;
 	}
+	
+	return retval; /* return 0 on error */
 }
 
 static int transform_modal(bContext *C, wmOperator *op, wmEvent *event)
@@ -214,7 +217,10 @@ static int transform_exec(bContext *C, wmOperator *op)
 {
 	TransInfo *t;
 
-	transformops_data(C, op, NULL);
+	if (!transformops_data(C, op, NULL))
+	{
+		return OPERATOR_CANCELLED;
+	}
 
 	t = op->customdata;
 
@@ -231,7 +237,10 @@ static int transform_exec(bContext *C, wmOperator *op)
 
 static int transform_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	transformops_data(C, op, event);
+	if (!transformops_data(C, op, event))
+	{
+		return OPERATOR_CANCELLED;
+	}
 
 	if(RNA_property_is_set(op->ptr, "value")) {
 		return transform_exec(C, op);

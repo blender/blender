@@ -710,7 +710,7 @@ void BIF_setDualAxisConstraint(float vec1[3], float vec2[3], char *text) {
 
 /*----------------- DRAWING CONSTRAINTS -------------------*/
 
-void drawConstraint(TransInfo *t)
+void drawConstraint(const struct bContext *C, TransInfo *t)
 {
 	TransCon *tc = &(t->con);
 
@@ -769,17 +769,16 @@ void drawConstraint(TransInfo *t)
 }
 
 /* called from drawview.c, as an extra per-window draw option */
-void drawPropCircle(TransInfo *t)
+void drawPropCircle(const struct bContext *C, TransInfo *t)
 {
 	if (t->flag & T_PROP_EDIT) {
+		RegionView3D *rv3d = CTX_wm_region_view3d(C);
 		float tmat[4][4], imat[4][4];
 
 		UI_ThemeColor(TH_GRID);
 		
-		if(t->spacetype == SPACE_VIEW3D)
+		if(t->spacetype == SPACE_VIEW3D && rv3d != NULL)
 		{
-			RegionView3D *rv3d = t->ar->regiondata;
-			
 			Mat4CpyMat4(tmat, rv3d->viewmat);
 			Mat4Invert(imat, tmat);
 		}

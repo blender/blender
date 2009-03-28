@@ -121,7 +121,7 @@ int BIF_snappingSupported(Object *obedit)
 	return status;
 }
 
-void drawSnapping(TransInfo *t)
+void drawSnapping(const struct bContext *C, TransInfo *t)
 {
 	if ((t->tsnap.status & (SNAP_ON|POINT_INIT|TARGET_INIT)) == (SNAP_ON|POINT_INIT|TARGET_INIT) &&
 		(t->modifiers & MOD_SNAP_GEARS))
@@ -132,8 +132,8 @@ void drawSnapping(TransInfo *t)
 		glColor4ub(col[0], col[1], col[2], 128);
 		
 		if (t->spacetype == SPACE_VIEW3D) {
-			View3D *v3d = t->view;
-			RegionView3D *rv3d= t->ar->regiondata;
+			View3D *v3d = CTX_wm_view3d(C);
+			RegionView3D *rv3d = CTX_wm_region_view3d(C);
 			float tmat[4][4], imat[4][4];
 			float size;
 			

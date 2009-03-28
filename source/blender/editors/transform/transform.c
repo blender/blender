@@ -163,7 +163,7 @@ static void helpline(TransInfo *t, float *vec)
 
 void setTransformViewMatrices(TransInfo *t)
 {
-	if(t->spacetype==SPACE_VIEW3D) {
+	if(t->spacetype==SPACE_VIEW3D && t->ar->regiontype == RGN_TYPE_WINDOW) {
 		RegionView3D *rv3d = t->ar->regiondata;
 		
 		Mat4CpyMat4(t->viewmat, rv3d->viewmat);
@@ -186,7 +186,10 @@ void setTransformViewMatrices(TransInfo *t)
 void convertViewVec(TransInfo *t, float *vec, short dx, short dy)
 {
 	if (t->spacetype==SPACE_VIEW3D) {
-		window_to_3d_delta(t->ar, vec, dx, dy);
+		if (t->ar->regiontype == RGN_TYPE_WINDOW)
+		{
+			window_to_3d_delta(t->ar, vec, dx, dy);
+		}
 	}
 	else if(t->spacetype==SPACE_IMAGE) {
 		View2D *v2d = t->view;
@@ -935,9 +938,9 @@ void drawTransform(const struct bContext *C, struct ARegion *ar, void *arg)
 {
 	TransInfo *t = arg;
 	
-	drawConstraint(t);
-	drawPropCircle(t);
-	drawSnapping(t);
+	drawConstraint(C, t);
+	drawPropCircle(C, t);
+	drawSnapping(C, t);
 }
 
 void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
@@ -1016,7 +1019,7 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 	}
 }
 
-void initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int mode)
+int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int mode)
 {
 	int options = 0;
 
@@ -1028,15 +1031,21 @@ void initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, in
 	
 	t->mode = mode;
 
-	initTransInfo(C, t, op, event);					// internal data, mouse, vectors
+	if (!initTransInfo(C, t, op, event))					// internal data, mouse, vectors
+	{
+		return 0;
+	}
 
 	initTransformOrientation(C, t);
 
 	if(t->spacetype == SPACE_VIEW3D)
 	{
-		RegionView3D *rv3d = t->ar->regiondata;
 		//calc_manipulator_stats(curarea);
-		Mat3CpyMat4(t->spacemtx, rv3d->twmat);
+		if (t->ar->regiontype == RGN_TYPE_WINDOW)
+		{
+			RegionView3D *rv3d = t->ar->regiondata;
+			Mat3CpyMat4(t->spacemtx, rv3d->twmat);
+		}
 		Mat3Ortho(t->spacemtx);
 		
 		t->draw_handle = ED_region_draw_cb_activate(t->ar->type, drawTransform, t, REGION_DRAW_POST);
@@ -1050,12 +1059,12 @@ void initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, in
 
 	createTransData(C, t);			// make TransData structs from selection
 
-	initSnapping(t); // Initialize snapping data AFTER mode flags
-
 	if (t->total == 0) {
 		postTrans(t);
-		return;
+		return 0;
 	}
+
+	initSnapping(t); // Initialize snapping data AFTER mode flags
 
 	/* EVIL! posemode code can switch translation to rotate when 1 bone is selected. will be removed (ton) */
 	/* EVIL2: we gave as argument also texture space context bit... was cleared */
@@ -1190,6 +1199,8 @@ void initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, in
 			setUserConstraint(t, t->con.mode, "%s");		
 		}
 	}
+	
+	return 1;
 }
 
 void transformApply(bContext *C, TransInfo *t)
@@ -3077,8 +3088,6 @@ int Translation(TransInfo *t, short mval[2])
 	recalcData(t);
 
 	ED_area_headerprint(t->sa, str);
-
-	drawSnapping(t);
 
 	return 1;
 }

@@ -663,7 +663,7 @@ void resetTransRestrictions(TransInfo *t)
 	t->flag &= ~T_ALL_RESTRICTIONS;
 }
 
-void initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
+int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 {
 	Scene *sce = CTX_data_scene(C);
 	ARegion *ar = CTX_wm_region(C);
@@ -828,6 +828,8 @@ void initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 	setTransformViewMatrices(t);
 	initNumInput(&t->num);
 	initNDofInput(&t->ndof);
+	
+	return 1;
 }
 
 /* Here I would suggest only TransInfo related issues, like free data & reset vars. Not redraws */

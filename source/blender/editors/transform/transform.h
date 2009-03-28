@@ -367,7 +367,7 @@ typedef struct TransInfo {
 
 void TFM_OT_transform(struct wmOperatorType *ot);
 
-void initTransform(struct bContext *C, struct TransInfo *t, struct wmOperator *op, struct wmEvent *event, int mode);
+int initTransform(struct bContext *C, struct TransInfo *t, struct wmOperator *op, struct wmEvent *event, int mode);
 void saveTransform(struct bContext *C, struct TransInfo *t, struct wmOperator *op);
 void transformEvent(TransInfo *t, struct wmEvent *event);
 void transformApply(struct bContext *C, TransInfo *t);
@@ -454,7 +454,7 @@ void initAlign(TransInfo *t);
 int Align(TransInfo *t, short mval[2]);
 
 
-void drawPropCircle(TransInfo *t);
+void drawPropCircle(const struct bContext *C, TransInfo *t);
 
 /*********************** transform_conversions.c ********** */
 struct ListBase;
@@ -488,7 +488,7 @@ void autokeyframe_pose_cb_func(struct Scene *scene, struct View3D *v3d, struct O
 
 /*********************** Constraints *****************************/
 
-void drawConstraint(TransInfo *t);
+void drawConstraint(const struct bContext *C, TransInfo *t);
 
 void getConstraintMatrix(TransInfo *t);
 void setConstraint(TransInfo *t, float space[3][3], int mode, const char text[]);
@@ -526,7 +526,7 @@ void initSnapping(struct TransInfo *t);
 void applySnapping(TransInfo *t, float *vec);
 void resetSnapping(TransInfo *t);
 int  handleSnapping(TransInfo *t, struct wmEvent *event);
-void drawSnapping(TransInfo *t);
+void drawSnapping(const struct bContext *C, TransInfo *t);
 int usingSnappingNormal(TransInfo *t);
 int validSnappingNormal(TransInfo *t);
 
@@ -552,7 +552,7 @@ void applyMouseInput(struct TransInfo *t, struct MouseInput *mi, short mval[2], 
 
 /*********************** Generics ********************************/
 
-void initTransInfo(struct bContext *C, TransInfo *t, struct wmOperator *op, struct wmEvent *event);
+int initTransInfo(struct bContext *C, TransInfo *t, struct wmOperator *op, struct wmEvent *event);
 void postTrans (TransInfo *t);
 void resetTransRestrictions(TransInfo *t);
 
