@@ -1218,7 +1218,7 @@ static void view3d_select_curvemenu(bContext *C, uiMenuItem *head, void *arg_unu
 	uiMenuSeparator(head);
 
 	uiMenuItemO(head, 0, "CURVE_OT_select_all_toggle");
-	uiMenuItemO(head, 0, "CURVE_OT_select_inverse");
+	uiMenuItemO(head, 0, "CURVE_OT_select_invert");
 	uiMenuItemO(head, 0, "CURVE_OT_select_random"); // Random...
 	uiMenuItemO(head, 0, "CURVE_OT_select_every_nth"); // Every Nth..
 

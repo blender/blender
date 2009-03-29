@@ -1737,7 +1737,7 @@ void TEXT_OT_scroll(wmOperatorType *ot)
 	ot->poll= text_space_edit_poll;
 
 	/* properties */
-	RNA_def_int(ot->srna, "lines", INT_MIN, INT_MAX, 1, "Lines", "Number of lines to scroll.", -100, 100);
+	RNA_def_int(ot->srna, "lines", 1, INT_MIN, INT_MAX, "Lines", "Number of lines to scroll.", -100, 100);
 }
 
 /******************** scroll bar operator *******************/
@@ -1781,7 +1781,7 @@ void TEXT_OT_scroll_bar(wmOperatorType *ot)
 	ot->poll= text_region_edit_poll;
 
 	/* properties */
-	RNA_def_int(ot->srna, "lines", INT_MIN, INT_MAX, 1, "Lines", "Number of lines to scroll.", -100, 100);
+	RNA_def_int(ot->srna, "lines", 1, INT_MIN, INT_MAX, "Lines", "Number of lines to scroll.", -100, 100);
 }
 
 /******************* set cursor operator **********************/
