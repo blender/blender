@@ -133,6 +133,7 @@ int CurvePointIterator___init__(BPy_CurvePointIterator *self, PyObject *args )
 		self->cp_it = new CurveInternal::CurvePointIterator( PyFloat_AsDouble(obj) );
 			
 	} else {
+		PyErr_SetString(PyExc_TypeError, "invalid argument");
 		return -1;
 	}
 
@@ -157,7 +158,7 @@ PyObject * CurvePointIterator_castToInterface0DIterator( BPy_CurvePointIterator 
 }
 
 PyObject * CurvePointIterator_getObject(BPy_CurvePointIterator *self) {
-	return BPy_CurvePoint_from_CurvePoint( self->cp_it->operator*() );
+	return BPy_CurvePoint_from_CurvePoint_ptr( &(self->cp_it->operator*()) );
 }
 
 
