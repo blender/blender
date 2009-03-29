@@ -43,6 +43,9 @@
 #include "DNA_screen_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_view3d_types.h"
+#include "DNA_windowmanager_types.h"
+
+#include "RNA_access.h"
 
 #include "BLI_arithb.h"
 #include "BLI_editVert.h"
@@ -88,7 +91,7 @@
 
 /********************* PROTOTYPES ***********************/
 
-void setSnappingCallback(TransInfo *t);
+void setSnappingCallback(TransInfo *t, short snap_target);
 
 void ApplySnapTranslation(TransInfo *t, float vec[3]);
 void ApplySnapRotation(TransInfo *t, float *vec);
@@ -208,7 +211,7 @@ int  handleSnapping(TransInfo *t, wmEvent *event)
 	{
 		/* toggle snap and reinit */
 		t->scene->snap_flag ^= SCE_SNAP;
-		initSnapping(t);
+		initSnapping(t, NULL);
 		status = 1;
 	}
 	
@@ -217,7 +220,13 @@ int  handleSnapping(TransInfo *t, wmEvent *event)
 
 void applySnapping(TransInfo *t, float *vec)
 {
-	if ((t->tsnap.status & SNAP_ON) && 
+	if (t->tsnap.status & SNAP_FORCED)
+	{
+		t->tsnap.targetSnap(t);
+	
+		t->tsnap.applySnap(t, vec);
+	}
+	else if ((t->tsnap.status & SNAP_ON) && 
 		(t->modifiers & MOD_SNAP_GEARS))
 	{
 		double current = PIL_check_seconds_timer();
@@ -241,6 +250,8 @@ void applySnapping(TransInfo *t, float *vec)
 void resetSnapping(TransInfo *t)
 {
 	t->tsnap.status = 0;
+	t->tsnap.mode = 0;
+	t->tsnap.align = 0;
 	t->tsnap.modePoint = 0;
 	t->tsnap.modeTarget = 0;
 	t->tsnap.last = 0;
@@ -253,14 +264,7 @@ void resetSnapping(TransInfo *t)
 
 int usingSnappingNormal(TransInfo *t)
 {
-	if (t->scene->snap_flag & SCE_SNAP_ROTATE)
-	{
-		return 1;
-	}
-	else
-	{
-		return 0;
-	}
+	return t->tsnap.align;
 }
 
 int validSnappingNormal(TransInfo *t)
@@ -276,19 +280,47 @@ int validSnappingNormal(TransInfo *t)
 	return 0;
 }
 
-void initSnapping(TransInfo *t)
+void initSnapping(TransInfo *t, wmOperator *op)
 {
 	Scene *scene = t->scene;
 	Object *obedit = t->obedit;
+	int snapping = 0;
+	short snap_mode = t->scene->snap_target;
+	
 	resetSnapping(t);
+	
+	if (op && RNA_struct_find_property(op->ptr, "snap") && RNA_property_is_set(op->ptr, "snap"))
+	{
+		if (RNA_boolean_get(op->ptr, "snap"))
+		{
+			snapping = 1;
+			snap_mode = RNA_enum_get(op->ptr, "snap_mode");
+			
+			t->tsnap.status |= SNAP_FORCED|POINT_INIT;
+			RNA_float_get_array(op->ptr, "snap_point", t->tsnap.snapPoint);
+			
+			/* snap align only defined in specific cases */
+			if (RNA_struct_find_property(op->ptr, "snap_align"))
+			{
+				t->tsnap.align = RNA_boolean_get(op->ptr, "snap_align");
+				RNA_float_get_array(op->ptr, "snap_normal", t->tsnap.snapNormal);
+				Normalize(t->tsnap.snapNormal);
+			}
+		}
+	}
+	else
+	{
+		snapping = ((scene->snap_flag & SCE_SNAP) == SCE_SNAP);
+		t->tsnap.align = ((t->scene->snap_flag & SCE_SNAP_ROTATE) == SCE_SNAP_ROTATE);
+	}
 	
 	if ((t->spacetype == SPACE_VIEW3D || t->spacetype == SPACE_IMAGE) && // Only 3D view or UV
 			(t->flag & T_CAMERA) == 0) { // Not with camera selected
-		setSnappingCallback(t);
+		setSnappingCallback(t, snap_mode);
 
 		/* Edit mode */
 		if (t->tsnap.applySnap != NULL && // A snapping function actually exist
-			(scene->snap_flag & SCE_SNAP) && // Only if the snap flag is on
+			(snapping) && // Only if the snap flag is on
 			(obedit != NULL && ELEM(obedit->type, OB_MESH, OB_ARMATURE)) ) // Temporary limited to edit mode meshes or armature
 		{
 			t->tsnap.status |= SNAP_ON;
@@ -305,7 +337,7 @@ void initSnapping(TransInfo *t)
 		}
 		/* Object mode */
 		else if (t->tsnap.applySnap != NULL && // A snapping function actually exist
-			(scene->snap_flag & SCE_SNAP) && // Only if the snap flag is on
+			(snapping) && // Only if the snap flag is on
 			(obedit == NULL) ) // Object Mode
 		{
 			t->tsnap.status |= SNAP_ON;
@@ -325,12 +357,11 @@ void initSnapping(TransInfo *t)
 	}
 }
 
-void setSnappingCallback(TransInfo *t)
+void setSnappingCallback(TransInfo *t, short snap_target)
 {
-	Scene *scene = t->scene;
 	t->tsnap.calcSnap = CalcSnapGeometry;
 
-	switch(scene->snap_target)
+	switch(snap_target)
 	{
 		case SCE_SNAP_TARGET_CLOSEST:
 			t->tsnap.modeTarget = SNAP_CLOSEST;
@@ -362,7 +393,7 @@ void setSnappingCallback(TransInfo *t)
 		t->tsnap.distance = RotationBetween;
 		
 		// Can't do TARGET_CENTER with rotation, use TARGET_MEDIAN instead
-		if (scene->snap_target == SCE_SNAP_TARGET_CENTER) {
+		if (snap_target == SCE_SNAP_TARGET_CENTER) {
 			t->tsnap.modeTarget = SNAP_MEDIAN;
 			t->tsnap.targetSnap = TargetSnapMedian;
 		}
@@ -372,7 +403,7 @@ void setSnappingCallback(TransInfo *t)
 		t->tsnap.distance = ResizeBetween;
 		
 		// Can't do TARGET_CENTER with resize, use TARGET_MEDIAN instead
-		if (scene->snap_target == SCE_SNAP_TARGET_CENTER) {
+		if (snap_target == SCE_SNAP_TARGET_CENTER) {
 			t->tsnap.modeTarget = SNAP_MEDIAN;
 			t->tsnap.targetSnap = TargetSnapMedian;
 		}

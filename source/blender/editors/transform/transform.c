@@ -1064,7 +1064,7 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 		return 0;
 	}
 
-	initSnapping(t); // Initialize snapping data AFTER mode flags
+	initSnapping(t, op); // Initialize snapping data AFTER mode flags
 
 	/* EVIL! posemode code can switch translation to rotate when 1 bone is selected. will be removed (ton) */
 	/* EVIL2: we gave as argument also texture space context bit... was cleared */

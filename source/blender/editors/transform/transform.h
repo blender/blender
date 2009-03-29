@@ -80,8 +80,9 @@ typedef struct NumInput {
 typedef struct TransSnap {
 	short	modePoint;
 	short	modeTarget;
-	int		mode;
-	int  	status;
+	short	mode;
+	short	align;
+	short  	status;
 	float	snapPoint[3];
 	float	snapTarget[3];
 	float	snapNormal[3];
@@ -351,8 +352,9 @@ typedef struct TransInfo {
 
 /* transsnap->status */
 #define SNAP_ON			1
-#define TARGET_INIT		2
-#define POINT_INIT		4
+#define SNAP_FORCED		2
+#define TARGET_INIT		4
+#define POINT_INIT		8
 
 /* transsnap->modePoint */
 #define SNAP_GRID			0
@@ -522,7 +524,7 @@ typedef enum {
 void snapGrid(TransInfo *t, float *val);
 void snapGridAction(TransInfo *t, float *val, GearsType action);
 
-void initSnapping(struct TransInfo *t);
+void initSnapping(struct TransInfo *t, struct wmOperator *op);
 void applySnapping(TransInfo *t, float *vec);
 void resetSnapping(TransInfo *t);
 int  handleSnapping(TransInfo *t, struct wmEvent *event);

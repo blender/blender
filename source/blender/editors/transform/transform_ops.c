@@ -62,6 +62,14 @@ EnumPropertyItem proportional_mode_types[] = {
 		{0, NULL, NULL, NULL}
 };
 
+EnumPropertyItem snap_mode_types[] = {
+		{SCE_SNAP_TARGET_CLOSEST, "CLOSEST", "Closest", ""},
+		{SCE_SNAP_TARGET_CENTER,  "CENTER", "Center", ""},
+		{SCE_SNAP_TARGET_MEDIAN,  "MEDIAN", "Median", ""},
+		{SCE_SNAP_TARGET_ACTIVE,  "ACTIVE", "Active", ""},
+		{0, NULL, NULL, NULL}
+};
+
 EnumPropertyItem proportional_falloff_types[] = {
 		{PROP_SMOOTH, "SMOOTH", "Smooth", ""},
 		{PROP_SPHERE, "SPHERE", "Sphere", ""},
@@ -262,7 +270,19 @@ void Properties_Proportional(struct wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "proportional", proportional_mode_types, 0, "Proportional Edition", "");
 	RNA_def_enum(ot->srna, "proportional_editing_falloff", prop_mode_items, 0, "Proportional Editing Falloff", "Falloff type for proportional editing mode.");
 	RNA_def_float(ot->srna, "proportional_size", 1, 0, FLT_MAX, "Proportional Size", "", 0, 100);
+}
 
+void Properties_Snapping(struct wmOperatorType *ot, short align)
+{
+	RNA_def_boolean(ot->srna, "snap", 0, "Snap to Point", "");
+	RNA_def_enum(ot->srna, "snap_mode", snap_mode_types, 0, "Mode", "");
+	RNA_def_float_vector(ot->srna, "snap_point", 3, NULL, -FLT_MAX, FLT_MAX, "Point", "", -FLT_MAX, FLT_MAX);
+	
+	if (align)
+	{
+		RNA_def_boolean(ot->srna, "snap_align", 0, "Align with Point Normal", "");
+		RNA_def_float_vector(ot->srna, "snap_normal", 3, NULL, -FLT_MAX, FLT_MAX, "Normal", "", -FLT_MAX, FLT_MAX);
+	}
 }
 
 void Properties_Constraints(struct wmOperatorType *ot)
@@ -292,6 +312,8 @@ void TFM_OT_translation(struct wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "mirror", 0, "Mirror Edition", "");
 
 	Properties_Constraints(ot);
+	
+	Properties_Snapping(ot, 1);
 }
 
 void TFM_OT_resize(struct wmOperatorType *ot)
@@ -315,6 +337,8 @@ void TFM_OT_resize(struct wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "mirror", 0, "Mirror Edition", "");
 
 	Properties_Constraints(ot);
+	
+	Properties_Snapping(ot, 0);
 }
 
 void TFM_OT_rotation(struct wmOperatorType *ot)
@@ -338,6 +362,8 @@ void TFM_OT_rotation(struct wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "mirror", 0, "Mirror Edition", "");
 
 	Properties_Constraints(ot);
+	
+	Properties_Snapping(ot, 0);
 }
 
 void TFM_OT_tilt(struct wmOperatorType *ot)

@@ -179,7 +179,8 @@ static void postConstraintChecks(TransInfo *t, float vec[3], float pvec[3]) {
 		constraintNumInput(t, vec);
 	}
 
-	if (t->flag & T_AUTOVALUES)
+	/* autovalues is operator param, use that directly but not if snapping is forced */
+	if (t->flag & T_AUTOVALUES && (t->tsnap.status & SNAP_FORCED) == 0)
 	{
 		VECCOPY(vec, t->auto_values);
 		constraintAutoValues(t, vec);
