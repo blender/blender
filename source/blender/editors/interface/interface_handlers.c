@@ -101,7 +101,7 @@ typedef struct uiHandleButtonData {
 
 	/* edited value */
 	char *str, *origstr;
-	double value, origvalue;
+	double value, origvalue, startvalue;
 	float vec[3], origvec[3];
 	int togdual, togonly;
 	ColorBand *coba;
@@ -300,7 +300,7 @@ static void ui_apply_but_BUT(bContext *C, uiBut *but, uiHandleButtonData *data)
 
 static void ui_apply_but_BUTM(bContext *C, uiBut *but, uiHandleButtonData *data)
 {
-	ui_set_but_val(but, but->min);
+	ui_set_but_val(but, but->hardmin);
 	ui_apply_but_func(C, but);
 
 	data->retval= but->retval;
@@ -381,7 +381,7 @@ static void ui_apply_but_TOG(bContext *C, uiBlock *block, uiBut *but, uiHandleBu
 
 static void ui_apply_but_ROW(bContext *C, uiBlock *block, uiBut *but, uiHandleButtonData *data)
 {
-	ui_set_but_val(but, but->max);
+	ui_set_but_val(but, but->hardmax);
 	ui_apply_but_func(C, but);
 
 	data->retval= but->retval;
@@ -426,8 +426,10 @@ static void ui_apply_but_NUM(bContext *C, uiBut *but, uiHandleButtonData *data)
 
 		if(!ui_is_but_float(but)) data->value= (int)data->value;
 		if(but->type==NUMABS) data->value= fabs(data->value);
-		if(data->value<but->min) data->value= but->min;
-		if(data->value>but->max) data->value= but->max;
+
+		/* not that we use hard limits here */
+		if(data->value<but->hardmin) data->value= but->hardmin;
+		if(data->value>but->hardmax) data->value= but->hardmax;
 	}
 
 	ui_set_but_val(but, data->value);
@@ -1138,7 +1140,7 @@ static void ui_textedit_begin(uiBut *but, uiHandleButtonData *data)
 
 	/* retrieve string */
 	if(but->type == TEX) {
-		data->maxlen= but->max;
+		data->maxlen= but->hardmax;
 		data->str= MEM_callocN(sizeof(char)*(data->maxlen+1), "textedit str");
 
 		ui_get_but_string(but, data->str, data->maxlen+1);
@@ -1389,18 +1391,9 @@ static void ui_do_but_textedit_select(bContext *C, uiBlock *block, uiBut *but, u
 
 /* ************* number editing for various types ************* */
 
-static void but_clamped_range(uiBut *but, float *butmin, float *butmax, float *butrange)
-{
-	/* clamp button range to something reasonable in case
-	 * we get -inf/inf from RNA properties */
-	*butmin= MAX2(but->min, -1e4f);
-	*butmax= MIN2(but->max, 1e4f);
-	*butrange= *butmax - *butmin;
-}
-
 static void ui_numedit_begin(uiBut *but, uiHandleButtonData *data)
 {
-	float butrange, butmin, butmax;
+	float softrange, softmin, softmax;
 
 	if(but->type == BUT_CURVE) {
 		data->cumap= (CurveMapping*)but->poin;
@@ -1416,13 +1409,16 @@ static void ui_numedit_begin(uiBut *but, uiHandleButtonData *data)
 		but->editvec= data->vec;
 	}
 	else {
-		data->origvalue= ui_get_but_val(but);
+		data->startvalue= ui_get_but_val(but);
+		data->origvalue= data->startvalue;
 		data->value= data->origvalue;
 		but->editval= &data->value;
 
-		but_clamped_range(but, &butmin, &butmax, &butrange);
+		softmin= but->softmin;
+		softmax= but->softmax;
+		softrange= softmax - softmin;
 
-		data->dragfstart= (butrange == 0.0)? 0.0f: (data->value - butmin)/butrange;
+		data->dragfstart= (softrange == 0.0)? 0.0: (data->value - softmin)/softrange;
 		data->dragf= data->dragfstart;
 	}
 
@@ -1629,7 +1625,7 @@ static int ui_do_but_EXIT(bContext *C, uiBut *but, uiHandleButtonData *data, wmE
 
 static int ui_numedit_but_NUM(uiBut *but, uiHandleButtonData *data, float fac, int snap, int mx)
 {
-	float deler, tempf, butmin, butmax, butrange;
+	float deler, tempf, softmin, softmax, softrange;
 	int lvalue, temp, changed= 0;
 	
 	if(mx == data->draglastx)
@@ -1645,19 +1641,21 @@ static int ui_numedit_but_NUM(uiBut *but, uiHandleButtonData *data, float fac, i
 		data->dragstartx= mx;  /* ignore mouse movement within drag-lock */
 	}
 
-	but_clamped_range(but, &butmin, &butmax, &butrange);
+	softmin= but->softmin;
+	softmax= but->softmax;
+	softrange= softmax - softmin;
 
 	deler= 500;
 	if(!ui_is_but_float(but)) {
-		if((butrange)<100) deler= 200.0;
-		if((butrange)<25) deler= 50.0;
+		if((softrange)<100) deler= 200.0;
+		if((softrange)<25) deler= 50.0;
 	}
 	deler /= fac;
 
-	if(ui_is_but_float(but) && butrange > 11) {
+	if(ui_is_but_float(but) && softrange > 11) {
 		/* non linear change in mouse input- good for high precicsion */
 		data->dragf+= (((float)(mx-data->draglastx))/deler) * (fabs(data->dragstartx-mx)*0.002);
-	} else if (!ui_is_but_float(but) && butrange > 129) { /* only scale large int buttons */
+	} else if (!ui_is_but_float(but) && softrange > 129) { /* only scale large int buttons */
 		/* non linear change in mouse input- good for high precicsionm ints need less fine tuning */
 		data->dragf+= (((float)(mx-data->draglastx))/deler) * (fabs(data->dragstartx-mx)*0.004);
 	} else {
@@ -1668,51 +1666,50 @@ static int ui_numedit_but_NUM(uiBut *but, uiHandleButtonData *data, float fac, i
 	if(data->dragf>1.0) data->dragf= 1.0;
 	if(data->dragf<0.0) data->dragf= 0.0;
 	data->draglastx= mx;
-	tempf= (butmin + data->dragf*butrange);
+	tempf= (softmin + data->dragf*softrange);
 	
 	if(!ui_is_but_float(but)) {
-		
 		temp= floor(tempf+.5);
 		
-		if(tempf==but->min || tempf==but->max);
+		if(tempf==softmin || tempf==softmax);
 		else if(snap) {
 			if(snap == 2) temp= 100*(temp/100);
 			else temp= 10*(temp/10);
 		}
-		if( temp>=but->min && temp<=but->max) {
-			lvalue= (int)data->value;
-			
-			if(temp != lvalue ) {
-				data->dragchange= 1;
-				data->value= (double)temp;
-				changed= 1;
-			}
-		}
 
+		CLAMP(temp, softmin, softmax);
+		lvalue= (int)data->value;
+			
+		if(temp != lvalue) {
+			data->dragchange= 1;
+			data->value= (double)temp;
+			changed= 1;
+		}
 	}
 	else {
 		temp= 0;
+
 		if(snap) {
 			if(snap == 2) {
-				if(tempf==but->min || tempf==but->max);
-				else if(butrange < 2.10) tempf= 0.01*floor(100.0*tempf);
-				else if(butrange < 21.0) tempf= 0.1*floor(10.0*tempf);
+				if(tempf==softmin || tempf==softmax);
+				else if(softrange < 2.10) tempf= 0.01*floor(100.0*tempf);
+				else if(softrange < 21.0) tempf= 0.1*floor(10.0*tempf);
 				else tempf= floor(tempf);
 			}
 			else {
-				if(tempf==but->min || tempf==but->max);
-				else if(butrange < 2.10) tempf= 0.1*floor(10*tempf);
-				else if(butrange < 21.0) tempf= floor(tempf);
+				if(tempf==softmin || tempf==softmax);
+				else if(softrange < 2.10) tempf= 0.1*floor(10*tempf);
+				else if(softrange < 21.0) tempf= floor(tempf);
 				else tempf= 10.0*floor(tempf/10.0);
 			}
 		}
 
-		if( tempf>=but->min && tempf<=but->max) {
-			if(tempf != data->value) {
-				data->dragchange= 1;
-				data->value= tempf;
-				changed= 1;
-			}
+		CLAMP(tempf, softmin, softmax);
+
+		if(tempf != data->value) {
+			data->dragchange= 1;
+			data->value= tempf;
+			changed= 1;
 		}
 	}
 
@@ -1786,15 +1783,18 @@ static int ui_do_but_NUM(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 	if(click) {
 		/* we can click on the side arrows to increment/decrement,
 		 * or click inside to edit the value directly */
-		float tempf;
+		float tempf, softmin, softmax;
 		int temp;
+
+		softmin= but->softmin;
+		softmax= but->softmax;
 
 		if(!ui_is_but_float(but)) {
 			if(mx < (but->x1 + (but->x2 - but->x1)/3 - 3)) {
 				button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
 
 				temp= (int)data->value - 1;
-				if(temp>=but->min && temp<=but->max)
+				if(temp>=softmin && temp<=softmax)
 					data->value= (double)temp;
 				else
 					data->cancel= 1;
@@ -1805,7 +1805,7 @@ static int ui_do_but_NUM(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 				button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
 
 				temp= (int)data->value + 1;
-				if(temp>=but->min && temp<=but->max)
+				if(temp>=softmin && temp<=softmax)
 					data->value= (double)temp;
 				else
 					data->cancel= 1;
@@ -1820,7 +1820,7 @@ static int ui_do_but_NUM(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 				button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
 
 				tempf= data->value - 0.01*but->a1;
-				if (tempf < but->min) tempf = but->min;
+				if (tempf < softmin) tempf = softmin;
 				data->value= tempf;
 
 				button_activate_state(C, but, BUTTON_STATE_EXIT);
@@ -1829,7 +1829,7 @@ static int ui_do_but_NUM(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 				button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
 
 				tempf= data->value + 0.01*but->a1;
-				if (tempf < but->min) tempf = but->min;
+				if (tempf > softmax) tempf = softmax;
 				data->value= tempf;
 
 				button_activate_state(C, but, BUTTON_STATE_EXIT);
@@ -1846,10 +1846,12 @@ static int ui_do_but_NUM(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 
 static int ui_numedit_but_SLI(uiBut *but, uiHandleButtonData *data, int shift, int ctrl, int mx)
 {
-	float deler, f, tempf, butmin, butmax, butrange;
+	float deler, f, tempf, softmin, softmax, softrange;
 	int temp, lvalue, changed= 0;
 
-	but_clamped_range(but, &butmin, &butmax, &butrange);
+	softmin= but->softmin;
+	softmax= but->softmax;
+	softrange= softmax - softmin;
 
 	if(but->type==NUMSLI) deler= ((but->x2-but->x1) - 5.0*but->aspect);
 	else if(but->type==HSVSLI) deler= ((but->x2-but->x1)/2 - 5.0*but->aspect);
@@ -1861,22 +1863,22 @@ static int ui_numedit_but_SLI(uiBut *but, uiHandleButtonData *data, int shift, i
 		f= (f-data->dragfstart)/10.0 + data->dragfstart;
 
 	CLAMP(f, 0.0, 1.0);
-	tempf= butmin + f*butrange;
+	tempf= softmin + f*softrange;
 	temp= floor(tempf+.5);
 
 	if(ctrl) {
-		if(tempf==but->min || tempf==but->max);
+		if(tempf==softmin || tempf==softmax);
 		else if(ui_is_but_float(but)) {
 
 			if(shift) {
-				if(tempf==but->min || tempf==but->max);
-				else if(but->max-but->min < 2.10) tempf= 0.01*floor(100.0*tempf);
-				else if(but->max-but->min < 21.0) tempf= 0.1*floor(10.0*tempf);
+				if(tempf==softmin || tempf==softmax);
+				else if(softmax-softmin < 2.10) tempf= 0.01*floor(100.0*tempf);
+				else if(softmax-softmin < 21.0) tempf= 0.1*floor(10.0*tempf);
 				else tempf= floor(tempf);
 			}
 			else {
-				if(but->max-but->min < 2.10) tempf= 0.1*floor(10*tempf);
-				else if(but->max-but->min < 21.0) tempf= floor(tempf);
+				if(softmax-softmin < 2.10) tempf= 0.1*floor(10*tempf);
+				else if(softmax-softmin < 21.0) tempf= floor(tempf);
 				else tempf= 10.0*floor(tempf/10.0);
 			}
 		}
@@ -1889,6 +1891,8 @@ static int ui_numedit_but_SLI(uiBut *but, uiHandleButtonData *data, int shift, i
 	if(!ui_is_but_float(but)) {
 		lvalue= floor(data->value+0.5);
 
+		CLAMP(temp, softmin, softmax);
+
 		if(temp != lvalue) {
 			data->value= temp;
 			data->dragchange= 1;
@@ -1896,6 +1900,8 @@ static int ui_numedit_but_SLI(uiBut *but, uiHandleButtonData *data, int shift, i
 		}
 	}
 	else {
+		CLAMP(tempf, softmin, softmax);
+
 		if(tempf != data->value) {
 			data->value= tempf;
 			data->dragchange= 1;
@@ -1956,13 +1962,14 @@ static int ui_do_but_SLI(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 	if(click) {
 		if (event->ctrl) {
 			/* nudge slider to the left or right */
-			float f;
-			float tempf, butmin, butmax, butrange;
+			float f, tempf, softmin, softmax, softrange;
 			int temp;
 			
 			button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
 			
-			but_clamped_range(but, &butmin, &butmax, &butrange);
+			softmin= but->softmin;
+			softmax= but->softmax;
+			softrange= softmax - softmin;
 			
 			tempf= data->value;
 			temp= (int)data->value;
@@ -1970,13 +1977,13 @@ static int ui_do_but_SLI(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 			if(but->type==SLI) f= (float)(mx-but->x1)/(but->x2-but->x1);
 			else f= (float)(mx- but->x1)/(but->x2-but->x1);
 			
-			f= butmin + f*butrange;
+			f= softmin + f*softrange;
 			
 			if(!ui_is_but_float(but)) {
 				if(f<temp) temp--;
 				else temp++;
 				
-				if(temp>=but->min && temp<=but->max)
+				if(temp>=softmin && temp<=softmax)
 					data->value= temp;
 				else
 					data->cancel= 1;
@@ -1985,7 +1992,7 @@ static int ui_do_but_SLI(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 				if(f<tempf) tempf-=.01;
 				else tempf+=.01;
 				
-				if(tempf>=but->min && tempf<=but->max)
+				if(tempf>=softmin && tempf<=softmax)
 					data->value= tempf;
 				else
 					data->cancel= 1;

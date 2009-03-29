@@ -2213,7 +2213,7 @@ void ui_draw_text(uiBut *but, float x, float y, int sunken)
 	float ypos = (sunken==BUT_TEXT_SUNKEN) ? (y-1) : y;
 	char *cpoin;
 	
-	if(but->type==LABEL && but->min!=0.0) {
+	if(but->type==LABEL && but->hardmin!=0.0) {
 		UI_ThemeColor(TH_BUT_TEXT_HI);
 	}
 	else if(but->dt==UI_EMBOSSP) {
@@ -3122,7 +3122,7 @@ static void ui_draw_roundbox(uiBut *but)
 	UI_ThemeColorShadeAlpha(but->themecol, but->a2, but->a2);
 
 	uiSetRoundBox(but->a1);
-	gl_round_box(GL_POLYGON, but->x1, but->y1, but->x2, but->y2, but->min);
+	gl_round_box(GL_POLYGON, but->x1, but->y1, but->x2, but->y2, but->hardmin);
 
 	glDisable(GL_BLEND);
 }
@@ -3263,7 +3263,7 @@ void ui_draw_but(ARegion *ar, uiBut *but)
 		y2= but->y2;
 		
 		value= ui_get_but_val(but);
-		fac= (value-but->min)*(x2-x1)/(but->max - but->min);
+		fac= (value-but->softmin)*(x2-x1)/(but->softmax - but->softmin);
 		
 		but->sliderfunc(but->themecol, fac, but->aspect, x1, y1, x2, y2, but->flag);
 		ui_draw_text_icon(but);

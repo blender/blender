@@ -843,8 +843,8 @@ uiBlock *ui_block_func_ICONROW(bContext *C, uiPopupBlockHandle *handle, void *ar
 	block->flag= UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_NUMSELECT;
 	block->themecol= TH_MENU_ITEM;
 	
-	for(a=(int)but->min; a<=(int)but->max; a++) {
-		uiDefIconButF(block, BUTM|FLO, B_NOP, but->icon+(a-but->min), 0, (short)(18*a), (short)(but->x2-but->x1-4), 18, &handle->retvalue, (float)a, 0.0, 0, 0, "");
+	for(a=(int)but->hardmin; a<=(int)but->hardmax; a++) {
+		uiDefIconButF(block, BUTM|FLO, B_NOP, but->icon+(a-but->hardmin), 0, (short)(18*a), (short)(but->x2-but->x1-4), 18, &handle->retvalue, (float)a, 0.0, 0, 0, "");
 	}
 
 	block->direction= UI_TOP;	
@@ -892,7 +892,7 @@ uiBlock *ui_block_func_ICONTEXTROW(bContext *C, uiPopupBlockHandle *handle, void
 			ypos +=3;
 		}
 		else {
-			uiDefIconTextButF(block, BUTM|FLO, B_NOP, (short)((but->icon)+(md->items[a].retval-but->min)), md->items[a].str, 0, ypos,(short)width, 19, &handle->retvalue, (float) md->items[a].retval, 0.0, 0, 0, "");
+			uiDefIconTextButF(block, BUTM|FLO, B_NOP, (short)((but->icon)+(md->items[a].retval-but->hardmin)), md->items[a].str, 0, ypos,(short)width, 19, &handle->retvalue, (float) md->items[a].retval, 0.0, 0, 0, "");
 			ypos += 20;
 		}
 	}

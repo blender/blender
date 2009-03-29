@@ -117,7 +117,7 @@ struct uiBut {
 	float x1, y1, x2, y2;
 
 	char *poin;
-	float min, max;
+	float hardmin, hardmax, softmin, softmax;
 	float a1, a2, hsv[3];	// hsv is temp memory for hsv buttons
 	float aspect;
 
@@ -260,6 +260,8 @@ extern void ui_get_but_vectorf(uiBut *but, float *vec);
 extern void ui_set_but_vectorf(uiBut *but, float *vec);
 extern void ui_get_but_string(uiBut *but, char *str, int maxlen);
 extern void ui_set_but_string(uiBut *but, const char *str);
+
+extern void ui_set_but_soft_range(uiBut *but, double value);
 
 extern void ui_check_but(uiBut *but);
 extern void ui_autofill(uiBlock *block);

@@ -224,7 +224,7 @@ void rna_def_scene_render_data(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "resolution_percentage", PROP_INT, PROP_PERCENTAGE);
 	RNA_def_property_int_sdna(prop, NULL, "size");
-	RNA_def_property_range(prop, 1, 400);
+	RNA_def_property_ui_range(prop, 1, 100, 10, 1);
 	RNA_def_property_ui_text(prop, "Resolution %", "Preview scale for render resolution");
 	
 	prop= RNA_def_property(srna, "parts_x", PROP_INT, PROP_NONE);
