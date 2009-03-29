@@ -1379,11 +1379,11 @@ static int de_select_all_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void UV_OT_de_select_all(wmOperatorType *ot)
+void UV_OT_select_all_toggle(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select or Deselect All";
-	ot->idname= "UV_OT_de_select_all";
+	ot->idname= "UV_OT_select_all_toggle";
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* api callbacks */
@@ -1718,7 +1718,7 @@ void UV_OT_select(wmOperatorType *ot)
 
 /* ******************** loop select operator **************** */
 
-static int loop_select_exec(bContext *C, wmOperator *op)
+static int select_loop_exec(bContext *C, wmOperator *op)
 {
 	float co[2];
 	int extend, loop;
@@ -1730,7 +1730,7 @@ static int loop_select_exec(bContext *C, wmOperator *op)
 	return mouse_select(C, co, extend, loop);
 }
 
-static int loop_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int select_loop_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	ARegion *ar= CTX_wm_region(C);
 	float co[2];
@@ -1742,19 +1742,19 @@ static int loop_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	UI_view2d_region_to_view(&ar->v2d, x, y, &co[0], &co[1]);
 	RNA_float_set_array(op->ptr, "location", co);
 
-	return loop_select_exec(C, op);
+	return select_loop_exec(C, op);
 }
 
-void UV_OT_loop_select(wmOperatorType *ot)
+void UV_OT_select_loop(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Loop Select";
-	ot->idname= "UV_OT_loop_select";
+	ot->idname= "UV_OT_select_loop";
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* api callbacks */
-	ot->exec= loop_select_exec;
-	ot->invoke= loop_select_invoke;
+	ot->exec= select_loop_exec;
+	ot->invoke= select_loop_invoke;
 	ot->poll= ED_operator_uvedit;
 
 	/* properties */
@@ -2117,11 +2117,11 @@ static int border_select_exec(bContext *C, wmOperator *op)
 	return OPERATOR_CANCELLED;
 } 
 
-void UV_OT_border_select(wmOperatorType *ot)
+void UV_OT_select_border(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Border Select";
-	ot->idname= "UV_OT_border_select";
+	ot->idname= "UV_OT_select_border";
 	
 	/* api callbacks */
 	ot->invoke= WM_border_select_invoke;
@@ -2918,11 +2918,11 @@ static int set_2d_cursor_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return set_2d_cursor_exec(C, op);
 }
 
-void UV_OT_set_2d_cursor(wmOperatorType *ot)
+void UV_OT_cursor_set(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Set 3D Cursor";
-	ot->idname= "UV_OT_set_2d_cursor";
+	ot->idname= "UV_OT_cursor_set";
 	
 	/* api callbacks */
 	ot->exec= set_2d_cursor_exec;
@@ -2983,11 +2983,11 @@ static int set_tile_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return set_tile_exec(C, op);
 }
 
-void UV_OT_set_tile(wmOperatorType *ot)
+void UV_OT_tile_set(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Set Tile";
-	ot->idname= "UV_OT_set_tile";
+	ot->idname= "UV_OT_tile_set";
 	
 	/* api callbacks */
 	ot->exec= set_tile_exec;
@@ -3005,14 +3005,14 @@ void UV_OT_set_tile(wmOperatorType *ot)
 
 void ED_operatortypes_uvedit(void)
 {
-	WM_operatortype_append(UV_OT_de_select_all);
+	WM_operatortype_append(UV_OT_select_all_toggle);
 	WM_operatortype_append(UV_OT_select_invert);
 	WM_operatortype_append(UV_OT_select);
-	WM_operatortype_append(UV_OT_loop_select);
+	WM_operatortype_append(UV_OT_select_loop);
 	WM_operatortype_append(UV_OT_select_linked);
 	WM_operatortype_append(UV_OT_unlink_selection);
 	WM_operatortype_append(UV_OT_select_pinned);
-	WM_operatortype_append(UV_OT_border_select);
+	WM_operatortype_append(UV_OT_select_border);
 	WM_operatortype_append(UV_OT_circle_select);
 
 	WM_operatortype_append(UV_OT_snap_cursor);
@@ -3038,8 +3038,8 @@ void ED_operatortypes_uvedit(void)
 	WM_operatortype_append(UV_OT_reveal);
 	WM_operatortype_append(UV_OT_hide);
 
-	WM_operatortype_append(UV_OT_set_2d_cursor);
-	WM_operatortype_append(UV_OT_set_tile);
+	WM_operatortype_append(UV_OT_cursor_set);
+	WM_operatortype_append(UV_OT_tile_set);
 }
 
 void ED_keymap_uvedit(wmWindowManager *wm)
@@ -3049,18 +3049,18 @@ void ED_keymap_uvedit(wmWindowManager *wm)
 	/* pick selection */
 	WM_keymap_add_item(keymap, "UV_OT_select", SELECTMOUSE, KM_PRESS, 0, 0);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "UV_OT_select", SELECTMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "extend", 1);
-	WM_keymap_add_item(keymap, "UV_OT_loop_select", SELECTMOUSE, KM_PRESS, KM_ALT, 0);
-	RNA_boolean_set(WM_keymap_add_item(keymap, "UV_OT_loop_select", SELECTMOUSE, KM_PRESS, KM_SHIFT|KM_ALT, 0)->ptr, "extend", 1);
+	WM_keymap_add_item(keymap, "UV_OT_select_loop", SELECTMOUSE, KM_PRESS, KM_ALT, 0);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "UV_OT_select_loop", SELECTMOUSE, KM_PRESS, KM_SHIFT|KM_ALT, 0)->ptr, "extend", 1);
 
 	/* border/circle selection */
-	WM_keymap_add_item(keymap, "UV_OT_border_select", BKEY, KM_PRESS, 0, 0);
-	RNA_boolean_set(WM_keymap_add_item(keymap, "UV_OT_border_select", BKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "pinned", 1);
+	WM_keymap_add_item(keymap, "UV_OT_select_border", BKEY, KM_PRESS, 0, 0);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "UV_OT_select_border", BKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "pinned", 1);
 	WM_keymap_add_item(keymap, "UV_OT_circle_select", CKEY, KM_PRESS, 0, 0);
 
 	/* selection manipulation */
 	WM_keymap_add_item(keymap, "UV_OT_select_linked", LKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "UV_OT_unlink_selection", LKEY, KM_PRESS, KM_ALT, 0);
-	WM_keymap_add_item(keymap, "UV_OT_de_select_all", AKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "UV_OT_select_all_toggle", AKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "UV_OT_select_invert", IKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "UV_OT_select_pinned", PKEY, KM_PRESS, KM_SHIFT, 0);
 
@@ -3081,8 +3081,8 @@ void ED_keymap_uvedit(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "UV_OT_reveal", HKEY, KM_PRESS, KM_ALT, 0);
 
 	/* cursor */
-	WM_keymap_add_item(keymap, "UV_OT_set_2d_cursor", ACTIONMOUSE, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "UV_OT_set_tile", ACTIONMOUSE, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "UV_OT_cursor_set", ACTIONMOUSE, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "UV_OT_tile_set", ACTIONMOUSE, KM_PRESS, KM_SHIFT, 0);
 
 	transform_keymap_for_space(wm, keymap, SPACE_IMAGE);
 }

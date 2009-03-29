@@ -53,9 +53,9 @@ void action_header_buttons(const struct bContext *C, struct ARegion *ar);
 /* ***************************************** */
 /* action_select.c */
 
-void ACT_OT_keyframes_deselectall(struct wmOperatorType *ot);
-void ACT_OT_keyframes_borderselect(struct wmOperatorType *ot);
-void ACT_OT_keyframes_columnselect(struct wmOperatorType *ot);
+void ACT_OT_keyframes_select_all_toggle(struct wmOperatorType *ot);
+void ACT_OT_keyframes_select_border(struct wmOperatorType *ot);
+void ACT_OT_keyframes_select_column(struct wmOperatorType *ot);
 void ACT_OT_keyframes_clickselect(struct wmOperatorType *ot);
 
 /* defines for left-right select tool */
@@ -77,7 +77,7 @@ enum {
 /* ***************************************** */
 /* action_edit.c */
 
-void ACT_OT_set_previewrange(struct wmOperatorType *ot);
+void ACT_OT_previewrange_set(struct wmOperatorType *ot);
 void ACT_OT_view_all(struct wmOperatorType *ot);
 
 void ACT_OT_keyframes_copy(struct wmOperatorType *ot);
@@ -89,9 +89,9 @@ void ACT_OT_keyframes_delete(struct wmOperatorType *ot);
 void ACT_OT_keyframes_clean(struct wmOperatorType *ot);
 void ACT_OT_keyframes_sample(struct wmOperatorType *ot);
 
-void ACT_OT_keyframes_handletype(struct wmOperatorType *ot);
+void ACT_OT_keyframes_handle_type_set(struct wmOperatorType *ot);
 void ACT_OT_keyframes_interpolation_type(struct wmOperatorType *ot);
-void ACT_OT_keyframes_extrapolation_type(struct wmOperatorType *ot);
+void ACT_OT_keyframes_extrapolation_type_set(struct wmOperatorType *ot);
 
 void ACT_OT_keyframes_cfrasnap(struct wmOperatorType *ot);
 void ACT_OT_keyframes_snap(struct wmOperatorType *ot);

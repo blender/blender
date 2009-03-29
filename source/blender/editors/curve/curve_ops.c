@@ -72,8 +72,8 @@ static int specials_menu_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	head= uiPupMenuBegin("Specials", 0);
 	uiMenuItemO(head, 0, "CURVE_OT_subdivide");
 	uiMenuItemO(head, 0, "CURVE_OT_switch_direction");
-	uiMenuItemO(head, 0, "CURVE_OT_set_weight");
-	uiMenuItemO(head, 0, "CURVE_OT_set_radius");
+	uiMenuItemO(head, 0, "CURVE_OT_spline_weight_set");
+	uiMenuItemO(head, 0, "CURVE_OT_radius_set");
 	uiMenuItemO(head, 0, "CURVE_OT_smooth");
 	uiMenuItemO(head, 0, "CURVE_OT_smooth_radius");
 	uiPupMenuEnd(C, head);
@@ -100,11 +100,11 @@ void ED_operatortypes_curve(void)
 	WM_operatortype_append(FONT_OT_line_break);
 	WM_operatortype_append(FONT_OT_insert_lorem);
 
-	WM_operatortype_append(FONT_OT_toggle_case);
-	WM_operatortype_append(FONT_OT_set_case);
-	WM_operatortype_append(FONT_OT_toggle_style);
-	WM_operatortype_append(FONT_OT_set_style);
-	WM_operatortype_append(FONT_OT_set_material);
+	WM_operatortype_append(FONT_OT_case_toggle);
+	WM_operatortype_append(FONT_OT_case_set);
+	WM_operatortype_append(FONT_OT_style_toggle);
+	WM_operatortype_append(FONT_OT_style_set);
+	WM_operatortype_append(FONT_OT_material_set);
 
 	WM_operatortype_append(FONT_OT_copy_text);
 	WM_operatortype_append(FONT_OT_cut_text);
@@ -126,19 +126,19 @@ void ED_operatortypes_curve(void)
 	WM_operatortype_append(CURVE_OT_duplicate);
 	WM_operatortype_append(CURVE_OT_delete);
 
-	WM_operatortype_append(CURVE_OT_set_weight);
-	WM_operatortype_append(CURVE_OT_set_radius);
-	WM_operatortype_append(CURVE_OT_set_spline_type);
-	WM_operatortype_append(CURVE_OT_set_handle_type);
-	WM_operatortype_append(CURVE_OT_set_smooth);
-	WM_operatortype_append(CURVE_OT_clear_tilt);
+	WM_operatortype_append(CURVE_OT_spline_type_set);
+	WM_operatortype_append(CURVE_OT_radius_set);
+	WM_operatortype_append(CURVE_OT_spline_weight_set);
+	WM_operatortype_append(CURVE_OT_handle_type_set);
+	WM_operatortype_append(CURVE_OT_smooth_set);
+	WM_operatortype_append(CURVE_OT_tilt_clear);
 
 	WM_operatortype_append(CURVE_OT_smooth);
 	WM_operatortype_append(CURVE_OT_smooth_radius);
 
 	WM_operatortype_append(CURVE_OT_de_select_first);
 	WM_operatortype_append(CURVE_OT_de_select_last);
-	WM_operatortype_append(CURVE_OT_de_select_all);
+	WM_operatortype_append(CURVE_OT_select_all_toggle);
 	WM_operatortype_append(CURVE_OT_select_inverse);
 	WM_operatortype_append(CURVE_OT_select_linked);
 	WM_operatortype_append(CURVE_OT_select_row);
@@ -155,7 +155,7 @@ void ED_operatortypes_curve(void)
 	WM_operatortype_append(CURVE_OT_spin);
 	WM_operatortype_append(CURVE_OT_add_vertex);
 	WM_operatortype_append(CURVE_OT_extrude);
-	WM_operatortype_append(CURVE_OT_toggle_cyclic);
+	WM_operatortype_append(CURVE_OT_cyclic_toggle);
 
 	WM_operatortype_append(CURVE_OT_specials_menu);
 }
@@ -165,9 +165,9 @@ void ED_keymap_curve(wmWindowManager *wm)
 	ListBase *keymap= WM_keymap_listbase(wm, "Font", 0, 0);
 	
 	/* only set in editmode font, by space_view3d listener */
-	RNA_enum_set(WM_keymap_add_item(keymap, "FONT_OT_toggle_style", BKEY, KM_PRESS, KM_CTRL, 0)->ptr, "style", CU_BOLD);
-	RNA_enum_set(WM_keymap_add_item(keymap, "FONT_OT_toggle_style", IKEY, KM_PRESS, KM_CTRL, 0)->ptr, "style", CU_ITALIC);
-	RNA_enum_set(WM_keymap_add_item(keymap, "FONT_OT_toggle_style", UKEY, KM_PRESS, KM_CTRL, 0)->ptr, "style", CU_UNDERLINE);
+	RNA_enum_set(WM_keymap_add_item(keymap, "FONT_OT_style_toggle", BKEY, KM_PRESS, KM_CTRL, 0)->ptr, "style", CU_BOLD);
+	RNA_enum_set(WM_keymap_add_item(keymap, "FONT_OT_style_toggle", IKEY, KM_PRESS, KM_CTRL, 0)->ptr, "style", CU_ITALIC);
+	RNA_enum_set(WM_keymap_add_item(keymap, "FONT_OT_style_toggle", UKEY, KM_PRESS, KM_CTRL, 0)->ptr, "style", CU_UNDERLINE);
 
 	RNA_enum_set(WM_keymap_add_item(keymap, "FONT_OT_delete", DELKEY, KM_PRESS, 0, 0)->ptr, "type", DEL_NEXT_SEL);
 	RNA_enum_set(WM_keymap_add_item(keymap, "FONT_OT_delete", BACKSPACEKEY, KM_PRESS, 0, 0)->ptr, "type", DEL_PREV_SEL);
@@ -213,7 +213,7 @@ void ED_keymap_curve(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "OBJECT_OT_curve_add", AKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "CURVE_OT_add_vertex", ACTIONMOUSE, KM_PRESS, KM_CTRL, 0);
 
-	WM_keymap_add_item(keymap, "CURVE_OT_de_select_all", AKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "CURVE_OT_select_all_toggle", AKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "CURVE_OT_select_row", RKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "CURVE_OT_select_more", PADPLUSKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "CURVE_OT_select_less", PADMINUS, KM_PRESS, KM_CTRL, 0);
@@ -224,15 +224,15 @@ void ED_keymap_curve(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "CURVE_OT_extrude", EKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "CURVE_OT_duplicate", DKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "CURVE_OT_make_segment", FKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "CURVE_OT_toggle_cyclic", CKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "CURVE_OT_cyclic_toggle", CKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "CURVE_OT_delete", XKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "CURVE_OT_delete", DELKEY, KM_PRESS, 0, 0);
 
-	WM_keymap_add_item(keymap, "CURVE_OT_clear_tilt", TKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_add_item(keymap, "CURVE_OT_tilt_clear", TKEY, KM_PRESS, KM_ALT, 0);
 	RNA_enum_set(WM_keymap_add_item(keymap, "TFM_OT_transform", TKEY, KM_PRESS, 0, 0)->ptr, "mode", TFM_TILT);
-	RNA_enum_set(WM_keymap_add_item(keymap, "CURVE_OT_set_handle_type", HKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "type", 1);
-	RNA_enum_set(WM_keymap_add_item(keymap, "CURVE_OT_set_handle_type", HKEY, KM_PRESS, 0, 0)->ptr, "type", 3);
-	RNA_enum_set(WM_keymap_add_item(keymap, "CURVE_OT_set_handle_type", VKEY, KM_PRESS, 0, 0)->ptr, "type", 2);
+	RNA_enum_set(WM_keymap_add_item(keymap, "CURVE_OT_handle_type_set", HKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "type", 1);
+	RNA_enum_set(WM_keymap_add_item(keymap, "CURVE_OT_handle_type_set", HKEY, KM_PRESS, 0, 0)->ptr, "type", 3);
+	RNA_enum_set(WM_keymap_add_item(keymap, "CURVE_OT_handle_type_set", VKEY, KM_PRESS, 0, 0)->ptr, "type", 2);
 
 	WM_keymap_add_item(keymap, "CURVE_OT_reveal", HKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "CURVE_OT_hide", HKEY, KM_PRESS, KM_ALT|KM_CTRL, 0);

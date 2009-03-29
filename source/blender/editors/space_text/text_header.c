@@ -169,7 +169,7 @@ static void text_editmenu_selectmenu(bContext *C, uiMenuItem *head, void *arg_un
 
 static void text_editmenu_markermenu(bContext *C, uiMenuItem *head, void *arg_unused)
 {
-	uiMenuItemO(head, 0, "TEXT_OT_clear_all_markers");
+	uiMenuItemO(head, 0, "TEXT_OT_markers_clear");
 	uiMenuItemO(head, 0, "TEXT_OT_next_marker");
 	uiMenuItemO(head, 0, "TEXT_OT_previous_marker");
 }

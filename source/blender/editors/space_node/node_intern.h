@@ -55,10 +55,10 @@ void node_keymap(wmWindowManager *wm);
 
 /* node_select.c */
 void NODE_OT_select(struct wmOperatorType *ot);
-void NODE_OT_extend_select(struct wmOperatorType *ot);
+void NODE_OT_select_extend(struct wmOperatorType *ot);
 void NODE_OT_visibility_toggle(struct wmOperatorType *ot);
-void NODE_OT_fit_all(struct wmOperatorType *ot);
-void NODE_OT_border_select(struct wmOperatorType *ot);
+void NODE_OT_view_all(struct wmOperatorType *ot);
+void NODE_OT_select_border(struct wmOperatorType *ot);
 
 /* drawnode.c */
 void node_draw_link(View2D *v2d, SpaceNode *snode, bNodeLink *link);
@@ -83,7 +83,7 @@ bNode *snode_get_editgroup(SpaceNode *snode);
 void snode_autoconnect(SpaceNode *snode, bNode *node_to, int flag);
 
 void NODE_OT_link(struct wmOperatorType *ot);
-void NODE_OT_delete_selection(struct wmOperatorType *ot);
+void NODE_OT_delete(struct wmOperatorType *ot);
 void NODE_OT_size_widget(struct wmOperatorType *ot);
 void NODE_OT_links_cut(struct wmOperatorType *ot);
 

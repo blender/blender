@@ -815,11 +815,11 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 	return OPERATOR_CANCELLED;
 }	
 
-void MESH_OT_similar_face_select(wmOperatorType *ot)
+void MESH_OT_select_face_similar(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Similar Face Select";
-	ot->idname= "MESH_OT_similar_face_select";
+	ot->idname= "MESH_OT_select_face_similar";
 	
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
@@ -1074,11 +1074,11 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 	return OPERATOR_CANCELLED;
 }
 
-void MESH_OT_similar_edge_select(wmOperatorType *ot)
+void MESH_OT_select_edge_similar(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Similar Edge Select";
-	ot->idname= "MESH_OT_similar_edge_select";
+	ot->idname= "MESH_OT_select_edge_similar";
 	
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
@@ -1231,11 +1231,11 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
 	return OPERATOR_CANCELLED;
 }
 
-void MESH_OT_similar_vertex_select(wmOperatorType *ot)
+void MESH_OT_select_vertex_similar(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Similar Vertex Select";
-	ot->idname= "MESH_OT_similar_vertex_select";
+	ot->idname= "MESH_OT_select_vertex_similar";
 	
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
@@ -1956,11 +1956,11 @@ static int loop_multiselect(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;	
 }
 
-void MESH_OT_select_multi_loop(wmOperatorType *ot)
+void MESH_OT_select_loop_multi(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Multi Select Loops";
-	ot->idname= "MESH_OT_select_multi_loop";
+	ot->idname= "MESH_OT_select_loop_multi";
 	
 	/* api callbacks */
 	ot->exec= loop_multiselect;
@@ -2022,7 +2022,7 @@ static void mouse_mesh_loop(bContext *C, short mval[2], short extend, short ring
 	}
 }
 
-static int mesh_loop_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int mesh_select_loop_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	
 	view3d_operator_needs_opengl(C);
@@ -2034,14 +2034,14 @@ static int mesh_loop_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_FINISHED;
 }
 
-void MESH_OT_loop_select(wmOperatorType *ot)
+void MESH_OT_select_loop(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Loop Select";
-	ot->idname= "MESH_OT_loop_select";
+	ot->idname= "MESH_OT_select_loop";
 	
 	/* api callbacks */
-	ot->invoke= mesh_loop_select_invoke;
+	ot->invoke= mesh_select_loop_invoke;
 	ot->poll= ED_operator_editmesh;
 	
 	/* flags */
@@ -2133,11 +2133,11 @@ static int mesh_shortest_path_select_invoke(bContext *C, wmOperator *op, wmEvent
 	return OPERATOR_FINISHED;
 }
 	
-void MESH_OT_shortest_path_select(wmOperatorType *ot)
+void MESH_OT_select_path_shortest(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Shortest Path Select";
-	ot->idname= "MESH_OT_shortest_path_select";
+	ot->idname= "MESH_OT_select_path_shortest";
 	
 	/* api callbacks */
 	ot->invoke= mesh_shortest_path_select_invoke;
@@ -3204,11 +3204,11 @@ static int toggle_select_all_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void MESH_OT_de_select_all(wmOperatorType *ot)
+void MESH_OT_select_all_toggle(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select or Deselect All";
-	ot->idname= "MESH_OT_de_select_all";
+	ot->idname= "MESH_OT_select_all_toggle";
 	
 	/* api callbacks */
 	ot->exec= toggle_select_all_exec;
@@ -3532,7 +3532,7 @@ void MESH_OT_selection_type(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
-	RNA_def_enum(ot->srna, "type", prop_mesh_edit_types, 0, "Type", "Select the mesh selection type");
+	RNA_def_enum(ot->srna, "type", prop_mesh_edit_types, 0, "Type", "Set the mesh selection type");
 	
 }
 /* ************************* SEAMS AND EDGES **************** */

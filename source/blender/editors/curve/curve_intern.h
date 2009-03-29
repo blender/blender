@@ -45,11 +45,11 @@ void FONT_OT_insert_text(struct wmOperatorType *ot);
 void FONT_OT_line_break(struct wmOperatorType *ot);
 void FONT_OT_insert_lorem(struct wmOperatorType *ot);
 
-void FONT_OT_toggle_case(struct wmOperatorType *ot);
-void FONT_OT_set_case(struct wmOperatorType *ot);
-void FONT_OT_toggle_style(struct wmOperatorType *ot);
-void FONT_OT_set_style(struct wmOperatorType *ot);
-void FONT_OT_set_material(struct wmOperatorType *ot);
+void FONT_OT_case_toggle(struct wmOperatorType *ot);
+void FONT_OT_case_set(struct wmOperatorType *ot);
+void FONT_OT_style_toggle(struct wmOperatorType *ot);
+void FONT_OT_style_set(struct wmOperatorType *ot);
+void FONT_OT_material_set(struct wmOperatorType *ot);
 
 void FONT_OT_copy_text(struct wmOperatorType *ot);
 void FONT_OT_cut_text(struct wmOperatorType *ot);
@@ -72,19 +72,19 @@ void CURVE_OT_separate(struct wmOperatorType *ot);
 void CURVE_OT_duplicate(struct wmOperatorType *ot);
 void CURVE_OT_delete(struct wmOperatorType *ot);
 
-void CURVE_OT_set_weight(struct wmOperatorType *ot);
-void CURVE_OT_set_radius(struct wmOperatorType *ot);
-void CURVE_OT_set_spline_type(struct wmOperatorType *ot);
-void CURVE_OT_set_handle_type(struct wmOperatorType *ot);
-void CURVE_OT_set_smooth(struct wmOperatorType *ot);
-void CURVE_OT_clear_tilt(struct wmOperatorType *ot);
+void CURVE_OT_spline_type_set(struct wmOperatorType *ot);
+void CURVE_OT_radius_set(struct wmOperatorType *ot);
+void CURVE_OT_spline_weight_set(struct wmOperatorType *ot);
+void CURVE_OT_handle_type_set(struct wmOperatorType *ot);
+void CURVE_OT_smooth_set(struct wmOperatorType *ot);
+void CURVE_OT_tilt_clear(struct wmOperatorType *ot);
 
 void CURVE_OT_smooth(struct wmOperatorType *ot);
 void CURVE_OT_smooth_radius(struct wmOperatorType *ot);
 
 void CURVE_OT_de_select_first(struct wmOperatorType *ot);
 void CURVE_OT_de_select_last(struct wmOperatorType *ot);
-void CURVE_OT_de_select_all(struct wmOperatorType *ot);
+void CURVE_OT_select_all_toggle(struct wmOperatorType *ot);
 void CURVE_OT_select_inverse(struct wmOperatorType *ot);
 void CURVE_OT_select_linked(struct wmOperatorType *ot);
 void CURVE_OT_select_row(struct wmOperatorType *ot);
@@ -101,7 +101,7 @@ void CURVE_OT_make_segment(struct wmOperatorType *ot);
 void CURVE_OT_spin(struct wmOperatorType *ot);
 void CURVE_OT_add_vertex(struct wmOperatorType *ot);
 void CURVE_OT_extrude(struct wmOperatorType *ot);
-void CURVE_OT_toggle_cyclic(struct wmOperatorType *ot);
+void CURVE_OT_cyclic_toggle(struct wmOperatorType *ot);
 
 void CURVE_OT_specials_menu(struct wmOperatorType *ot);
 

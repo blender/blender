@@ -646,11 +646,11 @@ static int set_style_exec(bContext *C, wmOperator *op)
 	return set_style(C, style, clear);
 }
 
-void FONT_OT_set_style(wmOperatorType *ot)
+void FONT_OT_style_set(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Set Style";
-	ot->idname= "FONT_OT_set_style";
+	ot->idname= "FONT_OT_style_set";
 	
 	/* api callbacks */
 	ot->exec= set_style_exec;
@@ -683,11 +683,11 @@ static int toggle_style_exec(bContext *C, wmOperator *op)
 	return set_style(C, style, clear);
 }
 
-void FONT_OT_toggle_style(wmOperatorType *ot)
+void FONT_OT_style_toggle(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Toggle Style";
-	ot->idname= "FONT_OT_toggle_style";
+	ot->idname= "FONT_OT_style_toggle";
 	
 	/* api callbacks */
 	ot->exec= toggle_style_exec;
@@ -727,11 +727,11 @@ static int set_material_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void FONT_OT_set_material(wmOperatorType *ot)
+void FONT_OT_material_set(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Set Material";
-	ot->idname= "FONT_OT_set_material";
+	ot->idname= "FONT_OT_material_set";
 	
 	/* api callbacks */
 	ot->exec= set_material_exec;
@@ -1509,11 +1509,11 @@ static int set_case_exec(bContext *C, wmOperator *op)
 	return set_case(C, RNA_enum_get(op->ptr, "case"));
 }
 
-void FONT_OT_set_case(wmOperatorType *ot)
+void FONT_OT_case_set(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Set Case";
-	ot->idname= "FONT_OT_set_case";
+	ot->idname= "FONT_OT_case_set";
 	
 	/* api callbacks */
 	ot->exec= set_case_exec;
@@ -1551,11 +1551,11 @@ static int toggle_case_exec(bContext *C, wmOperator *op)
 	return set_case(C, ccase);
 }
 
-void FONT_OT_toggle_case(wmOperatorType *ot)
+void FONT_OT_case_toggle(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Toggle Case";
-	ot->idname= "FONT_OT_toggle_case";
+	ot->idname= "FONT_OT_case_toggle";
 	
 	/* api callbacks */
 	ot->exec= toggle_case_exec;

@@ -710,13 +710,13 @@ static int object_delete_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void OBJECT_OT_object_delete(wmOperatorType *ot)
+void OBJECT_OT_delete(wmOperatorType *ot)
 {
 	
 	/* identifiers */
 	ot->name= "Delete Objects";
 	ot->description = "Delete the object.";
-	ot->idname= "OBJECT_OT_object_delete";
+	ot->idname= "OBJECT_OT_delete";
 	
 	/* api callbacks */
 	ot->invoke= WM_operator_confirm;
@@ -1767,13 +1767,13 @@ static int object_select_de_select_all_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void OBJECT_OT_select_de_select_all(wmOperatorType *ot)
+void OBJECT_OT_select_all_toggle(wmOperatorType *ot)
 {
 	
 	/* identifiers */
 	ot->name= "deselect all";
 	ot->description = "(de)select all visible objects in scene.";
-	ot->idname= "OBJECT_OT_select_de_select_all";
+	ot->idname= "OBJECT_OT_select_all_toggle";
 	
 	/* api callbacks */
 	ot->exec= object_select_de_select_all_exec;

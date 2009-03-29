@@ -1157,11 +1157,11 @@ static int clear_all_markers_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void TEXT_OT_clear_all_markers(wmOperatorType *ot)
+void TEXT_OT_markers_clear(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Clear All Markers";
-	ot->idname= "TEXT_OT_clear_all_markers";
+	ot->idname= "TEXT_OT_markers_clear";
 
 	/* api callbacks */
 	ot->exec= clear_all_markers_exec;
@@ -1573,11 +1573,11 @@ static int toggle_overwrite_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void TEXT_OT_toggle_overwrite(wmOperatorType *ot)
+void TEXT_OT_overwrite_toggle(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Toggle Overwrite";
-	ot->idname= "TEXT_OT_toggle_overwrite";
+	ot->idname= "TEXT_OT_overwrite_toggle";
 	
 	/* api callbacks */
 	ot->exec= toggle_overwrite_exec;
@@ -2038,11 +2038,11 @@ static int set_cursor_cancel(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void TEXT_OT_set_cursor(wmOperatorType *ot)
+void TEXT_OT_cursor_set(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Set Cursor";
-	ot->idname= "TEXT_OT_set_cursor";
+	ot->idname= "TEXT_OT_cursor_set";
 	
 	/* api callbacks */
 	ot->invoke= set_cursor_invoke;

@@ -634,8 +634,8 @@ static void view3d_view_viewnavmenu(bContext *C, uiMenuItem *head, void *arg_unu
 	
 	uiMenuSeparator(head);
 	
-	uiMenuItemFloatO(head, "Zoom in", 0, "VIEW3D_OT_viewzoom", "delta", 1.0f);
-	uiMenuItemFloatO(head, "Zoom out", 0, "VIEW3D_OT_viewzoom", "delta", -1.0f);
+	uiMenuItemFloatO(head, "Zoom in", 0, "VIEW3D_OT_zoom", "delta", 1.0f);
+	uiMenuItemFloatO(head, "Zoom out", 0, "VIEW3D_OT_zoom", "delta", -1.0f);
 	
 }
 static void view3d_view_alignviewmenu(bContext *C, uiMenuItem *head, void *arg_unused)
@@ -685,7 +685,7 @@ static void view3d_viewmenu(bContext *C, uiMenuItem *head, void *arg_unused)
 	uiMenuContext(head, WM_OP_INVOKE_REGION_WIN);	
 
 	uiMenuItemO(head, 0, "VIEW3D_OT_clipping");
-	uiMenuItemO(head, 0, "VIEW3D_OT_border_zoom");
+	uiMenuItemO(head, 0, "VIEW3D_OT_zoom_border");
 	
 	uiMenuSeparator(head);
 	
@@ -1035,15 +1035,15 @@ static uiBlock *view3d_select_objectmenu(bContext *C, ARegion *ar, void *arg_unu
 	uiDefIconTextBlockBut(block, view3d_select_object_linkedmenu, NULL, ICON_RIGHTARROW_THIN, "Linked", 0, yco-=20, 120, 19, "");
 	uiDefIconTextBlockBut(block, view3d_select_object_groupedmenu, NULL, ICON_RIGHTARROW_THIN, "Grouped", 0, yco-=20, 120, 19, "");
 #endif
-	uiDefMenuButO(block, "VIEW3D_OT_borderselect", "Border Select");
+	uiDefMenuButO(block, "VIEW3D_OT_select_border", "Border Select");
 	
 	uiDefMenuSep(block);
 	
-	uiDefMenuButO(block, "OBJECT_OT_selection_de_select_all", "Select/Deselect All");
-	uiDefMenuButO(block, "OBJECT_OT_selection_invert", "Inverse");
-	uiDefMenuButO(block, "OBJECT_OT_selection_random", "Random");
-	uiDefMenuButO(block, "OBJECT_OT_selection_by_layer", "Select All by Layer");
-	uiDefMenuButO(block, "OBJECT_OT_selection_by_type", "Select All by Type");
+	uiDefMenuButO(block, "OBJECT_OT_select_all_toggle", "Select/Deselect All");
+	uiDefMenuButO(block, "OBJECT_OT_select_invert", "Inverse");
+	uiDefMenuButO(block, "OBJECT_OT_select_random", "Random");
+	uiDefMenuButO(block, "OBJECT_OT_select_by_layer", "Select All by Layer");
+	uiDefMenuButO(block, "OBJECT_OT_select_by_type", "Select All by Type");
 
 
 	if(ar->alignment==RGN_ALIGN_TOP) {
@@ -1212,12 +1212,12 @@ static void view3d_select_curvemenu(bContext *C, uiMenuItem *head, void *arg_unu
 {
 	Object *obedit= CTX_data_edit_object(C);
 
-	uiMenuItemO(head, 0, "VIEW3D_OT_borderselect");
-	uiMenuItemO(head, 0, "VIEW3D_OT_circle_select");
+	uiMenuItemO(head, 0, "VIEW3D_OT_select_border");
+	uiMenuItemO(head, 0, "VIEW3D_OT_select_circle");
 
 	uiMenuSeparator(head);
 
-	uiMenuItemO(head, 0, "CURVE_OT_de_select_all");
+	uiMenuItemO(head, 0, "CURVE_OT_select_all_toggle");
 	uiMenuItemO(head, 0, "CURVE_OT_select_inverse");
 	uiMenuItemO(head, 0, "CURVE_OT_select_random"); // Random...
 	uiMenuItemO(head, 0, "CURVE_OT_select_every_nth"); // Every Nth..
@@ -3294,14 +3294,14 @@ static void view3d_edit_curve_controlpointsmenu(bContext *C, uiMenuItem *head, v
 
 	if(obedit->type == OB_CURVE) {
 		uiMenuItemEnumO(head, "", 0, "TFM_OT_transform", "mode", TFM_TILT);
-		uiMenuItemO(head, 0, "CURVE_OT_clear_tilt");
+		uiMenuItemO(head, 0, "CURVE_OT_tilt_clear");
 		uiMenuItemO(head, 0, "CURVE_OT_separate");
 		
 		uiMenuSeparator(head);
 
-		uiMenuItemEnumO(head, "", 0, "CURVE_OT_set_handle_type", "type", 1);
-		uiMenuItemEnumO(head, "", 0, "CURVE_OT_set_handle_type", "type", 3);
-		uiMenuItemEnumO(head, "", 0, "CURVE_OT_set_handle_type", "type", 2);
+		uiMenuItemEnumO(head, "", 0, "CURVE_OT_handle_type_set", "type", 1);
+		uiMenuItemEnumO(head, "", 0, "CURVE_OT_handle_type_set", "type", 3);
+		uiMenuItemEnumO(head, "", 0, "CURVE_OT_handle_type_set", "type", 2);
 
 		uiMenuSeparator(head);
 	}
@@ -3351,7 +3351,7 @@ static void view3d_edit_curvemenu(bContext *C, uiMenuItem *head, void *arg_unuse
 	uiMenuItemO(head, 0, "CURVE_OT_duplicate");
 	uiMenuItemO(head, 0, "CURVE_OT_separate");
 	uiMenuItemO(head, 0, "CURVE_OT_make_segment");
-	uiMenuItemO(head, 0, "CURVE_OT_toggle_cyclic");
+	uiMenuItemO(head, 0, "CURVE_OT_cyclic_toggle");
 	uiMenuItemO(head, 0, "CURVE_OT_delete"); // Delete...
 
 	uiMenuSeparator(head);
@@ -4701,11 +4701,11 @@ static void view3d_select_particlemenu(bContext *C, uiMenuItem *head, void *arg_
 {
 	Scene *scene= CTX_data_scene(C);
 
-	uiMenuItemO(head, 0, "VIEW3D_OT_borderselect");
+	uiMenuItemO(head, 0, "VIEW3D_OT_select_border");
 
 	uiMenuSeparator(head);
 
-	uiMenuItemO(head, 0, "PARTICLE_OT_de_select_all");
+	uiMenuItemO(head, 0, "PARTICLE_OT_select_all_toggle");
 	uiMenuItemO(head, 0, "PARTICLE_OT_select_linked");
 
 	if(scene->selectmode & SCE_SELECT_POINT) {

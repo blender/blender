@@ -70,7 +70,7 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_track_clear);
 	WM_operatortype_append(OBJECT_OT_select_invert);
 	WM_operatortype_append(OBJECT_OT_select_random);
-	WM_operatortype_append(OBJECT_OT_select_de_select_all);
+	WM_operatortype_append(OBJECT_OT_select_all_toggle);
 	WM_operatortype_append(OBJECT_OT_select_by_type);
 	WM_operatortype_append(OBJECT_OT_select_by_layer);
 	WM_operatortype_append(OBJECT_OT_select_linked);
@@ -86,11 +86,11 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_dupli_set_real);
 	WM_operatortype_append(OBJECT_OT_duplicate_add);
 	WM_operatortype_append(GROUP_OT_group_create);
-	WM_operatortype_append(GROUP_OT_group_remove);
+	WM_operatortype_append(GROUP_OT_objects_remove);
 	WM_operatortype_append(GROUP_OT_objects_add_active);
 	WM_operatortype_append(GROUP_OT_objects_remove_active);
 
-	WM_operatortype_append(OBJECT_OT_object_delete);
+	WM_operatortype_append(OBJECT_OT_delete);
 	WM_operatortype_append(OBJECT_OT_mesh_add);
 	WM_operatortype_append(OBJECT_OT_curve_add);
 	WM_operatortype_append(OBJECT_OT_text_add);
@@ -111,7 +111,7 @@ void ED_keymap_object(wmWindowManager *wm)
 	/* Note: this keymap gets disabled in non-objectmode,  */
 	keymap= WM_keymap_listbase(wm, "Object Mode", 0, 0);
 	
-	WM_keymap_add_item(keymap, "OBJECT_OT_select_de_select_all", AKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "OBJECT_OT_select_all_toggle", AKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "OBJECT_OT_select_invert", IKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "OBJECT_OT_select_random", PADASTERKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "OBJECT_OT_select_by_type", PADASTERKEY, KM_PRESS, KM_CTRL, 0);
@@ -131,7 +131,7 @@ void ED_keymap_object(wmWindowManager *wm)
 	WM_keymap_verify_item(keymap, "OBJECT_OT_restrictview_clear", HKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_verify_item(keymap, "OBJECT_OT_restrictview_set", HKEY, KM_PRESS, 0, 0);
 	
-	WM_keymap_verify_item(keymap, "OBJECT_OT_object_delete", XKEY, KM_PRESS, 0, 0);
+	WM_keymap_verify_item(keymap, "OBJECT_OT_delete", XKEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "OBJECT_OT_primitive_add", AKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_verify_item(keymap, "OBJECT_OT_duplicate_add", DKEY, KM_PRESS, KM_SHIFT, 0);
 	
@@ -140,7 +140,7 @@ void ED_keymap_object(wmWindowManager *wm)
 	WM_keymap_verify_item(keymap, "ANIM_OT_delete_keyframe_old", IKEY, KM_PRESS, KM_ALT, 0);
 	
 	WM_keymap_verify_item(keymap, "GROUP_OT_group_create", GKEY, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_verify_item(keymap, "GROUP_OT_group_remove", GKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
+	WM_keymap_verify_item(keymap, "GROUP_OT_objects_remove", GKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
 	WM_keymap_verify_item(keymap, "GROUP_OT_objects_add_active", GKEY, KM_PRESS, KM_SHIFT|KM_CTRL, 0);
 	WM_keymap_verify_item(keymap, "GROUP_OT_objects_remove_active", GKEY, KM_PRESS, KM_SHIFT|KM_ALT, 0);
 

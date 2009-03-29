@@ -1061,11 +1061,11 @@ static int set_weight_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void CURVE_OT_set_weight(wmOperatorType *ot)
+void CURVE_OT_spline_weight_set(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Set Curve Weight";
-	ot->idname= "CURVE_OT_set_weight";
+	ot->idname= "CURVE_OT_spline_weight_set";
 	
 	/* api callbacks */
 	ot->exec= set_weight_exec;
@@ -1113,11 +1113,11 @@ static int set_radius_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void CURVE_OT_set_radius(wmOperatorType *ot)
+void CURVE_OT_radius_set(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Set Curve Radius";
-	ot->idname= "CURVE_OT_set_radius";
+	ot->idname= "CURVE_OT_radius_set";
 	
 	/* api callbacks */
 	ot->exec= set_radius_exec;
@@ -1595,11 +1595,11 @@ static int de_select_all_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void CURVE_OT_de_select_all(wmOperatorType *ot)
+void CURVE_OT_select_all_toggle(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select or Deselect All";
-	ot->idname= "CURVE_OT_de_select_all";
+	ot->idname= "CURVE_OT_select_all_toggle";
 	
 	/* api callbacks */
 	ot->exec= de_select_all_exec;
@@ -2476,7 +2476,7 @@ static int set_spline_type_exec(bContext *C, wmOperator *op)
 	return (changed)? OPERATOR_FINISHED: OPERATOR_CANCELLED;
 }
 
-void CURVE_OT_set_spline_type(wmOperatorType *ot)
+void CURVE_OT_spline_type_set(wmOperatorType *ot)
 {
 	static EnumPropertyItem type_items[]= {
 		{CU_POLY, "POLY", "Poly", ""},
@@ -2488,7 +2488,7 @@ void CURVE_OT_set_spline_type(wmOperatorType *ot)
 
 	/* identifiers */
 	ot->name= "Set Spline Type";
-	ot->idname= "CURVE_OT_set_spline_type";
+	ot->idname= "CURVE_OT_spline_type_set";
 	
 	/* api callbacks */
 	ot->exec= set_spline_type_exec;
@@ -2517,7 +2517,7 @@ static int set_handle_type_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void CURVE_OT_set_handle_type(wmOperatorType *ot)
+void CURVE_OT_handle_type_set(wmOperatorType *ot)
 {
 	static EnumPropertyItem type_items[]= {
 		{1, "AUTOMATIC", "Automatic", ""},
@@ -2529,7 +2529,7 @@ void CURVE_OT_set_handle_type(wmOperatorType *ot)
 
 	/* identifiers */
 	ot->name= "Set Handle Type";
-	ot->idname= "CURVE_OT_set_handle_type";
+	ot->idname= "CURVE_OT_handle_type_set";
 	
 	/* api callbacks */
 	ot->exec= set_handle_type_exec;
@@ -3581,7 +3581,7 @@ static int toggle_cyclic_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return toggle_cyclic_exec(C, op);
 }
 
-void CURVE_OT_toggle_cyclic(wmOperatorType *ot)
+void CURVE_OT_cyclic_toggle(wmOperatorType *ot)
 {
 	static EnumPropertyItem direction_items[]= {
 		{0, "CYCLIC_U", "Cyclic U", ""},
@@ -3590,7 +3590,7 @@ void CURVE_OT_toggle_cyclic(wmOperatorType *ot)
 
 	/* identifiers */
 	ot->name= "Toggle Cyclic";
-	ot->idname= "CURVE_OT_toggle_cyclic";
+	ot->idname= "CURVE_OT_cyclic_toggle";
 	
 	/* api callbacks */
 	ot->exec= toggle_cyclic_exec;
@@ -4577,11 +4577,11 @@ static int set_smooth_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void CURVE_OT_set_smooth(wmOperatorType *ot)
+void CURVE_OT_smooth_set(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Set Smooth";
-	ot->idname= "CURVE_OT_set_smooth";
+	ot->idname= "CURVE_OT_smooth_set";
 	
 	/* api callbacks */
 	ot->exec= set_smooth_exec;
@@ -5129,11 +5129,11 @@ static int clear_tilt_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void CURVE_OT_clear_tilt(wmOperatorType *ot)
+void CURVE_OT_tilt_clear(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Clear Tilt";
-	ot->idname= "CURVE_OT_clear_tilt";
+	ot->idname= "CURVE_OT_tilt_clear";
 	
 	/* api callbacks */
 	ot->exec= clear_tilt_exec;

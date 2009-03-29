@@ -55,8 +55,8 @@ void graph_header_buttons(const bContext *C, struct ARegion *ar);
 /* ***************************************** */
 /* graph_select.c */
 
-void GRAPHEDIT_OT_keyframes_deselectall(struct wmOperatorType *ot);
-void GRAPHEDIT_OT_keyframes_borderselect(struct wmOperatorType *ot);
+void GRAPHEDIT_OT_keyframes_select_all_toggle(struct wmOperatorType *ot);
+void GRAPHEDIT_OT_keyframes_select_border(struct wmOperatorType *ot);
 void GRAPHEDIT_OT_keyframes_columnselect(struct wmOperatorType *ot);
 void GRAPHEDIT_OT_keyframes_clickselect(struct wmOperatorType *ot);
 
@@ -79,7 +79,7 @@ enum {
 /* ***************************************** */
 /* graph_edit.c */
 
-void GRAPHEDIT_OT_set_previewrange(struct wmOperatorType *ot);
+void GRAPHEDIT_OT_previewrange_set(struct wmOperatorType *ot);
 void GRAPHEDIT_OT_view_all(struct wmOperatorType *ot);
 
 void GRAPHEDIT_OT_keyframes_copy(struct wmOperatorType *ot);

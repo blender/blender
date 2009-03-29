@@ -826,12 +826,12 @@ static int viewzoom_invoke(bContext *C, wmOperator *op, wmEvent *event)
 }
 
 
-void VIEW3D_OT_viewzoom(wmOperatorType *ot)
+void VIEW3D_OT_zoom(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Zoom view";
 	ot->description = "Zoom in/out in the view.";
-	ot->idname= "VIEW3D_OT_viewzoom";
+	ot->idname= "VIEW3D_OT_zoom";
 
 	/* api callbacks */
 	ot->invoke= viewzoom_invoke;
@@ -1292,13 +1292,13 @@ static int view3d_border_zoom_invoke(bContext *C, wmOperator *op, wmEvent *event
 		return OPERATOR_PASS_THROUGH;
 }
 
-void VIEW3D_OT_border_zoom(wmOperatorType *ot)
+void VIEW3D_OT_zoom_border(wmOperatorType *ot)
 {
 	
 	/* identifiers */
 	ot->name= "Border Zoom";
 	ot->description = "Zoom in the view to the nearest object contained in the border.";
-	ot->idname= "VIEW3D_OT_border_zoom";
+	ot->idname= "VIEW3D_OT_zoom_border";
 
 	/* api callbacks */
 	ot->invoke= view3d_border_zoom_invoke;

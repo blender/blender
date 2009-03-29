@@ -163,7 +163,7 @@ static void text_operatortypes(void)
 	WM_operatortype_append(TEXT_OT_unindent);
 	WM_operatortype_append(TEXT_OT_indent);
 
-	WM_operatortype_append(TEXT_OT_clear_all_markers);
+	WM_operatortype_append(TEXT_OT_markers_clear);
 	WM_operatortype_append(TEXT_OT_next_marker);
 	WM_operatortype_append(TEXT_OT_previous_marker);
 
@@ -174,9 +174,9 @@ static void text_operatortypes(void)
 	WM_operatortype_append(TEXT_OT_move);
 	WM_operatortype_append(TEXT_OT_move_select);
 	WM_operatortype_append(TEXT_OT_delete);
-	WM_operatortype_append(TEXT_OT_toggle_overwrite);
+	WM_operatortype_append(TEXT_OT_overwrite_toggle);
 
-	WM_operatortype_append(TEXT_OT_set_cursor);
+	WM_operatortype_append(TEXT_OT_cursor_set);
 	WM_operatortype_append(TEXT_OT_scroll);
 	WM_operatortype_append(TEXT_OT_scroll_bar);
 	WM_operatortype_append(TEXT_OT_line_number);
@@ -268,12 +268,12 @@ static void text_keymap(struct wmWindowManager *wm)
 	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_delete", DELKEY, KM_PRESS, KM_CTRL, 0)->ptr, "type", DEL_NEXT_WORD);
 	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_delete", BACKSPACEKEY, KM_PRESS, KM_CTRL, 0)->ptr, "type", DEL_PREV_WORD);
 
-	WM_keymap_add_item(keymap, "TEXT_OT_toggle_overwrite", INSERTKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "TEXT_OT_overwrite_toggle", INSERTKEY, KM_PRESS, 0, 0);
 
 	WM_keymap_add_item(keymap, "TEXT_OT_scroll", MIDDLEMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "TEXT_OT_scroll_bar", LEFTMOUSE, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "TEXT_OT_set_cursor", LEFTMOUSE, KM_PRESS, 0, 0);
-	RNA_boolean_set(WM_keymap_add_item(keymap, "TEXT_OT_set_cursor", LEFTMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "select", 1);
+	WM_keymap_add_item(keymap, "TEXT_OT_cursor_set", LEFTMOUSE, KM_PRESS, 0, 0);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "TEXT_OT_cursor_set", LEFTMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "select", 1);
 	RNA_int_set(WM_keymap_add_item(keymap, "TEXT_OT_scroll", WHEELUPMOUSE, KM_PRESS, 0, 0)->ptr, "lines", -1);
 	RNA_int_set(WM_keymap_add_item(keymap, "TEXT_OT_scroll", WHEELDOWNMOUSE, KM_PRESS, 0, 0)->ptr, "lines", 1);
 

@@ -84,7 +84,7 @@ void GRAPHEDIT_OT_view_togglehandles (wmOperatorType *ot)
 {
 	/* identification */
 	ot->name= "Show/Hide All Handles";
-	ot->idname= "GRAPHEDIT_OT_view_toggle_handles";
+	ot->idname= "GRAPHEDIT_OT_handles_view_toggle";
 	
 	/* callbacks */
 	ot->exec= view_toggle_handles_exec;
@@ -97,15 +97,15 @@ void graphedit_operatortypes(void)
 {
 	/* view */
 	WM_operatortype_append(GRAPHEDIT_OT_view_togglehandles);
-	WM_operatortype_append(GRAPHEDIT_OT_set_previewrange);
+	WM_operatortype_append(GRAPHEDIT_OT_previewrange_set);
 	WM_operatortype_append(GRAPHEDIT_OT_view_all);
 	WM_operatortype_append(GRAPHEDIT_OT_properties);
 	
 	/* keyframes */
 		/* selection */
 	WM_operatortype_append(GRAPHEDIT_OT_keyframes_clickselect);
-	WM_operatortype_append(GRAPHEDIT_OT_keyframes_deselectall);
-	WM_operatortype_append(GRAPHEDIT_OT_keyframes_borderselect);
+	WM_operatortype_append(GRAPHEDIT_OT_keyframes_select_all_toggle);
+	WM_operatortype_append(GRAPHEDIT_OT_keyframes_select_border);
 	WM_operatortype_append(GRAPHEDIT_OT_keyframes_columnselect);
 	
 		/* editing */
@@ -137,23 +137,23 @@ void graphedit_operatortypes(void)
 static void graphedit_keymap_keyframes (wmWindowManager *wm, ListBase *keymap)
 {
 	/* view */
-	WM_keymap_add_item(keymap, "GRAPHEDIT_OT_view_toggle_handles", HKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "GRAPHEDIT_OT_handles_view_toggle", HKEY, KM_PRESS, KM_CTRL, 0);
 	
 	/* graph_select.c - selection tools */
 		/* click-select */
 		// TODO: column to alt, left-right to ctrl (for select-linked consistency)
 	WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_clickselect", SELECTMOUSE, KM_PRESS, 0, 0);
-	RNA_boolean_set(WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_clickselect", SELECTMOUSE, KM_PRESS, KM_CTRL, 0)->ptr, "column_select", 1);
-	RNA_boolean_set(WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_clickselect", SELECTMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "extend_select", 1);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_clickselect", SELECTMOUSE, KM_PRESS, KM_CTRL, 0)->ptr, "column", 1);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_clickselect", SELECTMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "extend", 1);
 	RNA_enum_set(WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_clickselect", SELECTMOUSE, KM_PRESS, KM_ALT, 0)->ptr, "left_right", GRAPHKEYS_LRSEL_TEST);
 	
 		/* deselect all */
-	WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_deselectall", AKEY, KM_PRESS, 0, 0);
-	RNA_boolean_set(WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_deselectall", IKEY, KM_PRESS, KM_CTRL, 0)->ptr, "invert", 1);
+	WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_select_all_toggle", AKEY, KM_PRESS, 0, 0);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_select_all_toggle", IKEY, KM_PRESS, KM_CTRL, 0)->ptr, "invert", 1);
 	
 		/* borderselect */
-	WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_borderselect", BKEY, KM_PRESS, 0, 0);
-	RNA_boolean_set(WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_borderselect", BKEY, KM_PRESS, KM_ALT, 0)->ptr, "axis_range", 1);
+	WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_select_border", BKEY, KM_PRESS, 0, 0);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_select_border", BKEY, KM_PRESS, KM_ALT, 0)->ptr, "axis_range", 1);
 	
 		/* column select */
 		// XXX KKEY would be nice to keep for 'keyframe' lines
@@ -196,7 +196,7 @@ static void graphedit_keymap_keyframes (wmWindowManager *wm, ListBase *keymap)
 	WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_paste", VKEY, KM_PRESS, KM_CTRL, 0);
 	
 		/* auto-set range */
-	WM_keymap_add_item(keymap, "GRAPHEDIT_OT_set_previewrange", PKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
+	WM_keymap_add_item(keymap, "GRAPHEDIT_OT_previewrange_set", PKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
 	WM_keymap_add_item(keymap, "GRAPHEDIT_OT_view_all", HOMEKEY, KM_PRESS, 0, 0);
 	
 		/* F-Curve Modifiers */

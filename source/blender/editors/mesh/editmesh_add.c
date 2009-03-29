@@ -351,11 +351,11 @@ static int make_fgon_exec(bContext *C, wmOperator *op)
 	return OPERATOR_CANCELLED;
 }
 
-void MESH_OT_make_fgon(struct wmOperatorType *ot)
+void MESH_OT_fgon_make(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Make F-gon";
-	ot->idname= "MESH_OT_make_fgon";
+	ot->idname= "MESH_OT_fgon_make";
 	
 	/* api callbacks */
 	ot->exec= make_fgon_exec;
@@ -380,11 +380,11 @@ static int clear_fgon_exec(bContext *C, wmOperator *op)
 	return OPERATOR_CANCELLED;
 }
 
-void MESH_OT_clear_fgon(struct wmOperatorType *ot)
+void MESH_OT_fgon_clear(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Clear F-gon";
-	ot->idname= "MESH_OT_clear_fgon";
+	ot->idname= "MESH_OT_fgon_clear";
 	
 	/* api callbacks */
 	ot->exec= clear_fgon_exec;

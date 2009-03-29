@@ -1351,11 +1351,11 @@ static int pose_select_connected_invoke(bContext *C, wmOperator *op, wmEvent *ev
 	return OPERATOR_FINISHED;
 }
 
-void POSE_OT_select_connected(wmOperatorType *ot)
+void POSE_OT_select_linked(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select Connected";
-	ot->idname= "POSE_OT_select_connected";
+	ot->idname= "POSE_OT_select_linked";
 	
 	/* api callbacks */
 	ot->exec= NULL;
@@ -1373,7 +1373,7 @@ void POSE_OT_select_connected(wmOperatorType *ot)
 
 /* called in space.c */
 /* previously "selectconnected_armature" */
-static int armature_select_connected_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int armature_select_linked_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	bArmature *arm;
 	EditBone *bone, *curBone, *next;
@@ -1445,15 +1445,15 @@ static int armature_select_connected_invoke(bContext *C, wmOperator *op, wmEvent
 	return OPERATOR_FINISHED;
 }
 
-void ARMATURE_OT_select_connected(wmOperatorType *ot)
+void ARMATURE_OT_select_linked(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select Connected";
-	ot->idname= "ARMATURE_OT_select_connected";
+	ot->idname= "ARMATURE_OT_select_linked";
 	
 	/* api callbacks */
 	ot->exec= NULL;
-	ot->invoke= armature_select_connected_invoke;
+	ot->invoke= armature_select_linked_invoke;
 	ot->poll= ED_operator_editarmature;
 	
 	/* flags */
@@ -1676,11 +1676,11 @@ static int armature_delete_selected_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void ARMATURE_OT_delete_selected(wmOperatorType *ot)
+void ARMATURE_OT_delete(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Delete Selected Bone(s)";
-	ot->idname= "ARMATURE_OT_delete_selected";
+	ot->idname= "ARMATURE_OT_delete";
 	
 	/* api callbacks */
 	ot->invoke = WM_operator_confirm;
@@ -3754,11 +3754,11 @@ static int armature_parent_set_invoke(bContext *C, wmOperator *op, wmEvent *even
 	}
 	CTX_DATA_END;
 
-	uiMenuItemEnumO(head, "", 0, "ARMATURE_OT_set_parent", "type", ARM_PAR_CONNECT);
+	uiMenuItemEnumO(head, "", 0, "ARMATURE_OT_parent_set", "type", ARM_PAR_CONNECT);
 	
 	/* ob becomes parent, make the associated menus */
 	if (allchildbones)
-		uiMenuItemEnumO(head, "", 0, "ARMATURE_OT_set_parent", "type", ARM_PAR_OFFSET);	
+		uiMenuItemEnumO(head, "", 0, "ARMATURE_OT_parent_set", "type", ARM_PAR_OFFSET);	
 		
 	uiPupMenuEnd(C, head);
 	
@@ -3769,7 +3769,7 @@ void ARMATURE_OT_parent_set(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Make Parent";
-	ot->idname= "ARMATURE_OT_set_parent";
+	ot->idname= "ARMATURE_OT_parent_set";
 	
 	/* api callbacks */
 	ot->invoke = armature_parent_set_invoke;
@@ -3822,7 +3822,7 @@ void ARMATURE_OT_parent_clear(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Clear Parent";
-	ot->idname= "ARMATURE_OT_clear_parent";
+	ot->idname= "ARMATURE_OT_parent_clear";
 	
 	/* api callbacks */
 	ot->invoke = WM_menu_invoke;
@@ -3837,7 +3837,7 @@ void ARMATURE_OT_parent_clear(wmOperatorType *ot)
 
 /* ****************  Selections  ******************/
 
-static int armature_selection_invert_exec(bContext *C, wmOperator *op)
+static int armature_select_invert_exec(bContext *C, wmOperator *op)
 {
 	/*	Set the flags */
 	CTX_DATA_BEGIN(C, EditBone *, ebone, visible_bones) {
@@ -3852,15 +3852,15 @@ static int armature_selection_invert_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void ARMATURE_OT_selection_invert(wmOperatorType *ot)
+void ARMATURE_OT_select_invert(wmOperatorType *ot)
 {
 	
 	/* identifiers */
 	ot->name= "Invert Selection";
-	ot->idname= "ARMATURE_OT_selection_invert";
+	ot->idname= "ARMATURE_OT_select_invert";
 	
 	/* api callbacks */
-	ot->exec= armature_selection_invert_exec;
+	ot->exec= armature_select_invert_exec;
 	ot->poll= ED_operator_editarmature;
 	
 	/* flags */
@@ -3895,12 +3895,12 @@ static int armature_de_select_all_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void ARMATURE_OT_de_select_all(wmOperatorType *ot)
+void ARMATURE_OT_select_all_toggle(wmOperatorType *ot)
 {
 	
 	/* identifiers */
 	ot->name= "deselect all editbone";
-	ot->idname= "ARMATURE_OT_de_select_all";
+	ot->idname= "ARMATURE_OT_select_all_toggle";
 	
 	/* api callbacks */
 	ot->exec= armature_de_select_all_exec;
@@ -3990,7 +3990,7 @@ void ARMATURE_OT_select_hierarchy(wmOperatorType *ot)
 	/* props */
 	RNA_def_enum(ot->srna, "direction", direction_items,
 		     BONE_SELECT_PARENT, "Direction", "");
-	RNA_def_boolean(ot->srna, "add_to_sel", 0, "Add to Selection", "");
+	RNA_def_boolean(ot->srna, "extend", 0, "Add to Selection", "");
 }
 
 /* ***************** EditBone Alignment ********************* */
@@ -4821,7 +4821,7 @@ void POSE_OT_rot_clear(wmOperatorType *ot)
 
 /* ***************** selections ********************** */
 
-static int pose_selection_invert_exec(bContext *C, wmOperator *op)
+static int pose_select_invert_exec(bContext *C, wmOperator *op)
 {
 	
 	/*	Set the flags */
@@ -4836,15 +4836,15 @@ static int pose_selection_invert_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void POSE_OT_selection_invert(wmOperatorType *ot)
+void POSE_OT_select_invert(wmOperatorType *ot)
 {
 	
 	/* identifiers */
 	ot->name= "Invert Selection";
-	ot->idname= "POSE_OT_selection_invert";
+	ot->idname= "POSE_OT_select_invert";
 	
 	/* api callbacks */
-	ot->exec= pose_selection_invert_exec;
+	ot->exec= pose_select_invert_exec;
 	ot->poll= ED_operator_posemode;
 	
 	/* flags */
@@ -4872,12 +4872,12 @@ static int pose_de_select_all_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void POSE_OT_de_select_all(wmOperatorType *ot)
+void POSE_OT_select_all_toggle(wmOperatorType *ot)
 {
 	
 	/* identifiers */
 	ot->name= "deselect all bones";
-	ot->idname= "POSE_OT_de_select_all";
+	ot->idname= "POSE_OT_select_all_toggle";
 	
 	/* api callbacks */
 	ot->exec= pose_de_select_all_exec;

@@ -177,11 +177,11 @@ static int graphkeys_previewrange_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
  
-void GRAPHEDIT_OT_set_previewrange (wmOperatorType *ot)
+void GRAPHEDIT_OT_previewrange_set (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Auto-Set Preview Range";
-	ot->idname= "GRAPHEDIT_OT_set_previewrange";
+	ot->idname= "GRAPHEDIT_OT_previewrange_set";
 	
 	/* api callbacks */
 	ot->exec= graphkeys_previewrange_exec;

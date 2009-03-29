@@ -62,7 +62,7 @@ void view3d_operatortypes(void);
 void view3d_keymap(struct wmWindowManager *wm);
 
 /* view3d_edit.c */
-void VIEW3D_OT_viewzoom(struct wmOperatorType *ot);
+void VIEW3D_OT_zoom(struct wmOperatorType *ot);
 void VIEW3D_OT_viewmove(struct wmOperatorType *ot);
 void VIEW3D_OT_viewrotate(struct wmOperatorType *ot);
 void VIEW3D_OT_viewhome(struct wmOperatorType *ot);
@@ -74,7 +74,7 @@ void VIEW3D_OT_view_orbit(struct wmOperatorType *ot);
 void VIEW3D_OT_clipping(struct wmOperatorType *ot);
 void VIEW3D_OT_cursor3d(struct wmOperatorType *ot);
 void VIEW3D_OT_render_border(struct wmOperatorType *ot);
-void VIEW3D_OT_border_zoom(struct wmOperatorType *ot);
+void VIEW3D_OT_zoom_border(struct wmOperatorType *ot);
 void VIEW3D_OT_drawtype(struct wmOperatorType *ot);
 void VIEW3D_OT_editmesh_face_toolbox(struct wmOperatorType *ot);
 
@@ -109,9 +109,9 @@ void view3d_update_depths(struct ARegion *ar, View3D *v3d);
 /* view3d_select.c */
 void VIEW3D_OT_select(struct wmOperatorType *ot);
 void VIEW3D_OT_select_extend(struct wmOperatorType *ot);
-void VIEW3D_OT_circle_select(struct wmOperatorType *ot);
-void VIEW3D_OT_borderselect(struct wmOperatorType *ot);
-void VIEW3D_OT_lasso_select(struct wmOperatorType *ot);
+void VIEW3D_OT_select_circle(struct wmOperatorType *ot);
+void VIEW3D_OT_select_border(struct wmOperatorType *ot);
+void VIEW3D_OT_select_lasso(struct wmOperatorType *ot);
 
 /* view3d_view.c */
 void VIEW3D_OT_smoothview(struct wmOperatorType *ot);

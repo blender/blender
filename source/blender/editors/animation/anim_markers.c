@@ -629,21 +629,17 @@ static int ed_marker_select(bContext *C, wmEvent *evt, int extend)
 	return OPERATOR_PASS_THROUGH;
 }
 
-static int ed_marker_select_extend_invoke(bContext *C, wmOperator *op, wmEvent *evt)
-{
-	return ed_marker_select(C, evt, 1);
-}
-
 static int ed_marker_select_invoke(bContext *C, wmOperator *op, wmEvent *evt)
 {
-	return ed_marker_select(C, evt, 0);
+	short extend= RNA_boolean_get(op->ptr, "extend");
+	return ed_marker_select(C, evt, extend);
 }
 
-static void MARKER_OT_mouseselect(wmOperatorType *ot)
+static void MARKER_OT_select(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select Time Marker";
-	ot->idname= "MARKER_OT_mouseselect";
+	ot->idname= "MARKER_OT_select";
 	
 	/* api callbacks */
 	ot->invoke= ed_marker_select_invoke;
@@ -651,20 +647,8 @@ static void MARKER_OT_mouseselect(wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-}
 
-static void MARKER_OT_mouseselect_extend(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Extend Select Time Marker";
-	ot->idname= "MARKER_OT_mouseselect_extend";
-	
-	/* api callbacks */
-	ot->invoke= ed_marker_select_extend_invoke;
-	ot->poll= ED_operator_areaactive;
-	
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "extend the selection");
 }
 
 /* *************************** border select markers **************** */
@@ -731,11 +715,11 @@ static int ed_marker_border_select_exec(bContext *C, wmOperator *op)
 	return 1;
 }
 
-static void MARKER_OT_border_select(wmOperatorType *ot)
+static void MARKER_OT_select_border(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Marker Border select";
-	ot->idname= "MARKER_OT_border_select";
+	ot->idname= "MARKER_OT_select_border";
 	
 	/* api callbacks */
 	ot->exec= ed_marker_border_select_exec;
@@ -796,11 +780,11 @@ static int ed_marker_select_all_invoke(bContext *C, wmOperator *op, wmEvent *evt
 	return ed_marker_select_all_exec(C, op);
 }
 
-static void MARKER_OT_select_all(wmOperatorType *ot)
+static void MARKER_OT_select_all_toggle(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "(De)select all markers";
-	ot->idname= "MARKER_OT_select_all";
+	ot->idname= "MARKER_OT_select_all_toggle";
 	
 	/* api callbacks */
 	ot->exec= ed_marker_select_all_exec;
@@ -866,10 +850,9 @@ void ED_marker_operatortypes(void)
 	WM_operatortype_append(MARKER_OT_add);
 	WM_operatortype_append(MARKER_OT_move);
 	WM_operatortype_append(MARKER_OT_duplicate);
-	WM_operatortype_append(MARKER_OT_mouseselect);
-	WM_operatortype_append(MARKER_OT_mouseselect_extend);
-	WM_operatortype_append(MARKER_OT_border_select);
-	WM_operatortype_append(MARKER_OT_select_all);
+	WM_operatortype_append(MARKER_OT_select);
+	WM_operatortype_append(MARKER_OT_select_border);
+	WM_operatortype_append(MARKER_OT_select_all_toggle);
 	WM_operatortype_append(MARKER_OT_delete);
 }
 
@@ -881,10 +864,10 @@ void ED_marker_keymap(wmWindowManager *wm)
 	WM_keymap_verify_item(keymap, "MARKER_OT_add", MKEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "MARKER_OT_move", EVT_TWEAK_S, KM_ANY, 0, 0);
 	WM_keymap_verify_item(keymap, "MARKER_OT_duplicate", DKEY, KM_PRESS, KM_SHIFT, 0);
-	WM_keymap_verify_item(keymap, "MARKER_OT_mouseselect", SELECTMOUSE, KM_PRESS, 0, 0);
-	WM_keymap_verify_item(keymap, "MARKER_OT_mouseselect_extend", SELECTMOUSE, KM_PRESS, KM_SHIFT, 0);
-	WM_keymap_verify_item(keymap, "MARKER_OT_border_select", BKEY, KM_PRESS, 0, 0);
-	WM_keymap_verify_item(keymap, "MARKER_OT_select_all", AKEY, KM_PRESS, 0, 0);
+	WM_keymap_verify_item(keymap, "MARKER_OT_select", SELECTMOUSE, KM_PRESS, 0, 0);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "MARKER_OT_select", SELECTMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "extend", 1);
+	WM_keymap_verify_item(keymap, "MARKER_OT_select_border", BKEY, KM_PRESS, 0, 0);
+	WM_keymap_verify_item(keymap, "MARKER_OT_select_all_toggle", AKEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "MARKER_OT_delete", XKEY, KM_PRESS, 0, 0);
 	
 	WM_keymap_add_item(keymap, "MARKER_OT_move", GKEY, KM_PRESS, 0, 0);

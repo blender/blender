@@ -5048,11 +5048,11 @@ static int set_clone_cursor_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return set_clone_cursor_exec(C, op);
 }
 
-void PAINT_OT_set_clone_cursor(wmOperatorType *ot)
+void PAINT_OT_clone_cursor_set(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Set Clone Cursor";
-	ot->idname= "PAINT_OT_set_clone_cursor";
+	ot->idname= "PAINT_OT_clone_cursor_set";
 	
 	/* api callbacks */
 	ot->exec= set_clone_cursor_exec;

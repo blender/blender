@@ -328,11 +328,11 @@ static int actkeys_deselectall_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
  
-void ACT_OT_keyframes_deselectall (wmOperatorType *ot)
+void ACT_OT_keyframes_select_all_toggle (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select All";
-	ot->idname= "ACT_OT_keyframes_deselectall";
+	ot->idname= "ACT_OT_keyframes_select_all_toggle";
 	
 	/* api callbacks */
 	ot->exec= actkeys_deselectall_exec;
@@ -487,11 +487,11 @@ static int actkeys_borderselect_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 } 
 
-void ACT_OT_keyframes_borderselect(wmOperatorType *ot)
+void ACT_OT_keyframes_select_border(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Border Select";
-	ot->idname= "ACT_OT_keyframes_borderselect";
+	ot->idname= "ACT_OT_keyframes_select_border";
 	
 	/* api callbacks */
 	ot->invoke= WM_border_select_invoke;
@@ -723,11 +723,11 @@ static int actkeys_columnselect_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
  
-void ACT_OT_keyframes_columnselect (wmOperatorType *ot)
+void ACT_OT_keyframes_select_column (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select All";
-	ot->idname= "ACT_OT_keyframes_columnselect";
+	ot->idname= "ACT_OT_keyframes_select_column";
 	
 	/* api callbacks */
 	ot->exec= actkeys_columnselect_exec;
@@ -1067,7 +1067,7 @@ static int actkeys_clickselect_invoke(bContext *C, wmOperator *op, wmEvent *even
 	
 	/* select mode is either replace (deselect all, then add) or add/extend */
 	// XXX this is currently only available for normal select only
-	if (RNA_boolean_get(op->ptr, "extend_select"))
+	if (RNA_boolean_get(op->ptr, "extend"))
 		selectmode= SELECT_INVERT;
 	else
 		selectmode= SELECT_REPLACE;
@@ -1085,7 +1085,7 @@ static int actkeys_clickselect_invoke(bContext *C, wmOperator *op, wmEvent *even
 		
 		selectkeys_leftright(&ac, RNA_enum_get(op->ptr, "left_right"), selectmode);
 	}
-	else if (RNA_boolean_get(op->ptr, "column_select")) {
+	else if (RNA_boolean_get(op->ptr, "column")) {
 		/* select all the keyframes that occur on the same frame as where the mouse clicked */
 		float x;
 		
@@ -1122,8 +1122,8 @@ void ACT_OT_keyframes_clickselect (wmOperatorType *ot)
 	/* id-props */
 	// XXX should we make this into separate operators?
 	RNA_def_enum(ot->srna, "left_right", NULL /* XXX prop_actkeys_clickselect_items */, 0, "Left Right", ""); // ALTKEY
-	RNA_def_boolean(ot->srna, "extend_select", 0, "Extend Select", ""); // SHIFTKEY
-	RNA_def_boolean(ot->srna, "column_select", 0, "Column Select", ""); // CTRLKEY
+	RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", ""); // SHIFTKEY
+	RNA_def_boolean(ot->srna, "column", 0, "Column Select", ""); // CTRLKEY
 }
 
 /* ************************************************************************** */

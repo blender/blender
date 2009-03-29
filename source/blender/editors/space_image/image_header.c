@@ -164,12 +164,12 @@ static void image_viewmenu(bContext *C, uiMenuItem *head, void *arg_unused)
 
 static void image_selectmenu(bContext *C, uiMenuItem *head, void *arg_unused)
 {
-	uiMenuItemO(head, 0, "UV_OT_border_select");
-	uiMenuItemBooleanO(head, "Border Select Pinned", 0, "UV_OT_border_select", "pinned", 1); // Border Select Pinned|Shift B
+	uiMenuItemO(head, 0, "UV_OT_select_border");
+	uiMenuItemBooleanO(head, "Border Select Pinned", 0, "UV_OT_select_border", "pinned", 1); // Border Select Pinned|Shift B
 
 	uiMenuSeparator(head);
 	
-	uiMenuItemO(head, 0, "UV_OT_de_select_all");
+	uiMenuItemO(head, 0, "UV_OT_select_all_toggle");
 	uiMenuItemO(head, 0, "UV_OT_select_invert");
 	uiMenuItemO(head, 0, "UV_OT_unlink_selection");
 	

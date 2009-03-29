@@ -216,11 +216,11 @@ static int file_border_select_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void FILE_OT_border_select(wmOperatorType *ot)
+void FILE_OT_select_border(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Activate/Select File";
-	ot->idname= "FILE_OT_border_select";
+	ot->idname= "FILE_OT_select_border";
 	
 	/* api callbacks */
 	ot->invoke= WM_border_select_invoke;
@@ -302,11 +302,11 @@ static int file_select_all_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_FINISHED;
 }
 
-void FILE_OT_select_all(wmOperatorType *ot)
+void FILE_OT_select_all_toggle(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select/Deselect all files";
-	ot->idname= "FILE_OT_select_all";
+	ot->idname= "FILE_OT_select_all_toggle";
 	
 	/* api callbacks */
 	ot->invoke= file_select_all_invoke;

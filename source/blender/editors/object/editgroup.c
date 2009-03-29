@@ -196,13 +196,13 @@ static int group_remove_exec(bContext *C, wmOperator *op)
 
 }
 
-void GROUP_OT_group_remove(wmOperatorType *ot)
+void GROUP_OT_objects_remove(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= "remove Selected from group";
-	ot->description = "remove an object from the group.";
-	ot->idname= "GROUP_OT_group_remove";
+	ot->name= "Remove from group";
+	ot->description = "Remove selected objects from all groups.";
+	ot->idname= "GROUP_OT_objects_remove";
 	
 	/* api callbacks */
 	ot->exec= group_remove_exec;	

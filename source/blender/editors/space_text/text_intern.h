@@ -125,7 +125,7 @@ void TEXT_OT_indent(struct wmOperatorType *ot);
 void TEXT_OT_line_break(struct wmOperatorType *ot);
 void TEXT_OT_insert(struct wmOperatorType *ot);
 
-void TEXT_OT_clear_all_markers(struct wmOperatorType *ot);
+void TEXT_OT_markers_clear(struct wmOperatorType *ot);
 void TEXT_OT_next_marker(struct wmOperatorType *ot);
 void TEXT_OT_previous_marker(struct wmOperatorType *ot);
 
@@ -136,11 +136,11 @@ void TEXT_OT_jump(struct wmOperatorType *ot);
 void TEXT_OT_move(struct wmOperatorType *ot);
 void TEXT_OT_move_select(struct wmOperatorType *ot);
 void TEXT_OT_delete(struct wmOperatorType *ot);
-void TEXT_OT_toggle_overwrite(struct wmOperatorType *ot);
+void TEXT_OT_overwrite_toggle(struct wmOperatorType *ot);
 
 void TEXT_OT_scroll(struct wmOperatorType *ot);
 void TEXT_OT_scroll_bar(struct wmOperatorType *ot);
-void TEXT_OT_set_cursor(struct wmOperatorType *ot);
+void TEXT_OT_cursor_set(struct wmOperatorType *ot);
 void TEXT_OT_line_number(struct wmOperatorType *ot);
 
 void TEXT_OT_properties(struct wmOperatorType *ot);

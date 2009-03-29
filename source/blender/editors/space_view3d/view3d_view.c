@@ -411,7 +411,7 @@ void VIEW3D_OT_setcameratoview(wmOperatorType *ot)
 	
 	/* identifiers */
 	ot->name= "Align Camera To View";
-	ot->idname= "VIEW3D_OT_set_camera_to_view";
+	ot->idname= "VIEW3D_OT_camera_to_view";
 	
 	/* api callbacks */
 	ot->exec= view3d_setcameratoview_exec;	

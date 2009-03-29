@@ -71,7 +71,7 @@ void sequencer_operatortypes(void)
 	WM_operatortype_append(SEQUENCER_OT_unlock);
 	WM_operatortype_append(SEQUENCER_OT_reload);
 	WM_operatortype_append(SEQUENCER_OT_refresh_all);
-	WM_operatortype_append(SEQUENCER_OT_add_duplicate);
+	WM_operatortype_append(SEQUENCER_OT_duplicate_add);
 	WM_operatortype_append(SEQUENCER_OT_delete);
 	WM_operatortype_append(SEQUENCER_OT_separate_images);
 	WM_operatortype_append(SEQUENCER_OT_meta_toggle);
@@ -82,16 +82,16 @@ void sequencer_operatortypes(void)
 	WM_operatortype_append(SEQUENCER_OT_view_selected);
 	
 	/* sequencer_select.c */
-	WM_operatortype_append(SEQUENCER_OT_deselect_all);
+	WM_operatortype_append(SEQUENCER_OT_select_all_toggle);
 	WM_operatortype_append(SEQUENCER_OT_select_invert);
 	WM_operatortype_append(SEQUENCER_OT_select);
 	WM_operatortype_append(SEQUENCER_OT_select_more);
 	WM_operatortype_append(SEQUENCER_OT_select_less);
-	WM_operatortype_append(SEQUENCER_OT_select_pick_linked);
+	WM_operatortype_append(SEQUENCER_OT_select_linked_pick);
 	WM_operatortype_append(SEQUENCER_OT_select_linked);
 	WM_operatortype_append(SEQUENCER_OT_select_handles);
 	WM_operatortype_append(SEQUENCER_OT_select_active_side);
-	WM_operatortype_append(SEQUENCER_OT_borderselect);
+	WM_operatortype_append(SEQUENCER_OT_select_border);
 	
 	/* sequencer_add.c */
 	WM_operatortype_append(SEQUENCER_OT_add_scene_strip);
@@ -107,7 +107,7 @@ void sequencer_keymap(wmWindowManager *wm)
 	ListBase *keymap= WM_keymap_listbase(wm, "Sequencer", SPACE_SEQ, 0);
 	wmKeymapItem *kmi;
 	
-	WM_keymap_add_item(keymap, "SEQUENCER_OT_deselect_all", AKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "SEQUENCER_OT_select_all_toggle", AKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_select_invert", IKEY, KM_PRESS, KM_CTRL, 0);
 	
 	RNA_enum_set(WM_keymap_add_item(keymap, "SEQUENCER_OT_cut", KKEY, KM_PRESS, 0, 0)->ptr, "type", SEQ_CUT_SOFT);
@@ -124,7 +124,7 @@ void sequencer_keymap(wmWindowManager *wm)
 
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_reload", RKEY, KM_PRESS, KM_ALT, 0);
 
-	WM_keymap_add_item(keymap, "SEQUENCER_OT_add_duplicate", DKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "SEQUENCER_OT_duplicate_add", DKEY, KM_PRESS, KM_SHIFT, 0);
 
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_delete", XKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_delete", DELKEY, KM_PRESS, 0, 0);
@@ -168,12 +168,12 @@ void sequencer_keymap(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_select_more", PADPLUSKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_select_less", PADMINUS, KM_PRESS, KM_CTRL, 0);
 	
-	WM_keymap_add_item(keymap, "SEQUENCER_OT_select_pick_linked", LKEY, KM_PRESS, 0, 0);
-	RNA_boolean_set(WM_keymap_add_item(keymap, "SEQUENCER_OT_select_pick_linked", LKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "extend", 1);
+	WM_keymap_add_item(keymap, "SEQUENCER_OT_select_linked_pick", LKEY, KM_PRESS, 0, 0);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "SEQUENCER_OT_select_linked_pick", LKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "extend", 1);
 	
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_select_linked", LKEY, KM_PRESS, KM_CTRL, 0);
 	
-	WM_keymap_add_item(keymap, "SEQUENCER_OT_borderselect", BKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "SEQUENCER_OT_select_border", BKEY, KM_PRESS, 0, 0);
 	
 	WM_keymap_verify_item(keymap, "ANIM_OT_change_frame", LEFTMOUSE, KM_PRESS, 0, 0);
 

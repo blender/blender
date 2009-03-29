@@ -158,7 +158,7 @@ static void seq_selectmenu(bContext *C, uiMenuItem *head, void *arg_unused)
 	uiMenuItemO(head, 0, "SEQUENCER_OT_select_linked");
 	uiMenuSeparator(head);
 	uiMenuItemO(head, 0, "SEQUENCER_OT_select_linked");
-	uiMenuItemO(head, 0, "SEQUENCER_OT_deselect_all");
+	uiMenuItemO(head, 0, "SEQUENCER_OT_select_all_toggle");
 	uiMenuItemO(head, 0, "SEQUENCER_OT_select_invert");
 }
 
@@ -275,7 +275,7 @@ static void seq_editmenu(bContext *C, uiMenuItem *head, void *arg_unused)
 
 	uiMenuItemO(head, 0, "SEQUENCER_OT_separate_images");
 	uiMenuSeparator(head);
-	uiMenuItemO(head, 0, "SEQUENCER_OT_add_duplicate");
+	uiMenuItemO(head, 0, "SEQUENCER_OT_duplicate_add");
 	uiMenuItemO(head, 0, "SEQUENCER_OT_delete");
 
 	if (ed && ed->act_seq) {
@@ -439,7 +439,7 @@ void sequencer_header_buttons(const bContext *C, ARegion *ar)
 			      0, 0, 0, 0,
 			      "Zooms view in and out (Ctrl MiddleMouse)");
 		xco += XIC;
-		uiDefIconButO(block, BUT, "View2D_OT_view_borderzoom", WM_OP_INVOKE_REGION_WIN, ICON_BORDERMOVE, xco,yco,XIC,YIC, "Zooms view to fit area");
+		uiDefIconButO(block, BUT, "VIEW2D_OT_zoom_border", WM_OP_INVOKE_REGION_WIN, ICON_BORDERMOVE, xco,yco,XIC,YIC, "Zooms view to fit area");
 		
 		uiBlockEndAlign(block);
 		xco += 8 + XIC;

@@ -503,11 +503,11 @@ static int removedoublesflag_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;	
 }
 
-void MESH_OT_removedoublesflag(wmOperatorType *ot)
+void MESH_OT_remove_doubles(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Remove Doubles";
-	ot->idname= "MESH_OT_removedoublesflag";
+	ot->idname= "MESH_OT_remove_doubles";
 	
 	/* api callbacks */
 	ot->exec= removedoublesflag_exec;
@@ -765,11 +765,11 @@ static int split_mesh(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void MESH_OT_split_mesh(wmOperatorType *ot)
+void MESH_OT_split(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Split Mesh";
-	ot->idname= "MESH_OT_split_mesh";
+	ot->idname= "MESH_OT_split";
 	
 	/* api callbacks */
 	ot->exec= split_mesh;
@@ -3696,11 +3696,11 @@ static int edge_rotate_selected(bContext *C, wmOperator *op)
 
 }
 
-void MESH_OT_edge_rotate_selected(wmOperatorType *ot)
+void MESH_OT_edge_rotate(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Rotate Selected Edge";
-	ot->idname= "MESH_OT_edge_rotate_selected";
+	ot->idname= "MESH_OT_edge_rotate";
 	
 	/* api callbacks */
 	ot->exec= edge_rotate_selected;
