@@ -121,20 +121,34 @@ KX_VisibilityActuator::Parents[] = {
 
 PyMethodDef 
 KX_VisibilityActuator::Methods[] = {
-	{"set", (PyCFunction) KX_VisibilityActuator::sPySetVisible, 
-	 METH_VARARGS, (PY_METHODCHAR)SetVisible_doc},
+	// Deprecated ----->
+	{"set", (PyCFunction) KX_VisibilityActuator::sPySetVisible, METH_VARARGS,
+		(PY_METHODCHAR) SetVisible_doc},
+	// <-----
 	{NULL,NULL} //Sentinel
 };
 
 PyAttributeDef KX_VisibilityActuator::Attributes[] = {
+	KX_PYATTRIBUTE_BOOL_RW("visibility", KX_VisibilityActuator, m_visible),
+	KX_PYATTRIBUTE_BOOL_RW("recursion", KX_VisibilityActuator, m_recursive),
 	{ NULL }	//Sentinel
 };
 
-PyObject* KX_VisibilityActuator::_getattr(const char *attr) 
+PyObject* KX_VisibilityActuator::_getattr(const char *attr)
 {
+	PyObject* object = _getattr_self(Attributes, this, attr);
+	if (object != NULL)
+		return object;
 	_getattr_up(SCA_IActuator);
-};
+}
 
+int KX_VisibilityActuator::_setattr(const char *attr, PyObject *value)
+{
+	int ret = _setattr_self(Attributes, this, attr, value);
+	if (ret >= 0)
+		return ret;
+	return SCA_IActuator::_setattr(attr, value);
+}
 
 
 /* set visibility ---------------------------------------------------------- */
@@ -149,6 +163,7 @@ KX_VisibilityActuator::PySetVisible(PyObject* self,
 				    PyObject* args, 
 				    PyObject* kwds) {
 	int vis;
+	ShowDeprecationWarning("SetVisible()", "the visible property");
 
 	if(!PyArg_ParseTuple(args, "i", &vis)) {
 		return NULL;

@@ -166,48 +166,64 @@ PyParentObject KX_ParentActuator::Parents[] = {
 };
 
 PyMethodDef KX_ParentActuator::Methods[] = {
-	// ---> deprecated (all)
-	{"setObject",         (PyCFunction) KX_ParentActuator::sPySetObject, METH_O, (PY_METHODCHAR)SetObject_doc},
-	{"getObject",         (PyCFunction) KX_ParentActuator::sPyGetObject, METH_VARARGS, (PY_METHODCHAR)GetObject_doc},
+	// Deprecated ----->
+	{"setObject", (PyCFunction) KX_ParentActuator::sPySetObject, METH_O, (PY_METHODCHAR)SetObject_doc},
+	{"getObject", (PyCFunction) KX_ParentActuator::sPyGetObject, METH_VARARGS, (PY_METHODCHAR)GetObject_doc},
+	// <-----
 	{NULL,NULL} //Sentinel
 };
 
 PyAttributeDef KX_ParentActuator::Attributes[] = {
+	KX_PYATTRIBUTE_RW_FUNCTION("object", KX_ParentActuator, pyattr_get_object, pyattr_set_object),
 	{ NULL }	//Sentinel
 };
 
+PyObject* KX_ParentActuator::pyattr_get_object(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef)
+{
+	KX_ParentActuator* actuator = static_cast<KX_ParentActuator*>(self);
+	if (!actuator->m_ob)	
+		Py_RETURN_NONE;
+	else
+		return actuator->m_ob->AddRef();
+}
+
+int KX_ParentActuator::pyattr_set_object(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
+{
+	KX_ParentActuator* actuator = static_cast<KX_ParentActuator*>(self);
+	KX_GameObject *gameobj;
+		
+	if (!ConvertPythonToGameObject(value, &gameobj, true))
+		return 1; // ConvertPythonToGameObject sets the error
+		
+	if (actuator->m_ob != NULL)
+		actuator->m_ob->UnregisterActuator(actuator);	
+
+	actuator->m_ob = (SCA_IObject*) gameobj;
+		
+	if (actuator->m_ob)
+		actuator->m_ob->RegisterActuator(actuator);
+		
+	return 0;
+}
+
+
 PyObject* KX_ParentActuator::_getattr(const char *attr) {	
 	
-	if (!strcmp(attr, "object")) {
-		if (!m_ob)	Py_RETURN_NONE;
-		else		return m_ob->AddRef();
-	}
-	
+	PyObject* object = _getattr_self(Attributes, this, attr);
+	if (object != NULL)
+		return object;
 	_getattr_up(SCA_IActuator);
 }
 
 int KX_ParentActuator::_setattr(const char *attr, PyObject* value) {
 	
-	if (!strcmp(attr, "object")) {
-		KX_GameObject *gameobj;
-		
-		if (!ConvertPythonToGameObject(value, &gameobj, true))
-			return 1; // ConvertPythonToGameObject sets the error
-		
-		if (m_ob != NULL)
-			m_ob->UnregisterActuator(this);	
-
-		m_ob = (SCA_IObject*)gameobj;
-		
-		if (m_ob)
-			m_ob->RegisterActuator(this);
-		
-		return 0;
-	}
-	
+	int ret = _setattr_self(Attributes, this, attr, value);
+	if (ret >= 0)
+		return ret;
 	return SCA_IActuator::_setattr(attr, value);
 }
 
+/* Deprecated -----> */
 /* 1. setObject                                                            */
 const char KX_ParentActuator::SetObject_doc[] = 
 "setObject(object)\n"
@@ -255,5 +271,6 @@ PyObject* KX_ParentActuator::PyGetObject(PyObject* self, PyObject* args)
 	else
 		return m_ob->AddRef();
 }
+/* <----- */
 
 /* eof */

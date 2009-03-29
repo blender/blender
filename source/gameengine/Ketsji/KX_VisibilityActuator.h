@@ -68,8 +68,12 @@ class KX_VisibilityActuator : public SCA_IActuator
 	/* --------------------------------------------------------------------- */
 
 	virtual PyObject* _getattr(const char *attr);
-	//KX_PYMETHOD_DOC
+	virtual int _setattr(const char *attr, PyObject *value);
+
+	// Deprecated ----->
 	KX_PYMETHOD_DOC(KX_VisibilityActuator,SetVisible);
+	// <-----
+
 
 };
 
