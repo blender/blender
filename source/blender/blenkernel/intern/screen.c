@@ -54,8 +54,11 @@ static void spacetype_free(SpaceType *st)
 {
 	ARegionType *art;
 	
-	for(art= st->regiontypes.first; art; art= art->next)
+	for(art= st->regiontypes.first; art; art= art->next) {
 		BLI_freelistN(&art->drawcalls);
+		BLI_freelistN(&art->paneltypes);
+		BLI_freelistN(&art->headertypes);
+	}
 	
 	BLI_freelistN(&st->regiontypes);
 }

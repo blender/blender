@@ -344,28 +344,12 @@ static void text_cursor(wmWindow *win, ScrArea *sa, ARegion *ar)
 static void text_header_area_init(wmWindowManager *wm, ARegion *ar)
 {
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_HEADER, ar->winx, ar->winy);
+	ar->v2d.flag &= ~(V2D_PIXELOFS_X|V2D_PIXELOFS_Y); // XXX temporary
 }
 
 static void text_header_area_draw(const bContext *C, ARegion *ar)
 {
-	float col[3];
-	
-	/* clear */
-	if(ED_screen_area_active(C))
-		UI_GetThemeColor3fv(TH_HEADER, col);
-	else
-		UI_GetThemeColor3fv(TH_HEADERDESEL, col);
-	
-	glClearColor(col[0], col[1], col[2], 0.0);
-	glClear(GL_COLOR_BUFFER_BIT);
-	
-	/* set view2d view matrix for scrolling (without scrollers) */
-	UI_view2d_view_ortho(C, &ar->v2d);
-	
-	text_header_buttons(C, ar);
-	
-	/* restore view matrix? */
-	UI_view2d_view_restore(C);
+	uiRegionHeaderLayout(C, ar);
 }
 
 /****************** properties region ******************/
@@ -378,20 +362,7 @@ static void text_properties_area_init(wmWindowManager *wm, ARegion *ar)
 
 static void text_properties_area_draw(const bContext *C, ARegion *ar)
 {
-	float col[3];
-	
-	/* clear */
-	UI_GetThemeColor3fv(TH_HEADER, col);
-	glClearColor(col[0], col[1], col[2], 0.0);
-	glClear(GL_COLOR_BUFFER_BIT);
-	
-	/* set view2d view matrix for scrolling (without scrollers) */
-	UI_view2d_view_ortho(C, &ar->v2d);
-	
-	text_properties_buttons(C, ar);
-	
-	/* restore view matrix? */
-	UI_view2d_view_restore(C);
+	uiRegionPanelLayout(C, ar, 1, NULL);
 }
 
 /********************* registration ********************/
@@ -422,17 +393,6 @@ void ED_spacetype_text(void)
 
 	BLI_addhead(&st->regiontypes, art);
 	
-	/* regions: header */
-	art= MEM_callocN(sizeof(ARegionType), "spacetype text region");
-	art->regionid = RGN_TYPE_HEADER;
-	art->minsizey= HEADERY;
-	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D;
-	
-	art->init= text_header_area_init;
-	art->draw= text_header_area_draw;
-	
-	BLI_addhead(&st->regiontypes, art);
-
 	/* regions: properties */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype text region");
 	art->regionid = RGN_TYPE_UI;
@@ -442,8 +402,23 @@ void ED_spacetype_text(void)
 	art->init= text_properties_area_init;
 	art->draw= text_properties_area_draw;
 	
+	text_properties_register(art);
+
 	BLI_addhead(&st->regiontypes, art);
+
+	/* regions: header */
+	art= MEM_callocN(sizeof(ARegionType), "spacetype text region");
+	art->regionid = RGN_TYPE_HEADER;
+	art->minsizey= HEADERY;
+	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D;
 	
+	art->init= text_header_area_init;
+	art->draw= text_header_area_draw;
+	
+	text_header_register(art);
+
+	BLI_addhead(&st->regiontypes, art);
+
 	BKE_spacetype_register(st);
 }
 

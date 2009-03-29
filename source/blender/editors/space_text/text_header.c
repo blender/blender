@@ -93,7 +93,7 @@ static void do_text_template_scriptsmenu(bContext *C, void *arg, int event)
 	// XXX BPY_menu_do_python(PYMENU_SCRIPTTEMPLATE, event);
 }
 
-uiBlock *text_template_scriptsmenu(bContext *C, void *args_unused)
+static uiBlock *text_template_scriptsmenu(bContext *C, void *args_unused)
 {
 	ARegion *ar= CTX_wm_region(C);
 	uiBlock *block;
@@ -126,7 +126,7 @@ static void do_text_plugin_scriptsmenu(bContext *C, void *arg, int event)
 	// XXX BPY_menu_do_python(PYMENU_TEXTPLUGIN, event);
 }
 
-uiBlock *text_plugin_scriptsmenu(bContext *C, void *args_unused)
+static uiBlock *text_plugin_scriptsmenu(bContext *C, void *args_unused)
 {
 	ARegion *ar= CTX_wm_region(C);
 	uiBlock *block;
@@ -193,6 +193,11 @@ static void text_editmenu_to3dmenu(bContext *C, uiMenuItem *head, void *arg_unus
 {
 	uiMenuItemBooleanO(head, "One Object", 0, "TEXT_OT_to_3d_object", "split_lines", 0);
 	uiMenuItemBooleanO(head, "One Object Per Line", 0, "TEXT_OT_to_3d_object", "split_lines", 1);
+}
+
+static int text_menu_edit_poll(bContext *C)
+{
+	return (CTX_data_edit_text(C) != NULL);
 }
 
 static void text_editmenu(bContext *C, uiMenuItem *head, void *arg_unused)
@@ -353,7 +358,7 @@ static void text_idpoin_handle(bContext *C, ID *id, int event)
 
 /********************** header buttons ***********************/
 
-static void header_buttons(const bContext *C, uiLayout *layout)
+static void text_header_draw(const bContext *C, uiLayout *layout)
 {
 	bScreen *sc= CTX_wm_screen(C);
 	SpaceText *st= (SpaceText*)CTX_wm_space_data(C);
@@ -411,17 +416,25 @@ static void header_buttons(const bContext *C, uiLayout *layout)
 	}
 }
 
-void text_header_buttons(const bContext *C, ARegion *ar)
+void text_header_register(ARegionType *art)
 {
-	uiHeaderLayout(C, ar, header_buttons);
+	HeaderType *ht;
+
+	/* header */
+	ht= MEM_callocN(sizeof(HeaderType), "spacetype text header");
+	ht->idname= "TEXT_HT_header";
+	ht->name= "Header";
+	ht->draw= text_header_draw;
+	BLI_addhead(&art->headertypes, ht);
 }
 
 /************************** properties ******************************/
 
-void properties_buttons(const bContext *C, uiLayout *layout)
+static void text_properties_panel_draw(const bContext *C, Panel *panel)
 {
 	bScreen *sc= CTX_wm_screen(C);
 	SpaceText *st= CTX_wm_space_text(C);
+	uiLayout *layout= panel->layout;
 	PointerRNA spaceptr;
 	
 	RNA_pointer_create(&sc->id, &RNA_SpaceTextEditor, st, &spaceptr);
@@ -436,10 +449,11 @@ void properties_buttons(const bContext *C, uiLayout *layout)
 	uiItemR(layout, UI_TSLOT_COLUMN_1, NULL, 0, &spaceptr, "tab_width");
 }
 
-void find_buttons(const bContext *C, uiLayout *layout)
+static void text_find_panel_draw(const bContext *C, Panel *panel)
 {
 	bScreen *sc= CTX_wm_screen(C);
 	SpaceText *st= CTX_wm_space_text(C);
+	uiLayout *layout= panel->layout;
 	PointerRNA spaceptr;
 	
 	RNA_pointer_create(&sc->id, &RNA_SpaceTextEditor, st, &spaceptr);
@@ -468,13 +482,23 @@ void find_buttons(const bContext *C, uiLayout *layout)
 	uiItemR(layout, UI_TSLOT_COLUMN_2, "All", 0, &spaceptr, "find_all");
 }
 
-void text_properties_buttons(const bContext *C, ARegion *ar)
+void text_properties_register(ARegionType *art)
 {
-	uiCompactPanelLayout(C, ar, "TEXT_OT_properties", "Properties", "Text", properties_buttons, 0);
-	uiCompactPanelLayout(C, ar, "TEXT_OT_find", "Find", "Text", find_buttons, 1);
+	PanelType *pt;
 
-	uiDrawPanels(C, 1);
-	uiMatchPanelsView2d(ar);
+	/* panels: properties */
+	pt= MEM_callocN(sizeof(PanelType), "spacetype text panel");
+	pt->idname= "TEXT_PT_properties";
+	pt->name= "Properties";
+	pt->draw= text_properties_panel_draw;
+	BLI_addtail(&art->paneltypes, pt);
+
+	/* panels: find */
+	pt= MEM_callocN(sizeof(PanelType), "spacetype text panel");
+	pt->idname= "TEXT_PT_find";
+	pt->name= "Find";
+	pt->draw= text_find_panel_draw;
+	BLI_addtail(&art->paneltypes, pt);
 }
 
 ARegion *text_has_properties_region(ScrArea *sa)

@@ -236,6 +236,11 @@ int uiNewPanel(const bContext *C, ARegion *ar, uiBlock *block, char *panelname, 
 	return 1;
 }
 
+Panel *uiPanelFromBlock(uiBlock *block)
+{
+	return block->panel;
+}
+
 void uiFreePanels(ListBase *lb)
 {
 	BLI_freelistN(lb);

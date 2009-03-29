@@ -31,6 +31,7 @@
 /* internal exports only */
 
 struct ARegion;
+struct ARegionType;
 struct bContext;
 struct BMF_Font;
 struct ReportList;
@@ -42,9 +43,8 @@ struct wmOperatorType;
 struct wmWindowManager;
 
 /* text_header.c */
-void text_header_buttons(const struct bContext *C, struct ARegion *ar);
-void text_find_buttons(const struct bContext *C, struct ARegion *ar);
-void text_properties_buttons(const struct bContext *C, struct ARegion *ar);
+void text_properties_register(struct ARegionType *art);
+void text_header_register(struct ARegionType *art);
 
 /* text_draw.c */
 void draw_text_main(struct SpaceText *st, struct ARegion *ar);

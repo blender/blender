@@ -16,6 +16,7 @@
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_idprop.h"
+#include "BKE_screen.h"
 #include "BKE_utildefines.h"
 
 #include "RNA_access.h"
@@ -23,6 +24,8 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 #include "UI_view2d.h"
+
+#include "BIF_gl.h"
 
 #include "ED_util.h"
 #include "ED_types.h"
@@ -899,59 +902,103 @@ void uiLayoutEnd(const bContext *C, uiBlock *block, uiLayout *layout, int *x, in
 
 /* Utilities */
 
-static void ui_panel_layout(const bContext *C, ARegion *ar, char *blockname, char *panelname, char *tabname, uiPanelCreateFunc func, int order, int w)
+void uiRegionPanelLayout(const bContext *C, ARegion *ar, int vertical, char *context)
 {
 	uiBlock *block;
-	uiLayout *layout;
-	int xco, yco, x, y;
+	PanelType *pt;
+	Panel *panel;
+	float col[3];
+	int xco, yco, x=0, y=0, w;
 
 	// XXX this only hides cruft
 
-	x= 20*order;
-	y= -100*(order+1);
-
-	block= uiBeginBlock(C, ar, blockname, UI_EMBOSS, UI_HELV);
-	if(uiNewPanel(C, ar, block, panelname, tabname, x, y, w, 0)==0) return;
+	/* clear */
+	UI_GetThemeColor3fv(TH_HEADER, col);
+	glClearColor(col[0], col[1], col[2], 0.0);
+	glClear(GL_COLOR_BUFFER_BIT);
 	
-	layout= uiLayoutBegin(UI_LAYOUT_VERTICAL, x, y, w, 0);
+	/* set view2d view matrix for scrolling (without scrollers) */
+	UI_view2d_view_ortho(C, &ar->v2d);
+	
+	for(pt= ar->type->paneltypes.first; pt; pt= pt->next) {
+		if(context)
+			if(!pt->context || strcmp(context, pt->context) != 0)
+				continue;
 
-	func(C, layout);
+		if(pt->draw && (!pt->poll || pt->poll(C))) {
+			w= (ar->type->minsizex)? ar->type->minsizex-22: UI_PANEL_WIDTH-22;
 
-	uiLayoutEnd(C, block, layout, &xco, &yco);
-	uiEndBlock(C, block);
+			block= uiBeginBlock(C, ar, pt->idname, UI_EMBOSS, UI_HELV);
+			if(uiNewPanel(C, ar, block, pt->name, pt->name, x, y, w, 0)==0) return;
+			
+			panel= uiPanelFromBlock(block);
+			panel->type= pt;
+			panel->layout= uiLayoutBegin(UI_LAYOUT_VERTICAL, x, y, w, 0);
 
-	uiNewPanelHeight(block, y - yco + 6);
+			pt->draw(C, panel);
+
+			uiLayoutEnd(C, block, panel->layout, &xco, &yco);
+			uiEndBlock(C, block);
+
+			panel->layout= NULL;
+			uiNewPanelHeight(block, y - yco + 6);
+
+			if(vertical)
+				y += yco;
+			else
+				x += xco;
+		}
+	}
+
+	uiDrawPanels(C, 1);
+	uiMatchPanelsView2d(ar);
+	
+	/* restore view matrix? */
+	UI_view2d_view_restore(C);
 }
 
-void uiCompactPanelLayout(const bContext *C, ARegion *ar, char *blockname, char *panelname, char *tabname, uiPanelCreateFunc func, int order)
-{
-	ui_panel_layout(C, ar, blockname, panelname, tabname, func, order, UI_COMPACT_PANEL_WIDTH-22);
-}
-
-void uiPanelLayout(const bContext *C, ARegion *ar, char *blockname, char *panelname, char *tabname, uiPanelCreateFunc func, int order)
-{
-	ui_panel_layout(C, ar, blockname, panelname, tabname, func, order, UI_PANEL_WIDTH-22);
-}
-
-void uiHeaderLayout(const bContext *C, ARegion *ar, uiHeaderCreateFunc func)
+void uiRegionHeaderLayout(const bContext *C, ARegion *ar)
 {
 	uiBlock *block;
 	uiLayout *layout;
+	HeaderType *ht;
+	float col[3];
 	int xco, yco;
 
 	// XXX this only hides cruft
+	
+	/* clear */
+	if(ED_screen_area_active(C))
+		UI_GetThemeColor3fv(TH_HEADER, col);
+	else
+		UI_GetThemeColor3fv(TH_HEADERDESEL, col);
+	
+	glClearColor(col[0], col[1], col[2], 0.0);
+	glClear(GL_COLOR_BUFFER_BIT);
+	
+	/* set view2d view matrix for scrolling (without scrollers) */
+	UI_view2d_view_ortho(C, &ar->v2d);
 
-	block= uiBeginBlock(C, ar, "header buttons", UI_EMBOSS, UI_HELV);
-	layout= uiLayoutBegin(UI_LAYOUT_HORIZONTAL, 8, 3, 0, 24);
+	xco= 8;
+	yco= 3;
 
-	func(C, layout);
+	/* draw all headers types */
+	for(ht= ar->type->headertypes.first; ht; ht= ht->next) {
+		block= uiBeginBlock(C, ar, "header buttons", UI_EMBOSS, UI_HELV);
+		layout= uiLayoutBegin(UI_LAYOUT_HORIZONTAL, xco, yco, 0, 24);
 
-	uiLayoutEnd(C, block, layout, &xco, &yco);
-	uiEndBlock(C, block);
-	uiDrawBlock(C, block);
+		if(ht->draw)
+			ht->draw(C, layout);
+
+		uiLayoutEnd(C, block, layout, &xco, &yco);
+		uiEndBlock(C, block);
+		uiDrawBlock(C, block);
+	}
 
 	/* always as last  */
 	UI_view2d_totRect_set(&ar->v2d, xco+XIC+80, ar->v2d.tot.ymax-ar->v2d.tot.ymin);
-}
 
+	/* restore view matrix? */
+	UI_view2d_view_restore(C);
+}
 

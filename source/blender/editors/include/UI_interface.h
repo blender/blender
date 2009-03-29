@@ -42,6 +42,7 @@ struct wmWindowManager;
 struct wmOperator;
 struct AutoComplete;
 struct bContext;
+struct Panel;
 struct PointerRNA;
 struct PropertyRNA;
 struct ReportList;
@@ -508,6 +509,8 @@ extern int uiAlignPanelStep(struct ScrArea *sa, struct ARegion *ar, float fac);
 extern void uiPanelControl(int);
 extern void uiSetPanelHandler(int);
 
+struct Panel *uiPanelFromBlock(struct uiBlock *block);
+
 /* Handlers
  *
  * Handlers that can be registered in regions, areas and windows for
@@ -622,12 +625,8 @@ void uiItemMenu(uiLayout *layout, int slot, const char *name, int icon, uiMenuCr
 typedef void (*uiHeaderCreateFunc)(const struct bContext *C, uiLayout *layout);
 typedef void (*uiPanelCreateFunc)(const struct bContext *C, uiLayout *layout);
 
-void uiPanelLayout(const struct bContext *C, struct ARegion *ar, char *blockname,
-	char *panelname, char *tabname, uiPanelCreateFunc func, int order);
-void uiCompactPanelLayout(const struct bContext *C, struct ARegion *ar, char *blockname,
-	char *panelname, char *tabname, uiPanelCreateFunc func, int order);
-void uiHeaderLayout(const struct bContext *C, struct ARegion *ar,
-	uiHeaderCreateFunc func);
+void uiRegionPanelLayout(const struct bContext *C, struct ARegion *ar, int vertical, char *context);
+void uiRegionHeaderLayout(const struct bContext *C, struct ARegion *ar);
 
 #endif /*  UI_INTERFACE_H */
 
