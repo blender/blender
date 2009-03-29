@@ -184,7 +184,7 @@ PyObject * SShape_AddEdge( BPy_SShape *self , PyObject *args) {
 PyObject * SShape_AddNewVertex( BPy_SShape *self , PyObject *args) {
 	PyObject *py_sv = 0;
 
-	if(!( PyArg_ParseTuple(args, "O1", &SVertex_Type, &py_sv) ))
+	if(!( PyArg_ParseTuple(args, "O!", &SVertex_Type, &py_sv) ))
 		return NULL;
 	
 	self->ss->AddNewVertex( ((BPy_SVertex *) py_sv)->sv );
