@@ -13,6 +13,7 @@
 #include "Interface1D/BPy_FEdge.h"
 #include "Interface1D/BPy_Stroke.h"
 #include "Interface1D/BPy_ViewEdge.h"
+#include "Interface1D/Curve/BPy_Chain.h"
 #include "BPy_Nature.h"
 #include "BPy_MediumType.h"
 #include "BPy_SShape.h"
@@ -176,6 +177,14 @@ PyObject * BPy_ViewEdge_from_ViewEdge_ptr( ViewEdge* ve ) {
 	return py_ve;
 }
 
+PyObject * BPy_Chain_from_Chain_ptr( Chain* c ) {
+	PyObject *py_c = Chain_Type.tp_new( &Chain_Type, 0, 0 );
+	((BPy_Chain *) py_c)->c = c;
+	((BPy_Chain *) py_c)->py_c.c = ((BPy_Chain *) py_c)->c;
+	((BPy_Chain *) py_c)->py_c.py_if1D.if1D = ((BPy_Chain *) py_c)->c;
+	return py_c;
+}
+
 PyObject * BPy_SShape_from_SShape( SShape& ss ) {
 	PyObject *py_ss = SShape_Type.tp_new( &SShape_Type, 0, 0 );
 	((BPy_SShape *) py_ss)->ss = new SShape( ss );
@@ -208,9 +217,10 @@ PyObject * BPy_IntegrationType_from_IntegrationType( int i ) {
 	return py_it;
 }
 
-PyObject * BPy_CurvePoint_from_CurvePoint( CurvePoint& cp ) {
+PyObject * BPy_CurvePoint_from_CurvePoint_ptr( CurvePoint *cp ) {
 	PyObject *py_cp = CurvePoint_Type.tp_new( &CurvePoint_Type, 0, 0 );
-	((BPy_CurvePoint*) py_cp)->cp = new CurvePoint( cp );
+	((BPy_CurvePoint*) py_cp)->cp = cp;
+	((BPy_CurvePoint*) py_cp)->py_if0D.if0D = ((BPy_CurvePoint*) py_cp)->cp;
 
 	return py_cp;
 }

@@ -35,6 +35,9 @@ using namespace Geometry;
 // CurvePoint, Curve
 #include "../stroke/Curve.h"
 
+// Chain
+#include "../stroke/Chain.h"
+
 //====== ITERATORS
 
 // AdjacencyIterator, ChainingIterator, ChainSilhouetteIterator, ChainPredicateIterator
@@ -71,7 +74,7 @@ PyObject * Vector_from_Vec3f( Vec3f& v );
 PyObject * Vector_from_Vec3r( Vec3r& v );
 
 PyObject * BPy_BBox_from_BBox( BBox< Vec3r > &bb );
-PyObject * BPy_CurvePoint_from_CurvePoint( CurvePoint& cp );
+PyObject * BPy_CurvePoint_from_CurvePoint_ptr( CurvePoint *cp );
 PyObject * BPy_directedViewEdge_from_directedViewEdge( ViewVertex::directedViewEdge& dve );
 PyObject * BPy_FEdge_from_FEdge( FEdge& fe );
 PyObject * BPy_Id_from_Id( Id& id );
@@ -88,6 +91,7 @@ PyObject * BPy_StrokeVertex_from_StrokeVertex_ptr( StrokeVertex *sv );
 PyObject * BPy_SVertex_from_SVertex_ptr( SVertex *sv );
 PyObject * BPy_ViewVertex_from_ViewVertex_ptr( ViewVertex *vv );
 PyObject * BPy_ViewEdge_from_ViewEdge_ptr( ViewEdge *ve );
+PyObject * BPy_Chain_from_Chain_ptr( Chain* c );
 PyObject * BPy_ViewShape_from_ViewShape( ViewShape& vs );
 
 PyObject * BPy_AdjacencyIterator_from_AdjacencyIterator( AdjacencyIterator& a_it );
