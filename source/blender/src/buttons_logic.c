@@ -3122,30 +3122,32 @@ static uiBlock *advanced_bullet_menu(void *arg_ob)
 					"Collision margin");
 			yco -= 20;
 
-			uiDefButBitI(block, TOG, OB_LOCK_RIGID_BODY_X_AXIS, 0, "Lock X Axis", 
-				xco, yco, 180, 19, &ob->gameflag2, 0, 0, 0, 0, 
-				"Disable simulation of linear motion along the X axis");
-			uiDefButBitI(block, TOG, OB_LOCK_RIGID_BODY_X_ROT_AXIS, 0, "Lock X Rot Xxis", 
-				xco+=180, yco, 180, 19, &ob->gameflag2, 0, 0, 0, 0, 
-				"Disable simulation of angular motion along the X axis");
-			yco -= 20;
-			xco=0;
-			uiDefButBitI(block, TOG, OB_LOCK_RIGID_BODY_Y_AXIS, 0, "Lock Y Axis", 
-				xco, yco, 180, 19, &ob->gameflag2, 0, 0, 0, 0, 
-				"Disable simulation of linear motion along the Y axis");
-			uiDefButBitI(block, TOG, OB_LOCK_RIGID_BODY_Y_ROT_AXIS, 0, "Lock Y Rot Axis", 
-				xco+=180, yco, 180, 19, &ob->gameflag2, 0, 0, 0, 0, 
-				"Disable simulation of angular motion along the Y axis");
+			if (ob->gameflag & OB_RIGID_BODY)
+			{
+				uiDefButBitI(block, TOG, OB_LOCK_RIGID_BODY_X_AXIS, 0, "Lock X Axis", 
+					xco, yco, 180, 19, &ob->gameflag2, 0, 0, 0, 0, 
+					"Disable simulation of linear motion along the X axis");
+				uiDefButBitI(block, TOG, OB_LOCK_RIGID_BODY_X_ROT_AXIS, 0, "Lock X Rot Xxis", 
+					xco+=180, yco, 180, 19, &ob->gameflag2, 0, 0, 0, 0, 
+					"Disable simulation of angular motion along the X axis");
+				yco -= 20;
+				xco=0;
+				uiDefButBitI(block, TOG, OB_LOCK_RIGID_BODY_Y_AXIS, 0, "Lock Y Axis", 
+					xco, yco, 180, 19, &ob->gameflag2, 0, 0, 0, 0, 
+					"Disable simulation of linear motion along the Y axis");
+				uiDefButBitI(block, TOG, OB_LOCK_RIGID_BODY_Y_ROT_AXIS, 0, "Lock Y Rot Axis", 
+					xco+=180, yco, 180, 19, &ob->gameflag2, 0, 0, 0, 0, 
+					"Disable simulation of angular motion along the Y axis");
 
-			yco -= 20;
-			xco=0;
-			uiDefButBitI(block, TOG, OB_LOCK_RIGID_BODY_Z_AXIS, 0, "Lock Z Axis", 
-				xco, yco, 180, 19, &ob->gameflag2, 0, 0, 0, 0, 
-				"Disable simulation of linear motion along the Z axis");
-			uiDefButBitI(block, TOG, OB_LOCK_RIGID_BODY_Z_ROT_AXIS, 0, "Lock Z Rot Axis", 
-				xco+=180, yco, 180, 19, &ob->gameflag2, 0, 0, 0, 0, 
-				"Disable simulation of angular motion along the Z axis");
-
+				yco -= 20;
+				xco=0;
+				uiDefButBitI(block, TOG, OB_LOCK_RIGID_BODY_Z_AXIS, 0, "Lock Z Axis", 
+					xco, yco, 180, 19, &ob->gameflag2, 0, 0, 0, 0, 
+					"Disable simulation of linear motion along the Z axis");
+				uiDefButBitI(block, TOG, OB_LOCK_RIGID_BODY_Z_ROT_AXIS, 0, "Lock Z Rot Axis", 
+					xco+=180, yco, 180, 19, &ob->gameflag2, 0, 0, 0, 0, 
+					"Disable simulation of angular motion along the Z axis");
+			}
 			/*
 			uiDefButBitI(block, TOG, OB_BSB_COL_CL_RS, 0, "Cluster Collision RS", 
 				xco, yco, 180, 19, &ob->bsoft->collisionflags, 0, 0, 0, 0, 

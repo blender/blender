@@ -8024,6 +8024,16 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			sce->toolsettings->skgen_retarget_roll = SK_RETARGET_ROLL_VIEW;
 		}
 	}
+
+	if (main->versionfile < 248 || (main->versionfile == 248 && main->subversionfile < 3)) {
+		Object *ob;
+
+		/* Adjustments needed after Bullets update */
+		for(ob = main->object.first; ob; ob= ob->id.next) {
+			ob->damping *= 0.635f;
+			ob->rdamping = 0.1 + (0.59f * ob->rdamping);
+		}
+	}
 	
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in src/usiblender.c! */

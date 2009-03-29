@@ -72,7 +72,7 @@ public:
 		m_meshObject(NULL),
 		m_unscaledShape(NULL),
 		m_useGimpact(false),
-		m_weldingThreshold(0.f),
+		m_weldingThreshold1(0.f),
 		m_shapeProxy(NULL)
 	{
 		m_childTrans.setIdentity();
@@ -171,13 +171,13 @@ public:
 	std::vector<int>		m_triFaceArray;	// Contains an array of triplets of face indicies
 											// quads turn into 2 tris
 
-	void	setVertexWeldingThreshold(float threshold)
+	void	setVertexWeldingThreshold1(float threshold)
 	{
-		m_weldingThreshold  = threshold;
+		m_weldingThreshold1  = threshold;
 	}
-	float	getVertexWeldingThreshold() const
+	float	getVertexWeldingThreshold1() const
 	{
-		return m_weldingThreshold;
+		return m_weldingThreshold1;
 	}
 protected:
 	static std::map<RAS_MeshObject*, CcdShapeConstructionInfo*> m_meshShapeMap;
@@ -188,7 +188,7 @@ protected:
 											// the actual shape is of type btScaledBvhTriangleMeshShape
 	std::vector<CcdShapeConstructionInfo*> m_shapeArray;	// for compound shapes
 	bool	m_useGimpact; //use gimpact for concave dynamic/moving collision detection
-	float	m_weldingThreshold;	//welding closeby vertices together can improve softbody stability etc. // Not used at the moment, maybe remove?
+	float	m_weldingThreshold1;	//welding closeby vertices together can improve softbody stability etc.
 	CcdShapeConstructionInfo* m_shapeProxy;	// only used for PHY_SHAPE_PROXY, pointer to actual shape info
 };
 

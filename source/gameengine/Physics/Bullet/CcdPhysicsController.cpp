@@ -1569,14 +1569,31 @@ btCollisionShape* CcdShapeConstructionInfo::CreateBulletShape()
 			if (!m_unscaledShape)
 			{
 			
-				btTriangleIndexVertexArray* indexVertexArrays = new btTriangleIndexVertexArray(
-						m_polygonIndexArray.size(),
-						&m_triFaceArray[0],
-						3*sizeof(int),
-						m_vertexArray.size(),
-						(btScalar*) &m_vertexArray[0].x(),
-						sizeof(btVector3)
-				);
+				btTriangleIndexVertexArray* indexVertexArrays = 0;
+
+				///enable welding, only for the objects that need it (such as soft bodies)
+				if (0.f != m_weldingThreshold1)
+				{
+					btTriangleMesh* collisionMeshData = new btTriangleMesh(true,false);
+					collisionMeshData->m_weldingThreshold = m_weldingThreshold1;
+					bool removeDuplicateVertices=true;
+					// m_vertexArray is necessarily a multiple of 3
+					for (int i=0;i<m_vertexArray.size(); i+=3 )
+					{
+						collisionMeshData->addTriangle(m_vertexArray[i+2],m_vertexArray[i+1],m_vertexArray[i],removeDuplicateVertices);
+					}
+					indexVertexArrays = collisionMeshData;
+
+				} else
+				{
+					indexVertexArrays = new btTriangleIndexVertexArray(
+							m_polygonIndexArray.size(),
+							&m_triFaceArray[0],
+							3*sizeof(int),
+							m_vertexArray.size(),
+							(btScalar*) &m_vertexArray[0].x(),
+							sizeof(btVector3));
+				}
 				
 				// this shape will be shared and not deleted until shapeInfo is deleted
 				m_unscaledShape = new btBvhTriangleMeshShape( indexVertexArrays, true );
