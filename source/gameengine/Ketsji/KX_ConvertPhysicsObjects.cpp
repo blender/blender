@@ -1106,16 +1106,19 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 
 		if (rbody)
 		{
-			btVector3 linearFactor(
-				objprop->m_lockXaxis? 0 : 1,
-				objprop->m_lockYaxis? 0 : 1,
-				objprop->m_lockZaxis? 0 : 1);
-			btVector3 angularFactor(
-				objprop->m_lockXRotaxis? 0 : 1,
-				objprop->m_lockYRotaxis? 0 : 1,
-				objprop->m_lockZRotaxis? 0 : 1);
-			rbody->setLinearFactor(linearFactor);
-			rbody->setAngularFactor(angularFactor);
+			if (objprop->m_angular_rigidbody)
+			{
+				btVector3 linearFactor(
+					objprop->m_lockXaxis? 0 : 1,
+					objprop->m_lockYaxis? 0 : 1,
+					objprop->m_lockZaxis? 0 : 1);
+				btVector3 angularFactor(
+					objprop->m_lockXRotaxis? 0 : 1,
+					objprop->m_lockYRotaxis? 0 : 1,
+					objprop->m_lockZRotaxis? 0 : 1);
+				rbody->setLinearFactor(linearFactor);
+				rbody->setAngularFactor(angularFactor);
+			}
 
 			if (rbody && objprop->m_disableSleeping)
 			{
