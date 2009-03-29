@@ -246,10 +246,8 @@ PyObject *Interface1D_getTimeStamp( BPy_Interface1D *self ) {
 PyObject *Interface1D_setTimeStamp( BPy_Interface1D *self, PyObject *args) {
 	int timestamp = 0 ;
 
-	if( !PyArg_ParseTuple(args, (char *)"i", &timestamp) ) {
-		cout << "ERROR: Interface1D_setTimeStamp" << endl;
-		Py_RETURN_NONE;
-	}
+	if( !PyArg_ParseTuple(args, "i", &timestamp) )
+		return NULL;
 	
 	self->if1D->setTimeStamp( timestamp );
 
@@ -270,10 +268,8 @@ PyObject * Interface1D_verticesEnd( BPy_Interface1D *self ) {
 PyObject * Interface1D_pointsBegin( BPy_Interface1D *self, PyObject *args ) {
 	float f = 0;
 
-	if(!( PyArg_ParseTuple(args, "|f", &f)  )) {
-		cout << "ERROR: Interface1D_pointsBegin" << endl;
-		Py_RETURN_NONE;
-	}
+	if(!( PyArg_ParseTuple(args, "|f", &f)  ))
+		return NULL;
 	
 	Interface0DIterator if0D_it( self->if1D->pointsBegin(f) );
 	return BPy_Interface0DIterator_from_Interface0DIterator( if0D_it );
@@ -282,10 +278,8 @@ PyObject * Interface1D_pointsBegin( BPy_Interface1D *self, PyObject *args ) {
 PyObject * Interface1D_pointsEnd( BPy_Interface1D *self, PyObject *args ) {
 	float f = 0;
 
-	if(!( PyArg_ParseTuple(args, "|f", &f)  )) {
-		cout << "ERROR: Interface1D_pointsEnd" << endl;
-		Py_RETURN_NONE;
-	}
+	if(!( PyArg_ParseTuple(args, "|f", &f)  ))
+		return NULL;
 	
 	Interface0DIterator if0D_it( self->if1D->pointsEnd(f) );
 	return BPy_Interface0DIterator_from_Interface0DIterator( if0D_it );

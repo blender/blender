@@ -150,11 +150,15 @@ int ViewShape___init__(BPy_ViewShape *self, PyObject *args, PyObject *kwds)
 	if( !obj ) {
 		self->vs = new ViewShape();
 	
-	} else if( BPy_ViewShape_Check(obj) ) {
+	} else if( BPy_SShape_Check(obj) ) {
 		self->vs = new ViewShape( ((BPy_SShape *) obj)->ss );
 	
 	} else if( BPy_ViewShape_Check(obj) ) {
 		self->vs = new ViewShape(*( ((BPy_ViewShape *) obj)->vs ));
+
+	} else {
+		PyErr_SetString(PyExc_TypeError, "invalid argument");
+		return -1;
 	}
 	
     return 0;
@@ -212,10 +216,8 @@ PyObject * ViewShape_getId( BPy_ViewShape *self ) {
 PyObject * ViewShape_setSShape( BPy_ViewShape *self , PyObject *args) {
 	PyObject *py_ss = 0;
 
-	if(!( PyArg_ParseTuple(args, "O", &py_ss) && BPy_SShape_Check(py_ss) )) {
-		cout << "ERROR: ViewShape_SetSShape" << endl;
-		Py_RETURN_NONE;
-	}
+	if(!( PyArg_ParseTuple(args, "O!", &SShape_Type, &py_ss) ))
+		return NULL;
 	
 	self->vs->setSShape( ((BPy_SShape *) py_ss)->ss );
 
@@ -226,10 +228,8 @@ PyObject * ViewShape_setVertices( BPy_ViewShape *self , PyObject *args) {
 	PyObject *list = 0;
 	PyObject *tmp;
 	
-	if(!( PyArg_ParseTuple(args, "O", &list) && PyList_Check(list) )) {
-		cout << "ERROR: ViewShape_SetVertices" << endl;
-		Py_RETURN_NONE;
-	}
+	if(!( PyArg_ParseTuple(args, "O!", &PyList_Type, &list) ))
+		return NULL;
 	
 	vector< ViewVertex *> v;
 	
@@ -237,8 +237,10 @@ PyObject * ViewShape_setVertices( BPy_ViewShape *self , PyObject *args) {
 		tmp = PyList_GetItem(list, i);
 		if( BPy_ViewVertex_Check(tmp) )
 			v.push_back( ((BPy_ViewVertex *) tmp)->vv );
-		else
-			Py_RETURN_NONE;
+		else {
+			PyErr_SetString(PyExc_TypeError, "argument must be list of ViewVertex objects");
+			return NULL;
+		}
 	}
 		
 	self->vs->setVertices( v );
@@ -250,10 +252,8 @@ PyObject * ViewShape_setEdges( BPy_ViewShape *self , PyObject *args) {
 	PyObject *list = 0;
 	PyObject *tmp;
 
-	if(!( PyArg_ParseTuple(args, "O", &list) && PyList_Check(list) )) {
-		cout << "ERROR: ViewShape_SetVertices" << endl;
-		Py_RETURN_NONE;
-	}
+	if(!( PyArg_ParseTuple(args, "O!", &PyList_Type, &list) ))
+		return NULL;
 
 	vector<ViewEdge *> v;
 
@@ -261,8 +261,10 @@ PyObject * ViewShape_setEdges( BPy_ViewShape *self , PyObject *args) {
 		tmp = PyList_GetItem(list, i);
 		if( BPy_ViewEdge_Check(tmp) )
 			v.push_back( ((BPy_ViewEdge *) tmp)->ve );
-		else
-			Py_RETURN_NONE;
+		else {
+			PyErr_SetString(PyExc_TypeError, "argument must be list of ViewEdge objects");
+			return NULL;
+		}
 	}
 
 	self->vs->setEdges( v );
@@ -273,10 +275,8 @@ PyObject * ViewShape_setEdges( BPy_ViewShape *self , PyObject *args) {
 PyObject * ViewShape_AddEdge( BPy_ViewShape *self , PyObject *args) {
 	PyObject *py_ve = 0;
 
-	if(!( PyArg_ParseTuple(args, "O", &py_ve) && BPy_ViewEdge_Check(py_ve) )) {
-		cout << "ERROR: ViewShape_AddEdge" << endl;
-		Py_RETURN_NONE;
-	}
+	if(!( PyArg_ParseTuple(args, "O!", &ViewEdge_Type, &py_ve) ))
+		return NULL;
 	
 	self->vs->AddEdge( ((BPy_ViewEdge *) py_ve)->ve );
 
@@ -286,10 +286,8 @@ PyObject * ViewShape_AddEdge( BPy_ViewShape *self , PyObject *args) {
 PyObject * ViewShape_AddVertex( BPy_ViewShape *self , PyObject *args) {
 	PyObject *py_vv = 0;
 
-	if(!( PyArg_ParseTuple(args, "O", &py_vv) && BPy_ViewVertex_Check(py_vv) )) {
-		cout << "ERROR: ViewShape_AddNewVertex" << endl;
-		Py_RETURN_NONE;
-	}
+	if(!( PyArg_ParseTuple(args, "O!", &ViewVertex_Type, &py_vv) ))
+		return NULL;
 	
 	self->vs->AddVertex( ((BPy_ViewVertex *) py_vv)->vv );
 

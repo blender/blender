@@ -144,15 +144,15 @@ PyMODINIT_FUNC SShape_Init( PyObject *module )
 
 int SShape___init__(BPy_SShape *self, PyObject *args, PyObject *kwds)
 {
-	PyObject *obj;
+	PyObject *obj = NULL;
 
-    if (! PyArg_ParseTuple(args, "|O", &obj) )
+    if (! PyArg_ParseTuple(args, "|O!", &SShape_Type, &obj) )
         return -1;
 
 	if( !obj ) {
 		self->ss = new SShape();
 	
-	} else if( BPy_SShape_Check(obj) ) {
+	} else {
 		self->ss = new SShape(*( ((BPy_SShape *) obj)->ss ));
 	}
 	
@@ -173,10 +173,8 @@ PyObject * SShape___repr__(BPy_SShape *self)
 PyObject * SShape_AddEdge( BPy_SShape *self , PyObject *args) {
 	PyObject *py_fe = 0;
 
-	if(!( PyArg_ParseTuple(args, "O", &py_fe) && BPy_FEdge_Check(py_fe) )) {
-		cout << "ERROR: SShape_AddEdge" << endl;
-		Py_RETURN_NONE;
-	}
+	if(!( PyArg_ParseTuple(args, "O!", &FEdge_Type, &py_fe) ))
+		return NULL;
 	
 	self->ss->AddEdge( ((BPy_FEdge *) py_fe)->fe );
 
@@ -186,10 +184,8 @@ PyObject * SShape_AddEdge( BPy_SShape *self , PyObject *args) {
 PyObject * SShape_AddNewVertex( BPy_SShape *self , PyObject *args) {
 	PyObject *py_sv = 0;
 
-	if(!( PyArg_ParseTuple(args, "O", &py_sv) && BPy_SVertex_Check(py_sv) )) {
-		cout << "ERROR: SShape_AddNewVertex" << endl;
-		Py_RETURN_NONE;
-	}
+	if(!( PyArg_ParseTuple(args, "O1", &SVertex_Type, &py_sv) ))
+		return NULL;
 	
 	self->ss->AddNewVertex( ((BPy_SVertex *) py_sv)->sv );
 
@@ -199,10 +195,8 @@ PyObject * SShape_AddNewVertex( BPy_SShape *self , PyObject *args) {
 PyObject * SShape_setBBox( BPy_SShape *self , PyObject *args) {
 	PyObject *py_bb = 0;
 
-	if(!( PyArg_ParseTuple(args, "O", &py_bb) && BPy_BBox_Check(py_bb) )) {
-		cout << "ERROR: SShape_SetBBox" << endl;
-		Py_RETURN_NONE;
-	}
+	if(!( PyArg_ParseTuple(args, "O!", &BBox_Type, &py_bb) ))
+		return NULL;
 	
 	self->ss->setBBox(*( ((BPy_BBox*) py_bb)->bb ));
 
@@ -256,10 +250,8 @@ PyObject * SShape_getId( BPy_SShape *self ) {
 PyObject * SShape_setId( BPy_SShape *self , PyObject *args) {
 	PyObject *py_id;
 
-	if(!( PyArg_ParseTuple(args, "O", &py_id) && BPy_Id_Check(py_id) )) {
-		cout << "ERROR: SShape_setId" << endl;
-		Py_RETURN_NONE;
-	}
+	if(!( PyArg_ParseTuple(args, "O!", &Id_Type, &py_id) ))
+		return NULL;
 
 	self->ss->setId(*( ((BPy_Id *) py_id)->id ));
 

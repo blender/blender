@@ -196,6 +196,7 @@ int StrokeAttribute___init__(BPy_StrokeAttribute *self, PyObject *args, PyObject
 											PyFloat_AsDouble( obj6 ) );
 
 	} else {
+		PyErr_SetString(PyExc_TypeError, "invalid arguments");
 		return -1;
 	}
 
@@ -266,10 +267,8 @@ PyObject *StrokeAttribute_isVisible( BPy_StrokeAttribute *self ) {
 PyObject *StrokeAttribute_getAttributeReal( BPy_StrokeAttribute *self, PyObject *args ) {
 	char *attr;
 
-	if(!( PyArg_ParseTuple(args, "s", &attr) )) {
-		cout << "ERROR: StrokeAttribute_getAttributeReal" << endl;
-		Py_RETURN_NONE;
-	}
+	if(!( PyArg_ParseTuple(args, "s", &attr) ))
+		return NULL;
 
 	double a = self->sa->getAttributeReal( attr );
 	return PyFloat_FromDouble( a );
@@ -278,10 +277,8 @@ PyObject *StrokeAttribute_getAttributeReal( BPy_StrokeAttribute *self, PyObject 
 PyObject *StrokeAttribute_getAttributeVec2f( BPy_StrokeAttribute *self, PyObject *args ) {
 	char *attr;
 
-	if(!( PyArg_ParseTuple(args, "s", &attr) )) {
-		cout << "ERROR: StrokeAttribute_getAttributeVec2f" << endl;
-		Py_RETURN_NONE;
-	}
+	if(!( PyArg_ParseTuple(args, "s", &attr) ))
+		return NULL;
 
 	Vec2f a = self->sa->getAttributeVec2f( attr );
 	return Vector_from_Vec2f( a );
@@ -291,10 +288,8 @@ PyObject *StrokeAttribute_getAttributeVec2f( BPy_StrokeAttribute *self, PyObject
 PyObject *StrokeAttribute_getAttributeVec3f( BPy_StrokeAttribute *self, PyObject *args ) {
 	char *attr;
 
-	if(!( PyArg_ParseTuple(args, "s", &attr) )) {
-		cout << "ERROR: StrokeAttribute_getAttributeVec3f" << endl;
-		Py_RETURN_NONE;
-	}
+	if(!( PyArg_ParseTuple(args, "s", &attr) ))
+		return NULL;
 
 	Vec3f a = self->sa->getAttributeVec3f( attr );
 	return Vector_from_Vec3f( a );
@@ -303,10 +298,8 @@ PyObject *StrokeAttribute_getAttributeVec3f( BPy_StrokeAttribute *self, PyObject
 PyObject *StrokeAttribute_isAttributeAvailableReal( BPy_StrokeAttribute *self, PyObject *args ) {
 	char *attr;
 
-	if(!( PyArg_ParseTuple(args, "s", &attr) )) {
-		cout << "ERROR: StrokeAttribute_isAttributeAvailableReal" << endl;
-		Py_RETURN_NONE;
-	}
+	if(!( PyArg_ParseTuple(args, "s", &attr) ))
+		return NULL;
 
 	return PyBool_from_bool( self->sa->isAttributeAvailableReal( attr ) );
 }
@@ -314,10 +307,8 @@ PyObject *StrokeAttribute_isAttributeAvailableReal( BPy_StrokeAttribute *self, P
 PyObject *StrokeAttribute_isAttributeAvailableVec2f( BPy_StrokeAttribute *self, PyObject *args ) {
 	char *attr;
 
-	if(!( PyArg_ParseTuple(args, "s", &attr) )) {
-		cout << "ERROR: StrokeAttribute_isAttributeAvailableVec2f" << endl;
-		Py_RETURN_NONE;
-	}
+	if(!( PyArg_ParseTuple(args, "s", &attr) ))
+		return NULL;
 
 	return PyBool_from_bool( self->sa->isAttributeAvailableVec2f( attr ) );
 }
@@ -325,10 +316,8 @@ PyObject *StrokeAttribute_isAttributeAvailableVec2f( BPy_StrokeAttribute *self, 
 PyObject *StrokeAttribute_isAttributeAvailableVec3f( BPy_StrokeAttribute *self, PyObject *args ) {
 	char *attr;
 
-	if(!( PyArg_ParseTuple(args, "s", &attr) )) {
-		cout << "ERROR: StrokeAttribute_isAttributeAvailableVec3f" << endl;
-		Py_RETURN_NONE;
-	}
+	if(!( PyArg_ParseTuple(args, "s", &attr) ))
+		return NULL;
 
 	return PyBool_from_bool( self->sa->isAttributeAvailableVec3f( attr ) );
 }
@@ -337,10 +326,8 @@ PyObject *StrokeAttribute_isAttributeAvailableVec3f( BPy_StrokeAttribute *self, 
 PyObject * StrokeAttribute_setColor( BPy_StrokeAttribute *self, PyObject *args ) {
 	PyObject *obj1 = 0, *obj2 = 0, *obj3 = 0 ;
 
-	if(!( PyArg_ParseTuple(args, "O|OO", &obj1, &obj2, &obj3) )) {
-		cout << "ERROR: StrokeAttribute_setColor" << endl;
-		Py_RETURN_NONE;
-	}
+	if(!( PyArg_ParseTuple(args, "O|OO", &obj1, &obj2, &obj3) ))
+		return NULL;
 	
 	if( PyList_Check(obj1) && !obj2 && !obj3 ){
 		
@@ -355,6 +342,10 @@ PyObject * StrokeAttribute_setColor( BPy_StrokeAttribute *self, PyObject *args )
 		self->sa->setColor(	PyFloat_AsDouble(obj1),
 							PyFloat_AsDouble(obj2),
 							PyFloat_AsDouble(obj3) );
+
+	} else {
+		PyErr_SetString(PyExc_TypeError, "invalid arguments");
+		return NULL;
 	}
 	
 	Py_RETURN_NONE;
@@ -363,10 +354,8 @@ PyObject * StrokeAttribute_setColor( BPy_StrokeAttribute *self, PyObject *args )
 PyObject * StrokeAttribute_setAlpha( BPy_StrokeAttribute *self, PyObject *args ){
 	float f = 0;
 
-	if(!( PyArg_ParseTuple(args, "f", &f) )) {
-		cout << "ERROR: StrokeAttribute_setAlpha" << endl;
-		Py_RETURN_NONE;
-	}
+	if(!( PyArg_ParseTuple(args, "f", &f) ))
+		return NULL;
 	
 	self->sa->setAlpha( f );
 	Py_RETURN_NONE;
@@ -375,10 +364,8 @@ PyObject * StrokeAttribute_setAlpha( BPy_StrokeAttribute *self, PyObject *args )
 PyObject * StrokeAttribute_setThickness( BPy_StrokeAttribute *self, PyObject *args )  {
 	PyObject *obj1 = 0, *obj2 = 0;
 
-	if(!( PyArg_ParseTuple(args, "O|O", &obj1, &obj2) )) {
-		cout << "ERROR: StrokeAttribute_setThickness" << endl;
-		Py_RETURN_NONE;
-	}
+	if(!( PyArg_ParseTuple(args, "O|O", &obj1, &obj2) ))
+		return NULL;
 
 	if( PyList_Check(obj1) && !obj2 ){
 		
@@ -391,6 +378,10 @@ PyObject * StrokeAttribute_setThickness( BPy_StrokeAttribute *self, PyObject *ar
 					
 		self->sa->setThickness(	PyFloat_AsDouble(obj1),
 								PyFloat_AsDouble(obj2) );
+
+	} else {
+		PyErr_SetString(PyExc_TypeError, "invalid arguments");
+		return NULL;
 	}
 	
 	Py_RETURN_NONE;
@@ -399,10 +390,8 @@ PyObject * StrokeAttribute_setThickness( BPy_StrokeAttribute *self, PyObject *ar
 PyObject * StrokeAttribute_setVisible( BPy_StrokeAttribute *self, PyObject *args ) {
 	PyObject *py_b;
 
-	if(!( PyArg_ParseTuple(args, "O", &py_b) && PyBool_Check(py_b) )) {
-		cout << "ERROR: StrokeAttribute_setVisible" << endl;
-		Py_RETURN_NONE;
-	}
+	if(!( PyArg_ParseTuple(args, "O!", &PyBool_Type, &py_b) ))
+		return NULL;
 
 	self->sa->setVisible( bool_from_PyBool(py_b) );
 
@@ -414,10 +403,8 @@ PyObject * StrokeAttribute_setAttributeReal( BPy_StrokeAttribute *self, PyObject
 	char *s = 0;
 	double d = 0;
 
-	if(!( PyArg_ParseTuple(args, "sd", &s, &d) )) {
-		cout << "ERROR: StrokeAttribute_setAttributeReal" << endl;
-		Py_RETURN_NONE;
-	}
+	if(!( PyArg_ParseTuple(args, "sd", &s, &d) ))
+		return NULL;
 
 	self->sa->setAttributeReal( s, d );
 	Py_RETURN_NONE;
@@ -427,10 +414,8 @@ PyObject * StrokeAttribute_setAttributeVec2f( BPy_StrokeAttribute *self, PyObjec
 	char *s;
 	PyObject *obj = 0;
 
-	if(!( PyArg_ParseTuple(args, "sO", &s, &obj) )) {
-		cout << "ERROR: StrokeAttribute_setAttributeVec2f" << endl;
-		Py_RETURN_NONE;
-	}
+	if(!( PyArg_ParseTuple(args, "sO", &s, &obj) ))
+		return NULL;
 
 	if( PyList_Check(obj) && PyList_Size(obj) > 1) {
 
@@ -438,6 +423,10 @@ PyObject * StrokeAttribute_setAttributeVec2f( BPy_StrokeAttribute *self, PyObjec
 					PyFloat_AsDouble( PyList_GetItem(obj, 1) )  );
 
 		self->sa->setAttributeVec2f( s, v );
+
+	} else {
+		PyErr_SetString(PyExc_TypeError, "invalid arguments");
+		return NULL;
 	}
 	
 	Py_RETURN_NONE;
@@ -447,10 +436,8 @@ PyObject * StrokeAttribute_setAttributeVec3f( BPy_StrokeAttribute *self, PyObjec
 	char *s;
 	PyObject *obj = 0;
 
-	if(!( PyArg_ParseTuple(args, "sO", &s, &obj) )) {
-		cout << "ERROR: StrokeAttribute_setAttributeVec3f" << endl;
-		Py_RETURN_NONE;
-	}
+	if(!( PyArg_ParseTuple(args, "sO", &s, &obj) ))
+		return NULL;
 
 	if( PyList_Check(obj)  && PyList_Size(obj) > 2 ) {
 
@@ -459,6 +446,10 @@ PyObject * StrokeAttribute_setAttributeVec3f( BPy_StrokeAttribute *self, PyObjec
 					PyFloat_AsDouble( PyList_GetItem(obj, 2) )  );
 
 		self->sa->setAttributeVec3f( s, v );
+
+	} else {
+		PyErr_SetString(PyExc_TypeError, "invalid arguments");
+		return NULL;
 	}
 
 	Py_RETURN_NONE;

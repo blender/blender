@@ -143,9 +143,11 @@ int CurvePoint___init__(BPy_CurvePoint *self, PyObject *args, PyObject *kwds)
 										((BPy_CurvePoint *) obj2)->cp,
 										PyFloat_AsDouble( obj3 ) );
 		} else {
+			PyErr_SetString(PyExc_TypeError, "invalid argument(s)");
 			return -1;	
 		}		
 	} else {
+		PyErr_SetString(PyExc_TypeError, "invalid argument(s)");
 		return -1;
 	}
 
@@ -186,10 +188,8 @@ PyObject * CurvePoint_t2d( BPy_CurvePoint *self ) {
 PyObject *CurvePoint_setA( BPy_CurvePoint *self , PyObject *args) {
 	PyObject *py_sv;
 
-	if(!( PyArg_ParseTuple(args, "O", &py_sv) && BPy_SVertex_Check(py_sv)  )) {
-		cout << "ERROR: CurvePoint_setA" << endl;
-		Py_RETURN_NONE;
-	}
+	if(!( PyArg_ParseTuple(args, "O!", &SVertex_Type, &py_sv) ))
+		return NULL;
 
 	self->cp->setA( ((BPy_SVertex *) py_sv)->sv );
 
@@ -199,10 +199,8 @@ PyObject *CurvePoint_setA( BPy_CurvePoint *self , PyObject *args) {
 PyObject *CurvePoint_setB( BPy_CurvePoint *self , PyObject *args) {
 	PyObject *py_sv;
 
-	if(!( PyArg_ParseTuple(args, "O", &py_sv) && BPy_SVertex_Check(py_sv)  )) {
-		cout << "ERROR: CurvePoint_setB" << endl;
-		Py_RETURN_NONE;
-	}
+	if(!( PyArg_ParseTuple(args, "O!", &SVertex_Type, &py_sv) ))
+		return NULL;
 
 	self->cp->setB( ((BPy_SVertex *) py_sv)->sv );
 
@@ -212,10 +210,8 @@ PyObject *CurvePoint_setB( BPy_CurvePoint *self , PyObject *args) {
 PyObject *CurvePoint_setT2d( BPy_CurvePoint *self , PyObject *args) {
 	float t;
 
-	if( !PyArg_ParseTuple(args, "f", &t) ) {
-		cout << "ERROR: CurvePoint_setT2d" << endl;
-		Py_RETURN_NONE;
-	}
+	if(!( PyArg_ParseTuple(args, "f", &t) ))
+		return NULL;
 
 	self->cp->setT2d( t );
 

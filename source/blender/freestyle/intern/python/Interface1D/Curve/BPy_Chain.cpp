@@ -150,10 +150,8 @@ int Chain___init__(BPy_Chain *self, PyObject *args, PyObject *kwds)
 PyObject * Chain_push_viewedge_back( BPy_Chain *self, PyObject *args ) {
 	PyObject *obj1 = 0, *obj2 = 0;
 
-	if(!( PyArg_ParseTuple(args, "OO", &obj1, &obj2) &&	BPy_ViewEdge_Check(obj1) && PyBool_Check(obj2) )) {
-		cout << "ERROR: Chain_push_viewedge_back" << endl;
-		Py_RETURN_NONE;
-	}
+	if(!( PyArg_ParseTuple(args, "O!O!", &ViewEdge_Type, &obj1, &PyBool_Type, &obj2) ))
+		return NULL;
 
 	ViewEdge *ve = ((BPy_ViewEdge *) obj1)->ve;
 	bool orientation = bool_from_PyBool( obj2 );
@@ -165,10 +163,8 @@ PyObject * Chain_push_viewedge_back( BPy_Chain *self, PyObject *args ) {
 PyObject * Chain_push_viewedge_front( BPy_Chain *self, PyObject *args ) {
 	PyObject *obj1 = 0, *obj2 = 0;
 
-	if(!( PyArg_ParseTuple(args, "OO", &obj1, &obj2) &&	BPy_ViewEdge_Check(obj1) && PyBool_Check(obj2) )) {
-		cout << "ERROR: Chain_push_viewedge_front" << endl;
-		Py_RETURN_NONE;
-	}
+	if(!( PyArg_ParseTuple(args, "O!O!", &ViewEdge_Type, &obj1, &PyBool_Type, &obj2) ))
+		return NULL;
 
 	ViewEdge *ve = ((BPy_ViewEdge *) obj1)->ve;
 	bool orientation = bool_from_PyBool( obj2 );

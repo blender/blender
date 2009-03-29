@@ -249,10 +249,8 @@ PyObject *Interface0D_getPoint2D( BPy_Interface0D *self ) {
 PyObject *Interface0D_getFEdge( BPy_Interface0D *self, PyObject *args ) {
 	PyObject *py_if0D;
 
-	if(!( PyArg_ParseTuple(args, "O", &py_if0D) && BPy_Interface0D_Check(py_if0D) )) {
-		cout << "ERROR: Interface0D_getFEdge" << endl;
-		Py_RETURN_NONE;
-	}
+	if(!( PyArg_ParseTuple(args, "O!", &Interface0D_Type, &py_if0D) ))
+		return NULL;
 
 	FEdge *fe = self->if0D->getFEdge(*( ((BPy_Interface0D *) py_if0D)->if0D ));
 	if( fe )

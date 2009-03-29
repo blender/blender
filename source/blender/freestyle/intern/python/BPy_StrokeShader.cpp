@@ -285,10 +285,8 @@ PyObject * StrokeShader_getName( BPy_StrokeShader *self, PyObject *args)
 PyObject *StrokeShader_shade( BPy_StrokeShader *self , PyObject *args) {
 	PyObject *py_s = 0;
 
-	if(!( PyArg_ParseTuple(args, "O", &py_s) && BPy_Stroke_Check(py_s) )) {
-		cout << "ERROR: StrokeShader_shade" << endl;
-		Py_RETURN_NONE;
-	}
+	if(!( PyArg_ParseTuple(args, "O!", &Stroke_Type, &py_s) ))
+		return NULL;
 	
 	self->ss->shade(*( ((BPy_Stroke *) py_s)->s ));
 

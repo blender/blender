@@ -150,10 +150,8 @@ PyObject * ViewMap___repr__(BPy_ViewMap *self)
 PyObject * ViewMap_getClosestViewEdge( BPy_ViewMap *self , PyObject *args) {
 	double x, y;
 
-	if(!( PyArg_ParseTuple(args, "dd", &x, &y) )) {
-		cout << "ERROR: ViewMap_getClosestFEdge" << endl;
-		Py_RETURN_NONE;
-	}
+	if(!( PyArg_ParseTuple(args, "dd", &x, &y) ))
+		return NULL;
 
 	ViewEdge *ve = const_cast<ViewEdge *>( self->vm->getClosestViewEdge(x,y) );
 	if( ve )
@@ -165,10 +163,8 @@ PyObject * ViewMap_getClosestViewEdge( BPy_ViewMap *self , PyObject *args) {
 PyObject * ViewMap_getClosestFEdge( BPy_ViewMap *self , PyObject *args) {
 	double x, y;
 
-	if(!( PyArg_ParseTuple(args, "dd", &x, &y) )) {
-		cout << "ERROR: ViewMap_getClosestFEdge" << endl;
-		Py_RETURN_NONE;
-	}
+	if(!( PyArg_ParseTuple(args, "dd", &x, &y) ))
+		return NULL;
 
 	FEdge *fe = const_cast<FEdge *>( self->vm->getClosestFEdge(x,y) );
 	if( fe )
@@ -185,10 +181,8 @@ PyObject * ViewMap_getScene3dBBox( BPy_ViewMap *self , PyObject *args) {
 PyObject * ViewMap_setScene3dBBox( BPy_ViewMap *self , PyObject *args) {
 	PyObject *py_bb = 0;
 
-	if(!( PyArg_ParseTuple(args, "O", &py_bb) && BPy_BBox_Check(py_bb) )) {
-		cout << "ERROR: ViewMap_setScene3dBBox" << endl;
-		Py_RETURN_NONE;
-	}
+	if(!( PyArg_ParseTuple(args, "O!", &BBox_Type, &py_bb) ))
+		return NULL;
 
 	self->vm->setScene3dBBox(*( ((BPy_BBox *) py_bb)->bb ));
 
