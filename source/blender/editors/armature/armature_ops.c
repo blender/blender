@@ -186,17 +186,17 @@ void ED_keymap_armature(wmWindowManager *wm)
 
 	kmi= WM_keymap_add_item(keymap, "ARMATURE_OT_select_hierarchy", LEFTBRACKETKEY, KM_PRESS, 0, 0);
 	RNA_enum_set(kmi->ptr, "direction", BONE_SELECT_PARENT);
-	RNA_boolean_set(kmi->ptr, "add_to_sel", 0);
+	RNA_boolean_set(kmi->ptr, "extend", 0);
 	kmi= WM_keymap_add_item(keymap, "ARMATURE_OT_select_hierarchy", LEFTBRACKETKEY, KM_PRESS, KM_SHIFT, 0);
 	RNA_enum_set(kmi->ptr, "direction", BONE_SELECT_PARENT);
-	RNA_boolean_set(kmi->ptr, "add_to_sel", 1);
+	RNA_boolean_set(kmi->ptr, "extend", 1);
 	
 	kmi= WM_keymap_add_item(keymap, "ARMATURE_OT_select_hierarchy", RIGHTBRACKETKEY, KM_PRESS, 0, 0);
 	RNA_enum_set(kmi->ptr, "direction", BONE_SELECT_CHILD);
-	RNA_boolean_set(kmi->ptr, "add_to_sel", 0);
+	RNA_boolean_set(kmi->ptr, "extend", 0);
 	kmi= WM_keymap_add_item(keymap, "ARMATURE_OT_select_hierarchy", RIGHTBRACKETKEY, KM_PRESS, KM_SHIFT, 0);
 	RNA_enum_set(kmi->ptr, "direction", BONE_SELECT_CHILD);
-	RNA_boolean_set(kmi->ptr, "add_to_sel", 1);
+	RNA_boolean_set(kmi->ptr, "extend", 1);
 
 	WM_keymap_add_item(keymap, "ARMATURE_OT_select_linked", LKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "ARMATURE_OT_delete", XKEY, KM_PRESS, 0, 0);
@@ -232,17 +232,17 @@ void ED_keymap_armature(wmWindowManager *wm)
 
 	kmi= WM_keymap_add_item(keymap, "POSE_OT_select_hierarchy", LEFTBRACKETKEY, KM_PRESS, 0, 0);
 	RNA_enum_set(kmi->ptr, "direction", BONE_SELECT_PARENT);
-	RNA_boolean_set(kmi->ptr, "add_to_sel", 0);
+	RNA_boolean_set(kmi->ptr, "extend", 0);
 	kmi= WM_keymap_add_item(keymap, "POSE_OT_select_hierarchy", LEFTBRACKETKEY, KM_PRESS, KM_SHIFT, 0);
 	RNA_enum_set(kmi->ptr, "direction", BONE_SELECT_PARENT);
-	RNA_boolean_set(kmi->ptr, "add_to_sel", 1);
+	RNA_boolean_set(kmi->ptr, "extend", 1);
 	
 	kmi= WM_keymap_add_item(keymap, "POSE_OT_select_hierarchy", RIGHTBRACKETKEY, KM_PRESS, 0, 0);
 	RNA_enum_set(kmi->ptr, "direction", BONE_SELECT_CHILD);
-	RNA_boolean_set(kmi->ptr, "add_to_sel", 0);
+	RNA_boolean_set(kmi->ptr, "extend", 0);
 	kmi= WM_keymap_add_item(keymap, "POSE_OT_select_hierarchy", RIGHTBRACKETKEY, KM_PRESS, KM_SHIFT, 0);
 	RNA_enum_set(kmi->ptr, "direction", BONE_SELECT_CHILD);
-	RNA_boolean_set(kmi->ptr, "add_to_sel", 1);
+	RNA_boolean_set(kmi->ptr, "extend", 1);
 
 	WM_keymap_add_item(keymap, "POSE_OT_select_linked", LKEY, KM_PRESS, 0, 0);
 }

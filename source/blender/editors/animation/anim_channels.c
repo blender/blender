@@ -1440,7 +1440,7 @@ void ED_keymap_animchannels(wmWindowManager *wm)
 		/* click-select */
 		// XXX for now, only leftmouse.... 
 	WM_keymap_add_item(keymap, "ANIM_OT_channels_mouseclick", LEFTMOUSE, KM_PRESS, 0, 0);
-	RNA_boolean_set(WM_keymap_add_item(keymap, "ANIM_OT_channels_mouseclick", LEFTMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "select", 1);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "ANIM_OT_channels_mouseclick", LEFTMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "extend", 1);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "ANIM_OT_channels_mouseclick", LEFTMOUSE, KM_PRESS, KM_CTRL|KM_SHIFT, 0)->ptr, "children_only", 1);
 	
 		/* deselect all */

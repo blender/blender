@@ -452,7 +452,7 @@ static int pose_select_hierarchy_exec(bContext *C, wmOperator *op)
 	bPoseChannel *pchan;
 	Bone *curbone, *pabone, *chbone;
 	int direction = RNA_enum_get(op->ptr, "direction");
-	int add_to_sel = RNA_boolean_get(op->ptr, "add_to_sel");
+	int add_to_sel = RNA_boolean_get(op->ptr, "extend");
 	
 	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
 		curbone= pchan->bone;
@@ -519,7 +519,7 @@ void POSE_OT_select_hierarchy(wmOperatorType *ot)
 	/* props */
 	RNA_def_enum(ot->srna, "direction", direction_items,
 				 BONE_SELECT_PARENT, "Direction", "");
-	RNA_def_boolean(ot->srna, "add_to_sel", 0, "Add to Selection", "");
+	RNA_def_boolean(ot->srna, "extend", 0, "Add to Selection", "");
 	
 }
 

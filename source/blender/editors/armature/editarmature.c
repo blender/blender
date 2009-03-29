@@ -3920,7 +3920,7 @@ static int armature_select_hierarchy_exec(bContext *C, wmOperator *op)
 	bArmature *arm;
 	EditBone *curbone, *pabone, *chbone;
 	int direction = RNA_enum_get(op->ptr, "direction");
-	int add_to_sel = RNA_boolean_get(op->ptr, "add_to_sel");
+	int add_to_sel = RNA_boolean_get(op->ptr, "extend");
 	
 	ob= obedit;
 	arm= (bArmature *)ob->data;

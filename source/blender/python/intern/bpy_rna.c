@@ -161,7 +161,7 @@ PyObject * pyrna_prop_to_py(PointerRNA *ptr, PropertyRNA *prop)
 		ret = PyBool_FromLong( RNA_property_boolean_get(ptr, prop) );
 		break;
 	case PROP_INT:
-		ret = PyLong_FromSize_t( (size_t)RNA_property_int_get(ptr, prop) );
+		ret = PyLong_FromSsize_t( (Py_ssize_t)RNA_property_int_get(ptr, prop) );
 		break;
 	case PROP_FLOAT:
 		ret = PyFloat_FromDouble( RNA_property_float_get(ptr, prop) );
@@ -424,7 +424,7 @@ static PyObject * pyrna_prop_to_py_index(PointerRNA *ptr, PropertyRNA *prop, int
 		ret = PyBool_FromLong( RNA_property_boolean_get_index(ptr, prop, index) );
 		break;
 	case PROP_INT:
-		ret = PyLong_FromSize_t( (size_t)RNA_property_int_get_index(ptr, prop, index) );
+		ret = PyLong_FromSsize_t( (Py_ssize_t)RNA_property_int_get_index(ptr, prop, index) );
 		break;
 	case PROP_FLOAT:
 		ret = PyFloat_FromDouble( RNA_property_float_get_index(ptr, prop, index) );

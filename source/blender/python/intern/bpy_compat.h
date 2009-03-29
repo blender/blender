@@ -37,7 +37,7 @@
 #undef PyUnicode_Check
 #define PyUnicode_Check PyString_Check
 
-#define PyLong_FromSize_t PyInt_FromLong
+#define PyLong_FromSsize_t PyInt_FromLong
 #define PyLong_AsSsize_t PyInt_AsLong
 
 #undef PyLong_Check
