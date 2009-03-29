@@ -105,12 +105,12 @@ int ThicknessVariationPatternShader___init__( BPy_ThicknessVariationPatternShade
 	float f2 = 1.0, f3 = 5.0;
 	PyObject *obj4 = 0;
 
-	if(!( PyArg_ParseTuple(args, "s|ffO", &s1, &f2, &f3, &obj4) )) {
+	if(!( PyArg_ParseTuple(args, "s|ffO!", &s1, &f2, &f3, &PyBool_Type, &obj4) )) {
 		cout << "ERROR: ThicknessVariationPatternShader___init__" << endl;		
 		return -1;
 	}
 
-	bool b = (obj4 && PyBool_Check(obj4)) ? bool_from_PyBool(obj4) : true;
+	bool b = (obj4) ? bool_from_PyBool(obj4) : true;
 	self->py_ss.ss = new StrokeShaders::ThicknessVariationPatternShader(s1, f2, f3, b);
 	return 0;
 

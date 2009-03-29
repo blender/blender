@@ -153,10 +153,8 @@ PyObject *ChainingIterator_init( BPy_ChainingIterator *self ) {
 PyObject *ChainingIterator_traverse( BPy_ChainingIterator *self, PyObject *args ) {
 	PyObject *py_a_it;
 
-	if(!( PyArg_ParseTuple(args, "O", &py_a_it) && BPy_AdjacencyIterator_Check(py_a_it) )) {
-		cout << "ERROR: ChainingIterator_traverse" << endl;
-		Py_RETURN_NONE;
-	}
+	if(!( PyArg_ParseTuple(args, "O!", &AdjacencyIterator_Type, &py_a_it) ))
+		return NULL;
 	
 	if( ((BPy_AdjacencyIterator *) py_a_it)->a_it )
 		self->c_it->traverse(*( ((BPy_AdjacencyIterator *) py_a_it)->a_it ));

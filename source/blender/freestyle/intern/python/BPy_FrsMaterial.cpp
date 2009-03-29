@@ -193,6 +193,7 @@ int FrsMaterial___init__(BPy_FrsMaterial *self, PyObject *args, PyObject *kwds)
 		self->m = new FrsMaterial(&f1, &f2, &f3, &f4, f5);
 
 	} else {
+		PyErr_SetString(PyExc_TypeError, "invalid arguments");
 		return -1;
 	}
 
@@ -338,10 +339,8 @@ PyObject * FrsMaterial_shininess( BPy_FrsMaterial* self) {
 PyObject * FrsMaterial_setDiffuse( BPy_FrsMaterial *self, PyObject *args ) {
 	float f1, f2, f3, f4;
 
-	if(!( PyArg_ParseTuple(args, "ffff", &f1, &f2, &f3, &f4)  )) {
-		cout << "ERROR: FrsMaterial_setDiffuse" << endl;
-		Py_RETURN_NONE;
-	}
+	if(!( PyArg_ParseTuple(args, "ffff", &f1, &f2, &f3, &f4)  ))
+		return NULL;
 
 	self->m->setDiffuse(f1, f2, f3, f4);
 
@@ -351,10 +350,8 @@ PyObject * FrsMaterial_setDiffuse( BPy_FrsMaterial *self, PyObject *args ) {
 PyObject * FrsMaterial_setSpecular( BPy_FrsMaterial *self, PyObject *args ) {
 	float f1, f2, f3, f4;
 
-	if(!( PyArg_ParseTuple(args, "ffff", &f1, &f2, &f3, &f4)  )) {
-		cout << "ERROR: FrsMaterial_setSpecular" << endl;
-		Py_RETURN_NONE;
-	}
+	if(!( PyArg_ParseTuple(args, "ffff", &f1, &f2, &f3, &f4)  ))
+		return NULL;
 
 	self->m->setSpecular(f1, f2, f3, f4);
 
@@ -364,10 +361,8 @@ PyObject * FrsMaterial_setSpecular( BPy_FrsMaterial *self, PyObject *args ) {
 PyObject * FrsMaterial_setAmbient( BPy_FrsMaterial *self, PyObject *args ) {
 	float f1, f2, f3, f4;
 
-	if(!( PyArg_ParseTuple(args, "ffff", &f1, &f2, &f3, &f4)  )) {
-		cout << "ERROR: FrsMaterial_setAmbient" << endl;
-		Py_RETURN_NONE;
-	}
+	if(!( PyArg_ParseTuple(args, "ffff", &f1, &f2, &f3, &f4)  ))
+		return NULL;
 
 	self->m->setAmbient(f1, f2, f3, f4);
 
@@ -377,10 +372,8 @@ PyObject * FrsMaterial_setAmbient( BPy_FrsMaterial *self, PyObject *args ) {
 PyObject * FrsMaterial_setEmission( BPy_FrsMaterial *self, PyObject *args ) {
 	float f1, f2, f3, f4;
 
-	if(!( PyArg_ParseTuple(args, "ffff", &f1, &f2, &f3, &f4)  )) {
-		cout << "ERROR: FrsMaterial_setEmission" << endl;
-		Py_RETURN_NONE;
-	}
+	if(!( PyArg_ParseTuple(args, "ffff", &f1, &f2, &f3, &f4)  ))
+		return NULL;
 
 	self->m->setEmission(f1, f2, f3, f4);
 
@@ -390,10 +383,8 @@ PyObject * FrsMaterial_setEmission( BPy_FrsMaterial *self, PyObject *args ) {
 PyObject * FrsMaterial_setShininess( BPy_FrsMaterial *self, PyObject *args ) {
 	float f;
 
-	if(!( PyArg_ParseTuple(args, "f", &f)  )) {
-		cout << "ERROR: FrsMaterial_setShininess" << endl;
-		Py_RETURN_NONE;
-	}
+	if(!( PyArg_ParseTuple(args, "f", &f)  ))
+		return NULL;
 
 	self->m->setShininess(f);
 

@@ -160,6 +160,7 @@ int StrokeVertex___init__(BPy_StrokeVertex *self, PyObject *args, PyObject *kwds
 										((BPy_StrokeVertex *) obj2)->sv,
 										PyFloat_AsDouble( obj3 ) );
 	} else {
+		PyErr_SetString(PyExc_TypeError, "invalid argument(s)");
 		return -1;
 	}
 
@@ -202,10 +203,8 @@ PyObject * StrokeVertex_u( BPy_StrokeVertex *self ) {
 PyObject *StrokeVertex_setX( BPy_StrokeVertex *self , PyObject *args) {
 	double r;
 
-	if(!( PyArg_ParseTuple(args, "d", &r)  )) {
-		cout << "ERROR: StrokeVertex_setX" << endl;
-		Py_RETURN_NONE;
-	}
+	if(!( PyArg_ParseTuple(args, "d", &r)  ))
+		return NULL;
 
 	self->sv->setX( r );
 
@@ -215,10 +214,8 @@ PyObject *StrokeVertex_setX( BPy_StrokeVertex *self , PyObject *args) {
 PyObject *StrokeVertex_setY( BPy_StrokeVertex *self , PyObject *args) {
 	double r;
 
-	if(!( PyArg_ParseTuple(args, "d", &r)  )) {
-		cout << "ERROR: StrokeVertex_setY" << endl;
-		Py_RETURN_NONE;
-	}
+	if(!( PyArg_ParseTuple(args, "d", &r)  ))
+		return NULL;
 
 	self->sv->setY( r );
 
@@ -229,33 +226,34 @@ PyObject *StrokeVertex_setY( BPy_StrokeVertex *self , PyObject *args) {
 PyObject *StrokeVertex_setPoint( BPy_StrokeVertex *self , PyObject *args) {
 	PyObject *obj1 = 0, *obj2 = 0;
 
-	if(!( PyArg_ParseTuple(args, "O|O", &obj1, &obj2) )) {
-		cout << "ERROR: StrokeVertex_setPoint" << endl;
-		Py_RETURN_NONE;
-	}
+	if(!( PyArg_ParseTuple(args, "O|O", &obj1, &obj2) ))
+		return NULL;
 	
 	if( PyList_Check(obj1) && !obj2 ){
 		if ( PyList_Size(obj1) != 2 ) {
-			cout << "Error: StrokeVertex::setPoint() accepts a list of 2 elements ("
-			     << PyList_Size(obj1) << " found)" << endl;
-			Py_RETURN_NONE;
+			stringstream msg("StrokeVertex::setPoint() accepts a list of 2 elements (");
+			msg << PyList_Size(obj1) << " found)";
+			PyErr_SetString(PyExc_TypeError, msg.str().c_str());
+			return NULL;
 		}
 		Vec2f v( 	PyFloat_AsDouble( PyList_GetItem(obj1, 0) ),
 					PyFloat_AsDouble( PyList_GetItem(obj1, 1) )  );
 		self->sv->setPoint( v );
 	} else if ( VectorObject_Check(obj1) && !obj2) {
 		if ( ((VectorObject *)obj1)->size != 2 ) {
-			cout << "Error: StrokeVertex::setPoint() accepts a vector of 2 elements ("
-			     << ((VectorObject *)obj1)->size << " found)" << endl;
-			Py_RETURN_NONE;
+			stringstream msg("StrokeVertex::setPoint() accepts a vector of 2 elements (");
+			msg << ((VectorObject *)obj1)->size << " found)";
+			PyErr_SetString(PyExc_TypeError, msg.str().c_str());
+			return NULL;
 		}
 		Vec2f *v = Vec2f_ptr_from_Vector( obj1 );
 		self->sv->setPoint( *v );
 		delete v; 
-	} else if( obj1 && obj2 ){
+	} else if( PyFloat_Check(obj1) && obj2 && PyFloat_Check(obj2) ){
 		self->sv->setPoint( PyFloat_AsDouble(obj1), PyFloat_AsDouble(obj2) );
 	} else {
-		cout << "Error: StrokeVertex::setPoint(): unknown argument type" << endl;
+		PyErr_SetString(PyExc_TypeError, "StrokeVertex::setPoint(): unknown argument type");
+		return NULL;
 	}
 
 	Py_RETURN_NONE;
@@ -264,10 +262,8 @@ PyObject *StrokeVertex_setPoint( BPy_StrokeVertex *self , PyObject *args) {
 PyObject *StrokeVertex_setAttribute( BPy_StrokeVertex *self , PyObject *args) {
 	PyObject *py_sa;
 
-	if(!( PyArg_ParseTuple(args, "O", &py_sa) && BPy_StrokeAttribute_Check(py_sa)  )) {
-		cout << "ERROR: StrokeVertex_setAttribute" << endl;
-		Py_RETURN_NONE;
-	}
+	if(!( PyArg_ParseTuple(args, "O!", &StrokeAttribute_Type, &py_sa) ))
+		return NULL;
 
 	self->sv->setAttribute(*( ((BPy_StrokeAttribute *) py_sa)->sa ));
 
@@ -277,10 +273,8 @@ PyObject *StrokeVertex_setAttribute( BPy_StrokeVertex *self , PyObject *args) {
 PyObject *StrokeVertex_setCurvilinearAbscissa( BPy_StrokeVertex *self , PyObject *args) {
 	double r;
 
-	if(!( PyArg_ParseTuple(args, "d", &r)  )) {
-		cout << "ERROR: StrokeVertex_setCurvilinearAbscissa" << endl;
-		Py_RETURN_NONE;
-	}
+	if(!( PyArg_ParseTuple(args, "d", &r)  ))
+		return NULL;
 
 	self->sv->setCurvilinearAbscissa( r );
 
@@ -291,10 +285,8 @@ PyObject *StrokeVertex_setCurvilinearAbscissa( BPy_StrokeVertex *self , PyObject
 PyObject *StrokeVertex_setStrokeLength( BPy_StrokeVertex *self , PyObject *args) {
 	double r;
 
-	if(!( PyArg_ParseTuple(args, "d", &r)  )) {
-		cout << "ERROR: StrokeVertex_setStrokeLength" << endl;
-		Py_RETURN_NONE;
-	}
+	if(!( PyArg_ParseTuple(args, "d", &r)  ))
+		return NULL;
 
 	self->sv->setStrokeLength( r );
 

@@ -158,10 +158,8 @@ PyObject *ViewEdgeIterator_getCurrentEdge( BPy_ViewEdgeIterator *self ) {
 PyObject *ViewEdgeIterator_setCurrentEdge( BPy_ViewEdgeIterator *self, PyObject *args ) {
 	PyObject *py_ve;
 
-	if(!( PyArg_ParseTuple(args, "O", &py_ve) && BPy_ViewEdge_Check(py_ve) )) {
-		cout << "ERROR: ViewEdgeIterator_setCurrentEdge" << endl;
-		Py_RETURN_NONE;
-	}
+	if(!( PyArg_ParseTuple(args, "O!", &ViewEdge_Type, &py_ve) ))
+		return NULL;
 
 	self->ve_it->setCurrentEdge( ((BPy_ViewEdge *) py_ve)->ve );
 		
@@ -179,10 +177,8 @@ PyObject *ViewEdgeIterator_getBegin( BPy_ViewEdgeIterator *self ) {
 PyObject *ViewEdgeIterator_setBegin( BPy_ViewEdgeIterator *self, PyObject *args ) {
 	PyObject *py_ve;
 
-	if(!( PyArg_ParseTuple(args, "O", &py_ve) && BPy_ViewEdge_Check(py_ve) )) {
-		cout << "ERROR: ViewEdgeIterator_setBegin" << endl;
-		Py_RETURN_NONE;
-	}
+	if(!( PyArg_ParseTuple(args, "O!", &ViewEdge_Type, &py_ve) ))
+		return NULL;
 
 	self->ve_it->setBegin( ((BPy_ViewEdge *) py_ve)->ve );
 		
@@ -196,10 +192,8 @@ PyObject *ViewEdgeIterator_getOrientation( BPy_ViewEdgeIterator *self ) {
 PyObject *ViewEdgeIterator_setOrientation( BPy_ViewEdgeIterator *self, PyObject *args ) {
 	PyObject *py_b;
 
-	if(!( PyArg_ParseTuple(args, "O", &py_b) && PyBool_Check(py_b) )) {
-		cout << "ERROR: ViewEdgeIterator_setOrientation" << endl;
-		Py_RETURN_NONE;
-	}
+	if(!( PyArg_ParseTuple(args, "O!", &PyBool_Type, &py_b) ))
+		return NULL;
 
 	self->ve_it->setOrientation( bool_from_PyBool(py_b) );
 		

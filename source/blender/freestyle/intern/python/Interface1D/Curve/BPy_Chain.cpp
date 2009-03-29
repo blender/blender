@@ -125,18 +125,13 @@ int Chain___init__(BPy_Chain *self, PyObject *args, PyObject *kwds)
 		self->c = new Chain();
 		
 	} else if( BPy_Chain_Check(obj) ) {
-		if( ((BPy_Chain *) obj)->c )
-			self->c = new Chain(*( ((BPy_Chain *) obj)->c ));
-		else
-			return -1;
+		self->c = new Chain(*( ((BPy_Chain *) obj)->c ));
 		
 	} else if( BPy_Id_Check(obj) ) {
-		if( ((BPy_Id *) obj)->id )
-			self->c = new Chain(*( ((BPy_Id *) obj)->id ));
-		else
-			return -1;
+		self->c = new Chain(*( ((BPy_Id *) obj)->id ));
 			
 	} else {
+		PyErr_SetString(PyExc_TypeError, "invalid argument");
 		return -1;
 	}
 

@@ -165,10 +165,8 @@ PyObject *Id_getSecond( BPy_Id *self) {
 PyObject *Id_setFirst( BPy_Id *self , PyObject *args) {
 	unsigned int i;
 
-	if( !PyArg_ParseTuple(args, (char *)"i", &i) ) {
-		cout << "ERROR: Id_setFirst" << endl;
-		Py_RETURN_NONE;
-	}
+	if( !PyArg_ParseTuple(args, "i", &i) )
+		return NULL;
 
 	self->id->setFirst( i );
 
@@ -179,10 +177,8 @@ PyObject *Id_setFirst( BPy_Id *self , PyObject *args) {
 PyObject *Id_setSecond( BPy_Id *self , PyObject *args) {
 	unsigned int i;
 
-	if( !PyArg_ParseTuple(args, (char *)"i", &i) ) {
-		cout << "ERROR: Id_setSecond" << endl;
-		Py_RETURN_NONE;
-	}
+	if( !PyArg_ParseTuple(args, "i", &i) )
+		return NULL;
 
 	self->id->setSecond( i );
 

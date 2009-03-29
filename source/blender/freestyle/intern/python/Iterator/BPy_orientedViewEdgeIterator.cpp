@@ -118,6 +118,10 @@ int orientedViewEdgeIterator___init__(BPy_orientedViewEdgeIterator *self, PyObje
 		self->ove_it = new ViewVertexInternal::orientedViewEdgeIterator();
 	else if( BPy_orientedViewEdgeIterator_Check(obj) )
 		self->ove_it = new ViewVertexInternal::orientedViewEdgeIterator(*( ((BPy_orientedViewEdgeIterator *) obj)->ove_it ));
+	else {
+		PyErr_SetString(PyExc_TypeError, "invalid argument");
+		return -1;
+	}
 	
 	self->py_it.it = self->ove_it;
 	

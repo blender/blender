@@ -132,6 +132,7 @@ int StrokeVertexIterator___init__(BPy_StrokeVertexIterator *self, PyObject *args
 		self->sv_it = new StrokeInternal::StrokeVertexIterator(*( ((BPy_StrokeVertexIterator *) obj)->sv_it ));
 	
 	} else {
+		PyErr_SetString(PyExc_TypeError, "invalid argument");
 		return -1;
 	}
 

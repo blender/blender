@@ -118,7 +118,7 @@ int Interface0DIterator___init__(BPy_Interface0DIterator *self, PyObject *args )
 {	
 	PyObject *obj = 0;
 
-	if (!( PyArg_ParseTuple(args, "O", &obj) && BPy_Interface0DIterator_Check(obj) ))
+	if (!( PyArg_ParseTuple(args, "O!", &Interface0DIterator_Type, &obj) ))
 	    return -1;
 
 	self->if0D_it = new Interface0DIterator(*( ((BPy_Interface0DIterator *) obj)->if0D_it ));

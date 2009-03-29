@@ -143,6 +143,7 @@ int SVertexIterator___init__(BPy_SVertexIterator *self, PyObject *args )
 							f );
 			
 	} else {
+		PyErr_SetString(PyExc_TypeError, "invalid argument(s)");
 		return -1;
 	}
 

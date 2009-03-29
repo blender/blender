@@ -163,6 +163,7 @@ int FEdge___init__(BPy_FEdge *self, PyObject *args, PyObject *kwds)
 	} else if( BPy_SVertex_Check(obj1) && BPy_SVertex_Check(obj2) ) {
 		self->fe = new FEdge( ((BPy_SVertex *) obj1)->sv, ((BPy_SVertex *) obj2)->sv );
 	} else {
+		PyErr_SetString(PyExc_TypeError, "invalid argument(s)");
 		return -1;
 	}
 
@@ -203,9 +204,11 @@ PyObject * FEdge_vertexB( BPy_FEdge *self ) {
 PyObject * FEdge___getitem__( BPy_FEdge *self, PyObject *args ) {
 	int i;
 
-	if(!( PyArg_ParseTuple(args, "i", &i) && (i == 0 || i == 1)  )) {
-		cout << "ERROR: FEdge___getitem__" << endl;
-		Py_RETURN_NONE;
+	if(!( PyArg_ParseTuple(args, "i", &i) ))
+		return NULL;
+	if(!(i == 0 || i == 1)) {
+		PyErr_SetString(PyExc_IndexError, "index must be either 0 or 1");
+		return NULL;
 	}
 	
 	if( SVertex *v = self->fe->operator[](i) )
@@ -242,10 +245,8 @@ PyObject * FEdge_isSmooth( BPy_FEdge *self ) {
 PyObject *FEdge_setVertexA( BPy_FEdge *self , PyObject *args) {
 	PyObject *py_sv;
 
-	if(!( PyArg_ParseTuple(args, "O", &py_sv) && BPy_SVertex_Check(py_sv) )) {
-		cout << "ERROR: FEdge_setVertexA" << endl;
-		Py_RETURN_NONE;
-	}
+	if(!( PyArg_ParseTuple(args, "O!", &SVertex_Type, &py_sv) ))
+		return NULL;
 
 	self->fe->setVertexA( ((BPy_SVertex *) py_sv)->sv );
 
@@ -268,10 +269,8 @@ PyObject *FEdge_setVertexB( BPy_FEdge *self , PyObject *args) {
 PyObject *FEdge_setId( BPy_FEdge *self , PyObject *args) {
 	PyObject *py_id;
 
-	if(!( PyArg_ParseTuple(args, "O", &py_id) && BPy_Id_Check(py_id) )) {
-		cout << "ERROR: FEdge_setId" << endl;
-		Py_RETURN_NONE;
-	}
+	if(!( PyArg_ParseTuple(args, "O!", &Id_Type, &py_id) ))
+		return NULL;
 
 	self->fe->setId(*( ((BPy_Id *) py_id)->id ));
 
@@ -282,10 +281,8 @@ PyObject *FEdge_setId( BPy_FEdge *self , PyObject *args) {
 PyObject *FEdge_setNextEdge( BPy_FEdge *self , PyObject *args) {
 	PyObject *py_fe;
 
-	if(!( PyArg_ParseTuple(args, "O", &py_fe) && BPy_FEdge_Check(py_fe) )) {
-		cout << "ERROR: FEdge_setNextEdge" << endl;
-		Py_RETURN_NONE;
-	}
+	if(!( PyArg_ParseTuple(args, "O!", &FEdge_Type, &py_fe) ))
+		return NULL;
 
 	self->fe->setNextEdge( ((BPy_FEdge *) py_fe)->fe );
 
@@ -295,10 +292,8 @@ PyObject *FEdge_setNextEdge( BPy_FEdge *self , PyObject *args) {
 PyObject *FEdge_setPreviousEdge( BPy_FEdge *self , PyObject *args) {
 	PyObject *py_fe;
 
-	if(!( PyArg_ParseTuple(args, "O", &py_fe) && BPy_FEdge_Check(py_fe) )) {
-		cout << "ERROR: FEdge_setPreviousEdge" << endl;
-		Py_RETURN_NONE;
-	}
+	if(!( PyArg_ParseTuple(args, "O!", &FEdge_Type, &py_fe) ))
+		return NULL;
 
 	self->fe->setPreviousEdge( ((BPy_FEdge *) py_fe)->fe );
 
@@ -308,10 +303,8 @@ PyObject *FEdge_setPreviousEdge( BPy_FEdge *self , PyObject *args) {
 PyObject * FEdge_setNature( BPy_FEdge *self, PyObject *args ) {
 	PyObject *py_n;
 
-	if(!( PyArg_ParseTuple(args, "O", &py_n) && BPy_Nature_Check(py_n) )) {
-		cout << "ERROR: FEdge_setNature" << endl;
-		Py_RETURN_NONE;
-	}
+	if(!( PyArg_ParseTuple(args, "O!", &Nature_Type, &py_n) ))
+		return NULL;
 	
 	PyObject *i = (PyObject *) &( ((BPy_Nature *) py_n)->i );
 	self->fe->setNature( PyInt_AsLong(i) );
@@ -323,10 +316,8 @@ PyObject * FEdge_setNature( BPy_FEdge *self, PyObject *args ) {
 PyObject * FEdge_setViewEdge( BPy_FEdge *self, PyObject *args ) {
 	PyObject *py_ve;
 
-	if(!( PyArg_ParseTuple(args, "O", &py_ve) && BPy_ViewEdge_Check(py_ve) )) {
-		cout << "ERROR: FEdge_setViewEdge" << endl;
-		Py_RETURN_NONE;
-	}
+	if(!( PyArg_ParseTuple(args, "O!", &ViewEdge_Type, &py_ve) ))
+		return NULL;
 
 	ViewEdge *ve = ((BPy_ViewEdge *) py_ve)->ve;
 	self->fe->setViewEdge( ve );
@@ -339,10 +330,8 @@ PyObject * FEdge_setViewEdge( BPy_FEdge *self, PyObject *args ) {
 PyObject *FEdge_setSmooth( BPy_FEdge *self , PyObject *args) {
 	PyObject *py_b;
 
-	if(!( PyArg_ParseTuple(args, "O", &py_b) && PyBool_Check(py_b) )) {
-		cout << "ERROR: FEdge_setSmooth" << endl;
-		Py_RETURN_NONE;
-	}
+	if(!( PyArg_ParseTuple(args, "O!", &PyBool_Type, &py_b) ))
+		return NULL;
 
 	self->fe->setSmooth( bool_from_PyBool(py_b) );
 
@@ -364,10 +353,8 @@ PyObject * FEdge_verticesEnd( BPy_FEdge *self ) {
 PyObject * FEdge_pointsBegin( BPy_FEdge *self, PyObject *args ) {
 	float f = 0;
 
-	if(!( PyArg_ParseTuple(args, "|f", &f)  )) {
-		cout << "ERROR: FEdge_pointsBegin" << endl;
-		Py_RETURN_NONE;
-	}
+	if(!( PyArg_ParseTuple(args, "|f", &f)  ))
+		return NULL;
 	
 	Interface0DIterator if0D_it( self->fe->pointsBegin(f) );
 	return BPy_Interface0DIterator_from_Interface0DIterator( if0D_it );
@@ -376,10 +363,8 @@ PyObject * FEdge_pointsBegin( BPy_FEdge *self, PyObject *args ) {
 PyObject * FEdge_pointsEnd( BPy_FEdge *self, PyObject *args ) {
 	float f = 0;
 
-	if(!( PyArg_ParseTuple(args, "|f", &f)  )) {
-		cout << "ERROR: FEdge_pointsEnd" << endl;
-		Py_RETURN_NONE;
-	}
+	if(!( PyArg_ParseTuple(args, "|f", &f)  ))
+		return NULL;
 	
 	Interface0DIterator if0D_it( self->fe->pointsEnd(f) );
 	return BPy_Interface0DIterator_from_Interface0DIterator( if0D_it );

@@ -225,10 +225,8 @@ PyObject * ViewEdge_getChainingTimeStamp( BPy_ViewEdge *self ) {
 PyObject * ViewEdge_setChainingTimeStamp( BPy_ViewEdge *self, PyObject *args) {
 	int timestamp = 0 ;
 
-	if( !PyArg_ParseTuple(args, "i", &timestamp) ) {
-		cout << "ERROR: ViewEdge_setChainingTimeStamp" << endl;
-		Py_RETURN_NONE;
-	}
+	if( !PyArg_ParseTuple(args, "i", &timestamp) )
+		return NULL;
 	
 	self->ve->setChainingTimeStamp( timestamp );
 
@@ -238,10 +236,8 @@ PyObject * ViewEdge_setChainingTimeStamp( BPy_ViewEdge *self, PyObject *args) {
 PyObject *ViewEdge_setA( BPy_ViewEdge *self , PyObject *args) {
 	PyObject *py_vv;
 
-	if(!( PyArg_ParseTuple(args, "O", &py_vv) && BPy_ViewVertex_Check(py_vv) )) {
-		cout << "ERROR: ViewEdge_setA" << endl;
-		Py_RETURN_NONE;
-	}
+	if(!( PyArg_ParseTuple(args, "O!", &ViewVertex_Type, &py_vv) ))
+		return NULL;
 
 	self->ve->setA( ((BPy_ViewVertex *) py_vv)->vv );
 
@@ -251,10 +247,8 @@ PyObject *ViewEdge_setA( BPy_ViewEdge *self , PyObject *args) {
 PyObject *ViewEdge_setB( BPy_ViewEdge *self , PyObject *args) {
 	PyObject *py_vv;
 
-	if(!( PyArg_ParseTuple(args, "O", &py_vv) && BPy_ViewVertex_Check(py_vv) )) {
-		cout << "ERROR: ViewEdge_setB" << endl;
-		Py_RETURN_NONE;
-	}
+	if(!( PyArg_ParseTuple(args, "O!", &ViewVertex_Type, &py_vv) ))
+		return NULL;
 
 	self->ve->setB( ((BPy_ViewVertex *) py_vv)->vv );
 
@@ -264,10 +258,8 @@ PyObject *ViewEdge_setB( BPy_ViewEdge *self , PyObject *args) {
 PyObject * ViewEdge_setNature( BPy_ViewEdge *self, PyObject *args ) {
 	PyObject *py_n;
 
-	if(!( PyArg_ParseTuple(args, "O", &py_n) && BPy_Nature_Check(py_n) )) {
-		cout << "ERROR: ViewEdge_setNature" << endl;
-		Py_RETURN_NONE;
-	}
+	if(!( PyArg_ParseTuple(args, "O!", &Nature_Type, &py_n) ))
+		return NULL;
 	
 	PyObject *i = (PyObject *) &( ((BPy_Nature *) py_n)->i );
 	self->ve->setNature( PyInt_AsLong(i) );
@@ -278,10 +270,8 @@ PyObject * ViewEdge_setNature( BPy_ViewEdge *self, PyObject *args ) {
 PyObject * ViewEdge_setFEdgeA( BPy_ViewEdge *self, PyObject *args ) {
 	PyObject *py_fe;
 
-	if(!( PyArg_ParseTuple(args, "O", &py_fe) && BPy_FEdge_Check(py_fe) )) {
-		cout << "ERROR: ViewEdge_setFEdgeA" << endl;
-		Py_RETURN_NONE;
-	}
+	if(!( PyArg_ParseTuple(args, "O!", &FEdge_Type, &py_fe) ))
+		return NULL;
 
 	self->ve->setFEdgeA( ((BPy_FEdge *) py_fe)->fe );
 
@@ -291,10 +281,8 @@ PyObject * ViewEdge_setFEdgeA( BPy_ViewEdge *self, PyObject *args ) {
 PyObject * ViewEdge_setFEdgeB( BPy_ViewEdge *self, PyObject *args ) {
 	PyObject *py_fe;
 
-	if(!( PyArg_ParseTuple(args, "O", &py_fe) && BPy_FEdge_Check(py_fe) )) {
-		cout << "ERROR: ViewEdge_setFEdgeB" << endl;
-		Py_RETURN_NONE;
-	}
+	if(!( PyArg_ParseTuple(args, "O!", &FEdge_Type, &py_fe) ))
+		return NULL;
 
 	self->ve->setFEdgeB( ((BPy_FEdge *) py_fe)->fe );
 
@@ -304,10 +292,8 @@ PyObject * ViewEdge_setFEdgeB( BPy_ViewEdge *self, PyObject *args ) {
 PyObject * ViewEdge_setShape( BPy_ViewEdge *self, PyObject *args ) {
 	PyObject *py_vs;
 
-	if(!( PyArg_ParseTuple(args, "O", &py_vs) && BPy_ViewShape_Check(py_vs) )) {
-		cout << "ERROR: ViewEdge_setShape" << endl;
-		Py_RETURN_NONE;
-	}
+	if(!( PyArg_ParseTuple(args, "O", &ViewShape_Type, &py_vs) ))
+		return NULL;
 
 	self->ve->setShape( ((BPy_ViewShape *) py_vs)->vs );
 
@@ -317,10 +303,8 @@ PyObject * ViewEdge_setShape( BPy_ViewEdge *self, PyObject *args ) {
 PyObject * ViewEdge_setId( BPy_ViewEdge *self, PyObject *args ) {
 	PyObject *py_id;
 
-	if(!( PyArg_ParseTuple(args, "O", &py_id) && BPy_Id_Check(py_id) )) {
-		cout << "ERROR: ViewEdge_setId" << endl;
-		Py_RETURN_NONE;
-	}
+	if(!( PyArg_ParseTuple(args, "O!", &Id_Type, &py_id) ))
+		return NULL;
 
 	Id id(*( ((BPy_Id *) py_id)->id ));
 	self->ve->setId( id );
@@ -337,10 +321,8 @@ PyObject * ViewEdge_UpdateFEdges( BPy_ViewEdge *self ) {
 PyObject * ViewEdge_setaShape( BPy_ViewEdge *self, PyObject *args ) {
 	PyObject *py_vs;
 
-	if(!( PyArg_ParseTuple(args, "O", &py_vs) && BPy_ViewShape_Check(py_vs) )) {
-		cout << "ERROR: ViewEdge_setaShape" << endl;
-		Py_RETURN_NONE;
-	}
+	if(!( PyArg_ParseTuple(args, "O!", &ViewShape_Type, &py_vs) ))
+		return NULL;
 
 	ViewShape *vs = ((BPy_ViewShape *) py_vs)->vs;
 	self->ve->setaShape( vs );
@@ -351,10 +333,8 @@ PyObject * ViewEdge_setaShape( BPy_ViewEdge *self, PyObject *args ) {
 PyObject * ViewEdge_setQI( BPy_ViewEdge *self, PyObject *args ) {
 	int qi;
 
-	if(!( PyArg_ParseTuple(args, "i", &qi) )) {
-		cout << "ERROR: ViewEdge_setQI" << endl;
-		Py_RETURN_NONE;
-	}
+	if(!( PyArg_ParseTuple(args, "i", &qi) ))
+		return NULL;
 
 	self->ve->setQI( qi );
 
@@ -375,10 +355,8 @@ PyObject * ViewEdge_verticesEnd( BPy_ViewEdge *self ) {
 PyObject * ViewEdge_pointsBegin( BPy_ViewEdge *self, PyObject *args ) {
 	float f = 0;
 
-	if(!( PyArg_ParseTuple(args, "|f", &f)  )) {
-		cout << "ERROR: ViewEdge_pointsBegin" << endl;
-		Py_RETURN_NONE;
-	}
+	if(!( PyArg_ParseTuple(args, "|f", &f)  ))
+		return NULL;
 	
 	Interface0DIterator if0D_it( self->ve->pointsBegin(f) );
 	return BPy_Interface0DIterator_from_Interface0DIterator( if0D_it );
@@ -387,10 +365,8 @@ PyObject * ViewEdge_pointsBegin( BPy_ViewEdge *self, PyObject *args ) {
 PyObject * ViewEdge_pointsEnd( BPy_ViewEdge *self, PyObject *args ) {
 	float f = 0;
 
-	if(!( PyArg_ParseTuple(args, "|f", &f)  )) {
-		cout << "ERROR: ViewEdge_pointsEnd" << endl;
-		Py_RETURN_NONE;
-	}
+	if(!( PyArg_ParseTuple(args, "|f", &f)  ))
+		return NULL;
 	
 	Interface0DIterator if0D_it( self->ve->pointsEnd(f) );
 	return BPy_Interface0DIterator_from_Interface0DIterator( if0D_it );

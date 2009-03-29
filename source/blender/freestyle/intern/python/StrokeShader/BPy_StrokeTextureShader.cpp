@@ -105,13 +105,13 @@ int StrokeTextureShader___init__( BPy_StrokeTextureShader* self, PyObject *args)
 	const char *s1;
 	PyObject *obj2 = 0, *obj3 = 0;
 	
-	if(!( PyArg_ParseTuple(args, "s|OO", &s1, &obj2, &obj3) )) {
+	if(!( PyArg_ParseTuple(args, "s|O!O!", &s1, &MediumType_Type, &obj2, &PyBool_Type, &obj3) )) {
 		cout << "ERROR: StrokeTextureShader___init__" << endl;		
 		return -1;
 	}
 
-	Stroke::MediumType mt = (obj2 && BPy_MediumType_Check(obj2)) ? MediumType_from_BPy_MediumType(obj2) : Stroke::OPAQUE_MEDIUM; 
-	bool b = (obj3 && PyBool_Check(obj3)) ? bool_from_PyBool(obj3) : true;
+	Stroke::MediumType mt = (obj2) ? MediumType_from_BPy_MediumType(obj2) : Stroke::OPAQUE_MEDIUM; 
+	bool b = (obj3) ? bool_from_PyBool(obj3) : true;
 	
 	self->py_ss.ss = new StrokeShaders::StrokeTextureShader(s1,mt,b);
 	return 0;

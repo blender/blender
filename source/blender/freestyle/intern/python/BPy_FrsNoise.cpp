@@ -1,5 +1,7 @@
 #include "BPy_FrsNoise.h"
 
+#include <sstream>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -152,10 +154,8 @@ PyObject * FrsNoise_turbulence1( BPy_FrsNoise *self , PyObject *args) {
 	float f1, f2, f3;
 	unsigned int i;
 
-	if(!( PyArg_ParseTuple(args, "fff|I", &f1, &f2, &f3, &i) )) {
-		cout << "ERROR: FrsNoise_turbulence1" << endl;
-		Py_RETURN_NONE;
-	}
+	if(!( PyArg_ParseTuple(args, "fff|I", &f1, &f2, &f3, &i) ))
+		return NULL;
 
 	return PyFloat_FromDouble( self->n->turbulence1(f1, f2, f3, i) );
 }
@@ -165,9 +165,13 @@ PyObject * FrsNoise_turbulence2( BPy_FrsNoise *self , PyObject *args) {
 	float f2, f3;
 	unsigned int i;
 
-	if(!( PyArg_ParseTuple(args, "Off|I", &obj1, &f2, &f3, &i) && PyList_Check(obj1) && PyList_Size(obj1) > 1 )) {
-		cout << "ERROR: FrsNoise_turbulence2" << endl;
-		Py_RETURN_NONE;
+	if(!( PyArg_ParseTuple(args, "O!ff|I", &PyList_Type, &obj1, &f2, &f3, &i) ))
+		return NULL;
+	if( PyList_Size(obj1) != 2 ) {
+		stringstream msg("FrsNoise::turbulence2() accepts a list of 2 elements (");
+		msg << PyList_Size(obj1) << " found)";
+		PyErr_SetString(PyExc_TypeError, msg.str().c_str());
+		return NULL;
 	}
 
 	Vec2f v( PyFloat_AsDouble(PyList_GetItem(obj1, 0)), PyFloat_AsDouble(PyList_GetItem(obj1, 1)) );
@@ -180,9 +184,13 @@ PyObject * FrsNoise_turbulence3( BPy_FrsNoise *self , PyObject *args) {
 	float f2, f3;
 	unsigned int i;
 
-	if(!( PyArg_ParseTuple(args, "Off|I", &obj1, &f2, &f3, &i) && PyList_Check(obj1) && PyList_Size(obj1) > 2 )) {
-		cout << "ERROR: FrsNoise_turbulence3" << endl;
-		Py_RETURN_NONE;
+	if(!( PyArg_ParseTuple(args, "O!ff|I", &PyList_Type, &obj1, &f2, &f3, &i) ))
+		return NULL;
+	if( PyList_Size(obj1) != 3 ) {
+		stringstream msg("FrsNoise::turbulence3() accepts a list of 3 elements (");
+		msg << PyList_Size(obj1) << " found)";
+		PyErr_SetString(PyExc_TypeError, msg.str().c_str());
+		return NULL;
 	}
 
 	Vec3f v( PyFloat_AsDouble(PyList_GetItem(obj1, 0)),
@@ -195,10 +203,8 @@ PyObject * FrsNoise_turbulence3( BPy_FrsNoise *self , PyObject *args) {
 PyObject * FrsNoise_smoothNoise1( BPy_FrsNoise *self , PyObject *args) {
 	float f;
 
-	if(!( PyArg_ParseTuple(args, "f", &f) )) {
-		cout << "ERROR: FrsNoise_smoothNoise1" << endl;
-		Py_RETURN_NONE;
-	}
+	if(!( PyArg_ParseTuple(args, "f", &f) ))
+		return NULL;
 
 	return PyFloat_FromDouble( self->n->smoothNoise1(f) );
 }
@@ -206,9 +212,13 @@ PyObject * FrsNoise_smoothNoise1( BPy_FrsNoise *self , PyObject *args) {
 PyObject * FrsNoise_smoothNoise2( BPy_FrsNoise *self , PyObject *args) {
 	PyObject *obj;
 
-	if(!( PyArg_ParseTuple(args, "O", &obj) && PyList_Check(obj) && PyList_Size(obj) > 1 )) {
-		cout << "ERROR: FrsNoise_smoothNoise2" << endl;
-		Py_RETURN_NONE;
+	if(!( PyArg_ParseTuple(args, "O", &PyList_Type, &obj) ))
+		return NULL;
+	if( PyList_Size(obj) != 2 ) {
+		stringstream msg("FrsNoise::smoothNoise2() accepts a list of 2 elements (");
+		msg << PyList_Size(obj) << " found)";
+		PyErr_SetString(PyExc_TypeError, msg.str().c_str());
+		return NULL;
 	}
 
 	Vec2f v( PyFloat_AsDouble(PyList_GetItem(obj, 0)), PyFloat_AsDouble(PyList_GetItem(obj, 1)) );
@@ -219,9 +229,13 @@ PyObject * FrsNoise_smoothNoise2( BPy_FrsNoise *self , PyObject *args) {
 PyObject * FrsNoise_smoothNoise3( BPy_FrsNoise *self , PyObject *args) {
 	PyObject *obj;
 
-	if(!( PyArg_ParseTuple(args, "O", &obj) && PyList_Check(obj) && PyList_Size(obj) > 2 )) {
-		cout << "ERROR: FrsNoise_smoothNoise3" << endl;
-		Py_RETURN_NONE;
+	if(!( PyArg_ParseTuple(args, "O", &PyList_Type, obj) ))
+		return NULL;
+	if( PyList_Size(obj) != 3 ) {
+		stringstream msg("FrsNoise::smoothNoise3() accepts a list of 3 elements (");
+		msg << PyList_Size(obj) << " found)";
+		PyErr_SetString(PyExc_TypeError, msg.str().c_str());
+		return NULL;
 	}
 
 	Vec3f v( PyFloat_AsDouble(PyList_GetItem(obj, 0)),

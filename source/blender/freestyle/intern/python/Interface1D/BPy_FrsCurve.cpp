@@ -138,18 +138,13 @@ int FrsCurve___init__(BPy_FrsCurve *self, PyObject *args, PyObject *kwds)
 		self->c = new Curve();
 		
 	} else if( BPy_FrsCurve_Check(obj) ) {
-		if( ((BPy_FrsCurve *) obj)->c )
-			self->c = new Curve(*( ((BPy_FrsCurve *) obj)->c ));
-		else
-			return -1;
+		self->c = new Curve(*( ((BPy_FrsCurve *) obj)->c ));
 		
 	} else if( BPy_Id_Check(obj) ) {
-		if( ((BPy_Id *) obj)->id )
-			self->c = new Curve(*( ((BPy_Id *) obj)->id ));
-		else
-			return -1;
+		self->c = new Curve(*( ((BPy_Id *) obj)->id ));
 			
 	} else {
+		PyErr_SetString(PyExc_TypeError, "invalid argument");
 		return -1;
 	}
 
@@ -162,36 +157,38 @@ int FrsCurve___init__(BPy_FrsCurve *self, PyObject *args, PyObject *kwds)
 PyObject * FrsCurve_push_vertex_back( BPy_FrsCurve *self, PyObject *args ) {
 	PyObject *obj;
 
-	if(!( PyArg_ParseTuple(args, "O", &obj) )) {
-		cout << "ERROR: FrsCurve_push_vertex_back" << endl;
-		Py_RETURN_NONE;
-	}
+	if(!( PyArg_ParseTuple(args, "O", &obj) ))
+		return NULL;
 
 	if( BPy_CurvePoint_Check(obj) ) {
 		self->c->push_vertex_back( ((BPy_CurvePoint *) obj)->cp );
 	} else if( BPy_SVertex_Check(obj) ) {
 		self->c->push_vertex_back( ((BPy_SVertex *) obj)->sv );
+	} else {
+		PyErr_SetString(PyExc_TypeError, "invalid argument");
+		return NULL;
 	}
 
 	Py_RETURN_NONE;
 }
 
 PyObject * FrsCurve_push_vertex_front( BPy_FrsCurve *self, PyObject *args ) {
-		PyObject *obj;
+	PyObject *obj;
 
-		if(!( PyArg_ParseTuple(args, "O", &obj) )) {
-			cout << "ERROR: FrsCurve_push_vertex_front" << endl;
-			Py_RETURN_NONE;
-		}
+	if(!( PyArg_ParseTuple(args, "O", &obj) ))
+		return NULL;
 
-		if( BPy_CurvePoint_Check(obj) ) {
-			self->c->push_vertex_front( ((BPy_CurvePoint *) obj)->cp );
-		} else if( BPy_SVertex_Check(obj) ) {
-			self->c->push_vertex_front( ((BPy_SVertex *) obj)->sv );
-		}
-
-		Py_RETURN_NONE;
+	if( BPy_CurvePoint_Check(obj) ) {
+		self->c->push_vertex_front( ((BPy_CurvePoint *) obj)->cp );
+	} else if( BPy_SVertex_Check(obj) ) {
+		self->c->push_vertex_front( ((BPy_SVertex *) obj)->sv );
+	} else {
+		PyErr_SetString(PyExc_TypeError, "invalid argument");
+		return NULL;
 	}
+
+	Py_RETURN_NONE;
+}
 
 PyObject * FrsCurve_empty( BPy_FrsCurve *self ) {
 	return PyBool_from_bool( self->c->empty() );
@@ -219,10 +216,8 @@ PyObject * FrsCurve_verticesEnd( BPy_FrsCurve *self ) {
 PyObject * FrsCurve_pointsBegin( BPy_FrsCurve *self, PyObject *args ) {
 	float f = 0;
 
-	if(!( PyArg_ParseTuple(args, "|f", &f)  )) {
-		cout << "ERROR: FEdge_pointsBegin" << endl;
-		Py_RETURN_NONE;
-	}
+	if(!( PyArg_ParseTuple(args, "|f", &f)  ))
+		return NULL;
 	
 	Interface0DIterator if0D_it( self->c->pointsBegin(f) );
 	return BPy_Interface0DIterator_from_Interface0DIterator( if0D_it );
@@ -231,10 +226,8 @@ PyObject * FrsCurve_pointsBegin( BPy_FrsCurve *self, PyObject *args ) {
 PyObject * FrsCurve_pointsEnd( BPy_FrsCurve *self, PyObject *args ) {
 	float f = 0;
 
-	if(!( PyArg_ParseTuple(args, "|f", &f)  )) {
-		cout << "ERROR: FEdge_pointsEnd" << endl;
-		Py_RETURN_NONE;
-	}
+	if(!( PyArg_ParseTuple(args, "|f", &f)  ))
+		return NULL;
 	
 	Interface0DIterator if0D_it( self->c->pointsEnd(f) );
 	return BPy_Interface0DIterator_from_Interface0DIterator( if0D_it );

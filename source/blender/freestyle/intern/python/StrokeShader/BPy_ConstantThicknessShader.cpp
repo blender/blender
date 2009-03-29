@@ -102,7 +102,7 @@ int ConstantThicknessShader___init__( BPy_ConstantThicknessShader* self, PyObjec
 {
 	float f;
 
-	if(!( PyArg_ParseTuple(args, "|f", &f)  )) {
+	if(!( PyArg_ParseTuple(args, "f", &f)  )) {
 		cout << "ERROR: ConstantThicknessShader___init__" << endl;		
 		return -1;
 	}

@@ -130,6 +130,7 @@ int AdjacencyIterator___init__(BPy_AdjacencyIterator *self, PyObject *args )
 		self->a_it = new AdjacencyIterator( ((BPy_ViewVertex *) obj1)->vv, restrictToSelection, restrictToUnvisited );
 			
 	} else {
+		PyErr_SetString(PyExc_TypeError, "invalid argument(s)");
 		return -1;
 	}
 
