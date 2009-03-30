@@ -393,7 +393,7 @@ static void ui_apply_but_TEX(bContext *C, uiBut *but, uiHandleButtonData *data)
 	if(!data->str)
 		return;
 
-	ui_set_but_string(but, data->str);
+	ui_set_but_string(C, but, data->str);
 	ui_check_but(but);
 
 	/* give butfunc the original text too */
@@ -409,30 +409,17 @@ static void ui_apply_but_TEX(bContext *C, uiBut *but, uiHandleButtonData *data)
 static void ui_apply_but_NUM(bContext *C, uiBut *but, uiHandleButtonData *data)
 {
 	if(data->str) {
-		/* XXX 2.50 missing python api */
-#if 0
-		if(BPY_button_eval(data->str, &data->value)) {
-			BKE_report(CTX_reports(C), RPT_WARNING, "Invalid Python expression, check console");
-			data->value = 0.0f; /* Zero out value on error */
-			
-			if(data->str[0]) {
-				data->cancel= 1; /* invalidate return value if eval failed, except when string was null */
-				return;
-			}
+		if(ui_set_but_string(C, but, data->str)) {
+			data->value= ui_get_but_val(but);
 		}
-#else
-		data->value= atof(data->str);
-#endif
-
-		if(!ui_is_but_float(but)) data->value= (int)data->value;
-		if(but->type==NUMABS) data->value= fabs(data->value);
-
-		/* not that we use hard limits here */
-		if(data->value<but->hardmin) data->value= but->hardmin;
-		if(data->value>but->hardmax) data->value= but->hardmax;
+		else {
+			data->cancel= 1;
+			return;
+		}
 	}
+	else
+		ui_set_but_val(but, data->value);
 
-	ui_set_but_val(but, data->value);
 	ui_check_but(but);
 	ui_apply_but_func(C, but);
 
@@ -506,7 +493,7 @@ static void ui_apply_but_CURVE(bContext *C, uiBut *but, uiHandleButtonData *data
 
 static void ui_apply_but_IDPOIN(bContext *C, uiBut *but, uiHandleButtonData *data)
 {
-	but->idpoin_func(C, data->str, but->idpoin_idpp);
+	ui_set_but_string(C, but, data->str);
 	ui_check_but(but);
 	ui_apply_but_func(C, but);
 	data->retval= but->retval;
@@ -1139,42 +1126,9 @@ static void ui_textedit_begin(uiBut *but, uiHandleButtonData *data)
 	}
 
 	/* retrieve string */
-	if(but->type == TEX) {
-		data->maxlen= but->hardmax;
-		data->str= MEM_callocN(sizeof(char)*(data->maxlen+1), "textedit str");
-
-		ui_get_but_string(but, data->str, data->maxlen+1);
-	}
-	else if(but->type == IDPOIN) {
-		ID *id;
-		
-		data->maxlen= 22;
-		data->str= MEM_callocN(sizeof(char)*(data->maxlen+1), "textedit str");
-
-		id= *but->idpoin_idpp;
-		if(id) BLI_strncpy(data->str, id->name+2, data->maxlen+1);
-		else data->str[0]= 0;
-	}
-	else {
-		double value;
-
-		data->maxlen= UI_MAX_DRAW_STR;
-		data->str= MEM_callocN(sizeof(char)*(data->maxlen+1), "textedit str");
-		
-		value= ui_get_but_val(but);
-		if(ui_is_but_float(but)) {
-			if(but->a2) { /* amount of digits defined */
-				if(but->a2==1) sprintf(data->str, "%.1f", value);
-				else if(but->a2==2) sprintf(data->str, "%.2f", value);
-				else if(but->a2==3) sprintf(data->str, "%.3f", value);
-				else sprintf(data->str, "%.4f", value);
-			}
-			else sprintf(data->str, "%.3f", value);
-		}
-		else {
-			sprintf(data->str, "%d", (int)value);
-		}
-	}
+	data->maxlen= ui_get_but_string_max_length(but);
+	data->str= MEM_callocN(sizeof(char)*(data->maxlen+1), "textedit str");
+	ui_get_but_string(but, data->str, data->maxlen+1);
 
 	data->origstr= BLI_strdup(data->str);
 	data->selextend= 0;

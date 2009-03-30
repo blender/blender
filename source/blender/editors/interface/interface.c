@@ -83,6 +83,7 @@
  */
 
 static void ui_free_but(const bContext *C, uiBut *but);
+static void ui_rna_ID_autocomplete(bContext *C, char *str, void *arg_but);
 
 /* ************ GLOBALS ************* */
 
@@ -1401,32 +1402,217 @@ void ui_set_but_val(uiBut *but, double value)
 	ui_is_but_sel(but);
 }
 
+int ui_get_but_string_max_length(uiBut *but)
+{
+	if(but->type == TEX)
+		return but->hardmax;
+	else if(but->type == IDPOIN)
+		return sizeof(((ID*)NULL)->name)-2;
+	else
+		return UI_MAX_DRAW_STR;
+}
+
 void ui_get_but_string(uiBut *but, char *str, int maxlen)
 {
-	if(but->rnaprop) {
-		char *buf;
-		
-		buf= RNA_property_string_get_alloc(&but->rnapoin, but->rnaprop, str, maxlen);
+	if(but->rnaprop && ELEM(but->type, TEX, IDPOIN)) {
+		PropertyType type;
+		char *buf= NULL;
 
-		if(buf != str) {
+		type= RNA_property_type(&but->rnapoin, but->rnaprop);
+
+		if(type == PROP_STRING) {
+			/* RNA string */
+			buf= RNA_property_string_get_alloc(&but->rnapoin, but->rnaprop, str, maxlen);
+		}
+		else if(type == PROP_POINTER) {
+			/* RNA pointer */
+			PointerRNA ptr= RNA_property_pointer_get(&but->rnapoin, but->rnaprop);
+			PropertyRNA *nameprop;
+
+			if(ptr.data && (nameprop = RNA_struct_name_property(&ptr)))
+				buf= RNA_property_string_get_alloc(&ptr, nameprop, str, maxlen);
+			else
+				BLI_strncpy(str, "", maxlen);
+		}
+		else
+			BLI_strncpy(str, "", maxlen);
+
+		if(buf && buf != str) {
 			/* string was too long, we have to truncate */
 			BLI_strncpy(str, buf, maxlen);
 			MEM_freeN(buf);
 		}
 	}
-	else
-		BLI_strncpy(str, but->poin, maxlen);
+	else if(but->type == IDPOIN) {
+		/* ID pointer */
+		ID *id= *(but->idpoin_idpp);
 
+		if(id) BLI_strncpy(str, id->name+2, maxlen);
+		else BLI_strncpy(str, "", maxlen);
+
+		return;
+	}
+	else if(but->type == TEX) {
+		/* string */
+		BLI_strncpy(str, but->poin, maxlen);
+		return;
+	}
+	else {
+		/* number */
+		double value;
+
+		value= ui_get_but_val(but);
+
+		if(ui_is_but_float(but)) {
+			if(but->a2) { /* amount of digits defined */
+				if(but->a2==1) BLI_snprintf(str, maxlen, "%.1f", value);
+				else if(but->a2==2) BLI_snprintf(str, maxlen, "%.2f", value);
+				else if(but->a2==3) BLI_snprintf(str, maxlen, "%.3f", value);
+				else BLI_snprintf(str, maxlen, "%.4f", value);
+			}
+			else
+				BLI_snprintf(str, maxlen, "%.3f", value);
+		}
+		else
+			BLI_snprintf(str, maxlen, "%d", (int)value);
+	}
 }
 
-void ui_set_but_string(uiBut *but, const char *str)
+static void ui_rna_ID_collection(bContext *C, uiBut *but, PointerRNA *ptr, PropertyRNA **prop)
 {
-	if(but->rnaprop) {
-		if(RNA_property_editable(&but->rnapoin, but->rnaprop))
-			RNA_property_string_set(&but->rnapoin, but->rnaprop, str);
+	CollectionPropertyIterator iter;
+	PropertyRNA *iterprop, *iprop;
+	StructRNA *srna;
+
+	/* look for collection property in Main */
+	RNA_pointer_create(NULL, &RNA_Main, CTX_data_main(C), ptr);
+
+	iterprop= RNA_struct_iterator_property(ptr);
+	RNA_property_collection_begin(ptr, iterprop, &iter);
+	*prop= NULL;
+
+	for(; iter.valid; RNA_property_collection_next(&iter)) {
+		iprop= iter.ptr.data;
+
+		/* if it's a collection and has same pointer type, we've got it */
+		if(RNA_property_type(ptr, iprop) == PROP_COLLECTION) {
+			srna= RNA_property_pointer_type(ptr, iprop);
+
+			if(RNA_property_pointer_type(&but->rnapoin, but->rnaprop) == srna) {
+				*prop= iprop;
+				break;
+			}
+		}
 	}
-	else
+
+	RNA_property_collection_end(&iter);
+}
+
+/* autocomplete callback for RNA pointers */
+static void ui_rna_ID_autocomplete(bContext *C, char *str, void *arg_but)
+{
+	uiBut *but= arg_but;
+	AutoComplete *autocpl;
+	CollectionPropertyIterator iter;
+	PointerRNA ptr;
+	PropertyRNA *prop, *nameprop;
+	char *name;
+	
+	if(str[0]==0) return;
+
+	/* get the collection */
+	ui_rna_ID_collection(C, but, &ptr, &prop);
+	if(prop==NULL) return;
+
+	autocpl= autocomplete_begin(str, ui_get_but_string_max_length(but));
+	RNA_property_collection_begin(&ptr, prop, &iter);
+
+	/* loop over items in collection */
+	for(; iter.valid; RNA_property_collection_next(&iter)) {
+		if(iter.ptr.data && (nameprop = RNA_struct_name_property(&iter.ptr))) {
+			name= RNA_property_string_get_alloc(&iter.ptr, nameprop, NULL, 0);
+
+			if(name) {
+				/* test item name */
+				autocomplete_do_name(autocpl, name);
+				MEM_freeN(name);
+			}
+		}
+	}
+
+	RNA_property_collection_end(&iter);
+	autocomplete_end(autocpl, str);
+}
+
+int ui_set_but_string(bContext *C, uiBut *but, const char *str)
+{
+	if(but->rnaprop && ELEM(but->type, TEX, IDPOIN)) {
+		if(RNA_property_editable(&but->rnapoin, but->rnaprop)) {
+			PropertyType type;
+
+			type= RNA_property_type(&but->rnapoin, but->rnaprop);
+
+			if(type == PROP_STRING) {
+				/* RNA string */
+				RNA_property_string_set(&but->rnapoin, but->rnaprop, str);
+				return 1;
+			}
+			else if(type == PROP_POINTER) {
+				/* RNA pointer */
+				PointerRNA ptr, rptr;
+				PropertyRNA *prop;
+
+				/* XXX only ID pointers at the moment, needs to support
+				 * custom collection too for bones, vertex groups, .. */
+				ui_rna_ID_collection(C, but, &ptr, &prop);
+
+				if(prop && RNA_property_collection_lookup_string(&ptr, prop, str, &rptr)) {
+					RNA_property_pointer_set(&but->rnapoin, but->rnaprop, rptr);
+					return 1;
+				}
+				else
+					return 0;
+			}
+		}
+	}
+	else if(but->type == IDPOIN) {
+		/* ID pointer */
+    	but->idpoin_func(C, (char*)str, but->idpoin_idpp);
+		return 1;
+	}
+	else if(but->type == TEX) {
+		/* string */
 		BLI_strncpy(but->poin, str, but->hardmax);
+		return 1;
+	}
+	else {
+		double value;
+
+		/* XXX 2.50 missing python api */
+#if 0
+		if(BPY_button_eval(str, &value)) {
+			BKE_report(CTX_reports(C), RPT_WARNING, "Invalid Python expression, check console");
+			value = 0.0f; /* Zero out value on error */
+			
+			if(str[0])
+				return 0;
+		}
+#else
+		value= atof(str);
+#endif
+
+		if(!ui_is_but_float(but)) value= (int)value;
+		if(but->type==NUMABS) value= fabs(value);
+
+		/* not that we use hard limits here */
+		if(value<but->hardmin) value= but->hardmin;
+		if(value>but->hardmax) value= but->hardmax;
+
+		ui_set_but_val(but, value);
+		return 1;
+	}
+
+	return 0;
 }
 
 static double soft_range_round_up(double value, double max)
@@ -1754,7 +1940,6 @@ uiBlock *uiGetBlock(char *name, ARegion *ar)
 void ui_check_but(uiBut *but)
 {
 	/* if something changed in the button */
-	ID *id;
 	double value;
 	float okwidth;
 	int transopts= ui_translate_buttons();
@@ -1866,11 +2051,6 @@ void ui_check_but(uiBut *but)
 		break;
 
 	case IDPOIN:
-		id= *(but->idpoin_idpp);
-		strcpy(but->drawstr, but->str);
-		if(id) strcat(but->drawstr, id->name+2);
-		break;
-	
 	case TEX:
 		if(!but->editstr) {
 			char str[UI_MAX_DRAW_STR];
@@ -2409,6 +2589,9 @@ uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, char *str, short x1,
 			but->rnaindex= index;
 		else
 			but->rnaindex= 0;
+
+		if(type == IDPOIN)
+			uiButSetCompleteFunc(but, ui_rna_ID_autocomplete, but);
 	}
 	
 	if (!prop || !RNA_property_editable(&but->rnapoin, prop)) {

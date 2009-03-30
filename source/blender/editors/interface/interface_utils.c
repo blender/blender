@@ -264,35 +264,14 @@ uiBut *uiDefAutoButR(uiBlock *block, PointerRNA *ptr, PropertyRNA *prop, int ind
 			break;
 		case PROP_POINTER: {
 			PointerRNA pptr;
-			PropertyRNA *nameprop;
-			char *text, *descr, textbuf[256];
 			int icon;
 
 			pptr= RNA_property_pointer_get(ptr, prop);
-			descr= (char*)RNA_property_ui_description(ptr, prop);
-
 			if(!pptr.type)
 				pptr.type= RNA_property_pointer_type(ptr, prop);
-
 			icon= UI_GetIconRNA(&pptr);
 
-			if(pptr.data == NULL) {
-				but= uiDefIconTextBut(block, LABEL, 0, icon, "", x1, y1, x2, y2, NULL, 0, 0, 0, 0, "");
-			}
-			else {
-				nameprop= RNA_struct_name_property(&pptr);
-
-				if(nameprop) {
-					text= RNA_property_string_get_alloc(&pptr, nameprop, textbuf, sizeof(textbuf));
-					but= uiDefIconTextBut(block, LABEL, 0, icon, text, x1, y1, x2, y2, NULL, 0, 0, 0, 0, descr);
-					if(text != textbuf)
-						MEM_freeN(text);
-				}
-				else {
-					text= (char*)RNA_struct_ui_name(&pptr);
-					but= uiDefIconTextBut(block, LABEL, 0, icon, text, x1, y1, x2, y2, NULL, 0, 0, 0, 0, descr);
-				}
-			}
+			but= uiDefIconTextButR(block, IDPOIN, 0, icon, name, x1, y1, x2, y2, ptr, propname, index, 0, 0, -1, -1, NULL);
 			break;
 		}
 		case PROP_COLLECTION: {

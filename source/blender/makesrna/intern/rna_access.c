@@ -457,13 +457,20 @@ int RNA_property_string_maxlength(PointerRNA *ptr, PropertyRNA *prop)
 
 StructRNA *RNA_property_pointer_type(PointerRNA *ptr, PropertyRNA *prop)
 {
-	PointerPropertyRNA *pprop;
-	
 	rna_idproperty_check(&prop, ptr);
-	pprop= (PointerPropertyRNA*)prop;
 
-	if(pprop->type)
-		return pprop->type;
+	if(prop->type == PROP_POINTER) {
+		PointerPropertyRNA *pprop= (PointerPropertyRNA*)prop;
+
+		if(pprop->type)
+			return pprop->type;
+	}
+	else if(prop->type == PROP_COLLECTION) {
+		CollectionPropertyRNA *cprop= (CollectionPropertyRNA*)prop;
+
+		if(cprop->type)
+			return cprop->type;
+	}
 
 	return &RNA_UnknownType;
 }

@@ -258,8 +258,10 @@ extern void ui_set_but_val(uiBut *but, double value);
 extern void ui_set_but_hsv(uiBut *but);
 extern void ui_get_but_vectorf(uiBut *but, float *vec);
 extern void ui_set_but_vectorf(uiBut *but, float *vec);
+
 extern void ui_get_but_string(uiBut *but, char *str, int maxlen);
-extern void ui_set_but_string(uiBut *but, const char *str);
+extern int ui_set_but_string(struct bContext *C, uiBut *but, const char *str);
+extern int ui_get_but_string_max_length(uiBut *but);
 
 extern void ui_set_but_soft_range(uiBut *but, double value);
 
