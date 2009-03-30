@@ -152,7 +152,7 @@ PyObject * FrsNoise___repr__(BPy_FrsNoise* self)
 
 PyObject * FrsNoise_turbulence1( BPy_FrsNoise *self , PyObject *args) {
 	float f1, f2, f3;
-	unsigned int i;
+	unsigned int i = 4;
 
 	if(!( PyArg_ParseTuple(args, "fff|I", &f1, &f2, &f3, &i) ))
 		return NULL;
@@ -163,7 +163,7 @@ PyObject * FrsNoise_turbulence1( BPy_FrsNoise *self , PyObject *args) {
 PyObject * FrsNoise_turbulence2( BPy_FrsNoise *self , PyObject *args) {
 	PyObject *obj1;
 	float f2, f3;
-	unsigned int i;
+	unsigned int i = 4;
 
 	if(!( PyArg_ParseTuple(args, "O!ff|I", &PyList_Type, &obj1, &f2, &f3, &i) ))
 		return NULL;
@@ -182,7 +182,7 @@ PyObject * FrsNoise_turbulence2( BPy_FrsNoise *self , PyObject *args) {
 PyObject * FrsNoise_turbulence3( BPy_FrsNoise *self , PyObject *args) {
 	PyObject *obj1;
 	float f2, f3;
-	unsigned int i;
+	unsigned int i = 4;
 
 	if(!( PyArg_ParseTuple(args, "O!ff|I", &PyList_Type, &obj1, &f2, &f3, &i) ))
 		return NULL;
@@ -229,7 +229,7 @@ PyObject * FrsNoise_smoothNoise2( BPy_FrsNoise *self , PyObject *args) {
 PyObject * FrsNoise_smoothNoise3( BPy_FrsNoise *self , PyObject *args) {
 	PyObject *obj;
 
-	if(!( PyArg_ParseTuple(args, "O", &PyList_Type, obj) ))
+	if(!( PyArg_ParseTuple(args, "O", &PyList_Type, &obj) ))
 		return NULL;
 	if( PyList_Size(obj) != 3 ) {
 		stringstream msg("FrsNoise::smoothNoise3() accepts a list of 3 elements (");
