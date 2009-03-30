@@ -58,6 +58,9 @@
 #include "blf_internal.h"
 #include "blf_font_helv10.h"
 
+#ifndef BLF_INTERNAL_MINIMAL
+#include "blf_font_helv12.h"
+#endif
 
 int blf_internal_get_texture(FontBLF *font)
 {
@@ -246,6 +249,12 @@ FontBLF *blf_internal_new(char *name)
 		font->engine= (void *)&blf_font_helv10;
 		font->size= 10;
 	}
+#ifndef BLF_INTERNAL_MINIMAL
+	else if (!strcmp(name, "helv12")) {
+		font->engine= (void *)&blf_font_helv12;
+		font->size= 12;
+	}
+#endif
 	else
 		font->engine= NULL;
 
