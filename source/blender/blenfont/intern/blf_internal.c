@@ -60,6 +60,12 @@
 
 #ifndef BLF_INTERNAL_MINIMAL
 #include "blf_font_helv12.h"
+#include "blf_font_helvb8.h"
+#include "blf_font_helvb10.h"
+#include "blf_font_helvb12.h"
+#include "blf_font_scr12.h"
+#include "blf_font_scr14.h"
+#include "blf_font_scr15.h"
 #endif
 
 int blf_internal_get_texture(FontBLF *font)
@@ -253,6 +259,30 @@ FontBLF *blf_internal_new(char *name)
 	else if (!strcmp(name, "helv12")) {
 		font->engine= (void *)&blf_font_helv12;
 		font->size= 12;
+	}
+	else if (!strcmp(name, "helvb8")) {
+		font->engine= (void *)&blf_font_helvb8;
+		font->size= 8;
+	}
+	else if (!strcmp(name, "helvb10")) {
+		font->engine= (void *)&blf_font_helvb10;
+		font->size= 10;
+	}
+	else if (!strcmp(name, "helvb12")) {
+		font->engine= (void *)&blf_font_helvb12;
+		font->size= 12;
+	}
+	else if (!strcmp(name, "scr12")) {
+		font->engine= (void *)&blf_font_scr12;
+		font->size= 12;
+	}
+	else if (!strcmp(name, "scr14")) {
+		font->engine= (void *)&blf_font_scr14;
+		font->size= 14;
+	}
+	else if (!strcmp(name, "scr15")) {
+		font->engine= (void *)&blf_font_scr15;
+		font->size= 15;
 	}
 #endif
 	else
