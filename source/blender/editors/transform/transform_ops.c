@@ -267,7 +267,7 @@ static int transform_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 void Properties_Proportional(struct wmOperatorType *ot)
 {
-	RNA_def_enum(ot->srna, "proportional", proportional_mode_types, 0, "Proportional Edition", "");
+	RNA_def_enum(ot->srna, "proportional", proportional_mode_types, 0, "Proportional Editing", "");
 	RNA_def_enum(ot->srna, "proportional_editing_falloff", prop_mode_items, 0, "Proportional Editing Falloff", "Falloff type for proportional editing mode.");
 	RNA_def_float(ot->srna, "proportional_size", 1, 0, FLT_MAX, "Proportional Size", "", 0, 100);
 }
@@ -309,7 +309,7 @@ void TFM_OT_translation(struct wmOperatorType *ot)
 
 	Properties_Proportional(ot);
 
-	RNA_def_boolean(ot->srna, "mirror", 0, "Mirror Edition", "");
+	RNA_def_boolean(ot->srna, "mirror", 0, "Mirror Editing", "");
 
 	Properties_Constraints(ot);
 	
@@ -334,7 +334,7 @@ void TFM_OT_resize(struct wmOperatorType *ot)
 
 	Properties_Proportional(ot);
 
-	RNA_def_boolean(ot->srna, "mirror", 0, "Mirror Edition", "");
+	RNA_def_boolean(ot->srna, "mirror", 0, "Mirror Editing", "");
 
 	Properties_Constraints(ot);
 	
@@ -359,7 +359,7 @@ void TFM_OT_rotation(struct wmOperatorType *ot)
 
 	Properties_Proportional(ot);
 
-	RNA_def_boolean(ot->srna, "mirror", 0, "Mirror Edition", "");
+	RNA_def_boolean(ot->srna, "mirror", 0, "Mirror Editing", "");
 
 	Properties_Constraints(ot);
 	
@@ -384,7 +384,7 @@ void TFM_OT_tilt(struct wmOperatorType *ot)
 
 	Properties_Proportional(ot);
 
-	RNA_def_boolean(ot->srna, "mirror", 0, "Mirror Edition", "");
+	RNA_def_boolean(ot->srna, "mirror", 0, "Mirror Editing", "");
 
 	Properties_Constraints(ot);
 }
@@ -407,7 +407,7 @@ void TFM_OT_warp(struct wmOperatorType *ot)
 
 	Properties_Proportional(ot);
 
-	RNA_def_boolean(ot->srna, "mirror", 0, "Mirror Edition", "");
+	RNA_def_boolean(ot->srna, "mirror", 0, "Mirror Editing", "");
 
 	// XXX Shear axis?
 //	Properties_Constraints(ot);
@@ -431,7 +431,7 @@ void TFM_OT_shear(struct wmOperatorType *ot)
 
 	Properties_Proportional(ot);
 
-	RNA_def_boolean(ot->srna, "mirror", 0, "Mirror Edition", "");
+	RNA_def_boolean(ot->srna, "mirror", 0, "Mirror Editing", "");
 
 	// XXX Shear axis?
 //	Properties_Constraints(ot);
@@ -455,7 +455,7 @@ void TFM_OT_shrink_fatten(struct wmOperatorType *ot)
 
 	Properties_Proportional(ot);
 
-	RNA_def_boolean(ot->srna, "mirror", 0, "Mirror Edition", "");
+	RNA_def_boolean(ot->srna, "mirror", 0, "Mirror Editing", "");
 }
 
 void TFM_OT_tosphere(struct wmOperatorType *ot)
@@ -476,7 +476,7 @@ void TFM_OT_tosphere(struct wmOperatorType *ot)
 
 	Properties_Proportional(ot);
 
-	RNA_def_boolean(ot->srna, "mirror", 0, "Mirror Edition", "");
+	RNA_def_boolean(ot->srna, "mirror", 0, "Mirror Editing", "");
 }
 
 void TFM_OT_transform(struct wmOperatorType *ot)
@@ -528,7 +528,7 @@ void TFM_OT_transform(struct wmOperatorType *ot)
 	RNA_def_float_vector(ot->srna, "value", 4, NULL, -FLT_MAX, FLT_MAX, "Values", "", -FLT_MAX, FLT_MAX);
 
 	Properties_Proportional(ot);
-	RNA_def_boolean(ot->srna, "mirror", 0, "Mirror Edition", "");
+	RNA_def_boolean(ot->srna, "mirror", 0, "Mirror Editing", "");
 
 	RNA_def_boolean_vector(ot->srna, "constraint_axis", 3, NULL, "Constraint Axis", "");
 	RNA_def_int(ot->srna, "constraint_orientation", 0, 0, INT_MAX, "Constraint Orientation", "", 0, INT_MAX);

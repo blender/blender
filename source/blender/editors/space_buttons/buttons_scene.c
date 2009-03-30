@@ -277,15 +277,14 @@ static void render_panel_render(const bContext *C, Panel *pnl)
 {
 	uiLayout *layout= pnl->layout;
 	Scene *scene= CTX_data_scene(C);
-	PointerRNA sceneptr, renderptr, animptr;
+	PointerRNA sceneptr, renderptr;
 
 	RNA_id_pointer_create(&scene->id, &sceneptr);
 	renderptr = RNA_pointer_get(&sceneptr, "render_data");
-	WM_operator_properties_create(&animptr, "SCREEN_OT_render");
 
 	uiTemplateColumn(layout);
 	uiItemO(layout, UI_TSLOT_COLUMN_1, "RENDER", ICON_SCENE, "SCREEN_OT_render");
-	uiItemR(layout, UI_TSLOT_COLUMN_2, "ANIM", 0, &animptr, "anim");
+	uiItemBooleanO(layout, UI_TSLOT_COLUMN_2, "ANIM", 0, "SCREEN_OT_render", "anim", 1);
 
 	uiTemplateColumn(layout);
 	uiItemR(layout, UI_TSLOT_COLUMN_1, "Sfra", 0, &sceneptr, "start_frame");

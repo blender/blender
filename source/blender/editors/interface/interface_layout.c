@@ -294,14 +294,22 @@ static void ui_item_buts(uiBlock *block, uiItem *item, int x, int y, int w, int 
 	else if(item->type == ITEM_OPERATOR) {
 		/* operator */
 		uiItemOp *opitem= (uiItemOp*)item;
+		uiBut *but;
 
 		if(item->icon && item->name)
-			uiDefIconTextButO(block, BUT, opitem->ot->idname, opitem->context, item->icon, (char*)item->name, x, y, w, h, NULL);
+			but= uiDefIconTextButO(block, BUT, opitem->ot->idname, opitem->context, item->icon, (char*)item->name, x, y, w, h, NULL);
 		else if(item->icon)
-			uiDefIconButO(block, BUT, opitem->ot->idname, opitem->context, item->icon, x, y, w, h, NULL);
+			but= uiDefIconButO(block, BUT, opitem->ot->idname, opitem->context, item->icon, x, y, w, h, NULL);
 		/* text only */
 		else
-			uiDefButO(block, BUT, opitem->ot->idname, opitem->context, (char*)item->name, x, y, w, h, NULL);
+			but= uiDefButO(block, BUT, opitem->ot->idname, opitem->context, (char*)item->name, x, y, w, h, NULL);
+
+		if(but && opitem->properties) {
+			/* assign properties */
+			PointerRNA *opptr= uiButGetOperatorPtrRNA(but);
+			opptr->data= opitem->properties;
+			opitem->properties= NULL;
+		}
 	}
 	else if(item->type == ITEM_MENU) {
 		/* menu */
