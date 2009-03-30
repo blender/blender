@@ -1577,10 +1577,14 @@ btCollisionShape* CcdShapeConstructionInfo::CreateBulletShape()
 					btTriangleMesh* collisionMeshData = new btTriangleMesh(true,false);
 					collisionMeshData->m_weldingThreshold = m_weldingThreshold1;
 					bool removeDuplicateVertices=true;
-					// m_vertexArray is necessarily a multiple of 3
-					for (int i=0;i<m_vertexArray.size(); i+=3 )
-					{
-						collisionMeshData->addTriangle(m_vertexArray[i+2],m_vertexArray[i+1],m_vertexArray[i],removeDuplicateVertices);
+					// m_vertexArray not in multiple of 3 anymore, use m_triFaceArray
+					for(int i=0; i<m_triFaceArray.size(); i+=3) {
+						collisionMeshData->addTriangle(
+								m_vertexArray[m_triFaceArray[i]],
+								m_vertexArray[m_triFaceArray[i+1]],
+								m_vertexArray[m_triFaceArray[i+2]],
+								removeDuplicateVertices
+						);
 					}
 					indexVertexArrays = collisionMeshData;
 
