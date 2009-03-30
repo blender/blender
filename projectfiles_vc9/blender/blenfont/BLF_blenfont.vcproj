@@ -190,6 +190,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\blenfont\intern\blf_internal.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\blenfont\intern\blf_lang.c"
 				>
 			</File>
@@ -209,6 +213,10 @@
 		<Filter
 			Name="intern"
 			>
+			<File
+				RelativePath="..\..\..\source\blender\blenfont\intern\blf_font_helv10.h"
+				>
+			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenfont\intern\blf_internal.h"
 				>
