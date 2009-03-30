@@ -188,12 +188,13 @@ void blf_internal_boundbox(FontBLF *font, char *str, rctf *box)
 	int length= 0;
 	int ascent= 0;
 	int descent= 0;
+	int a=0, d=0;
 
 	data= (FontDataBLF *)font->engine;
 	while ((c= (unsigned char) *str++)) {
 		length += data->chars[c].advance;
-		int d = data->chars[c].yorig;
-		int a = data->chars[c].height - data->chars[c].yorig;
+		d = data->chars[c].yorig;
+		a = data->chars[c].height - data->chars[c].yorig;
 		if (a > ascent)
 			ascent= a;
 		if (d > descent)
