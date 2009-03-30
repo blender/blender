@@ -5118,7 +5118,8 @@ static void do_view3d_header_buttons(bContext *C, void *arg, int event)
 		break;
 	}
 
-	EM_EndEditMesh(obedit->data, em);
+	if(obedit && obedit->type==OB_MESH)
+		EM_EndEditMesh(obedit->data, em);
 }
 
 static void view3d_header_pulldowns(const bContext *C, uiBlock *block, Object *ob, int *xcoord, int yco)
