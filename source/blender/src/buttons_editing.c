@@ -6858,9 +6858,12 @@ void editing_panels()
 			uiNewPanelTabbed("Mesh Tools 1", "Editing");
 			
 			#ifdef WITH_BF_REEB
-			editing_panel_mesh_skgen(ob, ob->data);
-			editing_panel_mesh_skgen_retarget(ob, ob->data);
-			editing_panel_mesh_skgen_display(ob, ob->data);
+			if (G.rt == -1)
+			{
+				editing_panel_mesh_skgen(ob, ob->data);
+				editing_panel_mesh_skgen_retarget(ob, ob->data);
+				editing_panel_mesh_skgen_display(ob, ob->data);
+			}
 			#endif
 			
 			editing_panel_mesh_uvautocalculation();
