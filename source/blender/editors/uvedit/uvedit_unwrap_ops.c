@@ -72,18 +72,22 @@
 
 static int ED_uvedit_ensure_uvs(bContext *C, Scene *scene, Object *obedit)
 {
-	EditMesh *em= ((Mesh*)obedit->data)->edit_mesh;
+	EditMesh *em= EM_GetEditMesh((Mesh*)obedit->data);
 	EditFace *efa;
 	MTFace *tf;
 
-	if(ED_uvedit_test(obedit))
+	if(ED_uvedit_test(obedit)) {
+		EM_EndEditMesh(obedit->data, em);
 		return 1;
+	}
 
 	if(em && em->faces.first)
 		EM_add_data_layer(em, &em->fdata, CD_MTFACE);
 	
-	if(!ED_uvedit_test(obedit))
+	if(!ED_uvedit_test(obedit)) {
+		EM_EndEditMesh(obedit->data, em);
 		return 0;
+	}
 	
 	// XXX this image is not in context in 3d view .. only
 	// way to get would be to find the first image window?
@@ -95,6 +99,7 @@ static int ED_uvedit_ensure_uvs(bContext *C, Scene *scene, Object *obedit)
 		uvedit_face_select(scene, efa, tf);
 	}
 
+	EM_EndEditMesh(obedit->data, em);
 	return 1;
 }
 
@@ -218,7 +223,7 @@ static void minimize_stretch_init(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
-	EditMesh *em= ((Mesh*)obedit->data)->edit_mesh;
+	EditMesh *em= EM_GetEditMesh((Mesh*)obedit->data);
 	MinStretch *ms;
 	int fill_holes= RNA_boolean_get(op->ptr, "fill_holes");
 
@@ -400,7 +405,7 @@ static int pack_islands_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
-	EditMesh *em= ((Mesh*)obedit->data)->edit_mesh;
+	EditMesh *em= EM_GetEditMesh((Mesh*)obedit->data);
 	ParamHandle *handle;
 
 	handle = construct_param_handle(scene, em, 1, 0, 1, 1);
@@ -411,6 +416,7 @@ static int pack_islands_exec(bContext *C, wmOperator *op)
 	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, obedit);
 
+	EM_EndEditMesh(obedit->data, em);
 	return OPERATOR_FINISHED;
 }
 
@@ -432,7 +438,7 @@ static int average_islands_scale_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
-	EditMesh *em= ((Mesh*)obedit->data)->edit_mesh;
+	EditMesh *em= EM_GetEditMesh((Mesh*)obedit->data);
 	ParamHandle *handle;
 
 	handle= construct_param_handle(scene, em, 1, 0, 1, 1);
@@ -443,6 +449,7 @@ static int average_islands_scale_exec(bContext *C, wmOperator *op)
 	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, obedit);
 
+	EM_EndEditMesh(obedit->data, em);
 	return OPERATOR_FINISHED;
 }
 
@@ -464,15 +471,19 @@ static ParamHandle *liveHandle = NULL;
 
 void ED_uvedit_live_unwrap_begin(Scene *scene, Object *obedit)
 {
-	EditMesh *em= ((Mesh*)obedit->data)->edit_mesh;
+	EditMesh *em= EM_GetEditMesh((Mesh*)obedit->data);
 	short abf = scene->toolsettings->unwrapper == 1;
 	short fillholes = scene->toolsettings->uvcalc_flag & UVCALC_FILLHOLES;
 
-	if(!ED_uvedit_test(obedit)) return;
+	if(!ED_uvedit_test(obedit)) {
+		EM_EndEditMesh(obedit->data, em);
+		return;
+	}
 
 	liveHandle = construct_param_handle(scene, em, 0, fillholes, 1, 1);
 
 	param_lscm_begin(liveHandle, PARAM_TRUE, abf);
+	EM_EndEditMesh(obedit->data, em);
 }
 
 void ED_uvedit_live_unwrap_re_solve(void)
@@ -595,7 +606,7 @@ static void uv_map_transform(bContext *C, wmOperator *op, float center[3], float
 	/* context checks are messy here, making it work in both 3d view and uv editor */
 	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
-	EditMesh *em= ((Mesh*)obedit->data)->edit_mesh;
+	EditMesh *em= EM_GetEditMesh((Mesh*)obedit->data);
 	View3D *v3d= CTX_wm_view3d(C);
 	RegionView3D *rv3d= CTX_wm_region_view3d(C);
 	/* common operator properties */
@@ -621,6 +632,8 @@ static void uv_map_transform(bContext *C, wmOperator *op, float center[3], float
 		Mat4One(rotmat);
 	else 
 		uv_map_rotation_matrix(rotmat, rv3d, obedit, upangledeg, sideangledeg, radius);
+
+	EM_EndEditMesh(obedit->data, em);
 }
 
 static void uv_transform_properties(wmOperatorType *ot, int radius)
@@ -773,15 +786,17 @@ static int unwrap_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
-	EditMesh *em= ((Mesh*)obedit->data)->edit_mesh;
+	EditMesh *em= EM_GetEditMesh((Mesh*)obedit->data);
 	ParamHandle *handle;
 	int method = RNA_enum_get(op->ptr, "method");
 	int fill_holes = RNA_boolean_get(op->ptr, "fill_holes");
 	int correct_aspect = RNA_boolean_get(op->ptr, "correct_aspect");
 	
 	/* add uvs if they don't exist yet */
-	if(!ED_uvedit_ensure_uvs(C, scene, obedit))
+	if(!ED_uvedit_ensure_uvs(C, scene, obedit)) {
+		EM_EndEditMesh(obedit->data, em);
 		return OPERATOR_CANCELLED;
+	}
 
 	handle= construct_param_handle(scene, em, 0, fill_holes, 0, correct_aspect);
 
@@ -798,6 +813,7 @@ static int unwrap_exec(bContext *C, wmOperator *op)
 	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, obedit);
 
+	EM_EndEditMesh(obedit->data, em);
 	return OPERATOR_FINISHED;
 }
 
@@ -882,15 +898,17 @@ static int from_view_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
-	EditMesh *em= ((Mesh*)obedit->data)->edit_mesh;
+	EditMesh *em= EM_GetEditMesh((Mesh*)obedit->data);
 	ARegion *ar= CTX_wm_region(C);
 	EditFace *efa;
 	MTFace *tf;
 	float rotmat[4][4];
 
 	/* add uvs if they don't exist yet */
-	if(!ED_uvedit_ensure_uvs(C, scene, obedit))
+	if(!ED_uvedit_ensure_uvs(C, scene, obedit)) {
+		EM_EndEditMesh(obedit->data, em);
 		return OPERATOR_CANCELLED;
+	}
 
 	if(RNA_boolean_get(op->ptr, "orthographic")) {
 		uv_map_rotation_matrix(rotmat, ar->regiondata, obedit, 90.0f, 0.0f, 1.0f);
@@ -928,6 +946,7 @@ static int from_view_exec(bContext *C, wmOperator *op)
 	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, obedit);
 
+	EM_EndEditMesh(obedit->data, em);
 	return OPERATOR_FINISHED;
 }
 
@@ -963,13 +982,15 @@ static int reset_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
-	EditMesh *em= ((Mesh*)obedit->data)->edit_mesh;
+	EditMesh *em= EM_GetEditMesh((Mesh*)obedit->data);
 	EditFace *efa;
 	MTFace *tf;
 
 	/* add uvs if they don't exist yet */
-	if(!ED_uvedit_ensure_uvs(C, scene, obedit))
+	if(!ED_uvedit_ensure_uvs(C, scene, obedit)) {
+		EM_EndEditMesh(obedit->data, em);
 		return OPERATOR_CANCELLED;
+	}
 
 	for(efa= em->faces.first; efa; efa= efa->next) {
 		if(efa->f & SELECT) {
@@ -992,6 +1013,7 @@ static int reset_exec(bContext *C, wmOperator *op)
 	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, obedit);
 
+	EM_EndEditMesh(obedit->data, em);
 	return OPERATOR_FINISHED;
 }
 
@@ -1047,14 +1069,16 @@ static int sphere_project_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
-	EditMesh *em= ((Mesh*)obedit->data)->edit_mesh;
+	EditMesh *em= EM_GetEditMesh((Mesh*)obedit->data);
 	EditFace *efa;
 	MTFace *tf;
 	float center[3], rotmat[4][4];
 
 	/* add uvs if they don't exist yet */
-	if(!ED_uvedit_ensure_uvs(C, scene, obedit))
+	if(!ED_uvedit_ensure_uvs(C, scene, obedit)) {
+		EM_EndEditMesh(obedit->data, em);
 		return OPERATOR_CANCELLED;
+	}
 
 	uv_map_transform(C, op, center, rotmat);
 
@@ -1077,6 +1101,7 @@ static int sphere_project_exec(bContext *C, wmOperator *op)
 	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, obedit);
 
+	EM_EndEditMesh(obedit->data, em);
 	return OPERATOR_FINISHED;
 }
 
@@ -1116,14 +1141,16 @@ static int cylinder_project_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
-	EditMesh *em= ((Mesh*)obedit->data)->edit_mesh;
+	EditMesh *em= EM_GetEditMesh((Mesh*)obedit->data);
 	EditFace *efa;
 	MTFace *tf;
 	float center[3], rotmat[4][4];
 
 	/* add uvs if they don't exist yet */
-	if(!ED_uvedit_ensure_uvs(C, scene, obedit))
+	if(!ED_uvedit_ensure_uvs(C, scene, obedit)) {
+		EM_EndEditMesh(obedit->data, em);
 		return OPERATOR_CANCELLED;
+	}
 
 	uv_map_transform(C, op, center, rotmat);
 
@@ -1146,6 +1173,7 @@ static int cylinder_project_exec(bContext *C, wmOperator *op)
 	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, obedit);
 
+	EM_EndEditMesh(obedit->data, em);
 	return OPERATOR_FINISHED;
 }
 
@@ -1171,15 +1199,17 @@ static int cube_project_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
-	EditMesh *em= ((Mesh*)obedit->data)->edit_mesh;
+	EditMesh *em= EM_GetEditMesh((Mesh*)obedit->data);
 	EditFace *efa;
 	MTFace *tf;
 	float no[3], cube_size, *loc, dx, dy;
 	int cox, coy;
 
 	/* add uvs if they don't exist yet */
-	if(!ED_uvedit_ensure_uvs(C, scene, obedit))
+	if(!ED_uvedit_ensure_uvs(C, scene, obedit)) {
+		EM_EndEditMesh(obedit->data, em);
 		return OPERATOR_CANCELLED;
+	}
 
 	loc= obedit->obmat[3];
 	cube_size= RNA_float_get(op->ptr, "cube_size");
@@ -1230,6 +1260,7 @@ static int cube_project_exec(bContext *C, wmOperator *op)
 	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, obedit);
 
+	EM_EndEditMesh(obedit->data, em);
 	return OPERATOR_FINISHED;
 }
 

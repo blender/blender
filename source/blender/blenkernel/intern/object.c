@@ -1635,15 +1635,16 @@ static void ob_parbone(Object *ob, Object *par, float mat[][4])
 
 static void give_parvert(Object *par, int nr, float *vec)
 {
+	EditMesh *em;
 	int a, count;
 	
 	vec[0]=vec[1]=vec[2]= 0.0f;
 	
 	if(par->type==OB_MESH) {
 		Mesh *me= par->data;
-		
-		if(me->edit_mesh) {
-			EditMesh *em = me->edit_mesh;
+		em = EM_GetEditMesh(me);
+
+		if(em) {
 			EditVert *eve;
 			
 			for(eve= em->verts.first; eve; eve= eve->next) {
@@ -1652,6 +1653,7 @@ static void give_parvert(Object *par, int nr, float *vec)
 					break;
 				}
 			}
+			EM_EndEditMesh(me, em);
 		}
 		else {
 			DerivedMesh *dm = par->derivedFinal;
@@ -2294,10 +2296,13 @@ void object_handle_update(Scene *scene, Object *ob)
 			
 			/* includes all keys and modifiers */
 			if(ob->type==OB_MESH) {
+				EditMesh *em = EM_GetEditMesh(ob->data);
+
 					// here was vieweditdatamask? XXX
-				if(ob==scene->obedit)
-					makeDerivedMesh(scene, ob, ((Mesh*)ob->data)->edit_mesh, CD_MASK_BAREMESH);
-				else
+				if(ob==scene->obedit) {
+					makeDerivedMesh(scene, ob, em, CD_MASK_BAREMESH);
+					EM_EndEditMesh(ob->data, em);
+				} else
 					makeDerivedMesh(scene, ob, NULL, CD_MASK_BAREMESH);
 			}
 			else if(ob->type==OB_MBALL) {

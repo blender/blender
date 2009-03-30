@@ -57,6 +57,7 @@
 
 #include "ED_util.h"
 #include "ED_screen.h"
+#include "ED_mesh.h"
 #include "ED_screen_types.h"
 
 #include "RE_pipeline.h"
@@ -216,11 +217,14 @@ int ED_operator_uvedit(bContext *C)
 	EditMesh *em= NULL;
 
 	if(obedit && obedit->type==OB_MESH)
-		em= ((Mesh *)obedit->data)->edit_mesh;
+		em= EM_GetEditMesh((Mesh *)obedit->data);
 
-    if(em && (em->faces.first) && (CustomData_has_layer(&em->fdata, CD_MTFACE)))
+	if(em && (em->faces.first) && (CustomData_has_layer(&em->fdata, CD_MTFACE))) {
+		EM_EndEditMesh(obedit->data, em);
 		return 1;
+	}
 
+	EM_EndEditMesh(obedit->data, em);
 	return 0;
 }
 
@@ -230,11 +234,14 @@ int ED_operator_uvmap(bContext *C)
 	EditMesh *em= NULL;
 
 	if(obedit && obedit->type==OB_MESH)
-		em= ((Mesh *)obedit->data)->edit_mesh;
+		em= EM_GetEditMesh((Mesh *)obedit->data);
 
-    if(em && (em->faces.first))
+	if(em && (em->faces.first)) {
+		EM_EndEditMesh(obedit->data, em);
 		return 1;
+	}
 
+	EM_EndEditMesh(obedit->data, em);
 	return 0;
 }
 

@@ -120,7 +120,7 @@ static void draw_uvs_shadow(SpaceImage *sima, Object *obedit)
 	EditFace *efa;
 	TFace *tf;
 	
-	em= ((Mesh*)obedit->data)->edit_mesh;
+	em= EM_GetEditMesh((Mesh*)obedit->data);
 
 	/* draws the grey mesh when painting */
 	glColor3ub(112, 112, 112);
@@ -135,6 +135,8 @@ static void draw_uvs_shadow(SpaceImage *sima, Object *obedit)
 			if(efa->v4) glVertex2fv(tf->uv[3]);
 		glEnd();
 	}
+
+	EM_EndEditMesh(obedit->data, em);
 }
 
 static int draw_uvs_dm_shadow(DerivedMesh *dm)
@@ -426,7 +428,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 	int drawfaces, interpedges, lastsel, sel;
 	Image *ima= sima->image;
  	
-	em= me->edit_mesh;
+	em= EM_GetEditMesh(me);
 	activetf= EM_get_active_mtface(em, &efa_act, NULL, 0); /* will be set to NULL if hidden */
 
 	settings= scene->toolsettings;
@@ -824,6 +826,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 	}
 
 	glPointSize(1.0);
+	EM_EndEditMesh(obedit->data, em);
 }
 
 void draw_uvedit_main(SpaceImage *sima, ARegion *ar, Scene *scene, Object *obedit)

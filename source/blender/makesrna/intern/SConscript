@@ -2,10 +2,13 @@
 import sys
 import os
 
+def normpath(path):
+	return os.path.abspath(os.path.normpath(path))
+
 Import ('env')
 cflags = '-Wall'
 defines = []
-root_build_dir=env['BF_BUILDDIR']
+root_build_dir=normpath(env['BF_BUILDDIR'])
 
 source_files = env.Glob('*.c')
 

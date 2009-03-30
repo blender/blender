@@ -625,7 +625,7 @@ static float seg_intersect(EditEdge *e, CutCurve *c, int len, char mode, struct 
 static int knife_cut_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
-	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
+	EditMesh *em= EM_GetEditMesh(((Mesh *)obedit->data));
 	ARegion *ar= CTX_wm_region(C);
 	EditEdge *eed;
 	EditVert *eve;
@@ -638,6 +638,7 @@ static int knife_cut_exec(bContext *C, wmOperator *op)
 	
 	if (EM_nvertices_selected(em) < 2) {
 		error("No edges are selected to operate on");
+		EM_EndEditMesh(obedit->data, em);
 		return OPERATOR_CANCELLED;;
 	}
 
@@ -650,8 +651,11 @@ static int knife_cut_exec(bContext *C, wmOperator *op)
 	}
 	RNA_END;
 	
-	if(len<2) return OPERATOR_CANCELLED;
-	
+	if(len<2) {
+		EM_EndEditMesh(obedit->data, em);
+		return OPERATOR_CANCELLED;
+	}
+
 	/*store percentage of edge cut for KNIFE_EXACT here.*/
 	for(eed=em->edges.first; eed; eed= eed->next) 
 		eed->tmp.fp = 0.0; 
@@ -698,6 +702,7 @@ static int knife_cut_exec(bContext *C, wmOperator *op)
 	
 	BLI_ghash_free(gh, NULL, (GHashValFreeFP)MEM_freeN);
 	
+	EM_EndEditMesh(obedit->data, em);
 	return OPERATOR_FINISHED;
 }
 

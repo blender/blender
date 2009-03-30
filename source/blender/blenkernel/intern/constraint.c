@@ -38,6 +38,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
+#include "BLI_editVert.h"
 
 #include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
@@ -70,6 +71,7 @@
 #include "BPY_extern.h"
 #endif
 
+#include "ED_mesh.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -390,6 +392,7 @@ static void contarget_get_mesh_mat (Object *ob, char *substring, float mat[][4])
 {
 	DerivedMesh *dm;
 	Mesh *me= ob->data;
+	EditMesh *em = EM_GetEditMesh(me);
 	float vec[3] = {0.0f, 0.0f, 0.0f}, tvec[3];
 	float normal[3] = {0.0f, 0.0f, 0.0f}, plane[3];
 	float imat[3][3], tmat[3][3];
@@ -403,9 +406,9 @@ static void contarget_get_mesh_mat (Object *ob, char *substring, float mat[][4])
 	if (dgroup < 0) return;
 	
 	/* get DerivedMesh */
-	if (me->edit_mesh) {
+	if (em) {
 		/* target is in editmode, so get a special derived mesh */
-		dm = CDDM_from_editmesh(me->edit_mesh, ob->data);
+		dm = CDDM_from_editmesh(em, ob->data);
 	}
 	else {
 		/* when not in EditMode, this should exist */
@@ -475,8 +478,9 @@ static void contarget_get_mesh_mat (Object *ob, char *substring, float mat[][4])
 	}
 	
 	/* free temporary DerivedMesh created (in EditMode case) */
-	if (me->edit_mesh) {
+	if (em) {
 		if (dm) dm->release(dm);
+		EM_EndEditMesh(me, em);
 	}
 }
 

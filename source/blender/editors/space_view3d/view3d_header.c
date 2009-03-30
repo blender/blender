@@ -4886,7 +4886,7 @@ static void do_view3d_header_buttons(bContext *C, void *arg, int event)
 	int bit, ctrl= win->eventstate->ctrl, shift= win->eventstate->shift;
 	
 	if(obedit && obedit->type==OB_MESH) {
-		em= ((Mesh *)obedit->data)->edit_mesh;
+		em= EM_GetEditMesh((Mesh *)obedit->data);
 	}
 	/* watch it: if sa->win does not exist, check that when calling direct drawing routines */
 
@@ -5117,6 +5117,8 @@ static void do_view3d_header_buttons(bContext *C, void *arg, int event)
 		}
 		break;
 	}
+
+	EM_EndEditMesh(obedit->data, em);
 }
 
 static void view3d_header_pulldowns(const bContext *C, uiBlock *block, Object *ob, int *xcoord, int yco)
@@ -5481,7 +5483,7 @@ void view3d_header_buttons(const bContext *C, ARegion *ar)
 
 		/* selection modus */
 		if(obedit && (obedit->type == OB_MESH)) {
-			EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
+			EditMesh *em= EM_GetEditMesh((Mesh *)obedit->data);
 
 			uiBlockBeginAlign(block);
 			uiDefIconButBitS(block, TOG, SCE_SELECT_VERTEX, B_SEL_VERT, ICON_VERTEXSEL, xco,yco,XIC,YIC, &em->selectmode, 1.0, 0.0, 0, 0, "Vertex select mode (Ctrl Tab 1)");
@@ -5497,6 +5499,8 @@ void view3d_header_buttons(const bContext *C, ARegion *ar)
 			}
 			uiBlockEndAlign(block);
 			xco+= 20;
+
+			EM_EndEditMesh(obedit->data, em);
 		}
 		else if(G.f & G_PARTICLEEDIT) {
 			uiBlockBeginAlign(block);

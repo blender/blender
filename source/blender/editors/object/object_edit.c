@@ -920,7 +920,7 @@ static int return_editmesh_vgroup(Object *obedit, EditMesh *em, char *name, floa
 static void select_editmesh_hook(Object *ob, HookModifierData *hmd)
 {
 	Mesh *me= ob->data;
-	EditMesh *em= me->edit_mesh;
+	EditMesh *em= EM_GetEditMesh(me);
 	EditVert *eve;
 	int index=0, nr=0;
 	
@@ -931,6 +931,8 @@ static void select_editmesh_hook(Object *ob, HookModifierData *hmd)
 		}
 	}
 	EM_select_flush(em);
+
+	EM_EndEditMesh(me, em);
 }
 
 static int return_editlattice_indexar(Lattice *editlatt, int *tot, int **indexar, float *cent)
@@ -1103,9 +1105,16 @@ int hook_getIndexArray(Object *obedit, int *tot, int **indexar, char *name, floa
 		case OB_MESH:
 		{
 			Mesh *me= obedit->data;
+			EditMesh *em = EM_GetEditMesh(me);
+
 			/* check selected vertices first */
-			if( return_editmesh_indexar(me->edit_mesh, tot, indexar, cent_r)) return 1;
-			else return return_editmesh_vgroup(obedit, me->edit_mesh, name, cent_r);
+			if( return_editmesh_indexar(em, tot, indexar, cent_r)) {
+				EM_EndEditMesh(me, em);
+				return 1;
+			} else {
+				int ret = return_editmesh_vgroup(obedit, em, name, cent_r);
+				EM_EndEditMesh(me, em);
+			}
 		}
 		case OB_CURVE:
 		case OB_SURF:
@@ -2202,8 +2211,9 @@ void make_vertex_parent(Scene *scene, Object *obedit, View3D *v3d)
 	
 	if(obedit->type==OB_MESH) {
 		Mesh *me= obedit->data;
-		
-		eve= me->edit_mesh->verts.first;
+		EditMesh *em = EM_GetEditMesh(me);
+
+		eve= em->verts.first;
 		while(eve) {
 			if(eve->f & 1) {
 				if(v1==0) v1= nr;
@@ -2215,6 +2225,8 @@ void make_vertex_parent(Scene *scene, Object *obedit, View3D *v3d)
 			nr++;
 			eve= eve->next;
 		}
+
+		EM_EndEditMesh(me, em);
 	}
 	else if(ELEM(obedit->type, OB_SURF, OB_CURVE)) {
 		ListBase *editnurb= curve_get_editcurve(obedit);
@@ -2834,8 +2846,9 @@ static int object_center_set_exec(bContext *C, wmOperator *op)
 	
 		if(obedit->type==OB_MESH) {
 			Mesh *me= obedit->data;
-			
-			for(eve= me->edit_mesh->verts.first; eve; eve= eve->next) {
+			EditMesh *em = EM_GetEditMesh(me);
+
+			for(eve= em->verts.first; eve; eve= eve->next) {
 				if(v3d->around==V3D_CENTROID) {
 					total++;
 					VECADD(cent, cent, eve->co);
@@ -2854,13 +2867,14 @@ static int object_center_set_exec(bContext *C, wmOperator *op)
 				cent[2]= (min[2]+max[2])/2.0f;
 			}
 			
-			for(eve= me->edit_mesh->verts.first; eve; eve= eve->next) {
+			for(eve= em->verts.first; eve; eve= eve->next) {
 				VecSubf(eve->co, eve->co, cent);			
 			}
 			
-			recalc_editnormals(me->edit_mesh);
+			recalc_editnormals(em);
 			tot_change++;
 			DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
+			EM_EndEditMesh(me, em);
 		}
 	}
 	

@@ -94,9 +94,10 @@ void sel_verts_defgroup (Object *obedit, int select)
 	case OB_MESH:
 	{
 		Mesh *me= ob->data;
-		
-		for (eve=me->edit_mesh->verts.first; eve; eve=eve->next){
-			dvert= CustomData_em_get(&me->edit_mesh->vdata, eve->data, CD_MDEFORMVERT);
+		EditMesh *em = EM_GetEditMesh(me);
+
+		for (eve=em->verts.first; eve; eve=eve->next){
+			dvert= CustomData_em_get(&em->vdata, eve->data, CD_MDEFORMVERT);
 
 			if (dvert && dvert->totweight){
 				for (i=0; i<dvert->totweight; i++){
@@ -110,8 +111,10 @@ void sel_verts_defgroup (Object *obedit, int select)
 			}
 		}
 		/* this has to be called, because this function operates on vertices only */
-		if(select) EM_select_flush(me->edit_mesh);	// vertices to edges/faces
-		else EM_deselect_flush(me->edit_mesh);
+		if(select) EM_select_flush(em);	// vertices to edges/faces
+		else EM_deselect_flush(em);
+
+		EM_EndEditMesh(em, me);
 	}
 		break;
 	case OB_LATTICE:
@@ -395,18 +398,19 @@ void del_defgroup (Object *ob)
 	/* Make sure that any verts with higher indices are adjusted accordingly */
 	if(ob->type==OB_MESH) {
 		Mesh *me= ob->data;
-		EditMesh *em = me->edit_mesh;
+		EditMesh *em = EM_GetEditMesh(me);
 		EditVert *eve;
 		MDeformVert *dvert;
 		
 		for (eve=em->verts.first; eve; eve=eve->next){
-			dvert= CustomData_em_get(&me->edit_mesh->vdata, eve->data, CD_MDEFORMVERT);
+			dvert= CustomData_em_get(&em->vdata, eve->data, CD_MDEFORMVERT);
 
 			if (dvert)
 				for (i=0; i<dvert->totweight; i++)
 					if (dvert->dw[i].def_nr > (ob->actdef-1))
 						dvert->dw[i].def_nr--;
 		}
+		EM_EndEditMesh(me, em);
 	}
 	else if(ob->type==OB_LATTICE) {
 		Lattice *lt= def_get_lattice(ob);
@@ -720,13 +724,14 @@ void assign_verts_defgroup (Object *obedit, float weight)
 	case OB_MESH:
 	{
 		Mesh *me= ob->data;
-		
-		if (!CustomData_has_layer(&me->edit_mesh->vdata, CD_MDEFORMVERT))
-			EM_add_data_layer(me->edit_mesh, &me->edit_mesh->vdata, CD_MDEFORMVERT);
+		EditMesh *em = EM_GetEditMesh(me);
+
+		if (!CustomData_has_layer(&em->vdata, CD_MDEFORMVERT))
+			EM_add_data_layer(em, &em->vdata, CD_MDEFORMVERT);
 
 		/* Go through the list of editverts and assign them */
-		for (eve=me->edit_mesh->verts.first; eve; eve=eve->next){
-			dvert= CustomData_em_get(&me->edit_mesh->vdata, eve->data, CD_MDEFORMVERT);
+		for (eve=em->verts.first; eve; eve=eve->next){
+			dvert= CustomData_em_get(&em->vdata, eve->data, CD_MDEFORMVERT);
 
 			if (dvert && (eve->f & 1)){
 				done=0;
@@ -759,6 +764,7 @@ void assign_verts_defgroup (Object *obedit, float weight)
 				}
 			}
 		}
+		EM_EndEditMesh(me, em);
 	}
 		break;
 	case OB_LATTICE:
@@ -882,9 +888,10 @@ void remove_verts_defgroup (Object *obedit, int allverts)
 	case OB_MESH:
 	{
 		Mesh *me= ob->data;
-		
-		for (eve=me->edit_mesh->verts.first; eve; eve=eve->next){
-			dvert= CustomData_em_get(&me->edit_mesh->vdata, eve->data, CD_MDEFORMVERT);
+		EditMesh *em = EM_GetEditMesh(me);
+
+		for (eve=em->verts.first; eve; eve=eve->next){
+			dvert= CustomData_em_get(&em->vdata, eve->data, CD_MDEFORMVERT);
 		
 			if (dvert && dvert->dw && ((eve->f & 1) || allverts)){
 				for (i=0; i<dvert->totweight; i++){
@@ -911,6 +918,7 @@ void remove_verts_defgroup (Object *obedit, int allverts)
 				}
 			}
 		}
+		EM_EndEditMesh(me, em);
 	}
 		break;
 	case OB_LATTICE:

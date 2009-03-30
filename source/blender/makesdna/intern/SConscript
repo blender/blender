@@ -2,10 +2,13 @@
 import sys
 import os
 
+def normpath(path):
+	return os.path.abspath(os.path.normpath(path))
+
 Import ('env')
 cflags = ''
 defines = []
-root_build_dir=env['BF_BUILDDIR']
+root_build_dir=normpath(env['BF_BUILDDIR'])
 
 source_files = ['makesdna.c']
 header_files = env.Glob('../*.h')
@@ -31,14 +34,15 @@ if not USE_WINE:
 if sys.platform != 'cygwin':
 	makesdna_tool.Append (CCFLAGS = cflags)
 makesdna_tool.Append (CPPDEFINES = defines)
-targetdir = root_build_dir+'/lib'
+targetdir = normpath(root_build_dir+'/lib')
+
 if not (root_build_dir[0]==os.sep or root_build_dir[1]==':'):
 	targetdir = '#'+targetdir
 makesdna_tool.Append (LIBPATH = targetdir)
 if env['BF_PROFILE']:
 	makesdna_tool.Append (LINKFLAGS = env['BF_PROFILE_LINKFLAGS'])
 
-targetdir = root_build_dir + '/makesdna'
+targetdir = normpath(root_build_dir + '/makesdna')
 
 if not (root_build_dir[0]==os.sep or root_build_dir[1]==':'):
 	targetdir = '#' + targetdir

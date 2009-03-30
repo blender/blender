@@ -161,7 +161,7 @@ static void v3d_editvertex_buts(const bContext *C, uiBlock *block, View3D *v3d, 
 
 	if(ob->type==OB_MESH) {
 		Mesh *me= ob->data;
-		EditMesh *em = me->edit_mesh;
+		EditMesh *em = EM_GetEditMesh(me);
 		EditVert *eve, *evedef=NULL;
 		EditEdge *eed;
 		
@@ -209,6 +209,8 @@ static void v3d_editvertex_buts(const bContext *C, uiBlock *block, View3D *v3d, 
 				tfp->defweightp= &dvert->dw[0].weight;
 			}
 		}
+
+		EM_EndEditMesh(me, em);
 	}
 	else if(ob->type==OB_CURVE || ob->type==OB_SURF) {
 		Curve *cu= ob->data;
@@ -363,7 +365,7 @@ static void v3d_editvertex_buts(const bContext *C, uiBlock *block, View3D *v3d, 
 		
 		if(ob->type==OB_MESH) {
 			Mesh *me= ob->data;
-			EditMesh *em = me->edit_mesh;
+			EditMesh *em = EM_GetEditMesh(me);
 			EditVert *eve;
 			EditEdge *eed;
 			
@@ -388,6 +390,8 @@ static void v3d_editvertex_buts(const bContext *C, uiBlock *block, View3D *v3d, 
 			}
 			
 			recalc_editnormals(em);
+
+			EM_EndEditMesh(me, em);
 		}
 		else if(ob->type==OB_CURVE || ob->type==OB_SURF) {
 			Curve *cu= ob->data;
