@@ -4384,8 +4384,30 @@ void special_aftertrans_update(TransInfo *t)
 		Editing *ed= seq_give_editing(t->scene, FALSE);
 		if (ed && !cancelled) {
 			ListBase *seqbasep= ed->seqbasep;
-			int machine, max_machine = 0;
 			Sequence *seq;
+#if 0		// TRANSFORM_FIX_ME, Would prefer to use this since the array takes into
+			// account what where transforming (with extend, locked strips etc)
+			// But at the moment t->data is freed in postTrans so for now re-shuffeling selected strips works ok. - Campbell
+			
+			int a;
+			TransData *td= t->data;
+
+			/* prevent updating the same seq twice
+			 * if the transdata order is changed this will mess up
+			 * but so will TransDataSeq */
+			Sequence *seq_prev= NULL;
+
+			/* flush to 2d vector from internally used 3d vector */
+			for(a=0; a<t->total; a++, td++) {
+				seq= ((TransDataSeq *)td->extra)->seq;
+				if ((seq != seq_prev) && (seq->depth==0) && (seq->flag & SEQ_OVERLAP)) {
+					shuffle_seq(seqbasep, seq);
+				}
+
+				seq_prev= seq;
+			}
+#else		// while t->data is not available...
+			int machine, max_machine = 0;
 
 			/* update in order so we always move bottom strips first */
 			for(seq= seqbasep->first; seq; seq= seq->next) {
@@ -4395,12 +4417,13 @@ void special_aftertrans_update(TransInfo *t)
 			for (machine = 0; machine <= max_machine; machine++)
 			{
 				for(seq= seqbasep->first; seq; seq= seq->next) {
-					if (seq->machine == machine && seq->depth == 0 && (seq->flag & (SEQ_LEFTSEL|SEQ_RIGHTSEL)) != 0 && (seq->flag & SEQ_OVERLAP)) {
+					if (seq->machine == machine && seq->depth == 0 && (seq->flag & (SELECT|SEQ_LEFTSEL|SEQ_RIGHTSEL)) != 0 && (seq->flag & SEQ_OVERLAP)) {
 						shuffle_seq(seqbasep, seq);
 					}
 				}
 			}
-
+#endif
+			
 			for(seq= seqbasep->first; seq; seq= seq->next) {
 				/* We might want to build a list of effects that need to be updated during transform */
 				if(seq->type & SEQ_EFFECT) {
