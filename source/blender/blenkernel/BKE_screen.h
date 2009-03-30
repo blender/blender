@@ -36,11 +36,14 @@ struct bContext;
 struct bContextDataResult;
 struct bScreen;
 struct ListBase;
+struct Panel;
 struct ScrArea;
 struct SpaceType;
 struct wmNotifier;
 struct wmWindow;
 struct wmWindowManager;
+struct uiLayout;
+struct uiMenuItem;
 
 /* spacetype has everything stored to get an editor working, it gets initialized via 
    ED_spacetypes_init() in editors/area/spacetypes.c   */
@@ -77,7 +80,7 @@ typedef struct SpaceType {
 	void		(*keymap)(struct wmWindowManager *);
 
 	/* return context data */
-	int			(*context)(const struct bContext *, int, struct bContextDataResult *);
+	int			(*context)(const struct bContext *, const char*, struct bContextDataResult *);
 
 	/* region type definitions */
 	ListBase	regiontypes;
@@ -117,10 +120,16 @@ typedef struct ARegionType {
 	void		(*cursor)(struct wmWindow *, struct ScrArea *, struct ARegion *ar);
 
 	/* return context data */
-	int			(*context)(const struct bContext *, int, struct bContextDataResult *);
+	int			(*context)(const struct bContext *, const char *, struct bContextDataResult *);
 
 	/* custom drawing callbacks */
 	ListBase	drawcalls;
+
+	/* panels type definitions */
+	ListBase paneltypes;
+
+	/* header type definitions */
+	ListBase headertypes;
 
 	/* hardcoded constraints, smaller than these values region is not visible */
 	int			minsizex, minsizey;
@@ -128,6 +137,38 @@ typedef struct ARegionType {
 	int			keymapflag;
 } ARegionType;
 
+/* panel types */
+
+typedef struct PanelType {
+	struct PanelType *next, *prev;
+	
+	char		*idname;	/* unique name */
+	char		*name;		/* for panel header */
+	char		*context;	/* for buttons window */
+
+	/* verify if the panel should draw or not */
+	int			(*poll)(const struct bContext *);
+	/* draw entirely, view changes should be handled here */
+	void		(*draw)(const struct bContext *, struct Panel *);	
+
+	/* python integration */
+	void		*py_data;
+} PanelType;
+
+/* header types */
+
+typedef struct HeaderType {
+	struct HeaderType *next, *prev;
+
+	char		*idname;	/* unique name */
+	char		*name;		/* for UI */
+
+	/* draw entirely, view changes should be handled here */
+	void		(*draw)(const struct bContext *, struct uiLayout *);	
+
+	/* python integration */
+	void		*py_data;
+} HeaderType;
 
 /* spacetypes */
 struct SpaceType *BKE_spacetype_from_id(int spaceid);
@@ -139,6 +180,7 @@ void BKE_spacetypes_free(void);	/* only for quitting blender */
 /* spacedata */
 void BKE_spacedata_freelist(ListBase *lb);
 void BKE_spacedata_copylist(ListBase *lb1, ListBase *lb2);
+void BKE_spacedata_copyfirst(ListBase *lb1, ListBase *lb2);
 
 /* area/regions */
 struct ARegion *BKE_area_region_copy(struct SpaceType *st, struct ARegion *ar);

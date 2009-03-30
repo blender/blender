@@ -383,6 +383,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\editors\interface\interface_layout.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\interface\interface_panel.c"
 				>
 			</File>
@@ -392,6 +396,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\editors\interface\interface_utils.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\interface\interface_widgets.c"
 				>
 			</File>
 			<File
@@ -696,6 +704,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\editors\space_buttons\buttons_intern.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\space_buttons\buttons_object.c"
 				>
 			</File>
 			<File
@@ -1123,7 +1135,27 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\editors\armature\BIF_generate.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\armature\BIF_retarget.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\armature\editarmature.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\armature\editarmature_generate.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\armature\editarmature_retarget.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\armature\editarmature_sketch.c"
 				>
 			</File>
 			<File
@@ -1140,6 +1172,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\editors\armature\poseobject.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\armature\reeb.c"
 				>
 			</File>
 			<File

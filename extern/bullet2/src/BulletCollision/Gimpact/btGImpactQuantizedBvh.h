@@ -29,12 +29,6 @@ subject to the following restrictions:
 
 
 
-/*! \defgroup BOX_TREES
-
-
-
-*/
-//! @{
 
 
 ///btQuantizedBvhNode is a compressed aabb node, 16 bytes.
@@ -100,7 +94,7 @@ ATTRIBUTE_ALIGNED16	(struct) BT_QUANTIZED_BVH_NODE
 
 
 
-class BT_QUANTIZED_BVH_NODE_ARRAY:public btAlignedObjectArray<BT_QUANTIZED_BVH_NODE>
+class GIM_QUANTIZED_BVH_NODE_ARRAY:public btAlignedObjectArray<BT_QUANTIZED_BVH_NODE>
 {
 };
 
@@ -112,19 +106,19 @@ class btQuantizedBvhTree
 {
 protected:
 	int m_num_nodes;
-	BT_QUANTIZED_BVH_NODE_ARRAY m_node_array;
+	GIM_QUANTIZED_BVH_NODE_ARRAY m_node_array;
 	btAABB m_global_bound;
 	btVector3 m_bvhQuantization;
 protected:
-	void calc_quantization(BT_BVH_DATA_ARRAY & primitive_boxes, btScalar boundMargin = btScalar(1.0) );
+	void calc_quantization(GIM_BVH_DATA_ARRAY & primitive_boxes, btScalar boundMargin = btScalar(1.0) );
 
 	int _sort_and_calc_splitting_index(
-		BT_BVH_DATA_ARRAY & primitive_boxes,
+		GIM_BVH_DATA_ARRAY & primitive_boxes,
 		 int startIndex,  int endIndex, int splitAxis);
 
-	int _calc_splitting_axis(BT_BVH_DATA_ARRAY & primitive_boxes, int startIndex,  int endIndex);
+	int _calc_splitting_axis(GIM_BVH_DATA_ARRAY & primitive_boxes, int startIndex,  int endIndex);
 
-	void _build_sub_tree(BT_BVH_DATA_ARRAY & primitive_boxes, int startIndex,  int endIndex);
+	void _build_sub_tree(GIM_BVH_DATA_ARRAY & primitive_boxes, int startIndex,  int endIndex);
 public:
 	btQuantizedBvhTree()
 	{
@@ -133,7 +127,7 @@ public:
 
 	//! prototype functions for box tree management
 	//!@{
-	void build_tree(BT_BVH_DATA_ARRAY & primitive_boxes);
+	void build_tree(GIM_BVH_DATA_ARRAY & primitive_boxes);
 
 	SIMD_FORCE_INLINE void quantizePoint(
 		unsigned short * quantizedpoint, const btVector3 & point) const
@@ -365,7 +359,6 @@ public:
 		return m_box_tree.get_node_pointer(index);
 	}
 
-//! @}
 
 	static float getAverageTreeCollisionTime();
 

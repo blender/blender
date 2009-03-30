@@ -56,6 +56,7 @@
 #include "BLI_rand.h"
 
 #include "BKE_action.h"
+#include "BKE_brush.h"
 #include "BKE_context.h"
 #include "BKE_curve.h"
 #include "BKE_customdata.h"
@@ -160,7 +161,7 @@ static void v3d_editvertex_buts(const bContext *C, uiBlock *block, View3D *v3d, 
 
 	if(ob->type==OB_MESH) {
 		Mesh *me= ob->data;
-		EditMesh *em = me->edit_mesh;
+		EditMesh *em = EM_GetEditMesh(me);
 		EditVert *eve, *evedef=NULL;
 		EditEdge *eed;
 		
@@ -208,6 +209,8 @@ static void v3d_editvertex_buts(const bContext *C, uiBlock *block, View3D *v3d, 
 				tfp->defweightp= &dvert->dw[0].weight;
 			}
 		}
+
+		EM_EndEditMesh(me, em);
 	}
 	else if(ob->type==OB_CURVE || ob->type==OB_SURF) {
 		Curve *cu= ob->data;
@@ -362,7 +365,7 @@ static void v3d_editvertex_buts(const bContext *C, uiBlock *block, View3D *v3d, 
 		
 		if(ob->type==OB_MESH) {
 			Mesh *me= ob->data;
-			EditMesh *em = me->edit_mesh;
+			EditMesh *em = EM_GetEditMesh(me);
 			EditVert *eve;
 			EditEdge *eed;
 			
@@ -387,6 +390,8 @@ static void v3d_editvertex_buts(const bContext *C, uiBlock *block, View3D *v3d, 
 			}
 			
 			recalc_editnormals(em);
+
+			EM_EndEditMesh(me, em);
 		}
 		else if(ob->type==OB_CURVE || ob->type==OB_SURF) {
 			Curve *cu= ob->data;
@@ -640,7 +645,6 @@ static void do_view3d_region_buttons(bContext *C, void *arg, int event)
 	BoundBox *bb;
 	Object *ob= OBACT;
 	TransformProperties *tfp= v3d->properties_storage;
-	VPaint *wpaint= scene->toolsettings->wpaint;
 	
 	switch(event) {
 	
@@ -846,6 +850,7 @@ static void do_view3d_region_buttons(bContext *C, void *arg, int event)
 		BIF_clearTransformOrientation(C);
 		break;
 		
+#if 0 // XXX
 	case B_WEIGHT0_0:
 		wpaint->weight = 0.0f;
 		break;
@@ -878,6 +883,7 @@ static void do_view3d_region_buttons(bContext *C, void *arg, int event)
 	case B_OPA1_0:
 		wpaint->a = 1.0f;
 		break;
+#endif
 	case B_CLR_WPAINT:
 //		if(!multires_level1_test()) {
 		{
@@ -1003,7 +1009,8 @@ static void weight_paint_buttons(Scene *scene, uiBlock *block)
 	ob= OBACT;
 	
 	if(ob==NULL || ob->type!=OB_MESH) return;
-	
+
+	/* XXX	
 	uiBlockBeginAlign(block);
 	uiDefButF(block, NUMSLI, B_REDR, "Weight:",10,170,225,19, &wpaint->weight, 0, 1, 10, 0, "Sets the current vertex group's bone deformation strength");
 	
@@ -1032,6 +1039,7 @@ static void weight_paint_buttons(Scene *scene, uiBlock *block)
 	uiDefButS(block, ROW, B_NOP, "Lighter",	250, 80,60,17, &wpaint->mode, 1.0, 5.0, 0, 0, "Paint over darker areas only");
 	uiDefButS(block, ROW, B_NOP, "Darker",		250, 62,60,17, &wpaint->mode, 1.0, 6.0, 0, 0, "Paint over lighter areas only");
 	uiBlockEndAlign(block);
+	*/
 	
 	/* draw options same as below */
 	uiBlockBeginAlign(block);
@@ -1062,47 +1070,112 @@ static void weight_paint_buttons(Scene *scene, uiBlock *block)
 	}
 }
 
+static void brush_idpoin_handle(bContext *C, ID *id, int event)
+{
+	Brush **br = current_brush_source(CTX_data_scene(C));
+
+	if(!br)
+		return;
+
+	switch(event) {
+	case UI_ID_BROWSE:
+		(*br) = (Brush*)id;
+		break;
+	case UI_ID_DELETE:
+		brush_delete(br);
+		break;
+	case UI_ID_RENAME:
+		/* XXX ? */
+		break;
+	case UI_ID_ADD_NEW:
+		if(id) {
+			(*br) = copy_brush((Brush*)id);
+			id->us--;
+		}
+		else
+			(*br) = add_brush("Brush");
+		break;
+	case UI_ID_OPEN:
+		/* XXX not implemented */
+		break;
+	}
+}
+
+static void view3d_panel_brush(const bContext *C, ARegion *ar, short cntrl)
+{
+	uiBlock *block;
+	Brush **brp = current_brush_source(CTX_data_scene(C)), *br;
+	short w = 268, h = 400, cx = 10, cy = h;
+	rctf rect;
+
+	if(!brp)
+		return;
+	br = *brp;
+
+	block= uiBeginBlock(C, ar, "view3d_panel_brush", UI_EMBOSS, UI_HELV);
+	if(uiNewPanel(C, ar, block, "Brush", "View3d", 340, 10, 318, h)==0) return;
+	uiBlockSetHandleFunc(block, do_view3d_region_buttons, NULL);
+
+	uiBlockBeginAlign(block);
+	uiDefIDPoinButs(block, CTX_data_main(C), NULL, &br->id, ID_BR, NULL, cx, cy,
+			brush_idpoin_handle, UI_ID_BROWSE|UI_ID_RENAME|UI_ID_ADD_NEW|UI_ID_OPEN|UI_ID_DELETE|UI_ID_ALONE);
+	cy-= 25;
+	uiBlockEndAlign(block);
+
+	if(!br)
+		return;
+
+	if(G.f & G_SCULPTMODE) {
+		uiBlockBeginAlign(block);	
+		uiDefButC(block,ROW,B_REDR,"Draw",cx,cy,67,19,&br->sculpt_tool,14.0,SCULPT_TOOL_DRAW,0,0,"Draw lines on the model");
+		uiDefButC(block,ROW,B_REDR,"Smooth",cx+67,cy,67,19,&br->sculpt_tool,14.0,SCULPT_TOOL_SMOOTH,0,0,"Interactively smooth areas of the model");
+		uiDefButC(block,ROW,B_REDR,"Pinch",cx+134,cy,67,19,&br->sculpt_tool,14.0,SCULPT_TOOL_PINCH,0,0,"Interactively pinch areas of the model");
+		uiDefButC(block,ROW,B_REDR,"Inflate",cx+201,cy,67,19,&br->sculpt_tool,14,SCULPT_TOOL_INFLATE,0,0,"Push vertices along the direction of their normals");
+		cy-= 20;
+		uiDefButC(block,ROW,B_REDR,"Grab", cx,cy,89,19,&br->sculpt_tool,14,SCULPT_TOOL_GRAB,0,0,"Grabs a group of vertices and moves them with the mouse");
+		uiDefButC(block,ROW,B_REDR,"Layer", cx+89,cy,89,19,&br->sculpt_tool,14, SCULPT_TOOL_LAYER,0,0,"Adds a layer of depth");
+		uiDefButC(block,ROW,B_REDR,"Flatten", cx+178,cy,90,19,&br->sculpt_tool,14, SCULPT_TOOL_FLATTEN,0,0,"Interactively flatten areas of the model");
+		cy-= 25;
+		uiBlockEndAlign(block);
+	}
+
+	uiBlockBeginAlign(block);
+	uiDefButI(block,NUMSLI,B_NOP,"Size: ",cx,cy,w,19,&br->size,1.0,200.0,0,0,"Set brush radius in pixels");
+	cy-= 20;
+	uiDefButF(block,NUMSLI,B_NOP,"Strength: ",cx,cy,w,19,&br->alpha,0,1.0,0,0,"Set brush strength");
+	cy-= 25;
+	uiBlockEndAlign(block);
+
+	uiBlockBeginAlign(block);
+
+	uiDefButBitS(block, TOG, BRUSH_AIRBRUSH, B_NOP, "Airbrush", cx,cy,w/3,19, &br->flag,0,0,0,0, "Brush makes changes without waiting for the mouse to move");
+	uiDefButBitS(block, TOG, BRUSH_ANCHORED, B_NOP, "Rake", cx+w/3,cy,w/3,19, &br->flag,0,0,0,0, "");
+	uiDefButBitS(block, TOG, BRUSH_RAKE, B_NOP, "Anchored", cx+w*2.0/3,cy,w/3,19, &br->flag,0,0,0,0, "");
+	cy-= 20;
+	uiDefButBitS(block, TOG, BRUSH_SPACE, B_NOP, "Space", cx,cy,w/3,19, &br->flag,0,0,0,0, "");
+	uiDefButF(block,NUMSLI,B_NOP,"Spacing: ",cx+w/3,cy,w*2.0/3,19,&br->spacing,1.0,500,0,0,"");
+	cy-= 20;
+	uiBlockEndAlign(block);
+
+	rect.xmin= cx; rect.xmax= cx + w;
+	rect.ymin= cy - 200; rect.ymax= cy;
+	uiBlockBeginAlign(block);
+	curvemap_buttons(block, br->curve, (char)0, B_NOP, 0, &rect);
+	uiBlockEndAlign(block);
+	
+	uiEndBlock(C, block);
+}
+
 static void sculptmode_draw_interface_tools(Scene *scene, uiBlock *block, unsigned short cx, unsigned short cy)
 {
 	Sculpt *s = scene->toolsettings->sculpt;
-	Brush *br = s->brush;
 	
-	uiBlockBeginAlign(block);
-	
-	uiDefBut(block,LABEL,B_NOP,"Brush",cx,cy,90,19,NULL,0,0,0,0,"");
-	cy-= 20;
-	
-	uiBlockBeginAlign(block);	
-	uiDefButC(block,ROW,B_REDR,"Draw",cx,cy,67,19,&br->sculpt_tool,14.0,SCULPT_TOOL_DRAW,0,0,"Draw lines on the model");
-	uiDefButC(block,ROW,B_REDR,"Smooth",cx+67,cy,67,19,&br->sculpt_tool,14.0,SCULPT_TOOL_SMOOTH,0,0,"Interactively smooth areas of the model");
-	uiDefButC(block,ROW,B_REDR,"Pinch",cx+134,cy,67,19,&br->sculpt_tool,14.0,SCULPT_TOOL_PINCH,0,0,"Interactively pinch areas of the model");
-	uiDefButC(block,ROW,B_REDR,"Inflate",cx+201,cy,67,19,&br->sculpt_tool,14,SCULPT_TOOL_INFLATE,0,0,"Push vertices along the direction of their normals");
-	cy-= 20;
-	uiDefButC(block,ROW,B_REDR,"Grab", cx,cy,89,19,&br->sculpt_tool,14,SCULPT_TOOL_GRAB,0,0,"Grabs a group of vertices and moves them with the mouse");
-	uiDefButC(block,ROW,B_REDR,"Layer", cx+89,cy,89,19,&br->sculpt_tool,14, SCULPT_TOOL_LAYER,0,0,"Adds a layer of depth");
-	uiDefButC(block,ROW,B_REDR,"Flatten", cx+178,cy,90,19,&br->sculpt_tool,14, SCULPT_TOOL_FLATTEN,0,0,"Interactively flatten areas of the model");
-	cy-= 25;
-	uiBlockEndAlign(block);
-	
-	uiBlockBeginAlign(block);
-	uiDefBut(block,LABEL,B_NOP,"Shape",cx,cy,90,19,NULL,0,0,0,0,"");
-	cy-= 20;
-
-	uiBlockBeginAlign(block);
 	//XXX if(sd->brush_type != SMOOTH_BRUSH && sd->brush_type != GRAB_BRUSH && sd->brush_type != FLATTEN_BRUSH) {
 	{
 		/*uiDefButBitS(block,ROW,B_NOP,"Add",cx,cy,89,19,&br->dir,15.0,1.0,0, 0,"Add depth to model [Shift]");
 		uiDefButBitS(block,ROW,B_NOP,"Sub",cx+89,cy,89,19,&br->dir,15.0,2.0,0, 0,"Subtract depth from model [Shift]");
 		*/}
 	//XXX if(sd->brush_type!=GRAB_BRUSH)
-		uiDefButBitS(block, TOG, BRUSH_AIRBRUSH, B_NOP, "Airbrush", cx+178,cy,89,19, &br->flag,0,0,0,0, "Brush makes changes without waiting for the mouse to move");
-	cy-= 20;
-	uiDefButI(block,NUMSLI,B_NOP,"Size: ",cx,cy,268,19,&br->size,1.0,200.0,0,0,"Set brush radius in pixels");
-	cy-= 20;
-	//XXX if(sd->brush_type!=GRAB_BRUSH)
-		uiDefButF(block,NUMSLI,B_NOP,"Strength: ",cx,cy,268,19,&br->alpha,0,1.0,0,0,"Set brush strength");
-	cy-= 25;
-	uiBlockEndAlign(block);
 	
 	uiBlockBeginAlign(block);
 	uiDefBut( block,LABEL,B_NOP,"Symmetry",cx,cy,90,19,NULL,0,0,0,0,"");
@@ -1199,16 +1272,12 @@ static void view3d_panel_object(const bContext *C, ARegion *ar, short cntrl)	// 
 	}
 	else if(G.f & (G_VERTEXPAINT|G_TEXTUREPAINT)) {
 		static float hsv[3], old[3];	// used as temp mem for picker
-		float *rgb= NULL;
-		ToolSettings *settings= scene->toolsettings;
+		Brush **br = current_brush_source(scene);
 
-		if(G.f & G_VERTEXPAINT) rgb= &settings->vpaint->r;
-		else if(settings->imapaint.brush) rgb= settings->imapaint.brush->rgb;
-		
 		uiNewPanelTitle(block, "Paint Properties");
-		if (rgb)
+		if(br && *br)
 			/* 'f' is for floating panel */
-			uiBlockPickerButtons(block, rgb, hsv, old, hexcol, 'f', B_REDR);
+			uiBlockPickerButtons(block, (*br)->rgb, hsv, old, hexcol, 'f', B_REDR);
 	}
 	else if(G.f & G_SCULPTMODE) {
 		uiNewPanelTitle(block, "Sculpt Properties");
@@ -1492,6 +1561,142 @@ static void view3d_panel_gpencil(const bContext *C, ARegion *ar, short cntrl)	//
 	uiEndBlock(C, block);
 }
 
+static void delete_sketch_armature(bContext *C, void *arg1, void *arg2)
+{
+	BIF_deleteSketch(C);
+}
+
+static void convert_sketch_armature(bContext *C, void *arg1, void *arg2)
+{
+	BIF_convertSketch(C);
+}
+
+static void assign_template_sketch_armature(bContext *C, void *arg1, void *arg2)
+{
+	int index = *(int*)arg1;
+	BIF_setTemplate(C, index);
+}
+static void view3d_panel_bonesketch_spaces(const bContext *C, ARegion *ar, short cntrl)
+{
+	Object *obedit = CTX_data_edit_object(C);
+	Scene *scene = CTX_data_scene(C);
+	static int template_index;
+	static char joint_label[128];
+	uiBlock *block;
+	uiBut *but;
+	char *bone_name;
+	int yco = 130, height = 140;
+	int nb_joints;
+
+	/* replace with check call to sketching lib */
+	if (obedit && obedit->type == OB_ARMATURE)
+	{
+		static char subdiv_tooltip[4][64] = {
+			"Subdivide arcs based on a fixed number of bones",
+			"Subdivide arcs in bones of equal length",
+			"Subdivide arcs based on correlation",
+			"Retarget template to stroke"
+			};
+
+		
+		block= uiBeginBlock(C, ar, "view3d_panel_bonesketch_spaces", UI_EMBOSS, UI_HELV);
+		if(uiNewPanel(C, ar, block, "Bone Sketching", "View3d", 340, 10, 318, height)==0) return;
+		uiBlockSetHandleFunc(block, do_view3d_region_buttons, NULL);
+	
+		uiNewPanelHeight(block, height);
+	
+		uiBlockBeginAlign(block);
+		
+		/* use real flag instead of 1 */
+		uiDefButBitC(block, TOG, BONE_SKETCHING, B_REDR, "Use Bone Sketching", 10, yco, 160, 20, &scene->toolsettings->bone_sketching, 0, 0, 0, 0, "Use sketching to create and edit bones");
+		uiDefButBitC(block, TOG, BONE_SKETCHING_ADJUST, B_REDR, "A", 170, yco, 20, 20, &scene->toolsettings->bone_sketching, 0, 0, 0, 0, "Adjust strokes by drawing near them");
+		uiDefButBitC(block, TOG, BONE_SKETCHING_QUICK, B_REDR, "Q", 190, yco, 20, 20, &scene->toolsettings->bone_sketching, 0, 0, 0, 0, "Automatically convert and delete on stroke end");
+		yco -= 20;
+		
+		but = uiDefBut(block, BUT, B_REDR, "Convert", 10,yco,100,20, 0, 0, 0, 0, 0, "Convert sketch to armature");
+		uiButSetFunc(but, convert_sketch_armature, NULL, NULL);
+
+		but = uiDefBut(block, BUT, B_REDR, "Delete", 110,yco,100,20, 0, 0, 0, 0, 0, "Delete sketch");
+		uiButSetFunc(but, delete_sketch_armature, NULL, NULL);
+		yco -= 20;
+		
+		uiBlockEndAlign(block);
+
+		uiBlockBeginAlign(block);
+		
+		uiDefButC(block, MENU, B_REDR, "Subdivision Method%t|Length%x1|Adaptative%x2|Fixed%x0|Template%x3", 10,yco,60,19, &scene->toolsettings->bone_sketching_convert, 0, 0, 0, 0, subdiv_tooltip[(unsigned char)scene->toolsettings->bone_sketching_convert]);
+
+		switch(scene->toolsettings->bone_sketching_convert)
+		{
+		case SK_CONVERT_CUT_LENGTH:
+			uiDefButF(block, NUM, B_REDR, 					"Lim:",		70, yco, 140, 19, &scene->toolsettings->skgen_length_limit,0.1,50.0, 10, 0,		"Maximum length of the subdivided bones");
+			yco -= 20;
+			break;
+		case SK_CONVERT_CUT_ADAPTATIVE:
+			uiDefButF(block, NUM, B_REDR, 					"Thres:",			70, yco, 140, 19, &scene->toolsettings->skgen_correlation_limit,0.0, 1.0, 0.01, 0,	"Correlation threshold for subdivision");
+			yco -= 20;
+			break;
+		default:
+		case SK_CONVERT_CUT_FIXED:
+			uiDefButC(block, NUM, B_REDR, 					"Num:",		70, yco, 140, 19, &scene->toolsettings->skgen_subdivision_number,1, 100, 1, 5,	"Number of subdivided bones");
+			yco -= 20;
+			break;
+		case SK_CONVERT_RETARGET:
+			uiDefButC(block, ROW, B_NOP, "No",			70,  yco, 40,19, &scene->toolsettings->skgen_retarget_roll, 0, 0, 0, 0,									"No special roll treatment");
+			uiDefButC(block, ROW, B_NOP, "View",		110,  yco, 50,19, &scene->toolsettings->skgen_retarget_roll, 0, SK_RETARGET_ROLL_VIEW, 0, 0,				"Roll bones perpendicular to view");
+			uiDefButC(block, ROW, B_NOP, "Joint",		160, yco, 50,19, &scene->toolsettings->skgen_retarget_roll, 0, SK_RETARGET_ROLL_JOINT, 0, 0,				"Roll bones relative to joint bend");
+			yco -= 30;
+
+			uiBlockEndAlign(block);
+
+			uiBlockBeginAlign(block);
+			/* button here to select what to do (copy or not), template, ...*/
+
+			BIF_makeListTemplates(C);
+			template_index = BIF_currentTemplate(C);
+			
+			but = uiDefButI(block, MENU, B_REDR, BIF_listTemplates(C), 10,yco,200,19, &template_index, 0, 0, 0, 0, "Template");
+			uiButSetFunc(but, assign_template_sketch_armature, &template_index, NULL);
+			
+			yco -= 20;
+			
+			uiDefButF(block, NUM, B_NOP, 							"A:",			10, yco, 66,19, &scene->toolsettings->skgen_retarget_angle_weight, 0, 10, 1, 0,		"Angle Weight");
+			uiDefButF(block, NUM, B_NOP, 							"L:",			76, yco, 67,19, &scene->toolsettings->skgen_retarget_length_weight, 0, 10, 1, 0,		"Length Weight");
+			uiDefButF(block, NUM, B_NOP, 							"D:",		143,yco, 67,19, &scene->toolsettings->skgen_retarget_distance_weight, 0, 10, 1, 0,		"Distance Weight");
+			yco -= 20;
+			
+			uiDefBut(block, TEX,B_REDR,"S:",							10,  yco, 90, 20, scene->toolsettings->skgen_side_string, 0.0, 8.0, 0, 0, "Text to replace &S with");
+			uiDefBut(block, TEX,B_REDR,"N:",							100, yco, 90, 20, scene->toolsettings->skgen_num_string, 0.0, 8.0, 0, 0, "Text to replace &N with");
+			uiDefIconButBitC(block, TOG, SK_RETARGET_AUTONAME, B_NOP, ICON_AUTO,190,yco,20,20, &scene->toolsettings->skgen_retarget_options, 0, 0, 0, 0, "Use Auto Naming");	
+			yco -= 20;
+	
+			/* auto renaming magic */
+			uiBlockEndAlign(block);
+			
+			nb_joints = BIF_nbJointsTemplate(C);
+	
+			if (nb_joints == -1)
+			{
+				//XXX
+				//nb_joints = G.totvertsel;
+			}
+			
+			bone_name = BIF_nameBoneTemplate(C);
+			
+			BLI_snprintf(joint_label, 32, "%i joints: %s", nb_joints, bone_name);
+			
+			uiDefBut(block, LABEL, 1, joint_label,					10, yco, 200, 20, NULL, 0.0, 0.0, 0, 0, "");
+			yco -= 20;
+			break;
+		}
+
+		uiBlockEndAlign(block);
+		
+		uiDefButBitS(block, TOG, SCE_SNAP_PEEL_OBJECT, B_NOP, "Peel Objects", 10, yco, 200, 20, &scene->snap_flag, 0, 0, 0, 0, "Peel whole objects as one");
+
+		if(yco < 0) uiNewPanelHeight(block, height-yco);
+	}
+}
 
 void view3d_buttons_area_defbuts(const bContext *C, ARegion *ar)
 {
@@ -1499,10 +1704,14 @@ void view3d_buttons_area_defbuts(const bContext *C, ARegion *ar)
 	view3d_panel_object(C, ar, 0);
 	view3d_panel_properties(C, ar, 0);
 	view3d_panel_background(C, ar, 0);
+	if(G.f & (G_SCULPTMODE|G_TEXTUREPAINT|G_VERTEXPAINT|G_WEIGHTPAINT))
+		view3d_panel_brush(C, ar, 0);
 	// XXX view3d_panel_preview(C, ar, 0);
 	view3d_panel_transform_spaces(C, ar, 0);
 	if(0)
 		view3d_panel_gpencil(C, ar, 0);
+	
+	view3d_panel_bonesketch_spaces(C, ar, 0);
 	
 	uiDrawPanels(C, 1);		/* 1 = align */
 	uiMatchPanelsView2d(ar); /* sets v2d->totrct */

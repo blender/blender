@@ -97,7 +97,7 @@ typedef struct ImBuf {
 	unsigned int   encodedsize;       /**< Size of data written to encodedbuffer */
 	unsigned int   encodedbuffersize; /**< Size of encodedbuffer */
 
-	float *rect_float;		/**< floating point Rect equivilant */
+	float *rect_float;		/**< floating point Rect equivalent */
 	int channels;			/**< amount of channels in rect_float (0 = 4 channel default) */
 	float dither;			/**< random dither value, for conversion from float -> byte rect */
 	

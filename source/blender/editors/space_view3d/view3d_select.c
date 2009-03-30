@@ -754,10 +754,10 @@ static int view3d_lasso_select_exec(bContext *C, wmOperator *op)
 	return OPERATOR_PASS_THROUGH;
 }
 
-void VIEW3D_OT_lasso_select(wmOperatorType *ot)
+void VIEW3D_OT_select_lasso(wmOperatorType *ot)
 {
 	ot->name= "Lasso Select";
-	ot->idname= "VIEW3D_OT_lasso_select";
+	ot->idname= "VIEW3D_OT_select_lasso";
 	
 	ot->invoke= WM_gesture_lasso_invoke;
 	ot->modal= WM_gesture_lasso_modal;
@@ -1532,11 +1532,11 @@ static EnumPropertyItem prop_select_types[] = {
 };
 
 /* ****** Border Select ****** */
-void VIEW3D_OT_borderselect(wmOperatorType *ot)
+void VIEW3D_OT_select_border(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Border Select";
-	ot->idname= "VIEW3D_OT_borderselect";
+	ot->idname= "VIEW3D_OT_select_border";
 	
 	/* api callbacks */
 	ot->invoke= WM_border_select_invoke;
@@ -1823,10 +1823,10 @@ static int view3d_circle_select_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void VIEW3D_OT_circle_select(wmOperatorType *ot)
+void VIEW3D_OT_select_circle(wmOperatorType *ot)
 {
 	ot->name= "Circle Select";
-	ot->idname= "VIEW3D_OT_circle_select";
+	ot->idname= "VIEW3D_OT_select_circle";
 	
 	ot->invoke= WM_gesture_circle_invoke;
 	ot->modal= WM_gesture_circle_modal;

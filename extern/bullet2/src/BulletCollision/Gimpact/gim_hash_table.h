@@ -34,11 +34,6 @@ email: projectileman@yahoo.com
 
 #include "gim_radixsort.h"
 
-/*! \addtogroup CONTAINERS
-\brief
-Abstract class for collision objects
-*/
-//! @{
 
 #define GIM_INVALID_HASH 0xffffffff //!< A very very high value
 #define GIM_DEFAULT_HASH_TABLE_SIZE 380
@@ -204,12 +199,7 @@ protected:
     //SuperBufferedArray< _node_type > m_nodes;
     bool m_sorted;
 
-    /*! \defgroup HASH_TABLE_STRUCTURES
-    \brief
-    Hash table data management. The hash table has the indices to the corresponding m_nodes array
-    */
-    //! @{
-
+    ///Hash table data management. The hash table has the indices to the corresponding m_nodes array
     GUINT * m_hash_table;//!<
     GUINT m_table_size;//!<
     GUINT m_node_size;//!<
@@ -459,13 +449,8 @@ protected:
 
     }
 
-    //! @}
-
-    /*! \defgroup SORTED_ARRAY_STRUCTURES
-    \brief
-    Sorted array data management. The hash table has the indices to the corresponding m_nodes array
-    */
-    //! @{
+    
+    ///Sorted array data management. The hash table has the indices to the corresponding m_nodes array
     inline bool _erase_sorted(GUINT index)
     {
         if(index>=(GUINT)m_nodes.size()) return false;
@@ -575,8 +560,7 @@ protected:
         return GIM_INVALID_HASH;
     }
 
-    //! @}
-
+    
 
 public:
 
@@ -912,8 +896,6 @@ public:
 
 
 };
-
-//! @}
 
 
 

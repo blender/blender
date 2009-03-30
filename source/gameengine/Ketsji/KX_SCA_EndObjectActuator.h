@@ -64,10 +64,7 @@ class KX_SCA_EndObjectActuator : public SCA_IActuator
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
 
-	virtual PyObject*  
-	_getattr(
-		const STR_String& attr
-	);
+	virtual PyObject* _getattr(const char *attr);
 	
 }; /* end of class KX_EditObjectActuator : public SCA_PropertyActuator */
 

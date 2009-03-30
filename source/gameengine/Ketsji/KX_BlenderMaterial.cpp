@@ -748,6 +748,9 @@ PyMethodDef KX_BlenderMaterial::Methods[] =
 	{NULL,NULL} //Sentinel
 };
 
+PyAttributeDef KX_BlenderMaterial::Attributes[] = {
+	{ NULL }	//Sentinel
+};
 
 PyTypeObject KX_BlenderMaterial::Type = {
 	PyObject_HEAD_INIT(&PyType_Type)
@@ -772,12 +775,12 @@ PyParentObject KX_BlenderMaterial::Parents[] = {
 };
 
 
-PyObject* KX_BlenderMaterial::_getattr(const STR_String& attr)
+PyObject* KX_BlenderMaterial::_getattr(const char *attr)
 {
 	_getattr_up(PyObjectPlus);
 }
 
-int KX_BlenderMaterial::_setattr(const STR_String& attr, PyObject *pyvalue)
+int KX_BlenderMaterial::_setattr(const char *attr, PyObject *pyvalue)
 {
 	return PyObjectPlus::_setattr(attr, pyvalue);
 }
@@ -790,7 +793,7 @@ KX_PYMETHODDEF_DOC( KX_BlenderMaterial, getShader , "getShader()")
 			spit("Fragment shaders not supported");
 	
 		mModified = true;
-		Py_Return;
+		Py_RETURN_NONE;
 	}
 
 	if( !GLEW_ARB_vertex_shader) {
@@ -798,14 +801,14 @@ KX_PYMETHODDEF_DOC( KX_BlenderMaterial, getShader , "getShader()")
 			spit("Vertex shaders not supported");
 
 		mModified = true;
-		Py_Return;
+		Py_RETURN_NONE;
 	}
 
 	if(!GLEW_ARB_shader_objects)  {
 		if(!mModified)
 			spit("GLSL not supported");
 		mModified = true;
-		Py_Return;
+		Py_RETURN_NONE;
 	}
 	else {
 		// returns Py_None on error
@@ -838,7 +841,7 @@ KX_PYMETHODDEF_DOC( KX_BlenderMaterial, getShader , "getShader()")
 				}
 			}
 		}
-		Py_Return;
+		Py_RETURN_NONE;
 	}
 	PyErr_Format(PyExc_ValueError, "GLSL Error");
 	return NULL;
@@ -910,7 +913,7 @@ KX_PYMETHODDEF_DOC( KX_BlenderMaterial, setBlending , "setBlending( GameLogic.sr
 			return NULL;
 		}
 		mUserDefBlend = true;
-		Py_Return;
+		Py_RETURN_NONE;
 	}
 	return NULL;
 }

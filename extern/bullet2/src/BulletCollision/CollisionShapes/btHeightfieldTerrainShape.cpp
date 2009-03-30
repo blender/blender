@@ -18,69 +18,105 @@ subject to the following restrictions:
 #include "LinearMath/btTransformUtil.h"
 
 
-btHeightfieldTerrainShape::btHeightfieldTerrainShape(int heightStickWidth, int heightStickLength,void* heightfieldData,btScalar maxHeight,int upAxis,bool useFloatData,bool flipQuadEdges)
-: m_heightStickWidth(heightStickWidth),
-m_heightStickLength(heightStickLength),
-m_maxHeight(maxHeight),
-m_width((btScalar)heightStickWidth-1),
-m_length((btScalar)heightStickLength-1),
-m_heightfieldDataUnknown(heightfieldData),
-m_useFloatData(useFloatData),
-m_flipQuadEdges(flipQuadEdges),
-m_useDiamondSubdivision(false),
-m_upAxis(upAxis),
-m_localScaling(btScalar(1.),btScalar(1.),btScalar(1.))
+
+btHeightfieldTerrainShape::btHeightfieldTerrainShape
+(
+int heightStickWidth, int heightStickLength, void* heightfieldData,
+btScalar heightScale, btScalar minHeight, btScalar maxHeight,int upAxis,
+PHY_ScalarType hdt, bool flipQuadEdges
+)
 {
+	initialize(heightStickWidth, heightStickLength, heightfieldData,
+	           heightScale, minHeight, maxHeight, upAxis, hdt,
+	           flipQuadEdges);
+}
 
 
-	btScalar	quantizationMargin = 1.f;
 
-	//enlarge the AABB to avoid division by zero when initializing the quantization values
-	btVector3 clampValue(quantizationMargin,quantizationMargin,quantizationMargin);
+btHeightfieldTerrainShape::btHeightfieldTerrainShape(int heightStickWidth, int heightStickLength,void* heightfieldData,btScalar maxHeight,int upAxis,bool useFloatData,bool flipQuadEdges)
+{
+	// legacy constructor: support only float or unsigned char,
+	// 	and min height is zero
+	PHY_ScalarType hdt = (useFloatData) ? PHY_FLOAT : PHY_UCHAR;
+	btScalar minHeight = 0.0;
 
-	btVector3	halfExtents(0,0,0);
+	// previously, height = uchar * maxHeight / 65535.
+	// So to preserve legacy behavior, heightScale = maxHeight / 65535
+	btScalar heightScale = maxHeight / 65535;
 
+	initialize(heightStickWidth, heightStickLength, heightfieldData,
+	           heightScale, minHeight, maxHeight, upAxis, hdt,
+	           flipQuadEdges);
+}
+
+
+
+void btHeightfieldTerrainShape::initialize
+(
+int heightStickWidth, int heightStickLength, void* heightfieldData,
+btScalar heightScale, btScalar minHeight, btScalar maxHeight, int upAxis,
+PHY_ScalarType hdt, bool flipQuadEdges
+)
+{
+	// validation
+	btAssert(heightStickWidth > 1 && "bad width");
+	btAssert(heightStickLength > 1 && "bad length");
+	btAssert(heightfieldData && "null heightfield data");
+	// btAssert(heightScale) -- do we care?  Trust caller here
+	btAssert(minHeight <= maxHeight && "bad min/max height");
+	btAssert(upAxis >= 0 && upAxis < 3 &&
+	    "bad upAxis--should be in range [0,2]");
+	btAssert(hdt != PHY_UCHAR || hdt != PHY_FLOAT || hdt != PHY_SHORT &&
+	    "Bad height data type enum");
+
+	// initialize member variables
+	m_shapeType = TERRAIN_SHAPE_PROXYTYPE;
+	m_heightStickWidth = heightStickWidth;
+	m_heightStickLength = heightStickLength;
+	m_minHeight = minHeight;
+	m_maxHeight = maxHeight;
+	m_width = (btScalar) (heightStickWidth - 1);
+	m_length = (btScalar) (heightStickLength - 1);
+	m_heightScale = heightScale;
+	m_heightfieldDataUnknown = heightfieldData;
+	m_heightDataType = hdt;
+	m_flipQuadEdges = flipQuadEdges;
+	m_useDiamondSubdivision = false;
+	m_upAxis = upAxis;
+	m_localScaling.setValue(btScalar(1.), btScalar(1.), btScalar(1.));
+
+	// determine min/max axis-aligned bounding box (aabb) values
 	switch (m_upAxis)
 	{
 	case 0:
 		{
-			halfExtents.setValue(
-				btScalar(m_maxHeight),
-				btScalar(m_width), //?? don't know if this should change
-				btScalar(m_length));
+			m_localAabbMin.setValue(m_minHeight, 0, 0);
+			m_localAabbMax.setValue(m_maxHeight, m_width, m_length);
 			break;
 		}
 	case 1:
 		{
-			halfExtents.setValue(
-				btScalar(m_width),
-				btScalar(m_maxHeight),
-				btScalar(m_length));
+			m_localAabbMin.setValue(0, m_minHeight, 0);
+			m_localAabbMax.setValue(m_width, m_maxHeight, m_length);
 			break;
 		};
 	case 2:
 		{
-			halfExtents.setValue(
-				btScalar(m_width),
-				btScalar(m_length),
-				btScalar(m_maxHeight)
-			);
+			m_localAabbMin.setValue(0, 0, m_minHeight);
+			m_localAabbMax.setValue(m_width, m_length, m_maxHeight);
 			break;
 		}
 	default:
 		{
 			//need to get valid m_upAxis
-			btAssert(0);
+			btAssert(0 && "Bad m_upAxis");
 		}
 	}
 
-	halfExtents*= btScalar(0.5);
-	
-	m_localAabbMin = -halfExtents - clampValue;
-	m_localAabbMax = halfExtents + clampValue;
-	btVector3 aabbSize = m_localAabbMax - m_localAabbMin;
-
+	// remember origin (defined as exact middle of aabb)
+	m_localOrigin = btScalar(0.5) * (m_localAabbMin + m_localAabbMax);
 }
+
 
 
 btHeightfieldTerrainShape::~btHeightfieldTerrainShape()
@@ -92,57 +128,80 @@ btHeightfieldTerrainShape::~btHeightfieldTerrainShape()
 void btHeightfieldTerrainShape::getAabb(const btTransform& t,btVector3& aabbMin,btVector3& aabbMax) const
 {
 	btVector3 halfExtents = (m_localAabbMax-m_localAabbMin)* m_localScaling * btScalar(0.5);
-	halfExtents += btVector3(getMargin(),getMargin(),getMargin());
+
+	btVector3 localOrigin(0, 0, 0);
+	localOrigin[m_upAxis] = (m_minHeight + m_maxHeight) * btScalar(0.5);
+	localOrigin *= m_localScaling;
 
 	btMatrix3x3 abs_b = t.getBasis().absolute();  
-	btPoint3 center = t.getOrigin();
+	btVector3 center = t.getOrigin();
 	btVector3 extent = btVector3(abs_b[0].dot(halfExtents),
 		   abs_b[1].dot(halfExtents),
 		  abs_b[2].dot(halfExtents));
-	
+	extent += btVector3(getMargin(),getMargin(),getMargin());
 
 	aabbMin = center - extent;
 	aabbMax = center + extent;
-
-
 }
 
-btScalar	btHeightfieldTerrainShape::getHeightFieldValue(int x,int y) const
+
+/// This returns the "raw" (user's initial) height, not the actual height.
+/// The actual height needs to be adjusted to be relative to the center
+///   of the heightfield's AABB.
+btScalar
+btHeightfieldTerrainShape::getRawHeightFieldValue(int x,int y) const
 {
 	btScalar val = 0.f;
-	if (m_useFloatData)
+	switch (m_heightDataType)
 	{
-		val = m_heightfieldDataFloat[(y*m_heightStickWidth)+x];
-	} else
-	{
-		//assume unsigned short int
-		unsigned char heightFieldValue = m_heightfieldDataUnsignedChar[(y*m_heightStickWidth)+x];
-		val = heightFieldValue* (m_maxHeight/btScalar(65535));
+	case PHY_FLOAT:
+		{
+			val = m_heightfieldDataFloat[(y*m_heightStickWidth)+x];
+			break;
+		}
+
+	case PHY_UCHAR:
+		{
+			unsigned char heightFieldValue = m_heightfieldDataUnsignedChar[(y*m_heightStickWidth)+x];
+			val = heightFieldValue * m_heightScale;
+			break;
+		}
+
+	case PHY_SHORT:
+		{
+			short hfValue = m_heightfieldDataShort[(y * m_heightStickWidth) + x];
+			val = hfValue * m_heightScale;
+			break;
+		}
+
+	default:
+		{
+			btAssert(!"Bad m_heightDataType");
+		}
 	}
+
 	return val;
 }
 
 
 
 
-
+/// this returns the vertex in bullet-local coordinates
 void	btHeightfieldTerrainShape::getVertex(int x,int y,btVector3& vertex) const
 {
-
 	btAssert(x>=0);
 	btAssert(y>=0);
 	btAssert(x<m_heightStickWidth);
 	btAssert(y<m_heightStickLength);
 
-
-	btScalar	height = getHeightFieldValue(x,y);
+	btScalar	height = getRawHeightFieldValue(x,y);
 
 	switch (m_upAxis)
 	{
 	case 0:
 		{
 		vertex.setValue(
-			height,
+			height - m_localOrigin.getX(),
 			(-m_width/btScalar(2.0)) + x,
 			(-m_length/btScalar(2.0) ) + y
 			);
@@ -152,7 +211,7 @@ void	btHeightfieldTerrainShape::getVertex(int x,int y,btVector3& vertex) const
 		{
 			vertex.setValue(
 			(-m_width/btScalar(2.0)) + x,
-			height,
+			height - m_localOrigin.getY(),
 			(-m_length/btScalar(2.0)) + y
 			);
 			break;
@@ -162,7 +221,7 @@ void	btHeightfieldTerrainShape::getVertex(int x,int y,btVector3& vertex) const
 			vertex.setValue(
 			(-m_width/btScalar(2.0)) + x,
 			(-m_length/btScalar(2.0)) + y,
-			height
+			height - m_localOrigin.getZ()
 			);
 			break;
 		}
@@ -174,45 +233,76 @@ void	btHeightfieldTerrainShape::getVertex(int x,int y,btVector3& vertex) const
 	}
 
 	vertex*=m_localScaling;
-	
 }
 
 
+
+static inline int
+getQuantized
+(
+btScalar x
+)
+{
+	if (x < 0.0) {
+		return (int) (x - 0.5);
+	}
+	return (int) (x + 0.5);
+}
+
+
+
+/// given input vector, return quantized version
+/**
+  This routine is basically determining the gridpoint indices for a given
+  input vector, answering the question: "which gridpoint is closest to the
+  provided point?".
+
+  "with clamp" means that we restrict the point to be in the heightfield's
+  axis-aligned bounding box.
+ */
 void btHeightfieldTerrainShape::quantizeWithClamp(int* out, const btVector3& point,int /*isMax*/) const
 {
 	btVector3 clampedPoint(point);
 	clampedPoint.setMax(m_localAabbMin);
 	clampedPoint.setMin(m_localAabbMax);
 
-	btVector3 v = (clampedPoint);// - m_bvhAabbMin) * m_bvhQuantization;
-
-	//TODO: optimization: check out how to removed this btFabs
+	out[0] = getQuantized(clampedPoint.getX());
+	out[1] = getQuantized(clampedPoint.getY());
+	out[2] = getQuantized(clampedPoint.getZ());
 		
-	out[0] = (int)(v.getX() + v.getX() / btFabs(v.getX())* btScalar(0.5) );
-	out[1] = (int)(v.getY() + v.getY() / btFabs(v.getY())* btScalar(0.5) );
-	out[2] = (int)(v.getZ() + v.getZ() / btFabs(v.getZ())* btScalar(0.5) );
-	
 }
 
 
+
+/// process all triangles within the provided axis-aligned bounding box
+/**
+  basic algorithm:
+    - convert input aabb to local coordinates (scale down and shift for local origin)
+    - convert input aabb to a range of heightfield grid points (quantize)
+    - iterate over all triangles in that subset of the grid
+ */
 void	btHeightfieldTerrainShape::processAllTriangles(btTriangleCallback* callback,const btVector3& aabbMin,const btVector3& aabbMax) const
 {
-	(void)callback;
-	(void)aabbMax;
-	(void)aabbMin;
-
-	//quantize the aabbMin and aabbMax, and adjust the start/end ranges
-
-	int	quantizedAabbMin[3];
-	int	quantizedAabbMax[3];
-
+	// scale down the input aabb's so they are in local (non-scaled) coordinates
 	btVector3	localAabbMin = aabbMin*btVector3(1.f/m_localScaling[0],1.f/m_localScaling[1],1.f/m_localScaling[2]);
 	btVector3	localAabbMax = aabbMax*btVector3(1.f/m_localScaling[0],1.f/m_localScaling[1],1.f/m_localScaling[2]);
-	
+
+	// account for local origin
+	localAabbMin += m_localOrigin;
+	localAabbMax += m_localOrigin;
+
+	//quantize the aabbMin and aabbMax, and adjust the start/end ranges
+	int	quantizedAabbMin[3];
+	int	quantizedAabbMax[3];
 	quantizeWithClamp(quantizedAabbMin, localAabbMin,0);
 	quantizeWithClamp(quantizedAabbMax, localAabbMax,1);
 	
-	
+	// expand the min/max quantized values
+	// this is to catch the case where the input aabb falls between grid points!
+	for (int i = 0; i < 3; ++i) {
+		quantizedAabbMin[i]--;
+		quantizedAabbMax[i]++;
+	}	
 
 	int startX=0;
 	int endX=m_heightStickWidth-1;
@@ -223,11 +313,6 @@ void	btHeightfieldTerrainShape::processAllTriangles(btTriangleCallback* callback
 	{
 	case 0:
 		{
-			quantizedAabbMin[1]+=m_heightStickWidth/2-1;
-			quantizedAabbMax[1]+=m_heightStickWidth/2+1;
-			quantizedAabbMin[2]+=m_heightStickLength/2-1;
-			quantizedAabbMax[2]+=m_heightStickLength/2+1;
-
 			if (quantizedAabbMin[1]>startX)
 				startX = quantizedAabbMin[1];
 			if (quantizedAabbMax[1]<endX)
@@ -240,11 +325,6 @@ void	btHeightfieldTerrainShape::processAllTriangles(btTriangleCallback* callback
 		}
 	case 1:
 		{
-			quantizedAabbMin[0]+=m_heightStickWidth/2-1;
-			quantizedAabbMax[0]+=m_heightStickWidth/2+1;
-			quantizedAabbMin[2]+=m_heightStickLength/2-1;
-			quantizedAabbMax[2]+=m_heightStickLength/2+1;
-
 			if (quantizedAabbMin[0]>startX)
 				startX = quantizedAabbMin[0];
 			if (quantizedAabbMax[0]<endX)
@@ -257,11 +337,6 @@ void	btHeightfieldTerrainShape::processAllTriangles(btTriangleCallback* callback
 		};
 	case 2:
 		{
-			quantizedAabbMin[0]+=m_heightStickWidth/2-1;
-			quantizedAabbMax[0]+=m_heightStickWidth/2+1;
-			quantizedAabbMin[1]+=m_heightStickLength/2-1;
-			quantizedAabbMax[1]+=m_heightStickLength/2+1;
-
 			if (quantizedAabbMin[0]>startX)
 				startX = quantizedAabbMin[0];
 			if (quantizedAabbMax[0]<endX)

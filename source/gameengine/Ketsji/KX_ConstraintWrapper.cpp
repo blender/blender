@@ -92,32 +92,30 @@ PyParentObject KX_ConstraintWrapper::Parents[] = {
 	NULL
 };
 
-PyObject*	KX_ConstraintWrapper::_getattr(const STR_String& attr)
+PyObject*	KX_ConstraintWrapper::_getattr(const char *attr)
 {
 	//here you can search for existing data members (like mass,friction etc.)
 	_getattr_up(PyObjectPlus);
 }
 
-int	KX_ConstraintWrapper::_setattr(const STR_String& attr,PyObject* pyobj)
+int	KX_ConstraintWrapper::_setattr(const char *attr,PyObject* pyobj)
 {
-	
-	PyTypeObject* type = pyobj->ob_type;
 	int result = 1;
 
-	if (type == &PyList_Type)
+	if (PyList_Check(pyobj))
 	{
 		result = 0;
 	}
-	if (type == &PyFloat_Type)
+	if (PyFloat_Check(pyobj))
 	{
 		result = 0;
 
 	}
-	if (type == &PyInt_Type)
+	if (PyInt_Check(pyobj))
 	{
 		result = 0;
 	}
-	if (type == &PyString_Type)
+	if (PyString_Check(pyobj))
 	{
 		result = 0;
 	}
@@ -131,4 +129,8 @@ PyMethodDef KX_ConstraintWrapper::Methods[] = {
 	{"testMethod",(PyCFunction) KX_ConstraintWrapper::sPyTestMethod, METH_VARARGS},
 	{"getConstraintId",(PyCFunction) KX_ConstraintWrapper::sPyGetConstraintId, METH_VARARGS},
 	{NULL,NULL} //Sentinel
+};
+
+PyAttributeDef KX_ConstraintWrapper::Attributes[] = {
+	{ NULL }	//Sentinel
 };

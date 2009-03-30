@@ -6377,20 +6377,11 @@ static DerivedMesh * particleInstanceModifier_applyModifier(
 	psys->lattice=psys_get_lattice(md->scene, ob, psys);
 
 	if(psys->flag & (PSYS_HAIR_DONE|PSYS_KEYED)){
-		float co[3];
-		for(i=0; i< totvert; i++){
-			dm->getVertCo(dm,i,co);
-			if(i==0){
-				min_co=max_co=co[track];
-			}
-			else{
-				if(co[track]<min_co)
-					min_co=co[track];
 
-				if(co[track]>max_co)
-					max_co=co[track];
-			}
-		}
+		float min_r[3], max_r[3];
+		dm->getMinMax(dm, min_r, max_r);		
+		min_co=min_r[track];
+		max_co=max_r[track];
 	}
 
 	result = CDDM_from_template(dm, maxvert,dm->getNumEdges(dm)*totpart,maxface);
@@ -7550,6 +7541,7 @@ static void meshdeformModifier_do(
 	DerivedMesh *tmpdm, *cagedm;
 	MDeformVert *dvert = NULL;
 	MDeformWeight *dw;
+	EditMesh *em = EM_GetEditMesh(me);
 	MVert *cagemvert;
 	float imat[4][4], cagemat[4][4], iobmat[4][4], icagemat[3][3], cmat[4][4];
 	float weight, totweight, fac, co[3], *weights, (*dco)[3], (*bindcos)[3];
@@ -7559,10 +7551,11 @@ static void meshdeformModifier_do(
 		return;
 	
 	/* get cage derivedmesh */
-	if(me->edit_mesh) {
-		tmpdm= editmesh_get_derived_cage_and_final(md->scene, ob, me->edit_mesh, &cagedm, 0);
+	if(em) {
+		tmpdm= editmesh_get_derived_cage_and_final(md->scene, ob, em, &cagedm, 0);
 		if(tmpdm)
 			tmpdm->release(tmpdm);
+		EM_EndEditMesh(em);
 	}
 	else
 		cagedm= mmd->object->derivedFinal;

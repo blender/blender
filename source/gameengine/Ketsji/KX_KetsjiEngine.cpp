@@ -59,7 +59,10 @@
 #include "KX_PythonInit.h"
 #include "KX_PyConstraintBinding.h"
 #include "PHY_IPhysicsEnvironment.h"
+
+#ifdef USE_SUMO_SOLID
 #include "SumoPhysicsEnvironment.h"
+#endif
 
 #include "SND_Scene.h"
 #include "SND_IAudioDevice.h"
@@ -713,7 +716,7 @@ void KX_KetsjiEngine::Render()
 		if (!BeginFrame())
 			return;
 
-		KX_SceneList::iterator sceneit;
+
 		for (sceneit = m_scenes.begin();sceneit != m_scenes.end(); sceneit++)
 		// for each scene, call the proceed functions
 		{
@@ -1109,6 +1112,11 @@ void KX_KetsjiEngine::RenderFrame(KX_Scene* scene, KX_Camera* cam)
 
 	scene->RenderBuckets(camtrans, m_rasterizer, m_rendertools);
 	
+	if (scene->GetPhysicsEnvironment())
+		scene->GetPhysicsEnvironment()->debugDrawWorld();
+	
+	m_rasterizer->FlushDebugLines();
+
 	PostRenderFrame();
 }
 

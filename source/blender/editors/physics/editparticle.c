@@ -1209,11 +1209,11 @@ static int de_select_all_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void PARTICLE_OT_de_select_all(wmOperatorType *ot)
+void PARTICLE_OT_select_all_toggle(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select or Deselect All";
-	ot->idname= "PARTICLE_OT_de_select_all";
+	ot->idname= "PARTICLE_OT_select_all_toggle";
 	
 	/* api callbacks */
 	ot->exec= de_select_all_exec;
@@ -2312,7 +2312,6 @@ static int brush_radial_control_exec(bContext *C, wmOperator *op)
 	ParticleBrushData *brush;
 	int mode = RNA_enum_get(op->ptr, "mode");
 	float new_value = RNA_float_get(op->ptr, "new_value");
-	char str[256];
 
 	if(pset->brushtype < 0)
 		return OPERATOR_CANCELLED;
@@ -2323,8 +2322,6 @@ static int brush_radial_control_exec(bContext *C, wmOperator *op)
 		brush->size= new_value;
 	else if(mode == WM_RADIALCONTROL_STRENGTH)
 		brush->strength= new_value;
-
-	WM_radial_control_string(op, str, 256);
 
 	return OPERATOR_FINISHED;
 }
@@ -2584,11 +2581,11 @@ static int set_brush_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void PARTICLE_OT_set_brush(wmOperatorType *ot)
+void PARTICLE_OT_brush_set(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Set Brush";
-	ot->idname= "PARTICLE_OT_set_brush";
+	ot->idname= "PARTICLE_OT_brush_set";
 	
 	/* api callbacks */
 	ot->exec= set_brush_exec;
@@ -3781,11 +3778,11 @@ static int set_editable_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void PARTICLE_OT_set_editable(wmOperatorType *ot)
+void PARTICLE_OT_editable_set(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Set Editable";
-	ot->idname= "PARTICLE_OT_set_editable";
+	ot->idname= "PARTICLE_OT_editable_set";
 	
 	/* api callbacks */
 	ot->exec= set_editable_exec;
@@ -3874,7 +3871,7 @@ void PARTICLE_OT_specials_menu(wmOperatorType *ot)
 
 void ED_operatortypes_particle(void)
 {
-	WM_operatortype_append(PARTICLE_OT_de_select_all);
+	WM_operatortype_append(PARTICLE_OT_select_all_toggle);
 	WM_operatortype_append(PARTICLE_OT_select_first);
 	WM_operatortype_append(PARTICLE_OT_select_last);
 	WM_operatortype_append(PARTICLE_OT_select_linked);
@@ -3890,21 +3887,21 @@ void ED_operatortypes_particle(void)
 	WM_operatortype_append(PARTICLE_OT_delete);
 	WM_operatortype_append(PARTICLE_OT_mirror);
 
-	WM_operatortype_append(PARTICLE_OT_set_brush);
+	WM_operatortype_append(PARTICLE_OT_brush_set);
 	WM_operatortype_append(PARTICLE_OT_brush_edit);
 	WM_operatortype_append(PARTICLE_OT_brush_radial_control);
 
 	WM_operatortype_append(PARTICLE_OT_specials_menu);
 
 	WM_operatortype_append(PARTICLE_OT_particle_edit_toggle);
-	WM_operatortype_append(PARTICLE_OT_set_editable);
+	WM_operatortype_append(PARTICLE_OT_editable_set);
 }
 
 void ED_keymap_particle(wmWindowManager *wm)
 {
 	ListBase *keymap= WM_keymap_listbase(wm, "Particle", 0, 0);
 	
-	WM_keymap_add_item(keymap, "PARTICLE_OT_de_select_all", AKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "PARTICLE_OT_select_all_toggle", AKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "PARTICLE_OT_select_more", PADPLUSKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "PARTICLE_OT_select_less", PADMINUS, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "PARTICLE_OT_select_linked", LKEY, KM_PRESS, 0, 0);

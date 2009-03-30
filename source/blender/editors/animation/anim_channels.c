@@ -804,11 +804,11 @@ static int animchannels_setflag_exec(bContext *C, wmOperator *op)
 }
 
 
-void ANIM_OT_channels_enable_setting (wmOperatorType *ot)
+void ANIM_OT_channels_setting_enable (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Enable Channel Setting";
-	ot->idname= "ANIM_OT_channels_enable_setting";
+	ot->idname= "ANIM_OT_channels_setting_enable";
 	
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
@@ -825,11 +825,11 @@ void ANIM_OT_channels_enable_setting (wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "type", prop_animchannel_settings_types, 0, "Type", "");
 }
 
-void ANIM_OT_channels_disable_setting (wmOperatorType *ot)
+void ANIM_OT_channels_setting_disable (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Disable Channel Setting";
-	ot->idname= "ANIM_OT_channels_disable_setting";
+	ot->idname= "ANIM_OT_channels_setting_disable";
 	
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
@@ -846,11 +846,11 @@ void ANIM_OT_channels_disable_setting (wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "type", prop_animchannel_settings_types, 0, "Type", "");
 }
 
-void ANIM_OT_channels_toggle_setting (wmOperatorType *ot)
+void ANIM_OT_channels_setting_toggle (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Toggle Channel Setting";
-	ot->idname= "ANIM_OT_channels_toggle_setting";
+	ot->idname= "ANIM_OT_channels_setting_toggle";
 	
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
@@ -868,11 +868,11 @@ void ANIM_OT_channels_toggle_setting (wmOperatorType *ot)
 }
 
 // XXX currently, this is a separate operator, but perhaps we could in future specify in keymaps whether to call invoke or exec?
-void ANIM_OT_channels_toggle_editable (wmOperatorType *ot)
+void ANIM_OT_channels_editable_toggle (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Toggle Channel Editability";
-	ot->idname= "ANIM_OT_channels_toggle_editable";
+	ot->idname= "ANIM_OT_channels_editable_toggle";
 	
 	/* api callbacks */
 	ot->exec= animchannels_setflag_exec;
@@ -910,11 +910,11 @@ static int animchannels_deselectall_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
  
-void ANIM_OT_channels_deselectall (wmOperatorType *ot)
+void ANIM_OT_channels_select_all_toggle (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select All";
-	ot->idname= "ANIM_OT_channels_deselectall";
+	ot->idname= "ANIM_OT_channels_select_all_toggle";
 	
 	/* api callbacks */
 	ot->exec= animchannels_deselectall_exec;
@@ -1028,11 +1028,11 @@ static int animchannels_borderselect_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 } 
 
-void ANIM_OT_channels_borderselect(wmOperatorType *ot)
+void ANIM_OT_channels_select_border(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Border Select";
-	ot->idname= "ANIM_OT_channels_borderselect";
+	ot->idname= "ANIM_OT_channels_select_border";
 	
 	/* api callbacks */
 	ot->invoke= WM_border_select_invoke;
@@ -1365,9 +1365,9 @@ static int animchannels_mouseclick_invoke(bContext *C, wmOperator *op, wmEvent *
 	mval[1]= (event->y - ar->winrct.ymin);
 	
 	/* select mode is either replace (deselect all, then add) or add/extend */
-	if (RNA_boolean_get(op->ptr, "extend_select"))
+	if (RNA_boolean_get(op->ptr, "extend"))
 		selectmode= SELECT_INVERT;
-	else if (RNA_boolean_get(op->ptr, "select_children_only"))
+	else if (RNA_boolean_get(op->ptr, "children_only"))
 		selectmode= -1; /* this is a bit of a special case for ActionGroups only... should it be removed or extended to all instead? */
 	else
 		selectmode= SELECT_REPLACE;
@@ -1403,8 +1403,8 @@ void ANIM_OT_channels_mouseclick (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* id-props */
-	RNA_def_boolean(ot->srna, "extend_select", 0, "Extend Select", ""); // SHIFTKEY
-	RNA_def_boolean(ot->srna, "select_children_only", 0, "Select Children Only", ""); // CTRLKEY|SHIFTKEY
+	RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", ""); // SHIFTKEY
+	RNA_def_boolean(ot->srna, "children_only", 0, "Select Children Only", ""); // CTRLKEY|SHIFTKEY
 }
 
 /* ************************************************************************** */
@@ -1412,16 +1412,16 @@ void ANIM_OT_channels_mouseclick (wmOperatorType *ot)
 
 void ED_operatortypes_animchannels(void)
 {
-	WM_operatortype_append(ANIM_OT_channels_deselectall);
-	WM_operatortype_append(ANIM_OT_channels_borderselect);
+	WM_operatortype_append(ANIM_OT_channels_select_all_toggle);
+	WM_operatortype_append(ANIM_OT_channels_select_border);
 	WM_operatortype_append(ANIM_OT_channels_mouseclick);
 	
-	WM_operatortype_append(ANIM_OT_channels_enable_setting);
-	WM_operatortype_append(ANIM_OT_channels_disable_setting);
-	WM_operatortype_append(ANIM_OT_channels_toggle_setting);
+	WM_operatortype_append(ANIM_OT_channels_setting_enable);
+	WM_operatortype_append(ANIM_OT_channels_setting_disable);
+	WM_operatortype_append(ANIM_OT_channels_setting_toggle);
 	
 		// XXX does this need to be a separate operator?
-	WM_operatortype_append(ANIM_OT_channels_toggle_editable);
+	WM_operatortype_append(ANIM_OT_channels_editable_toggle);
 	
 		// XXX these need to be updated for new system... todo...
 	//WM_operatortype_append(ANIM_OT_channels_move_up);
@@ -1440,23 +1440,23 @@ void ED_keymap_animchannels(wmWindowManager *wm)
 		/* click-select */
 		// XXX for now, only leftmouse.... 
 	WM_keymap_add_item(keymap, "ANIM_OT_channels_mouseclick", LEFTMOUSE, KM_PRESS, 0, 0);
-	RNA_boolean_set(WM_keymap_add_item(keymap, "ANIM_OT_channels_mouseclick", LEFTMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "extend_select", 1);
-	RNA_boolean_set(WM_keymap_add_item(keymap, "ANIM_OT_channels_mouseclick", LEFTMOUSE, KM_PRESS, KM_CTRL|KM_SHIFT, 0)->ptr, "select_children_only", 1);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "ANIM_OT_channels_mouseclick", LEFTMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "extend", 1);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "ANIM_OT_channels_mouseclick", LEFTMOUSE, KM_PRESS, KM_CTRL|KM_SHIFT, 0)->ptr, "children_only", 1);
 	
 		/* deselect all */
-	WM_keymap_add_item(keymap, "ANIM_OT_channels_deselectall", AKEY, KM_PRESS, 0, 0);
-	RNA_boolean_set(WM_keymap_add_item(keymap, "ANIM_OT_channels_deselectall", IKEY, KM_PRESS, KM_CTRL, 0)->ptr, "invert", 1);
+	WM_keymap_add_item(keymap, "ANIM_OT_channels_select_all_toggle", AKEY, KM_PRESS, 0, 0);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "ANIM_OT_channels_select_all_toggle", IKEY, KM_PRESS, KM_CTRL, 0)->ptr, "invert", 1);
 	
 		/* borderselect */
-	WM_keymap_add_item(keymap, "ANIM_OT_channels_borderselect", BKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "ANIM_OT_channels_select_border", BKEY, KM_PRESS, 0, 0);
 	
 	/* settings */
-	WM_keymap_add_item(keymap, "ANIM_OT_channels_toggle_setting", WKEY, KM_PRESS, KM_SHIFT, 0);
-	WM_keymap_add_item(keymap, "ANIM_OT_channels_enable_setting", WKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0);
-	WM_keymap_add_item(keymap, "ANIM_OT_channels_disable_setting", WKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_add_item(keymap, "ANIM_OT_channels_setting_toggle", WKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "ANIM_OT_channels_setting_enable", WKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "ANIM_OT_channels_setting_disable", WKEY, KM_PRESS, KM_ALT, 0);
 	
 	/* settings - specialised hotkeys */
-	WM_keymap_add_item(keymap, "ANIM_OT_channels_toggle_editable", TABKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "ANIM_OT_channels_editable_toggle", TABKEY, KM_PRESS, 0, 0);
 	
 	/* rearranging - actions only */
 	//WM_keymap_add_item(keymap, "ANIM_OT_channels_move_up", PAGEUPKEY, KM_PRESS, KM_SHIFT, 0);

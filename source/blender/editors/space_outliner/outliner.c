@@ -50,7 +50,7 @@
 #include "DNA_modifier_types.h"
 #include "DNA_nla_types.h"
 #include "DNA_object_types.h"
-#include "DNA_oops_types.h"
+#include "DNA_outliner_types.h"
 #include "DNA_particle_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
@@ -3063,9 +3063,9 @@ enum {
 static int ed_operator_outliner_datablocks_active(bContext *C)
 {
 	ScrArea *sa= CTX_wm_area(C);
-	if ((sa) && (sa->spacetype==SPACE_OOPS)) {
+	if ((sa) && (sa->spacetype==SPACE_OUTLINER)) {
 		SpaceOops *so= (SpaceOops *)CTX_wm_space_data(C);
-		return ((so->type == SO_OUTLINER) && (so->outlinevis == SO_DATABLOCKS));
+		return (so->outlinevis == SO_DATABLOCKS);
 	}
 	return 0;
 }
@@ -4204,13 +4204,13 @@ static void outliner_draw_rnabuts(uiBlock *block, Scene *scene, ARegion *ar, Spa
 				prop= te->directdata;
 				
 				if(!(RNA_property_type(ptr, prop) == PROP_POINTER && (tselem->flag & TSE_CLOSED)==0))
-					uiDefAutoButR(block, ptr, prop, -1, "", sizex, (int)te->ys, OL_RNA_COL_SIZEX, OL_H-1);
+					uiDefAutoButR(block, ptr, prop, -1, "", 0, sizex, (int)te->ys, OL_RNA_COL_SIZEX, OL_H-1);
 			}
 			else if(tselem->type == TSE_RNA_ARRAY_ELEM) {
 				ptr= &te->rnaptr;
 				prop= te->directdata;
 				
-				uiDefAutoButR(block, ptr, prop, te->index, "", sizex, (int)te->ys, OL_RNA_COL_SIZEX, OL_H-1);
+				uiDefAutoButR(block, ptr, prop, te->index, "", 0, sizex, (int)te->ys, OL_RNA_COL_SIZEX, OL_H-1);
 			}
 		}
 		

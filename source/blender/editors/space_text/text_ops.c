@@ -78,11 +78,6 @@ static int text_new_poll(bContext *C)
 	return 1;
 }
 
-static int text_valid_poll(bContext *C)
-{
-	return CTX_data_edit_text(C) ? 1:0;
-}
-
 static int text_edit_poll(bContext *C)
 {
 	Text *text= CTX_data_edit_text(C);
@@ -1162,11 +1157,11 @@ static int clear_all_markers_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void TEXT_OT_clear_all_markers(wmOperatorType *ot)
+void TEXT_OT_markers_clear(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Clear All Markers";
-	ot->idname= "TEXT_OT_clear_all_markers";
+	ot->idname= "TEXT_OT_markers_clear";
 
 	/* api callbacks */
 	ot->exec= clear_all_markers_exec;
@@ -1578,11 +1573,11 @@ static int toggle_overwrite_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void TEXT_OT_toggle_overwrite(wmOperatorType *ot)
+void TEXT_OT_overwrite_toggle(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Toggle Overwrite";
-	ot->idname= "TEXT_OT_toggle_overwrite";
+	ot->idname= "TEXT_OT_overwrite_toggle";
 	
 	/* api callbacks */
 	ot->exec= toggle_overwrite_exec;
@@ -1742,7 +1737,7 @@ void TEXT_OT_scroll(wmOperatorType *ot)
 	ot->poll= text_space_edit_poll;
 
 	/* properties */
-	RNA_def_int(ot->srna, "lines", INT_MIN, INT_MAX, 1, "Lines", "Number of lines to scroll.", -100, 100);
+	RNA_def_int(ot->srna, "lines", 1, INT_MIN, INT_MAX, "Lines", "Number of lines to scroll.", -100, 100);
 }
 
 /******************** scroll bar operator *******************/
@@ -1786,7 +1781,7 @@ void TEXT_OT_scroll_bar(wmOperatorType *ot)
 	ot->poll= text_region_edit_poll;
 
 	/* properties */
-	RNA_def_int(ot->srna, "lines", INT_MIN, INT_MAX, 1, "Lines", "Number of lines to scroll.", -100, 100);
+	RNA_def_int(ot->srna, "lines", 1, INT_MIN, INT_MAX, "Lines", "Number of lines to scroll.", -100, 100);
 }
 
 /******************* set cursor operator **********************/
@@ -2043,11 +2038,11 @@ static int set_cursor_cancel(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void TEXT_OT_set_cursor(wmOperatorType *ot)
+void TEXT_OT_cursor_set(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Set Cursor";
-	ot->idname= "TEXT_OT_set_cursor";
+	ot->idname= "TEXT_OT_cursor_set";
 	
 	/* api callbacks */
 	ot->invoke= set_cursor_invoke;
@@ -2489,6 +2484,7 @@ void TEXT_OT_resolve_conflict(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Resolve Conflict";
 	ot->idname= "TEXT_OT_resolve_conflict";
+	ot->description= "When external text is out of sync, resolve the conflict.";
 
 	/* api callbacks */
 	ot->exec= resolve_conflict_exec;

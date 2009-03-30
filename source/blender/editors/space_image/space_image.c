@@ -192,7 +192,7 @@ void image_operatortypes(void)
 	WM_operatortype_append(IMAGE_OT_unpack);
 
 	WM_operatortype_append(IMAGE_OT_sample);
-	WM_operatortype_append(IMAGE_OT_set_curves_point);
+	WM_operatortype_append(IMAGE_OT_curves_point_set);
 
 	WM_operatortype_append(IMAGE_OT_record_composite);
 
@@ -237,8 +237,8 @@ void image_keymap(struct wmWindowManager *wm)
 	RNA_enum_set(WM_keymap_add_item(keymap, "PAINT_OT_image_paint_radial_control", FKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "mode", WM_RADIALCONTROL_STRENGTH);
 
 	WM_keymap_add_item(keymap, "IMAGE_OT_sample", ACTIONMOUSE, KM_PRESS, 0, 0);
-	RNA_enum_set(WM_keymap_add_item(keymap, "IMAGE_OT_set_curves_point", ACTIONMOUSE, KM_PRESS, KM_CTRL, 0)->ptr, "point", 0);
-	RNA_enum_set(WM_keymap_add_item(keymap, "IMAGE_OT_set_curves_point", ACTIONMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "point", 1);
+	RNA_enum_set(WM_keymap_add_item(keymap, "IMAGE_OT_curves_point_set", ACTIONMOUSE, KM_PRESS, KM_CTRL, 0)->ptr, "point", 0);
+	RNA_enum_set(WM_keymap_add_item(keymap, "IMAGE_OT_curves_point_set", ACTIONMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "point", 1);
 
 	WM_keymap_add_item(keymap, "IMAGE_OT_toolbox", SPACEKEY, KM_PRESS, 0, 0);
 }
@@ -255,7 +255,7 @@ static void image_refresh(const bContext *C, ScrArea *sa)
 	if(ima && (ima->source==IMA_SRC_VIEWER || sima->pin));
 	else if(obedit && obedit->type == OB_MESH) {
 		Mesh *me= (Mesh*)obedit->data;
-		EditMesh *em= me->edit_mesh;
+		EditMesh *em= EM_GetEditMesh(me);
 		MTFace *tf;
 		
 		if(em && EM_texFaceCheck(em)) {
@@ -278,6 +278,8 @@ static void image_refresh(const bContext *C, ScrArea *sa)
 				}
 			}
 		}
+
+		EM_EndEditMesh(obedit->data, em);
 	}
 }
 
@@ -304,16 +306,12 @@ static void image_listener(ScrArea *sa, wmNotifier *wmn)
 	}
 }
 
-static int image_context(const bContext *C, bContextDataMember member, bContextDataResult *result)
+static int image_context(const bContext *C, const char *member, bContextDataResult *result)
 {
 	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
 
-	if(member == CTX_DATA_EDIT_IMAGE) {
-		CTX_data_pointer_set(result, ED_space_image(sima));
-		return 1;
-	}
-	else if(member == CTX_DATA_EDIT_IMAGE_BUFFER) {
-		CTX_data_pointer_set(result, ED_space_image_buffer(sima));
+	if(CTX_data_equals(member, "edit_image")) {
+		CTX_data_id_pointer_set(result, (ID*)ED_space_image(sima));
 		return 1;
 	}
 
@@ -759,8 +757,15 @@ int ED_space_image_show_uvedit(SpaceImage *sima, Object *obedit)
 	if(ED_space_image_show_paint(sima))
 		return 0;
 
-	if(obedit && obedit->type == OB_MESH)
-		return EM_texFaceCheck(((Mesh*)obedit->data)->edit_mesh);
+	if(obedit && obedit->type == OB_MESH) {
+		EditMesh *em = EM_GetEditMesh(obedit->data);
+		int ret;
+	
+		ret = EM_texFaceCheck(em);
+
+		EM_EndEditMesh(obedit->data, em);
+		return ret;
+	}
 
 	return 0;
 }
@@ -771,8 +776,15 @@ int ED_space_image_show_uvshadow(SpaceImage *sima, Object *obedit)
 		return 0;
 
 	if(ED_space_image_show_paint(sima))
-		if(obedit && obedit->type == OB_MESH)
-			return EM_texFaceCheck(((Mesh*)obedit->data)->edit_mesh);
+		if(obedit && obedit->type == OB_MESH) {
+			EditMesh *em = EM_GetEditMesh(obedit->data);
+			int ret;
+
+			ret = EM_texFaceCheck(em);
+
+			EM_EndEditMesh(obedit->data, em);
+			return ret;
+		}
 
 	return 0;
 }

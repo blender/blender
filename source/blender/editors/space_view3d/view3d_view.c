@@ -70,6 +70,7 @@
 #include "ED_mesh.h"
 #include "ED_screen.h"
 #include "ED_view3d.h"
+#include "ED_armature.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -410,7 +411,7 @@ void VIEW3D_OT_setcameratoview(wmOperatorType *ot)
 	
 	/* identifiers */
 	ot->name= "Align Camera To View";
-	ot->idname= "VIEW3D_OT_set_camera_to_view";
+	ot->idname= "VIEW3D_OT_camera_to_view";
 	
 	/* api callbacks */
 	ot->exec= view3d_setcameratoview_exec;	
@@ -802,7 +803,28 @@ void project_float_noclip(ARegion *ar, float *vec, float *adr)
 	}
 }
 
+int get_view3d_ortho(View3D *v3d, RegionView3D *rv3d)
+{
+  Camera *cam;
+  
+  if(rv3d->persp==V3D_CAMOB) {
+      if(v3d->camera && v3d->camera->type==OB_CAMERA) {
+          cam= v3d->camera->data;
 
+          if(cam && cam->type==CAM_ORTHO)
+              return 1;
+          else
+              return 0;
+      }
+      else
+          return 0;
+  }
+  
+  if(rv3d->persp==V3D_ORTHO)
+      return 1;
+
+  return 0;
+}
 
 /* also exposed in previewrender.c */
 int get_view3d_viewplane(View3D *v3d, RegionView3D *rv3d, int winxi, int winyi, rctf *viewplane, float *clipsta, float *clipend, float *pixsize)
@@ -1120,8 +1142,11 @@ short view3d_opengl_select(ViewContext *vc, unsigned int *buffer, unsigned int b
 	if(vc->obedit && vc->obedit->type==OB_MBALL) {
 		draw_object(scene, ar, v3d, BASACT, DRAW_PICKING|DRAW_CONSTCOLOR);
 	}
-	else if ((vc->obedit && vc->obedit->type==OB_ARMATURE)) {
-		draw_object(scene, ar, v3d, BASACT, DRAW_PICKING|DRAW_CONSTCOLOR);
+	else if((vc->obedit && vc->obedit->type==OB_ARMATURE)) {
+		/* if not drawing sketch, draw bones */
+		if(!BDR_drawSketchNames(vc)) {
+			draw_object(scene, ar, v3d, BASACT, DRAW_PICKING|DRAW_CONSTCOLOR);
+		}
 	}
 	else {
 		Base *base;
@@ -1236,7 +1261,7 @@ static void initlocalview(Scene *scene, ScrArea *sa)
 	locallay= free_localbit();
 
 	if(locallay==0) {
-		printf("Sorry,  no more than 8 localviews\n");	// XXX error 
+		printf("Sorry, no more than 8 localviews\n");	// XXX error 
 		ok= 0;
 	}
 	else {

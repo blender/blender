@@ -3945,6 +3945,57 @@ int RayIntersectsTriangle(float p1[3], float d[3], float v0[3], float v1[3], flo
 	return 1;
 }
 
+int RayIntersectsTriangleThreshold(float p1[3], float d[3], float v0[3], float v1[3], float v2[3], float *lambda, float *uv, float threshold)
+{
+	float p[3], s[3], e1[3], e2[3], q[3];
+	float a, f, u, v;
+	float du = 0, dv = 0;
+	
+	VecSubf(e1, v1, v0);
+	VecSubf(e2, v2, v0);
+	
+	Crossf(p, d, e2);
+	a = Inpf(e1, p);
+	if ((a > -0.000001) && (a < 0.000001)) return 0;
+	f = 1.0f/a;
+	
+	VecSubf(s, p1, v0);
+	
+	Crossf(q, s, e1);
+	*lambda = f * Inpf(e2, q);
+	if ((*lambda < 0.0)) return 0;
+	
+	u = f * Inpf(s, p);
+	v = f * Inpf(d, q);
+	
+	if (u < 0) du = u;
+	if (u > 1) du = u - 1;
+	if (v < 0) dv = v;
+	if (v > 1) dv = v - 1;
+	if (u > 0 && v > 0 && u + v > 1)
+	{
+		float t = u + v - 1;
+		du = u - t/2;
+		dv = v - t/2;
+	}
+
+	VecMulf(e1, du);
+	VecMulf(e2, dv);
+	
+	if (Inpf(e1, e1) + Inpf(e2, e2) > threshold * threshold)
+	{
+		return 0;
+	}
+
+	if(uv) {
+		uv[0]= u;
+		uv[1]= v;
+	}
+	
+	return 1;
+}
+
+
 /* Adapted from the paper by Kasper Fauerby */
 /* "Improved Collision detection and Response" */
 static int getLowestRoot(float a, float b, float c, float maxR, float* root)
@@ -4291,6 +4342,67 @@ int LineIntersectLine(float v1[3], float v2[3], float v3[3], float v4[3], float 
 		VecSubf(i2, i1, t);
 		
 		return 2; /* two nearest points */
+	}
+} 
+
+/* Intersection point strictly between the two lines
+ * 0 when no intersection is found 
+ * */
+int LineIntersectLineStrict(float v1[3], float v2[3], float v3[3], float v4[3], float vi[3], float *lambda)
+{
+	float a[3], b[3], c[3], ab[3], cb[3], ca[3], dir1[3], dir2[3];
+	float d;
+	float d1;
+	
+	VecSubf(c, v3, v1);
+	VecSubf(a, v2, v1);
+	VecSubf(b, v4, v3);
+
+	VecCopyf(dir1, a);
+	Normalize(dir1);
+	VecCopyf(dir2, b);
+	Normalize(dir2);
+	d = Inpf(dir1, dir2);
+	if (d == 1.0f || d == -1.0f || d == 0) {
+		/* colinear or one vector is zero-length*/
+		return 0;
+	}
+	
+	d1 = d;
+
+	Crossf(ab, a, b);
+	d = Inpf(c, ab);
+
+	/* test if the two lines are coplanar */
+	if (d > -0.000001f && d < 0.000001f) {
+		float f1, f2;
+		Crossf(cb, c, b);
+		Crossf(ca, c, a);
+
+		f1 = Inpf(cb, ab) / Inpf(ab, ab);
+		f2 = Inpf(ca, ab) / Inpf(ab, ab);
+		
+		if (f1 >= 0 && f1 <= 1 &&
+			f2 >= 0 && f2 <= 1)
+		{
+			VecMulf(a, f1);
+			VecAddf(vi, v1, a);
+			
+			if (lambda != NULL)
+			{
+				*lambda = f1;
+			}
+			
+			return 1; /* intersection found */
+		}
+		else
+		{
+			return 0;
+		}
+	}
+	else
+	{
+		return 0;
 	}
 } 
 

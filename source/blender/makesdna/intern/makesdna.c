@@ -111,7 +111,7 @@ char *includefiles[] = {
 	"DNA_fileglobal_types.h",
 	"DNA_sequence_types.h",
 	"DNA_effect_types.h",
-	"DNA_oops_types.h",
+	"DNA_outliner_types.h",
 	"DNA_property_types.h",
 	"DNA_sensor_types.h",
 	"DNA_controller_types.h",
@@ -1135,7 +1135,7 @@ int main(int argc, char ** argv)
 #include "DNA_fileglobal_types.h"
 #include "DNA_sequence_types.h"
 #include "DNA_effect_types.h"
-#include "DNA_oops_types.h"
+#include "DNA_outliner_types.h"
 #include "DNA_property_types.h"
 #include "DNA_sensor_types.h"
 #include "DNA_controller_types.h"

@@ -36,7 +36,7 @@ struct	PHY__Vector3
 };
 //typedef 	float	PHY__Vector3[4];
 
-typedef enum
+enum
 {
 	PHY_FH_RESPONSE,
 	PHY_SENSOR_RESPONSE,	/* Touch Sensors */

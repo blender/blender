@@ -171,6 +171,24 @@ typedef struct FontBLF {
 	void (*free)(struct FontBLF *);
 } FontBLF;
 
+typedef struct CharDataBLF {
+	signed char width, height;
+	signed char xorig, yorig;
+	signed char advance;
+	
+	short data_offset;
+} CharDataBLF;
+
+typedef struct FontDataBLF {
+	int xmin, ymin;
+	int xmax, ymax;
+
+	CharDataBLF chars[256];
+	unsigned char *bitmap_data;
+
+	GLuint texid;
+} FontDataBLF;
+
 typedef struct DirBLF {
 	struct DirBLF *next;
 	struct DirBLF *prev;

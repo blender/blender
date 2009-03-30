@@ -33,6 +33,10 @@
 #include "DNA_listBase.h"
 #include "RNA_types.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* Blender RNA */
 
 BlenderRNA *RNA_create(void);
@@ -49,6 +53,7 @@ void RNA_def_struct_name_property(StructRNA *srna, PropertyRNA *prop);
 void RNA_def_struct_nested(BlenderRNA *brna, StructRNA *srna, const char *structname);
 void RNA_def_struct_flag(StructRNA *srna, int flag);
 void RNA_def_struct_refine_func(StructRNA *srna, const char *refine);
+void RNA_def_struct_path_func(StructRNA *srna, const char *path);
 void RNA_def_struct_identifier(StructRNA *srna, const char *identifier);
 void RNA_def_struct_ui_text(StructRNA *srna, const char *name, const char *description);
 void RNA_struct_free(BlenderRNA *brna, StructRNA *srna);
@@ -115,6 +120,7 @@ void RNA_def_property_pointer_sdna(PropertyRNA *prop, const char *structname, co
 void RNA_def_property_collection_sdna(PropertyRNA *prop, const char *structname, const char *propname, const char *lengthpropname);
 
 void RNA_def_property_flag(PropertyRNA *prop, int flag);
+void RNA_def_property_clear_flag(PropertyRNA *prop, int flag);
 void RNA_def_property_array(PropertyRNA *prop, int arraylength);
 void RNA_def_property_range(PropertyRNA *prop, double min, double max);
 
@@ -146,6 +152,9 @@ void RNA_def_property_string_funcs(PropertyRNA *prop, const char *get, const cha
 void RNA_def_property_pointer_funcs(PropertyRNA *prop, const char *get, const char *set);
 void RNA_def_property_collection_funcs(PropertyRNA *prop, const char *begin, const char *next, const char *end, const char *get, const char *length, const char *lookupint, const char *lookupstring);
 
-#endif /* RNA_DEFINE_H */
+#ifdef __cplusplus
+}
+#endif
 
+#endif /* RNA_DEFINE_H */
 

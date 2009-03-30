@@ -40,43 +40,18 @@
 #include "bpy_compat.h"
 #include "bpy_util.h"
 
+#define PYOP_ATTR_PROP			"__props__"
+#define PYOP_ATTR_UINAME		"__label__"
+#define PYOP_ATTR_IDNAME		"__name__"	/* use pythons class name */
+#define PYOP_ATTR_DESCRIPTION	"__doc__"	/* use pythons docstring */
+
 typedef struct PyOperatorType {
 	void *next, *prev;
 	char idname[OP_MAX_TYPENAME];
 	char name[OP_MAX_TYPENAME];
 	char description[OP_MAX_TYPENAME]; // XXX should be longer?
-	PyObject *py_invoke;
-	PyObject *py_exec;
+	PyObject *py_class;
 } PyOperatorType;
-
-static PyObject *pyop_kwargs_from_operator(wmOperator *op)
-{
-	PyObject *dict = PyDict_New();
-	PyObject *item;
-	PropertyRNA *prop, *iterprop;
-	CollectionPropertyIterator iter;
-	const char *arg_name;
-
-	iterprop= RNA_struct_iterator_property(op->ptr);
-	RNA_property_collection_begin(op->ptr, iterprop, &iter);
-
-	for(; iter.valid; RNA_property_collection_next(&iter)) {
-		prop= iter.ptr.data;
-
-		arg_name= RNA_property_identifier(&iter.ptr, prop);
-
-		if (strcmp(arg_name, "rna_type")==0) continue;
-
-		item = pyrna_prop_to_py(op->ptr, prop);
-		PyDict_SetItemString(dict, arg_name, item);
-		Py_DECREF(item);
-	}
-
-	RNA_property_collection_end(&iter);
-
-	return dict;
-}
-
 
 static PyObject *pyop_dict_from_event(wmEvent *event)
 {
@@ -191,33 +166,6 @@ static struct BPY_flag_def pyop_ret_flags[] = {
 	{NULL, 0}
 };
 
-/* exec only - no user input */
-static int PYTHON_OT_exec(bContext *C, wmOperator *op)
-{
-	PyOperatorType *pyot = op->type->pyop_data;
-	PyObject *args= PyTuple_New(0);
-	PyObject *kw= pyop_kwargs_from_operator(op);
-	PyObject *ret;
-	int ret_flag;
-
-	ret = PyObject_Call(pyot->py_exec, args, kw);
-
-	if (ret == NULL) {
-		pyop_error_report(op->reports);
-	}
-	else {
-		if (BPY_flag_from_seq(pyop_ret_flags, ret, &ret_flag) == -1) {
-			 /* the returned value could not be converted into a flag */
-			pyop_error_report(op->reports);
-		}
-	}
-
-	Py_DECREF(args);
-	Py_DECREF(kw);
-
-	return ret_flag;
-}
-
 /* This invoke function can take events and
  *
  * It is up to the pyot->py_invoke() python func to run pyot->py_exec()
@@ -233,26 +181,93 @@ static int PYTHON_OT_exec(bContext *C, wmOperator *op)
  *     op_exec(**prop_defs)
  *
  * when there is no invoke function, C calls exec and sets the props.
+ * python class instance is stored in op->customdata so exec() can access
  */
-static int PYTHON_OT_invoke(bContext *C, wmOperator *op, wmEvent *event)
+
+
+#define PYOP_EXEC 1
+#define PYOP_INVOKE 2
+#define PYOP_POLL 3
+	
+static int PYTHON_OT_generic(int mode, bContext *C, wmOperator *op, wmEvent *event)
 {
 	PyOperatorType *pyot = op->type->pyop_data;
-	PyObject *args= PyTuple_New(2);
-	PyObject *ret;
-	int ret_flag;
+	PyObject *args;
+	PyObject *ret= NULL, *py_class_instance, *item;
+	int ret_flag= (mode==PYOP_POLL ? 0:OPERATOR_CANCELLED);
+	
+	args = PyTuple_New(1);
+	PyTuple_SET_ITEM(args, 0, PyObject_GetAttrString(pyot->py_class, "__rna__")); // need to use an rna instance as the first arg
+	py_class_instance = PyObject_Call(pyot->py_class, args, NULL);
+	Py_DECREF(args);
+	
+	if (py_class_instance) { /* Initializing the class worked, now run its invoke function */
+		
+		
+		/* Assign instance attributes from operator properties */
+		{
+			PropertyRNA *prop, *iterprop;
+			CollectionPropertyIterator iter;
+			const char *arg_name;
 
-	PyTuple_SET_ITEM(args, 0, pyop_dict_from_event(event));
-	PyTuple_SET_ITEM(args, 1, pyop_kwargs_from_operator(op));
+			iterprop= RNA_struct_iterator_property(op->ptr);
+			RNA_property_collection_begin(op->ptr, iterprop, &iter);
 
-	ret = PyObject_Call(pyot->py_invoke, args, NULL);
+			for(; iter.valid; RNA_property_collection_next(&iter)) {
+				prop= iter.ptr.data;
+				arg_name= RNA_property_identifier(&iter.ptr, prop);
 
+				if (strcmp(arg_name, "rna_type")==0) continue;
+
+				item = pyrna_prop_to_py(op->ptr, prop);
+				PyObject_SetAttrString(py_class_instance, arg_name, item);
+				Py_DECREF(item);
+			}
+
+			RNA_property_collection_end(&iter);
+		}
+		
+		
+		if (mode==PYOP_INVOKE) {
+			item= PyObject_GetAttrString(pyot->py_class, "invoke");
+			args = PyTuple_New(2);
+			PyTuple_SET_ITEM(args, 1, pyop_dict_from_event(event));
+		}
+		else if (mode==PYOP_EXEC) {
+			item= PyObject_GetAttrString(pyot->py_class, "exec");
+			args = PyTuple_New(1);
+		}
+		else if (mode==PYOP_POLL) {
+			item= PyObject_GetAttrString(pyot->py_class, "poll");
+			args = PyTuple_New(2);
+			//XXX  Todo - wrap context in a useful way, None for now.
+			PyTuple_SET_ITEM(args, 1, Py_None);
+		}
+		PyTuple_SET_ITEM(args, 0, py_class_instance);
+	
+		ret = PyObject_Call(item, args, NULL);
+		
+		Py_DECREF(args);
+		Py_DECREF(item);
+	}
+	
 	if (ret == NULL) {
 		pyop_error_report(op->reports);
 	}
 	else {
-		if (BPY_flag_from_seq(pyop_ret_flags, ret, &ret_flag) == -1) {
+		if (mode==PYOP_POLL) {
+			if (PyBool_Check(ret) == 0) {
+				PyErr_SetString(PyExc_ValueError, "Python poll function return value ");
+				pyop_error_report(op->reports);
+			}
+			else {
+				ret_flag= ret==Py_True ? 1:0;
+			}
+			
+		} else if (BPY_flag_from_seq(pyop_ret_flags, ret, &ret_flag) == -1) {
 			 /* the returned value could not be converted into a flag */
 			pyop_error_report(op->reports);
+			
 		}
 		/* there is no need to copy the py keyword dict modified by
 		 * pyot->py_invoke(), back to the operator props since they are just
@@ -261,131 +276,238 @@ static int PYTHON_OT_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		 * If we ever want to do this and use the props again,
 		 * it can be done with - PYOP_props_from_dict(op->ptr, kw)
 		 */
+		
+		Py_DECREF(ret);
 	}
 
-	
-
-	Py_DECREF(args); /* also decref's kw */
-
 	return ret_flag;
+}
+
+static int PYTHON_OT_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	return PYTHON_OT_generic(PYOP_INVOKE, C, op, event);	
+}
+
+static int PYTHON_OT_exec(bContext *C, wmOperator *op)
+{
+	return PYTHON_OT_generic(PYOP_EXEC, C, op, NULL);
+}
+
+static int PYTHON_OT_poll(bContext *C)
+{
+	// XXX TODO - no way to get the operator type (and therefor class) from the poll function.
+	//return PYTHON_OT_generic(PYOP_POLL, C, NULL, NULL);
+	return 1;
 }
 
 void PYTHON_OT_wrapper(wmOperatorType *ot, void *userdata)
 {
 	PyOperatorType *pyot = (PyOperatorType *)userdata;
+	PyObject *py_class = pyot->py_class;
+	PyObject *props, *item;
 
 	/* identifiers */
 	ot->name= pyot->name;
 	ot->idname= pyot->idname;
 	ot->description= pyot->description;
 
-	/* api callbacks */
-	if (pyot->py_invoke != Py_None)
+	/* api callbacks, detailed checks dont on adding */ 
+	if (PyObject_HasAttrString(py_class, "invoke"))
 		ot->invoke= PYTHON_OT_invoke;
-	
-	ot->exec= PYTHON_OT_exec;
-
-	ot->poll= ED_operator_screenactive; /* how should this work?? */
-	/* ot->flag= OPTYPE_REGISTER; */
+	if (PyObject_HasAttrString(py_class, "exec"))
+		ot->exec= PYTHON_OT_exec;
+	if (PyObject_HasAttrString(py_class, "poll"))
+		ot->poll= PYTHON_OT_poll;
 	
 	ot->pyop_data= userdata;
 	
-	/* inspect function keyword args to get properties */
-	{
-		PropertyRNA *prop;
-
-		PyObject *var_names= PyObject_GetAttrString(PyFunction_GET_CODE(pyot->py_exec), "co_varnames");
-		PyObject *var_vals = PyFunction_GET_DEFAULTS(pyot->py_exec);
-		PyObject *py_val, *py_name;
+	props= PyObject_GetAttrString(py_class, PYOP_ATTR_PROP);
+	
+	if (props) {
+		PyObject *dummy_args = PyTuple_New(0);
 		int i;
-		char *name;
+		
+		Py_DECREF(props);
 
-		if (PyTuple_Size(var_names) != PyTuple_Size(var_vals)) {
-			printf("All args must be keywords");
+		for(i=0; i<PyList_Size(props); i++) {
+			PyObject *py_func_ptr, *py_kw, *py_srna_cobject, *py_ret;
+			item = PyList_GET_ITEM(props, i);
+			
+			if (PyArg_ParseTuple(item, "O!O!", &PyCObject_Type, &py_func_ptr, &PyDict_Type, &py_kw)) {
+				
+				PyObject *(*pyfunc)(PyObject *, PyObject *, PyObject *);
+				pyfunc = PyCObject_AsVoidPtr(py_func_ptr);
+				py_srna_cobject = PyCObject_FromVoidPtr(ot->srna, NULL);
+				
+				py_ret = pyfunc(py_srna_cobject, dummy_args, py_kw);
+				if (py_ret) {
+					Py_DECREF(py_ret);
+				} else {
+					PyErr_Print();
+					PyErr_Clear();
+				}
+				Py_DECREF(py_srna_cobject);
+				
+			} else {
+				/* cant return NULL from here */ // XXX a bit ugly
+				PyErr_Print();
+				PyErr_Clear();
+			}
+			
+			// expect a tuple with a CObject and a dict
 		}
-
-		for(i=0; i<PyTuple_Size(var_names); i++) {
-			py_name = PyTuple_GetItem(var_names, i);
-			name = _PyUnicode_AsString(py_name);
-			py_val = PyTuple_GetItem(var_vals, i);
-
-			if (PyBool_Check(py_val)) {
-				prop = RNA_def_property(ot->srna, name, PROP_BOOLEAN, PROP_NONE);
-				RNA_def_property_boolean_default(prop, PyObject_IsTrue(py_val));
-			}
-			else if (PyLong_Check(py_val)) {
-				prop = RNA_def_property(ot->srna, name, PROP_INT, PROP_NONE);
-				RNA_def_property_int_default(prop, (int)PyLong_AsSsize_t(py_val));
-			}
-			else if (PyFloat_Check(py_val)) {
-				prop = RNA_def_property(ot->srna, name, PROP_FLOAT, PROP_NONE);
-				RNA_def_property_float_default(prop, (float)PyFloat_AsDouble(py_val));
-			}
-			else if (PyUnicode_Check(py_val)) {
-				/* WARNING - holding a reference to the string from py_val is
-				 * not ideal since we rely on python keeping it,
-				 * however we're also keeping a reference to this function
-				 * so it should be OK!. just be careful with changes */
-				prop = RNA_def_property(ot->srna, name, PROP_STRING, PROP_NONE);
-				RNA_def_property_string_default(prop, _PyUnicode_AsString(py_val));
-			}
-			else {
-				printf("error, python function arg \"%s\" was not a bool, int, float or string type\n", name);
-			}
-		}
+		Py_DECREF(dummy_args);
+	} else {
+		PyErr_Clear();
 	}
-
 }
 
-/* pyOperators - Operators defined IN Python */
-PyObject *PYOP_wrap_add(PyObject *self, PyObject *args)
-{
-	PyOperatorType *pyot;
 
+/* pyOperators - Operators defined IN Python */
+PyObject *PYOP_wrap_add(PyObject *self, PyObject *value)
+{	
+	PyObject *optype, *item;
+	
+	PyOperatorType *pyot;
 	char *idname= NULL;
 	char *name= NULL;
 	char *description= NULL;
-	PyObject *invoke= NULL;
-	PyObject *exec= NULL;
+	
+	static char *pyop_func_names[] = {"exec", "invoke", "poll", NULL};
+	static int pyop_func_nargs[] = {1, 2, 2, 0};
 
-	if (!PyArg_ParseTuple(args, "sssOO", &idname, &name, &description, &invoke, &exec)) {
-		PyErr_SetString( PyExc_AttributeError, "expected 2 strings and 2 function objects");
+	PyObject *pyargcount;
+	int i, argcount;
+
+
+	// in python would be...
+	//PyObject *optype = PyObject_GetAttrString(PyObject_GetAttrString(PyDict_GetItemString(PyEval_GetGlobals(), "bpy"), "types"), "Operator");
+	optype = PyObject_GetAttrStringArgs(PyDict_GetItemString(PyEval_GetGlobals(), "bpy"), 2, "types", "Operator");
+	Py_DECREF(optype);
+
+
+	if (!PyObject_IsSubclass(value, optype)) {
+		PyErr_SetString( PyExc_AttributeError, "expected Operator subclass of bpy.types.Operator");
 		return NULL;
 	}
-
+	
+	/* class name is used for operator ID - this can be changed later if we want */
+	item = PyObject_GetAttrString(value, PYOP_ATTR_IDNAME);
+	Py_DECREF(item);
+	idname =  _PyUnicode_AsString(item);
+	
+	
 	if (WM_operatortype_find(idname)) {
-		PyErr_Format( PyExc_AttributeError, "First argument \"%s\" operator alredy exists with this name", idname);
+		PyErr_Format( PyExc_AttributeError, "Operator alredy exists with this name \"%s\"", idname);
 		return NULL;
 	}
-
-	if (((PyFunction_Check(invoke) || invoke==Py_None) && PyFunction_Check(exec)) == 0) {
-		PyErr_SetString( PyExc_AttributeError, "the 2nd arg must be a function or None, the secons must be a function");
-		return NULL;
+	
+	/* Operator user readible name */
+	item = PyObject_GetAttrString(value, PYOP_ATTR_UINAME);
+	if (item) {
+		Py_DECREF(item);
+		name = _PyUnicode_AsString(item);
 	}
+	if (name == NULL) {
+		name = idname;
+		PyErr_Clear();
+	}
+	
+	/* use py docstring for description, should always be None or a string */
+	item = PyObject_GetAttrString(value, PYOP_ATTR_DESCRIPTION);
+	Py_DECREF(item);
+	
+	if (PyUnicode_Check(item)) {
+		description = _PyUnicode_AsString(item);
+	}
+	else {
+		description = "";
+	}
+	
+	/* Check known functions and argument lengths */
+	for (i=0; pyop_func_names[i]; i++) {
+		
+		item=PyObject_GetAttrString(value, pyop_func_names[i]);
+		if (item) {
+			Py_DECREF(item);
 
+			/* check its callable */
+			if (!PyFunction_Check(item)) {
+				PyErr_Format(PyExc_ValueError, "Cant register operator class -  %s.%s() is not a function", idname, pyop_func_names[i]);
+				return NULL;
+			}
+			/* check the number of args is correct */
+			/* MyClass.exec.func_code.co_argcount */
+			
+			pyargcount = PyObject_GetAttrString(PyFunction_GET_CODE(item), "co_argcount");
+			Py_DECREF(pyargcount);
+			argcount = PyLong_AsSsize_t(pyargcount);
+			
+			if (argcount != pyop_func_nargs[i]) {
+				PyErr_Format(PyExc_ValueError, "Cant register operator class - %s.%s() takes %d args, should be %d", idname, pyop_func_names[i], argcount, pyop_func_nargs[i]);
+				return NULL;
+			}
+			
+		} else {
+			PyErr_Clear();
+		}
+	}
+	
+	/* If we have properties set, check its a list of dicts */
+	item = PyObject_GetAttrString(value, PYOP_ATTR_PROP);
+	if (item) {
+		Py_DECREF(item);
+
+		if (!PyList_Check(item)) {
+			PyErr_Format(PyExc_ValueError, "Cant register operator class - %s.properties must be a list", idname);	
+			return NULL;
+		}
+		
+		for(i=0; i<PyList_Size(item); i++) {
+			PyObject *py_args = PyList_GET_ITEM(item, i);
+			PyObject *py_func_ptr, *py_kw; /* place holders */
+			
+			if (!PyArg_ParseTuple(py_args, "O!O!", &PyCObject_Type, &py_func_ptr, &PyDict_Type, &py_kw)) {
+				PyErr_Format(PyExc_ValueError, "Cant register operator class - %s.properties must contain values from FloatProperty", idname);
+				return NULL;				
+			}
+		}
+	}
+	else {
+		PyErr_Clear();
+	}
+	
 	pyot= MEM_callocN(sizeof(PyOperatorType), "PyOperatorType");
 
 	strncpy(pyot->idname, idname, sizeof(pyot->idname));
 	strncpy(pyot->name, name, sizeof(pyot->name));
 	strncpy(pyot->description, description, sizeof(pyot->description));
-	pyot->py_invoke= invoke;
-	pyot->py_exec= exec;
-	Py_INCREF(invoke);
-	Py_INCREF(exec);
+	pyot->py_class= value;
+	Py_INCREF(value);
 
 	WM_operatortype_append_ptr(PYTHON_OT_wrapper, pyot);
 
 	Py_RETURN_NONE;
 }
 
-PyObject *PYOP_wrap_remove(PyObject *self, PyObject *args)
+PyObject *PYOP_wrap_remove(PyObject *self, PyObject *value)
 {
 	char *idname= NULL;
 	wmOperatorType *ot;
 	PyOperatorType *pyot;
 
-	if (!PyArg_ParseTuple(args, "s", &idname))
+	if (PyUnicode_Check(value))
+		idname = _PyUnicode_AsString(value);
+	else if (PyCFunction_Check(value)) {
+		PyObject *cfunc_self = PyCFunction_GetSelf(value);
+		if (cfunc_self)
+			idname = _PyUnicode_AsString(cfunc_self);
+	}
+	
+	if (idname==NULL) {
+		PyErr_SetString( PyExc_ValueError, "Expected the operator name as a string or the operator function");
 		return NULL;
+	}
 
 	if (!(ot= WM_operatortype_find(idname))) {
 		PyErr_Format( PyExc_AttributeError, "Operator \"%s\" does not exists, cant remove", idname);
@@ -397,12 +519,13 @@ PyObject *PYOP_wrap_remove(PyObject *self, PyObject *args)
 		return NULL;
 	}
 	
-	Py_XDECREF(pyot->py_invoke);
-	Py_XDECREF(pyot->py_exec);
+	Py_XDECREF(pyot->py_class);
 	MEM_freeN(pyot);
 
 	WM_operatortype_remove(idname);
 
 	Py_RETURN_NONE;
 }
+
+
 

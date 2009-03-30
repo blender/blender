@@ -113,6 +113,7 @@ static int rna_member_cmp(const char *name, const char *oname)
 	
 	while(1) {
 		if(name[a]=='[' && oname[a]==0) return 1;
+		if(name[a]=='[' && oname[a]=='[') return 1;
 		if(name[a]==0) break;
 		if(name[a] != oname[a]) return 0;
 		a++;
@@ -145,7 +146,11 @@ static int rna_find_sdna_member(SDNA *sdna, const char *structname, const char *
 		if(cmp == 1) {
 			smember->type= sdna->types[sp[0]];
 			smember->name= dnaname;
-			smember->arraylength= DNA_elem_array_size(smember->name, strlen(smember->name));
+
+			if(strstr(membername, "["))
+				smember->arraylength= 0;
+			else
+				smember->arraylength= DNA_elem_array_size(smember->name, strlen(smember->name));
 
 			smember->pointerlevel= 0;
 			for(b=0; dnaname[b] == '*'; b++)
@@ -403,12 +408,11 @@ StructRNA *RNA_def_struct(BlenderRNA *brna, const char *identifier, const char *
 			cprop->begin= rna_builtin_properties_begin;
 			cprop->next= rna_builtin_properties_next;
 			cprop->get= rna_builtin_properties_get;
-			cprop->structtype= &RNA_Property;
+			cprop->type= &RNA_Property;
 #endif
 		}
 
 		prop= RNA_def_property(srna, "rna_type", PROP_POINTER, PROP_NONE);
-		RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
 		RNA_def_property_ui_text(prop, "RNA", "RNA type definition.");
 
 		if(DefRNA.preprocess) {
@@ -419,7 +423,7 @@ StructRNA *RNA_def_struct(BlenderRNA *brna, const char *identifier, const char *
 #ifdef RNA_RUNTIME
 			PointerPropertyRNA *pprop= (PointerPropertyRNA*)prop;
 			pprop->get= rna_builtin_type_get;
-			pprop->structtype= &RNA_Struct;
+			pprop->type= &RNA_Struct;
 #endif
 		}
 	}
@@ -513,6 +517,16 @@ void RNA_def_struct_refine_func(StructRNA *srna, const char *refine)
 	}
 
 	if(refine) srna->refine= (StructRefineFunc)refine;
+}
+
+void RNA_def_struct_path_func(StructRNA *srna, const char *path)
+{
+	if(!DefRNA.preprocess) {
+		fprintf(stderr, "RNA_def_struct_path_func: only during preprocessing.\n");
+		return;
+	}
+
+	if(path) srna->path= (StructPathFunc)path;
 }
 
 void RNA_def_struct_identifier(StructRNA *srna, const char *identifier)
@@ -625,8 +639,8 @@ PropertyRNA *RNA_def_property(StructRNA *srna, const char *identifier, int type,
 	prop->name= identifier;
 	prop->description= "";
 
-	if(type == PROP_COLLECTION || type == PROP_POINTER)
-		prop->flag= PROP_NOT_EDITABLE|PROP_NOT_ANIMATEABLE;
+	if(type != PROP_COLLECTION && type != PROP_POINTER)
+		prop->flag= PROP_EDITABLE|PROP_ANIMATEABLE;
 
 	if(DefRNA.preprocess) {
 		switch(type) {
@@ -680,20 +694,12 @@ PropertyRNA *RNA_def_property(StructRNA *srna, const char *identifier, int type,
 
 void RNA_def_property_flag(PropertyRNA *prop, int flag)
 {
-#if 0
-	StructRNA *srna;
-#endif
-
 	prop->flag |= flag;
+}
 
-#if 0
-	if(prop->type != PROP_POINTER && prop->type != PROP_COLLECTION) {
-		if(flag & (PROP_EVALUATE_DEPENDENCY|PROP_INVERSE_EVALUATE_DEPENDENCY|PROP_RENDER_DEPENDENCY|PROP_INVERSE_RENDER_DEPENDENCY)) {
-			fprintf(stderr, "RNA_def_property_flag: %s.%s, only pointer and collection types can create dependencies.\n", ds->srna->identifier, prop->identifier);
-			DefRNA.error= 1;
-		}
-	}
-#endif
+void RNA_def_property_clear_flag(PropertyRNA *prop, int flag)
+{
+	prop->flag &= ~flag;
 }
 
 void RNA_def_property_array(PropertyRNA *prop, int arraylength)
@@ -798,12 +804,12 @@ void RNA_def_property_struct_type(PropertyRNA *prop, const char *type)
 	switch(prop->type) {
 		case PROP_POINTER: {
 			PointerPropertyRNA *pprop= (PointerPropertyRNA*)prop;
-			pprop->structtype = (StructRNA*)type;
+			pprop->type = (StructRNA*)type;
 			break;
 		}
 		case PROP_COLLECTION: {
 			CollectionPropertyRNA *cprop= (CollectionPropertyRNA*)prop;
-			cprop->structtype = (StructRNA*)type;
+			cprop->type = (StructRNA*)type;
 			break;
 		}
 		default:
@@ -825,12 +831,12 @@ void RNA_def_property_struct_runtime(PropertyRNA *prop, StructRNA *type)
 	switch(prop->type) {
 		case PROP_POINTER: {
 			PointerPropertyRNA *pprop= (PointerPropertyRNA*)prop;
-			pprop->structtype = type;
+			pprop->type = type;
 			break;
 		}
 		case PROP_COLLECTION: {
 			CollectionPropertyRNA *cprop= (CollectionPropertyRNA*)prop;
-			cprop->structtype = type;
+			cprop->type = type;
 			break;
 		}
 		default:
@@ -843,15 +849,22 @@ void RNA_def_property_struct_runtime(PropertyRNA *prop, StructRNA *type)
 void RNA_def_property_enum_items(PropertyRNA *prop, const EnumPropertyItem *item)
 {
 	StructRNA *srna= DefRNA.laststruct;
-	int i;
+	int i, defaultfound= 0;
 
 	switch(prop->type) {
 		case PROP_ENUM: {
 			EnumPropertyRNA *eprop= (EnumPropertyRNA*)prop;
 			eprop->item= item;
 			eprop->totitem= 0;
-			for(i=0; item[i].identifier; i++)
+			for(i=0; item[i].identifier; i++) {
 				eprop->totitem++;
+
+				if(item[i].value == eprop->defaultvalue)
+					defaultfound= 1;
+			}
+
+			if(!defaultfound)
+				eprop->defaultvalue= item[0].value;
 
 			break;
 		}
@@ -1001,11 +1014,28 @@ void RNA_def_property_string_default(PropertyRNA *prop, const char *value)
 void RNA_def_property_enum_default(PropertyRNA *prop, int value)
 {
 	StructRNA *srna= DefRNA.laststruct;
+	int i, defaultfound= 0;
 
 	switch(prop->type) {
 		case PROP_ENUM: {
 			EnumPropertyRNA *eprop= (EnumPropertyRNA*)prop;
 			eprop->defaultvalue= value;
+
+			for(i=0; i<eprop->totitem; i++) {
+				if(eprop->item[i].value == eprop->defaultvalue)
+					defaultfound= 1;
+			}
+
+			if(!defaultfound && eprop->totitem) {
+				if(value == 0) {
+					eprop->defaultvalue= eprop->item[0].value;
+				}
+				else {
+					fprintf(stderr, "RNA_def_property_enum_default: %s.%s, default is not in items.\n", srna->identifier, prop->identifier);
+					DefRNA.error= 1;
+				}
+			}
+
 			break;
 		}
 		default:
@@ -1118,7 +1148,7 @@ void RNA_def_property_int_sdna(PropertyRNA *prop, const char *structname, const 
 			iprop->softmax= 10000;
 		}
 
-		if(prop->subtype == PROP_UNSIGNED)
+		if(prop->subtype == PROP_UNSIGNED || prop->subtype == PROP_PERCENTAGE)
 			iprop->hardmin= iprop->softmin= 0;
 	}
 }

@@ -1,5 +1,5 @@
 /**
- * $Id$
+ * $Id: rna_lattice.c 19382 2009-03-23 13:24:48Z blendix $
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -89,7 +89,7 @@ static void rna_def_latticepoint(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "co", PROP_FLOAT, PROP_VECTOR);
 	RNA_def_property_array(prop, 3);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_float_funcs(prop, "rna_LatticePoint_co_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Location", "");
 
@@ -120,17 +120,17 @@ static void rna_def_lattice(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "points_u", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "pntsu");
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "U", "Points in U direction.");
 
 	prop= RNA_def_property(srna, "points_v", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "pntsv");
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "V", "Points in V direction.");
 
 	prop= RNA_def_property(srna, "points_w", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "pntsw");
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "W", "Points in W direction.");
 
 	prop= RNA_def_property(srna, "interpolation_type_u", PROP_ENUM, PROP_NONE);

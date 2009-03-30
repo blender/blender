@@ -249,9 +249,30 @@ void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
 				v2d->tot.ymin= -336.0f*((float)winy)/(float)winx;
 				
 				v2d->cur= v2d->tot;
-				
 			}
 				break;
+
+			/* panels view, with free/horizontal/vertical align */
+			case V2D_COMMONVIEW_PANELS_UI:
+			{
+				/* for now, aspect ratio should be maintained, and zoom is clamped within sane default limits */
+				v2d->keepzoom= (V2D_LOCKZOOM_X|V2D_LOCKZOOM_Y|V2D_KEEPASPECT|V2D_KEEPZOOM);
+				v2d->minzoom= 0.5f;
+				v2d->maxzoom= 2.0f;
+				
+				v2d->align= (V2D_ALIGN_NO_NEG_X|V2D_ALIGN_NO_POS_Y);
+				v2d->keeptot= V2D_KEEPTOT_BOUNDS;
+				
+				v2d->tot.xmin= 0.0f;
+				v2d->tot.xmax= winx;
+
+				v2d->tot.ymax= 0.0f;
+				v2d->tot.ymin= -winy;
+
+				v2d->cur= v2d->tot;
+			}
+				break;
+
 				/* other view types are completely defined using their own settings already */
 			default:
 				/* we don't do anything here, as settings should be fine, but just make sure that rect */
@@ -1468,9 +1489,13 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 			/* draw numbers in the appropriate range */
 			if (dfac > 0.0f) {
 				for (; fac < hor.xmax; fac+=dfac, val+=grid->dx) {
-					switch (vs->xunits) {
+					switch (vs->xunits) {							
 						case V2D_UNIT_FRAMES:		/* frames (as whole numbers)*/
 							scroll_printstr(vs, scene, fac, 3.0f+(float)(hor.ymin), val, grid->powerx, V2D_UNIT_FRAMES, 'h');
+							break;
+							
+						case V2D_UNIT_FRAMESCALE:	/* frames (not always as whole numbers) */
+							scroll_printstr(vs, scene, fac, 3.0f+(float)(hor.ymin), val, grid->powerx, V2D_UNIT_FRAMESCALE, 'h');
 							break;
 						
 						case V2D_UNIT_SECONDS:		/* seconds */
@@ -1490,7 +1515,7 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 						}
 							break;
 							
-						case V2D_UNIT_DEGREES:		/* IPO-Editor for rotation IPO-Drivers */
+						case V2D_UNIT_DEGREES:		/* Graph Editor for rotation Drivers */
 							/* HACK: although we're drawing horizontal, we make this draw as 'vertical', just to get degree signs */
 							scroll_printstr(vs, scene, fac, 3.0f+(float)(hor.ymin), val, grid->powerx, V2D_UNIT_DEGREES, 'v');
 							break;

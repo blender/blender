@@ -59,6 +59,8 @@ RAS_OpenGLRasterizer::RAS_OpenGLRasterizer(RAS_ICanvas* canvas)
 	m_2DCanvas(canvas),
 	m_fogenabled(false),
 	m_time(0.0),
+	m_campos(0.0f, 0.0f, 0.0f),
+	m_camortho(false),
 	m_stereomode(RAS_STEREO_NOSTEREO),
 	m_curreye(RAS_STEREO_LEFTEYE),
 	m_eyeseparation(0.0),
@@ -325,13 +327,12 @@ void RAS_OpenGLRasterizer::ClearCachingInfo(void)
 	m_materialCachingInfo = 0;
 }
 
-
-void RAS_OpenGLRasterizer::EndFrame()
+void	RAS_OpenGLRasterizer::FlushDebugLines()
 {
+//DrawDebugLines
 	glDisable(GL_LIGHTING);
 	glDisable(GL_TEXTURE_2D);
 
-	//DrawDebugLines
 	glBegin(GL_LINES);
 	for (unsigned int i=0;i<m_debugLines.size();i++)
 	{
@@ -346,7 +347,18 @@ void RAS_OpenGLRasterizer::EndFrame()
 	}
 	glEnd();
 
+	glEnable(GL_LIGHTING);
+	glEnable(GL_TEXTURE_2D);
+
 	m_debugLines.clear();
+
+}
+
+void RAS_OpenGLRasterizer::EndFrame()
+{
+	
+
+	FlushDebugLines();
 
 	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 	m_2DCanvas->EndFrame();
@@ -756,8 +768,9 @@ void RAS_OpenGLRasterizer::SetProjectionMatrix(MT_CmMatrix4x4 &mat)
 	glMatrixMode(GL_PROJECTION);
 	double* matrix = &mat(0,0);
 	glLoadMatrixd(matrix);
-}
 
+	m_camortho= (mat(3, 3) != 0.0f);
+}
 
 void RAS_OpenGLRasterizer::SetProjectionMatrix(const MT_Matrix4x4 & mat)
 {
@@ -767,6 +780,8 @@ void RAS_OpenGLRasterizer::SetProjectionMatrix(const MT_Matrix4x4 & mat)
 	mat.getValue(matrix);
 	/* Internally, MT_Matrix4x4 uses doubles (MT_Scalar). */
 	glLoadMatrixd(matrix);	
+
+	m_camortho= (mat[3][3] != 0.0f);
 }
 
 MT_Matrix4x4 RAS_OpenGLRasterizer::GetFrustumMatrix(
@@ -883,6 +898,10 @@ const MT_Point3& RAS_OpenGLRasterizer::GetCameraPosition()
 	return m_campos;
 }
 
+bool RAS_OpenGLRasterizer::GetCameraOrtho()
+{
+	return m_camortho;
+}
 
 void RAS_OpenGLRasterizer::SetCullFace(bool enable)
 {

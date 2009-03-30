@@ -22,7 +22,7 @@ subject to the following restrictions:
 #define USE_PERSISTENT_CONTACTS 1
 
 btBoxBoxCollisionAlgorithm::btBoxBoxCollisionAlgorithm(btPersistentManifold* mf,const btCollisionAlgorithmConstructionInfo& ci,btCollisionObject* obj0,btCollisionObject* obj1)
-: btCollisionAlgorithm(ci),
+: btActivatingCollisionAlgorithm(ci,obj0,obj1),
 m_ownManifold(false),
 m_manifoldPtr(mf)
 {

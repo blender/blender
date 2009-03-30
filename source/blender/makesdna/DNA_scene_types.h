@@ -401,10 +401,9 @@ typedef struct Sculpt
 } Sculpt;
 
 typedef struct VPaint {
-	float r, g, b, a;					/* paint color */
-	float weight;						/* weight paint */
-	float size;							/* of brush */
-	float gamma, mul;
+	struct Brush *brush;
+
+	float gamma, mul;			/* should become part of struct Brush? */
 	short mode, flag;
 	int tot;							/* allocation size of prev buffers */
 	unsigned int *vpaint_prev;			/* previous mesh colors */
@@ -469,6 +468,9 @@ typedef struct ToolSettings {
 	/* Particle Editing */
 	struct ParticleEditSettings particle;
 	
+	/* Transform Proportional Area of Effect */
+	float proportional_size;
+
 	/* Select Group Threshold */
 	float select_thresh;
 	
@@ -500,12 +502,21 @@ typedef struct ToolSettings {
 	char  skgen_postpro_passes;
 	char  skgen_subdivisions[3];
 	char  skgen_multi_level;
-	char  skgen_optimisation_method;
+	int   skgen_pad;
 	
-	char tpad[6];
+	/* Skeleton Sketching */
+	struct Object *skgen_template;
+	char bone_sketching;
+	char bone_sketching_convert;
+	char skgen_subdivision_number;
+	char skgen_retarget_options;
+	char skgen_retarget_roll;
+	char skgen_side_string[8];
+	char skgen_num_string[8];
 	
 	/* Alt+RMB option */
 	char edge_mode;
+	char pad3[2];
 } ToolSettings;
 
 typedef struct bStats {
@@ -773,6 +784,7 @@ typedef struct Scene {
 /* scene->snap_flag */
 #define SCE_SNAP				1
 #define SCE_SNAP_ROTATE			2
+#define SCE_SNAP_PEEL_OBJECT	4
 /* scene->snap_target */
 #define SCE_SNAP_TARGET_CLOSEST	0
 #define SCE_SNAP_TARGET_CENTER	1
@@ -782,6 +794,7 @@ typedef struct Scene {
 #define SCE_SNAP_MODE_VERTEX	0
 #define SCE_SNAP_MODE_EDGE		1
 #define SCE_SNAP_MODE_FACE		2
+#define SCE_SNAP_MODE_VOLUME	3
 
 /* sce->selectmode */
 #define SCE_SELECT_VERTEX	1 /* for mesh */
@@ -930,6 +943,25 @@ typedef enum SculptFlags {
 #define SKGEN_SMOOTH			0
 #define SKGEN_AVERAGE			1
 #define SKGEN_SHARPEN			2
+
+/* toolsettings->bone_sketching */
+#define BONE_SKETCHING			1
+#define BONE_SKETCHING_QUICK	2
+#define BONE_SKETCHING_ADJUST	4
+
+/* toolsettings->bone_sketching_convert */
+#define	SK_CONVERT_CUT_FIXED			0
+#define	SK_CONVERT_CUT_LENGTH			1
+#define	SK_CONVERT_CUT_ADAPTATIVE		2
+#define	SK_CONVERT_RETARGET				3
+
+/* toolsettings->skgen_retarget_options */
+#define	SK_RETARGET_AUTONAME			1
+
+/* toolsettings->skgen_retarget_roll */
+#define	SK_RETARGET_ROLL_VIEW			1
+#define	SK_RETARGET_ROLL_JOINT			2
+
 
 #ifdef __cplusplus
 }

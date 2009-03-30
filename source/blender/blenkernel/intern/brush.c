@@ -103,6 +103,8 @@ Brush *copy_brush(Brush *brush)
 		}
 	}
 
+	brushn->curve= curvemapping_copy(brush->curve);
+
 	/* enable fake user by default */
 	if (!(brushn->id.flag & LIB_FAKEUSER)) {
 		brushn->id.flag |= LIB_FAKEUSER;
@@ -182,6 +184,19 @@ void make_local_brush(Brush *brush)
 }
 
 /* Library Operations */
+
+Brush **current_brush_source(Scene *sce)
+{
+	if(G.f & G_SCULPTMODE)
+		return &sce->toolsettings->sculpt->brush;
+	else if(G.f & G_VERTEXPAINT)
+		return &sce->toolsettings->vpaint->brush;
+	else if(G.f & G_WEIGHTPAINT)
+		return &sce->toolsettings->wpaint->brush;
+	else if(G.f & G_TEXTUREPAINT)
+		return &sce->toolsettings->imapaint.brush;
+	return NULL;
+}
 
 int brush_set_nr(Brush **current_brush, int nr)
 {

@@ -38,6 +38,8 @@ int blf_dir_split(const char *str, char *file, int *size);
 int blf_font_init(void);
 void blf_font_exit(void);
 
+FontBLF *blf_internal_new(char *name);
+
 #ifdef WITH_FREETYPE2
 
 FontBLF *blf_font_new(char *name, char *filename);

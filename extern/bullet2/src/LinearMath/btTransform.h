@@ -21,34 +21,39 @@ subject to the following restrictions:
 #include "btMatrix3x3.h"
 
 
-///The btTransform class supports rigid transforms with only translation and rotation and no scaling/shear.
-///It can be used in combination with btVector3, btQuaternion and btMatrix3x3 linear algebra classes.
+/**@brief The btTransform class supports rigid transforms with only translation and rotation and no scaling/shear.
+ *It can be used in combination with btVector3, btQuaternion and btMatrix3x3 linear algebra classes. */
 class btTransform {
 	
 
 public:
 	
-	
+  /**@brief No initialization constructor */
 	btTransform() {}
-
+  /**@brief Constructor from btQuaternion (optional btVector3 )
+   * @param q Rotation from quaternion 
+   * @param c Translation from Vector (default 0,0,0) */
 	explicit SIMD_FORCE_INLINE btTransform(const btQuaternion& q, 
 		const btVector3& c = btVector3(btScalar(0), btScalar(0), btScalar(0))) 
 		: m_basis(q),
 		m_origin(c)
 	{}
 
+  /**@brief Constructor from btMatrix3x3 (optional btVector3)
+   * @param b Rotation from Matrix 
+   * @param c Translation from Vector default (0,0,0)*/
 	explicit SIMD_FORCE_INLINE btTransform(const btMatrix3x3& b, 
 		const btVector3& c = btVector3(btScalar(0), btScalar(0), btScalar(0)))
 		: m_basis(b),
 		m_origin(c)
 	{}
-
+  /**@brief Copy constructor */
 	SIMD_FORCE_INLINE btTransform (const btTransform& other)
 		: m_basis(other.m_basis),
 		m_origin(other.m_origin)
 	{
 	}
-
+  /**@brief Assignment Operator */
 	SIMD_FORCE_INLINE btTransform& operator=(const btTransform& other)
 	{
 		m_basis = other.m_basis;
@@ -57,6 +62,10 @@ public:
 	}
 
 
+  /**@brief Set the current transform as the value of the product of two transforms
+   * @param t1 Transform 1
+   * @param t2 Transform 2
+   * This = Transform1 * Transform2 */
 		SIMD_FORCE_INLINE void mult(const btTransform& t1, const btTransform& t2) {
 			m_basis = t1.m_basis * t2.m_basis;
 			m_origin = t1(t2.m_origin);
@@ -69,7 +78,7 @@ public:
 		}
 		*/
 
-
+/**@brief Return the transform of the vector */
 	SIMD_FORCE_INLINE btVector3 operator()(const btVector3& x) const
 	{
 		return btVector3(m_basis[0].dot(x) + m_origin.x(), 
@@ -77,17 +86,29 @@ public:
 			m_basis[2].dot(x) + m_origin.z());
 	}
 
+  /**@brief Return the transform of the vector */
 	SIMD_FORCE_INLINE btVector3 operator*(const btVector3& x) const
 	{
 		return (*this)(x);
 	}
 
+  /**@brief Return the transform of the btQuaternion */
+	SIMD_FORCE_INLINE btQuaternion operator*(const btQuaternion& q) const
+	{
+		return getRotation() * q;
+	}
+
+  /**@brief Return the basis matrix for the rotation */
 	SIMD_FORCE_INLINE btMatrix3x3&       getBasis()          { return m_basis; }
+  /**@brief Return the basis matrix for the rotation */
 	SIMD_FORCE_INLINE const btMatrix3x3& getBasis()    const { return m_basis; }
 
+  /**@brief Return the origin vector translation */
 	SIMD_FORCE_INLINE btVector3&         getOrigin()         { return m_origin; }
+  /**@brief Return the origin vector translation */
 	SIMD_FORCE_INLINE const btVector3&   getOrigin()   const { return m_origin; }
 
+  /**@brief Return a quaternion representing the rotation */
 	btQuaternion getRotation() const { 
 		btQuaternion q;
 		m_basis.getRotation(q);
@@ -95,12 +116,16 @@ public:
 	}
 	
 	
+  /**@brief Set from an array 
+   * @param m A pointer to a 15 element array (12 rotation(row major padded on the right by 1), and 3 translation */
 	void setFromOpenGLMatrix(const btScalar *m)
 	{
 		m_basis.setFromOpenGLSubMatrix(m);
 		m_origin.setValue(m[12],m[13],m[14]);
 	}
 
+  /**@brief Fill an array representation
+   * @param m A pointer to a 15 element array (12 rotation(row major padded on the right by 1), and 3 translation */
 	void getOpenGLMatrix(btScalar *m) const 
 	{
 		m_basis.getOpenGLSubMatrix(m);
@@ -110,6 +135,8 @@ public:
 		m[15] = btScalar(1.0);
 	}
 
+  /**@brief Set the translational element
+   * @param origin The vector to set the translation to */
 	SIMD_FORCE_INLINE void setOrigin(const btVector3& origin) 
 	{ 
 		m_origin = origin;
@@ -118,26 +145,28 @@ public:
 	SIMD_FORCE_INLINE btVector3 invXform(const btVector3& inVec) const;
 
 
-
+  /**@brief Set the rotational element by btMatrix3x3 */
 	SIMD_FORCE_INLINE void setBasis(const btMatrix3x3& basis)
 	{ 
 		m_basis = basis;
 	}
 
+  /**@brief Set the rotational element by btQuaternion */
 	SIMD_FORCE_INLINE void setRotation(const btQuaternion& q)
 	{
 		m_basis.setRotation(q);
 	}
 
 
-
+  /**@brief Set this transformation to the identity */
 	void setIdentity()
 	{
 		m_basis.setIdentity();
 		m_origin.setValue(btScalar(0.0), btScalar(0.0), btScalar(0.0));
 	}
 
-	
+  /**@brief Multiply this Transform by another(this = this * another) 
+   * @param t The other transform */
 	btTransform& operator*=(const btTransform& t) 
 	{
 		m_origin += m_basis * t.m_origin;
@@ -145,26 +174,32 @@ public:
 		return *this;
 	}
 
+  /**@brief Return the inverse of this transform */
 	btTransform inverse() const
 	{ 
 		btMatrix3x3 inv = m_basis.transpose();
 		return btTransform(inv, inv * -m_origin);
 	}
 
+  /**@brief Return the inverse of this transform times the other transform
+   * @param t The other transform 
+   * return this.inverse() * the other */
 	btTransform inverseTimes(const btTransform& t) const;  
 
+  /**@brief Return the product of this transform and the other */
 	btTransform operator*(const btTransform& t) const;
 
-	static btTransform	getIdentity()
+  /**@brief Return an identity transform */
+	static const btTransform&	getIdentity()
 	{
-		btTransform tr;
-		tr.setIdentity();
-		return tr;
+		static const btTransform identityTransform(btMatrix3x3::getIdentity());
+		return identityTransform;
 	}
 	
 private:
-
+  ///Storage for the rotation
 	btMatrix3x3 m_basis;
+  ///Storage for the translation
 	btVector3   m_origin;
 };
 
@@ -191,6 +226,7 @@ btTransform::operator*(const btTransform& t) const
 		(*this)(t.m_origin));
 }
 
+/**@brief Test if two transforms have all elements equal */
 SIMD_FORCE_INLINE bool operator==(const btTransform& t1, const btTransform& t2)
 {
    return ( t1.getBasis()  == t2.getBasis() &&

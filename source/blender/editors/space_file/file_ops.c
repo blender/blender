@@ -69,19 +69,15 @@
 static int find_file_mouse_hor(SpaceFile *sfile, struct ARegion* ar, short x, short y)
 {
 	float fx,fy;
-	int offsetx, offsety;
-	int columns;
 	int active_file = -1;
 	int numfiles = filelist_numfiles(sfile->files);
 	View2D* v2d = &ar->v2d;
 
 	UI_view2d_region_to_view(v2d, x, y, &fx, &fy);
 
-	offsetx = (fx - (v2d->cur.xmin+sfile->tile_border_x))/(sfile->tile_w + 2*sfile->tile_border_x);
-	offsety = (v2d->tot.ymax - sfile->tile_border_y - fy)/(sfile->tile_h + 2*sfile->tile_border_y);
-	columns = (v2d->cur.xmax - v2d->cur.xmin) / (sfile->tile_w+ 2*sfile->tile_border_x);
-	active_file = offsetx + columns*offsety;
+	active_file = ED_fileselect_layout_offset(sfile->layout, v2d->tot.xmin + fx, v2d->tot.ymax - fy);
 
+	printf("FINDFILE %d\n", active_file);
 	if ( (active_file < 0) || (active_file >= numfiles) )
 	{
 		active_file = -1;
@@ -92,19 +88,15 @@ static int find_file_mouse_hor(SpaceFile *sfile, struct ARegion* ar, short x, sh
 
 static int find_file_mouse_vert(SpaceFile *sfile, struct ARegion* ar, short x, short y)
 {
-	int offsetx, offsety;
 	float fx,fy;
 	int active_file = -1;
 	int numfiles = filelist_numfiles(sfile->files);
-	int rows;
 	View2D* v2d = &ar->v2d;
 
 	UI_view2d_region_to_view(v2d, x, y, &fx, &fy);
 	
-	offsetx = (fx-sfile->tile_border_x)/(sfile->tile_w + sfile->tile_border_x);
-	offsety = (v2d->cur.ymax-fy-sfile->tile_border_y)/(sfile->tile_h + sfile->tile_border_y);
-	rows = (v2d->cur.ymax - v2d->cur.ymin - 2*sfile->tile_border_y) / (sfile->tile_h+sfile->tile_border_y);
-	active_file = rows*offsetx + offsety;
+	active_file = ED_fileselect_layout_offset(sfile->layout, v2d->tot.xmin + fx, v2d->tot.ymax - fy);
+
 	if ( (active_file < 0) || (active_file >= numfiles) )
 	{
 		active_file = -1;
@@ -125,17 +117,19 @@ static void file_deselect_all(SpaceFile* sfile)
 	}
 }
 
-static void file_select(SpaceFile* sfile, FileSelectParams* params, ARegion* ar, const rcti* rect, short val)
+static void file_select(SpaceFile* sfile, ARegion* ar, const rcti* rect, short val)
 {
 	int first_file = -1;
 	int last_file = -1;
 	int act_file;
 	short selecting = (val == LEFTMOUSE);
+	FileSelectParams *params = ED_fileselect_get_params(sfile);
+	FileLayout *layout = ED_fileselect_get_layout(sfile, ar);
 
 	int numfiles = filelist_numfiles(sfile->files);
 
 	params->selstate = NOTACTIVE;
-	if (params->display) {
+	if  ( (layout->flag == FILE_LAYOUT_HOR) ) {
 		first_file = find_file_mouse_hor(sfile, ar, rect->xmin, rect->ymax);
 		last_file = find_file_mouse_hor(sfile, ar, rect->xmax, rect->ymin);
 	} else {
@@ -154,6 +148,8 @@ static void file_select(SpaceFile* sfile, FileSelectParams* params, ARegion* ar,
 		}
 	}
 	
+	printf("Selecting %d %d\n", first_file, last_file);
+
 	/* make the last file active */
 	if (last_file >= 0 && last_file < numfiles) {
 		struct direntry* file = filelist_file(sfile->files, last_file);
@@ -215,16 +211,16 @@ static int file_border_select_exec(bContext *C, wmOperator *op)
 	rect.xmax= RNA_int_get(op->ptr, "xmax");
 	rect.ymax= RNA_int_get(op->ptr, "ymax");
 
-	file_select(sfile, sfile->params, ar, &rect, val );
+	file_select(sfile, ar, &rect, val );
 	WM_event_add_notifier(C, NC_WINDOW, NULL);
 	return OPERATOR_FINISHED;
 }
 
-void FILE_OT_border_select(wmOperatorType *ot)
+void FILE_OT_select_border(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Activate/Select File";
-	ot->idname= "FILE_OT_border_select";
+	ot->idname= "FILE_OT_select_border";
 	
 	/* api callbacks */
 	ot->invoke= WM_border_select_invoke;
@@ -252,10 +248,13 @@ static int file_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	rect.ymin = rect.ymax = event->y - ar->winrct.ymin;
 	val = event->val;
 
-	/* single select, deselect all selected first */
-	file_deselect_all(sfile);
-	file_select(sfile, sfile->params, ar, &rect, val );
-	WM_event_add_notifier(C, NC_WINDOW, NULL);
+	if (BLI_in_rcti(&ar->v2d.mask, rect.xmin, rect.ymin)) { 
+
+		/* single select, deselect all selected first */
+		file_deselect_all(sfile);
+		file_select(sfile, ar, &rect, val );
+		WM_event_add_notifier(C, NC_WINDOW, NULL);
+	}
 	return OPERATOR_FINISHED;
 }
 
@@ -303,11 +302,11 @@ static int file_select_all_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_FINISHED;
 }
 
-void FILE_OT_select_all(wmOperatorType *ot)
+void FILE_OT_select_all_toggle(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select/Deselect all files";
-	ot->idname= "FILE_OT_select_all";
+	ot->idname= "FILE_OT_select_all_toggle";
 	
 	/* api callbacks */
 	ot->invoke= file_select_all_invoke;
@@ -321,34 +320,73 @@ void FILE_OT_select_all(wmOperatorType *ot)
 
 static void set_active_bookmark(FileSelectParams* params, struct ARegion* ar, short x, short y)
 {
-	int nentries = fsmenu_get_nentries();
+	int nentries = fsmenu_get_nentries(fsmenu_get(), FS_CATEGORY_BOOKMARKS);
 	float fx, fy;
 	short posy;
 
 	UI_view2d_region_to_view(&ar->v2d, x, y, &fx, &fy);
 
 	posy = ar->v2d.cur.ymax - 2*TILE_BORDER_Y - fy;
-	params->active_bookmark = ((float)posy / (U.fontsize*3.0f/2.0f));
+	posy -= U.fontsize*2.0f;	/* header */
+	
+	params->active_bookmark = ((float)posy / (U.fontsize*2.0f));
 	if (params->active_bookmark < 0 || params->active_bookmark > nentries) {
 		params->active_bookmark = -1;
 	}
 }
 
+static int file_select_bookmark_category(SpaceFile* sfile, ARegion* ar, short x, short y, FSMenuCategory category)
+{
+	struct FSMenu* fsmenu = fsmenu_get();
+	int nentries = fsmenu_get_nentries(fsmenu, category);
+	int linestep = U.fontsize*2.0f;
+	short xs, ys;
+	int i;
+	int selected = -1;
+
+	for (i=0; i < nentries; ++i) {
+		fsmenu_get_pos(fsmenu, category, i, &xs, &ys);
+		if ( (y<=ys) && (y>ys-linestep) ) {
+			fsmenu_select_entry(fsmenu, category, i);
+			selected = i;
+			break;
+		}
+	}
+	return selected;
+}
+
 static void file_select_bookmark(SpaceFile* sfile, ARegion* ar, short x, short y)
 {
+	float fx, fy;
+	int selected;
+	FSMenuCategory category = FS_CATEGORY_SYSTEM;
+
 	if (BLI_in_rcti(&ar->v2d.mask, x, y)) {
-		char *selected;
-		set_active_bookmark(sfile->params, ar, x, y);
-		selected= fsmenu_get_entry(sfile->params->active_bookmark);			
-		/* which string */
-		if (selected) {
-			FileSelectParams* params = sfile->params;
-			BLI_strncpy(params->dir, selected, sizeof(params->dir));
-			BLI_cleanup_dir(G.sce, params->dir);
-			filelist_free(sfile->files);	
-			filelist_setdir(sfile->files, params->dir);
-			params->file[0] = '\0';			
-			params->active_file = -1;
+		char *entry;
+
+		UI_view2d_region_to_view(&ar->v2d, x, y, &fx, &fy);
+		selected = file_select_bookmark_category(sfile, ar, fx, fy, FS_CATEGORY_SYSTEM);
+		if (selected<0) {
+			category = FS_CATEGORY_BOOKMARKS;
+			selected = file_select_bookmark_category(sfile, ar, fx, fy, category);
+		}
+		if (selected<0) {
+			category = FS_CATEGORY_RECENT;
+			selected = file_select_bookmark_category(sfile, ar, fx, fy, category);
+		}
+		
+		if (selected>=0) {
+			entry= fsmenu_get_entry(fsmenu_get(), category, selected);			
+			/* which string */
+			if (entry) {
+				FileSelectParams* params = sfile->params;
+				BLI_strncpy(params->dir, entry, sizeof(params->dir));
+				BLI_cleanup_dir(G.sce, params->dir);
+				filelist_free(sfile->files);	
+				filelist_setdir(sfile->files, params->dir);
+				params->file[0] = '\0';			
+				params->active_file = -1;
+			}
 		}
 	}
 }
@@ -410,20 +448,22 @@ void FILE_OT_loadimages(wmOperatorType *ot)
 int file_hilight_set(SpaceFile *sfile, ARegion *ar, int mx, int my)
 {
 	FileSelectParams* params;
+	FileLayout* layout;
 	int numfiles, actfile;
 	
 	if(sfile==NULL || sfile->files==NULL) return 0;
 	
 	numfiles = filelist_numfiles(sfile->files);
 	params = ED_fileselect_get_params(sfile);
-	
-	if (params->display == FILE_IMGDISPLAY) {
+	layout = ED_fileselect_get_layout(sfile, ar);
+
+	if ( (layout->flag == FILE_LAYOUT_HOR)) {
 		actfile = find_file_mouse_hor(sfile, ar, mx , my);
 	} else {
 		actfile = find_file_mouse_vert(sfile, ar, mx, my);
 	}
 	
-	if (actfile >= 0 && actfile < numfiles ) {
+	if (params && (actfile >= 0) && (actfile < numfiles) ) {
 		params->active_file=actfile;
 		return 1;
 	}
@@ -488,6 +528,9 @@ int file_exec(bContext *C, wmOperator *unused)
 		strcat(name, sfile->params->file);
 		RNA_string_set(op->ptr, "filename", name);
 		
+		fsmenu_insert_entry(fsmenu_get(), FS_CATEGORY_RECENT, sfile->params->dir,0, 1);
+		BLI_make_file_string(G.sce, name, BLI_gethome(), ".Bfs");
+		fsmenu_write_file(fsmenu_get(), name);
 		WM_event_fileselect_event(C, op, EVT_FILESELECT_EXEC);
 	}
 				
@@ -522,6 +565,7 @@ int file_parent_exec(bContext *C, wmOperator *unused)
 
 }
 
+
 void FILE_OT_parent(struct wmOperatorType *ot)
 {
 	/* identifiers */
@@ -534,4 +578,65 @@ void FILE_OT_parent(struct wmOperatorType *ot)
 }
 
 
+int file_refresh_exec(bContext *C, wmOperator *unused)
+{
+	SpaceFile *sfile= (SpaceFile*)CTX_wm_space_data(C);
+	
+	if(sfile->params) {
+		filelist_setdir(sfile->files, sfile->params->dir);
+		filelist_free(sfile->files);
+		sfile->params->active_file = -1;
+	}		
+	ED_area_tag_redraw(CTX_wm_area(C));
 
+	return OPERATOR_FINISHED;
+
+}
+
+
+void FILE_OT_refresh(struct wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Refresh Filelist";
+	ot->idname= "FILE_OT_refresh";
+	
+	/* api callbacks */
+	ot->exec= file_refresh_exec;
+	ot->poll= ED_operator_file_active; /* <- important, handler is on window level */
+}
+
+struct ARegion *file_buttons_region(struct ScrArea *sa)
+{
+	ARegion *ar;
+	
+	for(ar= sa->regionbase.first; ar; ar= ar->next)
+		if(ar->regiontype==RGN_TYPE_CHANNELS)
+			return ar;
+	return NULL;
+}
+
+int file_bookmark_toggle_exec(bContext *C, wmOperator *unused)
+{
+	ScrArea *sa= CTX_wm_area(C);
+	ARegion *ar= file_buttons_region(sa);
+	
+	if(ar) {
+		ar->flag ^= RGN_FLAG_HIDDEN;
+		ar->v2d.flag &= ~V2D_IS_INITIALISED; /* XXX should become hide/unhide api? */
+		
+		ED_area_initialize(CTX_wm_manager(C), CTX_wm_window(C), sa);
+		ED_area_tag_redraw(sa);
+	}
+	return OPERATOR_FINISHED;
+}
+
+void FILE_OT_bookmark_toggle(struct wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Toggle Bookmarks";
+	ot->idname= "FILE_OT_bookmark_toggle";
+	
+	/* api callbacks */
+	ot->exec= file_bookmark_toggle_exec;
+	ot->poll= ED_operator_file_active; /* <- important, handler is on window level */
+}

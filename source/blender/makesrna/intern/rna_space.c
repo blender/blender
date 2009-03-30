@@ -49,7 +49,7 @@ static StructRNA* rna_Space_refine(struct PointerRNA *ptr)
 			return &RNA_SpaceView3D;
 		case SPACE_IPO:
 			return &RNA_SpaceGraphEditor;
-		case SPACE_OOPS:
+		case SPACE_OUTLINER:
 			return &RNA_SpaceOutliner;
 		case SPACE_BUTS:
 			return &RNA_SpaceButtonsWindow;
@@ -103,6 +103,14 @@ void rna_SpaceTextEditor_word_wrap_set(PointerRNA *ptr, int value)
 	st->left= 0;
 }
 
+void rna_SpaceTextEditor_text_set(PointerRNA *ptr, PointerRNA value)
+{
+	SpaceText *st= (SpaceText*)(ptr->data);
+
+	st->text= value.data;
+	st->top= 0;
+}
+
 #else
 
 static void rna_def_space(BlenderRNA *brna)
@@ -114,7 +122,7 @@ static void rna_def_space(BlenderRNA *brna)
 		{SPACE_EMPTY, "EMPTY", "Empty", ""},
 		{SPACE_VIEW3D, "VIEW_3D", "3D View", ""},
 		{SPACE_IPO, "GRAPH_EDITOR", "Graph Editor", ""},
-		{SPACE_OOPS, "OUTLINER", "Outliner", ""},
+		{SPACE_OUTLINER, "OUTLINER", "Outliner", ""},
 		{SPACE_BUTS, "BUTTONS_WINDOW", "Buttons Window", ""},
 		{SPACE_FILE, "FILE_BROWSER", "File Browser", ""},
 		{SPACE_IMAGE, "IMAGE_EDITOR", "Image Editor", ""},
@@ -138,7 +146,7 @@ static void rna_def_space(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "spacetype");
 	RNA_def_property_enum_items(prop, type_items);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Type", "Space data type.");
 }
 
@@ -218,9 +226,9 @@ static void rna_def_space_image_uv(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SI_LOCAL_UV);
 	RNA_def_property_ui_text(prop, "Local View", "Draw only faces with the currently displayed image assigned.");*/
 
-	prop= RNA_def_property(srna, "display_normalized_coordinates", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "normalized_coordinates", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SI_COORDFLOATS);
-	RNA_def_property_ui_text(prop, "Display Normalized Coordinates", "Display UV coordinates from 0.0 to 1.0 rather than in pixels.");
+	RNA_def_property_ui_text(prop, "Normalized Coordinates", "Display UV coordinates from 0.0 to 1.0 rather than in pixels.");
 
 	/* todo: move edge and face drawing options here from G.f */
 
@@ -330,7 +338,10 @@ static void rna_def_space_text(BlenderRNA *brna)
 
 	/* text */
 	prop= RNA_def_property(srna, "text", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Text", "Text displayed and edited in this space.");
+	RNA_def_property_pointer_funcs(prop, NULL, "rna_SpaceTextEditor_text_set");
+	RNA_def_property_update(prop, NC_TEXT|ND_CURSOR, NULL);
 
 	/* display */
 	prop= RNA_def_property(srna, "syntax_highlight", PROP_BOOLEAN, PROP_NONE);

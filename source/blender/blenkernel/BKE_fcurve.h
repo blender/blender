@@ -44,6 +44,8 @@ typedef struct FModifierTypeInfo {
 	/* admin/ident */
 	short type;				/* FMODIFIER_TYPE_### */
 	short size;				/* size in bytes of the struct */
+	short acttype;			/* eFMI_Action_Types */
+	short requires;			/* eFMI_Requirement_Flags */
 	char name[32]; 			/* name of modifier in interface */
 	char structName[32];	/* name of struct for SDNA */
 	
@@ -54,11 +56,37 @@ typedef struct FModifierTypeInfo {
 	void (*copy_data)(struct FModifier *fcm, struct FModifier *src);
 		/* set settings for data that will be used for FCuModifier.data (memory already allocated using MEM_callocN) */
 	void (*new_data)(void *mdata);
+		/* verifies that the modifier settings are valid */
+	void (*verify_data)(struct FModifier *fcm);
 	
 	/* evaluation */
 		/* evaluate the modifier for the given time and 'accumulated' value */
 	void (*evaluate_modifier)(struct FCurve *fcu, struct FModifier *fcm, float *cvalue, float evaltime);
 } FModifierTypeInfo;
+
+/* Values which describe the behaviour of a FModifier Type */
+enum {
+		/* modifier only modifies values outside of data range */
+	FMI_TYPE_EXTRAPOLATION = 0,
+		/* modifier leaves data-points alone, but adjusts the interpolation between and around them */
+	FMI_TYPE_INTERPOLATION,
+		/* modifier only modifies the values of points (but times stay the same) */
+	FMI_TYPE_REPLACE_VALUES,
+		/* modifier generates a curve regardless of what came before */
+	FMI_TYPE_GENERATE_CURVE,
+} eFMI_Action_Types;
+
+/* Flags for the requirements of a FModifier Type */
+enum {
+		/* modifier requires original data-points (kindof beats the purpose of a modifier stack?) */
+	FMI_REQUIRES_ORIGINAL_DATA		= (1<<0),
+		/* modifier doesn't require on any preceeding data (i.e. it will generate a curve). 
+		 * Use in conjunction with FMI_TYPE_GENRATE_CURVE 
+		 */
+	FMI_REQUIRES_NOTHING			= (1<<1),
+		/* refer to modifier instance */
+	FMI_REQUIRES_RUNTIME_CHECK		= (1<<2),
+} eFMI_Requirement_Flags;
 
 /* Function Prototypes for FModifierTypeInfo's */
 FModifierTypeInfo *fmodifier_get_typeinfo(struct FModifier *fcm);
@@ -66,12 +94,14 @@ FModifierTypeInfo *get_fmodifier_typeinfo(int type);
 
 /* ---------------------- */
 
-// TODO... general API here..
 struct FModifier *fcurve_add_modifier(struct FCurve *fcu, int type);
 void fcurve_copy_modifiers(ListBase *dst, ListBase *src);
 void fcurve_remove_modifier(struct FCurve *fcu, struct FModifier *fcm);
 void fcurve_free_modifiers(struct FCurve *fcu);
 void fcurve_bake_modifiers(struct FCurve *fcu, int start, int end);
+
+struct FModifier *fcurve_find_active_modifier(struct FCurve *fcu);
+void fcurve_set_active_modifier(struct FCurve *fcu, struct FModifier *fcm);
 
 /* ************** F-Curves API ******************** */
 

@@ -50,7 +50,7 @@ void PAINT_OT_image_paint(struct wmOperatorType *ot);
 void PAINT_OT_image_paint_radial_control(struct wmOperatorType *ot);
 void PAINT_OT_grab_clone(struct wmOperatorType *ot);
 void PAINT_OT_sample_color(struct wmOperatorType *ot);
-void PAINT_OT_set_clone_cursor(struct wmOperatorType *ot);
+void PAINT_OT_clone_cursor_set(struct wmOperatorType *ot);
 void PAINT_OT_texture_paint_toggle(struct wmOperatorType *ot);
 void PAINT_OT_texture_paint_radial_control(struct wmOperatorType *ot);
 

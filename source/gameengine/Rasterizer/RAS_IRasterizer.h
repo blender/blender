@@ -255,6 +255,8 @@ public:
 	/**
 	 */
 	virtual const	MT_Point3& GetCameraPosition()=0;
+	virtual bool	GetCameraOrtho()=0;
+
 	/**
 	 */
 	virtual void	SetFog(float start,
@@ -359,6 +361,8 @@ public:
 	virtual void	SetPolygonOffset(float mult, float add) = 0;
 	
 	virtual	void	DrawDebugLine(const MT_Vector3& from,const MT_Vector3& to,const MT_Vector3& color)=0;
+	virtual	void	FlushDebugLines()=0;
+	
 
 
 	virtual void	SetTexCoordNum(int num) = 0;

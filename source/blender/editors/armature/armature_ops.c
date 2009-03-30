@@ -120,16 +120,25 @@ void ED_operatortypes_armature(void)
 	WM_operatortype_append(ARMATURE_OT_parent_set);
 	WM_operatortype_append(ARMATURE_OT_parent_clear);
 	
-	WM_operatortype_append(ARMATURE_OT_de_select_all);
-	WM_operatortype_append(ARMATURE_OT_selection_invert);
+	WM_operatortype_append(ARMATURE_OT_select_all_toggle);
+	WM_operatortype_append(ARMATURE_OT_select_invert);
 	WM_operatortype_append(ARMATURE_OT_select_hierarchy);
-	WM_operatortype_append(ARMATURE_OT_select_connected);
+	WM_operatortype_append(ARMATURE_OT_select_linked);
 
-	WM_operatortype_append(ARMATURE_OT_delete_selected);
+	WM_operatortype_append(ARMATURE_OT_delete);
 	WM_operatortype_append(ARMATURE_OT_duplicate_selected);
 	WM_operatortype_append(ARMATURE_OT_extrude);
 	WM_operatortype_append(ARMATURE_OT_click_extrude);
-	
+
+	/* SKETCH */	
+	WM_operatortype_append(SKETCH_OT_gesture);
+	WM_operatortype_append(SKETCH_OT_delete);
+	WM_operatortype_append(SKETCH_OT_draw_stroke);
+	WM_operatortype_append(SKETCH_OT_draw_preview);
+	WM_operatortype_append(SKETCH_OT_finish_stroke);
+	WM_operatortype_append(SKETCH_OT_cancel_stroke);
+	WM_operatortype_append(SKETCH_OT_select);
+
 	/* POSE */
 	WM_operatortype_append(POSE_OT_hide);
 	WM_operatortype_append(POSE_OT_reveal);
@@ -138,12 +147,12 @@ void ED_operatortypes_armature(void)
 	WM_operatortype_append(POSE_OT_loc_clear);
 	WM_operatortype_append(POSE_OT_scale_clear);
 	
-	WM_operatortype_append(POSE_OT_de_select_all);
-	WM_operatortype_append(POSE_OT_selection_invert);
+	WM_operatortype_append(POSE_OT_select_all_toggle);
+	WM_operatortype_append(POSE_OT_select_invert);
 
 	WM_operatortype_append(POSE_OT_select_parent);
 	WM_operatortype_append(POSE_OT_select_hierarchy);
-	WM_operatortype_append(POSE_OT_select_connected);
+	WM_operatortype_append(POSE_OT_select_linked);
 	
 	WM_operatortype_append(ARMATURE_OT_test); // XXX temp test for context iterators... to be removed
 }
@@ -167,36 +176,42 @@ void ED_keymap_armature(wmWindowManager *wm)
 		/* only the menu-version of subdivide is registered in keymaps for now */
 	WM_keymap_add_item(keymap, "ARMATURE_OT_subdivs", SKEY, KM_PRESS, KM_ALT, 0);
 	
-	WM_keymap_add_item(keymap, "ARMATURE_OT_set_parent", PKEY, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_add_item(keymap, "ARMATURE_OT_clear_parent", PKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_add_item(keymap, "ARMATURE_OT_parent_set", PKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "ARMATURE_OT_parent_clear", PKEY, KM_PRESS, KM_ALT, 0);
 	
-	WM_keymap_add_item(keymap, "ARMATURE_OT_de_select_all", AKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "ARMATURE_OT_selection_invert", IKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "ARMATURE_OT_select_all_toggle", AKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "ARMATURE_OT_select_invert", IKEY, KM_PRESS, KM_CTRL, 0);
 	
 	WM_keymap_add_item(keymap, "ARMATURE_OT_test", TKEY, KM_PRESS, 0, 0);  // XXX temp test for context iterators... to be removed
 
 	kmi= WM_keymap_add_item(keymap, "ARMATURE_OT_select_hierarchy", LEFTBRACKETKEY, KM_PRESS, 0, 0);
 	RNA_enum_set(kmi->ptr, "direction", BONE_SELECT_PARENT);
-	RNA_boolean_set(kmi->ptr, "add_to_sel", 0);
+	RNA_boolean_set(kmi->ptr, "extend", 0);
 	kmi= WM_keymap_add_item(keymap, "ARMATURE_OT_select_hierarchy", LEFTBRACKETKEY, KM_PRESS, KM_SHIFT, 0);
 	RNA_enum_set(kmi->ptr, "direction", BONE_SELECT_PARENT);
-	RNA_boolean_set(kmi->ptr, "add_to_sel", 1);
+	RNA_boolean_set(kmi->ptr, "extend", 1);
 	
 	kmi= WM_keymap_add_item(keymap, "ARMATURE_OT_select_hierarchy", RIGHTBRACKETKEY, KM_PRESS, 0, 0);
 	RNA_enum_set(kmi->ptr, "direction", BONE_SELECT_CHILD);
-	RNA_boolean_set(kmi->ptr, "add_to_sel", 0);
+	RNA_boolean_set(kmi->ptr, "extend", 0);
 	kmi= WM_keymap_add_item(keymap, "ARMATURE_OT_select_hierarchy", RIGHTBRACKETKEY, KM_PRESS, KM_SHIFT, 0);
 	RNA_enum_set(kmi->ptr, "direction", BONE_SELECT_CHILD);
-	RNA_boolean_set(kmi->ptr, "add_to_sel", 1);
+	RNA_boolean_set(kmi->ptr, "extend", 1);
 
-	WM_keymap_add_item(keymap, "ARMATURE_OT_select_connected", LKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "ARMATURE_OT_delete_selected", XKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "ARMATURE_OT_select_linked", LKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "ARMATURE_OT_delete", XKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "ARMATURE_OT_duplicate_selected", DKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "ARMATURE_OT_extrude", EKEY, KM_PRESS, 0, 0);
 	kmi= WM_keymap_add_item(keymap, "ARMATURE_OT_extrude", EKEY, KM_PRESS, KM_SHIFT, 0);
 	RNA_boolean_set(kmi->ptr, "forked", 1);
 	WM_keymap_add_item(keymap, "ARMATURE_OT_click_extrude", LEFTMOUSE, KM_PRESS, KM_CTRL, 0);
 	
+	/* Armature ------------------------ */
+	WM_keymap_add_item(keymap, "SKETCH_OT_delete", XKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "SKETCH_OT_finish_stroke", SELECTMOUSE, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "SKETCH_OT_cancel_stroke", ESCKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "SKETCH_OT_select", SELECTMOUSE, KM_PRESS, 0, 0);
+
 	/* Pose ------------------------ */
 	/* only set in posemode, by space_view3d listener */
 	keymap= WM_keymap_listbase(wm, "Pose", 0, 0);
@@ -210,25 +225,25 @@ void ED_keymap_armature(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "POSE_OT_loc_clear", GKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "POSE_OT_scale_clear", SKEY, KM_PRESS, KM_ALT, 0);
 	
-	WM_keymap_add_item(keymap, "POSE_OT_de_select_all", AKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "POSE_OT_selection_invert", IKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "POSE_OT_select_all_toggle", AKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "POSE_OT_select_invert", IKEY, KM_PRESS, KM_CTRL, 0);
 
 	WM_keymap_add_item(keymap, "POSE_OT_select_parent", PKEY, KM_PRESS, KM_SHIFT, 0);
 
 	kmi= WM_keymap_add_item(keymap, "POSE_OT_select_hierarchy", LEFTBRACKETKEY, KM_PRESS, 0, 0);
 	RNA_enum_set(kmi->ptr, "direction", BONE_SELECT_PARENT);
-	RNA_boolean_set(kmi->ptr, "add_to_sel", 0);
+	RNA_boolean_set(kmi->ptr, "extend", 0);
 	kmi= WM_keymap_add_item(keymap, "POSE_OT_select_hierarchy", LEFTBRACKETKEY, KM_PRESS, KM_SHIFT, 0);
 	RNA_enum_set(kmi->ptr, "direction", BONE_SELECT_PARENT);
-	RNA_boolean_set(kmi->ptr, "add_to_sel", 1);
+	RNA_boolean_set(kmi->ptr, "extend", 1);
 	
 	kmi= WM_keymap_add_item(keymap, "POSE_OT_select_hierarchy", RIGHTBRACKETKEY, KM_PRESS, 0, 0);
 	RNA_enum_set(kmi->ptr, "direction", BONE_SELECT_CHILD);
-	RNA_boolean_set(kmi->ptr, "add_to_sel", 0);
+	RNA_boolean_set(kmi->ptr, "extend", 0);
 	kmi= WM_keymap_add_item(keymap, "POSE_OT_select_hierarchy", RIGHTBRACKETKEY, KM_PRESS, KM_SHIFT, 0);
 	RNA_enum_set(kmi->ptr, "direction", BONE_SELECT_CHILD);
-	RNA_boolean_set(kmi->ptr, "add_to_sel", 1);
+	RNA_boolean_set(kmi->ptr, "extend", 1);
 
-	WM_keymap_add_item(keymap, "POSE_OT_select_connected", LKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "POSE_OT_select_linked", LKEY, KM_PRESS, 0, 0);
 }
 

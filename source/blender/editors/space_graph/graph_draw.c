@@ -27,6 +27,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
+#include <float.h>
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -90,7 +91,57 @@ extern void ui_rasterpos_safe(float x, float y, float aspect);
 extern void gl_round_box(int mode, float minx, float miny, float maxx, float maxy, float rad);
 
 /* *************************** */
-/* Curve Drawing */
+/* F-Curve Modifier Drawing */
+
+/* Envelope -------------- */
+
+// TODO: draw a shaded poly showing the region of influence too!!!
+static void draw_fcurve_modifier_controls_envelope (FCurve *fcu, FModifier *fcm, View2D *v2d)
+{
+	FMod_Envelope *env= (FMod_Envelope *)fcm->data;
+	FCM_EnvelopeData *fed;
+	const float fac= 0.05f * (v2d->cur.xmax - v2d->cur.xmin);
+	int i;
+	
+	/* draw two black lines showing the standard reference levels */
+	glColor3f(0.0f, 0.0f, 0.0f);
+	setlinestyle(5);
+	
+	glBegin(GL_LINES);
+		glVertex2f(v2d->cur.xmin, env->midval+env->min);
+		glVertex2f(v2d->cur.xmax, env->midval+env->min);
+		
+		glVertex2f(v2d->cur.xmin, env->midval+env->max);
+		glVertex2f(v2d->cur.xmax, env->midval+env->max);
+	glEnd(); // GL_LINES
+	setlinestyle(0);
+	
+	/* set size of vertices (non-adjustable for now) */
+	glPointSize(2.0f);
+	
+	// for now, point color is fixed, and is white
+	glColor3f(1.0f, 1.0f, 1.0f);
+	
+	/* we use bgl points not standard gl points, to workaround vertex 
+	 * drawing bugs that some drivers have (probably legacy ones only though)
+	 */
+	bglBegin(GL_POINTS);
+	for (i=0, fed=env->data; i < env->totvert; i++, fed++) {
+		/* only draw if visible
+		 *	- min/max here are fixed, not relative
+		 */
+		if IN_RANGE(fed->time, (v2d->cur.xmin - fac), (v2d->cur.xmax + fac)) {
+			glVertex2f(fed->time, fed->min);
+			glVertex2f(fed->time, fed->max);
+		}
+	}
+	bglEnd();
+	
+	glPointSize(1.0f);
+}
+
+/* *************************** */
+/* F-Curve Drawing */
 
 /* Points ---------------- */
 
@@ -401,9 +452,62 @@ static void draw_fcurve_samples (SpaceIpo *sipo, ARegion *ar, FCurve *fcu)
 
 /* Curve ---------------- */
 
+/* minimum pixels per gridstep 
+ * XXX: defined in view2d.c - must keep these in sync or relocate to View2D header!
+ */
+#define MINGRIDSTEP 	35
+
+/* helper func - just draw the F-Curve by sampling the visible region (for drawing curves with modifiers) */
+static void draw_fcurve_curve (FCurve *fcu, SpaceIpo *sipo, View2D *v2d, View2DGrid *grid)
+{
+	ChannelDriver *driver;
+	float samplefreq, ctime;
+	float stime, etime;
+	
+	/* disable any drivers temporarily */
+	driver= fcu->driver;
+	fcu->driver= NULL;
+	
+	
+	/* Note about sampling frequency:
+	 * 	Ideally, this is chosen such that we have 1-2 pixels = 1 segment
+	 *	which means that our curves can be as smooth as possible. However,
+	 * 	this does mean that curves may not be fully accurate (i.e. if they have
+	 * 	sudden spikes which happen at the sampling point, we may have problems).
+	 * 	Also, this may introduce lower performance on less densely detailed curves,'
+	 *	though it is impossible to predict this from the modifiers!
+	 *
+	 *	If the automatically determined sampling frequency is likely to cause an infinite
+	 *	loop (i.e. too close to FLT_EPSILON), fall back to default of 0.001
+	 */
+		/* grid->dx is the first float in View2DGrid struct, so just cast to float pointer, and use it
+		 * It represents the number of 'frames' between gridlines, but we divide by MINGRIDSTEP to get pixels-steps
+		 */
+		// TODO: perhaps we should have 1.0 frames as upper limit so that curves don't get too distorted?
+	samplefreq= *((float *)grid) / MINGRIDSTEP;
+	if (IS_EQ(samplefreq, 0)) samplefreq= 0.001f;
+	
+	
+	/* the start/end times are simply the horizontal extents of the 'cur' rect */
+	stime= v2d->cur.xmin;
+	etime= v2d->cur.xmax;
+	
+	
+	/* at each sampling interval, add a new vertex */
+	glBegin(GL_LINE_STRIP);
+	
+	for (ctime= stime; ctime <= etime; ctime += samplefreq)
+		glVertex2f( ctime, evaluate_fcurve(fcu, ctime) );
+	
+	glEnd();
+	
+	/* restore driver */
+	fcu->driver= driver;
+}
+
 /* helper func - draw a samples-based F-Curve */
 // TODO: add offset stuff...
-static void draw_fcurve_repeat_samples (FCurve *fcu, View2D *v2d)
+static void draw_fcurve_curve_samples (FCurve *fcu, View2D *v2d)
 {
 	FPoint *prevfpt= fcu->fpt;
 	FPoint *fpt= prevfpt + 1;
@@ -412,26 +516,23 @@ static void draw_fcurve_repeat_samples (FCurve *fcu, View2D *v2d)
 	
 	glBegin(GL_LINE_STRIP);
 	
-	/* extrapolate to left? */
-	if ( (fcu->modifiers.first == NULL)/* || ( ((FModifier *)fcu->modifiers.first)->type != FMODIFIER_TYPE_CYCLES) */) {
-		/* left-side of view comes before first keyframe, so need to extend as not cyclic */
-		if (prevfpt->vec[0] > v2d->cur.xmin) {
-			v[0]= v2d->cur.xmin;
-			
-			/* y-value depends on the interpolation */
-			if ((fcu->extend==FCURVE_EXTRAPOLATE_CONSTANT) || (fcu->flag & FCURVE_INT_VALUES) || (fcu->totvert==1)) {
-				/* just extend across the first keyframe's value */
-				v[1]= prevfpt->vec[1];
-			} 
-			else {
-				/* extrapolate linear dosnt use the handle, use the next points center instead */
-				fac= (prevfpt->vec[0]-fpt->vec[0])/(prevfpt->vec[0]-v[0]);
-				if (fac) fac= 1.0f/fac;
-				v[1]= prevfpt->vec[1]-fac*(prevfpt->vec[1]-fpt->vec[1]);
-			}
-			
-			glVertex2fv(v);
+	/* extrapolate to left? - left-side of view comes before first keyframe? */
+	if (prevfpt->vec[0] > v2d->cur.xmin) {
+		v[0]= v2d->cur.xmin;
+		
+		/* y-value depends on the interpolation */
+		if ((fcu->extend==FCURVE_EXTRAPOLATE_CONSTANT) || (fcu->flag & FCURVE_INT_VALUES) || (fcu->totvert==1)) {
+			/* just extend across the first keyframe's value */
+			v[1]= prevfpt->vec[1];
+		} 
+		else {
+			/* extrapolate linear dosnt use the handle, use the next points center instead */
+			fac= (prevfpt->vec[0]-fpt->vec[0])/(prevfpt->vec[0]-v[0]);
+			if (fac) fac= 1.0f/fac;
+			v[1]= prevfpt->vec[1]-fac*(prevfpt->vec[1]-fpt->vec[1]);
 		}
+		
+		glVertex2fv(v);
 	}
 	
 	/* if only one sample, add it now */
@@ -440,7 +541,6 @@ static void draw_fcurve_repeat_samples (FCurve *fcu, View2D *v2d)
 	
 	/* loop over samples, drawing segments */
 	/* draw curve between first and last keyframe (if there are enough to do so) */
-	// XXX this doesn't take into account modifiers, or sample data
 	while (b--) {
 		/* Linear interpolation: just add one point (which should add a new line segment) */
 		glVertex2fv(prevfpt->vec);
@@ -455,95 +555,90 @@ static void draw_fcurve_repeat_samples (FCurve *fcu, View2D *v2d)
 	}
 	
 	/* extrapolate to right? (see code for left-extrapolation above too) */
-	if ( (fcu->modifiers.first == NULL)/* || ( ((FModifier *)fcu->modifiers.first)->type != FMODIFIER_TYPE_CYCLES) */) {
-		if (prevfpt->vec[0] < v2d->cur.xmax) {
-			v[0]= v2d->cur.xmax;
-			
-			/* y-value depends on the interpolation */
-			if ((fcu->extend==FCURVE_EXTRAPOLATE_CONSTANT) || (fcu->flag & FCURVE_INT_VALUES) || (fcu->totvert==1)) {
-				/* based on last keyframe's value */
-				v[1]= prevfpt->vec[1];
-			} 
-			else {
-				/* extrapolate linear dosnt use the handle, use the previous points center instead */
-				fpt = prevfpt-1;
-				fac= (prevfpt->vec[0]-fpt->vec[0])/(prevfpt->vec[0]-v[0]);
-				if (fac) fac= 1.0f/fac;
-				v[1]= prevfpt->vec[1]-fac*(prevfpt->vec[1]-fpt->vec[1]);
-			}
-			
-			glVertex2fv(v);
+	if (prevfpt->vec[0] < v2d->cur.xmax) {
+		v[0]= v2d->cur.xmax;
+		
+		/* y-value depends on the interpolation */
+		if ((fcu->extend==FCURVE_EXTRAPOLATE_CONSTANT) || (fcu->flag & FCURVE_INT_VALUES) || (fcu->totvert==1)) {
+			/* based on last keyframe's value */
+			v[1]= prevfpt->vec[1];
+		} 
+		else {
+			/* extrapolate linear dosnt use the handle, use the previous points center instead */
+			fpt = prevfpt-1;
+			fac= (prevfpt->vec[0]-fpt->vec[0])/(prevfpt->vec[0]-v[0]);
+			if (fac) fac= 1.0f/fac;
+			v[1]= prevfpt->vec[1]-fac*(prevfpt->vec[1]-fpt->vec[1]);
 		}
+		
+		glVertex2fv(v);
 	}
 	
 	glEnd();
 }
 
 /* helper func - draw one repeat of an F-Curve */
-static void draw_fcurve_repeat (FCurve *fcu, View2D *v2d, float cycxofs, float cycyofs, float *facp)
+static void draw_fcurve_curve_bezts (FCurve *fcu, View2D *v2d, View2DGrid *grid)
 {
 	BezTriple *prevbezt= fcu->bezt;
 	BezTriple *bezt= prevbezt+1;
 	float v1[2], v2[2], v3[2], v4[2];
 	float *fp, data[120];
-	float fac= *(facp);
+	float fac= 0.0f;
 	int b= fcu->totvert-1;
 	int resol;
 	
 	glBegin(GL_LINE_STRIP);
 	
 	/* extrapolate to left? */
-	if ( (fcu->modifiers.first == NULL)/* || ( ((FModifier *)fcu->modifiers.first)->type != FMODIFIER_TYPE_CYCLES) */) {
+	if (prevbezt->vec[1][0] > v2d->cur.xmin) {
 		/* left-side of view comes before first keyframe, so need to extend as not cyclic */
-		if (prevbezt->vec[1][0] > v2d->cur.xmin) {
-			v1[0]= v2d->cur.xmin;
-			
-			/* y-value depends on the interpolation */
-			if ((fcu->extend==FCURVE_EXTRAPOLATE_CONSTANT) || (fcu->flag & FCURVE_INT_VALUES) || (prevbezt->ipo==BEZT_IPO_CONST) || (fcu->totvert==1)) {
-				/* just extend across the first keyframe's value */
-				v1[1]= prevbezt->vec[1][1];
-			} 
-			else if (prevbezt->ipo==BEZT_IPO_LIN) {
-				/* extrapolate linear dosnt use the handle, use the next points center instead */
-				fac= (prevbezt->vec[1][0]-bezt->vec[1][0])/(prevbezt->vec[1][0]-v1[0]);
-				if (fac) fac= 1.0f/fac;
-				v1[1]= prevbezt->vec[1][1]-fac*(prevbezt->vec[1][1]-bezt->vec[1][1]);
-			} 
-			else {
-				/* based on angle of handle 1 (relative to keyframe) */
-				fac= (prevbezt->vec[0][0]-prevbezt->vec[1][0])/(prevbezt->vec[1][0]-v1[0]);
-				if (fac) fac= 1.0f/fac;
-				v1[1]= prevbezt->vec[1][1]-fac*(prevbezt->vec[0][1]-prevbezt->vec[1][1]);
-			}
-			
-			glVertex2fv(v1);
+		v1[0]= v2d->cur.xmin;
+		
+		/* y-value depends on the interpolation */
+		if ((fcu->extend==FCURVE_EXTRAPOLATE_CONSTANT) || (prevbezt->ipo==BEZT_IPO_CONST) || (fcu->totvert==1)) {
+			/* just extend across the first keyframe's value */
+			v1[1]= prevbezt->vec[1][1];
+		} 
+		else if (prevbezt->ipo==BEZT_IPO_LIN) {
+			/* extrapolate linear dosnt use the handle, use the next points center instead */
+			fac= (prevbezt->vec[1][0]-bezt->vec[1][0])/(prevbezt->vec[1][0]-v1[0]);
+			if (fac) fac= 1.0f/fac;
+			v1[1]= prevbezt->vec[1][1]-fac*(prevbezt->vec[1][1]-bezt->vec[1][1]);
+		} 
+		else {
+			/* based on angle of handle 1 (relative to keyframe) */
+			fac= (prevbezt->vec[0][0]-prevbezt->vec[1][0])/(prevbezt->vec[1][0]-v1[0]);
+			if (fac) fac= 1.0f/fac;
+			v1[1]= prevbezt->vec[1][1]-fac*(prevbezt->vec[0][1]-prevbezt->vec[1][1]);
 		}
+		
+		glVertex2fv(v1);
 	}
 	
 	/* if only one keyframe, add it now */
 	if (fcu->totvert == 1) {
-		v1[0]= prevbezt->vec[1][0] + cycxofs;
-		v1[1]= prevbezt->vec[1][1] + cycyofs;
+		v1[0]= prevbezt->vec[1][0];
+		v1[1]= prevbezt->vec[1][1];
 		glVertex2fv(v1);
 	}
 	
 	/* draw curve between first and last keyframe (if there are enough to do so) */
-	// XXX this doesn't take into account modifiers, or sample data
 	while (b--) {
-		if ((fcu->flag & FCURVE_INT_VALUES) || (prevbezt->ipo==BEZT_IPO_CONST)) {
+		if (prevbezt->ipo==BEZT_IPO_CONST) {
 			/* Constant-Interpolation: draw segment between previous keyframe and next, but holding same value */
-			v1[0]= prevbezt->vec[1][0]+cycxofs;
-			v1[1]= prevbezt->vec[1][1]+cycyofs;
+			v1[0]= prevbezt->vec[1][0];
+			v1[1]= prevbezt->vec[1][1];
 			glVertex2fv(v1);
 			
-			v1[0]= bezt->vec[1][0]+cycxofs;
-			v1[1]= prevbezt->vec[1][1]+cycyofs;
+			v1[0]= bezt->vec[1][0];
+			v1[1]= prevbezt->vec[1][1];
 			glVertex2fv(v1);
 		}
 		else if (prevbezt->ipo==BEZT_IPO_LIN) {
 			/* Linear interpolation: just add one point (which should add a new line segment) */
-			v1[0]= prevbezt->vec[1][0]+cycxofs;
-			v1[1]= prevbezt->vec[1][1]+cycyofs;
+			v1[0]= prevbezt->vec[1][0];
+			v1[1]= prevbezt->vec[1][1];
 			glVertex2fv(v1);
 		}
 		else {
@@ -560,23 +655,23 @@ static void draw_fcurve_repeat (FCurve *fcu, View2D *v2d, float cycxofs, float c
 			
 			if (resol < 2) {
 				/* only draw one */
-				v1[0]= prevbezt->vec[1][0]+cycxofs;
-				v1[1]= prevbezt->vec[1][1]+cycyofs;
+				v1[0]= prevbezt->vec[1][0];
+				v1[1]= prevbezt->vec[1][1];
 				glVertex2fv(v1);
 			}
 			else {
 				/* clamp resolution to max of 32 */
 				if (resol > 32) resol= 32;
 				
-				v1[0]= prevbezt->vec[1][0]+cycxofs;
-				v1[1]= prevbezt->vec[1][1]+cycyofs;
-				v2[0]= prevbezt->vec[2][0]+cycxofs;
-				v2[1]= prevbezt->vec[2][1]+cycyofs;
+				v1[0]= prevbezt->vec[1][0];
+				v1[1]= prevbezt->vec[1][1];
+				v2[0]= prevbezt->vec[2][0];
+				v2[1]= prevbezt->vec[2][1];
 				
-				v3[0]= bezt->vec[0][0]+cycxofs;
-				v3[1]= bezt->vec[0][1]+cycyofs;
-				v4[0]= bezt->vec[1][0]+cycxofs;
-				v4[1]= bezt->vec[1][1]+cycyofs;
+				v3[0]= bezt->vec[0][0];
+				v3[1]= bezt->vec[0][1];
+				v4[0]= bezt->vec[1][0];
+				v4[1]= bezt->vec[1][1];
 				
 				correct_bezpart(v1, v2, v3, v4);
 				
@@ -594,151 +689,40 @@ static void draw_fcurve_repeat (FCurve *fcu, View2D *v2d, float cycxofs, float c
 		
 		/* last point? */
 		if (b == 0) {
-			v1[0]= prevbezt->vec[1][0]+cycxofs;
-			v1[1]= prevbezt->vec[1][1]+cycyofs;
+			v1[0]= prevbezt->vec[1][0];
+			v1[1]= prevbezt->vec[1][1];
 			glVertex2fv(v1);
 		}
 	}
 	
 	/* extrapolate to right? (see code for left-extrapolation above too) */
-	if ( (fcu->modifiers.first == NULL)/* || ( ((FModifier *)fcu->modifiers.first)->type != FMODIFIER_TYPE_CYCLES) */) {
-		if (prevbezt->vec[1][0] < v2d->cur.xmax) {
-			v1[0]= v2d->cur.xmax;
-			
-			/* y-value depends on the interpolation */
-			if ((fcu->extend==FCURVE_EXTRAPOLATE_CONSTANT) || (fcu->flag & FCURVE_INT_VALUES) || (prevbezt->ipo==BEZT_IPO_CONST) || (fcu->totvert==1)) {
-				/* based on last keyframe's value */
-				v1[1]= prevbezt->vec[1][1];
-			} 
-			else if (prevbezt->ipo==BEZT_IPO_LIN) {
-				/* extrapolate linear dosnt use the handle, use the previous points center instead */
-				bezt = prevbezt-1;
-				fac= (prevbezt->vec[1][0]-bezt->vec[1][0])/(prevbezt->vec[1][0]-v1[0]);
-				if (fac) fac= 1.0f/fac;
-				v1[1]= prevbezt->vec[1][1]-fac*(prevbezt->vec[1][1]-bezt->vec[1][1]);
-			} 
-			else {
-				/* based on angle of handle 1 (relative to keyframe) */
-				fac= (prevbezt->vec[2][0]-prevbezt->vec[1][0])/(prevbezt->vec[1][0]-v1[0]);
-				if (fac) fac= 1.0f/fac;
-				v1[1]= prevbezt->vec[1][1]-fac*(prevbezt->vec[2][1]-prevbezt->vec[1][1]);
-			}
-			
-			glVertex2fv(v1);
+	if (prevbezt->vec[1][0] < v2d->cur.xmax) {
+		v1[0]= v2d->cur.xmax;
+		
+		/* y-value depends on the interpolation */
+		if ((fcu->extend==FCURVE_EXTRAPOLATE_CONSTANT) || (fcu->flag & FCURVE_INT_VALUES) || (prevbezt->ipo==BEZT_IPO_CONST) || (fcu->totvert==1)) {
+			/* based on last keyframe's value */
+			v1[1]= prevbezt->vec[1][1];
+		} 
+		else if (prevbezt->ipo==BEZT_IPO_LIN) {
+			/* extrapolate linear dosnt use the handle, use the previous points center instead */
+			bezt = prevbezt-1;
+			fac= (prevbezt->vec[1][0]-bezt->vec[1][0])/(prevbezt->vec[1][0]-v1[0]);
+			if (fac) fac= 1.0f/fac;
+			v1[1]= prevbezt->vec[1][1]-fac*(prevbezt->vec[1][1]-bezt->vec[1][1]);
+		} 
+		else {
+			/* based on angle of handle 1 (relative to keyframe) */
+			fac= (prevbezt->vec[2][0]-prevbezt->vec[1][0])/(prevbezt->vec[1][0]-v1[0]);
+			if (fac) fac= 1.0f/fac;
+			v1[1]= prevbezt->vec[1][1]-fac*(prevbezt->vec[2][1]-prevbezt->vec[1][1]);
 		}
+		
+		glVertex2fv(v1);
 	}
 	
 	glEnd();
-	
-	/* return fac, as we alter it */
-	*(facp) = fac;
 } 
-
-#if 0 // XXX old animation system unconverted code!
-
-/* draw all ipo-curves */
-static void draw_ipocurves(SpaceIpo *sipo, ARegion *ar, int sel)
-{
-	View2D *v2d= &ar->v2d;
-	EditIpo *ei;
-	int nr, val/*, pickselcode=0*/;
-	
-	/* if we're drawing for GL_SELECT, reset pickselcode first 
-	 * 	- there's only one place that will do this, so it should be fine
-	 */
-	//if (G.f & G_PICKSEL)
-	//	pickselcode= 1;
-	
-	ei= sipo->editipo;
-	for (nr=0; nr<sipo->totipo; nr++, ei++) {
-		if ISPOIN3(ei, flag & IPO_VISIBLE, icu, icu->bezt) {
-			/* val is used to indicate if curve can be edited */
-			//if (G.f & G_PICKSEL) {
-			//	/* when using OpenGL to select stuff (on mouseclick) */
-			//	glLoadName(pickselcode++);
-			//	val= 1;
-			//}
-			//else {
-				/* filter to only draw those that are selected or unselected (based on drawing mode */
-				val= (ei->flag & (IPO_SELECT+IPO_EDIT)) != 0;
-				val= (val==sel);
-			//}
-			
-			/* only draw those curves that we can draw */
-			if (val) {
-				IpoCurve *icu= ei->icu;
-				float cycdx=0.0f, cycdy=0.0f, cycxofs=0.0f, cycyofs=0.0f;
-				const int lastindex= (icu->totvert-1);
-				float fac= 0.0f;
-				int cycount=1;
-				
-				/* set color for curve curve:
-				 *	- bitflag curves (evil) must always be drawn coloured as they cannot work with IPO-Keys
-				 *	- when IPO-Keys are shown, individual curves are not editable, so we show by drawing them all black
-				 */
-				if ((sipo->showkey) && (ei->disptype!=IPO_DISPBITS)) UI_ThemeColor(TH_TEXT); 
-				else cpack(ei->col);
-				
-				/* cyclic curves - get offset and number of repeats to display */
-				if (icu->extrap & IPO_CYCL) {
-					BezTriple *bezt= icu->bezt;
-					BezTriple *lastbezt= bezt + lastindex;
-					
-					/* calculate cycle length and amplitude  */
-					cycdx= lastbezt->vec[1][0] - bezt->vec[1][0];
-					cycdy= lastbezt->vec[1][1] - bezt->vec[1][1];
-					
-					/* check that the cycle does have some length */
-					if (cycdx > 0.01f) {
-						/* count cycles before first frame  */
-						while (icu->bezt->vec[1][0]+cycxofs > v2d->cur.xmin) {
-							cycxofs -= cycdx;
-							if (icu->extrap & IPO_DIR) cycyofs-= cycdy;
-							cycount++;
-						}
-						
-						/* count cycles after last frame (and adjust offset) */
-						fac= 0.0f;
-						while (lastbezt->vec[1][0]+fac < v2d->cur.xmax) {
-							cycount++;
-							fac += cycdx;
-						}
-					}
-				}
-				
-				/* repeat process for each repeat */
-				while (cycount--) {
-					/* bitflag curves are drawn differently to normal curves */
-					if (ei->disptype==IPO_DISPBITS)
-						draw_ipocurve_repeat_bits(icu, v2d, cycxofs);
-					else
-						draw_ipocurve_repeat_normal(icu, v2d, cycxofs, cycyofs, &fac);
-					
-					/* prepare for next cycle by adjusing offsets */
-					cycxofs += cycdx;
-					if (icu->extrap & IPO_DIR) cycyofs += cycdy;
-				}
-				
-				/* vertical line that indicates the end of a speed curve */
-				if ((sipo->blocktype==ID_CU) && (icu->adrcode==CU_SPEED)) {
-					int b= icu->totvert-1;
-					
-					if (b) {
-						BezTriple *bezt= icu->bezt+b;
-						
-						glColor3ub(0, 0, 0);
-						
-						glBegin(GL_LINES);
-							glVertex2f(bezt->vec[1][0], 0.0f);
-							glVertex2f(bezt->vec[1][0], bezt->vec[1][1]);
-						glEnd();
-					}
-				}
-			}
-		}
-	}
-}
-#endif // XXX old animation system unconverted code
 
 #if 0
 static void draw_ipokey(SpaceIpo *sipo, ARegion *ar)
@@ -758,7 +742,9 @@ static void draw_ipokey(SpaceIpo *sipo, ARegion *ar)
 }
 #endif
 
-void graph_draw_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
+/* Public Curve-Drawing API  ---------------- */
+
+void graph_draw_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGrid *grid)
 {
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
@@ -774,20 +760,22 @@ void graph_draw_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 	 */
 	for (ale=anim_data.first; ale; ale=ale->next) {
 		FCurve *fcu= (FCurve *)ale->key_data;
-		Object *nob= ANIM_nla_mapping_get(ac, ale);
-		float fac=0.0f; // dummy var
+		FModifier *fcm= fcurve_find_active_modifier(fcu);
+		//Object *nob= ANIM_nla_mapping_get(ac, ale);
 		
 		/* map keyframes for drawing if scaled F-Curve */
-		if (nob)
-			ANIM_nla_mapping_apply_fcurve(nob, ale->key_data, 0, 0); 
+		//if (nob)
+		//	ANIM_nla_mapping_apply_fcurve(nob, ale->key_data, 0, 0); 
 		
-		/* draw curve - if there's an active modifier (or a stack of modifiers) drawing these takes presidence,
-		 * unless modifiers in use will not alter any of the values within the keyframed area...
+		/* draw curve:
+		 *	- curve line may be result of one or more destructive modifiers or just the raw data,
+		 *	  so we need to check which method should be used
+		 *	- controls from active modifier take precidence over keyframes
+		 *	  (XXX! editing tools need to take this into account!)
 		 */
-		
-		
-		/* draw curve - as defined by keyframes */
-		if ( ((fcu->bezt) || (fcu->fpt)) && (fcu->totvert) ) { 
+		 
+		/* 1) draw curve line */
+		{
 			/* set color/drawing style for curve itself */
 			if ( ((fcu->grp) && (fcu->grp->flag & AGRP_PROTECTED)) || (fcu->flag & FCURVE_PROTECTED) ) {
 				/* protected curves (non editable) are drawn with dotted lines */
@@ -803,18 +791,50 @@ void graph_draw_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 				glColor3fv(fcu->color);
 			}
 			
+			/* anti-aliased lines for less jagged appearance */
+			glEnable(GL_LINE_SMOOTH);
+			glEnable(GL_BLEND);
+			
 			/* draw F-Curve */
-			if (fcu->bezt)
-				draw_fcurve_repeat(fcu, &ar->v2d, 0, 0, &fac); // XXX this call still needs a lot more work
-			else if (fcu->fpt)
-				draw_fcurve_repeat_samples(fcu, &ar->v2d);
-			/*else  modifiers? */
+			if ((fcu->modifiers.first) || (fcu->flag & FCURVE_INT_VALUES)) {
+				/* draw a curve affected by modifiers or only allowed to have integer values 
+				 * by sampling it at various small-intervals over the visible region 
+				 */
+				draw_fcurve_curve(fcu, sipo, &ar->v2d, grid);
+			}
+			else if ( ((fcu->bezt) || (fcu->fpt)) && (fcu->totvert) ) { 
+				/* just draw curve based on defined data (i.e. no modifiers) */
+				if (fcu->bezt)
+					draw_fcurve_curve_bezts(fcu, &ar->v2d, grid);
+				else if (fcu->fpt)
+					draw_fcurve_curve_samples(fcu, &ar->v2d);
+			}
 			
 			/* restore settings */
 			setlinestyle(0);
 			
-			
-			/* draw handles and vertices as appropriate */
+			glDisable(GL_LINE_SMOOTH);
+			glDisable(GL_BLEND);
+		}
+		
+		/* 2) draw handles and vertices as appropriate based on active */
+		if ( ((fcm) && (fcm->type != FMODIFIER_TYPE_CYCLES)) || (fcu->modifiers.first && !fcm) ) {
+			/* draw controls for the 'active' modifier
+			 *	- there may not be an 'active' modifier on this curve to draw
+			 *	- this curve may not be active, so modifier controls shouldn't get drawn either
+			 *
+			 * NOTE: cycles modifier is currently an exception where the original points can still be edited, so
+			 *  	 	this branch is skipped... (TODO: set up the generic system for this so that we don't need special hacks like this)
+			 */
+			if ((fcu->flag & FCURVE_ACTIVE) && (fcm)) {
+				switch (fcm->type) {
+					case FMODIFIER_TYPE_ENVELOPE: /* envelope */
+						draw_fcurve_modifier_controls_envelope(fcu, fcm, &ar->v2d);
+						break;
+				}
+			}
+		}
+		else if ( ((fcu->bezt) || (fcu->fpt)) && (fcu->totvert) ) { 
 			if (fcu->bezt) {
 				/* only draw handles/vertices on keyframes */
 				draw_fcurve_handles(sipo, ar, fcu);
@@ -827,8 +847,8 @@ void graph_draw_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 		}
 		
 		/* undo mapping of keyframes for drawing if scaled F-Curve */
-		if (nob)
-			ANIM_nla_mapping_apply_fcurve(nob, ale->key_data, 1, 0); 
+		//if (nob)
+		//	ANIM_nla_mapping_apply_fcurve(nob, ale->key_data, 1, 0); 
 	}
 	
 	/* free list of curves */

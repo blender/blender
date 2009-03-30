@@ -671,7 +671,7 @@ static void bone_children_clear_transflag(TransInfo *t, ListBase *lb)
 		{
 			bone->flag |= BONE_HINGE_CHILD_TRANSFORM;
 		}
-		else if (bone->flag & BONE_TRANSFORM && (t->mode == TFM_ROTATION || t->mode == TFM_TRACKBALL)) 
+		else if (bone->flag & BONE_TRANSFORM && (t->mode == TFM_ROTATION || t->mode == TFM_TRACKBALL) && t->around == V3D_LOCAL) 
 		{
 			bone->flag |= BONE_TRANSFORM_CHILD;
 		}
@@ -978,7 +978,8 @@ static void createTransPose(bContext *C, TransInfo *t, Object *ob)
 	
 	if (arm->flag & ARM_RESTPOS) {
 		if (ELEM(t->mode, TFM_DUMMY, TFM_BONESIZE)==0) {
-			BKE_report(CTX_reports(C), RPT_ERROR, "Can't select linked when sync selection is enabled.");
+			// XXX use transform operator reports
+			// BKE_report(op->reports, RPT_ERROR, "Can't select linked when sync selection is enabled.");
 			return;
 		}
 	}
@@ -1016,7 +1017,8 @@ static void createTransPose(bContext *C, TransInfo *t, Object *ob)
 	}
 	
 	if(td != (t->data+t->total)) {
-		BKE_report(CTX_reports(C), RPT_DEBUG, "Bone selection count error.");
+		// XXX use transform operator reports
+		// BKE_report(op->reports, RPT_DEBUG, "Bone selection count error.");
 	}
 	
 	/* initialise initial auto=ik chainlen's? */
@@ -2110,8 +2112,8 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 	int count=0, countsel=0, a, totleft;
 	int propmode = t->flag & T_PROP_EDIT;
 	int mirror = 0;
-	
-	if ((t->options & CTX_NO_MIRROR) == 0 && (scene->toolsettings->editbutflag & B_MESH_X_MIRROR))
+
+	if (t->flag & T_MIRROR)
 	{
 		mirror = 1;
 	}
@@ -3047,7 +3049,7 @@ static void createTransActionData(bContext *C, TransInfo *t)
 /* Helper function for createTransGraphEditData, which is reponsible for associating
  * source data with transform data
  */
-static void bezt_to_transdata (TransData *td, TransData2D *td2d, Object *nob, float *loc, float *cent, short selected, short ishandle)
+static void bezt_to_transdata (TransData *td, TransData2D *td2d, Object *nob, float *loc, float *cent, short selected, short ishandle, short intvals)
 {
 	/* New location from td gets dumped onto the old-location of td2d, which then
 	 * gets copied to the actual data at td2d->loc2d (bezt->vec[n])
@@ -3094,6 +3096,8 @@ static void bezt_to_transdata (TransData *td, TransData2D *td2d, Object *nob, fl
 	
 	if (ishandle)	
 		td->flag |= TD_NOTIMESNAP;
+	if (intvals)
+		td->flag |= TD_INTVALUES;
 	
 	Mat3One(td->mtx);
 	Mat3One(td->smtx);
@@ -3204,6 +3208,7 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 	for (ale= anim_data.first; ale; ale= ale->next) {
 		Object *nob= NULL; //ANIM_nla_mapping_get(&ac, ale);	// XXX we don't handle NLA mapping here yet
 		FCurve *fcu= (FCurve *)ale->key_data;
+		short intvals= (fcu->flag & FCURVE_INT_VALUES);
 		
 		/* only include BezTriples whose 'keyframe' occurs on the same side of the current frame as mouse (if applicable) */
 		bezt= fcu->bezt;
@@ -3218,7 +3223,7 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 				if ( (!prevbezt && (bezt->ipo==BEZT_IPO_BEZ)) || (prevbezt && (prevbezt->ipo==BEZT_IPO_BEZ)) ) {
 					if (bezt->f1 & SELECT) {
 						hdata = initTransDataCurveHandes(td, bezt);
-						bezt_to_transdata(td++, td2d++, nob, bezt->vec[0], bezt->vec[1], 1, 1);
+						bezt_to_transdata(td++, td2d++, nob, bezt->vec[0], bezt->vec[1], 1, 1, intvals);
 					}
 					else
 						h1= 0;
@@ -3227,7 +3232,7 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 					if (bezt->f3 & SELECT) {
 						if (hdata==NULL)
 							hdata = initTransDataCurveHandes(td, bezt);
-						bezt_to_transdata(td++, td2d++, nob, bezt->vec[2], bezt->vec[1], 1, 1);
+						bezt_to_transdata(td++, td2d++, nob, bezt->vec[2], bezt->vec[1], 1, 1, intvals);
 					}
 					else
 						h2= 0;
@@ -3243,7 +3248,7 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 								hdata = initTransDataCurveHandes(td, bezt);
 						}
 						
-						bezt_to_transdata(td++, td2d++, nob, bezt->vec[1], bezt->vec[1], 1, 0);
+						bezt_to_transdata(td++, td2d++, nob, bezt->vec[1], bezt->vec[1], 1, 0, intvals);
 					}
 					
 					/* special hack (must be done after initTransDataCurveHandes(), as that stores handle settings to restore...): 
@@ -3489,7 +3494,11 @@ void flushTransGraphData(TransInfo *t)
 		//else
 			td2d->loc2d[0]= td2d->loc[0];
 		
-		td2d->loc2d[1]= td2d->loc[1];
+		/* if int-values only, truncate to integers */
+		if (td->flag & TD_INTVALUES)
+			td2d->loc2d[1]= (float)((int)td2d->loc[1]);
+		else
+			td2d->loc2d[1]= td2d->loc[1];
 	}
 }
 
@@ -4049,7 +4058,7 @@ static void set_trans_object_base_flags(bContext *C, TransInfo *t)
 			
 			if(parsel)
 			{
-				if (t->mode == TFM_ROTATION || t->mode == TFM_TRACKBALL)
+				if ((t->mode == TFM_ROTATION || t->mode == TFM_TRACKBALL)  && t->around == V3D_LOCAL)
 				{
 					base->flag |= BA_TRANSFORM_CHILD;
 				}
@@ -4375,13 +4384,13 @@ void special_aftertrans_update(TransInfo *t)
 		Editing *ed= seq_give_editing(t->scene, FALSE);
 		if (ed && !cancelled) {
 			ListBase *seqbasep= ed->seqbasep;
+			Sequence *seq;
+#if 0		// TRANSFORM_FIX_ME, Would prefer to use this since the array takes into
+			// account what where transforming (with extend, locked strips etc)
+			// But at the moment t->data is freed in postTrans so for now re-shuffeling selected strips works ok. - Campbell
+			
 			int a;
 			TransData *td= t->data;
-			TransData2D *td2d= t->data2d;
-			TransDataSeq *tdsq= NULL;
-			Sequence *seq;
-
-			
 
 			/* prevent updating the same seq twice
 			 * if the transdata order is changed this will mess up
@@ -4389,23 +4398,32 @@ void special_aftertrans_update(TransInfo *t)
 			Sequence *seq_prev= NULL;
 
 			/* flush to 2d vector from internally used 3d vector */
-			for(a=0; a<t->total; a++, td++, td2d++) {
-
-				tdsq= (TransDataSeq *)td->extra;
-				seq= tdsq->seq;
-
-				if (seq != seq_prev) {
-					if(seq->depth==0) {
-						if (seq->flag & SEQ_OVERLAP) {
-							shuffle_seq(seqbasep, seq);
-						}
-					}
+			for(a=0; a<t->total; a++, td++) {
+				seq= ((TransDataSeq *)td->extra)->seq;
+				if ((seq != seq_prev) && (seq->depth==0) && (seq->flag & SEQ_OVERLAP)) {
+					shuffle_seq(seqbasep, seq);
 				}
 
-				/* as last: */
 				seq_prev= seq;
 			}
+#else		// while t->data is not available...
+			int machine, max_machine = 0;
 
+			/* update in order so we always move bottom strips first */
+			for(seq= seqbasep->first; seq; seq= seq->next) {
+				max_machine = MAX2(max_machine, seq->machine);
+			}
+			
+			for (machine = 0; machine <= max_machine; machine++)
+			{
+				for(seq= seqbasep->first; seq; seq= seq->next) {
+					if (seq->machine == machine && seq->depth == 0 && (seq->flag & (SELECT|SEQ_LEFTSEL|SEQ_RIGHTSEL)) != 0 && (seq->flag & SEQ_OVERLAP)) {
+						shuffle_seq(seqbasep, seq);
+					}
+				}
+			}
+#endif
+			
 			for(seq= seqbasep->first; seq; seq= seq->next) {
 				/* We might want to build a list of effects that need to be updated during transform */
 				if(seq->type & SEQ_EFFECT) {
@@ -4420,7 +4438,8 @@ void special_aftertrans_update(TransInfo *t)
 		
 		if (t->customData)
 			MEM_freeN(t->customData);
-
+		if (t->data)
+			MEM_freeN(t->data); // XXX postTrans usually does this
 	}
 	else if (t->spacetype == SPACE_ACTION) {
 		SpaceAction *saction= (SpaceAction *)t->sa->spacedata.first;
@@ -5017,16 +5036,18 @@ void createTransData(bContext *C, TransInfo *t)
 		t->flag |= T_POINTS;
 	}
 	else {
-		View3D *v3d = t->view;
-		RegionView3D *rv3d = t->ar->regiondata;
-		
 		t->flag &= ~T_PROP_EDIT; /* no proportional edit in object mode */
 		createTransObject(C, t);
 		t->flag |= T_OBJECT;
 		
-		if((t->flag & T_OBJECT) && v3d->camera == OBACT && rv3d->persp==V3D_CAMOB)
+		if (t->ar->regiontype == RGN_TYPE_WINDOW)
 		{
-			t->flag |= T_CAMERA;
+			View3D *v3d = t->view;
+			RegionView3D *rv3d = t->ar->regiondata;
+			if((t->flag & T_OBJECT) && v3d->camera == OBACT && rv3d->persp==V3D_CAMOB)
+			{
+				t->flag |= T_CAMERA;
+			}
 		}
 	}
 

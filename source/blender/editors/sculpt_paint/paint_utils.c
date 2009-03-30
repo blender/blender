@@ -11,6 +11,7 @@
 
 #include "BLI_arithb.h"
 
+#include "BKE_brush.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_global.h"
 #include "BKE_utildefines.h"
@@ -159,7 +160,7 @@ int imapaint_pick_face(ViewContext *vc, Mesh *me, int *mval, unsigned int *index
 /* used for both 3d view and image window */
 void paint_sample_color(Scene *scene, ARegion *ar, int x, int y)	/* frontbuf */
 {
-	VPaint *vp= scene->toolsettings->vpaint;
+	Brush **br = current_brush_source(scene);
 	unsigned int col;
 	char *cp;
 
@@ -172,20 +173,10 @@ void paint_sample_color(Scene *scene, ARegion *ar, int x, int y)	/* frontbuf */
 
 	cp = (char *)&col;
 	
-	if(G.f & (G_VERTEXPAINT|G_WEIGHTPAINT)) {
-		vp->r= cp[0]/255.0f;
-		vp->g= cp[1]/255.0f;
-		vp->b= cp[2]/255.0f;
-	}
-	else {
-		Brush *brush= scene->toolsettings->imapaint.brush;
-
-		if(brush) {
-			brush->rgb[0]= cp[0]/255.0f;
-			brush->rgb[1]= cp[1]/255.0f;
-			brush->rgb[2]= cp[2]/255.0f;
-
-		}
+	if(br && *br) {
+		(*br)->rgb[0]= cp[0]/255.0f;
+		(*br)->rgb[1]= cp[1]/255.0f;
+		(*br)->rgb[2]= cp[2]/255.0f;
 	}
 }
 

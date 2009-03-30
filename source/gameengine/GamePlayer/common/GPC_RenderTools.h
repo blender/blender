@@ -65,9 +65,9 @@ public:
 	void				EndFrame(RAS_IRasterizer* rasty);
 	void				BeginFrame(RAS_IRasterizer* rasty);
 
-	void				EnableOpenGLLights();
+	void				EnableOpenGLLights(RAS_IRasterizer *rasty);
 	void				DisableOpenGLLights();
-	void				ProcessLighting(int layer, const MT_Transform& viewmat);
+	void				ProcessLighting(RAS_IRasterizer *rasty, int layer, const MT_Transform& viewmat);
 
 	/* @attention mode is ignored here */
 	void			    RenderText2D(RAS_TEXT_RENDER_MODE mode,

@@ -129,7 +129,6 @@ short hasNumInput(NumInput *n)
 void applyNumInput(NumInput *n, float *vec)
 {
 	short i, j;
-	float val[3];
 
 	if (hasNumInput(n)) {
 		for (j=0; j<=n->idx_max; j++) {
@@ -142,17 +141,17 @@ void applyNumInput(NumInput *n, float *vec)
 			if (n->ctrl[i] == 0 && n->flag & NUM_NULL_ONE) {
 				vec[j] = 1.0f;
 			}
-			else if (val[i] == 0.0f && n->flag & NUM_NO_ZERO) {
+			else if (n->val[i] == 0.0f && n->flag & NUM_NO_ZERO) {
 				vec[j] = 0.0001f;
 			}
 			else {
 				if (n->inv[i])
 				{
-					vec[j] = 1.0f / val[i];
+					vec[j] = 1.0f / n->val[i];
 				}
 				else
 				{
-					vec[j] = val[i];
+					vec[j] = n->val[i];
 				}
 			}
 		}

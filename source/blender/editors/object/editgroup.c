@@ -107,6 +107,7 @@ void GROUP_OT_objects_add_active(wmOperatorType *ot)
 	
 	/* identifiers */
 	ot->name= "Add Selected To Active Group";
+	ot->description = "Add the object to an object group that contains the active object.";
 	ot->idname= "GROUP_OT_objects_add_active";
 	
 	/* api callbacks */
@@ -161,6 +162,7 @@ void GROUP_OT_objects_remove_active(wmOperatorType *ot)
 	
 	/* identifiers */
 	ot->name= "Remove Selected From active group";
+	ot->description = "Remove the object from an object group that contains the active object.";
 	ot->idname= "GROUP_OT_objects_remove_active";
 	
 	/* api callbacks */
@@ -194,12 +196,13 @@ static int group_remove_exec(bContext *C, wmOperator *op)
 
 }
 
-void GROUP_OT_group_remove(wmOperatorType *ot)
+void GROUP_OT_objects_remove(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= "remove Selected from group";
-	ot->idname= "GROUP_OT_group_remove";
+	ot->name= "Remove from group";
+	ot->description = "Remove selected objects from all groups.";
+	ot->idname= "GROUP_OT_objects_remove";
 	
 	/* api callbacks */
 	ot->exec= group_remove_exec;	
@@ -239,6 +242,7 @@ void GROUP_OT_group_create(wmOperatorType *ot)
 	
 	/* identifiers */
 	ot->name= "Create New Group";
+	ot->description = "Create an object group.";
 	ot->idname= "GROUP_OT_group_create";
 	
 	/* api callbacks */

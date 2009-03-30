@@ -193,11 +193,11 @@ static int node_fit_all_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void NODE_OT_fit_all(wmOperatorType *ot)
+void NODE_OT_view_all(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Fit All";
-	ot->idname= "NODE_OT_fit_all";
+	ot->idname= "NODE_OT_view_all";
 	
 	/* api callbacks */
 	ot->exec= node_fit_all_exec;

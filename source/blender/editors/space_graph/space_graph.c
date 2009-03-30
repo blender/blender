@@ -83,7 +83,7 @@ ARegion *graph_has_buttons_region(ScrArea *sa)
 	
 	BLI_insertlinkafter(&sa->regionbase, ar, arnew);
 	arnew->regiontype= RGN_TYPE_UI;
-	arnew->alignment= RGN_ALIGN_TOP|RGN_SPLIT_PREV;
+	arnew->alignment= RGN_ALIGN_BOTTOM|RGN_SPLIT_PREV;
 	
 	arnew->flag = RGN_FLAG_HIDDEN;
 	
@@ -227,15 +227,16 @@ static void graph_main_area_draw(const bContext *C, ARegion *ar)
 	UI_view2d_view_ortho(C, v2d);
 	
 	/* grid */
-	unitx= (sipo->flag & SIPO_DRAWTIME)? V2D_UNIT_SECONDS : V2D_UNIT_FRAMES;
+	unitx= (sipo->flag & SIPO_DRAWTIME)? V2D_UNIT_SECONDS : V2D_UNIT_FRAMESCALE;
 	grid= UI_view2d_grid_calc(C, v2d, unitx, V2D_GRID_NOCLAMP, unity, V2D_GRID_NOCLAMP, ar->winx, ar->winy);
 	UI_view2d_grid_draw(C, v2d, grid, V2D_GRIDLINES_ALL);
-	UI_view2d_grid_free(grid);
 	
 	/* draw data */
-	if (ANIM_animdata_get_context(C, &ac)) {
-		graph_draw_curves(&ac, sipo, ar);
-	}
+	if (ANIM_animdata_get_context(C, &ac))
+		graph_draw_curves(&ac, sipo, ar, grid);
+	
+	/* only free grid after drawing data, as we need to use it to determine sampling rate */
+	UI_view2d_grid_free(grid);
 	
 	/* current frame */
 	if (sipo->flag & SIPO_DRAWTIME) 	flag |= DRAWCFRA_UNIT_SECONDS;
@@ -568,9 +569,9 @@ void ED_spacetype_ipo(void)
 	/* regions: UI buttons */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype graphedit region");
 	art->regionid = RGN_TYPE_UI;
-	art->minsizey= 160;
-	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_FRAMES;
-	art->listener= NULL; // graph_region_listener;
+	art->minsizey= 200;
+	art->keymapflag= ED_KEYMAP_UI;
+	art->listener= graph_region_listener;
 	art->init= graph_buttons_area_init;
 	art->draw= graph_buttons_area_draw;
 	

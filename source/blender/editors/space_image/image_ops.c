@@ -1403,7 +1403,7 @@ void IMAGE_OT_sample(wmOperatorType *ot)
 
 /******************** set curve point operator ********************/
 
-void IMAGE_OT_set_curves_point(wmOperatorType *ot)
+void IMAGE_OT_curves_point_set(wmOperatorType *ot)
 {
 	static EnumPropertyItem point_items[]= {
 		{0, "BLACK_POINT", "Black Point", ""},
@@ -1412,7 +1412,7 @@ void IMAGE_OT_set_curves_point(wmOperatorType *ot)
 
 	/* identifiers */
 	ot->name= "Set Curves Point";
-	ot->idname= "IMAGE_OT_set_curves_point";
+	ot->idname= "IMAGE_OT_curves_point_set";
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;

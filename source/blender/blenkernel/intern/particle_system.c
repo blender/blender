@@ -1575,7 +1575,7 @@ void initialize_particle(ParticleData *pa, int p, Object *ob, ParticleSystem *ps
 		}
 #endif // XXX old animation system
 
-	/* need to get every rand even if we don't use them so that randoms don't affect eachother */
+	/* need to get every rand even if we don't use them so that randoms don't affect each other */
 		rand= BLI_frand();
 		if(part->randlife!=0.0)
 			pa->lifetime*= 1.0f - part->randlife*rand;
@@ -4387,7 +4387,7 @@ static void particles_fluid_step(Scene *scene, Object *ob, ParticleSystem *psys,
 			gzf = gzopen(filename, "rb");
 			if (!gzf) {
 				snprintf(debugStrBuffer,256,"readFsPartData::error - Unable to open file for reading '%s' \n", filename); 
-				elbeemDebugOut(debugStrBuffer);
+				// XXX bad level call elbeemDebugOut(debugStrBuffer);
 				return;
 			}
 	

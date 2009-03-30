@@ -448,15 +448,15 @@ static int count_bone_select(bArmature *arm, ListBase *lb, int do_it)
 void initTransformOrientation(bContext *C, TransInfo *t)
 {
 	View3D *v3d = CTX_wm_view3d(C);
-	RegionView3D *rv3d= CTX_wm_region_view3d(C);
+	RegionView3D *rv3d = CTX_wm_region_view3d(C);
 	Object *ob = CTX_data_active_object(C);
 	Object *obedit = CTX_data_active_object(C);
 	float normal[3]={0.0, 0.0, 0.0};
 	float plane[3]={0.0, 0.0, 0.0};
 
-	if(v3d==NULL) return;
+	if(t->spacetype != SPACE_VIEW3D) return;
 	
-	switch(v3d->twmode) {
+	switch(t->current_orientation) {
 	case V3D_MANIP_GLOBAL:
 		strcpy(t->spacename, "global");
 		break;

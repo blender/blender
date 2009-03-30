@@ -52,6 +52,10 @@ PyObject* cvalue_div(PyObject*v, PyObject*w)
 {
 	return  ((CValue*)v)->Calc(VALUE_DIV_OPERATOR,(CValue*)w);
 }
+PyObject* cvalue_mod(PyObject*v, PyObject*w)
+{
+	return  ((CValue*)v)->Calc(VALUE_MOD_OPERATOR,(CValue*)w);
+}
 PyObject* cvalue_neg(PyObject*v)
 {
 	return  ((CValue*)v)->Calc(VALUE_NEG_OPERATOR,(CValue*)v);
@@ -112,7 +116,7 @@ static PyNumberMethods cvalue_as_number = {
 	(binaryfunc)cvalue_sub, /*nb_subtract*/
 	(binaryfunc)cvalue_mul, /*nb_multiply*/
 	(binaryfunc)cvalue_div, /*nb_divide*/
-	0,//(binaryfunc)cvalue_remainder,	/*nb_remainder*/
+	(binaryfunc)cvalue_mod, /*nb_remainder*/
 	0,//(binaryfunc)cvalue_divmod,	/*nb_divmod*/
 	0,//0,//0,//0,//(ternaryfunc)cvalue_pow, /*nb_power*/
 	(unaryfunc)cvalue_neg, /*nb_negative*/
@@ -257,6 +261,9 @@ STR_String CValue::op2str (VALUE_OPERATOR op)
 	
 	STR_String opmsg;
 	switch (op) {
+	case VALUE_MOD_OPERATOR:
+		opmsg = " % ";
+		break;
 	case VALUE_ADD_OPERATOR:
 		opmsg = " + ";
 		break;
@@ -673,10 +680,14 @@ static PyMethodDef	CValueMethods[] =
 	{ NULL,NULL}	// Sentinel
 };
 
+PyAttributeDef CValue::Attributes[] = {
+	{ NULL }	//Sentinel
+};
 
-PyObject*	CValue::_getattr(const STR_String& attr)
+
+PyObject*	CValue::_getattr(const char *attr)
 {
-	CValue* resultattr = FindIdentifier(attr);
+	CValue* resultattr = FindIdentifier(STR_String(attr));
 	STR_String text;
 	if (resultattr)
 	{
@@ -761,26 +772,27 @@ CValue* CValue::ConvertPythonToValue(PyObject* pyobj)
 
 }
 
-int	CValue::_delattr(const STR_String& attr)
+int	CValue::_delattr(const char *attr)
 {
-	if (!RemoveProperty(attr)) /* sets error */
+	if (!RemoveProperty(STR_String(attr))) /* sets error */
 		return 1;
 	return 0;
 }
 
-int	CValue::_setattr(const STR_String& attr,PyObject* pyobj)
+int	CValue::_setattr(const char *attr,PyObject* pyobj)
 {
 	CValue* vallie = ConvertPythonToValue(pyobj);
 	if (vallie)
 	{
-		CValue* oldprop = GetProperty(attr);
+		STR_String attr_str = attr;
+		CValue* oldprop = GetProperty(attr_str);
 		
 		if (oldprop)
 		{
 			oldprop->SetValue(vallie);
 		} else
 		{
-			SetProperty(attr,vallie);
+			SetProperty(attr_str, vallie);
 		}
 		vallie->Release();
 	} else
@@ -858,7 +870,42 @@ void CValue::SetDeprecationWarnings(bool ignoreDeprecationWarnings)
 
 void CValue::ShowDeprecationWarning(const char* old_way,const char* new_way)
 {
-	if (!m_ignore_deprecation_warnings)
+	if (!m_ignore_deprecation_warnings) {
 		printf("Method %s is deprecated, please use %s instead.\n", old_way, new_way);
+		
+		// import sys; print '\t%s:%d' % (sys._getframe(0).f_code.co_filename, sys._getframe(0).f_lineno)
+		
+		PyObject *getframe, *frame;
+		PyObject *f_lineno, *f_code, *co_filename;
+		
+		getframe = PySys_GetObject("_getframe"); // borrowed
+		if (getframe) {
+			frame = PyObject_CallObject(getframe, NULL);
+			if (frame) {
+				f_lineno= PyObject_GetAttrString(frame, "f_lineno");
+				f_code= PyObject_GetAttrString(frame, "f_code");
+				if (f_lineno && f_code) {
+					co_filename= PyObject_GetAttrString(f_code, "co_filename");
+					if (co_filename) {
+						
+						printf("\t%s:%d\n", PyString_AsString(co_filename), (int)PyInt_AsLong(f_lineno));
+						
+						Py_DECREF(f_lineno);
+						Py_DECREF(f_code);
+						Py_DECREF(co_filename);
+						Py_DECREF(frame);
+						return;
+					}
+				}
+				
+				Py_XDECREF(f_lineno);
+				Py_XDECREF(f_code);
+				Py_DECREF(frame);
+			}
+			
+		}
+		PyErr_Clear();
+		printf("\tERROR - Could not access sys._getframe(0).f_lineno or sys._getframe().f_code.co_filename\n");
+	}
 }
 

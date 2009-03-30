@@ -1,3 +1,5 @@
+# -*- mode: gnumakefile; tab-width: 8; indent-tabs-mode: t; -*-
+# vim: tabstop=8
 #
 # $Id$
 #
@@ -22,7 +24,7 @@
 #
 # The Original Code is: all of this file.
 #
-# Contributor(s): Hans Lambermont
+# Contributor(s): Hans Lambermont, GSR
 #
 # ***** END GPL LICENSE BLOCK *****
 # container main makefile.
@@ -38,12 +40,10 @@ DIRS = intern
  
 include nan_subdirs.mk
 
-install: all debug
+install: $(ALL_OR_DEBUG)
 	@[ -d $(NAN_CONTAINER) ] || mkdir $(NAN_CONTAINER)
 	@[ -d $(NAN_CONTAINER)/include ] || mkdir $(NAN_CONTAINER)/include
-	@[ -d $(NAN_CONTAINER)/lib ] || mkdir $(NAN_CONTAINER)/lib
-	@[ -d $(NAN_CONTAINER)/lib/debug ] || mkdir $(NAN_CONTAINER)/lib/debug
-	@../tools/cpifdiff.sh $(DIR)/libcontainer.a $(NAN_CONTAINER)/lib/
-	@../tools/cpifdiff.sh $(DIR)/debug/libcontainer.a $(NAN_CONTAINER)/lib/debug
+	@[ -d $(NAN_CONTAINER)/lib/$(DEBUG_DIR) ] || mkdir $(NAN_CONTAINER)/lib/$(DEBUG_DIR)
+	@../tools/cpifdiff.sh $(DIR)/$(DEBUG_DIR)libcontainer.a $(NAN_CONTAINER)/lib/$(DEBUG_DIR)
 	@../tools/cpifdiff.sh *.h $(NAN_CONTAINER)/include/
 

@@ -62,22 +62,44 @@
 
 static void do_viewmenu(bContext *C, void *arg, int event)
 {
-	
+	SpaceButs *sbuts= (SpaceButs*)CTX_wm_space_data(C);
+	ScrArea *sa= CTX_wm_area(C);
+
+	switch(event) {
+		case 0: /* panel alignment */
+		case 1:
+		case 2:
+			sbuts->align= event;
+			if(event) {
+				sbuts->re_align= 1;
+				// uiAlignPanelStep(sa, 1.0);
+			}
+            break;
+    }
+
+	ED_area_tag_redraw(sa);
 }
 
 static uiBlock *dummy_viewmenu(bContext *C, ARegion *ar, void *arg_unused)
 {
-	ScrArea *curarea= CTX_wm_area(C);
+	SpaceButs *sbuts= (SpaceButs*)CTX_wm_space_data(C);
+	ScrArea *sa= CTX_wm_area(C);
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
 	
 	block= uiBeginBlock(C, ar, "dummy_viewmenu", UI_EMBOSSP, UI_HELV);
 	uiBlockSetButmFunc(block, do_viewmenu, NULL);
 	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Nothing yet", 0, yco-=20, 
-					 menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
-	
-	if(curarea->headertype==HEADERTOP) {
+	if (sbuts->align == 1) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Horizontal", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
+	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Horizontal", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
+
+	if (sbuts->align == 2) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Vertical", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Vertical", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+
+	if (sbuts->align == 0) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Free", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
+	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Free", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
+
+	if(sa->headertype==HEADERTOP) {
 		uiBlockSetDirection(block, UI_DOWN);
 	}
 	else {

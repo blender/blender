@@ -62,6 +62,8 @@
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
+#include "RNA_access.h"
+
 #include "view3d_intern.h"	// own include
 
 /* ******************** manage regions ********************* */
@@ -238,6 +240,13 @@ static void view3d_modal_keymaps(wmWindowManager *wm, ARegion *ar, int stype)
 	keymap= WM_keymap_listbase(wm, "Armature", 0, 0);
 	if(stype==NS_EDITMODE_ARMATURE)
 		WM_event_add_keymap_handler(&ar->handlers, keymap);
+	else
+		WM_event_remove_keymap_handler(&ar->handlers, keymap);
+
+	/* armature sketching needs to take over mouse */
+	keymap= WM_keymap_listbase(wm, "Armature_Sketch", 0, 0);
+	if(stype==NS_EDITMODE_TEXT)
+		WM_event_add_keymap_handler_priority(&ar->handlers, keymap, 10);
 	else
 		WM_event_remove_keymap_handler(&ar->handlers, keymap);
 
@@ -519,7 +528,7 @@ static int object_is_libdata(Object *ob)
 	return 0;
 }
 
-static int view3d_context(const bContext *C, bContextDataMember member, bContextDataResult *result)
+static int view3d_context(const bContext *C, const char *member, bContextDataResult *result)
 {
 	View3D *v3d= CTX_wm_view3d(C);
 	Scene *scene= CTX_data_scene(C);
@@ -527,29 +536,33 @@ static int view3d_context(const bContext *C, bContextDataMember member, bContext
 
 	if(v3d==NULL) return 0;
 
-	if(ELEM(member, CTX_DATA_SELECTED_OBJECTS, CTX_DATA_SELECTED_BASES)) {
+	if(CTX_data_equals(member, "selected_objects") || CTX_data_equals(member, "selected_bases")) {
+		int selected_objects= CTX_data_equals(member, "selected_objects");
+
 		for(base=scene->base.first; base; base=base->next) {
 			if((base->flag & SELECT) && (base->lay & v3d->lay)) {
 				if((base->object->restrictflag & OB_RESTRICT_VIEW)==0) {
-					if(member == CTX_DATA_SELECTED_OBJECTS)
-						CTX_data_list_add(result, base->object);
+					if(selected_objects)
+						CTX_data_id_list_add(result, &base->object->id);
 					else
-						CTX_data_list_add(result, base);
+						CTX_data_list_add(result, &scene->id, &RNA_UnknownType, base);
 				}
 			}
 		}
 
 		return 1;
 	}
-	else if(ELEM(member, CTX_DATA_SELECTED_EDITABLE_OBJECTS, CTX_DATA_SELECTED_EDITABLE_BASES)) {
+	else if(CTX_data_equals(member, "selected_editable_objects") || CTX_data_equals(member, "selected_editable_bases")) {
+		int selected_editable_objects= CTX_data_equals(member, "selected_editable_objects");
+
 		for(base=scene->base.first; base; base=base->next) {
 			if((base->flag & SELECT) && (base->lay & v3d->lay)) {
 				if((base->object->restrictflag & OB_RESTRICT_VIEW)==0) {
 					if(0==object_is_libdata(base->object)) {
-						if(member == CTX_DATA_SELECTED_EDITABLE_OBJECTS)
-							CTX_data_list_add(result, base->object);
+						if(selected_editable_objects)
+							CTX_data_id_list_add(result, &base->object->id);
 						else
-							CTX_data_list_add(result, base);
+							CTX_data_list_add(result, &scene->id, &RNA_UnknownType, base);
 					}
 				}
 			}
@@ -557,38 +570,41 @@ static int view3d_context(const bContext *C, bContextDataMember member, bContext
 		
 		return 1;
 	}
-	else if(ELEM(member, CTX_DATA_VISIBLE_OBJECTS, CTX_DATA_VISIBLE_BASES)) {
+	else if(CTX_data_equals(member, "visible_objects") || CTX_data_equals(member, "visible_bases")) {
+		int visible_objects= CTX_data_equals(member, "visible_objects");
+
 		for(base=scene->base.first; base; base=base->next) {
 			if(base->lay & v3d->lay) {
 				if((base->object->restrictflag & OB_RESTRICT_VIEW)==0) {
-					if(member == CTX_DATA_VISIBLE_OBJECTS)
-						CTX_data_list_add(result, base->object);
+					if(visible_objects)
+						CTX_data_id_list_add(result, &base->object->id);
 					else
-						CTX_data_list_add(result, base);
+						CTX_data_list_add(result, &scene->id, &RNA_UnknownType, base);
 				}
 			}
 		}
 		
 		return 1;
 	}
-	else if(member == CTX_DATA_ACTIVE_BASE) {
+	else if(CTX_data_equals(member, "active_base")) {
 		if(scene->basact && (scene->basact->lay & v3d->lay))
 			if((scene->basact->object->restrictflag & OB_RESTRICT_VIEW)==0)
-				CTX_data_pointer_set(result, scene->basact);
+				CTX_data_pointer_set(result, &scene->id, &RNA_UnknownType, scene->basact);
 		
 		return 1;
 	}
-	else if(member == CTX_DATA_ACTIVE_OBJECT) {
+	else if(CTX_data_equals(member, "active_object")) {
 		if(scene->basact && (scene->basact->lay & v3d->lay))
 			if((scene->basact->object->restrictflag & OB_RESTRICT_VIEW)==0)
-				CTX_data_pointer_set(result, scene->basact->object);
+				CTX_data_id_pointer_set(result, &scene->basact->object->id);
 		
 		return 1;
 	}
-	else if(ELEM(member, CTX_DATA_VISIBLE_BONES, CTX_DATA_EDITABLE_BONES)) {
+	else if(CTX_data_equals(member, "visible_bones") || CTX_data_equals(member, "editable_bones")) {
 		Object *obedit= scene->obedit; // XXX get from context?
 		bArmature *arm= (obedit) ? obedit->data : NULL;
 		EditBone *ebone, *flipbone=NULL;
+		int editable_bones= CTX_data_equals(member, "editable_bones");
 		
 		if (arm && arm->edbo) {
 			/* Attention: X-Axis Mirroring is also handled here... */
@@ -605,21 +621,21 @@ static int view3d_context(const bContext *C, bContextDataMember member, bContext
 						flipbone = ED_armature_bone_get_mirrored(arm->edbo, ebone);
 					
 					/* if we're filtering for editable too, use the check for that instead, as it has selection check too */
-					if (member == CTX_DATA_EDITABLE_BONES) {
+					if (editable_bones) {
 						/* only selected + editable */
 						if (EBONE_EDITABLE(ebone)) {
-							CTX_data_list_add(result, ebone);
+							CTX_data_list_add(result, &arm->id, &RNA_UnknownType, ebone);
 						
 							if ((flipbone) && !(flipbone->flag & BONE_SELECTED))
-								CTX_data_list_add(result, flipbone);
+								CTX_data_list_add(result, &arm->id, &RNA_UnknownType, flipbone);
 						}
 					}
 					else {
 						/* only include bones if visible */
-						CTX_data_list_add(result, ebone);
+						CTX_data_list_add(result, &arm->id, &RNA_UnknownType, ebone);
 						
 						if ((flipbone) && EBONE_VISIBLE(arm, flipbone)==0)
-							CTX_data_list_add(result, flipbone);
+							CTX_data_list_add(result, &arm->id, &RNA_UnknownType, flipbone);
 					}
 				}
 			}	
@@ -627,10 +643,11 @@ static int view3d_context(const bContext *C, bContextDataMember member, bContext
 			return 1;
 		}
 	}
-	else if(ELEM(member, CTX_DATA_SELECTED_BONES, CTX_DATA_SELECTED_EDITABLE_BONES)) {
+	else if(CTX_data_equals(member, "selected_bones") || CTX_data_equals(member, "selected_editable_bones")) {
 		Object *obedit= scene->obedit; // XXX get from context?
 		bArmature *arm= (obedit) ? obedit->data : NULL;
 		EditBone *ebone, *flipbone=NULL;
+		int selected_editable_bones= CTX_data_equals(member, "selected_editable_bones");
 		
 		if (arm && arm->edbo) {
 			/* Attention: X-Axis Mirroring is also handled here... */
@@ -647,21 +664,21 @@ static int view3d_context(const bContext *C, bContextDataMember member, bContext
 						flipbone = ED_armature_bone_get_mirrored(arm->edbo, ebone);
 					
 					/* if we're filtering for editable too, use the check for that instead, as it has selection check too */
-					if (member == CTX_DATA_SELECTED_EDITABLE_BONES) {
+					if (selected_editable_bones) {
 						/* only selected + editable */
 						if (EBONE_EDITABLE(ebone)) {
-							CTX_data_list_add(result, ebone);
+							CTX_data_list_add(result, &arm->id, &RNA_UnknownType, ebone);
 						
 							if ((flipbone) && !(flipbone->flag & BONE_SELECTED))
-								CTX_data_list_add(result, flipbone);
+								CTX_data_list_add(result, &arm->id, &RNA_UnknownType, flipbone);
 						}
 					}
 					else {
 						/* only include bones if selected */
-						CTX_data_list_add(result, ebone);
+						CTX_data_list_add(result, &arm->id, &RNA_UnknownType, ebone);
 						
 						if ((flipbone) && !(flipbone->flag & BONE_SELECTED))
-							CTX_data_list_add(result, flipbone);
+							CTX_data_list_add(result, &arm->id, &RNA_UnknownType, flipbone);
 					}
 				}
 			}	
@@ -669,7 +686,7 @@ static int view3d_context(const bContext *C, bContextDataMember member, bContext
 			return 1;
 		}
 	}
-	else if(member == CTX_DATA_VISIBLE_PCHANS) {
+	else if(CTX_data_equals(member, "visible_pchans")) {
 		Object *obact= OBACT;
 		bArmature *arm= (obact) ? obact->data : NULL;
 		bPoseChannel *pchan;
@@ -678,14 +695,14 @@ static int view3d_context(const bContext *C, bContextDataMember member, bContext
 			for (pchan= obact->pose->chanbase.first; pchan; pchan= pchan->next) {
 				/* ensure that PoseChannel is on visible layer and is not hidden in PoseMode */
 				if ((pchan->bone) && (arm->layer & pchan->bone->layer) && !(pchan->bone->flag & BONE_HIDDEN_P)) {
-					CTX_data_list_add(result, pchan);
+					CTX_data_list_add(result, &obact->id, &RNA_PoseChannel, pchan);
 				}
 			}
 			
 			return 1;
 		}
 	}
-	else if(member == CTX_DATA_SELECTED_PCHANS) {
+	else if(CTX_data_equals(member, "selected_pchans")) {
 		Object *obact= OBACT;
 		bArmature *arm= (obact) ? obact->data : NULL;
 		bPoseChannel *pchan;
@@ -695,14 +712,14 @@ static int view3d_context(const bContext *C, bContextDataMember member, bContext
 				/* ensure that PoseChannel is on visible layer and is not hidden in PoseMode */
 				if ((pchan->bone) && (arm->layer & pchan->bone->layer) && !(pchan->bone->flag & BONE_HIDDEN_P)) {
 					if (pchan->bone->flag & (BONE_SELECTED|BONE_ACTIVE)) 
-						CTX_data_list_add(result, pchan);
+						CTX_data_list_add(result, &obact->id, &RNA_PoseChannel, pchan);
 				}
 			}
 			
 			return 1;
 		}
 	}
-	else if(member == CTX_DATA_ACTIVE_BONE) {
+	else if(CTX_data_equals(member, "active_bone")) {
 		Object *obedit= scene->obedit; // XXX get from context?
 		bArmature *arm= (obedit) ? obedit->data : NULL;
 		EditBone *ebone;
@@ -711,7 +728,7 @@ static int view3d_context(const bContext *C, bContextDataMember member, bContext
 			for (ebone= arm->edbo->first; ebone; ebone= ebone->next) {
 				if (EBONE_VISIBLE(arm, ebone)) {
 					if (ebone->flag & BONE_ACTIVE) {
-						CTX_data_pointer_set(result, ebone);
+						CTX_data_pointer_set(result, &arm->id, &RNA_UnknownType, ebone);
 						
 						return 1;
 					}
@@ -720,13 +737,13 @@ static int view3d_context(const bContext *C, bContextDataMember member, bContext
 		}
 		
 	}
-	else if(member == CTX_DATA_ACTIVE_PCHAN) {
+	else if(CTX_data_equals(member, "active_pchan")) {
 		Object *obact= OBACT;
 		bPoseChannel *pchan;
 		
 		pchan= get_active_posechannel(obact);
 		if (pchan) {
-			CTX_data_pointer_set(result, pchan);
+			CTX_data_pointer_set(result, &obact->id, &RNA_PoseChannel, pchan);
 			return 1;
 		}
 	}

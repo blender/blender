@@ -28,6 +28,8 @@ if env['WITH_BF_QUICKTIME']:
 
 if env['WITH_BF_SDL']:
 	incs += ' ' + env['BF_SDL_INC']
+else:
+	defs += ' DISABLE_SDL'
 
 if env['WITH_BF_INTERNATIONAL']:
 	defs += ' WITH_FREETYPE2'

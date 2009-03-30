@@ -59,106 +59,133 @@ struct _FSMenuEntry {
 
 	char *path;
 	short save;
+	short xs, ys;
 };
 
-static FSMenuEntry *fsmenu= 0;
+typedef struct FSMenu
+{
+	FSMenuEntry *fsmenu_system;
+	FSMenuEntry *fsmenu_bookmarks;
+	FSMenuEntry *fsmenu_recent;
 
-int fsmenu_get_nentries(void)
+	FSMenuCategory selected_category;
+	int selected_entry;
+
+} FSMenu;
+
+static FSMenu *g_fsmenu = NULL;
+
+struct FSMenu* fsmenu_get(void)
+{
+	if (!g_fsmenu) {
+		g_fsmenu=MEM_callocN(sizeof(struct FSMenu), "fsmenu");
+	}
+	return g_fsmenu;
+}
+
+void fsmenu_select_entry(struct FSMenu* fsmenu, FSMenuCategory category, int index)
+{
+	fsmenu->selected_category = category;
+	fsmenu->selected_entry = index;
+}
+
+int	fsmenu_is_selected(struct FSMenu* fsmenu, FSMenuCategory category, int index)
+{
+	return (category==fsmenu->selected_category) && (index==fsmenu->selected_entry);
+}
+
+static FSMenuEntry *fsmenu_get_category(struct FSMenu* fsmenu, FSMenuCategory category)
+{
+	FSMenuEntry *fsms = NULL;
+
+	switch(category) {
+		case FS_CATEGORY_SYSTEM:
+			fsms = fsmenu->fsmenu_system;
+			break;
+		case FS_CATEGORY_BOOKMARKS:
+			fsms = fsmenu->fsmenu_bookmarks;
+			break;
+		case FS_CATEGORY_RECENT:
+			fsms = fsmenu->fsmenu_recent;
+			break;
+	}
+	return fsms;
+}
+
+static void fsmenu_set_category(struct FSMenu* fsmenu, FSMenuCategory category, FSMenuEntry *fsms)
+{
+	switch(category) {
+		case FS_CATEGORY_SYSTEM:
+			fsmenu->fsmenu_system = fsms;
+			break;
+		case FS_CATEGORY_BOOKMARKS:
+			fsmenu->fsmenu_bookmarks = fsms;
+			break;
+		case FS_CATEGORY_RECENT:
+			fsmenu->fsmenu_recent = fsms;
+			break;
+	}
+}
+
+int fsmenu_get_nentries(struct FSMenu* fsmenu, FSMenuCategory category)
 {
 	FSMenuEntry *fsme;
 	int count= 0;
 
-	for (fsme= fsmenu; fsme; fsme= fsme->next) 
+	for (fsme= fsmenu_get_category(fsmenu, category); fsme; fsme= fsme->next) 
 		count++;
 
 	return count;
 }
-int fsmenu_is_entry_a_separator(int idx)
+
+char *fsmenu_get_entry(struct FSMenu* fsmenu, FSMenuCategory category, int idx)
 {
 	FSMenuEntry *fsme;
 
-	for (fsme= fsmenu; fsme && idx; fsme= fsme->next)
-		idx--;
-
-	return (fsme && !fsme->path)?1:0;
-}
-char *fsmenu_get_entry(int idx)
-{
-	FSMenuEntry *fsme;
-
-	for (fsme= fsmenu; fsme && idx; fsme= fsme->next)
+	for (fsme= fsmenu_get_category(fsmenu, category); fsme && idx; fsme= fsme->next)
 		idx--;
 
 	return fsme?fsme->path:NULL;
 }
-char *fsmenu_build_menu(void)
-{
-	DynStr *ds= BLI_dynstr_new();
-	FSMenuEntry *fsme;
-	char *menustr;
 
-	for (fsme= fsmenu; fsme; fsme= fsme->next) {
-		if (!fsme->path) {
-				/* clean consecutive seperators and ignore trailing ones */
-			if (fsme->next) {
-				if (fsme->next->path) {
-					BLI_dynstr_append(ds, "%l|");
-				} else {
-					FSMenuEntry *next= fsme->next;
-					fsme->next= next->next;
-					MEM_freeN(next);
-				}
-			}
-		} else {
-			if (fsme->save) {
-				BLI_dynstr_append(ds, "o ");
-			} else {
-				BLI_dynstr_append(ds, "  ");
-			}
-			BLI_dynstr_append(ds, fsme->path);
-			if (fsme->next) BLI_dynstr_append(ds, "|");
-		}
+void fsmenu_set_pos(struct FSMenu* fsmenu, FSMenuCategory category, int idx, short xs, short ys)
+{
+	FSMenuEntry *fsme;
+
+	for (fsme= fsmenu_get_category(fsmenu, category); fsme && idx; fsme= fsme->next)
+		idx--;
+
+	if (fsme) {
+		fsme->xs = xs;
+		fsme->ys = ys;
+	}
+}
+
+int	fsmenu_get_pos (struct FSMenu* fsmenu, FSMenuCategory category, int idx, short* xs, short* ys)
+{
+	FSMenuEntry *fsme;
+
+	for (fsme= fsmenu_get_category(fsmenu, category); fsme && idx; fsme= fsme->next)
+		idx--;
+
+	if (fsme) {
+		*xs = fsme->xs;
+		*ys = fsme->ys;
+		return 1;
 	}
 
-	menustr= BLI_dynstr_get_cstring(ds);
-	BLI_dynstr_free(ds);
-	return menustr;
-}
-static FSMenuEntry *fsmenu_get_last_separator(void) 
-{
-	FSMenuEntry *fsme, *lsep=NULL;
-
-	for (fsme= fsmenu; fsme; fsme= fsme->next)
-		if (!fsme->path)
-			lsep= fsme;
-
-	return lsep;
+	return 0;
 }
 
-static FSMenuEntry *fsmenu_get_first_separator(void) 
-{
-	FSMenuEntry *fsme, *lsep=NULL;
 
-	for (fsme= fsmenu; fsme; fsme= fsme->next)
-		if (!fsme->path) {
-			lsep= fsme;
-			break;
-		}
-
-	return lsep;
-}
-
-void fsmenu_insert_entry(char *path, int sorted, short save)
+void fsmenu_insert_entry(struct FSMenu* fsmenu, FSMenuCategory category, char *path, int sorted, short save)
 {
 	FSMenuEntry *prev;
 	FSMenuEntry *fsme;
+	FSMenuEntry *fsms;
 
-	if (save) {
-		prev = fsmenu_get_first_separator();
-	} else {
-		prev = fsmenu_get_last_separator();
-	}
-	fsme= prev?prev->next:fsmenu;
+	fsms = fsmenu_get_category(fsmenu, category);
+	prev= fsme= fsms;
 
 	for (; fsme; prev= fsme, fsme= fsme->next) {
 		if (fsme->path) {
@@ -185,27 +212,17 @@ void fsmenu_insert_entry(char *path, int sorted, short save)
 		fsme->next= prev->next;
 		prev->next= fsme;
 	} else {
-		fsme->next= fsmenu;
-		fsmenu= fsme;
+		fsme->next= fsms;
+		fsmenu_set_category(fsmenu, category, fsme);
 	}
 }
-void fsmenu_append_separator(void)
+
+void fsmenu_remove_entry(struct FSMenu* fsmenu, FSMenuCategory category, int idx)
 {
-	if (fsmenu) {
-		FSMenuEntry *fsme= fsmenu;
+	FSMenuEntry *prev= NULL, *fsme= NULL;
+	FSMenuEntry *fsms = fsmenu_get_category(fsmenu, category);
 
-		while (fsme->next) fsme= fsme->next;
-
-		fsme->next= MEM_mallocN(sizeof(*fsme), "fsme");
-		fsme->next->next= NULL;
-		fsme->next->path= NULL;
-	}
-}
-void fsmenu_remove_entry(int idx)
-{
-	FSMenuEntry *prev= NULL, *fsme= fsmenu;
-
-	for (fsme= fsmenu; fsme && idx; prev= fsme, fsme= fsme->next)		
+	for (fsme= fsms; fsme && idx; prev= fsme, fsme= fsme->next)		
 		idx--;
 
 	if (fsme) {
@@ -218,7 +235,8 @@ void fsmenu_remove_entry(int idx)
 			if (prev) {
 				prev->next= fsme->next;
 			} else {
-				fsmenu= fsme->next;
+				fsms= fsme->next;
+				fsmenu_set_category(fsmenu, category, fsms);
 			}
 			/* free entry */
 			MEM_freeN(fsme->path);
@@ -227,14 +245,22 @@ void fsmenu_remove_entry(int idx)
 	}
 }
 
-void fsmenu_write_file(const char *filename)
+void fsmenu_write_file(struct FSMenu* fsmenu, const char *filename)
 {
-	FSMenuEntry *fsme= fsmenu;
+	FSMenuEntry *fsme= NULL;
+	int count=FSMENU_RECENT_MAX;
 
 	FILE *fp = fopen(filename, "w");
 	if (!fp) return;
-
-	for (fsme= fsmenu; fsme; fsme= fsme->next) {
+	
+	fprintf(fp, "[Bookmarks]\n");
+	for (fsme= fsmenu_get_category(fsmenu, FS_CATEGORY_BOOKMARKS); fsme; fsme= fsme->next) {
+		if (fsme->path && fsme->save) {
+			fprintf(fp, "%s\n", fsme->path);
+		}
+	}
+	fprintf(fp, "[Recent]\n");
+	for (fsme= fsmenu_get_category(fsmenu, FS_CATEGORY_RECENT); fsme && count; fsme= fsme->next, --count) {
 		if (fsme->path && fsme->save) {
 			fprintf(fp, "%s\n", fsme->path);
 		}
@@ -242,9 +268,10 @@ void fsmenu_write_file(const char *filename)
 	fclose(fp);
 }
 
-void fsmenu_read_file(const char *filename)
+void fsmenu_read_file(struct FSMenu* fsmenu, const char *filename)
 {
 	char line[256];
+	FSMenuCategory category = FS_CATEGORY_BOOKMARKS;
 	FILE *fp;
 
 	#ifdef WIN32
@@ -264,19 +291,15 @@ void fsmenu_read_file(const char *filename)
 				tmps[2]='\\';
 				tmps[3]=0;
 				
-				fsmenu_insert_entry(tmps, 0, 0);
+				fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM, tmps, 1, 0);
 			}
 		}
 
 		/* Adding Desktop and My Documents */
-		fsmenu_append_separator();
-
 		SHGetSpecialFolderPath(0, folder, CSIDL_PERSONAL, 0);
-		fsmenu_insert_entry(folder, 0, 0);
+		fsmenu_insert_entry(fsmenu,FS_CATEGORY_BOOKMARKS, folder, 1, 0);
 		SHGetSpecialFolderPath(0, folder, CSIDL_DESKTOPDIRECTORY, 0);
-		fsmenu_insert_entry(folder, 0, 0);
-
-		fsmenu_append_separator();
+		fsmenu_insert_entry(fsmenu, FS_CATEGORY_BOOKMARKS, folder, 1, 0);
 	}
 #endif
 
@@ -285,20 +308,26 @@ void fsmenu_read_file(const char *filename)
 
 	while ( fgets ( line, 256, fp ) != NULL ) /* read a line */
 	{
-		int len = strlen(line);
-		if (len>0) {
-			if (line[len-1] == '\n') {
-				line[len-1] = '\0';
+		if (strncmp(line, "[Bookmarks]", 11)==0){
+			category = FS_CATEGORY_BOOKMARKS;
+		} else if (strncmp(line, "[Recent]", 8)==0){
+			category = FS_CATEGORY_RECENT;
+		} else {
+			int len = strlen(line);
+			if (len>0) {
+				if (line[len-1] == '\n') {
+					line[len-1] = '\0';
+				}
+				fsmenu_insert_entry(fsmenu, category, line, 0, 1);
 			}
-			fsmenu_insert_entry(line, 0, 1);
 		}
 	}
 	fclose(fp);
 }
 
-void fsmenu_free(void)
+static void fsmenu_free_category(struct FSMenu* fsmenu, FSMenuCategory category)
 {
-	FSMenuEntry *fsme= fsmenu;
+	FSMenuEntry *fsme= fsmenu_get_category(fsmenu, category);
 
 	while (fsme) {
 		FSMenuEntry *n= fsme->next;
@@ -310,5 +339,11 @@ void fsmenu_free(void)
 	}
 }
 
-
+void fsmenu_free(struct FSMenu* fsmenu)
+{
+	fsmenu_free_category(fsmenu, FS_CATEGORY_SYSTEM);
+	fsmenu_free_category(fsmenu, FS_CATEGORY_BOOKMARKS);
+	fsmenu_free_category(fsmenu, FS_CATEGORY_RECENT);
+	MEM_freeN(fsmenu);
+}
 

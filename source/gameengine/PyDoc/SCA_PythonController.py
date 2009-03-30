@@ -15,7 +15,17 @@ class SCA_PythonController(SCA_IController):
 	             This can be used with the GameObject's state to test if the controller is active.
 	@type state: integer
 	"""
-
+	def activate(actuator):
+		"""
+		Activates an actuator attached to this controller.
+		@type actuator: actuator or the actuator name as a string
+		"""
+	def deactivate(actuator):
+		"""
+		Deactivates an actuator attached to this controller.
+		@type actuator: actuator or the actuator name as a string
+		"""
+		
 	def getSensors():
 		"""
 		Gets a list of all sensors attached to this controller.

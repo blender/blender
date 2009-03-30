@@ -31,9 +31,11 @@
 struct bContext;
 struct wmWindowManager;
 struct bAnimContext;
+struct bAnimListElem;
 struct SpaceIpo;
 struct ScrArea;
 struct ARegion;
+struct View2DGrid;
 
 /* internal exports only */
 
@@ -44,7 +46,7 @@ struct ARegion *graph_has_buttons_region(struct ScrArea *sa);
 /* ***************************************** */
 /* graph_draw.c */
 void graph_draw_channel_names(struct bAnimContext *ac, struct SpaceIpo *sipo, struct ARegion *ar);
-void graph_draw_curves(struct bAnimContext *ac, struct SpaceIpo *sipo, struct ARegion *ar);
+void graph_draw_curves(struct bAnimContext *ac, struct SpaceIpo *sipo, struct ARegion *ar, struct View2DGrid *grid);
 
 /* ***************************************** */
 /* graph_header.c */
@@ -53,8 +55,8 @@ void graph_header_buttons(const bContext *C, struct ARegion *ar);
 /* ***************************************** */
 /* graph_select.c */
 
-void GRAPHEDIT_OT_keyframes_deselectall(struct wmOperatorType *ot);
-void GRAPHEDIT_OT_keyframes_borderselect(struct wmOperatorType *ot);
+void GRAPHEDIT_OT_keyframes_select_all_toggle(struct wmOperatorType *ot);
+void GRAPHEDIT_OT_keyframes_select_border(struct wmOperatorType *ot);
 void GRAPHEDIT_OT_keyframes_columnselect(struct wmOperatorType *ot);
 void GRAPHEDIT_OT_keyframes_clickselect(struct wmOperatorType *ot);
 
@@ -77,7 +79,7 @@ enum {
 /* ***************************************** */
 /* graph_edit.c */
 
-void GRAPHEDIT_OT_set_previewrange(struct wmOperatorType *ot);
+void GRAPHEDIT_OT_previewrange_set(struct wmOperatorType *ot);
 void GRAPHEDIT_OT_view_all(struct wmOperatorType *ot);
 
 void GRAPHEDIT_OT_keyframes_copy(struct wmOperatorType *ot);
@@ -119,10 +121,16 @@ enum {
 	GRAPHKEYS_MIRROR_MARKER,
 } eGraphKeys_Mirror_Mode;
 
+/* ----------- */
+
+void GRAPHEDIT_OT_fmodifier_add(struct wmOperatorType *ot);
+
 /* ***************************************** */
 /* graph_buttons.c */
 void GRAPHEDIT_OT_properties(struct wmOperatorType *ot);
 void graph_region_buttons(const struct bContext *C, struct ARegion *ar);
+
+struct bAnimListElem *get_active_fcurve_channel(struct bAnimContext *ac);
 
 /* ***************************************** */
 /* graph_ops.c */

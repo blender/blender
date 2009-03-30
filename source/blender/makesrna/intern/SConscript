@@ -2,19 +2,19 @@
 import sys
 import os
 
-ap = os.path.abspath
+def normpath(path):
+	return os.path.abspath(os.path.normpath(path))
 
 Import ('env')
 cflags = '-Wall'
 defines = []
-root_build_dir=ap(env['BF_BUILDDIR'])
+root_build_dir=normpath(env['BF_BUILDDIR'])
 
 source_files = env.Glob('*.c')
 
 # making rna_access.c part of both makesrna and blender seems to
 # give conflict, how to solve?
 source_files.remove('rna_access.c')
-source_files.remove('rna_dependency.c')
 
 generated_files = source_files[:]
 generated_files.remove('rna_define.c')
@@ -76,20 +76,20 @@ rna_dict = rna.Dictionary()
 rna.Depends (generated_files, makesrna)
 
 # this seems bad, how to retrieve it from scons?
-build_dir = ap(root_build_dir + '/source/blender/makesrna/intern') + "/"
+build_dir = root_build_dir + '/source/blender/makesrna/intern/'
 
 if env['OURPLATFORM'] != 'linuxcross':
-    rna.Command (generated_files, '', ap(root_build_dir+os.sep+"makesrna ") + " \"" + build_dir + "\"")
+    rna.Command (generated_files, '', root_build_dir+os.sep+"makesrna " + build_dir)
 else:
-    rna.Command (generated_files, '', ap(root_build_dir+os.sep+"makesrna.exe") + " \""  + build_dir + "\"")
+    rna.Command (generated_files, '', root_build_dir+os.sep+"makesrna.exe "  + build_dir)
 	
     if USE_WINE:
-        rna.Command (generated_files, '', ap('wine ' + root_build_dir+os.sep+"makesrna.exe") + " \""  + build_dir + "\"")
+        rna.Command (generated_files, '', 'wine ' + root_build_dir+os.sep+"makesrna.exe "  + build_dir)
     else:
-        rna.Command (generated_files, '', ap(root_build_dir+os.sep+"makesrna.exe") + " \""  + build_dir + "\"")
+        rna.Command (generated_files, '', root_build_dir+os.sep+"makesrna.exe "  + build_dir)
 
 
-obj = ['intern/rna_access.c', 'intern/rna_dependency.c']
+obj = ['intern/rna_access.c']
 for generated_file in generated_files:
 	obj += ['intern/' + generated_file]
 

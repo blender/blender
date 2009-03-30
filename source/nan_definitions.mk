@@ -1,3 +1,5 @@
+# -*- mode: gnumakefile; tab-width: 8; indent-tabs-mode: t; -*-
+# vim: tabstop=8
 #
 # $Id$
 #
@@ -22,7 +24,7 @@
 #
 # The Original Code is: all of this file.
 #
-# Contributor(s): none yet.
+# Contributor(s): GSR
 #
 # ***** END GPL LICENSE BLOCK *****
 #
@@ -31,14 +33,25 @@
 
 sinclude ../user-def.mk
 
+# This warning only takes place once in source/
+ifeq (debug, $(findstring debug, $(MAKECMDGOALS)))
+  ifeq (all, $(findstring all, $(MAKECMDGOALS)))
+    export ERRTXT = "ERROR: all and debug targets cannot be used together anymore"
+    export ERRTXT += "Use something like ..make all && make debug.. instead"
+  endif
+endif
+
+ifdef ERRTXT
+$(error $(ERRTXT))
+endif
+
 ifndef CONFIG_GUESS
   ifeq (debug, $(findstring debug, $(MAKECMDGOALS)))
-    ifeq (all, $(findstring all, $(MAKECMDGOALS)))
-all debug::
-      ERRTXT = "ERROR: all and debug targets cannot be used together anymore"
-      ERRTXT += "Use something like ..make all && make debug.. instead"
-      $(error $(ERRTXT))
-    endif
+    export DEBUG_DIR = debug/
+    export ALL_OR_DEBUG = debug
+  endif
+  ifeq (all, $(findstring all, $(MAKECMDGOALS)))
+    export ALL_OR_DEBUG ?= all
   endif
 
   # First generic defaults for all platforms which should be constant.
@@ -111,6 +124,7 @@ endif
 
     export WITH_OPENEXR ?= true
     export WITH_DDS ?= true
+    export WITH_OPENJPEG ?= true
 
     ifeq ($(OS),windows)
       export NAN_WINTAB ?= $(LCGDIR)/wintab
@@ -135,9 +149,9 @@ endif
       else
         ifeq ($(OS),linux)
           ifeq ($(WITH_OPENEXR), true)
-            NAN_OPENEXR?=$(shell pkg-config --variable=prefix OpenEXR )
-            NAN_OPENEXR_INC?=$(shell pkg-config --cflags OpenEXR )
-            NAN_OPENEXR_LIBS?=$(addprefix ${NAN_OPENEXR}/lib/lib,$(addsuffix .a,$(shell pkg-config --libs-only-l OpenEXR | sed -s "s/-l//g" )))
+            export NAN_OPENEXR?=$(shell pkg-config --variable=prefix OpenEXR )
+            export NAN_OPENEXR_INC?=$(shell pkg-config --cflags OpenEXR )
+            export NAN_OPENEXR_LIBS?=$(addprefix ${NAN_OPENEXR}/lib/lib,$(addsuffix .a,$(shell pkg-config --libs-only-l OpenEXR | sed -s "s/-l//g" )))
           endif
         else
           ifeq ($(OS), solaris)
@@ -157,9 +171,9 @@ endif
           endif
         endif
       endif
-		 	ifeq ($(WITH_OPENEXR), true)
-				export NAN_OPENEXR_INC ?= -I$(NAN_OPENEXR)/include -I$(NAN_OPENEXR)/include/OpenEXR
-			endif
+      ifeq ($(WITH_OPENEXR), true)
+        export NAN_OPENEXR_INC ?= -I$(NAN_OPENEXR)/include -I$(NAN_OPENEXR)/include/OpenEXR
+      endif
 
     endif
   # Platform Dependent settings go below:

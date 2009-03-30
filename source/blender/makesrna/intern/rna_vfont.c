@@ -45,7 +45,7 @@ void RNA_def_vfont(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "VFont");
 
 	prop= RNA_def_property(srna, "filename", PROP_STRING, PROP_FILEPATH);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_string_sdna(prop, NULL, "name");
 	RNA_def_property_ui_text(prop, "Filename", "");
 

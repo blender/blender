@@ -80,8 +80,9 @@ typedef struct NumInput {
 typedef struct TransSnap {
 	short	modePoint;
 	short	modeTarget;
-	int		mode;
-	int  	status;
+	short	mode;
+	short	align;
+	short  	status;
 	float	snapPoint[3];
 	float	snapTarget[3];
 	float	snapNormal[3];
@@ -214,7 +215,7 @@ typedef struct TransInfo {
     NDofInput   ndof;           /* ndof input                           */
     MouseInput	mouse;			/* mouse input                          */
     char        redraw;         /* redraw flag                          */
-	float		propsize;		/* proportional circle radius           */
+	float		prop_size;		/* proportional circle radius           */
 	char		proptext[20];	/* proportional falloff text			*/
     float       center[3];      /* center of transformation             */
     int         center2d[2];    /* center in screen coordinates         */
@@ -245,7 +246,12 @@ typedef struct TransInfo {
 
 	/*************** NEW STUFF *********************/
 
+	short		current_orientation;
+
+	short		prop_mode;
+
 	float		values[4];
+	float		auto_values[4];
 	void		*view;
 	struct ScrArea	*sa;
 	struct ARegion	*ar;
@@ -303,6 +309,13 @@ typedef struct TransInfo {
 	/* auto-ik is on */
 #define T_AUTOIK			(1 << 18)
 
+#define T_MIRROR			(1 << 19)
+
+#define T_AUTOVALUES		(1 << 20)
+
+	/* to specificy if we save back settings at the end */
+#define	T_MODAL				(1 << 21)
+
 /* TransInfo->modifiers */
 #define	MOD_CONSTRAINT_SELECT	0x01
 #define	MOD_PRECISION			0x02
@@ -335,11 +348,13 @@ typedef struct TransInfo {
 #define TD_BEZTRIPLE		(1 << 12)	/* if this is a bez triple, we need to restore the handles, if this is set transdata->misc.hdata needs freeing */
 #define TD_NO_LOC			(1 << 13)	/* when this is set, don't apply translation changes to this element */
 #define TD_NOTIMESNAP		(1 << 14)	/* for Graph Editor autosnap, indicates that point should not undergo autosnapping */
+#define TD_INTVALUES	 	(1 << 15) 	/* for Graph Editor - curves that can only have int-values need their keyframes tagged with this */
 
 /* transsnap->status */
 #define SNAP_ON			1
-#define TARGET_INIT		2
-#define POINT_INIT		4
+#define SNAP_FORCED		2
+#define TARGET_INIT		4
+#define POINT_INIT		8
 
 /* transsnap->modePoint */
 #define SNAP_GRID			0
@@ -354,7 +369,7 @@ typedef struct TransInfo {
 
 void TFM_OT_transform(struct wmOperatorType *ot);
 
-void initTransform(struct bContext *C, struct TransInfo *t, struct wmOperator *op, struct wmEvent *event);
+int initTransform(struct bContext *C, struct TransInfo *t, struct wmOperator *op, struct wmEvent *event, int mode);
 void saveTransform(struct bContext *C, struct TransInfo *t, struct wmOperator *op);
 void transformEvent(TransInfo *t, struct wmEvent *event);
 void transformApply(struct bContext *C, TransInfo *t);
@@ -441,7 +456,7 @@ void initAlign(TransInfo *t);
 int Align(TransInfo *t, short mval[2]);
 
 
-void drawPropCircle(TransInfo *t);
+void drawPropCircle(const struct bContext *C, TransInfo *t);
 
 /*********************** transform_conversions.c ********** */
 struct ListBase;
@@ -475,7 +490,7 @@ void autokeyframe_pose_cb_func(struct Scene *scene, struct View3D *v3d, struct O
 
 /*********************** Constraints *****************************/
 
-void drawConstraint(TransInfo *t);
+void drawConstraint(const struct bContext *C, TransInfo *t);
 
 void getConstraintMatrix(TransInfo *t);
 void setConstraint(TransInfo *t, float space[3][3], int mode, const char text[]);
@@ -509,11 +524,11 @@ typedef enum {
 void snapGrid(TransInfo *t, float *val);
 void snapGridAction(TransInfo *t, float *val, GearsType action);
 
-void initSnapping(struct TransInfo *t);
+void initSnapping(struct TransInfo *t, struct wmOperator *op);
 void applySnapping(TransInfo *t, float *vec);
 void resetSnapping(TransInfo *t);
 int  handleSnapping(TransInfo *t, struct wmEvent *event);
-void drawSnapping(TransInfo *t);
+void drawSnapping(const struct bContext *C, TransInfo *t);
 int usingSnappingNormal(TransInfo *t);
 int validSnappingNormal(TransInfo *t);
 
@@ -539,7 +554,7 @@ void applyMouseInput(struct TransInfo *t, struct MouseInput *mi, short mval[2], 
 
 /*********************** Generics ********************************/
 
-void initTransInfo(struct bContext *C, TransInfo *t, struct wmEvent *event);
+int initTransInfo(struct bContext *C, TransInfo *t, struct wmOperator *op, struct wmEvent *event);
 void postTrans (TransInfo *t);
 void resetTransRestrictions(TransInfo *t);
 

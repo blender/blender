@@ -126,7 +126,7 @@ static void rna_def_bone(BlenderRNA *brna)
 	
 	/* strings */
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE); /* must be unique */
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE); /* must be unique */
 	RNA_def_property_ui_text(prop, "Name", "");
 	RNA_def_struct_name_property(srna, prop);
 	
@@ -190,7 +190,7 @@ static void rna_def_bone(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "cyclic_offset", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", BONE_NO_CYCLICOFFSET);
-	RNA_def_property_ui_text(prop, "Cyclic Offset", "When bone doesn't have a parent, it recieves cyclic offset effects.");
+	RNA_def_property_ui_text(prop, "Cyclic Offset", "When bone doesn't have a parent, it receives cyclic offset effects.");
 	
 	prop= RNA_def_property(srna, "editmode_locked", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BONE_EDITMODE_LOCKED);
@@ -244,7 +244,7 @@ static void rna_def_bone(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "roll", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 0.0f, 2.0f);
-	RNA_def_property_ui_text(prop, "Bone Roll", "In Edit Mode, the 'roll' (i.e. rotation around the bone vector, equivilant to local Y-axis rotation).");
+	RNA_def_property_ui_text(prop, "Bone Roll", "In Edit Mode, the 'roll' (i.e. rotation around the bone vector, equivalent to local Y-axis rotation).");
 }
 
 void rna_def_armature(BlenderRNA *brna)

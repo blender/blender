@@ -65,10 +65,11 @@
 static int mesh_add_duplicate_exec(bContext *C, wmOperator *op)
 {
 	Object *ob= CTX_data_edit_object(C);
-	EditMesh *em= ((Mesh *)ob->data)->edit_mesh;
+	EditMesh *em= EM_GetEditMesh(ob->data);
 
 	adduplicateflag(em, SELECT);
 	
+	EM_EndEditMesh(ob->data, em);
 	return OPERATOR_FINISHED;
 }
 
@@ -84,12 +85,12 @@ static int mesh_add_duplicate_invoke(bContext *C, wmOperator *op, wmEvent *event
 	return OPERATOR_FINISHED;
 }
 
-static void MESH_OT_add_duplicate(wmOperatorType *ot)
+static void MESH_OT_duplicate_add(wmOperatorType *ot)
 {
 	
 	/* identifiers */
 	ot->name= "Add Duplicate";
-	ot->idname= "MESH_OT_add_duplicate";
+	ot->idname= "MESH_OT_duplicate_add";
 	
 	/* api callbacks */
 	ot->invoke= mesh_add_duplicate_invoke;
@@ -106,7 +107,7 @@ static void MESH_OT_add_duplicate(wmOperatorType *ot)
 
 void ED_operatortypes_mesh(void)
 {
-	WM_operatortype_append(MESH_OT_de_select_all);
+	WM_operatortype_append(MESH_OT_select_all_toggle);
 	WM_operatortype_append(MESH_OT_select_more);
 	WM_operatortype_append(MESH_OT_select_less);
 	WM_operatortype_append(MESH_OT_select_invert);
@@ -135,18 +136,18 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_add_primitive_monkey);
 	WM_operatortype_append(MESH_OT_add_primitive_uv_sphere);
 	WM_operatortype_append(MESH_OT_add_primitive_ico_sphere);
-	WM_operatortype_append(MESH_OT_clear_fgon);
-	WM_operatortype_append(MESH_OT_make_fgon);
-	WM_operatortype_append(MESH_OT_add_duplicate);
-	WM_operatortype_append(MESH_OT_removedoublesflag);
+	WM_operatortype_append(MESH_OT_fgon_clear);
+	WM_operatortype_append(MESH_OT_fgon_make);
+	WM_operatortype_append(MESH_OT_duplicate_add);
+	WM_operatortype_append(MESH_OT_remove_doubles);
 	WM_operatortype_append(MESH_OT_extrude);
 	WM_operatortype_append(MESH_OT_spin);
 	WM_operatortype_append(MESH_OT_screw);
 	
 	WM_operatortype_append(MESH_OT_vertices_to_sphere);
-	WM_operatortype_append(MESH_OT_split_mesh);
+	WM_operatortype_append(MESH_OT_split);
 	WM_operatortype_append(MESH_OT_extrude_repeat);
-	WM_operatortype_append(MESH_OT_edge_rotate_selected);
+	WM_operatortype_append(MESH_OT_edge_rotate);
 	WM_operatortype_append(MESH_OT_loop_to_region);
 	WM_operatortype_append(MESH_OT_region_to_loop);
 	
@@ -167,13 +168,13 @@ void ED_operatortypes_mesh(void)
 
 	WM_operatortype_append(MESH_OT_separate);
 	WM_operatortype_append(MESH_OT_dupli_extrude_cursor);
-	WM_operatortype_append(MESH_OT_loop_select);
+	WM_operatortype_append(MESH_OT_select_loop);
 	WM_operatortype_append(MESH_OT_add_edge_face);
-	WM_operatortype_append(MESH_OT_shortest_path_select);
-	WM_operatortype_append(MESH_OT_similar_vertex_select);
-	WM_operatortype_append(MESH_OT_similar_edge_select);
-	WM_operatortype_append(MESH_OT_similar_face_select);
-	WM_operatortype_append(MESH_OT_select_multi_loop);
+	WM_operatortype_append(MESH_OT_select_path_shortest);
+	WM_operatortype_append(MESH_OT_select_vertex_similar);
+	WM_operatortype_append(MESH_OT_select_edge_similar);
+	WM_operatortype_append(MESH_OT_select_face_similar);
+	WM_operatortype_append(MESH_OT_select_loop_multi);
 	WM_operatortype_append(MESH_OT_mark_seam);
 	WM_operatortype_append(MESH_OT_mark_sharp);
 	WM_operatortype_append(MESH_OT_smooth_vertex);
@@ -193,18 +194,18 @@ void ED_keymap_mesh(wmWindowManager *wm)
 	
 	/* selecting */
 	/* standard mouse selection goes via space_view3d */
-	WM_keymap_add_item(keymap, "MESH_OT_loop_select", SELECTMOUSE, KM_PRESS, KM_ALT, 0);
-	kmi= WM_keymap_add_item(keymap, "MESH_OT_loop_select", SELECTMOUSE, KM_PRESS, KM_SHIFT|KM_ALT, 0);
+	WM_keymap_add_item(keymap, "MESH_OT_select_loop", SELECTMOUSE, KM_PRESS, KM_ALT, 0);
+	kmi= WM_keymap_add_item(keymap, "MESH_OT_select_loop", SELECTMOUSE, KM_PRESS, KM_SHIFT|KM_ALT, 0);
 	RNA_boolean_set(kmi->ptr, "extend", 1);
-	kmi= WM_keymap_add_item(keymap, "MESH_OT_loop_select", SELECTMOUSE, KM_PRESS, KM_ALT|KM_CTRL, 0);
+	kmi= WM_keymap_add_item(keymap, "MESH_OT_select_loop", SELECTMOUSE, KM_PRESS, KM_ALT|KM_CTRL, 0);
 	RNA_boolean_set(kmi->ptr, "ring", 1);
-	kmi= WM_keymap_add_item(keymap, "MESH_OT_loop_select", SELECTMOUSE, KM_PRESS, KM_SHIFT|KM_ALT|KM_CTRL, 0);
+	kmi= WM_keymap_add_item(keymap, "MESH_OT_select_loop", SELECTMOUSE, KM_PRESS, KM_SHIFT|KM_ALT|KM_CTRL, 0);
 	RNA_boolean_set(kmi->ptr, "extend", 1);
 	RNA_boolean_set(kmi->ptr, "ring", 1);
 
-	WM_keymap_add_item(keymap, "MESH_OT_shortest_path_select", SELECTMOUSE, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "MESH_OT_select_path_shortest", SELECTMOUSE, KM_PRESS, KM_CTRL, 0);
 	
-	WM_keymap_add_item(keymap, "MESH_OT_de_select_all", AKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "MESH_OT_select_all_toggle", AKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_select_more", PADPLUSKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_select_less", PADMINUS, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_select_invert", IKEY, KM_PRESS, KM_CTRL, 0);
@@ -227,9 +228,9 @@ void ED_keymap_mesh(wmWindowManager *wm)
 	RNA_boolean_set(WM_keymap_add_item(keymap, "MESH_OT_mark_sharp", TWOKEY, KM_PRESS, KM_ALT , 0)->ptr,"set",1);
 
 	/* temp hotkeys! */
-	WM_keymap_add_item(keymap, "MESH_OT_similar_vertex_select", GKEY, KM_PRESS, KM_SHIFT, 0);
-	WM_keymap_add_item(keymap, "MESH_OT_similar_edge_select", GKEY, KM_PRESS, KM_SHIFT2|KM_CTRL, 0);
-	WM_keymap_add_item(keymap, "MESH_OT_similar_face_select", GKEY, KM_PRESS, KM_SHIFT|KM_CTRL2, 0);
+	WM_keymap_add_item(keymap, "MESH_OT_select_vertex_similar", GKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "MESH_OT_select_edge_similar", GKEY, KM_PRESS, KM_SHIFT2|KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "MESH_OT_select_face_similar", GKEY, KM_PRESS, KM_SHIFT|KM_CTRL2, 0);
 	
 	/* selection mode */
 	WM_keymap_add_item(keymap, "MESH_OT_selection_type", TABKEY, KM_PRESS, KM_CTRL, 0);
@@ -249,7 +250,7 @@ void ED_keymap_mesh(wmWindowManager *wm)
 	/*WM_keymap_add_item(keymap, "MESH_OT_subdivide_multi", WKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_subdivide_multi_fractal", WKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_subdivide_smooth", WKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);*/
-	WM_keymap_add_item(keymap, "MESH_OT_removedoublesflag", VKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "MESH_OT_remove_doubles", VKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_extrude", EKEY, KM_PRESS, 0, 0);
 	
 	WM_keymap_add_item(keymap, "MESH_OT_spin", RKEY, KM_PRESS, KM_ALT, 0);
@@ -261,9 +262,9 @@ void ED_keymap_mesh(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "MESH_OT_convert_quads_to_tris", TKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_convert_tris_to_quads", JKEY, KM_PRESS, KM_ALT, 0);
 	
-	WM_keymap_add_item(keymap, "MESH_OT_split_mesh", FOURKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "MESH_OT_split", FOURKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_extrude_repeat", FOURKEY, KM_PRESS, KM_ALT, 0);
-	WM_keymap_add_item(keymap, "MESH_OT_edge_rotate_selected", FIVEKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "MESH_OT_edge_rotate", FIVEKEY, KM_PRESS, KM_CTRL, 0);
 	
 	WM_keymap_add_item(keymap, "MESH_OT_loop_to_region",SIXKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_region_to_loop",SIXKEY, KM_PRESS, KM_ALT, 0);
@@ -277,7 +278,7 @@ void ED_keymap_mesh(wmWindowManager *wm)
 
 	/* add/remove */
 	WM_keymap_add_item(keymap, "MESH_OT_add_edge_face", FKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "MESH_OT_add_duplicate", DKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "MESH_OT_duplicate_add", DKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "OBJECT_OT_mesh_add", AKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_separate", PKEY, KM_PRESS, KM_SHIFT, 0);
 						/* use KM_RELEASE because same key is used for tweaks */
@@ -285,8 +286,8 @@ void ED_keymap_mesh(wmWindowManager *wm)
 	
 	WM_keymap_add_item(keymap, "MESH_OT_delete", XKEY, KM_PRESS, 0, 0);
 	
-	WM_keymap_add_item(keymap, "MESH_OT_make_fgon", FKEY, KM_PRESS, KM_ALT, 0);
-	WM_keymap_add_item(keymap, "MESH_OT_clear_fgon", FKEY, KM_PRESS, KM_SHIFT|KM_ALT, 0);
+	WM_keymap_add_item(keymap, "MESH_OT_fgon_make", FKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_add_item(keymap, "MESH_OT_fgon_clear", FKEY, KM_PRESS, KM_SHIFT|KM_ALT, 0);
 	
 	WM_keymap_add_item(keymap, "MESH_OT_knife_cut", LEFTMOUSE, KM_PRESS, KM_ALT|KM_CTRL, 0);
 	

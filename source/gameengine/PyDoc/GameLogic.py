@@ -140,6 +140,14 @@ Documentation for the GameLogic Module.
 @var KX_SOUNDACT_LOOPEND:		    See L{KX_SoundActuator}
 @var KX_SOUNDACT_LOOPBIDIRECTIONAL:	    See L{KX_SoundActuator}
 @var KX_SOUNDACT_LOOPBIDIRECTIONAL_STOP:    See L{KX_SoundActuator}
+
+@group Radar Sensor: KX_RADAR_AXIS_POS_X, KX_RADAR_AXIS_POS_Y, KX_RADAR_AXIS_POS_Z, KX_RADAR_AXIS_NEG_X, KX_RADAR_AXIS_NEG_Y, KX_RADAR_AXIS_NEG_Z
+@var KX_RADAR_AXIS_POS_X:		    See L{KX_RadarSensor}
+@var KX_RADAR_AXIS_POS_Y:		    See L{KX_RadarSensor}
+@var KX_RADAR_AXIS_POS_Z:		    See L{KX_RadarSensor}
+@var KX_RADAR_AXIS_NEG_X:		    See L{KX_RadarSensor}
+@var KX_RADAR_AXIS_NEG_Y:		    See L{KX_RadarSensor}
+@var KX_RADAR_AXIS_NEG_Z:		    See L{KX_RadarSensor}
 """
 
 
@@ -159,7 +167,7 @@ def addActiveActuator(actuator, activate):
 	"""
 	Activates the given actuator.
 	
-	@type actuator: L{SCA_IActuator}
+	@type actuator: L{SCA_IActuator} or the actuator name as a string.
 	@type activate: boolean
 	@param activate: whether to activate or deactivate the given actuator.
 	"""

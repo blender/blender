@@ -60,6 +60,9 @@ CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
 ifeq ($(WITH_FFMPEG),true)
     CPPFLAGS += -DWITH_FFMPEG
     CPPFLAGS += $(NAN_FFMPEGCFLAGS)
+	ifdef NAN_PTHREADS
+		CPPFLAGS += -I$(NAN_PTHREADS)/include
+	endif
 endif
 
 

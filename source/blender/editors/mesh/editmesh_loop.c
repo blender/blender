@@ -782,8 +782,8 @@ static float bm_seg_intersect(BMEdge *e, CutCurve *c, int len, char mode,
 static int knife_cut_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
-	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh, *em2;
 	BMesh *bm;
+	EditMesh *em= EM_GetEditMesh(((Mesh *)obedit->data)), *em2;
 	ARegion *ar= CTX_wm_region(C);
 	BMVert *bv;
 	BMIter iter;
@@ -798,6 +798,7 @@ static int knife_cut_exec(bContext *C, wmOperator *op)
 	
 	if (EM_nvertices_selected(em) < 2) {
 		error("No edges are selected to operate on");
+		EM_EndEditMesh(obedit->data, em);
 		return OPERATOR_CANCELLED;;
 	}
 
@@ -810,8 +811,11 @@ static int knife_cut_exec(bContext *C, wmOperator *op)
 	}
 	RNA_END;
 	
-	if(len<2) return OPERATOR_CANCELLED;
-	
+	if(len<2) {
+		EM_EndEditMesh(obedit->data, em);
+		return OPERATOR_CANCELLED;
+	}
+
 	bm = editmesh_to_bmesh(em);
 
 	/*the floating point coordinates of verts in screen space will be stored in a hash table according to the vertices pointer*/
@@ -872,7 +876,8 @@ static int knife_cut_exec(bContext *C, wmOperator *op)
 	
 	MEM_freeN(em2);
 	BM_Free_Mesh(bm);
-	
+
+	EM_EndEditMesh(obedit->data, em);
 	return OPERATOR_FINISHED;
 }
 

@@ -1,3 +1,5 @@
+# -*- mode: gnumakefile; tab-width: 8; indent-tabs-mode: t; -*-
+# vim: tabstop=8
 #
 # $Id$
 #
@@ -22,7 +24,7 @@
 #
 # The Original Code is: all of this file.
 #
-# Contributor(s): none yet.
+# Contributor(s): GSR
 #
 # ***** END GPL LICENSE BLOCK *****
 #
@@ -53,7 +55,7 @@ ifdef NAN_BUILDINFO
     BUILDINFO_C = $(SRCHOME)/creator/buildinfo.c
     BUILD_DATE := $(shell date "+%Y-%m-%d")
     BUILD_TIME := $(shell date "+%H:%M:%S")
-	BUILD_REV := $(shell svnversion)
+    BUILD_REV := $(shell svnversion)
 endif
 
 ############# set pyplayerlib ##################
@@ -89,7 +91,6 @@ GRPLIB += $(OCGDIR)/blender/radiosity/$(DEBUG_DIR)libradiosity.a
 # to properly resolve circular dependencies. ugly, but it works...
 # the repeat entries could probably be trimmed down.
 COMLIB = $(OCGDIR)/blender/blenkernel/$(DEBUG_DIR)libblenkernel.a
-COMLIB += $(NAN_DECIMATION)/lib/libdecimation.a
 COMLIB += $(OCGDIR)/blender/blenloader/$(DEBUG_DIR)libblenloader.a
 COMLIB += $(OCGDIR)/blender/blenpluginapi/$(DEBUG_DIR)libblenpluginapi.a
 COMLIB += $(OCGDIR)/blender/nodes_shd/$(DEBUG_DIR)libnodes_shd.a
@@ -98,15 +99,13 @@ COMLIB += $(OCGDIR)/blender/nodes_tex/$(DEBUG_DIR)libnodes_tex.a
 COMLIB += $(OCGDIR)/blender/nodes/$(DEBUG_DIR)libnodes.a
 COMLIB += $(OCGDIR)/blender/imbuf/$(DEBUG_DIR)libimbuf.a
 COMLIB += $(OCGDIR)/blender/blenlib/$(DEBUG_DIR)libblenlib.a
-COMLIB += $(NAN_IKSOLVER)/lib/libiksolver.a
-COMLIB += $(NAN_MOTO)/lib/libmoto.a
-COMLIB += $(NAN_OPENNL)/lib/$(DEBUG_DIR)libopennl.a
-COMLIB += $(NAN_SUPERLU)/lib/$(DEBUG_DIR)libsuperlu.a	
+COMLIB += $(NAN_IKSOLVER)/lib/$(DEBUG_DIR)libiksolver.a
+COMLIB += $(NAN_MOTO)/lib/$(DEBUG_DIR)libmoto.a
+COMLIB += $(NAN_SUPERLU)/lib/$(DEBUG_DIR)libsuperlu.a
 COMLIB += $(OCGDIR)/blender/avi/$(DEBUG_DIR)libavi.a
 COMLIB += $(NAN_JPEG)/lib/libjpeg.a
 COMLIB += $(OCGDIR)/blender/gpu/$(DEBUG_DIR)libgpu.a
-COMLIB += $(NAN_GLEW)/lib/libglew.a
-COMLIB += $(NAN_ELBEEM)/lib/$(DEBUG_DIR)libelbeem.a
+COMLIB += $(NAN_GLEW)/lib/$(DEBUG_DIR)libglew.a
 COMLIB += $(OCGDIR)/blender/blenfont/$(DEBUG_DIR)libblenfont.a
 
 ifneq ($(NAN_NO_KETSJI),true)
@@ -117,7 +116,7 @@ ifneq ($(NAN_NO_KETSJI),true)
     COMLIB += $(OCGDIR)/gameengine/blconverter/$(DEBUG_DIR)libblconverter.a
     COMLIB += $(OCGDIR)/gameengine/blconverter/$(DEBUG_DIR)libblconverter.a
     COMLIB += $(NAN_SOLID)/lib/libsolid.a
-    COMLIB += $(NAN_SOLID)/lib/libsolid_broad.a 
+    COMLIB += $(NAN_SOLID)/lib/libsolid_broad.a
     COMLIB += $(NAN_SOLID)/lib/libsolid_complex.a
     COMLIB += $(NAN_SOLID)/lib/libsolid_convex.a
     COMLIB += $(OCGDIR)/gameengine/blphys/sumo/$(DEBUG_DIR)libsumo.a
@@ -171,6 +170,10 @@ ifeq ($(WITH_OPENEXR), true)
     COMLIB += $(OCGDIR)/blender/imbuf/openexr/$(DEBUG_DIR)libopenexr.a
 endif
 
+ifeq ($(WITH_OPENJPEG), true)
+    COMLIB += $(OCGDIR)/extern/openjpeg/$(DEBUG_DIR)libopenjpeg.a
+endif
+
 COMLIB += $(OCGDIR)/blender/imbuf/cineon/$(DEBUG_DIR)libcineon.a
 
 ifeq ($(WITH_DDS), true)
@@ -192,7 +195,7 @@ ifeq ($(WITH_FREETYPE2), true)
         COMLIB += $(NAN_FREETYPE)/lib/freetype2ST.lib
       endif
     else
-      COMLIB += $(NAN_FTGL)/lib/libftgl.a
+      COMLIB += $(NAN_FTGL)/lib/$(DEBUG_DIR)libftgl.a
       ifeq ($(OS), irix)
         COMLIB += $(NAN_FREETYPE)/lib/libfreetype.a
         else
@@ -220,45 +223,48 @@ endif
 
 # note: space_api.a in begin of editors, screen.a in end
 PULIB = $(NAN_MOTO)/lib/libmoto.a
+PULIB += $(NAN_DECIMATION)/lib/$(DEBUG_DIR)libdecimation.a
 PULIB += $(OCGDIR)/blender/readblenfile/$(DEBUG_DIR)libreadblenfile.a
-PULIB += $(OCGDIR)/blender/ed_space/libed_space.a
-PULIB += $(OCGDIR)/blender/ed_sound/libed_sound.a
-PULIB += $(OCGDIR)/blender/ed_action/libed_action.a
-PULIB += $(OCGDIR)/blender/ed_nla/libed_nla.a
-PULIB += $(OCGDIR)/blender/ed_script/libed_script.a
-PULIB += $(OCGDIR)/blender/ed_text/libed_text.a
-PULIB += $(OCGDIR)/blender/ed_sequencer/libed_sequencer.a
-PULIB += $(OCGDIR)/blender/ed_file/libed_file.a
-PULIB += $(OCGDIR)/blender/ed_info/libed_info.a
-PULIB += $(OCGDIR)/blender/ed_buttons/libed_buttons.a
-PULIB += $(OCGDIR)/blender/ed_node/libed_node.a
-PULIB += $(OCGDIR)/blender/ed_graph/libed_graph.a
-PULIB += $(OCGDIR)/blender/ed_outliner/libed_outliner.a
-PULIB += $(OCGDIR)/blender/ed_time/libed_time.a
-PULIB += $(OCGDIR)/blender/ed_preview/libed_preview.a
-PULIB += $(OCGDIR)/blender/ed_view3d/libed_view3d.a
-PULIB += $(OCGDIR)/blender/ed_interface/libed_interface.a
-PULIB += $(OCGDIR)/blender/ed_object/libed_object.a
-PULIB += $(OCGDIR)/blender/ed_curve/libed_curve.a
-PULIB += $(OCGDIR)/blender/ed_armature/libed_armature.a
-PULIB += $(OCGDIR)/blender/ed_mesh/libed_mesh.a
-PULIB += $(OCGDIR)/blender/ed_sculpt_paint/libed_sculpt_paint.a
-PULIB += $(OCGDIR)/blender/ed_physics/libed_physics.a
-PULIB += $(OCGDIR)/blender/ed_animation/libed_animation.a
-PULIB += $(OCGDIR)/blender/ed_transform/libed_transform.a
-PULIB += $(OCGDIR)/blender/ed_util/libed_util.a
-PULIB += $(OCGDIR)/blender/ed_datafiles/libed_datafiles.a
-PULIB += $(OCGDIR)/blender/ed_image/libed_image.a
-PULIB += $(OCGDIR)/blender/ed_uvedit/libed_uvedit.a
-PULIB += $(OCGDIR)/blender/ed_screen/libed_screen.a
-PULIB += $(OCGDIR)/blender/windowmanager/libwindowmanager.a
+PULIB += $(OCGDIR)/blender/ed_space/$(DEBUG_DIR)libed_space.a
+PULIB += $(OCGDIR)/blender/ed_sound/$(DEBUG_DIR)libed_sound.a
+PULIB += $(OCGDIR)/blender/ed_action/$(DEBUG_DIR)libed_action.a
+PULIB += $(OCGDIR)/blender/ed_nla/$(DEBUG_DIR)libed_nla.a
+PULIB += $(OCGDIR)/blender/ed_script/$(DEBUG_DIR)libed_script.a
+PULIB += $(OCGDIR)/blender/ed_text/$(DEBUG_DIR)libed_text.a
+PULIB += $(OCGDIR)/blender/ed_sequencer/$(DEBUG_DIR)libed_sequencer.a
+PULIB += $(OCGDIR)/blender/ed_file/$(DEBUG_DIR)libed_file.a
+PULIB += $(OCGDIR)/blender/ed_info/$(DEBUG_DIR)libed_info.a
+PULIB += $(OCGDIR)/blender/ed_buttons/$(DEBUG_DIR)libed_buttons.a
+PULIB += $(OCGDIR)/blender/ed_node/$(DEBUG_DIR)libed_node.a
+PULIB += $(OCGDIR)/blender/ed_graph/$(DEBUG_DIR)libed_graph.a
+PULIB += $(OCGDIR)/blender/ed_outliner/$(DEBUG_DIR)libed_outliner.a
+PULIB += $(OCGDIR)/blender/ed_time/$(DEBUG_DIR)libed_time.a
+PULIB += $(OCGDIR)/blender/ed_preview/$(DEBUG_DIR)libed_preview.a
+PULIB += $(OCGDIR)/blender/ed_view3d/$(DEBUG_DIR)libed_view3d.a
+PULIB += $(OCGDIR)/blender/ed_interface/$(DEBUG_DIR)libed_interface.a
+PULIB += $(OCGDIR)/blender/ed_object/$(DEBUG_DIR)libed_object.a
+PULIB += $(OCGDIR)/blender/ed_curve/$(DEBUG_DIR)libed_curve.a
+PULIB += $(OCGDIR)/blender/ed_armature/$(DEBUG_DIR)libed_armature.a
+PULIB += $(OCGDIR)/blender/ed_mesh/$(DEBUG_DIR)libed_mesh.a
+PULIB += $(OCGDIR)/blender/ed_sculpt_paint/$(DEBUG_DIR)libed_sculpt_paint.a
+PULIB += $(OCGDIR)/blender/ed_physics/$(DEBUG_DIR)libed_physics.a
+PULIB += $(OCGDIR)/blender/ed_animation/$(DEBUG_DIR)libed_animation.a
+PULIB += $(OCGDIR)/blender/ed_transform/$(DEBUG_DIR)libed_transform.a
+PULIB += $(OCGDIR)/blender/ed_util/$(DEBUG_DIR)libed_util.a
+PULIB += $(OCGDIR)/blender/ed_datafiles/$(DEBUG_DIR)libed_datafiles.a
+PULIB += $(OCGDIR)/blender/ed_image/$(DEBUG_DIR)libed_image.a
+PULIB += $(OCGDIR)/blender/ed_uvedit/$(DEBUG_DIR)libed_uvedit.a
+PULIB += $(OCGDIR)/blender/ed_screen/$(DEBUG_DIR)libed_screen.a
+PULIB += $(OCGDIR)/blender/windowmanager/$(DEBUG_DIR)libwindowmanager.a
 PULIB += $(OCGDIR)/blender/python/$(DEBUG_DIR)libpython.a
 PULIB += $(OCGDIR)/blender/makesrna/$(DEBUG_DIR)librna.a
 # note, no idea but it suddenly doesn't compile :(
 PULIB += $(OCGDIR)/blender/blenlib/$(DEBUG_DIR)libblenlib.a
+PULIB += $(NAN_OPENNL)/lib/$(DEBUG_DIR)libopennl.a
+PULIB += $(NAN_ELBEEM)/lib/$(DEBUG_DIR)libelbeem.a
 
 ifeq ($(NAN_NO_KETSJI),true)
-    PULIB += $(NAN_MOTO)/lib/libmoto.a
+    PULIB += $(NAN_MOTO)/lib/$(DEBUG_DIR)libmoto.a
     PULIB += $(OCGDIR)/kernel/gen_system/$(DEBUG_DIR)libgen_system.a
     PULIB += $(OCGDIR)/kernel/gen_messaging/$(DEBUG_DIR)libgen_messaging.a
     COMLIB += $(NAN_SND_LIBS)
@@ -313,7 +319,7 @@ PLUGAPPLIB += $(OCGDIR)/gameengine/GamePlayer/common/$(DEBUG_DIR)libcommon.a
 
 ifeq ($(OS),$(findstring $(OS), "linux"))
   ifeq ($(CPU),i386)
-    PLUGAPPLIB_XPLINK = $(OCGDIR)/gameengine/GamePlayer/netscape/src/$(DEBUG_DIR)_Blender3DPlugin_implementation_.o 
+    PLUGAPPLIB_XPLINK = $(OCGDIR)/gameengine/GamePlayer/netscape/src/$(DEBUG_DIR)_Blender3DPlugin_implementation_.o
   endif
 endif
 
@@ -377,7 +383,7 @@ else
         NAN_SND_LIBS += $(OPENALSOUND)
         NAN_SND_LIBS += $(SDLSOUND)
         NAN_SND_LIBS += $(NAN_OPENAL)/lib/libopenal.a
-	ALUT = $(wildcard $(NAN_OPENAL)/lib/libalut.a)
+        ALUT = $(wildcard $(NAN_OPENAL)/lib/libalut.a)
         NAN_SND_LIBS += $(ALUT)
         NAN_SND_LIBS += $(SOUNDSYSTEM)
     else
@@ -387,7 +393,7 @@ else
         NAN_SND_LIBS += $(OPENALSOUND)
         NAN_SND_LIBS += $(SDLSOUND)
         NAN_SND_LIBS += $(NAN_OPENAL)/lib/openal_static.lib
-	ALUT = $(wildcard $(NAN_OPENAL)/lib/alut_static.lib)
+        ALUT = $(wildcard $(NAN_OPENAL)/lib/alut_static.lib)
         NAN_SND_LIBS += $(ALUT)
         NAN_SND_LIBS += $(SOUNDSYSTEM)
       else
@@ -546,7 +552,7 @@ ifeq ($(OS), darwin)
 	@$(MAKE) -C darwin/ APPLICATION=blenderstatic
 endif
 
-$(DIR)/$(DEBUG_DIR)bin/blender$(EXT): $(OBJS) $(GRPLIB) $(PULIB) $(COMLIB) 
+$(DIR)/$(DEBUG_DIR)bin/blender$(EXT): $(OBJS) $(GRPLIB) $(PULIB) $(COMLIB)
 	@echo "****> Link $@"
 ifdef NAN_BUILDINFO
 	$(CCC) $(REL_CFLAGS) -DBUILD_DATE='"$(BUILD_DATE)"' -DBUILD_TIME='"$(BUILD_TIME)"' -DBUILD_REV='"$(BUILD_REV)"' -DBUILD_PLATFORM='"$(CONFIG_GUESS)"' -DBUILD_TYPE='"dynamic"' $(BUILDINFO_C) -c -o $(BUILDINFO_O) -DNAN_BUILDINFO
@@ -636,4 +642,3 @@ endif
 ifdef NAN_BUILDINFO
 	/bin/rm $(BUILDINFO_O)
 endif
-

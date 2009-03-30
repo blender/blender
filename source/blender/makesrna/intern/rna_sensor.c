@@ -105,7 +105,7 @@ void rna_def_sensor(BlenderRNA *brna)
 
 	/* type is not editable, would need to do proper data free/alloc */
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_enum_items(prop, sensor_type_items);
 	RNA_def_property_ui_text(prop, "Type", "");
 
@@ -210,18 +210,18 @@ void rna_def_keyboard_sensor(BlenderRNA *brna)
 	RNA_def_struct_sdna_from(srna, "bKeyboardSensor", "data");
 
 	prop= RNA_def_property(srna, "key", PROP_INT, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE); /* need better range or enum check */
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE); /* need better range or enum check */
 	RNA_def_property_ui_text(prop, "Key", "Input key code.");
 	RNA_def_property_range(prop, 0, 255);
 
 	prop= RNA_def_property(srna, "modifier_key", PROP_INT, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE); /* need better range or enum check */
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE); /* need better range or enum check */
 	RNA_def_property_int_sdna(prop, NULL, "qual");
 	RNA_def_property_ui_text(prop, "Modifier Key", "Modifier key code.");
 	RNA_def_property_range(prop, 0, 255);
 
 	prop= RNA_def_property(srna, "second_modifier_key", PROP_INT, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE); /* need better range or enum check */
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE); /* need better range or enum check */
 	RNA_def_property_int_sdna(prop, NULL, "qual2");
 	RNA_def_property_ui_text(prop, "Second Modifier Key", "Modifier key code.");
 	RNA_def_property_range(prop, 0, 255);
@@ -407,7 +407,7 @@ void rna_def_ray_sensor(BlenderRNA *brna)
 		{0, NULL, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "RaySensor", "Sensor");
-	RNA_def_struct_ui_text(srna, "Ray Sensor", "Sensor to detect interestions with a ray emanating from the current object.");
+	RNA_def_struct_ui_text(srna, "Ray Sensor", "Sensor to detect intersections with a ray emanating from the current object.");
 	RNA_def_struct_sdna_from(srna, "bRaySensor", "data");
 
 	prop= RNA_def_property(srna, "property", PROP_STRING, PROP_NONE);
@@ -495,7 +495,7 @@ void rna_def_joystick_sensor(BlenderRNA *brna)
 	/* Axis */
 	prop= RNA_def_property(srna, "axis_number", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "axis");
-	RNA_def_property_ui_text(prop, "Axis Number", "Specify which axis pair to use, 1 is useually the main direction input.");
+	RNA_def_property_ui_text(prop, "Axis Number", "Specify which axis pair to use, 1 is usually the main direction input.");
 	RNA_def_property_range(prop, 1, 2);
 
 	prop= RNA_def_property(srna, "axis_threshold", PROP_INT, PROP_NONE);

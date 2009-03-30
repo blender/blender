@@ -73,6 +73,12 @@ char *BLI_strncpy(char *dst, const char *src, int maxncpy);
 	 */
 int BLI_snprintf(char *buffer, size_t count, const char *format, ...);
 
+	/* 
+	 * Print formatted string into a newly mallocN'd string
+	 * and return it.
+	 */
+char *BLI_sprintfN(const char *format, ...);
+
 	/**
 	 * Compare two strings
 	 * 

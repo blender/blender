@@ -553,6 +553,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\imbuf\intern\jp2.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\imbuf\intern\jpeg.c"
 				>
 			</File>
@@ -828,6 +832,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\imbuf\intern\IMB_iris.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\imbuf\intern\IMB_jp2.h"
 				>
 			</File>
 			<File

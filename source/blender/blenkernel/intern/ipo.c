@@ -1730,53 +1730,5 @@ void do_versions_ipos_to_animato(Main *main)
 	/* free unused drivers from actions + ipos */
 	free_fcurves(&drivers);
 	
-	printf("INFO: animato convert done \n"); // xxx debug
+	printf("INFO: Animato convert done \n"); // xxx debug
 }
-
-
-
-#if 0 // XXX old animation system
-
-/* ***************************** IPO - DataAPI ********************************* */
-
-// !!!!!!!!!!!!!!!!!!!!!!!!!!!! FIXME - BAD CRUFT WARNING !!!!!!!!!!!!!!!!!!!!!!!
-
-/* These functions here should be replaced eventually by the Data API, as this is 
- * inflexible duplication...
- */
-
-/* --------------------- Get Pointer API ----------------------------- */ 
-
-
-/* GS reads the memory pointed at in a specific ordering. There are,
- * however two definitions for it. I have jotted them down here, both,
- * but I think the first one is actually used. The thing is that
- * big-endian systems might read this the wrong way round. OTOH, we
- * constructed the IDs that are read out with this macro explicitly as
- * well. I expect we'll sort it out soon... */
-
-/* from blendef: */
-#define GS(a)	(*((short *)(a)))
-
-/* from misc_util: flip the bytes from x  */
-/*  #define GS(x) (((unsigned char *)(x))[0] << 8 | ((unsigned char *)(x))[1]) */
-
-
-/* general function to get pointer to source/destination data  */
-void *get_ipo_poin (ID *id, IpoCurve *icu, int *type)
-{
-	void *poin= NULL;
-	MTex *mtex= NULL;
-
-	/* most channels will have float data, but those with other types will override this */
-	*type= IPO_FLOAT;
-
-	/* data is divided into 'blocktypes' based on ID-codes */
-	// all adr codes put into converters!
-
-	/* return pointer */
-	return poin;
-}
-
-
-#endif // XXX old animation system

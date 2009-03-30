@@ -51,7 +51,7 @@ void outliner_operatortypes(void)
 
 void outliner_keymap(wmWindowManager *wm)
 {
-	ListBase *keymap= WM_keymap_listbase(wm, "Outliner", SPACE_OOPS, 0);
+	ListBase *keymap= WM_keymap_listbase(wm, "Outliner", SPACE_OUTLINER, 0);
 	
 	WM_keymap_verify_item(keymap, "OUTLINER_OT_activate_click", LEFTMOUSE, KM_PRESS, 0, 0);
 	

@@ -42,6 +42,7 @@
 #include "KX_Scene.h"
 #include "KX_Camera.h"
 #include "KX_MouseFocusSensor.h"
+#include "KX_PyMath.h"
 
 #include "KX_RayCast.h"
 #include "KX_IPhysicsController.h"
@@ -320,18 +321,22 @@ PyParentObject KX_MouseFocusSensor::Parents[] = {
 };
 
 PyMethodDef KX_MouseFocusSensor::Methods[] = {
-	{"getRayTarget", (PyCFunction) KX_MouseFocusSensor::sPyGetRayTarget, METH_VARARGS, (PY_METHODCHAR)GetRayTarget_doc},
-	{"getRaySource", (PyCFunction) KX_MouseFocusSensor::sPyGetRaySource, METH_VARARGS, (PY_METHODCHAR)GetRaySource_doc},
-	{"getHitObject",(PyCFunction) KX_MouseFocusSensor::sPyGetHitObject,METH_VARARGS, (PY_METHODCHAR)GetHitObject_doc},
-	{"getHitPosition",(PyCFunction) KX_MouseFocusSensor::sPyGetHitPosition,METH_VARARGS, (PY_METHODCHAR)GetHitPosition_doc},
-	{"getHitNormal",(PyCFunction) KX_MouseFocusSensor::sPyGetHitNormal,METH_VARARGS, (PY_METHODCHAR)GetHitNormal_doc},
-	{"getRayDirection",(PyCFunction) KX_MouseFocusSensor::sPyGetRayDirection,METH_VARARGS, (PY_METHODCHAR)GetRayDirection_doc},
+	{"getRayTarget", (PyCFunction) KX_MouseFocusSensor::sPyGetRayTarget, METH_NOARGS, (PY_METHODCHAR)GetRayTarget_doc},
+	{"getRaySource", (PyCFunction) KX_MouseFocusSensor::sPyGetRaySource, METH_NOARGS, (PY_METHODCHAR)GetRaySource_doc},
+	{"getHitObject",(PyCFunction) KX_MouseFocusSensor::sPyGetHitObject,METH_NOARGS, (PY_METHODCHAR)GetHitObject_doc},
+	{"getHitPosition",(PyCFunction) KX_MouseFocusSensor::sPyGetHitPosition,METH_NOARGS, (PY_METHODCHAR)GetHitPosition_doc},
+	{"getHitNormal",(PyCFunction) KX_MouseFocusSensor::sPyGetHitNormal,METH_NOARGS, (PY_METHODCHAR)GetHitNormal_doc},
+	{"getRayDirection",(PyCFunction) KX_MouseFocusSensor::sPyGetRayDirection,METH_NOARGS, (PY_METHODCHAR)GetRayDirection_doc},
 
 
 	{NULL,NULL} //Sentinel
 };
 
-PyObject* KX_MouseFocusSensor::_getattr(const STR_String& attr) {
+PyAttributeDef KX_MouseFocusSensor::Attributes[] = {
+	{ NULL }	//Sentinel
+};
+
+PyObject* KX_MouseFocusSensor::_getattr(const char *attr) {
 	_getattr_up(SCA_MouseSensor);
 }
 
@@ -339,76 +344,40 @@ PyObject* KX_MouseFocusSensor::_getattr(const STR_String& attr) {
 const char KX_MouseFocusSensor::GetHitObject_doc[] = 
 "getHitObject()\n"
 "\tReturns the name of the object that was hit by this ray.\n";
-PyObject* KX_MouseFocusSensor::PyGetHitObject(PyObject* self, 
-										   PyObject* args, 
-										   PyObject* kwds)
+PyObject* KX_MouseFocusSensor::PyGetHitObject(PyObject* self)
 {
 	if (m_hitObject)
-	{
 		return m_hitObject->AddRef();
-	}
-	Py_Return;
+	
+	Py_RETURN_NONE;
 }
 
 
 const char KX_MouseFocusSensor::GetHitPosition_doc[] = 
 "getHitPosition()\n"
 "\tReturns the position (in worldcoordinates) where the object was hit by this ray.\n";
-PyObject* KX_MouseFocusSensor::PyGetHitPosition(PyObject* self, 
-			       PyObject* args, 
-			       PyObject* kwds)
+PyObject* KX_MouseFocusSensor::PyGetHitPosition(PyObject* self)
 {
-
-	MT_Point3 pos = m_hitPosition;
-
-	PyObject* resultlist = PyList_New(3);
-	int index;
-	for (index=0;index<3;index++)
-	{
-		PyList_SetItem(resultlist,index,PyFloat_FromDouble(pos[index]));
-	}
-	return resultlist;
-
+	return PyObjectFrom(m_hitPosition);
 }
 
 const char KX_MouseFocusSensor::GetRayDirection_doc[] = 
 "getRayDirection()\n"
 "\tReturns the direction from the ray (in worldcoordinates) .\n";
-PyObject* KX_MouseFocusSensor::PyGetRayDirection(PyObject* self, 
-			       PyObject* args, 
-			       PyObject* kwds)
+PyObject* KX_MouseFocusSensor::PyGetRayDirection(PyObject* self)
 {
 
 	MT_Vector3 dir = m_prevTargetPoint - m_prevSourcePoint;
 	dir.normalize();
-
-	PyObject* resultlist = PyList_New(3);
-	int index;
-	for (index=0;index<3;index++)
-	{
-		PyList_SetItem(resultlist,index,PyFloat_FromDouble(dir[index]));
-	}
-	return resultlist;
-
+	return PyObjectFrom(dir);
 }
 
 const char KX_MouseFocusSensor::GetHitNormal_doc[] = 
 "getHitNormal()\n"
 "\tReturns the normal (in worldcoordinates) of the object at the location where the object was hit by this ray.\n";
-PyObject* KX_MouseFocusSensor::PyGetHitNormal(PyObject* self, 
-			       PyObject* args, 
-			       PyObject* kwds)
+PyObject* KX_MouseFocusSensor::PyGetHitNormal(PyObject* self)
 {
-	MT_Vector3 pos = m_hitNormal;
-
-	PyObject* resultlist = PyList_New(3);
-	int index;
-	for (index=0;index<3;index++)
-	{
-		PyList_SetItem(resultlist,index,PyFloat_FromDouble(pos[index]));
-	}
-	return resultlist;
-
+	return PyObjectFrom(m_hitNormal);
 }
 
 
@@ -417,16 +386,8 @@ const char KX_MouseFocusSensor::GetRayTarget_doc[] =
 "getRayTarget()\n"
 "\tReturns the target of the ray that seeks the focus object,\n"
 "\tin worldcoordinates.";
-PyObject* KX_MouseFocusSensor::PyGetRayTarget(PyObject* self, 
-											  PyObject* args, 
-											  PyObject* kwds) {
-	PyObject *retVal = PyList_New(3);
-
-	PyList_SetItem(retVal, 0, PyFloat_FromDouble(m_prevTargetPoint[0]));
-	PyList_SetItem(retVal, 1, PyFloat_FromDouble(m_prevTargetPoint[1]));
-	PyList_SetItem(retVal, 2, PyFloat_FromDouble(m_prevTargetPoint[2]));
-	
-	return retVal;
+PyObject* KX_MouseFocusSensor::PyGetRayTarget(PyObject* self) {
+	return PyObjectFrom(m_prevTargetPoint);
 }
 
 /*  getRayTarget                                                */
@@ -434,16 +395,8 @@ const char KX_MouseFocusSensor::GetRaySource_doc[] =
 "getRaySource()\n"
 "\tReturns the source of the ray that seeks the focus object,\n"
 "\tin worldcoordinates.";
-PyObject* KX_MouseFocusSensor::PyGetRaySource(PyObject* self, 
-											  PyObject* args, 
-											  PyObject* kwds) {
-	PyObject *retVal = PyList_New(3);
-
-	PyList_SetItem(retVal, 0, PyFloat_FromDouble(m_prevSourcePoint[0]));
-	PyList_SetItem(retVal, 1, PyFloat_FromDouble(m_prevSourcePoint[1]));
-	PyList_SetItem(retVal, 2, PyFloat_FromDouble(m_prevSourcePoint[2]));
-	
-	return retVal;
+PyObject* KX_MouseFocusSensor::PyGetRaySource(PyObject* self) {
+	return PyObjectFrom(m_prevSourcePoint);
 }
 
 /* eof */

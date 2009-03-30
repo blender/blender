@@ -81,7 +81,7 @@
 #include "DNA_object_types.h"
 #include "DNA_object_force.h"
 #include "DNA_object_fluidsim.h" // NT
-#include "DNA_oops_types.h"
+#include "DNA_outliner_types.h"
 #include "DNA_object_force.h"
 #include "DNA_packedFile_types.h"
 #include "DNA_particle_types.h"
@@ -1725,7 +1725,14 @@ static void direct_link_fcurves(FileData *fd, ListBase *list)
 				{
 					FMod_Generator *data= (FMod_Generator *)fcm->data;
 					
-					data->poly_coefficients= newdataadr(fd, data->poly_coefficients);
+					data->coefficients= newdataadr(fd, data->coefficients);
+				}
+					break;
+				case FMODIFIER_TYPE_ENVELOPE:
+				{
+					FMod_Envelope *data= (FMod_Envelope *)fcm->data;
+					
+					data->data= newdataadr(fd, data->data);
 				}
 					break;
 				case FMODIFIER_TYPE_PYTHON:
@@ -3758,6 +3765,8 @@ static void lib_link_scene(FileData *fd, Main *main)
 				sce->toolsettings->sculpt->brush=
 					newlibadr_us(fd, sce->id.lib, sce->toolsettings->sculpt->brush);
 
+			sce->toolsettings->skgen_template = newlibadr(fd, sce->id.lib, sce->toolsettings->skgen_template);
+
 			for(base= sce->base.first; base; base= next) {
 				next= base->next;
 
@@ -4196,18 +4205,11 @@ static void lib_link_screen(FileData *fd, Main *main)
 							}
 						}
 					}
-					else if(sl->spacetype==SPACE_OOPS) {
+					else if(sl->spacetype==SPACE_OUTLINER) {
 						SpaceOops *so= (SpaceOops *)sl;
-						Oops *oops;
 						TreeStoreElem *tselem;
 						int a;
 
-						oops= so->oops.first;
-						while(oops) {
-							oops->id= newlibadr(fd, NULL, oops->id);
-							oops= oops->next;
-						}
-						so->lockpoin= NULL;
 						so->tree.first= so->tree.last= NULL;
 						so->search_tse.id= newlibadr(fd, NULL, so->search_tse.id);
 						
@@ -4329,7 +4331,7 @@ void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 						v3d->bgpic->ima= restore_pointer_by_name(newmain, (ID *)v3d->bgpic->ima, 1);
 					}
 					if(v3d->localvd) {
-						Base *base;
+						/*Base *base;*/
 
 						v3d->localvd->camera= sc->scene->camera;
 						
@@ -4405,17 +4407,10 @@ void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 						SCRIPT_SET_NULL(scpt->script)
 					}
 				}
-				else if(sl->spacetype==SPACE_OOPS) {
+				else if(sl->spacetype==SPACE_OUTLINER) {
 					SpaceOops *so= (SpaceOops *)sl;
-					Oops *oops;
 					int a;
 					
-					oops= so->oops.first;
-					while(oops) {
-						oops->id= restore_pointer_by_name(newmain, (ID *)oops->id, 0);
-						oops= oops->next;
-					}
-					so->lockpoin= NULL;
 					so->search_tse.id= restore_pointer_by_name(newmain, so->search_tse.id, 0);
 					
 					if(so->treestore) {
@@ -4520,7 +4515,6 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 	ScrArea *sa;
 	ScrVert *sv;
 	ScrEdge *se;
-	Oops *oops;
 	int a;
 	
 	link_list(fd, &(sc->vertbase));
@@ -4608,15 +4602,8 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 				
 				sipo->ads= newdataadr(fd, sipo->ads);
 			}
-			else if (sl->spacetype==SPACE_OOPS) {
+			else if (sl->spacetype==SPACE_OUTLINER) {
 				SpaceOops *soops= (SpaceOops*) sl;
-				
-				link_list(fd, &(soops->oops));
-				oops= soops->oops.first;
-				while(oops) {
-					oops->link.first= oops->link.last= 0;
-					oops= oops->next;
-				}
 				
 				soops->treestore= newdataadr(fd, soops->treestore);
 				if(soops->treestore) {
@@ -5516,7 +5503,7 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				view3d_split_250((View3D *)sl, lb);
 				break;		
 						
-			case SPACE_OOPS:
+			case SPACE_OUTLINER:
 			{
 				SpaceOops *soops= (SpaceOops *)sl;
 				
@@ -5529,8 +5516,6 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				ar->v2d.keeptot = V2D_KEEPTOT_STRICT;
 				ar->v2d.minzoom= ar->v2d.maxzoom= 1.0f;
 				//ar->v2d.flag |= V2D_IS_INITIALISED;
-				
-				soops->type= SO_OUTLINER;
 			}
 				break;
 			case SPACE_TIME:
@@ -5960,10 +5945,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				while(sl) {
 					if(sl->spacetype==SPACE_TEXT) {
 						SpaceText *st= (SpaceText*) sl;
-						if(st->font_id>1) {
-							st->font_id= 0;
-							st->lheight= 13;
-						}
+						st->lheight= 12;
 					}
 					sl= sl->next;
 				}
@@ -7019,12 +7001,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 						View3D *v3d= (View3D *)sl;
 						if(v3d->twtype==0) v3d->twtype= V3D_MANIP_TRANSLATE;
 					}
-#ifndef SHOWDEPGRAPH
-					else if(sl->spacetype==SPACE_OOPS) {
-						if ( ((SpaceOops *)sl)->type==SO_DEPSGRAPH)
-							 ((SpaceOops *)sl)->type=SO_OOPS;
-					}
-#endif				
 					else if(sl->spacetype==SPACE_TIME) {
 						SpaceTime *stime= (SpaceTime *)sl;
 						if(stime->redraws==0)
@@ -8095,28 +8071,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				ima->flag |= IMA_DO_PREMUL;
 			}
 		}
-
-		if (main->versionfile < 245 || main->subversionfile < 12)
-		{
-			/* initialize skeleton generation toolsettings */
-			for(sce=main->scene.first; sce; sce = sce->id.next)
-			{
-				sce->toolsettings->skgen_resolution = 50;
-				sce->toolsettings->skgen_threshold_internal 	= 0.01f;
-				sce->toolsettings->skgen_threshold_external 	= 0.01f;
-				sce->toolsettings->skgen_angle_limit	 		= 45.0f;
-				sce->toolsettings->skgen_length_ratio			= 1.3f;
-				sce->toolsettings->skgen_length_limit			= 1.5f;
-				sce->toolsettings->skgen_correlation_limit		= 0.98f;
-				sce->toolsettings->skgen_symmetry_limit			= 0.1f;
-				sce->toolsettings->skgen_postpro = SKGEN_SMOOTH;
-				sce->toolsettings->skgen_postpro_passes = 1;
-				sce->toolsettings->skgen_options = SKGEN_FILTER_INTERNAL|SKGEN_FILTER_EXTERNAL|SKGEN_SUB_CORRELATION;
-				sce->toolsettings->skgen_subdivisions[0] = SKGEN_SUB_CORRELATION;
-				sce->toolsettings->skgen_subdivisions[1] = SKGEN_SUB_LENGTH;
-				sce->toolsettings->skgen_subdivisions[2] = SKGEN_SUB_ANGLE;
-			}
-		}
 	}
 	
 	/* sanity check for skgen
@@ -8717,6 +8671,31 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		for (sce= main->scene.first; sce; sce= sce->id.next) {
 			sce->toolsettings->imapaint.seam_bleed = 2;
 			sce->toolsettings->imapaint.normal_angle = 80;
+
+			/* initialize skeleton generation toolsettings */
+			sce->toolsettings->skgen_resolution = 250;
+			sce->toolsettings->skgen_threshold_internal 	= 0.1f;
+			sce->toolsettings->skgen_threshold_external 	= 0.1f;
+			sce->toolsettings->skgen_angle_limit	 		= 30.0f;
+			sce->toolsettings->skgen_length_ratio			= 1.3f;
+			sce->toolsettings->skgen_length_limit			= 1.5f;
+			sce->toolsettings->skgen_correlation_limit		= 0.98f;
+			sce->toolsettings->skgen_symmetry_limit			= 0.1f;
+			sce->toolsettings->skgen_postpro = SKGEN_SMOOTH;
+			sce->toolsettings->skgen_postpro_passes = 3;
+			sce->toolsettings->skgen_options = SKGEN_FILTER_INTERNAL|SKGEN_FILTER_EXTERNAL|SKGEN_FILTER_SMART|SKGEN_SUB_CORRELATION|SKGEN_HARMONIC;
+			sce->toolsettings->skgen_subdivisions[0] = SKGEN_SUB_CORRELATION;
+			sce->toolsettings->skgen_subdivisions[1] = SKGEN_SUB_LENGTH;
+			sce->toolsettings->skgen_subdivisions[2] = SKGEN_SUB_ANGLE;
+
+			
+			sce->toolsettings->skgen_retarget_angle_weight = 1.0f;
+			sce->toolsettings->skgen_retarget_length_weight = 1.0f;
+			sce->toolsettings->skgen_retarget_distance_weight = 1.0f;
+	
+			/* Skeleton Sketching */
+			sce->toolsettings->bone_sketching = 0;
+			sce->toolsettings->skgen_retarget_roll = SK_RETARGET_ROLL_VIEW;
 		}
 	}
 	if (main->versionfile < 248 || (main->versionfile == 248 && main->subversionfile < 3)) {
@@ -9736,6 +9715,9 @@ static void expand_scene(FileData *fd, Main *mainvar, Scene *sce)
 	if(sce->adt)
 		expand_animdata(fd, mainvar, sce->adt);
 	expand_keyingsets(fd, mainvar, &sce->keyingsets);
+	
+	if(sce->set)
+		expand_doit(fd, mainvar, sce->set);
 	
 	if(sce->nodetree)
 		expand_nodetree(fd, mainvar, sce->nodetree);

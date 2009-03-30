@@ -141,14 +141,13 @@ static SpaceLink *buttons_duplicate(SpaceLink *sl)
 	return (SpaceLink *)sbutsn;
 }
 
-
-
 /* add handlers, stuff you only do once or on area/region changes */
 static void buttons_main_area_init(wmWindowManager *wm, ARegion *ar)
 {
 	ListBase *keymap;
-	
-	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_STANDARD, ar->winx, ar->winy);
+
+//	ar->v2d.minzoom= ar->v2d.maxzoom= 1.0f;
+	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_PANELS_UI, ar->winx, ar->winy);
 	
 	/* own keymap */
 	keymap= WM_keymap_listbase(wm, "Buttons", SPACE_BUTS, 0);	/* XXX weak? */
@@ -159,37 +158,51 @@ static void buttons_main_area_draw(const bContext *C, ARegion *ar)
 {
 	/* draw entirely, view changes should be handled here */
 	SpaceButs *sbuts= (SpaceButs*)CTX_wm_space_data(C);
-	View2D *v2d= &ar->v2d;
-	float col[3], fac;
-	int align= 0;
-	
-	/* clear and setup matrix */
-	UI_GetThemeColor3fv(TH_BACK, col);
-	glClearColor(col[0], col[1], col[2], 0.0);
-	glClear(GL_COLOR_BUFFER_BIT);
-	
-	UI_view2d_view_ortho(C, v2d);
-		
-	/* swapbuffers indicator */
-	fac= BLI_frand();
-	glColor3f(fac, fac, fac);
-	glRecti(20,  2,  30,  12);
-	
-	/* panels */
-	if(sbuts->mainb == CONTEXT_SCENE)
-		buttons_scene(C, ar);
-	
-	if(sbuts->align)
-		if(sbuts->re_align || sbuts->mainbo!=sbuts->mainb || sbuts->tabo!=sbuts->tab[sbuts->mainb])
-			align= 1;
 
-	uiDrawPanels(C, align);
-	uiMatchPanelsView2d(ar);
-	
-	/* reset view matrix */
-	UI_view2d_view_restore(C);
-	
-	/* scrollers? */
+	if(sbuts->mainb == CONTEXT_OBJECT) {
+		int tab= sbuts->tab[CONTEXT_OBJECT];
+		int vertical= (sbuts->align == 2);
+
+		if(tab == TAB_OBJECT_OBJECT)
+			uiRegionPanelLayout(C, ar, vertical, "object");
+	}
+	else {
+		View2D *v2d= &ar->v2d;
+		float col[3], fac;
+		//int align= 0;
+
+		/* clear and setup matrix */
+		UI_GetThemeColor3fv(TH_BACK, col);
+		glClearColor(col[0], col[1], col[2], 0.0);
+		glClear(GL_COLOR_BUFFER_BIT);
+		
+		UI_view2d_view_ortho(C, v2d);
+
+		/* swapbuffers indicator */
+		fac= BLI_frand();
+		glColor3f(fac, fac, fac);
+		glRecti(20, v2d->cur.ymin+2,  30, v2d->cur.ymin+12);
+		
+		/* panels */
+		if(sbuts->mainb == CONTEXT_SCENE)
+			buttons_scene(C, ar);
+		else
+			drawnewstuff();
+		
+#if 0
+		if(sbuts->align)
+			if(sbuts->re_align || sbuts->mainbo!=sbuts->mainb || sbuts->tabo!=sbuts->tab[sbuts->mainb])
+				align= 1;
+#endif
+
+		uiDrawPanels(C, 1); // XXX align);
+		uiMatchPanelsView2d(ar);
+		
+		/* reset view matrix */
+		UI_view2d_view_restore(C);
+		
+		/* scrollers? */
+	}
 }
 
 void buttons_operatortypes(void)
@@ -268,6 +281,8 @@ void ED_spacetype_buttons(void)
 	art->listener= buttons_area_listener;
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D|ED_KEYMAP_FRAMES;
 
+	buttons_object_register(art);
+
 	BLI_addhead(&st->regiontypes, art);
 	
 	/* regions: header */
@@ -291,7 +306,6 @@ void ED_spacetype_buttons(void)
 //	art->draw= buttons_channel_area_draw;
 	
 	BLI_addhead(&st->regiontypes, art);
-	
 	
 	BKE_spacetype_register(st);
 }

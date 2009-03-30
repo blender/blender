@@ -1010,11 +1010,11 @@ getClipboard(bool selection
 ) const {
 	//Flag 
 	//0 = Regular clipboard 1 = selection
-	static Atom Primary_atom, clip_String, compound_text;
+	static Atom Primary_atom, clip_String, compound_text, a_text, a_string;
 	Atom rtype;
 	Window m_window, owner;
 	unsigned char *data, *tmp_data;
-	int bits;
+	int bits, count;
 	unsigned long len, bytes;
 	XEvent xevent;
 	
@@ -1025,6 +1025,8 @@ getClipboard(bool selection
 
 	clip_String = XInternAtom(m_display, "_BLENDER_STRING", False);
 	compound_text = XInternAtom(m_display, "COMPOUND_TEXT", False);
+	a_text= XInternAtom(m_display, "TEXT", False);
+	a_string= XInternAtom(m_display, "STRING", False);
 
 	//lets check the owner and if it is us then return the static buffer
 	if(!selection) {
@@ -1058,18 +1060,46 @@ getClipboard(bool selection
 	XFlush(m_display);
 
 	//This needs to change so we do not wait for ever or check owner first
+	count= 1;
 	while(1) {
 		XNextEvent(m_display, &xevent);
 		if(xevent.type == SelectionNotify) {
-			if(XGetWindowProperty(m_display, m_window, xevent.xselection.property, 0L, 4096L, False, AnyPropertyType, &rtype, &bits, &len, &bytes, &data) == Success) {
-				if (data) {
-					tmp_data = (unsigned char*) malloc(strlen((char*)data)+1);
-					strcpy((char*)tmp_data, (char*)data);
-					XFree(data);
-					return (GHOST_TUns8*)tmp_data;
+			if (xevent.xselection.property == None) {
+				/* Ok, the client can't convert the property
+				 * to some that we can handle, try other types..
+				 */
+				if (count == 1) {
+					XConvertSelection(m_display, Primary_atom, a_text, clip_String, m_window, CurrentTime);
+					count++;
+				}
+				else if (count == 2) {
+					XConvertSelection(m_display, Primary_atom, a_string, clip_String, m_window, CurrentTime);
+					count++;
+				}
+				else {
+					/* Ok, the owner of the selection can't 
+					 * convert the data to something that we can
+					 * handle.
+					 */
+					return(NULL);
 				}
 			}
-			return NULL;
+			else {
+				if(XGetWindowProperty(m_display, m_window, xevent.xselection.property , 0L, 4096L, False, AnyPropertyType, &rtype, &bits, &len, &bytes, &data) == Success) {
+					if (data) {
+						if (bits == 8 && (rtype == compound_text || rtype == a_text || rtype == a_string)) {
+							tmp_data = (unsigned char*) malloc(strlen((char*)data)+1);
+							strcpy((char*)tmp_data, (char*)data);
+						}
+						else
+							tmp_data= NULL;
+
+						XFree(data);
+						return (GHOST_TUns8*)tmp_data;
+					}
+				}
+				return(NULL);
+			}
 		}
 	}
 }

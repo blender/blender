@@ -38,6 +38,9 @@
 // cool things like (IF(LOD==1,CCurvedValue,IF(LOD==2,CCurvedValue2)) etc...
 #include "IfExpr.h" 
 
+#if defined(WIN32) || defined(WIN64)
+#define strcasecmp _stricmp
+#endif /* Def WIN32 or Def WIN64 */
 
 #define NUM_PRIORITY 6
 //////////////////////////////////////////////////////////////////////
@@ -172,6 +175,9 @@ void CParser::NextSym()
     case ',':
 		sym = commasym; NextCh();
 		break;
+	case '%' :
+		sym = opsym; opkind = OPmodulus; NextCh();
+		break;
     case '+' :
 		sym = opsym; opkind = OPplus; NextCh();
 		break;
@@ -271,33 +277,30 @@ void CParser::NextSym()
 			} else if (((ch >= 'a') && (ch <= 'z'))
 				|| ((ch >= 'A') && (ch <= 'Z')))
 			{ // reserved word?
-				int start;
-				STR_String funstr;
+				
 				start = chcount;
 				CharRep();
 				GrabString(start);
-				funstr = const_as_string;
-				funstr.Upper();
-				if (funstr == STR_String("SUM")) {
+				if (!strcasecmp(const_as_string, "SUM")) {
 					sym = sumsym;
 				}
-				else if (funstr == STR_String("NOT")) {
+				else if (!strcasecmp(const_as_string, "NOT")) {
 					sym = opsym;
 					opkind = OPnot;
 				}
-				else if (funstr == STR_String("AND")) {
+				else if (!strcasecmp(const_as_string, "AND")) {
 					sym = opsym; opkind = OPand;
 				}
-				else if (funstr == STR_String("OR")) {
+				else if (!strcasecmp(const_as_string, "OR")) {
 					sym = opsym; opkind = OPor;
 				}
-				else if (funstr == STR_String("IF")) {
+				else if (!strcasecmp(const_as_string, "IF"))
 					sym = ifsym;
-				} else if (funstr == STR_String("WHOMADE")) {
+				else if (!strcasecmp(const_as_string, "WHOMADE"))
 					sym = whocodedsym;
-				} else if (funstr == STR_String("FALSE")) {
+				else if (!strcasecmp(const_as_string, "FALSE")) {
 					sym = constsym; constkind = booltype; boolvalue = false;
-				} else if (funstr == STR_String("TRUE")) {
+				} else if (!strcasecmp(const_as_string, "TRUE")) {
 					sym = constsym; constkind = booltype; boolvalue = true;
 				} else {
 					sym = idsym;
@@ -370,6 +373,7 @@ int CParser::Priority(int optorkind) {
 	case OPunequal: return 3;
     case OPplus:
     case OPminus: return 4;
+	case OPmodulus:
     case OPtimes:
     case OPdivide: return 5;
 	}
@@ -390,6 +394,7 @@ CExpression *CParser::Ex(int i) {
 			NextSym();
 			e2 = Ex(i + 1);
 			switch(opkind2) {
+			case OPmodulus: e1 = new COperator2Expr(VALUE_MOD_OPERATOR,e1, e2); break;
 			case OPplus: e1 = new COperator2Expr(VALUE_ADD_OPERATOR,e1, e2); break;
 			case OPminus: e1 = new COperator2Expr(VALUE_SUB_OPERATOR,e1, e2); break;
 			case OPtimes:	e1 = new COperator2Expr(VALUE_MUL_OPERATOR,e1, e2); break;

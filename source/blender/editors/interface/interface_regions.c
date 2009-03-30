@@ -261,7 +261,7 @@ static void ui_tooltip_region_draw(const bContext *C, ARegion *ar)
 {
 	uiTooltipData *data;
 	int x1, y1, x2, y2;
-
+	
 	data= ar->regiondata;
 
 	x1= ar->winrct.xmin;
@@ -269,34 +269,21 @@ static void ui_tooltip_region_draw(const bContext *C, ARegion *ar)
 	x2= ar->winrct.xmax;
 	y2= ar->winrct.ymax;
 
-	/* draw drop shadow */
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glEnable(GL_BLEND);
-
-	glColor4ub(0, 0, 0, 20);
-	
-	gl_round_box(GL_POLYGON, 3, 3, x2-x1-3, y2-y1-2, 2.0);
-	gl_round_box(GL_POLYGON, 3, 2, x2-x1-2, y2-y1-2, 3.0);
-	
-	glColor4ub(0, 0, 0, 8);
-	
-	gl_round_box(GL_POLYGON, 3, 1, x2-x1-1, y2-y1-3, 4.0);
-	gl_round_box(GL_POLYGON, 3, 0, x2-x1-0, y2-y1-3, 5.0);
-
-	glDisable(GL_BLEND);
-	
 	/* draw background */
-	glColor3f(1.0f, 1.0f, 0.8666f);
-	glRectf(0, 4, x2-x1-4, y2-y1);
+	glEnable(GL_BLEND);
+	glColor4f(0.15f, 0.15f, 0.15f, 0.85f);
+	
+	uiSetRoundBox(15);
+	uiRoundBox(data->bbox.xmin, 2, data->bbox.xmax+10, y2-y1-2, 5.0f);
 	
 	/* draw text */
-	glColor3ub(0,0,0);
+	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 
-	/* set the position for drawing text +4 in from the left edge, and leaving
+	/* set the position for drawing text +6 in from the left edge, and leaving
 	 * an equal gap between the top of the background box and the top of the
 	 * string's bbox, and the bottom of the background box, and the bottom of
 	 * the string's bbox */
-	ui_rasterpos_safe(4, ((y2-data->bbox.ymax)+(y1+data->bbox.ymin))/2 - data->bbox.ymin - y1, data->aspect);
+	ui_rasterpos_safe(5, ((y2-data->bbox.ymax)+(y1+data->bbox.ymin))/2 - data->bbox.ymin - y1, data->aspect);
 	UI_SetScale(1.0);
 
 	UI_DrawString(data->font, data->tip, ui_translate_tooltips());
@@ -856,8 +843,8 @@ uiBlock *ui_block_func_ICONROW(bContext *C, uiPopupBlockHandle *handle, void *ar
 	block->flag= UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_NUMSELECT;
 	block->themecol= TH_MENU_ITEM;
 	
-	for(a=(int)but->min; a<=(int)but->max; a++) {
-		uiDefIconButF(block, BUTM|FLO, B_NOP, but->icon+(a-but->min), 0, (short)(18*a), (short)(but->x2-but->x1-4), 18, &handle->retvalue, (float)a, 0.0, 0, 0, "");
+	for(a=(int)but->hardmin; a<=(int)but->hardmax; a++) {
+		uiDefIconButF(block, BUTM|FLO, B_NOP, but->icon+(a-but->hardmin), 0, (short)(18*a), (short)(but->x2-but->x1-4), 18, &handle->retvalue, (float)a, 0.0, 0, 0, "");
 	}
 
 	block->direction= UI_TOP;	
@@ -905,7 +892,7 @@ uiBlock *ui_block_func_ICONTEXTROW(bContext *C, uiPopupBlockHandle *handle, void
 			ypos +=3;
 		}
 		else {
-			uiDefIconTextButF(block, BUTM|FLO, B_NOP, (short)((but->icon)+(md->items[a].retval-but->min)), md->items[a].str, 0, ypos,(short)width, 19, &handle->retvalue, (float) md->items[a].retval, 0.0, 0, 0, "");
+			uiDefIconTextButF(block, BUTM|FLO, B_NOP, (short)((but->icon)+(md->items[a].retval-but->hardmin)), md->items[a].str, 0, ypos,(short)width, 19, &handle->retvalue, (float) md->items[a].retval, 0.0, 0, 0, "");
 			ypos += 20;
 		}
 	}
@@ -2236,7 +2223,7 @@ void uiPupMenuEnd(bContext *C, uiMenuItem *head)
 	menu= ui_popup_block_create(C, NULL, NULL, NULL, ui_block_func_MENU_ITEM, &info);
 	menu->popup= 1;
 	
-	UI_add_popup_handlers(&window->handlers, menu);
+	UI_add_popup_handlers(C, &window->handlers, menu);
 	WM_event_add_mousemove(C);
 	
 	BLI_freelistN(&head->items);
@@ -2261,7 +2248,7 @@ static uiPopupBlockHandle *ui_pup_menu(bContext *C, int maxrow, uiMenuHandleFunc
 	menu= ui_popup_block_create(C, NULL, NULL, NULL, ui_block_func_PUPMENU, &info);
 	menu->popup= 1;
 
-	UI_add_popup_handlers(&window->handlers, menu);
+	UI_add_popup_handlers(C, &window->handlers, menu);
 	WM_event_add_mousemove(C);
 
 	menu->popup_func= func;
@@ -2412,7 +2399,7 @@ void uiPupBlockO(bContext *C, uiBlockCreateFunc func, void *arg, char *opname, i
 	handle->opname= opname;
 	handle->opcontext= opcontext;
 	
-	UI_add_popup_handlers(&window->handlers, handle);
+	UI_add_popup_handlers(C, &window->handlers, handle);
 	WM_event_add_mousemove(C);
 }
 

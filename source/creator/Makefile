@@ -43,6 +43,7 @@ CPPFLAGS += -I../blender/radiosity/extern/include
 # two needed for the kernel
 CPPFLAGS += -I../blender/imbuf
 CPPFLAGS += -I../blender/makesdna
+CPPFLAGS += -I../blender/makesrna
 CPPFLAGS += -I../blender/blenlib
 CPPFLAGS += -I../blender/editors/include
 CPPFLAGS += -I../blender/renderconverter
@@ -58,6 +59,9 @@ CPPFLAGS += -I$(NAN_GLEW)/include
 
 ifeq ($(WITH_QUICKTIME), true)
 	CPPFLAGS += -I$(NAN_QUICKTIME)/include -DWITH_QUICKTIME
+endif
+ifeq ($(WITH_OPENJPEG), true)
+	CPPFLAGS += -DWITH_OPENJPEG
 endif
 
 ifeq ($(WITH_BINRELOC), true)

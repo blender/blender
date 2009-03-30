@@ -177,11 +177,11 @@ static int graphkeys_previewrange_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
  
-void GRAPHEDIT_OT_set_previewrange (wmOperatorType *ot)
+void GRAPHEDIT_OT_previewrange_set (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Auto-Set Preview Range";
-	ot->idname= "GRAPHEDIT_OT_set_previewrange";
+	ot->idname= "GRAPHEDIT_OT_previewrange_set";
 	
 	/* api callbacks */
 	ot->exec= graphkeys_previewrange_exec;
@@ -256,7 +256,7 @@ static short copy_graph_keys (bAnimContext *ac)
 	free_anim_copybuf();
 	
 	/* filter data */
-	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVEVISIBLE | ANIMFILTER_SEL | ANIMFILTER_CURVESONLY);
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVEVISIBLE | ANIMFILTER_CURVESONLY);
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	/* copy keyframes */
@@ -1011,6 +1011,91 @@ void GRAPHEDIT_OT_keyframes_handletype (wmOperatorType *ot)
 /* ************************************************************************** */
 /* TRANSFORM STUFF */
 
+/* ***************** 'Euler Filter' Operator **************************** */
+/* Euler filter tools (as seen in Maya), are necessary for working with 'baked'
+ * rotation curves (with Euler rotations). The main purpose of such tools is to
+ * resolve any discontinuities that may arise in the curves due to the clamping
+ * of values to -180 degrees to 180 degrees.
+ */
+
+#if 0 // XXX this is not ready for the primetime yet
+ 
+/* set of three euler-rotation F-Curves */
+typedef struct tEulerFilter {
+	ID *id;							/* ID-block which owns the channels */
+	FCurve *fcu1, *fcu2, *fcu3;		/* x,y,z rotation curves */
+	int i1, i2, i3;					/* current index for each curve */
+} tEulerFilter;
+ 
+static int graphkeys_euler_filter_exec (bContext *C, wmOperator *op)
+{
+	bAnimContext ac;
+	
+	ListBase anim_data= {NULL, NULL};
+	bAnimListElem *ale;
+	int filter;
+	
+	ListBase eulers = {NULL, NULL};
+	tEulerFilter *euf= NULL;	
+	
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+		
+	/* The process is done in two passes:
+	 * 	 1) Sets of three related rotation curves are identified from the selected channels,
+	 *		and are stored as a single 'operation unit' for the next step
+	 *	 2) Each set of three F-Curves is processed for each keyframe, with the values being
+	 * 		processed according to one of several ways.
+	 */
+	 
+	/* step 1: extract only the rotation f-curves */
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_SEL | ANIMFILTER_CURVEVISIBLE | ANIMFILTER_CURVESONLY);
+	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+	
+	for (ale= anim_data.first; ale; ale= ale->next) {
+		FCurve *fcu = (FCurve *)ale->data;
+		
+		/* check if this is an appropriate F-Curve 
+		 *	- only rotation curves
+		 *	- for pchan curves, make sure we're only using the euler curves
+		 */
+		if (ELEM(0, fcu->rna_path, strstr(fcu->rna_path, "rotation")))
+			continue;
+		if (strstr(fcu->rna_path, "pose.pose_channels")) {
+			if (strstr(fcu->rna_path, "euler_rotation") == 0)
+				continue;
+		}
+		
+		/* check if current set of 3-curves is suitable to add this curve to 
+		 *	- things like whether the current set of curves is 'full' should be checked later only
+		 *	- first check if id-blocks are compatible
+		 */
+		if ((euf) && (ale->id != euf->id)) {
+			
+		}
+	}
+	
+	// XXX for now
+	return OPERATOR_CANCELLED;
+}
+ 
+void GRAPHEDIT_OT_keyframes_euler_filter (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Euler Filter";
+	ot->idname= "GRAPHEDIT_OT_keyframes_euler_filter";
+	
+	/* api callbacks */
+	ot->exec= graphkeys_euler_filter_exec;
+	ot->poll= ED_operator_areaactive;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+#endif // XXX this is not ready for the primetime yet
+
 /* ***************** Snap Current Frame Operator *********************** */
 
 /* helper callback for graphkeys_cfrasnap_exec() -> used to help get the average time of all selected beztriples */
@@ -1329,6 +1414,84 @@ void GRAPHEDIT_OT_keyframes_smooth (wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/* ************************************************************************** */
+/* F-CURVE MODIFIERS */
+
+/* ******************** Add F-Curve Modifier Operator *********************** */
+
+/* F-Modifier types - duplicate of existing codes...  */
+	// XXX how can we have this list from the RNA definitions instead?
+EnumPropertyItem prop_fmodifier_types[] = {
+	{FMODIFIER_TYPE_GENERATOR, "GENERATOR", "Generator", ""},
+	{FMODIFIER_TYPE_ENVELOPE, "ENVELOPE", "Envelope", ""},
+	{FMODIFIER_TYPE_CYCLES, "CYCLES", "Cycles", ""},
+	{FMODIFIER_TYPE_NOISE, "NOISE", "Noise", ""},
+	{FMODIFIER_TYPE_FILTER, "FILTER", "Filter", ""},
+	{FMODIFIER_TYPE_PYTHON, "PYTHON", "Python", ""},
+	{0, NULL, NULL, NULL}
+};
+
+static int graph_fmodifier_add_exec(bContext *C, wmOperator *op)
+{
+	bAnimContext ac;
+	bAnimListElem *ale;
+	FCurve *fcu;
+	FModifier *fcm;
+	short type;
+	
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+		
+		// xxx call the raw methods here instead?
+	ale= get_active_fcurve_channel(&ac);
+	if (ale == NULL) 
+		return OPERATOR_CANCELLED;
+	
+	fcu= (FCurve *)ale->data;
+	MEM_freeN(ale);
+	if (fcu == NULL) 
+		return OPERATOR_CANCELLED;
+		
+	/* get type of modifier to add */
+	type= RNA_enum_get(op->ptr, "type");
+	
+	/* add F-Modifier of specified type to active F-Curve, and make it the active one */
+	fcm= fcurve_add_modifier(fcu, type);
+	if (fcm)
+		fcurve_set_active_modifier(fcu, fcm);
+	else {
+		BKE_report(op->reports, RPT_ERROR, "Modifier couldn't be added. See console for details.");
+		return OPERATOR_CANCELLED;
+	}
+	
+	/* validate keyframes after editing */
+	ANIM_editkeyframes_refresh(&ac);
+	
+	/* set notifier that things have changed */
+	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_BOTH);
+	
+	return OPERATOR_FINISHED;
+}
+ 
+void GRAPHEDIT_OT_fmodifier_add (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Add F-Curve Modifier";
+	ot->idname= "GRAPHEDIT_OT_fmodifier_add";
+	
+	/* api callbacks */
+	ot->invoke= WM_menu_invoke;
+	ot->exec= graph_fmodifier_add_exec;
+	ot->poll= ED_operator_areaactive; // XXX need active F-Curve
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* id-props */
+	RNA_def_enum(ot->srna, "type", prop_fmodifier_types, 0, "Type", "");
 }
 
 /* ************************************************************************** */

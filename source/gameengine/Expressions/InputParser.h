@@ -49,6 +49,7 @@ private:
 	};			// all kinds of symbols
 
 	enum optype {
+		OPmodulus,
 		OPplus,
 		OPminus,
 		OPtimes,

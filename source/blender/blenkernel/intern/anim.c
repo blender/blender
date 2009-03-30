@@ -34,6 +34,7 @@
 
 #include "MEM_guardedalloc.h"
 #include "BLI_blenlib.h"
+#include "BLI_editVert.h"
 #include "BLI_arithb.h"
 #include "BLI_rand.h"
 #include "DNA_listBase.h"
@@ -71,6 +72,8 @@
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
+
+#include "ED_mesh.h"
 
 static void object_duplilist_recursive(ID *id, Scene *scene, Object *ob, ListBase *duplilist, float par_space_mat[][4], int level, int animated);
 
@@ -445,6 +448,7 @@ static void vertex_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, fl
 	Scene *sce = NULL;
 	Group *group = NULL;
 	GroupObject * go = NULL;
+	EditMesh *em;
 	float vec[3], no[3], pmat[4][4];
 	int lay, totvert, a, oblay;
 	
@@ -452,12 +456,15 @@ static void vertex_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, fl
 	
 	/* simple preventing of too deep nested groups */
 	if(level>MAX_DUPLI_RECUR) return;
-
-	if(me->edit_mesh)
-		dm= editmesh_get_derived_cage(scene, par, me->edit_mesh, CD_MASK_BAREMESH);
-	else
+	
+	em = EM_GetEditMesh(me);
+	
+	if(em) {
+		dm= editmesh_get_derived_cage(scene, par, em, CD_MASK_BAREMESH);
+		EM_EndEditMesh(me, em);
+	} else
 		dm= mesh_get_derived_deform(scene, par, CD_MASK_BAREMESH);
-
+	
 	if(G.rendering) {
 		vdd.orco= (float(*)[3])get_mesh_orco_verts(par);
 		transform_mesh_orco_verts(me, vdd.orco, me->totvert, 0);
@@ -557,17 +564,19 @@ static void face_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, floa
 	Scene *sce = NULL;
 	Group *group = NULL;
 	GroupObject *go = NULL;
+	EditMesh *em;
 	float ob__obmat[4][4]; /* needed for groups where the object matrix needs to be modified */
 	
 	/* simple preventing of too deep nested groups */
 	if(level>MAX_DUPLI_RECUR) return;
 	
 	Mat4CpyMat4(pmat, par->obmat);
-
-	if(me->edit_mesh) {
+	
+	em = EM_GetEditMesh(me);
+	if(em) {
 		int totvert;
 		
-		dm= editmesh_get_derived_cage(scene, par, me->edit_mesh, CD_MASK_BAREMESH);
+		dm= editmesh_get_derived_cage(scene, par, em, CD_MASK_BAREMESH);
 		
 		totface= dm->getNumFaces(dm);
 		mface= MEM_mallocN(sizeof(MFace)*totface, "mface temp");
@@ -575,6 +584,8 @@ static void face_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, floa
 		totvert= dm->getNumVerts(dm);
 		mvert= MEM_mallocN(sizeof(MVert)*totvert, "mvert temp");
 		dm->copyVertArray(dm, mvert);
+
+		EM_EndEditMesh(me, em);
 	}
 	else {
 		dm = mesh_get_derived_deform(scene, par, CD_MASK_BAREMESH);

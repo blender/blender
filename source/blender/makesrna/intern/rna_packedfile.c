@@ -1,5 +1,5 @@
 /**
- * $Id$
+ * $Id: rna_packedfile.c 19382 2009-03-23 13:24:48Z blendix $
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -43,7 +43,7 @@ void RNA_def_packedfile(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Packed File", "External file packed into the .blend file.");
 
 	prop= RNA_def_property(srna, "size", PROP_INT, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Size", "Size of packed file in bytes.");
 
 }

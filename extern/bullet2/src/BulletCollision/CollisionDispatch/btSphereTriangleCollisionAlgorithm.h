@@ -16,7 +16,7 @@ subject to the following restrictions:
 #ifndef SPHERE_TRIANGLE_COLLISION_ALGORITHM_H
 #define SPHERE_TRIANGLE_COLLISION_ALGORITHM_H
 
-#include "BulletCollision/BroadphaseCollision/btCollisionAlgorithm.h"
+#include "btActivatingCollisionAlgorithm.h"
 #include "BulletCollision/BroadphaseCollision/btBroadphaseProxy.h"
 #include "BulletCollision/CollisionDispatch/btCollisionCreateFunc.h"
 class btPersistentManifold;
@@ -25,7 +25,7 @@ class btPersistentManifold;
 /// btSphereSphereCollisionAlgorithm  provides sphere-sphere collision detection.
 /// Other features are frame-coherency (persistent data) and collision response.
 /// Also provides the most basic sample for custom/user btCollisionAlgorithm
-class btSphereTriangleCollisionAlgorithm : public btCollisionAlgorithm
+class btSphereTriangleCollisionAlgorithm : public btActivatingCollisionAlgorithm
 {
 	bool	m_ownManifold;
 	btPersistentManifold*	m_manifoldPtr;
@@ -35,7 +35,7 @@ public:
 	btSphereTriangleCollisionAlgorithm(btPersistentManifold* mf,const btCollisionAlgorithmConstructionInfo& ci,btCollisionObject* body0,btCollisionObject* body1,bool swapped);
 
 	btSphereTriangleCollisionAlgorithm(const btCollisionAlgorithmConstructionInfo& ci)
-		: btCollisionAlgorithm(ci) {}
+		: btActivatingCollisionAlgorithm(ci) {}
 
 	virtual void processCollision (btCollisionObject* body0,btCollisionObject* body1,const btDispatcherInfo& dispatchInfo,btManifoldResult* resultOut);
 

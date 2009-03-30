@@ -62,6 +62,7 @@
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
+
 #include "ED_markers.h"
 #include "ED_fileselect.h"
 
@@ -83,13 +84,13 @@ static SpaceLink *file_new(const bContext *C)
 	ar= MEM_callocN(sizeof(ARegion), "header for file");
 	BLI_addtail(&sfile->regionbase, ar);
 	ar->regiontype= RGN_TYPE_HEADER;
-	ar->alignment= RGN_ALIGN_BOTTOM;
+	ar->alignment= RGN_ALIGN_TOP;
 
 	/* channel list region */
 	ar= MEM_callocN(sizeof(ARegion), "channel area for file");
 	BLI_addtail(&sfile->regionbase, ar);
 	ar->regiontype= RGN_TYPE_CHANNELS;
-	ar->alignment= RGN_ALIGN_LEFT;
+	ar->alignment= RGN_ALIGN_LEFT;	
 
 	/* ui list region */
 	ar= MEM_callocN(sizeof(ARegion), "ui area for file");
@@ -117,7 +118,6 @@ static void file_free(SpaceLink *sl)
 	
 	if(sfile->files) {
 		filelist_free(sfile->files);
-		filelist_freelib(sfile->files);
 		MEM_freeN(sfile->files);
 		sfile->files= NULL;
 	}
@@ -127,6 +127,11 @@ static void file_free(SpaceLink *sl)
 			MEM_freeN(sfile->params->pupmenu);
 		MEM_freeN(sfile->params);
 		sfile->params= NULL;
+	}
+
+	if (sfile->layout) {
+		MEM_freeN(sfile->layout);
+		sfile->layout = NULL;
 	}
 }
 
@@ -153,6 +158,9 @@ static SpaceLink *file_duplicate(SpaceLink *sl)
 		filelist_setdir(sfilen->files, sfilen->params->dir);
 		filelist_settype(sfilen->files, sfilen->params->type);
 	}
+	if (sfileo->layout) {
+		sfilen->layout= MEM_dupallocN(sfileo->layout);
+	}
 	return (SpaceLink *)sfilen;
 }
 
@@ -175,7 +183,9 @@ static void file_main_area_draw(const bContext *C, ARegion *ar)
 {
 	/* draw entirely, view changes should be handled here */
 	SpaceFile *sfile= (SpaceFile*)CTX_wm_space_data(C);
-	FileSelectParams* params = sfile->params;
+	FileSelectParams *params = ED_fileselect_get_params(sfile);
+	FileLayout *layout=NULL;
+
 	View2D *v2d= &ar->v2d;
 	View2DScrollers *scrollers;
 	float col[3];
@@ -186,6 +196,8 @@ static void file_main_area_draw(const bContext *C, ARegion *ar)
 		filelist_settype(sfile->files, params->type);
 		params->active_file = -1; // added this so it opens nicer (ton)
 	}
+
+	layout = ED_fileselect_get_layout(sfile, ar);
 
 	if (filelist_empty(sfile->files))
 	{
@@ -209,11 +221,17 @@ static void file_main_area_draw(const bContext *C, ARegion *ar)
 	glClear(GL_COLOR_BUFFER_BIT);
 	
 	/* Allow dynamically sliders to be set, saves notifiers etc. */
-	if (sfile->params && (sfile->params->display == FILE_IMGDISPLAY) )
+	if (layout && (layout->flag == FILE_LAYOUT_VER)) {
 		v2d->scroll = V2D_SCROLL_RIGHT;
-	else
+		v2d->keepofs &= ~V2D_LOCKOFS_Y;
+		v2d->keepofs |= V2D_LOCKOFS_X;
+	}
+	else {
 		v2d->scroll = V2D_SCROLL_BOTTOM;
-		/* v2d has initialized flag, so this call will only set the mask correct */
+		v2d->keepofs &= ~V2D_LOCKOFS_X;
+		v2d->keepofs |= V2D_LOCKOFS_Y;
+	}
+	/* v2d has initialized flag, so this call will only set the mask correct */
 	UI_view2d_region_reinit(v2d, V2D_COMMONVIEW_LIST, ar->winx, ar->winy);
 
 	/* sets tile/border settings in sfile */
@@ -248,14 +266,16 @@ static void file_main_area_draw(const bContext *C, ARegion *ar)
 void file_operatortypes(void)
 {
 	WM_operatortype_append(FILE_OT_select);
-	WM_operatortype_append(FILE_OT_select_all);
-	WM_operatortype_append(FILE_OT_border_select);
+	WM_operatortype_append(FILE_OT_select_all_toggle);
+	WM_operatortype_append(FILE_OT_select_border);
 	WM_operatortype_append(FILE_OT_select_bookmark);
 	WM_operatortype_append(FILE_OT_loadimages);
 	WM_operatortype_append(FILE_OT_highlight);
 	WM_operatortype_append(FILE_OT_exec);
 	WM_operatortype_append(FILE_OT_cancel);
 	WM_operatortype_append(FILE_OT_parent);
+	WM_operatortype_append(FILE_OT_refresh);
+	WM_operatortype_append(FILE_OT_bookmark_toggle);
 }
 
 /* NOTE: do not add .blend file reading on this level */
@@ -263,8 +283,8 @@ void file_keymap(struct wmWindowManager *wm)
 {
 	ListBase *keymap= WM_keymap_listbase(wm, "File", SPACE_FILE, 0);
 	WM_keymap_add_item(keymap, "FILE_OT_select", LEFTMOUSE, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "FILE_OT_select_all", AKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "FILE_OT_border_select", BKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "FILE_OT_select_all_toggle", AKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "FILE_OT_select_border", BKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "FILE_OT_highlight", MOUSEMOVE, KM_ANY, 0, 0);
 	WM_keymap_add_item(keymap, "FILE_OT_parent", PKEY, KM_PRESS, 0, 0);
 	
@@ -291,7 +311,7 @@ static void file_channel_area_draw(const bContext *C, ARegion *ar)
 	View2D *v2d= &ar->v2d;
 	float col[3];
 
-	UI_GetThemeColor3fv(TH_BACK, col);
+	UI_GetThemeColor3fv(TH_PANEL, col);
 	glClearColor(col[0], col[1], col[2], 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
 
@@ -339,7 +359,7 @@ static void file_ui_area_draw(const bContext *C, ARegion *ar)
 {
 	float col[3];
 	/* clear */
-	UI_GetThemeColor3fv(TH_BACK, col);
+	UI_GetThemeColor3fv(TH_PANEL, col);
 	glClearColor(col[0], col[1], col[2], 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
 
@@ -392,7 +412,7 @@ void ED_spacetype_file(void)
 	/* regions: ui */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype file region");
 	art->regionid = RGN_TYPE_UI;
-	art->minsizey= 100;
+	art->minsizey= 60;
 	art->keymapflag= ED_KEYMAP_UI;
 	art->init= file_ui_area_init;
 	art->draw= file_ui_area_draw;
@@ -401,7 +421,7 @@ void ED_spacetype_file(void)
 	/* regions: channels (directories) */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype file region");
 	art->regionid = RGN_TYPE_CHANNELS;
-	art->minsizex= 200;
+	art->minsizex= 240;
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D;
 	art->init= file_channel_area_init;
 	art->draw= file_channel_area_draw;
@@ -415,13 +435,13 @@ void ED_file_init(void)
 {
 	char name[FILE_MAX];
 	BLI_make_file_string("/", name, BLI_gethome(), ".Bfs");
-	fsmenu_read_file(name);
+	fsmenu_read_file(fsmenu_get(), name);
 	filelist_init_icons();
 	IMB_thumb_makedirs();
 }
 
 void ED_file_exit(void)
 {
-	fsmenu_free();
+	fsmenu_free(fsmenu_get());
 	filelist_free_icons();
 }

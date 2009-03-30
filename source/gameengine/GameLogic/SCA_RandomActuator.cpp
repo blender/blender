@@ -369,22 +369,22 @@ PyAttributeDef SCA_RandomActuator::Attributes[] = {
 	{ NULL }	//Sentinel
 };	
 
-PyObject* SCA_RandomActuator::_getattr(const STR_String& attr) {
+PyObject* SCA_RandomActuator::_getattr(const char *attr) {
 	PyObject* object = _getattr_self(Attributes, this, attr);
 	if (object != NULL)
 		return object;
-	if (attr == "seed") {
+	if (!strcmp(attr, "seed")) {
 		return PyInt_FromLong(m_base->GetSeed());
 	}
 	_getattr_up(SCA_IActuator);
 }
 
-int SCA_RandomActuator::_setattr(const STR_String& attr, PyObject *value)
+int SCA_RandomActuator::_setattr(const char *attr, PyObject *value)
 {
 	int ret = _setattr_self(Attributes, this, attr, value);
 	if (ret >= 0)
 		return ret;
-	if (attr == "seed") {
+	if (!strcmp(attr, "seed")) {
 		if (PyInt_Check(value))	{
 			int ival = PyInt_AsLong(value);
 			m_base->SetSeed(ival);
@@ -413,7 +413,7 @@ PyObject* SCA_RandomActuator::PySetSeed(PyObject* self, PyObject* args, PyObject
 	
 	m_base->SetSeed(seedArg);
 	
-	Py_Return;
+	Py_RETURN_NONE;
 }
 /* 2. getSeed                                                            */
 const char SCA_RandomActuator::GetSeed_doc[] = 
@@ -478,7 +478,7 @@ PyObject* SCA_RandomActuator::PySetProperty(PyObject* self, PyObject* args, PyOb
 	}
 	prop->Release();
 	
-	Py_Return;
+	Py_RETURN_NONE;
 }
 /* 10. getProperty                                                       */
 const char SCA_RandomActuator::GetProperty_doc[] = 
@@ -506,7 +506,7 @@ PyObject* SCA_RandomActuator::PySetBoolConst(PyObject* self,
 	m_distribution = KX_RANDOMACT_BOOL_CONST;
 	m_parameter1 = (paraArg) ? 1.0 : 0.0;
 	
-	Py_Return;
+	Py_RETURN_NONE;
 }
 /* 12. setBoolUniform, */
 const char SCA_RandomActuator::SetBoolUniform_doc[] = 
@@ -518,7 +518,7 @@ PyObject* SCA_RandomActuator::PySetBoolUniform(PyObject* self,
 	/* no args */
 	m_distribution = KX_RANDOMACT_BOOL_UNIFORM;
 	enforceConstraints();
-	Py_Return;
+	Py_RETURN_NONE;
 }
 /* 13. setBoolBernouilli,  */
 const char SCA_RandomActuator::SetBoolBernouilli_doc[] = 
@@ -536,7 +536,7 @@ PyObject* SCA_RandomActuator::PySetBoolBernouilli(PyObject* self,
 	m_distribution = KX_RANDOMACT_BOOL_BERNOUILLI;
 	m_parameter1 = paraArg;	
 	enforceConstraints();
-	Py_Return;
+	Py_RETURN_NONE;
 }
 /* 14. setIntConst,*/
 const char SCA_RandomActuator::SetIntConst_doc[] = 
@@ -554,7 +554,7 @@ PyObject* SCA_RandomActuator::PySetIntConst(PyObject* self,
 	m_distribution = KX_RANDOMACT_INT_CONST;
 	m_parameter1 = paraArg;
 	enforceConstraints();
-	Py_Return;
+	Py_RETURN_NONE;
 }
 /* 15. setIntUniform,*/
 const char SCA_RandomActuator::SetIntUniform_doc[] = 
@@ -575,7 +575,7 @@ PyObject* SCA_RandomActuator::PySetIntUniform(PyObject* self,
 	m_parameter1 = paraArg1;
 	m_parameter2 = paraArg2;
 	enforceConstraints();
-	Py_Return;
+	Py_RETURN_NONE;
 }
 /* 16. setIntPoisson,		*/
 const char SCA_RandomActuator::SetIntPoisson_doc[] = 
@@ -595,7 +595,7 @@ PyObject* SCA_RandomActuator::PySetIntPoisson(PyObject* self,
 	m_distribution = KX_RANDOMACT_INT_POISSON;
 	m_parameter1 = paraArg;	
 	enforceConstraints();
-	Py_Return;
+	Py_RETURN_NONE;
 }
 /* 17. setFloatConst,*/
 const char SCA_RandomActuator::SetFloatConst_doc[] = 
@@ -613,7 +613,7 @@ PyObject* SCA_RandomActuator::PySetFloatConst(PyObject* self,
 	m_distribution = KX_RANDOMACT_FLOAT_CONST;
 	m_parameter1 = paraArg;	
 	enforceConstraints();
-	Py_Return;
+	Py_RETURN_NONE;
 }
 /* 18. setFloatUniform, */
 const char SCA_RandomActuator::SetFloatUniform_doc[] = 
@@ -634,7 +634,7 @@ PyObject* SCA_RandomActuator::PySetFloatUniform(PyObject* self,
 	m_parameter1 = paraArg1;
 	m_parameter2 = paraArg2;
 	enforceConstraints();
-	Py_Return;
+	Py_RETURN_NONE;
 }
 /* 19. setFloatNormal, */
 const char SCA_RandomActuator::SetFloatNormal_doc[] = 
@@ -655,7 +655,7 @@ PyObject* SCA_RandomActuator::PySetFloatNormal(PyObject* self,
 	m_parameter1 = paraArg1;
 	m_parameter2 = paraArg2;
 	enforceConstraints();
-	Py_Return;
+	Py_RETURN_NONE;
 }
 /* 20. setFloatNegativeExponential, */
 const char SCA_RandomActuator::SetFloatNegativeExponential_doc[] = 
@@ -674,7 +674,7 @@ PyObject* SCA_RandomActuator::PySetFloatNegativeExponential(PyObject* self,
 	m_distribution = KX_RANDOMACT_FLOAT_NEGATIVE_EXPONENTIAL;
 	m_parameter1 = paraArg;	
 	enforceConstraints();
-	Py_Return;
+	Py_RETURN_NONE;
 }
 	
 /* eof */

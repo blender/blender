@@ -2,6 +2,7 @@ LCGDIR = '../lib/linux2'
 LIBDIR = "${LCGDIR}"
 
 BF_PYTHON = '/usr'
+BF_PYTHON_LIBPATH = '${BF_PYTHON}/lib'
 BF_PYTHON_VERSION = '2.5'
 WITH_BF_STATICPYTHON = False
 BF_PYTHON_INC = '${BF_PYTHON}/include/python${BF_PYTHON_VERSION}'

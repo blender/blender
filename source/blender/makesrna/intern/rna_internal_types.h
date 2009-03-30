@@ -41,6 +41,7 @@ struct bContext;
 typedef void (*UpdateFunc)(struct bContext *C, struct PointerRNA *ptr);
 typedef int (*EditableFunc)(struct PointerRNA *ptr);
 typedef struct StructRNA *(*StructRefineFunc)(struct PointerRNA *ptr);
+typedef char *(*StructPathFunc)(struct PointerRNA *ptr);
 
 typedef int (*PropBooleanGetFunc)(struct PointerRNA *ptr);
 typedef void (*PropBooleanSetFunc)(struct PointerRNA *ptr, int value);
@@ -186,7 +187,7 @@ typedef struct PointerPropertyRNA {
 	PropPointerGetFunc get;
 	PropPointerSetFunc set;
 
-	struct StructRNA *structtype;
+	struct StructRNA *type;
 } PointerPropertyRNA;
 
 typedef struct CollectionPropertyRNA {
@@ -200,7 +201,7 @@ typedef struct CollectionPropertyRNA {
 	PropCollectionLookupIntFunc lookupint;			/* optional */
 	PropCollectionLookupStringFunc lookupstring;	/* optional */
 
-	struct StructRNA *structtype;
+	struct StructRNA *type;
 } CollectionPropertyRNA;
 
 
@@ -208,6 +209,10 @@ typedef struct CollectionPropertyRNA {
 struct StructRNA {
 	struct StructRNA *next, *prev;
 
+	/* python type, this is a subtype of pyrna_struct_Type but used so each struct can have its own type
+	 * which is useful for subclassing RNA */
+	void *py_type;
+	
 	/* unique identifier */
 	const char *identifier;
 	/* various options */
@@ -235,6 +240,9 @@ struct StructRNA {
 
 	/* function to give the more specific type */
 	StructRefineFunc refine; 
+
+	/* function to find path to this struct in an ID */
+	StructPathFunc path; 
 
 	/* properties of this struct */
 	ListBase properties; 

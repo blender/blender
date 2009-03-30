@@ -36,11 +36,7 @@ email: projectileman@yahoo.com
 
 #include "gim_memory.h"
 
-/*! \defgroup SORTING
-\brief
-Macros for sorting.
-*/
-
+///Macros for sorting.
 //! Prototype for comparators
 class less_comparator
 {
@@ -406,5 +402,5 @@ void gim_heap_sort(T *pArr, GUINT element_count, COMP_CLASS CompareFunc)
 
 
 
-//! @}
+
 #endif // GIM_RADIXSORT_H_INCLUDED

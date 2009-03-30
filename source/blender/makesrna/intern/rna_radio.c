@@ -104,7 +104,7 @@ void RNA_def_radio(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "subshoot_patch", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "subshootp");
 	RNA_def_property_range(prop, 0, 10);
-	RNA_def_property_ui_text(prop, "SubShoot Patch", "Sets the number of times the environment is tested to detect pathes.");
+	RNA_def_property_ui_text(prop, "SubShoot Patch", "Sets the number of times the environment is tested to detect paths.");
 
 	prop= RNA_def_property(srna, "subshoot_element", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "subshoote");

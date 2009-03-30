@@ -227,11 +227,11 @@ static int sequencer_deselect_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void SEQUENCER_OT_deselect_all(struct wmOperatorType *ot)
+void SEQUENCER_OT_select_all_toggle(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "(De)Select All";
-	ot->idname= "SEQUENCER_OT_deselect_all";
+	ot->idname= "SEQUENCER_OT_select_all_toggle";
 
 	/* api callbacks */
 	ot->exec= sequencer_deselect_exec;
@@ -575,7 +575,7 @@ void SEQUENCER_OT_select_less(wmOperatorType *ot)
 
 
 /* select pick linked operator (uses the mouse) */
-static int sequencer_select_pick_linked_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int sequencer_select_linked_pick_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	Scene *scene= CTX_data_scene(C);
 	ARegion *ar= CTX_wm_region(C);
@@ -611,14 +611,14 @@ static int sequencer_select_pick_linked_invoke(bContext *C, wmOperator *op, wmEv
 	return OPERATOR_FINISHED;
 }
 
-void SEQUENCER_OT_select_pick_linked(wmOperatorType *ot)
+void SEQUENCER_OT_select_linked_pick(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select pick linked";
-	ot->idname= "SEQUENCER_OT_select_pick_linked";
+	ot->idname= "SEQUENCER_OT_select_linked_pick";
 	
 	/* api callbacks */
-	ot->invoke= sequencer_select_pick_linked_invoke;
+	ot->invoke= sequencer_select_linked_pick_invoke;
 	ot->poll= ED_operator_sequencer_active;
 	
 	/* flags */
@@ -794,11 +794,11 @@ static int sequencer_borderselect_exec(bContext *C, wmOperator *op)
 
 
 /* ****** Border Select ****** */
-void SEQUENCER_OT_borderselect(wmOperatorType *ot)
+void SEQUENCER_OT_select_border(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Border Select";
-	ot->idname= "SEQUENCER_OT_borderselect";
+	ot->idname= "SEQUENCER_OT_select_border";
 	
 	/* api callbacks */
 	ot->invoke= WM_border_select_invoke;

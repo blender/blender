@@ -82,18 +82,18 @@
 /* XXX */
 
 static float icovert[12][3] = {
-	{0,0,-200}, 
-	{144.72, -105.144,-89.443},
-	{-55.277, -170.128,-89.443}, 
-	{-178.885,0,-89.443},
-	{-55.277,170.128,-89.443}, 
-	{144.72,105.144,-89.443},
-	{55.277,-170.128,89.443},
-	{-144.72,-105.144,89.443},
-	{-144.72,105.144,89.443},
-	{55.277,170.128,89.443},
-	{178.885,0,89.443},
-	{0,0,200}
+	{0.0f,0.0f,-200.0f}, 
+	{144.72f, -105.144f,-89.443f},
+	{-55.277f, -170.128,-89.443f}, 
+	{-178.885f,0.0f,-89.443f},
+	{-55.277f,170.128f,-89.443f}, 
+	{144.72f,105.144f,-89.443f},
+	{55.277f,-170.128f,89.443f},
+	{-144.72f,-105.144f,89.443f},
+	{-144.72f,105.144f,89.443f},
+	{55.277f,170.128f,89.443f},
+	{178.885f,0.0f,89.443f},
+	{0.0f,0.0f,200.0f}
 };
 static short icoface[20][3] = {
 	{1,0,2},
@@ -341,23 +341,26 @@ int make_fgon(EditMesh *em, wmOperator *op, int make)
 static int make_fgon_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
-	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
+	EditMesh *em= EM_GetEditMesh(((Mesh *)obedit->data));
 
 	if( make_fgon(em, op, 1) ) {
 		DAG_object_flush_update(CTX_data_scene(C), obedit, OB_RECALC_DATA);	
 	
 		WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
-		
+
+		EM_EndEditMesh(obedit->data, em);
 		return OPERATOR_FINISHED;
 	}
+
+	EM_EndEditMesh(obedit->data, em);
 	return OPERATOR_CANCELLED;
 }
 
-void MESH_OT_make_fgon(struct wmOperatorType *ot)
+void MESH_OT_fgon_make(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Make F-gon";
-	ot->idname= "MESH_OT_make_fgon";
+	ot->idname= "MESH_OT_fgon_make";
 	
 	/* api callbacks */
 	ot->exec= make_fgon_exec;
@@ -370,23 +373,26 @@ void MESH_OT_make_fgon(struct wmOperatorType *ot)
 static int clear_fgon_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
-	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
+	EditMesh *em= EM_GetEditMesh(((Mesh *)obedit->data));
 	
 	if( make_fgon(em, op, 0) ) {
 		DAG_object_flush_update(CTX_data_scene(C), obedit, OB_RECALC_DATA);	
 		
 		WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
-
+		
+		EM_EndEditMesh(obedit->data, em);
 		return OPERATOR_FINISHED;
 	}
+
+	EM_EndEditMesh(obedit->data, em);
 	return OPERATOR_CANCELLED;
 }
 
-void MESH_OT_clear_fgon(struct wmOperatorType *ot)
+void MESH_OT_fgon_clear(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Clear F-gon";
-	ot->idname= "MESH_OT_clear_fgon";
+	ot->idname= "MESH_OT_fgon_clear";
 	
 	/* api callbacks */
 	ot->exec= clear_fgon_exec;
@@ -819,7 +825,7 @@ static void addedgeface_mesh(EditMesh *em, wmOperator *op)
 static int addedgeface_mesh_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
-	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
+	EditMesh *em= EM_GetEditMesh(((Mesh *)obedit->data));
 	
 	addedgeface_mesh(em, op);
 	
@@ -827,6 +833,7 @@ static int addedgeface_mesh_exec(bContext *C, wmOperator *op)
 	
 	DAG_object_flush_update(CTX_data_scene(C), obedit, OB_RECALC_DATA);	
 	
+	EM_EndEditMesh(obedit->data, em);
 	return OPERATOR_FINISHED;
 }
 
@@ -1016,7 +1023,7 @@ static void make_prim(Object *obedit, int type, float mat[4][4], int tot, int se
 	 * fill - end capping, and option to fill in circle
 	 * cent[3] - center of the data. 
 	 * */
-	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
+	EditMesh *em= EM_GetEditMesh(((Mesh *)obedit->data));
 	EditVert *eve, *v1=NULL, *v2, *v3, *v4=NULL, *vtop, *vdown;
 	float phi, phid, vec[3];
 	float q[4], cmat[3][3], nor[3]= {0.0, 0.0, 0.0};
@@ -1024,8 +1031,8 @@ static void make_prim(Object *obedit, int type, float mat[4][4], int tot, int se
 	
 	EM_clear_flag_all(em, SELECT);
 
-	phid= 2*M_PI/tot;
-	phi= .25*M_PI;
+	phid= 2.0f*(float)M_PI/tot;
+	phi= .25f*(float)M_PI;
 
 	switch(type) {
 	case PRIM_GRID: /*  grid */
@@ -1297,6 +1304,8 @@ static void make_prim(Object *obedit, int type, float mat[4][4], int tot, int se
 	
 	if(type!=0 && type!=13)
 		righthandfaces(em, 1);	/* otherwise monkey has eyes in wrong direction */
+
+	EM_EndEditMesh(obedit->data, em);
 }
 
 

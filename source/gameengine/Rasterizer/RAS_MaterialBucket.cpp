@@ -517,9 +517,9 @@ bool RAS_MaterialBucket::ActivateMaterial(const MT_Transform& cameratrans, RAS_I
 		return false;
 	
 	if (m_material->UsesLighting(rasty))
-		rendertools->ProcessLighting(RAS_IRenderTools::RAS_LIGHT_OBJECT_LAYER, cameratrans);
+		rendertools->ProcessLighting(rasty, RAS_IRenderTools::RAS_LIGHT_OBJECT_LAYER, cameratrans);
 	else
-		rendertools->ProcessLighting(-1, cameratrans);
+		rendertools->ProcessLighting(rasty, -1, cameratrans);
 	
 	return true;
 }

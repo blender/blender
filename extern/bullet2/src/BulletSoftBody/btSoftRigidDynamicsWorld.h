@@ -23,7 +23,7 @@ typedef	btAlignedObjectArray<btSoftBody*> btSoftBodyArray;
 
 class btSoftRigidDynamicsWorld : public btDiscreteDynamicsWorld
 {
-	
+
 	btSoftBodyArray	m_softBodies;
 	int				m_drawFlags;
 	bool			m_drawNodeTree;
@@ -32,9 +32,9 @@ class btSoftRigidDynamicsWorld : public btDiscreteDynamicsWorld
 	btSoftBodyWorldInfo m_sbi;
 
 protected:
-	
+
 	virtual void	predictUnconstraintMotion(btScalar timeStep);
-	
+
 	virtual void	internalSingleStepSimulation( btScalar timeStep);
 
 	void	updateSoftBodies();
@@ -43,17 +43,17 @@ protected:
 
 
 public:
-	
+
 	btSoftRigidDynamicsWorld(btDispatcher* dispatcher,btBroadphaseInterface* pairCache,btConstraintSolver* constraintSolver,btCollisionConfiguration* collisionConfiguration);
 
 	virtual ~btSoftRigidDynamicsWorld();
-	
+
 	virtual void	debugDrawWorld();
-			
+
 	void	addSoftBody(btSoftBody* body);
 
 	void	removeSoftBody(btSoftBody* body);
-	
+
 	int		getDrawFlags() const { return(m_drawFlags); }
 	void	setDrawFlags(int f)	{ m_drawFlags=f; }
 
@@ -66,7 +66,7 @@ public:
 		return m_sbi;
 	}
 
-			
+
 	btSoftBodyArray& getSoftBodyArray()
 	{
 		return m_softBodies;
@@ -76,7 +76,7 @@ public:
 	{
 		return m_softBodies;
 	}
-		
+
 };
 
 #endif //BT_SOFT_RIGID_DYNAMICS_WORLD_H

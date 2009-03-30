@@ -55,7 +55,7 @@ AZone		*is_in_area_actionzone(ScrArea *sa, int x, int y);
 void		ed_screen_fullarea(bContext *C, ScrArea *sa);
 
 /* screen_context.c */
-void ed_screen_context(const bContext *C, bContextDataMember member, bContextDataResult *result);
+void ed_screen_context(const bContext *C, const char *member, bContextDataResult *result);
 
 /* screendump.c */
 void SCREEN_OT_screenshot(struct wmOperatorType *ot);

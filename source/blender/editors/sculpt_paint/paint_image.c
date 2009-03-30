@@ -5048,11 +5048,11 @@ static int set_clone_cursor_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return set_clone_cursor_exec(C, op);
 }
 
-void PAINT_OT_set_clone_cursor(wmOperatorType *ot)
+void PAINT_OT_clone_cursor_set(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Set Clone Cursor";
-	ot->idname= "PAINT_OT_set_clone_cursor";
+	ot->idname= "PAINT_OT_clone_cursor_set";
 	
 	/* api callbacks */
 	ot->exec= set_clone_cursor_exec;
@@ -5101,7 +5101,11 @@ static int texture_paint_toggle_exec(bContext *C, wmOperator *op)
 
 	if(G.f & G_TEXTUREPAINT) {
 		G.f &= ~G_TEXTUREPAINT;
+
+		if(U.glreslimit != 0)
+			GPU_free_images();
 		GPU_paint_set_mipmap(1);
+
 		toggle_paint_cursor(C, 0);
 	}
 	else {
@@ -5112,7 +5116,11 @@ static int texture_paint_toggle_exec(bContext *C, wmOperator *op)
 							 NULL, me->totface);
 
 		brush_check_exists(&scene->toolsettings->imapaint.brush);
+
+		if(U.glreslimit != 0)
+			GPU_free_images();
 		GPU_paint_set_mipmap(0);
+
 		toggle_paint_cursor(C, 1);
 	}
 

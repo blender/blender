@@ -152,7 +152,8 @@ int BLI_compare(struct direntry *entry1, struct direntry *entry2)
 	if( strcmp(entry1->relname, ".")==0 ) return (-1);
 	if( strcmp(entry2->relname, ".")==0 ) return (1);
 	if( strcmp(entry1->relname, "..")==0 ) return (-1);
-	
+	if( strcmp(entry2->relname, "..")==0 ) return (1);
+
 	return (BLI_strcasecmp(entry1->relname,entry2->relname));
 }
 
@@ -333,7 +334,6 @@ void BLI_adddirstrings()
 	char size[250];
 	static char * types[8] = {"---", "--x", "-w-", "-wx", "r--", "r-x", "rw-", "rwx"};
 	int num, mode;
-	off_t num1, num2, num3, num4, num5;
 #ifdef WIN32
 	__int64 st_size;
 #else
@@ -400,24 +400,19 @@ void BLI_adddirstrings()
 		 * everyone starts using __USE_FILE_OFFSET64 or equivalent.
 		 */
 		st_size= (off_t)files[num].s.st_size;
-		
-		num1= st_size % 1000;
-		num2= st_size/1000;
-		num2= num2 % 1000;
-		num3= st_size/(1000*1000);
-		num3= num3 % 1000;
-		num4= st_size/(1000*1000*1000);
-		num4= num4 % 1000;
-		num5= st_size/(1000000000000LL);
-		num5= num5 % 1000;
 
-		if(num5)
-			sprintf(files[num].size, "%1d %03d %03d %03d K", (int)num5, (int)num4, (int)num3, (int)num2);
-		else if(num4) sprintf(files[num].size, "%3d %03d %03d %03d", (int)num4, (int)num3, (int)num2, (int)num1);
-		else if(num3) sprintf(files[num].size, "%7d %03d %03d", (int)num3, (int)num2, (int)num1);
-		else if(num2) sprintf(files[num].size, "%11d %03d", (int)num2, (int)num1);
-		else if(num1) sprintf(files[num].size, "%15d", (int)num1);
-		else sprintf(files[num].size, "0");
+		if (st_size > 1024*1024*1024) {
+			sprintf(files[num].size, "%.2f GB", ((double)st_size)/(1024*1024*1024));	
+		}
+		else if (st_size > 1024*1024) {
+			sprintf(files[num].size, "%.1f MB", ((double)st_size)/(1024*1024));
+		}
+		else if (st_size > 1024) {
+			sprintf(files[num].size, "%d KB", (int)(st_size/1024));
+		}
+		else {
+			sprintf(files[num].size, "%d B", (int)st_size);
+		}
 
 		strftime(datum, 32, "%d-%b-%y %H:%M", tm);
 

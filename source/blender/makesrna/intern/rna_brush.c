@@ -198,7 +198,7 @@ void rna_def_brush(BlenderRNA *brna)
 	/* clone tool */
 	prop= RNA_def_property(srna, "clone_image", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "clone.image");
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Clone Image", "Image for clone tool.");
 	
 	prop= RNA_def_property(srna, "clone_opacity", PROP_FLOAT, PROP_NONE);

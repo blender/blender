@@ -37,7 +37,7 @@
 static int rna_Meta_texspace_editable(PointerRNA *ptr)
 {
 	MetaBall *mb= (MetaBall*)ptr->data;
-	return (mb->texflag & AUTOSPACE)? PROP_NOT_EDITABLE: 0;
+	return (mb->texflag & AUTOSPACE)? 0: PROP_EDITABLE;
 }
 
 #else
@@ -60,7 +60,7 @@ void rna_def_metaelement(BlenderRNA *brna)
 	
 	/* enums */
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_enum_items(prop, prop_type_items);
 	RNA_def_property_ui_text(prop, "Type", "Metaball types.");
 	

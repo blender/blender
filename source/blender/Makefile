@@ -44,6 +44,11 @@ ifeq ($(WITH_QUICKTIME), true)
 	DIRS += quicktime
 endif
 
+ifeq ($(WITH_OPENJPEG), true)
+    CFLAGS += -DWITH_OPENJPEG -I../../../../extern/libopenjpeg
+endif
+
+
 DIR = $(OCGDIR)/blender
 SOURCEDIR = source/blender
 TESTDIRS = deflate streamglue

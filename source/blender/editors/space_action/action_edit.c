@@ -172,11 +172,11 @@ static int actkeys_previewrange_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
  
-void ACT_OT_set_previewrange (wmOperatorType *ot)
+void ACT_OT_previewrange_set (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Auto-Set Preview Range";
-	ot->idname= "ACT_OT_set_previewrange";
+	ot->idname= "ACT_OT_previewrange_set";
 	
 	/* api callbacks */
 	ot->exec= actkeys_previewrange_exec;
@@ -248,7 +248,7 @@ static short copy_action_keys (bAnimContext *ac)
 	free_anim_copybuf();
 	
 	/* filter data */
-	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_SEL | ANIMFILTER_CURVESONLY);
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVESONLY);
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	/* copy keyframes */
@@ -852,11 +852,11 @@ static int actkeys_expo_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
  
-void ACT_OT_keyframes_extrapolation_type (wmOperatorType *ot)
+void ACT_OT_keyframes_extrapolation_type_set (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Set Keyframe Extrapolation";
-	ot->idname= "ACT_OT_keyframes_extrapolation_type";
+	ot->idname= "ACT_OT_keyframes_extrapolation_type_set";
 	
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
@@ -1028,11 +1028,11 @@ static int actkeys_handletype_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
  
-void ACT_OT_keyframes_handletype (wmOperatorType *ot)
+void ACT_OT_keyframes_handle_type_set (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Set Keyframe Handle Type";
-	ot->idname= "ACT_OT_keyframes_handletype";
+	ot->idname= "ACT_OT_keyframes_handle_type_set";
 	
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;

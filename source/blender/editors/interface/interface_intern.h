@@ -55,7 +55,7 @@ struct wmWindow;
 #define UI_MOUSE_OVER	2
 #define UI_ACTIVE		4
 #define UI_HAS_ICON		8
-/* warn: rest of uiBut->flag in BIF_interface.c */
+/* warn: rest of uiBut->flag in UI_interface.h */
 
 /* internal panel drawing defines */
 #define PNL_GRID	4
@@ -117,7 +117,7 @@ struct uiBut {
 	float x1, y1, x2, y2;
 
 	char *poin;
-	float min, max;
+	float hardmin, hardmax, softmin, softmax;
 	float a1, a2, hsv[3];	// hsv is temp memory for hsv buttons
 	float aspect;
 
@@ -261,6 +261,8 @@ extern void ui_set_but_vectorf(uiBut *but, float *vec);
 extern void ui_get_but_string(uiBut *but, char *str, int maxlen);
 extern void ui_set_but_string(uiBut *but, const char *str);
 
+extern void ui_set_but_soft_range(uiBut *but, double value);
+
 extern void ui_check_but(uiBut *but);
 extern void ui_autofill(uiBlock *block);
 extern int  ui_is_but_float(uiBut *but);
@@ -333,6 +335,9 @@ extern void ui_dropshadow(rctf *rct, float radius, float aspect, int select);
 extern void gl_round_box(int mode, float minx, float miny, float maxx, float maxy, float rad);
 extern void gl_round_box_shade(int mode, float minx, float miny, float maxx, float maxy, float rad, float shadetop, float shadedown);
 extern void gl_round_box_vertical_shade(int mode, float minx, float miny, float maxx, float maxy, float rad, float shadeLeft, float shadeRight);
+
+void ui_draw_icon(uiBut *but, BIFIconID icon, int blend);
+void ui_draw_text(uiBut *but, float x, float y, int sunken);
 
 /* interface_handlers.c */
 extern void ui_button_active_cancel(const struct bContext *C, uiBut *but);

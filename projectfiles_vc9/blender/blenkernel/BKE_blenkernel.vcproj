@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9,00"
+	Version="9.00"
 	Name="BKE_blenkernel"
 	ProjectGUID="{CAE37E91-6570-43AC-A4B4-7A37A4B0FC94}"
 	RootNamespace="BKE_blenkernel"

@@ -75,10 +75,17 @@
 
 int ED_uvedit_test(Object *obedit)
 {
+	EditMesh *em;
+	int ret;
+
 	if(obedit->type != OB_MESH)
 		return 0;
 
-	return EM_texFaceCheck(((Mesh*)obedit->data)->edit_mesh);
+	em = EM_GetEditMesh(obedit->data);
+	ret = EM_texFaceCheck(em);
+	EM_EndEditMesh(obedit->data, em);
+	
+	return ret;
 }
 
 /************************* assign image ************************/
@@ -98,9 +105,11 @@ void ED_uvedit_assign_image(Scene *scene, Object *obedit, Image *ima, Image *pre
 	if(!obedit || (obedit->type != OB_MESH))
 		return;
 
-	em= ((Mesh*)obedit->data)->edit_mesh;
-	if(!em || !em->faces.first)
+	em= EM_GetEditMesh(((Mesh*)obedit->data));
+	if(!em || !em->faces.first) {
+		EM_EndEditMesh(obedit->data, em);
 		return;
+	}
 	
 	/* ensure we have a uv layer */
 	if(!CustomData_has_layer(&em->fdata, CD_MTFACE)) {
@@ -135,6 +144,8 @@ void ED_uvedit_assign_image(Scene *scene, Object *obedit, Image *ima, Image *pre
 	/* and update depdency graph */
 	if(update)
 		DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
+
+	EM_EndEditMesh(obedit->data, em);
 }
 
 /* dotile -	1, set the tile flag (from the space image)
@@ -153,7 +164,7 @@ void ED_uvedit_set_tile(bContext *C, Scene *scene, Object *obedit, Image *ima, i
 	if(ima->type==IMA_TYPE_R_RESULT || ima->type==IMA_TYPE_COMPOSITE)
 		return;
 	
-	em= ((Mesh*)obedit->data)->edit_mesh;
+	em= EM_GetEditMesh((Mesh*)obedit->data);
 
 	for(efa= em->faces.first; efa; efa= efa->next) {
 		tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
@@ -173,6 +184,7 @@ void ED_uvedit_set_tile(bContext *C, Scene *scene, Object *obedit, Image *ima, i
 
 	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, obedit);
+	EM_EndEditMesh(obedit->data, em);
 }
 
 /*********************** space conversion *********************/
@@ -356,7 +368,7 @@ void uv_copy_aspect(float uv_orig[][2], float uv[][2], float aspx, float aspy)
 
 int ED_uvedit_minmax(Scene *scene, Image *ima, Object *obedit, float *min, float *max)
 {
-	EditMesh *em= ((Mesh*)obedit->data)->edit_mesh;
+	EditMesh *em= EM_GetEditMesh((Mesh*)obedit->data);
 	EditFace *efa;
 	MTFace *tf;
 	int sel;
@@ -373,13 +385,14 @@ int ED_uvedit_minmax(Scene *scene, Image *ima, Object *obedit, float *min, float
 			if(efa->v4 && (uvedit_uv_selected(scene, efa, tf, 3)))	{ DO_MINMAX2(tf->uv[3], min, max); sel = 1; }
 		}
 	}
-
+	
+	EM_EndEditMesh(obedit->data, em);
 	return sel;
 }
 
 int uvedit_center(Scene *scene, Image *ima, Object *obedit, float *cent, int mode)
 {
-	EditMesh *em= ((Mesh*)obedit->data)->edit_mesh;
+	EditMesh *em= EM_GetEditMesh((Mesh*)obedit->data);
 	EditFace *efa;
 	MTFace *tf;
 	float min[2], max[2];
@@ -407,10 +420,12 @@ int uvedit_center(Scene *scene, Image *ima, Object *obedit, float *cent, int mod
 	if(change) {
 		cent[0]= (min[0]+max[0])/2.0;
 		cent[1]= (min[1]+max[1])/2.0;
-
+		
+		EM_EndEditMesh(obedit->data, em);
 		return 1;
 	}
 
+	EM_EndEditMesh(obedit->data, em);
 	return 0;
 }
 
@@ -569,7 +584,7 @@ static void find_nearest_uv_vert(Scene *scene, Image *ima, EditMesh *em, float c
 
 int ED_uvedit_nearest_uv(Scene *scene, Object *obedit, Image *ima, float co[2], float uv[2])
 {
-	EditMesh *em= ((Mesh*)obedit->data)->edit_mesh;
+	EditMesh *em= EM_GetEditMesh((Mesh*)obedit->data);
 	EditFace *efa;
 	MTFace *tf;
 	float mindist, dist;
@@ -599,6 +614,7 @@ int ED_uvedit_nearest_uv(Scene *scene, Object *obedit, Image *ima, float co[2], 
 		}
 	}
 
+	EM_EndEditMesh(obedit->data, em);
 	return found;
 }
 
@@ -978,7 +994,7 @@ static void weld_align_uv(bContext *C, int tool)
 	
 	scene= CTX_data_scene(C);
 	obedit= CTX_data_edit_object(C);
-	em= ((Mesh*)obedit->data)->edit_mesh;
+	em= EM_GetEditMesh((Mesh*)obedit->data);
 	ima= CTX_data_edit_image(C);
 
 	INIT_MINMAX2(min, max);
@@ -1038,6 +1054,8 @@ static void weld_align_uv(bContext *C, int tool)
 
 	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, obedit);
+
+	EM_EndEditMesh(obedit->data, em);
 }
 
 static int align_exec(bContext *C, wmOperator *op)
@@ -1111,7 +1129,7 @@ static int stitch_exec(bContext *C, wmOperator *op)
 	sima= (SpaceImage*)CTX_wm_space_data(C);
 	scene= CTX_data_scene(C);
 	obedit= CTX_data_edit_object(C);
-	em= ((Mesh*)obedit->data)->edit_mesh;
+	em= EM_GetEditMesh((Mesh*)obedit->data);
 	ima= CTX_data_edit_image(C);
 	
 	if(RNA_boolean_get(op->ptr, "use_limit")) {
@@ -1126,8 +1144,10 @@ static int stitch_exec(bContext *C, wmOperator *op)
 		EM_init_index_arrays(em, 0, 0, 1);
 		vmap= EM_make_uv_vert_map(em, 1, 0, limit);
 
-		if(vmap == NULL)
+		if(vmap == NULL) {
+			EM_EndEditMesh(obedit->data, em);
 			return OPERATOR_CANCELLED;
+		}
 
 		for(a=0, eve= em->verts.first; eve; a++, eve= eve->next) {
 			vlist= EM_get_uv_map_vert(vmap, a);
@@ -1256,6 +1276,7 @@ static int stitch_exec(bContext *C, wmOperator *op)
 	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, obedit);
 
+	EM_EndEditMesh(obedit->data, em);
 	return OPERATOR_FINISHED;
 }
 
@@ -1288,7 +1309,7 @@ static int select_inverse_exec(bContext *C, wmOperator *op)
 	
 	scene= CTX_data_scene(C);
 	obedit= CTX_data_edit_object(C);
-	em= ((Mesh*)obedit->data)->edit_mesh;
+	em= EM_GetEditMesh((Mesh*)obedit->data);
 	ima= CTX_data_edit_image(C);
 
 	if(scene->toolsettings->uv_flag & UV_SYNC_SELECTION) {
@@ -1309,6 +1330,7 @@ static int select_inverse_exec(bContext *C, wmOperator *op)
 
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 
+	EM_EndEditMesh(obedit->data, em);
 	return OPERATOR_FINISHED;
 }
 
@@ -1338,7 +1360,7 @@ static int de_select_all_exec(bContext *C, wmOperator *op)
 	
 	scene= CTX_data_scene(C);
 	obedit= CTX_data_edit_object(C);
-	em= ((Mesh*)obedit->data)->edit_mesh;
+	em= EM_GetEditMesh((Mesh*)obedit->data);
 	ima= CTX_data_edit_image(C);
 	
 	if(scene->toolsettings->uv_flag & UV_SYNC_SELECTION) {
@@ -1376,14 +1398,15 @@ static int de_select_all_exec(bContext *C, wmOperator *op)
 
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 
+	EM_EndEditMesh(obedit->data, em);
 	return OPERATOR_FINISHED;
 }
 
-void UV_OT_de_select_all(wmOperatorType *ot)
+void UV_OT_select_all_toggle(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select or Deselect All";
-	ot->idname= "UV_OT_de_select_all";
+	ot->idname= "UV_OT_select_all_toggle";
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* api callbacks */
@@ -1422,7 +1445,7 @@ static int mouse_select(bContext *C, float co[2], int extend, int loop)
 	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	Image *ima= CTX_data_edit_image(C);
-	EditMesh *em= ((Mesh*)obedit->data)->edit_mesh;
+	EditMesh *em= EM_GetEditMesh((Mesh*)obedit->data);
 	EditFace *efa;
 	MTFace *tf;
 	NearestHit hit;
@@ -1456,14 +1479,18 @@ static int mouse_select(bContext *C, float co[2], int extend, int loop)
 	if(loop) {
 		/* find edge */
 		find_nearest_uv_edge(scene, ima, em, co, &hit);
-		if(hit.efa == NULL)
+		if(hit.efa == NULL) {
+			EM_EndEditMesh(obedit->data, em);
 			return OPERATOR_CANCELLED;
+		}
 	}
 	else if(selectmode == UV_SELECT_VERTEX) {
 		/* find vertex */
 		find_nearest_uv_vert(scene, ima, em, co, penalty, &hit);
-		if(hit.efa == NULL)
+		if(hit.efa == NULL) {
+			EM_EndEditMesh(obedit->data, em);
 			return OPERATOR_CANCELLED;
+		}
 
 		/* mark 1 vertex as being hit */
 		for(i=0; i<4; i++)
@@ -1475,8 +1502,10 @@ static int mouse_select(bContext *C, float co[2], int extend, int loop)
 	else if(selectmode == UV_SELECT_EDGE) {
 		/* find edge */
 		find_nearest_uv_edge(scene, ima, em, co, &hit);
-		if(hit.efa == NULL)
+		if(hit.efa == NULL) {
+			EM_EndEditMesh(obedit->data, em);
 			return OPERATOR_CANCELLED;
+		}
 
 		/* mark 2 edge vertices as being hit */
 		for(i=0; i<4; i++)
@@ -1492,8 +1521,10 @@ static int mouse_select(bContext *C, float co[2], int extend, int loop)
 	else if(selectmode == UV_SELECT_FACE) {
 		/* find face */
 		find_nearest_uv_face(scene, ima, em, co, &hit);
-		if(hit.efa == NULL)
+		if(hit.efa == NULL) {
+			EM_EndEditMesh(obedit->data, em);
 			return OPERATOR_CANCELLED;
+		}
 		
 		/* make active */
 		EM_set_actFace(em, hit.efa);
@@ -1512,11 +1543,15 @@ static int mouse_select(bContext *C, float co[2], int extend, int loop)
 	else if(selectmode == UV_SELECT_ISLAND) {
 		find_nearest_uv_vert(scene, ima, em, co, NULL, &hit);
 
-		if(hit.efa==NULL)
+		if(hit.efa==NULL) {
+			EM_EndEditMesh(obedit->data, em);
 			return OPERATOR_CANCELLED;
+		}
 	}
-	else
+	else {
+		EM_EndEditMesh(obedit->data, em);
 		return OPERATOR_CANCELLED;
+	}
 
 	/* do selection */
 	if(loop) {
@@ -1666,7 +1701,8 @@ static int mouse_select(bContext *C, float co[2], int extend, int loop)
 	
 	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
-
+	
+	EM_EndEditMesh(obedit->data, em);
 	return OPERATOR_PASS_THROUGH|OPERATOR_FINISHED;
 }
 
@@ -1718,7 +1754,7 @@ void UV_OT_select(wmOperatorType *ot)
 
 /* ******************** loop select operator **************** */
 
-static int loop_select_exec(bContext *C, wmOperator *op)
+static int select_loop_exec(bContext *C, wmOperator *op)
 {
 	float co[2];
 	int extend, loop;
@@ -1730,7 +1766,7 @@ static int loop_select_exec(bContext *C, wmOperator *op)
 	return mouse_select(C, co, extend, loop);
 }
 
-static int loop_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int select_loop_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	ARegion *ar= CTX_wm_region(C);
 	float co[2];
@@ -1742,19 +1778,19 @@ static int loop_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	UI_view2d_region_to_view(&ar->v2d, x, y, &co[0], &co[1]);
 	RNA_float_set_array(op->ptr, "location", co);
 
-	return loop_select_exec(C, op);
+	return select_loop_exec(C, op);
 }
 
-void UV_OT_loop_select(wmOperatorType *ot)
+void UV_OT_select_loop(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Loop Select";
-	ot->idname= "UV_OT_loop_select";
+	ot->idname= "UV_OT_select_loop";
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* api callbacks */
-	ot->exec= loop_select_exec;
-	ot->invoke= loop_select_invoke;
+	ot->exec= select_loop_exec;
+	ot->invoke= select_loop_invoke;
 	ot->poll= ED_operator_uvedit;
 
 	/* properties */
@@ -1772,12 +1808,13 @@ static int select_linked_exec(bContext *C, wmOperator *op)
 	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	Image *ima= CTX_data_edit_image(C);
-	EditMesh *em= ((Mesh*)obedit->data)->edit_mesh;
+	EditMesh *em= EM_GetEditMesh((Mesh*)obedit->data);
 	float limit[2];
 	int extend;
 
 	if(scene->toolsettings->uv_flag & UV_SYNC_SELECTION) {
 		BKE_report(op->reports, RPT_ERROR, "Can't select linked when sync selection is enabled.");
+		EM_EndEditMesh(obedit->data, em);
 		return OPERATOR_CANCELLED;
 	}
 
@@ -1788,6 +1825,7 @@ static int select_linked_exec(bContext *C, wmOperator *op)
 	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 
+	EM_EndEditMesh(obedit->data, em);
 	return OPERATOR_FINISHED;
 }
 
@@ -1814,12 +1852,13 @@ static int unlink_selection_exec(bContext *C, wmOperator *op)
 	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	Image *ima= CTX_data_edit_image(C);
-	EditMesh *em= ((Mesh*)obedit->data)->edit_mesh;
+	EditMesh *em= EM_GetEditMesh((Mesh*)obedit->data);
 	EditFace *efa;
 	MTFace *tf;
 
 	if(scene->toolsettings->uv_flag & UV_SYNC_SELECTION) {
 		BKE_report(op->reports, RPT_ERROR, "Can't unlink selection when sync selection is enabled.");
+		EM_EndEditMesh(obedit->data, em);
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -1841,6 +1880,7 @@ static int unlink_selection_exec(bContext *C, wmOperator *op)
 	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 
+	EM_EndEditMesh(obedit->data, em);
 	return OPERATOR_FINISHED;
 }
 
@@ -1873,7 +1913,7 @@ static void uv_faces_do_sticky(bContext *C, SpaceImage *sima, Scene *scene, Obje
 	 * This only needs to be done when the Mesh is not used for
 	 * selection (so for sticky modes, vertex or location based). */
 	
-	EditMesh *em= ((Mesh*)obedit->data)->edit_mesh;
+	EditMesh *em= EM_GetEditMesh((Mesh*)obedit->data);
 	EditFace *efa;
 	MTFace *tf;
 	int nverts, i;
@@ -1928,8 +1968,10 @@ static void uv_faces_do_sticky(bContext *C, SpaceImage *sima, Scene *scene, Obje
 		/*for(a=0, eve= em->verts.first; eve; a++, eve= eve->next)
 			eve->tmp.l = a; */
 		
-		if(vmap == NULL)
+		if(vmap == NULL) {
+			EM_EndEditMesh(obedit->data, em);
 			return;
+		}
 		
 		for(efa_index=0, efa= em->faces.first; efa; efa_index++, efa= efa->next) {
 			if(efa->tmp.l) {
@@ -1989,6 +2031,7 @@ static void uv_faces_do_sticky(bContext *C, SpaceImage *sima, Scene *scene, Obje
 			}
 		}
 	}
+	EM_EndEditMesh(obedit->data, em);
 }
 
 static int border_select_exec(bContext *C, wmOperator *op)
@@ -1998,7 +2041,7 @@ static int border_select_exec(bContext *C, wmOperator *op)
 	Object *obedit= CTX_data_edit_object(C);
 	Image *ima= CTX_data_edit_image(C);
 	ARegion *ar= CTX_wm_region(C);
-	EditMesh *em= ((Mesh*)obedit->data)->edit_mesh;
+	EditMesh *em= EM_GetEditMesh((Mesh*)obedit->data);
 	EditFace *efa;
 	MTFace *tface;
 	rcti rect;
@@ -2110,18 +2153,20 @@ static int border_select_exec(bContext *C, wmOperator *op)
 		}
 
 		WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
-
+		
+		EM_EndEditMesh(obedit->data, em);
 		return OPERATOR_FINISHED;
 	}
-
+	
+	EM_EndEditMesh(obedit->data, em);
 	return OPERATOR_CANCELLED;
 } 
 
-void UV_OT_border_select(wmOperatorType *ot)
+void UV_OT_select_border(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Border Select";
-	ot->idname= "UV_OT_border_select";
+	ot->idname= "UV_OT_select_border";
 	
 	/* api callbacks */
 	ot->invoke= WM_border_select_invoke;
@@ -2166,7 +2211,7 @@ int circle_select_exec(bContext *C, wmOperator *op)
 	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
 	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
-	EditMesh *em= ((Mesh*)obedit->data)->edit_mesh;
+	EditMesh *em= EM_GetEditMesh((Mesh*)obedit->data);
 	ARegion *ar= CTX_wm_region(C);
 	EditFace *efa;
 	MTFace *tface;
@@ -2204,6 +2249,7 @@ int circle_select_exec(bContext *C, wmOperator *op)
 
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 
+	EM_EndEditMesh(obedit->data, em);
 	return OPERATOR_FINISHED;
 }
 
@@ -2301,7 +2347,7 @@ void UV_OT_snap_cursor(wmOperatorType *ot)
 
 static int snap_uvs_to_cursor(Scene *scene, Image *ima, Object *obedit, View2D *v2d)
 {
-	EditMesh *em= ((Mesh*)obedit->data)->edit_mesh;
+	EditMesh *em= EM_GetEditMesh((Mesh*)obedit->data);
 	EditFace *efa;
 	MTFace *tface;
 	short change= 0;
@@ -2319,12 +2365,13 @@ static int snap_uvs_to_cursor(Scene *scene, Image *ima, Object *obedit, View2D *
 		}
 	}
 
+	EM_EndEditMesh(obedit->data, em);
 	return change;
 }
 
 static int snap_uvs_to_adjacent_unselected(Scene *scene, Image *ima, Object *obedit)
 {
-	EditMesh *em= ((Mesh*)obedit->data)->edit_mesh;
+	EditMesh *em= EM_GetEditMesh((Mesh*)obedit->data);
 	EditFace *efa;
 	EditVert *eve;
 	MTFace *tface;
@@ -2399,6 +2446,7 @@ static int snap_uvs_to_adjacent_unselected(Scene *scene, Image *ima, Object *obe
 	if(!change) {
 		MEM_freeN(coords);
 		MEM_freeN(usercount);
+		EM_EndEditMesh(obedit->data, em);
 		return change;
 	}
 	
@@ -2445,12 +2493,13 @@ static int snap_uvs_to_adjacent_unselected(Scene *scene, Image *ima, Object *obe
 	MEM_freeN(coords);
 	MEM_freeN(usercount);
 
+	EM_EndEditMesh(obedit->data, em);
 	return change;
 }
 
 static int snap_uvs_to_pixels(SpaceImage *sima, Scene *scene, Object *obedit)
 {
-	EditMesh *em= ((Mesh*)obedit->data)->edit_mesh;
+	EditMesh *em= EM_GetEditMesh((Mesh*)obedit->data);
 	Image *ima= sima->image;
 	EditFace *efa;
 	MTFace *tface;
@@ -2475,6 +2524,7 @@ static int snap_uvs_to_pixels(SpaceImage *sima, Scene *scene, Object *obedit)
 		}
 	}
 
+	EM_EndEditMesh(obedit->data, em);
 	return change;
 }
 
@@ -2536,7 +2586,7 @@ static int pin_exec(bContext *C, wmOperator *op)
 	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	Image *ima= CTX_data_edit_image(C);
-	EditMesh *em= ((Mesh*)obedit->data)->edit_mesh;
+	EditMesh *em= EM_GetEditMesh((Mesh*)obedit->data);
 	EditFace *efa;
 	MTFace *tface;
 	int clear= RNA_boolean_get(op->ptr, "clear");
@@ -2564,6 +2614,7 @@ static int pin_exec(bContext *C, wmOperator *op)
 	
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, obedit);
 
+	EM_EndEditMesh(obedit->data, em);
 	return OPERATOR_FINISHED;
 }
 
@@ -2589,7 +2640,7 @@ static int select_pinned_exec(bContext *C, wmOperator *op)
 	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	Image *ima= CTX_data_edit_image(C);
-	EditMesh *em= ((Mesh*)obedit->data)->edit_mesh;
+	EditMesh *em= EM_GetEditMesh((Mesh*)obedit->data);
 	EditFace *efa;
 	MTFace *tface;
 	
@@ -2608,6 +2659,7 @@ static int select_pinned_exec(bContext *C, wmOperator *op)
 	
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 
+	EM_EndEditMesh(obedit->data, em);
 	return OPERATOR_FINISHED;
 }
 
@@ -2630,7 +2682,7 @@ static int hide_exec(bContext *C, wmOperator *op)
 	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
 	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
-	EditMesh *em= ((Mesh*)obedit->data)->edit_mesh;
+	EditMesh *em= EM_GetEditMesh((Mesh*)obedit->data);
 	EditFace *efa;
 	MTFace *tf;
 	int swap= RNA_boolean_get(op->ptr, "unselected");
@@ -2638,6 +2690,8 @@ static int hide_exec(bContext *C, wmOperator *op)
 	if(scene->toolsettings->uv_flag & UV_SYNC_SELECTION) {
 		EM_hide_mesh(em, swap);
 		WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+
+		EM_EndEditMesh(obedit->data, em);
 		return OPERATOR_FINISHED;
 	}
 	
@@ -2745,6 +2799,7 @@ static int hide_exec(bContext *C, wmOperator *op)
 	EM_validate_selections(em);
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 
+	EM_EndEditMesh(obedit->data, em);
 	return OPERATOR_FINISHED;
 }
 
@@ -2770,7 +2825,7 @@ static int reveal_exec(bContext *C, wmOperator *op)
 	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
 	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
-	EditMesh *em= ((Mesh*)obedit->data)->edit_mesh;
+	EditMesh *em= EM_GetEditMesh((Mesh*)obedit->data);
 	EditFace *efa;
 	MTFace *tf;
 	
@@ -2778,6 +2833,8 @@ static int reveal_exec(bContext *C, wmOperator *op)
 	if(scene->toolsettings->uv_flag & UV_SYNC_SELECTION) {
 		EM_reveal_mesh(em);
 		WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+
+		EM_EndEditMesh(obedit->data, em);
 		return OPERATOR_FINISHED;
 	}
 	
@@ -2873,6 +2930,7 @@ static int reveal_exec(bContext *C, wmOperator *op)
 
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 
+	EM_EndEditMesh(obedit->data, em);
 	return OPERATOR_FINISHED;
 }
 
@@ -2918,11 +2976,11 @@ static int set_2d_cursor_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return set_2d_cursor_exec(C, op);
 }
 
-void UV_OT_set_2d_cursor(wmOperatorType *ot)
+void UV_OT_cursor_set(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Set 3D Cursor";
-	ot->idname= "UV_OT_set_2d_cursor";
+	ot->idname= "UV_OT_cursor_set";
 	
 	/* api callbacks */
 	ot->exec= set_2d_cursor_exec;
@@ -2983,11 +3041,11 @@ static int set_tile_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return set_tile_exec(C, op);
 }
 
-void UV_OT_set_tile(wmOperatorType *ot)
+void UV_OT_tile_set(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Set Tile";
-	ot->idname= "UV_OT_set_tile";
+	ot->idname= "UV_OT_tile_set";
 	
 	/* api callbacks */
 	ot->exec= set_tile_exec;
@@ -3005,14 +3063,14 @@ void UV_OT_set_tile(wmOperatorType *ot)
 
 void ED_operatortypes_uvedit(void)
 {
-	WM_operatortype_append(UV_OT_de_select_all);
+	WM_operatortype_append(UV_OT_select_all_toggle);
 	WM_operatortype_append(UV_OT_select_invert);
 	WM_operatortype_append(UV_OT_select);
-	WM_operatortype_append(UV_OT_loop_select);
+	WM_operatortype_append(UV_OT_select_loop);
 	WM_operatortype_append(UV_OT_select_linked);
 	WM_operatortype_append(UV_OT_unlink_selection);
 	WM_operatortype_append(UV_OT_select_pinned);
-	WM_operatortype_append(UV_OT_border_select);
+	WM_operatortype_append(UV_OT_select_border);
 	WM_operatortype_append(UV_OT_circle_select);
 
 	WM_operatortype_append(UV_OT_snap_cursor);
@@ -3038,8 +3096,8 @@ void ED_operatortypes_uvedit(void)
 	WM_operatortype_append(UV_OT_reveal);
 	WM_operatortype_append(UV_OT_hide);
 
-	WM_operatortype_append(UV_OT_set_2d_cursor);
-	WM_operatortype_append(UV_OT_set_tile);
+	WM_operatortype_append(UV_OT_cursor_set);
+	WM_operatortype_append(UV_OT_tile_set);
 }
 
 void ED_keymap_uvedit(wmWindowManager *wm)
@@ -3049,18 +3107,18 @@ void ED_keymap_uvedit(wmWindowManager *wm)
 	/* pick selection */
 	WM_keymap_add_item(keymap, "UV_OT_select", SELECTMOUSE, KM_PRESS, 0, 0);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "UV_OT_select", SELECTMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "extend", 1);
-	WM_keymap_add_item(keymap, "UV_OT_loop_select", SELECTMOUSE, KM_PRESS, KM_ALT, 0);
-	RNA_boolean_set(WM_keymap_add_item(keymap, "UV_OT_loop_select", SELECTMOUSE, KM_PRESS, KM_SHIFT|KM_ALT, 0)->ptr, "extend", 1);
+	WM_keymap_add_item(keymap, "UV_OT_select_loop", SELECTMOUSE, KM_PRESS, KM_ALT, 0);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "UV_OT_select_loop", SELECTMOUSE, KM_PRESS, KM_SHIFT|KM_ALT, 0)->ptr, "extend", 1);
 
 	/* border/circle selection */
-	WM_keymap_add_item(keymap, "UV_OT_border_select", BKEY, KM_PRESS, 0, 0);
-	RNA_boolean_set(WM_keymap_add_item(keymap, "UV_OT_border_select", BKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "pinned", 1);
+	WM_keymap_add_item(keymap, "UV_OT_select_border", BKEY, KM_PRESS, 0, 0);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "UV_OT_select_border", BKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "pinned", 1);
 	WM_keymap_add_item(keymap, "UV_OT_circle_select", CKEY, KM_PRESS, 0, 0);
 
 	/* selection manipulation */
 	WM_keymap_add_item(keymap, "UV_OT_select_linked", LKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "UV_OT_unlink_selection", LKEY, KM_PRESS, KM_ALT, 0);
-	WM_keymap_add_item(keymap, "UV_OT_de_select_all", AKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "UV_OT_select_all_toggle", AKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "UV_OT_select_invert", IKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "UV_OT_select_pinned", PKEY, KM_PRESS, KM_SHIFT, 0);
 
@@ -3081,8 +3139,8 @@ void ED_keymap_uvedit(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "UV_OT_reveal", HKEY, KM_PRESS, KM_ALT, 0);
 
 	/* cursor */
-	WM_keymap_add_item(keymap, "UV_OT_set_2d_cursor", ACTIONMOUSE, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "UV_OT_set_tile", ACTIONMOUSE, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "UV_OT_cursor_set", ACTIONMOUSE, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "UV_OT_tile_set", ACTIONMOUSE, KM_PRESS, KM_SHIFT, 0);
 
 	transform_keymap_for_space(wm, keymap, SPACE_IMAGE);
 }

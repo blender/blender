@@ -63,6 +63,7 @@ OPTION(WITH_OPENEXR		"Enable OpenEXR Support (http://www.openexr.com)"	ON)
 OPTION(WITH_DDS			"Enable DDS Support"                                   	ON)
 OPTION(WITH_FFMPEG		"Enable FFMPeg Support (http://ffmpeg.mplayerhq.hu/)"	OFF)
 OPTION(WITH_PYTHON		"Enable Embedded Python API"				ON)
+OPTION(WITH_OPENJPEG		"Enable OpenJpeg Support (http://www.openjpeg.org/)"	OFF)
 OPTION(WITH_OPENAL		"Enable OpenAL Support (http://www.openal.org)"		ON)
 OPTION(WITH_OPENMP		"Enable OpenMP (has to be supported by the compiler)"	OFF)
 OPTION(WITH_WEBPLUGIN		"Enable Web Plugin (Unix only)"				OFF)
@@ -439,6 +440,9 @@ SET(FTGL ${CMAKE_SOURCE_DIR}/extern/bFTGL)
 SET(FTGL_INC ${FTGL}/include)
 SET(FTGL_LIB extern_ftgl)
 
+set(OPENJPEG ${CMAKE_SOURCE_DIR}/extern/libopenjpeg)
+set(OPENJPEG_INC ${OPENJPEG})
+set(OPENJPEG_LIb extern_libopenjpeg)
 
 #-----------------------------------------------------------------------------
 # Blender WebPlugin

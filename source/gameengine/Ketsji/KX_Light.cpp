@@ -172,65 +172,59 @@ void KX_LightObject::UnbindShadowBuffer(RAS_IRasterizer *ras)
 	GPU_lamp_shadow_buffer_unbind(lamp);
 }
 
-PyObject* KX_LightObject::_getattr(const STR_String& attr)
+PyObject* KX_LightObject::_getattr(const char *attr)
 {
-	if (attr == "layer")
+	if (!strcmp(attr, "layer"))
 		return PyInt_FromLong(m_lightobj.m_layer);
 	
-	if (attr == "energy")
+	if (!strcmp(attr, "energy"))
 		return PyFloat_FromDouble(m_lightobj.m_energy);
 	
-	if (attr == "distance")
+	if (!strcmp(attr, "distance"))
 		return PyFloat_FromDouble(m_lightobj.m_distance);
 	
-	if (attr == "colour" || attr == "color")
+	if (!strcmp(attr, "colour") || !strcmp(attr, "color"))
 		return Py_BuildValue("[fff]", m_lightobj.m_red, m_lightobj.m_green, m_lightobj.m_blue);
 		
-	if (attr == "lin_attenuation")
+	if (!strcmp(attr, "lin_attenuation"))
 		return PyFloat_FromDouble(m_lightobj.m_att1);
 	
-	if (attr == "quad_attenuation")
+	if (!strcmp(attr, "quad_attenuation"))
 		return PyFloat_FromDouble(m_lightobj.m_att2);
 	
-	if (attr == "spotsize")
+	if (!strcmp(attr, "spotsize"))
 		return PyFloat_FromDouble(m_lightobj.m_spotsize);
 	
-	if (attr == "spotblend")
+	if (!strcmp(attr, "spotblend"))
 		return PyFloat_FromDouble(m_lightobj.m_spotblend);
 		
-	if (attr == "SPOT")
+	if (!strcmp(attr, "SPOT"))
 		return PyInt_FromLong(RAS_LightObject::LIGHT_SPOT);
 		
-	if (attr == "SUN")
+	if (!strcmp(attr, "SUN"))
 		return PyInt_FromLong(RAS_LightObject::LIGHT_SUN);
 	
-	if (attr == "NORMAL")
+	if (!strcmp(attr, "NORMAL"))
 		return PyInt_FromLong(RAS_LightObject::LIGHT_NORMAL);
 	
-	if (attr == "type")
+	if (!strcmp(attr, "type"))
 		return PyInt_FromLong(m_lightobj.m_type);
 		
 	_getattr_up(KX_GameObject);
 }
 
-int       KX_LightObject::_setattr(const STR_String& attr, PyObject *pyvalue)
-{
-	if (attr == "SPOT" || attr == "SUN" || attr == "NORMAL")
-	{
-		PyErr_Format(PyExc_RuntimeError, "Attribute %s is read only.", attr.ReadPtr());
-		return 1;
-	}
-	
+int       KX_LightObject::_setattr(const char *attr, PyObject *pyvalue)
+{	
 	if (PyInt_Check(pyvalue))
 	{
 		int value = PyInt_AsLong(pyvalue);
-		if (attr == "layer")
+		if (!strcmp(attr, "layer"))
 		{
 			m_lightobj.m_layer = value;
 			return 0;
 		}
 		
-		if (attr == "type")
+		if (!strcmp(attr, "type"))
 		{
 			if (value >= RAS_LightObject::LIGHT_SPOT && value <= RAS_LightObject::LIGHT_NORMAL)
 				m_lightobj.m_type = (RAS_LightObject::LightType) value;
@@ -241,37 +235,37 @@ int       KX_LightObject::_setattr(const STR_String& attr, PyObject *pyvalue)
 	if (PyFloat_Check(pyvalue))
 	{
 		float value = PyFloat_AsDouble(pyvalue);
-		if (attr == "energy")
+		if (!strcmp(attr, "energy"))
 		{
 			m_lightobj.m_energy = value;
 			return 0;
 		}
 	
-		if (attr == "distance")
+		if (!strcmp(attr, "distance"))
 		{
 			m_lightobj.m_distance = value;
 			return 0;
 		}
 		
-		if (attr == "lin_attenuation")
+		if (!strcmp(attr, "lin_attenuation"))
 		{
 			m_lightobj.m_att1 = value;
 			return 0;
 		}
 		
-		if (attr == "quad_attenuation")
+		if (!strcmp(attr, "quad_attenuation"))
 		{
 			m_lightobj.m_att2 = value;
 			return 0;
 		}
 		
-		if (attr == "spotsize")
+		if (!strcmp(attr, "spotsize"))
 		{
 			m_lightobj.m_spotsize = value;
 			return 0;
 		}
 		
-		if (attr == "spotblend")
+		if (!strcmp(attr, "spotblend"))
 		{
 			m_lightobj.m_spotblend = value;
 			return 0;
@@ -280,7 +274,7 @@ int       KX_LightObject::_setattr(const STR_String& attr, PyObject *pyvalue)
 
 	if (PySequence_Check(pyvalue))
 	{
-		if (attr == "colour" || attr == "color")
+		if (!strcmp(attr, "colour") || !strcmp(attr, "color"))
 		{
 			MT_Vector3 color;
 			if (PyVecTo(pyvalue, color))
@@ -294,11 +288,21 @@ int       KX_LightObject::_setattr(const STR_String& attr, PyObject *pyvalue)
 		}
 	}
 	
+	if (!strcmp(attr, "SPOT") || !strcmp(attr, "SUN") || !strcmp(attr, "NORMAL"))
+	{
+		PyErr_Format(PyExc_RuntimeError, "Attribute %s is read only.", attr);
+		return 1;
+	}
+	
 	return KX_GameObject::_setattr(attr, pyvalue);
 }
 
 PyMethodDef KX_LightObject::Methods[] = {
 	{NULL,NULL} //Sentinel
+};
+
+PyAttributeDef KX_LightObject::Attributes[] = {
+	{ NULL }	//Sentinel
 };
 
 char KX_LightObject::doc[] = "Module KX_LightObject\n\n"

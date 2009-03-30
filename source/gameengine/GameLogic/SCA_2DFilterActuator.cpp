@@ -113,7 +113,10 @@ PyMethodDef SCA_2DFilterActuator::Methods[] = {
     {NULL,NULL}
 };
 
+PyAttributeDef SCA_2DFilterActuator::Attributes[] = {
+	{ NULL }	//Sentinel
+};
 
-PyObject* SCA_2DFilterActuator::_getattr(const STR_String& attr) {
+PyObject* SCA_2DFilterActuator::_getattr(const char *attr) {
     _getattr_up(SCA_IActuator);
 }

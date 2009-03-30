@@ -268,9 +268,11 @@ PyMethodDef KX_SceneActuator::Methods[] =
 	{NULL,NULL} //Sentinel
 };
 
+PyAttributeDef KX_SceneActuator::Attributes[] = {
+	{ NULL }	//Sentinel
+};
 
-
-PyObject* KX_SceneActuator::_getattr(const STR_String& attr)
+PyObject* KX_SceneActuator::_getattr(const char *attr)
 {
 	_getattr_up(SCA_IActuator);
 }
@@ -295,7 +297,7 @@ PyObject* KX_SceneActuator::PySetUseRestart(PyObject* self,
 	
 	m_restart = boolArg != 0;
 	
-	Py_Return;
+	Py_RETURN_NONE;
 }
 
 
@@ -333,7 +335,7 @@ PyObject* KX_SceneActuator::PySetScene(PyObject* self,
 	/* Scene switch is done by name. */
 	m_nextSceneName = scene_name;
 
-	Py_Return;
+	Py_RETURN_NONE;
 }
 
 
@@ -368,7 +370,7 @@ PyObject* KX_SceneActuator::PySetCamera(PyObject* self,
 		m_camera = (KX_Camera*) cam;
 		if (m_camera)
 			m_camera->RegisterActuator(this);
-		Py_Return;
+		Py_RETURN_NONE;
 	}
 	PyErr_Clear();
 
@@ -388,7 +390,7 @@ PyObject* KX_SceneActuator::PySetCamera(PyObject* self,
 		m_camera->RegisterActuator(this);
 	}
 
-	Py_Return;
+	Py_RETURN_NONE;
 }
 
 

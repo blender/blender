@@ -1,3 +1,5 @@
+# -*- mode: gnumakefile; tab-width: 8; indent-tabs-mode: t; -*-
+# vim: tabstop=8
 #
 # $Id$
 #
@@ -22,7 +24,7 @@
 #
 # The Original Code is: all of this file.
 #
-# Contributor(s): Hans Lambermont
+# Contributor(s): Hans Lambermont, GSR
 #
 # ***** END GPL LICENSE BLOCK *****
 # opennl main makefile.
@@ -40,25 +42,19 @@ DIRS = intern superlu
 
 include nan_subdirs.mk
 
-install: all debug
+install: $(ALL_OR_DEBUG)
 	@[ -d $(NAN_OPENNL) ] || mkdir $(NAN_OPENNL)
 	@[ -d $(NAN_OPENNL)/include ] || mkdir $(NAN_OPENNL)/include
-	@[ -d $(NAN_OPENNL)/lib ] || mkdir $(NAN_OPENNL)/lib
-	@[ -d $(NAN_OPENNL)/lib/debug ] || mkdir $(NAN_OPENNL)/lib/debug
-	@../tools/cpifdiff.sh $(DIR)/libopennl.a $(NAN_OPENNL)/lib/
-	@../tools/cpifdiff.sh $(DIR)/debug/libopennl.a $(NAN_OPENNL)/lib/debug/
+	@[ -d $(NAN_OPENNL)/lib/$(DEBUG_DIR) ] || mkdir $(NAN_OPENNL)/lib/$(DEBUG_DIR)
+	@../tools/cpifdiff.sh $(DIR)/$(DEBUG_DIR)libopennl.a $(NAN_OPENNL)/lib/$(DEBUG_DIR)
 ifeq ($(OS),darwin)
-	ranlib $(NAN_OPENNL)/lib/libopennl.a
-	ranlib $(NAN_OPENNL)/lib/debug/libopennl.a
+	ranlib $(NAN_OPENNL)/lib/$(DEBUG_DIR)libopennl.a
 endif
 	@../tools/cpifdiff.sh extern/*.h $(NAN_OPENNL)/include/
 	@[ -d $(NAN_SUPERLU) ] || mkdir $(NAN_SUPERLU)
-	@[ -d $(NAN_SUPERLU)/lib ] || mkdir $(NAN_SUPERLU)/lib
-	@[ -d $(NAN_SUPERLU)/lib/debug ] || mkdir $(NAN_SUPERLU)/lib/debug
-	@../tools/cpifdiff.sh $(DIR_SLU)/libsuperlu.a $(NAN_SUPERLU)/lib/
-	@../tools/cpifdiff.sh $(DIR_SLU)/debug/libsuperlu.a $(NAN_SUPERLU)/lib/debug/
+	@[ -d $(NAN_SUPERLU)/lib/$(DEBUG_DIR) ] || mkdir $(NAN_SUPERLU)/lib/$(DEBUG_DIR)
+	@../tools/cpifdiff.sh $(DIR_SLU)/$(DEBUG_DIR)libsuperlu.a $(NAN_SUPERLU)/lib/$(DEBUG_DIR)
 ifeq ($(OS),darwin)
-	ranlib $(NAN_SUPERLU)/lib/libsuperlu.a
-	ranlib $(NAN_SUPERLU)/lib/debug/libsuperlu.a
+	ranlib $(NAN_SUPERLU)/lib/$(DEBUG_DIR)libsuperlu.a
 endif
 

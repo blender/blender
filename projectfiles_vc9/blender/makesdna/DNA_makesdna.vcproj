@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9,00"
+	Version="9.00"
 	Name="DNA_makesdna"
 	ProjectGUID="{E013786A-9575-4F34-81B2-33290357EE87}"
 	RootNamespace="DNA_makesdna"
@@ -699,6 +699,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\makesdna\DNA_mesh_types.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\makesdna\DNA_meshdata_types.h"
 				>
 			</File>
 			<File

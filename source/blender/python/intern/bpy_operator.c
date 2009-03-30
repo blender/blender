@@ -107,109 +107,27 @@ int PYOP_props_from_dict(PointerRNA *ptr, PyObject *kw)
 	return error_val;
 }
 
-
-
-
-static int pyop_func_compare( BPy_OperatorFunc * a, BPy_OperatorFunc * b )
-{
-	return (strcmp(a->name, b->name)==0) ? 0 : -1;
-}
-
-/* For some reason python3 needs these :/ */
-static PyObject *pyop_func_richcmp(BPy_OperatorFunc * a, BPy_OperatorFunc * b, int op)
-{
-	int cmp_result= -1; /* assume false */
-	if (BPy_OperatorFunc_Check(a) && BPy_OperatorFunc_Check(b)) {
-		cmp_result= pyop_func_compare(a, b);
-	}
-
-	return Py_CmpToRich(op, cmp_result);
-}
-
-
-/*----------------------repr--------------------------------------------*/
-static PyObject *pyop_base_repr( BPy_OperatorBase * self )
-{
-	return PyUnicode_FromFormat( "[BPy_OperatorBase]");
-}
-
-static PyObject *pyop_func_repr( BPy_OperatorFunc * self )
-{
-	return PyUnicode_FromFormat( "[BPy_OperatorFunc \"%s\"]", self->name);
-}
-
+static PyObject *pyop_base_dir(PyObject *self);
+static PyObject *pyop_base_rna(PyObject *self, PyObject *pyname);
 static struct PyMethodDef pyop_base_methods[] = {
-	{"add", (PyCFunction)PYOP_wrap_add, METH_VARARGS, ""},
-	{"remove", (PyCFunction)PYOP_wrap_remove, METH_VARARGS, ""},
+	{"__dir__", (PyCFunction)pyop_base_dir, METH_NOARGS, ""},
+	{"__rna__", (PyCFunction)pyop_base_rna, METH_O, ""},
+	{"add", (PyCFunction)PYOP_wrap_add, METH_O, ""},
+	{"remove", (PyCFunction)PYOP_wrap_remove, METH_O, ""},
 	{NULL, NULL, 0, NULL}
 };
 
-//---------------getattr--------------------------------------------
-static PyObject *pyop_base_getattro( BPy_OperatorBase * self, PyObject *pyname )
-{
-	char *name = _PyUnicode_AsString(pyname);
-	PyObject *ret;
-	wmOperatorType *ot;
-	PyMethodDef *meth;
-	
-	if ((ot = WM_operatortype_find(name))) {
-		ret= pyop_func_CreatePyObject(self->C, name);
-	}
-	else if (strcmp(name, "__dict__")==0) {
-		ret = PyDict_New();
-
-		for(ot= WM_operatortype_first(); ot; ot= ot->next) {
-			PyDict_SetItemString(ret, ot->idname, Py_None);
-		}
-
-		for(meth=pyop_base_methods; meth->ml_name; meth++) {
-			PyDict_SetItemString(ret, meth->ml_name, Py_None);
-		}
-	}
-	else if ((ret = PyObject_GenericGetAttr((PyObject *)self, pyname))) {
-		/* do nothing, this accounts for methoddef's add and remove */
-	}
-	else {
-		PyErr_Format( PyExc_AttributeError, "Operator \"%s\" not found", name);
-		ret= NULL;
-	}
-
-	return ret;
-}
-
-/* getseter's */
-PyObject *pyop_func_get_rna(BPy_OperatorFunc *self)
-{
-	BPy_StructRNA *pyrna;
-	PointerRNA ptr;
-	wmOperatorType *ot;
-
-	ot= WM_operatortype_find(self->name);
-	if (ot == NULL) {
-		PyErr_SetString( PyExc_SystemError, "Operator could not be found");
-		return NULL;
-	}
-
-	pyrna= (BPy_StructRNA *)pyrna_struct_CreatePyObject(&ptr); /* were not really using &ptr, overwite next */
-
-	/* XXX POINTER - if this 'ot' is python generated, it could be free'd */
-	RNA_pointer_create(NULL, ot->srna, NULL, &pyrna->ptr);
-	pyrna->freeptr= 1;
-
-	return (PyObject *)pyrna;
-}
-
-static PyGetSetDef pyop_func_getseters[] = {
-	{"rna", (getter)pyop_func_get_rna, (setter)NULL, "Operator RNA properties", NULL},
-	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
-};
-
-static PyObject * pyop_func_call(BPy_OperatorFunc * self, PyObject *args, PyObject *kw)
+/* 'self' stores the operator string */
+static PyObject *pyop_base_call( PyObject * self, PyObject * args,  PyObject * kw)
 {
 	wmOperatorType *ot;
-
 	int error_val = 0;
 	PointerRNA ptr;
+	
+	// XXX Todo, work out a better solution for passing on context, could make a tuple from self and pack the name and Context into it...
+	bContext *C = (bContext *)PyCObject_AsVoidPtr(PyDict_GetItemString(PyEval_GetGlobals(), "__bpy_context__"));
+	
+	char *opname = _PyUnicode_AsString(self);
 	char *report_str= NULL;
 
 	if (PyTuple_Size(args)) {
@@ -217,18 +135,18 @@ static PyObject * pyop_func_call(BPy_OperatorFunc * self, PyObject *args, PyObje
 		return NULL;
 	}
 
-	ot= WM_operatortype_find(self->name);
+	ot= WM_operatortype_find(opname);
 	if (ot == NULL) {
-		PyErr_SetString( PyExc_SystemError, "Operator could not be found");
+		PyErr_Format( PyExc_SystemError, "Operator \"%s\"could not be found", opname);
 		return NULL;
 	}
 	
-	if(ot->poll && (ot->poll(self->C) == 0)) {
+	if(ot->poll && (ot->poll(C) == 0)) {
 		PyErr_SetString( PyExc_SystemError, "Operator poll() function failed, context is incorrect");
 		return NULL;
 	}
 	
-	WM_operator_properties_create(&ptr, self->name);
+	WM_operator_properties_create(&ptr, opname);
 	
 	error_val= PYOP_props_from_dict(&ptr, kw);
 	
@@ -237,7 +155,7 @@ static PyObject * pyop_func_call(BPy_OperatorFunc * self, PyObject *args, PyObje
 
 		BKE_reports_init(&reports, RPT_STORE);
 
-		WM_operator_call_py(self->C, ot, &ptr, &reports);
+		WM_operator_call_py(C, ot, &ptr, &reports);
 
 		report_str= BKE_reports_string(&reports, RPT_ERROR);
 
@@ -258,11 +176,11 @@ static PyObject * pyop_func_call(BPy_OperatorFunc * self, PyObject *args, PyObje
 	{
 		/* no props */
 		if (kw != NULL) {
-			PyErr_Format(PyExc_AttributeError, "Operator \"%s\" does not take any args", self->name);
+			PyErr_Format(PyExc_AttributeError, "Operator \"%s\" does not take any args", opname);
 			return NULL;
 		}
 
-		WM_operator_name_call(self->C, self->name, WM_OP_EXEC_DEFAULT, NULL);
+		WM_operator_name_call(C, opname, WM_OP_EXEC_DEFAULT, NULL);
 	}
 #endif
 
@@ -273,222 +191,89 @@ static PyObject * pyop_func_call(BPy_OperatorFunc * self, PyObject *args, PyObje
 	Py_RETURN_NONE;
 }
 
-/*-----------------------BPy_OperatorBase method def------------------------------*/
-PyTypeObject pyop_base_Type = {
-#if (PY_VERSION_HEX >= 0x02060000)
-	PyVarObject_HEAD_INIT(NULL, 0)
-#else
-	/* python 2.5 and below */
-	PyObject_HEAD_INIT( NULL )  /* required py macro */
-	0,                          /* ob_size */
-#endif
-
-	"Operator",		/* tp_name */
-	sizeof( BPy_OperatorBase ),			/* tp_basicsize */
-	0,			/* tp_itemsize */
-	/* methods */
-	NULL,						/* tp_dealloc */
-	NULL,                       /* printfunc tp_print; */
-	NULL,						/* getattrfunc tp_getattr; */
-	NULL,                       /* setattrfunc tp_setattr; */
-	NULL,						/* tp_compare */
-	( reprfunc ) pyop_base_repr,	/* tp_repr */
-
-	/* Method suites for standard classes */
-
-	NULL,                       /* PyNumberMethods *tp_as_number; */
-	NULL,						/* PySequenceMethods *tp_as_sequence; */
-	NULL,						/* PyMappingMethods *tp_as_mapping; */
-
-	/* More standard operations (here for binary compatibility) */
-
-	NULL,						/* hashfunc tp_hash; */
-	NULL,                       /* ternaryfunc tp_call; */
-	NULL,                       /* reprfunc tp_str; */
-	( getattrofunc )pyop_base_getattro, /*PyObject_GenericGetAttr - MINGW Complains, assign later */	/* getattrofunc tp_getattro; */
-	NULL, /*PyObject_GenericSetAttr - MINGW Complains, assign later */	/* setattrofunc tp_setattro; */
-
-	/* Functions to access object as input/output buffer */
-	NULL,                       /* PyBufferProcs *tp_as_buffer; */
-
-  /*** Flags to define presence of optional/expanded features ***/
-	Py_TPFLAGS_DEFAULT,         /* long tp_flags; */
-
-	NULL,						/*  char *tp_doc;  Documentation string */
-  /*** Assigned meaning in release 2.0 ***/
-	/* call function for all accessible objects */
-	NULL,                       /* traverseproc tp_traverse; */
-
-	/* delete references to contained objects */
-	NULL,                       /* inquiry tp_clear; */
-
-  /***  Assigned meaning in release 2.1 ***/
-  /*** rich comparisons ***/
-	NULL,                       /* richcmpfunc tp_richcompare; */
-
-  /***  weak reference enabler ***/
-	0,                          /* long tp_weaklistoffset; */
-
-  /*** Added in release 2.2 ***/
-	/*   Iterators */
-	NULL,						/* getiterfunc tp_iter; */
-	NULL,                       /* iternextfunc tp_iternext; */
-
-  /*** Attribute descriptor and subclassing stuff ***/
-	pyop_base_methods,						/* struct PyMethodDef *tp_methods; */
-	NULL,                       /* struct PyMemberDef *tp_members; */
-	NULL,		/* struct PyGetSetDef *tp_getset; */
-	NULL,                       /* struct _typeobject *tp_base; */
-	NULL,                       /* PyObject *tp_dict; */
-	NULL,                       /* descrgetfunc tp_descr_get; */
-	NULL,                       /* descrsetfunc tp_descr_set; */
-	0,                          /* long tp_dictoffset; */
-	NULL,                       /* initproc tp_init; */
-	NULL,                       /* allocfunc tp_alloc; */
-	NULL,						/* newfunc tp_new; */
-	/*  Low-level free-memory routine */
-	NULL,                       /* freefunc tp_free;  */
-	/* For PyObject_IS_GC */
-	NULL,                       /* inquiry tp_is_gc;  */
-	NULL,                       /* PyObject *tp_bases; */
-	/* method resolution order */
-	NULL,                       /* PyObject *tp_mro;  */
-	NULL,                       /* PyObject *tp_cache; */
-	NULL,                       /* PyObject *tp_subclasses; */
-	NULL,                       /* PyObject *tp_weaklist; */
-	NULL
+static PyMethodDef pyop_base_call_meth[] = {
+	{"__op_call__", (PyCFunction)pyop_base_call, METH_VARARGS|METH_KEYWORDS, "generic operator calling function"}
 };
 
-/*-----------------------BPy_OperatorBase method def------------------------------*/
-PyTypeObject pyop_func_Type = {
-#if (PY_VERSION_HEX >= 0x02060000)
-	PyVarObject_HEAD_INIT(NULL, 0)
-#else
-	/* python 2.5 and below */
-	PyObject_HEAD_INIT( NULL )  /* required py macro */
-	0,                          /* ob_size */
-#endif
 
-	"OperatorFunc",		/* tp_name */
-	sizeof( BPy_OperatorFunc ),			/* tp_basicsize */
-	0,			/* tp_itemsize */
-	/* methods */
-	NULL,						/* tp_dealloc */
-	NULL,                       /* printfunc tp_print; */
-	NULL,						/* getattrfunc tp_getattr; */
-	NULL,                       /* setattrfunc tp_setattr; */
-	NULL,						/* tp_compare */ /* DEPRECATED in python 3.0! */
-	( reprfunc ) pyop_func_repr,	/* tp_repr */
-
-	/* Method suites for standard classes */
-
-	NULL,                       /* PyNumberMethods *tp_as_number; */
-	NULL,						/* PySequenceMethods *tp_as_sequence; */
-	NULL,						/* PyMappingMethods *tp_as_mapping; */
-
-	/* More standard operations (here for binary compatibility) */
-
-	NULL,						/* hashfunc tp_hash; */
-	(ternaryfunc)pyop_func_call,                       /* ternaryfunc tp_call; */
-	NULL,                       /* reprfunc tp_str; */
-	NULL,						/* getattrofunc tp_getattro; */
-	NULL, /*PyObject_GenericSetAttr - MINGW Complains, assign later */	/* setattrofunc tp_setattro; */
-
-	/* Functions to access object as input/output buffer */
-	NULL,                       /* PyBufferProcs *tp_as_buffer; */
-
-  /*** Flags to define presence of optional/expanded features ***/
-	Py_TPFLAGS_DEFAULT,         /* long tp_flags; */
-
-	NULL,						/*  char *tp_doc;  Documentation string */
-  /*** Assigned meaning in release 2.0 ***/
-	/* call function for all accessible objects */
-	NULL,                       /* traverseproc tp_traverse; */
-
-	/* delete references to contained objects */
-	NULL,                       /* inquiry tp_clear; */
-
-  /***  Assigned meaning in release 2.1 ***/
-  /*** rich comparisons ***/
-	(richcmpfunc)pyop_func_richcmp,	/* richcmpfunc tp_richcompare; */
-
-  /***  weak reference enabler ***/
-	0,                          /* long tp_weaklistoffset; */
-
-  /*** Added in release 2.2 ***/
-	/*   Iterators */
-	NULL,						/* getiterfunc tp_iter; */
-	NULL,                       /* iternextfunc tp_iternext; */
-
-  /*** Attribute descriptor and subclassing stuff ***/
-	NULL,						/* struct PyMethodDef *tp_methods; */
-	NULL,                       /* struct PyMemberDef *tp_members; */
-	pyop_func_getseters,		/* struct PyGetSetDef *tp_getset; */
-	NULL,                       /* struct _typeobject *tp_base; */
-	NULL,                       /* PyObject *tp_dict; */
-	NULL,                       /* descrgetfunc tp_descr_get; */
-	NULL,                       /* descrsetfunc tp_descr_set; */
-	0,                          /* long tp_dictoffset; */
-	NULL,                       /* initproc tp_init; */
-	NULL,                       /* allocfunc tp_alloc; */
-	NULL,						/* newfunc tp_new; */
-	/*  Low-level free-memory routine */
-	NULL,                       /* freefunc tp_free;  */
-	/* For PyObject_IS_GC */
-	NULL,                       /* inquiry tp_is_gc;  */
-	NULL,                       /* PyObject *tp_bases; */
-	/* method resolution order */
-	NULL,                       /* PyObject *tp_mro;  */
-	NULL,                       /* PyObject *tp_cache; */
-	NULL,                       /* PyObject *tp_subclasses; */
-	NULL,                       /* PyObject *tp_weaklist; */
-	NULL
-};
-
-PyObject *pyop_base_CreatePyObject( bContext *C )
+//---------------getattr--------------------------------------------
+static PyObject *pyop_base_getattro( BPy_OperatorBase * self, PyObject *pyname )
 {
-	BPy_OperatorBase *pyop;
-
-	pyop = ( BPy_OperatorBase * ) PyObject_NEW( BPy_OperatorBase, &pyop_base_Type );
-
-	if( !pyop ) {
-		PyErr_SetString( PyExc_MemoryError, "couldn't create BPy_OperatorBase object" );
-		return NULL;
+	char *name = _PyUnicode_AsString(pyname);
+	PyObject *ret;
+	wmOperatorType *ot;
+	
+	if ((ot= WM_operatortype_find(name))) {
+		ret = PyCFunction_New( pyop_base_call_meth, pyname); /* set the name string as self, PyCFunction_New incref's self */
+	}
+	else if ((ret = PyObject_GenericGetAttr((PyObject *)self, pyname))) {
+		/* do nothing, this accounts for methoddef's add and remove */
+	}
+	else {
+		PyErr_Format( PyExc_AttributeError, "Operator \"%s\" not found", name);
+		ret= NULL;
 	}
 
-	pyop->C = C; /* TODO - copy this? */
-
-	return ( PyObject * ) pyop;
+	return ret;
 }
 
-PyObject *pyop_func_CreatePyObject( bContext *C, char *name )
+static PyObject *pyop_base_dir(PyObject *self)
 {
-	BPy_OperatorFunc *pyop;
-
-	pyop = ( BPy_OperatorFunc * ) PyObject_NEW( BPy_OperatorFunc, &pyop_func_Type );
-
-	if( !pyop ) {
-		PyErr_SetString( PyExc_MemoryError, "couldn't create BPy_OperatorFunc object" );
-		return NULL;
+	PyObject *list = PyList_New(0), *name;
+	wmOperatorType *ot;
+	PyMethodDef *meth;
+	
+	for(ot= WM_operatortype_first(); ot; ot= ot->next) {
+		name = PyUnicode_FromString(ot->idname);
+		PyList_Append(list, name);
+		Py_DECREF(name);
 	}
 
-	strcpy(pyop->name, name);
-	pyop->C= C; /* TODO - how should contexts be dealt with? */
-
-	return ( PyObject * ) pyop;
+	for(meth=pyop_base_methods; meth->ml_name; meth++) {
+		name = PyUnicode_FromString(meth->ml_name);
+		PyList_Append(list, name);
+		Py_DECREF(name);
+	}
+	
+	return list;
 }
+
+static PyObject *pyop_base_rna(PyObject *self, PyObject *pyname)
+{
+	char *name = _PyUnicode_AsString(pyname);
+	wmOperatorType *ot;
+	
+	if ((ot= WM_operatortype_find(name))) {
+		BPy_StructRNA *pyrna;
+		PointerRNA ptr;
+		
+		/* XXX POINTER - if this 'ot' is python generated, it could be free'd */
+		RNA_pointer_create(NULL, ot->srna, NULL, &ptr);
+		
+		pyrna= (BPy_StructRNA *)pyrna_struct_CreatePyObject(&ptr); /* were not really using &ptr, overwite next */
+		//pyrna->freeptr= 1;
+		return (PyObject *)pyrna;
+	}
+	else {
+		PyErr_Format(PyExc_AttributeError, "Operator \"%s\" not found", name);
+		return NULL;
+	}
+}
+
+PyTypeObject pyop_base_Type = {NULL};
 
 PyObject *BPY_operator_module( bContext *C )
 {
+	pyop_base_Type.tp_name = "OperatorBase";
+	pyop_base_Type.tp_basicsize = sizeof( BPy_OperatorBase );
+	pyop_base_Type.tp_getattro = ( getattrofunc )pyop_base_getattro;
+	pyop_base_Type.tp_flags = Py_TPFLAGS_DEFAULT;
+	pyop_base_Type.tp_methods = pyop_base_methods;
+	
 	if( PyType_Ready( &pyop_base_Type ) < 0 )
 		return NULL;
 
-	if( PyType_Ready( &pyop_func_Type ) < 0 )
-		return NULL;
-
 	//submodule = Py_InitModule3( "operator", M_rna_methods, "rna module" );
-	return pyop_base_CreatePyObject(C);
+	return (PyObject *)PyObject_NEW( BPy_OperatorBase, &pyop_base_Type );
 }
-
-
 

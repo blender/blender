@@ -31,46 +31,54 @@
 #ifndef BSE_FSMENU_H
 #define BSE_FSMENU_H
 
-	/** Returns the number of entries in the Fileselect Menu */
-int		fsmenu_get_nentries		(void);
+/* XXX could become UserPref */
+#define FSMENU_RECENT_MAX 10
 
-	/** Returns true if the fsmenu entry at @a index exists and
-	 * is a seperator.
-	 */
-int	fsmenu_is_entry_a_separator	(int index);
+typedef enum FSMenuCategory {
+	FS_CATEGORY_SYSTEM,
+	FS_CATEGORY_BOOKMARKS,
+	FS_CATEGORY_RECENT
+} FSMenuCategory;
+
+struct FSMenu;
+
+struct FSMenu* fsmenu_get		(void);
+
+	/** Returns the number of entries in the Fileselect Menu */
+int		fsmenu_get_nentries		(struct FSMenu* fsmenu, FSMenuCategory category);
 
 	/** Returns the fsmenu entry at @a index (or NULL if a bad index)
      * or a separator.
 	 */
-char*	fsmenu_get_entry		(int index);
+char*	fsmenu_get_entry		(struct FSMenu* fsmenu, FSMenuCategory category, int index);
 
-	/** Returns a new menu description string representing the
-	 * fileselect menu. Should be free'd with MEM_freeN.
-	 */
-char*	fsmenu_build_menu		(void);
+void	fsmenu_select_entry		(struct FSMenu* fsmenu, FSMenuCategory category, int index);
 
-	/** Append a seperator to the FSMenu, inserts always follow the
-	 * last seperator.
-	 */
-void	fsmenu_append_separator	(void);
+int		fsmenu_is_selected		(struct FSMenu* fsmenu, FSMenuCategory category, int index);
+
+	/** Sets the position of the  fsmenu entry at @a index */
+void	fsmenu_set_pos			(struct FSMenu* fsmenu, FSMenuCategory category, int index, short xs, short ys);
+
+	/** Returns the position of the  fsmenu entry at @a index. return value is 1 if successful, 0 otherwise */
+int		fsmenu_get_pos			(struct FSMenu* fsmenu, FSMenuCategory category, int index, short* xs, short* ys);
 
 	/** Inserts a new fsmenu entry with the given @a path.
 	 * Duplicate entries are not added.
 	 * @param sorted Should entry be inserted in sorted order?
 	 */
-void	fsmenu_insert_entry		(char *path, int sorted, short save);
+void	fsmenu_insert_entry		(struct FSMenu* fsmenu, FSMenuCategory category, char *path, int sorted, short save);
 
 	/** Removes the fsmenu entry at the given @a index. */
-void	fsmenu_remove_entry		(int index);
+void	fsmenu_remove_entry		(struct FSMenu* fsmenu, FSMenuCategory category, int index);
 
 	/** saves the 'bookmarks' to the specified file */
-void	fsmenu_write_file(const char *filename);
+void	fsmenu_write_file		(struct FSMenu* fsmenu, const char *filename);
 	
 	/** reads the 'bookmarks' from the specified file */
-void	fsmenu_read_file(const char *filename);
+void	fsmenu_read_file		(struct FSMenu* fsmenu, const char *filename);
 
 	/** Free's all the memory associated with the fsmenu */
-void	fsmenu_free				(void);
+void	fsmenu_free				(struct FSMenu* fsmenu);
 
 #endif
 

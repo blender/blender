@@ -6,6 +6,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <string.h>
+#include <float.h>
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -58,7 +59,7 @@ void free_fcurve (FCurve *fcu)
 	fcurve_free_driver(fcu);
 	fcurve_free_modifiers(fcu);
 	
-	/* free f-cruve itself */
+	/* free f-curve itself */
 	MEM_freeN(fcu);
 }
 
@@ -1105,25 +1106,39 @@ static float fcurve_eval_samples (FCurve *fcu, FPoint *fpts, float evaltime)
 static FModifierTypeInfo FMI_MODNAME = {
 	FMODIFIER_TYPE_MODNAME, /* type */
 	sizeof(FMod_ModName), /* size */
+	FMI_TYPE_SOME_ACTION, /* action type */
+	FMI_REQUIRES_SOME_REQUIREMENT, /* requirements */
 	"Modifier Name", /* name */
 	"FMod_ModName", /* struct name */
 	fcm_modname_free, /* free data */
 	fcm_modname_relink, /* relink data */
 	fcm_modname_copy, /* copy data */
 	fcm_modname_new_data, /* new data */
+	fcm_modname_verify, /* verify */
 	fcm_modname_evaluate /* evaluate */
 };
 #endif
 
 /* Generator F-Curve Modifier --------------------------- */
 
+/* Generators available:
+ * 	1) simple polynomial generator:
+ *		- Exanded form - (y = C[0]*(x^(n)) + C[1]*(x^(n-1)) + ... + C[n])  
+ *		- Factorised form - (y = (C[0][0]*x + C[0][1]) * (C[1][0]*x + C[1][1]) * ... * (C[n][0]*x + C[n][1]))
+ *	2) simple builin 'functions':
+ *		of the form (y = C[0] * fn( C[1]*x + C[2] ) + C[3])
+ * 	   where fn() can be any one of:
+ *		sin, cos, tan, ln, sqrt
+ *	3) expression...
+ */
+
 static void fcm_generator_free (FModifier *fcm)
 {
 	FMod_Generator *data= (FMod_Generator *)fcm->data;
 	
 	/* free polynomial coefficients array */
-	if (data->poly_coefficients)
-		MEM_freeN(data->poly_coefficients);
+	if (data->coefficients)
+		MEM_freeN(data->coefficients);
 }
 
 static void fcm_generator_copy (FModifier *fcm, FModifier *src)
@@ -1131,9 +1146,9 @@ static void fcm_generator_copy (FModifier *fcm, FModifier *src)
 	FMod_Generator *gen= (FMod_Generator *)fcm->data;
 	FMod_Generator *ogen= (FMod_Generator *)src->data;
 	
-	/* copy polynomial coefficients array? */
-	if (ogen->poly_coefficients)
-		gen->poly_coefficients= MEM_dupallocN(ogen->poly_coefficients);
+	/* copy coefficients array? */
+	if (ogen->coefficients)
+		gen->coefficients= MEM_dupallocN(ogen->coefficients);
 }
 
 static void fcm_generator_new_data (void *mdata)
@@ -1143,33 +1158,225 @@ static void fcm_generator_new_data (void *mdata)
 	
 	/* set default generator to be linear 0-1 (gradient = 1, y-offset = 0) */
 	data->poly_order= 1;
-	cp= data->poly_coefficients= MEM_callocN(sizeof(float)*2, "FMod_Generator_Coefs");
+	data->arraysize= 2;
+	cp= data->coefficients= MEM_callocN(sizeof(float)*2, "FMod_Generator_Coefs");
 	cp[0] = 0; // y-offset 
 	cp[1] = 1; // gradient
 }
 
+static void fcm_generator_verify (FModifier *fcm)
+{
+	FMod_Generator *data= (FMod_Generator *)fcm->data;
+	
+	/* requirements depend on mode */
+	switch (data->mode) {
+		case FCM_GENERATOR_POLYNOMIAL: /* expanded polynomial expression */
+		{
+			/* arraysize needs to be order+1, so resize if not */
+			if (data->arraysize != (data->poly_order+1)) {
+				float *nc;
+				
+				/* make new coefficients array, and copy over as much data as can fit */
+				nc= MEM_callocN(sizeof(float)*(data->poly_order+1), "FMod_Generator_Coefs");
+				
+				if (data->coefficients) {
+					if (data->arraysize > (data->poly_order+1))
+						memcpy(nc, data->coefficients, sizeof(float)*(data->poly_order+1));
+					else
+						memcpy(nc, data->coefficients, sizeof(float)*data->arraysize);
+						
+					/* free the old data */
+					MEM_freeN(data->coefficients);
+				}	
+				
+				/* set the new data */
+				data->coefficients= nc;
+				data->arraysize= data->poly_order+1;
+			}
+		}
+			break;
+		
+		case FCM_GENERATOR_POLYNOMIAL_FACTORISED: /* expanded polynomial expression */
+		{
+			/* arraysize needs to be 2*order, so resize if not */
+			if (data->arraysize != (data->poly_order * 2)) {
+				float *nc;
+				
+				/* make new coefficients array, and copy over as much data as can fit */
+				nc= MEM_callocN(sizeof(float)*(data->poly_order*2), "FMod_Generator_Coefs");
+				
+				if (data->coefficients) {
+					if (data->arraysize > (data->poly_order * 2))
+						memcpy(nc, data->coefficients, sizeof(float)*(data->poly_order * 2));
+					else
+						memcpy(nc, data->coefficients, sizeof(float)*data->arraysize);
+						
+					/* free the old data */
+					MEM_freeN(data->coefficients);
+				}	
+				
+				/* set the new data */
+				data->coefficients= nc;
+				data->arraysize= data->poly_order * 2;
+			}
+		}
+			break;
+			
+		case FCM_GENERATOR_FUNCTION: /* builtin function */
+		{
+			/* arraysize needs to be 4*/
+			if (data->arraysize != 4) {
+				float *nc;
+				
+				/* free the old data */
+				if (data->coefficients)
+					MEM_freeN(data->coefficients);
+				
+				/* make new coefficients array, and init using default values */
+				nc= data->coefficients= MEM_callocN(sizeof(float)*4, "FMod_Generator_Coefs");
+				data->arraysize= 4;
+				
+				nc[0]= 1.0f;
+				nc[1]= 1.0f;
+				nc[2]= 0.0f;
+				nc[3]= 0.0f;
+			}
+		}
+			break;	
+	}
+}
 
 static void fcm_generator_evaluate (FCurve *fcu, FModifier *fcm, float *cvalue, float evaltime)
 {
 	FMod_Generator *data= (FMod_Generator *)fcm->data;
 	
-	/* behaviour depends on mode (NOTE: we don't need to do anything...) */
+	/* behaviour depends on mode 
+	 * NOTE: the data in its default state is fine too
+	 */
 	switch (data->mode) {
-		case FCM_GENERATOR_POLYNOMIAL: /* polynomial expression */
+		case FCM_GENERATOR_POLYNOMIAL: /* expanded polynomial expression */
 		{
 			/* we overwrite cvalue with the sum of the polynomial */
-			float value= 0.0f, *cp = NULL;
+			float *powers = MEM_callocN(sizeof(float)*data->arraysize, "Poly Powers");
+			float value= 0.0f;
 			unsigned int i;
 			
-			/* for each coefficient, add to value, which we'll write to *cvalue in one go */
-			// TODO: could this be more efficient (i.e. without need to recalc pow() everytime)
-			cp= data->poly_coefficients;
-			for (i=0; (i <= data->poly_order) && (cp); i++, cp++)
-				value += (*cp) * (float)pow(evaltime, i);
+			/* for each x^n, precalculate value based on previous one first... this should be 
+			 * faster that calling pow() for each entry
+			 */
+			for (i=0; i < data->arraysize; i++) {
+				/* first entry is x^0 = 1, otherwise, calculate based on previous */
+				if (i)
+					powers[i]= powers[i-1] * evaltime;
+				else
+					powers[0]= 1;
+			}
 			
-			/* only if something changed */
-			if (data->poly_order)
-				*cvalue= value;
+			/* for each coefficient, add to value, which we'll write to *cvalue in one go */
+			for (i=0; i < data->arraysize; i++)
+				value += data->coefficients[i] * powers[i];
+			
+			/* only if something changed, write *cvalue in one go */
+			if (data->poly_order) {
+				if (data->flag & FCM_GENERATOR_ADDITIVE)
+					*cvalue += value;
+				else
+					*cvalue= value;
+			}
+				
+			/* cleanup */
+			if (powers) 
+				MEM_freeN(powers);
+		}
+			break;
+			
+		case FCM_GENERATOR_POLYNOMIAL_FACTORISED: /* factorised polynomial */
+		{
+			float value= 1.0f, *cp=NULL;
+			unsigned int i;
+			
+			/* for each coefficient pair, solve for that bracket before accumulating in value by multiplying */
+			for (cp=data->coefficients, i=0; (cp) && (i < data->poly_order); cp+=2, i++) 
+				value *= (cp[0]*evaltime + cp[1]);
+				
+			/* only if something changed, write *cvalue in one go */
+			if (data->poly_order) {
+				if (data->flag & FCM_GENERATOR_ADDITIVE)
+					*cvalue += value;
+				else
+					*cvalue= value;
+			}
+		}
+			break;
+			
+		case FCM_GENERATOR_FUNCTION: /* builtin function */
+		{
+			double arg= data->coefficients[1]*evaltime + data->coefficients[2];
+			double (*fn)(double v) = NULL;
+			
+			/* get function pointer to the func to use:
+			 * WARNING: must perform special argument validation hereto guard against crashes  
+			 */
+			switch (data->func_type)
+			{
+				/* simple ones */			
+				case FCM_GENERATOR_FN_SIN: /* sine wave */
+					fn= sin;
+					break;
+				case FCM_GENERATOR_FN_COS: /* cosine wave */
+					fn= cos;
+					break;
+					
+				/* validation required */
+				case FCM_GENERATOR_FN_TAN: /* tangent wave */
+				{
+					/* check that argument is not on one of the discontinuities (i.e. 90deg, 270 deg, etc) */
+					if IS_EQ(fmod((arg - M_PI_2), M_PI), 0.0) {
+						if ((data->flag & FCM_GENERATOR_ADDITIVE) == 0)
+							*cvalue = 0.0f; /* no value possible here */
+					}
+					else
+						fn= tan;
+				}
+					break;
+				case FCM_GENERATOR_FN_LN: /* natural log */
+				{
+					/* check that value is greater than 1? */
+					if (arg > 1.0f) {
+						fn= log;
+					}
+					else {
+						if ((data->flag & FCM_GENERATOR_ADDITIVE) == 0)
+							*cvalue = 0.0f; /* no value possible here */
+					}
+				}
+					break;
+				case FCM_GENERATOR_FN_SQRT: /* square root */
+				{
+					/* no negative numbers */
+					if (arg > 0.0f) {
+						fn= sqrt;
+					}
+					else {
+						if ((data->flag & FCM_GENERATOR_ADDITIVE) == 0)
+							*cvalue = 0.0f; /* no value possible here */
+					}
+				}
+					break;
+					
+				default:
+					printf("Invalid Function-Generator for F-Modifier - %d \n", data->func_type);
+			}
+			
+			/* execute function callback to set value if appropriate */
+			if (fn) {
+				float value= data->coefficients[0]*fn(arg) + data->coefficients[3];
+				
+				if (data->flag & FCM_GENERATOR_ADDITIVE)
+					*cvalue += value;
+				else
+					*cvalue= value;
+			}
 		}
 			break;
 
@@ -1184,11 +1391,14 @@ static void fcm_generator_evaluate (FCurve *fcu, FModifier *fcm, float *cvalue, 
 static FModifierTypeInfo FMI_GENERATOR = {
 	FMODIFIER_TYPE_GENERATOR, /* type */
 	sizeof(FMod_Generator), /* size */
+	FMI_TYPE_GENERATE_CURVE, /* action type */
+	FMI_REQUIRES_NOTHING, /* requirements */
 	"Generator", /* name */
 	"FMod_Generator", /* struct name */
 	fcm_generator_free, /* free data */
 	fcm_generator_copy, /* copy data */
 	fcm_generator_new_data, /* new data */
+	fcm_generator_verify, /* verify */
 	fcm_generator_evaluate /* evaluate */
 };
 
@@ -1196,21 +1406,40 @@ static FModifierTypeInfo FMI_GENERATOR = {
 
 static void fcm_envelope_free (FModifier *fcm)
 {
-	FMod_Envelope *data= (FMod_Envelope *)fcm->data;
+	FMod_Envelope *env= (FMod_Envelope *)fcm->data;
 	
 	/* free envelope data array */
-	if (data->data)
-		MEM_freeN(data->data);
+	if (env->data)
+		MEM_freeN(env->data);
 }
 
 static void fcm_envelope_copy (FModifier *fcm, FModifier *src)
 {
-	FMod_Envelope *gen= (FMod_Envelope *)fcm->data;
-	FMod_Envelope *ogen= (FMod_Envelope *)src->data;
+	FMod_Envelope *env= (FMod_Envelope *)fcm->data;
+	FMod_Envelope *oenv= (FMod_Envelope *)src->data;
 	
 	/* copy envelope data array */
-	if (ogen->data)
-		gen->data= MEM_dupallocN(ogen->data);
+	if (oenv->data)
+		env->data= MEM_dupallocN(oenv->data);
+}
+
+static void fcm_envelope_new_data (void *mdata)
+{
+	FMod_Envelope *env= (FMod_Envelope *)mdata;
+	
+	/* set default min/max ranges */
+	env->min= -1.0f;
+	env->max= 1.0f;
+}
+
+static void fcm_envelope_verify (FModifier *fcm)
+{
+	FMod_Envelope *env= (FMod_Envelope *)fcm->data;
+	
+	/* if the are points, perform bubble-sort on them, as user may have changed the order */
+	if (env->data) {
+		// XXX todo...
+	}
 }
 
 static void fcm_envelope_evaluate (FCurve *fcu, FModifier *fcm, float *cvalue, float evaltime)
@@ -1224,7 +1453,7 @@ static void fcm_envelope_evaluate (FCurve *fcu, FModifier *fcm, float *cvalue, f
 	if (env->data == NULL) return;
 	prevfed= env->data;
 	fed= prevfed + 1;
-	lastfed= prevfed + env->totvert-1;
+	lastfed= prevfed + (env->totvert-1);
 	
 	/* get min/max values for envelope at evaluation time (relative to mid-value) */
 	if (prevfed->time >= evaltime) {
@@ -1239,6 +1468,7 @@ static void fcm_envelope_evaluate (FCurve *fcu, FModifier *fcm, float *cvalue, f
 	}
 	else {
 		/* evaltime occurs somewhere between segments */
+		// TODO: implement binary search for this to make it faster?
 		for (a=0; prevfed && fed && (a < env->totvert-1); a++, prevfed=fed, fed++) {  
 			/* evaltime occurs within the interval defined by these two envelope points */
 			if ((prevfed->time <= evaltime) && (fed->time >= evaltime)) {
@@ -1246,10 +1476,10 @@ static void fcm_envelope_evaluate (FCurve *fcu, FModifier *fcm, float *cvalue, f
 				
 				diff= fed->time - prevfed->time;
 				afac= (evaltime - prevfed->time) / diff;
-				bfac= (fed->time - evaltime)/(diff);
+				bfac= (fed->time - evaltime) / diff;
 				
-				min= afac*prevfed->min + bfac*fed->min;
-				max= afac*prevfed->max + bfac*fed->max;
+				min= bfac*prevfed->min + afac*fed->min;
+				max= bfac*prevfed->max + afac*fed->max;
 				
 				break;
 			}
@@ -1257,20 +1487,24 @@ static void fcm_envelope_evaluate (FCurve *fcu, FModifier *fcm, float *cvalue, f
 	}
 	
 	/* adjust *cvalue 
-	 * NOTE: env->min/max are relative to env->midval, and can be either +ve OR -ve, so we add...
+	 *	- fac is the ratio of how the current y-value corresponds to the reference range
+	 *	- thus, the new value is found by mapping the old range to the new!
 	 */
-	fac= (*cvalue - min) / (max - min);
-	*cvalue= (env->midval + env->min) + (fac * (env->max - env->min)); 
+	fac= (*cvalue - (env->midval + env->min)) / (env->max - env->min);
+	*cvalue= min + fac*(max - min); 
 }
 
 static FModifierTypeInfo FMI_ENVELOPE = {
 	FMODIFIER_TYPE_ENVELOPE, /* type */
 	sizeof(FMod_Envelope), /* size */
+	FMI_TYPE_REPLACE_VALUES, /* action type */
+	0, /* requirements */
 	"Envelope", /* name */
 	"FMod_Envelope", /* struct name */
 	fcm_envelope_free, /* free data */
 	fcm_envelope_copy, /* copy data */
-	NULL, /* new data */
+	fcm_envelope_new_data, /* new data */
+	fcm_envelope_verify, /* verify */
 	fcm_envelope_evaluate /* evaluate */
 };
 
@@ -1286,6 +1520,14 @@ static FModifierTypeInfo FMI_ENVELOPE = {
  * 				as appropriate
  */
 
+static void fcm_cycles_new_data (void *mdata)
+{
+	FMod_Cycles *data= (FMod_Cycles *)mdata;
+	
+	/* turn on cycles by default */
+	data->before_mode= data->after_mode= FCM_EXTRAPOLATE_CYCLIC;
+}
+ 
 static void fcm_cycles_evaluate (FCurve *fcu, FModifier *fcm, float *cvalue, float evaltime)
 {
 	FMod_Cycles *data= (FMod_Cycles *)fcm->data;
@@ -1331,7 +1573,7 @@ static void fcm_cycles_evaluate (FCurve *fcu, FModifier *fcm, float *cvalue, flo
 	 *	2) if before first frame or after last frame, make sure some cycling is in use
 	 */
 	if (evaltime < prevkey[0]) {
-		if (data->before_mode) {
+		if (data->before_mode)  {
 			side= -1;
 			mode= data->before_mode;
 			cycles= data->before_cycles;
@@ -1347,8 +1589,7 @@ static void fcm_cycles_evaluate (FCurve *fcu, FModifier *fcm, float *cvalue, flo
 	if ELEM(0, side, mode)
 		return;
 		
-	/* extrapolation mode is 'cyclic' - find relative place within a cycle */
-	// FIXME: adding the more fine-grained control of extrpolation mode
+	/* find relative place within a cycle */
 	{
 		float cycdx=0, cycdy=0, ofs=0;
 		
@@ -1362,15 +1603,19 @@ static void fcm_cycles_evaluate (FCurve *fcu, FModifier *fcm, float *cvalue, flo
 		/* check if cycle is infinitely small, to be point of being impossible to use */
 		if (cycdx == 0)
 			return;
+			
 		/* check that cyclic is still enabled for the specified time */
 		if (cycles == 0) {
 			/* catch this case so that we don't exit when we have cycles=0
 			 * as this indicates infinite cycles...
 			 */
 		}
-		else if ( ((float)side * (evaltime - ofs) / cycdx) > cycles )
+		else if ( ((float)side * (evaltime - ofs) / cycdx) > (cycles+1) ) {
+			/* we are too far away from range to evaluate
+			 * TODO: but we should still hold last value... 
+			 */
 			return;
-		
+		}
 		
 		/* check if 'cyclic extrapolation', and thus calculate y-offset for this cycle */
 		if (mode == FCM_EXTRAPOLATE_CYCLIC_OFFSET) {
@@ -1399,11 +1644,14 @@ static void fcm_cycles_evaluate (FCurve *fcu, FModifier *fcm, float *cvalue, flo
 static FModifierTypeInfo FMI_CYCLES = {
 	FMODIFIER_TYPE_CYCLES, /* type */
 	sizeof(FMod_Cycles), /* size */
+	FMI_TYPE_EXTRAPOLATION, /* action type */
+	FMI_REQUIRES_ORIGINAL_DATA, /* requirements */
 	"Cycles", /* name */
 	"FMod_Cycles", /* struct name */
 	NULL, /* free data */
 	NULL, /* copy data */
-	NULL, /* new data */
+	fcm_cycles_new_data, /* new data */
+	NULL /*fcm_cycles_verify*/, /* verify */
 	fcm_cycles_evaluate /* evaluate */
 };
 
@@ -1413,11 +1661,14 @@ static FModifierTypeInfo FMI_CYCLES = {
 static FModifierTypeInfo FMI_NOISE = {
 	FMODIFIER_TYPE_NOISE, /* type */
 	sizeof(FMod_Noise), /* size */
+	FMI_TYPE_REPLACE_VALUES, /* action type */
+	0, /* requirements */
 	"Noise", /* name */
 	"FMod_Noise", /* struct name */
 	NULL, /* free data */
 	NULL, /* copy data */
 	fcm_noise_new_data, /* new data */
+	NULL /*fcm_noise_verify*/, /* verify */
 	fcm_noise_evaluate /* evaluate */
 };
 #endif // XXX not yet implemented
@@ -1428,11 +1679,14 @@ static FModifierTypeInfo FMI_NOISE = {
 static FModifierTypeInfo FMI_FILTER = {
 	FMODIFIER_TYPE_FILTER, /* type */
 	sizeof(FMod_Filter), /* size */
+	FMI_TYPE_REPLACE_VALUES, /* action type */
+	0, /* requirements */
 	"Filter", /* name */
 	"FMod_Filter", /* struct name */
 	NULL, /* free data */
 	NULL, /* copy data */
 	NULL, /* new data */
+	NULL /*fcm_filter_verify*/, /* verify */
 	fcm_filter_evaluate /* evaluate */
 };
 #endif // XXX not yet implemented
@@ -1480,18 +1734,21 @@ static void fcm_python_evaluate (FCurve *fcu, FModifier *fcm, float *cvalue, flo
 static FModifierTypeInfo FMI_PYTHON = {
 	FMODIFIER_TYPE_PYTHON, /* type */
 	sizeof(FMod_Python), /* size */
+	FMI_TYPE_GENERATE_CURVE, /* action type */
+	FMI_REQUIRES_RUNTIME_CHECK, /* requirements */
 	"Python", /* name */
 	"FMod_Python", /* struct name */
 	fcm_python_free, /* free data */
 	fcm_python_copy, /* copy data */
 	fcm_python_new_data, /* new data */
+	NULL /*fcm_python_verify*/, /* verify */
 	fcm_python_evaluate /* evaluate */
 };
 
 
 /* F-Curve Modifier API --------------------------- */
 /* All of the F-Curve Modifier api functions use FModifierTypeInfo structs to carry out
- * and operations that involve F-Curve modifier specifc code.
+ * and operations that involve F-Curve modifier specific code.
  */
 
 /* These globals only ever get directly accessed in this file */
@@ -1499,7 +1756,8 @@ static FModifierTypeInfo *fmodifiersTypeInfo[FMODIFIER_NUM_TYPES];
 static short FMI_INIT= 1; /* when non-zero, the list needs to be updated */
 
 /* This function only gets called when FMI_INIT is non-zero */
-static void fmods_init_typeinfo () {
+static void fmods_init_typeinfo () 
+{
 	fmodifiersTypeInfo[0]=  NULL; 					/* 'Null' F-Curve Modifier */
 	fmodifiersTypeInfo[1]=  &FMI_GENERATOR; 		/* Generator F-Curve Modifier */
 	fmodifiersTypeInfo[2]=  &FMI_ENVELOPE;			/* Envelope F-Curve Modifier */
@@ -1568,10 +1826,12 @@ FModifier *fcurve_add_modifier (FCurve *fcu, int type)
 	
 	/* add modifier itself */
 	fcm= MEM_callocN(sizeof(FModifier), "F-Curve Modifier");
+	fcm->type = type;
+	fcm->flag = FMODIFIER_FLAG_EXPANDED;
 	BLI_addtail(&fcu->modifiers, fcm);
 	
 	/* add modifier's data */
-	fcm->data= MEM_callocN(fmi->size, "F-Curve Modifier Data");
+	fcm->data= MEM_callocN(fmi->size, fmi->structName);
 		
 	/* init custom settings if necessary */
 	if (fmi->new_data)	
@@ -1614,11 +1874,13 @@ void fcurve_remove_modifier (FCurve *fcu, FModifier *fcm)
 		return;
 	
 	/* free modifier's special data (stored inside fcm->data) */
-	if (fmi && fmi->free_data)
-		fmi->free_data(fcm);
-		
-	/* free modifier's data (fcm->data) */
-	MEM_freeN(fcm->data);
+	if (fcm->data) {
+		if (fmi && fmi->free_data)
+			fmi->free_data(fcm);
+			
+		/* free modifier's data (fcm->data) */
+		MEM_freeN(fcm->data);
+	}
 	
 	/* remove modifier from stack */
 	if (fcu)
@@ -1674,12 +1936,48 @@ void fcurve_bake_modifiers (FCurve *fcu, int start, int end)
 	fcu->driver= driver;
 }
 
+/* Find the active F-Curve Modifier */
+FModifier *fcurve_find_active_modifier (FCurve *fcu)
+{
+	FModifier *fcm;
+	
+	/* sanity checks */
+	if ELEM(NULL, fcu, fcu->modifiers.first)
+		return NULL;
+	
+	/* loop over modifiers until 'active' one is found */
+	for (fcm= fcu->modifiers.first; fcm; fcm= fcm->next) {
+		if (fcm->flag & FMODIFIER_FLAG_ACTIVE)
+			return fcm;
+	}
+	
+	/* no modifier is active */
+	return NULL;
+}
+
+/* Set the active F-Curve Modifier */
+void fcurve_set_active_modifier (FCurve *fcu, FModifier *fcm)
+{
+	FModifier *fm;
+	
+	/* sanity checks */
+	if ELEM(NULL, fcu, fcu->modifiers.first)
+		return;
+	
+	/* deactivate all, and set current one active */
+	for (fm= fcu->modifiers.first; fm; fm= fm->next)
+		fm->flag &= ~FMODIFIER_FLAG_ACTIVE;
+	
+	/* make given modifier active */
+	if (fcm)
+		fcm->flag |= FMODIFIER_FLAG_ACTIVE;
+}
+
 /* ***************************** F-Curve - Evaluation ********************************* */
 
 /* Evaluate and return the value of the given F-Curve at the specified frame ("evaltime") 
  * Note: this is also used for drivers
  */
-// TODO: set up the modifier system...
 float evaluate_fcurve (FCurve *fcu, float evaltime) 
 {
 	FModifier *fcm;
@@ -1710,6 +2008,12 @@ float evaluate_fcurve (FCurve *fcu, float evaltime)
 				fmi->evaluate_modifier(fcu, fcm, &cvalue, evaltime);
 		}
 	}
+	
+	/* if curve can only have integral values, perform truncation (i.e. drop the decimal part)
+	 * here so that the curve can be sampled correctly
+	 */
+	if (fcu->flag & FCURVE_INT_VALUES)
+		cvalue= (float)((int)cvalue);
 	
 	/* return evaluated value */
 	return cvalue;

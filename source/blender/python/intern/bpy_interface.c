@@ -34,35 +34,44 @@ void BPY_free_compiled_text( struct Text *text )
 
 static PyObject *CreateGlobalDictionary( bContext *C )
 {
+	PyObject *mod;
 	PyObject *dict = PyDict_New(  );
 	PyObject *item = PyUnicode_FromString( "__main__" );
 	PyDict_SetItemString( dict, "__builtins__", PyEval_GetBuiltins(  ) );
 	PyDict_SetItemString( dict, "__name__", item );
 	Py_DECREF(item);
 	
-	/* Add Modules */
-	item = BPY_rna_module();
-	PyDict_SetItemString( dict, "bpy", item );
-	Py_DECREF(item);
+	/* add bpy to global namespace */
+	mod = PyModule_New("bpy");
+	PyDict_SetItemString( dict, "bpy", mod );
+	Py_DECREF(mod);
 	
-	item = BPY_rna_doc();
-	PyDict_SetItemString( dict, "bpydoc", item );
-	Py_DECREF(item);
-
-	item = BPY_operator_module(C);
-	PyDict_SetItemString( dict, "bpyoperator", item );
-	Py_DECREF(item);
-
-	
-	// XXX very experemental, consiter this a test, especiall PyCObject is not meant to be perminant
-	item = BPY_ui_module();
-	PyDict_SetItemString( dict, "bpyui", item );
-	Py_DECREF(item);
+	PyModule_AddObject( mod, "data", BPY_rna_module() );
+	/* PyModule_AddObject( mod, "doc", BPY_rna_doc() ); */
+	PyModule_AddObject( mod, "types", BPY_rna_types() );
+	PyModule_AddObject( mod, "ops", BPY_operator_module(C) );
+	PyModule_AddObject( mod, "ui", BPY_ui_module() ); // XXX very experemental, consider this a test, especially PyCObject is not meant to be perminant
 	
 	// XXX - evil, need to access context
 	item = PyCObject_FromVoidPtr( C, NULL );
 	PyDict_SetItemString( dict, "__bpy_context__", item );
 	Py_DECREF(item);
+	
+	
+	// XXX - put somewhere more logical
+	{
+		PyMethodDef *ml;
+		static PyMethodDef bpy_prop_meths[] = {
+			{"FloatProperty", (PyCFunction)BPy_FloatProperty, METH_VARARGS|METH_KEYWORDS, ""},
+			{"IntProperty", (PyCFunction)BPy_IntProperty, METH_VARARGS|METH_KEYWORDS, ""},
+			{"BoolProperty", (PyCFunction)BPy_BoolProperty, METH_VARARGS|METH_KEYWORDS, ""},
+			{NULL, NULL, 0, NULL}
+		};
+		
+		for(ml = bpy_prop_meths; ml->ml_name; ml++) {
+			PyDict_SetItemString( dict, ml->ml_name, PyCFunction_New(ml, NULL));
+		}
+	}
 	
 	return dict;
 }
@@ -90,8 +99,10 @@ void BPY_end_python( void )
 	PyGILState_Ensure(); /* finalizing, no need to grab the state */
 	
 	// free other python data.
+	//BPY_rna_free_types();
 	
 	Py_Finalize(  );
+	
 	return;
 }
 
@@ -122,8 +133,10 @@ int BPY_run_python_script( bContext *C, const char *fn, struct Text *text )
 			MEM_freeN( buf );
 
 			if( PyErr_Occurred(  ) ) {
+				PyErr_Print();
 				BPY_free_compiled_text( text );
-				return NULL;
+				PyGILState_Release(gilstate);
+				return 0;
 			}
 		}
 		py_result =  PyEval_EvalCode( text->compiled, py_dict, py_dict );
@@ -253,6 +266,7 @@ int BPY_run_python_script_space(const char *modulename, const char *func)
 			PyErr_SetFormat(PyExc_SystemError, "module has no function '%s.%s'\n", scpt->script.filename, func);
 		}
 		else {
+			Py_DECREF(py_func);
 			if (!PyCallable_Check(py_func)) {
 				PyErr_SetFormat(PyExc_SystemError, "module item is not callable '%s.%s'\n", scpt->script.filename, func);
 			}

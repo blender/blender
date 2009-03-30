@@ -538,6 +538,8 @@ static int ui_but_update_from_old_block(const bContext *C, uiBlock *block, uiBut
 				but->editcumap= oldbut->editcumap;
 				but->selsta= oldbut->selsta;
 				but->selend= oldbut->selend;
+				but->softmin= oldbut->softmin;
+				but->softmax= oldbut->softmax;
 				found= 1;
 
 				oldbut->active= NULL;
@@ -600,11 +602,15 @@ void uiEndBlock(const bContext *C, uiBlock *block)
 		/* temp? Proper check for greying out */
 		if(but->opname) {
 			wmOperatorType *ot= WM_operatortype_find(but->opname);
-			if(ot==NULL || ot->poll((bContext *)C)==0) {
+			if(ot==NULL || (ot->poll && ot->poll((bContext *)C)==0)) {
 				but->flag |= UI_BUT_DISABLED;
 				but->lock = 1;
 			}
 		}
+
+		/* only update soft range while not editing */
+		if(but->rnaprop && !(but->editval || but->editstr || but->editvec))
+			ui_set_but_soft_range(but, ui_get_but_val(but));
 	}
 
 	if(block->oldblock) {
@@ -634,8 +640,13 @@ void uiEndBlock(const bContext *C, uiBlock *block)
 
 void uiDrawBlock(const bContext *C, uiBlock *block)
 {
-	ARegion *ar= CTX_wm_region(C);
+	ARegion *ar;
 	uiBut *but;
+
+	/* get menu region or area region */
+	ar= CTX_wm_menu(C);
+	if(!ar)
+		ar= CTX_wm_region(C);
 
 	if(!block->endblock)
 		uiEndBlock(C, block);
@@ -646,11 +657,11 @@ void uiDrawBlock(const bContext *C, uiBlock *block)
 	if(block->flag & UI_BLOCK_LOOP)
 		uiDrawMenuBox(block->minx, block->miny, block->maxx, block->maxy, block->flag, block->direction);
 	else if(block->panel)
-		ui_draw_panel(CTX_wm_region(C), block);
+		ui_draw_panel(ar, block);
 
 	if(block->drawextra) block->drawextra(C, block);
 
-	for (but= block->buttons.first; but; but= but->next)
+	for(but= block->buttons.first; but; but= but->next)
 		ui_draw_but(ar, but);
 
 	ui_draw_links(block);
@@ -686,14 +697,14 @@ static void ui_is_but_sel(uiBut *but)
 		case TOG3:
 		case BUT_TOGDUAL:
 		case ICONTOG:
-			if(value!=but->min) push= 1;
+			if(value!=but->hardmin) push= 1;
 			break;
 		case ICONTOGN:
 		case TOGN:
 			if(value==0.0) push= 1;
 			break;
 		case ROW:
-			if(value == but->max) push= 1;
+			if(value == but->hardmax) push= 1;
 			break;
 		case COL:
 			push= 1;
@@ -728,7 +739,7 @@ static uiBut *ui_get_valid_link_button(uiBlock *block, uiBut *but, short *mval)
 			}
 		}
 		else if(but->type==INLINK && bt->type==LINK) {
-			if( bt->link->tocode == (int)but->min ) {
+			if( bt->link->tocode == (int)but->hardmin ) {
 				return bt;
 			}
 		}
@@ -1415,7 +1426,92 @@ void ui_set_but_string(uiBut *but, const char *str)
 			RNA_property_string_set(&but->rnapoin, but->rnaprop, str);
 	}
 	else
-		BLI_strncpy(but->poin, str, but->max);
+		BLI_strncpy(but->poin, str, but->hardmax);
+}
+
+static double soft_range_round_up(double value, double max)
+{
+	/* round up to .., 0.1, 0.2, 0.5, 1, 2, 5, 10, 20, 50, .. */
+	double newmax= pow(10.0, ceil(log(value)/log(10.0)));
+
+	if(newmax*0.2 >= max && newmax*0.2 >= value)
+		return newmax*0.2;
+	else if(newmax*0.5 >= max && newmax*0.5 >= value)
+		return newmax*0.5;
+	else
+		return newmax;
+}
+
+static double soft_range_round_down(double value, double max)
+{
+	/* round down to .., 0.1, 0.2, 0.5, 1, 2, 5, 10, 20, 50, .. */
+	double newmax= pow(10.0, floor(log(value)/log(10.0)));
+
+	if(newmax*5.0 <= max && newmax*5.0 <= value)
+		return newmax*5.0;
+	else if(newmax*2.0 <= max && newmax*2.0 <= value)
+		return newmax*2.0;
+	else
+		return newmax;
+}
+
+void ui_set_but_soft_range(uiBut *but, double value)
+{
+	PropertyType type;
+	double softmin, softmax, step, precision;
+	
+	if(but->rnaprop) {
+		type= RNA_property_type(&but->rnapoin, but->rnaprop);
+
+		if(type == PROP_INT) {
+			int imin, imax, istep;
+
+			RNA_property_int_ui_range(&but->rnapoin, but->rnaprop, &imin, &imax, &istep);
+			softmin= imin;
+			softmax= imax;
+			step= istep;
+			precision= 1;
+		}
+		else if(type == PROP_FLOAT) {
+			float fmin, fmax, fstep, fprecision;
+
+			RNA_property_float_ui_range(&but->rnapoin, but->rnaprop, &fmin, &fmax, &fstep, &fprecision);
+			softmin= fmin;
+			softmax= fmax;
+			step= fstep;
+			precision= fprecision;
+		}
+		else
+			return;
+
+		/* clamp button range to something reasonable in case
+		 * we get -inf/inf from RNA properties */
+		softmin= MAX2(softmin, -1e4);
+		softmax= MIN2(softmax, 1e4);
+
+		/* if the value goes out of the soft/max range, adapt the range */
+		if(value+1e-10 < softmin) {
+			if(value < 0.0)
+				softmin= -soft_range_round_up(-value, -softmin);
+			else
+				softmin= soft_range_round_down(value, softmin);
+
+			if(softmin < but->hardmin)
+				softmin= but->hardmin;
+		}
+		else if(value-1e-10 > softmax) {
+			if(value < 0.0)
+				softmax= -soft_range_round_down(-value, -softmax);
+			else
+				softmax= soft_range_round_up(value, softmax);
+
+			if(softmax > but->hardmax)
+				softmax= but->hardmax;
+		}
+
+		but->softmin= softmin;
+		but->softmax= softmax;
+	}
 }
 
 /* ******************* Font ********************/
@@ -1676,14 +1772,14 @@ void ui_check_but(uiBut *but)
 		case NUMSLI:
 		case HSVSLI:
 			value= ui_get_but_val(but);
-			if(value < but->min) ui_set_but_val(but, but->min);
-			else if(value > but->max) ui_set_but_val(but, but->max);
+			if(value < but->hardmin) ui_set_but_val(but, but->hardmin);
+			else if(value > but->hardmax) ui_set_but_val(but, but->hardmax);
 			break;
 			
 		case NUMABS:
 			value= fabs( ui_get_but_val(but) );
-			if(value < but->min) ui_set_but_val(but, but->min);
-			else if(value > but->max) ui_set_but_val(but, but->max);
+			if(value < but->hardmin) ui_set_but_val(but, but->hardmin);
+			else if(value > but->hardmax) ui_set_but_val(but, but->hardmax);
 			break;
 			
 		case ICONTOG: 
@@ -1694,21 +1790,18 @@ void ui_check_but(uiBut *but)
 			
 		case ICONROW:
 			value= ui_get_but_val(but);
-			but->iconadd= (int)value- (int)(but->min);
+			but->iconadd= (int)value- (int)(but->hardmin);
 			break;
 			
 		case ICONTEXTROW:
 			value= ui_get_but_val(but);
-			but->iconadd= (int)value- (int)(but->min);
+			but->iconadd= (int)value- (int)(but->hardmin);
 			break;
 	}
 	
 	
 	/* safety is 4 to enable small number buttons (like 'users') */
-	if(but->type==NUMSLI || but->type==HSVSLI) 
-		okwidth= -4 + (but->x2 - but->x1)/2.0;
-	else 
-		okwidth= -4 + (but->x2 - but->x1); 
+	okwidth= -4 + (but->x2 - but->x1); 
 	
 	/* name: */
 	switch( but->type ) {
@@ -1739,12 +1832,19 @@ void ui_check_but(uiBut *but)
 				else sprintf(but->drawstr, "%s%.4f", but->str, value);
 			}
 			else {
-				if(but->max<10.001) sprintf(but->drawstr, "%s%.3f", but->str, value);
+				if(but->hardmax<10.001) sprintf(but->drawstr, "%s%.3f", but->str, value);
 				else sprintf(but->drawstr, "%s%.2f", but->str, value);
 			}
 		}
 		else {
 			sprintf(but->drawstr, "%s%d", but->str, (int)value);
+		}
+			
+		if(but->rnaprop) {
+			PropertySubType pstype = RNA_property_subtype(&but->rnapoin, but->rnaprop);
+			
+			if (pstype == PROP_PERCENTAGE)
+				strcat(but->drawstr, "%");
 		}
 		break;
 
@@ -2124,8 +2224,8 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, char *str, short 
 		but->y2= (y1+y2);
 	}
 	but->poin= poin;
-	but->min= min; 
-	but->max= max;
+	but->hardmin= but->softmin= min; 
+	but->hardmax= but->softmax= max;
 	but->a1= a1; 
 	but->a2= a2;
 	but->tip= tip;
@@ -2258,13 +2358,14 @@ uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, char *str, short x1,
 
 		if(min == max || a1 == -1 || a2 == -1) {
 			if(proptype == PROP_INT) {
-				int softmin, softmax, step;
+				int hardmin, hardmax, softmin, softmax, step;
 
+				RNA_property_int_range(ptr, prop, &hardmin, &hardmax);
 				RNA_property_int_ui_range(ptr, prop, &softmin, &softmax, &step);
 
 				if(min == max) {
-					min= softmin;
-					max= softmax;
+					min= hardmin;
+					max= hardmax;
 				}
 				if(a1 == -1)
 					a1= step;
@@ -2272,13 +2373,14 @@ uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, char *str, short x1,
 					a2= 0;
 			}
 			else if(proptype == PROP_FLOAT) {
-				float softmin, softmax, step, precision;
+				float hardmin, hardmax, softmin, softmax, step, precision;
 
+				RNA_property_float_range(ptr, prop, &hardmin, &hardmax);
 				RNA_property_float_ui_range(ptr, prop, &softmin, &softmax, &step, &precision);
 
 				if(min == max) {
-					min= softmin;
-					max= softmax;
+					min= hardmin;
+					max= hardmax;
 				}
 				if(a1 == -1)
 					a1= step;
@@ -2302,7 +2404,11 @@ uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, char *str, short x1,
 	if(prop) {
 		but->rnapoin= *ptr;
 		but->rnaprop= prop;
-		but->rnaindex= index;
+
+		if(RNA_property_array_length(&but->rnapoin, but->rnaprop))
+			but->rnaindex= index;
+		else
+			but->rnaindex= 0;
 	}
 	
 	if (!prop || !RNA_property_editable(&but->rnapoin, prop)) {
@@ -2420,12 +2526,13 @@ void autocomplete_do_name(AutoComplete *autocpl, const char *name)
 }
 
 void autocomplete_end(AutoComplete *autocpl, char *autoname)
-{
+{	
 	if(autocpl->truncate[0])
 		BLI_strncpy(autoname, autocpl->truncate, autocpl->maxlen);
-	else
-		BLI_strncpy(autoname, autocpl->startname, autocpl->maxlen);
-
+	else {
+		if (autoname != autocpl->startname) /* dont copy a string over its self */
+			BLI_strncpy(autoname, autocpl->startname, autocpl->maxlen);
+	}
 	MEM_freeN(autocpl->truncate);
 	MEM_freeN(autocpl);
 }
@@ -2846,7 +2953,11 @@ void uiBlockFlipOrder(uiBlock *block)
 
 void uiBlockSetFlag(uiBlock *block, int flag)
 {
-	block->flag= flag;
+	block->flag|= flag;
+}
+void uiBlockClearFlag(uiBlock *block, int flag)
+{
+	block->flag&= ~flag;
 }
 void uiBlockSetXOfs(uiBlock *block, int xofs)
 {

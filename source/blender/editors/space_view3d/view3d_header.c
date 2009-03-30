@@ -133,6 +133,7 @@ static int retopo_mesh_paint_check() {return 0;}
 #define VIEW3D_HANDLER_MULTIRES         5
 #define VIEW3D_HANDLER_TRANSFORM	6
 #define VIEW3D_HANDLER_GREASEPENCIL 7
+#define VIEW3D_HANDLER_BONESKETCH	8
 
 /* end XXX ************* */
 
@@ -633,8 +634,8 @@ static void view3d_view_viewnavmenu(bContext *C, uiMenuItem *head, void *arg_unu
 	
 	uiMenuSeparator(head);
 	
-	uiMenuItemFloatO(head, "Zoom in", 0, "VIEW3D_OT_viewzoom", "delta", 1.0f);
-	uiMenuItemFloatO(head, "Zoom out", 0, "VIEW3D_OT_viewzoom", "delta", -1.0f);
+	uiMenuItemFloatO(head, "Zoom in", 0, "VIEW3D_OT_zoom", "delta", 1.0f);
+	uiMenuItemFloatO(head, "Zoom out", 0, "VIEW3D_OT_zoom", "delta", -1.0f);
 	
 }
 static void view3d_view_alignviewmenu(bContext *C, uiMenuItem *head, void *arg_unused)
@@ -684,7 +685,7 @@ static void view3d_viewmenu(bContext *C, uiMenuItem *head, void *arg_unused)
 	uiMenuContext(head, WM_OP_INVOKE_REGION_WIN);	
 
 	uiMenuItemO(head, 0, "VIEW3D_OT_clipping");
-	uiMenuItemO(head, 0, "VIEW3D_OT_border_zoom");
+	uiMenuItemO(head, 0, "VIEW3D_OT_zoom_border");
 	
 	uiMenuSeparator(head);
 	
@@ -1034,11 +1035,11 @@ static uiBlock *view3d_select_objectmenu(bContext *C, ARegion *ar, void *arg_unu
 	uiDefIconTextBlockBut(block, view3d_select_object_linkedmenu, NULL, ICON_RIGHTARROW_THIN, "Linked", 0, yco-=20, 120, 19, "");
 	uiDefIconTextBlockBut(block, view3d_select_object_groupedmenu, NULL, ICON_RIGHTARROW_THIN, "Grouped", 0, yco-=20, 120, 19, "");
 #endif
-	uiDefMenuButO(block, "VIEW3D_OT_borderselect", "Border Select");
+	uiDefMenuButO(block, "VIEW3D_OT_select_border", "Border Select");
 	
 	uiDefMenuSep(block);
 	
-	uiDefMenuButO(block, "OBJECT_OT_de_select_all", "Select/Deselect All");
+	uiDefMenuButO(block, "OBJECT_OT_select_all_toggle", "Select/Deselect All");
 	uiDefMenuButO(block, "OBJECT_OT_select_invert", "Inverse");
 	uiDefMenuButO(block, "OBJECT_OT_select_random", "Random");
 	uiDefMenuButO(block, "OBJECT_OT_select_by_layer", "Select All by Layer");
@@ -1211,13 +1212,13 @@ static void view3d_select_curvemenu(bContext *C, uiMenuItem *head, void *arg_unu
 {
 	Object *obedit= CTX_data_edit_object(C);
 
-	uiMenuItemO(head, 0, "VIEW3D_OT_borderselect");
-	uiMenuItemO(head, 0, "VIEW3D_OT_circle_select");
+	uiMenuItemO(head, 0, "VIEW3D_OT_select_border");
+	uiMenuItemO(head, 0, "VIEW3D_OT_select_circle");
 
 	uiMenuSeparator(head);
 
-	uiMenuItemO(head, 0, "CURVE_OT_de_select_all");
-	uiMenuItemO(head, 0, "CURVE_OT_select_inverse");
+	uiMenuItemO(head, 0, "CURVE_OT_select_all_toggle");
+	uiMenuItemO(head, 0, "CURVE_OT_select_invert");
 	uiMenuItemO(head, 0, "CURVE_OT_select_random"); // Random...
 	uiMenuItemO(head, 0, "CURVE_OT_select_every_nth"); // Every Nth..
 
@@ -3293,14 +3294,14 @@ static void view3d_edit_curve_controlpointsmenu(bContext *C, uiMenuItem *head, v
 
 	if(obedit->type == OB_CURVE) {
 		uiMenuItemEnumO(head, "", 0, "TFM_OT_transform", "mode", TFM_TILT);
-		uiMenuItemO(head, 0, "CURVE_OT_clear_tilt");
+		uiMenuItemO(head, 0, "CURVE_OT_tilt_clear");
 		uiMenuItemO(head, 0, "CURVE_OT_separate");
 		
 		uiMenuSeparator(head);
 
-		uiMenuItemEnumO(head, "", 0, "CURVE_OT_set_handle_type", "type", 1);
-		uiMenuItemEnumO(head, "", 0, "CURVE_OT_set_handle_type", "type", 3);
-		uiMenuItemEnumO(head, "", 0, "CURVE_OT_set_handle_type", "type", 2);
+		uiMenuItemEnumO(head, "", 0, "CURVE_OT_handle_type_set", "type", 1);
+		uiMenuItemEnumO(head, "", 0, "CURVE_OT_handle_type_set", "type", 3);
+		uiMenuItemEnumO(head, "", 0, "CURVE_OT_handle_type_set", "type", 2);
 
 		uiMenuSeparator(head);
 	}
@@ -3350,7 +3351,7 @@ static void view3d_edit_curvemenu(bContext *C, uiMenuItem *head, void *arg_unuse
 	uiMenuItemO(head, 0, "CURVE_OT_duplicate");
 	uiMenuItemO(head, 0, "CURVE_OT_separate");
 	uiMenuItemO(head, 0, "CURVE_OT_make_segment");
-	uiMenuItemO(head, 0, "CURVE_OT_toggle_cyclic");
+	uiMenuItemO(head, 0, "CURVE_OT_cyclic_toggle");
 	uiMenuItemO(head, 0, "CURVE_OT_delete"); // Delete...
 
 	uiMenuSeparator(head);
@@ -3718,6 +3719,9 @@ static void do_view3d_edit_armaturemenu(bContext *C, void *arg, int event)
 	case 22: /* separate */
 		separate_armature();
 		break;
+	case 23: /* bone sketching panel */
+		add_blockhandler(curarea, VIEW3D_HANDLER_BONESKETCH, UI_PNL_UNSTOW);
+		break;
 	}
 	
 #endif
@@ -3796,6 +3800,7 @@ static uiBlock *view3d_edit_armaturemenu(bContext *C, ARegion *ar, void *arg_unu
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Transform Properties|N", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Bone Sketching|P", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 23, "");
 	uiDefIconTextBlockBut(block, view3d_transformmenu, NULL, ICON_RIGHTARROW_THIN, "Transform", 0, yco-=20, 120, 19, "");
 	uiDefIconTextBlockBut(block, view3d_edit_mirrormenu, NULL, ICON_RIGHTARROW_THIN, "Mirror", 0, yco-=20, menuwidth, 19, "");
 	uiDefIconTextBlockBut(block, view3d_edit_snapmenu, NULL, ICON_RIGHTARROW_THIN, "Snap", 0, yco-=20, 120, 19, "");
@@ -4696,11 +4701,11 @@ static void view3d_select_particlemenu(bContext *C, uiMenuItem *head, void *arg_
 {
 	Scene *scene= CTX_data_scene(C);
 
-	uiMenuItemO(head, 0, "VIEW3D_OT_borderselect");
+	uiMenuItemO(head, 0, "VIEW3D_OT_select_border");
 
 	uiMenuSeparator(head);
 
-	uiMenuItemO(head, 0, "PARTICLE_OT_de_select_all");
+	uiMenuItemO(head, 0, "PARTICLE_OT_select_all_toggle");
 	uiMenuItemO(head, 0, "PARTICLE_OT_select_linked");
 
 	if(scene->selectmode & SCE_SELECT_POINT) {
@@ -4847,6 +4852,7 @@ static char *snapmode_pup(void)
 	str += sprintf(str, "%s", "|Vertex%x0");
 	str += sprintf(str, "%s", "|Edge%x1");
 	str += sprintf(str, "%s", "|Face%x2"); 
+	str += sprintf(str, "%s", "|Volume%x3"); 
 	return string;
 }
 
@@ -4880,7 +4886,7 @@ static void do_view3d_header_buttons(bContext *C, void *arg, int event)
 	int bit, ctrl= win->eventstate->ctrl, shift= win->eventstate->shift;
 	
 	if(obedit && obedit->type==OB_MESH) {
-		em= ((Mesh *)obedit->data)->edit_mesh;
+		em= EM_GetEditMesh((Mesh *)obedit->data);
 	}
 	/* watch it: if sa->win does not exist, check that when calling direct drawing routines */
 
@@ -5111,6 +5117,8 @@ static void do_view3d_header_buttons(bContext *C, void *arg, int event)
 		}
 		break;
 	}
+
+	EM_EndEditMesh(obedit->data, em);
 }
 
 static void view3d_header_pulldowns(const bContext *C, uiBlock *block, Object *ob, int *xcoord, int yco)
@@ -5475,7 +5483,7 @@ void view3d_header_buttons(const bContext *C, ARegion *ar)
 
 		/* selection modus */
 		if(obedit && (obedit->type == OB_MESH)) {
-			EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
+			EditMesh *em= EM_GetEditMesh((Mesh *)obedit->data);
 
 			uiBlockBeginAlign(block);
 			uiDefIconButBitS(block, TOG, SCE_SELECT_VERTEX, B_SEL_VERT, ICON_VERTEXSEL, xco,yco,XIC,YIC, &em->selectmode, 1.0, 0.0, 0, 0, "Vertex select mode (Ctrl Tab 1)");
@@ -5491,6 +5499,8 @@ void view3d_header_buttons(const bContext *C, ARegion *ar)
 			}
 			uiBlockEndAlign(block);
 			xco+= 20;
+
+			EM_EndEditMesh(obedit->data, em);
 		}
 		else if(G.f & G_PARTICLEEDIT) {
 			uiBlockBeginAlign(block);

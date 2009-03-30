@@ -1,3 +1,5 @@
+# -*- mode: gnumakefile; tab-width: 8; indent-tabs-mode: t; -*-
+# vim: tabstop=8
 #
 # $Id$
 #
@@ -22,7 +24,7 @@
 #
 # The Original Code is: all of this file.
 #
-# Contributor(s): Hans Lambermont
+# Contributor(s): Hans Lambermont, GSR
 #
 # ***** END GPL LICENSE BLOCK *****
 # elbeem main makefile.
@@ -40,16 +42,13 @@ DIRS = intern
 
 include nan_subdirs.mk
 
-install: all debug
+install: $(ALL_OR_DEBUG)
 	@[ -d $(NAN_ELBEEM) ] || mkdir $(NAN_ELBEEM)
 	@[ -d $(NAN_ELBEEM)/include ] || mkdir $(NAN_ELBEEM)/include
-	@[ -d $(NAN_ELBEEM)/lib ] || mkdir $(NAN_ELBEEM)/lib
-	@[ -d $(NAN_ELBEEM)/lib/debug ] || mkdir $(NAN_ELBEEM)/lib/debug
-	@../tools/cpifdiff.sh $(DIR)/libelbeem.a $(NAN_ELBEEM)/lib/
-	@../tools/cpifdiff.sh $(DIR)/debug/libelbeem.a $(NAN_ELBEEM)/lib/debug/
+	@[ -d $(NAN_ELBEEM)/lib/$(DEBUG_DIR) ] || mkdir $(NAN_ELBEEM)/lib/$(DEBUG_DIR)
+	@../tools/cpifdiff.sh $(DIR)/$(DEBUG_DIR)libelbeem.a $(NAN_ELBEEM)/lib/$(DEBUG_DIR)
 ifeq ($(OS),darwin)
-	ranlib $(NAN_ELBEEM)/lib/libelbeem.a
-	ranlib $(NAN_ELBEEM)/lib/debug/libelbeem.a
+	ranlib $(NAN_ELBEEM)/lib/$(DEBUG_DIR)libelbeem.a
 endif
 	@../tools/cpifdiff.sh extern/*.h $(NAN_ELBEEM)/include/
 

@@ -28,17 +28,17 @@ subject to the following restrictions:
 btSoftRigidDynamicsWorld::btSoftRigidDynamicsWorld(btDispatcher* dispatcher,btBroadphaseInterface* pairCache,btConstraintSolver* constraintSolver,btCollisionConfiguration* collisionConfiguration)
 :btDiscreteDynamicsWorld(dispatcher,pairCache,constraintSolver,collisionConfiguration)
 {
-m_drawFlags			=	fDrawFlags::Std;
-m_drawNodeTree		=	true;
-m_drawFaceTree		=	false;
-m_drawClusterTree	=	false;
-m_sbi.m_broadphase = pairCache;
-m_sbi.m_dispatcher = dispatcher;
-m_sbi.m_sparsesdf.Initialize();
-m_sbi.m_sparsesdf.Reset();
+	m_drawFlags			=	fDrawFlags::Std;
+	m_drawNodeTree		=	true;
+	m_drawFaceTree		=	false;
+	m_drawClusterTree	=	false;
+	m_sbi.m_broadphase = pairCache;
+	m_sbi.m_dispatcher = dispatcher;
+	m_sbi.m_sparsesdf.Initialize();
+	m_sbi.m_sparsesdf.Reset();
 
 }
-		
+
 btSoftRigidDynamicsWorld::~btSoftRigidDynamicsWorld()
 {
 
@@ -55,13 +55,20 @@ void	btSoftRigidDynamicsWorld::predictUnconstraintMotion(btScalar timeStep)
 		psb->predictMotion(timeStep);		
 	}
 }
-		
+
 void	btSoftRigidDynamicsWorld::internalSingleStepSimulation( btScalar timeStep)
 {
 	btDiscreteDynamicsWorld::internalSingleStepSimulation( timeStep );
 
 	///solve soft bodies constraints
 	solveSoftBodiesConstraints();
+
+	//self collisions
+	for ( int i=0;i<m_softBodies.size();i++)
+	{
+		btSoftBody*	psb=(btSoftBody*)m_softBodies[i];
+		psb->defaultCollisionHandler(psb);
+	}
 
 	///update soft bodies
 	updateSoftBodies();
@@ -71,7 +78,7 @@ void	btSoftRigidDynamicsWorld::internalSingleStepSimulation( btScalar timeStep)
 void	btSoftRigidDynamicsWorld::updateSoftBodies()
 {
 	BT_PROFILE("updateSoftBodies");
-	
+
 	for ( int i=0;i<m_softBodies.size();i++)
 	{
 		btSoftBody*	psb=(btSoftBody*)m_softBodies[i];
@@ -82,12 +89,12 @@ void	btSoftRigidDynamicsWorld::updateSoftBodies()
 void	btSoftRigidDynamicsWorld::solveSoftBodiesConstraints()
 {
 	BT_PROFILE("solveSoftConstraints");
-	
+
 	if(m_softBodies.size())
-		{
+	{
 		btSoftBody::solveClusters(m_softBodies);
-		}
-	
+	}
+
 	for(int i=0;i<m_softBodies.size();++i)
 	{
 		btSoftBody*	psb=(btSoftBody*)m_softBodies[i];
@@ -100,8 +107,8 @@ void	btSoftRigidDynamicsWorld::addSoftBody(btSoftBody* body)
 	m_softBodies.push_back(body);
 
 	btCollisionWorld::addCollisionObject(body,
-					btBroadphaseProxy::DefaultFilter,
-					btBroadphaseProxy::AllFilter);
+		btBroadphaseProxy::DefaultFilter,
+		btBroadphaseProxy::AllFilter);
 
 }
 

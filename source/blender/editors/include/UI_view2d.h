@@ -56,6 +56,8 @@ enum {
 	V2D_COMMONVIEW_HEADER,
 		/* ui listviews, tries to wrap tot inside region width */
 	V2D_COMMONVIEW_LIST_UI,
+		/* ui region containing panels */
+	V2D_COMMONVIEW_PANELS_UI,
 } eView2D_CommonViewTypes;
 
 /* ---- Defines for Scroller/Grid Arguments ----- */
@@ -68,6 +70,7 @@ enum {
 	/* for drawing time */
 	V2D_UNIT_SECONDS = 0,
 	V2D_UNIT_FRAMES,
+	V2D_UNIT_FRAMESCALE,
 	
 	/* for drawing values */
 	V2D_UNIT_VALUES,

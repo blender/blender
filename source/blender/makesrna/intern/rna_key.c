@@ -1,5 +1,5 @@
 /**
- * $Id$
+ * $Id: rna_key.c 19382 2009-03-23 13:24:48Z blendix $
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -292,7 +292,7 @@ static void rna_def_keyblock(BlenderRNA *brna)
 
 	/* keys need to be sorted to edit this */
 	prop= RNA_def_property(srna, "frame", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_float_sdna(prop, NULL, "pos");
 	RNA_def_property_ui_text(prop, "Frame", "Frame for absolute keys.");
 	
@@ -311,7 +311,7 @@ static void rna_def_keyblock(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Vertex Group", "Vertex weight group, to blend with basis shape.");
 
 	prop= RNA_def_property(srna, "relative_key", PROP_POINTER, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_struct_type(prop, "ShapeKey");
 	RNA_def_property_ui_text(prop, "Relative Key", "Shape used as a relative key.");
 	RNA_def_property_pointer_funcs(prop, "rna_ShapeKey_relative_key_get", NULL);
@@ -332,6 +332,7 @@ static void rna_def_keyblock(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "data", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "data", "totelem");
+	RNA_def_property_struct_type(prop, "UnknownType");
 	RNA_def_property_ui_text(prop, "Data", "");
 	RNA_def_property_collection_funcs(prop, "rna_ShapeKey_data_begin", 0, 0, "rna_ShapeKey_data_get", "rna_ShapeKey_data_length", 0, 0);
 }
@@ -345,7 +346,7 @@ static void rna_def_key(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Key", "Shape keys datablock containing different shapes of geometric datablocks.");
 
 	prop= RNA_def_property(srna, "reference_key", PROP_POINTER, PROP_NEVER_NULL);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_pointer_sdna(prop, NULL, "refkey");
 	RNA_def_property_ui_text(prop, "Reference Key", "");
 

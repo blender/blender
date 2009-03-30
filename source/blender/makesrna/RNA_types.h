@@ -25,9 +25,14 @@
 #ifndef RNA_TYPES
 #define RNA_TYPES
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct PropertyRNA;
 struct StructRNA;
 struct BlenderRNA;
+struct IDProperty;
 
 /* Pointer
  *
@@ -38,7 +43,6 @@ struct BlenderRNA;
 
 typedef struct PointerRNA {
 	struct {
-		struct StructRNA *type;
 		void *data;
 	} id;
 
@@ -75,28 +79,13 @@ typedef enum PropertyFlag {
 	/* editable means the property is editable in the user
 	 * interface, properties are editable by default except
 	 * for pointers and collections. */
-	PROP_NOT_EDITABLE = 1,
+	PROP_EDITABLE = 1,
 
 	/* animateable means the property can be driven by some
 	 * other input, be it animation curves, expressions, ..
 	 * properties are animateable by default except for pointers
 	 * and collections */
-	PROP_NOT_ANIMATEABLE = 2,
-
-#if 0
-	/* for pointers and collections, means that the struct
-	 * depends on the data pointed to for evaluation, such
-	 * that a change in the data pointed to will affect the
-	 * evaluated result of this struct. */
-	PROP_EVALUATE_DEPENDENCY = 8,
-	PROP_INVERSE_EVALUATE_DEPENDENCY = 16,
-
-	/* for pointers and collections, means that the struct
-	 * requires the data pointed to for rendering in the,
-	 * be it the render engine or viewport */
-	PROP_RENDER_DEPENDENCY = 32,
-	PROP_INVERSE_RENDER_DEPENDENCY = 64,
-#endif
+	PROP_ANIMATEABLE = 2,
 
 	/* internal flags */
 	PROP_BUILTIN = 128,
@@ -117,6 +106,11 @@ typedef struct CollectionPropertyIterator {
 	int valid;
 	PointerRNA ptr;
 } CollectionPropertyIterator;
+
+typedef struct CollectionPointerLink {
+	struct CollectionPointerLink *next, *prev;
+	PointerRNA ptr;
+} CollectionPointerLink;
 
 /* Iterator Utility */
 
@@ -147,6 +141,10 @@ typedef struct StructRNA StructRNA;
  * Root RNA data structure that lists all struct types. */
 
 typedef struct BlenderRNA BlenderRNA;
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* RNA_TYPES */
 

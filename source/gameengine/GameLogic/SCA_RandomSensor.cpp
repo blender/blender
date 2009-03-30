@@ -165,22 +165,22 @@ PyAttributeDef SCA_RandomSensor::Attributes[] = {
 	{NULL} //Sentinel
 };
 
-PyObject* SCA_RandomSensor::_getattr(const STR_String& attr) {
+PyObject* SCA_RandomSensor::_getattr(const char *attr) {
 	PyObject* object = _getattr_self(Attributes, this, attr);
 	if (object != NULL)
 		return object;
-	if (attr == "seed") {
+	if (!strcmp(attr,"seed")) {
 		return PyInt_FromLong(m_basegenerator->GetSeed());
 	}
 	_getattr_up(SCA_ISensor);
 }
 
-int SCA_RandomSensor::_setattr(const STR_String& attr, PyObject *value)
+int SCA_RandomSensor::_setattr(const char *attr, PyObject *value)
 {
 	int ret = _setattr_self(Attributes, this, attr, value);
 	if (ret >= 0)
 		return ret;
-	if (attr == "seed") {
+	if (!strcmp(attr,"seed")) {
 		if (PyInt_Check(value))	{
 			int ival = PyInt_AsLong(value);
 			m_basegenerator->SetSeed(ival);
@@ -209,7 +209,7 @@ PyObject* SCA_RandomSensor::PySetSeed(PyObject* self, PyObject* args, PyObject* 
 	
 	m_basegenerator->SetSeed(seedArg);
 	
-	Py_Return;
+	Py_RETURN_NONE;
 }
 
 /* 2. getSeed                                                            */

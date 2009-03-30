@@ -264,7 +264,7 @@ static void drawseqwave(Scene *scene, View2D *v2d, Sequence *seq, float x1, floa
 	uint8_t *stream;
 	
 // XXX	audio_makestream(seq->sound);
-//	if(seq->sound==NULL || seq->sound->stream==NULL) return;
+	if(seq->sound==NULL || seq->sound->stream==NULL) return;
 	
 	if (seq->flag & SEQ_MUTE) glColor3ub(0x70, 0x80, 0x80); else glColor3ub(0x70, 0xc0, 0xc0);
 	

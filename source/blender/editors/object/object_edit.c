@@ -319,6 +319,7 @@ void OBJECT_OT_object_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add Object";
+	ot->description = "Add an object to the scene.";
 	ot->idname= "OBJECT_OT_object_add";
 	
 	/* api callbacks */
@@ -405,6 +406,7 @@ void OBJECT_OT_mesh_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add Mesh";
+	ot->description = "Add a mesh object to the scene.";
 	ot->idname= "OBJECT_OT_mesh_add";
 	
 	/* api callbacks */
@@ -476,6 +478,7 @@ void OBJECT_OT_curve_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add Curve";
+	ot->description = "Add a curve object to the scene.";
 	ot->idname= "OBJECT_OT_curve_add";
 	
 	/* api callbacks */
@@ -533,6 +536,7 @@ void OBJECT_OT_surface_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add Surface";
+	ot->description = "Add a surface object to the scene.";
 	ot->idname= "OBJECT_OT_surface_add";
 	
 	/* api callbacks */
@@ -569,6 +573,7 @@ void OBJECT_OT_text_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add Text";
+	ot->description = "Add a text object to the scene";
 	ot->idname= "OBJECT_OT_text_add";
 	
 	/* api callbacks */
@@ -579,7 +584,7 @@ void OBJECT_OT_text_add(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int object_add_armature_exec(bContext *C, wmOperator *op)
+static int object_armature_add_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
 	View3D *v3d= CTX_wm_view3d(C);
@@ -613,10 +618,11 @@ void OBJECT_OT_armature_add(wmOperatorType *ot)
 {	
 	/* identifiers */
 	ot->name= "Add Armature";
+	ot->description = "Add an armature object to the scene.";
 	ot->idname= "OBJECT_OT_armature_add";
 	
 	/* api callbacks */
-	ot->exec= object_add_armature_exec;
+	ot->exec= object_armature_add_exec;
 	ot->poll= ED_operator_scene_editable;
 	
 	/* flags */
@@ -624,7 +630,7 @@ void OBJECT_OT_armature_add(wmOperatorType *ot)
 }
 
 
-static int object_add_primitive_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int object_primitive_add_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	uiMenuItem *head= uiPupMenuBegin("Add Object", 0);
 	
@@ -650,10 +656,11 @@ void OBJECT_OT_primitive_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add Primitive";
+	ot->description = "Add a primitive object.";
 	ot->idname= "OBJECT_OT_primitive_add";
 	
 	/* api callbacks */
-	ot->invoke= object_add_primitive_invoke;
+	ot->invoke= object_primitive_add_invoke;
 	
 	ot->poll= ED_operator_scene_editable;
 	
@@ -708,6 +715,7 @@ void OBJECT_OT_delete(wmOperatorType *ot)
 	
 	/* identifiers */
 	ot->name= "Delete Objects";
+	ot->description = "Delete the object.";
 	ot->idname= "OBJECT_OT_delete";
 	
 	/* api callbacks */
@@ -912,7 +920,7 @@ static int return_editmesh_vgroup(Object *obedit, EditMesh *em, char *name, floa
 static void select_editmesh_hook(Object *ob, HookModifierData *hmd)
 {
 	Mesh *me= ob->data;
-	EditMesh *em= me->edit_mesh;
+	EditMesh *em= EM_GetEditMesh(me);
 	EditVert *eve;
 	int index=0, nr=0;
 	
@@ -923,6 +931,8 @@ static void select_editmesh_hook(Object *ob, HookModifierData *hmd)
 		}
 	}
 	EM_select_flush(em);
+
+	EM_EndEditMesh(me, em);
 }
 
 static int return_editlattice_indexar(Lattice *editlatt, int *tot, int **indexar, float *cent)
@@ -1095,9 +1105,16 @@ int hook_getIndexArray(Object *obedit, int *tot, int **indexar, char *name, floa
 		case OB_MESH:
 		{
 			Mesh *me= obedit->data;
+			EditMesh *em = EM_GetEditMesh(me);
+
 			/* check selected vertices first */
-			if( return_editmesh_indexar(me->edit_mesh, tot, indexar, cent_r)) return 1;
-			else return return_editmesh_vgroup(obedit, me->edit_mesh, name, cent_r);
+			if( return_editmesh_indexar(em, tot, indexar, cent_r)) {
+				EM_EndEditMesh(me, em);
+				return 1;
+			} else {
+				int ret = return_editmesh_vgroup(obedit, em, name, cent_r);
+				EM_EndEditMesh(me, em);
+			}
 		}
 		case OB_CURVE:
 		case OB_SURF:
@@ -1369,7 +1386,7 @@ static EnumPropertyItem prop_clear_parent_types[] = {
 };
 
 /* note, poll should check for editable scene */
-static int clear_parent_exec(bContext *C, wmOperator *op)
+static int parent_clear_exec(bContext *C, wmOperator *op)
 {
 	
 	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
@@ -1395,15 +1412,16 @@ static int clear_parent_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void OBJECT_OT_clear_parent(wmOperatorType *ot)
+void OBJECT_OT_parent_clear(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Clear parent";
-	ot->idname= "OBJECT_OT_clear_parent";
+	ot->description = "Clear the object's parenting.";
+	ot->idname= "OBJECT_OT_parent_clear";
 	
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
-	ot->exec= clear_parent_exec;
+	ot->exec= parent_clear_exec;
 	
 	ot->poll= ED_operator_object_active;
 	
@@ -1423,7 +1441,7 @@ static EnumPropertyItem prop_clear_track_types[] = {
 };
 
 /* note, poll should check for editable scene */
-static int object_clear_track_exec(bContext *C, wmOperator *op)
+static int object_track_clear_exec(bContext *C, wmOperator *op)
 {
 	if(CTX_data_edit_object(C)) {
 		BKE_report(op->reports, RPT_ERROR, "Operation cannot be performed in EditMode");
@@ -1445,15 +1463,16 @@ static int object_clear_track_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void OBJECT_OT_clear_track(wmOperatorType *ot)
+void OBJECT_OT_track_clear(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Clear track";
-	ot->idname= "OBJECT_OT_clear_track";
+	ot->description = "Clear tracking constraint or flag from object.";
+	ot->idname= "OBJECT_OT_track_clear";
 	
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
-	ot->exec= object_clear_track_exec;
+	ot->exec= object_track_clear_exec;
 	
 	ot->poll= ED_operator_scene_editable;
 	
@@ -1489,6 +1508,7 @@ void OBJECT_OT_select_by_type(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select By Type";
+	ot->description = "Select all visible objects that are of a type.";
 	ot->idname= "OBJECT_OT_select_by_type";
 	
 	/* api callbacks */
@@ -1641,6 +1661,7 @@ void OBJECT_OT_select_linked(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select Linked";
+	ot->description = "Select all visible objects that are linked.";
 	ot->idname= "OBJECT_OT_select_linked";
 	
 	/* api callbacks */
@@ -1677,7 +1698,8 @@ static int object_select_by_layer_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_select_by_layer(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Selection by layer";
+	ot->name= "select by layer";
+	ot->description = "Select all visible objects on a layer.";
 	ot->idname= "OBJECT_OT_select_by_layer";
 	
 	/* api callbacks */
@@ -1713,6 +1735,7 @@ void OBJECT_OT_select_invert(wmOperatorType *ot)
 	
 	/* identifiers */
 	ot->name= "Invert selection";
+	ot->description = "Invert th select of all visible objects.";
 	ot->idname= "OBJECT_OT_select_invert";
 	
 	/* api callbacks */
@@ -1725,7 +1748,7 @@ void OBJECT_OT_select_invert(wmOperatorType *ot)
 }
 /* ****** (de)select All *******/
 
-static int object_de_select_all_exec(bContext *C, wmOperator *op)
+static int object_select_de_select_all_exec(bContext *C, wmOperator *op)
 {
 	
 	int a=0, ok=0; 
@@ -1753,15 +1776,16 @@ static int object_de_select_all_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void OBJECT_OT_de_select_all(wmOperatorType *ot)
+void OBJECT_OT_select_all_toggle(wmOperatorType *ot)
 {
 	
 	/* identifiers */
 	ot->name= "deselect all";
-	ot->idname= "OBJECT_OT_de_select_all";
+	ot->description = "(de)select all visible objects in scene.";
+	ot->idname= "OBJECT_OT_select_all_toggle";
 	
 	/* api callbacks */
-	ot->exec= object_de_select_all_exec;
+	ot->exec= object_select_de_select_all_exec;
 	ot->poll= ED_operator_scene_editable;
 	
 	/* flags */
@@ -1791,7 +1815,8 @@ static int object_select_random_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_select_random(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Random selection";
+	ot->name= "Random select";
+	ot->description = "Set select on random visible objects.";
 	ot->idname= "OBJECT_OT_select_random";
 	
 	/* api callbacks */
@@ -1807,7 +1832,7 @@ void OBJECT_OT_select_random(wmOperatorType *ot)
 
 /* ******** Clear object Translation *********** */
 
-static int object_clear_location_exec(bContext *C, wmOperator *op)
+static int object_location_clear_exec(bContext *C, wmOperator *op)
 {
 	int armature_clear= 0;
 
@@ -1833,23 +1858,24 @@ static int object_clear_location_exec(bContext *C, wmOperator *op)
 }
 
 
-void OBJECT_OT_clear_location(wmOperatorType *ot)
+void OBJECT_OT_location_clear(wmOperatorType *ot)
 {
 	
 	/* identifiers */
 	ot->name= "Clear Object Location";
-	ot->idname= "OBJECT_OT_clear_location";
+	ot->description = "Clear the object's location.";
+	ot->idname= "OBJECT_OT_location_clear";
 	
 	/* api callbacks */
 	ot->invoke= WM_operator_confirm;
-	ot->exec= object_clear_location_exec;
+	ot->exec= object_location_clear_exec;
 	ot->poll= ED_operator_object_active;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int object_clear_rotation_exec(bContext *C, wmOperator *op)
+static int object_rotation_clear_exec(bContext *C, wmOperator *op)
 {
 	int armature_clear= 0;
 
@@ -1876,23 +1902,24 @@ static int object_clear_rotation_exec(bContext *C, wmOperator *op)
 }
 
 
-void OBJECT_OT_clear_rotation(wmOperatorType *ot)
+void OBJECT_OT_rotation_clear(wmOperatorType *ot)
 {
 	
 	/* identifiers */
 	ot->name= "Clear Object Rotation";
-	ot->idname= "OBJECT_OT_clear_rotation";
+	ot->description = "Clear the object's rotation.";
+	ot->idname= "OBJECT_OT_rotation_clear";
 	
 	/* api callbacks */
 	ot->invoke= WM_operator_confirm;
-	ot->exec= object_clear_rotation_exec;
+	ot->exec= object_rotation_clear_exec;
 	ot->poll= ED_operator_object_active;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int object_clear_scale_exec(bContext *C, wmOperator *op)
+static int object_scale_clear_exec(bContext *C, wmOperator *op)
 {
 	int armature_clear= 0;
 
@@ -1923,23 +1950,24 @@ static int object_clear_scale_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void OBJECT_OT_clear_scale(wmOperatorType *ot)
+void OBJECT_OT_scale_clear(wmOperatorType *ot)
 {
 	
 	/* identifiers */
 	ot->name= "Clear Object Scale";
-	ot->idname= "OBJECT_OT_clear_scale";
+	ot->description = "Clear the object's scale.";
+	ot->idname= "OBJECT_OT_scale_clear";
 	
 	/* api callbacks */
 	ot->invoke= WM_operator_confirm;
-	ot->exec= object_clear_scale_exec;
+	ot->exec= object_scale_clear_exec;
 	ot->poll= ED_operator_object_active;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int object_clear_origin_exec(bContext *C, wmOperator *op)
+static int object_origin_clear_exec(bContext *C, wmOperator *op)
 {
 	float *v1, *v3, mat[3][3];
 	int armature_clear= 0;
@@ -1968,16 +1996,17 @@ static int object_clear_origin_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void OBJECT_OT_clear_origin(wmOperatorType *ot)
+void OBJECT_OT_origin_clear(wmOperatorType *ot)
 {
 
 	/* identifiers */
 	ot->name= "Clear Object Origin";
-	ot->idname= "OBJECT_OT_clear_origin";
+	ot->description = "Clear the object's origin.";
+	ot->idname= "OBJECT_OT_origin_clear";
 	
 	/* api callbacks */
 	ot->invoke= WM_operator_confirm;
-	ot->exec= object_clear_origin_exec;
+	ot->exec= object_origin_clear_exec;
 	ot->poll= ED_operator_object_active;
 	
 	/* flags */
@@ -1985,7 +2014,7 @@ void OBJECT_OT_clear_origin(wmOperatorType *ot)
 }
 
 /* ********* clear/set restrict view *********/
-static int object_clear_restrictview_exec(bContext *C, wmOperator *op)
+static int object_restrictview_clear_exec(bContext *C, wmOperator *op)
 {
 	ScrArea *sa= CTX_wm_area(C);
 	View3D *v3d= sa->spacedata.first;
@@ -2010,16 +2039,17 @@ static int object_clear_restrictview_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void OBJECT_OT_clear_restrictview(wmOperatorType *ot)
+void OBJECT_OT_restrictview_clear(wmOperatorType *ot)
 {
 	
 	/* identifiers */
 	ot->name= "Clear restrict view";
-	ot->idname= "OBJECT_OT_clear_restrictview";
+	ot->description = "Reveal the object by setting the restrictview flag.";
+	ot->idname= "OBJECT_OT_restrictview_clear";
 	
 	/* api callbacks */
 	ot->invoke= WM_operator_confirm;
-	ot->exec= object_clear_restrictview_exec;
+	ot->exec= object_restrictview_clear_exec;
 	ot->poll= ED_operator_view3d_active;
 	
 	/* flags */
@@ -2032,7 +2062,7 @@ static EnumPropertyItem prop_set_restrictview_types[] = {
 	{0, NULL, NULL, NULL}
 };
 
-static int object_set_restrictview_exec(bContext *C, wmOperator *op)
+static int object_restrictview_set_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	short changed = 0;
@@ -2068,15 +2098,16 @@ static int object_set_restrictview_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void OBJECT_OT_set_restrictview(wmOperatorType *ot)
+void OBJECT_OT_restrictview_set(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Set restrict view";
-	ot->idname= "OBJECT_OT_set_restrictview";
+	ot->description = "Hide the object by setting the restrictview flag.";
+	ot->idname= "OBJECT_OT_restrictview_set";
 	
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
-	ot->exec= object_set_restrictview_exec;
+	ot->exec= object_restrictview_set_exec;
 	ot->poll= ED_operator_view3d_active;
 	
 	/* flags */
@@ -2086,7 +2117,7 @@ void OBJECT_OT_set_restrictview(wmOperatorType *ot)
 	
 }
 /* ************* Slow Parent ******************* */
-static int object_set_slowparent_exec(bContext *C, wmOperator *op)
+static int object_slowparent_set_exec(bContext *C, wmOperator *op)
 {
 
 	CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
@@ -2104,23 +2135,24 @@ static int object_set_slowparent_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void OBJECT_OT_set_slowparent(wmOperatorType *ot)
+void OBJECT_OT_slowparent_set(wmOperatorType *ot)
 {
 	
 	/* identifiers */
 	ot->name= "Set Slow Parent";
-	ot->idname= "OBJECT_OT_set_slow_parent";
+	ot->description = "Set the object's slow parent.";
+	ot->idname= "OBJECT_OT_slow_parent_set";
 	
 	/* api callbacks */
 	ot->invoke= WM_operator_confirm;
-	ot->exec= object_set_slowparent_exec;
+	ot->exec= object_slowparent_set_exec;
 	ot->poll= ED_operator_view3d_active;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int object_clear_slowparent_exec(bContext *C, wmOperator *op)
+static int object_slowparent_clear_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 
@@ -2144,16 +2176,17 @@ static int object_clear_slowparent_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void OBJECT_OT_clear_slowparent(wmOperatorType *ot)
+void OBJECT_OT_slowparent_clear(wmOperatorType *ot)
 {
 	
 	/* identifiers */
 	ot->name= "Clear Slow Parent";
-	ot->idname= "OBJECT_OT_clear_slow_parent";
+	ot->description = "Clear the object's slow parent.";
+	ot->idname= "OBJECT_OT_slow_parent_clear";
 	
 	/* api callbacks */
 	ot->invoke= WM_operator_confirm;
-	ot->exec= object_clear_slowparent_exec;
+	ot->exec= object_slowparent_clear_exec;
 	ot->poll= ED_operator_view3d_active;
 	
 	/* flags */
@@ -2178,8 +2211,9 @@ void make_vertex_parent(Scene *scene, Object *obedit, View3D *v3d)
 	
 	if(obedit->type==OB_MESH) {
 		Mesh *me= obedit->data;
-		
-		eve= me->edit_mesh->verts.first;
+		EditMesh *em = EM_GetEditMesh(me);
+
+		eve= em->verts.first;
 		while(eve) {
 			if(eve->f & 1) {
 				if(v1==0) v1= nr;
@@ -2191,6 +2225,8 @@ void make_vertex_parent(Scene *scene, Object *obedit, View3D *v3d)
 			nr++;
 			eve= eve->next;
 		}
+
+		EM_EndEditMesh(me, em);
 	}
 	else if(ELEM(obedit->type, OB_SURF, OB_CURVE)) {
 		ListBase *editnurb= curve_get_editcurve(obedit);
@@ -2421,7 +2457,7 @@ static int test_parent_loop(Object *par, Object *ob)
 }
 
 
-static int make_parent_exec(bContext *C, wmOperator *op)
+static int parent_set_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *par= CTX_data_active_object(C);
@@ -2541,26 +2577,26 @@ static int make_parent_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int make_parent_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int parent_set_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	Object *ob= CTX_data_active_object(C);
-	uiMenuItem *head= uiPupMenuBegin("Make Parent To", 0);
+	uiMenuItem *head= uiPupMenuBegin("Set Parent To", 0);
 	
 	uiMenuContext(head, WM_OP_EXEC_DEFAULT);
-	uiMenuItemEnumO(head, "", 0, "OBJECT_OT_make_parent", "type", PAR_OBJECT);
+	uiMenuItemEnumO(head, "", 0, "OBJECT_OT_parent_set", "type", PAR_OBJECT);
 	
 	/* ob becomes parent, make the associated menus */
 	if(ob->type==OB_ARMATURE) {
-		uiMenuItemEnumO(head, "", 0, "OBJECT_OT_make_parent", "type", PAR_ARMATURE);
-		uiMenuItemEnumO(head, "", 0, "OBJECT_OT_make_parent", "type", PAR_BONE);
+		uiMenuItemEnumO(head, "", 0, "OBJECT_OT_parent_set", "type", PAR_ARMATURE);
+		uiMenuItemEnumO(head, "", 0, "OBJECT_OT_parent_set", "type", PAR_BONE);
 	}
 	else if(ob->type==OB_CURVE) {
-		uiMenuItemEnumO(head, "", 0, "OBJECT_OT_make_parent", "type", PAR_CURVE);
-		uiMenuItemEnumO(head, "", 0, "OBJECT_OT_make_parent", "type", PAR_FOLLOW);
-		uiMenuItemEnumO(head, "", 0, "OBJECT_OT_make_parent", "type", PAR_PATH_CONST);
+		uiMenuItemEnumO(head, "", 0, "OBJECT_OT_parent_set", "type", PAR_CURVE);
+		uiMenuItemEnumO(head, "", 0, "OBJECT_OT_parent_set", "type", PAR_FOLLOW);
+		uiMenuItemEnumO(head, "", 0, "OBJECT_OT_parent_set", "type", PAR_PATH_CONST);
 	}
 	else if(ob->type == OB_LATTICE) {
-		uiMenuItemEnumO(head, "", 0, "OBJECT_OT_make_parent", "type", PAR_LATTICE);
+		uiMenuItemEnumO(head, "", 0, "OBJECT_OT_parent_set", "type", PAR_LATTICE);
 	}
 	
 	uiPupMenuEnd(C, head);
@@ -2569,15 +2605,16 @@ static int make_parent_invoke(bContext *C, wmOperator *op, wmEvent *event)
 }
 
 
-void OBJECT_OT_make_parent(wmOperatorType *ot)
+void OBJECT_OT_parent_set(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Make parent";
-	ot->idname= "OBJECT_OT_make_parent";
+	ot->description = "Set the object's parenting.";
+	ot->idname= "OBJECT_OT_parent_set";
 	
 	/* api callbacks */
-	ot->invoke= make_parent_invoke;
-	ot->exec= make_parent_exec;
+	ot->invoke= parent_set_invoke;
+	ot->exec= parent_set_exec;
 	
 	ot->poll= ED_operator_object_active;
 	
@@ -2595,7 +2632,7 @@ static EnumPropertyItem prop_make_track_types[] = {
 	{0, NULL, NULL, NULL}
 };
 
-static int make_track_exec(bContext *C, wmOperator *op)
+static int track_set_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 		
@@ -2662,15 +2699,16 @@ static int make_track_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void OBJECT_OT_make_track(wmOperatorType *ot)
+void OBJECT_OT_track_set(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Make Track";
-	ot->idname= "OBJECT_OT_make_track";
+	ot->description = "Make the object track another object, either by constraint or old way or locked track.";
+	ot->idname= "OBJECT_OT_track_set";
 	
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
-	ot->exec= make_track_exec;
+	ot->exec= track_set_exec;
 	
 	ot->poll= ED_operator_scene_editable;
 	
@@ -2724,7 +2762,7 @@ static void make_object_duplilist_real(Scene *scene, View3D *v3d, Base *base)
 }
 
 
-static int object_make_dupli_real_exec(bContext *C, wmOperator *op)
+static int object_dupli_set_real_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	ScrArea *sa= CTX_wm_area(C);
@@ -2744,16 +2782,17 @@ static int object_make_dupli_real_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void OBJECT_OT_make_dupli_real(wmOperatorType *ot)
+void OBJECT_OT_dupli_set_real(wmOperatorType *ot)
 {
 	
 	/* identifiers */
 	ot->name= "Make Dupli Real";
-	ot->idname= "OBJECT_OT_make_dupli_real";
+	ot->description = "Make dupli objects attached to this object real.";
+	ot->idname= "OBJECT_OT_dupli_set_real";
 	
 	/* api callbacks */
 	ot->invoke= WM_operator_confirm;
-	ot->exec= object_make_dupli_real_exec;
+	ot->exec= object_dupli_set_real_exec;
 	
 	ot->poll= ED_operator_scene_editable;
 	
@@ -2770,7 +2809,7 @@ static EnumPropertyItem prop_set_center_types[] = {
 };
 
 /* 0 == do center, 1 == center new, 2 == center cursor */
-static int object_set_center_exec(bContext *C, wmOperator *op)
+static int object_center_set_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	ScrArea *sa= CTX_wm_area(C);
@@ -2807,8 +2846,9 @@ static int object_set_center_exec(bContext *C, wmOperator *op)
 	
 		if(obedit->type==OB_MESH) {
 			Mesh *me= obedit->data;
-			
-			for(eve= me->edit_mesh->verts.first; eve; eve= eve->next) {
+			EditMesh *em = EM_GetEditMesh(me);
+
+			for(eve= em->verts.first; eve; eve= eve->next) {
 				if(v3d->around==V3D_CENTROID) {
 					total++;
 					VECADD(cent, cent, eve->co);
@@ -2827,13 +2867,14 @@ static int object_set_center_exec(bContext *C, wmOperator *op)
 				cent[2]= (min[2]+max[2])/2.0f;
 			}
 			
-			for(eve= me->edit_mesh->verts.first; eve; eve= eve->next) {
+			for(eve= em->verts.first; eve; eve= eve->next) {
 				VecSubf(eve->co, eve->co, cent);			
 			}
 			
-			recalc_editnormals(me->edit_mesh);
+			recalc_editnormals(em);
 			tot_change++;
 			DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
+			EM_EndEditMesh(me, em);
 		}
 	}
 	
@@ -3093,15 +3134,16 @@ static int object_set_center_exec(bContext *C, wmOperator *op)
 	
 	return OPERATOR_FINISHED;
 }
-void OBJECT_OT_set_center(wmOperatorType *ot)
+void OBJECT_OT_center_set(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Set Center";
-	ot->idname= "OBJECT_OT_set_center";
+	ot->description = "Set the object's center, by either moving the data, or set to center of data, or use 3d cursor";
+	ot->idname= "OBJECT_OT_center_set";
 	
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
-	ot->exec= object_set_center_exec;
+	ot->exec= object_center_set_exec;
 	
 	ot->poll= ED_operator_view3d_active;
 	
@@ -3284,7 +3326,7 @@ void ED_object_enter_editmode(bContext *C, int flag)
 	if(flag & EM_WAITCURSOR) waitcursor(0);
 }
 
-static int toggle_editmode_exec(bContext *C, wmOperator *op)
+static int editmode_toggle_exec(bContext *C, wmOperator *op)
 {
 	
 	if(!CTX_data_edit_object(C))
@@ -3300,10 +3342,11 @@ void OBJECT_OT_editmode_toggle(wmOperatorType *ot)
 	
 	/* identifiers */
 	ot->name= "Toggle Editmode";
+	ot->description = "Toggle object's editmode.";
 	ot->idname= "OBJECT_OT_editmode_toggle";
 	
 	/* api callbacks */
-	ot->exec= toggle_editmode_exec;
+	ot->exec= editmode_toggle_exec;
 	
 	ot->poll= ED_operator_object_active;
 	
@@ -6018,7 +6061,7 @@ Base *ED_object_add_duplicate(Scene *scene, Base *base, int usedupflag)
 }
 
 /* contextual operator dupli */
-static int add_duplicate_exec(bContext *C, wmOperator *op)
+static int duplicate_add_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	View3D *v3d= CTX_wm_view3d(C);
@@ -6050,9 +6093,9 @@ static int add_duplicate_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int add_duplicate_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int duplicate_add_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	add_duplicate_exec(C, op);
+	duplicate_add_exec(C, op);
 	
 	RNA_int_set(op->ptr, "mode", TFM_TRANSLATION);
 	WM_operator_name_call(C, "TFM_OT_transform", WM_OP_INVOKE_REGION_WIN, op->ptr);
@@ -6060,16 +6103,17 @@ static int add_duplicate_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_FINISHED;
 }
 
-void OBJECT_OT_add_duplicate(wmOperatorType *ot)
+void OBJECT_OT_duplicate_add(wmOperatorType *ot)
 {
 	
 	/* identifiers */
 	ot->name= "Add Duplicate";
-	ot->idname= "OBJECT_OT_add_duplicate";
+	ot->description = "Duplicate the object.";
+	ot->idname= "OBJECT_OT_duplicate_add";
 	
 	/* api callbacks */
-	ot->invoke= add_duplicate_invoke;
-	ot->exec= add_duplicate_exec;
+	ot->invoke= duplicate_add_invoke;
+	ot->exec= duplicate_add_exec;
 	
 	ot->poll= ED_operator_scene_editable;
 	

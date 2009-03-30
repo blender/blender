@@ -243,11 +243,11 @@ static int previewrange_define_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 } 
 
-void ANIM_OT_previewrange_define(wmOperatorType *ot)
+void ANIM_OT_previewrange_set(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Set Preview Range";
-	ot->idname= "ANIM_OT_previewrange_define";
+	ot->idname= "ANIM_OT_previewrange_set";
 	
 	/* api callbacks */
 	ot->invoke= WM_border_select_invoke;
@@ -374,7 +374,7 @@ void ED_operatortypes_anim(void)
 	WM_operatortype_append(ANIM_OT_change_frame);
 	WM_operatortype_append(ANIM_OT_time_toggle);
 	
-	WM_operatortype_append(ANIM_OT_previewrange_define);
+	WM_operatortype_append(ANIM_OT_previewrange_set);
 	WM_operatortype_append(ANIM_OT_previewrange_clear);
 	
 		// XXX this is used all over... maybe for screen instead?
@@ -397,6 +397,6 @@ void ED_keymap_anim(wmWindowManager *wm)
 	WM_keymap_verify_item(keymap, "ANIM_OT_time_toggle", TKEY, KM_PRESS, KM_CTRL, 0);
 	
 	/* preview range */
-	WM_keymap_verify_item(keymap, "ANIM_OT_previewrange_define", PKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_verify_item(keymap, "ANIM_OT_previewrange_set", PKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_verify_item(keymap, "ANIM_OT_previewrange_clear", PKEY, KM_PRESS, KM_ALT, 0);
 }

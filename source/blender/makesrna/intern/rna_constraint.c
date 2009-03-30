@@ -187,7 +187,7 @@ static void rna_def_constraint_python(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "script_error", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PYCON_SCRIPTERROR);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Script Error", "The linked Python script has thrown an error.");
 }
 
@@ -727,17 +727,17 @@ static void rna_def_constraint_rigid_body_joint(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "axis_x", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "axX");
 	RNA_def_property_range(prop, -360.0, 360.f);
-	RNA_def_property_ui_text(prop, "Axis X", "Rotate pivot on X axis in degress.");
+	RNA_def_property_ui_text(prop, "Axis X", "Rotate pivot on X axis in degrees.");
 
 	prop= RNA_def_property(srna, "axis_y", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "axY");
 	RNA_def_property_range(prop, -360.0, 360.f);
-	RNA_def_property_ui_text(prop, "Axis Y", "Rotate pivot on Y axis in degress.");
+	RNA_def_property_ui_text(prop, "Axis Y", "Rotate pivot on Y axis in degrees.");
 
 	prop= RNA_def_property(srna, "axis_z", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "axZ");
 	RNA_def_property_range(prop, -360.0, 360.f);
-	RNA_def_property_ui_text(prop, "Axis Z", "Rotate pivot on Z axis in degress.");
+	RNA_def_property_ui_text(prop, "Axis Z", "Rotate pivot on Z axis in degrees.");
 	
 	/* XXX not sure how to wrap the two 6 element arrays for the generic joint */
 	//float       minLimit[6];
@@ -1187,7 +1187,7 @@ void RNA_def_constraint(BlenderRNA *brna)
 	
 	/* enums */
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_enum_sdna(prop, NULL, "type");
 	RNA_def_property_enum_items(prop, type_items);
 	RNA_def_property_ui_text(prop, "Type", "");
@@ -1200,7 +1200,7 @@ void RNA_def_constraint(BlenderRNA *brna)
 	
 		// XXX this is really an internal flag, but it may be useful for some tools to be able to access this...
 	prop= RNA_def_property(srna, "disabled", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CONSTRAINT_DISABLE);
 	RNA_def_property_ui_text(prop, "Disabled", "Constraint has invalid settings and will not be evaluated.");
 	

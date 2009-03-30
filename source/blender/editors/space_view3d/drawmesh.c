@@ -353,9 +353,10 @@ static void draw_textured_begin(Scene *scene, View3D *v3d, RegionView3D *rv3d, O
 		solidtex= 1;
 		Gtexdraw.islit= -1;
 	}
-	else
+	else {
 		/* draw with lights in the scene otherwise */
-		Gtexdraw.islit= GPU_scene_object_lights(scene, ob, v3d->lay, rv3d->viewmat);
+		Gtexdraw.islit= GPU_scene_object_lights(scene, ob, v3d->lay, rv3d->viewmat, get_view3d_ortho(v3d, rv3d));
+	}
 	
 	obcol[0]= CLAMPIS(ob->col[0]*255, 0, 255);
 	obcol[1]= CLAMPIS(ob->col[1]*255, 0, 255);

@@ -25,7 +25,12 @@
 #ifndef RNA_ACCESS
 #define RNA_ACCESS
 
+#include "DNA_listBase.h"
 #include "RNA_types.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 struct bContext;
 struct ID;
@@ -68,6 +73,7 @@ extern StructRNA RNA_ColorRamp;
 extern StructRNA RNA_ColorRampElement;
 extern StructRNA RNA_ColorSequence;
 extern StructRNA RNA_Constraint;
+extern StructRNA RNA_Context;
 extern StructRNA RNA_ControlFluidSettings;
 extern StructRNA RNA_Controller;
 extern StructRNA RNA_Curve;
@@ -303,6 +309,7 @@ PropertyRNA *RNA_struct_name_property(PointerRNA *ptr);
 PropertyRNA *RNA_struct_iterator_property(PointerRNA *ptr);
 
 int RNA_struct_is_ID(PointerRNA *ptr);
+int RNA_struct_is_a(PointerRNA *ptr, StructRNA *srna);
 
 PropertyRNA *RNA_struct_find_property(PointerRNA *ptr, const char *identifier);
 const struct ListBase *RNA_struct_defined_properties(StructRNA *srna);
@@ -327,6 +334,7 @@ void RNA_property_float_range(PointerRNA *ptr, PropertyRNA *prop, float *hardmin
 void RNA_property_float_ui_range(PointerRNA *ptr, PropertyRNA *prop, float *softmin, float *softmax, float *step, float *precision);
 
 int RNA_property_string_maxlength(PointerRNA *ptr, PropertyRNA *prop);
+StructRNA *RNA_property_pointer_type(PointerRNA *ptr, PropertyRNA *prop);
 
 void RNA_property_enum_items(PointerRNA *ptr, PropertyRNA *prop, const EnumPropertyItem **item, int *totitem);
 int RNA_property_enum_value(PointerRNA *ptr, PropertyRNA *prop, const char *identifier, int *value);
@@ -403,6 +411,8 @@ char *RNA_path_back(const char *path);
 int RNA_path_resolve(PointerRNA *ptr, const char *path,
 	PointerRNA *r_ptr, PropertyRNA **r_prop);
 
+char *RNA_path_from_ID_to_property(PointerRNA *ptr, PropertyRNA *prop);
+
 #if 0
 /* Dependency
  *
@@ -475,7 +485,9 @@ int RNA_property_is_set(PointerRNA *ptr, const char *name);
 /* python compatible string representation of this property, (must be freed!) */
 char *RNA_property_as_string(PointerRNA *ptr, PropertyRNA *prop);
 
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* RNA_ACCESS */
-
-
 

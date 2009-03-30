@@ -58,7 +58,7 @@
 #include "DNA_object_types.h"
 #include "DNA_object_force.h"
 #include "DNA_object_fluidsim.h"
-#include "DNA_oops_types.h"
+#include "DNA_outliner_types.h"
 #include "DNA_particle_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
@@ -514,6 +514,7 @@ void unlink_object(Scene *scene, Object *ob)
 	while(sce) {
 		if(sce->id.lib==NULL) {
 			if(sce->camera==ob) sce->camera= NULL;
+			if(sce->toolsettings->skgen_template==ob) sce->toolsettings->skgen_template = NULL;
 		}
 		sce= sce->id.next;
 	}
@@ -553,15 +554,9 @@ void unlink_object(Scene *scene, Object *ob)
 						// XXX if(v3d->localvd->persp==V3D_CAMOB) v3d->localvd->persp= V3D_PERSP;
 					}
 				}
-				else if(sl->spacetype==SPACE_OOPS) {
+				else if(sl->spacetype==SPACE_OUTLINER) {
 					SpaceOops *so= (SpaceOops *)sl;
-					Oops *oops;
 
-					oops= so->oops.first;
-					while(oops) {
-						if(oops->id==(ID *)ob) oops->id= NULL;
-						oops= oops->next;
-					}
 					if(so->treestore) {
 						TreeStoreElem *tselem= so->treestore->data;
 						int a;
@@ -569,7 +564,6 @@ void unlink_object(Scene *scene, Object *ob)
 							if(tselem->id==(ID *)ob) tselem->id= NULL;
 						}
 					}
-					so->lockpoin= NULL;
 				}
 			}
 
@@ -1641,15 +1635,16 @@ static void ob_parbone(Object *ob, Object *par, float mat[][4])
 
 static void give_parvert(Object *par, int nr, float *vec)
 {
+	EditMesh *em;
 	int a, count;
 	
 	vec[0]=vec[1]=vec[2]= 0.0f;
 	
 	if(par->type==OB_MESH) {
 		Mesh *me= par->data;
-		
-		if(me->edit_mesh) {
-			EditMesh *em = me->edit_mesh;
+		em = EM_GetEditMesh(me);
+
+		if(em) {
 			EditVert *eve;
 			
 			for(eve= em->verts.first; eve; eve= eve->next) {
@@ -1658,6 +1653,7 @@ static void give_parvert(Object *par, int nr, float *vec)
 					break;
 				}
 			}
+			EM_EndEditMesh(me, em);
 		}
 		else {
 			DerivedMesh *dm = par->derivedFinal;
@@ -2300,10 +2296,13 @@ void object_handle_update(Scene *scene, Object *ob)
 			
 			/* includes all keys and modifiers */
 			if(ob->type==OB_MESH) {
+				EditMesh *em = EM_GetEditMesh(ob->data);
+
 					// here was vieweditdatamask? XXX
-				if(ob==scene->obedit)
-					makeDerivedMesh(scene, ob, ((Mesh*)ob->data)->edit_mesh, CD_MASK_BAREMESH);
-				else
+				if(ob==scene->obedit) {
+					makeDerivedMesh(scene, ob, em, CD_MASK_BAREMESH);
+					EM_EndEditMesh(ob->data, em);
+				} else
 					makeDerivedMesh(scene, ob, NULL, CD_MASK_BAREMESH);
 			}
 			else if(ob->type==OB_MBALL) {

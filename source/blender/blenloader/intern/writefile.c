@@ -121,7 +121,7 @@ Any case: direct data is ALWAYS after the lib block
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_object_force.h"
-#include "DNA_oops_types.h"
+#include "DNA_outliner_types.h"
 #include "DNA_packedFile_types.h"
 #include "DNA_particle_types.h"
 #include "DNA_property_types.h"
@@ -805,9 +805,18 @@ static void write_fcurves(WriteData *wd, ListBase *fcurves)
 					{
 						FMod_Generator *data= (FMod_Generator *)fcm->data;
 						
-						/* write polynomial coefficients array */
-						if (data->poly_coefficients)
-							writedata(wd, DATA, sizeof(float)*(data->poly_order+1), data->poly_coefficients);
+						/* write coefficients array */
+						if (data->coefficients)
+							writedata(wd, DATA, sizeof(float)*(data->arraysize), data->coefficients);
+					}
+						break;
+					case FMODIFIER_TYPE_ENVELOPE:
+					{
+						FMod_Envelope *data= (FMod_Envelope *)fcm->data;
+						
+						/* write envelope data */
+						if (data->data)
+							writedata(wd, DATA, sizeof(FCM_EnvelopeData)*(data->totvert), data->data);
 					}
 						break;
 					case FMODIFIER_TYPE_PYTHON:
@@ -822,7 +831,7 @@ static void write_fcurves(WriteData *wd, ListBase *fcurves)
 				}
 			}
 			
-			/* Write the constraint */
+			/* Write the modifier */
 			writestruct(wd, DATA, "FModifier", 1, fcm);
 		}
 	}
@@ -1811,29 +1820,11 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 					writestruct(wd, DATA, "SpaceSeq", 1, sl);
 					if(sseq->gpd) write_gpencil(wd, sseq->gpd);
 				}
-				else if(sl->spacetype==SPACE_OOPS) {
+				else if(sl->spacetype==SPACE_OUTLINER) {
 					SpaceOops *so= (SpaceOops *)sl;
-					Oops *oops;
 					
-					/* cleanup */
-					oops= so->oops.first;
-					while(oops) {
-						Oops *oopsn= oops->next;
-						if(oops->id==0) {
-							BLI_remlink(&so->oops, oops);
-// XXX							free_oops(oops);
-						}
-						oops= oopsn;
-					}
-					
-					/* ater cleanup, because of listbase! */
 					writestruct(wd, DATA, "SpaceOops", 1, so);
-					
-					oops= so->oops.first;
-					while(oops) {
-						writestruct(wd, DATA, "Oops", 1, oops);
-						oops= oops->next;
-					}
+
 					/* outliner */
 					if(so->treestore) {
 						writestruct(wd, DATA, "TreeStore", 1, so->treestore);
@@ -2152,7 +2143,7 @@ static void write_global(WriteData *wd, Main *mainvar)
 	fg.subversion= BLENDER_SUBVERSION;
 	fg.minversion= BLENDER_MINVERSION;
 	fg.minsubversion= BLENDER_MINSUBVERSION;
-	
+	fg.pads= 0; /* prevent mem checkers from complaining */
 	writestruct(wd, GLOB, "FileGlobal", 1, &fg);
 }
 

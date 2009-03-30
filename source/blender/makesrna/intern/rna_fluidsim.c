@@ -174,7 +174,7 @@ static void rna_def_fluidsim_domain(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "grid_levels", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "maxRefine");
 	RNA_def_property_range(prop, -1, 4);
-	RNA_def_property_ui_text(prop, "Grid Levels", "Number of coursened grids to use (-1 for automatic).");
+	RNA_def_property_ui_text(prop, "Grid Levels", "Number of coarsened grids to use (-1 for automatic).");
 
 	prop= RNA_def_property(srna, "compressibility", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "gstar");
@@ -413,13 +413,13 @@ void RNA_def_fluidsim(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "enabled", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "type", OB_FLUIDSIM_ENABLE);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE); // needs to create modifier
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE); // needs to create modifier
 	RNA_def_property_ui_text(prop, "Enabled", "Sets object to participate in fluid simulation.");
 
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "type");
 	RNA_def_property_enum_items(prop, prop_fluid_type_items);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE); // needs to update variables
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE); // needs to update variables
 	RNA_def_property_ui_text(prop, "Type", "Type of participation in the fluid simulation.");
 
 	//prop= RNA_def_property(srna, "ipo", PROP_POINTER, PROP_NONE);

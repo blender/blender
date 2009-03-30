@@ -1,3 +1,5 @@
+# -*- mode: gnumakefile; tab-width: 8; indent-tabs-mode: t; -*-
+# vim: tabstop=8
 #
 # $Id$
 #
@@ -22,7 +24,7 @@
 #
 # The Original Code is: all of this file.
 #
-# Contributor(s): Hans Lambermont
+# Contributor(s): Hans Lambermont, GSR
 #
 # ***** END GPL LICENSE BLOCK *****
 # bmfont main makefile.
@@ -38,16 +40,13 @@ DIRS = intern
 
 include nan_subdirs.mk
 
-install: all debug
+install: $(ALL_OR_DEBUG)
 	@[ -d $(NAN_BMFONT) ] || mkdir $(NAN_BMFONT)
 	@[ -d $(NAN_BMFONT)/include ] || mkdir $(NAN_BMFONT)/include
-	@[ -d $(NAN_BMFONT)/lib ] || mkdir $(NAN_BMFONT)/lib
-	@[ -d $(NAN_BMFONT)/lib/debug ] || mkdir $(NAN_BMFONT)/lib/debug
-	@../tools/cpifdiff.sh $(DIR)/libbmfont.a $(NAN_BMFONT)/lib/
-	@../tools/cpifdiff.sh $(DIR)/debug/libbmfont.a $(NAN_BMFONT)/lib/debug/
+	@[ -d $(NAN_BMFONT)/lib/$(DEBUG_DIR) ] || mkdir $(NAN_BMFONT)/lib/$(DEBUG_DIR)
+	@../tools/cpifdiff.sh $(DIR)/$(DEBUG_DIR)libbmfont.a $(NAN_BMFONT)/lib/$(DEBUG_DIR)
 ifeq ($(OS),darwin)
-	ranlib $(NAN_BMFONT)/lib/libbmfont.a
-	ranlib $(NAN_BMFONT)/lib/debug/libbmfont.a
+	ranlib $(NAN_BMFONT)/lib/$(DEBUG_DIR)libbmfont.a
 endif
 	@../tools/cpifdiff.sh *.h $(NAN_BMFONT)/include/
 

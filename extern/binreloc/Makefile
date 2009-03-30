@@ -1,3 +1,5 @@
+# -*- mode: gnumakefile; tab-width: 8; indent-tabs-mode: t; -*-
+# vim: tabstop=8
 #
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
@@ -30,8 +32,7 @@ CPPFLAGS += -I./include
 
 include nan_compile.mk
 
-
-install: all debug
+install: $(ALL_OR_DEBUG)
 	@[ -d $(DIR) ] || mkdir $(DIR)
 	@[ -d $(DIR)/include ] || mkdir $(DIR)/include
 	@../../intern/tools/cpifdiff.sh include/*.h $(DIR)/include/

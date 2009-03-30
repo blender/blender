@@ -311,7 +311,7 @@ static void rna_def_lamp(BlenderRNA *brna)
 	/* script link */
 	prop= RNA_def_property(srna, "script_link", PROP_POINTER, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "scriptlink");
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Script Link", "Scripts linked to this lamp.");
 }
 
@@ -328,7 +328,7 @@ static void rna_def_lamp_falloff(StructRNA *srna)
 		{0, NULL, NULL, NULL}};
 
 	prop= RNA_def_property(srna, "falloff_type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE); /* needs to be able to create curve mapping */
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE); /* needs to be able to create curve mapping */
 	RNA_def_property_enum_items(prop, prop_fallofftype_items);
 	RNA_def_property_ui_text(prop, "Falloff Type", "Intensity Decay with distance.");
 	RNA_def_property_update(prop, NC_LAMP|ND_LIGHTING, NULL);

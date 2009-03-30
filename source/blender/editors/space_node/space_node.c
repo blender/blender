@@ -60,6 +60,8 @@
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
+#include "RNA_access.h"
+
 #include "node_intern.h"	// own include
 
 /* ******************** default callbacks for node space ***************** */
@@ -277,16 +279,16 @@ static void node_region_listener(ARegion *ar, wmNotifier *wmn)
 	}
 }
 
-static int node_context(const bContext *C, bContextDataMember member, bContextDataResult *result)
+static int node_context(const bContext *C, const char *member, bContextDataResult *result)
 {
 	SpaceNode *snode= (SpaceNode*)CTX_wm_space_data(C);
 	
-	if(member == CTX_DATA_SELECTED_NODES) {
+	if(CTX_data_equals(member, "selected_nodes")) {
 		bNode *node;
 		
 		for(next_node(snode->edittree); (node=next_node(NULL));) {
 			if(node->flag & SELECT) {
-				CTX_data_list_add(result, node);
+				CTX_data_list_add(result, &snode->edittree->id, &RNA_Node, node);
 			}
 		}
 		return 1;

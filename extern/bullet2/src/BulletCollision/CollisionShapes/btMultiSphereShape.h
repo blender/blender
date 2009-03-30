@@ -62,7 +62,6 @@ public:
 		return m_radi[index];
 	}
 
-	virtual int	getShapeType() const { return MULTI_SPHERE_SHAPE_PROXYTYPE; }
 
 	virtual const char*	getName()const 
 	{

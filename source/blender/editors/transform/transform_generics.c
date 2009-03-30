@@ -52,6 +52,9 @@
 #include "DNA_scene_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_view3d_types.h"
+#include "DNA_windowmanager_types.h"
+
+#include "RNA_access.h"
 
 //#include "BIF_screen.h"
 //#include "BIF_mywindow.h"
@@ -468,7 +471,7 @@ void recalcData(TransInfo *t)
 //					}
 					clipMirrorModifier(t, t->obedit);
 				}
-				if((t->options & CTX_NO_MIRROR) == 0 && (scene->toolsettings->editbutflag & B_MESH_X_MIRROR))
+				if((t->options & CTX_NO_MIRROR) == 0 && (t->flag & T_MIRROR))
 					editmesh_apply_to_mirror(t);
 				
 				DAG_object_flush_update(scene, t->obedit, OB_RECALC_DATA);  /* sets recalc flags */
@@ -660,7 +663,7 @@ void resetTransRestrictions(TransInfo *t)
 	t->flag &= ~T_ALL_RESTRICTIONS;
 }
 
-void initTransInfo (bContext *C, TransInfo *t, wmEvent *event)
+int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 {
 	Scene *sce = CTX_data_scene(C);
 	ARegion *ar = CTX_wm_region(C);
@@ -685,16 +688,6 @@ void initTransInfo (bContext *C, TransInfo *t, wmEvent *event)
 	
 	t->redraw = 1; /* redraw first time */
 	
-	t->propsize = 1.0f; /* TRANSFORM_FIX_ME this needs to be saved in scene or something */
-
-	/* setting PET flag */
-	if ((t->options & CTX_NO_PET) == 0 && (sce->proportional)) {
-		t->flag |= T_PROP_EDIT;
-		
-		if(sce->proportional == 2)
-			t->flag |= T_PROP_CONNECTED;	// yes i know, has to become define
-	}
-
 	if (event)
 	{
 		t->imval[0] = event->x - t->ar->winrct.xmin;
@@ -741,6 +734,20 @@ void initTransInfo (bContext *C, TransInfo *t, wmEvent *event)
 		
 		if(v3d->flag & V3D_ALIGN) t->flag |= T_V3D_ALIGN;
 		t->around = v3d->around;
+
+		if (op && RNA_struct_find_property(op->ptr, "constraint_axis") && RNA_property_is_set(op->ptr, "constraint_orientation"))
+		{
+			t->current_orientation = RNA_int_get(op->ptr, "constraint_orientation");
+
+			if (t->current_orientation >= V3D_MANIP_CUSTOM + BIF_countTransformOrientation(C) - 1)
+			{
+				t->current_orientation = V3D_MANIP_GLOBAL;
+			}
+		}
+		else
+		{
+			t->current_orientation = v3d->twmode;
+		}
 	}
 	else if(t->spacetype==SPACE_IMAGE || t->spacetype==SPACE_NODE)
 	{
@@ -756,9 +763,73 @@ void initTransInfo (bContext *C, TransInfo *t, wmEvent *event)
 		t->around = V3D_CENTER;
 	}
 
+	if (op && RNA_struct_find_property(op->ptr, "mirror") && RNA_property_is_set(op->ptr, "mirror"))
+	{
+		if (RNA_boolean_get(op->ptr, "mirror"))
+		{
+			t->flag |= T_MIRROR;
+		}
+	}
+	// Need stuff to take it from edit mesh or whatnot here
+	else
+	{
+		if (t->obedit && t->obedit->type == OB_MESH && sce->toolsettings->editbutflag & B_MESH_X_MIRROR)
+		{
+			t->flag |= T_MIRROR;
+		}
+	}
+
+	/* setting PET flag */
+	if (op && RNA_struct_find_property(op->ptr, "proportional") && RNA_property_is_set(op->ptr, "proportional"))
+	{
+		switch(RNA_enum_get(op->ptr, "proportional"))
+		{
+		case 2: /* XXX connected constant */
+			t->flag |= T_PROP_CONNECTED;
+		case 1: /* XXX prop on constant */
+			t->flag |= T_PROP_EDIT;
+			break;
+		}
+	}
+	else
+	{
+		if ((t->options & CTX_NO_PET) == 0 && (sce->proportional)) {
+			t->flag |= T_PROP_EDIT;
+			
+			if(sce->proportional == 2)
+				t->flag |= T_PROP_CONNECTED;	// yes i know, has to become define
+		}
+	}
+
+	if (op && RNA_struct_find_property(op->ptr, "proportional_size") && RNA_property_is_set(op->ptr, "proportional_size"))
+	{
+		t->prop_size = RNA_float_get(op->ptr, "proportional_size");
+	}
+	else
+	{
+		t->prop_size = sce->toolsettings->proportional_size;
+	}
+	
+	if (op && RNA_struct_find_property(op->ptr, "proportional_editing_falloff") && RNA_property_is_set(op->ptr, "proportional_editing_falloff"))
+	{
+		t->prop_mode = RNA_enum_get(op->ptr, "proportional_editing_falloff");
+	}
+	else
+	{
+		t->prop_mode = sce->prop_mode;
+	}
+
+	/* TRANSFORM_FIX_ME rna restrictions */
+	if (t->prop_size <= 0)
+	{
+		t->prop_size = 1.0f;
+	}
+
 	setTransformViewMatrices(t);
 	initNumInput(&t->num);
 	initNDofInput(&t->ndof);
+	
+	return 1;
 }
 
 /* Here I would suggest only TransInfo related issues, like free data & reset vars. Not redraws */
@@ -1118,10 +1189,10 @@ void calculatePropRatio(TransInfo *t)
 				td->factor = 1.0f;
 			}
 			else if	((connected && 
-						(td->flag & TD_NOTCONNECTED || td->dist > t->propsize))
+						(td->flag & TD_NOTCONNECTED || td->dist > t->prop_size))
 				||
 					(connected == 0 &&
-						td->rdist > t->propsize)) {
+						td->rdist > t->prop_size)) {
 				/* 
 				   The elements are sorted according to their dist member in the array,
 				   that means we can stop when it finds one element outside of the propsize.
@@ -1133,7 +1204,7 @@ void calculatePropRatio(TransInfo *t)
 			else {
 				/* Use rdist for falloff calculations, it is the real distance */
 				td->flag &= ~TD_NOACTION;
-				dist= (t->propsize-td->rdist)/t->propsize;
+				dist= (t->prop_size-td->rdist)/t->prop_size;
 				
 				/*
 				 * Clamp to positive numbers.
@@ -1143,7 +1214,7 @@ void calculatePropRatio(TransInfo *t)
 				if (dist < 0.0f)
 					dist = 0.0f;
 				
-				switch(t->scene->prop_mode) {
+				switch(t->prop_mode) {
 				case PROP_SHARP:
 					td->factor= dist*dist;
 					break;
@@ -1171,7 +1242,7 @@ void calculatePropRatio(TransInfo *t)
 				}
 			}
 		}
-		switch(t->scene->prop_mode) {
+		switch(t->prop_mode) {
 		case PROP_SHARP:
 			strcpy(t->proptext, "(Sharp)");
 			break;

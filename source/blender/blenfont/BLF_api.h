@@ -52,6 +52,9 @@ void BLF_clipping(float xmin, float ymin, float xmax, float ymax);
 void BLF_enable(int option);
 void BLF_disable(int option);
 
+/* return the id of the current font. */
+int BLF_get(void);
+
 /* Read the .Blanguages file, return 1 on success or 0 if fails. */
 int BLF_lang_init(void);
 

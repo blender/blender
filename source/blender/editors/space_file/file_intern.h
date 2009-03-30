@@ -34,6 +34,8 @@
 /* file_header.c */
 void file_header_buttons(const bContext *C, ARegion *ar);
 
+/* file_ops.c */
+struct ARegion *file_buttons_region(struct ScrArea *sa);
 
 /* file_draw.c */
 #define TILE_BORDER_X 8
@@ -51,13 +53,15 @@ struct wmOperator;
 struct wmEvent;
 void FILE_OT_highlight(struct wmOperatorType *ot);
 void FILE_OT_select(struct wmOperatorType *ot);
-void FILE_OT_select_all(struct wmOperatorType *ot);
-void FILE_OT_border_select(struct wmOperatorType *ot);
+void FILE_OT_select_all_toggle(struct wmOperatorType *ot);
+void FILE_OT_select_border(struct wmOperatorType *ot);
 void FILE_OT_select_bookmark(struct wmOperatorType *ot);
 void FILE_OT_loadimages(struct wmOperatorType *ot);
 void FILE_OT_exec(struct wmOperatorType *ot);
 void FILE_OT_cancel(struct wmOperatorType *ot);
 void FILE_OT_parent(struct wmOperatorType *ot);
+void FILE_OT_refresh(struct wmOperatorType *ot);
+void FILE_OT_bookmark_toggle(struct wmOperatorType *ot);
 
 int file_exec(bContext *C, struct wmOperator *unused);
 int file_cancel_exec(bContext *C, struct wmOperator *unused);

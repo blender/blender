@@ -96,7 +96,7 @@
 
 static void add_bezt_to_keycolumnslist(ListBase *keys, BezTriple *bezt)
 {
-	/* The equivilant of add_to_cfra_elem except this version 
+	/* The equivalent of add_to_cfra_elem except this version 
 	 * makes ActKeyColumns - one of the two datatypes required
 	 * for action editor drawing.
 	 */
@@ -136,7 +136,7 @@ static void add_bezt_to_keycolumnslist(ListBase *keys, BezTriple *bezt)
 
 static void add_bezt_to_keyblockslist(ListBase *blocks, FCurve *fcu, int index)
 {
-	/* The equivilant of add_to_cfra_elem except this version 
+	/* The equivalent of add_to_cfra_elem except this version 
 	 * makes ActKeyBlocks - one of the two datatypes required
 	 * for action editor drawing.
 	 */

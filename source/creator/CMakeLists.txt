@@ -210,7 +210,6 @@ IF(UNIX)
 	bf_editors
     bf_decimation 
     blender_BSP 
-    bf_soundsystem 
     bf_ghost 
     bf_string 
     blender_render 
@@ -271,10 +270,12 @@ IF(UNIX)
     bf_quicktime
     extern_binreloc
     extern_glew
+    extern_libopenjpeg
     bf_videotex
     bf_rna
     bf_dna
     bf_blenfont
+    bf_soundsystem 
   )
 
   FOREACH(SORTLIB ${BLENDER_SORTED_LIBS})

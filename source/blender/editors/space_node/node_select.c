@@ -180,11 +180,12 @@ static EnumPropertyItem prop_select_items[] = {
 	{NODE_SELECT_MOUSE, "NORMAL", "Normal Select", "Select using the mouse"},
 	{0, NULL, NULL, NULL}};
 
-void NODE_OT_extend_select(wmOperatorType *ot)
+void NODE_OT_select_extend(wmOperatorType *ot)
 {
+	// XXX - Todo - This should just be a toggle option for NODE_OT_select not its own op
 	/* identifiers */
 	ot->name= "Activate/Select (Shift)";
-	ot->idname= "NODE_OT_extend_select";
+	ot->idname= "NODE_OT_select_extend";
 	
 	/* api callbacks */
 	ot->invoke= node_extend_select_invoke;
@@ -265,11 +266,11 @@ static int node_borderselect_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void NODE_OT_border_select(wmOperatorType *ot)
+void NODE_OT_select_border(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Border Select";
-	ot->idname= "NODE_OT_border_select";
+	ot->idname= "NODE_OT_select_border";
 	
 	/* api callbacks */
 	ot->invoke= WM_border_select_invoke;

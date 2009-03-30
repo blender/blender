@@ -1,3 +1,5 @@
+# -*- mode: gnumakefile; tab-width: 8; indent-tabs-mode: t; -*-
+# vim: tabstop=8
 #
 # $Id$
 #
@@ -22,7 +24,7 @@
 #
 # The Original Code is: all of this file.
 #
-# Contributor(s): Hans Lambermont
+# Contributor(s): Hans Lambermont, GSR
 #
 # ***** END GPL LICENSE BLOCK *****
 # ghost main makefile.
@@ -38,16 +40,13 @@ TESTDIRS = test
 
 include nan_subdirs.mk
 
-install: all
+install: $(ALL_OR_DEBUG)
 	@[ -d $(NAN_GHOST) ] || mkdir $(NAN_GHOST)
 	@[ -d $(NAN_GHOST)/include ] || mkdir $(NAN_GHOST)/include
-	@[ -d $(NAN_GHOST)/lib ] || mkdir $(NAN_GHOST)/lib
-	@[ -d $(NAN_GHOST)/lib/debug ] || mkdir $(NAN_GHOST)/lib/debug
-	@../tools/cpifdiff.sh $(DIR)/libghost.a $(NAN_GHOST)/lib/
-	@../tools/cpifdiff.sh $(DIR)/debug/libghost.a $(NAN_GHOST)/lib/debug/
+	@[ -d $(NAN_GHOST)/lib/$(DEBUG_DIR) ] || mkdir $(NAN_GHOST)/lib/$(DEBUG_DIR)
+	@../tools/cpifdiff.sh $(DIR)/$(DEBUG_DIR)libghost.a $(NAN_GHOST)/lib/$(DEBUG_DIR)
 ifeq ($(OS),darwin)
-	ranlib $(NAN_GHOST)/lib/libghost.a
-	ranlib $(NAN_GHOST)/lib/debug/libghost.a
+	ranlib $(NAN_GHOST)/lib/$(DEBUG_DIR)libghost.a
 endif
 	@../tools/cpifdiff.sh *.h $(NAN_GHOST)/include/
 

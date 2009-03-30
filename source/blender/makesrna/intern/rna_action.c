@@ -139,7 +139,7 @@ void rna_def_channeldriver(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Driver Object", "Object that controls this Driver.");
 	
 	prop= RNA_def_property(srna, "rna_path", PROP_STRING, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_string_funcs(prop, "rna_Driver_RnaPath_get", "rna_Driver_RnaPath_length", "rna_Driver_RnaPath_set");
 	RNA_def_property_ui_text(prop, "Driver RNA Path", "RNA Path (from Driver Object) to property used as Driver.");
 	
@@ -174,12 +174,12 @@ void rna_def_fcurve(BlenderRNA *brna)
 
 	/* Pointers */
 	prop= RNA_def_property(srna, "driver", PROP_POINTER, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE); // xxx?
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE); // xxx?
 	RNA_def_property_ui_text(prop, "Driver", "Channel Driver (only set for Driver F-Curves)");
 	
 	/* Path + Array Index */
 	prop= RNA_def_property(srna, "rna_path", PROP_STRING, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_string_funcs(prop, "rna_FCurve_RnaPath_get", "rna_FCurve_RnaPath_length", "rna_FCurve_RnaPath_set");
 	RNA_def_property_ui_text(prop, "RNA Path", "RNA Path to property affected by F-Curve.");
 	
@@ -236,9 +236,9 @@ void rna_def_action_group(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", AGRP_SELECTED);
 	RNA_def_property_ui_text(prop, "Selected", "Action Group is selected.");
 
-	prop= RNA_def_property(srna, "protected", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "locked", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", AGRP_PROTECTED);
-	RNA_def_property_ui_text(prop, "Protected", "Action Group is protected.");
+	RNA_def_property_ui_text(prop, "Locked", "Action Group is locked.");
 
 	prop= RNA_def_property(srna, "expanded", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", AGRP_EXPANDED);

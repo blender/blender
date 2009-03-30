@@ -52,10 +52,12 @@
 #include "BLI_arithb.h"
 #include "BLI_kdtree.h"
 #include "BLI_kdopbvh.h"
+#include "BLI_editVert.h"
 
 #include "RE_raytrace.h"
 #include "MEM_guardedalloc.h"
 
+#include "ED_mesh.h"
 
 /* Util macros */
 #define TO_STR(a)	#a
@@ -94,11 +96,14 @@ typedef void ( *Shrinkwrap_ForeachVertexCallback) (DerivedMesh *target, float *c
 static DerivedMesh *object_get_derived_final(struct Scene *scene, Object *ob, CustomDataMask dataMask)
 {
 	Mesh *me= ob->data;
-	
-	if (me->edit_mesh)
+	EditMesh *em = EM_GetEditMesh(me);
+
+	if (em)
 	{
 		DerivedMesh *final = NULL;
-		editmesh_get_derived_cage_and_final(scene, ob, me->edit_mesh, &final, dataMask);
+		editmesh_get_derived_cage_and_final(scene, ob, em, &final, dataMask);
+		
+		EM_EndEditMesh(me, em);
 		return final;
 	}
 	else

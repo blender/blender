@@ -923,7 +923,7 @@ void RNA_def_material(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "script_link", PROP_POINTER, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "scriptlink");
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Script Link", "Scripts linked to this material.");
 
 	/* XXX: does Material.septex get RNA? */
@@ -952,7 +952,7 @@ void rna_def_mtex_common(StructRNA *srna, const char *begin, const char *activeg
 	RNA_def_property_ui_text(prop, "Textures", "Texture slots defining the mapping and influence of textures.");
 
 	prop= RNA_def_property(srna, "active_texture", PROP_POINTER, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_struct_type(prop, structname);
 	RNA_def_property_pointer_funcs(prop, activeget, NULL);
 	RNA_def_property_ui_text(prop, "Active Texture", "Active texture slot being displayed.");

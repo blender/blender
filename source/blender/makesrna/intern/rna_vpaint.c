@@ -72,20 +72,6 @@ void RNA_def_vpaint(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", VP_SPRAY);
 	RNA_def_property_ui_text(prop, "Spray", "Keep applying paint effect while holding mouse.");
 	
-	prop= RNA_def_property(srna, "color", PROP_FLOAT, PROP_COLOR);
-	RNA_def_property_float_sdna(prop, NULL, "r");
-	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Color", "Brush color.");
-	
-	prop= RNA_def_property(srna, "opacity", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "a");
-	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Opacity", "Brush Opacity.");
-	
-	prop= RNA_def_property(srna, "size", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_range(prop, 2.0f, 64.0f);
-	RNA_def_property_ui_text(prop, "Size", "Brush Size.");
-	
 	prop= RNA_def_property(srna, "gamma", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 0.1f, 5.0f);
 	RNA_def_property_ui_text(prop, "Gamma", "Vpaint Gamma.");

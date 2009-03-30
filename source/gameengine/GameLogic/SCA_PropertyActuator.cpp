@@ -260,14 +260,14 @@ PyAttributeDef SCA_PropertyActuator::Attributes[] = {
 	{ NULL }	//Sentinel
 };
 
-PyObject* SCA_PropertyActuator::_getattr(const STR_String& attr) {
+PyObject* SCA_PropertyActuator::_getattr(const char *attr) {
 	PyObject* object = _getattr_self(Attributes, this, attr);
 	if (object != NULL)
 		return object;
 	_getattr_up(SCA_IActuator);
 }
 
-int SCA_PropertyActuator::_setattr(const STR_String& attr, PyObject *value) {
+int SCA_PropertyActuator::_setattr(const char *attr, PyObject *value) {
 	int ret = _setattr_self(Attributes, this, attr, value);
 	if (ret >= 0)
 		return ret;
@@ -298,7 +298,7 @@ PyObject* SCA_PropertyActuator::PySetProperty(PyObject* self, PyObject* args, Py
 	}
 	prop->Release();
 	
-	Py_Return;
+	Py_RETURN_NONE;
 }
 
 /* 2. getProperty                                                        */
@@ -328,7 +328,7 @@ PyObject* SCA_PropertyActuator::PySetValue(PyObject* self, PyObject* args, PyObj
 	
 	if (valArg)	m_exprtxt = valArg;
 
-	Py_Return;
+	Py_RETURN_NONE;
 }
 
 /* 4. getValue                                                        */

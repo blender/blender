@@ -42,6 +42,19 @@ struct direntry;
 struct BlendHandle;
 struct Scene;
 
+#define MAX_FILE_COLUMN 8
+
+typedef enum FileListColumns {
+	COLUMN_NAME = 0,
+	COLUMN_DATE,
+	COLUMN_TIME,
+	COLUMN_SIZE,
+	COLUMN_MODE1,
+	COLUMN_MODE2,
+	COLUMN_MODE3,
+	COLUMN_OWNER
+} FileListColumns;
+
 struct FileList *	filelist_new();
 void				filelist_init_icons();
 void				filelist_free_icons();
@@ -62,23 +75,16 @@ void				filelist_imgsize(struct FileList* filelist, short w, short h);
 void				filelist_loadimage(struct FileList* filelist, int index);
 void				filelist_loadimage_timer(struct FileList* filelist);
 struct ImBuf *		filelist_getimage(struct FileList* filelist, int index);
+struct ImBuf *		filelist_geticon(struct FileList* filelist, int index);
 short				filelist_changed(struct FileList* filelist);
 void				filelist_readdir(struct FileList* filelist);
+int					filelist_column_len(struct FileList* filelist, FileListColumns column);
 
 int					filelist_empty(struct FileList* filelist);
 void				filelist_parent(struct FileList* filelist);
 void				filelist_setfiletypes(struct FileList* filelist, short has_quicktime);
-int					filelist_islibrary (struct FileList* filelist, char* dir, char* group);
-void				filelist_from_main(struct FileList* filelist);
-void				filelist_from_library(struct FileList* filelist);
-void				filelist_append_library(struct FileList* filelist, char *dir, char* file, short flag, int idcode, struct Main *mainvar, struct Scene* scene);
 void				filelist_settype(struct FileList* filelist, int type);
 short				filelist_gettype(struct FileList* filelist);
-void				filelist_setipotype(struct FileList* filelist, short ipotype);
-void				filelist_hasfunc(struct FileList* filelist, int has_func);
-
-struct BlendHandle *filelist_lib(struct FileList* filelist);
-int					groupname_to_code(char *group); /* TODO: where should this go */
 
 #ifdef __cplusplus
 }

@@ -54,3 +54,8 @@ CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
 # own include 
 
 CPPFLAGS += -I../include 
+
+ifeq ($(WITH_OPENJPEG),true)
+	CPPFLAGS += -DWITH_OPENJPEG
+endif
+

@@ -37,6 +37,7 @@ struct bPoseChannel;
 struct wmWindowManager;
 struct ListBase;
 struct View3D;
+struct ViewContext;
 struct RegionView3D;
 
 typedef struct EditBone
@@ -111,8 +112,8 @@ void create_vgroups_from_armature(struct Scene *scene, struct Object *ob, struct
 void docenter_armature (struct Scene *scene, struct View3D *v3d, struct Object *ob, int centermode);
 
 void auto_align_armature(struct Scene *scene, struct View3D *v3d, short mode);
-void unique_editbone_name (ListBase *edbo, char *name);
-void armature_bone_rename(Object *ob, char *oldnamep, char *newnamep);
+void unique_editbone_name(struct ListBase *ebones, char *name, EditBone *bone); /* if bone is already in list, pass it as param to ignore it */
+void armature_bone_rename(struct Object *ob, char *oldnamep, char *newnamep);
 
 void undo_push_armature(struct bContext *C, char *name);
 
@@ -122,6 +123,27 @@ void ED_armature_enter_posemode(struct bContext *C, struct Base *base);
 int ED_pose_channel_in_IK_chain(struct Object *ob, struct bPoseChannel *pchan);
 void ED_pose_deselectall(struct Object *ob, int test, int doundo);
 
+/* sketch */
+
+int ED_operator_sketch_mode_active_stroke(struct bContext *C);
+int ED_operator_sketch_full_mode(struct bContext *C);
+int ED_operator_sketch_mode(struct bContext *C);
+
+void BIF_freeSketch(struct bContext *C);
+void BIF_convertSketch(struct bContext *C);
+void BIF_deleteSketch(struct bContext *C);
+void BIF_selectAllSketch(struct bContext *C, int mode); /* -1: deselect, 0: select, 1: toggle */
+
+void  BIF_makeListTemplates(struct bContext *C);
+char *BIF_listTemplates(struct bContext *C);
+int   BIF_currentTemplate(struct bContext *C);
+void  BIF_freeTemplates(struct bContext *C);
+void  BIF_setTemplate(struct bContext *C, int index);
+int   BIF_nbJointsTemplate(struct bContext *C);
+char * BIF_nameBoneTemplate(struct bContext *C);
+
+void BDR_drawSketch(struct bContext *vc);
+int BDR_drawSketchNames(struct ViewContext *vc);
 
 #endif /* ED_ARMATURE_H */
 

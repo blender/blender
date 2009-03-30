@@ -469,7 +469,12 @@ int WM_operator_call_py(bContext *C, wmOperatorType *ot, PointerRNA *properties,
 {
 	wmWindowManager *wm=	CTX_wm_manager(C);
 	wmOperator *op=			wm_operator_create(wm, ot, properties, reports);
-	int retval=				op->type->exec(C, op);
+	int retval= OPERATOR_CANCELLED;
+	
+	if (op->type->exec)
+		retval= op->type->exec(C, op);
+	else
+		printf("error \"%s\" operator has no exec function, python cannot call it\n", op->type->name);
 	
 	if (reports)
 		op->reports= NULL; /* dont let the operator free reports passed to this function */
@@ -544,14 +549,17 @@ void WM_event_remove_handlers(bContext *C, ListBase *handlers)
 		else if(handler->ui_remove) {
 			ScrArea *area= CTX_wm_area(C);
 			ARegion *region= CTX_wm_region(C);
+			ARegion *menu= CTX_wm_menu(C);
 			
 			if(handler->ui_area) CTX_wm_area_set(C, handler->ui_area);
 			if(handler->ui_region) CTX_wm_region_set(C, handler->ui_region);
+			if(handler->ui_menu) CTX_wm_menu_set(C, handler->ui_menu);
 
 			handler->ui_remove(C, handler->ui_userdata);
 
 			CTX_wm_area_set(C, area);
 			CTX_wm_region_set(C, region);
+			CTX_wm_menu_set(C, menu);
 		}
 
 		wm_event_free_handler(handler);
@@ -721,11 +729,13 @@ static int wm_handler_ui_call(bContext *C, wmEventHandler *handler, wmEvent *eve
 {
 	ScrArea *area= CTX_wm_area(C);
 	ARegion *region= CTX_wm_region(C);
+	ARegion *menu= CTX_wm_menu(C);
 	int retval;
 			
 	/* we set context to where ui handler came from */
 	if(handler->ui_area) CTX_wm_area_set(C, handler->ui_area);
 	if(handler->ui_region) CTX_wm_region_set(C, handler->ui_region);
+	if(handler->ui_menu) CTX_wm_menu_set(C, handler->ui_menu);
 
 	retval= handler->ui_handle(C, event, handler->ui_userdata);
 
@@ -733,11 +743,13 @@ static int wm_handler_ui_call(bContext *C, wmEventHandler *handler, wmEvent *eve
 	if((retval != WM_UI_HANDLER_BREAK) || wm_event_always_pass(event)) {
 		CTX_wm_area_set(C, area);
 		CTX_wm_region_set(C, region);
+		CTX_wm_menu_set(C, menu);
 	}
 	else {
 		/* this special cases is for areas and regions that get removed */
 		CTX_wm_area_set(C, NULL);
 		CTX_wm_region_set(C, NULL);
+		CTX_wm_menu_set(C, NULL);
 	}
 
 	if(retval == WM_UI_HANDLER_BREAK)
@@ -776,7 +788,7 @@ static int wm_handler_fileselect_call(bContext *C, ListBase *handlers, wmEventHa
 				sfile= (SpaceFile*)CTX_wm_space_data(C);
 				sfile->op= handler->op;
 				
-				ED_fileselect_set_params(sfile, filetype, handler->op->type->name, path, 0, 0, 0);
+				ED_fileselect_set_params(sfile, filetype, handler->op->type->name, path, 0, FILE_SHORTDISPLAY, 0);
 				MEM_freeN(path);
 				
 				action= WM_HANDLER_BREAK;
@@ -1192,6 +1204,7 @@ wmEventHandler *WM_event_add_ui_handler(bContext *C, ListBase *handlers, wmUIHan
 	handler->ui_userdata= userdata;
 	handler->ui_area= (C)? CTX_wm_area(C): NULL;
 	handler->ui_region= (C)? CTX_wm_region(C): NULL;
+	handler->ui_menu= (C)? CTX_wm_menu(C): NULL;
 	
 	BLI_addhead(handlers, handler);
 	

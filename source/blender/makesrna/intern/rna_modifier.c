@@ -471,7 +471,7 @@ static void rna_def_modifier_decimate(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "face_count", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "faceCount");
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Face Count", "The current number of faces in the decimated mesh.");
 }
 
@@ -1569,7 +1569,7 @@ void RNA_def_modifier(BlenderRNA *brna)
 	
 	/* enums */
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_enum_sdna(prop, NULL, "type");
 	RNA_def_property_enum_items(prop, type_items);
 	RNA_def_property_ui_text(prop, "Type", "");

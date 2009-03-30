@@ -33,9 +33,9 @@ struct	btDefaultCollisionConstructionInfo
 		:m_stackAlloc(0),
 		m_persistentManifoldPool(0),
 		m_collisionAlgorithmPool(0),
-		m_defaultMaxPersistentManifoldPoolSize(65535),
-		m_defaultMaxCollisionAlgorithmPoolSize(65535),
-		m_defaultStackAllocatorSize(5*1024*1024)
+		m_defaultMaxPersistentManifoldPoolSize(4096),
+		m_defaultMaxCollisionAlgorithmPoolSize(4096),
+		m_defaultStackAllocatorSize(0)
 	{
 	}
 };
@@ -44,7 +44,7 @@ struct	btDefaultCollisionConstructionInfo
 
 ///btCollisionConfiguration allows to configure Bullet collision detection
 ///stack allocator, pool memory allocators
-///todo: describe the meaning
+///@todo: describe the meaning
 class	btDefaultCollisionConfiguration : public btCollisionConfiguration
 {
 
@@ -111,6 +111,14 @@ public:
 
 	virtual btCollisionAlgorithmCreateFunc* getCollisionAlgorithmCreateFunc(int proxyType0,int proxyType1);
 
+	///Use this method to allow to generate multiple contact points between at once, between two objects using the generic convex-convex algorithm.
+	///By default, this feature is disabled for best performance.
+	///@param numPerturbationIterations controls the number of collision queries. Set it to zero to disable the feature.
+	///@param minimumPointsPerturbationThreshold is the minimum number of points in the contact cache, above which the feature is disabled
+	///3 is a good value for both params, if you want to enable the feature. This is because the default contact cache contains a maximum of 4 points, and one collision query at the unperturbed orientation is performed first.
+	///See Bullet/Demos/CollisionDemo for an example how this feature gathers multiple points.
+	///@todo we could add a per-object setting of those parameters, for level-of-detail collision detection.
+	void	setConvexConvexMultipointIterations(int numPerturbationIterations=3, int minimumPointsPerturbationThreshold = 3);
 
 };
 

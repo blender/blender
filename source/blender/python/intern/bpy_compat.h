@@ -37,7 +37,7 @@
 #undef PyUnicode_Check
 #define PyUnicode_Check PyString_Check
 
-#define PyLong_FromSize_t PyInt_FromLong
+#define PyLong_FromSsize_t PyInt_FromLong
 #define PyLong_AsSsize_t PyInt_AsLong
 
 #undef PyLong_Check
@@ -54,6 +54,18 @@
 #endif
 #define PyUnicode_FromFormat PyString_FromFormat
 
+#endif
+
+#ifndef Py_REFCNT
+#define Py_REFCNT(ob)		(((PyObject*)(ob))->ob_refcnt)
+#endif
+
+#ifndef Py_TYPE
+#define Py_TYPE(ob)		(((PyObject*)(ob))->ob_type)
+#endif
+
+#ifndef Py_TYPE
+#define Py_SIZE(ob)		(((PyVarObject*)(ob))->ob_size)
 #endif
 
 /* older then python 2.6 - define these */

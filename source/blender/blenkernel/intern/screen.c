@@ -54,8 +54,11 @@ static void spacetype_free(SpaceType *st)
 {
 	ARegionType *art;
 	
-	for(art= st->regiontypes.first; art; art= art->next)
+	for(art= st->regiontypes.first; art; art= art->next) {
 		BLI_freelistN(&art->drawcalls);
+		BLI_freelistN(&art->paneltypes);
+		BLI_freelistN(&art->headertypes);
+	}
 	
 	BLI_freelistN(&st->regiontypes);
 }
@@ -199,7 +202,7 @@ void BKE_spacedata_copylist(ListBase *lb1, ListBase *lb2)
 {
 	SpaceLink *sl;
 	
-	lb1->first= lb2->last= NULL;	/* to be sure */
+	lb1->first= lb1->last= NULL;	/* to be sure */
 	
 	for (sl= lb2->first; sl; sl= sl->next) {
 		SpaceType *st= BKE_spacetype_from_id(sl->spacetype);
@@ -209,6 +212,27 @@ void BKE_spacedata_copylist(ListBase *lb1, ListBase *lb2)
 			
 			BLI_addtail(lb1, slnew);
 			
+			region_copylist(st, &slnew->regionbase, &sl->regionbase);
+		}
+	}
+}
+
+/* lb1 should be empty */
+void BKE_spacedata_copyfirst(ListBase *lb1, ListBase *lb2)
+{
+	SpaceLink *sl;
+	
+	lb1->first= lb1->last= NULL;	/* to be sure */
+	
+	sl= lb2->first;
+	if(sl) {
+		SpaceType *st= BKE_spacetype_from_id(sl->spacetype);
+
+		if(st && st->duplicate) {
+			SpaceLink *slnew= st->duplicate(sl);
+
+			BLI_addtail(lb1, slnew);
+
 			region_copylist(st, &slnew->regionbase, &sl->regionbase);
 		}
 	}

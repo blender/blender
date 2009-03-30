@@ -87,15 +87,15 @@ class KX_MouseFocusSensor : public SCA_MouseSensor
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
-	virtual PyObject*  _getattr(const STR_String& attr);
+	virtual PyObject*  _getattr(const char *attr);
 
-	KX_PYMETHOD_DOC(KX_MouseFocusSensor,GetRayTarget);
-	KX_PYMETHOD_DOC(KX_MouseFocusSensor,GetRaySource);
+	KX_PYMETHOD_DOC_NOARGS(KX_MouseFocusSensor,GetRayTarget);
+	KX_PYMETHOD_DOC_NOARGS(KX_MouseFocusSensor,GetRaySource);
 	
-	KX_PYMETHOD_DOC(KX_MouseFocusSensor,GetHitObject);
-	KX_PYMETHOD_DOC(KX_MouseFocusSensor,GetHitPosition);
-	KX_PYMETHOD_DOC(KX_MouseFocusSensor,GetHitNormal);
-	KX_PYMETHOD_DOC(KX_MouseFocusSensor,GetRayDirection);
+	KX_PYMETHOD_DOC_NOARGS(KX_MouseFocusSensor,GetHitObject);
+	KX_PYMETHOD_DOC_NOARGS(KX_MouseFocusSensor,GetHitPosition);
+	KX_PYMETHOD_DOC_NOARGS(KX_MouseFocusSensor,GetHitNormal);
+	KX_PYMETHOD_DOC_NOARGS(KX_MouseFocusSensor,GetRayDirection);
 
 	/* --------------------------------------------------------------------- */
 	SCA_IObject*	m_hitObject;

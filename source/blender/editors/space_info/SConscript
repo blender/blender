@@ -3,7 +3,15 @@ Import ('env')
 
 sources = env.Glob('*.c')
 
-incs = '../include ../../blenlib ../../blenkernel ../../makesdna ../../imbuf ../../blenfont'
+incs = '../include ../../blenlib ../../blenkernel ../../makesdna ../../makesrna ../../imbuf ../../blenfont'
 incs += ' ../../windowmanager #/intern/guardedalloc #/extern/glew/include'
 
-env.BlenderLib ( 'bf_editors_space_info', sources, Split(incs), [], libtype=['core'], priority=[70] )
+defs = []
+
+if env['WITH_BF_GAMEENGINE']:
+	defs.append('GAMEBLENDER=1')
+
+	if env['WITH_BF_SOLID']:
+		defs.append('USE_SUMO_SOLID')
+
+env.BlenderLib ( 'bf_editors_space_info', sources, Split(incs), defs, libtype=['core'], priority=[70] )

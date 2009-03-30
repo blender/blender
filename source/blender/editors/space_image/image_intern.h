@@ -75,7 +75,7 @@ void IMAGE_OT_pack(struct wmOperatorType *ot);
 void IMAGE_OT_unpack(struct wmOperatorType *ot);
 
 void IMAGE_OT_sample(struct wmOperatorType *ot);
-void IMAGE_OT_set_curves_point(struct wmOperatorType *ot);
+void IMAGE_OT_curves_point_set(struct wmOperatorType *ot);
 
 void IMAGE_OT_record_composite(struct wmOperatorType *ot);
 

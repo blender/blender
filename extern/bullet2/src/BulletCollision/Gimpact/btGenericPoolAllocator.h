@@ -155,14 +155,9 @@ public:
 
 
 
-/*! \defgroup POOL_MEMORY_FUNCTIONS
-standar managed Memory functions. Memory pools are used.
-*/
-//! @{
 void * btPoolAlloc(size_t size);
 void * btPoolRealloc(void *ptr, size_t oldsize, size_t newsize);
 void btPoolFree(void *ptr);
-//! @}
 
 
 #endif

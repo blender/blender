@@ -2518,12 +2518,12 @@ static int node_delete_selection_exec(bContext *C, wmOperator *op)
 
 /* operators */
 
-void NODE_OT_delete_selection(wmOperatorType *ot)
+void NODE_OT_delete(wmOperatorType *ot)
 {
 	
 	/* identifiers */
 	ot->name= "Delete";
-	ot->idname= "NODE_OT_delete_selection";
+	ot->idname= "NODE_OT_delete";
 	
 	/* api callbacks */
 	ot->exec= node_delete_selection_exec;

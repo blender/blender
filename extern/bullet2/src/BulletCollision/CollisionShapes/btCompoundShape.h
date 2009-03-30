@@ -46,23 +46,26 @@ SIMD_FORCE_INLINE bool operator==(const btCompoundShapeChild& c1, const btCompou
 		c1.m_childMargin    == c2.m_childMargin );
 }
 
-/// btCompoundShape allows to store multiple other btCollisionShapes
+/// The btCompoundShape allows to store multiple other btCollisionShapes
 /// This allows for moving concave collision objects. This is more general then the static concave btBvhTriangleMeshShape.
+/// It has an (optional) dynamic aabb tree to accelerate early rejection tests. 
+/// @todo: This aabb tree can also be use to speed up ray tests on btCompoundShape, see http://code.google.com/p/bullet/issues/detail?id=25
+/// Currently, removal of child shapes is only supported when disabling the aabb tree (pass 'false' in the constructor of btCompoundShape)
 ATTRIBUTE_ALIGNED16(class) btCompoundShape	: public btCollisionShape
 {
-	//btAlignedObjectArray<btTransform>		m_childTransforms;
-	//btAlignedObjectArray<btCollisionShape*>	m_childShapes;
 	btAlignedObjectArray<btCompoundShapeChild> m_children;
 	btVector3						m_localAabbMin;
 	btVector3						m_localAabbMax;
 
-	//btOptimizedBvh*					m_aabbTree;
 	btDbvt*							m_dynamicAabbTree;
+
+	///increment m_updateRevision when adding/removing/replacing child shapes, so that some caches can be updated
+	int								m_updateRevision;
 
 public:
 	BT_DECLARE_ALIGNED_ALLOCATOR();
 
-	btCompoundShape();
+	btCompoundShape(bool enableDynamicAabbTree = true);
 
 	virtual ~btCompoundShape();
 
@@ -88,14 +91,17 @@ public:
 		return m_children[index].m_childShape;
 	}
 
-	btTransform	getChildTransform(int index)
+	btTransform&	getChildTransform(int index)
 	{
 		return m_children[index].m_transform;
 	}
-	const btTransform	getChildTransform(int index) const
+	const btTransform&	getChildTransform(int index) const
 	{
 		return m_children[index].m_transform;
 	}
+
+	///set a new transform for a child, and update internal data structures (local aabb and dynamic tree)
+	void	updateChildTransform(int childIndex, const btTransform& newChildTransform);
 
 
 	btCompoundShapeChild* getChildList()
@@ -120,8 +126,6 @@ public:
 	}
 
 	virtual void	calculateLocalInertia(btScalar mass,btVector3& inertia) const;
-
-	virtual int	getShapeType() const { return COMPOUND_SHAPE_PROXYTYPE;}
 
 	virtual void	setMargin(btScalar margin)
 	{
@@ -151,6 +155,10 @@ public:
 	///of the collision object by the principal transform.
 	void calculatePrincipalAxisTransform(btScalar* masses, btTransform& principal, btVector3& inertia) const;
 
+	int	getUpdateRevision() const
+	{
+		return m_updateRevision;
+	}
 
 private:
 	btScalar	m_collisionMargin;

@@ -1061,11 +1061,11 @@ static int set_weight_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void CURVE_OT_set_weight(wmOperatorType *ot)
+void CURVE_OT_spline_weight_set(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Set Curve Weight";
-	ot->idname= "CURVE_OT_set_weight";
+	ot->idname= "CURVE_OT_spline_weight_set";
 	
 	/* api callbacks */
 	ot->exec= set_weight_exec;
@@ -1113,11 +1113,11 @@ static int set_radius_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void CURVE_OT_set_radius(wmOperatorType *ot)
+void CURVE_OT_radius_set(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Set Curve Radius";
-	ot->idname= "CURVE_OT_set_radius";
+	ot->idname= "CURVE_OT_radius_set";
 	
 	/* api callbacks */
 	ot->exec= set_radius_exec;
@@ -1595,11 +1595,11 @@ static int de_select_all_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void CURVE_OT_de_select_all(wmOperatorType *ot)
+void CURVE_OT_select_all_toggle(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select or Deselect All";
-	ot->idname= "CURVE_OT_de_select_all";
+	ot->idname= "CURVE_OT_select_all_toggle";
 	
 	/* api callbacks */
 	ot->exec= de_select_all_exec;
@@ -1741,7 +1741,7 @@ void CURVE_OT_reveal(wmOperatorType *ot)
 
 /********************** select invert operator *********************/
 
-static int select_inverse_exec(bContext *C, wmOperator *op)
+static int select_invert_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
 	ListBase *editnurb= curve_get_editcurve(obedit);
@@ -1780,14 +1780,14 @@ static int select_inverse_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;	
 }
 
-void CURVE_OT_select_inverse(wmOperatorType *ot)
+void CURVE_OT_select_invert(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select Inverse";
-	ot->idname= "CURVE_OT_select_inverse";
+	ot->name= "Select Invert";
+	ot->idname= "CURVE_OT_select_invert";
 	
 	/* api callbacks */
-	ot->exec= select_inverse_exec;
+	ot->exec= select_invert_exec;
 	ot->poll= ED_operator_editsurfcurve;
 	
 	/* flags */
@@ -2476,7 +2476,7 @@ static int set_spline_type_exec(bContext *C, wmOperator *op)
 	return (changed)? OPERATOR_FINISHED: OPERATOR_CANCELLED;
 }
 
-void CURVE_OT_set_spline_type(wmOperatorType *ot)
+void CURVE_OT_spline_type_set(wmOperatorType *ot)
 {
 	static EnumPropertyItem type_items[]= {
 		{CU_POLY, "POLY", "Poly", ""},
@@ -2488,7 +2488,7 @@ void CURVE_OT_set_spline_type(wmOperatorType *ot)
 
 	/* identifiers */
 	ot->name= "Set Spline Type";
-	ot->idname= "CURVE_OT_set_spline_type";
+	ot->idname= "CURVE_OT_spline_type_set";
 	
 	/* api callbacks */
 	ot->exec= set_spline_type_exec;
@@ -2517,7 +2517,7 @@ static int set_handle_type_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void CURVE_OT_set_handle_type(wmOperatorType *ot)
+void CURVE_OT_handle_type_set(wmOperatorType *ot)
 {
 	static EnumPropertyItem type_items[]= {
 		{1, "AUTOMATIC", "Automatic", ""},
@@ -2529,7 +2529,7 @@ void CURVE_OT_set_handle_type(wmOperatorType *ot)
 
 	/* identifiers */
 	ot->name= "Set Handle Type";
-	ot->idname= "CURVE_OT_set_handle_type";
+	ot->idname= "CURVE_OT_handle_type_set";
 	
 	/* api callbacks */
 	ot->exec= set_handle_type_exec;
@@ -3490,8 +3490,7 @@ static int toggle_cyclic_exec(bContext *C, wmOperator *op)
 	Nurb *nu;
 	BezTriple *bezt;
 	BPoint *bp;
-	float *fp;
-	int a, b, direction= RNA_enum_get(op->ptr, "direction");
+	int a, direction= RNA_enum_get(op->ptr, "direction");
 
 	for(nu= editnurb->first; nu; nu= nu->next) {
 		if( nu->pntsu>1 || nu->pntsv>1) {
@@ -3500,8 +3499,7 @@ static int toggle_cyclic_exec(bContext *C, wmOperator *op)
 				bp= nu->bp;
 				while(a--) {
 					if( bp->f1 & SELECT ) {
-						if(nu->flagu & CU_CYCLIC) nu->flagu &= ~CU_CYCLIC;
-						else nu->flagu |= CU_CYCLIC;
+						nu->flagu ^= CU_CYCLIC;
 						break;
 					}
 					bp++;
@@ -3512,8 +3510,7 @@ static int toggle_cyclic_exec(bContext *C, wmOperator *op)
 				bezt= nu->bezt;
 				while(a--) {
 					if( BEZSELECTED_HIDDENHANDLES(bezt) ) {
-						if(nu->flagu & CU_CYCLIC) nu->flagu &= ~CU_CYCLIC;
-						else nu->flagu |= CU_CYCLIC;
+						nu->flagu ^= CU_CYCLIC;
 						break;
 					}
 					bezt++;
@@ -3526,19 +3523,8 @@ static int toggle_cyclic_exec(bContext *C, wmOperator *op)
 					bp= nu->bp;
 					while(a--) {
 						if( bp->f1 & SELECT ) {
-							if(nu->flagu & CU_CYCLIC) nu->flagu &= ~CU_CYCLIC;
-							else {
-								nu->flagu |= CU_CYCLIC;
-								nu->flagu &= ~2;	/* endpoint flag, fixme */
-								fp= MEM_mallocN(sizeof(float)*KNOTSU(nu), "makecyclicN");
-								b= (nu->orderu+nu->pntsu);
-								memcpy(fp, nu->knotsu, sizeof(float)*b);
-								MEM_freeN(nu->knotsu);
-								nu->knotsu= fp;
-							
-								makeknots(nu, 1, 0);	/* 1==u  0==uniform */
-							
-							}
+							nu->flagu ^= CU_CYCLIC;
+							makeknots(nu, 1, nu->flagu>>1);	/* 1==u  type is ignored for cyclic curves */
 							break;
 						}
 						bp++;
@@ -3552,38 +3538,12 @@ static int toggle_cyclic_exec(bContext *C, wmOperator *op)
 	
 					if( bp->f1 & SELECT) {
 						if(direction==0 && nu->pntsu>1) {
-							if(nu->flagu & CU_CYCLIC) nu->flagu &= ~CU_CYCLIC;
-							else {
-								nu->flagu |= CU_CYCLIC;
-								if (check_valid_nurb_u(nu)) {
-									fp= MEM_mallocN(sizeof(float)*KNOTSU(nu), "makecyclicN");
-									b= (nu->orderu+nu->pntsu);
-									if (nu->knotsu) { /* null if check_valid_nurb_u failed before but is valid now */
-										memcpy(fp, nu->knotsu, sizeof(float)*b);
-										MEM_freeN(nu->knotsu);
-									}
-									nu->knotsu= fp;
-								
-									makeknots(nu, 1, 0);	/* 1==u  0==uniform */
-								}
-							}
+							nu->flagu ^= CU_CYCLIC;
+							makeknots(nu, 1, nu->flagu>>1); /* 1==u  type is ignored for cyclic curves */
 						}
 						if(direction==1 && nu->pntsv>1) {
-							if(nu->flagv & 1) nu->flagv--;
-							else {
-								nu->flagv++;
-								if (check_valid_nurb_v(nu)) {
-									fp= MEM_mallocN(sizeof(float)*KNOTSV(nu), "makecyclicN");
-									b= (nu->orderv+nu->pntsv);
-									if (nu->knotsv) { /* null if check_valid_nurb_v failed before but is valid now */
-										memcpy(fp, nu->knotsv, sizeof(float)*b);
-										MEM_freeN(nu->knotsv);
-									}
-									nu->knotsv= fp;
-								
-									makeknots(nu, 2, 0);	/* 2==v  0==uniform */
-								}
-							}
+							nu->flagv ^= CU_CYCLIC;
+							makeknots(nu, 2, nu->flagv>>1); /* 2==v  type is ignored for cyclic curves */
 						}
 						break;
 					}
@@ -3621,7 +3581,7 @@ static int toggle_cyclic_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return toggle_cyclic_exec(C, op);
 }
 
-void CURVE_OT_toggle_cyclic(wmOperatorType *ot)
+void CURVE_OT_cyclic_toggle(wmOperatorType *ot)
 {
 	static EnumPropertyItem direction_items[]= {
 		{0, "CYCLIC_U", "Cyclic U", ""},
@@ -3630,7 +3590,7 @@ void CURVE_OT_toggle_cyclic(wmOperatorType *ot)
 
 	/* identifiers */
 	ot->name= "Toggle Cyclic";
-	ot->idname= "CURVE_OT_toggle_cyclic";
+	ot->idname= "CURVE_OT_cyclic_toggle";
 	
 	/* api callbacks */
 	ot->exec= toggle_cyclic_exec;
@@ -4617,11 +4577,11 @@ static int set_smooth_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void CURVE_OT_set_smooth(wmOperatorType *ot)
+void CURVE_OT_smooth_set(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Set Smooth";
-	ot->idname= "CURVE_OT_set_smooth";
+	ot->idname= "CURVE_OT_smooth_set";
 	
 	/* api callbacks */
 	ot->exec= set_smooth_exec;
@@ -5169,11 +5129,11 @@ static int clear_tilt_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void CURVE_OT_clear_tilt(wmOperatorType *ot)
+void CURVE_OT_tilt_clear(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Clear Tilt";
-	ot->idname= "CURVE_OT_clear_tilt";
+	ot->idname= "CURVE_OT_tilt_clear";
 	
 	/* api callbacks */
 	ot->exec= clear_tilt_exec;

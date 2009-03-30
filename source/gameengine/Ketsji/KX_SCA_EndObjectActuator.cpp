@@ -127,8 +127,11 @@ PyMethodDef KX_SCA_EndObjectActuator::Methods[] = {
   {NULL,NULL} //Sentinel
 };
 
+PyAttributeDef KX_SCA_EndObjectActuator::Attributes[] = {
+	{ NULL }	//Sentinel
+};
 
-PyObject* KX_SCA_EndObjectActuator::_getattr(const STR_String& attr)
+PyObject* KX_SCA_EndObjectActuator::_getattr(const char *attr)
 {
   _getattr_up(SCA_IActuator);
 }

@@ -74,7 +74,6 @@ static SpaceLink *text_new(const bContext *C)
 	stext= MEM_callocN(sizeof(SpaceText), "inittext");
 	stext->spacetype= SPACE_TEXT;
 
-	stext->font_id= 5;
 	stext->lheight= 12;
 	stext->tabnumber= 4;
 	
@@ -164,7 +163,7 @@ static void text_operatortypes(void)
 	WM_operatortype_append(TEXT_OT_unindent);
 	WM_operatortype_append(TEXT_OT_indent);
 
-	WM_operatortype_append(TEXT_OT_clear_all_markers);
+	WM_operatortype_append(TEXT_OT_markers_clear);
 	WM_operatortype_append(TEXT_OT_next_marker);
 	WM_operatortype_append(TEXT_OT_previous_marker);
 
@@ -175,9 +174,9 @@ static void text_operatortypes(void)
 	WM_operatortype_append(TEXT_OT_move);
 	WM_operatortype_append(TEXT_OT_move_select);
 	WM_operatortype_append(TEXT_OT_delete);
-	WM_operatortype_append(TEXT_OT_toggle_overwrite);
+	WM_operatortype_append(TEXT_OT_overwrite_toggle);
 
-	WM_operatortype_append(TEXT_OT_set_cursor);
+	WM_operatortype_append(TEXT_OT_cursor_set);
 	WM_operatortype_append(TEXT_OT_scroll);
 	WM_operatortype_append(TEXT_OT_scroll_bar);
 	WM_operatortype_append(TEXT_OT_line_number);
@@ -185,7 +184,8 @@ static void text_operatortypes(void)
 	WM_operatortype_append(TEXT_OT_line_break);
 	WM_operatortype_append(TEXT_OT_insert);
 
-	WM_operatortype_append(TEXT_OT_find_and_replace);
+	WM_operatortype_append(TEXT_OT_properties);
+
 	WM_operatortype_append(TEXT_OT_find);
 	WM_operatortype_append(TEXT_OT_find_set_selected);
 	WM_operatortype_append(TEXT_OT_replace);
@@ -220,8 +220,8 @@ static void text_keymap(struct wmWindowManager *wm)
 
 	WM_keymap_add_item(keymap, "TEXT_OT_jump", JKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "TEXT_OT_find", FKEY, KM_PRESS, KM_ALT, 0);
-	WM_keymap_add_item(keymap, "TEXT_OT_find_and_replace", FKEY, KM_PRESS, KM_ALT, 0);
-	WM_keymap_add_item(keymap, "TEXT_OT_find_and_replace", FKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "TEXT_OT_properties", FKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_add_item(keymap, "TEXT_OT_properties", FKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "TEXT_OT_replace", HKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "TEXT_OT_replace", HKEY, KM_PRESS, KM_CTRL, 0);
 
@@ -268,12 +268,12 @@ static void text_keymap(struct wmWindowManager *wm)
 	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_delete", DELKEY, KM_PRESS, KM_CTRL, 0)->ptr, "type", DEL_NEXT_WORD);
 	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_delete", BACKSPACEKEY, KM_PRESS, KM_CTRL, 0)->ptr, "type", DEL_PREV_WORD);
 
-	WM_keymap_add_item(keymap, "TEXT_OT_toggle_overwrite", INSERTKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "TEXT_OT_overwrite_toggle", INSERTKEY, KM_PRESS, 0, 0);
 
 	WM_keymap_add_item(keymap, "TEXT_OT_scroll", MIDDLEMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "TEXT_OT_scroll_bar", LEFTMOUSE, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "TEXT_OT_set_cursor", LEFTMOUSE, KM_PRESS, 0, 0);
-	RNA_boolean_set(WM_keymap_add_item(keymap, "TEXT_OT_set_cursor", LEFTMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "select", 1);
+	WM_keymap_add_item(keymap, "TEXT_OT_cursor_set", LEFTMOUSE, KM_PRESS, 0, 0);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "TEXT_OT_cursor_set", LEFTMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "select", 1);
 	RNA_int_set(WM_keymap_add_item(keymap, "TEXT_OT_scroll", WHEELUPMOUSE, KM_PRESS, 0, 0)->ptr, "lines", -1);
 	RNA_int_set(WM_keymap_add_item(keymap, "TEXT_OT_scroll", WHEELDOWNMOUSE, KM_PRESS, 0, 0)->ptr, "lines", 1);
 
@@ -284,12 +284,12 @@ static void text_keymap(struct wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "TEXT_OT_insert", KM_TEXTINPUT, KM_ANY, KM_ANY, 0); // last!
 }
 
-static int text_context(const bContext *C, bContextDataMember member, bContextDataResult *result)
+static int text_context(const bContext *C, const char *member, bContextDataResult *result)
 {
 	SpaceText *st= CTX_wm_space_text(C);
 
-	if(member == CTX_DATA_EDIT_TEXT) {
-		CTX_data_pointer_set(result, st->text);
+	if(CTX_data_equals(member, "edit_text")) {
+		CTX_data_id_pointer_set(result, &st->text->id);
 		return 1;
 	}
 
@@ -344,58 +344,25 @@ static void text_cursor(wmWindow *win, ScrArea *sa, ARegion *ar)
 static void text_header_area_init(wmWindowManager *wm, ARegion *ar)
 {
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_HEADER, ar->winx, ar->winy);
+	ar->v2d.flag &= ~(V2D_PIXELOFS_X|V2D_PIXELOFS_Y); // XXX temporary
 }
 
 static void text_header_area_draw(const bContext *C, ARegion *ar)
 {
-	float col[3];
-	
-	/* clear */
-	if(ED_screen_area_active(C))
-		UI_GetThemeColor3fv(TH_HEADER, col);
-	else
-		UI_GetThemeColor3fv(TH_HEADERDESEL, col);
-	
-	glClearColor(col[0], col[1], col[2], 0.0);
-	glClear(GL_COLOR_BUFFER_BIT);
-	
-	/* set view2d view matrix for scrolling (without scrollers) */
-	UI_view2d_view_ortho(C, &ar->v2d);
-	
-	text_header_buttons(C, ar);
-	
-	/* restore view matrix? */
-	UI_view2d_view_restore(C);
+	uiRegionHeaderLayout(C, ar);
 }
 
-/****************** find & replace region ******************/
+/****************** properties region ******************/
 
 /* add handlers, stuff you only do once or on area/region changes */
-static void text_find_area_init(wmWindowManager *wm, ARegion *ar)
+static void text_properties_area_init(wmWindowManager *wm, ARegion *ar)
 {
-	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_HEADER, ar->winx, ar->winy);
+	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_PANELS_UI, ar->winx, ar->winy);
 }
 
-static void text_find_area_draw(const bContext *C, ARegion *ar)
+static void text_properties_area_draw(const bContext *C, ARegion *ar)
 {
-	float col[3];
-	
-	/* clear */
-	if(ED_screen_area_active(C))
-		UI_GetThemeColor3fv(TH_HEADER, col);
-	else
-		UI_GetThemeColor3fv(TH_HEADERDESEL, col);
-	
-	glClearColor(col[0], col[1], col[2], 0.0);
-	glClear(GL_COLOR_BUFFER_BIT);
-	
-	/* set view2d view matrix for scrolling (without scrollers) */
-	UI_view2d_view_ortho(C, &ar->v2d);
-	
-	text_find_buttons(C, ar);
-	
-	/* restore view matrix? */
-	UI_view2d_view_restore(C);
+	uiRegionPanelLayout(C, ar, 1, NULL);
 }
 
 /********************* registration ********************/
@@ -426,6 +393,19 @@ void ED_spacetype_text(void)
 
 	BLI_addhead(&st->regiontypes, art);
 	
+	/* regions: properties */
+	art= MEM_callocN(sizeof(ARegionType), "spacetype text region");
+	art->regionid = RGN_TYPE_UI;
+	art->minsizex= UI_COMPACT_PANEL_WIDTH;
+	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D;
+	
+	art->init= text_properties_area_init;
+	art->draw= text_properties_area_draw;
+	
+	text_properties_register(art);
+
+	BLI_addhead(&st->regiontypes, art);
+
 	/* regions: header */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype text region");
 	art->regionid = RGN_TYPE_HEADER;
@@ -435,19 +415,10 @@ void ED_spacetype_text(void)
 	art->init= text_header_area_init;
 	art->draw= text_header_area_draw;
 	
+	text_header_register(art);
+
 	BLI_addhead(&st->regiontypes, art);
 
-	/* regions: find & replace */
-	art= MEM_callocN(sizeof(ARegionType), "spacetype text region");
-	art->regionid = RGN_TYPE_UI;
-	art->minsizey= HEADERY;
-	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D;
-	
-	art->init= text_find_area_init;
-	art->draw= text_find_area_draw;
-	
-	BLI_addhead(&st->regiontypes, art);
-	
 	BKE_spacetype_register(st);
 }
 

@@ -36,8 +36,8 @@ using namespace std;
 
 SCA_IActuator::SCA_IActuator(SCA_IObject* gameobj,
 							 PyTypeObject* T) :
-	m_links(0),
-	SCA_ILogicBrick(gameobj,T) 
+	SCA_ILogicBrick(gameobj,T),
+	m_links(0)
 {
 	// nothing to do
 }

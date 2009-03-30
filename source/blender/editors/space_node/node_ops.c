@@ -51,11 +51,11 @@
 void node_operatortypes(void)
 {
 	WM_operatortype_append(NODE_OT_select);
-	WM_operatortype_append(NODE_OT_extend_select);
+	WM_operatortype_append(NODE_OT_select_extend);
 	WM_operatortype_append(NODE_OT_visibility_toggle);
-	WM_operatortype_append(NODE_OT_fit_all);
-	WM_operatortype_append(NODE_OT_border_select);
-	WM_operatortype_append(NODE_OT_delete_selection);
+	WM_operatortype_append(NODE_OT_view_all);
+	WM_operatortype_append(NODE_OT_select_border);
+	WM_operatortype_append(NODE_OT_delete);
 	WM_operatortype_append(NODE_OT_link);
 	WM_operatortype_append(NODE_OT_size_widget);
 	WM_operatortype_append(NODE_OT_links_cut);
@@ -68,17 +68,17 @@ void node_keymap(struct wmWindowManager *wm)
 	/* mouse select in nodes used to be both keys, it's UI elements... */
 	RNA_enum_set(WM_keymap_add_item(keymap, "NODE_OT_select", ACTIONMOUSE, KM_PRESS, 0, 0)->ptr, "select_type", NODE_SELECT_MOUSE);
 	RNA_enum_set(WM_keymap_add_item(keymap, "NODE_OT_select", SELECTMOUSE, KM_PRESS, 0, 0)->ptr, "select_type", NODE_SELECT_MOUSE);
-	RNA_enum_set(WM_keymap_add_item(keymap, "NODE_OT_extend_select", ACTIONMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "select_type", NODE_SELECT_MOUSE);
-	RNA_enum_set(WM_keymap_add_item(keymap, "NODE_OT_extend_select", SELECTMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "select_type", NODE_SELECT_MOUSE);
+	RNA_enum_set(WM_keymap_add_item(keymap, "NODE_OT_select_extend", ACTIONMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "select_type", NODE_SELECT_MOUSE);
+	RNA_enum_set(WM_keymap_add_item(keymap, "NODE_OT_select_extend", SELECTMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "select_type", NODE_SELECT_MOUSE);
 	
 	WM_keymap_add_item(keymap, "NODE_OT_link", LEFTMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "NODE_OT_size_widget", LEFTMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "NODE_OT_visibility_toggle", LEFTMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "NODE_OT_links_cut", LEFTMOUSE, KM_PRESS, KM_ALT, 0);
 	
-	WM_keymap_add_item(keymap, "NODE_OT_fit_all", HOMEKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "NODE_OT_border_select", BKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "NODE_OT_delete_selection", XKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "NODE_OT_view_all", HOMEKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "NODE_OT_select_border", BKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "NODE_OT_delete", XKEY, KM_PRESS, 0, 0);
 	
 	transform_keymap_for_space(wm, keymap, SPACE_NODE);
 }

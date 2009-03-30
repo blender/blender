@@ -176,11 +176,11 @@ static int graphkeys_deselectall_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
  
-void GRAPHEDIT_OT_keyframes_deselectall (wmOperatorType *ot)
+void GRAPHEDIT_OT_keyframes_select_all_toggle (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select All";
-	ot->idname= "GRAPHEDIT_OT_keyframes_deselectall";
+	ot->idname= "GRAPHEDIT_OT_keyframes_select_all_toggle";
 	
 	/* api callbacks */
 	ot->exec= graphkeys_deselectall_exec;
@@ -307,11 +307,11 @@ static int graphkeys_borderselect_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 } 
 
-void GRAPHEDIT_OT_keyframes_borderselect(wmOperatorType *ot)
+void GRAPHEDIT_OT_keyframes_select_border(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Border Select";
-	ot->idname= "GRAPHEDIT_OT_keyframes_borderselect";
+	ot->idname= "GRAPHEDIT_OT_keyframes_select_border";
 	
 	/* api callbacks */
 	ot->invoke= WM_border_select_invoke;
@@ -613,6 +613,7 @@ static short findnearest_fcurve_vert (bAnimContext *ac, int mval[2], FCurve **fc
 				}
 				
 				/* handles - only do them if they're visible */
+				// XXX also need to check for int-values only?
 				if ((sipo->flag & SIPO_NOHANDLES)==0) {
 					/* first handle only visible if previous segment had handles */
 					if ( (!prevbezt && (bezt1->ipo==BEZT_IPO_BEZ)) || (prevbezt && (prevbezt->ipo==BEZT_IPO_BEZ)) )
@@ -853,7 +854,7 @@ static int graphkeys_clickselect_invoke(bContext *C, wmOperator *op, wmEvent *ev
 	
 	/* select mode is either replace (deselect all, then add) or add/extend */
 	// XXX this is currently only available for normal select only
-	if (RNA_boolean_get(op->ptr, "extend_select"))
+	if (RNA_boolean_get(op->ptr, "extend"))
 		selectmode= SELECT_INVERT;
 	else
 		selectmode= SELECT_REPLACE;
@@ -871,7 +872,7 @@ static int graphkeys_clickselect_invoke(bContext *C, wmOperator *op, wmEvent *ev
 		
 		graphkeys_select_leftright(&ac, RNA_enum_get(op->ptr, "left_right"), selectmode);
 	}
-	else if (RNA_boolean_get(op->ptr, "column_select")) {
+	else if (RNA_boolean_get(op->ptr, "column")) {
 		/* select all the keyframes that occur on the same frame as where the mouse clicked */
 		float x;
 		
@@ -904,8 +905,8 @@ void GRAPHEDIT_OT_keyframes_clickselect (wmOperatorType *ot)
 	/* id-props */
 	// XXX should we make this into separate operators?
 	RNA_def_enum(ot->srna, "left_right", NULL /* XXX prop_graphkeys_clickselect_items */, 0, "Left Right", ""); // ALTKEY
-	RNA_def_boolean(ot->srna, "extend_select", 0, "Extend Select", ""); // SHIFTKEY
-	RNA_def_boolean(ot->srna, "column_select", 0, "Column Select", ""); // CTRLKEY
+	RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", ""); // SHIFTKEY
+	RNA_def_boolean(ot->srna, "column", 0, "Column Select", ""); // CTRLKEY
 }
 
 /* ************************************************************************** */

@@ -283,7 +283,7 @@ static void rna_def_sequence(BlenderRNA *brna)
 	RNA_def_struct_name_property(srna, prop);
 
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_enum_items(prop, seq_type_items);
 	RNA_def_property_ui_text(prop, "Type", "");
 
@@ -320,39 +320,39 @@ static void rna_def_sequence(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "length", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "len");
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE); // computed from other values
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE); // computed from other values
 	RNA_def_property_ui_text(prop, "Length", "The length of the contents of this strip before the handles are applied");
 	
 	prop= RNA_def_property(srna, "start_frame", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "start");
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE); // overlap tests
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE); // overlap tests
 	RNA_def_property_ui_text(prop, "Start Frame", "");
 	
 	prop= RNA_def_property(srna, "start_offset", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "startofs");
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE); // overlap tests
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE); // overlap tests
 	RNA_def_property_ui_text(prop, "Start Offset", "");
 	
 	prop= RNA_def_property(srna, "end_offset", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "endofs");
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE); // overlap tests
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE); // overlap tests
 	RNA_def_property_ui_text(prop, "End offset", "");
 	
 	prop= RNA_def_property(srna, "start_still", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "startstill");
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE); // overlap tests
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE); // overlap tests
 	RNA_def_property_range(prop, 0, MAXFRAME);
 	RNA_def_property_ui_text(prop, "Start Still", "");
 	
 	prop= RNA_def_property(srna, "end_still", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "endstill");
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE); // overlap tests
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE); // overlap tests
 	RNA_def_property_range(prop, 0, MAXFRAME);
 	RNA_def_property_ui_text(prop, "End Still", "");
 	
 	prop= RNA_def_property(srna, "channel", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "machine");
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE); // overlap test
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE); // overlap test
 	RNA_def_property_ui_text(prop, "Channel", "Y position of the sequence strip.");
 
 	/* blending */
@@ -426,7 +426,7 @@ static void rna_def_filter_video(StructRNA *srna)
 
 	prop= RNA_def_property(srna, "use_color_balance", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_USE_COLOR_BALANCE);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE); // allocate color balance
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE); // allocate color balance
 	RNA_def_property_ui_text(prop, "Use Color Balance", "(3-Way color correction) on input.");
 
 	prop= RNA_def_property(srna, "color_balance", PROP_POINTER, PROP_NONE);
@@ -435,7 +435,7 @@ static void rna_def_filter_video(StructRNA *srna)
 
 	prop= RNA_def_property(srna, "use_translation", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_USE_TRANSFORM);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE); // allocate transform
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE); // allocate transform
 	RNA_def_property_ui_text(prop, "Use Translation", "Translate image before processing.");
 	
 	prop= RNA_def_property(srna, "transform", PROP_POINTER, PROP_NONE);
@@ -444,7 +444,7 @@ static void rna_def_filter_video(StructRNA *srna)
 
 	prop= RNA_def_property(srna, "use_crop", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_USE_CROP);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE); // allocate crop
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE); // allocate crop
 	RNA_def_property_ui_text(prop, "Use Crop", "Crop image before processing.");
 
 	prop= RNA_def_property(srna, "crop", PROP_POINTER, PROP_NONE);
@@ -473,7 +473,7 @@ static void rna_def_proxy(StructRNA *srna)
 
 	prop= RNA_def_property(srna, "use_proxy", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_USE_PROXY);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE); // allocate proxy
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE); // allocate proxy
 	RNA_def_property_ui_text(prop, "Use Proxy", "Use a preview proxy for this strip.");
 
 	prop= RNA_def_property(srna, "proxy", PROP_POINTER, PROP_NONE);
@@ -491,12 +491,12 @@ static void rna_def_input(StructRNA *srna)
 
 	prop= RNA_def_property(srna, "animation_start_offset", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "anim_startofs");
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE); // overlap test
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE); // overlap test
 	RNA_def_property_ui_text(prop, "Animation Start Offset", "Animation start offset (trim start).");
 	
 	prop= RNA_def_property(srna, "animation_end_offset", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "anim_endofs");
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE); // overlap test
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE); // overlap test
 	RNA_def_property_ui_text(prop, "Animation End Offset", "Animation end offset (trim end).");
 }
 
@@ -634,7 +634,7 @@ static void rna_def_plugin(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "filename", PROP_STRING, PROP_FILEPATH);
 	RNA_def_property_string_sdna(prop, NULL, "name");
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Filename", "");
 	
 	/* plugin properties need custom wrapping code like ID properties */

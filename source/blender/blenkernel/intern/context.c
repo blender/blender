@@ -27,6 +27,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_ID.h"
 #include "DNA_listBase.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
@@ -48,8 +49,6 @@
 /* struct */
 
 struct bContext {
-	bContextTask task;
-	ReportList *reports;
 	int thread;
 
 	/* windowmanager context */
@@ -59,9 +58,7 @@ struct bContext {
 		struct bScreen *screen;
 		struct ScrArea *area;
 		struct ARegion *region;
-		struct uiBlock *block;
-
-		bContextDataCallback block_cb;
+		struct ARegion *menu;
 	} wm;
 	
 	/* data context */
@@ -86,55 +83,19 @@ bContext *CTX_create()
 	
 	C= MEM_callocN(sizeof(bContext), "bContext");
 
-	C->task= CTX_UNDEFINED;
-	C->thread= 0;
-
 	return C;
 }
 
-bContext *CTX_copy(const bContext *C, int thread)
+bContext *CTX_copy(const bContext *C)
 {
-	bContext *newC;
-
-	if(C->task != CTX_UNDEFINED)
-		BKE_report(C->reports, RPT_ERROR_INVALID_CONTEXT, "CTX_copy not allowed for this task");
-	
-	newC= MEM_dupallocN((void*)C);
-	newC->thread= thread;
+	bContext *newC= MEM_dupallocN((void*)C);
 
 	return newC;
-}
-
-int CTX_thread(const bContext *C)
-{
-	return C->thread;
 }
 
 void CTX_free(bContext *C)
 {
 	MEM_freeN(C);
-}
-
-/* context task and reports */
-
-bContextTask CTX_task(const bContext *C)
-{
-	return C->task;
-}
-
-void CTX_task_set(bContext *C, bContextTask task)
-{
-	C->task= task;
-}
-
-ReportList *CTX_reports(const bContext *C)
-{
-	return C->reports;
-}
-
-void CTX_reports_set(bContext *C, ReportList *reports)
-{
-	C->reports= reports;
 }
 
 /* window manager context */
@@ -174,9 +135,9 @@ void *CTX_wm_region_data(const bContext *C)
 	return (C->wm.region)? C->wm.region->regiondata: NULL;
 }
 
-struct uiBlock *CTX_wm_ui_block(const bContext *C)
+struct ARegion *CTX_wm_menu(const bContext *C)
 {
-	return C->wm.block;
+	return C->wm.menu;
 }
 
 View3D *CTX_wm_view3d(const bContext *C)
@@ -245,20 +206,19 @@ void CTX_wm_region_set(bContext *C, ARegion *region)
 	C->wm.region= region;
 }
 
-void CTX_wm_ui_block_set(bContext *C, struct uiBlock *block, bContextDataCallback cb)
+void CTX_wm_menu_set(bContext *C, ARegion *menu)
 {
-	C->wm.block= block;
-	C->wm.block_cb= cb;
+	C->wm.menu= menu;
 }
 
 /* data context utility functions */
 
 struct bContextDataResult {
-	void *pointer;
+	PointerRNA ptr;
 	ListBase list;
 };
 
-static int ctx_data_get(bContext *C, bContextDataMember member, bContextDataResult *result)
+static int ctx_data_get(bContext *C, const char *member, bContextDataResult *result)
 {
 	int done= 0, recursion= C->data.recursion;
 
@@ -266,23 +226,19 @@ static int ctx_data_get(bContext *C, bContextDataMember member, bContextDataResu
 
 	/* we check recursion to ensure that we do not get infinite
 	 * loops requesting data from ourselfs in a context callback */
-	if(!done && recursion < 1 && C->wm.block) {
+	if(!done && recursion < 1 && C->wm.region) {
 		C->data.recursion= 1;
-		done= C->wm.block_cb(C, member, result);
-	}
-	if(!done && recursion < 2 && C->wm.region) {
-		C->data.recursion= 2;
 		if(C->wm.region->type && C->wm.region->type->context)
 			done= C->wm.region->type->context(C, member, result);
 	}
-	if(!done && recursion < 3 && C->wm.area) {
-		C->data.recursion= 3;
+	if(!done && recursion < 2 && C->wm.area) {
+		C->data.recursion= 2;
 		if(C->wm.area->type && C->wm.area->type->context)
 			done= C->wm.area->type->context(C, member, result);
 	}
-	if(!done && recursion < 4 && C->wm.screen) {
+	if(!done && recursion < 3 && C->wm.screen) {
 		bContextDataCallback cb= C->wm.screen->context;
-		C->data.recursion= 4;
+		C->data.recursion= 3;
 		if(cb)
 			done= cb(C, member, result);
 	}
@@ -292,22 +248,22 @@ static int ctx_data_get(bContext *C, bContextDataMember member, bContextDataResu
 	return done;
 }
 
-static void *ctx_data_pointer_get(const bContext *C, bContextDataMember member)
+static void *ctx_data_pointer_get(const bContext *C, const char *member)
 {
 	bContextDataResult result;
 
 	if(ctx_data_get((bContext*)C, member, &result))
-		return result.pointer;
+		return result.ptr.data;
 
 	return NULL;
 }
 
-static int ctx_data_pointer_verify(const bContext *C, bContextDataMember member, void **pointer)
+static int ctx_data_pointer_verify(const bContext *C, const char *member, void **pointer)
 {
 	bContextDataResult result;
 
 	if(ctx_data_get((bContext*)C, member, &result)) {
-		*pointer= result.pointer;
+		*pointer= result.ptr.data;
 		return 1;
 	}
 	else {
@@ -316,7 +272,7 @@ static int ctx_data_pointer_verify(const bContext *C, bContextDataMember member,
 	}
 }
 
-static int ctx_data_collection_get(const bContext *C, bContextDataMember member, ListBase *list)
+static int ctx_data_collection_get(const bContext *C, const char *member, ListBase *list)
 {
 	bContextDataResult result;
 
@@ -328,17 +284,80 @@ static int ctx_data_collection_get(const bContext *C, bContextDataMember member,
 	return 0;
 }
 
-void CTX_data_pointer_set(bContextDataResult *result, void *data)
+PointerRNA CTX_data_pointer_get(bContext *C, const char *member)
 {
-	result->pointer= data;
+	bContextDataResult result;
+
+	if(ctx_data_get((bContext*)C, member, &result)) {
+		return result.ptr;
+	}
+	else {
+		PointerRNA ptr;
+		memset(&ptr, 0, sizeof(ptr));
+		return ptr;
+	}
+
 }
 
-void CTX_data_list_add(bContextDataResult *result, void *data)
+ListBase CTX_data_collection_get(bContext *C, const char *member)
 {
-	LinkData *link;
-	
-	link= MEM_callocN(sizeof(LinkData), "LinkData");
-	link->data= data;
+	bContextDataResult result;
+
+	if(ctx_data_get((bContext*)C, member, &result)) {
+		return result.list;
+	}
+	else {
+		ListBase list;
+		memset(&list, 0, sizeof(list));
+		return list;
+	}
+}
+
+void CTX_data_get(bContext *C, const char *member, PointerRNA *r_ptr, ListBase *r_lb)
+{
+	bContextDataResult result;
+
+	if(ctx_data_get((bContext*)C, member, &result)) {
+		*r_ptr= result.ptr;
+		*r_lb= result.list;
+	}
+	else {
+		memset(r_ptr, 0, sizeof(*r_ptr));
+		memset(r_lb, 0, sizeof(*r_lb));
+	}
+}
+
+int CTX_data_equals(const char *member, const char *str)
+{
+	return (strcmp(member, str) == 0);
+}
+
+void CTX_data_id_pointer_set(bContextDataResult *result, ID *id)
+{
+	RNA_id_pointer_create(id, &result->ptr);
+}
+
+void CTX_data_pointer_set(bContextDataResult *result, ID *id, StructRNA *type, void *data)
+{
+	RNA_pointer_create(id, type, data, &result->ptr);
+}
+
+void CTX_data_id_list_add(bContextDataResult *result, ID *id)
+{
+	CollectionPointerLink *link;
+
+	link= MEM_callocN(sizeof(CollectionPointerLink), "CTX_data_id_list_add");
+	RNA_id_pointer_create(id, &link->ptr);
+
+	BLI_addtail(&result->list, link);
+}
+
+void CTX_data_list_add(bContextDataResult *result, ID *id, StructRNA *type, void *data)
+{
+	CollectionPointerLink *link;
+
+	link= MEM_callocN(sizeof(CollectionPointerLink), "CTX_data_list_add");
+	RNA_pointer_create(id, type, data, &link->ptr);
 
 	BLI_addtail(&result->list, link);
 }
@@ -362,7 +381,7 @@ Main *CTX_data_main(const bContext *C)
 {
 	Main *bmain;
 
-	if(ctx_data_pointer_verify(C, CTX_DATA_MAIN, (void*)&bmain))
+	if(ctx_data_pointer_verify(C, "main", (void*)&bmain))
 		return bmain;
 	else
 		return C->data.main;
@@ -377,7 +396,7 @@ Scene *CTX_data_scene(const bContext *C)
 {
 	Scene *scene;
 
-	if(ctx_data_pointer_verify(C, CTX_DATA_SCENE, (void*)&scene))
+	if(ctx_data_pointer_verify(C, "scene", (void*)&scene))
 		return scene;
 	else
 		return C->data.scene;
@@ -400,124 +419,101 @@ ToolSettings *CTX_data_tool_settings(const bContext *C)
 
 int CTX_data_selected_nodes(const bContext *C, ListBase *list)
 {
-	return ctx_data_collection_get(C, CTX_DATA_SELECTED_NODES, list);
+	return ctx_data_collection_get(C, "selected_nodes", list);
 }
 
 int CTX_data_selected_editable_objects(const bContext *C, ListBase *list)
 {
-	return ctx_data_collection_get(C, CTX_DATA_SELECTED_EDITABLE_OBJECTS, list);
+	return ctx_data_collection_get(C, "selected_editable_objects", list);
 }
 
 int CTX_data_selected_editable_bases(const bContext *C, ListBase *list)
 {
-	return ctx_data_collection_get(C, CTX_DATA_SELECTED_EDITABLE_BASES, list);
+	return ctx_data_collection_get(C, "selected_editable_bases", list);
 }
 
 int CTX_data_selected_objects(const bContext *C, ListBase *list)
 {
-	return ctx_data_collection_get(C, CTX_DATA_SELECTED_OBJECTS, list);
+	return ctx_data_collection_get(C, "selected_objects", list);
 }
 
 int CTX_data_selected_bases(const bContext *C, ListBase *list)
 {
-	return ctx_data_collection_get(C, CTX_DATA_SELECTED_BASES, list);
+	return ctx_data_collection_get(C, "selected_bases", list);
 }
 
 int CTX_data_visible_objects(const bContext *C, ListBase *list)
 {
-	return ctx_data_collection_get(C, CTX_DATA_VISIBLE_OBJECTS, list);
+	return ctx_data_collection_get(C, "visible_objects", list);
 }
 
 int CTX_data_visible_bases(const bContext *C, ListBase *list)
 {
-	return ctx_data_collection_get(C, CTX_DATA_VISIBLE_BASES, list);
+	return ctx_data_collection_get(C, "visible_bases", list);
 }
 
 struct Object *CTX_data_active_object(const bContext *C)
 {
-	return ctx_data_pointer_get(C, CTX_DATA_ACTIVE_OBJECT);
+	return ctx_data_pointer_get(C, "active_object");
 }
 
 struct Base *CTX_data_active_base(const bContext *C)
 {
-	return ctx_data_pointer_get(C, CTX_DATA_ACTIVE_BASE);
+	return ctx_data_pointer_get(C, "active_base");
 }
 
 struct Object *CTX_data_edit_object(const bContext *C)
 {
-	return ctx_data_pointer_get(C, CTX_DATA_EDIT_OBJECT);
+	return ctx_data_pointer_get(C, "edit_object");
 }
 
 struct Image *CTX_data_edit_image(const bContext *C)
 {
-	return ctx_data_pointer_get(C, CTX_DATA_EDIT_IMAGE);
-}
-
-struct ImBuf *CTX_data_edit_image_buffer(const bContext *C)
-{
-	return ctx_data_pointer_get(C, CTX_DATA_EDIT_IMAGE_BUFFER);
+	return ctx_data_pointer_get(C, "edit_image");
 }
 
 struct Text *CTX_data_edit_text(const bContext *C)
 {
-	return ctx_data_pointer_get(C, CTX_DATA_EDIT_TEXT);
+	return ctx_data_pointer_get(C, "edit_text");
 }
 
 struct EditBone *CTX_data_active_bone(const bContext *C)
 {
-	return ctx_data_pointer_get(C, CTX_DATA_ACTIVE_BONE);
+	return ctx_data_pointer_get(C, "active_bone");
 }
 
 int CTX_data_selected_bones(const bContext *C, ListBase *list)
 {
-	return ctx_data_collection_get(C, CTX_DATA_SELECTED_BONES, list);
+	return ctx_data_collection_get(C, "selected_bones", list);
 }
 
 int CTX_data_selected_editable_bones(const bContext *C, ListBase *list)
 {
-	return ctx_data_collection_get(C, CTX_DATA_SELECTED_EDITABLE_BONES, list);
+	return ctx_data_collection_get(C, "selected_editable_bones", list);
 }
 
 int CTX_data_visible_bones(const bContext *C, ListBase *list)
 {
-	return ctx_data_collection_get(C, CTX_DATA_VISIBLE_BONES, list);
+	return ctx_data_collection_get(C, "visible_bones", list);
 }
 
 int CTX_data_editable_bones(const bContext *C, ListBase *list)
 {
-	return ctx_data_collection_get(C, CTX_DATA_EDITABLE_BONES, list);
+	return ctx_data_collection_get(C, "editable_bones", list);
 }
 
 struct bPoseChannel *CTX_data_active_pchan(const bContext *C)
 {
-	return ctx_data_pointer_get(C, CTX_DATA_ACTIVE_PCHAN);
+	return ctx_data_pointer_get(C, "active_pchan");
 }
 
 int CTX_data_selected_pchans(const bContext *C, ListBase *list)
 {
-	return ctx_data_collection_get(C, CTX_DATA_SELECTED_PCHANS, list);
+	return ctx_data_collection_get(C, "selected_pchans", list);
 }
 
 int CTX_data_visible_pchans(const bContext *C, ListBase *list)
 {
-	return ctx_data_collection_get(C, CTX_DATA_VISIBLE_PCHANS, list);
-}
-
-
-/* data evaluation */
-
-float CTX_eval_frame(const bContext *C)
-{
-	return (C->data.scene)? C->data.scene->r.cfra: 0.0f;
-}
-
-int CTX_eval_render_resolution(const bContext *C)
-{
-	return C->eval.render;
-}
-
-void CTX_eval_render_resolution_set(bContext *C, int render)
-{
-	C->eval.render= render;
+	return ctx_data_collection_get(C, "visible_pchans", list);
 }
 

@@ -36,11 +36,13 @@ struct ID;
 struct Main;
 struct ListBase;
 struct ARegion;
+struct ScrArea;
 struct wmWindow;
 struct wmWindowManager;
 struct wmOperator;
 struct AutoComplete;
 struct bContext;
+struct Panel;
 struct PointerRNA;
 struct PropertyRNA;
 struct ReportList;
@@ -85,6 +87,7 @@ typedef struct uiPopupBlockHandle uiPopupBlockHandle;
 #define UI_BLOCK_MOVEMOUSE_QUIT	128
 #define UI_BLOCK_KEEP_OPEN		256
 #define UI_BLOCK_POPUP			512
+#define UI_BLOCK_2_50			1024	/* XXX 2.5 migration flag */
 
 /* uiPopupBlockHandle->menuretval */
 #define UI_RETURN_CANCEL	1       /* cancel all menus cascading */
@@ -190,6 +193,7 @@ typedef struct uiPopupBlockHandle uiPopupBlockHandle;
 void uiEmboss(float x1, float y1, float x2, float y2, int sel);
 void uiRoundBox(float minx, float miny, float maxx, float maxy, float rad);
 void uiSetRoundBox(int type);
+int uiGetRoundBox(void);
 void uiRoundRect(float minx, float miny, float maxx, float maxy, float rad);
 void uiDrawMenuBox(float minx, float miny, float maxx, float maxy, short flag, short direction);
 void uiDrawBoxShadow(unsigned char alpha, float minx, float miny, float maxx, float maxy);
@@ -302,7 +306,7 @@ void uiTextBoundsBlock(uiBlock *block, int addval);
 void uiPopupBoundsBlock(uiBlock *block, int addval, int mx, int my);
 void uiMenuPopupBoundsBlock(uiBlock *block, int addvall, int mx, int my);
 
-int		uiBlocksGetYMin		(ListBase *lb);
+int		uiBlocksGetYMin		(struct ListBase *lb);
 int		uiBlockGetCol		(uiBlock *block);
 
 void	uiBlockSetCol		(uiBlock *block, int col);
@@ -310,6 +314,7 @@ void	uiBlockSetEmboss	(uiBlock *block, int emboss);
 void	uiBlockSetDirection	(uiBlock *block, int direction);
 void 	uiBlockFlipOrder	(uiBlock *block);
 void	uiBlockSetFlag		(uiBlock *block, int flag);
+void	uiBlockClearFlag	(uiBlock *block, int flag);
 void	uiBlockSetXOfs		(uiBlock *block, int xofs);
 
 int		uiButGetRetVal		(uiBut *but);
@@ -429,8 +434,8 @@ void uiDefKeyevtButS(uiBlock *block, int retval, char *str, short x1, short y1, 
 
 void uiBlockPickerButtons(struct uiBlock *block, float *col, float *hsv, float *old, char *hexcol, char mode, short retval);
 
-uiBut *uiDefAutoButR(uiBlock *block, struct PointerRNA *ptr, struct PropertyRNA *prop, int index, char *name, int x1, int y1, int x2, int y2);
-int uiDefAutoButsRNA(uiBlock *block, struct PointerRNA *ptr);
+uiBut *uiDefAutoButR(uiBlock *block, struct PointerRNA *ptr, struct PropertyRNA *prop, int index, char *name, int icon, int x1, int y1, int x2, int y2);
+int uiDefAutoButsRNA(const struct bContext *C, uiBlock *block, struct PointerRNA *ptr);
 
 /* Links
  *
@@ -499,10 +504,12 @@ extern void uiMatchPanelsView2d(struct ARegion *ar);
 
 extern void uiNewPanelHeight(struct uiBlock *block, int sizey);
 extern void uiNewPanelTitle(struct uiBlock *block, char *str);
-extern uiBlock *uiFindOpenPanelBlockName(ListBase *lb, char *name);
+extern uiBlock *uiFindOpenPanelBlockName(struct ListBase *lb, char *name);
 extern int uiAlignPanelStep(struct ScrArea *sa, struct ARegion *ar, float fac);
 extern void uiPanelControl(int);
 extern void uiSetPanelHandler(int);
+
+struct Panel *uiPanelFromBlock(struct uiBlock *block);
 
 /* Handlers
  *
@@ -512,22 +519,22 @@ extern void uiSetPanelHandler(int);
 
 void UI_add_region_handlers(struct ListBase *handlers);
 void UI_add_area_handlers(struct ListBase *handlers);
-void UI_add_popup_handlers(struct ListBase *handlers, uiPopupBlockHandle *menu);
+void UI_add_popup_handlers(struct bContext *C, struct ListBase *handlers, uiPopupBlockHandle *menu);
 
 /* Legacy code
  * Callbacks and utils to get 2.48 work */
 
 void test_idbutton_cb(struct bContext *C, void *namev, void *arg2);
-void test_scriptpoin_but(struct bContext *C, char *name, ID **idpp);
-void test_actionpoin_but(struct bContext *C, char *name, ID **idpp);
-void test_obpoin_but(struct bContext *C, char *name, ID **idpp);
-void test_meshobpoin_but(struct bContext *C, char *name, ID **idpp);
-void test_meshpoin_but(struct bContext *C, char *name, ID **idpp);
-void test_matpoin_but(struct bContext *C, char *name, ID **idpp);
-void test_scenepoin_but(struct bContext *C, char *name, ID **idpp);
-void test_grouppoin_but(struct bContext *C, char *name, ID **idpp);
-void test_texpoin_but(struct bContext *C, char *name, ID **idpp);
-void test_imapoin_but(struct bContext *C, char *name, ID **idpp);
+void test_scriptpoin_but(struct bContext *C, char *name, struct ID **idpp);
+void test_actionpoin_but(struct bContext *C, char *name, struct ID **idpp);
+void test_obpoin_but(struct bContext *C, char *name, struct ID **idpp);
+void test_meshobpoin_but(struct bContext *C, char *name, struct ID **idpp);
+void test_meshpoin_but(struct bContext *C, char *name, struct ID **idpp);
+void test_matpoin_but(struct bContext *C, char *name, struct ID **idpp);
+void test_scenepoin_but(struct bContext *C, char *name, struct ID **idpp);
+void test_grouppoin_but(struct bContext *C, char *name, struct ID **idpp);
+void test_texpoin_but(struct bContext *C, char *name, struct ID **idpp);
+void test_imapoin_but(struct bContext *C, char *name, struct ID **idpp);
 void autocomplete_bone(struct bContext *C, char *str, void *arg_v);
 void autocomplete_vgroup(struct bContext *C, char *str, void *arg_v);
 
@@ -551,6 +558,75 @@ uiBut *uiDefMenuButO(uiBlock *block, char *opname, char *name);
 uiBut *uiDefMenuSep(uiBlock *block);
 uiBut *uiDefMenuSub(uiBlock *block, uiBlockCreateFunc func, char *name);
 uiBut *uiDefMenuTogR(uiBlock *block, struct PointerRNA *ptr, char *propname, char *propvalue, char *name);
+
+/* Layout
+ *
+ * More automated layout of buttons. Has three levels:
+ * - Layout: contains a number templates, within a bounded width or height.
+ * - Template: predefined layouts for buttons with a number of slots, each
+ *   slot can contain multiple items.
+ * - Item: item to put in a template slot, being either an RNA property,
+ *   operator, label or menu currently. */
+
+/* layout */
+#define UI_LAYOUT_HORIZONTAL	0
+#define UI_LAYOUT_VERTICAL		1
+
+typedef struct uiLayout uiLayout;
+
+uiLayout *uiLayoutBegin(int dir, int x, int y, int w, int h);
+void uiLayoutContext(uiLayout *layout, int opcontext);
+void uiLayoutEnd(const struct bContext *C, uiBlock *block, uiLayout *layout, int *x, int *y);
+
+/* vertical button templates */
+#define UI_TSLOT_COLUMN_1	0
+#define UI_TSLOT_COLUMN_2	1
+#define UI_TSLOT_COLUMN_3	2
+#define UI_TSLOT_COLUMN_4	3
+#define UI_TSLOT_COLUMN_5	4
+#define UI_TSLOT_COLUMN_MAX	5
+
+#define UI_TSLOT_LR_LEFT	0
+#define UI_TSLOT_LR_RIGHT	1
+
+void uiTemplateLeftRight(uiLayout *layout);
+void uiTemplateColumn(uiLayout *layout);
+uiLayout *uiTemplateStack(uiLayout *layout);
+
+/* horizontal header templates */
+#define UI_TSLOT_HEADER		0
+
+void uiTemplateHeaderMenus(uiLayout *layout);
+void uiTemplateHeaderButtons(uiLayout *layout);
+void uiTemplateHeaderID(uiLayout *layout, struct PointerRNA *ptr, char *propname, int flag, uiIDPoinFunc func);
+void uiTemplateSetColor(uiLayout *layout, int color);
+
+/* items */
+void uiItemO(uiLayout *layout, int slot, const char *name, int icon, char *opname);
+void uiItemEnumO(uiLayout *layout, int slot, const char *name, int icon, char *opname, char *propname, int value);
+void uiItemsEnumO(uiLayout *layout, int slot, char *opname, char *propname);
+void uiItemBooleanO(uiLayout *layout, int slot, const char *name, int icon, char *opname, char *propname, int value);
+void uiItemIntO(uiLayout *layout, int slot, const char *name, int icon, char *opname, char *propname, int value);
+void uiItemFloatO(uiLayout *layout, int slot, const char *name, int icon, char *opname, char *propname, float value);
+void uiItemStringO(uiLayout *layout, int slot, const char *name, int icon, char *opname, char *propname, char *value);
+void uiItemFullO(uiLayout *layout, int slot, const char *name, int icon, char *idname, IDProperty *properties, int context);
+
+void uiItemR(uiLayout *layout, int slot, const char *name, int icon, struct PointerRNA *ptr, char *propname);
+void uiItemFullR(uiLayout *layout, int slot, const char *name, int icon, struct PointerRNA *ptr, char *propname, int index);
+
+void uiItemLabel(uiLayout *layout, int slot, const char *name, int icon);
+
+void uiItemMenu(uiLayout *layout, int slot, const char *name, int icon, uiMenuCreateFunc func);
+
+/* utilities */
+#define UI_PANEL_WIDTH			340
+#define UI_COMPACT_PANEL_WIDTH	160
+
+typedef void (*uiHeaderCreateFunc)(const struct bContext *C, uiLayout *layout);
+typedef void (*uiPanelCreateFunc)(const struct bContext *C, uiLayout *layout);
+
+void uiRegionPanelLayout(const struct bContext *C, struct ARegion *ar, int vertical, char *context);
+void uiRegionHeaderLayout(const struct bContext *C, struct ARegion *ar);
 
 #endif /*  UI_INTERFACE_H */
 

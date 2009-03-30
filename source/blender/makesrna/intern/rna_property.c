@@ -89,12 +89,12 @@ void RNA_def_gameproperty(BlenderRNA *brna)
 	RNA_def_struct_refine_func(srna, "rna_GameProperty_refine");
 
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE); /* must be unique */
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE); /* must be unique */
 	RNA_def_property_ui_text(prop, "Name", "Available as as GameObject attributes in the game engines python api");
 	RNA_def_struct_name_property(srna, prop);
 
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_enum_items(prop, gameproperty_type_items);
 	RNA_def_property_ui_text(prop, "Type", "");
 

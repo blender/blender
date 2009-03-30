@@ -34,6 +34,7 @@ SET(DEFSRC
      rna_cloth.c
      rna_color.c
      rna_constraint.c
+     rna_context.c
      rna_controller.c
      rna_curve.c
      rna_fluidsim.c
@@ -97,7 +98,7 @@ ADD_CUSTOM_COMMAND(
 )
 
 # Build bf_rna
-SET(SRC rna_access.c rna_dependency.c ${GENSRC})
+SET(SRC rna_access.c ${GENSRC})
 BLENDERLIB(bf_rna "${SRC}" "${INC}")
 
 MESSAGE(STATUS "Configuring makesrna")

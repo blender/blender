@@ -28,6 +28,10 @@
 #ifndef ED_BUTTONS_INTERN_H
 #define ED_BUTTONS_INTERN_H
 
+struct ARegion;
+struct ARegionType;
+struct bContext;
+
 /* warning: the values of these defines are used in sbuts->tabs[7] */
 /* buts->mainb new */
 #define CONTEXT_SCENE	0
@@ -73,8 +77,9 @@
 /* internal exports only */
 
 /* image_header.c */
-void buttons_header_buttons(const bContext *C, ARegion *ar);
-void buttons_scene(const bContext *C, ARegion *ar);
+void buttons_header_buttons(const struct bContext *C, struct ARegion *ar);
+void buttons_scene(const struct bContext *C, struct ARegion *ar);
+void buttons_object_register(struct ARegionType *art);
 
 #endif /* ED_BUTTONS_INTERN_H */
 

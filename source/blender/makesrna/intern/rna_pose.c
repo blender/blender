@@ -73,7 +73,7 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Constraints", "Constraints that act on this PoseChannel."); 
 
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Name", "");
 	RNA_def_struct_name_property(srna, prop);
 
@@ -112,27 +112,27 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "path_start_frame", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "pathsf");
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Bone Paths Calculation Start Frame", "Starting frame of range of frames to use for Bone Path calculations.");
 
 	prop= RNA_def_property(srna, "path_end_frame", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "pathef");
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Bone Paths Calculation End Frame", "End frame of range of frames to use for Bone Path calculations.");
 
 	prop= RNA_def_property(srna, "bone", PROP_POINTER, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "Bone");
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Bone", "Bone associated with this Pose Channel.");
 
 	prop= RNA_def_property(srna, "parent", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "PoseChannel");
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Parent", "Parent of this pose channel.");
 
 	prop= RNA_def_property(srna, "child", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "PoseChannel");
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Child", "Child of this pose channel.");
 
 	prop= RNA_def_property(srna, "location", PROP_FLOAT, PROP_VECTOR);
@@ -164,26 +164,26 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	/* These three matrix properties await an implementation of the PROP_MATRIX subtype, which currently doesn't exist. */
 /*	prop= RNA_def_property(srna, "channel_matrix", PROP_FLOAT, PROP_MATRIX);
 	RNA_def_property_struct_type(prop, "chan_mat");
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Channel Matrix", "4x4 matrix, before constraints.");*/
 
 	/* kaito says this should be not user-editable; I disagree; power users should be able to force this in python; he's the boss. */
 /*	prop= RNA_def_property(srna, "pose_matrix", PROP_FLOAT, PROP_MATRIX);
 	RNA_def_property_struct_type(prop, "pose_mat");
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE); 
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE); 
 	RNA_def_property_ui_text(prop, "Pose Matrix", "Final 4x4 matrix for this channel.");
 
 	prop= RNA_def_property(srna, "constraint_inverse_matrix", PROP_FLOAT, PROP_MATRIX);
 	RNA_def_property_struct_type(prop, "constinv");
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Constraint Inverse Matrix", "4x4 matrix, defines transform from final position to unconstrained position."); */
 	
 	prop= RNA_def_property(srna, "pose_head", PROP_FLOAT, PROP_VECTOR);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Pose Head Position", "Location of head of the channel's bone.");
 
 	prop= RNA_def_property(srna, "pose_tail", PROP_FLOAT, PROP_VECTOR);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Pose Tail Position", "Location of tail of the channel's bone.");
 
 	prop= RNA_def_property(srna, "ik_min_limits", PROP_FLOAT, PROP_VECTOR);

@@ -462,10 +462,10 @@ void glaDrawPixelsTex(float x, float y, int img_w, int img_h, int format, void *
 			glTexCoord2f((float) (subpart_w-1)/tex_w, 0);
 			glVertex2f(rast_x+subpart_w*xzoom, rast_y);
 
-			glTexCoord2f((float) (subpart_w-1)/tex_w, (float) subpart_h/tex_h);
+			glTexCoord2f((float) (subpart_w-1)/tex_w, (float) (subpart_h-1)/tex_h);
 			glVertex2f(rast_x+subpart_w*xzoom, rast_y+subpart_h*yzoom);
 
-			glTexCoord2f(0, (float) subpart_h/tex_h);
+			glTexCoord2f(0, (float) (subpart_h-1)/tex_h);
 			glVertex2f(rast_x, rast_y+subpart_h*yzoom);
 			glEnd();
 			glDisable(GL_TEXTURE_2D);

@@ -19,20 +19,21 @@ subject to the following restrictions:
 #include "LinearMath/btTransform.h"
 #include "LinearMath/btVector3.h"
 #include "LinearMath/btMatrix3x3.h"
-#include "LinearMath/btPoint3.h"
 #include "BulletCollision/BroadphaseCollision/btBroadphaseProxy.h" //for the shape types
 
 ///The btCollisionShape class provides an interface for collision shapes that can be shared among btCollisionObjects.
 class btCollisionShape
 {
-
+protected:
+	int m_shapeType;
 	void* m_userPointer;
 
 public:
 
-	btCollisionShape() : m_userPointer(0)
+	btCollisionShape() : m_shapeType (INVALID_SHAPE_PROXYTYPE), m_userPointer(0)
 	{
 	}
+
 	virtual ~btCollisionShape()
 	{
 	}
@@ -44,6 +45,8 @@ public:
 
 	///getAngularMotionDisc returns the maximus radius needed for Conservative Advancement to handle time-of-impact with rotations.
 	virtual btScalar	getAngularMotionDisc() const;
+
+	virtual btScalar	getContactBreakingThreshold() const;
 
 
 	///calculateTemporalAabb calculates the enclosing aabb for the moving object over interval [0..timeStep)
@@ -76,7 +79,7 @@ public:
 		return btBroadphaseProxy::isInfinite(getShapeType());
 	}
 
-	virtual int		getShapeType() const=0;
+	
 	virtual void	setLocalScaling(const btVector3& scaling) =0;
 	virtual const btVector3& getLocalScaling() const =0;
 	virtual void	calculateLocalInertia(btScalar mass,btVector3& inertia) const = 0;
@@ -87,13 +90,13 @@ public:
 #endif //__SPU__
 
 	
-
+	int		getShapeType() const { return m_shapeType; }
 	virtual void	setMargin(btScalar margin) = 0;
 	virtual btScalar	getMargin() const = 0;
 
 	
 	///optional user data pointer
-	void	setUserPointer(void* userPtr)
+	void	setUserPointer(void*  userPtr)
 	{
 		m_userPointer = userPtr;
 	}

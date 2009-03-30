@@ -1,3 +1,5 @@
+# -*- mode: gnumakefile; tab-width: 8; indent-tabs-mode: t; -*-
+# vim: tabstop=8
 #
 # $Id$
 #
@@ -22,7 +24,7 @@
 #
 # The Original Code is: all of this file.
 #
-# Contributor(s): none yet.
+# Contributor(s): GSR
 #
 # ***** END GPL LICENSE BLOCK *****
 #
@@ -37,18 +39,15 @@ DIRS = src
 
 include nan_subdirs.mk
 
-install: all debug
+install:  $(ALL_OR_DEBUG)
 	@[ -d $(NAN_SOLID) ] || mkdir -p $(NAN_SOLID)
 	@[ -d $(NAN_SOLID)/include/SOLID ] || mkdir -p $(NAN_SOLID)/include/SOLID
 	@[ -d $(NAN_SOLID)/include/SOLID/MT ] || mkdir -p $(NAN_SOLID)/include/SOLID/MT
-	@[ -d $(NAN_SOLID)/lib ] || mkdir -p $(NAN_SOLID)/lib
-	@[ -d $(NAN_SOLID)/lib/debug ] || mkdir -p $(NAN_SOLID)/lib/debug
+	@[ -d $(NAN_SOLID)/lib/$(DEBUG_DIR) ] || mkdir -p $(NAN_SOLID)/lib/$(DEBUG_DIR)
 	@for i in $(LIBNAMES); do \
-	    $(NANBLENDERHOME)/intern/tools/cpifdiff.sh $(DIR)/$$i/lib$$i.a $(NAN_SOLID)/lib/ ; \
-	    $(NANBLENDERHOME)/intern/tools/cpifdiff.sh $(DIR)/$$i/debug/lib$$i.a $(NAN_SOLID)/lib/debug/ ; \
+	    $(NANBLENDERHOME)/intern/tools/cpifdiff.sh $(DIR)/$$i/$(DEBUG_DIR)lib$$i.a $(NAN_SOLID)/lib/$(DEBUG_DIR) ; \
 	    if [ $(OS) = darwin ] ; then \
-            ranlib $(NAN_SOLID)/lib/lib$$i.a ; \
-            ranlib $(NAN_SOLID)/lib/debug/lib$$i.a ; \
+            ranlib $(NAN_SOLID)/lib/$(DEBUG_DIR)lib$$i.a ; \
         fi ; \
 	done
 	@$(NANBLENDERHOME)/intern/tools/cpifdiff.sh include/*.h $(NAN_SOLID)/include/SOLID
