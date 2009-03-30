@@ -165,7 +165,7 @@ int BLF_load_mem(char *name, unsigned char *mem, int mem_size)
 	FontBLF *font;
 	int i;
 
-	if (!name || !mem || !mem_size)
+	if (!name)
 		return(-1);
 
 	i= blf_search(name);
@@ -181,25 +181,38 @@ int BLF_load_mem(char *name, unsigned char *mem, int mem_size)
 		return(-1);
 	}
 
-#ifdef WITH_FREETYPE2
-	font= blf_font_new_from_mem(name, mem, mem_size);
+	font= blf_internal_new(name);
 	if (!font) {
-		printf("Can't load font, %s from memory!!\n", name);
-		return(-1);
+#ifdef WITH_FREETYPE2
+		if (!mem || !mem_size) {
+			printf("Can't load font, %s from memory!!\n", name);
+			return(-1);
+		}
+
+		font= blf_font_new_from_mem(name, mem, mem_size);
+#endif /* WITH_FREETYPE2 */
+
+		if (!font) {
+			printf("Can't load font, %s from memory!!\n", name);
+			return(-1);
+		}
 	}
 
 	global_font[global_font_num]= font;
 	i= global_font_num;
 	global_font_num++;
 	return(i);
-#endif /* WITH_FREETYPE2 */
-	return(-1);
 }
 
 void BLF_set(int fontid)
 {
 	if (fontid >= 0 && fontid < BLF_MAX_FONT)
 		global_font_cur= fontid;
+}
+
+int BLF_get(void)
+{
+	return(global_font_cur);
 }
 
 void BLF_enable(int option)
@@ -272,7 +285,7 @@ void BLF_draw(char *str)
 	FontBLF *font;
 
 	font= global_font[global_font_cur];
-	if (font && font->draw && font->glyph_cache) {
+	if (font && font->draw) {
 		glEnable(GL_BLEND);
 		glEnable(GL_TEXTURE_2D);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -297,7 +310,7 @@ void BLF_boundbox(char *str, rctf *box)
 	FontBLF *font;
 
 	font= global_font[global_font_cur];
-	if (font && font->boundbox_get && font->glyph_cache)
+	if (font && font->boundbox_get)
 		(*font->boundbox_get)(font, str, box);
 }
 
@@ -306,7 +319,7 @@ float BLF_width(char *str)
 	FontBLF *font;
 
 	font= global_font[global_font_cur];
-	if (font && font->width_get && font->glyph_cache)
+	if (font && font->width_get)
 		return((*font->width_get)(font, str));
 	return(0.0f);
 }
@@ -316,7 +329,7 @@ float BLF_height(char *str)
 	FontBLF *font;
 
 	font= global_font[global_font_cur];
-	if (font && font->height_get && font->glyph_cache)
+	if (font && font->height_get)
 		return((*font->height_get)(font, str));
 	return(0.0f);
 }

@@ -110,6 +110,9 @@ void blf_font_draw(FontBLF *font, char *str)
 	int pen_x, pen_y;
 	int i, has_kerning;
 
+	if (!font->glyph_cache)
+		return;
+
 	face= (FT_Face)font->engine;
 	i= 0;
 	pen_x= 0;
@@ -160,6 +163,9 @@ void blf_font_boundbox(FontBLF *font, char *str, rctf *box)
 	rctf gbox;
 	int pen_x, pen_y;
 	int i, has_kerning;
+
+	if (!font->glyph_cache)
+		return;
 
 	face= (FT_Face)font->engine;
 	box->xmin= 32000.0f;
@@ -228,6 +234,9 @@ float blf_font_width(FontBLF *font, char *str)
 {
 	rctf box;
 
+	if (!font->glyph_cache)
+		return(0.0f);
+
 	blf_font_boundbox(font, str, &box);
 	return((box.xmax - box.xmin) * font->aspect);
 }
@@ -235,6 +244,9 @@ float blf_font_width(FontBLF *font, char *str)
 float blf_font_height(FontBLF *font, char *str)
 {
 	rctf box;
+
+	if (!font->glyph_cache)
+		return(0.0f);
 
 	blf_font_boundbox(font, str, &box);
 	return((box.ymax - box.ymin) * font->aspect);
