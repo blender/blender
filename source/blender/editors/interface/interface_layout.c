@@ -526,8 +526,10 @@ void uiItemFullR(uiLayout *layout, int slot, const char *name, int icon, Pointer
 	uiItemRNA *rnaitem;
 	
 	prop= RNA_struct_find_property(ptr, propname);
-	if(!prop)
+	if(!prop){
+		printf("Property not found : %s \n",propname);
 		return;
+	}
 	
 	rnaitem= MEM_callocN(sizeof(uiItemRNA), "uiItemRNA");
 

@@ -202,6 +202,7 @@ extern StructRNA RNA_RandomSensor;
 extern StructRNA RNA_RaySensor;
 extern StructRNA RNA_Region;
 extern StructRNA RNA_Scene;
+extern StructRNA RNA_SceneRenderData;
 extern StructRNA RNA_SceneSequence;
 extern StructRNA RNA_Screen;
 extern StructRNA RNA_ScriptLink;

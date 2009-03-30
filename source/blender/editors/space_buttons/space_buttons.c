@@ -166,6 +166,13 @@ static void buttons_main_area_draw(const bContext *C, ARegion *ar)
 		if(tab == TAB_OBJECT_OBJECT)
 			uiRegionPanelLayout(C, ar, vertical, "object");
 	}
+	else if (sbuts->mainb == CONTEXT_SCENE){
+		int tab= sbuts->tab[CONTEXT_SCENE];
+		int vertical= (sbuts->align == 2);
+
+		if(tab == TAB_SCENE_RENDER)
+			uiRegionPanelLayout(C, ar, vertical, "render");
+	}	
 	else {
 		View2D *v2d= &ar->v2d;
 		float col[3], fac;
@@ -184,10 +191,7 @@ static void buttons_main_area_draw(const bContext *C, ARegion *ar)
 		glRecti(20, v2d->cur.ymin+2,  30, v2d->cur.ymin+12);
 		
 		/* panels */
-		if(sbuts->mainb == CONTEXT_SCENE)
-			buttons_scene(C, ar);
-		else
-			drawnewstuff();
+		drawnewstuff();
 		
 #if 0
 		if(sbuts->align)
@@ -282,6 +286,7 @@ void ED_spacetype_buttons(void)
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D|ED_KEYMAP_FRAMES;
 
 	buttons_object_register(art);
+	buttons_scene_register(art);
 
 	BLI_addhead(&st->regiontypes, art);
 	

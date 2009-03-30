@@ -29,14 +29,18 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "MEM_guardedalloc.h"
+
 #include "DNA_space_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 
 #include "BLI_threads.h"
+#include "BLI_listbase.h"
 
 #include "BKE_context.h"
 #include "BKE_global.h"
+#include "BKE_screen.h"
 
 #include "RE_pipeline.h"
 
@@ -47,6 +51,7 @@
 #include "UI_resources.h"
 
 #include "WM_types.h"
+#include "WM_api.h"
 
 #include "buttons_intern.h"
 
@@ -206,13 +211,124 @@ static void render_panel_bake(const bContext *C, ARegion *ar)
 
 	uiEndBlock(C, block);
 }
-
-static void render_panel_render(const bContext *C, ARegion *ar)
+static void render_panel_shading(const bContext *C, Panel *pnl)
 {
-	uiBlock *block;
+	uiLayout *layout= pnl->layout;
 	Scene *scene= CTX_data_scene(C);
-	char str[256];
+	PointerRNA sceneptr, renderptr;
 
+	RNA_id_pointer_create(&scene->id, &sceneptr);
+	renderptr = RNA_pointer_get(&sceneptr, "render_data");
+		
+	uiTemplateColumn(layout);
+	uiItemR(layout, UI_TSLOT_COLUMN_1, "Shadow", 0, &renderptr, "render_shadows");
+	uiItemR(layout, UI_TSLOT_COLUMN_2, "SSS", 0, &renderptr, "render_sss");
+	uiItemR(layout, UI_TSLOT_COLUMN_3, "EnvMap", 0, &renderptr, "render_envmaps");
+	uiItemR(layout, UI_TSLOT_COLUMN_4, "Radio", 0, &renderptr, "render_radiosity");
+	
+	uiTemplateColumn(layout);
+	uiItemLabel(layout, UI_TSLOT_COLUMN_1, "Ray Tracing:", 0);
+	uiTemplateColumn(layout);
+	uiItemR(layout, UI_TSLOT_COLUMN_1, "Enable", 0, &renderptr, "render_raytracing");
+	uiItemR(layout, UI_TSLOT_COLUMN_2, NULL, 0, &renderptr, "octree_resolution");
+	
+	uiTemplateColumn(layout);
+	uiItemLabel(layout, UI_TSLOT_COLUMN_1, "Alpha:", 0);
+	uiTemplateColumn(layout);
+	uiItemR(layout, UI_TSLOT_COLUMN_1, NULL, 0, &renderptr, "alpha_mode");
+	
+}
+static void render_panel_image(const bContext *C, Panel *pnl)
+{
+	uiLayout *layout= pnl->layout;
+	Scene *scene= CTX_data_scene(C);
+	PointerRNA sceneptr, renderptr;
+
+	RNA_id_pointer_create(&scene->id, &sceneptr);
+	renderptr = RNA_pointer_get(&sceneptr, "render_data");
+	
+	uiTemplateColumn(layout);	
+	uiItemR(layout, UI_TSLOT_COLUMN_1, "SizeX", 0, &renderptr, "resolution_x");
+	uiItemR(layout, UI_TSLOT_COLUMN_2, "SizeY", 0, &renderptr, "resolution_y");
+	uiItemR(layout, UI_TSLOT_COLUMN_1, "AspX", 0, &renderptr, "pixel_aspect_x");
+	uiItemR(layout, UI_TSLOT_COLUMN_2, "AspY", 0, &renderptr, "pixel_aspect_y");
+	uiTemplateColumn(layout);
+	uiItemR(layout, UI_TSLOT_COLUMN_1, NULL, 0, &renderptr, "crop_to_border");
+
+}
+static void render_panel_antialiasing(const bContext *C, Panel *pnl)
+{
+	uiLayout *layout= pnl->layout;
+	Scene *scene= CTX_data_scene(C);
+	PointerRNA sceneptr, renderptr;
+
+	RNA_id_pointer_create(&scene->id, &sceneptr);
+	renderptr = RNA_pointer_get(&sceneptr, "render_data");
+	
+	uiTemplateColumn(layout);	
+	uiItemR(layout, UI_TSLOT_COLUMN_1, "Enable", 0, &renderptr, "antialiasing");
+	uiItemR(layout, UI_TSLOT_COLUMN_1, "Num Samples", 0, &renderptr, "antialiasing_samples");
+	uiItemR(layout, UI_TSLOT_COLUMN_2, NULL, 0, &renderptr, "pixel_filter");
+	uiItemR(layout, UI_TSLOT_COLUMN_2, NULL, 0, &renderptr, "filter_size");
+	
+}
+
+static void render_panel_render(const bContext *C, Panel *pnl)
+{
+	uiLayout *layout= pnl->layout;
+	Scene *scene= CTX_data_scene(C);
+	PointerRNA sceneptr, renderptr, animptr;
+
+	RNA_id_pointer_create(&scene->id, &sceneptr);
+	renderptr = RNA_pointer_get(&sceneptr, "render_data");
+	WM_operator_properties_create(&animptr, "SCREEN_OT_render");
+
+	uiTemplateColumn(layout);
+	uiItemO(layout, UI_TSLOT_COLUMN_1, "RENDER", ICON_SCENE, "SCREEN_OT_render");
+	uiItemR(layout, UI_TSLOT_COLUMN_2, "ANIM", 0, &animptr, "anim");
+
+	uiTemplateColumn(layout);
+	uiItemR(layout, UI_TSLOT_COLUMN_1, "Sfra", 0, &sceneptr, "start_frame");
+	uiItemR(layout, UI_TSLOT_COLUMN_2, "Cfra", 0, &sceneptr, "current_frame");
+	uiItemR(layout, UI_TSLOT_COLUMN_3, "Efra", 0, &sceneptr, "end_frame");
+
+	uiTemplateColumn(layout);
+	uiItemR(layout, UI_TSLOT_COLUMN_1, NULL, 0, &renderptr, "do_composite");
+	uiItemR(layout, UI_TSLOT_COLUMN_2, NULL, 0, &renderptr, "do_sequence");
+	uiTemplateColumn(layout);
+	uiItemR(layout, UI_TSLOT_COLUMN_1, "Camera:", 0, &sceneptr, "camera");
+	
+	uiTemplateColumn(layout);
+	uiItemLabel(layout, UI_TSLOT_COLUMN_1, "General:", 0);
+	uiTemplateColumn(layout);
+	uiItemR(layout, UI_TSLOT_COLUMN_1, "Size ", 0, &renderptr, "resolution_percentage");
+	uiItemR(layout, UI_TSLOT_COLUMN_1, NULL, 0, &renderptr, "dither_intensity");
+	
+	uiTemplateColumn(layout);
+	uiItemR(layout, UI_TSLOT_COLUMN_1, NULL, 0, &renderptr, "parts_x");
+	uiItemR(layout, UI_TSLOT_COLUMN_2, NULL, 0, &renderptr, "parts_y");
+	
+	uiTemplateColumn(layout);
+	uiItemLabel(layout, UI_TSLOT_COLUMN_1, "Multi-Threading:", 0);
+	uiTemplateColumn(layout);
+	uiItemR(layout, UI_TSLOT_COLUMN_1, NULL, 0, &renderptr, "threads_mode");
+	uiItemR(layout, UI_TSLOT_COLUMN_1, NULL, 0, &renderptr, "threads");
+	
+	uiTemplateColumn(layout);
+	uiItemLabel(layout, UI_TSLOT_COLUMN_1, "Fields:", 0);
+	uiTemplateColumn(layout);
+	uiItemR(layout, UI_TSLOT_COLUMN_1, "Enable", 0, &renderptr, "fields");
+	uiItemR(layout, UI_TSLOT_COLUMN_2, NULL, 0, &renderptr, "field_order");
+	uiItemR(layout, UI_TSLOT_COLUMN_3, NULL, 0, &renderptr, "fields_still");
+	
+	uiTemplateColumn(layout);
+	uiItemLabel(layout, UI_TSLOT_COLUMN_1, "Extra:", 0);
+	uiTemplateColumn(layout);
+	uiItemR(layout, UI_TSLOT_COLUMN_1, "Border Render", 0, &renderptr, "border");
+	uiItemR(layout, UI_TSLOT_COLUMN_2, NULL, 0, &renderptr, "panorama");
+
+
+#if 0
 	block= uiBeginBlock(C, ar, "render_panel_render", UI_EMBOSS, UI_HELV);
 	if(uiNewPanel(C, ar, block, "Render", "Render", 320, 0, 318, 204)==0) return;
 
@@ -284,6 +400,7 @@ static void render_panel_render(const bContext *C, ARegion *ar)
 	uiBlockEndAlign(block);
 
 	uiEndBlock(C, block);
+#endif
 }
 
 
@@ -318,16 +435,40 @@ void render_panel_anim(const bContext *C, ARegion *ar)
 	uiEndBlock(C, block);
 }
 
-void buttons_scene(const bContext *C, ARegion *ar)
+void buttons_scene_register(ARegionType *art)
 {
-	SpaceButs *sbuts= (SpaceButs*)CTX_wm_space_data(C);
-	int tab= sbuts->tab[CONTEXT_SCENE];
+	PanelType *pt;
 
-	if(tab == TAB_SCENE_RENDER) {
-		render_panel_output(C, ar);
-		render_panel_render(C, ar);
-		render_panel_anim(C, ar);
-		render_panel_bake(C, ar);
-	}
+	/* panels: Render */
+	pt= MEM_callocN(sizeof(PanelType), "spacetype buttons panel");
+	pt->idname= "RENDER_PT_render";
+	pt->name= "Render";
+	pt->context= "render";
+	pt->draw= render_panel_render;
+	BLI_addtail(&art->paneltypes, pt);
+	
+	/* panels: Shading */
+	pt= MEM_callocN(sizeof(PanelType), "spacetype buttons panel");
+	pt->idname= "RENDER_PT_image";
+	pt->name= "Image";
+	pt->context= "render";
+	pt->draw= render_panel_image;
+	BLI_addtail(&art->paneltypes, pt);
+		
+	/* panels: AntiAliasing */
+	pt= MEM_callocN(sizeof(PanelType), "spacetype buttons panel");
+	pt->idname= "RENDER_PT_antialias";
+	pt->name= "AntiAliasing";
+	pt->context= "render";
+	pt->draw= render_panel_antialiasing;
+	BLI_addtail(&art->paneltypes, pt);
+
+	/* panels: Shading */
+	pt= MEM_callocN(sizeof(PanelType), "spacetype buttons panel");
+	pt->idname= "RENDER_PT_shading";
+	pt->name= "Shading";
+	pt->context= "render";
+	pt->draw= render_panel_shading;
+	BLI_addtail(&art->paneltypes, pt);
 }
 

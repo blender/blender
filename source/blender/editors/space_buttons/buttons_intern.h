@@ -78,7 +78,7 @@ struct bContext;
 
 /* image_header.c */
 void buttons_header_buttons(const struct bContext *C, struct ARegion *ar);
-void buttons_scene(const struct bContext *C, struct ARegion *ar);
+void buttons_scene_register(struct ARegionType *art);
 void buttons_object_register(struct ARegionType *art);
 
 #endif /* ED_BUTTONS_INTERN_H */
