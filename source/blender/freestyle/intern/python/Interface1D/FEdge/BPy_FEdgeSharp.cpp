@@ -136,15 +136,13 @@ int FEdgeSharp___init__(BPy_FEdgeSharp *self, PyObject *args, PyObject *kwds)
 		self->fes = new FEdgeSharp();
 		
 	} else if( BPy_FEdgeSharp_Check(obj1) ) {
-		if( ((BPy_FEdgeSharp *) obj1)->fes )
-			self->fes = new FEdgeSharp(*( ((BPy_FEdgeSharp *) obj1)->fes ));
-		else
-			return -1;
+		self->fes = new FEdgeSharp(*( ((BPy_FEdgeSharp *) obj1)->fes ));
 		
 	} else if( BPy_SVertex_Check(obj1) && BPy_SVertex_Check(obj2) ) {
 		self->fes = new FEdgeSharp( ((BPy_SVertex *) obj1)->sv, ((BPy_SVertex *) obj2)->sv );
 
 	} else {
+		PyErr_SetString(PyExc_TypeError, "invalid argument(s)");
 		return -1;
 	}
 
@@ -186,9 +184,13 @@ PyObject * FEdgeSharp_bMaterial( BPy_FEdgeSharp *self ) {
 PyObject * FEdgeSharp_setNormalA( BPy_FEdgeSharp *self, PyObject *args ) {
 	PyObject *obj = 0;
 
-	if(!( PyArg_ParseTuple(args, "O", &obj) && PyList_Check(obj) && PyList_Size(obj) > 2 )) {
-		cout << "ERROR: FEdgeSharp_setNormalA" << endl;
-		Py_RETURN_NONE;
+	if(!( PyArg_ParseTuple(args, "O!", &PyList_Type, &obj) ))
+		return NULL;
+	if( PyList_Size(obj) != 3 ) {
+		stringstream msg("FEdgeSharp::setNormalA() accepts a list of 3 elements (");
+		msg << PyList_Size(obj) << " found)";
+		PyErr_SetString(PyExc_TypeError, msg.str().c_str());
+		return NULL;
 	}
 	
 	Vec3r v(	PyFloat_AsDouble( PyList_GetItem(obj,0) ),
@@ -203,9 +205,13 @@ PyObject * FEdgeSharp_setNormalA( BPy_FEdgeSharp *self, PyObject *args ) {
 PyObject * FEdgeSharp_setNormalB( BPy_FEdgeSharp *self, PyObject *args ) {
 	PyObject *obj = 0;
 
-	if(!( PyArg_ParseTuple(args, "O", &obj) && PyList_Check(obj) && PyList_Size(obj) > 2 )) {
-		cout << "ERROR: FEdgeSharp_setNormalB" << endl;
-		Py_RETURN_NONE;
+	if(!( PyArg_ParseTuple(args, "O!", &PyList_Type, &obj) ))
+		return NULL;
+	if( PyList_Size(obj) != 3 ) {
+		stringstream msg("FEdgeSharp::setNormalB() accepts a list of 3 elements (");
+		msg << PyList_Size(obj) << " found)";
+		PyErr_SetString(PyExc_TypeError, msg.str().c_str());
+		return NULL;
 	}
 	
 	Vec3r v(	PyFloat_AsDouble( PyList_GetItem(obj,0) ),
@@ -220,10 +226,8 @@ PyObject * FEdgeSharp_setNormalB( BPy_FEdgeSharp *self, PyObject *args ) {
 PyObject * FEdgeSharp_setaMaterialIndex( BPy_FEdgeSharp *self, PyObject *args ) {
 	unsigned int i;
 
-	if(!( PyArg_ParseTuple(args, "I", &i) )) {
-		cout << "ERROR: FEdgeSharp_setaMaterialIndex" << endl;
-		Py_RETURN_NONE;
-	}
+	if(!( PyArg_ParseTuple(args, "I", &i) ))
+		return NULL;
 	
 	self->fes->setaFrsMaterialIndex( i );
 
@@ -233,10 +237,8 @@ PyObject * FEdgeSharp_setaMaterialIndex( BPy_FEdgeSharp *self, PyObject *args ) 
 PyObject * FEdgeSharp_setbMaterialIndex( BPy_FEdgeSharp *self, PyObject *args ) {
 	unsigned int i;
 
-	if(!( PyArg_ParseTuple(args, "I", &i) )) {
-		cout << "ERROR: FEdgeSharp_setbMaterialIndex" << endl;
-		Py_RETURN_NONE;
-	}
+	if(!( PyArg_ParseTuple(args, "I", &i) ))
+		return NULL;
 	
 	self->fes->setbFrsMaterialIndex( i );
 

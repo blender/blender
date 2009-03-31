@@ -172,10 +172,8 @@ PyObject * TVertex_backSVertex( BPy_TVertex *self ) {
 PyObject * TVertex_setFrontSVertex( BPy_TVertex *self, PyObject *args) {
 	PyObject *py_sv;
 
-	if(!( PyArg_ParseTuple(args, "O", &py_sv) && BPy_SVertex_Check(py_sv) )) {
-		cout << "ERROR: TVertex_setFrontSVertex" << endl;
-		Py_RETURN_NONE;
-	}
+	if(!( PyArg_ParseTuple(args, "O!", &SVertex_Type, &py_sv) ))
+		return NULL;
 
 	self->tv->setFrontSVertex( ((BPy_SVertex *) py_sv)->sv );
 
@@ -185,10 +183,8 @@ PyObject * TVertex_setFrontSVertex( BPy_TVertex *self, PyObject *args) {
 PyObject * TVertex_setBackSVertex( BPy_TVertex *self, PyObject *args) {
 	PyObject *py_sv;
 
-	if(!( PyArg_ParseTuple(args, "O", &py_sv) && BPy_SVertex_Check(py_sv) )) {
-		cout << "ERROR: TVertex_setBackSVertex" << endl;
-		Py_RETURN_NONE;
-	}
+	if(!( PyArg_ParseTuple(args, "O", &SVertex_Type, &py_sv) ))
+		return NULL;
 
 	self->tv->setBackSVertex( ((BPy_SVertex *) py_sv)->sv );
 
@@ -198,10 +194,8 @@ PyObject * TVertex_setBackSVertex( BPy_TVertex *self, PyObject *args) {
 PyObject * TVertex_setId( BPy_TVertex *self, PyObject *args) {
 	PyObject *py_id;
 
-	if(!( PyArg_ParseTuple(args, "O", &py_id) && BPy_Id_Check(py_id) )) {
-		cout << "ERROR: TVertex_setId" << endl;
-		Py_RETURN_NONE;
-	}
+	if(!( PyArg_ParseTuple(args, "O!", &Id_Type, &py_id) ))
+		return NULL;
 
 	if( ((BPy_Id *) py_id)->id )
 		self->tv->setId(*( ((BPy_Id *) py_id)->id ));
@@ -212,10 +206,8 @@ PyObject * TVertex_setId( BPy_TVertex *self, PyObject *args) {
 PyObject * TVertex_getSVertex( BPy_TVertex *self, PyObject *args) {
 	PyObject *py_fe;
 
-	if(!( PyArg_ParseTuple(args, "O", &py_fe) && BPy_FEdge_Check(py_fe) )) {
-		cout << "ERROR: TVertex_getSVertex" << endl;
-		Py_RETURN_NONE;
-	}
+	if(!( PyArg_ParseTuple(args, "O!", &FEdge_Type, &py_fe) ))
+		return NULL;
 
 	SVertex *sv = self->tv->getSVertex( ((BPy_FEdge *) py_fe)->fe );
 	if( sv ){
@@ -228,10 +220,8 @@ PyObject * TVertex_getSVertex( BPy_TVertex *self, PyObject *args) {
 PyObject * TVertex_mate( BPy_TVertex *self, PyObject *args) {
 	PyObject *py_ve;
 
-	if(!( PyArg_ParseTuple(args, "O", &py_ve) && BPy_ViewEdge_Check(py_ve) )) {
-		cout << "ERROR: TVertex_mate" << endl;
-		Py_RETURN_NONE;
-	}
+	if(!( PyArg_ParseTuple(args, "O!", &ViewEdge_Type, &py_ve) ))
+		return NULL;
 
 	ViewEdge *ve = self->tv->mate( ((BPy_ViewEdge *) py_ve)->ve );
 	if( ve ){

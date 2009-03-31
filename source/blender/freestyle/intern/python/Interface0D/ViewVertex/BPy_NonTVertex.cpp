@@ -133,6 +133,7 @@ int NonTVertex___init__(BPy_NonTVertex *self, PyObject *args, PyObject *kwds)
 		self->ntv = new NonTVertex( ((BPy_SVertex *) obj)->sv );
 
 	} else {
+		PyErr_SetString(PyExc_TypeError, "invalid argument");
 		return -1;
 	}
 
@@ -174,10 +175,8 @@ PyObject * NonTVertex_svertex( BPy_NonTVertex *self ) {
 PyObject * NonTVertex_setSVertex( BPy_NonTVertex *self, PyObject *args) {
 	PyObject *py_sv;
 
-	if(!( PyArg_ParseTuple(args, "O", &py_sv) && BPy_SVertex_Check(py_sv) )) {
-		cout << "ERROR: NonTVertex_setSVertex" << endl;
-		Py_RETURN_NONE;
-	}
+	if(!( PyArg_ParseTuple(args, "O!", &SVertex_Type, &py_sv) ))
+		return NULL;
 
 	self->ntv->setSVertex( ((BPy_SVertex *) py_sv)->sv );
 

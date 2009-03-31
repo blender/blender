@@ -128,15 +128,13 @@ int FEdgeSmooth___init__(BPy_FEdgeSmooth *self, PyObject *args, PyObject *kwds)
 		self->fes = new FEdgeSmooth();
 		
 	} else if( BPy_FEdgeSmooth_Check(obj1) ) {
-		if( ((BPy_FEdgeSmooth *) obj1)->fes )
-			self->fes = new FEdgeSmooth(*( ((BPy_FEdgeSmooth *) obj1)->fes ));
-		else
-			return -1;
+		self->fes = new FEdgeSmooth(*( ((BPy_FEdgeSmooth *) obj1)->fes ));
 		
 	} else if( BPy_SVertex_Check(obj1) && BPy_SVertex_Check(obj2) ) {
 		self->fes = new FEdgeSmooth( ((BPy_SVertex *) obj1)->sv, ((BPy_SVertex *) obj2)->sv );
 
 	} else {
+		PyErr_SetString(PyExc_TypeError, "invalid argument(s)");
 		return -1;
 	}
 
@@ -164,9 +162,13 @@ PyObject * FEdgeSmooth_material( BPy_FEdgeSmooth *self ) {
 PyObject * FEdgeSmooth_setNormal( BPy_FEdgeSmooth *self, PyObject *args ) {
 	PyObject *obj = 0;
 
-	if(!( PyArg_ParseTuple(args, "O", &obj) && PyList_Check(obj) && PyList_Size(obj) > 2 )) {
-		cout << "ERROR: FEdgeSmooth_setNormal" << endl;
-		Py_RETURN_NONE;
+	if(!( PyArg_ParseTuple(args, "O!", &PyList_Type, &obj) ))
+		return NULL;
+	if( PyList_Size(obj) != 3 ) {
+		stringstream msg("FEdgeSmooth::setNormal() accepts a list of 3 elements (");
+		msg << PyList_Size(obj) << " found)";
+		PyErr_SetString(PyExc_TypeError, msg.str().c_str());
+		return NULL;
 	}
 	
 	Vec3r v(	PyFloat_AsDouble( PyList_GetItem(obj,0) ),
@@ -181,10 +183,8 @@ PyObject * FEdgeSmooth_setNormal( BPy_FEdgeSmooth *self, PyObject *args ) {
 PyObject * FEdgeSmooth_setMaterialIndex( BPy_FEdgeSmooth *self, PyObject *args ) {
 	unsigned int i;
 
-	if(!( PyArg_ParseTuple(args, "I", &i) )) {
-		cout << "ERROR: FEdgeSmooth_setMaterialIndex" << endl;
-		Py_RETURN_NONE;
-	}
+	if(!( PyArg_ParseTuple(args, "I", &i) ))
+		return NULL;
 	
 	self->fes->setFrsMaterialIndex( i );
 
