@@ -144,7 +144,7 @@ BF_FFMPEG_LIBPATH='${BF_FFMPEG}/lib'
 WITH_BF_OGG = False  # -DWITH_OGG 
 BF_OGG = '/usr'
 BF_OGG_INC = '${BF_OGG}/include'
-BF_OGG_LIB = 'ogg vorbis theoraenc theoradec'
+BF_OGG_LIB = 'ogg vorbis vorbisenc theoraenc theoradec'
 
 WITH_BF_OPENJPEG = True 
 BF_OPENJPEG = '#extern/libopenjpeg'
