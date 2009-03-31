@@ -1,5 +1,5 @@
 #
-# $Id: Makefile,v 1.7 2003/05/12 18:12:25 sgefant Exp $
+# $Id$
 #
 # ***** BEGIN GPL LICENSE BLOCK *****
 #

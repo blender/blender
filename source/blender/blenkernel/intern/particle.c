@@ -1,7 +1,7 @@
 /* particle.c
  *
  *
- * $Id: particle.c $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

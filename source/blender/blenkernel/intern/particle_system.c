@@ -1,7 +1,7 @@
 /* particle_system.c
  *
  *
- * $Id: particle_system.c $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

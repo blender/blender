@@ -1,7 +1,7 @@
 /* BKE_particle.h
  *
  *
- * $Id: BKE_particle.h $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

@@ -1,4 +1,4 @@
-# $Id: KX_ParentActuator.py 2615 2004-06-02 12:43:27Z kester $
+# $Id$
 # Documentation for KX_ParentActuator
 from SCA_IActuator import *
 

@@ -1,5 +1,5 @@
 /**
- * $Id: SHD_valToRgb.c 10456 2007-04-04 13:58:12Z jesterking $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

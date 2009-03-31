@@ -1,5 +1,5 @@
 /**
- * $Id: BIF_editaction.h 10519 2007-04-13 11:15:08Z aligorith $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

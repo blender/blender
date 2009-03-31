@@ -1,4 +1,4 @@
-# $Id: SCA_RandomSensor.py 15444 2008-07-05 17:05:05Z lukep $
+# $Id$
 # Documentation for SCA_RandomSensor
 from SCA_ISensor import *
 

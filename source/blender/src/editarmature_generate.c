@@ -1,5 +1,5 @@
 /**
- * $Id: editarmature_generate.c  $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

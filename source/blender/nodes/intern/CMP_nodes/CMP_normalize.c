@@ -1,5 +1,5 @@
 /**
- * $Id: CMP_normalize.c,v 1.0 2007/03/24 06:57:29 scourage Exp $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

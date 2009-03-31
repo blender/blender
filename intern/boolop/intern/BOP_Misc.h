@@ -1,6 +1,6 @@
 /**
  *
- * $Id: BOP_Misc.h 14444 2008-04-16 22:40:48Z khughes $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

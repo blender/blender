@@ -1,7 +1,7 @@
 /**
  * Set or remove an objects parent
  *
- * $Id: SCA_ParentActuator.cpp 13932 2008-03-01 19:05:41Z ben2610 $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

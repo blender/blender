@@ -2,7 +2,7 @@
  * Set or remove an objects parent
  *
  *
- * $Id: KX_ParentActuator.h 3271 2004-10-16 11:41:50Z kester $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

@@ -1,7 +1,7 @@
 /* DNA_particle_types.h
  *
  *
- * $Id: DNA_particle_types.h $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
