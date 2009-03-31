@@ -315,9 +315,9 @@ static AVFrame* generate_video_frame(uint8_t* pixels)
 			uint8_t* end = src + width * 4;
 			while (src != end) {
 				target[3] = src[3];
-				target[2] = src[0];
+				target[2] = src[2];
 				target[1] = src[1];
-				target[0] = src[2];
+				target[0] = src[0];
 
 				target += 4;
 				src += 4;
@@ -331,9 +331,9 @@ static AVFrame* generate_video_frame(uint8_t* pixels)
 			uint8_t* src = rendered_frame + width * 4 * y;
 			uint8_t* end = src + width * 4;
 			while (src != end) {
-				target[3] = src[2];
+				target[3] = src[0];
 				target[2] = src[1];
-				target[1] = src[0];
+				target[1] = src[2];
 				target[0] = src[3];
 
 				target += 4;
