@@ -148,6 +148,14 @@ Documentation for the GameLogic Module.
 @var KX_RADAR_AXIS_NEG_X:		    See L{KX_RadarSensor}
 @var KX_RADAR_AXIS_NEG_Y:		    See L{KX_RadarSensor}
 @var KX_RADAR_AXIS_NEG_Z:		    See L{KX_RadarSensor}
+
+@group Ray Sensor: KX_RAY_AXIS_POS_X, KX_RAY_AXIS_POS_Y, KX_RAY_AXIS_POS_Z, KX_RAY_AXIS_NEG_X, KX_RAY_AXIS_NEG_Y, KX_RAY_AXIS_NEG_Z
+@var KX_RAY_AXIS_POS_X:		    See L{KX_RaySensor}
+@var KX_RAY_AXIS_POS_Y:		    See L{KX_RaySensor}
+@var KX_RAY_AXIS_POS_Z:		    See L{KX_RaySensor}
+@var KX_RAY_AXIS_NEG_X:		    See L{KX_RaySensor}
+@var KX_RAY_AXIS_NEG_Y:		    See L{KX_RaySensor}
+@var KX_RAY_AXIS_NEG_Z:		    See L{KX_RaySensor}
 """
 
 
