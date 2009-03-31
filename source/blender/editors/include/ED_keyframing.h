@@ -69,6 +69,9 @@ short deletekey(struct ID *id, const char group[], const char rna_path[], int ar
 /* Generate menu of KeyingSets */
 char *ANIM_build_keyingsets_menu(struct ListBase *list, short for_edit);
 
+/* Initialise builtin KeyingSets on startup */
+void init_builtin_keyingsets(void);
+
 /* KeyingSet Editing Operators:
  *	These can add a new KeyingSet and/or add 'destinations' to the KeyingSets,
  *	acting as a means by which they can be added outside the Outliner.
@@ -83,12 +86,13 @@ void ANIM_OT_keyingset_add_destination(struct wmOperatorType *ot);
 void ANIM_OT_insert_keyframe(struct wmOperatorType *ot);
 void ANIM_OT_delete_keyframe(struct wmOperatorType *ot);
 
-/* Main Keyframe Management operators (legacy style): 
+/* Main Keyframe Management operators: 
  *	These handle keyframes management from various spaces. They will handle the menus 
  * 	required for each space.
  */
-void ANIM_OT_insert_keyframe_old(struct wmOperatorType *ot);
-void ANIM_OT_delete_keyframe_old(struct wmOperatorType *ot);
+void ANIM_OT_insert_keyframe_menu(struct wmOperatorType *ot);
+void ANIM_OT_delete_keyframe_menu(struct wmOperatorType *ot); // xxx unimplemented yet
+void ANIM_OT_delete_keyframe_old(struct wmOperatorType *ot); // xxx rename and keep?
 
 /* ************ Auto-Keyframing ********************** */
 /* Notes:

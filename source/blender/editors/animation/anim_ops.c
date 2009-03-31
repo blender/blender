@@ -380,8 +380,9 @@ void ED_operatortypes_anim(void)
 		// XXX this is used all over... maybe for screen instead?
 	WM_operatortype_append(ANIM_OT_insert_keyframe);
 	WM_operatortype_append(ANIM_OT_delete_keyframe);
-	WM_operatortype_append(ANIM_OT_insert_keyframe_old);
-	WM_operatortype_append(ANIM_OT_delete_keyframe_old);
+	WM_operatortype_append(ANIM_OT_insert_keyframe_menu);
+	//WM_operatortype_append(ANIM_OT_delete_keyframe_menu);
+	WM_operatortype_append(ANIM_OT_delete_keyframe_old); // xxx remove?
 	
 	WM_operatortype_append(ANIM_OT_keyingset_add_new);
 	WM_operatortype_append(ANIM_OT_keyingset_add_destination);

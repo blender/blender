@@ -3088,7 +3088,7 @@ static KeyingSet *verify_active_keyingset(Scene *scene, short add)
 	/* add if none found */
 	// XXX the default settings have yet to evolve
 	if ((add) && (ks==NULL)) {
-		ks= BKE_keyingset_add(&scene->keyingsets, "KeyingSet", KEYINGSET_ABSOLUTE, 0);
+		ks= BKE_keyingset_add(&scene->keyingsets, "Keying Set", KEYINGSET_ABSOLUTE, 0);
 		scene->active_keyingset= BLI_countlist(&scene->keyingsets);
 	}
 	

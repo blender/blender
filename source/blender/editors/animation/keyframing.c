@@ -61,10 +61,10 @@ typedef struct bCommonKeySrc {
 		
 		/* general data/destination-source settings */
 	ID *id;					/* id-block this comes from */
-	char *rna_path;			/* base path to use */	// xxx.... maybe we don't need this?
 	
 		/* specific cases */
-	bPoseChannel *pchan;	/* only needed when doing recalcs... */
+	bPoseChannel *pchan;	
+	bConstraint *con;
 } bCommonKeySrc;
 
 /* ******************************************* */
@@ -867,7 +867,7 @@ short deletekey (ID *id, const char group[], const char rna_path[], int array_in
 }
 
 /* ******************************************* */
-/* KEYINGSETS */
+/* KEYING SETS - EDITING API  */
 
 /* Operators ------------------------------------------- */
 
@@ -1042,15 +1042,8 @@ char *ANIM_build_keyingsets_menu (ListBase *list, short for_edit)
 }
 
 
-
 /* ******************************************* */
-/* KEYFRAME MODIFICATION */
-
-/* mode for commonkey_modifykey */
-enum {
-	COMMONKEY_MODE_INSERT = 0,
-	COMMONKEY_MODE_DELETE,
-} eCommonModifyKey_Modes;
+/* KEYING SETS - BUILTIN */
 
 #if 0 // XXX old keyingsets code based on adrcodes... to be restored in due course
 
@@ -1570,229 +1563,319 @@ typedef enum eKS_Contexts {
 } eKS_Contexts;
 
 
-/* ---------------- KeyingSet Tools ------------------- */
-
-/* helper for commonkey_context_get() -  get keyingsets for 3d-view */
-static void commonkey_context_getv3d (const bContext *C, ListBase *sources, bKeyingContext **ksc)
-{
-	Scene *scene= CTX_data_scene(C);
-	Object *ob;
-	IpoCurve *icu;
-	
-	if ((OBACT) && (OBACT->flag & OB_POSEMODE)) {
-		bPoseChannel *pchan;
-		
-		/* pose-level */
-		ob= OBACT;
-		*ksc= &ks_contexts[KSC_V3D_PCHAN];
-			// XXX
-		//set_pose_keys(ob);  /* sets pchan->flag to POSE_KEY if bone selected, and clears if not */
-		
-		/* loop through posechannels */
-		for (pchan=ob->pose->chanbase.first; pchan; pchan=pchan->next) {
-			if (pchan->flag & POSE_KEY) {
-				bCommonKeySrc *cks;
-				
-				/* add new keyframing destination */
-				cks= MEM_callocN(sizeof(bCommonKeySrc), "bCommonKeySrc");
-				BLI_addtail(sources, cks);
-				
-				/* set id-block to key to, and action */
-				cks->id= (ID *)ob;
-				cks->act= ob->action;
-				
-				/* set pchan */
-				cks->pchan= pchan;
-				cks->actname= pchan->name;
-			}
-		}
-	}
-	else {
-		/* object-level */
-		*ksc= &ks_contexts[KSC_V3D_OBJECT];
-		
-		/* loop through bases */
-		// XXX but we're only supposed to do this on editable ones, not just selected ones!
-		CTX_DATA_BEGIN(C, Base*, base, selected_bases) {
-			bCommonKeySrc *cks;
-			
-			/* add new keyframing destination */
-			cks= MEM_callocN(sizeof(bCommonKeySrc), "bCommonKeySrc");
-			BLI_addtail(sources, cks);
-			
-			/* set id-block to key to */
-			ob= base->object;
-			cks->id= (ID *)ob;
-		}
-		CTX_DATA_END;
-	}
-}
-
-/* helper for commonkey_context_get() -  get keyingsets for buttons window */
-static void commonkey_context_getsbuts (const bContext *C, ListBase *sources, bKeyingContext **ksc)
-{
-#if 0 // XXX dunno what's the future of this stuff...	
-	bCommonKeySrc *cks;
-	
-	/* check on tab-type */
-	switch (G.buts->mainb) {
-	case CONTEXT_SHADING:	/* ------------- Shading buttons ---------------- */
-		/* subtabs include "Material", "Texture", "Lamp", "World"*/
-		switch (G.buts->tab[CONTEXT_SHADING]) {
-			case TAB_SHADING_MAT: /* >------------- Material Tab -------------< */
-			{
-				Material *ma= editnode_get_active_material(G.buts->lockpoin);
-				
-				if (ma) {
-					/* add new keyframing destination */
-					cks= MEM_callocN(sizeof(bCommonKeySrc), "bCommonKeySrc");
-					BLI_addtail(sources, cks); 
-					
-					/* set data */
-					cks->id= (ID *)ma;
-					cks->ipo= ma->ipo;
-					cks->map= texchannel_to_adrcode(ma->texact);
-					
-					/* set keyingsets */
-					*ksc= &ks_contexts[KSC_BUTS_MAT];
-					return;
-				}
-			}
-				break;
-			case TAB_SHADING_WORLD: /* >------------- World Tab -------------< */
-			{
-				World *wo= G.buts->lockpoin;
-				
-				if (wo) {
-					/* add new keyframing destination */
-					cks= MEM_callocN(sizeof(bCommonKeySrc), "bCommonKeySrc");
-					BLI_addtail(sources, cks); 
-					
-					/* set data */
-					cks->id= (ID *)wo;
-					cks->ipo= wo->ipo;
-					cks->map= texchannel_to_adrcode(wo->texact);
-					
-					/* set keyingsets */
-					*ksc= &ks_contexts[KSC_BUTS_WO];
-					return;
-				}
-			}
-				break;
-			case TAB_SHADING_LAMP: /* >------------- Lamp Tab -------------< */
-			{
-				Lamp *la= G.buts->lockpoin;
-				
-				if (la) {
-					/* add new keyframing destination */
-					cks= MEM_callocN(sizeof(bCommonKeySrc), "bCommonKeySrc");
-					BLI_addtail(sources, cks); 
-					
-					/* set data */
-					cks->id= (ID *)la;
-					cks->ipo= la->ipo;
-					cks->map= texchannel_to_adrcode(la->texact);
-					
-					/* set keyingsets */
-					*ksc= &ks_contexts[KSC_BUTS_LA];
-					return;
-				}
-			}
-				break;
-			case TAB_SHADING_TEX: /* >------------- Texture Tab -------------< */
-			{
-				Tex *tex= G.buts->lockpoin;
-				
-				if (tex) {
-					/* add new keyframing destination */
-					cks= MEM_callocN(sizeof(bCommonKeySrc), "bCommonKeySrc");
-					BLI_addtail(sources, cks); 
-					
-					/* set data */
-					cks->id= (ID *)tex;
-					cks->ipo= tex->ipo;
-					
-					/* set keyingsets */
-					*ksc= &ks_contexts[KSC_BUTS_TEX];
-					return;
-				}
-			}
-				break;
-		}
-		break;
-	
-	case CONTEXT_OBJECT:	/* ------------- Object buttons ---------------- */
-		{
-			Object *ob= OBACT;
-			
-			if (ob) {
-				/* add new keyframing destination */
-				cks= MEM_callocN(sizeof(bCommonKeySrc), "bCommonKeySrc");
-				BLI_addtail(sources, cks);
-				
-				/* set id-block to key to */
-				cks->id= (ID *)ob;
-				cks->ipo= ob->ipo;
-				
-				/* set keyingsets */
-				*ksc= &ks_contexts[KSC_BUTS_OB];
-				return;
-			}
-		}
-		break;
-	
-	case CONTEXT_EDITING:	/* ------------- Editing buttons ---------------- */
-		{
-			Object *ob= OBACT;
-			
-			if ((ob) && (ob->type==OB_CAMERA) && (G.buts->lockpoin)) { /* >---------------- camera buttons ---------------< */
-				Camera *ca= G.buts->lockpoin;
-				
-				/* add new keyframing destination */
-				cks= MEM_callocN(sizeof(bCommonKeySrc), "bCommonKeySrc");
-				BLI_addtail(sources, cks);
-				
-				/* set id-block to key to */
-				cks->id= (ID *)ca;
-				cks->ipo= ca->ipo;
-				
-				/* set keyingsets */
-				*ksc= &ks_contexts[KSC_BUTS_CAM];
-				return;
-			}
-		}
-		break;
-	}
-#endif // XXX end of buttons stuff to port...
-	
-	/* if nothing happened... */
-	*ksc= NULL;
-}
-
 #endif // XXX old keyingsets code based on adrcodes... to be restored in due course
 
-#if 0 // XXX new relative keyingsets code
+/* Macros for Declaring KeyingSets ------------------- */
+
+/* A note about this system for declaring built-in Keying Sets:
+ *	One may ask, "What is the purpose of all of these macros and static arrays?" and 
+ * 	"Why not call the KeyingSets API defined in BKE_animsys.h?". The answer is two-fold.
+ * 	
+ * 	1) Firstly, we use static arrays of struct definitions instead of function calls, as
+ *	   it reduces the start-up overhead and allocated-memory footprint of Blender. If we called
+ *	   the KeyingSets API to build these sets, the overhead of checking for unique names, allocating
+ *	   memory for each and every path and KeyingSet, scattered around in RAM, all of which would increase
+ *	   the startup time (which is totally unacceptable) and could lead to fragmentation+slower access times.
+ *	2) Since we aren't using function calls, we need a nice way of defining these KeyingSets in a way which
+ *	   is easily readable and less prone to breakage from changes to the underlying struct definitions. Further,
+ *	   adding additional entries SHOULD NOT require custom code to be written to access these new entries/sets. 
+ *	   Therefore, here we have a system with nice, human-readable statements via macros, and static arrays which
+ *	   are linked together using more special macros + struct definitions, allowing for such a generic + simple
+ *	   initialisation function (init_builtin_keyingsets()) compared with that of something like the Nodes system.
+ */
+
+/* Struct type for declaring builtin KeyingSets in as entries in static arrays*/
+typedef struct bBuiltinKeyingSet {
+	KeyingSet ks;			/* the KeyingSet to build */
+	int tot;				/* the total number of paths defined */
+	KS_Path paths[64];		/* the paths for the KeyingSet to use */
+} bBuiltinKeyingSet;
+
+	/* WARNING: the following macros must be kept in sync with the 
+	 * struct definitions in DNA_anim_types.h! 
+	 */
+
+/* macro for defining a builtin KeyingSet */
+#define BI_KS_DEFINE(name, keyingflag) \
+	{NULL, NULL, {NULL, NULL}, name, KEYINGSET_BUILTIN, keyingflag}
+	
+/* macro to start defining paths for a builtin KeyingSet */
+#define BI_KS_PATHS_BEGIN(tot) \
+	tot, {
+	
+/* macro to finish defining paths for a builtin KeyingSet */
+#define BI_KS_PATHS_END \
+	}
+	
+/* macro for defining a builtin KeyingSet's path */
+#define BI_KSP_DEFINE(id_type, templates, prop_path, array_index, flag, groupflag) \
+	{NULL, NULL, NULL, "", id_type, templates, prop_path, array_index, flag, groupflag}
+	
+/* ---- */
+
+/* Struct type for finding all the arrays of builtin KeyingSets */
+typedef struct bBuiltinKSContext {
+	bBuiltinKeyingSet *bks;		/* array of KeyingSet definitions */
+	int tot;					/* number of KeyingSets in this array */
+} bBuiltinKSContext;
+
+/* macro for defining builtin KeyingSet sets 
+ * NOTE: all the arrays of sets must follow this naming convention!
+ */
+#define BKSC_TEMPLATE(ctx_name) {&def_builtin_keyingsets_##ctx_name[0], sizeof(def_builtin_keyingsets_##ctx_name)/sizeof(bBuiltinKeyingSet)}
+
+
+/* 3D-View Builtin KeyingSets ------------------------ */
+
+static bBuiltinKeyingSet def_builtin_keyingsets_v3d[] =
+{
+	/* Simple Keying Sets ************************************* */
+	/* Keying Set - "Location" ---------- */
+	{
+		/* KeyingSet Definition */
+		BI_KS_DEFINE("Location", 0), 
+		
+		/* Path Definitions */
+		BI_KS_PATHS_BEGIN(1)
+			BI_KSP_DEFINE(ID_OB, KSP_TEMPLATE_OBJECT|KSP_TEMPLATE_PCHAN, "location", 0, KSP_FLAG_WHOLE_ARRAY, KSP_GROUP_KSNAME) 
+		BI_KS_PATHS_END
+	},
+
+	/* Keying Set - "Rotation" ---------- */
+	{
+		/* KeyingSet Definition */
+		BI_KS_DEFINE("Rotation", 0),
+		
+		/* Path Definitions */
+		BI_KS_PATHS_BEGIN(1)
+			BI_KSP_DEFINE(ID_OB, KSP_TEMPLATE_OBJECT|KSP_TEMPLATE_PCHAN, "rotation", 0, KSP_FLAG_WHOLE_ARRAY, KSP_GROUP_KSNAME) 
+		BI_KS_PATHS_END
+	},
+	
+	/* Keying Set - "Scaling" ---------- */
+	{
+		/* KeyingSet Definition */
+		BI_KS_DEFINE("Scaling", 0),
+		
+		/* Path Definitions */
+		BI_KS_PATHS_BEGIN(1)
+			BI_KSP_DEFINE(ID_OB, KSP_TEMPLATE_OBJECT|KSP_TEMPLATE_PCHAN, "scaling", 0, KSP_FLAG_WHOLE_ARRAY, KSP_GROUP_KSNAME) 
+		BI_KS_PATHS_END
+	},
+	
+	/* Compound Keying Sets *********************************** */
+	/* Keying Set - "LocRot" ---------- */
+	{
+		/* KeyingSet Definition */
+		BI_KS_DEFINE("LocRot", 0),
+		
+		/* Path Definitions */
+		BI_KS_PATHS_BEGIN(2)
+			BI_KSP_DEFINE(ID_OB, KSP_TEMPLATE_OBJECT|KSP_TEMPLATE_PCHAN, "location", 0, KSP_FLAG_WHOLE_ARRAY, KSP_GROUP_KSNAME), 
+			BI_KSP_DEFINE(ID_OB, KSP_TEMPLATE_OBJECT|KSP_TEMPLATE_PCHAN, "rotation", 0, KSP_FLAG_WHOLE_ARRAY, KSP_GROUP_KSNAME) 
+		BI_KS_PATHS_END
+	}
+};
+
+/* All Builtin KeyingSets ------------------------ */
+
+/* total number of builtin KeyingSet contexts */
+#define MAX_BKSC_TYPES 	1
+
+/* array containing all the available builtin KeyingSets definition sets 
+ * 	- size of this is MAX_BKSC_TYPES+1 so that we don't smash the stack
+ */
+static bBuiltinKSContext def_builtin_keyingsets[MAX_BKSC_TYPES+1] =
+{
+	BKSC_TEMPLATE(v3d)
+	/* add more contexts above this line... */
+};
+
+
+/* ListBase of these KeyingSets chained up ready for usage */
+static ListBase builtin_keyingsets = {NULL, NULL};
+
+/* Utility API ------------------------ */
+
+/* Link up all of the builtin Keying Sets when starting up Blender
+ * This is called from WM_init() in wm_init_exit.c
+ */
+void init_builtin_keyingsets (void)
+{
+	bBuiltinKSContext *bksc;
+	bBuiltinKeyingSet *bks;
+	int bksc_i, bks_i;
+	
+	/* loop over all the sets of KeyingSets, setting them up, and chaining them to the builtins list */
+	for (bksc_i= 0, bksc= &def_builtin_keyingsets[0]; bksc_i < MAX_BKSC_TYPES; bksc_i++, bksc++)
+	{
+		/* for each set definitions for a builtin KeyingSet, chain the paths to that KeyingSet and add */
+		for (bks_i= 0, bks= bksc->bks; bks_i < bksc->tot; bks_i++, bks++)
+		{
+			KeyingSet *ks= &bks->ks;
+			KS_Path *ksp;
+			int pIndex;
+			
+			/* loop over paths, linking them to the KeyingSet and each other */
+			for (pIndex= 0, ksp= &bks->paths[0]; pIndex < bks->tot; pIndex++, ksp++)
+				BLI_addtail(&ks->paths, ksp);
+				
+			/* add KeyingSet to builtin sets list */
+			BLI_addtail(&builtin_keyingsets, ks);
+		}
+	}
+}
+
+/* ******************************************* */
+/* KEYFRAME MODIFICATION */
+
+/* mode for commonkey_modifykey */
+enum {
+	COMMONKEY_MODE_INSERT = 0,
+	COMMONKEY_MODE_DELETE,
+} eCommonModifyKey_Modes;
+
+/* KeyingSet Menu Helpers ------------ */
+
+/* Extract the maximum set of requirements from the KeyingSet */
+static int keyingset_relative_get_templates (KeyingSet *ks)
+{
+	KS_Path *ksp;
+	int templates= 0;
+	
+	/* loop over the paths (could be slow to do for a number of KeyingSets)? */
+	for (ksp= ks->paths.first; ksp; ksp= ksp->next) {
+		/* add the destination's templates to the set of templates required for the set */
+		templates |= ksp->templates;
+	}
+	
+	return templates;
+}
 
 /* Check if context data is suitable for the given absolute Keying Set */
 static short keyingset_context_ok_poll (bContext *C, KeyingSet *ks)
 {
+	ScrArea *sa= CTX_wm_area(C);
+	
+	/* data retrieved from context depends on active editor */
+	if (sa == NULL) return 0;
+		
+	switch (sa->spacetype) {
+		case SPACE_VIEW3D:
+		{
+			Object *obact= CTX_data_active_object(C);
+			
+			/* if in posemode, check if 'pose-channels' requested for in KeyingSet */
+			if ((obact && obact->pose) && (obact->flag & OB_POSEMODE)) {
+				/* check for posechannels */
+				
+			}
+			else {
+				/* check for selected object */
+				
+			}
+		}
+			break;
+	}
+	
 	
 	return 1;
+}
+
+/* KeyingSet Context Operations ------------ */
+
+/* Get list of data-sources from context (in 3D-View) for inserting keyframes using the given relative Keying Set */
+static short commonkey_get_context_v3d_data (bContext *C, ListBase *dsources, KeyingSet *ks)
+{
+	bCommonKeySrc *cks;
+	Object *obact= CTX_data_active_object(C);
+	int templates; 
+	short ok= 0;
+	
+	/* get the templates in use in this KeyingSet which we should supply data for */
+	templates = keyingset_relative_get_templates(ks);
+	
+	/* check if the active object is in PoseMode (i.e. only deal with bones) */
+	// TODO: check with the templates to see what we really need to store 
+	if ((obact && obact->pose) && (obact->flag & OB_POSEMODE)) {
+		/* Pose Mode: Selected bones */
+#if 0
+		//set_pose_keys(ob);  /* sets pchan->flag to POSE_KEY if bone selected, and clears if not */
+		
+		/* loop through posechannels */
+		//for (pchan=ob->pose->chanbase.first; pchan; pchan=pchan->next) {
+		//	if (pchan->flag & POSE_KEY) {
+		// 	}
+		//}
+#endif
+		
+		CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pchans)
+		{
+			/* add a new keying-source */
+			cks= MEM_callocN(sizeof(bCommonKeySrc), "bCommonKeySrc");
+			BLI_addtail(dsources, cks);
+			
+			/* set necessary info */
+			cks->id= &obact->id;
+			cks->pchan= pchan;
+			
+			if (templates & KSP_TEMPLATE_CONSTRAINT)
+				cks->con= constraints_get_active(&pchan->constraints);
+			
+			ok= 1;
+		}
+		CTX_DATA_END;
+	}
+	else {
+		/* Object Mode: Selected objects */
+		CTX_DATA_BEGIN(C, Base*, base, selected_bases) 
+		{
+			Object *ob= base->object;
+			
+			/* add a new keying-source */
+			cks= MEM_callocN(sizeof(bCommonKeySrc), "bCommonKeySrc");
+			BLI_addtail(dsources, cks);
+			
+			/* set necessary info */
+			cks->id= &ob->id;
+			
+			if (templates & KSP_TEMPLATE_CONSTRAINT)
+				cks->con= constraints_get_active(&ob->constraints);
+			
+			ok= 1;
+		}
+		CTX_DATA_END;
+	}
+	
+	/* return whether any data was extracted */
+	return ok;
 }
 
 /* Get list of data-sources from context for inserting keyframes using the given relative Keying Set */
 static short commonkey_get_context_data (bContext *C, ListBase *dsources, KeyingSet *ks)
 {
+	ScrArea *sa= CTX_wm_area(C);
 	
+	/* for now, the active area is used to determine what set of contexts apply */
+	if (sa == NULL)
+		return 0;
+		
+	switch (sa->spacetype) {
+		case SPACE_VIEW3D:	/* 3D-View: Selected Objects or Bones */
+			return commonkey_get_context_v3d_data(C, dsources, ks);
+	}
+	
+	/* nothing happened */
+	return 0;
 } 
 
-#endif // XXX new relative keyingsets code
+/* KeyingSet Operations (Insert/Delete Keyframes) ------------ */
 
 /* Given a KeyingSet and context info (if required), modify keyframes for the channels specified
  * by the KeyingSet. This takes into account many of the different combinations of using KeyingSets.
  * Returns the number of channels that keyframes were added to
  */
-static int commonkey_modifykey (ListBase *dsources, KeyingSet *ks, short mode, float cfra)
+static int commonkey_modifykey (bContext *C, ListBase *dsources, KeyingSet *ks, short mode, float cfra)
 {
 	KS_Path *ksp;
 	int kflag=0, success= 0;
@@ -1851,26 +1934,125 @@ static int commonkey_modifykey (ListBase *dsources, KeyingSet *ks, short mode, f
 				if (mode == COMMONKEY_MODE_INSERT)
 					success+= insertkey(ksp->id, groupname, ksp->rna_path, i, cfra, kflag);
 				else if (mode == COMMONKEY_MODE_DELETE)
-					success+= deletekey(ksp->id, groupname,  ksp->rna_path, i, cfra, kflag);
+					success+= deletekey(ksp->id, groupname, ksp->rna_path, i, cfra, kflag);
 			}
 			
-			// TODO: set recalc tags on the ID?
+			/* send notifiers and set recalc-flags */
+			// TODO: hopefully this doesn't result in execessive flooding of the notifier stack
+			if (C && ksp->id) {
+				switch (GS(ksp->id->name)) {
+					case ID_OB: /* Object (or Object-Related) Keyframes */
+					{
+						Object *ob= (Object *)ksp->id;
+						
+						ob->recalc |= OB_RECALC;
+						WM_event_add_notifier(C, NC_OBJECT|ND_KEYS, ksp->id);
+					}
+						break;
+					case ID_MA: /* Material Keyframes */
+						WM_event_add_notifier(C, NC_MATERIAL|ND_KEYS, ksp->id);
+						break;
+				}
+			}
 		}
 	}
-#if 0 // XXX still need to figure out how to get such keyingsets working
-	else if (dsources) {
+	else if (dsources && dsources->first) {
 		/* for each one of the 'sources', resolve the template markers and expand arrays, then insert keyframes */
 		bCommonKeySrc *cks;
-		char *path = NULL;
-		int index=0, tot=0;
 		
 		/* for each 'source' for keyframe data, resolve each of the paths from the KeyingSet */
 		for (cks= dsources->first; cks; cks= cks->next) {
+			/* for each path in KeyingSet, construct a path using the templates */
+			for (ksp= ks->paths.first; ksp; ksp= ksp->next) {
+				DynStr *pathds= BLI_dynstr_new();
+				char *path = NULL;
+				int arraylen, i;
+				
+				/* construct the path */
+				// FIXME: this currently only works with a few hardcoded cases
+				if ((ksp->templates & KSP_TEMPLATE_PCHAN) && (cks->pchan)) {
+					/* add basic pose-channel path access */
+					BLI_dynstr_append(pathds, "pose.pose_channels[\"");
+					BLI_dynstr_append(pathds, cks->pchan->name);
+					BLI_dynstr_append(pathds, "\"]");
+				}
+				if ((ksp->templates & KSP_TEMPLATE_CONSTRAINT) && (cks->con)) {
+					/* add basic constraint path access */
+					BLI_dynstr_append(pathds, "constraints[\"");
+					BLI_dynstr_append(pathds, cks->con->name);
+					BLI_dynstr_append(pathds, "\"]");
+				}
+				{
+					/* add property stored in KeyingSet Path */
+					if (BLI_dynstr_get_len(pathds))
+						BLI_dynstr_append(pathds, ".");
+					BLI_dynstr_append(pathds, ksp->rna_path);
+					
+					/* convert to C-string */
+					path= BLI_dynstr_get_cstring(pathds);
+					BLI_dynstr_free(pathds);
+				}
+				
+				/* get pointer to name of group to add channels to */
+				if (ksp->groupmode == KSP_GROUP_NONE)
+					groupname= NULL;
+				else if (ksp->groupmode == KSP_GROUP_KSNAME)
+					groupname= ks->name;
+				else
+					groupname= ksp->group;
+				
+				/* init arraylen and i - arraylen should be greater than i so that
+				 * normal non-array entries get keyframed correctly
+				 */
+				i= ksp->array_index;
+				arraylen= i+1;
+				
+				/* get length of array if whole array option is enabled */
+				if (ksp->flag & KSP_FLAG_WHOLE_ARRAY) {
+					PointerRNA id_ptr, ptr;
+					PropertyRNA *prop;
+					
+					RNA_id_pointer_create(cks->id, &id_ptr);
+					if (RNA_path_resolve(&id_ptr, path, &ptr, &prop) && prop)
+						arraylen= RNA_property_array_length(&ptr, prop);
+				}
+				
+				/* for each possible index, perform operation 
+				 *	- assume that arraylen is greater than index
+				 */
+				for (; i < arraylen; i++) {
+					/* action to take depends on mode */
+					if (mode == COMMONKEY_MODE_INSERT)
+						success+= insertkey(cks->id, groupname, path, i, cfra, kflag);
+					else if (mode == COMMONKEY_MODE_DELETE)
+						success+= deletekey(cks->id, groupname, path, i, cfra, kflag);
+				}
+				
+				/* free the path */
+				MEM_freeN(path);
+			}
 			
+			/* send notifiers and set recalc-flags */
+			// TODO: hopefully this doesn't result in execessive flooding of the notifier stack
+			if (C && cks->id) {
+				switch (GS(cks->id->name)) {
+					case ID_OB: /* Object (or Object-Related) Keyframes */
+					{
+						Object *ob= (Object *)cks->id;
+						
+						ob->recalc |= OB_RECALC;
+						WM_event_add_notifier(C, NC_OBJECT|ND_KEYS, cks->id);
+					}
+						break;
+					case ID_MA: /* Material Keyframes */
+						WM_event_add_notifier(C, NC_MATERIAL|ND_KEYS, cks->id);
+						break;
+				}
+			}
 		}
 	}
-#endif // XXX still need to figure out how to get such 
 	
+	/* return the number of channels successfully affected */
 	return success;
 }
 
@@ -1904,37 +2086,55 @@ static int modify_key_op_poll(bContext *C)
 
 /* Insert Key Operator ------------------------ */
 
-/* NOTE:
- * This is one of the 'simpler new-style' Insert Keyframe operators which relies on Keying Sets.
- * For now, these are absolute Keying Sets only, so there is very little context info involved.
- *
- * 	-- Joshua Leung, Feb 2009
- */
- 
 static int insert_key_exec (bContext *C, wmOperator *op)
 {
 	ListBase dsources = {NULL, NULL};
 	Scene *scene= CTX_data_scene(C);
 	KeyingSet *ks= NULL;
+	int type= RNA_int_get(op->ptr, "type");
 	float cfra= (float)CFRA; // XXX for now, don't bother about all the yucky offset crap
 	short success;
 	
-	/* try to get KeyingSet */
-	if (scene->active_keyingset > 0)
+	/* type is the Keying Set the user specified to use when calling the operator:
+	 *	- type == 0: use scene's active Keying Set
+	 *	- type > 0: use a user-defined Keying Set from the active scene
+	 *	- type < 0: use a builtin Keying Set
+	 */
+	if (type == 0) 
+		type= scene->active_keyingset;
+	if (type > 0)
 		ks= BLI_findlink(&scene->keyingsets, scene->active_keyingset-1);
-	/* report failure */
+	else
+		ks= BLI_findlink(&builtin_keyingsets, -type-1);
+		
+	/* report failures */
 	if (ks == NULL) {
 		BKE_report(op->reports, RPT_ERROR, "No active Keying Set");
 		return OPERATOR_CANCELLED;
 	}
 	
+	/* get context info for relative Keying Sets */
+	if ((ks->flag & KEYINGSET_ABSOLUTE) == 0) {
+		/* exit if no suitable data obtained */
+		if (commonkey_get_context_data(C, &dsources, ks) == 0) {
+			BKE_report(op->reports, RPT_ERROR, "No suitable context info for active Keying Set");
+			return OPERATOR_CANCELLED;
+		}
+	}
+	
 	/* try to insert keyframes for the channels specified by KeyingSet */
-	success= commonkey_modifykey(&dsources, ks, COMMONKEY_MODE_INSERT, cfra);
+	success= commonkey_modifykey(C, &dsources, ks, COMMONKEY_MODE_INSERT, cfra);
 	printf("KeyingSet '%s' - Successfully added %d Keyframes \n", ks->name, success);
 	
 	/* report failure? */
 	if (success == 0)
 		BKE_report(op->reports, RPT_WARNING, "Keying Set failed to insert any keyframes");
+	
+	/* free temp context-data if available */
+	if (dsources.first) {
+		/* we assume that there is no extra data that needs to be freed from here... */
+		BLI_freelistN(&dsources);
+	}
 	
 	/* send updates */
 	ED_anim_dag_flush_update(C);	
@@ -1957,41 +2157,125 @@ void ANIM_OT_insert_keyframe (wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* settings */
+	RNA_def_boolean(ot->srna, "builtin", 0, "Built-In Keying Set", "Use one of the relative Keying Sets defined by default");
+}
+
+/* Insert Key Operator (With Menu) ------------------------ */
+
+/* XXX 
+ * This operator pops up a menu which sets gets the index of the keyingset to use,
+ * setting the global settings, and calling the insert-keyframe operator using these
+ * settings
+ */
+
+static int insert_key_menu_invoke (bContext *C, wmOperator *op, wmEvent *event)
+{
+	Scene *scene= CTX_data_scene(C);
+	KeyingSet *ks;
+	uiMenuItem *head;
+	int i = 0;
+	
+	head= uiPupMenuBegin("Insert Keyframe", 0);
+	
+	/* active Keying Set */
+	uiMenuItemIntO(head, "Active Keying Set", 0, "ANIM_OT_insert_keyframe_menu", "type", i++);
+	uiMenuSeparator(head);
+	
+	/* user-defined Keying Sets 
+	 *	- these are listed in the order in which they were defined for the active scene
+	 */
+	for (ks= scene->keyingsets.first; ks; ks= ks->next)
+		uiMenuItemIntO(head, ks->name, 0, "ANIM_OT_insert_keyframe_menu", "type", i++);
+	uiMenuSeparator(head);
+	
+	/* builtin Keying Sets */
+	// XXX polling the entire list may lag
+	i= -1;
+	for (ks= builtin_keyingsets.first; ks; ks= ks->next) {
+		/* only show KeyingSet if context is suitable */
+		if (keyingset_context_ok_poll(C, ks)) {
+			uiMenuItemIntO(head, ks->name, 0, "ANIM_OT_insert_keyframe_menu", "type", i--);
+		}
+	}
+	
+	uiPupMenuEnd(C, head);
+	
+	return OPERATOR_CANCELLED;
+}
+ 
+void ANIM_OT_insert_keyframe_menu (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Insert Keyframe";
+	ot->idname= "ANIM_OT_insert_keyframe_menu";
+	
+	/* callbacks */
+	ot->invoke= insert_key_menu_invoke;
+	ot->exec= insert_key_exec; 
+	ot->poll= ED_operator_areaactive;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* properties
+	 *	- NOTE: here the type is int not enum, since many of the indicies here are determined dynamically
+	 */
+	RNA_def_int(ot->srna, "type", 0, INT_MIN, INT_MAX, "Keying Set Number", "Index (determined internally) of the Keying Set to use", 0, 1);
 }
 
 /* Delete Key Operator ------------------------ */
 
-/* NOTE:
- * This is one of the 'simpler new-style' Insert Keyframe operators which relies on Keying Sets.
- * For now, these are absolute Keying Sets only, so there is very little context info involved.
- *
- * 	-- Joshua Leung, Feb 2009
- */
- 
 static int delete_key_exec (bContext *C, wmOperator *op)
 {
 	ListBase dsources = {NULL, NULL};
 	Scene *scene= CTX_data_scene(C);
-	KeyingSet *ks= NULL;
+	KeyingSet *ks= NULL;	
+	int type= RNA_int_get(op->ptr, "type");
 	float cfra= (float)CFRA; // XXX for now, don't bother about all the yucky offset crap
 	short success;
 	
-	/* try to get KeyingSet */
-	if (scene->active_keyingset > 0)
+	/* type is the Keying Set the user specified to use when calling the operator:
+	 *	- type == 0: use scene's active Keying Set
+	 *	- type > 0: use a user-defined Keying Set from the active scene
+	 *	- type < 0: use a builtin Keying Set
+	 */
+	if (type == 0) 
+		type= scene->active_keyingset;
+	if (type > 0)
 		ks= BLI_findlink(&scene->keyingsets, scene->active_keyingset-1);
+	else
+		ks= BLI_findlink(&builtin_keyingsets, -type-1);
+	
 	/* report failure */
 	if (ks == NULL) {
 		BKE_report(op->reports, RPT_ERROR, "No active Keying Set");
 		return OPERATOR_CANCELLED;
 	}
 	
+	/* get context info for relative Keying Sets */
+	if ((ks->flag & KEYINGSET_ABSOLUTE) == 0) {
+		/* exit if no suitable data obtained */
+		if (commonkey_get_context_data(C, &dsources, ks) == 0) {
+			BKE_report(op->reports, RPT_ERROR, "No suitable context info for active Keying Set");
+			return OPERATOR_CANCELLED;
+		}
+	}
+	
 	/* try to insert keyframes for the channels specified by KeyingSet */
-	success= commonkey_modifykey(&dsources, ks, COMMONKEY_MODE_DELETE, cfra);
+	success= commonkey_modifykey(C, &dsources, ks, COMMONKEY_MODE_DELETE, cfra);
 	printf("KeyingSet '%s' - Successfully removed %d Keyframes \n", ks->name, success);
 	
 	/* report failure? */
 	if (success == 0)
 		BKE_report(op->reports, RPT_WARNING, "Keying Set failed to remove any keyframes");
+	
+	/* free temp context-data if available */
+	if (dsources.first) {
+		/* we assume that there is no extra data that needs to be freed from here... */
+		BLI_freelistN(&dsources);
+	}
 	
 	/* send updates */
 	ED_anim_dag_flush_update(C);	
@@ -2014,220 +2298,18 @@ void ANIM_OT_delete_keyframe (wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-}
-
-/* Insert Key Operator ------------------------ */
-
-/* XXX WARNING:
- * This is currently just a basic operator, which work in 3d-view context on objects/bones only
- * and will insert keyframes for a few settings only. This is until it becomes clear how
- * to separate (or not) the process for RNA-path creation between context + keyingsets.
- * 
- * -- Joshua Leung, Jan 2009
- */
-
-/* defines for basic insert-key testing operator  */
-	// XXX this will definitely be replaced
-EnumPropertyItem prop_insertkey_types[] = {
-	{0, "KEYINGSET", "Active KeyingSet", ""},
-	{1, "OBLOC", "Object Location", ""},
-	{2, "OBROT", "Object Rotation", ""},
-	{3, "OBSCALE", "Object Scale", ""},
-	{4, "MAT_COL", "Active Material - Color", ""},
-	{5, "PCHANLOC", "Pose-Channel Location", ""},
-	{6, "PCHANROT", "Pose-Channel Rotation", ""},
-	{7, "PCHANSCALE", "Pose-Channel Scale", ""},
-	{0, NULL, NULL, NULL}
-};
-
-static int insert_key_old_invoke (bContext *C, wmOperator *op, wmEvent *event)
-{
-	Object *ob= CTX_data_active_object(C);
-	uiMenuItem *head;
 	
-	if (ob == NULL)
-		return OPERATOR_CANCELLED;
-		
-	head= uiPupMenuBegin("Insert Keyframe", 0);
-	
-	/* active keyingset */
-	uiMenuItemEnumO(head, "", 0, "ANIM_OT_insert_keyframe_old", "type", 0);
-	
-	/* selective inclusion */
-	if ((ob->pose) && (ob->flag & OB_POSEMODE)) {
-		/* bone types */	
-		uiMenuItemEnumO(head, "", 0, "ANIM_OT_insert_keyframe_old", "type", 5);
-		uiMenuItemEnumO(head, "", 0, "ANIM_OT_insert_keyframe_old", "type", 6);
-		uiMenuItemEnumO(head, "", 0, "ANIM_OT_insert_keyframe_old", "type", 7);
-	}
-	else {
-		/* object types */
-		uiMenuItemEnumO(head, "", 0, "ANIM_OT_insert_keyframe_old", "type", 1);
-		uiMenuItemEnumO(head, "", 0, "ANIM_OT_insert_keyframe_old", "type", 2);
-		uiMenuItemEnumO(head, "", 0, "ANIM_OT_insert_keyframe_old", "type", 3);
-		uiMenuItemEnumO(head, "", 0, "ANIM_OT_insert_keyframe_old", "type", 4);
-	}
-	
-	uiPupMenuEnd(C, head);
-	
-	return OPERATOR_CANCELLED;
-}
- 
-static int insert_key_old_exec (bContext *C, wmOperator *op)
-{
-	Scene *scene= CTX_data_scene(C);
-	short mode= RNA_enum_get(op->ptr, "type");
-	float cfra= (float)CFRA; // XXX for now, don't bother about all the yucky offset crap
-	
-	/* for now, handle 'active keyingset' one separately */
-	if (mode == 0) {
-		ListBase dsources = {NULL, NULL};
-		KeyingSet *ks= NULL;
-		short success;
-		
-		/* try to get KeyingSet */
-		if (scene->active_keyingset > 0)
-			ks= BLI_findlink(&scene->keyingsets, scene->active_keyingset-1);
-		/* report failure */
-		if (ks == NULL) {
-			BKE_report(op->reports, RPT_ERROR, "No active Keying Set");
-			return OPERATOR_CANCELLED;
-		}
-		
-		/* try to insert keyframes for the channels specified by KeyingSet */
-		success= commonkey_modifykey(&dsources, ks, COMMONKEY_MODE_INSERT, cfra);
-		printf("KeyingSet '%s' - Successfully added %d Keyframes \n", ks->name, success);
-		
-		/* report failure? */
-		if (success == 0)
-			BKE_report(op->reports, RPT_WARNING, "Keying Set failed to insert any keyframes");
-	}
-	else {
-		// more comprehensive tests will be needed
-		CTX_DATA_BEGIN(C, Base*, base, selected_bases) 
-		{
-			Object *ob= base->object;
-			ID *id= (ID *)ob;
-			short success= 0;
-			
-			/* check which keyframing mode chosen for this object */
-			if (mode < 4) {
-				/* object-based keyframes */
-				switch (mode) {
-				case 4: /* color of active material (only for geometry...) */
-					// NOTE: this is just a demo... but ideally we'd go through materials instead of active one only so reference stays same
-					// XXX no group for now
-					success+= insertkey(id, NULL, "active_material.diffuse_color", 0, cfra, 0);
-					success+= insertkey(id, NULL, "active_material.diffuse_color", 1, cfra, 0);
-					success+= insertkey(id, NULL, "active_material.diffuse_color", 2, cfra, 0);
-					break;
-				case 3: /* object scale */
-					success+= insertkey(id, "Object Transforms", "scale", 0, cfra, 0);
-					success+= insertkey(id, "Object Transforms", "scale", 1, cfra, 0);
-					success+= insertkey(id, "Object Transforms", "scale", 2, cfra, 0);
-					break;
-				case 2: /* object rotation */
-					success+= insertkey(id, "Object Transforms", "rotation", 0, cfra, 0);
-					success+= insertkey(id, "Object Transforms", "rotation", 1, cfra, 0);
-					success+= insertkey(id, "Object Transforms", "rotation", 2, cfra, 0);
-					break;
-				default: /* object location */
-					success+= insertkey(id, "Object Transforms", "location", 0, cfra, 0);
-					success+= insertkey(id, "Object Transforms", "location", 1, cfra, 0);
-					success+= insertkey(id, "Object Transforms", "location", 2, cfra, 0);
-					break;
-				}
-				
-				ob->recalc |= OB_RECALC_OB;
-			}
-			else if ((ob->pose) && (ob->flag & OB_POSEMODE)) {
-				/* PoseChannel based keyframes */
-				bPoseChannel *pchan;
-				
-				for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-					/* only if selected */
-					if ((pchan->bone) && (pchan->bone->flag & BONE_SELECTED)) {
-						char buf[512];
-						
-						switch (mode) {
-						case 7: /* pchan scale */
-							sprintf(buf, "pose.pose_channels[\"%s\"].scale", pchan->name);
-							success+= insertkey(id, pchan->name, buf, 0, cfra, 0);
-							success+= insertkey(id, pchan->name, buf, 1, cfra, 0);
-							success+= insertkey(id, pchan->name, buf, 2, cfra, 0);
-							break;
-						case 6: /* pchan rotation */
-							if (pchan->rotmode == PCHAN_ROT_QUAT) {
-								sprintf(buf, "pose.pose_channels[\"%s\"].rotation", pchan->name);
-								success+= insertkey(id, pchan->name, buf, 0, cfra, 0);
-								success+= insertkey(id, pchan->name, buf, 1, cfra, 0);
-								success+= insertkey(id, pchan->name, buf, 2, cfra, 0);
-								success+= insertkey(id, pchan->name, buf, 3, cfra, 0);
-							}
-							else {
-								sprintf(buf, "pose.pose_channels[\"%s\"].euler_rotation", pchan->name);
-								success+= insertkey(id, pchan->name, buf, 0, cfra, 0);
-								success+= insertkey(id, pchan->name, buf, 1, cfra, 0);
-								success+= insertkey(id, pchan->name, buf, 2, cfra, 0);
-							}
-							break;
-						default: /* pchan location */
-							sprintf(buf, "pose.pose_channels[\"%s\"].location", pchan->name);
-							success+= insertkey(id, pchan->name, buf, 0, cfra, 0);
-							success+= insertkey(id, pchan->name, buf, 1, cfra, 0);
-							success+= insertkey(id, pchan->name, buf, 2, cfra, 0);
-							break;
-						}
-					}
-				}
-				
-				ob->recalc |= OB_RECALC_OB;
-			}
-			
-			printf("Ob '%s' - Successfully added %d Keyframes \n", id->name+2, success);
-		}
-		CTX_DATA_END;
-	}
-	
-	/* send updates */
-	ED_anim_dag_flush_update(C);	
-	
-	if (mode == 0) /* for now, only send ND_KEYS for KeyingSets */
-		WM_event_add_notifier(C, ND_KEYS, NULL);
-	else if (mode == 4) /* material color requires different notifiers */
-		WM_event_add_notifier(C, NC_MATERIAL|ND_KEYS, NULL);
-	else
-		WM_event_add_notifier(C, NC_OBJECT|ND_KEYS, NULL);
-	
-	return OPERATOR_FINISHED;
-}
-
-void ANIM_OT_insert_keyframe_old (wmOperatorType *ot)
-{
-	PropertyRNA *prop;
-	
-	/* identifiers */
-	ot->name= "Insert Keyframe";
-	ot->idname= "ANIM_OT_insert_keyframe_old";
-	
-	/* callbacks */
-	ot->invoke= insert_key_old_invoke;
-	ot->exec= insert_key_old_exec; 
-	ot->poll= ED_operator_areaactive;
-	
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-	
-	/* properties */
-		// XXX update this for the latest RNA stuff styles...
-	prop= RNA_def_property(ot->srna, "type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, prop_insertkey_types);
+	/* properties
+	 *	- NOTE: here the type is int not enum, since many of the indicies here are determined dynamically
+	 */
+	RNA_def_int(ot->srna, "type", 0, INT_MIN, INT_MAX, "Keying Set Number", "Index (determined internally) of the Keying Set to use", 0, 1);
 }
 
 /* Delete Key Operator ------------------------ */
 
 /* XXX WARNING:
  * This is currently just a basic operator, which work in 3d-view context on objects only. 
+ * Should this be kept? It does have advantages over a version which requires selecting a keyingset to use...
  * -- Joshua Leung, Jan 2009
  */
  
@@ -2264,7 +2346,6 @@ static int delete_key_old_exec (bContext *C, wmOperator *op)
 	/* send updates */
 	ED_anim_dag_flush_update(C);	
 	
-		// XXX what if it was a material keyframe?
 	WM_event_add_notifier(C, NC_OBJECT|ND_KEYS, NULL);
 	
 	return OPERATOR_FINISHED;
@@ -2277,7 +2358,7 @@ void ANIM_OT_delete_keyframe_old (wmOperatorType *ot)
 	ot->idname= "ANIM_OT_delete_keyframe_old";
 	
 	/* callbacks */
-	ot->invoke= WM_operator_confirm; // XXX we will need our own one eventually, to cope with the dynamic menus...
+	ot->invoke= WM_operator_confirm;
 	ot->exec= delete_key_old_exec; 
 	
 	ot->poll= ED_operator_areaactive;

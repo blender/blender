@@ -83,6 +83,7 @@
 #include "wm_window.h"
 
 #include "ED_armature.h"
+#include "ED_keyframing.h"
 #include "ED_node.h"
 #include "ED_previewrender.h"
 #include "ED_space_api.h"
@@ -124,6 +125,8 @@ void WM_init(bContext *C)
 	
 	BLF_init();
 	BLF_lang_init();
+	
+	init_builtin_keyingsets(); /* editors/animation/keyframing.c */
 	
 	/* get the default database, plus a wm */
 	WM_read_homefile(C, NULL);

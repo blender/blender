@@ -588,7 +588,7 @@ typedef struct Scene {
 	int frame_step;
 	
 	/* User-Defined KeyingSets */
-	int active_keyingset;			/* index of the active KeyingSet. first KeyingSet has index 1 */
+	int active_keyingset;			/* index of the active KeyingSet. first KeyingSet has index 1, 'none' active is 0, 'add new' is -1 */
 	ListBase keyingsets;			/* KeyingSets for the given frame */
 } Scene;
 

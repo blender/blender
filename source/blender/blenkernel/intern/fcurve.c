@@ -177,7 +177,7 @@ void calc_fcurve_bounds (FCurve *fcu, float *xmin, float *xmax, float *ymin, flo
 	float xminv=999999999.0f, xmaxv=-999999999.0f;
 	float yminv=999999999.0f, ymaxv=-999999999.0f;
 	short foundvert=0;
-	int i;
+	unsigned int i;
 	
 	if (fcu->totvert) {
 		if (fcu->bezt) {
@@ -418,7 +418,7 @@ void calchandles_fcurve (FCurve *fcu)
 void testhandles_fcurve (FCurve *fcu)
 {
 	BezTriple *bezt;
-	int a;
+	unsigned int a;
 
 	/* only beztriples have handles (bpoints don't though) */
 	if ELEM(NULL, fcu, fcu->bezt)
@@ -475,7 +475,7 @@ void sort_time_fcurve (FCurve *fcu)
 		/* currently, will only be needed when there are beztriples */
 		if (fcu->bezt) {
 			BezTriple *bezt;
-			int a;
+			unsigned int a;
 			
 			/* loop over ALL points to adjust position in array and recalculate handles */
 			for (a=0, bezt=fcu->bezt; a < fcu->totvert; a++, bezt++) {
@@ -509,7 +509,7 @@ void sort_time_fcurve (FCurve *fcu)
 /* This function tests if any BezTriples are out of order, thus requiring a sort */
 short test_time_fcurve (FCurve *fcu)
 {
-	int a;
+	unsigned int a;
 	
 	/* sanity checks */
 	if (fcu == NULL)
@@ -895,7 +895,8 @@ static float fcurve_eval_keyframes (FCurve *fcu, BezTriple *bezts, float evaltim
 {
 	BezTriple *bezt, *prevbezt, *lastbezt;
 	float v1[2], v2[2], v3[2], v4[2], opl[32], dx, fac;
-	int a, b;
+	unsigned int a;
+	int b;
 	float cvalue = 0.0f;
 	
 	/* get pointers */

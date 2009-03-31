@@ -3203,17 +3203,16 @@ void free_constraint_data (bConstraint *con)
 }
 
 /* Free all constraints from a constraint-stack */
-void free_constraints (ListBase *conlist)
+void free_constraints (ListBase *list)
 {
 	bConstraint *con;
 	
 	/* Free constraint data and also any extra data */
-	for (con= conlist->first; con; con= con->next) {
+	for (con= list->first; con; con= con->next)
 		free_constraint_data(con);
-	}
 	
 	/* Free the whole list */
-	BLI_freelistN(conlist);
+	BLI_freelistN(list);
 }
 
 /* Reassign links that constraints have to other data (called during file loading?) */
@@ -3264,6 +3263,23 @@ void copy_constraints (ListBase *dst, ListBase *src)
 		if (cti && cti->copy_data)
 			cti->copy_data(con, srccon);
 	}
+}
+
+/* finds the 'active' constraint in a constraint stack */
+bConstraint *constraints_get_active (ListBase *list)
+{
+	bConstraint *con;
+	
+	/* search for the first constraint with the 'active' flag set */
+	if (list) {
+		for (con= list->first; con; con= con->next) {
+			if (con->flag & CONSTRAINT_ACTIVE)
+				return con;
+		}
+	}
+	
+	/* no active constraint found */
+	return NULL;
 }
 
 /* -------- Constraints and Proxies ------- */
