@@ -6382,6 +6382,7 @@ static DerivedMesh * particleInstanceModifier_applyModifier(
 	if(psys->flag & (PSYS_HAIR_DONE|PSYS_KEYED)){
 
 		float min_r[3], max_r[3];
+		INIT_MINMAX(min_r, max_r);
 		dm->getMinMax(dm, min_r, max_r);		
 		min_co=min_r[track];
 		max_co=max_r[track];
