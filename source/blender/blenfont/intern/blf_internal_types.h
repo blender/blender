@@ -197,20 +197,6 @@ typedef struct DirBLF {
 	char *path;
 } DirBLF;
 
-typedef struct LangBLF {
-	struct LangBLF *next;
-	struct LangBLF *prev;
-
-	char *line;
-	char *language;
-	char *code;
-	int id;
-} LangBLF;
-
-#define BLF_LANG_FIND_BY_LINE 0
-#define BLF_LANG_FIND_BY_LANGUAGE 1
-#define BLF_LANG_FIND_BY_CODE 2
-
 /* font->clip_mode */
 #define BLF_CLIP_DISABLE 0
 #define BLF_CLIP_OUT 1

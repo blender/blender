@@ -234,7 +234,6 @@ void WM_exit(bContext *C)
 //	fsmenu_free();
 
 	BLF_exit();
-	BLF_lang_exit();
 
 	RE_FreeAllRender();
 	
