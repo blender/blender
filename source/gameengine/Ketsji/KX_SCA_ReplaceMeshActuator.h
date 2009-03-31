@@ -69,8 +69,13 @@ class KX_SCA_ReplaceMeshActuator : public SCA_IActuator
 	virtual bool 
 	Update();
 
-	virtual PyObject* _getattr(const char *attr);
 	void	InstantReplaceMesh();
+
+	virtual PyObject* _getattr(const char *attr);
+	virtual int _setattr(const char *attr, PyObject* value);
+
+	static PyObject* pyattr_get_mesh(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef);
+	static int pyattr_set_mesh(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 
 	/* 1. setMesh */
 	KX_PYMETHOD_DOC_O(KX_SCA_ReplaceMeshActuator,SetMesh);

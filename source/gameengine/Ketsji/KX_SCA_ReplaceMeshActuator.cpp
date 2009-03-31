@@ -82,23 +82,62 @@ PyParentObject KX_SCA_ReplaceMeshActuator::Parents[] = {
 
 
 PyMethodDef KX_SCA_ReplaceMeshActuator::Methods[] = {
-	{"setMesh", (PyCFunction) KX_SCA_ReplaceMeshActuator::sPySetMesh, METH_O, (PY_METHODCHAR)SetMesh_doc},
-	
 	KX_PYMETHODTABLE(KX_SCA_ReplaceMeshActuator, instantReplaceMesh),
+	// Deprecated ----->
+	{"setMesh", (PyCFunction) KX_SCA_ReplaceMeshActuator::sPySetMesh, METH_O, (PY_METHODCHAR)SetMesh_doc},
    	KX_PYMETHODTABLE(KX_SCA_ReplaceMeshActuator, getMesh),
 	{NULL,NULL} //Sentinel
 };
 
 PyAttributeDef KX_SCA_ReplaceMeshActuator::Attributes[] = {
+	KX_PYATTRIBUTE_RW_FUNCTION("mesh", KX_SCA_ReplaceMeshActuator, pyattr_get_mesh, pyattr_set_mesh),
 	{ NULL }	//Sentinel
 };
 
 PyObject* KX_SCA_ReplaceMeshActuator::_getattr(const char *attr)
 {
-  _getattr_up(SCA_IActuator);
+	PyObject* object = _getattr_self(Attributes, this, attr);
+	if (object != NULL)
+		return object;
+	_getattr_up(SCA_IActuator);
 }
 
+int KX_SCA_ReplaceMeshActuator::_setattr(const char *attr, PyObject* value) 
+{
+	int ret = _setattr_self(Attributes, this, attr, value);
+	if (ret >= 0)
+		return ret;
+	return SCA_IActuator::_setattr(attr, value);
+}
 
+PyObject* KX_SCA_ReplaceMeshActuator::pyattr_get_mesh(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef)
+{
+	KX_SCA_ReplaceMeshActuator* actuator = static_cast<KX_SCA_ReplaceMeshActuator*>(self);
+	if (!actuator->m_mesh)
+		Py_RETURN_NONE;
+	return PyString_FromString(const_cast<char *>(actuator->m_mesh->GetName().ReadPtr()));
+}
+
+int KX_SCA_ReplaceMeshActuator::pyattr_set_mesh(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
+{
+	KX_SCA_ReplaceMeshActuator* actuator = static_cast<KX_SCA_ReplaceMeshActuator*>(self);
+	if (value == Py_None) {
+		actuator->m_mesh = NULL;
+	} else {
+		char* meshname = PyString_AsString(value);
+		if (!meshname) {
+			PyErr_SetString(PyExc_ValueError, "Expected the name of a mesh or None");
+			return 1;
+		}
+		void* mesh = SCA_ILogicBrick::m_sCurrentLogicManager->GetMeshByName(STR_String(meshname));
+		if (mesh==NULL) {
+			PyErr_SetString(PyExc_ValueError, "The mesh name given does not exist");
+			return 1;
+		}
+		actuator->m_mesh= (class RAS_MeshObject*)mesh;
+	}
+	return 0;
+}
 
 /* 1. setMesh */
 const char KX_SCA_ReplaceMeshActuator::SetMesh_doc[] = 
@@ -108,6 +147,7 @@ const char KX_SCA_ReplaceMeshActuator::SetMesh_doc[] =
 
 PyObject* KX_SCA_ReplaceMeshActuator::PySetMesh(PyObject* self, PyObject* value)
 {
+	ShowDeprecationWarning("setMesh()", "the mesh property");
 	if (value == Py_None) {
 		m_mesh = NULL;
 	} else {
@@ -133,6 +173,7 @@ KX_PYMETHODDEF_DOC(KX_SCA_ReplaceMeshActuator, getMesh,
 "Returns the name of the mesh to be substituted.\n"
 )
 {
+	ShowDeprecationWarning("getMesh()", "the mesh property");
 	if (!m_mesh)
 		Py_RETURN_NONE;
 

@@ -36,6 +36,7 @@
 // Please look here for revision history.
 
 #include "KX_SCA_DynamicActuator.h"
+#include "blendef.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -80,21 +81,34 @@ PyParentObject KX_SCA_DynamicActuator::Parents[] = {
 
 
 PyMethodDef KX_SCA_DynamicActuator::Methods[] = {
+	// ---> deprecated
 	KX_PYMETHODTABLE(KX_SCA_DynamicActuator, setOperation),
    	KX_PYMETHODTABLE(KX_SCA_DynamicActuator, getOperation),
 	{NULL,NULL} //Sentinel
 };
 
 PyAttributeDef KX_SCA_DynamicActuator::Attributes[] = {
+	KX_PYATTRIBUTE_SHORT_RW("operation",0,4,false,KX_SCA_DynamicActuator,m_dyn_operation),
+	KX_PYATTRIBUTE_FLOAT_RW("mass",0.0,MAXFLOAT,KX_SCA_DynamicActuator,m_setmass),
 	{ NULL }	//Sentinel
 };
 
 
 PyObject* KX_SCA_DynamicActuator::_getattr(const char *attr)
 {
-  _getattr_up(SCA_IActuator);
+	PyObject* object = _getattr_self(Attributes, this, attr);
+	if (object != NULL)
+		return object;
+	_getattr_up(SCA_IActuator);
 }
 
+int KX_SCA_DynamicActuator::_setattr(const char *attr, PyObject* value)
+{
+	int ret = _setattr_self(Attributes, this, attr, value);
+	if (ret >= 0)
+		return ret;
+	return SCA_IActuator::_setattr(attr, value);
+}
 
 
 /* 1. setOperation */
@@ -107,6 +121,7 @@ KX_PYMETHODDEF_DOC(KX_SCA_DynamicActuator, setOperation,
 "\t                3 = disable rigid body\n"
 "Change the dynamic status of the parent object.\n")
 {
+	ShowDeprecationWarning("setOperation()", "the operation property");
 	int dyn_operation;
 	
 	if (!PyArg_ParseTuple(args, "i", &dyn_operation))
@@ -126,6 +141,7 @@ KX_PYMETHODDEF_DOC(KX_SCA_DynamicActuator, getOperation,
 "Returns the operation type of this actuator.\n"
 )
 {
+	ShowDeprecationWarning("getOperation()", "the operation property");
 	return PyInt_FromLong((long)m_dyn_operation);
 }
 

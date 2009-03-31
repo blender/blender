@@ -72,6 +72,7 @@ Documentation for the GameLogic Module.
 		- L{SoundActuator<KX_SoundActuator.KX_SoundActuator>}
 		- L{TrackToActuator<KX_TrackToActuator.KX_TrackToActuator>}
 		- L{VisibilityActuator<KX_VisibilityActuator.KX_VisibilityActuator>}
+		- L{DynamicActuator<KX_SCA_DynamicActuator.KX_SCA_DynamicActuator>}
 	
 	Most logic brick's methods are accessors for the properties available in the logic buttons.
 	Consult the logic bricks documentation for more information on how each logic brick works.
@@ -156,6 +157,14 @@ Documentation for the GameLogic Module.
 @var KX_RAY_AXIS_NEG_X:		    See L{KX_RaySensor}
 @var KX_RAY_AXIS_NEG_Y:		    See L{KX_RaySensor}
 @var KX_RAY_AXIS_NEG_Z:		    See L{KX_RaySensor}
+
+@group Dynamic Actuator: KX_DYN_RESTORE_DYNAMICS, KX_DYN_DISABLE_DYNAMICS, KX_DYN_ENABLE_RIGID_BODY, KX_DYN_DISABLE_RIGID_BODY,	KX_DYN_SET_MASS
+@var KX_DYN_RESTORE_DYNAMICS:	See L{KX_SCA_DynamicActuator}
+@var KX_DYN_DISABLE_DYNAMICS:	See L{KX_SCA_DynamicActuator}
+@var KX_DYN_ENABLE_RIGID_BODY:	See L{KX_SCA_DynamicActuator}
+@var KX_DYN_DISABLE_RIGID_BODY:	See L{KX_SCA_DynamicActuator}
+@var KX_DYN_SET_MASS:			See L{KX_SCA_DynamicActuator}
+
 """
 
 

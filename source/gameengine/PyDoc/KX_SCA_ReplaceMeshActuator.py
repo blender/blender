@@ -55,9 +55,15 @@ class KX_SCA_ReplaceMeshActuator(SCA_IActuator):
 		This will generate a warning in the console:
 		
 		C{ERROR: GameObject I{OBName} ReplaceMeshActuator I{ActuatorName} without object}
+		
+	Properties:
+	@ivar mesh: the name of the mesh that will replace the current one
+	            Set to None to disable actuator
+	@type mesh: string or None if no mesh is set
 	"""
 	def setMesh(name):
 		"""
+        DEPRECATED: Use the mesh property instead.
 		Sets the name of the mesh that will replace the current one.
 		When the name is None it will unset the mesh value so no action is taken.
 		
@@ -65,6 +71,7 @@ class KX_SCA_ReplaceMeshActuator(SCA_IActuator):
 		"""
 	def getMesh():
 		"""
+        DEPRECATED: Use the mesh property instead.
 		Returns the name of the mesh that will replace the current one.
 		
 		Returns None if no mesh has been scheduled to be added.
