@@ -46,6 +46,10 @@ struct BevList;
 #define SEGMENTSU(nu)	    ( ((nu)->flagu & CU_CYCLIC) ? (nu)->pntsu : (nu)->pntsu-1 )
 #define SEGMENTSV(nu)	    ( ((nu)->flagv & CU_CYCLIC) ? (nu)->pntsv : (nu)->pntsv-1 )
 
+#define CU_DO_TILT(cu, nu) (((nu->type & CU_2D) && (cu->flag & CU_3D)==0) ? 0 : 1)
+#define CU_DO_RADIUS(cu, nu) ((CU_DO_TILT(cu, nu) || cu->bevobj) ? 1:0)
+
+
 void unlink_curve( struct Curve *cu);
 void free_curve( struct Curve *cu);
 struct Curve *add_curve(char *name, int type);

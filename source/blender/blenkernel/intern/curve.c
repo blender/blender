@@ -1535,8 +1535,8 @@ void makeBevelList(Object *ob)
 	while(nu) {
 		
 		/* check if we will calculate tilt data */
-		do_tilt = ((nu->type & CU_2D) && (cu->flag & CU_3D)==0) ? 0 : 1;
-		do_radius = (do_tilt || cu->bevobj) ? 1 : 0; /* normal display uses the radius, better just to calculate them */
+		do_tilt = CU_DO_TILT(cu, nu);
+		do_radius = CU_DO_RADIUS(cu, nu); /* normal display uses the radius, better just to calculate them */
 		
 		/* check we are a single point? also check we are not a surface and that the orderu is sane,
 		 * enforced in the UI but can go wrong possibly */
