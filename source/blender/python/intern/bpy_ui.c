@@ -427,8 +427,8 @@ static struct PyMethodDef ui_methods[] = {
 	{"getWindowPtr", (PyCFunction)Method_getWindowPtr, METH_NOARGS, ""},
 
 	/* Adding panels should be moved, at the moment there is no obvious place as there is with operators */
-	// XXX missing file {"addPanel", (PyCFunction)PyPanel_wrap_add, METH_VARARGS, ""},
-	// XXX missing file {"removePanel", (PyCFunction)PyPanel_wrap_remove, METH_VARARGS, ""},
+	{"addPanel", (PyCFunction)PyPanel_wrap_add, METH_VARARGS, ""},
+	{"removePanel", (PyCFunction)PyPanel_wrap_remove, METH_VARARGS, ""},
 	{NULL, NULL, 0, NULL}
 };
 
