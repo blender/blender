@@ -1622,44 +1622,6 @@ void SCREEN_OT_repeat_history(wmOperatorType *ot)
 
 /* ********************** redo operator ***************************** */
 
-static void redo_last_cb(bContext *C, void *arg_op, void *arg2)
-{
-	wmOperator *lastop= arg_op;
-	
-	if(lastop) {
-		ED_undo_pop(C);
-		WM_operator_repeat(C, lastop);
-	}
-	
-}
-
-static uiBlock *ui_block_create_redo_last(bContext *C, ARegion *ar, void *arg_op)
-{
-	wmWindowManager *wm= CTX_wm_manager(C);
-	wmOperator *op= arg_op;
-	PointerRNA ptr;
-	uiBlock *block;
-	int height;
-	
-	block= uiBeginBlock(C, ar, "redo_last_popup", UI_EMBOSS, UI_HELV);
-	uiBlockClearFlag(block, UI_BLOCK_LOOP);
-	uiBlockSetFlag(block, UI_BLOCK_KEEP_OPEN|UI_BLOCK_RET_1);
-	uiBlockSetFunc(block, redo_last_cb, arg_op, NULL);
-
-	if(!op->properties) {
-		IDPropertyTemplate val = {0};
-		op->properties= IDP_New(IDP_GROUP, val, "wmOperatorProperties");
-	}
-
-	RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
-	height= uiDefAutoButsRNA(C, block, &ptr);
-
-	uiPopupBoundsBlock(block, 4.0f, 0, 0);
-	uiEndBlock(C, block);
-
-	return block;
-}
-
 static int redo_last_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	wmWindowManager *wm= CTX_wm_manager(C);
@@ -1670,10 +1632,8 @@ static int redo_last_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		if((lastop->type->flag & OPTYPE_REGISTER) && (lastop->type->flag & OPTYPE_UNDO))
 			break;
 	
-	if(!lastop)
-		return OPERATOR_CANCELLED;
-
-	uiPupBlock(C, ui_block_create_redo_last, lastop);
+	if(lastop)
+		WM_operator_redo_popup(C, lastop);
 
 	return OPERATOR_CANCELLED;
 }

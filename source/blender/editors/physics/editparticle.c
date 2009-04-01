@@ -1821,7 +1821,7 @@ void PARTICLE_OT_rekey(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= rekey_exec;
-	// XXX show buttons ot->invoke= rekey_invoke;
+	ot->invoke= WM_operator_redo;
 	ot->poll= PE_poll;
 
 	/* flags */

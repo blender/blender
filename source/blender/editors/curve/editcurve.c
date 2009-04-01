@@ -1069,9 +1069,8 @@ void CURVE_OT_spline_weight_set(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= set_weight_exec;
+	ot->invoke= WM_operator_redo;
 	ot->poll= ED_operator_editsurfcurve;
-
-	// XXX invoke popup?
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1121,9 +1120,8 @@ void CURVE_OT_radius_set(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= set_radius_exec;
+	ot->invoke= WM_operator_redo;
 	ot->poll= ED_operator_editsurfcurve;
-
-	// XXX invoke popup?
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -4147,9 +4145,8 @@ void CURVE_OT_select_random(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= select_random_exec;
+	ot->invoke= WM_operator_redo;
 	ot->poll= ED_operator_editsurfcurve;
-	
-	// XXX invoke popup?
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -4182,9 +4179,8 @@ void CURVE_OT_select_every_nth(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= select_every_nth_exec;
+	ot->invoke= WM_operator_redo;
 	ot->poll= ED_operator_editsurfcurve;
-
-	// XXX invoke popup?
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;

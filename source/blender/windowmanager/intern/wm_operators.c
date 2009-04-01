@@ -54,6 +54,7 @@
 #include "IMB_imbuf_types.h"
 
 #include "ED_screen.h"
+#include "ED_util.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -246,6 +247,64 @@ int WM_operator_winactive(bContext *C)
 {
 	if(CTX_wm_window(C)==NULL) return 0;
 	return 1;
+}
+
+/* op->invoke */
+static void redo_cb(bContext *C, void *arg_op, void *arg2)
+{
+	wmOperator *lastop= arg_op;
+	
+	if(lastop) {
+		ED_undo_pop(C);
+		WM_operator_repeat(C, lastop);
+	}
+}
+
+static uiBlock *wm_block_create_redo(bContext *C, ARegion *ar, void *arg_op)
+{
+	wmWindowManager *wm= CTX_wm_manager(C);
+	wmOperator *op= arg_op;
+	PointerRNA ptr;
+	uiBlock *block;
+	int height;
+	
+	block= uiBeginBlock(C, ar, "redo_popup", UI_EMBOSS, UI_HELV);
+	uiBlockClearFlag(block, UI_BLOCK_LOOP);
+	uiBlockSetFlag(block, UI_BLOCK_KEEP_OPEN|UI_BLOCK_RET_1);
+	uiBlockSetFunc(block, redo_cb, arg_op, NULL);
+
+	if(!op->properties) {
+		IDPropertyTemplate val = {0};
+		op->properties= IDP_New(IDP_GROUP, val, "wmOperatorProperties");
+	}
+
+	RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
+	height= uiDefAutoButsRNA(C, block, &ptr);
+
+	uiPopupBoundsBlock(block, 4.0f, 0, 0);
+	uiEndBlock(C, block);
+
+	return block;
+}
+
+int WM_operator_redo(bContext *C, wmOperator *op, wmEvent *event)
+{
+	int retval= OPERATOR_CANCELLED;
+	
+	if(op->type->exec)
+		retval= op->type->exec(C, op);
+
+	if(retval != OPERATOR_CANCELLED)
+		uiPupBlock(C, wm_block_create_redo, op);
+
+	return retval;
+}
+
+int WM_operator_redo_popup(bContext *C, wmOperator *op)
+{
+	uiPupBlock(C, wm_block_create_redo, op);
+
+	return OPERATOR_CANCELLED;
 }
 
 /* ************ window / screen operator definitions ************** */
