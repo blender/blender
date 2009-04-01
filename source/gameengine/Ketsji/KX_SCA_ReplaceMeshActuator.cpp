@@ -36,6 +36,7 @@
 // Please look here for revision history.
 
 #include "KX_SCA_ReplaceMeshActuator.h"
+#include "KX_MeshProxy.h"
 
 #include "PyObjectPlus.h" 
 
@@ -115,7 +116,8 @@ PyObject* KX_SCA_ReplaceMeshActuator::pyattr_get_mesh(void *self, const struct K
 	KX_SCA_ReplaceMeshActuator* actuator = static_cast<KX_SCA_ReplaceMeshActuator*>(self);
 	if (!actuator->m_mesh)
 		Py_RETURN_NONE;
-	return PyString_FromString(const_cast<char *>(actuator->m_mesh->GetName().ReadPtr()));
+	KX_MeshProxy* meshproxy = new KX_MeshProxy(actuator->m_mesh);
+	return meshproxy;
 }
 
 int KX_SCA_ReplaceMeshActuator::pyattr_set_mesh(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
@@ -123,18 +125,19 @@ int KX_SCA_ReplaceMeshActuator::pyattr_set_mesh(void *self, const struct KX_PYAT
 	KX_SCA_ReplaceMeshActuator* actuator = static_cast<KX_SCA_ReplaceMeshActuator*>(self);
 	if (value == Py_None) {
 		actuator->m_mesh = NULL;
-	} else {
-		char* meshname = PyString_AsString(value);
-		if (!meshname) {
-			PyErr_SetString(PyExc_ValueError, "Expected the name of a mesh or None");
-			return 1;
-		}
-		void* mesh = SCA_ILogicBrick::m_sCurrentLogicManager->GetMeshByName(STR_String(meshname));
+	} else if (PyString_Check(value)) {
+		void* mesh = SCA_ILogicBrick::m_sCurrentLogicManager->GetMeshByName(STR_String(PyString_AsString(value)));
 		if (mesh==NULL) {
 			PyErr_SetString(PyExc_ValueError, "The mesh name given does not exist");
 			return 1;
 		}
 		actuator->m_mesh= (class RAS_MeshObject*)mesh;
+	} else if PyObject_TypeCheck(value, &KX_MeshProxy::Type) {
+		KX_MeshProxy* proxy = (KX_MeshProxy*)value;
+		actuator->m_mesh= proxy->GetMesh();
+	} else {
+		PyErr_SetString(PyExc_ValueError, "Expected the name of a mesh, a mesh proxy or None");
+		return 1;
 	}
 	return 0;
 }

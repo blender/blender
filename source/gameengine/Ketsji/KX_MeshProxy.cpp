@@ -124,7 +124,7 @@ KX_MeshProxy::_getattr(const char *attr)
 
 
 KX_MeshProxy::KX_MeshProxy(RAS_MeshObject* mesh)
-	:	m_meshobj(mesh)
+	: SCA_IObject(&Type), m_meshobj(mesh)
 {
 }
 

@@ -57,9 +57,9 @@ class KX_SCA_ReplaceMeshActuator(SCA_IActuator):
 		C{ERROR: GameObject I{OBName} ReplaceMeshActuator I{ActuatorName} without object}
 		
 	Properties:
-	@ivar mesh: the name of the mesh that will replace the current one
+	@ivar mesh: L{KX_MeshProxy} or the name of the mesh that will replace the current one
 	            Set to None to disable actuator
-	@type mesh: string or None if no mesh is set
+	@type mesh: L{KX_MeshProxy} or None if no mesh is set
 	"""
 	def setMesh(name):
 		"""
