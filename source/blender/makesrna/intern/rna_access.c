@@ -1832,6 +1832,32 @@ int RNA_enum_is_equal(PointerRNA *ptr, const char *name, const char *enumname)
 	}
 }
 
+int RNA_enum_value_from_id(EnumPropertyItem *item, const char *identifier, int *value)
+{
+	for( ; item->identifier; item++) {
+		if (strcmp(item->identifier, identifier)==0) {
+			*value= item->value;
+			return 1;
+		}
+	}
+	
+	return 0;
+}
+
+int	RNA_enum_id_from_value(EnumPropertyItem *item, int value, const char **identifier)
+{
+	for( ; item->identifier; item++) {
+		if (item->value==value) {
+			*identifier= item->identifier;
+			return 1;
+		}
+	}
+
+	return 0;
+}
+
+
+
 void RNA_string_get(PointerRNA *ptr, const char *name, char *value)
 {
 	PropertyRNA *prop= RNA_struct_find_property(ptr, name);

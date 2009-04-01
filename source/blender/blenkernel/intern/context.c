@@ -41,7 +41,6 @@
 
 #include "BKE_context.h"
 #include "BKE_main.h"
-#include "BKE_report.h"
 #include "BKE_screen.h"
 
 #include <string.h>

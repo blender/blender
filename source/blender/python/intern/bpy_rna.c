@@ -128,20 +128,9 @@ static char *pyrna_enum_as_string(PointerRNA *ptr, PropertyRNA *prop)
 {
 	const EnumPropertyItem *item;
 	int totitem, i;
-
-	DynStr *dynstr= BLI_dynstr_new();
-	char *cstring;
-
-	RNA_property_enum_items(ptr, prop, &item, &totitem);
-
-	for (i=0; i<totitem; i++) {
-		
-		BLI_dynstr_appendf(dynstr, i?", '%s'":"'%s'", item[i].identifier);
-	}
 	
-	cstring = BLI_dynstr_get_cstring(dynstr);
-	BLI_dynstr_free(dynstr);
-	return cstring;
+	RNA_property_enum_items(ptr, prop, &item, &totitem);
+	return BPy_enum_as_string(item);
 }
 
 PyObject * pyrna_prop_to_py(PointerRNA *ptr, PropertyRNA *prop)

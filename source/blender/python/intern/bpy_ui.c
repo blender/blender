@@ -27,6 +27,8 @@
 #include "bpy_rna.h" /* for rna buttons */
 #include "bpy_operator.h" /* for setting button operator properties */
 #include "bpy_compat.h"
+#include "bpy_panel_wrap.h" /* for setting button operator properties */
+
 #include "WM_types.h" /* for WM_OP_INVOKE_DEFAULT & friends */
 
 #include "BLI_dynstr.h"
@@ -423,6 +425,10 @@ static struct PyMethodDef ui_methods[] = {
 	{"getScreenPtr", (PyCFunction)Method_getScreenPtr, METH_NOARGS, ""},
 	{"getSpacePtr", (PyCFunction)Method_getSpacePtr, METH_NOARGS, ""},
 	{"getWindowPtr", (PyCFunction)Method_getWindowPtr, METH_NOARGS, ""},
+
+	/* Adding panels should be moved, at the moment there is no obvious place as there is with operators */
+	{"addPanel", (PyCFunction)PyPanel_wrap_add, METH_VARARGS, ""},
+	{"removePanel", (PyCFunction)PyPanel_wrap_remove, METH_VARARGS, ""},
 	{NULL, NULL, 0, NULL}
 };
 

@@ -1,3 +1,4 @@
+
 /**
  * $Id$
  *
@@ -17,23 +18,19 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *
- * Contributor(s): Blender Foundation (2008).
+ * Contributor(s): Campbell Barton
  *
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef RNA_ENUM_TYPES
-#define RNA_ENUM_TYPES
+#ifndef BPY_PANEL_WRAP_H
+#define BPY_PANEL_WRAP_H
 
-#include "RNA_types.h"
+#include <Python.h>
 
-/* Types */
+/* these are used for operator methods, used by bpy_operator.c */
 
-extern EnumPropertyItem prop_mode_items[];
-extern EnumPropertyItem space_type_items[];
-extern EnumPropertyItem region_type_items[];
+PyObject *PyPanel_wrap_add(PyObject *self, PyObject *args);
+PyObject *PyPanel_wrap_remove(PyObject *self, PyObject *args);
 
-#endif /* RNA_ENUM_TYPES */
-
-
-
+#endif

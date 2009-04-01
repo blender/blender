@@ -33,6 +33,26 @@
 
 #include "WM_types.h"
 
+EnumPropertyItem space_type_items[] = {
+	{SPACE_EMPTY, "EMPTY", "Empty", ""},
+	{SPACE_VIEW3D, "VIEW_3D", "3D View", ""},
+	{SPACE_IPO, "GRAPH_EDITOR", "Graph Editor", ""},
+	{SPACE_OUTLINER, "OUTLINER", "Outliner", ""},
+	{SPACE_BUTS, "BUTTONS_WINDOW", "Buttons Window", ""},
+	{SPACE_FILE, "FILE_BROWSER", "File Browser", ""},
+	{SPACE_IMAGE, "IMAGE_EDITOR", "Image Editor", ""},
+	{SPACE_INFO, "USER_PREFERENCES", "User Preferences", ""},
+	{SPACE_SEQ, "SEQUENCE_EDITOR", "Sequence Editor", ""},
+	{SPACE_TEXT, "TEXT_EDITOR", "Text Editor", ""},
+	//{SPACE_IMASEL, "IMAGE_BROWSER", "Image Browser", ""},
+	{SPACE_SOUND, "AUDIO_WINDOW", "Audio Window", ""},
+	{SPACE_ACTION, "DOPESHEET_EDITOR", "DopeSheet Editor", ""},
+	{SPACE_NLA, "NLA_EDITOR", "NLA Editor", ""},
+	{SPACE_SCRIPT, "SCRIPTS_WINDOW", "Scripts Window", ""},
+	{SPACE_TIME, "TIMELINE", "Timeline", ""},
+	{SPACE_NODE, "NODE_EDITOR", "Node Editor", ""},
+	{0, NULL, NULL, NULL}};
+
 #ifdef RNA_RUNTIME
 
 #include "DNA_scene_types.h"
@@ -117,26 +137,6 @@ static void rna_def_space(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
-
-	static EnumPropertyItem type_items[] = {
-		{SPACE_EMPTY, "EMPTY", "Empty", ""},
-		{SPACE_VIEW3D, "VIEW_3D", "3D View", ""},
-		{SPACE_IPO, "GRAPH_EDITOR", "Graph Editor", ""},
-		{SPACE_OUTLINER, "OUTLINER", "Outliner", ""},
-		{SPACE_BUTS, "BUTTONS_WINDOW", "Buttons Window", ""},
-		{SPACE_FILE, "FILE_BROWSER", "File Browser", ""},
-		{SPACE_IMAGE, "IMAGE_EDITOR", "Image Editor", ""},
-		{SPACE_INFO, "USER_PREFERENCES", "User Preferences", ""},
-		{SPACE_SEQ, "SEQUENCE_EDITOR", "Sequence Editor", ""},
-		{SPACE_TEXT, "TEXT_EDITOR", "Text Editor", ""},
-		//{SPACE_IMASEL, "IMAGE_BROWSER", "Image Browser", ""},
-		{SPACE_SOUND, "AUDIO_WINDOW", "Audio Window", ""},
-		{SPACE_ACTION, "DOPESHEET_EDITOR", "DopeSheet Editor", ""},
-		{SPACE_NLA, "NLA_EDITOR", "NLA Editor", ""},
-		{SPACE_SCRIPT, "SCRIPTS_WINDOW", "Scripts Window", ""},
-		{SPACE_TIME, "TIMELINE", "Timeline", ""},
-		{SPACE_NODE, "NODE_EDITOR", "Node Editor", ""},
-		{0, NULL, NULL, NULL}};
 	
 	srna= RNA_def_struct(brna, "Space", NULL);
 	RNA_def_struct_sdna(srna, "SpaceLink");
@@ -145,7 +145,7 @@ static void rna_def_space(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "spacetype");
-	RNA_def_property_enum_items(prop, type_items);
+	RNA_def_property_enum_items(prop, space_type_items);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Type", "Space data type.");
 }

@@ -22,8 +22,8 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef BPY_OPWRAPPER_H
-#define BPY_OPWRAPPER_H
+#ifndef BPY_OPERATOR_WRAP_H
+#define BPY_OPERATOR_WRAP_H
 
 #include <Python.h>
 

@@ -139,7 +139,8 @@ extern "C" {
 	void BPY_scripts_clear_pyobjects( void );
 	
 	void error_pyscript( void );
-	
+	void BPY_DECREF(void *pyob_ptr);	/* Py_DECREF() */
+
 /* void BPY_Err_Handle(struct Text *text); */
 /* void BPY_clear_bad_scriptlink(struct ID *id, struct Text *byebye); */
 /* void BPY_clear_bad_scriptlist(struct ListBase *, struct Text *byebye); */

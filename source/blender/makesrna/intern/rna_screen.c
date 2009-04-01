@@ -32,6 +32,14 @@
 #include "DNA_screen_types.h"
 #include "DNA_scene_types.h"
 
+EnumPropertyItem region_type_items[] = {
+	{RGN_TYPE_WINDOW, "WINDOW", "Window", ""},
+	{RGN_TYPE_HEADER, "HEADER", "Header", ""},
+	{RGN_TYPE_CHANNELS, "CHANNELS", "Channels", ""},
+	{RGN_TYPE_TEMPORARY, "TEMPORARY", "Temporary", ""},
+	{RGN_TYPE_UI, "BUTTONS_WINDOW", "Window", ""},
+	{0, NULL, NULL, NULL}};
+
 #ifdef RNA_RUNTIME
 
 #else

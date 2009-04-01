@@ -24,7 +24,7 @@
  */
 
 
-#include "bpy_opwrapper.h"
+#include "bpy_operator_wrap.h"
 #include "BLI_listbase.h"
 #include "BKE_context.h"
 #include "BKE_report.h"
@@ -44,14 +44,6 @@
 #define PYOP_ATTR_UINAME		"__label__"
 #define PYOP_ATTR_IDNAME		"__name__"	/* use pythons class name */
 #define PYOP_ATTR_DESCRIPTION	"__doc__"	/* use pythons docstring */
-
-typedef struct PyOperatorType {
-	void *next, *prev;
-	char idname[OP_MAX_TYPENAME];
-	char name[OP_MAX_TYPENAME];
-	char description[OP_MAX_TYPENAME]; // XXX should be longer?
-	PyObject *py_class;
-} PyOperatorType;
 
 static PyObject *pyop_dict_from_event(wmEvent *event)
 {
@@ -191,14 +183,16 @@ static struct BPY_flag_def pyop_ret_flags[] = {
 	
 static int PYTHON_OT_generic(int mode, bContext *C, wmOperator *op, wmEvent *event)
 {
-	PyOperatorType *pyot = op->type->pyop_data;
+	PyObject *py_class = op->type->pyop_data;
 	PyObject *args;
 	PyObject *ret= NULL, *py_class_instance, *item;
 	int ret_flag= (mode==PYOP_POLL ? 0:OPERATOR_CANCELLED);
-	
+
+	PyGILState_STATE gilstate = PyGILState_Ensure();
+
 	args = PyTuple_New(1);
-	PyTuple_SET_ITEM(args, 0, PyObject_GetAttrString(pyot->py_class, "__rna__")); // need to use an rna instance as the first arg
-	py_class_instance = PyObject_Call(pyot->py_class, args, NULL);
+	PyTuple_SET_ITEM(args, 0, PyObject_GetAttrString(py_class, "__rna__")); // need to use an rna instance as the first arg
+	py_class_instance = PyObject_Call(py_class, args, NULL);
 	Py_DECREF(args);
 	
 	if (py_class_instance) { /* Initializing the class worked, now run its invoke function */
@@ -229,16 +223,16 @@ static int PYTHON_OT_generic(int mode, bContext *C, wmOperator *op, wmEvent *eve
 		
 		
 		if (mode==PYOP_INVOKE) {
-			item= PyObject_GetAttrString(pyot->py_class, "invoke");
+			item= PyObject_GetAttrString(py_class, "invoke");
 			args = PyTuple_New(2);
 			PyTuple_SET_ITEM(args, 1, pyop_dict_from_event(event));
 		}
 		else if (mode==PYOP_EXEC) {
-			item= PyObject_GetAttrString(pyot->py_class, "exec");
+			item= PyObject_GetAttrString(py_class, "exec");
 			args = PyTuple_New(1);
 		}
 		else if (mode==PYOP_POLL) {
-			item= PyObject_GetAttrString(pyot->py_class, "poll");
+			item= PyObject_GetAttrString(py_class, "poll");
 			args = PyTuple_New(2);
 			//XXX  Todo - wrap context in a useful way, None for now.
 			PyTuple_SET_ITEM(args, 1, Py_None);
@@ -251,7 +245,7 @@ static int PYTHON_OT_generic(int mode, bContext *C, wmOperator *op, wmEvent *eve
 		Py_DECREF(item);
 	}
 	
-	if (ret == NULL) {
+	if (ret == NULL) { /* covers py_class_instance failing too */
 		pyop_error_report(op->reports);
 	}
 	else {
@@ -280,6 +274,8 @@ static int PYTHON_OT_generic(int mode, bContext *C, wmOperator *op, wmEvent *eve
 		Py_DECREF(ret);
 	}
 
+	PyGILState_Release(gilstate);
+
 	return ret_flag;
 }
 
@@ -302,15 +298,29 @@ static int PYTHON_OT_poll(bContext *C)
 
 void PYTHON_OT_wrapper(wmOperatorType *ot, void *userdata)
 {
-	PyOperatorType *pyot = (PyOperatorType *)userdata;
-	PyObject *py_class = pyot->py_class;
+	PyObject *py_class = (PyObject *)userdata;
 	PyObject *props, *item;
 
 	/* identifiers */
-	ot->name= pyot->name;
-	ot->idname= pyot->idname;
-	ot->description= pyot->description;
+	item= PyObject_GetAttrString(py_class, PYOP_ATTR_IDNAME);
+	Py_DECREF(item);
+	ot->idname= _PyUnicode_AsString(item);
+	
 
+	item= PyObject_GetAttrString(py_class, PYOP_ATTR_UINAME);
+	if (item) {
+		Py_DECREF(item);
+		ot->name= _PyUnicode_AsString(item);
+	}
+	else {
+		ot->name= ot->idname;
+		PyErr_Clear();
+	}
+
+	item= PyObject_GetAttrString(py_class, PYOP_ATTR_DESCRIPTION);
+	Py_DECREF(item);
+	ot->description= (item && PyUnicode_Check(item)) ? _PyUnicode_AsString(item):"";
+	
 	/* api callbacks, detailed checks dont on adding */ 
 	if (PyObject_HasAttrString(py_class, "invoke"))
 		ot->invoke= PYTHON_OT_invoke;
@@ -364,105 +374,48 @@ void PYTHON_OT_wrapper(wmOperatorType *ot, void *userdata)
 
 
 /* pyOperators - Operators defined IN Python */
-PyObject *PYOP_wrap_add(PyObject *self, PyObject *value)
+PyObject *PYOP_wrap_add(PyObject *self, PyObject *py_class)
 {	
-	PyObject *optype, *item;
+	PyObject *base_class, *item;
 	
-	PyOperatorType *pyot;
+	
 	char *idname= NULL;
-	char *name= NULL;
-	char *description= NULL;
-	
-	static char *pyop_func_names[] = {"exec", "invoke", "poll", NULL};
-	static int pyop_func_nargs[] = {1, 2, 2, 0};
+	int i;
 
-	PyObject *pyargcount;
-	int i, argcount;
-
+	static struct BPY_class_attr_check pyop_class_attr_values[]= {
+		{PYOP_ATTR_IDNAME,		's', 0,	0},
+		{PYOP_ATTR_UINAME,		's', 0,	BPY_CLASS_ATTR_OPTIONAL},
+		{PYOP_ATTR_PROP,		'l', 0,	BPY_CLASS_ATTR_OPTIONAL},
+		{PYOP_ATTR_DESCRIPTION,	's', 0,	BPY_CLASS_ATTR_NONE_OK},
+		{"exec",	'f', 1,	BPY_CLASS_ATTR_OPTIONAL},
+		{"invoke",	'f', 2,	BPY_CLASS_ATTR_OPTIONAL},
+		{"poll",	'f', 2,	BPY_CLASS_ATTR_OPTIONAL},
+		{NULL, 0, 0, 0}
+	};
 
 	// in python would be...
 	//PyObject *optype = PyObject_GetAttrString(PyObject_GetAttrString(PyDict_GetItemString(PyEval_GetGlobals(), "bpy"), "types"), "Operator");
-	optype = PyObject_GetAttrStringArgs(PyDict_GetItemString(PyEval_GetGlobals(), "bpy"), 2, "types", "Operator");
-	Py_DECREF(optype);
+	base_class = PyObject_GetAttrStringArgs(PyDict_GetItemString(PyEval_GetGlobals(), "bpy"), 2, "types", "Operator");
+	Py_DECREF(base_class);
 
-
-	if (!PyObject_IsSubclass(value, optype)) {
-		PyErr_SetString( PyExc_AttributeError, "expected Operator subclass of bpy.types.Operator");
-		return NULL;
+	if(BPY_class_validate("Operator", py_class, base_class, pyop_class_attr_values, NULL) < 0) {
+		return NULL; /* BPY_class_validate sets the error */
 	}
-	
+
 	/* class name is used for operator ID - this can be changed later if we want */
-	item = PyObject_GetAttrString(value, PYOP_ATTR_IDNAME);
+	item= PyObject_GetAttrString(py_class, PYOP_ATTR_IDNAME);
 	Py_DECREF(item);
 	idname =  _PyUnicode_AsString(item);
-	
 	
 	if (WM_operatortype_find(idname)) {
 		PyErr_Format( PyExc_AttributeError, "Operator alredy exists with this name \"%s\"", idname);
 		return NULL;
 	}
 	
-	/* Operator user readible name */
-	item = PyObject_GetAttrString(value, PYOP_ATTR_UINAME);
-	if (item) {
-		Py_DECREF(item);
-		name = _PyUnicode_AsString(item);
-	}
-	if (name == NULL) {
-		name = idname;
-		PyErr_Clear();
-	}
-	
-	/* use py docstring for description, should always be None or a string */
-	item = PyObject_GetAttrString(value, PYOP_ATTR_DESCRIPTION);
-	Py_DECREF(item);
-	
-	if (PyUnicode_Check(item)) {
-		description = _PyUnicode_AsString(item);
-	}
-	else {
-		description = "";
-	}
-	
-	/* Check known functions and argument lengths */
-	for (i=0; pyop_func_names[i]; i++) {
-		
-		item=PyObject_GetAttrString(value, pyop_func_names[i]);
-		if (item) {
-			Py_DECREF(item);
-
-			/* check its callable */
-			if (!PyFunction_Check(item)) {
-				PyErr_Format(PyExc_ValueError, "Cant register operator class -  %s.%s() is not a function", idname, pyop_func_names[i]);
-				return NULL;
-			}
-			/* check the number of args is correct */
-			/* MyClass.exec.func_code.co_argcount */
-			
-			pyargcount = PyObject_GetAttrString(PyFunction_GET_CODE(item), "co_argcount");
-			Py_DECREF(pyargcount);
-			argcount = PyLong_AsSsize_t(pyargcount);
-			
-			if (argcount != pyop_func_nargs[i]) {
-				PyErr_Format(PyExc_ValueError, "Cant register operator class - %s.%s() takes %d args, should be %d", idname, pyop_func_names[i], argcount, pyop_func_nargs[i]);
-				return NULL;
-			}
-			
-		} else {
-			PyErr_Clear();
-		}
-	}
-	
 	/* If we have properties set, check its a list of dicts */
-	item = PyObject_GetAttrString(value, PYOP_ATTR_PROP);
+	item= PyObject_GetAttrString(py_class, PYOP_ATTR_PROP);
 	if (item) {
 		Py_DECREF(item);
-
-		if (!PyList_Check(item)) {
-			PyErr_Format(PyExc_ValueError, "Cant register operator class - %s.properties must be a list", idname);	
-			return NULL;
-		}
-		
 		for(i=0; i<PyList_Size(item); i++) {
 			PyObject *py_args = PyList_GET_ITEM(item, i);
 			PyObject *py_func_ptr, *py_kw; /* place holders */
@@ -477,24 +430,18 @@ PyObject *PYOP_wrap_add(PyObject *self, PyObject *value)
 		PyErr_Clear();
 	}
 	
-	pyot= MEM_callocN(sizeof(PyOperatorType), "PyOperatorType");
-
-	strncpy(pyot->idname, idname, sizeof(pyot->idname));
-	strncpy(pyot->name, name, sizeof(pyot->name));
-	strncpy(pyot->description, description, sizeof(pyot->description));
-	pyot->py_class= value;
-	Py_INCREF(value);
-
-	WM_operatortype_append_ptr(PYTHON_OT_wrapper, pyot);
+	Py_INCREF(py_class);
+	WM_operatortype_append_ptr(PYTHON_OT_wrapper, py_class);
 
 	Py_RETURN_NONE;
 }
 
 PyObject *PYOP_wrap_remove(PyObject *self, PyObject *value)
 {
+	PyObject *py_class;
 	char *idname= NULL;
 	wmOperatorType *ot;
-	PyOperatorType *pyot;
+	
 
 	if (PyUnicode_Check(value))
 		idname = _PyUnicode_AsString(value);
@@ -514,13 +461,12 @@ PyObject *PYOP_wrap_remove(PyObject *self, PyObject *value)
 		return NULL;
 	}
 	
-	if (!(pyot= (PyOperatorType *)ot->pyop_data)) {
+	if (!(py_class= (PyObject *)ot->pyop_data)) {
 		PyErr_Format( PyExc_AttributeError, "Operator \"%s\" was not created by python", idname);
 		return NULL;
 	}
 	
-	Py_XDECREF(pyot->py_class);
-	MEM_freeN(pyot);
+	Py_XDECREF(py_class);
 
 	WM_operatortype_remove(idname);
 

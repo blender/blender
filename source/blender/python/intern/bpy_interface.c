@@ -241,6 +241,11 @@ int BPY_run_script_space_listener(bContext *C, SpaceScript * sc)
 	return 1;
 }
 
+void BPY_DECREF(void *pyob_ptr)
+{
+	Py_DECREF((PyObject *)pyob_ptr);
+}
+
 #if 0
 /* called from the the scripts window, assume context is ok */
 int BPY_run_python_script_space(const char *modulename, const char *func)
