@@ -791,6 +791,10 @@ protected:
   unsigned _bFrsMaterialIndex;
   
 public:
+  /*! Returns the string "FEdgeSharp" . */
+  virtual string getExactTypeName() const {
+    return "FEdgeSharp";
+  }
   /*! Default constructor. */
   inline FEdgeSharp() : FEdge(){
     _aFrsMaterialIndex = _bFrsMaterialIndex = 0;
@@ -867,6 +871,10 @@ protected:
   void * _Face; // In case of exact silhouette, Face is the WFace crossed by Fedge 
                // NON GERE PAR LE COPY CONSTRUCTEUR
 public:
+  /*! Returns the string "FEdgeSmooth" . */
+  virtual string getExactTypeName() const {
+    return "FEdgeSmooth";
+  }
   /*! Default constructor. */
   inline FEdgeSmooth() : FEdge(){
     _Face=0;
