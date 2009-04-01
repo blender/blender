@@ -870,7 +870,7 @@ def main():
 	'UV Layout',\
 	('Share Tex Space', USER_SHARE_SPACE, 'Objects Share texture space, map all objects into 1 uvmap.'),\
 	('Stretch to bounds', USER_STRETCH_ASPECT, 'Stretch the final output to texture bounds.'),\
-	('Island Margin:', USER_ISLAND_MARGIN, 0.0, 0.25, 'Margin to reduce bleed from adjacent islands.'),\
+	('Island Margin:', USER_ISLAND_MARGIN, 0.0, 0.5, 'Margin to reduce bleed from adjacent islands.'),\
 	'Fill in empty areas',\
 	('Fill Holes', USER_FILL_HOLES, 'Fill in empty areas reduced texture waistage (slow).'),\
 	('Fill Quality:', USER_FILL_HOLES_QUALITY, 1, 100, 'Depends on fill holes, how tightly to fill UV holes, (higher is slower)'),\
