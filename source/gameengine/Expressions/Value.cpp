@@ -320,55 +320,70 @@ STR_String CValue::op2str (VALUE_OPERATOR op)
 //
 void CValue::SetProperty(const STR_String & name,CValue* ioProperty)
 {
-	// Check if somebody is setting an empty property
 	if (ioProperty==NULL)
-	{
+	{	// Check if somebody is setting an empty property
 		trace("Warning:trying to set empty property!");
 		return;
 	}
 
-	// Make sure we have a property array
-	if (m_pNamedPropertyArray == NULL)
+	if (m_pNamedPropertyArray)
+	{	// Try to replace property (if so -> exit as soon as we replaced it)
+		CValue* oldval = (*m_pNamedPropertyArray)[name];
+		if (oldval)
+			oldval->Release();
+	}
+	else { // Make sure we have a property array
 		m_pNamedPropertyArray = new std::map<STR_String,CValue *>;
-
-	// Try to replace property (if so -> exit as soon as we replaced it)
-	CValue* oldval = (*m_pNamedPropertyArray)[name];
-	if (oldval)
-	{
-		oldval->Release();
 	}
 	
 	// Add property at end of array
 	(*m_pNamedPropertyArray)[name] = ioProperty->AddRef();//->Add(ioProperty);
 }
 
+void CValue::SetProperty(const char* name,CValue* ioProperty)
+{
+	if (ioProperty==NULL)
+	{	// Check if somebody is setting an empty property
+		trace("Warning:trying to set empty property!");
+		return;
+	}
 
+	if (m_pNamedPropertyArray)
+	{	// Try to replace property (if so -> exit as soon as we replaced it)
+		CValue* oldval = (*m_pNamedPropertyArray)[name];
+		if (oldval)
+			oldval->Release();
+	}
+	else { // Make sure we have a property array
+		m_pNamedPropertyArray = new std::map<STR_String,CValue *>;
+	}
+	
+	// Add property at end of array
+	(*m_pNamedPropertyArray)[name] = ioProperty->AddRef();//->Add(ioProperty);
+}
 
 //
 // Get pointer to a property with name <inName>, returns NULL if there is no property named <inName>
 //
 CValue* CValue::GetProperty(const STR_String & inName)
 {
-	// Check properties, as soon as we found it -> Return a pointer to the property
-	CValue* result = NULL;
-	if (m_pNamedPropertyArray)
-	{
-		std::map<STR_String,CValue*>::iterator it = (*m_pNamedPropertyArray).find(inName);
-		if (!( it==m_pNamedPropertyArray->end()))
-		{
-			result = (*it).second;
-		}
-
+	if (m_pNamedPropertyArray) {
+		std::map<STR_String,CValue*>::iterator it = m_pNamedPropertyArray->find(inName);
+		if (it != m_pNamedPropertyArray->end())
+			return (*it).second;
 	}
-		//for (int i=0; i<m_pValuePropertyArray->size(); i++)
-		//	if ((*m_pValuePropertyArray)[i]->GetName() == inName)
-		//		return (*m_pValuePropertyArray)[i];
-	
-	// Did not find property with name <inName>, return NULL property pointer
-	return result;
+	return NULL;
 }
 
-
+CValue* CValue::GetProperty(const char *inName)
+{
+	if (m_pNamedPropertyArray) {
+		std::map<STR_String,CValue*>::iterator it = m_pNamedPropertyArray->find(inName);
+		if (it != m_pNamedPropertyArray->end())
+			return (*it).second;
+	}
+	return NULL;
+}
 
 //
 // Get text description of property with name <inName>, returns an empty string if there is no property named <inName>
@@ -396,26 +411,20 @@ float CValue::GetPropertyNumber(const STR_String& inName,float defnumber)
 //
 // Remove the property named <inName>, returns true if the property was succesfully removed, false if property was not found or could not be removed
 //
-bool CValue::RemoveProperty(const STR_String & inName)
+bool CValue::RemoveProperty(const char *inName)
 {
 	// Check if there are properties at all which can be removed
-	if (m_pNamedPropertyArray) {	
-		CValue* val = GetProperty(inName);
-		if (NULL != val) 
+	if (m_pNamedPropertyArray)
+	{
+		std::map<STR_String,CValue*>::iterator it = m_pNamedPropertyArray->find(inName);
+		if (it != m_pNamedPropertyArray->end())
 		{
-			val->Release();
-			m_pNamedPropertyArray->erase(inName);
+			((*it).second)->Release();
+			m_pNamedPropertyArray->erase(it);
 			return true;
 		}
-	} 
+	}
 	
-	char err[128];
-	if (m_pNamedPropertyArray)
-		sprintf(err, "attribute \"%s\" dosnt exist", inName.ReadPtr());
-	else
-		sprintf(err, "attribute \"%s\" dosnt exist (no property array)", inName.ReadPtr());
-	
-	PyErr_SetString(PyExc_AttributeError, err);
 	return false;
 }
 
@@ -426,8 +435,8 @@ vector<STR_String> CValue::GetPropertyNames()
 {
 	vector<STR_String> result;
 	if(!m_pNamedPropertyArray) return result;
-	for ( std::map<STR_String,CValue*>::iterator it = m_pNamedPropertyArray->begin();
-	!(it == m_pNamedPropertyArray->end());it++)
+	std::map<STR_String,CValue*>::iterator it;
+	for (it= m_pNamedPropertyArray->begin(); (it != m_pNamedPropertyArray->end()); it++)
 	{
 		result.push_back((*it).first);
 	}
@@ -444,8 +453,8 @@ void CValue::ClearProperties()
 		return;
 
 	// Remove all properties
-	for ( std::map<STR_String,CValue*>::iterator it = m_pNamedPropertyArray->begin();
-	!(it == m_pNamedPropertyArray->end());it++)
+	std::map<STR_String,CValue*>::iterator it;
+	for (it= m_pNamedPropertyArray->begin();(it != m_pNamedPropertyArray->end()); it++)
 	{
 		CValue* tmpval = (*it).second;
 		//STR_String name = (*it).first;
@@ -464,9 +473,11 @@ void CValue::ClearProperties()
 //
 void CValue::SetPropertiesModified(bool inModified)
 {
-	int numprops = GetPropertyCount();
-	for (int i=0; i<numprops; i++)
-		GetProperty(i)->SetModified(inModified);
+	if(!m_pNamedPropertyArray) return;
+	std::map<STR_String,CValue*>::iterator it;
+	
+	for (it= m_pNamedPropertyArray->begin();(it != m_pNamedPropertyArray->end()); it++)
+		((*it).second)->SetModified(inModified);
 }
 
 
@@ -476,11 +487,13 @@ void CValue::SetPropertiesModified(bool inModified)
 //
 bool CValue::IsAnyPropertyModified()
 {
-	int numprops = GetPropertyCount();
-	for (int i=0;i<numprops;i++)
-		if (GetProperty(i)->IsModified())
+	if(!m_pNamedPropertyArray) return false;
+	std::map<STR_String,CValue*>::iterator it;
+	
+	for (it= m_pNamedPropertyArray->begin();(it != m_pNamedPropertyArray->end()); it++)
+		if (((*it).second)->IsModified())
 			return true;
-
+	
 	return false;
 }
 
@@ -489,7 +502,6 @@ bool CValue::IsAnyPropertyModified()
 //
 // Get property number <inIndex>
 //
-
 CValue* CValue::GetProperty(int inIndex)
 {
 
@@ -498,8 +510,8 @@ CValue* CValue::GetProperty(int inIndex)
 
 	if (m_pNamedPropertyArray)
 	{
-		for ( std::map<STR_String,CValue*>::iterator it = m_pNamedPropertyArray->begin();
-		!(it == m_pNamedPropertyArray->end());it++)
+		std::map<STR_String,CValue*>::iterator it;
+		for (it= m_pNamedPropertyArray->begin(); (it != m_pNamedPropertyArray->end()); it++)
 		{
 			if (count++==inIndex)
 			{
@@ -535,8 +547,8 @@ void CValue::CloneProperties(CValue *replica)
 	if (m_pNamedPropertyArray)
 	{
 		replica->m_pNamedPropertyArray=NULL;
-		for ( std::map<STR_String,CValue*>::iterator it = m_pNamedPropertyArray->begin();
-		!(it == m_pNamedPropertyArray->end());it++)
+		std::map<STR_String,CValue*>::iterator it;
+		for (it= m_pNamedPropertyArray->begin(); (it != m_pNamedPropertyArray->end()); it++)
 		{
 			CValue *val = (*it).second->GetReplica();
 			replica->SetProperty((*it).first,val);
@@ -687,28 +699,15 @@ PyAttributeDef CValue::Attributes[] = {
 
 PyObject*	CValue::_getattr(const char *attr)
 {
-	CValue* resultattr = FindIdentifier(STR_String(attr));
-	STR_String text;
+	CValue* resultattr = GetProperty(attr);
 	if (resultattr)
 	{
-		if (resultattr->IsError())
-		{
-			resultattr->Release();
-		} else
-		{
-			// to avoid some compare problems, return a real pythonthing
-			PyObject* pyconvert = resultattr->ConvertValueToPython();
-			if (pyconvert)
-			{
-				resultattr->Release();
-				return pyconvert;
-			} else
-			{
-				// also check if it's already in pythoninterpreter!
-				return resultattr;
-			}
-			
-		}
+		PyObject* pyconvert = resultattr->ConvertValueToPython();
+	
+		if (pyconvert)
+			return pyconvert;
+		else
+			return resultattr; // also check if it's already in pythoninterpreter!
 	}
 	_getattr_up(PyObjectPlus);
 }
@@ -774,26 +773,25 @@ CValue* CValue::ConvertPythonToValue(PyObject* pyobj)
 
 int	CValue::_delattr(const char *attr)
 {
-	if (!RemoveProperty(STR_String(attr))) /* sets error */
-		return 1;
-	return 0;
+	if (RemoveProperty(STR_String(attr)))
+		return 0;
+	
+	PyErr_Format(PyExc_AttributeError, "attribute \"%s\" dosnt exist", attr);
+	return 1;
 }
 
-int	CValue::_setattr(const char *attr,PyObject* pyobj)
+int	CValue::_setattr(const char *attr, PyObject* pyobj)
 {
 	CValue* vallie = ConvertPythonToValue(pyobj);
 	if (vallie)
 	{
-		STR_String attr_str = attr;
-		CValue* oldprop = GetProperty(attr_str);
+		CValue* oldprop = GetProperty(attr);
 		
 		if (oldprop)
-		{
 			oldprop->SetValue(vallie);
-		} else
-		{
-			SetProperty(attr_str, vallie);
-		}
+		else
+			SetProperty(attr, vallie);
+		
 		vallie->Release();
 	} else
 	{
@@ -811,8 +809,8 @@ PyObject*	CValue::ConvertKeysToPython( void )
 	
 	if (m_pNamedPropertyArray)
 	{
-		for ( std::map<STR_String,CValue*>::iterator it = m_pNamedPropertyArray->begin();
-		!(it == m_pNamedPropertyArray->end());it++)
+		std::map<STR_String,CValue*>::iterator it;
+		for (it= m_pNamedPropertyArray->begin(); (it != m_pNamedPropertyArray->end()); it++)
 		{
 			pystr = PyString_FromString( (*it).first );
 			PyList_Append(pylist, pystr);

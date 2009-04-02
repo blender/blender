@@ -822,7 +822,13 @@ public:
 	static PyObject*	pyattr_get_state(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static int			pyattr_set_state(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 	
-
+	/* getitem/setitem */
+	static int					Map_Len(PyObject* self);
+	static PyMappingMethods	Mapping;
+	static PyObject*			Map_GetItem(PyObject *self_v, PyObject *item);
+	static int					Map_SetItem(PyObject *self_v, PyObject *key, PyObject *val);
+	
+	
 private :
 
 	/**	

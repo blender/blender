@@ -1103,6 +1103,80 @@ PyObject* KX_GameObject::PyGetPosition(PyObject* self)
 }
 
 
+int KX_GameObject::Map_Len(PyObject* self_v)
+{
+	return (static_cast<KX_GameObject*>(self_v))->GetPropertyCount();
+}
+
+
+PyObject *KX_GameObject::Map_GetItem(PyObject *self_v, PyObject *item)
+{
+	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
+	const char *attr= PyString_AsString(item);
+	CValue* resultattr;
+	PyObject* pyconvert;
+	
+	
+	if(attr==NULL) {
+		PyErr_SetString(PyExc_TypeError, "KX_GameObject key but a string");
+		return NULL;
+	}
+	
+	resultattr = self->GetProperty(attr);
+	
+	if(resultattr==NULL) {
+		PyErr_SetString(PyExc_KeyError, "KX_GameObject key does not exist");
+		return NULL;
+	}
+	
+	pyconvert = resultattr->ConvertValueToPython();
+	
+	return pyconvert ? pyconvert:resultattr;
+}
+
+
+int KX_GameObject::Map_SetItem(PyObject *self_v, PyObject *key, PyObject *val)
+{
+	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
+	const char *attr= PyString_AsString(key);
+	
+	if(attr==NULL) {
+		PyErr_SetString(PyExc_TypeError, "KX_GameObject key but a string");
+		return 1;
+	}
+	
+	if (val==NULL) { /* del ob["key"] */
+		if (self->RemoveProperty(attr)==false) {
+			PyErr_Format(PyExc_KeyError, "KX_GameObject key \"%s\" not found", attr);
+			return 1;
+		}
+	}
+	else { /* ob["key"] = value */
+		CValue* vallie = self->ConvertPythonToValue(val);
+		
+		if(vallie==NULL)
+			return 1; /* ConvertPythonToValue sets the error */
+		
+		CValue* oldprop = self->GetProperty(attr);
+		
+		if (oldprop)
+			oldprop->SetValue(vallie);
+		else
+			self->SetProperty(attr, vallie);
+		
+		vallie->Release();
+	}
+	
+	return 0;
+}
+
+
+PyMappingMethods KX_GameObject::Mapping = {
+	(inquiry)KX_GameObject::Map_Len, 			/*inquiry mp_length */
+	(binaryfunc)KX_GameObject::Map_GetItem,		/*binaryfunc mp_subscript */
+	(objobjargproc)KX_GameObject::Map_SetItem,	/*objobjargproc mp_ass_subscript */
+};
+
 
 PyTypeObject KX_GameObject::Type = {
 	PyObject_HEAD_INIT(&PyType_Type)
@@ -1118,7 +1192,7 @@ PyTypeObject KX_GameObject::Type = {
 		__repr,
 		0, //&cvalue_as_number,
 		0,
-		0,
+		&Mapping,
 		0,
 		0
 };
