@@ -1433,6 +1433,8 @@ static float *get_editmesh_orco_verts(EditMesh *em)
 	return orco;
 }
 
+/* orco custom data layer */
+
 static DerivedMesh *create_orco_dm(Object *ob, Mesh *me, EditMesh *em)
 {
 	DerivedMesh *dm;
@@ -1482,6 +1484,96 @@ static void add_orco_dm(Object *ob, EditMesh *em, DerivedMesh *dm, DerivedMesh *
 	}
 	else
 		DM_add_vert_layer(dm, CD_ORCO, CD_ASSIGN, orco);
+}
+
+/* weight paint colors */
+
+/* Something of a hack, at the moment deal with weightpaint
+ * by tucking into colors during modifier eval, only in
+ * wpaint mode. Works ok but need to make sure recalc
+ * happens on enter/exit wpaint.
+ */
+
+void weight_to_rgb(float input, float *fr, float *fg, float *fb)
+{
+	float blend;
+	
+	blend= ((input/2.0f)+0.5f);
+	
+	if (input<=0.25f){	// blue->cyan
+		*fr= 0.0f;
+		*fg= blend*input*4.0f;
+		*fb= blend;
+	}
+	else if (input<=0.50f){	// cyan->green
+		*fr= 0.0f;
+		*fg= blend;
+		*fb= blend*(1.0f-((input-0.25f)*4.0f)); 
+	}
+	else if (input<=0.75){	// green->yellow
+		*fr= blend * ((input-0.50f)*4.0f);
+		*fg= blend;
+		*fb= 0.0f;
+	}
+	else if (input<=1.0){ // yellow->red
+		*fr= blend;
+		*fg= blend * (1.0f-((input-0.75f)*4.0f)); 
+		*fb= 0.0f;
+	}
+}
+
+static void calc_weightpaint_vert_color(Object *ob, ColorBand *coba, int vert, unsigned char *col)
+{
+	Mesh *me = ob->data;
+	float colf[4], input = 0.0f;
+	int i;
+
+	if (me->dvert) {
+		for (i=0; i<me->dvert[vert].totweight; i++)
+			if (me->dvert[vert].dw[i].def_nr==ob->actdef-1)
+				input+=me->dvert[vert].dw[i].weight;		
+	}
+
+	CLAMP(input, 0.0f, 1.0f);
+	
+	if(coba)
+		do_colorband(coba, input, colf);
+	else
+		weight_to_rgb(input, colf, colf+1, colf+2);
+	
+	col[3] = (unsigned char)(colf[0] * 255.0f);
+	col[2] = (unsigned char)(colf[1] * 255.0f);
+	col[1] = (unsigned char)(colf[2] * 255.0f);
+	col[0] = 255;
+}
+
+static ColorBand *stored_cb= NULL;
+
+void vDM_ColorBand_store(ColorBand *coba)
+{
+	stored_cb= coba;
+}
+
+static void add_weight_mcol_dm(Object *ob, DerivedMesh *dm)
+{
+	Mesh *me = ob->data;
+	MFace *mf = me->mface;
+	ColorBand *coba= stored_cb;	/* warning, not a local var */
+	unsigned char *wtcol;
+	int i;
+	
+	wtcol = MEM_callocN (sizeof (unsigned char) * me->totface*4*4, "weightmap");
+	
+	memset(wtcol, 0x55, sizeof (unsigned char) * me->totface*4*4);
+	for (i=0; i<me->totface; i++, mf++) {
+		calc_weightpaint_vert_color(ob, coba, mf->v1, &wtcol[(i*4 + 0)*4]); 
+		calc_weightpaint_vert_color(ob, coba, mf->v2, &wtcol[(i*4 + 1)*4]); 
+		calc_weightpaint_vert_color(ob, coba, mf->v3, &wtcol[(i*4 + 2)*4]); 
+		if (mf->v4)
+			calc_weightpaint_vert_color(ob, coba, mf->v4, &wtcol[(i*4 + 3)*4]); 
+	}
+	
+	CustomData_add_layer(&dm->faceData, CD_WEIGHT_MCOL, CD_ASSIGN, wtcol, dm->numFaceData);
 }
 
 static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos)[3],
@@ -1547,6 +1639,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 		 */
 		if (deform_r) {
 			*deform_r = CDDM_from_mesh(me, ob);
+
 			if(deformedVerts) {
 				CDDM_apply_vert_coords(*deform_r, deformedVerts);
 				CDDM_calc_normals(*deform_r);
@@ -1632,6 +1725,9 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 					CDDM_apply_vert_coords(dm, deformedVerts);
 					CDDM_calc_normals(dm);
 				}
+
+				if(dataMask & CD_MASK_WEIGHT_MCOL)
+					add_weight_mcol_dm(ob, dm);
 			}
 
 			/* create an orco derivedmesh in parallel */
@@ -1695,14 +1791,21 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 
 		CDDM_apply_vert_coords(finaldm, deformedVerts);
 		CDDM_calc_normals(finaldm);
+
+		if(dataMask & CD_MASK_WEIGHT_MCOL)
+			add_weight_mcol_dm(ob, finaldm);
 	} else if(dm) {
 		finaldm = dm;
 	} else {
 		finaldm = CDDM_from_mesh(me, ob);
+
 		if(deformedVerts) {
 			CDDM_apply_vert_coords(finaldm, deformedVerts);
 			CDDM_calc_normals(finaldm);
 		}
+
+		if(dataMask & CD_MASK_WEIGHT_MCOL)
+			add_weight_mcol_dm(ob, finaldm);
 	}
 
 	/* add an orco layer if needed */
@@ -1932,96 +2035,6 @@ static void editmesh_calc_modifiers(Scene *scene, Object *ob, EditMesh *em, Deri
 		MEM_freeN(deformedVerts);
 }
 
-/***/
-
-
-	/* Something of a hack, at the moment deal with weightpaint
-	 * by tucking into colors during modifier eval, only in
-	 * wpaint mode. Works ok but need to make sure recalc
-	 * happens on enter/exit wpaint.
-	 */
-
-void weight_to_rgb(float input, float *fr, float *fg, float *fb)
-{
-	float blend;
-	
-	blend= ((input/2.0f)+0.5f);
-	
-	if (input<=0.25f){	// blue->cyan
-		*fr= 0.0f;
-		*fg= blend*input*4.0f;
-		*fb= blend;
-	}
-	else if (input<=0.50f){	// cyan->green
-		*fr= 0.0f;
-		*fg= blend;
-		*fb= blend*(1.0f-((input-0.25f)*4.0f)); 
-	}
-	else if (input<=0.75){	// green->yellow
-		*fr= blend * ((input-0.50f)*4.0f);
-		*fg= blend;
-		*fb= 0.0f;
-	}
-	else if (input<=1.0){ // yellow->red
-		*fr= blend;
-		*fg= blend * (1.0f-((input-0.75f)*4.0f)); 
-		*fb= 0.0f;
-	}
-}
-static void calc_weightpaint_vert_color(Object *ob, ColorBand *coba, int vert, unsigned char *col)
-{
-	Mesh *me = ob->data;
-	float colf[4], input = 0.0f;
-	int i;
-
-	if (me->dvert) {
-		for (i=0; i<me->dvert[vert].totweight; i++)
-			if (me->dvert[vert].dw[i].def_nr==ob->actdef-1)
-				input+=me->dvert[vert].dw[i].weight;		
-	}
-
-	CLAMP(input, 0.0f, 1.0f);
-	
-	if(coba)
-		do_colorband(coba, input, colf);
-	else
-		weight_to_rgb(input, colf, colf+1, colf+2);
-	
-	col[3] = (unsigned char)(colf[0] * 255.0f);
-	col[2] = (unsigned char)(colf[1] * 255.0f);
-	col[1] = (unsigned char)(colf[2] * 255.0f);
-	col[0] = 255;
-}
-
-static ColorBand *stored_cb= NULL;
-
-void vDM_ColorBand_store(ColorBand *coba)
-{
-	stored_cb= coba;
-}
-
-static unsigned char *calc_weightpaint_colors(Object *ob) 
-{
-	Mesh *me = ob->data;
-	MFace *mf = me->mface;
-	ColorBand *coba= stored_cb;	/* warning, not a local var */
-	unsigned char *wtcol;
-	int i;
-	
-	wtcol = MEM_callocN (sizeof (unsigned char) * me->totface*4*4, "weightmap");
-	
-	memset(wtcol, 0x55, sizeof (unsigned char) * me->totface*4*4);
-	for (i=0; i<me->totface; i++, mf++) {
-		calc_weightpaint_vert_color(ob, coba, mf->v1, &wtcol[(i*4 + 0)*4]); 
-		calc_weightpaint_vert_color(ob, coba, mf->v2, &wtcol[(i*4 + 1)*4]); 
-		calc_weightpaint_vert_color(ob, coba, mf->v3, &wtcol[(i*4 + 2)*4]); 
-		if (mf->v4)
-			calc_weightpaint_vert_color(ob, coba, mf->v4, &wtcol[(i*4 + 3)*4]); 
-	}
-	
-	return wtcol;
-}
-
 static void clear_mesh_caches(Object *ob)
 {
 	Mesh *me= ob->data;
@@ -2052,42 +2065,16 @@ static void clear_mesh_caches(Object *ob)
 
 static void mesh_build_data(Scene *scene, Object *ob, CustomDataMask dataMask)
 {
-	Mesh *me = ob->data;
-	float min[3], max[3];
-	//int needMapping= 0; 
-	
 	Object *obact = scene->basact?scene->basact->object:NULL;
 	int editing = (FACESEL_PAINT_TEST)|(G.f & G_PARTICLEEDIT);
 	int needMapping = editing && (ob==obact);
+	float min[3], max[3];
 	
 	clear_mesh_caches(ob);
 
-	if( (G.f & G_WEIGHTPAINT) && ob==obact ) {
-//	if(dataMask & CD_MASK_WEIGHTPAINT) {
-		MCol *wpcol = (MCol*)calc_weightpaint_colors(ob);
-		int layernum = CustomData_number_of_layers(&me->fdata, CD_MCOL);
-		int prevactive = CustomData_get_active_layer(&me->fdata, CD_MCOL);
-		int prevrender = CustomData_get_render_layer(&me->fdata, CD_MCOL);
-
-		/* ugly hack here, we temporarily add a new active mcol layer with
-		   weightpaint colors in it, that is then duplicated in CDDM_from_mesh */
-		CustomData_add_layer(&me->fdata, CD_MCOL, CD_ASSIGN, wpcol, me->totface);
-		CustomData_set_layer_active(&me->fdata, CD_MCOL, layernum);
-		CustomData_set_layer_render(&me->fdata, CD_MCOL, layernum);
-
-		mesh_calc_modifiers(scene, ob, NULL, &ob->derivedDeform,
-							&ob->derivedFinal, 0, 1,
-							needMapping, dataMask, -1);
-
-		CustomData_free_layer_active(&me->fdata, CD_MCOL, me->totface);
-		CustomData_set_layer_active(&me->fdata, CD_MCOL, prevactive);
-		CustomData_set_layer_render(&me->fdata, CD_MCOL, prevrender);
-	} 
-	else {
-		mesh_calc_modifiers(scene, ob, NULL, &ob->derivedDeform,
-							&ob->derivedFinal, G.rendering, 1,
-							needMapping, dataMask, -1);
-	}
+	mesh_calc_modifiers(scene, ob, NULL, &ob->derivedDeform,
+						&ob->derivedFinal, 0, 1,
+						needMapping, dataMask, -1);
 
 	INIT_MINMAX(min, max);
 

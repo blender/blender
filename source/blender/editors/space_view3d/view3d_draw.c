@@ -1858,8 +1858,10 @@ static CustomDataMask get_viewedit_datamask(bScreen *screen)
 	}
 	
 	/* check if we need mcols due to vertex paint or weightpaint */
-	if(G.f & G_VERTEXPAINT || G.f & G_WEIGHTPAINT)
+	if(G.f & G_VERTEXPAINT)
 		mask |= CD_MASK_MCOL;
+	if(G.f & G_WEIGHTPAINT)
+		mask |= CD_MASK_WEIGHT_MCOL;
 	
 	if(G.f & G_SCULPTMODE)
 		mask |= CD_MASK_MDISPS;
