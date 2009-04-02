@@ -53,3 +53,4 @@ endif
 	@echo "---> removing CVS directories and Mac hidden files from distribution"
 	@find $(DIR)/bin/$(APPLICATION).app -name CVS -prune -exec rm -rf {} \;
 	@find $(DIR)/bin/$(APPLICATION).app -name .DS_Store -exec rm -f {} \;
+	@find $(DIR)/bin/$(APPLICATION).app -name .svn -exec rm -rf {} \;
