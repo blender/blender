@@ -134,6 +134,24 @@ static PyObject *Part_getRenderStep( BPy_PartSys * self );
 static PyObject *Part_getDupOb( BPy_PartSys * self );
 static PyObject *Part_getDrawAs( BPy_PartSys * self );
 static PyObject *Part_GetAge( BPy_PartSys * self, PyObject * args );
+static int Part_setChildAmount( BPy_PartSys * self, PyObject * args );
+static PyObject *Part_getChildAmount( BPy_PartSys * self );
+static int Part_setChildType( BPy_PartSys * self, PyObject * args );
+static PyObject *Part_getChildType( BPy_PartSys * self );
+static int Part_setChildRenderAmount( BPy_PartSys * self, PyObject * args );
+static PyObject *Part_getChildRenderAmount( BPy_PartSys * self );
+static int Part_setChildRadius( BPy_PartSys * self, PyObject * args );
+static PyObject *Part_getChildRadius( BPy_PartSys * self );
+static int Part_setChildRoundness( BPy_PartSys * self, PyObject * args );
+static PyObject *Part_getChildRoundness( BPy_PartSys * self );
+static int Part_setChildClumping( BPy_PartSys * self, PyObject * args );
+static PyObject *Part_getChildClumping( BPy_PartSys * self );
+static int Part_setChildShape( BPy_PartSys * self, PyObject * args );
+static PyObject *Part_getChildShape( BPy_PartSys * self );
+static int Part_setChildSize( BPy_PartSys * self, PyObject * args );
+static PyObject *Part_getChildSize( BPy_PartSys * self );
+static int Part_setChildRandom( BPy_PartSys * self, PyObject * args );
+static PyObject *Part_getChildRandom( BPy_PartSys * self );
 
 /*****************************************************************************/
 /* Python Effect_Type callback function prototypes:                           */
@@ -315,6 +333,43 @@ static PyGetSetDef BPy_ParticleSys_getseters[] = {
      {"drawAs",
 	 (getter)Part_getDrawAs, NULL,
 	 "Get draw type Particle.DRAWAS([ 'NONE' | 'OBJECT' | 'POINT' | ... ] )",
+	 NULL},
+/* Children */
+	{"childAmount",
+	 (getter)Part_getChildAmount, (setter)Part_setChildAmount,
+	 "The total number of children",
+	 NULL},
+	 {"childType",
+	 (getter)Part_getChildType, (setter)Part_setChildType,
+	 "Type of childrens ( Particle.CHILDTYPE[ 'FACES' | 'PARTICLES' | 'NONE' ] )",
+	 NULL},
+	 {"childRenderAmount",
+	 (getter)Part_getChildRenderAmount, (setter)Part_setChildRenderAmount,
+	 "Amount of children/parent for rendering",
+	 NULL},
+	 {"childRadius",
+	 (getter)Part_getChildRadius, (setter)Part_setChildRadius,
+	 "Radius of children around parent",
+	 NULL},
+	 {"childRound",
+	 (getter)Part_getChildRoundness, (setter)Part_setChildRoundness,
+	 "Roundness of children around parent",
+	 NULL},
+	 {"childClump",
+	 (getter)Part_getChildClumping, (setter)Part_setChildClumping,
+	 "Amount of clumpimg",
+	 NULL},
+	 {"childShape",
+	 (getter)Part_getChildShape, (setter)Part_setChildShape,
+	 "Shape of clumpimg",
+	 NULL},
+	 {"childSize",
+	 (getter)Part_getChildSize, (setter)Part_setChildSize,
+	 "A multiplier for the child particle size",
+	 NULL},
+	 {"childRand",
+	 (getter)Part_getChildRandom, (setter)Part_setChildRandom,
+	 "Random variation to the size of the child particles",
 	 NULL},
 	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
 };
@@ -710,6 +765,26 @@ static PyObject *Particle_ReactOnDict( void )
 	return ReactOn;
 }
 
+
+/* create the Blender.Particle.ChildType constant dict */
+
+static PyObject *Particle_ChildTypeDict( void )
+{
+	PyObject *ChildTypes = PyConstant_New(  );
+
+	if( ChildTypes ) {
+		BPy_constant *c = ( BPy_constant * ) ChildTypes;
+
+		PyConstant_Insert( c, "FACES",
+				 PyInt_FromLong( 2 ) );
+		PyConstant_Insert( c, "PARTICLES",
+				 PyInt_FromLong( 1 ) );
+		PyConstant_Insert( c, "NONE",
+				 PyInt_FromLong( 0 ) );
+	}
+	return ChildTypes;
+}
+
 static PyObject *Particle_DrawAs( void )
 {
 	PyObject *DrawAs = PyConstant_New(  );
@@ -756,6 +831,8 @@ PyObject *ParticleSys_Init( void ){
 	PyObject *EmitFrom;
 	PyObject *Dist;
 	PyObject *DrawAs;
+	PyObject *ChildTypes;
+
 
 	if( PyType_Ready( &ParticleSys_Type ) < 0)
 		return NULL;
@@ -765,6 +842,7 @@ PyObject *ParticleSys_Init( void ){
 	EmitFrom = Particle_EmitFrom();
 	DrawAs = Particle_DrawAs();
 	Dist = Particle_DistrDict();
+	ChildTypes = Particle_ChildTypeDict();
 
 	submodule = Py_InitModule3( "Blender.Particle", 
 								M_ParticleSys_methods, M_ParticleSys_doc );
@@ -779,6 +857,8 @@ PyObject *ParticleSys_Init( void ){
 		PyModule_AddObject( submodule, "DISTRIBUTION", Dist );
 	if( DrawAs )
 		PyModule_AddObject( submodule, "DRAWAS", DrawAs );
+	if( ChildTypes )
+		PyModule_AddObject( submodule, "CHILDTYPE", ChildTypes );
 
 	return ( submodule );
 }
@@ -2009,4 +2089,139 @@ static PyObject *Part_getRenderStep( BPy_PartSys * self )
 static PyObject *Part_getDrawAs( BPy_PartSys * self )
 {
 	return PyInt_FromLong( (long)( self->psys->part->draw_as ) );
+}
+
+static int Part_setChildAmount( BPy_PartSys * self, PyObject * args )
+{
+	int res = EXPP_setIValueRange( args, &self->psys->part->child_nbr,
+			0, MAX_PART_CHILDREN, 'i' );
+
+	psys_flush_settings( self->psys->part, PSYS_ALLOC, 1 );
+
+	return res;
+}
+
+static PyObject *Part_getChildAmount( BPy_PartSys * self )
+{
+	return PyInt_FromLong( ((int)( self->psys->part->child_nbr )) );
+}
+
+static int Part_setChildType( BPy_PartSys * self, PyObject * args )
+{
+	int res = EXPP_setIValueRange( args, &self->psys->part->childtype,
+			0, 2, 'h' );
+
+	psys_flush_settings( self->psys->part, PSYS_ALLOC, 1 );
+
+	return res;
+}
+
+static PyObject *Part_getChildType( BPy_PartSys * self )
+{
+	return PyInt_FromLong( (short)( self->psys->part->childtype ) );
+}
+
+static int Part_setChildRenderAmount( BPy_PartSys * self, PyObject * args )
+{
+	int res = EXPP_setIValueRange( args, &self->psys->part->ren_child_nbr,
+			0, MAX_PART_CHILDREN, 'i' );
+
+	psys_flush_settings( self->psys->part, PSYS_ALLOC, 1 );
+
+	return res;
+}
+
+static PyObject *Part_getChildRenderAmount( BPy_PartSys * self )
+{
+	return PyInt_FromLong( ((int)( self->psys->part->ren_child_nbr )) );
+}
+
+static int Part_setChildRadius( BPy_PartSys * self, PyObject * args )
+{
+	int res = EXPP_setFloatRange( args, &self->psys->part->childrad,
+			0.0, 10.0 );
+
+	psys_flush_settings( self->psys->part, PSYS_ALLOC, 1 );
+
+	return res;
+}
+
+static PyObject *Part_getChildRadius( BPy_PartSys * self )
+{
+	return PyFloat_FromDouble( ((float)( self->psys->part->childrad )) );
+}
+
+static int Part_setChildRoundness( BPy_PartSys * self, PyObject * args )
+{
+	int res = EXPP_setFloatRange( args, &self->psys->part->childflat,
+			0.0, 1.0 );
+
+	psys_flush_settings( self->psys->part, PSYS_ALLOC, 1 );
+
+	return res;
+}
+
+static PyObject *Part_getChildRoundness( BPy_PartSys * self )
+{
+	return PyFloat_FromDouble( ((float)( self->psys->part->childflat )) );
+}
+
+static int Part_setChildClumping( BPy_PartSys * self, PyObject * args )
+{
+	int res = EXPP_setFloatRange( args, &self->psys->part->clumpfac,
+			-1.0, 1.0 );
+
+	psys_flush_settings( self->psys->part, PSYS_ALLOC, 1 );
+
+	return res;
+}
+
+static PyObject *Part_getChildClumping( BPy_PartSys * self )
+{
+	return PyFloat_FromDouble( ((float)( self->psys->part->clumpfac )) );
+}
+
+static int Part_setChildShape( BPy_PartSys * self, PyObject * args )
+{
+	int res = EXPP_setFloatRange( args, &self->psys->part->clumppow,
+			-0.999, 0.999 );
+
+	psys_flush_settings( self->psys->part, PSYS_ALLOC, 1 );
+
+	return res;
+}
+
+static PyObject *Part_getChildShape( BPy_PartSys * self )
+{
+	return PyFloat_FromDouble( ((float)( self->psys->part->clumppow )) );
+}
+
+static int Part_setChildSize( BPy_PartSys * self, PyObject * args )
+{
+	int res = EXPP_setFloatRange( args, &self->psys->part->childsize,
+			0.01, 100.0 );
+
+	psys_flush_settings( self->psys->part, PSYS_ALLOC, 1 );
+
+	return res;
+}
+
+static PyObject *Part_getChildSize( BPy_PartSys * self )
+{
+	return PyFloat_FromDouble( ((float)( self->psys->part->childsize )) );
+}
+
+static int Part_setChildRandom( BPy_PartSys * self, PyObject * args )
+{
+	int res = EXPP_setFloatRange( args, &self->psys->part->childrandsize,
+			0.0, 1.0 );
+
+	psys_flush_settings( self->psys->part, PSYS_ALLOC, 1 );
+
+	return res;
+}
+
+static PyObject *Part_getChildRandom( BPy_PartSys * self )
+{
+	return PyFloat_FromDouble( ((float)( self->psys->part->childrandsize )) );
 }

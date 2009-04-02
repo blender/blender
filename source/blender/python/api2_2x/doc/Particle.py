@@ -42,6 +42,11 @@ This module provides access to the B{Particle} in Blender.
 		- OBJECT: Draw object
 		- GROUP: Draw goup
 		- BILLBOARD: Draw as billboard 
+@type CHILDTYPE: readonly dictionary
+@var CHILDTYPE: Constant dict used for whith L{Particle.CHILDTYPE}
+		- NONE: set no children
+		- PARTICLES: set children born from particles
+		- FACES: set children born from faces
 """
 
 class Particle:
@@ -118,6 +123,24 @@ class Particle:
 	@type duplicateObject: Blender Object
 	@ivar drawAs: Get draw type Particle.DRAWAS([ 'NONE' | 'OBJECT' | 'POINT' | ... ]).
 	@type drawAs: int
+	@ivar childAmount: The total number of children
+	@type childAmount: int
+	@ivar childType: Type of childrens ( Particle.CHILDTYPE[ 'FACES' | 'PARTICLES' | 'NONE' ] )
+	@type childType: int
+	@ivar childRenderAmount: Amount of children/parent for rendering
+	@type childRenderAmount: int
+	@ivar childRadius: Radius of children around parent
+	@type childRadius: float
+	@ivar childRound: Roundness of children around parent
+	@type childRound: float
+	@ivar childClump: Amount of clumpimg
+	@type childClump: float
+	@ivar childShape: Shape of clumpimg
+	@type childShape: float
+	@ivar childSize: A multiplier for the child particle size
+	@type childSize: float
+	@ivar childRand: Random variation to the size of the child particles
+	@type childRand: float
 	"""
 	
 	def freeEdit():
