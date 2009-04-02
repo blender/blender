@@ -29,6 +29,8 @@
 
 #include "GL/glew.h"
 
+#include "BMF_Api.h"
+
 #include "DNA_scene_types.h"
 
 #include "RAS_IRenderTools.h"
@@ -53,6 +55,7 @@
 #include "BKE_bmfont_types.h"
 
 #include "GPC_RenderTools.h"
+
 
 unsigned int GPC_RenderTools::m_numgllights;
 
@@ -311,27 +314,18 @@ void GPC_RenderTools::RenderText2D(RAS_TEXT_RENDER_MODE mode,
 	glMatrixMode(GL_MODELVIEW);
 	glPushMatrix();
 	glLoadIdentity();
-	
-	// Actual drawing
-	unsigned char colors[2][3] = {
-		{0x00, 0x00, 0x00},
-		{0xFF, 0xFF, 0xFF}
-	};
-	int numTimes = mode == RAS_TEXT_PADDED ? 2 : 1;
-	for (int i = 0; i < numTimes; i++) {
-		glColor3ub(colors[i][0], colors[i][1], colors[i][2]);
-		glRasterPos2i(xco, yco);
-		for (p = s, lines = 0; *p; p++) {
-			if (*p == '\n')
-			{
-				lines++;
-				glRasterPos2i(xco, yco-(lines*18));
-			}
-			BMF_DrawCharacter(m_font, *p);
-		}
-		xco += 1;
-		yco += 1;
+
+	// Actual drawing (draw black first if padded)
+	if (mode == RAS_IRenderTools::RAS_TEXT_PADDED)
+	{
+		glColor3ub(0, 0, 0);
+		glRasterPos2s(xco+1, height-yco-1);
+		BMF_DrawString(m_font, s);
 	}
+
+	glColor3ub(255, 255, 255);
+	glRasterPos2s(xco, height-yco);
+	BMF_DrawString(m_font, s);
 
 	// Restore view settings
 	glMatrixMode(GL_PROJECTION);
