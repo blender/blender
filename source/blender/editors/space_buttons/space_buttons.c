@@ -176,7 +176,6 @@ static void buttons_main_area_draw(const bContext *C, ARegion *ar)
 	else {
 		View2D *v2d= &ar->v2d;
 		float col[3], fac;
-		//int align= 0;
 
 		/* clear and setup matrix */
 		UI_GetThemeColor3fv(TH_BACK, col);
@@ -192,15 +191,6 @@ static void buttons_main_area_draw(const bContext *C, ARegion *ar)
 		
 		/* panels */
 		drawnewstuff();
-		
-#if 0
-		if(sbuts->align)
-			if(sbuts->re_align || sbuts->mainbo!=sbuts->mainb || sbuts->tabo!=sbuts->tab[sbuts->mainb])
-				align= 1;
-#endif
-
-		uiDrawPanels(C, 1); // XXX align);
-		uiMatchPanelsView2d(ar);
 		
 		/* reset view matrix */
 		UI_view2d_view_restore(C);

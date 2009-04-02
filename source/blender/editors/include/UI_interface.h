@@ -496,19 +496,15 @@ void autocomplete_end(AutoComplete *autocpl, char *autoname);
 
 extern void uiNewPanelTabbed(char *, char *);
 extern int uiNewPanel(const struct bContext *C, struct ARegion *ar, uiBlock *block, char *panelname, char *tabname, int ofsx, int ofsy, int sizex, int sizey);
+
+extern void uiBeginPanels(const struct bContext *C, struct ARegion *ar);
+extern void uiEndPanels(const struct bContext *C, struct ARegion *ar);
 extern void uiFreePanels(struct ListBase *lb);
-extern void uiDrawPanels(const struct bContext *C, int re_align);
 	
-extern void uiSetPanelsView2d(struct ARegion *ar);
-extern void uiMatchPanelsView2d(struct ARegion *ar);
+extern void uiPanelsHome(struct ARegion *ar);
 
 extern void uiNewPanelHeight(struct uiBlock *block, int sizey);
 extern void uiNewPanelTitle(struct uiBlock *block, char *str);
-extern uiBlock *uiFindOpenPanelBlockName(struct ListBase *lb, char *name);
-extern int uiAlignPanelStep(struct ScrArea *sa, struct ARegion *ar, float fac);
-extern void uiPanelControl(int);
-extern void uiSetPanelHandler(int);
-
 struct Panel *uiPanelFromBlock(struct uiBlock *block);
 
 /* Handlers

@@ -70,10 +70,8 @@ static void do_viewmenu(bContext *C, void *arg, int event)
 		case 1:
 		case 2:
 			sbuts->align= event;
-			if(event) {
+			if(sbuts->align)
 				sbuts->re_align= 1;
-				// uiAlignPanelStep(sa, 1.0);
-			}
             break;
     }
 

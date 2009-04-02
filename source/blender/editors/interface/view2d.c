@@ -261,7 +261,7 @@ void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
 				v2d->maxzoom= 2.0f;
 				
 				v2d->align= (V2D_ALIGN_NO_NEG_X|V2D_ALIGN_NO_POS_Y);
-				v2d->keeptot= V2D_KEEPTOT_BOUNDS;
+				v2d->keeptot= V2D_KEEPTOT_STRICT;
 				
 				v2d->tot.xmin= 0.0f;
 				v2d->tot.xmax= winx;
@@ -421,6 +421,14 @@ void UI_view2d_curRect_validate(View2D *v2d)
 				/* special exception for Outliner (and later channel-lists):
 				 *	- Currently, no actions need to be taken here...
 				 */
+
+				if (winy < v2d->oldwiny) {
+					float temp = v2d->oldwiny - winy;
+					
+					cur->ymin += temp;
+					cur->ymax += temp;
+				}
+
 			}
 			else {
 				/* landscape window: correct for y */

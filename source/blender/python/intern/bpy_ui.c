@@ -191,26 +191,29 @@ static PyObject *Method_drawBlock( PyObject * self, PyObject * args )
 	Py_RETURN_NONE;
 }
 
-static PyObject *Method_drawPanels( PyObject * self, PyObject * args )
+static PyObject *Method_beginPanels( PyObject * self, PyObject * args )
 {
+	bContext *C;
 	PyObject *py_context;
-	int align;
 	
-	if( !PyArg_ParseTuple( args, "O!i:drawPanels", &PyCObject_Type, &py_context, &align) )
+	if( !PyArg_ParseTuple( args, "O!i:beginPanels", &PyCObject_Type, &py_context) )
 		return NULL;
 	
-	uiDrawPanels(PyCObject_AsVoidPtr(py_context), align);
+	C= PyCObject_AsVoidPtr(py_context);
+	uiBeginPanels(C, CTX_wm_region(C));
 	Py_RETURN_NONE;
 }
 
-static PyObject *Method_matchPanelsView2d( PyObject * self, PyObject * args )
+static PyObject *Method_endPanels( PyObject * self, PyObject * args )
 {
-	PyObject *py_ar;
+	bContext *C;
+	PyObject *py_context;
 	
-	if( !PyArg_ParseTuple( args, "O!:matchPanelsView2d", &PyCObject_Type, &py_ar) )
+	if( !PyArg_ParseTuple( args, "O!:endPanels", &PyCObject_Type, &py_context) )
 		return NULL;
 	
-	uiMatchPanelsView2d(PyCObject_AsVoidPtr(py_ar));
+	C= PyCObject_AsVoidPtr(py_context);
+	uiEndPanels(C, CTX_wm_region(C));
 	Py_RETURN_NONE;
 }
 
@@ -413,8 +416,8 @@ static struct PyMethodDef ui_methods[] = {
 	{"blockEndAlign", (PyCFunction)Method_blockEndAlign, METH_VARARGS, ""},
 	{"blockSetFlag", (PyCFunction)Method_blockSetFlag, METH_VARARGS, ""},
 	{"newPanel", (PyCFunction)Method_newPanel, METH_VARARGS, ""},
-	{"drawPanels", (PyCFunction)Method_drawPanels, METH_VARARGS, ""},
-	{"matchPanelsView2d", (PyCFunction)Method_matchPanelsView2d, METH_VARARGS, ""},
+	{"beginPanels", (PyCFunction)Method_beginPanels, METH_VARARGS, ""},
+	{"endPanels", (PyCFunction)Method_endPanels, METH_VARARGS, ""},
 	
 	{"register", (PyCFunction)Method_register, METH_VARARGS, ""}, // XXX not sure about this - registers current script with the ScriptSpace, like Draw.Register()
 	{"registerKey", (PyCFunction)Method_registerKey, METH_VARARGS, ""}, // XXX could have this in another place too

@@ -34,6 +34,8 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "interface_intern.h"
+
 /************************ Structs and Defines *************************/
 
 #define COLUMN_SPACE	5
@@ -918,7 +920,7 @@ void uiRegionPanelLayout(const bContext *C, ARegion *ar, int vertical, char *con
 	PanelType *pt;
 	Panel *panel;
 	float col[3];
-	int xco, yco, x=0, y=0, w;
+	int xco, yco, x=PNL_DIST, y=-PNL_HEADER-PNL_DIST, w;
 
 	// XXX this only hides cruft
 
@@ -930,38 +932,43 @@ void uiRegionPanelLayout(const bContext *C, ARegion *ar, int vertical, char *con
 	/* set view2d view matrix for scrolling (without scrollers) */
 	UI_view2d_view_ortho(C, &ar->v2d);
 	
+	uiBeginPanels(C, ar);
+
 	for(pt= ar->type->paneltypes.first; pt; pt= pt->next) {
 		if(context)
 			if(!pt->context || strcmp(context, pt->context) != 0)
 				continue;
 
 		if(pt->draw && (!pt->poll || pt->poll(C))) {
+			block= uiBeginBlock(C, ar, pt->idname, UI_EMBOSS, UI_HELV);
 			w= (ar->type->minsizex)? ar->type->minsizex-22: UI_PANEL_WIDTH-22;
 
-			block= uiBeginBlock(C, ar, pt->idname, UI_EMBOSS, UI_HELV);
-			if(uiNewPanel(C, ar, block, pt->name, pt->name, x, y, w, 0)==0) return;
-			
-			panel= uiPanelFromBlock(block);
-			panel->type= pt;
-			panel->layout= uiLayoutBegin(UI_LAYOUT_VERTICAL, x, y, w, 0);
+			if(uiNewPanel(C, ar, block, pt->name, pt->name, x, y, w, 0)) {
+				panel= uiPanelFromBlock(block);
+				panel->type= pt;
+				panel->layout= uiLayoutBegin(UI_LAYOUT_VERTICAL, x, y, w, 0);
 
-			pt->draw(C, panel);
+				pt->draw(C, panel);
 
-			uiLayoutEnd(C, block, panel->layout, &xco, &yco);
+				uiLayoutEnd(C, block, panel->layout, &xco, &yco);
+				panel->layout= NULL;
+				uiNewPanelHeight(block, y - yco + 6);
+			}
+			else {
+				w= PNL_HEADER;
+				yco= PNL_HEADER;
+			}
+
 			uiEndBlock(C, block);
 
-			panel->layout= NULL;
-			uiNewPanelHeight(block, y - yco + 6);
-
 			if(vertical)
-				y += yco;
+				y += yco+PNL_DIST;
 			else
-				x += xco;
+				x += w+PNL_DIST;
 		}
 	}
 
-	uiDrawPanels(C, 1);
-	uiMatchPanelsView2d(ar);
+	uiEndPanels(C, ar);
 	
 	/* restore view matrix? */
 	UI_view2d_view_restore(C);

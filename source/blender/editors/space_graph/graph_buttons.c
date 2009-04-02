@@ -846,6 +846,8 @@ void graph_region_buttons(const bContext *C, ARegion *ar)
 	if (ale == NULL) 
 		return;	
 		
+	uiBeginPanels(C, ar);
+
 	/* for now, the properties panel displays info about the selected channels */
 	graph_panel_properties(C, ar, 0, ale);
 	
@@ -857,8 +859,7 @@ void graph_region_buttons(const bContext *C, ARegion *ar)
 	graph_panel_modifiers(C, ar, 0, ale);
 	
 
-	uiDrawPanels(C, 1);		/* 1 = align */
-	uiMatchPanelsView2d(ar); /* sets v2d->totrct */
+	uiEndPanels(C, ar);
 	
 	/* free temp data */
 	MEM_freeN(ale);

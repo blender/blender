@@ -1424,7 +1424,8 @@ static void image_panel_properties(const bContext *C, ARegion *ar)
 
 void image_buttons_area_defbuts(const bContext *C, ARegion *ar)
 {
-	
+	uiBeginPanels(C, ar);
+
 	image_panel_properties(C, ar);
 	image_panel_game_properties(C, ar);
 	image_panel_view_properties(C, ar);
@@ -1432,9 +1433,7 @@ void image_buttons_area_defbuts(const bContext *C, ARegion *ar)
 	image_panel_paintcolor(C, ar);
 	image_panel_curves(C, ar);
 		
-	uiDrawPanels(C, 1);		/* 1 = align */
-	uiMatchPanelsView2d(ar); /* sets v2d->totrct */
-	
+	uiEndPanels(C, ar);
 }
 
 

@@ -1700,6 +1700,7 @@ static void view3d_panel_bonesketch_spaces(const bContext *C, ARegion *ar, short
 
 void view3d_buttons_area_defbuts(const bContext *C, ARegion *ar)
 {
+	uiBeginPanels(C, ar);
 	
 	view3d_panel_object(C, ar, 0);
 	view3d_panel_properties(C, ar, 0);
@@ -1713,9 +1714,7 @@ void view3d_buttons_area_defbuts(const bContext *C, ARegion *ar)
 	
 	view3d_panel_bonesketch_spaces(C, ar, 0);
 	
-	uiDrawPanels(C, 1);		/* 1 = align */
-	uiMatchPanelsView2d(ar); /* sets v2d->totrct */
-	
+	uiEndPanels(C, ar);
 }
 
 

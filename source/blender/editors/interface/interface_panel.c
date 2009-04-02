@@ -100,12 +100,32 @@ static void panel_activate_state(bContext *C, Panel *pa, uiHandlePanelState stat
 
 static int panel_aligned(ScrArea *sa, ARegion *ar)
 {
-	if(sa->spacetype==SPACE_BUTS) {
+	if(sa->spacetype==SPACE_BUTS && ar->regiontype == RGN_TYPE_WINDOW) {
 		SpaceButs *sbuts= sa->spacedata.first;
 		return sbuts->align;
 	}
 	else if(ar->regiontype==RGN_TYPE_UI)
 		return BUT_VERTICAL;
+	
+	return 0;
+}
+
+static int panels_re_align(ScrArea *sa, ARegion *ar)
+{
+	if(sa->spacetype==SPACE_BUTS && ar->regiontype == RGN_TYPE_WINDOW) {
+		SpaceButs *sbuts= sa->spacedata.first;
+
+		if(sbuts->align) {
+			if(sbuts->re_align || sbuts->mainbo!=sbuts->mainb || sbuts->tabo!=sbuts->tab[sbuts->mainb]) {
+				sbuts->re_align= 0;
+				return 1;
+			}
+		}
+
+		return 0;
+	}
+	else if(ar->regiontype==RGN_TYPE_UI)
+		return 1;
 	
 	return 0;
 }
@@ -317,7 +337,7 @@ static void ui_scale_panel_block(uiBlock *block)
 }
 
 // for 'home' key
-void uiSetPanelsView2d(ARegion *ar)
+void uiPanelsHome(ARegion *ar)
 {
 	Panel *pa;
 	uiBlock *block;
@@ -362,7 +382,7 @@ void uiSetPanelsView2d(ARegion *ar)
 }
 
 // make sure the panels are not outside 'tot' area
-void uiMatchPanelsView2d(ARegion *ar)
+static void ui_panels_update_totrct(ARegion *ar)
 {
 	Panel *pa;
 	uiBlock *block;
@@ -370,14 +390,22 @@ void uiMatchPanelsView2d(ARegion *ar)
 	int done=0;
 	
 	v2d= &ar->v2d;
+
+	v2d->tot.xmin= 0.0f;
+	v2d->tot.xmax= ar->winx;
+	v2d->tot.ymax= 0.0f;
+	v2d->tot.ymin= -ar->winy;
 	
 	for(pa= ar->panels.first; pa; pa=pa->next) {
 		if(pa->active && pa->paneltab==NULL) {
 			done= 1;
-			if(pa->ofsx < v2d->tot.xmin) v2d->tot.xmin= pa->ofsx;
-			if(pa->ofsx+pa->sizex > v2d->tot.xmax) 
+
+			if(pa->ofsx < v2d->tot.xmin)
+				v2d->tot.xmin= pa->ofsx;
+			if(pa->ofsx+pa->sizex > v2d->tot.xmax)
 				v2d->tot.xmax= pa->ofsx+pa->sizex;
-			if(pa->ofsy < v2d->tot.ymin) v2d->tot.ymin= pa->ofsy;
+			if(pa->ofsy < v2d->tot.ymin)
+				v2d->tot.ymin= pa->ofsy;
 			if(pa->ofsy+pa->sizey+PNL_HEADER > v2d->tot.ymax) 
 				v2d->tot.ymax= pa->ofsy+pa->sizey+PNL_HEADER;
 		}
@@ -394,6 +422,8 @@ void uiMatchPanelsView2d(ARegion *ar)
 			//XXX }
 		}
 	}	
+
+	UI_view2d_totRect_set(v2d, v2d->tot.xmax, v2d->tot.ymin);
 }
 
 /* extern used by previewrender */
@@ -877,8 +907,8 @@ static int find_highest_panel(const void *a1, const void *a2)
 {
 	const PanelSort *ps1=a1, *ps2=a2;
 	
-	if( ps1->pa->ofsy < ps2->pa->ofsy) return 1;
-	else if( ps1->pa->ofsy > ps2->pa->ofsy) return -1;
+	if( ps1->pa->ofsy+ps1->pa->sizey < ps2->pa->ofsy+ps2->pa->sizey) return 1;
+	else if( ps1->pa->ofsy+ps1->pa->sizey > ps2->pa->ofsy+ps2->pa->sizey) return -1;
 	else if( ps1->pa->sortcounter > ps2->pa->sortcounter) return 1;
 	else if( ps1->pa->sortcounter < ps2->pa->sortcounter) return -1;
 	
@@ -938,7 +968,7 @@ int uiAlignPanelStep(ScrArea *sa, ARegion *ar, float fac)
 		ps->pa->ofsy= -ps->pa->sizey-PNL_HEADER-PNL_DIST;
 	else
 		ps->pa->ofsy= -ps->pa->sizey-PNL_HEADER-PNL_DIST; // XXX was 0;
-	
+
 	for(a=0 ; a<tot-1; a++, ps++) {
 		psnext= ps+1;
 	
@@ -1010,11 +1040,20 @@ static void ui_do_animate(bContext *C, Panel *panel)
 	}
 }
 
+void uiBeginPanels(const bContext *C, ARegion *ar)
+{
+	Panel *pa;
+  
+  	/* set all panels as inactive, so that at the end we know
+	 * which ones were used */
+	for(pa=ar->panels.first; pa; pa=pa->next)
+		pa->active= 0;
+}
+
 /* only draws blocks with panels */
-void uiDrawPanels(const bContext *C, int re_align)
+void uiEndPanels(const bContext *C, ARegion *ar)
 {
 	ScrArea *sa= CTX_wm_area(C);
-	ARegion *ar= CTX_wm_region(C);
 	uiBlock *block;
 	Panel *panot, *panew, *patest;
 	
@@ -1049,7 +1088,8 @@ void uiDrawPanels(const bContext *C, int re_align)
 	}
 
 	/* re-align */
-	if(re_align) uiAlignPanelStep(sa, ar, 1.0);
+	if(panels_re_align(sa, ar))
+		uiAlignPanelStep(sa, ar, 1.0);
 	
 	if(sa->spacetype!=SPACE_BUTS) {
 #if 0 // XXX make float panel exception
@@ -1132,6 +1172,11 @@ void uiDrawPanels(const bContext *C, int re_align)
 		}
 #endif
 	}
+
+	/* update v2d->totrct and update view */
+	ui_panels_update_totrct(ar);
+	UI_view2d_view_restore(C);
+	UI_view2d_view_ortho(C, &ar->v2d);
 
 	/* draw panels, selected on top */
 	for(block= ar->uiblocks.first; block; block=block->next) {
@@ -1435,7 +1480,7 @@ int ui_handler_panel_region(bContext *C, wmEvent *event)
 {
 	ARegion *ar= CTX_wm_region(C);
 	uiBlock *block;
-	int retval, mx, my, inside_header= 0, inside_scale= 0;
+	int retval, mx, my, inside_header= 0, inside_scale= 0, inside;
 
 	retval= WM_UI_HANDLER_CONTINUE;
 
@@ -1445,72 +1490,73 @@ int ui_handler_panel_region(bContext *C, wmEvent *event)
 		ui_window_to_block(ar, block, &mx, &my);
 
 		/* check if inside boundbox */
+		inside= 0;
+
 		if(block->panel && block->panel->paneltab==NULL)
 			if(block->minx <= mx && block->maxx >= mx)
 				if(block->miny <= my && block->maxy+PNL_HEADER >= my)
-					break;
-	}
+					inside= 1;
 
-	if(!block)
-		return retval;
+		if(inside) {
+			/* clicked at panel header? */
+			if(block->panel->flag & PNL_CLOSEDX) {
+				if(block->minx <= mx && block->minx+PNL_HEADER >= mx) 
+					inside_header= 1;
+			}
+			else if((block->maxy <= my) && (block->maxy+PNL_HEADER >= my)) {
+				inside_header= 1;
+			}
+			else if(block->panel->control & UI_PNL_SCALE) {
+				if(block->maxx-PNL_HEADER <= mx)
+					if(block->miny+PNL_HEADER >= my)
+						inside_scale= 1;
+			}
 
-	/* clicked at panel header? */
-	if(block->panel->flag & PNL_CLOSEDX) {
-		if(block->minx <= mx && block->minx+PNL_HEADER >= mx) 
-			inside_header= 1;
-	}
-	else if((block->maxy <= my) && (block->maxy+PNL_HEADER >= my)) {
-		inside_header= 1;
-	}
-	else if(block->panel->control & UI_PNL_SCALE) {
-		if(block->maxx-PNL_HEADER <= mx)
-			if(block->miny+PNL_HEADER >= my)
-				inside_scale= 1;
-	}
+			if(event->val==KM_PRESS) {
+				if(event->type == LEFTMOUSE) {
+					if(inside_header)
+						ui_handle_panel_header(C, block, mx, my);
+					else if(inside_scale && !(block->panel->flag & PNL_CLOSED))
+						panel_activate_state(C, block->panel, PANEL_STATE_DRAG_SCALE);
+				}
+				else if(event->type == ESCKEY) {
+					/*XXX 2.50 if(block->handler) {
+						rem_blockhandler(sa, block->handler);
+						ED_region_tag_redraw(ar);
+						retval= WM_UI_HANDLER_BREAK;
+					}*/
+				}
+				else if(event->type==PADPLUSKEY || event->type==PADMINUS) {
+					int zoom=0;
+				
+					/* if panel is closed, only zoom if mouse is over the header */
+					if (block->panel->flag & (PNL_CLOSEDX|PNL_CLOSEDY)) {
+						if (inside_header)
+							zoom=1;
+					}
+					else
+						zoom=1;
 
-	if(event->val!=KM_PRESS)
-		return retval;
-
-	if(event->type == LEFTMOUSE) {
-		if(inside_header)
-			ui_handle_panel_header(C, block, mx, my);
-		else if(inside_scale && !(block->panel->flag & PNL_CLOSED))
-			panel_activate_state(C, block->panel, PANEL_STATE_DRAG_SCALE);
-	}
-	else if(event->type == ESCKEY) {
-		/*XXX 2.50 if(block->handler) {
-			rem_blockhandler(sa, block->handler);
-			ED_region_tag_redraw(ar);
-			retval= WM_UI_HANDLER_BREAK;
-		}*/
-	}
-	else if(event->type==PADPLUSKEY || event->type==PADMINUS) {
-		int zoom=0;
-	
-		/* if panel is closed, only zoom if mouse is over the header */
-		if (block->panel->flag & (PNL_CLOSEDX|PNL_CLOSEDY)) {
-			if (inside_header)
-				zoom=1;
-		}
-		else
-			zoom=1;
 #if 0 // XXX make float panel exception?
-		if(zoom) {
-			ScrArea *sa= CTX_wm_area(C);
-			SpaceLink *sl= sa->spacedata.first;
+					if(zoom) {
+						ScrArea *sa= CTX_wm_area(C);
+						SpaceLink *sl= sa->spacedata.first;
 
-			if(sa->spacetype!=SPACE_BUTS) {
-				if(!(block->panel->control & UI_PNL_SCALE)) {
-					if(event->type==PADPLUSKEY) sl->blockscale+= 0.1;
-					else sl->blockscale-= 0.1;
-					CLAMP(sl->blockscale, 0.6, 1.0);
+						if(sa->spacetype!=SPACE_BUTS) {
+							if(!(block->panel->control & UI_PNL_SCALE)) {
+								if(event->type==PADPLUSKEY) sl->blockscale+= 0.1;
+								else sl->blockscale-= 0.1;
+								CLAMP(sl->blockscale, 0.6, 1.0);
 
-					ED_region_tag_redraw(ar);
-					retval= WM_UI_HANDLER_BREAK;
-				}						
+								ED_region_tag_redraw(ar);
+								retval= WM_UI_HANDLER_BREAK;
+							}						
+						}
+					}
+#endif
+				}
 			}
 		}
-#endif
 	}
 
 	return retval;
@@ -1525,7 +1571,15 @@ static int ui_handler_panel(bContext *C, wmEvent *event, void *userdata)
 
 	/* verify if we can stop */
 	if(event->type == LEFTMOUSE && event->val!=KM_PRESS) {
-		panel_activate_state(C, panel, PANEL_STATE_ANIMATION);
+		ScrArea *sa= CTX_wm_area(C);
+		ARegion *ar= CTX_wm_region(C);
+		int align= panel_aligned(sa, ar);
+
+		if(align)
+			panel_activate_state(C, panel, PANEL_STATE_ANIMATION);
+		else
+			panel_activate_state(C, panel, PANEL_STATE_EXIT);
+
 		return WM_UI_HANDLER_BREAK;
 	}
 	else if(event->type == MOUSEMOVE) {
@@ -1541,7 +1595,9 @@ static int ui_handler_panel(bContext *C, wmEvent *event, void *userdata)
 			ui_do_drag(C, event, panel);
 	}
 
-	if(data->state == PANEL_STATE_ANIMATION)
+	data= panel->activedata;
+
+	if(data && data->state == PANEL_STATE_ANIMATION)
 		return WM_UI_HANDLER_CONTINUE;
 	else
 		return WM_UI_HANDLER_BREAK;
