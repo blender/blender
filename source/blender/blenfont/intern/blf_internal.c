@@ -152,6 +152,7 @@ void blf_internal_draw(FontBLF *font, char *str)
 	float pos, cell_x, cell_y, x, y, z;
 	int base_line;
 	GLint cur_tex;
+	float dx, dx1, dy, dy1;
 
 	data= (FontDataBLF *)font->engine;
 	base_line= -(data->ymin);
@@ -164,7 +165,6 @@ void blf_internal_draw(FontBLF *font, char *str)
 	if (cur_tex != data->texid)
 		glBindTexture(GL_TEXTURE_2D, data->texid);
 
-	glBegin(GL_QUADS);
 	while ((c= (unsigned char) *str++)) {
 		cd= &data->chars[c];
 
@@ -172,22 +172,39 @@ void blf_internal_draw(FontBLF *font, char *str)
 			cell_x= (c%16)/16.0;
 			cell_y= (c/16)/16.0;
 
+			dx= x + pos + 16.0;
+			dx1= x + pos + 0.0;
+			dy= -base_line + y + 0.0;
+			dy1= -base_line + y + 16.0;
+
+			if (font->flags & BLF_CLIPPING) {
+				if (!BLI_in_rctf(&font->clip_rec, dx + font->pos[0], dy + font->pos[1]))
+					return;
+				if (!BLI_in_rctf(&font->clip_rec, dx + font->pos[0], dy1 + font->pos[1]))
+					return;
+				if (!BLI_in_rctf(&font->clip_rec, dx1 + font->pos[0], dy1 + font->pos[1]))
+					return;
+				if (!BLI_in_rctf(&font->clip_rec, dx1 + font->pos[0], dy + font->pos[1]))
+					return;
+			}
+
+			glBegin(GL_QUADS);
 			glTexCoord2f(cell_x + 1.0/16.0, cell_y);
-			glVertex3f(x + pos + 16.0, -base_line + y + 0.0, z);
+			glVertex3f(dx, dy, z);
 
 			glTexCoord2f(cell_x + 1.0/16.0, cell_y + 1.0/16.0);
-			glVertex3f(x + pos + 16.0, -base_line + y + 16.0, z);
+			glVertex3f(dx, dy1, z);
 
 			glTexCoord2f(cell_x, cell_y + 1.0/16.0);
-			glVertex3f(x + pos + 0.0, -base_line + y + 16.0, z);
+			glVertex3f(dx1, dy1, z);
 
 			glTexCoord2f(cell_x, cell_y);
-			glVertex3f(x + pos + 0.0, -base_line + y + 0.0, z);
+			glVertex3f(dx1, dy, z);
+			glEnd();
 		}
 		
 		pos += cd->advance;
 	}
-	glEnd();
 }
 
 void blf_internal_boundbox(FontBLF *font, char *str, rctf *box)
