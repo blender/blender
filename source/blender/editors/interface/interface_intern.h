@@ -55,6 +55,8 @@ struct wmWindow;
 #define UI_MOUSE_OVER	2
 #define UI_ACTIVE		4
 #define UI_HAS_ICON		8
+#define UI_TEXTINPUT	16
+
 /* warn: rest of uiBut->flag in UI_interface.h */
 
 /* internal panel drawing defines */
@@ -343,6 +345,9 @@ void ui_draw_text(uiBut *but, float x, float y, int sunken);
 
 /* interface_handlers.c */
 extern void ui_button_active_cancel(const struct bContext *C, uiBut *but);
+
+/* interface_widgets.c */
+void ui_draw_anti_tria(float x1, float y1, float x2, float y2, float x3, float y3);
 
 #endif
 

@@ -453,37 +453,14 @@ uiBlock *uiFindOpenPanelBlockName(ListBase *lb, char *name)
 	return block;
 }
 
-static void ui_draw_anti_tria(float x1, float y1, float x2, float y2, float x3, float y3)
-{
-	// we draw twice, anti polygons not widely supported...
-	glBegin(GL_POLYGON);
-	glVertex2f(x1, y1);
-	glVertex2f(x2, y2);
-	glVertex2f(x3, y3);
-	glEnd();
-	
-	/* set antialias line */
-	glEnable( GL_LINE_SMOOTH );
-	glEnable( GL_BLEND );
-
-	glBegin(GL_LINE_LOOP);
-	glVertex2f(x1, y1);
-	glVertex2f(x2, y2);
-	glVertex2f(x3, y3);
-	glEnd();
-	
-	glDisable( GL_LINE_SMOOTH );
-	glDisable( GL_BLEND );
-}
-
 /* triangle 'icon' for panel header */
 void ui_draw_tria_icon(float x, float y, float aspect, char dir)
 {
 	if(dir=='h') {
-		ui_draw_anti_tria( x, y+1, x, y+10.0, x+8, y+6.25);
+		ui_draw_anti_tria( x-1, y, x-1, y+11.0, x+9, y+6.25);
 	}
 	else {
-		ui_draw_anti_tria( x-2, y+9,  x+8-2, y+9, x+4.25-2, y+1);	
+		ui_draw_anti_tria( x-3, y+10,  x+8-1, y+10, x+4.25-2, y);	
 	}
 }
 
@@ -679,7 +656,7 @@ static void ui_draw_panel_scalewidget(uiBlock *block)
 	glDisable(GL_BLEND);
 }
 
-void ui_draw_panel(ARegion *ar, uiBlock *block)
+static void ui_draw_panel_old(ARegion *ar, uiBlock *block)
 {
 	Panel *panel= block->panel;
 	int ofsx;
@@ -858,6 +835,108 @@ void ui_draw_panel(ARegion *ar, uiBlock *block)
 		ui_draw_tria_icon(block->minx+7, block->maxy+2, block->aspect, 'h');
 	else
 		ui_draw_tria_icon(block->minx+6+ofsx, block->maxy+5, block->aspect, 'v');
+}
+
+/* XXX has follow style definitions still */
+static void ui_draw_panel_style(ARegion *ar, uiBlock *block)
+{
+	Panel *panel= block->panel;
+	int ofsx;
+	char *panelname= panel->drawname[0]?panel->drawname:panel->panelname;
+	
+	if(panel->paneltab) return;
+	
+	/* divider */
+	if(panel->prev) {
+		float minx= block->minx+10;
+		float maxx= block->maxx-10;
+		float y= block->maxy + PNL_HEADER;
+		
+		glEnable(GL_BLEND);
+		glColor4f(0.0f, 0.0f, 0.0f, 0.5f);
+		fdrawline(minx, y, maxx, y);
+		glColor4f(1.0f, 1.0f, 1.0f, 0.25f);
+		fdrawline(minx, y-block->aspect, maxx, y-block->aspect);
+		glDisable(GL_BLEND);
+	}
+	
+	/* title */
+	if(!(panel->flag & PNL_CLOSEDX)) {
+		ofsx= PNL_ICON+8;
+		if(panel->control & UI_PNL_CLOSE) ofsx+= PNL_ICON;
+		UI_ThemeColor(TH_TEXT);
+		ui_rasterpos_safe(4+block->minx+ofsx, block->maxy+2, block->aspect);
+		UI_DrawString(block->curfont, panelname, ui_translate_buttons());
+	}
+	
+	/* if the panel is minimized vertically:
+		* (------)
+		*/
+	if(panel->flag & PNL_CLOSEDY) {
+		
+		
+		/* if it's being overlapped by a panel being dragged */
+		if(panel->flag & PNL_OVERLAP) {
+			UI_ThemeColor(TH_TEXT_HI);
+			uiRoundRect(block->minx, block->maxy, block->maxx, block->maxy+PNL_HEADER, 8);
+		}
+		
+	}
+	else if(panel->flag & PNL_CLOSEDX) {
+		
+	}
+	/* an open panel */
+	else {
+		
+		/* in some occasions, draw a border */
+		if(panel->flag & PNL_SELECT) {
+			if(panel->control & UI_PNL_SOLID) uiSetRoundBox(15);
+			else uiSetRoundBox(3);
+			
+			UI_ThemeColorShade(TH_HEADER, -120);
+			uiRoundRect(block->minx, block->miny, block->maxx, block->maxy+PNL_HEADER, 8);
+		}
+		if(panel->flag & PNL_OVERLAP) {
+			if(panel->control & UI_PNL_SOLID) uiSetRoundBox(15);
+			else uiSetRoundBox(3);
+			
+			UI_ThemeColor(TH_TEXT_HI);
+			uiRoundRect(block->minx, block->miny, block->maxx, block->maxy+PNL_HEADER, 8);
+		}
+		
+		if(panel->control & UI_PNL_SCALE)
+			ui_draw_panel_scalewidget(block);
+	}
+	
+	/* draw optional close icon */
+	
+	ofsx= 6;
+	if(panel->control & UI_PNL_CLOSE) {
+		
+		ui_draw_x_icon(block->minx+2+ofsx, block->maxy+2);
+		ofsx= 22;
+	}
+	
+	/* draw collapse icon */
+	UI_ThemeColor(TH_TEXT);
+	
+	if(panel->flag & PNL_CLOSEDY)
+		ui_draw_tria_icon(block->minx+6+ofsx, block->maxy+1, block->aspect, 'h');
+	else if(panel->flag & PNL_CLOSEDX)
+		ui_draw_tria_icon(block->minx+7, block->maxy+1, block->aspect, 'h');
+	else
+		ui_draw_tria_icon(block->minx+6+ofsx, block->maxy+1, block->aspect, 'v');
+	
+	
+}
+
+
+void ui_draw_panel(ARegion *ar, uiBlock *block)
+{
+	if(block->flag & UI_BLOCK_2_50)
+		ui_draw_panel_style(ar, block);
+	else
+		ui_draw_panel_old(ar, block);
 }
 
 /* ------------ panel alignment ---------------- */

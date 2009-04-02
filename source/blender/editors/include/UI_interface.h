@@ -110,25 +110,27 @@ typedef struct uiPopupBlockHandle uiPopupBlockHandle;
 #define UI_PNL_UNSTOW	256
 #define UI_PNL_SCALE	512
 
-/* warning the first 4 flags are internal */
+/* warning the first 6 flags are internal */
 /* but->flag */
-#define UI_TEXT_LEFT	16
-#define UI_ICON_LEFT	32
-#define UI_ICON_RIGHT	64
+#define UI_TEXT_LEFT	64
+#define UI_ICON_LEFT	128
+#define UI_ICON_RIGHT	256
 	/* control for button type block */
-#define UI_MAKE_TOP		128
-#define UI_MAKE_DOWN	256
-#define UI_MAKE_LEFT	512
-#define UI_MAKE_RIGHT	1024
-	/* dont draw hilite on mouse over */
-#define UI_NO_HILITE	2048
+#define UI_MAKE_TOP		512
+#define UI_MAKE_DOWN	1024
+#define UI_MAKE_LEFT	2048
+#define UI_MAKE_RIGHT	4096
+
 	/* button align flag, for drawing groups together */
-#define UI_BUT_ALIGN		(15<<12)
-#define UI_BUT_ALIGN_TOP	(1<<12)
-#define UI_BUT_ALIGN_LEFT	(1<<13)
-#define UI_BUT_ALIGN_RIGHT	(1<<14)
-#define UI_BUT_ALIGN_DOWN	(1<<15)
-#define UI_BUT_DISABLED		(1<<16)
+#define UI_BUT_ALIGN		(15<<14)
+#define UI_BUT_ALIGN_TOP	(1<<14)
+#define UI_BUT_ALIGN_LEFT	(1<<15)
+#define UI_BUT_ALIGN_RIGHT	(1<<16)
+#define UI_BUT_ALIGN_DOWN	(1<<17)
+
+#define UI_BUT_DISABLED		(1<<18)
+/* dont draw hilite on mouse over */
+#define UI_NO_HILITE		(1<<19)
 
 /* Button types, bits stored in 1 value... and a short even!
 - bits 0-4:  bitnr (0-31)

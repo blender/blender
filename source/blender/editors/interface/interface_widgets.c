@@ -119,6 +119,57 @@ typedef struct uiWidgetBase {
 } uiWidgetBase;
 
 
+typedef enum {
+	/* standard set */
+	UI_WTYPE_TOGGLE,
+	UI_WTYPE_OPTION,
+	UI_WTYPE_RADIO,
+	UI_WTYPE_NUMBER,
+	UI_WTYPE_SLIDER,
+	UI_WTYPE_EXEC,
+	
+	/* strings */
+	UI_WTYPE_NAME,
+	UI_WTYPE_NAME_LINK,
+	UI_WTYPE_POINTER_LINK,
+	UI_WTYPE_FILENAME,
+	
+	/* menus */
+	UI_WTYPE_MENU_RADIO,
+	UI_WTYPE_MENU_POINTER_LINK,
+	
+	UI_WTYPE_PULLDOWN,
+	UI_WTYPE_MENU_ITEM,
+	
+	/* specials */
+	UI_WTYPE_ICON,
+	UI_WTYPE_SWATCH,
+	UI_WTYPE_RGB_PICKER,
+	UI_WTYPE_NORMAL
+	
+} uiWidgetTypeEnum;
+
+
+/* uiWidgetType: for time being only for visual appearance,
+   later, a handling callback can be added too 
+*/
+typedef struct uiWidgetType {
+	
+	/* pointer to theme color definition */
+	uiWidgetColors *wcol_theme;
+	
+	/* converted colors for state */
+	uiWidgetColors wcol;
+	
+	void (*state)(struct uiWidgetType *, int state);
+	void (*draw)(uiWidgetColors *, rcti *, int state, int roundboxalign);
+	void (*text)(uiBut *, rcti *, float *col);
+	
+} uiWidgetType;
+
+
+/* *********************** draw data ************************** */
+
 static float cornervec[9][2]= {{0.0, 0.0}, {0.195, 0.02}, {0.383, 0.067}, {0.55, 0.169}, 
 {0.707, 0.293}, {0.831, 0.45}, {0.924, 0.617}, {0.98, 0.805}, {1.0, 1.0}};
 
@@ -151,7 +202,34 @@ static float check_tria_vert[6][2]= {
 static int check_tria_face[4][3]= {
 {3, 2, 4}, {3, 4, 5}, {1, 0, 3}, {0, 2, 3}};
 
+/* ************************************************* */
 
+void ui_draw_anti_tria(float x1, float y1, float x2, float y2, float x3, float y3)
+{
+	float color[4];
+	int j;
+	
+	glEnable(GL_BLEND);
+	glGetFloatv(GL_CURRENT_COLOR, color);
+	color[3]= 0.125;
+	glColor4fv(color);
+	
+	/* for each AA step */
+	for(j=0; j<8; j++) {
+		glTranslatef(1.0*jit[j][0], 1.0*jit[j][1], 0.0f);
+
+		glBegin(GL_POLYGON);
+		glVertex2f(x1, y1);
+		glVertex2f(x2, y2);
+		glVertex2f(x3, y3);
+		glEnd();
+		
+		glTranslatef(-1.0*jit[j][0], -1.0*jit[j][1], 0.0f);
+	}
+
+	glDisable(GL_BLEND);
+	
+}
 
 static void widget_init(uiWidgetBase *wt)
 {
@@ -161,7 +239,7 @@ static void widget_init(uiWidgetBase *wt)
 }
 
 
-static void round_box_edges(uiWidgetBase *wt, int roundboxtype, rcti *rect, float rad)
+static void round_box_edges(uiWidgetBase *wt, int roundboxalign, rcti *rect, float rad)
 {
 	float vec[9][2], veci[9][2];
 	float minx= rect->xmin, miny= rect->ymin, maxx= rect->xmax, maxy= rect->ymax;
@@ -183,7 +261,7 @@ static void round_box_edges(uiWidgetBase *wt, int roundboxtype, rcti *rect, floa
 	}
 	
 	/* corner left-bottom */
-	if(roundboxtype & 8) {
+	if(roundboxalign & 8) {
 		
 		for(a=0; a<9; a++, tot++) {
 			wt->inner_v[tot][0]= minxi+veci[a][1];
@@ -210,7 +288,7 @@ static void round_box_edges(uiWidgetBase *wt, int roundboxtype, rcti *rect, floa
 	}
 	
 	/* corner right-bottom */
-	if(roundboxtype & 4) {
+	if(roundboxalign & 4) {
 		
 		for(a=0; a<9; a++, tot++) {
 			wt->inner_v[tot][0]= maxxi-radi+veci[a][0];
@@ -239,7 +317,7 @@ static void round_box_edges(uiWidgetBase *wt, int roundboxtype, rcti *rect, floa
 	wt->halfwayvert= tot;
 	
 	/* corner right-top */
-	if(roundboxtype & 2) {
+	if(roundboxalign & 2) {
 		
 		for(a=0; a<9; a++, tot++) {
 			wt->inner_v[tot][0]= maxxi-veci[a][1];
@@ -266,7 +344,7 @@ static void round_box_edges(uiWidgetBase *wt, int roundboxtype, rcti *rect, floa
 	}
 	
 	/* corner left-top */
-	if(roundboxtype & 1) {
+	if(roundboxalign & 1) {
 		
 		for(a=0; a<9; a++, tot++) {
 			wt->inner_v[tot][0]= minxi+radi-veci[a][0];
@@ -401,20 +479,16 @@ static void round_box_shade_col(float *col1, float *col2, float fac)
 	glColor4fv(col);
 }
 
-static void widget_draw(uiWidgetBase *wt, uiWidgetColors *wcol, int state)
+static void widget_draw(uiWidgetBase *wt, uiWidgetColors *wcol)
 {
-	float *inner= wcol->inner;
 	int j, a;
-	
-	if(state & UI_SELECT)
-		inner= wcol->inner_sel;
 	
 	glEnable(GL_BLEND);
 
 	/* backdrop non AA */
 	if(wcol->shaded==0) {
 		/* filled center, solid */
-		glColor3fv(inner);
+		glColor3fv(wcol->inner);
 		glBegin(GL_POLYGON);
 		for(a=0; a<wt->totvert; a++)
 			glVertex2fv(wt->inner_v[a]);
@@ -423,7 +497,7 @@ static void widget_draw(uiWidgetBase *wt, uiWidgetColors *wcol, int state)
 	else {
 		float col1[3], col2[3];
 		
-		shadecolors(col1, col2, inner, wcol->shadetop, wcol->shadedown);
+		shadecolors(col1, col2, wcol->inner, wcol->shadetop, wcol->shadedown);
 		
 		glShadeModel(GL_SMOOTH);
 		glBegin(GL_POLYGON);
@@ -631,11 +705,15 @@ static void widget_draw_text_icon(uiBut *but, rcti *rect, float *col)
 
 /* *********************** widget types ************************************* */
 
+
 /*		
  float outline[3];
  float inner[3];
- float select[3];
+ float inner_sel[3];
  float item[3];
+ float text[3];
+ float text_sel[3];
+
  short shaded;
  float shadetop, shadedown;
 */	
@@ -666,6 +744,19 @@ static struct uiWidgetColors wcol_text= {
 	0.0f, 0.1f
 };
 
+static struct uiWidgetColors wcol_option= {
+	{0.0f, 0.0f, 0.0f},
+	{0.25f, 0.25f, 0.25f},
+	{0.25f, 0.25f, 0.25f},
+	{1.0f, 1.0f, 1.0f},
+	
+	{0.0f, 0.0f, 0.0f},
+	{1.0f, 1.0f, 1.0f},
+	
+	1,
+	0.1f, -0.08f
+};
+
 static struct uiWidgetColors wcol_menu= {
 	{0.0f, 0.0f, 0.0f},
 	{0.25f, 0.25f, 0.25f},
@@ -679,7 +770,8 @@ static struct uiWidgetColors wcol_menu= {
 	0.1f, -0.08f
 };
 
-static struct uiWidgetColors wcol_row= {
+
+static struct uiWidgetColors wcol_radio= {
 	{0.0f, 0.0f, 0.0f},
 	{0.25f, 0.25f, 0.25f},
 	{0.34f, 0.5f, 0.76f},
@@ -705,7 +797,7 @@ static struct uiWidgetColors wcol_regular= {
 	0.0f, 0.0f
 };
 
-static struct uiWidgetColors wcol_regular2= {
+static struct uiWidgetColors wcol_regular_shade= {
 	{0.1f, 0.1f, 0.1f},
 	{0.6f, 0.6f, 0.6f},
 	{0.4f, 0.4f, 0.4f},
@@ -718,70 +810,86 @@ static struct uiWidgetColors wcol_regular2= {
 	0.1f, -0.1f
 };
 
+/* ************ button callbacks, state ***************** */
 
-static void widget_numbut(uiBut *but, rcti *rect, int state, int roundboxtype)
+/* copy colors from theme, and set changes in it based on state */
+static void widget_state(uiWidgetType *wt, int state)
 {
-	uiWidgetBase wt;
+	wt->wcol= *(wt->wcol_theme);
 	
-	widget_init(&wt);
+	if(state & UI_SELECT) {
+		VECCOPY(wt->wcol.inner, wt->wcol.inner_sel);
+		VECCOPY(wt->wcol.text, wt->wcol.text_sel);
+		
+		/* only flip shade if it's not "pushed in in" */
+		if(wt->wcol.shaded && wt->wcol.shadetop>wt->wcol.shadedown) {
+			SWAP(float, wt->wcol.shadetop, wt->wcol.shadedown);
+		}
+	}
+	/* mouse over? */
+}
+
+
+/* ************ button callbacks, draw ***************** */
+
+static void widget_numbut(uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
+{
+	uiWidgetBase wtb;
+	
+	widget_init(&wtb);
 	
 	/* fully rounded */
-	round_box_edges(&wt, roundboxtype, rect, 0.5f*(rect->ymax - rect->ymin));
+	round_box_edges(&wtb, roundboxalign, rect, 0.5f*(rect->ymax - rect->ymin));
 	
 	/* decoration */
-	widget_num_tria(&wt.tria1, rect, 0.6f, 0);
-	widget_num_tria(&wt.tria2, rect, 0.6f, 'r');
-	
-	widget_draw(&wt, &wcol_num, state);
+	if(!(state & UI_TEXTINPUT)) {
+		widget_num_tria(&wtb.tria1, rect, 0.6f, 0);
+		widget_num_tria(&wtb.tria2, rect, 0.6f, 'r');
+	}	
+	widget_draw(&wtb, wcol);
 
-	if(state & UI_SELECT)
-		widget_draw_text_icon(but, rect, wcol_num.text_sel);
-	else
-		widget_draw_text_icon(but, rect, wcol_num.text);
 }
 
-static void widget_textbut(uiBut *but, rcti *rect, int state, int roundboxtype)
+
+static void widget_textbut(uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
 {
-	uiWidgetBase wt;
+	uiWidgetBase wtb;
 	
-	widget_init(&wt);
+	widget_init(&wtb);
 	
 	/* half rounded */
-	round_box_edges(&wt, roundboxtype, rect, 4.0f);
+	round_box_edges(&wtb, roundboxalign, rect, 4.0f);
 	
 	/* XXX button state */
-	widget_draw(&wt, &wcol_text, state);
+	widget_draw(&wtb, wcol);
 
-	widget_draw_text_icon(but, rect, wcol_text.text);
 }
 
 
-static void widget_menubut(uiBut *but, rcti *rect, int state, int roundboxtype)
+static void widget_menubut(uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
 {
-	uiWidgetBase wt;
+	uiWidgetBase wtb;
 	
-	widget_init(&wt);
+	widget_init(&wtb);
 	
 	/* half rounded */
-	round_box_edges(&wt, roundboxtype, rect, 4.0f);
+	round_box_edges(&wtb, roundboxalign, rect, 4.0f);
 	
 	/* XXX button state */
 	
 	/* decoration */
-	widget_menu_trias(&wt.tria1, rect);
+	widget_menu_trias(&wtb.tria1, rect);
 	
-	widget_draw(&wt, &wcol_menu, state);
-
-	widget_draw_text_icon(but, rect, wcol_menu.text);
+	widget_draw(&wtb, wcol);
 }
 
-static void widget_togbut(uiBut *but, rcti *rect, int state, int roundboxtype)
+static void widget_optionbut(uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
 {
-	uiWidgetBase wt;
+	uiWidgetBase wtb;
 	rcti recttemp= *rect;
 	int delta;
 	
-	widget_init(&wt);
+	widget_init(&wtb);
 	
 	/* square */
 	recttemp.xmax= recttemp.xmin + (recttemp.ymax-recttemp.ymin);
@@ -794,131 +902,160 @@ static void widget_togbut(uiBut *but, rcti *rect, int state, int roundboxtype)
 	recttemp.ymax-= delta;
 	
 	/* half rounded */
-	round_box_edges(&wt, roundboxtype, &recttemp, 4.0f);
+	round_box_edges(&wtb, roundboxalign, &recttemp, 4.0f);
 	
 	/* button state */
 	
 	/* decoration */
 	if(state & UI_SELECT) {
-		widget_check_trias(&wt.tria1, &recttemp);
+		widget_check_trias(&wtb.tria1, &recttemp);
 	}
 	
-	widget_draw(&wt, &wcol_menu, state);
-
-	if(state & UI_SELECT)
-		widget_draw_text_icon(but, rect, wcol_menu.text);
-	else
-		widget_draw_text_icon(but, rect, wcol_menu.text_sel);
+	widget_draw(&wtb, wcol);
 }
 
 
-static void widget_rowbut(uiBut *but, rcti *rect, int state, int roundboxtype)
+static void widget_radiobut(uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
 {
-	uiWidgetBase wt;
+	uiWidgetBase wtb;
 	
-	widget_init(&wt);
+	widget_init(&wtb);
 	
 	/* half rounded */
-	round_box_edges(&wt, roundboxtype, rect, 4.0f);
+	round_box_edges(&wtb, roundboxalign, rect, 4.0f);
 	
-	widget_draw(&wt, &wcol_row, state);
+	widget_draw(&wtb, wcol);
 
-	widget_draw_text_icon(but, rect, wcol_row.text);
 }
 
-static void widget_but(uiBut *but, rcti *rect, int state, int roundboxtype)
+static void widget_but(uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
 {
-	uiWidgetBase wt;
+	uiWidgetBase wtb;
 	
-	widget_init(&wt);
+	widget_init(&wtb);
 	
 	/* half rounded */
-	round_box_edges(&wt, roundboxtype, rect, 4.0f);
+	round_box_edges(&wtb, roundboxalign, rect, 4.0f);
 		
-	widget_draw(&wt, &wcol_regular, state);
+	widget_draw(&wtb, wcol);
 
-	widget_draw_text_icon(but, rect, wcol_regular.text);
 }
 
-static void widget_roundbut(uiBut *but, rcti *rect, int state, int roundboxtype)
+static void widget_roundbut(uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
 {
-	uiWidgetBase wt;
+	uiWidgetBase wtb;
 	
-	widget_init(&wt);
+	widget_init(&wtb);
 	
 	/* fully rounded */
-	round_box_edges(&wt, roundboxtype, rect, 0.5f*(rect->ymax - rect->ymin));
-	
-	widget_num_tria(&wt.tria1, rect, 0.6f, 0);
+	round_box_edges(&wtb, roundboxalign, rect, 0.5f*(rect->ymax - rect->ymin));
 
-	widget_draw(&wt, &wcol_regular2, state);
-	
-	widget_draw_text_icon(but, rect, wcol_regular2.text);
-
+	widget_draw(&wtb, wcol);
 }
 
-/* test function only */
-void drawnewstuff()
+static void widget_disabled(rcti *rect)
 {
-	rcti rect;
+	float col[3];
 	
-	rect.xmin= 10; rect.xmax= 10+100;
-	rect.ymin= -30; rect.ymax= -30+18;
-	widget_numbut(NULL, &rect, 0, 15);
+	glEnable(GL_BLEND);
 	
-	rect.xmin= 120; rect.xmax= 120+100;
-	rect.ymin= -30; rect.ymax= -30+20;
-	widget_numbut(NULL, &rect, 0, 15);
-	
-	rect.xmin= 10; rect.xmax= 10+100;
-	rect.ymin= -60; rect.ymax= -60+20;
-	widget_menubut(NULL, &rect, 0, 15);
+	UI_GetThemeColor3fv(TH_BACK, col);
+	glColor4f(col[0], col[1], col[2], 0.5f);
+	glRectf(rect->xmin, rect->ymin, rect->xmax, rect->ymax);
 
-	rect.xmin= 120; rect.xmax= 120+100;
-	widget_but(NULL, &rect, 0, 15);
-	
-	rect.xmin= 10; rect.xmax= 10+100;
-	rect.ymin= -90; rect.ymax= -90+20;
-	widget_rowbut(NULL, &rect, 1, 9);
-	
-	rect.xmin= 109; rect.xmax= 110+100;
-	rect.ymin= -90; rect.ymax= -90+20;
-	widget_rowbut(NULL, &rect, 0, 6);
-	
-	rect.xmin= 240; rect.xmax= 240+30;
-	rect.ymin= -90; rect.ymax= -90+30;
-	widget_roundbut(NULL, &rect, 0, 15);
+	glDisable(GL_BLEND);
 }
 
-/* ************ new color and style definition ********************* */
-/*
+static uiWidgetType *widget_type(uiWidgetTypeEnum type)
+{
+	static uiWidgetType wt;
+	
+	/* defaults */
+	wt.wcol_theme= &wcol_regular;
+	wt.state= widget_state;
+	wt.draw= widget_but;
+	wt.text= widget_draw_text_icon;
+	
+	switch(type) {
+		case UI_WTYPE_TOGGLE:
+			break;
+			
+		case UI_WTYPE_OPTION:
+			wt.wcol_theme= &wcol_option;
+			wt.draw= widget_optionbut;
+			break;
+			
+		case UI_WTYPE_RADIO:
+			wt.wcol_theme= &wcol_radio;
+			wt.draw= widget_radiobut;
+			break;
+			
+		case UI_WTYPE_NUMBER:
+			wt.wcol_theme= &wcol_num;
+			wt.draw= widget_numbut;
+			break;
+			
+		case UI_WTYPE_SLIDER:
+			break;
+			
+		case UI_WTYPE_EXEC:
+			wt.wcol_theme= &wcol_regular_shade;
+			wt.draw= widget_roundbut;
+			break;
+			
+			
+			/* strings */
+		case UI_WTYPE_NAME:
+			wt.wcol_theme= &wcol_text;
+			wt.draw= widget_textbut;
+			break;
+			
+		case UI_WTYPE_NAME_LINK:
+			break;
+			
+		case UI_WTYPE_POINTER_LINK:
+			break;
+			
+		case UI_WTYPE_FILENAME:
+			break;
+			
+			
+			/* menus */
+		case UI_WTYPE_MENU_RADIO:
+			wt.wcol_theme= &wcol_menu;
+			wt.draw= widget_menubut;
+			break;
+			
+		case UI_WTYPE_MENU_POINTER_LINK:
+			wt.wcol_theme= &wcol_menu;
+			wt.draw= widget_menubut;
+			break;
+			
+			
+		case UI_WTYPE_PULLDOWN:
+			break;
+			
+		case UI_WTYPE_MENU_ITEM:
+			break;
+			
+			
+			/* specials */
+		case UI_WTYPE_ICON:
+			break;
+			
+		case UI_WTYPE_SWATCH:
+			break;
+			
+		case UI_WTYPE_RGB_PICKER:
+			break;
+			
+		case UI_WTYPE_NORMAL:
+			break;
+	}
+	
+	return &wt;
+}
 
-- minimum width definition?
-
-- Types
-    * Icon toggle button
-    * Row button (exclusive "enum" values)
-    * Option button (also "bit flags")
-    * Tool/Operator button
-    * Number button
-    * Number slider
-
-    * Text string button (to rename data)
-    * File name button (separate design?)
-    * Linkage "Library" button (Object, Material, Parent, etc)
-    * Linkage data name button (Bone, Vgroup)
-
-    * Popup settings button, with optional text, icon or both.
-    * Popup linkage button (Materials, Bones, etc)
-    * Pulldown menu button (to invoke pulldown)
-    * Pulldown menu item (and menu backdrop + title)
-
-    * Button-less icons (open-close triangle, delete cross, ...)
-    * Color picker Swatch
-    * Color picker fields
-    * Normal button (rotatable sphere) 
-
-*/
 
 static int widget_roundbox_set(uiBut *but, rcti *rect)
 {
@@ -966,39 +1103,10 @@ static int widget_roundbox_set(uiBut *but, rcti *rect)
 }
 
 
-/* widget classification
-
-- state: 
-	UI_MOUSE_OVER: on mouse over
-	UI_ACTIVE: while using it
-    UI_SELECT: internal state (toggle, row)
-
-- drawtype
-    CUSTOM: no widget class, entirely free within rect
-    WIDGET: part of the standard widget set
-
-- text placement, split?
-
-- widget color style hint
-   - outline
-   - interior col
-   - interior slider color?
-   - shade factors
-   - decoration color
-   - text colors
-
-- callbacks
-    - widget_draw()
-    - widget_text_icon()
-    - 
-
-*/
-
-
 void ui_draw_but_new(ARegion *ar, uiBut *but)
 {
+	uiWidgetType *wt= NULL;
 	rcti rect;
-	int roundboxtype, state;
 	
 	/* XXX project later */
 	rect.xmin= but->x1;
@@ -1006,39 +1114,87 @@ void ui_draw_but_new(ARegion *ar, uiBut *but)
 	rect.ymin= but->y1;
 	rect.ymax= but->y2;
 	
-	roundboxtype= widget_roundbox_set(but, &rect);
-	state= but->flag;
-	
 	switch (but->type) {
 		case LABEL:
-			widget_draw_text_icon(but, &rect, wcol_regular2.text);
+			widget_draw_text_icon(but, &rect, wcol_regular.text);
+			break;
+		case BUT:
+			wt= widget_type(UI_WTYPE_EXEC);
 			break;
 		case NUM:
-			widget_numbut(but, &rect, state, roundboxtype);
+			wt= widget_type(UI_WTYPE_NUMBER);
 			break;
 		case ROW:
-			widget_rowbut(but, &rect, state, roundboxtype);
+			wt= widget_type(UI_WTYPE_RADIO);
 			break;
 		case TEX:
-			widget_textbut(but, &rect, state, roundboxtype);
+			wt= widget_type(UI_WTYPE_NAME);
 			break;
 		case TOG:
 		case TOGN:
 		case TOG3:
-			if (!(state & UI_HAS_ICON))
-				widget_togbut(but, &rect, state, roundboxtype);
+			if (!(but->flag & UI_HAS_ICON))
+				wt= widget_type(UI_WTYPE_OPTION);
 			else
-				widget_but(but, &rect, state, roundboxtype);
+				wt= widget_type(UI_WTYPE_TOGGLE);
 			break;
 		case MENU:
 		case BLOCK:
-			widget_menubut(but, &rect, state, roundboxtype);
+			wt= widget_type(UI_WTYPE_MENU_RADIO);
 			break;
 			
 		default:
-			widget_but(but, &rect, state, roundboxtype);
+			wt= widget_type(UI_WTYPE_TOGGLE);
 	}
 	
+	if(wt) {
+		int roundboxalign, state;
+		
+		roundboxalign= widget_roundbox_set(but, &rect);
+		state= but->flag;
+		if(but->editstr) state |= UI_TEXTINPUT;
+		
+		wt->state(wt, state);
+		wt->draw(&wt->wcol, &rect, state, roundboxalign);
+		wt->text(but, &rect, wt->wcol.text);
+		
+		if(state & UI_BUT_DISABLED)
+			widget_disabled(&rect);
+	}
+}
+
+
+/* test function only */
+void drawnewstuff()
+{
+	rcti rect;
+	
+	rect.xmin= 10; rect.xmax= 10+100;
+	rect.ymin= -30; rect.ymax= -30+18;
+	widget_numbut(&wcol_num, &rect, 0, 15);
+	
+	rect.xmin= 120; rect.xmax= 120+100;
+	rect.ymin= -30; rect.ymax= -30+20;
+	widget_numbut(&wcol_num, &rect, 0, 15);
+	
+	rect.xmin= 10; rect.xmax= 10+100;
+	rect.ymin= -60; rect.ymax= -60+20;
+	widget_menubut(&wcol_menu, &rect, 0, 15);
+	
+	rect.xmin= 120; rect.xmax= 120+100;
+	widget_but(&wcol_regular, &rect, 0, 15);
+	
+	rect.xmin= 10; rect.xmax= 10+100;
+	rect.ymin= -90; rect.ymax= -90+20;
+	widget_radiobut(&wcol_radio, &rect, 1, 9);
+	
+	rect.xmin= 109; rect.xmax= 110+100;
+	rect.ymin= -90; rect.ymax= -90+20;
+	widget_radiobut(&wcol_radio, &rect, 0, 6);
+	
+	rect.xmin= 240; rect.xmax= 240+30;
+	rect.ymin= -90; rect.ymax= -90+30;
+	widget_roundbut(&wcol_regular_shade, &rect, 0, 15);
 }
 
 
