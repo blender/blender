@@ -113,6 +113,8 @@ typedef struct uiWidgetBase {
 	float inner_v[64][2];
 	float inner_uv[64][2];
 	
+	short inner, outline; /* set on/off */
+	
 	uiWidgetTrias tria1;
 	uiWidgetTrias tria2;
 	
@@ -163,6 +165,7 @@ typedef struct uiWidgetType {
 	
 	void (*state)(struct uiWidgetType *, int state);
 	void (*draw)(uiWidgetColors *, rcti *, int state, int roundboxalign);
+	void (*custom)(uiBut *, uiWidgetColors *, rcti *, int state, int roundboxalign);
 	void (*text)(uiBut *, rcti *, float *col);
 	
 } uiWidgetType;
@@ -231,11 +234,14 @@ void ui_draw_anti_tria(float x1, float y1, float x2, float y2, float x3, float y
 	
 }
 
-static void widget_init(uiWidgetBase *wt)
+static void widget_init(uiWidgetBase *wtb)
 {
-	wt->totvert= wt->halfwayvert= 0;
-	wt->tria1.tot= 0;
-	wt->tria2.tot= 0;
+	wtb->totvert= wtb->halfwayvert= 0;
+	wtb->tria1.tot= 0;
+	wtb->tria2.tot= 0;
+	
+	wtb->inner= 1;
+	wtb->outline= 1;
 }
 
 
@@ -479,76 +485,80 @@ static void round_box_shade_col(float *col1, float *col2, float fac)
 	glColor4fv(col);
 }
 
-static void widget_draw(uiWidgetBase *wt, uiWidgetColors *wcol)
+static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
 {
 	int j, a;
 	
 	glEnable(GL_BLEND);
 
 	/* backdrop non AA */
-	if(wcol->shaded==0) {
-		/* filled center, solid */
-		glColor3fv(wcol->inner);
-		glBegin(GL_POLYGON);
-		for(a=0; a<wt->totvert; a++)
-			glVertex2fv(wt->inner_v[a]);
-		glEnd();
-	}
-	else {
-		float col1[3], col2[3];
-		
-		shadecolors(col1, col2, wcol->inner, wcol->shadetop, wcol->shadedown);
-		
-		glShadeModel(GL_SMOOTH);
-		glBegin(GL_POLYGON);
-		for(a=0; a<wt->totvert; a++) {
-			round_box_shade_col(col1, col2, wt->inner_uv[a][1]);
-			glVertex2fv(wt->inner_v[a]);
+	if(wtb->inner) {
+		if(wcol->shaded==0) {
+			/* filled center, solid */
+			glColor3fv(wcol->inner);
+			glBegin(GL_POLYGON);
+			for(a=0; a<wtb->totvert; a++)
+				glVertex2fv(wtb->inner_v[a]);
+			glEnd();
 		}
-		glEnd();
-		glShadeModel(GL_FLAT);
+		else {
+			float col1[3], col2[3];
+			
+			shadecolors(col1, col2, wcol->inner, wcol->shadetop, wcol->shadedown);
+			
+			glShadeModel(GL_SMOOTH);
+			glBegin(GL_POLYGON);
+			for(a=0; a<wtb->totvert; a++) {
+				round_box_shade_col(col1, col2, wtb->inner_uv[a][1]);
+				glVertex2fv(wtb->inner_v[a]);
+			}
+			glEnd();
+			glShadeModel(GL_FLAT);
+		}
 	}
 	
 	/* for each AA step */
-	for(j=0; j<8; j++) {
-		glTranslatef(1.0*jit[j][0], 1.0*jit[j][1], 0.0f);
+	if(wtb->outline) {
+		for(j=0; j<8; j++) {
+			glTranslatef(1.0*jit[j][0], 1.0*jit[j][1], 0.0f);
+			
+			/* outline */
+			glColor4f(wcol->outline[0], wcol->outline[1], wcol->outline[0], 0.125);
+			glBegin(GL_QUAD_STRIP);
+			for(a=0; a<wtb->totvert; a++) {
+				glVertex2fv(wtb->outer_v[a]);
+				glVertex2fv(wtb->inner_v[a]);
+			}
+			glVertex2fv(wtb->outer_v[0]);
+			glVertex2fv(wtb->inner_v[0]);
+			glEnd();
 		
-		/* outline */
-		glColor4f(wcol->outline[0], wcol->outline[1], wcol->outline[0], 0.125);
-		glBegin(GL_QUAD_STRIP);
-		for(a=0; a<wt->totvert; a++) {
-			glVertex2fv(wt->outer_v[a]);
-			glVertex2fv(wt->inner_v[a]);
+			/* emboss bottom shadow */
+			glColor4f(1.0f, 1.0f, 1.0f, 0.02f);
+			glBegin(GL_QUAD_STRIP);
+			for(a=0; a<wtb->halfwayvert; a++) {
+				glVertex2fv(wtb->outer_v[a]);
+				glVertex2f(wtb->outer_v[a][0], wtb->outer_v[a][1]-1.0f);
+			}
+			glEnd();
+			
+			glTranslatef(-1.0*jit[j][0], -1.0*jit[j][1], 0.0f);
 		}
-		glVertex2fv(wt->outer_v[0]);
-		glVertex2fv(wt->inner_v[0]);
-		glEnd();
-	
-		/* emboss bottom shadow */
-		glColor4f(1.0f, 1.0f, 1.0f, 0.02f);
-		glBegin(GL_QUAD_STRIP);
-		for(a=0; a<wt->halfwayvert; a++) {
-			glVertex2fv(wt->outer_v[a]);
-			glVertex2f(wt->outer_v[a][0], wt->outer_v[a][1]-1.0f);
-		}
-		glEnd();
-		
-		glTranslatef(-1.0*jit[j][0], -1.0*jit[j][1], 0.0f);
 	}
 	
 	/* decoration */
-	if(wt->tria1.tot || wt->tria2.tot) {
+	if(wtb->tria1.tot || wtb->tria2.tot) {
 		/* for each AA step */
 		for(j=0; j<8; j++) {
 			glTranslatef(1.0*jit[j][0], 1.0*jit[j][1], 0.0f);
 
-			if(wt->tria1.tot) {
+			if(wtb->tria1.tot) {
 				glColor4f(wcol->item[0], wcol->item[1], wcol->item[2], 0.125);
-				widget_trias_draw(&wt->tria1);
+				widget_trias_draw(&wtb->tria1);
 			}
-			if(wt->tria2.tot) {
+			if(wtb->tria2.tot) {
 				glColor4f(wcol->item[0], wcol->item[1], wcol->item[2], 0.125);
-				widget_trias_draw(&wt->tria2);
+				widget_trias_draw(&wtb->tria2);
 			}
 		
 			glTranslatef(-1.0*jit[j][0], -1.0*jit[j][1], 0.0f);
@@ -731,6 +741,19 @@ static struct uiWidgetColors wcol_num= {
 	-0.08f, 0.0f
 };
 
+static struct uiWidgetColors wcol_numslider= {
+	{0.1f, 0.1f, 0.1f},
+	{0.7f, 0.7f, 0.7f},
+	{0.6f, 0.6f, 0.6f},
+	{0.5f, 0.5f, 0.5f},
+	
+	{0.0f, 0.0f, 0.0f},
+	{1.0f, 1.0f, 1.0f},
+	
+	1,
+	-0.08f, 0.0f
+};
+
 static struct uiWidgetColors wcol_text= {
 	{0.1f, 0.1f, 0.1f},
 	{0.6f, 0.6f, 0.6f},
@@ -764,7 +787,7 @@ static struct uiWidgetColors wcol_menu= {
 	{1.0f, 1.0f, 1.0f},
 	
 	{1.0f, 1.0f, 1.0f},
-	{0.0f, 0.0f, 0.0f},
+	{0.8f, 0.8f, 0.8f},
 	
 	1,
 	0.1f, -0.08f
@@ -821,12 +844,13 @@ static void widget_state(uiWidgetType *wt, int state)
 		VECCOPY(wt->wcol.inner, wt->wcol.inner_sel);
 		VECCOPY(wt->wcol.text, wt->wcol.text_sel);
 		
-		/* only flip shade if it's not "pushed in in" */
+		/* only flip shade if it's not "pushed in" already */
 		if(wt->wcol.shaded && wt->wcol.shadetop>wt->wcol.shadedown) {
 			SWAP(float, wt->wcol.shadetop, wt->wcol.shadedown);
 		}
 	}
-	/* mouse over? */
+	else if(state & UI_ACTIVE) /* mouse over? */
+		VecMulf(wt->wcol.inner, 1.1f);
 }
 
 
@@ -846,8 +870,51 @@ static void widget_numbut(uiWidgetColors *wcol, rcti *rect, int state, int round
 		widget_num_tria(&wtb.tria1, rect, 0.6f, 0);
 		widget_num_tria(&wtb.tria2, rect, 0.6f, 'r');
 	}	
-	widget_draw(&wtb, wcol);
+	widgetbase_draw(&wtb, wcol);
 
+}
+
+static void widget_numslider(uiBut *but, uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
+{
+	uiWidgetBase wtb, wtb1;
+	rcti rect1;
+	double value;
+	float offs, fac, inner[3];
+	
+	widget_init(&wtb);
+	widget_init(&wtb1);
+	
+	/* backdrop first */
+	
+	/* fully rounded */
+	offs= 0.5f*(rect->ymax - rect->ymin);
+	round_box_edges(&wtb, roundboxalign, rect, offs);
+
+	wtb.outline= 0;
+	widgetbase_draw(&wtb, wcol);
+	
+	/* slider part */
+	roundboxalign &= ~6;
+	rect1= *rect;
+	
+	value= ui_get_but_val(but);
+	fac= (value-but->softmin)*(rect1.xmax - rect1.xmin - 2.0f*offs)/(but->softmax - but->softmin);
+	
+	rect1.xmax= rect1.xmin + fac + offs;
+	round_box_edges(&wtb1, roundboxalign, &rect1, offs);
+	wtb1.outline= 0;
+	
+	VECCOPY(inner, wcol->inner);
+	VECCOPY(wcol->inner, wcol->item);
+	
+	widgetbase_draw(&wtb1, wcol);
+	VECCOPY(wcol->inner, inner);
+	
+	/* outline */
+	wtb.outline= 1;
+	wtb.inner= 0;
+	widgetbase_draw(&wtb, wcol);
+	
 }
 
 
@@ -860,8 +927,7 @@ static void widget_textbut(uiWidgetColors *wcol, rcti *rect, int state, int roun
 	/* half rounded */
 	round_box_edges(&wtb, roundboxalign, rect, 4.0f);
 	
-	/* XXX button state */
-	widget_draw(&wtb, wcol);
+	widgetbase_draw(&wtb, wcol);
 
 }
 
@@ -875,12 +941,10 @@ static void widget_menubut(uiWidgetColors *wcol, rcti *rect, int state, int roun
 	/* half rounded */
 	round_box_edges(&wtb, roundboxalign, rect, 4.0f);
 	
-	/* XXX button state */
-	
 	/* decoration */
 	widget_menu_trias(&wtb.tria1, rect);
 	
-	widget_draw(&wtb, wcol);
+	widgetbase_draw(&wtb, wcol);
 }
 
 static void widget_optionbut(uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
@@ -904,14 +968,12 @@ static void widget_optionbut(uiWidgetColors *wcol, rcti *rect, int state, int ro
 	/* half rounded */
 	round_box_edges(&wtb, roundboxalign, &recttemp, 4.0f);
 	
-	/* button state */
-	
 	/* decoration */
 	if(state & UI_SELECT) {
 		widget_check_trias(&wtb.tria1, &recttemp);
 	}
 	
-	widget_draw(&wtb, wcol);
+	widgetbase_draw(&wtb, wcol);
 }
 
 
@@ -924,7 +986,7 @@ static void widget_radiobut(uiWidgetColors *wcol, rcti *rect, int state, int rou
 	/* half rounded */
 	round_box_edges(&wtb, roundboxalign, rect, 4.0f);
 	
-	widget_draw(&wtb, wcol);
+	widgetbase_draw(&wtb, wcol);
 
 }
 
@@ -937,7 +999,7 @@ static void widget_but(uiWidgetColors *wcol, rcti *rect, int state, int roundbox
 	/* half rounded */
 	round_box_edges(&wtb, roundboxalign, rect, 4.0f);
 		
-	widget_draw(&wtb, wcol);
+	widgetbase_draw(&wtb, wcol);
 
 }
 
@@ -950,7 +1012,7 @@ static void widget_roundbut(uiWidgetColors *wcol, rcti *rect, int state, int rou
 	/* fully rounded */
 	round_box_edges(&wtb, roundboxalign, rect, 0.5f*(rect->ymax - rect->ymin));
 
-	widget_draw(&wtb, wcol);
+	widgetbase_draw(&wtb, wcol);
 }
 
 static void widget_disabled(rcti *rect)
@@ -974,6 +1036,7 @@ static uiWidgetType *widget_type(uiWidgetTypeEnum type)
 	wt.wcol_theme= &wcol_regular;
 	wt.state= widget_state;
 	wt.draw= widget_but;
+	wt.custom= NULL;
 	wt.text= widget_draw_text_icon;
 	
 	switch(type) {
@@ -996,6 +1059,8 @@ static uiWidgetType *widget_type(uiWidgetTypeEnum type)
 			break;
 			
 		case UI_WTYPE_SLIDER:
+			wt.wcol_theme= &wcol_numslider;
+			wt.custom= widget_numslider;
 			break;
 			
 		case UI_WTYPE_EXEC:
@@ -1124,6 +1189,9 @@ void ui_draw_but_new(ARegion *ar, uiBut *but)
 		case NUM:
 			wt= widget_type(UI_WTYPE_NUMBER);
 			break;
+		case NUMSLI:
+			wt= widget_type(UI_WTYPE_SLIDER);
+			break;
 		case ROW:
 			wt= widget_type(UI_WTYPE_RADIO);
 			break;
@@ -1155,7 +1223,10 @@ void ui_draw_but_new(ARegion *ar, uiBut *but)
 		if(but->editstr) state |= UI_TEXTINPUT;
 		
 		wt->state(wt, state);
-		wt->draw(&wt->wcol, &rect, state, roundboxalign);
+		if(wt->custom)
+			wt->custom(but, &wt->wcol, &rect, state, roundboxalign);
+		else
+			wt->draw(&wt->wcol, &rect, state, roundboxalign);
 		wt->text(but, &rect, wt->wcol.text);
 		
 		if(state & UI_BUT_DISABLED)

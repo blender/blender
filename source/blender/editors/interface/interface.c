@@ -2446,7 +2446,7 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, char *str, short 
 		rgb_to_hsv(rgb[0], rgb[1], rgb[2], but->hsv, but->hsv+1, but->hsv+2);
 	}
 
-	if((block->flag & UI_BLOCK_LOOP) || ELEM8(but->type, HSVSLI , NUMSLI, MENU, TEX, LABEL, IDPOIN, BLOCK, BUTM)) {
+	if((block->flag & UI_BLOCK_LOOP) || ELEM6(but->type, MENU, TEX, LABEL, IDPOIN, BLOCK, BUTM)) {
 		but->flag |= UI_TEXT_LEFT;
 	}
 	
