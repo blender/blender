@@ -223,7 +223,7 @@ namespace Functions0D {
 	if(count < 3) {
 	  // if we only have 2 vertices
 	  result = 0;
-      return -1;
+      return 0;
 	}
 
     Interface0DIterator v = iter;
