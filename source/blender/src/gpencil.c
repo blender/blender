@@ -484,7 +484,7 @@ ScrArea *gpencil_data_findowner (bGPdata *gpd)
 /* -------- GP-Frame API ---------- */
 
 /* delete the last stroke of the given frame */
-void gpencil_frame_delete_laststroke (bGPDframe *gpf)
+void gpencil_frame_delete_laststroke (bGPDframe *gpf, bGPDlayer *gpl)
 {
 	bGPDstroke *gps= (gpf) ? gpf->strokes.last : NULL;
 	
@@ -495,6 +495,11 @@ void gpencil_frame_delete_laststroke (bGPDframe *gpf)
 	/* free the stroke and its data */
 	MEM_freeN(gps->points);
 	BLI_freelinkN(&gpf->strokes, gps);
+	
+	if (gpf->strokes.first == NULL) {
+		gpencil_layer_delframe(gpl, gpf);
+		gpencil_layer_getframe(gpl, CFRA, 0);
+	}
 }
 
 /* -------- GP-Layer API ---------- */
@@ -603,6 +608,7 @@ bGPDframe *gpencil_layer_getframe (bGPDlayer *gpl, int cframe, short addnew)
 		else if (found)
 			gpl->actframe= gpf;
 		else {
+			gpl->actframe = gpl->frames.first;
 			/* unresolved errogenous situation! */
 			printf("Error: cannot find appropriate gp-frame \n");
 			/* gpl->actframe should still be NULL */
@@ -696,7 +702,7 @@ void gpencil_delete_laststroke (bGPdata *gpd)
 	bGPDlayer *gpl= gpencil_layer_getactive(gpd);
 	bGPDframe *gpf= gpencil_layer_getframe(gpl, CFRA, 0);
 	
-	gpencil_frame_delete_laststroke(gpf);
+	gpencil_frame_delete_laststroke(gpf, gpl);
 }
 
 /* delete the active frame */
