@@ -3868,3 +3868,76 @@ void psys_get_dupli_path_transform(Object *ob, ParticleSystem *psys, ParticleSys
 
 	*scale= len;
 }
+
+void psys_make_billboard(ParticleBillboardData *bb, float xvec[3], float yvec[3], float zvec[3], float center[3])
+{
+	float onevec[3] = {0.0f,0.0f,0.0f}, tvec[3], tvec2[3];
+
+	xvec[0] = 1.0f; xvec[1] = 0.0f; xvec[2] = 0.0f;
+	yvec[0] = 0.0f; yvec[1] = 1.0f; yvec[2] = 0.0f;
+
+	if(bb->align < PART_BB_VIEW)
+		onevec[bb->align]=1.0f;
+
+	if(bb->lock && (bb->align == PART_BB_VIEW)) {
+		VECCOPY(xvec, bb->ob->obmat[0]);
+		Normalize(xvec);
+
+		VECCOPY(yvec, bb->ob->obmat[1]);
+		Normalize(yvec);
+
+		VECCOPY(zvec, bb->ob->obmat[2]);
+		Normalize(zvec);
+	}
+	else if(bb->align == PART_BB_VEL) {
+		float temp[3];
+
+		VECCOPY(temp, bb->vel);
+		Normalize(temp);
+
+		VECSUB(zvec, bb->ob->obmat[3], bb->vec);
+
+		if(bb->lock) {
+			float fac = -Inpf(zvec, temp);
+
+			VECADDFAC(zvec, zvec, temp, fac);
+		}
+		Normalize(zvec);
+
+		Crossf(xvec,temp,zvec);
+		Normalize(xvec);
+
+		Crossf(yvec,zvec,xvec);
+	}
+	else {
+		VECSUB(zvec, bb->ob->obmat[3], bb->vec);
+		if(bb->lock)
+			zvec[bb->align] = 0.0f;
+		Normalize(zvec);
+
+		if(bb->align < PART_BB_VIEW)
+			Crossf(xvec, onevec, zvec);
+		else
+			Crossf(xvec, bb->ob->obmat[1], zvec);
+		Normalize(xvec);
+
+		Crossf(yvec,zvec,xvec);
+	}
+
+	VECCOPY(tvec, xvec);
+	VECCOPY(tvec2, yvec);
+
+	VecMulf(xvec, cos(bb->tilt * (float)M_PI));
+	VecMulf(tvec2, sin(bb->tilt * (float)M_PI));
+	VECADD(xvec, xvec, tvec2);
+
+	VecMulf(yvec, cos(bb->tilt * (float)M_PI));
+	VecMulf(tvec, -sin(bb->tilt * (float)M_PI));
+	VECADD(yvec, yvec, tvec);
+
+	VecMulf(xvec, bb->size);
+	VecMulf(yvec, bb->size);
+
+	VECADDFAC(center, bb->vec, xvec, bb->offset[0]);
+	VECADDFAC(center, center, yvec, bb->offset[1]);
+}

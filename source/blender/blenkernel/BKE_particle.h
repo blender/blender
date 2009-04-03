@@ -188,6 +188,19 @@ typedef struct ParticleThread {
 	int num, tot;
 } ParticleThread;
 
+typedef struct ParticleBillboardData
+{
+	struct Object *ob;
+	float vec[3], vel[3];
+	float offset[2];
+	float size, tilt, random, time;
+	int uv[3];
+	int lock, num;
+	int totnum;
+	short align, uv_split, anim, split_offset;
+}
+ParticleBillboardData;
+
 /* ----------- functions needed outside particlesystem ---------------- */
 /* particle.c */
 int count_particles(struct ParticleSystem *psys);
@@ -259,6 +272,8 @@ void psys_threads_free(ParticleThread *threads);
 
 void psys_thread_distribute_particle(ParticleThread *thread, struct ParticleData *pa, struct ChildParticle *cpa, int p);
 void psys_thread_create_path(ParticleThread *thread, struct ChildParticle *cpa, ParticleCacheKey *keys, int i);
+
+void psys_make_billboard(ParticleBillboardData *bb, float xvec[3], float yvec[3], float zvec[3], float center[3]);
 
 /* particle_system.c */
 int psys_count_keyed_targets(struct Object *ob, struct ParticleSystem *psys);
