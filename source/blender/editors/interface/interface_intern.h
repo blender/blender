@@ -348,6 +348,7 @@ extern void ui_button_active_cancel(const struct bContext *C, uiBut *but);
 
 /* interface_widgets.c */
 void ui_draw_anti_tria(float x1, float y1, float x2, float y2, float x3, float y3);
+void ui_draw_menu_back(uiBlock *block);
 
 #endif
 

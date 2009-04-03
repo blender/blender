@@ -2423,121 +2423,6 @@ static void ui_draw_but_COL(uiBut *but)
 	}
 }
 
-/* draws in resolution of 20x4 colors */
-static void ui_draw_but_HSVCUBE(uiBut *but)
-{
-	int a;
-	float h,s,v;
-	float dx, dy, sx1, sx2, sy, x, y;
-	float col0[4][3];	// left half, rect bottom to top
-	float col1[4][3];	// right half, rect bottom to top
-	
-	h= but->hsv[0];
-	s= but->hsv[1];
-	v= but->hsv[2];
-	
-	/* draw series of gouraud rects */
-	glShadeModel(GL_SMOOTH);
-	
-	if(but->a1==0) {	// H and V vary
-		hsv_to_rgb(0.0, s, 0.0,   &col1[0][0], &col1[0][1], &col1[0][2]);
-		hsv_to_rgb(0.0, s, 0.333, &col1[1][0], &col1[1][1], &col1[1][2]);
-		hsv_to_rgb(0.0, s, 0.666, &col1[2][0], &col1[2][1], &col1[2][2]);
-		hsv_to_rgb(0.0, s, 1.0,   &col1[3][0], &col1[3][1], &col1[3][2]);
-		x= h; y= v;
-	}
-	else if(but->a1==1) {	// H and S vary
-		hsv_to_rgb(0.0, 0.0, v,   &col1[0][0], &col1[0][1], &col1[0][2]);
-		hsv_to_rgb(0.0, 0.333, v, &col1[1][0], &col1[1][1], &col1[1][2]);
-		hsv_to_rgb(0.0, 0.666, v, &col1[2][0], &col1[2][1], &col1[2][2]);
-		hsv_to_rgb(0.0, 1.0, v,   &col1[3][0], &col1[3][1], &col1[3][2]);
-		x= h; y= s;
-	}
-	else if(but->a1==2) {	// S and V vary
-		hsv_to_rgb(h, 0.0, 0.0,   &col1[0][0], &col1[0][1], &col1[0][2]);
-		hsv_to_rgb(h, 0.333, 0.0, &col1[1][0], &col1[1][1], &col1[1][2]);
-		hsv_to_rgb(h, 0.666, 0.0, &col1[2][0], &col1[2][1], &col1[2][2]);
-		hsv_to_rgb(h, 1.0, 0.0,   &col1[3][0], &col1[3][1], &col1[3][2]);
-		x= v; y= s;
-	}
-	else {		// only hue slider
-		hsv_to_rgb(0.0, 1.0, 1.0,   &col1[0][0], &col1[0][1], &col1[0][2]);
-		VECCOPY(col1[1], col1[0]);
-		VECCOPY(col1[2], col1[0]);
-		VECCOPY(col1[3], col1[0]);
-		x= h; y= 0.5;
-	}
-	
-	for(dx=0.0; dx<1.0; dx+= 0.05) {
-		// previous color
-		VECCOPY(col0[0], col1[0]);
-		VECCOPY(col0[1], col1[1]);
-		VECCOPY(col0[2], col1[2]);
-		VECCOPY(col0[3], col1[3]);
-
-		// new color
-		if(but->a1==0) {	// H and V vary
-			hsv_to_rgb(dx, s, 0.0,   &col1[0][0], &col1[0][1], &col1[0][2]);
-			hsv_to_rgb(dx, s, 0.333, &col1[1][0], &col1[1][1], &col1[1][2]);
-			hsv_to_rgb(dx, s, 0.666, &col1[2][0], &col1[2][1], &col1[2][2]);
-			hsv_to_rgb(dx, s, 1.0,   &col1[3][0], &col1[3][1], &col1[3][2]);
-		}
-		else if(but->a1==1) {	// H and S vary
-			hsv_to_rgb(dx, 0.0, v,   &col1[0][0], &col1[0][1], &col1[0][2]);
-			hsv_to_rgb(dx, 0.333, v, &col1[1][0], &col1[1][1], &col1[1][2]);
-			hsv_to_rgb(dx, 0.666, v, &col1[2][0], &col1[2][1], &col1[2][2]);
-			hsv_to_rgb(dx, 1.0, v,   &col1[3][0], &col1[3][1], &col1[3][2]);
-		}
-		else if(but->a1==2) {	// S and V vary
-			hsv_to_rgb(h, 0.0, dx,   &col1[0][0], &col1[0][1], &col1[0][2]);
-			hsv_to_rgb(h, 0.333, dx, &col1[1][0], &col1[1][1], &col1[1][2]);
-			hsv_to_rgb(h, 0.666, dx, &col1[2][0], &col1[2][1], &col1[2][2]);
-			hsv_to_rgb(h, 1.0, dx,   &col1[3][0], &col1[3][1], &col1[3][2]);
-		}
-		else {	// only H
-			hsv_to_rgb(dx, 1.0, 1.0,   &col1[0][0], &col1[0][1], &col1[0][2]);
-			VECCOPY(col1[1], col1[0]);
-			VECCOPY(col1[2], col1[0]);
-			VECCOPY(col1[3], col1[0]);
-		}
-		
-		// rect
-		sx1= but->x1 + dx*(but->x2-but->x1);
-		sx2= but->x1 + (dx+0.05)*(but->x2-but->x1);
-		sy= but->y1;
-		dy= (but->y2-but->y1)/3.0;
-		
-		glBegin(GL_QUADS);
-		for(a=0; a<3; a++, sy+=dy) {
-			glColor3fv(col0[a]);
-			glVertex2f(sx1, sy);
-
-			glColor3fv(col1[a]);
-			glVertex2f(sx2, sy);
-			
-			glColor3fv(col1[a+1]);
-			glVertex2f(sx2, sy+dy);
-			
-			glColor3fv(col0[a+1]);
-			glVertex2f(sx1, sy+dy);
-		}
-		glEnd();
-	}
-
-	glShadeModel(GL_FLAT);
-
-	/* cursor */
-	x= but->x1 + x*(but->x2-but->x1);
-	y= but->y1 + y*(but->y2-but->y1);
-	CLAMP(x, but->x1+3.0, but->x2-3.0);
-	CLAMP(y, but->y1+3.0, but->y2-3.0);
-	
-	fdrawXORcirc(x, y, 3.1);
-
-	/* outline */
-	glColor3ub(0,  0,  0);
-	fdrawbox((but->x1), (but->y1), (but->x2), (but->y2));
-}
 
 #ifdef INTERNATIONAL
 static void ui_draw_but_CHARTAB(uiBut *but)
@@ -3243,7 +3128,7 @@ void ui_draw_but(ARegion *ar, uiBut *but)
 	
 	if(but==NULL) return;
 	
-	if(but->block->flag & UI_BLOCK_2_50) {
+	if(1) {//but->block->flag & UI_BLOCK_2_50) {
 		extern void ui_draw_but_new(ARegion *ar, uiBut *but); // XXX
 
 		ui_draw_but_new(ar, but);
@@ -3278,7 +3163,7 @@ void ui_draw_but(ARegion *ar, uiBut *but)
 		break;
 
 	case HSVCUBE:
-		ui_draw_but_HSVCUBE(but);  // box for colorpicker, three types
+		//ui_draw_but_HSVCUBE(but);  // box for colorpicker, three types
 		break;
 
 #ifdef INTERNATIONAL

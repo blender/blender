@@ -853,8 +853,9 @@ void UI_view2d_view_ortho(const bContext *C, View2D *v2d)
 	/* pixel offsets (-0.375f) are needed to get 1:1 correspondance with pixels for smooth UI drawing, 
 	 * but only applied where requsted
 	 */
-	xofs= (v2d->flag & V2D_PIXELOFS_X) ? 0.375f : 0.0f;
-	yofs= (v2d->flag & V2D_PIXELOFS_Y) ? 0.375f : 0.0f;
+	/* XXX ton: fix this! */
+	xofs= 0.0f; // (v2d->flag & V2D_PIXELOFS_X) ? 0.375f : 0.0f;
+	yofs= 0.0f; // (v2d->flag & V2D_PIXELOFS_Y) ? 0.375f : 0.0f;
 	
 	/* apply mask-based adjustments to cur rect (due to scrollers), to eliminate scaling artifacts */
 	view2d_map_cur_using_mask(v2d, &curmasked);

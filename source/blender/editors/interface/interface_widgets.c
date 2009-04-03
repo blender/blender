@@ -31,7 +31,6 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_ID.h"
-#include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_windowmanager_types.h"
 
@@ -41,12 +40,10 @@
 
 #include "BKE_context.h"
 #include "BKE_global.h"
-#include "BKE_idprop.h"
 #include "BKE_utildefines.h"
 
-#include "RNA_access.h"
-
 #include "BIF_gl.h"
+#include "BIF_glutil.h"
 
 #include "UI_interface.h"
 #include "UI_interface_icons.h"
@@ -56,10 +53,6 @@
 
 #include "ED_util.h"
 #include "ED_types.h"
-#include "ED_screen.h"
-
-#include "WM_api.h"
-#include "WM_types.h"
 
 #include "BMF_Api.h"
 #ifdef INTERNATIONAL
@@ -96,8 +89,8 @@ typedef struct uiWidgetTrias {
 
 typedef struct uiWidgetColors {
 	float outline[3];
-	float inner[3];
-	float inner_sel[3];
+	float inner[4];
+	float inner_sel[4];
 	float item[3];
 	float text[3];
 	float text_sel[3];
@@ -113,7 +106,7 @@ typedef struct uiWidgetBase {
 	float inner_v[64][2];
 	float inner_uv[64][2];
 	
-	short inner, outline; /* set on/off */
+	short inner, outline, emboss; /* set on/off */
 	
 	uiWidgetTrias tria1;
 	uiWidgetTrias tria2;
@@ -142,6 +135,7 @@ typedef enum {
 	
 	UI_WTYPE_PULLDOWN,
 	UI_WTYPE_MENU_ITEM,
+	UI_WTYPE_MENU_BACK,
 	
 	/* specials */
 	UI_WTYPE_ICON,
@@ -242,7 +236,91 @@ static void widget_init(uiWidgetBase *wtb)
 	
 	wtb->inner= 1;
 	wtb->outline= 1;
+	wtb->emboss= 1;
 }
+
+/* helper call, makes shadow rect, with 'sun' above menu, so only shadow to left/right/bottom */
+/* return tot */
+static int round_box_shadow_edges(float (*vert)[2], rcti *rect, float rad, int roundboxalign, int inner)
+{
+	float vec[9][2];
+	float minx, miny, maxx, maxy;
+	int a, tot= 0;
+	
+	if(inner) {
+		minx= rect->xmin;
+		miny= rect->ymin;
+		maxx= rect->xmax;
+		maxy= rect->ymax;
+	}
+	else {
+		minx= rect->xmin-rad;
+		miny= rect->ymin-rad;
+		maxx= rect->xmax+rad;
+		maxy= rect->ymax+rad;
+	}
+	
+	/* mult */
+	for(a=0; a<9; a++) {
+		vec[a][0]= rad*cornervec[a][0]; 
+		vec[a][1]= rad*cornervec[a][1]; 
+	}
+	
+	/* start with left-top, anti clockwise */
+	if(roundboxalign & 1) {
+		for(a=0; a<9; a++, tot++) {
+			vert[tot][0]= minx+rad-vec[a][0];
+			vert[tot][1]= maxy-vec[a][1];
+		}
+	}
+	else {
+		for(a=0; a<9; a++, tot++) {
+			vert[tot][0]= minx;
+			vert[tot][1]= maxy;
+		}
+	}
+	
+	if(roundboxalign & 8) {
+		for(a=0; a<9; a++, tot++) {
+			vert[tot][0]= minx+vec[a][1];
+			vert[tot][1]= miny+rad-vec[a][0];
+		}
+	}
+	else {
+		for(a=0; a<9; a++, tot++) {
+			vert[tot][0]= minx;
+			vert[tot][1]= miny;
+		}
+	}
+	
+	if(roundboxalign & 4) {
+		for(a=0; a<9; a++, tot++) {
+			vert[tot][0]= maxx-rad+vec[a][0];
+			vert[tot][1]= miny+vec[a][1];
+		}
+	}
+	else {
+		for(a=0; a<9; a++, tot++) {
+			vert[tot][0]= maxx;
+			vert[tot][1]= miny;
+		}
+	}
+	
+	if(roundboxalign & 2) {
+		for(a=0; a<9; a++, tot++) {
+			vert[tot][0]= maxx-vec[a][1];
+			vert[tot][1]= maxy-rad+vec[a][0];
+		}
+	}
+	else {
+		for(a=0; a<9; a++, tot++) {
+			vert[tot][0]= maxx;
+			vert[tot][1]= maxy;
+		}
+	}
+	return tot;
+}
+
 
 
 static void round_box_edges(uiWidgetBase *wt, int roundboxalign, rcti *rect, float rad)
@@ -422,13 +500,18 @@ static void widget_trias_draw(uiWidgetTrias *tria)
 
 static void widget_menu_trias(uiWidgetTrias *tria, rcti *rect)
 {
-	float centx, centy, size;
+	float centx, centy, size, asp;
 	int a;
 		
 	/* center position and size */
 	centx= rect->xmax - 0.5f*(rect->ymax-rect->ymin);
 	centy= rect->ymin + 0.5f*(rect->ymax-rect->ymin);
 	size= 0.4f*(rect->ymax-rect->ymin);
+	
+	/* XXX exception */
+	asp= ((float)rect->xmax-rect->xmin)/((float)rect->ymax-rect->ymin);
+	if(asp > 1.2f && asp < 2.6f)
+		centx= rect->xmax - 0.3f*(rect->ymax-rect->ymin);
 	
 	for(a=0; a<6; a++) {
 		tria->vec[a][0]= size*menu_tria_vert[a][0] + centx;
@@ -460,7 +543,7 @@ static void widget_check_trias(uiWidgetTrias *tria, rcti *rect)
 
 
 /* prepares shade colors */
-static void shadecolors(float *coltop, float *coldown, float *color, float shadetop, float shadedown)
+static void shadecolors4(float *coltop, float *coldown, float *color, float shadetop, float shadedown)
 {
 	float hue, sat, val, valshade;
 	
@@ -468,19 +551,21 @@ static void shadecolors(float *coltop, float *coldown, float *color, float shade
 	
 	valshade= CLAMPIS(val+shadetop, 0.0f, 1.0f);
 	hsv_to_rgb(hue, sat, valshade, coltop, coltop+1, coltop+2);
+	coltop[3]= color[3];
 
 	valshade= CLAMPIS(val+shadedown, 0.0f, 1.0f);
 	hsv_to_rgb(hue, sat, valshade, coldown, coldown+1, coldown+2);
+	coldown[3]= color[3];
 }
 
-static void round_box_shade_col(float *col1, float *col2, float fac)
+static void round_box_shade_col4(float *col1, float *col2, float fac)
 {
 	float col[4];
 	
 	col[0]= (fac*col1[0] + (1.0-fac)*col2[0]);
 	col[1]= (fac*col1[1] + (1.0-fac)*col2[1]);
 	col[2]= (fac*col1[2] + (1.0-fac)*col2[2]);
-	col[3]= 1;
+	col[3]= (fac*col1[3] + (1.0-fac)*col2[3]);
 	
 	glColor4fv(col);
 }
@@ -495,21 +580,21 @@ static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
 	if(wtb->inner) {
 		if(wcol->shaded==0) {
 			/* filled center, solid */
-			glColor3fv(wcol->inner);
+			glColor4fv(wcol->inner);
 			glBegin(GL_POLYGON);
 			for(a=0; a<wtb->totvert; a++)
 				glVertex2fv(wtb->inner_v[a]);
 			glEnd();
 		}
 		else {
-			float col1[3], col2[3];
+			float col1[4], col2[4];
 			
-			shadecolors(col1, col2, wcol->inner, wcol->shadetop, wcol->shadedown);
+			shadecolors4(col1, col2, wcol->inner, wcol->shadetop, wcol->shadedown);
 			
 			glShadeModel(GL_SMOOTH);
 			glBegin(GL_POLYGON);
 			for(a=0; a<wtb->totvert; a++) {
-				round_box_shade_col(col1, col2, wtb->inner_uv[a][1]);
+				round_box_shade_col4(col1, col2, wtb->inner_uv[a][1]);
 				glVertex2fv(wtb->inner_v[a]);
 			}
 			glEnd();
@@ -534,13 +619,15 @@ static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
 			glEnd();
 		
 			/* emboss bottom shadow */
-			glColor4f(1.0f, 1.0f, 1.0f, 0.02f);
-			glBegin(GL_QUAD_STRIP);
-			for(a=0; a<wtb->halfwayvert; a++) {
-				glVertex2fv(wtb->outer_v[a]);
-				glVertex2f(wtb->outer_v[a][0], wtb->outer_v[a][1]-1.0f);
+			if(wtb->emboss) {
+				glColor4f(1.0f, 1.0f, 1.0f, 0.02f);
+				glBegin(GL_QUAD_STRIP);
+				for(a=0; a<wtb->halfwayvert; a++) {
+					glVertex2fv(wtb->outer_v[a]);
+					glVertex2f(wtb->outer_v[a][0], wtb->outer_v[a][1]-1.0f);
+				}
+				glEnd();
 			}
-			glEnd();
 			
 			glTranslatef(-1.0*jit[j][0], -1.0*jit[j][1], 0.0f);
 		}
@@ -730,8 +817,8 @@ static void widget_draw_text_icon(uiBut *but, rcti *rect, float *col)
 
 static struct uiWidgetColors wcol_num= {
 	{0.1f, 0.1f, 0.1f},
-	{0.7f, 0.7f, 0.7f},
-	{0.6f, 0.6f, 0.6f},
+	{0.7f, 0.7f, 0.7f, 1.0f},
+	{0.6f, 0.6f, 0.6f, 1.0f},
 	{0.35f, 0.35f, 0.35f},
 	
 	{0.0f, 0.0f, 0.0f},
@@ -743,8 +830,8 @@ static struct uiWidgetColors wcol_num= {
 
 static struct uiWidgetColors wcol_numslider= {
 	{0.1f, 0.1f, 0.1f},
-	{0.7f, 0.7f, 0.7f},
-	{0.6f, 0.6f, 0.6f},
+	{0.7f, 0.7f, 0.7f, 1.0f},
+	{0.6f, 0.6f, 0.6f, 1.0f},
 	{0.5f, 0.5f, 0.5f},
 	
 	{0.0f, 0.0f, 0.0f},
@@ -756,8 +843,8 @@ static struct uiWidgetColors wcol_numslider= {
 
 static struct uiWidgetColors wcol_text= {
 	{0.1f, 0.1f, 0.1f},
-	{0.6f, 0.6f, 0.6f},
-	{0.6f, 0.6f, 0.6f},
+	{0.6f, 0.6f, 0.6f, 1.0f},
+	{0.6f, 0.6f, 0.6f, 1.0f},
 	{0.35f, 0.35f, 0.35f},
 	
 	{0.0f, 0.0f, 0.0f},
@@ -769,8 +856,8 @@ static struct uiWidgetColors wcol_text= {
 
 static struct uiWidgetColors wcol_option= {
 	{0.0f, 0.0f, 0.0f},
-	{0.25f, 0.25f, 0.25f},
-	{0.25f, 0.25f, 0.25f},
+	{0.25f, 0.25f, 0.25f, 1.0f},
+	{0.25f, 0.25f, 0.25f, 1.0f},
 	{1.0f, 1.0f, 1.0f},
 	
 	{0.0f, 0.0f, 0.0f},
@@ -780,10 +867,11 @@ static struct uiWidgetColors wcol_option= {
 	0.1f, -0.08f
 };
 
+/* button that shows popup */
 static struct uiWidgetColors wcol_menu= {
 	{0.0f, 0.0f, 0.0f},
-	{0.25f, 0.25f, 0.25f},
-	{0.25f, 0.25f, 0.25f},
+	{0.25f, 0.25f, 0.25f, 1.0f},
+	{0.25f, 0.25f, 0.25f, 1.0f},
 	{1.0f, 1.0f, 1.0f},
 	
 	{1.0f, 1.0f, 1.0f},
@@ -793,11 +881,53 @@ static struct uiWidgetColors wcol_menu= {
 	0.1f, -0.08f
 };
 
+/* button that starts pulldown */
+static struct uiWidgetColors wcol_pulldown= {
+	{0.0f, 0.0f, 0.0f},
+	{0.25f, 0.25f, 0.25f, 1.0f},
+	{0.18f, 0.48f, 0.85f, 1.0f},
+	{1.0f, 1.0f, 1.0f},
+	
+	{1.0f, 1.0f, 1.0f},
+	{0.0f, 0.0f, 0.0f},
+	
+	0,
+	0.1f, -0.08f
+};
+
+/* button inside menu */
+static struct uiWidgetColors wcol_menu_item= {
+	{0.0f, 0.0f, 0.0f},
+	{0.0f, 0.0f, 0.0f, 0.3},
+	{0.23f, 0.53f, 0.9f, 0.9f},
+	{1.0f, 1.0f, 1.0f},
+	
+	{1.0f, 1.0f, 1.0f},
+	{0.0f, 0.0f, 0.0f},
+	
+	0,
+	0.15f, 0.0f
+};
+
+/* backdrop menu + title text color */
+static struct uiWidgetColors wcol_menu_back= {
+	{0.0f, 0.0f, 0.0f},
+	{0.0f, 0.0f, 0.0f, 0.6},
+	{0.18f, 0.48f, 0.85f, 0.8f},
+	{1.0f, 1.0f, 1.0f},
+	
+	{1.0f, 1.0f, 1.0f},
+	{0.0f, 0.0f, 0.0f},
+	
+	0,
+	0.1f, -0.08f
+};
+
 
 static struct uiWidgetColors wcol_radio= {
 	{0.0f, 0.0f, 0.0f},
-	{0.25f, 0.25f, 0.25f},
-	{0.34f, 0.5f, 0.76f},
+	{0.25f, 0.25f, 0.25f, 1.0f},
+	{0.34f, 0.5f, 0.76f, 1.0f},
 	{1.0f, 1.0f, 1.0f},
 	
 	{1.0f, 1.0f, 1.0f},
@@ -809,8 +939,8 @@ static struct uiWidgetColors wcol_radio= {
 
 static struct uiWidgetColors wcol_regular= {
 	{0.1f, 0.1f, 0.1f},
-	{0.6f, 0.6f, 0.6f},
-	{0.4f, 0.4f, 0.4f},
+	{0.6f, 0.6f, 0.6f, 1.0f},
+	{0.4f, 0.4f, 0.4f, 1.0f},
 	{0.1f, 0.1f, 0.1f},
 	
 	{0.0f, 0.0f, 0.0f},
@@ -822,8 +952,8 @@ static struct uiWidgetColors wcol_regular= {
 
 static struct uiWidgetColors wcol_regular_shade= {
 	{0.1f, 0.1f, 0.1f},
-	{0.6f, 0.6f, 0.6f},
-	{0.4f, 0.4f, 0.4f},
+	{0.6f, 0.6f, 0.6f, 1.0f},
+	{0.4f, 0.4f, 0.4f, 1.0f},
 	{0.1f, 0.1f, 0.1f},
 	
 	{0.0f, 0.0f, 0.0f},
@@ -841,7 +971,7 @@ static void widget_state(uiWidgetType *wt, int state)
 	wt->wcol= *(wt->wcol_theme);
 	
 	if(state & UI_SELECT) {
-		VECCOPY(wt->wcol.inner, wt->wcol.inner_sel);
+		QUATCOPY(wt->wcol.inner, wt->wcol.inner_sel);
 		VECCOPY(wt->wcol.text, wt->wcol.text_sel);
 		
 		/* only flip shade if it's not "pushed in" already */
@@ -851,6 +981,215 @@ static void widget_state(uiWidgetType *wt, int state)
 	}
 	else if(state & UI_ACTIVE) /* mouse over? */
 		VecMulf(wt->wcol.inner, 1.1f);
+}
+
+/* special case, button that calls pulldown */
+static void widget_state_pulldown(uiWidgetType *wt, int state)
+{
+	wt->wcol= *(wt->wcol_theme);
+	
+	QUATCOPY(wt->wcol.inner, wt->wcol.inner_sel);
+	VECCOPY(wt->wcol.outline, wt->wcol.inner);
+
+	if(state & UI_ACTIVE)
+		VECCOPY(wt->wcol.text, wt->wcol.text_sel);
+}
+
+/* special case, menu items */
+static void widget_state_menu_item(uiWidgetType *wt, int state)
+{
+	wt->wcol= *(wt->wcol_theme);
+	
+	if(state & UI_ACTIVE) {
+		QUATCOPY(wt->wcol.inner, wt->wcol.inner_sel);
+		VECCOPY(wt->wcol.text, wt->wcol.text_sel);
+		
+		wt->wcol.shaded= 1;
+	}
+}
+
+
+/* ************ menu backdrop ************************* */
+
+/* outside of rect, rad to left/bottom/right */
+static void widget_softshadow(rcti *rect, int roundboxalign, float radin, float radout)
+{
+	uiWidgetBase wtb;
+	rcti rect1= *rect;
+	float alpha, alphastep;
+	int step, tot, a;
+	
+	rect1.ymax -= 2.0f*radout;
+	
+	/* inner part */
+	tot= round_box_shadow_edges(wtb.inner_v, &rect1, radin, roundboxalign & 12, 1);
+	
+	/* inverse linear shadow alpha */
+	alpha= 0.15;
+	alphastep= 0.67;
+	
+	for(step= 1; step<=radout; step++, alpha*=alphastep) {
+		round_box_shadow_edges(wtb.outer_v, &rect1, (float)step, 15, 0);
+		
+		glColor4f(0.0f, 0.0f, 0.0f, alpha);
+		
+		glBegin(GL_QUAD_STRIP);
+		for(a=0; a<tot; a++) {
+			glVertex2fv(wtb.outer_v[a]);
+			glVertex2fv(wtb.inner_v[a]);
+		}
+		glEnd();
+	}
+	
+}
+
+static void widget_menu_back(uiWidgetColors *wcol, rcti *rect, int flag, int direction)
+{
+	uiWidgetBase wtb;
+	int roundboxalign= 15;
+	
+	widget_init(&wtb);
+	
+	/* menu is 2nd level or deeper */
+	if (flag & UI_BLOCK_POPUP) {
+		rect->ymin -= 4.0;
+		rect->ymax += 4.0;
+	}
+	else if (direction == UI_DOWN) {
+		roundboxalign= 12;
+		rect->ymin -= 4.0;
+	} 
+	else if (direction == UI_TOP) {
+		roundboxalign= 3;
+		rect->ymax += 4.0;
+	}
+	
+	glEnable(GL_BLEND);
+	widget_softshadow(rect, roundboxalign, 5.0f, 8.0f);
+	
+	round_box_edges(&wtb, roundboxalign, rect, 5.0f);
+	wtb.emboss= 0;
+	widgetbase_draw(&wtb, wcol);
+	
+	glDisable(GL_BLEND);
+}
+
+/* ************ custom buttons, old stuff ************** */
+
+/* draws in resolution of 20x4 colors */
+static void ui_draw_but_HSVCUBE(uiBut *but)
+{
+	int a;
+	float h,s,v;
+	float dx, dy, sx1, sx2, sy, x, y;
+	float col0[4][3];	// left half, rect bottom to top
+	float col1[4][3];	// right half, rect bottom to top
+	
+	h= but->hsv[0];
+	s= but->hsv[1];
+	v= but->hsv[2];
+	
+	/* draw series of gouraud rects */
+	glShadeModel(GL_SMOOTH);
+	
+	if(but->a1==0) {	// H and V vary
+		hsv_to_rgb(0.0, s, 0.0,   &col1[0][0], &col1[0][1], &col1[0][2]);
+		hsv_to_rgb(0.0, s, 0.333, &col1[1][0], &col1[1][1], &col1[1][2]);
+		hsv_to_rgb(0.0, s, 0.666, &col1[2][0], &col1[2][1], &col1[2][2]);
+		hsv_to_rgb(0.0, s, 1.0,   &col1[3][0], &col1[3][1], &col1[3][2]);
+		x= h; y= v;
+	}
+	else if(but->a1==1) {	// H and S vary
+		hsv_to_rgb(0.0, 0.0, v,   &col1[0][0], &col1[0][1], &col1[0][2]);
+		hsv_to_rgb(0.0, 0.333, v, &col1[1][0], &col1[1][1], &col1[1][2]);
+		hsv_to_rgb(0.0, 0.666, v, &col1[2][0], &col1[2][1], &col1[2][2]);
+		hsv_to_rgb(0.0, 1.0, v,   &col1[3][0], &col1[3][1], &col1[3][2]);
+		x= h; y= s;
+	}
+	else if(but->a1==2) {	// S and V vary
+		hsv_to_rgb(h, 0.0, 0.0,   &col1[0][0], &col1[0][1], &col1[0][2]);
+		hsv_to_rgb(h, 0.333, 0.0, &col1[1][0], &col1[1][1], &col1[1][2]);
+		hsv_to_rgb(h, 0.666, 0.0, &col1[2][0], &col1[2][1], &col1[2][2]);
+		hsv_to_rgb(h, 1.0, 0.0,   &col1[3][0], &col1[3][1], &col1[3][2]);
+		x= v; y= s;
+	}
+	else {		// only hue slider
+		hsv_to_rgb(0.0, 1.0, 1.0,   &col1[0][0], &col1[0][1], &col1[0][2]);
+		VECCOPY(col1[1], col1[0]);
+		VECCOPY(col1[2], col1[0]);
+		VECCOPY(col1[3], col1[0]);
+		x= h; y= 0.5;
+	}
+	
+	for(dx=0.0; dx<1.0; dx+= 0.05) {
+		// previous color
+		VECCOPY(col0[0], col1[0]);
+		VECCOPY(col0[1], col1[1]);
+		VECCOPY(col0[2], col1[2]);
+		VECCOPY(col0[3], col1[3]);
+		
+		// new color
+		if(but->a1==0) {	// H and V vary
+			hsv_to_rgb(dx, s, 0.0,   &col1[0][0], &col1[0][1], &col1[0][2]);
+			hsv_to_rgb(dx, s, 0.333, &col1[1][0], &col1[1][1], &col1[1][2]);
+			hsv_to_rgb(dx, s, 0.666, &col1[2][0], &col1[2][1], &col1[2][2]);
+			hsv_to_rgb(dx, s, 1.0,   &col1[3][0], &col1[3][1], &col1[3][2]);
+		}
+		else if(but->a1==1) {	// H and S vary
+			hsv_to_rgb(dx, 0.0, v,   &col1[0][0], &col1[0][1], &col1[0][2]);
+			hsv_to_rgb(dx, 0.333, v, &col1[1][0], &col1[1][1], &col1[1][2]);
+			hsv_to_rgb(dx, 0.666, v, &col1[2][0], &col1[2][1], &col1[2][2]);
+			hsv_to_rgb(dx, 1.0, v,   &col1[3][0], &col1[3][1], &col1[3][2]);
+		}
+		else if(but->a1==2) {	// S and V vary
+			hsv_to_rgb(h, 0.0, dx,   &col1[0][0], &col1[0][1], &col1[0][2]);
+			hsv_to_rgb(h, 0.333, dx, &col1[1][0], &col1[1][1], &col1[1][2]);
+			hsv_to_rgb(h, 0.666, dx, &col1[2][0], &col1[2][1], &col1[2][2]);
+			hsv_to_rgb(h, 1.0, dx,   &col1[3][0], &col1[3][1], &col1[3][2]);
+		}
+		else {	// only H
+			hsv_to_rgb(dx, 1.0, 1.0,   &col1[0][0], &col1[0][1], &col1[0][2]);
+			VECCOPY(col1[1], col1[0]);
+			VECCOPY(col1[2], col1[0]);
+			VECCOPY(col1[3], col1[0]);
+		}
+		
+		// rect
+		sx1= but->x1 + dx*(but->x2-but->x1);
+		sx2= but->x1 + (dx+0.05)*(but->x2-but->x1);
+		sy= but->y1;
+		dy= (but->y2-but->y1)/3.0;
+		
+		glBegin(GL_QUADS);
+		for(a=0; a<3; a++, sy+=dy) {
+			glColor3fv(col0[a]);
+			glVertex2f(sx1, sy);
+			
+			glColor3fv(col1[a]);
+			glVertex2f(sx2, sy);
+			
+			glColor3fv(col1[a+1]);
+			glVertex2f(sx2, sy+dy);
+			
+			glColor3fv(col0[a+1]);
+			glVertex2f(sx1, sy+dy);
+		}
+		glEnd();
+	}
+	
+	glShadeModel(GL_FLAT);
+	
+	/* cursor */
+	x= but->x1 + x*(but->x2-but->x1);
+	y= but->y1 + y*(but->y2-but->y1);
+	CLAMP(x, but->x1+3.0, but->x2-3.0);
+	CLAMP(y, but->y1+3.0, but->y2-3.0);
+	
+	fdrawXORcirc(x, y, 3.1);
+	
+	/* outline */
+	glColor3ub(0,  0,  0);
+	fdrawbox((but->x1), (but->y1), (but->x2), (but->y2));
 }
 
 
@@ -917,6 +1256,21 @@ static void widget_numslider(uiBut *but, uiWidgetColors *wcol, rcti *rect, int s
 	
 }
 
+static void widget_swatch(uiBut *but, uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
+{
+	uiWidgetBase wtb;
+	
+	widget_init(&wtb);
+	
+	/* half rounded */
+	round_box_edges(&wtb, roundboxalign, rect, 4.0f);
+		
+	ui_get_but_vectorf(but, wcol->inner);
+	
+	widgetbase_draw(&wtb, wcol);
+	
+}
+
 
 static void widget_textbut(uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
 {
@@ -946,6 +1300,34 @@ static void widget_menubut(uiWidgetColors *wcol, rcti *rect, int state, int roun
 	
 	widgetbase_draw(&wtb, wcol);
 }
+
+static void widget_pulldownbut(uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
+{
+	if(state & UI_ACTIVE) {
+		uiWidgetBase wtb;
+		
+		widget_init(&wtb);
+		
+		/* fully rounded */
+		round_box_edges(&wtb, roundboxalign, rect, 0.5f*(rect->ymax - rect->ymin));
+		
+		widgetbase_draw(&wtb, wcol);
+	}
+}
+
+static void widget_menu_itembut(uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
+{
+	uiWidgetBase wtb;
+	
+	widget_init(&wtb);
+	
+	/* not rounded, no outline */
+	wtb.outline= 0;
+	round_box_edges(&wtb, 0, rect, 0.0f);
+	
+	widgetbase_draw(&wtb, wcol);
+}
+
 
 static void widget_optionbut(uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
 {
@@ -1085,7 +1467,7 @@ static uiWidgetType *widget_type(uiWidgetTypeEnum type)
 			break;
 			
 			
-			/* menus */
+			/* start menus */
 		case UI_WTYPE_MENU_RADIO:
 			wt.wcol_theme= &wcol_menu;
 			wt.draw= widget_menubut;
@@ -1098,17 +1480,30 @@ static uiWidgetType *widget_type(uiWidgetTypeEnum type)
 			
 			
 		case UI_WTYPE_PULLDOWN:
+			wt.wcol_theme= &wcol_pulldown;
+			wt.draw= widget_pulldownbut;
+			wt.state= widget_state_pulldown;
 			break;
 			
+			/* in menus */
 		case UI_WTYPE_MENU_ITEM:
+			wt.wcol_theme= &wcol_menu_item;
+			wt.draw= widget_menu_itembut;
+			wt.state= widget_state_menu_item;
 			break;
 			
+		case UI_WTYPE_MENU_BACK:
+			wt.wcol_theme= &wcol_menu_back;
+			wt.draw= widget_menu_back;
+			break;
 			
 			/* specials */
 		case UI_WTYPE_ICON:
+			wt.draw= NULL;
 			break;
 			
 		case UI_WTYPE_SWATCH:
+			wt.custom= widget_swatch;
 			break;
 			
 		case UI_WTYPE_RGB_PICKER:
@@ -1167,7 +1562,7 @@ static int widget_roundbox_set(uiBut *but, rcti *rect)
 	return 15;
 }
 
-
+/* conversion from old to new buttons, so still messy */
 void ui_draw_but_new(ARegion *ar, uiBut *but)
 {
 	uiWidgetType *wt= NULL;
@@ -1179,40 +1574,90 @@ void ui_draw_but_new(ARegion *ar, uiBut *but)
 	rect.ymin= but->y1;
 	rect.ymax= but->y2;
 	
-	switch (but->type) {
-		case LABEL:
-			widget_draw_text_icon(but, &rect, wcol_regular.text);
-			break;
-		case BUT:
-			wt= widget_type(UI_WTYPE_EXEC);
-			break;
-		case NUM:
-			wt= widget_type(UI_WTYPE_NUMBER);
-			break;
-		case NUMSLI:
-			wt= widget_type(UI_WTYPE_SLIDER);
-			break;
-		case ROW:
-			wt= widget_type(UI_WTYPE_RADIO);
-			break;
-		case TEX:
-			wt= widget_type(UI_WTYPE_NAME);
-			break;
-		case TOG:
-		case TOGN:
-		case TOG3:
-			if (!(but->flag & UI_HAS_ICON))
-				wt= widget_type(UI_WTYPE_OPTION);
-			else
-				wt= widget_type(UI_WTYPE_TOGGLE);
-			break;
-		case MENU:
-		case BLOCK:
-			wt= widget_type(UI_WTYPE_MENU_RADIO);
-			break;
+	/* handle menus seperately */
+	if(but->dt==UI_EMBOSSP) {
+		switch (but->type) {
+			case LABEL:
+				widget_draw_text_icon(but, &rect, wcol_menu_back.text);
+				break;
+			case SEPR:
+				break;
+				
+			/* XXX in old code UI_EMBOSSP was set to distinguish these types, fix */
+			case PULLDOWN:
+			case HMENU:
+				wt= widget_type(UI_WTYPE_PULLDOWN);
+				break;
+				
+			default:
+				wt= widget_type(UI_WTYPE_MENU_ITEM);
+		}
+	}
+	else if(but->dt==UI_EMBOSSN) {
+		/* "nothing" */
+		wt= widget_type(UI_WTYPE_ICON);
+	}
+	else {
+		
+		switch (but->type) {
+			case LABEL:
+				if(but->block->flag & UI_BLOCK_LOOP)
+					widget_draw_text_icon(but, &rect, wcol_menu_back.text);
+				else
+					widget_draw_text_icon(but, &rect, wcol_regular.text);
+				break;
+			case SEPR:
+				break;
+			case BUT:
+				wt= widget_type(UI_WTYPE_EXEC);
+				break;
+			case NUM:
+				wt= widget_type(UI_WTYPE_NUMBER);
+				break;
+			case NUMSLI:
+			case HSVSLI:
+				wt= widget_type(UI_WTYPE_SLIDER);
+				break;
+			case ROW:
+				wt= widget_type(UI_WTYPE_RADIO);
+				break;
+			case TEX:
+				wt= widget_type(UI_WTYPE_NAME);
+				break;
+			case TOG:
+			case TOGN:
+			case TOG3:
+				if (!(but->flag & UI_HAS_ICON))
+					wt= widget_type(UI_WTYPE_OPTION);
+				else
+					wt= widget_type(UI_WTYPE_TOGGLE);
+				break;
+			case MENU:
+			case BLOCK:
+			case ICONTEXTROW:
+				wt= widget_type(UI_WTYPE_MENU_RADIO);
+				break;
+				
+			case PULLDOWN:
+			case HMENU:
+				wt= widget_type(UI_WTYPE_PULLDOWN);
+				break;
 			
-		default:
-			wt= widget_type(UI_WTYPE_TOGGLE);
+			case BUTM:
+				wt= widget_type(UI_WTYPE_MENU_ITEM);
+				break;
+				
+			case COL:
+				wt= widget_type(UI_WTYPE_SWATCH);
+				break;
+			
+			case HSVCUBE:
+				ui_draw_but_HSVCUBE(but); // XXX old
+				break;
+				
+			default:
+				wt= widget_type(UI_WTYPE_TOGGLE);
+		}
 	}
 	
 	if(wt) {
@@ -1225,7 +1670,7 @@ void ui_draw_but_new(ARegion *ar, uiBut *but)
 		wt->state(wt, state);
 		if(wt->custom)
 			wt->custom(but, &wt->wcol, &rect, state, roundboxalign);
-		else
+		else if(wt->draw)
 			wt->draw(&wt->wcol, &rect, state, roundboxalign);
 		wt->text(but, &rect, wt->wcol.text);
 		
@@ -1234,6 +1679,21 @@ void ui_draw_but_new(ARegion *ar, uiBut *but)
 	}
 }
 
+void ui_draw_menu_back(uiBlock *block)
+{
+	uiWidgetType *wt= widget_type(UI_WTYPE_MENU_BACK);
+	rcti rect;
+	
+	/* XXX project later? */
+	rect.xmin= block->minx;
+	rect.xmax= block->maxx;
+	rect.ymin= block->miny;
+	rect.ymax= block->maxy;
+	
+	wt->state(wt, 0);
+	wt->draw(&wt->wcol, &rect, block->flag, block->direction);
+	
+}
 
 /* test function only */
 void drawnewstuff()

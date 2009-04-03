@@ -64,7 +64,7 @@
 #define MENU_BUTTON_HEIGHT	20
 #define MENU_SEPR_HEIGHT	6
 #define B_NOP              	-1
-#define MENU_SHADOW_LEFT	-1
+#define MENU_SHADOW_LEFT	-10
 #define MENU_SHADOW_BOTTOM	-10
 #define MENU_SHADOW_RIGHT	10
 #define MENU_SHADOW_TOP		1
@@ -701,6 +701,9 @@ uiPopupBlockHandle *ui_popup_block_create(bContext *C, ARegion *butregion, uiBut
 
 	/* get winmat now that we actually have the subwindow */
 	wmSubWindowSet(window, ar->swinid);
+			// XXX ton, AA pixel space...
+	wmOrtho2(0.0, (float)ar->winrct.xmax-ar->winrct.xmin+1, 0.0, (float)ar->winrct.ymax-ar->winrct.ymin+1);
+	
 	wm_subwindow_getmatrix(window, ar->swinid, block->winmat);
 	
 	/* notify change and redraw */
