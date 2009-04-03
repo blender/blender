@@ -4433,7 +4433,10 @@ static void object_panel_particle_visual(Object *ob)
 	block= uiNewBlock(&curarea->uiblocks, "object_panel_particle_visual", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Visualization", "Particle", 640, 0, 318, 204)==0) return;
 
-	uiDefButS(block, MENU, B_PART_RECALC, "Billboard %x9|Group %x8|Object %x7|Path %x6|Line %x5|Axis %x4|Cross %x3|Circle %x2|Point %x1|None %x0", butx,buty,butw,buth, &part->draw_as, 14.0, 0.0, 0, 0, "How particles are visualized");
+	if(part->type==PART_HAIR)
+		uiDefButS(block, MENU, B_PART_RECALC, "Group %x8|Object %x7|Path %x6|None %x0", butx,buty,butw,buth, &part->draw_as, 14.0, 0.0, 0, 0, "How hair is visualized");
+	else
+		uiDefButS(block, MENU, B_PART_RECALC, "Billboard %x9|Group %x8|Object %x7|Path %x6|Line %x5|Axis %x4|Cross %x3|Circle %x2|Point %x1|None %x0", butx,buty,butw,buth, &part->draw_as, 14.0, 0.0, 0, 0, "How particles are visualized");
 
 	if(part->draw_as==PART_DRAW_NOT) {
 		uiDefButBitS(block, TOG, PART_DRAW_EMITTER, B_PART_REDRAW, "Render emitter",	butx,(buty-=2*buth),butw,buth, &part->draw, 0, 0, 0, 0, "Render emitter object");

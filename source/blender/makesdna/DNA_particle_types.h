@@ -304,7 +304,7 @@ typedef struct ParticleSystem{				/* note, make sure all (runtime) are NULL's in
 #define PART_DRAW_ANG		2
 #define PART_DRAW_SIZE		4
 #define PART_DRAW_EMITTER	8	/* render emitter also */
-#define PART_DRAW_KEYS		16
+//#define PART_DRAW_KEYS		16 /* not used anywhere */
 #define PART_DRAW_ADAPT		32
 #define PART_DRAW_COS		64
 #define PART_DRAW_BB_LOCK	128

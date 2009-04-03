@@ -792,19 +792,13 @@ void countall()
 			if(ob->transflag & OB_DUPLIPARTS) {
 				ParticleSystem *psys;
 				ParticleSettings *part;
-				int step_nbr;
 
 				for(psys=ob->particlesystem.first; psys; psys=psys->next){
 					part=psys->part;
-					
-					//if(psys->flag&PSYS_BAKED && part->draw&PART_DRAW_KEYS)
-					//	step_nbr=part->keys_step;
-					//else
-						step_nbr=1;
 
 					if(part->draw_as==PART_DRAW_OB && part->dup_ob){
 						int tot=count_particles(psys);
-						count_object(part->dup_ob, 0, tot*step_nbr);
+						count_object(part->dup_ob, 0, tot);
 					}
 					else if(part->draw_as==PART_DRAW_GR && part->dup_group){
 						GroupObject *go;
@@ -818,7 +812,7 @@ void countall()
 						go= part->dup_group->gobject.first;
 						while(go){
 							tot=count_particles_mod(psys,totgroup,cur);
-							count_object(go->ob, 0, tot*step_nbr);
+							count_object(go->ob, 0, tot);
 							cur++;
 							go=go->next;
 						}
