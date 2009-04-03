@@ -908,7 +908,7 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Object *par, float par_
 				else
 					Mat4CpyMat4(mat, tmat);
 
-				dob= new_dupli_object(lb, ob, mat, par->lay, counter, OB_DUPLIPARTS, animated);
+				dob= new_dupli_object(lb, ob, mat, ob->lay, counter, OB_DUPLIPARTS, animated);
 				Mat4CpyMat4(dob->omat, oldobmat);
 				if(G.rendering)
 					psys_get_dupli_texture(par, part, psmd, pa, cpa, dob->uv, dob->orco);
