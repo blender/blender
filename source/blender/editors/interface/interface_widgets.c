@@ -91,6 +91,10 @@ typedef struct uiWidgetColors {
 	float outline[3];
 	float inner[4];
 	float inner_sel[4];
+	float inner_anim[4];
+	float inner_anim_sel[4];
+	float inner_key[4];
+	float inner_key_sel[4];
 	float item[3];
 	float text[3];
 	float text_sel[3];
@@ -805,8 +809,12 @@ static void widget_draw_text_icon(uiBut *but, rcti *rect, float *col)
 
 /*		
  float outline[3];
- float inner[3];
- float inner_sel[3];
+ float inner[4];
+ float inner_sel[4];
+ float inner_anim[4];
+ float inner_anim_sel[4];
+ float inner_key[4];
+ float inner_key_sel[4];
  float item[3];
  float text[3];
  float text_sel[3];
@@ -819,6 +827,10 @@ static struct uiWidgetColors wcol_num= {
 	{0.1f, 0.1f, 0.1f},
 	{0.7f, 0.7f, 0.7f, 1.0f},
 	{0.6f, 0.6f, 0.6f, 1.0f},
+	{0.45, 0.75, 0.3f, 1.0f},
+	{0.35, 0.65, 0.2f, 1.0f},
+	{0.95, 0.9, 0.4f, 1.0f},
+	{0.85, 0.8, 0.3f, 1.0f},
 	{0.35f, 0.35f, 0.35f},
 	
 	{0.0f, 0.0f, 0.0f},
@@ -832,6 +844,10 @@ static struct uiWidgetColors wcol_numslider= {
 	{0.1f, 0.1f, 0.1f},
 	{0.7f, 0.7f, 0.7f, 1.0f},
 	{0.6f, 0.6f, 0.6f, 1.0f},
+	{0.45, 0.75, 0.3f, 1.0f},
+	{0.35, 0.65, 0.2f, 1.0f},
+	{0.95, 0.9, 0.4f, 1.0f},
+	{0.85, 0.8, 0.3f, 1.0f},
 	{0.5f, 0.5f, 0.5f},
 	
 	{0.0f, 0.0f, 0.0f},
@@ -845,6 +861,10 @@ static struct uiWidgetColors wcol_text= {
 	{0.1f, 0.1f, 0.1f},
 	{0.6f, 0.6f, 0.6f, 1.0f},
 	{0.6f, 0.6f, 0.6f, 1.0f},
+	{0.45, 0.75, 0.3f, 1.0f},
+	{0.35, 0.65, 0.2f, 1.0f},
+	{0.95, 0.9, 0.4f, 1.0f},
+	{0.85, 0.8, 0.3f, 1.0f},
 	{0.35f, 0.35f, 0.35f},
 	
 	{0.0f, 0.0f, 0.0f},
@@ -858,6 +878,10 @@ static struct uiWidgetColors wcol_option= {
 	{0.0f, 0.0f, 0.0f},
 	{0.25f, 0.25f, 0.25f, 1.0f},
 	{0.25f, 0.25f, 0.25f, 1.0f},
+	{0.45, 0.75, 0.3f, 1.0f},
+	{0.35, 0.65, 0.2f, 1.0f},
+	{0.95, 0.9, 0.4f, 1.0f},
+	{0.85, 0.8, 0.3f, 1.0f},
 	{1.0f, 1.0f, 1.0f},
 	
 	{0.0f, 0.0f, 0.0f},
@@ -872,6 +896,10 @@ static struct uiWidgetColors wcol_menu= {
 	{0.0f, 0.0f, 0.0f},
 	{0.25f, 0.25f, 0.25f, 1.0f},
 	{0.25f, 0.25f, 0.25f, 1.0f},
+	{0.45, 0.75, 0.3f, 1.0f},
+	{0.35, 0.65, 0.2f, 1.0f},
+	{0.95, 0.9, 0.4f, 1.0f},
+	{0.85, 0.8, 0.3f, 1.0f},
 	{1.0f, 1.0f, 1.0f},
 	
 	{1.0f, 1.0f, 1.0f},
@@ -886,6 +914,10 @@ static struct uiWidgetColors wcol_pulldown= {
 	{0.0f, 0.0f, 0.0f},
 	{0.25f, 0.25f, 0.25f, 1.0f},
 	{0.18f, 0.48f, 0.85f, 1.0f},
+	{0.45, 0.75, 0.3f, 1.0f},
+	{0.35, 0.65, 0.2f, 1.0f},
+	{0.95, 0.9, 0.4f, 1.0f},
+	{0.85, 0.8, 0.3f, 1.0f},
 	{1.0f, 1.0f, 1.0f},
 	
 	{1.0f, 1.0f, 1.0f},
@@ -900,6 +932,10 @@ static struct uiWidgetColors wcol_menu_item= {
 	{0.0f, 0.0f, 0.0f},
 	{0.0f, 0.0f, 0.0f, 0.3},
 	{0.23f, 0.53f, 0.9f, 0.9f},
+	{0.45, 0.75, 0.3f, 1.0f},
+	{0.35, 0.65, 0.2f, 1.0f},
+	{0.95, 0.9, 0.4f, 1.0f},
+	{0.85, 0.8, 0.3f, 1.0f},
 	{1.0f, 1.0f, 1.0f},
 	
 	{1.0f, 1.0f, 1.0f},
@@ -914,6 +950,10 @@ static struct uiWidgetColors wcol_menu_back= {
 	{0.0f, 0.0f, 0.0f},
 	{0.0f, 0.0f, 0.0f, 0.6},
 	{0.18f, 0.48f, 0.85f, 0.8f},
+	{0.45, 0.75, 0.3f, 1.0f},
+	{0.35, 0.65, 0.2f, 1.0f},
+	{0.95, 0.9, 0.4f, 1.0f},
+	{0.85, 0.8, 0.3f, 1.0f},
 	{1.0f, 1.0f, 1.0f},
 	
 	{1.0f, 1.0f, 1.0f},
@@ -928,6 +968,10 @@ static struct uiWidgetColors wcol_radio= {
 	{0.0f, 0.0f, 0.0f},
 	{0.25f, 0.25f, 0.25f, 1.0f},
 	{0.34f, 0.5f, 0.76f, 1.0f},
+	{0.45, 0.75, 0.3f, 1.0f},
+	{0.35, 0.65, 0.2f, 1.0f},
+	{0.95, 0.9, 0.4f, 1.0f},
+	{0.85, 0.8, 0.3f, 1.0f},
 	{1.0f, 1.0f, 1.0f},
 	
 	{1.0f, 1.0f, 1.0f},
@@ -941,6 +985,10 @@ static struct uiWidgetColors wcol_regular= {
 	{0.1f, 0.1f, 0.1f},
 	{0.6f, 0.6f, 0.6f, 1.0f},
 	{0.4f, 0.4f, 0.4f, 1.0f},
+	{0.45, 0.75, 0.3f, 1.0f},
+	{0.35, 0.65, 0.2f, 1.0f},
+	{0.95, 0.9, 0.4f, 1.0f},
+	{0.85, 0.8, 0.3f, 1.0f},
 	{0.1f, 0.1f, 0.1f},
 	
 	{0.0f, 0.0f, 0.0f},
@@ -954,6 +1002,10 @@ static struct uiWidgetColors wcol_regular_shade= {
 	{0.1f, 0.1f, 0.1f},
 	{0.6f, 0.6f, 0.6f, 1.0f},
 	{0.4f, 0.4f, 0.4f, 1.0f},
+	{0.45, 0.75, 0.3f, 1.0f},
+	{0.35, 0.65, 0.2f, 1.0f},
+	{0.95, 0.9, 0.4f, 1.0f},
+	{0.85, 0.8, 0.3f, 1.0f},
 	{0.1f, 0.1f, 0.1f},
 	
 	{0.0f, 0.0f, 0.0f},
@@ -971,7 +1023,13 @@ static void widget_state(uiWidgetType *wt, int state)
 	wt->wcol= *(wt->wcol_theme);
 	
 	if(state & UI_SELECT) {
-		QUATCOPY(wt->wcol.inner, wt->wcol.inner_sel);
+		if(state & UI_BUT_ANIMATED_KEY)
+			QUATCOPY(wt->wcol.inner, wt->wcol.inner_key_sel)
+		else if(state & UI_BUT_ANIMATED)
+			QUATCOPY(wt->wcol.inner, wt->wcol.inner_anim_sel)
+		else
+			QUATCOPY(wt->wcol.inner, wt->wcol.inner_sel)
+
 		VECCOPY(wt->wcol.text, wt->wcol.text_sel);
 		
 		/* only flip shade if it's not "pushed in" already */
@@ -979,8 +1037,15 @@ static void widget_state(uiWidgetType *wt, int state)
 			SWAP(float, wt->wcol.shadetop, wt->wcol.shadedown);
 		}
 	}
-	else if(state & UI_ACTIVE) /* mouse over? */
-		VecMulf(wt->wcol.inner, 1.1f);
+	else {
+		if(state & UI_BUT_ANIMATED_KEY)
+			QUATCOPY(wt->wcol.inner, wt->wcol.inner_key)
+		else if(state & UI_BUT_ANIMATED)
+			QUATCOPY(wt->wcol.inner, wt->wcol.inner_anim)
+
+		if(state & UI_ACTIVE) /* mouse over? */
+			VecMulf(wt->wcol.inner, 1.1f);
+	}
 }
 
 /* special case, button that calls pulldown */

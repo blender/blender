@@ -171,6 +171,19 @@ FCurve *list_find_fcurve (ListBase *list, const char rna_path[], const int array
 	return NULL;
 }
 
+int on_keyframe_fcurve(FCurve *fcu, float cfra)
+{
+	BezTriple *bezt;
+	int i;
+
+	bezt= fcu->bezt;
+	for (i=0; i<fcu->totvert; i++, bezt++)
+		if(IS_EQ(bezt->vec[1][0], cfra))
+			return 1;
+	
+	return 0;
+}
+
 /* Calculate the extents of F-Curve's data */
 void calc_fcurve_bounds (FCurve *fcu, float *xmin, float *xmax, float *ymin, float *ymax)
 {

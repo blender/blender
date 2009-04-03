@@ -94,6 +94,11 @@ void ANIM_OT_insert_keyframe_menu(struct wmOperatorType *ot);
 void ANIM_OT_delete_keyframe_menu(struct wmOperatorType *ot); // xxx unimplemented yet
 void ANIM_OT_delete_keyframe_old(struct wmOperatorType *ot); // xxx rename and keep?
 
+/* Keyframe managment operators for UI buttons. */
+
+void ANIM_OT_insert_keyframe_button(struct wmOperatorType *ot);
+void ANIM_OT_delete_keyframe_button(struct wmOperatorType *ot);
+
 /* ************ Auto-Keyframing ********************** */
 /* Notes:
  * - All the defines for this (User-Pref settings and Per-Scene settings)

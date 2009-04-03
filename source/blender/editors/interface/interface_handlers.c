@@ -2593,10 +2593,26 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, wmEvent *event)
 	if(but->flag & UI_BUT_DISABLED)
 		return WM_UI_HANDLER_BREAK;
 
-	/* handle copy-paste */
 	if(data->state == BUTTON_STATE_HIGHLIGHT) {
+		/* handle copy-paste */
 		if(ELEM(event->type, CKEY, VKEY) && event->val==KM_PRESS && (event->ctrl || event->oskey)) {
 			ui_but_copy_paste(C, but, data, (event->type == CKEY)? 'c': 'v');
+			return WM_UI_HANDLER_BREAK;
+		}
+		/* handle keyframeing */
+		else if(event->type == IKEY && event->val == KM_PRESS) {
+			if(event->alt)
+				ui_but_anim_delete_keyframe(C);
+			else
+				ui_but_anim_insert_keyframe(C);
+
+			ED_region_tag_redraw(CTX_wm_region(C));
+
+			return WM_UI_HANDLER_BREAK;
+		}
+		/* handle menu */
+		else if(event->type == RIGHTMOUSE && event->val == KM_PRESS) {
+			ui_but_anim_menu(C, but);
 			return WM_UI_HANDLER_BREAK;
 		}
 	}

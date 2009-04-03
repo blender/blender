@@ -115,12 +115,9 @@ static int panels_re_align(ScrArea *sa, ARegion *ar)
 	if(sa->spacetype==SPACE_BUTS && ar->regiontype == RGN_TYPE_WINDOW) {
 		SpaceButs *sbuts= sa->spacedata.first;
 
-		if(sbuts->align) {
-			if(sbuts->re_align || sbuts->mainbo!=sbuts->mainb || sbuts->tabo!=sbuts->tab[sbuts->mainb]) {
-				sbuts->re_align= 0;
+		if(sbuts->align)
+			if(sbuts->re_align || sbuts->mainbo!=sbuts->mainb || sbuts->tabo!=sbuts->tab[sbuts->mainb])
 				return 1;
-			}
-		}
 
 		return 0;
 	}

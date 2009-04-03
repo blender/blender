@@ -910,7 +910,7 @@ void uiLayoutEnd(const bContext *C, uiBlock *block, uiLayout *layout, int *x, in
 	ui_layout_free(layout);
 }
 
-/* Utilities */
+/************************ Utilities ************************/
 
 void uiRegionPanelLayout(const bContext *C, ARegion *ar, int vertical, char *context)
 {

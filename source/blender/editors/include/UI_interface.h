@@ -131,6 +131,8 @@ typedef struct uiPopupBlockHandle uiPopupBlockHandle;
 #define UI_BUT_DISABLED		(1<<18)
 /* dont draw hilite on mouse over */
 #define UI_NO_HILITE		(1<<19)
+#define UI_BUT_ANIMATED		(1<<20)
+#define UI_BUT_ANIMATED_KEY	(1<<21)
 
 /* Button types, bits stored in 1 value... and a short even!
 - bits 0-4:  bitnr (0-31)
@@ -625,6 +627,10 @@ typedef void (*uiPanelCreateFunc)(const struct bContext *C, uiLayout *layout);
 
 void uiRegionPanelLayout(const struct bContext *C, struct ARegion *ar, int vertical, char *context);
 void uiRegionHeaderLayout(const struct bContext *C, struct ARegion *ar);
+
+/* Animation */
+
+void uiAnimContextProperty(const struct bContext *C, struct PointerRNA *ptr, struct PropertyRNA **prop, int *index);
 
 #endif /*  UI_INTERFACE_H */
 

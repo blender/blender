@@ -197,6 +197,10 @@ static void buttons_main_area_draw(const bContext *C, ARegion *ar)
 		
 		/* scrollers? */
 	}
+
+    sbuts->re_align= 0;
+	sbuts->mainbo= sbuts->mainb;
+	sbuts->tabo= sbuts->tab[sbuts->mainb];
 }
 
 void buttons_operatortypes(void)

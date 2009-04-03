@@ -350,5 +350,11 @@ extern void ui_button_active_cancel(const struct bContext *C, uiBut *but);
 void ui_draw_anti_tria(float x1, float y1, float x2, float y2, float x3, float y3);
 void ui_draw_menu_back(uiBlock *block);
 
+/* interface_anim.c */
+void ui_but_anim_flag(uiBut *but, float cfra);
+void ui_but_anim_insert_keyframe(struct bContext *C);
+void ui_but_anim_delete_keyframe(struct bContext *C);
+void ui_but_anim_menu(struct bContext *C, uiBut *but);
+
 #endif
 

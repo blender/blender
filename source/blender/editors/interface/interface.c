@@ -33,6 +33,7 @@
 
 #include "DNA_ID.h"
 #include "DNA_listBase.h"
+#include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_texture_types.h"
 #include "DNA_userdef_types.h"
@@ -591,6 +592,7 @@ void ui_menu_block_set_keymaps(const bContext *C, uiBlock *block)
 void uiEndBlock(const bContext *C, uiBlock *block)
 {
 	uiBut *but;
+	Scene *scene= CTX_data_scene(C);
 
 	/* inherit flags from 'old' buttons that was drawn here previous, based
 	 * on matching buttons, we need this to make button event handling non
@@ -612,6 +614,8 @@ void uiEndBlock(const bContext *C, uiBlock *block)
 		/* only update soft range while not editing */
 		if(but->rnaprop && !(but->editval || but->editstr || but->editvec))
 			ui_set_but_soft_range(but, ui_get_but_val(but));
+
+		ui_but_anim_flag(but, (scene)? scene->r.cfra: 0.0f);
 	}
 
 	if(block->oldblock) {

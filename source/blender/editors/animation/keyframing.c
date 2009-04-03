@@ -2367,6 +2367,134 @@ void ANIM_OT_delete_keyframe_old (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
+
+/* Insert Key Button Operator ------------------------ */
+
+static int insert_key_button_exec (bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	PointerRNA ptr;
+	PropertyRNA *prop;
+	char *path;
+	float cfra= (float)CFRA; // XXX for now, don't bother about all the yucky offset crap
+	short success= 0;
+	int a, index, length, all= RNA_boolean_get(op->ptr, "all");
+	
+	/* try to insert keyframe using property retrieved from UI */
+	uiAnimContextProperty(C, &ptr, &prop, &index);
+
+	if(ptr.data && prop && RNA_property_animateable(ptr.data, prop)) {
+		path= RNA_path_from_ID_to_property(&ptr, prop);
+
+		if(path) {
+			if(all) {
+				length= RNA_property_array_length(&ptr, prop);
+
+				if(length) index= 0;
+				else length= 1;
+			}
+			else
+				length= 1;
+
+			for(a=0; a<length; a++)
+				success+= insertkey(ptr.id.data, NULL, path, index+a, cfra, 0);
+
+			MEM_freeN(path);
+		}
+	}
+	
+	if(success) {
+		/* send updates */
+		ED_anim_dag_flush_update(C);	
+		
+		/* for now, only send ND_KEYS for KeyingSets */
+		WM_event_add_notifier(C, ND_KEYS, NULL);
+	}
+	
+	return (success)? OPERATOR_FINISHED: OPERATOR_CANCELLED;
+}
+
+void ANIM_OT_insert_keyframe_button (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Insert Keyframe";
+	ot->idname= "ANIM_OT_insert_keyframe_button";
+	
+	/* callbacks */
+	ot->exec= insert_key_button_exec; 
+	ot->poll= modify_key_op_poll;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* properties */
+	RNA_def_boolean(ot->srna, "all", 1, "All", "Insert a keyframe for all element of the array.");
+}
+
+/* Delete Key Button Operator ------------------------ */
+
+static int delete_key_button_exec (bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	PointerRNA ptr;
+	PropertyRNA *prop;
+	char *path;
+	float cfra= (float)CFRA; // XXX for now, don't bother about all the yucky offset crap
+	short success= 0;
+	int a, index, length, all= RNA_boolean_get(op->ptr, "all");
+	
+	/* try to insert keyframe using property retrieved from UI */
+	uiAnimContextProperty(C, &ptr, &prop, &index);
+
+	if(ptr.data && prop) {
+		path= RNA_path_from_ID_to_property(&ptr, prop);
+
+		if(path) {
+			if(all) {
+				length= RNA_property_array_length(&ptr, prop);
+
+				if(length) index= 0;
+				else length= 1;
+			}
+			else
+				length= 1;
+
+			for(a=0; a<length; a++)
+				success+= deletekey(ptr.id.data, NULL, path, index+a, cfra, 0);
+
+			MEM_freeN(path);
+		}
+	}
+	
+	
+	if(success) {
+		/* send updates */
+		ED_anim_dag_flush_update(C);	
+		
+		/* for now, only send ND_KEYS for KeyingSets */
+		WM_event_add_notifier(C, ND_KEYS, NULL);
+	}
+	
+	return (success)? OPERATOR_FINISHED: OPERATOR_CANCELLED;
+}
+
+void ANIM_OT_delete_keyframe_button (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Delete Keyframe";
+	ot->idname= "ANIM_OT_delete_keyframe_button";
+	
+	/* callbacks */
+	ot->exec= delete_key_button_exec; 
+	ot->poll= modify_key_op_poll;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* properties */
+	RNA_def_boolean(ot->srna, "all", 1, "All", "Delete keyfames from all elements of the array.");
+}
+
 /* ******************************************* */
 /* KEYFRAME DETECTION */
 
