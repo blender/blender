@@ -822,6 +822,9 @@ public:
 	static PyObject*	pyattr_get_state(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static int			pyattr_set_state(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 	
+	/* for dir(), python3 uses __dir__() */
+	static PyObject*	pyattr_get_dir_dict(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	
 	/* getitem/setitem */
 	static int					Map_Len(PyObject* self);
 	static PyMappingMethods	Mapping;

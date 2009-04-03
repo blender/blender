@@ -100,9 +100,8 @@ static inline void Py_Fatal(const char *M) {
 		PyErr_Clear(); \
 		rvalue = Parent::_getattr(attr); \
 	} \
-	if ((rvalue == NULL) && !strcmp(attr, "__dict__")) {\
-		PyErr_Clear(); \
-		rvalue = _getattr_dict(Parent::_getattr(attr), Methods, Attributes); \
+	if (strcmp(attr, "__dict__")==0) {\
+		rvalue = _getattr_dict(rvalue, Methods, Attributes); \
 	} \
 	return rvalue; \
 

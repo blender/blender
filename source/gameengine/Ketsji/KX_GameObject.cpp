@@ -942,14 +942,14 @@ const MT_Vector3& KX_GameObject::NodeGetWorldScaling() const
 }
 
 
-
+static MT_Point3 dummy_point= MT_Point3(0.0, 0.0, 0.0);
 const MT_Point3& KX_GameObject::NodeGetWorldPosition() const
 {
 	// check on valid node in case a python controller holds a reference to a deleted object
 	if (GetSGNode())
 		return GetSGNode()->GetWorldPosition();
 	else
-		return MT_Point3(0.0, 0.0, 0.0);
+		return dummy_point;
 }
 
 /* Suspend/ resume: for the dynamic behaviour, there is a simple
@@ -1043,6 +1043,7 @@ PyAttributeDef KX_GameObject::Attributes[] = {
 	KX_PYATTRIBUTE_RW_FUNCTION("scaling",	KX_GameObject, pyattr_get_scaling,	pyattr_set_scaling),
 	KX_PYATTRIBUTE_RW_FUNCTION("timeOffset",KX_GameObject, pyattr_get_timeOffset,pyattr_set_timeOffset),
 	KX_PYATTRIBUTE_RW_FUNCTION("state",		KX_GameObject, pyattr_get_state,	pyattr_set_state),
+	KX_PYATTRIBUTE_RO_FUNCTION("__dict__",	KX_GameObject, pyattr_get_dir_dict),
 	{NULL} //Sentinel
 };
 
@@ -1412,15 +1413,36 @@ int KX_GameObject::pyattr_set_state(void *self_v, const KX_PYATTRIBUTE_DEF *attr
 	return 0;
 }
 
+/* __dict__ only for the purpose of giving useful dir() results */
+PyObject* KX_GameObject::pyattr_get_dir_dict(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
+	PyObject *dict= _getattr_dict(self->SCA_IObject::_getattr("__dict__"), KX_GameObject::Methods, KX_GameObject::Attributes);
+	
+	if(dict==NULL)
+		return NULL;
+	
+	/* Not super fast getting as a list then making into dict keys but its only for dir() */
+	PyObject *list= self->ConvertKeysToPython();
+	if(list)
+	{
+		int i;
+		for(i=0; i<PyList_Size(list); i++)
+			PyDict_SetItem(dict, PyList_GET_ITEM(list, i), Py_None);
+	}
+	else
+		PyErr_Clear();
+	
+	Py_DECREF(list);
+	
+	return dict;
+}
+
 PyObject* KX_GameObject::_getattr(const char *attr)
 {
 	PyObject* object = _getattr_self(Attributes, this, attr);
 	if (object != NULL)
 		return object;
-	
-	if (!strcmp(attr, "__dict__")) { /* python 3.0 uses .__dir__()*/
-		return _getattr_dict(SCA_IObject::_getattr(attr), Methods, Attributes);
-	}
 	
 	_getattr_up(SCA_IObject);
 }

@@ -565,6 +565,15 @@ public:
 	KX_PYMETHOD_DOC(KX_Scene, setSceneViewport);
 	*/
 
+	/* attributes */
+	static PyObject*	pyattr_get_name(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject*	pyattr_get_objects(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject*	pyattr_get_active_camera(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	
+	/* for dir(), python3 uses __dir__() */
+	static PyObject*	pyattr_get_dir_dict(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	
+
 	virtual PyObject* _getattr(const char *attr); /* name, active_camera, gravity, suspended, viewport, framing, activity_culling, activity_culling_radius */
 	virtual int _setattr(const char *attr, PyObject *pyvalue);
 	virtual int _delattr(const char *attr);
