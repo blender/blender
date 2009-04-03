@@ -204,7 +204,7 @@ void usage(const char* program)
 	printf("       show_properties                0         Show debug properties\n");
 	printf("       show_profile                   0         Show profiling information\n");
 	printf("       blender_material               0         Enable material settings\n");
-	printf("       ignore_deprecation_warnings    0         Ignore deprecation warnings\n");
+	printf("       ignore_deprecation_warnings    1         Ignore deprecation warnings\n");
 	printf("\n");
 	printf("example: %s -w 320 200 10 10 -g noaudio c:\\loadtest.blend\n", program);
 	printf("example: %s -g show_framerate = 0 c:\\loadtest.blend\n", program);
