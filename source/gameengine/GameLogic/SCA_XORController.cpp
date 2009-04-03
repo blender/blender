@@ -120,13 +120,10 @@ PyTypeObject SCA_XORController::Type = {
 	0,
 	__getattr,
 	__setattr,
-	0, //&MyPyCompare,
+	0,
 	__repr,
-	0, //&cvalue_as_number,
-	0,
-	0,
-	0,
-	0
+	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+	Methods
 };
 
 PyParentObject SCA_XORController::Parents[] = {

@@ -176,13 +176,10 @@ PyTypeObject KX_SCA_AddObjectActuator::Type = {
 	0,
 	__getattr,
 	__setattr,
-	0, 
+	0,
 	__repr,
-	0,
-	0,
-	0,
-	0,
-	0
+	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+	Methods
 };
 
 PyParentObject KX_SCA_AddObjectActuator::Parents[] = {

@@ -142,11 +142,8 @@ PyTypeObject SCA_DelaySensor::Type = {
 	__setattr,
 	0, //&MyPyCompare,
 	__repr,
-	0, //&cvalue_as_number,
-	0,
-	0,
-	0,
-	0
+	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+	Methods
 };
 
 PyParentObject SCA_DelaySensor::Parents[] = {

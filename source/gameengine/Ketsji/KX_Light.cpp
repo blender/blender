@@ -306,29 +306,6 @@ PyAttributeDef KX_LightObject::Attributes[] = {
 	{ NULL }	//Sentinel
 };
 
-char KX_LightObject::doc[] = "Module KX_LightObject\n\n"
-"Constants:\n"
-"\tSPOT\n"
-"\tSUN\n"
-"\tNORMAL\n"
-"Attributes:\n"
-"\ttype -> SPOT, SUN or NORMAL\n"
-"\t\tThe type of light.\n"
-"\tlayer -> integer bit field.\n"
-"\t\tThe layers this light applies to.\n"
-"\tenergy -> float.\n"
-"\t\tThe brightness of the light.\n"
-"\tdistance -> float.\n"
-"\t\tThe effect radius of the light.\n"
-"\tcolour -> list [r, g, b].\n"
-"\tcolor  -> list [r, g, b].\n"
-"\t\tThe color of the light.\n"
-"\tlin_attenuation -> float.\n"
-"\t\tThe attenuation factor for the light.\n"
-"\tspotsize -> float.\n"
-"\t\tThe size of the spot.\n"
-"\tspotblend -> float.\n"
-"\t\tThe blend? of the spot.\n";
 
 PyTypeObject KX_LightObject::Type = {
 	PyObject_HEAD_INIT(&PyType_Type)
@@ -340,14 +317,10 @@ PyTypeObject KX_LightObject::Type = {
 		0,
 		__getattr,
 		__setattr,
-		0, //&MyPyCompare,
+		0,
 		__repr,
-		0, //&cvalue_as_number,
-		0,
-		0,
-		0,
-		0, 0, 0, 0, 0, 0,
-		doc
+		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+		Methods
 };
 
 PyParentObject KX_LightObject::Parents[] = {

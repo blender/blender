@@ -487,33 +487,6 @@ PyAttributeDef KX_Camera::Attributes[] = {
 	{ NULL }	//Sentinel
 };
 
-char KX_Camera::doc[] = "Module KX_Camera\n\n"
-"Constants:\n"
-"\tINSIDE\n"
-"\tINTERSECT\n"
-"\tOUTSIDE\n"
-"Attributes:\n"
-"\tlens -> float\n"
-"\t\tThe camera's lens value\n"
-"\tnear -> float\n"
-"\t\tThe camera's near clip distance\n"
-"\tfar -> float\n"
-"\t\tThe camera's far clip distance\n"
-"\tfrustum_culling -> bool\n"
-"\t\tNon zero if this camera is frustum culling.\n"
-"\tprojection_matrix -> [[float]]\n"
-"\t\tThis camera's projection matrix.\n"
-"\tmodelview_matrix -> [[float]] (read only)\n"
-"\t\tThis camera's model view matrix.\n"
-"\t\tRegenerated every frame from the camera's position and orientation.\n"
-"\tcamera_to_world -> [[float]] (read only)\n"
-"\t\tThis camera's camera to world transform.\n"
-"\t\tRegenerated every frame from the camera's position and orientation.\n"
-"\tworld_to_camera -> [[float]] (read only)\n"
-"\t\tThis camera's world to camera transform.\n"
-"\t\tRegenerated every frame from the camera's position and orientation.\n"
-"\t\tThis is camera_to_world inverted.\n";
-
 PyTypeObject KX_Camera::Type = {
 	PyObject_HEAD_INIT(&PyType_Type)
 		0,
@@ -524,14 +497,10 @@ PyTypeObject KX_Camera::Type = {
 		0,
 		__getattr,
 		__setattr,
-		0, //&MyPyCompare,
+		0,
 		__repr,
-		0, //&cvalue_as_number,
-		0,
-		0,
-		0,
-		0, 0, 0, 0, 0, 0,
-		doc
+		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+		Methods
 };
 
 PyParentObject KX_Camera::Parents[] = {

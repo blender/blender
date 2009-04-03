@@ -90,8 +90,7 @@ KX_VisibilityActuator::Update()
 
 
 /* Integration hooks ------------------------------------------------------- */
-PyTypeObject 
-KX_VisibilityActuator::Type = {
+PyTypeObject KX_VisibilityActuator::Type = {
 	PyObject_HEAD_INIT(&PyType_Type)
 	0,
 	"KX_VisibilityActuator",
@@ -101,13 +100,11 @@ KX_VisibilityActuator::Type = {
 	0,
 	__getattr,
 	__setattr,
-	0, //&MyPyCompare,
+	0,
 	__repr,
-	0, //&cvalue_as_number,
-	0,
-	0,
-	0,
-	0
+	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+	Methods
+
 };
 
 PyParentObject 

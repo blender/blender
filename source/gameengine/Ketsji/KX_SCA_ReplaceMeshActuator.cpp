@@ -52,9 +52,7 @@
 
 	PyTypeObject 
 
-KX_SCA_ReplaceMeshActuator::
-
-Type = {
+KX_SCA_ReplaceMeshActuator::Type = {
 	PyObject_HEAD_INIT(&PyType_Type)
 	0,
 	"KX_SCA_ReplaceMeshActuator",
@@ -64,13 +62,10 @@ Type = {
 	0,
 	__getattr,
 	__setattr,
-	0, 
+	0,
 	__repr,
-	0, 
-	0,
-	0,
-	0,
-	0
+	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+	Methods
 };
 
 PyParentObject KX_SCA_ReplaceMeshActuator::Parents[] = {

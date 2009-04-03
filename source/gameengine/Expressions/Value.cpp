@@ -151,10 +151,8 @@ PyTypeObject CValue::Type = {
 	&MyPyCompare,
 	__repr,
 	&cvalue_as_number,
-	0,
-	0,
-	0,
-	0
+	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+	Methods
 };
 
 PyParentObject CValue::Parents[] = {

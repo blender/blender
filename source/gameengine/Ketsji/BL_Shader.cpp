@@ -783,7 +783,8 @@ PyTypeObject BL_Shader::Type = {
 		__setattr,
 		0,
 		__repr,
-		0
+		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+		Methods
 };
 
 

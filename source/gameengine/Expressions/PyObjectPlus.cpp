@@ -66,12 +66,9 @@ PyTypeObject PyObjectPlus::Type = {
 	__getattr, 			/*tp_getattr*/
 	__setattr, 			/*tp_setattr*/
 	0,			        /*tp_compare*/
-	__repr,			        /*tp_repr*/
-	0,			        /*tp_as_number*/
-	0,		 	        /*tp_as_sequence*/
-	0,			        /*tp_as_mapping*/
-	0,			        /*tp_hash*/
-	0,				/*tp_call */
+	__repr,
+	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+	Methods
 };
 
 PyObjectPlus::~PyObjectPlus()

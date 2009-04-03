@@ -108,11 +108,6 @@ protected:
 	bool         m_set_frustum_center;
 
 	/**
-	 * Python module doc string.
-	 */
-	static char doc[];
-
-	/**
 	 * Extracts the camera clip frames from the projection and world-to-camera matrices.
 	 */
 	void ExtractClipPlanes();

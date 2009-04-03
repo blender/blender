@@ -108,8 +108,7 @@ KX_StateActuator::Update()
 
 
 /* Integration hooks ------------------------------------------------------- */
-PyTypeObject 
-KX_StateActuator::Type = {
+PyTypeObject KX_StateActuator::Type = {
 	PyObject_HEAD_INIT(&PyType_Type)
 	0,
 	"KX_StateActuator",
@@ -119,13 +118,10 @@ KX_StateActuator::Type = {
 	0,
 	__getattr,
 	__setattr,
-	0, //&MyPyCompare,
+	0,
 	__repr,
-	0, //&cvalue_as_number,
-	0,
-	0,
-	0,
-	0
+	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+	Methods
 };
 
 PyParentObject 

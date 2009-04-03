@@ -210,6 +210,8 @@ PyTypeObject CListValue::Type = {
 	&instance_as_mapping,	        /*tp_as_mapping*/
 	0,			        /*tp_hash*/
 	0,				/*tp_call */
+	0,0,0,0,0,0,0,0,0,0,0,0,
+	Methods
 };
 
 

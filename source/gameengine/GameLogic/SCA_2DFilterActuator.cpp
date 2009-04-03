@@ -90,12 +90,9 @@ PyTypeObject SCA_2DFilterActuator::Type = {
         __getattr,
         __setattr,
         0, 
-         __repr,
-        0,
-        0,
-        0,
-        0,
-        0
+		__repr,
+		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+		Methods
 };
 
 

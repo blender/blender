@@ -764,7 +764,8 @@ PyTypeObject KX_BlenderMaterial::Type = {
 		__setattr,
 		0,
 		__repr,
-		0
+		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+		Methods
 };
 
 
