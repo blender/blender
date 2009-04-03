@@ -826,7 +826,7 @@ public:
 	static PyObject*	pyattr_get_dir_dict(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	
 	/* getitem/setitem */
-	static int					Map_Len(PyObject* self);
+	static Py_ssize_t			Map_Len(PyObject* self);
 	static PyMappingMethods	Mapping;
 	static PyObject*			Map_GetItem(PyObject *self_v, PyObject *item);
 	static int					Map_SetItem(PyObject *self_v, PyObject *key, PyObject *val);

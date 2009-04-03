@@ -1104,7 +1104,7 @@ PyObject* KX_GameObject::PyGetPosition(PyObject* self)
 }
 
 
-int KX_GameObject::Map_Len(PyObject* self_v)
+Py_ssize_t KX_GameObject::Map_Len(PyObject* self_v)
 {
 	return (static_cast<KX_GameObject*>(self_v))->GetPropertyCount();
 }
@@ -1173,7 +1173,7 @@ int KX_GameObject::Map_SetItem(PyObject *self_v, PyObject *key, PyObject *val)
 
 
 PyMappingMethods KX_GameObject::Mapping = {
-	(inquiry)KX_GameObject::Map_Len, 			/*inquiry mp_length */
+	(lenfunc)KX_GameObject::Map_Len, 			/*inquiry mp_length */
 	(binaryfunc)KX_GameObject::Map_GetItem,		/*binaryfunc mp_subscript */
 	(objobjargproc)KX_GameObject::Map_SetItem,	/*objobjargproc mp_ass_subscript */
 };
