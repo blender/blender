@@ -702,6 +702,8 @@ void gpencil_delete_laststroke (bGPdata *gpd)
 	bGPDlayer *gpl= gpencil_layer_getactive(gpd);
 	bGPDframe *gpf= gpencil_layer_getframe(gpl, CFRA, 0);
 	
+	if (gpf->framenum != CFRA) return;
+
 	gpencil_frame_delete_laststroke(gpf, gpl);
 }
 

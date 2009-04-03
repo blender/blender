@@ -139,6 +139,8 @@ void gp_ui_delstroke_cb (void *gpd, void *gpl)
 {
 	bGPDframe *gpf= gpencil_layer_getframe(gpl, CFRA, 0);
 	
+	if (gpf->framenum != CFRA) return;
+
 	gpencil_layer_setactive(gpd, gpl);
 	gpencil_frame_delete_laststroke(gpf, gpl);
 	
