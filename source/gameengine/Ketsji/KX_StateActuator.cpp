@@ -109,18 +109,21 @@ KX_StateActuator::Update()
 
 /* Integration hooks ------------------------------------------------------- */
 PyTypeObject KX_StateActuator::Type = {
-	PyObject_HEAD_INIT(&PyType_Type)
+	PyObject_HEAD_INIT(NULL)
 	0,
 	"KX_StateActuator",
 	sizeof(KX_StateActuator),
 	0,
 	PyDestructor,
 	0,
-	__getattr,
-	__setattr,
 	0,
-	__repr,
-	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+	0,
+	0,
+	py_base_repr,
+	0,0,0,0,0,0,
+	py_base_getattro,
+	py_base_setattro,
+	0,0,0,0,0,0,0,0,0,
 	Methods
 };
 
@@ -146,9 +149,9 @@ PyAttributeDef KX_StateActuator::Attributes[] = {
 	{ NULL }	//Sentinel
 };
 
-PyObject* KX_StateActuator::_getattr(const char *attr)
+PyObject* KX_StateActuator::py_getattro(PyObject *attr)
 {
-	_getattr_up(SCA_IActuator);
+	py_getattro_up(SCA_IActuator);
 };
 
 

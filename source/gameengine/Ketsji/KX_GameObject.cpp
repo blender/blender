@@ -1180,21 +1180,21 @@ PyMappingMethods KX_GameObject::Mapping = {
 
 
 PyTypeObject KX_GameObject::Type = {
-	PyObject_HEAD_INIT(&PyType_Type)
+	PyObject_HEAD_INIT(NULL)
 		0,
 		"KX_GameObject",
 		sizeof(KX_GameObject),
 		0,
 		PyDestructor,
 		0,
-		__getattr,
-		__setattr,
-		0,
-		__repr,
 		0,
 		0,
-		&Mapping,
-		0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+		0,
+		py_base_repr,
+		0,0,0,0,0,0,
+		py_base_getattro,
+		py_base_setattro,
+		0,0,0,0,0,0,0,0,0,
 		Methods
 };
 
@@ -1420,7 +1420,9 @@ int KX_GameObject::pyattr_set_state(void *self_v, const KX_PYATTRIBUTE_DEF *attr
 PyObject* KX_GameObject::pyattr_get_dir_dict(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
-	PyObject *dict= _getattr_dict(self->SCA_IObject::_getattr("__dict__"), KX_GameObject::Methods, KX_GameObject::Attributes);
+	PyObject *dict_str = PyString_FromString("__dict__");
+	PyObject *dict= _getattr_dict(self->SCA_IObject::py_getattro(dict_str), KX_GameObject::Methods, KX_GameObject::Attributes);
+	Py_DECREF(dict_str);
 	
 	if(dict==NULL)
 		return NULL;
@@ -1441,22 +1443,22 @@ PyObject* KX_GameObject::pyattr_get_dir_dict(void *self_v, const KX_PYATTRIBUTE_
 	return dict;
 }
 
-PyObject* KX_GameObject::_getattr(const char *attr)
+PyObject* KX_GameObject::py_getattro(PyObject *attr)
 {
-	PyObject* object = _getattr_self(Attributes, this, attr);
+	PyObject* object = py_getattro_self(Attributes, this, attr);
 	if (object != NULL)
 		return object;
 	
-	_getattr_up(SCA_IObject);
+	py_getattro_up(SCA_IObject);
 }
 
-int KX_GameObject::_setattr(const char *attr, PyObject *value)	// _setattr method
+int KX_GameObject::py_setattro(PyObject *attr, PyObject *value)	// py_setattro method
 {
-	int ret = _setattr_self(Attributes, this, attr, value);
+	int ret = py_setattro_self(Attributes, this, attr, value);
 	if (ret >= 0)
 		return ret;
 	
-	return SCA_IObject::_setattr(attr, value);
+	return SCA_IObject::py_setattro(attr, value);
 }
 
 PyObject* KX_GameObject::PyApplyForce(PyObject* self, PyObject* args)

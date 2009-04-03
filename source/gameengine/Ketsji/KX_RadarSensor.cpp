@@ -250,18 +250,21 @@ PyObject* KX_RadarSensor::PyGetConeHeight(PyObject* self) {
 /* Python Integration Hooks                                                  */
 /* ------------------------------------------------------------------------- */
 PyTypeObject KX_RadarSensor::Type = {
-	PyObject_HEAD_INIT(&PyType_Type)
+	PyObject_HEAD_INIT(NULL)
 	0,
 	"KX_RadarSensor",
 	sizeof(KX_RadarSensor),
 	0,
 	PyDestructor,
 	0,
-	__getattr,
-	__setattr,
 	0,
-	__repr,
-	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+	0,
+	0,
+	py_base_repr,
+	0,0,0,0,0,0,
+	py_base_getattro,
+	py_base_setattro,
+	0,0,0,0,0,0,0,0,0,
 	Methods
 };
 
@@ -295,20 +298,20 @@ PyAttributeDef KX_RadarSensor::Attributes[] = {
 	{NULL} //Sentinel
 };
 
-PyObject* KX_RadarSensor::_getattr(const char *attr)
+PyObject* KX_RadarSensor::py_getattro(PyObject *attr)
 {
-	PyObject* object = _getattr_self(Attributes, this, attr);
+	PyObject* object = py_getattro_self(Attributes, this, attr);
 	if (object != NULL)
 		return object;
 
-	_getattr_up(KX_NearSensor);
+	py_getattro_up(KX_NearSensor);
 }
 
-int KX_RadarSensor::_setattr(const char *attr, PyObject* value)
+int KX_RadarSensor::py_setattro(PyObject *attr, PyObject* value)
 {
-	int ret = _setattr_self(Attributes, this, attr, value);
+	int ret = py_setattro_self(Attributes, this, attr, value);
 	if (ret >= 0)
 		return ret;
 
-	return KX_NearSensor::_setattr(attr, value);
+	return KX_NearSensor::py_setattro(attr, value);
 }

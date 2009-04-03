@@ -153,7 +153,7 @@ public:
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
 	
-	virtual PyObject* _getattr(const char *attr);
+	virtual PyObject* py_getattro(PyObject *attr);
 
 	KX_PYMETHOD_NOARGS(KX_ObjectActuator,GetForce);
 	KX_PYMETHOD(KX_ObjectActuator,SetForce);

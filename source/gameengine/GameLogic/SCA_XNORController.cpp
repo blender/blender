@@ -111,18 +111,21 @@ CValue* SCA_XNORController::GetReplica()
 
 /* Integration hooks ------------------------------------------------------- */
 PyTypeObject SCA_XNORController::Type = {
-	PyObject_HEAD_INIT(&PyType_Type)
+	PyObject_HEAD_INIT(NULL)
 	0,
 	"SCA_XNORController",
 	sizeof(SCA_XNORController),
 	0,
 	PyDestructor,
 	0,
-	__getattr,
-	__setattr,
 	0,
-	__repr,
-	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+	0,
+	0,
+	py_base_repr,
+	0,0,0,0,0,0,
+	py_base_getattro,
+	py_base_setattro,
+	0,0,0,0,0,0,0,0,0,
 	Methods
 };
 
@@ -142,8 +145,8 @@ PyAttributeDef SCA_XNORController::Attributes[] = {
 	{ NULL }	//Sentinel
 };
 
-PyObject* SCA_XNORController::_getattr(const char *attr) {
-	_getattr_up(SCA_IController);
+PyObject* SCA_XNORController::py_getattro(PyObject *attr) {
+	py_getattro_up(SCA_IController);
 }
 
 /* eof */

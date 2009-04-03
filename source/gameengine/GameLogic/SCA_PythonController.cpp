@@ -224,18 +224,21 @@ const char* SCA_PythonController::sPyAddActiveActuator__doc__= "addActiveActuato
 const char SCA_PythonController::GetActuators_doc[] = "getActuator";
 
 PyTypeObject SCA_PythonController::Type = {
-	PyObject_HEAD_INIT(&PyType_Type)
+	PyObject_HEAD_INIT(NULL)
 		0,
 		"SCA_PythonController",
 		sizeof(SCA_PythonController),
 		0,
 		PyDestructor,
 		0,
-		__getattr,
-		__setattr,
-		0, //&MyPyCompare,
-		__repr,
-		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+		0,
+		0,
+		0,
+		py_base_repr,
+		0,0,0,0,0,0,
+		py_base_getattro,
+		py_base_setattro,
+		0,0,0,0,0,0,0,0,0,
 		Methods
 };
 
@@ -369,24 +372,26 @@ void SCA_PythonController::Trigger(SCA_LogicManager* logicmgr)
 
 
 
-PyObject* SCA_PythonController::_getattr(const char *attr)
+PyObject* SCA_PythonController::py_getattro(PyObject *attr)
 {
-	if (!strcmp(attr,"state")) {
+	char *attr_str= PyString_AsString(attr);
+	if (!strcmp(attr_str,"state")) {
 		return PyInt_FromLong(m_statemask);
 	}
-	if (!strcmp(attr,"script")) {
+	if (!strcmp(attr_str,"script")) {
 		return PyString_FromString(m_scriptText);
 	}
-	_getattr_up(SCA_IController);
+	py_getattro_up(SCA_IController);
 }
 
-int SCA_PythonController::_setattr(const char *attr, PyObject *value)
+int SCA_PythonController::py_setattro(PyObject *attr, PyObject *value)
 {
-	if (!strcmp(attr,"state")) {
+	char *attr_str= PyString_AsString(attr);
+	if (!strcmp(attr_str,"state")) {
 		PyErr_SetString(PyExc_AttributeError, "state is read only");
 		return 1;
 	}
-	if (!strcmp(attr,"script")) {
+	if (!strcmp(attr_str,"script")) {
 		char *scriptArg = PyString_AsString(value);
 		
 		if (scriptArg==NULL) {
@@ -400,7 +405,7 @@ int SCA_PythonController::_setattr(const char *attr, PyObject *value)
 		
 		return 1;
 	}
-	return SCA_IController::_setattr(attr, value);
+	return SCA_IController::py_setattro(attr, value);
 }
 
 PyObject* SCA_PythonController::PyActivate(PyObject* self, PyObject *value)

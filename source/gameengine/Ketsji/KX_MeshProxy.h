@@ -54,7 +54,7 @@ public:
 	virtual CValue*		GetReplica();
 
 // stuff for python integration
-	virtual PyObject*  _getattr(const char *attr);
+	virtual PyObject*  py_getattro(PyObject *attr);
 	KX_PYMETHOD(KX_MeshProxy,GetNumMaterials);
 	KX_PYMETHOD(KX_MeshProxy,GetMaterialName);
 	KX_PYMETHOD(KX_MeshProxy,GetTextureName);

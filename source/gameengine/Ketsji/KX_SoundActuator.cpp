@@ -233,18 +233,21 @@ void KX_SoundActuator::setSoundObject(class SND_SoundObject* soundobject)
 
 /* Integration hooks ------------------------------------------------------- */
 PyTypeObject KX_SoundActuator::Type = {
-	PyObject_HEAD_INIT(&PyType_Type)
+	PyObject_HEAD_INIT(NULL)
 		0,
 		"KX_SoundActuator",
 		sizeof(KX_SoundActuator),
 		0,
 		PyDestructor,
 		0,
-		__getattr,
-		__setattr,
 		0,
-		__repr,
-		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+		0,
+		0,
+		py_base_repr,
+		0,0,0,0,0,0,
+		py_base_getattro,
+		py_base_setattro,
+		0,0,0,0,0,0,0,0,0,
 		Methods
 };
 
@@ -286,9 +289,9 @@ PyAttributeDef KX_SoundActuator::Attributes[] = {
 	{ NULL }	//Sentinel
 };
 
-PyObject* KX_SoundActuator::_getattr(const char *attr)
+PyObject* KX_SoundActuator::py_getattro(PyObject *attr)
 {
-	_getattr_up(SCA_IActuator);
+	py_getattro_up(SCA_IActuator);
 }
 
 

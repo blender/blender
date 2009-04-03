@@ -371,18 +371,21 @@ bool KX_CameraActuator::string2axischoice(const char *axisString)
 
 /* Integration hooks ------------------------------------------------------- */
 PyTypeObject KX_CameraActuator::Type = {
-	PyObject_HEAD_INIT(&PyType_Type)
+	PyObject_HEAD_INIT(NULL)
 	0,
 	"KX_CameraActuator",
 	sizeof(KX_CameraActuator),
 	0,
 	PyDestructor,
 	0,
-	__getattr,
-	__setattr,
 	0,
-	__repr,
-	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+	0,
+	0,
+	py_base_repr,
+	0,0,0,0,0,0,
+	py_base_getattro,
+	py_base_setattro,
+	0,0,0,0,0,0,0,0,0,
 	Methods
 };
 
@@ -414,27 +417,28 @@ PyAttributeDef KX_CameraActuator::Attributes[] = {
 	KX_PYATTRIBUTE_FLOAT_RW("max",-MAXFLOAT,MAXFLOAT,KX_CameraActuator,m_maxHeight),
 	KX_PYATTRIBUTE_FLOAT_RW("height",-MAXFLOAT,MAXFLOAT,KX_CameraActuator,m_height),
 	KX_PYATTRIBUTE_BOOL_RW("xy",KX_CameraActuator,m_x),
+	KX_PYATTRIBUTE_DUMMY("object"),
 	{NULL}
 };
 
-PyObject* KX_CameraActuator::_getattr(const char *attr) {
+PyObject* KX_CameraActuator::py_getattro(PyObject *attr) {
 	PyObject* object;
-	
-	if (!strcmp(attr, "object")) {
+	char *attr_str= PyString_AsString(attr);
+	if (!strcmp(attr_str, "object")) {
 		if (!m_ob)	Py_RETURN_NONE;
 		else		return m_ob->AddRef();
 	}
 	
-	object = _getattr_self(Attributes, this, attr);
+	object = py_getattro_self(Attributes, this, attr);
 	if (object != NULL)
 		return object;
-	_getattr_up(SCA_IActuator);
+	py_getattro_up(SCA_IActuator);
 }
 
-int KX_CameraActuator::_setattr(const char *attr, PyObject* value) {
+int KX_CameraActuator::py_setattro(PyObject *attr, PyObject* value) {
 	int ret;
-	
-	if (!strcmp(attr, "object")) {
+	char *attr_str= PyString_AsString(attr);
+	if (!strcmp(attr_str, "object")) {
 		KX_GameObject *gameobj;
 		
 		if (!ConvertPythonToGameObject(value, &gameobj, true))
@@ -451,10 +455,10 @@ int KX_CameraActuator::_setattr(const char *attr, PyObject* value) {
 		return 0;
 	}
 	
-	ret = _setattr_self(Attributes, this, attr, value);
+	ret = py_setattro_self(Attributes, this, attr, value);
 	if (ret >= 0)
 		return ret;
-	return SCA_IActuator::_setattr(attr, value);
+	return SCA_IActuator::py_setattro(attr, value);
 }
 
 /* get obj  ---------------------------------------------------------- */

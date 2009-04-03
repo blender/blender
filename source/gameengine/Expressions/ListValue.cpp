@@ -193,7 +193,7 @@ static  PyMappingMethods instance_as_mapping = {
 
 
 PyTypeObject CListValue::Type = {
-	PyObject_HEAD_INIT(&PyType_Type)
+	PyObject_HEAD_INIT(NULL)
 	0,				/*ob_size*/
 	"CListValue",			/*tp_name*/
 	sizeof(CListValue),		/*tp_basicsize*/
@@ -201,16 +201,19 @@ PyTypeObject CListValue::Type = {
 	/* methods */
 	PyDestructor,	  		/*tp_dealloc*/
 	0,			 	/*tp_print*/
-	__getattr, 			/*tp_getattr*/
-	__setattr, 			/*tp_setattr*/
+	0, 			/*tp_getattr*/
+	0, 			/*tp_setattr*/
 	0,			        /*tp_compare*/
-	__repr,			        /*tp_repr*/
+	py_base_repr,			        /*tp_repr*/
 	0,			        /*tp_as_number*/
 	&listvalue_as_sequence, /*tp_as_sequence*/
 	&instance_as_mapping,	        /*tp_as_mapping*/
 	0,			        /*tp_hash*/
 	0,				/*tp_call */
-	0,0,0,0,0,0,0,0,0,0,0,0,
+	0,
+	py_base_getattro,
+	py_base_setattro,
+	0,0,0,0,0,0,0,0,0,
 	Methods
 };
 
@@ -238,8 +241,8 @@ PyAttributeDef CListValue::Attributes[] = {
 	{ NULL }	//Sentinel
 };
 
-PyObject* CListValue::_getattr(const char *attr) {
-	_getattr_up(CValue);
+PyObject* CListValue::py_getattro(PyObject* attr) {
+	py_getattro_up(CValue);
 }
 
 

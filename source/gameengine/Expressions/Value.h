@@ -217,14 +217,14 @@ public:
 
 	CValue(PyTypeObject *T = &Type);
 	//static PyObject*	PyMake(PyObject*,PyObject*);
-	virtual PyObject *_repr(void)
+	virtual PyObject *py_repr(void)
 	{
 		return Py_BuildValue("s",(const char*)GetText());
 	}
 
 
 
-	virtual PyObject*			_getattr(const char *attr);
+	virtual PyObject*			py_getattro(PyObject *attr);
 
 	void	SpecialRelease()
 	{
@@ -251,8 +251,8 @@ public:
 	virtual CValue*	ConvertPythonToValue(PyObject* pyobj);
 
 
-	virtual int				_delattr(const char *attr);
-	virtual int				_setattr(const char *attr, PyObject* value);
+	virtual int				py_delattro(PyObject *attr);
+	virtual int				py_setattro(PyObject *attr, PyObject* value);
 	
 	virtual PyObject* ConvertKeysToPython( void );
 	

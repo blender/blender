@@ -46,18 +46,21 @@
 #include "PyObjectPlus.h" 
 
 PyTypeObject KX_MeshProxy::Type = {
-	PyObject_HEAD_INIT(&PyType_Type)
+	PyObject_HEAD_INIT(NULL)
 	0,
 	"KX_MeshProxy",
 	sizeof(KX_MeshProxy),
 	0,
 	PyDestructor,
 	0,
-	__getattr,
-	__setattr,
 	0,
-	__repr,
-	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+	0,
+	0,
+	py_base_repr,
+	0,0,0,0,0,0,
+	py_base_getattro,
+	py_base_setattro,
+	0,0,0,0,0,0,0,0,0,
 	Methods
 };
 
@@ -94,9 +97,11 @@ void KX_MeshProxy::SetMeshModified(bool v)
 
 
 PyObject*
-KX_MeshProxy::_getattr(const char *attr)
+KX_MeshProxy::py_getattro(PyObject *attr)
 {
-	if (!strcmp(attr, "materials"))
+	char *attr_str= PyString_AsString(attr);
+	
+	if (!strcmp(attr_str, "materials"))
 	{
 		PyObject *materials = PyList_New(0);
 		list<RAS_MeshMaterial>::iterator mit = m_meshobj->GetFirstMaterial();
@@ -115,7 +120,7 @@ KX_MeshProxy::_getattr(const char *attr)
 		}
 		return materials;
 	}
- 	_getattr_up(SCA_IObject);
+ 	py_getattro_up(SCA_IObject);
 }
 
 

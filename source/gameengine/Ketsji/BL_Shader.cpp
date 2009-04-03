@@ -729,9 +729,9 @@ void BL_Shader::SetUniform(int uniform, const int* val, int len)
 }
 
 
-PyObject* BL_Shader::_getattr(const char *attr)
+PyObject* BL_Shader::py_getattro(PyObject *attr)
 {
-	_getattr_up(PyObjectPlus);
+	py_getattro_up(PyObjectPlus);
 }
 
 
@@ -772,25 +772,28 @@ PyAttributeDef BL_Shader::Attributes[] = {
 };
 
 PyTypeObject BL_Shader::Type = {
-	PyObject_HEAD_INIT(&PyType_Type)
+	PyObject_HEAD_INIT(NULL)
 		0,
 		"BL_Shader",
 		sizeof(BL_Shader),
 		0,
 		PyDestructor,
 		0,
-		__getattr,
-		__setattr,
 		0,
-		__repr,
-		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+		0,
+		0,
+		py_base_repr,
+		0,0,0,0,0,0,
+		py_base_getattro,
+		py_base_setattro,
+		0,0,0,0,0,0,0,0,0,
 		Methods
 };
 
 
 PyParentObject BL_Shader::Parents[] = {
-	&PyObjectPlus::Type,
 	&BL_Shader::Type,
+	&PyObjectPlus::Type,
 	NULL
 };
 

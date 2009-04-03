@@ -1,7 +1,5 @@
 /**
- * SCA_XORController.h
- *
- * $Id$
+ * $Id: PyObjectPlus.h 19511 2009-04-03 02:16:56Z campbellbarton $
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -24,33 +22,14 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): Campbell Barton
  *
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef __KX_XORCONTROLLER
-#define __KX_XORCONTROLLER
+#ifndef _adr_py_init_types_h_				// only process once,
+#define _adr_py_init_types_h_				// even if multiply included
 
-#include "SCA_IController.h"
+void initPyTypes(void);
 
-class SCA_XORController : public SCA_IController
-{
-	Py_Header;
-	//virtual void Trigger(class SCA_LogicManager* logicmgr);
-public:
-	SCA_XORController(SCA_IObject* gameobj,PyTypeObject* T=&Type);
-	virtual ~SCA_XORController();
-	virtual CValue* GetReplica();
-	virtual void Trigger(SCA_LogicManager* logicmgr);
-
-	/* --------------------------------------------------------------------- */
-	/* Python interface ---------------------------------------------------- */
-	/* --------------------------------------------------------------------- */
-
-	virtual PyObject* py_getattro(PyObject *attr);
-
-};
-
-#endif //__KX_XORCONTROLLER
-
+#endif

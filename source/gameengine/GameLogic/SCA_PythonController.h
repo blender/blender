@@ -78,8 +78,8 @@ class SCA_PythonController : public SCA_IController
 	static PyObject* sPyAddActiveActuator(PyObject* self, 
 										  PyObject* args);
 	static SCA_IActuator* LinkedActuatorFromPy(PyObject *value);
-	virtual PyObject* _getattr(const char *attr);
-	virtual int _setattr(const char *attr, PyObject *value);
+	virtual PyObject* py_getattro(PyObject *attr);
+	virtual int py_setattro(PyObject *attr, PyObject *value);
 
 		
 	KX_PYMETHOD_O(SCA_PythonController,Activate);

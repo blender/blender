@@ -1517,18 +1517,21 @@ double KX_Scene::getSuspendedDelta()
 //Python
 
 PyTypeObject KX_Scene::Type = {
-	PyObject_HEAD_INIT(&PyType_Type)
+	PyObject_HEAD_INIT(NULL)
 		0,
 		"KX_Scene",
 		sizeof(KX_Scene),
 		0,
 		PyDestructor,
 		0,
-		__getattr,
-		__setattr,
 		0,
-		__repr,
-		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+		0,
+		0,
+		py_base_repr,
+		0,0,0,0,0,0,
+		py_base_getattro,
+		py_base_setattro,
+		0,0,0,0,0,0,0,0,0,
 		Methods
 };
 
@@ -1569,8 +1572,10 @@ PyObject* KX_Scene::pyattr_get_active_camera(void *self_v, const KX_PYATTRIBUTE_
 PyObject* KX_Scene::pyattr_get_dir_dict(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_Scene* self= static_cast<KX_Scene*>(self_v);
-	/* Useually done by _getattr_up but in this case we want to include m_attrlist dict */
-	PyObject *dict= _getattr_dict(self->PyObjectPlus::_getattr("__dict__"), KX_Scene::Methods, KX_Scene::Attributes);
+	/* Useually done by py_getattro_up but in this case we want to include m_attrlist dict */
+	PyObject *dict_str= PyString_FromString("__dict__");
+	PyObject *dict= _getattr_dict(self->PyObjectPlus::py_getattro(dict_str), KX_Scene::Methods, KX_Scene::Attributes);
+	Py_DECREF(dict_str);
 	
 	PyDict_Update(dict, self->m_attrlist);
 	return dict;
@@ -1587,34 +1592,34 @@ PyAttributeDef KX_Scene::Attributes[] = {
 	{ NULL }	//Sentinel
 };
 
-PyObject* KX_Scene::_getattr(const char *attr)
+PyObject* KX_Scene::py_getattro(PyObject *attr)
 {
-	PyObject* object = _getattr_self(Attributes, this, attr);
+	PyObject* object = py_getattro_self(Attributes, this, attr);
 	if (object != NULL)
 		return object;
 	
-	object = PyDict_GetItemString(m_attrlist, attr);
+	object = PyDict_GetItem(m_attrlist, attr);
 	if (object)
 	{
 		Py_INCREF(object);
 		return object;
 	}
 	
-	_getattr_up(PyObjectPlus);
+	py_getattro_up(PyObjectPlus);
 }
 
-int KX_Scene::_delattr(const char *attr)
+int KX_Scene::py_delattro(PyObject *attr)
 {
-	PyDict_DelItemString(m_attrlist, attr);
+	PyDict_DelItem(m_attrlist, attr);
 	return 0;
 }
 
-int KX_Scene::_setattr(const char *attr, PyObject *pyvalue)
+int KX_Scene::py_setattro(PyObject *attr, PyObject *pyvalue)
 {
-	if (!PyDict_SetItemString(m_attrlist, attr, pyvalue))
+	if (!PyDict_SetItem(m_attrlist, attr, pyvalue))
 		return 0;
 
-	return PyObjectPlus::_setattr(attr, pyvalue);
+	return PyObjectPlus::py_setattro(attr, pyvalue);
 }
 
 KX_PYMETHODDEF_DOC_NOARGS(KX_Scene, getLightList,

@@ -71,7 +71,9 @@
 
 #include "KX_PyMath.h"
 
-#include "PyObjectPlus.h" 
+#include "PyObjectPlus.h"
+
+#include "KX_PythonInitTypes.h" 
 
 extern "C" {
 	#include "Mathutils.h" // Blender.Mathutils module copied here so the blenderlayer can use.
@@ -1257,6 +1259,7 @@ PyObject* initGamePlayerPythonScripting(const STR_String& progname, TPythonSecur
 	//importBlenderModules()
 	
 	setSandbox(level);
+	initPyTypes();
 
 	PyObject* moduleobj = PyImport_AddModule("__main__");
 	return PyModule_GetDict(moduleobj);
@@ -1278,6 +1281,7 @@ PyObject* initGamePythonScripting(const STR_String& progname, TPythonSecurityLev
 	Py_FrozenFlag=1;
 
 	setSandbox(level);
+	initPyTypes();
 
 	PyObject* moduleobj = PyImport_AddModule("__main__");
 	return PyModule_GetDict(moduleobj);

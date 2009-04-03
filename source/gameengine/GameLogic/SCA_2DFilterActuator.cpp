@@ -80,18 +80,21 @@ bool SCA_2DFilterActuator::Update()
 
 
 PyTypeObject SCA_2DFilterActuator::Type = {
-        PyObject_HEAD_INIT(&PyType_Type)
+        PyObject_HEAD_INIT(NULL)
         0,
         "SCA_2DFilterActuator",
         sizeof(SCA_2DFilterActuator),
         0,
-        PyDestructor,
-        0,
-        __getattr,
-        __setattr,
-        0, 
-		__repr,
-		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+		PyDestructor,
+		0,
+		0,
+		0,
+		0,
+		py_base_repr,
+		0,0,0,0,0,0,
+		py_base_getattro,
+		py_base_setattro,
+		0,0,0,0,0,0,0,0,0,
 		Methods
 };
 
@@ -114,6 +117,6 @@ PyAttributeDef SCA_2DFilterActuator::Attributes[] = {
 	{ NULL }	//Sentinel
 };
 
-PyObject* SCA_2DFilterActuator::_getattr(const char *attr) {
-    _getattr_up(SCA_IActuator);
+PyObject* SCA_2DFilterActuator::py_getattro(PyObject *attr) {
+    py_getattro_up(SCA_IActuator);
 }

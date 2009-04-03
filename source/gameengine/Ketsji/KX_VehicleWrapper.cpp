@@ -299,33 +299,37 @@ PyObject* KX_VehicleWrapper::PyGetConstraintType(PyObject* self,
 
 //python specific stuff
 PyTypeObject KX_VehicleWrapper::Type = {
-	PyObject_HEAD_INIT(&PyType_Type)
+	PyObject_HEAD_INIT(NULL)
 		0,
 		"KX_VehicleWrapper",
 		sizeof(KX_VehicleWrapper),
 		0,
 		PyDestructor,
 		0,
-		__getattr,
-		__setattr,
 		0,
-		__repr,
-		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+		0,
+		0,
+		py_base_repr,
+		0,0,0,0,0,0,
+		py_base_getattro,
+		py_base_setattro,
+		0,0,0,0,0,0,0,0,0,
 		Methods
 };
 
 PyParentObject KX_VehicleWrapper::Parents[] = {
 	&KX_VehicleWrapper::Type,
+	&PyObjectPlus::Type,
 	NULL
 };
 
-PyObject*	KX_VehicleWrapper::_getattr(const char *attr)
+PyObject*	KX_VehicleWrapper::py_getattro(PyObject *attr)
 {
 	//here you can search for existing data members (like mass,friction etc.)
-	_getattr_up(PyObjectPlus);
+	py_getattro_up(PyObjectPlus);
 }
 
-int	KX_VehicleWrapper::_setattr(const char *attr,PyObject* pyobj)
+int	KX_VehicleWrapper::py_setattro(PyObject *attr,PyObject* pyobj)
 {
 	
 	PyTypeObject* type = pyobj->ob_type;
@@ -349,7 +353,7 @@ int	KX_VehicleWrapper::_setattr(const char *attr,PyObject* pyobj)
 		result = 0;
 	}
 	if (result)
-		result = PyObjectPlus::_setattr(attr,pyobj);
+		result = PyObjectPlus::py_setattro(attr,pyobj);
 	return result;
 };
 

@@ -37,18 +37,21 @@
 #include "KX_PyMath.h"
 
 PyTypeObject KX_VertexProxy::Type = {
-	PyObject_HEAD_INIT(&PyType_Type)
+	PyObject_HEAD_INIT(NULL)
 	0,
 	"KX_VertexProxy",
 	sizeof(KX_VertexProxy),
 	0,
 	PyDestructor,
 	0,
-	__getattr,
-	__setattr,
 	0,
-	__repr,
-	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+	0,
+	0,
+	py_base_repr,
+	0,0,0,0,0,0,
+	py_base_getattro,
+	py_base_setattro,
+	0,0,0,0,0,0,0,0,0,
 	Methods
 };
 
@@ -80,43 +83,43 @@ PyAttributeDef KX_VertexProxy::Attributes[] = {
 };
 
 PyObject*
-KX_VertexProxy::_getattr(const char *attr)
+KX_VertexProxy::py_getattro(PyObject *attr)
 {
-  
-  if (attr[1]=='\0') { // Group single letters
+  char *attr_str= PyString_AsString(attr);
+  if (attr_str[1]=='\0') { // Group single letters
     // pos
-    if (attr[0]=='x')
+    if (attr_str[0]=='x')
     	return PyFloat_FromDouble(m_vertex->getXYZ()[0]);
-    if (attr[0]=='y')
+    if (attr_str[0]=='y')
     	return PyFloat_FromDouble(m_vertex->getXYZ()[1]);
-    if (attr[0]=='z')
+    if (attr_str[0]=='z')
     	return PyFloat_FromDouble(m_vertex->getXYZ()[2]);
 
     // Col
-    if (attr[0]=='r')
+    if (attr_str[0]=='r')
     	return PyFloat_FromDouble(m_vertex->getRGBA()[0]/255.0);
-    if (attr[0]=='g')
+    if (attr_str[0]=='g')
     	return PyFloat_FromDouble(m_vertex->getRGBA()[1]/255.0);
-    if (attr[0]=='b')
+    if (attr_str[0]=='b')
     	return PyFloat_FromDouble(m_vertex->getRGBA()[2]/255.0);
-    if (attr[0]=='a')
+    if (attr_str[0]=='a')
     	return PyFloat_FromDouble(m_vertex->getRGBA()[3]/255.0);
 
     // UV
-    if (attr[0]=='u')
+    if (attr_str[0]=='u')
     	return PyFloat_FromDouble(m_vertex->getUV1()[0]);
-    if (attr[0]=='v')
+    if (attr_str[0]=='v')
     	return PyFloat_FromDouble(m_vertex->getUV1()[1]);
   }
   
   
-  if (!strcmp(attr, "XYZ"))
+  if (!strcmp(attr_str, "XYZ"))
   	return PyObjectFrom(MT_Vector3(m_vertex->getXYZ()));
 
-  if (!strcmp(attr, "UV"))
+  if (!strcmp(attr_str, "UV"))
   	return PyObjectFrom(MT_Point2(m_vertex->getUV1()));
 
-  if (!strcmp(attr, "color") || !strcmp(attr, "colour"))
+  if (!strcmp(attr_str, "color") || !strcmp(attr_str, "colour"))
   {
   	const unsigned char *colp = m_vertex->getRGBA();
 	MT_Vector4 color(colp[0], colp[1], colp[2], colp[3]);
@@ -124,19 +127,20 @@ KX_VertexProxy::_getattr(const char *attr)
   	return PyObjectFrom(color);
   }
   
-  if (!strcmp(attr, "normal"))
+  if (!strcmp(attr_str, "normal"))
   {
 	return PyObjectFrom(MT_Vector3(m_vertex->getNormal()));
   }
   
-  _getattr_up(SCA_IObject);
+  py_getattro_up(SCA_IObject);
 }
 
-int    KX_VertexProxy::_setattr(const char *attr, PyObject *pyvalue)
+int    KX_VertexProxy::py_setattro(PyObject *attr, PyObject *pyvalue)
 {
+  char *attr_str= PyString_AsString(attr);
   if (PySequence_Check(pyvalue))
   {
-	if (!strcmp(attr, "XYZ"))
+	if (!strcmp(attr_str, "XYZ"))
 	{
 		MT_Point3 vec;
 		if (PyVecTo(pyvalue, vec))
@@ -148,7 +152,7 @@ int    KX_VertexProxy::_setattr(const char *attr, PyObject *pyvalue)
 		return 1;
 	}
 	
-	if (!strcmp(attr, "UV"))
+	if (!strcmp(attr_str, "UV"))
 	{
 		MT_Point2 vec;
 		if (PyVecTo(pyvalue, vec))
@@ -160,7 +164,7 @@ int    KX_VertexProxy::_setattr(const char *attr, PyObject *pyvalue)
 		return 1;
 	}
 	
-	if (!strcmp(attr, "color") || !strcmp(attr, "colour"))
+	if (!strcmp(attr_str, "color") || !strcmp(attr_str, "colour"))
 	{
 		MT_Vector4 vec;
 		if (PyVecTo(pyvalue, vec))
@@ -172,7 +176,7 @@ int    KX_VertexProxy::_setattr(const char *attr, PyObject *pyvalue)
 		return 1;
 	}
 	
-	if (!strcmp(attr, "normal"))
+	if (!strcmp(attr_str, "normal"))
 	{
 		MT_Vector3 vec;
 		if (PyVecTo(pyvalue, vec))
@@ -190,7 +194,7 @@ int    KX_VertexProxy::_setattr(const char *attr, PyObject *pyvalue)
   	float val = PyFloat_AsDouble(pyvalue);
   	// pos
 	MT_Point3 pos(m_vertex->getXYZ());
-  	if (!strcmp(attr, "x"))
+  	if (!strcmp(attr_str, "x"))
 	{
 		pos.x() = val;
 		m_vertex->SetXYZ(pos);
@@ -198,7 +202,7 @@ int    KX_VertexProxy::_setattr(const char *attr, PyObject *pyvalue)
 		return 0;
 	}
 	
-  	if (!strcmp(attr, "y"))
+  	if (!strcmp(attr_str, "y"))
 	{
 		pos.y() = val;
 		m_vertex->SetXYZ(pos);
@@ -206,7 +210,7 @@ int    KX_VertexProxy::_setattr(const char *attr, PyObject *pyvalue)
 		return 0;
 	}
 	
-	if (!strcmp(attr, "z"))
+	if (!strcmp(attr_str, "z"))
 	{
 		pos.z() = val;
 		m_vertex->SetXYZ(pos);
@@ -216,7 +220,7 @@ int    KX_VertexProxy::_setattr(const char *attr, PyObject *pyvalue)
 	
 	// uv
 	MT_Point2 uv = m_vertex->getUV1();
-	if (!strcmp(attr, "u"))
+	if (!strcmp(attr_str, "u"))
 	{
 		uv[0] = val;
 		m_vertex->SetUV(uv);
@@ -224,7 +228,7 @@ int    KX_VertexProxy::_setattr(const char *attr, PyObject *pyvalue)
 		return 0;
 	}
 
-	if (!strcmp(attr, "v"))
+	if (!strcmp(attr_str, "v"))
 	{
 		uv[1] = val;
 		m_vertex->SetUV(uv);
@@ -234,7 +238,7 @@ int    KX_VertexProxy::_setattr(const char *attr, PyObject *pyvalue)
 
 	// uv
 	MT_Point2 uv2 = m_vertex->getUV2();
-	if (!strcmp(attr, "u2"))
+	if (!strcmp(attr_str, "u2"))
 	{
 		uv[0] = val;
 		m_vertex->SetUV2(uv);
@@ -242,7 +246,7 @@ int    KX_VertexProxy::_setattr(const char *attr, PyObject *pyvalue)
 		return 0;
 	}
 
-	if (!strcmp(attr, "v2"))
+	if (!strcmp(attr_str, "v2"))
 	{
 		uv[1] = val;
 		m_vertex->SetUV2(uv);
@@ -254,28 +258,28 @@ int    KX_VertexProxy::_setattr(const char *attr, PyObject *pyvalue)
 	unsigned int icol = *((const unsigned int *)m_vertex->getRGBA());
 	unsigned char *cp = (unsigned char*) &icol;
 	val *= 255.0;
-	if (!strcmp(attr, "r"))
+	if (!strcmp(attr_str, "r"))
 	{
 		cp[0] = (unsigned char) val;
 		m_vertex->SetRGBA(icol);
 		m_mesh->SetMeshModified(true);
 		return 0;
 	}
-	if (!strcmp(attr, "g"))
+	if (!strcmp(attr_str, "g"))
 	{
 		cp[1] = (unsigned char) val;
 		m_vertex->SetRGBA(icol);
 		m_mesh->SetMeshModified(true);
 		return 0;
 	}
-	if (!strcmp(attr, "b"))
+	if (!strcmp(attr_str, "b"))
 	{
 		cp[2] = (unsigned char) val;
 		m_vertex->SetRGBA(icol);
 		m_mesh->SetMeshModified(true);
 		return 0;
 	}
-	if (!strcmp(attr, "a"))
+	if (!strcmp(attr_str, "a"))
 	{
 		cp[3] = (unsigned char) val;
 		m_vertex->SetRGBA(icol);
@@ -284,7 +288,7 @@ int    KX_VertexProxy::_setattr(const char *attr, PyObject *pyvalue)
 	}
   }
   
-  return SCA_IObject::_setattr(attr, pyvalue);
+  return SCA_IObject::py_setattro(attr, pyvalue);
 }
 
 KX_VertexProxy::KX_VertexProxy(KX_MeshProxy*mesh, RAS_TexVert* vertex)

@@ -139,19 +139,22 @@ static PyNumberMethods cvalue_as_number = {
 
 
 PyTypeObject CValue::Type = {
-	PyObject_HEAD_INIT(&PyType_Type)
+	PyObject_HEAD_INIT(NULL)
 	0,
 	"CValue",
 	sizeof(CValue),
 	0,
 	PyDestructor,
 	0,
-	__getattr,
-	__setattr,
+	0,
+	0,
 	&MyPyCompare,
-	__repr,
+	py_base_repr,
 	&cvalue_as_number,
-	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+	0,0,0,0,0,
+	py_base_getattro,
+	py_base_setattro,
+	0,0,0,0,0,0,0,0,0,
 	Methods
 };
 
@@ -695,9 +698,10 @@ PyAttributeDef CValue::Attributes[] = {
 };
 
 
-PyObject*	CValue::_getattr(const char *attr)
+PyObject*	CValue::py_getattro(PyObject *attr)
 {
-	CValue* resultattr = GetProperty(attr);
+	char *attr_str= PyString_AsString(attr);
+	CValue* resultattr = GetProperty(attr_str);
 	if (resultattr)
 	{
 		PyObject* pyconvert = resultattr->ConvertValueToPython();
@@ -707,7 +711,7 @@ PyObject*	CValue::_getattr(const char *attr)
 		else
 			return resultattr; // also check if it's already in pythoninterpreter!
 	}
-	_getattr_up(PyObjectPlus);
+	py_getattro_up(PyObjectPlus);
 }
 
 CValue* CValue::ConvertPythonToValue(PyObject* pyobj)
@@ -769,26 +773,28 @@ CValue* CValue::ConvertPythonToValue(PyObject* pyobj)
 
 }
 
-int	CValue::_delattr(const char *attr)
+int	CValue::py_delattro(PyObject *attr)
 {
-	if (RemoveProperty(STR_String(attr)))
+	char *attr_str= PyString_AsString(attr);
+	if (RemoveProperty(STR_String(attr_str)))
 		return 0;
 	
-	PyErr_Format(PyExc_AttributeError, "attribute \"%s\" dosnt exist", attr);
+	PyErr_Format(PyExc_AttributeError, "attribute \"%s\" dosnt exist", attr_str);
 	return 1;
 }
 
-int	CValue::_setattr(const char *attr, PyObject* pyobj)
+int	CValue::py_setattro(PyObject *attr, PyObject* pyobj)
 {
 	CValue* vallie = ConvertPythonToValue(pyobj);
 	if (vallie)
 	{
-		CValue* oldprop = GetProperty(attr);
+		char *attr_str= PyString_AsString(attr);
+		CValue* oldprop = GetProperty(attr_str);
 		
 		if (oldprop)
 			oldprop->SetValue(vallie);
 		else
-			SetProperty(attr, vallie);
+			SetProperty(attr_str, vallie);
 		
 		vallie->Release();
 	} else
@@ -796,7 +802,7 @@ int	CValue::_setattr(const char *attr, PyObject* pyobj)
 		return 1; /* ConvertPythonToValue sets the error message */
 	}
 	
-	//PyObjectPlus::_setattr(attr,value);
+	//PyObjectPlus::py_setattro(attr,value);
 	return 0;
 };
 

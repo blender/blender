@@ -574,10 +574,10 @@ public:
 	static PyObject*	pyattr_get_dir_dict(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	
 
-	virtual PyObject* _getattr(const char *attr); /* name, active_camera, gravity, suspended, viewport, framing, activity_culling, activity_culling_radius */
-	virtual int _setattr(const char *attr, PyObject *pyvalue);
-	virtual int _delattr(const char *attr);
-	virtual PyObject* _repr(void) { return PyString_FromString(GetName().ReadPtr()); }
+	virtual PyObject* py_getattro(PyObject *attr); /* name, active_camera, gravity, suspended, viewport, framing, activity_culling, activity_culling_radius */
+	virtual int py_setattro(PyObject *attr, PyObject *pyvalue);
+	virtual int py_delattro(PyObject *attr);
+	virtual PyObject* py_repr(void) { return PyString_FromString(GetName().ReadPtr()); }
 
 		
 	/**

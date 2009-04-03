@@ -218,18 +218,21 @@ void SCA_PropertyActuator::Relink(GEN_Map<GEN_HashedPtr, void*> *obj_map)
 
 /* Integration hooks ------------------------------------------------------- */
 PyTypeObject SCA_PropertyActuator::Type = {
-	PyObject_HEAD_INIT(&PyType_Type)
+	PyObject_HEAD_INIT(NULL)
 	0,
 	"SCA_PropertyActuator",
 	sizeof(SCA_PropertyActuator),
 	0,
 	PyDestructor,
 	0,
-	__getattr,
-	__setattr,
 	0,
-	__repr,
-	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+	0,
+	0,
+	py_base_repr,
+	0,0,0,0,0,0,
+	py_base_getattro,
+	py_base_setattro,
+	0,0,0,0,0,0,0,0,0,
 	Methods
 };
 
@@ -257,18 +260,18 @@ PyAttributeDef SCA_PropertyActuator::Attributes[] = {
 	{ NULL }	//Sentinel
 };
 
-PyObject* SCA_PropertyActuator::_getattr(const char *attr) {
-	PyObject* object = _getattr_self(Attributes, this, attr);
+PyObject* SCA_PropertyActuator::py_getattro(PyObject *attr) {
+	PyObject* object = py_getattro_self(Attributes, this, attr);
 	if (object != NULL)
 		return object;
-	_getattr_up(SCA_IActuator);
+	py_getattro_up(SCA_IActuator);
 }
 
-int SCA_PropertyActuator::_setattr(const char *attr, PyObject *value) {
-	int ret = _setattr_self(Attributes, this, attr, value);
+int SCA_PropertyActuator::py_setattro(PyObject *attr, PyObject *value) {
+	int ret = py_setattro_self(Attributes, this, attr, value);
 	if (ret >= 0)
 		return ret;
-	return SCA_IActuator::_setattr(attr, value);
+	return SCA_IActuator::py_setattro(attr, value);
 }
 
 /* 1. setProperty                                                        */

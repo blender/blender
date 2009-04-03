@@ -168,18 +168,21 @@ bool KX_NetworkMessageSensor::IsPositiveTrigger()
 
 /* Integration hooks --------------------------------------------------- */
 PyTypeObject KX_NetworkMessageSensor::Type = {
-	PyObject_HEAD_INIT(&PyType_Type)
+	PyObject_HEAD_INIT(NULL)
 	0,
 	"KX_NetworkMessageSensor",
 	sizeof(KX_NetworkMessageSensor),
 	0,
 	PyDestructor,
 	0,
-	__getattr,
-	__setattr,
 	0,
-	__repr,
-	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+	0,
+	0,
+	py_base_repr,
+	0,0,0,0,0,0,
+	py_base_getattro,
+	py_base_setattro,
+	0,0,0,0,0,0,0,0,0,
 	Methods
 };
 
@@ -220,18 +223,18 @@ PyAttributeDef KX_NetworkMessageSensor::Attributes[] = {
 	{ NULL }	//Sentinel
 };
 
-PyObject* KX_NetworkMessageSensor::_getattr(const char *attr) {
-	PyObject* object = _getattr_self(Attributes, this, attr);
+PyObject* KX_NetworkMessageSensor::py_getattro(PyObject *attr) {
+	PyObject* object = py_getattro_self(Attributes, this, attr);
 	if (object != NULL)
 		return object;
-	_getattr_up(SCA_ISensor);
+	py_getattro_up(SCA_ISensor);
 }
 
-int KX_NetworkMessageSensor::_setattr(const char *attr, PyObject *value) {
-	int ret = _setattr_self(Attributes, this, attr, value);
+int KX_NetworkMessageSensor::py_setattro(PyObject *attr, PyObject *value) {
+	int ret = py_setattro_self(Attributes, this, attr, value);
 	if (ret >= 0)
 		return ret;
-	return SCA_ISensor::_setattr(attr, value);
+	return SCA_ISensor::py_setattro(attr, value);
 }
 
 PyObject* KX_NetworkMessageSensor::pyattr_get_bodies(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)

@@ -82,8 +82,8 @@ public:
 	);
 	
 	// --------------------------------
-	virtual PyObject* _getattr(const char *attr);
-	virtual int       _setattr(const char *attr, PyObject *pyvalue);
+	virtual PyObject* py_getattro(PyObject *attr);
+	virtual int       py_setattro(PyObject *attr, PyObject *pyvalue);
 
 	KX_PYMETHOD_DOC( KX_BlenderMaterial, getShader );
 	KX_PYMETHOD_DOC( KX_BlenderMaterial, getMaterialIndex );

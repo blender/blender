@@ -55,19 +55,22 @@
 ------------------------------*/
 
 PyTypeObject PyObjectPlus::Type = {
-	PyObject_HEAD_INIT(&PyType_Type)
+	PyObject_HEAD_INIT(NULL)
 	0,				/*ob_size*/
 	"PyObjectPlus",			/*tp_name*/
 	sizeof(PyObjectPlus),		/*tp_basicsize*/
 	0,				/*tp_itemsize*/
 	/* methods */
-	PyDestructor,	  		/*tp_dealloc*/
-	0,			 	/*tp_print*/
-	__getattr, 			/*tp_getattr*/
-	__setattr, 			/*tp_setattr*/
-	0,			        /*tp_compare*/
-	__repr,
-	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+	PyDestructor,
+	0,
+	0,
+	0,
+	0,
+	py_base_repr,
+	0,0,0,0,0,0,
+	py_base_getattro,
+	py_base_setattro,
+	0,0,0,0,0,0,0,0,0,
 	Methods
 };
 
@@ -103,37 +106,41 @@ PyParentObject PyObjectPlus::Parents[] = {&PyObjectPlus::Type, NULL};
 /*------------------------------
  * PyObjectPlus attributes	-- attributes
 ------------------------------*/
-PyObject *PyObjectPlus::_getattr(const char *attr)
+PyObject *PyObjectPlus::py_getattro(PyObject* attr)
 {
-	if (!strcmp(attr, "__doc__") && GetType()->tp_doc)
-		return PyString_FromString(GetType()->tp_doc);
-
+	PyObject *descr = PyDict_GetItem(Type.tp_dict, attr); \
+	if (descr == NULL) {
+		PyErr_SetString(PyExc_AttributeError, "attribute not found");
+		return NULL;
+	} else {
+		return PyCFunction_New(((PyMethodDescrObject *)descr)->d_method, (PyObject *)this); \
+	}
   //if (streq(attr, "type"))
   //  return Py_BuildValue("s", (*(GetParents()))->tp_name);
-
-  return Py_FindMethod(Methods, this, attr);
 }
 
-int PyObjectPlus::_delattr(const char *attr)
+int PyObjectPlus::py_delattro(PyObject* attr)
 {
 	PyErr_SetString(PyExc_AttributeError, "attribute cant be deleted");
 	return 1;
 }
 
-int PyObjectPlus::_setattr(const char *attr, PyObject *value)
+int PyObjectPlus::py_setattro(PyObject *attr, PyObject* value)
 {
-	//return PyObject::_setattr(attr,value);
+	//return PyObject::py_setattro(attr,value);
 	//cerr << "Unknown attribute" << endl;
 	PyErr_SetString(PyExc_AttributeError, "attribute cant be set");
 	return 1;
 }
 
-PyObject *PyObjectPlus::_getattr_self(const PyAttributeDef attrlist[], void *self, const char *attr)
+PyObject *PyObjectPlus::py_getattro_self(const PyAttributeDef attrlist[], void *self, PyObject *attr)
 {
+	char *attr_str= PyString_AsString(attr);
+
 	const PyAttributeDef *attrdef;
 	for (attrdef=attrlist; attrdef->m_name != NULL; attrdef++)
 	{
-		if (!strcmp(attr, attrdef->m_name))
+		if (!strcmp(attr_str, attrdef->m_name))
 		{
 			if (attrdef->m_type == KX_PYATTRIBUTE_TYPE_DUMMY)
 			{
@@ -242,16 +249,17 @@ PyObject *PyObjectPlus::_getattr_self(const PyAttributeDef attrlist[], void *sel
 	return NULL;
 }
 
-int PyObjectPlus::_setattr_self(const PyAttributeDef attrlist[], void *self, const char *attr, PyObject *value)
+int PyObjectPlus::py_setattro_self(const PyAttributeDef attrlist[], void *self, PyObject *attr, PyObject *value)
 {
 	const PyAttributeDef *attrdef;
 	void *undoBuffer = NULL;
 	void *sourceBuffer = NULL;
 	size_t bufferSize = 0;
+	char *attr_str= PyString_AsString(attr);
 
 	for (attrdef=attrlist; attrdef->m_name != NULL; attrdef++)
 	{
-		if (!strcmp(attr, attrdef->m_name))
+		if (!strcmp(attr_str, attrdef->m_name))
 		{
 			if (attrdef->m_access == KX_PYATTRIBUTE_RO ||
 				attrdef->m_type == KX_PYATTRIBUTE_TYPE_DUMMY)
@@ -684,7 +692,7 @@ int PyObjectPlus::_setattr_self(const PyAttributeDef attrlist[], void *self, con
 /*------------------------------
  * PyObjectPlus repr		-- representations
 ------------------------------*/
-PyObject *PyObjectPlus::_repr(void)
+PyObject *PyObjectPlus::py_repr(void)
 {
 	PyErr_SetString(PyExc_SystemError, "Representation not overridden by object.");  
 	return NULL;
@@ -726,7 +734,7 @@ PyObject *PyObjectPlus::Py_isA(PyObject *value)		// Python wrapper for isA
     Py_RETURN_FALSE;
 }
 
-/* Utility function called by the macro _getattr_up()
+/* Utility function called by the macro py_getattro_up()
  * for getting ob.__dict__() values from our PyObject
  * this is used by python for doing dir() on an object, so its good
  * if we return a list of attributes and methods.

@@ -293,18 +293,21 @@ bool KX_MouseFocusSensor::ParentObjectHasFocus(void)
 
 /* Integration hooks ------------------------------------------------------- */
 PyTypeObject KX_MouseFocusSensor::Type = {
-	PyObject_HEAD_INIT(&PyType_Type)
+	PyObject_HEAD_INIT(NULL)
 	0,
 	"KX_MouseFocusSensor",
 	sizeof(KX_MouseFocusSensor),
 	0,
 	PyDestructor,
 	0,
-	__getattr,
-	__setattr,
 	0,
-	__repr,
-	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+	0,
+	0,
+	py_base_repr,
+	0,0,0,0,0,0,
+	py_base_getattro,
+	py_base_setattro,
+	0,0,0,0,0,0,0,0,0,
 	Methods
 };
 
@@ -333,8 +336,8 @@ PyAttributeDef KX_MouseFocusSensor::Attributes[] = {
 	{ NULL }	//Sentinel
 };
 
-PyObject* KX_MouseFocusSensor::_getattr(const char *attr) {
-	_getattr_up(SCA_MouseSensor);
+PyObject* KX_MouseFocusSensor::py_getattro(PyObject *attr) {
+	py_getattro_up(SCA_MouseSensor);
 }
 
 

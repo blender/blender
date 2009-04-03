@@ -105,18 +105,21 @@ CValue* KX_NetworkMessageActuator::GetReplica()
 
 /* Integration hooks -------------------------------------------------- */
 PyTypeObject KX_NetworkMessageActuator::Type = {
-	PyObject_HEAD_INIT(&PyType_Type)
+	PyObject_HEAD_INIT(NULL)
 	0,
 	"KX_NetworkMessageActuator",
 	sizeof(KX_NetworkMessageActuator),
 	0,
 	PyDestructor,
 	0,
-	__getattr,
-	__setattr,
 	0,
-	__repr,
-	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+	0,
+	0,
+	py_base_repr,
+	0,0,0,0,0,0,
+	py_base_getattro,
+	py_base_setattro,
+	0,0,0,0,0,0,0,0,0,
 	Methods
 };
 
@@ -150,18 +153,18 @@ PyAttributeDef KX_NetworkMessageActuator::Attributes[] = {
 	{ NULL }	//Sentinel
 };
 
-PyObject* KX_NetworkMessageActuator::_getattr(const char *attr) {
-	PyObject* object = _getattr_self(Attributes, this, attr);
+PyObject* KX_NetworkMessageActuator::py_getattro(PyObject *attr) {
+	PyObject* object = py_getattro_self(Attributes, this, attr);
 	if (object != NULL)
 		return object;
-	_getattr_up(SCA_IActuator);
+	py_getattro_up(SCA_IActuator);
 }
 
-int KX_NetworkMessageActuator::_setattr(const char *attr, PyObject *value) {
-	int ret = _setattr_self(Attributes, this, attr, value);
+int KX_NetworkMessageActuator::py_setattro(PyObject *attr, PyObject *value) {
+	int ret = py_setattro_self(Attributes, this, attr, value);
 	if (ret >= 0)
 		return ret;
-	return SCA_IActuator::_setattr(attr, value);
+	return SCA_IActuator::py_setattro(attr, value);
 }
 
 // Deprecated ----->

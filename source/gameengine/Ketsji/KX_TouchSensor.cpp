@@ -242,18 +242,21 @@ bool	KX_TouchSensor::NewHandleCollision(void*object1,void*object2,const PHY_Coll
 /* ------------------------------------------------------------------------- */
 /* Integration hooks ------------------------------------------------------- */
 PyTypeObject KX_TouchSensor::Type = {
-	PyObject_HEAD_INIT(&PyType_Type)
+	PyObject_HEAD_INIT(NULL)
 	0,
 	"KX_TouchSensor",
 	sizeof(KX_TouchSensor),
 	0,
 	PyDestructor,
 	0,
-	__getattr,
-	__setattr,
 	0,
-	__repr,
-	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+	0,
+	0,
+	py_base_repr,
+	0,0,0,0,0,0,
+	py_base_getattro,
+	py_base_setattro,
+	0,0,0,0,0,0,0,0,0,
 	Methods
 };
 
@@ -288,29 +291,31 @@ PyAttributeDef KX_TouchSensor::Attributes[] = {
 	{ NULL }	//Sentinel
 };
 
-PyObject* KX_TouchSensor::_getattr(const char *attr)
+PyObject* KX_TouchSensor::py_getattro(PyObject *attr)
 {	
-	if (!strcmp(attr, "objectHit")) {
+	PyObject* object= py_getattro_self(Attributes, this, attr);
+	if (object != NULL)
+		return object;
+	
+	char *attr_str= PyString_AsString(attr);
+	if (!strcmp(attr_str, "objectHit")) {
 		if (m_hitObject)	return m_hitObject->AddRef();
 		else				Py_RETURN_NONE;
 	}
-	if (!strcmp(attr, "objectHitList")) {
+	if (!strcmp(attr_str, "objectHitList")) {
 		return m_colliders->AddRef();
 	}
-
-	PyObject* object= _getattr_self(Attributes, this, attr);
-	if (object != NULL)
-		return object;
-	_getattr_up(SCA_ISensor);
+	
+	py_getattro_up(SCA_ISensor);
 }
 
-int KX_TouchSensor::_setattr(const char *attr, PyObject *value)
+int KX_TouchSensor::py_setattro(PyObject *attr, PyObject *value)
 {
-	int ret = _setattr_self(Attributes, this, attr, value);
+	int ret = py_setattro_self(Attributes, this, attr, value);
 	if (ret >= 0)
 		return ret;
 	
-	return SCA_ISensor::_setattr(attr, value);
+	return SCA_ISensor::py_setattro(attr, value);
 }
 
 /* Python API */

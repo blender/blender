@@ -393,18 +393,21 @@ KX_PYMETHODDEF_DOC_NOARGS(SCA_ISensor, reset,
 /* ----------------------------------------------- */
 
 PyTypeObject SCA_ISensor::Type = {
-	PyObject_HEAD_INIT(&PyType_Type)
+	PyObject_HEAD_INIT(NULL)
 	0,
 	"SCA_ISensor",
 	sizeof(SCA_ISensor),
 	0,
 	PyDestructor,
 	0,
-	__getattr,
-	__setattr,
 	0,
-	__repr,
-	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+	0,
+	0,
+	py_base_repr,
+	0,0,0,0,0,0,
+	py_base_getattro,
+	py_base_setattro,
+	0,0,0,0,0,0,0,0,0,
 	Methods
 };
 
@@ -451,38 +454,40 @@ PyAttributeDef SCA_ISensor::Attributes[] = {
 	KX_PYATTRIBUTE_INT_RW("frequency",0,100000,true,SCA_ISensor,m_pulse_frequency),
 	KX_PYATTRIBUTE_BOOL_RW("invert",SCA_ISensor,m_invert),
 	KX_PYATTRIBUTE_BOOL_RW("level",SCA_ISensor,m_level),
-	// make these properties read-only in _setaddr, must still implement them in _getattr
+	// make these properties read-only in _setaddr, must still implement them in py_getattro
 	KX_PYATTRIBUTE_DUMMY("triggered"),
 	KX_PYATTRIBUTE_DUMMY("positive"),
 	{ NULL }	//Sentinel
 };
 
 PyObject*
-SCA_ISensor::_getattr(const char *attr)
+SCA_ISensor::py_getattro(PyObject *attr)
 {
-	PyObject* object = _getattr_self(Attributes, this, attr);
+	PyObject* object = py_getattro_self(Attributes, this, attr);
 	if (object != NULL)
 		return object;
-	if (!strcmp(attr, "triggered"))
+	
+	char *attr_str= PyString_AsString(attr);
+	if (!strcmp(attr_str, "triggered"))
 	{
 		int retval = 0;
 		if (SCA_PythonController::m_sCurrentController)
 			retval = SCA_PythonController::m_sCurrentController->IsTriggered(this);
 		return PyInt_FromLong(retval);
 	}
-	if (!strcmp(attr, "positive"))
+	if (!strcmp(attr_str, "positive"))
 	{	
 		int retval = IsPositiveTrigger();
 		return PyInt_FromLong(retval);
 	}
-	_getattr_up(SCA_ILogicBrick);
+	py_getattro_up(SCA_ILogicBrick);
 }
 
-int SCA_ISensor::_setattr(const char *attr, PyObject *value)
+int SCA_ISensor::py_setattro(PyObject *attr, PyObject *value)
 {
-	int ret = _setattr_self(Attributes, this, attr, value);
+	int ret = py_setattro_self(Attributes, this, attr, value);
 	if (ret >= 0)
 		return ret;
-	return SCA_ILogicBrick::_setattr(attr, value);
+	return SCA_ILogicBrick::py_setattro(attr, value);
 }
 /* eof */

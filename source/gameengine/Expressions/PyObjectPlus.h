@@ -72,6 +72,8 @@ typedef int Py_ssize_t;
 #define PY_METHODCHAR const char *
 #endif
 
+#include "descrobject.h"
+
 static inline void Py_Fatal(const char *M) {
 	fprintf(stderr, "%s\n", M);
 	exit(-1);
@@ -90,20 +92,26 @@ static inline void Py_Fatal(const char *M) {
 
 
 
-								// This defines the _getattr_up macro
+								// This defines the py_getattro_up macro
 								// which allows attribute and method calls
 								// to be properly passed up the hierarchy.
-#define _getattr_up(Parent) \
-	PyObject *rvalue = Py_FindMethod(Methods, this, attr); \
+
+#define py_getattro_up(Parent) \
+	PyObject *rvalue; \
+	PyObject *descr = PyDict_GetItem(Type.tp_dict, attr); \
 	 \
-	if (rvalue == NULL) { \
+	if (descr == NULL) { \
 		PyErr_Clear(); \
-		rvalue = Parent::_getattr(attr); \
+		rvalue = Parent::py_getattro(attr); \
+	} else { \
+		rvalue= PyCFunction_New(((PyMethodDescrObject *)descr)->d_method, (PyObject *)this); \
 	} \
-	if (strcmp(attr, "__dict__")==0) {\
+	\
+	if (strcmp(PyString_AsString(attr), "__dict__")==0) {\
 		rvalue = _getattr_dict(rvalue, Methods, Attributes); \
 	} \
 	return rvalue; \
+
 
 /**
  * These macros are helpfull when embedding Python routines. The second
@@ -361,29 +369,29 @@ public:
 //		  Py_DECREF(this);
 //	  };				// decref method
 	
-	virtual PyObject *_getattr(const char *attr);			// _getattr method
-	static  PyObject *__getattr(PyObject * PyObj, char *attr) 	// This should be the entry in Type. 
+	virtual PyObject *py_getattro(PyObject *attr);			// py_getattro method
+	static  PyObject *py_base_getattro(PyObject * PyObj, PyObject *attr) 	// This should be the entry in Type. 
 	{
-		return ((PyObjectPlus*) PyObj)->_getattr(attr); 
+		return ((PyObjectPlus*) PyObj)->py_getattro(attr); 
 	}
-	static PyObject *_getattr_self(const PyAttributeDef attrlist[], void *self, const char *attr);
-	static int _setattr_self(const PyAttributeDef attrlist[], void *self, const char *attr, PyObject *value);
+	static PyObject *py_getattro_self(const PyAttributeDef attrlist[], void *self, PyObject *attr);
+	static int py_setattro_self(const PyAttributeDef attrlist[], void *self, PyObject *attr, PyObject *value);
 	
-	virtual int _delattr(const char *attr);
-	virtual int _setattr(const char *attr, PyObject *value);		// _setattr method
-	static  int __setattr(PyObject *PyObj, 			// This should be the entry in Type. 
-				char *attr, 
+	virtual int py_delattro(PyObject *attr);
+	virtual int py_setattro(PyObject *attr, PyObject *value);		// py_setattro method
+	static  int py_base_setattro(PyObject *PyObj, 			// This should be the entry in Type. 
+				PyObject *attr, 
 				PyObject *value)
 	{ 
-		if (!value)
-			return ((PyObjectPlus*) PyObj)->_delattr(attr);
-		return ((PyObjectPlus*) PyObj)->_setattr(attr, value);  
+		if (value==NULL)
+			return ((PyObjectPlus*) PyObj)->py_delattro(attr);
+		return ((PyObjectPlus*) PyObj)->py_setattro(attr, value);  
 	}
 	
-	virtual PyObject *_repr(void);				// _repr method
-	static  PyObject *__repr(PyObject *PyObj)			// This should be the entry in Type.
+	virtual PyObject *py_repr(void);				// py_repr method
+	static  PyObject *py_base_repr(PyObject *PyObj)			// This should be the entry in Type.
 	{
-		return ((PyObjectPlus*) PyObj)->_repr();  
+		return ((PyObjectPlus*) PyObj)->py_repr();  
 	}
 	
 									// isA methods

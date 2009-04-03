@@ -99,18 +99,21 @@ void SCA_ORController::Trigger(SCA_LogicManager* logicmgr)
 
 /* Integration hooks ------------------------------------------------------- */
 PyTypeObject SCA_ORController::Type = {
-	PyObject_HEAD_INIT(&PyType_Type)
+	PyObject_HEAD_INIT(NULL)
 	0,
 	"SCA_ORController",
 	sizeof(SCA_ORController),
 	0,
 	PyDestructor,
 	0,
-	__getattr,
-	__setattr,
-	0, //&MyPyCompare,
-	__repr,
-	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+	0,
+	0,
+	0,
+	py_base_repr,
+	0,0,0,0,0,0,
+	py_base_getattro,
+	py_base_setattro,
+	0,0,0,0,0,0,0,0,0,
 	Methods
 };
 
@@ -131,8 +134,8 @@ PyAttributeDef SCA_ORController::Attributes[] = {
 };
 
 
-PyObject* SCA_ORController::_getattr(const char *attr) {
-	_getattr_up(SCA_IController);
+PyObject* SCA_ORController::py_getattro(PyObject *attr) {
+	py_getattro_up(SCA_IController);
 }
 
 /* eof */

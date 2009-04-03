@@ -753,37 +753,40 @@ PyAttributeDef KX_BlenderMaterial::Attributes[] = {
 };
 
 PyTypeObject KX_BlenderMaterial::Type = {
-	PyObject_HEAD_INIT(&PyType_Type)
+	PyObject_HEAD_INIT(NULL)
 		0,
 		"KX_BlenderMaterial",
 		sizeof(KX_BlenderMaterial),
 		0,
 		PyDestructor,
 		0,
-		__getattr,
-		__setattr,
 		0,
-		__repr,
-		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+		0,
+		0,
+		py_base_repr,
+		0,0,0,0,0,0,
+		py_base_getattro,
+		py_base_setattro,
+		0,0,0,0,0,0,0,0,0,
 		Methods
 };
 
 
 PyParentObject KX_BlenderMaterial::Parents[] = {
-	&PyObjectPlus::Type,
 	&KX_BlenderMaterial::Type,
+	&PyObjectPlus::Type,
 	NULL
 };
 
 
-PyObject* KX_BlenderMaterial::_getattr(const char *attr)
+PyObject* KX_BlenderMaterial::py_getattro(PyObject *attr)
 {
-	_getattr_up(PyObjectPlus);
+	py_getattro_up(PyObjectPlus);
 }
 
-int KX_BlenderMaterial::_setattr(const char *attr, PyObject *pyvalue)
+int KX_BlenderMaterial::py_setattro(PyObject *attr, PyObject *pyvalue)
 {
-	return PyObjectPlus::_setattr(attr, pyvalue);
+	return PyObjectPlus::py_setattro(attr, pyvalue);
 }
 
 

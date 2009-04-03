@@ -60,8 +60,8 @@ public:
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
 
-	virtual PyObject* _getattr(const char *attr);
-	virtual int _setattr(const char *attr, PyObject *value);
+	virtual PyObject* py_getattro(PyObject *attr);
+	virtual int py_setattro(PyObject *attr, PyObject *value);
 
 	/* 1. setSeed                                                            */
 	KX_PYMETHOD_DOC(SCA_RandomSensor,SetSeed);

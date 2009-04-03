@@ -275,18 +275,21 @@ bool SCA_JoystickSensor::isValid(SCA_JoystickSensor::KX_JOYSENSORMODE m)
 
 /* Integration hooks ------------------------------------------------------- */
 PyTypeObject SCA_JoystickSensor::Type = {
-	PyObject_HEAD_INIT(&PyType_Type)
+	PyObject_HEAD_INIT(NULL)
 		0,
 		"SCA_JoystickSensor",
 		sizeof(SCA_JoystickSensor),
 		0,
 		PyDestructor,
 		0,
-		__getattr,
-		__setattr,
-		0, //&MyPyCompare,
-		__repr,
-		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+		0,
+		0,
+		0,
+		py_base_repr,
+		0,0,0,0,0,0,
+		py_base_getattro,
+		py_base_setattro,
+		0,0,0,0,0,0,0,0,0,
 		Methods
 };
 
@@ -330,8 +333,8 @@ PyAttributeDef SCA_JoystickSensor::Attributes[] = {
 	KX_PYATTRIBUTE_INT_RW("button",0,100,false,SCA_JoystickSensor,m_button),
 	KX_PYATTRIBUTE_INT_LIST_RW_CHECK("axis",0,3,true,SCA_JoystickSensor,m_axis,2,CheckAxis),
 	KX_PYATTRIBUTE_INT_LIST_RW_CHECK("hat",0,12,true,SCA_JoystickSensor,m_hat,2,CheckHat),
-	// dummy attributes will just be read-only in _setattr
-	// you still need to defined them in _getattr
+	// dummy attributes will just be read-only in py_setattro
+	// you still need to defined them in py_getattro
 	KX_PYATTRIBUTE_DUMMY("axisPosition"),
 	KX_PYATTRIBUTE_DUMMY("numAxis"),
 	KX_PYATTRIBUTE_DUMMY("numButtons"),
@@ -340,38 +343,40 @@ PyAttributeDef SCA_JoystickSensor::Attributes[] = {
 	{ NULL }	//Sentinel
 };
 
-PyObject* SCA_JoystickSensor::_getattr(const char *attr) {
+PyObject* SCA_JoystickSensor::py_getattro(PyObject *attr) {
 	SCA_Joystick *joy = m_pJoystickMgr->GetJoystickDevice(m_joyindex);
-	if (!strcmp(attr, "axisPosition")) {
+	char *attr_str= PyString_AsString(attr);
+	
+	if (!strcmp(attr_str, "axisPosition")) {
 		if(joy)
 			return Py_BuildValue("[iiii]", joy->GetAxis10(), joy->GetAxis11(), joy->GetAxis20(), joy->GetAxis21());
 		else
 			return Py_BuildValue("[iiii]", 0, 0, 0, 0);
 	}
-	if (!strcmp(attr, "numAxis")) {
+	if (!strcmp(attr_str, "numAxis")) {
 		return PyInt_FromLong( joy ? joy->GetNumberOfAxes() : 0 );
 	}
-	if (!strcmp(attr, "numButtons")) {
+	if (!strcmp(attr_str, "numButtons")) {
 		return PyInt_FromLong( joy ? joy->GetNumberOfButtons() : 0 );
 	}
-	if (!strcmp(attr, "numHats")) {
+	if (!strcmp(attr_str, "numHats")) {
 		return PyInt_FromLong( joy ? joy->GetNumberOfHats() : 0 );
 	}
-	if (!strcmp(attr, "connected")) {
+	if (!strcmp(attr_str, "connected")) {
 		return PyBool_FromLong( joy ? joy->Connected() : 0 );
 	}
-	PyObject* object = _getattr_self(Attributes, this, attr);
+	PyObject* object = py_getattro_self(Attributes, this, attr);
 	if (object != NULL)
 		return object;
-	_getattr_up(SCA_ISensor);
+	py_getattro_up(SCA_ISensor);
 }
 
-int SCA_JoystickSensor::_setattr(const char *attr, PyObject *value) 
+int SCA_JoystickSensor::py_setattro(PyObject *attr, PyObject *value) 
 {
-	int ret = _setattr_self(Attributes, this, attr, value);
+	int ret = py_setattro_self(Attributes, this, attr, value);
 	if (ret >= 0)
 		return ret;
-	return SCA_ISensor::_setattr(attr, value);
+	return SCA_ISensor::py_setattro(attr, value);
 }
 
 

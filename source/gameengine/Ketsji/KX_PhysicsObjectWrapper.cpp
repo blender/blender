@@ -115,22 +115,27 @@ PyObject*	KX_PhysicsObjectWrapper::PySetActive(PyObject* self,
 }
 
 
-
+PyAttributeDef KX_PhysicsObjectWrapper::Attributes[] = {
+	{ NULL }	//Sentinel
+};
 
 //python specific stuff
 PyTypeObject KX_PhysicsObjectWrapper::Type = {
-	PyObject_HEAD_INIT(&PyType_Type)
+	PyObject_HEAD_INIT(NULL)
 		0,
 		"KX_PhysicsObjectWrapper",
 		sizeof(KX_PhysicsObjectWrapper),
 		0,
 		PyDestructor,
 		0,
-		__getattr,
-		__setattr,
 		0,
-		__repr,
-		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+		0,
+		0,
+		py_base_repr,
+		0,0,0,0,0,0,
+		py_base_getattro,
+		py_base_setattro,
+		0,0,0,0,0,0,0,0,0,
 		Methods
 };
 
@@ -139,13 +144,13 @@ PyParentObject KX_PhysicsObjectWrapper::Parents[] = {
 	NULL
 };
 
-PyObject*	KX_PhysicsObjectWrapper::_getattr(const char *attr)
+PyObject*	KX_PhysicsObjectWrapper::py_getattro(PyObject *attr)
 {
-	_getattr_up(PyObjectPlus);
+	py_getattro_up(PyObjectPlus);
 }
 
 
-int	KX_PhysicsObjectWrapper::_setattr(const char *attr,PyObject *pyobj)
+int	KX_PhysicsObjectWrapper::py_setattro(PyObject *attr,PyObject *pyobj)
 {
 	int result = 1;
 
@@ -158,7 +163,7 @@ int	KX_PhysicsObjectWrapper::_setattr(const char *attr,PyObject *pyobj)
 		result = 0;
 	}
 	if (result)
-		result = PyObjectPlus::_setattr(attr,pyobj);
+		result = PyObjectPlus::py_setattro(attr,pyobj);
 		
 	return result;
 };

@@ -139,18 +139,21 @@ bool KX_ParentActuator::Update()
 
 /* Integration hooks ------------------------------------------------------- */
 PyTypeObject KX_ParentActuator::Type = {
-	PyObject_HEAD_INIT(&PyType_Type)
+	PyObject_HEAD_INIT(NULL)
 	0,
 	"KX_ParentActuator",
 	sizeof(KX_ParentActuator),
 	0,
 	PyDestructor,
 	0,
-	__getattr,
-	__setattr,
 	0,
-	__repr,
-	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+	0,
+	0,
+	py_base_repr,
+	0,0,0,0,0,0,
+	py_base_getattro,
+	py_base_setattro,
+	0,0,0,0,0,0,0,0,0,
 	Methods
 };
 
@@ -204,20 +207,20 @@ int KX_ParentActuator::pyattr_set_object(void *self, const struct KX_PYATTRIBUTE
 }
 
 
-PyObject* KX_ParentActuator::_getattr(const char *attr) {	
+PyObject* KX_ParentActuator::py_getattro(PyObject *attr) {	
 	
-	PyObject* object = _getattr_self(Attributes, this, attr);
+	PyObject* object = py_getattro_self(Attributes, this, attr);
 	if (object != NULL)
 		return object;
-	_getattr_up(SCA_IActuator);
+	py_getattro_up(SCA_IActuator);
 }
 
-int KX_ParentActuator::_setattr(const char *attr, PyObject* value) {
+int KX_ParentActuator::py_setattro(PyObject *attr, PyObject* value) {
 	
-	int ret = _setattr_self(Attributes, this, attr, value);
+	int ret = py_setattro_self(Attributes, this, attr, value);
 	if (ret >= 0)
 		return ret;
-	return SCA_IActuator::_setattr(attr, value);
+	return SCA_IActuator::py_setattro(attr, value);
 }
 
 /* Deprecated -----> */

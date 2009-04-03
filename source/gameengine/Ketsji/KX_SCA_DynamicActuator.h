@@ -74,8 +74,8 @@ class KX_SCA_DynamicActuator : public SCA_IActuator
 	};
 
 
-	virtual PyObject* _getattr(const char *attr);
-	virtual int _setattr(const char *attr, PyObject *value);
+	virtual PyObject* py_getattro(PyObject *attr);
+	virtual int py_setattro(PyObject *attr, PyObject *value);
 
 	/* 1. setOperation */
 	KX_PYMETHOD_DOC(KX_SCA_DynamicActuator,setOperation);

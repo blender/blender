@@ -39,18 +39,21 @@
 #include "KX_PyMath.h"
 
 PyTypeObject KX_PolyProxy::Type = {
-	PyObject_HEAD_INIT(&PyType_Type)
+	PyObject_HEAD_INIT(NULL)
 	0,
 	"KX_PolyProxy",
 	sizeof(KX_PolyProxy),
 	0,
 	PyDestructor,
 	0,
-	__getattr,
-	__setattr,
 	0,
-	__repr,
-	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+	0,
+	0,
+	py_base_repr,
+	0,0,0,0,0,0,
+	py_base_getattro,
+	py_base_setattro,
+	0,0,0,0,0,0,0,0,0,
 	Methods
 };
 
@@ -78,17 +81,18 @@ PyAttributeDef KX_PolyProxy::Attributes[] = {
 	{ NULL }	//Sentinel
 };
 
-PyObject* KX_PolyProxy::_getattr(const char *attr)
+PyObject* KX_PolyProxy::py_getattro(PyObject *attr)
 {
-	if (!strcmp(attr, "matname"))
+	char *attr_str= PyString_AsString(attr);
+	if (!strcmp(attr_str, "matname"))
 	{
 		return PyString_FromString(m_polygon->GetMaterial()->GetPolyMaterial()->GetMaterialName());
 	}
-	if (!strcmp(attr, "texture"))
+	if (!strcmp(attr_str, "texture"))
 	{
 		return PyString_FromString(m_polygon->GetMaterial()->GetPolyMaterial()->GetTextureName());
 	}
-	if (!strcmp(attr, "material"))
+	if (!strcmp(attr_str, "material"))
 	{
 		RAS_IPolyMaterial *polymat = m_polygon->GetMaterial()->GetPolyMaterial();
 		if(polymat->GetFlag() & RAS_BLENDERMAT)
@@ -104,7 +108,7 @@ PyObject* KX_PolyProxy::_getattr(const char *attr)
 			return mat;
 		}
 	}
-	if (!strcmp(attr, "matid"))
+	if (!strcmp(attr_str, "matid"))
 	{
 		// we'll have to scan through the material bucket of the mes and compare with 
 		// the one of the polygon
@@ -119,31 +123,31 @@ PyObject* KX_PolyProxy::_getattr(const char *attr)
 		}
 		return PyInt_FromLong(matid);
 	}
-	if (!strcmp(attr, "v1"))
+	if (!strcmp(attr_str, "v1"))
 	{
 		return PyInt_FromLong(m_polygon->GetVertexOffset(0));
 	}
-	if (!strcmp(attr, "v2"))
+	if (!strcmp(attr_str, "v2"))
 	{
 		return PyInt_FromLong(m_polygon->GetVertexOffset(1));
 	}
-	if (!strcmp(attr, "v3"))
+	if (!strcmp(attr_str, "v3"))
 	{
 		return PyInt_FromLong(m_polygon->GetVertexOffset(2));
 	}
-	if (!strcmp(attr, "v4"))
+	if (!strcmp(attr_str, "v4"))
 	{
 		return PyInt_FromLong(((m_polygon->VertexCount()>3)?m_polygon->GetVertexOffset(3):0));
 	}
-	if (!strcmp(attr, "visible"))
+	if (!strcmp(attr_str, "visible"))
 	{
 		return PyInt_FromLong(m_polygon->IsVisible());
 	}
-	if (!strcmp(attr, "collide"))
+	if (!strcmp(attr_str, "collide"))
 	{
 		return PyInt_FromLong(m_polygon->IsCollider());
 	}
-	_getattr_up(SCA_IObject);
+	py_getattro_up(SCA_IObject);
 }
 
 KX_PolyProxy::KX_PolyProxy(const RAS_MeshObject*mesh, RAS_Polygon* polygon)

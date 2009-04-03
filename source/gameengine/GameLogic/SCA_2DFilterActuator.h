@@ -38,7 +38,7 @@ public:
     virtual bool Update();
 
     virtual CValue* GetReplica();
-    virtual PyObject* _getattr(const char *attr);
+    virtual PyObject* py_getattro(PyObject *attr);
 
 };
 #endif

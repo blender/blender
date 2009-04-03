@@ -142,7 +142,7 @@ protected:
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
 
-	virtual PyObject* _getattr(const char *attr);
+	virtual PyObject* py_getattro(PyObject *attr);
 
 	KX_PYMETHOD_DOC(KX_ConstraintActuator,SetDamp);
 	KX_PYMETHOD_DOC_NOARGS(KX_ConstraintActuator,GetDamp);

@@ -53,7 +53,7 @@ public:
 
 
 // stuff for python integration
-	virtual PyObject* _getattr(const char *attr);
+	virtual PyObject* py_getattro(PyObject *attr);
 
 	KX_PYMETHOD_DOC_NOARGS(KX_PolyProxy,getMaterialIndex)
 	KX_PYMETHOD_DOC_NOARGS(KX_PolyProxy,getNumVertex)

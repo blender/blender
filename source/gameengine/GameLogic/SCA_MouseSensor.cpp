@@ -102,7 +102,7 @@ int SCA_MouseSensor::UpdateHotkey(void *self, const PyAttributeDef*)
 	default:
 		; /* ignore, no hotkey */
 	}
-	// return value is used in _setattr(), 
+	// return value is used in py_setattro(), 
 	// 0=attribute checked ok (see Attributes array definition)
 	return 0;
 }
@@ -300,18 +300,21 @@ KX_PYMETHODDEF_DOC_O(SCA_MouseSensor, getButtonStatus,
 /* ------------------------------------------------------------------------- */
 
 PyTypeObject SCA_MouseSensor::Type = {
-	PyObject_HEAD_INIT(&PyType_Type)
+	PyObject_HEAD_INIT(NULL)
 	0,
 	"SCA_MouseSensor",
 	sizeof(SCA_MouseSensor),
 	0,
 	PyDestructor,
 	0,
-	__getattr,
-	__setattr,
 	0,
-	__repr,
-	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+	0,
+	0,
+	py_base_repr,
+	0,0,0,0,0,0,
+	py_base_getattro,
+	py_base_setattro,
+	0,0,0,0,0,0,0,0,0,
 	Methods
 };
 
@@ -338,20 +341,20 @@ PyAttributeDef SCA_MouseSensor::Attributes[] = {
 	{ NULL }	//Sentinel
 };
 
-PyObject* SCA_MouseSensor::_getattr(const char *attr) 
+PyObject* SCA_MouseSensor::py_getattro(PyObject *attr) 
 {
-	PyObject* object = _getattr_self(Attributes, this, attr);
+	PyObject* object = py_getattro_self(Attributes, this, attr);
 	if (object != NULL)
 		return object;
-	_getattr_up(SCA_ISensor);
+	py_getattro_up(SCA_ISensor);
 }
 
-int SCA_MouseSensor::_setattr(const char *attr, PyObject *value)
+int SCA_MouseSensor::py_setattro(PyObject *attr, PyObject *value)
 {
-	int ret = _setattr_self(Attributes, this, attr, value);
+	int ret = py_setattro_self(Attributes, this, attr, value);
 	if (ret >= 0)
 		return ret;
-	return SCA_ISensor::_setattr(attr, value);
+	return SCA_ISensor::py_setattro(attr, value);
 }
 
 /* eof */

@@ -173,59 +173,62 @@ void KX_LightObject::UnbindShadowBuffer(RAS_IRasterizer *ras)
 	GPU_lamp_shadow_buffer_unbind(lamp);
 }
 
-PyObject* KX_LightObject::_getattr(const char *attr)
+PyObject* KX_LightObject::py_getattro(PyObject *attr)
 {
-	if (!strcmp(attr, "layer"))
+	char *attr_str= PyString_AsString(attr);
+	
+	if (!strcmp(attr_str, "layer"))
 		return PyInt_FromLong(m_lightobj.m_layer);
 	
-	if (!strcmp(attr, "energy"))
+	if (!strcmp(attr_str, "energy"))
 		return PyFloat_FromDouble(m_lightobj.m_energy);
 	
-	if (!strcmp(attr, "distance"))
+	if (!strcmp(attr_str, "distance"))
 		return PyFloat_FromDouble(m_lightobj.m_distance);
 	
-	if (!strcmp(attr, "colour") || !strcmp(attr, "color"))
+	if (!strcmp(attr_str, "colour") || !strcmp(attr_str, "color"))
 		return Py_BuildValue("[fff]", m_lightobj.m_red, m_lightobj.m_green, m_lightobj.m_blue);
 		
-	if (!strcmp(attr, "lin_attenuation"))
+	if (!strcmp(attr_str, "lin_attenuation"))
 		return PyFloat_FromDouble(m_lightobj.m_att1);
 	
-	if (!strcmp(attr, "quad_attenuation"))
+	if (!strcmp(attr_str, "quad_attenuation"))
 		return PyFloat_FromDouble(m_lightobj.m_att2);
 	
-	if (!strcmp(attr, "spotsize"))
+	if (!strcmp(attr_str, "spotsize"))
 		return PyFloat_FromDouble(m_lightobj.m_spotsize);
 	
-	if (!strcmp(attr, "spotblend"))
+	if (!strcmp(attr_str, "spotblend"))
 		return PyFloat_FromDouble(m_lightobj.m_spotblend);
 		
-	if (!strcmp(attr, "SPOT"))
+	if (!strcmp(attr_str, "SPOT"))
 		return PyInt_FromLong(RAS_LightObject::LIGHT_SPOT);
 		
-	if (!strcmp(attr, "SUN"))
+	if (!strcmp(attr_str, "SUN"))
 		return PyInt_FromLong(RAS_LightObject::LIGHT_SUN);
 	
-	if (!strcmp(attr, "NORMAL"))
+	if (!strcmp(attr_str, "NORMAL"))
 		return PyInt_FromLong(RAS_LightObject::LIGHT_NORMAL);
 	
-	if (!strcmp(attr, "type"))
+	if (!strcmp(attr_str, "type"))
 		return PyInt_FromLong(m_lightobj.m_type);
 		
-	_getattr_up(KX_GameObject);
+	py_getattro_up(KX_GameObject);
 }
 
-int       KX_LightObject::_setattr(const char *attr, PyObject *pyvalue)
-{	
+int       KX_LightObject::py_setattro(PyObject *attr, PyObject *pyvalue)
+{
+	char *attr_str= PyString_AsString(attr);
 	if (PyInt_Check(pyvalue))
 	{
 		int value = PyInt_AsLong(pyvalue);
-		if (!strcmp(attr, "layer"))
+		if (!strcmp(attr_str, "layer"))
 		{
 			m_lightobj.m_layer = value;
 			return 0;
 		}
 		
-		if (!strcmp(attr, "type"))
+		if (!strcmp(attr_str, "type"))
 		{
 			if (value >= RAS_LightObject::LIGHT_SPOT && value <= RAS_LightObject::LIGHT_NORMAL)
 				m_lightobj.m_type = (RAS_LightObject::LightType) value;
@@ -236,37 +239,37 @@ int       KX_LightObject::_setattr(const char *attr, PyObject *pyvalue)
 	if (PyFloat_Check(pyvalue))
 	{
 		float value = PyFloat_AsDouble(pyvalue);
-		if (!strcmp(attr, "energy"))
+		if (!strcmp(attr_str, "energy"))
 		{
 			m_lightobj.m_energy = value;
 			return 0;
 		}
 	
-		if (!strcmp(attr, "distance"))
+		if (!strcmp(attr_str, "distance"))
 		{
 			m_lightobj.m_distance = value;
 			return 0;
 		}
 		
-		if (!strcmp(attr, "lin_attenuation"))
+		if (!strcmp(attr_str, "lin_attenuation"))
 		{
 			m_lightobj.m_att1 = value;
 			return 0;
 		}
 		
-		if (!strcmp(attr, "quad_attenuation"))
+		if (!strcmp(attr_str, "quad_attenuation"))
 		{
 			m_lightobj.m_att2 = value;
 			return 0;
 		}
 		
-		if (!strcmp(attr, "spotsize"))
+		if (!strcmp(attr_str, "spotsize"))
 		{
 			m_lightobj.m_spotsize = value;
 			return 0;
 		}
 		
-		if (!strcmp(attr, "spotblend"))
+		if (!strcmp(attr_str, "spotblend"))
 		{
 			m_lightobj.m_spotblend = value;
 			return 0;
@@ -275,7 +278,7 @@ int       KX_LightObject::_setattr(const char *attr, PyObject *pyvalue)
 
 	if (PySequence_Check(pyvalue))
 	{
-		if (!strcmp(attr, "colour") || !strcmp(attr, "color"))
+		if (!strcmp(attr_str, "colour") || !strcmp(attr_str, "color"))
 		{
 			MT_Vector3 color;
 			if (PyVecTo(pyvalue, color))
@@ -289,13 +292,13 @@ int       KX_LightObject::_setattr(const char *attr, PyObject *pyvalue)
 		}
 	}
 	
-	if (!strcmp(attr, "SPOT") || !strcmp(attr, "SUN") || !strcmp(attr, "NORMAL"))
+	if (!strcmp(attr_str, "SPOT") || !strcmp(attr_str, "SUN") || !strcmp(attr_str, "NORMAL"))
 	{
-		PyErr_Format(PyExc_RuntimeError, "Attribute %s is read only.", attr);
+		PyErr_Format(PyExc_RuntimeError, "Attribute %s is read only.", attr_str);
 		return 1;
 	}
 	
-	return KX_GameObject::_setattr(attr, pyvalue);
+	return KX_GameObject::py_setattro(attr, pyvalue);
 }
 
 PyMethodDef KX_LightObject::Methods[] = {
@@ -308,18 +311,21 @@ PyAttributeDef KX_LightObject::Attributes[] = {
 
 
 PyTypeObject KX_LightObject::Type = {
-	PyObject_HEAD_INIT(&PyType_Type)
+	PyObject_HEAD_INIT(NULL)
 		0,
 		"KX_LightObject",
 		sizeof(KX_LightObject),
 		0,
 		PyDestructor,
 		0,
-		__getattr,
-		__setattr,
 		0,
-		__repr,
-		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+		0,
+		0,
+		py_base_repr,
+		0,0,0,0,0,0,
+		py_base_getattro,
+		py_base_setattro,
+		0,0,0,0,0,0,0,0,0,
 		Methods
 };
 

@@ -756,9 +756,9 @@ public:
 	 * @section Python interface functions.
 	 */
 
-	virtual PyObject* _getattr(const char *attr);
-	virtual int _setattr(const char *attr, PyObject *value);		// _setattr method
-	virtual PyObject* _repr(void) { return PyString_FromString(GetName().ReadPtr()); }
+	virtual PyObject* py_getattro(PyObject *attr);
+	virtual int py_setattro(PyObject *attr, PyObject *value);		// py_setattro method
+	virtual PyObject* py_repr(void) { return PyString_FromString(GetName().ReadPtr()); }
 	
 	KX_PYMETHOD_NOARGS(KX_GameObject,GetPosition);
 	KX_PYMETHOD_O(KX_GameObject,SetPosition);

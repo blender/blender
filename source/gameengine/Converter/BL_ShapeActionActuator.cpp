@@ -420,18 +420,21 @@ bool BL_ShapeActionActuator::Update(double curtime, bool frame)
 /* Integration hooks ------------------------------------------------------- */
 
 PyTypeObject BL_ShapeActionActuator::Type = {
-	PyObject_HEAD_INIT(&PyType_Type)
+	PyObject_HEAD_INIT(NULL)
 		0,
 		"BL_ShapeActionActuator",
 		sizeof(BL_ShapeActionActuator),
 		0,
 		PyDestructor,
 		0,
-		__getattr,
-		__setattr,
-		0, //&MyPyCompare,
-		__repr,
-		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+		0,
+		0,
+		0,
+		py_base_repr,
+		0,0,0,0,0,0,
+		py_base_getattro,
+		py_base_setattro,
+		0,0,0,0,0,0,0,0,0,
 		Methods
 };
 
@@ -481,17 +484,19 @@ PyAttributeDef BL_ShapeActionActuator::Attributes[] = {
 };
 
 
-PyObject* BL_ShapeActionActuator::_getattr(const char *attr) {
-	if (!strcmp(attr, "action"))
+PyObject* BL_ShapeActionActuator::py_getattro(PyObject* attr) {
+	char *attr_str= PyString_AsString(attr);
+	if (!strcmp(attr_str, "action"))
 		return PyString_FromString(m_action->id.name+2);
-	PyObject* object = _getattr_self(Attributes, this, attr);
+	PyObject* object = py_getattro_self(Attributes, this, attr);
 	if (object != NULL)
 		return object;
-	_getattr_up(SCA_IActuator);
+	py_getattro_up(SCA_IActuator);
 }
 
-int BL_ShapeActionActuator::_setattr(const char *attr, PyObject* value) {
-	if (!strcmp(attr, "action"))
+int BL_ShapeActionActuator::py_setattro(PyObject *attr, PyObject* value) {
+	char *attr_str= PyString_AsString(attr);
+	if (!strcmp(attr_str, "action"))
 	{
 		if (!PyString_Check(value))
 		{
@@ -521,10 +526,10 @@ int BL_ShapeActionActuator::_setattr(const char *attr, PyObject* value) {
 		m_action = action;
 		return 0;
 	}
-	int ret = _setattr_self(Attributes, this, attr, value);
+	int ret = py_setattro_self(Attributes, this, attr, value);
 	if (ret >= 0)
 		return ret;
-	return SCA_IActuator::_setattr(attr, value);
+	return SCA_IActuator::py_setattro(attr, value);
 }
 
 /*     setStart                                                              */

@@ -413,18 +413,21 @@ int KX_IpoActuator::string2mode(char* modename) {
 
 /* Integration hooks ------------------------------------------------------- */
 PyTypeObject KX_IpoActuator::Type = {
-	PyObject_HEAD_INIT(&PyType_Type)
+	PyObject_HEAD_INIT(NULL)
 	0,
 	"KX_IpoActuator",
 	sizeof(KX_IpoActuator),
 	0,
 	PyDestructor,
 	0,
-	__getattr,
-	__setattr,
 	0,
-	__repr,
-	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+	0,
+	0,
+	py_base_repr,
+	0,0,0,0,0,0,
+	py_base_getattro,
+	py_base_setattro,
+	0,0,0,0,0,0,0,0,0,
 	Methods
 };
 
@@ -470,25 +473,21 @@ PyAttributeDef KX_IpoActuator::Attributes[] = {
 	{ NULL }	//Sentinel
 };
 
-PyObject* KX_IpoActuator::_getattr(const char *attr) {
-	PyObject* object = _getattr_self(Attributes, this, attr);
+PyObject* KX_IpoActuator::py_getattro(PyObject *attr) {
+	PyObject* object = py_getattro_self(Attributes, this, attr);
 	if (object != NULL)
 		return object;
 	
-	if (!strcmp(attr, "__dict__")) { /* python 3.0 uses .__dir__()*/
-		return _getattr_dict(SCA_IActuator::_getattr(attr), Methods, Attributes);
-	}
-	
-	_getattr_up(SCA_IActuator);
+	py_getattro_up(SCA_IActuator);
 }
 
-int KX_IpoActuator::_setattr(const char *attr, PyObject *value)	// _setattr method
+int KX_IpoActuator::py_setattro(PyObject *attr, PyObject *value)	// py_setattro method
 {
-	int ret = _setattr_self(Attributes, this, attr, value);
+	int ret = py_setattro_self(Attributes, this, attr, value);
 	if (ret >= 0)
 		return ret;
 	
-	return SCA_IActuator::_setattr(attr, value);
+	return SCA_IActuator::py_setattro(attr, value);
 }
 
 /* set --------------------------------------------------------------------- */
