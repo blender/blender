@@ -124,8 +124,8 @@ int AdjacencyIterator___init__(BPy_AdjacencyIterator *self, PyObject *args )
 		self->a_it = new AdjacencyIterator(*( ((BPy_AdjacencyIterator *) obj1)->a_it ));
 	
 	} else if( BPy_ViewVertex_Check(obj1) ) {
-		bool restrictToSelection = ( obj2 && PyBool_Check(obj2) ) ? bool_from_PyBool(obj2) : true;
-		bool restrictToUnvisited = ( obj3 && PyBool_Check(obj3) ) ? bool_from_PyBool(obj3) : true;
+		bool restrictToSelection = ( obj2 ) ? bool_from_PyBool(obj2) : true;
+		bool restrictToUnvisited = ( obj3 ) ? bool_from_PyBool(obj3) : true;
 		
 		self->a_it = new AdjacencyIterator( ((BPy_ViewVertex *) obj1)->vv, restrictToSelection, restrictToUnvisited );
 			

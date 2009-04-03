@@ -354,7 +354,7 @@ PyObject *Stroke_setTextureId( BPy_Stroke *self , PyObject *args) {
 PyObject *Stroke_setTips( BPy_Stroke *self , PyObject *args) {
 	PyObject *py_b;
 
-	if(!( PyArg_ParseTuple(args, "O!", &PyBool_Type, &py_b) ))
+	if(!( PyArg_ParseTuple(args, "O", &py_b) ))
 		return NULL;
 
 	self->s->setTips( bool_from_PyBool(py_b) );

@@ -145,7 +145,7 @@ int Chain___init__(BPy_Chain *self, PyObject *args, PyObject *kwds)
 PyObject * Chain_push_viewedge_back( BPy_Chain *self, PyObject *args ) {
 	PyObject *obj1 = 0, *obj2 = 0;
 
-	if(!( PyArg_ParseTuple(args, "O!O!", &ViewEdge_Type, &obj1, &PyBool_Type, &obj2) ))
+	if(!( PyArg_ParseTuple(args, "O!O", &ViewEdge_Type, &obj1, &obj2) ))
 		return NULL;
 
 	ViewEdge *ve = ((BPy_ViewEdge *) obj1)->ve;
@@ -158,7 +158,7 @@ PyObject * Chain_push_viewedge_back( BPy_Chain *self, PyObject *args ) {
 PyObject * Chain_push_viewedge_front( BPy_Chain *self, PyObject *args ) {
 	PyObject *obj1 = 0, *obj2 = 0;
 
-	if(!( PyArg_ParseTuple(args, "O!O!", &ViewEdge_Type, &obj1, &PyBool_Type, &obj2) ))
+	if(!( PyArg_ParseTuple(args, "O!O", &ViewEdge_Type, &obj1, &obj2) ))
 		return NULL;
 
 	ViewEdge *ve = ((BPy_ViewEdge *) obj1)->ve;

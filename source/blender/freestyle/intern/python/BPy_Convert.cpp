@@ -326,7 +326,7 @@ PyObject * BPy_ChainSilhouetteIterator_from_ChainSilhouetteIterator( ChainSilhou
 //==============================
 
 bool bool_from_PyBool( PyObject *b ) {
-	return (b == Py_True || PyInt_AsLong(b) != 0);
+	return PyObject_IsTrue(b) != 0;
 }
 
 IntegrationType IntegrationType_from_BPy_IntegrationType( PyObject* obj ) {

@@ -105,7 +105,7 @@ int CalligraphicShader___init__( BPy_CalligraphicShader* self, PyObject *args)
 	PyObject *obj3 = 0, *obj4 = 0;
 	
 
-	if(!( PyArg_ParseTuple(args, "ddO!O!", &d1, &d2, &PyList_Type, &obj3, &PyBool_Type, &obj4) ))
+	if(!( PyArg_ParseTuple(args, "ddO!O", &d1, &d2, &PyList_Type, &obj3, &obj4) ))
 		return -1;
 	if( PyList_Size(obj3) != 2 ) {
 		stringstream msg("CalligraphicShader() accepts a list of 2 elements (");

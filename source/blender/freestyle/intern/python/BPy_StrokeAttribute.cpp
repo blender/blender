@@ -390,7 +390,7 @@ PyObject * StrokeAttribute_setThickness( BPy_StrokeAttribute *self, PyObject *ar
 PyObject * StrokeAttribute_setVisible( BPy_StrokeAttribute *self, PyObject *args ) {
 	PyObject *py_b;
 
-	if(!( PyArg_ParseTuple(args, "O!", &PyBool_Type, &py_b) ))
+	if(!( PyArg_ParseTuple(args, "O", &py_b) ))
 		return NULL;
 
 	self->sa->setVisible( bool_from_PyBool(py_b) );

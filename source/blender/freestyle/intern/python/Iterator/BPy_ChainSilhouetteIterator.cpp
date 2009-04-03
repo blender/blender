@@ -118,9 +118,17 @@ int ChainSilhouetteIterator___init__(BPy_ChainSilhouetteIterator *self, PyObject
 		self->cs_it = new ChainSilhouetteIterator(*( ((BPy_ChainSilhouetteIterator *) obj1)->cs_it ));
 	
 	} else {
-		bool restrictToSelection = ( obj1 && PyBool_Check(obj1) ) ? bool_from_PyBool(obj1) : true;
-		ViewEdge *begin = ( obj2 && BPy_ViewEdge_Check(obj2) ) ? ((BPy_ViewEdge *) obj2)->ve : 0;
-		bool orientation = ( obj3 && PyBool_Check(obj3) ) ? bool_from_PyBool(obj3) : true;
+		bool restrictToSelection = ( obj1 ) ? bool_from_PyBool(obj1) : true;
+		ViewEdge *begin;
+		if ( !obj2 || obj2 == Py_None )
+			begin = NULL;
+		else if ( BPy_ViewEdge_Check(obj2) )
+			begin = ((BPy_ViewEdge *) obj2)->ve;
+		else {
+			PyErr_SetString(PyExc_TypeError, "2nd argument must be either a ViewEdge object or None");
+			return -1;
+		}
+		bool orientation = ( obj3 ) ? bool_from_PyBool(obj3) : true;
 		
 		self->cs_it = new ChainSilhouetteIterator( restrictToSelection, begin, orientation);	
 	}

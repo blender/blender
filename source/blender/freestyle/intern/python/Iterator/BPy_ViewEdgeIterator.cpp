@@ -135,8 +135,16 @@ int ViewEdgeIterator___init__(BPy_ViewEdgeIterator *self, PyObject *args )
 		self->ve_it = new ViewEdgeInternal::ViewEdgeIterator(*( ((BPy_ViewEdgeIterator *) obj1)->ve_it ));
 	
 	} else {
-		ViewEdge *begin = ( obj1 && BPy_ViewEdge_Check(obj1) ) ? ((BPy_ViewEdge *) obj1)->ve : 0;
-		bool orientation = ( obj2 && PyBool_Check(obj2) ) ? bool_from_PyBool(obj2) : true;
+		ViewEdge *begin;
+		if ( !obj1 || obj1 == Py_None )
+			begin = NULL;
+		else if ( BPy_ViewEdge_Check(obj1) )
+			begin = ((BPy_ViewEdge *) obj1)->ve;
+		else {
+			PyErr_SetString(PyExc_TypeError, "1st argument must be either a ViewEdge object or None");
+			return -1;
+		}
+		bool orientation = ( obj2 ) ? bool_from_PyBool(obj2) : true;
 		
 		self->ve_it = new ViewEdgeInternal::ViewEdgeIterator( begin, orientation);
 		
@@ -192,7 +200,7 @@ PyObject *ViewEdgeIterator_getOrientation( BPy_ViewEdgeIterator *self ) {
 PyObject *ViewEdgeIterator_setOrientation( BPy_ViewEdgeIterator *self, PyObject *args ) {
 	PyObject *py_b;
 
-	if(!( PyArg_ParseTuple(args, "O!", &PyBool_Type, &py_b) ))
+	if(!( PyArg_ParseTuple(args, "O", &py_b) ))
 		return NULL;
 
 	self->ve_it->setOrientation( bool_from_PyBool(py_b) );

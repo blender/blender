@@ -121,17 +121,25 @@ int ChainingIterator___init__(BPy_ChainingIterator *self, PyObject *args )
 {	
 	PyObject *obj1 = 0, *obj2 = 0, *obj3 = 0, *obj4 = 0;
 
-	if (!( PyArg_ParseTuple(args, "O|OOO", &obj1, &obj2, &obj3, &obj4) ))
+	if (!( PyArg_ParseTuple(args, "|OOOO", &obj1, &obj2, &obj3, &obj4) ))
 	    return -1;
 
 	if( obj1 && BPy_ChainingIterator_Check(obj1)  ) {
 		self->c_it = new ChainingIterator(*( ((BPy_ChainingIterator *) obj1)->c_it ));
 	
 	} else {
-		bool restrictToSelection = ( obj1 && PyBool_Check(obj1) ) ? bool_from_PyBool(obj1) : true;
-		bool restrictToUnvisited = ( obj2 && PyBool_Check(obj2) ) ? bool_from_PyBool(obj2) : true;
-		ViewEdge *begin = ( obj3 && BPy_ViewEdge_Check(obj3) ) ? ((BPy_ViewEdge *) obj3)->ve : 0;
-		bool orientation = ( obj4 && PyBool_Check(obj4) ) ? bool_from_PyBool(obj4) : true;
+		bool restrictToSelection = ( obj1 ) ? bool_from_PyBool(obj1) : true;
+		bool restrictToUnvisited = ( obj2 ) ? bool_from_PyBool(obj2) : true;
+		ViewEdge *begin;
+		if ( !obj3 || obj3 == Py_None )
+			begin = NULL;
+		else if ( BPy_ViewEdge_Check(obj3) )
+			begin = ((BPy_ViewEdge *) obj3)->ve;
+		else {
+			PyErr_SetString(PyExc_TypeError, "3rd argument must be either a ViewEdge object or None");
+			return -1;
+		}
+		bool orientation = ( obj4 ) ? bool_from_PyBool(obj4) : true;
 		
 		self->c_it = new ChainingIterator( restrictToSelection, restrictToUnvisited, begin, orientation);	
 	}
