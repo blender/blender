@@ -1073,7 +1073,7 @@ int BL_ActionActuator::pyattr_set_action(void *self_v, const KX_PYATTRIBUTE_DEF 
 	
 	if (val != "")
 	{
-		(bAction*)SCA_ILogicBrick::m_sCurrentLogicManager->GetActionByName(val);
+		action= (bAction*)SCA_ILogicBrick::m_sCurrentLogicManager->GetActionByName(val);
 		if (!action)
 		{
 			PyErr_SetString(PyExc_ValueError, "action not found!");
