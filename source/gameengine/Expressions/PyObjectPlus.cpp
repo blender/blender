@@ -110,6 +110,9 @@ PyObject *PyObjectPlus::py_getattro(PyObject* attr)
 {
 	PyObject *descr = PyDict_GetItem(Type.tp_dict, attr); \
 	if (descr == NULL) {
+		if (strcmp(PyString_AsString(attr), "__dict__")==0) {
+			return py_getattr_dict(NULL, Methods, NULL); /* no Attributes yet */
+		}
 		PyErr_SetString(PyExc_AttributeError, "attribute not found");
 		return NULL;
 	} else {
