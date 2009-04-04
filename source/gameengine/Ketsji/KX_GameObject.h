@@ -821,9 +821,12 @@ public:
 	static int			pyattr_set_timeOffset(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 	static PyObject*	pyattr_get_state(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static int			pyattr_set_state(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
+	static PyObject*	pyattr_get_meshes(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	
 	/* for dir(), python3 uses __dir__() */
 	static PyObject*	pyattr_get_dir_dict(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	
+	
 	
 	/* getitem/setitem */
 	static Py_ssize_t			Map_Len(PyObject* self);

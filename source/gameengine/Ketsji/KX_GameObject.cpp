@@ -1009,7 +1009,6 @@ PyMethodDef KX_GameObject::Methods[] = {
 	{"removeParent", (PyCFunction)KX_GameObject::sPyRemoveParent,METH_NOARGS},
 	{"getChildren", (PyCFunction)KX_GameObject::sPyGetChildren,METH_NOARGS},
 	{"getChildrenRecursive", (PyCFunction)KX_GameObject::sPyGetChildrenRecursive,METH_NOARGS},
-	{"getMesh", (PyCFunction)KX_GameObject::sPyGetMesh,METH_VARARGS},
 	{"getPhysicsId", (PyCFunction)KX_GameObject::sPyGetPhysicsId,METH_NOARGS},
 	{"getPropertyNames", (PyCFunction)KX_GameObject::sPyGetPropertyNames,METH_NOARGS},
 	{"replaceMesh",(PyCFunction) KX_GameObject::sPyReplaceMesh, METH_O},
@@ -1030,6 +1029,7 @@ PyMethodDef KX_GameObject::Methods[] = {
 	{"getParent", (PyCFunction)KX_GameObject::sPyGetParent,METH_NOARGS},
 	{"getVisible",(PyCFunction) KX_GameObject::sPyGetVisible, METH_NOARGS},
 	{"getMass", (PyCFunction) KX_GameObject::sPyGetMass, METH_NOARGS},
+	{"getMesh", (PyCFunction)KX_GameObject::sPyGetMesh,METH_VARARGS},
 	{NULL,NULL} //Sentinel
 };
 
@@ -1043,6 +1043,7 @@ PyAttributeDef KX_GameObject::Attributes[] = {
 	KX_PYATTRIBUTE_RW_FUNCTION("scaling",	KX_GameObject, pyattr_get_scaling,	pyattr_set_scaling),
 	KX_PYATTRIBUTE_RW_FUNCTION("timeOffset",KX_GameObject, pyattr_get_timeOffset,pyattr_set_timeOffset),
 	KX_PYATTRIBUTE_RW_FUNCTION("state",		KX_GameObject, pyattr_get_state,	pyattr_set_state),
+	KX_PYATTRIBUTE_RO_FUNCTION("meshes",	KX_GameObject, pyattr_get_meshes),
 	KX_PYATTRIBUTE_RO_FUNCTION("__dict__",	KX_GameObject, pyattr_get_dir_dict),
 	{NULL} //Sentinel
 };
@@ -1416,6 +1417,22 @@ int KX_GameObject::pyattr_set_state(void *self_v, const KX_PYATTRIBUTE_DEF *attr
 	return 0;
 }
 
+PyObject* KX_GameObject::pyattr_get_meshes(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
+	PyObject *meshes= PyList_New(self->m_meshes.size());
+	int i;
+	
+	for(i=0; i < self->m_meshes.size(); i++)
+	{
+		KX_MeshProxy* meshproxy = new KX_MeshProxy(self->m_meshes[i]);
+		PyList_SET_ITEM(meshes, i, meshproxy);
+	}
+	
+	return meshes;
+}
+
+
 /* __dict__ only for the purpose of giving useful dir() results */
 PyObject* KX_GameObject::pyattr_get_dir_dict(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
@@ -1758,6 +1775,8 @@ PyObject* KX_GameObject::PyGetChildrenRecursive(PyObject* self)
 
 PyObject* KX_GameObject::PyGetMesh(PyObject* self, PyObject* args)
 {
+	ShowDeprecationWarning("getMesh()", "the meshes property");
+	
 	int mesh = 0;
 
 	if (!PyArg_ParseTuple(args, "|i:getMesh", &mesh))

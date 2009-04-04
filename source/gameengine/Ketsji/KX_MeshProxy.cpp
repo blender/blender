@@ -87,6 +87,7 @@ KX_PYMETHODTABLE(KX_MeshProxy, reinstancePhysicsMesh),
 };
 
 PyAttributeDef KX_MeshProxy::Attributes[] = {
+	KX_PYATTRIBUTE_RO_FUNCTION("materials",		KX_MeshProxy, pyattr_get_materials),
 	{ NULL }	//Sentinel
 };
 
@@ -96,30 +97,12 @@ void KX_MeshProxy::SetMeshModified(bool v)
 }
 
 
-PyObject*
-KX_MeshProxy::py_getattro(PyObject *attr)
+PyObject* KX_MeshProxy::py_getattro(PyObject *attr)
 {
-	char *attr_str= PyString_AsString(attr);
+	PyObject* object = py_getattro_self(Attributes, this, attr);
+	if (object != NULL)
+		return object;
 	
-	if (!strcmp(attr_str, "materials"))
-	{
-		PyObject *materials = PyList_New(0);
-		list<RAS_MeshMaterial>::iterator mit = m_meshobj->GetFirstMaterial();
-		for(; mit != m_meshobj->GetLastMaterial(); ++mit)
-		{
-			RAS_IPolyMaterial *polymat = mit->m_bucket->GetPolyMaterial();
-
-			if(polymat->GetFlag() & RAS_BLENDERMAT)
-			{
-				KX_BlenderMaterial *mat = static_cast<KX_BlenderMaterial*>(polymat);
-				PyList_Append(materials, mat);
-			}else
-			{
-				PyList_Append(materials, static_cast<KX_PolygonMaterial*>(polymat));
-			}
-		}
-		return materials;
-	}
  	py_getattro_up(SCA_IObject);
 }
 
@@ -279,4 +262,24 @@ KX_PYMETHODDEF_DOC(KX_MeshProxy, reinstancePhysicsMesh,
 {
 	//this needs to be reviewed, it is dependend on Sumo/Solid. Who is using this ?
 	Py_RETURN_NONE;//(KX_ReInstanceShapeFromMesh(m_meshobj)) ? Py_RETURN_TRUE : Py_RETURN_FALSE;
+}
+
+PyObject* KX_MeshProxy::pyattr_get_materials(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	KX_MeshProxy* self= static_cast<KX_MeshProxy*>(self_v);
+	
+	int tot= self->m_meshobj->NumMaterials();
+	int i;
+	
+	PyObject *materials = PyList_New( tot );
+	
+	list<RAS_MeshMaterial>::iterator mit= self->m_meshobj->GetFirstMaterial();
+	
+	/* Can be a KX_PolygonMaterial or KX_BlenderMaterial, since both are cast to a PyObject * we dont need to care */
+	for(i=0; i<tot; mit++, i++) {
+		PyObject *py_mat = (PyObject *)mit->m_bucket->GetPolyMaterial();
+		PyList_SET_ITEM(materials, i, py_mat);
+		Py_INCREF(py_mat);
+	}	
+	return materials;
 }

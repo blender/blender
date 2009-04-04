@@ -26,6 +26,9 @@ class KX_GameObject:
 	@type timeOffset: float
 	@ivar state: the game object's state bitmask.
 	@type state: int
+	@ivar meshes: a list of L{KX_MeshProxy} objects.
+		B{Note}: Changes to this list will not update the KX_GameObject
+	@type meshes: list
 	"""
 	def endObject(visible):
 		"""

@@ -65,6 +65,8 @@ public:
 	KX_PYMETHOD(KX_MeshProxy,GetVertex);
 	KX_PYMETHOD(KX_MeshProxy,GetPolygon);
 	KX_PYMETHOD_DOC(KX_MeshProxy, reinstancePhysicsMesh);
+	
+	static PyObject*	pyattr_get_materials(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 };
 
 #endif //__KX_MESHPROXY
