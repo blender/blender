@@ -81,6 +81,9 @@ public:
 	virtual void ProcessReplica();
 	
 	void SetBlendTime (float newtime);
+	
+	bAction*	GetAction() { return m_action; }
+	void		SetAction(bAction* act) { m_action= act; }
 
 	//Deprecated ----->
 	KX_PYMETHOD_DOC(BL_ActionActuator,SetAction);
@@ -112,6 +115,9 @@ public:
 
 	virtual PyObject* py_getattro(PyObject* attr);
 	virtual int py_setattro(PyObject* attr, PyObject* value);
+
+	static PyObject*	pyattr_get_action(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static int			pyattr_set_action(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 
 	/* attribute check */
 	static int CheckFrame(void *self, const PyAttributeDef*)
@@ -151,8 +157,8 @@ public:
 				PyErr_SetString(PyExc_ValueError, "invalid type supplied");
 				return 1;
 		}
-
 	}
+	
 protected:
 
 	void SetStartTime(float curtime);

@@ -454,9 +454,8 @@ PyAttributeDef SCA_ISensor::Attributes[] = {
 	KX_PYATTRIBUTE_INT_RW("frequency",0,100000,true,SCA_ISensor,m_pulse_frequency),
 	KX_PYATTRIBUTE_BOOL_RW("invert",SCA_ISensor,m_invert),
 	KX_PYATTRIBUTE_BOOL_RW("level",SCA_ISensor,m_level),
-	// make these properties read-only in _setaddr, must still implement them in py_getattro
-	KX_PYATTRIBUTE_DUMMY("triggered"),
-	KX_PYATTRIBUTE_DUMMY("positive"),
+	KX_PYATTRIBUTE_RO_FUNCTION("triggered", SCA_ISensor, pyattr_get_triggered),
+	KX_PYATTRIBUTE_RO_FUNCTION("positive", SCA_ISensor, pyattr_get_positive),
 	{ NULL }	//Sentinel
 };
 
@@ -466,20 +465,6 @@ SCA_ISensor::py_getattro(PyObject *attr)
 	PyObject* object = py_getattro_self(Attributes, this, attr);
 	if (object != NULL)
 		return object;
-	
-	char *attr_str= PyString_AsString(attr);
-	if (!strcmp(attr_str, "triggered"))
-	{
-		int retval = 0;
-		if (SCA_PythonController::m_sCurrentController)
-			retval = SCA_PythonController::m_sCurrentController->IsTriggered(this);
-		return PyInt_FromLong(retval);
-	}
-	if (!strcmp(attr_str, "positive"))
-	{	
-		int retval = IsPositiveTrigger();
-		return PyInt_FromLong(retval);
-	}
 	py_getattro_up(SCA_ILogicBrick);
 }
 
@@ -490,4 +475,20 @@ int SCA_ISensor::py_setattro(PyObject *attr, PyObject *value)
 		return ret;
 	return SCA_ILogicBrick::py_setattro(attr, value);
 }
+
+PyObject* SCA_ISensor::pyattr_get_triggered(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	SCA_ISensor* self= static_cast<SCA_ISensor*>(self_v);
+	int retval = 0;
+	if (SCA_PythonController::m_sCurrentController)
+		retval = SCA_PythonController::m_sCurrentController->IsTriggered(self);
+	return PyInt_FromLong(retval);
+}
+
+PyObject* SCA_ISensor::pyattr_get_positive(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	SCA_ISensor* self= static_cast<SCA_ISensor*>(self_v);
+	return PyInt_FromLong(self->IsPositiveTrigger());
+}
+
 /* eof */

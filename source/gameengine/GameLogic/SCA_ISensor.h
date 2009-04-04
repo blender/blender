@@ -154,6 +154,9 @@ public:
 	KX_PYMETHOD_DOC(SCA_ISensor,SetLevel);
 	//<------
 	KX_PYMETHOD_DOC_NOARGS(SCA_ISensor,reset);
+	
+	static PyObject*	pyattr_get_triggered(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject*	pyattr_get_positive(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 };
 
 #endif //__SCA_ISENSOR

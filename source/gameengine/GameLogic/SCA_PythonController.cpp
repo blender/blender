@@ -265,6 +265,8 @@ PyMethodDef SCA_PythonController::Methods[] = {
 };
 
 PyAttributeDef SCA_PythonController::Attributes[] = {
+	KX_PYATTRIBUTE_RO_FUNCTION("state", SCA_PythonController, pyattr_get_state),
+	KX_PYATTRIBUTE_RW_FUNCTION("script", SCA_PythonController, pyattr_get_script, pyattr_set_script),
 	{ NULL }	//Sentinel
 };
 
@@ -374,37 +376,19 @@ void SCA_PythonController::Trigger(SCA_LogicManager* logicmgr)
 
 PyObject* SCA_PythonController::py_getattro(PyObject *attr)
 {
-	char *attr_str= PyString_AsString(attr);
-	if (!strcmp(attr_str,"state")) {
-		return PyInt_FromLong(m_statemask);
-	}
-	if (!strcmp(attr_str,"script")) {
-		return PyString_FromString(m_scriptText);
-	}
+	PyObject* object = py_getattro_self(Attributes, this, attr);
+	if (object != NULL)
+		return object;
+	
 	py_getattro_up(SCA_IController);
 }
 
 int SCA_PythonController::py_setattro(PyObject *attr, PyObject *value)
 {
-	char *attr_str= PyString_AsString(attr);
-	if (!strcmp(attr_str,"state")) {
-		PyErr_SetString(PyExc_AttributeError, "state is read only");
-		return 1;
-	}
-	if (!strcmp(attr_str,"script")) {
-		char *scriptArg = PyString_AsString(value);
-		
-		if (scriptArg==NULL) {
-			PyErr_SetString(PyExc_TypeError, "expected a string (script name)");
-			return -1;
-		}
+	int ret = py_setattro_self(Attributes, this, attr, value);
+	if (ret >= 0)
+		return ret;
 	
-		/* set scripttext sets m_bModified to true, 
-			so next time the script is needed, a reparse into byte code is done */
-		this->SetScriptText(scriptArg);
-		
-		return 1;
-	}
 	return SCA_IController::py_setattro(attr, value);
 }
 
@@ -547,5 +531,36 @@ PyObject* SCA_PythonController::PyGetState(PyObject* self)
 	ShowDeprecationWarning("getState()", "the state property");
 	return PyInt_FromLong(m_statemask);
 }
+
+PyObject* SCA_PythonController::pyattr_get_state(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	SCA_PythonController* self= static_cast<SCA_PythonController*>(self_v);
+	return PyInt_FromLong(self->m_statemask);
+}
+
+PyObject* SCA_PythonController::pyattr_get_script(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	SCA_PythonController* self= static_cast<SCA_PythonController*>(self_v);
+	return PyString_FromString(self->m_scriptText);
+}
+
+int SCA_PythonController::pyattr_set_script(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
+{
+	SCA_PythonController* self= static_cast<SCA_PythonController*>(self_v);
+	
+	char *scriptArg = PyString_AsString(value);
+	
+	if (scriptArg==NULL) {
+		PyErr_SetString(PyExc_TypeError, "expected a string (script name)");
+		return -1;
+	}
+
+	/* set scripttext sets m_bModified to true, 
+		so next time the script is needed, a reparse into byte code is done */
+	self->SetScriptText(scriptArg);
+		
+	return 0;
+}
+
 
 /* eof */

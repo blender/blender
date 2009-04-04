@@ -140,6 +140,10 @@ public:
 #endif
 	//<-----
 	
+	static PyObject*	pyattr_get_object_hit(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject*	pyattr_get_object_hit_list(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	
+	
 };
 
 #endif //__KX_TOUCHSENSOR

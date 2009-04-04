@@ -79,6 +79,9 @@ public:
 	
 	void SetBlendTime (float newtime);
 	void BlendShape(struct Key* key, float weigth);
+	
+	bAction*	GetAction() { return m_action; }
+	void		SetAction(bAction* act) { m_action= act; }
 
 	KX_PYMETHOD_DOC(BL_ShapeActionActuator,SetAction);
 	KX_PYMETHOD_DOC(BL_ShapeActionActuator,SetBlendin);
@@ -105,6 +108,9 @@ public:
 
 	virtual PyObject* py_getattro(PyObject* attr);
 	virtual int py_setattro(PyObject* attr, PyObject* value);
+
+	static PyObject*	pyattr_get_action(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static int			pyattr_set_action(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 
 	static int CheckBlendTime(void *self, const PyAttributeDef*)
 	{

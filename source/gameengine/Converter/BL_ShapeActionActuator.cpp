@@ -474,6 +474,7 @@ PyAttributeDef BL_ShapeActionActuator::Attributes[] = {
 	KX_PYATTRIBUTE_FLOAT_RW("start", 0, MAXFRAMEF, BL_ShapeActionActuator, m_startframe),
 	KX_PYATTRIBUTE_FLOAT_RW("end", 0, MAXFRAMEF, BL_ShapeActionActuator, m_endframe),
 	KX_PYATTRIBUTE_FLOAT_RW("blendin", 0, MAXFRAMEF, BL_ShapeActionActuator, m_blendin),
+	KX_PYATTRIBUTE_RW_FUNCTION("action", BL_ShapeActionActuator, pyattr_get_action, pyattr_set_action),
 	KX_PYATTRIBUTE_SHORT_RW("priority", 0, 100, false, BL_ShapeActionActuator, m_priority),
 	KX_PYATTRIBUTE_FLOAT_RW_CHECK("frame", 0, MAXFRAMEF, BL_ShapeActionActuator, m_localtime, CheckFrame),
 	KX_PYATTRIBUTE_STRING_RW("property", 0, 31, false, BL_ShapeActionActuator, m_propname),
@@ -485,9 +486,6 @@ PyAttributeDef BL_ShapeActionActuator::Attributes[] = {
 
 
 PyObject* BL_ShapeActionActuator::py_getattro(PyObject* attr) {
-	char *attr_str= PyString_AsString(attr);
-	if (!strcmp(attr_str, "action"))
-		return PyString_FromString(m_action->id.name+2);
 	PyObject* object = py_getattro_self(Attributes, this, attr);
 	if (object != NULL)
 		return object;
@@ -495,37 +493,6 @@ PyObject* BL_ShapeActionActuator::py_getattro(PyObject* attr) {
 }
 
 int BL_ShapeActionActuator::py_setattro(PyObject *attr, PyObject* value) {
-	char *attr_str= PyString_AsString(attr);
-	if (!strcmp(attr_str, "action"))
-	{
-		if (!PyString_Check(value))
-		{
-			PyErr_SetString(PyExc_ValueError, "expected a string");
-			return 1;
-		}
-
-		STR_String val = PyString_AsString(value);
-		
-		if (val == "")
-		{
-			m_action = NULL;
-			return 0;
-		}
-
-		bAction *action;
-		
-		action = (bAction*)SCA_ILogicBrick::m_sCurrentLogicManager->GetActionByName(val);
-		
-
-		if (!action)
-		{
-			PyErr_SetString(PyExc_ValueError, "action not found!");
-			return 1;
-		}
-
-		m_action = action;
-		return 0;
-	}
 	int ret = py_setattro_self(Attributes, this, attr, value);
 	if (ret >= 0)
 		return ret;
@@ -916,3 +883,36 @@ PyObject* BL_ShapeActionActuator::PySetType(PyObject* self,
     Py_RETURN_NONE;
 }
 
+PyObject* BL_ShapeActionActuator::pyattr_get_action(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	BL_ShapeActionActuator* self= static_cast<BL_ShapeActionActuator*>(self_v);
+	return PyString_FromString(self->GetAction()->id.name+2);
+}
+
+int BL_ShapeActionActuator::pyattr_set_action(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
+{
+	BL_ShapeActionActuator* self= static_cast<BL_ShapeActionActuator*>(self_v);
+	/* exact copy of BL_ActionActuator's function from here down */
+	if (!PyString_Check(value))
+	{
+		PyErr_SetString(PyExc_ValueError, "expected the string name of the action");
+		return -1;
+	}
+
+	bAction *action= NULL;
+	STR_String val = PyString_AsString(value);
+	
+	if (val != "")
+	{
+		(bAction*)SCA_ILogicBrick::m_sCurrentLogicManager->GetActionByName(val);
+		if (action==NULL)
+		{
+			PyErr_SetString(PyExc_ValueError, "action not found!");
+			return 1;
+		}
+	}
+	
+	self->SetAction(action);
+	return 0;
+
+}

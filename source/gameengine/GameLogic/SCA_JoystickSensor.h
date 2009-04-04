@@ -148,6 +148,13 @@ public:
 	KX_PYMETHOD_DOC_NOARGS(SCA_JoystickSensor,NumberOfHats);
 	KX_PYMETHOD_DOC_NOARGS(SCA_JoystickSensor,Connected);
 
+	static PyObject*	pyattr_get_axis_position(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject*	pyattr_get_num_axis(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject*	pyattr_get_num_buttons(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject*	pyattr_get_num_hats(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject*	pyattr_get_connected(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	
+
 	/* attribute check */
 	static int CheckAxis(void *self, const PyAttributeDef*)
 	{

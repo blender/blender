@@ -135,6 +135,9 @@ private :
 	KX_PYMETHOD_DOC(KX_CameraActuator,GetHeight);
 	KX_PYMETHOD_DOC(KX_CameraActuator,SetXY);
 	KX_PYMETHOD_DOC(KX_CameraActuator,GetXY);
+	
+	static PyObject*	pyattr_get_object(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static int			pyattr_set_object(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 
 };
 

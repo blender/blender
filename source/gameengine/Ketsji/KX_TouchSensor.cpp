@@ -286,8 +286,8 @@ PyAttributeDef KX_TouchSensor::Attributes[] = {
 	KX_PYATTRIBUTE_STRING_RW("property",0,100,false,KX_TouchSensor,m_touchedpropname),
 	KX_PYATTRIBUTE_BOOL_RW("useMaterial",KX_TouchSensor,m_bFindMaterial),
 	KX_PYATTRIBUTE_BOOL_RW("pulseCollisions",KX_TouchSensor,m_bTouchPulse),
-	KX_PYATTRIBUTE_DUMMY("objectHit"),
-	KX_PYATTRIBUTE_DUMMY("objectHitList"),
+	KX_PYATTRIBUTE_RO_FUNCTION("objectHit", KX_TouchSensor, pyattr_get_object_hit),
+	KX_PYATTRIBUTE_RO_FUNCTION("objectHitList", KX_TouchSensor, pyattr_get_object_hit_list),
 	{ NULL }	//Sentinel
 };
 
@@ -295,17 +295,7 @@ PyObject* KX_TouchSensor::py_getattro(PyObject *attr)
 {	
 	PyObject* object= py_getattro_self(Attributes, this, attr);
 	if (object != NULL)
-		return object;
-	
-	char *attr_str= PyString_AsString(attr);
-	if (!strcmp(attr_str, "objectHit")) {
-		if (m_hitObject)	return m_hitObject->AddRef();
-		else				Py_RETURN_NONE;
-	}
-	if (!strcmp(attr_str, "objectHitList")) {
-		return m_colliders->AddRef();
-	}
-	
+		return object;	
 	py_getattro_up(SCA_ISensor);
 }
 
@@ -411,5 +401,22 @@ PyObject* KX_TouchSensor::PySetTouchMaterial(PyObject* self, PyObject *value)
 	Py_RETURN_NONE;
 }
 #endif
+
+PyObject* KX_TouchSensor::pyattr_get_object_hit(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	KX_TouchSensor* self= static_cast<KX_TouchSensor*>(self_v);
+	
+	if (self->m_hitObject)
+		return self->m_hitObject->AddRef();
+	else
+		Py_RETURN_NONE;
+}
+
+PyObject* KX_TouchSensor::pyattr_get_object_hit_list(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	KX_TouchSensor* self= static_cast<KX_TouchSensor*>(self_v);
+	return self->m_colliders->AddRef();
+}
+
 
 /* eof */

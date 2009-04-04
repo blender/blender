@@ -417,19 +417,12 @@ PyAttributeDef KX_CameraActuator::Attributes[] = {
 	KX_PYATTRIBUTE_FLOAT_RW("max",-MAXFLOAT,MAXFLOAT,KX_CameraActuator,m_maxHeight),
 	KX_PYATTRIBUTE_FLOAT_RW("height",-MAXFLOAT,MAXFLOAT,KX_CameraActuator,m_height),
 	KX_PYATTRIBUTE_BOOL_RW("xy",KX_CameraActuator,m_x),
-	KX_PYATTRIBUTE_DUMMY("object"),
+	KX_PYATTRIBUTE_RW_FUNCTION("object", KX_CameraActuator, pyattr_get_object,	pyattr_set_object),
 	{NULL}
 };
 
 PyObject* KX_CameraActuator::py_getattro(PyObject *attr) {
-	PyObject* object;
-	char *attr_str= PyString_AsString(attr);
-	if (!strcmp(attr_str, "object")) {
-		if (!m_ob)	Py_RETURN_NONE;
-		else		return m_ob->AddRef();
-	}
-	
-	object = py_getattro_self(Attributes, this, attr);
+	PyObject* object = py_getattro_self(Attributes, this, attr);
 	if (object != NULL)
 		return object;
 	py_getattro_up(SCA_IActuator);
@@ -437,24 +430,6 @@ PyObject* KX_CameraActuator::py_getattro(PyObject *attr) {
 
 int KX_CameraActuator::py_setattro(PyObject *attr, PyObject* value) {
 	int ret;
-	char *attr_str= PyString_AsString(attr);
-	if (!strcmp(attr_str, "object")) {
-		KX_GameObject *gameobj;
-		
-		if (!ConvertPythonToGameObject(value, &gameobj, true))
-			return 1; // ConvertPythonToGameObject sets the error
-		
-		if (m_ob != NULL)
-			m_ob->UnregisterActuator(this);	
-
-		m_ob = (SCA_IObject*)gameobj;
-		
-		if (m_ob)
-			m_ob->RegisterActuator(this);
-		
-		return 0;
-	}
-	
 	ret = py_setattro_self(Attributes, this, attr, value);
 	if (ret >= 0)
 		return ret;
@@ -621,6 +596,32 @@ PyObject* KX_CameraActuator::PyGetXY(PyObject* self,
 {
 	ShowDeprecationWarning("getXY()", "the xy property");
 	return PyInt_FromLong(m_x);
+}
+
+PyObject* KX_CameraActuator::pyattr_get_object(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	KX_CameraActuator* self= static_cast<KX_CameraActuator*>(self_v);
+	if (self->m_ob==NULL)
+		Py_RETURN_NONE;
+	else
+		return self->m_ob->AddRef();
+}
+
+int KX_CameraActuator::pyattr_set_object(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
+{
+	KX_CameraActuator* self= static_cast<KX_CameraActuator*>(self_v);
+	KX_GameObject *gameobj;
+	
+	if (!ConvertPythonToGameObject(value, &gameobj, true))
+		return 1; // ConvertPythonToGameObject sets the error
+	
+	if (self->m_ob)
+		self->m_ob->UnregisterActuator(self);	
+
+	if (self->m_ob = (SCA_IObject*)gameobj)
+		self->m_ob->RegisterActuator(self);
+	
+	return 0;
 }
 
 /* eof */
