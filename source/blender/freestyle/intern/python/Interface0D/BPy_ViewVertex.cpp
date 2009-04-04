@@ -131,10 +131,8 @@ PyObject * ViewVertex_setNature( BPy_ViewVertex *self, PyObject *args ) {
 	if( !self->vv )
 		Py_RETURN_NONE;
 		
-	if(!( PyArg_ParseTuple(args, "O", &py_n) && BPy_Nature_Check(py_n) )) {
-		cout << "ERROR: ViewVertex_setNature" << endl;
-		Py_RETURN_NONE;
-	}
+	if(!( PyArg_ParseTuple(args, "O!", &Nature_Type, &py_n) ))
+		return NULL;
 	
 	PyObject *i = (PyObject *) &( ((BPy_Nature *) py_n)->i );
 	((ViewVertex *) self->py_if0D.if0D)->setNature( PyInt_AsLong(i) );
@@ -165,10 +163,8 @@ PyObject * ViewVertex_edgesIterator( BPy_ViewVertex *self, PyObject *args ) {
 	if( !self->vv )
 		Py_RETURN_NONE;
 
-	if(!( PyArg_ParseTuple(args, "O", &py_ve) && BPy_ViewEdge_Check(py_ve) )) {
-		cout << "ERROR: ViewVertex_setNature" << endl;
-		Py_RETURN_NONE;
-	}
+	if(!( PyArg_ParseTuple(args, "O!", &ViewEdge_Type, &py_ve) ))
+		return NULL;
 	
 	ViewEdge *ve = ((BPy_ViewEdge *) py_ve)->ve;
 	ViewVertexInternal::orientedViewEdgeIterator ove_it( self->vv->edgesIterator( ve ) );

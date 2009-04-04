@@ -187,10 +187,13 @@ PyObject * SVertex_viewvertex( BPy_SVertex *self ) {
 PyObject *SVertex_setPoint3D( BPy_SVertex *self , PyObject *args) {
 	PyObject *py_point;
 
-	if(!( PyArg_ParseTuple(args, "O", &py_point) 
-			&& PyList_Check(py_point) && PyList_Size(py_point) == 3 )) {
-		cout << "ERROR: SVertex_setPoint3D" << endl;
-		Py_RETURN_NONE;
+	if(!( PyArg_ParseTuple(args, "O!", &PyList_Type, &py_point) ))
+		return NULL;
+	if( PyList_Size(py_point) != 3 ) {
+		stringstream msg("SVertex::setPoint3D() accepts a list of 3 elements (");
+		msg << PyList_Size(py_point) << " found)";
+		PyErr_SetString(PyExc_TypeError, msg.str().c_str());
+		return NULL;
 	}
 
 	Vec3r v( 	PyFloat_AsDouble( PyList_GetItem(py_point, 0) ),
@@ -204,10 +207,13 @@ PyObject *SVertex_setPoint3D( BPy_SVertex *self , PyObject *args) {
 PyObject *SVertex_setPoint2D( BPy_SVertex *self , PyObject *args) {
 	PyObject *py_point;
 
-	if(!( PyArg_ParseTuple(args, "O", &py_point) 
-			&& PyList_Check(py_point) && PyList_Size(py_point) == 3 )) {
-		cout << "ERROR: SVertex_setPoint2D" << endl;
-		Py_RETURN_NONE;
+	if(!( PyArg_ParseTuple(args, "O!", &PyList_Type, &py_point) ))
+		return NULL;
+	if( PyList_Size(py_point) != 3 ) {
+		stringstream msg("SVertex::setPoint2D() accepts a list of 3 elements (");
+		msg << PyList_Size(py_point) << " found)";
+		PyErr_SetString(PyExc_TypeError, msg.str().c_str());
+		return NULL;
 	}
 
 	Vec3r v( 	PyFloat_AsDouble( PyList_GetItem(py_point, 0) ),
@@ -221,10 +227,13 @@ PyObject *SVertex_setPoint2D( BPy_SVertex *self , PyObject *args) {
 PyObject *SVertex_AddNormal( BPy_SVertex *self , PyObject *args) {
 	PyObject *py_normal;
 
-	if(!( PyArg_ParseTuple(args, "O", &py_normal) 
-			&& PyList_Check(py_normal) && PyList_Size(py_normal) == 3 )) {
-		cout << "ERROR: SVertex_AddNormal" << endl;
-		Py_RETURN_NONE;
+	if(!( PyArg_ParseTuple(args, "O!", &PyList_Type, &py_normal) ))
+		return NULL;
+	if( PyList_Size(py_normal) != 3 ) {
+		stringstream msg("SVertex::AddNormal() accepts a list of 3 elements (");
+		msg << PyList_Size(py_normal) << " found)";
+		PyErr_SetString(PyExc_TypeError, msg.str().c_str());
+		return NULL;
 	}
 
 	Vec3r n( 	PyFloat_AsDouble( PyList_GetItem(py_normal, 0) ),
@@ -238,10 +247,8 @@ PyObject *SVertex_AddNormal( BPy_SVertex *self , PyObject *args) {
 PyObject *SVertex_setId( BPy_SVertex *self , PyObject *args) {
 	BPy_Id *py_id;
 
-	if( !PyArg_ParseTuple(args, "O", &py_id) ) {
-		cout << "ERROR: SVertex_setId" << endl;
-		Py_RETURN_NONE;
-	}
+	if( !PyArg_ParseTuple(args, "O!", &Id_Type, &py_id) )
+		return NULL;
 
 	self->sv->setId( *(py_id->id) );
 
@@ -251,10 +258,8 @@ PyObject *SVertex_setId( BPy_SVertex *self , PyObject *args) {
 PyObject *SVertex_AddFEdge( BPy_SVertex *self , PyObject *args) {
 	PyObject *py_fe;
 
-	if(!( PyArg_ParseTuple(args, "O", &py_fe) && BPy_FEdge_Check(py_fe) )) {
-		cout << "ERROR: SVertex_AddFEdge" << endl;
-		Py_RETURN_NONE;
-	}
+	if(!( PyArg_ParseTuple(args, "O!", &FEdge_Type, &py_fe) ))
+		return NULL;
 	
 	self->sv->AddFEdge( ((BPy_FEdge *) py_fe)->fe );
 
