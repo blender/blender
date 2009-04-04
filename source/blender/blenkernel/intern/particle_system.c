@@ -1734,6 +1734,8 @@ void reset_particle(ParticleData *pa, ParticleSystem *psys, ParticleSystemModifi
 		VECSUB(p_vel,pa->r_ve,p_vel);
 		Normalize(p_vel);
 		VecMulf(p_vel,speed);
+
+		VECCOPY(pa->fuv,loc); /* abusing pa->fuv (not used for "from particle") for storing emit location */
 	}
 	else{
 		/* get precise emitter matrix if particle is born */
@@ -2483,7 +2485,12 @@ static void precalc_effectors(Object *ob, ParticleSystem *psys, ParticleSystemMo
 				ec->locations=MEM_callocN(totpart*3*sizeof(float),"particle locations");
 
 				for(p=0,pa=psys->particles; p<totpart; p++, pa++){
-					psys_particle_on_emitter(psmd,part->from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,loc,0,0,0,0,0);
+					if(part->from == PART_FROM_PARTICLE) {
+						VECCOPY(loc, pa->fuv);
+					}
+					else
+						psys_particle_on_emitter(psmd,part->from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,loc,0,0,0,0,0);
+
 					Mat4MulVecfl(ob->obmat,loc);
 					ec->distances[p]=VecLenf(loc,vec);
 					VECSUB(loc,loc,vec);
