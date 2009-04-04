@@ -110,7 +110,7 @@ int ColorVariationPatternShader___init__( BPy_ColorVariationPatternShader* self,
 		return -1;
 	}
 
-	bool b = (obj && PyBool_Check(obj)) ? bool_from_PyBool(obj) : true;
+	bool b = (obj) ? bool_from_PyBool(obj) : true;
 	self->py_ss.ss = new StrokeShaders::ColorVariationPatternShader(s,b);
 	return 0;
 
