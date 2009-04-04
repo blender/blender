@@ -4899,7 +4899,7 @@ static void object_panel_particle_system(Object *ob)
 
 	if(part->type!=PART_HAIR) {
 		uiDefButF(block, NUM, B_PART_INIT, "Life:",	butx,(buty-=buth),butw,buth, &part->lifetime, 1.0, MAXFRAMEF, 100, 1, "Specify the life span of the particles");
-		uiDefButF(block, NUM, B_PART_INIT, "Rand:",	butx,(buty-=buth),butw,buth, &part->randlife, 0.0, 2.0, 10, 1, "Give the particle life a random variation");
+		uiDefButF(block, NUM, B_PART_INIT, "Rand:",	butx,(buty-=buth),butw,buth, &part->randlife, 0.0, 1.0, 10, 1, "Give the particle life a random variation");
 	}
 
 	uiBlockEndAlign(block);
