@@ -703,35 +703,40 @@ PyObject *PyObjectPlus::py_repr(void)
 ------------------------------*/
 bool PyObjectPlus::isA(PyTypeObject *T)		// if called with a Type, use "typename"
 {
-  return isA(T->tp_name);
+	int i;
+	PyParentObject  P;
+	PyParentObject *Ps = GetParents();
+
+	for (P = Ps[i=0]; P != NULL; P = Ps[i++])
+		if (P==T)
+			return true;
+
+	return false;
 }
 
 
 bool PyObjectPlus::isA(const char *mytypename)		// check typename of each parent
 {
-  int i;
-  PyParentObject  P;
-  PyParentObject *Ps = GetParents();
+	int i;
+	PyParentObject  P;
+	PyParentObject *Ps = GetParents();
   
-  for (P = Ps[i=0]; P != NULL; P = Ps[i++])
-  {
-      if (strcmp(P->tp_name, mytypename)==0)
-		  return true;
-  }
-	
-  return false;
+	for (P = Ps[i=0]; P != NULL; P = Ps[i++])
+		if (strcmp(P->tp_name, mytypename)==0)
+			return true;
+
+	return false;
 }
 
 PyObject *PyObjectPlus::Py_isA(PyObject *value)		// Python wrapper for isA
 {
-  if (!PyString_Check(value)) {
-    PyErr_SetString(PyExc_TypeError, "expected a string");
-    return NULL;
-  }
-  if(isA(PyString_AsString(value)))
-    Py_RETURN_TRUE;
-  else
-    Py_RETURN_FALSE;
+	if (PyType_Check(value)) {
+		return PyBool_FromLong(isA((PyTypeObject *)value));
+	} else if (PyString_Check(value)) {
+		return PyBool_FromLong(isA(PyString_AsString(value)));
+	}
+    PyErr_SetString(PyExc_TypeError, "expected a type or a string");
+    return NULL;	
 }
 
 /* Utility function called by the macro py_getattro_up()
@@ -742,7 +747,7 @@ PyObject *PyObjectPlus::Py_isA(PyObject *value)		// Python wrapper for isA
  * Other then making dir() useful the value returned from __dict__() is not useful
  * since every value is a Py_None
  * */
-PyObject *_getattr_dict(PyObject *pydict, PyMethodDef *meth, PyAttributeDef *attrdef)
+PyObject *py_getattr_dict(PyObject *pydict, PyMethodDef *meth, PyAttributeDef *attrdef)
 {
     if(pydict==NULL) { /* incase calling __dict__ on the parent of this object raised an error */
     	PyErr_Clear();

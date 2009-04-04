@@ -1574,7 +1574,7 @@ PyObject* KX_Scene::pyattr_get_dir_dict(void *self_v, const KX_PYATTRIBUTE_DEF *
 	KX_Scene* self= static_cast<KX_Scene*>(self_v);
 	/* Useually done by py_getattro_up but in this case we want to include m_attrlist dict */
 	PyObject *dict_str= PyString_FromString("__dict__");
-	PyObject *dict= _getattr_dict(self->PyObjectPlus::py_getattro(dict_str), KX_Scene::Methods, KX_Scene::Attributes);
+	PyObject *dict= py_getattr_dict(self->PyObjectPlus::py_getattro(dict_str), KX_Scene::Methods, KX_Scene::Attributes);
 	Py_DECREF(dict_str);
 	
 	PyDict_Update(dict, self->m_attrlist);

@@ -62,6 +62,7 @@
 /*  for pre Py 2.5 */
 #if PY_VERSION_HEX < 0x02050000
 typedef int Py_ssize_t;
+typedef Py_ssize_t (*lenfunc)(PyObject *);
 #define PY_SSIZE_T_MAX INT_MAX
 #define PY_SSIZE_T_MIN INT_MIN
 #define PY_METHODCHAR char *
@@ -73,6 +74,7 @@ typedef int Py_ssize_t;
 #endif
 
 #include "descrobject.h"
+
 
 static inline void Py_Fatal(const char *M) {
 	fprintf(stderr, "%s\n", M);
@@ -108,7 +110,7 @@ static inline void Py_Fatal(const char *M) {
 	} \
 	\
 	if (strcmp(PyString_AsString(attr), "__dict__")==0) {\
-		rvalue = _getattr_dict(rvalue, Methods, Attributes); \
+		rvalue = py_getattr_dict(rvalue, Methods, Attributes); \
 	} \
 	return rvalue; \
 
@@ -404,7 +406,7 @@ public:
 	}
 };
 
-PyObject *_getattr_dict(PyObject *pydict, PyMethodDef *meth, PyAttributeDef *attrdef);
+PyObject *py_getattr_dict(PyObject *pydict, PyMethodDef *meth, PyAttributeDef *attrdef);
 
 #endif //  _adr_py_lib_h_
 
