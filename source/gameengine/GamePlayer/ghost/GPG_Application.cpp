@@ -681,7 +681,7 @@ bool GPG_Application::startEngine(void)
 		
 		
 		// some python things
-		PyObject* dictionaryobject = initGamePlayerPythonScripting("Ketsji", psl_Lowest);
+		PyObject* dictionaryobject = initGamePlayerPythonScripting("Ketsji", psl_Lowest, m_maggie);
 		m_ketsjiengine->SetPythonDictionary(dictionaryobject);
 		initRasterizer(m_rasterizer, m_canvas);
 		PyObject *gameLogic = initGameLogic(m_ketsjiengine, startscene);

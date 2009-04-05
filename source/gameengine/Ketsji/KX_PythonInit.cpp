@@ -77,6 +77,7 @@
 
 extern "C" {
 	#include "Mathutils.h" // Blender.Mathutils module copied here so the blenderlayer can use.
+	#include "bpy_internal_import.h"  /* from the blender python api, but we want to import text too! */
 }
 
 #include "marshal.h" /* python header for loading/saving dicts */
@@ -1107,11 +1108,6 @@ PyObject *KXpy_open(PyObject *self, PyObject *args) {
 	return NULL;
 }
 
-PyObject *KXpy_reload(PyObject *self, PyObject *args) {
-	PyErr_SetString(PyExc_RuntimeError, "Sandbox: reload() function disabled!\nGame Scripts should not use this function.");
-	return NULL;
-}
-
 PyObject *KXpy_file(PyObject *self, PyObject *args) {
 	PyErr_SetString(PyExc_RuntimeError, "Sandbox: file() function disabled!\nGame Scripts should not use this function.");
 	return NULL;
@@ -1162,11 +1158,39 @@ PyObject *KXpy_import(PyObject *self, PyObject *args)
 		!strcmp(name, "Rasterizer") || !strcmp(name, "Mathutils")) {
 		return PyImport_ImportModuleEx(name, globals, locals, fromlist);
 	}
+	
+	/* Import blender texts as python modules */
+	m= importText(name);
+	if (m)
+		return m;
 		
 	PyErr_Format(PyExc_ImportError,
 		 "Import of external Module %.20s not allowed.", name);
 	return NULL;
 
+}
+
+PyObject *KXpy_reload(PyObject *self, PyObject *args) {
+	
+	/* Used to be sandboxed, bettet to allow importing of internal text only */ 
+#if 0
+	PyErr_SetString(PyExc_RuntimeError, "Sandbox: reload() function disabled!\nGame Scripts should not use this function.");
+	return NULL;
+#endif
+	
+	PyObject *module = NULL;
+	PyObject *newmodule = NULL;
+
+	/* check for a module arg */
+	if( !PyArg_ParseTuple( args, "O:bpy_reload", &module ) )
+		return NULL;
+	
+	newmodule= reimportText( module );
+	
+	if (newmodule==NULL)
+		PyErr_SetString(PyExc_ImportError, "failed to reload from blenders internal text");
+	
+	return newmodule;
 }
 
 /* override python file type functions */
@@ -1241,6 +1265,9 @@ void setSandbox(TPythonSecurityLevel level)
 		}
 	*/
 	default:
+			/* Allow importing internal text, from bpy_internal_import.py */
+			PyDict_SetItemString(d, "reload", PyCFunction_New(bpy_reload, NULL));
+			PyDict_SetItemString(d, "__import__", PyCFunction_New(bpy_import, NULL));	
 		break;
 	}
 }
@@ -1248,7 +1275,7 @@ void setSandbox(TPythonSecurityLevel level)
 /**
  * Python is not initialised.
  */
-PyObject* initGamePlayerPythonScripting(const STR_String& progname, TPythonSecurityLevel level)
+PyObject* initGamePlayerPythonScripting(const STR_String& progname, TPythonSecurityLevel level, Main *maggie)
 {
 	STR_String pname = progname;
 	Py_SetProgramName(pname.Ptr());
@@ -1260,7 +1287,9 @@ PyObject* initGamePlayerPythonScripting(const STR_String& progname, TPythonSecur
 	
 	setSandbox(level);
 	initPyTypes();
-
+	
+	bpy_import_main_set(maggie);
+	
 	PyObject* moduleobj = PyImport_AddModule("__main__");
 	return PyModule_GetDict(moduleobj);
 }
@@ -1268,12 +1297,13 @@ PyObject* initGamePlayerPythonScripting(const STR_String& progname, TPythonSecur
 void exitGamePlayerPythonScripting()
 {
 	Py_Finalize();
+	bpy_import_main_set(NULL);
 }
 
 /**
  * Python is already initialized.
  */
-PyObject* initGamePythonScripting(const STR_String& progname, TPythonSecurityLevel level)
+PyObject* initGamePythonScripting(const STR_String& progname, TPythonSecurityLevel level, Main *maggie)
 {
 	STR_String pname = progname;
 	Py_SetProgramName(pname.Ptr());
@@ -1282,6 +1312,8 @@ PyObject* initGamePythonScripting(const STR_String& progname, TPythonSecurityLev
 
 	setSandbox(level);
 	initPyTypes();
+	
+	bpy_import_main_set(maggie);
 
 	PyObject* moduleobj = PyImport_AddModule("__main__");
 	return PyModule_GetDict(moduleobj);
@@ -1291,6 +1323,7 @@ PyObject* initGamePythonScripting(const STR_String& progname, TPythonSecurityLev
 
 void exitGamePythonScripting()
 {
+	bpy_import_main_set(NULL);
 }
 
 

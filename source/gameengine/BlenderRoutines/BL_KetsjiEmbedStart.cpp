@@ -357,7 +357,7 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 				blscene);
 			
 			// some python things
-			PyObject* dictionaryobject = initGamePythonScripting("Ketsji", psl_Lowest);
+			PyObject* dictionaryobject = initGamePythonScripting("Ketsji", psl_Lowest, blenderdata);
 			ketsjiengine->SetPythonDictionary(dictionaryobject);
 			initRasterizer(rasterizer, canvas);
 			PyObject *gameLogic = initGameLogic(ketsjiengine, startscene);
@@ -656,7 +656,7 @@ extern "C" void StartKetsjiShellSimulation(struct ScrArea *area,
 				blscene);
 
 			// some python things
-			PyObject* dictionaryobject = initGamePythonScripting("Ketsji", psl_Lowest);
+			PyObject* dictionaryobject = initGamePythonScripting("Ketsji", psl_Lowest, blenderdata);
 			ketsjiengine->SetPythonDictionary(dictionaryobject);
 			initRasterizer(rasterizer, canvas);
 			PyObject *gameLogic = initGameLogic(ketsjiengine, startscene);

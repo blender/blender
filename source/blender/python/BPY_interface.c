@@ -71,6 +71,7 @@
 #include "api2_2x/Registry.h"
 #include "api2_2x/Pose.h"
 #include "api2_2x/bpy.h" /* for the new "bpy" module */
+#include "api2_2x/bpy_internal_import.h"
 
 /*these next two are for pyconstraints*/
 #include "api2_2x/IDProp.h"
@@ -164,10 +165,8 @@ static PyObject *RunPython( Text * text, PyObject * globaldict );
 static PyObject *CreateGlobalDictionary( void );
 static void ReleaseGlobalDictionary( PyObject * dict );
 static void DoAllScriptsFromList( ListBase * list, short event );
-static PyObject *importText( char *name );
 static void init_ourImport( void );
 static void init_ourReload( void );
-static PyObject *blender_import( PyObject * self, PyObject * args,  PyObject * kw);
 
 
 static void BPY_Err_Handle( char *script_name );
@@ -2821,91 +2820,11 @@ static void DoAllScriptsFromList( ListBase * list, short event )
 	return;
 }
 
-static PyObject *importText( char *name )
-{
-	Text *text;
-	char txtname[22]; /* 21+NULL */
-	char *buf = NULL;
-	int namelen = strlen( name );
-	
-	if (namelen>21-3) return NULL; /* we know this cant be importable, the name is too long for blender! */
-	
-	memcpy( txtname, name, namelen );
-	memcpy( &txtname[namelen], ".py", 4 );
-
-	for(text = G.main->text.first; text; text = text->id.next) {
-		if( !strcmp( txtname, text->id.name+2 ) )
-			break;
-	}
-
-	if( !text )
-		return NULL;
-
-	if( !text->compiled ) {
-		buf = txt_to_buf( text );
-		text->compiled = Py_CompileString( buf, text->id.name+2, Py_file_input );
-		MEM_freeN( buf );
-
-		if( PyErr_Occurred(  ) ) {
-			PyErr_Print(  );
-			BPY_free_compiled_text( text );
-			return NULL;
-		}
-	}
-
-	return PyImport_ExecCodeModule( name, text->compiled );
-}
-
-static PyMethodDef bimport[] = {
-	{"blimport", blender_import, METH_KEYWORDS, "our own import"}
-};
-
-static PyObject *blender_import( PyObject * self, PyObject * args,  PyObject * kw)
-{
-	PyObject *exception, *err, *tb;
-	char *name;
-	PyObject *globals = NULL, *locals = NULL, *fromlist = NULL;
-	PyObject *m;
-	
-	//PyObject_Print(args, stderr, 0);
-#if (PY_VERSION_HEX >= 0x02060000)
-	int dummy_val; /* what does this do?*/
-	static char *kwlist[] = {"name", "globals", "locals", "fromlist", "level", 0};
-	
-	if( !PyArg_ParseTupleAndKeywords( args, kw, "s|OOOi:bimport", kwlist,
-			       &name, &globals, &locals, &fromlist, &dummy_val) )
-		return NULL;
-#else
-	static char *kwlist[] = {"name", "globals", "locals", "fromlist", 0};
-	
-	if( !PyArg_ParseTupleAndKeywords( args, kw, "s|OOO:bimport", kwlist,
-			       &name, &globals, &locals, &fromlist ) )
-		return NULL;
-#endif
-	m = PyImport_ImportModuleEx( name, globals, locals, fromlist );
-
-	if( m )
-		return m;
-	else
-		PyErr_Fetch( &exception, &err, &tb );	/*restore for probable later use */
-
-	m = importText( name );
-	if( m ) {		/* found module, ignore above exception */
-		PyErr_Clear(  );
-		Py_XDECREF( exception );
-		Py_XDECREF( err );
-		Py_XDECREF( tb );
-		printf( "imported from text buffer...\n" );
-	} else {
-		PyErr_Restore( exception, err, tb );
-	}
-	return m;
-}
 
 static void init_ourImport( void )
 {
 	PyObject *m, *d;
-	PyObject *import = PyCFunction_New( bimport, NULL );
+	PyObject *import = PyCFunction_New( bpy_import, NULL );
 
 	m = PyImport_AddModule( "__builtin__" );
 	d = PyModule_GetDict( m );
@@ -2913,100 +2832,10 @@ static void init_ourImport( void )
 	EXPP_dict_set_item_str( d, "__import__", import );
 }
 
-/*
- * find in-memory module and recompile
- */
-
-static PyObject *reimportText( PyObject *module )
-{
-	Text *text;
-	char *txtname;
-	char *name;
-	char *buf = NULL;
-
-	/* get name, filename from the module itself */
-
-	txtname = PyModule_GetFilename( module );
-	name = PyModule_GetName( module );
-	if( !txtname || !name)
-		return NULL;
-
-	/* look up the text object */
-	text = ( Text * ) & ( G.main->text.first );
-	while( text ) {
-		if( !strcmp( txtname, text->id.name+2 ) )
-			break;
-		text = text->id.next;
-	}
-
-	/* uh-oh.... didn't find it */
-	if( !text )
-		return NULL;
-
-	/* if previously compiled, free the object */
-	/* (can't see how could be NULL, but check just in case) */ 
-	if( text->compiled ){
-		Py_DECREF( (PyObject *)text->compiled );
-	}
-
-	/* compile the buffer */
-	buf = txt_to_buf( text );
-	text->compiled = Py_CompileString( buf, text->id.name+2, Py_file_input );
-	MEM_freeN( buf );
-
-	/* if compile failed.... return this error */
-	if( PyErr_Occurred(  ) ) {
-		PyErr_Print(  );
-		BPY_free_compiled_text( text );
-		return NULL;
-	}
-
-	/* make into a module */
-	return PyImport_ExecCodeModule( name, text->compiled );
-}
-
-/*
- * our reload() module, to handle reloading in-memory scripts
- */
-
-static PyObject *blender_reload( PyObject * self, PyObject * args )
-{
-	PyObject *exception, *err, *tb;
-	PyObject *module = NULL;
-	PyObject *newmodule = NULL;
-
-	/* check for a module arg */
-	if( !PyArg_ParseTuple( args, "O:breload", &module ) )
-		return NULL;
-
-	/* try reimporting from file */
-	newmodule = PyImport_ReloadModule( module );
-	if( newmodule )
-		return newmodule;
-
-	/* no file, try importing from memory */
-	PyErr_Fetch( &exception, &err, &tb );	/*restore for probable later use */
-
-	newmodule = reimportText( module );
-	if( newmodule ) {		/* found module, ignore above exception */
-		PyErr_Clear(  );
-		Py_XDECREF( exception );
-		Py_XDECREF( err );
-		Py_XDECREF( tb );
-	} else
-		PyErr_Restore( exception, err, tb );
-
-	return newmodule;
-}
-
-static PyMethodDef breload[] = {
-	{"blreload", blender_reload, METH_VARARGS, "our own reload"}
-};
-
 static void init_ourReload( void )
 {
 	PyObject *m, *d;
-	PyObject *reload = PyCFunction_New( breload, NULL );
+	PyObject *reload = PyCFunction_New( bpy_reload, NULL );
 
 	m = PyImport_AddModule( "__builtin__" );
 	d = PyModule_GetDict( m );
