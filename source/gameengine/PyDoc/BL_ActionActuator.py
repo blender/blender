@@ -1,6 +1,8 @@
 # $Id$
 # Documentation for BL_ActionActuator
+import SCA_ILogicBrick
 from SCA_IActuator import *
+
 
 class BL_ActionActuator(SCA_IActuator):
 	"""
@@ -10,7 +12,7 @@ class BL_ActionActuator(SCA_IActuator):
 	@type action: string
 	@ivar start: Specifies the starting frame of the animation.
 	@type start: float
-	@type end: Specifies the ending frame of the animation.
+	@ivar end: Specifies the ending frame of the animation.
 	@type end: float
 	@ivar blendin: Specifies the number of frames of animation to generate when making transitions between actions.
 	@type blendin: float
@@ -25,9 +27,7 @@ class BL_ActionActuator(SCA_IActuator):
 	@ivar blendTime: Sets the internal frame timer. This property must be in
 						the range from 0.0 to blendin.
 	@type blendTime: float
-	@ivar type: The operation mode of the actuator.
-					KX_ACTIONACT_PLAY, KX_ACTIONACT_PROPERTY, KX_ACTIONACT_FLIPPER,
-					KX_ACTIONACT_LOOPSTOP, KX_ACTIONACT_LOOPEND
+	@ivar type: The operation mode of the actuator. KX_ACTIONACT_PLAY, KX_ACTIONACT_PROPERTY, KX_ACTIONACT_FLIPPER, KX_ACTIONACT_LOOPSTOP, KX_ACTIONACT_LOOPEND
 	@type type: integer
 	@ivar continue: The actions continue option, True or False.
 					When True, the action will always play from where last left off,

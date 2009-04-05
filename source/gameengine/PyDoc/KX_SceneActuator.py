@@ -8,12 +8,10 @@ class KX_SceneActuator(SCA_IActuator):
 	
 	@warning: Scene actuators that use a scene name will be ignored if at game start, the
 	          named scene doesn't exist or is empty
-		  
+
 		  This will generate a warning in the console:
 		  
 		  C{ERROR: GameObject I{OBName} has a SceneActuator I{ActuatorName} (SetScene) without scene}
-
-	Properties:
 	
 	@ivar scene: the name of the scene to change to/overlay/underlay/remove/suspend/resume
 	@type scene: string.

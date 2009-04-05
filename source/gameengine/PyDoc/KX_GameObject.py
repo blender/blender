@@ -2,9 +2,9 @@
 # Documentation for game objects
 
 # from SCA_IObject import *
-from SCA_ISensor import *
-from SCA_IController import *
-from SCA_IActuator import *
+# from SCA_ISensor import *
+# from SCA_IController import *
+# from SCA_IActuator import *
 
 
 class KX_GameObject: # (SCA_IObject)
@@ -12,19 +12,20 @@ class KX_GameObject: # (SCA_IObject)
 	All game objects are derived from this class.
 	
 	Properties assigned to game objects are accessible as attributes of this class.
-	
+
 	@ivar name: The object's name. (Read only)
+		- note: Currently (Blender 2.49) the prefix "OB" is added to all objects name. This may change in blender 2.5.
 	@type name: string.
 	@ivar mass: The object's mass (provided the object has a physics controller). Read only.
 	@type mass: float
 	@ivar parent: The object's parent object. (Read only)
-	@type parent: L{KX_GameObject}
+	@type parent: L{KX_GameObject} or None
 	@ivar visible: visibility flag.
+		- note: Game logic will still run for invisible objects.
 	@type visible: boolean
 	@ivar position: The object's position. 
 	@type position: list [x, y, z]
-	@ivar orientation: The object's orientation. 3x3 Matrix.  
-	                   You can also write a Quaternion or Euler vector.
+	@ivar orientation: The object's orientation. 3x3 Matrix. You can also write a Quaternion or Euler vector.
 	@type orientation: 3x3 Matrix [[float]]
 	@ivar scaling: The object's scaling factor. list [sx, sy, sz]
 	@type scaling: list [sx, sy, sz]
@@ -33,21 +34,21 @@ class KX_GameObject: # (SCA_IObject)
 	@ivar state: the game object's state bitmask.
 	@type state: int
 	@ivar meshes: a list meshes for this object.
-		B{Note}: Most objects use only 1 mesh.
-		B{Note}: Changes to this list will not update the KX_GameObject.
+		- note: Most objects use only 1 mesh.
+		- note: Changes to this list will not update the KX_GameObject.
 	@type meshes: list of L{KX_MeshProxy}
 	@ivar sensors: a list of L{SCA_ISensor} objects.
-		B{Note}: This attribute is experemental and may be removed (but probably wont be).
-		B{Note}: Changes to this list will not update the KX_GameObject
-	@type sensors: list of L{SCA_ISensor}
-	@ivar controllers: a list of L{SCA_ISensor} objects.
-		B{Note}: This attribute is experemental and may be removed (but probably wont be).
-		B{Note}: Changes to this list will not update the KX_GameObject
-	@type controllers: list of L{SCA_IController}
-	@ivar the actuators assigned to this object.
-		B{Note}: This attribute is experemental and may be removed (but probably wont be).
-		B{Note}: Changes to this list will not update the KX_GameObject
-	@type actuators: a list of L{SCA_IActuator}
+		- note: This attribute is experemental and may be removed (but probably wont be).
+		- note: Changes to this list will not update the KX_GameObject.
+	@type sensors: list
+	@ivar controllers: a list of L{SCA_IController} objects.
+		- note: This attribute is experemental and may be removed (but probably wont be).
+		- note: Changes to this list will not update the KX_GameObject.
+	@type controllers: list of L{SCA_ISensor}.
+	@ivar actuators: a list of L{SCA_IActuator} objects.
+		- note: This attribute is experemental and may be removed (but probably wont be).
+		- note: Changes to this list will not update the KX_GameObject.
+	@type actuators: list
 	"""
 	def endObject(visible):
 		"""
@@ -159,7 +160,7 @@ class KX_GameObject: # (SCA_IObject)
 		@param local: - False: you get the "global" movement ie: relative to world orientation (default).
 		              - True: you get the "local" movement ie: relative to object orientation.
 		"""	
-	def applyRotation(movement, local = 0):
+	def applyRotation(rotation, local = 0):
 		"""
 		Sets the game object's rotation.
 		

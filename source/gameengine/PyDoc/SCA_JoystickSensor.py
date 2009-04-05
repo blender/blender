@@ -41,13 +41,13 @@ class SCA_JoystickSensor(SCA_ISensor):
 		Returns a list containing the indicies of the currently pressed buttons.
 		@rtype: list
 		"""
-    def getButtonStatus(buttonIndex):
-        """
-        Returns a bool of the current pressed state of the specified button.
-        @param buttonIndex: the button index, 0=first button
-        @type buttonIndex: integer
-        @rtype: bool
-        """
+	def getButtonStatus(buttonIndex):
+		"""
+		Returns a bool of the current pressed state of the specified button.
+		@param buttonIndex: the button index, 0=first button
+		@type buttonIndex: integer
+		@rtype: bool
+		"""
 	def getIndex():
 		"""
 		DEPRECATED: use the 'index' property.

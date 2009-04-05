@@ -39,7 +39,7 @@ class KX_Scene:
 		
 	@ivar name: The scene's name
 	@type name: string
-	@type objects: A list of objects in the scene.
+	@ivar objects: A list of objects in the scene.
 	@type objects: list [L{KX_GameObject}]
 	@ivar active_camera: The current active camera
 	@type active_camera: L{KX_Camera}
@@ -70,7 +70,7 @@ class KX_Scene:
 		@rtype: string
 		"""
 
-	def addObject(object, other, time=0)
+	def addObject(object, other, time=0):
 		"""
 		Adds an object to the scene like the Add Object Actuator would, and returns the created object.
 		

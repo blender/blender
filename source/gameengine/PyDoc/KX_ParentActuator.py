@@ -10,7 +10,7 @@ class KX_ParentActuator(SCA_IActuator):
 	"""
 	def setObject(object):
 		"""
-        DEPRECATED: Use the object property.
+		DEPRECATED: Use the object property.
 		Sets the object to set as parent.
 		
 		Object can be either a L{KX_GameObject} or the name of the object.
@@ -19,7 +19,7 @@ class KX_ParentActuator(SCA_IActuator):
 		"""
 	def getObject(name_only = 1):
 		"""
-        DEPRECATED: Use the object property.
+		DEPRECATED: Use the object property.
 		Returns the name of the object to change to.
 		@type name_only: bool
 		@param name_only: optional argument, when 0 return a KX_GameObject

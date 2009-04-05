@@ -3,13 +3,15 @@
 from SCA_IActuator import *
 
 class KX_CDActuator(SCA_IActuator):
-    """
-    CD Controller actuator.
-    @ivar volume: controls the volume to set the CD to. 0.0 = silent, 1.0 = max volume.
-    @type volume: float
-    @ivar track: the track selected to be played
-    @type track: integer
-    """
+	"""
+	CD Controller actuator.
+	@ivar volume: controls the volume to set the CD to. 0.0 = silent, 1.0 = max volume.
+	@type volume: float
+	@ivar track: the track selected to be played
+	@type track: integer
+	@ivar gain: the gain (volume) of the CD between 0.0 and 1.0.
+	@type gain: float
+	"""
 	def startCD():
 		"""
 		Starts the CD playing.
@@ -26,17 +28,17 @@ class KX_CDActuator(SCA_IActuator):
 		"""
 		Resumes the CD after a pause.
 		"""
-    def playAll():
-        """
-        Plays the CD from the beginning.
-        """
-    def playTrack(trackNumber):
-        """
-        Plays the track selected.
-        """
+	def playAll():
+		"""
+		Plays the CD from the beginning.
+		"""
+	def playTrack(trackNumber):
+		"""
+		Plays the track selected.
+		"""
 	def setGain(gain):
 		"""
-        DEPRECATED: Use the volume property.
+		DEPRECATED: Use the volume property.
 		Sets the gain (volume) of the CD.
 		
 		@type gain: float
@@ -44,7 +46,7 @@ class KX_CDActuator(SCA_IActuator):
 		"""
 	def getGain():
 		"""
-        DEPRECATED: Use the volume property.
+		DEPRECATED: Use the volume property.
 		Gets the current gain (volume) of the CD.
 		
 		@rtype: float
