@@ -64,6 +64,7 @@ typedef unsigned long uint_ptr;
 #include "KX_PyMath.h"
 #include "SCA_IActuator.h"
 #include "SCA_ISensor.h"
+#include "SCA_IController.h"
 
 #include "PyObjectPlus.h" /* python stuff */
 
@@ -1044,7 +1045,14 @@ PyAttributeDef KX_GameObject::Attributes[] = {
 	KX_PYATTRIBUTE_RW_FUNCTION("timeOffset",KX_GameObject, pyattr_get_timeOffset,pyattr_set_timeOffset),
 	KX_PYATTRIBUTE_RW_FUNCTION("state",		KX_GameObject, pyattr_get_state,	pyattr_set_state),
 	KX_PYATTRIBUTE_RO_FUNCTION("meshes",	KX_GameObject, pyattr_get_meshes),
+	
 	KX_PYATTRIBUTE_RO_FUNCTION("__dict__",	KX_GameObject, pyattr_get_dir_dict),
+	
+	/* Experemental, dont rely on these yet */
+	KX_PYATTRIBUTE_RO_FUNCTION("sensors",		KX_GameObject, pyattr_get_sensors),
+	KX_PYATTRIBUTE_RO_FUNCTION("controllers",	KX_GameObject, pyattr_get_controllers),
+	KX_PYATTRIBUTE_RO_FUNCTION("actuators",		KX_GameObject, pyattr_get_actuators),
+	
 	{NULL} //Sentinel
 };
 
@@ -1431,6 +1439,44 @@ PyObject* KX_GameObject::pyattr_get_meshes(void *self_v, const KX_PYATTRIBUTE_DE
 }
 
 
+/* experemental! */
+PyObject* KX_GameObject::pyattr_get_sensors(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
+	SCA_SensorList& sensors= self->GetSensors();
+	PyObject* resultlist = PyList_New(sensors.size());
+	
+	for (unsigned int index=0;index<sensors.size();index++)
+		PyList_SET_ITEM(resultlist, index, sensors[index]->AddRef());
+	
+	return resultlist;
+}
+
+PyObject* KX_GameObject::pyattr_get_controllers(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
+	SCA_ControllerList& controllers= self->GetControllers();
+	PyObject* resultlist = PyList_New(controllers.size());
+	
+	for (unsigned int index=0;index<controllers.size();index++)
+		PyList_SET_ITEM(resultlist, index, controllers[index]->AddRef());
+	
+	return resultlist;
+}
+
+PyObject* KX_GameObject::pyattr_get_actuators(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
+	SCA_ActuatorList& actuators= self->GetActuators();
+	PyObject* resultlist = PyList_New(actuators.size());
+	
+	for (unsigned int index=0;index<actuators.size();index++)
+		PyList_SET_ITEM(resultlist, index, actuators[index]->AddRef());
+	
+	return resultlist;
+}
+
+
 /* __dict__ only for the purpose of giving useful dir() results */
 PyObject* KX_GameObject::pyattr_get_dir_dict(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
@@ -1457,6 +1503,7 @@ PyObject* KX_GameObject::pyattr_get_dir_dict(void *self_v, const KX_PYATTRIBUTE_
 	
 	return dict;
 }
+
 
 PyObject* KX_GameObject::py_getattro(PyObject *attr)
 {

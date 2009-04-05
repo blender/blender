@@ -1,7 +1,13 @@
 # $Id$
 # Documentation for game objects
 
-class KX_GameObject:
+# from SCA_IObject import *
+from SCA_ISensor import *
+from SCA_IController import *
+from SCA_IActuator import *
+
+
+class KX_GameObject: # (SCA_IObject)
 	"""
 	All game objects are derived from this class.
 	
@@ -26,9 +32,22 @@ class KX_GameObject:
 	@type timeOffset: float
 	@ivar state: the game object's state bitmask.
 	@type state: int
-	@ivar meshes: a list of L{KX_MeshProxy} objects.
+	@ivar meshes: a list meshes for this object.
+		B{Note}: Most objects use only 1 mesh.
+		B{Note}: Changes to this list will not update the KX_GameObject.
+	@type meshes: list of L{KX_MeshProxy}
+	@ivar sensors: a list of L{SCA_ISensor} objects.
+		B{Note}: This attribute is experemental and may be removed (but probably wont be).
 		B{Note}: Changes to this list will not update the KX_GameObject
-	@type meshes: list
+	@type sensors: list of L{SCA_ISensor}
+	@ivar controllers: a list of L{SCA_ISensor} objects.
+		B{Note}: This attribute is experemental and may be removed (but probably wont be).
+		B{Note}: Changes to this list will not update the KX_GameObject
+	@type controllers: list of L{SCA_IController}
+	@ivar the actuators assigned to this object.
+		B{Note}: This attribute is experemental and may be removed (but probably wont be).
+		B{Note}: Changes to this list will not update the KX_GameObject
+	@type actuators: a list of L{SCA_IActuator}
 	"""
 	def endObject(visible):
 		"""
