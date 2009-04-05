@@ -73,6 +73,8 @@ typedef unsigned long uint_ptr;
 
 #include "KX_SG_NodeRelationships.h"
 
+static MT_Point3 dummy_point= MT_Point3(0.0, 0.0, 0.0);
+
 KX_GameObject::KX_GameObject(
 	void* sgReplicationInfo,
 	SG_Callbacks callbacks,
@@ -943,7 +945,7 @@ const MT_Vector3& KX_GameObject::NodeGetWorldScaling() const
 }
 
 
-static MT_Point3 dummy_point= MT_Point3(0.0, 0.0, 0.0);
+
 const MT_Point3& KX_GameObject::NodeGetWorldPosition() const
 {
 	// check on valid node in case a python controller holds a reference to a deleted object
@@ -964,7 +966,8 @@ void KX_GameObject::Resume(void)
 {
 	if (m_suspended) {
 		SCA_IObject::Resume();
-		GetPhysicsController()->RestoreDynamics();
+		if(GetPhysicsController())
+			GetPhysicsController()->RestoreDynamics();
 
 		m_suspended = false;
 	}
@@ -975,7 +978,8 @@ void KX_GameObject::Suspend()
 	if ((!m_ignore_activity_culling) 
 		&& (!m_suspended))  {
 		SCA_IObject::Suspend();
-		GetPhysicsController()->SuspendDynamics();
+		if(GetPhysicsController())
+			GetPhysicsController()->SuspendDynamics();
 		m_suspended = true;
 	}
 }
@@ -1717,7 +1721,7 @@ PyObject* KX_GameObject::PyGetVelocity(PyObject* self, PyObject* args)
 PyObject* KX_GameObject::PyGetMass(PyObject* self)
 {
 	ShowDeprecationWarning("getMass()", "the mass property");
-	return PyFloat_FromDouble(GetPhysicsController()->GetMass());
+	return PyFloat_FromDouble((GetPhysicsController() != NULL) ? GetPhysicsController()->GetMass() : 0.0f);
 }
 
 
@@ -1725,14 +1729,24 @@ PyObject* KX_GameObject::PyGetMass(PyObject* self)
 PyObject* KX_GameObject::PyGetReactionForce(PyObject* self)
 {
 	// only can get the velocity if we have a physics object connected to us...
-	return PyObjectFrom(GetPhysicsController()->getReactionForce());
+	
+	// XXX - Currently not working with bullet intergration, see KX_BulletPhysicsController.cpp's getReactionForce
+	/*
+	if (GetPhysicsController())
+		return PyObjectFrom(GetPhysicsController()->getReactionForce());
+	return PyObjectFrom(dummy_point);
+	*/
+	
+	return Py_BuildValue("fff", 0.0f, 0.0f, 0.0f);
+	
 }
 
 
 
 PyObject* KX_GameObject::PyEnableRigidBody(PyObject* self)
 {
-	GetPhysicsController()->setRigidBody(true);
+	if(GetPhysicsController())
+		GetPhysicsController()->setRigidBody(true);
 
 	Py_RETURN_NONE;
 }
@@ -1741,7 +1755,8 @@ PyObject* KX_GameObject::PyEnableRigidBody(PyObject* self)
 
 PyObject* KX_GameObject::PyDisableRigidBody(PyObject* self)
 {
-	GetPhysicsController()->setRigidBody(false);
+	if(GetPhysicsController())
+		GetPhysicsController()->setRigidBody(false);
 
 	Py_RETURN_NONE;
 }
@@ -1761,6 +1776,10 @@ PyObject* KX_GameObject::PySetParent(PyObject* self, PyObject* value)
 {
 	if (!PyObject_TypeCheck(value, &KX_GameObject::Type)) {
 		PyErr_SetString(PyExc_TypeError, "expected a KX_GameObject type");
+		return NULL;
+	}
+	if (self==value) {
+		PyErr_SetString(PyExc_ValueError, "cannot set the object to be its own parent!");
 		return NULL;
 	}
 	

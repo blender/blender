@@ -56,12 +56,15 @@ void KX_RayCast::reportHit(PHY_RayCastResult* result)
 
 bool KX_RayCast::RayTest(PHY_IPhysicsEnvironment* physics_environment, const MT_Point3& _frompoint, const MT_Point3& topoint, KX_RayCast& callback)
 {
+	if(physics_environment==NULL) return false; /* prevents crashing in some cases */
+	
 	// Loops over all physics objects between frompoint and topoint,
 	// calling callback.RayHit for each one.
 	//
 	// callback.RayHit should return true to stop looking, or false to continue.
 	//
 	// returns true if an object was found, false if not.
+	
 	MT_Point3 frompoint(_frompoint);
 	const MT_Vector3 todir( (topoint - frompoint).safe_normalized() );
 	MT_Point3 prevpoint(_frompoint+todir*(-1.f));

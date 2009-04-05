@@ -80,6 +80,7 @@
 #include "KX_SCA_DynamicActuator.h"
 #include "KX_SoundActuator.h"
 #include "KX_TouchSensor.h"
+#include "KX_VisibilityActuator.h"
 #include "SCA_PropertySensor.h"
 #include "SCA_PythonController.h"
 #include "SCA_RandomActuator.h"
@@ -177,6 +178,7 @@ void initPyTypes(void)
 	PyType_Ready(&KX_TrackToActuator::Type);
 	PyType_Ready(&KX_VehicleWrapper::Type);
 	PyType_Ready(&KX_VertexProxy::Type);
+	PyType_Ready(&KX_VisibilityActuator::Type);
 	PyType_Ready(&PyObjectPlus::Type);
 	PyType_Ready(&SCA_2DFilterActuator::Type);
 	PyType_Ready(&SCA_ANDController::Type);

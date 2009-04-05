@@ -84,6 +84,7 @@ public:
 	// --------------------------------
 	virtual PyObject* py_getattro(PyObject *attr);
 	virtual int       py_setattro(PyObject *attr, PyObject *pyvalue);
+	virtual PyObject* py_repr(void) { return PyString_FromString(mMaterial->matname.ReadPtr()); }
 
 	KX_PYMETHOD_DOC( KX_BlenderMaterial, getShader );
 	KX_PYMETHOD_DOC( KX_BlenderMaterial, getMaterialIndex );

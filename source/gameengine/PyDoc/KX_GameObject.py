@@ -270,6 +270,8 @@ class KX_GameObject: # (SCA_IObject)
 		The reaction force is the force applied to this object over the last simulation timestep.
 		This also includes impulses, eg from collisions.
 		
+		(B{This is not implimented for bullet physics at the moment})
+		
 		@rtype: list [fx, fy, fz]
 		@return: the reaction force of this object.
 		"""

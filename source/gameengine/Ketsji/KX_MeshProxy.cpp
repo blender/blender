@@ -190,24 +190,24 @@ PyObject* KX_MeshProxy::PyGetVertexArrayLength(PyObject* self,
 			       PyObject* args, 
 			       PyObject* kwds)
 {
-    int matid= -1;
-	int length = -1;
+    int matid= 0;
+	int length = 0;
 
 	
-	if (PyArg_ParseTuple(args,"i",&matid))
-	{
-		RAS_MeshMaterial *mmat = m_meshobj->GetMeshMaterial(matid);
-		RAS_IPolyMaterial* mat = mmat->m_bucket->GetPolyMaterial();
+	if (!PyArg_ParseTuple(args,"i",&matid))
+		return NULL;
+	
 
+	RAS_MeshMaterial *mmat = m_meshobj->GetMeshMaterial(matid); /* can be NULL*/
+	
+	if (mmat)
+	{
+		RAS_IPolyMaterial* mat = mmat->m_bucket->GetPolyMaterial();
 		if (mat)
 			length = m_meshobj->NumVertices(mat);
 	}
-	else {
-		return NULL;
-	}
-
+	
 	return PyInt_FromLong(length);
-		
 }
 
 
@@ -244,15 +244,21 @@ PyObject* KX_MeshProxy::PyGetPolygon(PyObject* self,
 
 	if (!PyArg_ParseTuple(args,"i",&polyindex))
 		return NULL;
+	
+	if (polyindex<0 || polyindex >= m_meshobj->NumPolygons())
+	{
+		PyErr_SetString(PyExc_AttributeError, "Invalid polygon index");
+		return NULL;
+	}
+		
 
 	RAS_Polygon* polygon = m_meshobj->GetPolygon(polyindex);
 	if (polygon)
 	{
 		polyob = new KX_PolyProxy(m_meshobj, polygon);
 	}
-	else
-	{
-		PyErr_SetString(PyExc_AttributeError, "Invalid polygon index");
+	else {
+		PyErr_SetString(PyExc_AttributeError, "polygon is NULL, unknown reason");
 	}
 	return polyob;
 }
@@ -275,11 +281,22 @@ PyObject* KX_MeshProxy::pyattr_get_materials(void *self_v, const KX_PYATTRIBUTE_
 	
 	list<RAS_MeshMaterial>::iterator mit= self->m_meshobj->GetFirstMaterial();
 	
-	/* Can be a KX_PolygonMaterial or KX_BlenderMaterial, since both are cast to a PyObject * we dont need to care */
+	
 	for(i=0; i<tot; mit++, i++) {
-		PyObject *py_mat = (PyObject *)mit->m_bucket->GetPolyMaterial();
-		PyList_SET_ITEM(materials, i, py_mat);
-		Py_INCREF(py_mat);
+		RAS_IPolyMaterial *polymat = mit->m_bucket->GetPolyMaterial(); 	 
+		
+		/* Why do we need to check for RAS_BLENDERMAT if both are cast to a (PyObject*)? - Campbell */
+		if(polymat->GetFlag() & RAS_BLENDERMAT) 	 
+		{ 	 
+			KX_BlenderMaterial *mat = static_cast<KX_BlenderMaterial*>(polymat); 	 
+			PyList_SET_ITEM(materials, i, mat);
+			Py_INCREF(mat);
+		}
+		else { 	
+			KX_PolygonMaterial *mat = static_cast<KX_PolygonMaterial*>(polymat);
+			PyList_SET_ITEM(materials, i, mat);
+			Py_INCREF(mat);
+		}
 	}	
 	return materials;
 }

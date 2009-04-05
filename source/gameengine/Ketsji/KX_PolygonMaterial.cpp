@@ -333,8 +333,11 @@ PyObject* KX_PolygonMaterial::pyattr_get_tface(void *self_v, const KX_PYATTRIBUT
 PyObject* KX_PolygonMaterial::pyattr_get_gl_texture(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_PolygonMaterial* self= static_cast<KX_PolygonMaterial*>(self_v);
-	Image *ima = self->m_tface->tpage;
-	return PyInt_FromLong(ima ? ima->bindcode:0);
+	int bindcode= 0;
+	if (self->m_tface && self->m_tface->tpage)
+		bindcode= self->m_tface->tpage->bindcode;
+	
+	return PyInt_FromLong(bindcode);
 }
 
 
