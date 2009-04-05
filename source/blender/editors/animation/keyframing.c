@@ -716,10 +716,10 @@ short insertkey (ID *id, const char group[], const char rna_path[], int array_in
 	PropertyRNA *prop;
 	FCurve *fcu;
 	
-	/* validate pointer first - exit if failure*/
+	/* validate pointer first - exit if failure */
 	RNA_id_pointer_create(id, &id_ptr);
-	if (RNA_path_resolve(&id_ptr, rna_path, &ptr, &prop) == 0 || prop == NULL) {
-		printf("Insert Key: Could not insert keyframe, as RNA Path is invalid for the given ID (%s)\n", rna_path);
+	if ((RNA_path_resolve(&id_ptr, rna_path, &ptr, &prop) == 0) || (prop == NULL)) {
+		printf("Insert Key: Could not insert keyframe, as RNA Path is invalid for the given ID (ID = %s, Path = %s)\n", id->name, rna_path);
 		return 0;
 	}
 	
@@ -2159,7 +2159,7 @@ void ANIM_OT_insert_keyframe (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* settings */
-	RNA_def_boolean(ot->srna, "builtin", 0, "Built-In Keying Set", "Use one of the relative Keying Sets defined by default");
+	RNA_def_int(ot->srna, "type", 0, INT_MIN, INT_MAX, "Keying Set Number", "Index (determined internally) of the Keying Set to use", 0, 1);
 }
 
 /* Insert Key Operator (With Menu) ------------------------ */

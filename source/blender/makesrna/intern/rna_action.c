@@ -57,11 +57,11 @@ static int rna_Driver_RnaPath_length(PointerRNA *ptr)
 		return 0;
 }
 
-#if 0
 static void rna_Driver_RnaPath_set(PointerRNA *ptr, const char *value)
 {
 	ChannelDriver *driver= (ChannelDriver *)ptr->data;
-
+	
+	// XXX in this case we need to be very careful, as this will require some new dependencies to be added!
 	if (driver->rna_path)
 		MEM_freeN(driver->rna_path);
 	
@@ -70,7 +70,7 @@ static void rna_Driver_RnaPath_set(PointerRNA *ptr, const char *value)
 	else 
 		driver->rna_path= NULL;
 }
-#endif
+
 
 static void rna_FCurve_RnaPath_get(PointerRNA *ptr, char *value)
 {
@@ -92,7 +92,6 @@ static int rna_FCurve_RnaPath_length(PointerRNA *ptr)
 		return 0;
 }
 
-#if 0
 static void rna_FCurve_RnaPath_set(PointerRNA *ptr, const char *value)
 {
 	FCurve *fcu= (FCurve *)ptr->data;
@@ -105,7 +104,6 @@ static void rna_FCurve_RnaPath_set(PointerRNA *ptr, const char *value)
 	else 
 		fcu->rna_path= NULL;
 }
-#endif
 
 #else
 
@@ -139,7 +137,6 @@ void rna_def_channeldriver(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Driver Object", "Object that controls this Driver.");
 	
 	prop= RNA_def_property(srna, "rna_path", PROP_STRING, PROP_NONE);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_string_funcs(prop, "rna_Driver_RnaPath_get", "rna_Driver_RnaPath_length", "rna_Driver_RnaPath_set");
 	RNA_def_property_ui_text(prop, "Driver RNA Path", "RNA Path (from Driver Object) to property used as Driver.");
 	
@@ -179,11 +176,12 @@ void rna_def_fcurve(BlenderRNA *brna)
 	
 	/* Path + Array Index */
 	prop= RNA_def_property(srna, "rna_path", PROP_STRING, PROP_NONE);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	//RNA_def_property_clear_flag(prop, PROP_EDITABLE); // XXX for now editable
 	RNA_def_property_string_funcs(prop, "rna_FCurve_RnaPath_get", "rna_FCurve_RnaPath_length", "rna_FCurve_RnaPath_set");
 	RNA_def_property_ui_text(prop, "RNA Path", "RNA Path to property affected by F-Curve.");
 	
 	prop= RNA_def_property(srna, "array_index", PROP_INT, PROP_NONE);
+	//RNA_def_property_clear_flag(prop, PROP_EDITABLE); // XXX for now editable
 	RNA_def_property_ui_text(prop, "RNA Array Index", "Index to the specific property affected by F-Curve if applicable.");
 	
 	/* Color */
