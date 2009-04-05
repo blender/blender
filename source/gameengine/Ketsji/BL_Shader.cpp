@@ -1278,19 +1278,16 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniformMatrix4,
 		int loc = GetUniformLocation(uniform);
 		if(loc != -1)
 		{
-			if (PyObject_IsMT_Matrix(matrix, 4))
+			MT_Matrix4x4 mat;
+			if (PyMatTo(matrix, mat))
 			{
-				MT_Matrix4x4 mat;
-				if (PyMatTo(matrix, mat))
-				{
 #ifdef SORT_UNIFORMS
-					mat.getValue(matr);
-					SetUniformfv(loc, BL_Uniform::UNI_MAT4, matr, (sizeof(float)*16), (transp!=0) );
+				mat.getValue(matr);
+				SetUniformfv(loc, BL_Uniform::UNI_MAT4, matr, (sizeof(float)*16), (transp!=0) );
 #else
-					SetUniform(loc,mat,(transp!=0));
+				SetUniform(loc,mat,(transp!=0));
 #endif
-					Py_RETURN_NONE;
-				}
+				Py_RETURN_NONE;
 			}
 		}
 	}
@@ -1319,20 +1316,16 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniformMatrix3,
 		int loc = GetUniformLocation(uniform);
 		if(loc != -1)
 		{
-			if (PyObject_IsMT_Matrix(matrix, 3))
+			MT_Matrix3x3 mat;
+			if (PyMatTo(matrix, mat))
 			{
-				MT_Matrix3x3 mat;
-				if (PyMatTo(matrix, mat))
-				{
 #ifdef SORT_UNIFORMS
-					mat.getValue(matr);
-					SetUniformfv(loc, BL_Uniform::UNI_MAT3, matr, (sizeof(float)*9), (transp!=0) );
+				mat.getValue(matr);
+				SetUniformfv(loc, BL_Uniform::UNI_MAT3, matr, (sizeof(float)*9), (transp!=0) );
 #else
-					SetUniform(loc,mat,(transp!=0));
+				SetUniform(loc,mat,(transp!=0));
 #endif
-					Py_RETURN_NONE;
-
-				}
+				Py_RETURN_NONE;
 			}
 		}
 	}

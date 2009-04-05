@@ -1303,16 +1303,14 @@ int KX_GameObject::pyattr_set_orientation(void *self_v, const KX_PYATTRIBUTE_DEF
 	}
 
 	MT_Matrix3x3 rot;
-	if (PyObject_IsMT_Matrix(value, 3))
+
+	if (PyMatTo(value, rot))
 	{
-		if (PyMatTo(value, rot))
-		{
-			self->NodeSetLocalOrientation(rot);
-			self->NodeUpdateGS(0.f,true);
-			return 0;
-		}
-		return 1;
+		self->NodeSetLocalOrientation(rot);
+		self->NodeUpdateGS(0.f,true);
+		return 0;
 	}
+	return 1;
 
 	if (PySequence_Size(value) == 4)
 	{

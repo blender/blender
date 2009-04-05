@@ -93,7 +93,7 @@ PyObject* PyObjectFrom(const MT_Matrix4x4 &mat)
 		PyList_SET_ITEM(sublist, 0, PyFloat_FromDouble(mat[i][0]));
 		PyList_SET_ITEM(sublist, 1, PyFloat_FromDouble(mat[i][1]));
 		PyList_SET_ITEM(sublist, 2, PyFloat_FromDouble(mat[i][2]));
-		PyList_SET_ITEM(sublist, 2, PyFloat_FromDouble(mat[i][3]));
+		PyList_SET_ITEM(sublist, 3, PyFloat_FromDouble(mat[i][3]));
 		PyList_SET_ITEM(list, i, sublist);
 	}
 	
