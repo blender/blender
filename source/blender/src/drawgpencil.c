@@ -142,7 +142,7 @@ void gp_ui_delstroke_cb (void *gpd, void *gpl)
 	if (gpf->framenum != CFRA) return;
 
 	gpencil_layer_setactive(gpd, gpl);
-	gpencil_frame_delete_laststroke(gpf, gpl);
+	gpencil_frame_delete_laststroke(gpl, gpf);
 	
 	scrarea_queue_winredraw(curarea);
 }

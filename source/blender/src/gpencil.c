@@ -484,7 +484,7 @@ ScrArea *gpencil_data_findowner (bGPdata *gpd)
 /* -------- GP-Frame API ---------- */
 
 /* delete the last stroke of the given frame */
-void gpencil_frame_delete_laststroke (bGPDframe *gpf, bGPDlayer *gpl)
+void gpencil_frame_delete_laststroke (bGPDlayer *gpl, bGPDframe *gpf)
 {
 	bGPDstroke *gps= (gpf) ? gpf->strokes.last : NULL;
 	
@@ -704,7 +704,7 @@ void gpencil_delete_laststroke (bGPdata *gpd)
 	
 	if (gpf->framenum != CFRA) return;
 
-	gpencil_frame_delete_laststroke(gpf, gpl);
+	gpencil_frame_delete_laststroke(gpl, gpf);
 }
 
 /* delete the active frame */

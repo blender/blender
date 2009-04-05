@@ -65,7 +65,7 @@ struct bGPdata *gpencil_data_getactive(struct ScrArea *sa);
 short gpencil_data_setactive(struct ScrArea *sa, struct bGPdata *gpd);
 struct ScrArea *gpencil_data_findowner(struct bGPdata *gpd);
 
-void gpencil_frame_delete_laststroke(struct bGPDframe *gpf, bGPDlayer *gpl);
+void gpencil_frame_delete_laststroke(struct bGPDlayer *gpl, struct bGPDframe *gpf);
 
 struct bGPDframe *gpencil_layer_getframe(struct bGPDlayer *gpl, int cframe, short addnew);
 void gpencil_layer_delframe(struct bGPDlayer *gpl, struct bGPDframe *gpf);
