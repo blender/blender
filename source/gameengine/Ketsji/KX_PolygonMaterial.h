@@ -117,6 +117,18 @@ public:
 
 	virtual PyObject* py_getattro(PyObject *attr);
 	virtual int       py_setattro(PyObject *attr, PyObject *pyvalue);
+	
+	
+	static PyObject*	pyattr_get_texture(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject*	pyattr_get_material(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	
+	static PyObject*	pyattr_get_tface(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject*	pyattr_get_gl_texture(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	
+	static PyObject*	pyattr_get_diffuse(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);	
+	static int			pyattr_set_diffuse(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
+	static PyObject*	pyattr_get_specular(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);	
+	static int			pyattr_set_specular(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 };
 
 #endif // __KX_POLYGONMATERIAL_H__
