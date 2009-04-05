@@ -1,7 +1,7 @@
 #ifndef  APPVIEW_H
 # define APPVIEW_H
 
-# ifndef WIN32
+# if !defined(WIN32) || defined(__GNUC__)
 #  include <algorithm>
 using namespace std;
 #  define __min(x,y) (min(x,y))
