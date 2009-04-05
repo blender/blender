@@ -886,7 +886,7 @@ PyObject* BL_ShapeActionActuator::PySetType(PyObject* self,
 PyObject* BL_ShapeActionActuator::pyattr_get_action(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	BL_ShapeActionActuator* self= static_cast<BL_ShapeActionActuator*>(self_v);
-	return PyString_FromString(self->GetAction()->id.name+2);
+	return PyString_FromString(self->GetAction() ? self->GetAction()->id.name+2 : "");
 }
 
 int BL_ShapeActionActuator::pyattr_set_action(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)

@@ -430,6 +430,10 @@ bool CListValue::CheckEqual(CValue* first,CValue* second)
 	bool result = false;
 
 	CValue* eqval =  ((CValue*)first)->Calc(VALUE_EQL_OPERATOR,(CValue*)second);
+	
+	if (eqval==NULL)
+		return false;
+		
 	STR_String txt = eqval->GetText();
 	eqval->Release();
 	if (txt=="TRUE")
@@ -479,7 +483,7 @@ PyObject* CListValue::Pycount(PyObject* self, PyObject* value)
 	
 	if (checkobj==NULL) { /* in this case just return that there are no items in the list */
 		PyErr_Clear();
-		PyInt_FromLong(0);
+		return PyInt_FromLong(0);
 	}
 
 	int numelem = GetCount();
@@ -503,7 +507,8 @@ PyObject* CListValue::Pycount(PyObject* self, PyObject* value)
  * --------------------------------------------------------------------- */
 CValue* CListValue::Calc(VALUE_OPERATOR op,CValue *val) 
 {
-	assert(false); // todo: implement me!
+	//assert(false); // todo: implement me!
+	fprintf(stderr, "CValueList::Calc not yet implimented\n");
 	return NULL;
 }
 
@@ -513,7 +518,8 @@ CValue* CListValue::CalcFinal(VALUE_DATA_TYPE dtype,
 							  VALUE_OPERATOR op, 
 							  CValue* val) 
 {
-	assert(false); // todo: implement me!
+	//assert(false); // todo: implement me!
+	fprintf(stderr, "CValueList::CalcFinal not yet implimented\n");
 	return NULL;
 }
 

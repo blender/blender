@@ -469,7 +469,7 @@ PyObject* KX_SceneActuator::PyGetCamera(PyObject* self,
 {
 	ShowDeprecationWarning("getCamera()", "the camera property");
 	if (m_camera) {
-		PyString_FromString(m_camera->GetName());
+		return PyString_FromString(m_camera->GetName());
 	}
 	else {
 		Py_RETURN_NONE;

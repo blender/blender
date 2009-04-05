@@ -1055,7 +1055,7 @@ int BL_ActionActuator::py_setattro(PyObject *attr, PyObject* value) {
 PyObject* BL_ActionActuator::pyattr_get_action(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	BL_ActionActuator* self= static_cast<BL_ActionActuator*>(self_v);
-	return PyString_FromString(self->GetAction()->id.name+2);
+	return PyString_FromString(self->GetAction() ? self->GetAction()->id.name+2 : "");
 }
 
 int BL_ActionActuator::pyattr_set_action(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
