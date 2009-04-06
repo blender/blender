@@ -70,7 +70,6 @@ PyObject *importText( char *name )
 	memcpy( &txtname[namelen], ".py", 4 );
 
 	for(text = maggie->text.first; text; text = text->id.next) {
-		fprintf(stderr, "%s | %s\n", txtname, text->id.name+2);
 		if( !strcmp( txtname, text->id.name+2 ) )
 			break;
 	}

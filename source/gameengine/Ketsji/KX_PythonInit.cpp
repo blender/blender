@@ -924,22 +924,10 @@ PyObject* initGameLogic(KX_KetsjiEngine *engine, KX_Scene* scene) // quick hack 
 	gUseVisibilityTemp=false;
 
 	// Create the module and add the functions
-	
-	
-	m = PyImport_ImportModule("GameLogic");
-	
-	if(m==NULL) {
-		printf("Import for the first time!\n");
-		PyErr_Clear();
-		m = Py_InitModule4("GameLogic", game_methods,
+	m = Py_InitModule4("GameLogic", game_methods,
 					   GameLogic_module_documentation,
 					   (PyObject*)NULL,PYTHON_API_VERSION);
-	}
-	else {
-		Py_DECREF(m); /**/
-		printf("Alredy imported!\n");
-		return(m);
-	}
+
 	// Add some symbolic constants to the module
 	d = PyModule_GetDict(m);
 	
@@ -1104,6 +1092,16 @@ PyObject* initGameLogic(KX_KetsjiEngine *engine, KX_Scene* scene) // quick hack 
 	KX_MACRO_addTypesToDict(d, KX_DYN_ENABLE_RIGID_BODY, KX_SCA_DynamicActuator::KX_DYN_ENABLE_RIGID_BODY);
 	KX_MACRO_addTypesToDict(d, KX_DYN_DISABLE_RIGID_BODY, KX_SCA_DynamicActuator::KX_DYN_DISABLE_RIGID_BODY);
 	KX_MACRO_addTypesToDict(d, KX_DYN_SET_MASS, KX_SCA_DynamicActuator::KX_DYN_SET_MASS);
+
+	/* Input & Mouse Sensor */
+	KX_MACRO_addTypesToDict(d, KX_INPUT_NONE, SCA_InputEvent::KX_NO_INPUTSTATUS);
+	KX_MACRO_addTypesToDict(d, KX_INPUT_JUST_ACTIVATED, SCA_InputEvent::KX_JUSTACTIVATED);
+	KX_MACRO_addTypesToDict(d, KX_INPUT_ACTIVE, SCA_InputEvent::KX_ACTIVE);
+	KX_MACRO_addTypesToDict(d, KX_INPUT_JUST_RELEASED, SCA_InputEvent::KX_JUSTRELEASED);
+	
+	KX_MACRO_addTypesToDict(d, KX_MOUSE_BUT_LEFT, SCA_InputEvent::KX_LEFTMOUSE);
+	KX_MACRO_addTypesToDict(d, KX_MOUSE_BUT_MIDDLE, SCA_InputEvent::KX_MIDDLEMOUSE);
+	KX_MACRO_addTypesToDict(d, KX_MOUSE_BUT_RIGHT, SCA_InputEvent::KX_RIGHTMOUSE);
 
 	// Check for errors
 	if (PyErr_Occurred())
