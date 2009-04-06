@@ -4123,8 +4123,6 @@ static uiBlock *view3d_edit_armaturemenu(void *arg_unused)
 
 static void do_view3d_pose_armature_transformmenu(void *arg, int event)
 {
-	Object *ob= OBACT;
-	
 	switch(event) {
 	case 0: /*	clear origin */
 		clear_object('o');
@@ -4139,9 +4137,7 @@ static void do_view3d_pose_armature_transformmenu(void *arg, int event)
 		clear_object('g');
 		break;
 	case 4: /* clear user transform */
-		rest_pose(ob->pose);
-		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
-		BIF_undo_push("Pose, Clear User Transform");
+		pose_clear_user_transforms();
 		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
