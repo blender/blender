@@ -109,3 +109,10 @@ class KX_SCA_AddObjectActuator(SCA_IActuator):
 		@rtype: L{KX_GameObject}
 		@return: A L{KX_GameObject} or None if no object has been created.
 		"""
+	def instantAddObject():
+		"""
+		Returns the last object created by this actuator. The object can then be accessed from L{objectLastCreated}.
+		
+		@rtype: None
+		"""
+	

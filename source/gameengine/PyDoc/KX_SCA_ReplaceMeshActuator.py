@@ -77,4 +77,8 @@ class KX_SCA_ReplaceMeshActuator(SCA_IActuator):
 		
 		@rtype: string or None
 		"""
-
+	def instantReplaceMesh():
+		"""
+		Immediately replace mesh without delay.
+		@rtype: None
+		"""

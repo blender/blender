@@ -55,7 +55,7 @@ class KX_Scene:
 		"""
 		Returns the list of lights in the scene.
 		
-		@rtype: list [L{KX_Light}]
+		@rtype: list [L{KX_LightObject}]
 		"""
 	def getObjectList():
 		"""

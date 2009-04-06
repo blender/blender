@@ -22,7 +22,7 @@ class KX_SCA_DynamicActuator(SCA_IActuator):
 				- 3 = disable rigid body
 				- 4 = set mass
 		"""
-	def getOperatoin():
+	def getOperation():
 		"""
 		DEPRECATED: Use the operation property instead.
 		return the type of operation

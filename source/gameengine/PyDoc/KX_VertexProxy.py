@@ -72,6 +72,19 @@ class KX_VertexProxy:
 		
 		@type uv: list [u, v]
 		"""
+	def getUV2():
+		"""
+		Gets the 2nd UV (texture) coordinates of this vertex.
+		
+		@rtype: list [u, v]
+		@return: this vertexes UV (texture) coordinates.
+		"""
+	def setUV2(uv):
+		"""
+		Sets the 2nd UV (texture) coordinates of this vertex.
+		
+		@type uv: list [u, v]
+		"""
 	def getRGBA():
 		"""
 		Gets the colour of this vertex.
@@ -120,3 +133,11 @@ class KX_VertexProxy:
 		@rtype: list [nx, ny, nz]
 		@return: normalised normal vector.
 		"""
+	def setNormal(normal):
+		"""
+		Sets the normal vector of this vertex.
+
+		@type normal: sequence of floats [r, g, b]
+		@param normal: the new normal of this vertex.
+		"""
+

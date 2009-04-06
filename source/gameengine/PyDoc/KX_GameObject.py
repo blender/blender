@@ -442,5 +442,12 @@ class KX_GameObject: # (SCA_IObject)
 		         If no hit, returns (None,None,None) or (None,None,None,None)
 		         If the object hit is not a static mesh, polygon is None
 		"""
-
-
+	def setCollisionMargin(margin):
+		"""
+		Set the objects collision margin.
+		
+		note: If this object has no physics controller (a physics ID of zero), this function will raise RuntimeError.
+		
+		@type margin: float
+		@param margin: the collision margin distance in blender units.
+		"""

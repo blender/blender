@@ -3,10 +3,17 @@
 Documentation for the GameLogic Module.
 =======================================
 
-	There are only three importable modules in the game engine:
+	Modules available in the game engine:
 		- GameLogic
 		- L{GameKeys}
 		- L{Rasterizer}
+		- L{GameTypes}
+	
+	Undocumented modules:
+		- VideoTexture
+		- CValue
+		- Expression
+		- PhysicsConstraints
 	
 	All the other modules are accessible through the methods in GameLogic.
 	
@@ -18,7 +25,7 @@ Documentation for the GameLogic Module.
 		
 		# To get the game object this controller is on:
 		obj = co.getOwner()
-	L{KX_GameObject} and L{KX_Camera} or L{KX_Light} methods are
+	L{KX_GameObject} and L{KX_Camera} or L{KX_LightObject} methods are
 	available depending on the type of object::
 		# To get a sensor linked to this controller.
 		# "sensorname" is the name of the sensor as defined in the Blender interface.
@@ -165,8 +172,18 @@ Documentation for the GameLogic Module.
 @var KX_DYN_DISABLE_RIGID_BODY:	See L{KX_SCA_DynamicActuator}
 @var KX_DYN_SET_MASS:			See L{KX_SCA_DynamicActuator}
 
-"""
+@group Input Status: KX_INPUT_NONE, KX_INPUT_JUST_ACTIVATED, KX_INPUT_ACTIVE, KX_INPUT_JUST_RELEASED
+@var KX_INPUT_NONE:				See L{SCA_MouseSensor}
+@var KX_INPUT_JUST_ACTIVATED:	See L{SCA_MouseSensor}
+@var KX_INPUT_ACTIVE:			See L{SCA_MouseSensor}
+@var KX_INPUT_JUST_RELEASED:	See L{SCA_MouseSensor}
 
+
+@group Mouse Buttons: KX_MOUSE_BUT_LEFT, KX_MOUSE_BUT_MIDDLE, KX_MOUSE_BUT_RIGHT
+@var KX_MOUSE_BUT_LEFT:		See L{SCA_MouseSensor}
+@var KX_MOUSE_BUT_MIDDLE:	See L{SCA_MouseSensor}
+@var KX_MOUSE_BUT_RIGHT:	See L{SCA_MouseSensor}
+"""
 
 def getCurrentController():
 	"""
