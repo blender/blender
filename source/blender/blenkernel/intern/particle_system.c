@@ -1301,7 +1301,8 @@ int psys_threads_init_distribution(ParticleThread *threads, DerivedMesh *finaldm
 	MEM_freeN(sum);
 
 	/* for hair, sort by origindex, allows optimizations in rendering */
-	if(part->type == PART_HAIR) {
+	/* however with virtual parents the children need to be in random order */
+	if(part->type == PART_HAIR && !(part->childtype==PART_CHILD_FACES && part->parents!=0.0)) {
 		COMPARE_ORIG_INDEX= dm->getFaceDataArray(dm, CD_ORIGINDEX);
 		if(COMPARE_ORIG_INDEX)
 			qsort(index, totpart, sizeof(int), compare_orig_index);

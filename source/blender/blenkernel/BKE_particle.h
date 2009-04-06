@@ -173,7 +173,7 @@ typedef struct ParticleThreadContext {
 
 	/* path caching */
 	int editupdate, between, steps;
-	int totchild, totparent;
+	int totchild, totparent, parent_pass;
 
 	float cfra;
 
