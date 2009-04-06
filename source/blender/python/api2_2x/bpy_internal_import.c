@@ -40,7 +40,7 @@ static Main *bpy_import_main= NULL;
 static void free_compiled_text(Text *text)
 {
 	if(text->compiled) {
-		Py_DECREF(text->compiled);
+		Py_DECREF(( PyObject * )text->compiled);
 	}
 	text->compiled= NULL;
 }
