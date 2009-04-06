@@ -78,6 +78,17 @@ PyMethodDef KX_PolyProxy::Methods[] = {
 };
 
 PyAttributeDef KX_PolyProxy::Attributes[] = {
+	/* All dummy's so they come up in a dir() */
+	KX_PYATTRIBUTE_DUMMY("matname"),
+	KX_PYATTRIBUTE_DUMMY("texture"),
+	KX_PYATTRIBUTE_DUMMY("material"),
+	KX_PYATTRIBUTE_DUMMY("matid"),
+	KX_PYATTRIBUTE_DUMMY("v1"),
+	KX_PYATTRIBUTE_DUMMY("v2"),
+	KX_PYATTRIBUTE_DUMMY("v3"),
+	KX_PYATTRIBUTE_DUMMY("v4"),
+	KX_PYATTRIBUTE_DUMMY("visible"),
+	KX_PYATTRIBUTE_DUMMY("collide"),
 	{ NULL }	//Sentinel
 };
 

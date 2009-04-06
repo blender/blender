@@ -343,7 +343,7 @@ PyObject* KX_MouseFocusSensor::py_getattro(PyObject *attr) {
 
 const char KX_MouseFocusSensor::GetHitObject_doc[] = 
 "getHitObject()\n"
-"\tReturns the name of the object that was hit by this ray.\n";
+"\tReturns the object that was hit by this ray.\n";
 PyObject* KX_MouseFocusSensor::PyGetHitObject(PyObject* self)
 {
 	if (m_hitObject)
@@ -374,7 +374,7 @@ PyObject* KX_MouseFocusSensor::PyGetRayDirection(PyObject* self)
 
 const char KX_MouseFocusSensor::GetHitNormal_doc[] = 
 "getHitNormal()\n"
-"\tReturns the normal (in worldcoordinates) of the object at the location where the object was hit by this ray.\n";
+"\tReturns the normal (in worldcoordinates) at the point of collision where the object was hit by this ray.\n";
 PyObject* KX_MouseFocusSensor::PyGetHitNormal(PyObject* self)
 {
 	return PyObjectFrom(m_hitNormal);

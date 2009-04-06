@@ -275,7 +275,7 @@ PyObject* SCA_MouseSensor::PyGetYPosition(PyObject* self,
 
 KX_PYMETHODDEF_DOC_O(SCA_MouseSensor, getButtonStatus,
 "getButtonStatus(button)\n"
-"\tGet the given button's status (KX_NO_INPUTSTATUS, KX_JUSTACTIVATED, KX_ACTIVE or KX_JUSTRELEASED).\n")
+"\tGet the given button's status (KX_INPUT_NONE, KX_INPUT_NONE, KX_INPUT_JUST_ACTIVATED, KX_INPUT_ACTIVE, KX_INPUT_JUST_RELEASED).\n")
 {
 	if (PyInt_Check(value))
 	{

@@ -236,7 +236,7 @@ int       KX_LightObject::py_setattro(PyObject *attr, PyObject *pyvalue)
 		}
 	}
 	
-	if (PyFloat_Check(pyvalue))
+	if (PyFloat_Check(pyvalue) || PyInt_Check(pyvalue))
 	{
 		float value = PyFloat_AsDouble(pyvalue);
 		if (!strcmp(attr_str, "energy"))
@@ -306,9 +306,21 @@ PyMethodDef KX_LightObject::Methods[] = {
 };
 
 PyAttributeDef KX_LightObject::Attributes[] = {
+	KX_PYATTRIBUTE_DUMMY("layer"),
+	KX_PYATTRIBUTE_DUMMY("energy"),
+	KX_PYATTRIBUTE_DUMMY("distance"),
+	KX_PYATTRIBUTE_DUMMY("colour"),
+	KX_PYATTRIBUTE_DUMMY("color"),
+	KX_PYATTRIBUTE_DUMMY("lin_attenuation"),
+	KX_PYATTRIBUTE_DUMMY("quad_attenuation"),
+	KX_PYATTRIBUTE_DUMMY("spotsize"),
+	KX_PYATTRIBUTE_DUMMY("spotblend"),
+	KX_PYATTRIBUTE_DUMMY("SPOT"),
+	KX_PYATTRIBUTE_DUMMY("SUN"),
+	KX_PYATTRIBUTE_DUMMY("NORMAL"),
+	KX_PYATTRIBUTE_DUMMY("type"),
 	{ NULL }	//Sentinel
 };
-
 
 PyTypeObject KX_LightObject::Type = {
 	PyObject_HEAD_INIT(NULL)

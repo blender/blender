@@ -129,6 +129,13 @@ void initPyObjectPlusType(PyTypeObject **parents)
 
 
 
+static int PyType_Ready_ADD(PyObject *dict, PyTypeObject * tp)
+{
+	PyType_Ready(tp);
+	PyDict_SetItemString(dict, tp->tp_name, (PyObject *)tp);
+}
+
+
 void initPyTypes(void)
 {
 	
@@ -138,69 +145,76 @@ void initPyTypes(void)
 */
 
 	/* For now just do PyType_Ready */
-
-	PyType_Ready(&BL_ActionActuator::Type);
-	PyType_Ready(&BL_Shader::Type);
-	PyType_Ready(&BL_ShapeActionActuator::Type);
-	PyType_Ready(&CListValue::Type);
-	PyType_Ready(&CValue::Type);
-	PyType_Ready(&KX_BlenderMaterial::Type);
-	PyType_Ready(&KX_CDActuator::Type);
-	PyType_Ready(&KX_Camera::Type);
-	PyType_Ready(&KX_CameraActuator::Type);
-	PyType_Ready(&KX_ConstraintActuator::Type);
-	PyType_Ready(&KX_ConstraintWrapper::Type);
-	PyType_Ready(&KX_GameActuator::Type);
-	PyType_Ready(&KX_GameObject::Type);
-	PyType_Ready(&KX_IpoActuator::Type);
-	PyType_Ready(&KX_LightObject::Type);
-	PyType_Ready(&KX_MeshProxy::Type);
-	PyType_Ready(&KX_MouseFocusSensor::Type);
-	PyType_Ready(&KX_NearSensor::Type);
-	PyType_Ready(&KX_NetworkMessageActuator::Type);
-	PyType_Ready(&KX_NetworkMessageSensor::Type);
-	PyType_Ready(&KX_ObjectActuator::Type);
-	PyType_Ready(&KX_ParentActuator::Type);
-	PyType_Ready(&KX_PhysicsObjectWrapper::Type);
-	PyType_Ready(&KX_PolyProxy::Type);
-	PyType_Ready(&KX_PolygonMaterial::Type);
-	PyType_Ready(&KX_RadarSensor::Type);
-	PyType_Ready(&KX_RaySensor::Type);
-	PyType_Ready(&KX_SCA_AddObjectActuator::Type);
-	PyType_Ready(&KX_SCA_DynamicActuator::Type);
-	PyType_Ready(&KX_SCA_EndObjectActuator::Type);
-	PyType_Ready(&KX_SCA_ReplaceMeshActuator::Type);
-	PyType_Ready(&KX_Scene::Type);
-	PyType_Ready(&KX_SceneActuator::Type);
-	PyType_Ready(&KX_SoundActuator::Type);
-	PyType_Ready(&KX_StateActuator::Type);
-	PyType_Ready(&KX_TouchSensor::Type);
-	PyType_Ready(&KX_TrackToActuator::Type);
-	PyType_Ready(&KX_VehicleWrapper::Type);
-	PyType_Ready(&KX_VertexProxy::Type);
-	PyType_Ready(&KX_VisibilityActuator::Type);
-	PyType_Ready(&PyObjectPlus::Type);
-	PyType_Ready(&SCA_2DFilterActuator::Type);
-	PyType_Ready(&SCA_ANDController::Type);
-	PyType_Ready(&SCA_ActuatorSensor::Type);
-	PyType_Ready(&SCA_AlwaysSensor::Type);
-	PyType_Ready(&SCA_DelaySensor::Type);
-	PyType_Ready(&SCA_ILogicBrick::Type);
-	PyType_Ready(&SCA_IObject::Type);
-	PyType_Ready(&SCA_ISensor::Type);
-	PyType_Ready(&SCA_JoystickSensor::Type);
-	PyType_Ready(&SCA_KeyboardSensor::Type);
-	PyType_Ready(&SCA_MouseSensor::Type);
-	PyType_Ready(&SCA_NANDController::Type);
-	PyType_Ready(&SCA_NORController::Type);
-	PyType_Ready(&SCA_ORController::Type);
-	PyType_Ready(&SCA_PropertyActuator::Type);
-	PyType_Ready(&SCA_PropertySensor::Type);
-	PyType_Ready(&SCA_PythonController::Type);
-	PyType_Ready(&SCA_RandomActuator::Type);
-	PyType_Ready(&SCA_RandomSensor::Type);
-	PyType_Ready(&SCA_XNORController::Type);
-	PyType_Ready(&SCA_XORController::Type);
+	PyObject *mod= PyModule_New("GameTypes");
+	PyObject *dict= PyModule_GetDict(mod);
+	PyDict_SetItemString(PySys_GetObject("modules"), "GameTypes", mod);
+	Py_DECREF(mod);
+	
+	PyType_Ready_ADD(dict, &BL_ActionActuator::Type);
+	PyType_Ready_ADD(dict, &BL_Shader::Type);
+	PyType_Ready_ADD(dict, &BL_ShapeActionActuator::Type);
+	PyType_Ready_ADD(dict, &CListValue::Type);
+	PyType_Ready_ADD(dict, &CValue::Type);
+	PyType_Ready_ADD(dict, &KX_BlenderMaterial::Type);
+	PyType_Ready_ADD(dict, &KX_CDActuator::Type);
+	PyType_Ready_ADD(dict, &KX_Camera::Type);
+	PyType_Ready_ADD(dict, &KX_CameraActuator::Type);
+	PyType_Ready_ADD(dict, &KX_ConstraintActuator::Type);
+	PyType_Ready_ADD(dict, &KX_ConstraintWrapper::Type);
+	PyType_Ready_ADD(dict, &KX_GameActuator::Type);
+	PyType_Ready_ADD(dict, &KX_GameObject::Type);
+	PyType_Ready_ADD(dict, &KX_IpoActuator::Type);
+	PyType_Ready_ADD(dict, &KX_LightObject::Type);
+	PyType_Ready_ADD(dict, &KX_MeshProxy::Type);
+	PyType_Ready_ADD(dict, &KX_MouseFocusSensor::Type);
+	PyType_Ready_ADD(dict, &KX_NearSensor::Type);
+	PyType_Ready_ADD(dict, &KX_NetworkMessageActuator::Type);
+	PyType_Ready_ADD(dict, &KX_NetworkMessageSensor::Type);
+	PyType_Ready_ADD(dict, &KX_ObjectActuator::Type);
+	PyType_Ready_ADD(dict, &KX_ParentActuator::Type);
+	PyType_Ready_ADD(dict, &KX_PhysicsObjectWrapper::Type);
+	PyType_Ready_ADD(dict, &KX_PolyProxy::Type);
+	PyType_Ready_ADD(dict, &KX_PolygonMaterial::Type);
+	PyType_Ready_ADD(dict, &KX_RadarSensor::Type);
+	PyType_Ready_ADD(dict, &KX_RaySensor::Type);
+	PyType_Ready_ADD(dict, &KX_SCA_AddObjectActuator::Type);
+	PyType_Ready_ADD(dict, &KX_SCA_DynamicActuator::Type);
+	PyType_Ready_ADD(dict, &KX_SCA_EndObjectActuator::Type);
+	PyType_Ready_ADD(dict, &KX_SCA_ReplaceMeshActuator::Type);
+	PyType_Ready_ADD(dict, &KX_Scene::Type);
+	PyType_Ready_ADD(dict, &KX_SceneActuator::Type);
+	PyType_Ready_ADD(dict, &KX_SoundActuator::Type);
+	PyType_Ready_ADD(dict, &KX_StateActuator::Type);
+	PyType_Ready_ADD(dict, &KX_TouchSensor::Type);
+	PyType_Ready_ADD(dict, &KX_TrackToActuator::Type);
+	PyType_Ready_ADD(dict, &KX_VehicleWrapper::Type);
+	PyType_Ready_ADD(dict, &KX_VertexProxy::Type);
+	PyType_Ready_ADD(dict, &KX_VisibilityActuator::Type);
+	PyType_Ready_ADD(dict, &PyObjectPlus::Type);
+	PyType_Ready_ADD(dict, &SCA_2DFilterActuator::Type);
+	PyType_Ready_ADD(dict, &SCA_ANDController::Type);
+	PyType_Ready_ADD(dict, &SCA_ActuatorSensor::Type);
+	PyType_Ready_ADD(dict, &SCA_AlwaysSensor::Type);
+	PyType_Ready_ADD(dict, &SCA_DelaySensor::Type);
+	PyType_Ready_ADD(dict, &SCA_ILogicBrick::Type);
+	PyType_Ready_ADD(dict, &SCA_IObject::Type);
+	PyType_Ready_ADD(dict, &SCA_ISensor::Type);
+	PyType_Ready_ADD(dict, &SCA_JoystickSensor::Type);
+	PyType_Ready_ADD(dict, &SCA_KeyboardSensor::Type);
+	PyType_Ready_ADD(dict, &SCA_MouseSensor::Type);
+	PyType_Ready_ADD(dict, &SCA_NANDController::Type);
+	PyType_Ready_ADD(dict, &SCA_NORController::Type);
+	PyType_Ready_ADD(dict, &SCA_ORController::Type);
+	PyType_Ready_ADD(dict, &SCA_PropertyActuator::Type);
+	PyType_Ready_ADD(dict, &SCA_PropertySensor::Type);
+	PyType_Ready_ADD(dict, &SCA_PythonController::Type);
+	PyType_Ready_ADD(dict, &SCA_RandomActuator::Type);
+	PyType_Ready_ADD(dict, &SCA_RandomSensor::Type);
+	PyType_Ready_ADD(dict, &SCA_XNORController::Type);
+	PyType_Ready_ADD(dict, &SCA_XORController::Type);
+	
+	
+	
 }
 
 #endif

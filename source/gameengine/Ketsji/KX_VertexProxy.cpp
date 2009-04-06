@@ -79,6 +79,30 @@ PyMethodDef KX_VertexProxy::Methods[] = {
 };
 
 PyAttributeDef KX_VertexProxy::Attributes[] = {
+	
+	KX_PYATTRIBUTE_DUMMY("x"),
+	KX_PYATTRIBUTE_DUMMY("y"),
+	KX_PYATTRIBUTE_DUMMY("z"),
+	
+	KX_PYATTRIBUTE_DUMMY("r"),
+	KX_PYATTRIBUTE_DUMMY("g"),
+	KX_PYATTRIBUTE_DUMMY("b"),
+	KX_PYATTRIBUTE_DUMMY("a"),
+	
+	KX_PYATTRIBUTE_DUMMY("u"),
+	KX_PYATTRIBUTE_DUMMY("v"),
+	
+	KX_PYATTRIBUTE_DUMMY("u2"),
+	KX_PYATTRIBUTE_DUMMY("v2"),
+	
+	KX_PYATTRIBUTE_DUMMY("XYZ"),
+	KX_PYATTRIBUTE_DUMMY("UV"),
+	
+	KX_PYATTRIBUTE_DUMMY("color"),
+	KX_PYATTRIBUTE_DUMMY("colour"),
+	
+	KX_PYATTRIBUTE_DUMMY("normal"),
+	
 	{ NULL }	//Sentinel
 };
 

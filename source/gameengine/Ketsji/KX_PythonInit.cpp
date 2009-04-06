@@ -1099,9 +1099,9 @@ PyObject* initGameLogic(KX_KetsjiEngine *engine, KX_Scene* scene) // quick hack 
 	KX_MACRO_addTypesToDict(d, KX_INPUT_ACTIVE, SCA_InputEvent::KX_ACTIVE);
 	KX_MACRO_addTypesToDict(d, KX_INPUT_JUST_RELEASED, SCA_InputEvent::KX_JUSTRELEASED);
 	
-	KX_MACRO_addTypesToDict(d, KX_MOUSE_BUT_LEFT, SCA_InputEvent::KX_LEFTMOUSE);
-	KX_MACRO_addTypesToDict(d, KX_MOUSE_BUT_MIDDLE, SCA_InputEvent::KX_MIDDLEMOUSE);
-	KX_MACRO_addTypesToDict(d, KX_MOUSE_BUT_RIGHT, SCA_InputEvent::KX_RIGHTMOUSE);
+	KX_MACRO_addTypesToDict(d, KX_MOUSE_BUT_LEFT, SCA_IInputDevice::KX_LEFTMOUSE);
+	KX_MACRO_addTypesToDict(d, KX_MOUSE_BUT_MIDDLE, SCA_IInputDevice::KX_MIDDLEMOUSE);
+	KX_MACRO_addTypesToDict(d, KX_MOUSE_BUT_RIGHT, SCA_IInputDevice::KX_RIGHTMOUSE);
 
 	// Check for errors
 	if (PyErr_Occurred())
