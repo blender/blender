@@ -1616,7 +1616,7 @@ void initialize_particle(ParticleData *pa, int p, Object *ob, ParticleSystem *ps
 
 	NormalQuat(pa->r_rot);
 
-	if(part->distr!=PART_DISTR_GRID && part->from != PART_FROM_VERT){
+	if(part->type!=PART_HAIR && part->distr!=PART_DISTR_GRID && part->from != PART_FROM_VERT){
 		/* any unique random number will do (r_ave[0]) */
 		if(ptex.exist < 0.5*(1.0+pa->r_ave[0]))
 			pa->flag |= PARS_UNEXIST;
