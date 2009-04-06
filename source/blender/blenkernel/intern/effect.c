@@ -442,14 +442,11 @@ void do_physical_effector(Object *ob, float *opco, short type, float force_val, 
 			else
 				VecCopyf(mag_vec,vec_to_part);
 
-			Normalize(mag_vec);
-
 			VecMulf(mag_vec,force_val*falloff);
 			VecSubf(field,field,mag_vec);
 
 			VecCopyf(mag_vec,velocity);
-			/* 1.9 is an experimental value to get critical damping at damp=1.0 */
-			VecMulf(mag_vec,damp*1.9f*(float)sqrt(force_val));
+			VecMulf(mag_vec,damp*2.0f*(float)sqrt(force_val));
 			VecSubf(field,field,mag_vec);
 			break;
 		case PFIELD_CHARGE:
