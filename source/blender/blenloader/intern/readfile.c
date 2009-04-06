@@ -4162,9 +4162,7 @@ static void lib_link_screen(FileData *fd, Main *main)
 						sfile->files= NULL;
 						sfile->params= NULL;
 						sfile->op= NULL;
-						/* sfile->returnfunc= NULL; 
-						sfile->menup= NULL;
-						sfile->pupmenu= NULL; */ /* XXX removed */
+						sfile->layout= NULL;
 					}
 					else if(sl->spacetype==SPACE_IMASEL) {
 						SpaceImaSel *simasel= (SpaceImaSel *)sl;
