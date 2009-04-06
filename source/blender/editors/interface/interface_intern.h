@@ -329,8 +329,6 @@ extern int ui_handler_panel_region(struct bContext *C, struct wmEvent *event);
 extern void ui_draw_panel(struct ARegion *ar, uiBlock *block);
 
 /* interface_draw.c */
-extern void ui_set_embossfunc(uiBut *but, int drawtype);
-extern void ui_draw_but(ARegion *ar, uiBut *but);
 extern void ui_rasterpos_safe(float x, float y, float aspect);
 extern void ui_draw_tria_icon(float x, float y, float aspect, char dir);
 extern void ui_draw_anti_x(float x1, float y1, float x2, float y2);
@@ -343,12 +341,18 @@ extern void gl_round_box_vertical_shade(int mode, float minx, float miny, float 
 void ui_draw_icon(uiBut *but, BIFIconID icon, int blend);
 void ui_draw_text(uiBut *but, float x, float y, int sunken);
 
+void ui_draw_but_COLORBAND(uiBut *but);
+void ui_draw_but_NORMAL(uiBut *but);
+void ui_draw_but_CURVE(ARegion *ar, uiBut *but);
+
+
 /* interface_handlers.c */
 extern void ui_button_active_cancel(const struct bContext *C, uiBut *but);
 
 /* interface_widgets.c */
 void ui_draw_anti_tria(float x1, float y1, float x2, float y2, float x3, float y3);
 void ui_draw_menu_back(uiBlock *block);
+extern void ui_draw_but(ARegion *ar, uiBut *but);
 
 /* interface_anim.c */
 void ui_but_anim_flag(uiBut *but, float cfra);

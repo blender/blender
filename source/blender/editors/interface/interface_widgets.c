@@ -1628,7 +1628,7 @@ static int widget_roundbox_set(uiBut *but, rcti *rect)
 }
 
 /* conversion from old to new buttons, so still messy */
-void ui_draw_but_new(ARegion *ar, uiBut *but)
+void ui_draw_but(ARegion *ar, uiBut *but)
 {
 	uiWidgetType *wt= NULL;
 	rcti rect;
@@ -1716,8 +1716,18 @@ void ui_draw_but_new(ARegion *ar, uiBut *but)
 				wt= widget_type(UI_WTYPE_SWATCH);
 				break;
 			
+				 // XXX four old button types
 			case HSVCUBE:
-				ui_draw_but_HSVCUBE(but); // XXX old
+				ui_draw_but_HSVCUBE(but);
+				break;
+			case BUT_COLORBAND:
+				ui_draw_but_COLORBAND(but);
+				break;
+			case BUT_NORMAL:
+				ui_draw_but_NORMAL(but);
+				break;
+			case BUT_CURVE:
+				ui_draw_but_CURVE(ar, but);
 				break;
 				
 			default:

@@ -944,65 +944,6 @@ void uiBlockClearButLock(uiBlock *block)
 
 /* *************************************************************** */
 
-/* XXX 2.50 no button editing */
-
-#if 0
-static void setup_file(uiBlock *block)
-{
-	uiBut *but;
-	FILE *fp;
-
-	fp= fopen("butsetup","w");
-	if(fp==NULL);
-	else {
-		but= block->buttons.first;
-		while(but) {
-			ui_check_but(but);
-			fprintf(fp,"%d,%d,%d,%d   %s %s\n", (int)but->x1, (int)but->y1, (int)( but->x2-but->x1), (int)(but->y2-but->y1), but->str, but->tip);
-			but= but->next;
-		}
-		fclose(fp);
-	}
-}
-
-
-static void edit_but(uiBlock *block, uiBut *but, uiEvent *uevent)
-{
-	short dx, dy, mval[2], mvalo[2], didit=0;
-	
-	getmouseco_sc(mvalo);
-	while(TRUE) {
-		if( !(get_mbut() & L_MOUSE) ) break;	
-	
-		getmouseco_sc(mval);
-		dx= (mval[0]-mvalo[0]);
-		dy= (mval[1]-mvalo[1]);
-		
-		if(dx!=0 || dy!=0) {
-			mvalo[0]= mval[0];
-			mvalo[1]= mval[1];
-			
-			cpack(0xc0c0c0);
-			glRectf(but->x1-2, but->y1-2, but->x2+2, but->y2+2); 
-			
-			if((uevent->qual & LR_SHIFTKEY)==0) {
-				but->x1 += dx;
-				but->y1 += dy;
-			}
-			but->x2 += dx;
-			but->y2 += dy;
-			
-			ui_draw_but(ar, but);
-			ui_block_flush_back(but->block);
-			didit= 1;
-
-		}
-		/* idle for this poor code */
-		else PIL_sleep_ms(30);
-	}
-	if(didit) setup_file(block);
-}
-#endif
 
 /* XXX 2.50 no links supported yet */
 #if 0
@@ -2429,8 +2370,6 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, char *str, short 
 	but->func= block->func;
 	but->func_arg1= block->func_arg1;
 	but->func_arg2= block->func_arg2;
-	
-	ui_set_embossfunc(but, block->dt);
 	
 	but->pos= -1;	/* cursor invisible */
 
