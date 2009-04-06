@@ -123,6 +123,9 @@ typedef struct FontBLF {
 	/* font type, can be freetype2 or internal. */
 	int type;
 
+	/* draw mode, texture or bitmap. */
+	int mode;
+
 	/* reference count. */
 	int ref;
 

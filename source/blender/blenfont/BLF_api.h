@@ -91,4 +91,8 @@ void BLF_dir_free(char **dirs, int count);
 #define BLF_ROTATION (1<<0)
 #define BLF_CLIPPING (1<<1)
 
+/* font->mode. */
+#define BLF_MODE_TEXTURE 0
+#define BLF_MODE_BITMAP 1
+
 #endif /* BLF_API_H */

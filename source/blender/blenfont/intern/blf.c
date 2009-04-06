@@ -286,22 +286,31 @@ void BLF_draw(char *str)
 
 	font= global_font[global_font_cur];
 	if (font && font->draw) {
-		glEnable(GL_BLEND);
-		glEnable(GL_TEXTURE_2D);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		if (font->mode == BLF_MODE_BITMAP) {
+			/* the pixmap alignment is handle
+			 * in BLF_position (old ui_rasterpos_safe).
+			 */
+			glRasterPos3f(font->pos[0], font->pos[1], font->pos[2]);
+			(*font->draw)(font, str);
+		}
+		else {
+			glEnable(GL_BLEND);
+			glEnable(GL_TEXTURE_2D);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-		glPushMatrix();
-		glTranslatef(font->pos[0], font->pos[1], font->pos[2]);
-		glScalef(font->aspect, font->aspect, 1.0);
+			glPushMatrix();
+			glTranslatef(font->pos[0], font->pos[1], font->pos[2]);
+			glScalef(font->aspect, font->aspect, 1.0);
 
-		if (font->flags & BLF_ROTATION)
-			glRotatef(font->angle, 0.0f, 0.0f, 1.0f);
+			if (font->flags & BLF_ROTATION)
+				glRotatef(font->angle, 0.0f, 0.0f, 1.0f);
 
-		(*font->draw)(font, str);
+			(*font->draw)(font, str);
 
-		glPopMatrix();
-		glDisable(GL_BLEND);
-		glDisable(GL_TEXTURE_2D);
+			glPopMatrix();
+			glDisable(GL_BLEND);
+			glDisable(GL_TEXTURE_2D);
+		}
 	}
 }
 
@@ -354,4 +363,13 @@ void BLF_clipping(float xmin, float ymin, float xmax, float ymax)
 		font->clip_rec.xmax= xmax;
 		font->clip_rec.ymax= ymax;
 	}
+}
+
+void BLF_mode(int mode)
+{
+	FontBLF *font;
+
+	font= global_font[global_font_cur];
+	if (font)
+		font->mode= mode;
 }

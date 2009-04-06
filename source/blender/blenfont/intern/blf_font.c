@@ -274,6 +274,7 @@ void blf_font_free(FontBLF *font)
 void blf_font_fill(FontBLF *font)
 {
 	font->type= BLF_FONT_FREETYPE2;
+	font->mode= BLF_MODE_TEXTURE;
 	font->ref= 1;
 	font->aspect= 1.0f;
 	font->pos[0]= 0.0f;

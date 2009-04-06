@@ -144,7 +144,7 @@ void blf_internal_size(FontBLF *font, int size, int dpi)
 	return;
 }
 
-void blf_internal_draw(FontBLF *font, char *str)
+void blf_internal_texture_draw(FontBLF *font, char *str)
 {
 	FontDataBLF *data;
 	CharDataBLF *cd;
@@ -205,6 +205,41 @@ void blf_internal_draw(FontBLF *font, char *str)
 		
 		pos += cd->advance;
 	}
+}
+
+void blf_internal_bitmap_draw(FontBLF *font, char *str)
+{
+	FontDataBLF *data;
+	CharDataBLF *cd;
+	unsigned char c;
+	GLint alignment;
+
+	data= (FontDataBLF *)font->engine;
+
+	glGetIntegerv(GL_UNPACK_ALIGNMENT, &alignment);
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	
+	while ((c= (unsigned char) *str++)) {
+		cd= &data->chars[c];
+
+		if (cd->data_offset==-1) {
+			GLubyte nullBitmap= 0;
+			glBitmap(1, 1, 0, 0, cd->advance, 0, &nullBitmap);	
+		} else {
+			GLubyte *bitmap= &data->bitmap_data[cd->data_offset];
+			glBitmap(cd->width, cd->height, cd->xorig, cd->yorig, cd->advance, 0, bitmap);
+		}
+	}
+
+	glPixelStorei(GL_UNPACK_ALIGNMENT, alignment);
+}
+
+void blf_internal_draw(FontBLF *font, char *str)
+{
+	if (font->mode == BLF_MODE_BITMAP)
+		blf_internal_bitmap_draw(font, str);
+	else
+		blf_internal_texture_draw(font, str);
 }
 
 void blf_internal_boundbox(FontBLF *font, char *str, rctf *box)
@@ -313,6 +348,7 @@ FontBLF *blf_internal_new(char *name)
 
 	font->type= BLF_FONT_INTERNAL;
 	font->ref= 1;
+	font->mode= BLF_MODE_TEXTURE;
 	font->aspect= 1.0f;
 	font->pos[0]= 0.0f;
 	font->pos[1]= 0.0f;
@@ -336,10 +372,12 @@ FontBLF *blf_internal_new(char *name)
 	font->height_get= blf_internal_height;
 	font->free= blf_internal_free;
 
-	if (blf_internal_get_texture(font) != 0) {
-		MEM_freeN(font->name);
-		MEM_freeN(font);
-		return(NULL);
+	if (font->mode == BLF_MODE_TEXTURE) {
+		if (blf_internal_get_texture(font) != 0) {
+			MEM_freeN(font->name);
+			MEM_freeN(font);
+			return(NULL);
+		}
 	}
 
 	return(font);
