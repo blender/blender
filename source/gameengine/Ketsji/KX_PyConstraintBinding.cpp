@@ -582,6 +582,7 @@ PyObject*	initPythonConstraintBinding()
   d = PyModule_GetDict(m);
   ErrorObject = PyString_FromString("PhysicsConstraints.error");
   PyDict_SetItemString(d, "error", ErrorObject);
+  Py_DECREF(ErrorObject);
 
   // XXXX Add constants here
 

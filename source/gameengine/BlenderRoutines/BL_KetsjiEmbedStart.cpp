@@ -527,7 +527,9 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 		SND_DeviceManager::Unsubscribe();
 	
 	} while (exitrequested == KX_EXIT_REQUEST_RESTART_GAME || exitrequested == KX_EXIT_REQUEST_START_OTHER_GAME);
-
+	
+	Py_DECREF(pyGlobalDict);
+	
 	if (bfd) BLO_blendfiledata_free(bfd);
 
 	BLI_strncpy(G.sce, oldsce, sizeof(G.sce));

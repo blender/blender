@@ -113,9 +113,9 @@ void	KX_RasterizerDrawDebugLine(const MT_Vector3& from,const MT_Vector3& to,cons
 
 /* Macro for building the keyboard translation */
 //#define KX_MACRO_addToDict(dict, name) PyDict_SetItemString(dict, #name, PyInt_FromLong(SCA_IInputDevice::KX_##name))
-#define KX_MACRO_addToDict(dict, name) PyDict_SetItemString(dict, #name, PyInt_FromLong(name))
+#define KX_MACRO_addToDict(dict, name) PyDict_SetItemString(dict, #name, item=PyInt_FromLong(name)); Py_DECREF(item)
 /* For the defines for types from logic bricks, we do stuff explicitly... */
-#define KX_MACRO_addTypesToDict(dict, name, name2) PyDict_SetItemString(dict, #name, PyInt_FromLong(name2))
+#define KX_MACRO_addTypesToDict(dict, name, name2) PyDict_SetItemString(dict, #name, item=PyInt_FromLong(name2)); Py_DECREF(item)
 
 
 // temporarily python stuff, will be put in another place later !
@@ -916,26 +916,41 @@ PyObject* initGameLogic(KX_KetsjiEngine *engine, KX_Scene* scene) // quick hack 
 {
 	PyObject* m;
 	PyObject* d;
-
+	PyObject* item; /* temp PyObject* storage */
+	
 	gp_KetsjiEngine = engine;
 	gp_KetsjiScene = scene;
 
 	gUseVisibilityTemp=false;
 
 	// Create the module and add the functions
-	m = Py_InitModule4("GameLogic", game_methods,
+	
+	
+	m = PyImport_ImportModule("GameLogic");
+	
+	if(m==NULL) {
+		printf("Import for the first time!\n");
+		PyErr_Clear();
+		m = Py_InitModule4("GameLogic", game_methods,
 					   GameLogic_module_documentation,
 					   (PyObject*)NULL,PYTHON_API_VERSION);
-
+	}
+	else {
+		Py_DECREF(m); /**/
+		printf("Alredy imported!\n");
+		return(m);
+	}
 	// Add some symbolic constants to the module
 	d = PyModule_GetDict(m);
 	
 	// can be overwritten later for gameEngine instances that can load new blend files and re-initialize this module
 	// for now its safe to make sure it exists for other areas such as the web plugin
-	PyDict_SetItemString(d, "globalDict", PyDict_New());
+	
+	PyDict_SetItemString(d, "globalDict", item=PyDict_New()); Py_DECREF(item);
 
 	ErrorObject = PyString_FromString("GameLogic.error");
 	PyDict_SetItemString(d, "error", ErrorObject);
+	Py_DECREF(ErrorObject);
 	
 	// XXXX Add constants here
 	/* To use logic bricks, we need some sort of constants. Here, we associate */
@@ -1225,18 +1240,18 @@ void setSandbox(TPythonSecurityLevel level)
 {
     PyObject *m = PyImport_AddModule("__builtin__");
     PyObject *d = PyModule_GetDict(m);
-
+	PyObject *item;
 	switch (level) {
 	case psl_Highest:
 		//if (!g_security) {
 			//g_oldopen = PyDict_GetItemString(d, "open");
 	
 			// functions we cant trust
-			PyDict_SetItemString(d, "open", PyCFunction_New(meth_open, NULL));
-			PyDict_SetItemString(d, "reload", PyCFunction_New(meth_reload, NULL));
-			PyDict_SetItemString(d, "file", PyCFunction_New(meth_file, NULL));
-			PyDict_SetItemString(d, "execfile", PyCFunction_New(meth_execfile, NULL));
-			PyDict_SetItemString(d, "compile", PyCFunction_New(meth_compile, NULL));
+			PyDict_SetItemString(d, "open", item=PyCFunction_New(meth_open, NULL));			Py_DECREF(item);
+			PyDict_SetItemString(d, "reload", item=PyCFunction_New(meth_reload, NULL));		Py_DECREF(item);
+			PyDict_SetItemString(d, "file", item=PyCFunction_New(meth_file, NULL));			Py_DECREF(item);
+			PyDict_SetItemString(d, "execfile", item=PyCFunction_New(meth_execfile, NULL));	Py_DECREF(item);
+			PyDict_SetItemString(d, "compile", item=PyCFunction_New(meth_compile, NULL));		Py_DECREF(item);
 			
 			// our own import
 			PyDict_SetItemString(d, "__import__", PyCFunction_New(meth_import, NULL));
@@ -1266,8 +1281,8 @@ void setSandbox(TPythonSecurityLevel level)
 	*/
 	default:
 			/* Allow importing internal text, from bpy_internal_import.py */
-			PyDict_SetItemString(d, "reload", PyCFunction_New(bpy_reload, NULL));
-			PyDict_SetItemString(d, "__import__", PyCFunction_New(bpy_import, NULL));	
+			PyDict_SetItemString(d, "reload", item=PyCFunction_New(bpy_reload, NULL));		Py_DECREF(item);
+			PyDict_SetItemString(d, "__import__", item=PyCFunction_New(bpy_import, NULL));	Py_DECREF(item);
 		break;
 	}
 }
@@ -1296,6 +1311,7 @@ PyObject* initGamePlayerPythonScripting(const STR_String& progname, TPythonSecur
 
 void exitGamePlayerPythonScripting()
 {
+	//clearGameModules(); // were closing python anyway
 	Py_Finalize();
 	bpy_import_main_set(NULL);
 }
@@ -1319,10 +1335,36 @@ PyObject* initGamePythonScripting(const STR_String& progname, TPythonSecurityLev
 	return PyModule_GetDict(moduleobj);
 }
 
+static void clearModule(PyObject *modules, const char *name)
+{
+	PyObject *mod= PyDict_GetItemString(modules, name);
+	
+	if (mod==NULL)
+		return;
+	
+	PyDict_Clear(PyModule_GetDict(mod)); /* incase there are any circular refs */
+	PyDict_DelItemString(modules, name);
+}
 
+static void clearGameModules()
+{
+	/* Note, user modules could still reference these modules
+	 * but since the dict's are cleared their members wont be accessible */
+	
+	PyObject *modules= PySys_GetObject("modules");
+	clearModule(modules, "Expression");
+	clearModule(modules, "CValue");	
+	clearModule(modules, "PhysicsConstraints");	
+	clearModule(modules, "GameLogic");	
+	clearModule(modules, "Rasterizer");	
+	clearModule(modules, "GameKeys");	
+	clearModule(modules, "VideoTexture");	
+	PyErr_Clear(); // incase some of these were alredy removed.
+}
 
 void exitGamePythonScripting()
 {
+	clearGameModules();
 	bpy_import_main_set(NULL);
 }
 
@@ -1336,6 +1378,7 @@ PyObject* initRasterizer(RAS_IRasterizer* rasty,RAS_ICanvas* canvas)
 
   PyObject* m;
   PyObject* d;
+  PyObject* item;
 
   // Create the module and add the functions
   m = Py_InitModule4("Rasterizer", rasterizer_methods,
@@ -1346,6 +1389,7 @@ PyObject* initRasterizer(RAS_IRasterizer* rasty,RAS_ICanvas* canvas)
   d = PyModule_GetDict(m);
   ErrorObject = PyString_FromString("Rasterizer.error");
   PyDict_SetItemString(d, "error", ErrorObject);
+  Py_DECREF(ErrorObject);
 
   /* needed for get/setMaterialType */
   KX_MACRO_addTypesToDict(d, KX_TEXFACE_MATERIAL, KX_TEXFACE_MATERIAL);
@@ -1414,6 +1458,7 @@ PyObject* initGameKeys()
 {
 	PyObject* m;
 	PyObject* d;
+	PyObject* item;
 
 	// Create the module and add the functions
 	m = Py_InitModule4("GameKeys", gamekeys_methods,

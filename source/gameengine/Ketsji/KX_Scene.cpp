@@ -244,7 +244,7 @@ KX_Scene::~KX_Scene()
 	{
 		delete m_bucketmanager;
 	}
-	//Py_DECREF(m_attrlist);
+	Py_DECREF(m_attrlist);
 }
 
 void KX_Scene::SetProjectionMatrix(MT_CmMatrix4x4& pmat)
