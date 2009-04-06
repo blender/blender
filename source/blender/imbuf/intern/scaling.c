@@ -299,7 +299,6 @@ struct ImBuf *IMB_onehalf(struct ImBuf *ibuf1)
 	if (ibuf1->rect==NULL && ibuf1->rect_float==NULL) return (0);
 
 	do_rect= (ibuf1->rect != NULL);
-	do_float= (ibuf1->rect_float != NULL);
 
 	if (ibuf1->x <= 1) return(IMB_half_y(ibuf1));
 	if (ibuf1->y <= 1) return(IMB_half_x(ibuf1));
@@ -311,6 +310,8 @@ struct ImBuf *IMB_onehalf(struct ImBuf *ibuf1)
 	destf=ibuf2->rect_float;
 	p1 = (uchar *) ibuf1->rect;
 	dest=(uchar *) ibuf2->rect;
+
+	do_float= (ibuf1->rect_float != NULL && ibuf2->rect_float != NULL);
 
 	for(y=ibuf2->y;y>0;y--){
 		if (do_rect) p2 = p1 + (ibuf1->x << 2);
