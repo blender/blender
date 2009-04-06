@@ -3727,6 +3727,9 @@ static void editing_panel_camera_type(Object *ob, Camera *cam)
 				  10, 160, 150, 20, &cam->ortho_scale, 0.01, 1000.0, 50, 0, "Specify the ortho scaling of the used camera");
 	} else {
 		if(cam->flag & CAM_ANGLETOGGLE) {
+			/* ensure animated lens value is always copied */
+			do_lenstoangleconversion_cb(&cam->lens, &cam->angle);
+			
 			but= uiDefButF(block, NUM,REDRAWVIEW3D, "Lens:",
 					  10, 160, 130, 20, &cam->angle, 7.323871, 172.847331, 100, 0, "Specify the lens of the camera in degrees");		
 			uiButSetFunc(but,do_angletolensconversion_cb, &cam->lens, &cam->angle);
