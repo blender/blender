@@ -244,6 +244,89 @@ void GRAPHEDIT_OT_view_all (wmOperatorType *ot)
 
 // TODO: insertkey
 
+/* ******************** Click-Insert Keyframes Operator ************************* */
+
+static int graphkeys_click_insert_exec (bContext *C, wmOperator *op)
+{
+	bAnimContext ac;
+	bAnimListElem *ale;
+	float frame, val;
+	
+	/* get animation context */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+	
+	/* get active F-Curve 'anim-list-element' */
+	ale= get_active_fcurve_channel(&ac);
+	if (ELEM(NULL, ale, ale->data)) {
+		if (ale) MEM_freeN(ale);
+		return OPERATOR_CANCELLED;
+	}
+		
+	/* get frame and value from props */
+	frame= RNA_float_get(op->ptr, "frame");
+	val= RNA_float_get(op->ptr, "value");
+	
+	/* insert keyframe on the specified frame + value */
+	insert_vert_fcurve((FCurve *)ale->data, frame, val, 0);
+	
+	/* free temp data */
+	MEM_freeN(ale);
+	
+	/* set notifier that things have changed */
+	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_KEYFRAMES_VALUES);
+	
+	/* done */
+	return OPERATOR_FINISHED;
+}
+
+static int graphkeys_click_insert_invoke (bContext *C, wmOperator *op, wmEvent *evt)
+{
+	bAnimContext ac;
+	ARegion *ar;
+	View2D *v2d;
+	int mval[2];
+	float x, y;
+	
+	/* get animation context */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+	
+	/* store mouse coordinates in View2D space, into the operator's properties */
+	ar= ac.ar;
+	v2d= &ar->v2d;
+	
+	mval[0]= (evt->x - ar->winrct.xmin);
+	mval[1]= (evt->y - ar->winrct.ymin);
+	
+	UI_view2d_region_to_view(v2d, mval[0], mval[1], &x, &y);
+	
+	RNA_float_set(op->ptr, "frame", x);
+	RNA_float_set(op->ptr, "value", y);
+	
+	/* run exec now */
+	return graphkeys_click_insert_exec(C, op);
+}
+
+void GRAPHEDIT_OT_keyframes_click_insert (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Click-Insert Keyframes";
+	ot->idname= "GRAPHEDIT_OT_keyframes_click_insert";
+	
+	/* api callbacks */
+	ot->invoke= graphkeys_click_insert_invoke;
+	ot->exec= graphkeys_click_insert_exec;
+	ot->poll= ED_operator_areaactive; // XXX active + editable poll
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* properties */
+	RNA_def_float(ot->srna, "frame", 1.0f, -FLT_MAX, FLT_MAX, "Frame Number", "Frame to insert keyframe on", 0, 100);
+	RNA_def_float(ot->srna, "value", 1.0f, -FLT_MAX, FLT_MAX, "Value", "Value for keyframe on", 0, 100);
+}
+
 /* ******************** Copy/Paste Keyframes Operator ************************* */
 /* NOTE: the backend code for this is shared with the dopesheet editor */
 
@@ -302,7 +385,7 @@ static int graphkeys_copy_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 	
-	/* set notifier tha things have changed */
+	/* set notifier that things have changed */
 	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_KEYFRAMES_VALUES);
 	
 	return OPERATOR_FINISHED;

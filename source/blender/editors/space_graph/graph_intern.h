@@ -82,6 +82,8 @@ enum {
 void GRAPHEDIT_OT_previewrange_set(struct wmOperatorType *ot);
 void GRAPHEDIT_OT_view_all(struct wmOperatorType *ot);
 
+void GRAPHEDIT_OT_keyframes_click_insert(struct wmOperatorType *ot);
+
 void GRAPHEDIT_OT_keyframes_copy(struct wmOperatorType *ot);
 void GRAPHEDIT_OT_keyframes_paste(struct wmOperatorType *ot);
 
