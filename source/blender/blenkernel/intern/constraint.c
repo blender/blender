@@ -540,6 +540,7 @@ static void contarget_get_mesh_mat (Object *ob, char *substring, float mat[][4])
 	float normal[3] = {0.0f, 0.0f, 0.0f}, plane[3];
 	float imat[3][3], tmat[3][3];
 	int dgroup;
+	short freeDM = 0;
 	
 	/* initialize target matrix using target matrix */
 	Mat4CpyMat4(mat, ob->obmat);
@@ -552,10 +553,19 @@ static void contarget_get_mesh_mat (Object *ob, char *substring, float mat[][4])
 	if ((G.obedit == ob) && (G.editMesh)) {
 		/* target is in editmode, so get a special derived mesh */
 		dm = CDDM_from_editmesh(G.editMesh, ob->data);
+		freeDM= 1;
 	}
 	else {
-		/* when not in EditMode, this should exist */
-		dm = (DerivedMesh *)ob->derivedFinal;
+		/* when not in EditMode, use the 'final' derived mesh 
+		 *	- check if the custom data masks for derivedFinal mean that we can just use that
+		 *	  (this is more effficient + sufficient for most cases)
+		 */
+		if (ob->lastDataMask != CD_MASK_DERIVEDMESH) {
+			dm = mesh_get_derived_final(ob, CD_MASK_DERIVEDMESH);
+			freeDM= 1;
+		}
+		else 
+			dm = (DerivedMesh *)ob->derivedFinal;
 	}
 	
 	/* only continue if there's a valid DerivedMesh */
@@ -620,10 +630,9 @@ static void contarget_get_mesh_mat (Object *ob, char *substring, float mat[][4])
 		}
 	}
 	
-	/* free temporary DerivedMesh created (in EditMode case) */
-	if (G.editMesh) {
-		if (dm) dm->release(dm);
-	}
+	/* free temporary DerivedMesh created */
+	if (dm && freeDM) 
+		dm->release(dm);
 }
 
 /* function that sets the given matrix based on given vertex group in lattice */
