@@ -7193,7 +7193,7 @@ static DerivedMesh * explodeModifier_explodeMesh(ExplodeModifierData *emd,
 			pa= pars+i;
 
 			/* get particle state */
-			psys_particle_on_emitter(psmd,part->from,pa->num,-1,pa->fuv,pa->foffset,loc0,nor,0,0,0,0);
+			psys_particle_on_emitter(psmd,part->from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,loc0,nor,0,0,0,0);
 			Mat4MulVecfl(ob->obmat,loc0);
 
 			state.time=cfra;
@@ -7249,7 +7249,7 @@ static DerivedMesh * explodeModifier_explodeMesh(ExplodeModifierData *emd,
 
 		*mf = source;
 
-		test_index_face(mf, &explode->faceData, i, (mf->v4 ? 4 : 3));
+		test_index_face(mf, &explode->faceData, i, (orig_v4 ? 4 : 3));
 	}
 
 	MEM_printmemlist_stats();
