@@ -506,7 +506,7 @@ static StructRNA *rna_def_object(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Parent", "Parent Object");
 
 	prop= RNA_def_property(srna, "parent_type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_bitflag_sdna(prop, NULL, "partype");
+	RNA_def_property_enum_sdna(prop, NULL, "partype");
 	RNA_def_property_enum_items(prop, parent_type_items);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Parent Type", "Type of parent relation.");
