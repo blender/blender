@@ -60,7 +60,7 @@ void	KX_MotionState::getWorldScaling(float& scaleX,float& scaleY,float& scaleZ)
 
 void	KX_MotionState::getWorldOrientation(float& quatIma0,float& quatIma1,float& quatIma2,float& quatReal)
 {
-	MT_Quaternion& orn = m_node->GetWorldOrientation().getRotation();
+	MT_Quaternion orn = m_node->GetWorldOrientation().getRotation();
 	quatIma0 = orn[0];
 	quatIma1 = orn[1];
 	quatIma2 = orn[2];
