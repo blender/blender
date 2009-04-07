@@ -34,6 +34,11 @@ class KX_VertexProxy:
 	@ivar v: The v texture coordinate of the vertex.
 	@type v: float
 	
+	@ivar u2: The second u texture coordinate of the vertex.
+	@type u2: float
+	@ivar v2: The second v texture coordinate of the vertex.
+	@type v2: float
+	
 	@group Colour: r, g, b, a
 	@ivar r: The red component of the vertex colour.   0.0 <= r <= 1.0
 	@type r: float

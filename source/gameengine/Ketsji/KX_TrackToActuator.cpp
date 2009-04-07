@@ -469,7 +469,7 @@ PyMethodDef KX_TrackToActuator::Methods[] = {
 
 PyAttributeDef KX_TrackToActuator::Attributes[] = {
 	KX_PYATTRIBUTE_INT_RW("time",0,1000,true,KX_TrackToActuator,m_time),
-	KX_PYATTRIBUTE_BOOL_RW("user3D",KX_TrackToActuator,m_allow3D),
+	KX_PYATTRIBUTE_BOOL_RW("use3D",KX_TrackToActuator,m_allow3D),
 	KX_PYATTRIBUTE_RW_FUNCTION("object", KX_TrackToActuator, pyattr_get_object, pyattr_set_object),
 
 	{ NULL }	//Sentinel

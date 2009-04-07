@@ -45,7 +45,8 @@ class KX_MeshProxy:
 			m_i += 1
 			mesh = obj.getMesh(m_i)
 	
-			
+	@ivar materials: 
+	@type materials: list of L{KX_BlenderMaterial} or L{KX_PolygonMaterial} types
 	"""
 	
 	def getNumMaterials():

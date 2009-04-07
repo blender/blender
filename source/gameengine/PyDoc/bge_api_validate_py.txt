@@ -15,6 +15,7 @@
 
 BGE_API_DOC_PATH = 'source/gameengine/PyDoc'
 
+import GameTypes
 type_members = {}
 
 for type_name in dir(GameTypes):
@@ -40,12 +41,49 @@ doc_dir= os.path.join(os.getcwd(), BGE_API_DOC_PATH)
 if doc_dir not in sys.path:
 	sys.path.append(doc_dir)
 
+
+def check_attribute(type_mame, member):
+	filename = 	os.path.join(doc_dir, type_mame + '.py')
+	# print filename
+	
+	file = open(filename, 'rU')
+	
+	for l in file:
+		l = l.strip()
+		
+		'''
+			@ivar foo: blah blah
+		to
+			foo
+			
+		'''
+		
+		if l.startswith('@ivar'):
+			var = l.split()[1].split(':')[0]
+			
+			if var == member:
+				file.close()
+				return True
+	
+	file.close()
+	return False
+	
+	
+	
+	
+
+
+print '\n\n\nChecking Docs'
+
+PRINT_OK = False
+
 for type_name in sorted(type_members.keys()):
 	members = type_members[type_name]
 	
 	try:
 		mod = __import__(type_name)
-		print "type: %s" % type_name
+		if PRINT_OK:
+			print "type: %s" % type_name
 	except:
 		print "missing: %s - %s" % (type_name, str(members))
 		continue
@@ -61,6 +99,12 @@ for type_name in sorted(type_members.keys()):
 	for member in sorted(members):
 		try:
 			getattr(type_class, member)
-			print "\tfound: %s.%s" % (type_name, member)
+			if PRINT_OK:
+				print "\tfound: %s.%s" % (type_name, member)
 		except:
-			print "\tmissing: %s.%s" % (type_name, member)	
+			if check_attribute(type_name, member):
+				if PRINT_OK:
+					print "\tfound attr: %s.%s" % (type_name, member)
+			else:
+				print "\tmissing: %s.%s" % (type_name, member)
+
