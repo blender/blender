@@ -605,7 +605,7 @@ PyObject* SCA_JoystickSensor::pyattr_get_axis_single(void *self_v, const KX_PYAT
 		return NULL;
 	}
 	
-	return PyInt_FromLong(joy->GetAxisPosition(self->m_axis));
+	return PyInt_FromLong(joy->GetAxisPosition(self->m_axis-1));
 }
 
 PyObject* SCA_JoystickSensor::pyattr_get_num_axis(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)

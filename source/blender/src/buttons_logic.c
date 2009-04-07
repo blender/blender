@@ -1495,7 +1495,7 @@ static short draw_sensorbuttons(bSensor *sens, uiBlock *block, short xco, short 
 			else if(joy->type == SENS_JOY_AXIS)
 			{
 				uiDefButS(block, NUM, 1, "Number:", xco+10, yco-68, 0.46 * (width-20), 19,
-				&joy->axis, 1, 4.0, 100, 0,
+				&joy->axis, 1, 8.0, 100, 0,
 				"Specify which axis pair to use, 1 is useually the main direction input.");
 
 				uiDefButI(block, NUM, 1, "Threshold:", xco+10 + 0.6 * (width-20),yco-44, 0.4 * (width-20), 19,
@@ -1523,7 +1523,7 @@ static short draw_sensorbuttons(bSensor *sens, uiBlock *block, short xco, short 
 			}
 			else { /* (joy->type == SENS_JOY_AXIS_SINGLE)*/
 				uiDefButS(block, NUM, 1, "Number:", xco+10, yco-68, 0.46 * (width-20), 19,
-				&joy->axis_single, 1, 8.0, 100, 0,
+				&joy->axis_single, 1, 16.0, 100, 0,
 				"Specify a single axis (verticle/horizontal/other) to detect");
 				
 				uiDefButI(block, NUM, 1, "Threshold:", xco+10 + 0.6 * (width-20),yco-44, 0.4 * (width-20), 19,
