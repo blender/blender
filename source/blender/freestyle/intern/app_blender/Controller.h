@@ -57,6 +57,7 @@ extern "C" {
 #endif
 
 	#include "render_types.h"
+	#include "DNA_scene_types.h"
 
 #ifdef __cplusplus
 }
@@ -73,15 +74,15 @@ public:
   //soc
 	void init_options();
 
-	int  LoadMesh( Render *re );
+  int  LoadMesh( Render *re, SceneRenderLayer* srl );
   int  Load3DSFile(const char *iFileName);
   void CloseFile();
   void ComputeViewMap();
   void ComputeSteerableViewMap();
   void saveSteerableViewMapImages();
   void toggleEdgeTesselationNature(Nature::EdgeNature iNature);
-  void RenderBlender(Render *re);
-	void DrawStrokes();
+  void DrawStrokes();
+  Render* RenderStrokes(Render *re);
   void SwapStyleModules(unsigned i1, unsigned i2);
   void InsertStyleModule(unsigned index, const char *iFileName);
   void AddStyleModule(const char *iFileName);

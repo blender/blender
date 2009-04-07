@@ -1358,6 +1358,12 @@ void do_sequencer_panels(unsigned short event)
 
 /* ************************* SCENE *********************** */
 
+static void freestyle_set_style_module_name(char *name)
+{	
+	strcpy(freestyle_current_module_path, name);
+	allqueue(REDRAWBUTSSCENE, 0);
+	BIF_undo_push("Change style module");
+}
 
 static void output_pic(char *name)
 {
@@ -1379,15 +1385,6 @@ static void backbuf_pic(char *name)
 
 	BIF_undo_push("Change background picture");
 }
-
-static void freestyle_module(char *name)
-{
-	strcpy(style_module, name);
-	allqueue(REDRAWBUTSSCENE, 0);
-	BIF_undo_push("Change style module");
-}
-
-
 
 static void run_playanim(char *file) 
 {
@@ -1488,14 +1485,7 @@ void do_render_panels(unsigned short event)
 			activate_imageselect(FILE_SPECIAL, "SELECT BACKBUF PICTURE", G.scene->r.backbuf, backbuf_pic);
 		else
 			activate_fileselect(FILE_SPECIAL, "SELECT BACKBUF PICTURE", G.scene->r.backbuf, backbuf_pic);
-		break;
-	
-	case B_FS_FRS:
-		sa= closest_bigger_area();
-		areawinset(sa->win);
-		activate_fileselect(FILE_SPECIAL, "SELECT STYLE MODULE", style_module, freestyle_module);
-		break;
-		
+		break;	
 	
 	case B_PR_PAL:
 		G.scene->r.xsch= 720;
@@ -1752,6 +1742,23 @@ void do_render_panels(unsigned short event)
 		allqueue(REDRAWBUTSSCENE, 0);
 		break;
 #endif
+
+	case B_FRS_SELECT_RENDER_LAYER:
+		FRS_select_layer( BLI_findlink(&G.scene->r.layers, freestyle_current_layer_number ) );
+		allqueue(REDRAWBUTSSCENE, 0);
+		break;
+
+	case B_FRS_ADD_MODULE:
+		FRS_add_module();
+		allqueue(REDRAWBUTSSCENE, 0);
+		break;
+
+	case B_FRS_SELECT_MODULE_FILE:
+		sa= closest_bigger_area();
+		areawinset(sa->win);
+		activate_fileselect(FILE_SPECIAL, "SELECT STYLE MODULE", freestyle_current_module_path, freestyle_set_style_module_name);
+		break;
+
 	}
 }
 
@@ -3297,25 +3304,80 @@ static void render_panel_yafrayGlobal()
 #endif /* disable yafray stuff */
 
 static void render_panel_freestyle()
-{
+{	
 	uiBlock *block;
+	
+	SceneRenderLayer *srl;
+	int len;
+	short a, nr;
+	char *str;
+	
+	uiBut *bt;
+	int module_list_y;
+	StyleModuleConf* module_conf;
+	int module_number, last_module_number;
+	
+	// initialization
+	FRS_initialize();
 
-	if( strlen(style_module) == 0 )
-		FRS_initialize();
-
-	block= uiNewBlock(&curarea->uiblocks, "render_panel_freestyle", UI_EMBOSS, UI_HELV, curarea->win);
+	// block
+	block = uiNewBlock(&curarea->uiblocks, "render_panel_freestyle", UI_EMBOSS, UI_HELV, curarea->win);
 	uiNewPanelTabbed("Render", "Render");
 	if(uiNewPanel(curarea, block, "Freestyle", "Render", 320, 0, 318, 204)==0) return;
-
+	
+	// menu
+	len = 32 + 32*BLI_countlist(&G.scene->r.layers);
+	str = MEM_callocN(len, "menu layers");
+	a = strlen(str);
+	for(nr=0, srl= G.scene->r.layers.first; srl; srl= srl->next, nr++) {
+		a+= sprintf(str+a, "|%s %%i%d %%x%d", srl->name, ICON_BLANK1, nr);
+	}
+	
+	uiDefBut(block, LABEL, 0, "Render Layer:", 10,210,100,20, NULL, 0, 0, 0, 0, "");
+	uiDefButS(block, MENU, B_FRS_SELECT_RENDER_LAYER, str, 110,210,200,20, &freestyle_current_layer_number, 0, 0, 0, 0, "Settings for current Render Layer");
+	MEM_freeN(str);
+	
 	// label to force a boundbox for buttons not to be centered
 	uiBlockBeginAlign(block);
-	uiDefIconBut(block, BUT, B_FS_FRS, ICON_FILESEL, 10, 190, 20, 20, 0, 0, 0, 0, 0, "Open Fileselect to get style module");
-	uiDefBut(block, TEX,0,"", 31, 190, 279, 20, style_module, 0.0,79.0, 0, 0, "Style module path name");
-	uiDefButF(block, NUM, B_NOP, "Sphere Radius", 10,170,300,20, &freestyle_sphere_radius, 0.0f, 100.0f, 10, 2, "Sphere radius (x mean edge size)");
-	uiDefButBitI(block, TOG, FREESTYLE_RIDGES_AND_VALLEYS_FLAG, B_NOP, "Ridges and Valleys", 10, 150, 150, 20, &freestyle_flags, 0, 0, 0, 0, "Compute ridges and valleys");
-	uiDefButBitI(block, TOG, FREESTYLE_SUGGESTIVE_CONTOURS_FLAG, B_NOP, "Suggestive Contours", 10, 130, 150, 20, &freestyle_flags, 0, 0, 0, 0, "Compute suggestive contours");
-	uiDefButF(block, NUM, B_NOP, "kr Derivative Epsilon", 10,110,300,20, &freestyle_dkr_epsilon, 0.0f, 10.0f, 0.1, 3, "Suggestive contour kr derivative epsilon");
+	uiDefButF(block, NUM, B_NOP, "Sphere Radius", 10,180,300,20, freestyle_sphere_radius, 0.0f, 100.0f, 10, 2, "Sphere radius (x mean edge size)");
+	uiDefButBitI(block, TOG, FREESTYLE_RIDGES_AND_VALLEYS_FLAG, B_NOP, "Ridges and Valleys", 10, 160, 150, 20, freestyle_flags, 0, 0, 0, 0, "Compute ridges and valleys");
+	uiDefButBitI(block, TOG, FREESTYLE_SUGGESTIVE_CONTOURS_FLAG, B_NOP, "Suggestive Contours", 10, 140, 150, 20, freestyle_flags, 0, 0, 0, 0, "Compute suggestive contours");
+	uiDefButF(block, NUM, B_NOP, "kr Derivative Epsilon", 10,120,300,20, freestyle_dkr_epsilon, 0.0f, 10.0f, 0.1, 3, "Suggestive contour kr derivative epsilon");
 	uiBlockEndAlign(block);
+	
+	module_list_y = 90;
+	module_number = 0;
+	last_module_number = BLI_countlist( freestyle_modules ) - 1;
+	
+	for( module_conf = freestyle_modules->first; module_conf; module_conf = module_conf->next, module_list_y -= 20, module_number++ )
+	{
+		uiDefIconButS(block, ICONTOG, B_NOP, ICON_CHECKBOX_HLT-1, 10, module_list_y, 20, 20, &(module_conf->is_displayed), 0.0, 0.0, 0, 0, "Disable or enable this style module");
+		bt = uiDefIconBut(block, BUT, B_FRS_SELECT_MODULE_FILE, ICON_FILESEL, 30, module_list_y, 20, 20, 0, 0, 0, 0, 0, "Open Fileselect to get style module");
+		uiButSetFunc(bt, FRS_set_module_path, (void *)(intptr_t)module_number, NULL);
+		
+		uiDefBut(block,TEX, 0, "", 50, module_list_y, 215, 20, module_conf->module_path, 0.0,79.0, 0, 0, "Style module path name");
+	
+		bt = uiDefIconBut(block, BUT, B_REDR, VICON_X, 265, module_list_y, 20, 20, NULL, 0.0, 0.0, 0.0, 0.0, "Delete this style module");
+		uiButSetFunc(bt, FRS_delete_module, (void *)(intptr_t)module_number, NULL);
+		
+		uiBlockSetEmboss(block, UI_EMBOSSN);
+	
+		if( module_number != 0 ) {
+			bt = uiDefIconBut(block, BUT, B_REDR, VICON_MOVE_UP, 288, module_list_y + 2, 16, 16, NULL, 0.0, 0.0, 0.0, 0.0, "Move this style module up");
+			uiButSetFunc(bt, FRS_move_up_module, (void *)(intptr_t)module_number, NULL);
+		}
+		
+		if( module_number != last_module_number ) {
+			bt = uiDefIconBut(block, BUT, B_REDR, VICON_MOVE_DOWN, 304, module_list_y + 2, 16, 16, NULL, 0.0, 0.0, 0.0, 0.0, "Move this style module down");
+			uiButSetFunc(bt, FRS_move_down_module, (void *)(intptr_t)module_number, NULL);
+		}
+		
+		uiBlockSetCol(block, TH_AUTO);
+		uiBlockSetEmboss(block, UI_EMBOSS);
+	}
+
+	uiDefBut(block, BUT, B_FRS_ADD_MODULE, "Add style module", 10, module_list_y, 150, 20, 0, 0, 0, 0, 0, "Add new style module");
+
 }
 
 static void layer_copy_func(void *lay_v, void *lay_p)
@@ -3338,9 +3400,18 @@ static void delete_scene_layer_func(void *srl_v, void *act_i)
 	if(BLI_countlist(&G.scene->r.layers)>1) {
 		intptr_t act= (intptr_t)act_i;
 		
+		int deleted_layer = G.scene->r.actlay;
+		FRS_delete_layer( BLI_findlink(&G.scene->r.layers, deleted_layer), 0 );
+		
 		BLI_remlink(&G.scene->r.layers, srl_v);
 		MEM_freeN(srl_v);
-		G.scene->r.actlay= 0;
+		G.scene->r.actlay = 0;
+		
+		if( deleted_layer == freestyle_current_layer_number ) {
+			FRS_select_layer( BLI_findlink(&G.scene->r.layers, G.scene->r.actlay) );
+		} else {
+			freestyle_current_layer_number = BLI_findindex(&G.scene->r.layers, freestyle_current_layer);
+		}
 		
 		if(G.scene->nodetree) {
 			bNode *node;

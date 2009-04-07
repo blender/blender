@@ -228,20 +228,16 @@ void BlenderStrokeRenderer::RenderStrokeRepBasic(StrokeRep *iStrokeRep) const{
 
 }
 
-void BlenderStrokeRenderer::RenderScene( Render *re ) {
+Render* BlenderStrokeRenderer::RenderScene( Render *re ) {
 	scene->r.mode &= ~( R_EDGE_FRS | R_SHADOW | R_SSS | R_PANORAMA | R_ENVMAP | R_MBLUR );
 	scene->r.scemode &= ~( R_SINGLE_LAYER );
 	scene->r.planes = R_PLANES32;
 	scene->r.imtype = R_PNG;
 	
-	re->freestyle_render = RE_NewRender(scene->id.name);
+	Render* freestyle_render = RE_NewRender(scene->id.name);
 	
-	RE_BlenderFrame( re->freestyle_render, scene, 1);
-
-	// char filepath[255];
-	// BLI_strncpy( filepath, "/Users/mx/Desktop/", sizeof(filepath) );
-	// strcat(filepath, "frs_result");
-	// BIF_save_rendered_image(filepath);
+	RE_BlenderFrame( freestyle_render, scene, 1);
+	return freestyle_render;
 }
 
 void BlenderStrokeRenderer::Close() {

@@ -1175,6 +1175,8 @@ void exit_usiblender(void)
 	quicktime_exit();
 #endif
 
+	FRS_exit();
+
 	/* undo free stuff */
 	undo_editmode_clear();
 	undo_imagepaint_clear();

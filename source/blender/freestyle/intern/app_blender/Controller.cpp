@@ -175,10 +175,10 @@ void Controller::setView(AppView *iView)
   _Canvas->setViewer(_pView);
 }
 
-int Controller::LoadMesh(Render *re)
+int Controller::LoadMesh(Render *re, SceneRenderLayer* srl)
 {
   
-  BlenderFileLoader loader(re);
+  BlenderFileLoader loader(re, srl);
   
   _Chrono.start();
   
@@ -640,11 +640,12 @@ void Controller::DrawStrokes()
   resetModified();
 }
 
-void Controller::RenderBlender(Render *re) {
+Render* Controller::RenderStrokes(Render *re) {
 	BlenderStrokeRenderer* blenderRenderer = new BlenderStrokeRenderer;
   	_Canvas->Render( blenderRenderer );
-	blenderRenderer->RenderScene(re);
+	Render* freestyle_render = blenderRenderer->RenderScene(re);
 	blenderRenderer->Close();
+	return freestyle_render;
 }
 
 void Controller::InsertStyleModule(unsigned index, const char *iFileName)

@@ -171,6 +171,12 @@ void Canvas::Erase()
 stroke_count = 0;
 }
 
+void Canvas::PushBackStyleModule(StyleModule *iStyleModule) {
+  StrokeLayer* layer = new StrokeLayer();
+  _StyleModules.push_back(iStyleModule);
+  _Layers.push_back(layer);
+}
+
 void Canvas::InsertStyleModule(unsigned index, StyleModule *iStyleModule) {
   unsigned size = _StyleModules.size();
   StrokeLayer* layer = new StrokeLayer();

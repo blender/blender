@@ -901,42 +901,6 @@ static void addps(ListBase *lb, intptr_t *rd, int obi, int facenr, int z, int ma
 	ps->shadfac= 0;
 }
 
-static void freestyle_enhance_add(RenderPart *pa, RenderLayer *rl)
-{
-    RenderLayer *freestyle_rl;
-    RenderLayer *rlpp[RE_MAX_OSA];
-    int totsample;
-    int x, y, od;
-    float* freestyle;
-
-	if( R.freestyle_render == NULL || R.freestyle_render->result == NULL )
-		return;
-		
-    freestyle_rl = render_get_active_layer( R.freestyle_render, R.freestyle_render->result );
-    if( freestyle_rl->rectf == NULL)
-        return;
-   
-    totsample= get_sample_layers(pa, rl, rlpp);
-    od = 0;
-   
-    for( y = pa->disprect.ymin; y < pa->disprect.ymax; y++) {
-        for( x = pa->disprect.xmin; x < pa->disprect.xmax; x++, od++) {
-            int sample;
-           	
-			if( x < 0 || y < 0 || x > R.rectx - 1 || y > R.recty - 1 )
-				continue;
-				
-            freestyle = freestyle_rl->rectf + 4 * (R.rectx * y + x);
-            if( freestyle[3] > 0.0) {
-                for( sample = 0; sample < totsample; sample++) {
-                    float *rgbrect = rlpp[sample]->rectf + 4*od;
-                    addAlphaOverFloat(rgbrect, freestyle);
-                }
-            }
-        }
-    }
-}
-
 static void edge_enhance_add(RenderPart *pa, float *rectf, float *arect)
 {
 	float addcol[4];
@@ -1254,10 +1218,6 @@ void zbufshadeDA_tile(RenderPart *pa)
 		if(rl->layflag & SCE_LAY_EDGE) 
 			if(R.r.mode & R_EDGE) 
 				edge_enhance_add(pa, rl->rectf, edgerect);
-		
-		if(rl->layflag & SCE_LAY_FRS) 
-			if(R.r.mode & R_EDGE_FRS)
-				freestyle_enhance_add(pa, rl);
 				
 		if(rl->passflag & SCE_PASS_VECTOR)
 			reset_sky_speed(pa, rl);
@@ -1422,10 +1382,6 @@ void zbufshade_tile(RenderPart *pa)
 				if(R.r.mode & R_EDGE)
 					edge_enhance_add(pa, rl->rectf, edgerect);
 		}
-		
-		if(rl->layflag & SCE_LAY_FRS) 
-			if(R.r.mode & R_EDGE_FRS)
-				freestyle_enhance_add(pa, rl);
 		
 		if(rl->passflag & SCE_PASS_VECTOR)
 			reset_sky_speed(pa, rl);

@@ -198,9 +198,6 @@ struct Render
 	ListBase *sss_points;
 	struct Material *sss_mat;
 
-	/* Freestyle */
-	struct Render* freestyle_render;
-
 	ListBase customdata_names;
 
 	struct Object *excludeob;
