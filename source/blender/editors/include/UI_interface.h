@@ -609,7 +609,7 @@ void uiItemBooleanO(uiLayout *layout, int slot, const char *name, int icon, char
 void uiItemIntO(uiLayout *layout, int slot, const char *name, int icon, char *opname, char *propname, int value);
 void uiItemFloatO(uiLayout *layout, int slot, const char *name, int icon, char *opname, char *propname, float value);
 void uiItemStringO(uiLayout *layout, int slot, const char *name, int icon, char *opname, char *propname, char *value);
-void uiItemFullO(uiLayout *layout, int slot, const char *name, int icon, char *idname, IDProperty *properties, int context);
+void uiItemFullO(uiLayout *layout, int slot, const char *name, int icon, char *idname, struct IDProperty *properties, int context);
 
 void uiItemR(uiLayout *layout, int slot, const char *name, int icon, struct PointerRNA *ptr, char *propname);
 void uiItemFullR(uiLayout *layout, int slot, const char *name, int icon, struct PointerRNA *ptr, char *propname, int index);

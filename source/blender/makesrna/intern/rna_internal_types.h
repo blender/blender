@@ -28,6 +28,7 @@
 #include "DNA_listBase.h"
 
 struct BlenderRNA;
+struct ContainerRNA;
 struct StructRNA;
 struct PropertyRNA;
 struct PointerRNA;
@@ -71,6 +72,40 @@ typedef PointerRNA (*PropCollectionGetFunc)(struct CollectionPropertyIterator *i
 typedef int (*PropCollectionLengthFunc)(struct PointerRNA *ptr);
 typedef PointerRNA (*PropCollectionLookupIntFunc)(struct PointerRNA *ptr, int key);
 typedef PointerRNA (*PropCollectionLookupStringFunc)(struct PointerRNA *ptr, const char *key);
+
+/* Container - generic abstracted container of RNA properties */
+typedef struct ContainerRNA {
+	void *next, *prev;
+
+	ListBase properties;
+} ContainerRNA;
+
+struct ParameterList {
+	/* storage for parameters */
+	void *data;
+
+	/* function passed at creation time */
+	FunctionRNA *func;
+};
+
+struct FunctionRNA {
+	/* structs are containers of properties */
+	ContainerRNA cont;
+
+	/* unique identifier */
+	const char *identifier;
+	/* various options */
+	int flag;
+
+	/* single line description, displayed in the tooltip for example */
+	const char *description;
+
+	/* callback to execute the function */
+	CallFunc call;
+
+	/* parameter for the return value */
+	PropertyRNA *ret;
+};
 
 struct PropertyRNA {
 	struct PropertyRNA *next, *prev;
@@ -207,7 +242,8 @@ typedef struct CollectionPropertyRNA {
 
 /* changes to this struct require updating rna_generate_struct in makesrna.c */
 struct StructRNA {
-	struct StructRNA *next, *prev;
+	/* structs are containers of properties */
+	ContainerRNA cont;
 
 	/* python type, this is a subtype of pyrna_struct_Type but used so each struct can have its own type
 	 * which is useful for subclassing RNA */
@@ -244,8 +280,8 @@ struct StructRNA {
 	/* function to find path to this struct in an ID */
 	StructPathFunc path; 
 
-	/* properties of this struct */
-	ListBase properties; 
+	/* functions of this struct */
+	ListBase functions; 
 };
 
 /* Blender RNA

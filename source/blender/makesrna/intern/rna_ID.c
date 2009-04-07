@@ -167,6 +167,7 @@ static void rna_def_ID(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
+	FunctionRNA *func;
 
 	srna= RNA_def_struct(brna, "ID", NULL);
 	RNA_def_struct_ui_text(srna, "ID", "Base type for datablocks, defining a unique name, linking from other libraries and garbage collection.");
@@ -193,6 +194,11 @@ static void rna_def_ID(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "lib");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Library", "Library file the datablock is linked from.");
+
+	/* XXX temporary for testing */
+	func= RNA_def_function(srna, "rename", "rename_id");
+	RNA_def_function_ui_description(func, "Rename this ID datablock.");
+	RNA_def_string(func, "name", "", 0, "", "New name for the datablock.");
 }
 
 static void rna_def_library(BlenderRNA *brna)
@@ -212,9 +218,13 @@ void RNA_def_ID(BlenderRNA *brna)
 {
 	StructRNA *srna;
 
-	/* simple built-in unknown type */
+	/* built-in unknown type */
 	srna= RNA_def_struct(brna, "UnknownType", NULL);
 	RNA_def_struct_ui_text(srna, "Unknown Type", "Stub RNA type used for pointers to unknown or internal data.");
+
+	/* built-in any type */
+	srna= RNA_def_struct(brna, "AnyType", NULL);
+	RNA_def_struct_ui_text(srna, "Any Type", "RNA type used for pointers to any possible data.");
 
 	rna_def_ID(brna);
 	rna_def_ID_properties(brna);

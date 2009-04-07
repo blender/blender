@@ -331,7 +331,48 @@ PropertyRNA *RNA_struct_find_property(PointerRNA *ptr, const char *identifier)
 
 const struct ListBase *RNA_struct_defined_properties(StructRNA *srna)
 {
-	return &srna->properties;
+	return &srna->cont.properties;
+}
+
+FunctionRNA *RNA_struct_find_function(PointerRNA *ptr, const char *identifier)
+{
+	PointerRNA tptr;
+	CollectionPropertyIterator iter;
+	PropertyRNA *iterprop;
+	FunctionRNA *func;
+	int i = 0;
+
+	RNA_pointer_create(NULL, &RNA_Struct, ptr->type, &tptr);
+	iterprop= RNA_struct_find_property(&tptr, "functions");
+
+	RNA_property_collection_begin(&tptr, iterprop, &iter);
+	func= NULL;
+
+	for(; iter.valid; RNA_property_collection_next(&iter), i++) {
+		if(strcmp(identifier, RNA_function_identifier(&tptr, iter.ptr.data)) == 0) {
+			func= iter.ptr.data;
+			break;
+		}
+	}
+
+	RNA_property_collection_end(&iter);
+
+	return func;
+}
+
+const struct ListBase *RNA_struct_defined_functions(StructRNA *srna)
+{
+	return &srna->functions;
+}
+
+void *RNA_struct_py_type_get(StructRNA *srna)
+{
+	return srna->py_type;
+}
+
+void RNA_struct_py_type_set(StructRNA *srna, void *py_type)
+{
+	srna->py_type= py_type;
 }
 
 /* Property Information */
@@ -493,8 +534,8 @@ int RNA_property_enum_value(PointerRNA *ptr, PropertyRNA *prop, const char *iden
 	
 	RNA_property_enum_items(ptr, prop, &item, &totitem);
 	
-	for (i=0; i<totitem; i++) {
-		if (strcmp(item[i].identifier, identifier)==0) {
+	for(i=0; i<totitem; i++) {
+		if(strcmp(item[i].identifier, identifier)==0) {
 			*value = item[i].value;
 			return 1;
 		}
@@ -510,8 +551,8 @@ int RNA_property_enum_identifier(PointerRNA *ptr, PropertyRNA *prop, const int v
 	
 	RNA_property_enum_items(ptr, prop, &item, &totitem);
 	
-	for (i=0; i<totitem; i++) {
-		if (item[i].value==value) {
+	for(i=0; i<totitem; i++) {
+		if(item[i].value==value) {
 			*identifier = item[i].identifier;
 			return 1;
 		}
@@ -1267,7 +1308,7 @@ int RNA_property_collection_lookup_string(PointerRNA *ptr, PropertyRNA *prop, co
 					found= 1;
 				}
 
-				if ((char *)&name != nameptr)
+				if((char *)&name != nameptr)
 					MEM_freeN(nameptr);
 
 				if(found)
@@ -1835,7 +1876,7 @@ int RNA_enum_is_equal(PointerRNA *ptr, const char *name, const char *enumname)
 int RNA_enum_value_from_id(EnumPropertyItem *item, const char *identifier, int *value)
 {
 	for( ; item->identifier; item++) {
-		if (strcmp(item->identifier, identifier)==0) {
+		if(strcmp(item->identifier, identifier)==0) {
 			*value= item->value;
 			return 1;
 		}
@@ -1847,7 +1888,7 @@ int RNA_enum_value_from_id(EnumPropertyItem *item, const char *identifier, int *
 int	RNA_enum_id_from_value(EnumPropertyItem *item, int value, const char **identifier)
 {
 	for( ; item->identifier; item++) {
-		if (item->value==value) {
+		if(item->value==value) {
 			*identifier= item->identifier;
 			return 1;
 		}
@@ -2002,7 +2043,7 @@ char *RNA_property_as_string(PointerRNA *ptr, PropertyRNA *prop)
 	/* see if we can coorce into a python type - PropertyType */
 	switch (type) {
 	case PROP_BOOLEAN:
-		if (len==0) {
+		if(len==0) {
 			BLI_dynstr_append(dynstr, RNA_property_boolean_get(ptr, prop) ? "True" : "False");
 		}
 		else {
@@ -2014,7 +2055,7 @@ char *RNA_property_as_string(PointerRNA *ptr, PropertyRNA *prop)
 		}
 		break;
 	case PROP_INT:
-		if (len==0) {
+		if(len==0) {
 			BLI_dynstr_appendf(dynstr, "%d", RNA_property_int_get(ptr, prop));
 		}
 		else {
@@ -2026,7 +2067,7 @@ char *RNA_property_as_string(PointerRNA *ptr, PropertyRNA *prop)
 		}
 		break;
 	case PROP_FLOAT:
-		if (len==0) {
+		if(len==0) {
 			BLI_dynstr_appendf(dynstr, "%g", RNA_property_float_get(ptr, prop));
 		}
 		else {
@@ -2052,7 +2093,7 @@ char *RNA_property_as_string(PointerRNA *ptr, PropertyRNA *prop)
 		const char *identifier;
 		int val = RNA_property_enum_get(ptr, prop);
 
-		if (RNA_property_enum_identifier(ptr, prop, val, &identifier)) {
+		if(RNA_property_enum_identifier(ptr, prop, val, &identifier)) {
 			BLI_dynstr_appendf(dynstr, "'%s'", identifier);
 		}
 		else {
@@ -2077,4 +2118,291 @@ char *RNA_property_as_string(PointerRNA *ptr, PropertyRNA *prop)
 	BLI_dynstr_free(dynstr);
 	return cstring;
 }
+
+/* Function */
+
+const char *RNA_function_identifier(PointerRNA *ptr, FunctionRNA *func)
+{
+	return func->identifier;
+}
+
+PropertyRNA *RNA_function_return(PointerRNA *ptr, FunctionRNA *func)
+{
+	return func->ret;
+}
+
+const char *RNA_function_ui_description(PointerRNA *ptr, FunctionRNA *func)
+{
+	return func->description;
+}
+
+PropertyRNA *RNA_function_get_parameter(PointerRNA *ptr, FunctionRNA *func, int index)
+{
+	PropertyRNA *parm;
+	int i;
+
+	parm= func->cont.properties.first;
+	for(i= 0; parm; parm= parm->next, i++)
+		if(i==index)
+			return parm;
+
+	return NULL;
+}
+
+PropertyRNA *RNA_function_find_parameter(PointerRNA *ptr, FunctionRNA *func, const char *identifier)
+{
+	PropertyRNA *parm;
+
+	parm= func->cont.properties.first;
+	for(; parm; parm= parm->next)
+		if(strcmp(parm->identifier, identifier)==0)
+			return parm;
+
+	return NULL;
+}
+
+const struct ListBase *RNA_function_defined_parameters(PointerRNA *ptr, FunctionRNA *func)
+{
+	return &func->cont.properties;
+}
+
+/* Utility */
+
+ParameterList *RNA_parameter_list_create(PointerRNA *ptr, FunctionRNA *func)
+{
+	ParameterList *parms;
+	PropertyRNA *parm;
+	int tot;
+
+	parms= MEM_callocN(sizeof(ParameterList), "ParameterList");
+
+	parm= func->cont.properties.first;
+	for(tot= 0; parm; parm= parm->next)
+		tot+= rna_parameter_size(parm);
+
+	parms->data= MEM_callocN(tot, "RNA_parameter_list_create");
+	parms->func= func;
+
+	return parms;
+}
+
+void RNA_parameter_list_free(ParameterList *parms)
+{
+	MEM_freeN(parms->data);
+
+	parms->func= NULL;
+
+	MEM_freeN(parms);
+}
+
+void RNA_parameter_list_begin(ParameterList *parms, ParameterIterator *iter)
+{
+	PropertyType ptype;
+
+	RNA_pointer_create(NULL, &RNA_Function, parms->func, &iter->funcptr);
+
+	iter->parms= parms;
+	iter->parm= parms->func->cont.properties.first;
+	iter->valid= iter->parm != NULL;
+	iter->offset= 0;
+
+	if(iter->valid) {
+		iter->size= rna_parameter_size(iter->parm);
+		iter->data= (((char*)iter->parms->data)+iter->offset);
+		ptype= RNA_property_type(&iter->funcptr, iter->parm);
+	}
+}
+
+void RNA_parameter_list_next(ParameterIterator *iter)
+{
+	PropertyType ptype;
+
+	iter->offset+= iter->size;
+	iter->parm= iter->parm->next;
+	iter->valid= iter->parm != NULL;
+
+	if(iter->valid) {
+		iter->size= rna_parameter_size(iter->parm);
+		iter->data= (((char*)iter->parms->data)+iter->offset);
+		ptype= RNA_property_type(&iter->funcptr, iter->parm);
+	}
+}
+
+void RNA_parameter_list_end(ParameterIterator *iter)
+{
+	/* nothing to do */
+}
+
+void RNA_parameter_get(ParameterList *parms, PropertyRNA *parm, void **value)
+{
+	ParameterIterator iter;
+
+	RNA_parameter_list_begin(parms, &iter);
+
+	for(; iter.valid; RNA_parameter_list_next(&iter))
+		if(iter.parm==parm) 
+			break;
+
+	if(iter.valid)
+		*value= iter.data;
+	else
+		*value= NULL;
+
+	RNA_parameter_list_end(&iter);
+}
+
+void RNA_parameter_get_lookup(ParameterList *parms, const char *identifier, void **value)
+{
+	PointerRNA funcptr;
+	PropertyRNA *parm;
+
+	RNA_pointer_create(NULL, &RNA_Function, parms->func, &funcptr);
+
+	parm= parms->func->cont.properties.first;
+	for(; parm; parm= parm->next)
+		if(strcmp(RNA_property_identifier(&funcptr, parm), identifier)==0)
+			break;
+
+	if(parm)
+		RNA_parameter_get(parms, parm, value);
+}
+
+void RNA_parameter_set(ParameterList *parms, PropertyRNA *parm, void *value)
+{
+	PointerRNA funcptr;
+	ParameterIterator iter;
+
+	RNA_pointer_create(NULL, &RNA_Function, parms->func, &funcptr);
+	RNA_parameter_list_begin(parms, &iter);
+
+	for(; iter.valid; RNA_parameter_list_next(&iter))
+		if(iter.parm==parm) 
+			break;
+
+	if(iter.valid)
+		memcpy(iter.data, value, iter.size);
+
+	RNA_parameter_list_end(&iter);
+}
+
+void RNA_parameter_set_lookup(ParameterList *parms, const char *identifier, void *value)
+{
+	PointerRNA funcptr;
+	PropertyRNA *parm;
+
+	RNA_pointer_create(NULL, &RNA_Function, parms->func, &funcptr);
+
+	parm= parms->func->cont.properties.first;
+	for(; parm; parm= parm->next)
+		if(strcmp(RNA_property_identifier(&funcptr, parm), identifier)==0)
+			break;
+
+	if(parm)
+		RNA_parameter_set(parms, parm, value);
+}
+
+int RNA_function_call(PointerRNA *ptr, FunctionRNA *func, ParameterList *parms)
+{
+	if(func->call) {
+		func->call(ptr, parms);
+
+		return 0;
+	}
+
+	return 1;
+}
+
+int RNA_function_call_lookup(PointerRNA *ptr, const char *identifier, ParameterList *parms)
+{
+	FunctionRNA *func;
+
+	func= RNA_struct_find_function(ptr, identifier);
+
+	if(func)
+		return RNA_function_call(ptr, func, parms);
+
+	return 0;
+}
+
+#if 0
+int RNA_function_call_direct(PointerRNA *ptr, FunctionRNA *func, const char *format, ...)
+{
+	va_list args;
+	int ret;
+
+	va_start(args, format);
+
+	ret= RNA_function_call_direct_va(ptr, func, format, args);
+
+	va_end(args);
+
+	return ret;
+}
+
+int RNA_function_call_direct_lookup(PointerRNA *ptr, const char *identifier, const char *format, ...)
+{
+	FunctionRNA *func;
+
+	func= RNA_struct_find_function(ptr, identifier);
+
+	if(func) {
+		va_list args;
+		int ret;
+
+		va_start(args, format);
+
+		ret= RNA_function_call_direct_va(ptr, func, format, args);
+
+		va_end(args);
+
+		return ret;
+	}
+
+	return 0;
+}
+
+int RNA_function_call_direct_va(PointerRNA *ptr, FunctionRNA *func, const char *format, va_list args)
+{
+	PointerRNA funcptr;
+	ParameterList *parms;
+	ParameterIterator iter;
+	PropertyRNA *pret, *parm;
+	PropertyType ptype;
+	PropertySubType psubtype;
+	int i, tlen, alen, err= 0;
+	const char *tid, *fid, *pid;
+	void **retdata;
+
+	RNA_pointer_create(NULL, &RNA_Function, func, &funcptr);
+
+	tid= RNA_struct_identifier(ptr);
+	fid= RNA_function_identifier(ptr, func);
+	pret= RNA_function_return(ptr, func);
+
+	parms= RNA_parameter_list_create(ptr, func);
+	RNA_parameter_list_begin(parms, &iter);
+
+	for(i= 0; iter.valid; RNA_parameter_list_next(&iter), i++) {
+		parm= iter.parm;
+		if(parm==pret) {
+			retdata= iter.data;
+			continue;
+		}
+
+		/* XXX todo later, this is not really a priority as of now */
+	}
+}
+
+int RNA_function_call_direct_va_lookup(PointerRNA *ptr, const char *identifier, const char *format, va_list args)
+{
+	FunctionRNA *func;
+
+	func= RNA_struct_find_function(ptr, identifier);
+
+	if(func)
+		return RNA_function_call_direct_va(ptr, func, format, args);
+
+	return 0;
+}
+#endif
 

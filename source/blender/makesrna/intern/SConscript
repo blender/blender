@@ -31,7 +31,8 @@ makesrna_tool.Append (CPPPATH = ['#/intern/guardedalloc',
                                  '../../blenkernel',
                                  '../../makesdna',
                                  '../../makesrna',
-								 '../../windowmanager'])
+								 '../../windowmanager',
+								 '../../editors'])
 
 if env['OURPLATFORM'] == 'linuxcross':
 	USE_WINE = True # when cross compiling on linux 64bit this is useful

@@ -29,6 +29,8 @@
 extern "C" {
 #endif
 
+struct ParameterList;
+struct FunctionRNA;
 struct PropertyRNA;
 struct StructRNA;
 struct BlenderRNA;
@@ -122,6 +124,35 @@ typedef struct EnumPropertyItem {
 } EnumPropertyItem;
 
 typedef struct PropertyRNA PropertyRNA;
+
+/* Parameter List */
+
+typedef struct ParameterList ParameterList;
+
+typedef struct ParameterIterator {
+	ParameterList *parms;
+	PointerRNA funcptr;
+	void *data;
+	int size, offset;
+
+	PropertyRNA *parm;
+	int valid;
+} ParameterIterator;
+
+/* Function */
+
+typedef enum FunctionFlag {
+	FUNC_TYPESTATIC = 1, /* for static functions, FUNC_ STATIC is taken by some windows header it seems */
+
+	/* internal flags */
+	FUNC_BUILTIN = 128,
+	FUNC_EXPORT = 256,
+	FUNC_RUNTIME = 512
+} FunctionFlag;
+
+typedef void (*CallFunc)(PointerRNA *ptr, ParameterList *parms);
+
+typedef struct FunctionRNA FunctionRNA;
 
 /* Struct */
 

@@ -25,6 +25,8 @@
 #ifndef RNA_ACCESS
 #define RNA_ACCESS
 
+#include <stdarg.h>
+
 #include "DNA_listBase.h"
 #include "RNA_types.h"
 
@@ -47,6 +49,7 @@ extern StructRNA RNA_ActuatorSensor;
 extern StructRNA RNA_AlwaysSensor;
 extern StructRNA RNA_AndController;
 extern StructRNA RNA_AnimData;
+extern StructRNA RNA_AnyType;
 extern StructRNA RNA_Area;
 extern StructRNA RNA_AreaLamp;
 extern StructRNA RNA_Armature;
@@ -100,6 +103,7 @@ extern StructRNA RNA_FloatProperty;
 extern StructRNA RNA_FluidFluidSettings;
 extern StructRNA RNA_FluidSettings;
 extern StructRNA RNA_FluidSimulationModifier;
+extern StructRNA RNA_Function;
 extern StructRNA RNA_GameBooleanProperty;
 extern StructRNA RNA_GameFloatProperty;
 extern StructRNA RNA_GameIntProperty;
@@ -312,8 +316,14 @@ PropertyRNA *RNA_struct_iterator_property(PointerRNA *ptr);
 int RNA_struct_is_ID(PointerRNA *ptr);
 int RNA_struct_is_a(PointerRNA *ptr, StructRNA *srna);
 
+void *RNA_struct_py_type_get(StructRNA *srna);
+void RNA_struct_py_type_set(StructRNA *srna, void *py_type);
+
 PropertyRNA *RNA_struct_find_property(PointerRNA *ptr, const char *identifier);
 const struct ListBase *RNA_struct_defined_properties(StructRNA *srna);
+
+FunctionRNA *RNA_struct_find_function(PointerRNA *ptr, const char *identifier);
+const struct ListBase *RNA_struct_defined_functions(StructRNA *srna);
 
 /* Properties
  *
@@ -489,6 +499,39 @@ int RNA_property_is_set(PointerRNA *ptr, const char *name);
 
 /* python compatible string representation of this property, (must be freed!) */
 char *RNA_property_as_string(PointerRNA *ptr, PropertyRNA *prop);
+
+/* Function */
+
+const char *RNA_function_identifier(PointerRNA *ptr, FunctionRNA *func);
+PropertyRNA *RNA_function_return(PointerRNA *ptr, FunctionRNA *func);
+const char *RNA_function_ui_description(PointerRNA *ptr, FunctionRNA *func);
+
+PropertyRNA *RNA_function_get_parameter(PointerRNA *ptr, FunctionRNA *func, int index);
+PropertyRNA *RNA_function_find_parameter(PointerRNA *ptr, FunctionRNA *func, const char *identifier);
+const struct ListBase *RNA_function_defined_parameters(PointerRNA *ptr, FunctionRNA *func);
+
+/* Utility */
+
+ParameterList *RNA_parameter_list_create(PointerRNA *ptr, FunctionRNA *func);
+void RNA_parameter_list_free(ParameterList *parms);
+
+void RNA_parameter_list_begin(ParameterList *parms, ParameterIterator *iter);
+void RNA_parameter_list_next(ParameterIterator *iter);
+void RNA_parameter_list_end(ParameterIterator *iter);
+
+void RNA_parameter_get(ParameterList *parms, PropertyRNA *parm, void **value);
+void RNA_parameter_get_lookup(ParameterList *parms, const char *identifier, void **value);
+void RNA_parameter_set(ParameterList *parms, PropertyRNA *parm, void *value);
+void RNA_parameter_set_lookup(ParameterList *parms, const char *identifier, void *value);
+
+int RNA_function_call(PointerRNA *ptr, FunctionRNA *func, ParameterList *parms);
+int RNA_function_call_lookup(PointerRNA *ptr, const char *identifier, ParameterList *parms);
+
+/* not implemented yet
+int RNA_function_call_direct(PointerRNA *ptr, FunctionRNA *func, const char *format, ...);
+int RNA_function_call_direct_lookup(PointerRNA *ptr, const char *identifier, const char *format, ...);
+int RNA_function_call_direct_va(PointerRNA *ptr, FunctionRNA *func, const char *format, va_list args);
+int RNA_function_call_direct_va_lookup(PointerRNA *ptr, const char *identifier, const char *format, va_list args);*/
 
 #ifdef __cplusplus
 }

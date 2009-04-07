@@ -34,10 +34,25 @@ struct SDNA;
 
 /* Data structures used during define */
 
+typedef struct ContainerDefRNA {
+	void *next, *prev;
+
+	ContainerRNA *cont;
+	ListBase properties;
+} ContainerDefRNA;
+
+typedef struct FunctionDefRNA {
+	ContainerDefRNA cont;
+
+	FunctionRNA *func;
+	const char *srna;
+	const char *call;
+} FunctionDefRNA;
+
 typedef struct PropertyDefRNA {
 	struct PropertyDefRNA *next, *prev;
 
-	struct StructRNA *srna;
+	struct ContainerRNA *cont;
 	struct PropertyRNA *prop;
 
 	/* struct */
@@ -61,7 +76,7 @@ typedef struct PropertyDefRNA {
 } PropertyDefRNA;
 
 typedef struct StructDefRNA {
-	struct StructDefRNA *next, *prev;
+	ContainerDefRNA cont;
 
 	struct StructRNA *srna;
 	const char *filename;
@@ -72,7 +87,7 @@ typedef struct StructDefRNA {
 	const char *dnafromname;
 	const char *dnafromprop;
 
-	ListBase properties;
+	ListBase functions;
 } StructDefRNA;
 
 typedef struct AllocDefRNA {
@@ -221,9 +236,17 @@ void rna_addtail(struct ListBase *listbase, void *vlink);
 void rna_freelinkN(struct ListBase *listbase, void *vlink);
 void rna_freelistN(struct ListBase *listbase);
 
+StructDefRNA *rna_find_struct_def(StructRNA *srna);
+FunctionDefRNA *rna_find_function_def(FunctionRNA *func);
+PropertyDefRNA *rna_find_parameter_def(PropertyRNA *parm);
+
 /* Pointer Handling */
 
 PointerRNA rna_pointer_inherit_refine(struct PointerRNA *ptr, struct StructRNA *type, void *data);
+
+/* Functions */
+
+int rna_parameter_size(struct PropertyRNA *parm);
 
 #endif /* RNA_INTERNAL_H */
 
