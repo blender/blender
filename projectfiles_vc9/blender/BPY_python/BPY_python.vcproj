@@ -359,6 +359,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\python\api2_2x\bpy_internal_import.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\Camera.c"
 				>
 			</File>
@@ -641,6 +645,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\bpy_data.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\python\api2_2x\bpy_internal_import.h"
 				>
 			</File>
 			<File
