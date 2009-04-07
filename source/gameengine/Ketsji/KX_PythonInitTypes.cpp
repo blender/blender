@@ -129,7 +129,7 @@ void initPyObjectPlusType(PyTypeObject **parents)
 
 
 
-static int PyType_Ready_ADD(PyObject *dict, PyTypeObject * tp)
+static void PyType_Ready_ADD(PyObject *dict, PyTypeObject * tp)
 {
 	PyType_Ready(tp);
 	PyDict_SetItemString(dict, tp->tp_name, (PyObject *)tp);
