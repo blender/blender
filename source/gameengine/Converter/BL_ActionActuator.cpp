@@ -1037,19 +1037,12 @@ PyAttributeDef BL_ActionActuator::Attributes[] = {
 };
 
 PyObject* BL_ActionActuator::py_getattro(PyObject *attr) {
-	PyObject* object = py_getattro_self(Attributes, this, attr);
-	if (object != NULL)
-		return object;
 	py_getattro_up(SCA_IActuator);
 }
 
 int BL_ActionActuator::py_setattro(PyObject *attr, PyObject* value) {
-	int ret = py_setattro_self(Attributes, this, attr, value);
-	if (ret >= 0)
-		return ret;
-	return SCA_IActuator::py_setattro(attr, value);
+	py_setattro_up(SCA_IActuator);
 }
-
 
 
 PyObject* BL_ActionActuator::pyattr_get_action(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)

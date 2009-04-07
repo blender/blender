@@ -98,6 +98,10 @@ PyMethodDef PyObjectPlus::Methods[] = {
   {NULL, NULL}		/* Sentinel */
 };
 
+PyAttributeDef PyObjectPlus::Attributes[] = {
+	{NULL} //Sentinel
+};
+
 /*------------------------------
  * PyObjectPlus Parents		-- Every class, even the abstract one should have parents
 ------------------------------*/
@@ -136,128 +140,555 @@ int PyObjectPlus::py_setattro(PyObject *attr, PyObject* value)
 	return 1;
 }
 
+PyObject *PyObjectPlus::py_get_attrdef(void *self, const PyAttributeDef *attrdef)
+{
+	if (attrdef->m_type == KX_PYATTRIBUTE_TYPE_DUMMY)
+	{
+		// fake attribute, ignore
+		return NULL;
+	}
+	if (attrdef->m_type == KX_PYATTRIBUTE_TYPE_FUNCTION)
+	{
+		// the attribute has no field correspondance, handover processing to function.
+		if (attrdef->m_getFunction == NULL)
+			return NULL;
+		return (*attrdef->m_getFunction)(self, attrdef);
+	}
+	char *ptr = reinterpret_cast<char*>(self)+attrdef->m_offset;
+	if (attrdef->m_length > 1)
+	{
+		PyObject* resultlist = PyList_New(attrdef->m_length);
+		for (unsigned int i=0; i<attrdef->m_length; i++)
+		{
+			switch (attrdef->m_type) {
+			case KX_PYATTRIBUTE_TYPE_BOOL:
+				{
+					bool *val = reinterpret_cast<bool*>(ptr);
+					ptr += sizeof(bool);
+					PyList_SetItem(resultlist,i,PyInt_FromLong(*val));
+					break;
+				}
+			case KX_PYATTRIBUTE_TYPE_SHORT:
+				{
+					short int *val = reinterpret_cast<short int*>(ptr);
+					ptr += sizeof(short int);
+					PyList_SetItem(resultlist,i,PyInt_FromLong(*val));
+					break;
+				}
+			case KX_PYATTRIBUTE_TYPE_ENUM:
+				// enum are like int, just make sure the field size is the same
+				if (sizeof(int) != attrdef->m_size)
+				{
+					Py_DECREF(resultlist);
+					return NULL;
+				}
+				// walkthrough
+			case KX_PYATTRIBUTE_TYPE_INT:
+				{
+					int *val = reinterpret_cast<int*>(ptr);
+					ptr += sizeof(int);
+					PyList_SetItem(resultlist,i,PyInt_FromLong(*val));
+					break;
+				}
+			case KX_PYATTRIBUTE_TYPE_FLOAT:
+				{
+					float *val = reinterpret_cast<float*>(ptr);
+					ptr += sizeof(float);
+					PyList_SetItem(resultlist,i,PyFloat_FromDouble(*val));
+					break;
+				}
+			default:
+				// no support for array of complex data
+				Py_DECREF(resultlist);
+				return NULL;
+			}
+		}
+		return resultlist;
+	}
+	else
+	{
+		switch (attrdef->m_type) {
+		case KX_PYATTRIBUTE_TYPE_BOOL:
+			{
+				bool *val = reinterpret_cast<bool*>(ptr);
+				return PyInt_FromLong(*val);
+			}
+		case KX_PYATTRIBUTE_TYPE_SHORT:
+			{
+				short int *val = reinterpret_cast<short int*>(ptr);
+				return PyInt_FromLong(*val);
+			}
+		case KX_PYATTRIBUTE_TYPE_ENUM:
+			// enum are like int, just make sure the field size is the same
+			if (sizeof(int) != attrdef->m_size)
+			{
+				return NULL;
+			}
+			// walkthrough
+		case KX_PYATTRIBUTE_TYPE_INT:
+			{
+				int *val = reinterpret_cast<int*>(ptr);
+				return PyInt_FromLong(*val);
+			}
+		case KX_PYATTRIBUTE_TYPE_FLOAT:
+			{
+				float *val = reinterpret_cast<float*>(ptr);
+				return PyFloat_FromDouble(*val);
+			}
+		case KX_PYATTRIBUTE_TYPE_STRING:
+			{
+				STR_String *val = reinterpret_cast<STR_String*>(ptr);
+				return PyString_FromString(*val);
+			}
+		default:
+			return NULL;
+		}
+	}
+}
+
+#if 0
 PyObject *PyObjectPlus::py_getattro_self(const PyAttributeDef attrlist[], void *self, PyObject *attr)
 {
 	char *attr_str= PyString_AsString(attr);
-
 	const PyAttributeDef *attrdef;
+	
 	for (attrdef=attrlist; attrdef->m_name != NULL; attrdef++)
-	{
 		if (!strcmp(attr_str, attrdef->m_name))
-		{
-			if (attrdef->m_type == KX_PYATTRIBUTE_TYPE_DUMMY)
-			{
-				// fake attribute, ignore
-				return NULL;
-			}
-			if (attrdef->m_type == KX_PYATTRIBUTE_TYPE_FUNCTION)
-			{
-				// the attribute has no field correspondance, handover processing to function.
-				if (attrdef->m_getFunction == NULL)
-					return NULL;
-				return (*attrdef->m_getFunction)(self, attrdef);
-			}
-			char *ptr = reinterpret_cast<char*>(self)+attrdef->m_offset;
-			if (attrdef->m_length > 1)
-			{
-				PyObject* resultlist = PyList_New(attrdef->m_length);
-				for (unsigned int i=0; i<attrdef->m_length; i++)
-				{
-					switch (attrdef->m_type) {
-					case KX_PYATTRIBUTE_TYPE_BOOL:
-						{
-							bool *val = reinterpret_cast<bool*>(ptr);
-							ptr += sizeof(bool);
-							PyList_SetItem(resultlist,i,PyInt_FromLong(*val));
-							break;
-						}
-					case KX_PYATTRIBUTE_TYPE_SHORT:
-						{
-							short int *val = reinterpret_cast<short int*>(ptr);
-							ptr += sizeof(short int);
-							PyList_SetItem(resultlist,i,PyInt_FromLong(*val));
-							break;
-						}
-					case KX_PYATTRIBUTE_TYPE_ENUM:
-						// enum are like int, just make sure the field size is the same
-						if (sizeof(int) != attrdef->m_size)
-						{
-							Py_DECREF(resultlist);
-							return NULL;
-						}
-						// walkthrough
-					case KX_PYATTRIBUTE_TYPE_INT:
-						{
-							int *val = reinterpret_cast<int*>(ptr);
-							ptr += sizeof(int);
-							PyList_SetItem(resultlist,i,PyInt_FromLong(*val));
-							break;
-						}
-					case KX_PYATTRIBUTE_TYPE_FLOAT:
-						{
-							float *val = reinterpret_cast<float*>(ptr);
-							ptr += sizeof(float);
-							PyList_SetItem(resultlist,i,PyFloat_FromDouble(*val));
-							break;
-						}
-					default:
-						// no support for array of complex data
-						Py_DECREF(resultlist);
-						return NULL;
-					}
-				}
-				return resultlist;
-			}
-			else
-			{
-				switch (attrdef->m_type) {
-				case KX_PYATTRIBUTE_TYPE_BOOL:
-					{
-						bool *val = reinterpret_cast<bool*>(ptr);
-						return PyInt_FromLong(*val);
-					}
-				case KX_PYATTRIBUTE_TYPE_SHORT:
-					{
-						short int *val = reinterpret_cast<short int*>(ptr);
-						return PyInt_FromLong(*val);
-					}
-				case KX_PYATTRIBUTE_TYPE_ENUM:
-					// enum are like int, just make sure the field size is the same
-					if (sizeof(int) != attrdef->m_size)
-					{
-						return NULL;
-					}
-					// walkthrough
-				case KX_PYATTRIBUTE_TYPE_INT:
-					{
-						int *val = reinterpret_cast<int*>(ptr);
-						return PyInt_FromLong(*val);
-					}
-				case KX_PYATTRIBUTE_TYPE_FLOAT:
-					{
-						float *val = reinterpret_cast<float*>(ptr);
-						return PyFloat_FromDouble(*val);
-					}
-				case KX_PYATTRIBUTE_TYPE_STRING:
-					{
-						STR_String *val = reinterpret_cast<STR_String*>(ptr);
-						return PyString_FromString(*val);
-					}
-				default:
-					return NULL;
-				}
-			}
-		}
-	}
+			return py_get_attrdef(self, attrdef);
+	
 	return NULL;
 }
+#endif
 
-int PyObjectPlus::py_setattro_self(const PyAttributeDef attrlist[], void *self, PyObject *attr, PyObject *value)
+int PyObjectPlus::py_set_attrdef(void *self, const PyAttributeDef *attrdef, PyObject *value)
 {
-	const PyAttributeDef *attrdef;
 	void *undoBuffer = NULL;
 	void *sourceBuffer = NULL;
 	size_t bufferSize = 0;
+	
+	char *ptr = reinterpret_cast<char*>(self)+attrdef->m_offset;
+	if (attrdef->m_length > 1)
+	{
+		if (!PySequence_Check(value)) 
+		{
+			PyErr_SetString(PyExc_TypeError, "expected a sequence");
+			return 1;
+		}
+		if (PySequence_Size(value) != attrdef->m_length)
+		{
+			PyErr_SetString(PyExc_TypeError, "incorrect number of elements in sequence");
+			return 1;
+		}
+		switch (attrdef->m_type) 
+		{
+		case KX_PYATTRIBUTE_TYPE_FUNCTION:
+			if (attrdef->m_setFunction == NULL) 
+			{
+				PyErr_SetString(PyExc_AttributeError, "function attribute without function, report to blender.org");
+				return 1;
+			}
+			return (*attrdef->m_setFunction)(self, attrdef, value);
+		case KX_PYATTRIBUTE_TYPE_BOOL:
+			bufferSize = sizeof(bool);
+			break;
+		case KX_PYATTRIBUTE_TYPE_SHORT:
+			bufferSize = sizeof(short int);
+			break;
+		case KX_PYATTRIBUTE_TYPE_ENUM:
+		case KX_PYATTRIBUTE_TYPE_INT:
+			bufferSize = sizeof(int);
+			break;
+		case KX_PYATTRIBUTE_TYPE_FLOAT:
+			bufferSize = sizeof(float);
+			break;
+		default:
+			// should not happen
+			PyErr_SetString(PyExc_AttributeError, "Unsupported attribute type, report to blender.org");
+			return 1;
+		}
+		// let's implement a smart undo method
+		bufferSize *= attrdef->m_length;
+		undoBuffer = malloc(bufferSize);
+		sourceBuffer = ptr;
+		if (undoBuffer)
+		{
+			memcpy(undoBuffer, sourceBuffer, bufferSize);
+		}
+		for (int i=0; i<attrdef->m_length; i++)
+		{
+			PyObject *item = PySequence_GetItem(value, i); /* new ref */
+			// we can decrement the reference immediately, the reference count
+			// is at least 1 because the item is part of an array
+			Py_DECREF(item);
+			switch (attrdef->m_type) 
+			{
+			case KX_PYATTRIBUTE_TYPE_BOOL:
+				{
+					bool *var = reinterpret_cast<bool*>(ptr);
+					ptr += sizeof(bool);
+					if (PyInt_Check(item)) 
+					{
+						*var = (PyInt_AsLong(item) != 0);
+					} 
+					else if (PyBool_Check(item))
+					{
+						*var = (item == Py_True);
+					}
+					else
+					{
+						PyErr_SetString(PyExc_TypeError, "expected an integer or a bool");
+						goto UNDO_AND_ERROR;
+					}
+					break;
+				}
+			case KX_PYATTRIBUTE_TYPE_SHORT:
+				{
+					short int *var = reinterpret_cast<short int*>(ptr);
+					ptr += sizeof(short int);
+					if (PyInt_Check(item)) 
+					{
+						long val = PyInt_AsLong(item);
+						if (attrdef->m_clamp)
+						{
+							if (val < attrdef->m_imin)
+								val = attrdef->m_imin;
+							else if (val > attrdef->m_imax)
+								val = attrdef->m_imax;
+						}
+						else if (val < attrdef->m_imin || val > attrdef->m_imax)
+						{
+							PyErr_SetString(PyExc_ValueError, "item value out of range");
+							goto UNDO_AND_ERROR;
+						}
+						*var = (short int)val;
+					}
+					else
+					{
+						PyErr_SetString(PyExc_TypeError, "expected an integer");
+						goto UNDO_AND_ERROR;
+					}
+					break;
+				}
+			case KX_PYATTRIBUTE_TYPE_ENUM:
+				// enum are equivalent to int, just make sure that the field size matches:
+				if (sizeof(int) != attrdef->m_size)
+				{
+					PyErr_SetString(PyExc_AttributeError, "attribute size check error, report to blender.org");
+					goto UNDO_AND_ERROR;
+				}
+				// walkthrough
+			case KX_PYATTRIBUTE_TYPE_INT:
+				{
+					int *var = reinterpret_cast<int*>(ptr);
+					ptr += sizeof(int);
+					if (PyInt_Check(item)) 
+					{
+						long val = PyInt_AsLong(item);
+						if (attrdef->m_clamp)
+						{
+							if (val < attrdef->m_imin)
+								val = attrdef->m_imin;
+							else if (val > attrdef->m_imax)
+								val = attrdef->m_imax;
+						}
+						else if (val < attrdef->m_imin || val > attrdef->m_imax)
+						{
+							PyErr_SetString(PyExc_ValueError, "item value out of range");
+							goto UNDO_AND_ERROR;
+						}
+						*var = (int)val;
+					}
+					else
+					{
+						PyErr_SetString(PyExc_TypeError, "expected an integer");
+						goto UNDO_AND_ERROR;
+					}
+					break;
+				}
+			case KX_PYATTRIBUTE_TYPE_FLOAT:
+				{
+					float *var = reinterpret_cast<float*>(ptr);
+					ptr += sizeof(float);
+					double val = PyFloat_AsDouble(item);
+					if (val == -1.0 && PyErr_Occurred())
+					{
+						PyErr_SetString(PyExc_TypeError, "expected a float");
+						goto UNDO_AND_ERROR;
+					}
+					else if (attrdef->m_clamp) 
+					{
+						if (val < attrdef->m_fmin)
+							val = attrdef->m_fmin;
+						else if (val > attrdef->m_fmax)
+							val = attrdef->m_fmax;
+					}
+					else if (val < attrdef->m_fmin || val > attrdef->m_fmax)
+					{
+						PyErr_SetString(PyExc_ValueError, "item value out of range");
+						goto UNDO_AND_ERROR;
+					}
+					*var = (float)val;
+					break;
+				}
+			default:
+				// should not happen
+				PyErr_SetString(PyExc_AttributeError, "attribute type check error, report to blender.org");
+				goto UNDO_AND_ERROR;
+			}
+		}
+		// no error, call check function if any
+		if (attrdef->m_checkFunction != NULL)
+		{
+			if ((*attrdef->m_checkFunction)(self, attrdef) != 0)
+			{
+				// post check returned an error, restore values
+			UNDO_AND_ERROR:
+				if (undoBuffer)
+				{
+					memcpy(sourceBuffer, undoBuffer, bufferSize);
+					free(undoBuffer);
+				}
+				return 1;
+			}
+		}
+		if (undoBuffer)
+			free(undoBuffer);
+		return 0;
+	}
+	else	// simple attribute value
+	{
+		if (attrdef->m_type == KX_PYATTRIBUTE_TYPE_FUNCTION)
+		{
+			if (attrdef->m_setFunction == NULL)
+			{
+				PyErr_SetString(PyExc_AttributeError, "function attribute without function, report to blender.org");
+				return 1;
+			}
+			return (*attrdef->m_setFunction)(self, attrdef, value);
+		}
+		if (attrdef->m_checkFunction != NULL)
+		{
+			// post check function is provided, prepare undo buffer
+			sourceBuffer = ptr;
+			switch (attrdef->m_type) 
+			{
+			case KX_PYATTRIBUTE_TYPE_BOOL:
+				bufferSize = sizeof(bool);
+				break;
+			case KX_PYATTRIBUTE_TYPE_SHORT:
+				bufferSize = sizeof(short);
+				break;
+			case KX_PYATTRIBUTE_TYPE_ENUM:
+			case KX_PYATTRIBUTE_TYPE_INT:
+				bufferSize = sizeof(int);
+				break;
+			case KX_PYATTRIBUTE_TYPE_FLOAT:
+				bufferSize = sizeof(float);
+				break;
+			case KX_PYATTRIBUTE_TYPE_STRING:
+				sourceBuffer = reinterpret_cast<STR_String*>(ptr)->Ptr();
+				if (sourceBuffer)
+					bufferSize = strlen(reinterpret_cast<char*>(sourceBuffer))+1;
+				break;
+			default:
+				PyErr_SetString(PyExc_AttributeError, "unknown attribute type, report to blender.org");
+				return 1;
+			}
+			if (bufferSize)
+			{
+				undoBuffer = malloc(bufferSize);
+				if (undoBuffer)
+				{
+					memcpy(undoBuffer, sourceBuffer, bufferSize);
+				}
+			}
+		}
+			
+		switch (attrdef->m_type) 
+		{
+		case KX_PYATTRIBUTE_TYPE_BOOL:
+			{
+				bool *var = reinterpret_cast<bool*>(ptr);
+				if (PyInt_Check(value)) 
+				{
+					*var = (PyInt_AsLong(value) != 0);
+				} 
+				else if (PyBool_Check(value))
+				{
+					*var = (value == Py_True);
+				}
+				else
+				{
+					PyErr_SetString(PyExc_TypeError, "expected an integer or a bool");
+					goto FREE_AND_ERROR;
+				}
+				break;
+			}
+		case KX_PYATTRIBUTE_TYPE_SHORT:
+			{
+				short int *var = reinterpret_cast<short int*>(ptr);
+				if (PyInt_Check(value)) 
+				{
+					long val = PyInt_AsLong(value);
+					if (attrdef->m_clamp)
+					{
+						if (val < attrdef->m_imin)
+							val = attrdef->m_imin;
+						else if (val > attrdef->m_imax)
+							val = attrdef->m_imax;
+					}
+					else if (val < attrdef->m_imin || val > attrdef->m_imax)
+					{
+						PyErr_SetString(PyExc_ValueError, "value out of range");
+						goto FREE_AND_ERROR;
+					}
+					*var = (short int)val;
+				}
+				else
+				{
+					PyErr_SetString(PyExc_TypeError, "expected an integer");
+					goto FREE_AND_ERROR;
+				}
+				break;
+			}
+		case KX_PYATTRIBUTE_TYPE_ENUM:
+			// enum are equivalent to int, just make sure that the field size matches:
+			if (sizeof(int) != attrdef->m_size)
+			{
+				PyErr_SetString(PyExc_AttributeError, "attribute size check error, report to blender.org");
+				goto FREE_AND_ERROR;
+			}
+			// walkthrough
+		case KX_PYATTRIBUTE_TYPE_INT:
+			{
+				int *var = reinterpret_cast<int*>(ptr);
+				if (PyInt_Check(value)) 
+				{
+					long val = PyInt_AsLong(value);
+					if (attrdef->m_clamp)
+					{
+						if (val < attrdef->m_imin)
+							val = attrdef->m_imin;
+						else if (val > attrdef->m_imax)
+							val = attrdef->m_imax;
+					}
+					else if (val < attrdef->m_imin || val > attrdef->m_imax)
+					{
+						PyErr_SetString(PyExc_ValueError, "value out of range");
+						goto FREE_AND_ERROR;
+					}
+					*var = (int)val;
+				}
+				else
+				{
+					PyErr_SetString(PyExc_TypeError, "expected an integer");
+					goto FREE_AND_ERROR;
+				}
+				break;
+			}
+		case KX_PYATTRIBUTE_TYPE_FLOAT:
+			{
+				float *var = reinterpret_cast<float*>(ptr);
+				double val = PyFloat_AsDouble(value);
+				if (val == -1.0 && PyErr_Occurred())
+				{
+					PyErr_SetString(PyExc_TypeError, "expected a float");
+					goto FREE_AND_ERROR;
+				}
+				else if (attrdef->m_clamp)
+				{
+					if (val < attrdef->m_fmin)
+						val = attrdef->m_fmin;
+					else if (val > attrdef->m_fmax)
+						val = attrdef->m_fmax;
+				}
+				else if (val < attrdef->m_fmin || val > attrdef->m_fmax)
+				{
+					PyErr_SetString(PyExc_ValueError, "value out of range");
+					goto FREE_AND_ERROR;
+				}
+				*var = (float)val;
+				break;
+			}
+		case KX_PYATTRIBUTE_TYPE_STRING:
+			{
+				STR_String *var = reinterpret_cast<STR_String*>(ptr);
+				if (PyString_Check(value)) 
+				{
+					char *val = PyString_AsString(value);
+					if (attrdef->m_clamp)
+					{
+						if (strlen(val) < attrdef->m_imin)
+						{
+							// can't increase the length of the string
+							PyErr_SetString(PyExc_ValueError, "string length too short");
+							goto FREE_AND_ERROR;
+						}
+						else if (strlen(val) > attrdef->m_imax)
+						{
+							// trim the string
+							char c = val[attrdef->m_imax];
+							val[attrdef->m_imax] = 0;
+							*var = val;
+							val[attrdef->m_imax] = c;
+							break;
+						}
+					} else if (strlen(val) < attrdef->m_imin || strlen(val) > attrdef->m_imax)
+					{
+						PyErr_SetString(PyExc_ValueError, "string length out of range");
+						goto FREE_AND_ERROR;
+					}
+					*var = val;
+				}
+				else
+				{
+					PyErr_SetString(PyExc_TypeError, "expected a string");
+					goto FREE_AND_ERROR;
+				}
+				break;
+			}
+		default:
+			// should not happen
+			PyErr_SetString(PyExc_AttributeError, "unknown attribute type, report to blender.org");
+			goto FREE_AND_ERROR;
+		}
+	}
+	// check if post processing is needed
+	if (attrdef->m_checkFunction != NULL)
+	{
+		if ((*attrdef->m_checkFunction)(self, attrdef) != 0)
+		{
+			// restore value
+		RESTORE_AND_ERROR:
+			if (undoBuffer)
+			{
+				if (attrdef->m_type == KX_PYATTRIBUTE_TYPE_STRING)
+				{
+					// special case for STR_String: restore the string
+					STR_String *var = reinterpret_cast<STR_String*>(ptr);
+					*var = reinterpret_cast<char*>(undoBuffer);
+				}
+				else
+				{
+					// other field type have direct values
+					memcpy(ptr, undoBuffer, bufferSize);
+				}
+			}
+		FREE_AND_ERROR:
+			if (undoBuffer)
+				free(undoBuffer);
+			return 1;
+		}
+	}
+	if (undoBuffer)
+		free(undoBuffer);
+	return 0;	
+}
+
+#if 0
+int PyObjectPlus::py_setattro_self(const PyAttributeDef attrlist[], void *self, PyObject *attr, PyObject *value)
+{
+	const PyAttributeDef *attrdef;
 	char *attr_str= PyString_AsString(attr);
 
 	for (attrdef=attrlist; attrdef->m_name != NULL; attrdef++)
@@ -270,427 +701,13 @@ int PyObjectPlus::py_setattro_self(const PyAttributeDef attrlist[], void *self, 
 				PyErr_SetString(PyExc_AttributeError, "property is read-only");
 				return 1;
 			}
-			char *ptr = reinterpret_cast<char*>(self)+attrdef->m_offset;
-			if (attrdef->m_length > 1)
-			{
-				if (!PySequence_Check(value)) 
-				{
-					PyErr_SetString(PyExc_TypeError, "expected a sequence");
-					return 1;
-				}
-				if (PySequence_Size(value) != attrdef->m_length)
-				{
-					PyErr_SetString(PyExc_TypeError, "incorrect number of elements in sequence");
-					return 1;
-				}
-				switch (attrdef->m_type) 
-				{
-				case KX_PYATTRIBUTE_TYPE_FUNCTION:
-					if (attrdef->m_setFunction == NULL) 
-					{
-						PyErr_SetString(PyExc_AttributeError, "function attribute without function, report to blender.org");
-						return 1;
-					}
-					return (*attrdef->m_setFunction)(self, attrdef, value);
-				case KX_PYATTRIBUTE_TYPE_BOOL:
-					bufferSize = sizeof(bool);
-					break;
-				case KX_PYATTRIBUTE_TYPE_SHORT:
-					bufferSize = sizeof(short int);
-					break;
-				case KX_PYATTRIBUTE_TYPE_ENUM:
-				case KX_PYATTRIBUTE_TYPE_INT:
-					bufferSize = sizeof(int);
-					break;
-				case KX_PYATTRIBUTE_TYPE_FLOAT:
-					bufferSize = sizeof(float);
-					break;
-				default:
-					// should not happen
-					PyErr_SetString(PyExc_AttributeError, "Unsupported attribute type, report to blender.org");
-					return 1;
-				}
-				// let's implement a smart undo method
-				bufferSize *= attrdef->m_length;
-				undoBuffer = malloc(bufferSize);
-				sourceBuffer = ptr;
-				if (undoBuffer)
-				{
-					memcpy(undoBuffer, sourceBuffer, bufferSize);
-				}
-				for (int i=0; i<attrdef->m_length; i++)
-				{
-					PyObject *item = PySequence_GetItem(value, i); /* new ref */
-					// we can decrement the reference immediately, the reference count
-					// is at least 1 because the item is part of an array
-					Py_DECREF(item);
-					switch (attrdef->m_type) 
-					{
-					case KX_PYATTRIBUTE_TYPE_BOOL:
-						{
-							bool *var = reinterpret_cast<bool*>(ptr);
-							ptr += sizeof(bool);
-							if (PyInt_Check(item)) 
-							{
-								*var = (PyInt_AsLong(item) != 0);
-							} 
-							else if (PyBool_Check(item))
-							{
-								*var = (item == Py_True);
-							}
-							else
-							{
-								PyErr_SetString(PyExc_TypeError, "expected an integer or a bool");
-								goto UNDO_AND_ERROR;
-							}
-							break;
-						}
-					case KX_PYATTRIBUTE_TYPE_SHORT:
-						{
-							short int *var = reinterpret_cast<short int*>(ptr);
-							ptr += sizeof(short int);
-							if (PyInt_Check(item)) 
-							{
-								long val = PyInt_AsLong(item);
-								if (attrdef->m_clamp)
-								{
-									if (val < attrdef->m_imin)
-										val = attrdef->m_imin;
-									else if (val > attrdef->m_imax)
-										val = attrdef->m_imax;
-								}
-								else if (val < attrdef->m_imin || val > attrdef->m_imax)
-								{
-									PyErr_SetString(PyExc_ValueError, "item value out of range");
-									goto UNDO_AND_ERROR;
-								}
-								*var = (short int)val;
-							}
-							else
-							{
-								PyErr_SetString(PyExc_TypeError, "expected an integer");
-								goto UNDO_AND_ERROR;
-							}
-							break;
-						}
-					case KX_PYATTRIBUTE_TYPE_ENUM:
-						// enum are equivalent to int, just make sure that the field size matches:
-						if (sizeof(int) != attrdef->m_size)
-						{
-							PyErr_SetString(PyExc_AttributeError, "attribute size check error, report to blender.org");
-							goto UNDO_AND_ERROR;
-						}
-						// walkthrough
-					case KX_PYATTRIBUTE_TYPE_INT:
-						{
-							int *var = reinterpret_cast<int*>(ptr);
-							ptr += sizeof(int);
-							if (PyInt_Check(item)) 
-							{
-								long val = PyInt_AsLong(item);
-								if (attrdef->m_clamp)
-								{
-									if (val < attrdef->m_imin)
-										val = attrdef->m_imin;
-									else if (val > attrdef->m_imax)
-										val = attrdef->m_imax;
-								}
-								else if (val < attrdef->m_imin || val > attrdef->m_imax)
-								{
-									PyErr_SetString(PyExc_ValueError, "item value out of range");
-									goto UNDO_AND_ERROR;
-								}
-								*var = (int)val;
-							}
-							else
-							{
-								PyErr_SetString(PyExc_TypeError, "expected an integer");
-								goto UNDO_AND_ERROR;
-							}
-							break;
-						}
-					case KX_PYATTRIBUTE_TYPE_FLOAT:
-						{
-							float *var = reinterpret_cast<float*>(ptr);
-							ptr += sizeof(float);
-							double val = PyFloat_AsDouble(item);
-							if (val == -1.0 && PyErr_Occurred())
-							{
-								PyErr_SetString(PyExc_TypeError, "expected a float");
-								goto UNDO_AND_ERROR;
-							}
-							else if (attrdef->m_clamp) 
-							{
-								if (val < attrdef->m_fmin)
-									val = attrdef->m_fmin;
-								else if (val > attrdef->m_fmax)
-									val = attrdef->m_fmax;
-							}
-							else if (val < attrdef->m_fmin || val > attrdef->m_fmax)
-							{
-								PyErr_SetString(PyExc_ValueError, "item value out of range");
-								goto UNDO_AND_ERROR;
-							}
-							*var = (float)val;
-							break;
-						}
-					default:
-						// should not happen
-						PyErr_SetString(PyExc_AttributeError, "attribute type check error, report to blender.org");
-						goto UNDO_AND_ERROR;
-					}
-				}
-				// no error, call check function if any
-				if (attrdef->m_checkFunction != NULL)
-				{
-					if ((*attrdef->m_checkFunction)(self, attrdef) != 0)
-					{
-						// post check returned an error, restore values
-					UNDO_AND_ERROR:
-						if (undoBuffer)
-						{
-							memcpy(sourceBuffer, undoBuffer, bufferSize);
-							free(undoBuffer);
-						}
-						return 1;
-					}
-				}
-				if (undoBuffer)
-					free(undoBuffer);
-				return 0;
-			}
-			else	// simple attribute value
-			{
-				if (attrdef->m_type == KX_PYATTRIBUTE_TYPE_FUNCTION)
-				{
-					if (attrdef->m_setFunction == NULL)
-					{
-						PyErr_SetString(PyExc_AttributeError, "function attribute without function, report to blender.org");
-						return 1;
-					}
-					return (*attrdef->m_setFunction)(self, attrdef, value);
-				}
-				if (attrdef->m_checkFunction != NULL)
-				{
-					// post check function is provided, prepare undo buffer
-					sourceBuffer = ptr;
-					switch (attrdef->m_type) 
-					{
-					case KX_PYATTRIBUTE_TYPE_BOOL:
-						bufferSize = sizeof(bool);
-						break;
-					case KX_PYATTRIBUTE_TYPE_SHORT:
-						bufferSize = sizeof(short);
-						break;
-					case KX_PYATTRIBUTE_TYPE_ENUM:
-					case KX_PYATTRIBUTE_TYPE_INT:
-						bufferSize = sizeof(int);
-						break;
-					case KX_PYATTRIBUTE_TYPE_FLOAT:
-						bufferSize = sizeof(float);
-						break;
-					case KX_PYATTRIBUTE_TYPE_STRING:
-						sourceBuffer = reinterpret_cast<STR_String*>(ptr)->Ptr();
-						if (sourceBuffer)
-							bufferSize = strlen(reinterpret_cast<char*>(sourceBuffer))+1;
-						break;
-					default:
-						PyErr_SetString(PyExc_AttributeError, "unknown attribute type, report to blender.org");
-						return 1;
-					}
-					if (bufferSize)
-					{
-						undoBuffer = malloc(bufferSize);
-						if (undoBuffer)
-						{
-							memcpy(undoBuffer, sourceBuffer, bufferSize);
-						}
-					}
-				}
-					
-				switch (attrdef->m_type) 
-				{
-				case KX_PYATTRIBUTE_TYPE_BOOL:
-					{
-						bool *var = reinterpret_cast<bool*>(ptr);
-						if (PyInt_Check(value)) 
-						{
-							*var = (PyInt_AsLong(value) != 0);
-						} 
-						else if (PyBool_Check(value))
-						{
-							*var = (value == Py_True);
-						}
-						else
-						{
-							PyErr_SetString(PyExc_TypeError, "expected an integer or a bool");
-							goto FREE_AND_ERROR;
-						}
-						break;
-					}
-				case KX_PYATTRIBUTE_TYPE_SHORT:
-					{
-						short int *var = reinterpret_cast<short int*>(ptr);
-						if (PyInt_Check(value)) 
-						{
-							long val = PyInt_AsLong(value);
-							if (attrdef->m_clamp)
-							{
-								if (val < attrdef->m_imin)
-									val = attrdef->m_imin;
-								else if (val > attrdef->m_imax)
-									val = attrdef->m_imax;
-							}
-							else if (val < attrdef->m_imin || val > attrdef->m_imax)
-							{
-								PyErr_SetString(PyExc_ValueError, "value out of range");
-								goto FREE_AND_ERROR;
-							}
-							*var = (short int)val;
-						}
-						else
-						{
-							PyErr_SetString(PyExc_TypeError, "expected an integer");
-							goto FREE_AND_ERROR;
-						}
-						break;
-					}
-				case KX_PYATTRIBUTE_TYPE_ENUM:
-					// enum are equivalent to int, just make sure that the field size matches:
-					if (sizeof(int) != attrdef->m_size)
-					{
-						PyErr_SetString(PyExc_AttributeError, "attribute size check error, report to blender.org");
-						goto FREE_AND_ERROR;
-					}
-					// walkthrough
-				case KX_PYATTRIBUTE_TYPE_INT:
-					{
-						int *var = reinterpret_cast<int*>(ptr);
-						if (PyInt_Check(value)) 
-						{
-							long val = PyInt_AsLong(value);
-							if (attrdef->m_clamp)
-							{
-								if (val < attrdef->m_imin)
-									val = attrdef->m_imin;
-								else if (val > attrdef->m_imax)
-									val = attrdef->m_imax;
-							}
-							else if (val < attrdef->m_imin || val > attrdef->m_imax)
-							{
-								PyErr_SetString(PyExc_ValueError, "value out of range");
-								goto FREE_AND_ERROR;
-							}
-							*var = (int)val;
-						}
-						else
-						{
-							PyErr_SetString(PyExc_TypeError, "expected an integer");
-							goto FREE_AND_ERROR;
-						}
-						break;
-					}
-				case KX_PYATTRIBUTE_TYPE_FLOAT:
-					{
-						float *var = reinterpret_cast<float*>(ptr);
-						double val = PyFloat_AsDouble(value);
-						if (val == -1.0 && PyErr_Occurred())
-						{
-							PyErr_SetString(PyExc_TypeError, "expected a float");
-							goto FREE_AND_ERROR;
-						}
-						else if (attrdef->m_clamp)
-						{
-							if (val < attrdef->m_fmin)
-								val = attrdef->m_fmin;
-							else if (val > attrdef->m_fmax)
-								val = attrdef->m_fmax;
-						}
-						else if (val < attrdef->m_fmin || val > attrdef->m_fmax)
-						{
-							PyErr_SetString(PyExc_ValueError, "value out of range");
-							goto FREE_AND_ERROR;
-						}
-						*var = (float)val;
-						break;
-					}
-				case KX_PYATTRIBUTE_TYPE_STRING:
-					{
-						STR_String *var = reinterpret_cast<STR_String*>(ptr);
-						if (PyString_Check(value)) 
-						{
-							char *val = PyString_AsString(value);
-							if (attrdef->m_clamp)
-							{
-								if (strlen(val) < attrdef->m_imin)
-								{
-									// can't increase the length of the string
-									PyErr_SetString(PyExc_ValueError, "string length too short");
-									goto FREE_AND_ERROR;
-								}
-								else if (strlen(val) > attrdef->m_imax)
-								{
-									// trim the string
-									char c = val[attrdef->m_imax];
-									val[attrdef->m_imax] = 0;
-									*var = val;
-									val[attrdef->m_imax] = c;
-									break;
-								}
-							} else if (strlen(val) < attrdef->m_imin || strlen(val) > attrdef->m_imax)
-							{
-								PyErr_SetString(PyExc_ValueError, "string length out of range");
-								goto FREE_AND_ERROR;
-							}
-							*var = val;
-						}
-						else
-						{
-							PyErr_SetString(PyExc_TypeError, "expected a string");
-							goto FREE_AND_ERROR;
-						}
-						break;
-					}
-				default:
-					// should not happen
-					PyErr_SetString(PyExc_AttributeError, "unknown attribute type, report to blender.org");
-					goto FREE_AND_ERROR;
-				}
-			}
-			// check if post processing is needed
-			if (attrdef->m_checkFunction != NULL)
-			{
-				if ((*attrdef->m_checkFunction)(self, attrdef) != 0)
-				{
-					// restore value
-				RESTORE_AND_ERROR:
-					if (undoBuffer)
-					{
-						if (attrdef->m_type == KX_PYATTRIBUTE_TYPE_STRING)
-						{
-							// special case for STR_String: restore the string
-							STR_String *var = reinterpret_cast<STR_String*>(ptr);
-							*var = reinterpret_cast<char*>(undoBuffer);
-						}
-						else
-						{
-							// other field type have direct values
-							memcpy(ptr, undoBuffer, bufferSize);
-						}
-					}
-				FREE_AND_ERROR:
-					if (undoBuffer)
-						free(undoBuffer);
-					return 1;
-				}
-			}
-			if (undoBuffer)
-				free(undoBuffer);
-			return 0;
+			
+			return py_set_attrdef(self, attrdef, value);
 		}
 	}
 	return -1;			
 }
+#endif
 
 /*------------------------------
  * PyObjectPlus repr		-- representations

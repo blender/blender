@@ -224,16 +224,10 @@ PyAttributeDef KX_NetworkMessageSensor::Attributes[] = {
 };
 
 PyObject* KX_NetworkMessageSensor::py_getattro(PyObject *attr) {
-	PyObject* object = py_getattro_self(Attributes, this, attr);
-	if (object != NULL)
-		return object;
 	py_getattro_up(SCA_ISensor);
 }
 
 int KX_NetworkMessageSensor::py_setattro(PyObject *attr, PyObject *value) {
-	int ret = py_setattro_self(Attributes, this, attr, value);
-	if (ret >= 0)
-		return ret;
 	return SCA_ISensor::py_setattro(attr, value);
 }
 

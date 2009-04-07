@@ -278,18 +278,12 @@ PyAttributeDef KX_SceneActuator::Attributes[] = {
 
 PyObject* KX_SceneActuator::py_getattro(PyObject *attr)
 {
-	PyObject* object = py_getattro_self(Attributes, this, attr);
-	if (object != NULL)
-		return object;
 	py_getattro_up(SCA_IActuator);
 }
 
 int KX_SceneActuator::py_setattro(PyObject *attr, PyObject *value)
 {
-	int ret = py_setattro_self(Attributes, this, attr, value);
-	if (ret >= 0)
-		return ret;
-	return SCA_IActuator::py_setattro(attr, value);
+	py_setattro_up(SCA_IActuator);
 }
 
 PyObject* KX_SceneActuator::pyattr_get_camera(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef)

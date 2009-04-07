@@ -534,20 +534,12 @@ PyParentObject KX_Camera::Parents[] = {
 
 PyObject* KX_Camera::py_getattro(PyObject *attr)
 {
-	PyObject* object = py_getattro_self(Attributes, this, attr);
-	if (object != NULL)
-		return object;
-	
 	py_getattro_up(KX_GameObject);
 }
 
 int KX_Camera::py_setattro(PyObject *attr, PyObject *value)
 {
-	int ret = py_setattro_self(Attributes, this, attr, value);
-	if (ret >= 0)
-		return ret;
-	
-	return KX_GameObject::py_setattro(attr, value);
+	py_setattro_up(KX_GameObject);
 }
 
 KX_PYMETHODDEF_DOC_VARARGS(KX_Camera, sphereInsideFrustum,

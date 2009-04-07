@@ -332,18 +332,10 @@ PyAttributeDef KX_NearSensor::Attributes[] = {
 
 PyObject* KX_NearSensor::py_getattro(PyObject *attr)
 {
-	PyObject* object = py_getattro_self(Attributes, this, attr);
-	if (object != NULL)
-		return object;
-
 	py_getattro_up(KX_TouchSensor);
 }
 
 int KX_NearSensor::py_setattro(PyObject*attr, PyObject* value)
 {
-	int ret = py_setattro_self(Attributes, this, attr, value);
-	if (ret >= 0)
-		return ret;
-
-	return KX_TouchSensor::py_setattro(attr, value);
+	py_setattro_up(KX_TouchSensor);
 }

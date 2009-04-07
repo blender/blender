@@ -99,20 +99,42 @@ static inline void Py_Fatal(const char *M) {
 								// to be properly passed up the hierarchy.
 
 #define py_getattro_up(Parent) \
-	PyObject *rvalue; \
+	\
 	PyObject *descr = PyDict_GetItem(Type.tp_dict, attr); \
 	 \
-	if (descr == NULL) { \
-		PyErr_Clear(); \
-		rvalue = Parent::py_getattro(attr); \
+	if(descr) { \
+		if (PyCObject_Check(descr)) { \
+			return py_get_attrdef((void *)this, (const PyAttributeDef*)PyCObject_AsVoidPtr(descr)); \
+		} else { \
+			return PyCFunction_New(((PyMethodDescrObject *)descr)->d_method, (PyObject *)this); \
+		} \
 	} else { \
-		rvalue= PyCFunction_New(((PyMethodDescrObject *)descr)->d_method, (PyObject *)this); \
+		PyErr_Clear(); \
+		PyObject *rvalue= Parent::py_getattro(attr); \
+		 \
+		if (strcmp(PyString_AsString(attr), "__dict__")==0) { \
+			return py_getattr_dict(rvalue, Methods, Attributes); \
+		} \
+		 \
+		return rvalue; \
 	} \
-	\
-	if (strcmp(PyString_AsString(attr), "__dict__")==0) {\
-		rvalue = py_getattr_dict(rvalue, Methods, Attributes); \
-	} \
-	return rvalue; \
+	return NULL;
+
+
+#define py_setattro_up(Parent) \
+	PyObject *descr = PyDict_GetItem(Type.tp_dict, attr); \
+	 \
+	if(descr) { \
+		if (PyCObject_Check(descr)) { \
+			return py_set_attrdef((void *)this, (const PyAttributeDef*)PyCObject_AsVoidPtr(descr), value); \
+		} else { \
+			PyErr_Format(PyExc_AttributeError, "\"%s\" cannot be set", PyString_AsString(attr)); \
+			return -1; \
+		} \
+	} else { \
+		PyErr_Clear(); \
+		return Parent::py_setattro(attr, value); \
+	}
 
 
 /**
@@ -376,8 +398,14 @@ public:
 	{
 		return ((PyObjectPlus*) PyObj)->py_getattro(attr); 
 	}
+	
+	static PyObject*	py_get_attrdef(void *self, const PyAttributeDef *attrdef);
+	static int			py_set_attrdef(void *self, const PyAttributeDef *attrdef, PyObject *value);
+	
+#if 0
 	static PyObject *py_getattro_self(const PyAttributeDef attrlist[], void *self, PyObject *attr);
 	static int py_setattro_self(const PyAttributeDef attrlist[], void *self, PyObject *attr, PyObject *value);
+#endif
 	
 	virtual int py_delattro(PyObject *attr);
 	virtual int py_setattro(PyObject *attr, PyObject *value);		// py_setattro method

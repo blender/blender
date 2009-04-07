@@ -232,21 +232,13 @@ PyParentObject KX_PolygonMaterial::Parents[] = {
 };
 
 PyObject* KX_PolygonMaterial::py_getattro(PyObject *attr)
-{
-	PyObject* object = py_getattro_self(Attributes, this, attr);
-	if (object != NULL)
-		return object;
-	
+{	
 	py_getattro_up(PyObjectPlus);
 }
 
 int KX_PolygonMaterial::py_setattro(PyObject *attr, PyObject *value)
 {
-	int ret = py_setattro_self(Attributes, this, attr, value);
-	if (ret >= 0)
-		return ret;
-
-	return PyObjectPlus::py_setattro(attr, value);
+	py_setattro_up(PyObjectPlus);
 }
 
 KX_PYMETHODDEF_DOC(KX_PolygonMaterial, setCustomMaterial, "setCustomMaterial(material)")

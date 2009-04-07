@@ -136,18 +136,12 @@ PyAttributeDef KX_VisibilityActuator::Attributes[] = {
 
 PyObject* KX_VisibilityActuator::py_getattro(PyObject *attr)
 {
-	PyObject* object = py_getattro_self(Attributes, this, attr);
-	if (object != NULL)
-		return object;
 	py_getattro_up(SCA_IActuator);
 }
 
 int KX_VisibilityActuator::py_setattro(PyObject *attr, PyObject *value)
 {
-	int ret = py_setattro_self(Attributes, this, attr, value);
-	if (ret >= 0)
-		return ret;
-	return SCA_IActuator::py_setattro(attr, value);
+	py_setattro_up(SCA_IActuator);
 }
 
 

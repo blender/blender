@@ -1594,11 +1594,7 @@ PyAttributeDef KX_Scene::Attributes[] = {
 
 PyObject* KX_Scene::py_getattro(PyObject *attr)
 {
-	PyObject* object = py_getattro_self(Attributes, this, attr);
-	if (object != NULL)
-		return object;
-	
-	object = PyDict_GetItem(m_attrlist, attr);
+	PyObject *object = PyDict_GetItem(m_attrlist, attr);
 	if (object)
 	{
 		Py_INCREF(object);

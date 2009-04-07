@@ -280,18 +280,12 @@ int SCA_ILogicBrick::CheckProperty(void *self, const PyAttributeDef *attrdef)
 PyObject*
 SCA_ILogicBrick::py_getattro(PyObject *attr)
 {
-	PyObject* object = py_getattro_self(Attributes, this, attr);
-	if (object != NULL)
-		return object;
   py_getattro_up(CValue);
 }
 
 int SCA_ILogicBrick::py_setattro(PyObject *attr, PyObject *value)
 {
-	int ret = py_setattro_self(Attributes, this, attr, value);
-	if (ret >= 0)
-		return ret;
-	return CValue::py_setattro(attr, value);
+	py_setattro_up(CValue);
 }
 
 

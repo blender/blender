@@ -99,10 +99,6 @@ void KX_MeshProxy::SetMeshModified(bool v)
 
 PyObject* KX_MeshProxy::py_getattro(PyObject *attr)
 {
-	PyObject* object = py_getattro_self(Attributes, this, attr);
-	if (object != NULL)
-		return object;
-	
  	py_getattro_up(SCA_IObject);
 }
 
