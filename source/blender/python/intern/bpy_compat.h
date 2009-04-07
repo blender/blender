@@ -75,6 +75,7 @@
 /* older then python 2.5 - define these */
 #if (PY_VERSION_HEX < 0x02050000)
 #define Py_ssize_t ssize_t
+typedef Py_ssize_t (*lenfunc)(PyObject *);
 #ifndef Py_RETURN_NONE
 #define Py_RETURN_NONE	return Py_BuildValue("O", Py_None)
 #endif
