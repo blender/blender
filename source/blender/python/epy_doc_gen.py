@@ -18,13 +18,16 @@
  #
  # #**** END GPL LICENSE BLOCK #****
 
-# Usage,
-# run this script from blenders root path once you have compiled blender
-# ./blender.bin -b -P source/blender/python/epy_doc_gen.py
-# 
-# This will generate rna.py, generate html docs  by running...
-# epydoc source/blender/python/doc/rna.py -o source/blender/python/doc/html -v --no-sourcecode --name="RNA API" --url="http://brechtvanlommelfanclub.com" --graph=classtree
-# 
+script_help_msg = '''
+Usage,
+run this script from blenders root path once you have compiled blender
+	./blender.bin -P source/blender/python/epy_doc_gen.py
+
+This will generate rna.py, generate html docs  by running...
+	epydoc source/blender/python/doc/rna.py -o source/blender/python/doc/html -v --no-sourcecode  --no-sourcecode  --graph=classtree
+	epydoc source/blender/python/doc/bpyoperator.py -o source/blender/python/doc/html -v --no-sourcecode  --no-sourcecode  --graph=classtree
+'''
+
 # if you dont have graphvis installed ommit the --graph arg.
 
 def range_str(val):
@@ -451,6 +454,14 @@ def op2epy(target_path):
 	out.close()
 
 if __name__ == '__main__':
-	rna2epy('source/blender/python/doc/rna.py')
-	op2epy('source/blender/python/doc/bpyoperator.py')
+	if 'bpy' not in dir():
+		print "\nError, this script must run from inside blender."
+		print script_help_msg
+		
+	else:
+		rna2epy('source/blender/python/doc/rna.py')
+		op2epy('source/blender/python/doc/bpyoperator.py')
 
+
+	import sys
+	sys.exit()
