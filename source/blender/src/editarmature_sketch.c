@@ -1011,7 +1011,22 @@ void sk_drawStroke(SK_Stroke *stk, int id, float color[3], int start, int end)
 		}
 		
 		glEnd();
-	
+
+#if 0	
+		glColor3f(0, 0, 1);
+		glBegin(GL_LINES);
+
+		for (i = 0; i < stk->nb_points; i++)
+		{
+			float *p = stk->points[i].p;
+			float *no = stk->points[i].no;
+			glVertex3fv(p);
+			glVertex3f(p[0] + no[0], p[1] + no[1], p[2] + no[2]);
+		}
+		
+		glEnd();
+#endif
+
 		glColor3f(0, 0, 0);
 		glBegin(GL_POINTS);
 	
@@ -1961,7 +1976,7 @@ void sk_convertStroke(SK_Stroke *stk)
 
 					Mat4MulVecfl(invmat, bone->head);
 					Mat4MulVecfl(invmat, bone->tail);
-					setBoneRollFromNormal(bone, pt->no, invmat, tmat);
+					setBoneRollFromNormal(bone, head->no, invmat, tmat);
 				}
 				
 				new_parent = bone;

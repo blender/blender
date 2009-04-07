@@ -51,14 +51,14 @@ void setBoneRollFromNormal(EditBone *bone, float *no, float invmat[][4], float t
 {
 	if (no != NULL && !VecIsNull(no))
 	{
-		float tangent[3], cotangent[3], normal[3];
+		float tangent[3], vec[3], normal[3];
 
 		VECCOPY(normal, no);	
 		Mat3MulVecfl(tmat, normal);
 
 		VecSubf(tangent, bone->tail, bone->head);
-		Crossf(cotangent, tangent, normal);
-		Crossf(normal, cotangent, tangent);
+		Projf(vec, tangent, normal);
+		VecSubf(normal, normal, vec);
 		
 		Normalize(normal);
 		
