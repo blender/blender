@@ -93,6 +93,7 @@ class SCA_JoystickSensor :public SCA_ISensor
 		KX_JOYSENSORMODE_AXIS,
 		KX_JOYSENSORMODE_BUTTON,
 		KX_JOYSENSORMODE_HAT,
+		KX_JOYSENSORMODE_AXIS_SINGLE,
 		KX_JOYSENSORMODE_MAX
 	};
 	bool isValid(KX_JOYSENSORMODE);
@@ -148,7 +149,8 @@ public:
 	KX_PYMETHOD_DOC_NOARGS(SCA_JoystickSensor,NumberOfHats);
 	KX_PYMETHOD_DOC_NOARGS(SCA_JoystickSensor,Connected);
 
-	static PyObject*	pyattr_get_axis_position(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject*	pyattr_get_axis_values(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject*	pyattr_get_axis_single(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static PyObject*	pyattr_get_num_axis(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static PyObject*	pyattr_get_num_buttons(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static PyObject*	pyattr_get_num_hats(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);

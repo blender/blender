@@ -55,10 +55,8 @@ class SCA_Joystick
 	/* 
 	 *support for 2 axes 
 	 */
-
-	int m_axis10,m_axis11;
-	int m_axis20,m_axis21;
-
+	int m_axis_array[JOYAXIS_MAX];
+	
 	/*
 	 * Precision or range of the axes
 	 */
@@ -120,7 +118,10 @@ class SCA_Joystick
 	void OnButtonUp(SDL_Event *sdl_event);
 	void OnButtonDown(SDL_Event *sdl_event);
 	void OnNothing(SDL_Event *sdl_event);
+#if 0 /* not used yet */
 	void OnBallMotion(SDL_Event *sdl_event){}
+#endif
+		
 #endif
 	/*
 	 * Open the joystick
@@ -139,12 +140,12 @@ class SCA_Joystick
 	void pFillButtons(void);
 
 	/*
-	 * returns m_axis10,m_axis11...
+	 * returns m_axis_array
 	 */
 
 	int pAxisTest(int axisnum);
 	/*
-	 * returns m_axis10,m_axis11...
+	 * returns m_axis_array
 	 */
 	int pGetAxis(int axisnum, int udlr);
 
@@ -166,11 +167,9 @@ public:
 
 	/*
 	 */
-	bool aAnyAxisIsPositive(int axis);
-	bool aUpAxisIsPositive(int axis);
-	bool aDownAxisIsPositive(int axis);
-	bool aLeftAxisIsPositive(int axis);
-	bool aRightAxisIsPositive(int axis);
+	bool aAxisPairIsPositive(int axis);
+	bool aAxisPairDirectionIsPositive(int axis, int dir); /* function assumes joysticks are in axis pairs */
+	bool aAxisIsPositive(int axis_single); /* check a single axis only */
 
 	bool aAnyButtonPressIsPositive(void);
 	bool aAnyButtonReleaseIsPositive(void);
@@ -184,24 +183,10 @@ public:
 
 	void cSetPrecision(int val);
 
-	int GetAxis10(void){
-
-		return m_axis10;
-
+	int GetAxisPosition(int index){
+		return m_axis_array[index];
 	}
-
-	int GetAxis11(void){
-		return m_axis11;
-	}
-
-	int GetAxis20(void){
-		return m_axis20;
-	}
-
-	int GetAxis21(void){
-		return m_axis21;
-	}
-
+	
 	int GetButton(void){
 		return m_buttonnum;
 	}

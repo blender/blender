@@ -1457,32 +1457,33 @@ static short draw_sensorbuttons(bSensor *sens, uiBlock *block, short xco, short 
 			&joy->joyindex, 0, SENS_JOY_MAXINDEX-1, 100, 0,
 			"Specify which joystick to use");			
 
-			str= "Type %t|Button %x0|Axis %x1|Hat%x2"; 
+			str= "Type %t|Button %x0|Axis %x1|Single Axis %x3|Hat%x2"; 
 			uiDefButC(block, MENU, B_REDR, str, xco+87, yco-44, 0.26 * (width-20), 19,
 				&joy->type, 0, 31, 0, 0,
 				"The type of event this joystick sensor is triggered on.");
 			
-			if (joy->flag & SENS_JOY_ANY_EVENT) {
-				switch (joy->type) {
-				case SENS_JOY_AXIS:	
-					str = "All Axis Events";
-					break;
-				case SENS_JOY_BUTTON:	
-					str = "All Button Events";
-					break;
-				default:
-					str = "All Hat Events";
-					break;
+			if (joy->type != SENS_JOY_AXIS_SINGLE) {
+				if (joy->flag & SENS_JOY_ANY_EVENT) {
+					switch (joy->type) {
+					case SENS_JOY_AXIS:	
+						str = "All Axis Events";
+						break;
+					case SENS_JOY_BUTTON:	
+						str = "All Button Events";
+						break;
+					default:
+						str = "All Hat Events";
+						break;
+					}
+				} else {
+					str = "All";
 				}
-			} else {
-				str = "All";
+				
+				uiDefButBitS(block, TOG, SENS_JOY_ANY_EVENT, B_REDR, str,
+					xco+10 + 0.475 * (width-20), yco-68, ((joy->flag & SENS_JOY_ANY_EVENT) ? 0.525 : 0.12) * (width-20), 19,
+					&joy->flag, 0, 0, 0, 0,
+					"Triggered by all events on this joysticks current type (axis/button/hat)");
 			}
-			
-			uiDefButBitS(block, TOG, SENS_JOY_ANY_EVENT, B_REDR, str,
-				xco+10 + 0.475 * (width-20), yco-68, ((joy->flag & SENS_JOY_ANY_EVENT) ? 0.525 : 0.12) * (width-20), 19,
-				&joy->flag, 0, 0, 0, 0,
-				"Triggered by all events on this joysticks current type (axis/button/hat)");
-			
 			if(joy->type == SENS_JOY_BUTTON)
 			{
 				if ((joy->flag & SENS_JOY_ANY_EVENT)==0) {
@@ -1493,8 +1494,8 @@ static short draw_sensorbuttons(bSensor *sens, uiBlock *block, short xco, short 
 			}
 			else if(joy->type == SENS_JOY_AXIS)
 			{
-				uiDefButI(block, NUM, 1, "Number:", xco+10, yco-68, 0.46 * (width-20), 19,
-				&joy->axis, 1, 2.0, 100, 0,
+				uiDefButS(block, NUM, 1, "Number:", xco+10, yco-68, 0.46 * (width-20), 19,
+				&joy->axis, 1, 4.0, 100, 0,
 				"Specify which axis pair to use, 1 is useually the main direction input.");
 
 				uiDefButI(block, NUM, 1, "Threshold:", xco+10 + 0.6 * (width-20),yco-44, 0.4 * (width-20), 19,
@@ -1508,7 +1509,7 @@ static short draw_sensorbuttons(bSensor *sens, uiBlock *block, short xco, short 
 					"The direction of the axis, use 'All Events' to recieve events on any direction");
 				}
 			}
-			else
+			else if (joy->type == SENS_JOY_HAT)
 			{
 				uiDefButI(block, NUM, 1, "Number:", xco+10, yco-68, 0.46 * (width-20), 19,
 				&joy->hat, 1, 2.0, 100, 0,
@@ -1519,6 +1520,15 @@ static short draw_sensorbuttons(bSensor *sens, uiBlock *block, short xco, short 
 					&joy->hatf, 0, 12, 100, 0,
 					"Specify hat direction");
 				}
+			}
+			else { /* (joy->type == SENS_JOY_AXIS_SINGLE)*/
+				uiDefButS(block, NUM, 1, "Number:", xco+10, yco-68, 0.46 * (width-20), 19,
+				&joy->axis_single, 1, 8.0, 100, 0,
+				"Specify a single axis (verticle/horizontal/other) to detect");
+				
+				uiDefButI(block, NUM, 1, "Threshold:", xco+10 + 0.6 * (width-20),yco-44, 0.4 * (width-20), 19,
+				&joy->precision, 0, 32768.0, 100, 0,
+				"Specify the precision of the axis");
 			}
 			yco-= ysize;
 			break;
