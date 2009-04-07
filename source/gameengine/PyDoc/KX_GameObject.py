@@ -328,13 +328,13 @@ class KX_GameObject: # (SCA_IObject)
 	def getChildren():
 		"""
 		Return a list of immediate children of this object.
-		@rtype: list
+		@rtype: L{CListValue<CListValue.CListValue>} of L{KX_GameObject<KX_GameObject.KX_GameObject>}
 		@return: a list of all this objects children.
 		"""
 	def getChildrenRecursive():
 		"""
 		Return a list of children of this object, including all their childrens children.
-		@rtype: list
+		@rtype: L{CListValue<CListValue.CListValue>} of L{KX_GameObject<KX_GameObject.KX_GameObject>}
 		@return: a list of all this objects children recursivly.
 		"""
 	def getMesh(mesh):

@@ -85,7 +85,7 @@ for type_name in sorted(type_members.keys()):
 		if PRINT_OK:
 			print "type: %s" % type_name
 	except:
-		print "missing: %s - %s" % (type_name, str(members))
+		print "missing: %s - %s" % (type_name, str(sorted(members)))
 		continue
 	
 	reload(mod) # incase were editing it
@@ -93,7 +93,7 @@ for type_name in sorted(type_members.keys()):
 	try:
 		type_class = getattr(mod, type_name)
 	except:
-		print "missing class: %s.%s - %s" % (type_name, type_name, str(members))
+		print "missing class: %s.%s - %s" % (type_name, type_name, str(sorted(members)))
 		continue
 	
 	for member in sorted(members):
