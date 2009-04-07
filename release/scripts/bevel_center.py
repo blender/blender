@@ -1,5 +1,5 @@
 #!BPY
-# coding: utf-8
+# -*- coding: utf-8 -*-
 """ Registration info for Blender menus
 Name: 'Bevel Center'
 Blender: 243
@@ -33,8 +33,6 @@ Notes:<br>
 	You can undo and redo your steps just like with normal mesh operations in
 Blender.
 """
-
-# -*- coding: UTF-8 -*-
 
 ######################################################################
 # Bevel Center v2.0 for Blender
