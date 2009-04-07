@@ -628,7 +628,7 @@ static int pyrna_prop_assign_subscript( BPy_PropertyRNA * self, PyObject *key, P
 
 
 static PyMappingMethods pyrna_prop_as_mapping = {
-	( inquiry ) pyrna_prop_len,	/* mp_length */
+	( lenfunc ) pyrna_prop_len,	/* mp_length */
 	( binaryfunc ) pyrna_prop_subscript,	/* mp_subscript */
 	( objobjargproc ) pyrna_prop_assign_subscript,	/* mp_ass_subscript */
 };
@@ -1819,11 +1819,13 @@ static PyObject *pyrna_basetype_dir(BPy_BaseTypeRNA *self)
 	return list;
 }
 
-PyTypeObject pyrna_basetype_Type = {};
+PyTypeObject pyrna_basetype_Type;
 
 PyObject *BPY_rna_types(void)
 {
 	BPy_BaseTypeRNA *self;
+
+	memset(&pyrna_basetype_Type, 0, sizeof(pyrna_basetype_Type));
 	pyrna_basetype_Type.tp_name = "RNA_Types";
 	pyrna_basetype_Type.tp_basicsize = sizeof( BPy_BaseTypeRNA );
 	pyrna_basetype_Type.tp_getattro = ( getattrofunc )pyrna_basetype_getattro;
