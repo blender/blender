@@ -78,6 +78,7 @@
 extern "C" {
 	#include "Mathutils.h" // Blender.Mathutils module copied here so the blenderlayer can use.
 	#include "bpy_internal_import.h"  /* from the blender python api, but we want to import text too! */
+	#include "BGL.h"
 }
 
 #include "marshal.h" /* python header for loading/saving dicts */
@@ -1168,7 +1169,7 @@ PyObject *KXpy_import(PyObject *self, PyObject *args)
 	/* quick hack for GamePython modules 
 		TODO: register builtin modules properly by ExtendInittab */
 	if (!strcmp(name, "GameLogic") || !strcmp(name, "GameKeys") || !strcmp(name, "PhysicsConstraints") ||
-		!strcmp(name, "Rasterizer") || !strcmp(name, "Mathutils")) {
+		!strcmp(name, "Rasterizer") || !strcmp(name, "Mathutils") || !strcmp(name, "BGL")) {
 		return PyImport_ImportModuleEx(name, globals, locals, fromlist);
 	}
 	
@@ -1357,6 +1358,8 @@ static void clearGameModules()
 	clearModule(modules, "Rasterizer");	
 	clearModule(modules, "GameKeys");	
 	clearModule(modules, "VideoTexture");	
+	clearModule(modules, "Mathutils");	
+	clearModule(modules, "BGL");	
 	PyErr_Clear(); // incase some of these were alredy removed.
 }
 
@@ -1594,6 +1597,11 @@ PyObject* initGameKeys()
 PyObject* initMathutils()
 {
 	return Mathutils_Init("Mathutils"); // Use as a top level module in BGE
+}
+
+PyObject* initBGL()
+{
+	return BGL_Init("BGL"); // Use as a top level module in BGE
 }
 
 void KX_SetActiveScene(class KX_Scene* scene)

@@ -43,6 +43,7 @@
 #include <Python.h>
 #include "BIF_gl.h"
 
+PyObject *BGL_Init( const char *from );
 
 /*@ Buffer Object */
 /*@ For Python access to OpenGL functions requiring a pointer. */

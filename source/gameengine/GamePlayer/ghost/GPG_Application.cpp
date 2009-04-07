@@ -689,6 +689,7 @@ bool GPG_Application::startEngine(void)
 		initGameKeys();
 		initPythonConstraintBinding();
 		initMathutils();
+		initBGL();
 #ifdef WITH_FFMPEG
         initVideoTexture();
 #endif
