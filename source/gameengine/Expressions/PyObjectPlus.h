@@ -105,15 +105,18 @@ static inline void Py_Fatal(const char *M) {
 	if(descr) { \
 		if (PyCObject_Check(descr)) { \
 			return py_get_attrdef((void *)this, (const PyAttributeDef*)PyCObject_AsVoidPtr(descr)); \
-		} else { \
+		} else if (descr->ob_type->tp_descr_get) { \
 			return PyCFunction_New(((PyMethodDescrObject *)descr)->d_method, (PyObject *)this); \
+		} else { \
+			fprintf(stderr, "unknown attribute type"); \
+			return descr; \
 		} \
 	} else { \
 		PyErr_Clear(); \
 		PyObject *rvalue= Parent::py_getattro(attr); \
 		 \
 		if (strcmp(PyString_AsString(attr), "__dict__")==0) { \
-			return py_getattr_dict(rvalue, Methods, Attributes); \
+			return py_getattr_dict(rvalue, Type.tp_dict); \
 		} \
 		 \
 		return rvalue; \
@@ -434,7 +437,7 @@ public:
 	}
 };
 
-PyObject *py_getattr_dict(PyObject *pydict, PyMethodDef *meth, PyAttributeDef *attrdef);
+PyObject *py_getattr_dict(PyObject *pydict, PyObject *tp_dict);
 
 #endif //  _adr_py_lib_h_
 

@@ -60,6 +60,12 @@ public:
 	bool CheckEqual(CValue* first,CValue* second);
 
 	virtual PyObject* py_getattro(PyObject* attr);
+	virtual PyObject* py_repr(void) {
+		PyObject *py_list= PySequence_List((PyObject *)this);
+		PyObject *py_string= PyObject_Repr(py_list);
+		Py_DECREF(py_list);
+		return py_string;
+	}
 
 	KX_PYMETHOD_O(CListValue,append);
 	KX_PYMETHOD_NOARGS(CListValue,reverse);

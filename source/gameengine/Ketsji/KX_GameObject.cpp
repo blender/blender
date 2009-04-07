@@ -1486,7 +1486,7 @@ PyObject* KX_GameObject::pyattr_get_dir_dict(void *self_v, const KX_PYATTRIBUTE_
 {
 	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
 	PyObject *dict_str = PyString_FromString("__dict__");
-	PyObject *dict= py_getattr_dict(self->SCA_IObject::py_getattro(dict_str), KX_GameObject::Methods, KX_GameObject::Attributes);
+	PyObject *dict= py_getattr_dict(self->SCA_IObject::py_getattro(dict_str), Type.tp_dict);
 	Py_DECREF(dict_str);
 	
 	if(dict==NULL)

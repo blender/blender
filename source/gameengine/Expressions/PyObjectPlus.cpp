@@ -115,7 +115,7 @@ PyObject *PyObjectPlus::py_getattro(PyObject* attr)
 	PyObject *descr = PyDict_GetItem(Type.tp_dict, attr); \
 	if (descr == NULL) {
 		if (strcmp(PyString_AsString(attr), "__dict__")==0) {
-			return py_getattr_dict(NULL, Methods, NULL); /* no Attributes yet */
+			return py_getattr_dict(NULL, Type.tp_dict); /* no Attributes yet */
 		}
 		PyErr_SetString(PyExc_AttributeError, "attribute not found");
 		return NULL;
@@ -767,25 +767,14 @@ PyObject *PyObjectPlus::Py_isA(PyObject *value)		// Python wrapper for isA
  * Other then making dir() useful the value returned from __dict__() is not useful
  * since every value is a Py_None
  * */
-PyObject *py_getattr_dict(PyObject *pydict, PyMethodDef *meth, PyAttributeDef *attrdef)
+PyObject *py_getattr_dict(PyObject *pydict, PyObject *tp_dict)
 {
     if(pydict==NULL) { /* incase calling __dict__ on the parent of this object raised an error */
     	PyErr_Clear();
     	pydict = PyDict_New();
     }
 	
-    if(meth) {
-		for (; meth->ml_name != NULL; meth++) {
-			PyDict_SetItemString(pydict, meth->ml_name, Py_None);
-		}
-	}
-	
-    if(attrdef) {
-		for (; attrdef->m_name != NULL; attrdef++) {
-			PyDict_SetItemString(pydict, attrdef->m_name, Py_None);
-		}
-	}
-
+	PyDict_Update(pydict, tp_dict);
 	return pydict;
 }
 
