@@ -78,13 +78,7 @@ typedef struct GlyphCacheBLF {
 	float descender;
 } GlyphCacheBLF;
 
-typedef struct GlyphBLF {
-	struct GlyphBLF *next;
-	struct GlyphBLF *prev;
-
-	/* and the character, as UTF8 */
-	unsigned int c;
-
+typedef struct GlyphTextureBLF {
 	/* texture id where this glyph is store. */
 	GLuint tex;
 
@@ -96,14 +90,8 @@ typedef struct GlyphBLF {
 	int width;
 	int height;
 
-	/* glyph bounding box. */
-	rctf box;
-
 	/* uv coords. */
 	float uv[2][2];
-
-	/* advance value. */
-	float advance;
 
 	/* X and Y bearing of the glyph.
 	 * The X bearing is from the origin to the glyph left bbox edge.
@@ -111,6 +99,38 @@ typedef struct GlyphBLF {
 	 */
 	float pos_x;
 	float pos_y;
+} GlyphTextureBLF;
+
+typedef struct GlyphBitmapBLF {
+	/* image data. */
+	unsigned char *image;
+
+	int width;
+	int height;
+	int pitch;
+
+	float pos_x;
+	float pos_y;
+} GlyphBitmapBLF;
+
+typedef struct GlyphBLF {
+	struct GlyphBLF *next;
+	struct GlyphBLF *prev;
+
+	/* and the character, as UTF8 */
+	unsigned int c;
+
+	/* glyph box. */
+	rctf box;
+
+	/* advance size. */
+	float advance;
+
+	/* texture information. */
+	GlyphTextureBLF *tex_data;
+
+	/* bitmap information. */
+	GlyphBitmapBLF *bitmap_data;
 } GlyphBLF;
 
 typedef struct FontBLF {

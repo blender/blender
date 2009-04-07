@@ -37,23 +37,40 @@ void BLF_exit(void);
 int BLF_load(char *name);
 int BLF_load_mem(char *name, unsigned char *mem, int mem_size);
 
+/*
+ * Set/Get the current font.
+ */
 void BLF_set(int fontid);
+int BLF_get(void);
+
 void BLF_aspect(float aspect);
 void BLF_position(float x, float y, float z);
 void BLF_size(int size, int dpi);
 void BLF_draw(char *str);
 
+/*
+ * This function return the bounding box of the string
+ * and are not multiplied by the aspect.
+ */
 void BLF_boundbox(char *str, struct rctf *box);
+
+/*
+ * The next both function return the width and height
+ * of the string, using the current font and both value 
+ * are multiplied by the aspect of the font.
+ */
 float BLF_width(char *str);
 float BLF_height(char *str);
+
+/*
+ * By default, rotation and clipping are disable and
+ * have to be enable/disable using BLF_enable/disable.
+ */
 void BLF_rotation(float angle);
 void BLF_clipping(float xmin, float ymin, float xmax, float ymax);
 
 void BLF_enable(int option);
 void BLF_disable(int option);
-
-/* return the id of the current font. */
-int BLF_get(void);
 
 /* Read the .Blanguages file, return 1 on success or 0 if fails. */
 int BLF_lang_init(void);

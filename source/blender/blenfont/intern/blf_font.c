@@ -135,6 +135,17 @@ void blf_font_draw(FontBLF *font, char *str)
 		if (!g)
 			continue;
 
+		/*
+		 * This happen if we change the mode of the
+		 * font, we don't drop the glyph cache, so it's
+		 * possible that some glyph don't have the
+		 * bitmap or texture information.
+		 */
+		if (font->mode == BLF_MODE_BITMAP && (!g->bitmap_data))
+			g= blf_glyph_add(font, glyph_index, c);
+		else if (font->mode == BLF_MODE_TEXTURE && (!g->tex_data))
+			g= blf_glyph_add(font, glyph_index, c);
+
 		if (has_kerning && g_prev) {
 			delta.x= 0;
 			delta.y= 0;
@@ -193,6 +204,17 @@ void blf_font_boundbox(FontBLF *font, char *str, rctf *box)
 		/* if we don't found a glyph, skip it. */
 		if (!g)
 			continue;
+
+		/*
+		 * This happen if we change the mode of the
+		 * font, we don't drop the glyph cache, so it's
+		 * possible that some glyph don't have the
+		 * bitmap or texture information.
+		 */
+		if (font->mode == BLF_MODE_BITMAP && (!g->bitmap_data))
+			g= blf_glyph_add(font, glyph_index, c);
+		else if (font->mode == BLF_MODE_TEXTURE && (!g->tex_data))
+			g= blf_glyph_add(font, glyph_index, c);
 
 		if (has_kerning && g_prev) {
 			delta.x= 0;

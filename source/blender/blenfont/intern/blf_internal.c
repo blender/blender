@@ -291,6 +291,14 @@ float blf_internal_height(FontBLF *font, char *str)
 
 void blf_internal_free(FontBLF *font)
 {
+	FontDataBLF *data;
+
+	data= (FontDataBLF *)font->engine;
+	if (data->texid != 0) {
+		glDeleteTextures(1, &data->texid);
+		data->texid= 0;
+	}
+
 	MEM_freeN(font->name);
 	MEM_freeN(font);
 }
