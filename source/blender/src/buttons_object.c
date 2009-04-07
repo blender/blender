@@ -3360,6 +3360,7 @@ static void object_panel_fields(Object *ob)
 		ob->pd->pdef_sbdamp = 0.1f;
 		ob->pd->pdef_sbift  = 0.2f;
 		ob->pd->pdef_sboft  = 0.02f;
+		ob->pd->tex_nabla = 0.025f;
 	}
 	
 	if(ob->pd) {
@@ -3467,7 +3468,7 @@ static void object_panel_fields(Object *ob)
 			else if(pd->forcefield==PFIELD_TEXTURE){
 				uiDefButS(block, MENU, B_FIELD_CHANGE, "Texture mode%t|RGB%x0|Gradient%x1|Curl%x2",	10,50,140,20, &pd->tex_mode, 0.0, 0.0, 0, 0, "How the texture effect is calculated (RGB & Curl need a RGB texture else Gradient will be used instead)");
 	
-				uiDefButF(block, NUM, B_FIELD_CHANGE, "Nabla:",	10,30,140,20, &pd->tex_nabla, 0.0001f, 1.0, 1, 0, "Specify the dimension of the area for gradient and curl calculation");
+				uiDefButF(block, NUM, B_FIELD_CHANGE, "Nabla:",	10,30,140,20, &pd->tex_nabla, 0.0001f, 1.0, 1, 0, "Defines size of derivative offset used for calculating gradient and curl");
 			}
 			else if(particles==0 && ELEM(pd->forcefield,PFIELD_VORTEX,PFIELD_WIND)==0){
 				//uiDefButF(block, NUM, B_FIELD_CHANGE, "Distance: ",	10,20,140,20, &pd->f_dist, 0, 1000.0, 10, 0, "Falloff power (real gravitational fallof = 2)");
