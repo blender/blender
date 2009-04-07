@@ -940,9 +940,6 @@ void uiRegionPanelLayout(const bContext *C, ARegion *ar, int vertical, char *con
 		if(pt->draw && (!pt->poll || pt->poll(C))) {
 			block= uiBeginBlock(C, ar, pt->idname, UI_EMBOSS, UI_HELV);
 			
-			/* XXX temp, migration flag for drawing code */
-			uiBlockSetFlag(block, UI_BLOCK_2_50);
-			
 			w= (ar->type->minsizex)? ar->type->minsizex-22: UI_PANEL_WIDTH-22;
 
 			if(uiNewPanel(C, ar, block, pt->name, pt->name, x, y, w, 0)) {

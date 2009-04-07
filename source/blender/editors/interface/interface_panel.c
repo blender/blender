@@ -930,10 +930,9 @@ static void ui_draw_panel_style(ARegion *ar, uiBlock *block)
 
 void ui_draw_panel(ARegion *ar, uiBlock *block)
 {
-	if(block->flag & UI_BLOCK_2_50)
-		ui_draw_panel_style(ar, block);
-	else
-		ui_draw_panel_old(ar, block);
+	ui_draw_panel_style(ar, block);
+
+	if(0) ui_draw_panel_old(ar, block); // XXX
 }
 
 /* ------------ panel alignment ---------------- */

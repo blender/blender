@@ -666,9 +666,24 @@ void uiDrawBlock(const bContext *C, uiBlock *block)
 
 	if(block->drawextra) block->drawextra(C, block);
 
+	/* pixel space for AA widgets */
+	glMatrixMode(GL_PROJECTION);
+	glPushMatrix();
+	glMatrixMode(GL_MODELVIEW);
+	glPushMatrix();
+	glLoadIdentity();
+	
+	wmOrtho2(0.0f, ar->winx, 0.0f, ar->winy);
+	
 	for(but= block->buttons.first; but; but= but->next)
 		ui_draw_but(ar, but);
 
+	/* restore matrix */
+	glMatrixMode(GL_PROJECTION);
+	glPopMatrix();
+	glMatrixMode(GL_MODELVIEW);
+	glPopMatrix();
+	
 	ui_draw_links(block);
 }
 
@@ -2311,12 +2326,8 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, char *str, short 
 	short slen;
 	
 	if(type & BUTPOIN) {		/* a pointer is required */
-		if(poin==NULL) {
-			/* if pointer is zero, button is removed and not drawn */
-			UI_ThemeColor(block->themecol);
-			glRects(x1,  y1,  x1+x2,  y1+y2);
+		if(poin==NULL)
 			return NULL;
-		}
 	}
 
 	but= MEM_callocN(sizeof(uiBut), "uiBut");
@@ -2326,6 +2337,7 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, char *str, short 
 	but->bit= type & BIT;
 	but->bitnr= type & 31;
 	but->icon = 0;
+	but->dt= block->dt;
 
 	BLI_addtail(&block->buttons, but);
 
@@ -2360,7 +2372,7 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, char *str, short 
 	but->lock= block->lock;
 	but->lockstr= block->lockstr;
 
-	but->aspect= block->aspect;
+	but->aspect= 1.0f; //XXX block->aspect;
 	but->win= block->win;
 	but->block= block;		// pointer back, used for frontbuffer status, and picker
 

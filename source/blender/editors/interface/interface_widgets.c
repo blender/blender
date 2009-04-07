@@ -117,39 +117,6 @@ typedef struct uiWidgetBase {
 	
 } uiWidgetBase;
 
-
-typedef enum {
-	/* standard set */
-	UI_WTYPE_TOGGLE,
-	UI_WTYPE_OPTION,
-	UI_WTYPE_RADIO,
-	UI_WTYPE_NUMBER,
-	UI_WTYPE_SLIDER,
-	UI_WTYPE_EXEC,
-	
-	/* strings */
-	UI_WTYPE_NAME,
-	UI_WTYPE_NAME_LINK,
-	UI_WTYPE_POINTER_LINK,
-	UI_WTYPE_FILENAME,
-	
-	/* menus */
-	UI_WTYPE_MENU_RADIO,
-	UI_WTYPE_MENU_POINTER_LINK,
-	
-	UI_WTYPE_PULLDOWN,
-	UI_WTYPE_MENU_ITEM,
-	UI_WTYPE_MENU_BACK,
-	
-	/* specials */
-	UI_WTYPE_ICON,
-	UI_WTYPE_SWATCH,
-	UI_WTYPE_RGB_PICKER,
-	UI_WTYPE_NORMAL
-	
-} uiWidgetTypeEnum;
-
-
 /* uiWidgetType: for time being only for visual appearance,
    later, a handling callback can be added too 
 */
@@ -662,6 +629,77 @@ static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
 
 /* *********************** text/icon ************************************** */
 
+
+/* icons have been standardized... and this call draws in untransformed coordinates */
+#define ICON_HEIGHT		16.0f
+
+static void widget_draw_icon(uiBut *but, BIFIconID icon, int blend, rcti *rect)
+{
+	float xs=0, ys=0, aspect, height;
+	
+	/* this icon doesn't need draw... */
+	if(icon==ICON_BLANK1) return;
+	
+	/* we need aspect from block, for menus... these buttons are scaled in uiPositionBlock() */
+	aspect= but->block->aspect;
+	if(aspect != but->aspect) {
+		/* prevent scaling up icon in pupmenu */
+		if (aspect < 1.0f) {			
+			height= ICON_HEIGHT;
+			aspect = 1.0f;
+			
+		}
+		else 
+			height= ICON_HEIGHT/aspect;
+	}
+	else
+		height= ICON_HEIGHT;
+	
+	if(but->flag & UI_ICON_LEFT) {
+		if (but->type==BUT_TOGDUAL) {
+			if (but->drawstr[0]) {
+				xs= rect->xmin-1.0;
+			} else {
+				xs= (rect->xmin+rect->xmax- height)/2.0;
+			}
+		}
+		else if (but->block->flag & UI_BLOCK_LOOP) {
+			xs= rect->xmin+1.0;
+		}
+		else if ((but->type==ICONROW) || (but->type==ICONTEXTROW)) {
+			xs= rect->xmin+3.0;
+		}
+		else {
+			xs= rect->xmin+4.0;
+		}
+		ys= (rect->ymin+rect->ymax- height)/2.0;
+	}
+	if(but->flag & UI_ICON_RIGHT) {
+		xs= rect->xmax-17.0;
+		ys= (rect->ymin+rect->ymax- height)/2.0;
+	}
+	if (!((but->flag & UI_ICON_RIGHT) || (but->flag & UI_ICON_LEFT))) {
+		xs= (rect->xmin+rect->xmax- height)/2.0;
+		ys= (rect->ymin+rect->ymax- height)/2.0;
+	}
+	
+	glEnable(GL_BLEND);
+	
+	/* calculate blend color */
+	if ELEM3(but->type, TOG, ROW, TOGN) {
+		if(but->flag & UI_SELECT);
+		else if(but->flag & UI_ACTIVE);
+		else blend= -60;
+	}
+	if (but->flag & UI_BUT_DISABLED) blend = -100;
+	
+	UI_icon_draw_aspect_blended(xs, ys, icon, aspect, blend);
+	
+	glDisable(GL_BLEND);
+}
+
+
+
 static void widget_draw_text(uiBut *but, float x, float y)
 {
 	int transopts;
@@ -705,7 +743,7 @@ static void widget_draw_text_icon(uiBut *but, rcti *rect, float *col)
 	
 	/* check for button text label */
 	if (but->type == ICONTEXTROW) {
-		ui_draw_icon(but, (BIFIconID) (but->icon+but->iconadd), 0);
+		widget_draw_icon(but, (BIFIconID) (but->icon+but->iconadd), 0, rect);
 	}
 	else {
 		
@@ -763,7 +801,7 @@ static void widget_draw_text_icon(uiBut *but, rcti *rect, float *col)
 			else if(but->pointype==INT)
 				dualset= BTST( *(((int *)but->poin)+1), but->bitnr);
 			
-			ui_draw_icon(but, ICON_DOT, dualset?0:-100);
+			widget_draw_icon(but, ICON_DOT, dualset?0:-100, rect);
 		}
 		
 		if(but->drawstr[0]!=0) {
@@ -773,7 +811,7 @@ static void widget_draw_text_icon(uiBut *but, rcti *rect, float *col)
 			
 			if ( (but->flag & UI_HAS_ICON) && (but->flag & UI_ICON_LEFT) ) 
 			{
-				ui_draw_icon(but, but->icon, 0);
+				widget_draw_icon(but, but->icon, 0, rect);
 				
 				if(but->editstr || (but->flag & UI_TEXT_LEFT)) x= rect->xmin + but->aspect*UI_icon_get_width(but->icon)+5.0;
 				else x= (rect->xmin+rect->xmax-but->strwidth+1)/2.0;
@@ -797,7 +835,7 @@ static void widget_draw_text_icon(uiBut *but, rcti *rect, float *col)
 		}
 		/* if there's no text label, then check to see if there's an icon only and draw it */
 		else if( but->flag & UI_HAS_ICON ) {
-			ui_draw_icon(but, (BIFIconID) (but->icon+but->iconadd), 0);
+			widget_draw_icon(but, (BIFIconID) (but->icon+but->iconadd), 0, rect);
 		}
 	}
 }
@@ -1413,7 +1451,7 @@ static void widget_optionbut(uiWidgetColors *wcol, rcti *rect, int state, int ro
 	recttemp.ymax-= delta;
 	
 	/* half rounded */
-	round_box_edges(&wtb, roundboxalign, &recttemp, 4.0f);
+	round_box_edges(&wtb, 15, &recttemp, 4.0f);
 	
 	/* decoration */
 	if(state & UI_SELECT) {
@@ -1627,17 +1665,37 @@ static int widget_roundbox_set(uiBut *but, rcti *rect)
 	return 15;
 }
 
+static void ui_but_to_pixelrect(rcti *rect, const ARegion *ar, uiBut *but)
+{
+	uiBlock *block= but->block;
+	float gx, gy;
+	float getsizex, getsizey;
+	
+	getsizex= ar->winx;
+	getsizey= ar->winy;
+	
+	gx= but->x1 + (block->panel?block->panel->ofsx:0.0f);
+	gy= but->y1 + (block->panel?block->panel->ofsy:0.0f);
+
+	rect->xmin= floor(getsizex*(0.5+ 0.5*(gx*block->winmat[0][0]+ gy*block->winmat[1][0]+ block->winmat[3][0])));
+	rect->ymin= floor(getsizey*(0.5+ 0.5*(gx*block->winmat[0][1]+ gy*block->winmat[1][1]+ block->winmat[3][1])));
+
+	gx= but->x2 + (block->panel?block->panel->ofsx:0.0f);
+	gy= but->y2 + (block->panel?block->panel->ofsy:0.0f);
+		
+	rect->xmax= floor(getsizex*(0.5+ 0.5*(gx*block->winmat[0][0]+ gy*block->winmat[1][0]+ block->winmat[3][0])));
+	rect->ymax= floor(getsizey*(0.5+ 0.5*(gx*block->winmat[0][1]+ gy*block->winmat[1][1]+ block->winmat[3][1])));
+}
+
+
 /* conversion from old to new buttons, so still messy */
 void ui_draw_but(ARegion *ar, uiBut *but)
 {
 	uiWidgetType *wt= NULL;
 	rcti rect;
 	
-	/* XXX project later */
-	rect.xmin= but->x1;
-	rect.xmax= but->x2;
-	rect.ymin= but->y1;
-	rect.ymax= but->y2;
+	/* project */
+	ui_but_to_pixelrect(&rect, ar, but);
 	
 	/* handle menus seperately */
 	if(but->dt==UI_EMBOSSP) {

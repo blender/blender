@@ -40,7 +40,42 @@ struct uiHandleButtonData;
 struct wmEvent;
 struct wmWindow;
 
-/* general defines */
+/* ****************** general defines ************** */
+
+/* visual types for drawing */
+/* for time being separated from functional types */
+typedef enum {
+	/* standard set */
+	UI_WTYPE_TOGGLE,
+	UI_WTYPE_OPTION,
+	UI_WTYPE_RADIO,
+	UI_WTYPE_NUMBER,
+	UI_WTYPE_SLIDER,
+	UI_WTYPE_EXEC,
+	
+	/* strings */
+	UI_WTYPE_NAME,
+	UI_WTYPE_NAME_LINK,
+	UI_WTYPE_POINTER_LINK,
+	UI_WTYPE_FILENAME,
+	
+	/* menus */
+	UI_WTYPE_MENU_RADIO,
+	UI_WTYPE_MENU_POINTER_LINK,
+	
+	UI_WTYPE_PULLDOWN,
+	UI_WTYPE_MENU_ITEM,
+	UI_WTYPE_MENU_BACK,
+	
+	/* specials */
+	UI_WTYPE_ICON,
+	UI_WTYPE_SWATCH,
+	UI_WTYPE_RGB_PICKER,
+	UI_WTYPE_NORMAL
+	
+} uiWidgetTypeEnum;
+
+
 
 #define UI_MAX_DRAW_STR	400
 #define UI_MAX_NAME_STR	64
@@ -337,9 +372,6 @@ extern void ui_dropshadow(rctf *rct, float radius, float aspect, int select);
 extern void gl_round_box(int mode, float minx, float miny, float maxx, float maxy, float rad);
 extern void gl_round_box_shade(int mode, float minx, float miny, float maxx, float maxy, float rad, float shadetop, float shadedown);
 extern void gl_round_box_vertical_shade(int mode, float minx, float miny, float maxx, float maxy, float rad, float shadeLeft, float shadeRight);
-
-void ui_draw_icon(uiBut *but, BIFIconID icon, int blend);
-void ui_draw_text(uiBut *but, float x, float y, int sunken);
 
 void ui_draw_but_COLORBAND(uiBut *but);
 void ui_draw_but_NORMAL(uiBut *but);

@@ -646,6 +646,8 @@ void ED_region_init(bContext *C, ARegion *ar)
 	/* refresh can be called before window opened */
 	region_subwindow(CTX_wm_manager(C), CTX_wm_window(C), ar);
 	
+	ar->winx= ar->winrct.xmax - ar->winrct.xmin + 1;
+	ar->winy= ar->winrct.ymax - ar->winrct.ymin + 1;
 }
 
 
