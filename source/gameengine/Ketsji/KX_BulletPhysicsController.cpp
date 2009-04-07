@@ -417,13 +417,14 @@ void	KX_BulletPhysicsController::SetSumoTransform(bool nondynaonly)
 	{
 		if (!nondynaonly)
 		{
+			/*
 			btTransform worldTrans;
 			if (GetRigidBody())
 			{
 				GetRigidBody()->getMotionState()->getWorldTransform(worldTrans);
 				GetRigidBody()->setCenterOfMassTransform(worldTrans);
 			}
-			
+			*/
 			/*
 			scaling?
 			if (m_bDyna)

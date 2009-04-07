@@ -164,7 +164,11 @@ extern "C" {
 
 // defines USE_ODE to choose physics engine
 #include "KX_ConvertPhysicsObject.h"
-
+#ifdef USE_BULLET
+#include "CcdPhysicsEnvironment.h"
+#include "CcdGraphicController.h"
+#endif
+#include "KX_MotionState.h"
 
 // This file defines relationships between parents and children
 // in the game engine.
@@ -1265,8 +1269,37 @@ static void my_get_local_bounds(Object *ob, float *center, float *size)
 //////////////////////////////////////////////////////
 
 
-
-
+void BL_CreateGraphicObjectNew(KX_GameObject* gameobj,
+							   const MT_Point3& localAabbMin,
+							   const MT_Point3& localAabbMax,
+							   KX_Scene* kxscene,
+							   bool isActive,
+							   e_PhysicsEngine physics_engine)
+{
+	if (gameobj->GetMeshCount() > 0) 
+	{
+		switch (physics_engine)
+		{
+#ifdef USE_BULLET
+		case UseBullet:
+			{
+				CcdPhysicsEnvironment* env = (CcdPhysicsEnvironment*)kxscene->GetPhysicsEnvironment();
+				assert(env);
+				PHY_IMotionState* motionstate = new KX_MotionState(gameobj->GetSGNode());
+				CcdGraphicController* ctrl = new CcdGraphicController(env, motionstate);
+				gameobj->SetGraphicController(ctrl);
+				ctrl->setNewClientInfo(gameobj->getClientInfo());
+				ctrl->setLocalAabb(localAabbMin, localAabbMax);
+				if (isActive)
+					env->addCcdGraphicController(ctrl);
+			}
+			break;
+#endif
+		default:
+			break;
+		}
+	}
+}
 
 void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 						 struct Object* blenderobject,
@@ -1859,8 +1892,10 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 	if (blenderscene->world) {
 		kxscene->SetActivityCulling( (blenderscene->world->mode & WO_ACTIVITY_CULLING) != 0);
 		kxscene->SetActivityCullingRadius(blenderscene->world->activityBoxRadius);
+		kxscene->SetDbvtCameraCulling((blenderscene->world->mode & WO_DBVT_CAMERA_CULLING) != 0);
 	} else {
 		kxscene->SetActivityCulling(false);
+		kxscene->SetDbvtCameraCulling(false);
 	}
 	
 	int activeLayerBitInfo = blenderscene->lay;
@@ -1954,7 +1989,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 			gameobj->NodeSetLocalPosition(pos);
 			gameobj->NodeSetLocalOrientation(MT_Matrix3x3(eulxyz));
 			gameobj->NodeSetLocalScale(scale);
-			gameobj->NodeUpdateGS(0,true);
+			gameobj->NodeUpdateGS(0);
 			
 			BL_ConvertIpos(blenderobject,gameobj,converter);
 			BL_ConvertMaterialIpos(blenderobject, gameobj, converter);
@@ -2037,7 +2072,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 				objectlist->Add(gameobj->AddRef());
 				//tf.Add(gameobj->GetSGNode());
 				
-				gameobj->NodeUpdateGS(0,true);
+				gameobj->NodeUpdateGS(0);
 				gameobj->AddMeshUser();
 		
 			}
@@ -2148,7 +2183,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 							gameobj->NodeSetLocalPosition(pos);
 							gameobj->NodeSetLocalOrientation(MT_Matrix3x3(eulxyz));
 							gameobj->NodeSetLocalScale(scale);
-							gameobj->NodeUpdateGS(0,true);
+							gameobj->NodeUpdateGS(0);
 							
 							BL_ConvertIpos(blenderobject,gameobj,converter);
 							BL_ConvertMaterialIpos(blenderobject,gameobj, converter);	
@@ -2226,7 +2261,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 								objectlist->Add(gameobj->AddRef());
 								//tf.Add(gameobj->GetSGNode());
 								
-								gameobj->NodeUpdateGS(0,true);
+								gameobj->NodeUpdateGS(0);
 								gameobj->AddMeshUser();
 							}
 							else
@@ -2377,7 +2412,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 		if (gameobj->GetSGNode()->GetSGParent() == 0)
 		{
 			parentlist->Add(gameobj->AddRef());
-			gameobj->NodeUpdateGS(0,true);
+			gameobj->NodeUpdateGS(0);
 		}
 	}
 	
@@ -2414,6 +2449,22 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 		BL_CreatePhysicsObjectNew(gameobj,blenderobject,meshobj,kxscene,layerMask,physics_engine,converter,processCompoundChildren);
 	}
 	
+	// create graphic controller for culling
+	if (kxscene->GetDbvtCameraCulling())
+	{
+		for (i=0; i<sumolist->GetCount();i++)
+		{
+			KX_GameObject* gameobj = (KX_GameObject*) sumolist->GetValue(i);
+			if (gameobj->GetMeshCount() > 0) 
+			{
+				MT_Point3 box[2];
+				gameobj->GetSGNode()->BBox().getmm(box, MT_Transform::Identity());
+				// box[0] is the min, box[1] is the max
+				bool isactive = objectlist->SearchValue(gameobj);
+				BL_CreateGraphicObjectNew(gameobj,box[0],box[1],kxscene,isactive,physics_engine);
+			}
+		}
+	}
 	
 	//set ini linearVel and int angularVel //rcruiz
 	if (converter->addInitFromFrame)

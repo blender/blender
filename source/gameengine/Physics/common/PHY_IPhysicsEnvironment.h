@@ -142,6 +142,8 @@ class PHY_IPhysicsEnvironment
 
 		virtual PHY_IPhysicsController* rayTest(PHY_IRayCastFilterCallback &filterCallback, float fromX,float fromY,float fromZ, float toX,float toY,float toZ)=0;
 
+		//culling based on physical broad phase
+		virtual bool cullingTest(PHY_CullingCallback callback, void *userData, PHY__Vector4* planeNormals, int planeNumber) = 0;
 
 		//Methods for gamelogic collision/physics callbacks
 		//todo:

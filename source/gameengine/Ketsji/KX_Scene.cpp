@@ -76,7 +76,9 @@
 #include "NG_NetworkScene.h"
 #include "PHY_IPhysicsEnvironment.h"
 #include "KX_IPhysicsController.h"
+#include "PHY_IGraphicController.h"
 #include "KX_BlenderSceneConverter.h"
+#include "KX_MotionState.h"
 
 #include "BL_ShapeDeformer.h"
 #include "BL_DeformableGameObject.h"
@@ -133,6 +135,7 @@ KX_Scene::KX_Scene(class SCA_IInputDevice* keyboarddevice,
 	m_suspendedtime = 0.0;
 	m_suspendeddelta = 0.0;
 
+	m_dbvt_culling = false;
 	m_activity_culling = false;
 	m_suspend = false;
 	m_isclearingZbuffer = true;
@@ -407,6 +410,13 @@ void KX_Scene::RemoveNodeDestructObject(class SG_IObject* node,class CValue* gam
 		// will in any case be deleted. This ensures that the object will not try to use the node
 		// when it is finally deleted (see KX_GameObject destructor)
 		orgobj->SetSGNode(NULL);
+		PHY_IGraphicController* ctrl = orgobj->GetGraphicController();
+		if (ctrl)
+		{
+			// a graphic controller is set, we must delete it as the node will be deleted
+			delete ctrl;
+			orgobj->SetGraphicController(NULL);
+		}
 	}
 	if (node)
 		delete node;
@@ -485,7 +495,14 @@ KX_GameObject* KX_Scene::AddNodeReplicaObject(class SG_IObject* node, class CVal
 			replicanode->AddSGController(replicacontroller);
 		}
 	}
-	
+	// replicate graphic controller
+	if (orgobj->GetGraphicController())
+	{
+		PHY_IMotionState* motionstate = new KX_MotionState(newobj->GetSGNode());
+		PHY_IGraphicController* newctrl = orgobj->GetGraphicController()->GetReplica(motionstate);
+		newctrl->setNewClientInfo(newobj->getClientInfo());
+		newobj->SetGraphicController(newctrl);
+	}
 	return newobj;
 }
 
@@ -792,6 +809,24 @@ SCA_IObject* KX_Scene::AddReplicaObject(class CValue* originalobject,
 			replica->GetSGNode()->AddChild(childreplicanode);
 	}
 
+	// At this stage all the objects in the hierarchy have been duplicated,
+	// we can update the scenegraph, we need it for the duplication of logic
+	MT_Point3 newpos = ((KX_GameObject*) parentobject)->NodeGetWorldPosition();
+	replica->NodeSetLocalPosition(newpos);
+
+	MT_Matrix3x3 newori = ((KX_GameObject*) parentobject)->NodeGetWorldOrientation();
+	replica->NodeSetLocalOrientation(newori);
+	
+	// get the rootnode's scale
+	MT_Vector3 newscale = parentobj->GetSGNode()->GetRootSGParent()->GetLocalScale();
+
+	// set the replica's relative scale with the rootnode's scale
+	replica->NodeSetRelativeScale(newscale);
+
+	replica->GetSGNode()->UpdateWorldData(0);
+	replica->GetSGNode()->SetBBox(originalobj->GetSGNode()->BBox());
+	replica->GetSGNode()->SetRadius(originalobj->GetSGNode()->Radius());
+
 	// now replicate logic
 	vector<KX_GameObject*>::iterator git;
 	for (git = m_logicHierarchicalGameObjects.begin();!(git==m_logicHierarchicalGameObjects.end());++git)
@@ -814,21 +849,6 @@ SCA_IObject* KX_Scene::AddReplicaObject(class CValue* originalobject,
 		ReplicateLogic((*git));
 	}
 	
-	MT_Point3 newpos = ((KX_GameObject*) parentobject)->NodeGetWorldPosition();
-	replica->NodeSetLocalPosition(newpos);
-
-	MT_Matrix3x3 newori = ((KX_GameObject*) parentobject)->NodeGetWorldOrientation();
-	replica->NodeSetLocalOrientation(newori);
-	
-	// get the rootnode's scale
-	MT_Vector3 newscale = parentobj->GetSGNode()->GetRootSGParent()->GetLocalScale();
-
-	// set the replica's relative scale with the rootnode's scale
-	replica->NodeSetRelativeScale(newscale);
-
-	replica->GetSGNode()->UpdateWorldData(0);
-	replica->GetSGNode()->SetBBox(originalobj->GetSGNode()->BBox());
-	replica->GetSGNode()->SetRadius(originalobj->GetSGNode()->Radius());
 	// check if there are objects with dupligroup in the hierarchy
 	vector<KX_GameObject*> duplilist;
 	for (git = m_logicHierarchicalGameObjects.begin();!(git==m_logicHierarchicalGameObjects.end());++git)
@@ -1163,7 +1183,6 @@ void KX_Scene::UpdateMeshTransformations()
 	{
 		KX_GameObject* gameobj = (KX_GameObject*)m_objectlist->GetValue(i);
 		gameobj->GetOpenGLMatrix();
-//		gameobj->UpdateNonDynas();
 	}
 }
 
@@ -1298,21 +1317,46 @@ void KX_Scene::MarkVisible(RAS_IRasterizer* rasty, KX_GameObject* gameobj,KX_Cam
 	}
 }
 
+void KX_Scene::PhysicsCullingCallback(KX_ClientObjectInfo* objectInfo, void* cullingInfo)
+{
+	KX_GameObject* gameobj = objectInfo->m_gameobject;
+	if (!gameobj->GetVisible())
+		// ideally, invisible objects should be removed from the culling tree temporarily
+		return;
+	if(((CullingInfo*)cullingInfo)->m_layer && !(gameobj->GetLayer() & ((CullingInfo*)cullingInfo)->m_layer))
+		// used for shadow: object is not in shadow layer
+		return;
+
+	// make object visible
+	gameobj->SetCulled(false);
+	gameobj->UpdateBuckets(false);
+}
+
 void KX_Scene::CalculateVisibleMeshes(RAS_IRasterizer* rasty,KX_Camera* cam, int layer)
 {
-// FIXME: When tree is operational
-#if 1
-	// do this incrementally in the future
-	for (int i = 0; i < m_objectlist->GetCount(); i++)
+	bool dbvt_culling = false;
+	if (m_dbvt_culling) 
 	{
-		MarkVisible(rasty, static_cast<KX_GameObject*>(m_objectlist->GetValue(i)), cam, layer);
+		// test culling through Bullet
+		PHY__Vector4 planes[5];
+		// get the clip planes
+		MT_Vector4* cplanes = cam->GetNormalizedClipPlanes();
+		// and convert
+		planes[0].setValue(cplanes[0].getValue());
+		planes[1].setValue(cplanes[1].getValue());
+		planes[2].setValue(cplanes[2].getValue());
+		planes[3].setValue(cplanes[3].getValue());
+		planes[4].setValue(cplanes[5].getValue());
+		CullingInfo info(layer);
+		dbvt_culling = m_physicsEnvironment->cullingTest(PhysicsCullingCallback,&info,planes,5);
 	}
-#else
-	if (cam->GetFrustumCulling())
-		MarkVisible(m_objecttree, rasty, cam, layer);
-	else
-		MarkSubTreeVisible(m_objecttree, rasty, true, cam, layer);
-#endif
+	if (!dbvt_culling) {
+		// the physics engine couldn't help us, do it the hard way
+		for (int i = 0; i < m_objectlist->GetCount(); i++)
+		{
+			MarkVisible(rasty, static_cast<KX_GameObject*>(m_objectlist->GetValue(i)), cam, layer);
+		}
+	}
 }
 
 // logic stuff
@@ -1393,7 +1437,7 @@ void KX_Scene::UpdateParents(double curtime)
 	for (int i=0; i<GetRootParentList()->GetCount(); i++)
 	{
 		KX_GameObject* parentobj = (KX_GameObject*)GetRootParentList()->GetValue(i);
-		parentobj->NodeUpdateGS(curtime,true);
+		parentobj->NodeUpdateGS(curtime);
 	}
 }
 
@@ -1588,6 +1632,7 @@ PyAttributeDef KX_Scene::Attributes[] = {
 	KX_PYATTRIBUTE_BOOL_RO("suspended",			KX_Scene, m_suspend),
 	KX_PYATTRIBUTE_BOOL_RO("activity_culling",	KX_Scene, m_activity_culling),
 	KX_PYATTRIBUTE_FLOAT_RW("activity_culling_radius", 0.5f, FLT_MAX, KX_Scene, m_activity_box_radius),
+	KX_PYATTRIBUTE_BOOL_RO("dbvt_culling",		KX_Scene, m_dbvt_culling),
 	KX_PYATTRIBUTE_RO_FUNCTION("__dict__",		KX_Scene, pyattr_get_dir_dict),
 	{ NULL }	//Sentinel
 };

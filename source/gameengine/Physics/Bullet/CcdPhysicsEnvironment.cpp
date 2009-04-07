@@ -18,6 +18,7 @@ subject to the following restrictions:
 
 #include "CcdPhysicsEnvironment.h"
 #include "CcdPhysicsController.h"
+#include "CcdGraphicController.h"
 
 #include <algorithm>
 #include "btBulletDynamicsCommon.h"
@@ -316,8 +317,10 @@ static void DrawAabb(btIDebugDraw* debugDrawer,const btVector3& from,const btVec
 
 
 
-CcdPhysicsEnvironment::CcdPhysicsEnvironment(btDispatcher* dispatcher,btOverlappingPairCache* pairCache)
-:m_numIterations(10),
+CcdPhysicsEnvironment::CcdPhysicsEnvironment(bool useDbvtCulling,btDispatcher* dispatcher,btOverlappingPairCache* pairCache)
+:m_cullingCache(NULL),
+m_cullingTree(NULL),
+m_numIterations(10),
 m_scalingPropagated(false),
 m_numTimeSubSteps(1),
 m_ccdMode(0),
@@ -350,6 +353,11 @@ m_ownDispatcher(NULL)
 	//m_broadphase = new btAxisSweep3(btVector3(-1000,-1000,-1000),btVector3(1000,1000,1000));
 	//m_broadphase = new btSimpleBroadphase();
 	m_broadphase = new btDbvtBroadphase();
+	// avoid any collision in the culling tree
+	if (useDbvtCulling) {
+		m_cullingCache = new btNullPairCache();
+		m_cullingTree = new btDbvtBroadphase(m_cullingCache);
+	}
 
 	m_filterCallback = new CcdOverlapFilterCallBack(this);
 	m_broadphase->getOverlappingPairCache()->setOverlapFilterCallback(m_filterCallback);
@@ -363,7 +371,6 @@ m_ownDispatcher(NULL)
 	m_debugDrawer = 0;
 	m_gravity = btVector3(0.f,-10.f,0.f);
 	m_dynamicsWorld->setGravity(m_gravity);
-
 
 }
 
@@ -558,6 +565,41 @@ void CcdPhysicsEnvironment::refreshCcdPhysicsController(CcdPhysicsController* ct
 	}
 }
 
+void CcdPhysicsEnvironment::addCcdGraphicController(CcdGraphicController* ctrl)
+{
+	if (m_cullingTree)
+	{
+		btVector3	minAabb;
+		btVector3	maxAabb;
+		ctrl->getAabb(minAabb, maxAabb);
+
+		ctrl->setBroadphaseHandle(m_cullingTree->createProxy(
+				minAabb,
+				maxAabb,
+				INVALID_SHAPE_PROXYTYPE,	// this parameter is not used
+				ctrl,
+				0,							// this object does not collision with anything
+				0,
+				NULL,						// dispatcher => this parameter is not used
+				0));
+
+		assert(ctrl->getBroadphaseHandle());
+	}
+}
+
+void CcdPhysicsEnvironment::removeCcdGraphicController(CcdGraphicController* ctrl)
+{
+	if (m_cullingTree)
+	{
+		btBroadphaseProxy* bp = ctrl->getBroadphaseHandle();
+		if (bp)
+		{
+			m_cullingTree->destroyProxy(bp,NULL);
+			ctrl->setBroadphaseHandle(0);
+		}
+	}
+}
+
 void	CcdPhysicsEnvironment::beginFrame()
 {
 
@@ -593,10 +635,10 @@ bool	CcdPhysicsEnvironment::proceedDeltaTime(double curTime,float timeStep)
 		(*it)->SynchronizeMotionStates(timeStep);
 	}
 
-	for (it=m_controllers.begin(); it!=m_controllers.end(); it++)
-	{
-		(*it)->SynchronizeMotionStates(timeStep);
-	}
+	//for (it=m_controllers.begin(); it!=m_controllers.end(); it++)
+	//{
+	//	(*it)->SynchronizeMotionStates(timeStep);
+	//}
 
 	for (i=0;i<m_wrapperVehicles.size();i++)
 	{
@@ -1146,6 +1188,50 @@ PHY_IPhysicsController* CcdPhysicsEnvironment::rayTest(PHY_IRayCastFilterCallbac
 	return result.m_controller;
 }
 
+struct	DbvtCullingCallback : btDbvt::ICollide
+{
+	PHY_CullingCallback m_clientCallback;
+	void* m_userData;
+
+	DbvtCullingCallback(PHY_CullingCallback clientCallback, void* userData)
+	{
+		m_clientCallback = clientCallback;
+		m_userData = userData;
+	}
+
+	void Process(const btDbvtNode* node,btScalar depth)
+	{
+		Process(node);
+	}
+	void Process(const btDbvtNode* leaf)
+	{	
+		btBroadphaseProxy*	proxy=(btBroadphaseProxy*)leaf->data;
+		// the client object is a graphic controller
+		CcdGraphicController* ctrl = static_cast<CcdGraphicController*>(proxy->m_clientObject);
+		KX_ClientObjectInfo* info = (KX_ClientObjectInfo*)ctrl->getNewClientInfo();
+		if (info)
+			(*m_clientCallback)(info, m_userData);
+	}
+};
+
+bool CcdPhysicsEnvironment::cullingTest(PHY_CullingCallback callback, void* userData, PHY__Vector4 *planes, int nplanes)
+{
+	if (!m_cullingTree)
+		return false;
+	DbvtCullingCallback dispatcher(callback, userData);
+	btVector3 planes_n[5];
+	btScalar planes_o[5];
+	if (nplanes > 5)
+		nplanes = 5;
+	for (int i=0; i<nplanes; i++)
+	{
+		planes_n[i].setValue(planes[i][0], planes[i][1], planes[i][2]);
+		planes_o[i] = planes[i][3];
+	}
+	btDbvt::collideKDOP(m_cullingTree->m_sets[1].m_root,planes_n,planes_o,nplanes,dispatcher);
+	btDbvt::collideKDOP(m_cullingTree->m_sets[0].m_root,planes_n,planes_o,nplanes,dispatcher);		
+	return true;
+}
 
 
 int	CcdPhysicsEnvironment::getNumContactPoints()
@@ -1211,6 +1297,13 @@ CcdPhysicsEnvironment::~CcdPhysicsEnvironment()
 
 	if (NULL != m_broadphase)
 		delete m_broadphase;
+
+	if (NULL != m_cullingTree)
+		delete m_cullingTree;
+
+	if (NULL != m_cullingCache)
+		delete m_cullingCache;
+
 }
 
 

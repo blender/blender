@@ -26,31 +26,14 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef PHY__MOTIONSTATE_H
-#define PHY__MOTIONSTATE_H
+#include "PHY_IGraphicController.h"
 
-/**
-	PHY_IMotionState is the Interface to explicitly synchronize the world transformation.
-	Default implementations for mayor graphics libraries like OpenGL and DirectX can be provided.
-*/
-class	PHY_IMotionState
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
+PHY_IGraphicController::~PHY_IGraphicController()
 {
-	public:
-		
-		virtual ~PHY_IMotionState();
 
-		virtual void	getWorldPosition(float& posX,float& posY,float& posZ)=0;
-		virtual void	getWorldScaling(float& scaleX,float& scaleY,float& scaleZ)=0;
-		virtual void	getWorldOrientation(float& quatIma0,float& quatIma1,float& quatIma2,float& quatReal)=0;
-		// ori = array 12 floats, [0..3] = first column + 0, [4..7] = second colum, [8..11] = third column
-		virtual void	getWorldOrientation(float* ori)=0;
-		
-		virtual void	setWorldPosition(float posX,float posY,float posZ)=0;
-		virtual	void	setWorldOrientation(float quatIma0,float quatIma1,float quatIma2,float quatReal)=0;
-
-		virtual	void	calculateWorldTransformations()=0;
-};
-
-#endif //PHY__MOTIONSTATE_H
+}
 

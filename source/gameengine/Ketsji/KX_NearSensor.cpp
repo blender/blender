@@ -127,13 +127,10 @@ CValue* KX_NearSensor::GetReplica()
 		}
 		
 	}
-	//static_cast<KX_TouchEventManager*>(m_eventmgr)->RegisterSensor(this);
-	//todo: make sure replication works fine
-	//>m_sumoObj = new SM_Object(DT_NewSphere(0.0),NULL,NULL,NULL);
-	//replica->m_sumoObj->setMargin(m_Margin);
-	//replica->m_sumoObj->setClientObject(replica->m_client_info);
-	
-	((KX_GameObject*)replica->GetParent())->GetSGNode()->ComputeWorldTransforms(NULL);
+	//Wrong: the parent object could be a child, this code works only if it is a root parent.
+	//Anyway, at this stage, the parent object is already synchronized, nothing to do.
+	//bool parentUpdated = false;
+	//((KX_GameObject*)replica->GetParent())->GetSGNode()->ComputeWorldTransforms(NULL, parentUpdated);
 	replica->SynchronizeTransform();
 	
 	return replica;
@@ -154,8 +151,10 @@ void KX_NearSensor::ReParent(SCA_IObject* parent)
 	client_info->m_sensors.push_back(this);
 	SCA_ISensor::ReParent(parent);
 */
-	((KX_GameObject*)GetParent())->GetSGNode()->ComputeWorldTransforms(NULL);
-	SynchronizeTransform();
+	//Not needed, was done in GetReplica() already
+	//bool parentUpdated = false;
+	//((KX_GameObject*)GetParent())->GetSGNode()->ComputeWorldTransforms(NULL,parentUpdated);
+	//SynchronizeTransform();
 	SCA_ISensor::ReParent(parent);
 }
 

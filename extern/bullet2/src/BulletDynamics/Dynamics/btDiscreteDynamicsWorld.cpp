@@ -350,12 +350,13 @@ int	btDiscreteDynamicsWorld::stepSimulation( btScalar timeStep,int maxSubSteps, 
 		for (int i=0;i<clampedSimulationSteps;i++)
 		{
 			internalSingleStepSimulation(fixedTimeStep);
-			synchronizeMotionStates();
+			//for Blender, no need to synchronize here, it is done in blender anyway
+			//synchronizeMotionStates();
 		}
 
 	} 
-
-	synchronizeMotionStates();
+	//else
+	//	synchronizeMotionStates();
 
 	clearForces();
 

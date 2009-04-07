@@ -85,6 +85,8 @@ class RAS_IRenderTools;
 class SCA_JoystickManager;
 class btCollisionShape;
 class KX_BlenderSceneConverter;
+struct KX_ClientObjectInfo;
+
 /**
  * The KX_Scene holds all data for an independent scene. It relates
  * KX_Objects to the specific objects in the modules.
@@ -92,6 +94,12 @@ class KX_BlenderSceneConverter;
 class KX_Scene : public PyObjectPlus, public SCA_IScene
 {
 	Py_Header;
+
+	struct CullingInfo {
+		int m_layer;
+		CullingInfo(int layer) : m_layer(layer) {}
+	};
+
 protected:
 	RAS_BucketManager*	m_bucketmanager;
 	CListValue*			m_tempObjectList;
@@ -252,6 +260,11 @@ protected:
 	bool m_activity_culling;
 	
 	/**
+	 * Toggle to enable or disable culling via DBVT broadphase of Bullet.
+	 */
+	bool m_dbvt_culling;
+	
+	/**
 	 * The framing settings used by this scene
 	 */
 
@@ -269,6 +282,7 @@ protected:
 	void MarkVisible(SG_Tree *node, RAS_IRasterizer* rasty, KX_Camera*cam,int layer=0);
 	void MarkSubTreeVisible(SG_Tree *node, RAS_IRasterizer* rasty, bool visible, KX_Camera*cam,int layer=0);
 	void MarkVisible(RAS_IRasterizer* rasty, KX_GameObject* gameobj, KX_Camera*cam, int layer=0);
+	static void PhysicsCullingCallback(KX_ClientObjectInfo* objectInfo, void* cullingInfo);
 
 	double				m_suspendedtime;
 	double				m_suspendeddelta;
@@ -530,6 +544,9 @@ public:
 	bool IsSuspended();
 	bool IsClearingZBuffer();
 	void EnableZBufferClearing(bool isclearingZbuffer);
+	// use of DBVT tree for camera culling
+	void SetDbvtCameraCulling(bool b) { m_dbvt_culling = b; };
+	bool GetDbvtCameraCulling() { return m_dbvt_culling; };
 	
 	void SetSceneConverter(class KX_BlenderSceneConverter* sceneConverter);
 

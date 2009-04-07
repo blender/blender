@@ -1245,6 +1245,22 @@ void	DefaultMotionState::getWorldOrientation(float& quatIma0,float& quatIma1,flo
 	quatReal = m_worldTransform.getRotation()[3];
 }
 		
+void	DefaultMotionState::getWorldOrientation(float* ori)
+{
+	*ori++ = m_worldTransform.getBasis()[0].x();
+	*ori++ = m_worldTransform.getBasis()[1].x();
+	*ori++ = m_worldTransform.getBasis()[1].x();
+	*ori++ = 0.f;
+	*ori++ = m_worldTransform.getBasis()[0].y();
+	*ori++ = m_worldTransform.getBasis()[1].y();
+	*ori++ = m_worldTransform.getBasis()[1].y();
+	*ori++ = 0.f;
+	*ori++ = m_worldTransform.getBasis()[0].z();
+	*ori++ = m_worldTransform.getBasis()[1].z();
+	*ori++ = m_worldTransform.getBasis()[1].z();
+	*ori++ = 0.f;
+}
+
 void	DefaultMotionState::setWorldPosition(float posX,float posY,float posZ)
 {
 	btVector3 pos(posX,posY,posZ);

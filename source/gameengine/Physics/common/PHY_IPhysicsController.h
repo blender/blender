@@ -29,7 +29,7 @@
 #ifndef PHY_IPHYSICSCONTROLLER_H
 #define PHY_IPHYSICSCONTROLLER_H
 
-#include "PHY_DynamicTypes.h"
+#include "PHY_IController.h"
 
 
 
@@ -37,7 +37,7 @@
 	PHY_IPhysicsController is the abstract simplified Interface to a physical object.
 	It contains the IMotionState and IDeformableMesh Interfaces.
 */
-class PHY_IPhysicsController	
+class PHY_IPhysicsController : public PHY_IController
 {
 
 	public:
@@ -82,9 +82,7 @@ class PHY_IPhysicsController
 
 		// dyna's that are rigidbody are free in orientation, dyna's with non-rigidbody are restricted 
 		virtual	void		setRigidBody(bool rigid)=0;
-		// clientinfo for raycasts for example
-		virtual	void*				getNewClientInfo()=0;
-		virtual	void				setNewClientInfo(void* clientinfo)=0;
+
 		virtual PHY_IPhysicsController*	GetReplica() {return 0;}
 
 		virtual void	calcXform() =0;

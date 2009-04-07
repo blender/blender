@@ -55,6 +55,7 @@ typedef unsigned long uint_ptr;
 #include <stdio.h> // printf
 #include "SG_Controller.h"
 #include "KX_IPhysicsController.h"
+#include "PHY_IGraphicController.h"
 #include "SG_Node.h"
 #include "SG_Controller.h"
 #include "KX_ClientObjectInfo.h"
@@ -91,6 +92,7 @@ KX_GameObject::KX_GameObject(
 	m_bVisible(true),
 	m_bCulled(true),
 	m_pPhysicsController1(NULL),
+	m_pGraphicController(NULL),
 	m_pPhysicsEnvironment(NULL),
 	m_xray(false),
 	m_pHitObject(NULL),
@@ -131,6 +133,10 @@ KX_GameObject::~KX_GameObject()
 			(*contit)->ClearObject();
 		}
 		m_pSGNode->SetSGClientObject(NULL);
+	}
+	if (m_pGraphicController)
+	{
+		delete m_pGraphicController;
 	}
 }
 
@@ -249,7 +255,7 @@ void KX_GameObject::SetParent(KX_Scene *scene, KX_GameObject* obj)
 		NodeSetLocalScale(scale1);
 		NodeSetLocalPosition(MT_Point3(newpos[0],newpos[1],newpos[2]));
 		NodeSetLocalOrientation(invori*NodeGetWorldOrientation());
-		NodeUpdateGS(0.f,true);
+		NodeUpdateGS(0.f);
 		// object will now be a child, it must be removed from the parent list
 		CListValue* rootlist = scene->GetRootParentList();
 		if (rootlist->RemoveValue(this))
@@ -269,6 +275,7 @@ void KX_GameObject::SetParent(KX_Scene *scene, KX_GameObject* obj)
 				rootobj->m_pPhysicsController1->AddCompoundChild(m_pPhysicsController1);
 			}
 		}
+		// graphically, the object hasn't change place, no need to update m_pGraphicController
 	}
 }
 
@@ -286,7 +293,7 @@ void KX_GameObject::RemoveParent(KX_Scene *scene)
 
 		// Remove us from our parent
 		GetSGNode()->DisconnectFromParent();
-		NodeUpdateGS(0.f,true);
+		NodeUpdateGS(0.f);
 		// the object is now a root object, add it to the parentlist
 		CListValue* rootlist = scene->GetRootParentList();
 		if (!rootlist->SearchValue(this))
@@ -303,12 +310,14 @@ void KX_GameObject::RemoveParent(KX_Scene *scene)
 			}
 			m_pPhysicsController1->RestoreDynamics();
 		}
+		// graphically, the object hasn't change place, no need to update m_pGraphicController
 	}
 }
 
 void KX_GameObject::ProcessReplica(KX_GameObject* replica)
 {
 	replica->m_pPhysicsController1 = NULL;
+	replica->m_pGraphicController = NULL;
 	replica->m_pSGNode = NULL;
 	replica->m_pClient_info = new KX_ClientObjectInfo(*m_pClient_info);
 	replica->m_pClient_info->m_gameobject = replica;
@@ -437,22 +446,18 @@ void KX_GameObject::RemoveMeshes()
 	m_meshes.clear();
 }
 
-
-
-void KX_GameObject::UpdateNonDynas()
-{
-	if (m_pPhysicsController1)
-	{
-		m_pPhysicsController1->SetSumoTransform(true);
-	}
-}
-
-
-
 void KX_GameObject::UpdateTransform()
 {
 	if (m_pPhysicsController1)
-		m_pPhysicsController1->SetSumoTransform(false);
+		// only update the transform of static object, dynamic object are handled differently
+		// note that for bullet, this does not even update the transform of static object
+		// but merely sets there collision flag to "kinematic" because the synchronization is 
+		// done differently during physics simulation
+		m_pPhysicsController1->SetSumoTransform(true);
+	if (m_pGraphicController)
+		// update the culling tree
+		m_pGraphicController->SetGraphicTransform();
+
 }
 
 void KX_GameObject::UpdateTransformFunc(SG_IObject* node, void* gameobj, void* scene)
@@ -832,6 +837,7 @@ void KX_GameObject::NodeSetLocalPosition(const MT_Point3& trans)
 	}
 
 	GetSGNode()->SetLocalPosition(trans);
+
 }
 
 
@@ -911,7 +917,7 @@ void KX_GameObject::NodeSetWorldPosition(const MT_Point3& trans)
 }
 
 
-void KX_GameObject::NodeUpdateGS(double time,bool bInitiator)
+void KX_GameObject::NodeUpdateGS(double time)
 {
 	if (GetSGNode())
 		GetSGNode()->UpdateWorldData(time);
@@ -1295,7 +1301,7 @@ int KX_GameObject::pyattr_set_position(void *self_v, const KX_PYATTRIBUTE_DEF *a
 		return 1;
 	
 	self->NodeSetLocalPosition(pos);
-	self->NodeUpdateGS(0.f,true);
+	self->NodeUpdateGS(0.f);
 	return 0;
 }
 
@@ -1319,10 +1325,10 @@ int KX_GameObject::pyattr_set_orientation(void *self_v, const KX_PYATTRIBUTE_DEF
 	if (PyMatTo(value, rot))
 	{
 		self->NodeSetLocalOrientation(rot);
-		self->NodeUpdateGS(0.f,true);
+		self->NodeUpdateGS(0.f);
 		return 0;
 	}
-	return 1;
+	PyErr_Clear();
 
 	if (PySequence_Size(value) == 4)
 	{
@@ -1331,7 +1337,7 @@ int KX_GameObject::pyattr_set_orientation(void *self_v, const KX_PYATTRIBUTE_DEF
 		{
 			rot.setRotation(qrot);
 			self->NodeSetLocalOrientation(rot);
-			self->NodeUpdateGS(0.f,true);
+			self->NodeUpdateGS(0.f);
 			return 0;
 		}
 		return 1;
@@ -1344,7 +1350,7 @@ int KX_GameObject::pyattr_set_orientation(void *self_v, const KX_PYATTRIBUTE_DEF
 		{
 			rot.setEuler(erot);
 			self->NodeSetLocalOrientation(rot);
-			self->NodeUpdateGS(0.f,true);
+			self->NodeUpdateGS(0.f);
 			return 0;
 		}
 		return 1;
@@ -1368,7 +1374,7 @@ int KX_GameObject::pyattr_set_scaling(void *self_v, const KX_PYATTRIBUTE_DEF *at
 		return 1;
 
 	self->NodeSetLocalScale(scale);
-	self->NodeUpdateGS(0.f,true);
+	self->NodeUpdateGS(0.f);
 	return 0;
 }
 
@@ -1929,7 +1935,7 @@ PyObject* KX_GameObject::PySetOrientation(PyObject* self, PyObject* value)
 	if (PyObject_IsMT_Matrix(value, 3) && PyMatTo(value, matrix))
 	{
 		NodeSetLocalOrientation(matrix);
-		NodeUpdateGS(0.f,true);
+		NodeUpdateGS(0.f);
 		Py_RETURN_NONE;
 	}
 
@@ -1938,7 +1944,7 @@ PyObject* KX_GameObject::PySetOrientation(PyObject* self, PyObject* value)
 	{
 		matrix.setRotation(quat);
 		NodeSetLocalOrientation(matrix);
-		NodeUpdateGS(0.f,true);
+		NodeUpdateGS(0.f);
 		Py_RETURN_NONE;
 	}
 	return NULL;
@@ -1959,7 +1965,7 @@ PyObject* KX_GameObject::PyAlignAxisToVect(PyObject* self, PyObject* args)
 			if (fac> 1.0) fac= 1.0;
 			
 			AlignAxisToVect(vect,axis,fac);
-			NodeUpdateGS(0.f,true);
+			NodeUpdateGS(0.f);
 			Py_RETURN_NONE;
 		}
 	}
@@ -1983,7 +1989,7 @@ PyObject* KX_GameObject::PySetPosition(PyObject* self, PyObject* value)
 	if (PyVecTo(value, pos))
 	{
 		NodeSetLocalPosition(pos);
-		NodeUpdateGS(0.f,true);
+		NodeUpdateGS(0.f);
 		Py_RETURN_NONE;
 	}
 
@@ -1996,7 +2002,7 @@ PyObject* KX_GameObject::PySetWorldPosition(PyObject* self, PyObject* value)
 	if (PyVecTo(value, pos))
 	{
 		NodeSetWorldPosition(pos);
-		NodeUpdateGS(0.f,true);
+		NodeUpdateGS(0.f);
 		Py_RETURN_NONE;
 	}
 

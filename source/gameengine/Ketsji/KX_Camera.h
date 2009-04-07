@@ -45,6 +45,7 @@ class KX_Camera : public KX_GameObject
 {
 	Py_Header;
 protected:
+	friend class KX_Scene;
 	/** Camera parameters (clips distances, focal lenght). These
 	 * params are closely tied to Blender. In the gameengine, only the
 	 * projection and modelview matrices are relevant. There's a
@@ -67,6 +68,7 @@ protected:
 	 * Storage for the projection matrix that is passed to the
 	 * rasterizer. */
 	MT_Matrix4x4 m_projection_matrix;
+	//MT_Matrix4x4 m_projection_matrix1;
 
 	/**
 	 * Storage for the modelview matrix that is passed to the
@@ -119,6 +121,16 @@ protected:
 	 * Extracts the bound sphere of the view frustum.
 	 */
 	void ExtractFrustumSphere();
+	/**
+	 * return the clip plane
+	 */
+	MT_Vector4 *GetNormalizedClipPlanes()
+	{
+		ExtractClipPlanes();
+		NormalizeClipPlanes();
+		return m_planes;
+	}
+
 public:
 
 	enum { INSIDE, INTERSECT, OUTSIDE } ;

@@ -544,6 +544,7 @@ class	DefaultMotionState : public PHY_IMotionState
 		
 		virtual void	setWorldPosition(float posX,float posY,float posZ);
 		virtual	void	setWorldOrientation(float quatIma0,float quatIma1,float quatIma2,float quatReal);
+		virtual void	getWorldOrientation(float* ori);
 		
 		virtual	void	calculateWorldTransformations();
 		

@@ -26,31 +26,31 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef PHY__MOTIONSTATE_H
-#define PHY__MOTIONSTATE_H
+#ifndef PHY_IGRAPHICCONTROLLER_H
+#define PHY_IGRAPHICCONTROLLER_H
+
+#include "PHY_IController.h"
+
+
 
 /**
-	PHY_IMotionState is the Interface to explicitly synchronize the world transformation.
-	Default implementations for mayor graphics libraries like OpenGL and DirectX can be provided.
+	PHY_IPhysicsController is the abstract simplified Interface to a physical object.
+	It contains the IMotionState and IDeformableMesh Interfaces.
 */
-class	PHY_IMotionState
-
+class PHY_IGraphicController : public PHY_IController
 {
+
 	public:
 		
-		virtual ~PHY_IMotionState();
+		virtual ~PHY_IGraphicController();
+		/**
+			SynchronizeMotionStates ynchronizes dynas, kinematic and deformable entities (and do 'late binding')
+		*/
+		virtual bool SetGraphicTransform()=0;
 
-		virtual void	getWorldPosition(float& posX,float& posY,float& posZ)=0;
-		virtual void	getWorldScaling(float& scaleX,float& scaleY,float& scaleZ)=0;
-		virtual void	getWorldOrientation(float& quatIma0,float& quatIma1,float& quatIma2,float& quatReal)=0;
-		// ori = array 12 floats, [0..3] = first column + 0, [4..7] = second colum, [8..11] = third column
-		virtual void	getWorldOrientation(float* ori)=0;
-		
-		virtual void	setWorldPosition(float posX,float posY,float posZ)=0;
-		virtual	void	setWorldOrientation(float quatIma0,float quatIma1,float quatIma2,float quatReal)=0;
+		virtual PHY_IGraphicController*	GetReplica(class PHY_IMotionState* motionstate) {return 0;}
 
-		virtual	void	calculateWorldTransformations()=0;
 };
 
-#endif //PHY__MOTIONSTATE_H
+#endif //PHY_IGRAPHICCONTROLLER_H
 

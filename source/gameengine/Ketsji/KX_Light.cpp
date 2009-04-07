@@ -159,7 +159,7 @@ void KX_LightObject::BindShadowBuffer(RAS_IRasterizer *ras, KX_Camera *cam, MT_T
 	
 	cam->NodeSetLocalPosition(camtrans.getOrigin());
 	cam->NodeSetLocalOrientation(camtrans.getBasis());
-	cam->NodeUpdateGS(0,true);
+	cam->NodeUpdateGS(0);
 
 	/* setup rasterizer transformations */
 	ras->SetProjectionMatrix(projectionmat);

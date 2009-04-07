@@ -122,6 +122,8 @@ public:
 	 */
 	void getaa(MT_Point3 *box, const MT_Transform &world) const;
 	
+	void getmm(MT_Point3 *box, const MT_Transform &world) const;
+
 	void split(SG_BBox &left, SG_BBox &right) const;
 	
 	friend class SG_Tree;

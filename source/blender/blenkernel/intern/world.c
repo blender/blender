@@ -106,6 +106,7 @@ World *add_world(char *name)
 	wrld->ao_approx_error= 0.25f;
 	
 	wrld->physicsEngine= WOPHY_BULLET;//WOPHY_SUMO; Bullet by default
+	wrld->mode = WO_DBVT_CAMERA_CULLING;	// DBVT culling by default
 	wrld->preview = NULL;
 
 	return wrld;

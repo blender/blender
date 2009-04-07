@@ -44,7 +44,7 @@ KX_MotionState::~KX_MotionState()
 
 void	KX_MotionState::getWorldPosition(float& posX,float& posY,float& posZ)
 {
-	MT_Point3 pos = m_node->GetWorldPosition();
+	const MT_Point3& pos = m_node->GetWorldPosition();
 	posX = pos[0];
 	posY = pos[1];
 	posZ = pos[2];
@@ -52,7 +52,7 @@ void	KX_MotionState::getWorldPosition(float& posX,float& posY,float& posZ)
 
 void	KX_MotionState::getWorldScaling(float& scaleX,float& scaleY,float& scaleZ)
 {
-	MT_Vector3 scale = m_node->GetWorldScaling();
+	const MT_Vector3& scale = m_node->GetWorldScaling();
 	scaleX = scale[0];
 	scaleY = scale[1];
 	scaleZ = scale[2];
@@ -60,17 +60,23 @@ void	KX_MotionState::getWorldScaling(float& scaleX,float& scaleY,float& scaleZ)
 
 void	KX_MotionState::getWorldOrientation(float& quatIma0,float& quatIma1,float& quatIma2,float& quatReal)
 {
-	MT_Quaternion orn = m_node->GetWorldOrientation().getRotation();
+	MT_Quaternion& orn = m_node->GetWorldOrientation().getRotation();
 	quatIma0 = orn[0];
 	quatIma1 = orn[1];
 	quatIma2 = orn[2];
 	quatReal = orn[3];
 }
 	
+void	KX_MotionState::getWorldOrientation(float* ori)
+{
+	const MT_Matrix3x3& mat = m_node->GetWorldOrientation();
+	mat.getValue(ori);
+}
+	
 void	KX_MotionState::setWorldPosition(float posX,float posY,float posZ)
 {
 	m_node->SetLocalPosition(MT_Point3(posX,posY,posZ));
-	m_node->SetWorldPosition(MT_Point3(posX,posY,posZ));
+	//m_node->SetWorldPosition(MT_Point3(posX,posY,posZ));
 }
 
 void	KX_MotionState::setWorldOrientation(float quatIma0,float quatIma1,float quatIma2,float quatReal)
@@ -82,13 +88,15 @@ void	KX_MotionState::setWorldOrientation(float quatIma0,float quatIma1,float qua
 	orn[3] = quatReal;
 
 	m_node->SetLocalOrientation(orn);
-	m_node->SetWorldOrientation(orn);
+	//m_node->SetWorldOrientation(orn);
 
 }
 
 void	KX_MotionState::calculateWorldTransformations()
 {
-	m_node->ComputeWorldTransforms(NULL);
+	//Not needed, will be done in KX_Scene::UpdateParents() after the physics simulation
+	//bool parentUpdated = false;
+	//m_node->ComputeWorldTransforms(NULL, parentUpdated);
 }
 
  

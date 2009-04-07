@@ -26,31 +26,28 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef PHY__MOTIONSTATE_H
-#define PHY__MOTIONSTATE_H
+#ifndef PHY_ICONTROLLER_H
+#define PHY_ICONTROLLER_H
+
+#include "PHY_DynamicTypes.h"
+
+
 
 /**
-	PHY_IMotionState is the Interface to explicitly synchronize the world transformation.
-	Default implementations for mayor graphics libraries like OpenGL and DirectX can be provided.
+	PHY_IController is the abstract simplified Interface to objects 
+	controlled by the physics engine. This includes the physics objects
+	and the graphics object for view frustrum and occlusion culling.
 */
-class	PHY_IMotionState
-
+class PHY_IController	
 {
 	public:
 		
-		virtual ~PHY_IMotionState();
+		virtual ~PHY_IController();
+		// clientinfo for raycasts for example
+		virtual	void*				getNewClientInfo()=0;
+		virtual	void				setNewClientInfo(void* clientinfo)=0;
 
-		virtual void	getWorldPosition(float& posX,float& posY,float& posZ)=0;
-		virtual void	getWorldScaling(float& scaleX,float& scaleY,float& scaleZ)=0;
-		virtual void	getWorldOrientation(float& quatIma0,float& quatIma1,float& quatIma2,float& quatReal)=0;
-		// ori = array 12 floats, [0..3] = first column + 0, [4..7] = second colum, [8..11] = third column
-		virtual void	getWorldOrientation(float* ori)=0;
-		
-		virtual void	setWorldPosition(float posX,float posY,float posZ)=0;
-		virtual	void	setWorldOrientation(float quatIma0,float quatIma1,float quatIma2,float quatReal)=0;
-
-		virtual	void	calculateWorldTransformations()=0;
 };
 
-#endif //PHY__MOTIONSTATE_H
+#endif //PHY_ICONTROLLER_H
 

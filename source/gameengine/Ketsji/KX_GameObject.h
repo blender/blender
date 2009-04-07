@@ -57,6 +57,7 @@ struct KX_ClientObjectInfo;
 class KX_RayCast;
 class RAS_MeshObject;
 class KX_IPhysicsController;
+class PHY_IGraphicController;
 class PHY_IPhysicsEnvironment;
 struct Object;
 
@@ -88,6 +89,7 @@ protected:
 	bool       							m_bCulled; 
 
 	KX_IPhysicsController*				m_pPhysicsController1;
+	PHY_IGraphicController*				m_pGraphicController;
 	// used for ray casting
 	PHY_IPhysicsEnvironment*			m_pPhysicsEnvironment;
 	STR_String							m_testPropName;
@@ -351,6 +353,19 @@ public:
 	}
 
 	/**
+	 * @return a pointer to the graphic controller owner by this class 
+	 */
+	PHY_IGraphicController* GetGraphicController()
+	{
+		return m_pGraphicController;
+	}
+
+	void SetGraphicController(PHY_IGraphicController* graphiccontroller) 
+	{ 
+		m_pGraphicController = graphiccontroller;
+	}
+
+	/**
 	 * @section Coordinate system manipulation functions
 	 */
 
@@ -367,8 +382,7 @@ public:
 
 		void						
 	NodeUpdateGS(
-		double time,
-		bool bInitiator
+		double time
 	);
 
 	const 
@@ -523,13 +537,6 @@ public:
 	);
 
 	static void UpdateTransformFunc(SG_IObject* node, void* gameobj, void* scene);
-
-	/**
-	 * Only update the transform if it's a non-dynamic object
-	 */
-		void 
-	UpdateNonDynas(
-	);
 
 	/**
 	 * Function to set IPO option at start of IPO
