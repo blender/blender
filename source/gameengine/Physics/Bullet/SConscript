@@ -1,7 +1,7 @@
 #!/usr/bin/python
 Import ('env')
 
-sources = 'CcdPhysicsEnvironment.cpp CcdPhysicsController.cpp'
+sources = 'CcdPhysicsEnvironment.cpp CcdPhysicsController.cpp CcdGraphicController.cpp'
 
 incs = '. ../common #source/kernel/gen_system #intern/string #intern/moto/include #source/gameengine/Rasterizer #source/blender/makesdna'
 

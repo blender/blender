@@ -1,7 +1,7 @@
 #!/usr/bin/python
 Import ('env')
 
-sources = 'PHY_IMotionState.cpp PHY_IPhysicsController.cpp PHY_IPhysicsEnvironment.cpp PHY_IVehicle.cpp'
+sources = 'PHY_IMotionState.cpp PHY_IController.cpp PHY_IPhysicsController.cpp PHY_IGraphicController.cpp PHY_IPhysicsEnvironment.cpp PHY_IVehicle.cpp'
 
 incs = '. ../Dummy #intern/moto/include'
 
