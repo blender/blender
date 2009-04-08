@@ -162,6 +162,20 @@ MT_Scalar	KX_BulletPhysicsController::GetMass()
 
 }
 
+MT_Vector3 KX_BulletPhysicsController::GetLocalInertia()
+{
+    MT_Vector3 inertia(0.f, 0.f, 0.f);
+    btVector3 inv_inertia;
+    if (GetRigidBody()) {
+        inv_inertia = GetRigidBody()->getInvInertiaDiagLocal();
+		if (!btFuzzyZero(inv_inertia.getX()) && 
+			!btFuzzyZero(inv_inertia.getY()) && 
+			!btFuzzyZero(inv_inertia.getZ()))
+			inertia = MT_Vector3(1.f/inv_inertia.getX(), 1.f/inv_inertia.getY(), 1.f/inv_inertia.getZ());
+    }
+    return inertia;
+}
+
 MT_Scalar KX_BulletPhysicsController::GetRadius()
 {
 	return MT_Scalar(CcdPhysicsController::GetRadius());

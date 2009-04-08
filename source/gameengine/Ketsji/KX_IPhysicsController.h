@@ -79,6 +79,7 @@ public:
 	virtual	void setScaling(const MT_Vector3& scaling)=0;
 	virtual	MT_Scalar	GetMass()=0;
 	virtual void	SetMass(MT_Scalar newmass)=0;
+	virtual	MT_Vector3	GetLocalInertia()=0;
 	virtual	MT_Vector3	getReactionForce()=0;
 	virtual void	setRigidBody(bool rigid)=0;
 	virtual void    AddCompoundChild(KX_IPhysicsController* child) = 0;

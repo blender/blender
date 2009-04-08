@@ -16,8 +16,10 @@ class KX_GameObject: # (SCA_IObject)
 	@ivar name: The object's name. (Read only)
 		- note: Currently (Blender 2.49) the prefix "OB" is added to all objects name. This may change in blender 2.5.
 	@type name: string.
-	@ivar mass: The object's mass (provided the object has a physics controller). Read only.
+	@ivar mass: The object's mass (provided the object has a physics controller).
 	@type mass: float
+	@ivar localInertia: the object's inertia vector in local coordinates. Read only.
+	@type localInertia: list [ix, iy, iz]
 	@ivar parent: The object's parent object. (Read only)
 	@type parent: L{KX_GameObject} or None
 	@ivar visible: visibility flag.

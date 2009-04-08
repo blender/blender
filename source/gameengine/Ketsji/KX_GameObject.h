@@ -281,6 +281,12 @@ public:
 		MT_Scalar	
 	GetMass();
 
+	/**
+	 * Return the local inertia vector of the object
+	 */
+		MT_Vector3
+	GetLocalInertia();
+
 	/** 
 	 * Return the angular velocity of the game object.
 	 */
@@ -820,6 +826,8 @@ public:
 	static int			pyattr_set_visible(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 	static PyObject*	pyattr_get_position(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static int			pyattr_set_position(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
+	static PyObject*	pyattr_get_localInertia(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static int			pyattr_set_localInertia(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 	static PyObject*	pyattr_get_orientation(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static int			pyattr_set_orientation(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 	static PyObject*	pyattr_get_scaling(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);

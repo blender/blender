@@ -772,6 +772,16 @@ MT_Scalar KX_GameObject::GetMass()
 	return 0.0;
 }
 
+MT_Vector3 KX_GameObject::GetLocalInertia()
+{
+	MT_Vector3 local_inertia(0.0,0.0,0.0);
+	if (m_pPhysicsController1)
+	{
+		local_inertia = m_pPhysicsController1->GetLocalInertia();
+	}
+	return local_inertia;
+}
+
 MT_Vector3 KX_GameObject::GetLinearVelocity(bool local)
 {
 	MT_Vector3 velocity(0.0,0.0,0.0), locvel;
@@ -1050,6 +1060,7 @@ PyAttributeDef KX_GameObject::Attributes[] = {
 	KX_PYATTRIBUTE_RW_FUNCTION("mass",		KX_GameObject, pyattr_get_mass,		pyattr_set_mass),
 	KX_PYATTRIBUTE_RW_FUNCTION("visible",	KX_GameObject, pyattr_get_visible,	pyattr_set_visible),
 	KX_PYATTRIBUTE_RW_FUNCTION("position",	KX_GameObject, pyattr_get_position,	pyattr_set_position),
+	KX_PYATTRIBUTE_RO_FUNCTION("localInertia",	KX_GameObject, pyattr_get_localInertia),
 	KX_PYATTRIBUTE_RW_FUNCTION("orientation",KX_GameObject,pyattr_get_orientation,pyattr_set_orientation),
 	KX_PYATTRIBUTE_RW_FUNCTION("scaling",	KX_GameObject, pyattr_get_scaling,	pyattr_set_scaling),
 	KX_PYATTRIBUTE_RW_FUNCTION("timeOffset",KX_GameObject, pyattr_get_timeOffset,pyattr_set_timeOffset),
@@ -1305,6 +1316,15 @@ int KX_GameObject::pyattr_set_position(void *self_v, const KX_PYATTRIBUTE_DEF *a
 	return 0;
 }
 
+PyObject* KX_GameObject::pyattr_get_localInertia(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
+	if (self->GetPhysicsController())
+	{
+		return PyObjectFrom(self->GetPhysicsController()->GetLocalInertia());
+	}
+	Py_RETURN_NONE;
+}
 
 PyObject* KX_GameObject::pyattr_get_orientation(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
@@ -1721,8 +1741,6 @@ PyObject* KX_GameObject::PyGetMass(PyObject* self)
 	ShowDeprecationWarning("getMass()", "the mass property");
 	return PyFloat_FromDouble((GetPhysicsController() != NULL) ? GetPhysicsController()->GetMass() : 0.0f);
 }
-
-
 
 PyObject* KX_GameObject::PyGetReactionForce(PyObject* self)
 {
