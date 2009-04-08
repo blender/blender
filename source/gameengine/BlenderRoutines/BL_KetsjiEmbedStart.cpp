@@ -373,6 +373,10 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 			initVideoTexture();
 #endif
 
+			//initialize Dome Settings
+			if(blscene->r.stereomode == RAS_IRasterizer::RAS_STEREO_DOME)
+				ketsjiengine->InitDome(blscene->r.domesize, blscene->r.domeres, blscene->r.domemode, blscene->r.domeangle, blscene->r.domeresbuf, blscene->r.dometext);
+
 			if (sceneconverter)
 			{
 				// convert and add scene

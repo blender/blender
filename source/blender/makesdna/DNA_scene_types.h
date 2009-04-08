@@ -45,6 +45,7 @@ struct World;
 struct Scene;
 struct Image;
 struct Group;
+struct Text;
 struct bNodeTree;
 
 typedef struct Base {
@@ -314,6 +315,14 @@ typedef struct RenderData {
 	/* jpeg2000 */
 	short jp2_preset, jp2_depth;
 	int rpad3;
+
+	/* Dome variables */
+	short domeres, domemode;
+	short domeangle, pad9;
+	float domesize;
+	float domeresbuf;
+	struct Text *dometext;
+
 } RenderData;
 
 /* control render convert and shading engine */

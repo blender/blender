@@ -3531,7 +3531,9 @@ static void lib_link_scene(FileData *fd, Main *main)
 				srl->mat_override= newlibadr_us(fd, sce->id.lib, srl->mat_override);
 				srl->light_override= newlibadr_us(fd, sce->id.lib, srl->light_override);
 			}
-			
+			/*Game Settings: Dome Warp Text*/
+			sce->r.dometext= newlibadr_us(fd, sce->id.lib, sce->r.dometext);
+
 			sce->id.flag -= LIB_NEEDLINK;
 		}
 
@@ -8035,6 +8037,24 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 	
+	if (main->versionfile < 248 || (main->versionfile == 248 && main->subversionfile < 4)) {
+		Scene *sce;
+		World *wrld;
+
+		/*  Dome (Fisheye) default parameters  */
+		for (sce= main->scene.first; sce; sce= sce->id.next) {
+			sce->r.domeangle = 180;
+			sce->r.domemode = 1;
+			sce->r.domesize = 1.0f;
+			sce->r.domeres = 4;
+			sce->r.domeresbuf = 1.0f;
+		}
+		/* DBVT culling by default */
+		for(wrld=main->world.first; wrld; wrld= wrld->id.next) {
+			wrld->mode |= WO_DBVT_CAMERA_CULLING;
+		}
+	}
+
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in src/usiblender.c! */
 
@@ -8841,7 +8861,9 @@ static void expand_scene(FileData *fd, Main *mainvar, Scene *sce)
 		expand_doit(fd, mainvar, srl->mat_override);
 		expand_doit(fd, mainvar, srl->light_override);
 	}
-				
+
+	if(sce->r.dometext)
+		expand_doit(fd, mainvar, sce->r.dometext);
 }
 
 static void expand_camera(FileData *fd, Main *mainvar, Camera *ca)

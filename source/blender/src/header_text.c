@@ -173,6 +173,7 @@ void do_text_buttons(unsigned short event)
 			BPY_clear_bad_scriptlinks(text);
 			BPY_free_pyconstraint_links(text);
 			free_text_controllers(text);
+			free_dome_warp_text(text);
 #endif
 			unlink_text(text);
 			free_libblock(&G.main->text, text);

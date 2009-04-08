@@ -436,7 +436,7 @@ RAS_IRasterizer::StereoMode RAS_OpenGLRasterizer::GetStereoMode()
 
 bool RAS_OpenGLRasterizer::Stereo()
 {
-	if(m_stereomode == RAS_STEREO_NOSTEREO)
+	if(m_stereomode == RAS_STEREO_NOSTEREO || m_stereomode == RAS_STEREO_DOME)
 		return false;
 	else
 		return true;
@@ -803,7 +803,7 @@ MT_Matrix4x4 RAS_OpenGLRasterizer::GetFrustumMatrix(
 	double mat[16];
 
 	// correction for stereo
-	if(m_stereomode != RAS_STEREO_NOSTEREO)
+	if(Stereo())
 	{
 			float near_div_focallength;
 			// next 2 params should be specified on command line and in Blender publisher
@@ -846,7 +846,7 @@ void RAS_OpenGLRasterizer::SetViewMatrix(const MT_Matrix4x4 &mat, const MT_Vecto
 	m_viewmatrix = mat;
 
 	// correction for stereo
-	if(m_stereomode != RAS_STEREO_NOSTEREO)
+	if(Stereo())
 	{
 		MT_Matrix3x3 camOrientMat3x3(camOrientQuat);
 		MT_Vector3 unitViewDir(0.0, -1.0, 0.0);  // minus y direction, Blender convention

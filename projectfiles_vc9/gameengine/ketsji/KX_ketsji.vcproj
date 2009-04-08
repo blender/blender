@@ -514,6 +514,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\gameengine\Ketsji\KX_Dome.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\gameengine\Ketsji\KX_EmptyObject.cpp"
 				>
 			</File>
@@ -800,6 +804,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\gameengine\Ketsji\KX_ConvertPhysicsObject.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\gameengine\Ketsji\KX_Dome.h"
 				>
 			</File>
 			<File

@@ -693,6 +693,11 @@ bool GPG_Application::startEngine(void)
 #ifdef WITH_FFMPEG
         initVideoTexture();
 #endif
+
+		//initialize Dome Settings
+		if(m_startScene->r.stereomode == RAS_IRasterizer::RAS_STEREO_DOME)
+			m_ketsjiengine->InitDome(m_startScene->r.domesize, m_startScene->r.domeres, m_startScene->r.domemode, m_startScene->r.domeangle, m_startScene->r.domeresbuf, m_startScene->r.dometext);
+
 		// Set the GameLogic.globalDict from marshal'd data, so we can
 		// load new blend files and keep data in GameLogic.globalDict
 		loadGamePythonConfig(m_pyGlobalDictString, m_pyGlobalDictString_Length);
