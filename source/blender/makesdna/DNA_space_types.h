@@ -96,11 +96,13 @@ typedef struct SpaceIpo {
 	short blockhandler[8];
 	View2D v2d; /* depricated, copied to region */
 	
-		// 'IPO keys' - vertical lines for 
+		// 'IPO keys' - vertical lines for editing multiple keyframes at once - use Dopesheet instead for this?
 	//ListBase ipokey;		// XXX it's not clear how these will come back yet
 	//short showkey;			// XXX this doesn't need to be restored until ipokeys come back
 	
 	struct bDopeSheet *ads;	/* settings for filtering animation data (NOTE: we use a pointer due to code-linking issues) */
+	
+	ListBase ghostCurves;	/* sampled snapshots of F-Curves used as in-session guides */
 	
 	short mode;				/* mode for the Graph editor (eGraphEdit_Mode) */
 	short flag;				/* settings for Graph editor */

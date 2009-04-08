@@ -101,6 +101,9 @@ void graphedit_operatortypes(void)
 	WM_operatortype_append(GRAPHEDIT_OT_view_all);
 	WM_operatortype_append(GRAPHEDIT_OT_properties);
 	
+	WM_operatortype_append(GRAPHEDIT_OT_ghost_curves_create);
+	WM_operatortype_append(GRAPHEDIT_OT_ghost_curves_clear);
+	
 	/* keyframes */
 		/* selection */
 	WM_operatortype_append(GRAPHEDIT_OT_keyframes_clickselect);

@@ -42,6 +42,7 @@
 #include "BLI_rand.h"
 
 #include "BKE_context.h"
+#include "BKE_fcurve.h"
 #include "BKE_screen.h"
 #include "BKE_utildefines.h"
 
@@ -168,6 +169,9 @@ static void graph_free(SpaceLink *sl)
 		BLI_freelistN(&si->ads->chanbase);
 		MEM_freeN(si->ads);
 	}
+	
+	if (si->ghostCurves.first)
+		free_fcurves(&si->ghostCurves);
 }
 
 
@@ -232,8 +236,14 @@ static void graph_main_area_draw(const bContext *C, ARegion *ar)
 	UI_view2d_grid_draw(C, v2d, grid, V2D_GRIDLINES_ALL);
 	
 	/* draw data */
-	if (ANIM_animdata_get_context(C, &ac))
-		graph_draw_curves(&ac, sipo, ar, grid);
+	if (ANIM_animdata_get_context(C, &ac)) {
+		/* draw ghost curves */
+		graph_draw_ghost_curves(&ac, sipo, ar, grid);
+		
+		/* draw curves twice - unselected, then selected, so that the are fewer occlusion problems */
+		graph_draw_curves(&ac, sipo, ar, grid, 0);
+		graph_draw_curves(&ac, sipo, ar, grid, 1);
+	}
 	
 	/* only free grid after drawing data, as we need to use it to determine sampling rate */
 	UI_view2d_grid_free(grid);

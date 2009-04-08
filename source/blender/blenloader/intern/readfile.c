@@ -4599,6 +4599,7 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 				SpaceIpo *sipo= (SpaceIpo*)sl;
 				
 				sipo->ads= newdataadr(fd, sipo->ads);
+				sipo->ghostCurves.first= sipo->ghostCurves.last= NULL;
 			}
 			else if (sl->spacetype==SPACE_OUTLINER) {
 				SpaceOops *soops= (SpaceOops*) sl;

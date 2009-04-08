@@ -238,6 +238,154 @@ void GRAPHEDIT_OT_view_all (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
+/* ******************** Create Ghost-Curves Operator *********************** */
+/* This operator samples the data of the selected F-Curves to F-Points, storing them
+ * as 'ghost curves' in the active Graph Editor
+ */
+
+/* Bake each F-Curve into a set of samples, and store as a ghost curve */
+static void create_ghost_curves (bAnimContext *ac, int start, int end)
+{	
+	SpaceIpo *sipo= (SpaceIpo *)ac->sa->spacedata.first;
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
+	int filter;
+	
+	/* free existing ghost curves */
+	free_fcurves(&sipo->ghostCurves);
+	
+	/* sanity check */
+	if (start >= end) {
+		printf("Error: Frame range for Ghost F-Curve creation is inappropriate \n");
+		return;
+	}
+	
+	/* filter data */
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVEVISIBLE | ANIMFILTER_SEL | ANIMFILTER_CURVESONLY);
+	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
+	
+	/* loop through filtered data and add keys between selected keyframes on every frame  */
+	for (ale= anim_data.first; ale; ale= ale->next) {
+		FCurve *fcu= (FCurve *)ale->key_data;
+		FCurve *gcu= MEM_callocN(sizeof(FCurve), "Ghost FCurve");
+		ChannelDriver *driver= fcu->driver;
+		FPoint *fpt;
+		int cfra;		
+		
+		/* disable driver so that it don't muck up the sampling process */
+		fcu->driver= NULL;
+		
+		/* create samples, but store them in a new curve 
+		 *	- we cannot use fcurve_store_samples() as that will only overwrite the original curve 
+		 */
+		gcu->fpt= fpt= MEM_callocN(sizeof(FPoint)*(end-start+1), "Ghost FPoint Samples");
+		gcu->totvert= end - start + 1;
+		
+		/* use the sampling callback at 1-frame intervals from start to end frames */
+		for (cfra= start; cfra <= end; cfra++, fpt++) {
+			fpt->vec[0]= (float)cfra;
+			fpt->vec[1]= fcurve_samplingcb_evalcurve(fcu, NULL, (float)cfra);
+		}
+		
+		/* set color of ghost curve 
+		 *	- make the color slightly darker
+		 */
+		gcu->color[0]= fcu->color[0] - 0.07f;
+		gcu->color[1]= fcu->color[1] - 0.07f;
+		gcu->color[2]= fcu->color[2] - 0.07f;
+		
+		/* store new ghost curve */
+		BLI_addtail(&sipo->ghostCurves, gcu);
+		
+		/* restore driver */
+		fcu->driver= driver;
+	}
+	
+	/* admin and redraws */
+	BLI_freelistN(&anim_data);
+}
+
+/* ------------------- */
+
+static int graphkeys_create_ghostcurves_exec(bContext *C, wmOperator *op)
+{
+	bAnimContext ac;
+	View2D *v2d;
+	int start, end;
+	
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+		
+	/* ghost curves are snapshots of the visible portions of the curves, so set range to be the visible range */
+	v2d= &ac.ar->v2d;
+	start= (int)v2d->cur.xmin;
+	end= (int)v2d->cur.xmax;
+	
+	/* bake selected curves into a ghost curve */
+	create_ghost_curves(&ac, start, end);
+	
+	/* update this editor only */
+	ED_area_tag_redraw(CTX_wm_area(C));
+	
+	return OPERATOR_FINISHED;
+}
+ 
+void GRAPHEDIT_OT_ghost_curves_create (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Create Ghost Curves";
+	ot->idname= "GRAPHEDIT_OT_ghost_curves_create";
+	
+	/* api callbacks */
+	ot->exec= graphkeys_create_ghostcurves_exec;
+	ot->poll= ED_operator_areaactive;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	// todo: add props for start/end frames
+}
+
+/* ******************** Clear Ghost-Curves Operator *********************** */
+/* This operator clears the 'ghost curves' for the active Graph Editor */
+
+static int graphkeys_clear_ghostcurves_exec(bContext *C, wmOperator *op)
+{
+	bAnimContext ac;
+	SpaceIpo *sipo;
+	
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+	sipo= (SpaceIpo *)ac.sa->spacedata.first;
+		
+	/* if no ghost curves, don't do anything */
+	if (sipo->ghostCurves.first == NULL)
+		return OPERATOR_CANCELLED;
+	
+	/* free ghost curves */
+	free_fcurves(&sipo->ghostCurves);
+	
+	/* update this editor only */
+	ED_area_tag_redraw(CTX_wm_area(C));
+	
+	return OPERATOR_FINISHED;
+}
+ 
+void GRAPHEDIT_OT_ghost_curves_clear (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Create Ghost Curves";
+	ot->idname= "GRAPHEDIT_OT_ghost_curves_clear";
+	
+	/* api callbacks */
+	ot->exec= graphkeys_clear_ghostcurves_exec;
+	ot->poll= ED_operator_areaactive;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
 
 /* ************************************************************************** */
 /* GENERAL STUFF */

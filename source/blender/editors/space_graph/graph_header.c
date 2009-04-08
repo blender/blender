@@ -225,6 +225,16 @@ void graph_header_buttons(const bContext *C, ARegion *ar)
 				xco,yco,90,YIC, &sipo->autosnap, 0, 1, 0, 0, 
 				"Auto-snapping mode for keyframe times when transforming");
 	}
+	xco += 98;
+	
+	/* ghost curves */
+	// XXX these icons need to be changed
+	if (sipo->ghostCurves.first)
+		uiDefIconButO(block, BUT, "GRAPHEDIT_OT_ghost_curves_clear", WM_OP_INVOKE_REGION_WIN, ICON_OUTLINER_DATA_CURVE, xco,yco,XIC,YIC, "Clear F-Curve snapshots (Ghosts)");
+	else 
+		uiDefIconButO(block, BUT, "GRAPHEDIT_OT_ghost_curves_create", WM_OP_INVOKE_REGION_WIN, ICON_OUTLINER_OB_CURVE, xco,yco,XIC,YIC, "Create snapshot (Ghosts) of selected F-Curves as background aid");
+	xco+= XIC;
+	
 	
 	/* always as last  */
 	UI_view2d_totRect_set(&ar->v2d, xco+XIC+80, (int)(ar->v2d.tot.ymax - ar->v2d.tot.ymin));

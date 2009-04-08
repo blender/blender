@@ -46,7 +46,9 @@ struct ARegion *graph_has_buttons_region(struct ScrArea *sa);
 /* ***************************************** */
 /* graph_draw.c */
 void graph_draw_channel_names(struct bAnimContext *ac, struct SpaceIpo *sipo, struct ARegion *ar);
-void graph_draw_curves(struct bAnimContext *ac, struct SpaceIpo *sipo, struct ARegion *ar, struct View2DGrid *grid);
+
+void graph_draw_curves(struct bAnimContext *ac, struct SpaceIpo *sipo, struct ARegion *ar, struct View2DGrid *grid, short sel);
+void graph_draw_ghost_curves(struct bAnimContext *ac, struct SpaceIpo *sipo, struct ARegion *ar, struct View2DGrid *grid);
 
 /* ***************************************** */
 /* graph_header.c */
@@ -126,6 +128,11 @@ enum {
 /* ----------- */
 
 void GRAPHEDIT_OT_fmodifier_add(struct wmOperatorType *ot);
+
+/* ----------- */
+
+void GRAPHEDIT_OT_ghost_curves_create(struct wmOperatorType *ot);
+void GRAPHEDIT_OT_ghost_curves_clear(struct wmOperatorType *ot);
 
 /* ***************************************** */
 /* graph_buttons.c */

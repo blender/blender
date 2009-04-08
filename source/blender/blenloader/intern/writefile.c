@@ -1807,7 +1807,17 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 					if(v3d->gpd) write_gpencil(wd, v3d->gpd);
 				}
 				else if(sl->spacetype==SPACE_IPO) {
+					SpaceIpo *sipo= (SpaceIpo *)sl;
+					ListBase tmpGhosts = sipo->ghostCurves;
+					
+					/* temporarily disable ghost curves when saving */
+					sipo->ghostCurves.first= sipo->ghostCurves.last= NULL;
+					
 					writestruct(wd, DATA, "SpaceIpo", 1, sl);
+					if(sipo->ads) writestruct(wd, DATA, "bDopeSheet", 1, sipo->ads);
+					
+					/* reenable ghost curves */
+					sipo->ghostCurves= tmpGhosts;
 				}
 				else if(sl->spacetype==SPACE_BUTS) {
 					writestruct(wd, DATA, "SpaceButs", 1, sl);

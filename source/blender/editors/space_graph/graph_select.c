@@ -92,7 +92,7 @@
  *	3) (de)select all - no testing is done; only for use internal tools as normal function...
  */
 
-/* Deselects keyframes in the action editor
+/* Deselects keyframes in the Graph Editor
  *	- This is called by the deselect all operator, as well as other ones!
  *
  * 	- test: check if select or deselect all
@@ -140,13 +140,7 @@ static void deselect_graph_keys (bAnimContext *ac, short test, short sel)
 		/* Keyframes First */
 		ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, NULL, sel_cb, NULL);
 		
-		/* Curve Selection too */
-		if (sel == SELECT_ADD)
-			fcu->flag |= FCURVE_SELECTED;
-		else if (sel == SELECT_SUBTRACT)
-			fcu->flag &= ~FCURVE_SELECTED;
-		else
-			fcu->flag ^= FCURVE_SELECTED;
+		/* deactivate the F-Curve */
 		fcu->flag &= ~FCURVE_ACTIVE;
 	}
 	

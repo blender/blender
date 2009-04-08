@@ -744,7 +744,43 @@ static void draw_ipokey(SpaceIpo *sipo, ARegion *ar)
 
 /* Public Curve-Drawing API  ---------------- */
 
-void graph_draw_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGrid *grid)
+/* Draw the 'ghost' F-Curves (i.e. snapshots of the curve) */
+void graph_draw_ghost_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGrid *grid)
+{
+	FCurve *fcu;
+	
+	/* draw with thick dotted lines */
+	setlinestyle(1);
+	glLineWidth(3.0f);
+	
+	/* anti-aliased lines for less jagged appearance */
+	glEnable(GL_LINE_SMOOTH);
+	glEnable(GL_BLEND);
+	
+	/* the ghost curves are simply sampled F-Curves stored in sipo->ghostCurves */
+	for (fcu= sipo->ghostCurves.first; fcu; fcu= fcu->next) {
+		/* set whatever color the curve has set 
+		 * 	- this is set by the function which creates these
+		 *	- draw with a fixed opacity of 2
+		 */
+		glColor4f(fcu->color[0], fcu->color[1], fcu->color[2], 0.5f);
+		
+		/* simply draw the stored samples */
+		draw_fcurve_curve_samples(fcu, &ar->v2d);
+	}
+	
+	/* restore settings */
+	setlinestyle(0);
+	glLineWidth(1.0f);
+	
+	glDisable(GL_LINE_SMOOTH);
+	glDisable(GL_BLEND);
+}
+
+/* This is called twice from space_graph.c -> graph_main_area_draw()
+ * Unselected then selected F-Curves are drawn so that they do not occlude each other.
+ */
+void graph_draw_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGrid *grid, short sel)
 {
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
@@ -752,6 +788,7 @@ void graph_draw_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGri
 	
 	/* build list of curves to draw */
 	filter= (ANIMFILTER_VISIBLE|ANIMFILTER_CURVESONLY|ANIMFILTER_CURVEVISIBLE);
+	filter |= (sel) ? (ANIMFILTER_SEL) : (ANIMFILTER_UNSEL);
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 		
 	/* for each curve:
