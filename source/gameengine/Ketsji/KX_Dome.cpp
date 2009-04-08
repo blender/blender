@@ -442,7 +442,7 @@ i ranges from 0 to 1, if negative don't draw that mesh node
 		printf("Error: Warp Mesh File with insufficient data!\n");
 		return false;
 	}else{
-		warp.nodes = vector<vector <WarpMeshNode>> (warp.n_height, vector<WarpMeshNode>(warp.n_width));
+		warp.nodes = vector<vector<WarpMeshNode> > (warp.n_height, vector<WarpMeshNode>(warp.n_width));
 
 		for(i=2; i-2 < (warp.n_width*warp.n_height); i++){
 			columns = lines[i].Explode(' ');
