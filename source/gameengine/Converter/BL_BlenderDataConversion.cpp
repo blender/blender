@@ -1120,6 +1120,7 @@ static float my_boundbox_mesh(Mesh *me, float *loc, float *size)
 	BoundBox *bb;
 	MT_Point3 min, max;
 	float mloc[3], msize[3];
+	float radius=0.0f, vert_radius, *co;
 	int a;
 	
 	if(me->bb==0) me->bb= (struct BoundBox *)MEM_callocN(sizeof(BoundBox), "boundbox");
@@ -1132,7 +1133,15 @@ static float my_boundbox_mesh(Mesh *me, float *loc, float *size)
 	
 	mvert= me->mvert;
 	for(a=0; a<me->totvert; a++, mvert++) {
-		DO_MINMAX(mvert->co, min, max);
+		co= mvert->co;
+		
+		/* bounds */
+		DO_MINMAX(co, min, max);
+		
+		/* radius */
+		vert_radius= co[0]*co[0] + co[1]*co[1] + co[2]*co[2];
+		if (vert_radius > radius)
+			radius= vert_radius;
 	}
 		
 	if(me->totvert) {
@@ -1158,13 +1167,6 @@ static float my_boundbox_mesh(Mesh *me, float *loc, float *size)
 	bb->vec[0][2]=bb->vec[3][2]=bb->vec[4][2]=bb->vec[7][2]= loc[2]-size[2];
 	bb->vec[1][2]=bb->vec[2][2]=bb->vec[5][2]=bb->vec[6][2]= loc[2]+size[2];
 
-	float radius = 0;
-	for (a=0, mvert = me->mvert; a < me->totvert; a++, mvert++)
-	{
-		float vert_radius = MT_Vector3(mvert->co).length2();
-		if (vert_radius > radius)
-			radius = vert_radius;
-	} 
 	return sqrt(radius);
 }
 		

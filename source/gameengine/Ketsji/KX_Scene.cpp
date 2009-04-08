@@ -956,7 +956,7 @@ int KX_Scene::NewRemoveObject(class CValue* gameobj)
 	
 	newobj->RemoveMeshes();
 	ret = 1;
-	if (m_lightlist->RemoveValue(newobj)) // TODO - use newobj->IsLight() test when its merged in from apricot. - Campbell
+	if (newobj->IsLight() && m_lightlist->RemoveValue(newobj))
 		ret = newobj->Release();
 	if (m_objectlist->RemoveValue(newobj))
 		ret = newobj->Release();

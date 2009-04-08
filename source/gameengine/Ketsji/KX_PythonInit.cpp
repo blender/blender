@@ -184,7 +184,7 @@ static PyObject* gPySendMessage(PyObject*, PyObject* args)
 	char* to = "";
 	char* from = "";
 
-	if (!PyArg_ParseTuple(args, "s|sss", &subject, &body, &to, &from))
+	if (!PyArg_ParseTuple(args, "s|sss:sendMessage", &subject, &body, &to, &from))
 		return NULL;
 
 	gp_KetsjiScene->GetNetworkScene()->SendMessage(to, from, subject, body);

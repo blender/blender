@@ -1325,7 +1325,7 @@ PyObject* KX_GameObject::pyattr_get_localInertia(void *self_v, const KX_PYATTRIB
 	{
 		return PyObjectFrom(self->GetPhysicsController()->GetLocalInertia());
 	}
-	Py_RETURN_NONE;
+	return Py_BuildValue("fff", 0.0f, 0.0f, 0.0f);
 }
 
 PyObject* KX_GameObject::pyattr_get_orientation(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
@@ -2349,7 +2349,7 @@ KX_PYMETHODDEF_DOC_VARARGS(KX_GameObject, sendMessage,
 	char* to = "";
 	const STR_String& from = GetName();
 
-	if (!PyArg_ParseTuple(args, "s|sss", &subject, &body, &to))
+	if (!PyArg_ParseTuple(args, "s|sss:sendMessage", &subject, &body, &to))
 		return NULL;
 
 	KX_GetActiveScene()->GetNetworkScene()->SendMessage(to, from, subject, body);
