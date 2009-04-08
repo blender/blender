@@ -244,7 +244,7 @@ PyObject *PyObject_GetAttrStringArgs(PyObject *o, Py_ssize_t n, ...)
 
 int BPY_class_validate(const char *class_type, PyObject *class, PyObject *base_class, BPY_class_attr_check* class_attrs, PyObject **py_class_attrs)
 {
-	PyObject *item;
+	PyObject *item, *fitem;
 	PyObject *py_arg_count;
 	int i, arg_count;
 
@@ -292,12 +292,17 @@ int BPY_class_validate(const char *class_type, PyObject *class, PyObject *base_c
 					}
 					break;
 				case 'f':
-					if (PyFunction_Check(item)==0) {
+					if (PyMethod_Check(item))
+						fitem= PyMethod_Function(item); /* py 2.x */
+					else
+						fitem= item; /* py 3.x */
+
+					if (PyFunction_Check(fitem)==0) {
 						PyErr_Format( PyExc_AttributeError, "expected %s class \"%s\" attribute to be a function", class_type, class_attrs->name);
 						return -1;
 					}
 					if (class_attrs->arg_count >= 0) { /* -1 if we dont care*/
-						py_arg_count = PyObject_GetAttrString(PyFunction_GET_CODE(item), "co_argcount");
+						py_arg_count = PyObject_GetAttrString(PyFunction_GET_CODE(fitem), "co_argcount");
 						arg_count = PyLong_AsSsize_t(py_arg_count);
 						Py_DECREF(py_arg_count);
 

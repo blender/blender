@@ -47,15 +47,17 @@
 static int PyPanel_generic(int mode, const bContext *C, Panel *pnl)
 {
 	PyObject *py_class= (PyObject *)(pnl->type->py_data);
-	//uiLayout *layout= pnl->layout;
 
 	PyObject *args;
 	PyObject *ret= NULL, *py_class_instance, *item;
+	PointerRNA panelptr;
 	int ret_flag= 0;
 
 	PyGILState_STATE gilstate = PyGILState_Ensure();
 
-	args = PyTuple_New(0);
+	args = PyTuple_New(1);
+	RNA_pointer_create(&CTX_wm_screen(C)->id, pnl->type->srna, pnl, &panelptr);
+	PyTuple_SET_ITEM(args, 0, pyrna_struct_CreatePyObject(&panelptr));
 	py_class_instance = PyObject_Call(py_class, args, NULL);
 	Py_DECREF(args);
 
@@ -211,6 +213,10 @@ PyObject *PyPanel_wrap_add(PyObject *self, PyObject *args)
 	pt->py_data= (void *)py_class;
 
 	BLI_addtail(&art->paneltypes, pt);
+
+	pt->srna= RNA_def_struct(&BLENDER_RNA, pt->idname, "Panel"); 
+	RNA_struct_py_type_set(pt->srna, py_class);
+
 	Py_RETURN_NONE;
 }
 

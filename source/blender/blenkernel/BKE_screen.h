@@ -44,6 +44,7 @@ struct wmWindow;
 struct wmWindowManager;
 struct uiLayout;
 struct uiMenuItem;
+struct StructRNA;
 
 /* spacetype has everything stored to get an editor working, it gets initialized via 
    ED_spacetypes_init() in editors/area/spacetypes.c   */
@@ -152,7 +153,8 @@ typedef struct PanelType {
 	void		(*draw)(const struct bContext *, struct Panel *);	
 
 	/* python integration */
-	void		*py_data;
+	void				*py_data;
+	struct StructRNA	*srna;
 } PanelType;
 
 /* header types */
