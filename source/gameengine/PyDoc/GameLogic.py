@@ -205,6 +205,19 @@ def addActiveActuator(actuator, activate):
 	@type activate: boolean
 	@param activate: whether to activate or deactivate the given actuator.
 	"""
+def sendMessage(subject, body="", to="", from=""):
+	"""
+	Sends a message.
+	
+	@param subject: The subject of the message
+	@type subject: string
+	@param body: The body of the message (optional)
+	@type body: string
+	@param to: The name of the object to send the message to (optional)
+	@type to: string
+	@param from: The name of the object that the message is coming from (optional)
+	@type from: string
+	"""
 def getRandomFloat():
 	"""
 	Returns a random floating point value in the range [0...1)

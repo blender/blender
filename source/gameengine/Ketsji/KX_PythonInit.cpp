@@ -67,6 +67,8 @@
 #include "KX_Scene.h"
 #include "SND_DeviceManager.h"
 
+#include "NG_NetworkScene.h" //Needed for sendMessage()
+
 #include "BL_Shader.h"
 
 #include "KX_PyMath.h"
@@ -167,6 +169,28 @@ static PyObject* gPyExpandPath(PyObject*, PyObject* args)
 	return PyString_FromString(expanded);
 }
 
+static char gPySendMessage_doc[] = 
+"sendMessage(subject, [body, to, from])\n\
+sends a message in same manner as a message actuator\
+subject = Subject of the message\
+body = Message body\
+to = Name of object to send the message to\
+from = Name of object to sned the string from";
+
+static PyObject* gPySendMessage(PyObject*, PyObject* args)
+{
+	char* subject;
+	char* body = "";
+	char* to = "";
+	char* from = "";
+
+	if (!PyArg_ParseTuple(args, "s|sss", &subject, &body, &to, &from))
+		return NULL;
+
+	gp_KetsjiScene->GetNetworkScene()->SendMessage(to, from, subject, body);
+
+	Py_RETURN_NONE;
+}
 
 static bool usedsp = false;
 
@@ -436,6 +460,7 @@ static PyObject *pyPrintExt(PyObject *,PyObject *,PyObject *)
 
 static struct PyMethodDef game_methods[] = {
 	{"expandPath", (PyCFunction)gPyExpandPath, METH_VARARGS, (PY_METHODCHAR)gPyExpandPath_doc},
+	{"sendMessage", (PyCFunction)gPySendMessage, METH_VARARGS, (PY_METHODCHAR)gPySendMessage_doc},
 	{"getCurrentController",
 	(PyCFunction) SCA_PythonController::sPyGetCurrentController,
 	METH_NOARGS, (PY_METHODCHAR)SCA_PythonController::sPyGetCurrentController__doc__},

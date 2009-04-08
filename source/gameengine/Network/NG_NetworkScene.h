@@ -34,6 +34,11 @@
 #include "STR_HashedString.h"
 #include <vector>
 
+//MSVC defines SendMessage as a win api function, even though we aren't using it
+#ifdef SendMessage
+	#undef SendMessage
+#endif
+
 class NG_NetworkDeviceInterface;
 
 class NG_NetworkScene

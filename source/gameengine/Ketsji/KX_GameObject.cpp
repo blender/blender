@@ -66,6 +66,7 @@ typedef unsigned long uint_ptr;
 #include "SCA_IActuator.h"
 #include "SCA_ISensor.h"
 #include "SCA_IController.h"
+#include "NG_NetworkScene.h" //Needed for sendMessage()
 
 #include "PyObjectPlus.h" /* python stuff */
 
@@ -1039,7 +1040,8 @@ PyMethodDef KX_GameObject::Methods[] = {
 	KX_PYMETHODTABLE(KX_GameObject, rayCast),
 	KX_PYMETHODTABLE_O(KX_GameObject, getDistanceTo),
 	KX_PYMETHODTABLE_O(KX_GameObject, getVectTo),
-	
+	KX_PYMETHODTABLE(KX_GameObject, sendMessage),
+
 	// deprecated
 	{"getPosition", (PyCFunction) KX_GameObject::sPyGetPosition, METH_NOARGS},
 	{"setPosition", (PyCFunction) KX_GameObject::sPySetPosition, METH_O},
@@ -2333,6 +2335,26 @@ KX_PYMETHODDEF_DOC(KX_GameObject, rayCast,
 		return Py_BuildValue("OOOO", Py_None, Py_None, Py_None, Py_None);
 	else
 		return Py_BuildValue("OOO", Py_None, Py_None, Py_None);
+}
+
+KX_PYMETHODDEF_DOC_VARARGS(KX_GameObject, sendMessage, 
+						   "sendMessage(subject, [body, to])\n"
+"sends a message in same manner as a message actuator"
+"subject = Subject of the message (string)"
+"body = Message body (string)"
+"to = Name of object to send the message to")
+{
+	char* subject;
+	char* body = "";
+	char* to = "";
+	const STR_String& from = GetName();
+
+	if (!PyArg_ParseTuple(args, "s|sss", &subject, &body, &to))
+		return NULL;
+
+	KX_GetActiveScene()->GetNetworkScene()->SendMessage(to, from, subject, body);
+
+	Py_RETURN_NONE;
 }
 
 /* --------------------------------------------------------------------- 

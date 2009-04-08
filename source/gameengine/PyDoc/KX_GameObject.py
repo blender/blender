@@ -453,3 +453,14 @@ class KX_GameObject: # (SCA_IObject)
 		@type margin: float
 		@param margin: the collision margin distance in blender units.
 		"""
+	def sendMessage(subject, body="", to=""):
+		"""
+		Sends a message.
+	
+		@param subject: The subject of the message
+		@type subject: string
+		@param body: The body of the message (optional)
+		@type body: string
+		@param to: The name of the object to send the message to (optional)
+		@type to: string
+		"""
