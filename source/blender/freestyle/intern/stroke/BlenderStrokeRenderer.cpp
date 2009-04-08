@@ -89,9 +89,9 @@ BlenderStrokeRenderer::~BlenderStrokeRenderer(){
 	    _textureManager = 0;
 	  }
 	
-	free_scene( scene );
 	free_object( object_camera );
 	free_material( material );
+	free_libblock( &G.main->scene, scene );
 	
 	set_scene_bg( old_scene );
 }
