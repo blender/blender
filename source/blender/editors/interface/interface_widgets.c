@@ -516,16 +516,15 @@ static void widget_check_trias(uiWidgetTrias *tria, rcti *rect)
 /* prepares shade colors */
 static void shadecolors4(float *coltop, float *coldown, float *color, float shadetop, float shadedown)
 {
-	float hue, sat, val, valshade;
 	
-	rgb_to_hsv(color[0], color[1], color[2], &hue, &sat, &val);
-	
-	valshade= CLAMPIS(val+shadetop, 0.0f, 1.0f);
-	hsv_to_rgb(hue, sat, valshade, coltop, coltop+1, coltop+2);
+	coltop[0]= CLAMPIS(color[0]+shadetop, 0.0f, 1.0f);
+	coltop[1]= CLAMPIS(color[1]+shadetop, 0.0f, 1.0f);
+	coltop[2]= CLAMPIS(color[2]+shadetop, 0.0f, 1.0f);
 	coltop[3]= color[3];
 
-	valshade= CLAMPIS(val+shadedown, 0.0f, 1.0f);
-	hsv_to_rgb(hue, sat, valshade, coldown, coldown+1, coldown+2);
+	coldown[0]= CLAMPIS(color[0]+shadedown, 0.0f, 1.0f);
+	coldown[1]= CLAMPIS(color[1]+shadedown, 0.0f, 1.0f);
+	coldown[2]= CLAMPIS(color[2]+shadedown, 0.0f, 1.0f);
 	coldown[3]= color[3];
 }
 
@@ -969,7 +968,7 @@ static struct uiWidgetColors wcol_pulldown= {
 static struct uiWidgetColors wcol_menu_item= {
 	{0.0f, 0.0f, 0.0f},
 	{0.0f, 0.0f, 0.0f, 0.3},
-	{0.23f, 0.53f, 0.9f, 0.9f},
+	{0.23f, 0.53f, 0.9f, 1.0f},
 	{0.45, 0.75, 0.3f, 1.0f},
 	{0.35, 0.65, 0.2f, 1.0f},
 	{0.95, 0.9, 0.4f, 1.0f},

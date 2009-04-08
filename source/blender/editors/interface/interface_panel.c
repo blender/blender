@@ -653,6 +653,33 @@ static void ui_draw_panel_scalewidget(uiBlock *block)
 	glDisable(GL_BLEND);
 }
 
+static void ui_draw_panel_dragwidget(uiBlock *block)
+{
+	float xmin, xmax, dx;
+	float ymin, ymax, dy;
+	
+	xmin= block->maxx-10-PNL_HEADER+8;
+	xmax= block->maxx-10;
+	ymin= block->maxy+4;
+	ymax= block->maxy+PNL_HEADER-4;
+	
+	dx= 0.333f*(xmax-xmin);
+	dy= 0.333f*(ymax-ymin);
+	
+	glEnable(GL_BLEND);
+	glColor4ub(255, 255, 255, 50);
+	fdrawline(xmin, ymax, xmax, ymin);
+	fdrawline(xmin+dx, ymax, xmax, ymin+dy);
+	fdrawline(xmin+2*dx, ymax, xmax, ymin+2*dy);
+	
+	glColor4ub(0, 0, 0, 50);
+	fdrawline(xmin, ymax+block->aspect, xmax, ymin+block->aspect);
+	fdrawline(xmin+dx, ymax+block->aspect, xmax, ymin+dy+block->aspect);
+	fdrawline(xmin+2*dx, ymax+block->aspect, xmax, ymin+2*dy+block->aspect);
+	glDisable(GL_BLEND);
+}
+
+
 static void ui_draw_panel_old(ARegion *ar, uiBlock *block)
 {
 	Panel *panel= block->panel;
@@ -834,17 +861,89 @@ static void ui_draw_panel_old(ARegion *ar, uiBlock *block)
 		ui_draw_tria_icon(block->minx+6+ofsx, block->maxy+5, block->aspect, 'v');
 }
 
+static void ui_draw_panel_header_style(ARegion *ar, uiBlock *block)
+{
+	Panel *pa, *panel= block->panel;
+	float width;
+	int a, nr= 1, pnl_icons;
+	char *activename= panel->drawname[0]?panel->drawname:panel->panelname;
+	char *panelname, *str;
+	
+	ui_draw_panel_dragwidget(block);
+
+	/* count */
+	for(pa= ar->panels.first; pa; pa=pa->next)
+		if(pa->active)
+			if(pa->paneltab==panel)
+				nr++;
+	
+	pnl_icons= PNL_ICON+8;
+	if(panel->control & UI_PNL_CLOSE) pnl_icons+= PNL_ICON;
+	
+	if(nr==1) {
+		/* active tab */
+		/* draw text label */
+		UI_ThemeColor(TH_TEXT);
+		ui_rasterpos_safe(4.0f+block->minx+pnl_icons, block->maxy+5.0f, block->aspect);
+		UI_DrawString(block->curfont, activename, ui_translate_buttons());
+		return;
+	}
+	
+	a= 0;
+	width= (panel->sizex - 3 - pnl_icons - PNL_ICON)/nr;
+	for(pa= ar->panels.first; pa; pa=pa->next) {
+		panelname= pa->drawname[0]?pa->drawname:pa->panelname;
+		if(a == 0)
+			activename= panelname;
+		
+		if(pa->active==0);
+		else if(pa==panel) {
+			/* active tab */
+			
+			/* draw the active text label */
+			UI_ThemeColor(TH_TEXT);
+			ui_rasterpos_safe(16+pnl_icons+a*width, panel->sizey+4, block->aspect);
+			if(panelname != activename && strstr(panelname, activename) == panelname)
+				str= ui_block_cut_str(block, panelname+strlen(activename), (short)(width-10));
+			else
+				str= ui_block_cut_str(block, panelname, (short)(width-10));
+			UI_DrawString(block->curfont, str, ui_translate_buttons());
+			
+			a++;
+		}
+		else if(pa->paneltab==panel) {
+			
+			/* draw an inactive tab label */
+			UI_ThemeColorBlend(TH_TEXT, TH_BACK, 0.5f);
+			ui_rasterpos_safe(16+pnl_icons+a*width, panel->sizey+4, block->aspect);
+			if(panelname != activename && strstr(panelname, activename) == panelname)
+				str= ui_block_cut_str(block, panelname+strlen(activename), (short)(width-10));
+			else
+				str= ui_block_cut_str(block, panelname, (short)(width-10));
+			UI_DrawString(block->curfont, str, ui_translate_buttons());
+			
+			a++;
+		}
+	}
+}
+
+
 /* XXX has follow style definitions still */
 static void ui_draw_panel_style(ARegion *ar, uiBlock *block)
 {
-	Panel *panel= block->panel;
+	Panel *panel= block->panel, *prev;
 	int ofsx;
-	char *panelname= panel->drawname[0]?panel->drawname:panel->panelname;
 	
 	if(panel->paneltab) return;
 	
-	/* divider */
-	if(panel->prev) {
+	/* divider only when there's a previous panel */
+	prev= panel->prev;
+	while(prev) {
+		if(prev->active) break;
+		prev= prev->prev;
+	}
+	
+	if(prev) {
 		float minx= block->minx+10;
 		float maxx= block->maxx-10;
 		float y= block->maxy + PNL_HEADER;
@@ -859,11 +958,7 @@ static void ui_draw_panel_style(ARegion *ar, uiBlock *block)
 	
 	/* title */
 	if(!(panel->flag & PNL_CLOSEDX)) {
-		ofsx= PNL_ICON+8;
-		if(panel->control & UI_PNL_CLOSE) ofsx+= PNL_ICON;
-		UI_ThemeColor(TH_TEXT);
-		ui_rasterpos_safe(4+block->minx+ofsx, block->maxy+2, block->aspect);
-		UI_DrawString(block->curfont, panelname, ui_translate_buttons());
+		ui_draw_panel_header_style(ar, block);
 	}
 	
 	/* if the panel is minimized vertically:
@@ -944,6 +1039,7 @@ static int get_panel_real_ofsy(Panel *pa)
 {
 	if(pa->flag & PNL_CLOSEDY) return pa->ofsy+pa->sizey;
 	else if(pa->paneltab && (pa->paneltab->flag & PNL_CLOSEDY)) return pa->ofsy+pa->sizey;
+	else if(pa->paneltab) return pa->paneltab->ofsy;
 	else return pa->ofsy;
 }
 
@@ -1471,9 +1567,16 @@ static void panel_clicked_tabs(bContext *C, ScrArea *sa, ARegion *ar, uiBlock *b
 				pa= pa->next;
 			}
 			
+			/* copy locations to tabs */
+			for(pa= ar->panels.first; pa; pa= pa->next) {
+				if(pa->paneltab && pa->active) {
+					copy_panel_offset(pa, pa->paneltab);
+				}
+			}
+			
 			/* panels now differ size.. */
 			if(panel_aligned(sa, ar))
-				uiAlignPanelStep(sa, ar, 1.0);
+				panel_activate_state(C, tabsel, PANEL_STATE_ANIMATION);
 
 			ED_region_tag_redraw(ar);
 		}
@@ -1690,7 +1793,7 @@ static void panel_activate_state(bContext *C, Panel *pa, uiHandlePanelState stat
 	uiHandlePanelData *data= pa->activedata;
 	wmWindow *win= CTX_wm_window(C);
 	ARegion *ar= CTX_wm_region(C);
-
+	
 	if(data && data->state == state)
 		return;
 
