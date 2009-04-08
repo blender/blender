@@ -31,7 +31,6 @@ public:
   virtual void RenderStrokeRepBasic(StrokeRep *iStrokeRep) const;
 
 	Render* RenderScene(Render *re);
-	void Close();
 
 protected:
 	Scene* scene;

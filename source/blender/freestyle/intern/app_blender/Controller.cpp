@@ -645,7 +645,8 @@ Render* Controller::RenderStrokes(Render *re) {
 	BlenderStrokeRenderer* blenderRenderer = new BlenderStrokeRenderer;
   	_Canvas->Render( blenderRenderer );
 	Render* freestyle_render = blenderRenderer->RenderScene(re);
-	blenderRenderer->Close();
+	delete blenderRenderer;
+	
 	return freestyle_render;
 }
 

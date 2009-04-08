@@ -69,7 +69,7 @@ public:
 
     Operators::reset();
 	int errorCode;
-    if( errorCode = _inter->interpretFile(_file_name)) {
+    if( (errorCode = _inter->interpretFile(_file_name)) ) {
       cerr << "Error: interpretation failed with code " << errorCode << endl;
       return NULL;
 	}

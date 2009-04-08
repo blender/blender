@@ -56,7 +56,7 @@ BlenderStrokeRenderer::BlenderStrokeRenderer()
 	lb = scene->r.layers;
 	scene->r= old_scene->r;
 	scene->r.layers= lb;
-	set_scene( scene );
+	set_scene_bg( scene );
 
 	// image dimensions
 	float width = scene->r.xsch;
@@ -89,14 +89,11 @@ BlenderStrokeRenderer::~BlenderStrokeRenderer(){
 	    _textureManager = 0;
 	  }
 	
-	// DEALLOCATE STRUCTURE
-
-	// Scene* scene;
-	// Object* object_camera;
-	// Material* material;
+	free_scene( scene );
+	free_object( object_camera );
+	free_material( material );
 	
-	// Scene* old_scene;
-	
+	set_scene_bg( old_scene );
 }
 
 void BlenderStrokeRenderer::RenderStrokeRep(StrokeRep *iStrokeRep) const{
@@ -239,30 +236,3 @@ Render* BlenderStrokeRenderer::RenderScene( Render *re ) {
 	RE_BlenderFrame( freestyle_render, scene, 1);
 	return freestyle_render;
 }
-
-void BlenderStrokeRenderer::Close() {
-		
-	Scene *sce;
-	bScreen *sc;
-	
-	// from header_info.c	
-	/* check all sets */
-	for( sce= (Scene*) G.main->scene.first; sce; sce= (Scene*)sce->id.next) {
-		if(sce->set == scene) sce->set= 0;
-	}
-	
-	/* check all sequences */
-	clear_scene_in_allseqs(scene);
-	
-	/* check render layer nodes in other scenes */
-	clear_scene_in_nodes(scene);
-	
-	for (sc= (bScreen*)G.main->screen.first; sc; sc= (bScreen*)sc->id.next ) {
-		if(sc->scene == scene) sc->scene= G.scene;
-	}
-	
-	free_libblock( &G.main->scene, scene );
-	set_scene( old_scene );
-	countall();
-}
-
