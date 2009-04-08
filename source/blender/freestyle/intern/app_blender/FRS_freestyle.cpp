@@ -227,6 +227,9 @@ extern "C" {
 	
 	int displayed_layer_count( SceneRenderLayer* srl ) {
 		int count = 0;
+		
+		if( panelConfig->layers.find(srl) == panelConfig->layers.end() )
+			return 0;
 
 		for( StyleModuleConf* module_conf = (StyleModuleConf *)panelConfig->modules[srl]->first; module_conf; module_conf = module_conf->next ) {
 			if( module_conf->is_displayed )
