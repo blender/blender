@@ -61,12 +61,25 @@ public:
       cerr << "Error: no interpreter was found to execute the script" << endl;
       return NULL;
     }
+
+	if (!_drawable) {
+      cerr << "Error: not drawable" << endl;
+      return NULL;
+    }
+
     Operators::reset();
-    if (_inter->interpretFile(_file_name))
+	int errorCode;
+    if( errorCode = _inter->interpretFile(_file_name)) {
+      cerr << "Error: interpretation failed with code " << errorCode << endl;
       return NULL;
+	}
+	
     Operators::StrokesContainer* strokes_set = Operators::getStrokesSet();
-    if (!_drawable || strokes_set->empty())
+    if( strokes_set->empty() ) {
+   		cerr << "Error: strokes set empty" << endl;
       return NULL;
+	}
+
     StrokeLayer* sl = new StrokeLayer;
     for (Operators::StrokesContainer::iterator it = strokes_set->begin();
 	 it != strokes_set->end();

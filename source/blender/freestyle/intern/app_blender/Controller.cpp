@@ -632,6 +632,7 @@ void Controller::DrawStrokes()
   if(_ViewMap == 0)
     return;
 
+  cout << "\n===  Stroke drawing  ===" << endl;
   _Chrono.start();
   _Canvas->Draw();
   real d = _Chrono.stop();

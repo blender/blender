@@ -249,7 +249,7 @@ extern "C" {
 		init_view(re);
 		init_camera(re);
 		
-		for(srl= (SceneRenderLayer *)re->scene->r.layers.first; srl; srl= srl->next) {
+		for(srl= (SceneRenderLayer *)G.scene->r.layers.first; srl; srl= srl->next) {
 			if( !(srl->layflag & SCE_LAY_DISABLE) &&
 			 	srl->layflag & SCE_LAY_FRS &&
 				displayed_layer_count(srl) > 0       )
