@@ -26,17 +26,19 @@
 
 FILE(GLOB DEFSRC RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "*.c")
 LIST(REMOVE_ITEM DEFSRC rna_access.c rna_define.c makesrna.c)
-
+FILE(GLOB_RECURSE APISRC "../../editors/*/*_api.c")
+ 
 STRING(REGEX REPLACE "rna_([a-zA-Z0-9_-]*).c" "${CMAKE_CURRENT_BINARY_DIR}/rna_\\1_gen.c" GENSRC "${DEFSRC}")
 
 SET(SRC
      makesrna.c
      rna_define.c
      ${DEFSRC}
+     ${APISRC}
      ../../../../intern/guardedalloc/intern/mallocn.c
      ../../../../intern/guardedalloc/intern/mmap_win.c)
 
-INCLUDE_DIRECTORIES(../../../../intern/guardedalloc .. ../../makesdna ../../blenkernel ../../blenlib ../../windowmanager ../../editors .)
+INCLUDE_DIRECTORIES(../../../../intern/guardedalloc .. ../../makesdna ../../blenkernel ../../blenlib ../../windowmanager ../../editors/include .)
 FILE(GLOB INC_FILES ../*.h ../../makesdna/*.h)
 
 # Build makesrna executable

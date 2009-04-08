@@ -3,6 +3,9 @@ Import ('env')
 
 sources = env.Glob('*.c')
 
+for source in env.Glob('*_api.c'):
+	sources.remove(source)
+
 incs = '../include ../../blenlib ../../blenfont ../../blenkernel ../../makesdna ../../imbuf'
 incs += ' ../../makesrna ../../windowmanager #/intern/guardedalloc #intern/bmfont'
 incs += ' #/extern/glew/include'

@@ -153,11 +153,14 @@ void RNA_def_text(struct BlenderRNA *brna);
 void RNA_def_texture(struct BlenderRNA *brna);
 void RNA_def_timeline_marker(struct BlenderRNA *brna);
 void RNA_def_sound(struct BlenderRNA *brna);
+void RNA_def_ui(struct BlenderRNA *brna);
 void RNA_def_userdef(struct BlenderRNA *brna);
 void RNA_def_vfont(struct BlenderRNA *brna);
 void RNA_def_vpaint(struct BlenderRNA *brna);
 void RNA_def_wm(struct BlenderRNA *brna);
 void RNA_def_world(struct BlenderRNA *brna);
+
+/* Common Define functions */
 
 void rna_def_animdata_common(struct StructRNA *srna);
 
@@ -176,6 +179,10 @@ void rna_object_vgroup_name_index_set(struct PointerRNA *ptr, const char *value,
 void rna_object_vgroup_name_set(struct PointerRNA *ptr, const char *value, char *result, int maxlen);
 void rna_object_uvlayer_name_set(struct PointerRNA *ptr, const char *value, char *result, int maxlen);
 void rna_object_vcollayer_name_set(struct PointerRNA *ptr, const char *value, char *result, int maxlen);
+
+/* API functions */
+
+void RNA_api_ui_layout(struct StructRNA *srna);
 
 /* ID Properties */
 

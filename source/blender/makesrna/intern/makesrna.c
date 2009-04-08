@@ -1116,12 +1116,20 @@ static void rna_def_function_funcs(FILE *f, StructDefRNA *dsrna, FunctionDefRNA 
 
 	dparm= dfunc->cont.properties.first;
 	for(; dparm; dparm= dparm->next) {
-		ptrstr= (dparm->prop->type == PROP_POINTER || dparm->prop->arraylength > 0)? "*" : "";
-
 		if(dparm->prop==func->ret) 
 			fprintf(f, "\t_retdata= _data;\n");
+		else if(dparm->prop->arraylength)
+			fprintf(f, "\t%s= ((%s%s*)_data);\n", dparm->prop->identifier, rna_type_struct(dparm->prop), rna_parameter_type_name(dparm->prop));
+		else if(dparm->prop->type == PROP_POINTER) {
+			PointerPropertyRNA *pprop= (PointerPropertyRNA*)dparm->prop;
+
+			if(strcmp((char*)pprop->type, "AnyType") == 0)
+				fprintf(f, "\t%s= ((%s%s*)_data);\n", dparm->prop->identifier, rna_type_struct(dparm->prop), rna_parameter_type_name(dparm->prop));
+			else
+				fprintf(f, "\t%s= *((%s%s**)_data);\n", dparm->prop->identifier, rna_type_struct(dparm->prop), rna_parameter_type_name(dparm->prop));
+		}
 		else
-			fprintf(f, "\t%s= *((%s%s%s*)_data);\n", dparm->prop->identifier, rna_type_struct(dparm->prop), rna_parameter_type_name(dparm->prop), ptrstr);
+			fprintf(f, "\t%s= *((%s%s*)_data);\n", dparm->prop->identifier, rna_type_struct(dparm->prop), rna_parameter_type_name(dparm->prop));
 
 		if(dparm->next)
 			fprintf(f, "\t_data+= %d;\n", rna_parameter_size(dparm->prop));
@@ -1694,6 +1702,7 @@ RNAProcessItem PROCESS_ITEMS[]= {
 	{"rna_text.c", RNA_def_text},
 	{"rna_timeline.c", RNA_def_timeline_marker},
 	{"rna_sound.c", RNA_def_sound},
+	{"rna_ui.c", RNA_def_ui},
 	{"rna_userdef.c", RNA_def_userdef},
 	{"rna_vfont.c", RNA_def_vfont},
 	{"rna_vpaint.c", RNA_def_vpaint},
