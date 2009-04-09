@@ -463,8 +463,8 @@ char SCA_KeyboardSensor::ToCharacter(int keyIndex, bool shifted)
 	}
 	
 	/* semicolon to rightbracket */
-	char semicolontorightbracket[] = ";\'` /\\=[]";
-	char semicolontorightbracketshifted[] = ":\"~ \?|+{}";
+	char semicolontorightbracket[] = ";\'`/\\=[]";
+	char semicolontorightbracketshifted[] = ":\"~\?|+{}";
 	if ((keyIndex >= SCA_IInputDevice::KX_SEMICOLONKEY) 
 		&& (keyIndex <= SCA_IInputDevice::KX_RIGHTBRACKETKEY)) {
 		if (shifted) {
