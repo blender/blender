@@ -83,7 +83,9 @@ void GPU_render_text(MTFace *tface, int mode,
 		Image* ima;
 		int characters, index, character;
 		float centerx, centery, sizex, sizey, transx, transy, movex, movey, advance;
-
+		float advance_tab;
+		
+		
 		/* multiline */
 		float line_start= 0.0f, line_height; 
 		if (v4)
@@ -107,6 +109,13 @@ void GPU_render_text(MTFace *tface, int mode,
 
 		glPushMatrix();
 		
+		/* get the tab width */
+		matrixGlyph((ImBuf *)ima->ibufs.first, ' ', & centerx, &centery,
+			&sizex, &sizey, &transx, &transy, &movex, &movey, &advance);
+		
+		advance_tab= advance * 4; /* tab width could also be an option */
+		
+		
 		for (index = 0; index < characters; index++) {
 			float uv[4][2];
 
@@ -117,6 +126,12 @@ void GPU_render_text(MTFace *tface, int mode,
 				glTranslatef(line_start, -line_height, 0.0);
 				line_start = 0.0f;
 				continue;
+			}
+			else if (character=='\t') {
+				glTranslatef(advance_tab, 0.0, 0.0);
+				line_start -= advance_tab; /* so we can go back to the start of the line */
+				continue;
+				
 			}
 			
 			// space starts at offset 1
