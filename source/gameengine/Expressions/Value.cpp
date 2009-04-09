@@ -436,6 +436,8 @@ vector<STR_String> CValue::GetPropertyNames()
 {
 	vector<STR_String> result;
 	if(!m_pNamedPropertyArray) return result;
+	result.reserve(m_pNamedPropertyArray->size());
+	
 	std::map<STR_String,CValue*>::iterator it;
 	for (it= m_pNamedPropertyArray->begin(); (it != m_pNamedPropertyArray->end()); it++)
 	{

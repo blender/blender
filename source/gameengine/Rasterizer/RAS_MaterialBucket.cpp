@@ -330,6 +330,9 @@ bool RAS_MeshSlot::Join(RAS_MeshSlot *target, MT_Scalar distance)
 	for(begin(mit); !end(mit); next(mit))
 		for(i=mit.startvertex; i<mit.endvertex; i++)
 			mit.vertex[i].Transform(transform, ntransform);
+	
+	/* We know we'll need a list at least this big, reserve in advance */
+	target->m_displayArrays.reserve(target->m_displayArrays.size() + m_displayArrays.size());
 
 	for(it=m_displayArrays.begin(); it!=m_displayArrays.end(); it++) {
 		target->m_displayArrays.push_back(*it);

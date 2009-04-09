@@ -376,7 +376,8 @@ bool SCA_KeyboardSensor::IsPrintable(int keyIndex)
 		 || ((keyIndex >= SCA_IInputDevice::KX_AKEY) 
 			 && (keyIndex <= SCA_IInputDevice::KX_ZKEY)) 
 		 || (keyIndex == SCA_IInputDevice::KX_SPACEKEY) 
-/*  			 || (keyIndex == KX_RETKEY)  */
+		 || (keyIndex == SCA_IInputDevice::KX_RETKEY)
+		 || (keyIndex == SCA_IInputDevice::KX_PADENTER)
 		 || (keyIndex == SCA_IInputDevice::KX_PADASTERKEY) 
 		 || (keyIndex == SCA_IInputDevice::KX_TABKEY) 
 		 || ((keyIndex >= SCA_IInputDevice::KX_COMMAKEY) 
@@ -386,7 +387,7 @@ bool SCA_KeyboardSensor::IsPrintable(int keyIndex)
 		 || ((keyIndex >= SCA_IInputDevice::KX_PAD2) 
 			 && (keyIndex <= SCA_IInputDevice::KX_PADPLUSKEY)) 
 		 || (keyIndex == SCA_IInputDevice::KX_DELKEY)
-		 || (keyIndex == SCA_IInputDevice::KX_BACKSPACEKEY)		 		 
+		 || (keyIndex == SCA_IInputDevice::KX_BACKSPACEKEY)
 		)
 	{
 		return true;
@@ -423,8 +424,10 @@ char SCA_KeyboardSensor::ToCharacter(int keyIndex, bool shifted)
 	if (keyIndex == SCA_IInputDevice::KX_SPACEKEY) {
 		return ' ';
 	}
+	if (keyIndex == SCA_IInputDevice::KX_RETKEY || keyIndex == SCA_IInputDevice::KX_PADENTER) {
+		return '\n';
+	}
 	
-/*  			 || (keyIndex == SCA_IInputDevice::KX_RETKEY)  */
 	
 	if (keyIndex == SCA_IInputDevice::KX_PADASTERKEY) {
 		return '*';

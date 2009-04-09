@@ -84,6 +84,15 @@ void GPU_render_text(MTFace *tface, int mode,
 		int characters, index, character;
 		float centerx, centery, sizex, sizey, transx, transy, movex, movey, advance;
 
+		/* multiline */
+		float line_start= 0.0f, line_height; 
+		if (v4)
+			line_height= MAX4(v1[1], v2[1], v3[1], v4[2]) - MIN4(v1[1], v2[1], v3[1], v4[2]);
+		else
+			line_height= MAX3(v1[1], v2[1], v3[1]) - MIN3(v1[1], v2[1], v3[1]);
+		line_height *= 1.2; /* could be an option? */
+		/* end multiline */
+		
 		characters = textlen;
 
 		ima = (Image*)tface->tpage;
@@ -97,11 +106,18 @@ void GPU_render_text(MTFace *tface, int mode,
 			glColor3f(1.0f, 1.0f, 1.0f);
 
 		glPushMatrix();
+		
 		for (index = 0; index < characters; index++) {
 			float uv[4][2];
 
 			// lets calculate offset stuff
 			character = textstr[index];
+			
+			if (character=='\n') {
+				glTranslatef(line_start, -line_height, 0.0);
+				line_start = 0.0f;
+				continue;
+			}
 			
 			// space starts at offset 1
 			// character = character - ' ' + 1;
@@ -143,6 +159,7 @@ void GPU_render_text(MTFace *tface, int mode,
 			glEnd();
 
 			glTranslatef(advance, 0.0, 0.0);
+			line_start -= advance; /* so we can go back to the start of the line */
 		}
 		glPopMatrix();
 	}
