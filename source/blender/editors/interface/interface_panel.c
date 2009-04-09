@@ -20,9 +20,7 @@
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
  *
- * The Original Code is: all of this file.
- *
- * Contributor(s): none yet.
+ * Contributor(s): Blender Foundation, 2003-2009 full recode.
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -451,7 +449,7 @@ uiBlock *uiFindOpenPanelBlockName(ListBase *lb, char *name)
 }
 
 /* triangle 'icon' for panel header */
-void ui_draw_tria_icon(float x, float y, float aspect, char dir)
+void ui_draw_tria_icon(float x, float y, char dir)
 {
 	if(dir=='h') {
 		ui_draw_anti_tria( x-1, y, x-1, y+11.0, x+9, y+6.25);
@@ -489,155 +487,17 @@ static void ui_draw_x_icon(float x, float y)
 
 }
 
-#if 0
-static void ui_set_panel_pattern(char dir)
-{
-	static int firsttime= 1;
-	static GLubyte path[4*32], patv[4*32];
-	int a,b,i=0;
-
-	if(firsttime) {
-		firsttime= 0;
-		for(a=0; a<128; a++) patv[a]= 0x33;
-		for(a=0; a<8; a++) {
-			for(b=0; b<4; b++) path[i++]= 0xff;	/* 1 scanlines */
-			for(b=0; b<12; b++) path[i++]= 0x0;	/* 3 lines */
-		}
-	}
-	glEnable(GL_POLYGON_STIPPLE);
-	if(dir=='h') glPolygonStipple(path);	
-	else glPolygonStipple(patv);	
-}
-#endif
-
-static char *ui_block_cut_str(uiBlock *block, char *str, short okwidth)
-{
-	short width, ofs=strlen(str);
-	static char str1[128];
-	
-	if(ofs>127) return str;
-	
-	width= block->aspect*UI_GetStringWidth(block->curfont, str, ui_translate_buttons());
-
-	if(width <= okwidth) return str;
-	strcpy(str1, str);
-	
-	while(width > okwidth && ofs>0) {
-		ofs--;
-		str1[ofs]= 0;
-		
-		width= block->aspect*UI_GetStringWidth(block->curfont, str1, 0);
-		
-		if(width < 10) break;
-	}
-	return str1;
-}
-
-
 #define PNL_ICON 	20
-#define PNL_DRAGGER	20
 
-
-static void ui_draw_panel_header(ARegion *ar, uiBlock *block)
-{
-	Panel *pa, *panel= block->panel;
-	float width;
-	int a, nr= 1, pnl_icons;
-	char *activename= panel->drawname[0]?panel->drawname:panel->panelname;
-	char *panelname, *str;
-	
-	/* count */
-	for(pa= ar->panels.first; pa; pa=pa->next)
-		if(pa->active)
-			if(pa->paneltab==panel)
-				nr++;
-
-	pnl_icons= PNL_ICON+8;
-	if(panel->control & UI_PNL_CLOSE) pnl_icons+= PNL_ICON;
-
-	if(nr==1) {
-		// full header
-		UI_ThemeColorShade(TH_HEADER, -30);
-		uiSetRoundBox(3);
-		uiRoundBox(block->minx, block->maxy, block->maxx, block->maxy+PNL_HEADER, 8);
-
-		/* active tab */
-		/* draw text label */
-		UI_ThemeColor(TH_TEXT_HI);
-		ui_rasterpos_safe(4.0f+block->minx+pnl_icons, block->maxy+5.0f, block->aspect);
-		UI_DrawString(block->curfont, activename, ui_translate_buttons());
-		return;
-	}
-	
-	// tabbed, full header brighter
-	//UI_ThemeColorShade(TH_HEADER, 0);
-	//uiSetRoundBox(3);
-	//uiRoundBox(block->minx, block->maxy, block->maxx, block->maxy+PNL_HEADER, 8);
-
-	a= 0;
-	width= (panel->sizex - 3 - pnl_icons - PNL_ICON)/nr;
-	for(pa= ar->panels.first; pa; pa=pa->next) {
-		panelname= pa->drawname[0]?pa->drawname:pa->panelname;
-		if(a == 0)
-			activename= panelname;
-		
-		if(pa->active==0);
-		else if(pa==panel) {
-			/* active tab */
-		
-			/* draw the active tab */
-			uiSetRoundBox(3);
-			UI_ThemeColorShade(TH_HEADER, -3);
-			uiRoundBox(2+pnl_icons+a*width, panel->sizey-1, pnl_icons+(a+1)*width, panel->sizey+PNL_HEADER-3, 8);
-
-			/* draw the active text label */
-			UI_ThemeColor(TH_TEXT);
-			ui_rasterpos_safe(16+pnl_icons+a*width, panel->sizey+4, block->aspect);
-			if(panelname != activename && strstr(panelname, activename) == panelname)
-				str= ui_block_cut_str(block, panelname+strlen(activename), (short)(width-10));
-			else
-				str= ui_block_cut_str(block, panelname, (short)(width-10));
-			UI_DrawString(block->curfont, str, ui_translate_buttons());
-
-			a++;
-		}
-		else if(pa->paneltab==panel) {
-			/* draw an inactive tab */
-			uiSetRoundBox(3);
-			UI_ThemeColorShade(TH_HEADER, -60);
-			uiRoundBox(2+pnl_icons+a*width, panel->sizey, pnl_icons+(a+1)*width, panel->sizey+PNL_HEADER-3, 8);
-			
-			/* draw an inactive tab label */
-			UI_ThemeColorShade(TH_TEXT_HI, -40);
-			ui_rasterpos_safe(16+pnl_icons+a*width, panel->sizey+4, block->aspect);
-			if(panelname != activename && strstr(panelname, activename) == panelname)
-				str= ui_block_cut_str(block, panelname+strlen(activename), (short)(width-10));
-			else
-				str= ui_block_cut_str(block, panelname, (short)(width-10));
-			UI_DrawString(block->curfont, str, ui_translate_buttons());
-				
-			a++;
-		}
-	}
-	
-	// dragger
-	/*
-	uiSetRoundBox(15);
-	UI_ThemeColorShade(TH_HEADER, -70);
-	uiRoundBox(panel->sizex-PNL_ICON+5, panel->sizey+5, panel->sizex-5, panel->sizey+PNL_HEADER-5, 5);
-	*/
-	
-}
-
-static void ui_draw_panel_scalewidget(uiBlock *block)
+static void ui_draw_panel_scalewidget(rcti *rect)
 {
 	float xmin, xmax, dx;
 	float ymin, ymax, dy;
 	
-	xmin= block->maxx-PNL_HEADER+2;
-	xmax= block->maxx-3;
-	ymin= block->miny+3;
-	ymax= block->miny+PNL_HEADER-2;
+	xmin= rect->xmax-PNL_HEADER+2;
+	xmax= rect->xmax-3;
+	ymin= rect->ymin+3;
+	ymax= rect->ymin+PNL_HEADER-2;
 		
 	dx= 0.5f*(xmax-xmin);
 	dy= 0.5f*(ymax-ymin);
@@ -648,20 +508,20 @@ static void ui_draw_panel_scalewidget(uiBlock *block)
 	fdrawline(xmin+dx, ymin, xmax, ymax-dy);
 	
 	glColor4ub(0, 0, 0, 50);
-	fdrawline(xmin, ymin+block->aspect, xmax, ymax+block->aspect);
-	fdrawline(xmin+dx, ymin+block->aspect, xmax, ymax-dy+block->aspect);
+	fdrawline(xmin, ymin+1, xmax, ymax+1);
+	fdrawline(xmin+dx, ymin+1, xmax, ymax-dy+1);
 	glDisable(GL_BLEND);
 }
 
-static void ui_draw_panel_dragwidget(uiBlock *block)
+static void ui_draw_panel_dragwidget(rcti *rect)
 {
 	float xmin, xmax, dx;
 	float ymin, ymax, dy;
 	
-	xmin= block->maxx-10-PNL_HEADER+8;
-	xmax= block->maxx-10;
-	ymin= block->maxy+4;
-	ymax= block->maxy+PNL_HEADER-4;
+	xmin= rect->xmax-10-PNL_HEADER+8;
+	xmax= rect->xmax-10;
+	ymin= rect->ymax+4;
+	ymax= rect->ymax+PNL_HEADER-4;
 	
 	dx= 0.333f*(xmax-xmin);
 	dy= 0.333f*(ymax-ymin);
@@ -673,203 +533,23 @@ static void ui_draw_panel_dragwidget(uiBlock *block)
 	fdrawline(xmin+2*dx, ymax, xmax, ymin+2*dy);
 	
 	glColor4ub(0, 0, 0, 50);
-	fdrawline(xmin, ymax+block->aspect, xmax, ymin+block->aspect);
-	fdrawline(xmin+dx, ymax+block->aspect, xmax, ymin+dy+block->aspect);
-	fdrawline(xmin+2*dx, ymax+block->aspect, xmax, ymin+2*dy+block->aspect);
+	fdrawline(xmin, ymax+1, xmax, ymin+1);
+	fdrawline(xmin+dx, ymax+1, xmax, ymin+dy+1);
+	fdrawline(xmin+2*dx, ymax+1, xmax, ymin+2*dy+1);
 	glDisable(GL_BLEND);
 }
 
 
-static void ui_draw_panel_old(ARegion *ar, uiBlock *block)
+static void ui_draw_panel_header_style(ARegion *ar, uiStyle *style, Panel *panel, rcti *rect)
 {
-	Panel *panel= block->panel;
-	int ofsx;
-	char *panelname= panel->drawname[0]?panel->drawname:panel->panelname;
-	
-	if(panel->paneltab) return;
-
-	/* if the panel is minimized vertically:
-	 * (------)
-	 */
-	if(panel->flag & PNL_CLOSEDY) {
-		/* draw a little rounded box, the size of the header */
-		uiSetRoundBox(15);
-		UI_ThemeColorShade(TH_HEADER, -30);
-		uiRoundBox(block->minx, block->maxy, block->maxx, block->maxy+PNL_HEADER, 8);
-		
-		/* title */
-		ofsx= PNL_ICON+8;
-		if(panel->control & UI_PNL_CLOSE) ofsx+= PNL_ICON;
-		UI_ThemeColor(TH_TEXT_HI);
-		ui_rasterpos_safe(4+block->minx+ofsx, block->maxy+5, block->aspect);
-		UI_DrawString(block->curfont, panelname, ui_translate_buttons());
-
-		/*  border */
-		if(panel->flag & PNL_SELECT) {
-			UI_ThemeColorShade(TH_HEADER, -120);
-			uiRoundRect(block->minx, block->maxy, block->maxx, block->maxy+PNL_HEADER, 8);
-		}
-		/* if it's being overlapped by a panel being dragged */
-		if(panel->flag & PNL_OVERLAP) {
-			UI_ThemeColor(TH_TEXT_HI);
-			uiRoundRect(block->minx, block->maxy, block->maxx, block->maxy+PNL_HEADER, 8);
-		}
-	
-	}
-	/* if the panel is minimized horizontally:
-	 * /-\
-	 *  |
-	 *  |
-	 *  |
-	 * \_/
-	 */
-	else if(panel->flag & PNL_CLOSEDX) {
-		char str[4];
-		int a, end, ofs;
-		
-		/* draw a little rounded box, the size of the header, rotated 90 deg */ 
-		uiSetRoundBox(15);
-		UI_ThemeColorShade(TH_HEADER, -30);
-		uiRoundBox(block->minx, block->miny, block->minx+PNL_HEADER, block->maxy+PNL_HEADER, 8);
-	
-		/* title, only the initial character for now */
-		UI_ThemeColor(TH_TEXT_HI);
-		str[1]= 0;
-		end= strlen(panelname);
-		ofs= 20;
-		for(a=0; a<end; a++) {
-			str[0]= panelname[a];
-			if( isupper(str[0]) ) {
-				ui_rasterpos_safe(block->minx+5, block->maxy-ofs, block->aspect);
-				UI_DrawString(block->curfont, str, 0);
-				ofs+= 15;
-			}
-		}
-		
-		/* border */
-		if(panel->flag & PNL_SELECT) {
-			UI_ThemeColorShade(TH_HEADER, -120);
-			uiRoundRect(block->minx, block->miny, block->minx+PNL_HEADER, block->maxy+PNL_HEADER, 8);
-		}
-		if(panel->flag & PNL_OVERLAP) {
-			UI_ThemeColor(TH_TEXT_HI);
-			uiRoundRect(block->minx, block->miny, block->minx+PNL_HEADER, block->maxy+PNL_HEADER, 8);
-		}
-	
-	}
-	/* an open panel */
-	else {
-		/* all panels now... */
-		if(panel->control & UI_PNL_SOLID) {
-			UI_ThemeColorShade(TH_HEADER, -30);
-
-			uiSetRoundBox(3);
-			uiRoundBox(block->minx, block->maxy, block->maxx, block->maxy+PNL_HEADER, 8);
-
-			glEnable(GL_BLEND);
-			UI_ThemeColor4(TH_PANEL);
-		
-			uiSetRoundBox(12);
-			/* bad code... but its late :) */
-			if(strcmp(block->name, "image_panel_preview")==0)
-				uiRoundRect(block->minx, block->miny, block->maxx, block->maxy, 8);
-			else
-				uiRoundBox(block->minx, block->miny, block->maxx, block->maxy, 8);
-
-			// glRectf(block->minx, block->miny, block->maxx, block->maxy);
-			
-			/* shadow */
-			/*
-			glColor4ub(0, 0, 0, 40);
-			
-			fdrawline(block->minx+2, block->miny-1, block->maxx+1, block->miny-1);
-			fdrawline(block->maxx+1, block->miny-1, block->maxx+1, block->maxy+7);
-			
-			glColor4ub(0, 0, 0, 10);
-			
-			fdrawline(block->minx+3, block->miny-2, block->maxx+2, block->miny-2);
-			fdrawline(block->maxx+2, block->miny-2, block->maxx+2, block->maxy+6);	
-			
-			*/
-			
-			glDisable(GL_BLEND);
-		}
-		/* floating panel */
-		else if(panel->control & UI_PNL_TRANSP) {
-			UI_ThemeColorShade(TH_HEADER, -30);
-			uiSetRoundBox(3);
-			uiRoundBox(block->minx, block->maxy, block->maxx, block->maxy+PNL_HEADER, 8);
-			
-			glEnable(GL_BLEND);
-			UI_ThemeColor4(TH_PANEL);
-			glRectf(block->minx, block->miny, block->maxx, block->maxy);
-	
-			glDisable(GL_BLEND);
-		}
-		
-		/* draw the title, tabs, etc in the header */
-		ui_draw_panel_header(ar, block);
-
-		/* in some occasions, draw a border */
-		if(panel->flag & PNL_SELECT) {
-			if(panel->control & UI_PNL_SOLID) uiSetRoundBox(15);
-			else uiSetRoundBox(3);
-			
-			UI_ThemeColorShade(TH_HEADER, -120);
-			uiRoundRect(block->minx, block->miny, block->maxx, block->maxy+PNL_HEADER, 8);
-		}
-		if(panel->flag & PNL_OVERLAP) {
-			if(panel->control & UI_PNL_SOLID) uiSetRoundBox(15);
-			else uiSetRoundBox(3);
-			
-			UI_ThemeColor(TH_TEXT_HI);
-			uiRoundRect(block->minx, block->miny, block->maxx, block->maxy+PNL_HEADER, 8);
-		}
-		
-		if(panel->control & UI_PNL_SCALE)
-			ui_draw_panel_scalewidget(block);
-		
-		/* and a soft shadow-line for now */
-		/*
-		glEnable( GL_BLEND );
-		glColor4ub(0, 0, 0, 50);
-		fdrawline(block->maxx, block->miny, block->maxx, block->maxy+PNL_HEADER/2);
-		fdrawline(block->minx, block->miny, block->maxx, block->miny);
-		glDisable(GL_BLEND);
-		*/
-
-	}
-	
-	/* draw optional close icon */
-	
-	ofsx= 6;
-	if(panel->control & UI_PNL_CLOSE) {
-	
-		ui_draw_x_icon(block->minx+2+ofsx, block->maxy+5);
-		ofsx= 22;
-	}
-
-	/* draw collapse icon */
-	
-	UI_ThemeColor(TH_TEXT_HI);
-	
-	if(panel->flag & PNL_CLOSEDY)
-		ui_draw_tria_icon(block->minx+6+ofsx, block->maxy+5, block->aspect, 'h');
-	else if(panel->flag & PNL_CLOSEDX)
-		ui_draw_tria_icon(block->minx+7, block->maxy+2, block->aspect, 'h');
-	else
-		ui_draw_tria_icon(block->minx+6+ofsx, block->maxy+5, block->aspect, 'v');
-}
-
-static void ui_draw_panel_header_style(ARegion *ar, uiBlock *block)
-{
-	Panel *pa, *panel= block->panel;
+	Panel *pa;
+	rcti hrect;
 	float width;
 	int a, nr= 1, pnl_icons;
 	char *activename= panel->drawname[0]?panel->drawname:panel->panelname;
-	char *panelname, *str;
+	char *panelname;
 	
-	ui_draw_panel_dragwidget(block);
+	ui_draw_panel_dragwidget(rect);
 
 	/* count */
 	for(pa= ar->panels.first; pa; pa=pa->next)
@@ -881,11 +561,17 @@ static void ui_draw_panel_header_style(ARegion *ar, uiBlock *block)
 	if(panel->control & UI_PNL_CLOSE) pnl_icons+= PNL_ICON;
 	
 	if(nr==1) {
+		
 		/* active tab */
 		/* draw text label */
 		UI_ThemeColor(TH_TEXT);
-		ui_rasterpos_safe(4.0f+block->minx+pnl_icons, block->maxy+5.0f, block->aspect);
-		UI_DrawString(block->curfont, activename, ui_translate_buttons());
+		
+		hrect.xmin= rect->xmin+pnl_icons;
+		hrect.ymin= rect->ymax;
+		hrect.xmax= rect->xmax;
+		hrect.ymax= rect->ymax + PNL_HEADER;
+		uiFontStyleDraw(&style->paneltitle, &hrect, activename);
+		
 		return;
 	}
 	
@@ -893,44 +579,28 @@ static void ui_draw_panel_header_style(ARegion *ar, uiBlock *block)
 	width= (panel->sizex - 3 - pnl_icons - PNL_ICON)/nr;
 	for(pa= ar->panels.first; pa; pa=pa->next) {
 		panelname= pa->drawname[0]?pa->drawname:pa->panelname;
-		if(a == 0)
-			activename= panelname;
 		
-		if(pa->active==0);
-		else if(pa==panel) {
+		if(pa->active && (pa==panel || pa->paneltab==panel)) {
 			/* active tab */
-			
-			/* draw the active text label */
-			UI_ThemeColor(TH_TEXT);
-			ui_rasterpos_safe(16+pnl_icons+a*width, panel->sizey+4, block->aspect);
-			if(panelname != activename && strstr(panelname, activename) == panelname)
-				str= ui_block_cut_str(block, panelname+strlen(activename), (short)(width-10));
+			if(pa==panel)
+				UI_ThemeColor(TH_TEXT);
 			else
-				str= ui_block_cut_str(block, panelname, (short)(width-10));
-			UI_DrawString(block->curfont, str, ui_translate_buttons());
+				UI_ThemeColorBlend(TH_TEXT, TH_BACK, 0.5f);
 			
-			a++;
-		}
-		else if(pa->paneltab==panel) {
-			
-			/* draw an inactive tab label */
-			UI_ThemeColorBlend(TH_TEXT, TH_BACK, 0.5f);
-			ui_rasterpos_safe(16+pnl_icons+a*width, panel->sizey+4, block->aspect);
-			if(panelname != activename && strstr(panelname, activename) == panelname)
-				str= ui_block_cut_str(block, panelname+strlen(activename), (short)(width-10));
-			else
-				str= ui_block_cut_str(block, panelname, (short)(width-10));
-			UI_DrawString(block->curfont, str, ui_translate_buttons());
+			hrect.xmin= rect->xmin+pnl_icons + a*width;
+			hrect.ymin= rect->ymax;
+			hrect.xmax= hrect.xmin + width;
+			hrect.ymax= hrect.ymin + PNL_HEADER;
+			uiFontStyleDraw(&style->paneltitle, &hrect, panelname);
 			
 			a++;
 		}
 	}
 }
 
-
-/* XXX has follow style definitions still */
-static void ui_draw_panel_style(ARegion *ar, uiBlock *block)
+void ui_draw_panel(ARegion *ar, uiBlock *block, rcti *rect)
 {
+	uiStyle *style= U.uistyles.first;	// XXX pass on
 	Panel *panel= block->panel, *prev;
 	int ofsx;
 	
@@ -944,21 +614,21 @@ static void ui_draw_panel_style(ARegion *ar, uiBlock *block)
 	}
 	
 	if(prev) {
-		float minx= block->minx+10;
-		float maxx= block->maxx-10;
-		float y= block->maxy + PNL_HEADER;
+		float minx= rect->xmin+10;
+		float maxx= rect->xmax-10;
+		float y= rect->ymax + PNL_HEADER;
 		
 		glEnable(GL_BLEND);
 		glColor4f(0.0f, 0.0f, 0.0f, 0.5f);
 		fdrawline(minx, y, maxx, y);
 		glColor4f(1.0f, 1.0f, 1.0f, 0.25f);
-		fdrawline(minx, y-block->aspect, maxx, y-block->aspect);
+		fdrawline(minx, y-1, maxx, y-1);
 		glDisable(GL_BLEND);
 	}
 	
 	/* title */
 	if(!(panel->flag & PNL_CLOSEDX)) {
-		ui_draw_panel_header_style(ar, block);
+		ui_draw_panel_header_style(ar, style, panel, rect);
 	}
 	
 	/* if the panel is minimized vertically:
@@ -970,7 +640,7 @@ static void ui_draw_panel_style(ARegion *ar, uiBlock *block)
 		/* if it's being overlapped by a panel being dragged */
 		if(panel->flag & PNL_OVERLAP) {
 			UI_ThemeColor(TH_TEXT_HI);
-			uiRoundRect(block->minx, block->maxy, block->maxx, block->maxy+PNL_HEADER, 8);
+			uiRoundRect(rect->xmin, rect->ymax, rect->xmax, rect->ymax+PNL_HEADER, 8);
 		}
 		
 	}
@@ -986,18 +656,18 @@ static void ui_draw_panel_style(ARegion *ar, uiBlock *block)
 			else uiSetRoundBox(3);
 			
 			UI_ThemeColorShade(TH_HEADER, -120);
-			uiRoundRect(block->minx, block->miny, block->maxx, block->maxy+PNL_HEADER, 8);
+			uiRoundRect(rect->xmin, rect->ymin, rect->xmax, rect->ymax+PNL_HEADER, 8);
 		}
 		if(panel->flag & PNL_OVERLAP) {
 			if(panel->control & UI_PNL_SOLID) uiSetRoundBox(15);
 			else uiSetRoundBox(3);
 			
 			UI_ThemeColor(TH_TEXT_HI);
-			uiRoundRect(block->minx, block->miny, block->maxx, block->maxy+PNL_HEADER, 8);
+			uiRoundRect(rect->xmin, rect->ymin, rect->xmax, rect->ymax+PNL_HEADER, 8);
 		}
 		
 		if(panel->control & UI_PNL_SCALE)
-			ui_draw_panel_scalewidget(block);
+			ui_draw_panel_scalewidget(rect);
 	}
 	
 	/* draw optional close icon */
@@ -1005,7 +675,7 @@ static void ui_draw_panel_style(ARegion *ar, uiBlock *block)
 	ofsx= 6;
 	if(panel->control & UI_PNL_CLOSE) {
 		
-		ui_draw_x_icon(block->minx+2+ofsx, block->maxy+2);
+		ui_draw_x_icon(rect->xmin+2+ofsx, rect->ymax+2);
 		ofsx= 22;
 	}
 	
@@ -1013,22 +683,15 @@ static void ui_draw_panel_style(ARegion *ar, uiBlock *block)
 	UI_ThemeColor(TH_TEXT);
 	
 	if(panel->flag & PNL_CLOSEDY)
-		ui_draw_tria_icon(block->minx+6+ofsx, block->maxy+1, block->aspect, 'h');
+		ui_draw_tria_icon(rect->xmin+6+ofsx, rect->ymax+3, 'h');
 	else if(panel->flag & PNL_CLOSEDX)
-		ui_draw_tria_icon(block->minx+7, block->maxy+1, block->aspect, 'h');
+		ui_draw_tria_icon(rect->xmin+7, rect->ymax+3, 'h');
 	else
-		ui_draw_tria_icon(block->minx+6+ofsx, block->maxy+1, block->aspect, 'v');
+		ui_draw_tria_icon(rect->xmin+6+ofsx, rect->ymax+3, 'v');
 	
 	
 }
 
-
-void ui_draw_panel(ARegion *ar, uiBlock *block)
-{
-	ui_draw_panel_style(ar, block);
-
-	if(0) ui_draw_panel_old(ar, block); // XXX
-}
 
 /* ------------ panel alignment ---------------- */
 
@@ -1352,17 +1015,13 @@ void uiEndPanels(const bContext *C, ARegion *ar)
 	/* draw panels, selected on top */
 	for(block= ar->uiblocks.first; block; block=block->next) {
 		if(block->active && block->panel && !(block->panel->flag & PNL_SELECT)) {
-			uiPanelPush(block);
 			uiDrawBlock(C, block);
-			uiPanelPop(block);
 		}
 	}
 
 	for(block= ar->uiblocks.first; block; block=block->next) {
 		if(block->active && block->panel && (block->panel->flag & PNL_SELECT)) {
-			uiPanelPush(block);
 			uiDrawBlock(C, block);
-			uiPanelPop(block);
 		}
 	}
 }

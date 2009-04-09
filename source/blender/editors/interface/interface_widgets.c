@@ -32,6 +32,7 @@
 
 #include "DNA_ID.h"
 #include "DNA_screen_types.h"
+#include "DNA_userdef_types.h"
 #include "DNA_windowmanager_types.h"
 
 #include "BLI_arithb.h"
@@ -131,7 +132,7 @@ typedef struct uiWidgetType {
 	void (*state)(struct uiWidgetType *, int state);
 	void (*draw)(uiWidgetColors *, rcti *, int state, int roundboxalign);
 	void (*custom)(uiBut *, uiWidgetColors *, rcti *, int state, int roundboxalign);
-	void (*text)(uiBut *, rcti *, float *col);
+	void (*text)(uiStyle *style, uiBut *, rcti *, float *col);
 	
 } uiWidgetType;
 
@@ -699,42 +700,39 @@ static void widget_draw_icon(uiBut *but, BIFIconID icon, int blend, rcti *rect)
 
 
 
-static void widget_draw_text(uiBut *but, float x, float y)
+static void widget_draw_text(uiStyle *style, uiBut *but, rcti *rect)
 {
-	int transopts;
-	int len;
+//	int transopts;
 	char *cpoin;
 	
-	ui_rasterpos_safe(x, y, but->aspect);
-	if(but->type==IDPOIN) transopts= 0;	// no translation, of course!
-	else transopts= ui_translate_buttons();
+//	ui_rasterpos_safe(x, y, but->aspect);
+//	if(but->type==IDPOIN) transopts= 0;	// no translation, of course!
+//	else transopts= ui_translate_buttons();
 	
 	/* cut string in 2 parts */
 	cpoin= strchr(but->drawstr, '|');
 	if(cpoin) *cpoin= 0;		
 	
-#ifdef INTERNATIONAL
-	if (but->type == FTPREVIEW)
-		FTF_DrawNewFontString (but->drawstr+but->ofs, FTF_INPUT_UTF8);
+	if(but->flag & UI_TEXT_LEFT)
+		style->widget.align= UI_STYLE_TEXT_LEFT;
 	else
-		UI_DrawString(but->font, but->drawstr+but->ofs, transopts);
-#else
-	UI_DrawString(but->font, but->drawstr+but->ofs, transopts);
-#endif
+		style->widget.align= UI_STYLE_TEXT_CENTER;			
 	
-	/* part text right aligned */
+	// XXX finish cutting
+	uiFontStyleDraw(&style->widget, rect, but->drawstr+but->ofs);
+
+		/* part text right aligned */
 	if(cpoin) {
-		len= UI_GetStringWidth(but->font, cpoin+1, ui_translate_buttons());
-		ui_rasterpos_safe( but->x2 - len*but->aspect-3, y, but->aspect);
-		UI_DrawString(but->font, cpoin+1, ui_translate_buttons());
+//		int len= UI_GetStringWidth(but->font, cpoin+1, ui_translate_buttons());
+//		ui_rasterpos_safe( but->x2 - len*but->aspect-3, y, but->aspect);
+//		UI_DrawString(but->font, cpoin+1, ui_translate_buttons());
 		*cpoin= '|';
 	}
 }
 
 /* draws text and icons for buttons */
-static void widget_draw_text_icon(uiBut *but, rcti *rect, float *col)
+static void widget_draw_text_icon(uiStyle *style, uiBut *but, rcti *rect, float *col)
 {
-	float x, y;
 	short t, pos, ch;
 	short selsta_tmp, selend_tmp, selsta_draw, selwidth_draw;
 	
@@ -808,28 +806,19 @@ static void widget_draw_text_icon(uiBut *but, rcti *rect, float *col)
 			/* If there's an icon too (made with uiDefIconTextBut) then draw the icon
 			and offset the text label to accomodate it */
 			
-			if ( (but->flag & UI_HAS_ICON) && (but->flag & UI_ICON_LEFT) ) 
-			{
+			if ( (but->flag & UI_HAS_ICON) && (but->flag & UI_ICON_LEFT) ) {
 				widget_draw_icon(but, but->icon, 0, rect);
 				
-				if(but->editstr || (but->flag & UI_TEXT_LEFT)) x= rect->xmin + but->aspect*UI_icon_get_width(but->icon)+5.0;
-				else x= (rect->xmin+rect->xmax-but->strwidth+1)/2.0;
+				rect->xmin += UI_icon_get_width(but->icon);
+				
+				if(but->editstr || (but->flag & UI_TEXT_LEFT)) 
+					rect->xmin += 5;
 			}
-			else
-			{
-				if(but->editstr || (but->flag & UI_TEXT_LEFT))
-					x= rect->xmin+4.0;
-				else if ELEM3(but->type, TOG, TOGN, TOG3)
-					x= rect->xmin+28.0;	/* offset for checkmark */
-				else
-					x= (rect->xmin+rect->xmax-but->strwidth+1)/2.0;
-			}
-			
-			/* position and draw */
-			y = (rect->ymin+rect->ymax- 9.0)/2.0;
+			else if(but->flag & UI_TEXT_LEFT)
+				rect->xmin += 5;
 			
 			glColor3fv(col);
-			widget_draw_text(but, x, y);
+			widget_draw_text(style, but, rect);
 			
 		}
 		/* if there's no text label, then check to see if there's an icon only and draw it */
@@ -1312,6 +1301,10 @@ static void widget_numbut(uiWidgetColors *wcol, rcti *rect, int state, int round
 		widget_num_tria(&wtb.tria2, rect, 0.6f, 'r');
 	}	
 	widgetbase_draw(&wtb, wcol);
+	
+	/* text space */
+	rect->xmin += (rect->ymax-rect->ymin);
+	rect->xmax -= (rect->ymax-rect->ymin);
 
 }
 
@@ -1401,6 +1394,10 @@ static void widget_menubut(uiWidgetColors *wcol, rcti *rect, int state, int roun
 	widget_menu_trias(&wtb.tria1, rect);
 	
 	widgetbase_draw(&wtb, wcol);
+	
+	/* text space */
+	rect->xmax -= (rect->ymax-rect->ymin);
+	
 }
 
 static void widget_pulldownbut(uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
@@ -1458,6 +1455,9 @@ static void widget_optionbut(uiWidgetColors *wcol, rcti *rect, int state, int ro
 	}
 	
 	widgetbase_draw(&wtb, wcol);
+	
+	/* text space */
+	rect->xmin += (rect->ymax-rect->ymin) + 8;
 }
 
 
@@ -1664,43 +1664,37 @@ static int widget_roundbox_set(uiBut *but, rcti *rect)
 	return 15;
 }
 
-static void ui_but_to_pixelrect(rcti *rect, const ARegion *ar, uiBut *but)
+static void ui_fontscale(short *points, float aspect)
 {
-	uiBlock *block= but->block;
-	float gx, gy;
-	float getsizex, getsizey;
-	
-	getsizex= ar->winx;
-	getsizey= ar->winy;
-	
-	gx= but->x1 + (block->panel?block->panel->ofsx:0.0f);
-	gy= but->y1 + (block->panel?block->panel->ofsy:0.0f);
-
-	rect->xmin= floor(getsizex*(0.5+ 0.5*(gx*block->winmat[0][0]+ gy*block->winmat[1][0]+ block->winmat[3][0])));
-	rect->ymin= floor(getsizey*(0.5+ 0.5*(gx*block->winmat[0][1]+ gy*block->winmat[1][1]+ block->winmat[3][1])));
-
-	gx= but->x2 + (block->panel?block->panel->ofsx:0.0f);
-	gy= but->y2 + (block->panel?block->panel->ofsy:0.0f);
+	if(aspect < 0.9f || aspect > 1.1f) {
+		float pointsf= *points;
 		
-	rect->xmax= floor(getsizex*(0.5+ 0.5*(gx*block->winmat[0][0]+ gy*block->winmat[1][0]+ block->winmat[3][0])));
-	rect->ymax= floor(getsizey*(0.5+ 0.5*(gx*block->winmat[0][1]+ gy*block->winmat[1][1]+ block->winmat[3][1])));
+		/* for some reason scaling fonts goes too fast compared to widget size */
+		aspect= sqrt(aspect);
+		pointsf /= aspect;
+		
+		if(aspect > 1.0)
+			*points= ceil(pointsf);
+		else
+			*points= floor(pointsf);
+	}
 }
 
-
 /* conversion from old to new buttons, so still messy */
-void ui_draw_but(ARegion *ar, uiBut *but)
+void ui_draw_but(ARegion *ar, uiBut *but, rcti *rect)
 {
+	uiStyle style= *((uiStyle *)U.uistyles.first);	// XXX pass on as arg
 	uiWidgetType *wt= NULL;
-	rcti rect;
 	
-	/* project */
-	ui_but_to_pixelrect(&rect, ar, but);
+	/* scale fonts */
+	ui_fontscale(&style.widgetlabel.points, but->block->aspect);
+	ui_fontscale(&style.widget.points, but->block->aspect);
 	
 	/* handle menus seperately */
 	if(but->dt==UI_EMBOSSP) {
 		switch (but->type) {
 			case LABEL:
-				widget_draw_text_icon(but, &rect, wcol_menu_back.text);
+				widget_draw_text_icon(&style, but, rect, wcol_menu_back.text);
 				break;
 			case SEPR:
 				break;
@@ -1724,9 +1718,9 @@ void ui_draw_but(ARegion *ar, uiBut *but)
 		switch (but->type) {
 			case LABEL:
 				if(but->block->flag & UI_BLOCK_LOOP)
-					widget_draw_text_icon(but, &rect, wcol_menu_back.text);
+					widget_draw_text_icon(&style, but, rect, wcol_menu_back.text);
 				else
-					widget_draw_text_icon(but, &rect, wcol_regular.text);
+					widget_draw_text_icon(&style, but, rect, wcol_regular.text);
 				break;
 			case SEPR:
 				break;
@@ -1749,8 +1743,10 @@ void ui_draw_but(ARegion *ar, uiBut *but)
 			case TOG:
 			case TOGN:
 			case TOG3:
-				if (!(but->flag & UI_HAS_ICON))
+				if (!(but->flag & UI_HAS_ICON)) {
 					wt= widget_type(UI_WTYPE_OPTION);
+					but->flag |= UI_TEXT_LEFT;
+				}
 				else
 					wt= widget_type(UI_WTYPE_TOGGLE);
 				break;
@@ -1795,35 +1791,28 @@ void ui_draw_but(ARegion *ar, uiBut *but)
 	if(wt) {
 		int roundboxalign, state;
 		
-		roundboxalign= widget_roundbox_set(but, &rect);
+		roundboxalign= widget_roundbox_set(but, rect);
 		state= but->flag;
 		if(but->editstr) state |= UI_TEXTINPUT;
 		
 		wt->state(wt, state);
 		if(wt->custom)
-			wt->custom(but, &wt->wcol, &rect, state, roundboxalign);
+			wt->custom(but, &wt->wcol, rect, state, roundboxalign);
 		else if(wt->draw)
-			wt->draw(&wt->wcol, &rect, state, roundboxalign);
-		wt->text(but, &rect, wt->wcol.text);
+			wt->draw(&wt->wcol, rect, state, roundboxalign);
+		wt->text(&style, but, rect, wt->wcol.text);
 		
 		if(state & UI_BUT_DISABLED)
-			widget_disabled(&rect);
+			widget_disabled(rect);
 	}
 }
 
-void ui_draw_menu_back(uiBlock *block)
+void ui_draw_menu_back(uiBlock *block, rcti *rect)
 {
 	uiWidgetType *wt= widget_type(UI_WTYPE_MENU_BACK);
-	rcti rect;
-	
-	/* XXX project later? */
-	rect.xmin= block->minx;
-	rect.xmax= block->maxx;
-	rect.ymin= block->miny;
-	rect.ymax= block->maxy;
 	
 	wt->state(wt, 0);
-	wt->draw(&wt->wcol, &rect, block->flag, block->direction);
+	wt->draw(&wt->wcol, rect, block->flag, block->direction);
 	
 }
 

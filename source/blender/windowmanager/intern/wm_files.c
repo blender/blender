@@ -146,11 +146,6 @@ static void init_userdef_themes(void)
 		U.dupflag |= USER_DUP_ARM;
 	}
 	
-	/* userdef new option */
-	if (G.main->versionfile <= 222) {
-		U.vrmlflag= USER_VRML_LAYERS;
-	}
-	
 	/* added seam, normal color, undo */
 	if (G.main->versionfile <= 234) {
 		bTheme *btheme;

@@ -46,6 +46,7 @@ struct Panel;
 struct PointerRNA;
 struct PropertyRNA;
 struct ReportList;
+struct rcti;
 
 typedef struct uiBut uiBut;
 typedef struct uiBlock uiBlock;
@@ -128,10 +129,11 @@ typedef struct uiPopupBlockHandle uiPopupBlockHandle;
 #define UI_BUT_ALIGN_DOWN	(1<<17)
 
 #define UI_BUT_DISABLED		(1<<18)
-/* dont draw hilite on mouse over */
+	/* dont draw hilite on mouse over */
 #define UI_NO_HILITE		(1<<19)
 #define UI_BUT_ANIMATED		(1<<20)
 #define UI_BUT_ANIMATED_KEY	(1<<21)
+
 
 /* Button types, bits stored in 1 value... and a short even!
 - bits 0-4:  bitnr (0-31)
@@ -630,6 +632,11 @@ void uiRegionHeaderLayout(const struct bContext *C, struct ARegion *ar);
 /* Animation */
 
 void uiAnimContextProperty(const struct bContext *C, struct PointerRNA *ptr, struct PropertyRNA **prop, int *index);
+
+/* Styled text draw */
+void uiFontStyleDraw(struct uiFontStyle *fs, struct rcti *rect, char *str);
+
+
 
 #endif /*  UI_INTERFACE_H */
 

@@ -88,7 +88,7 @@ static void ui_rna_ID_autocomplete(bContext *C, char *str, void *arg_but);
 
 /* ************ GLOBALS ************* */
 
-static uiFont UIfont[UI_ARRAY];  // no init needed
+static uiFontOld UIfont[UI_ARRAY];  // no init needed
 
 /* ************* translation ************** */
 
@@ -643,11 +643,34 @@ void uiEndBlock(const bContext *C, uiBlock *block)
 
 /* ************** BLOCK DRAWING FUNCTION ************* */
 
+/* project button or block (but==NULL) to pixels in regionspace */
+static void ui_but_to_pixelrect(rcti *rect, const ARegion *ar, uiBlock *block, uiBut *but)
+{
+	float gx, gy;
+	float getsizex, getsizey;
+	
+	getsizex= ar->winx;
+	getsizey= ar->winy;
+	
+	gx= (but?but->x1:block->minx) + (block->panel?block->panel->ofsx:0.0f);
+	gy= (but?but->y1:block->miny) + (block->panel?block->panel->ofsy:0.0f);
+	
+	rect->xmin= floor(getsizex*(0.5+ 0.5*(gx*block->winmat[0][0]+ gy*block->winmat[1][0]+ block->winmat[3][0])));
+	rect->ymin= floor(getsizey*(0.5+ 0.5*(gx*block->winmat[0][1]+ gy*block->winmat[1][1]+ block->winmat[3][1])));
+	
+	gx= (but?but->x2:block->maxx) + (block->panel?block->panel->ofsx:0.0f);
+	gy= (but?but->y2:block->maxy) + (block->panel?block->panel->ofsy:0.0f);
+	
+	rect->xmax= floor(getsizex*(0.5+ 0.5*(gx*block->winmat[0][0]+ gy*block->winmat[1][0]+ block->winmat[3][0])));
+	rect->ymax= floor(getsizey*(0.5+ 0.5*(gx*block->winmat[0][1]+ gy*block->winmat[1][1]+ block->winmat[3][1])));
+}
+
 void uiDrawBlock(const bContext *C, uiBlock *block)
 {
 	ARegion *ar;
 	uiBut *but;
-
+	rcti rect;
+	
 	/* get menu region or area region */
 	ar= CTX_wm_menu(C);
 	if(!ar)
@@ -659,13 +682,6 @@ void uiDrawBlock(const bContext *C, uiBlock *block)
 	/* we set this only once */
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	
-	if(block->flag & UI_BLOCK_LOOP)
-		ui_draw_menu_back(block);
-	else if(block->panel)
-		ui_draw_panel(ar, block);
-
-	if(block->drawextra) block->drawextra(C, block);
-
 	/* pixel space for AA widgets */
 	glMatrixMode(GL_PROJECTION);
 	glPushMatrix();
@@ -675,9 +691,21 @@ void uiDrawBlock(const bContext *C, uiBlock *block)
 	
 	wmOrtho2(0.0f, ar->winx, 0.0f, ar->winy);
 	
-	for(but= block->buttons.first; but; but= but->next)
-		ui_draw_but(ar, but);
+	/* back */
+	ui_but_to_pixelrect(&rect, ar, block, NULL);
+	if(block->flag & UI_BLOCK_LOOP)
+		ui_draw_menu_back(block, &rect);
+	else if(block->panel)
+		ui_draw_panel(ar, block, &rect);
 
+	if(block->drawextra) block->drawextra(C, block);
+
+	/* widgets */
+	for(but= block->buttons.first; but; but= but->next) {
+		ui_but_to_pixelrect(&rect, ar, block, but);
+		ui_draw_but(ar, but, &rect);
+	}
+	
 	/* restore matrix */
 	glMatrixMode(GL_PROJECTION);
 	glPopMatrix();
@@ -3287,12 +3315,14 @@ void UI_init(void)
 
 void UI_init_userdef()
 {
+	uiStyleInit();
 	ui_text_init_userdef();
 	ui_theme_init_userdef();
 }
 
 void UI_exit(void)
 {
+	uiStyleExit();
 	ui_resources_free();
 }
 
