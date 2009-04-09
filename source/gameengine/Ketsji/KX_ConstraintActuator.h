@@ -56,7 +56,8 @@ protected:
 	// sinus of maximum angle
 	float m_maximumSine;
 	// reference direction
-	MT_Vector3 m_refDirection;
+	float m_refDirection[3];
+	MT_Vector3 m_refDirVector;	// same as m_refDirection
 	// locrotxyz choice (pick one): only one choice allowed at a time!
 	int m_locrot;
 	// active time of actuator
@@ -65,7 +66,7 @@ protected:
 	// option
 	int m_option;
 	// property to check
-	char m_property[32];
+	STR_String m_property;
 	// hit object
 	KX_GameObject* m_hitObject;
 
@@ -143,6 +144,10 @@ protected:
 	/* --------------------------------------------------------------------- */
 
 	virtual PyObject* py_getattro(PyObject *attr);
+	virtual int py_setattro(PyObject *attr, PyObject* value);
+
+	static int pyattr_check_direction(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef);
+	static int pyattr_check_min(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef);
 
 	KX_PYMETHOD_DOC(KX_ConstraintActuator,SetDamp);
 	KX_PYMETHOD_DOC_NOARGS(KX_ConstraintActuator,GetDamp);
