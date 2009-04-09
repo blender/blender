@@ -45,12 +45,12 @@ static int pyrna_prop_compare( BPy_PropertyRNA * a, BPy_PropertyRNA * b )
 {
 	return (a->prop==b->prop && a->ptr.data==b->ptr.data ) ? 0 : -1;
 }
-
+#ifdef USE_RNA_FUNC
 static int pyrna_func_compare( BPy_FunctionRNA * a, BPy_FunctionRNA * b )
 {
 	return (a->func==b->func && a->ptr.data==b->ptr.data ) ? 0 : -1;
 }
-
+#endif
 
 /* For some reason python3 needs these :/ */
 static PyObject *pyrna_struct_richcmp(BPy_StructRNA * a, BPy_StructRNA * b, int op)
@@ -72,7 +72,7 @@ static PyObject *pyrna_prop_richcmp(BPy_PropertyRNA * a, BPy_PropertyRNA * b, in
 
 	return Py_CmpToRich(op, cmp_result);
 }
-
+#ifdef USE_RNA_FUNC
 static PyObject *pyrna_func_richcmp(BPy_FunctionRNA * a, BPy_FunctionRNA * b, int op)
 {
 	int cmp_result= -1; /* assume false */
@@ -82,6 +82,7 @@ static PyObject *pyrna_func_richcmp(BPy_FunctionRNA * a, BPy_FunctionRNA * b, in
 
 	return Py_CmpToRich(op, cmp_result);
 }
+#endif
 
 /*----------------------repr--------------------------------------------*/
 static PyObject *pyrna_struct_repr( BPy_StructRNA * self )
@@ -120,12 +121,12 @@ static PyObject *pyrna_prop_repr( BPy_PropertyRNA * self )
 
 	return PyUnicode_FromFormat( "[BPy_PropertyRNA \"%s\" -> \"%s\"]", RNA_struct_identifier(&self->ptr), RNA_property_identifier(&self->ptr, self->prop));
 }
-
+#ifdef USE_RNA_FUNC
 static PyObject *pyrna_func_repr( BPy_FunctionRNA * self )
 {
 	return PyUnicode_FromFormat( "[BPy_FunctionRNA \"%s\"]", RNA_function_identifier(&self->ptr, self->func));
 }
-
+#endif
 static long pyrna_struct_hash( BPy_StructRNA * self )
 {
 	return (long)self->ptr.data;
@@ -144,7 +145,7 @@ static void pyrna_struct_dealloc( BPy_StructRNA * self )
 	Py_TYPE(self)->tp_free(self);
 	return;
 }
-
+#ifdef USE_RNA_FUNC
 /* use our own dealloc so we can free a property if we use one */
 static void pyrna_function_dealloc( BPy_FunctionRNA * self )
 {
@@ -153,7 +154,7 @@ static void pyrna_function_dealloc( BPy_FunctionRNA * self )
 
 	return;
 }
-
+#endif
 static char *pyrna_enum_as_string(PointerRNA *ptr, PropertyRNA *prop)
 {
 	const EnumPropertyItem *item;
@@ -231,9 +232,28 @@ PyObject * pyrna_prop_to_py(PointerRNA *ptr, PropertyRNA *prop)
 	return ret;
 }
 
+#ifndef USE_RNA_FUNC
+static PyObject * pyrna_func_call(PyObject * self, PyObject *args, PyObject *kw);
+#endif
+
 PyObject *pyrna_func_to_py(PointerRNA *ptr, FunctionRNA *func)
-{
+{	
+#ifdef USE_RNA_FUNC
 	return pyrna_func_CreatePyObject(ptr, func);
+#else
+	static PyMethodDef func_meth = {"<generic rna function>", (PyCFunction)pyrna_func_call, METH_VARARGS|METH_KEYWORDS, "python rna function"};
+	PyObject *self= PyTuple_New(2);
+	PyObject *ret;
+	PyTuple_SET_ITEM(self, 0, pyrna_struct_CreatePyObject(ptr));
+	PyTuple_SET_ITEM(self, 1, PyCObject_FromVoidPtr((void *)func, NULL));
+	
+	ret= PyCFunction_New(&func_meth, self);
+	Py_DECREF(self);
+	
+	return ret;
+#endif
+	
+	
 }
 
 int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, PyObject *value)
@@ -953,6 +973,7 @@ static PyObject * pyrna_prop_new(PyTypeObject *type, PyObject *args, PyObject *k
 	}
 }
 
+#ifdef USE_RNA_FUNC
 /* only needed for subtyping, so a new class gets a valid BPy_FunctionRNA
 * todo - also accept useful args */
 static PyObject * pyrna_func_new(PyTypeObject *type, PyObject *args, PyObject *kwds) {
@@ -971,6 +992,7 @@ static PyObject * pyrna_func_new(PyTypeObject *type, PyObject *args, PyObject *k
 		return (PyObject *)ret;
 	}
 }
+#endif
 
 int pyrna_py_to_param(PointerRNA *ptr, PropertyRNA *prop, void *data, PyObject *value)
 {
@@ -1260,8 +1282,19 @@ PyObject *pyrna_param_to_py(PointerRNA *ptr, PropertyRNA *prop, void *data)
 	return ret;
 }
 
+#ifdef USE_RNA_FUNC
 static PyObject * pyrna_func_call(BPy_FunctionRNA * self, PyObject *args, PyObject *kw)
 {
+	PointerRNA *self_ptr= &self->ptr;
+	FunctionRNA *self_func= self->func;
+#else
+static PyObject * pyrna_func_call(PyObject * self, PyObject *args, PyObject *kw)
+{
+	PointerRNA *self_ptr= &(((BPy_StructRNA *)PyTuple_GET_ITEM(self, 0))->ptr);
+	FunctionRNA *self_func=  PyCObject_AsVoidPtr(PyTuple_GET_ITEM(self, 1));
+	
+#endif	
+
 	PointerRNA funcptr;
 	ParameterList *parms;
 	ParameterIterator iter;
@@ -1272,12 +1305,12 @@ static PyObject * pyrna_func_call(BPy_FunctionRNA * self, PyObject *args, PyObje
 	void *retdata= NULL;
 
 	/* setup */
-	RNA_pointer_create(NULL, &RNA_Function, self->func, &funcptr);
+	RNA_pointer_create(NULL, &RNA_Function, self_func, &funcptr);
 
-	pret= RNA_function_return(&self->ptr, self->func);
+	pret= RNA_function_return(self_ptr, self_func);
 	tlen= PyTuple_GET_SIZE(args);
 
-	parms= RNA_parameter_list_create(&self->ptr, self->func);
+	parms= RNA_parameter_list_create(self_ptr, self_func);
 	RNA_parameter_list_begin(parms, &iter);
 
 	/* parse function parameters */
@@ -1303,8 +1336,8 @@ static PyObject * pyrna_func_call(BPy_FunctionRNA * self, PyObject *args, PyObje
 			if (flag & PARAM_OPTIONAL)
 				continue; */
 
-			tid= RNA_struct_identifier(&self->ptr);
-			fid= RNA_function_identifier(&self->ptr, self->func);
+			tid= RNA_struct_identifier(self_ptr);
+			fid= RNA_function_identifier(self_ptr, self_func);
 
 			PyErr_Format(PyExc_AttributeError, "%s.%s(): required parameter \"%s\" not specified", tid, fid, pid);
 			err= -1;
@@ -1320,7 +1353,7 @@ static PyObject * pyrna_func_call(BPy_FunctionRNA * self, PyObject *args, PyObje
 	ret= NULL;
 	if (err==0) {
 		/* call function */
-		RNA_function_call(&self->ptr, self->func, parms);
+		RNA_function_call(self_ptr, self_func, parms);
 
 		/* return value */
 		if(pret)
@@ -1511,6 +1544,7 @@ PyTypeObject pyrna_prop_Type = {
 	NULL
 };
 
+#ifdef USE_RNA_FUNC
 /*-----------------------BPy_FunctionRNA method def------------------------------*/
 PyTypeObject pyrna_func_Type = {
 #if (PY_VERSION_HEX >= 0x02060000)
@@ -1596,6 +1630,7 @@ PyTypeObject pyrna_func_Type = {
 	NULL,                       /* PyObject *tp_weaklist; */
 	NULL
 };
+#endif
 
 PyObject* pyrna_struct_Subtype(PointerRNA *ptr)
 {
@@ -1718,6 +1753,7 @@ PyObject *pyrna_prop_CreatePyObject( PointerRNA *ptr, PropertyRNA *prop )
 	return ( PyObject * ) pyrna;
 }
 
+#ifdef USE_RNA_FUNC
 PyObject *pyrna_func_CreatePyObject( PointerRNA *ptr, FunctionRNA *func )
 {
 	BPy_FunctionRNA *pyrna;
@@ -1736,7 +1772,7 @@ PyObject *pyrna_func_CreatePyObject( PointerRNA *ptr, FunctionRNA *func )
 
 	return ( PyObject * ) pyrna;
 }
-
+#endif
 
 PyObject *BPY_rna_module( void )
 {
@@ -1752,9 +1788,10 @@ PyObject *BPY_rna_module( void )
 	if( PyType_Ready( &pyrna_prop_Type ) < 0 )
 		return NULL;
 
+#ifdef USE_RNA_FUNC
 	if( PyType_Ready( &pyrna_func_Type ) < 0 )
 		return NULL;
-	
+#endif	
 	/* for now, return the base RNA type rather then a real module */
 	RNA_main_pointer_create(G.main, &ptr);
 	
