@@ -33,7 +33,6 @@ Developed as part of a Research and Development project for SAT - La Société des
 #include "BLI_arithb.h"
 
 #include "GL/glew.h"
-#include "GL/glu.h"
 
 // constructor
 KX_Dome::KX_Dome (
