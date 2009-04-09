@@ -20,7 +20,7 @@ class SCA_2DFilterActuator(SCA_IActuator):
 	@ivar disableMotionBlur: action on motion blur: 0=enable, 1=disable
 	@type disableMotionBlur: integer
 	@ivar type: type of 2D filter, use one of the following constants:
-	            RAS_2DFILTER_ENABLED      (-2) : enable the filter that was previously disabled
+				RAS_2DFILTER_ENABLED      (-2) : enable the filter that was previously disabled
 				RAS_2DFILTER_DISABLED     (-1) : disable the filter that is currently active
 				RAS_2DFILTER_NOFILTER      (0) : disable and destroy the filter that is currently active
 				RAS_2DFILTER_MOTIONBLUR    (1) : create and enable preset filters

@@ -205,9 +205,9 @@ def addActiveActuator(actuator, activate):
 	@type activate: boolean
 	@param activate: whether to activate or deactivate the given actuator.
 	"""
-def sendMessage(subject, body="", to="", from=""):
+def sendMessage(subject, body="", to="", message_from=""):
 	"""
-	Sends a message.
+	Sends a message to sensors in any active scene.
 	
 	@param subject: The subject of the message
 	@type subject: string
@@ -215,8 +215,8 @@ def sendMessage(subject, body="", to="", from=""):
 	@type body: string
 	@param to: The name of the object to send the message to (optional)
 	@type to: string
-	@param from: The name of the object that the message is coming from (optional)
-	@type from: string
+	@param message_from: The name of the object that the message is coming from (optional)
+	@type message_from: string
 	"""
 def getRandomFloat():
 	"""

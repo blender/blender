@@ -20,10 +20,22 @@ class SCA_KeyboardSensor(SCA_ISensor):
 	@type targetProperty: string
 	@ivar useAllKeys: Flag to determine whether or not to accept all keys.
 	@type useAllKeys: boolean
+	@ivar events: a list of pressed keys that have either been pressed, or just released, or are active this frame. (read only).
+
+			- 'keycode' matches the values in L{GameKeys}.
+			- 'status' uses...
+				- L{GameLogic.KX_INPUT_NONE}
+				- L{GameLogic.KX_INPUT_JUST_ACTIVATED}
+				- L{GameLogic.KX_INPUT_ACTIVE}
+				- L{GameLogic.KX_INPUT_JUST_RELEASED}
+			
+	@type events: list [[keycode, status], ...]
 	"""
 	def getEventList():
 		"""
 		Get a list of pressed keys that have either been pressed, or just released, or are active this frame.
+		
+		B{DEPRECATED: Use the "events" property instead}.
 		
 		@rtype: list of key status. [[keycode, status]]
 		@return: A list of keyboard events
@@ -33,18 +45,18 @@ class SCA_KeyboardSensor(SCA_ISensor):
 		"""
 		Get the status of a key.
 		
-		@rtype: key state (KX_NO_INPUTSTATUS, KX_JUSTACTIVATED, KX_ACTIVE or KX_JUSTRELEASED)
+		@rtype: key state L{GameLogic} members (KX_INPUT_NONE, KX_INPUT_JUST_ACTIVATED, KX_INPUT_ACTIVE, KX_INPUT_JUST_RELEASED)
 		@return: The state of the given key
 		@type keycode: integer
 		@param keycode: The code that represents the key you want to get the state of
 		"""
 	
-	#--The following methods are deprecated--
+	#--The following methods are DEPRECATED--
 	def getKey():
 		"""
 		Returns the key code this sensor is looking for.
 		
-		Deprecated: Use the "key" property instead.
+		B{DEPRECATED: Use the "key" property instead}.
 		
 		@rtype: keycode from L{GameKeys} module
 		"""
@@ -53,7 +65,7 @@ class SCA_KeyboardSensor(SCA_ISensor):
 		"""
 		Set the key this sensor should listen for.
 		
-		Deprecated: Use the "key" property instead.
+		B{DEPRECATED: Use the "key" property instead}.
 		
 		@type keycode: keycode from L{GameKeys} module
 		"""
@@ -62,7 +74,7 @@ class SCA_KeyboardSensor(SCA_ISensor):
 		"""
 		Returns the key code for the first modifier this sensor is looking for.
 		
-		Deprecated: Use the "hold1" property instead.
+		B{DEPRECATED: Use the "hold1" property instead}.
 		
 		@rtype: keycode from L{GameKeys} module
 		"""
@@ -71,7 +83,7 @@ class SCA_KeyboardSensor(SCA_ISensor):
 		"""
 		Sets the key code for the first modifier this sensor should look for.
 		
-		Deprecated: Use the "hold1" property instead.
+		B{DEPRECATED: Use the "hold1" property instead}.
 		
 		@type keycode: keycode from L{GameKeys} module
 		"""
@@ -80,7 +92,7 @@ class SCA_KeyboardSensor(SCA_ISensor):
 		"""
 		Returns the key code for the second modifier this sensor is looking for.
 		
-		Deprecated: Use the "hold2" property instead.
+		B{DEPRECATED: Use the "hold2" property instead}.
 		
 		@rtype: keycode from L{GameKeys} module
 		"""
@@ -89,7 +101,7 @@ class SCA_KeyboardSensor(SCA_ISensor):
 		"""
 		Sets the key code for the second modifier this sensor should look for.
 		
-		Deprecated: Use the "hold2" property instead.
+		B{DEPRECATED: Use the "hold2" property instead.}
 		
 		@type keycode: keycode from L{GameKeys} module
 		"""
@@ -98,7 +110,7 @@ class SCA_KeyboardSensor(SCA_ISensor):
 		"""
 		Get a list of keys that have either been pressed, or just released this frame.
 		
-		Deprecated: Use getEventList() instead.
+		B{DEPRECATED: Use "events" instead.}
 		
 		@rtype: list of key status. [[keycode, status]]
 		"""
@@ -107,7 +119,7 @@ class SCA_KeyboardSensor(SCA_ISensor):
 		"""
 		Get a list of currently pressed keys that have either been pressed, or just released
 		
-		Deprecated: Use getEventList() instead.
+		B{DEPRECATED: Use "events" instead.}
 		
 		@rtype: list of key status. [[keycode, status]]
 		"""
