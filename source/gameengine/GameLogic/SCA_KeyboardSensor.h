@@ -82,22 +82,6 @@ class SCA_KeyboardSensor : public SCA_ISensor
 	void AddToTargetProp(int keyIndex);
 
 	/**
-	 * Determine whether this character can be printed. We cannot use
-	 * the library functions here, because we need to test our own
-	 * keycodes. */
-	bool IsPrintable(int keyIndex);
-
-	/**
-	 * Transform keycodes to something printable.
-	 */
-	char ToCharacter(int keyIndex, bool shifted);
-
-	/**
-	 * Tests whether this is a delete key.
-	 */	
-	bool IsDelete(int keyIndex);
-
-	/**
 	 * Tests whether shift is pressed.
 	 */
 	bool IsShifted(void);
@@ -152,7 +136,29 @@ public:
 	KX_PYMETHOD_DOC_NOARGS(SCA_KeyboardSensor,getEventList); 
 	// KeyStatus: 
 	KX_PYMETHOD_DOC_O(SCA_KeyboardSensor,getKeyStatus);
+	
+	static PyObject*	pyattr_get_events(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 };
 
+
+/**
+ * Transform keycodes to something printable.
+ */
+char ToCharacter(int keyIndex, bool shifted);
+
+/**
+ * Determine whether this character can be printed. We cannot use
+ * the library functions here, because we need to test our own
+ * keycodes. */
+bool IsPrintable(int keyIndex);
+
+/**
+ * Tests whether this is a delete key.
+ */	
+bool IsDelete(int keyIndex);
+
+
 #endif //__KX_KEYBOARDSENSOR
+
+
 

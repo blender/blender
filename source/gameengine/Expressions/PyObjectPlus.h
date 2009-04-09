@@ -129,7 +129,14 @@ static inline void Py_Fatal(const char *M) {
 	 \
 	if(descr) { \
 		if (PyCObject_Check(descr)) { \
-			return py_set_attrdef((void *)this, (const PyAttributeDef*)PyCObject_AsVoidPtr(descr), value); \
+			const PyAttributeDef* attrdef= reinterpret_cast<const PyAttributeDef *>(PyCObject_AsVoidPtr(descr)); \
+			if (attrdef->m_access == KX_PYATTRIBUTE_RO) { \
+				PyErr_Format(PyExc_AttributeError, "\"%s\" is read only", PyString_AsString(attr)); \
+				return -1; \
+			} \
+			else { \
+				return py_set_attrdef((void *)this, attrdef, value); \
+			} \
 		} else { \
 			PyErr_Format(PyExc_AttributeError, "\"%s\" cannot be set", PyString_AsString(attr)); \
 			return -1; \

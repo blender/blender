@@ -134,26 +134,20 @@ Example::
 	co = GameLogic.getCurrentController()
 	# 'Keyboard' is a keyboard sensor
 	sensor = co.getSensor('Keyboard')
-	sensor.setKey(GameKeys.F1KEY)
+	sensor.key = GameKeys.F1KEY
 
 Example::
 	# Do the all keys thing
 	import GameLogic
 	import GameKeys
-
-	# status: these should be added to a module somewhere
-	KX_NO_INPUTSTATUS = 0
-	KX_JUSTACTIVATED = 1
-	KX_ACTIVE = 2
-	KX_JUSTRELEASED = 3
-		
+	
 	co = GameLogic.getCurrentController()
 	# 'Keyboard' is a keyboard sensor
 	sensor = co.getSensor('Keyboard')
-	keylist = sensor.getPressedKeys()
+	keylist = sensor.events
 	for key in keylist:
 		# key[0] == GameKeys.keycode, key[1] = status
-		if key[1] == KX_JUSTACTIVATED:
+		if key[1] == GameLogic.KX_INPUT_JUST_ACTIVATED:
 			if key[0] == GameKeys.WKEY:
 				# Activate Forward!
 			if key[0] == GameKeys.SKEY:
@@ -173,3 +167,15 @@ def EventToString(event):
 	@param event: key event from GameKeys or the keyboard sensor.
 	@rtype: string
 	"""
+	
+def EventToCharacter(event, shift):
+	"""
+	Return the string name of a key event. Returns an empty string if the event cant be represented as a character.
+	
+	@type event: int
+	@param event: key event from GameKeys or the keyboard sensor.
+	@type event: bool
+	@param event: set to true if shift is held.
+	@rtype: string
+	"""
+

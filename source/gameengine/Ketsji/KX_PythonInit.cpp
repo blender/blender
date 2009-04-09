@@ -54,6 +54,7 @@
 #include "SCA_IInputDevice.h"
 #include "SCA_PropertySensor.h"
 #include "SCA_RandomActuator.h"
+#include "SCA_KeyboardSensor.h" /* IsPrintable, ToCharacter */
 #include "KX_ConstraintActuator.h"
 #include "KX_IpoActuator.h"
 #include "KX_SoundActuator.h"
@@ -162,7 +163,7 @@ static PyObject* gPyExpandPath(PyObject*, PyObject* args)
 	char expanded[FILE_MAXDIR + FILE_MAXFILE];
 	char* filename;
 	
-	if (!PyArg_ParseTuple(args,"s",&filename))
+	if (!PyArg_ParseTuple(args,"s:ExpandPath",&filename))
 		return NULL;
 
 	BLI_strncpy(expanded, filename, FILE_MAXDIR + FILE_MAXFILE);
@@ -185,7 +186,7 @@ static PyObject* gPySendMessage(PyObject*, PyObject* args)
 	char* to = "";
 	char* from = "";
 
-	if (!PyArg_ParseTuple(args, "s|sss", &subject, &body, &to, &from))
+	if (!PyArg_ParseTuple(args, "s|sss:sendMessage", &subject, &body, &to, &from))
 		return NULL;
 
 	gp_KetsjiScene->GetNetworkScene()->SendMessage(to, from, subject, body);
@@ -268,7 +269,7 @@ static PyObject* gPyStopDSP(PyObject*, PyObject* args)
 static PyObject* gPySetLogicTicRate(PyObject*, PyObject* args)
 {
 	float ticrate;
-	if (!PyArg_ParseTuple(args, "f", &ticrate))
+	if (!PyArg_ParseTuple(args, "f:setLogicTicRate", &ticrate))
 		return NULL;
 	
 	KX_KetsjiEngine::SetTicRate(ticrate);
@@ -283,7 +284,7 @@ static PyObject* gPyGetLogicTicRate(PyObject*)
 static PyObject* gPySetPhysicsTicRate(PyObject*, PyObject* args)
 {
 	float ticrate;
-	if (!PyArg_ParseTuple(args, "f", &ticrate))
+	if (!PyArg_ParseTuple(args, "f:setPhysicsTicRate", &ticrate))
 		return NULL;
 	
 	PHY_GetActiveEnvironment()->setFixedTimeStep(true,ticrate);
@@ -293,7 +294,7 @@ static PyObject* gPySetPhysicsTicRate(PyObject*, PyObject* args)
 static PyObject* gPySetPhysicsDebug(PyObject*, PyObject* args)
 {
 	int debugMode;
-	if (!PyArg_ParseTuple(args, "i", &debugMode))
+	if (!PyArg_ParseTuple(args, "i:setPhysicsDebug", &debugMode))
 		return NULL;
 	
 	PHY_GetActiveEnvironment()->setDebugMode(debugMode);
@@ -321,7 +322,7 @@ static PyObject* gPyGetBlendFileList(PyObject*, PyObject* args)
     DIR *dp;
     struct dirent *dirp;
 	
-	if (!PyArg_ParseTuple(args, "|s", &searchpath))
+	if (!PyArg_ParseTuple(args, "|s:getBlendFileList", &searchpath))
 		return NULL;
 	
 	list = PyList_New(0);
@@ -507,7 +508,7 @@ bool gUseVisibilityTemp = false;
 static PyObject* gPyEnableVisibility(PyObject*, PyObject* args)
 {
 	int visible;
-	if (!PyArg_ParseTuple(args,"i",&visible))
+	if (!PyArg_ParseTuple(args,"i:enableVisibility",&visible))
 		return NULL;
 	
 	gUseVisibilityTemp = (visible != 0);
@@ -519,7 +520,7 @@ static PyObject* gPyEnableVisibility(PyObject*, PyObject* args)
 static PyObject* gPyShowMouse(PyObject*, PyObject* args)
 {
 	int visible;
-	if (!PyArg_ParseTuple(args,"i",&visible))
+	if (!PyArg_ParseTuple(args,"i:showMouse",&visible))
 		return NULL;
 	
 	if (visible)
@@ -540,7 +541,7 @@ static PyObject* gPyShowMouse(PyObject*, PyObject* args)
 static PyObject* gPySetMousePosition(PyObject*, PyObject* args)
 {
 	int x,y;
-	if (!PyArg_ParseTuple(args,"ii",&x,&y))
+	if (!PyArg_ParseTuple(args,"ii:setMousePosition",&x,&y))
 		return NULL;
 	
 	if (gp_Canvas)
@@ -552,7 +553,7 @@ static PyObject* gPySetMousePosition(PyObject*, PyObject* args)
 static PyObject* gPySetEyeSeparation(PyObject*, PyObject* args)
 {
 	float sep;
-	if (!PyArg_ParseTuple(args, "f", &sep))
+	if (!PyArg_ParseTuple(args, "f:setEyeSeparation", &sep))
 		return NULL;
 
 	if (!gp_Rasterizer) {
@@ -565,7 +566,7 @@ static PyObject* gPySetEyeSeparation(PyObject*, PyObject* args)
 	Py_RETURN_NONE;
 }
 
-static PyObject* gPyGetEyeSeparation(PyObject*, PyObject*, PyObject*)
+static PyObject* gPyGetEyeSeparation(PyObject*)
 {
 	if (!gp_Rasterizer) {
 		PyErr_SetString(PyExc_RuntimeError, "Rasterizer not available");
@@ -578,7 +579,7 @@ static PyObject* gPyGetEyeSeparation(PyObject*, PyObject*, PyObject*)
 static PyObject* gPySetFocalLength(PyObject*, PyObject* args)
 {
 	float focus;
-	if (!PyArg_ParseTuple(args, "f", &focus))
+	if (!PyArg_ParseTuple(args, "f:setFocalLength", &focus))
 		return NULL;
 	
 	if (!gp_Rasterizer) {
@@ -641,7 +642,7 @@ static PyObject* gPySetMistStart(PyObject*, PyObject* args)
 {
 
 	float miststart;
-	if (!PyArg_ParseTuple(args,"f",&miststart))
+	if (!PyArg_ParseTuple(args,"f:setMistStart",&miststart))
 		return NULL;
 	
 	if (!gp_Rasterizer) {
@@ -660,7 +661,7 @@ static PyObject* gPySetMistEnd(PyObject*, PyObject* args)
 {
 
 	float mistend;
-	if (!PyArg_ParseTuple(args,"f",&mistend))
+	if (!PyArg_ParseTuple(args,"f:setMistEnd",&mistend))
 		return NULL;
 	
 	if (!gp_Rasterizer) {
@@ -696,7 +697,7 @@ static PyObject* gPySetAmbientColor(PyObject*, PyObject* value)
 static PyObject* gPyMakeScreenshot(PyObject*, PyObject* args)
 {
 	char* filename;
-	if (!PyArg_ParseTuple(args,"s",&filename))
+	if (!PyArg_ParseTuple(args,"s:makeScreenshot",&filename))
 		return NULL;
 	
 	if (gp_Canvas)
@@ -710,7 +711,7 @@ static PyObject* gPyMakeScreenshot(PyObject*, PyObject* args)
 static PyObject* gPyEnableMotionBlur(PyObject*, PyObject* args)
 {
 	float motionblurvalue;
-	if (!PyArg_ParseTuple(args,"f",&motionblurvalue))
+	if (!PyArg_ParseTuple(args,"f:enableMotionBlur",&motionblurvalue))
 		return NULL;
 	
 	if (!gp_Rasterizer) {
@@ -760,7 +761,7 @@ static PyObject* gPySetGLSLMaterialSetting(PyObject*,
 	char *setting;
 	int enable, flag, fileflags;
 
-	if (!PyArg_ParseTuple(args,"si",&setting,&enable))
+	if (!PyArg_ParseTuple(args,"si:setGLSLMaterialSetting",&setting,&enable))
 		return NULL;
 	
 	flag = getGLSLSettingFlag(setting);
@@ -801,7 +802,7 @@ static PyObject* gPyGetGLSLMaterialSetting(PyObject*,
 	char *setting;
 	int enabled = 0, flag;
 
-	if (!PyArg_ParseTuple(args,"s",&setting))
+	if (!PyArg_ParseTuple(args,"s:getGLSLMaterialSetting",&setting))
 		return NULL;
 	
 	flag = getGLSLSettingFlag(setting);
@@ -825,7 +826,7 @@ static PyObject* gPySetMaterialType(PyObject*,
 {
 	int flag, type;
 
-	if (!PyArg_ParseTuple(args,"i",&type))
+	if (!PyArg_ParseTuple(args,"i:setMaterialType",&type))
 		return NULL;
 
 	if(type == KX_BLENDER_GLSL_MATERIAL)
@@ -870,7 +871,7 @@ static PyObject* gPyDrawLine(PyObject*, PyObject* args)
 		return NULL;
 	}
 
-	if (!PyArg_ParseTuple(args,"OOO",&ob_from,&ob_to,&ob_color))
+	if (!PyArg_ParseTuple(args,"OOO:drawLine",&ob_from,&ob_to,&ob_color))
 		return NULL;
 
 	MT_Vector3 from;
@@ -911,7 +912,7 @@ static struct PyMethodDef rasterizer_methods[] = {
 
   
   {"setEyeSeparation", (PyCFunction) gPySetEyeSeparation, METH_VARARGS, "set the eye separation for stereo mode"},
-  {"getEyeSeparation", (PyCFunction) gPyGetEyeSeparation, METH_VARARGS, "get the eye separation for stereo mode"},
+  {"getEyeSeparation", (PyCFunction) gPyGetEyeSeparation, METH_NOARGS, "get the eye separation for stereo mode"},
   {"setFocalLength", (PyCFunction) gPySetFocalLength, METH_VARARGS, "set the focal length for stereo mode"},
   {"getFocalLength", (PyCFunction) gPyGetFocalLength, METH_VARARGS, "get the focal length for stereo mode"},
   {"setMaterialMode",(PyCFunction) gPySetMaterialType,
@@ -1462,7 +1463,7 @@ static char GameKeys_module_documentation[] =
 ;
 
 static char gPyEventToString_doc[] =
-"Take a valid event from the GameKeys module or Keyboard Sensor and return a name"
+"EventToString(event) - Take a valid event from the GameKeys module or Keyboard Sensor and return a name"
 ;
 
 static PyObject* gPyEventToString(PyObject*, PyObject* value)
@@ -1491,7 +1492,29 @@ static PyObject* gPyEventToString(PyObject*, PyObject* value)
 	return ret;
 }
 
+static char gPyEventToCharacter_doc[] =
+"EventToCharacter(event, is_shift) - Take a valid event from the GameKeys module or Keyboard Sensor and return a character"
+;
+
+static PyObject* gPyEventToCharacter(PyObject*, PyObject* args)
+{
+	int event, shift;
+	if (!PyArg_ParseTuple(args,"ii:EventToCharacter", &event, &shift))
+		return NULL;
+	
+	if(IsPrintable(event)) {
+		char ch[2] = {'\0', '\0'};
+		ch[0] = ToCharacter(event, (bool)shift);
+		return PyString_FromString(ch);
+	}
+	else {
+		return PyString_FromString("");
+	}
+}
+
+
 static struct PyMethodDef gamekeys_methods[] = {
+	{"EventToCharacter", (PyCFunction)gPyEventToCharacter, METH_VARARGS, (PY_METHODCHAR)gPyEventToCharacter_doc},
 	{"EventToString", (PyCFunction)gPyEventToString, METH_O, (PY_METHODCHAR)gPyEventToString_doc},
 	{ NULL, (PyCFunction) NULL, 0, NULL }
 };

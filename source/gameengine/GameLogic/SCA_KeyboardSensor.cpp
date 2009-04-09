@@ -352,151 +352,7 @@ void SCA_KeyboardSensor::AddToTargetProp(int keyIndex)
 	}
 	
 }
-
-/**
- * Determine whether this character can be printed. We cannot use
- * the library functions here, because we need to test our own
- * keycodes. */
-bool SCA_KeyboardSensor::IsPrintable(int keyIndex)
-{
-	/* only print 
-	 * - numerals: KX_ZEROKEY to KX_NINEKEY
-	 * - alphas:   KX_AKEY to KX_ZKEY. 
-	 * - specials: KX_RETKEY, KX_PADASTERKEY, KX_PADCOMMAKEY to KX_PERIODKEY,
-	 *             KX_TABKEY , KX_SEMICOLONKEY to KX_RIGHTBRACKETKEY, 
-	 *             KX_PAD2 to KX_PADPLUSKEY
-	 * - delete and backspace: also printable in the sense that they modify 
-	 *                         the string
-	 * - retkey: should this be printable?
-	 * - virgule: prints a space... don't know which key that's supposed
-	 *   to be...
-	 */
-	if ( ((keyIndex >= SCA_IInputDevice::KX_ZEROKEY) 
-		  && (keyIndex <= SCA_IInputDevice::KX_NINEKEY))
-		 || ((keyIndex >= SCA_IInputDevice::KX_AKEY) 
-			 && (keyIndex <= SCA_IInputDevice::KX_ZKEY)) 
-		 || (keyIndex == SCA_IInputDevice::KX_SPACEKEY) 
-		 || (keyIndex == SCA_IInputDevice::KX_RETKEY)
-		 || (keyIndex == SCA_IInputDevice::KX_PADENTER)
-		 || (keyIndex == SCA_IInputDevice::KX_PADASTERKEY) 
-		 || (keyIndex == SCA_IInputDevice::KX_TABKEY) 
-		 || ((keyIndex >= SCA_IInputDevice::KX_COMMAKEY) 
-			 && (keyIndex <= SCA_IInputDevice::KX_PERIODKEY)) 
-		 || ((keyIndex >= SCA_IInputDevice::KX_SEMICOLONKEY) 
-			 && (keyIndex <= SCA_IInputDevice::KX_RIGHTBRACKETKEY)) 
-		 || ((keyIndex >= SCA_IInputDevice::KX_PAD2) 
-			 && (keyIndex <= SCA_IInputDevice::KX_PADPLUSKEY)) 
-		 || (keyIndex == SCA_IInputDevice::KX_DELKEY)
-		 || (keyIndex == SCA_IInputDevice::KX_BACKSPACEKEY)
-		)
-	{
-		return true;
-	} else {
-		return false;
-	}
-}
-
-// this code looks ugly, please use an ordinary hashtable
-
-char SCA_KeyboardSensor::ToCharacter(int keyIndex, bool shifted)
-{
-	/* numerals */
-	if ( (keyIndex >= SCA_IInputDevice::KX_ZEROKEY) 
-		 && (keyIndex <= SCA_IInputDevice::KX_NINEKEY) ) {
-		if (shifted) {
-			char numshift[] = ")!@#$%^&*(";
-			return numshift[keyIndex - '0']; 
-		} else {
-			return keyIndex - SCA_IInputDevice::KX_ZEROKEY + '0'; 
-		}
-	}
 	
-	/* letters... always lowercase... is that desirable? */
-	if ( (keyIndex >= SCA_IInputDevice::KX_AKEY) 
-		 && (keyIndex <= SCA_IInputDevice::KX_ZKEY) ) {
-		if (shifted) {
-			return keyIndex - SCA_IInputDevice::KX_AKEY + 'A'; 
-		} else {
-			return keyIndex - SCA_IInputDevice::KX_AKEY + 'a'; 
-		}
-	}
-	
-	if (keyIndex == SCA_IInputDevice::KX_SPACEKEY) {
-		return ' ';
-	}
-	if (keyIndex == SCA_IInputDevice::KX_RETKEY || keyIndex == SCA_IInputDevice::KX_PADENTER) {
-		return '\n';
-	}
-	
-	
-	if (keyIndex == SCA_IInputDevice::KX_PADASTERKEY) {
-		return '*';
-	}
-	
-	if (keyIndex == SCA_IInputDevice::KX_TABKEY) {
-		return '\t';
-	}
-	
-	/* comma to period */
-	char commatoperiod[] = ",-.";
-	char commatoperiodshifted[] = "<_>";
-	if (keyIndex == SCA_IInputDevice::KX_COMMAKEY) {
-		if (shifted) {
-			return commatoperiodshifted[0];
-		} else {
-			return commatoperiod[0];
-		}
-	}
-	if (keyIndex == SCA_IInputDevice::KX_MINUSKEY) {
-		if (shifted) {
-			return commatoperiodshifted[1];
-		} else {
-			return commatoperiod[1];
-		}
-	}
-	if (keyIndex == SCA_IInputDevice::KX_PERIODKEY) {
-		if (shifted) {
-			return commatoperiodshifted[2];
-		} else {
-			return commatoperiod[2];
-		}
-	}
-	
-	/* semicolon to rightbracket */
-	char semicolontorightbracket[] = ";\'`/\\=[]";
-	char semicolontorightbracketshifted[] = ":\"~\?|+{}";
-	if ((keyIndex >= SCA_IInputDevice::KX_SEMICOLONKEY) 
-		&& (keyIndex <= SCA_IInputDevice::KX_RIGHTBRACKETKEY)) {
-		if (shifted) {
-			return semicolontorightbracketshifted[keyIndex - SCA_IInputDevice::KX_SEMICOLONKEY];
-		} else {
-			return semicolontorightbracket[keyIndex - SCA_IInputDevice::KX_SEMICOLONKEY];
-		}
-	}
-	
-	/* keypad2 to padplus */
-	char pad2topadplus[] = "246813579. 0- +";
-	if ((keyIndex >= SCA_IInputDevice::KX_PAD2) 
-		&& (keyIndex <= SCA_IInputDevice::KX_PADPLUSKEY)) { 
-		return pad2topadplus[keyIndex - SCA_IInputDevice::KX_PAD2];
-	}
-
-	return '!';
-}
-	
-/**
- * Tests whether this is a delete key.
- */	
-bool SCA_KeyboardSensor::IsDelete(int keyIndex)
-{
-	if ( (keyIndex == SCA_IInputDevice::KX_DELKEY)
-		 || (keyIndex == SCA_IInputDevice::KX_BACKSPACEKEY) ) {
-		return true;
-	} else {
-		return false;
-	}
-}
-
 /**
  * Tests whether shift is pressed
  */	
@@ -654,7 +510,7 @@ const char SCA_KeyboardSensor::GetPressedKeys_doc[] =
 
 PyObject* SCA_KeyboardSensor::PyGetPressedKeys(PyObject* self, PyObject* args, PyObject* kwds)
 {
-	ShowDeprecationWarning("getPressedKeys()", "getEventList()");
+	ShowDeprecationWarning("getPressedKeys()", "events");
 
 	SCA_IInputDevice* inputdev = m_pKeyboardMgr->GetInputDevice();
 
@@ -672,20 +528,19 @@ PyObject* SCA_KeyboardSensor::PyGetPressedKeys(PyObject* self, PyObject* args, P
 			if ((inevent.m_status == SCA_InputEvent::KX_JUSTACTIVATED)
 				|| (inevent.m_status == SCA_InputEvent::KX_JUSTRELEASED))
 			{
-				if (index < num)
-				{
-					PyObject* keypair = PyList_New(2);
-					PyList_SetItem(keypair,0,PyInt_FromLong(i));
-					PyList_SetItem(keypair,1,PyInt_FromLong(inevent.m_status));
-					PyList_SetItem(resultlist,index,keypair);
-					index++;
-				}
+				PyObject* keypair = PyList_New(2);
+				PyList_SET_ITEM(keypair,0,PyInt_FromLong(i));
+				PyList_SET_ITEM(keypair,1,PyInt_FromLong(inevent.m_status));
+				PyList_SET_ITEM(resultlist,index,keypair);
+				index++;
+				
+				if (index >= num) /* should not happen */
+					break; 
 			}
-		}	
-		if (index>0) return resultlist;
+		}
 	}
 	
-	Py_RETURN_NONE;
+	return resultlist;
 }
 
 
@@ -696,9 +551,9 @@ const char SCA_KeyboardSensor::GetCurrentlyPressedKeys_doc[] =
 
 PyObject* SCA_KeyboardSensor::PyGetCurrentlyPressedKeys(PyObject* self, PyObject* args, PyObject* kwds)
 {
-ShowDeprecationWarning("getCurrentlyPressedKeys()", "getEventList()");
+	ShowDeprecationWarning("getCurrentlyPressedKeys()", "events");
 
-SCA_IInputDevice* inputdev = m_pKeyboardMgr->GetInputDevice();
+	SCA_IInputDevice* inputdev = m_pKeyboardMgr->GetInputDevice();
 
 	int num = inputdev->GetNumActiveEvents();
 	PyObject* resultlist = PyList_New(num);
@@ -713,29 +568,28 @@ SCA_IInputDevice* inputdev = m_pKeyboardMgr->GetInputDevice();
 			if ( (inevent.m_status == SCA_InputEvent::KX_ACTIVE)
 				 || (inevent.m_status == SCA_InputEvent::KX_JUSTACTIVATED))
 			{
-				if (index < num)
-				{
-					PyObject* keypair = PyList_New(2);
-					PyList_SetItem(keypair,0,PyInt_FromLong(i));
-					PyList_SetItem(keypair,1,PyInt_FromLong(inevent.m_status));
-					PyList_SetItem(resultlist,index,keypair);
-					index++;
-				}
+				PyObject* keypair = PyList_New(2);
+				PyList_SET_ITEM(keypair,0,PyInt_FromLong(i));
+				PyList_SET_ITEM(keypair,1,PyInt_FromLong(inevent.m_status));
+				PyList_SET_ITEM(resultlist,index,keypair);
+				index++;
+				
+				if (index >= num) /* should never happen */
+					break;
 			}
 		}
-
-		/* why?*/
-		if (index > 0) return resultlist;
 	}
 
-	Py_RETURN_NONE;
+	return resultlist;
 }
-//<---- Deprecated
+
 
 KX_PYMETHODDEF_DOC_NOARGS(SCA_KeyboardSensor, getEventList,
 "getEventList()\n"
 "\tGet the list of the keyboard events in this frame.\n")
 {
+	ShowDeprecationWarning("getEventList()", "events");
+	
 	SCA_IInputDevice* inputdev = m_pKeyboardMgr->GetInputDevice();
 
 	PyObject* resultlist = PyList_New(0);
@@ -746,34 +600,35 @@ KX_PYMETHODDEF_DOC_NOARGS(SCA_KeyboardSensor, getEventList,
 		if (inevent.m_status != SCA_InputEvent::KX_NO_INPUTSTATUS)
 		{
 			PyObject* keypair = PyList_New(2);
-			PyList_SetItem(keypair,0,PyInt_FromLong(i));
+			PyList_SET_ITEM(keypair,0,PyInt_FromLong(i));
 			PyList_SetItem(keypair,1,PyInt_FromLong(inevent.m_status));
 			PyList_Append(resultlist,keypair);
 		}
 	}	
 	return resultlist;
 }
+//<---- Deprecated
 
 KX_PYMETHODDEF_DOC_O(SCA_KeyboardSensor, getKeyStatus,
 "getKeyStatus(keycode)\n"
 "\tGet the given key's status (KX_NO_INPUTSTATUS, KX_JUSTACTIVATED, KX_ACTIVE or KX_JUSTRELEASED).\n")
 {
-	if (PyInt_Check(value))
-	{
-		int keycode = PyInt_AsLong(value);
-		
-		if ((keycode < SCA_IInputDevice::KX_BEGINKEY)
-			|| (keycode > SCA_IInputDevice::KX_ENDKEY)){
-			PyErr_SetString(PyExc_AttributeError, "invalid keycode specified!");
-			return NULL;
-		}
-		
-		SCA_IInputDevice* inputdev = m_pKeyboardMgr->GetInputDevice();
-		const SCA_InputEvent & inevent = inputdev->GetEventValue((SCA_IInputDevice::KX_EnumInputs) keycode);
-		return PyInt_FromLong(inevent.m_status);
+	if (!PyInt_Check(value)) {
+		PyErr_SetString(PyExc_ValueError, "getKeyStatus expected an int");
+		return NULL;
 	}
 	
-	Py_RETURN_NONE;
+	int keycode = PyInt_AsLong(value);
+	
+	if ((keycode < SCA_IInputDevice::KX_BEGINKEY)
+		|| (keycode > SCA_IInputDevice::KX_ENDKEY)){
+		PyErr_SetString(PyExc_AttributeError, "invalid keycode specified!");
+		return NULL;
+	}
+	
+	SCA_IInputDevice* inputdev = m_pKeyboardMgr->GetInputDevice();
+	const SCA_InputEvent & inevent = inputdev->GetEventValue((SCA_IInputDevice::KX_EnumInputs) keycode);
+	return PyInt_FromLong(inevent.m_status);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -824,6 +679,7 @@ PyMethodDef SCA_KeyboardSensor::Methods[] = {
 };
 
 PyAttributeDef SCA_KeyboardSensor::Attributes[] = {
+	KX_PYATTRIBUTE_RO_FUNCTION("events", SCA_KeyboardSensor, pyattr_get_events),
 	KX_PYATTRIBUTE_BOOL_RW("useAllKeys",SCA_KeyboardSensor,m_bAllKeys),
 	KX_PYATTRIBUTE_INT_RW("key",0,SCA_IInputDevice::KX_ENDKEY,true,SCA_KeyboardSensor,m_hotkey),
 	KX_PYATTRIBUTE_SHORT_RW("hold1",0,SCA_IInputDevice::KX_ENDKEY,true,SCA_KeyboardSensor,m_qual),
@@ -842,4 +698,176 @@ SCA_KeyboardSensor::py_getattro(PyObject *attr)
 int SCA_KeyboardSensor::py_setattro(PyObject *attr, PyObject *value)
 {
 	py_setattro_up(SCA_ISensor);
+}
+
+
+PyObject* SCA_KeyboardSensor::pyattr_get_events(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	SCA_KeyboardSensor* self= static_cast<SCA_KeyboardSensor*>(self_v);
+	
+	SCA_IInputDevice* inputdev = self->m_pKeyboardMgr->GetInputDevice();
+
+	PyObject* resultlist = PyList_New(0);
+	
+	for (int i=SCA_IInputDevice::KX_BEGINKEY ; i< SCA_IInputDevice::KX_ENDKEY;i++)
+	{
+		const SCA_InputEvent & inevent = inputdev->GetEventValue((SCA_IInputDevice::KX_EnumInputs) i);
+		if (inevent.m_status != SCA_InputEvent::KX_NO_INPUTSTATUS)
+		{
+			PyObject* keypair = PyList_New(2);
+			PyList_SET_ITEM(keypair,0,PyInt_FromLong(i));
+			PyList_SetItem(keypair,1,PyInt_FromLong(inevent.m_status));
+			PyList_Append(resultlist,keypair);
+		}
+	}	
+	return resultlist;
+}
+
+
+/* Accessed from python */
+
+// this code looks ugly, please use an ordinary hashtable
+
+char ToCharacter(int keyIndex, bool shifted)
+{
+	/* numerals */
+	if ( (keyIndex >= SCA_IInputDevice::KX_ZEROKEY) 
+		 && (keyIndex <= SCA_IInputDevice::KX_NINEKEY) ) {
+		if (shifted) {
+			char numshift[] = ")!@#$%^&*(";
+			return numshift[keyIndex - '0']; 
+		} else {
+			return keyIndex - SCA_IInputDevice::KX_ZEROKEY + '0'; 
+		}
+	}
+	
+	/* letters... always lowercase... is that desirable? */
+	if ( (keyIndex >= SCA_IInputDevice::KX_AKEY) 
+		 && (keyIndex <= SCA_IInputDevice::KX_ZKEY) ) {
+		if (shifted) {
+			return keyIndex - SCA_IInputDevice::KX_AKEY + 'A'; 
+		} else {
+			return keyIndex - SCA_IInputDevice::KX_AKEY + 'a'; 
+		}
+	}
+	
+	if (keyIndex == SCA_IInputDevice::KX_SPACEKEY) {
+		return ' ';
+	}
+	if (keyIndex == SCA_IInputDevice::KX_RETKEY || keyIndex == SCA_IInputDevice::KX_PADENTER) {
+		return '\n';
+	}
+	
+	
+	if (keyIndex == SCA_IInputDevice::KX_PADASTERKEY) {
+		return '*';
+	}
+	
+	if (keyIndex == SCA_IInputDevice::KX_TABKEY) {
+		return '\t';
+	}
+	
+	/* comma to period */
+	char commatoperiod[] = ",-.";
+	char commatoperiodshifted[] = "<_>";
+	if (keyIndex == SCA_IInputDevice::KX_COMMAKEY) {
+		if (shifted) {
+			return commatoperiodshifted[0];
+		} else {
+			return commatoperiod[0];
+		}
+	}
+	if (keyIndex == SCA_IInputDevice::KX_MINUSKEY) {
+		if (shifted) {
+			return commatoperiodshifted[1];
+		} else {
+			return commatoperiod[1];
+		}
+	}
+	if (keyIndex == SCA_IInputDevice::KX_PERIODKEY) {
+		if (shifted) {
+			return commatoperiodshifted[2];
+		} else {
+			return commatoperiod[2];
+		}
+	}
+	
+	/* semicolon to rightbracket */
+	char semicolontorightbracket[] = ";\'`/\\=[]";
+	char semicolontorightbracketshifted[] = ":\"~\?|+{}";
+	if ((keyIndex >= SCA_IInputDevice::KX_SEMICOLONKEY) 
+		&& (keyIndex <= SCA_IInputDevice::KX_RIGHTBRACKETKEY)) {
+		if (shifted) {
+			return semicolontorightbracketshifted[keyIndex - SCA_IInputDevice::KX_SEMICOLONKEY];
+		} else {
+			return semicolontorightbracket[keyIndex - SCA_IInputDevice::KX_SEMICOLONKEY];
+		}
+	}
+	
+	/* keypad2 to padplus */
+	char pad2topadplus[] = "246813579. 0- +";
+	if ((keyIndex >= SCA_IInputDevice::KX_PAD2) 
+		&& (keyIndex <= SCA_IInputDevice::KX_PADPLUSKEY)) { 
+		return pad2topadplus[keyIndex - SCA_IInputDevice::KX_PAD2];
+	}
+
+	return '!';
+}
+
+
+
+/**
+ * Determine whether this character can be printed. We cannot use
+ * the library functions here, because we need to test our own
+ * keycodes. */
+bool IsPrintable(int keyIndex)
+{
+	/* only print 
+	 * - numerals: KX_ZEROKEY to KX_NINEKEY
+	 * - alphas:   KX_AKEY to KX_ZKEY. 
+	 * - specials: KX_RETKEY, KX_PADASTERKEY, KX_PADCOMMAKEY to KX_PERIODKEY,
+	 *             KX_TABKEY , KX_SEMICOLONKEY to KX_RIGHTBRACKETKEY, 
+	 *             KX_PAD2 to KX_PADPLUSKEY
+	 * - delete and backspace: also printable in the sense that they modify 
+	 *                         the string
+	 * - retkey: should this be printable?
+	 * - virgule: prints a space... don't know which key that's supposed
+	 *   to be...
+	 */
+	if ( ((keyIndex >= SCA_IInputDevice::KX_ZEROKEY) 
+		  && (keyIndex <= SCA_IInputDevice::KX_NINEKEY))
+		 || ((keyIndex >= SCA_IInputDevice::KX_AKEY) 
+			 && (keyIndex <= SCA_IInputDevice::KX_ZKEY)) 
+		 || (keyIndex == SCA_IInputDevice::KX_SPACEKEY) 
+		 || (keyIndex == SCA_IInputDevice::KX_RETKEY)
+		 || (keyIndex == SCA_IInputDevice::KX_PADENTER)
+		 || (keyIndex == SCA_IInputDevice::KX_PADASTERKEY) 
+		 || (keyIndex == SCA_IInputDevice::KX_TABKEY) 
+		 || ((keyIndex >= SCA_IInputDevice::KX_COMMAKEY) 
+			 && (keyIndex <= SCA_IInputDevice::KX_PERIODKEY)) 
+		 || ((keyIndex >= SCA_IInputDevice::KX_SEMICOLONKEY) 
+			 && (keyIndex <= SCA_IInputDevice::KX_RIGHTBRACKETKEY)) 
+		 || ((keyIndex >= SCA_IInputDevice::KX_PAD2) 
+			 && (keyIndex <= SCA_IInputDevice::KX_PADPLUSKEY)) 
+		 || (keyIndex == SCA_IInputDevice::KX_DELKEY)
+		 || (keyIndex == SCA_IInputDevice::KX_BACKSPACEKEY)
+		)
+	{
+		return true;
+	} else {
+		return false;
+	}
+}
+
+/**
+ * Tests whether this is a delete key.
+ */	
+bool IsDelete(int keyIndex)
+{
+	if ( (keyIndex == SCA_IInputDevice::KX_DELKEY)
+		 || (keyIndex == SCA_IInputDevice::KX_BACKSPACEKEY) ) {
+		return true;
+	} else {
+		return false;
+	}
 }
