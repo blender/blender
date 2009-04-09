@@ -32,18 +32,11 @@
 
 extern PyTypeObject pyrna_struct_Type;
 extern PyTypeObject pyrna_prop_Type;
-extern PyTypeObject pyrna_func_Type;
-
-/* #define USE_RNA_FUNC 1 */
 
 #define BPy_StructRNA_Check(v)			(PyObject_TypeCheck(v, &pyrna_struct_Type))
 #define BPy_StructRNA_CheckExact(v)		(Py_TYPE(v) == &pyrna_struct_Type)
 #define BPy_PropertyRNA_Check(v)		(PyObject_TypeCheck(v, &pyrna_prop_Type))
 #define BPy_PropertyRNA_CheckExact(v)	(Py_TYPE(v) == &pyrna_prop_Type)
-#ifdef USE_RNA_FUNC
-#define BPy_FunctionRNA_Check(v)		(PyObject_TypeCheck(v, &pyrna_func_Type))
-#define BPy_FunctionRNA_CheckExact(v)	(Py_TYPE(v) == &pyrna_func_Type)
-#endif
 
 typedef struct {
 	void * _a;
@@ -64,14 +57,6 @@ typedef struct {
 	PropertyRNA *prop;
 } BPy_PropertyRNA;
 
-#ifdef USE_RNA_FUNC
-typedef struct {
-	PyObject_HEAD /* required python macro   */
-	PointerRNA ptr;
-	FunctionRNA *func;
-} BPy_FunctionRNA;
-#endif
-
 /* cheap trick */
 #define BPy_BaseTypeRNA BPy_PropertyRNA
 
@@ -81,16 +66,10 @@ PyObject *BPY_rna_types( void );
 
 PyObject *pyrna_struct_CreatePyObject( PointerRNA *ptr );
 PyObject *pyrna_prop_CreatePyObject( PointerRNA *ptr, PropertyRNA *prop );
-#ifdef USE_RNA_FUNC
-PyObject *pyrna_func_CreatePyObject( PointerRNA *ptr, FunctionRNA *func );
-#endif
 
 /* operators also need this to set args */
 int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, PyObject *value);
 PyObject * pyrna_prop_to_py(PointerRNA *ptr, PropertyRNA *prop);
-#ifdef USE_RNA_FUNC
-PyObject *pyrna_func_to_py( PointerRNA *ptr, FunctionRNA *func );
-#endif
 
 /* functions for setting up new props - experemental */
 PyObject *BPy_FloatProperty(PyObject *self, PyObject *args, PyObject *kw);
