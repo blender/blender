@@ -1091,7 +1091,7 @@ PyObject *BGL_Init(const char *from)
 	PyObject *dict= PyModule_GetDict(mod);
 	PyObject *item;
 	if( PyType_Ready( &buffer_Type) < 0)
-		Py_RETURN_NONE;
+		return NULL; /* should never happen */
 
 #define EXPP_ADDCONST(x) PyDict_SetItemString(dict, #x, item=PyInt_FromLong((int)x)); Py_DECREF(item)
 
