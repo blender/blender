@@ -123,6 +123,7 @@ PyObject *PyPanel_wrap_add(PyObject *self, PyObject *args)
 {
 	PyObject *item;
 	PyObject *py_class;
+	PyObject *base_class;
 	char *space_identifier;
 	char *region_identifier;
 	int space_value;
@@ -152,9 +153,12 @@ PyObject *PyPanel_wrap_add(PyObject *self, PyObject *args)
 
 	if( !PyArg_ParseTuple( args, "Oss:addPanel", &py_class, &space_identifier, &region_identifier))
 		return NULL;
+	
+	base_class = PyObject_GetAttrStringArgs(PyDict_GetItemString(PyEval_GetGlobals(), "bpy"), 2, "types", "Panel");
+	Py_DECREF(base_class);
 
 	/* Should this use a base class? */
-	if (BPY_class_validate("Panel", py_class, NULL, pypnl_class_attr_values, pypnl_class_attrs) < 0) {
+	if (BPY_class_validate("Panel", py_class, base_class, pypnl_class_attr_values, pypnl_class_attrs) < 0) {
 		return NULL; /* BPY_class_validate sets the error */
 	}
 

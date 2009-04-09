@@ -658,6 +658,10 @@ static PyObject *pyrna_struct_dir(BPy_StructRNA * self)
 	PyObject *ret, *dict;
 	PyObject *pystring;
 	
+	/* for looping over attrs and funcs */
+	CollectionPropertyIterator iter;
+	PropertyRNA *iterprop;
+	
 	/* Include this incase this instance is a subtype of a python class
 	 * In these instances we may want to return a function or variable provided by the subtype
 	 * */
@@ -681,8 +685,10 @@ static PyObject *pyrna_struct_dir(BPy_StructRNA * self)
 	
 	/* Collect RNA items*/
 	{
-		PropertyRNA *iterprop, *nameprop;
-		CollectionPropertyIterator iter;
+		/*
+		 * Collect RNA attributes
+		 */
+		PropertyRNA *nameprop;
 		char name[256], *nameptr;
 
 		iterprop= RNA_struct_iterator_property(&self->ptr);
@@ -700,7 +706,28 @@ static PyObject *pyrna_struct_dir(BPy_StructRNA * self)
 					MEM_freeN(nameptr);
 			}
 		}
-		
+		RNA_property_collection_end(&iter);
+	
+	}
+	
+	
+	{
+		/*
+		 * Collect RNA function items
+		 */
+		PointerRNA tptr;
+
+		RNA_pointer_create(NULL, &RNA_Struct, self->ptr.type, &tptr);
+		iterprop= RNA_struct_find_property(&tptr, "functions");
+
+		RNA_property_collection_begin(&tptr, iterprop, &iter);
+
+		for(; iter.valid; RNA_property_collection_next(&iter)) {
+			pystring = PyUnicode_FromString(RNA_function_identifier(&tptr, iter.ptr.data));
+			PyList_Append(ret, pystring);
+			Py_DECREF(pystring);
+		}
+
 		RNA_property_collection_end(&iter);
 	}
 	
