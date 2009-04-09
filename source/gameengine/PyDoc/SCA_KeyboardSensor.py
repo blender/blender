@@ -31,15 +31,6 @@ class SCA_KeyboardSensor(SCA_ISensor):
 			
 	@type events: list [[keycode, status], ...]
 	"""
-	def getEventList():
-		"""
-		Get a list of pressed keys that have either been pressed, or just released, or are active this frame.
-		
-		B{DEPRECATED: Use the "events" property instead}.
-		
-		@rtype: list of key status. [[keycode, status]]
-		@return: A list of keyboard events
-		"""
 	
 	def getKeyStatus(keycode):
 		"""

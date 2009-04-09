@@ -148,7 +148,7 @@ bool SCA_KeyboardSensor::Evaluate(CValue* eventval)
 		bool justreleased = false;
 		bool active = false;
 
-		for (int i=SCA_IInputDevice::KX_BEGINKEY ; i< SCA_IInputDevice::KX_ENDKEY;i++)
+		for (int i=SCA_IInputDevice::KX_BEGINKEY ; i<= SCA_IInputDevice::KX_ENDKEY;i++)
 		{
 			const SCA_InputEvent & inevent = inputdev->GetEventValue((SCA_IInputDevice::KX_EnumInputs) i);
 			switch (inevent.m_status) 
@@ -387,7 +387,7 @@ void SCA_KeyboardSensor::LogKeystrokes(void)
 		int index = 0;
 		/* Check on all keys whether they were pushed. This does not
          * untangle the ordering, so don't type too fast :) */
-		for (int i=SCA_IInputDevice::KX_BEGINKEY ; i< SCA_IInputDevice::KX_ENDKEY;i++)
+		for (int i=SCA_IInputDevice::KX_BEGINKEY ; i<= SCA_IInputDevice::KX_ENDKEY;i++)
 		{
 			const SCA_InputEvent & inevent = inputdev->GetEventValue((SCA_IInputDevice::KX_EnumInputs) i);
 			if (inevent.m_status == SCA_InputEvent::KX_JUSTACTIVATED) //NO_INPUTSTATUS)
@@ -522,7 +522,7 @@ PyObject* SCA_KeyboardSensor::PyGetPressedKeys(PyObject* self, PyObject* args, P
 		
 		int index = 0;
 		
-		for (int i=SCA_IInputDevice::KX_BEGINKEY ; i< SCA_IInputDevice::KX_ENDKEY;i++)
+		for (int i=SCA_IInputDevice::KX_BEGINKEY ; i<= SCA_IInputDevice::KX_ENDKEY;i++)
 		{
 			const SCA_InputEvent & inevent = inputdev->GetEventValue((SCA_IInputDevice::KX_EnumInputs) i);
 			if ((inevent.m_status == SCA_InputEvent::KX_JUSTACTIVATED)
@@ -562,7 +562,7 @@ PyObject* SCA_KeyboardSensor::PyGetCurrentlyPressedKeys(PyObject* self, PyObject
 	{
 		int index = 0;
 		
-		for (int i=SCA_IInputDevice::KX_BEGINKEY ; i< SCA_IInputDevice::KX_ENDKEY;i++)
+		for (int i=SCA_IInputDevice::KX_BEGINKEY ; i<= SCA_IInputDevice::KX_ENDKEY;i++)
 		{
 			const SCA_InputEvent & inevent = inputdev->GetEventValue((SCA_IInputDevice::KX_EnumInputs) i);
 			if ( (inevent.m_status == SCA_InputEvent::KX_ACTIVE)
@@ -583,30 +583,6 @@ PyObject* SCA_KeyboardSensor::PyGetCurrentlyPressedKeys(PyObject* self, PyObject
 	return resultlist;
 }
 
-
-KX_PYMETHODDEF_DOC_NOARGS(SCA_KeyboardSensor, getEventList,
-"getEventList()\n"
-"\tGet the list of the keyboard events in this frame.\n")
-{
-	ShowDeprecationWarning("getEventList()", "events");
-	
-	SCA_IInputDevice* inputdev = m_pKeyboardMgr->GetInputDevice();
-
-	PyObject* resultlist = PyList_New(0);
-	
-	for (int i=SCA_IInputDevice::KX_BEGINKEY ; i< SCA_IInputDevice::KX_ENDKEY;i++)
-	{
-		const SCA_InputEvent & inevent = inputdev->GetEventValue((SCA_IInputDevice::KX_EnumInputs) i);
-		if (inevent.m_status != SCA_InputEvent::KX_NO_INPUTSTATUS)
-		{
-			PyObject* keypair = PyList_New(2);
-			PyList_SET_ITEM(keypair,0,PyInt_FromLong(i));
-			PyList_SetItem(keypair,1,PyInt_FromLong(inevent.m_status));
-			PyList_Append(resultlist,keypair);
-		}
-	}	
-	return resultlist;
-}
 //<---- Deprecated
 
 KX_PYMETHODDEF_DOC_O(SCA_KeyboardSensor, getKeyStatus,
@@ -673,7 +649,6 @@ PyMethodDef SCA_KeyboardSensor::Methods[] = {
 	{"getPressedKeys", (PyCFunction) SCA_KeyboardSensor::sPyGetPressedKeys, METH_VARARGS, (PY_METHODCHAR)GetPressedKeys_doc},
 	{"getCurrentlyPressedKeys", (PyCFunction) SCA_KeyboardSensor::sPyGetCurrentlyPressedKeys, METH_VARARGS, (PY_METHODCHAR)GetCurrentlyPressedKeys_doc},
 	//<----- Deprecated
-	KX_PYMETHODTABLE_NOARGS(SCA_KeyboardSensor, getEventList),
 	KX_PYMETHODTABLE_O(SCA_KeyboardSensor, getKeyStatus),
 	{NULL,NULL} //Sentinel
 };
@@ -709,7 +684,7 @@ PyObject* SCA_KeyboardSensor::pyattr_get_events(void *self_v, const KX_PYATTRIBU
 
 	PyObject* resultlist = PyList_New(0);
 	
-	for (int i=SCA_IInputDevice::KX_BEGINKEY ; i< SCA_IInputDevice::KX_ENDKEY;i++)
+	for (int i=SCA_IInputDevice::KX_BEGINKEY ; i<= SCA_IInputDevice::KX_ENDKEY;i++)
 	{
 		const SCA_InputEvent & inevent = inputdev->GetEventValue((SCA_IInputDevice::KX_EnumInputs) i);
 		if (inevent.m_status != SCA_InputEvent::KX_NO_INPUTSTATUS)
