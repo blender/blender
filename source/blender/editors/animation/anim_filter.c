@@ -869,7 +869,6 @@ static int animdata_filter_dopesheet_obdata (ListBase *anim_data, bDopeSheet *ad
 static int animdata_filter_dopesheet_ob (ListBase *anim_data, bDopeSheet *ads, Base *base, int filter_mode)
 {
 	bAnimListElem *ale=NULL;
-	Scene *sce= (Scene *)ads->source;
 	Object *ob= base->object;
 	Key *key= ob_get_key(ob);
 	int items = 0;
@@ -877,7 +876,7 @@ static int animdata_filter_dopesheet_ob (ListBase *anim_data, bDopeSheet *ads, B
 	/* add this object as a channel first */
 	if ((filter_mode & ANIMFILTER_CURVESONLY) == 0) {
 		/* check if filtering by selection */
-		if (ANIMCHANNEL_SELOK( ((base->flag & SELECT) || (base == sce->basact)) )) {
+		if ANIMCHANNEL_SELOK((base->flag & SELECT)) {
 			ale= make_new_animlistelem(base, ANIMTYPE_OBJECT, NULL, ANIMTYPE_NONE, NULL);
 			if (ale) {
 				BLI_addtail(anim_data, ale);

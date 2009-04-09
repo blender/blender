@@ -327,7 +327,7 @@ static int toggle_time_exec(bContext *C, wmOperator *op)
 			saction->flag ^= SACTION_DRAWTIME;
 		}
 			break;
-		case SPACE_IPO: /* IPO Editor */
+		case SPACE_IPO: /* Graph Editor */
 		{
 			SpaceIpo *sipo= (SpaceIpo *)CTX_wm_space_data(C);
 			sipo->flag ^= SIPO_DRAWTIME;

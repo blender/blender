@@ -100,6 +100,18 @@
 		else if (smode == ACHANNEL_SETFLAG_ADD) (channel)->flag |= (sflag); \
 		else 									(channel)->flag &= ~(sflag); \
 	}
+	
+/* set/clear/toggle macro, where the flag is negative 
+ *	- channel - channel with a 'flag' member that we're setting
+ *	- smode - 0=clear, 1=set, 2=toggle
+ *	- sflag - bitflag to set
+ */
+#define ACHANNEL_SET_FLAG_NEG(channel, smode, sflag) \
+	{ \
+		if (smode == ACHANNEL_SETFLAG_TOGGLE) 	(channel)->flag ^= (sflag); \
+		else if (smode == ACHANNEL_SETFLAG_ADD) (channel)->flag &= ~(sflag); \
+		else 									(channel)->flag |= (sflag); \
+	}
 
 /* -------------------------- Exposed API ----------------------------------- */
 
@@ -716,6 +728,10 @@ EnumPropertyItem prop_animchannel_settings_types[] = {
 
 /* ------------------- */
 
+/* macro to be used in setflag_anim_channels */
+#define ASUBCHANNEL_SEL_OK(ale) ( (onlysel == 0) || \
+		((ale->id) && (GS(ale->id->name)==ID_OB) && (((Object *)ale->id)->flag & SELECT)) ) 
+
 /* Set/clear a particular flag (setting) for all selected + visible channels 
  *	setting: the setting to modify
  *	mode: eAnimChannels_SetFlag
@@ -748,6 +764,111 @@ static void setflag_anim_channels (bAnimContext *ac, short setting, short mode, 
 				}
 			}
 				break;
+			
+			case ANIMTYPE_FILLACTD:
+			{
+				bAction *act= (bAction *)ale->data;
+				
+				if (ASUBCHANNEL_SEL_OK(ale)) {
+					if (setting == ACHANNEL_SETTING_EXPAND) {
+						ACHANNEL_SET_FLAG_NEG(act, mode, ACT_COLLAPSED);
+					}
+				}
+			}
+				break;
+			case ANIMTYPE_FILLDRIVERS:
+			{
+				AnimData *adt= (AnimData *)ale->data;
+				
+				if (ASUBCHANNEL_SEL_OK(ale)) {
+					if (setting == ACHANNEL_SETTING_EXPAND) {
+						ACHANNEL_SET_FLAG_NEG(adt, mode, ADT_DRIVERS_COLLAPSED);
+					}
+				}
+			}
+				break;
+			case ANIMTYPE_FILLMATD:
+			{
+				Object *ob= (Object *)ale->data;
+				
+				// XXX - settings should really be moved out of ob->nlaflag
+				if ((onlysel == 0) || (ob->flag & SELECT)) {
+					if (setting == ACHANNEL_SETTING_EXPAND) {
+						if (mode == ACHANNEL_SETFLAG_TOGGLE) 	ob->nlaflag ^= OB_ADS_SHOWMATS;
+						else if (mode == ACHANNEL_SETFLAG_ADD) 	ob->nlaflag |= OB_ADS_SHOWMATS;
+						else 									ob->nlaflag &= ~OB_ADS_SHOWMATS;
+					}
+				}
+			}
+				break;
+					
+			case ANIMTYPE_DSMAT:
+			{
+				Material *ma= (Material *)ale->data;
+				
+				if (ASUBCHANNEL_SEL_OK(ale)) {
+					if (setting == ACHANNEL_SETTING_EXPAND) {
+						ACHANNEL_SET_FLAG(ma, mode, MA_DS_EXPAND);
+					}
+				}
+			}
+				break;
+			case ANIMTYPE_DSLAM:
+			{
+				Lamp *la= (Lamp *)ale->data;
+				
+				if (ASUBCHANNEL_SEL_OK(ale)) {
+					if (setting == ACHANNEL_SETTING_EXPAND) {
+						ACHANNEL_SET_FLAG(la, mode, LA_DS_EXPAND);
+					}
+				}
+			}
+				break;
+			case ANIMTYPE_DSCAM:
+			{
+				Camera *ca= (Camera *)ale->data;
+				
+				if (ASUBCHANNEL_SEL_OK(ale)) {
+					if (setting == ACHANNEL_SETTING_EXPAND) {
+						ACHANNEL_SET_FLAG(ca, mode, CAM_DS_EXPAND);
+					}
+				}
+			}
+				break;
+			case ANIMTYPE_DSCUR:
+			{
+				Curve *cu= (Curve *)ale->data;
+				
+				if (ASUBCHANNEL_SEL_OK(ale)) {
+					if (setting == ACHANNEL_SETTING_EXPAND) {
+						ACHANNEL_SET_FLAG(cu, mode, CU_DS_EXPAND);
+					}
+				}
+			}
+				break;
+			case ANIMTYPE_DSSKEY:
+			{
+				Key *key= (Key *)ale->data;
+				
+				if (ASUBCHANNEL_SEL_OK(ale)) {
+					if (setting == ACHANNEL_SETTING_EXPAND) {
+						ACHANNEL_SET_FLAG(key, mode, KEYBLOCK_DS_EXPAND);
+					}
+				}
+			}
+				break;
+			case ANIMTYPE_DSWOR:
+			{
+				World *wo= (World *)ale->data;
+				
+				if (ASUBCHANNEL_SEL_OK(ale)) {
+					if (setting == ACHANNEL_SETTING_EXPAND) {
+						ACHANNEL_SET_FLAG(wo, mode, WO_DS_EXPAND);
+					}
+				}
+			}
+				break;
+				
 			case ANIMTYPE_GROUP:
 			{
 				bActionGroup *agrp= (bActionGroup *)ale->data;
