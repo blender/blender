@@ -2386,8 +2386,8 @@ void ANIM_OT_delete_keyframe_old (wmOperatorType *ot)
 static int insert_key_button_exec (bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
-	PointerRNA ptr;
-	PropertyRNA *prop;
+	PointerRNA ptr = {0};
+	PropertyRNA *prop= NULL;
 	char *path;
 	float cfra= (float)CFRA; // XXX for now, don't bother about all the yucky offset crap
 	short success= 0;
@@ -2395,23 +2395,23 @@ static int insert_key_button_exec (bContext *C, wmOperator *op)
 	
 	/* try to insert keyframe using property retrieved from UI */
 	uiAnimContextProperty(C, &ptr, &prop, &index);
-
+	
 	if(ptr.data && prop && RNA_property_animateable(ptr.data, prop)) {
 		path= RNA_path_from_ID_to_property(&ptr, prop);
-
+		
 		if(path) {
 			if(all) {
 				length= RNA_property_array_length(&ptr, prop);
-
+				
 				if(length) index= 0;
 				else length= 1;
 			}
 			else
 				length= 1;
-
+			
 			for(a=0; a<length; a++)
 				success+= insertkey(ptr.id.data, NULL, path, index+a, cfra, 0);
-
+			
 			MEM_freeN(path);
 		}
 	}
@@ -2449,8 +2449,8 @@ void ANIM_OT_insert_keyframe_button (wmOperatorType *ot)
 static int delete_key_button_exec (bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
-	PointerRNA ptr;
-	PropertyRNA *prop;
+	PointerRNA ptr = {0};
+	PropertyRNA *prop= NULL;
 	char *path;
 	float cfra= (float)CFRA; // XXX for now, don't bother about all the yucky offset crap
 	short success= 0;
@@ -2461,20 +2461,20 @@ static int delete_key_button_exec (bContext *C, wmOperator *op)
 
 	if(ptr.data && prop) {
 		path= RNA_path_from_ID_to_property(&ptr, prop);
-
+		
 		if(path) {
 			if(all) {
 				length= RNA_property_array_length(&ptr, prop);
-
+				
 				if(length) index= 0;
 				else length= 1;
 			}
 			else
 				length= 1;
-
+			
 			for(a=0; a<length; a++)
 				success+= deletekey(ptr.id.data, NULL, path, index+a, cfra, 0);
-
+			
 			MEM_freeN(path);
 		}
 	}
