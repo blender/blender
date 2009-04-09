@@ -39,13 +39,15 @@ class KX_StateActuator : public SCA_IActuator
 
 	/** Make visible? */
 	enum {
+		OP_NOP = -1,
 		OP_CPY = 0,
 		OP_SET,
 		OP_CLR,
-		OP_NEG
+		OP_NEG,
+		OP_COUNT
 	};
 	int				m_operation;
-	unsigned int	m_mask;
+	int				m_mask;
 
  public:
 	
@@ -74,6 +76,7 @@ class KX_StateActuator : public SCA_IActuator
 	/* --------------------------------------------------------------------- */
 
 	virtual PyObject* py_getattro(PyObject *attr);
+	virtual int py_setattro(PyObject *attr, PyObject* value);
 	//KX_PYMETHOD_DOC
 	KX_PYMETHOD_DOC(KX_StateActuator,SetOperation);
 	KX_PYMETHOD_DOC(KX_StateActuator,SetMask);

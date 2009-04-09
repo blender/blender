@@ -138,14 +138,18 @@ KX_StateActuator::Parents[] = {
 
 PyMethodDef 
 KX_StateActuator::Methods[] = {
+	// deprecated -->
 	{"setOperation", (PyCFunction) KX_StateActuator::sPySetOperation, 
 	 METH_VARARGS, (PY_METHODCHAR)SetOperation_doc},
 	{"setMask", (PyCFunction) KX_StateActuator::sPySetMask, 
 	 METH_VARARGS, (PY_METHODCHAR)SetMask_doc},
+	 // <--
 	{NULL,NULL} //Sentinel
 };
 
 PyAttributeDef KX_StateActuator::Attributes[] = {
+	KX_PYATTRIBUTE_INT_RW("operation",KX_StateActuator::OP_NOP+1,KX_StateActuator::OP_COUNT-1,false,KX_StateActuator,m_operation),
+	KX_PYATTRIBUTE_INT_RW("mask",0,0x3FFFFFFF,false,KX_StateActuator,m_mask),
 	{ NULL }	//Sentinel
 };
 
@@ -154,6 +158,10 @@ PyObject* KX_StateActuator::py_getattro(PyObject *attr)
 	py_getattro_up(SCA_IActuator);
 };
 
+int KX_StateActuator::py_setattro(PyObject *attr, PyObject* value)
+{
+	py_setattro_up(SCA_IActuator);
+}
 
 
 /* set operation ---------------------------------------------------------- */
@@ -168,6 +176,7 @@ PyObject*
 KX_StateActuator::PySetOperation(PyObject* self, 
 				    PyObject* args, 
 				    PyObject* kwds) {
+	ShowDeprecationWarning("setOperation()", "the operation property");
 	int oper;
 
 	if(!PyArg_ParseTuple(args, "i", &oper)) {
@@ -193,6 +202,7 @@ PyObject*
 KX_StateActuator::PySetMask(PyObject* self, 
 				    PyObject* args, 
 				    PyObject* kwds) {
+	ShowDeprecationWarning("setMask()", "the mask property");
 	int mask;
 
 	if(!PyArg_ParseTuple(args, "i", &mask)) {

@@ -7,7 +7,8 @@ class KX_SoundActuator(SCA_IActuator):
 	Sound Actuator.
 	
 	The L{startSound()}, L{pauseSound()} and L{stopSound()} do not require
-	the actuator to be activated - they act instantly.
+	the actuator to be activated - they act instantly provided that the actuator has
+	been activated once at least.
 
 	@ivar filename: Sets the filename of the sound this actuator plays.
 	@type filename: string
