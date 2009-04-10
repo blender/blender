@@ -88,7 +88,6 @@
 /* used only by mouse_action. It is used to find the location of the nearest 
  * keyframe to where the mouse clicked, 
  */
-// XXX port this to new listview code...
 // XXX just merge this into the existing code!
 static void *get_nearest_action_key (bAnimContext *ac, int mval[2], float *selx, short *sel, short *ret_type, bActionGroup **par)
 {
@@ -129,8 +128,7 @@ static void *get_nearest_action_key (bAnimContext *ac, int mval[2], float *selx,
 		BLI_freelistN(&anim_data);
 		return NULL;
 	}
-	
-	{
+	else {
 		/* found match - must return here... */
 		Object *nob= ANIM_nla_mapping_get(ac, ale);
 		ActKeysInc *aki= init_aki_data(ac, ale);
@@ -779,8 +777,8 @@ static void mouse_action_keys (bAnimContext *ac, int mval[2], short selectmode)
 	BeztEditData bed;
 	BeztEditFunc select_cb, ok_cb;
 	void *anim_channel;
-	short sel, chan_type = 0;
-	float selx = 0.0f, selxa;
+	short sel, chan_type = 0, key_type = 0;
+	float selx = 0.0f;
 	
 	/* determine what type of data we are operating on */
 	if (ac->datatype == ANIMCONT_ACTION) 
@@ -798,9 +796,11 @@ static void mouse_action_keys (bAnimContext *ac, int mval[2], short selectmode)
 	switch (chan_type) {
 		case ANIMTYPE_FCURVE:
 			fcu= (FCurve *)anim_channel;
+			key_type= ALE_FCURVE;
 			break;
 		case ANIMTYPE_GROUP:
 			agrp= (bActionGroup *)anim_channel;
+			key_type= ALE_GROUP;
 			break;
 #if 0 // XXX fixme
 		case ANIMTYPE_DSMAT:
@@ -821,12 +821,15 @@ static void mouse_action_keys (bAnimContext *ac, int mval[2], short selectmode)
 #endif // XXX fixme
 		case ANIMTYPE_FILLACTD:
 			act= (bAction *)anim_channel;
+			key_type= ALE_ACT;
 			break;
 		case ANIMTYPE_OBJECT:
 			ob= ((Base *)anim_channel)->object;
+			key_type= ALE_OB;
 			break;
 		case ANIMTYPE_SCENE:
 			sce= (Scene *)anim_channel;
+			key_type= ALE_SCE;
 			break;
 		case ANIMTYPE_GPLAYER:
 			gpl= (bGPDlayer *)anim_channel;
@@ -874,58 +877,22 @@ static void mouse_action_keys (bAnimContext *ac, int mval[2], short selectmode)
 	
 	/* apply selection to keyframes */
 	// XXX use more generic code looper for this stuff...
-	if (fcu)
-		ANIM_fcurve_keys_bezier_loop(&bed, fcu, ok_cb, select_cb, NULL);
-	else if (agrp) {
-		for (fcu= agrp->channels.first; fcu && fcu->grp==agrp; fcu= fcu->next)
-			ANIM_fcurve_keys_bezier_loop(&bed, fcu, ok_cb, select_cb, NULL);
+	if (gpl) {
+		/* grease pencil */
+		//select_gpencil_frame(gpl, (int)selx, selectmode);
 	}
-	else if (act) {
-		for (fcu= act->curves.first; fcu; fcu= fcu->next)
-			ANIM_fcurve_keys_bezier_loop(&bed, fcu, ok_cb, select_cb, NULL);
+	else {
+		bAnimListElem ale = {0};
+		
+		/* initialise just a few vars that the callback will use... */
+		// FIXME: this method is a mess anyways... it needs a recode
+		ale.datatype= key_type;
+		ale.key_data= anim_channel;
+		ale.data= anim_channel;
+		
+		/* loop over all the relevant channels */
+		ANIM_animchannel_keys_bezier_loop(&bed, &ale, ok_cb, select_cb, NULL, ((ads) ? (ads->filterflag) : (0)));
 	}
-	else if (ob) {
-		AnimData *adt;
-		
-		/* Object's own animation */
-		if (ob->adt && ob->adt->action) {
-			adt= ob->adt;
-			act= adt->action;
-			
-			selxa= get_action_frame(ob, selx); // xxx
-			bed.f1= selxa;
-			
-			for (fcu= act->curves.first; fcu; fcu= fcu->next)
-				ANIM_fcurve_keys_bezier_loop(&bed, fcu, ok_cb, select_cb, NULL);
-		}
-		
-		/* 'Sub-Object' animation data */
-		// TODO...
-	}
-	else if (sce) {
-		World *wo= sce->world;
-		AnimData *adt;
-		
-		/* Scene's own animation */
-		if (sce->adt && sce->adt->action) {
-			adt= sce->adt;
-			act= adt->action;
-			
-			for (fcu= act->curves.first; fcu; fcu= fcu->next)
-				ANIM_fcurve_keys_bezier_loop(&bed, fcu, ok_cb, select_cb, NULL);
-		}
-		
-		/* World */
-		if (wo && wo->adt && wo->adt->action) {
-			adt= wo->adt;
-			act= adt->action;
-			
-			for (fcu= act->curves.first; fcu; fcu= fcu->next)
-				ANIM_fcurve_keys_bezier_loop(&bed, fcu, ok_cb, select_cb, NULL);
-		}
-	}
-	//else if (gpl)
-	//	select_gpencil_frame(gpl, (int)selx, selectmode);
 }
 
 /* Option 2) Selects all the keyframes on either side of the current frame (depends on which side the mouse is on) */

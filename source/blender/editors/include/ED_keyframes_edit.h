@@ -30,6 +30,7 @@
 #define ED_KEYFRAMES_EDIT_H
 
 struct bAnimContext;
+struct bAnimListElem;
 struct FCurve;
 struct BezTriple;
 struct Scene;
@@ -107,7 +108,13 @@ typedef short (*BeztEditFunc)(BeztEditData *bed, struct BezTriple *bezt);
 /* ---------------- Looping API --------------------- */
 
 /* functions for looping over keyframes */
-short ANIM_fcurve_keys_bezier_loop(BeztEditData *bed, struct FCurve *Fcu, BeztEditFunc bezt_ok, BeztEditFunc bezt_cb, FcuEditFunc fcu_cb);
+	/* function for working with F-Curve data only (i.e. when filters have been chosen to explicitly use this) */
+short ANIM_fcurve_keys_bezier_loop(BeztEditData *bed, struct FCurve *fcu, BeztEditFunc bezt_ok, BeztEditFunc bezt_cb, FcuEditFunc fcu_cb);
+	/* function for working with any type (i.e. one of the known types) of animation channel 
+	 *	- filterflag is bDopeSheet->flag (DOPESHEET_FILTERFLAG)
+	 */
+short ANIM_animchannel_keys_bezier_loop(BeztEditData *bed, struct bAnimListElem *ale, BeztEditFunc bezt_ok, BeztEditFunc bezt_cb, FcuEditFunc fcu_cb, int filterflag);
+
 
 /* functions for making sure all keyframes are in good order */
 void ANIM_editkeyframes_refresh(struct bAnimContext *ac);
