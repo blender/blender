@@ -155,6 +155,23 @@ void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
 {
 	short tot_changed= 0;
 	
+	/* XXX always set state vars for buttonsview, this is hardcoded */
+	switch (type) {
+			/* panels view, with free/horizontal/vertical align */
+		case V2D_COMMONVIEW_PANELS_UI:
+		{
+			/* for now, aspect ratio should be maintained, and zoom is clamped within sane default limits */
+			v2d->keepzoom= (V2D_KEEPASPECT|V2D_KEEPZOOM);
+			v2d->minzoom= 0.5f;
+			v2d->maxzoom= 2.0f;
+			
+			v2d->align= (V2D_ALIGN_NO_NEG_X|V2D_ALIGN_NO_POS_Y);
+			v2d->keeptot= V2D_KEEPTOT_BOUNDS;
+		}
+			break;
+	}
+	
+	
 	/* initialise data if there is a need for such */
 	if ((v2d->flag & V2D_IS_INITIALISED) == 0) {
 		/* set initialised flag so that View2D doesn't get reinitialised next time again */
@@ -257,12 +274,12 @@ void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
 			case V2D_COMMONVIEW_PANELS_UI:
 			{
 				/* for now, aspect ratio should be maintained, and zoom is clamped within sane default limits */
-				v2d->keepzoom= (V2D_LOCKZOOM_X|V2D_LOCKZOOM_Y|V2D_KEEPASPECT|V2D_KEEPZOOM);
+				v2d->keepzoom= (V2D_KEEPASPECT|V2D_KEEPZOOM);
 				v2d->minzoom= 0.5f;
 				v2d->maxzoom= 2.0f;
 				
 				v2d->align= (V2D_ALIGN_NO_NEG_X|V2D_ALIGN_NO_POS_Y);
-				v2d->keeptot= V2D_KEEPTOT_STRICT;
+				v2d->keeptot= V2D_KEEPTOT_BOUNDS;
 				
 				v2d->tot.xmin= 0.0f;
 				v2d->tot.xmax= winx;

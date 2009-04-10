@@ -941,7 +941,7 @@ void uiRegionPanelLayout(const bContext *C, ARegion *ar, int vertical, char *con
 			block= uiBeginBlock(C, ar, pt->idname, UI_EMBOSS, UI_HELV);
 			
 			if(vertical)
-				w= (ar->type->minsizex)? ar->type->minsizex-12: ar->winx-12;
+				w= (ar->type->minsizex)? ar->type->minsizex-12: block->aspect*ar->winx-12;
 			else
 				w= (ar->type->minsizex)? ar->type->minsizex-12: UI_PANEL_WIDTH-12;
 
