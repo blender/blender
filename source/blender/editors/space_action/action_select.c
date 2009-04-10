@@ -322,7 +322,7 @@ static int actkeys_deselectall_exec(bContext *C, wmOperator *op)
 	else
 		deselect_action_keys(&ac, 1, SELECT_ADD);
 	
-	/* set notifier tha things have changed */
+	/* set notifier that things have changed */
 	ED_area_tag_redraw(CTX_wm_area(C)); // FIXME... should be updating 'keyframes' data context or so instead!
 	
 	return OPERATOR_FINISHED;
@@ -717,7 +717,7 @@ static int actkeys_columnselect_exec(bContext *C, wmOperator *op)
 	else
 		columnselect_action_keys(&ac, mode);
 	
-	/* set notifier tha things have changed */
+	/* set notifier that things have changed */
 	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_KEYFRAMES_SELECT);
 	
 	return OPERATOR_FINISHED;
@@ -751,13 +751,16 @@ void ACT_OT_keyframes_select_column (wmOperatorType *ot)
  */
 
 /* defines for left-right select tool */
-static EnumPropertyItem prop_leftright_select_types[] = {
+static EnumPropertyItem prop_actkeys_leftright_select_types[] = {
 	{ACTKEYS_LRSEL_TEST, "CHECK", "Check if Select Left or Right", ""},
 	{ACTKEYS_LRSEL_NONE, "OFF", "Don't select", ""},
 	{ACTKEYS_LRSEL_LEFT, "LEFT", "Before current frame", ""},
 	{ACTKEYS_LRSEL_RIGHT, "RIGHT", "After current frame", ""},
 	{0, NULL, NULL, NULL}
 };
+
+/* sensitivity factor for frame-selections */
+#define FRAME_CLICK_THRESH 		0.1f
 
 /* ------------------- */
  
@@ -949,10 +952,10 @@ static void selectkeys_leftright (bAnimContext *ac, short leftright, short selec
 	memset(&bed, 0, sizeof(BeztEditFunc));
 	if (leftright == ACTKEYS_LRSEL_LEFT) {
 		bed.f1 = -MAXFRAMEF;
-		bed.f2 = (float)(CFRA + 0.1f);
+		bed.f2 = (float)(CFRA + FRAME_CLICK_THRESH);
 	} 
 	else {
-		bed.f1 = (float)(CFRA - 0.1f);
+		bed.f1 = (float)(CFRA - FRAME_CLICK_THRESH);
 		bed.f2 = MAXFRAMEF;
 	}
 	
@@ -997,7 +1000,7 @@ static void mouse_columnselect_action_keys (bAnimContext *ac, float selx)
 	
 	/* set up BezTriple edit callbacks */
 	select_cb= ANIM_editkeyframes_select(SELECT_ADD);
-	ok_cb= ANIM_editkeyframes_ok(BEZT_OK_FRAME);
+	ok_cb= ANIM_editkeyframes_ok(BEZT_OK_FRAMERANGE);
 	
 	/* loop through all of the keys and select additional keyframes
 	 * based on the keys found to be selected above
@@ -1013,10 +1016,14 @@ static void mouse_columnselect_action_keys (bAnimContext *ac, float selx)
 		
 		/* set frame for validation callback to refer to */
 		// XXX have a more sensitive range?
-		if (nob)
-			bed.f1= get_action_frame(nob, selx);
-		else
-			bed.f1= selx;
+		if (nob) {
+			bed.f1= get_action_frame(nob, selx-FRAME_CLICK_THRESH);
+			bed.f2= get_action_frame(nob, selx+FRAME_CLICK_THRESH);
+		}
+		else {
+			bed.f1= selx-FRAME_CLICK_THRESH;
+			bed.f2= selx+FRAME_CLICK_THRESH;
+		}
 		
 		/* select elements with frame number matching cfra */
 		ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, ok_cb, select_cb, NULL);
@@ -1099,7 +1106,7 @@ static int actkeys_clickselect_invoke(bContext *C, wmOperator *op, wmEvent *even
 		// XXX activate transform...
 	}
 	
-	/* set notifier tha things have changed */
+	/* set notifier that things have changed */
 	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_BOTH);
 	
 	/* for tweak grab to work */
@@ -1121,9 +1128,9 @@ void ACT_OT_keyframes_clickselect (wmOperatorType *ot)
 	
 	/* id-props */
 	// XXX should we make this into separate operators?
-	RNA_def_enum(ot->srna, "left_right", NULL /* XXX prop_actkeys_clickselect_items */, 0, "Left Right", ""); // ALTKEY
+	RNA_def_enum(ot->srna, "left_right", prop_actkeys_leftright_select_types, 0, "Left Right", ""); // CTRLKEY
 	RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", ""); // SHIFTKEY
-	RNA_def_boolean(ot->srna, "column", 0, "Column Select", ""); // CTRLKEY
+	RNA_def_boolean(ot->srna, "column", 0, "Column Select", ""); // ALTKEY
 }
 
 /* ************************************************************************** */

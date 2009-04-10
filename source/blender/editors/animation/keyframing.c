@@ -2513,7 +2513,7 @@ void ANIM_OT_delete_keyframe_button (wmOperatorType *ot)
 
 /* --------------- API/Per-Datablock Handling ------------------- */
 
-/* Checks whether an IPO-block has a keyframe for a given frame 
+/* Checks whether an Action has a keyframe for a given frame 
  * Since we're only concerned whether a keyframe exists, we can simply loop until a match is found...
  */
 short action_frame_has_keyframe (bAction *act, float frame, short filter)

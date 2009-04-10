@@ -300,7 +300,7 @@ static int actkeys_copy_exec(bContext *C, wmOperator *op)
 		}
 	}
 	
-	/* set notifier tha things have changed */
+	/* set notifier that things have changed */
 	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_KEYFRAMES_VALUES);
 	
 	return OPERATOR_FINISHED;
@@ -344,7 +344,7 @@ static int actkeys_paste_exec(bContext *C, wmOperator *op)
 	/* validate keyframes after editing */
 	ANIM_editkeyframes_refresh(&ac);
 	
-	/* set notifier tha things have changed */
+	/* set notifier that things have changed */
 	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_KEYFRAMES_VALUES);
 	
 	return OPERATOR_FINISHED;
@@ -440,7 +440,7 @@ static int actkeys_insertkey_exec(bContext *C, wmOperator *op)
 	/* validate keyframes after editing */
 	ANIM_editkeyframes_refresh(&ac);
 	
-	/* set notifier tha things have changed */
+	/* set notifier that things have changed */
 	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_KEYFRAMES_VALUES);
 	
 	return OPERATOR_FINISHED;
@@ -507,7 +507,7 @@ static int actkeys_duplicate_exec(bContext *C, wmOperator *op)
 	/* validate keyframes after editing */
 	ANIM_editkeyframes_refresh(&ac);
 	
-	/* set notifier tha things have changed */
+	/* set notifier that things have changed */
 	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_KEYFRAMES_VALUES);
 	
 	return OPERATOR_FINISHED; // xxx - start transform
@@ -584,7 +584,7 @@ static int actkeys_delete_exec(bContext *C, wmOperator *op)
 	/* validate keyframes after editing */
 	ANIM_editkeyframes_refresh(&ac);
 	
-	/* set notifier tha things have changed */
+	/* set notifier that things have changed */
 	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_KEYFRAMES_VALUES);
 	
 	return OPERATOR_FINISHED;
@@ -647,7 +647,7 @@ static int actkeys_clean_exec(bContext *C, wmOperator *op)
 	/* validate keyframes after editing */
 	ANIM_editkeyframes_refresh(&ac);
 	
-	/* set notifier tha things have changed */
+	/* set notifier that things have changed */
 	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_KEYFRAMES_VALUES);
 	
 	return OPERATOR_FINISHED;
@@ -771,7 +771,7 @@ static int actkeys_sample_exec(bContext *C, wmOperator *op)
 	/* validate keyframes after editing */
 	ANIM_editkeyframes_refresh(&ac);
 	
-	/* set notifier tha things have changed */
+	/* set notifier that things have changed */
 	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_KEYFRAMES_VALUES);
 	
 	return OPERATOR_FINISHED;
@@ -846,7 +846,7 @@ static int actkeys_expo_exec(bContext *C, wmOperator *op)
 	/* validate keyframes after editing */
 	ANIM_editkeyframes_refresh(&ac);
 	
-	/* set notifier tha things have changed */
+	/* set notifier that things have changed */
 	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_KEYFRAMES_VALUES);
 	
 	return OPERATOR_FINISHED;
@@ -924,7 +924,7 @@ static int actkeys_ipo_exec(bContext *C, wmOperator *op)
 	/* validate keyframes after editing */
 	ANIM_editkeyframes_refresh(&ac);
 	
-	/* set notifier tha things have changed */
+	/* set notifier that things have changed */
 	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_KEYFRAMES_VALUES);
 	
 	return OPERATOR_FINISHED;
@@ -1022,7 +1022,7 @@ static int actkeys_handletype_exec(bContext *C, wmOperator *op)
 	/* validate keyframes after editing */
 	ANIM_editkeyframes_refresh(&ac);
 	
-	/* set notifier tha things have changed */
+	/* set notifier that things have changed */
 	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_KEYFRAMES_VALUES);
 	
 	return OPERATOR_FINISHED;
@@ -1098,7 +1098,7 @@ static int actkeys_cfrasnap_exec(bContext *C, wmOperator *op)
 		CFRA= (int)floor((bed.f1 / bed.i1) + 0.5f);
 	}
 	
-	/* set notifier tha things have changed */
+	/* set notifier that things have changed */
 	WM_event_add_notifier(C, NC_SCENE|ND_FRAME, ac.scene);
 	
 	return OPERATOR_FINISHED;
@@ -1189,7 +1189,7 @@ static int actkeys_snap_exec(bContext *C, wmOperator *op)
 	/* validate keyframes after editing */
 	ANIM_editkeyframes_refresh(&ac);
 	
-	/* set notifier tha things have changed */
+	/* set notifier that things have changed */
 	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_KEYFRAMES_VALUES);
 	
 	return OPERATOR_FINISHED;
@@ -1304,7 +1304,7 @@ static int actkeys_mirror_exec(bContext *C, wmOperator *op)
 	/* validate keyframes after editing */
 	ANIM_editkeyframes_refresh(&ac);
 	
-	/* set notifier tha things have changed */
+	/* set notifier that things have changed */
 	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_KEYFRAMES_VALUES);
 	
 	return OPERATOR_FINISHED;

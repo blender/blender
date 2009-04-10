@@ -164,7 +164,7 @@ static int graphkeys_deselectall_exec(bContext *C, wmOperator *op)
 	else
 		deselect_graph_keys(&ac, 1, SELECT_ADD);
 	
-	/* set notifier tha things have changed */
+	/* set notifier that things have changed */
 	ED_area_tag_redraw(CTX_wm_area(C)); // FIXME... should be updating 'keyframes' data context or so instead!
 	
 	return OPERATOR_FINISHED;
@@ -507,7 +507,7 @@ static int graphkeys_columnselect_exec(bContext *C, wmOperator *op)
 	else
 		columnselect_graph_keys(&ac, mode);
 	
-	/* set notifier tha things have changed */
+	/* set notifier that things have changed */
 	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_KEYFRAMES_SELECT);
 	
 	return OPERATOR_FINISHED;
@@ -879,7 +879,7 @@ static int graphkeys_clickselect_invoke(bContext *C, wmOperator *op, wmEvent *ev
 		mouse_graph_keys(&ac, mval, selectmode); // xxx curves only should become an arg
 	}
 	
-	/* set notifier tha things have changed */
+	/* set notifier that things have changed */
 	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_BOTH);
 	
 	/* for tweak grab to work */
@@ -898,9 +898,9 @@ void GRAPHEDIT_OT_keyframes_clickselect (wmOperatorType *ot)
 	
 	/* id-props */
 	// XXX should we make this into separate operators?
-	RNA_def_enum(ot->srna, "left_right", NULL /* XXX prop_graphkeys_clickselect_items */, 0, "Left Right", ""); // ALTKEY
+	RNA_def_enum(ot->srna, "left_right", NULL /* XXX prop_graphkeys_clickselect_items */, 0, "Left Right", ""); // CTRLKEY
 	RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", ""); // SHIFTKEY
-	RNA_def_boolean(ot->srna, "column", 0, "Column Select", ""); // CTRLKEY
+	RNA_def_boolean(ot->srna, "column", 0, "Column Select", ""); // ALTKEY
 }
 
 /* ************************************************************************** */

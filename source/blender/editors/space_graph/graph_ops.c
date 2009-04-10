@@ -146,11 +146,10 @@ static void graphedit_keymap_keyframes (wmWindowManager *wm, ListBase *keymap)
 	
 	/* graph_select.c - selection tools */
 		/* click-select */
-		// TODO: column to alt, left-right to ctrl (for select-linked consistency)
 	WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_clickselect", SELECTMOUSE, KM_PRESS, 0, 0);
-	RNA_boolean_set(WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_clickselect", SELECTMOUSE, KM_PRESS, KM_CTRL, 0)->ptr, "column", 1);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_clickselect", SELECTMOUSE, KM_PRESS, KM_ALT, 0)->ptr, "column", 1);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_clickselect", SELECTMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "extend", 1);
-	RNA_enum_set(WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_clickselect", SELECTMOUSE, KM_PRESS, KM_ALT, 0)->ptr, "left_right", GRAPHKEYS_LRSEL_TEST);
+	RNA_enum_set(WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_clickselect", SELECTMOUSE, KM_PRESS, KM_CTRL, 0)->ptr, "left_right", GRAPHKEYS_LRSEL_TEST);
 	
 		/* deselect all */
 	WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_select_all_toggle", AKEY, KM_PRESS, 0, 0);
