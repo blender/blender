@@ -88,7 +88,7 @@ $(DIR)/$(DEBUG_DIR)%_api.o: ../../editors/interface/*_api.c
 	@echo " -- $< -- "
 	@$(CC) -c $(CFLAGS) $(CPPFLAGS) $< -o $@
     else
-	$(CC) -c $(CFLAGS) $(CPPFLAGS) $< -o $@)
+	$(CC) -c $(CFLAGS) $(CPPFLAGS) $< -o $@
     endif
 
 # A small note: we do not use the debug version of the alloc lib. That
