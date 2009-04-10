@@ -1332,7 +1332,9 @@ class x3dNode(vrmlNode):
 	
 	# Other funcs operate from vrml, but this means we can wrap XML fields, still use nice utility funcs
 	# getFieldAsArray getFieldAsBool etc
-	def getFieldName(self, field):
+	def getFieldName(self, field, ancestry, AS_CHILD=False):
+		# ancestry and AS_CHILD are ignored, only used for VRML now
+		
 		self_real = self.getRealNode() # incase we're an instance
 		field_xml = self.x3dNode.getAttributeNode(field)
 		if field_xml:
