@@ -825,7 +825,7 @@ short deletekey (ID *id, const char group[], const char rna_path[], int array_in
 	fcu= verify_fcurve(id, group, rna_path, array_index, 0);
 	adt= BKE_animdata_from_id(id);
 	
-	/* only continue if we have an ipo-curve to remove keyframes from */
+	/* only continue if we have an F-Curve to remove keyframes from */
 	if (adt && adt->action && fcu) {
 		bAction *act= adt->action;
 		short found = -1;

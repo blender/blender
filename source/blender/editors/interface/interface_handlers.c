@@ -2610,6 +2610,17 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, wmEvent *event)
 
 			return WM_UI_HANDLER_BREAK;
 		}
+		/* handle driver adding */
+		else if(event->type == DKEY && event->val == KM_PRESS) {
+			if(event->alt)
+				ui_but_anim_remove_driver(C);
+			else
+				ui_but_anim_add_driver(C);
+				
+			ED_region_tag_redraw(CTX_wm_region(C));
+			
+			return WM_UI_HANDLER_BREAK;
+		}
 		/* handle menu */
 		else if(event->type == RIGHTMOUSE && event->val == KM_PRESS) {
 			ui_but_anim_menu(C, but);

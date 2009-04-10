@@ -133,6 +133,7 @@ typedef struct uiPopupBlockHandle uiPopupBlockHandle;
 #define UI_NO_HILITE		(1<<19)
 #define UI_BUT_ANIMATED		(1<<20)
 #define UI_BUT_ANIMATED_KEY	(1<<21)
+#define UI_BUT_DRIVEN		(1<<22)
 
 
 /* Button types, bits stored in 1 value... and a short even!

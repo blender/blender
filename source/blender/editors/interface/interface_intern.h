@@ -393,6 +393,8 @@ void uiStyleExit(void);
 void ui_but_anim_flag(uiBut *but, float cfra);
 void ui_but_anim_insert_keyframe(struct bContext *C);
 void ui_but_anim_delete_keyframe(struct bContext *C);
+void ui_but_anim_add_driver(struct bContext *C);
+void ui_but_anim_remove_driver(struct bContext *C);
 void ui_but_anim_menu(struct bContext *C, uiBut *but);
 
 #endif

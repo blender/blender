@@ -95,9 +95,24 @@ void ANIM_OT_delete_keyframe_menu(struct wmOperatorType *ot); // xxx unimplement
 void ANIM_OT_delete_keyframe_old(struct wmOperatorType *ot); // xxx rename and keep?
 
 /* Keyframe managment operators for UI buttons. */
-
 void ANIM_OT_insert_keyframe_button(struct wmOperatorType *ot);
 void ANIM_OT_delete_keyframe_button(struct wmOperatorType *ot);
+
+/* ************ Drivers ********************** */
+
+/* Main Driver Management API calls:
+ * 	Add a new driver for the specified property on the given ID block
+ */
+short ANIM_add_driver (struct ID *id, const char rna_path[], int array_index, short flag);
+
+/* Main Driver Management API calls:
+ * 	Remove the driver for the specified property on the given ID block (if available)
+ */
+short ANIM_remove_driver (struct ID *id, const char rna_path[], int array_index, short flag);
+
+/* Driver management operators for UI buttons */
+void ANIM_OT_add_driver_button(struct wmOperatorType *ot);
+void ANIM_OT_remove_driver_button(struct wmOperatorType *ot);
 
 /* ************ Auto-Keyframing ********************** */
 /* Notes:

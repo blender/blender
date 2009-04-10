@@ -386,6 +386,9 @@ void ED_operatortypes_anim(void)
 	WM_operatortype_append(ANIM_OT_delete_keyframe_button);
 	WM_operatortype_append(ANIM_OT_delete_keyframe_old); // xxx remove?
 	
+	WM_operatortype_append(ANIM_OT_add_driver_button);
+	WM_operatortype_append(ANIM_OT_remove_driver_button);
+	
 	WM_operatortype_append(ANIM_OT_keyingset_add_new);
 	WM_operatortype_append(ANIM_OT_keyingset_add_destination);
 }

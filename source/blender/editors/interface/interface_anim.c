@@ -27,28 +27,41 @@
 
 void ui_but_anim_flag(uiBut *but, float cfra)
 {
-	but->flag &= ~(UI_BUT_ANIMATED|UI_BUT_ANIMATED_KEY);
+	but->flag &= ~(UI_BUT_ANIMATED|UI_BUT_ANIMATED_KEY|UI_BUT_DRIVEN);
 
 	if(but->rnaprop && but->rnapoin.id.data) {
 		AnimData *adt= BKE_animdata_from_id(but->rnapoin.id.data);
 		FCurve *fcu;
 		char *path;
 
-		if(adt && adt->action && adt->action->curves.first) {
-			/* XXX this function call can become a performance bottleneck */
-			path= RNA_path_from_ID_to_property(&but->rnapoin, but->rnaprop);
-
-			if(path) {
-				fcu= list_find_fcurve(&adt->action->curves, path, but->rnaindex);
-
-				if(fcu) {
-					but->flag |= UI_BUT_ANIMATED;
-
-					if(on_keyframe_fcurve(fcu, cfra))
-						but->flag |= UI_BUT_ANIMATED_KEY;
+		if (adt) {
+			if ((adt->action && adt->action->curves.first) || (adt->drivers.first)) {
+				/* XXX this function call can become a performance bottleneck */
+				path= RNA_path_from_ID_to_property(&but->rnapoin, but->rnaprop);
+				
+				if (path) {
+					/* animation takes priority over drivers */
+					if (adt->action && adt->action->curves.first) {
+						fcu= list_find_fcurve(&adt->action->curves, path, but->rnaindex);
+						
+						if (fcu) {
+							but->flag |= UI_BUT_ANIMATED;
+							
+							if (on_keyframe_fcurve(fcu, cfra))
+								but->flag |= UI_BUT_ANIMATED_KEY;
+						}
+					}
+					
+					/* if not animated, check if driven */
+					if ((but->flag & UI_BUT_ANIMATED)==0 && (adt->drivers.first)) {
+						fcu= list_find_fcurve(&adt->drivers, path, but->rnaindex);
+						
+						if (fcu)
+							but->flag |= UI_BUT_DRIVEN;
+					}
+					
+					MEM_freeN(path);
 				}
-
-				MEM_freeN(path);
 			}
 		}
 	}
@@ -86,6 +99,19 @@ void ui_but_anim_delete_keyframe(bContext *C)
 	WM_operator_name_call(C, "ANIM_OT_delete_keyframe_button", WM_OP_INVOKE_DEFAULT, NULL);
 }
 
+void ui_but_anim_add_driver(bContext *C)
+{
+	/* this operator calls uiAnimContextProperty above */
+	WM_operator_name_call(C, "ANIM_OT_add_driver_button", WM_OP_INVOKE_DEFAULT, NULL);
+}
+
+void ui_but_anim_remove_driver(bContext *C)
+{
+	/* this operator calls uiAnimContextProperty above */
+	WM_operator_name_call(C, "ANIM_OT_remove_driver_button", WM_OP_INVOKE_DEFAULT, NULL);
+}
+
+// TODO: refine the logic for adding/removing drivers...
 void ui_but_anim_menu(bContext *C, uiBut *but)
 {
 	uiMenuItem *head;
@@ -100,18 +126,28 @@ void ui_but_anim_menu(bContext *C, uiBut *but)
 			if(length) {
 				uiMenuItemBooleanO(head, "Delete Keyframes", 0, "ANIM_OT_delete_keyframe_button", "all", 1);
 				uiMenuItemBooleanO(head, "Delete Single Keyframe", 0, "ANIM_OT_delete_keyframe_button", "all", 0);
+				
+				uiMenuItemBooleanO(head, "Remove Driver", 0, "ANIM_OT_remove_driver_button", "all", 1);
+				uiMenuItemBooleanO(head, "Remove Single Driver", 0, "ANIM_OT_remove_driver_button", "all", 0);
 			}
 			else {
 				uiMenuItemBooleanO(head, "Delete Keyframe", 0, "ANIM_OT_delete_keyframe_button", "all", 0);
+				
+				uiMenuItemBooleanO(head, "Remove Driver", 0, "ANIM_OT_remove_driver_button", "all", 0);
 			}
 		}
 		else if(RNA_property_animateable(&but->rnapoin, but->rnaprop)) {
 			if(length) {
 				uiMenuItemBooleanO(head, "Insert Keyframes", 0, "ANIM_OT_insert_keyframe_button", "all", 1);
 				uiMenuItemBooleanO(head, "Insert Single Keyframe", 0, "ANIM_OT_insert_keyframe_button", "all", 0);
+				
+				uiMenuItemBooleanO(head, "Add Driver", 0, "ANIM_OT_add_driver_button", "all", 1);
+				uiMenuItemBooleanO(head, "Add Single Driver", 0, "ANIM_OT_add_driver_button", "all", 0);
 			}
 			else {
 				uiMenuItemBooleanO(head, "Insert Keyframe", 0, "ANIM_OT_insert_keyframe_button", "all", 0);
+				
+				uiMenuItemBooleanO(head, "Add Driver", 0, "ANIM_OT_add_driver_button", "all", 0);
 			}
 		}
 

@@ -1053,6 +1053,8 @@ static void widget_state(uiWidgetType *wt, int state)
 			QUATCOPY(wt->wcol.inner, wt->wcol.inner_key_sel)
 		else if(state & UI_BUT_ANIMATED)
 			QUATCOPY(wt->wcol.inner, wt->wcol.inner_anim_sel)
+		//else if(state & UI_BUT_DRIVEN)
+		//	QUATCOPY(wt->wcol.inner, wt->wcol.inner_driven_sel)
 		else
 			QUATCOPY(wt->wcol.inner, wt->wcol.inner_sel)
 
