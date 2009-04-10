@@ -244,7 +244,7 @@ static void rna_def_mtex(BlenderRNA *brna)
 
 static void rna_def_filter_size_common(StructRNA *srna) 
 {
-	PropertyRNA * prop;
+	PropertyRNA *prop;
 
 	/* XXX: not sure about the name of this, "Min" seems a bit off */
 	prop= RNA_def_property(srna, "use_filter", PROP_BOOLEAN, PROP_NONE);
@@ -958,7 +958,7 @@ static void rna_def_texture_distorted_noise(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "noise_distortion", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "noisebasis2");
 	RNA_def_property_enum_items(prop, prop_noise_basis_items);
-	RNA_def_property_ui_text(prop, "Noise Basis", "Sets the noise basis for the distortion");
+	RNA_def_property_ui_text(prop, "Noise Distortion", "Sets the noise basis for the distortion");
 
 	prop= RNA_def_property(srna, "nabla", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 0.001, 0.1);
