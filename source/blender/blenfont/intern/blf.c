@@ -280,6 +280,15 @@ void BLF_size(int size, int dpi)
 		(*font->size_set)(font, size, dpi);
 }
 
+void BLF_blur(int size)
+{
+	FontBLF *font;
+	
+	font= global_font[global_font_cur];
+	if (font)
+		font->blur= size;
+}
+
 void BLF_draw(char *str)
 {
 	FontBLF *font;

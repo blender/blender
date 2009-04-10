@@ -157,7 +157,10 @@ typedef struct FontBLF {
 
 	/* angle in degrees. */
 	float angle;
-
+	
+	/* blur: 3 or 5 large kernel */
+	int blur;
+	
 	/* this is the matrix that we load before rotate/scale/translate. */
 	float mat[4][4];
 

@@ -68,6 +68,8 @@ float BLF_height(char *str);
  */
 void BLF_rotation(float angle);
 void BLF_clipping(float xmin, float ymin, float xmax, float ymax);
+void BLF_blur(int size);
+
 
 void BLF_enable(int option);
 void BLF_disable(int option);

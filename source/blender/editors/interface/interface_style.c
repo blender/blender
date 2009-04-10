@@ -134,53 +134,18 @@ static uiFont *uifont_to_blfont(int id)
 
 /* *************** draw ************************ */
 
-
-static void ui_font_shadow5_draw(uiFontStyle *fs, int x, int y, char *str)
+static void ui_font_shadow_draw(uiFontStyle *fs, int x, int y, char *str)
 {
-	float soft[25]= {
-		1/60.0f, 1/60.0f, 2/60.0f, 1/60.0f, 1/60.0f, 
-		1/60.0f, 3/60.0f, 5/60.0f, 3/60.0f, 1/60.0f, 
-		2/60.0f, 5/60.0f, 8/60.0f, 5/60.0f, 2/60.0f, 
-		1/60.0f, 3/60.0f, 5/60.0f, 3/60.0f, 1/60.0f, 
-		1/60.0f, 1/60.0f, 2/60.0f, 1/60.0f, 1/60.0f};
-	
-	float color[4], *fp= soft;
-	int dx, dy;
+	float color[4];
 	
 	glGetFloatv(GL_CURRENT_COLOR, color);
 	
-	x+= fs->shadx;
-	y+= fs->shady;
+	glColor4f(fs->shadowcolor, fs->shadowcolor, fs->shadowcolor, fs->shadowalpha);
 	
-	for(dx=-2; dx<3; dx++) {
-		for(dy=-2; dy<3; dy++, fp++) {
-			glColor4f(fs->shadowcolor, fs->shadowcolor, fs->shadowcolor, fp[0]*fs->shadowalpha);
-			BLF_position(x+dx, y+dy, 0.0f);
-			BLF_draw(str);
-		}
-	}
-	
-	glColor4fv(color);
-}
-
-static void ui_font_shadow3_draw(uiFontStyle *fs, int x, int y, char *str)
-{
-	float soft[9]= {1/16.0f, 2/16.0f, 1/16.0f, 2/16.0f, 4/16.0f, 2/16.0f, 1/16.0f, 2/16.0f, 1/16.0f};
-	float color[4], *fp= soft;
-	int dx, dy;
-	
-	glGetFloatv(GL_CURRENT_COLOR, color);
-	
-	x+= fs->shadx;
-	y+= fs->shady;
-	
-	for(dx=-1; dx<2; dx++) {
-		for(dy=-1; dy<2; dy++, fp++) {
-			glColor4f(fs->shadowcolor, fs->shadowcolor, fs->shadowcolor, fp[0]*fs->shadowalpha);
-			BLF_position(x+dx, y+dy, 0.0f);
-			BLF_draw(str);
-		}
-	}
+	BLF_blur(fs->shadow);
+	BLF_position(x+fs->shadx, y+fs->shady, 0.0f);
+	BLF_draw(str);
+	BLF_blur(0);
 	
 	glColor4fv(color);
 }
@@ -204,10 +169,8 @@ void uiStyleFontDraw(uiFontStyle *fs, rcti *rect, char *str)
 	BLF_clipping(rect->xmin-4, rect->ymin-4, rect->xmax+4, rect->ymax+4);
 	BLF_enable(BLF_CLIPPING);
 	
-	if(fs->shadow==3) 
-		ui_font_shadow3_draw(fs, rect->xmin+xofs, rect->ymin+yofs, str);
-	else if(fs->shadow==5) 
-		ui_font_shadow5_draw(fs, rect->xmin+xofs, rect->ymin+yofs, str);
+	if(fs->shadow) 
+		ui_font_shadow_draw(fs, rect->xmin+xofs, rect->ymin+yofs, str);
 	
 	BLF_position(rect->xmin+xofs, rect->ymin+yofs, 0.0f);
 	BLF_draw(str);
