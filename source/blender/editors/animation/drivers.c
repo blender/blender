@@ -93,6 +93,9 @@ FCurve *verify_driver_fcurve (ID *id, const char rna_path[], const int array_ind
 		/* add some new driver data */
 		fcu->driver= MEM_callocN(sizeof(ChannelDriver), "ChannelDriver");
 		
+		/* add simple generator modifier for driver so that there is some visible representation */
+		fcurve_add_modifier(fcu, FMODIFIER_TYPE_GENERATOR);
+		
 		/* just add F-Curve to end of driver list */
 		BLI_addtail(&adt->drivers, fcu);
 	}

@@ -96,6 +96,8 @@ typedef struct uiWidgetColors {
 	float inner_anim_sel[4];
 	float inner_key[4];
 	float inner_key_sel[4];
+	float inner_driven[4];
+	float inner_driven_sel[4];
 	float item[3];
 	float text[3];
 	float text_sel[3];
@@ -841,6 +843,8 @@ static void widget_draw_text_icon(uiStyle *style, uiBut *but, rcti *rect, float 
  float inner_anim_sel[4];
  float inner_key[4];
  float inner_key_sel[4];
+ float inner_driven[4];
+ float inner_driven_sel[4];
  float item[3];
  float text[3];
  float text_sel[3];
@@ -857,6 +861,8 @@ static struct uiWidgetColors wcol_num= {
 	{0.35, 0.65, 0.2f, 1.0f},
 	{0.95, 0.9, 0.4f, 1.0f},
 	{0.85, 0.8, 0.3f, 1.0f},
+	{0.7f, 0.0, 1.0f, 1.0f},
+	{0.6f, 0.0, 0.9f, 1.0f},
 	{0.35f, 0.35f, 0.35f},
 	
 	{0.0f, 0.0f, 0.0f},
@@ -874,6 +880,8 @@ static struct uiWidgetColors wcol_numslider= {
 	{0.35, 0.65, 0.2f, 1.0f},
 	{0.95, 0.9, 0.4f, 1.0f},
 	{0.85, 0.8, 0.3f, 1.0f},
+	{0.7f, 0.0, 1.0f, 1.0f},
+	{0.6f, 0.0, 0.9f, 1.0f},
 	{0.5f, 0.5f, 0.5f},
 	
 	{0.0f, 0.0f, 0.0f},
@@ -891,6 +899,8 @@ static struct uiWidgetColors wcol_text= {
 	{0.35, 0.65, 0.2f, 1.0f},
 	{0.95, 0.9, 0.4f, 1.0f},
 	{0.85, 0.8, 0.3f, 1.0f},
+	{0.7f, 0.0, 1.0f, 1.0f},
+	{0.6f, 0.0, 0.9f, 1.0f},
 	{0.35f, 0.35f, 0.35f},
 	
 	{0.0f, 0.0f, 0.0f},
@@ -908,6 +918,8 @@ static struct uiWidgetColors wcol_option= {
 	{0.35, 0.65, 0.2f, 1.0f},
 	{0.95, 0.9, 0.4f, 1.0f},
 	{0.85, 0.8, 0.3f, 1.0f},
+	{0.7f, 0.0, 1.0f, 1.0f},
+	{0.6f, 0.0, 0.9f, 1.0f},
 	{1.0f, 1.0f, 1.0f},
 	
 	{0.0f, 0.0f, 0.0f},
@@ -926,6 +938,8 @@ static struct uiWidgetColors wcol_menu= {
 	{0.35, 0.65, 0.2f, 1.0f},
 	{0.95, 0.9, 0.4f, 1.0f},
 	{0.85, 0.8, 0.3f, 1.0f},
+	{0.7f, 0.0, 1.0f, 1.0f},
+	{0.6f, 0.0, 0.9f, 1.0f},
 	{1.0f, 1.0f, 1.0f},
 	
 	{1.0f, 1.0f, 1.0f},
@@ -944,6 +958,8 @@ static struct uiWidgetColors wcol_pulldown= {
 	{0.35, 0.65, 0.2f, 1.0f},
 	{0.95, 0.9, 0.4f, 1.0f},
 	{0.85, 0.8, 0.3f, 1.0f},
+	{0.7f, 0.0, 1.0f, 1.0f},
+	{0.6f, 0.0, 0.9f, 1.0f},
 	{1.0f, 1.0f, 1.0f},
 	
 	{1.0f, 1.0f, 1.0f},
@@ -962,6 +978,8 @@ static struct uiWidgetColors wcol_menu_item= {
 	{0.35, 0.65, 0.2f, 1.0f},
 	{0.95, 0.9, 0.4f, 1.0f},
 	{0.85, 0.8, 0.3f, 1.0f},
+	{0.7f, 0.0, 1.0f, 1.0f},
+	{0.6f, 0.0, 0.9f, 1.0f},
 	{1.0f, 1.0f, 1.0f},
 	
 	{1.0f, 1.0f, 1.0f},
@@ -980,6 +998,8 @@ static struct uiWidgetColors wcol_menu_back= {
 	{0.35, 0.65, 0.2f, 1.0f},
 	{0.95, 0.9, 0.4f, 1.0f},
 	{0.85, 0.8, 0.3f, 1.0f},
+	{0.7f, 0.0, 1.0f, 1.0f},
+	{0.6f, 0.0, 0.9f, 1.0f},
 	{1.0f, 1.0f, 1.0f},
 	
 	{1.0f, 1.0f, 1.0f},
@@ -998,6 +1018,8 @@ static struct uiWidgetColors wcol_radio= {
 	{0.35, 0.65, 0.2f, 1.0f},
 	{0.95, 0.9, 0.4f, 1.0f},
 	{0.85, 0.8, 0.3f, 1.0f},
+	{0.7f, 0.0, 1.0f, 1.0f},
+	{0.6f, 0.0, 0.9f, 1.0f},
 	{1.0f, 1.0f, 1.0f},
 	
 	{1.0f, 1.0f, 1.0f},
@@ -1015,6 +1037,8 @@ static struct uiWidgetColors wcol_regular= {
 	{0.35, 0.65, 0.2f, 1.0f},
 	{0.95, 0.9, 0.4f, 1.0f},
 	{0.85, 0.8, 0.3f, 1.0f},
+	{0.7f, 0.0, 1.0f, 1.0f},
+	{0.6f, 0.0, 0.9f, 1.0f},
 	{0.1f, 0.1f, 0.1f},
 	
 	{0.0f, 0.0f, 0.0f},
@@ -1032,6 +1056,8 @@ static struct uiWidgetColors wcol_regular_shade= {
 	{0.35, 0.65, 0.2f, 1.0f},
 	{0.95, 0.9, 0.4f, 1.0f},
 	{0.85, 0.8, 0.3f, 1.0f},
+	{0.7f, 0.0, 1.0f, 1.0f},
+	{0.6f, 0.0, 0.9f, 1.0f},
 	{0.1f, 0.1f, 0.1f},
 	
 	{0.0f, 0.0f, 0.0f},
@@ -1053,8 +1079,8 @@ static void widget_state(uiWidgetType *wt, int state)
 			QUATCOPY(wt->wcol.inner, wt->wcol.inner_key_sel)
 		else if(state & UI_BUT_ANIMATED)
 			QUATCOPY(wt->wcol.inner, wt->wcol.inner_anim_sel)
-		//else if(state & UI_BUT_DRIVEN)
-		//	QUATCOPY(wt->wcol.inner, wt->wcol.inner_driven_sel)
+		else if(state & UI_BUT_DRIVEN)
+			QUATCOPY(wt->wcol.inner, wt->wcol.inner_driven_sel)
 		else
 			QUATCOPY(wt->wcol.inner, wt->wcol.inner_sel)
 
@@ -1070,6 +1096,8 @@ static void widget_state(uiWidgetType *wt, int state)
 			QUATCOPY(wt->wcol.inner, wt->wcol.inner_key)
 		else if(state & UI_BUT_ANIMATED)
 			QUATCOPY(wt->wcol.inner, wt->wcol.inner_anim)
+		else if(state & UI_BUT_DRIVEN)
+			QUATCOPY(wt->wcol.inner, wt->wcol.inner_driven)
 
 		if(state & UI_ACTIVE) /* mouse over? */
 			VecMulf(wt->wcol.inner, 1.1f);
