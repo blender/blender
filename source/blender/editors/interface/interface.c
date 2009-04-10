@@ -52,6 +52,8 @@
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
+#include "BLF_api.h"
+
 #include "UI_interface.h"
 #include "UI_text.h"
 
@@ -228,19 +230,21 @@ static void ui_block_translate(uiBlock *block, int x, int y)
 
 static void ui_text_bounds_block(uiBlock *block, float offset)
 {
+	uiStyle *style= U.uistyles.first;	// XXX pass on as arg
 	uiBut *bt;
 	int i = 0, j, x1addval= offset, nextcol;
 	
-	bt= block->buttons.first;
-	while(bt) {
+	uiStyleFontSet(&style->widget);
+	
+	for(bt= block->buttons.first; bt; bt= bt->next) {
 		if(bt->type!=SEPR) {
-			int transopts= ui_translate_buttons();
-			if(bt->type==TEX || bt->type==IDPOIN) transopts= 0;
-			j= UI_GetStringWidth(bt->font, bt->drawstr, transopts);
+			//int transopts= ui_translate_buttons();
+			//if(bt->type==TEX || bt->type==IDPOIN) transopts= 0;
+			
+			j= BLF_width(bt->drawstr);
 
 			if(j > i) i = j;
 		}
-		bt= bt->next;
 	}
 
 	/* cope with multi collumns */
@@ -643,6 +647,22 @@ void uiEndBlock(const bContext *C, uiBlock *block)
 
 /* ************** BLOCK DRAWING FUNCTION ************* */
 
+static void ui_fontscale(short *points, float aspect)
+{
+	if(aspect < 0.9f || aspect > 1.1f) {
+		float pointsf= *points;
+		
+		/* for some reason scaling fonts goes too fast compared to widget size */
+		aspect= sqrt(aspect);
+		pointsf /= aspect;
+		
+		if(aspect > 1.0)
+			*points= ceil(pointsf);
+		else
+			*points= floor(pointsf);
+	}
+}
+
 /* project button or block (but==NULL) to pixels in regionspace */
 static void ui_but_to_pixelrect(rcti *rect, const ARegion *ar, uiBlock *block, uiBut *but)
 {
@@ -665,8 +685,10 @@ static void ui_but_to_pixelrect(rcti *rect, const ARegion *ar, uiBlock *block, u
 	rect->ymax= floor(getsizey*(0.5+ 0.5*(gx*block->winmat[0][1]+ gy*block->winmat[1][1]+ block->winmat[3][1])));
 }
 
+/* uses local copy of style, to scale things down, and allow widgets to change stuff */
 void uiDrawBlock(const bContext *C, uiBlock *block)
 {
+	uiStyle style= *((uiStyle *)U.uistyles.first);	// XXX pass on as arg
 	ARegion *ar;
 	uiBut *but;
 	rcti rect;
@@ -682,6 +704,15 @@ void uiDrawBlock(const bContext *C, uiBlock *block)
 	/* we set this only once */
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	
+	/* scale fonts */
+	ui_fontscale(&style.paneltitle.points, block->aspect);
+	ui_fontscale(&style.grouplabel.points, block->aspect);
+	ui_fontscale(&style.widgetlabel.points, block->aspect);
+	ui_fontscale(&style.widget.points, block->aspect);
+	
+	/* scale block min/max to rect */
+	ui_but_to_pixelrect(&rect, ar, block, NULL);
+	
 	/* pixel space for AA widgets */
 	glMatrixMode(GL_PROJECTION);
 	glPushMatrix();
@@ -692,18 +723,17 @@ void uiDrawBlock(const bContext *C, uiBlock *block)
 	wmOrtho2(0.0f, ar->winx, 0.0f, ar->winy);
 	
 	/* back */
-	ui_but_to_pixelrect(&rect, ar, block, NULL);
 	if(block->flag & UI_BLOCK_LOOP)
-		ui_draw_menu_back(block, &rect);
+		ui_draw_menu_back(&style, block, &rect);
 	else if(block->panel)
-		ui_draw_panel(ar, block, &rect);
+		ui_draw_panel(ar, &style, block, &rect);
 
 	if(block->drawextra) block->drawextra(C, block);
 
 	/* widgets */
 	for(but= block->buttons.first; but; but= but->next) {
 		ui_but_to_pixelrect(&rect, ar, block, but);
-		ui_draw_but(ar, but, &rect);
+		ui_draw_but(ar, &style, but, &rect);
 	}
 	
 	/* restore matrix */
@@ -1876,14 +1906,6 @@ uiBlock *uiBeginBlock(const bContext *C, ARegion *region, char *name, short dt, 
 
 	BLI_strncpy(block->name, name, sizeof(block->name));
 
-#if 0
-	/* draw win */
-	block->win= win;
-	/* window where queue event should be added, pretty weak this way!
-	   this is because the 'mainwin' pup menu's */
-	block->winq= mywinget();
-#endif
-
 	block->dt= dt;
 	block->themecol= TH_AUTO;
 
@@ -1908,8 +1930,6 @@ uiBlock *uiBeginBlock(const bContext *C, ARegion *region, char *name, short dt, 
 		block->flag |= UI_BLOCK_LOOP; /* tag as menu */
 	}
 
-	uiSetCurFont(block, font);
-
 	return block;
 }
 
@@ -1931,7 +1951,6 @@ void ui_check_but(uiBut *but)
 	double value;
 	float okwidth;
 	int transopts= ui_translate_buttons();
-	short pos;
 	
 	ui_is_but_sel(but);
 	
@@ -2076,55 +2095,8 @@ void ui_check_but(uiBut *but)
 		strcpy(but->drawstr, but->str);
 		strcat(but->drawstr, but->editstr);
 	}
-
-	if(but->drawstr[0]) {
-		but->strwidth= but->aspect*UI_GetStringWidth(but->font, but->drawstr, transopts);
-		// here should be check for less space for icon offsets...
-		if(but->type==MENU) okwidth -= 15;
-	}
-	else
-		but->strwidth= 0;
-
-		/* automatic width */
-	if(but->x2==0.0f && but->x1 > 0.0f) {
-		but->x2= (but->x1+but->strwidth+6); 
-	}
-
-	if(but->strwidth==0) but->drawstr[0]= 0;
-	else if(but->block->flag & UI_BLOCK_LOOP);	// no clip string, uiTextBoundsBlock is used (hack!)
-	else {
-
-		/* calc but->ofs, to draw the string shorter if too long */
-		but->ofs= 0;
-
-		while(but->strwidth > (int)okwidth ) {
 	
-			if ELEM3(but->type, NUM, NUMABS, TEX) {	// only these cut off left
-				but->ofs++;
-				but->strwidth= but->aspect*UI_GetStringWidth(but->font, but->drawstr+but->ofs, transopts);
-				
-				/* textbut exception */
-				if(but->editstr && but->pos != -1) {
-					pos= but->pos+strlen(but->str);
-					if(pos-1 < but->ofs) {
-						pos= but->ofs-pos+1;
-						but->ofs -= pos;
-						if(but->ofs<0) {
-							but->ofs= 0;
-							pos--;
-						}
-						but->drawstr[ strlen(but->drawstr)-pos ]= 0;
-					}
-				}
-			}
-			else {
-				but->drawstr[ strlen(but->drawstr)-1 ]= 0;
-				but->strwidth= but->aspect*UI_GetStringWidth(but->font, but->drawstr, transopts);
-			}
-			
-			if(but->strwidth < 10) break;
-		}
-	}
+	/* text clipping moved to widget drawing code itself */
 }
 
 static int ui_auto_themecol(uiBut *but)

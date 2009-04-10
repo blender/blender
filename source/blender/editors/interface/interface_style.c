@@ -92,17 +92,26 @@ static uiStyle *ui_style_new(ListBase *styles, const char *name)
 	
 	style->paneltitle.uifont_id= UIFONT_DEFAULT;
 	style->paneltitle.points= 14;
-	style->paneltitle.shadow= 3;
+	style->paneltitle.shadow= 5;
+	style->paneltitle.shadx= 2;
+	style->paneltitle.shady= -2;
 	style->paneltitle.shadowalpha= 0.25f;
+	style->paneltitle.shadowcolor= 0.0f;
 	
 	style->grouplabel.uifont_id= UIFONT_DEFAULT;
 	style->grouplabel.points= 12;
-	style->paneltitle.shadow= 3;
+	style->grouplabel.shadow= 3;
+	style->grouplabel.shadx= 1;
+	style->grouplabel.shady= -1;
 	style->grouplabel.shadowalpha= 0.25f;
 	
 	style->widgetlabel.uifont_id= UIFONT_DEFAULT;
 	style->widgetlabel.points= 11;
-	style->widgetlabel.shadowalpha= 0.25f;
+	style->widgetlabel.shadow= 3;
+	style->widgetlabel.shadx= 1;
+	style->widgetlabel.shady= -1;
+	style->widgetlabel.shadowalpha= 0.3f;
+	style->widgetlabel.shadowcolor= 1.0f;
 	
 	style->widget.uifont_id= UIFONT_DEFAULT;
 	style->widget.points= 11;
@@ -125,24 +134,85 @@ static uiFont *uifont_to_blfont(int id)
 
 /* *************** draw ************************ */
 
-void uiFontStyleDraw(uiFontStyle *fs, rcti *rect, char *str)
+
+static void ui_font_shadow5_draw(uiFontStyle *fs, int x, int y, char *str)
 {
-	uiFont *font= uifont_to_blfont(fs->uifont_id);
+	float soft[25]= {
+		1/60.0f, 1/60.0f, 2/60.0f, 1/60.0f, 1/60.0f, 
+		1/60.0f, 3/60.0f, 5/60.0f, 3/60.0f, 1/60.0f, 
+		2/60.0f, 5/60.0f, 8/60.0f, 5/60.0f, 2/60.0f, 
+		1/60.0f, 3/60.0f, 5/60.0f, 3/60.0f, 1/60.0f, 
+		1/60.0f, 1/60.0f, 2/60.0f, 1/60.0f, 1/60.0f};
+	
+	float color[4], *fp= soft;
+	int dx, dy;
+	
+	glGetFloatv(GL_CURRENT_COLOR, color);
+	
+	x+= fs->shadx;
+	y+= fs->shady;
+	
+	for(dx=-2; dx<3; dx++) {
+		for(dy=-2; dy<3; dy++, fp++) {
+			glColor4f(fs->shadowcolor, fs->shadowcolor, fs->shadowcolor, fp[0]*fs->shadowalpha);
+			BLF_position(x+dx, y+dy, 0.0f);
+			BLF_draw(str);
+		}
+	}
+	
+	glColor4fv(color);
+}
+
+static void ui_font_shadow3_draw(uiFontStyle *fs, int x, int y, char *str)
+{
+	float soft[9]= {1/16.0f, 2/16.0f, 1/16.0f, 2/16.0f, 4/16.0f, 2/16.0f, 1/16.0f, 2/16.0f, 1/16.0f};
+	float color[4], *fp= soft;
+	int dx, dy;
+	
+	glGetFloatv(GL_CURRENT_COLOR, color);
+	
+	x+= fs->shadx;
+	y+= fs->shady;
+	
+	for(dx=-1; dx<2; dx++) {
+		for(dy=-1; dy<2; dy++, fp++) {
+			glColor4f(fs->shadowcolor, fs->shadowcolor, fs->shadowcolor, fp[0]*fs->shadowalpha);
+			BLF_position(x+dx, y+dy, 0.0f);
+			BLF_draw(str);
+		}
+	}
+	
+	glColor4fv(color);
+}
+
+void uiStyleFontDraw(uiFontStyle *fs, rcti *rect, char *str)
+{
 	float height;
 	int xofs=0, yofs;
 	
-	BLF_set(font->blf_id);
-	BLF_size(fs->points, U.dpi);
+	uiStyleFontSet(fs);
 	
 	height= BLF_height("A");
 	yofs= floor( 0.5f*(rect->ymax - rect->ymin - height));
 
 	if(fs->align==UI_STYLE_TEXT_CENTER)
 		xofs= floor( 0.5f*(rect->xmax - rect->xmin - BLF_width(str)));
+	else if(fs->align==UI_STYLE_TEXT_RIGHT)
+		xofs= rect->xmax - rect->xmin - BLF_width(str);
+	
+	/* clip is very strict, so we give it some space */
+	BLF_clipping(rect->xmin-4, rect->ymin-4, rect->xmax+4, rect->ymax+4);
+	BLF_enable(BLF_CLIPPING);
+	
+	if(fs->shadow==3) 
+		ui_font_shadow3_draw(fs, rect->xmin+xofs, rect->ymin+yofs, str);
+	else if(fs->shadow==5) 
+		ui_font_shadow5_draw(fs, rect->xmin+xofs, rect->ymin+yofs, str);
 	
 	BLF_position(rect->xmin+xofs, rect->ymin+yofs, 0.0f);
-	
 	BLF_draw(str);
+
+	BLF_disable(BLF_CLIPPING);
 }
 
 
@@ -200,3 +270,12 @@ void uiStyleExit(void)
 	BLI_freelistN(&U.uistyles);
 	
 }
+
+void uiStyleFontSet(uiFontStyle *fs)
+{
+	uiFont *font= uifont_to_blfont(fs->uifont_id);
+	
+	BLF_set(font->blf_id);
+	BLF_size(fs->points, U.dpi);
+}
+

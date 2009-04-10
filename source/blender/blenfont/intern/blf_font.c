@@ -154,9 +154,8 @@ void blf_font_draw(FontBLF *font, char *str)
 			pen_x += delta.x >> 6;
 		}
 
-		/* This only return zero if the clipping is enable and the glyph is out of the clip rctf. */
-		if (blf_glyph_render(font, g, (float)pen_x, (float)pen_y) == 0)
-			break;
+		/* do not return this loop if clipped, we want every character tested */
+		blf_glyph_render(font, g, (float)pen_x, (float)pen_y);
 
 		pen_x += g->advance;
 		g_prev= g;

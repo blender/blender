@@ -570,7 +570,7 @@ static void ui_draw_panel_header_style(ARegion *ar, uiStyle *style, Panel *panel
 		hrect.ymin= rect->ymax;
 		hrect.xmax= rect->xmax;
 		hrect.ymax= rect->ymax + PNL_HEADER;
-		uiFontStyleDraw(&style->paneltitle, &hrect, activename);
+		uiStyleFontDraw(&style->paneltitle, &hrect, activename);
 		
 		return;
 	}
@@ -591,16 +591,15 @@ static void ui_draw_panel_header_style(ARegion *ar, uiStyle *style, Panel *panel
 			hrect.ymin= rect->ymax;
 			hrect.xmax= hrect.xmin + width;
 			hrect.ymax= hrect.ymin + PNL_HEADER;
-			uiFontStyleDraw(&style->paneltitle, &hrect, panelname);
+			uiStyleFontDraw(&style->paneltitle, &hrect, panelname);
 			
 			a++;
 		}
 	}
 }
 
-void ui_draw_panel(ARegion *ar, uiBlock *block, rcti *rect)
+void ui_draw_panel(ARegion *ar, uiStyle *style, uiBlock *block, rcti *rect)
 {
-	uiStyle *style= U.uistyles.first;	// XXX pass on
 	Panel *panel= block->panel, *prev;
 	int ofsx;
 	

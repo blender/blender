@@ -46,19 +46,15 @@
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
+#include "BLF_api.h"
+
 #include "UI_interface.h"
 #include "UI_interface_icons.h"
 #include "UI_resources.h"
-#include "UI_text.h"
 #include "UI_view2d.h"
 
 #include "ED_util.h"
 #include "ED_types.h"
-
-#include "BMF_Api.h"
-#ifdef INTERNATIONAL
-#include "FTF_Api.h"
-#endif
 
 #include "interface_intern.h"
 
@@ -134,7 +130,7 @@ typedef struct uiWidgetType {
 	void (*state)(struct uiWidgetType *, int state);
 	void (*draw)(uiWidgetColors *, rcti *, int state, int roundboxalign);
 	void (*custom)(uiBut *, uiWidgetColors *, rcti *, int state, int roundboxalign);
-	void (*text)(uiStyle *style, uiBut *, rcti *, float *col);
+	void (*text)(uiFontStyle *, uiBut *, rcti *, float *col);
 	
 } uiWidgetType;
 
@@ -700,9 +696,42 @@ static void widget_draw_icon(uiBut *but, BIFIconID icon, int blend, rcti *rect)
 	glDisable(GL_BLEND);
 }
 
+/* sets but->ofs to make sure text is correctly visible */
+static void ui_text_leftclip(uiFontStyle *fstyle, uiBut *but, rcti *rect)
+{
+	int okwidth= rect->xmax-rect->xmin;
+	
+	/* need to set this first */
+	uiStyleFontSet(fstyle);
 
+	but->strwidth= BLF_width(but->drawstr);
+	but->ofs= 0;
+	
+	while(but->strwidth > okwidth ) {
+		
+		but->ofs++;
+		but->strwidth= BLF_width(but->drawstr+but->ofs);
+		
+		/* textbut exception */
+		if(but->editstr && but->pos != -1) {
+			int pos= but->pos+strlen(but->str);
+			
+			if(pos-1 < but->ofs) {
+				pos= but->ofs-pos+1;
+				but->ofs -= pos;
+				if(but->ofs<0) {
+					but->ofs= 0;
+					pos--;
+				}
+				but->drawstr[ strlen(but->drawstr)-pos ]= 0;
+			}
+		}
+		
+		if(but->strwidth < 10) break;
+	}
+}
 
-static void widget_draw_text(uiStyle *style, uiBut *but, rcti *rect)
+static void widget_draw_text(uiFontStyle *fstyle, uiBut *but, rcti *rect)
 {
 //	int transopts;
 	char *cpoin;
@@ -715,30 +744,35 @@ static void widget_draw_text(uiStyle *style, uiBut *but, rcti *rect)
 	cpoin= strchr(but->drawstr, '|');
 	if(cpoin) *cpoin= 0;		
 	
-	if(but->flag & UI_TEXT_LEFT)
-		style->widget.align= UI_STYLE_TEXT_LEFT;
+	if(but->editstr || (but->flag & UI_TEXT_LEFT))
+		fstyle->align= UI_STYLE_TEXT_LEFT;
 	else
-		style->widget.align= UI_STYLE_TEXT_CENTER;			
+		fstyle->align= UI_STYLE_TEXT_CENTER;			
 	
-	// XXX finish cutting
-	uiFontStyleDraw(&style->widget, rect, but->drawstr+but->ofs);
+	uiStyleFontDraw(fstyle, rect, but->drawstr+but->ofs);
 
-		/* part text right aligned */
+	/* part text right aligned */
 	if(cpoin) {
-//		int len= UI_GetStringWidth(but->font, cpoin+1, ui_translate_buttons());
-//		ui_rasterpos_safe( but->x2 - len*but->aspect-3, y, but->aspect);
-//		UI_DrawString(but->font, cpoin+1, ui_translate_buttons());
+		fstyle->align= UI_STYLE_TEXT_RIGHT;
+		rect->xmax-=5;
+		uiStyleFontDraw(fstyle, rect, cpoin+1);
 		*cpoin= '|';
 	}
 }
 
 /* draws text and icons for buttons */
-static void widget_draw_text_icon(uiStyle *style, uiBut *but, rcti *rect, float *col)
+static void widget_draw_text_icon(uiFontStyle *fstyle, uiBut *but, rcti *rect, float *col)
 {
 	short t, pos, ch;
 	short selsta_tmp, selend_tmp, selsta_draw, selwidth_draw;
 	
 	if(but==NULL) return;
+	
+	/* cutting off from left part */
+	if ELEM3(but->type, NUM, NUMABS, TEX) {	
+		ui_text_leftclip(fstyle, but, rect);
+	}
+	else but->ofs= 0;
 	
 	/* check for button text label */
 	if (but->type == ICONTEXTROW) {
@@ -758,7 +792,9 @@ static void widget_draw_text_icon(uiStyle *style, uiBut *but, rcti *rect, float 
 					ch= but->drawstr[selsta_tmp];
 					but->drawstr[selsta_tmp]= 0;
 					
-					selsta_draw = but->aspect*UI_GetStringWidth(but->font, but->drawstr+but->ofs, ui_translate_buttons()) + 3;
+					uiStyleFontSet(fstyle);
+
+					selsta_draw = BLF_width(but->drawstr+but->ofs) + 3;
 					
 					but->drawstr[selsta_tmp]= ch;
 					
@@ -766,7 +802,7 @@ static void widget_draw_text_icon(uiStyle *style, uiBut *but, rcti *rect, float 
 					ch= but->drawstr[selend_tmp];
 					but->drawstr[selend_tmp]= 0;
 					
-					selwidth_draw = but->aspect*UI_GetStringWidth(but->font, but->drawstr+but->ofs, ui_translate_buttons()) + 3;
+					selwidth_draw = BLF_width(but->drawstr+but->ofs) + 3;
 					
 					but->drawstr[selend_tmp]= ch;
 					
@@ -781,7 +817,9 @@ static void widget_draw_text_icon(uiStyle *style, uiBut *but, rcti *rect, float 
 						ch= but->drawstr[pos];
 						but->drawstr[pos]= 0;
 						
-						t= but->aspect*UI_GetStringWidth(but->font, but->drawstr+but->ofs, ui_translate_buttons()) + 3;
+						uiStyleFontSet(fstyle);
+
+						t= BLF_width(but->drawstr+but->ofs) + 3;
 						
 						but->drawstr[pos]= ch;
 					}
@@ -820,7 +858,7 @@ static void widget_draw_text_icon(uiStyle *style, uiBut *but, rcti *rect, float 
 				rect->xmin += 5;
 			
 			glColor3fv(col);
-			widget_draw_text(style, but, rect);
+			widget_draw_text(fstyle, but, rect);
 			
 		}
 		/* if there's no text label, then check to see if there's an icon only and draw it */
@@ -1487,7 +1525,7 @@ static void widget_optionbut(uiWidgetColors *wcol, rcti *rect, int state, int ro
 	widgetbase_draw(&wtb, wcol);
 	
 	/* text space */
-	rect->xmin += (rect->ymax-rect->ymin) + 8;
+	rect->xmin += (rect->ymax-rect->ymin) + delta;
 }
 
 
@@ -1694,37 +1732,16 @@ static int widget_roundbox_set(uiBut *but, rcti *rect)
 	return 15;
 }
 
-static void ui_fontscale(short *points, float aspect)
-{
-	if(aspect < 0.9f || aspect > 1.1f) {
-		float pointsf= *points;
-		
-		/* for some reason scaling fonts goes too fast compared to widget size */
-		aspect= sqrt(aspect);
-		pointsf /= aspect;
-		
-		if(aspect > 1.0)
-			*points= ceil(pointsf);
-		else
-			*points= floor(pointsf);
-	}
-}
-
 /* conversion from old to new buttons, so still messy */
-void ui_draw_but(ARegion *ar, uiBut *but, rcti *rect)
+void ui_draw_but(ARegion *ar, uiStyle *style, uiBut *but, rcti *rect)
 {
-	uiStyle style= *((uiStyle *)U.uistyles.first);	// XXX pass on as arg
 	uiWidgetType *wt= NULL;
-	
-	/* scale fonts */
-	ui_fontscale(&style.widgetlabel.points, but->block->aspect);
-	ui_fontscale(&style.widget.points, but->block->aspect);
 	
 	/* handle menus seperately */
 	if(but->dt==UI_EMBOSSP) {
 		switch (but->type) {
 			case LABEL:
-				widget_draw_text_icon(&style, but, rect, wcol_menu_back.text);
+				widget_draw_text_icon(&style->widgetlabel, but, rect, wcol_menu_back.text);
 				break;
 			case SEPR:
 				break;
@@ -1748,9 +1765,9 @@ void ui_draw_but(ARegion *ar, uiBut *but, rcti *rect)
 		switch (but->type) {
 			case LABEL:
 				if(but->block->flag & UI_BLOCK_LOOP)
-					widget_draw_text_icon(&style, but, rect, wcol_menu_back.text);
+					widget_draw_text_icon(&style->widgetlabel, but, rect, wcol_menu_back.text);
 				else
-					widget_draw_text_icon(&style, but, rect, wcol_regular.text);
+					widget_draw_text_icon(&style->widgetlabel, but, rect, wcol_regular.text);
 				break;
 			case SEPR:
 				break;
@@ -1830,14 +1847,14 @@ void ui_draw_but(ARegion *ar, uiBut *but, rcti *rect)
 			wt->custom(but, &wt->wcol, rect, state, roundboxalign);
 		else if(wt->draw)
 			wt->draw(&wt->wcol, rect, state, roundboxalign);
-		wt->text(&style, but, rect, wt->wcol.text);
+		wt->text(&style->widget, but, rect, wt->wcol.text);
 		
 		if(state & UI_BUT_DISABLED)
 			widget_disabled(rect);
 	}
 }
 
-void ui_draw_menu_back(uiBlock *block, rcti *rect)
+void ui_draw_menu_back(uiStyle *style, uiBlock *block, rcti *rect)
 {
 	uiWidgetType *wt= widget_type(UI_WTYPE_MENU_BACK);
 	

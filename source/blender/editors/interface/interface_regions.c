@@ -789,14 +789,13 @@ uiBlock *ui_block_func_MENU(bContext *C, uiPopupBlockHandle *handle, void *arg_b
 	
 	if(md->title) {
 		uiBut *bt;
-		uiSetCurFont(block, block->font+1);
+
 		if (md->titleicon) {
 			bt= uiDefIconTextBut(block, LABEL, 0, md->titleicon, md->title, startx, (short)(starty+rows*boxh), (short)width, (short)boxh, NULL, 0.0, 0.0, 0, 0, "");
 		} else {
 			bt= uiDefBut(block, LABEL, 0, md->title, startx, (short)(starty+rows*boxh), (short)width, (short)boxh, NULL, 0.0, 0.0, 0, 0, "");
 			bt->flag= UI_TEXT_LEFT;
 		}
-		uiSetCurFont(block, block->font);
 	}
 
 	for(a=0; a<md->nitems; a++) {
@@ -902,9 +901,8 @@ uiBlock *ui_block_func_ICONTEXTROW(bContext *C, uiPopupBlockHandle *handle, void
 	
 	if(md->title) {
 		uiBut *bt;
-		uiSetCurFont(block, block->font+1);
+
 		bt= uiDefBut(block, LABEL, 0, md->title, 0, ypos, (short)width, 19, NULL, 0.0, 0.0, 0, 0, "");
-		uiSetCurFont(block, block->font);
 		bt->flag= UI_TEXT_LEFT;
 	}
 	
@@ -1421,7 +1419,6 @@ uiBlock *ui_block_func_PUPMENU(bContext *C, uiPopupBlockHandle *handle, void *ar
 	if(md->title) {
 		uiBut *bt;
 		char titlestr[256];
-		uiSetCurFont(block, UI_HELVB);
 
 		if(md->titleicon) {
 			width+= 20;
@@ -1432,7 +1429,6 @@ uiBlock *ui_block_func_PUPMENU(bContext *C, uiPopupBlockHandle *handle, void *ar
 			bt= uiDefBut(block, LABEL, 0, md->title, startx, (short)(starty+height), columns*width, MENU_BUTTON_HEIGHT, NULL, 0.0, 0.0, 0, 0, "");
 			bt->flag= UI_TEXT_LEFT;
 		}
-		uiSetCurFont(block, UI_HELV);
 		
 		//uiDefBut(block, SEPR, 0, "", startx, (short)(starty+height)-MENU_SEPR_HEIGHT, width, MENU_SEPR_HEIGHT, NULL, 0.0, 0.0, 0, 0, "");
 	}
@@ -1595,7 +1591,6 @@ uiBlock *ui_block_func_PUPMENUCOL(bContext *C, uiPopupBlockHandle *handle, void 
 	/* here we go! */
 	if(md->title) {
 		uiBut *bt;
-		uiSetCurFont(block, UI_HELVB);
 
 		if(md->titleicon) {
 		}
@@ -1603,7 +1598,6 @@ uiBlock *ui_block_func_PUPMENUCOL(bContext *C, uiPopupBlockHandle *handle, void 
 			bt= uiDefBut(block, LABEL, 0, md->title, startx, (short)(starty+rows*MENU_BUTTON_HEIGHT), columns*width, MENU_BUTTON_HEIGHT, NULL, 0.0, 0.0, 0, 0, "");
 			bt->flag= UI_TEXT_LEFT;
 		}
-		uiSetCurFont(block, UI_HELV);
 	}
 
 	for(a=0; a<md->nitems; a++) {
@@ -1782,7 +1776,6 @@ static uiBlock *ui_block_func_MENU_ITEM(bContext *C, uiPopupBlockHandle *handle,
 	/* here we go! */
 	if(head->name[0]) {
 		char titlestr[256];
-		uiSetCurFont(block, UI_HELVB);
 		
 		if(head->icon) {
 			width+= 20;
@@ -1793,7 +1786,6 @@ static uiBlock *ui_block_func_MENU_ITEM(bContext *C, uiPopupBlockHandle *handle,
 			but= uiDefBut(block, LABEL, 0, head->name, startx, (short)(starty+height), width, MENU_BUTTON_HEIGHT, NULL, 0.0, 0.0, 0, 0, "");
 			but->flag= UI_TEXT_LEFT;
 		}
-		uiSetCurFont(block, UI_HELV);
 		
 		//uiDefBut(block, SEPR, 0, "", startx, (short)(starty+height)-MENU_SEPR_HEIGHT, width, MENU_SEPR_HEIGHT, NULL, 0.0, 0.0, 0, 0, "");
 	}

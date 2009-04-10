@@ -40,6 +40,7 @@ struct uiHandleButtonData;
 struct wmEvent;
 struct wmWindow;
 struct uiFontStyle;
+struct uiStyle;
 
 /* ****************** general defines ************** */
 
@@ -362,7 +363,7 @@ void autocomplete_end(struct AutoComplete *autocpl, char *autoname);
 
 /* interface_panel.c */
 extern int ui_handler_panel_region(struct bContext *C, struct wmEvent *event);
-extern void ui_draw_panel(struct ARegion *ar, uiBlock *block, rcti *rect);
+extern void ui_draw_panel(struct ARegion *ar, struct uiStyle *style, uiBlock *block, rcti *rect);
 
 /* interface_draw.c */
 extern void ui_rasterpos_safe(float x, float y, float aspect);
@@ -382,12 +383,13 @@ extern void ui_button_active_cancel(const struct bContext *C, uiBut *but);
 
 /* interface_widgets.c */
 void ui_draw_anti_tria(float x1, float y1, float x2, float y2, float x3, float y3);
-void ui_draw_menu_back(uiBlock *block, rcti *rect);
-extern void ui_draw_but(ARegion *ar, uiBut *but, rcti *rect);
+void ui_draw_menu_back(struct uiStyle *style, uiBlock *block, rcti *rect);
+extern void ui_draw_but(ARegion *ar, struct uiStyle *style, uiBut *but, rcti *rect);
 
 /* interface_style.c */
 void uiStyleInit(void);
 void uiStyleExit(void);
+
 
 /* interface_anim.c */
 void ui_but_anim_flag(uiBut *but, float cfra);

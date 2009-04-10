@@ -71,7 +71,7 @@ typedef struct uiFontStyle {
 	short shadx, shady;		/* shadow offset in pixels */
 	short align;			/* text align hint */
 	float shadowalpha;		/* total alpha */
-	float padf;
+	float shadowcolor;		/* 1 value, typically white or black anyway */
 	
 } uiFontStyle;
 

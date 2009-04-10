@@ -635,7 +635,8 @@ void uiRegionHeaderLayout(const struct bContext *C, struct ARegion *ar);
 void uiAnimContextProperty(const struct bContext *C, struct PointerRNA *ptr, struct PropertyRNA **prop, int *index);
 
 /* Styled text draw */
-void uiFontStyleDraw(struct uiFontStyle *fs, struct rcti *rect, char *str);
+void uiStyleFontSet(struct uiFontStyle *fs);
+void uiStyleFontDraw(struct uiFontStyle *fs, struct rcti *rect, char *str);
 
 
 
