@@ -244,7 +244,7 @@ int KX_PolygonMaterial::py_setattro(PyObject *attr, PyObject *value)
 KX_PYMETHODDEF_DOC(KX_PolygonMaterial, setCustomMaterial, "setCustomMaterial(material)")
 {
 	PyObject *material;
-	if (PyArg_ParseTuple(args, "O", &material))
+	if (PyArg_ParseTuple(args, "O:setCustomMaterial", &material))
 	{
 		if (m_pymaterial) {
 			Py_DECREF(m_pymaterial);
@@ -260,7 +260,7 @@ KX_PYMETHODDEF_DOC(KX_PolygonMaterial, setCustomMaterial, "setCustomMaterial(mat
 KX_PYMETHODDEF_DOC(KX_PolygonMaterial, updateTexture, "updateTexture(tface, rasty)")
 {
 	PyObject *pyrasty, *pytface;
-	if (PyArg_ParseTuple(args, "O!O!", &PyCObject_Type, &pytface, &PyCObject_Type, &pyrasty))
+	if (PyArg_ParseTuple(args, "O!O!:updateTexture", &PyCObject_Type, &pytface, &PyCObject_Type, &pyrasty))
 	{
 		MTFace *tface = (MTFace*) PyCObject_AsVoidPtr(pytface);
 		RAS_IRasterizer *rasty = (RAS_IRasterizer*) PyCObject_AsVoidPtr(pyrasty);
@@ -276,7 +276,7 @@ KX_PYMETHODDEF_DOC(KX_PolygonMaterial, updateTexture, "updateTexture(tface, rast
 KX_PYMETHODDEF_DOC(KX_PolygonMaterial, setTexture, "setTexture(tface)")
 {
 	PyObject *pytface;
-	if (PyArg_ParseTuple(args, "O!", &PyCObject_Type, &pytface))
+	if (PyArg_ParseTuple(args, "O!:setTexture", &PyCObject_Type, &pytface))
 	{
 		MTFace *tface = (MTFace*) PyCObject_AsVoidPtr(pytface);
 		GPU_set_tpage(tface);
@@ -289,7 +289,7 @@ KX_PYMETHODDEF_DOC(KX_PolygonMaterial, setTexture, "setTexture(tface)")
 KX_PYMETHODDEF_DOC(KX_PolygonMaterial, activate, "activate(rasty, cachingInfo)")
 {
 	PyObject *pyrasty, *pyCachingInfo;
-	if (PyArg_ParseTuple(args, "O!O!", &PyCObject_Type, &pyrasty, &PyCObject_Type, &pyCachingInfo))
+	if (PyArg_ParseTuple(args, "O!O!:activate", &PyCObject_Type, &pyrasty, &PyCObject_Type, &pyCachingInfo))
 	{
 		RAS_IRasterizer *rasty = static_cast<RAS_IRasterizer*>(PyCObject_AsVoidPtr(pyrasty));
 		TCachingInfo *cachingInfo = static_cast<TCachingInfo*>(PyCObject_AsVoidPtr(pyCachingInfo));

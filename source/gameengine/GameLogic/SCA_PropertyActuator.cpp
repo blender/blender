@@ -279,7 +279,7 @@ PyObject* SCA_PropertyActuator::PySetProperty(PyObject* self, PyObject* args, Py
 	ShowDeprecationWarning("setProperty()", "the 'property' property");
 	/* Check whether the name exists first ! */
 	char *nameArg;
-	if (!PyArg_ParseTuple(args, "s", &nameArg)) {
+	if (!PyArg_ParseTuple(args, "s:setProperty", &nameArg)) {
 		return NULL;
 	}
 
@@ -316,7 +316,7 @@ PyObject* SCA_PropertyActuator::PySetValue(PyObject* self, PyObject* args, PyObj
 {
 	ShowDeprecationWarning("setValue()", "the value property");
 	char *valArg;
-	if(!PyArg_ParseTuple(args, "s", &valArg)) {
+	if(!PyArg_ParseTuple(args, "s:setValue", &valArg)) {
 		return NULL;		
 	}
 	

@@ -551,7 +551,7 @@ PyObject* KX_TrackToActuator::PyGetObject(PyObject* self, PyObject* args)
 	
 	ShowDeprecationWarning("getObject()", "the object property");
 	
-	if (!PyArg_ParseTuple(args, "|i", &ret_name_only))
+	if (!PyArg_ParseTuple(args, "|i:getObject", &ret_name_only))
 		return NULL;
 	
 	if (!m_object)
@@ -575,7 +575,7 @@ PyObject* KX_TrackToActuator::PySetTime(PyObject* self, PyObject* args, PyObject
 	ShowDeprecationWarning("setTime()", "the timer property");
 	int timeArg;
 	
-	if (!PyArg_ParseTuple(args, "i", &timeArg))
+	if (!PyArg_ParseTuple(args, "i:setTime", &timeArg))
 	{
 		return NULL;
 	}
@@ -623,7 +623,7 @@ PyObject* KX_TrackToActuator::PySetUse3D(PyObject* self, PyObject* args, PyObjec
 	ShowDeprecationWarning("setTime()", "the use3D property");
 	int boolArg;
 	
-	if (!PyArg_ParseTuple(args, "i", &boolArg)) {
+	if (!PyArg_ParseTuple(args, "i:setUse3D", &boolArg)) {
 		return NULL;
 	}
 	

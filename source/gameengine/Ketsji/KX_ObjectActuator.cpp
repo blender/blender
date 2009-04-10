@@ -362,7 +362,7 @@ PyObject* KX_ObjectActuator::PySetForce(PyObject* self,
 {
 	float vecArg[3];
 	int bToggle = 0;
-	if (!PyArg_ParseTuple(args, "fffi", &vecArg[0], &vecArg[1], 
+	if (!PyArg_ParseTuple(args, "fffi:setForce", &vecArg[0], &vecArg[1], 
 						  &vecArg[2], &bToggle)) {
 		return NULL;
 	}
@@ -391,7 +391,7 @@ PyObject* KX_ObjectActuator::PySetTorque(PyObject* self,
 {
 	float vecArg[3];
 	int bToggle = 0;
-	if (!PyArg_ParseTuple(args, "fffi", &vecArg[0], &vecArg[1], 
+	if (!PyArg_ParseTuple(args, "fffi:setTorque", &vecArg[0], &vecArg[1], 
 						  &vecArg[2], &bToggle)) {
 		return NULL;
 	}
@@ -420,7 +420,7 @@ PyObject* KX_ObjectActuator::PySetDLoc(PyObject* self,
 {
 	float vecArg[3];
 	int bToggle = 0;
-	if(!PyArg_ParseTuple(args, "fffi", &vecArg[0], &vecArg[1], 
+	if(!PyArg_ParseTuple(args, "fffi:setDLoc", &vecArg[0], &vecArg[1], 
 						 &vecArg[2], &bToggle)) {
 		return NULL;
 	}
@@ -449,7 +449,7 @@ PyObject* KX_ObjectActuator::PySetDRot(PyObject* self,
 {
 	float vecArg[3];
 	int bToggle = 0;
-	if (!PyArg_ParseTuple(args, "fffi", &vecArg[0], &vecArg[1], 
+	if (!PyArg_ParseTuple(args, "fffi:setDRot", &vecArg[0], &vecArg[1], 
 						  &vecArg[2], &bToggle)) {
 		return NULL;
 	}
@@ -477,7 +477,7 @@ PyObject* KX_ObjectActuator::PySetLinearVelocity(PyObject* self,
 												 PyObject* kwds) {
 	float vecArg[3];
 	int bToggle = 0;
-	if (!PyArg_ParseTuple(args, "fffi", &vecArg[0], &vecArg[1], 
+	if (!PyArg_ParseTuple(args, "fffi:setLinearVelocity", &vecArg[0], &vecArg[1], 
 						  &vecArg[2], &bToggle)) {
 		return NULL;
 	}
@@ -505,7 +505,7 @@ PyObject* KX_ObjectActuator::PySetAngularVelocity(PyObject* self,
 												  PyObject* kwds) {
 	float vecArg[3];
 	int bToggle = 0;
-	if (!PyArg_ParseTuple(args, "fffi", &vecArg[0], &vecArg[1], 
+	if (!PyArg_ParseTuple(args, "fffi:setAngularVelocity", &vecArg[0], &vecArg[1], 
 						  &vecArg[2], &bToggle)) {
 		return NULL;
 	}
@@ -520,7 +520,7 @@ PyObject* KX_ObjectActuator::PySetDamping(PyObject* self,
 										  PyObject* args, 
 										  PyObject* kwds) {
 	int damping = 0;
-	if (!PyArg_ParseTuple(args, "i", &damping) || damping < 0 || damping > 1000) {
+	if (!PyArg_ParseTuple(args, "i:setDamping", &damping) || damping < 0 || damping > 1000) {
 		return NULL;
 	}
 	m_damping = damping;
@@ -549,7 +549,7 @@ PyObject* KX_ObjectActuator::PySetForceLimitX(PyObject* self,
 {
 	float vecArg[2];
 	int bToggle = 0;
-	if(!PyArg_ParseTuple(args, "ffi", &vecArg[0], &vecArg[1], &bToggle)) {
+	if(!PyArg_ParseTuple(args, "ffi:setForceLimitX", &vecArg[0], &vecArg[1], &bToggle)) {
 		return NULL;
 	}
 	m_drot[0] = vecArg[0];
@@ -576,7 +576,7 @@ PyObject* KX_ObjectActuator::PySetForceLimitY(PyObject* self,
 {
 	float vecArg[2];
 	int bToggle = 0;
-	if(!PyArg_ParseTuple(args, "ffi", &vecArg[0], &vecArg[1], &bToggle)) {
+	if(!PyArg_ParseTuple(args, "ffi:setForceLimitY", &vecArg[0], &vecArg[1], &bToggle)) {
 		return NULL;
 	}
 	m_drot[1] = vecArg[0];
@@ -603,7 +603,7 @@ PyObject* KX_ObjectActuator::PySetForceLimitZ(PyObject* self,
 {
 	float vecArg[2];
 	int bToggle = 0;
-	if(!PyArg_ParseTuple(args, "ffi", &vecArg[0], &vecArg[1], &bToggle)) {
+	if(!PyArg_ParseTuple(args, "ffi:setForceLimitZ", &vecArg[0], &vecArg[1], &bToggle)) {
 		return NULL;
 	}
 	m_drot[2] = vecArg[0];
@@ -629,7 +629,7 @@ PyObject* KX_ObjectActuator::PySetPID(PyObject* self,
 									  PyObject* kwds)
 {
 	float vecArg[3];
-	if (!PyArg_ParseTuple(args, "fff", &vecArg[0], &vecArg[1], &vecArg[2])) {
+	if (!PyArg_ParseTuple(args, "fff:setPID", &vecArg[0], &vecArg[1], &vecArg[2])) {
 		return NULL;
 	}
 	m_torque.setValue(vecArg);

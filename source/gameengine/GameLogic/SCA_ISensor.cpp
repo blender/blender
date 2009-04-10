@@ -262,7 +262,7 @@ PyObject* SCA_ISensor::PySetUsePosPulseMode(PyObject* self, PyObject* args, PyOb
 {
 	ShowDeprecationWarning("setUsePosPulseMode()", "the usePosPulseMode property");
 	int pyarg = 0;
-	if(!PyArg_ParseTuple(args, "i", &pyarg)) { return NULL; }
+	if(!PyArg_ParseTuple(args, "i:setUsePosPulseMode", &pyarg)) { return NULL; }
 	m_pos_pulsemode = PyArgToBool(pyarg);
 	Py_RETURN_NONE;
 }
@@ -292,7 +292,7 @@ PyObject* SCA_ISensor::PySetFrequency(PyObject* self, PyObject* args, PyObject* 
 	ShowDeprecationWarning("setFrequency()", "the frequency property");
 	int pulse_frequencyArg = 0;
 
-	if(!PyArg_ParseTuple(args, "i", &pulse_frequencyArg)) {
+	if(!PyArg_ParseTuple(args, "i:setFrequency", &pulse_frequencyArg)) {
 		return NULL;
 	}
 	
@@ -324,7 +324,7 @@ PyObject* SCA_ISensor::PySetInvert(PyObject* self, PyObject* args, PyObject* kwd
 {
 	ShowDeprecationWarning("setInvert()", "the invert property");
 	int pyarg = 0;
-	if(!PyArg_ParseTuple(args, "i", &pyarg)) { return NULL; }
+	if(!PyArg_ParseTuple(args, "i:setInvert", &pyarg)) { return NULL; }
 	m_invert = PyArgToBool(pyarg);
 	Py_RETURN_NONE;
 }
@@ -350,7 +350,7 @@ PyObject* SCA_ISensor::PySetLevel(PyObject* self, PyObject* args, PyObject* kwds
 {
 	ShowDeprecationWarning("setLevel()", "the level property");
 	int pyarg = 0;
-	if(!PyArg_ParseTuple(args, "i", &pyarg)) { return NULL; }
+	if(!PyArg_ParseTuple(args, "i:setLevel", &pyarg)) { return NULL; }
 	m_level = PyArgToBool(pyarg);
 	Py_RETURN_NONE;
 }
@@ -373,7 +373,7 @@ PyObject* SCA_ISensor::PySetUseNegPulseMode(PyObject* self, PyObject* args, PyOb
 {
 	ShowDeprecationWarning("setUseNegPulseMode()", "the useNegPulseMode property");
 	int pyarg = 0;
-	if(!PyArg_ParseTuple(args, "i", &pyarg)) { return NULL; }
+	if(!PyArg_ParseTuple(args, "i:setUseNegPulseMode", &pyarg)) { return NULL; }
 	m_neg_pulsemode = PyArgToBool(pyarg);
 	Py_RETURN_NONE;
 }

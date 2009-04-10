@@ -897,7 +897,7 @@ static unsigned int GL_array[11] = {
 KX_PYMETHODDEF_DOC( KX_BlenderMaterial, setBlending , "setBlending( GameLogic.src, GameLogic.dest)")
 {
 	unsigned int b[2];
-	if(PyArg_ParseTuple(args, "ii", &b[0], &b[1]))
+	if(PyArg_ParseTuple(args, "ii:setBlending", &b[0], &b[1]))
 	{
 		bool value_found[2] = {false, false};
 		for(int i=0; i<11; i++)

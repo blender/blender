@@ -440,7 +440,7 @@ PyObject* KX_CameraActuator::PyGetObject(PyObject* self, PyObject* args)
 	
 	ShowDeprecationWarning("getObject()", "the object property");
 	
-	if (!PyArg_ParseTuple(args, "|i", &ret_name_only))
+	if (!PyArg_ParseTuple(args, "|i:getObject", &ret_name_only))
 		return NULL;
 	
 	if (!m_ob)
@@ -496,7 +496,7 @@ PyObject* KX_CameraActuator::PySetMin(PyObject* self,
 {
 	ShowDeprecationWarning("setMin()", "the min property");
 	float min;
-	if(PyArg_ParseTuple(args,"f", &min))
+	if(PyArg_ParseTuple(args,"f:setMin", &min))
 	{
 		m_minHeight = min;
 		Py_RETURN_NONE;
@@ -524,7 +524,7 @@ PyObject* KX_CameraActuator::PySetMax(PyObject* self,
 {
 	ShowDeprecationWarning("getMax()", "the max property");
 	float max;
-	if(PyArg_ParseTuple(args,"f", &max))
+	if(PyArg_ParseTuple(args,"f:setMax", &max))
 	{
 		m_maxHeight = max;
 		Py_RETURN_NONE;
@@ -552,7 +552,7 @@ PyObject* KX_CameraActuator::PySetHeight(PyObject* self,
 {
 	ShowDeprecationWarning("getHeight()", "the height property");
 	float height;
-	if(PyArg_ParseTuple(args,"f", &height))
+	if(PyArg_ParseTuple(args,"f:setHeight", &height))
 	{
 		m_height = height;
 		Py_RETURN_NONE;
@@ -570,7 +570,7 @@ PyObject* KX_CameraActuator::PySetXY(PyObject* self,
 {
 	ShowDeprecationWarning("setXY()", "the xy property");
 	int value;
-	if(PyArg_ParseTuple(args,"i", &value))
+	if(PyArg_ParseTuple(args,"i:setXY", &value))
 	{
 		m_x = value != 0;
 		Py_RETURN_NONE;

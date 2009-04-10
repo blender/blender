@@ -171,7 +171,7 @@ PyObject* KX_NetworkMessageActuator::PySetToPropName(
 	ShowDeprecationWarning("setToProp()", "the propName property");
     char* ToPropName;
 
-	if (PyArg_ParseTuple(args, "s", &ToPropName)) {
+	if (PyArg_ParseTuple(args, "s:setToPropName", &ToPropName)) {
 	     m_toPropName = ToPropName;
 	}
 	else {
@@ -190,7 +190,7 @@ PyObject* KX_NetworkMessageActuator::PySetSubject(
 	ShowDeprecationWarning("setSubject()", "the subject property");
     char* Subject;
 
-	if (PyArg_ParseTuple(args, "s", &Subject)) {
+	if (PyArg_ParseTuple(args, "s:setSubject", &Subject)) {
 	     m_subject = Subject;
 	}
 	else {
@@ -209,7 +209,7 @@ PyObject* KX_NetworkMessageActuator::PySetBodyType(
 	ShowDeprecationWarning("setBodyType()", "the usePropBody property");
     int BodyType;
 
-	if (PyArg_ParseTuple(args, "i", &BodyType)) {
+	if (PyArg_ParseTuple(args, "i:setBodyType", &BodyType)) {
 		m_bPropBody = (BodyType != 0);
 	}
 	else {
@@ -228,7 +228,7 @@ PyObject* KX_NetworkMessageActuator::PySetBody(
 	ShowDeprecationWarning("setBody()", "the body property");
     char* Body;
 
-	if (PyArg_ParseTuple(args, "s", &Body)) {
+	if (PyArg_ParseTuple(args, "s:setBody", &Body)) {
 	     m_body = Body;
 	}
 	else {

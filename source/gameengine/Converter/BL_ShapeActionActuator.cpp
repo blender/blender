@@ -610,7 +610,7 @@ PyObject* BL_ShapeActionActuator::PySetAction(PyObject* self,
 	char *string;
 	int	reset = 1;
 
-	if (PyArg_ParseTuple(args,"s|i",&string, &reset))
+	if (PyArg_ParseTuple(args,"s|i:setAction",&string, &reset))
 	{
 		bAction *action;
 		
@@ -644,7 +644,7 @@ PyObject* BL_ShapeActionActuator::PySetStart(PyObject* self,
 	ShowDeprecationWarning("setStart()", "the start property");
 	float start;
 	
-	if (PyArg_ParseTuple(args,"f",&start))
+	if (PyArg_ParseTuple(args,"f:setStart",&start))
 	{
 		m_startframe = start;
 	}
@@ -666,7 +666,7 @@ PyObject* BL_ShapeActionActuator::PySetEnd(PyObject* self,
 	ShowDeprecationWarning("setEnd()", "the end property");
 	float end;
 	
-	if (PyArg_ParseTuple(args,"f",&end))
+	if (PyArg_ParseTuple(args,"f:setEnd",&end))
 	{
 		m_endframe = end;
 	}
@@ -689,7 +689,7 @@ PyObject* BL_ShapeActionActuator::PySetBlendin(PyObject* self,
 	ShowDeprecationWarning("setBlendin()", "the blendin property");
 	float blendin;
 	
-	if (PyArg_ParseTuple(args,"f",&blendin))
+	if (PyArg_ParseTuple(args,"f:setBlendin",&blendin))
 	{
 		m_blendin = blendin;
 	}
@@ -713,7 +713,7 @@ PyObject* BL_ShapeActionActuator::PySetBlendtime(PyObject* self,
 	ShowDeprecationWarning("setBlendtime()", "the blendTime property");
 	float blendframe;
 	
-	if (PyArg_ParseTuple(args,"f",&blendframe))
+	if (PyArg_ParseTuple(args,"f:setBlendtime",&blendframe))
 	{
 		m_blendframe = blendframe * m_blendin;
 		if (m_blendframe<0.f)
@@ -741,7 +741,7 @@ PyObject* BL_ShapeActionActuator::PySetPriority(PyObject* self,
 	ShowDeprecationWarning("setPriority()", "the priority property");
 	int priority;
 	
-	if (PyArg_ParseTuple(args,"i",&priority))
+	if (PyArg_ParseTuple(args,"i:setPriority",&priority))
 	{
 		m_priority = priority;
 	}
@@ -778,7 +778,7 @@ PyObject* BL_ShapeActionActuator::PySetFrame(PyObject* self,
 	ShowDeprecationWarning("setFrame()", "the frame property");
 	float frame;
 	
-	if (PyArg_ParseTuple(args,"f",&frame))
+	if (PyArg_ParseTuple(args,"f:setFrame",&frame))
 	{
 		m_localtime = frame;
 		if (m_localtime<m_startframe)
@@ -805,7 +805,7 @@ PyObject* BL_ShapeActionActuator::PySetProperty(PyObject* self,
 	ShowDeprecationWarning("setProperty()", "the property property");
 	char *string;
 	
-	if (PyArg_ParseTuple(args,"s",&string))
+	if (PyArg_ParseTuple(args,"s:setProperty",&string))
 	{
 		m_propname = string;
 	}
@@ -827,7 +827,7 @@ PyObject* BL_ShapeActionActuator::PySetFrameProperty(PyObject* self,
 	ShowDeprecationWarning("setFrameProperty()", "the frameProperty property");
 	char *string;
 	
-	if (PyArg_ParseTuple(args,"s",&string))
+	if (PyArg_ParseTuple(args,"s:setFrameProperty",&string))
 	{
 		m_framepropname = string;
 	}
@@ -858,7 +858,7 @@ PyObject* BL_ShapeActionActuator::PySetType(PyObject* self,
 	ShowDeprecationWarning("setType()", "the type property");
 	short typeArg;
                                                                                                              
-    if (!PyArg_ParseTuple(args, "h", &typeArg)) {
+    if (!PyArg_ParseTuple(args, "h:setType", &typeArg)) {
         return NULL;
     }
 

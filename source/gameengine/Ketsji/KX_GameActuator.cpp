@@ -286,7 +286,7 @@ PyObject* KX_GameActuator::PySetFile(PyObject* self, PyObject* args, PyObject* k
 
 	ShowDeprecationWarning("setFile()", "the file property");
 	
-	if (!PyArg_ParseTuple(args, "s", &new_file))
+	if (!PyArg_ParseTuple(args, "s:setFile", &new_file))
 	{
 		return NULL;
 	}

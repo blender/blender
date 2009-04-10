@@ -205,7 +205,7 @@ PyObject* SCA_PythonController::sPyAddActiveActuator(
 	
 	PyObject* ob1;
 	int activate;
-	if (!PyArg_ParseTuple(args, "Oi", &ob1,&activate))
+	if (!PyArg_ParseTuple(args, "Oi:addActiveActuator", &ob1,&activate))
 		return NULL;
 	
 	SCA_IActuator* actu = LinkedActuatorFromPy(ob1);

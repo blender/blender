@@ -428,7 +428,7 @@ PyObject* SCA_KeyboardSensor::PySetKey(PyObject* self, PyObject* args, PyObject*
 	ShowDeprecationWarning("setKey()", "the key property");
 	int keyCode;
 	
-	if(!PyArg_ParseTuple(args, "i", &keyCode)) {
+	if(!PyArg_ParseTuple(args, "i:setKey", &keyCode)) {
 		return NULL;
 	}
 
@@ -460,7 +460,7 @@ PyObject* SCA_KeyboardSensor::PySetHold1(PyObject* self, PyObject* args, PyObjec
 	ShowDeprecationWarning("setHold1()", "the hold1 property");
 	int keyCode;
 
-	if(!PyArg_ParseTuple(args, "i", &keyCode)) {
+	if(!PyArg_ParseTuple(args, "i:setHold1", &keyCode)) {
 		return NULL;
 	}
 	
@@ -492,7 +492,7 @@ PyObject* SCA_KeyboardSensor::PySetHold2(PyObject* self, PyObject* args, PyObjec
 	ShowDeprecationWarning("setHold2()", "the hold2 property");
 	int keyCode;
 
-	if(!PyArg_ParseTuple(args, "i", &keyCode)) {
+	if(!PyArg_ParseTuple(args, "i:setHold2", &keyCode)) {
 		return NULL;
 	}
 	

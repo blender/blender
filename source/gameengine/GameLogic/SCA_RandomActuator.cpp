@@ -410,7 +410,7 @@ const char SCA_RandomActuator::SetSeed_doc[] =
 PyObject* SCA_RandomActuator::PySetSeed(PyObject* self, PyObject* args, PyObject* kwds) {
 	ShowDeprecationWarning("setSeed()", "the seed property");
 	long seedArg;
-	if(!PyArg_ParseTuple(args, "i", &seedArg)) {
+	if(!PyArg_ParseTuple(args, "i:setSeed", &seedArg)) {
 		return NULL;
 	}
 	
@@ -468,7 +468,7 @@ const char SCA_RandomActuator::SetProperty_doc[] =
 PyObject* SCA_RandomActuator::PySetProperty(PyObject* self, PyObject* args, PyObject* kwds) {
 	ShowDeprecationWarning("setProperty()", "the 'property' property");
 	char *nameArg;
-	if (!PyArg_ParseTuple(args, "s", &nameArg)) {
+	if (!PyArg_ParseTuple(args, "s:setProperty", &nameArg)) {
 		return NULL;
 	}
 
@@ -500,7 +500,7 @@ KX_PYMETHODDEF_DOC_VARARGS(SCA_RandomActuator, setBoolConst,
 "\tSet this generator to produce a constant boolean value.\n") 
 {
 	int paraArg;
-	if(!PyArg_ParseTuple(args, "i", &paraArg)) {
+	if(!PyArg_ParseTuple(args, "i:setBoolConst", &paraArg)) {
 		return NULL;
 	}
 	
@@ -526,7 +526,7 @@ KX_PYMETHODDEF_DOC_VARARGS(SCA_RandomActuator, setBoolBernouilli,
 "\tReturn false value * 100%% of the time.\n")
 {
 	float paraArg;
-	if(!PyArg_ParseTuple(args, "f", &paraArg)) {
+	if(!PyArg_ParseTuple(args, "f:setBoolBernouilli", &paraArg)) {
 		return NULL;
 	}
 	
@@ -542,7 +542,7 @@ KX_PYMETHODDEF_DOC_VARARGS(SCA_RandomActuator, setIntConst,
 "\tAlways return value\n") 
 {
 	int paraArg;
-	if(!PyArg_ParseTuple(args, "i", &paraArg)) {
+	if(!PyArg_ParseTuple(args, "i:setIntConst", &paraArg)) {
 		return NULL;
 	}
 	
@@ -560,7 +560,7 @@ KX_PYMETHODDEF_DOC_VARARGS(SCA_RandomActuator, setIntUniform,
 "\tupper_bound. The boundaries are included.\n")
 {
 	int paraArg1, paraArg2;
-	if(!PyArg_ParseTuple(args, "ii", &paraArg1, &paraArg2)) {
+	if(!PyArg_ParseTuple(args, "ii:setIntUniform", &paraArg1, &paraArg2)) {
 		return NULL;
 	}
 	
@@ -579,7 +579,7 @@ KX_PYMETHODDEF_DOC_VARARGS(SCA_RandomActuator, setIntPoisson,
 "\tnumber of tries needed to achieve succes.\n")
 {
 	float paraArg;
-	if(!PyArg_ParseTuple(args, "f", &paraArg)) {
+	if(!PyArg_ParseTuple(args, "f:setIntPoisson", &paraArg)) {
 		return NULL;
 	}
 	
@@ -595,7 +595,7 @@ KX_PYMETHODDEF_DOC_VARARGS(SCA_RandomActuator, setFloatConst,
 "\tAlways return value\n")
 {
 	float paraArg;
-	if(!PyArg_ParseTuple(args, "f", &paraArg)) {
+	if(!PyArg_ParseTuple(args, "f:setFloatConst", &paraArg)) {
 		return NULL;
 	}
 	
@@ -613,7 +613,7 @@ KX_PYMETHODDEF_DOC_VARARGS(SCA_RandomActuator, setFloatUniform,
 "\tupper_bound.\n")
 {
 	float paraArg1, paraArg2;
-	if(!PyArg_ParseTuple(args, "ff", &paraArg1, &paraArg2)) {
+	if(!PyArg_ParseTuple(args, "ff:setFloatUniform", &paraArg1, &paraArg2)) {
 		return NULL;
 	}
 	
@@ -632,7 +632,7 @@ KX_PYMETHODDEF_DOC_VARARGS(SCA_RandomActuator, setFloatNormal,
 "\tdeviation from the mean is characterized by standard_deviation.\n")
 {
 	float paraArg1, paraArg2;
-	if(!PyArg_ParseTuple(args, "ff", &paraArg1, &paraArg2)) {
+	if(!PyArg_ParseTuple(args, "ff:setFloatNormal", &paraArg1, &paraArg2)) {
 		return NULL;
 	}
 	
@@ -650,7 +650,7 @@ KX_PYMETHODDEF_DOC_VARARGS(SCA_RandomActuator, setFloatNegativeExponential,
 "\tis characterized by half_life.\n")
 {
 	float paraArg;
-	if(!PyArg_ParseTuple(args, "f", &paraArg)) {
+	if(!PyArg_ParseTuple(args, "f:setFloatNegativeExponential", &paraArg)) {
 		return NULL;
 	}
 	

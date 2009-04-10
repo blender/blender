@@ -389,7 +389,7 @@ PyObject* SCA_JoystickSensor::PySetAxis( PyObject* self, PyObject* args ) {
 	ShowDeprecationWarning("setAxis()", "the axis property");
 	
 	int axis,axisflag;
-	if(!PyArg_ParseTuple(args, "ii", &axis, &axisflag)){
+	if(!PyArg_ParseTuple(args, "ii:setAxis", &axis, &axisflag)){
 		return NULL;
 	}
 	m_axis = axis;
@@ -434,7 +434,7 @@ const char SCA_JoystickSensor::SetThreshold_doc[] =
 PyObject* SCA_JoystickSensor::PySetThreshold( PyObject* self, PyObject* args ) {
 	ShowDeprecationWarning("setThreshold()", "the threshold property");
 	int thresh;
-	if(!PyArg_ParseTuple(args, "i", &thresh)){
+	if(!PyArg_ParseTuple(args, "i:setThreshold", &thresh)){
 		return NULL;
 	}
 	m_precision = thresh;
@@ -504,7 +504,7 @@ PyObject* SCA_JoystickSensor::PyGetButtonStatus( PyObject* self, PyObject* args 
 	SCA_Joystick *joy = m_pJoystickMgr->GetJoystickDevice(m_joyindex);
 	int index;
 	
-	if(!PyArg_ParseTuple(args, "i", &index)){
+	if(!PyArg_ParseTuple(args, "i:getButtonStatus", &index)){
 		return NULL;
 	}
 	if(joy && index >= 0 && index < joy->GetNumberOfButtons()) {
@@ -530,7 +530,7 @@ const char SCA_JoystickSensor::SetHat_doc[] =
 PyObject* SCA_JoystickSensor::PySetHat( PyObject* self, PyObject* args ) {
 	ShowDeprecationWarning("setHat()", "the hat property");
 	int hat,hatflag;
-	if(!PyArg_ParseTuple(args, "ii", &hat, &hatflag)){
+	if(!PyArg_ParseTuple(args, "ii:setHat", &hat, &hatflag)){
 		return NULL;
 	}
 	m_hat = hat;

@@ -238,7 +238,7 @@ KX_PYMETHODDEF_DOC(KX_PolyProxy, getVertexIndex,
 "Note: getVertexIndex(3) on a triangle polygon returns 0\n")
 {
 	int index;
-	if (!PyArg_ParseTuple(args,"i",&index))
+	if (!PyArg_ParseTuple(args,"i:getVertexIndex",&index))
 	{
 		return NULL;
 	}

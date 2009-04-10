@@ -503,7 +503,7 @@ PyObject* KX_IpoActuator::PySet(PyObject* self,
 	int forceToggle;
 	int modenum;
 	int startFrame, stopFrame;
-	if(!PyArg_ParseTuple(args, "siii", &mode, &startFrame, 
+	if(!PyArg_ParseTuple(args, "siii:set", &mode, &startFrame, 
 						 &stopFrame, &forceToggle)) {
 		return NULL;
 	}
@@ -542,7 +542,7 @@ PyObject* KX_IpoActuator::PySetProperty(PyObject* self,
 	/* mode is implicit here, but not supported yet... */
 	/* args: property */
 	char *propertyName;
-	if(!PyArg_ParseTuple(args, "s", &propertyName)) {
+	if(!PyArg_ParseTuple(args, "s:setProperty", &propertyName)) {
 		return NULL;
 	}
 
@@ -563,7 +563,7 @@ PyObject* KX_IpoActuator::PySetStart(PyObject* self,
 	ShowDeprecationWarning("setStart()", "the startFrame property");
 
 	float startArg;
-	if(!PyArg_ParseTuple(args, "f", &startArg)) {
+	if(!PyArg_ParseTuple(args, "f:setStart", &startArg)) {
 		return NULL;		
 	}
 	
@@ -590,7 +590,7 @@ PyObject* KX_IpoActuator::PySetEnd(PyObject* self,
 								   PyObject* kwds) {
 	ShowDeprecationWarning("setEnd()", "the endFrame property");
 	float endArg;
-	if(!PyArg_ParseTuple(args, "f", &endArg)) {
+	if(!PyArg_ParseTuple(args, "f:setEnd", &endArg)) {
 		return NULL;		
 	}
 	
@@ -618,7 +618,7 @@ PyObject* KX_IpoActuator::PySetIpoAsForce(PyObject* self,
 	ShowDeprecationWarning("setIpoAsForce()", "the useIpoAsForce property");
 	int boolArg;
 	
-	if (!PyArg_ParseTuple(args, "i", &boolArg)) {
+	if (!PyArg_ParseTuple(args, "i:setIpoAsForce", &boolArg)) {
 		return NULL;
 	}
 
@@ -648,7 +648,7 @@ PyObject* KX_IpoActuator::PySetIpoAdd(PyObject* self,
 	ShowDeprecationWarning("setIpoAdd()", "the useIpoAdd property");
 	int boolArg;
 	
-	if (!PyArg_ParseTuple(args, "i", &boolArg)) {
+	if (!PyArg_ParseTuple(args, "i:setIpoAdd", &boolArg)) {
 		return NULL;
 	}
 
@@ -678,7 +678,7 @@ PyObject* KX_IpoActuator::PySetType(PyObject* self,
 	ShowDeprecationWarning("setType()", "the type property");
 	int typeArg;
 	
-	if (!PyArg_ParseTuple(args, "i", &typeArg)) {
+	if (!PyArg_ParseTuple(args, "i:setType", &typeArg)) {
 		return NULL;
 	}
 	
@@ -711,7 +711,7 @@ PyObject* KX_IpoActuator::PySetForceIpoActsLocal(PyObject* self,
 	ShowDeprecationWarning("setForceIpoActsLocal()", "the useIpoLocal property");
 	int boolArg;
 	
-	if (!PyArg_ParseTuple(args, "i", &boolArg)) {
+	if (!PyArg_ParseTuple(args, "i:setForceIpoActsLocal", &boolArg)) {
 		return NULL;
 	}
 

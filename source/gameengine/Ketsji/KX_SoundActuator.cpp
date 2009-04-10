@@ -620,7 +620,7 @@ PyObject* KX_SoundActuator::PySetGain(PyObject* self, PyObject* args, PyObject* 
 {
 	ShowDeprecationWarning("setGain()", "the volume property");
 	float gain = 1.0;
-	if (!PyArg_ParseTuple(args, "f", &gain))
+	if (!PyArg_ParseTuple(args, "f:setGain", &gain))
 		return NULL;
 	
 	if (m_soundObject)
@@ -646,7 +646,7 @@ PyObject* KX_SoundActuator::PySetPitch(PyObject* self, PyObject* args, PyObject*
 {
 	ShowDeprecationWarning("setPitch()", "the pitch property");
 	float pitch = 1.0;
-	if (!PyArg_ParseTuple(args, "f", &pitch))
+	if (!PyArg_ParseTuple(args, "f:setPitch", &pitch))
 		return NULL;
 	
 	if (m_soundObject)
@@ -672,7 +672,7 @@ PyObject* KX_SoundActuator::PySetRollOffFactor(PyObject* self, PyObject* args, P
 {
 	ShowDeprecationWarning("setRollOffFactor()", "the rollOffFactor property");
 	float rollofffactor = 1.0;
-	if (!PyArg_ParseTuple(args, "f", &rollofffactor))
+	if (!PyArg_ParseTuple(args, "f:setRollOffFactor", &rollofffactor))
 		return NULL;
 	
 	if (m_soundObject)
@@ -698,7 +698,7 @@ PyObject* KX_SoundActuator::PySetLooping(PyObject* self, PyObject* args, PyObjec
 {
 	ShowDeprecationWarning("setLooping()", "the looping property");
 	bool looping = 1;
-	if (!PyArg_ParseTuple(args, "i", &looping))
+	if (!PyArg_ParseTuple(args, "i:setLooping", &looping))
 		return NULL;
 	
 	if (m_soundObject)
@@ -728,7 +728,7 @@ PyObject* KX_SoundActuator::PySetPosition(PyObject* self, PyObject* args, PyObje
 	pos[1] = 0.0;
 	pos[2] = 0.0;
 
-	if (!PyArg_ParseTuple(args, "fff", &pos[0], &pos[1], &pos[2]))
+	if (!PyArg_ParseTuple(args, "fff:setPosition", &pos[0], &pos[1], &pos[2]))
 		return NULL;
 	
 	if (m_soundObject)
@@ -747,7 +747,7 @@ PyObject* KX_SoundActuator::PySetVelocity(PyObject* self, PyObject* args, PyObje
 	vel[1] = 0.0;
 	vel[2] = 0.0;
 
-	if (!PyArg_ParseTuple(args, "fff", &vel[0], &vel[1], &vel[2]))
+	if (!PyArg_ParseTuple(args, "fff:setVelocity", &vel[0], &vel[1], &vel[2]))
 		return NULL;
 	
 	if (m_soundObject)
@@ -772,7 +772,7 @@ PyObject* KX_SoundActuator::PySetOrientation(PyObject* self, PyObject* args, PyO
 	ori[2][1] = 0.0;
 	ori[2][2] = 1.0;
 
-	if (!PyArg_ParseTuple(args, "fffffffff", &ori[0][0], &ori[0][1], &ori[0][2], &ori[1][0], &ori[1][1], &ori[1][2], &ori[2][0], &ori[2][1], &ori[2][2]))
+	if (!PyArg_ParseTuple(args, "fffffffff:setOrientation", &ori[0][0], &ori[0][1], &ori[0][2], &ori[1][0], &ori[1][1], &ori[1][2], &ori[2][0], &ori[2][1], &ori[2][2]))
 		return NULL;
 	
 	if (m_soundObject)
@@ -786,7 +786,7 @@ PyObject* KX_SoundActuator::PySetType(PyObject* self, PyObject* args, PyObject* 
 	int typeArg;
 	ShowDeprecationWarning("setType()", "the type property");
 
-	if (!PyArg_ParseTuple(args, "i", &typeArg)) {
+	if (!PyArg_ParseTuple(args, "i:setType", &typeArg)) {
 		return NULL;
 	}
 

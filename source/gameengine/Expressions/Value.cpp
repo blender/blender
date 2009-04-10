@@ -830,7 +830,7 @@ PyObject*	CValue::ConvertKeysToPython( void )
 PyObject*	CValue::PyMake(PyObject* ignored,PyObject* args)
 {
 
-	//if (!PyArg_ParseTuple(args,"s",&name)) return NULL;
+	//if (!PyArg_ParseTuple(args,"s:make",&name)) return NULL;
 	Py_RETURN_NONE;//new CValue();
 }
 */

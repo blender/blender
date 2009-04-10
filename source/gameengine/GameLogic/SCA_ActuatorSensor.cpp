@@ -204,7 +204,7 @@ PyObject* SCA_ActuatorSensor::PySetActuator(PyObject* self, PyObject* args, PyOb
 	/* on the fly?                                                           */
 	char *actNameArg = NULL;
 
-	if (!PyArg_ParseTuple(args, "s", &actNameArg)) {
+	if (!PyArg_ParseTuple(args, "s:setActuator", &actNameArg)) {
 		return NULL;
 	}
 

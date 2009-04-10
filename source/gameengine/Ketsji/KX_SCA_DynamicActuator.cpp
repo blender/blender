@@ -116,7 +116,7 @@ KX_PYMETHODDEF_DOC(KX_SCA_DynamicActuator, setOperation,
 	ShowDeprecationWarning("setOperation()", "the operation property");
 	int dyn_operation;
 	
-	if (!PyArg_ParseTuple(args, "i", &dyn_operation))
+	if (!PyArg_ParseTuple(args, "i:setOperation", &dyn_operation))
 	{
 		return NULL;	
 	}

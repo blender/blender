@@ -312,7 +312,7 @@ PyObject* SCA_ILogicBrick::PySetExecutePriority(PyObject* self,
 
 	int priority=0;
 
-    if (!PyArg_ParseTuple(args, "i", &priority)) {
+    if (!PyArg_ParseTuple(args, "i:setExecutePriority", &priority)) {
 		return NULL;
     }
 	

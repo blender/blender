@@ -185,7 +185,7 @@ const char SCA_RandomSensor::SetSeed_doc[] =
 PyObject* SCA_RandomSensor::PySetSeed(PyObject* self, PyObject* args, PyObject* kwds) {
 	ShowDeprecationWarning("setSeed()", "the seed property");
 	long seedArg;
-	if(!PyArg_ParseTuple(args, "i", &seedArg)) {
+	if(!PyArg_ParseTuple(args, "i:setSeed", &seedArg)) {
 		return NULL;
 	}
 	

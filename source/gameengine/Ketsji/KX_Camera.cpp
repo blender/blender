@@ -562,7 +562,7 @@ KX_PYMETHODDEF_DOC_VARARGS(KX_Camera, sphereInsideFrustum,
 {
 	PyObject *pycenter;
 	float radius;
-	if (PyArg_ParseTuple(args, "Of", &pycenter, &radius))
+	if (PyArg_ParseTuple(args, "Of:sphereInsideFrustum", &pycenter, &radius))
 	{
 		MT_Point3 center;
 		if (PyVecTo(pycenter, center))

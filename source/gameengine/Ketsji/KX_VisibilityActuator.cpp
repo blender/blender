@@ -159,7 +159,7 @@ KX_VisibilityActuator::PySetVisible(PyObject* self,
 	int vis;
 	ShowDeprecationWarning("SetVisible()", "the visible property");
 
-	if(!PyArg_ParseTuple(args, "i", &vis)) {
+	if(!PyArg_ParseTuple(args, "i:setVisible", &vis)) {
 		return NULL;
 	}
 

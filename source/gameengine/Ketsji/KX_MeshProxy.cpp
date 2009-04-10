@@ -150,7 +150,7 @@ PyObject* KX_MeshProxy::PyGetMaterialName(PyObject* self,
     int matid= 1;
 	STR_String matname;
 
-	if (PyArg_ParseTuple(args,"i",&matid))
+	if (PyArg_ParseTuple(args,"i:getMaterialName",&matid))
 	{
 		matname = m_meshobj->GetMaterialName(matid);
 	}
@@ -170,7 +170,7 @@ PyObject* KX_MeshProxy::PyGetTextureName(PyObject* self,
     int matid= 1;
 	STR_String matname;
 
-	if (PyArg_ParseTuple(args,"i",&matid))
+	if (PyArg_ParseTuple(args,"i:getTextureName",&matid))
 	{
 		matname = m_meshobj->GetTextureName(matid);
 	}
@@ -190,7 +190,7 @@ PyObject* KX_MeshProxy::PyGetVertexArrayLength(PyObject* self,
 	int length = 0;
 
 	
-	if (!PyArg_ParseTuple(args,"i",&matid))
+	if (!PyArg_ParseTuple(args,"i:getVertexArrayLength",&matid))
 		return NULL;
 	
 
@@ -215,7 +215,7 @@ PyObject* KX_MeshProxy::PyGetVertex(PyObject* self,
 	int matindex= 1;
 	PyObject* vertexob = NULL;
 
-	if (PyArg_ParseTuple(args,"ii",&matindex,&vertexindex))
+	if (PyArg_ParseTuple(args,"ii:getVertex",&matindex,&vertexindex))
 	{
 		RAS_TexVert* vertex = m_meshobj->GetVertex(matindex,vertexindex);
 		if (vertex)
@@ -238,7 +238,7 @@ PyObject* KX_MeshProxy::PyGetPolygon(PyObject* self,
     int polyindex= 1;
 	PyObject* polyob = NULL;
 
-	if (!PyArg_ParseTuple(args,"i",&polyindex))
+	if (!PyArg_ParseTuple(args,"i:getPolygon",&polyindex))
 		return NULL;
 	
 	if (polyindex<0 || polyindex >= m_meshobj->NumPolygons())

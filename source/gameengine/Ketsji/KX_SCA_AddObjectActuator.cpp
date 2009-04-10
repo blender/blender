@@ -341,7 +341,7 @@ PyObject* KX_SCA_AddObjectActuator::PyGetObject(PyObject* self, PyObject* args)
 	
 	ShowDeprecationWarning("getObject()", "the object property");
 	
-	if (!PyArg_ParseTuple(args, "|i", &ret_name_only))
+	if (!PyArg_ParseTuple(args, "|i:getObject", &ret_name_only))
 		return NULL;
 	
 	if (!m_OriginalObject)
@@ -389,7 +389,7 @@ PyObject* KX_SCA_AddObjectActuator::PySetLinearVelocity(PyObject* self, PyObject
 	ShowDeprecationWarning("setLinearVelocity()", "the linearVelocity property");
 	
 	float vecArg[3];
-	if (!PyArg_ParseTuple(args, "fff", &vecArg[0], &vecArg[1], &vecArg[2]))
+	if (!PyArg_ParseTuple(args, "fff:setLinearVelocity", &vecArg[0], &vecArg[1], &vecArg[2]))
 		return NULL;
 
 	m_linear_velocity[0] = vecArg[0];
@@ -432,7 +432,7 @@ PyObject* KX_SCA_AddObjectActuator::PySetAngularVelocity(PyObject* self, PyObjec
 	ShowDeprecationWarning("setAngularVelocity()", "the angularVelocity property");
 	
 	float vecArg[3];
-	if (!PyArg_ParseTuple(args, "fff", &vecArg[0], &vecArg[1], &vecArg[2]))
+	if (!PyArg_ParseTuple(args, "fff:setAngularVelocity", &vecArg[0], &vecArg[1], &vecArg[2]))
 		return NULL;
 
 	m_angular_velocity[0] = vecArg[0];

@@ -670,7 +670,7 @@ PyObject* KX_ConstraintActuator::PySetDamp(PyObject* self,
 										   PyObject* kwds) {
 	ShowDeprecationWarning("setDamp()", "the damp property");
 	int dampArg;
-	if(!PyArg_ParseTuple(args, "i", &dampArg)) {
+	if(!PyArg_ParseTuple(args, "i:setDamp", &dampArg)) {
 		return NULL;		
 	}
 	
@@ -699,7 +699,7 @@ PyObject* KX_ConstraintActuator::PySetRotDamp(PyObject* self,
 										      PyObject* kwds) {
 	ShowDeprecationWarning("setRotDamp()", "the rotDamp property");
 	int dampArg;
-	if(!PyArg_ParseTuple(args, "i", &dampArg)) {
+	if(!PyArg_ParseTuple(args, "i:setRotDamp", &dampArg)) {
 		return NULL;		
 	}
 	
@@ -730,7 +730,7 @@ PyObject* KX_ConstraintActuator::PySetDirection(PyObject* self,
 	MT_Scalar len;
 	MT_Vector3 dir;
 
-	if(!PyArg_ParseTuple(args, "(fff)", &x, &y, &z)) {
+	if(!PyArg_ParseTuple(args, "(fff):setDirection", &x, &y, &z)) {
 		return NULL;		
 	}
 	dir[0] = x;
@@ -777,7 +777,7 @@ PyObject* KX_ConstraintActuator::PySetOption(PyObject* self,
 										     PyObject* kwds) {
 	ShowDeprecationWarning("setOption()", "the option property");
 	int option;
-	if(!PyArg_ParseTuple(args, "i", &option)) {
+	if(!PyArg_ParseTuple(args, "i:setOption", &option)) {
 		return NULL;		
 	}
 	
@@ -806,7 +806,7 @@ PyObject* KX_ConstraintActuator::PySetTime(PyObject* self,
 										   PyObject* kwds) {
 	ShowDeprecationWarning("setTime()", "the time property");
 	int t;
-	if(!PyArg_ParseTuple(args, "i", &t)) {
+	if(!PyArg_ParseTuple(args, "i:setTime", &t)) {
 		return NULL;		
 	}
 	
@@ -836,7 +836,7 @@ PyObject* KX_ConstraintActuator::PySetProperty(PyObject* self,
 										       PyObject* kwds) {
 	ShowDeprecationWarning("setProperty()", "the 'property' property");
 	char *property;
-	if (!PyArg_ParseTuple(args, "s", &property)) {
+	if (!PyArg_ParseTuple(args, "s:setProperty", &property)) {
 		return NULL;
 	}
 	if (property == NULL) {
@@ -872,7 +872,7 @@ PyObject* KX_ConstraintActuator::PySetMin(PyObject* self,
 										  PyObject* kwds) {
 	ShowDeprecationWarning("setMin() or setDistance()", "the min or distance property");
 	float minArg;
-	if(!PyArg_ParseTuple(args, "f", &minArg)) {
+	if(!PyArg_ParseTuple(args, "f:setMin", &minArg)) {
 		return NULL;		
 	}
 
@@ -919,7 +919,7 @@ PyObject* KX_ConstraintActuator::PySetMax(PyObject* self,
 										  PyObject* kwds){
 	ShowDeprecationWarning("setMax() or setRayLength()", "the max or rayLength property");
 	float maxArg;
-	if(!PyArg_ParseTuple(args, "f", &maxArg)) {
+	if(!PyArg_ParseTuple(args, "f:setMax", &maxArg)) {
 		return NULL;		
 	}
 
@@ -974,7 +974,7 @@ PyObject* KX_ConstraintActuator::PySetLimit(PyObject* self,
 											PyObject* kwds) {
 	ShowDeprecationWarning("setLimit()", "the limit property");
 	int locrotArg;
-	if(!PyArg_ParseTuple(args, "i", &locrotArg)) {
+	if(!PyArg_ParseTuple(args, "i:setLimit", &locrotArg)) {
 		return NULL;		
 	}
 	

@@ -179,7 +179,7 @@ KX_StateActuator::PySetOperation(PyObject* self,
 	ShowDeprecationWarning("setOperation()", "the operation property");
 	int oper;
 
-	if(!PyArg_ParseTuple(args, "i", &oper)) {
+	if(!PyArg_ParseTuple(args, "i:setOperation", &oper)) {
 		return NULL;
 	}
 
@@ -205,7 +205,7 @@ KX_StateActuator::PySetMask(PyObject* self,
 	ShowDeprecationWarning("setMask()", "the mask property");
 	int mask;
 
-	if(!PyArg_ParseTuple(args, "i", &mask)) {
+	if(!PyArg_ParseTuple(args, "i:setMask", &mask)) {
 		return NULL;
 	}
 

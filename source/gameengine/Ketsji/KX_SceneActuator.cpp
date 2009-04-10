@@ -344,7 +344,7 @@ PyObject* KX_SceneActuator::PySetUseRestart(PyObject* self,
 	ShowDeprecationWarning("setUseRestart()", "(no replacement)");
 	int boolArg;
 	
-	if (!PyArg_ParseTuple(args, "i", &boolArg))
+	if (!PyArg_ParseTuple(args, "i:setUseRestart", &boolArg))
 	{
 		return NULL;
 	}
@@ -383,7 +383,7 @@ PyObject* KX_SceneActuator::PySetScene(PyObject* self,
 	/* one argument: a scene, ignore the rest */
 	char *scene_name;
 
-	if(!PyArg_ParseTuple(args, "s", &scene_name))
+	if(!PyArg_ParseTuple(args, "s:setScene", &scene_name))
 	{
 		return NULL;
 	}
@@ -421,7 +421,7 @@ PyObject* KX_SceneActuator::PySetCamera(PyObject* self,
 {
 	ShowDeprecationWarning("setCamera()", "the camera property");
 	PyObject *cam;
-	if (PyArg_ParseTuple(args, "O!", &KX_Camera::Type, &cam))
+	if (PyArg_ParseTuple(args, "O!:setCamera", &KX_Camera::Type, &cam))
 	{
 		if (m_camera)
 			m_camera->UnregisterActuator(this);
@@ -434,7 +434,7 @@ PyObject* KX_SceneActuator::PySetCamera(PyObject* self,
 
 	/* one argument: a scene, ignore the rest */
 	char *camName;
-	if(!PyArg_ParseTuple(args, "s", &camName))
+	if(!PyArg_ParseTuple(args, "s:setCamera", &camName))
 	{
 		return NULL;
 	}

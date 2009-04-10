@@ -252,7 +252,7 @@ PyObject* KX_ParentActuator::PyGetObject(PyObject* self, PyObject* args)
 	
 	ShowDeprecationWarning("getObject()", "the object property");
 	
-	if (!PyArg_ParseTuple(args, "|i", &ret_name_only))
+	if (!PyArg_ParseTuple(args, "|i:getObject", &ret_name_only))
 		return NULL;
 	
 	if (!m_ob)

@@ -197,7 +197,7 @@ PyObject* SCA_DelaySensor::PySetDelay(PyObject* self, PyObject* args, PyObject* 
 	ShowDeprecationWarning("setDelay()", "the delay property");
 	int delay;
 	
-	if(!PyArg_ParseTuple(args, "i", &delay)) {
+	if(!PyArg_ParseTuple(args, "i:setDelay", &delay)) {
 		return NULL;
 	}
 	if (delay < 0) {
@@ -219,7 +219,7 @@ PyObject* SCA_DelaySensor::PySetDuration(PyObject* self, PyObject* args, PyObjec
 	ShowDeprecationWarning("setDuration()", "the duration property");
 	int duration;
 	
-	if(!PyArg_ParseTuple(args, "i", &duration)) {
+	if(!PyArg_ParseTuple(args, "i:setDuration", &duration)) {
 		return NULL;
 	}
 	if (duration < 0) {
@@ -240,7 +240,7 @@ PyObject* SCA_DelaySensor::PySetRepeat(PyObject* self, PyObject* args, PyObject*
 	ShowDeprecationWarning("setRepeat()", "the repeat property");
 	int repeat;
 	
-	if(!PyArg_ParseTuple(args, "i", &repeat)) {
+	if(!PyArg_ParseTuple(args, "i:setRepeat", &repeat)) {
 		return NULL;
 	}
 	m_repeat = (repeat != 0);

@@ -573,7 +573,7 @@ PyObject* BL_ActionActuator::PySetAction(PyObject* self,
 	char *string;
 	int	reset = 1;
 
-	if (PyArg_ParseTuple(args,"s|i",&string, &reset))
+	if (PyArg_ParseTuple(args,"s|i:setAction",&string, &reset))
 	{
 		bAction *action;
 		
@@ -608,7 +608,7 @@ PyObject* BL_ActionActuator::PySetStart(PyObject* self,
 
 	float start;
 	
-	if (PyArg_ParseTuple(args,"f",&start))
+	if (PyArg_ParseTuple(args,"f:setStart",&start))
 	{
 		m_startframe = start;
 	}
@@ -631,7 +631,7 @@ PyObject* BL_ActionActuator::PySetEnd(PyObject* self,
 
 	float end;
 	
-	if (PyArg_ParseTuple(args,"f",&end))
+	if (PyArg_ParseTuple(args,"f:setEnd",&end))
 	{
 		m_endframe = end;
 	}
@@ -655,7 +655,7 @@ PyObject* BL_ActionActuator::PySetBlendin(PyObject* self,
 
 	float blendin;
 	
-	if (PyArg_ParseTuple(args,"f",&blendin))
+	if (PyArg_ParseTuple(args,"f:setBlendin",&blendin))
 	{
 		m_blendin = blendin;
 	}
@@ -680,7 +680,7 @@ PyObject* BL_ActionActuator::PySetBlendtime(PyObject* self,
 
 	float blendframe;
 	
-	if (PyArg_ParseTuple(args,"f",&blendframe))
+	if (PyArg_ParseTuple(args,"f:setBlendtime",&blendframe))
 	{
 		m_blendframe = blendframe * m_blendin;
 		if (m_blendframe<0)
@@ -709,7 +709,7 @@ PyObject* BL_ActionActuator::PySetPriority(PyObject* self,
 
 	int priority;
 	
-	if (PyArg_ParseTuple(args,"i",&priority))
+	if (PyArg_ParseTuple(args,"i:setPriority",&priority))
 	{
 		m_priority = priority;
 	}
@@ -732,7 +732,7 @@ PyObject* BL_ActionActuator::PySetFrame(PyObject* self,
 
 	float frame;
 	
-	if (PyArg_ParseTuple(args,"f",&frame))
+	if (PyArg_ParseTuple(args,"f:setFrame",&frame))
 	{
 		m_localtime = frame;
 		if (m_localtime<m_startframe)
@@ -760,7 +760,7 @@ PyObject* BL_ActionActuator::PySetProperty(PyObject* self,
 
 	char *string;
 	
-	if (PyArg_ParseTuple(args,"s",&string))
+	if (PyArg_ParseTuple(args,"s:setProperty",&string))
 	{
 		m_propname = string;
 	}
@@ -783,7 +783,7 @@ PyObject* BL_ActionActuator::PySetFrameProperty(PyObject* self,
 
 	char *string;
 	
-	if (PyArg_ParseTuple(args,"s",&string))
+	if (PyArg_ParseTuple(args,"s:setFrameProperty",&string))
 	{
 		m_framepropname = string;
 	}
@@ -800,7 +800,7 @@ PyObject* BL_ActionActuator::PyGetChannel(PyObject* self,
 										   PyObject* kwds) {
 	char *string;
 	
-	if (PyArg_ParseTuple(args,"s",&string))
+	if (PyArg_ParseTuple(args,"s:getChannel",&string))
 	{
 		m_propname = string;
 	}
@@ -836,7 +836,7 @@ PyObject* BL_ActionActuator::PySetType(PyObject* self,
 
 	short typeArg;
                                                                                                              
-    if (!PyArg_ParseTuple(args, "h", &typeArg)) {
+    if (!PyArg_ParseTuple(args, "h:setType", &typeArg)) {
         return NULL;
     }
 
@@ -894,7 +894,7 @@ KX_PYMETHODDEF_DOC(BL_ActionActuator, setChannel,
 	int row,col;
 	int	mode = 0;	/* 0 for bone space, 1 for armature/world space */
 	
-	if (!PyArg_ParseTuple(args,"sO|i", &string, &pylist, &mode))
+	if (!PyArg_ParseTuple(args,"sO|i:setChannel", &string, &pylist, &mode))
 		return NULL;
 	
 	if (pylist->ob_type == &CListValue::Type)

@@ -293,7 +293,7 @@ PyObject* KX_CDActuator::PySetGain(PyObject* self, PyObject* args, PyObject* kwd
 {
 	float gain = 1.0;
 	ShowDeprecationWarning("setGain()", "the volume property");
-	if (!PyArg_ParseTuple(args, "f", &gain))
+	if (!PyArg_ParseTuple(args, "f:setGain", &gain))
 		return NULL;
 	
 	SND_CDObject::Instance()->SetGain(gain);

@@ -46,7 +46,7 @@ PyObject* KX_VehicleWrapper::PyAddWheel(PyObject* self,
 	int hasSteering;
 
 	
-	if (PyArg_ParseTuple(args,"OOOOffi",&wheelGameObject,&pylistPos,&pylistDir,&pylistAxleDir,&suspensionRestLength,&wheelRadius,&hasSteering))
+	if (PyArg_ParseTuple(args,"OOOOffi:addWheel",&wheelGameObject,&pylistPos,&pylistDir,&pylistAxleDir,&suspensionRestLength,&wheelRadius,&hasSteering))
 	{
 		KX_GameObject* gameOb = (KX_GameObject*) wheelGameObject;
 
@@ -89,7 +89,7 @@ PyObject* KX_VehicleWrapper::PyGetWheelPosition(PyObject* self,
 	
 	int wheelIndex;
 
-	if (PyArg_ParseTuple(args,"i",&wheelIndex))
+	if (PyArg_ParseTuple(args,"i:getWheelPosition",&wheelIndex))
 	{
 		float position[3];
 		m_vehicle->GetWheelPosition(wheelIndex,position[0],position[1],position[2]);
@@ -104,7 +104,7 @@ PyObject* KX_VehicleWrapper::PyGetWheelRotation(PyObject* self,
 											PyObject* kwds)
 {
 	int wheelIndex;
-	if (PyArg_ParseTuple(args,"i",&wheelIndex))
+	if (PyArg_ParseTuple(args,"i:getWheelRotation",&wheelIndex))
 	{
 		return PyFloat_FromDouble(m_vehicle->GetWheelRotation(wheelIndex));
 	}
@@ -116,7 +116,7 @@ PyObject* KX_VehicleWrapper::PyGetWheelOrientationQuaternion(PyObject* self,
 											PyObject* kwds)
 {
 	int wheelIndex;
-	if (PyArg_ParseTuple(args,"i",&wheelIndex))
+	if (PyArg_ParseTuple(args,"i:getWheelOrientationQuaternion",&wheelIndex))
 	{
 		float orn[4];
 		m_vehicle->GetWheelOrientationQuaternion(wheelIndex,orn[0],orn[1],orn[2],orn[3]);
@@ -153,7 +153,7 @@ PyObject* KX_VehicleWrapper::PyApplyEngineForce(PyObject* self,
 	float force;
 	int wheelIndex;
 
-	if (PyArg_ParseTuple(args,"fi",&force,&wheelIndex))
+	if (PyArg_ParseTuple(args,"fi:applyEngineForce",&force,&wheelIndex))
 	{
 		force *= -1.f;//someone reverse some conventions inside Bullet (axle winding)
 		m_vehicle->ApplyEngineForce(force,wheelIndex);
@@ -171,7 +171,7 @@ PyObject* KX_VehicleWrapper::PySetTyreFriction(PyObject* self,
 	float wheelFriction;
 	int wheelIndex;
 
-	if (PyArg_ParseTuple(args,"fi",&wheelFriction,&wheelIndex))
+	if (PyArg_ParseTuple(args,"fi:setTyreFriction",&wheelFriction,&wheelIndex))
 	{
 		m_vehicle->SetWheelFriction(wheelFriction,wheelIndex);
 	}
@@ -188,7 +188,7 @@ PyObject* KX_VehicleWrapper::PySetSuspensionStiffness(PyObject* self,
 	float suspensionStiffness;
 	int wheelIndex;
 
-	if (PyArg_ParseTuple(args,"fi",&suspensionStiffness,&wheelIndex))
+	if (PyArg_ParseTuple(args,"fi:setSuspensionStiffness",&suspensionStiffness,&wheelIndex))
 	{
 		m_vehicle->SetSuspensionStiffness(suspensionStiffness,wheelIndex);
 	}
@@ -205,7 +205,7 @@ PyObject* KX_VehicleWrapper::PySetSuspensionDamping(PyObject* self,
 	float suspensionDamping;
 	int wheelIndex;
 
-	if (PyArg_ParseTuple(args,"fi",&suspensionDamping,&wheelIndex))
+	if (PyArg_ParseTuple(args,"fi:setSuspensionDamping",&suspensionDamping,&wheelIndex))
 	{
 		m_vehicle->SetSuspensionDamping(suspensionDamping,wheelIndex);
 	} else {
@@ -221,7 +221,7 @@ PyObject* KX_VehicleWrapper::PySetSuspensionCompression(PyObject* self,
 	float suspensionCompression;
 	int wheelIndex;
 
-	if (PyArg_ParseTuple(args,"fi",&suspensionCompression,&wheelIndex))
+	if (PyArg_ParseTuple(args,"fi:setSuspensionCompression",&suspensionCompression,&wheelIndex))
 	{
 		m_vehicle->SetSuspensionCompression(suspensionCompression,wheelIndex);
 	} else {
@@ -237,7 +237,7 @@ PyObject* KX_VehicleWrapper::PySetRollInfluence(PyObject* self,
 	float rollInfluence;
 	int wheelIndex;
 
-	if (PyArg_ParseTuple(args,"fi",&rollInfluence,&wheelIndex))
+	if (PyArg_ParseTuple(args,"fi:setRollInfluence",&rollInfluence,&wheelIndex))
 	{
 		m_vehicle->SetRollInfluence(rollInfluence,wheelIndex);
 	}
@@ -255,7 +255,7 @@ PyObject* KX_VehicleWrapper::PyApplyBraking(PyObject* self,
 	float braking;
 	int wheelIndex;
 
-	if (PyArg_ParseTuple(args,"fi",&braking,&wheelIndex))
+	if (PyArg_ParseTuple(args,"fi:applyBraking",&braking,&wheelIndex))
 	{
 		m_vehicle->ApplyBraking(braking,wheelIndex);
 	}
@@ -275,7 +275,7 @@ PyObject* KX_VehicleWrapper::PySetSteeringValue(PyObject* self,
 	float steeringValue;
 	int wheelIndex;
 
-	if (PyArg_ParseTuple(args,"fi",&steeringValue,&wheelIndex))
+	if (PyArg_ParseTuple(args,"fi:setSteeringValue",&steeringValue,&wheelIndex))
 	{
 		m_vehicle->SetSteeringValue(steeringValue,wheelIndex);
 	}

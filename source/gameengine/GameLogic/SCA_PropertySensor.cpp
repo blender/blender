@@ -382,7 +382,7 @@ PyObject* SCA_PropertySensor::PySetType(PyObject* self, PyObject* args, PyObject
 	ShowDeprecationWarning("setType()", "the type property");
 	int typeArg;
 	
-	if (!PyArg_ParseTuple(args, "i", &typeArg)) {
+	if (!PyArg_ParseTuple(args, "i:setType", &typeArg)) {
 		return NULL;
 	}
 	
@@ -417,7 +417,7 @@ PyObject* SCA_PropertySensor::PySetProperty(PyObject* self, PyObject* args, PyOb
 	/* on the fly?                                                           */
 	char *propNameArg = NULL;
 
-	if (!PyArg_ParseTuple(args, "s", &propNameArg)) {
+	if (!PyArg_ParseTuple(args, "s:setProperty", &propNameArg)) {
 		return NULL;
 	}
 
@@ -455,7 +455,7 @@ PyObject* SCA_PropertySensor::PySetValue(PyObject* self, PyObject* args, PyObjec
 	/* We know that the property exists, or is NULL.                         */
 	char *propValArg = NULL;
 
-	if(!PyArg_ParseTuple(args, "s", &propValArg)) {
+	if(!PyArg_ParseTuple(args, "s:setValue", &propValArg)) {
 		return NULL;
 	}
 	STR_String oldval = m_checkpropval;
