@@ -59,7 +59,6 @@
 #include "ED_screen.h"
 
 #include "UI_interface.h"
-#include "UI_text.h"
 #include "UI_view2d.h"
 
 #include "interface_intern.h"

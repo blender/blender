@@ -77,7 +77,6 @@
 #include "ED_util.h"
 #include "ED_types.h"
 
-#include "UI_text.h"
 #include "UI_interface.h"
 #include "UI_interface_icons.h"
 #include "UI_resources.h"
@@ -90,12 +89,11 @@
 
 // XXX interface.h
 extern void ui_dropshadow(rctf *rct, float radius, float aspect, int select);
-extern void ui_rasterpos_safe(float x, float y, float aspect);
 extern void gl_round_box(int mode, float minx, float miny, float maxx, float maxy, float rad);
 extern void ui_draw_tria_icon(float x, float y, float aspect, char dir);
 
 
-static void snode_drawstring(void *curfont, SpaceNode *snode, char *str, int okwidth)
+static void snode_drawstring(SpaceNode *snode, int x, int y, char *str, int okwidth)
 {
 	char drawstr[NODE_MAXSTR];
 	int width;
@@ -103,7 +101,7 @@ static void snode_drawstring(void *curfont, SpaceNode *snode, char *str, int okw
 	if(str[0]==0 || okwidth<4) return;
 	
 	BLI_strncpy(drawstr, str, NODE_MAXSTR);
-	width= snode->aspect*UI_GetStringWidth(curfont, drawstr, 0);
+	width= UI_GetStringWidth(drawstr);
 
 	if(width > okwidth) {
 		int len= strlen(drawstr)-1;
@@ -111,12 +109,12 @@ static void snode_drawstring(void *curfont, SpaceNode *snode, char *str, int okw
 		while(width > okwidth && len>=0) {
 			drawstr[len]= 0;
 			
-			width= snode->aspect*UI_GetStringWidth(curfont, drawstr, 0);
+			width= snode->aspect*UI_GetStringWidth(drawstr);
 			len--;
 		}
 		if(len==0) return;
 	}
-	UI_DrawString(curfont, drawstr, 0);
+	UI_DrawString(x, y, drawstr);
 }
 
 
@@ -730,8 +728,6 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	else
 		UI_ThemeColor(TH_TEXT);
 	
-	ui_rasterpos_safe(rct->xmin+19.0f, rct->ymax-NODE_DY+5.0f, snode->aspect);
-	
 	if(node->flag & NODE_MUTED)
 		sprintf(showname, "[%s]", node->name);
 	else if(node->username[0])
@@ -739,7 +735,7 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	else
 		BLI_strncpy(showname, node->name, 128);
 	
-	snode_drawstring(snode->curfont, snode, showname, (int)(iconofs - rct->xmin-18.0f));
+	snode_drawstring(snode, rct->xmin+19, rct->ymax-NODE_DY+5, showname, (int)(iconofs - rct->xmin-18.0f));
 
 	/* body */
 	UI_ThemeColor4(TH_NODE);
@@ -820,8 +816,7 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 			}
 			else {
 				UI_ThemeColor(TH_TEXT);
-				ui_rasterpos_safe(sock->locx+8.0f, sock->locy-5.0f, snode->aspect);
-				UI_DrawString(snode->curfont, sock->name, 0);
+				UI_DrawString(sock->locx+8.0f, sock->locy-5.0f, sock->name);
 			}
 		}
 	}
@@ -835,13 +830,12 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 			socket_circle_draw(sock, NODE_SOCKSIZE);
 			
 			UI_ThemeColor(TH_TEXT);
-			slen= snode->aspect*UI_GetStringWidth(snode->curfont, sock->name, 0);
+			slen= snode->aspect*UI_GetStringWidth(sock->name);
 			while(slen > node->width) {
 				ofs++;
-				slen= snode->aspect*UI_GetStringWidth(snode->curfont, sock->name+ofs, 0);
+				slen= snode->aspect*UI_GetStringWidth(sock->name+ofs);
 			}
-			ui_rasterpos_safe(sock->locx-8.0f-slen, sock->locy-5.0f, snode->aspect);
-			UI_DrawString(snode->curfont, sock->name+ofs, 0);
+			UI_DrawString(sock->locx-8.0f-slen, sock->locy-5.0f, sock->name+ofs);
 		}
 	}
 	
@@ -909,7 +903,6 @@ static void node_draw_hidden(View2D *v2d, SpaceNode *snode, bNode *node)
 		UI_ThemeColor(TH_TEXT);
 	
 	if(node->miniwidth>0.0f) {
-		ui_rasterpos_safe(rct->xmin+21.0f, centy-4.0f, snode->aspect);
 
 		if(node->flag & NODE_MUTED)
 			sprintf(showname, "[%s]", node->name);
@@ -918,7 +911,7 @@ static void node_draw_hidden(View2D *v2d, SpaceNode *snode, bNode *node)
 		else
 			BLI_strncpy(showname, node->name, 128);
 
-		snode_drawstring(snode->curfont, snode, showname, (int)(rct->xmax - rct->xmin-18.0f -12.0f));
+		snode_drawstring(snode, rct->xmin+21, centy-4, showname, (int)(rct->xmax - rct->xmin-18.0f -12.0f));
 	}	
 
 	/* scale widget thing */
@@ -1048,7 +1041,6 @@ static void node_draw_group(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	
 	/* backdrop title */
 	UI_ThemeColor(TH_TEXT_HI);
-	ui_rasterpos_safe(rect.xmin+8.0f, rect.ymax+5.0f, snode->aspect);
 
 	if(gnode->username[0]) {
 		strcpy(showname,"(");
@@ -1059,7 +1051,7 @@ static void node_draw_group(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	else
 		strcpy(showname, ngroup->id.name+2);
 
-	UI_DrawString(snode->curfont, showname, 0);
+	UI_DrawString(rect.xmin+8.0f, rect.ymax+5.0f, showname);
 	
 	/* links from groupsockets to the internal nodes */
 	node_draw_group_links(&ar->v2d, snode, gnode);
@@ -1096,7 +1088,7 @@ void drawnodespace(const bContext *C, ARegion *ar, View2D *v2d)
 
 	/* aspect+font, set each time */
 	snode->aspect= (v2d->cur.xmax - v2d->cur.xmin)/((float)ar->winx);
-	snode->curfont= uiSetCurFont_ext(snode->aspect);
+	// XXX snode->curfont= uiSetCurFont_ext(snode->aspect);
 
 	UI_view2d_constant_grid_draw(C, v2d);
 	/* backdrop */

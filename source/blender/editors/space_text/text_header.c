@@ -71,7 +71,6 @@
 
 #include "UI_interface.h"
 #include "UI_resources.h"
-#include "UI_text.h"
 #include "UI_view2d.h"
 
 #include "RNA_access.h"

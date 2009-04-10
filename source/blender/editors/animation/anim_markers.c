@@ -57,7 +57,6 @@
 #include "UI_interface_icons.h"
 #include "UI_view2d.h"
 #include "UI_resources.h"
-#include "UI_text.h"
 
 #include "ED_markers.h"
 #include "ED_screen.h"
@@ -84,9 +83,6 @@ static ListBase *context_get_markers(const bContext *C)
 }
 
 /* ************* Marker Drawing ************ */
-
-/* XXX */
-extern void ui_rasterpos_safe(float x, float y, float aspect);
 
 /* function to draw markers */
 static void draw_marker(View2D *v2d, TimeMarker *marker, int cfra, int flag)
@@ -140,18 +136,25 @@ static void draw_marker(View2D *v2d, TimeMarker *marker, int cfra, int flag)
 	
 	/* and the marker name too, shifted slightly to the top-right */
 	if (marker->name && marker->name[0]) {
+		float x, y;
+		
 		if(marker->flag & SELECT) {
 			UI_ThemeColor(TH_TEXT_HI);
-			ui_rasterpos_safe(xpos*xscale+4.0, (ypixels<=39.0)?(ypixels-10.0):29.0, 1.0);
+			x= xpos*xscale+4.0;
+			y= (ypixels<=39.0)?(ypixels-10.0):29.0;
 		}
 		else {
 			UI_ThemeColor(TH_TEXT);
-			if((marker->frame <= cfra) && (marker->frame+5 > cfra))
-				ui_rasterpos_safe(xpos*xscale+4.0, (ypixels<=39.0)?(ypixels-10.0):29.0, 1.0);
-			else
-				ui_rasterpos_safe(xpos*xscale+4.0, 17.0, 1.0);
+			if((marker->frame <= cfra) && (marker->frame+5 > cfra)) {
+				x= xpos*xscale+4.0;
+				y= (ypixels<=39.0)?(ypixels-10.0):29.0;
+			}
+			else {
+				x= xpos*xscale+4.0;
+				y= 17.0;
+			}
 		}
-		UI_DrawString(G.font, marker->name, 0);
+		UI_DrawString(x, y, marker->name);
 	}
 	glScalef(xscale, 1.0, 1.0);
 }

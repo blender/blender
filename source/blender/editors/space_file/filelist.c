@@ -82,7 +82,7 @@
 
 #include "PIL_time.h"
 
-#include "UI_text.h"
+#include "UI_interface.h"
 
 #include "filelist.h"
 
@@ -695,21 +695,21 @@ void filelist_readdir(struct FileList* filelist)
 		struct direntry* file = filelist_file(filelist, i);	
 		if (file) {
 			int len;
-			len = UI_GetStringWidth(G.font, file->relname,0);
+			len = UI_GetStringWidth(file->relname);
 			if (len > filelist->columns[COLUMN_NAME]) filelist->columns[COLUMN_NAME] = len;
-			len = UI_GetStringWidth(G.font, file->date,0);
+			len = UI_GetStringWidth(file->date);
 			if (len > filelist->columns[COLUMN_DATE]) filelist->columns[COLUMN_DATE] = len;
-			len = UI_GetStringWidth(G.font, file->time,0);
+			len = UI_GetStringWidth(file->time);
 			if (len > filelist->columns[COLUMN_TIME]) filelist->columns[COLUMN_TIME] = len;
-			len = UI_GetStringWidth(G.font, file->size,0);
+			len = UI_GetStringWidth(file->size);
 			if (len > filelist->columns[COLUMN_SIZE]) filelist->columns[COLUMN_SIZE] = len;
-			len = UI_GetStringWidth(G.font, file->mode1,0);
+			len = UI_GetStringWidth(file->mode1);
 			if (len > filelist->columns[COLUMN_MODE1]) filelist->columns[COLUMN_MODE1] = len;
-			len = UI_GetStringWidth(G.font, file->mode2,0);
+			len = UI_GetStringWidth(file->mode2);
 			if (len > filelist->columns[COLUMN_MODE2]) filelist->columns[COLUMN_MODE2] = len;
-			len = UI_GetStringWidth(G.font, file->mode3,0);
+			len = UI_GetStringWidth(file->mode3);
 			if (len > filelist->columns[COLUMN_MODE3]) filelist->columns[COLUMN_MODE3] = len;
-			len = UI_GetStringWidth(G.font, file->owner,0);
+			len = UI_GetStringWidth(file->owner);
 			if (len > filelist->columns[COLUMN_OWNER]) filelist->columns[COLUMN_OWNER] = len;
 		}
 	}

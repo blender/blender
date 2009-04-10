@@ -32,6 +32,7 @@
 
 #include "DNA_screen_types.h"
 #include "DNA_view2d_types.h"
+#include "DNA_userdef_types.h"
 #include "DNA_windowmanager_types.h"
 
 #include "BLI_arithb.h"
@@ -54,8 +55,9 @@
 #include "BIF_gl.h"
 
 #include "UI_interface.h"
-#include "UI_text.h"
 #include "UI_view2d.h"
+
+#include "BLF_api.h"
 
 #include "ED_screen.h"
 
@@ -259,6 +261,7 @@ typedef struct uiTooltipData {
 
 static void ui_tooltip_region_draw(const bContext *C, ARegion *ar)
 {
+	uiStyle *style= U.uistyles.first;	// XXX pass on as arg
 	uiTooltipData *data;
 	int x1, y1, x2, y2;
 	
@@ -283,10 +286,10 @@ static void ui_tooltip_region_draw(const bContext *C, ARegion *ar)
 	 * an equal gap between the top of the background box and the top of the
 	 * string's bbox, and the bottom of the background box, and the bottom of
 	 * the string's bbox */
-	ui_rasterpos_safe(5, ((y2-data->bbox.ymax)+(y1+data->bbox.ymin))/2 - data->bbox.ymin - y1, data->aspect);
-	UI_SetScale(1.0);
-
-	UI_DrawString(data->font, data->tip, ui_translate_tooltips());
+	
+	uiStyleFontSet(&style->widget);
+	BLF_position(5, ((y2-data->bbox.ymax)+(y1+data->bbox.ymin))/2 - data->bbox.ymin - y1, 0.0f);
+	BLF_draw(data->tip);
 }
 
 static void ui_tooltip_region_free(ARegion *ar)
@@ -301,6 +304,7 @@ static void ui_tooltip_region_free(ARegion *ar)
 
 ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 {
+	uiStyle *style= U.uistyles.first;	// XXX pass on as arg
 	static ARegionType type;
 	ARegion *ar;
 	uiTooltipData *data;
@@ -322,7 +326,10 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 	data->tip= BLI_strdup(but->tip);
 	data->font= but->font;
 	data->aspect= but->aspect;
-	UI_GetBoundingBox(data->font, data->tip, ui_translate_tooltips(), &data->bbox);
+	
+	/* set font, get bb */
+	uiStyleFontSet(&style->widget);
+	BLF_boundbox(data->tip, &data->bbox);
 
 	ar->regiondata= data;
 
@@ -759,12 +766,12 @@ uiBlock *ui_block_func_MENU(bContext *C, uiPopupBlockHandle *handle, void *arg_b
 
 	/* size and location */
 	if(md->title)
-		width= 1.5*aspect*strlen(md->title)+UI_GetStringWidth(block->curfont, md->title, ui_translate_menus());
+		width= 1.5*aspect*strlen(md->title)+UI_GetStringWidth(md->title);
 	else
 		width= 0;
 
 	for(a=0; a<md->nitems; a++) {
-		xmax= aspect*UI_GetStringWidth(block->curfont, md->items[a].str, ui_translate_menus());
+		xmax= aspect*UI_GetStringWidth(md->items[a].str);
 		if(md->items[a].icon)
 			xmax += 20*aspect;
 		if(xmax>width)
@@ -872,12 +879,12 @@ uiBlock *ui_block_func_ICONTEXTROW(bContext *C, uiPopupBlockHandle *handle, void
 	/* size and location */
 	/* expand menu width to fit labels */
 	if(md->title)
-		width= 2*strlen(md->title)+UI_GetStringWidth(block->curfont, md->title, ui_translate_menus());
+		width= 2*strlen(md->title)+UI_GetStringWidth(md->title);
 	else
 		width= 0;
 
 	for(a=0; a<md->nitems; a++) {
-		xmax= UI_GetStringWidth(block->curfont, md->items[a].str, ui_translate_menus());
+		xmax= UI_GetStringWidth(md->items[a].str);
 		if(xmax>width) width= xmax;
 	}
 
@@ -1347,13 +1354,13 @@ uiBlock *ui_block_func_PUPMENU(bContext *C, uiPopupBlockHandle *handle, void *ar
 
 	/* size and location, title slightly bigger for bold */
 	if(md->title) {
-		width= 2*strlen(md->title)+UI_GetStringWidth(uiBlockGetCurFont(block), md->title, ui_translate_buttons());
+		width= 2*strlen(md->title)+UI_GetStringWidth(md->title);
 		width /= columns;
 	}
 	else width= 0;
 
 	for(a=0; a<md->nitems; a++) {
-		xmax= UI_GetStringWidth(uiBlockGetCurFont(block), md->items[a].str, ui_translate_buttons());
+		xmax= UI_GetStringWidth(md->items[a].str);
 		if(xmax>width) width= xmax;
 
 		if(strcmp(md->items[a].str, "%l")==0) height+= PUP_LABELH;
@@ -1520,13 +1527,13 @@ uiBlock *ui_block_func_PUPMENUCOL(bContext *C, uiPopupBlockHandle *handle, void 
 
 	/* size and location, title slightly bigger for bold */
 	if(md->title) {
-		width= 2*strlen(md->title)+UI_GetStringWidth(uiBlockGetCurFont(block), md->title, ui_translate_buttons());
+		width= 2*strlen(md->title)+UI_GetStringWidth(md->title);
 		width /= columns;
 	}
 	else width= 0;
 
 	for(a=0; a<md->nitems; a++) {
-		xmax= UI_GetStringWidth(uiBlockGetCurFont(block), md->items[a].str, ui_translate_buttons());
+		xmax= UI_GetStringWidth(md->items[a].str);
 		if(xmax>width) width= xmax;
 	}
 

@@ -831,7 +831,9 @@ static void icon_set_image(ID *id, DrawInfo *di, PreviewImage* prv_img, int mipl
 
 static void icon_draw_rect(float x, float y, int w, int h, float aspect, int rw, int rh, unsigned int *rect)
 {
-	ui_rasterpos_safe(x, y, aspect);
+	
+	glRasterPos2f(x, y);
+	// XXX ui_rasterpos_safe(x, y, aspect);
 	
 	if((w<1 || h<1)) {
 		// XXX - TODO 2.5 verify whether this case can happen

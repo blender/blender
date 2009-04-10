@@ -96,7 +96,6 @@
 #include "UI_interface_icons.h"
 #include "UI_resources.h"
 #include "UI_view2d.h"
-#include "UI_text.h"
 
 #include "RNA_access.h"
 
@@ -105,10 +104,6 @@
 #include "ED_screen.h"
 
 #include "outliner_intern.h"
-
-#ifdef INTERNATIONAL
-#include "FTF_Api.h"
-#endif
 
 #include "PIL_time.h" 
 
@@ -3703,10 +3698,10 @@ static void outliner_draw_tree_element(Scene *scene, ARegion *ar, SpaceOops *soo
 		if(active==1) UI_ThemeColor(TH_TEXT_HI);
 		else if(ELEM(tselem->type, TSE_RNA_PROPERTY, TSE_RNA_ARRAY_ELEM)) UI_ThemeColorBlend(TH_BACK, TH_TEXT, 0.75f);
 		else UI_ThemeColor(TH_TEXT);
-		glRasterPos2i(startx+offsx, *starty+5);
-		UI_RasterPos((float)startx+offsx, (float)*starty+5);
-		UI_DrawString(G.font, te->name, 0);
-		offsx+= (int)(OL_X + UI_GetStringWidth(G.font, te->name, 0));
+		
+		UI_DrawString(startx+offsx, *starty+5, te->name);
+		
+		offsx+= (int)(OL_X + UI_GetStringWidth(te->name));
 		
 		/* closed item, we draw the icons, not when it's a scene, or master-server list though */
 		if(tselem->flag & TSE_CLOSED) {
@@ -4240,7 +4235,7 @@ static void outliner_buttons(uiBlock *block, ARegion *ar, SpaceOops *soops, List
 				else if(tselem->id && GS(tselem->id->name)==ID_LI) len = sizeof(((Library*) 0)->name);
 				else len= sizeof(((ID*) 0)->name)-2;
 				
-				dx= (int)UI_GetStringWidth(G.font, te->name, 0);
+				dx= (int)UI_GetStringWidth(te->name);
 				if(dx<50) dx= 50;
 				
 				bt= uiDefBut(block, TEX, OL_NAMEBUTTON, "",  (short)te->xs+2*OL_X-4, (short)te->ys, dx+10, OL_H-1, te->name, 1.0, (float)len-1, 0, 0, "");

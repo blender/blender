@@ -49,11 +49,12 @@
 
 #include "ED_screen.h"
 
-#include "UI_resources.h"
-#include "UI_text.h"
-#include "UI_view2d.h"
+#include "BMF_Api.h"
 
 #include "UI_interface.h"
+#include "UI_resources.h"
+#include "UI_view2d.h"
+
 #include "interface_intern.h"
 
 /* *********************************************************************** */
@@ -1373,8 +1374,8 @@ static void scroll_printstr(View2DScrollers *scrollers, Scene *scene, float x, f
 	}
 	
 	/* draw it */
-	ui_rasterpos_safe(x, y, 1.0);
-	UI_DrawString(G.fonts, str, 0); // XXX check this again when new text-drawing api is done
+	glRasterPos2f(x, y);
+	BMF_DrawString(G.fonts, str); // XXX check this again when new text-drawing api is done
 }
 
 /* local defines for scrollers drawing */

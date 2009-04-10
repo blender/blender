@@ -55,12 +55,6 @@
 #include "BLF_api.h"
 
 #include "UI_interface.h"
-#include "UI_text.h"
-
-#include "BMF_Api.h"
-#ifdef INTERNATIONAL
-#include "FTF_Api.h"
-#endif
 
 #include "ED_screen.h"
 
@@ -87,10 +81,6 @@
 
 static void ui_free_but(const bContext *C, uiBut *but);
 static void ui_rna_ID_autocomplete(bContext *C, char *str, void *arg_but);
-
-/* ************ GLOBALS ************* */
-
-static uiFontOld UIfont[UI_ARRAY];  // no init needed
 
 /* ************* translation ************** */
 
@@ -1718,82 +1708,6 @@ void ui_set_but_soft_range(uiBut *but, double value)
 	}
 }
 
-/* ******************* Font ********************/
-
-static void ui_set_ftf_font(float aspect)
-{
-#ifdef INTERNATIONAL
-	if(aspect<1.15) {
-		FTF_SetFontSize('l');
-	}
-	else if(aspect<1.59) {
-		FTF_SetFontSize('m');
-	}
-	else {
-		FTF_SetFontSize('s');
-	}
-#endif
-}
-
-void uiSetCurFont(uiBlock *block, int index)
-{
-	ui_set_ftf_font(block->aspect);
-	
-	if(block->aspect<0.60) {
-		block->curfont= UIfont[index].xl;
-	}
-	else if(block->aspect<1.15) {
-		block->curfont= UIfont[index].large;
-	}
-	else if(block->aspect<1.59) {
-		block->curfont= UIfont[index].medium;		
-	}
-	else {
-		block->curfont= UIfont[index].small;		
-	}
-
-	if(block->curfont==NULL) block->curfont= UIfont[index].large;	
-	if(block->curfont==NULL) block->curfont= UIfont[index].medium;	
-	if(block->curfont==NULL) printf("error block no font %s\n", block->name);
-	
-}
-
-/* called by node editor */
-void *uiSetCurFont_ext(float aspect)
-{
-	void *curfont;
-	
-	ui_set_ftf_font(aspect);
-	
-	if(aspect<0.60) {
-		curfont= UIfont[0].xl;
-	}
-	else if(aspect<1.15) {
-		curfont= UIfont[0].large;
-	}
-	else if(aspect<1.59) {
-		curfont= UIfont[0].medium;		
-	}
-	else {
-		curfont= UIfont[0].small;		
-	}
-	
-	if(curfont==NULL) curfont= UIfont[0].large;	
-	if(curfont==NULL) curfont= UIfont[0].medium;	
-	
-	return curfont;
-}
-
-void uiDefFont(unsigned int index, void *xl, void *large, void *medium, void *small)
-{
-	if(index>=UI_ARRAY) return;
-	
-	UIfont[index].xl= xl;
-	UIfont[index].large= large;
-	UIfont[index].medium= medium;
-	UIfont[index].small= small;
-}
-
 /* ******************* Free ********************/
 
 static void ui_free_link(uiLink *link)
@@ -3271,24 +3185,12 @@ void uiDefKeyevtButS(uiBlock *block, int retval, char *str, short x1, short y1, 
 
 void UI_init(void)
 {
-	uiDefFont(UI_HELVB,
-				BMF_GetFont(BMF_kHelveticaBold14),
-				BMF_GetFont(BMF_kHelveticaBold12),
-				BMF_GetFont(BMF_kHelveticaBold10),
-				BMF_GetFont(BMF_kHelveticaBold8));
-	uiDefFont(UI_HELV,
-				BMF_GetFont(BMF_kHelvetica12),
-				BMF_GetFont(BMF_kHelvetica12),
-				BMF_GetFont(BMF_kHelvetica10),
-				BMF_GetFont(BMF_kHelveticaBold8));
-
 	ui_resources_init();
 }
 
 void UI_init_userdef()
 {
 	uiStyleInit();
-	ui_text_init_userdef();
 	ui_theme_init_userdef();
 }
 

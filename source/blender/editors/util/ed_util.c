@@ -48,7 +48,7 @@
 #include "ED_sculpt.h"
 #include "ED_util.h"
 
-#include "UI_text.h"
+#include "UI_interface.h"
 
 /* ********* general editor util funcs, not BKE stuff please! ********* */
 
@@ -115,7 +115,7 @@ int GetButStringLength(char *str)
 {
 	int rt;
 	
-	rt= UI_GetStringWidth(G.font, str, (U.transopts & USER_TR_BUTTONS));
+	rt= UI_GetStringWidth(str);
 	
 	return rt + 15;
 }

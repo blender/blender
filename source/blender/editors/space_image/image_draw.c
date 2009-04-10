@@ -55,8 +55,8 @@
 #include "ED_image.h"
 #include "ED_screen.h"
 
+#include "UI_interface.h"
 #include "UI_resources.h"
-#include "UI_text.h"
 #include "UI_view2d.h"
 
 #include "WM_api.h"
@@ -147,16 +147,13 @@ static void draw_render_info(SpaceImage *sima, ARegion *ar)
 	glRecti(rect.xmin, rect.ymin, rect.xmax, rect.ymax+1);
 	
 	UI_ThemeColor(TH_TEXT_HI);
-	glRasterPos2i(12, rect.ymin + 5);
-	UI_RasterPos(12, rect.ymin + 5);
 
 	if(showspare) {
-		UI_DrawString(G.fonts, "(Previous)", 0);
-		glRasterPos2i(72, rect.ymin + 5);
-		UI_RasterPos(72, rect.ymin + 5);
+		UI_DrawString(12, rect.ymin + 5, "(Previous)");
+		UI_DrawString(72, rect.ymin + 5, str);
 	}
-
-	UI_DrawString(G.fonts, str, 0);
+	else
+		UI_DrawString(12, rect.ymin + 5, str);
 }
 
 void draw_image_info(ARegion *ar, int channels, int x, int y, char *cp, float *fp, int *zp, float *zpf)
@@ -192,10 +189,8 @@ void draw_image_info(ARegion *ar, int channels, int x, int y, char *cp, float *f
 	glDisable(GL_BLEND);
 	
 	glColor3ub(255, 255, 255);
-	glRasterPos2i(10, 10);
-	UI_RasterPos(10, 10);
 	
-	UI_DrawString(G.fonts, str, 0);
+	UI_DrawString(10, 10, str);
 }
 
 /* image drawing */

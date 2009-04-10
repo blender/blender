@@ -36,10 +36,6 @@ DIRS += makesdna makesrna yafray
 DIRS += python nodes gpu
 DIRS += blenfont
 
-ifeq ($(WITH_FREETYPE2), true)
-	DIRS += ftfont
-endif
-
 ifeq ($(WITH_QUICKTIME), true)
 	DIRS += quicktime
 endif

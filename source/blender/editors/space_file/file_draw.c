@@ -66,7 +66,6 @@
 #include "UI_interface.h"
 #include "UI_interface_icons.h"
 #include "UI_resources.h"
-#include "UI_text.h"
 #include "UI_view2d.h"
 
 #include "WM_api.h"
@@ -135,8 +134,8 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 	*/
 
 	/* space available for load/save buttons? */
-	slen = UI_GetStringWidth(G.font, sfile->params->title, 0);
-	loadbutton= slen > 60 ? slen + 20 : MAX2(80, 20+UI_GetStringWidth(G.font, params->title, 0));
+	slen = UI_GetStringWidth(sfile->params->title);
+	loadbutton= slen > 60 ? slen + 20 : MAX2(80, 20+UI_GetStringWidth(params->title));
 	if(ar->winx > loadbutton+20) {
 		if(params->title[0]==0) {
 			loadbutton= 0;
@@ -150,7 +149,6 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 	uiDefBut(block, TEX, 0 /* XXX B_FS_DIRNAME */,"",	xmin+2, filebuty2, xmax-xmin-loadbutton-4, 21, params->dir, 0.0, (float)FILE_MAXFILE-1, 0, 0, "");
 	
 	if(loadbutton) {
-		uiSetCurFont(block, UI_HELV);
 		uiDefBut(block, BUT, B_FS_EXEC, params->title,	xmax-loadbutton, filebuty2, loadbutton, 21, params->dir, 0.0, (float)FILE_MAXFILE-1, 0, 0, "");
 		uiDefBut(block, BUT, B_FS_CANCEL, "Cancel",		xmax-loadbutton, filebuty1, loadbutton, 21, params->file, 0.0, (float)FILE_MAXFILE-1, 0, 0, "");
 	}
@@ -198,14 +196,14 @@ static float shorten_string(char* string, float w, int flag)
 	float sw = 0;
 	float pad = 0;
 
-	sw = UI_GetStringWidth(G.font, string,0);
+	sw = UI_GetStringWidth(string);
 	if (flag == FILE_SHORTEN_FRONT) {
 		char *s = string;
 		BLI_strncpy(temp, "...", 4);
-		pad = UI_GetStringWidth(G.font, temp,0);
+		pad = UI_GetStringWidth(temp);
 		while (s && (sw+pad>w)) {
 			s++;
-			sw = UI_GetStringWidth(G.font, s,0);
+			sw = UI_GetStringWidth(s);
 			shortened = 1;
 		}
 		if (shortened) {
@@ -219,7 +217,7 @@ static float shorten_string(char* string, float w, int flag)
 		while (sw>w) {
 			int slen = strlen(string);
 			string[slen-1] = '\0';
-			sw = UI_GetStringWidth(G.font, s,0);
+			sw = UI_GetStringWidth(s);
 			shortened = 1;
 		}
 		if (shortened) {
@@ -284,15 +282,11 @@ static void file_draw_string(short sx, short sy, const char* string, short width
 	x = (float)(sx);
 	y = (float)(sy-height);
 
-	// XXX was using ui_rasterpos_safe
-	glRasterPos2f(x, y);
-	UI_RasterPos(x, y);
-
 	/* XXX TODO: handling of international fonts.
 	    TODO: proper support for utf8 in languages different from ja_JP abd zh_CH
 	    needs update of iconv in lib/windows to support getting the system language string
 	*/
-	UI_DrawString(G.font, fname, 0);
+	UI_DrawString(x, y, fname);
 
 }
 
@@ -501,12 +495,12 @@ void file_draw_list(const bContext *C, ARegion *ar)
 		UI_ThemeColor4(TH_TEXT);
 		
 		
-		sw = UI_GetStringWidth(G.font, file->relname, 0);
+		sw = UI_GetStringWidth(file->relname);
 		file_draw_string(spos, sy, file->relname, sw, layout->tile_h, FILE_SHORTEN_END);
 		spos += filelist_column_len(sfile->files, COLUMN_NAME) + 10;
 		if (params->display == FILE_SHOWSHORT) {
 			if (!(file->type & S_IFDIR)) {
-				sw = UI_GetStringWidth(G.font, file->size, 0);
+				sw = UI_GetStringWidth(file->size);
 				spos += filelist_column_len(sfile->files, COLUMN_SIZE) + 10 - sw;
 				file_draw_string(spos, sy, file->size, sw, layout->tile_h, FILE_SHORTEN_END);	
 			}
@@ -514,33 +508,33 @@ void file_draw_list(const bContext *C, ARegion *ar)
 #if 0 // XXX TODO: add this for non-windows systems
 			/* rwx rwx rwx */
 			spos += 20;
-			sw = UI_GetStringWidth(G.font, file->mode1, 0);
+			sw = UI_GetStringWidth(file->mode1);
 			file_draw_string(spos, sy, file->mode1, sw, layout->tile_h); 
 			
 			spos += 30;
-			sw = UI_GetStringWidth(G.font, file->mode2, 0);
+			sw = UI_GetStringWidth(file->mode2);
 			file_draw_string(spos, sy, file->mode2, sw, layout->tile_h);
 
 			spos += 30;
-			sw = UI_GetStringWidth(G.font, file->mode3, 0);
+			sw = UI_GetStringWidth(file->mode3);
 			file_draw_string(spos, sy, file->mode3, sw, layout->tile_h);
 			
 			spos += 30;
-			sw = UI_GetStringWidth(G.font, file->owner, 0);
+			sw = UI_GetStringWidth(file->owner);
 			file_draw_string(spos, sy, file->owner, sw, layout->tile_h);
 #endif
 
 			
-			sw = UI_GetStringWidth(G.font, file->date, 0);
+			sw = UI_GetStringWidth(file->date);
 			file_draw_string(spos, sy, file->date, sw, layout->tile_h, FILE_SHORTEN_END);
 			spos += filelist_column_len(sfile->files, COLUMN_DATE) + 10;
 
-			sw = UI_GetStringWidth(G.font, file->time, 0);
+			sw = UI_GetStringWidth(file->time);
 			file_draw_string(spos, sy, file->time, sw, layout->tile_h, FILE_SHORTEN_END); 
 			spos += filelist_column_len(sfile->files, COLUMN_TIME) + 10;
 
 			if (!(file->type & S_IFDIR)) {
-				sw = UI_GetStringWidth(G.font, file->size, 0);
+				sw = UI_GetStringWidth(file->size);
 				spos += filelist_column_len(sfile->files, COLUMN_SIZE) + 10 - sw;
 				file_draw_string(spos, sy, file->size, sw, layout->tile_h, FILE_SHORTEN_END);
 			}

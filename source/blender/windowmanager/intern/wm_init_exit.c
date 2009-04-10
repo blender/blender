@@ -55,9 +55,6 @@
 #include "BKE_packedFile.h"
 
 #include "BMF_Api.h"
-#ifdef INTERNATIONAL
-#include "FTF_Api.h"
-#endif
 
 #include "BLI_blenlib.h"
 
@@ -256,10 +253,6 @@ void WM_exit(bContext *C)
 // XXX		UI_filelist_free_icons();
 	}
 	
-#ifdef INTERNATIONAL
-	FTF_End();
-#endif
-
 	GPU_extensions_exit();
 	
 //	if (copybuf) MEM_freeN(copybuf);

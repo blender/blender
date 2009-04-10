@@ -292,17 +292,6 @@ void uiFreeInactiveBlocks(const struct bContext *C, struct ListBase *lb);
 void uiBlockSetButLock(uiBlock *block, int val, char *lockstr);
 void uiBlockClearButLock(uiBlock *block);
 
-/* Appearance/Cruft
- *
- * These functions should mostly dissappear ideally, or become internal.
- * Font handling could move to blenfont/, and appearance could be dictated
- * better by high level information instead of spread out all over. */
-
-void uiSetCurFont(uiBlock *block, int index);
-void *uiSetCurFont_ext(float aspect);
-void uiDefFont(unsigned int index, void *xl, void *large, void *medium, void *small);
-void *uiBlockGetCurFont	(uiBlock *block);
-
 /* automatic aligning, horiz or verical */
 void uiBlockBeginAlign(uiBlock *block);
 void uiBlockEndAlign(uiBlock *block);
@@ -638,7 +627,8 @@ void uiAnimContextProperty(const struct bContext *C, struct PointerRNA *ptr, str
 void uiStyleFontSet(struct uiFontStyle *fs);
 void uiStyleFontDraw(struct uiFontStyle *fs, struct rcti *rect, char *str);
 
-
+int UI_GetStringWidth(char *str); // XXX temp
+void UI_DrawString(float x, float y, char *str); // XXX temp
 
 #endif /*  UI_INTERFACE_H */
 

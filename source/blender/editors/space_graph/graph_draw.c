@@ -84,10 +84,8 @@
 #include "UI_interface_icons.h"
 #include "UI_resources.h"
 #include "UI_view2d.h"
-#include "UI_text.h"
 
 /* XXX */
-extern void ui_rasterpos_safe(float x, float y, float aspect);
 extern void gl_round_box(int mode, float minx, float miny, float maxx, float maxy, float rad);
 
 /* *************************** */
@@ -1363,8 +1361,7 @@ void graph_draw_channel_names(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 			else
 				UI_ThemeColor(TH_TEXT);
 			offset += 3;
-			ui_rasterpos_safe(x+offset, y-4, 1.0f);
-			UI_DrawString(G.font, name, 0);
+			UI_DrawString(x+offset, y-4, name);
 			
 			/* reset offset - for RHS of panel */
 			offset = 0;

@@ -52,7 +52,6 @@
 #include "UI_interface.h"
 #include "UI_interface_icons.h"
 #include "UI_resources.h"
-#include "UI_text.h"
 #include "UI_view2d.h"
 
 #include "ED_datafiles.h"
@@ -178,6 +177,26 @@ void uiStyleFontDraw(uiFontStyle *fs, rcti *rect, char *str)
 	BLF_disable(BLF_CLIPPING);
 }
 
+/* ************** helpers ************************ */
+
+/* temporarily, does widget font */
+int UI_GetStringWidth(char *str)
+{
+	uiStyle *style= U.uistyles.first;
+	
+	uiStyleFontSet(&style->widget);
+	return BLF_width(str);	
+}
+
+/* temporarily, does widget font */
+void UI_DrawString(float x, float y, char *str)
+{
+	uiStyle *style= U.uistyles.first;
+	
+	uiStyleFontSet(&style->widget);
+	BLF_position(x, y, 0.0f);
+	BLF_draw(str);
+}
 
 /* ************** init exit ************************ */
 

@@ -48,12 +48,6 @@
 
 #include "UI_interface.h"
 #include "UI_interface_icons.h"
-#include "UI_text.h"
-
-#include "BMF_Api.h"
-#ifdef INTERNATIONAL
-#include "FTF_Api.h"
-#endif
 
 #include "interface_intern.h"
 
@@ -452,35 +446,6 @@ void uiRoundBox(float minx, float miny, float maxx, float maxy, float rad)
 	glDisable( GL_LINE_SMOOTH );
 }
 
-
-/* ************** safe rasterpos for pixmap alignment with pixels ************* */
-
-void ui_rasterpos_safe(float x, float y, float aspect)
-{
-	float vals[4], remainder;
-	int doit=0;
-	
-	glRasterPos2f(x, y);
-	glGetFloatv(GL_CURRENT_RASTER_POSITION, vals);
-
-	remainder= vals[0] - floor(vals[0]);
-	if(remainder > 0.4 && remainder < 0.6) {
-		if(remainder < 0.5) x -= 0.1*aspect;
-		else x += 0.1*aspect;
-		doit= 1;
-	}
-	remainder= vals[1] - floor(vals[1]);
-	if(remainder > 0.4 && remainder < 0.6) {
-		if(remainder < 0.5) y -= 0.1*aspect;
-		else y += 0.1*aspect;
-		doit= 1;
-	}
-	
-	if(doit) glRasterPos2f(x, y);
-
-	UI_RasterPos(x, y);
-	UI_SetScale(aspect);
-}
 
 /* ************** generic embossed rect, for window sliders etc ************* */
 

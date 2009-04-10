@@ -56,7 +56,6 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 #include "UI_view2d.h"
-#include "UI_text.h"
 
 #include "file_intern.h"
 #include "filelist.h"
@@ -178,7 +177,7 @@ void file_header_buttons(const bContext *C, ARegion *ar)
 	}
 
 	xcotitle= xco;
-	xco+= UI_GetStringWidth(G.font, params->title, 0);
+	xco+= UI_GetStringWidth(params->title);
 
 	uiBlockSetEmboss(block, UI_EMBOSS);
 

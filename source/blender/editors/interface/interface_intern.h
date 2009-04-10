@@ -366,7 +366,6 @@ extern int ui_handler_panel_region(struct bContext *C, struct wmEvent *event);
 extern void ui_draw_panel(struct ARegion *ar, struct uiStyle *style, uiBlock *block, rcti *rect);
 
 /* interface_draw.c */
-extern void ui_rasterpos_safe(float x, float y, float aspect);
 extern void ui_dropshadow(rctf *rct, float radius, float aspect, int select);
 
 extern void gl_round_box(int mode, float minx, float miny, float maxx, float maxy, float rad);
