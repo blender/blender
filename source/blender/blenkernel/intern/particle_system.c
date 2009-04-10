@@ -77,6 +77,7 @@
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_scene.h"
+#include "BKE_bvhutils.h"
 
 #include "PIL_time.h"
 
@@ -2447,7 +2448,6 @@ void psys_end_effectors(ParticleSystem *psys)
 			
 			if(ec->rng)
 				rng_free(ec->rng);
-			
 		}
 
 		BLI_freelistN(lb);
@@ -2544,6 +2544,7 @@ void do_effectors(int pa_no, ParticleData *pa, ParticleKey *state, Object *ob, P
 	ParticleData *epa;
 	ParticleKey estate;
 	PartDeflect *pd;
+	SurfaceModifierData *surmd = NULL;
 	ListBase *lb=&psys->effectors;
 	ParticleEffectorCache *ec;
 	float distance, vec_to_part[3];
@@ -2571,8 +2572,34 @@ void do_effectors(int pa_no, ParticleData *pa, ParticleKey *state, Object *ob, P
 				if(psys->part->type!=PART_HAIR && psys->part->integrator)
 					where_is_object_time(eob,cfra);
 
-				/* use center of object for distance calculus */
-				VecSubf(vec_to_part, state->co, eob->obmat[3]);
+				if(pd && pd->flag&PFIELD_SURFACE) {
+					surmd = (SurfaceModifierData *)modifiers_findByType ( eob, eModifierType_Surface );
+				}
+				if(surmd) {
+					/* closest point in the object surface is an effector */
+					BVHTreeNearest nearest;
+					float velocity[3];
+
+					nearest.index = -1;
+					nearest.dist = FLT_MAX;
+
+					/* using velocity corrected location allows for easier sliding over effector surface */
+					VecCopyf(velocity, state->vel);
+					VecMulf(velocity, psys_get_timestep(psys->part));
+					VecAddf(vec_to_part, state->co, velocity);
+
+					BLI_bvhtree_find_nearest(surmd->bvhtree->tree, vec_to_part, &nearest, surmd->bvhtree->nearest_callback, surmd->bvhtree);
+
+					if(nearest.index != -1) {
+						VecSubf(vec_to_part, state->co, nearest.co);
+					}
+					else
+						vec_to_part[0] = vec_to_part[1] = vec_to_part[2] = 0.0f;
+				}
+				else 
+					/* use center of object for distance calculus */
+					VecSubf(vec_to_part, state->co, eob->obmat[3]);
+
 				distance = VecLength(vec_to_part);
 
 				falloff=effector_falloff(pd,eob->obmat[2],vec_to_part);

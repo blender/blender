@@ -3207,6 +3207,12 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 			collmd->mfaces = NULL;
 			
 		}
+		else if (md->type==eModifierType_Surface) {
+			SurfaceModifierData *surmd = (SurfaceModifierData*) md;
+
+			surmd->dm = NULL;
+			surmd->bvhtree = NULL;
+		}
 		else if (md->type==eModifierType_Hook) {
 			HookModifierData *hmd = (HookModifierData*) md;
 

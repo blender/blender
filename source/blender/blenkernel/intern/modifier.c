@@ -6016,6 +6016,82 @@ static void collisionModifier_deformVerts(
 }
 
 
+
+/* Surface */
+
+static void surfaceModifier_initData(ModifierData *md) 
+{
+	SurfaceModifierData *surmd = (SurfaceModifierData*) md;
+	
+	surmd->bvhtree = NULL;
+}
+
+static void surfaceModifier_freeData(ModifierData *md)
+{
+	SurfaceModifierData *surmd = (SurfaceModifierData*) md;
+	
+	if (surmd)
+	{
+		if(surmd->bvhtree) {
+			free_bvhtree_from_mesh(surmd->bvhtree);
+			MEM_freeN(surmd->bvhtree);
+		}
+
+		surmd->dm->release(surmd->dm);
+		
+		surmd->bvhtree = NULL;
+		surmd->dm = NULL;
+	}
+}
+
+static int surfaceModifier_dependsOnTime(ModifierData *md)
+{
+	return 1;
+}
+
+static void surfaceModifier_deformVerts(
+					  ModifierData *md, Object *ob, DerivedMesh *derivedData,
+       float (*vertexCos)[3], int numVerts)
+{
+	SurfaceModifierData *surmd = (SurfaceModifierData*) md;
+	DerivedMesh *dm = NULL;
+	float current_time = 0;
+	unsigned int numverts = 0, i = 0;
+	
+	if(surmd->dm)
+		surmd->dm->release(surmd->dm);
+
+	/* if possible use/create DerivedMesh */
+	if(derivedData) surmd->dm = CDDM_copy(derivedData);
+	else if(ob->type==OB_MESH) surmd->dm = CDDM_from_mesh(ob->data, ob);
+	
+	if(!ob->pd)
+	{
+		printf("surfaceModifier_deformVerts: Should not happen!\n");
+		return;
+	}
+	
+	if(surmd->dm)
+	{
+		CDDM_apply_vert_coords(surmd->dm, vertexCos);
+		CDDM_calc_normals(surmd->dm);
+		
+		numverts = surmd->dm->getNumVerts ( surmd->dm );
+
+		/* convert to global coordinates */
+		for(i = 0; i<numverts; i++)
+			Mat4MulVecfl(ob->obmat, CDDM_get_vert(surmd->dm, i)->co);
+
+		if(surmd->bvhtree)
+			free_bvhtree_from_mesh(surmd->bvhtree);
+		else
+			surmd->bvhtree = MEM_callocN(sizeof(BVHTreeFromMesh), "BVHTreeFromMesh");
+
+		bvhtree_from_mesh_faces(surmd->bvhtree, surmd->dm, 0.0, 2, 6);
+	}
+}
+
+
 /* Boolean */
 
 static void booleanModifier_copyData(ModifierData *md, ModifierData *target)
@@ -8216,6 +8292,14 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti->freeData = collisionModifier_freeData; 
 		mti->deformVerts = collisionModifier_deformVerts;
 		// mti->copyData = collisionModifier_copyData;
+
+		mti = INIT_TYPE(Surface);
+		mti->type = eModifierTypeType_OnlyDeform;
+		mti->initData = surfaceModifier_initData;
+		mti->flags = eModifierTypeFlag_AcceptsMesh;
+		mti->dependsOnTime = surfaceModifier_dependsOnTime;
+		mti->freeData = surfaceModifier_freeData; 
+		mti->deformVerts = surfaceModifier_deformVerts;
 
 		mti = INIT_TYPE(Boolean);
 		mti->type = eModifierTypeType_Nonconstructive;

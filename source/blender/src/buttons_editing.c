@@ -1031,7 +1031,7 @@ static uiBlock *modifiers_add_menu(void *ob_v)
 		/* Only allow adding through appropriate other interfaces */
 		if(ELEM3(i, eModifierType_Softbody, eModifierType_Hook, eModifierType_ParticleSystem)) continue;
 		
-		if(ELEM3(i, eModifierType_Cloth, eModifierType_Collision, eModifierType_Fluidsim)) continue;
+		if(ELEM4(i, eModifierType_Cloth, eModifierType_Collision, eModifierType_Surface, eModifierType_Fluidsim)) continue;
 
 		if((mti->flags&eModifierTypeFlag_AcceptsCVs) ||
 		   (ob->type==OB_MESH && (mti->flags&eModifierTypeFlag_AcceptsMesh))) {
@@ -1771,7 +1771,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 		uiDefBut(block, TEX, B_MODIFIER_REDRAW, "", x+10, y-1, buttonWidth-60, 19, md->name, 0.0, sizeof(md->name)-1, 0.0, 0.0, "Modifier name"); 
 
 		/* Softbody not allowed in this situation, enforce! */
-		if ((md->type!=eModifierType_Softbody && md->type!=eModifierType_Collision) || !(ob->pd && ob->pd->deflect)) {
+		if (((md->type!=eModifierType_Softbody && md->type!=eModifierType_Collision) || !(ob->pd && ob->pd->deflect)) && (md->type!=eModifierType_Surface)) {
 			uiDefIconButBitI(block, TOG, eModifierMode_Render, B_MODIFIER_RECALC, ICON_SCENE, x+10+buttonWidth-60, y-1, 19, 19,&md->mode, 0, 0, 1, 0, "Enable modifier during rendering");
 			but= uiDefIconButBitI(block, TOG, eModifierMode_Realtime, B_MODIFIER_RECALC, VICON_VIEW3D, x+10+buttonWidth-40, y-1, 19, 19,&md->mode, 0, 0, 1, 0, "Enable modifier during interactive display");
 			if (mti->flags&eModifierTypeFlag_SupportsEditmode) {
@@ -1813,7 +1813,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 		
 		// deletion over the deflection panel
 		// fluid particle modifier can't be deleted here
-		if(md->type!=eModifierType_Fluidsim && md->type!=eModifierType_Collision && !modifier_is_fluid_particles(md))
+		if(md->type!=eModifierType_Fluidsim && md->type!=eModifierType_Collision && md->type!=eModifierType_Surface && !modifier_is_fluid_particles(md))
 		{
 			but = uiDefIconBut(block, BUT, B_MODIFIER_RECALC, VICON_X, x+width-70+40, y, 16, 16, NULL, 0.0, 0.0, 0.0, 0.0, "Delete modifier");
 			uiButSetFunc(but, modifiers_del, ob, md);
@@ -1884,6 +1884,8 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			height = 31;
 		} else if (md->type==eModifierType_Collision) {
 			height = 31;
+		} else if (md->type==eModifierType_Surface) {
+			height = 31;
 		} else if (md->type==eModifierType_Fluidsim) {
 			height = 31;
 		} else if (md->type==eModifierType_Boolean) {
@@ -1924,7 +1926,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 
 		y -= 18;
 
-		if (!isVirtual && (md->type!=eModifierType_Collision)) {
+		if (!isVirtual && (md->type!=eModifierType_Collision) && (md->type!=eModifierType_Surface)) {
 			uiSetButLock(object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE); /* only here obdata, the rest of modifiers is ob level */
 
 			uiBlockBeginAlign(block);
@@ -2369,6 +2371,8 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 
 		} else if (md->type==eModifierType_Collision) {
 			uiDefBut(block, LABEL, 1, "See Collision panel.",	lx, (cy-=19), buttonWidth,19, NULL, 0.0, 0.0, 0, 0, "");
+		} else if (md->type==eModifierType_Surface) {
+			uiDefBut(block, LABEL, 1, "See Fields panel.",	lx, (cy-=19), buttonWidth,19, NULL, 0.0, 0.0, 0, 0, "");
 		} else if (md->type==eModifierType_Fluidsim) {
 			uiDefBut(block, LABEL, 1, "See Fluidsim panel.",	lx, (cy-=19), buttonWidth,19, NULL, 0.0, 0.0, 0, 0, "");
 		} else if (md->type==eModifierType_Boolean) {

@@ -3340,6 +3340,35 @@ static void object_panel_collision(Object *ob)
 		}
 	}
 }
+static void object_surface__enabletoggle ( void *ob_v, void *arg2 )
+{
+	Object *ob = ob_v;
+	PartDeflect *pd= ob->pd;
+	ModifierData *md = modifiers_findByType ( ob, eModifierType_Surface );
+	
+	if(!md)
+	{
+		if(pd && (pd->flag & PFIELD_SURFACE)
+			&& ELEM5(pd->forcefield,PFIELD_HARMONIC,PFIELD_FORCE,PFIELD_HARMONIC,PFIELD_CHARGE,PFIELD_LENNARDJ))
+		{
+			md = modifier_new ( eModifierType_Surface );
+			BLI_addtail ( &ob->modifiers, md );
+			DAG_scene_sort(G.scene);
+			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+			allqueue(REDRAWBUTSEDIT, 0);
+			allqueue(REDRAWVIEW3D, 0);
+		}
+	}
+	else if(!pd || !(pd->flag & PFIELD_SURFACE)
+		|| ELEM5(pd->forcefield,PFIELD_HARMONIC,PFIELD_FORCE,PFIELD_HARMONIC,PFIELD_CHARGE,PFIELD_LENNARDJ))
+	{
+		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+		BLI_remlink ( &ob->modifiers, md );
+		modifier_free ( md );
+		DAG_scene_sort(G.scene);
+		allqueue(REDRAWBUTSEDIT, 0);
+	}
+}
 static void object_panel_fields(Object *ob)
 {
 	uiBlock *block;
@@ -3425,9 +3454,12 @@ static void object_panel_fields(Object *ob)
 		}
 		
 		if(ob->particlesystem.first)
-			uiDefButS(block, MENU, B_FIELD_DEP, menustr,			80,180,70,20, &pd->forcefield, 0.0, 0.0, 0, 0, tipstr);
+			but = uiDefButS(block, MENU, B_FIELD_DEP, menustr,			80,180,70,20, &pd->forcefield, 0.0, 0.0, 0, 0, tipstr);
 		else
-			uiDefButS(block, MENU, B_FIELD_DEP, menustr,			10,180,140,20, &pd->forcefield, 0.0, 0.0, 0, 0, tipstr);
+			but = uiDefButS(block, MENU, B_FIELD_DEP, menustr,			10,180,140,20, &pd->forcefield, 0.0, 0.0, 0, 0, tipstr);
+
+		if(!particles)
+			uiButSetFunc(but, object_surface__enabletoggle, ob, NULL);
 
 		uiBlockEndAlign(block);
 		uiDefBut(block, LABEL, 0, "",160,180,150,2, NULL, 0.0, 0, 0, 0, "");
@@ -3472,7 +3504,12 @@ static void object_panel_fields(Object *ob)
 			}
 			else if(particles==0 && ELEM(pd->forcefield,PFIELD_VORTEX,PFIELD_WIND)==0){
 				//uiDefButF(block, NUM, B_FIELD_CHANGE, "Distance: ",	10,20,140,20, &pd->f_dist, 0, 1000.0, 10, 0, "Falloff power (real gravitational fallof = 2)");
-				uiDefButBitS(block, TOG, PFIELD_PLANAR, B_FIELD_CHANGE, "Planar",	10,15,140,20, &pd->flag, 0.0, 0, 0, 0, "Create planar field");
+				uiDefButBitS(block, TOG, PFIELD_PLANAR, B_FIELD_CHANGE, "Planar",	10,35,140,20, &pd->flag, 0.0, 0, 0, 0, "Create planar field");
+			}
+			
+			if(particles==0 && ELEM5(pd->forcefield,PFIELD_HARMONIC,PFIELD_FORCE,PFIELD_HARMONIC,PFIELD_CHARGE,PFIELD_LENNARDJ)) {
+				but = uiDefButBitS(block, TOG, PFIELD_SURFACE, B_FIELD_CHANGE, "Surface",	10,15,140,20, &pd->flag, 0.0, 0, 0, 0, "Use closest point on surface");
+				uiButSetFunc(but, object_surface__enabletoggle, ob, NULL);
 			}
 			uiBlockEndAlign(block);
 			
