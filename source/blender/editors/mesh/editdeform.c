@@ -94,7 +94,7 @@ void sel_verts_defgroup (Object *obedit, int select)
 	case OB_MESH:
 	{
 		Mesh *me= ob->data;
-		EditMesh *em = EM_GetEditMesh(me);
+		EditMesh *em = BKE_mesh_get_editmesh(me);
 
 		for (eve=em->verts.first; eve; eve=eve->next){
 			dvert= CustomData_em_get(&em->vdata, eve->data, CD_MDEFORMVERT);
@@ -114,7 +114,7 @@ void sel_verts_defgroup (Object *obedit, int select)
 		if(select) EM_select_flush(em);	// vertices to edges/faces
 		else EM_deselect_flush(em);
 
-		EM_EndEditMesh(em, me);
+		BKE_mesh_end_editmesh(em, me);
 	}
 		break;
 	case OB_LATTICE:
@@ -398,7 +398,7 @@ void del_defgroup (Object *ob)
 	/* Make sure that any verts with higher indices are adjusted accordingly */
 	if(ob->type==OB_MESH) {
 		Mesh *me= ob->data;
-		EditMesh *em = EM_GetEditMesh(me);
+		EditMesh *em = BKE_mesh_get_editmesh(me);
 		EditVert *eve;
 		MDeformVert *dvert;
 		
@@ -410,7 +410,7 @@ void del_defgroup (Object *ob)
 					if (dvert->dw[i].def_nr > (ob->actdef-1))
 						dvert->dw[i].def_nr--;
 		}
-		EM_EndEditMesh(me, em);
+		BKE_mesh_end_editmesh(me, em);
 	}
 	else if(ob->type==OB_LATTICE) {
 		Lattice *lt= def_get_lattice(ob);
@@ -724,7 +724,7 @@ void assign_verts_defgroup (Object *obedit, float weight)
 	case OB_MESH:
 	{
 		Mesh *me= ob->data;
-		EditMesh *em = EM_GetEditMesh(me);
+		EditMesh *em = BKE_mesh_get_editmesh(me);
 
 		if (!CustomData_has_layer(&em->vdata, CD_MDEFORMVERT))
 			EM_add_data_layer(em, &em->vdata, CD_MDEFORMVERT);
@@ -764,7 +764,7 @@ void assign_verts_defgroup (Object *obedit, float weight)
 				}
 			}
 		}
-		EM_EndEditMesh(me, em);
+		BKE_mesh_end_editmesh(me, em);
 	}
 		break;
 	case OB_LATTICE:
@@ -888,7 +888,7 @@ void remove_verts_defgroup (Object *obedit, int allverts)
 	case OB_MESH:
 	{
 		Mesh *me= ob->data;
-		EditMesh *em = EM_GetEditMesh(me);
+		EditMesh *em = BKE_mesh_get_editmesh(me);
 
 		for (eve=em->verts.first; eve; eve=eve->next){
 			dvert= CustomData_em_get(&em->vdata, eve->data, CD_MDEFORMVERT);
@@ -918,7 +918,7 @@ void remove_verts_defgroup (Object *obedit, int allverts)
 				}
 			}
 		}
-		EM_EndEditMesh(me, em);
+		BKE_mesh_end_editmesh(me, em);
 	}
 		break;
 	case OB_LATTICE:

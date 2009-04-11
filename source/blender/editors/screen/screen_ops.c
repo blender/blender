@@ -217,14 +217,14 @@ int ED_operator_uvedit(bContext *C)
 	EditMesh *em= NULL;
 
 	if(obedit && obedit->type==OB_MESH)
-		em= EM_GetEditMesh((Mesh *)obedit->data);
+		em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
 
 	if(em && (em->faces.first) && (CustomData_has_layer(&em->fdata, CD_MTFACE))) {
-		EM_EndEditMesh(obedit->data, em);
+		BKE_mesh_end_editmesh(obedit->data, em);
 		return 1;
 	}
 
-	EM_EndEditMesh(obedit->data, em);
+	BKE_mesh_end_editmesh(obedit->data, em);
 	return 0;
 }
 
@@ -234,14 +234,14 @@ int ED_operator_uvmap(bContext *C)
 	EditMesh *em= NULL;
 
 	if(obedit && obedit->type==OB_MESH)
-		em= EM_GetEditMesh((Mesh *)obedit->data);
+		em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
 
 	if(em && (em->faces.first)) {
-		EM_EndEditMesh(obedit->data, em);
+		BKE_mesh_end_editmesh(obedit->data, em);
 		return 1;
 	}
 
-	EM_EndEditMesh(obedit->data, em);
+	BKE_mesh_end_editmesh(obedit->data, em);
 	return 0;
 }
 

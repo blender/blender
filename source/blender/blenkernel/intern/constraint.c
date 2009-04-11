@@ -392,7 +392,7 @@ static void contarget_get_mesh_mat (Object *ob, char *substring, float mat[][4])
 {
 	DerivedMesh *dm;
 	Mesh *me= ob->data;
-	EditMesh *em = EM_GetEditMesh(me);
+	EditMesh *em = BKE_mesh_get_editmesh(me);
 	float vec[3] = {0.0f, 0.0f, 0.0f}, tvec[3];
 	float normal[3] = {0.0f, 0.0f, 0.0f}, plane[3];
 	float imat[3][3], tmat[3][3];
@@ -480,7 +480,7 @@ static void contarget_get_mesh_mat (Object *ob, char *substring, float mat[][4])
 	/* free temporary DerivedMesh created (in EditMode case) */
 	if (em) {
 		if (dm) dm->release(dm);
-		EM_EndEditMesh(me, em);
+		BKE_mesh_end_editmesh(me, em);
 	}
 }
 

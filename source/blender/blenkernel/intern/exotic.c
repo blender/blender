@@ -2388,7 +2388,7 @@ void write_stl(Scene *scene, char *str)
 static void write_videoscape_mesh(Scene *scene, Object *ob, char *str)
 {
 	Mesh *me= ob->data;
-	EditMesh *em = EM_GetEditMesh(me);
+	EditMesh *em = BKE_mesh_get_editmesh(me);
 	Material *ma;
 	MFace *mface;
 	FILE *fp;
@@ -2490,7 +2490,7 @@ static void write_videoscape_mesh(Scene *scene, Object *ob, char *str)
 	
 	fclose(fp);
 
-	if (em) EM_EndEditMesh(em);
+	if (em) BKE_mesh_end_editmesh(me, em);
 	
 }
 

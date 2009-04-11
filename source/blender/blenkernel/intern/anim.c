@@ -457,11 +457,11 @@ static void vertex_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, fl
 	/* simple preventing of too deep nested groups */
 	if(level>MAX_DUPLI_RECUR) return;
 	
-	em = EM_GetEditMesh(me);
+	em = BKE_mesh_get_editmesh(me);
 	
 	if(em) {
 		dm= editmesh_get_derived_cage(scene, par, em, CD_MASK_BAREMESH);
-		EM_EndEditMesh(me, em);
+		BKE_mesh_end_editmesh(me, em);
 	} else
 		dm= mesh_get_derived_deform(scene, par, CD_MASK_BAREMESH);
 	
@@ -572,7 +572,7 @@ static void face_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, floa
 	
 	Mat4CpyMat4(pmat, par->obmat);
 	
-	em = EM_GetEditMesh(me);
+	em = BKE_mesh_get_editmesh(me);
 	if(em) {
 		int totvert;
 		
@@ -585,7 +585,7 @@ static void face_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, floa
 		mvert= MEM_mallocN(sizeof(MVert)*totvert, "mvert temp");
 		dm->copyVertArray(dm, mvert);
 
-		EM_EndEditMesh(me, em);
+		BKE_mesh_end_editmesh(me, em);
 	}
 	else {
 		dm = mesh_get_derived_deform(scene, par, CD_MASK_BAREMESH);

@@ -7541,7 +7541,7 @@ static void meshdeformModifier_do(
 	DerivedMesh *tmpdm, *cagedm;
 	MDeformVert *dvert = NULL;
 	MDeformWeight *dw;
-	EditMesh *em = EM_GetEditMesh(me);
+	EditMesh *em = BKE_mesh_get_editmesh(me);
 	MVert *cagemvert;
 	float imat[4][4], cagemat[4][4], iobmat[4][4], icagemat[3][3], cmat[4][4];
 	float weight, totweight, fac, co[3], *weights, (*dco)[3], (*bindcos)[3];
@@ -7555,7 +7555,7 @@ static void meshdeformModifier_do(
 		tmpdm= editmesh_get_derived_cage_and_final(md->scene, ob, em, &cagedm, 0);
 		if(tmpdm)
 			tmpdm->release(tmpdm);
-		EM_EndEditMesh(em);
+		BKE_mesh_end_editmesh(me, em);
 	}
 	else
 		cagedm= mmd->object->derivedFinal;

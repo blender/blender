@@ -339,18 +339,18 @@ int make_fgon(EditMesh *em, wmOperator *op, int make)
 static int make_fgon_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
-	EditMesh *em= EM_GetEditMesh(((Mesh *)obedit->data));
+	EditMesh *em= BKE_mesh_get_editmesh(((Mesh *)obedit->data));
 
 	if( make_fgon(em, op, 1) ) {
 		DAG_object_flush_update(CTX_data_scene(C), obedit, OB_RECALC_DATA);	
 	
 		WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 
-		EM_EndEditMesh(obedit->data, em);
+		BKE_mesh_end_editmesh(obedit->data, em);
 		return OPERATOR_FINISHED;
 	}
 
-	EM_EndEditMesh(obedit->data, em);
+	BKE_mesh_end_editmesh(obedit->data, em);
 	return OPERATOR_CANCELLED;
 }
 
@@ -371,18 +371,18 @@ void MESH_OT_fgon_make(struct wmOperatorType *ot)
 static int clear_fgon_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
-	EditMesh *em= EM_GetEditMesh(((Mesh *)obedit->data));
+	EditMesh *em= BKE_mesh_get_editmesh(((Mesh *)obedit->data));
 	
 	if( make_fgon(em, op, 0) ) {
 		DAG_object_flush_update(CTX_data_scene(C), obedit, OB_RECALC_DATA);	
 		
 		WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 		
-		EM_EndEditMesh(obedit->data, em);
+		BKE_mesh_end_editmesh(obedit->data, em);
 		return OPERATOR_FINISHED;
 	}
 
-	EM_EndEditMesh(obedit->data, em);
+	BKE_mesh_end_editmesh(obedit->data, em);
 	return OPERATOR_CANCELLED;
 }
 
@@ -785,7 +785,7 @@ static void addedgeface_mesh(EditMesh *em, wmOperator *op)
 static int addedgeface_mesh_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
-	EditMesh *em= EM_GetEditMesh(((Mesh *)obedit->data));
+	EditMesh *em= BKE_mesh_get_editmesh(((Mesh *)obedit->data));
 	
 	addedgeface_mesh(em, op);
 	
@@ -793,7 +793,7 @@ static int addedgeface_mesh_exec(bContext *C, wmOperator *op)
 	
 	DAG_object_flush_update(CTX_data_scene(C), obedit, OB_RECALC_DATA);	
 	
-	EM_EndEditMesh(obedit->data, em);
+	BKE_mesh_end_editmesh(obedit->data, em);
 	return OPERATOR_FINISHED;
 }
 
@@ -983,7 +983,7 @@ static void make_prim(Object *obedit, int type, float mat[4][4], int tot, int se
 	 * fill - end capping, and option to fill in circle
 	 * cent[3] - center of the data. 
 	 * */
-	EditMesh *em= EM_GetEditMesh(((Mesh *)obedit->data));
+	EditMesh *em= BKE_mesh_get_editmesh(((Mesh *)obedit->data));
 	EditVert *eve, *v1=NULL, *v2, *v3, *v4=NULL, *vtop, *vdown;
 	float phi, phid, vec[3];
 	float q[4], cmat[3][3], nor[3]= {0.0, 0.0, 0.0};
@@ -1265,7 +1265,7 @@ static void make_prim(Object *obedit, int type, float mat[4][4], int tot, int se
 	if(type!=0 && type!=13)
 		righthandfaces(em, 1);	/* otherwise monkey has eyes in wrong direction */
 
-	EM_EndEditMesh(obedit->data, em);
+	BKE_mesh_end_editmesh(obedit->data, em);
 }
 
 

@@ -381,7 +381,7 @@ static void image_uvsmenu(bContext *C, uiMenuItem *head, void *arg_unused)
 static void image_menu_uvlayers(Object *obedit, char *menustr, int *active)
 {
 	Mesh *me= (Mesh*)obedit->data;
-	EditMesh *em= EM_GetEditMesh(me);
+	EditMesh *em= BKE_mesh_get_editmesh(me);
 	CustomDataLayer *layer;
 	int i, count = 0;
 
@@ -398,7 +398,7 @@ static void image_menu_uvlayers(Object *obedit, char *menustr, int *active)
 
 	*active= CustomData_get_active_layer(&em->fdata, CD_MTFACE);
 
-	EM_EndEditMesh(me, em);
+	BKE_mesh_end_editmesh(me, em);
 }
 
 static void do_image_buttons(bContext *C, void *arg, int event)

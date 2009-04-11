@@ -255,7 +255,7 @@ static void image_refresh(const bContext *C, ScrArea *sa)
 	if(ima && (ima->source==IMA_SRC_VIEWER || sima->pin));
 	else if(obedit && obedit->type == OB_MESH) {
 		Mesh *me= (Mesh*)obedit->data;
-		EditMesh *em= EM_GetEditMesh(me);
+		EditMesh *em= BKE_mesh_get_editmesh(me);
 		MTFace *tf;
 		
 		if(em && EM_texFaceCheck(em)) {
@@ -279,7 +279,7 @@ static void image_refresh(const bContext *C, ScrArea *sa)
 			}
 		}
 
-		EM_EndEditMesh(obedit->data, em);
+		BKE_mesh_end_editmesh(obedit->data, em);
 	}
 }
 
@@ -758,12 +758,12 @@ int ED_space_image_show_uvedit(SpaceImage *sima, Object *obedit)
 		return 0;
 
 	if(obedit && obedit->type == OB_MESH) {
-		EditMesh *em = EM_GetEditMesh(obedit->data);
+		EditMesh *em = BKE_mesh_get_editmesh(obedit->data);
 		int ret;
 	
 		ret = EM_texFaceCheck(em);
 
-		EM_EndEditMesh(obedit->data, em);
+		BKE_mesh_end_editmesh(obedit->data, em);
 		return ret;
 	}
 
@@ -777,12 +777,12 @@ int ED_space_image_show_uvshadow(SpaceImage *sima, Object *obedit)
 
 	if(ED_space_image_show_paint(sima))
 		if(obedit && obedit->type == OB_MESH) {
-			EditMesh *em = EM_GetEditMesh(obedit->data);
+			EditMesh *em = BKE_mesh_get_editmesh(obedit->data);
 			int ret;
 
 			ret = EM_texFaceCheck(em);
 
-			EM_EndEditMesh(obedit->data, em);
+			BKE_mesh_end_editmesh(obedit->data, em);
 			return ret;
 		}
 

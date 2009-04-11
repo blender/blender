@@ -920,7 +920,7 @@ static int return_editmesh_vgroup(Object *obedit, EditMesh *em, char *name, floa
 static void select_editmesh_hook(Object *ob, HookModifierData *hmd)
 {
 	Mesh *me= ob->data;
-	EditMesh *em= EM_GetEditMesh(me);
+	EditMesh *em= BKE_mesh_get_editmesh(me);
 	EditVert *eve;
 	int index=0, nr=0;
 	
@@ -932,7 +932,7 @@ static void select_editmesh_hook(Object *ob, HookModifierData *hmd)
 	}
 	EM_select_flush(em);
 
-	EM_EndEditMesh(me, em);
+	BKE_mesh_end_editmesh(me, em);
 }
 
 static int return_editlattice_indexar(Lattice *editlatt, int *tot, int **indexar, float *cent)
@@ -1105,15 +1105,15 @@ int hook_getIndexArray(Object *obedit, int *tot, int **indexar, char *name, floa
 		case OB_MESH:
 		{
 			Mesh *me= obedit->data;
-			EditMesh *em = EM_GetEditMesh(me);
+			EditMesh *em = BKE_mesh_get_editmesh(me);
 
 			/* check selected vertices first */
 			if( return_editmesh_indexar(em, tot, indexar, cent_r)) {
-				EM_EndEditMesh(me, em);
+				BKE_mesh_end_editmesh(me, em);
 				return 1;
 			} else {
 				int ret = return_editmesh_vgroup(obedit, em, name, cent_r);
-				EM_EndEditMesh(me, em);
+				BKE_mesh_end_editmesh(me, em);
 			}
 		}
 		case OB_CURVE:
@@ -2211,7 +2211,7 @@ void make_vertex_parent(Scene *scene, Object *obedit, View3D *v3d)
 	
 	if(obedit->type==OB_MESH) {
 		Mesh *me= obedit->data;
-		EditMesh *em = EM_GetEditMesh(me);
+		EditMesh *em = BKE_mesh_get_editmesh(me);
 
 		eve= em->verts.first;
 		while(eve) {
@@ -2226,7 +2226,7 @@ void make_vertex_parent(Scene *scene, Object *obedit, View3D *v3d)
 			eve= eve->next;
 		}
 
-		EM_EndEditMesh(me, em);
+		BKE_mesh_end_editmesh(me, em);
 	}
 	else if(ELEM(obedit->type, OB_SURF, OB_CURVE)) {
 		ListBase *editnurb= curve_get_editcurve(obedit);
@@ -2846,7 +2846,7 @@ static int object_center_set_exec(bContext *C, wmOperator *op)
 	
 		if(obedit->type==OB_MESH) {
 			Mesh *me= obedit->data;
-			EditMesh *em = EM_GetEditMesh(me);
+			EditMesh *em = BKE_mesh_get_editmesh(me);
 
 			for(eve= em->verts.first; eve; eve= eve->next) {
 				if(v3d->around==V3D_CENTROID) {
@@ -2874,7 +2874,7 @@ static int object_center_set_exec(bContext *C, wmOperator *op)
 			recalc_editnormals(em);
 			tot_change++;
 			DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-			EM_EndEditMesh(me, em);
+			BKE_mesh_end_editmesh(me, em);
 		}
 	}
 	

@@ -1455,10 +1455,10 @@ static int mesh_separate_selected(Scene *scene, Base *editbase)
 	
 	obedit= editbase->object;
 	me= obedit->data;
-	em= EM_GetEditMesh(me);
+	em= BKE_mesh_get_editmesh(me);
 	if(me->key) {
 		error("Can't separate with vertex keys");
-		EM_EndEditMesh(me, em);
+		BKE_mesh_end_editmesh(me, em);
 		return 0;
 	}
 	
@@ -1470,7 +1470,7 @@ static int mesh_separate_selected(Scene *scene, Base *editbase)
 	EM_stats_update(em);
 	
 	if(em->totvertsel==0) {
-		EM_EndEditMesh(me, em);
+		BKE_mesh_end_editmesh(me, em);
 		return 0;
 	}
 	
@@ -1540,7 +1540,7 @@ static int mesh_separate_selected(Scene *scene, Base *editbase)
 	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);	
 	DAG_object_flush_update(scene, basenew->object, OB_RECALC_DATA);	
 
-	EM_EndEditMesh(me, em);
+	BKE_mesh_end_editmesh(me, em);
 
 	return 1;
 }
@@ -1549,7 +1549,7 @@ static int mesh_separate_selected(Scene *scene, Base *editbase)
 static int mesh_separate_material(Scene *scene, Base *editbase)
 {
 	Mesh *me= editbase->object->data;
-	EditMesh *em= EM_GetEditMesh(me);
+	EditMesh *em= BKE_mesh_get_editmesh(me);
 	unsigned char curr_mat;
 	
 	for (curr_mat = 1; curr_mat < editbase->object->totcol; ++curr_mat) {
@@ -1559,12 +1559,12 @@ static int mesh_separate_material(Scene *scene, Base *editbase)
 		editmesh_select_by_material(em, curr_mat);
 		/* and now separate */
 		if(0==mesh_separate_selected(scene, editbase)) {
-			EM_EndEditMesh(me, em);
+			BKE_mesh_end_editmesh(me, em);
 			return 0;
 		}
 	}
 
-	EM_EndEditMesh(me, em);
+	BKE_mesh_end_editmesh(me, em);
 	return 1;
 }
 
@@ -1576,11 +1576,11 @@ static int mesh_separate_loose(Scene *scene, Base *editbase)
 	int doit= 1;
 	
 	me= editbase->object->data;
-	em= EM_GetEditMesh(me);
+	em= BKE_mesh_get_editmesh(me);
 	
 	if(me->key) {
 		error("Can't separate with vertex keys");
-		EM_EndEditMesh(me, em);
+		BKE_mesh_end_editmesh(me, em);
 		return 0;
 	}
 	
@@ -1597,7 +1597,7 @@ static int mesh_separate_loose(Scene *scene, Base *editbase)
 		doit= mesh_separate_selected(scene, editbase);
 	}
 
-	EM_EndEditMesh(me, em);
+	BKE_mesh_end_editmesh(me, em);
 	return 1;
 }
 
@@ -2026,13 +2026,4 @@ void em_setup_viewcontext(bContext *C, ViewContext *vc)
 		Mesh *me= vc->obedit->data;
 		vc->em= me->edit_mesh;
 	}
-}
-
-EditMesh *EM_GetEditMesh(Mesh *me)
-{
-	return me->edit_mesh;
-}
-
-void EM_EndEditMesh(Mesh *me, EditMesh *em)
-{
 }

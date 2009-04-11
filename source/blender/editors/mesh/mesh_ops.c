@@ -65,11 +65,11 @@
 static int mesh_add_duplicate_exec(bContext *C, wmOperator *op)
 {
 	Object *ob= CTX_data_edit_object(C);
-	EditMesh *em= EM_GetEditMesh(ob->data);
+	EditMesh *em= BKE_mesh_get_editmesh(ob->data);
 
 	adduplicateflag(em, SELECT);
 	
-	EM_EndEditMesh(ob->data, em);
+	BKE_mesh_end_editmesh(ob->data, em);
 	return OPERATOR_FINISHED;
 }
 

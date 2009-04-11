@@ -96,14 +96,14 @@ typedef void ( *Shrinkwrap_ForeachVertexCallback) (DerivedMesh *target, float *c
 static DerivedMesh *object_get_derived_final(struct Scene *scene, Object *ob, CustomDataMask dataMask)
 {
 	Mesh *me= ob->data;
-	EditMesh *em = EM_GetEditMesh(me);
+	EditMesh *em = BKE_mesh_get_editmesh(me);
 
 	if (em)
 	{
 		DerivedMesh *final = NULL;
 		editmesh_get_derived_cage_and_final(scene, ob, em, &final, dataMask);
 		
-		EM_EndEditMesh(me, em);
+		BKE_mesh_end_editmesh(me, em);
 		return final;
 	}
 	else

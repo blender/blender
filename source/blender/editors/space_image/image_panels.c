@@ -249,7 +249,7 @@ static void image_editvertex_buts(const bContext *C, uiBlock *block)
 	
 	image_transform_but_attr(sima, &imx, &imy, &step, &digits);
 	
-	em= EM_GetEditMesh((Mesh *)obedit->data);
+	em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
 	for (efa= em->faces.first; efa; efa= efa->next) {
 		tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 		if (simaFaceDraw_Check(efa, tf)) {
@@ -339,7 +339,7 @@ static void image_editvertex_buts(const bContext *C, uiBlock *block)
 		WM_event_add_notifier(C, NC_IMAGE, sima->image);
 	}
 
-	EM_EndEditMesh(obedit->data, em);
+	BKE_mesh_end_editmesh(obedit->data, em);
 }
 
 
@@ -443,7 +443,7 @@ static void image_panel_view_properties(const bContext *C, ARegion *ar)
 	
 	if (obedit && obedit->type==OB_MESH) {
 		Mesh *me= obedit->data;
-		EditMesh *em= EM_GetEditMesh(me);
+		EditMesh *em= BKE_mesh_get_editmesh(me);
 		
 		if(EM_texFaceCheck(em)) {
 			uiDefBut(block, LABEL, B_NOP, "Draw Type:",		10, 80,120,19, 0, 0, 0, 0, 0, "");
@@ -472,7 +472,7 @@ static void image_panel_view_properties(const bContext *C, ARegion *ar)
 			}
 		}
 
-		EM_EndEditMesh(me, em);
+		BKE_mesh_end_editmesh(me, em);
 	}
 	image_editcursor_buts(C, &ar->v2d, block);
 }

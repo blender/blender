@@ -71,6 +71,17 @@
 #include "BLI_editVert.h"
 #include "BLI_arithb.h"
 
+
+EditMesh *BKE_mesh_get_editmesh(Mesh *me)
+{
+	return me->edit_mesh;
+}
+
+void BKE_mesh_end_editmesh(Mesh *me, EditMesh *em)
+{
+}
+
+
 void mesh_update_customdata_pointers(Mesh *me)
 {
 	me->mvert = CustomData_get_layer(&me->vdata, CD_MVERT);
