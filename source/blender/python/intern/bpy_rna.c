@@ -1680,7 +1680,11 @@ static PyObject *pyrna_basetype_getattro( BPy_BaseTypeRNA * self, PyObject *pyna
 	else		PyErr_Clear();
 	
 	if (RNA_property_collection_lookup_string(&self->ptr, self->prop, _PyUnicode_AsString(pyname), &newptr)) {
-		return pyrna_struct_Subtype(&newptr);
+		ret= pyrna_struct_Subtype(&newptr);
+		if (ret==NULL) {
+			PyErr_Format(PyExc_SystemError, "bpy.types.%s subtype could not be generated, this is a bug!", _PyUnicode_AsString(pyname));
+		}
+		return ret;
 	}
 	else { /* Override the error */
 		PyErr_Format(PyExc_AttributeError, "bpy.types.%s not a valid RNA_Struct", _PyUnicode_AsString(pyname));

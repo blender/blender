@@ -79,7 +79,7 @@ static int PyPanel_generic(int mode, const bContext *C, Panel *pnl)
 
 		ret = PyObject_Call(item, args, NULL);
 
-		Py_DECREF(args);
+		/* args is decref'd from item */
 		Py_DECREF(item);
 	}
 
