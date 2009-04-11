@@ -26,7 +26,6 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_util.h"
-#include "BLI_string.h"
 
 #include "BKE_context.h"
 #include "BKE_text.h"
@@ -40,28 +39,9 @@ void BPY_free_compiled_text( struct Text *text )
 }
 
 /*****************************************************************************
-* Description: Creates the bpy module and adds it to sys.modules for importing
-*****************************************************************************/
-static void BPY_init_modules( void )
-{
-	PyObject *mod;
-	
-	mod = PyModule_New("bpy");
-	
-	PyModule_AddObject( mod, "data", BPY_rna_module() );
-	/* PyModule_AddObject( mod, "doc", BPY_rna_doc() ); */
-	PyModule_AddObject( mod, "types", BPY_rna_types() );
-	PyModule_AddObject( mod, "ops", BPY_operator_module() );
-	PyModule_AddObject( mod, "ui", BPY_ui_module() ); // XXX very experemental, consider this a test, especially PyCObject is not meant to be perminant
-	
-	/* add the module so we can import it */
-	PyDict_SetItemString(PySys_GetObject("modules"), "bpy", mod);
-	Py_DECREF(mod);
-}
-
-/*****************************************************************************
 * Description: This function creates a new Python dictionary object.
 *****************************************************************************/
+
 static PyObject *CreateGlobalDictionary( bContext *C )
 {
 	PyObject *mod;
@@ -71,10 +51,22 @@ static PyObject *CreateGlobalDictionary( bContext *C )
 	PyDict_SetItemString( dict, "__name__", item );
 	Py_DECREF(item);
 	
+	/* add bpy to global namespace */
+	mod = PyModule_New("bpy");
+	PyDict_SetItemString( dict, "bpy", mod );
+	Py_DECREF(mod);
+	
+	PyModule_AddObject( mod, "data", BPY_rna_module() );
+	/* PyModule_AddObject( mod, "doc", BPY_rna_doc() ); */
+	PyModule_AddObject( mod, "types", BPY_rna_types() );
+	PyModule_AddObject( mod, "ops", BPY_operator_module() );
+	PyModule_AddObject( mod, "ui", BPY_ui_module() ); // XXX very experemental, consider this a test, especially PyCObject is not meant to be perminant
+	
 	// XXX - evil, need to access context
 	item = PyCObject_FromVoidPtr( C, NULL );
 	PyDict_SetItemString( dict, "__bpy_context__", item );
 	Py_DECREF(item);
+	
 	
 	// XXX - put somewhere more logical
 	{
@@ -91,18 +83,13 @@ static PyObject *CreateGlobalDictionary( bContext *C )
 		}
 	}
 	
-	/* add bpy to global namespace */
-	mod= PyImport_ImportModuleLevel("bpy", NULL, NULL, NULL, 0);
-	PyDict_SetItemString( dict, "bpy", mod );
-	Py_DECREF(mod);
-	
 	return dict;
 }
 
 void BPY_start_python( void )
 {
 	PyThreadState *py_tstate = NULL;
-	
+
 	Py_Initialize(  );
 	
 	//PySys_SetArgv( argc_copy, argv_copy );
@@ -110,10 +97,7 @@ void BPY_start_python( void )
 	/* Initialize thread support (also acquires lock) */
 	PyEval_InitThreads();
 	
-	
-	/* bpy.* and lets us import it */
-	BPY_init_modules(); 
-
+	// todo - sys paths - our own imports
 	
 	py_tstate = PyGILState_GetThisThreadState();
 	PyEval_ReleaseThread(py_tstate);
@@ -320,30 +304,16 @@ int BPY_run_python_script_space(const char *modulename, const char *func)
 }
 #endif
 
-// #define TIME_REGISTRATION
-
-#ifdef TIME_REGISTRATION
-#include "PIL_time.h"
-#endif
-
 /* XXX this is temporary, need a proper script registration system for 2.5 */
-void BPY_run_ui_scripts(void)
+void BPY_run_ui_scripts(bContext *C)
 {
-#ifdef TIME_REGISTRATION
-	double time = PIL_check_seconds_timer();
-#endif
 	DIR *dir; 
 	struct dirent *de;
+	struct stat status;
 	char *file_extension;
 	char path[FILE_MAX];
 	char *dirname= BLI_gethome_folder("ui");
-	int filelen; /* filename length */
-	
-	PyGILState_STATE gilstate;
-	PyObject *mod;
-	PyObject *sys_path_orig;
-	PyObject *sys_path_new;
-	
+
 	if(!dirname)
 		return;
 	
@@ -351,49 +321,23 @@ void BPY_run_ui_scripts(void)
 
 	if(!dir)
 		return;
-	
-	gilstate = PyGILState_Ensure();
-	
-	/* backup sys.path */
-	sys_path_orig= PySys_GetObject("path");
-	Py_INCREF(sys_path_orig); /* dont free it */
-	
-	sys_path_new= PyList_New(1);
-	PyList_SET_ITEM(sys_path_new, 0, PyUnicode_FromString(dirname));
-	PySys_SetObject("path", sys_path_new);
-	Py_DECREF(sys_path_new);
-	
-	
-	while((de = readdir(dir)) != NULL) {
-		/* We could stat the file but easier just to let python
-		 * import it and complain if theres a problem */
-		
-		file_extension = strstr(de->d_name, ".py");
-		
-		if(file_extension && *(file_extension + 3) == '\0') {
-			filelen = strlen(de->d_name);
-			BLI_strncpy(path, de->d_name, filelen-2); /* cut off the .py on copy */
-			
-			mod= PyImport_ImportModuleLevel(path, NULL, NULL, NULL, 0);
-			if (mod) {
-				Py_DECREF(mod);			
-			}
-			else {
-				PyErr_Print();
-				fprintf(stderr, "unable to import \"%s\"  %s/%s\n", path, dirname, de->d_name);
-			}
-			
-		}
-	}
 
-	closedir(dir);
-	
-	PySys_SetObject("path", sys_path_orig);
-	Py_DECREF(sys_path_orig);
-	
-	PyGILState_Release(gilstate);
-#ifdef TIME_REGISTRATION
-	printf("script time %f\n", (PIL_check_seconds_timer()-time));
-#endif
+	if (dir != NULL) {
+		while((de = readdir(dir)) != NULL) {
+			BLI_make_file_string("/", path, dirname, de->d_name);
+			
+			stat(path, &status);
+
+			/* run if it is a .py file */
+			if(S_ISREG(status.st_mode)) {
+				file_extension = strstr(de->d_name, ".py");
+
+				if(file_extension && *(file_extension + 3) == '\0')
+					BPY_run_python_script(C, path, NULL);
+			}
+		}
+
+		closedir(dir);
+	}
 }
 

@@ -529,7 +529,7 @@ int main(int argc, char **argv)
 	 */
 	BPY_post_start_python();
 
-	BPY_run_ui_scripts();
+	BPY_run_ui_scripts(C);
 #endif
 	
 #ifdef WITH_QUICKTIME
