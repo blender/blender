@@ -262,7 +262,7 @@ static PyObject *pyop_base_rna(PyObject *self, PyObject *pyname)
 
 PyTypeObject pyop_base_Type = {NULL};
 
-PyObject *BPY_operator_module( bContext *C )
+PyObject *BPY_operator_module( void )
 {
 	pyop_base_Type.tp_name = "OperatorBase";
 	pyop_base_Type.tp_basicsize = sizeof( BPy_OperatorBase );

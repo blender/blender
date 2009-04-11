@@ -1526,10 +1526,13 @@ PyObject* pyrna_struct_Subtype(PointerRNA *ptr)
 		- myClass = type(name='myClass', bases=(myBase,), dict={'some':'value'})
 		*/
 		char name[256], *nameptr;
+		const char *descr= RNA_struct_ui_description(ptr);
 
 		PyObject *args = PyTuple_New(3);
 		PyObject *bases = PyTuple_New(1);
 		PyObject *dict = PyDict_New();
+		PyObject *item;
+		
 		
 		nameptr= RNA_property_string_get_alloc(ptr, nameprop, name, sizeof(name));
 		
@@ -1544,6 +1547,12 @@ PyObject* pyrna_struct_Subtype(PointerRNA *ptr)
 		PyTuple_SET_ITEM(args, 1, bases);
 		
 		// arg 3 - add an instance of the rna 
+		if(descr) {
+			item= PyUnicode_FromString(descr);
+			PyDict_SetItemString(dict, "__doc__", item);
+			Py_DECREF(item);
+		}
+		
 		PyTuple_SET_ITEM(args, 2, dict); // fill with useful subclass things!
 		
 		if (PyErr_Occurred()) {
@@ -1552,22 +1561,18 @@ PyObject* pyrna_struct_Subtype(PointerRNA *ptr)
 		}
 		
 		newclass = PyObject_CallObject((PyObject *)&PyType_Type, args);
-		// Set this later
-		
+		Py_DECREF(args);
 
 		if (newclass) {
-			PyObject *rna;
 			RNA_struct_py_type_set(ptr->data, (void *)newclass); /* Store for later use */
 
 			/* Not 100% needed but useful,
 			 * having an instance within a type looks wrong however this instance IS an rna type */
-			rna = pyrna_struct_CreatePyObject(ptr);
-			PyDict_SetItemString(((PyTypeObject *)newclass)->tp_dict, "__rna__", rna);
-			Py_DECREF(rna);
+			item = pyrna_struct_CreatePyObject(ptr);
+			PyDict_SetItemString(((PyTypeObject *)newclass)->tp_dict, "__rna__", item);
+			Py_DECREF(item);
 			/* done with rna instance */
 		}
-		
-		Py_DECREF(args);
 		
 		if (name != nameptr)
 			MEM_freeN(nameptr);

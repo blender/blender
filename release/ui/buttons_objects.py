@@ -1,3 +1,4 @@
+import bpy
 
 class OBJECT_PT_transform(bpy.types.Panel):
 	__label__ = "Transform"
@@ -121,4 +122,3 @@ bpy.ui.addPanel(OBJECT_PT_groups, "BUTTONS_WINDOW", "WINDOW")
 bpy.ui.addPanel(OBJECT_PT_display, "BUTTONS_WINDOW", "WINDOW")
 bpy.ui.addPanel(OBJECT_PT_duplication, "BUTTONS_WINDOW", "WINDOW")
 bpy.ui.addPanel(OBJECT_PT_animation, "BUTTONS_WINDOW", "WINDOW")
-

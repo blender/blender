@@ -148,7 +148,7 @@ bool SCA_KeyboardSensor::Evaluate(CValue* eventval)
 		bool justreleased = false;
 		bool active = false;
 
-		for (int i=SCA_IInputDevice::KX_BEGINKEY ; i< SCA_IInputDevice::KX_ENDKEY;i++)
+		for (int i=SCA_IInputDevice::KX_BEGINKEY ; i<= SCA_IInputDevice::KX_ENDKEY;i++)
 		{
 			const SCA_InputEvent & inevent = inputdev->GetEventValue((SCA_IInputDevice::KX_EnumInputs) i);
 			switch (inevent.m_status) 
@@ -528,7 +528,7 @@ void SCA_KeyboardSensor::LogKeystrokes(void)
 		int index = 0;
 		/* Check on all keys whether they were pushed. This does not
          * untangle the ordering, so don't type too fast :) */
-		for (int i=SCA_IInputDevice::KX_BEGINKEY ; i< SCA_IInputDevice::KX_ENDKEY;i++)
+		for (int i=SCA_IInputDevice::KX_BEGINKEY ; i<= SCA_IInputDevice::KX_ENDKEY;i++)
 		{
 			const SCA_InputEvent & inevent = inputdev->GetEventValue((SCA_IInputDevice::KX_EnumInputs) i);
 			if (inevent.m_status == SCA_InputEvent::KX_JUSTACTIVATED) //NO_INPUTSTATUS)
@@ -663,7 +663,7 @@ PyObject* SCA_KeyboardSensor::PyGetPressedKeys(PyObject* self, PyObject* args, P
 		
 		int index = 0;
 		
-		for (int i=SCA_IInputDevice::KX_BEGINKEY ; i< SCA_IInputDevice::KX_ENDKEY;i++)
+		for (int i=SCA_IInputDevice::KX_BEGINKEY ; i<= SCA_IInputDevice::KX_ENDKEY;i++)
 		{
 			const SCA_InputEvent & inevent = inputdev->GetEventValue((SCA_IInputDevice::KX_EnumInputs) i);
 			if ((inevent.m_status == SCA_InputEvent::KX_JUSTACTIVATED)
@@ -704,7 +704,7 @@ SCA_IInputDevice* inputdev = m_pKeyboardMgr->GetInputDevice();
 	{
 		int index = 0;
 		
-		for (int i=SCA_IInputDevice::KX_BEGINKEY ; i< SCA_IInputDevice::KX_ENDKEY;i++)
+		for (int i=SCA_IInputDevice::KX_BEGINKEY ; i<= SCA_IInputDevice::KX_ENDKEY;i++)
 		{
 			const SCA_InputEvent & inevent = inputdev->GetEventValue((SCA_IInputDevice::KX_EnumInputs) i);
 			if ( (inevent.m_status == SCA_InputEvent::KX_ACTIVE)
@@ -737,7 +737,7 @@ KX_PYMETHODDEF_DOC_NOARGS(SCA_KeyboardSensor, getEventList,
 
 	PyObject* resultlist = PyList_New(0);
 	
-	for (int i=SCA_IInputDevice::KX_BEGINKEY ; i< SCA_IInputDevice::KX_ENDKEY;i++)
+	for (int i=SCA_IInputDevice::KX_BEGINKEY ; i<= SCA_IInputDevice::KX_ENDKEY;i++)
 	{
 		const SCA_InputEvent & inevent = inputdev->GetEventValue((SCA_IInputDevice::KX_EnumInputs) i);
 		if (inevent.m_status != SCA_InputEvent::KX_NO_INPUTSTATUS)
