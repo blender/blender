@@ -229,13 +229,13 @@ void rna_def_scene_render_data(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "parts_x", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "xparts");
-	RNA_def_property_range(prop, 0, 512);
+	RNA_def_property_range(prop, 1, 512);
 	RNA_def_property_ui_text(prop, "Parts X", "Number of horizontal tiles to use while rendering.");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	
 	prop= RNA_def_property(srna, "parts_y", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "yparts");
-	RNA_def_property_range(prop, 0, 512);
+	RNA_def_property_range(prop, 1, 512);
 	RNA_def_property_ui_text(prop, "Parts Y", "Number of vertical tiles to use while rendering.");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	
@@ -361,7 +361,7 @@ void rna_def_scene_render_data(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "threads", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "threads");
-	RNA_def_property_range(prop, 0, 8);
+	RNA_def_property_range(prop, 1, 8);
 	RNA_def_property_ui_text(prop, "Threads", "Number of CPU threads to use simultaneously while rendering (for multi-core/CPU systems)");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	
