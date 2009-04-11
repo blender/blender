@@ -2561,6 +2561,9 @@ int RNA_function_call_direct_va(PointerRNA *ptr, FunctionRNA *func, const char *
 				break;
 			}
 		}
+
+		if (err!=0)
+			break;
 	}
 
 	if (err==0 && pret) {
