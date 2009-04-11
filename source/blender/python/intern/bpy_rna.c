@@ -1259,7 +1259,7 @@ static PyObject * pyrna_func_call(PyObject * self, PyObject *args, PyObject *kw)
 	ParameterIterator iter;
 	PropertyRNA *pret, *parm;
 	PyObject *ret, *item;
-	int i, tlen, err= 0;
+	int i, tlen, flag, err= 0;
 	const char *tid, *fid, *pid;
 	void *retdata= NULL;
 
@@ -1273,7 +1273,7 @@ static PyObject * pyrna_func_call(PyObject * self, PyObject *args, PyObject *kw)
 	RNA_parameter_list_begin(parms, &iter);
 
 	/* parse function parameters */
-	for (i= 0; iter.valid; RNA_parameter_list_next(&iter), i++) {
+	for (i= 0; iter.valid; RNA_parameter_list_next(&iter)) {
 		parm= iter.parm;
 
 		if (parm==pret) {
@@ -1282,25 +1282,27 @@ static PyObject * pyrna_func_call(PyObject * self, PyObject *args, PyObject *kw)
 		}
 
 		pid= RNA_property_identifier(&funcptr, parm);
+		flag= RNA_property_flag(&funcptr, parm);
 		item= NULL;
 
-		if (i < tlen)
+		if ((i < tlen) && (flag & PROP_REQUIRED)) {
 			item= PyTuple_GET_ITEM(args, i);
-
-		if (kw != NULL)
+			i++;
+		}
+		else if (kw != NULL)
 			item= PyDict_GetItemString(kw, pid);
 
 		if (item==NULL) {
-			/* XXX need to add flag for optional required parameters
-			if (flag & PARAM_OPTIONAL)
-				continue; */
+			if(flag & PROP_REQUIRED) {
+				tid= RNA_struct_identifier(self_ptr);
+				fid= RNA_function_identifier(self_ptr, self_func);
 
-			tid= RNA_struct_identifier(self_ptr);
-			fid= RNA_function_identifier(self_ptr, self_func);
-
-			PyErr_Format(PyExc_AttributeError, "%s.%s(): required parameter \"%s\" not specified", tid, fid, pid);
-			err= -1;
-			break;
+				PyErr_Format(PyExc_AttributeError, "%s.%s(): required parameter \"%s\" not specified", tid, fid, pid);
+				err= -1;
+				break;
+			}
+			else
+				continue;
 		}
 
 		err= pyrna_py_to_param(&funcptr, parm, iter.data, item);
