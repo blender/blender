@@ -528,6 +528,8 @@ int main(int argc, char **argv)
 	 * on U.pythondir.
 	 */
 	BPY_post_start_python();
+
+	BPY_run_ui_scripts(C);
 #endif
 	
 #ifdef WITH_QUICKTIME

@@ -163,6 +163,9 @@ endif
 	@echo "----> Copy python infrastructure"
 	@[ ! -d scripts ] || cp -r scripts $(CONFDIR)/scripts
 
+	@echo "----> Copy python UI files"
+	@[ ! -d ui ] || cp -r ui $(CONFDIR)/ui
+
     ifeq ($(OS),darwin)
 	@echo "----> Move .blender to .app/Contents/MacOS/"
 	@rm -fr $(DISTDIR)/blender$(EXT0)/Contents/MacOS/.blender

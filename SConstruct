@@ -472,6 +472,17 @@ if  env['OURPLATFORM']!='darwin':
 				source=[dp+os.sep+f for f in df]
 				scriptinstall.append(env.Install(dir=dir,source=source))
 
+			#-- .blender/ui	
+			scriptpath='release/ui'
+			for dp, dn, df in os.walk(scriptpath):
+				if 'CVS' in dn:
+					dn.remove('CVS')
+				if '.svn' in dn:
+					dn.remove('.svn')
+				dir=env['BF_INSTALLDIR']+'/.blender/ui'+dp[len(scriptpath):]
+				source=[dp+os.sep+f for f in df]
+				scriptinstall.append(env.Install(dir=dir,source=source))
+
 #-- icons
 if env['OURPLATFORM']=='linux2':
 	iconlist = []

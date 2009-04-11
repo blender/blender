@@ -827,6 +827,102 @@ char *BLI_gethome(void) {
 	#endif
 }
 
+/* this function returns the path to a blender folder, if it exists,
+ * trying in this order:
+ *
+ * $HOME/.blender/folder_name
+ * path_to_executable/.blender/folder_name
+ * release/folder_name (in svn)
+ *
+ * returns NULL if none is found. */
+
+char *BLI_gethome_folder(char *folder_name)
+{
+	extern char bprogname[]; /* argv[0] from creator.c */
+	static char homedir[FILE_MAXDIR] = "";
+	static char fulldir[FILE_MAXDIR] = "";
+	char tmpdir[FILE_MAXDIR];
+	char bprogdir[FILE_MAXDIR];
+	char *s;
+	int i;
+
+	if(folder_name) {
+		if(fulldir[0] != '\0')
+			return fulldir;
+	}
+	else if(homedir[0] != '\0')
+		return homedir;
+
+	/* BLI_gethome() can return NULL if env vars are not set */
+	s = BLI_gethome();
+
+	if(!s) { /* bail if no $HOME */
+		printf("$HOME is NOT set\n");
+		return NULL;
+	}
+
+	if(strstr(s, ".blender"))
+		BLI_strncpy(homedir, s, FILE_MAXDIR);
+	else
+		BLI_make_file_string("/", homedir, s, ".blender");
+
+	/* if $HOME/.blender/folder_name exists, return it */
+	if(BLI_exists(homedir)) {
+		if (folder_name) {
+			BLI_make_file_string("/", fulldir, homedir, folder_name);
+			if(BLI_exists(fulldir))
+				return fulldir;
+		}
+		else
+			return homedir;
+	}
+	else
+		homedir[0] = '\0';
+
+	/* if either:
+	 * no homedir was found or
+	 * folder_name = 1 but there's no folder_name/ inside homedir,
+	 * use argv[0] (bprogname) to get .blender/ in
+	 * Blender's installation dir */
+	s = BLI_last_slash(bprogname);
+
+	i = s - bprogname + 1;
+	BLI_strncpy(bprogdir, bprogname, i);
+
+	/* using tmpdir to preserve homedir (if) found above:
+	 * the ideal is to have a home dir with folder_name dir inside
+	 * it, but if that isn't available, it's possible to
+	 * have a 'broken' home dir somewhere and a folder_name dir in the
+	 * svn sources */
+	BLI_make_file_string("/", tmpdir, bprogdir, ".blender");
+
+	if(BLI_exists(tmpdir)) {
+		if(folder_name) {
+			BLI_make_file_string("/", fulldir, tmpdir, folder_name);
+			if(BLI_exists(fulldir)) {
+				BLI_strncpy(homedir, tmpdir, FILE_MAXDIR);
+				return fulldir;
+			}
+			else {
+				homedir[0] = '\0';
+				fulldir[0] = '\0';
+			}
+		}
+		else return homedir;
+	}
+
+	/* last try for folder_name dir: blender in svn dir, folder_name/ inside release/: */
+	if (folder_name) {
+		BLI_snprintf(tmpdir, sizeof(tmpdir), "release/%s", folder_name);
+		BLI_make_file_string("/", fulldir, bprogdir, tmpdir);
+		if (BLI_exists(fulldir)) return fulldir;
+		else fulldir[0] = '\0';
+	}
+
+	return NULL;
+}
+
+
 void BLI_clean(char *path)
 {
 	if(path==0) return;

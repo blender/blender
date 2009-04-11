@@ -51,6 +51,7 @@
 
 #include "WM_types.h"
 
+#if 0
 static void object_panel_transform(const bContext *C, Panel *pnl)
 {
 	uiLayout *layout= pnl->layout;
@@ -166,9 +167,11 @@ static void object_panel_animation(const bContext *C, Panel *pnl)
 	uiItemR(layout, "Up Axis: ", 0, &obptr, "up_axis");
 	uiItemR(layout, "Rotation", 0, &obptr, "track_rotation");
 }
+#endif
 
 void buttons_object_register(ARegionType *art)
 {
+#if 0
 	PanelType *pt;
 
 	/* panels: transform */
@@ -210,5 +213,6 @@ void buttons_object_register(ARegionType *art)
 	pt->context= "object";
 	pt->draw= object_panel_animation;
 	BLI_addtail(&art->paneltypes, pt);
+#endif
 }
 

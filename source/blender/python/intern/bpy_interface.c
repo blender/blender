@@ -1,12 +1,18 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <sys/stat.h>
+
+#ifndef WIN32
+#include <dirent.h>
+#else
+#include "BLI_winstuff.h"
+#endif
 
 #include <Python.h>
 #include "compile.h"		/* for the PyCodeObject */
 #include "eval.h"		/* for PyEval_EvalCode */
-
-#include "BKE_context.h"
 
 #include "bpy_compat.h"
 
@@ -15,10 +21,14 @@
 #include "bpy_ui.h"
 
 #include "DNA_space_types.h"
-
-#include "BKE_text.h"
 #include "DNA_text_types.h"
+
 #include "MEM_guardedalloc.h"
+
+#include "BLI_util.h"
+
+#include "BKE_context.h"
+#include "BKE_text.h"
 
 void BPY_free_compiled_text( struct Text *text )
 {
@@ -293,3 +303,41 @@ int BPY_run_python_script_space(const char *modulename, const char *func)
 	return 1;
 }
 #endif
+
+/* XXX this is temporary, need a proper script registration system for 2.5 */
+void BPY_run_ui_scripts(bContext *C)
+{
+	DIR *dir; 
+	struct dirent *de;
+	struct stat status;
+	char *file_extension;
+	char path[FILE_MAX];
+	char *dirname= BLI_gethome_folder("ui");
+
+	if(!dirname)
+		return;
+	
+	dir = opendir(dirname);
+
+	if(!dir)
+		return;
+
+	if (dir != NULL) {
+		while((de = readdir(dir)) != NULL) {
+			BLI_make_file_string("/", path, dirname, de->d_name);
+			
+			stat(path, &status);
+
+			/* run if it is a .py file */
+			if(S_ISREG(status.st_mode)) {
+				file_extension = strstr(de->d_name, ".py");
+
+				if(file_extension && *(file_extension + 3) == '\0')
+					BPY_run_python_script(C, path, NULL);
+			}
+		}
+
+		closedir(dir);
+	}
+}
+

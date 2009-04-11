@@ -4458,6 +4458,7 @@ static void direct_link_region(FileData *fd, ARegion *ar, int spacetype)
 		pa->active= 0;
 		pa->sortcounter= 0;
 		pa->activedata= NULL;
+		pa->type= NULL;
 	}
 	
 	ar->regiondata= newdataadr(fd, ar->regiondata);
