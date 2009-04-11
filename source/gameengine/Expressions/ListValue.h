@@ -71,6 +71,7 @@ public:
 	KX_PYMETHOD_NOARGS(CListValue,reverse);
 	KX_PYMETHOD_O(CListValue,index);
 	KX_PYMETHOD_O(CListValue,count);
+	KX_PYMETHOD_O(CListValue,from_id);
 
 	
 private:

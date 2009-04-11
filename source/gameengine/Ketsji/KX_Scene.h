@@ -590,6 +590,27 @@ public:
 	/* for dir(), python3 uses __dir__() */
 	static PyObject*	pyattr_get_dir_dict(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	
+	static int py_base_setattro_scene(PyObject * self, PyObject *attr, PyObject *value)
+	{
+		if (value==NULL)
+			return ((PyObjectPlus*) self)->py_delattro(attr);
+		
+		int ret= ((PyObjectPlus*) self)->py_setattro(attr, value);
+		
+		if (ret) {
+			if (!PyDict_SetItem(((KX_Scene *) self)->m_attrlist, attr, value)) {
+				PyErr_Clear();
+				ret= 0;
+			}
+			else {
+				ret= -1;
+			}
+		}
+		
+		return ret;
+	}
+	
+	
 
 	virtual PyObject* py_getattro(PyObject *attr); /* name, active_camera, gravity, suspended, viewport, framing, activity_culling, activity_culling_radius */
 	virtual int py_setattro(PyObject *attr, PyObject *pyvalue);

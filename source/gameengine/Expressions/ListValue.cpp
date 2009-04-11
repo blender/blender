@@ -233,6 +233,7 @@ PyMethodDef CListValue::Methods[] = {
 	{"reverse", (PyCFunction)CListValue::sPyreverse,METH_NOARGS},
 	{"index", (PyCFunction)CListValue::sPyindex,METH_O},
 	{"count", (PyCFunction)CListValue::sPycount,METH_O},
+	{"from_id", (PyCFunction)CListValue::sPyfrom_id,METH_O},
 	
 	{NULL,NULL} //Sentinel
 };
@@ -500,6 +501,34 @@ PyObject* CListValue::Pycount(PyObject* self, PyObject* value)
 	return PyInt_FromLong(numfound);
 }
 
+
+
+PyObject* CListValue::Pyfrom_id(PyObject* self, PyObject* value)
+{
+#if SIZEOF_VOID_P <= SIZEOF_LONG
+#define BGE_ID_TYPE unsigned long
+	BGE_ID_TYPE id= PyLong_AsUnsignedLong(value);
+#else
+#define BGE_ID_TYPE unsigned long long
+	BGE_ID_TYPE id= PyLong_FromUnsignedLongLong(value);
+#endif
+	
+	if (id==-1 && PyErr_Occurred())
+		return NULL;
+
+	int numelem = GetCount();
+	for (int i=0;i<numelem;i++)
+	{
+		if (reinterpret_cast<BGE_ID_TYPE>(static_cast<PyObject*>(m_pValueArray[i])) == id)
+			return GetValue(i);
+	
+	}
+	PyErr_SetString(PyExc_IndexError, "from_id(#), id not found in CValueList");
+	return NULL;	
+
+}
+
+#undef BGE_ID_TYPE
 
 
 /* --------------------------------------------------------------------- 

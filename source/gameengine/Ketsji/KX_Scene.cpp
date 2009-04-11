@@ -1588,7 +1588,7 @@ PyTypeObject KX_Scene::Type = {
 		py_base_repr,
 		0,0,0,0,0,0,
 		py_base_getattro,
-		py_base_setattro,
+		py_base_setattro_scene,	/* unlike almost all other types we need out own because user attributes are supported */
 		0,0,0,0,0,0,0,0,0,
 		Methods
 };
@@ -1669,11 +1669,9 @@ int KX_Scene::py_delattro(PyObject *attr)
 	return 0;
 }
 
+/* py_base_setattro_scene deals with setting the dict, it will run if this returns an error */
 int KX_Scene::py_setattro(PyObject *attr, PyObject *pyvalue)
 {
-	if (!PyDict_SetItem(m_attrlist, attr, pyvalue))
-		return 0;
-
 	return PyObjectPlus::py_setattro(attr, pyvalue);
 }
 

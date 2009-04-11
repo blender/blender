@@ -404,9 +404,9 @@ public:
 //	  };				// decref method
 	
 	virtual PyObject *py_getattro(PyObject *attr);			// py_getattro method
-	static  PyObject *py_base_getattro(PyObject * PyObj, PyObject *attr) 	// This should be the entry in Type. 
+	static  PyObject *py_base_getattro(PyObject * self, PyObject *attr) 	// This should be the entry in Type. 
 	{
-		return ((PyObjectPlus*) PyObj)->py_getattro(attr); 
+		return ((PyObjectPlus*) self)->py_getattro(attr); 
 	}
 	
 	static PyObject*	py_get_attrdef(void *self, const PyAttributeDef *attrdef);
@@ -419,13 +419,12 @@ public:
 	
 	virtual int py_delattro(PyObject *attr);
 	virtual int py_setattro(PyObject *attr, PyObject *value);		// py_setattro method
-	static  int py_base_setattro(PyObject *PyObj, 			// This should be the entry in Type. 
-				PyObject *attr, 
-				PyObject *value)
-	{ 
+	static  int py_base_setattro(PyObject *self, PyObject *attr, PyObject *value) // the PyType should reference this
+	{
 		if (value==NULL)
-			return ((PyObjectPlus*) PyObj)->py_delattro(attr);
-		return ((PyObjectPlus*) PyObj)->py_setattro(attr, value);  
+			return ((PyObjectPlus*) self)->py_delattro(attr);
+		
+		return ((PyObjectPlus*) self)->py_setattro(attr, value); 
 	}
 	
 	virtual PyObject *py_repr(void);				// py_repr method
