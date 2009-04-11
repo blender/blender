@@ -8902,7 +8902,10 @@ static BHead *read_userdef(BlendFileData *bfd, FileData *fd, BHead *bhead)
 
 	bfd->user= read_struct(fd, bhead, "user def");
 	bfd->user->themes.first= bfd->user->themes.last= NULL;
-
+	// XXX
+	bfd->user->uifonts.first= bfd->user->uifonts.last= NULL;
+	bfd->user->uistyles.first= bfd->user->uistyles.last= NULL;
+	
 	bhead = blo_nextbhead(fd, bhead);
 
 		/* read all attached data */
