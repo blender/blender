@@ -300,7 +300,7 @@ int uiDefAutoButsRNA(const bContext *C, uiBlock *block, PointerRNA *ptr)
 	layout= uiLayoutBegin(UI_LAYOUT_VERTICAL, x, y, DEF_BUT_WIDTH*2, 0);
 
 	uiTemplateColumn(layout);
-	uiItemLabel(layout, UI_TSLOT_COLUMN_1, (char*)RNA_struct_ui_name(ptr), 0);
+	uiItemL(layout, (char*)RNA_struct_ui_name(ptr), 0);
 
 	iterprop= RNA_struct_iterator_property(ptr);
 	RNA_property_collection_begin(ptr, iterprop, &iter);
@@ -314,8 +314,10 @@ int uiDefAutoButsRNA(const bContext *C, uiBlock *block, PointerRNA *ptr)
 		uiTemplateColumn(layout);
 
 		name= (char*)RNA_property_ui_name(ptr, prop);
-		uiItemLabel(layout, UI_TSLOT_COLUMN_1, name, 0);
-		uiItemR(layout, UI_TSLOT_COLUMN_2, "", 0, ptr, (char*)RNA_property_identifier(ptr, prop));
+		uiTemplateSlot(layout, UI_TSLOT_COLUMN_1);
+		uiItemL(layout, name, 0);
+		uiTemplateSlot(layout, UI_TSLOT_COLUMN_2);
+		uiItemR(layout, "", 0, ptr, (char*)RNA_property_identifier(ptr, prop));
 	}
 
 	RNA_property_collection_end(&iter);

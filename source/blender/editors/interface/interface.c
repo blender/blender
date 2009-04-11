@@ -201,7 +201,7 @@ void ui_window_to_region(const ARegion *ar, int *x, int *y)
 
 /* ******************* block calc ************************* */
 
-static void ui_block_translate(uiBlock *block, int x, int y)
+void ui_block_translate(uiBlock *block, int x, int y)
 {
 	uiBut *bt;
 
@@ -2253,8 +2253,6 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, char *str, short 
 	but->icon = 0;
 	but->dt= block->dt;
 
-	BLI_addtail(&block->buttons, but);
-
 	but->retval= retval;
 	if( strlen(str)>=UI_MAX_NAME_STR-1 ) {
 		but->str= MEM_callocN( strlen(str)+2, "uiDefBut");
@@ -2323,9 +2321,6 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, char *str, short 
 		but->flag |= UI_ICON_LEFT;
 	}
 
-	if(but->type==ROUNDBOX)
-		but->flag |= UI_NO_HILITE;
-
 	but->flag |= (block->flag & UI_BUT_ALIGN);
 	if(block->flag & UI_BLOCK_NO_HILITE)
 		but->flag |= UI_NO_HILITE;
@@ -2335,6 +2330,13 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, char *str, short 
 			but->flag |= UI_BUT_DISABLED;
 		}
 	}
+
+	if(but->type == ROUNDBOX) {
+		but->flag |= UI_NO_HILITE;
+		BLI_addhead(&block->buttons, but);
+	}
+	else
+		BLI_addtail(&block->buttons, but);
 
 	return but;
 }

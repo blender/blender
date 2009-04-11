@@ -59,10 +59,10 @@ static void object_panel_transform(const bContext *C, Panel *pnl)
 
 	RNA_id_pointer_create(&ob->id, &obptr);
 
-	uiTemplateColumn(layout);
-	uiItemR(layout, UI_TSLOT_COLUMN_1, NULL, 0, &obptr, "location");
-	uiItemR(layout, UI_TSLOT_COLUMN_2, NULL, 0, &obptr, "rotation");
-	uiItemR(layout, UI_TSLOT_COLUMN_3, NULL, 0, &obptr, "scale");
+	uiTemplateColumnFlow(layout, 3);
+	uiItemR(layout, NULL, 0, &obptr, "location");
+	uiItemR(layout, NULL, 0, &obptr, "rotation");
+	uiItemR(layout, NULL, 0, &obptr, "scale");
 }
 
 static void object_panel_groups(const bContext *C, Panel *pnl)
@@ -76,12 +76,12 @@ static void object_panel_groups(const bContext *C, Panel *pnl)
 
 	RNA_id_pointer_create(&ob->id, &obptr);
 
-	uiTemplateColumn(layout);
-	uiItemR(layout, UI_TSLOT_COLUMN_1, NULL, 0, &obptr, "pass_index");
-	uiItemR(layout, UI_TSLOT_COLUMN_2, NULL, 0, &obptr, "parent");
+	uiTemplateColumnFlow(layout, 2);
+	uiItemR(layout, NULL, 0, &obptr, "pass_index");
+	uiItemR(layout, NULL, 0, &obptr, "parent");
 
 	/* uiTemplateLeftRight(layout);
-	uiItemO(layout, UI_TSLOT_LR_LEFT, NULL, 0, "OBJECT_OT_add_group"); */
+	uiItemO(layout, NULL, 0, "OBJECT_OT_add_group"); */
 
 	for(group=bmain->group.first; group; group=group->id.next) {
 		if(object_in_group(ob, group)) {
@@ -90,12 +90,14 @@ static void object_panel_groups(const bContext *C, Panel *pnl)
 			sublayout= uiTemplateStack(layout);
 
 			uiTemplateLeftRight(sublayout);
-			uiItemR(sublayout, UI_TSLOT_LR_LEFT, NULL, 0, &groupptr, "name");
-			// uiItemO(sublayout, UI_TSLOT_LR_RIGHT, "", ICON_X, "OBJECT_OT_remove_group");
+			uiTemplateSlot(sublayout, UI_TSLOT_LR_LEFT);
+			uiItemR(sublayout, NULL, 0, &groupptr, "name");
+			// uiTemplateSlot(sublayout, UI_TSLOT_RIGHT);
+			// uiItemO(sublayout, "", ICON_X, "OBJECT_OT_remove_group");
 
-			uiTemplateColumn(sublayout);
-			uiItemR(sublayout, UI_TSLOT_COLUMN_1, NULL, 0, &groupptr, "layer");
-			uiItemR(sublayout, UI_TSLOT_COLUMN_2, NULL, 0, &groupptr, "dupli_offset");
+			uiTemplateColumnFlow(sublayout, 2);
+			uiItemR(sublayout, NULL, 0, &groupptr, "layer");
+			uiItemR(sublayout, NULL, 0, &groupptr, "dupli_offset");
 		}
 	}
 }
@@ -108,19 +110,17 @@ static void object_panel_display(const bContext *C, Panel *pnl)
 
 	RNA_id_pointer_create(&ob->id, &obptr);
 
-	uiTemplateColumn(layout);
-	uiItemR(layout, UI_TSLOT_COLUMN_1, "Type", 0, &obptr, "max_draw_type");
-	uiItemR(layout, UI_TSLOT_COLUMN_2, "Bounds", 0, &obptr, "draw_bounds_type");
+	uiTemplateColumnFlow(layout, 2);
+	uiItemR(layout, "Type", 0, &obptr, "max_draw_type");
+	uiItemR(layout, "Bounds", 0, &obptr, "draw_bounds_type");
 
-	uiTemplateColumn(layout);
-	uiItemLabel(layout, UI_TSLOT_COLUMN_1, "Extra", 0);
-	uiItemR(layout, UI_TSLOT_COLUMN_1, "Name", 0, &obptr, "draw_name");
-	uiItemR(layout, UI_TSLOT_COLUMN_1, "Axis", 0, &obptr, "draw_axis");
-	uiItemR(layout, UI_TSLOT_COLUMN_1, "Wire", 0, &obptr, "draw_wire");
-	uiItemLabel(layout, UI_TSLOT_COLUMN_2, "", 0);
-	uiItemR(layout, UI_TSLOT_COLUMN_2, "Texture Space", 0, &obptr, "draw_texture_space");
-	uiItemR(layout, UI_TSLOT_COLUMN_2, "X-Ray", 0, &obptr, "x_ray");
-	uiItemR(layout, UI_TSLOT_COLUMN_2, "Transparency", 0, &obptr, "draw_transparent");
+	uiTemplateColumnFlow(layout , 2);
+	uiItemR(layout, "Name", 0, &obptr, "draw_name");
+	uiItemR(layout, "Axis", 0, &obptr, "draw_axis");
+	uiItemR(layout, "Wire", 0, &obptr, "draw_wire");
+	uiItemR(layout, "Texture Space", 0, &obptr, "draw_texture_space");
+	uiItemR(layout, "X-Ray", 0, &obptr, "x_ray");
+	uiItemR(layout, "Transparency", 0, &obptr, "draw_transparent");
 }
 
 static void object_panel_duplication(const bContext *C, Panel *pnl)
@@ -132,18 +132,15 @@ static void object_panel_duplication(const bContext *C, Panel *pnl)
 	RNA_id_pointer_create(&ob->id, &obptr);
 
 	uiTemplateColumn(layout);
-	uiItemR(layout, UI_TSLOT_COLUMN_1, "Frames", 0, &obptr, "dupli_frames");
-	uiItemR(layout, UI_TSLOT_COLUMN_2, "Verts", 0, &obptr, "dupli_verts");
-	uiItemR(layout, UI_TSLOT_COLUMN_3, "Faces", 0, &obptr, "dupli_faces");
-	uiItemR(layout, UI_TSLOT_COLUMN_4, "Group", 0, &obptr, "use_dupli_group");
+	uiItemR(layout, "", 0, &obptr, "dupli_type");
 
-	if(RNA_boolean_get(&obptr, "dupli_frames")) {
-		uiTemplateColumn(layout);
-		uiItemR(layout, UI_TSLOT_COLUMN_1, "Start:", 0, &obptr, "dupli_frames_start");
-		uiItemR(layout, UI_TSLOT_COLUMN_1, "End:", 0, &obptr, "dupli_frames_end");
+	if(RNA_enum_get(&obptr, "dupli_type") == OB_DUPLIFRAMES) {
+		uiTemplateColumnFlow(layout, 2);
+		uiItemR(layout, "Start:", 0, &obptr, "dupli_frames_start");
+		uiItemR(layout, "End:", 0, &obptr, "dupli_frames_end");
 
-		uiItemR(layout, UI_TSLOT_COLUMN_2, "On:", 0, &obptr, "dupli_frames_on");
-		uiItemR(layout, UI_TSLOT_COLUMN_2, "Off:", 0, &obptr, "dupli_frames_off");
+		uiItemR(layout, "On:", 0, &obptr, "dupli_frames_on");
+		uiItemR(layout, "Off:", 0, &obptr, "dupli_frames_off");
 	}
 }
 
@@ -156,17 +153,18 @@ static void object_panel_animation(const bContext *C, Panel *pnl)
 	RNA_id_pointer_create(&ob->id, &obptr);
 
 	uiTemplateColumn(layout);
-	uiItemLabel(layout, UI_TSLOT_COLUMN_1, "Time Offset:", 0);
-	uiItemR(layout, UI_TSLOT_COLUMN_1, "Edit", 0, &obptr, "time_offset_edit");
-	uiItemR(layout, UI_TSLOT_COLUMN_1, "Particle", 0, &obptr, "time_offset_particle");
-	uiItemR(layout, UI_TSLOT_COLUMN_1, "Parent", 0, &obptr, "time_offset_parent");
-	uiItemR(layout, UI_TSLOT_COLUMN_1, NULL, 0, &obptr, "slow_parent");
-	uiItemR(layout, UI_TSLOT_COLUMN_1, "Offset: ", 0, &obptr, "time_offset");
-
-	uiItemLabel(layout, UI_TSLOT_COLUMN_2, "Tracking:", 0);
-	uiItemR(layout, UI_TSLOT_COLUMN_2, "Axis: ", 0, &obptr, "track_axis");
-	uiItemR(layout, UI_TSLOT_COLUMN_2, "Up Axis: ", 0, &obptr, "up_axis");
-	uiItemR(layout, UI_TSLOT_COLUMN_2, "Rotation", 0, &obptr, "track_rotation");
+	uiTemplateSlot(layout, UI_TSLOT_COLUMN_1);
+	uiItemL(layout, "Time Offset:", 0);
+	uiItemR(layout, "Edit", 0, &obptr, "time_offset_edit");
+	uiItemR(layout, "Particle", 0, &obptr, "time_offset_particle");
+	uiItemR(layout, "Parent", 0, &obptr, "time_offset_parent");
+	uiItemR(layout, NULL, 0, &obptr, "slow_parent");
+	uiItemR(layout, "Offset: ", 0, &obptr, "time_offset");
+	uiTemplateSlot(layout, UI_TSLOT_COLUMN_2);
+	uiItemL(layout, "Tracking:", 0);
+	uiItemR(layout, "Axis: ", 0, &obptr, "track_axis");
+	uiItemR(layout, "Up Axis: ", 0, &obptr, "up_axis");
+	uiItemR(layout, "Rotation", 0, &obptr, "track_rotation");
 }
 
 void buttons_object_register(ARegionType *art)

@@ -95,6 +95,7 @@ typedef struct uiItemLMenu {
 
 typedef enum uiTemplateType {
 	TEMPLATE_COLUMN,
+	TEMPLATE_COLUMN_FLOW,
 	TEMPLATE_LR,
 	TEMPLATE_STACK,
 
@@ -108,8 +109,13 @@ typedef struct uiTemplate {
 	uiTemplateType type;
 
 	ListBase items;
-	int color;
+	int color, slot;
 } uiTemplate;
+
+typedef struct uiTemplateFlow {
+	uiTemplate template;
+	int columns;
+} uiTemplateFlow;
 
 typedef struct uiTemplateStck {
 	uiTemplate template;
@@ -427,12 +433,14 @@ static void ui_item_free(uiItem *item)
 }
 
 /* operator items */
-void uiItemFullO(uiLayout *layout, int slot, const char *name, int icon, char *idname, IDProperty *properties, int context)
+void uiItemFullO(uiLayout *layout, const char *name, int icon, char *idname, IDProperty *properties, int context)
 {
 	uiTemplate *template= layout->templates.last;
 	wmOperatorType *ot= WM_operatortype_find(idname);
 	uiItemOp *opitem;
 
+	if(!template)
+		return;
 	if(!ot)
 		return;
 
@@ -441,7 +449,7 @@ void uiItemFullO(uiLayout *layout, int slot, const char *name, int icon, char *i
 	opitem->item.name= name;
 	opitem->item.icon= icon;
 	opitem->item.type= ITEM_OPERATOR;
-	opitem->item.slot= slot;
+	opitem->item.slot= template->slot;
 
 	opitem->ot= ot;
 	opitem->properties= properties;
@@ -450,17 +458,17 @@ void uiItemFullO(uiLayout *layout, int slot, const char *name, int icon, char *i
 	BLI_addtail(&template->items, opitem);
 }
 
-void uiItemEnumO(uiLayout *layout, int slot, const char *name, int icon, char *opname, char *propname, int value)
+void uiItemEnumO(uiLayout *layout, const char *name, int icon, char *opname, char *propname, int value)
 {
 	PointerRNA ptr;
 
 	WM_operator_properties_create(&ptr, opname);
 	RNA_enum_set(&ptr, propname, value);
 
-	uiItemFullO(layout, slot, name, icon, opname, ptr.data, layout->opcontext);
+	uiItemFullO(layout, name, icon, opname, ptr.data, layout->opcontext);
 }
 
-void uiItemsEnumO(uiLayout *layout, int slot, char *opname, char *propname)
+void uiItemsEnumO(uiLayout *layout, char *opname, char *propname)
 {
 	wmOperatorType *ot= WM_operatortype_find(opname);
 	PointerRNA ptr;
@@ -479,65 +487,70 @@ void uiItemsEnumO(uiLayout *layout, int slot, char *opname, char *propname)
 		RNA_property_enum_items(&ptr, prop, &item, &totitem);
 
 		for(i=0; i<totitem; i++)
-			uiItemEnumO(layout, slot, "", 0, opname, propname, item[i].value);
+			uiItemEnumO(layout, "", 0, opname, propname, item[i].value);
 	}
 }
 
-void uiItemBooleanO(uiLayout *layout, int slot, const char *name, int icon, char *opname, char *propname, int value)
+void uiItemBooleanO(uiLayout *layout, const char *name, int icon, char *opname, char *propname, int value)
 {
 	PointerRNA ptr;
 
 	WM_operator_properties_create(&ptr, opname);
 	RNA_boolean_set(&ptr, propname, value);
 
-	uiItemFullO(layout, slot, name, icon, opname, ptr.data, layout->opcontext);
+	uiItemFullO(layout, name, icon, opname, ptr.data, layout->opcontext);
 }
 
-void uiItemIntO(uiLayout *layout, int slot, const char *name, int icon, char *opname, char *propname, int value)
+void uiItemIntO(uiLayout *layout, const char *name, int icon, char *opname, char *propname, int value)
 {
 	PointerRNA ptr;
 
 	WM_operator_properties_create(&ptr, opname);
 	RNA_int_set(&ptr, propname, value);
 
-	uiItemFullO(layout, slot, name, icon, opname, ptr.data, layout->opcontext);
+	uiItemFullO(layout, name, icon, opname, ptr.data, layout->opcontext);
 }
 
-void uiItemFloatO(uiLayout *layout, int slot, const char *name, int icon, char *opname, char *propname, float value)
+void uiItemFloatO(uiLayout *layout, const char *name, int icon, char *opname, char *propname, float value)
 {
 	PointerRNA ptr;
 
 	WM_operator_properties_create(&ptr, opname);
 	RNA_float_set(&ptr, propname, value);
 
-	uiItemFullO(layout, slot, name, icon, opname, ptr.data, layout->opcontext);
+	uiItemFullO(layout, name, icon, opname, ptr.data, layout->opcontext);
 }
 
-void uiItemStringO(uiLayout *layout, int slot, const char *name, int icon, char *opname, char *propname, char *value)
+void uiItemStringO(uiLayout *layout, const char *name, int icon, char *opname, char *propname, char *value)
 {
 	PointerRNA ptr;
 
 	WM_operator_properties_create(&ptr, opname);
 	RNA_string_set(&ptr, propname, value);
 
-	uiItemFullO(layout, slot, name, icon, opname, ptr.data, layout->opcontext);
+	uiItemFullO(layout, name, icon, opname, ptr.data, layout->opcontext);
 }
 
-void uiItemO(uiLayout *layout, int slot, const char *name, int icon, char *opname)
+void uiItemO(uiLayout *layout, const char *name, int icon, char *opname)
 {
-	uiItemFullO(layout, slot, name, icon, opname, NULL, layout->opcontext);
+	uiItemFullO(layout, name, icon, opname, NULL, layout->opcontext);
 }
 
 /* RNA property items */
-void uiItemFullR(uiLayout *layout, int slot, const char *name, int icon, PointerRNA *ptr, char *propname, int index)
+void uiItemFullR(uiLayout *layout, const char *name, int icon, PointerRNA *ptr, char *propname, int index)
 {
 	uiTemplate *template= layout->templates.last;
 	PropertyRNA *prop;
 	uiItemRNA *rnaitem;
+
+	if(!ptr->data)
+		return;
+	if(!template)
+		return;
 	
 	prop= RNA_struct_find_property(ptr, propname);
 	if(!prop){
-		printf("Property not found : %s \n",propname);
+		printf("uiItemR: property not found: %s\n",propname);
 		return;
 	}
 	
@@ -546,7 +559,7 @@ void uiItemFullR(uiLayout *layout, int slot, const char *name, int icon, Pointer
 	rnaitem->item.name= name;
 	rnaitem->item.icon= icon;
 	rnaitem->item.type= ITEM_RNA_PROPERTY;
-	rnaitem->item.slot= slot;
+	rnaitem->item.slot= template->slot;
 
 	rnaitem->ptr= *ptr;
 	rnaitem->prop= prop;
@@ -555,21 +568,26 @@ void uiItemFullR(uiLayout *layout, int slot, const char *name, int icon, Pointer
 	BLI_addtail(&template->items, rnaitem);
 }
 
-void uiItemR(uiLayout *layout, int slot, const char *name, int icon, PointerRNA *ptr, char *propname)
+void uiItemR(uiLayout *layout, const char *name, int icon, PointerRNA *ptr, char *propname)
 {
-	uiItemFullR(layout, slot, name, icon, ptr, propname, RNA_NO_INDEX);
+	uiItemFullR(layout, name, icon, ptr, propname, RNA_NO_INDEX);
 }
 
 /* menu item */
-void uiItemMenu(uiLayout *layout, int slot, const char *name, int icon, uiMenuCreateFunc func)
+void uiItemM(uiLayout *layout, const char *name, int icon, uiMenuCreateFunc func)
 {
 	uiTemplate *template= layout->templates.last;
-	uiItemLMenu *menuitem= MEM_callocN(sizeof(uiItemLMenu), "uiItemLMenu");
+	uiItemLMenu *menuitem;
+	
+	if(!template)
+		return;
+
+	menuitem= MEM_callocN(sizeof(uiItemLMenu), "uiItemLMenu");
 
 	menuitem->item.name= name;
 	menuitem->item.icon= icon;
 	menuitem->item.type= ITEM_MENU;
-	menuitem->item.slot= slot;
+	menuitem->item.slot= template->slot;
 
 	menuitem->func= func;
 
@@ -577,15 +595,20 @@ void uiItemMenu(uiLayout *layout, int slot, const char *name, int icon, uiMenuCr
 }
 
 /* label item */
-void uiItemLabel(uiLayout *layout, int slot, const char *name, int icon)
+void uiItemL(uiLayout *layout, const char *name, int icon)
 {
 	uiTemplate *template= layout->templates.last;
-	uiItem *item= MEM_callocN(sizeof(uiItem), "uiItem");
+	uiItem *item;
+	
+	if(!template)
+		return;
+
+	item= MEM_callocN(sizeof(uiItem), "uiItem");
 
 	item->name= name;
 	item->icon= icon;
 	item->type= ITEM_LABEL;
-	item->slot= slot;
+	item->slot= template->slot;
 
 	BLI_addtail(&template->items, item);
 }
@@ -625,6 +648,62 @@ static void ui_layout_column(uiLayout *layout, uiBlock *block, uiTemplate *templ
 
 		colx += colw + COLUMN_SPACE;
 		miny= MIN2(miny, coly);
+	}
+
+	*y= miny;
+}
+
+/* multi-column layout, automatically flowing to the next */
+static void ui_layout_column_flow(uiLayout *layout, uiBlock *block, uiTemplate *template, int *x, int *y, int w, int h)
+{
+	uiTemplateFlow *flow= (uiTemplateFlow*)template;
+	uiItem *item;
+	int col, colx, coly, colw, colh, miny, itemw, itemh, maxw=0;
+	int toth, totcol, totitem;
+
+	/* compute max needed width and total height */
+	toth= 0;
+	totitem= 0;
+	for(item=template->items.first; item; item=item->next) {
+		ui_item_size(item, &itemw, &itemh);
+		maxw= MAX2(maxw, itemw);
+		toth += itemh + BUTTON_SPACE_Y;
+		totitem++;
+	}
+
+	if(flow->columns <= 0) {
+		/* auto compute number of columns, not very good */
+		if(maxw == 0)
+			return;
+
+		totcol= MIN2(w/maxw, 1);
+		totcol= MAX2(totcol, totitem);
+	}
+	else
+		totcol= flow->columns;
+
+	/* compute sizes */
+	colx= *x;
+	coly= *y;
+	colw= (w - (totcol-1)*COLUMN_SPACE)/totcol;
+	colh= toth/totcol;
+	miny= *y;
+
+	/* create column per column */
+	col= 0;
+	for(item=template->items.first; item; item=item->next) {
+		ui_item_size(item, &itemw, &itemh);
+	
+		coly -= itemh + BUTTON_SPACE_Y;
+		ui_item_buts(block, item, colx, coly, colw, itemh);
+
+		miny= MIN2(miny, coly);
+
+		if(coly <= *y - colh && col < totcol) {
+			colx += colw + COLUMN_SPACE;
+			coly= *y;
+			col++;
+		}
 	}
 
 	*y= miny;
@@ -756,6 +835,15 @@ void uiTemplateColumn(uiLayout *layout)
 	BLI_addtail(&layout->templates, template);
 }
 
+void uiTemplateColumnFlow(uiLayout *layout, int columns)
+{
+	uiTemplateFlow *flow;
+
+	flow= MEM_callocN(sizeof(uiTemplateFlow), "uiTemplateFlow");
+	flow->template.type= TEMPLATE_COLUMN_FLOW;
+	flow->columns= columns;
+	BLI_addtail(&layout->templates, flow);
+}
 
 void uiTemplateLeftRight(uiLayout *layout)
 {
@@ -817,7 +905,16 @@ void uiTemplateSetColor(uiLayout *layout, int color)
 {
 	uiTemplate *template= layout->templates.last;
 
-	template->color= color;
+	if(template)
+		template->color= color;
+}
+
+void uiTemplateSlot(uiLayout *layout, int slot)
+{
+	uiTemplate *template= layout->templates.last;
+
+	if(template)
+		template->slot= slot;
 }
 
 /********************** Layout *******************/
@@ -836,6 +933,9 @@ static void ui_layout_templates(const bContext *C, uiBlock *block, uiLayout *lay
 		switch(template->type) {
 			case TEMPLATE_COLUMN:
 				ui_layout_column(layout, block, template, &layout->x, &layout->y, layout->w, layout->h);
+				break;
+			case TEMPLATE_COLUMN_FLOW:
+				ui_layout_column_flow(layout, block, template, &layout->x, &layout->y, layout->w, layout->h);
 				break;
 			case TEMPLATE_LR:
 				ui_layout_lr(layout, block, template, &layout->x, &layout->y, layout->w, layout->h);

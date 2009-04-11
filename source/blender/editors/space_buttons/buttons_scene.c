@@ -59,6 +59,7 @@
 #define R_DISPLAYWIN    1
 #define R_DISPLAYSCREEN 2
 
+#if 0
 static void render_panel_output(const bContext *C, ARegion *ar)
 {
 	uiBlock *block;
@@ -149,7 +150,9 @@ static void render_panel_output(const bContext *C, ARegion *ar)
 
 	uiEndBlock(C, block);
 }
+#endif
 
+#if 0
 static void do_bake_func(bContext *C, void *unused_v, void *unused_p)
 {
 	//XXX objects_bake_render_ui(0);
@@ -211,6 +214,8 @@ static void render_panel_bake(const bContext *C, ARegion *ar)
 
 	uiEndBlock(C, block);
 }
+#endif
+
 static void render_panel_shading(const bContext *C, Panel *pnl)
 {
 	uiLayout *layout= pnl->layout;
@@ -220,22 +225,16 @@ static void render_panel_shading(const bContext *C, Panel *pnl)
 	RNA_id_pointer_create(&scene->id, &sceneptr);
 	renderptr = RNA_pointer_get(&sceneptr, "render_data");
 		
+	uiTemplateColumnFlow(layout, 2);
+	uiItemR(layout, "Shadow", 0, &renderptr, "render_shadows");
+	uiItemR(layout, "SSS", 0, &renderptr, "render_sss");
+	uiItemR(layout, "EnvMap", 0, &renderptr, "render_envmaps");
+	uiItemR(layout, "Radio", 0, &renderptr, "render_radiosity");
+	uiItemR(layout, "Ray Tracing", 0, &renderptr, "render_raytracing");
+	uiItemR(layout, NULL, 0, &renderptr, "octree_resolution");
+
 	uiTemplateColumn(layout);
-	uiItemR(layout, UI_TSLOT_COLUMN_1, "Shadow", 0, &renderptr, "render_shadows");
-	uiItemR(layout, UI_TSLOT_COLUMN_2, "SSS", 0, &renderptr, "render_sss");
-	uiItemR(layout, UI_TSLOT_COLUMN_3, "EnvMap", 0, &renderptr, "render_envmaps");
-	uiItemR(layout, UI_TSLOT_COLUMN_4, "Radio", 0, &renderptr, "render_radiosity");
-	
-	uiTemplateColumn(layout);
-	uiItemLabel(layout, UI_TSLOT_COLUMN_1, "Ray Tracing:", 0);
-	uiTemplateColumn(layout);
-	uiItemR(layout, UI_TSLOT_COLUMN_1, "Enable", 0, &renderptr, "render_raytracing");
-	uiItemR(layout, UI_TSLOT_COLUMN_2, NULL, 0, &renderptr, "octree_resolution");
-	
-	uiTemplateColumn(layout);
-	uiItemLabel(layout, UI_TSLOT_COLUMN_1, "Alpha:", 0);
-	uiTemplateColumn(layout);
-	uiItemR(layout, UI_TSLOT_COLUMN_1, NULL, 0, &renderptr, "alpha_mode");
+	uiItemR(layout, NULL, 0, &renderptr, "alpha_mode");
 	
 }
 static void render_panel_image(const bContext *C, Panel *pnl)
@@ -247,13 +246,14 @@ static void render_panel_image(const bContext *C, Panel *pnl)
 	RNA_id_pointer_create(&scene->id, &sceneptr);
 	renderptr = RNA_pointer_get(&sceneptr, "render_data");
 	
-	uiTemplateColumn(layout);	
-	uiItemR(layout, UI_TSLOT_COLUMN_1, "SizeX", 0, &renderptr, "resolution_x");
-	uiItemR(layout, UI_TSLOT_COLUMN_2, "SizeY", 0, &renderptr, "resolution_y");
-	uiItemR(layout, UI_TSLOT_COLUMN_1, "AspX", 0, &renderptr, "pixel_aspect_x");
-	uiItemR(layout, UI_TSLOT_COLUMN_2, "AspY", 0, &renderptr, "pixel_aspect_y");
+	uiTemplateColumnFlow(layout, 2);
+	uiItemR(layout, "SizeX", 0, &renderptr, "resolution_x");
+	uiItemR(layout, "SizeY", 0, &renderptr, "resolution_y");
+	uiItemR(layout, "AspX", 0, &renderptr, "pixel_aspect_x");
+	uiItemR(layout, "AspY", 0, &renderptr, "pixel_aspect_y");
+
 	uiTemplateColumn(layout);
-	uiItemR(layout, UI_TSLOT_COLUMN_1, NULL, 0, &renderptr, "crop_to_border");
+	uiItemR(layout, NULL, 0, &renderptr, "crop_to_border");
 
 }
 static void render_panel_antialiasing(const bContext *C, Panel *pnl)
@@ -265,11 +265,11 @@ static void render_panel_antialiasing(const bContext *C, Panel *pnl)
 	RNA_id_pointer_create(&scene->id, &sceneptr);
 	renderptr = RNA_pointer_get(&sceneptr, "render_data");
 	
-	uiTemplateColumn(layout);	
-	uiItemR(layout, UI_TSLOT_COLUMN_1, "Enable", 0, &renderptr, "antialiasing");
-	uiItemR(layout, UI_TSLOT_COLUMN_1, "Num Samples", 0, &renderptr, "antialiasing_samples");
-	uiItemR(layout, UI_TSLOT_COLUMN_2, NULL, 0, &renderptr, "pixel_filter");
-	uiItemR(layout, UI_TSLOT_COLUMN_2, NULL, 0, &renderptr, "filter_size");
+	uiTemplateColumnFlow(layout, 2);
+	uiItemR(layout, "Enable", 0, &renderptr, "antialiasing");
+	uiItemR(layout, "Samples", 0, &renderptr, "antialiasing_samples");
+	uiItemR(layout, NULL, 0, &renderptr, "pixel_filter");
+	uiItemR(layout, NULL, 0, &renderptr, "filter_size");
 	
 }
 
@@ -282,49 +282,45 @@ static void render_panel_render(const bContext *C, Panel *pnl)
 	RNA_id_pointer_create(&scene->id, &sceneptr);
 	renderptr = RNA_pointer_get(&sceneptr, "render_data");
 
-	uiTemplateColumn(layout);
-	uiItemO(layout, UI_TSLOT_COLUMN_1, "RENDER", ICON_SCENE, "SCREEN_OT_render");
-	uiItemBooleanO(layout, UI_TSLOT_COLUMN_2, "ANIM", 0, "SCREEN_OT_render", "anim", 1);
+	uiTemplateColumnFlow(layout, 2);
+	uiItemO(layout, "RENDER", ICON_SCENE, "SCREEN_OT_render");
+	uiItemBooleanO(layout, "ANIM", 0, "SCREEN_OT_render", "anim", 1);
 
-	uiTemplateColumn(layout);
-	uiItemR(layout, UI_TSLOT_COLUMN_1, "Sfra", 0, &sceneptr, "start_frame");
-	uiItemR(layout, UI_TSLOT_COLUMN_2, "Cfra", 0, &sceneptr, "current_frame");
-	uiItemR(layout, UI_TSLOT_COLUMN_3, "Efra", 0, &sceneptr, "end_frame");
+	uiTemplateColumnFlow(layout, 3);
+	uiItemR(layout, "Start", 0, &sceneptr, "start_frame");
+	uiItemR(layout, "End", 0, &sceneptr, "end_frame");
+	uiItemR(layout, "Frame", 0, &sceneptr, "current_frame");
 
+	uiTemplateColumnFlow(layout, 2);
+	uiItemR(layout, NULL, 0, &renderptr, "do_composite");
+	uiItemR(layout, NULL, 0, &renderptr, "do_sequence");
 	uiTemplateColumn(layout);
-	uiItemR(layout, UI_TSLOT_COLUMN_1, NULL, 0, &renderptr, "do_composite");
-	uiItemR(layout, UI_TSLOT_COLUMN_2, NULL, 0, &renderptr, "do_sequence");
-	uiTemplateColumn(layout);
-	uiItemR(layout, UI_TSLOT_COLUMN_1, "Camera:", 0, &sceneptr, "camera");
+	uiItemR(layout, "Camera:", 0, &sceneptr, "camera");
 	
 	uiTemplateColumn(layout);
-	uiItemLabel(layout, UI_TSLOT_COLUMN_1, "General:", 0);
+	uiItemL(layout, "General:", 0);
 	uiTemplateColumn(layout);
-	uiItemR(layout, UI_TSLOT_COLUMN_1, "Size ", 0, &renderptr, "resolution_percentage");
-	uiItemR(layout, UI_TSLOT_COLUMN_1, NULL, 0, &renderptr, "dither_intensity");
+	uiItemR(layout, "Size ", 0, &renderptr, "resolution_percentage");
+	uiItemR(layout, NULL, 0, &renderptr, "dither_intensity");
+	
+	uiTemplateColumnFlow(layout, 2);
+	uiItemR(layout, NULL, 0, &renderptr, "parts_x");
+	uiItemR(layout, NULL, 0, &renderptr, "parts_y");
+	
+	uiTemplateColumnFlow(layout, 2);
+	uiItemR(layout, NULL, 0, &renderptr, "threads");
+	uiItemR(layout, "", 0, &renderptr, "threads_mode");
+	
+	uiTemplateColumnFlow(layout, 3);
+	uiItemR(layout, "Fields", 0, &renderptr, "fields");
+	uiItemR(layout, "Order", 0, &renderptr, "field_order");
+	uiItemR(layout, "Still", 0, &renderptr, "fields_still");
 	
 	uiTemplateColumn(layout);
-	uiItemR(layout, UI_TSLOT_COLUMN_1, NULL, 0, &renderptr, "parts_x");
-	uiItemR(layout, UI_TSLOT_COLUMN_2, NULL, 0, &renderptr, "parts_y");
-	
-	uiTemplateColumn(layout);
-	uiItemLabel(layout, UI_TSLOT_COLUMN_1, "Multi-Threading:", 0);
-	uiTemplateColumn(layout);
-	uiItemR(layout, UI_TSLOT_COLUMN_1, NULL, 0, &renderptr, "threads_mode");
-	uiItemR(layout, UI_TSLOT_COLUMN_1, NULL, 0, &renderptr, "threads");
-	
-	uiTemplateColumn(layout);
-	uiItemLabel(layout, UI_TSLOT_COLUMN_1, "Fields:", 0);
-	uiTemplateColumn(layout);
-	uiItemR(layout, UI_TSLOT_COLUMN_1, "Enable", 0, &renderptr, "fields");
-	uiItemR(layout, UI_TSLOT_COLUMN_2, NULL, 0, &renderptr, "field_order");
-	uiItemR(layout, UI_TSLOT_COLUMN_3, NULL, 0, &renderptr, "fields_still");
-	
-	uiTemplateColumn(layout);
-	uiItemLabel(layout, UI_TSLOT_COLUMN_1, "Extra:", 0);
-	uiTemplateColumn(layout);
-	uiItemR(layout, UI_TSLOT_COLUMN_1, "Border Render", 0, &renderptr, "border");
-	uiItemR(layout, UI_TSLOT_COLUMN_2, NULL, 0, &renderptr, "panorama");
+	uiItemL(layout, "Extra:", 0);
+	uiTemplateColumnFlow(layout, 2);
+	uiItemR(layout, "Border Render", 0, &renderptr, "border");
+	uiItemR(layout, NULL, 0, &renderptr, "panorama");
 
 
 #if 0

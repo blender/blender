@@ -310,6 +310,7 @@ extern int  ui_is_but_float(uiBut *but);
 extern void ui_update_block_buts_hsv(uiBlock *block, float *hsv);
 
 extern void ui_bounds_block(uiBlock *block);
+extern void ui_block_translate(uiBlock *block, int x, int y);
 
 /* interface_regions.c */
 

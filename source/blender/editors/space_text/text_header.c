@@ -367,23 +367,23 @@ static void text_header_draw(const bContext *C, uiLayout *layout)
 	RNA_pointer_create(&sc->id, &RNA_SpaceTextEditor, st, &spaceptr);
 
 	uiTemplateHeaderMenus(layout);
-	uiItemMenu(layout, UI_TSLOT_HEADER, "Text", 0, text_filemenu);
+	uiItemM(layout, "Text", 0, text_filemenu);
 	if(text) {
-		uiItemMenu(layout, UI_TSLOT_HEADER, "Edit", 0, text_editmenu);
-		uiItemMenu(layout, UI_TSLOT_HEADER, "Format", 0, text_formatmenu);
+		uiItemM(layout, "Edit", 0, text_editmenu);
+		uiItemM(layout, "Format", 0, text_formatmenu);
 	}
 
 	/* warning button if text is out of date */
 	if(text && text_file_modified(text)) {
 		uiTemplateHeaderButtons(layout);
 		uiTemplateSetColor(layout, TH_REDALERT);
-		uiItemO(layout, UI_TSLOT_HEADER, "", ICON_HELP, "TEXT_OT_resolve_conflict");
+		uiItemO(layout, "", ICON_HELP, "TEXT_OT_resolve_conflict");
 	}
 
 	uiTemplateHeaderButtons(layout);
-	uiItemR(layout, UI_TSLOT_HEADER, "", ICON_LINENUMBERS_OFF, &spaceptr, "line_numbers");
-	uiItemR(layout, UI_TSLOT_HEADER, "", ICON_WORDWRAP_OFF, &spaceptr, "word_wrap");
-	uiItemR(layout, UI_TSLOT_HEADER, "", ICON_SYNTAX_OFF, &spaceptr, "syntax_highlight");
+	uiItemR(layout, "", ICON_LINENUMBERS_OFF, &spaceptr, "line_numbers");
+	uiItemR(layout, "", ICON_WORDWRAP_OFF, &spaceptr, "word_wrap");
+	uiItemR(layout, "", ICON_SYNTAX_OFF, &spaceptr, "syntax_highlight");
 	// XXX uiItemR(layout, "", ICON_SCRIPTPLUGINS, &spaceptr, "do_python_plugins");
 
 	uiTemplateHeaderID(layout, &spaceptr, "text",
@@ -411,7 +411,7 @@ static void text_header_draw(const bContext *C, uiLayout *layout)
 			sprintf(headtxt, text->id.lib? "Text: External": "Text: Internal");
 
 		uiTemplateHeaderButtons(layout);
-		uiItemLabel(layout, UI_TSLOT_HEADER, headtxt, 0);
+		uiItemL(layout, headtxt, 0);
 	}
 }
 
@@ -439,13 +439,13 @@ static void text_properties_panel_draw(const bContext *C, Panel *panel)
 	RNA_pointer_create(&sc->id, &RNA_SpaceTextEditor, st, &spaceptr);
 
 	uiTemplateColumn(layout);
-	uiItemR(layout, UI_TSLOT_COLUMN_1, NULL, ICON_LINENUMBERS_OFF, &spaceptr, "line_numbers");
-	uiItemR(layout, UI_TSLOT_COLUMN_1, NULL, ICON_WORDWRAP_OFF, &spaceptr, "word_wrap");
-	uiItemR(layout, UI_TSLOT_COLUMN_1, NULL, ICON_SYNTAX_OFF, &spaceptr, "syntax_highlight");
+	uiItemR(layout, NULL, ICON_LINENUMBERS_OFF, &spaceptr, "line_numbers");
+	uiItemR(layout, NULL, ICON_WORDWRAP_OFF, &spaceptr, "word_wrap");
+	uiItemR(layout, NULL, ICON_SYNTAX_OFF, &spaceptr, "syntax_highlight");
 
 	uiTemplateColumn(layout);
-	uiItemR(layout, UI_TSLOT_COLUMN_1, NULL, 0, &spaceptr, "font_size");
-	uiItemR(layout, UI_TSLOT_COLUMN_1, NULL, 0, &spaceptr, "tab_width");
+	uiItemR(layout, NULL, 0, &spaceptr, "font_size");
+	uiItemR(layout, NULL, 0, &spaceptr, "tab_width");
 }
 
 static void text_find_panel_draw(const bContext *C, Panel *panel)
@@ -459,26 +459,30 @@ static void text_find_panel_draw(const bContext *C, Panel *panel)
 
 	/* find */
 	uiTemplateLeftRight(layout);
-	uiItemR(layout, UI_TSLOT_LR_LEFT, "", 0, &spaceptr, "find_text");
-	uiItemO(layout, UI_TSLOT_LR_RIGHT, "", ICON_TEXT, "TEXT_OT_find_set_selected");
+	uiTemplateSlot(layout, UI_TSLOT_LR_LEFT);
+	uiItemR(layout, "", 0, &spaceptr, "find_text");
+	uiTemplateSlot(layout, UI_TSLOT_LR_RIGHT);
+	uiItemO(layout, "", ICON_TEXT, "TEXT_OT_find_set_selected");
 	uiTemplateColumn(layout);
-	uiItemO(layout, UI_TSLOT_COLUMN_1, NULL, 0, "TEXT_OT_find");
+	uiItemO(layout, NULL, 0, "TEXT_OT_find");
 
 	/* replace */
 	uiTemplateLeftRight(layout);
-	uiItemR(layout, UI_TSLOT_LR_LEFT, "", 0, &spaceptr, "replace_text");
-	uiItemO(layout, UI_TSLOT_LR_RIGHT, "", ICON_TEXT, "TEXT_OT_replace_set_selected");
+	uiTemplateSlot(layout, UI_TSLOT_LR_LEFT);
+	uiItemR(layout, "", 0, &spaceptr, "replace_text");
+	uiTemplateSlot(layout, UI_TSLOT_LR_RIGHT);
+	uiItemO(layout, "", ICON_TEXT, "TEXT_OT_replace_set_selected");
 	uiTemplateColumn(layout);
-	uiItemO(layout, UI_TSLOT_COLUMN_1, NULL, 0, "TEXT_OT_replace");
+	uiItemO(layout, NULL, 0, "TEXT_OT_replace");
 
 	/* mark */
 	uiTemplateColumn(layout);
-	uiItemO(layout, UI_TSLOT_COLUMN_1, NULL, 0, "TEXT_OT_mark_all");
+	uiItemO(layout, NULL, 0, "TEXT_OT_mark_all");
 
 	/* settings */
-	uiTemplateColumn(layout);
-	uiItemR(layout, UI_TSLOT_COLUMN_1, "Wrap", 0, &spaceptr, "find_wrap");
-	uiItemR(layout, UI_TSLOT_COLUMN_2, "All", 0, &spaceptr, "find_all");
+	uiTemplateColumnFlow(layout, 2);
+	uiItemR(layout, "Wrap", 0, &spaceptr, "find_wrap");
+	uiItemR(layout, "All", 0, &spaceptr, "find_all");
 }
 
 void text_properties_register(ARegionType *art)
