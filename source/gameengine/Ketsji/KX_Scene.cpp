@@ -91,6 +91,8 @@
 #include "CcdPhysicsController.h"
 #endif
 
+#include "KX_Light.h"
+
 void* KX_SceneReplicationFunc(SG_IObject* node,void* gameobj,void* scene)
 {
 	KX_GameObject* replica = ((KX_Scene*)scene)->AddNodeReplicaObject(node,(KX_GameObject*)gameobj);
@@ -741,6 +743,12 @@ void KX_Scene::DupliGroupRecurse(CValue* obj, int level)
 		(*git)->Relink(&m_map_gameobject_to_replica);
 		// add the object in the layer of the parent
 		(*git)->SetLayer(groupobj->GetLayer());
+		// If the object was a light, we need to update it's RAS_LightObject as well
+		if ((*git)->IsLight())
+		{
+			KX_LightObject* lightobj = static_cast<KX_LightObject*>(*git);
+			lightobj->GetLightData()->m_layer = groupobj->GetLayer();
+		}
 	}
 
 	// replicate crosslinks etc. between logic bricks
@@ -841,6 +849,12 @@ SCA_IObject* KX_Scene::AddReplicaObject(class CValue* originalobject,
 		(*git)->Relink(&m_map_gameobject_to_replica);
 		// add the object in the layer of the parent
 		(*git)->SetLayer(parentobj->GetLayer());
+		// If the object was a light, we need to update it's RAS_LightObject as well
+		if ((*git)->IsLight())
+		{
+			KX_LightObject* lightobj = static_cast<KX_LightObject*>(*git);
+			lightobj->GetLightData()->m_layer = parentobj->GetLayer();
+		}
 	}
 
 	// replicate crosslinks etc. between logic bricks
