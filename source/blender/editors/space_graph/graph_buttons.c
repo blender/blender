@@ -170,6 +170,31 @@ static void driver_rnapath_copy_cb (bContext *C, void *driver_v, void *strbuf_v)
 	driver->rna_path= BLI_strdupn(stringBuf, strlen(stringBuf));
 }
 
+/* callback to remove the active driver */
+static void driver_remove_cb (bContext *C, void *ale_v, void *dummy_v)
+{
+	bAnimListElem *ale= (bAnimListElem *)ale_v;
+	ID *id= ale->id;
+	FCurve *fcu= ale->data;
+	
+	/* try to get F-Curve that driver lives on, and ID block which has this AnimData */
+	if (ELEM(NULL, id, fcu))
+		return;
+	
+	/* call API method to remove this driver  */	
+	ANIM_remove_driver(id, fcu->rna_path, fcu->array_index, 0);
+}
+
+/* callback to reset the driver's flags */
+static void driver_update_flags_cb (bContext *C, void *fcu_v, void *dummy_v)
+{
+	FCurve *fcu= (FCurve *)fcu_v;
+	ChannelDriver *driver= fcu->driver;
+	
+	/* clear invalid flags */
+	driver->flag &= ~DRIVER_FLAG_INVALID;
+}
+
 static void graph_panel_drivers(const bContext *C, ARegion *ar, short cntrl, bAnimListElem *ale)	
 {
 	FCurve *fcu= (FCurve *)ale->data;
@@ -184,27 +209,34 @@ static void graph_panel_drivers(const bContext *C, ARegion *ar, short cntrl, bAn
 	/* to force height */
 	uiNewPanelHeight(block, 204);
 	
+	/* general actions */
+	but= uiDefBut(block, BUT, B_IPO_DEPCHANGE, "Update Dependencies", 10, 200, 180, 22, NULL, 0.0, 0.0, 0, 0, "Force updates of dependencies");
+	uiButSetFunc(but, driver_update_flags_cb, fcu, NULL);
+	
+	but= uiDefBut(block, BUT, B_IPO_DEPCHANGE, "Remove Driver", 200, 200, 110, 18, NULL, 0.0, 0.0, 0, 0, "Remove this driver");
+	uiButSetFunc(but, driver_remove_cb, ale, NULL);
+	
 	/* type */
-	uiDefBut(block, LABEL, 1, "Type:",					10, 200, 120, 20, NULL, 0.0, 0.0, 0, 0, "");
+	uiDefBut(block, LABEL, 1, "Type:",					10, 170, 60, 20, NULL, 0.0, 0.0, 0, 0, "");
 	uiDefButI(block, MENU, B_IPO_DEPCHANGE,
 					"Driver Type%t|Transform Channel%x0|Scripted Expression%x1|Rotational Difference%x2", 
-					130,200,180,20, &driver->type, 0, 0, 0, 0, "Driver type");
-	uiDefBut(block, BUT, B_IPO_DEPCHANGE, "Update Dependencies", 10, 180, 300, 20, NULL, 0.0, 0.0, 0, 0, "Force updates of dependencies");
+					70,170,230,20, &driver->type, 0, 0, 0, 0, "Driver type");
 					
 	/* buttons to draw depends on type of driver */
 	if (driver->type == DRIVER_TYPE_PYTHON) { /* PyDriver */
-		uiDefBut(block, TEX, B_REDR, "Expr: ", 10,150,300,20, driver->expression, 0, 255, 0, 0, "One-liner Python Expression to use as Scripted Expression");
+		uiDefBut(block, TEX, B_REDR, "Expr: ", 10,130,300,20, driver->expression, 0, 255, 0, 0, "One-liner Python Expression to use as Scripted Expression");
 		
+		/* errors */
 		if (driver->flag & DRIVER_FLAG_INVALID) {
-			uiDefIconBut(block, LABEL, 1, ICON_ERROR, 10, 130, 20, 19, NULL, 0, 0, 0, 0, "");
+			uiDefIconBut(block, LABEL, 1, ICON_ERROR, 10, 110, 32, 32, NULL, 0, 0, 0, 0, ""); // a bit larger
 			uiDefBut(block, LABEL, 0, "Error: invalid Python expression",
-					30,130,230,19, NULL, 0, 0, 0, 0, "");
+					30,110,230,19, NULL, 0, 0, 0, 0, "");
 		}
 	}
 	else { /* Channel or RotDiff - RotDiff just has extra settings */
 		/* Driver Object */
 		uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_REDR,
-			               "Ob: ", 10, 150, 150, 20, &driver->id, "Object to use as Driver target");
+			               "Ob: ", 10, 130, 150, 20, &driver->id, "Object to use as Driver target");
 		
 		// XXX should we hide these technical details?
 		if (driver->id) {
@@ -212,7 +244,7 @@ static void graph_panel_drivers(const bContext *C, ARegion *ar, short cntrl, bAn
 		
 			/* Array Index */
 			// XXX ideally this is grouped with the path, but that can get quite long...
-			uiDefButI(block, NUM, B_REDR, "Index: ", 170,150,140,20, &driver->array_index, 0, INT_MAX, 0, 0, "Index to the specific property used as Driver if applicable.");
+			uiDefButI(block, NUM, B_REDR, "Index: ", 170,130,140,20, &driver->array_index, 0, INT_MAX, 0, 0, "Index to the specific property used as Driver if applicable.");
 			
 			/* RNA Path */
 			if (driver->rna_path == NULL)
@@ -220,13 +252,20 @@ static void graph_panel_drivers(const bContext *C, ARegion *ar, short cntrl, bAn
 			else
 				BLI_snprintf(pathBuf, 512, driver->rna_path);
 			
-			but= uiDefButC(block, TEX, B_REDR, "Path: ", 10,120,300,20, pathBuf, 0, 511, 0, 0, "RNA Path (from Driver Object) to property used as Driver.");
+			but= uiDefButC(block, TEX, B_REDR, "Path: ", 10,100,300,20, pathBuf, 0, 511, 0, 0, "RNA Path (from Driver Object) to property used as Driver.");
 			uiButSetFunc(but, driver_rnapath_copy_cb, driver, pathBuf);
 		}
 		
 		/* for rotational difference, show second target... */
 		if (driver->type == DRIVER_TYPE_ROTDIFF) {
 			// TODO...
+		}
+		
+		/* errors */
+		if (driver->flag & DRIVER_FLAG_INVALID) {
+			uiDefIconBut(block, LABEL, 1, ICON_ERROR, 10, 70, 32, 32, NULL, 0, 0, 0, 0, ""); // a bit larger
+			uiDefBut(block, LABEL, 0, "Error: invalid target channel",
+					30,70,230,19, NULL, 0, 0, 0, 0, "");
 		}
 	}
 }

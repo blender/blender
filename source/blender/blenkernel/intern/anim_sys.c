@@ -419,21 +419,25 @@ static short animsys_write_rna_setting (PointerRNA *ptr, char *path, int array_i
 }
 
 /* Simple replacement based data-setting of the FCurve using RNA */
-static void animsys_execute_fcurve (PointerRNA *ptr, AnimMapper *remap, FCurve *fcu)
+static short animsys_execute_fcurve (PointerRNA *ptr, AnimMapper *remap, FCurve *fcu)
 {
 	char *path = NULL;
 	short free_path=0;
+	short ok= 0;
 	
 	/* get path, remapped as appropriate to work in its new environment */
 	free_path= animsys_remap_path(remap, fcu->rna_path, &path);
 	
 	/* write value to setting */
 	if (path)
-		animsys_write_rna_setting(ptr, path, fcu->array_index, fcu->curval);
+		ok= animsys_write_rna_setting(ptr, path, fcu->array_index, fcu->curval);
 	
 	/* free temp path-info */
 	if (free_path)
 		MEM_freeN(path);
+		
+	/* return whether we were successful */
+	return ok;
 }
 
 /* Evaluate all the F-Curves in the given list 
@@ -469,20 +473,25 @@ static void animsys_evaluate_drivers (PointerRNA *ptr, AnimData *adt, float ctim
 	for (fcu= adt->drivers.first; fcu; fcu= fcu->next) 
 	{
 		ChannelDriver *driver= fcu->driver;
+		short ok= 0;
 		
 		/* check if this driver's curve should be skipped */
 		// FIXME: maybe we shouldn't check for muted, though that would make things more confusing, as there's already too many ways to disable?
 		if ((fcu->flag & (FCURVE_MUTED|FCURVE_DISABLED)) == 0) 
 		{
 			/* check if driver itself is tagged for recalculation */
-			if ((driver) /*&& (driver->flag & DRIVER_FLAG_RECALC)*/) {	// XXX driver recalc flag is not set yet by depsgraph!
+			if ((driver) && !(driver->flag & DRIVER_FLAG_INVALID)/*&& (driver->flag & DRIVER_FLAG_RECALC)*/) {	// XXX driver recalc flag is not set yet by depsgraph!
 				/* evaluate this using values set already in other places */
 				// NOTE: for 'layering' option later on, we should check if we should remove old value before adding new to only be done when drivers only changed
 				calculate_fcurve(fcu, ctime);
-				animsys_execute_fcurve(ptr, NULL, fcu);
+				ok= animsys_execute_fcurve(ptr, NULL, fcu);
 				
 				/* clear recalc flag */
 				driver->flag &= ~DRIVER_FLAG_RECALC;
+				
+				/* set error-flag if evaluation failed */
+				if (ok == 0)
+					driver->flag |= DRIVER_FLAG_INVALID; 
 			}
 		}
 	}
