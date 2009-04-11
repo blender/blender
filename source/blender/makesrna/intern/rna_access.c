@@ -2316,7 +2316,7 @@ int RNA_function_call(PointerRNA *ptr, FunctionRNA *func, ParameterList *parms)
 		return 0;
 	}
 
-	return 1;
+	return -1;
 }
 
 int RNA_function_call_lookup(PointerRNA *ptr, const char *identifier, ParameterList *parms)
@@ -2328,10 +2328,9 @@ int RNA_function_call_lookup(PointerRNA *ptr, const char *identifier, ParameterL
 	if(func)
 		return RNA_function_call(ptr, func, parms);
 
-	return 0;
+	return -1;
 }
 
-#if 0
 int RNA_function_call_direct(PointerRNA *ptr, FunctionRNA *func, const char *format, ...)
 {
 	va_list args;
@@ -2365,7 +2364,7 @@ int RNA_function_call_direct_lookup(PointerRNA *ptr, const char *identifier, con
 		return ret;
 	}
 
-	return 0;
+	return -1;
 }
 
 int RNA_function_call_direct_va(PointerRNA *ptr, FunctionRNA *func, const char *format, va_list args)
@@ -2374,10 +2373,10 @@ int RNA_function_call_direct_va(PointerRNA *ptr, FunctionRNA *func, const char *
 	ParameterList *parms;
 	ParameterIterator iter;
 	PropertyRNA *pret, *parm;
-	PropertyType ptype;
-	PropertySubType psubtype;
-	int i, tlen, alen, err= 0;
+	PropertyType type;
+	int i, ofs, flen, flag, len, alen, err= 0;
 	const char *tid, *fid, *pid;
+	char ftype, lenbuf[16];
 	void **retdata;
 
 	RNA_pointer_create(NULL, &RNA_Function, func, &funcptr);
@@ -2385,19 +2384,190 @@ int RNA_function_call_direct_va(PointerRNA *ptr, FunctionRNA *func, const char *
 	tid= RNA_struct_identifier(ptr);
 	fid= RNA_function_identifier(ptr, func);
 	pret= RNA_function_return(ptr, func);
+	flen= strlen(format);
 
 	parms= RNA_parameter_list_create(ptr, func);
 	RNA_parameter_list_begin(parms, &iter);
 
-	for(i= 0; iter.valid; RNA_parameter_list_next(&iter), i++) {
+	for(i= 0, ofs= 0; iter.valid; RNA_parameter_list_next(&iter), i++) {
 		parm= iter.parm;
+
 		if(parm==pret) {
 			retdata= iter.data;
 			continue;
 		}
 
-		/* XXX todo later, this is not really a priority as of now */
+		pid= RNA_property_identifier(&funcptr, parm);
+		flag= RNA_property_flag(&funcptr, parm);
+
+		if (ofs>=flen || format[ofs]=='N') {
+			if (flag & PROP_REQUIRED) {
+				err= -1;
+				fprintf(stderr, "%s.%s: missing required parameter %s\n", tid, fid, pid);
+				break;
+			}
+			ofs++;
+			continue;
+		}
+
+		type= RNA_property_type(&funcptr, parm);
+		len= RNA_property_array_length(&funcptr, parm);
+		alen= 0;
+		ftype= format[ofs++];
+
+		if (len>0) {
+			int idx= 0;
+
+			if (format[ofs++]=='[')
+				for (; ofs<flen && format[ofs]!=']' && idx<sizeof(*lenbuf)-1; idx++, ofs++)
+					lenbuf[idx]= format[ofs];
+
+			if (ofs<flen && format[ofs++]==']') {
+				/* XXX put better error reporting for ofs>=flen or idx over lenbuf capacity */
+				lenbuf[idx]= '\0';
+				alen= atoi(lenbuf);
+			}
+		}
+
+		if (len!=alen) {
+			err= -1;
+			fprintf(stderr, "%s.%s: for parameter %s, was expecting an array of %i elements, passed %i elements instead\n", tid, fid, pid, len, alen);
+			break;
+		}
+ 
+		switch (type) {
+		case PROP_BOOLEAN:
+			{
+				if (format[ofs]!='b') {
+					err= -1;
+					fprintf(stderr, "%s.%s: wrong type for parameter %s, a boolean was expected\n", tid, fid, pid);
+					break;
+				}
+
+				if (len==0)
+					*((int*)iter.data)= va_arg(args, int);
+				else
+					memcpy(iter.data, va_arg(args, int*), len);
+
+				break;
+			}
+		case PROP_INT:
+			{
+				if (format[ofs]!='i') {
+					err= -1;
+					fprintf(stderr, "%s.%s: wrong type for parameter %s, an integer was expected\n", tid, fid, pid);
+					break;
+				}
+
+				if (len==0)
+					*((int*)iter.data)= va_arg(args, int);
+				else
+					memcpy(iter.data, va_arg(args, int*), len);
+
+				break;
+			}
+		case PROP_FLOAT:
+			{
+				if (format[ofs]!='f') {
+					err= -1;
+					fprintf(stderr, "%s.%s: wrong type for parameter %s, a float was expected\n", tid, fid, pid);
+					break;
+				}
+
+				if (len==0)
+					*((float*)iter.data)= va_arg(args, float);
+				else
+					memcpy(iter.data, va_arg(args, float*), len);
+
+				break;
+			}
+		case PROP_STRING:
+			{
+				if (format[ofs]!='s') {
+					err= -1;
+					fprintf(stderr, "%s.%s: wrong type for parameter %s, a string was expected\n", tid, fid, pid);
+					break;
+				}
+
+				*((char**)iter.data)= va_arg(args, char*);
+
+				break;
+			}
+		case PROP_ENUM:
+			{
+				if (format[ofs]!='e') {
+					err= -1;
+					fprintf(stderr, "%s.%s: wrong type for parameter %s, an enum was expected\n", tid, fid, pid);
+					break;
+				}
+
+				*((int*)iter.data)= va_arg(args, int);
+
+				break;
+			}
+		case PROP_POINTER:
+			{
+				StructRNA *ptype, *srna;
+				void *data;
+
+				if (format[ofs]!='O') {
+					err= -1;
+					fprintf(stderr, "%s.%s: wrong type for parameter %s, an object was expected\n", tid, fid, pid);
+					break;
+				}
+
+				ptype= RNA_property_pointer_type(&funcptr, parm);
+				/* for objects we use two parms: the first is the type and the second is the data */
+				srna= va_arg(args, StructRNA*);
+
+				if(ptype == &RNA_AnyType) {
+					*((PointerRNA*)iter.data)= va_arg(args, PointerRNA);
+				}
+				else if (ptype!=srna) {
+					PointerRNA pptr;
+
+					data= va_arg(args, void*);
+					RNA_pointer_create(NULL, srna, data, &pptr);
+
+					if (!RNA_struct_is_a(&pptr, ptype)) {
+						PointerRNA tmp;
+						RNA_pointer_create(NULL, ptype, NULL, &tmp);
+
+						err= -1;
+						fprintf(stderr, "%s.%s: wrong type for parameter %s, an object of type %s was expected, passed an object of type %s\n", tid, fid, pid, RNA_struct_identifier(&tmp), RNA_struct_identifier(&pptr));
+						break;
+					}
+
+					*((void**)iter.data)= data;
+				}
+
+				break;
+			}
+		case PROP_COLLECTION:
+			{
+				/* XXX collections are not supported yet */
+				err= -1;
+				fprintf(stderr, "%s.%s: for parameter %s, collections are not supported yet\n", tid, fid, pid);
+				break;
+			}
+		default: 
+			{
+				err= -1;
+				if (len==0)
+					fprintf(stderr, "%s.%s: unknown type for parameter %s\n", tid, fid, pid);
+				else
+					fprintf(stderr, "%s.%s: unknown array type for parameter %s\n", tid, fid, pid);
+
+				break;
+			}
+		}
 	}
+
+	if (err==0 && pret) {
+		/* XXX return values still not implemented */
+	}
+
+	return err;
 }
 
 int RNA_function_call_direct_va_lookup(PointerRNA *ptr, const char *identifier, const char *format, va_list args)
@@ -2411,5 +2581,4 @@ int RNA_function_call_direct_va_lookup(PointerRNA *ptr, const char *identifier, 
 
 	return 0;
 }
-#endif
 
