@@ -181,6 +181,8 @@ static struct BPY_flag_def pyop_ret_flags[] = {
 #define PYOP_INVOKE 2
 #define PYOP_POLL 3
 	
+extern void BPY_update_modules( void ); //XXX temp solution
+
 static int PYTHON_OT_generic(int mode, bContext *C, wmOperator *op, wmEvent *event)
 {
 	PyObject *py_class = op->type->pyop_data;
@@ -189,6 +191,8 @@ static int PYTHON_OT_generic(int mode, bContext *C, wmOperator *op, wmEvent *eve
 	int ret_flag= (mode==PYOP_POLL ? 0:OPERATOR_CANCELLED);
 
 	PyGILState_STATE gilstate = PyGILState_Ensure();
+	
+	BPY_update_modules(); // XXX - the RNA pointers can change so update before running, would like a nicer solutuon for this.
 
 	args = PyTuple_New(1);
 	PyTuple_SET_ITEM(args, 0, PyObject_GetAttrString(py_class, "__rna__")); // need to use an rna instance as the first arg

@@ -1714,21 +1714,22 @@ static PyObject *pyrna_basetype_dir(BPy_BaseTypeRNA *self)
 	return list;
 }
 
-PyTypeObject pyrna_basetype_Type;
+PyTypeObject pyrna_basetype_Type = BLANK_PYTHON_TYPE;
 
 PyObject *BPY_rna_types(void)
 {
 	BPy_BaseTypeRNA *self;
 
-	memset(&pyrna_basetype_Type, 0, sizeof(pyrna_basetype_Type));
-	pyrna_basetype_Type.tp_name = "RNA_Types";
-	pyrna_basetype_Type.tp_basicsize = sizeof( BPy_BaseTypeRNA );
-	pyrna_basetype_Type.tp_getattro = ( getattrofunc )pyrna_basetype_getattro;
-	pyrna_basetype_Type.tp_flags = Py_TPFLAGS_DEFAULT;
-	pyrna_basetype_Type.tp_methods = pyrna_basetype_methods;
-	
-	if( PyType_Ready( &pyrna_basetype_Type ) < 0 )
-		return NULL;
+	if ((pyrna_basetype_Type.tp_flags & Py_TPFLAGS_READY)==0)  {
+		pyrna_basetype_Type.tp_name = "RNA_Types";
+		pyrna_basetype_Type.tp_basicsize = sizeof( BPy_BaseTypeRNA );
+		pyrna_basetype_Type.tp_getattro = ( getattrofunc )pyrna_basetype_getattro;
+		pyrna_basetype_Type.tp_flags = Py_TPFLAGS_DEFAULT;
+		pyrna_basetype_Type.tp_methods = pyrna_basetype_methods;
+		
+		if( PyType_Ready( &pyrna_basetype_Type ) < 0 )
+			return NULL;
+	}
 	
 	self= (BPy_BaseTypeRNA *)PyObject_NEW( BPy_BaseTypeRNA, &pyrna_basetype_Type );
 	

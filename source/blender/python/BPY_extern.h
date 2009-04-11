@@ -101,6 +101,7 @@ extern "C" {
 	int BPY_run_script_space_draw(struct bContext *C, struct SpaceScript * sc); // 2.5 working
 	void BPY_run_ui_scripts(struct bContext *C);
 //	int BPY_run_script_space_listener(struct bContext *C, struct SpaceScript * sc, struct ARegion *ar, struct wmNotifier *wmn); // 2.5 working
+	void BPY_update_modules( void ); // XXX - annoying, need this for pointers that get out of date
 	
 	
 	

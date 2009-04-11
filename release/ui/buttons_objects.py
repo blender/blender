@@ -1,4 +1,4 @@
-# import bpy
+import bpy
 
 class OBJECT_PT_transform(bpy.types.Panel):
 	__label__ = "Transform"

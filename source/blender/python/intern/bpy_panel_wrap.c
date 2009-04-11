@@ -44,6 +44,8 @@
 #define PYPANEL_DRAW 1
 #define PYPANEL_POLL 2
 
+extern void BPY_update_modules( void ); //XXX temp solution
+
 static int PyPanel_generic(int mode, const bContext *C, Panel *pnl)
 {
 	PyObject *py_class= (PyObject *)(pnl->type->py_data);
@@ -55,6 +57,8 @@ static int PyPanel_generic(int mode, const bContext *C, Panel *pnl)
 
 	PyGILState_STATE gilstate = PyGILState_Ensure();
 
+	BPY_update_modules(); // XXX - the RNA pointers can change so update before running, would like a nicer solutuon for this.
+	
 	args = PyTuple_New(1);
 	RNA_pointer_create(&CTX_wm_screen(C)->id, pnl->type->srna, pnl, &panelptr);
 	PyTuple_SET_ITEM(args, 0, pyrna_struct_CreatePyObject(&panelptr));

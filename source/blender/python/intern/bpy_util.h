@@ -67,4 +67,7 @@ int BPY_class_validate(const char *class_type, PyObject *class, PyObject *base_c
 
 char *BPy_enum_as_string(struct EnumPropertyItem *item);
 
+
+#define BLANK_PYTHON_TYPE {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}
+
 #endif
