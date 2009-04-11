@@ -89,6 +89,9 @@ typedef enum PropertyFlag {
 	 * and collections */
 	PROP_ANIMATEABLE = 2,
 
+	/* function paramater flags */
+	PROP_REQUIRED = 4,
+
 	/* internal flags */
 	PROP_BUILTIN = 128,
 	PROP_EXPORT = 256,

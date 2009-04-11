@@ -48,6 +48,12 @@ static void rna_Object_update(bContext *C, PointerRNA *ptr)
 	DAG_object_flush_update(CTX_data_scene(C), ptr->id.data, OB_RECALC_OB);
 }
 
+static void rna_Object_scene_update(bContext *C, PointerRNA *ptr)
+{
+	DAG_object_flush_update(CTX_data_scene(C), ptr->id.data, OB_RECALC_OB);
+	DAG_scene_sort(CTX_data_scene(C));
+}
+
 static int rna_VertexGroup_index_get(PointerRNA *ptr)
 {
 	Object *ob= (Object*)ptr->id.data;
@@ -483,6 +489,14 @@ static StructRNA *rna_def_object(BlenderRNA *brna)
 		{1, "OBJECT", "Object", ""},
 		{0, NULL, NULL, NULL}};
 
+	static EnumPropertyItem dupli_items[] = {
+		{0, "NONE", "None", ""},
+		{OB_DUPLIFRAMES, "FRAMES", "Frames", "Make copy of object for every frame."},
+		{OB_DUPLIVERTS, "VERTS", "Verts", "Duplicate child objects on all vertices."},
+		{OB_DUPLIFACES, "FACES", "Faces", "Duplicate child objects on all faces."},
+		{OB_DUPLIGROUP, "GROUP", "Group", "Enable group instancing."},
+		{0, NULL, NULL, NULL}};
+
 	srna= RNA_def_struct(brna, "Object", "ID");
 	RNA_def_struct_ui_text(srna, "Object", "Object datablock defining an object in a scene..");
 
@@ -720,25 +734,11 @@ static StructRNA *rna_def_object(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "partype", PARSLOW);
 	RNA_def_property_ui_text(prop, "Slow Parent", "Create a delay in the parent relationship.");
 
-	prop= RNA_def_property(srna, "dupli_frames", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "transflag", OB_DUPLIFRAMES);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE); // clear other flags
-	RNA_def_property_ui_text(prop, "Dupli Frames", "Make copy of object for every frame.");
-
-	prop= RNA_def_property(srna, "dupli_verts", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "transflag", OB_DUPLIVERTS);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE); // clear other flags
-	RNA_def_property_ui_text(prop, "Dupli Verts", "Duplicate child objects on all vertices.");
-
-	prop= RNA_def_property(srna, "dupli_faces", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "transflag", OB_DUPLIFACES);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE); // clear other flags
-	RNA_def_property_ui_text(prop, "Dupli Faces", "Duplicate child objects on all faces.");
-
-	prop= RNA_def_property(srna, "use_dupli_group", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "transflag", OB_DUPLIGROUP);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE); // clear other flags
-	RNA_def_property_ui_text(prop, "Use Dupli Group", "Enable group instancing.");
+	prop= RNA_def_property(srna, "dupli_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "transflag");
+	RNA_def_property_enum_items(prop, dupli_items);
+	RNA_def_property_ui_text(prop, "Dupli Type", "If not None, object duplication method to use.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Object_scene_update");
 
 	prop= RNA_def_property(srna, "dupli_frames_no_speed", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "transflag", OB_DUPLINOSPEED);

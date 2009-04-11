@@ -348,6 +348,7 @@ const struct ListBase *RNA_struct_defined_functions(StructRNA *srna);
 const char *RNA_property_identifier(PointerRNA *ptr, PropertyRNA *prop);
 PropertyType RNA_property_type(PointerRNA *ptr, PropertyRNA *prop);
 PropertySubType RNA_property_subtype(PointerRNA *ptr, PropertyRNA *prop);
+int RNA_property_flag(PointerRNA *ptr, PropertyRNA *prop);
 
 int RNA_property_array_length(PointerRNA *ptr, PropertyRNA *prop);
 

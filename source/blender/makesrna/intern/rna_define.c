@@ -1404,7 +1404,7 @@ void RNA_def_property_enum_bitflag_sdna(PropertyRNA *prop, const char *structnam
 	dp= rna_find_struct_property_def(prop);
 
 	if(dp)
-		dp->booleannegative= 1;
+		dp->enumbitflags= 1;
 }
 
 void RNA_def_property_string_sdna(PropertyRNA *prop, const char *structname, const char *propname)

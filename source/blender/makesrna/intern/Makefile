@@ -77,7 +77,7 @@ clean::
 # we want the .o's to be in the makesrna/ directory, but the
 # .c's are in the editors/*/ directories
 
-$(DIR)/$(DEBUG_DIR)%_api.o: ../../editors/interface/*_api.c
+$(DIR)/$(DEBUG_DIR)%_api.o: ../../editors/interface/%_api.c
     ifdef NAN_DEPEND
 	@set -e; $(CC) -M $(CPPFLAGS) $< 2>/dev/null \
 		| sed 's@\($*\)\.o[ :]*@$(DIR)/$(DEBUG_DIR)\1.o : @g' \

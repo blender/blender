@@ -401,6 +401,13 @@ PropertySubType RNA_property_subtype(PointerRNA *ptr, PropertyRNA *prop)
 	return prop->subtype;
 }
 
+int RNA_property_flag(PointerRNA *ptr, PropertyRNA *prop)
+{
+	rna_idproperty_check(&prop, ptr);
+
+	return prop->flag;
+}
+
 int RNA_property_array_length(PointerRNA *ptr, PropertyRNA *prop)
 {
 	IDProperty *idprop;
