@@ -120,7 +120,6 @@ void ANIM_set_active_channel (void *data, short datatype, int filter, void *chan
 {
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
-	short smode;
 	
 	/* try to build list of filtered items */
 	// XXX we don't need/supply animcontext for now, since in this case, there's nothing really essential there that isn't already covered
@@ -132,15 +131,7 @@ void ANIM_set_active_channel (void *data, short datatype, int filter, void *chan
 	for (ale= anim_data.first; ale; ale= ale->next) {
 		/* skip if types don't match */
 		if (channel_type != ale->type)
-			continue;	
-		
-		/* flag setting mode 
-		 *	- depends on whether the provided channel is encountered
-		 */
-		if (ale->data == channel_data)
-			smode= ACHANNEL_SETFLAG_ADD;
-		else
-			smode= ACHANNEL_SETFLAG_CLEAR;
+			continue;
 		
 		/* flag to set depends on type */
 		switch (ale->type) {
@@ -148,14 +139,32 @@ void ANIM_set_active_channel (void *data, short datatype, int filter, void *chan
 			{
 				bActionGroup *agrp= (bActionGroup *)ale->data;
 				
-				ACHANNEL_SET_FLAG(agrp, smode, AGRP_ACTIVE);
+				ACHANNEL_SET_FLAG(agrp, ACHANNEL_SETFLAG_CLEAR, AGRP_ACTIVE);
 			}
 				break;
 			case ANIMTYPE_FCURVE:
 			{
 				FCurve *fcu= (FCurve *)ale->data;
 				
-				ACHANNEL_SET_FLAG(fcu, smode, FCURVE_ACTIVE);
+				ACHANNEL_SET_FLAG(fcu, ACHANNEL_SETFLAG_CLEAR, FCURVE_ACTIVE);
+			}
+				break;
+		}
+	}
+	
+	/* set active flag */
+	if (channel_data) {
+		switch (channel_type) {
+			case ANIMTYPE_GROUP:
+			{
+				bActionGroup *agrp= (bActionGroup *)channel_data;
+				agrp->flag |= AGRP_ACTIVE;
+			}
+				break;
+			case ANIMTYPE_FCURVE:
+			{
+				FCurve *fcu= (FCurve *)channel_data;
+				fcu->flag |= FCURVE_ACTIVE;
 			}
 				break;
 		}

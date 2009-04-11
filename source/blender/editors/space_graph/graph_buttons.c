@@ -141,7 +141,7 @@ static void do_graph_region_driver_buttons(bContext *C, void *arg, int event)
 {
 	Scene *scene= CTX_data_scene(C);
 	
-	switch(event) {
+	switch (event) {
 		case B_IPO_DEPCHANGE:
 		{
 			/* rebuild depsgraph for the new deps */
@@ -158,13 +158,24 @@ static void do_graph_region_driver_buttons(bContext *C, void *arg, int event)
 	//WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, ob);
 }
 
+/* callback to copy over RNA-Paths accordingly */
+static void driver_rnapath_copy_cb (bContext *C, void *driver_v, void *strbuf_v)
+{
+	ChannelDriver *driver= (ChannelDriver *)driver_v;
+	char *stringBuf= (char *)strbuf_v;
+	
+	/* copy over string */
+	if (driver->rna_path)
+		MEM_freeN(driver->rna_path);
+	driver->rna_path= BLI_strdupn(stringBuf, strlen(stringBuf));
+}
+
 static void graph_panel_drivers(const bContext *C, ARegion *ar, short cntrl, bAnimListElem *ale)	
 {
 	FCurve *fcu= (FCurve *)ale->data;
 	ChannelDriver *driver= fcu->driver;
 	uiBlock *block;
 	uiBut *but;
-	int len;
 
 	block= uiBeginBlock(C, ar, "graph_panel_drivers", UI_EMBOSS, UI_HELV);
 	if (uiNewPanel(C, ar, block, "Drivers", "Graph", 340, 30, 318, 254)==0) return;
@@ -178,36 +189,39 @@ static void graph_panel_drivers(const bContext *C, ARegion *ar, short cntrl, bAn
 	uiDefButI(block, MENU, B_IPO_DEPCHANGE,
 					"Driver Type%t|Transform Channel%x0|Scripted Expression%x1|Rotational Difference%x2", 
 					130,200,180,20, &driver->type, 0, 0, 0, 0, "Driver type");
+	uiDefBut(block, BUT, B_IPO_DEPCHANGE, "Update Dependencies", 10, 180, 300, 20, NULL, 0.0, 0.0, 0, 0, "Force updates of dependencies");
 					
 	/* buttons to draw depends on type of driver */
 	if (driver->type == DRIVER_TYPE_PYTHON) { /* PyDriver */
-		uiDefBut(block, TEX, B_REDR, "Expr: ", 10,160,300,20, driver->expression, 0, 255, 0, 0, "One-liner Python Expression to use as Scripted Expression");
+		uiDefBut(block, TEX, B_REDR, "Expr: ", 10,150,300,20, driver->expression, 0, 255, 0, 0, "One-liner Python Expression to use as Scripted Expression");
 		
 		if (driver->flag & DRIVER_FLAG_INVALID) {
-			uiDefIconBut(block, LABEL, 1, ICON_ERROR, 10, 140, 20, 19, NULL, 0, 0, 0, 0, "");
+			uiDefIconBut(block, LABEL, 1, ICON_ERROR, 10, 130, 20, 19, NULL, 0, 0, 0, 0, "");
 			uiDefBut(block, LABEL, 0, "Error: invalid Python expression",
-					30,140,230,19, NULL, 0, 0, 0, 0, "");
+					30,130,230,19, NULL, 0, 0, 0, 0, "");
 		}
 	}
 	else { /* Channel or RotDiff - RotDiff just has extra settings */
 		/* Driver Object */
-		but= uiDefBut(block, TEX, B_IPO_DEPCHANGE, "OB: ",	10,160,150,20, driver->id->name+2, 0.0, 21.0, 0, 0, "Object that controls this Driver.");
-		uiButSetFunc(but, test_idbutton_cb, driver->id->name, NULL);
+		uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_REDR,
+			               "Ob: ", 10, 150, 150, 20, &driver->id, "Object to use as Driver target");
 		
 		// XXX should we hide these technical details?
 		if (driver->id) {
+			static char pathBuf[512]; 	/* bad... evil... */
+		
 			/* Array Index */
 			// XXX ideally this is grouped with the path, but that can get quite long...
-			uiDefButI(block, NUM, B_IPO_DEPCHANGE, "Index: ", 170,160,140,20, &driver->array_index, 0, INT_MAX, 0, 0, "Index to the specific property used as Driver if applicable.");
+			uiDefButI(block, NUM, B_REDR, "Index: ", 170,150,140,20, &driver->array_index, 0, INT_MAX, 0, 0, "Index to the specific property used as Driver if applicable.");
 			
-			/* RNA-Path - allocate if non-existant */
-			if (driver->rna_path == NULL) {
-				driver->rna_path= MEM_callocN(256, "Driver RNA-Path");
-				len= 255;
-			}
+			/* RNA Path */
+			if (driver->rna_path == NULL)
+				pathBuf[0]= '\0';
 			else
-				len= strlen(driver->rna_path);
-			uiDefBut(block, TEX, B_IPO_DEPCHANGE, "Path: ", 10,130,300,20, driver->rna_path, 0, len, 0, 0, "RNA Path (from Driver Object) to property used as Driver.");
+				BLI_snprintf(pathBuf, 512, driver->rna_path);
+			
+			but= uiDefButC(block, TEX, B_REDR, "Path: ", 10,120,300,20, pathBuf, 0, 511, 0, 0, "RNA Path (from Driver Object) to property used as Driver.");
+			uiButSetFunc(but, driver_rnapath_copy_cb, driver, pathBuf);
 		}
 		
 		/* for rotational difference, show second target... */
