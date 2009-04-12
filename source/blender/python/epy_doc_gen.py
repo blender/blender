@@ -455,8 +455,8 @@ def op2epy(target_path):
 
 if __name__ == '__main__':
 	if 'bpy' not in dir():
-		print "\nError, this script must run from inside blender."
-		print script_help_msg
+		print("\nError, this script must run from inside blender.")
+		print(script_help_msg)
 		
 	else:
 		rna2epy('source/blender/python/doc/rna.py')
