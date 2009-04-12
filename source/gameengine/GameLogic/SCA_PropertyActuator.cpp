@@ -77,11 +77,25 @@ bool SCA_PropertyActuator::Update()
 	CParser parser;
 	parser.SetContext( propowner->AddRef());
 	
-	CExpression* userexpr = parser.ProcessText(m_exprtxt);
-	if (userexpr)
+	CExpression* userexpr= NULL;
+	
+	if (m_type==KX_ACT_PROP_TOGGLE)
 	{
-		
-
+		/* dont use */
+		CValue* newval;
+		CValue* oldprop = propowner->GetProperty(m_propname);
+		if (oldprop)
+		{
+			newval = new CBoolValue((oldprop->GetNumber()==0.0) ? true:false);
+			oldprop->SetValue(newval);
+		} else
+		{	/* as not been assigned, evaluate as false, so assign true */
+			newval = new CBoolValue(true);
+			propowner->SetProperty(m_propname,newval);
+		}
+		newval->Release();
+	}
+	else if (userexpr = parser.ProcessText(m_exprtxt)) {
 		switch (m_type)
 		{
 
@@ -135,23 +149,7 @@ bool SCA_PropertyActuator::Update()
 				}
 				break;
 			}
-		case KX_ACT_PROP_TOGGLE:
-			{
-				
-				CValue* newval;
-				CValue* oldprop = propowner->GetProperty(m_propname);
-				if (oldprop)
-				{
-					newval = new CBoolValue((oldprop->GetNumber()==0.0) ? true:false);
-					oldprop->SetValue(newval);
-				} else
-				{	/* as not been assigned, evaluate as false, so assign true */
-					newval = new CBoolValue(true);
-					propowner->SetProperty(m_propname,newval);
-				}
-				newval->Release();
-				break;
-			}
+		/* case KX_ACT_PROP_TOGGLE: */ /* accounted for above, no need for userexpr */
 		default:
 			{
 

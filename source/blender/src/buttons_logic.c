@@ -1970,7 +1970,7 @@ static short draw_actuatorbuttons(Object *ob, bActuator *act, uiBlock *block, sh
 			
 			pa= act->data;
 			
-			str= "Type%t|Assign%x0|Add %x1|Copy %x2|Toggle%x3";
+			str= "Type%t|Assign%x0|Add %x1|Copy %x2|Toggle (bool/int/float/timer)%x3";
 			uiDefButI(block, MENU, B_REDR, str,		xco+30,yco-24,width-60, 19, &pa->type, 0, 31, 0, 0, "Type");
 			
 			uiDefBut(block, TEX, 1, "Prop: ",		xco+30,yco-44,width-60, 19, pa->name, 0, 31, 0, 0, "Property name");
