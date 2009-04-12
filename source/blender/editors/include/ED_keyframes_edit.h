@@ -131,6 +131,10 @@ BeztEditFunc ANIM_editkeyframes_select(short mode);
 BeztEditFunc ANIM_editkeyframes_handles(short mode);
 BeztEditFunc ANIM_editkeyframes_ipo(short mode);
 
+/* ----------- BezTriple Callback (Assorted Utilities) ---------- */
+
+short bezt_calc_average(BeztEditData *bed, struct BezTriple *bezt);
+
 /* ************************************************ */
 /* Destructive Editing API (keyframes_general.c) */
 

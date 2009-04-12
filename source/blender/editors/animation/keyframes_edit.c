@@ -335,6 +335,24 @@ BeztEditFunc ANIM_editkeyframes_ok(short mode)
 }
 
 /* ******************************************* */
+/* Assorted Utility Functions */
+
+/* helper callback for <animeditor>_cfrasnap_exec() -> used to help get the average time of all selected beztriples */
+short bezt_calc_average(BeztEditData *bed, BezTriple *bezt)
+{
+	/* only if selected */
+	if (bezt->f2 & SELECT) {
+		/* store average time in float (only do rounding at last step */
+		bed->f1 += bezt->vec[1][0];
+		
+		/* increment number of items */
+		bed->i1++;
+	}
+	
+	return 0;
+}
+
+/* ******************************************* */
 /* Transform */
 
 static short snap_bezier_nearest(BeztEditData *bed, BezTriple *bezt)

@@ -83,154 +83,6 @@
 #include "action_intern.h"
 
 /* ************************************************************************** */
-/* GENERAL STUFF */
-
-/* used only by mouse_action. It is used to find the location of the nearest 
- * keyframe to where the mouse clicked, 
- */
-// XXX just merge this into the existing code!
-static void *get_nearest_action_key (bAnimContext *ac, int mval[2], float *selx, short *sel, short *ret_type, bActionGroup **par)
-{
-	ListBase anim_data = {NULL, NULL};
-	ListBase anim_keys = {NULL, NULL};
-	bAnimListElem *ale;
-	ActKeyColumn *ak;
-	View2D *v2d= &ac->ar->v2d;
-	int filter;
-	
-	rctf rectf;
-	void *data = NULL;
-	float xmin, xmax, x, y;
-	int channel_index;
-	short found = 0;
-	
-	/* action-group */
-	*par= NULL;
-	
-	
-	UI_view2d_region_to_view(v2d, mval[0], mval[1], &x, &y);
-	UI_view2d_listview_view_to_cell(v2d, 0, ACHANNEL_STEP, 0, (float)ACHANNEL_HEIGHT_HALF, x, y, NULL, &channel_index);
-	
-	/* x-range to check is +/- 7 on either side of mouse click (size of keyframe icon) */
-	UI_view2d_region_to_view(v2d, mval[0]-7, mval[1], &rectf.xmin, &rectf.ymin);
-	UI_view2d_region_to_view(v2d, mval[0]+7, mval[1], &rectf.xmax, &rectf.ymax);
-	
-	/* filter data */
-	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CHANNELS);
-	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
-	
-	/* get channel */
-	ale= BLI_findlink(&anim_data, channel_index);
-	if (ale == NULL) {
-		/* channel not found */
-		printf("Error: animation channel (index = %d) not found in mouse_action_keys() \n", channel_index);
-		
-		BLI_freelistN(&anim_data);
-		return NULL;
-	}
-	else {
-		/* found match - must return here... */
-		Object *nob= ANIM_nla_mapping_get(ac, ale);
-		ActKeysInc *aki= init_aki_data(ac, ale);
-		
-		/* apply NLA-scaling correction? */
-		if (nob) {
-			xmin= get_action_frame(nob, rectf.xmin);
-			xmax= get_action_frame(nob, rectf.xmax);
-		}
-		else {
-			xmin= rectf.xmin;
-			xmax= rectf.xmax;
-		}
-		
-		/* make list of keyframes */
-		if (ale->key_data) {
-			switch (ale->datatype) {
-				case ALE_OB:
-				{
-					Object *ob= (Object *)ale->key_data;
-					ob_to_keylist(ob, &anim_keys, NULL, aki);
-				}
-					break;
-				case ALE_ACT:
-				{
-					bAction *act= (bAction *)ale->key_data;
-					action_to_keylist(act, &anim_keys, NULL, aki);
-				}
-					break;
-				case ALE_FCURVE:
-				{
-					FCurve *fcu= (FCurve *)ale->key_data;
-					fcurve_to_keylist(fcu, &anim_keys, NULL, aki);
-				}
-					break;
-			}
-		}
-		else if (ale->type == ANIMTYPE_GROUP) {
-			bActionGroup *agrp= (bActionGroup *)ale->data;
-			agroup_to_keylist(agrp, &anim_keys, NULL, aki);
-		}
-		else if (ale->type == ANIMTYPE_GPDATABLOCK) {
-			/* cleanup */
-			BLI_freelistN(&anim_data);
-			
-			/* this channel currently doens't have any keyframes... must ignore! */
-			*ret_type= ANIMTYPE_NONE;
-			return NULL;
-		}
-		else if (ale->type == ANIMTYPE_GPLAYER) {
-			bGPDlayer *gpl= (bGPDlayer *)ale->data;
-			gpl_to_keylist(gpl, &anim_keys, NULL, aki);
-		}
-		
-		/* loop through keyframes, finding one that was clicked on */
-		for (ak= anim_keys.first; ak; ak= ak->next) {
-			if (IN_RANGE(ak->cfra, xmin, xmax)) {
-				*selx= ak->cfra;
-				found= 1;
-				break;
-			}
-		}
-		/* no matching keyframe found - set to mean frame value so it doesn't actually select anything */
-		if (found == 0)
-			*selx= ((xmax+xmin) / 2);
-		
-		/* figure out what to return */
-		if (ac->datatype == ANIMCONT_ACTION) {
-			*par= ale->owner; /* assume that this is an action group */
-			*ret_type= ale->type;
-			data = ale->data;
-		}
-		else if (ac->datatype == ANIMCONT_SHAPEKEY) {
-			data = ale->key_data;
-			*ret_type= ANIMTYPE_FCURVE;
-		}
-		else if (ac->datatype == ANIMCONT_DOPESHEET) {
-			data = ale->data;
-			*ret_type= ale->type;
-		}
-		else if (ac->datatype == ANIMCONT_GPENCIL) {
-			data = ale->data;
-			*ret_type= ANIMTYPE_GPLAYER;
-		}
-		
-		/* cleanup tempolary lists */
-		BLI_freelistN(&anim_keys);
-		anim_keys.first = anim_keys.last = NULL;
-		
-		BLI_freelistN(&anim_data);
-		
-		return data;
-	}
-	
-	/* cleanup */
-	BLI_freelistN(&anim_data);
-	
-	*ret_type= ANIMTYPE_NONE;
-	return NULL;
-}
-
-/* ************************************************************************** */
 /* KEYFRAMES STUFF */
 
 /* ******************** Deselect All Operator ***************************** */
@@ -763,140 +615,26 @@ static EnumPropertyItem prop_actkeys_leftright_select_types[] = {
 /* ------------------- */
  
 /* option 1) select keyframe directly under mouse */
-static void mouse_action_keys (bAnimContext *ac, int mval[2], short selectmode)
+static void actkeys_select_single (bAnimContext *ac, bAnimListElem *ale, short select_mode, float selx)
 {
-	Scene *sce= NULL;
-	Object *ob= NULL;
-	bDopeSheet *ads= NULL;
-	bAction	*act= NULL;
-	bActionGroup *agrp= NULL;
-	FCurve *fcu= NULL;
-	bGPdata *gpd = NULL;
-	bGPDlayer *gpl = NULL;
+	bDopeSheet *ads= (ac->datatype == ANIMCONT_DOPESHEET) ? ac->data : NULL;
+	int ds_filter = ((ads) ? (ads->filterflag) : (0));
 	
 	BeztEditData bed;
 	BeztEditFunc select_cb, ok_cb;
-	void *anim_channel;
-	short sel, chan_type = 0, key_type = 0;
-	float selx = 0.0f;
-	
-	/* determine what type of data we are operating on */
-	if (ac->datatype == ANIMCONT_ACTION) 
-		act= (bAction *)ac->data;
-	else if (ac->datatype == ANIMCONT_DOPESHEET) 
-		ads= (bDopeSheet *)ac->data;
-	else if (ac->datatype == ANIMCONT_GPENCIL) 
-		gpd= (bGPdata *)ac->data;
-	
-	/* get channel and selection info */
-	anim_channel= get_nearest_action_key(ac, mval, &selx, &sel, &chan_type, &agrp); // xxx...
-	if (anim_channel == NULL) 
-		return;
-	
-	switch (chan_type) {
-		case ANIMTYPE_FCURVE:
-			fcu= (FCurve *)anim_channel;
-			key_type= ALE_FCURVE;
-			break;
-		case ANIMTYPE_GROUP:
-			agrp= (bActionGroup *)anim_channel;
-			key_type= ALE_GROUP;
-			break;
-#if 0 // XXX fixme
-		case ANIMTYPE_DSMAT:
-			ipo= ((Material *)anim_channel)->ipo;
-			break;
-		case ANIMTYPE_DSLAM:
-			ipo= ((Lamp *)anim_channel)->ipo;
-			break;
-		case ANIMTYPE_DSCAM:
-			ipo= ((Camera *)anim_channel)->ipo;
-			break;
-		case ANIMTYPE_DSCUR:
-			ipo= ((Curve *)anim_channel)->ipo;
-			break;
-		case ANIMTYPE_DSSKEY:
-			ipo= ((Key *)anim_channel)->ipo;
-			break;
-#endif // XXX fixme
-		case ANIMTYPE_FILLACTD:
-			act= (bAction *)anim_channel;
-			key_type= ALE_ACT;
-			break;
-		case ANIMTYPE_OBJECT:
-			ob= ((Base *)anim_channel)->object;
-			key_type= ALE_OB;
-			break;
-		case ANIMTYPE_SCENE:
-			sce= (Scene *)anim_channel;
-			key_type= ALE_SCE;
-			break;
-		case ANIMTYPE_GPLAYER:
-			gpl= (bGPDlayer *)anim_channel;
-			break;
-		default:
-			return;
-	}
-	
-	/* for replacing selection, firstly need to clear existing selection */
-	if (selectmode == SELECT_REPLACE) {
-		selectmode = SELECT_ADD;
-		
-		deselect_action_keys(ac, 0, SELECT_SUBTRACT);
-		
-		if (ELEM(ac->datatype, ANIMCONT_ACTION, ANIMCONT_DOPESHEET)) {
-			int filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CHANNELS); /* this should suffice for now */
-			
-			/* deselect all other channels first */
-			ANIM_deselect_anim_channels(ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
-			
-			/* Highlight Action-Group or F-Curve? */
-			if (agrp) {
-				agrp->flag |= AGRP_SELECTED;
-				ANIM_set_active_channel(ac->data, ac->datatype, filter, agrp, ANIMTYPE_GROUP);
-			}	
-			else if (fcu) {
-				fcu->flag |= FCURVE_SELECTED;
-				ANIM_set_active_channel(ac->data, ac->datatype, filter, fcu, ANIMTYPE_FCURVE);
-			}
-		}
-		else if (ac->datatype == ANIMCONT_GPENCIL) {
-			ANIM_deselect_anim_channels(ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
-			
-			/* Highlight gpencil layer */
-			gpl->flag |= GP_LAYER_SELECT;
-			//gpencil_layer_setactive(gpd, gpl);
-		}
-	}
 	
 	/* get functions for selecting keyframes */
-	select_cb= ANIM_editkeyframes_select(selectmode);
+	select_cb= ANIM_editkeyframes_select(select_mode);
 	ok_cb= ANIM_editkeyframes_ok(BEZT_OK_FRAME);
 	memset(&bed, 0, sizeof(BeztEditData)); 
 	bed.f1= selx;
 	
-	/* apply selection to keyframes */
-	// XXX use more generic code looper for this stuff...
-	if (gpl) {
-		/* grease pencil */
-		//select_gpencil_frame(gpl, (int)selx, selectmode);
-	}
-	else {
-		bAnimListElem ale = {0};
-		
-		/* initialise just a few vars that the callback will use... */
-		// FIXME: this method is a mess anyways... it needs a recode
-		ale.datatype= key_type;
-		ale.key_data= anim_channel;
-		ale.data= anim_channel;
-		
-		/* loop over all the relevant channels */
-		ANIM_animchannel_keys_bezier_loop(&bed, &ale, ok_cb, select_cb, NULL, ((ads) ? (ads->filterflag) : (0)));
-	}
+	/* select the nominated keyframe on the given frame */
+	ANIM_animchannel_keys_bezier_loop(&bed, ale, ok_cb, select_cb, NULL, ds_filter);
 }
 
 /* Option 2) Selects all the keyframes on either side of the current frame (depends on which side the mouse is on) */
-static void selectkeys_leftright (bAnimContext *ac, short leftright, short select_mode)
+static void actkeys_select_leftright (bAnimContext *ac, short leftright, short select_mode)
 {
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
@@ -906,9 +644,12 @@ static void selectkeys_leftright (bAnimContext *ac, short leftright, short selec
 	BeztEditData bed;
 	Scene *scene= ac->scene;
 	
-	/* if select mode is replace, deselect all keyframes first */
+	/* if select mode is replace, deselect all keyframes (and channels) first */
 	if (select_mode==SELECT_REPLACE) {
-		select_mode=SELECT_ADD;
+		select_mode= SELECT_ADD;
+		
+		/* deselect all other channels and keyframes */
+		ANIM_deselect_anim_channels(ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
 		deselect_action_keys(ac, 0, SELECT_SUBTRACT);
 	}
 	
@@ -953,7 +694,7 @@ static void selectkeys_leftright (bAnimContext *ac, short leftright, short selec
 }
 
 /* Option 3) Selects all visible keyframes in the same frame as the mouse click */
-static void mouse_columnselect_action_keys (bAnimContext *ac, float selx)
+static void actkeys_select_column(bAnimContext *ac, short select_mode, float selx)
 {
 	ListBase anim_data= {NULL, NULL};
 	bAnimListElem *ale;
@@ -966,8 +707,8 @@ static void mouse_columnselect_action_keys (bAnimContext *ac, float selx)
 	memset(&bed, 0, sizeof(BeztEditData));
 	
 	/* set up BezTriple edit callbacks */
-	select_cb= ANIM_editkeyframes_select(SELECT_ADD);
-	ok_cb= ANIM_editkeyframes_ok(BEZT_OK_FRAMERANGE);
+	select_cb= ANIM_editkeyframes_select(select_mode);
+	ok_cb= ANIM_editkeyframes_ok(BEZT_OK_FRAME);
 	
 	/* loop through all of the keys and select additional keyframes
 	 * based on the keys found to be selected above
@@ -982,15 +723,10 @@ static void mouse_columnselect_action_keys (bAnimContext *ac, float selx)
 		Object *nob= ANIM_nla_mapping_get(ac, ale);
 		
 		/* set frame for validation callback to refer to */
-		// XXX have a more sensitive range?
-		if (nob) {
-			bed.f1= get_action_frame(nob, selx-FRAME_CLICK_THRESH);
-			bed.f2= get_action_frame(nob, selx+FRAME_CLICK_THRESH);
-		}
-		else {
-			bed.f1= selx-FRAME_CLICK_THRESH;
-			bed.f2= selx+FRAME_CLICK_THRESH;
-		}
+		if (nob)
+			bed.f1= get_action_frame(nob, selx);
+		else
+			bed.f1= selx;
 		
 		/* select elements with frame number matching cfra */
 		ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, ok_cb, select_cb, NULL);
@@ -1016,6 +752,171 @@ static void mouse_columnselect_action_keys (bAnimContext *ac, float selx)
  
 /* ------------------- */
 
+static void mouse_action_keys (bAnimContext *ac, int mval[2], short select_mode, short column)
+{
+	ListBase anim_data = {NULL, NULL};
+	ListBase anim_keys = {NULL, NULL};
+	bAnimListElem *ale;
+	int filter;
+	
+	View2D *v2d= &ac->ar->v2d;
+	int channel_index;
+	short found = 0;
+	float selx = 0.0f;
+	float x, y;
+	rctf rectf;
+	
+	
+	/* use View2D to determine the index of the channel (i.e a row in the list) where keyframe was */
+	UI_view2d_region_to_view(v2d, mval[0], mval[1], &x, &y);
+	UI_view2d_listview_view_to_cell(v2d, 0, ACHANNEL_STEP, 0, (float)ACHANNEL_HEIGHT_HALF, x, y, NULL, &channel_index);
+	
+	/* x-range to check is +/- 7 (in screen/region-space) on either side of mouse click (size of keyframe icon) */
+	UI_view2d_region_to_view(v2d, mval[0]-7, mval[1], &rectf.xmin, &rectf.ymin);
+	UI_view2d_region_to_view(v2d, mval[0]+7, mval[1], &rectf.xmax, &rectf.ymax);
+	
+	/* filter data */
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CHANNELS);
+	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
+	
+	/* try to get channel */
+	ale= BLI_findlink(&anim_data, channel_index);
+	if (ale == NULL) {
+		/* channel not found */
+		printf("Error: animation channel (index = %d) not found in mouse_action_keys() \n", channel_index);
+	}
+	else {
+		/* found match - must return here... */
+		Object *nob= ANIM_nla_mapping_get(ac, ale);
+		ActKeysInc *aki= init_aki_data(ac, ale);
+		ActKeyColumn *ak;
+		float xmin, xmax;
+		
+		/* apply NLA-scaling correction? */
+		if (nob) {
+			xmin= get_action_frame(nob, rectf.xmin);
+			xmax= get_action_frame(nob, rectf.xmax);
+		}
+		else {
+			xmin= rectf.xmin;
+			xmax= rectf.xmax;
+		}
+		
+		/* make list of keyframes */
+		if (ale->key_data) {
+			switch (ale->datatype) {
+				case ALE_OB:
+				{
+					Object *ob= (Object *)ale->key_data;
+					ob_to_keylist(ob, &anim_keys, NULL, aki);
+				}
+					break;
+				case ALE_ACT:
+				{
+					bAction *act= (bAction *)ale->key_data;
+					action_to_keylist(act, &anim_keys, NULL, aki);
+				}
+					break;
+				case ALE_FCURVE:
+				{
+					FCurve *fcu= (FCurve *)ale->key_data;
+					fcurve_to_keylist(fcu, &anim_keys, NULL, aki);
+				}
+					break;
+			}
+		}
+		else if (ale->type == ANIMTYPE_GROUP) {
+			bActionGroup *agrp= (bActionGroup *)ale->data;
+			agroup_to_keylist(agrp, &anim_keys, NULL, aki);
+		}
+		else if (ale->type == ANIMTYPE_GPDATABLOCK) {
+			/* cleanup */
+			// FIXME:...
+			BLI_freelistN(&anim_data);
+			return;
+		}
+		else if (ale->type == ANIMTYPE_GPLAYER) {
+			bGPDlayer *gpl= (bGPDlayer *)ale->data;
+			gpl_to_keylist(gpl, &anim_keys, NULL, aki);
+		}
+		
+		/* loop through keyframes, finding one that was clicked on */
+		for (ak= anim_keys.first; ak; ak= ak->next) {
+			if (IN_RANGE(ak->cfra, xmin, xmax)) {
+				selx= ak->cfra;
+				found= 1;
+				break;
+			}
+		}
+		
+		/* remove active channel from list of channels for separate treatment (since it's needed later on) */
+		BLI_remlink(&anim_data, ale);
+		
+		/* cleanup temporary lists */
+		BLI_freelistN(&anim_keys);
+		anim_keys.first = anim_keys.last = NULL;
+		
+		/* free list of channels, since it's not used anymore */
+		BLI_freelistN(&anim_data);
+	}
+	
+	/* for replacing selection, firstly need to clear existing selection */
+	if (select_mode == SELECT_REPLACE) {
+		/* reset selection mode for next steps */
+		select_mode = SELECT_ADD;
+		
+		/* deselect all keyframes */
+		deselect_action_keys(ac, 0, SELECT_SUBTRACT);
+		
+		/* highlight channel clicked on */
+		if (ELEM(ac->datatype, ANIMCONT_ACTION, ANIMCONT_DOPESHEET)) {
+			/* deselect all other channels first */
+			ANIM_deselect_anim_channels(ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
+			
+			/* Highlight Action-Group or F-Curve? */
+			if (ale->type == ANIMTYPE_GROUP) {
+				bActionGroup *agrp= ale->data;
+				
+				agrp->flag |= AGRP_SELECTED;
+				ANIM_set_active_channel(ac->data, ac->datatype, filter, agrp, ANIMTYPE_GROUP);
+			}	
+			else if (ale->type == ANIMTYPE_FCURVE) {
+				FCurve *fcu= ale->data;
+				
+				fcu->flag |= FCURVE_SELECTED;
+				ANIM_set_active_channel(ac->data, ac->datatype, filter, fcu, ANIMTYPE_FCURVE);
+			}
+		}
+		else if (ac->datatype == ANIMCONT_GPENCIL) {
+			ANIM_deselect_anim_channels(ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
+			
+			/* Highlight gpencil layer */
+			//gpl->flag |= GP_LAYER_SELECT;
+			//gpencil_layer_setactive(gpd, gpl);
+		}
+	}
+	
+	/* only select keyframes if we clicked on a valid channel and hit something */
+	if (ale) {
+		/* apply selection to keyframes */
+		if (/*gpl*/0) {
+			/* grease pencil */
+			//select_gpencil_frame(gpl, (int)selx, selectmode);
+		}
+		else if (column) {
+			/* select all keyframes in the same frame as the one we hit on the active channel */
+			actkeys_select_column(ac, select_mode, selx);
+		}
+		else {
+			/* select the nominated keyframe on the given frame */
+			actkeys_select_single(ac, ale, select_mode, selx);
+		}
+		
+		/* free this channel */
+		MEM_freeN(ale);
+	}
+}
+
 /* handle clicking */
 static int actkeys_clickselect_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
@@ -1023,7 +924,7 @@ static int actkeys_clickselect_invoke(bContext *C, wmOperator *op, wmEvent *even
 	Scene *scene;
 	ARegion *ar;
 	View2D *v2d;
-	short selectmode;
+	short selectmode, column;
 	int mval[2];
 	
 	/* get editor data */
@@ -1040,11 +941,13 @@ static int actkeys_clickselect_invoke(bContext *C, wmOperator *op, wmEvent *even
 	mval[1]= (event->y - ar->winrct.ymin);
 	
 	/* select mode is either replace (deselect all, then add) or add/extend */
-	// XXX this is currently only available for normal select only
 	if (RNA_boolean_get(op->ptr, "extend"))
 		selectmode= SELECT_INVERT;
 	else
 		selectmode= SELECT_REPLACE;
+		
+	/* column selection */
+	column= RNA_boolean_get(op->ptr, "column");
 	
 	/* figure out action to take */
 	if (RNA_enum_get(op->ptr, "left_right")) {
@@ -1057,20 +960,11 @@ static int actkeys_clickselect_invoke(bContext *C, wmOperator *op, wmEvent *even
 		else 	
 			RNA_int_set(op->ptr, "left_right", ACTKEYS_LRSEL_RIGHT);
 		
-		selectkeys_leftright(&ac, RNA_enum_get(op->ptr, "left_right"), selectmode);
-	}
-	else if (RNA_boolean_get(op->ptr, "column")) {
-		/* select all the keyframes that occur on the same frame as where the mouse clicked */
-		float x;
-		
-		/* figure out where (the frame) the mouse clicked, and set all keyframes in that frame */
-		UI_view2d_region_to_view(v2d, mval[0], mval[1], &x, NULL);
-		mouse_columnselect_action_keys(&ac, x);
+		actkeys_select_leftright(&ac, RNA_enum_get(op->ptr, "left_right"), selectmode);
 	}
 	else {
-		/* select keyframe under mouse */
-		mouse_action_keys(&ac, mval, selectmode);
-		// XXX activate transform...
+		/* select keyframe(s) based upon mouse position*/
+		mouse_action_keys(&ac, mval, selectmode, column);
 	}
 	
 	/* set notifier that things have changed */
@@ -1086,7 +980,7 @@ void ACT_OT_keyframes_clickselect (wmOperatorType *ot)
 	ot->name= "Mouse Select Keys";
 	ot->idname= "ACT_OT_keyframes_clickselect";
 	
-	/* api callbacks */
+	/* api callbacks - absolutely no exec() this yet... */
 	ot->invoke= actkeys_clickselect_invoke;
 	ot->poll= ED_operator_areaactive;
 	

@@ -1329,22 +1329,6 @@ void GRAPHEDIT_OT_keyframes_euler_filter (wmOperatorType *ot)
 
 /* ***************** Snap Current Frame Operator *********************** */
 
-/* helper callback for graphkeys_cfrasnap_exec() -> used to help get the average time of all selected beztriples */
-// TODO: if some other code somewhere needs this, it'll be time to port this over to keyframes_edit.c!!!
-static short bezt_calc_average(BeztEditData *bed, BezTriple *bezt)
-{
-	/* only if selected */
-	if (bezt->f2 & SELECT) {
-		/* store average time in float (only do rounding at last step */
-		bed->f1 += bezt->vec[1][0];
-		
-		/* increment number of items */
-		bed->i1++;
-	}
-	
-	return 0;
-}
-
 /* snap current-frame indicator to 'average time' of selected keyframe */
 static int graphkeys_cfrasnap_exec(bContext *C, wmOperator *op)
 {
