@@ -1159,7 +1159,12 @@ static void widget_state_menu_item(uiWidgetType *wt, int state)
 {
 	wt->wcol= *(wt->wcol_theme);
 	
-	if(state & UI_ACTIVE) {
+	if(state & UI_BUT_DISABLED) {
+		wt->wcol.text[0]= 0.5f*(wt->wcol.text[0]+wt->wcol.text_sel[0]);
+		wt->wcol.text[1]= 0.5f*(wt->wcol.text[1]+wt->wcol.text_sel[1]);
+		wt->wcol.text[2]= 0.5f*(wt->wcol.text[2]+wt->wcol.text_sel[2]);
+	}
+	else if(state & UI_ACTIVE) {
 		QUATCOPY(wt->wcol.inner, wt->wcol.inner_sel);
 		VECCOPY(wt->wcol.text, wt->wcol.text_sel);
 		
@@ -1236,7 +1241,7 @@ static void widget_menu_back(uiWidgetColors *wcol, rcti *rect, int flag, int dir
 /* ************ custom buttons, old stuff ************** */
 
 /* draws in resolution of 20x4 colors */
-static void ui_draw_but_HSVCUBE(uiBut *but)
+static void ui_draw_but_HSVCUBE(uiBut *but, rcti *rect)
 {
 	int a;
 	float h,s,v;
@@ -1314,10 +1319,10 @@ static void ui_draw_but_HSVCUBE(uiBut *but)
 		}
 		
 		// rect
-		sx1= but->x1 + dx*(but->x2-but->x1);
-		sx2= but->x1 + (dx+0.05)*(but->x2-but->x1);
-		sy= but->y1;
-		dy= (but->y2-but->y1)/3.0;
+		sx1= rect->xmin + dx*(rect->xmax-rect->xmin);
+		sx2= rect->xmin + (dx+0.05)*(rect->xmax-rect->xmin);
+		sy= rect->ymin;
+		dy= (rect->ymax-rect->ymin)/3.0;
 		
 		glBegin(GL_QUADS);
 		for(a=0; a<3; a++, sy+=dy) {
@@ -1339,16 +1344,16 @@ static void ui_draw_but_HSVCUBE(uiBut *but)
 	glShadeModel(GL_FLAT);
 	
 	/* cursor */
-	x= but->x1 + x*(but->x2-but->x1);
-	y= but->y1 + y*(but->y2-but->y1);
-	CLAMP(x, but->x1+3.0, but->x2-3.0);
-	CLAMP(y, but->y1+3.0, but->y2-3.0);
+	x= rect->xmin + x*(rect->xmax-rect->xmin);
+	y= rect->ymin + y*(rect->ymax-rect->ymin);
+	CLAMP(x, rect->xmin+3.0, rect->xmax-3.0);
+	CLAMP(y, rect->ymin+3.0, rect->ymax-3.0);
 	
 	fdrawXORcirc(x, y, 3.1);
 	
 	/* outline */
 	glColor3ub(0,  0,  0);
-	fdrawbox((but->x1), (but->y1), (but->x2), (but->y2));
+	fdrawbox((rect->xmin), (rect->ymin), (rect->xmax), (rect->ymax));
 }
 
 
@@ -1381,7 +1386,7 @@ static void widget_numslider(uiBut *but, uiWidgetColors *wcol, rcti *rect, int s
 	uiWidgetBase wtb, wtb1;
 	rcti rect1;
 	double value;
-	float offs, fac, inner[3];
+	float offs, fac, outline[3];
 	
 	widget_init(&wtb);
 	widget_init(&wtb1);
@@ -1396,21 +1401,22 @@ static void widget_numslider(uiBut *but, uiWidgetColors *wcol, rcti *rect, int s
 	widgetbase_draw(&wtb, wcol);
 	
 	/* slider part */
-	roundboxalign &= ~6;
 	rect1= *rect;
 	
 	value= ui_get_but_val(but);
 	fac= (value-but->softmin)*(rect1.xmax - rect1.xmin - 2.0f*offs)/(but->softmax - but->softmin);
 	
-	rect1.xmax= rect1.xmin + fac + offs;
+	rect1.xmax= rect1.xmin + fac + 2.0f*offs;
 	round_box_edges(&wtb1, roundboxalign, &rect1, offs);
-	wtb1.outline= 0;
 	
-	VECCOPY(inner, wcol->inner);
+	VECCOPY(outline, wcol->outline);
+	VECCOPY(wcol->outline, wcol->item);
 	VECCOPY(wcol->inner, wcol->item);
+	SWAP(float, wcol->shadetop, wcol->shadedown);
 	
 	widgetbase_draw(&wtb1, wcol);
-	VECCOPY(wcol->inner, inner);
+	VECCOPY(wcol->outline, outline);
+	SWAP(float, wcol->shadetop, wcol->shadedown);
 	
 	/* outline */
 	wtb.outline= 1;
@@ -1787,6 +1793,9 @@ void ui_draw_but(ARegion *ar, uiStyle *style, uiBut *but, rcti *rect)
 			case TEX:
 				wt= widget_type(UI_WTYPE_NAME);
 				break;
+			case TOGBUT:
+				wt= widget_type(UI_WTYPE_TOGGLE);
+				break;
 			case TOG:
 			case TOGN:
 			case TOG3:
@@ -1818,16 +1827,16 @@ void ui_draw_but(ARegion *ar, uiStyle *style, uiBut *but, rcti *rect)
 			
 				 // XXX four old button types
 			case HSVCUBE:
-				ui_draw_but_HSVCUBE(but);
+				ui_draw_but_HSVCUBE(but, rect);
 				break;
 			case BUT_COLORBAND:
-				ui_draw_but_COLORBAND(but);
+				ui_draw_but_COLORBAND(but, rect);
 				break;
 			case BUT_NORMAL:
-				ui_draw_but_NORMAL(but);
+				ui_draw_but_NORMAL(but, rect);
 				break;
 			case BUT_CURVE:
-				ui_draw_but_CURVE(ar, but);
+				ui_draw_but_CURVE(ar, but, rect);
 				break;
 				
 			default:
@@ -1836,6 +1845,7 @@ void ui_draw_but(ARegion *ar, uiStyle *style, uiBut *but, rcti *rect)
 	}
 	
 	if(wt) {
+		rcti disablerect= *rect; /* rect gets clipped smaller for text */
 		int roundboxalign, state;
 		
 		roundboxalign= widget_roundbox_set(but, rect);
@@ -1850,7 +1860,8 @@ void ui_draw_but(ARegion *ar, uiStyle *style, uiBut *but, rcti *rect)
 		wt->text(&style->widget, but, rect, wt->wcol.text);
 		
 		if(state & UI_BUT_DISABLED)
-			widget_disabled(rect);
+			if(but->dt!=UI_EMBOSSP)
+				widget_disabled(&disablerect);
 	}
 }
 

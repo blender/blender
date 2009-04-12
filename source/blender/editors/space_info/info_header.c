@@ -404,27 +404,27 @@ void info_header_buttons(const bContext *C, ARegion *ar)
 		uiBlockSetEmboss(block, UI_EMBOSSP);
 		
 		xmax= GetButStringLength("File");
-		uiDefMenuBut(block, info_filemenu, NULL, "File", xco, yco, xmax-3, 22, "");
+		uiDefMenuBut(block, info_filemenu, NULL, "File", xco, yco, xmax-3, 20, "");
 		xco+= xmax;
 		
 		xmax= GetButStringLength("Add");
-		uiDefPulldownBut(block, dummy_viewmenu, sa, "Add",	xco, yco, xmax-3, 22, "");
+		uiDefPulldownBut(block, dummy_viewmenu, sa, "Add",	xco, yco, xmax-3, 20, "");
 		xco+= xmax;
 		
 		xmax= GetButStringLength("Timeline");
-		uiDefPulldownBut(block, dummy_viewmenu, sa, "Timeline",	xco, yco, xmax-3, 22, "");
+		uiDefPulldownBut(block, dummy_viewmenu, sa, "Timeline",	xco, yco, xmax-3, 20, "");
 		xco+= xmax;
 		
 		xmax= GetButStringLength("Game");
-		uiDefPulldownBut(block, dummy_viewmenu, sa, "Game",	xco, yco, xmax-3, 22, "");
+		uiDefPulldownBut(block, dummy_viewmenu, sa, "Game",	xco, yco, xmax-3, 20, "");
 		xco+= xmax;
 		
 		xmax= GetButStringLength("Render");
-		uiDefPulldownBut(block, dummy_viewmenu, sa, "Render",	xco, yco, xmax-3, 22, "");
+		uiDefPulldownBut(block, dummy_viewmenu, sa, "Render",	xco, yco, xmax-3, 20, "");
 		xco+= xmax;
 		
 		xmax= GetButStringLength("Help");
-		uiDefPulldownBut(block, dummy_viewmenu, NULL, "Help",	xco, yco, xmax-3, 22, "");
+		uiDefPulldownBut(block, dummy_viewmenu, NULL, "Help",	xco, yco, xmax-3, 20, "");
 		xco+= xmax;
 	}
 	

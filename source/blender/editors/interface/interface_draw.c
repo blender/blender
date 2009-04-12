@@ -509,17 +509,17 @@ static void ui_draw_but_CHARTAB(uiBut *but)
 		charmax = G.charmax = 0xffff;
 
 	/* Calculate the size of the button */
-	width = abs(but->x2 - but->x1);
-	height = abs(but->y2 - but->y1);
+	width = abs(rect->xmax - rect->xmin);
+	height = abs(rect->ymax - rect->ymin);
 	
 	butw = floor(width / 12);
 	buth = floor(height / 6);
 	
 	/* Initialize variables */
-	sx = but->x1;
-	ex = but->x1 + butw;
-	sy = but->y1 + height - buth;
-	ey = but->y1 + height;
+	sx = rect->xmin;
+	ex = rect->xmin + butw;
+	sy = rect->ymin + height - buth;
+	ey = rect->ymin + height;
 
 	cs = G.charstart;
 
@@ -555,7 +555,7 @@ static void ui_draw_but_CHARTAB(uiBut *but)
 	glShadeModel(GL_SMOOTH);
 
 	glColor3ub(200,  200,  200);
-	glRectf((but->x1), (but->y1), (but->x2), (but->y2));
+	glRectf((rect->xmin), (rect->ymin), (rect->xmax), (rect->ymax));
 
 	glColor3ub(0,  0,  0);
 	for(y = 0; y < 6; y++)
@@ -633,8 +633,8 @@ static void ui_draw_but_CHARTAB(uiBut *but)
 		/* Add the y position and reset x position */
 		sy -= buth; 
 		ey -= buth;
-		sx = but->x1;
-		ex = but->x1 + butw;
+		sx = rect->xmin;
+		ex = rect->xmin + butw;
 	}	
 	glShadeModel(GL_FLAT);
 
@@ -663,7 +663,7 @@ static void ui_draw_but_CHARTAB(uiBut *but)
 #endif // INTERNATIONAL
 #endif
 
-void ui_draw_but_COLORBAND(uiBut *but)
+void ui_draw_but_COLORBAND(uiBut *but, rcti *rect)
 {
 	ColorBand *coba;
 	CBData *cbd;
@@ -674,10 +674,10 @@ void ui_draw_but_COLORBAND(uiBut *but)
 	coba= (ColorBand *)(but->editcoba? but->editcoba: but->poin);
 	if(coba==NULL) return;
 	
-	x1= but->x1;
-	y1= but->y1;
-	sizex= but->x2-x1;
-	sizey= but->y2-y1;
+	x1= rect->xmin;
+	y1= rect->ymin;
+	sizex= rect->xmax-x1;
+	sizey= rect->ymax-y1;
 	
 	/* first background, to show tranparency */
 	dx= sizex/12.0;
@@ -790,7 +790,7 @@ void ui_draw_but_COLORBAND(uiBut *but)
 	glEnd();
 }
 
-void ui_draw_but_NORMAL(uiBut *but)
+void ui_draw_but_NORMAL(uiBut *but, rcti *rect)
 {
 	static GLuint displist=0;
 	int a, old[8];
@@ -804,7 +804,7 @@ void ui_draw_but_NORMAL(uiBut *but)
 	/* backdrop */
 	UI_ThemeColor(TH_BUT_NEUTRAL);
 	uiSetRoundBox(15);
-	gl_round_box(GL_POLYGON, but->x1, but->y1, but->x2, but->y2, 5.0f);
+	gl_round_box(GL_POLYGON, rect->xmin, rect->ymin, rect->xmax, rect->ymax, 5.0f);
 	
 	/* sphere color */
 	glMaterialfv(GL_FRONT, GL_DIFFUSE, diffn);
@@ -830,8 +830,8 @@ void ui_draw_but_NORMAL(uiBut *but)
 	
 	/* transform to button */
 	glPushMatrix();
-	glTranslatef(but->x1 + 0.5f*(but->x2-but->x1), but->y1+ 0.5f*(but->y2-but->y1), 0.0f);
-	size= (but->x2-but->x1)/200.f;
+	glTranslatef(rect->xmin + 0.5f*(rect->xmax-rect->xmin), rect->ymin+ 0.5f*(rect->ymax-rect->ymin), 0.0f);
+	size= (rect->xmax-rect->xmin)/200.f;
 	glScalef(size, size, size);
 			 
 	if(displist==0) {
@@ -866,38 +866,38 @@ void ui_draw_but_NORMAL(uiBut *but)
 	}
 }
 
-static void ui_draw_but_curve_grid(uiBut *but, float zoomx, float zoomy, float offsx, float offsy, float step)
+static void ui_draw_but_curve_grid(rcti *rect, float zoomx, float zoomy, float offsx, float offsy, float step)
 {
 	float dx, dy, fx, fy;
 	
 	glBegin(GL_LINES);
 	dx= step*zoomx;
-	fx= but->x1 + zoomx*(-offsx);
-	if(fx > but->x1) fx -= dx*( floor(fx-but->x1));
-	while(fx < but->x2) {
-		glVertex2f(fx, but->y1); 
-		glVertex2f(fx, but->y2);
+	fx= rect->xmin + zoomx*(-offsx);
+	if(fx > rect->xmin) fx -= dx*( floor(fx-rect->xmin));
+	while(fx < rect->xmax) {
+		glVertex2f(fx, rect->ymin); 
+		glVertex2f(fx, rect->ymax);
 		fx+= dx;
 	}
 	
 	dy= step*zoomy;
-	fy= but->y1 + zoomy*(-offsy);
-	if(fy > but->y1) fy -= dy*( floor(fy-but->y1));
-	while(fy < but->y2) {
-		glVertex2f(but->x1, fy); 
-		glVertex2f(but->x2, fy);
+	fy= rect->ymin + zoomy*(-offsy);
+	if(fy > rect->ymin) fy -= dy*( floor(fy-rect->ymin));
+	while(fy < rect->ymax) {
+		glVertex2f(rect->xmin, fy); 
+		glVertex2f(rect->xmax, fy);
 		fy+= dy;
 	}
 	glEnd();
 	
 }
 
-void ui_draw_but_CURVE(ARegion *ar, uiBut *but)
+void ui_draw_but_CURVE(ARegion *ar, uiBut *but, rcti *rect)
 {
 	CurveMapping *cumap;
 	CurveMap *cuma;
 	CurveMapPoint *cmp;
-	float fx, fy, dx, dy, fac[2], zoomx, zoomy, offsx, offsy;
+	float fx, fy, fac[2], zoomx, zoomy, offsx, offsy;
 	GLint scissor[4];
 	int a;
 
@@ -906,46 +906,42 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but)
 	
 	/* need scissor test, curve can draw outside of boundary */
 	glGetIntegerv(GL_VIEWPORT, scissor);
-	fx= but->x1; fy= but->y1;
-	ui_block_to_window_fl(ar, but->block, &fx, &fy); 
-	dx= but->x2; dy= but->y2;
-	ui_block_to_window_fl(ar, but->block, &dx, &dy); 
-	glScissor((int)floor(fx), (int)floor(fy), (int)ceil(dx-fx), (int)ceil(dy-fy));
+	glScissor(ar->winrct.xmin + rect->xmin, ar->winrct.ymin+rect->ymin, rect->xmax-rect->xmin, rect->ymax-rect->ymin);
 	
 	/* calculate offset and zoom */
-	zoomx= (but->x2-but->x1-2.0*but->aspect)/(cumap->curr.xmax - cumap->curr.xmin);
-	zoomy= (but->y2-but->y1-2.0*but->aspect)/(cumap->curr.ymax - cumap->curr.ymin);
+	zoomx= (rect->xmax-rect->xmin-2.0*but->aspect)/(cumap->curr.xmax - cumap->curr.xmin);
+	zoomy= (rect->ymax-rect->ymin-2.0*but->aspect)/(cumap->curr.ymax - cumap->curr.ymin);
 	offsx= cumap->curr.xmin-but->aspect/zoomx;
 	offsy= cumap->curr.ymin-but->aspect/zoomy;
 	
 	/* backdrop */
 	if(cumap->flag & CUMA_DO_CLIP) {
 		UI_ThemeColorShade(TH_BUT_NEUTRAL, -20);
-		glRectf(but->x1, but->y1, but->x2, but->y2);
+		glRectf(rect->xmin, rect->ymin, rect->xmax, rect->ymax);
 		UI_ThemeColor(TH_BUT_NEUTRAL);
-		glRectf(but->x1 + zoomx*(cumap->clipr.xmin-offsx),
-				but->y1 + zoomy*(cumap->clipr.ymin-offsy),
-				but->x1 + zoomx*(cumap->clipr.xmax-offsx),
-				but->y1 + zoomy*(cumap->clipr.ymax-offsy));
+		glRectf(rect->xmin + zoomx*(cumap->clipr.xmin-offsx),
+				rect->ymin + zoomy*(cumap->clipr.ymin-offsy),
+				rect->xmin + zoomx*(cumap->clipr.xmax-offsx),
+				rect->ymin + zoomy*(cumap->clipr.ymax-offsy));
 	}
 	else {
 		UI_ThemeColor(TH_BUT_NEUTRAL);
-		glRectf(but->x1, but->y1, but->x2, but->y2);
+		glRectf(rect->xmin, rect->ymin, rect->xmax, rect->ymax);
 	}
 	
 	/* grid, every .25 step */
 	UI_ThemeColorShade(TH_BUT_NEUTRAL, -16);
-	ui_draw_but_curve_grid(but, zoomx, zoomy, offsx, offsy, 0.25f);
+	ui_draw_but_curve_grid(rect, zoomx, zoomy, offsx, offsy, 0.25f);
 	/* grid, every 1.0 step */
 	UI_ThemeColorShade(TH_BUT_NEUTRAL, -24);
-	ui_draw_but_curve_grid(but, zoomx, zoomy, offsx, offsy, 1.0f);
+	ui_draw_but_curve_grid(rect, zoomx, zoomy, offsx, offsy, 1.0f);
 	/* axes */
 	UI_ThemeColorShade(TH_BUT_NEUTRAL, -50);
 	glBegin(GL_LINES);
-	glVertex2f(but->x1, but->y1 + zoomy*(-offsy));
-	glVertex2f(but->x2, but->y1 + zoomy*(-offsy));
-	glVertex2f(but->x1 + zoomx*(-offsx), but->y1);
-	glVertex2f(but->x1 + zoomx*(-offsx), but->y2);
+	glVertex2f(rect->xmin, rect->ymin + zoomy*(-offsy));
+	glVertex2f(rect->xmax, rect->ymin + zoomy*(-offsy));
+	glVertex2f(rect->xmin + zoomx*(-offsx), rect->ymin);
+	glVertex2f(rect->xmin + zoomx*(-offsx), rect->ymax);
 	glEnd();
 	
 	/* cfra option */
@@ -953,8 +949,8 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but)
 	if(cumap->flag & CUMA_DRAW_CFRA) {
 		glColor3ub(0x60, 0xc0, 0x40);
 		glBegin(GL_LINES);
-		glVertex2f(but->x1 + zoomx*(cumap->sample[0]-offsx), but->y1);
-		glVertex2f(but->x1 + zoomx*(cumap->sample[0]-offsx), but->y2);
+		glVertex2f(rect->xmin + zoomx*(cumap->sample[0]-offsx), rect->ymin);
+		glVertex2f(rect->xmin + zoomx*(cumap->sample[0]-offsx), rect->ymax);
 		glEnd();
 	}*/
 	/* sample option */
@@ -965,8 +961,8 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but)
 			glColor3ub(240, 240, 240);
 			
 			glBegin(GL_LINES);
-			glVertex2f(but->x1 + zoomx*(lum-offsx), but->y1);
-			glVertex2f(but->x1 + zoomx*(lum-offsx), but->y2);
+			glVertex2f(rect->xmin + zoomx*(lum-offsx), rect->ymin);
+			glVertex2f(rect->xmin + zoomx*(lum-offsx), rect->ymax);
 			glEnd();
 		}
 		else {
@@ -978,8 +974,8 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but)
 				glColor3ub(100, 100, 240);
 			
 			glBegin(GL_LINES);
-			glVertex2f(but->x1 + zoomx*(cumap->sample[cumap->cur]-offsx), but->y1);
-			glVertex2f(but->x1 + zoomx*(cumap->sample[cumap->cur]-offsx), but->y2);
+			glVertex2f(rect->xmin + zoomx*(cumap->sample[cumap->cur]-offsx), rect->ymin);
+			glVertex2f(rect->xmin + zoomx*(cumap->sample[cumap->cur]-offsx), rect->ymax);
 			glEnd();
 		}
 	}*/
@@ -996,23 +992,23 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but)
 	
 	/* first point */
 	if((cuma->flag & CUMA_EXTEND_EXTRAPOLATE)==0)
-		glVertex2f(but->x1, but->y1 + zoomy*(cmp[0].y-offsy));
+		glVertex2f(rect->xmin, rect->ymin + zoomy*(cmp[0].y-offsy));
 	else {
-		fx= but->x1 + zoomx*(cmp[0].x-offsx + cuma->ext_in[0]);
-		fy= but->y1 + zoomy*(cmp[0].y-offsy + cuma->ext_in[1]);
+		fx= rect->xmin + zoomx*(cmp[0].x-offsx + cuma->ext_in[0]);
+		fy= rect->ymin + zoomy*(cmp[0].y-offsy + cuma->ext_in[1]);
 		glVertex2f(fx, fy);
 	}
 	for(a=0; a<=CM_TABLE; a++) {
-		fx= but->x1 + zoomx*(cmp[a].x-offsx);
-		fy= but->y1 + zoomy*(cmp[a].y-offsy);
+		fx= rect->xmin + zoomx*(cmp[a].x-offsx);
+		fy= rect->ymin + zoomy*(cmp[a].y-offsy);
 		glVertex2f(fx, fy);
 	}
 	/* last point */
 	if((cuma->flag & CUMA_EXTEND_EXTRAPOLATE)==0)
-		glVertex2f(but->x2, but->y1 + zoomy*(cmp[CM_TABLE].y-offsy));	
+		glVertex2f(rect->xmax, rect->ymin + zoomy*(cmp[CM_TABLE].y-offsy));	
 	else {
-		fx= but->x1 + zoomx*(cmp[CM_TABLE].x-offsx - cuma->ext_out[0]);
-		fy= but->y1 + zoomy*(cmp[CM_TABLE].y-offsy - cuma->ext_out[1]);
+		fx= rect->xmin + zoomx*(cmp[CM_TABLE].x-offsx - cuma->ext_out[0]);
+		fy= rect->ymin + zoomy*(cmp[CM_TABLE].y-offsy - cuma->ext_out[1]);
 		glVertex2f(fx, fy);
 	}
 	glEnd();
@@ -1028,8 +1024,8 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but)
 			UI_ThemeColor(TH_TEXT_HI);
 		else
 			UI_ThemeColor(TH_TEXT);
-		fac[0]= but->x1 + zoomx*(cmp[a].x-offsx);
-		fac[1]= but->y1 + zoomy*(cmp[a].y-offsy);
+		fac[0]= rect->xmin + zoomx*(cmp[a].x-offsx);
+		fac[1]= rect->ymin + zoomy*(cmp[a].y-offsy);
 		bglVertex2fv(fac);
 	}
 	bglEnd();
@@ -1040,7 +1036,7 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but)
 
 	/* outline */
 	UI_ThemeColor(TH_BUT_OUTLINE);
-	fdrawbox(but->x1, but->y1, but->x2, but->y2);
+	fdrawbox(rect->xmin, rect->ymin, rect->xmax, rect->ymax);
 }
 
 

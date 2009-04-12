@@ -191,6 +191,7 @@ typedef struct uiPopupBlockHandle uiPopupBlockHandle;
 #define FTPREVIEW (35<<9)
 #define NUMABS	(36<<9)
 #define HMENU	(37<<9)
+#define TOGBUT  (38<<9)
 #define BUTTYPE	(63<<9)
 
 /* Drawing

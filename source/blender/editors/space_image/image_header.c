@@ -744,23 +744,23 @@ void image_header_buttons(const bContext *C, ARegion *ar)
 		uiBlockSetEmboss(block, UI_EMBOSSP);
 		
 		xmax= GetButStringLength("View");
-		uiDefMenuBut(block, image_viewmenu, NULL, "View", xco, yco-2, xmax-3, 24, "");
+		uiDefMenuBut(block, image_viewmenu, NULL, "View", xco, yco, xmax-3, 20, "");
 		xco+= xmax;
 		
 		if(show_uvedit) {
 			xmax= GetButStringLength("Select");
-			uiDefMenuBut(block, image_selectmenu, NULL, "Select", xco, yco-2, xmax-3, 24, "");
+			uiDefMenuBut(block, image_selectmenu, NULL, "Select", xco, yco, xmax-3, 20, "");
 			xco+= xmax;
 		}
 		
 		menuname= (ibuf && (ibuf->userflags & IB_BITMAPDIRTY))? "Image*": "Image";
 		xmax= GetButStringLength(menuname);
-		uiDefMenuBut(block, image_imagemenu, NULL, menuname, xco, yco-2, xmax-3, 24, "");
+		uiDefMenuBut(block, image_imagemenu, NULL, menuname, xco, yco, xmax-3, 20, "");
 		xco+= xmax;
 
 		if(show_uvedit) {
 			xmax= GetButStringLength("UVs");
-			uiDefMenuBut(block, image_uvsmenu, NULL, "UVs", xco, yco-2, xmax-3, 24, "");
+			uiDefMenuBut(block, image_uvsmenu, NULL, "UVs", xco, yco, xmax-3, 20, "");
 			xco+= xmax;
 		}
 	}

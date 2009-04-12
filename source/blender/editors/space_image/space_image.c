@@ -496,7 +496,7 @@ static void image_buttons_area_draw(const bContext *C, ARegion *ar)
 	float col[3];
 	
 	/* clear */
-	UI_GetThemeColor3fv(TH_BACK, col);
+	UI_GetThemeColor3fv(TH_PANEL, col);
 	
 	glClearColor(col[0], col[1], col[2], 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);

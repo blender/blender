@@ -458,6 +458,19 @@ void ui_draw_tria_icon(float x, float y, char dir)
 	}
 }
 
+/* triangle 'icon' inside rect */
+void ui_draw_tria_rect(rctf *rect, char dir)
+{
+	if(dir=='h') {
+		float half= 0.5f*(rect->ymax - rect->ymin);
+		ui_draw_anti_tria(rect->xmin, rect->ymin, rect->xmin, rect->ymax, rect->xmax, rect->ymin+half);
+	}
+	else {
+		float half= 0.5f*(rect->xmax - rect->xmin);
+		ui_draw_anti_tria(rect->xmin, rect->ymax, rect->xmax, rect->ymax, rect->xmin+half, rect->ymin);
+	}
+}
+
 void ui_draw_anti_x(float x1, float y1, float x2, float y2)
 {
 
@@ -512,15 +525,15 @@ static void ui_draw_panel_scalewidget(rcti *rect)
 	glDisable(GL_BLEND);
 }
 
-static void ui_draw_panel_dragwidget(rcti *rect)
+static void ui_draw_panel_dragwidget(rctf *rect)
 {
 	float xmin, xmax, dx;
 	float ymin, ymax, dy;
 	
-	xmin= rect->xmax-10-PNL_HEADER+8;
-	xmax= rect->xmax-10;
-	ymin= rect->ymax+4;
-	ymax= rect->ymax+PNL_HEADER-4;
+	xmin= rect->xmin;
+	xmax= rect->xmax;
+	ymin= rect->ymin;
+	ymax= rect->ymax;
 	
 	dx= 0.333f*(xmax-xmin);
 	dy= 0.333f*(ymax-ymin);
@@ -539,8 +552,9 @@ static void ui_draw_panel_dragwidget(rcti *rect)
 }
 
 
-static void ui_draw_panel_header_style(ARegion *ar, uiStyle *style, Panel *panel, rcti *rect)
+static void ui_draw_panel_header_style(ARegion *ar, uiStyle *style, uiBlock *block, rcti *rect)
 {
+	Panel *panel= block->panel;
 	Panel *pa;
 	rcti hrect;
 	float width;
@@ -548,16 +562,14 @@ static void ui_draw_panel_header_style(ARegion *ar, uiStyle *style, Panel *panel
 	char *activename= panel->drawname[0]?panel->drawname:panel->panelname;
 	char *panelname;
 	
-	ui_draw_panel_dragwidget(rect);
-
 	/* count */
 	for(pa= ar->panels.first; pa; pa=pa->next)
 		if(pa->active)
 			if(pa->paneltab==panel)
 				nr++;
 	
-	pnl_icons= PNL_ICON+8;
-	if(panel->control & UI_PNL_CLOSE) pnl_icons+= PNL_ICON;
+	if(panel->control & UI_PNL_CLOSE) pnl_icons=(2*PNL_ICON+10)/block->aspect;
+	else pnl_icons= (PNL_ICON+10)/block->aspect;
 	
 	if(nr==1) {
 		
@@ -565,17 +577,15 @@ static void ui_draw_panel_header_style(ARegion *ar, uiStyle *style, Panel *panel
 		/* draw text label */
 		UI_ThemeColor(TH_TEXT);
 		
+		hrect= *rect;
 		hrect.xmin= rect->xmin+pnl_icons;
-		hrect.ymin= rect->ymax;
-		hrect.xmax= rect->xmax;
-		hrect.ymax= rect->ymax + PNL_HEADER;
 		uiStyleFontDraw(&style->paneltitle, &hrect, activename);
 		
 		return;
 	}
 	
 	a= 0;
-	width= (panel->sizex - 3 - pnl_icons - PNL_ICON)/nr;
+	width= (rect->xmax-rect->xmin - 3 - pnl_icons - PNL_ICON)/nr;
 	for(pa= ar->panels.first; pa; pa=pa->next) {
 		panelname= pa->drawname[0]?pa->drawname:pa->panelname;
 		
@@ -586,10 +596,9 @@ static void ui_draw_panel_header_style(ARegion *ar, uiStyle *style, Panel *panel
 			else
 				UI_ThemeColorBlend(TH_TEXT, TH_BACK, 0.5f);
 			
+			hrect= *rect;
 			hrect.xmin= rect->xmin+pnl_icons + a*width;
-			hrect.ymin= rect->ymax;
 			hrect.xmax= hrect.xmin + width;
-			hrect.ymax= hrect.ymin + PNL_HEADER;
 			uiStyleFontDraw(&style->paneltitle, &hrect, panelname);
 			
 			a++;
@@ -597,12 +606,32 @@ static void ui_draw_panel_header_style(ARegion *ar, uiStyle *style, Panel *panel
 	}
 }
 
+static void rectf_scale(rctf *rect, float scale)
+{
+	float centx= 0.5f*(rect->xmin+rect->xmax);
+	float centy= 0.5f*(rect->ymin+rect->ymax);
+	float sizex= 0.5f*scale*(rect->xmax - rect->xmin);
+	float sizey= 0.5f*scale*(rect->ymax - rect->ymin);
+	
+	rect->xmin= centx - sizex;
+	rect->xmax= centx + sizex;
+	rect->ymin= centy - sizey;
+	rect->ymax= centy + sizey;
+}
+
 void ui_draw_panel(ARegion *ar, uiStyle *style, uiBlock *block, rcti *rect)
 {
 	Panel *panel= block->panel, *prev;
+	rcti headrect;
+	rctf itemrect;
 	int ofsx;
 	
 	if(panel->paneltab) return;
+	
+	/* calculate header rect */
+	headrect= *rect;
+	headrect.ymin= headrect.ymax;
+	headrect.ymax= headrect.ymin + floor(PNL_HEADER/block->aspect);
 	
 	/* divider only when there's a previous panel */
 	prev= panel->prev;
@@ -612,21 +641,29 @@ void ui_draw_panel(ARegion *ar, uiStyle *style, uiBlock *block, rcti *rect)
 	}
 	
 	if(prev) {
-		float minx= rect->xmin+10;
-		float maxx= rect->xmax-10;
-		float y= rect->ymax + PNL_HEADER;
+		float minx= rect->xmin+10.0f/block->aspect;
+		float maxx= rect->xmax-10.0f/block->aspect;
+		float y= headrect.ymax;
 		
 		glEnable(GL_BLEND);
 		glColor4f(0.0f, 0.0f, 0.0f, 0.5f);
-		fdrawline(minx, y, maxx, y);
+		fdrawline(minx, y+1, maxx, y+1);
 		glColor4f(1.0f, 1.0f, 1.0f, 0.25f);
-		fdrawline(minx, y-1, maxx, y-1);
+		fdrawline(minx, y, maxx, y);
 		glDisable(GL_BLEND);
 	}
 	
 	/* title */
 	if(!(panel->flag & PNL_CLOSEDX)) {
-		ui_draw_panel_header_style(ar, style, panel, rect);
+		ui_draw_panel_header_style(ar, style, block, &headrect);
+		
+		/* itemrect smaller */	
+		itemrect.xmax= headrect.xmax - 10.0f/block->aspect;
+		itemrect.xmin= itemrect.xmax - (headrect.ymax-headrect.ymin);
+		itemrect.ymin= headrect.ymin;
+		itemrect.ymax= headrect.ymax;
+		rectf_scale(&itemrect, 0.8f);
+		ui_draw_panel_dragwidget(&itemrect);
 	}
 	
 	/* if the panel is minimized vertically:
@@ -654,14 +691,14 @@ void ui_draw_panel(ARegion *ar, uiStyle *style, uiBlock *block, rcti *rect)
 			else uiSetRoundBox(3);
 			
 			UI_ThemeColorShade(TH_HEADER, -120);
-			uiRoundRect(rect->xmin, rect->ymin, rect->xmax, rect->ymax+PNL_HEADER, 8);
+			uiRoundRect(rect->xmin, rect->ymin, rect->xmax, headrect.ymax+1, 8);
 		}
 		if(panel->flag & PNL_OVERLAP) {
 			if(panel->control & UI_PNL_SOLID) uiSetRoundBox(15);
 			else uiSetRoundBox(3);
 			
 			UI_ThemeColor(TH_TEXT_HI);
-			uiRoundRect(rect->xmin, rect->ymin, rect->xmax, rect->ymax+PNL_HEADER, 8);
+			uiRoundRect(rect->xmin, rect->ymin, rect->xmax, headrect.ymax+1, 8);
 		}
 		
 		if(panel->control & UI_PNL_SCALE)
@@ -680,12 +717,20 @@ void ui_draw_panel(ARegion *ar, uiStyle *style, uiBlock *block, rcti *rect)
 	/* draw collapse icon */
 	UI_ThemeColor(TH_TEXT);
 	
+	/* itemrect smaller */	
+	itemrect.xmin= headrect.xmin + 10.0f/block->aspect;
+	itemrect.xmax= itemrect.xmin + (headrect.ymax-headrect.ymin);
+	itemrect.ymin= headrect.ymin;
+	itemrect.ymax= headrect.ymax;
+	
+	rectf_scale(&itemrect, 0.7f);
+	
 	if(panel->flag & PNL_CLOSEDY)
-		ui_draw_tria_icon(rect->xmin+6+ofsx, rect->ymax+3, 'h');
+		ui_draw_tria_rect(&itemrect, 'h');
 	else if(panel->flag & PNL_CLOSEDX)
-		ui_draw_tria_icon(rect->xmin+7, rect->ymax+3, 'h');
+		ui_draw_tria_rect(&itemrect, 'h');
 	else
-		ui_draw_tria_icon(rect->xmin+6+ofsx, rect->ymax+3, 'v');
+		ui_draw_tria_rect(&itemrect, 'v');
 	
 	
 }
@@ -1252,15 +1297,17 @@ static void ui_handle_panel_header(bContext *C, uiBlock *block, int mx, int my)
 
 	/* mouse coordinates in panel space! */
 	
+	/* XXX weak code, currently it assumes layout style for location of widgets */
+	
 	/* check open/collapsed button */
 	if(block->panel->flag & PNL_CLOSEDX) {
 		if(my >= block->maxy) button= 1;
 	}
 	else if(block->panel->control & UI_PNL_CLOSE) {
-		if(mx <= block->minx+PNL_ICON-2) button= 2;
-		else if(mx <= block->minx+2*PNL_ICON+2) button= 1;
+		if(mx <= block->minx+10+PNL_ICON-2) button= 2;
+		else if(mx <= block->minx+10+2*PNL_ICON+2) button= 1;
 	}
-	else if(mx <= block->minx+PNL_ICON+2) {
+	else if(mx <= block->minx+10+PNL_ICON+2) {
 		button= 1;
 	}
 	

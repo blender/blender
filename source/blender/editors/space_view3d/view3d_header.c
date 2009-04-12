@@ -5143,115 +5143,115 @@ static void view3d_header_pulldowns(const bContext *C, uiBlock *block, Object *o
 	 * height of the header */
 	
 	xmax= GetButStringLength("View");
-	uiDefMenuBut(block, view3d_viewmenu, NULL, "View", xco, yco-2, xmax-3, 24, "");
-	//uiDefPulldownBut(block, view3d_viewmenu, NULL, "View", xco, yco-2, xmax-3, 24, "");
+	uiDefMenuBut(block, view3d_viewmenu, NULL, "View", xco, yco, xmax-3, 20, "");
+	//uiDefPulldownBut(block, view3d_viewmenu, NULL, "View", xco, yco, xmax-3, 20, "");
 	xco+= xmax;
 	
 	xmax= GetButStringLength("Select");
 	if (obedit) {
 		if (ob && ob->type == OB_MESH) {
-			uiDefPulldownBut(block, view3d_select_meshmenu, NULL, "Select",	xco,yco-2, xmax-3, 24, "");
+			uiDefPulldownBut(block, view3d_select_meshmenu, NULL, "Select",	xco,yco, xmax-3, 24, "");
 		} else if (ob && (ob->type == OB_CURVE || ob->type == OB_SURF)) {
-			uiDefMenuBut(block, view3d_select_curvemenu, NULL, "Select", xco, yco-2, xmax-3, 24, "");
+			uiDefMenuBut(block, view3d_select_curvemenu, NULL, "Select", xco, yco, xmax-3, 24, "");
 		} else if (ob && ob->type == OB_FONT) {
 			xmax= 0;
 		} else if (ob && ob->type == OB_MBALL) {
-			uiDefPulldownBut(block, view3d_select_metaballmenu, NULL, "Select",	xco,yco-2, xmax-3, 24, "");
+			uiDefPulldownBut(block, view3d_select_metaballmenu, NULL, "Select",	xco,yco, xmax-3, 24, "");
 		} else if (ob && ob->type == OB_LATTICE) {
-			uiDefPulldownBut(block, view3d_select_latticemenu, NULL, "Select", xco,yco-2, xmax-3, 24, "");
+			uiDefPulldownBut(block, view3d_select_latticemenu, NULL, "Select", xco,yco, xmax-3, 20, "");
 		} else if (ob && ob->type == OB_ARMATURE) {
-			uiDefPulldownBut(block, view3d_select_armaturemenu, NULL, "Select",	xco,yco-2, xmax-3, 24, "");
+			uiDefPulldownBut(block, view3d_select_armaturemenu, NULL, "Select",	xco,yco, xmax-3, 20, "");
 		}
 	} else if (FACESEL_PAINT_TEST) {
 		if (ob && ob->type == OB_MESH) {
-			uiDefPulldownBut(block, view3d_select_faceselmenu, NULL, "Select", xco,yco-2, xmax-3, 24, "");
+			uiDefPulldownBut(block, view3d_select_faceselmenu, NULL, "Select", xco,yco, xmax-3, 20, "");
 		}
 	} else if ((G.f & G_VERTEXPAINT) || (G.f & G_TEXTUREPAINT) || (G.f & G_WEIGHTPAINT)) {
 		uiDefBut(block, LABEL,0,"", xco, 0, xmax, 20, 0, 0, 0, 0, 0, "");
 	} else if (G.f & G_PARTICLEEDIT) {
-		uiDefMenuBut(block, view3d_select_particlemenu, NULL, "Select", xco,yco-2, xmax-3, 24, "");
+		uiDefMenuBut(block, view3d_select_particlemenu, NULL, "Select", xco,yco, xmax-3, 20, "");
 	} else {
 		
 		if (ob && (ob->flag & OB_POSEMODE))
-			uiDefPulldownBut(block, view3d_select_pose_armaturemenu, NULL, "Select", xco,yco-2, xmax-3, 24, "");
+			uiDefPulldownBut(block, view3d_select_pose_armaturemenu, NULL, "Select", xco,yco, xmax-3, 20, "");
 		else
-			uiDefPulldownBut(block, view3d_select_objectmenu, NULL, "Select",	xco,yco-2, xmax-3, 24, "");
+			uiDefPulldownBut(block, view3d_select_objectmenu, NULL, "Select",	xco,yco, xmax-3, 20, "");
 	}
 	xco+= xmax;
 	
 	if (obedit) {
 		if (ob && ob->type == OB_MESH) {
 			xmax= GetButStringLength("Mesh");
-			uiDefPulldownBut(block, view3d_edit_meshmenu, NULL, "Mesh",	xco,yco-2, xmax-3, 24, "");
+			uiDefPulldownBut(block, view3d_edit_meshmenu, NULL, "Mesh",	xco,yco, xmax-3, 20, "");
 			xco+= xmax;
 		} else if (ob && ob->type == OB_CURVE) {
 			xmax= GetButStringLength("Curve");
-			uiDefMenuBut(block, view3d_edit_curvemenu, NULL, "Curve", xco, yco-2, xmax-3, 24, "");
+			uiDefMenuBut(block, view3d_edit_curvemenu, NULL, "Curve", xco, yco, xmax-3, 20, "");
 			xco+= xmax;
 		} else if (ob && ob->type == OB_SURF) {
 			xmax= GetButStringLength("Surface");
-			uiDefMenuBut(block, view3d_edit_curvemenu, NULL, "Surface", xco, yco-2, xmax-3, 24, "");
+			uiDefMenuBut(block, view3d_edit_curvemenu, NULL, "Surface", xco, yco, xmax-3, 20, "");
 			xco+= xmax;
 		} else if (ob && ob->type == OB_FONT) {
 			xmax= GetButStringLength("Text");
-			uiDefMenuBut(block, view3d_edit_textmenu, NULL, "Text", xco, yco-2, xmax-3, 24, "");
+			uiDefMenuBut(block, view3d_edit_textmenu, NULL, "Text", xco, yco, xmax-3, 20, "");
 			xco+= xmax;
 		} else if (ob && ob->type == OB_MBALL) {
 			xmax= GetButStringLength("Metaball");
-			uiDefPulldownBut(block, view3d_edit_metaballmenu, NULL, "Metaball",	xco,yco-2, xmax-3, 24, "");
+			uiDefPulldownBut(block, view3d_edit_metaballmenu, NULL, "Metaball",	xco,yco, xmax-3, 20, "");
 			xco+= xmax;
 		} else if (ob && ob->type == OB_LATTICE) {
 			xmax= GetButStringLength("Lattice");
-			uiDefPulldownBut(block, view3d_edit_latticemenu, NULL, "Lattice",	xco,yco-2, xmax-3, 24, "");
+			uiDefPulldownBut(block, view3d_edit_latticemenu, NULL, "Lattice",	xco,yco, xmax-3, 20, "");
 			xco+= xmax;
 		} else if (ob && ob->type == OB_ARMATURE) {
 			xmax= GetButStringLength("Armature");
-			uiDefPulldownBut(block, view3d_edit_armaturemenu, NULL, "Armature",	xco,yco-2, xmax-3, 24, "");
+			uiDefPulldownBut(block, view3d_edit_armaturemenu, NULL, "Armature",	xco,yco, xmax-3, 20, "");
 			xco+= xmax;
 		}
 		
 	}
 	else if (G.f & G_WEIGHTPAINT) {
 		xmax= GetButStringLength("Paint");
-		uiDefPulldownBut(block, view3d_wpaintmenu, NULL, "Paint", xco,yco-2, xmax-3, 24, "");
+		uiDefPulldownBut(block, view3d_wpaintmenu, NULL, "Paint", xco,yco, xmax-3, 20, "");
 		xco+= xmax;
 	}
 	else if (G.f & G_VERTEXPAINT) {
 		xmax= GetButStringLength("Paint");
-		uiDefPulldownBut(block, view3d_vpaintmenu, NULL, "Paint", xco,yco-2, xmax-3, 24, "");
+		uiDefPulldownBut(block, view3d_vpaintmenu, NULL, "Paint", xco,yco, xmax-3, 20, "");
 		xco+= xmax;
 	} 
 	else if (G.f & G_TEXTUREPAINT) {
 		xmax= GetButStringLength("Paint");
-		uiDefPulldownBut(block, view3d_tpaintmenu, NULL, "Paint", xco,yco-2, xmax-3, 24, "");
+		uiDefPulldownBut(block, view3d_tpaintmenu, NULL, "Paint", xco,yco, xmax-3, 20, "");
 		xco+= xmax;
 	}
 	else if( G.f & G_SCULPTMODE) {
 		xmax= GetButStringLength("Sculpt");
-		uiDefMenuBut(block, view3d_sculpt_menu, NULL, "Sculpt", xco, yco-2, xmax-3, 24, "");
+		uiDefMenuBut(block, view3d_sculpt_menu, NULL, "Sculpt", xco, yco, xmax-3, 20, "");
 		xco+= xmax;
 	}
 	else if (FACESEL_PAINT_TEST) {
 		if (ob && ob->type == OB_MESH) {
 			xmax= GetButStringLength("Face");
-			uiDefPulldownBut(block, view3d_faceselmenu, NULL, "Face",	xco,yco-2, xmax-3, 24, "");
+			uiDefPulldownBut(block, view3d_faceselmenu, NULL, "Face",	xco,yco, xmax-3, 20, "");
 			xco+= xmax;
 		}
 	}
 	else if(G.f & G_PARTICLEEDIT) {
 		xmax= GetButStringLength("Particle");
-		uiDefMenuBut(block, view3d_particlemenu, NULL, "Particle",	xco,yco-2, xmax-3, 24, "");
+		uiDefMenuBut(block, view3d_particlemenu, NULL, "Particle",	xco,yco, xmax-3, 20, "");
 		xco+= xmax;
 	}
 	else {
 		if (ob && (ob->flag & OB_POSEMODE)) {
 			xmax= GetButStringLength("Pose");
-			uiDefPulldownBut(block, view3d_pose_armaturemenu, NULL, "Pose",	xco,yco-2, xmax-3, 24, "");
+			uiDefPulldownBut(block, view3d_pose_armaturemenu, NULL, "Pose",	xco,yco, xmax-3, 20, "");
 			xco+= xmax;
 		}
 		else {
 			xmax= GetButStringLength("Object");
-			uiDefPulldownBut(block, view3d_edit_objectmenu, NULL, "Object",	xco,yco-2, xmax-3, 24, "");
+			uiDefPulldownBut(block, view3d_edit_objectmenu, NULL, "Object",	xco,yco, xmax-3, 20, "");
 			xco+= xmax;
 		}
 	}

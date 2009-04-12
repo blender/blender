@@ -710,7 +710,7 @@ void uiDrawBlock(const bContext *C, uiBlock *block)
 	glPushMatrix();
 	glLoadIdentity();
 	
-	wmOrtho2(0.0f, ar->winx, 0.0f, ar->winy);
+	wmOrtho2(-0.01f, ar->winx-0.01f, -0.01f, ar->winy-0.01f);
 	
 	/* back */
 	if(block->flag & UI_BLOCK_LOOP)
@@ -760,6 +760,7 @@ static void ui_is_but_sel(uiBut *but)
 		case KEYEVT:
 			if (value==-1) push= 1;
 			break;
+		case TOGBUT:
 		case TOG:
 		case TOGR:
 		case TOG3:

@@ -148,7 +148,7 @@ void buttons_header_buttons(const bContext *C, ARegion *ar)
 		
 		xmax= GetButStringLength("View");
 		uiDefPulldownBut(block, dummy_viewmenu, CTX_wm_area(C), 
-						 "View", xco, yco-2, xmax-3, 24, "");
+						 "View", xco, yco, xmax-3, 20, "");
 		
 		xco+=XIC+xmax;
 	}

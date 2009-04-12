@@ -1357,13 +1357,13 @@ void ED_image_uiblock_panel(const bContext *C, uiBlock *block, Image **ima_pp, I
 		 
 		 /* fields */
 		 uiBlockBeginAlign(block);
-		 but= uiDefButBitS(block, TOG, IMA_FIELDS, imagechanged, "Fields",	10, 70, 65, 20, &ima->flag, 0, 0, 0, 0, "Click to enable use of fields in Image");
+		 but= uiDefButBitS(block, TOGBUT, IMA_FIELDS, imagechanged, "Fields",	10, 70, 65, 20, &ima->flag, 0, 0, 0, 0, "Click to enable use of fields in Image");
 		 uiButSetFunc(but, image_field_test, ima, iuser);
-		 uiDefButBitS(block, TOG, IMA_STD_FIELD, B_NOP, "Odd",			75, 70, 45, 20, &ima->flag, 0, 0, 0, 0, "Standard Field Toggle");
+		 uiDefButBitS(block, TOGBUT, IMA_STD_FIELD, B_NOP, "Odd",			75, 70, 45, 20, &ima->flag, 0, 0, 0, 0, "Standard Field Toggle");
 		 
 		 uiBlockSetFunc(block, image_reload_cb, ima, iuser);
-		 uiDefButBitS(block, TOG, IMA_ANTIALI, B_NOP, "Anti",			10, 50, 45, 20, &ima->flag, 0, 0, 0, 0, "Toggles Image anti-aliasing, only works with solid colors");
-		 uiDefButBitS(block, TOG, IMA_DO_PREMUL, imagechanged, "Premul",		55, 50, 65, 20, &ima->flag, 0, 0, 0, 0, "Toggles premultiplying alpha");
+		 uiDefButBitS(block, TOGBUT, IMA_ANTIALI, B_NOP, "Anti",			10, 50, 45, 20, &ima->flag, 0, 0, 0, 0, "Toggles Image anti-aliasing, only works with solid colors");
+		 uiDefButBitS(block, TOGBUT, IMA_DO_PREMUL, imagechanged, "Premul",		55, 50, 65, 20, &ima->flag, 0, 0, 0, 0, "Toggles premultiplying alpha");
 		 uiBlockEndAlign(block);
 		 
 		 if( ELEM(ima->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE)) {
@@ -1395,7 +1395,7 @@ void ED_image_uiblock_panel(const bContext *C, uiBlock *block, Image **ima_pp, I
 			 uiBlockSetFunc(block, image_generated_change_cb, ima, iuser);
 			 uiDefButS(block, NUM, imagechanged, "SizeX:",	120,70,100,20, &ima->gen_x, 1.0, 5000.0, 0, 0, "Image size x");
 			 uiDefButS(block, NUM, imagechanged, "SizeY:",	220,70,90,20, &ima->gen_y, 1.0, 5000.0, 0, 0, "Image size y");
-			 uiDefButS(block, TOG, imagechanged, "UV Test grid",120,50,190,20, &ima->gen_type, 0.0, 1.0, 0, 0, "");
+			 uiDefButS(block, TOGBUT, imagechanged, "UV Test grid",120,50,190,20, &ima->gen_type, 0.0, 1.0, 0, 0, "");
 			 uiBlockSetFunc(block, NULL, NULL, NULL);
 		 }
 	 }

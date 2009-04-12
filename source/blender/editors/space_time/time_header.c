@@ -445,16 +445,16 @@ void time_header_buttons(const bContext *C, ARegion *ar)
 		
 		xmax= GetButStringLength("View");
 		uiDefPulldownBut(block, time_viewmenu, sa, 
-						 "View", xco, yco-2, xmax-3, 24, "");
+						 "View", xco, yco, xmax-3, 20, "");
 		xco+= xmax;
 		xmax= GetButStringLength("Frame");
 		uiDefPulldownBut(block, time_framemenu, sa, 
-						 "Frame", xco, yco-2, xmax-3, 24, "");
+						 "Frame", xco, yco, xmax-3, 20, "");
 		xco+= xmax;
 		
 		xmax= GetButStringLength("Playback");
 		uiDefPulldownBut(block, time_redrawmenu, sa, 
-						 "Playback", xco, yco-2, xmax-3, 24, "");
+						 "Playback", xco, yco, xmax-3, 20, "");
 		xco+= xmax;
 	}
 	

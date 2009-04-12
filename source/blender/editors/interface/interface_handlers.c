@@ -564,6 +564,7 @@ static void ui_apply_button(bContext *C, uiBlock *block, uiBut *but, uiHandleBut
 		case TEX:
 			ui_apply_but_TEX(C, but, data);
 			break;
+		case TOGBUT: 
 		case TOG: 
 		case TOGR: 
 		case ICONTOG:
@@ -2658,6 +2659,7 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, wmEvent *event)
 	case KEYEVT:
 		retval= ui_do_but_KEYEVT(C, but, data, event);
 		break;
+	case TOGBUT: 
 	case TOG: 
 	case TOGR: 
 	case ICONTOG:
@@ -2972,7 +2974,7 @@ static void button_activate_init(bContext *C, ARegion *ar, uiBut *but, uiButtonA
 	data= MEM_callocN(sizeof(uiHandleButtonData), "uiHandleButtonData");
 	data->window= CTX_wm_window(C);
 	data->region= ar;
-	data->interactive= 1;
+	data->interactive= but->type==BUT_CURVE?0:1; // XXX temp
 	data->state = BUTTON_STATE_INIT;
 
 	/* activate button */
