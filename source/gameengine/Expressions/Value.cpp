@@ -719,7 +719,8 @@ CValue* CValue::ConvertPythonToValue(PyObject* pyobj)
 {
 
 	CValue* vallie = NULL;
-
+	/* refcounting is broking here! - this crashes anyway, just store a python list for KX_GameObject */
+#if 0
 	if (PyList_Check(pyobj))
 	{
 		CListValue* listval = new CListValue();
@@ -750,6 +751,7 @@ CValue* CValue::ConvertPythonToValue(PyObject* pyobj)
 		}
 
 	} else
+#endif
 	if (PyFloat_Check(pyobj))
 	{
 		vallie = new CFloatValue( (float)PyFloat_AsDouble(pyobj) );
@@ -790,21 +792,34 @@ int	CValue::py_delattro(PyObject *attr)
 
 int	CValue::py_setattro(PyObject *attr, PyObject* pyobj)
 {
+	char *attr_str= PyString_AsString(attr);
+	CValue* oldprop = GetProperty(attr_str);
+	
 	CValue* vallie = ConvertPythonToValue(pyobj);
 	if (vallie)
 	{
-		char *attr_str= PyString_AsString(attr);
-		CValue* oldprop = GetProperty(attr_str);
-		
 		if (oldprop)
 			oldprop->SetValue(vallie);
 		else
 			SetProperty(attr_str, vallie);
 		
 		vallie->Release();
-	} else
-	{
-		return PY_SET_ATTR_FAIL; /* ConvertPythonToValue sets the error message */
+	}
+	else {
+		// ConvertPythonToValue sets the error message
+		// must return missing so KX_GameObect knows this
+		// attribute was not a function or bult in attribute,
+		//
+		// CValue attributes override internal attributes
+		// so if it exists as a CValue attribute already,
+		// assume your trying to set it to a differnt CValue attribute
+		// otherwise return PY_SET_ATTR_MISSING so children
+		// classes know they can set it without conflict 
+		
+		if (GetProperty(attr_str))
+			return PY_SET_ATTR_COERCE_FAIL; /* failed to set an existing attribute */
+		else
+			return PY_SET_ATTR_MISSING; /* allow the KX_GameObject dict to set */
 	}
 	
 	//PyObjectPlus::py_setattro(attr,value);

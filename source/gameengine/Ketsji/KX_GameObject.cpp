@@ -97,7 +97,8 @@ KX_GameObject::KX_GameObject(
 	m_pPhysicsEnvironment(NULL),
 	m_xray(false),
 	m_pHitObject(NULL),
-	m_isDeformable(false)
+	m_isDeformable(false),
+	m_attrlist(NULL)
 {
 	m_ignore_activity_culling = false;
 	m_pClient_info = new KX_ClientObjectInfo(this, KX_ClientObjectInfo::ACTOR);
@@ -138,6 +139,10 @@ KX_GameObject::~KX_GameObject()
 	if (m_pGraphicController)
 	{
 		delete m_pGraphicController;
+	}
+	
+	if (m_attrlist) {
+		Py_DECREF(m_attrlist);
 	}
 }
 
@@ -323,6 +328,9 @@ void KX_GameObject::ProcessReplica(KX_GameObject* replica)
 	replica->m_pClient_info = new KX_ClientObjectInfo(*m_pClient_info);
 	replica->m_pClient_info->m_gameobject = replica;
 	replica->m_state = 0;
+	if(m_attrlist)
+		replica->m_attrlist= PyDict_Copy(m_attrlist);
+		
 }
 
 
@@ -1138,69 +1146,124 @@ PyObject* KX_GameObject::PyGetPosition(PyObject* self)
 
 Py_ssize_t KX_GameObject::Map_Len(PyObject* self_v)
 {
-	return (static_cast<KX_GameObject*>(self_v))->GetPropertyCount();
+	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
+	Py_ssize_t len= self->GetPropertyCount();
+	if(self->m_attrlist)
+		len += PyDict_Size(self->m_attrlist);
+	return len;
 }
 
 
 PyObject *KX_GameObject::Map_GetItem(PyObject *self_v, PyObject *item)
 {
 	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
-	const char *attr= PyString_AsString(item);
+	const char *attr_str= PyString_AsString(item);
 	CValue* resultattr;
 	PyObject* pyconvert;
 	
-	
-	if(attr==NULL) {
-		PyErr_SetString(PyExc_TypeError, "KX_GameObject key but a string");
+	/* first see if the attributes a string and try get the cvalue attribute */
+	if(attr_str && (resultattr=self->GetProperty(attr_str))) {
+		pyconvert = resultattr->ConvertValueToPython();			
+		return pyconvert ? pyconvert:resultattr;
+	}
+	/* no CValue attribute, try get the python only m_attrlist attribute */
+	else if (self->m_attrlist && (pyconvert=PyDict_GetItem(self->m_attrlist, item))) {
+		
+		if (attr_str)
+			PyErr_Clear();
+		Py_INCREF(pyconvert);
+		return pyconvert;
+	}
+	else {
+		if(attr_str)	PyErr_Format(PyExc_KeyError, "KX_GameObject key \"%s\" does not exist", attr_str);
+		else			PyErr_SetString(PyExc_KeyError, "KX_GameObject key does not exist");
 		return NULL;
 	}
-	
-	resultattr = self->GetProperty(attr);
-	
-	if(resultattr==NULL) {
-		PyErr_SetString(PyExc_KeyError, "KX_GameObject key does not exist");
-		return NULL;
-	}
-	
-	pyconvert = resultattr->ConvertValueToPython();
-	
-	return pyconvert ? pyconvert:resultattr;
+		
 }
 
 
 int KX_GameObject::Map_SetItem(PyObject *self_v, PyObject *key, PyObject *val)
 {
 	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
-	const char *attr= PyString_AsString(key);
-	
-	if(attr==NULL) {
-		PyErr_SetString(PyExc_TypeError, "KX_GameObject key but a string");
-		return 1;
-	}
+	const char *attr_str= PyString_AsString(key);
+	if(attr_str==NULL)
+		PyErr_Clear();
 	
 	if (val==NULL) { /* del ob["key"] */
-		if (self->RemoveProperty(attr)==false) {
-			PyErr_Format(PyExc_KeyError, "KX_GameObject key \"%s\" not found", attr);
-			return 1;
+		int del= 0;
+		
+		/* try remove both just incase */
+		if(attr_str)
+			del |= (self->RemoveProperty(attr_str)==true) ? 1:0;
+		
+		if(self->m_attrlist)
+			del |= (PyDict_DelItem(self->m_attrlist, key)==0) ? 1:0;
+		
+		if (del==0) {
+			if(attr_str)	PyErr_Format(PyExc_KeyError, "KX_GameObject key \"%s\" not found", attr_str);
+			else			PyErr_SetString(PyExc_KeyError, "KX_GameObject key not found");
+			return -1;
+		}
+		else if (self->m_attrlist) {
+			PyErr_Clear(); /* PyDict_DelItem sets an error when it fails */
 		}
 	}
 	else { /* ob["key"] = value */
-		CValue* vallie = self->ConvertPythonToValue(val);
+		int set= 0;
 		
-		if(vallie==NULL)
-			return 1; /* ConvertPythonToValue sets the error */
+		/* as CValue */
+		if(attr_str)
+		{
+			CValue* vallie = self->ConvertPythonToValue(val);
+			
+			if(vallie)
+			{
+				CValue* oldprop = self->GetProperty(attr_str);
+				
+				if (oldprop)
+					oldprop->SetValue(vallie);
+				else
+					self->SetProperty(attr_str, vallie);
+				
+				vallie->Release();
+				set= 1;
+				
+				/* try remove dict value to avoid double ups */
+				if (self->m_attrlist){
+					if (PyDict_DelItem(self->m_attrlist, key) != 0)
+						PyErr_Clear();
+				}
+			}
+			else {
+				PyErr_Clear();
+			}
+		}
 		
-		CValue* oldprop = self->GetProperty(attr);
+		if(set==0)
+		{
+			if (self->m_attrlist==NULL) /* lazy init */
+				self->m_attrlist= PyDict_New();
+			
+			
+			if(PyDict_SetItem(self->m_attrlist, key, val)==0)
+			{
+				if(attr_str)
+					self->RemoveProperty(attr_str); /* overwrite the CValue if it exists */
+				set= 1;
+			}
+			else {
+				if(attr_str)	PyErr_Format(PyExc_KeyError, "KX_GameObject key \"%s\" not be added to internal dictionary", attr_str);
+				else			PyErr_SetString(PyExc_KeyError, "KX_GameObject key not be added to internal dictionary");
+			}
+		}
 		
-		if (oldprop)
-			oldprop->SetValue(vallie);
-		else
-			self->SetProperty(attr, vallie);
+		if(set==0)
+			return -1; /* pythons error value */
 		
-		vallie->Release();
 	}
 	
-	return 0;
+	return 0; /* success */
 }
 
 
@@ -1223,9 +1286,11 @@ PyTypeObject KX_GameObject::Type = {
 		0,
 		0,
 		py_base_repr,
-		0,0,0,0,0,0,
-		py_base_getattro,
-		py_base_setattro,
+		0,0,
+		&Mapping,
+		0,0,0,
+		py_base_getattro_gameobject,
+		py_base_setattro_gameobject,
 		0,0,0,0,0,0,0,0,0,
 		Methods
 };
@@ -1532,6 +1597,10 @@ PyObject* KX_GameObject::pyattr_get_dir_dict(void *self_v, const KX_PYATTRIBUTE_
 		PyErr_Clear();
 	
 	Py_DECREF(list);
+	
+	/* Add m_attrlist if we have it */
+	if(self->m_attrlist)
+		PyDict_Update(dict, self->m_attrlist);
 	
 	return dict;
 }
@@ -2042,7 +2111,17 @@ PyObject* KX_GameObject::PyGetPhysicsId(PyObject* self)
 
 PyObject* KX_GameObject::PyGetPropertyNames(PyObject* self)
 {
-	return ConvertKeysToPython();
+	PyObject *list=  ConvertKeysToPython();
+	
+	if(m_attrlist) {
+		PyObject *key, *value;
+		Py_ssize_t pos = 0;
+
+		while (PyDict_Next(m_attrlist, &pos, &key, &value)) {
+			PyList_Append(list, key);
+		}
+	}
+	return list;
 }
 
 KX_PYMETHODDEF_DOC_O(KX_GameObject, getDistanceTo,

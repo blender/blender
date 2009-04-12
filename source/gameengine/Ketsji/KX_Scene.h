@@ -603,6 +603,7 @@ public:
 				ret= PY_SET_ATTR_SUCCESS;
 			}
 			else {
+				PyErr_Format(PyExc_AttributeError, "failed assigning value to KX_Scenes internal dictionary");
 				ret= PY_SET_ATTR_FAIL;
 			}
 		}

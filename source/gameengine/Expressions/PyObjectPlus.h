@@ -130,9 +130,10 @@ static inline void Py_Fatal(const char *M) {
  * was because the attribute didnt exits of if there was some problem setting the value
  */
 
+#define PY_SET_ATTR_COERCE_FAIL	 2
 #define PY_SET_ATTR_FAIL		 1
-#define PY_SET_ATTR_MISSING	-1
-#define PY_SET_ATTR_SUCCESS			 0
+#define PY_SET_ATTR_MISSING		-1
+#define PY_SET_ATTR_SUCCESS		 0
 
 #define py_setattro_up(Parent) \
 	PyObject *descr = PyDict_GetItem(Type.tp_dict, attr); \
