@@ -160,6 +160,9 @@ static void graphedit_keymap_keyframes (wmWindowManager *wm, ListBase *keymap)
 		RNA_enum_set(kmi->ptr, "left_right", GRAPHKEYS_LRSEL_TEST);
 	kmi= WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_clickselect", SELECTMOUSE, KM_PRESS, KM_CTRL|KM_ALT, 0);
 		RNA_boolean_set(kmi->ptr, "curves", 1);
+	kmi= WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_clickselect", SELECTMOUSE, KM_PRESS, KM_CTRL|KM_ALT|KM_SHIFT, 0);
+		RNA_boolean_set(kmi->ptr, "curves", 1);
+		RNA_boolean_set(kmi->ptr, "extend", 1);
 	
 		/* deselect all */
 	WM_keymap_add_item(keymap, "GRAPHEDIT_OT_keyframes_select_all_toggle", AKEY, KM_PRESS, 0, 0);

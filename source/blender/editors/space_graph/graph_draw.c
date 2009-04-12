@@ -786,7 +786,7 @@ void graph_draw_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGri
 	
 	/* build list of curves to draw */
 	filter= (ANIMFILTER_VISIBLE|ANIMFILTER_CURVESONLY|ANIMFILTER_CURVEVISIBLE);
-	filter |= (sel) ? (ANIMFILTER_SEL) : (ANIMFILTER_UNSEL);
+	filter |= ((sel) ? (ANIMFILTER_SEL) : (ANIMFILTER_UNSEL));
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 		
 	/* for each curve:

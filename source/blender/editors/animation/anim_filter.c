@@ -563,7 +563,7 @@ static int animdata_filter_action (ListBase *anim_data, bAction *act, int filter
 			lastchan= agrp->channels.last;
 		
 		
-		/* there are some situations, where only the channels of the animive group should get considered */
+		/* there are some situations, where only the channels of the action group should get considered */
 		if (!(filter_mode & ANIMFILTER_ACTGROUPED) || (agrp->flag & AGRP_ACTIVE)) {
 			/* filters here are a bit convoulted...
 			 *	- groups show a "summary" of keyframes beside their name which must accessable for tools which handle keyframes
@@ -574,8 +574,9 @@ static int animdata_filter_action (ListBase *anim_data, bAction *act, int filter
 			 *	- group is expanded
 			 *	- we're interested in keyframes, but not if they appear in selected channels
 			 */
+			// XXX what was the selection check here for again?
 			if ( (!(filter_mode & ANIMFILTER_VISIBLE) || EXPANDED_AGRP(agrp)) || 
-				 ( ANIMCHANNEL_SELOK(SEL_AGRP(agrp)) && (filter_mode & ANIMFILTER_CURVESONLY) ) ) 
+				 ( /*ANIMCHANNEL_SELOK(SEL_AGRP(agrp)) &&*/ (filter_mode & ANIMFILTER_CURVESONLY) ) ) 
 			{
 				if (!(filter_mode & ANIMFILTER_FOREDIT) || EDITABLE_AGRP(agrp)) {
 					// XXX the 'owner' info here needs review...

@@ -66,8 +66,6 @@
 enum {
 	B_REDR 	= 0,
 	B_MODECHANGE,
-	B_GRAPHCOPYKEYS,
-	B_GRAPHPASTEKEYS,
 } eActHeader_ButEvents;
 
 /* ************************ header area region *********************** */
@@ -198,17 +196,17 @@ void graph_header_buttons(const bContext *C, ARegion *ar)
 			uiDefIconButBitI(block, TOGN, ADS_FILTER_NOCAM, B_REDR, ICON_CAMERA_DATA,	(short)(xco+=XIC),yco,XIC,YIC, &(sipo->ads->filterflag), 0, 0, 0, 0, "Display Cameras");
 			uiDefIconButBitI(block, TOGN, ADS_FILTER_NOCUR, B_REDR, ICON_CURVE_DATA,	(short)(xco+=XIC),yco,XIC,YIC, &(sipo->ads->filterflag), 0, 0, 0, 0, "Display Curves");
 		uiBlockEndAlign(block);
-		xco += 30;
+		xco += 15;
 	}
 	else {
 		// XXX this case shouldn't happen at all... for now, just pad out same amount of space
-		xco += 6*XIC + 35;
+		xco += 6*XIC + 15;
 	}
 	
 	/* copy + paste */
 	uiBlockBeginAlign(block);
-		uiDefIconBut(block, BUT, B_GRAPHCOPYKEYS, ICON_COPYDOWN,	xco,yco,XIC,YIC, 0, 0, 0, 0, 0, "Copies the selected keyframes from the selected channel(s) to the buffer");
-		uiDefIconBut(block, BUT, B_GRAPHPASTEKEYS, ICON_PASTEDOWN,	xco+=XIC,yco,XIC,YIC, 0, 0, 0, 0, 0, "Pastes the keyframes from the buffer");
+		uiDefIconButO(block, BUT, "GRAPHEDIT_OT_keyframes_copy", WM_OP_INVOKE_REGION_WIN, ICON_COPYDOWN, xco+=XIC,yco,XIC,YIC, "Copies the selected keyframes from the selected channel(s) to the buffer");
+		uiDefIconButO(block, BUT, "GRAPHEDIT_OT_keyframes_paste", WM_OP_INVOKE_REGION_WIN, ICON_PASTEDOWN, xco+=XIC,yco,XIC,YIC, "Pastes the keyframes from the buffer");
 	uiBlockEndAlign(block);
 	xco += (XIC + 8);
 	

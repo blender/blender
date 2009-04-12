@@ -671,7 +671,7 @@ static void mouse_graph_keys (bAnimContext *ac, int mval[], short select_mode, s
 		select_mode= SELECT_ADD;
 		
 		/* deselect all other channels and keyframes */
-		ANIM_deselect_anim_channels(ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
+		//ANIM_deselect_anim_channels(ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
 		deselect_graph_keys(ac, 0, SELECT_SUBTRACT);
 	}
 	
