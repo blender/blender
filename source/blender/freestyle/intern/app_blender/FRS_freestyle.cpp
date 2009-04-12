@@ -121,35 +121,41 @@ extern "C" {
 		Object* maincam_obj = re->scene->camera;
 		Camera *cam = (Camera*) maincam_obj->data;
 
-		view->setHorizontalFov( cam->angle );
+		//view->setHorizontalFov( cam->angle );
 		
 		freestyle_viewpoint[0] = maincam_obj->obmat[3][0];
 		freestyle_viewpoint[1] = maincam_obj->obmat[3][1];
 		freestyle_viewpoint[2] = maincam_obj->obmat[3][2];
 		
-		freestyle_mv[0][0] = maincam_obj->obmat[0][0];
-		freestyle_mv[0][1] = maincam_obj->obmat[1][0];
-		freestyle_mv[0][2] = maincam_obj->obmat[2][0];
-		freestyle_mv[0][3] = 0.0;
-
-		freestyle_mv[1][0] = maincam_obj->obmat[0][1];
-		freestyle_mv[1][1] = maincam_obj->obmat[1][1];
-		freestyle_mv[1][2] = maincam_obj->obmat[2][1];
-		freestyle_mv[1][3] = 0.0;
-
-		freestyle_mv[2][0] = re->viewmat[2][0];
-		freestyle_mv[2][1] = re->viewmat[2][1];
-		freestyle_mv[2][2] = re->viewmat[2][2];
-		freestyle_mv[2][3] = 0.0;
-
-		freestyle_mv[3][0] = re->viewmat[3][0];
-		freestyle_mv[3][1] = re->viewmat[3][1];
-		freestyle_mv[3][2] = re->viewmat[3][2];
-		freestyle_mv[3][3] = 1.0;
+		// freestyle_mv[0][0] = maincam_obj->obmat[0][0];
+		// freestyle_mv[0][1] = maincam_obj->obmat[1][0];
+		// freestyle_mv[0][2] = maincam_obj->obmat[2][0];
+		// freestyle_mv[0][3] = 0.0;
+		// 
+		// freestyle_mv[1][0] = maincam_obj->obmat[0][1];
+		// freestyle_mv[1][1] = maincam_obj->obmat[1][1];
+		// freestyle_mv[1][2] = maincam_obj->obmat[2][1];
+		// freestyle_mv[1][3] = 0.0;
+		// 
+		// freestyle_mv[2][0] = re->viewmat[2][0];
+		// freestyle_mv[2][1] = re->viewmat[2][1];
+		// freestyle_mv[2][2] = re->viewmat[2][2];
+		// freestyle_mv[2][3] = 0.0;
+		// 
+		// freestyle_mv[3][0] = re->viewmat[3][0];
+		// freestyle_mv[3][1] = re->viewmat[3][1];
+		// freestyle_mv[3][2] = re->viewmat[3][2];
+		// freestyle_mv[3][3] = 1.0;
 
 		for( int i = 0; i < 4; i++ )
 		   for( int j = 0; j < 4; j++ )
+			freestyle_mv[i][j] = re->viewmat[i][j];
+		
+		for( int i = 0; i < 4; i++ )
+		   for( int j = 0; j < 4; j++ )
 			freestyle_proj[i][j] = re->winmat[i][j];
+			
+		//f(cam && (re->r.mode & R_ORTHO)) {
 	}
 
 	

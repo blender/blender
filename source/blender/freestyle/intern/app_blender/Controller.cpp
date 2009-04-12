@@ -406,21 +406,33 @@ void Controller::ComputeViewMap()
   // 3D context is on.
   Vec3r vp( freestyle_viewpoint[0], freestyle_viewpoint[1], freestyle_viewpoint[2]);
 
+	cout << "mv" << endl;
  	real mv[4][4];
-	for( int i= 0; i < 4; i++)
-		for( int j= 0; j < 4; j++)
+	for( int i= 0; i < 4; i++) {
+		for( int j= 0; j < 4; j++) {
 			mv[i][j] = freestyle_mv[i][j];
-
-
+			cout << mv[i][j] << " ";
+		}
+		cout << endl;
+	}
+	
+	cout << "\nproj" << endl;
 	real proj[4][4];
-	for( int i= 0; i < 4; i++)
-		for( int j= 0; j < 4; j++)
+	for( int i= 0; i < 4; i++) {
+		for( int j= 0; j < 4; j++) {
 			proj[i][j] = freestyle_proj[i][j];
-
+			cout << proj[i][j] << " ";
+		}
+		cout << endl;
+	}
 
 	int viewport[4];
 	for( int i= 0; i < 4; i++)
 		viewport[i] = freestyle_viewport[i];
+	
+	cout << "\nfocal:" << _pView->GetFocalLength() << endl << endl;
+
+
 
   // Flag the WXEdge structure for silhouette edge detection:
   //----------------------------------------------------------

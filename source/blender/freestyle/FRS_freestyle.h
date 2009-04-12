@@ -18,7 +18,6 @@ extern "C" {
 	
 	extern short freestyle_is_initialized;
 	
-	extern float freestyle_fovyradian;
 	extern float freestyle_viewpoint[3];
 	extern float freestyle_mv[4][4];
 	extern float freestyle_proj[4][4];
