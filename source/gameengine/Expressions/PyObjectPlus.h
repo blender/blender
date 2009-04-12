@@ -124,6 +124,16 @@ static inline void Py_Fatal(const char *M) {
 	return NULL;
 
 
+/*
+ * nonzero values are an error for setattr
+ * however because of the nested lookups we need to know if the errors
+ * was because the attribute didnt exits of if there was some problem setting the value
+ */
+
+#define PY_SET_ATTR_FAIL		 1
+#define PY_SET_ATTR_MISSING	-1
+#define PY_SET_ATTR_SUCCESS			 0
+
 #define py_setattro_up(Parent) \
 	PyObject *descr = PyDict_GetItem(Type.tp_dict, attr); \
 	 \
@@ -132,14 +142,14 @@ static inline void Py_Fatal(const char *M) {
 			const PyAttributeDef* attrdef= reinterpret_cast<const PyAttributeDef *>(PyCObject_AsVoidPtr(descr)); \
 			if (attrdef->m_access == KX_PYATTRIBUTE_RO) { \
 				PyErr_Format(PyExc_AttributeError, "\"%s\" is read only", PyString_AsString(attr)); \
-				return -1; \
+				return PY_SET_ATTR_FAIL; \
 			} \
 			else { \
 				return py_set_attrdef((void *)this, attrdef, value); \
 			} \
 		} else { \
 			PyErr_Format(PyExc_AttributeError, "\"%s\" cannot be set", PyString_AsString(attr)); \
-			return -1; \
+			return PY_SET_ATTR_FAIL; \
 		} \
 	} else { \
 		PyErr_Clear(); \

@@ -225,14 +225,14 @@ int       KX_LightObject::py_setattro(PyObject *attr, PyObject *pyvalue)
 		if (!strcmp(attr_str, "layer"))
 		{
 			m_lightobj.m_layer = value;
-			return 0;
+			return PY_SET_ATTR_SUCCESS;
 		}
 		
 		if (!strcmp(attr_str, "type"))
 		{
 			if (value >= RAS_LightObject::LIGHT_SPOT && value <= RAS_LightObject::LIGHT_NORMAL)
 				m_lightobj.m_type = (RAS_LightObject::LightType) value;
-			return 0;
+			return PY_SET_ATTR_SUCCESS;
 		}
 	}
 	
@@ -242,37 +242,37 @@ int       KX_LightObject::py_setattro(PyObject *attr, PyObject *pyvalue)
 		if (!strcmp(attr_str, "energy"))
 		{
 			m_lightobj.m_energy = value;
-			return 0;
+			return PY_SET_ATTR_SUCCESS;
 		}
 	
 		if (!strcmp(attr_str, "distance"))
 		{
 			m_lightobj.m_distance = value;
-			return 0;
+			return PY_SET_ATTR_SUCCESS;
 		}
 		
 		if (!strcmp(attr_str, "lin_attenuation"))
 		{
 			m_lightobj.m_att1 = value;
-			return 0;
+			return PY_SET_ATTR_SUCCESS;
 		}
 		
 		if (!strcmp(attr_str, "quad_attenuation"))
 		{
 			m_lightobj.m_att2 = value;
-			return 0;
+			return PY_SET_ATTR_SUCCESS;
 		}
 		
 		if (!strcmp(attr_str, "spotsize"))
 		{
 			m_lightobj.m_spotsize = value;
-			return 0;
+			return PY_SET_ATTR_SUCCESS;
 		}
 		
 		if (!strcmp(attr_str, "spotblend"))
 		{
 			m_lightobj.m_spotblend = value;
-			return 0;
+			return PY_SET_ATTR_SUCCESS;
 		}
 	}
 
@@ -286,16 +286,16 @@ int       KX_LightObject::py_setattro(PyObject *attr, PyObject *pyvalue)
 				m_lightobj.m_red = color[0];
 				m_lightobj.m_green = color[1];
 				m_lightobj.m_blue = color[2];
-				return 0;
+				return PY_SET_ATTR_SUCCESS;
 			}
-			return 1;
+			return PY_SET_ATTR_FAIL;
 		}
 	}
 	
 	if (!strcmp(attr_str, "SPOT") || !strcmp(attr_str, "SUN") || !strcmp(attr_str, "NORMAL"))
 	{
 		PyErr_Format(PyExc_RuntimeError, "Attribute %s is read only.", attr_str);
-		return 1;
+		return PY_SET_ATTR_FAIL;
 	}
 	
 	return KX_GameObject::py_setattro(attr, pyvalue);

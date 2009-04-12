@@ -804,11 +804,11 @@ int	CValue::py_setattro(PyObject *attr, PyObject* pyobj)
 		vallie->Release();
 	} else
 	{
-		return 1; /* ConvertPythonToValue sets the error message */
+		return PY_SET_ATTR_FAIL; /* ConvertPythonToValue sets the error message */
 	}
 	
 	//PyObjectPlus::py_setattro(attr,value);
-	return 0;
+	return PY_SET_ATTR_SUCCESS;
 };
 
 PyObject*	CValue::ConvertKeysToPython( void )

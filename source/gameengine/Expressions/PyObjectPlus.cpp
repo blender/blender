@@ -137,7 +137,7 @@ int PyObjectPlus::py_setattro(PyObject *attr, PyObject* value)
 	//return PyObject::py_setattro(attr,value);
 	//cerr << "Unknown attribute" << endl;
 	PyErr_SetString(PyExc_AttributeError, "attribute cant be set");
-	return 1;
+	return PY_SET_ATTR_MISSING;
 }
 
 PyObject *PyObjectPlus::py_get_attrdef(void *self, const PyAttributeDef *attrdef)
@@ -699,13 +699,13 @@ int PyObjectPlus::py_setattro_self(const PyAttributeDef attrlist[], void *self, 
 				attrdef->m_type == KX_PYATTRIBUTE_TYPE_DUMMY)
 			{
 				PyErr_SetString(PyExc_AttributeError, "property is read-only");
-				return 1;
+				return PY_SET_ATTR_FAIL;
 			}
 			
 			return py_set_attrdef(self, attrdef, value);
 		}
 	}
-	return -1;			
+	return PY_SET_ATTR_MISSING;			
 }
 #endif
 

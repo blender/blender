@@ -101,7 +101,7 @@ PyObject*	KX_ConstraintWrapper::py_getattro(PyObject *attr)
 int	KX_ConstraintWrapper::py_setattro(PyObject *attr,PyObject* pyobj)
 {
 	int result = 1;
-
+	/* what the heck is this supposed to do?, needs attention */
 	if (PyList_Check(pyobj))
 	{
 		result = 0;

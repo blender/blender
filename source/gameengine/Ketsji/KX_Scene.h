@@ -597,13 +597,13 @@ public:
 		
 		int ret= ((PyObjectPlus*) self)->py_setattro(attr, value);
 		
-		if (ret) {
-			if (!PyDict_SetItem(((KX_Scene *) self)->m_attrlist, attr, value)) {
+		if (ret==PY_SET_ATTR_MISSING) {
+			if (PyDict_SetItem(((KX_Scene *) self)->m_attrlist, attr, value)==0) {
 				PyErr_Clear();
-				ret= 0;
+				ret= PY_SET_ATTR_SUCCESS;
 			}
 			else {
-				ret= -1;
+				ret= PY_SET_ATTR_FAIL;
 			}
 		}
 		

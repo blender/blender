@@ -171,9 +171,9 @@ int    KX_VertexProxy::py_setattro(PyObject *attr, PyObject *pyvalue)
 		{
 			m_vertex->SetXYZ(vec);
 			m_mesh->SetMeshModified(true);
-			return 0;
+			return PY_SET_ATTR_SUCCESS;
 		}
-		return 1;
+		return PY_SET_ATTR_FAIL;
 	}
 	
 	if (!strcmp(attr_str, "UV"))
@@ -183,9 +183,9 @@ int    KX_VertexProxy::py_setattro(PyObject *attr, PyObject *pyvalue)
 		{
 			m_vertex->SetUV(vec);
 			m_mesh->SetMeshModified(true);
-			return 0;
+			return PY_SET_ATTR_SUCCESS;
 		}
-		return 1;
+		return PY_SET_ATTR_FAIL;
 	}
 	
 	if (!strcmp(attr_str, "color") || !strcmp(attr_str, "colour"))
@@ -195,9 +195,9 @@ int    KX_VertexProxy::py_setattro(PyObject *attr, PyObject *pyvalue)
 		{
 			m_vertex->SetRGBA(vec);
 			m_mesh->SetMeshModified(true);
-			return 0;
+			return PY_SET_ATTR_SUCCESS;
 		}
-		return 1;
+		return PY_SET_ATTR_FAIL;
 	}
 	
 	if (!strcmp(attr_str, "normal"))
@@ -207,9 +207,9 @@ int    KX_VertexProxy::py_setattro(PyObject *attr, PyObject *pyvalue)
 		{
 			m_vertex->SetNormal(vec);
 			m_mesh->SetMeshModified(true);
-			return 0;
+			return PY_SET_ATTR_SUCCESS;
 		}
-		return 1;
+		return PY_SET_ATTR_FAIL;
 	}
   }
   
@@ -223,7 +223,7 @@ int    KX_VertexProxy::py_setattro(PyObject *attr, PyObject *pyvalue)
 		pos.x() = val;
 		m_vertex->SetXYZ(pos);
 		m_mesh->SetMeshModified(true);
-		return 0;
+		return PY_SET_ATTR_SUCCESS;
 	}
 	
   	if (!strcmp(attr_str, "y"))
@@ -231,7 +231,7 @@ int    KX_VertexProxy::py_setattro(PyObject *attr, PyObject *pyvalue)
 		pos.y() = val;
 		m_vertex->SetXYZ(pos);
 		m_mesh->SetMeshModified(true);
-		return 0;
+		return PY_SET_ATTR_SUCCESS;
 	}
 	
 	if (!strcmp(attr_str, "z"))
@@ -239,7 +239,7 @@ int    KX_VertexProxy::py_setattro(PyObject *attr, PyObject *pyvalue)
 		pos.z() = val;
 		m_vertex->SetXYZ(pos);
 		m_mesh->SetMeshModified(true);
-		return 0;
+		return PY_SET_ATTR_SUCCESS;
 	}
 	
 	// uv
@@ -249,7 +249,7 @@ int    KX_VertexProxy::py_setattro(PyObject *attr, PyObject *pyvalue)
 		uv[0] = val;
 		m_vertex->SetUV(uv);
 		m_mesh->SetMeshModified(true);
-		return 0;
+		return PY_SET_ATTR_SUCCESS;
 	}
 
 	if (!strcmp(attr_str, "v"))
@@ -257,7 +257,7 @@ int    KX_VertexProxy::py_setattro(PyObject *attr, PyObject *pyvalue)
 		uv[1] = val;
 		m_vertex->SetUV(uv);
 		m_mesh->SetMeshModified(true);
-		return 0;
+		return PY_SET_ATTR_SUCCESS;
 	}
 
 	// uv
@@ -275,7 +275,7 @@ int    KX_VertexProxy::py_setattro(PyObject *attr, PyObject *pyvalue)
 		uv[1] = val;
 		m_vertex->SetUV2(uv);
 		m_mesh->SetMeshModified(true);
-		return 0;
+		return PY_SET_ATTR_SUCCESS;
 	}
 	
 	// col
@@ -287,28 +287,28 @@ int    KX_VertexProxy::py_setattro(PyObject *attr, PyObject *pyvalue)
 		cp[0] = (unsigned char) val;
 		m_vertex->SetRGBA(icol);
 		m_mesh->SetMeshModified(true);
-		return 0;
+		return PY_SET_ATTR_SUCCESS;
 	}
 	if (!strcmp(attr_str, "g"))
 	{
 		cp[1] = (unsigned char) val;
 		m_vertex->SetRGBA(icol);
 		m_mesh->SetMeshModified(true);
-		return 0;
+		return PY_SET_ATTR_SUCCESS;
 	}
 	if (!strcmp(attr_str, "b"))
 	{
 		cp[2] = (unsigned char) val;
 		m_vertex->SetRGBA(icol);
 		m_mesh->SetMeshModified(true);
-		return 0;
+		return PY_SET_ATTR_SUCCESS;
 	}
 	if (!strcmp(attr_str, "a"))
 	{
 		cp[3] = (unsigned char) val;
 		m_vertex->SetRGBA(icol);
 		m_mesh->SetMeshModified(true);
-		return 0;
+		return PY_SET_ATTR_SUCCESS;
 	}
   }
   

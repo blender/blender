@@ -331,7 +331,7 @@ PyObject*	KX_VehicleWrapper::py_getattro(PyObject *attr)
 
 int	KX_VehicleWrapper::py_setattro(PyObject *attr,PyObject* pyobj)
 {
-	
+	/* TODO - strange setattr, needs updating */
 	PyTypeObject* type = pyobj->ob_type;
 	int result = 1;
 
