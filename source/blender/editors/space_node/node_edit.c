@@ -1135,11 +1135,11 @@ static int node_size_widget_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_PASS_THROUGH;
 }
 
-void NODE_OT_size_widget(wmOperatorType *ot)
+void NODE_OT_widget_size(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Scale Node";
-	ot->idname= "NODE_OT_size_widget";
+	ot->idname= "NODE_OT_widget_size";
 	
 	/* api callbacks */
 	ot->invoke= node_size_widget_invoke;

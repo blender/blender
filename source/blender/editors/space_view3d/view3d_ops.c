@@ -224,7 +224,7 @@ void view3d_keymap(wmWindowManager *wm)
 	RNA_enum_set(WM_keymap_add_item(keymap, "PAINT_OT_texture_paint_radial_control", FKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "mode", WM_RADIALCONTROL_STRENGTH);
 
 	/* TODO - this is just while we have no way to load a text datablock */
-	RNA_string_set(WM_keymap_add_item(keymap, "SCRIPT_OT_run_pyfile", PKEY, KM_PRESS, 0, 0)->ptr, "filename", "test.py");
+	RNA_string_set(WM_keymap_add_item(keymap, "SCRIPT_OT_python_file_run", PKEY, KM_PRESS, 0, 0)->ptr, "filename", "test.py");
 
 	transform_keymap_for_space(wm, keymap, SPACE_VIEW3D);
 
