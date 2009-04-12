@@ -615,7 +615,7 @@ static EnumPropertyItem prop_actkeys_leftright_select_types[] = {
 /* ------------------- */
  
 /* option 1) select keyframe directly under mouse */
-static void actkeys_select_single (bAnimContext *ac, bAnimListElem *ale, short select_mode, float selx)
+static void actkeys_mselect_single (bAnimContext *ac, bAnimListElem *ale, short select_mode, float selx)
 {
 	bDopeSheet *ads= (ac->datatype == ANIMCONT_DOPESHEET) ? ac->data : NULL;
 	int ds_filter = ((ads) ? (ads->filterflag) : (0));
@@ -634,7 +634,7 @@ static void actkeys_select_single (bAnimContext *ac, bAnimListElem *ale, short s
 }
 
 /* Option 2) Selects all the keyframes on either side of the current frame (depends on which side the mouse is on) */
-static void actkeys_select_leftright (bAnimContext *ac, short leftright, short select_mode)
+static void actkeys_mselect_leftright (bAnimContext *ac, short leftright, short select_mode)
 {
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
@@ -694,7 +694,7 @@ static void actkeys_select_leftright (bAnimContext *ac, short leftright, short s
 }
 
 /* Option 3) Selects all visible keyframes in the same frame as the mouse click */
-static void actkeys_select_column(bAnimContext *ac, short select_mode, float selx)
+static void actkeys_mselect_column(bAnimContext *ac, short select_mode, float selx)
 {
 	ListBase anim_data= {NULL, NULL};
 	bAnimListElem *ale;
@@ -905,11 +905,11 @@ static void mouse_action_keys (bAnimContext *ac, int mval[2], short select_mode,
 		}
 		else if (column) {
 			/* select all keyframes in the same frame as the one we hit on the active channel */
-			actkeys_select_column(ac, select_mode, selx);
+			actkeys_mselect_column(ac, select_mode, selx);
 		}
 		else {
 			/* select the nominated keyframe on the given frame */
-			actkeys_select_single(ac, ale, select_mode, selx);
+			actkeys_mselect_single(ac, ale, select_mode, selx);
 		}
 		
 		/* free this channel */
@@ -960,7 +960,7 @@ static int actkeys_clickselect_invoke(bContext *C, wmOperator *op, wmEvent *even
 		else 	
 			RNA_int_set(op->ptr, "left_right", ACTKEYS_LRSEL_RIGHT);
 		
-		actkeys_select_leftright(&ac, RNA_enum_get(op->ptr, "left_right"), selectmode);
+		actkeys_mselect_leftright(&ac, RNA_enum_get(op->ptr, "left_right"), selectmode);
 	}
 	else {
 		/* select keyframe(s) based upon mouse position*/
