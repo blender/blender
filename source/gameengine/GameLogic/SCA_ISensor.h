@@ -113,7 +113,7 @@ public:
 	virtual void RegisterToManager();
 	virtual void UnregisterToManager();
 
-	virtual float GetNumber();
+	virtual double GetNumber();
 
 	/** Stop sensing for a while. */
 	void Suspend();

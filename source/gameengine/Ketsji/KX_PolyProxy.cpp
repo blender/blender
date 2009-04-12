@@ -177,7 +177,7 @@ CValue*		KX_PolyProxy::Calc(VALUE_OPERATOR, CValue *) { return NULL;}
 CValue*		KX_PolyProxy::CalcFinal(VALUE_DATA_TYPE, VALUE_OPERATOR, CValue *) { return NULL;}	
 STR_String	sPolyName="polygone";
 const STR_String &	KX_PolyProxy::GetText() {return sPolyName;};
-float		KX_PolyProxy::GetNumber() { return -1;}
+double		KX_PolyProxy::GetNumber() { return -1;}
 STR_String	KX_PolyProxy::GetName() { return sPolyName;}
 void		KX_PolyProxy::SetName(STR_String) { };
 CValue*		KX_PolyProxy::GetReplica() { return NULL;}

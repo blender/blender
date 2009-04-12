@@ -69,7 +69,7 @@ public:
 	virtual CValue*	CalcFinal(VALUE_DATA_TYPE dtype, VALUE_OPERATOR op, CValue *val);
 
 	virtual const STR_String &	GetText();
-	virtual float		GetNumber();
+	virtual double		GetNumber();
 	virtual STR_String	GetName();
 	virtual void		SetName(STR_String name);
 	virtual void		ReplicaSetName(STR_String name);

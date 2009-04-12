@@ -32,7 +32,7 @@ public:
 	//bool IsInside(float x,float y,float z,bool bBorderInclude=true);
 	bool NeedsRecalculated();
 	void ClearModified();
-	virtual float GetNumber();
+	virtual double GetNumber();
 	virtual CValue* Calculate();
 	CConstExpr(CValue* constval);
 	CConstExpr();

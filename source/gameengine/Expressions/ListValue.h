@@ -36,7 +36,7 @@ public:
 	virtual CValue* CalcFinal(VALUE_DATA_TYPE dtype,
 							  VALUE_OPERATOR op,
 							  CValue* val);
-	virtual float GetNumber();
+	virtual double GetNumber();
 	virtual CValue* GetReplica();
 
 public:

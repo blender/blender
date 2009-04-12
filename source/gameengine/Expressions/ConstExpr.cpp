@@ -84,7 +84,7 @@ void CConstExpr::ClearModified()
 
 
 
-float CConstExpr::GetNumber()
+double CConstExpr::GetNumber()
 {
 	return -1;
 }

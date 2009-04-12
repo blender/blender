@@ -561,7 +561,7 @@ void CListValue::Add(CValue* value)
 
 
 
-float CListValue::GetNumber()
+double CListValue::GetNumber()
 {
 	return -1;
 }

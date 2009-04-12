@@ -120,7 +120,7 @@ CValue*		KX_MeshProxy::Calc(VALUE_OPERATOR op, CValue *val) { return NULL;}
 CValue*		KX_MeshProxy::CalcFinal(VALUE_DATA_TYPE dtype, VALUE_OPERATOR op, CValue *val) { return NULL;}	
 
 const STR_String &	KX_MeshProxy::GetText() {return m_meshobj->GetName();};
-float		KX_MeshProxy::GetNumber() { return -1;}
+double		KX_MeshProxy::GetNumber() { return -1;}
 STR_String	KX_MeshProxy::GetName() { return m_meshobj->GetName();}
 void		KX_MeshProxy::SetName(STR_String name) { };
 CValue*		KX_MeshProxy::GetReplica() { return NULL;}

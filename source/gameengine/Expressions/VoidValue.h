@@ -47,7 +47,7 @@ public:
 
 	/// Value -> String or number
 	virtual const STR_String &	GetText();												// Get string description of void value (unimplemented)
-	virtual float		GetNumber()												{ return -1; }
+	virtual double		GetNumber()												{ return -1; }
 
 	/// Value calculation
 	virtual CValue*		Calc(VALUE_OPERATOR op, CValue *val);

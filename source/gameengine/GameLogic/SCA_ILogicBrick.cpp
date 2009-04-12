@@ -123,7 +123,7 @@ const STR_String& SCA_ILogicBrick::GetText()
 
 
 
-float SCA_ILogicBrick::GetNumber()
+double SCA_ILogicBrick::GetNumber()
 {
 	return -1;
 }

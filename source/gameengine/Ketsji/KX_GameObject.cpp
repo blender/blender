@@ -164,7 +164,7 @@ const STR_String & KX_GameObject::GetText()
 
 
 
-float KX_GameObject::GetNumber()
+double KX_GameObject::GetNumber()
 {
 	return 0;
 }

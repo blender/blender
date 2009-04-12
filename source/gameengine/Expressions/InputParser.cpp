@@ -319,12 +319,14 @@ void CParser::NextSym()
 	}
 }
 
+#if 0
 int CParser::MakeInt() {
 	// returns the integer representation of the value in the global
 	// variable const_as_string
 	// pre: const_as_string contains only numercal chars
 	return atoi(const_as_string);
 }
+#endif
 
 STR_String CParser::Symbol2Str(int s) {
 	// returns a string representation of of symbol s,
@@ -436,8 +438,8 @@ CExpression *CParser::Ex(int i) {
 					break;
 				case inttype:
 					{
-						int temp;
-						temp = atoi(const_as_string);
+						cInt temp;
+						temp = strtoll(const_as_string, NULL, 10); /* atoi is for int only */
 						e1 = new CConstExpr(new CIntValue(temp));
 						break;
 					}
@@ -580,7 +582,7 @@ float CParser::GetFloat(STR_String txt)
 	CExpression* expr = ProcessText(txt);
 	if (expr) {
 		val = expr->Calculate();
-		result=val->GetNumber();
+		result=(float)val->GetNumber();
 		
 		
 	

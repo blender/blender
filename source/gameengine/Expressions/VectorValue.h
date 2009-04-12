@@ -32,7 +32,7 @@ public:
 	void SetVector(double newvec[]);
 	void Configure(CValue* menuvalue);
 	virtual double* GetVector3(bool bGetTransformedVec=false);
-	virtual float		GetNumber();
+	virtual double		GetNumber();
 	
 	CValue*		Calc(VALUE_OPERATOR op, CValue *val) {
 		return val->CalcFinal(VALUE_VECTOR_TYPE, op, this);

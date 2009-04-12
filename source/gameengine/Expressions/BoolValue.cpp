@@ -181,9 +181,9 @@ ret: the bool stored in the object
 
 
 
-float CBoolValue::GetNumber()
+double CBoolValue::GetNumber()
 {
-	return (float)m_bool;
+	return (double)m_bool;
 }
 
 

@@ -28,7 +28,7 @@ public:
 	virtual const STR_String & GetText();
 
 	void Configure(CValue* menuvalue);
-	virtual float GetNumber();
+	virtual double GetNumber();
 	virtual void SetValue(CValue* newval);
 	float GetFloat();
 	void SetFloat(float fl);

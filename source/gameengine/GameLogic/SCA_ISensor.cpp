@@ -105,7 +105,7 @@ void SCA_ISensor::SetLevel(bool lvl) {
 }
 
 
-float SCA_ISensor::GetNumber() {
+double SCA_ISensor::GetNumber() {
 	return IsPositiveTrigger();
 }
 

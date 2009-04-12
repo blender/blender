@@ -208,7 +208,7 @@ public:
 	/**
 	 * Inherited from CValue -- does nothing!
 	 */
-		float				
+		double
 	GetNumber(
 	);
 

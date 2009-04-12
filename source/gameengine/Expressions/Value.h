@@ -306,7 +306,7 @@ public:
 	virtual void		SetColorOperator(VALUE_OPERATOR op);
 
 	virtual const STR_String &	GetText() = 0;
-	virtual float		GetNumber() = 0;
+	virtual double		GetNumber() = 0;
 	double*				ZeroVector() { return m_sZeroVec; };
 	virtual double*		GetVector3(bool bGetTransformedVec = false);
 

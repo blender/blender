@@ -86,20 +86,17 @@ int MyPyCompare (PyObject* v,PyObject* w)
 int cvalue_coerce(PyObject** pv,PyObject** pw)
 {
 	if (PyInt_Check(*pw)) {
-		double db  = (double)PyInt_AsLong(*pw);
-		*pw = new CIntValue((int) db);
+		*pw = new CIntValue((cInt)PyInt_AsLong(*pw));
 		Py_INCREF(*pv);
 		return 0;
 	}
 	else if (PyLong_Check(*pw)) {
-		double db = PyLong_AsDouble(*pw);
-		*pw = new CFloatValue(db);
+		*pw = new CIntValue((cInt)PyLong_AsLongLong(*pw));
 		Py_INCREF(*pv);
 		return 0;
 	}
 	else if (PyFloat_Check(*pw)) {
-		double db = PyFloat_AsDouble(*pw);
-		*pw = new CFloatValue(db);
+		*pw = new CFloatValue((float)PyFloat_AsDouble(*pw));
 		Py_INCREF(*pv);
 		return 0;
 	} else if (PyString_Check(*pw)) {
@@ -108,6 +105,8 @@ int cvalue_coerce(PyObject** pv,PyObject** pw)
 		Py_INCREF(*pv);
 		return 0;
 	}
+	
+	PyErr_SetString(PyExc_TypeError, "unable to coerce python type to cvalue");
 	return 1; /* Can't do it */
 
 }
@@ -402,7 +401,7 @@ float CValue::GetPropertyNumber(const STR_String& inName,float defnumber)
 {
 	CValue *property = GetProperty(inName);
 	if (property)
-		return property->GetNumber();
+		return property->GetNumber(); 
 	else
 		return defnumber;
 }
@@ -757,7 +756,11 @@ CValue* CValue::ConvertPythonToValue(PyObject* pyobj)
 	} else
 	if (PyInt_Check(pyobj))
 	{
-		vallie = new CIntValue( (int)PyInt_AS_LONG(pyobj) );
+		vallie = new CIntValue( (cInt)PyInt_AS_LONG(pyobj) );
+	} else
+	if (PyLong_Check(pyobj))
+	{
+		vallie = new CIntValue( (cInt)PyLong_AsLongLong(pyobj) );
 	} else
 	if (PyString_Check(pyobj))
 	{
