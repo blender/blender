@@ -4112,11 +4112,11 @@ static int armature_align_bones_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void ARMATURE_OT_align_bones(wmOperatorType *ot)
+void ARMATURE_OT_bones_align(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Align Bones";
-	ot->idname= "ARMATURE_OT_align_bones";
+	ot->idname= "ARMATURE_OT_bones_align";
 	
 	/* api callbacks */
 	ot->invoke = WM_operator_confirm;

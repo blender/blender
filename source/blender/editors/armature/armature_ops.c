@@ -110,7 +110,7 @@ void ED_operatortypes_armature(void)
 	/* EDIT ARMATURE */
 	WM_operatortype_append(ARMATURE_OT_bone_primitive_add);
 	
-	WM_operatortype_append(ARMATURE_OT_align_bones);
+	WM_operatortype_append(ARMATURE_OT_bones_align);
 	WM_operatortype_append(ARMATURE_OT_calculate_roll);
 	WM_operatortype_append(ARMATURE_OT_switch_direction);
 	WM_operatortype_append(ARMATURE_OT_subdivs);
@@ -167,7 +167,7 @@ void ED_keymap_armature(wmWindowManager *wm)
 	
 	/* only set in editmode armature, by space_view3d listener */
 //	WM_keymap_add_item(keymap, "ARMATURE_OT_hide", HKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "ARMATURE_OT_align_bones", AKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
+	WM_keymap_add_item(keymap, "ARMATURE_OT_bones_align", AKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
 	WM_keymap_add_item(keymap, "ARMATURE_OT_calculate_roll", NKEY, KM_PRESS, KM_CTRL, 0);
 	
 	WM_keymap_add_item(keymap, "ARMATURE_OT_switch_direction", FKEY, KM_PRESS, KM_ALT, 0);
