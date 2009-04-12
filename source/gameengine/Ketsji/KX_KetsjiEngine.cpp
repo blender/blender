@@ -898,6 +898,9 @@ void KX_KetsjiEngine::Render()
 		}
 	} // if(m_rasterizer->Stereo())
 
+	// run the 2dfilters and motion blur once for all the scenes
+	PostRenderFrame();
+
 	EndFrame();
 }
 
@@ -1264,16 +1267,12 @@ void KX_KetsjiEngine::RenderFrame(KX_Scene* scene, KX_Camera* cam)
 		scene->GetPhysicsEnvironment()->debugDrawWorld();
 	
 	m_rasterizer->FlushDebugLines();
-
-	PostRenderFrame();
 }
 
 void KX_KetsjiEngine::PostRenderFrame()
 {
-	m_rendertools->PushMatrix();
 	m_rendertools->Render2DFilters(m_canvas);
 	m_rendertools->MotionBlur(m_rasterizer);
-	m_rendertools->PopMatrix();
 }
 
 void KX_KetsjiEngine::StopEngine()
