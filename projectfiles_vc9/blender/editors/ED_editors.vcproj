@@ -222,6 +222,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\editors\include\ED_image.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\include\ED_interface.h"
 				>
 			</File>
@@ -282,6 +286,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\editors\include\ED_text.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\include\ED_transform.h"
 				>
 			</File>
@@ -311,10 +319,6 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\editors\include\UI_resources.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\editors\include\UI_text.h"
 				>
 			</File>
 			<File
@@ -367,6 +371,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\editors\interface\interface_anim.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\interface\interface_draw.c"
 				>
 			</File>
@@ -395,6 +403,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\editors\interface\interface_style.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\interface\interface_utils.c"
 				>
 			</File>
@@ -408,10 +420,6 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\editors\interface\resources.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\editors\interface\text.c"
 				>
 			</File>
 			<File
@@ -968,6 +976,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\editors\animation\anim_ops.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\animation\drivers.c"
 				>
 			</File>
 			<File
