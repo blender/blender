@@ -106,6 +106,7 @@ static int setup_armature_weakrefs()
 {
 	PyObject *maindict;
 	PyObject *main_module;
+	PyObject *list;
 	char *list_name = ARM_WEAKREF_LIST_NAME;
 
 	main_module = PyImport_AddModule( "__main__");
@@ -121,14 +122,14 @@ static int setup_armature_weakrefs()
 			PyDict_DelItemString(maindict,list_name);
 			Py_XDECREF( weakreflink );
 		}
-
-		if (PyDict_SetItemString(maindict, 
-								 list_name, 
-								 PyList_New(0)) == -1){
+		
+		list= PyList_New(0);
+		if (PyDict_SetItemString(maindict, list_name, list) == -1){
 			printf("Oops - setup_armature_weakrefs()\n");
-			
+			Py_DECREF(list);
 			return 0;
 		}
+		Py_DECREF(list); /* the dict owns it now */
 	}
 	return 1;
 }
@@ -1238,12 +1239,13 @@ static int bpy_pydriver_create_dict(void)
 
 	/* import some modules: builtins, Blender, math, Blender.noise */
 
-	PyDict_SetItemString(d, "__builtins__", PyEval_GetBuiltins());
+	PyDict_SetItemString(d, "__builtins__", PyEval_GetBuiltins()); /* borrow ref, ok */
 
 	mod = PyImport_ImportModule("Blender");
 	if (mod) {
 		PyDict_SetItemString(d, "Blender", mod);
 		PyDict_SetItemString(d, "b", mod);
+		Py_DECREF(mod);
 		Py_DECREF(mod);
 	} else {
 		PyErr_Clear();
@@ -1257,12 +1259,14 @@ static int bpy_pydriver_create_dict(void)
 		PyDict_SetItemString(d, "math", mod);
 		PyDict_SetItemString(d, "m", mod);
 		Py_DECREF(mod);
+		Py_DECREF(mod);
 	} 
 
 	mod = PyImport_ImportModule("Blender.Noise");
 	if (mod) {
 		PyDict_SetItemString(d, "noise", mod);
 		PyDict_SetItemString(d, "n", mod);
+		Py_DECREF(mod);
 		Py_DECREF(mod);
 	} else {
 		PyErr_Clear();
@@ -1275,6 +1279,7 @@ static int bpy_pydriver_create_dict(void)
 		if (mod) {
 			PyDict_SetItemString(d, "pydrivers", mod);
 			PyDict_SetItemString(d, "p", mod);
+			Py_DECREF(mod);
 			Py_DECREF(mod);
 		} else {
 			PyErr_Clear();
