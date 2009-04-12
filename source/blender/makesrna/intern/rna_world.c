@@ -186,7 +186,7 @@ static void rna_def_ambient_occlusion(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "error_tolerance", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "ao_approx_error");
-	RNA_def_property_range(prop, 0.0001, 1);
+	RNA_def_property_range(prop, 0.0001, 10);
 	RNA_def_property_ui_text(prop, "Error Tolerance", "Low values are slower and higher quality (for Approximate).");
 
 	prop= RNA_def_property(srna, "correction", PROP_FLOAT, PROP_NONE);
@@ -204,7 +204,7 @@ static void rna_def_ambient_occlusion(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "samples", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "aosamp");
-	RNA_def_property_range(prop, 0, 1);
+	RNA_def_property_range(prop, 1, 32);
 	RNA_def_property_ui_text(prop, "Samples", "");
 
 	prop= RNA_def_property(srna, "blend_mode", PROP_ENUM, PROP_NONE);
@@ -390,7 +390,7 @@ void RNA_def_world(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "physics_gravity", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "gravity");
-	RNA_def_property_range(prop, 0.0, 20.0);
+	RNA_def_property_range(prop, 0.0, 25.0);
 	RNA_def_property_ui_text(prop, "Physics Gravity", "Gravitational constant used for physics simulation in the game engine.");
 
 	/* nested structs */

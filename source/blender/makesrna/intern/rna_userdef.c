@@ -257,7 +257,7 @@ static void rna_def_userdef_theme_spaces_vertex(StructRNA *srna)
 	RNA_def_property_ui_text(prop, "Vertex Select", "");
 
 	prop= RNA_def_property(srna, "vertex_size", PROP_INT, PROP_NONE);
-	RNA_def_property_range(prop, 0, 255);
+	RNA_def_property_range(prop, 1, 10);
 	RNA_def_property_ui_text(prop, "Vertex Size", "");
 }
 
@@ -299,7 +299,7 @@ static void rna_def_userdef_theme_spaces_face(StructRNA *srna)
 	RNA_def_property_ui_text(prop, "Face Dot Selected", "");
 
 	prop= RNA_def_property(srna, "facedot_size", PROP_INT, PROP_NONE);
-	RNA_def_property_range(prop, 0, 255);
+	RNA_def_property_range(prop, 1, 10);
 	RNA_def_property_ui_text(prop, "Face Dot Size", "");
 }
 
@@ -1306,12 +1306,12 @@ static void rna_def_userdef_view(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "ndof_pan_speed", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "ndof_pan");
-	RNA_def_property_range(prop, 4, 10);
+	RNA_def_property_range(prop, 0, 200);
 	RNA_def_property_ui_text(prop, "NDof Pan Speed", "The overall panning speed of an NDOF device, as percent of standard.");
 
 	prop= RNA_def_property(srna, "ndof_rotate_speed", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "ndof_rotate");
-	RNA_def_property_range(prop, 4, 10);
+	RNA_def_property_range(prop, 0, 200);
 	RNA_def_property_ui_text(prop, "NDof Rotation Speed", "The overall rotation speed of an NDOF device, as percent of standard.");
 }
 
@@ -1563,7 +1563,7 @@ static void rna_def_userdef_autosave(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "auto_save_time", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "savetime");
-	RNA_def_property_range(prop, 0, 32);
+	RNA_def_property_range(prop, 1, 60);
 	RNA_def_property_ui_text(prop, "Auto Save Time", "The time (in minutes) to wait between automatic temporary saves.");
 
 	prop= RNA_def_property(srna, "recent_files", PROP_INT, PROP_NONE);

@@ -212,13 +212,13 @@ void rna_def_scene_render_data(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "resolution_x", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "xsch");
-	RNA_def_property_range(prop, 0, 10000);
+	RNA_def_property_range(prop, 4, 10000);
 	RNA_def_property_ui_text(prop, "Resolution X", "Number of horizontal pixels in the rendered image.");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	
 	prop= RNA_def_property(srna, "resolution_y", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "ysch");
-	RNA_def_property_range(prop, 0, 10000);
+	RNA_def_property_range(prop, 4, 10000);
 	RNA_def_property_ui_text(prop, "Resolution Y", "Number of vertical pixels in the rendered image.");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	

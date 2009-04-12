@@ -311,8 +311,8 @@ static void rna_def_environment_map(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "clip_end", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "clipend");
 	RNA_def_property_range(prop, 0.01, FLT_MAX);
-	RNA_def_property_ui_range(prop, 0.01, 50, 100, 2);
-	RNA_def_property_ui_text(prop, "Clip Start", "Objects further than this are not visible to map.");
+	RNA_def_property_ui_range(prop, 0.10, 20000, 100, 2);
+	RNA_def_property_ui_text(prop, "Clip End", "Objects further than this are not visible to map.");
 
 	prop= RNA_def_property(srna, "zoom", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "viewscale");
@@ -621,7 +621,6 @@ static void rna_def_texture_stucci(BlenderRNA *brna)
 static void rna_def_texture_noise(BlenderRNA *brna)
 {
 	StructRNA *srna;
-	PropertyRNA *prop;
 
 	srna= RNA_def_struct(brna, "NoiseTexture", "Texture");
 	RNA_def_struct_ui_text(srna, "Noise Texture", "Procedural noise texture.");
@@ -691,12 +690,12 @@ static void rna_def_texture_image(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "repeat_x", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "xrepeat");
-	RNA_def_property_range(prop, 0, 512);
+	RNA_def_property_range(prop, 1, 512);
 	RNA_def_property_ui_text(prop, "Repeat X", "Sets a repetition multiplier in the X direction");
 
 	prop= RNA_def_property(srna, "repeat_y", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "yrepeat");
-	RNA_def_property_range(prop, 0, 512);
+	RNA_def_property_range(prop, 1, 512);
 	RNA_def_property_ui_text(prop, "Repeat Y", "Sets a repetition multiplier in the Y direction");
 
 	prop= RNA_def_property(srna, "mirror_x", PROP_BOOLEAN, PROP_NONE);
@@ -767,7 +766,6 @@ static void rna_def_texture_image(BlenderRNA *brna)
 static void rna_def_texture_plugin(BlenderRNA *brna)
 {
 	StructRNA *srna;
-	PropertyRNA *prop;
 
 	srna= RNA_def_struct(brna, "PluginTexture", "Texture");
 	RNA_def_struct_ui_text(srna, "Plugin", "External plugin texture.");
@@ -915,7 +913,7 @@ static void rna_def_texture_voronoi(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "noise_intensity", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "ns_outscale");
-	RNA_def_property_range(prop, 0, 10);
+	RNA_def_property_range(prop, 0.01, 10);
 	RNA_def_property_ui_text(prop, "Noise Intensity", "");
 
 	prop= RNA_def_property(srna, "noise_size", PROP_FLOAT, PROP_NONE);

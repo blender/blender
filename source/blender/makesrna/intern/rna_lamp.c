@@ -189,7 +189,7 @@ static void rna_def_lamp_sky_settings(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_LAMP|ND_SKY, NULL);
 
   	prop= RNA_def_property(srna, "backscattered_light", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_range(prop, -1.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Backscattered Light", "Backscattered light.");
 	RNA_def_property_update(prop, NC_LAMP|ND_SKY, NULL);
 
@@ -200,7 +200,7 @@ static void rna_def_lamp_sky_settings(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "atmosphere_turbidity", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "atm_turbidity");
-	RNA_def_property_range(prop, 0.0f, 30.0f);
+	RNA_def_property_range(prop, 1.0f, 30.0f);
 	RNA_def_property_ui_text(prop, "Atmosphere Turbidity", "Sky turbidity.");
 	RNA_def_property_update(prop, NC_LAMP|ND_SKY, NULL);
 
@@ -270,7 +270,7 @@ static void rna_def_lamp(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "distance", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "dist");
-	RNA_def_property_range(prop, 0.0f, 9999.0f);
+	RNA_def_property_range(prop, 0.01f, 5000.0f);
 	RNA_def_property_ui_text(prop, "Distance", "Falloff distance - the light is at half the original intensity at this point.");
 	RNA_def_property_update(prop, NC_LAMP|ND_LIGHTING_DRAW, NULL);
 
