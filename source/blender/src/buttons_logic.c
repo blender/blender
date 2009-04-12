@@ -1970,12 +1970,17 @@ static short draw_actuatorbuttons(Object *ob, bActuator *act, uiBlock *block, sh
 			
 			pa= act->data;
 			
-			str= "Type   %t|Assign   %x0|Add %x1|Copy %x2";
+			str= "Type%t|Assign%x0|Add %x1|Copy %x2|Toggle%x3";
 			uiDefButI(block, MENU, B_REDR, str,		xco+30,yco-24,width-60, 19, &pa->type, 0, 31, 0, 0, "Type");
 			
 			uiDefBut(block, TEX, 1, "Prop: ",		xco+30,yco-44,width-60, 19, pa->name, 0, 31, 0, 0, "Property name");
 			
-			if(pa->type==ACT_PROP_COPY) {
+			
+			if(pa->type==ACT_PROP_TOGGLE) {
+				/* no ui */
+				ysize -= 22;
+			}
+			else if(pa->type==ACT_PROP_COPY) {
 				uiDefIDPoinBut(block, test_obpoin_but, ID_OB, 1, "OB:",	xco+10, yco-64, (width-20)/2, 19, &(pa->ob), "Copy from this Object");
 				uiDefBut(block, TEX, 1, "Prop: ",		xco+10+(width-20)/2, yco-64, (width-20)/2, 19, pa->value, 0, 31, 0, 0, "Copy this property");
 			}

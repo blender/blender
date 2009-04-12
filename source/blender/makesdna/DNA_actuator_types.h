@@ -357,6 +357,7 @@ typedef struct FreeCamera {
 #define ACT_PROP_ASSIGN		0
 #define ACT_PROP_ADD		1
 #define ACT_PROP_COPY		2
+#define ACT_PROP_TOGGLE		3
 
 /* constraint flag */
 #define ACT_CONST_LOCX		1

@@ -135,6 +135,23 @@ bool SCA_PropertyActuator::Update()
 				}
 				break;
 			}
+		case KX_ACT_PROP_TOGGLE:
+			{
+				
+				CValue* newval;
+				CValue* oldprop = propowner->GetProperty(m_propname);
+				if (oldprop)
+				{
+					newval = new CBoolValue((oldprop->GetNumber()==0.0) ? true:false);
+					oldprop->SetValue(newval);
+				} else
+				{	/* as not been assigned, evaluate as false, so assign true */
+					newval = new CBoolValue(true);
+					propowner->SetProperty(m_propname,newval);
+				}
+				newval->Release();
+				break;
+			}
 		default:
 			{
 
