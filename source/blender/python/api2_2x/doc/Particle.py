@@ -141,6 +141,38 @@ class Particle:
 	@type childSize: float
 	@ivar childRand: Random variation to the size of the child particles
 	@type childRand: float
+	@ivar childRough1: Amount of location dependant rough
+	@type childRough1: float
+	@ivar childRough1Size: Size of location dependant rough
+	@type childRough1Size: float
+	@ivar childRough2: Amount of random rough
+	@type childRough2: float
+	@ivar childRough2Size: Size of random rough
+	@type childRough2Size: float
+	@ivar childRough2Thresh: Amount of particles left untouched by random rough
+	@type childRough2Thresh: float
+	@ivar childRoughE: Amount of end point rough
+	@type childRoughE: float
+	@ivar childRoughEShape: Shape of end point rough
+	@type childRoughEShape: float
+	@ivar childKink: Type of periodic offset on the path (Particle.CHILDKINK[ 'BRAID' | 'WAVE' | 'RADIAL' | 'CURL' | 'NOTHING' ])
+	@type childKink: int
+	@ivar childKinkAxis: Which axis to use for offset (Particle.CHILDKINKAXIS[ 'Z' | 'Y' | 'X' ])
+	@type childKinkAxis: int
+	@ivar childKinkFreq: The frequency of the offset (1/total length)
+	@type childKinkFreq: float
+	@ivar childKinkShape: Adjust the offset to the beginning/end
+	@type childKinkShape: float
+	@ivar childKinkAmp: The amplitude of the offset
+	@type childKinkAmp: float
+	@ivar childBranch: Branch child paths from eachother
+	@type childBranch: int
+	@ivar childBranch: Animate branching
+	@type childBranch: int
+	@ivar childBranch: Start and end points are the same
+	@type childBranch: int
+	@ivar childBranch: Threshold of branching
+	@type childBranch: float
 	"""
 	
 	def freeEdit():
