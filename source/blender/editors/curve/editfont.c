@@ -401,11 +401,11 @@ static int paste_file_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
-void FONT_OT_paste_file(wmOperatorType *ot)
+void FONT_OT_file_paste(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Paste File";
-	ot->idname= "FONT_OT_paste_file";
+	ot->idname= "FONT_OT_file_paste";
 	
 	/* api callbacks */
 	ot->exec= paste_file_exec;
@@ -449,11 +449,11 @@ static int paste_buffer_exec(bContext *C, wmOperator *op)
 	return paste_file(C, NULL, filename);
 }
 
-void FONT_OT_paste_buffer(wmOperatorType *ot)
+void FONT_OT_buffer_paste(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Paste Buffer";
-	ot->idname= "FONT_OT_paste_buffer";
+	ot->idname= "FONT_OT_buffer_paste";
 	
 	/* api callbacks */
 	ot->exec= paste_buffer_exec;
@@ -769,11 +769,11 @@ static int copy_text_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void FONT_OT_copy_text(wmOperatorType *ot)
+void FONT_OT_text_copy(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Copy Text";
-	ot->idname= "FONT_OT_copy_text";
+	ot->idname= "FONT_OT_text_copy";
 	
 	/* api callbacks */
 	ot->exec= copy_text_exec;
@@ -799,11 +799,11 @@ static int cut_text_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void FONT_OT_cut_text(wmOperatorType *ot)
+void FONT_OT_text_cut(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Cut Text";
-	ot->idname= "FONT_OT_cut_text";
+	ot->idname= "FONT_OT_text_cut";
 	
 	/* api callbacks */
 	ot->exec= cut_text_exec;
@@ -856,11 +856,11 @@ static int paste_text_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void FONT_OT_paste_text(wmOperatorType *ot)
+void FONT_OT_text_paste(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Paste Text";
-	ot->idname= "FONT_OT_paste_text";
+	ot->idname= "FONT_OT_text_paste";
 	
 	/* api callbacks */
 	ot->exec= paste_text_exec;
@@ -1374,11 +1374,11 @@ static int insert_text_invoke(bContext *C, wmOperator *op, wmEvent *evt)
 	return OPERATOR_FINISHED;
 }
 
-void FONT_OT_insert_text(wmOperatorType *ot)
+void FONT_OT_text_insert(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Insert Text";
-	ot->idname= "FONT_OT_insert_text";
+	ot->idname= "FONT_OT_text_insert";
 	
 	/* api callbacks */
 	ot->exec= insert_text_exec;

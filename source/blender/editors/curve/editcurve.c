@@ -3404,11 +3404,11 @@ static int add_vertex_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return add_vertex_exec(C, op);
 }
 
-void CURVE_OT_add_vertex(wmOperatorType *ot)
+void CURVE_OT_vertex_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add Vertex";
-	ot->idname= "CURVE_OT_add_vertex";
+	ot->idname= "CURVE_OT_vertex_add";
 	
 	/* api callbacks */
 	ot->exec= add_vertex_exec;

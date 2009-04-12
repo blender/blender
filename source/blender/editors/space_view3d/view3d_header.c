@@ -3481,37 +3481,37 @@ static void view3d_edit_text_charsmenu(bContext *C, uiMenuItem *head, void *arg_
 {
 	/* the character codes are specified in UTF-8 */
 
-	uiMenuItemStringO(head, "Copyright|Alt C", 0, "FONT_OT_insert_text", "text", "\xC2\xA9");
-	uiMenuItemStringO(head, "Registered Trademark|Alt R", 0, "FONT_OT_insert_text", "text", "\xC2\xAE");
+	uiMenuItemStringO(head, "Copyright|Alt C", 0, "FONT_OT_text_insert", "text", "\xC2\xA9");
+	uiMenuItemStringO(head, "Registered Trademark|Alt R", 0, "FONT_OT_text_insert", "text", "\xC2\xAE");
 
 	uiMenuSeparator(head);
 
-	uiMenuItemStringO(head, "Degree Sign|Alt G", 0, "FONT_OT_insert_text", "text", "\xC2\xB0");
-	uiMenuItemStringO(head, "Multiplication Sign|Alt x", 0, "FONT_OT_insert_text", "text", "\xC3\x97");
-	uiMenuItemStringO(head, "Circle|Alt .", 0, "FONT_OT_insert_text", "text", "\xC2\x8A");
-	uiMenuItemStringO(head, "Superscript 1|Alt 1", 0, "FONT_OT_insert_text", "text", "\xC2\xB9");
-	uiMenuItemStringO(head, "Superscript 2|Alt 2", 0, "FONT_OT_insert_text", "text", "\xC2\xB2");
-	uiMenuItemStringO(head, "Superscript 3|Alt 3", 0, "FONT_OT_insert_text", "text", "\xC2\xB3");
-	uiMenuItemStringO(head, "Double >>|Alt >", 0, "FONT_OT_insert_text", "text", "\xC2\xBB");
-	uiMenuItemStringO(head, "Double <<|Alt <", 0, "FONT_OT_insert_text", "text", "\xC2\xAB");
-	uiMenuItemStringO(head, "Promillage|Alt %", 0, "FONT_OT_insert_text", "text", "\xE2\x80\xB0");
+	uiMenuItemStringO(head, "Degree Sign|Alt G", 0, "FONT_OT_text_insert", "text", "\xC2\xB0");
+	uiMenuItemStringO(head, "Multiplication Sign|Alt x", 0, "FONT_OT_text_insert", "text", "\xC3\x97");
+	uiMenuItemStringO(head, "Circle|Alt .", 0, "FONT_OT_text_insert", "text", "\xC2\x8A");
+	uiMenuItemStringO(head, "Superscript 1|Alt 1", 0, "FONT_OT_text_insert", "text", "\xC2\xB9");
+	uiMenuItemStringO(head, "Superscript 2|Alt 2", 0, "FONT_OT_text_insert", "text", "\xC2\xB2");
+	uiMenuItemStringO(head, "Superscript 3|Alt 3", 0, "FONT_OT_text_insert", "text", "\xC2\xB3");
+	uiMenuItemStringO(head, "Double >>|Alt >", 0, "FONT_OT_text_insert", "text", "\xC2\xBB");
+	uiMenuItemStringO(head, "Double <<|Alt <", 0, "FONT_OT_text_insert", "text", "\xC2\xAB");
+	uiMenuItemStringO(head, "Promillage|Alt %", 0, "FONT_OT_text_insert", "text", "\xE2\x80\xB0");
 	
 	uiMenuSeparator(head);
 	
-	uiMenuItemStringO(head, "Dutch Florin|Alt F", 0, "FONT_OT_insert_text", "text", "\xC2\xA4");
-	uiMenuItemStringO(head, "British Pound|Alt L", 0, "FONT_OT_insert_text", "text", "\xC2\xA3");
-	uiMenuItemStringO(head, "Japanese Yen|Alt Y", 0, "FONT_OT_insert_text", "text", "\xC2\xA5");
+	uiMenuItemStringO(head, "Dutch Florin|Alt F", 0, "FONT_OT_text_insert", "text", "\xC2\xA4");
+	uiMenuItemStringO(head, "British Pound|Alt L", 0, "FONT_OT_text_insert", "text", "\xC2\xA3");
+	uiMenuItemStringO(head, "Japanese Yen|Alt Y", 0, "FONT_OT_text_insert", "text", "\xC2\xA5");
 	
 	uiMenuSeparator(head);
 	
-	uiMenuItemStringO(head, "German S|Alt S", 0, "FONT_OT_insert_text", "text", "\xC3\x9F");
-	uiMenuItemStringO(head, "Spanish Question Mark|Alt ?", 0, "FONT_OT_insert_text", "text", "\xC2\xBF");
-	uiMenuItemStringO(head, "Spanish Exclamation Mark|Alt !", 0, "FONT_OT_insert_text", "text", "\xC2\xA1");
+	uiMenuItemStringO(head, "German S|Alt S", 0, "FONT_OT_text_insert", "text", "\xC3\x9F");
+	uiMenuItemStringO(head, "Spanish Question Mark|Alt ?", 0, "FONT_OT_text_insert", "text", "\xC2\xBF");
+	uiMenuItemStringO(head, "Spanish Exclamation Mark|Alt !", 0, "FONT_OT_text_insert", "text", "\xC2\xA1");
 }
 
 static void view3d_edit_textmenu(bContext *C, uiMenuItem *head, void *arg_unused)
 {
-	uiMenuItemO(head, 0, "FONT_OT_paste_file");
+	uiMenuItemO(head, 0, "FONT_OT_file_paste");
 	uiMenuSeparator(head);
 	uiMenuLevel(head, "Special Characters", view3d_edit_text_charsmenu);
 }

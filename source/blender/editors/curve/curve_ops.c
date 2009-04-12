@@ -96,7 +96,7 @@ void CURVE_OT_specials_menu(wmOperatorType *ot)
 
 void ED_operatortypes_curve(void)
 {
-	WM_operatortype_append(FONT_OT_insert_text);
+	WM_operatortype_append(FONT_OT_text_insert);
 	WM_operatortype_append(FONT_OT_line_break);
 	WM_operatortype_append(FONT_OT_insert_lorem);
 
@@ -106,11 +106,11 @@ void ED_operatortypes_curve(void)
 	WM_operatortype_append(FONT_OT_style_set);
 	WM_operatortype_append(FONT_OT_material_set);
 
-	WM_operatortype_append(FONT_OT_copy_text);
-	WM_operatortype_append(FONT_OT_cut_text);
-	WM_operatortype_append(FONT_OT_paste_text);
-	WM_operatortype_append(FONT_OT_paste_file);
-	WM_operatortype_append(FONT_OT_paste_buffer);
+	WM_operatortype_append(FONT_OT_text_copy);
+	WM_operatortype_append(FONT_OT_text_cut);
+	WM_operatortype_append(FONT_OT_text_paste);
+	WM_operatortype_append(FONT_OT_file_paste);
+	WM_operatortype_append(FONT_OT_buffer_paste);
 
 	WM_operatortype_append(FONT_OT_move);
 	WM_operatortype_append(FONT_OT_move_select);
@@ -153,7 +153,7 @@ void ED_operatortypes_curve(void)
 	WM_operatortype_append(CURVE_OT_subdivide);
 	WM_operatortype_append(CURVE_OT_make_segment);
 	WM_operatortype_append(CURVE_OT_spin);
-	WM_operatortype_append(CURVE_OT_add_vertex);
+	WM_operatortype_append(CURVE_OT_vertex_add);
 	WM_operatortype_append(CURVE_OT_extrude);
 	WM_operatortype_append(CURVE_OT_cyclic_toggle);
 
@@ -200,18 +200,18 @@ void ED_keymap_curve(wmWindowManager *wm)
 	RNA_int_set(WM_keymap_add_item(keymap, "FONT_OT_change_character", UPARROWKEY, KM_PRESS, KM_ALT, 0)->ptr, "delta", 1);
 	RNA_int_set(WM_keymap_add_item(keymap, "FONT_OT_change_character", DOWNARROWKEY, KM_PRESS, KM_ALT, 0)->ptr, "delta", -1);
 
-	WM_keymap_add_item(keymap, "FONT_OT_copy_text", CKEY, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_add_item(keymap, "FONT_OT_cut_text", XKEY, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_add_item(keymap, "FONT_OT_paste_text", PKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "FONT_OT_text_copy", CKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "FONT_OT_text_cut", XKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "FONT_OT_text_paste", PKEY, KM_PRESS, KM_CTRL, 0);
 
 	WM_keymap_add_item(keymap, "FONT_OT_line_break", RETKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "FONT_OT_insert_text", KM_TEXTINPUT, KM_ANY, KM_ANY, 0); // last!
+	WM_keymap_add_item(keymap, "FONT_OT_text_insert", KM_TEXTINPUT, KM_ANY, KM_ANY, 0); // last!
 
 	/* only set in editmode curve, by space_view3d listener */
 	keymap= WM_keymap_listbase(wm, "Curve", 0, 0);
 	
 	WM_keymap_add_item(keymap, "OBJECT_OT_curve_add", AKEY, KM_PRESS, KM_SHIFT, 0);
-	WM_keymap_add_item(keymap, "CURVE_OT_add_vertex", ACTIONMOUSE, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "CURVE_OT_vertex_add", ACTIONMOUSE, KM_PRESS, KM_CTRL, 0);
 
 	WM_keymap_add_item(keymap, "CURVE_OT_select_all_toggle", AKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "CURVE_OT_select_row", RKEY, KM_PRESS, KM_SHIFT, 0);
