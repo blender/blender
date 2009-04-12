@@ -144,7 +144,7 @@ extern struct EditFace *EM_face_from_faces(EditMesh *em, struct EditFace *efa1,
 void MESH_OT_knife_cut(struct wmOperatorType *ot);
 
 /* ******************* editmesh_mods.c */
-void MESH_OT_select_loop(struct wmOperatorType *ot);
+void MESH_OT_loop_select(struct wmOperatorType *ot);
 void MESH_OT_select_all_toggle(struct wmOperatorType *ot);
 void MESH_OT_select_more(struct wmOperatorType *ot);
 void MESH_OT_select_less(struct wmOperatorType *ot);
@@ -154,20 +154,20 @@ void MESH_OT_select_linked(struct wmOperatorType *ot);
 void MESH_OT_select_linked_pick(struct wmOperatorType *ot);
 void MESH_OT_hide(struct wmOperatorType *ot);
 void MESH_OT_reveal(struct wmOperatorType *ot);
-void MESH_OT_consistant_normals(struct wmOperatorType *ot);
-void MESH_OT_select_linked_flat_faces(struct wmOperatorType *ot);
-void MESH_OT_select_sharp_edges(struct wmOperatorType *ot);
-void MESH_OT_select_path_shortest(struct wmOperatorType *ot);
-void MESH_OT_select_vertex_similar(struct wmOperatorType *ot);
-void MESH_OT_select_edge_similar(struct wmOperatorType *ot);
-void MESH_OT_select_face_similar(struct wmOperatorType *ot);
+void MESH_OT_normals_make_consistant(struct wmOperatorType *ot);
+void MESH_OT_faces_select_linked_flat(struct wmOperatorType *ot);
+void MESH_OT_edges_select_sharp(struct wmOperatorType *ot);
+void MESH_OT_path_select_shortest(struct wmOperatorType *ot);
+void MESH_OT_vertices_select_similar(struct wmOperatorType *ot);
+void MESH_OT_edges_select_similar(struct wmOperatorType *ot);
+void MESH_OT_faces_select_similar(struct wmOperatorType *ot);
 void MESH_OT_select_random(struct wmOperatorType *ot);
-void MESH_OT_vertices_to_sphere(struct wmOperatorType *ot);
+void MESH_OT_vertices_to_sphere_transform(struct wmOperatorType *ot);
 void MESH_OT_selection_type(struct wmOperatorType *ot);
-void MESH_OT_select_loop_multi(struct wmOperatorType *ot);
+void MESH_OT_loop_multi_select(struct wmOperatorType *ot);
 void MESH_OT_mark_seam(struct wmOperatorType *ot);
 void MESH_OT_mark_sharp(struct wmOperatorType *ot);
-void MESH_OT_smooth_vertex(struct wmOperatorType *ot);
+void MESH_OT_vertices_smooth(struct wmOperatorType *ot);
 void MESH_OT_flip_editnormals(struct wmOperatorType *ot);
 
 extern EditEdge *findnearestedge(ViewContext *vc, int *dist);

@@ -817,11 +817,11 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 	return OPERATOR_CANCELLED;
 }	
 
-void MESH_OT_select_face_similar(wmOperatorType *ot)
+void MESH_OT_faces_select_similar(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Similar Face Select";
-	ot->idname= "MESH_OT_select_face_similar";
+	ot->idname= "MESH_OT_faces_select_similar";
 	
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
@@ -1078,11 +1078,11 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 	return OPERATOR_CANCELLED;
 }
 
-void MESH_OT_select_edge_similar(wmOperatorType *ot)
+void MESH_OT_edges_select_similar(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Similar Edge Select";
-	ot->idname= "MESH_OT_select_edge_similar";
+	ot->idname= "MESH_OT_edges_select_similar";
 	
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
@@ -1248,11 +1248,11 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
 	return OPERATOR_CANCELLED;
 }
 
-void MESH_OT_select_vertex_similar(wmOperatorType *ot)
+void MESH_OT_vertices_select_similar(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Similar Vertex Select";
-	ot->idname= "MESH_OT_select_vertex_similar";
+	ot->idname= "MESH_OT_vertices_select_similar";
 	
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
@@ -1975,11 +1975,11 @@ static int loop_multiselect(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;	
 }
 
-void MESH_OT_select_loop_multi(wmOperatorType *ot)
+void MESH_OT_loop_multi_select(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Multi Select Loops";
-	ot->idname= "MESH_OT_select_loop_multi";
+	ot->idname= "MESH_OT_loop_multi_select";
 	
 	/* api callbacks */
 	ot->exec= loop_multiselect;
@@ -2053,11 +2053,11 @@ static int mesh_select_loop_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_FINISHED;
 }
 
-void MESH_OT_select_loop(wmOperatorType *ot)
+void MESH_OT_loop_select(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Loop Select";
-	ot->idname= "MESH_OT_select_loop";
+	ot->idname= "MESH_OT_loop_select";
 	
 	/* api callbacks */
 	ot->invoke= mesh_select_loop_invoke;
@@ -2152,11 +2152,11 @@ static int mesh_shortest_path_select_invoke(bContext *C, wmOperator *op, wmEvent
 	return OPERATOR_FINISHED;
 }
 	
-void MESH_OT_select_path_shortest(wmOperatorType *ot)
+void MESH_OT_path_select_shortest(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Shortest Path Select";
-	ot->idname= "MESH_OT_select_path_shortest";
+	ot->idname= "MESH_OT_path_select_shortest";
 	
 	/* api callbacks */
 	ot->invoke= mesh_shortest_path_select_invoke;
@@ -2872,11 +2872,11 @@ static int select_sharp_edges_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;	
 }
 
-void MESH_OT_select_sharp_edges(wmOperatorType *ot)
+void MESH_OT_edges_select_sharp(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select Sharp Edges";
-	ot->idname= "MESH_OT_select_sharp_edges";
+	ot->idname= "MESH_OT_edges_select_sharp";
 	
 	/* api callbacks */
 	ot->exec= select_sharp_edges_exec;
@@ -3039,11 +3039,11 @@ static int select_linked_flat_faces_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;	
 }
 
-void MESH_OT_select_linked_flat_faces(wmOperatorType *ot)
+void MESH_OT_faces_select_linked_flat(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select Linked Flat Faces";
-	ot->idname= "MESH_OT_select_linked_flat_faces";
+	ot->idname= "MESH_OT_faces_select_linked_flat";
 	
 	/* api callbacks */
 	ot->exec= select_linked_flat_faces_exec;
@@ -4069,11 +4069,11 @@ static int righthandfaces_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;	
 }
 
-void MESH_OT_consistant_normals(wmOperatorType *ot)
+void MESH_OT_normals_make_consistant(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Make Normals Consistant";
-	ot->idname= "MESH_OT_consistant_normals";
+	ot->idname= "MESH_OT_normals_make_consistant";
 	
 	/* api callbacks */
 	ot->exec= righthandfaces_exec;
@@ -4406,11 +4406,11 @@ static int smooth_vertex(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void MESH_OT_smooth_vertex(wmOperatorType *ot)
+void MESH_OT_vertices_smooth(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Smooth Vertex";
-	ot->idname= "MESH_OT_smooth_vertex";
+	ot->idname= "MESH_OT_vertices_smooth";
 	
 	/* api callbacks */
 	ot->exec= smooth_vertex;
@@ -4537,11 +4537,11 @@ static int vertices_to_sphere_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;	
 }
 
-void MESH_OT_vertices_to_sphere(wmOperatorType *ot)
+void MESH_OT_vertices_to_sphere_transform(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Vertices to Sphere";
-	ot->idname= "MESH_OT_vertices_to_sphere";
+	ot->idname= "MESH_OT_vertices_to_sphere_transform";
 	
 	/* api callbacks */
 	ot->exec= vertices_to_sphere_exec;
