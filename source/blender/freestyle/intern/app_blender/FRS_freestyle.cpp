@@ -119,9 +119,7 @@ extern "C" {
 
 	void init_camera(Render* re){
 		Object* maincam_obj = re->scene->camera;
-		Camera *cam = (Camera*) maincam_obj->data;
-
-		//view->setHorizontalFov( cam->angle );
+		// Camera *cam = (Camera*) maincam_obj->data;
 		
 		freestyle_viewpoint[0] = maincam_obj->obmat[3][0];
 		freestyle_viewpoint[1] = maincam_obj->obmat[3][1];
