@@ -139,7 +139,7 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_fgon_clear);
 	WM_operatortype_append(MESH_OT_fgon_make);
 	WM_operatortype_append(MESH_OT_duplicate_add);
-	WM_operatortype_append(MESH_OT_remove_doubles);
+	WM_operatortype_append(MESH_OT_doubles_remove);
 	WM_operatortype_append(MESH_OT_extrude);
 	WM_operatortype_append(MESH_OT_spin);
 	WM_operatortype_append(MESH_OT_screw);
@@ -151,15 +151,15 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_loop_to_region);
 	WM_operatortype_append(MESH_OT_region_to_loop);
 	
-	WM_operatortype_append(MESH_OT_rotate_uvs);
-	WM_operatortype_append(MESH_OT_mirror_uvs);
-	WM_operatortype_append(MESH_OT_rotate_colors);
-	WM_operatortype_append(MESH_OT_mirror_colors);
+	WM_operatortype_append(MESH_OT_uvs_rotate);
+	WM_operatortype_append(MESH_OT_uvs_mirror);
+	WM_operatortype_append(MESH_OT_colors_rotate);
+	WM_operatortype_append(MESH_OT_colors_mirror);
 	
 	WM_operatortype_append(MESH_OT_fill);
 	WM_operatortype_append(MESH_OT_beauty_fill);
-	WM_operatortype_append(MESH_OT_convert_quads_to_tris);
-	WM_operatortype_append(MESH_OT_convert_tris_to_quads);
+	WM_operatortype_append(MESH_OT_quads_to_tris_convert);
+	WM_operatortype_append(MESH_OT_tris_to_quads_convert);
 	WM_operatortype_append(MESH_OT_edge_flip);
 	WM_operatortype_append(MESH_OT_faces_shade_smooth);
 	WM_operatortype_append(MESH_OT_faces_shade_solid);
@@ -248,7 +248,7 @@ void ED_keymap_mesh(wmWindowManager *wm)
 	/*WM_keymap_add_item(keymap, "MESH_OT_subdivide_multi", WKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_subdivide_multi_fractal", WKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_subdivide_smooth", WKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);*/
-	WM_keymap_add_item(keymap, "MESH_OT_remove_doubles", VKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "MESH_OT_doubles_remove", VKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_extrude", EKEY, KM_PRESS, 0, 0);
 	
 	WM_keymap_add_item(keymap, "MESH_OT_spin", RKEY, KM_PRESS, KM_ALT, 0);
@@ -257,8 +257,8 @@ void ED_keymap_mesh(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "VIEW3D_OT_editmesh_face_toolbox", FKEY, KM_PRESS, KM_CTRL, 0); /* operators below are in this toolbox */
 	WM_keymap_add_item(keymap, "MESH_OT_fill", FKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_beauty_fill", FKEY, KM_PRESS, KM_ALT, 0);
-	WM_keymap_add_item(keymap, "MESH_OT_convert_quads_to_tris", TKEY, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_add_item(keymap, "MESH_OT_convert_tris_to_quads", JKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_add_item(keymap, "MESH_OT_quads_to_tris_convert", TKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "MESH_OT_tris_to_quads_convert", JKEY, KM_PRESS, KM_ALT, 0);
 	
 	WM_keymap_add_item(keymap, "MESH_OT_split", FOURKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_extrude_repeat", FOURKEY, KM_PRESS, KM_ALT, 0);
@@ -267,10 +267,10 @@ void ED_keymap_mesh(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "MESH_OT_loop_to_region",SIXKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_region_to_loop",SIXKEY, KM_PRESS, KM_ALT, 0);
 	
-	WM_keymap_add_item(keymap, "MESH_OT_rotate_uvs",SEVENKEY, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_add_item(keymap, "MESH_OT_mirror_uvs",SEVENKEY, KM_PRESS, KM_ALT, 0);
-	WM_keymap_add_item(keymap, "MESH_OT_rotate_colors",EIGHTKEY, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_add_item(keymap, "MESH_OT_mirror_colors",EIGHTKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_add_item(keymap, "MESH_OT_uvs_rotate",SEVENKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "MESH_OT_uvs_mirror",SEVENKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_add_item(keymap, "MESH_OT_colors_rotate",EIGHTKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "MESH_OT_colors_mirror",EIGHTKEY, KM_PRESS, KM_ALT, 0);
 
 	WM_keymap_add_item(keymap, "MESH_OT_rip",VKEY, KM_PRESS, 0, 0);
 

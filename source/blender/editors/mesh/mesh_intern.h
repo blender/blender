@@ -207,15 +207,15 @@ void MESH_OT_subdivs(struct wmOperatorType *ot);
 void MESH_OT_subdivide_multi(struct wmOperatorType *ot);
 void MESH_OT_subdivide_multi_fractal(struct wmOperatorType *ot);
 void MESH_OT_subdivide_smooth(struct wmOperatorType *ot);
-void MESH_OT_remove_doubles(struct wmOperatorType *ot);
+void MESH_OT_doubles_remove(struct wmOperatorType *ot);
 void MESH_OT_extrude(struct wmOperatorType *ot);
 void MESH_OT_spin(struct wmOperatorType *ot);
 void MESH_OT_screw(struct wmOperatorType *ot);
 
 void MESH_OT_fill(struct wmOperatorType *ot);
 void MESH_OT_beauty_fill(struct wmOperatorType *ot);
-void MESH_OT_convert_quads_to_tris(struct wmOperatorType *ot);
-void MESH_OT_convert_tris_to_quads(struct wmOperatorType *ot);
+void MESH_OT_quads_to_tris_convert(struct wmOperatorType *ot);
+void MESH_OT_tris_to_quads_convert(struct wmOperatorType *ot);
 void MESH_OT_edge_flip(struct wmOperatorType *ot);
 void MESH_OT_faces_shade_smooth(struct wmOperatorType *ot);
 void MESH_OT_faces_shade_solid(struct wmOperatorType *ot);
@@ -225,10 +225,10 @@ void MESH_OT_edge_rotate(struct wmOperatorType *ot);
 void MESH_OT_loop_to_region(struct wmOperatorType *ot);
 void MESH_OT_region_to_loop(struct wmOperatorType *ot);
 
-void MESH_OT_rotate_uvs(struct wmOperatorType *ot);
-void MESH_OT_mirror_uvs(struct wmOperatorType *ot);
-void MESH_OT_rotate_colors(struct wmOperatorType *ot);
-void MESH_OT_mirror_colors(struct wmOperatorType *ot);
+void MESH_OT_uvs_rotate(struct wmOperatorType *ot);
+void MESH_OT_uvs_mirror(struct wmOperatorType *ot);
+void MESH_OT_colors_rotate(struct wmOperatorType *ot);
+void MESH_OT_colors_mirror(struct wmOperatorType *ot);
 
 void MESH_OT_delete(struct wmOperatorType *ot);
 void MESH_OT_rip(struct wmOperatorType *ot);

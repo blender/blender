@@ -5560,8 +5560,8 @@ static int editmesh_face_toolbox_invoke(bContext *C, wmOperator *op, wmEvent *ev
 
 	uiMenuItemO(head, 0, "MESH_OT_fill");
 	uiMenuItemO(head, 0, "MESH_OT_beauty_fill");
-	uiMenuItemO(head, 0, "MESH_OT_convert_quads_to_tris");
-	uiMenuItemO(head, 0, "MESH_OT_convert_tris_to_quads");
+	uiMenuItemO(head, 0, "MESH_OT_quads_to_tris_convert");
+	uiMenuItemO(head, 0, "MESH_OT_tris_to_quads_convert");
 	uiMenuItemO(head, 0, "MESH_OT_edge_flip");
 	uiMenuItemO(head, 0, "MESH_OT_faces_shade_smooth");
 	uiMenuItemO(head, 0, "MESH_OT_faces_shade_solid");

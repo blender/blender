@@ -504,11 +504,11 @@ static int removedoublesflag_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;	
 }
 
-void MESH_OT_remove_doubles(wmOperatorType *ot)
+void MESH_OT_doubles_remove(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Remove Doubles";
-	ot->idname= "MESH_OT_remove_doubles";
+	ot->idname= "MESH_OT_doubles_remove";
 	
 	/* api callbacks */
 	ot->exec= removedoublesflag_exec;
@@ -6409,11 +6409,11 @@ static int mesh_mirror_colors(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void MESH_OT_rotate_uvs(wmOperatorType *ot)
+void MESH_OT_uvs_rotate(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Rotate UVs";
-	ot->idname= "MESH_OT_rotate_uvs";
+	ot->idname= "MESH_OT_uvs_rotate";
 	
 	/* api callbacks */
 	ot->exec= mesh_rotate_uvs;
@@ -6423,11 +6423,11 @@ void MESH_OT_rotate_uvs(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-void MESH_OT_mirror_uvs(wmOperatorType *ot)
+void MESH_OT_uvs_mirror(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Mirror UVs";
-	ot->idname= "MESH_OT_mirror_uvs";
+	ot->idname= "MESH_OT_uvs_mirror";
 	
 	/* api callbacks */
 	ot->exec= mesh_mirror_uvs;
@@ -6437,11 +6437,11 @@ void MESH_OT_mirror_uvs(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-void MESH_OT_rotate_colors(wmOperatorType *ot)
+void MESH_OT_colors_rotate(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Rotate Colors";
-	ot->idname= "MESH_OT_rotate_colors";
+	ot->idname= "MESH_OT_colors_rotate";
 	
 	/* api callbacks */
 	ot->exec= mesh_rotate_colors;
@@ -6451,11 +6451,11 @@ void MESH_OT_rotate_colors(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-void MESH_OT_mirror_colors(wmOperatorType *ot)
+void MESH_OT_colors_mirror(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Mirror Colors";
-	ot->idname= "MESH_OT_mirror_colors";
+	ot->idname= "MESH_OT_colors_mirror";
 	
 	/* api callbacks */
 	ot->exec= mesh_mirror_colors;
@@ -6967,11 +6967,11 @@ static int convert_quads_to_tris_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void MESH_OT_convert_quads_to_tris(wmOperatorType *ot)
+void MESH_OT_quads_to_tris_convert(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Quads to Tris";
-	ot->idname= "MESH_OT_convert_quads_to_tris";
+	ot->idname= "MESH_OT_quads_to_tris_convert";
 	
 	/* api callbacks */
 	ot->exec= convert_quads_to_tris_exec;
@@ -6994,11 +6994,11 @@ static int convert_tris_to_quads_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void MESH_OT_convert_tris_to_quads(wmOperatorType *ot)
+void MESH_OT_tris_to_quads_convert(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Tris to Quads";
-	ot->idname= "MESH_OT_convert_tris_to_quads";
+	ot->idname= "MESH_OT_tris_to_quads_convert";
 	
 	/* api callbacks */
 	ot->exec= convert_tris_to_quads_exec;
