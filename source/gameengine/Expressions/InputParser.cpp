@@ -39,7 +39,8 @@
 #include "IfExpr.h" 
 
 #if defined(WIN32) || defined(WIN64)
-#define strcasecmp _stricmp
+#define strcasecmp	_stricmp
+#define strtoll		_strtoi64
 #endif /* Def WIN32 or Def WIN64 */
 
 #define NUM_PRIORITY 6
