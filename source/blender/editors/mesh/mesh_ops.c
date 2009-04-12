@@ -126,16 +126,16 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_subdivs);
 	WM_operatortype_append(MESH_OT_select_linked_flat_faces);
 	WM_operatortype_append(MESH_OT_select_sharp_edges);
-	WM_operatortype_append(MESH_OT_add_primitive_plane);
-	WM_operatortype_append(MESH_OT_add_primitive_cube);
-	WM_operatortype_append(MESH_OT_add_primitive_circle);
-	WM_operatortype_append(MESH_OT_add_primitive_cylinder);
-	WM_operatortype_append(MESH_OT_add_primitive_tube);
-	WM_operatortype_append(MESH_OT_add_primitive_cone);
-	WM_operatortype_append(MESH_OT_add_primitive_grid);
-	WM_operatortype_append(MESH_OT_add_primitive_monkey);
-	WM_operatortype_append(MESH_OT_add_primitive_uv_sphere);
-	WM_operatortype_append(MESH_OT_add_primitive_ico_sphere);
+	WM_operatortype_append(MESH_OT_primitive_plane_add);
+	WM_operatortype_append(MESH_OT_primitive_cube_add);
+	WM_operatortype_append(MESH_OT_primitive_circle_add);
+	WM_operatortype_append(MESH_OT_primitive_cylinder_add);
+	WM_operatortype_append(MESH_OT_primitive_tube_add);
+	WM_operatortype_append(MESH_OT_primitive_cone_add);
+	WM_operatortype_append(MESH_OT_primitive_grid_add);
+	WM_operatortype_append(MESH_OT_primitive_monkey_add);
+	WM_operatortype_append(MESH_OT_primitive_uv_sphere_add);
+	WM_operatortype_append(MESH_OT_primitive_ico_sphere_add);
 	WM_operatortype_append(MESH_OT_fgon_clear);
 	WM_operatortype_append(MESH_OT_fgon_make);
 	WM_operatortype_append(MESH_OT_duplicate_add);
@@ -169,7 +169,7 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_separate);
 	WM_operatortype_append(MESH_OT_dupli_extrude_cursor);
 	WM_operatortype_append(MESH_OT_select_loop);
-	WM_operatortype_append(MESH_OT_add_edge_face);
+	WM_operatortype_append(MESH_OT_edge_face_add);
 	WM_operatortype_append(MESH_OT_select_path_shortest);
 	WM_operatortype_append(MESH_OT_select_vertex_similar);
 	WM_operatortype_append(MESH_OT_select_edge_similar);
@@ -275,7 +275,7 @@ void ED_keymap_mesh(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "MESH_OT_rip",VKEY, KM_PRESS, 0, 0);
 
 	/* add/remove */
-	WM_keymap_add_item(keymap, "MESH_OT_add_edge_face", FKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "MESH_OT_edge_face_add", FKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_duplicate_add", DKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "OBJECT_OT_mesh_add", AKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_separate", PKEY, KM_PRESS, KM_SHIFT, 0);

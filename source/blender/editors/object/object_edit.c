@@ -364,31 +364,31 @@ static int object_add_mesh_exec(bContext *C, wmOperator *op)
 
 	switch(RNA_enum_get(op->ptr, "type")) {
 		case 0:
-			WM_operator_name_call(C, "MESH_OT_add_primitive_plane", WM_OP_INVOKE_REGION_WIN, NULL);
+			WM_operator_name_call(C, "MESH_OT_primitive_plane_add", WM_OP_INVOKE_REGION_WIN, NULL);
 			break;
 		case 1:
-			WM_operator_name_call(C, "MESH_OT_add_primitive_cube", WM_OP_INVOKE_REGION_WIN, NULL);
+			WM_operator_name_call(C, "MESH_OT_primitive_cube_add", WM_OP_INVOKE_REGION_WIN, NULL);
 			break;
 		case 2:
-			WM_operator_name_call(C, "MESH_OT_add_primitive_circle", WM_OP_INVOKE_REGION_WIN, NULL);
+			WM_operator_name_call(C, "MESH_OT_primitive_circle_add", WM_OP_INVOKE_REGION_WIN, NULL);
 			break;
 		case 3:
-			WM_operator_name_call(C, "MESH_OT_add_primitive_uv_sphere", WM_OP_INVOKE_REGION_WIN, NULL);
+			WM_operator_name_call(C, "MESH_OT_primitive_uv_sphere_add", WM_OP_INVOKE_REGION_WIN, NULL);
 			break;
 		case 4:
-			WM_operator_name_call(C, "MESH_OT_add_primitive_ico_sphere", WM_OP_INVOKE_REGION_WIN, NULL);
+			WM_operator_name_call(C, "MESH_OT_primitive_ico_sphere_add", WM_OP_INVOKE_REGION_WIN, NULL);
 			break;
 		case 5:
-			WM_operator_name_call(C, "MESH_OT_add_primitive_cylinder", WM_OP_INVOKE_REGION_WIN, NULL);
+			WM_operator_name_call(C, "MESH_OT_primitive_cylinder_add", WM_OP_INVOKE_REGION_WIN, NULL);
 			break;
 		case 6:
-			WM_operator_name_call(C, "MESH_OT_add_primitive_cone", WM_OP_INVOKE_REGION_WIN, NULL);
+			WM_operator_name_call(C, "MESH_OT_primitive_cone_add", WM_OP_INVOKE_REGION_WIN, NULL);
 			break;
 		case 7:
-			WM_operator_name_call(C, "MESH_OT_add_primitive_grid", WM_OP_INVOKE_REGION_WIN, NULL);
+			WM_operator_name_call(C, "MESH_OT_primitive_grid_add", WM_OP_INVOKE_REGION_WIN, NULL);
 			break;
 		case 8:
-			WM_operator_name_call(C, "MESH_OT_add_primitive_monkey", WM_OP_INVOKE_REGION_WIN, NULL);
+			WM_operator_name_call(C, "MESH_OT_primitive_monkey_add", WM_OP_INVOKE_REGION_WIN, NULL);
 			break;
 	}
 	/* userdef */

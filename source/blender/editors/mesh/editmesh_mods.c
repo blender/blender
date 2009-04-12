@@ -4266,7 +4266,7 @@ static int smooth_vertex(bContext *C, wmOperator *op)
 	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	Mesh *me= obedit->data;
-	EditMesh *em= me; 
+	EditMesh *em= (EditMesh *)me; 
 
 	EditVert *eve, *eve_mir = NULL;
 	EditEdge *eed;

@@ -72,18 +72,18 @@ void em_setup_viewcontext(struct bContext *C, ViewContext *vc);
 void MESH_OT_separate(struct wmOperatorType *ot);
 
 /* ******************* editmesh_add.c */
-void MESH_OT_add_primitive_plane(struct wmOperatorType *ot);
-void MESH_OT_add_primitive_cube(struct wmOperatorType *ot);
-void MESH_OT_add_primitive_circle(struct wmOperatorType *ot);
-void MESH_OT_add_primitive_cylinder(struct wmOperatorType *ot);
-void MESH_OT_add_primitive_tube(struct wmOperatorType *ot);
-void MESH_OT_add_primitive_cone(struct wmOperatorType *ot);
-void MESH_OT_add_primitive_grid(struct wmOperatorType *ot);
-void MESH_OT_add_primitive_monkey(struct wmOperatorType *ot);
-void MESH_OT_add_primitive_uv_sphere(struct wmOperatorType *ot);
-void MESH_OT_add_primitive_ico_sphere(struct wmOperatorType *ot);
+void MESH_OT_primitive_plane_add(struct wmOperatorType *ot);
+void MESH_OT_primitive_cube_add(struct wmOperatorType *ot);
+void MESH_OT_primitive_circle_add(struct wmOperatorType *ot);
+void MESH_OT_primitive_cylinder_add(struct wmOperatorType *ot);
+void MESH_OT_primitive_tube_add(struct wmOperatorType *ot);
+void MESH_OT_primitive_cone_add(struct wmOperatorType *ot);
+void MESH_OT_primitive_grid_add(struct wmOperatorType *ot);
+void MESH_OT_primitive_monkey_add(struct wmOperatorType *ot);
+void MESH_OT_primitive_uv_sphere_add(struct wmOperatorType *ot);
+void MESH_OT_primitive_ico_sphere_add(struct wmOperatorType *ot);
 void MESH_OT_dupli_extrude_cursor(struct wmOperatorType *ot);
-void MESH_OT_add_edge_face(struct wmOperatorType *ot);
+void MESH_OT_edge_face_add(struct wmOperatorType *ot);
 
 void MESH_OT_fgon_make(struct wmOperatorType *ot);
 void MESH_OT_fgon_clear(struct wmOperatorType *ot);

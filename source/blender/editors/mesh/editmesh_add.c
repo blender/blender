@@ -797,11 +797,11 @@ static int addedgeface_mesh_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void MESH_OT_add_edge_face(wmOperatorType *ot)
+void MESH_OT_edge_face_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Make Edge/Face";
-	ot->idname= "MESH_OT_add_edge_face";
+	ot->idname= "MESH_OT_edge_face_add";
 	
 	/* api callbacks */
 	ot->exec= addedgeface_mesh_exec;
@@ -1321,11 +1321,11 @@ static int add_primitive_plane_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;	
 }
 
-void MESH_OT_add_primitive_plane(wmOperatorType *ot)
+void MESH_OT_primitive_plane_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add Plane";
-	ot->idname= "MESH_OT_add_primitive_plane";
+	ot->idname= "MESH_OT_primitive_plane_add";
 	
 	/* api callbacks */
 	ot->exec= add_primitive_plane_exec;
@@ -1351,11 +1351,11 @@ static int add_primitive_cube_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;	
 }
 
-void MESH_OT_add_primitive_cube(wmOperatorType *ot)
+void MESH_OT_primitive_cube_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add Cube";
-	ot->idname= "MESH_OT_add_primitive_cube";
+	ot->idname= "MESH_OT_primitive_cube_add";
 	
 	/* api callbacks */
 	ot->exec= add_primitive_cube_exec;
@@ -1381,11 +1381,11 @@ static int add_primitive_circle_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;	
 }
 
-void MESH_OT_add_primitive_circle(wmOperatorType *ot)
+void MESH_OT_primitive_circle_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add Circle";
-	ot->idname= "MESH_OT_add_primitive_circle";
+	ot->idname= "MESH_OT_primitive_circle_add";
 	
 	/* api callbacks */
 	ot->exec= add_primitive_circle_exec;
@@ -1416,11 +1416,11 @@ static int add_primitive_cylinder_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;	
 }
 
-void MESH_OT_add_primitive_cylinder(wmOperatorType *ot)
+void MESH_OT_primitive_cylinder_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add Cylinder";
-	ot->idname= "MESH_OT_add_primitive_cylinder";
+	ot->idname= "MESH_OT_primitive_cylinder_add";
 	
 	/* api callbacks */
 	ot->exec= add_primitive_cylinder_exec;
@@ -1451,11 +1451,11 @@ static int add_primitive_tube_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;	
 }
 
-void MESH_OT_add_primitive_tube(wmOperatorType *ot)
+void MESH_OT_primitive_tube_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add Tube";
-	ot->idname= "MESH_OT_add_primitive_tube";
+	ot->idname= "MESH_OT_primitive_tube_add";
 	
 	/* api callbacks */
 	ot->exec= add_primitive_tube_exec;
@@ -1486,11 +1486,11 @@ static int add_primitive_cone_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;	
 }
 
-void MESH_OT_add_primitive_cone(wmOperatorType *ot)
+void MESH_OT_primitive_cone_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add Cone";
-	ot->idname= "MESH_OT_add_primitive_cone";
+	ot->idname= "MESH_OT_primitive_cone_add";
 	
 	/* api callbacks */
 	ot->exec= add_primitive_cone_exec;
@@ -1523,11 +1523,11 @@ static int add_primitive_grid_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;	
 }
 
-void MESH_OT_add_primitive_grid(wmOperatorType *ot)
+void MESH_OT_primitive_grid_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add Grid";
-	ot->idname= "MESH_OT_add_primitive_grid";
+	ot->idname= "MESH_OT_primitive_grid_add";
 	
 	/* api callbacks */
 	ot->exec= add_primitive_grid_exec;
@@ -1556,11 +1556,11 @@ static int add_primitive_monkey_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;	
 }
 
-void MESH_OT_add_primitive_monkey(wmOperatorType *ot)
+void MESH_OT_primitive_monkey_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add Monkey";
-	ot->idname= "MESH_OT_add_primitive_monkey";
+	ot->idname= "MESH_OT_primitive_monkey_add";
 	
 	/* api callbacks */
 	ot->exec= add_primitive_monkey_exec;
@@ -1586,11 +1586,11 @@ static int add_primitive_uvsphere_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;	
 }
 
-void MESH_OT_add_primitive_uv_sphere(wmOperatorType *ot)
+void MESH_OT_primitive_uv_sphere_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add UV Sphere";
-	ot->idname= "MESH_OT_add_primitive_uv_sphere";
+	ot->idname= "MESH_OT_primitive_uv_sphere_add";
 	
 	/* api callbacks */
 	ot->exec= add_primitive_uvsphere_exec;
@@ -1621,11 +1621,11 @@ static int add_primitive_icosphere_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;	
 }
 
-void MESH_OT_add_primitive_ico_sphere(wmOperatorType *ot)
+void MESH_OT_primitive_ico_sphere_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add Ico Sphere";
-	ot->idname= "MESH_OT_add_primitive_ico_sphere";
+	ot->idname= "MESH_OT_primitive_ico_sphere_add";
 	
 	/* api callbacks */
 	ot->exec= add_primitive_icosphere_exec;
