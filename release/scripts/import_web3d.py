@@ -1566,7 +1566,8 @@ def importMesh_IndexedFaceSet(geom, bpyima, ancestry):
 	vcolor_spot = None # spot color when we dont have an array of colors
 	if vcolor:
 		# float to char
-		ifs_vcol = [[int(c*256) for c in col] for col in vcolor.getFieldAsArray('color', 3, ancestry)]
+		ifs_vcol = [(0,0,0)] # EEKADOODLE - vertex start at 1
+		ifs_vcol.extend([[int(c*256) for c in col] for col in vcolor.getFieldAsArray('color', 3, ancestry)])
 		ifs_color_index = geom.getFieldAsArray('colorIndex', 0, ancestry)
 		
 		if not ifs_vcol:
