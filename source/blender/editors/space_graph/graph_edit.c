@@ -336,6 +336,7 @@ void GRAPHEDIT_OT_ghost_curves_create (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Create Ghost Curves";
 	ot->idname= "GRAPHEDIT_OT_ghost_curves_create";
+	ot->description= "Create snapshot (Ghosts) of selected F-Curves as background aid for active Graph Editor.";
 	
 	/* api callbacks */
 	ot->exec= graphkeys_create_ghostcurves_exec;
@@ -378,6 +379,7 @@ void GRAPHEDIT_OT_ghost_curves_clear (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Create Ghost Curves";
 	ot->idname= "GRAPHEDIT_OT_ghost_curves_clear";
+	ot->description= "Clear F-Curve snapshots (Ghosts) for active Graph Editor.";
 	
 	/* api callbacks */
 	ot->exec= graphkeys_clear_ghostcurves_exec;

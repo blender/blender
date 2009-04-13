@@ -147,9 +147,8 @@ static void do_graph_region_driver_buttons(bContext *C, void *arg, int event)
 			/* rebuild depsgraph for the new deps */
 			DAG_scene_sort(scene);
 			
-			/* TODO: which one? we need some way of sending these updates since curves from non-active ob could be being edited */
-			//DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
-			//DAG_object_flush_update(scene, ob, OB_RECALC_OB);
+			/* force an update of depsgraph */
+			ED_anim_dag_flush_update(C);
 		}
 			break;
 	}
