@@ -642,6 +642,8 @@ typedef enum eKS_Contexts {
  *	   Therefore, here we have a system with nice, human-readable statements via macros, and static arrays which
  *	   are linked together using more special macros + struct definitions, allowing for such a generic + simple
  *	   initialisation function (init_builtin_keyingsets()) compared with that of something like the Nodes system.
+ *
+ * -- Joshua Leung, April 2009
  */
 
 /* Struct type for declaring builtin KeyingSets in as entries in static arrays*/
@@ -656,8 +658,12 @@ typedef struct bBuiltinKeyingSet {
 	 */
 
 /* macro for defining a builtin KeyingSet */
-#define BI_KS_DEFINE(name, keyingflag) \
-	{NULL, NULL, {NULL, NULL}, name, KEYINGSET_BUILTIN, keyingflag}
+#define BI_KS_DEFINE_BEGIN(name, keyingflag) \
+	{{NULL, NULL, {NULL, NULL}, name, KEYINGSET_BUILTIN, keyingflag},
+	
+/* macro to finish defining a builtin KeyingSet */
+#define BI_KS_DEFINE_END \
+	}
 	
 /* macro to start defining paths for a builtin KeyingSet */
 #define BI_KS_PATHS_BEGIN(tot) \
@@ -670,6 +676,10 @@ typedef struct bBuiltinKeyingSet {
 /* macro for defining a builtin KeyingSet's path */
 #define BI_KSP_DEFINE(id_type, templates, prop_path, array_index, flag, groupflag) \
 	{NULL, NULL, NULL, "", id_type, templates, prop_path, array_index, flag, groupflag}
+	
+/* macro for defining a builtin KeyingSet with no paths (use in place of BI_KS_PAHTS_BEGIN/END block) */
+#define BI_KS_PATHS_NONE \
+	0, {0}
 	
 /* ---- */
 
@@ -691,63 +701,66 @@ static bBuiltinKeyingSet def_builtin_keyingsets_v3d[] =
 {
 	/* Simple Keying Sets ************************************* */
 	/* Keying Set - "Location" ---------- */
-	{
-		/* KeyingSet Definition */
-		BI_KS_DEFINE("Location", 0), 
-		
-		/* Path Definitions */
+	BI_KS_DEFINE_BEGIN("Location", 0)
 		BI_KS_PATHS_BEGIN(1)
 			BI_KSP_DEFINE(ID_OB, KSP_TEMPLATE_OBJECT|KSP_TEMPLATE_PCHAN, "location", 0, KSP_FLAG_WHOLE_ARRAY, KSP_GROUP_KSNAME) 
 		BI_KS_PATHS_END
-	},
+	BI_KS_DEFINE_END,
 
 	/* Keying Set - "Rotation" ---------- */
-	{
-		/* KeyingSet Definition */
-		BI_KS_DEFINE("Rotation", 0),
-		
-		/* Path Definitions */
+	BI_KS_DEFINE_BEGIN("Rotation", 0)
 		BI_KS_PATHS_BEGIN(1)
 			BI_KSP_DEFINE(ID_OB, KSP_TEMPLATE_OBJECT|KSP_TEMPLATE_PCHAN, "rotation", 0, KSP_FLAG_WHOLE_ARRAY, KSP_GROUP_KSNAME) 
 		BI_KS_PATHS_END
-	},
+	BI_KS_DEFINE_END,
 	
 	/* Keying Set - "Scaling" ---------- */
-	{
-		/* KeyingSet Definition */
-		BI_KS_DEFINE("Scaling", 0),
-		
-		/* Path Definitions */
+	BI_KS_DEFINE_BEGIN("Scaling", 0)
 		BI_KS_PATHS_BEGIN(1)
 			BI_KSP_DEFINE(ID_OB, KSP_TEMPLATE_OBJECT|KSP_TEMPLATE_PCHAN, "scale", 0, KSP_FLAG_WHOLE_ARRAY, KSP_GROUP_KSNAME) 
 		BI_KS_PATHS_END
-	},
+	BI_KS_DEFINE_END,
 	
 	/* Compound Keying Sets *********************************** */
 	/* Keying Set - "LocRot" ---------- */
-	{
-		/* KeyingSet Definition */
-		BI_KS_DEFINE("LocRot", 0),
-		
-		/* Path Definitions */
+	BI_KS_DEFINE_BEGIN("LocRot", 0)
 		BI_KS_PATHS_BEGIN(2)
 			BI_KSP_DEFINE(ID_OB, KSP_TEMPLATE_OBJECT|KSP_TEMPLATE_PCHAN, "location", 0, KSP_FLAG_WHOLE_ARRAY, KSP_GROUP_KSNAME), 
 			BI_KSP_DEFINE(ID_OB, KSP_TEMPLATE_OBJECT|KSP_TEMPLATE_PCHAN, "rotation", 0, KSP_FLAG_WHOLE_ARRAY, KSP_GROUP_KSNAME) 
 		BI_KS_PATHS_END
-	},
+	BI_KS_DEFINE_END,
 	
 	/* Keying Set - "LocRotScale" ---------- */
-	{
-		/* KeyingSet Definition */
-		BI_KS_DEFINE("LocRotScale", 0),
-		
-		/* Path Definitions */
+	BI_KS_DEFINE_BEGIN("LocRotScale", 0)
 		BI_KS_PATHS_BEGIN(2)
 			BI_KSP_DEFINE(ID_OB, KSP_TEMPLATE_OBJECT|KSP_TEMPLATE_PCHAN, "location", 0, KSP_FLAG_WHOLE_ARRAY, KSP_GROUP_KSNAME), 
 			BI_KSP_DEFINE(ID_OB, KSP_TEMPLATE_OBJECT|KSP_TEMPLATE_PCHAN, "rotation", 0, KSP_FLAG_WHOLE_ARRAY, KSP_GROUP_KSNAME), 
 			BI_KSP_DEFINE(ID_OB, KSP_TEMPLATE_OBJECT|KSP_TEMPLATE_PCHAN, "scale", 0, KSP_FLAG_WHOLE_ARRAY, KSP_GROUP_KSNAME) 
 		BI_KS_PATHS_END
-	}
+	BI_KS_DEFINE_END,
+	
+	/* Keying Sets with Keying Flags ************************* */
+	/* Keying Set - "VisualLoc" ---------- */
+	BI_KS_DEFINE_BEGIN("VisualLoc", 0)
+		BI_KS_PATHS_BEGIN(1)
+			BI_KSP_DEFINE(ID_OB, KSP_TEMPLATE_OBJECT|KSP_TEMPLATE_PCHAN, "location", INSERTKEY_MATRIX, KSP_FLAG_WHOLE_ARRAY, KSP_GROUP_KSNAME) 
+		BI_KS_PATHS_END
+	BI_KS_DEFINE_END,
+
+	/* Keying Set - "Rotation" ---------- */
+	BI_KS_DEFINE_BEGIN("VisualRot", 0)
+		BI_KS_PATHS_BEGIN(1)
+			BI_KSP_DEFINE(ID_OB, KSP_TEMPLATE_OBJECT|KSP_TEMPLATE_PCHAN, "rotation", INSERTKEY_MATRIX, KSP_FLAG_WHOLE_ARRAY, KSP_GROUP_KSNAME) 
+		BI_KS_PATHS_END
+	BI_KS_DEFINE_END,
+	
+	/* Keying Set - "VisualLocRot" ---------- */
+	BI_KS_DEFINE_BEGIN("VisualLocRot", 0)
+		BI_KS_PATHS_BEGIN(2)
+			BI_KSP_DEFINE(ID_OB, KSP_TEMPLATE_OBJECT|KSP_TEMPLATE_PCHAN, "location", INSERTKEY_MATRIX, KSP_FLAG_WHOLE_ARRAY, KSP_GROUP_KSNAME), 
+			BI_KSP_DEFINE(ID_OB, KSP_TEMPLATE_OBJECT|KSP_TEMPLATE_PCHAN, "rotation", INSERTKEY_MATRIX, KSP_FLAG_WHOLE_ARRAY, KSP_GROUP_KSNAME) 
+		BI_KS_PATHS_END
+	BI_KS_DEFINE_END
 };
 
 /* All Builtin KeyingSets ------------------------ */
