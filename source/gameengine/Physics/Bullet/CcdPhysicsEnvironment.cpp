@@ -660,9 +660,10 @@ class ClosestRayResultCallbackNotMe : public btCollisionWorld::ClosestRayResultC
 public:
 	ClosestRayResultCallbackNotMe(const btVector3& rayFromWorld,const btVector3& rayToWorld,btCollisionObject* owner,btCollisionObject* parent)
 		:btCollisionWorld::ClosestRayResultCallback(rayFromWorld,rayToWorld),
-		m_owner(owner)
+		m_owner(owner),
+		m_parent(parent)
 	{
-
+		
 	}
 
 	virtual bool needsCollision(btBroadphaseProxy* proxy0) const
@@ -710,7 +711,7 @@ void	CcdPhysicsEnvironment::processFhSprings(double curTime,float timeStep)
 			//btVector3	rayToWorld = rayFromWorld + body->getCenterOfMassTransform().getBasis() * rayDirLocal;
 			//ray always points down the z axis in world space...
 			btVector3	rayToWorld = rayFromWorld + rayDirLocal;
-
+			
 			ClosestRayResultCallbackNotMe	resultCallback(rayFromWorld,rayToWorld,body,parentBody);
 
 			m_dynamicsWorld->rayTest(rayFromWorld,rayToWorld,resultCallback);
@@ -1558,8 +1559,8 @@ PHY_IPhysicsController*	CcdPhysicsEnvironment::CreateSphereController(float radi
 {
 	
 	CcdConstructionInfo	cinfo;
-	// memory leak! The shape is not deleted by Bullet and we cannot add it to the KX_Scene.m_shapes list
-	cinfo.m_collisionShape = new btSphereShape(radius);
+	memset(&cinfo, 0, sizeof(cinfo)); /* avoid uninitialized values */
+	cinfo.m_collisionShape = new btSphereShape(radius); // memory leak! The shape is not deleted by Bullet and we cannot add it to the KX_Scene.m_shapes list
 	cinfo.m_MotionState = 0;
 	cinfo.m_physicsEnv = this;
 	// declare this object as Dyamic rather then static!!
@@ -2018,7 +2019,7 @@ int			CcdPhysicsEnvironment::createConstraint(class PHY_IPhysicsController* ctrl
 PHY_IPhysicsController* CcdPhysicsEnvironment::CreateConeController(float coneradius,float coneheight)
 {
 	CcdConstructionInfo	cinfo;
-
+	memset(&cinfo, 0, sizeof(cinfo)); /* avoid uninitialized values */
 	// we don't need a CcdShapeConstructionInfo for this shape:
 	// it is simple enough for the standard copy constructor (see CcdPhysicsController::GetReplica)
 	cinfo.m_collisionShape = new btConeShape(coneradius,coneheight);
