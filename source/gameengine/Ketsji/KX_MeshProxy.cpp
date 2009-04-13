@@ -73,8 +73,11 @@ PyParentObject KX_MeshProxy::Parents[] = {
 };
 
 PyMethodDef KX_MeshProxy::Methods[] = {
+// Deprecated ----->
 {"getNumMaterials", (PyCFunction)KX_MeshProxy::sPyGetNumMaterials,METH_VARARGS},
 {"getNumPolygons", (PyCFunction)KX_MeshProxy::sPyGetNumPolygons,METH_NOARGS},
+// <-----
+
 {"getMaterialName", (PyCFunction)KX_MeshProxy::sPyGetMaterialName,METH_VARARGS},
 {"getTextureName", (PyCFunction)KX_MeshProxy::sPyGetTextureName,METH_VARARGS},
 {"getVertexArrayLength", (PyCFunction)KX_MeshProxy::sPyGetVertexArrayLength,METH_VARARGS},
@@ -88,6 +91,9 @@ KX_PYMETHODTABLE(KX_MeshProxy, reinstancePhysicsMesh),
 
 PyAttributeDef KX_MeshProxy::Attributes[] = {
 	KX_PYATTRIBUTE_RO_FUNCTION("materials",		KX_MeshProxy, pyattr_get_materials),
+	KX_PYATTRIBUTE_RO_FUNCTION("numPolygons",	KX_MeshProxy, pyattr_get_materials),
+	KX_PYATTRIBUTE_RO_FUNCTION("numMaterials",	KX_MeshProxy, pyattr_get_materials),
+
 	{ NULL }	//Sentinel
 };
 
@@ -102,6 +108,10 @@ PyObject* KX_MeshProxy::py_getattro(PyObject *attr)
  	py_getattro_up(SCA_IObject);
 }
 
+int KX_MeshProxy::py_setattro(PyObject *attr, PyObject* value)
+{
+	py_setattro_up(SCA_IObject);
+}
 
 
 KX_MeshProxy::KX_MeshProxy(RAS_MeshObject* mesh)
@@ -134,12 +144,14 @@ PyObject* KX_MeshProxy::PyGetNumMaterials(PyObject* self,
 			       PyObject* kwds)
 {
 	int num = m_meshobj->NumMaterials();
+	ShowDeprecationWarning("getNumMaterials()", "the numMaterials property");
 	return PyInt_FromLong(num);
 }
 
 PyObject* KX_MeshProxy::PyGetNumPolygons(PyObject* self)
 {
 	int num = m_meshobj->NumPolygons();
+	ShowDeprecationWarning("getNumPolygons()", "the numPolygons property");
 	return PyInt_FromLong(num);
 }
 
@@ -295,4 +307,16 @@ PyObject* KX_MeshProxy::pyattr_get_materials(void *self_v, const KX_PYATTRIBUTE_
 		}
 	}	
 	return materials;
+}
+
+PyObject * KX_MeshProxy::pyattr_get_numMaterials(void * selfv, const KX_PYATTRIBUTE_DEF * attrdef) {
+	KX_MeshProxy * self = static_cast<KX_MeshProxy *> (selfv);
+	int num = self->m_meshobj->NumMaterials();
+	return PyInt_FromLong(num);
+}
+
+PyObject * KX_MeshProxy::pyattr_get_numPolygons(void * selfv, const KX_PYATTRIBUTE_DEF * attrdef) {
+	KX_MeshProxy * self = static_cast<KX_MeshProxy *> (selfv);
+	int num = self->m_meshobj->NumPolygons();
+	return PyInt_FromLong(num);
 }

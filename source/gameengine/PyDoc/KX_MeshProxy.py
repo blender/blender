@@ -47,6 +47,12 @@ class KX_MeshProxy:
 	
 	@ivar materials: 
 	@type materials: list of L{KX_BlenderMaterial} or L{KX_PolygonMaterial} types
+
+	@ivar numPolygons:
+	@type numPolygons: integer
+
+	@ivar numMaterials:
+	@type numMaterials: integer
 	"""
 	
 	def getNumMaterials():
