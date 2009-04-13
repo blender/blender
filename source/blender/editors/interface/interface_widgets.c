@@ -84,16 +84,19 @@ typedef struct uiWidgetTrias {
 	
 } uiWidgetTrias;
 
-typedef struct uiWidgetColors {
-	float outline[3];
-	float inner[4];
-	float inner_sel[4];
+typedef struct uiWidgetStateColors {
 	float inner_anim[4];
 	float inner_anim_sel[4];
 	float inner_key[4];
 	float inner_key_sel[4];
 	float inner_driven[4];
 	float inner_driven_sel[4];
+} uiWidgetStateColors;
+
+typedef struct uiWidgetColors {
+	float outline[3];
+	float inner[4];
+	float inner_sel[4];
 	float item[3];
 	float text[3];
 	float text_sel[3];
@@ -873,16 +876,29 @@ static void widget_draw_text_icon(uiFontStyle *fstyle, uiBut *but, rcti *rect, f
 /* *********************** widget types ************************************* */
 
 
-/*		
- float outline[3];
- float inner[4];
- float inner_sel[4];
+/*   uiWidgetStateColors
  float inner_anim[4];
  float inner_anim_sel[4];
  float inner_key[4];
  float inner_key_sel[4];
  float inner_driven[4];
  float inner_driven_sel[4];
+ 
+*/
+
+static struct uiWidgetStateColors wcol_state= {
+	{0.45, 0.75, 0.3f, 1.0f},
+	{0.35, 0.65, 0.2f, 1.0f},
+	{0.95, 0.9, 0.4f, 1.0f},
+	{0.85, 0.8, 0.3f, 1.0f},
+	{0.7f, 0.0, 1.0f, 1.0f},
+	{0.6f, 0.0, 0.9f, 1.0f}
+};
+
+/*  uiWidgetColors
+ float outline[3];
+ float inner[4];
+ float inner_sel[4];
  float item[3];
  float text[3];
  float text_sel[3];
@@ -895,12 +911,6 @@ static struct uiWidgetColors wcol_num= {
 	{0.1f, 0.1f, 0.1f},
 	{0.7f, 0.7f, 0.7f, 1.0f},
 	{0.6f, 0.6f, 0.6f, 1.0f},
-	{0.45, 0.75, 0.3f, 1.0f},
-	{0.35, 0.65, 0.2f, 1.0f},
-	{0.95, 0.9, 0.4f, 1.0f},
-	{0.85, 0.8, 0.3f, 1.0f},
-	{0.7f, 0.0, 1.0f, 1.0f},
-	{0.6f, 0.0, 0.9f, 1.0f},
 	{0.35f, 0.35f, 0.35f},
 	
 	{0.0f, 0.0f, 0.0f},
@@ -914,12 +924,6 @@ static struct uiWidgetColors wcol_numslider= {
 	{0.1f, 0.1f, 0.1f},
 	{0.7f, 0.7f, 0.7f, 1.0f},
 	{0.6f, 0.6f, 0.6f, 1.0f},
-	{0.45, 0.75, 0.3f, 1.0f},
-	{0.35, 0.65, 0.2f, 1.0f},
-	{0.95, 0.9, 0.4f, 1.0f},
-	{0.85, 0.8, 0.3f, 1.0f},
-	{0.7f, 0.0, 1.0f, 1.0f},
-	{0.6f, 0.0, 0.9f, 1.0f},
 	{0.5f, 0.5f, 0.5f},
 	
 	{0.0f, 0.0f, 0.0f},
@@ -933,12 +937,6 @@ static struct uiWidgetColors wcol_text= {
 	{0.1f, 0.1f, 0.1f},
 	{0.6f, 0.6f, 0.6f, 1.0f},
 	{0.6f, 0.6f, 0.6f, 1.0f},
-	{0.45, 0.75, 0.3f, 1.0f},
-	{0.35, 0.65, 0.2f, 1.0f},
-	{0.95, 0.9, 0.4f, 1.0f},
-	{0.85, 0.8, 0.3f, 1.0f},
-	{0.7f, 0.0, 1.0f, 1.0f},
-	{0.6f, 0.0, 0.9f, 1.0f},
 	{0.35f, 0.35f, 0.35f},
 	
 	{0.0f, 0.0f, 0.0f},
@@ -952,12 +950,6 @@ static struct uiWidgetColors wcol_option= {
 	{0.0f, 0.0f, 0.0f},
 	{0.25f, 0.25f, 0.25f, 1.0f},
 	{0.25f, 0.25f, 0.25f, 1.0f},
-	{0.45, 0.75, 0.3f, 1.0f},
-	{0.35, 0.65, 0.2f, 1.0f},
-	{0.95, 0.9, 0.4f, 1.0f},
-	{0.85, 0.8, 0.3f, 1.0f},
-	{0.7f, 0.0, 1.0f, 1.0f},
-	{0.6f, 0.0, 0.9f, 1.0f},
 	{1.0f, 1.0f, 1.0f},
 	
 	{0.0f, 0.0f, 0.0f},
@@ -972,12 +964,6 @@ static struct uiWidgetColors wcol_menu= {
 	{0.0f, 0.0f, 0.0f},
 	{0.25f, 0.25f, 0.25f, 1.0f},
 	{0.25f, 0.25f, 0.25f, 1.0f},
-	{0.45, 0.75, 0.3f, 1.0f},
-	{0.35, 0.65, 0.2f, 1.0f},
-	{0.95, 0.9, 0.4f, 1.0f},
-	{0.85, 0.8, 0.3f, 1.0f},
-	{0.7f, 0.0, 1.0f, 1.0f},
-	{0.6f, 0.0, 0.9f, 1.0f},
 	{1.0f, 1.0f, 1.0f},
 	
 	{1.0f, 1.0f, 1.0f},
@@ -992,12 +978,6 @@ static struct uiWidgetColors wcol_pulldown= {
 	{0.0f, 0.0f, 0.0f},
 	{0.25f, 0.25f, 0.25f, 1.0f},
 	{0.18f, 0.48f, 0.85f, 1.0f},
-	{0.45, 0.75, 0.3f, 1.0f},
-	{0.35, 0.65, 0.2f, 1.0f},
-	{0.95, 0.9, 0.4f, 1.0f},
-	{0.85, 0.8, 0.3f, 1.0f},
-	{0.7f, 0.0, 1.0f, 1.0f},
-	{0.6f, 0.0, 0.9f, 1.0f},
 	{1.0f, 1.0f, 1.0f},
 	
 	{1.0f, 1.0f, 1.0f},
@@ -1012,12 +992,6 @@ static struct uiWidgetColors wcol_menu_item= {
 	{0.0f, 0.0f, 0.0f},
 	{0.0f, 0.0f, 0.0f, 0.3},
 	{0.23f, 0.53f, 0.9f, 1.0f},
-	{0.45, 0.75, 0.3f, 1.0f},
-	{0.35, 0.65, 0.2f, 1.0f},
-	{0.95, 0.9, 0.4f, 1.0f},
-	{0.85, 0.8, 0.3f, 1.0f},
-	{0.7f, 0.0, 1.0f, 1.0f},
-	{0.6f, 0.0, 0.9f, 1.0f},
 	{1.0f, 1.0f, 1.0f},
 	
 	{1.0f, 1.0f, 1.0f},
@@ -1032,12 +1006,6 @@ static struct uiWidgetColors wcol_menu_back= {
 	{0.0f, 0.0f, 0.0f},
 	{0.0f, 0.0f, 0.0f, 0.6},
 	{0.18f, 0.48f, 0.85f, 0.8f},
-	{0.45, 0.75, 0.3f, 1.0f},
-	{0.35, 0.65, 0.2f, 1.0f},
-	{0.95, 0.9, 0.4f, 1.0f},
-	{0.85, 0.8, 0.3f, 1.0f},
-	{0.7f, 0.0, 1.0f, 1.0f},
-	{0.6f, 0.0, 0.9f, 1.0f},
 	{1.0f, 1.0f, 1.0f},
 	
 	{1.0f, 1.0f, 1.0f},
@@ -1052,12 +1020,6 @@ static struct uiWidgetColors wcol_radio= {
 	{0.0f, 0.0f, 0.0f},
 	{0.25f, 0.25f, 0.25f, 1.0f},
 	{0.34f, 0.5f, 0.76f, 1.0f},
-	{0.45, 0.75, 0.3f, 1.0f},
-	{0.35, 0.65, 0.2f, 1.0f},
-	{0.95, 0.9, 0.4f, 1.0f},
-	{0.85, 0.8, 0.3f, 1.0f},
-	{0.7f, 0.0, 1.0f, 1.0f},
-	{0.6f, 0.0, 0.9f, 1.0f},
 	{1.0f, 1.0f, 1.0f},
 	
 	{1.0f, 1.0f, 1.0f},
@@ -1071,12 +1033,6 @@ static struct uiWidgetColors wcol_regular= {
 	{0.1f, 0.1f, 0.1f},
 	{0.6f, 0.6f, 0.6f, 1.0f},
 	{0.4f, 0.4f, 0.4f, 1.0f},
-	{0.45, 0.75, 0.3f, 1.0f},
-	{0.35, 0.65, 0.2f, 1.0f},
-	{0.95, 0.9, 0.4f, 1.0f},
-	{0.85, 0.8, 0.3f, 1.0f},
-	{0.7f, 0.0, 1.0f, 1.0f},
-	{0.6f, 0.0, 0.9f, 1.0f},
 	{0.1f, 0.1f, 0.1f},
 	
 	{0.0f, 0.0f, 0.0f},
@@ -1090,12 +1046,6 @@ static struct uiWidgetColors wcol_regular_shade= {
 	{0.1f, 0.1f, 0.1f},
 	{0.6f, 0.6f, 0.6f, 1.0f},
 	{0.4f, 0.4f, 0.4f, 1.0f},
-	{0.45, 0.75, 0.3f, 1.0f},
-	{0.35, 0.65, 0.2f, 1.0f},
-	{0.95, 0.9, 0.4f, 1.0f},
-	{0.85, 0.8, 0.3f, 1.0f},
-	{0.7f, 0.0, 1.0f, 1.0f},
-	{0.6f, 0.0, 0.9f, 1.0f},
 	{0.1f, 0.1f, 0.1f},
 	
 	{0.0f, 0.0f, 0.0f},
@@ -1114,11 +1064,11 @@ static void widget_state(uiWidgetType *wt, int state)
 	
 	if(state & UI_SELECT) {
 		if(state & UI_BUT_ANIMATED_KEY)
-			QUATCOPY(wt->wcol.inner, wt->wcol.inner_key_sel)
+			QUATCOPY(wt->wcol.inner, wcol_state.inner_key_sel)
 		else if(state & UI_BUT_ANIMATED)
-			QUATCOPY(wt->wcol.inner, wt->wcol.inner_anim_sel)
+			QUATCOPY(wt->wcol.inner, wcol_state.inner_anim_sel)
 		else if(state & UI_BUT_DRIVEN)
-			QUATCOPY(wt->wcol.inner, wt->wcol.inner_driven_sel)
+			QUATCOPY(wt->wcol.inner, wcol_state.inner_driven_sel)
 		else
 			QUATCOPY(wt->wcol.inner, wt->wcol.inner_sel)
 
@@ -1131,11 +1081,11 @@ static void widget_state(uiWidgetType *wt, int state)
 	}
 	else {
 		if(state & UI_BUT_ANIMATED_KEY)
-			QUATCOPY(wt->wcol.inner, wt->wcol.inner_key)
+			QUATCOPY(wt->wcol.inner, wcol_state.inner_key)
 		else if(state & UI_BUT_ANIMATED)
-			QUATCOPY(wt->wcol.inner, wt->wcol.inner_anim)
+			QUATCOPY(wt->wcol.inner, wcol_state.inner_anim)
 		else if(state & UI_BUT_DRIVEN)
-			QUATCOPY(wt->wcol.inner, wt->wcol.inner_driven)
+			QUATCOPY(wt->wcol.inner, wcol_state.inner_driven)
 
 		if(state & UI_ACTIVE) /* mouse over? */
 			VecMulf(wt->wcol.inner, 1.1f);
