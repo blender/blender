@@ -279,6 +279,10 @@ void BKE_keyingset_add_destination (KeyingSet *ks, ID *id, const char group_name
 			strcpy(ksp->group, "");
 	}
 	
+	/* store additional info for relative paths (just in case user makes the set relative) */
+	if (id)
+		ksp->idtype= GS(id->name);
+	
 	/* just copy path info */
 	// XXX no checks are performed for templates yet
 	// should array index be checked too?
@@ -859,7 +863,7 @@ void BKE_animsys_evaluate_all_animation (Main *main, float ctime)
 	// TODO...
 	
 	/* objects */
-	EVAL_ANIM_IDS(main->object.first, 0);
+	EVAL_ANIM_IDS(main->object.first, ADT_RECALC_ANIM);
 	
 	/* worlds */
 	EVAL_ANIM_IDS(main->world.first, ADT_RECALC_ANIM);

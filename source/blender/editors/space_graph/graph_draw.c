@@ -1007,7 +1007,7 @@ void graph_draw_channel_names(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 						expand= ICON_TRIA_RIGHT;
 					
 					sel = SEL_ACTC(act);
-					strcpy(name, "Action");
+					strcpy(name, act->id.name+2);
 				}
 					break;
 				case ANIMTYPE_FILLDRIVERS: /* drivers widget */

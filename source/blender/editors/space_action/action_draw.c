@@ -499,7 +499,7 @@ void draw_channel_names(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 						expand= ICON_TRIA_RIGHT;
 					
 					sel = SEL_ACTC(act);
-					strcpy(name, "Action");
+					strcpy(name, act->id.name+2);
 				}
 					break;
 				case ANIMTYPE_FILLMATD: /* object materials (dopesheet) expand widget */

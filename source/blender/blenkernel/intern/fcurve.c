@@ -98,7 +98,9 @@ FCurve *copy_fcurve (FCurve *fcu)
 		
 	/* make a copy */
 	fcu_d= MEM_dupallocN(fcu);
+	
 	fcu_d->next= fcu_d->prev= NULL;
+	fcu_d->grp= NULL;
 	
 	/* copy curve data */
 	fcu_d->bezt= MEM_dupallocN(fcu_d->bezt);

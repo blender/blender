@@ -193,8 +193,7 @@ bAction *poselib_init_new (Object *ob)
 	/* init object's poselib action (unlink old one if there) */
 	if (ob->poselib)
 		ob->poselib->id.us--;
-	// XXX old anim stuff
-	// ob->poselib= add_empty_action("PoseLib");
+	ob->poselib= add_empty_action("PoseLib");
 	
 	return ob->poselib;
 }

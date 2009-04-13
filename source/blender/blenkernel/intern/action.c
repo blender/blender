@@ -169,17 +169,39 @@ void free_action (bAction *act)
 bAction *copy_action (bAction *src)
 {
 	bAction *dst = NULL;
-	//bActionGroup *dgrp, *sgrp;	// XXX not used yet
+	bActionGroup *dgrp, *sgrp;
+	FCurve *dfcu, *sfcu;
 	
 	if (src == NULL) 
 		return NULL;
 	dst= copy_libblock(src);
 	
-	BLI_duplicatelist(&dst->groups, &src->groups);	// XXX not used yet
+	/* duplicate the lists of groups and markers */
+	BLI_duplicatelist(&dst->groups, &src->groups);
 	BLI_duplicatelist(&dst->markers, &src->markers);
 	
-	/* copy f-curves */
-	copy_fcurves(&dst->curves, &src->curves);
+	/* copy F-Curves, fixing up the links as we go */
+	dst->curves.first= dst->curves.last= NULL;
+	
+	for (sfcu= src->curves.first; sfcu; sfcu= sfcu->next) {
+		/* duplicate F-Curve */
+		dfcu= copy_fcurve(sfcu);
+		BLI_addtail(&dst->curves, dfcu);
+		
+		/* fix group links (kindof bad list-in-list search, but this is the most reliable way) */
+		for (dgrp=dst->groups.first, sgrp=src->groups.first; dgrp && sgrp; dgrp=dgrp->next, sgrp=sgrp->next) {
+			if (sfcu->grp == sgrp) {
+				dfcu->grp= dgrp;
+				
+				if (dgrp->channels.first == sfcu)
+					dgrp->channels.first= dfcu;
+				if (dgrp->channels.last == sfcu)
+					dgrp->channels.last= dfcu;
+					
+				break;
+			}
+		}
+	}
 	
 	dst->id.flag |= LIB_FAKEUSER; // XXX this is nasty for new users... maybe we don't want this anymore
 	dst->id.us++;
