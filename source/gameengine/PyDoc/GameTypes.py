@@ -1,4 +1,4 @@
-# $Id: GameLogic.py 19483 2009-03-31 21:03:15Z ben2610 $
+# $Id$
 """
 GameEngine Types
 ================

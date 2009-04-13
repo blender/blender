@@ -1,5 +1,5 @@
 /**
- * $Id: PyObjectPlus.h 19511 2009-04-03 02:16:56Z campbellbarton $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
