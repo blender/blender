@@ -598,6 +598,12 @@ static void wm_window_match_do(bContext *C, ListBase *oldwmlist)
 						
 						win->eventstate= oldwin->eventstate;
 						oldwin->eventstate= NULL;
+						
+						/* ensure proper screen rescaling */
+						win->sizex= oldwin->sizex;
+						win->sizey= oldwin->sizey;
+						win->posx= oldwin->posx;
+						win->posy= oldwin->posy;
 					}
 				}
 			}
