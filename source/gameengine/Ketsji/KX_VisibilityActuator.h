@@ -39,6 +39,7 @@ class KX_VisibilityActuator : public SCA_IActuator
 
 	/** Make visible? */
 	bool m_visible;
+	bool m_occlusion;
 	bool m_recursive;
 
  public:
@@ -46,6 +47,7 @@ class KX_VisibilityActuator : public SCA_IActuator
 	KX_VisibilityActuator(
 		SCA_IObject* gameobj,
 		bool visible,
+		bool occlusion,
 		bool recursive,
 		PyTypeObject* T=&Type
 		);

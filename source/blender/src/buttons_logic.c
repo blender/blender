@@ -2455,18 +2455,18 @@ static short draw_actuatorbuttons(Object *ob, bActuator *act, uiBlock *block, sh
 			  xco + 10, yco - 20, (width - 20)/3, 19, &visAct->flag,
 			  0.0, 0.0, 0, 0,
 			  "Set the objects visible. Initialized from the objects render restriction toggle (access in the outliner)");
-		uiDefButBitI(block, TOG, ACT_VISIBILITY_INVISIBLE, B_REDR,
-			  "Invisible",
+		uiDefButBitI(block, TOG, ACT_VISIBILITY_OCCLUSION, B_REDR,
+			  "Occlusion",
 			  xco + 10 + ((width - 20)/3), yco - 20, (width - 20)/3, 19, &visAct->flag,
 			  0.0, 0.0, 0, 0,
-			  "Set the object invisible. Initialized from the objects render restriction toggle (access in the outliner)");
+			  "Set the object to occlude objects behind it. Initialized from the object type in physics button");
 		uiBlockEndAlign(block);
 		
 		uiDefButBitI(block, TOG, ACT_VISIBILITY_RECURSIVE, B_NOP,
 			  "Children",
 			  xco + 10 + (((width - 20)/3)*2)+10, yco - 20, ((width - 20)/3)-10, 19, &visAct->flag,
 			  0.0, 0.0, 0, 0,
-			  "Sets all the children of this object to the same visibility recursively");
+			  "Sets all the children of this object to the same visibility/occlusion recursively");
 
 		yco-= ysize;
 
@@ -3033,25 +3033,29 @@ static void check_body_type(void *arg1_but, void *arg2_object)
 	Object *ob = arg2_object;
 
 	switch (ob->body_type) {
+	case OB_BODY_TYPE_OCCLUDER:
+		ob->gameflag |= OB_OCCLUDER;
+		ob->gameflag &= ~(OB_COLLISION|OB_DYNAMIC);
+		break;
 	case OB_BODY_TYPE_NO_COLLISION:
-		ob->gameflag &= ~OB_COLLISION;
+		ob->gameflag &= ~(OB_COLLISION|OB_OCCLUDER|OB_DYNAMIC);
 		break;
 	case OB_BODY_TYPE_STATIC:
 		ob->gameflag |= OB_COLLISION;
-		ob->gameflag &= ~(OB_DYNAMIC|OB_RIGID_BODY|OB_SOFT_BODY);
+		ob->gameflag &= ~(OB_DYNAMIC|OB_RIGID_BODY|OB_SOFT_BODY|OB_OCCLUDER);
 		break;
 	case OB_BODY_TYPE_DYNAMIC:
 		ob->gameflag |= OB_COLLISION|OB_DYNAMIC|OB_ACTOR;
-		ob->gameflag &= ~(OB_RIGID_BODY|OB_SOFT_BODY);
+		ob->gameflag &= ~(OB_RIGID_BODY|OB_SOFT_BODY|OB_OCCLUDER);
 		break;
 	case OB_BODY_TYPE_RIGID:
 		ob->gameflag |= OB_COLLISION|OB_DYNAMIC|OB_RIGID_BODY|OB_ACTOR;
-		ob->gameflag &= ~(OB_SOFT_BODY);
+		ob->gameflag &= ~(OB_SOFT_BODY|OB_OCCLUDER);
 		break;
 	default:
 	case OB_BODY_TYPE_SOFT:
 		ob->gameflag |= OB_COLLISION|OB_DYNAMIC|OB_SOFT_BODY|OB_ACTOR;
-		ob->gameflag &= ~(OB_RIGID_BODY);
+		ob->gameflag &= ~(OB_RIGID_BODY|OB_OCCLUDER);
 		
 		/* assume triangle mesh, if no bounds chosen for soft body */
 		if ((ob->gameflag & OB_BOUNDS) && (ob->boundtype<OB_BOUND_POLYH))
@@ -3216,7 +3220,7 @@ static void buttons_bullet(uiBlock *block, Object *ob)
 
 	/* determine the body_type setting based on flags */
 	if (!(ob->gameflag & OB_COLLISION))
-		ob->body_type = OB_BODY_TYPE_NO_COLLISION;
+		ob->body_type = (ob->gameflag & OB_OCCLUDER) ? OB_BODY_TYPE_OCCLUDER : OB_BODY_TYPE_NO_COLLISION;
 	else if (!(ob->gameflag & OB_DYNAMIC))
 		ob->body_type = OB_BODY_TYPE_STATIC;
 	else if (!(ob->gameflag & (OB_RIGID_BODY|OB_SOFT_BODY)))
@@ -3234,7 +3238,7 @@ static void buttons_bullet(uiBlock *block, Object *ob)
 
 	//only enable game soft body if Blender Soft Body exists
 	but = uiDefButS(block, MENU, REDRAWVIEW3D, 
-			"Object type%t|No collision%x0|Static%x1|Dynamic%x2|Rigid body%x3|Soft body%x4", 
+			"Object type%t|Occluder%x5|No collision%x0|Static%x1|Dynamic%x2|Rigid body%x3|Soft body%x4", 
 			10, 205, 100, 19, &ob->body_type, 0, 0, 0, 0, "Selects the type of physical representation");
 	uiButSetFunc(but, check_body_type, but, ob);
 

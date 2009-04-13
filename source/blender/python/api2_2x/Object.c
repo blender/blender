@@ -3561,7 +3561,7 @@ static int Object_setRBMass( BPy_Object * self, PyObject * args )
 
 /* this is too low level, possible to add helper methods */
 
-#define GAMEFLAG_MASK ( OB_COLLISION | OB_DYNAMIC | OB_CHILD | OB_ACTOR | OB_DO_FH | \
+#define GAMEFLAG_MASK ( OB_OCCLUDER | OB_COLLISION | OB_DYNAMIC | OB_CHILD | OB_ACTOR | OB_DO_FH | \
 		OB_ROT_FH | OB_ANISOTROPIC_FRICTION | OB_GHOST | OB_RIGID_BODY | OB_SOFT_BODY | \
 		OB_BOUNDS | OB_COLLISION_RESPONSE | OB_SECTOR | OB_PROP | \
 		OB_MAINACTOR )
@@ -5542,6 +5542,7 @@ static PyObject *M_Object_RBFlagsDict( void )
 
 	if( M ) {
 		BPy_constant *d = ( BPy_constant * ) M;
+		PyConstant_Insert( d, "OCCLUDER", PyInt_FromLong( OB_OCCLUDER ) );
 		PyConstant_Insert( d, "COLLISION", PyInt_FromLong( OB_COLLISION ) );
 		PyConstant_Insert( d, "DYNAMIC", PyInt_FromLong( OB_DYNAMIC ) );
 		PyConstant_Insert( d, "CHILD", PyInt_FromLong( OB_CHILD ) );

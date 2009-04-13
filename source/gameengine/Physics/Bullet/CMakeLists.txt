@@ -30,11 +30,18 @@ SET(INC
   .
   ../common
   ../../../../extern/bullet2/src
+  ../../../../extern/glew/include
   ../../../../intern/moto/include
   ../../../kernel/gen_system
   ../../../../intern/string
+  ../../../intern/SoundSystem 
   ../../Rasterizer
+  ../../Ketsji
+  ../../Expressions
+  ../../GameLogic
+  ../../SceneGraph
   ../../../../source/blender/makesdna
+  ${PYTHON_INC}
 )
 
 BLENDERLIB(bf_bullet "${SRC}" "${INC}")

@@ -138,6 +138,7 @@ KX_Scene::KX_Scene(class SCA_IInputDevice* keyboarddevice,
 	m_suspendeddelta = 0.0;
 
 	m_dbvt_culling = false;
+	m_dbvt_occlusion_res = 0;
 	m_activity_culling = false;
 	m_suspend = false;
 	m_isclearingZbuffer = true;
@@ -1352,17 +1353,18 @@ void KX_Scene::CalculateVisibleMeshes(RAS_IRasterizer* rasty,KX_Camera* cam, int
 	if (m_dbvt_culling) 
 	{
 		// test culling through Bullet
-		PHY__Vector4 planes[5];
+		PHY__Vector4 planes[6];
 		// get the clip planes
 		MT_Vector4* cplanes = cam->GetNormalizedClipPlanes();
 		// and convert
-		planes[0].setValue(cplanes[0].getValue());
-		planes[1].setValue(cplanes[1].getValue());
-		planes[2].setValue(cplanes[2].getValue());
-		planes[3].setValue(cplanes[3].getValue());
-		planes[4].setValue(cplanes[5].getValue());
+		planes[0].setValue(cplanes[4].getValue());	// near
+		planes[1].setValue(cplanes[5].getValue());	// far
+		planes[2].setValue(cplanes[0].getValue());	// left
+		planes[3].setValue(cplanes[1].getValue());	// right
+		planes[4].setValue(cplanes[2].getValue());	// top
+		planes[5].setValue(cplanes[3].getValue());	// bottom
 		CullingInfo info(layer);
-		dbvt_culling = m_physicsEnvironment->cullingTest(PhysicsCullingCallback,&info,planes,5);
+		dbvt_culling = m_physicsEnvironment->cullingTest(PhysicsCullingCallback,&info,planes,5,m_dbvt_occlusion_res);
 	}
 	if (!dbvt_culling) {
 		// the physics engine couldn't help us, do it the hard way

@@ -2181,7 +2181,7 @@ static void world_panel_mistaph(World *wrld)
 	uiSetButLock(wrld->id.lib!=0, ERROR_LIBDATA_MESSAGE);
 
 #if GAMEBLENDER == 1
-	uiDefButI(block, MENU, B_REDR, 
+	uiDefButS(block, MENU, B_REDR, 
 #ifdef USE_ODE
 			  "Physics %t|None %x0|Sumo %x2|Ode %x4 |Bullet %x5",
 #else
@@ -2198,8 +2198,12 @@ static void world_panel_mistaph(World *wrld)
 	
 	/* Gravitation for the game worlds */
 	uiDefButF(block, NUMSLI,0, "Grav ", 150,180,150,19,	&(wrld->gravity), 0.0, 25.0, 0, 0,  "Sets the gravitation constant of the game world");
-	if (wrld->physicsEngine == WOPHY_BULLET)
-		uiDefButBitS(block, TOG, WO_DBVT_CAMERA_CULLING, 0, "DBVT culling",	10,160,140,19, &wrld->mode, 0, 0, 0, 0, "Toggles use of optimized Bullet DBVT tree for camera culling");
+	if (wrld->physicsEngine == WOPHY_BULLET) {
+		uiDefButBitS(block, TOG, WO_DBVT_CULLING, B_REDR, "DBVT culling",	10,160,140,19, &wrld->mode, 0, 0, 0, 0, "Toggles use of optimized Bullet DBVT tree for view frustrum and occlusion culling");
+		if (wrld->mode & WO_DBVT_CULLING)
+			uiDefButS(block, NUM, B_REDR, "Occlu Res:",
+				150, 160, 150, 19, &wrld->occlusionRes, 128.0, 1024.0, 0, 0, "Sets the size of the occlusion buffer in pixel, use higher value for better precsion (slower)");
+	}
 #endif
 
 	uiBlockSetCol(block, TH_BUT_SETTING1);

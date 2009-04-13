@@ -25,6 +25,8 @@ class KX_GameObject: # (SCA_IObject)
 	@ivar visible: visibility flag.
 		- note: Game logic will still run for invisible objects.
 	@type visible: boolean
+	@ivar occlusion: occlusion capability flag.
+	@type occlusion: boolean
 	@ivar position: The object's position. 
 	@type position: list [x, y, z]
 	@ivar orientation: The object's orientation. 3x3 Matrix. You can also write a Quaternion or Euler vector.
@@ -75,6 +77,14 @@ class KX_GameObject: # (SCA_IObject)
 		@type visible: boolean
 		@type recursive: boolean
 		@param recursive: optional argument to set all childrens visibility flag too.
+		"""
+	def setOcclusion(occlusion, recursive):
+		"""
+		Sets the game object's occlusion capability.
+		
+		@type visible: boolean
+		@type recursive: boolean
+		@param recursive: optional argument to set all childrens occlusion flag too.
 		"""
 	def getState():
 		"""

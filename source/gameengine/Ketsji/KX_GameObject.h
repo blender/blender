@@ -87,6 +87,7 @@ protected:
 	// culled = while rendering, depending on camera
 	bool       							m_bVisible; 
 	bool       							m_bCulled; 
+	bool								m_bOccluder;
 
 	KX_IPhysicsController*				m_pPhysicsController1;
 	PHY_IGraphicController*				m_pGraphicController;
@@ -103,6 +104,11 @@ protected:
 public:
 	bool								m_isDeformable;
 
+	/**
+	 * Helper function for modules that can't include KX_ClientObjectInfo.h
+	 */
+	static KX_GameObject* GetClientObject(KX_ClientObjectInfo* info);
+
 	// Python attributes that wont convert into CValue
 	// 
 	// there are 2 places attributes can be stored, in the CValue,
@@ -118,10 +124,7 @@ public:
 	// * if CValue conversion fails, use a PyObject in "m_attrlist"
 	// * when assigning a value, first see if it can be a CValue, if it can remove the "m_attrlist" and set the CValue
 	// 
-	
 	PyObject*							m_attrlist; 
-
-
 
 	virtual void	/* This function should be virtual - derived classed override it */
 	Relink(
@@ -698,19 +701,36 @@ public:
 	/**
 	 * Was this object culled?
 	 */
-		bool
+	inline bool
 	GetCulled(
 		void
-	);
+	) { return m_bCulled; }
 
 	/**
 	 * Set culled flag of this object
 	 */
-		void
+	inline void
 	SetCulled(
 		bool c
-	);
+	) { m_bCulled = c; }
+	
+	/**
+	 * Is this object an occluder?
+	 */
+	inline bool
+	GetOccluder(
+		void
+	) { return m_bOccluder; }
 
+	/**
+	 * Set occluder flag of this object
+	 */
+	void
+	SetOccluder(
+		bool v,
+		bool recursive
+	);
+	
 	/**
 	 * Change the layer of the object (when it is added in another layer
 	 * than the original layer)
@@ -908,6 +928,7 @@ public:
 	KX_PYMETHOD_O(KX_GameObject,SetOrientation);
 	KX_PYMETHOD_NOARGS(KX_GameObject,GetVisible);
 	KX_PYMETHOD_VARARGS(KX_GameObject,SetVisible);
+	KX_PYMETHOD_VARARGS(KX_GameObject,SetOcclusion);
 	KX_PYMETHOD_NOARGS(KX_GameObject,GetState);
 	KX_PYMETHOD_O(KX_GameObject,SetState);
 	KX_PYMETHOD_VARARGS(KX_GameObject,AlignAxisToVect);

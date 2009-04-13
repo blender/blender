@@ -56,7 +56,8 @@ class RAS_Polygon
 public:
 	enum {
 		VISIBLE = 1,
-		COLLIDER = 2
+		COLLIDER = 2,
+		TWOSIDE = 4
 	};
 
 	RAS_Polygon(RAS_MaterialBucket* bucket, RAS_DisplayArray* darray, int numvert);
@@ -78,6 +79,9 @@ public:
 
 	bool				IsCollider();
 	void				SetCollider(bool collider);
+
+	bool				IsTwoside();
+	void				SetTwoside(bool twoside);
 
 	RAS_MaterialBucket*	GetMaterial();
 	RAS_DisplayArray*	GetDisplayArray();

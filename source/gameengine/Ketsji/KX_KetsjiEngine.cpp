@@ -294,8 +294,14 @@ void KX_KetsjiEngine::RenderDome()
 	if (!BeginFrame())
 		return;
 
-	int n_renders=m_dome->GetNumberRenders();// usually 4 or 6
 	KX_SceneList::iterator sceneit;
+	for (sceneit = m_scenes.begin();sceneit != m_scenes.end(); sceneit++)
+	{
+		// do this only once per scene
+		(*sceneit)->UpdateMeshTransformations();
+	}
+
+	int n_renders=m_dome->GetNumberRenders();// usually 4 or 6
 	for (int i=0;i<n_renders;i++){
 		m_canvas->ClearBuffer(RAS_ICanvas::COLOR_BUFFER|RAS_ICanvas::DEPTH_BUFFER);
 		for (sceneit = m_scenes.begin();sceneit != m_scenes.end(); sceneit++)
@@ -311,7 +317,6 @@ void KX_KetsjiEngine::RenderDome()
 			// shadow buffers
 			if (i == 0){
 				RenderShadowBuffers(scene);
-				scene->UpdateMeshTransformations();//I need to run it somewherelse, otherwise Im overrunning it
 			}
 			// Avoid drawing the scene with the active camera twice when it's viewport is enabled
 			if(cam && !cam->GetViewport())
@@ -812,6 +817,9 @@ void KX_KetsjiEngine::Render()
 		// pass the scene's worldsettings to the rasterizer
 		SetWorldSettings(scene->GetWorldInfo());
 
+		// do this only once per scene
+		scene->UpdateMeshTransformations();
+
 		// shadow buffers
 		RenderShadowBuffers(scene);
 
@@ -1140,7 +1148,6 @@ void KX_KetsjiEngine::RenderShadowBuffers(KX_Scene *scene)
 			light->BindShadowBuffer(m_rasterizer, cam, camtrans);
 
 			/* update scene */
-			scene->UpdateMeshTransformations();
 			scene->CalculateVisibleMeshes(m_rasterizer, cam, light->GetShadowLayer());
 
 			/* render */
@@ -1245,7 +1252,7 @@ void KX_KetsjiEngine::RenderFrame(KX_Scene* scene, KX_Camera* cam)
 		cam->GetCameraLocation(), cam->GetCameraOrientation());
 	cam->SetModelviewMatrix(viewmat);
 
-	//redundant, already done in 
+	//redundant, already done in Render()
 	//scene->UpdateMeshTransformations();
 
 	// The following actually reschedules all vertices to be

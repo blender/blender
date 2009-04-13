@@ -437,6 +437,7 @@ extern Object workob;
 
 #define OB_COLLISION	65536
 #define OB_SOFT_BODY	0x20000
+#define OB_OCCLUDER		0x40000
 
 /* ob->gameflag2 */
 #define OB_NEVER_DO_ACTIVITY_CULLING	1
@@ -455,6 +456,7 @@ extern Object workob;
 #define OB_BODY_TYPE_DYNAMIC		2
 #define OB_BODY_TYPE_RIGID			3
 #define OB_BODY_TYPE_SOFT			4
+#define OB_BODY_TYPE_OCCLUDER		5
 
 /* ob->scavisflag */
 #define OB_VIS_SENS		1

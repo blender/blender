@@ -1008,9 +1008,10 @@ void BL_ConvertActuators(char* maggiename,
 			bVisibilityActuator *vis_act = (bVisibilityActuator *) bact->data;
 			KX_VisibilityActuator * tmp_vis_act = NULL;
 			bool v = ((vis_act->flag & ACT_VISIBILITY_INVISIBLE) != 0);
+			bool o = ((vis_act->flag & ACT_VISIBILITY_OCCLUSION) != 0);
 			bool recursive = ((vis_act->flag & ACT_VISIBILITY_RECURSIVE) != 0);
 
-			tmp_vis_act = new KX_VisibilityActuator(gameobj, !v, recursive);
+			tmp_vis_act = new KX_VisibilityActuator(gameobj, !v, o, recursive);
 			
 			baseact = tmp_vis_act;
 		}

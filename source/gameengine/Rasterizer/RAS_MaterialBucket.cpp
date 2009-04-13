@@ -62,10 +62,12 @@ RAS_MeshSlot::~RAS_MeshSlot()
 {
 	vector<RAS_DisplayArray*>::iterator it;
 
+#ifdef USE_SPLIT
 	Split(true);
 
 	while(m_joinedSlots.size())
 		m_joinedSlots.front()->Split(true);
+#endif
 
 	for(it=m_displayArrays.begin(); it!=m_displayArrays.end(); it++) {
 		(*it)->m_users--;
@@ -428,11 +430,11 @@ bool RAS_MeshSlot::IsCulled()
 		return true;
 	if(!m_bCulled)
 		return false;
-	
+#ifdef USE_SPLIT	
 	for(it=m_joinedSlots.begin(); it!=m_joinedSlots.end(); it++)
 		if(!(*it)->m_bCulled)
 			return false;
-	
+#endif	
 	return true;
 }
 

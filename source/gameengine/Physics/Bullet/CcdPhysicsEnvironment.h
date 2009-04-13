@@ -172,7 +172,7 @@ protected:
 		btTypedConstraint*	getConstraintById(int constraintId);
 
 		virtual PHY_IPhysicsController* rayTest(PHY_IRayCastFilterCallback &filterCallback, float fromX,float fromY,float fromZ, float toX,float toY,float toZ);
-		virtual bool cullingTest(PHY_CullingCallback callback, void* userData, PHY__Vector4* planes, int nplanes);
+		virtual bool cullingTest(PHY_CullingCallback callback, void* userData, PHY__Vector4* planes, int nplanes, int occlusionRes);
 
 
 		//Methods for gamelogic collision/physics callbacks

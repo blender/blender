@@ -8057,7 +8057,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 		/* DBVT culling by default */
 		for(wrld=main->world.first; wrld; wrld= wrld->id.next) {
-			wrld->mode |= WO_DBVT_CAMERA_CULLING;
+			wrld->mode |= WO_DBVT_CULLING;
+			wrld->occlusionRes = 128;
 		}
 	}
 

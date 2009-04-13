@@ -843,6 +843,7 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 	
 		{
 			bool visible = true;
+			bool twoside = false;
 			RAS_IPolyMaterial* polymat = NULL;
 			BL_Material *bl_mat = NULL;
 
@@ -859,6 +860,7 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 
 				visible = ((bl_mat->ras_mode & POLY_VIS)!=0);
 				collider = ((bl_mat->ras_mode & COLLIDER)!=0);
+				twoside = ((bl_mat->mode & TF_TWOSIDE)!=0);
 
 				/* vertex colors and uv's were stored in bl_mat temporarily */
 				bl_mat->GetConversionRGB(rgb);
@@ -899,6 +901,7 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 					mode = tface->mode;
 					
 					visible = !((mface->flag & ME_HIDE)||(tface->mode & TF_INVISIBLE));
+					twoside = ((tface->mode & TF_TWOSIDE)!=0);
 					
 					uv0.setValue(tface->uv[0]);
 					uv1.setValue(tface->uv[1]);
@@ -999,6 +1002,7 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 
 			poly->SetVisible(visible);
 			poly->SetCollider(collider);
+			poly->SetTwoside(twoside);
 			//poly->SetEdgeCode(mface->edcode);
 
 			meshobj->AddVertex(poly,0,pt0,uv0,uv20,tan0,rgb0,no0,flat,mface->v1);
@@ -1677,6 +1681,7 @@ static KX_GameObject *gameobject_from_blenderobject(
 		bool ignoreActivityCulling =  
 			((ob->gameflag2 & OB_NEVER_DO_ACTIVITY_CULLING)!=0);
 		gameobj->SetIgnoreActivityCulling(ignoreActivityCulling);
+		gameobj->SetOccluder((ob->gameflag & OB_OCCLUDER) != 0, false);
 	
 		// two options exists for deform: shape keys and armature
 		// only support relative shape key
@@ -1894,12 +1899,14 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 	if (blenderscene->world) {
 		kxscene->SetActivityCulling( (blenderscene->world->mode & WO_ACTIVITY_CULLING) != 0);
 		kxscene->SetActivityCullingRadius(blenderscene->world->activityBoxRadius);
-		kxscene->SetDbvtCameraCulling((blenderscene->world->mode & WO_DBVT_CAMERA_CULLING) != 0);
+		kxscene->SetDbvtCulling((blenderscene->world->mode & WO_DBVT_CULLING) != 0);
 	} else {
 		kxscene->SetActivityCulling(false);
-		kxscene->SetDbvtCameraCulling(false);
+		kxscene->SetDbvtCulling(false);
 	}
-	
+	// no occlusion culling by default
+	kxscene->SetDbvtOcclusionRes(0);
+
 	int activeLayerBitInfo = blenderscene->lay;
 	
 	// templist to find Root Parents (object with no parents)
@@ -2452,8 +2459,9 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 	}
 	
 	// create graphic controller for culling
-	if (kxscene->GetDbvtCameraCulling())
+	if (kxscene->GetDbvtCulling())
 	{
+		bool occlusion = false;
 		for (i=0; i<sumolist->GetCount();i++)
 		{
 			KX_GameObject* gameobj = (KX_GameObject*) sumolist->GetValue(i);
@@ -2464,8 +2472,12 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 				// box[0] is the min, box[1] is the max
 				bool isactive = objectlist->SearchValue(gameobj);
 				BL_CreateGraphicObjectNew(gameobj,box[0],box[1],kxscene,isactive,physics_engine);
+				if (gameobj->GetOccluder())
+					occlusion = true;
 			}
 		}
+		if (occlusion)
+			kxscene->SetDbvtOcclusionRes(blenderscene->world->occlusionRes);
 	}
 	
 	//set ini linearVel and int angularVel //rcruiz

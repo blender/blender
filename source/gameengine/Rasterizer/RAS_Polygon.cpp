@@ -97,6 +97,17 @@ void RAS_Polygon::SetCollider(bool visible)
 	else m_polyflags &= ~COLLIDER;
 }
 
+bool RAS_Polygon::IsTwoside()
+{
+	return (m_polyflags & TWOSIDE) != 0;
+}
+
+void RAS_Polygon::SetTwoside(bool twoside)
+{
+	if(twoside) m_polyflags |= TWOSIDE;
+	else m_polyflags &= ~TWOSIDE;
+}
+
 RAS_MaterialBucket* RAS_Polygon::GetMaterial()
 {
 	return m_bucket;

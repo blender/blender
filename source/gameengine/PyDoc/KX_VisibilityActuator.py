@@ -7,7 +7,9 @@ class KX_VisibilityActuator(SCA_IActuator):
 	Visibility Actuator.
 	@ivar visibility: whether the actuator makes its parent object visible or invisible
 	@type visibility: boolean
-	@ivar recursion: whether the visibility/invisibility should be propagated to all children of the object
+	@ivar occlusion: whether the actuator makes its parent object an occluder or not
+	@type occlusion: boolean
+	@ivar recursion: whether the visibility/occlusion should be propagated to all children of the object
 	@type recursion: boolean
 	"""
 	def set(visible):

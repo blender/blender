@@ -265,6 +265,11 @@ protected:
 	bool m_dbvt_culling;
 	
 	/**
+	 * Occlusion culling resolution
+	 */ 
+	int m_dbvt_occlusion_res;
+
+	/**
 	 * The framing settings used by this scene
 	 */
 
@@ -545,8 +550,10 @@ public:
 	bool IsClearingZBuffer();
 	void EnableZBufferClearing(bool isclearingZbuffer);
 	// use of DBVT tree for camera culling
-	void SetDbvtCameraCulling(bool b) { m_dbvt_culling = b; };
-	bool GetDbvtCameraCulling() { return m_dbvt_culling; };
+	void SetDbvtCulling(bool b) { m_dbvt_culling = b; };
+	bool GetDbvtCulling() { return m_dbvt_culling; };
+	void SetDbvtOcclusionRes(int i) { m_dbvt_occlusion_res = i; };
+	int GetDbvtOcclusionRes() { return m_dbvt_occlusion_res; };
 	
 	void SetSceneConverter(class KX_BlenderSceneConverter* sceneConverter);
 

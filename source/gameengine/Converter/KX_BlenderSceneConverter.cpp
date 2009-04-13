@@ -283,7 +283,7 @@ void KX_BlenderSceneConverter::ConvertScene(const STR_String& scenename,
 			case WOPHY_BULLET:
 				{
 					physics_engine = UseBullet;
-					useDbvtCulling = (blenderscene->world->mode & WO_DBVT_CAMERA_CULLING) != 0;
+					useDbvtCulling = (blenderscene->world->mode & WO_DBVT_CULLING) != 0;
 					break;
 				}
                                 

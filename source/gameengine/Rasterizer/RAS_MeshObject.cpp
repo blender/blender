@@ -406,7 +406,9 @@ void RAS_MeshObject::UpdateBuckets(void* clientobj,
 		ms->m_bCulled = culled || !visible;
 
 		/* split if necessary */
+#ifdef USE_SPLIT
 		ms->Split();
+#endif
 	}
 }
 

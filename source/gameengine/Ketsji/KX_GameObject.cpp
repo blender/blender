@@ -92,6 +92,7 @@ KX_GameObject::KX_GameObject(
 	m_bIsNegativeScaling(false),
 	m_bVisible(true),
 	m_bCulled(true),
+	m_bOccluder(false),
 	m_pPhysicsController1(NULL),
 	m_pGraphicController(NULL),
 	m_pPhysicsEnvironment(NULL),
@@ -146,7 +147,12 @@ KX_GameObject::~KX_GameObject()
 	}
 }
 
-
+KX_GameObject* KX_GameObject::GetClientObject(KX_ClientObjectInfo* info)
+{
+	if (!info)
+		return NULL;
+	return info->m_gameobject;
+}
 
 CValue* KX_GameObject::	Calc(VALUE_OPERATOR op, CValue *val) 
 {
@@ -435,7 +441,7 @@ static void UpdateBuckets_recursive(SG_Node* node)
 
 void KX_GameObject::UpdateBuckets( bool recursive )
 {
-	double* fl = GetOpenGLMatrix();
+	double* fl = GetOpenGLMatrixPtr()->getPointer();
 
 	for (size_t i=0;i<m_meshes.size();i++)
 		m_meshes[i]->UpdateBuckets(this, fl, m_bUseObjectColor, m_objectColor, m_bVisible, m_bCulled);
@@ -597,22 +603,33 @@ KX_GameObject::SetVisible(
 		setVisible_recursive(m_pSGNode, v);
 }
 
-bool
-KX_GameObject::GetCulled(
-	void
-	)
+static void setOccluder_recursive(SG_Node* node, bool v)
 {
-	return m_bCulled;
+	NodeList& children = node->GetSGChildren();
+
+	for (NodeList::iterator childit = children.begin();!(childit==children.end());++childit)
+	{
+		SG_Node* childnode = (*childit);
+		KX_GameObject *clientgameobj = static_cast<KX_GameObject*>( (*childit)->GetSGClientObject());
+		if (clientgameobj != NULL) // This is a GameObject
+			clientgameobj->SetOccluder(v, false);
+		
+		// if the childobj is NULL then this may be an inverse parent link
+		// so a non recursive search should still look down this node.
+		setOccluder_recursive(childnode, v);
+	}
 }
 
 void
-KX_GameObject::SetCulled(
-	bool c
+KX_GameObject::SetOccluder(
+	bool v,
+	bool recursive
 	)
 {
-	m_bCulled = c;
+	m_bOccluder = v;
+	if (recursive)
+		setOccluder_recursive(m_pSGNode, v);
 }
-
 
 void
 KX_GameObject::SetLayer(
@@ -1036,6 +1053,7 @@ PyMethodDef KX_GameObject::Methods[] = {
 	{"setCollisionMargin", (PyCFunction) KX_GameObject::sPySetCollisionMargin, METH_O},
 	{"setParent", (PyCFunction)KX_GameObject::sPySetParent,METH_O},
 	{"setVisible",(PyCFunction) KX_GameObject::sPySetVisible, METH_VARARGS},
+	{"setOcclusion",(PyCFunction) KX_GameObject::sPySetOcclusion, METH_VARARGS},
 	{"removeParent", (PyCFunction)KX_GameObject::sPyRemoveParent,METH_NOARGS},
 	{"getChildren", (PyCFunction)KX_GameObject::sPyGetChildren,METH_NOARGS},
 	{"getChildrenRecursive", (PyCFunction)KX_GameObject::sPyGetChildrenRecursive,METH_NOARGS},
@@ -1069,6 +1087,7 @@ PyAttributeDef KX_GameObject::Attributes[] = {
 	KX_PYATTRIBUTE_RO_FUNCTION("parent",	KX_GameObject, pyattr_get_parent),
 	KX_PYATTRIBUTE_RW_FUNCTION("mass",		KX_GameObject, pyattr_get_mass,		pyattr_set_mass),
 	KX_PYATTRIBUTE_RW_FUNCTION("visible",	KX_GameObject, pyattr_get_visible,	pyattr_set_visible),
+	KX_PYATTRIBUTE_BOOL_RW    ("occlusion", KX_GameObject, m_bOccluder),
 	KX_PYATTRIBUTE_RW_FUNCTION("position",	KX_GameObject, pyattr_get_position,	pyattr_set_position),
 	KX_PYATTRIBUTE_RO_FUNCTION("localInertia",	KX_GameObject, pyattr_get_localInertia),
 	KX_PYATTRIBUTE_RW_FUNCTION("orientation",KX_GameObject,pyattr_get_orientation,pyattr_set_orientation),
@@ -1744,6 +1763,16 @@ PyObject* KX_GameObject::PySetVisible(PyObject* self, PyObject* args)
 	UpdateBuckets(recursive ? true:false);
 	Py_RETURN_NONE;
 	
+}
+
+PyObject* KX_GameObject::PySetOcclusion(PyObject* self, PyObject* args)
+{
+	int occlusion, recursive = 0;
+	if (!PyArg_ParseTuple(args,"i|i:setOcclusion",&occlusion, &recursive))
+		return NULL;
+	
+	SetOccluder(occlusion ? true:false, recursive ? true:false);
+	Py_RETURN_NONE;
 }
 
 PyObject* KX_GameObject::PyGetVisible(PyObject* self)

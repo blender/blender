@@ -38,11 +38,13 @@
 KX_VisibilityActuator::KX_VisibilityActuator(
 	SCA_IObject* gameobj,
 	bool visible,
+	bool occlusion,
 	bool recursive,
 	PyTypeObject* T
 	) 
 	: SCA_IActuator(gameobj,T),
 	  m_visible(visible),
+	  m_occlusion(occlusion),
 	  m_recursive(recursive)
 {
 	// intentionally empty
@@ -78,6 +80,7 @@ KX_VisibilityActuator::Update()
 	KX_GameObject *obj = (KX_GameObject*) GetParent();
 	
 	obj->SetVisible(m_visible, m_recursive);
+	obj->SetOccluder(m_occlusion, m_recursive);
 	obj->UpdateBuckets(m_recursive);
 
 	return false;
@@ -130,6 +133,7 @@ KX_VisibilityActuator::Methods[] = {
 
 PyAttributeDef KX_VisibilityActuator::Attributes[] = {
 	KX_PYATTRIBUTE_BOOL_RW("visibility", KX_VisibilityActuator, m_visible),
+	KX_PYATTRIBUTE_BOOL_RW("occlusion", KX_VisibilityActuator, m_occlusion),
 	KX_PYATTRIBUTE_BOOL_RW("recursion", KX_VisibilityActuator, m_recursive),
 	{ NULL }	//Sentinel
 };
