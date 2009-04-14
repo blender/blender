@@ -64,9 +64,8 @@ void free_action(struct bAction *act);
 
 // XXX is this needed?
 void make_local_action(struct bAction *act);
-		
+
 /* Some kind of bounding box operation on the action */
-// XXX depreceated..
 void calc_action_range(const struct bAction *act, float *start, float *end, int incl_hidden);
 
 /* Action Groups API ----------------- */
