@@ -150,11 +150,11 @@ bool KX_MouseFocusSensor::RayHit(KX_ClientObjectInfo* client_info, KX_RayCast* r
 
 
 
-bool KX_MouseFocusSensor::ParentObjectHasFocus(void)
+bool KX_MouseFocusSensor::ParentObjectHasFocus()
 {
 	m_hitObject = 0;
-	m_hitPosition = MT_Vector3(0,0,0);
-	m_hitNormal =	MT_Vector3(1,0,0);
+	m_hitPosition.setValue(0,0,0);
+	m_hitNormal.setValue(1,0,0);
 
 	/* All screen handling in the gameengine is done by GL,
 	 * specifically the model/view and projection parts. The viewport
@@ -188,6 +188,11 @@ bool KX_MouseFocusSensor::ParentObjectHasFocus(void)
 	 *
 	 * */
 	
+	MT_Vector4 frompoint;
+	MT_Vector4 topoint;
+	
+	bool result = false;
+	
 	/* Because we don't want to worry about resize events, camera
 	 * changes and all that crap, we just determine this over and
 	 * over. Stop whining. We have lots of other calculations to do
@@ -195,96 +200,105 @@ bool KX_MouseFocusSensor::ParentObjectHasFocus(void)
 	 * canvas, the test is irrelevant. The 1.0 makes sure the
 	 * calculations don't bomb. Maybe we should explicitly guard for
 	 * division by 0.0...*/
-
-	KX_Camera* cam = m_kxscene->GetActiveCamera();
-
-	/* get the scenes current viewport. we recompute it because there
-	 * may be multiple cameras and m_kxscene->GetSceneViewport() only
-	 * has the one that was last drawn */
-
-	RAS_Rect area, viewport;
-	m_kxengine->GetSceneViewport(m_kxscene, cam, area, viewport);
-
-	float height = float(viewport.m_y2 - viewport.m_y1 + 1);
-	float width  = float(viewport.m_x2 - viewport.m_x1 + 1);
+	list<class KX_Camera*>* cameras = m_kxscene->GetCameras();
 	
-	float x_lb = float(viewport.m_x1);
-	float y_lb = float(viewport.m_y1);
+	// Draw the scene once for each camera with an enabled viewport
+	list<KX_Camera*>::iterator it = cameras->begin();
+	while(it != cameras->end())
+	{
+		if((*it)->GetViewport())
+		{
+			KX_Camera* cam= (*it);
+		
+			/* get the scenes current viewport. we recompute it because there
+			 * may be multiple cameras and m_kxscene->GetSceneViewport() only
+			 * has the one that was last drawn */
 
-	/* There's some strangeness I don't fully get here... These values
-	 * _should_ be wrong! */
+			RAS_Rect area, viewport;
+			m_kxengine->GetSceneViewport(m_kxscene, cam, area, viewport);
+			
+			/* Check if the mouse is in the viewport */
+			if (	m_x < viewport.m_x2 &&	// less then right
+					m_x > viewport.m_x1 &&	// more then then left
+					m_y < viewport.m_y2 &&	// below top
+					m_y > viewport.m_y1)	// above bottom
+			{
+				float height = float(viewport.m_y2 - viewport.m_y1 + 1);
+				float width  = float(viewport.m_x2 - viewport.m_x1 + 1);
+				
+				float x_lb = float(viewport.m_x1);
+				float y_lb = float(viewport.m_y1);
+
+				/* There's some strangeness I don't fully get here... These values
+				 * _should_ be wrong! - see from point Z values */
+				
+				
+				/*	build the from and to point in normalized device coordinates 
+				 *	Looks like normailized device coordinates are [-1,1] in x [-1,1] in y
+				 *	[0,-1] in z 
+				 *	
+				 *	The actual z coordinates used don't have to be exact just infront and 
+				 *	behind of the near and far clip planes.
+				 */ 
+				frompoint.setValue(	(2 * (m_x-x_lb) / width) - 1.0,
+									1.0 - (2 * (m_y - y_lb) / height),
+									0.0, /* nearclip, see above comments */
+									1.0 );
+				
+				topoint.setValue(	(2 * (m_x-x_lb) / width) - 1.0,
+									1.0 - (2 * (m_y-y_lb) / height),
+									1.0, /* farclip, see above comments */
+									1.0 );
+
+				/* camera to world  */
+				MT_Transform wcs_camcs_tranform = cam->GetWorldToCamera();
+				if (!cam->GetCameraData()->m_perspective)
+					wcs_camcs_tranform.getOrigin()[2] *= 100.0;
+				MT_Transform cams_wcs_transform;
+				cams_wcs_transform.invert(wcs_camcs_tranform);
+				
+				MT_Matrix4x4 camcs_wcs_matrix = MT_Matrix4x4(cams_wcs_transform);
+
+				/* badly defined, the first time round.... I wonder why... I might
+				 * want to guard against floating point errors here.*/
+				MT_Matrix4x4 clip_camcs_matrix = MT_Matrix4x4(cam->GetProjectionMatrix());
+				clip_camcs_matrix.invert();
+
+				/* shoot-points: clip to cam to wcs . win to clip was already done.*/
+				frompoint = clip_camcs_matrix * frompoint;
+				topoint   = clip_camcs_matrix * topoint;
+				frompoint = camcs_wcs_matrix * frompoint;
+				topoint   = camcs_wcs_matrix * topoint;
+				
+				/* from hom wcs to 3d wcs: */
+				m_prevSourcePoint.setValue(	frompoint[0]/frompoint[3],
+											frompoint[1]/frompoint[3],
+											frompoint[2]/frompoint[3]); 
+				
+				m_prevTargetPoint.setValue(	topoint[0]/topoint[3],
+											topoint[1]/topoint[3],
+											topoint[2]/topoint[3]); 
+				
+				/* 2. Get the object from PhysicsEnvironment */
+				/* Shoot! Beware that the first argument here is an
+				 * ignore-object. We don't ignore anything... */
+				KX_IPhysicsController* physics_controller = cam->GetPhysicsController();
+				PHY_IPhysicsEnvironment* physics_environment = m_kxscene->GetPhysicsEnvironment();
+
+				KX_RayCast::Callback<KX_MouseFocusSensor> callback(this,physics_controller);
+				 
+				KX_RayCast::RayTest(physics_environment, m_prevSourcePoint, m_prevTargetPoint, callback);
+				
+				if (m_hitObject) {
+					result= true;
+					break;
+				}
+			}
+		}
+		it++;
+	}
 	
-
-	/* old: */
-	float nearclip = 0.0;
-	float farclip = 1.0;
-
-	/*	build the from and to point in normalized device coordinates 
-	 *	Looks like normailized device coordinates are [-1,1] in x [-1,1] in y
-	 *	[0,-1] in z 
-	 *	
-	 *	The actual z coordinates used don't have to be exact just infront and 
-	 *	behind of the near and far clip planes.
-	 */ 
-	MT_Vector4 frompoint = MT_Vector4( 
-		(2 * (m_x-x_lb) / width) - 1.0,
-		1.0 - (2 * (m_y - y_lb) / height),
-		nearclip,
-		1.0
-	);
-	MT_Vector4 topoint = MT_Vector4( 
-		(2 * (m_x-x_lb) / width) - 1.0,
-		1.0 - (2 * (m_y-y_lb) / height),
-		farclip,
-		1.0
-	);
-
-	/* camera to world  */
-	MT_Transform wcs_camcs_tranform = cam->GetWorldToCamera();
-	if (!cam->GetCameraData()->m_perspective)
-		wcs_camcs_tranform.getOrigin()[2] *= 100.0;
-	MT_Transform cams_wcs_transform;
-	cams_wcs_transform.invert(wcs_camcs_tranform);
-	
-	MT_Matrix4x4 camcs_wcs_matrix = MT_Matrix4x4(cams_wcs_transform);
-
-	/* badly defined, the first time round.... I wonder why... I might
-	 * want to guard against floating point errors here.*/
-	MT_Matrix4x4 clip_camcs_matrix = MT_Matrix4x4(cam->GetProjectionMatrix());
-	clip_camcs_matrix.invert();
-
-	/* shoot-points: clip to cam to wcs . win to clip was already done.*/
-	frompoint = clip_camcs_matrix * frompoint;
-	topoint   = clip_camcs_matrix * topoint;
-	frompoint = camcs_wcs_matrix * frompoint;
-	topoint   = camcs_wcs_matrix * topoint;
-	
-	/* from hom wcs to 3d wcs: */
-	MT_Point3 frompoint3 = MT_Point3(frompoint[0]/frompoint[3], 
-									 frompoint[1]/frompoint[3], 
-									 frompoint[2]/frompoint[3]); 
-	MT_Point3 topoint3 = MT_Point3(topoint[0]/topoint[3], 
-								   topoint[1]/topoint[3], 
-								   topoint[2]/topoint[3]); 
-	m_prevTargetPoint = topoint3;
-	m_prevSourcePoint = frompoint3;
-	
-	/* 2. Get the object from PhysicsEnvironment */
-	/* Shoot! Beware that the first argument here is an
-	 * ignore-object. We don't ignore anything... */
-	
-	KX_IPhysicsController* physics_controller = cam->GetPhysicsController();
-	PHY_IPhysicsEnvironment* physics_environment = m_kxscene->GetPhysicsEnvironment();
-
-	bool result = false;
-
-	KX_RayCast::Callback<KX_MouseFocusSensor> callback(this,physics_controller);
-	KX_RayCast::RayTest(physics_environment, frompoint3, topoint3, callback);
-	
-	result = (m_hitObject!=0);
-
 	return result;
-
 }
 
 /* ------------------------------------------------------------------------- */
