@@ -717,9 +717,9 @@ void KX_Scene::DupliGroupRecurse(CValue* obj, int level)
 
 		MT_Matrix3x3 newori = groupobj->NodeGetWorldOrientation() * gameobj->NodeGetWorldOrientation();
 		replica->NodeSetLocalOrientation(newori);
-
+		MT_Point3 offset(group->dupli_ofs);
 		MT_Point3 newpos = groupobj->NodeGetWorldPosition() + 
-			newscale*(groupobj->NodeGetWorldOrientation() * gameobj->NodeGetWorldPosition());
+			newscale*(groupobj->NodeGetWorldOrientation() * (gameobj->NodeGetWorldPosition()-offset));
 		replica->NodeSetLocalPosition(newpos);
 
 		replica->GetSGNode()->UpdateWorldData(0);
