@@ -93,6 +93,10 @@ public:
 	virtual	MT_Vector3	getReactionForce();
 	virtual	void	setRigidBody(bool rigid);
 	
+	virtual	float GetLinVelocityMin() { return SumoPhysicsController::GetLinVelocityMin(); }
+	virtual void	SetLinVelocityMin(float val) { SumoPhysicsController::SetLinVelocityMin(val); }
+	virtual	float GetLinVelocityMax() { return SumoPhysicsController::GetLinVelocityMax(); }
+	virtual void	SetLinVelocityMax(float val) { SumoPhysicsController::SetLinVelocityMax(val); }
 
 	virtual	SG_Controller*	GetReplica(class SG_Node* destnode);
 
