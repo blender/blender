@@ -90,6 +90,12 @@ class PHY_IPhysicsController : public PHY_IController
 		virtual float GetMargin() const=0;
 		virtual float GetRadius() const=0;
 		virtual void  SetRadius(float margin) = 0;
+
+		virtual float GetLinVelocityMin() const=0;
+		virtual void  SetLinVelocityMin(float val) = 0;
+		virtual float GetLinVelocityMax() const=0;
+		virtual void  SetLinVelocityMax(float val) = 0;
+		
 		PHY__Vector3	GetWorldPosition(PHY__Vector3& localpos);
 
 };

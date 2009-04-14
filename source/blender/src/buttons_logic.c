@@ -3139,6 +3139,7 @@ static uiBlock *advanced_bullet_menu(void *arg_ob)
 			uiDefButF(block, NUM, 0, "Margin", 
 					xco, yco, 180, 19, &ob->margin, 0.001, 1.0, 1, 0, 
 					"Collision margin");
+			
 			yco -= 20;
 
 			if (ob->gameflag & OB_RIGID_BODY)
@@ -3166,7 +3167,24 @@ static uiBlock *advanced_bullet_menu(void *arg_ob)
 				uiDefButBitI(block, TOG, OB_LOCK_RIGID_BODY_Z_ROT_AXIS, 0, "Lock Z Rot Axis", 
 					xco+=180, yco, 180, 19, &ob->gameflag2, 0, 0, 0, 0, 
 					"Disable simulation of angular motion along the Z axis");
+				yco -= 20;
 			}
+			xco = 0;
+			
+			uiBlockEndAlign(block);
+			
+			uiDefBut(block, LABEL, 0, "Clamp Velocity (zero disables)",	  xco, yco, 180*2, 19, NULL, 0, 0, 0, 0, "");
+			
+			uiBlockBeginAlign(block);
+			
+			uiDefButF(block, NUM, 0, "Min", 
+				xco+=180, yco, 90, 19, &ob->min_vel, 0.0, 1000.0, 1, 0, 
+				"Clamp velocity to this minimum speed (except when totally still)");
+			uiDefButF(block, NUM, 0, "Max", 
+				xco+=90, yco, 90, 19, &ob->max_vel, 0.0, 1000.0, 1, 0, 
+				"Clamp velocity to this maximum speed");
+			uiBlockEndAlign(block);
+			
 			/*
 			uiDefButBitI(block, TOG, OB_BSB_COL_CL_RS, 0, "Cluster Collision RS", 
 				xco, yco, 180, 19, &ob->bsoft->collisionflags, 0, 0, 0, 0, 

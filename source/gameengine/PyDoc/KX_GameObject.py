@@ -16,8 +16,18 @@ class KX_GameObject: # (SCA_IObject)
 	@ivar name: The object's name. (Read only)
 		- note: Currently (Blender 2.49) the prefix "OB" is added to all objects name. This may change in blender 2.5.
 	@type name: string.
-	@ivar mass: The object's mass (provided the object has a physics controller).
+	@ivar mass: The object's mass
+		- note: The object must have a physics controller for the mass to be applied, otherwise the mass value will be returned as 0.0
 	@type mass: float
+	@ivar linVelocityMin: Enforces the object keeps moving at a minimum velocity.
+		- note: Applies to dynamic and rigid body objects only.
+		- note: A value of 0.0 disables this option.
+		- note: While objects are stationary the minimum velocity will not be applied.
+	@type linVelocityMin: float
+	@ivar linVelocityMax: Clamp the maximum linear velocity to prevent objects moving beyond a set speed.
+		- note: Applies to dynamic and rigid body objects only.
+		- note: A value of 0.0 disables this option (rather then setting it stationary).
+	@type linVelocityMax: float
 	@ivar localInertia: the object's inertia vector in local coordinates. Read only.
 	@type localInertia: list [ix, iy, iz]
 	@ivar parent: The object's parent object. (Read only)
@@ -35,7 +45,7 @@ class KX_GameObject: # (SCA_IObject)
 	@type scaling: list [sx, sy, sz]
 	@ivar timeOffset: adjust the slowparent delay at runtime.
 	@type timeOffset: float
-	@ivar state: the game object's state bitmask.
+	@ivar state: the game object's state bitmask, using the first 30 bits, one bit must always be set.
 	@type state: int
 	@ivar meshes: a list meshes for this object.
 		- note: Most objects use only 1 mesh.

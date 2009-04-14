@@ -56,7 +56,11 @@ public:
 	virtual	SG_Controller*	GetReplica(class SG_Node* destnode);
 
 	virtual MT_Scalar GetRadius();
-
+	
+	virtual float GetLinVelocityMin();
+	virtual void  SetLinVelocityMin(float val);
+	virtual float GetLinVelocityMax();
+	virtual void  SetLinVelocityMax(float val);
 
 	virtual void	SetSumoTransform(bool nondynaonly);
 	// todo: remove next line !

@@ -584,7 +584,19 @@ bool		CcdPhysicsController::SynchronizeMotionStates(float time)
 
 	if (body && !body->isStaticObject())
 	{
-
+		
+		if ((m_cci.m_clamp_vel_max>0.0) || (m_cci.m_clamp_vel_min>0.0))
+		{
+			const btVector3& linvel = body->getLinearVelocity();
+			float len= linvel.length();
+			
+			if((m_cci.m_clamp_vel_max>0.0) && (len > m_cci.m_clamp_vel_max))
+					body->setLinearVelocity(linvel * (m_cci.m_clamp_vel_max / len));
+			
+			else if ((m_cci.m_clamp_vel_min>0.0) && btFuzzyZero(len)==0 && (len < m_cci.m_clamp_vel_min))
+				body->setLinearVelocity(linvel * (m_cci.m_clamp_vel_min / len));
+		}
+		
 		const btVector3& worldPos = body->getCenterOfMassPosition();
 		m_MotionState->setWorldPosition(worldPos[0],worldPos[1],worldPos[2]);
 		

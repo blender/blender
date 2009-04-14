@@ -59,6 +59,24 @@ void	KX_BulletPhysicsController::applyImpulse(const MT_Point3& attach, const MT_
 
 }
 
+float KX_BulletPhysicsController::GetLinVelocityMin()
+{
+	return (float)CcdPhysicsController::GetLinVelocityMin();
+}
+void  KX_BulletPhysicsController::SetLinVelocityMin(float val)
+{
+	CcdPhysicsController::SetLinVelocityMin(val);
+}
+
+float KX_BulletPhysicsController::GetLinVelocityMax()
+{
+	return (float)CcdPhysicsController::GetLinVelocityMax();
+}
+void  KX_BulletPhysicsController::SetLinVelocityMax(float val)
+{
+	CcdPhysicsController::SetLinVelocityMax(val);
+}
+
 void	KX_BulletPhysicsController::SetObject (SG_IObject* object)
 {
 	SG_Controller::SetObject(object);
@@ -73,6 +91,10 @@ void	KX_BulletPhysicsController::SetObject (SG_IObject* object)
 
 }
 
+MT_Scalar KX_BulletPhysicsController::GetRadius()
+{
+	return MT_Scalar(CcdPhysicsController::GetRadius());
+}
 
 void	KX_BulletPhysicsController::setMargin (float collisionMargin)
 {
@@ -174,11 +196,6 @@ MT_Vector3 KX_BulletPhysicsController::GetLocalInertia()
 			inertia = MT_Vector3(1.f/inv_inertia.getX(), 1.f/inv_inertia.getY(), 1.f/inv_inertia.getZ());
     }
     return inertia;
-}
-
-MT_Scalar KX_BulletPhysicsController::GetRadius()
-{
-	return MT_Scalar(CcdPhysicsController::GetRadius());
 }
 
 MT_Vector3	KX_BulletPhysicsController::getReactionForce()

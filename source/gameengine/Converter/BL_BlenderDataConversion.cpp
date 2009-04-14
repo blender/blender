@@ -1107,6 +1107,10 @@ static PHY_ShapeProps *CreateShapePropsFromBlenderObject(struct Object* blendero
 	shapeProps->m_do_fh     = (blenderobject->gameflag & OB_DO_FH) != 0; 
 	shapeProps->m_do_rot_fh = (blenderobject->gameflag & OB_ROT_FH) != 0;
 	
+//	velocity clamping XXX
+	shapeProps->m_clamp_vel_min = blenderobject->min_vel;
+	shapeProps->m_clamp_vel_max = blenderobject->max_vel;
+	
 	return shapeProps;
 }
 

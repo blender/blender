@@ -157,7 +157,9 @@ typedef struct Object {
 	float formfactor;
 	float rdamping, sizefac;
 	float margin;
-	int   pad3;
+	float max_vel; /* clamp the maximum velocity 0.0 is disabled */
+	float min_vel; /* clamp the maximum velocity 0.0 is disabled */
+	float pad3; /* clamp the maximum velocity 0.0 is disabled */
 
 	char dt, dtx;
 	char totcol;	/* copy of mesh or curve or meta */

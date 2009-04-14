@@ -214,6 +214,8 @@ struct CcdConstructionInfo
 		m_gravity(0,0,0),
 		m_scaling(1.f,1.f,1.f),
 		m_mass(0.f),
+		m_clamp_vel_min(-1.f), 
+		m_clamp_vel_max(-1.f), 
 		m_restitution(0.1f),
 		m_friction(0.5f),
 		m_linearDamping(0.1f),
@@ -239,6 +241,8 @@ struct CcdConstructionInfo
 	btVector3	m_gravity;
 	btVector3	m_scaling;
 	btScalar	m_mass;
+	btScalar	m_clamp_vel_min;  
+	btScalar	m_clamp_vel_max;  
 	btScalar	m_restitution;
 	btScalar	m_friction;
 	btScalar	m_linearDamping;
@@ -479,7 +483,24 @@ class CcdPhysicsController : public PHY_IPhysicsController
 			}
 			m_cci.m_radius = margin;
 		}
-
+		
+		// velocity clamping
+		virtual void SetLinVelocityMin(float val) 
+		{
+			m_cci.m_clamp_vel_min= val;
+		}
+		virtual float GetLinVelocityMin() const 
+		{
+			return m_cci.m_clamp_vel_min;
+		}
+		virtual void SetLinVelocityMax(float val) 
+		{
+			m_cci.m_clamp_vel_max= val;
+		}
+		virtual float GetLinVelocityMax() const 
+		{
+			return m_cci.m_clamp_vel_max;
+		}
 
 		bool	wantsSleeping();
 
