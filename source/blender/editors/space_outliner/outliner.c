@@ -4306,7 +4306,7 @@ void draw_outliner(const bContext *C)
 	outliner_draw_tree(scene, ar, soops);
 
 	/* draw icons and names */
-	block= uiBeginBlock(C, ar, "outliner buttons", UI_EMBOSS, UI_HELV);
+	block= uiBeginBlock(C, ar, "outliner buttons", UI_EMBOSS);
 	outliner_buttons(block, ar, soops, &soops->tree);
 	
 	if(ELEM(soops->outlinevis, SO_DATABLOCKS, SO_USERDEF)) {

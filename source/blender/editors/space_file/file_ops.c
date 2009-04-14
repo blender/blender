@@ -318,6 +318,8 @@ void FILE_OT_select_all_toggle(wmOperatorType *ot)
 
 /* ---------- BOOKMARKS ----------- */
 
+#define MARK_HEIGHT	22
+
 static void set_active_bookmark(FileSelectParams* params, struct ARegion* ar, short x, short y)
 {
 	int nentries = fsmenu_get_nentries(fsmenu_get(), FS_CATEGORY_BOOKMARKS);
@@ -327,9 +329,9 @@ static void set_active_bookmark(FileSelectParams* params, struct ARegion* ar, sh
 	UI_view2d_region_to_view(&ar->v2d, x, y, &fx, &fy);
 
 	posy = ar->v2d.cur.ymax - 2*TILE_BORDER_Y - fy;
-	posy -= U.fontsize*2.0f;	/* header */
+	posy -= MARK_HEIGHT;	/* header */
 	
-	params->active_bookmark = ((float)posy / (U.fontsize*2.0f));
+	params->active_bookmark = ((float)posy / (MARK_HEIGHT));
 	if (params->active_bookmark < 0 || params->active_bookmark > nentries) {
 		params->active_bookmark = -1;
 	}
@@ -339,7 +341,7 @@ static int file_select_bookmark_category(SpaceFile* sfile, ARegion* ar, short x,
 {
 	struct FSMenu* fsmenu = fsmenu_get();
 	int nentries = fsmenu_get_nentries(fsmenu, category);
-	int linestep = U.fontsize*2.0f;
+	int linestep = MARK_HEIGHT;
 	short xs, ys;
 	int i;
 	int selected = -1;

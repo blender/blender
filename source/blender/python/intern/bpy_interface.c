@@ -31,6 +31,8 @@
 #include "BKE_context.h"
 #include "BKE_text.h"
 
+#include "BPY_extern.h"
+
 void BPY_free_compiled_text( struct Text *text )
 {
 	if( text->compiled ) {
@@ -58,6 +60,13 @@ static void bpy_init_modules( void )
 	PyDict_SetItemString(PySys_GetObject("modules"), "bpy", mod);
 	Py_DECREF(mod);
 }
+
+#if (PY_VERSION_HEX < 0x02050000)
+PyObject *PyImport_ImportModuleLevel(char *name, void *a, void *b, void *c, int d)
+{
+	return PyImport_ImportModule(name);
+}
+#endif
 
 void BPY_update_modules( void )
 {
@@ -106,7 +115,7 @@ static PyObject *CreateGlobalDictionary( bContext *C )
 	return dict;
 }
 
-void BPY_start_python( void )
+void BPY_start_python( int argc, char **argv )
 {
 	PyThreadState *py_tstate = NULL;
 	
@@ -244,7 +253,7 @@ static int bpy_run_script_init(bContext *C, SpaceScript * sc)
 	return 1;
 }
 
-int BPY_run_script_space_draw(bContext *C, SpaceScript * sc)
+int BPY_run_script_space_draw(struct bContext *C, SpaceScript * sc)
 {
 	if (bpy_run_script_init(C, sc)) {
 		PyGILState_STATE gilstate = PyGILState_Ensure();
@@ -334,7 +343,7 @@ int BPY_run_python_script_space(const char *modulename, const char *func)
 #endif
 
 /* XXX this is temporary, need a proper script registration system for 2.5 */
-void BPY_run_ui_scripts(void)
+void BPY_run_ui_scripts(bContext *C)
 {
 #ifdef TIME_REGISTRATION
 	double time = PIL_check_seconds_timer();

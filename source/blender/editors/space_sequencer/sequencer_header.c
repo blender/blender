@@ -78,7 +78,7 @@ static uiBlock *seq_viewmenu(bContext *C, ARegion *ar, void *arg_unused)
 	SpaceSeq *sseq= sa->spacedata.first;
 	View2D *v2d= UI_view2d_fromcontext(C);
 
-	uiBlock *block= uiBeginBlock(C, ar, "seq_viewmenu", UI_EMBOSSP, UI_HELV);
+	uiBlock *block= uiBeginBlock(C, ar, "seq_viewmenu", UI_EMBOSSP);
 	short yco= 0, menuwidth=120;
 
 	if (sseq->mainb == SEQ_DRAW_SEQUENCE) {
@@ -168,7 +168,7 @@ static uiBlock *seq_markermenu(bContext *C, ARegion *ar, void *arg_unused)
 	SpaceSeq *sseq= sa->spacedata.first;
 
 
-	uiBlock *block= uiBeginBlock(C, ar, "seq_markermenu", UI_EMBOSSP, UI_HELV);
+	uiBlock *block= uiBeginBlock(C, ar, "seq_markermenu", UI_EMBOSSP);
 	short yco= 0, menuwidth=120;
 
 
@@ -327,7 +327,7 @@ void sequencer_header_buttons(const bContext *C, ARegion *ar)
 	Scene *scene= CTX_data_scene(C);
 	Editing *ed= seq_give_editing(scene, FALSE);
 	
-	uiBlock *block= uiBeginBlock(C, ar, "header buttons", UI_EMBOSS, UI_HELV);
+	uiBlock *block= uiBeginBlock(C, ar, "header buttons", UI_EMBOSS);
 	int xco=3, yco= 3;
 	
 	xco= ED_area_header_standardbuttons(C, block, yco);

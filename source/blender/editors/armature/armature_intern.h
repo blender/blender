@@ -75,8 +75,8 @@ struct EditBone;
 struct ListBase;
 
 void make_boneList(struct ListBase *edbo, struct ListBase *bones, struct EditBone *parent);
-
 struct EditBone *addEditBone(struct bArmature *arm, char *name);
+void BIF_sk_selectStroke(struct bContext *C, short mval[2], short extend);
 
 /* duplicate method */
 void preEditBoneDuplicate(struct ListBase *editbones);

@@ -517,7 +517,7 @@ static uiBlock *socket_vector_menu(bContext *C, ARegion *ar, void *socket_v)
 			break;
 	}
 	
-	block= uiBeginBlock(C, ar, "socket menu", UI_EMBOSS, UI_HELV);
+	block= uiBeginBlock(C, ar, "socket menu", UI_EMBOSS);
 
 	/* use this for a fake extra empy space around the buttons */
 	uiDefBut(block, LABEL, 0, "",			-4, -4, 188, 68, NULL, 0, 0, 0, 0, "");
@@ -768,8 +768,8 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 			/* make unique block name, also used for handling blocks in editnode.c */
 			sprintf(str, "node buttons %p", node);
 			
-			//block= uiNewBlock(&sa->uiblocks, str, UI_EMBOSS, UI_HELV, sa->win);
-			block= uiBeginBlock(C, ar, str, UI_EMBOSS, UI_HELV);
+			//block= uiNewBlock(&sa->uiblocks, str, UI_EMBOSS);
+			block= uiBeginBlock(C, ar, str, UI_EMBOSS);
 			uiBlockSetHandleFunc(block, do_node_internal_buttons, node);
 			// XXX if(snode->id)
 			// XXX	uiSetButLock(snode->id->lib!=NULL, ERROR_LIBDATA_MESSAGE);

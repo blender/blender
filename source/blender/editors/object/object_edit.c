@@ -1114,6 +1114,7 @@ int hook_getIndexArray(Object *obedit, int *tot, int **indexar, char *name, floa
 			} else {
 				int ret = return_editmesh_vgroup(obedit, em, name, cent_r);
 				BKE_mesh_end_editmesh(me, em);
+				return ret;
 			}
 		}
 		case OB_CURVE:

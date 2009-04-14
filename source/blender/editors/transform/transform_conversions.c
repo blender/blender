@@ -3505,14 +3505,6 @@ void flushTransGraphData(TransInfo *t)
 
 /* **************** IpoKey stuff, for Object TransData ********** */
 
-/* storage of bezier triple. thats why -3 and +3! */
-static void set_tdi_old(float *old, float *poin)
-{
-	old[0]= *(poin);
-	old[3]= *(poin-3);
-	old[6]= *(poin+3);
-}
-
 /* while transforming */
 void add_tdi_poin(float *poin, float *old, float delta)
 {
@@ -3523,8 +3515,16 @@ void add_tdi_poin(float *poin, float *old, float delta)
 	}
 }
 
-/* fill ipokey transdata with old vals and pointers */
 #if 0 // TRANSFORM_FIX_ME
+/* storage of bezier triple. thats why -3 and +3! */
+static void set_tdi_old(float *old, float *poin)
+{
+	old[0]= *(poin);
+	old[3]= *(poin-3);
+	old[6]= *(poin+3);
+}
+
+/* fill ipokey transdata with old vals and pointers */
 static void ipokey_to_transdata(IpoKey *ik, TransData *td)
 {
 	extern int ob_ar[];		// blenkernel ipo.c

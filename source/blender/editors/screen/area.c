@@ -877,9 +877,6 @@ int ED_area_header_standardbuttons(const bContext *C, uiBlock *block, int yco)
 	uiBut *but;
 	int xco= 8;
 	
-	if(ED_screen_area_active(C)) uiBlockSetCol(block, TH_HEADER);
-	else uiBlockSetCol(block, TH_HEADERDESEL);
-	
 	but= uiDefIconTextButC(block, ICONTEXTROW, 0, ICON_VIEW3D, 
 						   windowtype_pup(), xco, yco, XIC+10, YIC, 
 						   &(sa->butspacetype), 1.0, SPACEICONMAX, 0, 0, 

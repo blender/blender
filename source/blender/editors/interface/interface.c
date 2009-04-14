@@ -392,68 +392,6 @@ void uiMenuPopupBoundsBlock(uiBlock *block, int addval, int mx, int my)
 	block->my= my;
 }
 
-void ui_autofill(uiBlock *block)
-{
-	uiBut *but;
-	float *maxw, *maxh, startx = 0, starty, height = 0;
-	float totmaxh;
-	int rows=0, /*  cols=0, */ i, lasti;
-	
-	/* first count rows */
-	but= block->buttons.last;
-	rows= but->x1+1;
-
-	/* calculate max width / height for each row */
-	maxw= MEM_callocN(sizeof(float)*rows, "maxw");
-	maxh= MEM_callocN(sizeof(float)*rows, "maxh");
-	but= block->buttons.first;
-	while(but) {
-		i= but->x1;
-		if( maxh[i] < but->y2) maxh[i]= but->y2;
-		maxw[i] += but->x2;
-		but= but->next;
-	}
-	
-	totmaxh= 0.0;
-	for(i=0; i<rows; i++) totmaxh+= maxh[i];
-	
-	/* apply widths/heights */
-	starty= block->maxy;
-	but= block->buttons.first;
-	lasti= -1;
-	while(but) {
-		// signal for aligning code
-		but->flag |= UI_BUT_ALIGN_DOWN;
-		
-		i= but->x1;
-
-		if(i!=lasti) {
-			startx= block->minx;
-			height= (maxh[i]*(block->maxy-block->miny))/totmaxh;
-			starty-= height;
-			lasti= i;
-		}
-		
-		but->y1= starty+but->aspect;
-		but->y2= but->y1+height-but->aspect;
-		
-		but->x2= (but->x2*(block->maxx-block->minx))/maxw[i];
-		but->x1= startx+but->aspect;
-		
-		startx+= but->x2;
-		but->x2+= but->x1-but->aspect;
-		
-		ui_check_but(but);
-		
-		but= but->next;
-	}
-	
-	uiBlockEndAlign(block);
-	
-	MEM_freeN(maxw); MEM_freeN(maxh);	
-	block->autofill= 0;
-}
-
 /* ************** LINK LINE DRAWING  ************* */
 
 /* link line drawing is not part of buttons or theme.. so we stick with it here */
@@ -469,7 +407,7 @@ static void ui_draw_linkline(uiBut *but, uiLinkLine *line)
 	vec2[0]= (line->to->x1+line->to->x2)/2.0;
 	vec2[1]= (line->to->y1+line->to->y2)/2.0;
 	
-	if(line->flag & UI_SELECT) UI_ThemeColorShade(but->themecol, 80);
+	if(line->flag & UI_SELECT) glColor3ub(100,100,100);
 	else glColor3ub(0,0,0);
 	fdrawline(vec1[0], vec1[1], vec2[0], vec2[1]);
 }
@@ -628,7 +566,6 @@ void uiEndBlock(const bContext *C, uiBlock *block)
 	else if(block->dobounds == 2) ui_text_bounds_block(block, 0.0f);
 	else if(block->dobounds) ui_popup_bounds_block(C, block, (block->dobounds == 4));
 
-	if(block->autofill) ui_autofill(block);
 	if(block->minx==0.0 && block->maxx==0.0) uiBoundsBlock(block, 0);
 	if(block->flag & UI_BUT_ALIGN) uiBlockEndAlign(block);
 
@@ -1788,7 +1725,7 @@ void uiFreeInactiveBlocks(const bContext *C, ListBase *lb)
 	}
 }
 
-uiBlock *uiBeginBlock(const bContext *C, ARegion *region, char *name, short dt, short font)
+uiBlock *uiBeginBlock(const bContext *C, ARegion *region, const char *name, short dt)
 {
 	ListBase *lb;
 	uiBlock *block, *oldblock= NULL;
@@ -1814,15 +1751,13 @@ uiBlock *uiBeginBlock(const bContext *C, ARegion *region, char *name, short dt, 
 	block= MEM_callocN(sizeof(uiBlock), "uiBlock");
 	block->oldblock= oldblock;
 	block->active= 1;
+	block->dt= dt;
 
 	/* at the beginning of the list! for dynamical menus/blocks */
 	if(lb)
 		BLI_addhead(lb, block);
 
 	BLI_strncpy(block->name, name, sizeof(block->name));
-
-	block->dt= dt;
-	block->themecol= TH_AUTO;
 
 	/* window matrix and aspect */
 	if(region->swinid) {
@@ -1858,6 +1793,11 @@ uiBlock *uiGetBlock(char *name, ARegion *ar)
 	}
 	
 	return NULL;
+}
+
+void uiBlockSetEmboss(uiBlock *block, short dt)
+{
+	block->dt= dt;
 }
 
 void ui_check_but(uiBut *but)
@@ -2014,41 +1954,6 @@ void ui_check_but(uiBut *but)
 	/* text clipping moved to widget drawing code itself */
 }
 
-static int ui_auto_themecol(uiBut *but)
-{
-	if(but->block->flag & UI_BLOCK_LOOP)
-		return TH_MENU_ITEM;
-
-	switch(but->type) {
-	case BUT:
-		return TH_BUT_ACTION;
-	case ROW:
-	case TOG:
-	case TOG3:
-	case TOGR:
-	case TOGN:
-	case BUT_TOGDUAL:
-		return TH_BUT_SETTING;
-	case SLI:
-	case NUM:
-	case NUMSLI:
-	case NUMABS:
-	case HSVSLI:
-		return TH_BUT_NUM;
-	case TEX:
-		return TH_BUT_TEXTFIELD;
-	case PULLDOWN:
-	case HMENU:
-	case BLOCK:
-	case MENU:
-	case BUTM:
-		return TH_BUT_POPUP;
-	case ROUNDBOX:
-		return TH_PANEL;
-	default:
-		return TH_BUT_NEUTRAL;
-	}
-}
 
 void uiBlockBeginAlign(uiBlock *block)
 {
@@ -2252,7 +2157,6 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, char *str, short 
 	but->bit= type & BIT;
 	but->bitnr= type & 31;
 	but->icon = 0;
-	but->dt= block->dt;
 
 	but->retval= retval;
 	if( strlen(str)>=UI_MAX_NAME_STR-1 ) {
@@ -2265,14 +2169,9 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, char *str, short 
 	}
 	but->x1= x1; 
 	but->y1= y1;
-	if(block->autofill) {
-		but->x2= x2; 
-		but->y2= y2;
-	}
-	else {
-		but->x2= (x1+x2); 
-		but->y2= (y1+y2);
-	}
+	but->x2= (x1+x2); 
+	but->y2= (y1+y2);
+	
 	but->poin= poin;
 	but->hardmin= but->softmin= min; 
 	but->hardmax= but->softmax= max;
@@ -2280,17 +2179,12 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, char *str, short 
 	but->a2= a2;
 	but->tip= tip;
 	
-	but->font= block->curfont;
-	
 	but->lock= block->lock;
 	but->lockstr= block->lockstr;
+	but->dt= block->dt;
 
 	but->aspect= 1.0f; //XXX block->aspect;
-	but->win= block->win;
 	but->block= block;		// pointer back, used for frontbuffer status, and picker
-
-	if(block->themecol==TH_AUTO) but->themecol= ui_auto_themecol(but);
-	else but->themecol= block->themecol;
 
 	but->func= block->func;
 	but->func_arg1= block->func_arg1;
@@ -2915,17 +2809,6 @@ uiBut *uiDefMenuTogR(uiBlock *block, PointerRNA *ptr, char *propname, char *prop
 
 /* END Button containing both string label and icon */
 
-void uiAutoBlock(uiBlock *block, float minx, float miny, float sizex, float sizey, int flag)
-{
-	block->minx= minx;
-	block->maxx= minx+sizex;
-	block->miny= miny;
-	block->maxy= miny+sizey;
-	
-	block->autofill= flag;	/* also check for if it has to be done */
-
-}
-
 void uiSetButLink(uiBut *but, void **poin, void ***ppoin, short *tot, int from, int to)
 {
 	uiLink *link;
@@ -2953,18 +2836,6 @@ int uiBlocksGetYMin(ListBase *lb)
 	return min;
 }
 
-int uiBlockGetCol(uiBlock *block)
-{
-	return block->themecol;
-}
-void uiBlockSetCol(uiBlock *block, int col)
-{
-	block->themecol= col;
-}
-void uiBlockSetEmboss(uiBlock *block, int emboss)
-{
-	block->dt= emboss;
-}
 void uiBlockSetDirection(uiBlock *block, int direction)
 {
 	block->direction= direction;
@@ -3010,23 +2881,22 @@ void uiBlockSetFlag(uiBlock *block, int flag)
 {
 	block->flag|= flag;
 }
+
 void uiBlockClearFlag(uiBlock *block, int flag)
 {
 	block->flag&= ~flag;
 }
+
 void uiBlockSetXOfs(uiBlock *block, int xofs)
 {
 	block->xofs= xofs;
-}
-void* uiBlockGetCurFont(uiBlock *block)
-{
-	return block->curfont;
 }
 
 void uiButSetFlag(uiBut *but, int flag)
 {
 	but->flag|= flag;
 }
+
 void uiButClearFlag(uiBut *but, int flag)
 {
 	but->flag&= ~flag;

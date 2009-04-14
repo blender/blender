@@ -252,7 +252,7 @@ static void def_vector_curve(BlenderRNA *brna, int id)
 static void def_val_to_rgb(BlenderRNA *brna, int id)
 {
 	StructRNA *srna;
-	PropertyRNA *prop;
+//	PropertyRNA *prop;
 	
 	srna= def_node(brna, id);
 	

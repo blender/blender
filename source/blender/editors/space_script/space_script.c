@@ -58,6 +58,8 @@
 
 #include "ED_markers.h"
 
+#include "BPY_extern.h"
+
 #include "script_intern.h"	// own include
 
 

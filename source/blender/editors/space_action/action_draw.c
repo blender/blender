@@ -136,7 +136,7 @@ static void meshactionbuts(SpaceAction *saction, Object *ob, Key *key)
 	myortho2(-0.375f, curarea->winx-0.375f, G.v2d->cur.ymin, G.v2d->cur.ymax);
 	
     sprintf(str, "actionbuttonswin %d", curarea->win);
-    block= uiNewBlock (&curarea->uiblocks, str, UI_EMBOSS, UI_HELV, curarea->win);
+    block= uiNewBlock (&curarea->uiblocks, str, UI_EMBOSS);
 
 	x = ACHANNEL_NAMEWIDTH + 1;
     y = 0.0f;
@@ -299,8 +299,7 @@ static void action_icu_buts(SpaceAction *saction)
 	myortho2(-0.375f, curarea->winx-0.375f, G.v2d->cur.ymin, G.v2d->cur.ymax);
 	
     sprintf(str, "actionbuttonswin %d", curarea->win);
-    block= uiNewBlock (&curarea->uiblocks, str, 
-                       UI_EMBOSS, UI_HELV, curarea->win);
+    block= uiNewBlock (&curarea->uiblocks, str, UI_EMBOSS);
 
 	x = (float)ACHANNEL_NAMEWIDTH + 1;
     y = 0.0f;

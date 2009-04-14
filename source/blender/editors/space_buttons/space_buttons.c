@@ -189,9 +189,6 @@ static void buttons_main_area_draw(const bContext *C, ARegion *ar)
 		glColor3f(fac, fac, fac);
 		glRecti(20, v2d->cur.ymin+2,  30, v2d->cur.ymin+12);
 		
-		/* panels */
-		drawnewstuff();
-		
 		/* reset view matrix */
 		UI_view2d_view_restore(C);
 		

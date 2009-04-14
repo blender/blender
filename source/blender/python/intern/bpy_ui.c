@@ -158,7 +158,9 @@ static PyObject *Method_pupBlock( PyObject * self, PyObject * args )
 	Py_RETURN_NONE;
 }
 
-static PyObject *Method_beginBlock( PyObject * self, PyObject * args ) // XXX missing 2 args - UI_EMBOSS, UI_HELV, do we care?
+// XXX missing arg - UI_EMBOSS, do we care?
+// XXX well, right now this only is to distinguish whether we have regular buttons or for pulldowns (ton)
+static PyObject *Method_beginBlock( PyObject * self, PyObject * args ) 
 {
 	PyObject *py_context, *py_ar;
 	char *name;
@@ -166,7 +168,7 @@ static PyObject *Method_beginBlock( PyObject * self, PyObject * args ) // XXX mi
 	if( !PyArg_ParseTuple( args, "O!O!s:beginBlock", &PyCObject_Type, &py_context, &PyCObject_Type, &py_ar, &name) )
 		return NULL;
 	
-	return PyCObject_FromVoidPtr(uiBeginBlock(PyCObject_AsVoidPtr(py_context), PyCObject_AsVoidPtr(py_ar), name, UI_EMBOSS, UI_HELV), NULL);
+	return PyCObject_FromVoidPtr(uiBeginBlock(PyCObject_AsVoidPtr(py_context), PyCObject_AsVoidPtr(py_ar), name, UI_EMBOSS), NULL);
 }
 
 static PyObject *Method_endBlock( PyObject * self, PyObject * args )

@@ -324,7 +324,6 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 	/* create tooltip data */
 	data= MEM_callocN(sizeof(uiTooltipData), "uiTooltipData");
 	data->tip= BLI_strdup(but->tip);
-	data->font= but->font;
 	data->aspect= but->aspect;
 	
 	/* set font, get bb */
@@ -738,10 +737,8 @@ uiBlock *ui_block_func_MENU(bContext *C, uiPopupBlockHandle *handle, void *arg_b
 	int width, height, boxh, columns, rows, startx, starty, x1, y1, xmax, a;
 
 	/* create the block */
-	block= uiBeginBlock(C, handle->region, "menu", UI_EMBOSSP, UI_HELV);
-	block->dt= UI_EMBOSSP;
+	block= uiBeginBlock(C, handle->region, "menu", UI_EMBOSSP);
 	block->flag= UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_NUMSELECT;
-	block->themecol= TH_MENU_ITEM;
 
 	/* compute menu data */
 	md= decompose_menu_string(but->str);
@@ -848,9 +845,8 @@ uiBlock *ui_block_func_ICONROW(bContext *C, uiPopupBlockHandle *handle, void *ar
 	uiBlock *block;
 	int a;
 	
-	block= uiBeginBlock(C, handle->region, "menu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, handle->region, "menu", UI_EMBOSSP);
 	block->flag= UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_NUMSELECT;
-	block->themecol= TH_MENU_ITEM;
 	
 	for(a=(int)but->hardmin; a<=(int)but->hardmax; a++) {
 		uiDefIconButF(block, BUTM|FLO, B_NOP, but->icon+(a-but->hardmin), 0, (short)(18*a), (short)(but->x2-but->x1-4), 18, &handle->retvalue, (float)a, 0.0, 0, 0, "");
@@ -870,9 +866,8 @@ uiBlock *ui_block_func_ICONTEXTROW(bContext *C, uiPopupBlockHandle *handle, void
 	MenuData *md;
 	int width, xmax, ypos, a;
 
-	block= uiBeginBlock(C, handle->region, "menu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, handle->region, "menu", UI_EMBOSSP);
 	block->flag= UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_NUMSELECT;
-	block->themecol= TH_MENU_ITEM;
 
 	md= decompose_menu_string(but->str);
 
@@ -1274,9 +1269,8 @@ uiBlock *ui_block_func_COL(bContext *C, uiPopupBlockHandle *handle, void *arg_bu
 	static float hsvcol[3], oldcol[3];
 	static char hexcol[128];
 	
-	block= uiBeginBlock(C, handle->region, "colorpicker", UI_EMBOSS, UI_HELV);
+	block= uiBeginBlock(C, handle->region, "colorpicker", UI_EMBOSS);
 	block->flag= UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_KEEP_OPEN;
-	block->themecol= TH_BUT_NUM;
 	
 	VECCOPY(handle->retvec, but->editvec);
 	uiBlockPickerButtons(block, handle->retvec, hsvcol, oldcol, hexcol, 'p', 0);
@@ -1342,9 +1336,8 @@ uiBlock *ui_block_func_PUPMENU(bContext *C, uiPopupBlockHandle *handle, void *ar
 	height= 0;
 
 	/* block stuff first, need to know the font */
-	block= uiBeginBlock(C, handle->region, "menu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, handle->region, "menu", UI_EMBOSSP);
 	uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_RET_1|UI_BLOCK_NUMSELECT);
-	block->themecol= TH_MENU_ITEM;
 	block->direction= UI_DOWN;
 	
 	md= decompose_menu_string(info->instr);
@@ -1504,9 +1497,8 @@ uiBlock *ui_block_func_PUPMENUCOL(bContext *C, uiPopupBlockHandle *handle, void 
 	height= 0;
 
 	/* block stuff first, need to know the font */
-	block= uiBeginBlock(C, handle->region, "menu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, handle->region, "menu", UI_EMBOSSP);
 	uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_RET_1|UI_BLOCK_NUMSELECT);
-	block->themecol= TH_MENU_ITEM;
 	block->direction= UI_DOWN;
 	
 	md= decompose_menu_string(info->instr);
@@ -1765,9 +1757,8 @@ static uiBlock *ui_block_func_MENU_ITEM(bContext *C, uiPopupBlockHandle *handle,
 	
 	/* block stuff first, need to know the font */
 	sprintf(str, "tb %d", counter++);
-	block= uiBeginBlock(C, handle->region, str, UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, handle->region, str, UI_EMBOSSP);
 	uiBlockSetButmFunc(block, head->eventfunc, head->argv);
-	block->themecol= TH_MENU_ITEM;
 	block->direction= UI_DOWN;
 
 	width= 50; // fixed with, uiMenuPopupBoundsBlock will compute actual width

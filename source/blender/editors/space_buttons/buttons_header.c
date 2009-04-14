@@ -85,7 +85,7 @@ static uiBlock *dummy_viewmenu(bContext *C, ARegion *ar, void *arg_unused)
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
 	
-	block= uiBeginBlock(C, ar, "dummy_viewmenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "dummy_viewmenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_viewmenu, NULL);
 	
 	if (sbuts->align == 1) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Horizontal", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
@@ -135,7 +135,7 @@ void buttons_header_buttons(const bContext *C, ARegion *ar)
 	uiBlock *block;
 	int xco, yco= 3;
 	
-	block= uiBeginBlock(C, ar, "header buttons", UI_EMBOSS, UI_HELV);
+	block= uiBeginBlock(C, ar, "header buttons", UI_EMBOSS);
 	uiBlockSetHandleFunc(block, do_buttons_buttons, NULL);
 	
 	xco= ED_area_header_standardbuttons(C, block, yco);

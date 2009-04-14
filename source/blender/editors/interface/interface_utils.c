@@ -419,7 +419,7 @@ int uiDefIDPoinButs(uiBlock *block, Main *bmain, ID *parid, ID *id, int id_code,
 	uiBut *but;
 	uiIDPoinParams *params, *dup_params;
 	char *str=NULL, str1[10];
-	int len, oldcol, add_addbutton=0;
+	int len, add_addbutton=0;
 
 	/* setup struct that we will pass on with the buttons */
 	params= MEM_callocN(sizeof(uiIDPoinParams), "uiIDPoinParams");
@@ -431,14 +431,15 @@ int uiDefIDPoinButs(uiBlock *block, Main *bmain, ID *parid, ID *id, int id_code,
 
 	/* create buttons */
 	uiBlockBeginAlign(block);
-	oldcol= uiBlockGetCol(block);
 
+	/* XXX solve?
 	if(id && id->us>1)
 		uiBlockSetCol(block, TH_BUT_SETTING1);
 
 	if((events & UI_ID_PIN) && *pin_p)
 		uiBlockSetCol(block, TH_BUT_SETTING2);
-
+	*/
+	
 	/* pin button */
 	if(id && (events & UI_ID_PIN)) {
 		but= uiDefIconButS(block, ICONTOG, (events & UI_ID_PIN), ICON_KEY_DEHLT, x, y ,DEF_ICON_BUT_WIDTH,DEF_BUT_HEIGHT, pin_p, 0, 0, 0, 0, "Keeps this view displaying the current data regardless of what object is selected");
@@ -488,22 +489,20 @@ int uiDefIDPoinButs(uiBlock *block, Main *bmain, ID *parid, ID *id, int id_code,
 		MEM_freeN(str);
 	}
 
-	uiBlockSetCol(block, oldcol);
-
 	/* text button with name */
 	if(id) {
-		/* name */
+		/* XXX solve?
 		if(id->us > 1)
 			uiBlockSetCol(block, TH_BUT_SETTING1);
-
-		/* pinned data? */
+		*/
+		/* pinned data? 
 		if((events & UI_ID_PIN) && *pin_p)
 			uiBlockSetCol(block, TH_BUT_SETTING2);
-
-		/* redalert overrides pin color */
+		*/
+		/* redalert overrides pin color 
 		if(id->us<=0)
 			uiBlockSetCol(block, TH_REDALERT);
-
+		*/
 		uiBlockSetButLock(block, id->lib!=0, "Can't edit external libdata");
 		
 		/* name button */
@@ -592,7 +591,6 @@ int uiDefIDPoinButs(uiBlock *block, Main *bmain, ID *parid, ID *id, int id_code,
 	}
 	/* add new button */
 	else if(add_addbutton) {
-		uiBlockSetCol(block, oldcol);
 		if(parid) uiBlockSetButLock(block, parid->lib!=0, "Can't edit external libdata");
 		dup_params= MEM_dupallocN(params);
 		but= uiDefButS(block, TOG, 0, "Add New", x, y, 110, DEF_BUT_HEIGHT, &dup_params->browsenr, params->browsenr, 32767.0, 0, 0, "Add new data block");
@@ -600,7 +598,6 @@ int uiDefIDPoinButs(uiBlock *block, Main *bmain, ID *parid, ID *id, int id_code,
 		x+= 110;
 	}
 	
-	uiBlockSetCol(block, oldcol);
 	uiBlockEndAlign(block);
 
 	MEM_freeN(params);
@@ -915,7 +912,7 @@ static uiBlock *curvemap_clipping_func(struct bContext *C, struct ARegion *ar, v
 	uiBlock *block;
 	uiBut *bt;
 	
-	block= uiBeginBlock(C, ar, "curvemap_clipping_func", UI_EMBOSS, UI_HELV);
+	block= uiBeginBlock(C, ar, "curvemap_clipping_func", UI_EMBOSS);
 	
 	/* use this for a fake extra empy space around the buttons */
 	uiDefBut(block, LABEL, 0, "",			-4, 16, 128, 106, NULL, 0, 0, 0, 0, "");
@@ -975,7 +972,7 @@ static uiBlock *curvemap_tools_func(struct bContext *C, struct ARegion *ar, void
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
 	
-	block= uiBeginBlock(C, ar, "curvemap_tools_func", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "curvemap_tools_func", UI_EMBOSS);
 	uiBlockSetButmFunc(block, curvemap_tools_dofunc, cumap_v);
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Reset View",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");

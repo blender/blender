@@ -95,7 +95,7 @@ static uiBlock *time_redrawmenu(bContext *C, ARegion *ar, void *arg_unused)
 	short yco= 0, menuwidth=120, icon;
 	char str[32];
 	
-	block= uiBeginBlock(C, ar, "header time_redrawmenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "header time_redrawmenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_time_redrawmenu, NULL);
 	
 	if(stime->redraws & TIME_LEFTMOST_3D_WIN) icon= ICON_CHECKBOX_HLT;
@@ -215,7 +215,7 @@ static uiBlock *time_viewmenu(bContext *C, ARegion *ar, void *arg_unused)
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
 	
-	block= uiBeginBlock(C, ar, "time_viewmenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "time_viewmenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_time_viewmenu, NULL);
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Play Back Animation", 0, yco-=20,
@@ -301,7 +301,7 @@ static uiBlock *time_framemenu(bContext *C, ARegion *ar, void *arg_unused)
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
 	
-	block= uiBeginBlock(C, ar, "time_framemenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "time_framemenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_time_framemenu, NULL);
 
 	uiDefIconTextButO(block, BUTM, "MARKER_OT_add", WM_OP_EXEC_REGION_WIN, ICON_BLANK1, "Add Marker",
@@ -432,7 +432,7 @@ void time_header_buttons(const bContext *C, ARegion *ar)
 	int xco, yco= 3;
 	char *menustr= NULL;
 	
-	block= uiBeginBlock(C, ar, "header buttons", UI_EMBOSS, UI_HELV);
+	block= uiBeginBlock(C, ar, "header buttons", UI_EMBOSS);
 	uiBlockSetHandleFunc(block, do_time_buttons, NULL);
 	
 	xco= ED_area_header_standardbuttons(C, block, yco);

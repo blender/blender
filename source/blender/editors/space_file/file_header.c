@@ -101,7 +101,7 @@ void file_header_buttons(const bContext *C, ARegion *ar)
 	int xco, yco= 3;
 	int xcotitle;
 	
-	block= uiBeginBlock(C, ar, "header buttons", UI_EMBOSS, UI_HELV);
+	block= uiBeginBlock(C, ar, "header buttons", UI_EMBOSS);
 	uiBlockSetHandleFunc(block, do_file_header_buttons, NULL);
 	
 	xco= ED_area_header_standardbuttons(C, block, yco);
@@ -118,9 +118,6 @@ void file_header_buttons(const bContext *C, ARegion *ar)
 		xco+=XIC+xmax;
 	}
 	 */
-	
-	/* SORT TYPE */
-	uiBlockSetEmboss(block, UI_EMBOSSX);
 	
 	xco += 5;
 

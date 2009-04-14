@@ -922,12 +922,11 @@ void uiTemplateSlot(uiLayout *layout, int slot)
 static void ui_layout_templates(const bContext *C, uiBlock *block, uiLayout *layout)
 {
 	uiTemplate *template;
-	int oldcolor= 0;
 
 	for(template=layout->templates.first; template; template=template->next) {
 		if(template->color) {
-			oldcolor= uiBlockGetCol(block);
-			uiBlockSetCol(block, template->color);
+			// XXX oldcolor= uiBlockGetCol(block);
+			// XXX uiBlockSetCol(block, template->color);
 		}
 
 		switch(template->type) {
@@ -954,8 +953,8 @@ static void ui_layout_templates(const bContext *C, uiBlock *block, uiLayout *lay
 				break;
 		}
 
-		if(template->color)
-			uiBlockSetCol(block, oldcolor);
+// XXX 		if(template->color)
+// XXX 			uiBlockSetCol(block, oldcolor);
 
 		if(layout->dir == UI_LAYOUT_HORIZONTAL)
 			layout->x += TEMPLATE_SPACE;
@@ -1038,7 +1037,7 @@ void uiRegionPanelLayout(const bContext *C, ARegion *ar, int vertical, char *con
 				continue;
 
 		if(pt->draw && (!pt->poll || pt->poll(C))) {
-			block= uiBeginBlock(C, ar, pt->idname, UI_EMBOSS, UI_HELV);
+			block= uiBeginBlock(C, ar, pt->idname, UI_EMBOSS);
 			
 			if(vertical)
 				w= (ar->type->minsizex)? ar->type->minsizex-12: block->aspect*ar->winx-12;
@@ -1103,7 +1102,7 @@ void uiRegionHeaderLayout(const bContext *C, ARegion *ar)
 
 	/* draw all headers types */
 	for(ht= ar->type->headertypes.first; ht; ht= ht->next) {
-		block= uiBeginBlock(C, ar, "header buttons", UI_EMBOSS, UI_HELV);
+		block= uiBeginBlock(C, ar, "header buttons", UI_EMBOSS);
 		layout= uiLayoutBegin(UI_LAYOUT_HORIZONTAL, xco, yco, 0, 24);
 
 		if(ht->draw)

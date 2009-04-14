@@ -212,7 +212,6 @@ int uiNewPanel(const bContext *C, ARegion *ar, uiBlock *block, char *panelname, 
 	}
 
 	block->panel= pa;
-	block->handler= pnl_handler;
 	pa->active= 1;
 	pa->control= pnl_control;
 	
@@ -299,7 +298,6 @@ static void ui_scale_panel_block(uiBlock *block)
 	
 	if(block->panel==NULL) return;
 
-	if(block->autofill) ui_autofill(block);
 	/* buttons min/max centered, offset calculated */
 	ui_bounds_block(block);
 
@@ -365,12 +363,10 @@ void uiPanelsHome(ARegion *ar)
 
 		/* no panels, but old 'loose' buttons, as in old logic editor */
 		for(block= ar->uiblocks.first; block; block= block->next) {
-			//XXX 2.50 if(block->win==sa->win) {
-				if(block->minx < v2d->tot.xmin) v2d->tot.xmin= block->minx;
-				if(block->maxx > v2d->tot.xmax) v2d->tot.xmax= block->maxx; 
-				if(block->miny < v2d->tot.ymin) v2d->tot.ymin= block->miny;
-				if(block->maxy > v2d->tot.ymax) v2d->tot.ymax= block->maxy; 
-			//XXX }
+			if(block->minx < v2d->tot.xmin) v2d->tot.xmin= block->minx;
+			if(block->maxx > v2d->tot.xmax) v2d->tot.xmax= block->maxx; 
+			if(block->miny < v2d->tot.ymin) v2d->tot.ymin= block->miny;
+			if(block->maxy > v2d->tot.ymax) v2d->tot.ymax= block->maxy; 
 		}
 	}
 }
@@ -408,12 +404,10 @@ static void ui_panels_update_totrct(ARegion *ar)
 	if(done==0) {
 		/* no panels, but old 'loose' buttons, as in old logic editor */
 		for(block= ar->uiblocks.first; block; block= block->next) {
-			//XXX 2.50 if(block->win==sa->win) {
-				if(block->minx < v2d->tot.xmin) v2d->tot.xmin= block->minx;
-				if(block->maxx > v2d->tot.xmax) v2d->tot.xmax= block->maxx; 
-				if(block->miny < v2d->tot.ymin) v2d->tot.ymin= block->miny;
-				if(block->maxy > v2d->tot.ymax) v2d->tot.ymax= block->maxy; 
-			//XXX }
+			if(block->minx < v2d->tot.xmin) v2d->tot.xmin= block->minx;
+			if(block->maxx > v2d->tot.xmax) v2d->tot.xmax= block->maxx; 
+			if(block->miny < v2d->tot.ymin) v2d->tot.ymin= block->miny;
+			if(block->maxy > v2d->tot.ymax) v2d->tot.ymax= block->maxy; 
 		}
 	}	
 
@@ -1313,7 +1307,6 @@ static void ui_handle_panel_header(bContext *C, uiBlock *block, int mx, int my)
 	
 	if(button) {
 		if(button==2) { // close
-			//XXX 2.50 rem_blockhandler(sa, block->handler);
 			ED_region_tag_redraw(ar);
 		}
 		else {	// collapse

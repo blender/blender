@@ -100,7 +100,7 @@ static uiBlock *text_template_scriptsmenu(bContext *C, void *args_unused)
 	// int i= 0;
 	// short yco = 20, menuwidth = 120;
 	
-	block= uiBeginBlock(C, ar, "text_template_scriptsmenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "text_template_scriptsmenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_text_template_scriptsmenu, NULL);
 	
 	/* note that we acount for the N previous entries with i+20: */
@@ -133,7 +133,7 @@ static uiBlock *text_plugin_scriptsmenu(bContext *C, void *args_unused)
 	// int i= 0;
 	// short yco = 20, menuwidth = 120;
 	
-	block= uiBeginBlock(C, ar, "text_plugin_scriptsmenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "text_plugin_scriptsmenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_text_plugin_scriptsmenu, NULL);
 	
 	/* note that we acount for the N previous entries with i+20: */

@@ -57,14 +57,10 @@ typedef struct uiPopupBlockHandle uiPopupBlockHandle;
 /* Defines */
 
 /* uiBlock->dt */
-#define UI_EMBOSS		0	/* use one of the themes for drawing */
-#define UI_EMBOSSN		1	/* Nothing */
-#define UI_EMBOSSM		2	/* Minimal builtin emboss, also for logic buttons */
-#define UI_EMBOSSP		3	/* Pulldown */
-#define UI_EMBOSSR		4	/* Rounded */
-#define UI_EMBOSST		5	/* Table */
-
-#define UI_EMBOSSX		0	/* for a python file, which i can't change.... duh! */
+#define UI_EMBOSS		0	/* use widget style for drawing */
+#define UI_EMBOSSN		1	/* Nothing, only icon and/or text */
+#define UI_EMBOSSP		2	/* Pulldown menu style */
+#define UI_EMBOSST		3	/* Table */
 
 /* uiBlock->direction */
 #define UI_TOP		1
@@ -97,10 +93,6 @@ typedef struct uiPopupBlockHandle uiPopupBlockHandle;
 #define UI_RETURN_OUT       4       /* left the menu */
 
 	/* block->flag bits 12-15 are identical to but->flag bits */
-
-/* block->font, for now: bold = medium+1 */
-#define UI_HELV			0
-#define UI_HELVB		1
 
 /* panel controls */
 #define UI_PNL_TRANSP	1
@@ -282,11 +274,13 @@ void uiPupBlockO(struct bContext *C, uiBlockCreateFunc func, void *arg, char *op
  *
  * */
 
-uiBlock *uiBeginBlock(const struct bContext *C, struct ARegion *region, char *name, short dt, short font);
+uiBlock *uiBeginBlock(const struct bContext *C, struct ARegion *region, const char *name, short dt);
 void uiEndBlock(const struct bContext *C, uiBlock *block);
 void uiDrawBlock(const struct bContext *C, struct uiBlock *block);
 
 uiBlock *uiGetBlock(char *name, struct ARegion *ar);
+
+void uiBlockSetEmboss(uiBlock *block, short dt);
 
 void uiFreeBlock(const struct bContext *C, uiBlock *block);
 void uiFreeBlocks(const struct bContext *C, struct ListBase *lb);
@@ -305,10 +299,7 @@ void uiPopupBoundsBlock(uiBlock *block, int addval, int mx, int my);
 void uiMenuPopupBoundsBlock(uiBlock *block, int addvall, int mx, int my);
 
 int		uiBlocksGetYMin		(struct ListBase *lb);
-int		uiBlockGetCol		(uiBlock *block);
 
-void	uiBlockSetCol		(uiBlock *block, int col);
-void	uiBlockSetEmboss	(uiBlock *block, int emboss);
 void	uiBlockSetDirection	(uiBlock *block, int direction);
 void 	uiBlockFlipOrder	(uiBlock *block);
 void	uiBlockSetFlag		(uiBlock *block, int flag);
@@ -319,8 +310,6 @@ int		uiButGetRetVal		(uiBut *but);
 
 void	uiButSetFlag		(uiBut *but, int flag);
 void	uiButClearFlag		(uiBut *but, int flag);
-
-void	uiAutoBlock(uiBlock *block, float minx, float miny, float sizex, float sizey, int flag);
 
 /* Buttons
  *

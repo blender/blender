@@ -268,7 +268,7 @@ static uiBlock *wm_block_create_redo(bContext *C, ARegion *ar, void *arg_op)
 	uiBlock *block;
 	int height;
 	
-	block= uiBeginBlock(C, ar, "redo_popup", UI_EMBOSS, UI_HELV);
+	block= uiBeginBlock(C, ar, "redo_popup", UI_EMBOSS);
 	uiBlockClearFlag(block, UI_BLOCK_LOOP);
 	uiBlockSetFlag(block, UI_BLOCK_KEEP_OPEN|UI_BLOCK_RET_1);
 	uiBlockSetFunc(block, redo_cb, arg_op, NULL);

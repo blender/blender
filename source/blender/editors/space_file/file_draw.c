@@ -126,7 +126,7 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 
 	/* HEADER */
 	sprintf(name, "win %p", ar);
-	block = uiBeginBlock(C, ar, name, UI_EMBOSS, UI_HELV);
+	block = uiBeginBlock(C, ar, name, UI_EMBOSS);
 	uiBlockSetHandleFunc(block, do_file_buttons, NULL);
 
 	/* XXXX

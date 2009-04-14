@@ -64,9 +64,9 @@
 #include "BKE_context.h"
 
 #include "ED_armature.h"
+#include "ED_util.h"
+
 #include "BIF_retarget.h"
-//#include "BIF_space.h"
-//#include "BIF_toolbox.h"
 
 #include "PIL_time.h"
 
@@ -1645,6 +1645,7 @@ RigGraph *armatureSelectedToGraph(bContext *C, Object *ob, bArmature *arm)
 }
 /************************************ GENERATING *****************************************************/
 
+#if 0
 static EditBone *add_editbonetolist(char *name, ListBase *list)
 {
 	EditBone *bone= MEM_callocN(sizeof(EditBone), "eBone");
@@ -1668,6 +1669,7 @@ static EditBone *add_editbonetolist(char *name, ListBase *list)
 	
 	return bone;
 }
+#endif
 
 void generateMissingArcsFromNode(RigGraph *rigg, ReebNode *node, int multi_level_limit)
 {
@@ -2733,7 +2735,7 @@ static void adjustGraphs(bContext *C, RigGraph *rigg)
 	arm->edbo = rigg->editbones;
 	ED_armature_from_edit(scene, rigg->ob);
 	
-	ED_undo_push("Retarget Skeleton");
+	ED_undo_push(C, "Retarget Skeleton");
 }
 
 static void retargetGraphs(bContext *C, RigGraph *rigg)
@@ -2890,7 +2892,7 @@ void BIF_retargetArmature(bContext *C)
 	printf("retarget: \t%.3f (%.1f%%)\n", retarget_time, retarget_time / total_time * 100);
 	printf("-----------\n");
 	
-	ED_undo_push("Retarget Skeleton");
+	ED_undo_push(C, "Retarget Skeleton");
 
 	// XXX	
 //	allqueue(REDRAWVIEW3D, 0);

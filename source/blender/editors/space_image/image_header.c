@@ -301,7 +301,7 @@ static void image_uvs_scriptsmenu (void *args_unused)
 	int i= 0;
 	short yco = 20, menuwidth = 120;
 	
-	block= uiNewBlock(&curarea->uiblocks, "image_uvs_scriptsmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+	block= uiNewBlock(&curarea->uiblocks, "image_uvs_scriptsmenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_image_uvs_scriptsmenu, NULL);
 	
 	/* note that we acount for the N previous entries with i+20: */
@@ -731,7 +731,7 @@ void image_header_buttons(const bContext *C, ARegion *ar)
 	RNA_id_pointer_create(&scene->id, &sceneptr);
 	
 	/* create block */
-	block= uiBeginBlock(C, ar, "header buttons", UI_EMBOSS, UI_HELV);
+	block= uiBeginBlock(C, ar, "header buttons", UI_EMBOSS);
 	uiBlockSetHandleFunc(block, do_image_buttons, NULL);
 	
 	xco= ED_area_header_standardbuttons(C, block, yco);

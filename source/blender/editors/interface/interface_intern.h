@@ -39,7 +39,6 @@ struct IDProperty;
 struct uiHandleButtonData;
 struct wmEvent;
 struct wmWindow;
-struct uiFontStyle;
 struct uiStyle;
 
 /* ****************** general defines ************** */
@@ -121,9 +120,6 @@ typedef struct {
 	short xofs, yofs;
 } uiIconImage;
 
-typedef struct {
-	void *xl, *large, *medium, *small;
-} uiFontOld;
 
 typedef struct uiLinkLine {				/* only for draw/edit */
 	struct uiLinkLine *next, *prev;
@@ -176,9 +172,6 @@ struct uiBut {
 	uiLink *link;
 	
 	char *tip, *lockstr;
-
-	int themecol;	/* themecolor id */
-	void *font;
 
 	BIFIconID icon;
 	short but_align;	/* aligning buttons, horiz/vertical */
@@ -246,14 +239,10 @@ struct uiBlock {
 	/* extra draw function for custom blocks */
 	void (*drawextra)();
 
-	int themecol;	/* themecolor id */
-	
-	short font;	/* indices */
 	int afterval, flag;
-	void *curfont;
 	
-	short autofill, win, winq, direction, dt;
-	short auto_open, in_use, pad;
+	short direction, dt;
+	short auto_open, in_use;
 	double auto_open_last;
 
 	int lock;
@@ -269,7 +258,6 @@ struct uiBlock {
 	uiPopupBlockHandle *handle;	// handle
 	int tooltipdisabled;		// to avoid tooltip after click
 
-	int handler;				// for panels in other windows than buttonswin... just event code
 	int active;					// to keep blocks while drawing and free them afterwards
 };
 
@@ -305,7 +293,6 @@ extern int ui_get_but_string_max_length(uiBut *but);
 extern void ui_set_but_soft_range(uiBut *but, double value);
 
 extern void ui_check_but(uiBut *but);
-extern void ui_autofill(uiBlock *block);
 extern int  ui_is_but_float(uiBut *but);
 extern void ui_update_block_buts_hsv(uiBlock *block, float *hsv);
 

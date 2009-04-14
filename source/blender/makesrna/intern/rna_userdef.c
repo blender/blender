@@ -1508,14 +1508,10 @@ static void rna_def_userdef_language(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "transopts", USER_DOTRANSLATE);
 	RNA_def_property_ui_text(prop, "International Fonts", "Use international fonts.");
 
-	prop= RNA_def_property(srna, "font_size", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "fontsize");
-	RNA_def_property_range(prop, 8, 16);
-	RNA_def_property_ui_text(prop, "Font Size", "International font size (points).");
-
-	prop= RNA_def_property(srna, "font_filename", PROP_STRING, PROP_FILEPATH);
-	RNA_def_property_string_sdna(prop, NULL, "fontname");
-	RNA_def_property_ui_text(prop, "Font Filename", "International font filename.");
+	prop= RNA_def_property(srna, "dpi", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "dpi");
+	RNA_def_property_range(prop, 48, 128);
+	RNA_def_property_ui_text(prop, "DPI", "Font size and resolution for display.");
 
 	/* Language Selection */
 

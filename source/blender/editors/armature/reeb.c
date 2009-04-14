@@ -1740,10 +1740,10 @@ int filterCyclesReebGraph(ReebGraph *rg, float distance_threshold)
 
 int filterSmartReebGraph(ReebGraph *rg, float threshold)
 {
-	ReebArc *arc = NULL, *nextArc = NULL;
 	int value = 0;
+#if 0 //XXX
+	ReebArc *arc = NULL, *nextArc = NULL;
 	
-	#if 0 //XXX
 	BLI_sortlist(&rg->arcs, compareArcs);
 
 #ifdef DEBUG_REEB
@@ -3402,7 +3402,7 @@ ReebGraph *BIF_ReebGraphMultiFromEditMesh(bContext *C)
 
 	if (weightFromDistance(em, &indexed_edges) == 0)
 	{
-		error("No selected vertex\n");
+		// XXX error("No selected vertex\n");
 		freeEdgeIndex(&indexed_edges);
 		return NULL;
 	}

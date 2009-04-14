@@ -68,7 +68,7 @@ static void render_panel_output(const bContext *C, ARegion *ar)
 	int a,b;
 	//char *strp;
 
-	block= uiBeginBlock(C, ar, "render_panel_output", UI_EMBOSS, UI_HELV);
+	block= uiBeginBlock(C, ar, "render_panel_output", UI_EMBOSS);
 	if(uiNewPanel(C, ar, block, "Output", "Render", 0, 0, 318, 204)==0) return;
 	
 	uiBlockBeginAlign(block);
@@ -115,8 +115,6 @@ static void render_panel_output(const bContext *C, ARegion *ar)
 	}
 	uiBlockEndAlign(block);
 	
-	uiBlockSetCol(block, TH_AUTO);
-		
 	uiBlockBeginAlign(block);
 	for(b=2; b>=0; b--)
 		for(a=0; a<3; a++)
@@ -164,7 +162,7 @@ static void render_panel_bake(const bContext *C, ARegion *ar)
 	Scene *scene= CTX_data_scene(C);
 	uiBut *but;
 	
-	block= uiBeginBlock(C, ar, "render_panel_bake", UI_EMBOSS, UI_HELV);
+	block= uiBeginBlock(C, ar, "render_panel_bake", UI_EMBOSS);
 	uiNewPanelTabbed("Anim", "Render");
 	if(uiNewPanel(C, ar, block, "Bake", "Render", 320, 0, 318, 204)==0) return;
 	
@@ -324,7 +322,7 @@ static void render_panel_render(const bContext *C, Panel *pnl)
 
 
 #if 0
-	block= uiBeginBlock(C, ar, "render_panel_render", UI_EMBOSS, UI_HELV);
+	block= uiBeginBlock(C, ar, "render_panel_render", UI_EMBOSS);
 	if(uiNewPanel(C, ar, block, "Render", "Render", 320, 0, 318, 204)==0) return;
 
 	uiBlockBeginAlign(block);
@@ -405,19 +403,17 @@ void render_panel_anim(const bContext *C, ARegion *ar)
 	uiBlock *block;
 	uiBut *but;
 	
-	block= uiBeginBlock(C, ar,  "render_panel_anim", UI_EMBOSS, UI_HELV);
+	block= uiBeginBlock(C, ar,  "render_panel_anim", UI_EMBOSS);
 	if(uiNewPanel(C, ar, block, "Anim", "Render", 640, 0, 318, 204) == 0) return;
 
 	but= uiDefButO(block, BUT, "SCREEN_OT_render", WM_OP_INVOKE_DEFAULT, "ANIM",  692,142,192,47, "Render the animation to disk from start to end frame, (Ctrl+F12)");
 	RNA_boolean_set(uiButGetOperatorPtrRNA(but), "anim", 1);
 	
-	uiBlockSetCol(block, TH_BUT_SETTING1);
 	uiBlockBeginAlign(block);
 	uiDefButBitI(block, TOG, R_DOSEQ, 0, "Do Sequence",692,114,192,20, &scene->r.scemode, 0, 0, 0, 0, "Enables sequence output rendering (Default: 3D rendering)");
 	uiDefButBitI(block, TOG, R_DOCOMP, 0, "Do Composite",692,90,192,20, &scene->r.scemode, 0, 0, 0, 0, "Uses compositing nodes for output rendering");
 	uiBlockEndAlign(block);
 
-	uiBlockSetCol(block, TH_AUTO);
 	uiDefBut(block, BUT, 0, "PLAY",692,50,94,33, 0, 0, 0, 0, 0, "Play rendered images/avi animation (Ctrl+F11), (Play Hotkeys: A-Noskip, P-PingPong)");
 	uiDefButS(block, NUM, 0, "rt:",789,50,95,33, &G.rt, -1000.0, 1000.0, 0, 0, "General testing/debug button");
 

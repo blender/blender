@@ -343,7 +343,7 @@ uiBlock *editmode_undohistorymenu(bContext *C, ARegion *ar, void *arg_unused)
 	
 	undo_clean_stack(C);	// removes other objects from it
 
-	block= uiBeginBlock(C, ar, "view3d_edit_mesh_undohistorymenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "view3d_edit_mesh_undohistorymenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_editmode_undohistorymenu, NULL);
 	
 	for(uel= undobase.first; uel; uel= uel->next, item++) {

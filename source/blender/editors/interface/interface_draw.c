@@ -656,7 +656,7 @@ static void ui_draw_but_CHARTAB(uiBut *but)
 	/* resets the font size */
 	if(G.ui_international == TRUE)
 	{
-		uiSetCurFont(but->block, UI_HELV);
+		// uiSetCurFont(but->block, UI_HELV);
 	}
 }
 
@@ -1039,18 +1039,6 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, rcti *rect)
 	fdrawbox(rect->xmin, rect->ymin, rect->xmax, rect->ymax);
 }
 
-
-void ui_draw_roundbox(uiBut *but)
-{
-	glEnable(GL_BLEND);
-	
-	UI_ThemeColorShadeAlpha(but->themecol, but->a2, but->a2);
-
-	uiSetRoundBox(but->a1);
-	gl_round_box(GL_POLYGON, but->x1, but->y1, but->x2, but->y2, but->hardmin);
-
-	glDisable(GL_BLEND);
-}
 
 /* ****************************************************** */
 

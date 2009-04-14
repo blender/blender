@@ -356,7 +356,7 @@ static uiBlock *view3d_view_camerasmenu(bContext *C, ARegion *ar, void *arg_unus
 	int i=1;
 	char camname[48];
 	
-	block= uiBeginBlock(C, ar, "view3d_view_camerasmenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "view3d_view_camerasmenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_view3d_view_camerasmenu, NULL);
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Set Active Object as Active Camera|Ctrl NumPad 0",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
@@ -442,7 +442,7 @@ static uiBlock *view3d_view_cameracontrolsmenu(bContext *C, ARegion *ar, void *a
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
 	
-	block= uiBeginBlock(C, ar, "view3d_view_cameracontrolsmenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "view3d_view_cameracontrolsmenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_view3d_view_cameracontrolsmenu, NULL);
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Camera Fly Mode|Shift F",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 11, "");
@@ -533,7 +533,7 @@ static uiBlock *view3d_view_alignviewmenu(bContext *C, ARegion *ar, void *arg_un
 	Object *obedit = CTX_data_edit_object(C);
 	short yco= 0, menuwidth=120;
 	
-	block= uiBeginBlock(C, ar, "view3d_view_alignviewmenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "view3d_view_alignviewmenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_view3d_view_alignviewmenu, NULL);
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Center View to Cursor|C",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
@@ -706,7 +706,7 @@ static uiBlock *view3d_viewmenu(bContext *C, ARegion *ar, void *arg_unused)
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
 	
-	block= uiBeginBlock(C, ar, "view3d_viewmenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "view3d_viewmenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_view3d_viewmenu, NULL);
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Transform Orientations...",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 20, "");
@@ -837,7 +837,7 @@ static uiBlock *view3d_select_object_typemenu(bContext *C, ARegion *ar, void *ar
 	uiBlock *block;
 	short yco = 20, menuwidth = 120;
 
-	block= uiBeginBlock(C, ar, "view3d_select_object_typemenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "view3d_select_object_typemenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_view3d_select_object_typemenu, NULL);
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Mesh",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
@@ -899,7 +899,7 @@ static uiBlock *view3d_select_object_layermenu(bContext *C, ARegion *ar, void *a
 	uiBlock *block;
 	short xco= 0, yco = 20, menuwidth = 22;
 
-	block= uiBeginBlock(C, ar, "view3d_select_object_layermenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "view3d_select_object_layermenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_view3d_select_object_layermenu, NULL);
 
 	uiDefBut(block, BUTM, 1, "1",		xco, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
@@ -949,7 +949,7 @@ static uiBlock *view3d_select_object_linkedmenu(bContext *C, ARegion *ar, void *
 	uiBlock *block;
 	short yco = 20, menuwidth = 120;
 
-	block= uiBeginBlock(C, ar, "view3d_select_object_linkedmenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "view3d_select_object_linkedmenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_view3d_select_object_linkedmenu, NULL);
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Object Ipo|Shift L, 1",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
@@ -987,7 +987,7 @@ static uiBlock *view3d_select_object_groupedmenu(bContext *C, ARegion *ar, void 
 	uiBlock *block;
 	short yco = 20, menuwidth = 120;
 
-	block= uiBeginBlock(C, ar, "view3d_select_object_groupedmenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "view3d_select_object_groupedmenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_view3d_select_object_groupedmenu, NULL);
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Children|Shift G, 1",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
@@ -1014,7 +1014,7 @@ static uiBlock *view3d_select_objectmenu(bContext *C, ARegion *ar, void *arg_unu
 	uiBlock *block;
 //	short yco= 0, menuwidth=120;
 	
-	block= uiBeginBlock(C, ar, "view3d_select_objectmenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "view3d_select_objectmenu", UI_EMBOSSP);
 	
 #if 0
 	uiBlockSetButmFunc(block, do_view3d_select_objectmenu, NULL);
@@ -1134,7 +1134,7 @@ static uiBlock *view3d_select_meshmenu(bContext *C, ARegion *ar, void *arg_unuse
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
 	
-	block= uiBeginBlock(C, ar, "view3d_select_meshmenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "view3d_select_meshmenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_view3d_select_meshmenu, NULL);
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Border Select|B",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
@@ -1277,7 +1277,7 @@ static uiBlock *view3d_select_metaballmenu(bContext *C, ARegion *ar, void *arg_u
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
 	
-	block= uiBeginBlock(C, ar, "view3d_select_metaballmenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "view3d_select_metaballmenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_view3d_select_metaballmenu, NULL);
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Border Select|B", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
@@ -1325,7 +1325,7 @@ static uiBlock *view3d_select_latticemenu(bContext *C, ARegion *ar, void *arg_un
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
 	
-	block= uiBeginBlock(C, ar, "view3d_select_latticemenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "view3d_select_latticemenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_view3d_select_latticemenu, NULL);
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Border Select|B",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
@@ -1382,7 +1382,7 @@ static uiBlock *view3d_select_armaturemenu(bContext *C, ARegion *ar, void *arg_u
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
 	
-	block= uiBeginBlock(C, ar, "view3d_select_armaturemenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "view3d_select_armaturemenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_view3d_select_armaturemenu, NULL);
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Border Select|B",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
@@ -1453,7 +1453,7 @@ static uiBlock *view3d_select_pose_armaturemenu(bContext *C, ARegion *ar, void *
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
 	
-	block= uiBeginBlock(C, ar, "view3d_select_pose_armaturemenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "view3d_select_pose_armaturemenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_view3d_select_pose_armaturemenu, NULL);
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Border Select|B",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
@@ -1520,7 +1520,7 @@ static uiBlock *view3d_select_faceselmenu(bContext *C, ARegion *ar, void *arg_un
 //	int i = 0;
 #endif
 
-	block= uiBeginBlock(C, ar, "view3d_select_faceselmenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "view3d_select_faceselmenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_view3d_select_faceselmenu, NULL);
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Border Select|B",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
@@ -1591,7 +1591,7 @@ static uiBlock *view3d_edit_snapmenu(bContext *C, ARegion *ar, void *arg_unused)
 	uiBlock *block;
 	short yco = 20, menuwidth = 120;
 
-	block= uiBeginBlock(C, ar, "view3d_edit_snapmenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "view3d_edit_snapmenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_view3d_edit_snapmenu, NULL);
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Selection -> Grid|Shift S, 1",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
@@ -1657,7 +1657,7 @@ static uiBlock *view3d_transform_moveaxismenu(bContext *C, ARegion *ar, void *ar
 	uiBlock *block;
 	short yco = 20, menuwidth = 120;
 
-	block= uiBeginBlock(C, ar, "view3d_transform_moveaxismenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "view3d_transform_moveaxismenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_view3d_transform_moveaxismenu, NULL);
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "X Global|G, X",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
@@ -1724,7 +1724,7 @@ static uiBlock *view3d_transform_rotateaxismenu(bContext *C, ARegion *ar, void *
 	uiBlock *block;
 	short yco = 20, menuwidth = 120;
 
-	block= uiBeginBlock(C, ar, "view3d_transform_rotateaxismenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "view3d_transform_rotateaxismenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_view3d_transform_rotateaxismenu, NULL);
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "X Global|R, X",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
@@ -1791,7 +1791,7 @@ static uiBlock *view3d_transform_scaleaxismenu(bContext *C, ARegion *ar, void *a
 	uiBlock *block;
 	short yco = 20, menuwidth = 120;
 
-	block= uiBeginBlock(C, ar, "view3d_transform_scaleaxismenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "view3d_transform_scaleaxismenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_view3d_transform_scaleaxismenu, NULL);
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "X Global|S, X",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
@@ -1903,7 +1903,7 @@ static uiBlock *view3d_transformmenu(bContext *C, ARegion *ar, void *arg_unused)
 	uiBlock *block;
 	short yco = 20, menuwidth = 120;
 
-	block= uiBeginBlock(C, ar, "view3d_transformmenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "view3d_transformmenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_view3d_transformmenu, NULL);
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Grab/Move|G",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
@@ -2029,7 +2029,7 @@ static uiBlock *view3d_object_mirrormenu(bContext *C, ARegion *ar, void *arg_unu
 	uiBlock *block;
 	short yco = 20, menuwidth = 120;
 
-	block= uiBeginBlock(C, ar, "view3d_object_mirrormenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "view3d_object_mirrormenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_view3d_object_mirrormenu, NULL);
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Interactive Mirror|Ctrl M",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
@@ -2080,7 +2080,7 @@ static uiBlock *view3d_edit_object_transformmenu(bContext *C, ARegion *ar, void 
 	uiBlock *block;
 	short yco = 20, menuwidth = 120;
 
-	block= uiBeginBlock(C, ar, "view3d_edit_object_transformmenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "view3d_edit_object_transformmenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_view3d_edit_object_transformmenu, NULL);
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Apply Scale/Rotation to ObData|Ctrl A, 1",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
@@ -2118,7 +2118,7 @@ static uiBlock *view3d_edit_object_makelocalmenu(bContext *C, ARegion *ar, void 
 	uiBlock *block;
 	short yco = 20, menuwidth = 120;
 	
-	block= uiBeginBlock(C, ar, "view3d_edit_object_makelocalmenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "view3d_edit_object_makelocalmenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_view3d_edit_object_makelocalmenu, NULL);
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Selected Objects|L, 1",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
@@ -2152,7 +2152,7 @@ static uiBlock *view3d_edit_object_makelinksmenu(bContext *C, ARegion *ar, void 
 	uiBlock *block;
 	short yco = 20, menuwidth = 120;
 
-	block= uiBeginBlock(C, ar, "view3d_edit_object_makelinksmenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "view3d_edit_object_makelinksmenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_view3d_edit_object_makelinksmenu, NULL);
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "To Scene...|Ctrl L, 1",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
@@ -2229,7 +2229,7 @@ static uiBlock *view3d_edit_object_singleusermenu(bContext *C, ARegion *ar, void
 	uiBlock *block;
 	short yco = 20, menuwidth = 120;
 
-	block= uiBeginBlock(C, ar, "view3d_edit_object_singleusermenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "view3d_edit_object_singleusermenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_view3d_edit_object_singleusermenu, NULL);
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Object|U, 1",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
@@ -2282,7 +2282,7 @@ static uiBlock *view3d_edit_object_copyattrmenu(bContext *C, ARegion *ar, void *
 	uiBlock *block;
 	short yco = 20, menuwidth = 120;
 
-	block= uiBeginBlock(C, ar, "view3d_edit_object_copyattrmenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "view3d_edit_object_copyattrmenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_view3d_edit_object_copyattrmenu, NULL);
 	
 	ob= OBACT;
@@ -2357,7 +2357,7 @@ static uiBlock *view3d_edit_object_parentmenu(bContext *C, ARegion *ar, void *ar
 	uiBlock *block;
 	short yco = 20, menuwidth = 120;
 
-	block= uiBeginBlock(C, ar, "view3d_edit_object_parentmenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "view3d_edit_object_parentmenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_view3d_edit_object_parentmenu, NULL);
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Make Parent...|Ctrl P",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
@@ -2386,7 +2386,7 @@ static uiBlock *view3d_edit_object_groupmenu(bContext *C, ARegion *ar, void *arg
 	uiBlock *block;
 	short yco = 20, menuwidth = 120;
 	
-	block= uiBeginBlock(C, ar, "view3d_edit_object_groupmenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "view3d_edit_object_groupmenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_view3d_edit_object_groupmenu, NULL);
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Add to Existing Group|Ctrl G, 1",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
@@ -2417,7 +2417,7 @@ static uiBlock *view3d_edit_object_trackmenu(bContext *C, ARegion *ar, void *arg
 	uiBlock *block;
 	short yco = 20, menuwidth = 120;
 
-	block= uiBeginBlock(C, ar, "view3d_edit_object_trackmenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "view3d_edit_object_trackmenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_view3d_edit_object_trackmenu, NULL);
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Make Track...|Ctrl T",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
@@ -2447,7 +2447,7 @@ static uiBlock *view3d_edit_object_constraintsmenu(bContext *C, ARegion *ar, voi
 	uiBlock *block;
 	short yco = 20, menuwidth = 120;
 
-	block= uiBeginBlock(C, ar, "view3d_edit_object_constraintsmenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "view3d_edit_object_constraintsmenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_view3d_edit_object_constraintsmenu, NULL);
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Add Constraint...|Ctrl Alt C",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
@@ -2482,7 +2482,7 @@ static uiBlock *view3d_edit_object_showhidemenu(bContext *C, ARegion *ar, void *
 	uiBlock *block;
 	short yco = 20, menuwidth = 120;
 
-	block= uiBeginBlock(C, ar, "view3d_edit_object_showhidemenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "view3d_edit_object_showhidemenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_view3d_edit_object_showhidemenu, NULL);
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show Hidden|Alt H",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
@@ -2510,7 +2510,7 @@ static uiBlock *view3d_edit_object_scriptsmenu(bContext *C, ARegion *ar, void *a
 // XXX	BPyMenu *pym;
 //	int i = 0;
 
-	block= uiBeginBlock(C, ar, "v3d_eobject_pymenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "v3d_eobject_pymenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_view3d_edit_object_scriptsmenu, NULL);
 
 //	for (pym = BPyMenuTable[PYMENU_OBJECT]; pym; pym = pym->next, i++) {
@@ -2583,7 +2583,7 @@ static uiBlock *view3d_edit_objectmenu(bContext *C, ARegion *ar, void *arg_unuse
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
 	
-	block= uiBeginBlock(C, ar, "view3d_edit_objectmenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "view3d_edit_objectmenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_view3d_edit_objectmenu, NULL);
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Transform Properties|N",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 15, "");
@@ -2664,7 +2664,7 @@ static uiBlock *view3d_edit_propfalloffmenu(bContext *C, ARegion *ar, void *arg_
 	uiBlock *block;
 	short yco = 20, menuwidth = 120;
 
-	block= uiBeginBlock(C, ar, "view3d_edit_propfalloffmenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "view3d_edit_propfalloffmenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_view3d_edit_propfalloffmenu, NULL);
 	
 	if (scene->prop_mode==PROP_SMOOTH) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Smooth|Shift O", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, PROP_SMOOTH, "");
@@ -2735,7 +2735,7 @@ static uiBlock *view3d_edit_mesh_verticesmenu(bContext *C, ARegion *ar, void *ar
 	uiBlock *block;
 	short yco = 20, menuwidth = 120;
 
-	block= uiBeginBlock(C, ar, "view3d_edit_mesh_verticesmenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "view3d_edit_mesh_verticesmenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_view3d_edit_mesh_verticesmenu, NULL);
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Merge...|Alt M",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
@@ -2853,7 +2853,7 @@ static uiBlock *view3d_edit_mesh_edgesmenu(bContext *C, ARegion *ar, void *arg_u
 	uiBlock *block;
 	short yco = 20, menuwidth = 120;
 
-	block= uiBeginBlock(C, ar, "view3d_edit_mesh_edgesmenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "view3d_edit_mesh_edgesmenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_view3d_edit_mesh_edgesmenu, NULL);
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Make Edge/Face|F",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
@@ -2941,7 +2941,7 @@ static uiBlock *view3d_edit_mesh_facesmenu(bContext *C, ARegion *ar, void *arg_u
 	uiBlock *block;
 	short yco = 20, menuwidth = 120;
 
-	block= uiBeginBlock(C, ar, "view3d_edit_mesh_facesmenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "view3d_edit_mesh_facesmenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_view3d_edit_mesh_facesmenu, NULL);
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Make Edge/Face|F",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
@@ -2987,7 +2987,7 @@ static uiBlock *view3d_edit_mesh_normalsmenu(bContext *C, ARegion *ar, void *arg
 	uiBlock *block;
 	short yco = 20, menuwidth = 120;
 
-	block= uiBeginBlock(C, ar, "view3d_edit_mesh_normalsmenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "view3d_edit_mesh_normalsmenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_view3d_edit_mesh_normalsmenu, NULL);
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Recalculate Outside|Ctrl N",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
@@ -3053,7 +3053,7 @@ static uiBlock *view3d_edit_mirrormenu(bContext *C, ARegion *ar, void *arg_unuse
 	uiBlock *block;
 	short yco = 20, menuwidth = 120;
 
-	block= uiBeginBlock(C, ar, "view3d_edit_mirrormenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "view3d_edit_mirrormenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_view3d_edit_mirrormenu, NULL);
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Interactive Mirror|Ctrl M",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
@@ -3099,7 +3099,7 @@ static uiBlock *view3d_edit_mesh_showhidemenu(bContext *C, ARegion *ar, void *ar
 	uiBlock *block;
 	short yco = 20, menuwidth = 120;
 
-	block= uiBeginBlock(C, ar, "view3d_edit_mesh_showhidemenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "view3d_edit_mesh_showhidemenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_view3d_edit_mesh_showhidemenu, NULL);
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show Hidden|Alt H",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
@@ -3127,7 +3127,7 @@ static uiBlock *view3d_edit_mesh_scriptsmenu(bContext *C, ARegion *ar, void *arg
 // XXX	BPyMenu *pym;
 //	int i = 0;
 
-	block= uiBeginBlock(C, ar, "v3d_emesh_pymenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "v3d_emesh_pymenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_view3d_edit_mesh_scriptsmenu, NULL);
 
 //	for (pym = BPyMenuTable[PYMENU_MESH]; pym; pym = pym->next, i++) {
@@ -3211,7 +3211,7 @@ static uiBlock *view3d_edit_meshmenu(bContext *C, ARegion *ar, void *arg_unused)
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
 		
-	block= uiBeginBlock(C, ar, "view3d_edit_meshmenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "view3d_edit_meshmenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_view3d_edit_meshmenu, NULL);
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Undo Editing|Ctrl Z",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
@@ -3391,7 +3391,7 @@ static uiBlock *view3d_edit_mball_showhidemenu(bContext *C, ARegion *ar, void *a
 	uiBlock *block;
 	short yco = 20, menuwidth = 120;
 
-	block= uiBeginBlock(C, ar, "view3d_edit_mball_showhidemenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "view3d_edit_mball_showhidemenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_view3d_edit_mball_showhidemenu, NULL);
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show Hidden|Alt H", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 10, "");
@@ -3442,7 +3442,7 @@ static uiBlock *view3d_edit_metaballmenu(bContext *C, ARegion *ar, void *arg_unu
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
 		
-	block= uiBeginBlock(C, ar, "view3d_edit_metaballmenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "view3d_edit_metaballmenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_view3d_edit_metaballmenu, NULL);
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Undo Editing|Ctrl Z", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
@@ -3554,7 +3554,7 @@ static uiBlock *view3d_edit_latticemenu(bContext *C, ARegion *ar, void *arg_unus
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
 		
-	block= uiBeginBlock(C, ar, "view3d_edit_latticemenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "view3d_edit_latticemenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_view3d_edit_latticemenu, NULL);
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Undo Editing|U",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
@@ -3614,7 +3614,7 @@ static uiBlock *view3d_edit_armature_parentmenu(bContext *C, ARegion *ar, void *
 	uiBlock *block;
 	short yco = 20, menuwidth = 120;
 
-	block= uiBeginBlock(C, ar, "view3d_edit_armature_parentmenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "view3d_edit_armature_parentmenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_view3d_edit_armature_parentmenu, NULL);
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Make Parent...|Ctrl P",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
@@ -3644,7 +3644,7 @@ static uiBlock *view3d_edit_armature_rollmenu(bContext *C, ARegion *ar, void *ar
 	uiBlock *block;
 	short yco = 20, menuwidth = 120;
 
-	block= uiBeginBlock(C, ar, "view3d_edit_armature_rollmenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "view3d_edit_armature_rollmenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_view3d_edit_armature_rollmenu, NULL);
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Clear Roll (Z-Axis Up)|Ctrl N, 1",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
@@ -3744,7 +3744,7 @@ static uiBlock *view3d_scripts_armaturemenu(bContext *C, ARegion *ar, void *arg_
 //	int i= 0;
 //	short yco = 20, menuwidth = 120;
 	
-	block= uiBeginBlock(C, ar, "view3d_scripts_armaturemenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "view3d_scripts_armaturemenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_view3d_scripts_armaturemenu, NULL);
 	
 	/* note that we acount for the N previous entries with i+20: */
@@ -3772,7 +3772,7 @@ static uiBlock *view3d_armature_settingsmenu(bContext *C, ARegion *ar, void *arg
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
 
-	block= uiBeginBlock(C, ar, "view3d_armature_settingsmenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "view3d_armature_settingsmenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_view3d_armature_settingsmenu, NULL);
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Toggle a Setting|Shift W", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
@@ -3792,7 +3792,7 @@ static uiBlock *view3d_edit_armaturemenu(bContext *C, ARegion *ar, void *arg_unu
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
 	
-	block= uiBeginBlock(C, ar, "view3d_edit_armaturemenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "view3d_edit_armaturemenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_view3d_edit_armaturemenu, NULL);
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Undo Editing|U",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
@@ -3894,7 +3894,7 @@ static uiBlock *view3d_pose_armature_transformmenu(bContext *C, ARegion *ar, voi
 	uiBlock *block;
 	short yco = 20, menuwidth = 120;
 
-	block= uiBeginBlock(C, ar, "view3d_pose_armature_transformmenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "view3d_pose_armature_transformmenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_view3d_pose_armature_transformmenu, NULL);
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Clear User Transform|W", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
@@ -3933,7 +3933,7 @@ static uiBlock *view3d_pose_armature_showhidemenu(bContext *C, ARegion *ar, void
 	uiBlock *block;
 	short yco = 20, menuwidth = 120;
 
-	block= uiBeginBlock(C, ar, "view3d_pose_armature_showhidemenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "view3d_pose_armature_showhidemenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_view3d_pose_armature_showhidemenu, NULL);
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show Hidden|Alt H",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
@@ -3966,7 +3966,7 @@ static uiBlock *view3d_pose_armature_ikmenu(bContext *C, ARegion *ar, void *arg_
 	uiBlock *block;
 	short yco = 20, menuwidth = 120;
 
-	block= uiBeginBlock(C, ar, "view3d_pose_armature_ikmenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "view3d_pose_armature_ikmenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_view3d_pose_armature_ikmenu, NULL);
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Add IK to Bone...|Shift I",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
@@ -3998,7 +3998,7 @@ static uiBlock *view3d_pose_armature_constraintsmenu(bContext *C, ARegion *ar, v
 	uiBlock *block;
 	short yco = 20, menuwidth = 120;
 
-	block= uiBeginBlock(C, ar, "view3d_pose_armature_constraintsmenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "view3d_pose_armature_constraintsmenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_view3d_pose_armature_constraintsmenu, NULL);
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Add Constraint to Bone...|Ctrl Alt C",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
@@ -4037,7 +4037,7 @@ static uiBlock *view3d_pose_armature_groupmenu(bContext *C, ARegion *ar, void *a
 	uiBlock *block;
 	short yco = 20, menuwidth = 120;
 	
-	block= uiBeginBlock(C, ar, "view3d_pose_armature_groupmenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "view3d_pose_armature_groupmenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_view3d_pose_armature_groupmenu, NULL);
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Add Selected to Active Group|Ctrl G",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
@@ -4072,7 +4072,7 @@ static uiBlock *view3d_pose_armature_motionpathsmenu(bContext *C, ARegion *ar, v
 	uiBlock *block;
 	short yco = 20, menuwidth = 120;
 
-	block= uiBeginBlock(C, ar, "view3d_pose_armature_motionpathsmenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "view3d_pose_armature_motionpathsmenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_view3d_pose_armature_motionpathsmenu, NULL);
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Calculate Paths|W",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
@@ -4111,7 +4111,7 @@ static uiBlock *view3d_pose_armature_poselibmenu(bContext *C, ARegion *ar, void 
 	uiBlock *block;
 	short yco = 20, menuwidth = 120;
 
-	block= uiBeginBlock(C, ar, "view3d_pose_armature_poselibmenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "view3d_pose_armature_poselibmenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_view3d_pose_armature_poselibmenu, NULL);
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Browse Poses|Ctrl L",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
@@ -4192,7 +4192,7 @@ static uiBlock *view3d_pose_armaturemenu(bContext *C, ARegion *ar, void *arg_unu
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
 	
-	block= uiBeginBlock(C, ar, "view3d_pose_armaturemenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "view3d_pose_armaturemenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_view3d_pose_armaturemenu, NULL);
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Transform Properties|N", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
@@ -4293,7 +4293,7 @@ static uiBlock *view3d_vpaintmenu(bContext *C, ARegion *ar, void *arg_unused)
 //	int i=0;
 #endif
 	
-	block= uiBeginBlock(C, ar, "view3d_paintmenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "view3d_paintmenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_view3d_vpaintmenu, NULL);
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Undo Vertex Painting|U",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
@@ -4341,7 +4341,7 @@ static uiBlock *view3d_tpaintmenu(bContext *C, ARegion *ar, void *arg_unused)
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
 	
-	block= uiBeginBlock(C, ar, "view3d_paintmenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "view3d_paintmenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_view3d_tpaintmenu, NULL);
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Undo Texture Painting|U",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
@@ -4395,7 +4395,7 @@ static uiBlock *view3d_wpaintmenu(bContext *C, ARegion *ar, void *arg_unused)
 //	int i=0;
 #endif
 		
-	block= uiBeginBlock(C, ar, "view3d_paintmenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "view3d_paintmenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_view3d_wpaintmenu, NULL);
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Undo Weight Painting|U",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
@@ -4517,7 +4517,7 @@ uiBlock *view3d_sculpt_inputmenu(bContext *C, ARegion *ar, void *arg_unused)
 	short yco= 0, menuwidth= 120;
 	Sculpt *sd= CTX_data_tool_settings(C)->sculpt;
 
-	block= uiBeginBlock(C, ar, "view3d_sculpt_inputmenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "view3d_sculpt_inputmenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_view3d_sculpt_inputmenu, NULL);
 
 	uiDefIconTextBut(block, BUTM, 1, ((sd->flags & SCULPT_INPUT_SMOOTH) ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT), "Smooth Stroke|Shift S", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
@@ -4572,7 +4572,7 @@ uiBlock *view3d_sculptmenu(bContext *C, ARegion *ar, void *arg_unused)
 // XXX	const BrushData *br= sculptmode_brush();
 	short yco= 0, menuwidth= 120;
 	
-	block= uiBeginBlock(C, ar, "view3d_sculptmenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "view3d_sculptmenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_view3d_sculptmenu, NULL);
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Sculpt Properties|N", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 14, "");
@@ -4637,7 +4637,7 @@ static uiBlock *view3d_facesel_showhidemenu(bContext *C, ARegion *ar, void *arg_
 	uiBlock *block;
 	short yco = 20, menuwidth = 120;
 
-	block= uiBeginBlock(C, ar, "view3d_facesel_showhidemenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "view3d_facesel_showhidemenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_view3d_facesel_showhidemenu, NULL);
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show Hidden Faces|Alt H",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
@@ -4671,7 +4671,7 @@ static uiBlock *view3d_faceselmenu(bContext *C, ARegion *ar, void *arg_unused)
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
 	
-	block= uiBeginBlock(C, ar, "view3d_faceselmenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "view3d_faceselmenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_view3d_faceselmenu, NULL);
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Set Vertex Colors|Shift K",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
@@ -5279,7 +5279,7 @@ void view3d_header_buttons(const bContext *C, ARegion *ar)
 	uiBlock *block;
 	int a, xco, yco= 3;
 	
-	block= uiBeginBlock(C, ar, "header buttons", UI_EMBOSS, UI_HELV);
+	block= uiBeginBlock(C, ar, "header buttons", UI_EMBOSS);
 	uiBlockSetHandleFunc(block, do_view3d_header_buttons, NULL);
 	
 	xco= ED_area_header_standardbuttons(C, block, yco);

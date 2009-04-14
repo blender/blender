@@ -388,7 +388,7 @@ static void image_panel_game_properties(const bContext *C, ARegion *ar)
 	ImBuf *ibuf= BKE_image_get_ibuf(sima->image, &sima->iuser);
 	uiBlock *block;
 
-	block= uiBeginBlock(C, ar, "image_panel_game_properties", UI_EMBOSS, UI_HELV);
+	block= uiBeginBlock(C, ar, "image_panel_game_properties", UI_EMBOSS);
 	if(uiNewPanel(C, ar, block, "Real-time Properties", "Image", 10, 10, 318, 204)==0)
 		return;
 	uiBlockSetHandleFunc(block, do_image_panel_events, NULL);
@@ -425,7 +425,7 @@ static void image_panel_view_properties(const bContext *C, ARegion *ar)
 	Object *obedit= CTX_data_edit_object(C);
 	uiBlock *block;
 
-	block= uiBeginBlock(C, ar, "image_view_properties", UI_EMBOSS, UI_HELV);
+	block= uiBeginBlock(C, ar, "image_view_properties", UI_EMBOSS);
 	if(uiNewPanel(C, ar, block, "View Properties", "Image", 10, 30, 318, 204)==0)
 		return;
 	uiBlockSetHandleFunc(block, do_image_panel_events, NULL);
@@ -507,10 +507,8 @@ void brush_buttons(const bContext *C, uiBlock *block, short fromsima,
 	uiBlockEndAlign(block);
 	yco -= 30;
 	
-	uiBlockSetCol(block, TH_BUT_SETTING2);
 	id= (ID*)settings->imapaint.brush;
 	xco= 200; // std_libbuttons(block, 0, yco, 0, NULL, evt_browse, ID_BR, 0, id, NULL, menupoin, 0, evt_local, evt_del, 0, evt_keepdata);
-	uiBlockSetCol(block, TH_AUTO);
 	
 	if(brush && !brush->id.lib) {
 		
@@ -569,9 +567,7 @@ void brush_buttons(const bContext *C, uiBlock *block, short fromsima,
 		
 		if(fromsima && settings->imapaint.tool == PAINT_TOOL_CLONE) {
 			id= (ID*)brush->clone.image;
-			uiBlockSetCol(block, TH_BUT_SETTING2);
 			xco= 200; // std_libbuttons(block, 0, yco, 0, NULL, B_SIMACLONEBROWSE, ID_IM, 0, id, 0, menupoin, 0, 0, B_SIMACLONEDELETE, 0, 0);
-			uiBlockSetCol(block, TH_AUTO);
 			if(id) {
 				butw= 320-(xco+5);
 				uiDefButF(block, NUMSLI, evt_change, "B ",xco+5,yco,butw,19, &brush->clone.alpha , 0.0, 1.0, 0, 0, "Opacity of clone image display");
@@ -589,11 +585,9 @@ void brush_buttons(const bContext *C, uiBlock *block, short fromsima,
 			else {
 				MTex *mtex= brush->mtex[brush->texact];
 				
-				uiBlockSetCol(block, TH_BUT_SETTING2);
 				id= (mtex)? (ID*)mtex->tex: NULL;
 				xco= 200; // std_libbuttons(block, 0, yco, 0, NULL, evt_texbrowse, ID_TE, 0, id, NULL, menupoin, 0, 0, evt_texdel, 0, 0);
 				/*uiDefButBitS(block, TOG|BIT, BRUSH_FIXED_TEX, evt_change, "Fixed",	xco+5,yco,butw,19, &brush->flag, 0, 0, 0, 0, "Keep texture origin in fixed position");*/
-				uiBlockSetCol(block, TH_AUTO);
 			}
 		}
 	}
@@ -613,7 +607,7 @@ static void image_panel_paintcolor(const bContext *C, ARegion *ar)
 	static float hsv[3], old[3];	// used as temp mem for picker
 	static char hexcol[128];
 	
-	block= uiBeginBlock(C, ar, "image_panel_paintcolor", UI_EMBOSS, UI_HELV);
+	block= uiBeginBlock(C, ar, "image_panel_paintcolor", UI_EMBOSS);
 	uiBlockSetHandleFunc(block, do_image_panel_events, NULL);
 	if(uiNewPanel(C, ar, block, "Paint Color", "Image", 10, 22, 318, 204)==0)
 		return;
@@ -634,7 +628,7 @@ static void image_panel_paint(const bContext *C, ARegion *ar)
 	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
 	uiBlock *block;
 	
-	block= uiBeginBlock(C, ar, "image_panel_paint", UI_EMBOSS, UI_HELV);
+	block= uiBeginBlock(C, ar, "image_panel_paint", UI_EMBOSS);
 	uiBlockSetHandleFunc(block, do_image_panel_events, NULL);
 	if(uiNewPanel(C, ar, block, "Image Paint", "Image", 10, 20, 318, 204)==0)
 		return;
@@ -678,7 +672,7 @@ static void image_panel_curves(const bContext *C, ARegion *ar)
 	/* and we check for spare */
 	ibuf= ED_space_image_buffer(sima);
 	
-	block= uiBeginBlock(C, ar, "image_panel_curves", UI_EMBOSS, UI_HELV);
+	block= uiBeginBlock(C, ar, "image_panel_curves", UI_EMBOSS);
 	if(uiNewPanel(C, ar, block, "Curves", "Image", 10, 40, 318, 204)==0)
 		return;
 	uiBlockSetHandleFunc(block, do_image_panel_events, NULL);
@@ -833,7 +827,7 @@ static void image_panel_preview(ScrArea *sa, short cntrl)	// IMAGE_HANDLER_PREVI
 		return;
 	}
 	
-	block= uiBeginBlock(C, ar, "image_panel_preview", UI_EMBOSS, UI_HELV);
+	block= uiBeginBlock(C, ar, "image_panel_preview", UI_EMBOSS);
 	uiPanelControl(UI_PNL_SOLID | UI_PNL_CLOSE | UI_PNL_SCALE | cntrl);
 	uiSetPanelHandler(IMAGE_HANDLER_PREVIEW);  // for close and esc
 	
@@ -852,7 +846,7 @@ static void image_panel_gpencil(short cntrl)	// IMAGE_HANDLER_GREASEPENCIL
 	
 	sima= curarea->spacedata.first;
 
-	block= uiBeginBlock(C, ar, "image_panel_gpencil", UI_EMBOSS, UI_HELV);
+	block= uiBeginBlock(C, ar, "image_panel_gpencil", UI_EMBOSS);
 	uiPanelControl(UI_PNL_SOLID | UI_PNL_CLOSE  | cntrl);
 	uiSetPanelHandler(IMAGE_HANDLER_GREASEPENCIL);  // for close and esc
 	if (uiNewPanel(C, ar, block, "Grease Pencil", "SpaceImage", 100, 30, 318, 204)==0) return;
@@ -1408,7 +1402,7 @@ static void image_panel_properties(const bContext *C, ARegion *ar)
 	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
 	uiBlock *block;
 	
-	block= uiBeginBlock(C, ar, "image_panel_properties", UI_EMBOSS, UI_HELV);
+	block= uiBeginBlock(C, ar, "image_panel_properties", UI_EMBOSS);
 	if(uiNewPanel(C, ar, block, "Image Properties", "Image", 10, 50, 318, 204)==0)
 		return;
 	uiBlockSetHandleFunc(block, do_image_panel_events, NULL);

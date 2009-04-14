@@ -105,7 +105,7 @@ static void graph_panel_properties(const bContext *C, ARegion *ar, short cntrl, 
 	uiBlock *block;
 	char name[128];
 
-	block= uiBeginBlock(C, ar, "graph_panel_properties", UI_EMBOSS, UI_HELV);
+	block= uiBeginBlock(C, ar, "graph_panel_properties", UI_EMBOSS);
 	if (uiNewPanel(C, ar, block, "Properties", "Graph", 340, 30, 318, 254)==0) return;
 	uiBlockSetHandleFunc(block, do_graph_region_buttons, NULL);
 
@@ -201,7 +201,7 @@ static void graph_panel_drivers(const bContext *C, ARegion *ar, short cntrl, bAn
 	uiBlock *block;
 	uiBut *but;
 
-	block= uiBeginBlock(C, ar, "graph_panel_drivers", UI_EMBOSS, UI_HELV);
+	block= uiBeginBlock(C, ar, "graph_panel_drivers", UI_EMBOSS);
 	if (uiNewPanel(C, ar, block, "Drivers", "Graph", 340, 30, 318, 254)==0) return;
 	uiBlockSetHandleFunc(block, do_graph_region_driver_buttons, NULL);
 
@@ -870,7 +870,7 @@ static void graph_panel_modifiers(const bContext *C, ARegion *ar, short cntrl, b
 	uiBlock *block;
 	int yco= 190;
 	
-	block= uiBeginBlock(C, ar, "graph_panel_modifiers", UI_EMBOSS, UI_HELV);
+	block= uiBeginBlock(C, ar, "graph_panel_modifiers", UI_EMBOSS);
 	if (uiNewPanel(C, ar, block, "Modifiers", "Graph", 340, 30, 318, 254)==0) return;
 	uiBlockSetHandleFunc(block, do_graph_region_modifier_buttons, NULL);
 	

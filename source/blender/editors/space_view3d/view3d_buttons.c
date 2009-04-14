@@ -956,7 +956,7 @@ static void view3d_panel_transform_spaces(const bContext *C, ARegion *ar, short 
 	int xco = 20, yco = 70, height = 140;
 	int index;
 
-	block= uiBeginBlock(C, ar, "view3d_panel_transform", UI_EMBOSS, UI_HELV);
+	block= uiBeginBlock(C, ar, "view3d_panel_transform", UI_EMBOSS);
 	if(uiNewPanel(C, ar, block, "Transform Orientations", "View3d", 1000, 0, 318, height)==0) return;
 
 	uiNewPanelHeight(block, height);
@@ -1112,7 +1112,7 @@ static void view3d_panel_brush(const bContext *C, ARegion *ar, short cntrl)
 		return;
 	br = *brp;
 
-	block= uiBeginBlock(C, ar, "view3d_panel_brush", UI_EMBOSS, UI_HELV);
+	block= uiBeginBlock(C, ar, "view3d_panel_brush", UI_EMBOSS);
 	if(uiNewPanel(C, ar, block, "Brush", "View3d", 340, 10, 318, h)==0) return;
 	uiBlockSetHandleFunc(block, do_view3d_region_buttons, NULL);
 
@@ -1220,7 +1220,7 @@ static void view3d_panel_object(const bContext *C, ARegion *ar, short cntrl)	// 
 		v3d->properties_storage= MEM_callocN(sizeof(TransformProperties), "TransformProperties");
 	tfp= v3d->properties_storage;
 	
-	block= uiBeginBlock(C, ar, "view3d_panel_object", UI_EMBOSS, UI_HELV);
+	block= uiBeginBlock(C, ar, "view3d_panel_object", UI_EMBOSS);
 	uiBlockSetHandleFunc(block, do_view3d_region_buttons, NULL);
 	
 	if((G.f & G_SCULPTMODE) && !obedit) {
@@ -1371,7 +1371,7 @@ static void view3d_panel_background(const bContext *C, ARegion *ar, short cntrl)
 	View3D *v3d= CTX_wm_view3d(C);
 	uiBlock *block;
 
-	block= uiBeginBlock(C, ar, "view3d_panel_background", UI_EMBOSS, UI_HELV);
+	block= uiBeginBlock(C, ar, "view3d_panel_background", UI_EMBOSS);
 	if(uiNewPanel(C, ar, block, "Background Image", "View3d", 340, 10, 318, 204)==0) return;
 	uiBlockSetHandleFunc(block, do_view3d_region_buttons, NULL);
 
@@ -1415,7 +1415,7 @@ static void view3d_panel_properties(const bContext *C, ARegion *ar, short cntrl)
 	uiBlock *block;
 	float *curs;
 
-	block= uiBeginBlock(C, ar, "view3d_panel_properties", UI_EMBOSS, UI_HELV);
+	block= uiBeginBlock(C, ar, "view3d_panel_properties", UI_EMBOSS);
 	if(uiNewPanel(C, ar, block, "View Properties", "View3d", 340, 30, 318, 254)==0) return;
 	uiBlockSetHandleFunc(block, do_view3d_region_buttons, NULL);
 
@@ -1506,7 +1506,7 @@ static void view3d_panel_preview(bContext *C, ARegion *ar, short cntrl)	// VIEW3
 	View3D *v3d= sa->spacedata.first;
 	int ofsx, ofsy;
 	
-	block= uiBeginBlock(C, ar, "view3d_panel_preview", UI_EMBOSS, UI_HELV);
+	block= uiBeginBlock(C, ar, "view3d_panel_preview", UI_EMBOSS);
 	uiPanelControl(UI_PNL_SOLID | UI_PNL_CLOSE | UI_PNL_SCALE | cntrl);
 	uiSetPanelHandler(VIEW3D_HANDLER_PREVIEW);  // for close and esc
 	
@@ -1530,7 +1530,7 @@ static void view3d_panel_gpencil(const bContext *C, ARegion *ar, short cntrl)	//
 	View3D *v3d= CTX_wm_view3d(C);
 	uiBlock *block;
 
-	block= uiBeginBlock(C, ar, "view3d_panel_gpencil", UI_EMBOSS, UI_HELV);
+	block= uiBeginBlock(C, ar, "view3d_panel_gpencil", UI_EMBOSS);
 	if (uiNewPanel(C, ar, block, "Grease Pencil", "View3d", 100, 30, 318, 204)==0) return;
 
 	/* allocate memory for gpd if drawing enabled (this must be done first or else we crash) */
@@ -1599,7 +1599,7 @@ static void view3d_panel_bonesketch_spaces(const bContext *C, ARegion *ar, short
 			};
 
 		
-		block= uiBeginBlock(C, ar, "view3d_panel_bonesketch_spaces", UI_EMBOSS, UI_HELV);
+		block= uiBeginBlock(C, ar, "view3d_panel_bonesketch_spaces", UI_EMBOSS);
 		if(uiNewPanel(C, ar, block, "Bone Sketching", "View3d", 340, 10, 318, height)==0) return;
 		uiBlockSetHandleFunc(block, do_view3d_region_buttons, NULL);
 	

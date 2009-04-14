@@ -186,7 +186,7 @@ void ED_fileselect_init_layout(struct SpaceFile *sfile, struct ARegion *ar)
 		sfile->layout->prv_border_x = 6;
 		sfile->layout->prv_border_y = 6;
 		sfile->layout->tile_w = sfile->layout->prv_w + 2*sfile->layout->prv_border_x;
-		sfile->layout->tile_h = sfile->layout->prv_h + 2*sfile->layout->prv_border_y + U.fontsize;
+		sfile->layout->tile_h = sfile->layout->prv_h + 2*sfile->layout->prv_border_y + 12; // XXX 12 = font h
 		sfile->layout->width= (v2d->cur.xmax - v2d->cur.xmin - 2*sfile->layout->tile_border_x);
 		sfile->layout->columns= sfile->layout->width / (sfile->layout->tile_w + 2*sfile->layout->tile_border_x);
 		if(sfile->layout->columns > 0)
@@ -204,7 +204,7 @@ void ED_fileselect_init_layout(struct SpaceFile *sfile, struct ARegion *ar)
 		sfile->layout->tile_border_y = 2;
 		sfile->layout->prv_border_x = 0;
 		sfile->layout->prv_border_y = 0;
-		sfile->layout->tile_h = U.fontsize*3/2;
+		sfile->layout->tile_h = 12*3/2; // XXX 12 = font h
 		sfile->layout->height= v2d->cur.ymax - v2d->cur.ymin;
 		sfile->layout->rows = sfile->layout->height / (sfile->layout->tile_h + 2*sfile->layout->tile_border_y);;
         

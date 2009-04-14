@@ -84,14 +84,14 @@ char *BLI_sprintfN(const char *format, ...);
 	 * 
 	 * @retval True if the strings are equal, false otherwise.
 	 */
-int BLI_streq(char *a, char *b);
+int BLI_streq(const char *a, const char *b);
 
 	/**
 	 * Compare two strings without regard to case.
 	 * 
 	 * @retval True if the strings are equal, false otherwise.
 	 */
-int BLI_strcaseeq(char *a, char *b);
+int BLI_strcaseeq(const char *a, const char *b);
 
 char *BLI_strcasestr(const char *s, const char *find);
 int BLI_strcasecmp(const char *s1, const char *s2);

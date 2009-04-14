@@ -242,13 +242,11 @@ typedef struct UserDef {
 	short userpref, viewzoom;
 	
 	int mixbufsize;
-	int fontsize;	// XXX old
+	int pad1;
 	int dpi;		/* range 48-128? */
 	short encoding;
 	short transopts;
 	short menuthreshold1, menuthreshold2;
-	
-	char fontname[256];		// XXX FILE_MAXDIR+FILE length
 	
 	struct ListBase themes;
 	struct ListBase uifonts;

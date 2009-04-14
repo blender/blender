@@ -97,7 +97,7 @@ static uiBlock *graph_viewmenu(bContext *C, ARegion *ar, void *arg_unused)
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
 	
-	block= uiBeginBlock(C, ar, "graph_viewmenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "graph_viewmenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_viewmenu, NULL);
 	
 		// XXX these options should use new menu-options
@@ -154,7 +154,7 @@ void graph_header_buttons(const bContext *C, ARegion *ar)
 	uiBlock *block;
 	int xco, yco= 3;
 	
-	block= uiBeginBlock(C, ar, "header buttons", UI_EMBOSS, UI_HELV);
+	block= uiBeginBlock(C, ar, "header buttons", UI_EMBOSS);
 	uiBlockSetHandleFunc(block, do_graph_buttons, NULL);
 	
 	xco= ED_area_header_standardbuttons(C, block, yco);
