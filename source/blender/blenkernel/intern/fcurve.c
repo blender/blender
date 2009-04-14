@@ -1135,6 +1135,43 @@ static FModifierTypeInfo FMI_MODNAME = {
 };
 #endif
 
+/* Utilities For F-Curve Modifiers ---------------------- */
+
+/* Recalculate the F-Curve at evaltime, as modified by the given F-Curve */
+// TODO: this isn't really such an elegant solution for time-modifying F-Modifiers, but it gets too difficult otherwise for now...
+static float fcm_reevaluate_fcurve (FCurve *fcu, FModifier *fcm, float cvalue, float evaltime)
+{ 
+	ListBase modifiers = {NULL, NULL};
+	float new_value = 0.0f;
+	
+	/* sanity checking */
+	if ELEM(NULL, fcu, fcm)
+		return cvalue;
+	
+	/* unlink given modifier from previous modifiers, keeping the previous ones on the F-Curve,
+	 * but ones after off the F-Curve (so that we avoid the infinitely re-entrant situation).
+	 */
+	modifiers.first= fcm;
+	modifiers.last= fcu->modifiers.last;
+	
+	if (fcm->prev) {
+		fcm->prev->next= NULL;
+		fcu->modifiers.last= fcm->prev;
+	}
+	else
+		fcu->modifiers.first= fcu->modifiers.last= NULL;
+	fcm->prev= NULL;
+	
+	/* re-enter the evaluation loop (but without the burden of evaluating any modifiers, so 'should' be relatively quick) */
+	new_value= evaluate_fcurve(fcu, evaltime);
+	
+	/* restore modifiers (don't assume everything is still ok after being re-entrant) */
+	addlisttolist(&fcu->modifiers, &modifiers);
+	
+	/* return the new value */
+	return new_value;
+}
+
 /* Generator F-Curve Modifier --------------------------- */
 
 /* Generators available:
@@ -1547,9 +1584,7 @@ static void fcm_cycles_new_data (void *mdata)
 static void fcm_cycles_evaluate (FCurve *fcu, FModifier *fcm, float *cvalue, float evaltime)
 {
 	FMod_Cycles *data= (FMod_Cycles *)fcm->data;
-	ListBase mods = {NULL, NULL};
 	float prevkey[2], lastkey[2], cycyofs=0.0f;
-	float new_value;
 	short side=0, mode=0;
 	int cycles=0;
 	
@@ -1644,17 +1679,8 @@ static void fcm_cycles_evaluate (FCurve *fcu, FModifier *fcm, float *cvalue, flo
 		if (evaltime < ofs) evaltime += cycdx;
 	}
 	
-	
-	/* store modifiers after (and including ourself) before recalculating curve with new evaltime */
-	mods= fcu->modifiers;
-	fcu->modifiers.first= fcu->modifiers.last= NULL;
-	
-	/* re-enter the evaluation loop (but without the burden of evaluating any modifiers, so 'should' be relatively quick) */
-	new_value= evaluate_fcurve(fcu, evaltime);
-	
-	/* restore modifiers, and set new value (don't assume everything is still ok after being re-entrant) */
-	fcu->modifiers= mods;
-	*cvalue= new_value + cycyofs;
+	/* reevaluate F-Curve at the new time that we've decided on */
+	*cvalue= fcm_reevaluate_fcurve(fcu, fcm, *cvalue, evaltime) + cycyofs;
 }
 
 static FModifierTypeInfo FMI_CYCLES = {
@@ -1762,6 +1788,39 @@ static FModifierTypeInfo FMI_PYTHON = {
 };
 
 
+/* Limits F-Curve Modifier --------------------------- */
+
+static void fcm_limits_evaluate (FCurve *fcu, FModifier *fcm, float *cvalue, float evaltime)
+{
+	FMod_Limits *data= (FMod_Limits *)fcm->data;
+	
+	/* time limits first */
+	if ((data->flag & FCM_LIMIT_XMIN) && (evaltime < data->rect.xmin))
+		*cvalue= fcm_reevaluate_fcurve(fcu, fcm, *cvalue, data->rect.xmin);
+	if ((data->flag & FCM_LIMIT_XMAX) && (evaltime > data->rect.xmax))
+		*cvalue= fcm_reevaluate_fcurve(fcu, fcm, *cvalue, data->rect.xmax);
+	
+	/* value limits now */
+	if ((data->flag & FCM_LIMIT_YMIN) && (*cvalue < data->rect.ymin))
+		*cvalue= data->rect.ymin;
+	if ((data->flag & FCM_LIMIT_YMAX) && (*cvalue > data->rect.ymax))
+		*cvalue= data->rect.ymax;
+}
+
+static FModifierTypeInfo FMI_LIMITS = {
+	FMODIFIER_TYPE_LIMITS, /* type */
+	sizeof(FMod_Limits), /* size */
+	FMI_TYPE_GENERATE_CURVE, /* action type */  /* XXX... err... */   
+	FMI_REQUIRES_RUNTIME_CHECK, /* requirements */
+	"Limits", /* name */
+	"FMod_Limits", /* struct name */
+	NULL, /* free data */
+	NULL, /* copy data */
+	NULL, /* new data */
+	NULL /*fcm_python_verify*/, /* verify */
+	fcm_limits_evaluate /* evaluate */
+};
+
 /* F-Curve Modifier API --------------------------- */
 /* All of the F-Curve Modifier api functions use FModifierTypeInfo structs to carry out
  * and operations that involve F-Curve modifier specific code.
@@ -1781,6 +1840,7 @@ static void fmods_init_typeinfo ()
 	fmodifiersTypeInfo[4]=  NULL/*&FMI_NOISE*/;				/* Apply-Noise F-Curve Modifier */ // XXX unimplemented
 	fmodifiersTypeInfo[5]=  NULL/*&FMI_FILTER*/;			/* Filter F-Curve Modifier */  // XXX unimplemented
 	fmodifiersTypeInfo[6]=  &FMI_PYTHON;			/* Custom Python F-Curve Modifier */
+	fmodifiersTypeInfo[7]= 	&FMI_LIMITS;			/* Limits F-Curve Modifier */
 }
 
 /* This function should be used for getting the appropriate type-info when only

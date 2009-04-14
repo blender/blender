@@ -46,7 +46,8 @@ enum {
 	FMODIFIER_TYPE_CYCLES,
 	FMODIFIER_TYPE_NOISE,		/* unimplemented - generate variations using some basic noise generator... */
 	FMODIFIER_TYPE_FILTER,		/* unimplemented - for applying: fft, high/low pass filters, etc. */
-	FMODIFIER_TYPE_PYTHON,		
+	FMODIFIER_TYPE_PYTHON,	
+	FMODIFIER_TYPE_LIMITS,
 	
 	/* NOTE: all new modifiers must be added above this line */
 	FMODIFIER_NUM_TYPES
@@ -148,6 +149,22 @@ typedef struct FMod_Python {
 	struct Text *script;		/* text buffer containing script to execute */
 	IDProperty *prop;			/* ID-properties to provide 'custom' settings */
 } FMod_Python;
+
+
+/* limits modifier data */
+typedef struct FMod_Limits {
+	rctf rect;					/* rect defining the min/max values */
+	int flag;					/* settings for limiting */
+	int pad;
+} FMod_Limits;
+
+/* limiting flags */
+enum {
+	FCM_LIMIT_XMIN		= (1<<0),
+	FCM_LIMIT_XMAX		= (1<<1),
+	FCM_LIMIT_YMIN		= (1<<2),
+	FCM_LIMIT_YMAX		= (1<<3),
+} eFMod_Limit_Flags;
 
 /* Drivers -------------------------------------- */
 

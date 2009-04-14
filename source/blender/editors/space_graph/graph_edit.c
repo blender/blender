@@ -1647,6 +1647,7 @@ EnumPropertyItem prop_fmodifier_types[] = {
 	{FMODIFIER_TYPE_NOISE, "NOISE", "Noise", ""},
 	{FMODIFIER_TYPE_FILTER, "FILTER", "Filter", ""},
 	{FMODIFIER_TYPE_PYTHON, "PYTHON", "Python", ""},
+	{FMODIFIER_TYPE_LIMITS, "LIMITS", "Limits", ""},
 	{0, NULL, NULL, NULL}
 };
 

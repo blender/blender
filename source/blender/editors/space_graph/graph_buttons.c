@@ -754,6 +754,43 @@ static void draw_modifier__envelope(uiBlock *block, FCurve *fcu, FModifier *fcm,
 
 /* --------------- */
 
+/* draw settings for limits modifier */
+static void draw_modifier__limits(uiBlock *block, FCurve *fcu, FModifier *fcm, int *yco, short *height, short width, short active, int rb_col)
+{
+	FMod_Limits *data= (FMod_Limits *)fcm->data;
+	const int togButWidth = 50;
+	const int textButWidth = ((width/2)-togButWidth);
+	
+	/* set the height */
+	(*height) = 90;
+	
+	/* basic settings (backdrop + some padding) */
+	//DRAW_BACKDROP((*height)); // XXX buggy...
+	
+	/* Draw Pairs of LimitToggle+LimitValue */
+	uiBlockBeginAlign(block); 
+		uiDefButBitI(block, TOGBUT, FCM_LIMIT_XMIN, B_FMODIFIER_REDRAW, "xMin", 10, *yco-30, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use minimum x value"); 
+		uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "", 10+togButWidth, *yco-30, (textButWidth-5), 18, &data->rect.xmin, -FLT_MAX, FLT_MAX, 0.1,0.5,"Lowest x value to allow"); 
+	uiBlockEndAlign(block); 
+	
+	uiBlockBeginAlign(block); 
+		uiDefButBitI(block, TOGBUT, FCM_LIMIT_XMAX, B_FMODIFIER_REDRAW, "XMax", 10+(width-(textButWidth-5)-togButWidth), *yco-30, 50, 18, &data->flag, 0, 24, 0, 0, "Use maximum x value"); 
+		uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "", 10+(width-textButWidth-5), *yco-30, (textButWidth-5), 18, &data->rect.xmax, -FLT_MAX, FLT_MAX, 0.1,0.5,"Highest x value to allow"); 
+	uiBlockEndAlign(block); 
+	
+	uiBlockBeginAlign(block); 
+		uiDefButBitI(block, TOGBUT, FCM_LIMIT_YMIN, B_FMODIFIER_REDRAW, "yMin", 10, *yco-52, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use minimum y value"); 
+		uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "", 10+togButWidth, *yco-52, (textButWidth-5), 18, &data->rect.ymin, -FLT_MAX, FLT_MAX, 0.1,0.5,"Lowest y value to allow"); 
+	uiBlockEndAlign(block);
+	
+	uiBlockBeginAlign(block); 
+		uiDefButBitI(block, TOGBUT, FCM_LIMIT_YMAX, B_FMODIFIER_REDRAW, "YMax", 10+(width-(textButWidth-5)-togButWidth), *yco-52, 50, 18, &data->flag, 0, 24, 0, 0, "Use maximum y value"); 
+		uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "", 10+(width-textButWidth-5), *yco-52, (textButWidth-5), 18, &data->rect.ymax, -FLT_MAX, FLT_MAX, 0.1,0.5,"Highest y value to allow"); 
+	uiBlockEndAlign(block); 
+}
+
+/* --------------- */
+
 static void graph_panel_modifier_draw(uiBlock *block, FCurve *fcu, FModifier *fcm, int *yco)
 {
 	FModifierTypeInfo *fmi= fmodifier_get_typeinfo(fcm);
@@ -809,6 +846,10 @@ static void graph_panel_modifier_draw(uiBlock *block, FCurve *fcu, FModifier *fc
 				
 			case FMODIFIER_TYPE_ENVELOPE: /* Envelope */
 				draw_modifier__envelope(block, fcu, fcm, yco, &height, width, active, rb_col);
+				break;
+				
+			case FMODIFIER_TYPE_LIMITS: /* Limits */
+				draw_modifier__limits(block, fcu, fcm, yco, &height, width, active, rb_col);
 				break;
 			
 			default: /* unknown type */
