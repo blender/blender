@@ -2152,11 +2152,11 @@ static int mesh_shortest_path_select_invoke(bContext *C, wmOperator *op, wmEvent
 	return OPERATOR_FINISHED;
 }
 	
-void MESH_OT_path_select_shortest(wmOperatorType *ot)
+void MESH_OT_select_shortest_path(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Shortest Path Select";
-	ot->idname= "MESH_OT_path_select_shortest";
+	ot->idname= "MESH_OT_select_shortest_path";
 	
 	/* api callbacks */
 	ot->invoke= mesh_shortest_path_select_invoke;
@@ -4069,11 +4069,11 @@ static int righthandfaces_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;	
 }
 
-void MESH_OT_normals_make_consistant(wmOperatorType *ot)
+void MESH_OT_normals_make_consistent(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Make Normals Consistant";
-	ot->idname= "MESH_OT_normals_make_consistant";
+	ot->name= "Make Normals Consistent";
+	ot->idname= "MESH_OT_normals_make_consistent";
 	
 	/* api callbacks */
 	ot->exec= righthandfaces_exec;
@@ -4537,11 +4537,11 @@ static int vertices_to_sphere_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;	
 }
 
-void MESH_OT_vertices_to_sphere_transform(wmOperatorType *ot)
+void MESH_OT_vertices_transform_to_sphere(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Vertices to Sphere";
-	ot->idname= "MESH_OT_vertices_to_sphere_transform";
+	ot->idname= "MESH_OT_vertices_transform_to_sphere";
 	
 	/* api callbacks */
 	ot->exec= vertices_to_sphere_exec;

@@ -84,7 +84,7 @@ void snode_autoconnect(SpaceNode *snode, bNode *node_to, int flag);
 
 void NODE_OT_link(struct wmOperatorType *ot);
 void NODE_OT_delete(struct wmOperatorType *ot);
-void NODE_OT_widget_size(struct wmOperatorType *ot);
+void NODE_OT_resize(struct wmOperatorType *ot);
 void NODE_OT_links_cut(struct wmOperatorType *ot);
 
 // XXXXXX

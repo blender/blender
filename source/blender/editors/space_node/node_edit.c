@@ -1056,7 +1056,7 @@ typedef struct NodeSizeWidget {
 	float oldwidth;
 } NodeSizeWidget;
 
-static int node_size_widget_modal(bContext *C, wmOperator *op, wmEvent *event)
+static int node_resize_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
 	SpaceNode *snode= (SpaceNode*)CTX_wm_space_data(C);
 	ARegion *ar= CTX_wm_region(C);
@@ -1099,7 +1099,7 @@ static int node_size_widget_modal(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
-static int node_size_widget_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int node_resize_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	SpaceNode *snode= (SpaceNode*)CTX_wm_space_data(C);
 	ARegion *ar= CTX_wm_region(C);
@@ -1135,15 +1135,15 @@ static int node_size_widget_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_PASS_THROUGH;
 }
 
-void NODE_OT_widget_size(wmOperatorType *ot)
+void NODE_OT_resize(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Scale Node";
-	ot->idname= "NODE_OT_widget_size";
+	ot->name= "Resize Node";
+	ot->idname= "NODE_OT_resize";
 	
 	/* api callbacks */
-	ot->invoke= node_size_widget_invoke;
-	ot->modal= node_size_widget_modal;
+	ot->invoke= node_resize_invoke;
+	ot->modal= node_resize_modal;
 	ot->poll= ED_operator_node_active;
 	
 	/* flags */

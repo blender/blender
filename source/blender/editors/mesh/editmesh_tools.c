@@ -504,11 +504,11 @@ static int removedoublesflag_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;	
 }
 
-void MESH_OT_doubles_remove(wmOperatorType *ot)
+void MESH_OT_remove_doubles(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Remove Doubles";
-	ot->idname= "MESH_OT_doubles_remove";
+	ot->idname= "MESH_OT_remove_doubles";
 	
 	/* api callbacks */
 	ot->exec= removedoublesflag_exec;
@@ -6954,7 +6954,7 @@ void MESH_OT_beauty_fill(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int convert_quads_to_tris_exec(bContext *C, wmOperator *op)
+static int quads_convert_to_tris_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
@@ -6967,21 +6967,21 @@ static int convert_quads_to_tris_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void MESH_OT_quads_to_tris_convert(wmOperatorType *ot)
+void MESH_OT_quads_convert_to_tris(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Quads to Tris";
-	ot->idname= "MESH_OT_quads_to_tris_convert";
+	ot->idname= "MESH_OT_quads_convert_to_tris";
 	
 	/* api callbacks */
-	ot->exec= convert_quads_to_tris_exec;
+	ot->exec= quads_convert_to_tris_exec;
 	ot->poll= ED_operator_editmesh;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int convert_tris_to_quads_exec(bContext *C, wmOperator *op)
+static int tris_convert_to_quads_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
@@ -6994,14 +6994,14 @@ static int convert_tris_to_quads_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void MESH_OT_tris_to_quads_convert(wmOperatorType *ot)
+void MESH_OT_tris_convert_to_quads(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Tris to Quads";
-	ot->idname= "MESH_OT_tris_to_quads_convert";
+	ot->idname= "MESH_OT_tris_convert_to_quads";
 	
 	/* api callbacks */
-	ot->exec= convert_tris_to_quads_exec;
+	ot->exec= tris_convert_to_quads_exec;
 	ot->poll= ED_operator_editmesh;
 	
 	/* flags */

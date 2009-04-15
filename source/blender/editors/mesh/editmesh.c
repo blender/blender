@@ -1465,7 +1465,7 @@ static int mesh_separate_selected(Scene *scene, Base *editbase)
 	if(em->selected.first) 
 		BLI_freelistN(&(em->selected)); /* clear the selection order */
 		
-	EM_selectmode_set(em);	// enforce full consistant selection flags 
+	EM_selectmode_set(em);	// enforce full consistent selection flags 
 	
 	EM_stats_update(em);
 	
