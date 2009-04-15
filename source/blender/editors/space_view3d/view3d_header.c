@@ -5129,9 +5129,6 @@ static void view3d_header_pulldowns(const bContext *C, uiBlock *block, Object *o
 	short xmax, xco= *xcoord;
 	
 	
-	/* pull down menus */
-	uiBlockSetEmboss(block, UI_EMBOSSP);
-	
 	/* compensate for local mode when setting up the viewing menu/iconrow values */
 	if(rv3d->view==7) rv3d->viewbut= 1;
 	else if(rv3d->view==1) rv3d->viewbut= 2;

@@ -699,9 +699,6 @@ void node_header_buttons(const bContext *C, ARegion *ar)
 	
 	if((sa->flag & HEADER_NO_PULLDOWN)==0) {
 		int xmax;
-		
-		/* pull down menus */
-		uiBlockSetEmboss(block, UI_EMBOSSP);
 	
 		xmax= GetButStringLength("View");
 		uiDefPulldownBut(block, node_viewmenu, NULL, 

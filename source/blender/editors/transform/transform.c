@@ -242,7 +242,8 @@ void convertViewVec(TransInfo *t, float *vec, short dx, short dy)
 void projectIntView(TransInfo *t, float *vec, int *adr)
 {
 	if (t->spacetype==SPACE_VIEW3D) {
-		project_int_noclip(t->ar, vec, adr);
+		if(t->ar->regiontype == RGN_TYPE_WINDOW)
+			project_int_noclip(t->ar, vec, adr);
 	}
 	else if(t->spacetype==SPACE_IMAGE) {
 		float aspx, aspy, v[2];
@@ -272,7 +273,8 @@ void projectIntView(TransInfo *t, float *vec, int *adr)
 void projectFloatView(TransInfo *t, float *vec, float *adr)
 {
 	if (t->spacetype==SPACE_VIEW3D) {
-		project_float_noclip(t->ar, vec, adr);
+		if(t->ar->regiontype == RGN_TYPE_WINDOW)
+			project_float_noclip(t->ar, vec, adr);
 	}
 	else if(t->spacetype==SPACE_IMAGE) {
 		int a[2];

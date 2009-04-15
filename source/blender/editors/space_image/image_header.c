@@ -741,8 +741,6 @@ void image_header_buttons(const bContext *C, ARegion *ar)
 		char *menuname;
 		int xmax;
 		
-		uiBlockSetEmboss(block, UI_EMBOSSP);
-		
 		xmax= GetButStringLength("View");
 		uiDefMenuBut(block, image_viewmenu, NULL, "View", xco, yco, xmax-3, 20, "");
 		xco+= xmax;

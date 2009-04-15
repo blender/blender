@@ -31,6 +31,7 @@
 #include <math.h>
 #include <float.h>
 
+#include "DNA_ID.h"
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_curve_types.h"
@@ -61,6 +62,7 @@
 #include "BKE_curve.h"
 #include "BKE_customdata.h"
 #include "BKE_depsgraph.h"
+#include "BKE_idprop.h"
 #include "BKE_object.h"
 #include "BKE_global.h"
 #include "BKE_scene.h"
@@ -1698,6 +1700,60 @@ static void view3d_panel_bonesketch_spaces(const bContext *C, ARegion *ar, short
 	}
 }
 
+
+/* op->invoke */
+static void redo_cb(bContext *C, void *arg_op, void *arg2)
+{
+	wmOperator *lastop= arg_op;
+	
+	if(lastop) {
+		int retval;
+		
+		printf("operator redo %s\n", lastop->type->name);
+		ED_undo_pop(C);
+		retval= WM_operator_repeat(C, lastop);
+		if((retval & OPERATOR_FINISHED)==0) {
+			printf("operator redo failed %s\n", lastop->type->name);
+			ED_undo_redo(C);
+		}
+	}
+}
+
+static void view3d_panel_operator_redo(const bContext *C, ARegion *ar, short cntrl)
+{
+	wmWindowManager *wm= CTX_wm_manager(C);
+	wmOperator *op;
+	PointerRNA ptr;
+	uiBlock *block;
+	int height;
+	
+	block= uiBeginBlock(C, ar, "view3d_panel_operator_redo", UI_EMBOSS);
+	if(uiNewPanel(C, ar, block, "Last Operator", "View3d", 340, 10, 318, height)==0) return;
+
+	/* only for operators that are registered and did an undo push */
+	for(op= wm->operators.last; op; op= op->prev)
+		if((op->type->flag & OPTYPE_REGISTER) && (op->type->flag & OPTYPE_UNDO))
+			break;
+	
+	if(op==NULL)
+		return;
+	
+	uiBlockSetFunc(block, redo_cb, op, NULL);
+	
+	if(!op->properties) {
+		IDPropertyTemplate val = {0};
+		op->properties= IDP_New(IDP_GROUP, val, "wmOperatorProperties");
+	}
+	
+	RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
+	height= uiDefAutoButsRNA(C, block, &ptr);
+	
+	uiNewPanelHeight(block, height);
+	
+	uiEndBlock(C, block);
+}
+
+
 void view3d_buttons_area_defbuts(const bContext *C, ARegion *ar)
 {
 	uiBeginPanels(C, ar);
@@ -1713,6 +1769,8 @@ void view3d_buttons_area_defbuts(const bContext *C, ARegion *ar)
 		view3d_panel_gpencil(C, ar, 0);
 	
 	view3d_panel_bonesketch_spaces(C, ar, 0);
+	
+	view3d_panel_operator_redo(C, ar, 0);
 	
 	uiEndPanels(C, ar);
 }

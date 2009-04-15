@@ -335,9 +335,6 @@ void sequencer_header_buttons(const bContext *C, ARegion *ar)
 	if((sa->flag & HEADER_NO_PULLDOWN)==0) {
 		int xmax;
 		
-		/* pull down menus */
-		uiBlockSetEmboss(block, UI_EMBOSSP);
-		
 		xmax= GetButStringLength("View");
 
 		//uiDefMenuBut(block, seq_viewmenu, NULL, "View", xco, 0, xmax-3, 24, ""); // TODO

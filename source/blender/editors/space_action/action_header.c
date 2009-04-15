@@ -1606,8 +1606,6 @@ void action_header_buttons(const bContext *C, ARegion *ar)
 	ANIM_animdata_get_context(C, &ac);
 	
 	if ((sa->flag & HEADER_NO_PULLDOWN)==0) {
-		/* pull down menus */
-		uiBlockSetEmboss(block, UI_EMBOSSP);
 		
 		xmax= GetButStringLength("View");
 		uiDefPulldownBut(block, action_viewmenu, CTX_wm_area(C), 

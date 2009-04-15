@@ -1531,11 +1531,12 @@ static void widget_roundbut(uiWidgetColors *wcol, rcti *rect, int state, int rou
 
 static void widget_disabled(rcti *rect)
 {
-	float col[3];
+	float col[4];
 	
 	glEnable(GL_BLEND);
 	
-	UI_GetThemeColor3fv(TH_BACK, col);
+	/* can't use theme TH_BACK or TH_PANEL... undefined */
+	glGetFloatv(GL_COLOR_CLEAR_VALUE, col);
 	glColor4f(col[0], col[1], col[2], 0.5f);
 	glRectf(rect->xmin, rect->ymin, rect->xmax, rect->ymax);
 
@@ -1706,12 +1707,6 @@ void ui_draw_but(ARegion *ar, uiStyle *style, uiBut *but, rcti *rect)
 				widget_draw_text_icon(&style->widgetlabel, but, rect, wcol_menu_back.text);
 				break;
 			case SEPR:
-				break;
-				
-			/* XXX in old code UI_EMBOSSP was set to distinguish these types, fix */
-			case PULLDOWN:
-			case HMENU:
-				wt= widget_type(UI_WTYPE_PULLDOWN);
 				break;
 				
 			default:

@@ -903,6 +903,8 @@ int ED_area_header_standardbuttons(const bContext *C, uiBlock *block, int yco)
 	}
 	xco+=XIC;
 	
+	uiBlockSetEmboss(block, UI_EMBOSS);
+	
 	return xco;
 }
 

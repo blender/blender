@@ -220,9 +220,6 @@ void outliner_header_buttons(const bContext *C, ARegion *ar)
 	
 	if((sa->flag & HEADER_NO_PULLDOWN)==0) {
 		
-		/* pull down menus */
-		uiBlockSetEmboss(block, UI_EMBOSSP);
-		
 		xmax= GetButStringLength("View");
 		uiDefPulldownBut(block, outliner_viewmenu, CTX_wm_area(C), 
 						 "View", xco, yco-2, xmax-3, 24, ""); 

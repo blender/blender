@@ -400,9 +400,6 @@ void info_header_buttons(const bContext *C, ARegion *ar)
 	if((sa->flag & HEADER_NO_PULLDOWN)==0) {
 		int xmax;
 		
-		/* pull down menus */
-		uiBlockSetEmboss(block, UI_EMBOSSP);
-		
 		xmax= GetButStringLength("File");
 		uiDefMenuBut(block, info_filemenu, NULL, "File", xco, yco, xmax-3, 20, "");
 		xco+= xmax;

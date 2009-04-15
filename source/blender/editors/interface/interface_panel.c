@@ -584,11 +584,15 @@ static void ui_draw_panel_header_style(ARegion *ar, uiStyle *style, uiBlock *blo
 		panelname= pa->drawname[0]?pa->drawname:pa->panelname;
 		
 		if(pa->active && (pa==panel || pa->paneltab==panel)) {
+			float col[3];
+			
+			UI_GetThemeColor3fv(TH_TEXT, col);
+
 			/* active tab */
 			if(pa==panel)
-				UI_ThemeColor(TH_TEXT);
+				glColor4f(col[0], col[1], col[2], 1.0f);
 			else
-				UI_ThemeColorBlend(TH_TEXT, TH_BACK, 0.5f);
+				glColor4f(col[0], col[1], col[2], 0.5f);
 			
 			hrect= *rect;
 			hrect.xmin= rect->xmin+pnl_icons + a*width;
