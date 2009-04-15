@@ -54,7 +54,6 @@ class KX_MouseFocusSensor : public SCA_MouseSensor
 						int starty,
 						short int mousemode,
 						int focusmode,
-						RAS_ICanvas* canvas,
 						KX_Scene* kxscene,
 						KX_KetsjiEngine* kxengine,
 						SCA_IObject* gameobj,
@@ -82,7 +81,10 @@ class KX_MouseFocusSensor : public SCA_MouseSensor
 	bool RayHit(KX_ClientObjectInfo* client, KX_RayCast* result, void * const data);
 	bool NeedRayCast(KX_ClientObjectInfo* client) { return true; }
 	
-
+	const MT_Point3& RaySource() const;
+	const MT_Point3& RayTarget() const;
+	const MT_Point3& HitPosition() const;
+	const MT_Vector3& HitNormal() const;
 	
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */
@@ -97,6 +99,14 @@ class KX_MouseFocusSensor : public SCA_MouseSensor
 	KX_PYMETHOD_DOC_NOARGS(KX_MouseFocusSensor,GetHitNormal);
 	KX_PYMETHOD_DOC_NOARGS(KX_MouseFocusSensor,GetRayDirection);
 
+	/* attributes */
+	static PyObject*	pyattr_get_ray_source(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject*	pyattr_get_ray_target(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject*	pyattr_get_ray_direction(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject*	pyattr_get_hit_object(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject*	pyattr_get_hit_position(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject*	pyattr_get_hit_normal(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+		
 	/* --------------------------------------------------------------------- */
 	SCA_IObject*	m_hitObject;
 
@@ -116,9 +126,13 @@ class KX_MouseFocusSensor : public SCA_MouseSensor
 	 */
 	bool m_positive_event;
 
+ 	/**
+	 * Tests whether the object is in mouse focus for this camera
+	 */
+	bool ParentObjectHasFocusCamera(KX_Camera *cam);
 	
 	/**
-	 * Tests whether the object is in mouse focus in this frame.
+	 * Tests whether the object is in mouse focus in this scene.
 	 */
 	bool ParentObjectHasFocus(void);
 
@@ -141,12 +155,6 @@ class KX_MouseFocusSensor : public SCA_MouseSensor
 	 * (in game world coordinates) the face normal of the vertex where
 	 * the object was hit.  */
 	MT_Vector3		 m_hitNormal;
-
-
-	/**
-	 * The active canvas. The size of this canvas determines a part of
-	 * the start position of the picking ray.  */
-	RAS_ICanvas* m_gp_canvas;
 
 	/**
 	 * The KX scene that holds the camera. The camera position

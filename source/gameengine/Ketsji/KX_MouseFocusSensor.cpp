@@ -61,14 +61,12 @@ KX_MouseFocusSensor::KX_MouseFocusSensor(SCA_MouseManager* eventmgr,
 										 int starty,
 										 short int mousemode,
 										 int focusmode,
-										 RAS_ICanvas* canvas,
 										 KX_Scene* kxscene,
 										 KX_KetsjiEngine *kxengine,
 										 SCA_IObject* gameobj, 
 										 PyTypeObject* T)
     : SCA_MouseSensor(eventmgr, startx, starty, mousemode, gameobj, T),
 	  m_focusmode(focusmode),
-	  m_gp_canvas(canvas),
 	  m_kxscene(kxscene),
 	  m_kxengine(kxengine)
 {
@@ -81,6 +79,11 @@ void KX_MouseFocusSensor::Init()
 	m_positive_event = false;
 	m_hitObject = 0;
 	m_reset = true;
+	
+	m_hitPosition.setValue(0,0,0);
+	m_prevTargetPoint.setValue(0,0,0);
+	m_prevSourcePoint.setValue(0,0,0);
+	m_hitNormal.setValue(0,0,1);
 }
 
 bool KX_MouseFocusSensor::Evaluate(CValue* event)
@@ -150,12 +153,8 @@ bool KX_MouseFocusSensor::RayHit(KX_ClientObjectInfo* client_info, KX_RayCast* r
 
 
 
-bool KX_MouseFocusSensor::ParentObjectHasFocus()
+bool KX_MouseFocusSensor::ParentObjectHasFocusCamera(KX_Camera *cam)
 {
-	m_hitObject = 0;
-	m_hitPosition.setValue(0,0,0);
-	m_hitNormal.setValue(1,0,0);
-
 	/* All screen handling in the gameengine is done by GL,
 	 * specifically the model/view and projection parts. The viewport
 	 * part is in the creator. 
@@ -187,11 +186,7 @@ bool KX_MouseFocusSensor::ParentObjectHasFocus()
 	 *    = 1.0 - 2(y_blender - y_lb)/height
 	 *
 	 * */
-	
-	MT_Vector4 frompoint;
-	MT_Vector4 topoint;
-	
-	bool result = false;
+	 
 	
 	/* Because we don't want to worry about resize events, camera
 	 * changes and all that crap, we just determine this over and
@@ -200,105 +195,138 @@ bool KX_MouseFocusSensor::ParentObjectHasFocus()
 	 * canvas, the test is irrelevant. The 1.0 makes sure the
 	 * calculations don't bomb. Maybe we should explicitly guard for
 	 * division by 0.0...*/
-	list<class KX_Camera*>* cameras = m_kxscene->GetCameras();
 	
-	// Draw the scene once for each camera with an enabled viewport
+	RAS_Rect area, viewport;
+	m_kxengine->GetSceneViewport(m_kxscene, cam, area, viewport);
+	
+	/* Check if the mouse is in the viewport */
+	if ((	m_x < viewport.m_x2 &&	// less then right
+			m_x > viewport.m_x1 &&	// more then then left
+			m_y < viewport.m_y2 &&	// below top
+			m_y > viewport.m_y1) == 0)	// above bottom
+	{
+		return false;
+	}
+
+	float height = float(viewport.m_y2 - viewport.m_y1 + 1);
+	float width  = float(viewport.m_x2 - viewport.m_x1 + 1);
+	
+	float x_lb = float(viewport.m_x1);
+	float y_lb = float(viewport.m_y1);
+
+	MT_Vector4 frompoint;
+	MT_Vector4 topoint;
+	
+	/* There's some strangeness I don't fully get here... These values
+	 * _should_ be wrong! - see from point Z values */
+	
+	
+	/*	build the from and to point in normalized device coordinates 
+	 *	Looks like normailized device coordinates are [-1,1] in x [-1,1] in y
+	 *	[0,-1] in z 
+	 *	
+	 *	The actual z coordinates used don't have to be exact just infront and 
+	 *	behind of the near and far clip planes.
+	 */ 
+	frompoint.setValue(	(2 * (m_x-x_lb) / width) - 1.0,
+						1.0 - (2 * (m_y - y_lb) / height),
+						0.0, /* nearclip, see above comments */
+						1.0 );
+	
+	topoint.setValue(	(2 * (m_x-x_lb) / width) - 1.0,
+						1.0 - (2 * (m_y-y_lb) / height),
+						1.0, /* farclip, see above comments */
+						1.0 );
+
+	/* camera to world  */
+	MT_Transform wcs_camcs_tranform = cam->GetWorldToCamera();
+	if (!cam->GetCameraData()->m_perspective)
+		wcs_camcs_tranform.getOrigin()[2] *= 100.0;
+	MT_Transform cams_wcs_transform;
+	cams_wcs_transform.invert(wcs_camcs_tranform);
+	
+	MT_Matrix4x4 camcs_wcs_matrix = MT_Matrix4x4(cams_wcs_transform);
+
+	/* badly defined, the first time round.... I wonder why... I might
+	 * want to guard against floating point errors here.*/
+	MT_Matrix4x4 clip_camcs_matrix = MT_Matrix4x4(cam->GetProjectionMatrix());
+	clip_camcs_matrix.invert();
+
+	/* shoot-points: clip to cam to wcs . win to clip was already done.*/
+	frompoint = clip_camcs_matrix * frompoint;
+	topoint   = clip_camcs_matrix * topoint;
+	frompoint = camcs_wcs_matrix * frompoint;
+	topoint   = camcs_wcs_matrix * topoint;
+	
+	/* from hom wcs to 3d wcs: */
+	m_prevSourcePoint.setValue(	frompoint[0]/frompoint[3],
+								frompoint[1]/frompoint[3],
+								frompoint[2]/frompoint[3]); 
+	
+	m_prevTargetPoint.setValue(	topoint[0]/topoint[3],
+								topoint[1]/topoint[3],
+								topoint[2]/topoint[3]); 
+	
+	/* 2. Get the object from PhysicsEnvironment */
+	/* Shoot! Beware that the first argument here is an
+	 * ignore-object. We don't ignore anything... */
+	KX_IPhysicsController* physics_controller = cam->GetPhysicsController();
+	PHY_IPhysicsEnvironment* physics_environment = m_kxscene->GetPhysicsEnvironment();
+
+	KX_RayCast::Callback<KX_MouseFocusSensor> callback(this,physics_controller);
+	 
+	KX_RayCast::RayTest(physics_environment, m_prevSourcePoint, m_prevTargetPoint, callback);
+	
+	if (m_hitObject)
+		return true;
+	
+	return false;
+}
+
+bool KX_MouseFocusSensor::ParentObjectHasFocus()
+{
+	m_hitObject = 0;
+	m_hitPosition.setValue(0,0,0);
+	m_hitNormal.setValue(1,0,0);
+	
+	KX_Camera *cam= m_kxscene->GetActiveCamera();
+	
+	if(ParentObjectHasFocusCamera(cam))
+		return true;
+
+	list<class KX_Camera*>* cameras = m_kxscene->GetCameras();
 	list<KX_Camera*>::iterator it = cameras->begin();
+	
 	while(it != cameras->end())
 	{
-		if((*it)->GetViewport())
-		{
-			KX_Camera* cam= (*it);
+		if(((*it) != cam) && (*it)->GetViewport())
+			if (ParentObjectHasFocusCamera(*it))
+				return true;
 		
-			/* get the scenes current viewport. we recompute it because there
-			 * may be multiple cameras and m_kxscene->GetSceneViewport() only
-			 * has the one that was last drawn */
-
-			RAS_Rect area, viewport;
-			m_kxengine->GetSceneViewport(m_kxscene, cam, area, viewport);
-			
-			/* Check if the mouse is in the viewport */
-			if (	m_x < viewport.m_x2 &&	// less then right
-					m_x > viewport.m_x1 &&	// more then then left
-					m_y < viewport.m_y2 &&	// below top
-					m_y > viewport.m_y1)	// above bottom
-			{
-				float height = float(viewport.m_y2 - viewport.m_y1 + 1);
-				float width  = float(viewport.m_x2 - viewport.m_x1 + 1);
-				
-				float x_lb = float(viewport.m_x1);
-				float y_lb = float(viewport.m_y1);
-
-				/* There's some strangeness I don't fully get here... These values
-				 * _should_ be wrong! - see from point Z values */
-				
-				
-				/*	build the from and to point in normalized device coordinates 
-				 *	Looks like normailized device coordinates are [-1,1] in x [-1,1] in y
-				 *	[0,-1] in z 
-				 *	
-				 *	The actual z coordinates used don't have to be exact just infront and 
-				 *	behind of the near and far clip planes.
-				 */ 
-				frompoint.setValue(	(2 * (m_x-x_lb) / width) - 1.0,
-									1.0 - (2 * (m_y - y_lb) / height),
-									0.0, /* nearclip, see above comments */
-									1.0 );
-				
-				topoint.setValue(	(2 * (m_x-x_lb) / width) - 1.0,
-									1.0 - (2 * (m_y-y_lb) / height),
-									1.0, /* farclip, see above comments */
-									1.0 );
-
-				/* camera to world  */
-				MT_Transform wcs_camcs_tranform = cam->GetWorldToCamera();
-				if (!cam->GetCameraData()->m_perspective)
-					wcs_camcs_tranform.getOrigin()[2] *= 100.0;
-				MT_Transform cams_wcs_transform;
-				cams_wcs_transform.invert(wcs_camcs_tranform);
-				
-				MT_Matrix4x4 camcs_wcs_matrix = MT_Matrix4x4(cams_wcs_transform);
-
-				/* badly defined, the first time round.... I wonder why... I might
-				 * want to guard against floating point errors here.*/
-				MT_Matrix4x4 clip_camcs_matrix = MT_Matrix4x4(cam->GetProjectionMatrix());
-				clip_camcs_matrix.invert();
-
-				/* shoot-points: clip to cam to wcs . win to clip was already done.*/
-				frompoint = clip_camcs_matrix * frompoint;
-				topoint   = clip_camcs_matrix * topoint;
-				frompoint = camcs_wcs_matrix * frompoint;
-				topoint   = camcs_wcs_matrix * topoint;
-				
-				/* from hom wcs to 3d wcs: */
-				m_prevSourcePoint.setValue(	frompoint[0]/frompoint[3],
-											frompoint[1]/frompoint[3],
-											frompoint[2]/frompoint[3]); 
-				
-				m_prevTargetPoint.setValue(	topoint[0]/topoint[3],
-											topoint[1]/topoint[3],
-											topoint[2]/topoint[3]); 
-				
-				/* 2. Get the object from PhysicsEnvironment */
-				/* Shoot! Beware that the first argument here is an
-				 * ignore-object. We don't ignore anything... */
-				KX_IPhysicsController* physics_controller = cam->GetPhysicsController();
-				PHY_IPhysicsEnvironment* physics_environment = m_kxscene->GetPhysicsEnvironment();
-
-				KX_RayCast::Callback<KX_MouseFocusSensor> callback(this,physics_controller);
-				 
-				KX_RayCast::RayTest(physics_environment, m_prevSourcePoint, m_prevTargetPoint, callback);
-				
-				if (m_hitObject) {
-					result= true;
-					break;
-				}
-			}
-		}
 		it++;
 	}
 	
-	return result;
+	return false;
+}
+
+const MT_Point3& KX_MouseFocusSensor::RaySource() const
+{
+	return m_prevSourcePoint;
+}
+
+const MT_Point3& KX_MouseFocusSensor::RayTarget() const
+{
+	return m_prevTargetPoint;
+}
+
+const MT_Point3& KX_MouseFocusSensor::HitPosition() const
+{
+	return m_hitPosition;
+}
+
+const MT_Vector3& KX_MouseFocusSensor::HitNormal() const
+{
+	return m_hitNormal;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -342,11 +370,16 @@ PyMethodDef KX_MouseFocusSensor::Methods[] = {
 	{"getHitNormal",(PyCFunction) KX_MouseFocusSensor::sPyGetHitNormal,METH_NOARGS, (PY_METHODCHAR)GetHitNormal_doc},
 	{"getRayDirection",(PyCFunction) KX_MouseFocusSensor::sPyGetRayDirection,METH_NOARGS, (PY_METHODCHAR)GetRayDirection_doc},
 
-
 	{NULL,NULL} //Sentinel
 };
 
 PyAttributeDef KX_MouseFocusSensor::Attributes[] = {
+	KX_PYATTRIBUTE_RO_FUNCTION("raySource",		KX_MouseFocusSensor, pyattr_get_ray_source),
+	KX_PYATTRIBUTE_RO_FUNCTION("rayTarget",		KX_MouseFocusSensor, pyattr_get_ray_target),
+	KX_PYATTRIBUTE_RO_FUNCTION("rayDirection",	KX_MouseFocusSensor, pyattr_get_ray_direction),
+	KX_PYATTRIBUTE_RO_FUNCTION("hitObject",		KX_MouseFocusSensor, pyattr_get_hit_object),
+	KX_PYATTRIBUTE_RO_FUNCTION("hitPosition",	KX_MouseFocusSensor, pyattr_get_hit_position),
+	KX_PYATTRIBUTE_RO_FUNCTION("hitNormal",		KX_MouseFocusSensor, pyattr_get_hit_normal),
 	{ NULL }	//Sentinel
 };
 
@@ -360,6 +393,8 @@ const char KX_MouseFocusSensor::GetHitObject_doc[] =
 "\tReturns the object that was hit by this ray.\n";
 PyObject* KX_MouseFocusSensor::PyGetHitObject(PyObject* self)
 {
+	ShowDeprecationWarning("GetHitObject()", "the hitObject property");
+	
 	if (m_hitObject)
 		return m_hitObject->AddRef();
 	
@@ -372,6 +407,8 @@ const char KX_MouseFocusSensor::GetHitPosition_doc[] =
 "\tReturns the position (in worldcoordinates) where the object was hit by this ray.\n";
 PyObject* KX_MouseFocusSensor::PyGetHitPosition(PyObject* self)
 {
+	ShowDeprecationWarning("getHitPosition()", "the hitPosition property");
+	
 	return PyObjectFrom(m_hitPosition);
 }
 
@@ -380,9 +417,11 @@ const char KX_MouseFocusSensor::GetRayDirection_doc[] =
 "\tReturns the direction from the ray (in worldcoordinates) .\n";
 PyObject* KX_MouseFocusSensor::PyGetRayDirection(PyObject* self)
 {
-
+	ShowDeprecationWarning("getRayDirection()", "the rayDirection property");
+	
 	MT_Vector3 dir = m_prevTargetPoint - m_prevSourcePoint;
-	dir.normalize();
+	if(MT_fuzzyZero(dir))	dir.setValue(0,0,0);
+	else					dir.normalize();
 	return PyObjectFrom(dir);
 }
 
@@ -391,6 +430,8 @@ const char KX_MouseFocusSensor::GetHitNormal_doc[] =
 "\tReturns the normal (in worldcoordinates) at the point of collision where the object was hit by this ray.\n";
 PyObject* KX_MouseFocusSensor::PyGetHitNormal(PyObject* self)
 {
+	ShowDeprecationWarning("getHitNormal()", "the hitNormal property");
+	
 	return PyObjectFrom(m_hitNormal);
 }
 
@@ -400,7 +441,10 @@ const char KX_MouseFocusSensor::GetRayTarget_doc[] =
 "getRayTarget()\n"
 "\tReturns the target of the ray that seeks the focus object,\n"
 "\tin worldcoordinates.";
-PyObject* KX_MouseFocusSensor::PyGetRayTarget(PyObject* self) {
+PyObject* KX_MouseFocusSensor::PyGetRayTarget(PyObject* self)
+{
+	ShowDeprecationWarning("getRayTarget()", "the rayTarget property");
+	
 	return PyObjectFrom(m_prevTargetPoint);
 }
 
@@ -409,9 +453,58 @@ const char KX_MouseFocusSensor::GetRaySource_doc[] =
 "getRaySource()\n"
 "\tReturns the source of the ray that seeks the focus object,\n"
 "\tin worldcoordinates.";
-PyObject* KX_MouseFocusSensor::PyGetRaySource(PyObject* self) {
+PyObject* KX_MouseFocusSensor::PyGetRaySource(PyObject* self)
+{
+	ShowDeprecationWarning("getRaySource()", "the raySource property");
+	
 	return PyObjectFrom(m_prevSourcePoint);
 }
+
+/* Attributes */
+PyObject* KX_MouseFocusSensor::pyattr_get_ray_source(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	KX_MouseFocusSensor* self= static_cast<KX_MouseFocusSensor*>(self_v);
+	return PyObjectFrom(self->RaySource());
+}
+
+PyObject* KX_MouseFocusSensor::pyattr_get_ray_target(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	KX_MouseFocusSensor* self= static_cast<KX_MouseFocusSensor*>(self_v);
+	return PyObjectFrom(self->RayTarget());
+}
+
+PyObject* KX_MouseFocusSensor::pyattr_get_ray_direction(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	KX_MouseFocusSensor* self= static_cast<KX_MouseFocusSensor*>(self_v);
+	MT_Vector3 dir = self->RayTarget() - self->RaySource();
+	if(MT_fuzzyZero(dir))	dir.setValue(0,0,0);
+	else					dir.normalize();
+	return PyObjectFrom(dir);
+}
+
+PyObject* KX_MouseFocusSensor::pyattr_get_hit_object(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	KX_MouseFocusSensor* self= static_cast<KX_MouseFocusSensor*>(self_v);
+	
+	if(self->m_hitObject)
+		return self->m_hitObject->AddRef();
+	
+	Py_RETURN_NONE;
+}
+
+PyObject* KX_MouseFocusSensor::pyattr_get_hit_position(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	KX_MouseFocusSensor* self= static_cast<KX_MouseFocusSensor*>(self_v);
+	return PyObjectFrom(self->HitPosition());
+}
+
+PyObject* KX_MouseFocusSensor::pyattr_get_hit_normal(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	KX_MouseFocusSensor* self= static_cast<KX_MouseFocusSensor*>(self_v);
+	return PyObjectFrom(self->HitNormal());
+}
+
+
 
 /* eof */
 

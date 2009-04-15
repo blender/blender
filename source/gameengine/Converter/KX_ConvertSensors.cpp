@@ -509,7 +509,6 @@ void BL_ConvertSensors(struct Object* blenderobject,
 							starty,
 							keytype,
 							trackfocus,
-							canvas,
 							kxscene,
 							kxengine,
 							gameobj); 
