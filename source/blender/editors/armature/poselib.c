@@ -725,8 +725,7 @@ static void poselib_apply_pose (tPoseLib_PreviewData *pld)
 		frame= pld->marker->frame;
 	else
 		return;	
-		
-	printf("apply pose ---> %d \n", frame);	
+	
 	
 	/* init settings for testing groups for keyframes */
 	group_ok_cb= ANIM_editkeyframes_ok(BEZT_OK_FRAMERANGE);
@@ -739,8 +738,6 @@ static void poselib_apply_pose (tPoseLib_PreviewData *pld)
 	for (agrp= act->groups.first; agrp; agrp= agrp->next) {
 		/* check if group has any keyframes */
 		if (ANIM_animchanneldata_keys_bezier_loop(&bed, agrp, ALE_GROUP, NULL, group_ok_cb, NULL, 0)) {
-			printf("\tact group %s ok \n", agrp->name);
-			
 			/* has keyframe on this frame, so try to get a PoseChannel with this name */
 			pchan= get_pose_channel(pose, agrp->name);
 			
@@ -760,14 +757,10 @@ static void poselib_apply_pose (tPoseLib_PreviewData *pld)
 						ok = 1;
 				}
 				
-				if (ok) {
-					printf("\t\tevaluating... \n");
+				if (ok) 
 					animsys_evaluate_action_group(ptr, act, agrp, NULL, (float)frame);
-				}
 			}
 		}
-		else
-			printf("\tact group %s not ok \n", agrp->name);
 	}
 }
 
@@ -830,12 +823,8 @@ static void poselib_preview_apply (bContext *C, wmOperator *op)
 {
 	tPoseLib_PreviewData *pld= (tPoseLib_PreviewData *)op->customdata;
 	
-	printf("do apply(C, op) \n");
-	
 	/* only recalc pose (and its dependencies) if pose has changed */
 	if (pld->redraw == PL_PREVIEW_REDRAWALL) {
-		printf("\tupdate pose \n");
-		
 		/* don't clear pose if firsttime */
 		if ((pld->flag & PL_PREVIEW_FIRSTTIME)==0)
 			poselib_backup_restore(pld);
@@ -1056,9 +1045,10 @@ static void poselib_preview_handle_search (tPoseLib_PreviewData *pld, unsigned s
 }
 
 /* handle events for poselib_preview_poses */
-static void poselib_preview_handle_event (bContext *C, wmOperator *op, wmEvent *event)
+static int poselib_preview_handle_event (bContext *C, wmOperator *op, wmEvent *event)
 {
 	tPoseLib_PreviewData *pld= op->customdata; 
+	int ret = OPERATOR_RUNNING_MODAL;
 	
 	/* backup stuff that needs to occur before every operation
 	 *	- make a copy of searchstr, so that we know if cache needs to be rebuilt
@@ -1082,23 +1072,18 @@ static void poselib_preview_handle_event (bContext *C, wmOperator *op, wmEvent *
 				pld->state= PL_PREVIEW_CONFIRM;
 				break;
 			
-#if 0 // XXX these are for view manipulation... how to get it working?
 			/* view manipulation */
-			case MIDDLEMOUSE:
-				// there's a little bug here that causes the normal header to get drawn while view is manipulated 
-				// XXX handle_view_middlemouse();
-				pld->redraw= PL_PREVIEW_REDRAWHEADER;
-				break;
-				
-			/* view manipulation, or searching */
+			/* we add pass through here, so that the operators responsible for these can still run, 
+			 * even though we still maintain control (as RUNNING_MODAL flag is still set too)
+			 */
 			case PAD0: case PAD1: case PAD2: case PAD3: case PAD4:
 			case PAD5: case PAD6: case PAD7: case PAD8: case PAD9:
-			case PADPLUSKEY: case PADMINUS:
-				//persptoetsen(event);
-				pld->redraw= PL_PREVIEW_REDRAWHEADER;
+			case PADPLUSKEY: case PADMINUS: case MIDDLEMOUSE:
+				//pld->redraw= PL_PREVIEW_REDRAWHEADER;
+				ret |= OPERATOR_PASS_THROUGH;
 				break;
-#endif // XXX these are for view manipulation... how to get it working?
 				
+			/* quicky compare to original */
 			case TABKEY:
 				pld->flag &= ~PL_PREVIEW_SHOWORIGINAL;
 				pld->redraw= PL_PREVIEW_REDRAWALL;
@@ -1106,7 +1091,7 @@ static void poselib_preview_handle_event (bContext *C, wmOperator *op, wmEvent *
 		}
 		
 		/* EXITS HERE... */
-		return;
+		return ret;
 	}
 	
 	/* NORMAL EVENT HANDLING... */
@@ -1124,7 +1109,6 @@ static void poselib_preview_handle_event (bContext *C, wmOperator *op, wmEvent *
 		case PADENTER:
 		case SPACEKEY:
 			pld->state= PL_PREVIEW_CONFIRM;
-			printf("poselib event -> set confirm \n");
 			break;
 			
 		/* toggle between original pose and poselib pose*/
@@ -1218,13 +1202,14 @@ static void poselib_preview_handle_event (bContext *C, wmOperator *op, wmEvent *
 				pld->redraw= PL_PREVIEW_REDRAWALL;
 			}
 			break;
-			
-#if 0 // XXX these are for view manipulation... how to get it working?
+		
 		/* view manipulation */
+		/* we add pass through here, so that the operators responsible for these can still run, 
+		 * even though we still maintain control (as RUNNING_MODAL flag is still set too)
+		 */
 		case MIDDLEMOUSE:
-			// there's a little bug here that causes the normal header to get drawn while view is manipulated 
-			// XXX handle_view_middlemouse();
-			pld->redraw= PL_PREVIEW_REDRAWHEADER;
+			//pld->redraw= PL_PREVIEW_REDRAWHEADER;
+			ret |= OPERATOR_PASS_THROUGH;
 			break;
 			
 		/* view manipulation, or searching */
@@ -1232,20 +1217,23 @@ static void poselib_preview_handle_event (bContext *C, wmOperator *op, wmEvent *
 		case PAD5: case PAD6: case PAD7: case PAD8: case PAD9:
 		case PADPLUSKEY: case PADMINUS:
 			if (pld->searchstr[0]) {
-				poselib_preview_handle_search(pld, event, ascii);
+				/* searching... */
+				poselib_preview_handle_search(pld, event->type, event->ascii);
 			}
 			else {
-				persptoetsen(event);
-				pld->redraw= PL_PREVIEW_REDRAWHEADER;
+				/* view manipulation (see above) */
+				//pld->redraw= PL_PREVIEW_REDRAWHEADER;
+				ret |= OPERATOR_PASS_THROUGH;
 			}
 			break;
-#endif // XXX these are for view manipulation... how to get it working?
 			
 		/* otherwise, assume that searching might be able to handle it */
 		default:
 			poselib_preview_handle_search(pld, event->type, event->ascii);
 			break;
 	}
+	
+	return ret;
 }
 
 /* ---------------------------- */
@@ -1403,15 +1391,12 @@ static int poselib_preview_cancel (bContext *C, wmOperator *op)
 /* main modal status check */
 static int poselib_preview_modal (bContext *C, wmOperator *op, wmEvent *event)
 {
-	tPoseLib_PreviewData *pld= op->customdata; 
+	tPoseLib_PreviewData *pld= op->customdata;
+	int ret;
 	
 	/* 1) check state to see if we're still running */
 	if (ELEM(pld->state, PL_PREVIEW_RUNONCE, PL_PREVIEW_RUNNING) == 0)
 		return poselib_preview_exit(C, op);
-	
-	/* 2) apply changes and redraw */
-	if (pld->redraw)
-		poselib_preview_apply(C, op);
 	
 	/* check if time to exit */
 	if (pld->state == PL_PREVIEW_RUNONCE) {
@@ -1421,10 +1406,14 @@ static int poselib_preview_modal (bContext *C, wmOperator *op, wmEvent *event)
 		return poselib_preview_exit(C, op);
 	}
 	
-	/* 3) handle events */
-	poselib_preview_handle_event(C, op, event);
+	/* 2) handle events */
+	ret= poselib_preview_handle_event(C, op, event);
 	
-	return OPERATOR_RUNNING_MODAL;
+	/* 3) apply changes and redraw, otherwise, confirming goes wrong */
+	if (pld->redraw)
+		poselib_preview_apply(C, op);
+	
+	return ret; //OPERATOR_RUNNING_MODAL;
 }
 
 /* Modal Operator init */
@@ -1441,6 +1430,9 @@ static int poselib_preview_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		poselib_preview_cleanup(C, op);
 		return OPERATOR_CANCELLED;
 	}
+	
+	/* do initial apply to have something to look at */
+	poselib_preview_apply(C, op);
 	
 	/* add temp handler if we're running as a modal operator */
 	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
