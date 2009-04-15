@@ -611,7 +611,7 @@ int KX_CameraActuator::pyattr_set_object(void *self_v, const KX_PYATTRIBUTE_DEF 
 	if (self->m_ob)
 		self->m_ob->UnregisterActuator(self);	
 
-	if (self->m_ob = (SCA_IObject*)gameobj)
+	if ((self->m_ob = (SCA_IObject*)gameobj))
 		self->m_ob->RegisterActuator(self);
 	
 	return 0;

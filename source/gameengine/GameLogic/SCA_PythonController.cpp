@@ -300,7 +300,7 @@ bool SCA_PythonController::Compile()
 		 * their user count. Not to mention holding references to wrapped data.
 		 * This is especially bad when the PyObject for the wrapped data is free'd, after blender 
 		 * has alredy dealocated the pointer */
-		PySys_SetObject( (char *)"last_traceback", Py_None);
+		PySys_SetObject( (char *)"last_traceback", NULL);
 		PyErr_Clear(); /* just to be sure */
 		
 		return false;
@@ -358,7 +358,7 @@ void SCA_PythonController::Trigger(SCA_LogicManager* logicmgr)
 		 * their user count. Not to mention holding references to wrapped data.
 		 * This is especially bad when the PyObject for the wrapped data is free'd, after blender 
 		 * has alredy dealocated the pointer */
-		PySys_SetObject( (char *)"last_traceback", Py_None);
+		PySys_SetObject( (char *)"last_traceback", NULL);
 		PyErr_Clear(); /* just to be sure */
 		
 		//PyRun_SimpleString(m_scriptText.Ptr());

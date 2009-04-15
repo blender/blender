@@ -97,6 +97,17 @@ PyObject *bpy_pydriver_Dict = NULL;
 PyObject *bpy_orig_syspath_List = NULL;
 
 
+static void BPY_Err_Clear(void)
+{	
+	/* Added in 2.48a, the last_traceback can reference Objects for example, increasing
+	 * their user count. Not to mention holding references to wrapped data.
+	 * This is especially bad when the PyObject for the wrapped data is free'd, after blender 
+	 * has alredy dealocated the pointer */
+	PySys_SetObject( "last_traceback", NULL);
+	
+	PyErr_Clear();
+}
+
 /*
  * set up a weakref list for Armatures
  *    creates list in __main__ module dict 
@@ -107,30 +118,29 @@ static int setup_armature_weakrefs()
 	PyObject *maindict;
 	PyObject *main_module;
 	PyObject *list;
-	char *list_name = ARM_WEAKREF_LIST_NAME;
+	PyObject *list_name = PyString_FromString(ARM_WEAKREF_LIST_NAME);
 
 	main_module = PyImport_AddModule( "__main__");
 	if(main_module){
-		PyObject *weakreflink;
 		maindict= PyModule_GetDict(main_module);
 
 		/* check if there is already a dict entry for the armature weakrefs,
 		 * and delete if so before making another one */
-
-		weakreflink= PyDict_GetItemString(maindict,list_name);
-		if( weakreflink != NULL ) {
-			PyDict_DelItemString(maindict,list_name);
-			Py_XDECREF( weakreflink );
-		}
+		
+		if (PyDict_DelItem(maindict, list_name)==-1)
+			PyErr_Clear();
 		
 		list= PyList_New(0);
-		if (PyDict_SetItemString(maindict, list_name, list) == -1){
-			printf("Oops - setup_armature_weakrefs()\n");
+		if (PyDict_SetItem(maindict, list_name, list) == -1){
+			PyErr_Print();
+			BPY_Err_Clear();
 			Py_DECREF(list);
+			Py_DECREF(list_name);
 			return 0;
 		}
 		Py_DECREF(list); /* the dict owns it now */
 	}
+	Py_DECREF(list_name);
 	return 1;
 }
 
@@ -532,16 +542,6 @@ static PyObject *traceback_getFilename( PyObject * tb )
 	else return PyString_FromString("unknown");
 }
 
-static void BPY_Err_Clear(void)
-{	
-	/* Added in 2.48a, the last_traceback can reference Objects for example, increasing
-	 * their user count. Not to mention holding references to wrapped data.
-	 * This is especially bad when the PyObject for the wrapped data is free'd, after blender 
-	 * has alredy dealocated the pointer */
-	PySys_SetObject( "last_traceback", Py_None);
-	
-	PyErr_Clear();
-}
 /****************************************************************************
 * Description: Blender Python error handler. This catches the error and	
 * stores filename and line number in a global  
@@ -1137,6 +1137,7 @@ void BPY_free_finished_script( Script * script )
 
 	if( PyErr_Occurred(  ) ) {	/* if script ended after filesel */
 		PyErr_Print(  );	/* eventual errors are handled now */
+		BPY_Err_Clear(  );
 		error_pyscript(  );
 	}
 
@@ -1245,10 +1246,9 @@ static int bpy_pydriver_create_dict(void)
 	if (mod) {
 		PyDict_SetItemString(d, "Blender", mod);
 		PyDict_SetItemString(d, "b", mod);
-		Py_DECREF(mod);
-		Py_DECREF(mod);
+		Py_DECREF(mod); /* 2 refs above are cleared with the dict, only decref the ref from PyImport_ImportModule */
 	} else {
-		PyErr_Clear();
+		BPY_Err_Clear();
 	}
 
 	mod = PyImport_ImportModule("math");
@@ -1258,18 +1258,18 @@ static int bpy_pydriver_create_dict(void)
 		/* Only keep for backwards compat! - just import all math into root, they are standard */
 		PyDict_SetItemString(d, "math", mod);
 		PyDict_SetItemString(d, "m", mod);
-		Py_DECREF(mod);
-		Py_DECREF(mod);
-	} 
+		Py_DECREF(mod); /* 2 refs above are cleared with the dict, only decref the ref from PyImport_ImportModule */
+	} else {
+		BPY_Err_Clear();
+	}
 
 	mod = PyImport_ImportModule("Blender.Noise");
 	if (mod) {
 		PyDict_SetItemString(d, "noise", mod);
 		PyDict_SetItemString(d, "n", mod);
-		Py_DECREF(mod);
-		Py_DECREF(mod);
+		Py_DECREF(mod); /* 2 refs above are cleared with the dict, only decref the ref from PyImport_ImportModule */
 	} else {
-		PyErr_Clear();
+		BPY_Err_Clear();
 	}
 
 	/* If there's a Blender text called pydrivers.py, import it.
@@ -1279,10 +1279,9 @@ static int bpy_pydriver_create_dict(void)
 		if (mod) {
 			PyDict_SetItemString(d, "pydrivers", mod);
 			PyDict_SetItemString(d, "p", mod);
-			Py_DECREF(mod);
-			Py_DECREF(mod);
+			Py_DECREF(mod); /* 2 refs above are cleared with the dict, only decref the ref from PyImport_ImportModule */
 		} else {
-			PyErr_Clear();
+			BPY_Err_Clear();
 		}
 	}
 	/* short aliases for some Get() functions: */
@@ -1297,7 +1296,7 @@ static int bpy_pydriver_create_dict(void)
 			Py_DECREF(fcn);
 		}
 	} else {
-		PyErr_Clear();
+		BPY_Err_Clear();
 	}
 	
 	/* TODO - change these */
@@ -1311,7 +1310,7 @@ static int bpy_pydriver_create_dict(void)
 			Py_DECREF(fcn);
 		}
 	} else {
-		PyErr_Clear();
+		BPY_Err_Clear();
 	}
 
 	/* ma(matname) == Blender.Material.Get(matname) */
@@ -1324,7 +1323,7 @@ static int bpy_pydriver_create_dict(void)
 			Py_DECREF(fcn);
 		}
 	} else {
-		PyErr_Clear();
+		BPY_Err_Clear();
 	}
 
 	return 0;
@@ -1350,6 +1349,7 @@ static float pydriver_error(IpoDriver *driver) {
 		fprintf(stderr, "\nError in Ipo Driver: No Object\nThis is the failed Python expression:\n'%s'\n\n", driver->name);
 	
 	PyErr_Print();
+	BPY_Err_Clear();
 
 	return 0.0f;
 }
@@ -1445,7 +1445,7 @@ void BPY_pyconstraint_update(Object *owner, bConstraint *con)
 			return;
 		}
 		
-		Py_XDECREF(retval);
+		Py_DECREF(retval);
 		retval = NULL;
 		
 		/* try to find NUM_TARGETS */
@@ -1578,9 +1578,9 @@ void BPY_pyconstraint_eval(bPythonConstraint *con, bConstraintOb *cob, ListBase 
 		con->flag |= PYCON_SCRIPTERROR;
 		
 		/* free temp objects */
-		Py_XDECREF(idprop);
-		Py_XDECREF(srcmat);
-		Py_XDECREF(tarmats);
+		Py_DECREF(idprop);
+		Py_DECREF(srcmat);
+		Py_DECREF(tarmats);
 		
 		ReleaseGlobalDictionary(globals);
 
@@ -1589,7 +1589,7 @@ void BPY_pyconstraint_eval(bPythonConstraint *con, bConstraintOb *cob, ListBase 
 		return;
 	}
 
-	if (retval) {Py_XDECREF( retval );}
+	Py_DECREF( retval );
 	retval = NULL;
 	
 	gval = PyDict_GetItemString(globals, "doConstraint");
@@ -1597,9 +1597,9 @@ void BPY_pyconstraint_eval(bPythonConstraint *con, bConstraintOb *cob, ListBase 
 		printf("ERROR: no doConstraint function in constraint!\n");
 		
 		/* free temp objects */
-		Py_XDECREF(idprop);
-		Py_XDECREF(srcmat);
-		Py_XDECREF(tarmats);
+		Py_DECREF(idprop);
+		Py_DECREF(srcmat);
+		Py_DECREF(tarmats);
 		
 		ReleaseGlobalDictionary(globals);
 
@@ -1612,15 +1612,15 @@ void BPY_pyconstraint_eval(bPythonConstraint *con, bConstraintOb *cob, ListBase 
 	if (PyFunction_Check(gval)) {
 		pyargs = Py_BuildValue("OOO", srcmat, tarmats, idprop);
 		retval = PyObject_CallObject(gval, pyargs);
-		Py_XDECREF(pyargs);
+		Py_DECREF(pyargs);
 	} 
 	else {
 		printf("ERROR: doConstraint is supposed to be a function!\n");
 		con->flag |= PYCON_SCRIPTERROR;
 		
-		Py_XDECREF(idprop);
-		Py_XDECREF(srcmat);
-		Py_XDECREF(tarmats);
+		Py_DECREF(idprop);
+		Py_DECREF(srcmat);
+		Py_DECREF(tarmats);
 		
 		ReleaseGlobalDictionary(globals);
 
@@ -1634,9 +1634,9 @@ void BPY_pyconstraint_eval(bPythonConstraint *con, bConstraintOb *cob, ListBase 
 		con->flag |= PYCON_SCRIPTERROR;
 		
 		/* free temp objects */
-		Py_XDECREF(idprop);
-		Py_XDECREF(srcmat);
-		Py_XDECREF(tarmats);
+		Py_DECREF(idprop);
+		Py_DECREF(srcmat);
+		Py_DECREF(tarmats);
 		
 		ReleaseGlobalDictionary(globals);
 
@@ -1650,10 +1650,10 @@ void BPY_pyconstraint_eval(bPythonConstraint *con, bConstraintOb *cob, ListBase 
 		printf("Error in PyConstraint - doConstraint: Function not returning a matrix!\n");
 		con->flag |= PYCON_SCRIPTERROR;
 		
-		Py_XDECREF(idprop);
-		Py_XDECREF(srcmat);
-		Py_XDECREF(tarmats);
-		Py_XDECREF(retval);
+		Py_DECREF(idprop);
+		Py_DECREF(srcmat);
+		Py_DECREF(tarmats);
+		Py_DECREF(retval);
 		
 		ReleaseGlobalDictionary(globals);
 
@@ -1667,10 +1667,10 @@ void BPY_pyconstraint_eval(bPythonConstraint *con, bConstraintOb *cob, ListBase 
 		printf("Error in PyConstraint - doConstraint: Matrix returned is the wrong size!\n");
 		con->flag |= PYCON_SCRIPTERROR;
 		
-		Py_XDECREF(idprop);
-		Py_XDECREF(srcmat);
-		Py_XDECREF(tarmats);
-		Py_XDECREF(retval);
+		Py_DECREF(idprop);
+		Py_DECREF(srcmat);
+		Py_DECREF(tarmats);
+		Py_DECREF(retval);
 		
 		ReleaseGlobalDictionary(globals);
 
@@ -1687,10 +1687,10 @@ void BPY_pyconstraint_eval(bPythonConstraint *con, bConstraintOb *cob, ListBase 
 	}
 	
 	/* free temp objects */
-	Py_XDECREF(idprop);
-	Py_XDECREF(srcmat);
-	Py_XDECREF(tarmats);
-	Py_XDECREF(retval);
+	Py_DECREF(idprop);
+	Py_DECREF(srcmat);
+	Py_DECREF(tarmats);
+	Py_DECREF(retval);
 	
 	/* clear globals */
 	ReleaseGlobalDictionary(globals);
@@ -1745,10 +1745,10 @@ void BPY_pyconstraint_target(bPythonConstraint *con, bConstraintTarget *ct)
 		con->flag |= PYCON_SCRIPTERROR;
 		
 		/* free temp objects */
-		Py_XDECREF(tar);
-		Py_XDECREF(subtar);
-		Py_XDECREF(idprop);
-		Py_XDECREF(tarmat);
+		Py_DECREF(tar);
+		Py_DECREF(subtar);
+		Py_DECREF(idprop);
+		Py_DECREF(tarmat);
 		
 		ReleaseGlobalDictionary(globals);
 
@@ -1757,17 +1757,17 @@ void BPY_pyconstraint_target(bPythonConstraint *con, bConstraintTarget *ct)
 		return;
 	}
 
-	Py_XDECREF(retval);
+	Py_DECREF(retval);
 	retval = NULL;
 	
 	/* try to find doTarget function to set the target matrix */
 	gval = PyDict_GetItemString(globals, "doTarget");
 	if (!gval) {
 		/* free temp objects */
-		Py_XDECREF(tar);
-		Py_XDECREF(subtar);
-		Py_XDECREF(idprop);
-		Py_XDECREF(tarmat);
+		Py_DECREF(tar);
+		Py_DECREF(subtar);
+		Py_DECREF(idprop);
+		Py_DECREF(tarmat);
 		
 		ReleaseGlobalDictionary(globals);
 
@@ -1780,16 +1780,16 @@ void BPY_pyconstraint_target(bPythonConstraint *con, bConstraintTarget *ct)
 	if (PyFunction_Check(gval)) {
 		pyargs = Py_BuildValue("OOOO", tar, subtar, tarmat, idprop);
 		retval = PyObject_CallObject(gval, pyargs);
-		Py_XDECREF(pyargs);
+		Py_DECREF(pyargs);
 	} 
 	else {
 		printf("ERROR: doTarget is supposed to be a function!\n");
 		con->flag |= PYCON_SCRIPTERROR;
 		
-		Py_XDECREF(tar);
-		Py_XDECREF(subtar);
-		Py_XDECREF(idprop);
-		Py_XDECREF(tarmat);
+		Py_DECREF(tar);
+		Py_DECREF(subtar);
+		Py_DECREF(idprop);
+		Py_DECREF(tarmat);
 		
 		ReleaseGlobalDictionary(globals);
 
@@ -1804,10 +1804,10 @@ void BPY_pyconstraint_target(bPythonConstraint *con, bConstraintTarget *ct)
 		
 		
 		/* free temp objects */
-		Py_XDECREF(tar);
-		Py_XDECREF(subtar);
-		Py_XDECREF(idprop);
-		Py_XDECREF(tarmat);
+		Py_DECREF(tar);
+		Py_DECREF(subtar);
+		Py_DECREF(idprop);
+		Py_DECREF(tarmat);
 		
 		ReleaseGlobalDictionary(globals);
 
@@ -1819,11 +1819,11 @@ void BPY_pyconstraint_target(bPythonConstraint *con, bConstraintTarget *ct)
 	if (!PyObject_TypeCheck(retval, &matrix_Type)) {
 		con->flag |= PYCON_SCRIPTERROR;
 		
-		Py_XDECREF(tar);
-		Py_XDECREF(subtar);
-		Py_XDECREF(idprop);
-		Py_XDECREF(tarmat);
-		Py_XDECREF(retval);
+		Py_DECREF(tar);
+		Py_DECREF(subtar);
+		Py_DECREF(idprop);
+		Py_DECREF(tarmat);
+		Py_DECREF(retval);
 		
 		ReleaseGlobalDictionary(globals);
 
@@ -1837,11 +1837,11 @@ void BPY_pyconstraint_target(bPythonConstraint *con, bConstraintTarget *ct)
 		printf("Error in PyConstraint - doTarget: Matrix returned is the wrong size!\n");
 		con->flag |= PYCON_SCRIPTERROR;
 		
-		Py_XDECREF(tar);
-		Py_XDECREF(subtar);
-		Py_XDECREF(idprop);
-		Py_XDECREF(tarmat);
-		Py_XDECREF(retval);
+		Py_DECREF(tar);
+		Py_DECREF(subtar);
+		Py_DECREF(idprop);
+		Py_DECREF(tarmat);
+		Py_DECREF(retval);
 		
 		ReleaseGlobalDictionary(globals);
 
@@ -1858,11 +1858,11 @@ void BPY_pyconstraint_target(bPythonConstraint *con, bConstraintTarget *ct)
 	}
 	
 	/* free temp objects */
-	Py_XDECREF(tar);
-	Py_XDECREF(subtar);
-	Py_XDECREF(idprop);
-	Py_XDECREF(tarmat);
-	Py_XDECREF(retval);
+	Py_DECREF(tar);
+	Py_DECREF(subtar);
+	Py_DECREF(idprop);
+	Py_DECREF(tarmat);
+	Py_DECREF(retval);
 	
 	/* clear globals */
 	ReleaseGlobalDictionary(globals);
@@ -1897,7 +1897,7 @@ void BPY_pyconstraint_settings(void *arg1, void *arg2)
 		con->flag |= PYCON_SCRIPTERROR;
 		
 		/* free temp objects */
-		Py_XDECREF(idprop);
+		Py_DECREF(idprop);
 		
 		PyGILState_Release(gilstate);
 		
@@ -1913,7 +1913,7 @@ void BPY_pyconstraint_settings(void *arg1, void *arg2)
 		
 		/* free temp objects */
 		ReleaseGlobalDictionary( globals );
-		Py_XDECREF(idprop);
+		Py_DECREF(idprop);
 
 		PyGILState_Release(gilstate);
 
@@ -1928,7 +1928,7 @@ void BPY_pyconstraint_settings(void *arg1, void *arg2)
 		printf("ERROR: getSettings is supposed to be a function!\n");
 		ReleaseGlobalDictionary( globals );
 		
-		Py_XDECREF(idprop);
+		Py_DECREF(idprop);
 		
 		PyGILState_Release(gilstate);
 		
@@ -1941,7 +1941,7 @@ void BPY_pyconstraint_settings(void *arg1, void *arg2)
 		
 		/* free temp objects */
 		ReleaseGlobalDictionary(globals);
-		Py_XDECREF(idprop);
+		Py_DECREF(idprop);
 		
 		PyGILState_Release(gilstate);
 		
@@ -1952,7 +1952,7 @@ void BPY_pyconstraint_settings(void *arg1, void *arg2)
 		ReleaseGlobalDictionary(globals);
 		
 		/* free temp objects */
-		Py_XDECREF(idprop);
+		Py_DECREF(idprop);
 		Py_DECREF(retval);
 		
 		PyGILState_Release(gilstate);
@@ -2107,6 +2107,7 @@ static int bpy_button_eval_error(char *expr) {
 	fprintf(stderr, "\nError in button evaluation:\nThis is the failed Python expression:\n'%s'\n\n", expr);
 
 	PyErr_Print();
+	BPY_Err_Clear();
 
 	return -1;
 }

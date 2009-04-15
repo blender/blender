@@ -614,6 +614,9 @@ static void exit_pydraw( SpaceScript * sc, short err )
 
 	if( err ) {
 		PyErr_Print(  );
+		PyErr_Clear(  );
+		PySys_SetObject("last_traceback", NULL);
+		
 		script->flags = 0;	/* mark script struct for deletion */
 		SCRIPT_SET_NULL(script);
 		script->scriptname[0] = '\0';
@@ -838,6 +841,8 @@ static void exec_but_callback(void *pyobj, void *data)
 	if (!result) {
 		Py_DECREF(pyvalue);
 		PyErr_Print(  );
+		PyErr_Clear(  );
+		PySys_SetObject("last_traceback", NULL);
 		error_pyscript(  );
 	}
 	Py_XDECREF( result );
@@ -1129,6 +1134,8 @@ static PyObject *Method_UIBlock( PyObject * self, PyObject * args )
 	
 	if (!result) {
 		PyErr_Print(  );
+		PyErr_Clear(  );
+		PySys_SetObject("last_traceback", NULL);
 		error_pyscript(  );
 	} else {
 		/* copied from do_clever_numbuts in toolbox.c */

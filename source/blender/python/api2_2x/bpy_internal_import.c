@@ -84,6 +84,8 @@ PyObject *importText( char *name )
 
 		if( PyErr_Occurred(  ) ) {
 			PyErr_Print(  );
+			PyErr_Clear(  );
+			PySys_SetObject("last_traceback", NULL);
 			free_compiled_text( text );
 			return NULL;
 		}
@@ -138,6 +140,8 @@ PyObject *reimportText( PyObject *module )
 	/* if compile failed.... return this error */
 	if( PyErr_Occurred(  ) ) {
 		PyErr_Print(  );
+		PyErr_Clear(  );
+		PySys_SetObject("last_traceback", NULL);
 		free_compiled_text( text );
 		return NULL;
 	}
@@ -182,7 +186,7 @@ static PyObject *blender_import( PyObject * self, PyObject * args,  PyObject * k
 		Py_XDECREF( exception );
 		Py_XDECREF( err );
 		Py_XDECREF( tb );
-		printf( "imported from text buffer...\n" );
+		/* printf( "imported from text buffer...\n" ); */
 	} else {
 		PyErr_Restore( exception, err, tb );
 	}

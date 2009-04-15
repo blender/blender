@@ -74,6 +74,7 @@
 #include "BIF_toolbox.h"
 
 #include "BKE_global.h"
+#include "BKE_scene.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_sca.h"

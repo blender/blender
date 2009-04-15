@@ -1346,7 +1346,7 @@ struct OcclusionBuffer
 	static int	clip(const btVector4* pi,btVector4* po)
 	{
 		btScalar	s[2*NP];
-		btVector4	pn[2*NP], *p;
+		btVector4	pn[2*NP];
 		int			i, j, m, n, ni;
 		// deal with near clipping
 		for(i=0, m=0;i<NP;++i)

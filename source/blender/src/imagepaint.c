@@ -1921,7 +1921,7 @@ static void rect_to_uvspace_persp(
 }
 
 /* This works as we need it to but we can save a few steps and not use it */
-
+#if 0
 static float angle_2d_clockwise(const float p1[2], const float p2[2], const float p3[2])
 {
 	float v1[2], v2[2];
@@ -1931,6 +1931,7 @@ static float angle_2d_clockwise(const float p1[2], const float p2[2], const floa
 	
 	return -atan2(v1[0]*v2[1] - v1[1]*v2[0], v1[0]*v2[0]+v1[1]*v2[1]);
 }
+#endif
 
 #define ISECT_1 (1)
 #define ISECT_2 (1<<1)
