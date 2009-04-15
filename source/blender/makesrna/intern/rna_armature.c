@@ -403,7 +403,7 @@ void rna_def_armature(BlenderRNA *brna)
 		/* bone path settings */
 	prop= RNA_def_property(srna, "path_size", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "pathsize");
-	RNA_def_property_range(prop, 0, 100);
+	RNA_def_property_range(prop, 1, 100);
 	RNA_def_property_ui_text(prop, "Bone Paths Frame Step", "Number of frames between 'dots' on Bone Paths (when drawing).");
 	
 	prop= RNA_def_property(srna, "path_start_frame", PROP_INT, PROP_NONE);

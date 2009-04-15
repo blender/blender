@@ -148,7 +148,7 @@ static void rna_def_fluidsim_domain(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "gravity", PROP_FLOAT, PROP_VECTOR);
 	RNA_def_property_float_sdna(prop, NULL, "gravx");
 	RNA_def_property_array(prop, 3);
-	RNA_def_property_range(prop, -1000.0, 1000.0);
+	RNA_def_property_range(prop, -1000.1, 1000.1);
 	RNA_def_property_ui_text(prop, "Gravity", "Gravity in X, Y and Z direction.");
 
 	prop= RNA_def_property(srna, "viscosity_preset", PROP_ENUM, PROP_NONE);
@@ -246,7 +246,7 @@ static void rna_def_fluidsim_fluid(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "initial_velocity", PROP_FLOAT, PROP_VECTOR);
 	RNA_def_property_float_sdna(prop, NULL, "iniVelx");
 	RNA_def_property_array(prop, 3);
-	RNA_def_property_range(prop, -1000.0, 1000.0);
+	RNA_def_property_range(prop, -1000.1, 1000.1);
 	RNA_def_property_ui_text(prop, "Initial Velocity", "Initial velocity of fluid.");
 }
 
@@ -282,7 +282,7 @@ static void rna_def_fluidsim_inflow(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "inflow_velocity", PROP_FLOAT, PROP_VECTOR);
 	RNA_def_property_float_sdna(prop, NULL, "iniVelx");
 	RNA_def_property_array(prop, 3);
-	RNA_def_property_range(prop, -1000.0, 1000.0);
+	RNA_def_property_range(prop, -1000.1, 1000.1);
 	RNA_def_property_ui_text(prop, "Inflow Velocity", "Initial velocity of fluid.");
 
 	prop= RNA_def_property(srna, "local_coordinates", PROP_BOOLEAN, PROP_NONE);
@@ -359,22 +359,22 @@ static void rna_def_fluidsim_control(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "attraction_strength", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "attractforceStrength");
-	RNA_def_property_range(prop, 0.0, 2.0);
+	RNA_def_property_range(prop, -10.0, 10.0);
 	RNA_def_property_ui_text(prop, "Attraction Strength", "Force strength for directional attraction towards the control object.");
 
 	prop= RNA_def_property(srna, "attraction_radius", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "attractforceRadius");
-	RNA_def_property_range(prop, 0.0, 5.0);
+	RNA_def_property_range(prop, 0.0, 10.0);
 	RNA_def_property_ui_text(prop, "Attraction Radius", "Specifies the force field radius around the control object.");
 	
 	prop= RNA_def_property(srna, "velocity_strength", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "velocityforceStrength");
-	RNA_def_property_range(prop, 0.0, 2.0);
+	RNA_def_property_range(prop, 0.0, 10.0);
 	RNA_def_property_ui_text(prop, "Velocity Strength", "Force strength of how much of the control object's velocity is influencing the fluid velocity.");
 
 	prop= RNA_def_property(srna, "velocity_radius", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "velocityforceRadius");
-	RNA_def_property_range(prop, 0.0, 2.0);
+	RNA_def_property_range(prop, 0.0, 10.0);
 	RNA_def_property_ui_text(prop, "Velocity Radius", "Specifies the force field radius around the control object.");
 
 	prop= RNA_def_property(srna, "quality", PROP_FLOAT, PROP_NONE);
