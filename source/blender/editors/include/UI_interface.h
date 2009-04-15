@@ -573,6 +573,7 @@ void uiLayoutEnd(const struct bContext *C, uiBlock *block, uiLayout *layout, int
 #define UI_TSLOT_LR_RIGHT	1
 
 void uiTemplateLeftRight(uiLayout *layout);
+void uiTemplateRow(uiLayout *layout);
 void uiTemplateColumn(uiLayout *layout);
 void uiTemplateColumnFlow(uiLayout *layout, int columns);
 uiLayout *uiTemplateStack(uiLayout *layout);
@@ -588,21 +589,21 @@ void uiTemplateSetColor(uiLayout *layout, int color);
 void uiTemplateSlot(uiLayout *layout, int slot);
 
 /* items */
-void uiItemO(uiLayout *layout, const char *name, int icon, char *opname);
-void uiItemEnumO(uiLayout *layout, const char *name, int icon, char *opname, char *propname, int value);
+void uiItemO(uiLayout *layout, char *name, int icon, char *opname);
+void uiItemEnumO(uiLayout *layout, char *name, int icon, char *opname, char *propname, int value);
 void uiItemsEnumO(uiLayout *layout, char *opname, char *propname);
-void uiItemBooleanO(uiLayout *layout, const char *name, int icon, char *opname, char *propname, int value);
-void uiItemIntO(uiLayout *layout, const char *name, int icon, char *opname, char *propname, int value);
-void uiItemFloatO(uiLayout *layout, const char *name, int icon, char *opname, char *propname, float value);
-void uiItemStringO(uiLayout *layout, const char *name, int icon, char *opname, char *propname, char *value);
-void uiItemFullO(uiLayout *layout, const char *name, int icon, char *idname, struct IDProperty *properties, int context);
+void uiItemBooleanO(uiLayout *layout, char *name, int icon, char *opname, char *propname, int value);
+void uiItemIntO(uiLayout *layout, char *name, int icon, char *opname, char *propname, int value);
+void uiItemFloatO(uiLayout *layout, char *name, int icon, char *opname, char *propname, float value);
+void uiItemStringO(uiLayout *layout, char *name, int icon, char *opname, char *propname, char *value);
+void uiItemFullO(uiLayout *layout, char *name, int icon, char *idname, struct IDProperty *properties, int context);
 
-void uiItemR(uiLayout *layout, const char *name, int icon, struct PointerRNA *ptr, char *propname);
-void uiItemFullR(uiLayout *layout, const char *name, int icon, struct PointerRNA *ptr, char *propname, int index);
+void uiItemR(uiLayout *layout, char *name, int icon, struct PointerRNA *ptr, char *propname);
+void uiItemFullR(uiLayout *layout, char *name, int icon, struct PointerRNA *ptr, struct PropertyRNA *prop, int index);
 
-void uiItemL(uiLayout *layout, const char *name, int icon);
+void uiItemL(uiLayout *layout, char *name, int icon);
 
-void uiItemM(uiLayout *layout, const char *name, int icon, uiMenuCreateFunc func);
+void uiItemM(uiLayout *layout, char *name, int icon, uiMenuCreateFunc func);
 
 /* utilities */
 #define UI_PANEL_WIDTH			340

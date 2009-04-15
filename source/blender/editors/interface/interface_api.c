@@ -58,6 +58,7 @@ void RNA_api_ui_layout(StructRNA *srna)
 	};
 
 	/* templates */
+	func= RNA_def_function(srna, "template_row", "uiTemplateRow");
 	func= RNA_def_function(srna, "template_column", "uiTemplateColumn");
 	func= RNA_def_function(srna, "template_left_right", "uiTemplateLeftRight");
 
