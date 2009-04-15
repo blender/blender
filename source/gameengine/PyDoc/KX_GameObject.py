@@ -12,6 +12,7 @@ class KX_GameObject: # (SCA_IObject)
 	All game objects are derived from this class.
 	
 	Properties assigned to game objects are accessible as attributes of this class.
+		- note: Calling ANY method or attribute on an object that has been removed from a scene will raise a RuntimeError, if an object may have been removed since last accessing it use the L{isValid} attribute to check.
 
 	@ivar name: The object's name. (Read only)
 		- note: Currently (Blender 2.49) the prefix "OB" is added to all objects name. This may change in blender 2.5.
@@ -63,6 +64,8 @@ class KX_GameObject: # (SCA_IObject)
 		- note: This attribute is experemental and may be removed (but probably wont be).
 		- note: Changes to this list will not update the KX_GameObject.
 	@type actuators: list
+	@ivar isValid: Retuerns fails when the object has been removed from the scene and can no longer be used.
+	@type isValid: bool
 	"""
 	def endObject(visible):
 		"""

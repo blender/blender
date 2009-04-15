@@ -534,11 +534,22 @@ PyParentObject KX_Camera::Parents[] = {
 
 PyObject* KX_Camera::py_getattro(PyObject *attr)
 {
+	if (ValidPythonToGameObject(this)==false) {
+		if (!strcmp(PyString_AsString(attr), "isValid")) {
+			PyErr_Clear();
+			Py_RETURN_FALSE;
+		}
+		return NULL; /* ValidPythonToGameObject sets the error */
+	}
+	
 	py_getattro_up(KX_GameObject);
 }
 
 int KX_Camera::py_setattro(PyObject *attr, PyObject *value)
 {
+	if (ValidPythonToGameObject(this)==false)
+		return -1;
+	
 	py_setattro_up(KX_GameObject);
 }
 

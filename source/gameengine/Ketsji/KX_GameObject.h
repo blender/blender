@@ -51,7 +51,6 @@
 #include "SCA_LogicManager.h" /* for ConvertPythonToGameObject to search object names */
 #define KX_OB_DYNAMIC 1
 
-
 //Forward declarations.
 struct KX_ClientObjectInfo;
 class KX_RayCast;
@@ -60,6 +59,10 @@ class KX_IPhysicsController;
 class PHY_IGraphicController;
 class PHY_IPhysicsEnvironment;
 struct Object;
+
+/* utility conversion function */
+bool ConvertPythonToGameObject(PyObject * value, KX_GameObject **object, bool py_none_ok);
+bool ValidPythonToGameObject(KX_GameObject *object);
 
 /**
  * KX_GameObject is the main class for dynamic objects.
@@ -811,104 +814,15 @@ public:
 	
 	virtual PyObject* py_getattro(PyObject *attr);
 	virtual int py_setattro(PyObject *attr, PyObject *value);		// py_setattro method
-	virtual PyObject* py_repr(void) { return PyString_FromString(GetName().ReadPtr()); }
-	
-	/* we need our own getattr and setattr types */
-	/* See m_attrlist definition for rules on how this works */
-	static PyObject *py_base_getattro_gameobject(PyObject * self, PyObject *attr)
+	virtual PyObject* py_repr(void)
 	{
-		PyObject *object= ((KX_GameObject *) self)->py_getattro(attr);
-		
-		if (object==NULL && ((KX_GameObject *) self)->m_attrlist) {
-			/* backup the exception incase the attr doesnt exist in the dict either */
-			PyObject *err_type, *err_value, *err_tb;
-			PyErr_Fetch(&err_type, &err_value, &err_tb);
-			
-			object= PyDict_GetItem(((KX_GameObject *) self)->m_attrlist, attr);
-			if (object) {
-				Py_INCREF(object);
-				
-				PyErr_Clear();
-				Py_XDECREF( err_type );
-				Py_XDECREF( err_value );
-				Py_XDECREF( err_tb );
-			}
-			else {
-				PyErr_Restore(err_type, err_value, err_tb); /* use the error from the parent function */
-			}
-		}
-		return object;
+		if (ValidPythonToGameObject(this)==false)
+			return NULL;
+		return PyString_FromString(GetName().ReadPtr());
 	}
 	
-	static int py_base_setattro_gameobject(PyObject * self, PyObject *attr, PyObject *value)
-	{
-		int ret;
-		
-		/* Delete the item */
-		if (value==NULL)
-		{
-			ret= ((PyObjectPlus*) self)->py_delattro(attr);
-			
-			if (ret != 0) /* CValue attribute failed, try KX_GameObject m_attrlist dict */
-			{
-				if (((KX_GameObject *) self)->m_attrlist)
-				{
-					/* backup the exception incase the attr doesnt exist in the dict either */
-					PyObject *err_type, *err_value, *err_tb;
-					PyErr_Fetch(&err_type, &err_value, &err_tb);
-					
-					if (PyDict_DelItem(((KX_GameObject *) self)->m_attrlist, attr) == 0)
-					{
-						ret= 0;
-						PyErr_Clear();
-						Py_XDECREF( err_type );
-						Py_XDECREF( err_value );
-						Py_XDECREF( err_tb );
-					}
-					else { 
-						PyErr_Restore(err_type, err_value, err_tb); /* use the error from the parent function */
-					}
-				}
-			}
-			return ret;
-		}
-		
-		
-		ret= ((PyObjectPlus*) self)->py_setattro(attr, value);
-		
-		if (ret==PY_SET_ATTR_SUCCESS) {
-			/* remove attribute in our own dict to avoid double ups */
-			if (((KX_GameObject *) self)->m_attrlist) {
-				if (PyDict_DelItem(((KX_GameObject *) self)->m_attrlist, attr) != 0)
-					PyErr_Clear();
-			}
-		}
-		
-		if (ret==PY_SET_ATTR_COERCE_FAIL) {
-			/* CValue attribute exists, remove and add dict value */
-			((KX_GameObject *) self)->RemoveProperty(STR_String(PyString_AsString(attr)));
-			ret= PY_SET_ATTR_MISSING;
-		}
-		
-		if (ret==PY_SET_ATTR_MISSING) {
-			/* Lazy initialization */
-			if (((KX_GameObject *) self)->m_attrlist==NULL)
-				((KX_GameObject *) self)->m_attrlist = PyDict_New();
-			
-			if (PyDict_SetItem(((KX_GameObject *) self)->m_attrlist, attr, value)==0) {
-				PyErr_Clear();
-				ret= PY_SET_ATTR_SUCCESS;
-			}
-			else {
-				PyErr_Format(PyExc_AttributeError, "failed assigning value to KX_GameObject internal dictionary");
-				ret= PY_SET_ATTR_FAIL;
-			}
-		}
-		
-		return ret;
-	}
-	
-	
+	static PyObject *py_base_getattro_gameobject(PyObject * self, PyObject *attr);
+	static int py_base_setattro_gameobject(PyObject * self, PyObject *attr, PyObject *value);
 	
 	KX_PYMETHOD_NOARGS(KX_GameObject,GetPosition);
 	KX_PYMETHOD_O(KX_GameObject,SetPosition);
@@ -979,6 +893,7 @@ public:
 	static PyObject*	pyattr_get_state(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static int			pyattr_set_state(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 	static PyObject*	pyattr_get_meshes(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject*	pyattr_get_is_valid(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	
 	/* for dir(), python3 uses __dir__() */
 	static PyObject*	pyattr_get_dir_dict(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
@@ -1011,9 +926,6 @@ private :
 	);	
 
 };
-
-/* utility conversion function */
-bool ConvertPythonToGameObject(PyObject * value, KX_GameObject **object, bool py_none_ok);
 
 #endif //__KX_GAMEOBJECT
 

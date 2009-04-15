@@ -177,6 +177,14 @@ PyObject* KX_LightObject::py_getattro(PyObject *attr)
 {
 	char *attr_str= PyString_AsString(attr);
 	
+	if (ValidPythonToGameObject(this)==false) {
+		if (!strcmp(attr_str, "isValid")) {
+			PyErr_Clear();
+			Py_RETURN_FALSE;
+		}
+		return NULL;
+	}
+	
 	if (!strcmp(attr_str, "layer"))
 		return PyInt_FromLong(m_lightobj.m_layer);
 	
@@ -216,9 +224,14 @@ PyObject* KX_LightObject::py_getattro(PyObject *attr)
 	py_getattro_up(KX_GameObject);
 }
 
-int       KX_LightObject::py_setattro(PyObject *attr, PyObject *pyvalue)
+
+int KX_LightObject::py_setattro(PyObject *attr, PyObject *pyvalue)
 {
 	char *attr_str= PyString_AsString(attr);
+	
+	if (ValidPythonToGameObject(this)==false)
+		return -1;
+	
 	if (PyInt_Check(pyvalue))
 	{
 		int value = PyInt_AsLong(pyvalue);
