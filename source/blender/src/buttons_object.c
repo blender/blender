@@ -1752,6 +1752,37 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-10, *yco-height, width+40,height-1, NULL, 5.0, 0.0, 12, rb_col, ""); 
 			}
 			break;
+
+		case CONSTRAINT_TYPE_SHRINKWRAP:
+			{
+				bShrinkwrapConstraint *data = con->data;
+
+				height = 78;
+				if(data->shrinkType == MOD_SHRINKWRAP_PROJECT)
+					height += 18;
+
+				uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-10, *yco-height, width+40,height-1, NULL, 5.0, 0.0, 12, rb_col, ""); 
+
+				/* Draw parameters */
+				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Target:", *xco+65, *yco-24, 90, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+				uiDefIDPoinBut(block, test_meshobpoin_but, ID_OB, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+120, *yco-24, 135, 18, &data->target, "Target Object");
+
+				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Dist:", *xco + 75, *yco-42, 90, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+120, *yco-42, 135, 18, &data->dist, -100.0f, 100.0f, 1.0f, 0.0f, "Distance to target");
+
+				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Type:", *xco + 70, *yco-60, 90, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+				uiDefButS(block, MENU, B_MODIFIER_RECALC, "Shrinkwrap Type%t|Nearest Surface Point %x0|Projection %x1|Nearest Vertex %x2", *xco+120, *yco-60, 135, 18, &data->shrinkType, 0, 0, 0, 0, "Selects type of shrinkwrap algorithm for target position.");
+
+				if(data->shrinkType == MOD_SHRINKWRAP_PROJECT)
+				{
+					/* Draw XYZ toggles */
+					uiDefBut(block, LABEL,B_CONSTRAINT_TEST, "Axis:", *xco+ 75, *yco-78, 90, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+					uiDefButBitC(block, TOG, MOD_SHRINKWRAP_PROJECT_OVER_X_AXIS, B_CONSTRAINT_TEST, "X",*xco+120, *yco-78, 45, 18, &data->projAxis, 0, 0, 0, 0, "Projection over X axis");
+					uiDefButBitC(block, TOG, MOD_SHRINKWRAP_PROJECT_OVER_Y_AXIS, B_CONSTRAINT_TEST, "Y",*xco+165, *yco-78, 45, 18, &data->projAxis, 0, 0, 0, 0, "Projection over Y axis");
+					uiDefButBitC(block, TOG, MOD_SHRINKWRAP_PROJECT_OVER_Z_AXIS, B_CONSTRAINT_TEST, "Z",*xco+210, *yco-78, 45, 18, &data->projAxis, 0, 0, 0, 0, "Projection over Z axis");
+				}
+			}
+			break;
 		default:
 			height = 0;
 			break;
@@ -1813,6 +1844,7 @@ static uiBlock *add_constraintmenu(void *arg_unused)
 	uiDefBut(block, BUTM, B_CONSTRAINT_ADD_MINMAX, "Floor",	0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
 	uiDefBut(block, BUTM, B_CONSTRAINT_ADD_LOCKTRACK, "Locked Track", 0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
 	uiDefBut(block, BUTM, B_CONSTRAINT_ADD_FOLLOWPATH, "Follow Path", 0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
+	uiDefBut(block, BUTM, B_CONSTRAINT_ADD_SHRINKWRAP, "Shrinkwrap" , 0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
 		
 	uiDefBut(block, SEPR, 0, "",					0, yco-=6, 120, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
@@ -2044,6 +2076,14 @@ void do_constraintbuts(unsigned short event)
 	case B_CONSTRAINT_ADD_DISTLIMIT:
 		{
 			con = add_new_constraint(CONSTRAINT_TYPE_DISTLIMIT);
+			add_constraint_to_active(ob, con);
+			
+			BIF_undo_push("Add constraint");
+		}
+		break;
+	case B_CONSTRAINT_ADD_SHRINKWRAP:
+		{
+			con = add_new_constraint(CONSTRAINT_TYPE_SHRINKWRAP);
 			add_constraint_to_active(ob, con);
 			
 			BIF_undo_push("Add constraint");

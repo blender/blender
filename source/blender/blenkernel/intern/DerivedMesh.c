@@ -77,6 +77,7 @@
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
 #include "BKE_particle.h"
+#include "BKE_bvhutils.h"
 
 #include "BLO_sys_types.h" // for intptr_t support
 
@@ -182,6 +183,8 @@ void DM_init_funcs(DerivedMesh *dm)
 	dm->getVertDataArray = DM_get_vert_data_layer;
 	dm->getEdgeDataArray = DM_get_edge_data_layer;
 	dm->getFaceDataArray = DM_get_face_data_layer;
+
+	bvhcache_init(&dm->bvhCache);
 }
 
 void DM_init(DerivedMesh *dm,
@@ -218,6 +221,8 @@ void DM_from_template(DerivedMesh *dm, DerivedMesh *source,
 int DM_release(DerivedMesh *dm)
 {
 	if (dm->needsFree) {
+		bvhcache_free(&dm->bvhCache);
+
 		CustomData_free(&dm->vertData, dm->numVertData);
 		CustomData_free(&dm->edgeData, dm->numEdgeData);
 		CustomData_free(&dm->faceData, dm->numFaceData);
