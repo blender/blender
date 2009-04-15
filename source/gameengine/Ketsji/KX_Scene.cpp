@@ -250,6 +250,7 @@ KX_Scene::~KX_Scene()
 	{
 		delete m_bucketmanager;
 	}
+	PyDict_Clear(m_attrlist);
 	Py_DECREF(m_attrlist);
 }
 

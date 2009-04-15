@@ -143,6 +143,7 @@ KX_GameObject::~KX_GameObject()
 	}
 	
 	if (m_attrlist) {
+		PyDict_Clear(m_attrlist); /* incase of circular refs or other weired cases */
 		Py_DECREF(m_attrlist);
 	}
 }
