@@ -60,6 +60,7 @@
 #define R_DISPLAYSCREEN 2
 
 #if 0
+#if 0
 static void render_panel_output(const bContext *C, ARegion *ar)
 {
 	uiBlock *block;
@@ -425,9 +426,11 @@ void render_panel_anim(const bContext *C, ARegion *ar)
 
 	uiEndBlock(C, block);
 }
+#endif
 
 void buttons_scene_register(ARegionType *art)
 {
+#if 0
 	PanelType *pt;
 
 	/* panels: Render */
@@ -461,5 +464,6 @@ void buttons_scene_register(ARegionType *art)
 	pt->context= "render";
 	pt->draw= render_panel_shading;
 	BLI_addtail(&art->paneltypes, pt);
+#endif
 }
 

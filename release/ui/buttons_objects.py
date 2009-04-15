@@ -11,7 +11,7 @@ class OBJECT_PT_transform(bpy.types.Panel):
 		if not ob:
 			return
 
-		layout.template_column_flow(3)
+		layout.template_row()
 		layout.itemR(ob, "location")
 		layout.itemR(ob, "rotation")
 		layout.itemR(ob, "scale")
@@ -27,7 +27,7 @@ class OBJECT_PT_groups(bpy.types.Panel):
 		if not ob:
 			return
 
-		layout.template_column_flow(2)
+		layout.template_row()
 		layout.itemR(ob, "pass_index")
 		layout.itemR(ob, "parent")
 
@@ -42,7 +42,7 @@ class OBJECT_PT_groups(bpy.types.Panel):
 				sublayout.itemR(group, "name")
 				# sublayout.itemO("OBJECT_OT_remove_group")
 
-				sublayout.template_column_flow(2)
+				sublayout.template_row()
 				sublayout.itemR(group, "layer")
 				sublayout.itemR(group, "dupli_offset")
 
@@ -57,7 +57,7 @@ class OBJECT_PT_display(bpy.types.Panel):
 		if not ob:
 			return
 
-		layout.template_column_flow(2)
+		layout.template_row()
 		layout.itemR(ob, "max_draw_type", text="Type")
 		layout.itemR(ob, "draw_bounds_type", text="Bounds")
 
@@ -122,3 +122,4 @@ bpy.ui.addPanel(OBJECT_PT_groups, "BUTTONS_WINDOW", "WINDOW")
 bpy.ui.addPanel(OBJECT_PT_display, "BUTTONS_WINDOW", "WINDOW")
 bpy.ui.addPanel(OBJECT_PT_duplication, "BUTTONS_WINDOW", "WINDOW")
 bpy.ui.addPanel(OBJECT_PT_animation, "BUTTONS_WINDOW", "WINDOW")
+
