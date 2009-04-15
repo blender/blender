@@ -1076,6 +1076,9 @@ int modify_keyframes (bContext *C, ListBase *dsources, bAction *act, KeyingSet *
 				char *path = NULL;
 				int arraylen, i;
 				
+				/* set initial group name */
+				groupname= (cks->id) ? cks->id->name : NULL;
+				
 				/* construct the path */
 				// FIXME: this currently only works with a few hardcoded cases
 				if ((ksp->templates & KSP_TEMPLATE_PCHAN) && (cks->pchan)) {
@@ -1083,12 +1086,18 @@ int modify_keyframes (bContext *C, ListBase *dsources, bAction *act, KeyingSet *
 					BLI_dynstr_append(pathds, "pose.pose_channels[\"");
 					BLI_dynstr_append(pathds, cks->pchan->name);
 					BLI_dynstr_append(pathds, "\"]");
+					
+					/* override default group name */
+					groupname= cks->pchan->name;
 				}
 				if ((ksp->templates & KSP_TEMPLATE_CONSTRAINT) && (cks->con)) {
 					/* add basic constraint path access */
 					BLI_dynstr_append(pathds, "constraints[\"");
 					BLI_dynstr_append(pathds, cks->con->name);
 					BLI_dynstr_append(pathds, "\"]");
+					
+					/* override default group name */
+					groupname= cks->con->name;
 				}
 				{
 					/* add property stored in KeyingSet Path */
@@ -1101,13 +1110,17 @@ int modify_keyframes (bContext *C, ListBase *dsources, bAction *act, KeyingSet *
 					BLI_dynstr_free(pathds);
 				}
 				
-				/* get pointer to name of group to add channels to */
-				if (ksp->groupmode == KSP_GROUP_NONE)
-					groupname= NULL;
-				else if (ksp->groupmode == KSP_GROUP_KSNAME)
-					groupname= ks->name;
-				else
-					groupname= ksp->group;
+				/* if the group name settings have not been overriden for the entire KeyingSet,
+				 * get pointer to name of group to add channels to 
+				 */
+				if ((ks->flag & KEYINGSET_GROUPNAMES_OVERRIDE)==0) {
+					if (ksp->groupmode == KSP_GROUP_NONE)
+						groupname= NULL;
+					else if (ksp->groupmode == KSP_GROUP_KSNAME)
+						groupname= ks->name;
+					else
+						groupname= ksp->group;
+				}
 				
 				/* init arraylen and i - arraylen should be greater than i so that
 				 * normal non-array entries get keyframed correctly

@@ -561,6 +561,11 @@ enum {
 	KEYINGSET_BUILTIN		= (1<<0),
 		/* keyingset does not depend on context info (i.e. paths are absolute) */
 	KEYINGSET_ABSOLUTE		= (1<<1),
+	
+		/* override group name settings of paths in this Keying Set with context 
+		 * info (internally used for relative paths only)
+		 */
+	KEYINGSET_GROUPNAMES_OVERRIDE	= (1<<2),
 } eKS_Settings;
 
 /* Flags for use by keyframe creation/deletion calls */

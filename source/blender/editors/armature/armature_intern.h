@@ -73,6 +73,7 @@ void SKETCH_OT_select(struct wmOperatorType *ot);
 void POSELIB_OT_pose_add(struct wmOperatorType *ot);
 void POSELIB_OT_pose_remove(struct wmOperatorType *ot);
 void POSELIB_OT_pose_rename(struct wmOperatorType *ot);
+void POSELIB_OT_browse_interactive(struct wmOperatorType *ot);
 
 /* editarmature.c */
 struct bArmature;

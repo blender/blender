@@ -86,17 +86,8 @@
 
 static void BIF_undo_push() {}
 static void error() {}
-static int qtest() {return 0;}
-static int extern_qread_ext() {return 0;}
-static void persptoetsen() {}
-static void headerprint() {}
 
-static void remake_action_ipos() {} // xxx depreceated
-//static void verify_pchan2achan_grouping() {} // xxx depreceated
 static void action_set_activemarker() {}
-
-/* ******* XXX ********** */
-
 
 /* ************************************************************* */
 /* == POSE-LIBRARY TOOL FOR BLENDER == 
@@ -222,6 +213,7 @@ bAction *poselib_validate (Object *ob)
 /* This tool automagically generates/validates poselib data so that it corresponds to the data 
  * in the action. This is for use in making existing actions usable as poselibs.
  */
+// TODO: operatorfy me!
 void poselib_validate_act (bAction *act)
 {
 	ListBase keys = {NULL, NULL};
@@ -401,6 +393,10 @@ static int poselib_add_exec (bContext *C, wmOperator *op)
 	/* make sure we've got KeyingSets to use */
 	poselib_get_builtin_keyingsets();
 	
+	/* turn on group-name overrides temporarily (only here) */
+	poselib_ks_locrotscale->flag |= KEYINGSET_GROUPNAMES_OVERRIDE;
+	poselib_ks_locrotscale2->flag |= KEYINGSET_GROUPNAMES_OVERRIDE;
+	
 	/* init common-key-source for use by KeyingSets */
 	memset(&cks, 0, sizeof(bCommonKeySrc));
 	cks.id= &ob->id;
@@ -421,6 +417,10 @@ static int poselib_add_exec (bContext *C, wmOperator *op)
 			}
 		}
 	}
+	
+	/* turn off group-name overrides so they don't affect the KeyingSets when used elsewhere */
+	poselib_ks_locrotscale->flag &= ~KEYINGSET_GROUPNAMES_OVERRIDE;
+	poselib_ks_locrotscale2->flag &= ~KEYINGSET_GROUPNAMES_OVERRIDE;
 	
 	/* store new 'active' pose number */
 	act->active_marker= BLI_countlist(&act->markers);
@@ -603,7 +603,10 @@ typedef struct tPoseLib_PreviewData {
 	ListBase backups;		/* tPoseLib_Backup structs for restoring poses */
 	ListBase searchp;		/* LinkData structs storing list of poses which match the current search-string */
 	
-	PointerRNA *rna_ptr;	/* RNA-Pointer to Object 'ob' */
+	Scene *scene;			/* active scene */
+	ScrArea *sa;			/* active area */
+	
+	PointerRNA rna_ptr;		/* RNA-Pointer to Object 'ob' */
 	Object *ob;				/* object to work on */
 	bArmature *arm;			/* object's armature data */
 	bPose *pose;			/* object's pose */
@@ -706,7 +709,7 @@ static void poselib_backup_restore (tPoseLib_PreviewData *pld)
  */
 static void poselib_apply_pose (tPoseLib_PreviewData *pld)
 {
-	PointerRNA *ptr= pld->rna_ptr;
+	PointerRNA *ptr= &pld->rna_ptr;
 	bArmature *arm= pld->arm;
 	bPose *pose= pld->pose;
 	bPoseChannel *pchan;
@@ -715,13 +718,15 @@ static void poselib_apply_pose (tPoseLib_PreviewData *pld)
 	
 	BeztEditData bed;
 	BeztEditFunc group_ok_cb;
-	int frame;
+	int frame= 1;
 	
 	/* get the frame */
 	if (pld->marker)
 		frame= pld->marker->frame;
 	else
 		return;	
+		
+	printf("apply pose ---> %d \n", frame);	
 	
 	/* init settings for testing groups for keyframes */
 	group_ok_cb= ANIM_editkeyframes_ok(BEZT_OK_FRAMERANGE);
@@ -729,10 +734,13 @@ static void poselib_apply_pose (tPoseLib_PreviewData *pld)
 	bed.f1= ((float)frame) - 0.5f;
 	bed.f2= ((float)frame) + 0.5f;
 	
+	
 	/* start applying - only those channels which have a key at this point in time! */
 	for (agrp= act->groups.first; agrp; agrp= agrp->next) {
 		/* check if group has any keyframes */
 		if (ANIM_animchanneldata_keys_bezier_loop(&bed, agrp, ALE_GROUP, NULL, group_ok_cb, NULL, 0)) {
+			printf("\tact group %s ok \n", agrp->name);
+			
 			/* has keyframe on this frame, so try to get a PoseChannel with this name */
 			pchan= get_pose_channel(pose, agrp->name);
 			
@@ -753,10 +761,13 @@ static void poselib_apply_pose (tPoseLib_PreviewData *pld)
 				}
 				
 				if (ok) {
+					printf("\t\tevaluating... \n");
 					animsys_evaluate_action_group(ptr, act, agrp, NULL, (float)frame);
 				}
 			}
 		}
+		else
+			printf("\tact group %s not ok \n", agrp->name);
 	}
 }
 
@@ -766,13 +777,13 @@ static void poselib_keytag_pose (Scene *scene, tPoseLib_PreviewData *pld)
 	bPose *pose= pld->pose;
 	bPoseChannel *pchan;
 	bAction *act= pld->act;
-	bActionChannel *achan;
+	bActionGroup *agrp;
 	
 	/* start tagging/keying */
-	for (achan= act->chanbase.first; achan; achan= achan->next) {
+	for (agrp= act->groups.first; agrp; agrp= agrp->next) {
 		/* only for selected action channels */
-		if (achan->flag & ACHAN_SELECTED) {
-			pchan= get_pose_channel(pose, achan->name);
+		if (agrp->flag & AGRP_SELECTED) {
+			pchan= get_pose_channel(pose, agrp->name);
 			
 			if (pchan) {
 #if 0 // XXX old animation system	
@@ -808,9 +819,84 @@ static void poselib_keytag_pose (Scene *scene, tPoseLib_PreviewData *pld)
 						pchan->bone->flag |= BONE_UNKEYED;
 				}
 #endif // XXX old animation system	
+		
 			}
 		}
 	}
+}
+
+/* Apply the relevant changes to the pose */
+static void poselib_preview_apply (bContext *C, wmOperator *op)
+{
+	tPoseLib_PreviewData *pld= (tPoseLib_PreviewData *)op->customdata;
+	
+	printf("do apply(C, op) \n");
+	
+	/* only recalc pose (and its dependencies) if pose has changed */
+	if (pld->redraw == PL_PREVIEW_REDRAWALL) {
+		printf("\tupdate pose \n");
+		
+		/* don't clear pose if firsttime */
+		if ((pld->flag & PL_PREVIEW_FIRSTTIME)==0)
+			poselib_backup_restore(pld);
+		else
+			pld->flag &= ~PL_PREVIEW_FIRSTTIME;
+			
+		/* pose should be the right one to draw (unless we're temporarily not showing it) */
+		if ((pld->flag & PL_PREVIEW_SHOWORIGINAL)==0)
+			poselib_apply_pose(pld);
+		
+		/* old optimize trick... this enforces to bypass the depgraph 
+		 *	- note: code copied from transform_generics.c -> recalcData()
+		 */
+		// FIXME: shouldn't this use the builtin stuff?
+		if ((pld->arm->flag & ARM_DELAYDEFORM)==0)
+			DAG_object_flush_update(pld->scene, pld->ob, OB_RECALC_DATA);  /* sets recalc flags */
+		else
+			where_is_pose(pld->scene, pld->ob);
+	}
+	
+	/* do header print - if interactively previewing */
+	if (pld->state == PL_PREVIEW_RUNNING) {
+		if (pld->flag & PL_PREVIEW_SHOWORIGINAL) {
+			sprintf(pld->headerstr, "PoseLib Previewing Pose: [Showing Original Pose] | Use Tab to start previewing poses again");
+			ED_area_headerprint(pld->sa, pld->headerstr);
+		}
+		else if (pld->searchstr[0]) {
+			char tempstr[65];
+			char markern[64];
+			short index;
+			
+			/* get search-string */
+			index= pld->search_cursor;
+			
+			if (IN_RANGE(index, 0, 64)) {
+				memcpy(&tempstr[0], &pld->searchstr[0], index);
+				tempstr[index]= '|';
+				memcpy(&tempstr[index+1], &pld->searchstr[index], 64-index);
+			}
+			else {
+				strncpy(tempstr, pld->searchstr, 64);
+			}
+			
+			/* get marker name */
+			if (pld->marker)
+				strcpy(markern, pld->marker->name);
+			else
+				strcpy(markern, "No Matches");
+			
+			sprintf(pld->headerstr, "PoseLib Previewing Pose: Filter - [%s] | Current Pose - \"%s\"  | Use ScrollWheel or PageUp/Down to change", tempstr, markern);
+			ED_area_headerprint(pld->sa, pld->headerstr);
+		}
+		else {
+			sprintf(pld->headerstr, "PoseLib Previewing Pose: \"%s\"  | Use ScrollWheel or PageUp/Down to change", pld->marker->name);
+			ED_area_headerprint(pld->sa, pld->headerstr);
+		}
+	}
+	
+	/* request drawing of view + clear redraw flag */
+	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM|ND_POSE, pld->ob);
+	pld->redraw= PL_PREVIEW_NOREDRAW;
 }
 
 /* ---------------------------- */
@@ -911,6 +997,43 @@ static void poselib_preview_get_next (tPoseLib_PreviewData *pld, int step)
 /* specially handle events for searching */
 static void poselib_preview_handle_search (tPoseLib_PreviewData *pld, unsigned short event, char ascii)
 {
+	/* try doing some form of string manipulation first */
+	switch (event) {
+		case BACKSPACEKEY:
+			if (pld->searchstr[0] && pld->search_cursor) {
+				short len= strlen(pld->searchstr);
+				short index= pld->search_cursor;
+				short i;
+				
+				for (i = index; i <= len; i++) 
+					pld->searchstr[i-1] = pld->searchstr[i];
+				
+				pld->search_cursor--;
+				
+				poselib_preview_get_next(pld, 1);
+				pld->redraw = PL_PREVIEW_REDRAWALL;
+				return;
+			}	
+			break;
+			
+		case DELKEY:
+			if (pld->searchstr[0] && pld->searchstr[1]) {
+				short len= strlen(pld->searchstr);
+				short index= pld->search_cursor;
+				int i;
+				
+				if (index < len) {
+					for (i = index; i < len; i++) 
+						pld->searchstr[i] = pld->searchstr[i+1];
+						
+					poselib_preview_get_next(pld, 1);
+					pld->redraw = PL_PREVIEW_REDRAWALL;
+					return;
+				}
+			}
+			break;
+	}
+	
 	if (ascii) {
 		/* character to add to the string */
 		short index= pld->search_cursor;
@@ -930,47 +1053,13 @@ static void poselib_preview_handle_search (tPoseLib_PreviewData *pld, unsigned s
 		poselib_preview_get_next(pld, 1);
 		pld->redraw = PL_PREVIEW_REDRAWALL;
 	}
-	else {
-		/* some form of string manipulation */
-		switch (event) {
-			case BACKSPACEKEY:
-				if (pld->searchstr[0] && pld->search_cursor) {
-					short len= strlen(pld->searchstr);
-					short index= pld->search_cursor;
-					short i;
-					
-					for (i = index; i <= len; i++) 
-						pld->searchstr[i-1] = pld->searchstr[i];
-					
-					pld->search_cursor--;
-					
-					poselib_preview_get_next(pld, 1);
-					pld->redraw = PL_PREVIEW_REDRAWALL;
-				}	
-				break;
-				
-			case DELKEY:
-				if (pld->searchstr[0] && pld->searchstr[1]) {
-					short len= strlen(pld->searchstr);
-					short index= pld->search_cursor;
-					int i;
-					
-					if (index < len) {
-						for (i = index; i < len; i++) 
-							pld->searchstr[i] = pld->searchstr[i+1];
-							
-						poselib_preview_get_next(pld, 1);
-						pld->redraw = PL_PREVIEW_REDRAWALL;
-					}
-				}
-				break;
-		}
-	}
 }
 
 /* handle events for poselib_preview_poses */
-static void poselib_preview_handle_event (tPoseLib_PreviewData *pld, unsigned short event, char ascii)
+static void poselib_preview_handle_event (bContext *C, wmOperator *op, wmEvent *event)
 {
+	tPoseLib_PreviewData *pld= op->customdata; 
+	
 	/* backup stuff that needs to occur before every operation
 	 *	- make a copy of searchstr, so that we know if cache needs to be rebuilt
 	 */
@@ -978,7 +1067,7 @@ static void poselib_preview_handle_event (tPoseLib_PreviewData *pld, unsigned sh
 	
 	/* if we're currently showing the original pose, only certain events are handled */
 	if (pld->flag & PL_PREVIEW_SHOWORIGINAL) {
-		switch (event) {
+		switch (event->type) {
 			/* exit - cancel */
 			case ESCKEY:
 			case RIGHTMOUSE:
@@ -993,6 +1082,7 @@ static void poselib_preview_handle_event (tPoseLib_PreviewData *pld, unsigned sh
 				pld->state= PL_PREVIEW_CONFIRM;
 				break;
 			
+#if 0 // XXX these are for view manipulation... how to get it working?
 			/* view manipulation */
 			case MIDDLEMOUSE:
 				// there's a little bug here that causes the normal header to get drawn while view is manipulated 
@@ -1007,6 +1097,7 @@ static void poselib_preview_handle_event (tPoseLib_PreviewData *pld, unsigned sh
 				//persptoetsen(event);
 				pld->redraw= PL_PREVIEW_REDRAWHEADER;
 				break;
+#endif // XXX these are for view manipulation... how to get it working?
 				
 			case TABKEY:
 				pld->flag &= ~PL_PREVIEW_SHOWORIGINAL;
@@ -1020,7 +1111,7 @@ static void poselib_preview_handle_event (tPoseLib_PreviewData *pld, unsigned sh
 	
 	/* NORMAL EVENT HANDLING... */
 	/* searching takes priority over normal activity */
-	switch (event) {
+	switch (event->type) {
 		/* exit - cancel */
 		case ESCKEY:
 		case RIGHTMOUSE:
@@ -1033,6 +1124,7 @@ static void poselib_preview_handle_event (tPoseLib_PreviewData *pld, unsigned sh
 		case PADENTER:
 		case SPACEKEY:
 			pld->state= PL_PREVIEW_CONFIRM;
+			printf("poselib event -> set confirm \n");
 			break;
 			
 		/* toggle between original pose and poselib pose*/
@@ -1127,6 +1219,7 @@ static void poselib_preview_handle_event (tPoseLib_PreviewData *pld, unsigned sh
 			}
 			break;
 			
+#if 0 // XXX these are for view manipulation... how to get it working?
 		/* view manipulation */
 		case MIDDLEMOUSE:
 			// there's a little bug here that causes the normal header to get drawn while view is manipulated 
@@ -1146,10 +1239,11 @@ static void poselib_preview_handle_event (tPoseLib_PreviewData *pld, unsigned sh
 				pld->redraw= PL_PREVIEW_REDRAWHEADER;
 			}
 			break;
+#endif // XXX these are for view manipulation... how to get it working?
 			
 		/* otherwise, assume that searching might be able to handle it */
 		default:
-			poselib_preview_handle_search(pld, event, ascii);
+			poselib_preview_handle_search(pld, event->type, event->ascii);
 			break;
 	}
 }
@@ -1157,10 +1251,14 @@ static void poselib_preview_handle_event (tPoseLib_PreviewData *pld, unsigned sh
 /* ---------------------------- */
 
 /* Init PoseLib Previewing data */
-static void poselib_preview_init_data (tPoseLib_PreviewData *pld, Object *ob, short apply_active)
+static void poselib_preview_init_data (bContext *C, wmOperator *op)
 {
-	/* clear pld first as it resides on the stack */
-	memset(pld, 0, sizeof(tPoseLib_PreviewData));
+	tPoseLib_PreviewData *pld;
+	Object *ob= CTX_data_active_object(C);
+	short apply_active= RNA_boolean_get(op->ptr, "apply_active");
+	
+	/* set up preview state info */
+	op->customdata= pld= MEM_callocN(sizeof(tPoseLib_PreviewData), "PoseLib Preview Data");
 	
 	/* get basic data */
 	pld->ob= ob;
@@ -1169,14 +1267,17 @@ static void poselib_preview_init_data (tPoseLib_PreviewData *pld, Object *ob, sh
 	pld->act= (ob) ? (ob->poselib) : NULL;
 	pld->marker= poselib_get_active_pose(pld->act);
 	
+	pld->scene= CTX_data_scene(C);
+	pld->sa= CTX_wm_area(C);
+	
 	/* check if valid poselib */
 	if (ELEM3(NULL, pld->ob, pld->pose, pld->arm)) {
-		error("PoseLib is only for Armatures in PoseMode");
+		BKE_report(op->reports, RPT_ERROR, "PoseLib is only for Armatures in PoseMode");
 		pld->state= PL_PREVIEW_ERROR;
 		return;
 	}
 	if (pld->act == NULL) {
-		error("Object doesn't have a valid PoseLib");
+		BKE_report(op->reports, RPT_ERROR, "Object doesn't have a valid PoseLib");
 		pld->state= PL_PREVIEW_ERROR;
 		return;
 	}
@@ -1187,11 +1288,14 @@ static void poselib_preview_init_data (tPoseLib_PreviewData *pld, Object *ob, sh
 			printf("PoseLib had no active pose\n");
 		}
 		else {
-			error("PoseLib has no poses to preview/apply");
+			BKE_report(op->reports, RPT_ERROR, "PoseLib has no poses to preview/apply");
 			pld->state= PL_PREVIEW_ERROR;
 			return;
 		}
 	}
+	
+	/* get ID pointer for applying poses */
+	RNA_id_pointer_create(&ob->id, &pld->rna_ptr);
 	
 	/* make backups for restoring pose */
 	poselib_backup_posecopy(pld);
@@ -1214,13 +1318,18 @@ static void poselib_preview_init_data (tPoseLib_PreviewData *pld, Object *ob, sh
 }
 
 /* After previewing poses */
-static void poselib_preview_cleanup (Scene *scene, tPoseLib_PreviewData *pld)
+static void poselib_preview_cleanup (bContext *C, wmOperator *op)
 {
+	tPoseLib_PreviewData *pld= (tPoseLib_PreviewData *)op->customdata;
+	Scene *scene= pld->scene;
 	Object *ob= pld->ob;
 	bPose *pose= pld->pose;
 	bArmature *arm= pld->arm;
 	bAction *act= pld->act;
 	TimeMarker *marker= pld->marker;
+	
+	/* redraw the header so that it doesn't show any of our stuff anymore */
+	ED_area_headerprint(pld->sa, NULL);
 	
 	/* this signal does one recalc on pose, then unlocks, so ESC or edit will work */
 	pose->flag |= POSE_DO_UNLOCK;
@@ -1251,7 +1360,7 @@ static void poselib_preview_cleanup (Scene *scene, tPoseLib_PreviewData *pld)
 		
 		/* updates */
 		if (IS_AUTOKEY_MODE(scene, NORMAL)) {
-			remake_action_ipos(ob->action);
+			//remake_action_ipos(ob->action);
 			
 		}
 		else {
@@ -1264,117 +1373,99 @@ static void poselib_preview_cleanup (Scene *scene, tPoseLib_PreviewData *pld)
 	/* free memory used for backups */
 	BLI_freelistN(&pld->backups);
 	BLI_freelistN(&pld->searchp);
+	
+	/* free temp data for operator */
+	MEM_freeN(pld);
+	op->customdata= NULL;
 }
 
-
-
-/* This tool allows users to preview the pose from the pose-lib using the mouse-scrollwheel/pageupdown
- * It is also used to apply the active poselib pose only
- */
-void poselib_preview_poses (Scene *scene, Object *ob, short apply_active)
+/* End previewing operation */
+static int poselib_preview_exit (bContext *C, wmOperator *op)
 {
-	tPoseLib_PreviewData pld;
-	
-	unsigned short event;
-	short val=0;
-	char ascii;
-	
-	/* check if valid poselib */
-	poselib_preview_init_data(&pld, ob, apply_active);
-	if (pld.state == PL_PREVIEW_ERROR)
-		return;
-		
-	/* start preview loop */
-	while (ELEM(pld.state, PL_PREVIEW_RUNNING, PL_PREVIEW_RUNONCE)) {
-		/* preview a pose */
-		if (pld.redraw) {
-			/* only recalc pose (and its dependencies) if pose has changed */
-			if (pld.redraw == PL_PREVIEW_REDRAWALL) {
-				/* don't clear pose if firsttime */
-				if ((pld.flag & PL_PREVIEW_FIRSTTIME)==0)
-					poselib_backup_restore(&pld);
-				else
-					pld.flag &= ~PL_PREVIEW_FIRSTTIME;
-					
-				/* pose should be the right one to draw (unless we're temporarily not showing it) */
-				if ((pld.flag & PL_PREVIEW_SHOWORIGINAL)==0)
-					poselib_apply_pose(&pld);
-				
-				/* old optimize trick... this enforces to bypass the depgraph 
-				 *	- note: code copied from transform_generics.c -> recalcData()
-				 */
-				if ((pld.arm->flag & ARM_DELAYDEFORM)==0)
-					DAG_object_flush_update(scene, ob, OB_RECALC_DATA);  /* sets recalc flags */
-				else
-					where_is_pose(scene, ob);
-			}
-			
-			/* do header print - if interactively previewing */
-			if (pld.state == PL_PREVIEW_RUNNING) {
-				if (pld.flag & PL_PREVIEW_SHOWORIGINAL) {
-					sprintf(pld.headerstr, "PoseLib Previewing Pose: [Showing Original Pose] | Use Tab to start previewing poses again");
-					headerprint(pld.headerstr);
-				}
-				else if (pld.searchstr[0]) {
-					char tempstr[65];
-					char markern[64];
-					short index;
-					
-					/* get search-string */
-					index= pld.search_cursor;
-					
-					if (IN_RANGE(index, 0, 64)) {
-						memcpy(&tempstr[0], &pld.searchstr[0], index);
-						tempstr[index]= '|';
-						memcpy(&tempstr[index+1], &pld.searchstr[index], 64-index);
-					}
-					else {
-						strncpy(tempstr, pld.searchstr, 64);
-					}
-					
-					/* get marker name */
-					if (pld.marker)
-						strcpy(markern, pld.marker->name);
-					else
-						strcpy(markern, "No Matches");
-					
-					sprintf(pld.headerstr, "PoseLib Previewing Pose: Filter - [%s] | Current Pose - \"%s\"  | Use ScrollWheel or PageUp/Down to change", tempstr, markern);
-					headerprint(pld.headerstr);
-				}
-				else {
-					sprintf(pld.headerstr, "PoseLib Previewing Pose: \"%s\"  | Use ScrollWheel or PageUp/Down to change", pld.marker->name);
-					headerprint(pld.headerstr);
-				}
-			}
-			
-			/* force drawing of view + clear redraw flag */
-			// XXX force_draw(0);
-			pld.redraw= PL_PREVIEW_NOREDRAW;
-		}
-		
-		/* stop now if only running once */
-		if (pld.state == PL_PREVIEW_RUNONCE) {
-			pld.state = PL_PREVIEW_CONFIRM;
-			break;
-		}
-		
-		/* essential for idling subloop */
-		if (qtest() == 0) 
-			PIL_sleep_ms(2);
-		
-		/* emptying queue and reading events */
-		while ( qtest() ) {
-			event= extern_qread_ext(&val, &ascii);
-			
-			/* event processing */
-			if (val) {
-				poselib_preview_handle_event(&pld, event, ascii);
-			}
-		}
-	}
+	tPoseLib_PreviewData *pld= op->customdata;
 	
 	/* finish up */
-	poselib_preview_cleanup(scene, &pld);
+	poselib_preview_cleanup(C, op);
 	
-	BIF_undo_push("PoseLib Apply Pose");
+	if (ELEM(pld->state, PL_PREVIEW_CANCEL, PL_PREVIEW_ERROR))
+		return OPERATOR_CANCELLED;
+	else
+		return OPERATOR_FINISHED;
+}
+
+/* Cancel previewing operation (called when exiting Blender) */
+static int poselib_preview_cancel (bContext *C, wmOperator *op)
+{
+	poselib_preview_exit(C, op);
+	return OPERATOR_CANCELLED;
+}
+
+/* main modal status check */
+static int poselib_preview_modal (bContext *C, wmOperator *op, wmEvent *event)
+{
+	tPoseLib_PreviewData *pld= op->customdata; 
+	
+	/* 1) check state to see if we're still running */
+	if (ELEM(pld->state, PL_PREVIEW_RUNONCE, PL_PREVIEW_RUNNING) == 0)
+		return poselib_preview_exit(C, op);
+	
+	/* 2) apply changes and redraw */
+	if (pld->redraw)
+		poselib_preview_apply(C, op);
+	
+	/* check if time to exit */
+	if (pld->state == PL_PREVIEW_RUNONCE) {
+		/* set status to cleanup time */
+		pld->state = PL_PREVIEW_CONFIRM;
+		
+		return poselib_preview_exit(C, op);
+	}
+	
+	/* 3) handle events */
+	poselib_preview_handle_event(C, op, event);
+	
+	return OPERATOR_RUNNING_MODAL;
+}
+
+/* Modal Operator init */
+static int poselib_preview_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	tPoseLib_PreviewData *pld;
+	
+	/* check if everything is ok, and init settings for modal operator */
+	poselib_preview_init_data(C, op);
+	pld= (tPoseLib_PreviewData *)op->customdata;
+	
+	if (pld->state == PL_PREVIEW_ERROR) {
+		/* an error occurred, so free temp mem used */
+		poselib_preview_cleanup(C, op);
+		return OPERATOR_CANCELLED;
+	}
+	
+	/* add temp handler if we're running as a modal operator */
+	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
+
+	return OPERATOR_RUNNING_MODAL;
+}
+
+void POSELIB_OT_browse_interactive (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "PoseLib Browse Poses";
+	ot->idname= "POSELIB_OT_browse_interactive";
+	ot->description= "Interactively browse poses in 3D-View";
+	
+	/* api callbacks */
+	ot->invoke= poselib_preview_invoke;
+	ot->modal= poselib_preview_modal;
+	ot->cancel= poselib_preview_cancel;
+	//ot->exec= poselib_preview_exec;
+	ot->poll= ED_operator_posemode;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* properties */	
+		// FIXME: the following should be removed...
+	RNA_def_boolean(ot->srna, "apply_active", 0, "Apply Active Pose", "Simply apply the active pose and exit");
 }

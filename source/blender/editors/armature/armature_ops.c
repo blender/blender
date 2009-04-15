@@ -155,6 +155,8 @@ void ED_operatortypes_armature(void)
 	WM_operatortype_append(POSE_OT_select_linked);
 	
 	/* POSELIB */
+	WM_operatortype_append(POSELIB_OT_browse_interactive);
+	
 	WM_operatortype_append(POSELIB_OT_pose_add);
 	WM_operatortype_append(POSELIB_OT_pose_remove);
 	WM_operatortype_append(POSELIB_OT_pose_rename);
@@ -258,6 +260,8 @@ void ED_keymap_armature(wmWindowManager *wm)
 	
 	/* Pose -> PoseLib ------------- */
 	/* only set in posemode, by space_view3d listener */
+	WM_keymap_add_item(keymap, "POSELIB_OT_browse_interactive", LKEY, KM_PRESS, KM_CTRL, 0);
+	
 	WM_keymap_add_item(keymap, "POSELIB_OT_pose_add", LKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "POSELIB_OT_pose_remove", LKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "POSELIB_OT_pose_rename", LKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0);
