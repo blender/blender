@@ -708,8 +708,7 @@ static int project_paint_PickColor(const ProjPaintState *ps, float pt[2], float 
 	}
 	
 	ibuf = BKE_image_get_ibuf((Image *)tf->tpage, NULL); /* TODO - this may be slow, the only way around it is to have an ibuf index per face */
-	
-
+	if (!ibuf) return 0;
 	
 	if (interp) {
 		float x, y;

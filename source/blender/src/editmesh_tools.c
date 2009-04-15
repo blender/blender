@@ -2520,11 +2520,13 @@ void esubdivideflag(int flag, float rad, int beauty, int numcuts, int seltype)
 								}
 							}
 						}
-						sort[hold]->f &= ~SELECT;
-						sort[hold]->f2 |= EDGENEW;
-						length[hold] = -1;
-					}							
-				} 
+						if (hold > -1) {
+							sort[hold]->f &= ~SELECT;
+							sort[hold]->f2 |= EDGENEW;
+							length[hold] = -1;
+						}
+					}
+				}
 				
 				// Beauty Long Edges
 				else {
@@ -2541,13 +2543,15 @@ void esubdivideflag(int flag, float rad, int beauty, int numcuts, int seltype)
 								}
 							}
 						}
-						sort[hold]->f &= ~SELECT;
-						sort[hold]->f2 |= EDGENEW;
-						length[hold] = -1;
-					}							
-				}   
+						if (hold > -1) {
+							sort[hold]->f &= ~SELECT;
+							sort[hold]->f2 |= EDGENEW;
+							length[hold] = -1;
+						}
+					}
+				}
 			}
-		}	
+		}
 	}
 
 	gh = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp); 
