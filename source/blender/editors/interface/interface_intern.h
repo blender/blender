@@ -273,6 +273,8 @@ extern int ui_translate_buttons(void);
 extern int ui_translate_menus(void);
 extern int ui_translate_tooltips(void);
 
+void ui_fontscale(short *points, float aspect);
+
 extern void ui_block_to_window_fl(const struct ARegion *ar, uiBlock *block, float *x, float *y);
 extern void ui_block_to_window(const struct ARegion *ar, uiBlock *block, int *x, int *y);
 extern void ui_block_to_window_rct(const struct ARegion *ar, uiBlock *block, rctf *graph, rcti *winr);

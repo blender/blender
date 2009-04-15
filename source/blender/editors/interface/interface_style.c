@@ -128,7 +128,7 @@ static uiFont *uifont_to_blfont(int id)
 			return font;
 		}
 	}
-	return NULL;
+	return U.uifonts.first;
 }
 
 /* *************** draw ************************ */

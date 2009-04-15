@@ -262,9 +262,9 @@ void blf_internal_boundbox(FontBLF *font, char *str, rctf *box)
 			descent= d;
 	}
 	box->xmin = (float)0;
-	box->ymin = (float)-descent;
-	box->xmax = (float)length;
-	box->ymax = (float)ascent;
+	box->ymin = (float)-descent * font->aspect;
+	box->xmax = (float)length * font->aspect;
+	box->ymax = (float)ascent * font->aspect;
 }
 
 float blf_internal_width(FontBLF *font, char *str)

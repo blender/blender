@@ -214,24 +214,21 @@ static void widget_init(uiWidgetBase *wtb)
 
 /* helper call, makes shadow rect, with 'sun' above menu, so only shadow to left/right/bottom */
 /* return tot */
-static int round_box_shadow_edges(float (*vert)[2], rcti *rect, float rad, int roundboxalign, int inner)
+static int round_box_shadow_edges(float (*vert)[2], rcti *rect, float rad, int roundboxalign, float step)
 {
 	float vec[9][2];
 	float minx, miny, maxx, maxy;
 	int a, tot= 0;
 	
-	if(inner) {
-		minx= rect->xmin;
-		miny= rect->ymin;
-		maxx= rect->xmax;
-		maxy= rect->ymax;
-	}
-	else {
-		minx= rect->xmin-rad;
-		miny= rect->ymin-rad;
-		maxx= rect->xmax+rad;
-		maxy= rect->ymax+rad;
-	}
+	rad+= step;
+	
+	if(2.0f*rad > rect->ymax-rect->ymin)
+		rad= 0.5f*(rect->ymax-rect->ymin);
+	
+	minx= rect->xmin-step;
+	miny= rect->ymin-step;
+	maxx= rect->xmax+step;
+	maxy= rect->ymax+step;
 	
 	/* mult */
 	for(a=0; a<9; a++) {
@@ -300,7 +297,7 @@ static void round_box_edges(uiWidgetBase *wt, int roundboxalign, rcti *rect, flo
 {
 	float vec[9][2], veci[9][2];
 	float minx= rect->xmin, miny= rect->ymin, maxx= rect->xmax, maxy= rect->ymax;
-	float radi= rad - 1.0f; /* rad inner */
+	float radi;				  /* rad inner */
 	float minxi= minx + 1.0f; /* boundbox inner */
 	float maxxi= maxx - 1.0f;
 	float minyi= miny + 1.0f;
@@ -308,6 +305,11 @@ static void round_box_edges(uiWidgetBase *wt, int roundboxalign, rcti *rect, flo
 	float facxi= 1.0f/(maxxi-minxi); /* for uv */
 	float facyi= 1.0f/(maxyi-minyi);
 	int a, tot= 0;
+	
+	if(2.0f*rad > rect->ymax-rect->ymin)
+		rad= 0.5f*(rect->ymax-rect->ymin);
+
+	radi= rad - 1.0f;
 	
 	/* mult */
 	for(a=0; a<9; a++) {
@@ -1133,17 +1135,21 @@ static void widget_softshadow(rcti *rect, int roundboxalign, float radin, float 
 	float alpha, alphastep;
 	int step, tot, a;
 	
-	rect1.ymax -= 2.0f*radout;
+	/* prevent tooltips to not show round shadow */
+	if( 2.0f*radout > 0.2f*(rect1.ymax-rect1.ymin) )
+		rect1.ymax -= 0.2f*(rect1.ymax-rect1.ymin);
+	else
+		rect1.ymax -= 2.0f*radout;
 	
 	/* inner part */
-	tot= round_box_shadow_edges(wtb.inner_v, &rect1, radin, roundboxalign & 12, 1);
+	tot= round_box_shadow_edges(wtb.inner_v, &rect1, radin, roundboxalign & 12, 0.0f);
 	
 	/* inverse linear shadow alpha */
 	alpha= 0.15;
 	alphastep= 0.67;
 	
 	for(step= 1; step<=radout; step++, alpha*=alphastep) {
-		round_box_shadow_edges(wtb.outer_v, &rect1, (float)step, 15, 0);
+		round_box_shadow_edges(wtb.outer_v, &rect1, radin, 15, (float)step);
 		
 		glColor4f(0.0f, 0.0f, 0.0f, alpha);
 		
@@ -1820,7 +1826,10 @@ void ui_draw_menu_back(uiStyle *style, uiBlock *block, rcti *rect)
 	uiWidgetType *wt= widget_type(UI_WTYPE_MENU_BACK);
 	
 	wt->state(wt, 0);
-	wt->draw(&wt->wcol, rect, block->flag, block->direction);
+	if(block)
+		wt->draw(&wt->wcol, rect, block->flag, block->direction);
+	else
+		wt->draw(&wt->wcol, rect, 0, 0);
 	
 }
 

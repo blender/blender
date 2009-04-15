@@ -66,11 +66,9 @@
 #define MENU_BUTTON_HEIGHT	20
 #define MENU_SEPR_HEIGHT	6
 #define B_NOP              	-1
-#define MENU_SHADOW_LEFT	-10
-#define MENU_SHADOW_BOTTOM	-10
-#define MENU_SHADOW_RIGHT	10
-#define MENU_SHADOW_TOP		1
-#define MENU_ROUNDED_TOP	5
+#define MENU_SHADOW_SIDE	8
+#define MENU_SHADOW_BOTTOM	10
+#define MENU_TOP			8
 
 /*********************** Menu Data Parsing ********************* */
 
@@ -253,43 +251,21 @@ void ui_remove_temporary_region(bContext *C, bScreen *sc, ARegion *ar)
 /************************* Creating Tooltips **********************/
 
 typedef struct uiTooltipData {
-	rctf bbox;
-	struct BMF_Font *font;
+	rcti bbox;
+	uiFontStyle fstyle;
 	char *tip;
-	float aspect;
 } uiTooltipData;
 
 static void ui_tooltip_region_draw(const bContext *C, ARegion *ar)
 {
-	uiStyle *style= U.uistyles.first;	// XXX pass on as arg
-	uiTooltipData *data;
-	int x1, y1, x2, y2;
+	uiTooltipData *data= ar->regiondata;
 	
-	data= ar->regiondata;
-
-	x1= ar->winrct.xmin;
-	y1= ar->winrct.ymin;
-	x2= ar->winrct.xmax;
-	y2= ar->winrct.ymax;
-
-	/* draw background */
-	glEnable(GL_BLEND);
-	glColor4f(0.15f, 0.15f, 0.15f, 0.85f);
-	
-	uiSetRoundBox(15);
-	uiRoundBox(data->bbox.xmin, 2, data->bbox.xmax+10, y2-y1-2, 5.0f);
+	ui_draw_menu_back(U.uistyles.first, NULL, &data->bbox);
 	
 	/* draw text */
 	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-
-	/* set the position for drawing text +6 in from the left edge, and leaving
-	 * an equal gap between the top of the background box and the top of the
-	 * string's bbox, and the bottom of the background box, and the bottom of
-	 * the string's bbox */
-	
-	uiStyleFontSet(&style->widget);
-	BLF_position(5, ((y2-data->bbox.ymax)+(y1+data->bbox.ymin))/2 - data->bbox.ymin - y1, 0.0f);
-	BLF_draw(data->tip);
+	uiStyleFontSet(&data->fstyle);
+	uiStyleFontDraw(&data->fstyle, &data->bbox, data->tip);
 }
 
 static void ui_tooltip_region_free(ARegion *ar)
@@ -308,6 +284,8 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 	static ARegionType type;
 	ARegion *ar;
 	uiTooltipData *data;
+	float fonth, fontw, aspect= but->block->aspect;
+	float x1f, x2f, y1f, y2f;
 	int x1, x2, y1, y2, winx, winy, ofsx, ofsy;
 
 	if(!but->tip || strlen(but->tip)==0)
@@ -324,11 +302,14 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 	/* create tooltip data */
 	data= MEM_callocN(sizeof(uiTooltipData), "uiTooltipData");
 	data->tip= BLI_strdup(but->tip);
-	data->aspect= but->aspect;
 	
 	/* set font, get bb */
-	uiStyleFontSet(&style->widget);
-	BLF_boundbox(data->tip, &data->bbox);
+	data->fstyle= style->widget; /* copy struct */
+	data->fstyle.align= UI_STYLE_TEXT_CENTER;
+	ui_fontscale(&data->fstyle.points, aspect);
+	uiStyleFontSet(&data->fstyle);
+	fontw= aspect * BLF_width(data->tip);
+	fonth= aspect * BLF_height(data->tip);
 
 	ar->regiondata= data;
 
@@ -336,19 +317,19 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 	ofsx= (but->block->panel)? but->block->panel->ofsx: 0;
 	ofsy= (but->block->panel)? but->block->panel->ofsy: 0;
 
-	x1= (but->x1+but->x2)/2 + ofsx;
-	x2= x1+but->aspect*((data->bbox.xmax-data->bbox.xmin) + 8);
-	y2= but->y1-10 + ofsy;
-	y1= y2-but->aspect*((data->bbox.ymax+(data->bbox.ymax-data->bbox.ymin)));
-
-	y2 += 8;
-	x2 += 4;
-
+	x1f= (but->x1+but->x2)/2.0f + ofsx - 16.0f*aspect;
+	x2f= x1f + fontw + 16.0f*aspect;
+	y2f= but->y1 + ofsy - 15.0f*aspect;
+	y1f= y2f - fonth - 10.0f*aspect;
+	
+	/* copy to int, gets projected if possible too */
+	x1= x1f; y1= y1f; x2= x2f; y2= y2f; 
+	
 	if(butregion) {
 		/* XXX temp, region v2ds can be empty still */
 		if(butregion->v2d.cur.xmin != butregion->v2d.cur.xmax) {
-			UI_view2d_to_region_no_clip(&butregion->v2d, x1, y1, &x1, &y1);
-			UI_view2d_to_region_no_clip(&butregion->v2d, x2, y2, &x2, &y2);
+			UI_view2d_to_region_no_clip(&butregion->v2d, x1f, y1f, &x1, &y1);
+			UI_view2d_to_region_no_clip(&butregion->v2d, x2f, y2f, &x2, &y2);
 		}
 
 		x1 += butregion->winrct.xmin;
@@ -374,11 +355,18 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 		y1 += 36;
 		y2 += 36;
 	}
+
+	/* widget rect, in region coords */
+	data->bbox.xmin= MENU_SHADOW_SIDE;
+	data->bbox.xmax= x2-x1 + MENU_SHADOW_SIDE;
+	data->bbox.ymin= MENU_SHADOW_BOTTOM;
+	data->bbox.ymax= y2-y1 + MENU_SHADOW_BOTTOM;
 	
-	ar->winrct.xmin= x1;
-	ar->winrct.ymin= y1;
-	ar->winrct.xmax= x2;
-	ar->winrct.ymax= y2;
+	/* region bigger for shadow */
+	ar->winrct.xmin= x1 - MENU_SHADOW_SIDE;
+	ar->winrct.xmax= x2 + MENU_SHADOW_SIDE;
+	ar->winrct.ymin= y1 - MENU_SHADOW_BOTTOM;
+	ar->winrct.ymax= y2 + MENU_TOP;
 
 	/* adds subwindow */
 	ED_region_init(C, ar);
@@ -683,10 +671,10 @@ uiPopupBlockHandle *ui_popup_block_create(bContext *C, ARegion *butregion, uiBut
 	/* the block and buttons were positioned in window space as in 2.4x, now
 	 * these menu blocks are regions so we bring it back to region space.
 	 * additionally we add some padding for the menu shadow or rounded menus */
-	ar->winrct.xmin= block->minx + MENU_SHADOW_LEFT;
-	ar->winrct.xmax= block->maxx + MENU_SHADOW_RIGHT;
-	ar->winrct.ymin= block->miny + MENU_SHADOW_BOTTOM;
-	ar->winrct.ymax= block->maxy + MENU_SHADOW_TOP + MENU_ROUNDED_TOP;
+	ar->winrct.xmin= block->minx - MENU_SHADOW_SIDE;
+	ar->winrct.xmax= block->maxx + MENU_SHADOW_SIDE;
+	ar->winrct.ymin= block->miny - MENU_SHADOW_BOTTOM;
+	ar->winrct.ymax= block->maxy + MENU_TOP;
 
 	block->minx -= ar->winrct.xmin;
 	block->maxx -= ar->winrct.xmin;

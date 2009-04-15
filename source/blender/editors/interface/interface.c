@@ -574,7 +574,7 @@ void uiEndBlock(const bContext *C, uiBlock *block)
 
 /* ************** BLOCK DRAWING FUNCTION ************* */
 
-static void ui_fontscale(short *points, float aspect)
+void ui_fontscale(short *points, float aspect)
 {
 	if(aspect < 0.9f || aspect > 1.1f) {
 		float pointsf= *points;
