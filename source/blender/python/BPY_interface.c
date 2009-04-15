@@ -1275,7 +1275,8 @@ static int bpy_pydriver_create_dict(void)
 	/* If there's a Blender text called pydrivers.py, import it.
 	 * Users can add their own functions to this module. */
 	if (G.f&G_DOSCRIPTLINKS) {
-		mod = importText("pydrivers"); /* can also use PyImport_Import() */
+		int found; /* not used but needed as an arg */
+		mod = importText("pydrivers", &found); /* can also use PyImport_Import() */
 		if (mod) {
 			PyDict_SetItemString(d, "pydrivers", mod);
 			PyDict_SetItemString(d, "p", mod);

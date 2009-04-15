@@ -1209,6 +1209,7 @@ PyObject *KXpy_compile(PyObject *self, PyObject *args) {
 PyObject *KXpy_import(PyObject *self, PyObject *args)
 {
 	char *name;
+	int found;
 	PyObject *globals = NULL;
 	PyObject *locals = NULL;
 	PyObject *fromlist = NULL;
@@ -1243,12 +1244,13 @@ PyObject *KXpy_import(PyObject *self, PyObject *args)
 	}
 	
 	/* Import blender texts as python modules */
-	m= importText(name);
+	m= importText(name, &found);
 	if (m)
 		return m;
-		
-	PyErr_Format(PyExc_ImportError,
-		 "Import of external Module %.20s not allowed.", name);
+	
+	if(found==0) /* if its found but could not import then it has its own error */
+		PyErr_Format(PyExc_ImportError, "Import of external Module %.20s not allowed.", name);
+	
 	return NULL;
 
 }
@@ -1260,7 +1262,7 @@ PyObject *KXpy_reload(PyObject *self, PyObject *args) {
 	PyErr_SetString(PyExc_RuntimeError, "Sandbox: reload() function disabled!\nGame Scripts should not use this function.");
 	return NULL;
 #endif
-	
+	int found;
 	PyObject *module = NULL;
 	PyObject *newmodule = NULL;
 
@@ -1268,9 +1270,11 @@ PyObject *KXpy_reload(PyObject *self, PyObject *args) {
 	if( !PyArg_ParseTuple( args, "O:bpy_reload", &module ) )
 		return NULL;
 	
-	newmodule= reimportText( module );
+	newmodule= reimportText( module, &found );
+	if (newmodule)
+		return newmodule;
 	
-	if (newmodule==NULL)
+	if (found==0) /* if its found but could not import then it has its own error */
 		PyErr_SetString(PyExc_ImportError, "failed to reload from blenders internal text");
 	
 	return newmodule;

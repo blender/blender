@@ -56,13 +56,15 @@ void bpy_import_main_set(struct Main *maggie)
 }
 
 
-PyObject *importText( char *name )
+PyObject *importText( char *name, int *found )
 {
 	Text *text;
 	char txtname[22]; /* 21+NULL */
 	char *buf = NULL;
 	int namelen = strlen( name );
 	Main *maggie= bpy_import_main ? bpy_import_main:G.main;
+	
+	*found= 0;
 	
 	if (namelen>21-3) return NULL; /* we know this cant be importable, the name is too long for blender! */
 	
@@ -76,7 +78,9 @@ PyObject *importText( char *name )
 
 	if( !text )
 		return NULL;
-
+	else
+		*found = 1;
+	
 	if( !text->compiled ) {
 		buf = txt_to_buf( text );
 		text->compiled = Py_CompileString( buf, text->id.name+2, Py_file_input );
@@ -99,13 +103,15 @@ PyObject *importText( char *name )
  * find in-memory module and recompile
  */
 
-PyObject *reimportText( PyObject *module )
+PyObject *reimportText( PyObject *module, int *found )
 {
 	Text *text;
 	char *txtname;
 	char *name;
 	char *buf = NULL;
 	Main *maggie= bpy_import_main ? bpy_import_main:G.main;
+	
+	*found= 0;
 	
 	/* get name, filename from the module itself */
 
@@ -125,6 +131,8 @@ PyObject *reimportText( PyObject *module )
 	/* uh-oh.... didn't find it */
 	if( !text )
 		return NULL;
+	else
+		*found = 1;
 
 	/* if previously compiled, free the object */
 	/* (can't see how could be NULL, but check just in case) */ 
@@ -155,8 +163,9 @@ static PyObject *blender_import( PyObject * self, PyObject * args,  PyObject * k
 {
 	PyObject *exception, *err, *tb;
 	char *name;
+	int found= 0;
 	PyObject *globals = NULL, *locals = NULL, *fromlist = NULL;
-	PyObject *m;
+	PyObject *newmodule;
 	
 	//PyObject_Print(args, stderr, 0);
 #if (PY_VERSION_HEX >= 0x02060000)
@@ -173,24 +182,37 @@ static PyObject *blender_import( PyObject * self, PyObject * args,  PyObject * k
 			       &name, &globals, &locals, &fromlist ) )
 		return NULL;
 #endif
-	m = PyImport_ImportModuleEx( name, globals, locals, fromlist );
 
-	if( m )
-		return m;
-	else
-		PyErr_Fetch( &exception, &err, &tb );	/*restore for probable later use */
-
-	m = importText( name );
-	if( m ) {		/* found module, ignore above exception */
+	/* import existing builtin modules or modules that have been imported alredy */
+	newmodule = PyImport_ImportModuleEx( name, globals, locals, fromlist );
+	
+	if(newmodule)
+		return newmodule;
+	
+	PyErr_Fetch( &exception, &err, &tb );	/* get the python error incase we cant import as blender text either */
+	
+	/* importing from existing modules failed, see if we have this module as blender text */
+	newmodule = importText( name, &found );
+	
+	if( newmodule ) {/* found module as blender text, ignore above exception */
 		PyErr_Clear(  );
 		Py_XDECREF( exception );
 		Py_XDECREF( err );
 		Py_XDECREF( tb );
 		/* printf( "imported from text buffer...\n" ); */
-	} else {
+	}
+	else if (found==1) { /* blender text module failed to execute but was found, use its error message */
+		Py_XDECREF( exception );
+		Py_XDECREF( err );
+		Py_XDECREF( tb );
+		return NULL;
+	}
+	else {
+		/* no blender text was found that could import the module
+		 * rause the original error from PyImport_ImportModuleEx */
 		PyErr_Restore( exception, err, tb );
 	}
-	return m;
+	return newmodule;
 }
 
 
@@ -203,7 +225,8 @@ static PyObject *blender_reload( PyObject * self, PyObject * args )
 	PyObject *exception, *err, *tb;
 	PyObject *module = NULL;
 	PyObject *newmodule = NULL;
-
+	int found= 0;
+	
 	/* check for a module arg */
 	if( !PyArg_ParseTuple( args, "O:bpy_reload", &module ) )
 		return NULL;
@@ -216,14 +239,25 @@ static PyObject *blender_reload( PyObject * self, PyObject * args )
 	/* no file, try importing from memory */
 	PyErr_Fetch( &exception, &err, &tb );	/*restore for probable later use */
 
-	newmodule = reimportText( module );
-	if( newmodule ) {		/* found module, ignore above exception */
+	newmodule = reimportText( module, &found );
+	if( newmodule ) {/* found module as blender text, ignore above exception */
 		PyErr_Clear(  );
 		Py_XDECREF( exception );
 		Py_XDECREF( err );
 		Py_XDECREF( tb );
-	} else
+		/* printf( "imported from text buffer...\n" ); */
+	}
+	else if (found==1) { /* blender text module failed to execute but was found, use its error message */
+		Py_XDECREF( exception );
+		Py_XDECREF( err );
+		Py_XDECREF( tb );
+		return NULL;
+	}
+	else {
+		/* no blender text was found that could import the module
+		 * rause the original error from PyImport_ImportModuleEx */
 		PyErr_Restore( exception, err, tb );
+	}
 
 	return newmodule;
 }

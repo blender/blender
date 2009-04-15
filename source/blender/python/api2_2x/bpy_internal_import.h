@@ -35,8 +35,8 @@
 #include "compile.h"		/* for the PyCodeObject */
 #include "eval.h"		/* for PyEval_EvalCode */
 
-PyObject *importText( char *name );
-PyObject *reimportText( PyObject *module );
+PyObject *importText( char *name, int *found );
+PyObject *reimportText( PyObject *module, int *found );
 extern PyMethodDef bpy_import[];
 extern PyMethodDef bpy_reload[];
 
