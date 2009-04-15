@@ -327,7 +327,7 @@ void unwrap_lscm(short seamcut)
 	param_lscm_solve(handle);
 	param_lscm_end(handle);
 	
-	param_pack(handle);
+	param_pack(handle, G.scene->toolsettings->uvcalc_margin);
 
 	param_flush(handle);
 
@@ -442,7 +442,7 @@ void pack_charts_tface_uv(void)
 	if(!EM_texFaceCheck()) return;
 
 	handle = construct_param_handle(em, 1, 0, 1);
-	param_pack(handle);
+	param_pack(handle, G.scene->toolsettings->uvcalc_margin);
 	param_flush(handle);
 	param_delete(handle);
 

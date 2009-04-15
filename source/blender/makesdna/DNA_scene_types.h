@@ -412,6 +412,8 @@ typedef struct ToolSettings {
 	short unwrapper;
 	float uvcalc_radius;
 	float uvcalc_cubesize;
+	float uvcalc_margin;
+	float pad;
 	short uvcalc_mapdir;
 	short uvcalc_mapalign;
 	short uvcalc_flag;

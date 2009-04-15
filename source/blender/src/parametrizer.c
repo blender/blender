@@ -4125,8 +4125,8 @@ void param_smooth_area(ParamHandle *handle)
 	}
 }
  
-void param_pack(ParamHandle *handle)
-{
+void param_pack(ParamHandle *handle, float margin)
+{	
 	/* box packing variables */
 	boxPack *boxarray, *box;
 	float tot_width, tot_height, scale;
@@ -4158,13 +4158,13 @@ void param_pack(ParamHandle *handle)
 		
 		p_chart_uv_bbox(chart, trans, chart->u.pack.size);
 		
-		trans[0] = -trans[0];
-		trans[1] = -trans[1];
+		trans[0] = -(trans[0] - margin);
+		trans[1] = -(trans[1] - margin);
 		
 		p_chart_uv_translate(chart, trans);
 		
-		box->w =  chart->u.pack.size[0] + trans[0];
-		box->h =  chart->u.pack.size[1] + trans[1];
+		box->w =  (chart->u.pack.size[0] + trans[0]) + margin*2;
+		box->h =  (chart->u.pack.size[1] + trans[1]) + margin*2;
 		box->index = i; /* warning this index skips PCHART_NOPACK boxes */
 	}
 	

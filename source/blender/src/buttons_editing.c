@@ -6622,7 +6622,10 @@ static void editing_panel_mesh_uvautocalculation(void)
 	uiDefButBitS(block, TOGN, UVCALC_NO_ASPECT_CORRECT, B_NOP, "Image Aspect",100,row,200,butH,&G.scene->toolsettings->uvcalc_flag, 0, 0, 0, 0,  "Scale the UV Unwrapping to correct for the current images aspect ratio");
 
 	row-= butHB+butS;	
-		uiDefButBitS(block, TOG, UVCALC_TRANSFORM_CORRECT, B_NOP, "Transform Correction",100,row,200,butH,&G.scene->toolsettings->uvcalc_flag, 0, 0, 0, 0,  "Correct for UV distortion while transforming, (only works with edge slide now)");
+	uiDefButBitS(block, TOG, UVCALC_TRANSFORM_CORRECT, B_NOP, "Transform Correction",100,row,200,butH,&G.scene->toolsettings->uvcalc_flag, 0, 0, 0, 0,  "Correct for UV distortion while transforming, (only works with edge slide now)");
+	
+	row-= butHB+butS;	
+	uiDefButF(block, NUM,B_NOP ,"Pack Margin:",100,row,200,butH, &G.scene->toolsettings->uvcalc_margin, 0.0, 1.0, 10, 2, "Add a margin between UV islands when unwrapping or with 'Pack Islands' in the UV window");
 
 	row= 180;
 	
