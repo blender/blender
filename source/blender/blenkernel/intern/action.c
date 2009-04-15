@@ -65,6 +65,9 @@
 #include "BLI_blenlib.h"
 #include "BLI_ghash.h"
 
+#include "RNA_access.h"
+#include "RNA_types.h"
+
 //XXX #include "nla.h"
 
 /* *********************** NOTE ON POSE AND ACTION **********************
@@ -875,13 +878,12 @@ void copy_pose_result(bPose *to, bPose *from)
 /* For the calculation of the effects of an Action at the given frame on an object 
  * This is currently only used for the Action Constraint 
  */
-void what_does_obaction (Scene *scene, Object *ob, Object *workob, bPose *pose, bAction *act, float cframe)
+void what_does_obaction (Scene *scene, Object *ob, Object *workob, bPose *pose, bAction *act, char groupname[], float cframe)
 {
-	AnimData adt;
+	bActionGroup *agrp= action_groups_find_named(act, groupname);
 	
-	/* clear workob and animdata */
+	/* clear workob */
 	clear_workob(workob);
-	memset(&adt, 0, sizeof(AnimData));
 	
 	/* init workob */
 	Mat4CpyMat4(workob->obmat, ob->obmat);
@@ -906,14 +908,30 @@ void what_does_obaction (Scene *scene, Object *ob, Object *workob, bPose *pose, 
 	strcpy(workob->parsubstr, ob->parsubstr);
 	strcpy(workob->id.name, "OB<ConstrWorkOb>"); /* we don't use real object name, otherwise RNA screws with the real thing */
 	
-	/* init animdata, and attach to workob */
-	workob->adt= &adt;
-	
-	adt.recalc= ADT_RECALC_ANIM;
-	adt.action= act;
-	
-	/* execute effects of Action on to workob (or it's PoseChannels) */
-	BKE_animsys_evaluate_animdata(&workob->id, &adt, cframe, ADT_RECALC_ANIM);
+	/* if we're given a group to use, it's likely to be more efficient (though a bit more dangerous) */
+	if (agrp) {
+		/* specifically evaluate this group only */
+		PointerRNA id_ptr;
+		
+		/* get RNA-pointer for the workob's ID */
+		RNA_id_pointer_create(&workob->id, &id_ptr);
+		
+		/* execute action for this group only */
+		animsys_evaluate_action_group(&id_ptr, act, agrp, NULL, cframe);
+	}
+	else {
+		AnimData adt;
+		
+		/* init animdata, and attach to workob */
+		memset(&adt, 0, sizeof(AnimData));
+		workob->adt= &adt;
+		
+		adt.recalc= ADT_RECALC_ANIM;
+		adt.action= act;
+		
+		/* execute effects of Action on to workob (or it's PoseChannels) */
+		BKE_animsys_evaluate_animdata(&workob->id, &adt, cframe, ADT_RECALC_ANIM);
+	}
 }
 
 /* ********** NLA with non-poses works with ipo channels ********** */

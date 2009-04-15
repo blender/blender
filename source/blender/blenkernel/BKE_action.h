@@ -134,7 +134,7 @@ void update_pose_constraint_flags(struct bPose *pose);
 void framechange_poses_clear_unkeyed(void);
 
 /* Used for the Action Constraint */
-void what_does_obaction(struct Scene *scene, struct Object *ob, struct Object *workob, struct bPose *pose, struct bAction *act, float cframe);
+void what_does_obaction(struct Scene *scene, struct Object *ob, struct Object *workob, struct bPose *pose, struct bAction *act, char groupname[], float cframe);
 
 /* exported for game engine */
 void blend_poses(struct bPose *dst, struct bPose *src, float srcweight, short mode);

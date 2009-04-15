@@ -34,7 +34,6 @@
 #include <float.h>
 
 #include "MEM_guardedalloc.h"
-//XXX #include "nla.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
@@ -1904,8 +1903,7 @@ static void actcon_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstraint
 			tchan= verify_pose_channel(pose, pchan->name);
 			
 			/* evaluate action using workob (it will only set the PoseChannel in question) */
-			// XXX we need some flags to prevent evaluation from setting disabled flags on all other settings
-			what_does_obaction(cob->scene, cob->ob, &workob, pose, data->act, t);
+			what_does_obaction(cob->scene, cob->ob, &workob, pose, data->act, pchan->name, t);
 			
 			/* convert animation to matrices for use here */
 			chan_calc_mat(tchan);
@@ -1918,7 +1916,8 @@ static void actcon_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstraint
 			Object workob;
 			
 			/* evaluate using workob */
-			what_does_obaction(cob->scene, cob->ob, &workob, NULL, data->act, t);
+			// FIXME: we don't have any consistent standards on limiting effects on object...
+			what_does_obaction(cob->scene, cob->ob, &workob, NULL, data->act, NULL, t);
 			object_to_mat4(&workob, ct->matrix);
 		}
 		else {
