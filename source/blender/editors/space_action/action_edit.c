@@ -410,7 +410,7 @@ static void insert_action_keys(bAnimContext *ac, short mode)
 			
 		/* if there's an id */
 		if (ale->id)
-			insertkey(ale->id, ((fcu->grp)?(fcu->grp->name):(NULL)), fcu->rna_path, fcu->array_index, cfra, flag);
+			insert_keyframe(ale->id, NULL, ((fcu->grp)?(fcu->grp->name):(NULL)), fcu->rna_path, fcu->array_index, cfra, flag);
 		else
 			insert_vert_fcurve(fcu, cfra, fcu->curval, 0);
 	}

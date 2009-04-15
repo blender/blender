@@ -55,19 +55,12 @@
 /* ******************************************* */
 /* Animation Data Validation */
 
-/* Get (or add relevant data to be able to do so) F-Curve from the Active Action, 
- * for the given Animation Data block. This assumes that all the destinations are valid.
+/* Get (or add relevant data to be able to do so) the Active Action for the given 
+ * Animation Data block, given an ID block where the Animation Data should reside.
  */
-FCurve *verify_fcurve (ID *id, const char group[], const char rna_path[], const int array_index, short add)
+bAction *verify_adt_action (ID *id, short add)
 {
 	AnimData *adt;
-	bAction *act;
-	bActionGroup *grp;
-	FCurve *fcu;
-	
-	/* sanity checks */
-	if ELEM(NULL, id, rna_path)
-		return NULL;
 	
 	/* init animdata if none available yet */
 	adt= BKE_animdata_from_id(id);
@@ -82,7 +75,22 @@ FCurve *verify_fcurve (ID *id, const char group[], const char rna_path[], const 
 	// TODO: need some wizardry to handle NLA stuff correct
 	if ((adt->action == NULL) && (add))
 		adt->action= add_empty_action("Action");
-	act= adt->action;
+		
+	/* return the action */
+	return adt->action;
+}
+
+/* Get (or add relevant data to be able to do so) F-Curve from the Active Action, 
+ * for the given Animation Data block. This assumes that all the destinations are valid.
+ */
+FCurve *verify_fcurve (bAction *act, const char group[], const char rna_path[], const int array_index, short add)
+{
+	bActionGroup *grp;
+	FCurve *fcu;
+	
+	/* sanity checks */
+	if ELEM(NULL, act, rna_path)
+		return NULL;
 		
 	/* try to find f-curve matching for this setting 
 	 *	- add if not found and allowed to add one
@@ -695,7 +703,7 @@ static float visualkey_get_value (PointerRNA *ptr, PropertyRNA *prop, int array_
  *	the keyframe insertion. These include the 'visual' keyframing modes, quick refresh,
  *	and extra keyframe filtering.
  */
-short insertkey (ID *id, const char group[], const char rna_path[], int array_index, float cfra, short flag)
+short insert_keyframe (ID *id, bAction *act, const char group[], const char rna_path[], int array_index, float cfra, short flag)
 {	
 	PointerRNA id_ptr, ptr;
 	PropertyRNA *prop;
@@ -708,8 +716,10 @@ short insertkey (ID *id, const char group[], const char rna_path[], int array_in
 		return 0;
 	}
 	
-	/* get F-Curve */
-	fcu= verify_fcurve(id, group, rna_path, array_index, 1);
+	/* get F-Curve - if no action is provided, keyframe to the default one attached to this ID-block */
+	if (act == NULL)
+		act= verify_adt_action(id, 1);
+	fcu= verify_fcurve(act, group, rna_path, array_index, 1);
 	
 	/* only continue if we have an F-Curve to add keyframe to */
 	if (fcu) {
@@ -797,22 +807,24 @@ short insertkey (ID *id, const char group[], const char rna_path[], int array_in
  *	The flag argument is used for special settings that alter the behaviour of
  *	the keyframe deletion. These include the quick refresh options.
  */
-short deletekey (ID *id, const char group[], const char rna_path[], int array_index, float cfra, short flag)
+short delete_keyframe (ID *id, bAction *act, const char group[], const char rna_path[], int array_index, float cfra, short flag)
 {
-	AnimData *adt;
-	FCurve *fcu;
+	FCurve *fcu = NULL;
 	
 	/* get F-Curve
 	 * Note: here is one of the places where we don't want new Action + F-Curve added!
 	 * 		so 'add' var must be 0
 	 */
+	if (act == NULL) {
+		/* if no action is provided, use the default one attached to this ID-block */
+		AnimData *adt= BKE_animdata_from_id(id);
+		act= adt->action;
+	}
 	/* we don't check the validity of the path here yet, but it should be ok... */
-	fcu= verify_fcurve(id, group, rna_path, array_index, 0);
-	adt= BKE_animdata_from_id(id);
+	fcu= verify_fcurve(act, group, rna_path, array_index, 0);
 	
 	/* only continue if we have an F-Curve to remove keyframes from */
-	if (adt && adt->action && fcu) {
-		bAction *act= adt->action;
+	if (act && fcu) {
 		short found = -1;
 		int i;
 		
@@ -926,7 +938,7 @@ static int insert_key_exec (bContext *C, wmOperator *op)
 	}
 	
 	/* try to insert keyframes for the channels specified by KeyingSet */
-	success= modify_keyframes(C, &dsources, ks, MODIFYKEY_MODE_INSERT, cfra);
+	success= modify_keyframes(C, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, cfra);
 	printf("KeyingSet '%s' - Successfully added %d Keyframes \n", ks->name, success);
 	
 	/* report failure? */
@@ -1069,7 +1081,7 @@ static int delete_key_exec (bContext *C, wmOperator *op)
 	}
 	
 	/* try to insert keyframes for the channels specified by KeyingSet */
-	success= modify_keyframes(C, &dsources, ks, MODIFYKEY_MODE_DELETE, cfra);
+	success= modify_keyframes(C, &dsources, NULL, ks, MODIFYKEY_MODE_DELETE, cfra);
 	printf("KeyingSet '%s' - Successfully removed %d Keyframes \n", ks->name, success);
 	
 	/* report failure? */
@@ -1138,7 +1150,7 @@ static int delete_key_old_exec (bContext *C, wmOperator *op)
 			
 			for (fcu= act->curves.first; fcu; fcu= fcn) {
 				fcn= fcu->next;
-				success+= deletekey(id, NULL, fcu->rna_path, fcu->array_index, cfra, 0);
+				success+= delete_keyframe(id, NULL, NULL, fcu->rna_path, fcu->array_index, cfra, 0);
 			}
 		}
 		
@@ -1203,7 +1215,7 @@ static int insert_key_button_exec (bContext *C, wmOperator *op)
 				length= 1;
 			
 			for(a=0; a<length; a++)
-				success+= insertkey(ptr.id.data, NULL, path, index+a, cfra, 0);
+				success+= insert_keyframe(ptr.id.data, NULL, NULL, path, index+a, cfra, 0);
 			
 			MEM_freeN(path);
 		}
@@ -1267,7 +1279,7 @@ static int delete_key_button_exec (bContext *C, wmOperator *op)
 				length= 1;
 			
 			for(a=0; a<length; a++)
-				success+= deletekey(ptr.id.data, NULL, path, index+a, cfra, 0);
+				success+= delete_keyframe(ptr.id.data, NULL, NULL, path, index+a, cfra, 0);
 			
 			MEM_freeN(path);
 		}

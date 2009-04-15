@@ -814,6 +814,32 @@ void init_builtin_keyingsets (void)
 	}
 }
 
+
+/* Get the first builtin KeyingSet with the given name, which occurs after the given one (or start of list if none given) */
+KeyingSet *ANIM_builtin_keyingset_get_named (KeyingSet *prevKS, char name[])
+{
+	KeyingSet *ks, *first=NULL;
+	
+	/* sanity checks - any name to check? */
+	if (name[0] == 0)
+		return NULL;
+	
+	/* get first KeyingSet to use */
+	if (prevKS && prevKS->next)
+		first= prevKS->next;
+	else
+		first= builtin_keyingsets.first;
+		
+	/* loop over KeyingSets checking names */
+	for (ks= first; ks; ks= ks->next) {
+		if (strcmp(name, ks->name) == 0)
+			return ks;
+	}
+	
+	/* no matches found */
+	return NULL;
+}
+
 /* ******************************************* */
 /* KEYFRAME MODIFICATION */
 
@@ -957,7 +983,7 @@ short modifykey_get_context_data (bContext *C, ListBase *dsources, KeyingSet *ks
  * by the KeyingSet. This takes into account many of the different combinations of using KeyingSets.
  * Returns the number of channels that keyframes were added to
  */
-int modify_keyframes (bContext *C, ListBase *dsources, KeyingSet *ks, short mode, float cfra)
+int modify_keyframes (bContext *C, ListBase *dsources, bAction *act, KeyingSet *ks, short mode, float cfra)
 {
 	KS_Path *ksp;
 	int kflag=0, success= 0;
@@ -1014,9 +1040,9 @@ int modify_keyframes (bContext *C, ListBase *dsources, KeyingSet *ks, short mode
 			for (; i < arraylen; i++) {
 				/* action to take depends on mode */
 				if (mode == MODIFYKEY_MODE_INSERT)
-					success+= insertkey(ksp->id, groupname, ksp->rna_path, i, cfra, kflag);
+					success+= insert_keyframe(ksp->id, act, groupname, ksp->rna_path, i, cfra, kflag);
 				else if (mode == MODIFYKEY_MODE_DELETE)
-					success+= deletekey(ksp->id, groupname, ksp->rna_path, i, cfra, kflag);
+					success+= delete_keyframe(ksp->id, act, groupname, ksp->rna_path, i, cfra, kflag);
 			}
 			
 			/* send notifiers and set recalc-flags */
@@ -1105,9 +1131,9 @@ int modify_keyframes (bContext *C, ListBase *dsources, KeyingSet *ks, short mode
 				for (; i < arraylen; i++) {
 					/* action to take depends on mode */
 					if (mode == MODIFYKEY_MODE_INSERT)
-						success+= insertkey(cks->id, groupname, path, i, cfra, kflag);
+						success+= insert_keyframe(cks->id, act, groupname, path, i, cfra, kflag);
 					else if (mode == MODIFYKEY_MODE_DELETE)
-						success+= deletekey(cks->id, groupname, path, i, cfra, kflag);
+						success+= delete_keyframe(cks->id, act, groupname, path, i, cfra, kflag);
 				}
 				
 				/* free the path */

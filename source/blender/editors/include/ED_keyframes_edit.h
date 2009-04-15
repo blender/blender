@@ -114,7 +114,10 @@ short ANIM_fcurve_keys_bezier_loop(BeztEditData *bed, struct FCurve *fcu, BeztEd
 	 *	- filterflag is bDopeSheet->flag (DOPESHEET_FILTERFLAG)
 	 */
 short ANIM_animchannel_keys_bezier_loop(BeztEditData *bed, struct bAnimListElem *ale, BeztEditFunc bezt_ok, BeztEditFunc bezt_cb, FcuEditFunc fcu_cb, int filterflag);
-
+	/* same as above, except bAnimListElem wrapper is not needed... 
+	 * 	- keytype is eAnim_KeyType
+	 */
+short ANIM_animchanneldata_keys_bezier_loop(BeztEditData *bed, void *data, int keytype, BeztEditFunc bezt_ok, BeztEditFunc bezt_cb, FcuEditFunc fcu_cb, int filterflag);
 
 /* functions for making sure all keyframes are in good order */
 void ANIM_editkeyframes_refresh(struct bAnimContext *ac);

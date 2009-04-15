@@ -39,6 +39,7 @@
 #include "BLI_dynstr.h"
 
 #include "DNA_listBase.h"
+#include "DNA_anim_types.h"
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_curve_types.h"
@@ -48,10 +49,10 @@
 #include "DNA_scene_types.h"
 #include "DNA_userdef_types.h"
 
+#include "BKE_animsys.h"
 #include "BKE_action.h"
 #include "BKE_armature.h"
 #include "BKE_depsgraph.h"
-#include "BKE_ipo.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 
@@ -59,6 +60,9 @@
 #include "BKE_utildefines.h"
 
 #include "PIL_time.h"			/* sleep				*/
+
+#include "RNA_access.h"
+#include "RNA_types.h"
 
 #include "WM_types.h"
 
@@ -272,33 +276,31 @@ void poselib_validate_act (bAction *act)
 }
 
 /* ************************************************************* */
-#if 0 // XXX old animation system
 
-/* This function adds an ipo-curve of the right type where it's needed */
-static IpoCurve *poselib_verify_icu (Ipo *ipo, int adrcode)
+/* Pointers to the builtin KeyingSets that we want to use */
+static KeyingSet *poselib_ks_locrotscale = NULL;		/* quaternion rotations */
+static KeyingSet *poselib_ks_locrotscale2 = NULL;		/* euler rotations */		// XXX FIXME...
+static short poselib_ks_need_init= 1;					/* have the above been obtained yet? */
+
+/* Make sure the builtin KeyingSets are initialised properly 
+ * (only gets called on first run of  poselib_add_current_pose).
+ */
+static void poselib_get_builtin_keyingsets (void)
 {
-	IpoCurve *icu;
-	
-	for (icu= ipo->curve.first; icu; icu= icu->next) {
-		if (icu->adrcode==adrcode) break;
+	/* only if we haven't got these yet */
+	// FIXME: this assumes that we will always get the builtin sets... 
+	if (poselib_ks_need_init) {
+		/* LocRotScale (quaternions) */
+		poselib_ks_locrotscale= ANIM_builtin_keyingset_get_named(NULL, "LocRotScale");
+		
+		/* LocRotScale (euler) */
+		//ks_locrotscale2= ANIM_builtin_keyingset_get_named(ks_locrotscale, "LocRotScale");
+		poselib_ks_locrotscale2= poselib_ks_locrotscale; // FIXME: for now, just use the same one...
+		
+		/* clear flag requesting init */
+		poselib_ks_need_init= 0;
 	}
-	if (icu==NULL) {
-		icu= MEM_callocN(sizeof(IpoCurve), "ipocurve");
-		
-		icu->flag |= IPO_VISIBLE|IPO_AUTO_HORIZ;
-		if (ipo->curve.first==NULL) icu->flag |= IPO_ACTIVE;	/* first one added active */
-		
-		icu->blocktype= ID_PO;
-		icu->adrcode= adrcode;
-		
-		set_icu_vars(icu);
-		
-		BLI_addtail(&ipo->curve, icu);
-	}
-	
-	return icu;
 }
-#endif // XXX old animation system
 
 /* This tool adds the current pose to the poselib 
  *	Note: Standard insertkey cannot be used for this due to its limitations
@@ -310,10 +312,12 @@ void poselib_add_current_pose (Scene *scene, Object *ob, int val)
 	bPoseChannel *pchan;
 	TimeMarker *marker;
 	bAction *act;
-	// bActionChannel *achan;
-	// IpoCurve *icu;
 	int frame;
 	char name[64];
+	
+	bCommonKeySrc cks;
+	ListBase dsources = {&cks, &cks};
+	
 	
 	/* sanity check */
 	if (ELEM3(NULL, ob, arm, pose)) 
@@ -382,37 +386,26 @@ void poselib_add_current_pose (Scene *scene, Object *ob, int val)
 		BLI_uniquename(&act->markers, marker, "Pose", offsetof(TimeMarker, name), 64);
 	}	
 	
+	/* make sure we've got KeyingSets to use */
+	poselib_get_builtin_keyingsets();
+	
+	/* init common-key-source for use by KeyingSets */
+	memset(&cks, 0, sizeof(bCommonKeySrc));
+	cks.id= &ob->id;
+	
 	/* loop through selected posechannels, keying their pose to the action */
 	for (pchan= pose->chanbase.first; pchan; pchan= pchan->next) {
 		/* check if available */
 		if ((pchan->bone) && (arm->layer & pchan->bone->layer)) {
 			if (pchan->bone->flag & (BONE_SELECTED|BONE_ACTIVE)) {
-#if 0 // XXX old animation system
-				/* make action-channel if needed (action groups are also created) */
-				achan= verify_action_channel(act, pchan->name);
-				verify_pchan2achan_grouping(act, pose, pchan->name);
+				/* init cks for this PoseChannel, then use the relative KeyingSets to keyframe it */
+				cks.pchan= pchan;
 				
-				/* make ipo if needed... */
-				if (achan->ipo == NULL)
-					achan->ipo= add_ipo(scene, achan->name, ID_PO);
-					
-				/* add missing ipo-curves and insert keys */
-				#define INSERT_KEY_ICU(adrcode, data) {\
-						icu= poselib_verify_icu(achan->ipo, adrcode); \
-						insert_vert_icu(icu, (float)frame, data, 1); \
-					}
-					
-				INSERT_KEY_ICU(AC_LOC_X, pchan->loc[0])
-				INSERT_KEY_ICU(AC_LOC_Y, pchan->loc[1])
-				INSERT_KEY_ICU(AC_LOC_Z, pchan->loc[2])
-				INSERT_KEY_ICU(AC_SIZE_X, pchan->size[0])
-				INSERT_KEY_ICU(AC_SIZE_Y, pchan->size[1])
-				INSERT_KEY_ICU(AC_SIZE_Z, pchan->size[2])
-				INSERT_KEY_ICU(AC_QUAT_W, pchan->quat[0])
-				INSERT_KEY_ICU(AC_QUAT_X, pchan->quat[1])
-				INSERT_KEY_ICU(AC_QUAT_Y, pchan->quat[2])
-				INSERT_KEY_ICU(AC_QUAT_Z, pchan->quat[3])
-#endif // XXX old animation system
+				/* KeyingSet to use depends on rotation mode  */
+				if (pchan->rotmode)
+					modify_keyframes(/*C*/NULL, &dsources, act, poselib_ks_locrotscale2, MODIFYKEY_MODE_INSERT, (float)frame);
+				else
+					modify_keyframes(/*C*/NULL, &dsources, act, poselib_ks_locrotscale, MODIFYKEY_MODE_INSERT, (float)frame);
 			}
 		}
 	}
@@ -429,7 +422,7 @@ void poselib_remove_pose (Object *ob, TimeMarker *marker)
 {
 	bPose *pose= (ob) ? ob->pose : NULL;
 	bAction *act= (ob) ? ob->poselib : NULL;
-	// bActionChannel *achan;
+	FCurve *fcu;
 	char *menustr;
 	int val;
 	
@@ -460,24 +453,20 @@ void poselib_remove_pose (Object *ob, TimeMarker *marker)
 	}
 	
 	/* remove relevant keyframes */
-#if 0 // XXX old animation system
-	for (achan= act->chanbase.first; achan; achan= achan->next) {
-		Ipo *ipo= achan->ipo;
-		IpoCurve *icu;
+	for (fcu= act->curves.first; fcu; fcu= fcu->next) {
 		BezTriple *bezt;
 		int i;
 		
-		for (icu= ipo->curve.first; icu; icu= icu->next) {
-			for (i=0, bezt=icu->bezt; i < icu->totvert; i++, bezt++) {
-				/* check if remove... */
+		if (fcu->bezt) {
+			for (i=0, bezt=fcu->bezt; i < fcu->totvert; i++, bezt++) {
+				/* check if remove */
 				if (IS_EQ(bezt->vec[1][0], marker->frame)) {
-					delete_icu_key(icu, i, 1);
+					delete_fcurve_key(fcu, i, 1);
 					break;
 				}
-			}	
+			}
 		}
 	}
-#endif // XXX old animation system
 	
 	/* remove poselib from list */
 	BLI_freelinkN(&act->markers, marker);
@@ -539,6 +528,7 @@ typedef struct tPoseLib_PreviewData {
 	ListBase backups;		/* tPoseLib_Backup structs for restoring poses */
 	ListBase searchp;		/* LinkData structs storing list of poses which match the current search-string */
 	
+	PointerRNA *rna_ptr;	/* RNA-Pointer to Object 'ob' */
 	Object *ob;				/* object to work on */
 	bArmature *arm;			/* object's armature data */
 	bPose *pose;			/* object's pose */
@@ -641,74 +631,57 @@ static void poselib_backup_restore (tPoseLib_PreviewData *pld)
  */
 static void poselib_apply_pose (tPoseLib_PreviewData *pld)
 {
+	PointerRNA *ptr= pld->rna_ptr;
+	bArmature *arm= pld->arm;
 	bPose *pose= pld->pose;
 	bPoseChannel *pchan;
 	bAction *act= pld->act;
-	bActionChannel *achan;
-	IpoCurve *icu;
+	bActionGroup *agrp;
+	
+	BeztEditData bed;
+	BeztEditFunc group_ok_cb;
 	int frame;
 	
+	/* get the frame */
 	if (pld->marker)
 		frame= pld->marker->frame;
 	else
 		return;	
 	
+	/* init settings for testing groups for keyframes */
+	group_ok_cb= ANIM_editkeyframes_ok(BEZT_OK_FRAMERANGE);
+	memset(&bed, 0, sizeof(BeztEditData)); 
+	bed.f1= ((float)frame) - 0.5f;
+	bed.f2= ((float)frame) + 0.5f;
+	
 	/* start applying - only those channels which have a key at this point in time! */
-	for (achan= act->chanbase.first; achan; achan= achan->next) {
-		short found= 0;
-		
-		/* apply this achan? */
-		if (achan->ipo) {
-			/* find a keyframe at this frame - users may not have defined the pose on every channel, so this is necessary */
-			// TODO: this may be bad for user-defined poses...
-			for (icu= achan->ipo->curve.first; icu; icu= icu->next) {
-				BezTriple *bezt;
-				int i;
+	for (agrp= act->groups.first; agrp; agrp= agrp->next) {
+		/* check if group has any keyframes */
+		if (ANIM_animchanneldata_keys_bezier_loop(&bed, agrp, ALE_GROUP, NULL, group_ok_cb, NULL, 0)) {
+			/* has keyframe on this frame, so try to get a PoseChannel with this name */
+			pchan= get_pose_channel(pose, agrp->name);
+			
+			if (pchan) {	
+				short ok= 0;
 				
-				for (i=0, bezt=icu->bezt; i < icu->totvert; i++, bezt++) {
-					if (IN_RANGE(bezt->vec[1][0], (frame-0.5f), (frame+0.5f))) {
-						found= 1;
-						break;
-					}
+				/* check if this bone should get any animation applied */
+				if (pld->selcount == 0) {
+					/* if no bones are selected, then any bone is ok */
+					ok= 1;
+				}
+				else if (pchan->bone) {
+					/* only ok if bone is visible and selected */
+					if ( (pchan->bone->flag & (BONE_SELECTED|BONE_ACTIVE)) &&
+						 (pchan->bone->flag & BONE_HIDDEN_P)==0 &&
+						 (pchan->bone->layer & arm->layer) )
+						ok = 1;
 				}
 				
-				if (found) break;
-			}
-			
-			/* apply pose - only if posechannel selected? */
-			if (found) {
-				pchan= get_pose_channel(pose, achan->name);
-				
-				if (pchan) {	
-					short ok= 0;
-					
-					if (pchan->bone) {
-						if ( (pchan->bone->flag & (BONE_SELECTED|BONE_ACTIVE)) &&
-							 (pchan->bone->flag & BONE_HIDDEN_P)==0 )
-							ok = 1;
-						else if (pld->selcount == 0)
-							ok= 1;
-					}
-					else if (pld->selcount == 0)
-						ok= 1;
-					
-					if (ok) {
-#if 0 // XXX old animation system
-						/* Evaluates and sets the internal ipo values	*/
-						calc_ipo(achan->ipo, (float)frame);
-						/* This call also sets the pchan flags */
-						execute_action_ipo(achan, pchan);
-#endif // XXX old animation system
-					}
+				if (ok) {
+					animsys_evaluate_action_group(ptr, act, agrp, NULL, (float)frame);
 				}
 			}
 		}
-		
-		/* tag achan as having been used or not... */
-		if (found)
-			achan->flag |= ACHAN_SELECTED;
-		else
-			achan->flag &= ~ACHAN_SELECTED;
 	}
 }
 

@@ -239,6 +239,36 @@ short ANIM_animchannel_keys_bezier_loop(BeztEditData *bed, bAnimListElem *ale, B
 	return 0;
 }
 
+/* This function is used to apply operation to all keyframes, regardless of the type without needed an AnimListElem wrapper */
+short ANIM_animchanneldata_keys_bezier_loop(BeztEditData *bed, void *data, int keytype, BeztEditFunc bezt_ok, BeztEditFunc bezt_cb, FcuEditFunc fcu_cb, int filterflag)
+{
+	/* sanity checks */
+	if (data == NULL)
+		return 0;
+	
+	/* method to use depends on the type of keyframe data */
+	switch (keytype) {
+		/* direct keyframe data (these loops are exposed) */
+		case ALE_FCURVE: /* F-Curve */
+			return ANIM_fcurve_keys_bezier_loop(bed, data, bezt_ok, bezt_cb, fcu_cb);
+		
+		/* indirect 'summaries' (these are not exposed directly) 
+		 * NOTE: must keep this code in sync with the drawing code and also the filtering code!
+		 */
+		case ALE_GROUP: /* action group */
+			return agrp_keys_bezier_loop(bed, (bActionGroup *)data, bezt_ok, bezt_cb, fcu_cb);
+		case ALE_ACT: /* action */
+			return act_keys_bezier_loop(bed, (bAction *)data, bezt_ok, bezt_cb, fcu_cb);
+			
+		case ALE_OB: /* object */
+			return ob_keys_bezier_loop(bed, (Object *)data, bezt_ok, bezt_cb, fcu_cb, filterflag);
+		case ALE_SCE: /* scene */
+			return scene_keys_bezier_loop(bed, (Scene *)data, bezt_ok, bezt_cb, fcu_cb, filterflag);
+	}
+	
+	return 0;
+}
+
 /* ************************************************************************** */
 /* Keyframe Integrity Tools */
 

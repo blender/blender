@@ -4138,7 +4138,7 @@ void autokeyframe_ob_cb_func(Scene *scene, View3D *v3d, Object *ob, int tmode)
 			if (adt && adt->action) {
 				for (fcu= adt->action->curves.first; fcu; fcu= fcu->next) {
 					fcu->flag &= ~FCURVE_SELECTED;
-					insertkey(id, ((fcu->grp)?(fcu->grp->name):(NULL)), fcu->rna_path, fcu->array_index, cfra, flag);
+					insert_keyframe(id, adt->action, ((fcu->grp)?(fcu->grp->name):(NULL)), fcu->rna_path, fcu->array_index, cfra, flag);
 				}
 			}
 		}
@@ -4175,35 +4175,35 @@ void autokeyframe_ob_cb_func(Scene *scene, View3D *v3d, Object *ob, int tmode)
 			// TODO: the group names here are temporary...
 			// TODO: should this be made to use the builtin KeyingSets instead?
 			if (doLoc) {
-				insertkey(id, "Object Transform", "location", 0, cfra, flag);
-				insertkey(id, "Object Transform", "location", 1, cfra, flag);
-				insertkey(id, "Object Transform", "location", 2, cfra, flag);
+				insert_keyframe(id, NULL, "Object Transform", "location", 0, cfra, flag);
+				insert_keyframe(id, NULL, "Object Transform", "location", 1, cfra, flag);
+				insert_keyframe(id, NULL, "Object Transform", "location", 2, cfra, flag);
 			}
 			if (doRot) {
-				insertkey(id, "Object Transform", "rotation", 0, cfra, flag);
-				insertkey(id, "Object Transform", "rotation", 1, cfra, flag);
-				insertkey(id, "Object Transform", "rotation", 2, cfra, flag);
+				insert_keyframe(id, NULL, "Object Transform", "rotation", 0, cfra, flag);
+				insert_keyframe(id, NULL, "Object Transform", "rotation", 1, cfra, flag);
+				insert_keyframe(id, NULL, "Object Transform", "rotation", 2, cfra, flag);
 			}
 			if (doScale) {
-				insertkey(id, "Object Transform", "scale", 0, cfra, flag);
-				insertkey(id, "Object Transform", "scale", 1, cfra, flag);
-				insertkey(id, "Object Transform", "scale", 2, cfra, flag);
+				insert_keyframe(id, NULL, "Object Transform", "scale", 0, cfra, flag);
+				insert_keyframe(id, NULL, "Object Transform", "scale", 1, cfra, flag);
+				insert_keyframe(id, NULL, "Object Transform", "scale", 2, cfra, flag);
 			}
 		}
 		else {
 			// TODO: the group names here are temporary...
 			// TODO: should this be made to use the builtin KeyingSets instead?
-			insertkey(id, "Object Transform", "location", 0, cfra, flag);
-			insertkey(id, "Object Transform", "location", 1, cfra, flag);
-			insertkey(id, "Object Transform", "location", 2, cfra, flag);
+			insert_keyframe(id, NULL, "Object Transform", "location", 0, cfra, flag);
+			insert_keyframe(id, NULL, "Object Transform", "location", 1, cfra, flag);
+			insert_keyframe(id, NULL, "Object Transform", "location", 2, cfra, flag);
 			
-			insertkey(id, "Object Transform", "rotation", 0, cfra, flag);
-			insertkey(id, "Object Transform", "rotation", 1, cfra, flag);
-			insertkey(id, "Object Transform", "rotation", 2, cfra, flag);
+			insert_keyframe(id, NULL, "Object Transform", "rotation", 0, cfra, flag);
+			insert_keyframe(id, NULL, "Object Transform", "rotation", 1, cfra, flag);
+			insert_keyframe(id, NULL, "Object Transform", "rotation", 2, cfra, flag);
 			
-			insertkey(id, "Object Transform", "scale", 0, cfra, flag);
-			insertkey(id, "Object Transform", "scale", 1, cfra, flag);
-			insertkey(id, "Object Transform", "scale", 2, cfra, flag);
+			insert_keyframe(id, NULL, "Object Transform", "scale", 0, cfra, flag);
+			insert_keyframe(id, NULL, "Object Transform", "scale", 1, cfra, flag);
+			insert_keyframe(id, NULL, "Object Transform", "scale", 2, cfra, flag);
 		}
 		
 		// XXX todo... find a way to send notifiers from here...
@@ -4248,7 +4248,7 @@ void autokeyframe_pose_cb_func(Scene *scene, View3D *v3d, Object *ob, int tmode,
 				if (IS_AUTOKEY_FLAG(INSERTAVAIL)) {
 					if (act) {
 						for (fcu= act->curves.first; fcu; fcu= fcu->next)
-							insertkey(id, ((fcu->grp)?(fcu->grp->name):(NULL)), fcu->rna_path, fcu->array_index, cfra, flag);
+							insert_keyframe(id, act, ((fcu->grp)?(fcu->grp->name):(NULL)), fcu->rna_path, fcu->array_index, cfra, flag);
 					}
 				}
 				/* only insert keyframe if needed? */
@@ -4279,57 +4279,57 @@ void autokeyframe_pose_cb_func(Scene *scene, View3D *v3d, Object *ob, int tmode,
 					
 					if (doLoc) {
 						sprintf(buf, "pose.pose_channels[\"%s\"].location", pchan->name);
-						insertkey(id, pchan->name, buf, 0, cfra, flag);
-						insertkey(id, pchan->name, buf, 1, cfra, flag);
-						insertkey(id, pchan->name, buf, 2, cfra, flag);
+						insert_keyframe(id, NULL, pchan->name, buf, 0, cfra, flag);
+						insert_keyframe(id, NULL, pchan->name, buf, 1, cfra, flag);
+						insert_keyframe(id, NULL, pchan->name, buf, 2, cfra, flag);
 					}
 					if (doRot) {
 						if (pchan->rotmode == PCHAN_ROT_QUAT) {
 							sprintf(buf, "pose.pose_channels[\"%s\"].rotation", pchan->name);
-							insertkey(id, pchan->name, buf, 0, cfra, flag);
-							insertkey(id, pchan->name, buf, 1, cfra, flag);
-							insertkey(id, pchan->name, buf, 2, cfra, flag);
-							insertkey(id, pchan->name, buf, 3, cfra, flag);
+							insert_keyframe(id, NULL, pchan->name, buf, 0, cfra, flag);
+							insert_keyframe(id, NULL, pchan->name, buf, 1, cfra, flag);
+							insert_keyframe(id, NULL, pchan->name, buf, 2, cfra, flag);
+							insert_keyframe(id, NULL, pchan->name, buf, 3, cfra, flag);
 						}
 						else {
 							sprintf(buf, "pose.pose_channels[\"%s\"].euler_rotation", pchan->name);
-							insertkey(id, pchan->name, buf, 0, cfra, flag);
-							insertkey(id, pchan->name, buf, 1, cfra, flag);
-							insertkey(id, pchan->name, buf, 2, cfra, flag);
+							insert_keyframe(id, NULL, pchan->name, buf, 0, cfra, flag);
+							insert_keyframe(id, NULL, pchan->name, buf, 1, cfra, flag);
+							insert_keyframe(id, NULL, pchan->name, buf, 2, cfra, flag);
 						}
 					}
 					if (doScale) {
 						sprintf(buf, "pose.pose_channels[\"%s\"].scale", pchan->name);
-						insertkey(id, pchan->name, buf, 0, cfra, flag);
-						insertkey(id, pchan->name, buf, 1, cfra, flag);
-						insertkey(id, pchan->name, buf, 2, cfra, flag);
+						insert_keyframe(id, NULL, pchan->name, buf, 0, cfra, flag);
+						insert_keyframe(id, NULL, pchan->name, buf, 1, cfra, flag);
+						insert_keyframe(id, NULL, pchan->name, buf, 2, cfra, flag);
 					}
 				}
 				/* insert keyframe in any channel that's appropriate */
 				else {
 					sprintf(buf, "pose.pose_channels[\"%s\"].location", pchan->name);
-					insertkey(id, pchan->name, buf, 0, cfra, flag);
-					insertkey(id, pchan->name, buf, 1, cfra, flag);
-					insertkey(id, pchan->name, buf, 2, cfra, flag);
+					insert_keyframe(id, NULL, pchan->name, buf, 0, cfra, flag);
+					insert_keyframe(id, NULL, pchan->name, buf, 1, cfra, flag);
+					insert_keyframe(id, NULL, pchan->name, buf, 2, cfra, flag);
 					
 					if (pchan->rotmode == PCHAN_ROT_QUAT) {
 						sprintf(buf, "pose.pose_channels[\"%s\"].rotation", pchan->name);
-						insertkey(id, pchan->name, buf, 0, cfra, flag);
-						insertkey(id, pchan->name, buf, 1, cfra, flag);
-						insertkey(id, pchan->name, buf, 2, cfra, flag);
-						insertkey(id, pchan->name, buf, 3, cfra, flag);
+						insert_keyframe(id, NULL, pchan->name, buf, 0, cfra, flag);
+						insert_keyframe(id, NULL, pchan->name, buf, 1, cfra, flag);
+						insert_keyframe(id, NULL, pchan->name, buf, 2, cfra, flag);
+						insert_keyframe(id, NULL, pchan->name, buf, 3, cfra, flag);
 					}
 					else {
 						sprintf(buf, "pose.pose_channels[\"%s\"].euler_rotation", pchan->name);
-						insertkey(id, pchan->name, buf, 0, cfra, flag);
-						insertkey(id, pchan->name, buf, 1, cfra, flag);
-						insertkey(id, pchan->name, buf, 2, cfra, flag);
+						insert_keyframe(id, NULL, pchan->name, buf, 0, cfra, flag);
+						insert_keyframe(id, NULL, pchan->name, buf, 1, cfra, flag);
+						insert_keyframe(id, NULL, pchan->name, buf, 2, cfra, flag);
 					}
 					
 					sprintf(buf, "pose.pose_channels[\"%s\"].scale", pchan->name);
-					insertkey(id, pchan->name, buf, 0, cfra, flag);
-					insertkey(id, pchan->name, buf, 1, cfra, flag);
-					insertkey(id, pchan->name, buf, 2, cfra, flag);
+					insert_keyframe(id, NULL, pchan->name, buf, 0, cfra, flag);
+					insert_keyframe(id, NULL, pchan->name, buf, 1, cfra, flag);
+					insert_keyframe(id, NULL, pchan->name, buf, 2, cfra, flag);
 				}
 			}
 		}

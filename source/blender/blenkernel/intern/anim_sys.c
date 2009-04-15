@@ -504,8 +504,29 @@ static void animsys_evaluate_drivers (PointerRNA *ptr, AnimData *adt, float ctim
 /* ***************************************** */
 /* Actions Evaluation */
 
+/* Evaluate Action Group */
+void animsys_evaluate_action_group (PointerRNA *ptr, bAction *act, bActionGroup *agrp, AnimMapper *remap, float ctime)
+{
+	FCurve *fcu;
+	
+	/* check if mapper is appropriate for use here (we set to NULL if it's inappropriate) */
+	if ELEM(NULL, act, agrp) return;
+	if ((remap) && (remap->target != act)) remap= NULL;
+	
+	/* calculate then execute each curve */
+	for (fcu= agrp->channels.first; (fcu) && (fcu->grp == agrp); fcu= fcu->next) 
+	{
+		/* check if this curve should be skipped */
+		if ((fcu->flag & (FCURVE_MUTED|FCURVE_DISABLED)) == 0) 
+		{
+			calculate_fcurve(fcu, ctime);
+			animsys_execute_fcurve(ptr, remap, fcu); 
+		}
+	}
+}
+
 /* Evaluate Action (F-Curve Bag) */
-static void animsys_evaluate_action (PointerRNA *ptr, bAction *act, AnimMapper *remap, float ctime)
+void animsys_evaluate_action (PointerRNA *ptr, bAction *act, AnimMapper *remap, float ctime)
 {
 	/* check if mapper is appropriate for use here (we set to NULL if it's inappropriate) */
 	if (act == NULL) return;
@@ -863,7 +884,10 @@ void BKE_animsys_evaluate_all_animation (Main *main, float ctime)
 	// TODO...
 	
 	/* objects */
-	EVAL_ANIM_IDS(main->object.first, ADT_RECALC_ANIM);
+		/* ADT_RECALC_ANIM doesn't need to be supplied here, since object AnimData gets 
+		 * this tagged by Depsgraph on framechange 
+		 */
+	EVAL_ANIM_IDS(main->object.first, /*ADT_RECALC_ANIM*/0); 
 	
 	/* worlds */
 	EVAL_ANIM_IDS(main->world.first, ADT_RECALC_ANIM);
