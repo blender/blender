@@ -37,6 +37,7 @@
 
 PyObject *importText( char *name, int *found );
 PyObject *reimportText( PyObject *module, int *found );
+void importClearUserModules( void ); /* Clear user modules */
 extern PyMethodDef bpy_import[];
 extern PyMethodDef bpy_reload[];
 

@@ -265,3 +265,65 @@ static PyObject *blender_reload( PyObject * self, PyObject * args )
 PyMethodDef bpy_import[] = { {"bpy_import", blender_import, METH_KEYWORDS, "blenders import"} };
 PyMethodDef bpy_reload[] = { {"bpy_reload", blender_reload, METH_VARARGS, "blenders reload"} };
 
+
+/* Clear user modules.
+ * This is to clear any modules that could be defined from running scripts in blender.
+ * 
+ * Its also needed for the BGE Python api so imported scripts are not used between levels
+ * 
+ * This clears every modules that has a __file__ attribute (is not a builtin)
+ * and is a filename only (no path). since pythons bultins include a full path even for win32.
+ * even if we remove a python module a reimport will bring it back again.
+ */
+
+
+#if defined(WIN32) || defined(WIN64)
+#define SEPSTR "\\"
+#else
+#define SEPSTR "/"
+#endif
+
+
+void importClearUserModules(void)
+{
+	PyObject *modules= PySys_GetObject("modules");	
+	
+	char *fname;
+	char *file_extension;
+	
+	/* looping over the dict */
+	PyObject *key, *value;
+	Py_ssize_t pos = 0;
+	
+	/* new list */
+	PyObject *list= PyList_New(0);
+	
+	/* go over sys.modules and remove anything with a 
+	 * sys.modukes[x].__file__ thats ends with a .py and has no path
+	 */
+	while (PyDict_Next(modules, &pos, &key, &value)) {
+		fname= PyModule_GetFilename(value);
+		if(fname) {
+			if ((strstr(fname, SEPSTR))==0) { /* no path ? */
+				file_extension = strstr(fname, ".py");
+				if(file_extension && *(file_extension + 3) == '\0') { /* .py extension ? */
+					/* now we can be fairly sure its a python import from the blendfile */
+					PyList_Append(list, key); /* free'd with the list */
+				}
+			}
+		}
+		else {
+			PyErr_Clear();
+		}
+	}
+	
+	/* remove all our modules */
+	for(pos=0; pos < PyList_Size(list); pos++) {
+		/* PyObject_Print(key, stderr, 0); */
+		key= PyList_GET_ITEM(list, pos);
+		PyDict_DelItem(modules, key);
+	}
+	
+	Py_DECREF(list); /* removes all references from append */
+}
+

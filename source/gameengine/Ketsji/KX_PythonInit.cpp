@@ -102,7 +102,7 @@ extern "C" {
 #include "GPU_material.h"
 
 static void setSandbox(TPythonSecurityLevel level);
-
+static void clearGameModules();
 
 // 'local' copy of canvas ptr, for window height/width python scripts
 static RAS_ICanvas* gp_Canvas = NULL;
@@ -1402,6 +1402,10 @@ PyObject* initGamePythonScripting(const STR_String& progname, TPythonSecurityLev
 	initPyTypes();
 	
 	bpy_import_main_set(maggie);
+	
+	/* run this to clear game modules and user modules which
+	 * may contain references to in game data */
+	clearGameModules();
 
 	PyObject* moduleobj = PyImport_AddModule("__main__");
 	return PyModule_GetDict(moduleobj);
@@ -1434,6 +1438,9 @@ static void clearGameModules()
 	clearModule(modules, "Mathutils");	
 	clearModule(modules, "BGL");	
 	PyErr_Clear(); // incase some of these were alredy removed.
+	
+	/* clear user defined modules */
+	importClearUserModules();
 }
 
 void exitGamePythonScripting()
