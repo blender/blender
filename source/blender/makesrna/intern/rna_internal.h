@@ -47,6 +47,7 @@ typedef struct FunctionDefRNA {
 	FunctionRNA *func;
 	const char *srna;
 	const char *call;
+	const char *gencall;
 } FunctionDefRNA;
 
 typedef struct PropertyDefRNA {

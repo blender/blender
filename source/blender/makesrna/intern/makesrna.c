@@ -1165,7 +1165,7 @@ static void rna_def_function_funcs(FILE *f, StructDefRNA *dsrna, FunctionDefRNA 
 
 	fprintf(f, "}\n\n");
 
-	dfunc->call= funcname;
+	dfunc->gencall= funcname;
 }
 
 static void rna_auto_types()
@@ -1343,6 +1343,65 @@ static void rna_generate_function_prototypes(BlenderRNA *brna, StructRNA *srna, 
 
 	if(srna->functions.first)
 		fprintf(f, "\n");
+}
+
+static void rna_generate_static_parameter_prototypes(BlenderRNA *brna, StructRNA *srna, FunctionDefRNA *dfunc, FILE *f)
+{
+	FunctionRNA *func;
+	PropertyDefRNA *dparm;
+	StructDefRNA *dsrna;
+
+	dsrna= rna_find_struct_def(srna);
+	func= dfunc->func;
+
+	for(dparm= dfunc->cont.properties.first; dparm; dparm= dparm->next) {
+		if(dparm->prop==func->ret) {
+			if(dparm->prop->arraylength)
+				fprintf(f, "XXX no array return types yet"); /* XXX not supported */
+			else if(dparm->prop->type == PROP_POINTER)
+				fprintf(f, "%s%s *", rna_type_struct(dparm->prop), rna_parameter_type_name(dparm->prop));
+			else
+				fprintf(f, "%s%s ", rna_type_struct(dparm->prop), rna_parameter_type_name(dparm->prop));
+
+			break;
+		}
+	}
+
+	if(!dparm)
+		fprintf(f, "void ");
+
+	fprintf(f, "%s(", dfunc->call);
+
+	if(dsrna->dnaname) fprintf(f, "struct %s *_self", dsrna->dnaname);
+	else fprintf(f, "struct %s *_self", srna->identifier);
+
+	for(dparm= dfunc->cont.properties.first; dparm; dparm= dparm->next) {
+		if(dparm->prop==func->ret) ;
+		else if(dparm->prop->arraylength)
+			fprintf(f, ", %s%s %s[%d]", rna_type_struct(dparm->prop), rna_parameter_type_name(dparm->prop), dparm->prop->identifier, dparm->prop->arraylength);
+		else if(dparm->prop->type == PROP_POINTER)
+			fprintf(f, ", %s%s *%s", rna_type_struct(dparm->prop), rna_parameter_type_name(dparm->prop), dparm->prop->identifier);
+		else
+			fprintf(f, ", %s%s %s", rna_type_struct(dparm->prop), rna_parameter_type_name(dparm->prop), dparm->prop->identifier);
+	}
+
+	fprintf(f, ");\n");
+}
+
+static void rna_generate_static_function_prototypes(BlenderRNA *brna, StructRNA *srna, FILE *f)
+{
+	FunctionRNA *func;
+	FunctionDefRNA *dfunc;
+
+	fprintf(f, "/* Repeated prototypes to detect errors */\n\n");
+
+	for(func= srna->functions.first; func; func= func->cont.next) {
+		dfunc= rna_find_function_def(func);
+		if(dfunc->call)
+			rna_generate_static_parameter_prototypes(brna, srna, dfunc, f);
+	}
+
+	fprintf(f, "\n");
 }
 
 static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, PropertyRNA *prop) 
@@ -1580,7 +1639,7 @@ static void rna_generate_struct(BlenderRNA *brna, StructRNA *srna, FILE *f)
 		rna_print_c_string(f, func->description); fprintf(f, ",\n");
 
 		dfunc= rna_find_function_def(func);
-		if(dfunc->call) fprintf(f, "\t%s,\n", dfunc->call);
+		if(dfunc->gencall) fprintf(f, "\t%s,\n", dfunc->gencall);
 		else fprintf(f, "\tNULL,\n");
 	
 		if(func->ret) fprintf(f, "\t(PropertyRNA*)&rna_%s_%s_%s\n", srna->identifier, func->identifier, func->ret->identifier);
@@ -1750,10 +1809,14 @@ static void rna_generate(BlenderRNA *brna, FILE *f, char *filename)
 			for(dp=ds->cont.properties.first; dp; dp=dp->next)
 				rna_def_property_funcs(f, ds->srna, dp);
 
-	for(ds=DefRNA.structs.first; ds; ds=ds->cont.next)
-		if(!filename || ds->filename == filename)
+	for(ds=DefRNA.structs.first; ds; ds=ds->cont.next) {
+		if(!filename || ds->filename == filename) {
 			for(dfunc=ds->functions.first; dfunc; dfunc= dfunc->cont.next)
 				rna_def_function_funcs(f, ds, dfunc);
+
+			rna_generate_static_function_prototypes(brna, ds->srna, f);
+		}
+	}
 
 	for(ds=DefRNA.structs.first; ds; ds=ds->cont.next)
 		if(!filename || ds->filename == filename)
