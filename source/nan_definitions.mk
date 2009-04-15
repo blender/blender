@@ -516,7 +516,7 @@ endif
     ifeq ($(FREE_WINDOWS), true)
       export NAN_GETTEXT_LIB ?= $(NAN_GETTEXT)/lib/freegettext.a $(NAN_ICONV)/lib/freeiconv.a
       export NAN_PYTHON_BINARY ?= $(NAN_PYTHON)/bin/python$(NAN_PYTHON_VERSION)
-      export NAN_PYTHON_LIB ?= $(NAN_PYTHON)/lib/freepy.a
+      export NAN_PYTHON_LIB ?= $(NAN_PYTHON)/lib/lib25_vs2005/libpython25.a
       export NAN_FREETYPE ?= $(LCGDIR)/gcc/freetype
       export NAN_ODE ?= $(LCGDIR)/gcc/ode
       export NAN_SDL ?= $(LCGDIR)/gcc/sdl
