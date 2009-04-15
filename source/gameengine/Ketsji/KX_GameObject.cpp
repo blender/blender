@@ -76,6 +76,10 @@ typedef unsigned long uint_ptr;
 #include "KX_SG_NodeRelationships.h"
 
 static MT_Point3 dummy_point= MT_Point3(0.0, 0.0, 0.0);
+static MT_Vector3 dummy_scaling = MT_Vector3(1.0, 1.0, 1.0);
+static MT_Matrix3x3 dummy_orientation = MT_Matrix3x3(	1.0, 0.0, 0.0,
+														0.0, 1.0, 0.0,
+														0.0, 0.0, 1.0);
 
 KX_GameObject::KX_GameObject(
 	void* sgReplicationInfo,
@@ -373,11 +377,14 @@ void KX_GameObject::ApplyTorque(const MT_Vector3& torque,bool local)
 
 void KX_GameObject::ApplyMovement(const MT_Vector3& dloc,bool local)
 {
-	if (m_pPhysicsController1) // (IsDynamic())
+	if (GetSGNode()) 
 	{
-		m_pPhysicsController1->RelativeTranslate(dloc,local);
+		if (m_pPhysicsController1) // (IsDynamic())
+		{
+			m_pPhysicsController1->RelativeTranslate(dloc,local);
+		}
+		GetSGNode()->RelativeTranslate(dloc,GetSGNode()->GetSGParent(),local);
 	}
-	GetSGNode()->RelativeTranslate(dloc,GetSGNode()->GetSGParent(),local);
 }
 
 
@@ -385,11 +392,13 @@ void KX_GameObject::ApplyMovement(const MT_Vector3& dloc,bool local)
 void KX_GameObject::ApplyRotation(const MT_Vector3& drot,bool local)
 {
 	MT_Matrix3x3 rotmat(drot);
+	
+	if (GetSGNode()) {
+		GetSGNode()->RelativeRotate(rotmat,local);
 
-	GetSGNode()->RelativeRotate(rotmat,local);
-
-	if (m_pPhysicsController1) { // (IsDynamic())
-		m_pPhysicsController1->RelativeRotate(rotmat,local); 
+		if (m_pPhysicsController1) { // (IsDynamic())
+			m_pPhysicsController1->RelativeRotate(rotmat,local); 
+		}
 	}
 }
 
@@ -402,16 +411,17 @@ double*	KX_GameObject::GetOpenGLMatrix()
 {
 	// todo: optimize and only update if necessary
 	double* fl = m_OpenGL_4x4Matrix.getPointer();
-	MT_Transform trans;
+	if (GetSGNode()) {
+		MT_Transform trans;
 	
-	trans.setOrigin(GetSGNode()->GetWorldPosition());
-	trans.setBasis(GetSGNode()->GetWorldOrientation());
+		trans.setOrigin(GetSGNode()->GetWorldPosition());
+		trans.setBasis(GetSGNode()->GetWorldOrientation());
 	
-	MT_Vector3 scaling = GetSGNode()->GetWorldScaling();
-	m_bIsNegativeScaling = ((scaling[0] < 0.0) ^ (scaling[1] < 0.0) ^ (scaling[2] < 0.0)) ? true : false;
-	trans.scale(scaling[0], scaling[1], scaling[2]);
-	trans.getValue(fl);
-
+		MT_Vector3 scaling = GetSGNode()->GetWorldScaling();
+		m_bIsNegativeScaling = ((scaling[0] < 0.0) ^ (scaling[1] < 0.0) ^ (scaling[2] < 0.0)) ? true : false;
+		trans.scale(scaling[0], scaling[1], scaling[2]);
+		trans.getValue(fl);
+	}
 	return fl;
 }
 
@@ -442,13 +452,15 @@ static void UpdateBuckets_recursive(SG_Node* node)
 
 void KX_GameObject::UpdateBuckets( bool recursive )
 {
-	double* fl = GetOpenGLMatrixPtr()->getPointer();
+	if (GetSGNode()) {
+		double* fl = GetOpenGLMatrixPtr()->getPointer();
 
-	for (size_t i=0;i<m_meshes.size();i++)
-		m_meshes[i]->UpdateBuckets(this, fl, m_bUseObjectColor, m_objectColor, m_bVisible, m_bCulled);
+		for (size_t i=0;i<m_meshes.size();i++)
+			m_meshes[i]->UpdateBuckets(this, fl, m_bUseObjectColor, m_objectColor, m_bVisible, m_bCulled);
 	
-	if (recursive) {
-		UpdateBuckets_recursive(m_pSGNode);
+		if (recursive) {
+			UpdateBuckets_recursive(GetSGNode());
+		}
 	}
 }
 
@@ -599,9 +611,11 @@ KX_GameObject::SetVisible(
 	bool recursive
 	)
 {
-	m_bVisible = v;
-	if (recursive)
-		setVisible_recursive(m_pSGNode, v);
+	if (GetSGNode()) {
+		m_bVisible = v;
+		if (recursive)
+			setVisible_recursive(GetSGNode(), v);
+	}
 }
 
 static void setOccluder_recursive(SG_Node* node, bool v)
@@ -627,9 +641,11 @@ KX_GameObject::SetOccluder(
 	bool recursive
 	)
 {
-	m_bOccluder = v;
-	if (recursive)
-		setOccluder_recursive(m_pSGNode, v);
+	if (GetSGNode()) {
+		m_bOccluder = v;
+		if (recursive)
+			setOccluder_recursive(GetSGNode(), v);
+	}
 }
 
 void
@@ -929,7 +945,9 @@ void KX_GameObject::NodeSetRelativeScale(const MT_Vector3& scale)
 
 void KX_GameObject::NodeSetWorldPosition(const MT_Point3& trans)
 {
-	SG_Node* parent = m_pSGNode->GetSGParent();
+	if (!GetSGNode())
+		return;
+	SG_Node* parent = GetSGNode()->GetSGParent();
 	if (parent != NULL)
 	{
 		// Make sure the objects have some scale
@@ -964,13 +982,9 @@ void KX_GameObject::NodeUpdateGS(double time)
 
 const MT_Matrix3x3& KX_GameObject::NodeGetWorldOrientation() const
 {
-	static MT_Matrix3x3 defaultOrientation = MT_Matrix3x3(	1.0, 0.0, 0.0,
-															0.0, 1.0, 0.0,
-															0.0, 0.0, 1.0);
-
 	// check on valid node in case a python controller holds a reference to a deleted object
 	if (!GetSGNode())
-		return defaultOrientation;
+		return dummy_orientation;
 	return GetSGNode()->GetWorldOrientation();
 }
 
@@ -978,11 +992,9 @@ const MT_Matrix3x3& KX_GameObject::NodeGetWorldOrientation() const
 
 const MT_Vector3& KX_GameObject::NodeGetWorldScaling() const
 {
-	static MT_Vector3 defaultScaling = MT_Vector3(1.0, 1.0, 1.0);
-
 	// check on valid node in case a python controller holds a reference to a deleted object
 	if (!GetSGNode())
-		return defaultScaling;
+		return dummy_scaling;
 
 	return GetSGNode()->GetWorldScaling();
 }
@@ -1091,13 +1103,19 @@ PyAttributeDef KX_GameObject::Attributes[] = {
 	KX_PYATTRIBUTE_RW_FUNCTION("linVelocityMax",		KX_GameObject, pyattr_get_lin_vel_max, pyattr_set_lin_vel_max),
 	KX_PYATTRIBUTE_RW_FUNCTION("visible",	KX_GameObject, pyattr_get_visible,	pyattr_set_visible),
 	KX_PYATTRIBUTE_BOOL_RW    ("occlusion", KX_GameObject, m_bOccluder),
-	KX_PYATTRIBUTE_RW_FUNCTION("position",	KX_GameObject, pyattr_get_position,	pyattr_set_position),
+	KX_PYATTRIBUTE_RW_FUNCTION("position",	KX_GameObject, pyattr_get_worldPosition,	pyattr_set_localPosition),
 	KX_PYATTRIBUTE_RO_FUNCTION("localInertia",	KX_GameObject, pyattr_get_localInertia),
-	KX_PYATTRIBUTE_RW_FUNCTION("orientation",KX_GameObject,pyattr_get_orientation,pyattr_set_orientation),
-	KX_PYATTRIBUTE_RW_FUNCTION("scaling",	KX_GameObject, pyattr_get_scaling,	pyattr_set_scaling),
+	KX_PYATTRIBUTE_RW_FUNCTION("orientation",KX_GameObject,pyattr_get_worldOrientation,pyattr_set_localOrientation),
+	KX_PYATTRIBUTE_RW_FUNCTION("scaling",	KX_GameObject, pyattr_get_worldScaling,	pyattr_set_localScaling),
 	KX_PYATTRIBUTE_RW_FUNCTION("timeOffset",KX_GameObject, pyattr_get_timeOffset,pyattr_set_timeOffset),
 	KX_PYATTRIBUTE_RW_FUNCTION("state",		KX_GameObject, pyattr_get_state,	pyattr_set_state),
 	KX_PYATTRIBUTE_RO_FUNCTION("meshes",	KX_GameObject, pyattr_get_meshes),
+	KX_PYATTRIBUTE_RW_FUNCTION("localOrientation",KX_GameObject,pyattr_get_localOrientation,pyattr_set_localOrientation),
+	KX_PYATTRIBUTE_RO_FUNCTION("worldOrientation",KX_GameObject,pyattr_get_worldOrientation),
+	KX_PYATTRIBUTE_RW_FUNCTION("localPosition",	KX_GameObject, pyattr_get_localPosition,	pyattr_set_localPosition),
+	KX_PYATTRIBUTE_RW_FUNCTION("worldPosition",	KX_GameObject, pyattr_get_worldPosition,    pyattr_set_worldPosition),
+	KX_PYATTRIBUTE_RW_FUNCTION("localScaling",	KX_GameObject, pyattr_get_localScaling,	pyattr_set_localScaling),
+	KX_PYATTRIBUTE_RO_FUNCTION("worldScaling",	KX_GameObject, pyattr_get_worldScaling),
 	
 	KX_PYATTRIBUTE_RO_FUNCTION("__dict__",	KX_GameObject, pyattr_get_dir_dict),
 	
@@ -1448,13 +1466,34 @@ int KX_GameObject::pyattr_set_visible(void *self_v, const KX_PYATTRIBUTE_DEF *at
 	return 0;
 }
 
-PyObject* KX_GameObject::pyattr_get_position(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject* KX_GameObject::pyattr_get_worldPosition(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
 	return PyObjectFrom(self->NodeGetWorldPosition());
 }
 
-int KX_GameObject::pyattr_set_position(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
+int KX_GameObject::pyattr_set_worldPosition(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
+{
+	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
+	MT_Point3 pos;
+	if (!PyVecTo(value, pos))
+		return 1;
+	
+	self->NodeSetWorldPosition(pos);
+	self->NodeUpdateGS(0.f);
+	return 0;
+}
+
+PyObject* KX_GameObject::pyattr_get_localPosition(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
+	if (self->GetSGNode())
+		return PyObjectFrom(self->GetSGNode()->GetLocalPosition());
+	else
+		return PyObjectFrom(dummy_point);
+}
+
+int KX_GameObject::pyattr_set_localPosition(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
 {
 	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
 	MT_Point3 pos;
@@ -1476,13 +1515,22 @@ PyObject* KX_GameObject::pyattr_get_localInertia(void *self_v, const KX_PYATTRIB
 	return Py_BuildValue("fff", 0.0f, 0.0f, 0.0f);
 }
 
-PyObject* KX_GameObject::pyattr_get_orientation(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject* KX_GameObject::pyattr_get_worldOrientation(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
 	return PyObjectFrom(self->NodeGetWorldOrientation());
 }
 
-int KX_GameObject::pyattr_set_orientation(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
+PyObject* KX_GameObject::pyattr_get_localOrientation(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
+	if (self->GetSGNode())
+		return PyObjectFrom(self->GetSGNode()->GetLocalOrientation());
+	else
+		return PyObjectFrom(dummy_orientation);
+}
+
+int KX_GameObject::pyattr_set_localOrientation(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
 {
 	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
 	if (!PySequence_Check(value)) {
@@ -1530,13 +1578,22 @@ int KX_GameObject::pyattr_set_orientation(void *self_v, const KX_PYATTRIBUTE_DEF
 	return 1;
 }
 
-PyObject* KX_GameObject::pyattr_get_scaling(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject* KX_GameObject::pyattr_get_worldScaling(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
 	return PyObjectFrom(self->NodeGetWorldScaling());
 }
 
-int KX_GameObject::pyattr_set_scaling(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
+PyObject* KX_GameObject::pyattr_get_localScaling(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
+	if (self->GetSGNode())
+		return PyObjectFrom(self->GetSGNode()->GetLocalScale());
+	else
+		return PyObjectFrom(dummy_scaling);
+}
+
+int KX_GameObject::pyattr_set_localScaling(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
 {
 	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
 	MT_Vector3 scale;
@@ -1551,8 +1608,8 @@ int KX_GameObject::pyattr_set_scaling(void *self_v, const KX_PYATTRIBUTE_DEF *at
 PyObject* KX_GameObject::pyattr_get_timeOffset(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
-	SG_Node* sg_parent= self->GetSGNode()->GetSGParent(); /* GetSGNode() is valid or exception would be raised */
-	if (sg_parent && sg_parent->IsSlowParent()) {
+	SG_Node* sg_parent;
+	if (self->GetSGNode() && (sg_parent = self->GetSGNode()->GetSGParent()) != NULL && sg_parent->IsSlowParent()) {
 		return PyFloat_FromDouble(static_cast<KX_SlowParentRelation *>(sg_parent->GetParentRelation())->GetTimeOffset());
 	} else {
 		return PyFloat_FromDouble(0.0);
@@ -1562,16 +1619,16 @@ PyObject* KX_GameObject::pyattr_get_timeOffset(void *self_v, const KX_PYATTRIBUT
 int KX_GameObject::pyattr_set_timeOffset(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
 {
 	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
-	MT_Scalar val = PyFloat_AsDouble(value);
-	SG_Node* sg_parent= self->GetSGNode()->GetSGParent(); /* GetSGNode() is valid or exception would be raised */
-	if (val < 0.0f) { /* also accounts for non float */
-		PyErr_SetString(PyExc_AttributeError, "expected a float zero or above");
-		return 1;
+	if (self->GetSGNode()) {
+		MT_Scalar val = PyFloat_AsDouble(value);
+		SG_Node* sg_parent= self->GetSGNode()->GetSGParent();
+		if (val < 0.0f) { /* also accounts for non float */
+			PyErr_SetString(PyExc_AttributeError, "expected a float zero or above");
+			return 1;
+		}
+		if (sg_parent && sg_parent->IsSlowParent())
+			static_cast<KX_SlowParentRelation *>(sg_parent->GetParentRelation())->SetTimeOffset(val);
 	}
-
-	if (sg_parent && sg_parent->IsSlowParent())
-		static_cast<KX_SlowParentRelation *>(sg_parent->GetParentRelation())->SetTimeOffset(val);
-
 	return 0;
 }
 
@@ -2092,6 +2149,8 @@ PyObject* KX_GameObject::PyRemoveParent(PyObject* self)
 
 static void walk_children(SG_Node* node, CListValue* list, bool recursive)
 {
+	if (!node)
+		return;
 	NodeList& children = node->GetSGChildren();
 
 	for (NodeList::iterator childit = children.begin();!(childit==children.end());++childit)
@@ -2122,7 +2181,7 @@ PyObject* KX_GameObject::PyGetChildren(PyObject* self)
 PyObject* KX_GameObject::PyGetChildrenRecursive(PyObject* self)
 {
 	CListValue* list = new CListValue();
-	walk_children(m_pSGNode, list, 1);
+	walk_children(GetSGNode(), list, 1);
 	return list;
 }
 

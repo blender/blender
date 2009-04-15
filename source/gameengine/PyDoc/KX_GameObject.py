@@ -39,11 +39,26 @@ class KX_GameObject: # (SCA_IObject)
 	@ivar occlusion: occlusion capability flag.
 	@type occlusion: boolean
 	@ivar position: The object's position. 
-	@type position: list [x, y, z]
+	                DEPRECATED: use localPosition and worldPosition
+	@type position: list [x, y, z] On write: local position, on read: world position
 	@ivar orientation: The object's orientation. 3x3 Matrix. You can also write a Quaternion or Euler vector.
-	@type orientation: 3x3 Matrix [[float]]
+	                   DEPRECATED: use localOrientation and worldOrientation
+	@type orientation: 3x3 Matrix [[float]] On write: local orientation, on read: world orientation
 	@ivar scaling: The object's scaling factor. list [sx, sy, sz]
-	@type scaling: list [sx, sy, sz]
+	               DEPRECATED: use localScaling and worldScaling
+	@type scaling: list [sx, sy, sz] On write: local scaling, on read: world scaling
+	@ivar localOrientation: The object's local orientation. 3x3 Matrix. You can also write a Quaternion or Euler vector.
+	@type localOrientation: 3x3 Matrix [[float]]
+	@ivar worldOrientation: The object's world orientation. Read-only.
+	@type worldOrientation: 3x3 Matrix [[float]]
+	@ivar localScaling: The object's local scaling factor.
+	@type localScaling: list [sx, sy, sz]
+	@ivar worldScaling: The object's world scaling factor. Read-only
+	@type worldScaling: list [sx, sy, sz]
+	@ivar localPosition: The object's local position. 
+	@type localPosition: list [x, y, z]
+	@ivar worldPosition: The object's world position. 
+	@type worldPosition: list [x, y, z]
 	@ivar timeOffset: adjust the slowparent delay at runtime.
 	@type timeOffset: float
 	@ivar state: the game object's state bitmask, using the first 30 bits, one bit must always be set.
