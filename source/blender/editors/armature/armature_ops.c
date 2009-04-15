@@ -154,6 +154,12 @@ void ED_operatortypes_armature(void)
 	WM_operatortype_append(POSE_OT_select_hierarchy);
 	WM_operatortype_append(POSE_OT_select_linked);
 	
+	/* POSELIB */
+	WM_operatortype_append(POSELIB_OT_pose_add);
+	WM_operatortype_append(POSELIB_OT_pose_remove);
+	WM_operatortype_append(POSELIB_OT_pose_rename);
+	
+	/* TESTS */
 	WM_operatortype_append(ARMATURE_OT_test); // XXX temp test for context iterators... to be removed
 }
 
@@ -206,7 +212,7 @@ void ED_keymap_armature(wmWindowManager *wm)
 		RNA_boolean_set(kmi->ptr, "forked", 1);
 	WM_keymap_add_item(keymap, "ARMATURE_OT_click_extrude", LEFTMOUSE, KM_PRESS, KM_CTRL, 0);
 	
-	/* Armature ------------------------ */
+	/* Armature -> Etch-A-Ton ------------------------ */
 	WM_keymap_add_item(keymap, "SKETCH_OT_delete", XKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "SKETCH_OT_finish_stroke", SELECTMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "SKETCH_OT_cancel_stroke", ESCKEY, KM_PRESS, 0, 0);
@@ -249,5 +255,11 @@ void ED_keymap_armature(wmWindowManager *wm)
 	// XXX this should probably be in screen instead... here for testing purposes in the meantime... - Aligorith
 	WM_keymap_verify_item(keymap, "ANIM_OT_insert_keyframe_menu", IKEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "ANIM_OT_delete_keyframe_old", IKEY, KM_PRESS, KM_ALT, 0);
+	
+	/* Pose -> PoseLib ------------- */
+	/* only set in posemode, by space_view3d listener */
+	WM_keymap_add_item(keymap, "POSELIB_OT_pose_add", LKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "POSELIB_OT_pose_remove", LKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_add_item(keymap, "POSELIB_OT_pose_rename", LKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0);
 }
 

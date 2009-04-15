@@ -69,6 +69,11 @@ void SKETCH_OT_finish_stroke(struct wmOperatorType *ot);
 void SKETCH_OT_cancel_stroke(struct wmOperatorType *ot);
 void SKETCH_OT_select(struct wmOperatorType *ot);
 
+/* PoseLib */
+void POSELIB_OT_pose_add(struct wmOperatorType *ot);
+void POSELIB_OT_pose_remove(struct wmOperatorType *ot);
+void POSELIB_OT_pose_rename(struct wmOperatorType *ot);
+
 /* editarmature.c */
 struct bArmature;
 struct EditBone;

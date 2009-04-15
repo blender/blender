@@ -57,20 +57,28 @@
 #include "BKE_object.h"
 
 #include "BKE_global.h"
+#include "BKE_context.h"
+#include "BKE_report.h"
 #include "BKE_utildefines.h"
 
 #include "PIL_time.h"			/* sleep				*/
 
 #include "RNA_access.h"
+#include "RNA_define.h"
 #include "RNA_types.h"
 
+#include "WM_api.h"
 #include "WM_types.h"
+
+#include "UI_interface.h"
+#include "UI_resources.h"
 
 #include "ED_anim_api.h"
 #include "ED_armature.h"
 #include "ED_keyframes_draw.h"
 #include "ED_keyframing.h"
 #include "ED_keyframes_edit.h"
+#include "ED_screen.h"
 
 #include "armature_intern.h"
 
@@ -79,9 +87,6 @@
 static void BIF_undo_push() {}
 static void error() {}
 static int qtest() {return 0;}
-static int sbutton() {return 0;}
-static int pupmenu() {return 0;}
-static int pupmenu_col() {return 0;}
 static int extern_qread_ext() {return 0;}
 static void persptoetsen() {}
 static void headerprint() {}
@@ -302,89 +307,96 @@ static void poselib_get_builtin_keyingsets (void)
 	}
 }
 
-/* This tool adds the current pose to the poselib 
- *	Note: Standard insertkey cannot be used for this due to its limitations
- */
-void poselib_add_current_pose (Scene *scene, Object *ob, int val)
+/* ----- */
+
+static void poselib_add_menu_invoke__replacemenu (bContext *C, uiMenuItem *head, void *arg)
 {
+	Object *ob= CTX_data_active_object(C);
+	bAction *act= ob->poselib;
+	TimeMarker *marker;
+	
+	/* add each marker to this menu */
+	for (marker= act->markers.first; marker; marker= marker->next)
+		uiMenuItemIntO(head, marker->name, ICON_ARMATURE_DATA, "POSELIB_OT_pose_add", "frame", marker->frame);
+}
+
+static int poselib_add_menu_invoke (bContext *C, wmOperator *op, wmEvent *evt)
+{
+	Scene *scene= CTX_data_scene(C);
+	Object *ob= CTX_data_active_object(C);
+	bArmature *arm= (ob) ? ob->data : NULL;
+	bPose *pose= (ob) ? ob->pose : NULL;
+	uiMenuItem *head;
+	
+	/* sanity check */
+	if (ELEM3(NULL, ob, arm, pose)) 
+		return OPERATOR_CANCELLED;
+	
+	/* start building */
+	head= uiPupMenuBegin(op->type->name, 0);
+	uiMenuContext(head, WM_OP_EXEC_DEFAULT);
+	
+	/* add new (adds to the first unoccupied frame) */
+	uiMenuItemIntO(head, "Add New", 0, "POSELIB_OT_pose_add", "frame", poselib_get_free_index(ob->poselib));
+	
+	/* check if we have any choices to add a new pose in any other way */
+	if ((ob->poselib) && (ob->poselib->markers.first)) {
+		/* add new (on current frame) */
+		uiMenuItemIntO(head, "Add New (Current Frame)", 0, "POSELIB_OT_pose_add", "frame", CFRA);
+		
+		/* replace existing - submenu */
+		uiMenuLevel(head, "Replace Existing...", poselib_add_menu_invoke__replacemenu);
+	}
+	
+	uiPupMenuEnd(C, head);
+	
+	/* this operator is only for a menu, not used further */
+	return OPERATOR_CANCELLED;
+}
+
+
+static int poselib_add_exec (bContext *C, wmOperator *op)
+{
+	Object *ob= CTX_data_active_object(C);
+	bAction *act = poselib_validate(ob);
 	bArmature *arm= (ob) ? ob->data : NULL;
 	bPose *pose= (ob) ? ob->pose : NULL;
 	bPoseChannel *pchan;
 	TimeMarker *marker;
-	bAction *act;
-	int frame;
+	int frame= RNA_int_get(op->ptr, "frame");
 	char name[64];
 	
 	bCommonKeySrc cks;
 	ListBase dsources = {&cks, &cks};
 	
-	
-	/* sanity check */
+	/* sanity check (invoke should have checked this anyway) */
 	if (ELEM3(NULL, ob, arm, pose)) 
-		return;
+		return OPERATOR_CANCELLED;
 	
-	/* mode - add new or replace existing */
-	if (val == 0) {
-		if ((ob->poselib) && (ob->poselib->markers.first)) {
-			val= pupmenu("PoseLib Add Current Pose%t|Add New%x1|Add New (Current Frame)%x3|Replace Existing%x2");
-			if (val <= 0) return;
-		}
-		else 
-			val= 1;
-	}
+	/* get name to give to pose */
+	RNA_string_get(op->ptr, "name", name);
 	
-	if ((ob->poselib) && (val == 2)) {
-		char *menustr;
-		
-		/* get poselib */
-		act= ob->poselib;
-		
-		/* get the pose to replace */
-		menustr= poselib_build_poses_menu(act, "Replace PoseLib Pose");
-		val= pupmenu_col(menustr, 20);
-		if (menustr) MEM_freeN(menustr);
-		
-		if (val <= 0) return;
-		marker= BLI_findlink(&act->markers, val-1);
-		if (marker == NULL) return;
-		
-		/* get the frame from the poselib */
-		frame= marker->frame;
-	}
-	else {
-		/* get name of pose */
-		sprintf(name, "Pose");
-		if (sbutton(name, 0, sizeof(name)-1, "Name: ") == 0)
-			return;
-			
-		/* get/initialise poselib */
-		act= poselib_validate(ob);
-		
-		/* get frame */
-		if (val == 3)
-			frame= CFRA;
-		else /* if (val == 1) */
-			frame= poselib_get_free_index(act);
-		
-		/* add pose to poselib - replaces any existing pose there */
-		for (marker= act->markers.first; marker; marker= marker->next) {
-			if (marker->frame == frame) {
-				BLI_strncpy(marker->name, name, sizeof(marker->name));
-				break;
-			}
-		}
-		if (marker == NULL) {
-			marker= MEM_callocN(sizeof(TimeMarker), "ActionMarker");
-			
+	/* add pose to poselib - replaces any existing pose there
+	 *	- for the 'replace' option, this should end up finding the appropriate marker,
+	 *	  so no new one will be added
+	 */
+	for (marker= act->markers.first; marker; marker= marker->next) {
+		if (marker->frame == frame) {
 			BLI_strncpy(marker->name, name, sizeof(marker->name));
-			marker->frame= frame;
-			
-			BLI_addtail(&act->markers, marker);
+			break;
 		}
+	}
+	if (marker == NULL) {
+		marker= MEM_callocN(sizeof(TimeMarker), "ActionMarker");
 		
-		/* validate name */
-		BLI_uniquename(&act->markers, marker, "Pose", offsetof(TimeMarker, name), 64);
-	}	
+		BLI_strncpy(marker->name, name, sizeof(marker->name));
+		marker->frame= frame;
+		
+		BLI_addtail(&act->markers, marker);
+	}
+	
+	/* validate name */
+	BLI_uniquename(&act->markers, marker, "Pose", offsetof(TimeMarker, name), 64);
 	
 	/* make sure we've got KeyingSets to use */
 	poselib_get_builtin_keyingsets();
@@ -403,9 +415,9 @@ void poselib_add_current_pose (Scene *scene, Object *ob, int val)
 				
 				/* KeyingSet to use depends on rotation mode  */
 				if (pchan->rotmode)
-					modify_keyframes(/*C*/NULL, &dsources, act, poselib_ks_locrotscale2, MODIFYKEY_MODE_INSERT, (float)frame);
+					modify_keyframes(C, &dsources, act, poselib_ks_locrotscale2, MODIFYKEY_MODE_INSERT, (float)frame);
 				else
-					modify_keyframes(/*C*/NULL, &dsources, act, poselib_ks_locrotscale, MODIFYKEY_MODE_INSERT, (float)frame);
+					modify_keyframes(C, &dsources, act, poselib_ks_locrotscale, MODIFYKEY_MODE_INSERT, (float)frame);
 			}
 		}
 	}
@@ -413,43 +425,78 @@ void poselib_add_current_pose (Scene *scene, Object *ob, int val)
 	/* store new 'active' pose number */
 	act->active_marker= BLI_countlist(&act->markers);
 	
-	BIF_undo_push("PoseLib Add Pose");
+	/* done */
+	return OPERATOR_FINISHED;
 }
 
 
-/* This tool removes the pose that the user selected from the poselib (or the provided pose) */
-void poselib_remove_pose (Object *ob, TimeMarker *marker)
+void POSELIB_OT_pose_add (wmOperatorType *ot)
 {
-	bPose *pose= (ob) ? ob->pose : NULL;
+	/* identifiers */
+	ot->name= "PoseLib Add Pose";
+	ot->idname= "POSELIB_OT_pose_add";
+	ot->description= "Add the current Pose to the active Pose Library";
+	
+	/* api callbacks */
+	ot->invoke= poselib_add_menu_invoke;
+	ot->exec= poselib_add_exec;
+	ot->poll= ED_operator_posemode;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* properties */
+	RNA_def_int(ot->srna, "frame", 1, 0, INT_MAX, "Frame", "Frame to store pose on", 0, INT_MAX);
+	RNA_def_string(ot->srna, "name", "Pose", 64, "Pose Name", "Name of newly added Pose");
+}
+
+/* ----- */
+
+static int poselib_stored_pose_menu_invoke (bContext *C, wmOperator *op, wmEvent *evt)
+{
+	Object *ob= CTX_data_active_object(C);
 	bAction *act= (ob) ? ob->poselib : NULL;
+	TimeMarker *marker;
+	uiMenuItem *head;
+	int i;
+	
+	/* sanity check */
+	if (ELEM(NULL, ob, act)) 
+		return OPERATOR_CANCELLED;
+	
+	/* start building */
+	head= uiPupMenuBegin(op->type->name, 0);
+	uiMenuContext(head, WM_OP_EXEC_DEFAULT);
+	
+	/* add each marker to this menu */
+	for (marker=act->markers.first, i=0; marker; marker= marker->next, i++)
+		uiMenuItemIntO(head, marker->name, ICON_ARMATURE_DATA, op->idname, "index", i);
+	
+	uiPupMenuEnd(C, head);
+	
+	/* this operator is only for a menu, not used further */
+	return OPERATOR_CANCELLED;
+}
+
+
+
+static int poselib_remove_exec (bContext *C, wmOperator *op)
+{
+	Object *ob= CTX_data_active_object(C);
+	bAction *act= (ob) ? ob->poselib : NULL;
+	TimeMarker *marker;
 	FCurve *fcu;
-	char *menustr;
-	int val;
 	
 	/* check if valid poselib */
-	if (ELEM(NULL, ob, pose)) {
-		error("PoseLib is only for Armatures in PoseMode");
-		return;
-	}
 	if (act == NULL) {
-		error("Object doesn't have PoseLib data");
-		return;
+		BKE_report(op->reports, RPT_ERROR, "Object doesn't have PoseLib data");
+		return OPERATOR_CANCELLED;
 	}
 	
 	/* get index (and pointer) of pose to remove */
+	marker= BLI_findlink(&act->markers, RNA_int_get(op->ptr, "index"));
 	if (marker == NULL) {
-		menustr= poselib_build_poses_menu(act, "Remove PoseLib Pose");
-		val= pupmenu_col(menustr, 20);
-		if (menustr) MEM_freeN(menustr);
-		
-		if (val <= 0) return;
-		marker= BLI_findlink(&act->markers, val-1);
-		if (marker == NULL) return;
-	}
-	else {
-		/* only continue if pose belongs to poselib */
-		if (BLI_findindex(&act->markers, marker) == -1) 
-			return;
+		BKE_report(op->reports, RPT_ERROR, "Invalid index for Pose");
 	}
 	
 	/* remove relevant keyframes */
@@ -474,52 +521,80 @@ void poselib_remove_pose (Object *ob, TimeMarker *marker)
 	/* fix active pose number */
 	act->active_marker= 0;
 	
-	/* undo + redraw */
-	BIF_undo_push("PoseLib Remove Pose");
+	/* done */
+	return OPERATOR_FINISHED;
+}
+
+void POSELIB_OT_pose_remove (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "PoseLib Remove Pose";
+	ot->idname= "POSELIB_OT_pose_remove";
+	ot->description= "Remove nth pose from the active Pose Library";
+	
+	/* api callbacks */
+	ot->invoke= poselib_stored_pose_menu_invoke;
+	ot->exec= poselib_remove_exec;
+	ot->poll= ED_operator_posemode;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* properties */
+	RNA_def_int(ot->srna, "index", 0, 0, INT_MAX, "Index", "The index of the pose to remove", 0, INT_MAX);
 }
 
 
-/* This tool renames the pose that the user selected from the poselib */
-void poselib_rename_pose (Object *ob)
+
+static int poselib_rename_exec (bContext *C, wmOperator *op)
 {
-	bPose *pose= (ob) ? ob->pose : NULL;
+	Object *ob= CTX_data_active_object(C);
 	bAction *act= (ob) ? ob->poselib : NULL;
 	TimeMarker *marker;
-	char *menustr, name[64];
-	int val;
+	char newname[64];
 	
 	/* check if valid poselib */
-	if (ELEM(NULL, ob, pose)) {
-		error("PoseLib is only for Armatures in PoseMode");
-		return;
-	}
 	if (act == NULL) {
-		error("Object doesn't have a valid PoseLib");
-		return;
+		BKE_report(op->reports, RPT_ERROR, "Object doesn't have PoseLib data");
+		return OPERATOR_CANCELLED;
 	}
 	
-	/* get index of pose to remove */
-	menustr= poselib_build_poses_menu(act, "Rename PoseLib Pose");
-	val= pupmenu_col(menustr, 20);
-	if (menustr) MEM_freeN(menustr);
+	/* get index (and pointer) of pose to remove */
+	marker= BLI_findlink(&act->markers, RNA_int_get(op->ptr, "index"));
+	if (marker == NULL) {
+		BKE_report(op->reports, RPT_ERROR, "Invalid index for Pose");
+	}
 	
-	if (val <= 0) return;
-	marker= BLI_findlink(&act->markers, val-1);
-	if (marker == NULL) return;
-	
-	/* get name of pose */
-	strncpy(name, marker->name, sizeof(name));
-	if (sbutton(name, 0, sizeof(name)-1, "Name: ") == 0)
-		return;
+	/* get new name */
+	RNA_string_get(op->ptr, "name", newname);
 	
 	/* copy name and validate it */
-	BLI_strncpy(marker->name, name, sizeof(marker->name));
+	BLI_strncpy(marker->name, newname, sizeof(marker->name));
 	BLI_uniquename(&act->markers, marker, "Pose", offsetof(TimeMarker, name), 64);
 	
-	/* undo and update */
-	BIF_undo_push("PoseLib Rename Pose");
+	/* done */
+	return OPERATOR_FINISHED;
 }
 
+void POSELIB_OT_pose_rename (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "PoseLib Rename Pose";
+	ot->idname= "POSELIB_OT_pose_rename";
+	ot->description= "Rename nth pose from the active Pose Library";
+	
+	/* api callbacks */
+	ot->invoke= poselib_stored_pose_menu_invoke;
+	ot->exec= poselib_rename_exec;
+	ot->poll= ED_operator_posemode;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* properties */
+	RNA_def_int(ot->srna, "index", 0, 0, INT_MAX, "Index", "The index of the pose to remove", 0, INT_MAX);
+	RNA_def_string(ot->srna, "name", "RenamedPose", 64, "New Pose Name", "New name for pose");
+}
 
 /* ************************************************************* */
 

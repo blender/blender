@@ -612,6 +612,7 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 				Object *ob= (Object *)id;
 				
 				outliner_add_element(soops, &te->subtree, ob->adt, te, TSE_ANIM_DATA, 0);
+				outliner_add_element(soops, &te->subtree, ob->poselib, te, 0, 0); // XXX FIXME.. add a special type for this
 				
 				if(ob->proxy && ob->id.lib==NULL)
 					outliner_add_element(soops, &te->subtree, ob->proxy, te, TSE_PROXY, 0);
