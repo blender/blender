@@ -14,6 +14,7 @@ struct KS_Path;
 
 struct PointerRNA;
 struct bAction;
+struct bActionGroup;
 struct AnimMapper;
 
 /* ************************************* */
