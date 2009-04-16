@@ -1216,26 +1216,26 @@ void uiRegionPanelLayout(const bContext *C, ARegion *ar, int vertical, char *con
 
 		if(pt->draw && (!pt->poll || pt->poll(C))) {
 			block= uiBeginBlock(C, ar, pt->idname, UI_EMBOSS);
-			
-			if(vertical) {
-				w= (ar->type->minsizex)? ar->type->minsizex-12: block->aspect*ar->winx-12;
-				em= (ar->type->minsizex)? 10: 20;
-			}
-			else {
-				w= (ar->type->minsizex)? ar->type->minsizex-12: UI_PANEL_WIDTH-12;
-				em= (ar->type->minsizex)? 10: 20;
-			}
+			panel= uiBeginPanel(ar, block, pt);
 
-			if(uiNewPanel(C, ar, block, pt->name, pt->name, x, y, w, 0)) {
-				panel= uiPanelFromBlock(block);
+			if(panel) {
+				if(vertical) {
+					w= (ar->type->minsizex)? ar->type->minsizex-12: block->aspect*ar->winx-12;
+					em= (ar->type->minsizex)? 10: 20;
+				}
+				else {
+					w= (ar->type->minsizex)? ar->type->minsizex-12: UI_PANEL_WIDTH-12;
+					em= (ar->type->minsizex)? 10: 20;
+				}
+
 				panel->type= pt;
-				panel->layout= uiLayoutBegin(UI_LAYOUT_VERTICAL, x, y, w, em);
+				panel->layout= uiLayoutBegin(UI_LAYOUT_VERTICAL, PNL_SAFETY, 0, w-2*PNL_SAFETY, em);
 
 				pt->draw(C, panel);
 
 				uiLayoutEnd(C, block, panel->layout, &xco, &yco);
 				panel->layout= NULL;
-				uiNewPanelHeight(block, y - yco + 12);
+				uiEndPanel(block, w, -yco + 12);
 			}
 			else {
 				w= PNL_HEADER;

@@ -467,8 +467,10 @@ typedef struct SpaceImaSel {
 #define SB_PRV_OSA			1
 
 /* sbuts->align */
+#define BUT_FREE  		0
 #define BUT_HORIZONTAL  1
 #define BUT_VERTICAL    2
+#define BUT_AUTO		3
 
 /* sbuts->scaflag */		
 #define BUTS_SENS_SEL		1

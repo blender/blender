@@ -96,7 +96,7 @@ typedef struct Panel {		/* the part from uiBlock that needs saved in file */
 	char panelname[64], tabname[64];	/* defined as UI_MAX_NAME_STR */
 	char drawname[64];					/* panelname is identifier for restoring location */
 	short ofsx, ofsy, sizex, sizey;
-	short flag, active;					/* active= used currently by a uiBlock */
+	short flag, runtime_flag;
 	short control;
 	short snap;
 	int sortcounter, pad;		/* when sorting panels, it uses this to put new ones in right place */

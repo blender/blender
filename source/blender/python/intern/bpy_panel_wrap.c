@@ -36,6 +36,8 @@
 #include "DNA_screen_types.h"
 #include "MEM_guardedalloc.h"
 #include "ED_screen.h"
+#include "WM_api.h"
+#include "WM_types.h"
 
 #define PYPANEL_ATTR_UINAME		"__label__"
 #define PYPANEL_ATTR_IDNAME		"__name__"	/* use pythons class name */
@@ -125,11 +127,13 @@ static int PyPanel_poll(const bContext *C)
 /* pyOperators - Operators defined IN Python */
 PyObject *PyPanel_wrap_add(PyObject *self, PyObject *args)
 {
+	bContext *C;
 	PyObject *item;
 	PyObject *py_class;
 	PyObject *base_class;
 	char *space_identifier;
 	char *region_identifier;
+	char *idname;
 	int space_value;
 	int region_value;
 
@@ -204,26 +208,38 @@ PyObject *PyPanel_wrap_add(PyObject *self, PyObject *args)
 		return NULL;
 	}
 
-	pt= MEM_callocN(sizeof(PanelType), "python buttons panel");
-	pt->idname= _PyUnicode_AsString(pypnl_class_attrs[PYPANEL_ATTR_IDNAME_IDX]);
+	idname= _PyUnicode_AsString(pypnl_class_attrs[PYPANEL_ATTR_IDNAME_IDX]);
+
+	for(pt=art->paneltypes.first; pt; pt=pt->next)
+		if(strcmp(pt->idname, idname) == 0)
+			break;
+
+	if(!pt) {
+		pt= MEM_callocN(sizeof(PanelType), "python buttons panel");
+		pt->srna= RNA_def_struct(&BLENDER_RNA, pt->idname, "Panel"); 
+		BLI_addtail(&art->paneltypes, pt);
+	}
+
+	pt->idname= idname;
 
 	item= pypnl_class_attrs[PYPANEL_ATTR_UINAME_IDX];
-	pt->name= item ? _PyUnicode_AsString(item):pt->idname;
-
+	pt->name= item? _PyUnicode_AsString(item): pt->idname;
 	pt->context= _PyUnicode_AsString(pypnl_class_attrs[PYPANEL_ATTR_CONTEXT_IDX]);
 
 	if (pypnl_class_attrs[PYPANEL_ATTR_POLL_IDX])
 		pt->poll= PyPanel_poll;
+	else
+		pt->poll= NULL;
 	
 	pt->draw= PyPanel_draw;
 
 	Py_INCREF(py_class);
 	pt->py_data= (void *)py_class;
-
-	BLI_addtail(&art->paneltypes, pt);
-
-	pt->srna= RNA_def_struct(&BLENDER_RNA, pt->idname, "Panel"); 
 	RNA_struct_py_type_set(pt->srna, py_class);
+
+	C= (bContext *)PyCObject_AsVoidPtr(PyDict_GetItemString(PyEval_GetGlobals(), "__bpy_context__"));
+	if(C)
+		WM_event_add_notifier(C, NC_SCREEN|NA_EDITED, NULL);
 
 	Py_RETURN_NONE;
 }

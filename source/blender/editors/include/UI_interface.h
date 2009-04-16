@@ -481,18 +481,18 @@ void autocomplete_end(AutoComplete *autocpl, char *autoname);
  * could use a good cleanup, though how they will function in 2.5 is
  * not clear yet so we postpone that. */
 
-extern void uiNewPanelTabbed(char *, char *);
+void uiBeginPanels(const struct bContext *C, struct ARegion *ar);
+void uiEndPanels(const struct bContext *C, struct ARegion *ar);
+
+struct Panel *uiBeginPanel(struct ARegion *ar, uiBlock *block, struct PanelType *pt);
+void uiEndPanel(uiBlock *block, int width, int height);
+
+void uiPanelsHome(struct ARegion *ar);
+
+/* deprecated */
 extern int uiNewPanel(const struct bContext *C, struct ARegion *ar, uiBlock *block, char *panelname, char *tabname, int ofsx, int ofsy, int sizex, int sizey);
-
-extern void uiBeginPanels(const struct bContext *C, struct ARegion *ar);
-extern void uiEndPanels(const struct bContext *C, struct ARegion *ar);
-extern void uiFreePanels(struct ListBase *lb);
-	
-extern void uiPanelsHome(struct ARegion *ar);
-
 extern void uiNewPanelHeight(struct uiBlock *block, int sizey);
 extern void uiNewPanelTitle(struct uiBlock *block, char *str);
-struct Panel *uiPanelFromBlock(struct uiBlock *block);
 
 /* Handlers
  *

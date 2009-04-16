@@ -297,7 +297,7 @@ int uiDefAutoButsRNA(const bContext *C, uiBlock *block, PointerRNA *ptr)
 	char *name;
 	int x= 0, y= 0;
 
-	layout= uiLayoutBegin(UI_LAYOUT_VERTICAL, x, y, DEF_BUT_WIDTH*2, 0);
+	layout= uiLayoutBegin(UI_LAYOUT_VERTICAL, x, y, DEF_BUT_WIDTH*2, 20);
 
 	uiLayoutColumn(layout);
 	uiItemL(layout, (char*)RNA_struct_ui_name(ptr), 0);
@@ -314,7 +314,9 @@ int uiDefAutoButsRNA(const bContext *C, uiBlock *block, PointerRNA *ptr)
 		uiLayoutSplit(layout, 2, 0);
 
 		name= (char*)RNA_property_ui_name(ptr, prop);
+		uiLayoutColumn(uiLayoutSub(layout, 0));
 		uiItemL(uiLayoutSub(layout, 0), name, 0);
+		uiLayoutColumn(uiLayoutSub(layout, 1));
 		uiItemFullR(uiLayoutSub(layout, 1), "", 0, ptr, prop, -1, 0);
 	}
 

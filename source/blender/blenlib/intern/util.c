@@ -831,10 +831,10 @@ char *BLI_gethome(void) {
 /* this function returns the path to a blender folder, if it exists,
  * trying in this order:
  *
- * $HOME/.blender/folder_name
- * path_to_executable/.blender/folder_name
  * path_to_executable/release/folder_name (in svn)
  * ./release/folder_name (in svn)
+ * $HOME/.blender/folder_name
+ * path_to_executable/.blender/folder_name
  *
  * returns NULL if none is found. */
 
@@ -848,12 +848,20 @@ char *BLI_gethome_folder(char *folder_name)
 	char *s;
 	int i;
 
-	if(folder_name) {
-		if(fulldir[0] != '\0')
-			return fulldir;
+	/* try path_to_executable/release/folder_name (in svn) */
+	if (folder_name) {
+		BLI_snprintf(tmpdir, sizeof(tmpdir), "release/%s", folder_name);
+		BLI_make_file_string("/", fulldir, bprogdir, tmpdir);
+		if (BLI_exists(fulldir)) return fulldir;
+		else fulldir[0] = '\0';
 	}
-	else if(homedir[0] != '\0')
-		return homedir;
+
+	/* try ./release/folder_name (in svn) */
+	if(folder_name) {
+		BLI_snprintf(fulldir, sizeof(fulldir), "./release/%s", folder_name);
+		if (BLI_exists(fulldir)) return fulldir;
+		else fulldir[0] = '\0';
+	}
 
 	/* BLI_gethome() can return NULL if env vars are not set */
 	s = BLI_gethome();
@@ -911,21 +919,6 @@ char *BLI_gethome_folder(char *folder_name)
 			}
 		}
 		else return homedir;
-	}
-
-	/* try path_to_executable/release/folder_name (in svn) */
-	if (folder_name) {
-		BLI_snprintf(tmpdir, sizeof(tmpdir), "release/%s", folder_name);
-		BLI_make_file_string("/", fulldir, bprogdir, tmpdir);
-		if (BLI_exists(fulldir)) return fulldir;
-		else fulldir[0] = '\0';
-	}
-
-	/* try ./release/folder_name (in svn) */
-	if(folder_name) {
-		BLI_snprintf(fulldir, sizeof(fulldir), "./release/%s", folder_name);
-		if (BLI_exists(fulldir)) return fulldir;
-		else fulldir[0] = '\0';
 	}
 
 	return NULL;

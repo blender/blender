@@ -70,6 +70,7 @@ static SpaceLink *buttons_new(const bContext *C)
 	sbuts= MEM_callocN(sizeof(SpaceButs), "initbuts");
 	sbuts->spacetype= SPACE_BUTS;
 	sbuts->scaflag= BUTS_SENS_LINK|BUTS_SENS_ACT|BUTS_CONT_ACT|BUTS_ACT_ACT|BUTS_ACT_LINK;
+	sbuts->align= BUT_AUTO;
 
 	/* header */
 	ar= MEM_callocN(sizeof(ARegion), "header for buts");
@@ -128,7 +129,15 @@ static void buttons_free(SpaceLink *sl)
 /* spacetype; init callback */
 static void buttons_init(struct wmWindowManager *wm, ScrArea *sa)
 {
+	SpaceButs *sbuts= sa->spacedata.first;
 
+	/* auto-align based on size */
+	if(sbuts->align == BUT_AUTO) {
+		if(sa->winx > sa->winy)
+			sbuts->align= BUT_HORIZONTAL;
+		else
+			sbuts->align= BUT_VERTICAL;
+	}
 }
 
 static SpaceLink *buttons_duplicate(SpaceLink *sl)
@@ -158,18 +167,14 @@ static void buttons_main_area_draw(const bContext *C, ARegion *ar)
 {
 	/* draw entirely, view changes should be handled here */
 	SpaceButs *sbuts= (SpaceButs*)CTX_wm_space_data(C);
+	int vertical= (sbuts->align == BUT_VERTICAL);
+	int tab= sbuts->tab[sbuts->mainb];
 
 	if(sbuts->mainb == CONTEXT_OBJECT) {
-		int tab= sbuts->tab[CONTEXT_OBJECT];
-		int vertical= (sbuts->align == 2);
-
 		if(tab == TAB_OBJECT_OBJECT)
 			uiRegionPanelLayout(C, ar, vertical, "object");
 	}
 	else if (sbuts->mainb == CONTEXT_SCENE){
-		int tab= sbuts->tab[CONTEXT_SCENE];
-		int vertical= (sbuts->align == 2);
-
 		if(tab == TAB_SCENE_RENDER)
 			uiRegionPanelLayout(C, ar, vertical, "render");
 	}	

@@ -4460,7 +4460,7 @@ static void direct_link_region(FileData *fd, ARegion *ar, int spacetype)
 
 	for(pa= ar->panels.first; pa; pa=pa->next) {
 		pa->paneltab= newdataadr(fd, pa->paneltab);
-		pa->active= 0;
+		pa->runtime_flag= 0;
 		pa->sortcounter= 0;
 		pa->activedata= NULL;
 		pa->type= NULL;

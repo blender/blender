@@ -1688,9 +1688,6 @@ void uiFreeBlock(const bContext *C, uiBlock *block)
 		ui_free_but(C, but);
 	}
 
-	if(block->panel) {
-		block->panel->active= 0;
-	}
 	BLI_freelistN(&block->saferct);
 	
 	MEM_freeN(block);
