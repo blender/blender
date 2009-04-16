@@ -162,6 +162,8 @@ int BPY_run_python_script( bContext *C, const char *fn, struct Text *text )
 	
 	gilstate = PyGILState_Ensure();
 
+	BPY_update_modules(); /* can give really bad results if this isnt here */
+	
 	py_dict = CreateGlobalDictionary(C);
 
 	if (text) {
