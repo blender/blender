@@ -45,38 +45,31 @@ void RNA_api_ui_layout(StructRNA *srna)
 	FunctionRNA *func;
 	PropertyRNA *parm;
 
-	static EnumPropertyItem slot_items[]= {
-		{0, "DEFAULT", "Default", ""},
-		{UI_TSLOT_COLUMN_1, "COLUMN_1", "Column 1", ""},
-		{UI_TSLOT_COLUMN_2, "COLUMN_2", "Column 2", ""},
-		{UI_TSLOT_COLUMN_3, "COLUMN_3", "Column 3", ""},
-		{UI_TSLOT_COLUMN_4, "COLUMN_4", "Column 4", ""},
-		{UI_TSLOT_COLUMN_5, "COLUMN_5", "Column 5", ""},
-		{UI_TSLOT_LR_LEFT, "LEFT", "Left", ""},
-		{UI_TSLOT_LR_RIGHT, "RIGHT", "Right", ""},
-		{0, NULL, NULL, NULL}
-	};
+	/* simple layout specifiers */
+	func= RNA_def_function(srna, "row", "uiLayoutRow");
+	func= RNA_def_function(srna, "column", "uiLayoutColumn");
+	func= RNA_def_function(srna, "column_flow", "uiLayoutColumnFlow");
+	parm= RNA_def_int(func, "columns", 0, 0, INT_MAX, "", "Number of columns, 0 is automatic.", 0, INT_MAX);
 
-	/* templates */
-	func= RNA_def_function(srna, "template_row", "uiTemplateRow");
-	func= RNA_def_function(srna, "template_column", "uiTemplateColumn");
-	func= RNA_def_function(srna, "template_left_right", "uiTemplateLeftRight");
+	/* box layout */
+	func= RNA_def_function(srna, "box", "uiLayoutBox");
+	parm= RNA_def_pointer(func, "layout", "UILayout", "", "Sub-layout to put items in.");
+	RNA_def_function_return(func, parm);
 
-	func= RNA_def_function(srna, "template_column_flow", "uiTemplateColumnFlow");
-	parm= RNA_def_int(func, "columns", 0, 0, INT_MAX, "", "Number of columns.", 0, INT_MAX);
+	/* split layout */
+	func= RNA_def_function(srna, "split", "uiLayoutSplit");
+	parm= RNA_def_int(func, "number", 2, 0, INT_MAX, "", "Number of splits.", 0, INT_MAX);
+	parm= RNA_def_boolean(func, "lr", 0, "", "LR.");
+
+	/* sub layout */
+	func= RNA_def_function(srna, "sub", "uiLayoutSub");
+	parm= RNA_def_int(func, "n", 0, 0, INT_MAX, "", "Index of sub-layout.", 0, INT_MAX);
 	RNA_def_property_flag(parm, PROP_REQUIRED);
-
-	func= RNA_def_function(srna, "template_stack", "uiTemplateStack");
-	parm= RNA_def_pointer(func, "sub_layout", "UILayout", "", "Sub-layout to put stack items in.");
+	parm= RNA_def_pointer(func, "layout", "UILayout", "", "Sub-layout to put items in.");
 	RNA_def_function_return(func, parm);
 
 	func= RNA_def_function(srna, "template_header_menus", "uiTemplateHeaderMenus");
-	func= RNA_def_function(srna, "template_header_buttons", "uiTemplateHeaderButtons");
 	//func= RNA_def_function(srna, "template_header_ID", "uiTemplateHeaderID");
-
-	func= RNA_def_function(srna, "template_slot", "uiTemplateSlot");
-	parm= RNA_def_enum(func, "slot", slot_items, 0, "", "Where in the template to put the following items.");
-	RNA_def_property_flag(parm, PROP_REQUIRED);
 
 	/* items */
 	func= RNA_def_function(srna, "itemR", "uiItemR");
@@ -85,6 +78,7 @@ void RNA_api_ui_layout(StructRNA *srna)
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm= RNA_def_string(func, "property", "", 0, "", "Identifier of property in data.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_boolean(func, "expand", 0, "", "Expand button to show more detail.");
 
 	func= RNA_def_function(srna, "itemO", "uiItemO");
 	api_ui_item_common(func);
