@@ -510,12 +510,16 @@ enum {
 
 /* KS_Path->groupmode */
 enum {
-		/* path should be grouped using its own group-name */
+		/* path should be grouped using group name stored in path */
 	KSP_GROUP_NAMED = 0,
 		/* path should not be grouped at all */
 	KSP_GROUP_NONE,
-		/* path should be grouped under an ActionGroup KeyingSet's name */
+		/* path should be grouped using KeyingSet's name */
 	KSP_GROUP_KSNAME,
+		/* path should be grouped using name of inner-most context item from templates 
+		 * 	- this is most useful for relative KeyingSets only
+		 */
+	KSP_GROUP_TEMPLATE_ITEM,
 } eKSP_Grouping;
 
 /* KS_Path->templates  (Template Flags)
@@ -561,11 +565,6 @@ enum {
 	KEYINGSET_BUILTIN		= (1<<0),
 		/* keyingset does not depend on context info (i.e. paths are absolute) */
 	KEYINGSET_ABSOLUTE		= (1<<1),
-	
-		/* override group name settings of paths in this Keying Set with context 
-		 * info (internally used for relative paths only)
-		 */
-	KEYINGSET_GROUPNAMES_OVERRIDE	= (1<<2),
 } eKS_Settings;
 
 /* Flags for use by keyframe creation/deletion calls */

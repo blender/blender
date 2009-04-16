@@ -82,6 +82,7 @@ void rna_def_keyingset_path(BlenderRNA *brna)
 		{KSP_GROUP_NAMED, "NAMED", "Named Group", ""},
 		{KSP_GROUP_NONE, "NONE", "None", ""},
 		{KSP_GROUP_KSNAME, "KEYINGSET", "Keying Set Name", ""},
+		{KSP_GROUP_TEMPLATE_ITEM, "TEMPLATE", "Innermost Context-Item Name", ""},
 		{0, NULL, NULL, NULL}};
 	
 	srna= RNA_def_struct(brna, "KeyingSetPath", NULL);

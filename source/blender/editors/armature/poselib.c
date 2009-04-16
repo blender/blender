@@ -393,10 +393,6 @@ static int poselib_add_exec (bContext *C, wmOperator *op)
 	/* make sure we've got KeyingSets to use */
 	poselib_get_builtin_keyingsets();
 	
-	/* turn on group-name overrides temporarily (only here) */
-	poselib_ks_locrotscale->flag |= KEYINGSET_GROUPNAMES_OVERRIDE;
-	poselib_ks_locrotscale2->flag |= KEYINGSET_GROUPNAMES_OVERRIDE;
-	
 	/* init common-key-source for use by KeyingSets */
 	memset(&cks, 0, sizeof(bCommonKeySrc));
 	cks.id= &ob->id;
@@ -417,10 +413,6 @@ static int poselib_add_exec (bContext *C, wmOperator *op)
 			}
 		}
 	}
-	
-	/* turn off group-name overrides so they don't affect the KeyingSets when used elsewhere */
-	poselib_ks_locrotscale->flag &= ~KEYINGSET_GROUPNAMES_OVERRIDE;
-	poselib_ks_locrotscale2->flag &= ~KEYINGSET_GROUPNAMES_OVERRIDE;
 	
 	/* store new 'active' pose number */
 	act->active_marker= BLI_countlist(&act->markers);
@@ -662,13 +654,13 @@ typedef struct tPoseLib_Backup {
 /* Makes a copy of the current pose for restoration purposes - doesn't do constraints currently */
 static void poselib_backup_posecopy (tPoseLib_PreviewData *pld)
 {
-	bActionChannel *achan;
+	bActionGroup *agrp;
 	bPoseChannel *pchan;
 	
 	/* for each posechannel that has an actionchannel in */
-	for (achan= pld->act->chanbase.first; achan; achan= achan->next) {
+	for (agrp= pld->act->groups.first; agrp; agrp= agrp->next) {
 		/* try to find posechannel */
-		pchan= get_pose_channel(pld->pose, achan->name);
+		pchan= get_pose_channel(pld->pose, agrp->name);
 		
 		/* backup data if available */
 		if (pchan) {
@@ -1085,8 +1077,11 @@ static int poselib_preview_handle_event (bContext *C, wmOperator *op, wmEvent *e
 				
 			/* quicky compare to original */
 			case TABKEY:
-				pld->flag &= ~PL_PREVIEW_SHOWORIGINAL;
-				pld->redraw= PL_PREVIEW_REDRAWALL;
+				/* only respond to one event */
+				if (event->val == 0) {
+					pld->flag &= ~PL_PREVIEW_SHOWORIGINAL;
+					pld->redraw= PL_PREVIEW_REDRAWALL;
+				}
 				break;
 		}
 		
@@ -1113,8 +1108,11 @@ static int poselib_preview_handle_event (bContext *C, wmOperator *op, wmEvent *e
 			
 		/* toggle between original pose and poselib pose*/
 		case TABKEY:
-			pld->flag |= PL_PREVIEW_SHOWORIGINAL;
-			pld->redraw= PL_PREVIEW_REDRAWALL;
+			/* only respond to one event */
+			if (event->val == 0) {
+				pld->flag |= PL_PREVIEW_SHOWORIGINAL;
+				pld->redraw= PL_PREVIEW_REDRAWALL;
+			}
 			break;
 		
 		/* change to previous pose (cyclic) */
@@ -1349,7 +1347,6 @@ static void poselib_preview_cleanup (bContext *C, wmOperator *op)
 		/* updates */
 		if (IS_AUTOKEY_MODE(scene, NORMAL)) {
 			//remake_action_ipos(ob->action);
-			
 		}
 		else {
 			/* need to trick depgraph, action is not allowed to execute on pose */
@@ -1440,6 +1437,28 @@ static int poselib_preview_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
+/* Repeat operator */
+static int poselib_preview_exec (bContext *C, wmOperator *op)
+{
+	tPoseLib_PreviewData *pld;
+	
+	/* check if everything is ok, and init settings for modal operator */
+	poselib_preview_init_data(C, op);
+	pld= (tPoseLib_PreviewData *)op->customdata;
+	
+	if (pld->state == PL_PREVIEW_ERROR) {
+		/* an error occurred, so free temp mem used */
+		poselib_preview_cleanup(C, op);
+		return OPERATOR_CANCELLED;
+	}
+	
+	/* apply the active pose */
+	poselib_preview_apply(C, op);
+	
+	/* cleanup */
+	return poselib_preview_exit(C, op);
+}
+
 void POSELIB_OT_browse_interactive (wmOperatorType *ot)
 {
 	/* identifiers */
@@ -1451,7 +1470,7 @@ void POSELIB_OT_browse_interactive (wmOperatorType *ot)
 	ot->invoke= poselib_preview_invoke;
 	ot->modal= poselib_preview_modal;
 	ot->cancel= poselib_preview_cancel;
-	//ot->exec= poselib_preview_exec;
+	ot->exec= poselib_preview_exec;
 	ot->poll= ED_operator_posemode;
 	
 	/* flags */
