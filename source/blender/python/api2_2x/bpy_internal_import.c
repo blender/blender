@@ -56,7 +56,7 @@ void bpy_import_main_set(struct Main *maggie)
 }
 
 
-PyObject *importText( char *name, int *found )
+PyObject *bpy_text_import( char *name, int *found )
 {
 	Text *text;
 	char txtname[22]; /* 21+NULL */
@@ -103,7 +103,7 @@ PyObject *importText( char *name, int *found )
  * find in-memory module and recompile
  */
 
-PyObject *reimportText( PyObject *module, int *found )
+PyObject *bpy_text_reimport( PyObject *module, int *found )
 {
 	Text *text;
 	char *txtname;
@@ -172,13 +172,13 @@ static PyObject *blender_import( PyObject * self, PyObject * args,  PyObject * k
 	int dummy_val; /* what does this do?*/
 	static char *kwlist[] = {"name", "globals", "locals", "fromlist", "level", 0};
 	
-	if( !PyArg_ParseTupleAndKeywords( args, kw, "s|OOOi:bpy_import", kwlist,
+	if( !PyArg_ParseTupleAndKeywords( args, kw, "s|OOOi:bpy_import_meth", kwlist,
 			       &name, &globals, &locals, &fromlist, &dummy_val) )
 		return NULL;
 #else
 	static char *kwlist[] = {"name", "globals", "locals", "fromlist", 0};
 	
-	if( !PyArg_ParseTupleAndKeywords( args, kw, "s|OOO:bpy_import", kwlist,
+	if( !PyArg_ParseTupleAndKeywords( args, kw, "s|OOO:bpy_import_meth", kwlist,
 			       &name, &globals, &locals, &fromlist ) )
 		return NULL;
 #endif
@@ -192,7 +192,7 @@ static PyObject *blender_import( PyObject * self, PyObject * args,  PyObject * k
 	PyErr_Fetch( &exception, &err, &tb );	/* get the python error incase we cant import as blender text either */
 	
 	/* importing from existing modules failed, see if we have this module as blender text */
-	newmodule = importText( name, &found );
+	newmodule = bpy_text_import( name, &found );
 	
 	if( newmodule ) {/* found module as blender text, ignore above exception */
 		PyErr_Clear(  );
@@ -228,7 +228,7 @@ static PyObject *blender_reload( PyObject * self, PyObject * args )
 	int found= 0;
 	
 	/* check for a module arg */
-	if( !PyArg_ParseTuple( args, "O:bpy_reload", &module ) )
+	if( !PyArg_ParseTuple( args, "O:bpy_reload_meth", &module ) )
 		return NULL;
 
 	/* try reimporting from file */
@@ -239,7 +239,7 @@ static PyObject *blender_reload( PyObject * self, PyObject * args )
 	/* no file, try importing from memory */
 	PyErr_Fetch( &exception, &err, &tb );	/*restore for probable later use */
 
-	newmodule = reimportText( module, &found );
+	newmodule = bpy_text_reimport( module, &found );
 	if( newmodule ) {/* found module as blender text, ignore above exception */
 		PyErr_Clear(  );
 		Py_XDECREF( exception );
@@ -262,8 +262,8 @@ static PyObject *blender_reload( PyObject * self, PyObject * args )
 	return newmodule;
 }
 
-PyMethodDef bpy_import[] = { {"bpy_import", blender_import, METH_KEYWORDS, "blenders import"} };
-PyMethodDef bpy_reload[] = { {"bpy_reload", blender_reload, METH_VARARGS, "blenders reload"} };
+PyMethodDef bpy_import_meth[] = { {"bpy_import_meth", blender_import, METH_KEYWORDS, "blenders import"} };
+PyMethodDef bpy_reload_meth[] = { {"bpy_reload_meth", blender_reload, METH_VARARGS, "blenders reload"} };
 
 
 /* Clear user modules.
@@ -284,20 +284,25 @@ PyMethodDef bpy_reload[] = { {"bpy_reload", blender_reload, METH_VARARGS, "blend
 #endif
 
 
-void importClearUserModules(void)
+void bpy_text_clear_modules(void)
 {
-	PyObject *modules= PySys_GetObject("modules");	
+	PyObject *modules= PySys_GetObject("modules");
 	
 	char *fname;
 	char *file_extension;
 	
 	/* looping over the dict */
 	PyObject *key, *value;
-	Py_ssize_t pos = 0;
+	int pos = 0;
 	
 	/* new list */
-	PyObject *list= PyList_New(0);
-	
+	PyObject *list;
+
+	if (modules==NULL)
+		return; /* should never happen but just incase */
+
+	list= PyList_New(0);
+
 	/* go over sys.modules and remove anything with a 
 	 * sys.modukes[x].__file__ thats ends with a .py and has no path
 	 */

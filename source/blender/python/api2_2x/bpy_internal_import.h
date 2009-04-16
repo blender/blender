@@ -35,11 +35,11 @@
 #include "compile.h"		/* for the PyCodeObject */
 #include "eval.h"		/* for PyEval_EvalCode */
 
-PyObject *importText( char *name, int *found );
-PyObject *reimportText( PyObject *module, int *found );
-void importClearUserModules( void ); /* Clear user modules */
-extern PyMethodDef bpy_import[];
-extern PyMethodDef bpy_reload[];
+PyObject*	bpy_text_import( char *name, int *found );
+PyObject*	bpy_text_reimport( PyObject *module, int *found );
+void		bpy_text_clear_modules( void ); /* Clear user modules */
+extern PyMethodDef bpy_import_meth[];
+extern PyMethodDef bpy_reload_meth[];
 
 /* The game engine has its own Main struct, if this is set search this rather then G.main */
 struct Main *bpy_import_main_get(void);

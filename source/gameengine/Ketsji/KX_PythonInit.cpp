@@ -1244,7 +1244,7 @@ PyObject *KXpy_import(PyObject *self, PyObject *args)
 	}
 	
 	/* Import blender texts as python modules */
-	m= importText(name, &found);
+	m= bpy_text_import(name, &found);
 	if (m)
 		return m;
 	
@@ -1267,10 +1267,10 @@ PyObject *KXpy_reload(PyObject *self, PyObject *args) {
 	PyObject *newmodule = NULL;
 
 	/* check for a module arg */
-	if( !PyArg_ParseTuple( args, "O:bpy_reload", &module ) )
+	if( !PyArg_ParseTuple( args, "O:bpy_reload_meth", &module ) )
 		return NULL;
 	
-	newmodule= reimportText( module, &found );
+	newmodule= bpy_text_reimport( module, &found );
 	if (newmodule)
 		return newmodule;
 	
@@ -1353,8 +1353,8 @@ void setSandbox(TPythonSecurityLevel level)
 	*/
 	default:
 			/* Allow importing internal text, from bpy_internal_import.py */
-			PyDict_SetItemString(d, "reload", item=PyCFunction_New(bpy_reload, NULL));		Py_DECREF(item);
-			PyDict_SetItemString(d, "__import__", item=PyCFunction_New(bpy_import, NULL));	Py_DECREF(item);
+			PyDict_SetItemString(d, "reload", item=PyCFunction_New(bpy_reload_meth, NULL));		Py_DECREF(item);
+			PyDict_SetItemString(d, "__import__", item=PyCFunction_New(bpy_import_meth, NULL));	Py_DECREF(item);
 		break;
 	}
 }
@@ -1440,7 +1440,7 @@ static void clearGameModules()
 	PyErr_Clear(); // incase some of these were alredy removed.
 	
 	/* clear user defined modules */
-	importClearUserModules();
+	bpy_text_clear_modules();
 }
 
 void exitGamePythonScripting()

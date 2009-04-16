@@ -1276,7 +1276,7 @@ static int bpy_pydriver_create_dict(void)
 	 * Users can add their own functions to this module. */
 	if (G.f&G_DOSCRIPTLINKS) {
 		int found; /* not used but needed as an arg */
-		mod = importText("pydrivers", &found); /* can also use PyImport_Import() */
+		mod = bpy_text_import("pydrivers", &found); /* can also use PyImport_Import() */
 		if (mod) {
 			PyDict_SetItemString(d, "pydrivers", mod);
 			PyDict_SetItemString(d, "p", mod);
@@ -2831,7 +2831,7 @@ static void DoAllScriptsFromList( ListBase * list, short event )
 static void init_ourImport( void )
 {
 	PyObject *m, *d;
-	PyObject *import = PyCFunction_New( bpy_import, NULL );
+	PyObject *import = PyCFunction_New( bpy_import_meth, NULL );
 
 	m = PyImport_AddModule( "__builtin__" );
 	d = PyModule_GetDict( m );
@@ -2842,7 +2842,7 @@ static void init_ourImport( void )
 static void init_ourReload( void )
 {
 	PyObject *m, *d;
-	PyObject *reload = PyCFunction_New( bpy_reload, NULL );
+	PyObject *reload = PyCFunction_New( bpy_reload_meth, NULL );
 
 	m = PyImport_AddModule( "__builtin__" );
 	d = PyModule_GetDict( m );
