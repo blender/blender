@@ -237,8 +237,8 @@ PyObject *PyPanel_wrap_add(PyObject *self, PyObject *args)
 	pt->py_data= (void *)py_class;
 	RNA_struct_py_type_set(pt->srna, py_class);
 
-	C= (bContext *)PyCObject_AsVoidPtr(PyDict_GetItemString(PyEval_GetGlobals(), "__bpy_context__"));
-	if(C)
+	item= PyDict_GetItemString(PyEval_GetGlobals(), "__bpy_context__");
+	if(item && (C=(bContext *)PyCObject_AsVoidPtr(item)))
 		WM_event_add_notifier(C, NC_SCREEN|NA_EDITED, NULL);
 
 	Py_RETURN_NONE;

@@ -160,14 +160,14 @@ void ui_layout_end(const bContext *C, uiBlock *block, uiLayout *layout, int *x, 
 
 #define UI_FIT_EXPAND 1
 
-static int ui_item_fit(int item, int pos, int all, int available, int last, int flag)
+static int ui_item_fit(int item, int pos, int all, int available, int spacing, int last, int flag)
 {
-	if(all > available) {
+	if(all > available-spacing) {
 		/* contents is bigger than available space */
 		if(last)
 			return available-pos;
 		else
-			return (item*available)/all;
+			return (item*(available-spacing))/all;
 	}
 	else {
 		/* contents is smaller or equal to available space */
@@ -175,7 +175,7 @@ static int ui_item_fit(int item, int pos, int all, int available, int last, int 
 			if(last)
 				return available-pos;
 			else
-				return (item*available)/all;
+				return (item*(available-spacing))/all;
 		}
 		else
 			return item;
@@ -210,7 +210,7 @@ static void ui_item_array(uiBlock *block, uiItemRNA *rnaitem, int len, int x, in
 		/* special check for layer layout */
 		int butw, buth;
 
-		butw= ui_item_fit(EM_UNIT_X, 0, EM_UNIT_X*10 + BUTTON_SPACE_X, w, 0, UI_FIT_EXPAND);
+		butw= ui_item_fit(EM_UNIT_X, 0, EM_UNIT_X*10 + BUTTON_SPACE_X, w, 0, 0, UI_FIT_EXPAND);
 		buth= MIN2(EM_UNIT_Y, butw);
 
 		y += 2*(EM_UNIT_Y - buth);
@@ -295,7 +295,7 @@ static void ui_item_enum_row(uiBlock *block, uiItemRNA *rnaitem, int x, int y, i
 	uiBlockBeginAlign(block);
 	pos= 0;
 	for(a=0; a<totitem; a++) {
-		itemw= ui_item_fit(1, pos, totitem, w, a == totitem-1, UI_FIT_EXPAND);
+		itemw= ui_item_fit(1, pos, totitem, w, 0, a == totitem-1, UI_FIT_EXPAND);
 		uiDefButR(block, ROW, 0, NULL, x+pos, y, itemw, h, &rnaitem->ptr, propname, -1, 0, item[a].value, -1, -1, NULL);
 		pos += itemw;
 	}
@@ -665,11 +665,11 @@ static void ui_layout_row(uiLayout *layout, uiBlock *block, uiTemplate *template
 	
 	/* create buttons starting from left */
 	x= 0;
-	w= layout->w - (tot-1)*BUTTON_SPACE_X;
+	w= layout->w;
 
 	for(item=template->items.first; item; item=item->next) {
 		ui_item_size(item, &itemw, &itemh);
-		itemw= ui_item_fit(itemw, x, totw, w, !item->next, UI_FIT_EXPAND);
+		itemw= ui_item_fit(itemw, x, totw, w, (tot-1)*BUTTON_SPACE_X, !item->next, UI_FIT_EXPAND);
 
 		ui_item_buts(block, item, layout->x+x, layout->y-itemh, itemw, itemh);
 		x += itemw+BUTTON_SPACE_X;
@@ -693,13 +693,13 @@ static void ui_layout_column(uiLayout *layout, uiBlock *block, uiTemplate *templ
 	
 	x= 0;
 	miny= 0;
-	w= layout->w - (totcol-1)*COLUMN_SPACE;
+	w= layout->w;
 
 	/* create column per column */
 	for(col=0; col<totcol; col++) {
 		y= 0;
 
-		itemw= ui_item_fit(1, x, totcol, w, col == totcol-1, UI_FIT_EXPAND);
+		itemw= ui_item_fit(1, x, totcol, w, (totcol-1)*COLUMN_SPACE, col == totcol-1, UI_FIT_EXPAND);
 
 		for(item=template->items.first; item; item=item->next) {
 			if(item->slot != col)
@@ -754,14 +754,14 @@ static void ui_layout_column_flow(uiLayout *layout, uiBlock *block, uiTemplate *
 	emy= 0;
 	miny= 0;
 
-	w= layout->w - totcol*(COLUMN_SPACE);
+	w= layout->w;
 	emh= toth/totcol;
 
 	/* create column per column */
 	col= 0;
 	for(item=template->items.first; item; item=item->next) {
 		ui_item_size(item, NULL, &itemh);
-		itemw= ui_item_fit(1, x, totcol, w, col == totcol-1, UI_FIT_EXPAND);
+		itemw= ui_item_fit(1, x, totcol, w, (totcol-1)*COLUMN_SPACE, col == totcol-1, UI_FIT_EXPAND);
 	
 		y -= itemh;
 		emy -= itemh;
@@ -836,7 +836,7 @@ static void ui_layout_split(const bContext *C, uiLayout *layout, uiBlock *block,
 	for(a=0; a<split->number; a++) {
 		sublayout= split->sublayout[a];
 
-		splitw= ui_item_fit(1, x, split->number, w, a == split->number-1, UI_FIT_EXPAND);
+		splitw= ui_item_fit(1, x, split->number, w, (split->number-1)*COLUMN_SPACE, a == split->number-1, UI_FIT_EXPAND);
 		sublayout->x= layout->x + x;
 		sublayout->w= splitw;
 		sublayout->y= layout->y;
