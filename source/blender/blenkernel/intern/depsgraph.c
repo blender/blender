@@ -312,64 +312,25 @@ static void dag_add_driver_relation(AnimData *adt, DagForest *dag, DagNode *node
 	
 	for (fcu= adt->drivers.first; fcu; fcu= fcu->next) {
 		ChannelDriver *driver= fcu->driver;
+		DriverTarget *dtar;
 		
-		if (driver->type == DRIVER_TYPE_PYTHON) {
-			/* PyDriver / 'Expression' */
-			
-			/* skip if invalid in some way */
-			if ((driver->flag & DRIVER_FLAG_INVALID) || (driver->expression[0] == '\0'))
-				continue;
-#ifndef DISABLE_PYTHON
-			else {
-				/* now we need refs to all objects mentioned in this
-				 * pydriver expression, to call 'dag_add_relation'
-				 * for each of them */
-				Object **obarray = NULL; // XXX BPY_pydriver_get_objects(fcu->driver);
-				if (obarray) {
-					Object *ob, **oba = obarray;
+		/* loop over targets, adding relationships as appropriate */
+		for (dtar= driver->targets.first; dtar; dtar= dtar->next) {
+			if (dtar->id) {
+				if (GS(dtar->id->name)==ID_OB) {
+					Object *ob= (Object *)dtar->id;
 					
-					while (*oba) {
-						ob = *oba;
-						node1 = dag_get_node(dag, ob);
-						if (ob->type == OB_ARMATURE)
-							dag_add_relation(dag, node1, node, isdata?DAG_RL_DATA_DATA:DAG_RL_DATA_OB, "Python Driver");
-						else
-							dag_add_relation(dag, node1, node, isdata?DAG_RL_OB_DATA:DAG_RL_OB_OB, "Python Driver");
-						oba++;
-					}
+					/* normal channel-drives-channel */
+					node1 = dag_get_node(dag, dtar->id);
 					
-					MEM_freeN(obarray);
+					/* check if bone... */
+					if ((ob->type==OB_ARMATURE) && dtar->rna_path && strstr(dtar->rna_path, "pose.pose_channels["))
+						dag_add_relation(dag, node1, node, isdata?DAG_RL_DATA_DATA:DAG_RL_DATA_OB, "Driver");
+					else
+						dag_add_relation(dag, node1, node, isdata?DAG_RL_OB_DATA:DAG_RL_OB_OB, "Driver");
 				}
 			}
-#endif /* DISABLE_PYTHON */
 		}
-		else if (driver->type == DRIVER_TYPE_ROTDIFF) {
-			// XXX rotational difference 
-		}
-#if 0 // XXX old animato 
-		else if (driver->id) {
-			if(GS(driver->id->name)==ID_OB) {
-				/* normal channel-drives-channel */
-				node1 = dag_get_node(dag, driver->id);
-			
-				// XXX how to find out rnapath is bone?
-				if( ((Object *)driver->id)->type==OB_ARMATURE )
-					dag_add_relation(dag, node1, node, isdata?DAG_RL_DATA_DATA:DAG_RL_DATA_OB, "Ipo Driver");
-				else
-					dag_add_relation(dag, node1, node, isdata?DAG_RL_OB_DATA:DAG_RL_OB_OB, "Ipo Driver");
-			}
-		}
-#endif // XXX old animato
-#if 0 // XXX old 'normal' type
-
-		else if (icu->driver->ob) {
-			node1 = dag_get_node(dag, icu->driver->ob);
-			if(icu->driver->blocktype==ID_AR)
-				dag_add_relation(dag, node1, node, isdata?DAG_RL_DATA_DATA:DAG_RL_DATA_OB, "Ipo Driver");
-			else
-				dag_add_relation(dag, node1, node, isdata?DAG_RL_OB_DATA:DAG_RL_OB_OB, "Ipo Driver");
-		}
-#endif // XXX old 'normal' type
 	}
 }
 
@@ -449,35 +410,10 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Scene *scene, O
 	
 	/* driver dependencies, nla modifiers */
 #if 0 // XXX old animation system
-	if(ob->ipo) 
-		dag_add_driver_relation(ob->ipo, dag, node, 0);
-	
-	key= ob_get_key(ob);
-	if(key && key->ipo)
-		dag_add_driver_relation(key->ipo, dag, node, 1);
-	
-	for (conchan=ob->constraintChannels.first; conchan; conchan=conchan->next)
-		if(conchan->ipo)
-			dag_add_driver_relation(conchan->ipo, dag, node, 0);
-
-	if(ob->action) {
-		bActionChannel *chan;
-		for (chan = ob->action->chanbase.first; chan; chan=chan->next){
-			if(chan->ipo)
-				dag_add_driver_relation(chan->ipo, dag, node, 1);
-			for (conchan=chan->constraintChannels.first; conchan; conchan=conchan->next)
-				if(conchan->ipo)
-					dag_add_driver_relation(conchan->ipo, dag, node, 1);
-		}
-	}
 	if(ob->nlastrips.first) {
 		bActionStrip *strip;
 		bActionChannel *chan;
 		for(strip= ob->nlastrips.first; strip; strip= strip->next) {
-			if(strip->act && strip->act!=ob->action)
-				for (chan = strip->act->chanbase.first; chan; chan=chan->next)
-					if(chan->ipo)
-						dag_add_driver_relation(chan->ipo, dag, node, 1);
 			if(strip->modifiers.first) {
 				bActionModifier *amod;
 				for(amod= strip->modifiers.first; amod; amod= amod->next) {
