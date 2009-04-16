@@ -824,8 +824,12 @@ static void poselib_preview_apply (bContext *C, wmOperator *op)
 			pld->flag &= ~PL_PREVIEW_FIRSTTIME;
 			
 		/* pose should be the right one to draw (unless we're temporarily not showing it) */
-		if ((pld->flag & PL_PREVIEW_SHOWORIGINAL)==0)
+		if ((pld->flag & PL_PREVIEW_SHOWORIGINAL)==0) {
+			RNA_int_set(op->ptr, "pose_index", BLI_findindex(&pld->act->markers, pld->marker));
 			poselib_apply_pose(pld);
+		}
+		else
+			RNA_int_set(op->ptr, "pose_index", -2); /* -2 means don't apply any pose */
 		
 		/* old optimize trick... this enforces to bypass the depgraph 
 		 *	- note: code copied from transform_generics.c -> recalcData()
@@ -1241,7 +1245,7 @@ static void poselib_preview_init_data (bContext *C, wmOperator *op)
 {
 	tPoseLib_PreviewData *pld;
 	Object *ob= CTX_data_active_object(C);
-	short apply_active= RNA_boolean_get(op->ptr, "apply_active");
+	int pose_index = RNA_int_get(op->ptr, "pose_index");
 	
 	/* set up preview state info */
 	op->customdata= pld= MEM_callocN(sizeof(tPoseLib_PreviewData), "PoseLib Preview Data");
@@ -1251,10 +1255,17 @@ static void poselib_preview_init_data (bContext *C, wmOperator *op)
 	pld->arm= (ob) ? (ob->data) : NULL;
 	pld->pose= (ob) ? (ob->pose) : NULL;
 	pld->act= (ob) ? (ob->poselib) : NULL;
-	pld->marker= poselib_get_active_pose(pld->act);
 	
 	pld->scene= CTX_data_scene(C);
 	pld->sa= CTX_wm_area(C);
+	
+	/* get starting pose based on RNA-props for this operator */
+	if (pose_index == -1)
+		pld->marker= poselib_get_active_pose(pld->act);
+	else if (pose_index == -2)
+		pld->flag |= PL_PREVIEW_SHOWORIGINAL;
+	else
+		pld->marker= (pld->act) ? BLI_findlink(&pld->act->markers, pose_index) : NULL;
 	
 	/* check if valid poselib */
 	if (ELEM3(NULL, pld->ob, pld->pose, pld->arm)) {
@@ -1268,10 +1279,10 @@ static void poselib_preview_init_data (bContext *C, wmOperator *op)
 		return;
 	}
 	if (pld->marker == NULL) {
-		if ((apply_active==0) && (pld->act->markers.first)) {
+		if (pld->act->markers.first) {
 			/* just use first one then... */
 			pld->marker= pld->act->markers.first;
-			printf("PoseLib had no active pose\n");
+			if (pose_index > -2) printf("PoseLib had no active pose\n");
 		}
 		else {
 			BKE_report(op->reports, RPT_ERROR, "PoseLib has no poses to preview/apply");
@@ -1287,9 +1298,9 @@ static void poselib_preview_init_data (bContext *C, wmOperator *op)
 	poselib_backup_posecopy(pld);
 	
 	/* set flags for running */
-	pld->state= (apply_active) ? PL_PREVIEW_RUNONCE : PL_PREVIEW_RUNNING;
+	pld->state= PL_PREVIEW_RUNNING;
 	pld->redraw= PL_PREVIEW_REDRAWALL;
-	pld->flag= PL_PREVIEW_FIRSTTIME;
+	pld->flag |= PL_PREVIEW_FIRSTTIME;
 	
 	/* set depsgraph flags */
 		/* make sure the lock is set OK, unlock can be accidentally saved? */
@@ -1392,16 +1403,8 @@ static int poselib_preview_modal (bContext *C, wmOperator *op, wmEvent *event)
 	int ret;
 	
 	/* 1) check state to see if we're still running */
-	if (ELEM(pld->state, PL_PREVIEW_RUNONCE, PL_PREVIEW_RUNNING) == 0)
+	if (pld->state != PL_PREVIEW_RUNNING)
 		return poselib_preview_exit(C, op);
-	
-	/* check if time to exit */
-	if (pld->state == PL_PREVIEW_RUNONCE) {
-		/* set status to cleanup time */
-		pld->state = PL_PREVIEW_CONFIRM;
-		
-		return poselib_preview_exit(C, op);
-	}
 	
 	/* 2) handle events */
 	ret= poselib_preview_handle_event(C, op, event);
@@ -1410,7 +1413,7 @@ static int poselib_preview_modal (bContext *C, wmOperator *op, wmEvent *event)
 	if (pld->redraw)
 		poselib_preview_apply(C, op);
 	
-	return ret; //OPERATOR_RUNNING_MODAL;
+	return ret;
 }
 
 /* Modal Operator init */
@@ -1452,8 +1455,16 @@ static int poselib_preview_exec (bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 	
+	/* the exec() callback is effectively a 'run-once' scenario, so set the state to that
+	 * so that everything draws correctly
+	 */
+	pld->state = PL_PREVIEW_RUNONCE;
+	
 	/* apply the active pose */
 	poselib_preview_apply(C, op);
+	
+	/* now, set the status to exit */
+	pld->state = PL_PREVIEW_CONFIRM;
 	
 	/* cleanup */
 	return poselib_preview_exit(C, op);
@@ -1477,6 +1488,5 @@ void POSELIB_OT_browse_interactive (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */	
-		// FIXME: the following should be removed...
-	RNA_def_boolean(ot->srna, "apply_active", 0, "Apply Active Pose", "Simply apply the active pose and exit");
+	RNA_def_int(ot->srna, "pose_index", -1, -2, INT_MAX, "Pose", "Index of the pose to apply (-2 for no change to pose, -1 for poselib active pose)", 0, INT_MAX);
 }

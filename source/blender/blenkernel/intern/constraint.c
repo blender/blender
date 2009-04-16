@@ -1889,7 +1889,6 @@ static void actcon_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstraint
 			printf("do Action Constraint %s - Ob %s Pchan %s \n", con->name, cob->ob->id.name+2, (cob->pchan)?cob->pchan->name:NULL);
 		
 		/* Get the appropriate information from the action */
-		// XXX probably we might need some special filtering methods to make this more efficient
 		if (cob->type == CONSTRAINT_OBTYPE_BONE) {
 			Object workob;
 			bPose *pose;
