@@ -185,7 +185,6 @@ ifeq ($(WITH_BINRELOC), true)
 endif
 
 ifeq ($(WITH_FREETYPE2), true)
-    COMLIB += $(OCGDIR)/blender/ftfont/$(DEBUG_DIR)libftfont.a
     ifeq ($(OS), windows)
       ifeq ($(FREE_WINDOWS), true)
         COMLIB += $(NAN_FTGL)/lib/libftgl.a
