@@ -145,7 +145,8 @@ void rna_def_channeldriver(BlenderRNA *brna)
 		{DRIVER_TYPE_ROTDIFF, "ROTDIFF", "Rotational Difference", ""},
 		{0, NULL, NULL, NULL}};
 
-	srna= RNA_def_struct(brna, "ChannelDriver", NULL);
+	srna= RNA_def_struct(brna, "Driver", NULL);
+	RNA_def_struct_sdna(srna, "ChannelDriver");
 	RNA_def_struct_ui_text(srna, "Driver", "Driver for the value of a setting based on an external value.");
 
 	/* Enums */
