@@ -512,7 +512,7 @@ void RNA_def_nodetree(BlenderRNA *brna)
 	rna_def_texture_node(brna);
 	
 	#define DefNode(Category, ID, DefFunc, EnumName, StructName, UIName, UIDesc) \
-		define_specific_node(brna, ID, DefFunc ? DefFunc : define_simple_node);
+		define_specific_node(brna, ID, DefFunc != 0 ? DefFunc : define_simple_node);
 		
 	#include "rna_nodetree_types.h"
 	

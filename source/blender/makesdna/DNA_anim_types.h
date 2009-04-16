@@ -74,7 +74,7 @@ typedef struct FMod_Generator {
 	float *coefficients;		/* coefficients array */
 	unsigned int arraysize;		/* size of the coefficients array */
 	
-	unsigned short poly_order;	/* order of polynomial generated (i.e. 1 for linear, 2 for quadratic) */
+	short poly_order;			/* order of polynomial generated (i.e. 1 for linear, 2 for quadratic) */
 	short func_type;			/* builtin math function eFMod_Generator_Functions */
 	
 	int pad;

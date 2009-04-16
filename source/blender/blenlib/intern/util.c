@@ -832,7 +832,8 @@ char *BLI_gethome(void) {
  *
  * $HOME/.blender/folder_name
  * path_to_executable/.blender/folder_name
- * release/folder_name (in svn)
+ * path_to_executable/release/folder_name (in svn)
+ * ./release/folder_name (in svn)
  *
  * returns NULL if none is found. */
 
@@ -911,10 +912,17 @@ char *BLI_gethome_folder(char *folder_name)
 		else return homedir;
 	}
 
-	/* last try for folder_name dir: blender in svn dir, folder_name/ inside release/: */
+	/* try path_to_executable/release/folder_name (in svn) */
 	if (folder_name) {
 		BLI_snprintf(tmpdir, sizeof(tmpdir), "release/%s", folder_name);
 		BLI_make_file_string("/", fulldir, bprogdir, tmpdir);
+		if (BLI_exists(fulldir)) return fulldir;
+		else fulldir[0] = '\0';
+	}
+
+	/* try ./release/folder_name (in svn) */
+	if(folder_name) {
+		BLI_snprintf(fulldir, sizeof(fulldir), "./release/%s", folder_name);
 		if (BLI_exists(fulldir)) return fulldir;
 		else fulldir[0] = '\0';
 	}

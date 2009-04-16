@@ -2571,7 +2571,7 @@ int RNA_function_call_direct_va(PointerRNA *ptr, FunctionRNA *func, const char *
 			}
 		case PROP_FLOAT:
 			{
-				float arg= va_arg(args, float);
+				double arg= va_arg(args, double);
 				err= rna_function_parameter_parse(&funcptr, parm, type, ftype, len, iter.data, &arg, NULL, tid, fid, pid);
 				break;
 			}
