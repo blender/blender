@@ -929,14 +929,18 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 			TreeElement *ted= outliner_add_element(soops, &te->subtree, adt, te, TSE_DRIVER_BASE, 0);
 			ID *lastadded= NULL;
 			FCurve *fcu;
+			DriverTarget *dtar;
 			
 			ted->name= "Drivers";
 		
 			for (fcu= adt->drivers.first; fcu; fcu= fcu->next) {
-				if (fcu->driver && fcu->driver->id) {
-					if (lastadded != fcu->driver->id) {
-						outliner_add_element(soops, &ted->subtree, fcu->driver->id, ted, TSE_LINKED_OB, 0);
-						lastadded= fcu->driver->id;
+				if (fcu->driver && fcu->driver->targets.first)  {
+					for (dtar= fcu->driver->targets.first; dtar; dtar= dtar->next) {
+						if (lastadded != dtar->id) {
+							// XXX this lastadded check is rather lame, and also fails quite badly...
+							outliner_add_element(soops, &ted->subtree, dtar->id, ted, TSE_LINKED_OB, 0);
+							lastadded= dtar->id;
+						}
 					}
 				}
 			}

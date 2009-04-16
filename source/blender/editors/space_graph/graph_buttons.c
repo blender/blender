@@ -157,6 +157,8 @@ static void do_graph_region_driver_buttons(bContext *C, void *arg, int event)
 	//WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, ob);
 }
 
+#if 0
+
 /* callback to copy over RNA-Paths accordingly */
 static void driver_rnapath_copy_cb (bContext *C, void *driver_v, void *strbuf_v)
 {
@@ -194,6 +196,8 @@ static void driver_update_flags_cb (bContext *C, void *fcu_v, void *dummy_v)
 	driver->flag &= ~DRIVER_FLAG_INVALID;
 }
 
+#endif
+
 static void graph_panel_drivers(const bContext *C, ARegion *ar, short cntrl, bAnimListElem *ale)	
 {
 	FCurve *fcu= (FCurve *)ale->data;
@@ -208,6 +212,7 @@ static void graph_panel_drivers(const bContext *C, ARegion *ar, short cntrl, bAn
 	/* to force height */
 	uiNewPanelHeight(block, 204);
 	
+#if 0
 	/* general actions */
 	but= uiDefBut(block, BUT, B_IPO_DEPCHANGE, "Update Dependencies", 10, 200, 180, 22, NULL, 0.0, 0.0, 0, 0, "Force updates of dependencies");
 	uiButSetFunc(but, driver_update_flags_cb, fcu, NULL);
@@ -267,6 +272,7 @@ static void graph_panel_drivers(const bContext *C, ARegion *ar, short cntrl, bAn
 					30,70,230,19, NULL, 0, 0, 0, 0, "");
 		}
 	}
+#endif
 }
 
 /* ******************* f-modifiers ******************************** */

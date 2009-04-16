@@ -781,13 +781,17 @@ static void write_fcurves(WriteData *wd, ListBase *fcurves)
 		/* driver data */
 		if (fcu->driver) {
 			ChannelDriver *driver= fcu->driver;
+			DriverTarget *dtar;
 			
 			writestruct(wd, DATA, "ChannelDriver", 1, driver);
 			
-			if (driver->rna_path)
-				writedata(wd, DATA, strlen(driver->rna_path)+1, driver->rna_path);
-			if (driver->rna_path2)
-				writedata(wd, DATA, strlen(driver->rna_path2)+1, driver->rna_path2);
+			/* targets */
+			for (dtar= driver->targets.first; dtar; dtar= dtar->next) {
+				writestruct(wd, DATA, "DriverTarget", 1, dtar);
+				
+				if (dtar->rna_path)
+					writedata(wd, DATA, strlen(dtar->rna_path)+1, dtar->rna_path);
+			}
 		}
 		
 		/* Modifiers */

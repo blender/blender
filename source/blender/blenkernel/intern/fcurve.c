@@ -558,19 +558,60 @@ short test_time_fcurve (FCurve *fcu)
 
 /* Driver API --------------------------------- */
 
+/* This frees the driver target itself */
+void driver_free_target (ChannelDriver *driver, DriverTarget *dtar)
+{
+	/* sanity checks */
+	if (dtar == NULL)
+		return;
+		
+	/* free target vars */
+	if (dtar->rna_path)
+		MEM_freeN(dtar->rna_path);
+	
+	/* remove the target from the driver */
+	if (driver)
+		BLI_freelinkN(&driver->targets, dtar);
+	else
+		MEM_freeN(dtar);
+}
+
+/* Add a new driver target variable */
+DriverTarget *driver_add_new_target (ChannelDriver *driver)
+{
+	DriverTarget *dtar;
+	
+	/* sanity checks */
+	if (driver == NULL)
+		return NULL;
+		
+	/* make a new target */
+	dtar= MEM_callocN(sizeof(DriverTarget), "DriverTarget");
+	BLI_addtail(&driver->targets, dtar);
+	
+	/* give the target a name */
+	strcpy(dtar->name, "a"); // XXX fimxe... this needs more work to get unique names without dots...
+	
+	/* return the target */
+	return dtar;
+}
+
 /* This frees the driver itself */
 void fcurve_free_driver(FCurve *fcu)
 {
 	ChannelDriver *driver;
+	DriverTarget *dtar, *dtarn;
 	
 	/* sanity checks */
 	if ELEM(NULL, fcu, fcu->driver)
 		return;
 	driver= fcu->driver;
 	
-	/* free RNA-paths, as these were allocated when getting the path string */
-	if (driver->rna_path) MEM_freeN(driver->rna_path);
-	if (driver->rna_path2) MEM_freeN(driver->rna_path2);
+	/* free driver targets */
+	for (dtar= driver->targets.first; dtar; dtar= dtarn) {
+		dtarn= dtar->next;
+		driver_free_target(driver, dtar);
+	}
 	
 	/* free driver itself, then set F-Curve's point to this to NULL (as the curve may still be used) */
 	MEM_freeN(driver);
@@ -581,6 +622,7 @@ void fcurve_free_driver(FCurve *fcu)
 ChannelDriver *fcurve_copy_driver (ChannelDriver *driver)
 {
 	ChannelDriver *ndriver;
+	DriverTarget *dtar;
 	
 	/* sanity checks */
 	if (driver == NULL)
@@ -588,8 +630,16 @@ ChannelDriver *fcurve_copy_driver (ChannelDriver *driver)
 		
 	/* copy all data */
 	ndriver= MEM_dupallocN(driver);
-	ndriver->rna_path= MEM_dupallocN(ndriver->rna_path);
-	ndriver->rna_path2= MEM_dupallocN(ndriver->rna_path2);
+	
+	/* copy targets */
+	ndriver->targets.first= ndriver->targets.last= NULL;
+	BLI_duplicatelist(&ndriver->targets, &driver->targets);
+	
+	for (dtar= ndriver->targets.first; dtar; dtar= dtar->next) {
+		/* make a copy of target's rna path if available */
+		if (dtar->rna_path)
+			dtar->rna_path = MEM_dupallocN(dtar->rna_path);
+	}
 	
 	/* return the new driver */
 	return ndriver;
@@ -597,10 +647,8 @@ ChannelDriver *fcurve_copy_driver (ChannelDriver *driver)
 
 /* Driver Evaluation -------------------------- */
 
-/* Helper function to obtain a value using RNA from the specified source (for evaluating drivers) 
- * 	- target: used to specify which of the two driver-targets to use
- */
-static float driver_get_driver_value (ChannelDriver *driver, short target)
+/* Helper function to obtain a value using RNA from the specified source (for evaluating drivers) */
+static float driver_get_target_value (ChannelDriver *driver, DriverTarget *dtar)
 {
 	PointerRNA id_ptr, ptr;
 	PropertyRNA *prop;
@@ -609,21 +657,15 @@ static float driver_get_driver_value (ChannelDriver *driver, short target)
 	int index;
 	float value= 0.0f;
 	
-	/* get RNA-pointer for the ID-block given in driver */
-	if (target == 1) {
-		/* second target */
-		RNA_id_pointer_create(driver->id2, &id_ptr);
-		id= driver->id2;
-		path= driver->rna_path2;
-		index= driver->array_index2;
-	}
-	else {
-		/* first/main target */
-		RNA_id_pointer_create(driver->id, &id_ptr);
-		id= driver->id;
-		path= driver->rna_path;
-		index= driver->array_index;
-	}
+	/* sanity check */
+	if ELEM(NULL, driver, dtar)
+		return 0.0f;
+	
+	/* get RNA-pointer for the ID-block given in target */
+	RNA_id_pointer_create(dtar->id, &id_ptr);
+	id= dtar->id;
+	path= dtar->rna_path;
+	index= dtar->array_index;
 	
 	/* error check for missing pointer... */
 	if (id == NULL) {
@@ -671,14 +713,37 @@ static float driver_get_driver_value (ChannelDriver *driver, short target)
  */
 static float evaluate_driver (ChannelDriver *driver, float evaltime)
 {
+	DriverTarget *dtar;
+	
 	/* check if driver can be evaluated */
-	if (driver->flag & DRIVER_FLAG_DISABLED)
+	if (driver->flag & DRIVER_FLAG_INVALID)
 		return 0.0f;
 	
+	// TODO: the flags for individual targets need to be used too for more fine-grained support...
 	switch (driver->type) {
-		case DRIVER_TYPE_CHANNEL: /* channel/setting drivers channel/setting */
-			return driver_get_driver_value(driver, 0);
-			
+		case DRIVER_TYPE_AVERAGE: /* average values of driver targets */
+		{
+			/* check how many targets there are first (i.e. just one?) */
+			if (driver->targets.first == driver->targets.last) {
+				/* just one target, so just use that */
+				dtar= driver->targets.first;
+				return driver_get_target_value(driver, dtar);
+			}
+			else {
+				/* more than one target, so average the values of the targets */
+				int tot = 0;
+				float value = 0.0f;
+				
+				/* loop through targets, adding (hopefully we don't get any overflow!) */
+				for (dtar= driver->targets.first; dtar; dtar=dtar->next) {
+					value += driver_get_target_value(driver, dtar); 
+					tot++;
+				}
+				
+				/* return the average of these */
+				return (value / (float)tot);
+			}
+		}
 
 		case DRIVER_TYPE_PYTHON: /* expression */
 		{

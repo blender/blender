@@ -6,9 +6,12 @@
 #define BKE_FCURVE_H
 
 //struct ListBase;
+
 struct FCurve;
 struct FModifier;
 struct ChannelDriver;
+struct DriverTarget;
+
 struct BezTriple;
 
 /* ************** Keyframe Tools ***************** */
@@ -26,6 +29,9 @@ void bezt_add_to_cfra_elem(ListBase *lb, struct BezTriple *bezt);
 
 void fcurve_free_driver(struct FCurve *fcu);
 struct ChannelDriver *fcurve_copy_driver(struct ChannelDriver *driver);
+
+void driver_free_target(struct ChannelDriver *driver, struct DriverTarget *dtar);
+struct DriverTarget *driver_add_new_target(struct ChannelDriver *driver);
 
 /* ************** F-Curve Modifiers *************** */
 

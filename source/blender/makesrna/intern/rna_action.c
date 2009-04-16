@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *
- * Contributor(s): Blender Foundation (2008), Roland Hess
+ * Contributor(s): Blender Foundation (2008), Roland Hess, Joshua Leung
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -37,38 +37,38 @@
 
 #ifdef RNA_RUNTIME
 
-static void rna_Driver_RnaPath_get(PointerRNA *ptr, char *value)
+static void rna_DriverTarget_RnaPath_get(PointerRNA *ptr, char *value)
 {
-	ChannelDriver *driver= (ChannelDriver *)ptr->data;
+	DriverTarget *dtar= (DriverTarget *)ptr->data;
 
-	if (driver->rna_path)
-		strcpy(value, driver->rna_path);
+	if (dtar->rna_path)
+		strcpy(value, dtar->rna_path);
 	else
 		strcpy(value, "");
 }
 
-static int rna_Driver_RnaPath_length(PointerRNA *ptr)
+static int rna_DriverTarget_RnaPath_length(PointerRNA *ptr)
 {
-	ChannelDriver *driver= (ChannelDriver *)ptr->data;
+	DriverTarget *dtar= (DriverTarget *)ptr->data;
 	
-	if (driver->rna_path)
-		return strlen(driver->rna_path);
+	if (dtar->rna_path)
+		return strlen(dtar->rna_path);
 	else
 		return 0;
 }
 
-static void rna_Driver_RnaPath_set(PointerRNA *ptr, const char *value)
+static void rna_DriverTarget_RnaPath_set(PointerRNA *ptr, const char *value)
 {
-	ChannelDriver *driver= (ChannelDriver *)ptr->data;
+	DriverTarget *dtar= (DriverTarget *)ptr->data;
 	
 	// XXX in this case we need to be very careful, as this will require some new dependencies to be added!
-	if (driver->rna_path)
-		MEM_freeN(driver->rna_path);
+	if (dtar->rna_path)
+		MEM_freeN(dtar->rna_path);
 	
 	if (strlen(value))
-		driver->rna_path= BLI_strdup(value);
+		dtar->rna_path= BLI_strdup(value);
 	else 
-		driver->rna_path= NULL;
+		dtar->rna_path= NULL;
 }
 
 
@@ -108,13 +108,39 @@ static void rna_FCurve_RnaPath_set(PointerRNA *ptr, const char *value)
 #else
 
 // XXX maybe this should be in a separate file?
+void rna_def_drivertarget(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+	
+	srna= RNA_def_struct(brna, "DriverTarget", NULL);
+	RNA_def_struct_ui_text(srna, "Driver Target", "Variable from some source/target for driver relationship");
+	
+	/* Variable Name */
+	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
+	RNA_def_property_ui_text(prop, "Name", "Name to use in scripted expressions/functions.");
+	
+	/* Target Properties */
+	prop= RNA_def_property(srna, "target", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "id");
+	RNA_def_property_ui_text(prop, "Object", "Object the specific property used can be found from");
+	
+	prop= RNA_def_property(srna, "rna_path", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_funcs(prop, "rna_DriverTarget_RnaPath_get", "rna_DriverTarget_RnaPath_length", "rna_DriverTarget_RnaPath_set");
+	RNA_def_property_ui_text(prop, "RNA Path", "RNA Path (from Object) to property used");
+	
+	prop= RNA_def_property(srna, "array_index", PROP_INT, PROP_NONE);
+	RNA_def_property_ui_text(prop, "RNA Array Index", "Index to the specific property used (if applicable)");
+}
+
+// XXX maybe this should be in a separate file?
 void rna_def_channeldriver(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
 	
 	static EnumPropertyItem prop_type_items[] = {
-		{DRIVER_TYPE_CHANNEL, "NORMAL", "Normal", ""},
+		{DRIVER_TYPE_AVERAGE, "AVERAGE", "Averaged Value", ""},
 		{DRIVER_TYPE_PYTHON, "SCRIPTED", "Scripted Expression", ""},
 		{DRIVER_TYPE_ROTDIFF, "ROTDIFF", "Rotational Difference", ""},
 		{0, NULL, NULL, NULL}};
@@ -131,17 +157,11 @@ void rna_def_channeldriver(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "expression", PROP_STRING, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Expression", "Expression to use for Scripted Expression.");
 
-	/* Pointers */
-	prop= RNA_def_property(srna, "target", PROP_POINTER, PROP_NONE);
-	RNA_def_property_pointer_sdna(prop, NULL, "id");
-	RNA_def_property_ui_text(prop, "Driver Object", "Object that controls this Driver.");
-	
-	prop= RNA_def_property(srna, "rna_path", PROP_STRING, PROP_NONE);
-	RNA_def_property_string_funcs(prop, "rna_Driver_RnaPath_get", "rna_Driver_RnaPath_length", "rna_Driver_RnaPath_set");
-	RNA_def_property_ui_text(prop, "Driver RNA Path", "RNA Path (from Driver Object) to property used as Driver.");
-	
-	prop= RNA_def_property(srna, "array_index", PROP_INT, PROP_NONE);
-	RNA_def_property_ui_text(prop, "Driver RNA Array Index", "Index to the specific property used as Driver if applicable.");
+	/* Collections */
+	prop= RNA_def_property(srna, "targets", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_collection_sdna(prop, NULL, "targets", NULL);
+	RNA_def_property_struct_type(prop, "DriverTarget");
+	RNA_def_property_ui_text(prop, "Target Variables", "Properties acting as targets for this driver.");
 }
 
 // XXX maybe this should be in a separate file?
@@ -171,17 +191,15 @@ void rna_def_fcurve(BlenderRNA *brna)
 
 	/* Pointers */
 	prop= RNA_def_property(srna, "driver", PROP_POINTER, PROP_NONE);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE); // xxx?
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Driver", "Channel Driver (only set for Driver F-Curves)");
 	
 	/* Path + Array Index */
 	prop= RNA_def_property(srna, "rna_path", PROP_STRING, PROP_NONE);
-	//RNA_def_property_clear_flag(prop, PROP_EDITABLE); // XXX for now editable
 	RNA_def_property_string_funcs(prop, "rna_FCurve_RnaPath_get", "rna_FCurve_RnaPath_length", "rna_FCurve_RnaPath_set");
 	RNA_def_property_ui_text(prop, "RNA Path", "RNA Path to property affected by F-Curve.");
 	
 	prop= RNA_def_property(srna, "array_index", PROP_INT, PROP_NONE);
-	//RNA_def_property_clear_flag(prop, PROP_EDITABLE); // XXX for now editable
 	RNA_def_property_ui_text(prop, "RNA Array Index", "Index to the specific property affected by F-Curve if applicable.");
 	
 	/* Color */
@@ -196,7 +214,7 @@ void rna_def_fcurve(BlenderRNA *brna)
 	/* Collections */
 	prop= RNA_def_property(srna, "sampled_points", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "fpt", "totvert");
-	RNA_def_property_struct_type(prop, "CurvePoint");
+	RNA_def_property_struct_type(prop, "CurvePoint"); // XXX FPoints not BPoints here! FPoints are much smaller!
 	RNA_def_property_ui_text(prop, "Sampled Points", "Sampled animation data");
 
 	prop= RNA_def_property(srna, "keyframe_points", PROP_COLLECTION, PROP_NONE);
@@ -281,6 +299,7 @@ void RNA_def_action(BlenderRNA *brna)
 	
 	// should these be in their own file, or is that overkill?
 	rna_def_fcurve(brna);
+	rna_def_drivertarget(brna);
 	rna_def_channeldriver(brna);
 }
 

@@ -1667,8 +1667,10 @@ static void lib_link_fcurves(FileData *fd, ID *id, ListBase *list)
 		/* driver data */
 		if (fcu->driver) {
 			ChannelDriver *driver= fcu->driver;
-			driver->id= newlibadr(fd, id->lib, driver->id); 
-			driver->id2= newlibadr(fd, id->lib, driver->id2); 
+			DriverTarget *dtar;
+			
+			for (dtar= driver->targets.first; dtar; dtar= dtar->next)
+				dtar->id= newlibadr(fd, id->lib, dtar->id); 
 		}
 		
 		/* modifiers */
@@ -1708,9 +1710,12 @@ static void direct_link_fcurves(FileData *fd, ListBase *list)
 		fcu->driver= newdataadr(fd, fcu->driver);
 		if (fcu->driver) {
 			ChannelDriver *driver= fcu->driver;
+			DriverTarget *dtar;
 			
-			driver->rna_path= newdataadr(fd, driver->rna_path);
-			driver->rna_path2= newdataadr(fd, driver->rna_path2);
+			/* relink targets and their paths */
+			link_list(fd, &driver->targets);
+			for (dtar= driver->targets.first; dtar; dtar= dtar->next)
+				dtar->rna_path= newdataadr(fd, dtar->rna_path);
 		}
 		
 		/* modifiers */
@@ -9193,9 +9198,10 @@ static void expand_animdata(FileData *fd, Main *mainvar, AnimData *adt)
 	/* drivers - assume that these F-Curves have driver data to be in this list... */
 	for (fcd= adt->drivers.first; fcd; fcd= fcd->next) {
 		ChannelDriver *driver= fcd->driver;
+		DriverTarget *dtar;
 		
-		expand_doit(fd, mainvar, driver->id);
-		expand_doit(fd, mainvar, driver->id2);
+		for (dtar= driver->targets.first; dtar; dtar= dtar->next)
+			expand_doit(fd, mainvar, dtar->id);
 	}
 }	
 

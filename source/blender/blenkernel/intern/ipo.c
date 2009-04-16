@@ -950,6 +950,7 @@ char *get_rna_access (int blocktype, int adrcode, char actname[], char constname
 static ChannelDriver *idriver_to_cdriver (IpoDriver *idriver)
 {
 	ChannelDriver *cdriver;
+	DriverTarget *dtar=NULL, *dtar2=NULL;
 	
 	/* allocate memory for new driver */
 	cdriver= MEM_callocN(sizeof(ChannelDriver), "ChannelDriver");
@@ -957,6 +958,7 @@ static ChannelDriver *idriver_to_cdriver (IpoDriver *idriver)
 	/* if 'pydriver', just copy data across */
 	if (idriver->type == IPO_DRIVER_TYPE_PYTHON) {
 		/* PyDriver only requires the expression to be copied */
+		// TODO: but the expression will be useless...
 		cdriver->type = DRIVER_TYPE_PYTHON;
 		strcpy(cdriver->expression, idriver->name); // XXX is this safe? 
 	}
@@ -965,12 +967,15 @@ static ChannelDriver *idriver_to_cdriver (IpoDriver *idriver)
 		if (idriver->blocktype == ID_AR) {
 			/* ID_PO */
 			if (idriver->adrcode == OB_ROT_DIFF) {
-				if (G.f & G_DEBUG) printf("idriver_to_cdriver - rotdiff %p \n", idriver->ob);
 				/* Rotational Difference is a special type of driver now... */
 				cdriver->type= DRIVER_TYPE_ROTDIFF;
 				
+				/* make 2 driver targets */
+				dtar= driver_add_new_target(cdriver);
+				dtar2= driver_add_new_target(cdriver);
+				
 				/* driver must use bones from same armature... */
-				cdriver->id= cdriver->id2= (ID *)idriver->ob;
+				dtar->id= dtar2->id= (ID *)idriver->ob;
 				
 				/* paths for the two targets get the pointers to the relevant Pose-Channels 
 				 *	- return pointers to Pose-Channels not rotation channels, as calculation code is picky
@@ -979,34 +984,36 @@ static ChannelDriver *idriver_to_cdriver (IpoDriver *idriver)
 				 *	- we use several hacks here - blocktype == -1 specifies that no property needs to be found, and
 				 *	  providing a name for 'actname' will automatically imply Pose-Channel with name 'actname'
 				 */
-				cdriver->rna_path= get_rna_access(-1, -1, idriver->name, NULL, NULL);
-				cdriver->rna_path2= get_rna_access(-1, -1, idriver->name+DRIVER_NAME_OFFS, NULL, NULL);
+				dtar->rna_path= get_rna_access(-1, -1, idriver->name, NULL, NULL);
+				dtar2->rna_path= get_rna_access(-1, -1, idriver->name+DRIVER_NAME_OFFS, NULL, NULL);
 			}
 			else {
-				if (G.f & G_DEBUG) printf("idriver_to_cdriver - arm  %p \n", idriver->ob);
 				/* 'standard' driver */
-				cdriver->type= DRIVER_TYPE_CHANNEL;
-				cdriver->id= (ID *)idriver->ob;
+				cdriver->type= DRIVER_TYPE_AVERAGE;
+				
+				/* make 1 driver target */
+				dtar= driver_add_new_target(cdriver);
+				dtar->id= (ID *)idriver->ob;
 				
 				switch (idriver->adrcode) {
 					case OB_LOC_X:	/* x,y,z location are quite straightforward */
-						cdriver->rna_path= get_rna_access(ID_PO, AC_LOC_X, idriver->name, NULL, &cdriver->array_index);
+						dtar->rna_path= get_rna_access(ID_PO, AC_LOC_X, idriver->name, NULL, &dtar->array_index);
 						break;
 					case OB_LOC_Y:
-						cdriver->rna_path= get_rna_access(ID_PO, AC_LOC_Y, idriver->name, NULL, &cdriver->array_index);
+						dtar->rna_path= get_rna_access(ID_PO, AC_LOC_Y, idriver->name, NULL, &dtar->array_index);
 						break;
 					case OB_LOC_Z:
-						cdriver->rna_path= get_rna_access(ID_PO, AC_LOC_Z, idriver->name, NULL, &cdriver->array_index);
+						dtar->rna_path= get_rna_access(ID_PO, AC_LOC_Z, idriver->name, NULL, &dtar->array_index);
 						break;
 						
 					case OB_SIZE_X:	/* x,y,z scaling are also quite straightforward */
-						cdriver->rna_path= get_rna_access(ID_PO, AC_SIZE_X, idriver->name, NULL, &cdriver->array_index);
+						dtar->rna_path= get_rna_access(ID_PO, AC_SIZE_X, idriver->name, NULL, &dtar->array_index);
 						break;
 					case OB_SIZE_Y:
-						cdriver->rna_path= get_rna_access(ID_PO, AC_SIZE_Y, idriver->name, NULL, &cdriver->array_index);
+						dtar->rna_path= get_rna_access(ID_PO, AC_SIZE_Y, idriver->name, NULL, &dtar->array_index);
 						break;
 					case OB_SIZE_Z:
-						cdriver->rna_path= get_rna_access(ID_PO, AC_SIZE_Z, idriver->name, NULL, &cdriver->array_index);
+						dtar->rna_path= get_rna_access(ID_PO, AC_SIZE_Z, idriver->name, NULL, &dtar->array_index);
 						break;	
 						
 					case OB_ROT_X:	/* rotation - we need to be careful with this... XXX (another reason why we need eulers) */	
@@ -1015,8 +1022,8 @@ static ChannelDriver *idriver_to_cdriver (IpoDriver *idriver)
 					{
 						// XXX this is not yet a 1:1 map, since we'd need euler rotations to make this work nicely (unless we make some hacks)
 						// XXX -1 here is a special hack...
-						cdriver->rna_path= get_rna_access(ID_PO, -1, idriver->name, NULL, NULL);
-						cdriver->array_index= idriver->adrcode - OB_ROT_X;
+						dtar->rna_path= get_rna_access(ID_PO, -1, idriver->name, NULL, NULL);
+						dtar->array_index= idriver->adrcode - OB_ROT_X;
 					}
 						break;
 				}
@@ -1024,14 +1031,16 @@ static ChannelDriver *idriver_to_cdriver (IpoDriver *idriver)
 		}
 		else {
 			/* ID_OB */
-			if (G.f & G_DEBUG) printf("idriver_to_cdriver  - ob %p \n", idriver->ob);
-			cdriver->type= DRIVER_TYPE_CHANNEL;
-			cdriver->id= (ID *)idriver->ob;
-			cdriver->rna_path= get_rna_access(ID_OB, idriver->adrcode, NULL, NULL, &cdriver->array_index);
+			cdriver->type= DRIVER_TYPE_AVERAGE;
+			
+			/* make 1 driver target */
+			dtar= driver_add_new_target(cdriver);
+			
+			dtar->id= (ID *)idriver->ob;
+			dtar->rna_path= get_rna_access(ID_OB, idriver->adrcode, NULL, NULL, &dtar->array_index);
 		}
 	}
 	
-	if (G.f & G_DEBUG) printf("\tcdriver -> id = %p \n", cdriver->id);
 	
 	/* free old driver */
 	MEM_freeN(idriver);

@@ -346,6 +346,7 @@ static void dag_add_driver_relation(AnimData *adt, DagForest *dag, DagNode *node
 		else if (driver->type == DRIVER_TYPE_ROTDIFF) {
 			// XXX rotational difference 
 		}
+#if 0 // XXX old animato 
 		else if (driver->id) {
 			if(GS(driver->id->name)==ID_OB) {
 				/* normal channel-drives-channel */
@@ -358,6 +359,7 @@ static void dag_add_driver_relation(AnimData *adt, DagForest *dag, DagNode *node
 					dag_add_relation(dag, node1, node, isdata?DAG_RL_OB_DATA:DAG_RL_OB_OB, "Ipo Driver");
 			}
 		}
+#endif // XXX old animato
 #if 0 // XXX old 'normal' type
 
 		else if (icu->driver->ob) {

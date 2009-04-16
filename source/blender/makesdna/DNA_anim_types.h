@@ -168,6 +168,25 @@ enum {
 
 /* Drivers -------------------------------------- */
 
+/* Driver Target 
+ *
+ * A 'variable' for use as a target of the driver/expression.
+ * Defines a way of accessing some channel to use, that can be
+ * referred to in the expression as a variable, thus simplifying
+ * expressions and also Depsgraph building.
+ */
+typedef struct DriverTarget {
+	struct DriverTarget *next, *prev;
+	
+	ID 	*id;			/* ID-block which owns the target */
+	char *rna_path;		/* target channel to use as driver value */
+	int array_index;	/* if applicable, the index of the RNA-array item to use as driver */
+	
+	int flags;			/* flags for the validity of the target */
+	
+	char name[64];		/* name of the variable */
+} DriverTarget;
+
 /* Channel Driver (i.e. Drivers / Expressions) (driver)
  *
  * Channel Drivers are part of the dependency system, and are executed in addition to 
@@ -180,34 +199,26 @@ enum {
  * evaluated in. This order is set by the Depsgraph's sorting stuff. 
  */
 typedef struct ChannelDriver {
-		/* primary target */
-	ID 	*id;			/* ID-block which owns the target */
-	char *rna_path;		/* target channel to use as driver value */
-	int array_index;	/* if applicable, the index of the RNA-array item to use as driver */
+	ListBase targets;	/* targets for this driver (i.e. list of DriverTarget) */
 	
-		/* value cache (placed here for alignment reasons) */
+	/* python expression to execute (may call functions defined in an accessory file) 
+	 * which relates the target 'variables' in some way to yield a single usable value
+	 */
+	char expression[256]; 
+	
 	float curval;		/* result of previous evaluation, for subtraction from result under certain circumstances */
-	
-		/* secondary target (for rotational difference) */
-	ID 	*id2;			/* ID-block which owns the second target */
-	char *rna_path2;	/* second target channel to use as driver value */
-	int array_index2;	/* if applicable, the index of the RNA-array item to use as driver */
-		
-		/* general settings (placed here for alignment reasons) */
-	int type;			/* type of driver */
-	int flag;			/* settings of driver */
-	
 	float influence;	/* influence of driver on result */ // XXX to be implemented... this is like the constraint influence setting
 	
-		/* settings for Python Drivers (PyDrivers) */
-	char expression[256]; /* python expression to execute (may call functions defined in an accessory file) */
+		/* general settings */
+	int type;			/* type of driver */
+	int flag;			/* settings of driver */
 } ChannelDriver;
 
 /* driver type */
 enum {
-		/* channel drives channel */
-	DRIVER_TYPE_CHANNEL	= 0,
-		/* py-expression used as driver */
+		/* target values are averaged together */
+	DRIVER_TYPE_AVERAGE	= 0,
+		/* python expression/function relates targets */
 	DRIVER_TYPE_PYTHON,
 		/* rotational difference (must use rotation channels only) */
 	DRIVER_TYPE_ROTDIFF,
@@ -217,13 +228,11 @@ enum {
 enum {
 		/* driver has invalid settings (internal flag)  */
 	DRIVER_FLAG_INVALID		= (1<<0),
-		/* driver was disabled temporarily, so shouldn't be evaluated (set by user) */
-	DRIVER_FLAG_DISABLED 	= (1<<1),
 		/* driver needs recalculation (set by depsgraph) */
-	DRIVER_FLAG_RECALC		= (1<<2),
+	DRIVER_FLAG_RECALC		= (1<<1),
 		/* driver does replace value, but overrides (for layering of animation over driver) */
-		// TODO: is this necessary?
-	DRIVER_FLAG_LAYERING	= (1<<3),
+		// TODO: this needs to be implemented at some stage or left out...
+	DRIVER_FLAG_LAYERING	= (1<<2),
 } eDriver_Flags;
 
 /* F-Curves -------------------------------------- */
