@@ -40,7 +40,7 @@ class RENDER_PT_image(bpy.types.Panel):
 
 		layout.column_flow()
 		layout.itemR(rd, "resolution_x", text="SizeX")
-		layout.itemR(rd, "resolution_x", text="SizeY")
+		layout.itemR(rd, "resolution_y", text="SizeY")
 		layout.itemR(rd, "pixel_aspect_x", text="AspX")
 		layout.itemR(rd, "pixel_aspect_y", text="AspY")
 

@@ -80,7 +80,7 @@ int PYOP_props_from_dict(PointerRNA *ptr, PyObject *kw)
 			break;
 		}
 
-		if (pyrna_py_to_prop(ptr, prop, item)) {
+		if (pyrna_py_to_prop(ptr, prop, NULL, item)) {
 			error_val= -1;
 			break;
 		}
