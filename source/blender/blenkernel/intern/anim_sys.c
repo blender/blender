@@ -240,7 +240,7 @@ KeyingSet *BKE_keyingset_add (ListBase *list, const char name[], short flag, sho
 	BLI_addtail(list, ks);
 	
 	/* make sure KeyingSet has a unique name (this helps with identification) */
-	BLI_uniquename(list, ks, "Keying Set", offsetof(KeyingSet, name), 64);
+	BLI_uniquename(list, ks, "Keying Set", ' ', offsetof(KeyingSet, name), 64);
 	
 	/* return new KeyingSet for further editing */
 	return ks;

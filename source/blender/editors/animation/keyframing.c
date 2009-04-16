@@ -127,7 +127,7 @@ FCurve *verify_fcurve (bAction *act, const char group[], const char rna_path[], 
 				BLI_snprintf(grp->name, 64, group);
 				
 				BLI_addtail(&act->groups, grp);
-				BLI_uniquename(&act->groups, grp, "Group", offsetof(bActionGroup, name), 64);
+				BLI_uniquename(&act->groups, grp, "Group", '.', offsetof(bActionGroup, name), 64);
 			}
 			
 			/* add F-Curve to group */

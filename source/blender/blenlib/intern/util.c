@@ -224,8 +224,9 @@ void BLI_newname(char *name, int add)
  * 	name_offs: should be calculated using offsetof(structname, membername) macro from stddef.h
  *	len: maximum length of string (to prevent overflows, etc.)
  *	defname: the name that should be used by default if none is specified already
+ *	delim: the character which acts as a delimeter between parts of the name
  */
-void BLI_uniquename(ListBase *list, void *vlink, char defname[], short name_offs, short len)
+void BLI_uniquename(ListBase *list, void *vlink, char defname[], char delim, short name_offs, short len)
 {
 	Link *link;
 	char tempname[128];
@@ -261,12 +262,12 @@ void BLI_uniquename(ListBase *list, void *vlink, char defname[], short name_offs
 		return;
 
 	/* Strip off the suffix */
-	dot = strchr(GIVE_STRADDR(vlink, name_offs), '.');
+	dot = strchr(GIVE_STRADDR(vlink, name_offs), delim);
 	if (dot)
 		*dot=0;
 	
 	for (number = 1; number <= 999; number++) {
-		BLI_snprintf(tempname, 128, "%s.%03d", GIVE_STRADDR(vlink, name_offs), number);
+		BLI_snprintf(tempname, 128, "%s%c%03d", GIVE_STRADDR(vlink, name_offs), delim, number);
 		
 		exists = 0;
 		for (link= list->first; link; link= link->next) {

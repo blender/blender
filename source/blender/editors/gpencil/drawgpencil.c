@@ -102,7 +102,7 @@ void gp_ui_renamelayer_cb (void *gpd_arg, void *gpl_arg)
 	bGPdata *gpd= (bGPdata *)gpd_arg;
 	bGPDlayer *gpl= (bGPDlayer *)gpl_arg;
 	
-	BLI_uniquename(&gpd->layers, gpl, "GP_Layer", offsetof(bGPDlayer, info[0]), 128);
+	BLI_uniquename(&gpd->layers, gpl, "GP_Layer", '.', offsetof(bGPDlayer, info[0]), 128);
 	gpencil_layer_setactive(gpd, gpl);
 	
 	scrarea_queue_winredraw(curarea);

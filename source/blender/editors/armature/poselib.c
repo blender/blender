@@ -388,7 +388,7 @@ static int poselib_add_exec (bContext *C, wmOperator *op)
 	}
 	
 	/* validate name */
-	BLI_uniquename(&act->markers, marker, "Pose", offsetof(TimeMarker, name), 64);
+	BLI_uniquename(&act->markers, marker, "Pose", '.', offsetof(TimeMarker, name), 64);
 	
 	/* make sure we've got KeyingSets to use */
 	poselib_get_builtin_keyingsets();
@@ -562,7 +562,7 @@ static int poselib_rename_exec (bContext *C, wmOperator *op)
 	
 	/* copy name and validate it */
 	BLI_strncpy(marker->name, newname, sizeof(marker->name));
-	BLI_uniquename(&act->markers, marker, "Pose", offsetof(TimeMarker, name), 64);
+	BLI_uniquename(&act->markers, marker, "Pose", '.', offsetof(TimeMarker, name), 64);
 	
 	/* done */
 	return OPERATOR_FINISHED;

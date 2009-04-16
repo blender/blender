@@ -275,7 +275,7 @@ static void graph_panel_drivers(const bContext *C, ARegion *ar, short cntrl, bAn
 		short height = 60;
 		
 		/* variable name */
-		uiDefButC(block, TEX, B_REDR, "Name: ", 10,yco,280,20, dtar->name, 0, 63, 0, 0, "Name of target variable.");
+		uiDefButC(block, TEX, B_REDR, "Name: ", 10,yco,280,20, dtar->name, 0, 63, 0, 0, "Name of target variable (No spaces or dots are allowed. Also, must not start with a symbol or digit).");
 		
 		/* remove button */
 		but= uiDefIconBut(block, BUT, B_REDR, ICON_X, 290, yco, 20, 20, NULL, 0.0, 0.0, 0.0, 0.0, "Delete target variable.");

@@ -4060,7 +4060,7 @@ static void namebutton_cb(bContext *C, void *tep, void *oldnamep)
 					Object *ob= (Object *)tselem->id; // id = object
 					bActionGroup *grp= te->directdata;
 					
-					BLI_uniquename(&ob->pose->agroups, grp, "Group", offsetof(bActionGroup, name), 32);
+					BLI_uniquename(&ob->pose->agroups, grp, "Group", '.', offsetof(bActionGroup, name), 32);
 				}
 				break;
 			case TSE_R_LAYER:

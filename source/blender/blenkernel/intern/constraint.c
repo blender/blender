@@ -93,7 +93,7 @@
 /* Find the first available, non-duplicate name for a given constraint */
 void unique_constraint_name (bConstraint *con, ListBase *list)
 {
-	BLI_uniquename(list, con, "Const", offsetof(bConstraint, name), 32);
+	BLI_uniquename(list, con, "Const", '.', offsetof(bConstraint, name), 32);
 }
 
 /* ----------------- Evaluation Loop Preparation --------------- */

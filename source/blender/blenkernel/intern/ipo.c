@@ -1082,7 +1082,7 @@ static void fcurve_add_to_list (ListBase *groups, ListBase *list, FCurve *fcu, c
 				BLI_snprintf(agrp->name, 64, grpname);
 				
 				BLI_addtail(&tmp_act.groups, agrp);
-				BLI_uniquename(&tmp_act.groups, agrp, "Group", offsetof(bActionGroup, name), 64);
+				BLI_uniquename(&tmp_act.groups, agrp, "Group", '.', offsetof(bActionGroup, name), 64);
 			}
 		}
 		

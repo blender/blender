@@ -5,6 +5,7 @@
 
 #include <math.h>
 #include <stdio.h>
+#include <stddef.h>
 #include <string.h>
 #include <float.h>
 
@@ -589,8 +590,9 @@ DriverTarget *driver_add_new_target (ChannelDriver *driver)
 	dtar= MEM_callocN(sizeof(DriverTarget), "DriverTarget");
 	BLI_addtail(&driver->targets, dtar);
 	
-	/* give the target a name */
-	strcpy(dtar->name, "a"); // XXX fimxe... this needs more work to get unique names without dots...
+	/* give the target a 'unique' name */
+	strcpy(dtar->name, "var");
+	BLI_uniquename(&driver->targets, dtar, "var", '_', offsetof(DriverTarget, name), 64);
 	
 	/* return the target */
 	return dtar;

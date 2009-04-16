@@ -226,7 +226,7 @@ bGPDlayer *gpencil_layer_addnew (bGPdata *gpd)
 	
 	/* auto-name */
 	sprintf(gpl->info, "GP_Layer");
-	BLI_uniquename(&gpd->layers, gpl, "GP_Layer", offsetof(bGPDlayer, info[0]), 128);
+	BLI_uniquename(&gpd->layers, gpl, "GP_Layer", '.', offsetof(bGPDlayer, info[0]), 128);
 	
 	/* make this one the active one */
 	gpencil_layer_setactive(gpd, gpl);
