@@ -353,6 +353,8 @@ def AppIt(target=None, source=None, env=None):
 	commands.getoutput(cmd) 
 	cmd = 'cp -R %s/release/scripts %s/%s.app/Contents/MacOS/.blender/'%(bldroot,builddir,binary)
 	commands.getoutput(cmd)
+	cmd = 'cp -R %s/release/ui %s/%s.app/Contents/MacOS/.blender/'%(bldroot,builddir,binary)
+	commands.getoutput(cmd)
 	cmd = 'chmod +x  %s/%s.app/Contents/MacOS/%s'%(builddir,binary, binary)
 	commands.getoutput(cmd)
 	cmd = 'find %s/%s.app -name .svn -prune -exec rm -rf {} \;'%(builddir, binary)
