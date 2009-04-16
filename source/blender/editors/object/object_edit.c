@@ -1483,16 +1483,29 @@ void OBJECT_OT_track_clear(wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "type", prop_clear_track_types, 0, "Type", "");
 }
 
+/* *****************Selection Operators******************* */
+static EnumPropertyItem prop_select_types[] = {
+	{0, "EXCLUSIVE", "Exclusive", ""},
+	{1, "EXTEND", "Extend", ""},
+	{0, NULL, NULL, NULL}
+};
 
-/* ***************************** */
 /* ****** Select by Type ****** */
 
 static int object_select_by_type_exec(bContext *C, wmOperator *op)
 {
-	short obtype;
+	short obtype, seltype;
 	
 	obtype = RNA_enum_get(op->ptr, "type");
+	seltype = RNA_enum_get(op->ptr, "seltype");
 		
+	if (seltype == 0) {
+		CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
+			ED_base_object_select(base, BA_DESELECT);
+		}
+		CTX_DATA_END;
+	}
+	
 	CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
 		if(base->object->type==obtype) {
 			ED_base_object_select(base, BA_SELECT);
@@ -1520,7 +1533,8 @@ void OBJECT_OT_select_by_type(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	RNA_def_enum(ot->srna, "type", prop_object_types, 0, "Type", "");
+	RNA_def_enum(ot->srna, "seltype", prop_select_types, 0, "Selection", "Extend selection or clear selection then select");
+	RNA_def_enum(ot->srna, "type", prop_object_types, 1, "Type", "");
 
 }
 /* ****** selection by links *******/
@@ -1544,7 +1558,7 @@ static int object_select_linked_exec(bContext *C, wmOperator *op)
 	Tex *tex=0;
 	int a, b;
 	int nr = RNA_enum_get(op->ptr, "type");
-	short changed = 0;
+	short changed = 0, seltype;
 	/* events (nr):
 	 * Object Ipo: 1
 	 * ObData: 2
@@ -1553,7 +1567,15 @@ static int object_select_linked_exec(bContext *C, wmOperator *op)
 	 * DupliGroup: 5
 	 * PSys: 6
 	 */
+
+	seltype = RNA_enum_get(op->ptr, "seltype");
 	
+	if (seltype == 0) {
+		CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
+			ED_base_object_select(base, BA_DESELECT);
+		}
+		CTX_DATA_END;
+	}
 	
 	ob= OBACT;
 	if(ob==0){ 
@@ -1588,65 +1610,63 @@ static int object_select_linked_exec(bContext *C, wmOperator *op)
 	else return OPERATOR_CANCELLED;
 	
 	CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
-		if (!(base->flag & SELECT)) {
-			if(nr==1) {
-					// XXX old animation system
-				//if(base->object->ipo==ipo) base->flag |= SELECT;
-				//changed = 1;
-			}
-			else if(nr==2) {
-				if(base->object->data==obdata) base->flag |= SELECT;
-				changed = 1;
-			}
-			else if(nr==3 || nr==4) {
-				ob= base->object;
-				
-				for(a=1; a<=ob->totcol; a++) {
-					mat1= give_current_material(ob, a);
-					if(nr==3) {
-						if(mat1==mat) base->flag |= SELECT;
-						changed = 1;
-					}
-					else if(mat1 && nr==4) {
-						for(b=0; b<MAX_MTEX; b++) {
-							if(mat1->mtex[b]) {
-								if(tex==mat1->mtex[b]->tex) {
-									base->flag |= SELECT;
-									changed = 1;
-									break;
-								}
+		if(nr==1) {
+				// XXX old animation system
+			//if(base->object->ipo==ipo) base->flag |= SELECT;
+			//changed = 1;
+		}
+		else if(nr==2) {
+			if(base->object->data==obdata) base->flag |= SELECT;
+			changed = 1;
+		}
+		else if(nr==3 || nr==4) {
+			ob= base->object;
+			
+			for(a=1; a<=ob->totcol; a++) {
+				mat1= give_current_material(ob, a);
+				if(nr==3) {
+					if(mat1==mat) base->flag |= SELECT;
+					changed = 1;
+				}
+				else if(mat1 && nr==4) {
+					for(b=0; b<MAX_MTEX; b++) {
+						if(mat1->mtex[b]) {
+							if(tex==mat1->mtex[b]->tex) {
+								base->flag |= SELECT;
+								changed = 1;
+								break;
 							}
 						}
 					}
 				}
 			}
-			else if(nr==5) {
-				if(base->object->dup_group==ob->dup_group) {
-					 base->flag |= SELECT;
-					 changed = 1;
-				}
+		}
+		else if(nr==5) {
+			if(base->object->dup_group==ob->dup_group) {
+				 base->flag |= SELECT;
+				 changed = 1;
 			}
-			else if(nr==6) {
-				/* loop through other, then actives particles*/
-				ParticleSystem *psys;
-				ParticleSystem *psys_act;
-				
-				for(psys=base->object->particlesystem.first; psys; psys=psys->next) {
-					for(psys_act=ob->particlesystem.first; psys_act; psys_act=psys_act->next) {
-						if (psys->part == psys_act->part) {
-							base->flag |= SELECT;
-							changed = 1;
-							break;
-						}
-					}
-					
-					if (base->flag & SELECT) {
+		}
+		else if(nr==6) {
+			/* loop through other, then actives particles*/
+			ParticleSystem *psys;
+			ParticleSystem *psys_act;
+			
+			for(psys=base->object->particlesystem.first; psys; psys=psys->next) {
+				for(psys_act=ob->particlesystem.first; psys_act; psys_act=psys_act->next) {
+					if (psys->part == psys_act->part) {
+						base->flag |= SELECT;
+						changed = 1;
 						break;
 					}
 				}
+				
+				if (base->flag & SELECT) {
+					break;
+				}
 			}
-			base->object->flag= base->flag;
 		}
+		base->object->flag= base->flag;
 	}
 	CTX_DATA_END;
 	
@@ -1674,6 +1694,7 @@ void OBJECT_OT_select_linked(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	RNA_def_enum(ot->srna, "type", prop_select_linked_types, 0, "Type", "");
+	RNA_def_enum(ot->srna, "seltype", prop_select_types, 1, "Selection", "Extend selection or clear selection then select");
 
 }
 /* ****** selection by layer *******/
@@ -1681,8 +1702,17 @@ void OBJECT_OT_select_linked(wmOperatorType *ot)
 static int object_select_by_layer_exec(bContext *C, wmOperator *op)
 {
 	unsigned int layernum;
+	short seltype;
 	
+	seltype = RNA_enum_get(op->ptr, "seltype");
 	layernum = RNA_int_get(op->ptr, "layer");
+	
+	if (seltype == 0) {
+		CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
+			ED_base_object_select(base, BA_DESELECT);
+		}
+		CTX_DATA_END;
+	}
 		
 	CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
 		if(base->lay == (1<< (layernum -1)))
@@ -1712,6 +1742,7 @@ void OBJECT_OT_select_by_layer(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	RNA_def_int(ot->srna, "layer", 1, 1, 20, "Layer", "", 1, 20);
+	RNA_def_enum(ot->srna, "seltype", prop_select_types, 1, "Selection", "Extend selection or clear selection then select");
 }
 
 /* ****** invert selection *******/
@@ -1798,11 +1829,20 @@ void OBJECT_OT_select_all_toggle(wmOperatorType *ot)
 static int object_select_random_exec(bContext *C, wmOperator *op)
 {	
 	float percent;
+	short seltype;
 	
+	seltype = RNA_enum_get(op->ptr, "seltype");
+	
+	if (seltype == 0) {
+		CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
+			ED_base_object_select(base, BA_DESELECT);
+		}
+		CTX_DATA_END;
+	}
 	percent = RNA_float_get(op->ptr, "percent");
 		
 	CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
-		if ((!base->flag & SELECT && BLI_frand() < percent)) {
+		if (BLI_frand() < percent) {
 				ED_base_object_select(base, BA_SELECT);
 		}
 	}
@@ -1829,6 +1869,7 @@ void OBJECT_OT_select_random(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	RNA_def_float_percentage(ot->srna, "percent", 0.5f, 0.0f, 1.0f, "Percent", "percentage of objects to randomly select", 0.0001f, 1.0f);
+	RNA_def_enum(ot->srna, "seltype", prop_select_types, 1, "Selection", "Extend selection or clear selection then select");
 }
 
 /* ******** Clear object Translation *********** */
