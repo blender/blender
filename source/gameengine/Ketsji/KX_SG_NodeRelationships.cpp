@@ -235,23 +235,12 @@ UpdateChildCoordinates(
 			// now 'interpolate' the normal coordinates with the last 
 			// world coordinates to get the new world coordinates.
 
-			// problem 1:
-			// The child world scale needs to be initialized in some way for this 
-			// to make sense
-			// problem 2:
-			// This is way of doing interpolation is nonsense
-
-			int i;
-
 			MT_Scalar weight = MT_Scalar(1)/(m_relax + 1);
-			for (i=0;i <3 ;i++) {
-				child_w_scale[i] = (m_relax * child_w_scale[i] + child_n_scale[i]) * weight;
-				child_w_pos[i] = (m_relax * child_w_pos[i] + child_n_pos[i]) * weight;
-				child_w_rotation[0][i] = (m_relax * child_w_rotation[0][i] + child_n_rotation[0][i]) * weight;
-				child_w_rotation[1][i] = (m_relax * child_w_rotation[1][i] + child_n_rotation[1][i]) * weight;
-				child_w_rotation[2][i] = (m_relax * child_w_rotation[2][i] + child_n_rotation[2][i]) * weight;
-			}
-			
+			child_w_scale = (m_relax * child_w_scale + child_n_scale) * weight;
+			child_w_pos = (m_relax * child_w_pos + child_n_pos) * weight;
+			// for rotation we must go through quaternion
+			MT_Quaternion child_w_quat = child_w_rotation.getRotation().slerp(child_n_rotation.getRotation(), weight);
+			child_w_rotation.setRotation(child_w_quat);
 			//FIXME: update physics controller.
 		} else {
 			child_w_scale = child_n_scale;
