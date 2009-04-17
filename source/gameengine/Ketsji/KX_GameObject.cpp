@@ -103,7 +103,7 @@ KX_GameObject::KX_GameObject(
 	m_xray(false),
 	m_pHitObject(NULL),
 	m_isDeformable(false),
-	m_attrlist(NULL)
+	m_attr_dict(NULL)
 {
 	m_ignore_activity_culling = false;
 	m_pClient_info = new KX_ClientObjectInfo(this, KX_ClientObjectInfo::ACTOR);
@@ -146,9 +146,9 @@ KX_GameObject::~KX_GameObject()
 		delete m_pGraphicController;
 	}
 	
-	if (m_attrlist) {
-		PyDict_Clear(m_attrlist); /* incase of circular refs or other weired cases */
-		Py_DECREF(m_attrlist);
+	if (m_attr_dict) {
+		PyDict_Clear(m_attr_dict); /* incase of circular refs or other weired cases */
+		Py_DECREF(m_attr_dict);
 	}
 }
 
@@ -339,8 +339,8 @@ void KX_GameObject::ProcessReplica(KX_GameObject* replica)
 	replica->m_pClient_info = new KX_ClientObjectInfo(*m_pClient_info);
 	replica->m_pClient_info->m_gameobject = replica;
 	replica->m_state = 0;
-	if(m_attrlist)
-		replica->m_attrlist= PyDict_Copy(m_attrlist);
+	if(m_attr_dict)
+		replica->m_attr_dict= PyDict_Copy(m_attr_dict);
 		
 }
 
@@ -1123,9 +1123,6 @@ PyAttributeDef KX_GameObject::Attributes[] = {
 	KX_PYATTRIBUTE_RO_FUNCTION("sensors",		KX_GameObject, pyattr_get_sensors),
 	KX_PYATTRIBUTE_RO_FUNCTION("controllers",	KX_GameObject, pyattr_get_controllers),
 	KX_PYATTRIBUTE_RO_FUNCTION("actuators",		KX_GameObject, pyattr_get_actuators),
-	
-	KX_PYATTRIBUTE_RO_FUNCTION("isValid",		KX_GameObject, pyattr_get_is_valid),
-	
 	{NULL} //Sentinel
 };
 
@@ -1190,14 +1187,15 @@ Py_ssize_t KX_GameObject::Map_Len(PyObject* self_v)
 {
 	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
 	
-	if (ValidPythonToGameObject(self)==false) {
+	if (self->IsZombie()) /* not sure what to do here */
+	{
 		PyErr_Clear();
 		return 0;
 	}
 	
 	Py_ssize_t len= self->GetPropertyCount();
-	if(self->m_attrlist)
-		len += PyDict_Size(self->m_attrlist);
+	if(self->m_attr_dict)
+		len += PyDict_Size(self->m_attr_dict);
 	return len;
 }
 
@@ -1209,7 +1207,7 @@ PyObject *KX_GameObject::Map_GetItem(PyObject *self_v, PyObject *item)
 	CValue* resultattr;
 	PyObject* pyconvert;
 	
-	if (ValidPythonToGameObject(self)==false)
+	if (self->IsZombiePyErr())
 		return NULL;
 	
 	/* first see if the attributes a string and try get the cvalue attribute */
@@ -1217,8 +1215,8 @@ PyObject *KX_GameObject::Map_GetItem(PyObject *self_v, PyObject *item)
 		pyconvert = resultattr->ConvertValueToPython();			
 		return pyconvert ? pyconvert:resultattr;
 	}
-	/* no CValue attribute, try get the python only m_attrlist attribute */
-	else if (self->m_attrlist && (pyconvert=PyDict_GetItem(self->m_attrlist, item))) {
+	/* no CValue attribute, try get the python only m_attr_dict attribute */
+	else if (self->m_attr_dict && (pyconvert=PyDict_GetItem(self->m_attr_dict, item))) {
 		
 		if (attr_str)
 			PyErr_Clear();
@@ -1241,7 +1239,7 @@ int KX_GameObject::Map_SetItem(PyObject *self_v, PyObject *key, PyObject *val)
 	if(attr_str==NULL)
 		PyErr_Clear();
 	
-	if (ValidPythonToGameObject(self)==false)
+	if (self->IsZombiePyErr())
 		return -1;
 	
 	if (val==NULL) { /* del ob["key"] */
@@ -1251,15 +1249,15 @@ int KX_GameObject::Map_SetItem(PyObject *self_v, PyObject *key, PyObject *val)
 		if(attr_str)
 			del |= (self->RemoveProperty(attr_str)==true) ? 1:0;
 		
-		if(self->m_attrlist)
-			del |= (PyDict_DelItem(self->m_attrlist, key)==0) ? 1:0;
+		if(self->m_attr_dict)
+			del |= (PyDict_DelItem(self->m_attr_dict, key)==0) ? 1:0;
 		
 		if (del==0) {
 			if(attr_str)	PyErr_Format(PyExc_KeyError, "KX_GameObject key \"%s\" not found", attr_str);
 			else			PyErr_SetString(PyExc_KeyError, "KX_GameObject key not found");
 			return -1;
 		}
-		else if (self->m_attrlist) {
+		else if (self->m_attr_dict) {
 			PyErr_Clear(); /* PyDict_DelItem sets an error when it fails */
 		}
 	}
@@ -1284,8 +1282,8 @@ int KX_GameObject::Map_SetItem(PyObject *self_v, PyObject *key, PyObject *val)
 				set= 1;
 				
 				/* try remove dict value to avoid double ups */
-				if (self->m_attrlist){
-					if (PyDict_DelItem(self->m_attrlist, key) != 0)
+				if (self->m_attr_dict){
+					if (PyDict_DelItem(self->m_attr_dict, key) != 0)
 						PyErr_Clear();
 				}
 			}
@@ -1296,11 +1294,11 @@ int KX_GameObject::Map_SetItem(PyObject *self_v, PyObject *key, PyObject *val)
 		
 		if(set==0)
 		{
-			if (self->m_attrlist==NULL) /* lazy init */
-				self->m_attrlist= PyDict_New();
+			if (self->m_attr_dict==NULL) /* lazy init */
+				self->m_attr_dict= PyDict_New();
 			
 			
-			if(PyDict_SetItem(self->m_attrlist, key, val)==0)
+			if(PyDict_SetItem(self->m_attr_dict, key, val)==0)
 			{
 				if(attr_str)
 					self->RemoveProperty(attr_str); /* overwrite the CValue if it exists */
@@ -1343,8 +1341,8 @@ PyTypeObject KX_GameObject::Type = {
 		0,0,
 		&Mapping,
 		0,0,0,
-		py_base_getattro_gameobject,
-		py_base_setattro_gameobject,
+		py_base_getattro,
+		py_base_setattro,
 		0,0,0,0,0,0,0,0,0,
 		Methods
 };
@@ -1675,11 +1673,6 @@ PyObject* KX_GameObject::pyattr_get_meshes(void *self_v, const KX_PYATTRIBUTE_DE
 	return meshes;
 }
 
-PyObject* KX_GameObject::pyattr_get_is_valid(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
-{	
-	Py_RETURN_TRUE;
-}
-
 /* experemental! */
 PyObject* KX_GameObject::pyattr_get_sensors(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
@@ -1741,47 +1734,36 @@ PyObject* KX_GameObject::pyattr_get_dir_dict(void *self_v, const KX_PYATTRIBUTE_
 	
 	Py_DECREF(list);
 	
-	/* Add m_attrlist if we have it */
-	if(self->m_attrlist)
-		PyDict_Update(dict, self->m_attrlist);
+	/* Add m_attr_dict if we have it */
+	if(self->m_attr_dict)
+		PyDict_Update(dict, self->m_attr_dict);
 	
 	return dict;
 }
 
-PyObject* KX_GameObject::py_getattro(PyObject *attr)
+/* We need these because the macros have a return in them */
+PyObject* KX_GameObject::py_getattro__internal(PyObject *attr)
 {
 	py_getattro_up(SCA_IObject);
 }
 
-int KX_GameObject::py_setattro(PyObject *attr, PyObject *value)	// py_setattro method
+int KX_GameObject::py_setattro__internal(PyObject *attr, PyObject *value)	// py_setattro method
 {
 	py_setattro_up(SCA_IObject);
 }
 
 
-/* we need our own getattr and setattr types */
-/* See m_attrlist definition for rules on how this works */
-PyObject *KX_GameObject::py_base_getattro_gameobject(PyObject * self, PyObject *attr)
+PyObject* KX_GameObject::py_getattro(PyObject *attr)
 {
-	if(((KX_GameObject *) self)->GetSGNode()==NULL) {
-		if (!strcmp(PyString_AsString(attr), "isValid")) {
-			PyErr_Clear();
-			Py_INCREF(Py_False);
-			return Py_False;
-		}
-		
-		ValidPythonToGameObject(((KX_GameObject *) self)); // we know its invalid, just get the error
-		return NULL;
-	}
+	PyObject *object= py_getattro__internal(attr);
 	
-	PyObject *object= ((KX_GameObject *) self)->py_getattro(attr);
-	
-	if (object==NULL && ((KX_GameObject *) self)->m_attrlist) {
+	if (object==NULL && m_attr_dict)
+	{
 		/* backup the exception incase the attr doesnt exist in the dict either */
 		PyObject *err_type, *err_value, *err_tb;
 		PyErr_Fetch(&err_type, &err_value, &err_tb);
 		
-		object= PyDict_GetItem(((KX_GameObject *) self)->m_attrlist, attr);
+		object= PyDict_GetItem(m_attr_dict, attr);
 		if (object) {
 			Py_INCREF(object);
 			
@@ -1797,62 +1779,33 @@ PyObject *KX_GameObject::py_base_getattro_gameobject(PyObject * self, PyObject *
 	return object;
 }
 
-int KX_GameObject::py_base_setattro_gameobject(PyObject * self, PyObject *attr, PyObject *value)
+int KX_GameObject::py_setattro(PyObject *attr, PyObject *value)	// py_setattro method
 {
 	int ret;
 	
-	/* Delete the item */
-	if (value==NULL)
-	{
-		ret= ((PyObjectPlus*) self)->py_delattro(attr);
-		
-		if (ret != 0) /* CValue attribute failed, try KX_GameObject m_attrlist dict */
-		{
-			if (((KX_GameObject *) self)->m_attrlist)
-			{
-				/* backup the exception incase the attr doesnt exist in the dict either */
-				PyObject *err_type, *err_value, *err_tb;
-				PyErr_Fetch(&err_type, &err_value, &err_tb);
-				
-				if (PyDict_DelItem(((KX_GameObject *) self)->m_attrlist, attr) == 0)
-				{
-					ret= 0;
-					PyErr_Clear();
-					Py_XDECREF( err_type );
-					Py_XDECREF( err_value );
-					Py_XDECREF( err_tb );
-				}
-				else { 
-					PyErr_Restore(err_type, err_value, err_tb); /* use the error from the parent function */
-				}
-			}
-		}
-		return ret;
-	}
-	
-	
-	ret= ((PyObjectPlus*) self)->py_setattro(attr, value);
+	ret= py_setattro__internal(attr, value);
 	
 	if (ret==PY_SET_ATTR_SUCCESS) {
 		/* remove attribute in our own dict to avoid double ups */
-		if (((KX_GameObject *) self)->m_attrlist) {
-			if (PyDict_DelItem(((KX_GameObject *) self)->m_attrlist, attr) != 0)
+		/* NOTE: Annoying that we also do this for setting builtin attributes like mass and visibility :/ */
+		if (m_attr_dict) {
+			if (PyDict_DelItem(m_attr_dict, attr) != 0)
 				PyErr_Clear();
 		}
 	}
 	
 	if (ret==PY_SET_ATTR_COERCE_FAIL) {
-		/* CValue attribute exists, remove and add dict value */
-		((KX_GameObject *) self)->RemoveProperty(STR_String(PyString_AsString(attr)));
+		/* CValue attribute exists, remove CValue and add PyDict value */
+		RemoveProperty(STR_String(PyString_AsString(attr)));
 		ret= PY_SET_ATTR_MISSING;
 	}
 	
 	if (ret==PY_SET_ATTR_MISSING) {
 		/* Lazy initialization */
-		if (((KX_GameObject *) self)->m_attrlist==NULL)
-			((KX_GameObject *) self)->m_attrlist = PyDict_New();
+		if (m_attr_dict==NULL)
+			m_attr_dict = PyDict_New();
 		
-		if (PyDict_SetItem(((KX_GameObject *) self)->m_attrlist, attr, value)==0) {
+		if (PyDict_SetItem(m_attr_dict, attr, value)==0) {
 			PyErr_Clear();
 			ret= PY_SET_ATTR_SUCCESS;
 		}
@@ -1862,8 +1815,24 @@ int KX_GameObject::py_base_setattro_gameobject(PyObject * self, PyObject *attr, 
 		}
 	}
 	
-	return ret;
+	return ret;	
 }
+
+
+int	KX_GameObject::py_delattro(PyObject *attr)
+{
+	char *attr_str= PyString_AsString(attr); 
+	
+	if (RemoveProperty(STR_String(attr_str))) // XXX - should call CValues instead but its only 2 lines here
+		return 0;
+	
+	if (m_attr_dict && (PyDict_DelItem(m_attr_dict, attr) == 0))
+		return 0;
+	
+	PyErr_Format(PyExc_AttributeError, "attribute \"%s\" dosnt exist", attr_str);
+	return 1;
+}
+
 
 PyObject* KX_GameObject::PyApplyForce(PyObject* self, PyObject* args)
 {
@@ -2374,11 +2343,11 @@ PyObject* KX_GameObject::PyGetPropertyNames(PyObject* self)
 {
 	PyObject *list=  ConvertKeysToPython();
 	
-	if(m_attrlist) {
+	if(m_attr_dict) {
 		PyObject *key, *value;
 		Py_ssize_t pos = 0;
 
-		while (PyDict_Next(m_attrlist, &pos, &key, &value)) {
+		while (PyDict_Next(m_attr_dict, &pos, &key, &value)) {
 			PyList_Append(list, key);
 		}
 	}
@@ -2685,8 +2654,8 @@ KX_PYMETHODDEF_DOC_VARARGS(KX_GameObject, sendMessage,
 "to = Name of object to send the message to")
 {
 	char* subject;
-	char* body = "";
-	char* to = "";
+	char* body = (char *)"";
+	char* to = (char *)"";
 	const STR_String& from = GetName();
 
 	if (!PyArg_ParseTuple(args, "s|sss:sendMessage", &subject, &body, &to))
@@ -2753,7 +2722,7 @@ bool ConvertPythonToGameObject(PyObject * value, KX_GameObject **object, bool py
 		*object = static_cast<KX_GameObject*>(value);
 		
 		/* sets the error */
-		if (ValidPythonToGameObject(*object)==false)
+		if ((*object)->IsZombiePyErr())
 			return false;
 		
 		return true;
@@ -2768,18 +2737,4 @@ bool ConvertPythonToGameObject(PyObject * value, KX_GameObject **object, bool py
 	}
 	
 	return false;
-}
-
-bool ValidPythonToGameObject(KX_GameObject *object)
-{
-	if (object->GetSGNode()==NULL) {
-		PyErr_Format(
-				PyExc_RuntimeError,
-				"KX_GameObject \"%s\" is not longer in a scene, "
-				"check for this case with the \"isValid\" attribute",
-				object->GetName().ReadPtr() );
-		return false;
-	}
-	
-	return true;
 }

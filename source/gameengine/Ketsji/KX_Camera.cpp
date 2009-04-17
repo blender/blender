@@ -517,12 +517,19 @@ PyTypeObject KX_Camera::Type = {
 		0,
 		0,
 		py_base_repr,
-		0,0,0,0,0,0,
+		0,0,
+		&KX_GameObject::Mapping,
+		0,0,0,
 		py_base_getattro,
 		py_base_setattro,
 		0,0,0,0,0,0,0,0,0,
 		Methods
 };
+
+
+
+
+
 
 PyParentObject KX_Camera::Parents[] = {
 	&KX_Camera::Type,
@@ -534,22 +541,11 @@ PyParentObject KX_Camera::Parents[] = {
 
 PyObject* KX_Camera::py_getattro(PyObject *attr)
 {
-	if (ValidPythonToGameObject(this)==false) {
-		if (!strcmp(PyString_AsString(attr), "isValid")) {
-			PyErr_Clear();
-			Py_RETURN_FALSE;
-		}
-		return NULL; /* ValidPythonToGameObject sets the error */
-	}
-	
 	py_getattro_up(KX_GameObject);
 }
 
 int KX_Camera::py_setattro(PyObject *attr, PyObject *value)
-{
-	if (ValidPythonToGameObject(this)==false)
-		return -1;
-	
+{	
 	py_setattro_up(KX_GameObject);
 }
 

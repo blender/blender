@@ -62,7 +62,6 @@ struct Object;
 
 /* utility conversion function */
 bool ConvertPythonToGameObject(PyObject * value, KX_GameObject **object, bool py_none_ok);
-bool ValidPythonToGameObject(KX_GameObject *object);
 
 /**
  * KX_GameObject is the main class for dynamic objects.
@@ -119,15 +118,15 @@ public:
 	// these can be used with property actuators
 	//
 	// For the python API, For types that cannot be converted into CValues (lists, dicts, GameObjects)
-	// these will be put into "m_attrlist", logic bricks cannot access them.
+	// these will be put into "m_attr_dict", logic bricks cannot access them.
 	// 
 	// rules for setting attributes.
 	// 
-	// * there should NEVER be a CValue and a m_attrlist attribute with matching names. get/sets make sure of this.
-	// * if CValue conversion fails, use a PyObject in "m_attrlist"
-	// * when assigning a value, first see if it can be a CValue, if it can remove the "m_attrlist" and set the CValue
+	// * there should NEVER be a CValue and a m_attr_dict attribute with matching names. get/sets make sure of this.
+	// * if CValue conversion fails, use a PyObject in "m_attr_dict"
+	// * when assigning a value, first see if it can be a CValue, if it can remove the "m_attr_dict" and set the CValue
 	// 
-	PyObject*							m_attrlist; 
+	PyObject*							m_attr_dict; 
 
 	virtual void	/* This function should be virtual - derived classed override it */
 	Relink(
@@ -814,16 +813,21 @@ public:
 	
 	virtual PyObject* py_getattro(PyObject *attr);
 	virtual int py_setattro(PyObject *attr, PyObject *value);		// py_setattro method
+	virtual int				py_delattro(PyObject *attr);
 	virtual PyObject* py_repr(void)
 	{
-		if (ValidPythonToGameObject(this)==false)
+		if (IsZombiePyErr())
 			return NULL;
 		return PyString_FromString(GetName().ReadPtr());
 	}
 	
-	static PyObject *py_base_getattro_gameobject(PyObject * self, PyObject *attr);
-	static int py_base_setattro_gameobject(PyObject * self, PyObject *attr, PyObject *value);
 	
+	/* quite annoying that we need these but the bloody 
+	 * py_getattro_up and py_setattro_up macro's have a returns in them! */
+	PyObject* py_getattro__internal(PyObject *attr);
+	int py_setattro__internal(PyObject *attr, PyObject *value);		// py_setattro method
+	
+		
 	KX_PYMETHOD_NOARGS(KX_GameObject,GetPosition);
 	KX_PYMETHOD_O(KX_GameObject,SetPosition);
 	KX_PYMETHOD_O(KX_GameObject,SetWorldPosition);
@@ -897,7 +901,6 @@ public:
 	static PyObject*	pyattr_get_state(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static int			pyattr_set_state(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 	static PyObject*	pyattr_get_meshes(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
-	static PyObject*	pyattr_get_is_valid(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	
 	/* for dir(), python3 uses __dir__() */
 	static PyObject*	pyattr_get_dir_dict(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
@@ -912,7 +915,6 @@ public:
 	static PyMappingMethods	Mapping;
 	static PyObject*			Map_GetItem(PyObject *self_v, PyObject *item);
 	static int					Map_SetItem(PyObject *self_v, PyObject *key, PyObject *val);
-	
 	
 private :
 
@@ -930,6 +932,8 @@ private :
 	);	
 
 };
+
+
 
 #endif //__KX_GAMEOBJECT
 

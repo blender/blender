@@ -400,10 +400,11 @@ class PyObjectPlus : public PyObject
 	
 public:
 	PyObjectPlus(PyTypeObject *T);
+	bool m_zombie;
 	
 	virtual ~PyObjectPlus();					// destructor
 	static void PyDestructor(PyObject *P)				// python wrapper
-	{  
+	{
 		delete ((PyObjectPlus *) P);  
 	};
 	
@@ -417,6 +418,14 @@ public:
 	virtual PyObject *py_getattro(PyObject *attr);			// py_getattro method
 	static  PyObject *py_base_getattro(PyObject * self, PyObject *attr) 	// This should be the entry in Type. 
 	{
+		if (((PyObjectPlus*)self)->IsZombie()) {
+			if (!strcmp(PyString_AsString(attr), "isValid")) {
+				Py_RETURN_FALSE;
+			}
+			((PyObjectPlus*)self)->IsZombiePyErr(); /* raise an error */
+			return NULL;
+		}
+		
 		return ((PyObjectPlus*) self)->py_getattro(attr); 
 	}
 	
@@ -432,10 +441,16 @@ public:
 	virtual int py_setattro(PyObject *attr, PyObject *value);		// py_setattro method
 	static  int py_base_setattro(PyObject *self, PyObject *attr, PyObject *value) // the PyType should reference this
 	{
-		if (value==NULL)
-			return ((PyObjectPlus*) self)->py_delattro(attr);
+		if (((PyObjectPlus*)self)->IsZombie()) {
+			/* you cant set isValid anyway */
+			((PyObjectPlus*)self)->IsZombiePyErr();
+			return -1;
+		}
 		
-		return ((PyObjectPlus*) self)->py_setattro(attr, value); 
+		if (value==NULL)
+			return ((PyObjectPlus*)self)->py_delattro(attr);
+		
+		return ((PyObjectPlus*)self)->py_setattro(attr, value); 
 	}
 	
 	virtual PyObject *py_repr(void);				// py_repr method
@@ -452,6 +467,41 @@ public:
 	{
 		return ((PyObjectPlus*)self)->Py_isA(value);
 	}
+	
+	/* Kindof dumb, always returns True, the false case is checked for, before this function gets accessed */
+	static PyObject*	pyattr_get_is_valid(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	
+	bool IsZombie()
+	{
+		return m_zombie;
+	}
+	
+	bool IsZombiePyErr()
+	{
+		if(m_zombie) {
+			/*
+			PyObject *this_pystr = PyObject_Repr(this);
+			
+			PyErr_Format(
+					PyExc_RuntimeError,
+					"\"%s\" of type \"%s\" has been freed by the blender game engine, "
+					"scripts cannot access this anymore, check for this case with the \"isValid\" attribute",
+					PyString_AsString(this_pystr), ob_type->tp_name );
+			
+			Py_DECREF(this_pystr);
+			*/
+			
+			PyErr_SetString(PyExc_RuntimeError, "This value has been freed by the blender game engine but python is still holding a reference, this value cant be used.");
+		}
+		
+		return m_zombie;
+	}
+	
+	void SetZombie(bool is_zombie)
+	{
+		m_zombie= is_zombie;
+	}
+	
 };
 
 PyObject *py_getattr_dict(PyObject *pydict, PyObject *tp_dict);

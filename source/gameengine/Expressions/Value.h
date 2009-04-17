@@ -219,7 +219,7 @@ public:
 	//static PyObject*	PyMake(PyObject*,PyObject*);
 	virtual PyObject *py_repr(void)
 	{
-		return Py_BuildValue("s",(const char*)GetText());
+		return PyString_FromString((const char*)GetText());
 	}
 
 
@@ -228,14 +228,10 @@ public:
 
 	void	SpecialRelease()
 	{
-		int i=0;
-		if (ob_refcnt == 0)
+		if (ob_refcnt == 0) /* make sure python always holds a reference */
 		{
 			_Py_NewReference(this);
 			
-		} else
-		{
-			i++;
 		}
 		Release();
 	}
@@ -280,6 +276,7 @@ public:
 	int					GetRefCount()											{ return m_refcount; }
 	virtual	CValue*		AddRef();												// Add a reference to this value
 	virtual int			Release();												// Release a reference to this value (when reference count reaches 0, the value is removed from the heap)
+	
 
 	/// Property Management
 	virtual void		SetProperty(const STR_String& name,CValue* ioProperty);						// Set property <ioProperty>, overwrites and releases a previous property with the same name if needed
@@ -355,6 +352,7 @@ private:
 	std::map<STR_String,CValue*>*		m_pNamedPropertyArray;									// Properties for user/game etc
 	ValueFlags			m_ValFlags;												// Frequently used flags in a bitfield (low memoryusage)
 	int					m_refcount;												// Reference Counter	
+	bool				m_zombie;												// Object is invalid put its still being referenced (by python)
 	static	double m_sZeroVec[3];	
 	static bool			m_ignore_deprecation_warnings;
 

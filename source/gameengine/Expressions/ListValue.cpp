@@ -513,7 +513,7 @@ PyObject* CListValue::Pyfrom_id(PyObject* self, PyObject* value)
 	BGE_ID_TYPE id= PyLong_FromUnsignedLongLong(value);
 #endif
 	
-	if (id==-1 && PyErr_Occurred())
+	if (PyErr_Occurred())
 		return NULL;
 
 	int numelem = GetCount();

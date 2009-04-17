@@ -602,6 +602,12 @@ int	CValue::Release()
 	// Decrease local reference count, if it reaches 0 the object should be freed
 	if (--m_refcount > 0)
 	{
+		// Benoit suggest this as a way to automatically set the zombie flag, but I couldnt get it working - Campbell
+		/*
+		if (m_refcount == 1 && ob_refcnt > 1)
+			SetZombie(true); // the remaining refcount is held by Python!!
+		*/	
+		
 		// Reference count normal, return new reference count
 		return m_refcount;
 	}
@@ -609,6 +615,7 @@ int	CValue::Release()
 	{
 		// Reference count reached 0, delete ourselves and return 0
 //		MT_assert(m_refcount==0, "Reference count reached sub-zero, object released too much");
+		
 		delete this;
 		return 0;
 	}

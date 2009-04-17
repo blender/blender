@@ -295,7 +295,7 @@ protected:
 	/**
 	 * This stores anything from python
 	 */
-	PyObject* m_attrlist;
+	PyObject* m_attr_dict;
 
 	struct Scene* m_blenderScene;
 
@@ -597,34 +597,14 @@ public:
 	/* for dir(), python3 uses __dir__() */
 	static PyObject*	pyattr_get_dir_dict(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	
-	static int py_base_setattro_scene(PyObject * self, PyObject *attr, PyObject *value)
-	{
-		if (value==NULL)
-			return ((PyObjectPlus*) self)->py_delattro(attr);
-		
-		int ret= ((PyObjectPlus*) self)->py_setattro(attr, value);
-		
-		if (ret==PY_SET_ATTR_MISSING) {
-			if (PyDict_SetItem(((KX_Scene *) self)->m_attrlist, attr, value)==0) {
-				PyErr_Clear();
-				ret= PY_SET_ATTR_SUCCESS;
-			}
-			else {
-				PyErr_Format(PyExc_AttributeError, "failed assigning value to KX_Scenes internal dictionary");
-				ret= PY_SET_ATTR_FAIL;
-			}
-		}
-		
-		return ret;
-	}
-	
-	
 
 	virtual PyObject* py_getattro(PyObject *attr); /* name, active_camera, gravity, suspended, viewport, framing, activity_culling, activity_culling_radius */
 	virtual int py_setattro(PyObject *attr, PyObject *pyvalue);
 	virtual int py_delattro(PyObject *attr);
 	virtual PyObject* py_repr(void) { return PyString_FromString(GetName().ReadPtr()); }
 
+	PyObject* py_getattro__internal(PyObject *attr);
+	int py_setattro__internal(PyObject *attr, PyObject *pyvalue);
 		
 	/**
 	 * Sets the time the scene was suspended

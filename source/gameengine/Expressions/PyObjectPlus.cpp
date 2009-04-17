@@ -88,6 +88,7 @@ PyObjectPlus::PyObjectPlus(PyTypeObject *T) 				// constructor
 	MT_assert(T != NULL);
 	this->ob_type = T; 
 	_Py_NewReference(this);
+	SetZombie(false);
 };
   
 /*------------------------------
@@ -99,8 +100,14 @@ PyMethodDef PyObjectPlus::Methods[] = {
 };
 
 PyAttributeDef PyObjectPlus::Attributes[] = {
+	KX_PYATTRIBUTE_RO_FUNCTION("isValid",		PyObjectPlus, pyattr_get_is_valid),
 	{NULL} //Sentinel
 };
+
+PyObject* PyObjectPlus::pyattr_get_is_valid(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{	
+	Py_RETURN_TRUE;
+}
 
 /*------------------------------
  * PyObjectPlus Parents		-- Every class, even the abstract one should have parents
@@ -117,10 +124,19 @@ PyObject *PyObjectPlus::py_getattro(PyObject* attr)
 		if (strcmp(PyString_AsString(attr), "__dict__")==0) {
 			return py_getattr_dict(NULL, Type.tp_dict); /* no Attributes yet */
 		}
-		PyErr_SetString(PyExc_AttributeError, "attribute not found");
+		PyErr_Format(PyExc_AttributeError, "attribute \"%s\" not found", PyString_AsString(attr));
 		return NULL;
 	} else {
-		return PyCFunction_New(((PyMethodDescrObject *)descr)->d_method, (PyObject *)this); \
+		/* Copied from py_getattro_up */
+		if (PyCObject_Check(descr)) {
+			return py_get_attrdef((void *)this, (const PyAttributeDef*)PyCObject_AsVoidPtr(descr));
+		} else if (descr->ob_type->tp_descr_get) {
+			return PyCFunction_New(((PyMethodDescrObject *)descr)->d_method, (PyObject *)this);
+		} else {
+			fprintf(stderr, "Unknown attribute type (PyObjectPlus::py_getattro)");
+			return descr;
+		}
+		/* end py_getattro_up copy */
 	}
   //if (streq(attr, "type"))
   //  return Py_BuildValue("s", (*(GetParents()))->tp_name);

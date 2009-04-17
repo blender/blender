@@ -196,7 +196,7 @@ KX_Scene::KX_Scene(class SCA_IInputDevice* keyboarddevice,
 	m_canvasDesignWidth = 0;
 	m_canvasDesignHeight = 0;
 	
-	m_attrlist = PyDict_New(); /* new ref */
+	m_attr_dict = PyDict_New(); /* new ref */
 }
 
 
@@ -250,8 +250,8 @@ KX_Scene::~KX_Scene()
 	{
 		delete m_bucketmanager;
 	}
-	PyDict_Clear(m_attrlist);
-	Py_DECREF(m_attrlist);
+	PyDict_Clear(m_attr_dict);
+	Py_DECREF(m_attr_dict);
 }
 
 void KX_Scene::SetProjectionMatrix(MT_CmMatrix4x4& pmat)
@@ -924,6 +924,8 @@ int KX_Scene::NewRemoveObject(class CValue* gameobj)
 {
 	int ret;
 	KX_GameObject* newobj = (KX_GameObject*) gameobj;
+	
+	gameobj->SetZombie(true); /* disallow future python access */
 
 	// keep the blender->game object association up to date
 	// note that all the replicas of an object will have the same
@@ -998,6 +1000,7 @@ int KX_Scene::NewRemoveObject(class CValue* gameobj)
 	if (m_sceneConverter)
 		m_sceneConverter->UnregisterGameObject(newobj);
 	// return value will be 0 if the object is actually deleted (all reference gone)
+	
 	return ret;
 }
 
@@ -1591,7 +1594,7 @@ PyTypeObject KX_Scene::Type = {
 		py_base_repr,
 		0,0,0,0,0,0,
 		py_base_getattro,
-		py_base_setattro_scene,	/* unlike almost all other types we need out own because user attributes are supported */
+		py_base_setattro,
 		0,0,0,0,0,0,0,0,0,
 		Methods
 };
@@ -1633,12 +1636,12 @@ PyObject* KX_Scene::pyattr_get_active_camera(void *self_v, const KX_PYATTRIBUTE_
 PyObject* KX_Scene::pyattr_get_dir_dict(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_Scene* self= static_cast<KX_Scene*>(self_v);
-	/* Useually done by py_getattro_up but in this case we want to include m_attrlist dict */
+	/* Useually done by py_getattro_up but in this case we want to include m_attr_dict dict */
 	PyObject *dict_str= PyString_FromString("__dict__");
 	PyObject *dict= py_getattr_dict(self->PyObjectPlus::py_getattro(dict_str), Type.tp_dict);
 	Py_DECREF(dict_str);
 	
-	PyDict_Update(dict, self->m_attrlist);
+	PyDict_Update(dict, self->m_attr_dict);
 	return dict;
 }
 
@@ -1654,28 +1657,59 @@ PyAttributeDef KX_Scene::Attributes[] = {
 	{ NULL }	//Sentinel
 };
 
+
+PyObject* KX_Scene::py_getattro__internal(PyObject *attr)
+{	
+	py_getattro_up(PyObjectPlus);
+}
+
+int KX_Scene::py_setattro__internal(PyObject *attr, PyObject *pyvalue)
+{
+	return PyObjectPlus::py_setattro(attr, pyvalue);
+}
+
 PyObject* KX_Scene::py_getattro(PyObject *attr)
 {
-	PyObject *object = PyDict_GetItem(m_attrlist, attr);
-	if (object)
+	PyObject *object = py_getattro__internal(attr);
+	
+	if (object==NULL)
 	{
-		Py_INCREF(object);
-		return object;
+		PyErr_Clear();
+		object = PyDict_GetItem(m_attr_dict, attr);
+		if(object) {
+			Py_INCREF(object);
+		}
+		else {
+			PyErr_Format(PyExc_AttributeError, "KX_Scene attribute \"%s\" not found", PyString_AsString(attr));
+		}
 	}
 	
-	py_getattro_up(PyObjectPlus);
+	return object;
+}
+
+
+int KX_Scene::py_setattro(PyObject *attr, PyObject *value)
+{
+	int ret= py_setattro__internal(attr, value);
+	
+	if (ret==PY_SET_ATTR_MISSING) {
+		if (PyDict_SetItem(m_attr_dict, attr, value)==0) {
+			PyErr_Clear();
+			ret= PY_SET_ATTR_SUCCESS;
+		}
+		else {
+			PyErr_SetString(PyExc_AttributeError, "failed assigning value to KX_Scenes internal dictionary");
+			ret= PY_SET_ATTR_FAIL;
+		}
+	}
+	
+	return ret;
 }
 
 int KX_Scene::py_delattro(PyObject *attr)
 {
-	PyDict_DelItem(m_attrlist, attr);
+	PyDict_DelItem(m_attr_dict, attr);
 	return 0;
-}
-
-/* py_base_setattro_scene deals with setting the dict, it will run if this returns an error */
-int KX_Scene::py_setattro(PyObject *attr, PyObject *pyvalue)
-{
-	return PyObjectPlus::py_setattro(attr, pyvalue);
 }
 
 KX_PYMETHODDEF_DOC_NOARGS(KX_Scene, getLightList,

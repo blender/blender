@@ -95,7 +95,7 @@ bool SCA_PropertyActuator::Update()
 		}
 		newval->Release();
 	}
-	else if (userexpr = parser.ProcessText(m_exprtxt)) {
+	else if ((userexpr = parser.ProcessText(m_exprtxt))) {
 		switch (m_type)
 		{
 
