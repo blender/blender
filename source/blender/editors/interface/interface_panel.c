@@ -157,7 +157,7 @@ static void ui_panel_copy_offset(Panel *pa, Panel *papar)
 
 Panel *uiBeginPanel(ARegion *ar, uiBlock *block, PanelType *pt)
 {
-	Panel *pa, *patab, *palast;
+	Panel *pa, *patab, *palast, *panext;
 	char *panelname= pt->name;
 	char *tabname= pt->name;
 	char *hookname= NULL;
@@ -214,9 +214,9 @@ Panel *uiBeginPanel(ARegion *ar, uiBlock *block, PanelType *pt)
 	if(newpanel) {
 		pa->sortorder= (palast)? palast->sortorder+1: 0;
 
-		for(palast=ar->panels.first; palast; palast=palast->next)
-			if(palast != pa && palast->sortorder >= pa->sortorder)
-				palast->sortorder++;
+		for(panext=ar->panels.first; panext; panext=panext->next)
+			if(panext != pa && panext->sortorder >= pa->sortorder)
+				panext->sortorder++;
 	}
 
 	if(palast)
@@ -1489,10 +1489,14 @@ int ui_handler_panel_region(bContext *C, wmEvent *event)
 
 			if(event->val==KM_PRESS) {
 				if(event->type == LEFTMOUSE) {
-					if(inside_header)
+					if(inside_header) {
 						ui_handle_panel_header(C, block, mx, my);
-					else if(inside_scale && !(block->panel->flag & PNL_CLOSED))
+						break;
+					}
+					else if(inside_scale && !(block->panel->flag & PNL_CLOSED)) {
 						panel_activate_state(C, block->panel, PANEL_STATE_DRAG_SCALE);
+						break;
+					}
 				}
 				else if(event->type == ESCKEY) {
 					/*XXX 2.50 if(block->handler) {
