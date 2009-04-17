@@ -1494,8 +1494,9 @@ static void mouse_anim_channels (bAnimContext *ac, float x, int channel_index, s
 				offset = 0;
 			
 			if (x >= (ACHANNEL_NAMEWIDTH-ACHANNEL_BUTTON_WIDTH)) {
-				/* toggle protection */
-				fcu->flag ^= FCURVE_PROTECTED;
+				/* toggle protection (only if there's a toggle there) */
+				if (fcu->bezt)
+					fcu->flag ^= FCURVE_PROTECTED;
 			}
 			else if (x >= (ACHANNEL_NAMEWIDTH-2*ACHANNEL_BUTTON_WIDTH)) {
 				/* toggle mute */

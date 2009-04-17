@@ -1077,7 +1077,7 @@ int modify_keyframes (bContext *C, ListBase *dsources, bAction *act, KeyingSet *
 				int arraylen, i;
 				
 				/* set initial group name */
-				groupname= (cks->id) ? cks->id->name : NULL;
+				groupname= (cks->id) ? cks->id->name+2 : NULL;
 				
 				/* construct the path */
 				// FIXME: this currently only works with a few hardcoded cases

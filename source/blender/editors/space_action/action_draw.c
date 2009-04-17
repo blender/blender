@@ -680,10 +680,14 @@ void draw_channel_names(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 					else	
 						mute = ICON_MUTE_IPO_OFF;
 						
-					if (EDITABLE_FCU(fcu))
-						protect = ICON_UNLOCKED;
+					if (fcu->bezt) {
+						if (EDITABLE_FCU(fcu))
+							protect = ICON_UNLOCKED;
+						else
+							protect = ICON_LOCKED;
+					}
 					else
-						protect = ICON_LOCKED;
+						protect = ICON_ZOOMOUT; // XXX editability is irrelevant here, but this icon is temp...
 					
 					sel = SEL_FCU(fcu);
 					

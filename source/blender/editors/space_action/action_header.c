@@ -1558,31 +1558,45 @@ static void saction_idpoin_handle(bContext *C, ID *id, int event)
 {
 	SpaceAction *saction= (SpaceAction*)CTX_wm_space_data(C);
 	Object *obact= CTX_data_active_object(C);
-	// AnimData *adt= BKE_id_add_animdata((ID *)obact);
-
+	
+	printf("actedit do id: \n");
+	
 	switch (event) {
 		case UI_ID_BROWSE:
+			printf("browse \n");
 		case UI_ID_DELETE:
+			printf("browse or delete \n");
 			saction->action= (bAction*)id;
+			
 			/* we must set this action to be the one used by active object (if not pinned) */
-			if (saction->pin == 0)
-				obact->adt->action= saction->action;
+			if (saction->pin == 0) {
+				AnimData *adt= BKE_id_add_animdata(&obact->id); /* this only adds if non-existant */
+				
+				/* set action */
+				printf("\tset action \n");
+				adt->action= saction->action;
+			}
 			
 			ED_area_tag_redraw(CTX_wm_area(C));
 			ED_undo_push(C, "Assign Action");
 			break;
 		case UI_ID_RENAME:
+			printf("actedit rename \n");
 			break;
 		case UI_ID_ADD_NEW:
+			printf("actedit addnew \n");
 			/* XXX not implemented */
 			break;
 		case UI_ID_OPEN:
+			printf("actedit open \n");
 			/* XXX not implemented */
 			break;
 		case UI_ID_ALONE:
+			printf("actedit alone \n");
 			/* XXX not implemented */
 			break;
 		case UI_ID_PIN:
+			printf("actedit pin \n");
 			break;
 	}
 }
@@ -1689,7 +1703,7 @@ void action_header_buttons(const bContext *C, ARegion *ar)
 			/* NAME ETC */
 			//uiClearButLock();
 			
-			/* NAME ETC (it is assumed that */
+			/* NAME ETC  */
 			xco= uiDefIDPoinButs(block, CTX_data_main(C), NULL, (ID*)saction->action, ID_AC, &saction->pin, xco, yco,
 				saction_idpoin_handle, UI_ID_BROWSE|UI_ID_RENAME|UI_ID_ADD_NEW|UI_ID_DELETE|UI_ID_FAKE_USER|UI_ID_ALONE|UI_ID_PIN);
 			

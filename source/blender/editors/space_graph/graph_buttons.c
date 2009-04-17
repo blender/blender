@@ -154,7 +154,7 @@ static void do_graph_region_driver_buttons(bContext *C, void *arg, int event)
 	}
 	
 	/* default for now */
-	//WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, ob);
+	WM_event_add_notifier(C, NC_SCENE, scene);
 }
 
 #if 0 // XXX replace this for RNA
@@ -272,7 +272,10 @@ static void graph_panel_drivers(const bContext *C, ARegion *ar, short cntrl, bAn
 	
 	/* loop over targets, drawing them */
 	for (dtar= driver->targets.first; dtar; dtar= dtar->next) {
-		short height = 60;
+		short height = (dtar->id) ? 80 : 60;
+		
+		/* panel behind buttons */
+		uiDefBut(block, ROUNDBOX, B_REDR, "", 5, yco-height+25, 310, height, NULL, 5.0, 0.0, 12.0, 0, "");
 		
 		/* variable name */
 		uiDefButC(block, TEX, B_REDR, "Name: ", 10,yco,280,20, dtar->name, 0, 63, 0, 0, "Name of target variable (No spaces or dots are allowed. Also, must not start with a symbol or digit).");
@@ -288,9 +291,6 @@ static void graph_panel_drivers(const bContext *C, ARegion *ar, short cntrl, bAn
 		
 		// XXX should we hide these technical details?
 		if (dtar->id) {
-			/* increase height by one row */
-			height += 20;
-			
 			uiBlockBeginAlign(block);
 				/* RNA Path */
 				RNA_pointer_create(ale->id, &RNA_DriverTarget, dtar, &rna_ptr);
@@ -331,10 +331,7 @@ static void do_graph_region_modifier_buttons(bContext *C, void *arg, int event)
 // XXX for now, roundbox has it's callback func set to NULL to not intercept events
 #define DRAW_BACKDROP(height) \
 	{ \
-		if (active) uiBlockSetCol(block, TH_BUT_ACTION); \
-			but= uiDefBut(block, ROUNDBOX, B_REDR, "", 10-8, *yco-height, width, height-1, NULL, 5.0, 0.0, 12.0, (float)rb_col, ""); \
-			uiButSetFunc(but, NULL, NULL, NULL); \
-		if (active) uiBlockSetCol(block, TH_AUTO); \
+		uiDefBut(block, ROUNDBOX, B_REDR, "", -3, *yco-height, width+3, height-1, NULL, 5.0, 0.0, 12.0, (float)rb_col, ""); \
 	}
 
 /* callback to verify modifier data */
@@ -383,13 +380,13 @@ static void draw_modifier__generator(uiBlock *block, FCurve *fcu, FModifier *fcm
 	(*height) = 90;
 	switch (data->mode) {
 		case FCM_GENERATOR_POLYNOMIAL: /* polynomial expression */
-			(*height) += 20*(data->poly_order+1) + 35;
+			(*height) += 20*(data->poly_order+1) + 20;
 			break;
 		case FCM_GENERATOR_POLYNOMIAL_FACTORISED: /* factorised polynomial */
-			(*height) += 20 * data->poly_order;
+			(*height) += 20 * data->poly_order + 15;
 			break;
 		case FCM_GENERATOR_FUNCTION: /* builtin function */
-			(*height) += 50; // xxx
+			(*height) += 55; // xxx
 			break;
 		case FCM_GENERATOR_EXPRESSION: /* py-expression */
 			// xxx nothing to draw 
@@ -397,7 +394,7 @@ static void draw_modifier__generator(uiBlock *block, FCurve *fcu, FModifier *fcm
 	}
 	
 	/* basic settings (backdrop + mode selector + some padding) */
-	//DRAW_BACKDROP((*height)); // XXX buggy...
+	DRAW_BACKDROP((*height));
 	uiBlockBeginAlign(block);
 		but= uiDefButS(block, MENU, B_FMODIFIER_REDRAW, gen_mode, 10,cy,width-30,19, &data->mode, 0, 0, 0, 0, "Selects type of generator algorithm.");
 		uiButSetFunc(but, validate_fmodifier_cb, fcu, fcm);
@@ -505,7 +502,7 @@ static void draw_modifier__generator(uiBlock *block, FCurve *fcu, FModifier *fcm
 				char func_name[32];
 				
 				/* coefficient outside bracket */
-				uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "", 0, cy, 80, 20, cp, -FLT_MAX, FLT_MAX, 10, 3, "Coefficient (A) for function");
+				uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "", 5, cy, 80, 20, cp, -FLT_MAX, FLT_MAX, 10, 3, "Coefficient (A) for function");
 				
 				/* opening bracket */
 				switch (data->func_type)
@@ -529,14 +526,14 @@ static void draw_modifier__generator(uiBlock *block, FCurve *fcu, FModifier *fcm
 						sprintf(func_name, "<fn?>(");
 						break;
 				}
-				uiDefBut(block, LABEL, 1, func_name, 80, cy, 40, 20, NULL, 0.0, 0.0, 0, 0, "");
+				uiDefBut(block, LABEL, 1, func_name, 85, cy, 40, 20, NULL, 0.0, 0.0, 0, 0, "");
 				
 				/* coefficients inside bracket */
-				uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "", 115, cy, 75, 20, cp+1, -FLT_MAX, FLT_MAX, 10, 3, "Coefficient (B) of x");
+				uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "", 120, cy, 75, 20, cp+1, -FLT_MAX, FLT_MAX, 10, 3, "Coefficient (B) of x");
 				
-				uiDefBut(block, LABEL, 1, "x+", 190, cy, 30, 20, NULL, 0.0, 0.0, 0, 0, "");
+				uiDefBut(block, LABEL, 1, "x+", 195, cy, 30, 20, NULL, 0.0, 0.0, 0, 0, "");
 				
-				uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "", 220, cy, 80, 20, cp+2, -FLT_MAX, FLT_MAX, 10, 3, "Coefficient (C) of function");
+				uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "", 225, cy, 80, 20, cp+2, -FLT_MAX, FLT_MAX, 10, 3, "Coefficient (C) of function");
 				
 				/* closing bracket */
 					uiDefBut(block, LABEL, 1, ")", 300, cy, 30, 20, NULL, 0.0, 0.0, 0, 0, "");
@@ -561,23 +558,23 @@ static void draw_modifier__cycles(uiBlock *block, FCurve *fcu, FModifier *fcm, i
 	int cy= (*yco - 30), cy1= (*yco - 50), cy2= (*yco - 70);
 	
 	/* set the height */
-	(*height) = 90;
+	(*height) = 80;
 	
 	/* basic settings (backdrop + some padding) */
-	//DRAW_BACKDROP((*height)); // XXX buggy...
+	DRAW_BACKDROP((*height));
 	
 	/* 'before' range */
-	uiDefBut(block, LABEL, 1, "Before:", 10, cy, 80, 20, NULL, 0.0, 0.0, 0, 0, "Settings for cycling before first keyframe");
+	uiDefBut(block, LABEL, 1, "Before:", 5, cy, 80, 20, NULL, 0.0, 0.0, 0, 0, "Settings for cycling before first keyframe");
 	uiBlockBeginAlign(block);
-		uiDefButS(block, MENU, B_FMODIFIER_REDRAW, cyc_mode, 10,cy1,150,20, &data->before_mode, 0, 0, 0, 0, "Cycling mode to use before first keyframe");
-		uiDefButS(block, NUM, B_FMODIFIER_REDRAW, "Max Cycles:", 10, cy2, 150, 20, &data->before_cycles, 0, 10000, 10, 3, "Maximum number of cycles to allow (0 = infinite)");
+		uiDefButS(block, MENU, B_FMODIFIER_REDRAW, cyc_mode, 5,cy1,150,20, &data->before_mode, 0, 0, 0, 0, "Cycling mode to use before first keyframe");
+		uiDefButS(block, NUM, B_FMODIFIER_REDRAW, "Max Cycles:", 5, cy2, 150, 20, &data->before_cycles, 0, 10000, 10, 3, "Maximum number of cycles to allow (0 = infinite)");
 	uiBlockEndAlign(block);
 	
 	/* 'after' range */
-	uiDefBut(block, LABEL, 1, "After:", 160, cy, 80, 20, NULL, 0.0, 0.0, 0, 0, "Settings for cycling after last keyframe");
+	uiDefBut(block, LABEL, 1, "After:", 155, cy, 80, 20, NULL, 0.0, 0.0, 0, 0, "Settings for cycling after last keyframe");
 	uiBlockBeginAlign(block);
-		uiDefButS(block, MENU, B_FMODIFIER_REDRAW, cyc_mode, 170,cy1,150,20, &data->after_mode, 0, 0, 0, 0, "Cycling mode to use after first keyframe");
-		uiDefButS(block, NUM, B_FMODIFIER_REDRAW, "Max Cycles:", 170, cy2, 150, 20, &data->after_cycles, 0, 10000, 10, 3, "Maximum number of cycles to allow (0 = infinite)");
+		uiDefButS(block, MENU, B_FMODIFIER_REDRAW, cyc_mode, 165,cy1,150,20, &data->after_mode, 0, 0, 0, 0, "Cycling mode to use after first keyframe");
+		uiDefButS(block, NUM, B_FMODIFIER_REDRAW, "Max Cycles:", 165, cy2, 150, 20, &data->after_cycles, 0, 10000, 10, 3, "Maximum number of cycles to allow (0 = infinite)");
 	uiBlockEndAlign(block);
 }
 
@@ -748,16 +745,16 @@ static void draw_modifier__envelope(uiBlock *block, FCurve *fcu, FModifier *fcm,
 	FMod_Envelope *env= (FMod_Envelope *)fcm->data;
 	FCM_EnvelopeData *fed;
 	uiBut *but;
-	int cy= (*yco - 30);
+	int cy= (*yco - 28);
 	int i;
 	
 	/* set the height:
 	 *	- basic settings + variable height from envelope controls
 	 */
-	(*height) = 96 + (25 * env->totvert);
+	(*height) = 115 + (35 * env->totvert);
 	
 	/* basic settings (backdrop + general settings + some padding) */
-	//DRAW_BACKDROP((*height)); // XXX buggy...
+	DRAW_BACKDROP((*height));
 	
 	/* General Settings */
 	uiDefBut(block, LABEL, 1, "Envelope:", 10, cy, 100, 20, NULL, 0.0, 0.0, 0, 0, "Settings for cycling before first keyframe");
@@ -783,13 +780,13 @@ static void draw_modifier__envelope(uiBlock *block, FCurve *fcu, FModifier *fcm,
 	/* Points List */
 	for (i=0, fed=env->data; i < env->totvert; i++, fed++) {
 		uiBlockBeginAlign(block);
-			but=uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "Fra:", 5, cy, 100, 20, &fed->time, -FLT_MAX, FLT_MAX, 10, 3, "Frame that envelope point occurs");
+			but=uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "Fra:", 2, cy, 90, 20, &fed->time, -FLT_MAX, FLT_MAX, 10, 1, "Frame that envelope point occurs");
 			uiButSetFunc(but, validate_fmodifier_cb, fcu, fcm);
 			
-			uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "Min:", 105, cy, 100, 20, &fed->min, -FLT_MAX, FLT_MAX, 10, 3, "Minimum bound of envelope at this point");
-			uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "Max:", 205, cy, 100, 20, &fed->max, -FLT_MAX, FLT_MAX, 10, 3, "Maximum bound of envelope at this point");
+			uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "Min:", 92, cy, 100, 20, &fed->min, -FLT_MAX, FLT_MAX, 10, 2, "Minimum bound of envelope at this point");
+			uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "Max:", 192, cy, 100, 20, &fed->max, -FLT_MAX, FLT_MAX, 10, 2, "Maximum bound of envelope at this point");
 			
-			but= uiDefIconBut(block, BUT, B_FMODIFIER_REDRAW, ICON_X, 305, cy, 20, 20, NULL, 0.0, 0.0, 0.0, 0.0, "Delete envelope control point");
+			but= uiDefIconBut(block, BUT, B_FMODIFIER_REDRAW, ICON_X, 292, cy, 18, 20, NULL, 0.0, 0.0, 0.0, 0.0, "Delete envelope control point");
 			uiButSetFunc(but, fmod_envelope_deletepoint_cb, env, SET_INT_IN_POINTER(i));
 		uiBlockBeginAlign(block);
 		cy -= 25;
@@ -806,30 +803,30 @@ static void draw_modifier__limits(uiBlock *block, FCurve *fcu, FModifier *fcm, i
 	const int textButWidth = ((width/2)-togButWidth);
 	
 	/* set the height */
-	(*height) = 90;
+	(*height) = 50;
 	
 	/* basic settings (backdrop + some padding) */
-	//DRAW_BACKDROP((*height)); // XXX buggy...
+	DRAW_BACKDROP((*height));
 	
 	/* Draw Pairs of LimitToggle+LimitValue */
 	uiBlockBeginAlign(block); 
-		uiDefButBitI(block, TOGBUT, FCM_LIMIT_XMIN, B_FMODIFIER_REDRAW, "xMin", 10, *yco-30, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use minimum x value"); 
-		uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "", 10+togButWidth, *yco-30, (textButWidth-5), 18, &data->rect.xmin, -FLT_MAX, FLT_MAX, 0.1,0.5,"Lowest x value to allow"); 
+		uiDefButBitI(block, TOGBUT, FCM_LIMIT_XMIN, B_FMODIFIER_REDRAW, "xMin", 8, *yco-30, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use minimum x value"); 
+		uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "", 8+togButWidth, *yco-30, (textButWidth-5), 18, &data->rect.xmin, -FLT_MAX, FLT_MAX, 0.1,0.5,"Lowest x value to allow"); 
 	uiBlockEndAlign(block); 
 	
 	uiBlockBeginAlign(block); 
-		uiDefButBitI(block, TOGBUT, FCM_LIMIT_XMAX, B_FMODIFIER_REDRAW, "XMax", 10+(width-(textButWidth-5)-togButWidth), *yco-30, 50, 18, &data->flag, 0, 24, 0, 0, "Use maximum x value"); 
-		uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "", 10+(width-textButWidth-5), *yco-30, (textButWidth-5), 18, &data->rect.xmax, -FLT_MAX, FLT_MAX, 0.1,0.5,"Highest x value to allow"); 
+		uiDefButBitI(block, TOGBUT, FCM_LIMIT_XMAX, B_FMODIFIER_REDRAW, "XMax", 8+(width-(textButWidth-5)-togButWidth), *yco-30, 50, 18, &data->flag, 0, 24, 0, 0, "Use maximum x value"); 
+		uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "", 8+(width-textButWidth-5), *yco-30, (textButWidth-5), 18, &data->rect.xmax, -FLT_MAX, FLT_MAX, 0.1,0.5,"Highest x value to allow"); 
 	uiBlockEndAlign(block); 
 	
 	uiBlockBeginAlign(block); 
-		uiDefButBitI(block, TOGBUT, FCM_LIMIT_YMIN, B_FMODIFIER_REDRAW, "yMin", 10, *yco-52, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use minimum y value"); 
-		uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "", 10+togButWidth, *yco-52, (textButWidth-5), 18, &data->rect.ymin, -FLT_MAX, FLT_MAX, 0.1,0.5,"Lowest y value to allow"); 
+		uiDefButBitI(block, TOGBUT, FCM_LIMIT_YMIN, B_FMODIFIER_REDRAW, "yMin", 8, *yco-52, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use minimum y value"); 
+		uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "", 8+togButWidth, *yco-52, (textButWidth-5), 18, &data->rect.ymin, -FLT_MAX, FLT_MAX, 0.1,0.5,"Lowest y value to allow"); 
 	uiBlockEndAlign(block);
 	
 	uiBlockBeginAlign(block); 
-		uiDefButBitI(block, TOGBUT, FCM_LIMIT_YMAX, B_FMODIFIER_REDRAW, "YMax", 10+(width-(textButWidth-5)-togButWidth), *yco-52, 50, 18, &data->flag, 0, 24, 0, 0, "Use maximum y value"); 
-		uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "", 10+(width-textButWidth-5), *yco-52, (textButWidth-5), 18, &data->rect.ymax, -FLT_MAX, FLT_MAX, 0.1,0.5,"Highest y value to allow"); 
+		uiDefButBitI(block, TOGBUT, FCM_LIMIT_YMAX, B_FMODIFIER_REDRAW, "YMax", 8+(width-(textButWidth-5)-togButWidth), *yco-52, 50, 18, &data->flag, 0, 24, 0, 0, "Use maximum y value"); 
+		uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "", 8+(width-textButWidth-5), *yco-52, (textButWidth-5), 18, &data->rect.ymax, -FLT_MAX, FLT_MAX, 0.1,0.5,"Highest y value to allow"); 
 	uiBlockEndAlign(block); 
 }
 
@@ -849,12 +846,8 @@ static void graph_panel_modifier_draw(uiBlock *block, FCurve *fcu, FModifier *fc
 		uiBlockSetEmboss(block, UI_EMBOSSN);
 		
 		/* rounded header */
-#if 0 // XXX buggy...
-		if (active) uiBlockSetCol(block, TH_BUT_ACTION);
-			rb_col= (active)?-20:20;
-			but= uiDefBut(block, ROUNDBOX, B_REDR, "", 10-8, *yco-2, width, 24, NULL, 5.0, 0.0, 15.0, (float)(rb_col-20), ""); 
-		if (active) uiBlockSetCol(block, TH_AUTO);
-#endif // XXX buggy
+		rb_col= (active)?-20:20;
+		but= uiDefBut(block, ROUNDBOX, B_REDR, "", 0, *yco-2, width, 24, NULL, 5.0, 0.0, 15.0, (float)(rb_col-20), ""); 
 		
 		/* expand */
 		uiDefIconButBitS(block, ICONTOG, FMODIFIER_FLAG_EXPANDED, B_REDR, ICON_TRIA_RIGHT,	5, *yco-1, 20, 20, &fcm->flag, 0.0, 0.0, 0, 0, "Modifier is expanded");
