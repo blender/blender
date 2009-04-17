@@ -29,6 +29,7 @@
 #endif
 
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "SCA_Joystick.h"
 #include "SCA_JoystickPrivate.h"
