@@ -34,7 +34,7 @@ SET(INC
   ../../../../intern/moto/include
   ../../../kernel/gen_system
   ../../../../intern/string
-  ../../../intern/SoundSystem 
+  ../../../../intern/SoundSystem 
   ../../Rasterizer
   ../../Ketsji
   ../../Expressions
