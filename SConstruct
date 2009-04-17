@@ -262,29 +262,35 @@ if 'blendernogame' in B.targets:
 	env['WITH_BF_GAMEENGINE'] = False
 
 if 'blenderlite' in B.targets:
-	env['WITH_BF_GAMEENGINE'] = False
-	env['WITH_BF_OPENAL'] = False
-	env['WITH_BF_OPENEXR'] = False
-	env['WITH_BF_ICONV'] = False
-	env['WITH_BF_INTERNATIONAL'] = False
-	env['WITH_BF_OPENJPEG'] = False
-	env['WITH_BF_FFMPEG'] = False
-	env['WITH_BF_QUICKTIME'] = False
-	env['WITH_BF_YAFRAY'] = False
-	env['WITH_BF_REDCODE'] = False
-	env['WITH_BF_FTGL'] = False
-	env['WITH_BF_DDS'] = False
-	env['WITH_BF_ZLIB'] = False
-	env['WITH_BF_SDL'] = False
-	env['WITH_BF_JPEG'] = False
-	env['WITH_BF_PNG'] = False
-	env['WITH_BF_ODE'] = False
-	env['WITH_BF_BULLET'] = False
-	env['WITH_BF_SOLID'] = False
-	env['WITH_BF_BINRELOC'] = False
-	env['BF_BUILDINFO'] = False
-	env['BF_NO_ELBEEM'] = True
-	env['WITH_BF_PYTHON'] = False
+	target_env_defs = {}
+	target_env_defs['WITH_BF_GAMEENGINE'] = False
+	target_env_defs['WITH_BF_OPENAL'] = False
+	target_env_defs['WITH_BF_OPENEXR'] = False
+	target_env_defs['WITH_BF_ICONV'] = False
+	target_env_defs['WITH_BF_INTERNATIONAL'] = False
+	target_env_defs['WITH_BF_OPENJPEG'] = False
+	target_env_defs['WITH_BF_FFMPEG'] = False
+	target_env_defs['WITH_BF_QUICKTIME'] = False
+	target_env_defs['WITH_BF_YAFRAY'] = False
+	target_env_defs['WITH_BF_REDCODE'] = False
+	target_env_defs['WITH_BF_FTGL'] = False
+	target_env_defs['WITH_BF_DDS'] = False
+	target_env_defs['WITH_BF_ZLIB'] = False
+	target_env_defs['WITH_BF_SDL'] = False
+	target_env_defs['WITH_BF_JPEG'] = False
+	target_env_defs['WITH_BF_PNG'] = False
+	target_env_defs['WITH_BF_ODE'] = False
+	target_env_defs['WITH_BF_BULLET'] = False
+	target_env_defs['WITH_BF_SOLID'] = False
+	target_env_defs['WITH_BF_BINRELOC'] = False
+	target_env_defs['BF_BUILDINFO'] = False
+	target_env_defs['BF_NO_ELBEEM'] = True
+	target_env_defs['WITH_BF_PYTHON'] = False
+	
+	# Merge blenderlite, let command line to override
+	for k,v in target_env_defs.iteritems():
+		if k not in B.arguments:
+			env[k] = v
 
 # lastly we check for root_build_dir ( we should not do before, otherwise we might do wrong builddir
 #B.root_build_dir = B.arguments.get('BF_BUILDDIR', '..'+os.sep+'build'+os.sep+platform+os.sep)
