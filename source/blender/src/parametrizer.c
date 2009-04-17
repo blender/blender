@@ -4134,6 +4134,7 @@ void param_pack(ParamHandle *handle, float margin)
 	PChart *chart;
 	int i, unpacked=0;
 	float trans[2];
+	double area= 0.0;
 	
 	PHandle *phandle = (PHandle*)handle;
 	
@@ -4145,6 +4146,7 @@ void param_pack(ParamHandle *handle, float margin)
 	
 	/* we may not use all these boxes */
 	boxarray = MEM_mallocN( phandle->ncharts*sizeof(boxPack), "boxPack box");
+	
 	
 	for (i = 0; i < phandle->ncharts; i++) {
 		chart = phandle->charts[i];
@@ -4158,14 +4160,40 @@ void param_pack(ParamHandle *handle, float margin)
 		
 		p_chart_uv_bbox(chart, trans, chart->u.pack.size);
 		
-		trans[0] = -(trans[0] - margin);
-		trans[1] = -(trans[1] - margin);
+		trans[0] = -trans[0];
+		trans[1] = -trans[1];
 		
 		p_chart_uv_translate(chart, trans);
 		
-		box->w =  (chart->u.pack.size[0] + trans[0]) + margin*2;
-		box->h =  (chart->u.pack.size[1] + trans[1]) + margin*2;
+		box->w =  chart->u.pack.size[0] + trans[0];
+		box->h =  chart->u.pack.size[1] + trans[1];
 		box->index = i; /* warning this index skips PCHART_NOPACK boxes */
+		
+		if(margin>0.0f)
+			area += sqrt(box->w*box->h);
+	}	
+	
+	if(margin>0.0f) {
+		/* multiply the margin by the area to give pradictable results not dependant on UV scale,
+		 * ...Without using the area running pack multiple times also gives a bad feedback loop.
+		 * multiply by 0.1 so the margin value from the UI can be from 0.0 to 1.0 but not give a massive margin */
+		margin = (margin*(float)area) * 0.1;
+		unpacked= 0;
+		for (i = 0; i < phandle->ncharts; i++) {
+			chart = phandle->charts[i];
+			
+			if (chart->flag & PCHART_NOPACK) {
+				unpacked++;
+				continue;
+			}
+			
+			box = boxarray+(i-unpacked);
+			trans[0] = margin * area;
+			trans[1] = margin * area;
+			p_chart_uv_translate(chart, trans);
+			box->w += (margin * area) *2;
+			box->h += (margin * area) *2;
+		}
 	}
 	
 	boxPack2D(boxarray, phandle->ncharts-unpacked, &tot_width, &tot_height);
