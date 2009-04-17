@@ -40,13 +40,25 @@ This module provides access to the B{Particle} in Blender.
 		- LINE: Draw as lines
 		- PATH: Draw pathes
 		- OBJECT: Draw object
-		- GROUP: Draw goup
+		- GROUP: Draw group
 		- BILLBOARD: Draw as billboard 
 @type CHILDTYPE: readonly dictionary
 @var CHILDTYPE: Constant dict used for whith L{Particle.CHILDTYPE}
 		- NONE: set no children
 		- PARTICLES: set children born from particles
 		- FACES: set children born from faces
+@type CHILDKINK: readonly dictionary
+@var CHILDKINK: Type of periodic offset on the path
+		- NOTHING: set no offset on the path 
+		- CURL: set curl offset on the path
+		- RADIAL: set radial offset on the path
+		- WAVE: set wave offset on the path
+		- BRAID: set braid offset on the path
+@type CHILDKINKAXIS: readonly dictionary
+@var CHILDKINKAXIS: Which axis to use for offset
+		- X: set X axis for offset
+		- Y: set Y axis for offset
+		- Z: set Z axis for offset
 """
 
 class Particle:
