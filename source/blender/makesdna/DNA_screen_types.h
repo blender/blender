@@ -99,7 +99,7 @@ typedef struct Panel {		/* the part from uiBlock that needs saved in file */
 	short flag, runtime_flag;
 	short control;
 	short snap;
-	int sortcounter, pad;		/* when sorting panels, it uses this to put new ones in right place */
+	int sortorder, pad;			/* panels are aligned according to increasing sortorder */
 	struct Panel *paneltab;		/* this panel is tabbed in *paneltab */
 	void *activedata;			/* runtime for panel manipulation */
 } Panel;

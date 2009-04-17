@@ -161,6 +161,7 @@ Panel *uiBeginPanel(ARegion *ar, uiBlock *block, PanelType *pt)
 	char *panelname= pt->name;
 	char *tabname= pt->name;
 	char *hookname= NULL;
+	int newpanel;
 	
 	/* check if Panel exists, then use that one */
 	for(pa=ar->panels.first; pa; pa=pa->next)
@@ -168,9 +169,10 @@ Panel *uiBeginPanel(ARegion *ar, uiBlock *block, PanelType *pt)
 			if(strncmp(pa->tabname, tabname, UI_MAX_NAME_STR)==0)
 				break;
 	
-	if(pa) {
+	newpanel= (pa == NULL);
+
+	if(!newpanel) {
 		pa->type= pt;
-		BLI_remlink(&ar->panels, pa);
 	}
 	else {
 		/* new panel */
@@ -183,6 +185,8 @@ Panel *uiBeginPanel(ARegion *ar, uiBlock *block, PanelType *pt)
 		pa->ofsy= PNL_DIST;
 		pa->sizex= 0;
 		pa->sizey= 0;
+
+		BLI_addtail(&ar->panels, pa);
 		
 		/* make new Panel tabbed? */
 		if(hookname) {
@@ -200,26 +204,27 @@ Panel *uiBeginPanel(ARegion *ar, uiBlock *block, PanelType *pt)
 		}
 	}
 
-	/* insert panel into list and set sort counter */
-	pa->runtime_flag |= PNL_LAST_ADDED;
-
+	/* if a new panel is added, we insert it right after the panel
+	 * that was last added. this way new panels are inserted in the
+	 * right place between versions */
 	for(palast=ar->panels.first; palast; palast=palast->next)
 		if(palast->runtime_flag & PNL_LAST_ADDED)
 			break;
+	
+	if(newpanel) {
+		pa->sortorder= (palast)? palast->sortorder+1: 0;
 
-	if(palast) {
+		for(palast=ar->panels.first; palast; palast=palast->next)
+			if(palast != pa && palast->sortorder >= pa->sortorder)
+				palast->sortorder++;
+	}
+
+	if(palast)
 		palast->runtime_flag &= ~PNL_LAST_ADDED;
-		pa->sortcounter= palast->sortcounter+1;
-		BLI_insertlink(&ar->panels, palast, pa);
-	}
-	else {
-		pa->sortcounter= 0;
-		BLI_addtail(&ar->panels, pa);
-	}
 
 	/* assign to block */
 	block->panel= pa;
-	pa->runtime_flag |= PNL_ACTIVE;
+	pa->runtime_flag |= PNL_ACTIVE|PNL_LAST_ADDED;
 
 	if(pa->paneltab) return NULL;
 	if(pa->flag & PNL_CLOSED) return NULL;
@@ -840,7 +845,7 @@ typedef struct PanelSort {
 } PanelSort;
 
 /* note about sorting;
-   the sortcounter has a lower value for new panels being added.
+   the sortorder has a lower value for new panels being added.
    however, that only works to insert a single panel, when more new panels get
    added the coordinates of existing panels and the previously stored to-be-insterted
    panels do not match for sorting */
@@ -851,8 +856,8 @@ static int find_leftmost_panel(const void *a1, const void *a2)
 	
 	if(ps1->pa->ofsx > ps2->pa->ofsx) return 1;
 	else if(ps1->pa->ofsx < ps2->pa->ofsx) return -1;
-	else if(ps1->pa->sortcounter > ps2->pa->sortcounter) return 1;
-	else if(ps1->pa->sortcounter < ps2->pa->sortcounter) return -1;
+	else if(ps1->pa->sortorder > ps2->pa->sortorder) return 1;
+	else if(ps1->pa->sortorder < ps2->pa->sortorder) return -1;
 
 	return 0;
 }
@@ -864,8 +869,8 @@ static int find_highest_panel(const void *a1, const void *a2)
 	
 	if(ps1->pa->ofsy+ps1->pa->sizey < ps2->pa->ofsy+ps2->pa->sizey) return 1;
 	else if(ps1->pa->ofsy+ps1->pa->sizey > ps2->pa->ofsy+ps2->pa->sizey) return -1;
-	else if(ps1->pa->sortcounter > ps2->pa->sortcounter) return 1;
-	else if(ps1->pa->sortcounter < ps2->pa->sortcounter) return -1;
+	else if(ps1->pa->sortorder > ps2->pa->sortorder) return 1;
+	else if(ps1->pa->sortorder < ps2->pa->sortorder) return -1;
 	
 	return 0;
 }
@@ -874,15 +879,15 @@ static int compare_panel(const void *a1, const void *a2)
 {
 	const PanelSort *ps1=a1, *ps2=a2;
 	
-	if(ps1->pa->sortcounter > ps2->pa->sortcounter) return 1;
-	else if(ps1->pa->sortcounter < ps2->pa->sortcounter) return -1;
+	if(ps1->pa->sortorder > ps2->pa->sortorder) return 1;
+	else if(ps1->pa->sortorder < ps2->pa->sortorder) return -1;
 	
 	return 0;
 }
 
 /* this doesnt draw */
 /* returns 1 when it did something */
-int uiAlignPanelStep(ScrArea *sa, ARegion *ar, float fac)
+int uiAlignPanelStep(ScrArea *sa, ARegion *ar, float fac, int drag)
 {
 	Panel *pa;
 	PanelSort *ps, *panelsort, *psnext;
@@ -918,13 +923,19 @@ int uiAlignPanelStep(ScrArea *sa, ARegion *ar, float fac)
 		}
 	}
 	
-#if 0
-	if(align==BUT_VERTICAL) 
-		qsort(panelsort, tot, sizeof(PanelSort), find_highest_panel);
+	if(drag) {
+		/* while we are dragging, we sort on location and update sortorder */
+		if(align==BUT_VERTICAL) 
+			qsort(panelsort, tot, sizeof(PanelSort), find_highest_panel);
+		else
+			qsort(panelsort, tot, sizeof(PanelSort), find_leftmost_panel);
+
+		for(ps=panelsort, a=0; a<tot; a++, ps++)
+			ps->orig->sortorder= a;
+	}
 	else
-		qsort(panelsort, tot, sizeof(PanelSort), find_leftmost_panel);
-#endif
-	qsort(panelsort, tot, sizeof(PanelSort), compare_panel);
+		/* otherwise use sortorder */
+		qsort(panelsort, tot, sizeof(PanelSort), compare_panel);
 	
 	/* no smart other default start loc! this keeps switching f5/f6/etc compatible */
 	ps= panelsort;
@@ -983,7 +994,7 @@ static void ui_do_animate(const bContext *C, Panel *panel)
 	fac= MIN2(fac, 1.0f);
 
 	/* for max 1 second, interpolate positions */
-	if(uiAlignPanelStep(sa, ar, fac))
+	if(uiAlignPanelStep(sa, ar, fac, 0))
 		ED_region_tag_redraw(ar);
 	else
 		fac= 1.0f;
@@ -1050,7 +1061,7 @@ void uiEndPanels(const bContext *C, ARegion *ar)
 		if(pa)
 			panel_activate_state(C, pa, PANEL_STATE_ANIMATION);
 		else
-			uiAlignPanelStep(sa, ar, 1.0);
+			uiAlignPanelStep(sa, ar, 1.0, 0);
 	}
 	
 	if(sa->spacetype!=SPACE_BUTS) {
@@ -1269,7 +1280,7 @@ static void ui_do_drag(const bContext *C, wmEvent *event, Panel *panel)
 		panel->ofsy = data->startofsy+dy;
 		check_panel_overlap(ar, panel);
 		
-		if(align) uiAlignPanelStep(sa, ar, 0.2);
+		if(align) uiAlignPanelStep(sa, ar, 0.2, 1);
 	}
 
 	ED_region_tag_redraw(ar);
