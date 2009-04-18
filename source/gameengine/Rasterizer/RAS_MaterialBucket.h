@@ -86,9 +86,11 @@ public:
 };
 
 /* Entry of a RAS_MeshObject into RAS_MaterialBucket */
+typedef std::vector<RAS_DisplayArray*>	RAS_DisplayArrayList;
 
 class RAS_MeshSlot
 {
+	friend class RAS_ListRasterizer;
 private:
 	//  indices into display arrays
 	int							m_startarray;
@@ -97,7 +99,7 @@ private:
 	int							m_endindex;
 	int							m_startvertex;
 	int							m_endvertex;
-	vector<RAS_DisplayArray*>	m_displayArrays;
+	RAS_DisplayArrayList		m_displayArrays;
 
 	// for construction only
 	RAS_DisplayArray*			m_currentArray;

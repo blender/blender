@@ -136,10 +136,10 @@ RAS_ListSlot* RAS_ListRasterizer::FindOrAdd(RAS_MeshSlot& ms)
 	*/
 	RAS_ListSlot* localSlot = (RAS_ListSlot*)ms.m_DisplayList;
 	if(!localSlot) {
-		RAS_Lists::iterator it = mLists.find(&ms);
+		RAS_Lists::iterator it = mLists.find(ms.m_displayArrays);
 		if(it == mLists.end()) {
 			localSlot = new RAS_ListSlot(this);
-			mLists.insert(std::pair<RAS_MeshSlot*, RAS_ListSlot*>(&ms, localSlot));
+			mLists.insert(std::pair<RAS_DisplayArrayList, RAS_ListSlot*>(ms.m_displayArrays, localSlot));
 		} else {
 			localSlot = static_cast<RAS_ListSlot*>(it->second->AddRef());
 		}
