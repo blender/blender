@@ -967,6 +967,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\editors\animation\anim_intern.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\animation\anim_ipo_utils.c"
 				>
 			</File>
@@ -996,6 +1000,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\editors\animation\keyframing.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\animation\keyingsets.c"
 				>
 			</File>
 		</Filter>
