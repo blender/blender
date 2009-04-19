@@ -240,7 +240,8 @@ void bglVertex3f(float x, float y, float z) {}
 void bglEnd(void) {}
 
 /* booleanops.c */
-struct DerivedMesh *NewBooleanDerivedMesh(struct Object *ob, struct Object *ob_select, int int_op_type) { return 0; }
+struct DerivedMesh *NewBooleanDerivedMesh(struct DerivedMesh *dm, struct Object *ob, struct DerivedMesh *dm_select, struct Object *ob_select,
+                                   int int_op_type) { return 0; }
 
 /* LOD_decimation.cpp */
 int LOD_LoadMesh(struct LOD_Decimation_Info* info) { return 0;};

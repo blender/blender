@@ -6140,12 +6140,16 @@ static DerivedMesh *booleanModifier_applyModifier(
 {
 	// XXX doesn't handle derived data
 	BooleanModifierData *bmd = (BooleanModifierData*) md;
+	DerivedMesh *dm = mesh_get_derived_final(bmd->object, CD_MASK_BAREMESH);
 
 	/* we do a quick sanity check */
-	if(((Mesh *)ob->data)->totface > 3
-		    && bmd->object && ((Mesh *)bmd->object->data)->totface > 3) {
-		DerivedMesh *result = NewBooleanDerivedMesh(bmd->object, ob,
+	if(derivedData->getNumFaces(derivedData) > 3
+		    && bmd->object && dm->getNumFaces(dm) > 3) {
+		DerivedMesh *result = NewBooleanDerivedMesh(dm, bmd->object, derivedData, ob,
 				1 + bmd->operation);
+
+		if(dm)
+			dm->release(dm);
 
 		/* if new mesh returned, return it; otherwise there was
 		* an error, so delete the modifier object */
@@ -6153,9 +6157,27 @@ static DerivedMesh *booleanModifier_applyModifier(
 			return result;
 		else
 			bmd->object = NULL;
-		    }
+	}
+	
+	if(dm)
+			dm->release(dm);
 
-		    return derivedData;
+	return derivedData;
+}
+
+CustomDataMask booleanModifier_requiredDataMask(ModifierData *md)
+{
+	CustomDataMask dataMask = (1 << CD_MTFACE) + (1 << CD_MEDGE);
+
+	dataMask |= (1 << CD_MDEFORMVERT);
+	
+	/* particles only need this if they are after a non deform modifier, and
+	* the modifier stack will only create them in that case. */
+// 	dataMask |= CD_MASK_ORIGSPACE;
+
+// 	dataMask |= CD_MASK_ORCO;
+	
+	return dataMask;
 }
 
 /* Particles */
@@ -8311,6 +8333,7 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti->applyModifier = booleanModifier_applyModifier;
 		mti->foreachObjectLink = booleanModifier_foreachObjectLink;
 		mti->updateDepgraph = booleanModifier_updateDepgraph;
+		mti->requiredDataMask = booleanModifier_requiredDataMask;
 
 		mti = INIT_TYPE(MeshDeform);
 		mti->type = eModifierTypeType_OnlyDeform;

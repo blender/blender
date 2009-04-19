@@ -160,8 +160,8 @@ void bglEnd(void);
 struct Object;
 
 /* booleanops.c */
-struct DerivedMesh *NewBooleanDerivedMesh(struct Object *ob,
-                                struct Object *ob_select, int int_op_type);
+struct DerivedMesh *NewBooleanDerivedMesh(struct DerivedMesh *dm, struct Object *ob, struct DerivedMesh *dm_select, struct Object *ob_select,
+                                   int int_op_type);
 
 /* verse_*.c */
 struct VerseVert;
