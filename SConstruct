@@ -616,6 +616,11 @@ if not env['WITHOUT_BF_INSTALL']:
 
 #------------ EPYDOC
 if env['WITH_BF_DOCS']:
-	SConscript('source/blender/python/api2_2x/doc/SConscript')
-	SConscript('source/gameengine/PyDoc/SConscript')
+	try:
+		import epydoc
+		SConscript('source/blender/python/api2_2x/doc/SConscript')
+		SConscript('source/gameengine/PyDoc/SConscript')
+	except ImportError:
+		print "No epydoc install detected, Python API and Gameengine API Docs will not be generated "
+	
 
