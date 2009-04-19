@@ -532,13 +532,7 @@ PyObject* CListValue::Pycount(PyObject* self, PyObject* value)
 
 PyObject* CListValue::Pyfrom_id(PyObject* self, PyObject* value)
 {
-#if SIZEOF_VOID_P <= SIZEOF_LONG
-#define BGE_ID_TYPE unsigned long
-	BGE_ID_TYPE id= PyLong_AsUnsignedLong(value);
-#else
-#define BGE_ID_TYPE unsigned long long
-	BGE_ID_TYPE id= PyLong_FromUnsignedLongLong(value);
-#endif
+	uintptr_t id= (uintptr_t)PyLong_AsVoidPtr(value);
 	
 	if (PyErr_Occurred())
 		return NULL;
@@ -546,16 +540,13 @@ PyObject* CListValue::Pyfrom_id(PyObject* self, PyObject* value)
 	int numelem = GetCount();
 	for (int i=0;i<numelem;i++)
 	{
-		if (reinterpret_cast<BGE_ID_TYPE>(m_pValueArray[i]->m_proxy) == id)
+		if (reinterpret_cast<uintptr_t>(m_pValueArray[i]->m_proxy) == id)
 			return GetValue(i)->GetProxy();
-	
 	}
 	PyErr_SetString(PyExc_IndexError, "from_id(#), id not found in CValueList");
 	return NULL;	
 
 }
-
-#undef BGE_ID_TYPE
 
 
 /* --------------------------------------------------------------------- 
