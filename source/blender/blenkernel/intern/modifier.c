@@ -6143,7 +6143,7 @@ static DerivedMesh *booleanModifier_applyModifier(
 	DerivedMesh *dm = mesh_get_derived_final(bmd->object, CD_MASK_BAREMESH);
 
 	/* we do a quick sanity check */
-	if(derivedData->getNumFaces(derivedData) > 3
+	if(dm && (derivedData->getNumFaces(derivedData) > 3)
 		    && bmd->object && dm->getNumFaces(dm) > 3) {
 		DerivedMesh *result = NewBooleanDerivedMesh(dm, bmd->object, derivedData, ob,
 				1 + bmd->operation);
@@ -8326,7 +8326,6 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti = INIT_TYPE(Boolean);
 		mti->type = eModifierTypeType_Nonconstructive;
 		mti->flags = eModifierTypeFlag_AcceptsMesh
-				| eModifierTypeFlag_RequiresOriginalData
 				| eModifierTypeFlag_UsesPointCache;
 		mti->copyData = booleanModifier_copyData;
 		mti->isDisabled = booleanModifier_isDisabled;
