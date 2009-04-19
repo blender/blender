@@ -298,7 +298,7 @@ def read_opts(cfg, args):
 ##BF_PARANOID = True
 ##
 ### enable freetype2 support for text objects
-		(BoolVariable('WITH_BF_FREETYPE', 'Use FreeType2 if true', False)),
+		(BoolVariable('WITH_BF_FREETYPE', 'Use FreeType2 if true', True)),
 		('BF_FREETYPE', 'Freetype base path', ''),
 		('BF_FREETYPE_INC', 'Freetype include path', ''),
 		('BF_FREETYPE_LIB', 'Freetype library', ''),
