@@ -37,6 +37,7 @@ struct bContextDataResult;
 struct bScreen;
 struct ListBase;
 struct Panel;
+struct Header;
 struct ScrArea;
 struct SpaceType;
 struct wmNotifier;
@@ -149,8 +150,8 @@ typedef struct PanelType {
 	char		idname[BKE_ST_MAXNAME];		/* unique name */
 	char		label[BKE_ST_MAXNAME];		/* for panel header */
 	char		context[BKE_ST_MAXNAME];	/* for buttons window */
-	char		space_type[BKE_ST_MAXNAME];
-	char		region_type[BKE_ST_MAXNAME];
+	int			space_type;
+	int			region_type;
 
 	/* verify if the panel should draw or not */
 	int			(*poll)(const struct bContext *, struct PanelType *);
@@ -169,14 +170,17 @@ typedef struct PanelType {
 typedef struct HeaderType {
 	struct HeaderType *next, *prev;
 
-	char		*idname;	/* unique name */
-	char		*name;		/* for UI */
+	char		idname[BKE_ST_MAXNAME];	/* unique name */
+	int 		space_type;
 
 	/* draw entirely, view changes should be handled here */
-	void		(*draw)(const struct bContext *, struct uiLayout *);	
+	void		(*draw)(const struct bContext *, struct Header *);	
 
 	/* python integration */
-	void		*py_data;
+	void				*py_data;
+	struct StructRNA	*py_srna;
+	int					(*py_call)(struct PointerRNA *, struct FunctionRNA *, struct ParameterList *);
+	void				(*py_free)(void *py_data);
 } HeaderType;
 
 /* spacetypes */

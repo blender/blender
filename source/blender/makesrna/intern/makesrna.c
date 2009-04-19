@@ -299,12 +299,6 @@ static char *rna_def_property_get_func(FILE *f, StructRNA *srna, PropertyRNA *pr
 			DefRNA.error= 1;
 			return NULL;
 		}
-
-		if(prop->type == PROP_STRING && ((StringPropertyRNA*)prop)->maxlength == 0) {
-			fprintf(stderr, "rna_def_property_get_func: string %s.%s has max length 0.\n", srna->identifier, prop->identifier);
-			DefRNA.error= 1;
-			return NULL;
-		}
 	}
 
 	func= rna_alloc_function_name(srna->identifier, prop->identifier, "get");
@@ -319,7 +313,10 @@ static char *rna_def_property_get_func(FILE *f, StructRNA *srna, PropertyRNA *pr
 			}
 			else {
 				rna_print_data_get(f, dp);
-				fprintf(f, "	BLI_strncpy(value, data->%s, %d);\n", dp->dnaname, sprop->maxlength);
+				if(sprop->maxlength)
+					fprintf(f, "	BLI_strncpy(value, data->%s, %d);\n", dp->dnaname, sprop->maxlength);
+				else
+					fprintf(f, "	BLI_strncpy(value, data->%s, sizeof(data->%s));\n", dp->dnaname, dp->dnaname);
 			}
 			fprintf(f, "}\n\n");
 			break;
@@ -484,7 +481,10 @@ static char *rna_def_property_set_func(FILE *f, StructRNA *srna, PropertyRNA *pr
 			}
 			else {
 				rna_print_data_get(f, dp);
-				fprintf(f, "	BLI_strncpy(data->%s, value, %d);\n", dp->dnaname, sprop->maxlength);
+				if(sprop->maxlength)
+					fprintf(f, "	BLI_strncpy(data->%s, value, %d);\n", dp->dnaname, sprop->maxlength);
+				else
+					fprintf(f, "	BLI_strncpy(data->%s, value, sizeof(data->%s));\n", dp->dnaname, dp->dnaname);
 			}
 			fprintf(f, "}\n\n");
 			break;

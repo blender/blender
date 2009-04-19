@@ -39,6 +39,7 @@ struct SpaceLink;
 struct ARegion;
 struct ARegionType;
 struct PanelType;
+struct HeaderType;
 struct Scene;
 struct uiLayout;
 struct wmTimer;
@@ -103,6 +104,11 @@ typedef struct Panel {		/* the part from uiBlock that needs saved in file */
 	struct Panel *paneltab;		/* this panel is tabbed in *paneltab */
 	void *activedata;			/* runtime for panel manipulation */
 } Panel;
+
+typedef struct Header {
+	struct HeaderType *type;	/* runtime */
+	struct uiLayout *layout;	/* runtime for drawing */
+} Header;
 
 typedef struct ScrArea {
 	struct ScrArea *next, *prev;

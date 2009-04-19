@@ -357,12 +357,13 @@ static void text_idpoin_handle(bContext *C, ID *id, int event)
 
 /********************** header buttons ***********************/
 
-static void text_header_draw(const bContext *C, uiLayout *layout)
+static void text_header_draw(const bContext *C, Header *header)
 {
 	bScreen *sc= CTX_wm_screen(C);
 	SpaceText *st= (SpaceText*)CTX_wm_space_data(C);
 	PointerRNA spaceptr;
 	Text *text= st->text;
+	uiLayout *layout= header->layout;
 	
 	RNA_pointer_create(&sc->id, &RNA_SpaceTextEditor, st, &spaceptr);
 
@@ -421,8 +422,7 @@ void text_header_register(ARegionType *art)
 
 	/* header */
 	ht= MEM_callocN(sizeof(HeaderType), "spacetype text header");
-	ht->idname= "TEXT_HT_header";
-	ht->name= "Header";
+	strcpy(ht->idname, "TEXT_HT_header");
 	ht->draw= text_header_draw;
 	BLI_addhead(&art->headertypes, ht);
 }

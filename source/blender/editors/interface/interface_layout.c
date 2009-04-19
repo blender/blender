@@ -1262,6 +1262,7 @@ void uiRegionHeaderLayout(const bContext *C, ARegion *ar)
 	uiBlock *block;
 	uiLayout *layout;
 	HeaderType *ht;
+	Header header = {};
 	float col[3];
 	int xco, yco;
 
@@ -1287,8 +1288,11 @@ void uiRegionHeaderLayout(const bContext *C, ARegion *ar)
 		block= uiBeginBlock(C, ar, "header buttons", UI_EMBOSS);
 		layout= uiLayoutBegin(UI_LAYOUT_HORIZONTAL, xco, yco, 24, 1);
 
-		if(ht->draw)
-			ht->draw(C, layout);
+		if(ht->draw) {
+			header.type= ht;
+			header.layout= layout;
+			ht->draw(C, &header);
+		}
 
 		uiLayoutEnd(C, block, layout, &xco, &yco);
 		uiEndBlock(C, block);

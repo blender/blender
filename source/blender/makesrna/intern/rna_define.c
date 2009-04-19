@@ -311,12 +311,26 @@ static int rna_find_sdna_member(SDNA *sdna, const char *structname, const char *
 			return 1;
 		}
 		else if(cmp == 2) {
+			smember->type= "";
+			smember->name= dnaname;
+			smember->pointerlevel= 0;
+			smember->arraylength= 0;
+
 			membername= strstr(membername, ".") + strlen(".");
-			return rna_find_sdna_member(sdna, sdna->types[sp[0]], membername, smember);
+			rna_find_sdna_member(sdna, sdna->types[sp[0]], membername, smember);
+
+			return 1;
 		}
 		else if(cmp == 3) {
+			smember->type= "";
+			smember->name= dnaname;
+			smember->pointerlevel= 0;
+			smember->arraylength= 0;
+
 			membername= strstr(membername, "->") + strlen("->");
-			return rna_find_sdna_member(sdna, sdna->types[sp[0]], membername, smember);
+			rna_find_sdna_member(sdna, sdna->types[sp[0]], membername, smember);
+
+			return 1;
 		}
 	}
 
