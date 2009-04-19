@@ -23,31 +23,31 @@ public:
 	int			getConstraintId();
 	
 	
-	KX_PYMETHOD(KX_VehicleWrapper,AddWheel);
-	KX_PYMETHOD(KX_VehicleWrapper,GetNumWheels);
-	KX_PYMETHOD(KX_VehicleWrapper,GetWheelOrientationQuaternion);
-	KX_PYMETHOD(KX_VehicleWrapper,GetWheelRotation);
+	KX_PYMETHOD_VARARGS(KX_VehicleWrapper,AddWheel);
+	KX_PYMETHOD_VARARGS(KX_VehicleWrapper,GetNumWheels);
+	KX_PYMETHOD_VARARGS(KX_VehicleWrapper,GetWheelOrientationQuaternion);
+	KX_PYMETHOD_VARARGS(KX_VehicleWrapper,GetWheelRotation);
 	
-	KX_PYMETHOD(KX_VehicleWrapper,GetWheelPosition);
+	KX_PYMETHOD_VARARGS(KX_VehicleWrapper,GetWheelPosition);
 	
-	KX_PYMETHOD(KX_VehicleWrapper,GetConstraintId);
-	KX_PYMETHOD(KX_VehicleWrapper,GetConstraintType);
+	KX_PYMETHOD_VARARGS(KX_VehicleWrapper,GetConstraintId);
+	KX_PYMETHOD_VARARGS(KX_VehicleWrapper,GetConstraintType);
 
-	KX_PYMETHOD(KX_VehicleWrapper,SetSteeringValue);
+	KX_PYMETHOD_VARARGS(KX_VehicleWrapper,SetSteeringValue);
 
-	KX_PYMETHOD(KX_VehicleWrapper,ApplyEngineForce);
+	KX_PYMETHOD_VARARGS(KX_VehicleWrapper,ApplyEngineForce);
 
-	KX_PYMETHOD(KX_VehicleWrapper,ApplyBraking);
+	KX_PYMETHOD_VARARGS(KX_VehicleWrapper,ApplyBraking);
 
-	KX_PYMETHOD(KX_VehicleWrapper,SetTyreFriction);
+	KX_PYMETHOD_VARARGS(KX_VehicleWrapper,SetTyreFriction);
 
-	KX_PYMETHOD(KX_VehicleWrapper,SetSuspensionStiffness);
+	KX_PYMETHOD_VARARGS(KX_VehicleWrapper,SetSuspensionStiffness);
 	
-	KX_PYMETHOD(KX_VehicleWrapper,SetSuspensionDamping);
+	KX_PYMETHOD_VARARGS(KX_VehicleWrapper,SetSuspensionDamping);
 	
-	KX_PYMETHOD(KX_VehicleWrapper,SetSuspensionCompression);
+	KX_PYMETHOD_VARARGS(KX_VehicleWrapper,SetSuspensionCompression);
 	
-	KX_PYMETHOD(KX_VehicleWrapper,SetRollInfluence);
+	KX_PYMETHOD_VARARGS(KX_VehicleWrapper,SetRollInfluence);
 	
 
 private:

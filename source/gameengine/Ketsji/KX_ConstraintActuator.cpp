@@ -665,9 +665,7 @@ const char KX_ConstraintActuator::SetDamp_doc[] =
 "\t- duration: integer\n"
 "\tSets the time constant of the orientation and distance constraint.\n"
 "\tIf the duration is negative, it is set to 0.\n";
-PyObject* KX_ConstraintActuator::PySetDamp(PyObject* self, 
-										   PyObject* args, 
-										   PyObject* kwds) {
+PyObject* KX_ConstraintActuator::PySetDamp(PyObject* args) {
 	ShowDeprecationWarning("setDamp()", "the damp property");
 	int dampArg;
 	if(!PyArg_ParseTuple(args, "i:setDamp", &dampArg)) {
@@ -683,7 +681,7 @@ PyObject* KX_ConstraintActuator::PySetDamp(PyObject* self,
 const char KX_ConstraintActuator::GetDamp_doc[] = 
 "getDamp()\n"
 "\tReturns the damping parameter.\n";
-PyObject* KX_ConstraintActuator::PyGetDamp(PyObject* self){
+PyObject* KX_ConstraintActuator::PyGetDamp(){
 	ShowDeprecationWarning("getDamp()", "the damp property");
 	return PyInt_FromLong(m_posDampTime);
 }
@@ -694,9 +692,7 @@ const char KX_ConstraintActuator::SetRotDamp_doc[] =
 "\t- duration: integer\n"
 "\tSets the time constant of the orientation constraint.\n"
 "\tIf the duration is negative, it is set to 0.\n";
-PyObject* KX_ConstraintActuator::PySetRotDamp(PyObject* self, 
-										      PyObject* args, 
-										      PyObject* kwds) {
+PyObject* KX_ConstraintActuator::PySetRotDamp(PyObject* args) {
 	ShowDeprecationWarning("setRotDamp()", "the rotDamp property");
 	int dampArg;
 	if(!PyArg_ParseTuple(args, "i:setRotDamp", &dampArg)) {
@@ -712,7 +708,7 @@ PyObject* KX_ConstraintActuator::PySetRotDamp(PyObject* self,
 const char KX_ConstraintActuator::GetRotDamp_doc[] = 
 "getRotDamp()\n"
 "\tReturns the damping time for application of the constraint.\n";
-PyObject* KX_ConstraintActuator::PyGetRotDamp(PyObject* self){
+PyObject* KX_ConstraintActuator::PyGetRotDamp(){
 	ShowDeprecationWarning("getRotDamp()", "the rotDamp property");
 	return PyInt_FromLong(m_rotDampTime);
 }
@@ -722,9 +718,7 @@ const char KX_ConstraintActuator::SetDirection_doc[] =
 "setDirection(vector)\n"
 "\t- vector: 3-tuple\n"
 "\tSets the reference direction in world coordinate for the orientation constraint.\n";
-PyObject* KX_ConstraintActuator::PySetDirection(PyObject* self, 
-										        PyObject* args, 
-										        PyObject* kwds) {
+PyObject* KX_ConstraintActuator::PySetDirection(PyObject* args) {
 	ShowDeprecationWarning("setDirection()", "the direction property");
 	float x, y, z;
 	MT_Scalar len;
@@ -752,7 +746,7 @@ PyObject* KX_ConstraintActuator::PySetDirection(PyObject* self,
 const char KX_ConstraintActuator::GetDirection_doc[] = 
 "getDirection()\n"
 "\tReturns the reference direction of the orientation constraint as a 3-tuple.\n";
-PyObject* KX_ConstraintActuator::PyGetDirection(PyObject* self){
+PyObject* KX_ConstraintActuator::PyGetDirection(){
 	ShowDeprecationWarning("getDirection()", "the direction property");
 	PyObject *retVal = PyList_New(3);
 
@@ -772,9 +766,7 @@ const char KX_ConstraintActuator::SetOption_doc[] =
 "\t\t128 : Detect material rather than property\n"
 "\t\t256 : No deactivation if ray does not hit target\n"
 "\t\t512 : Activate distance control\n";
-PyObject* KX_ConstraintActuator::PySetOption(PyObject* self, 
-										     PyObject* args, 
-										     PyObject* kwds) {
+PyObject* KX_ConstraintActuator::PySetOption(PyObject* args) {
 	ShowDeprecationWarning("setOption()", "the option property");
 	int option;
 	if(!PyArg_ParseTuple(args, "i:setOption", &option)) {
@@ -789,7 +781,7 @@ PyObject* KX_ConstraintActuator::PySetOption(PyObject* self,
 const char KX_ConstraintActuator::GetOption_doc[] = 
 "getOption()\n"
 "\tReturns the option parameter.\n";
-PyObject* KX_ConstraintActuator::PyGetOption(PyObject* self){
+PyObject* KX_ConstraintActuator::PyGetOption(){
 	ShowDeprecationWarning("getOption()", "the option property");
 	return PyInt_FromLong(m_option);
 }
@@ -801,9 +793,7 @@ const char KX_ConstraintActuator::SetTime_doc[] =
 "\tSets the activation time of the actuator.\n"
 "\tThe actuator disables itself after this many frame.\n"
 "\tIf set to 0 or negative, the actuator is not limited in time.\n";
-PyObject* KX_ConstraintActuator::PySetTime(PyObject* self, 
-										   PyObject* args, 
-										   PyObject* kwds) {
+PyObject* KX_ConstraintActuator::PySetTime(PyObject* args) {
 	ShowDeprecationWarning("setTime()", "the time property");
 	int t;
 	if(!PyArg_ParseTuple(args, "i:setTime", &t)) {
@@ -820,7 +810,7 @@ PyObject* KX_ConstraintActuator::PySetTime(PyObject* self,
 const char KX_ConstraintActuator::GetTime_doc[] = 
 "getTime()\n"
 "\tReturns the time parameter.\n";
-PyObject* KX_ConstraintActuator::PyGetTime(PyObject* self){
+PyObject* KX_ConstraintActuator::PyGetTime(){
 	ShowDeprecationWarning("getTime()", "the time property");
 	return PyInt_FromLong(m_activeTime);
 }
@@ -831,9 +821,7 @@ const char KX_ConstraintActuator::SetProperty_doc[] =
 "\t- property: string\n"
 "\tSets the name of the property or material for the ray detection of the distance constraint.\n"
 "\tIf empty, the ray will detect any collisioning object.\n";
-PyObject* KX_ConstraintActuator::PySetProperty(PyObject* self, 
-										       PyObject* args, 
-										       PyObject* kwds) {
+PyObject* KX_ConstraintActuator::PySetProperty(PyObject* args) {
 	ShowDeprecationWarning("setProperty()", "the 'property' property");
 	char *property;
 	if (!PyArg_ParseTuple(args, "s:setProperty", &property)) {
@@ -851,7 +839,7 @@ PyObject* KX_ConstraintActuator::PySetProperty(PyObject* self,
 const char KX_ConstraintActuator::GetProperty_doc[] = 
 "getProperty()\n"
 "\tReturns the property parameter.\n";
-PyObject* KX_ConstraintActuator::PyGetProperty(PyObject* self){
+PyObject* KX_ConstraintActuator::PyGetProperty(){
 	ShowDeprecationWarning("getProperty()", "the 'property' property");
 	return PyString_FromString(m_property.Ptr());
 }
@@ -867,9 +855,7 @@ const char KX_ConstraintActuator::SetMin_doc[] =
 "\t- lower_bound: float\n"
 "\tSets the lower value of the interval to which the value\n"
 "\tis clipped.\n";
-PyObject* KX_ConstraintActuator::PySetMin(PyObject* self, 
-										  PyObject* args, 
-										  PyObject* kwds) {
+PyObject* KX_ConstraintActuator::PySetMin(PyObject* args) {
 	ShowDeprecationWarning("setMin() or setDistance()", "the min or distance property");
 	float minArg;
 	if(!PyArg_ParseTuple(args, "f:setMin", &minArg)) {
@@ -898,7 +884,7 @@ const char KX_ConstraintActuator::GetMin_doc[] =
 "getMin()\n"
 "\tReturns the lower value of the interval to which the value\n"
 "\tis clipped.\n";
-PyObject* KX_ConstraintActuator::PyGetMin(PyObject* self) {
+PyObject* KX_ConstraintActuator::PyGetMin() {
 	ShowDeprecationWarning("getMin() or getDistance()", "the min or distance property");
 	return PyFloat_FromDouble(m_minimumBound);
 }
@@ -914,9 +900,7 @@ const char KX_ConstraintActuator::SetMax_doc[] =
 "\t- upper_bound: float\n"
 "\tSets the upper value of the interval to which the value\n"
 "\tis clipped.\n";
-PyObject* KX_ConstraintActuator::PySetMax(PyObject* self, 
-										  PyObject* args, 
-										  PyObject* kwds){
+PyObject* KX_ConstraintActuator::PySetMax(PyObject* args){
 	ShowDeprecationWarning("setMax() or setRayLength()", "the max or rayLength property");
 	float maxArg;
 	if(!PyArg_ParseTuple(args, "f:setMax", &maxArg)) {
@@ -945,7 +929,7 @@ const char KX_ConstraintActuator::GetMax_doc[] =
 "getMax()\n"
 "\tReturns the upper value of the interval to which the value\n"
 "\tis clipped.\n";
-PyObject* KX_ConstraintActuator::PyGetMax(PyObject* self) {
+PyObject* KX_ConstraintActuator::PyGetMax() {
 	ShowDeprecationWarning("getMax() or getRayLength()", "the max or rayLength property");
 	return PyFloat_FromDouble(m_maximumBound);
 }
@@ -969,9 +953,7 @@ const char KX_ConstraintActuator::SetLimit_doc[] =
 "\t  14 : Align Y axis\n"
 "\t  15 : Align Z axis\n"
 "\tSets the type of constraint.\n";
-PyObject* KX_ConstraintActuator::PySetLimit(PyObject* self, 
-											PyObject* args, 
-											PyObject* kwds) {
+PyObject* KX_ConstraintActuator::PySetLimit(PyObject* args) {
 	ShowDeprecationWarning("setLimit()", "the limit property");
 	int locrotArg;
 	if(!PyArg_ParseTuple(args, "i:setLimit", &locrotArg)) {
@@ -986,7 +968,7 @@ PyObject* KX_ConstraintActuator::PySetLimit(PyObject* self,
 const char KX_ConstraintActuator::GetLimit_doc[] = 
 "getLimit()\n"
 "\tReturns the type of constraint.\n";
-PyObject* KX_ConstraintActuator::PyGetLimit(PyObject* self) {
+PyObject* KX_ConstraintActuator::PyGetLimit() {
 	ShowDeprecationWarning("setLimit()", "the limit property");
 	return PyInt_FromLong(m_locrot);
 }

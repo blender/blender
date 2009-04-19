@@ -107,7 +107,7 @@ public:
 	}
 	CcdShapeConstructionInfo* GetChildShape(int i)
 	{
-		if (i < 0 || i >= m_shapeArray.size())
+		if (i < 0 || i >= (int)m_shapeArray.size())
 			return NULL;
 
 		return m_shapeArray.at(i);
@@ -116,7 +116,7 @@ public:
 	{
 		if (shapeInfo == NULL)
 			return -1;
-		for (int i=0; i<m_shapeArray.size(); i++)
+		for (int i=0; i<(int)m_shapeArray.size(); i++)
 		{
 			CcdShapeConstructionInfo* childInfo = m_shapeArray.at(i);
 			if ((userData == NULL || userData == childInfo->m_userData) &&
@@ -130,10 +130,10 @@ public:
 
 	bool RemoveChildShape(int i)
 	{
-		if (i < 0 || i >= m_shapeArray.size())
+		if (i < 0 || i >= (int)m_shapeArray.size())
 			return false;
 		m_shapeArray.at(i)->Release();
-		if (i < m_shapeArray.size()-1)
+		if (i < (int)m_shapeArray.size()-1)
 			m_shapeArray[i] = m_shapeArray.back();
 		m_shapeArray.pop_back();
 		return true;

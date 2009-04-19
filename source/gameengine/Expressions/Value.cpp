@@ -67,7 +67,7 @@ PyMethodDef CValue::Methods[] = {
 	{NULL,NULL} //Sentinel
 };
 
-PyObject* CValue::PyGetName(PyObject* self)
+PyObject* CValue::PyGetName()
 {
 	return PyString_FromString(this->GetName());
 }
@@ -797,7 +797,7 @@ void CValue::ShowDeprecationWarning(const char* old_way,const char* new_way)
 		PyObject *getframe, *frame;
 		PyObject *f_lineno, *f_code, *co_filename;
 		
-		getframe = PySys_GetObject("_getframe"); // borrowed
+		getframe = PySys_GetObject((char *)"_getframe"); // borrowed
 		if (getframe) {
 			frame = PyObject_CallObject(getframe, NULL);
 			if (frame) {

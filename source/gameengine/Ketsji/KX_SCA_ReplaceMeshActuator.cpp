@@ -141,7 +141,7 @@ const char KX_SCA_ReplaceMeshActuator::SetMesh_doc[] =
 	"\t- name: string or None\n"
 	"\tSet the mesh that will be substituted for the current one.\n";
 
-PyObject* KX_SCA_ReplaceMeshActuator::PySetMesh(PyObject* self, PyObject* value)
+PyObject* KX_SCA_ReplaceMeshActuator::PySetMesh(PyObject* value)
 {
 	ShowDeprecationWarning("setMesh()", "the mesh property");
 	if (value == Py_None) {

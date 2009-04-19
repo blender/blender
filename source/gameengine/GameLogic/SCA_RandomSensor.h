@@ -64,11 +64,11 @@ public:
 	virtual int py_setattro(PyObject *attr, PyObject *value);
 
 	/* 1. setSeed                                                            */
-	KX_PYMETHOD_DOC(SCA_RandomSensor,SetSeed);
+	KX_PYMETHOD_DOC_VARARGS(SCA_RandomSensor,SetSeed);
 	/* 2. getSeed                                                            */
-	KX_PYMETHOD_DOC(SCA_RandomSensor,GetSeed);
-	/* 3. getSeed                                                            */
-	KX_PYMETHOD_DOC(SCA_RandomSensor,GetLastDraw);
+	KX_PYMETHOD_DOC_NOARGS(SCA_RandomSensor,GetSeed);
+	/* 3. getLastDraw                                                        */
+	KX_PYMETHOD_DOC_NOARGS(SCA_RandomSensor,GetLastDraw);
 	
 	static PyObject*	pyattr_get_seed(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static int			pyattr_set_seed(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);

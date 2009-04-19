@@ -164,7 +164,6 @@ int KX_NetworkMessageActuator::py_setattro(PyObject *attr, PyObject *value) {
 // Deprecated ----->
 // 1. SetToPropName
 PyObject* KX_NetworkMessageActuator::PySetToPropName(
-	PyObject* self,
 	PyObject* args,
 	PyObject* kwds)
 {
@@ -183,7 +182,6 @@ PyObject* KX_NetworkMessageActuator::PySetToPropName(
 
 // 2. SetSubject
 PyObject* KX_NetworkMessageActuator::PySetSubject(
-	PyObject* self,
 	PyObject* args,
 	PyObject* kwds)
 {
@@ -202,7 +200,6 @@ PyObject* KX_NetworkMessageActuator::PySetSubject(
 
 // 3. SetBodyType
 PyObject* KX_NetworkMessageActuator::PySetBodyType(
-	PyObject* self,
 	PyObject* args,
 	PyObject* kwds)
 {
@@ -221,7 +218,6 @@ PyObject* KX_NetworkMessageActuator::PySetBodyType(
 
 // 4. SetBody
 PyObject* KX_NetworkMessageActuator::PySetBody(
-	PyObject* self,
 	PyObject* args,
 	PyObject* kwds)
 {

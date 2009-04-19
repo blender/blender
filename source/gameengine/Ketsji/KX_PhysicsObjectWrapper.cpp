@@ -51,9 +51,7 @@ KX_PhysicsObjectWrapper::~KX_PhysicsObjectWrapper()
 }
 
 
-PyObject* KX_PhysicsObjectWrapper::PySetPosition(PyObject* self, 
-											PyObject* args, 
-											PyObject* kwds)
+PyObject* KX_PhysicsObjectWrapper::PySetPosition(PyObject* args)
 {
 	float x,y,z;
 	if (PyArg_ParseTuple(args,"fff:setPosition",&x,&y,&z))
@@ -67,9 +65,7 @@ PyObject* KX_PhysicsObjectWrapper::PySetPosition(PyObject* self,
 }
 
 
-PyObject* KX_PhysicsObjectWrapper::PySetLinearVelocity(PyObject* self, 
-											PyObject* args, 
-											PyObject* kwds)
+PyObject* KX_PhysicsObjectWrapper::PySetLinearVelocity(PyObject* args)
 {
 	float x,y,z;
 	int local;
@@ -83,9 +79,7 @@ PyObject* KX_PhysicsObjectWrapper::PySetLinearVelocity(PyObject* self,
 	Py_RETURN_NONE;
 }
 
-PyObject* KX_PhysicsObjectWrapper::PySetAngularVelocity(PyObject* self, 
-											PyObject* args, 
-											PyObject* kwds)
+PyObject* KX_PhysicsObjectWrapper::PySetAngularVelocity(PyObject* args)
 {
 	float x,y,z;
 	int local;
@@ -99,9 +93,7 @@ PyObject* KX_PhysicsObjectWrapper::PySetAngularVelocity(PyObject* self,
 	Py_RETURN_NONE;
 }
 
-PyObject*	KX_PhysicsObjectWrapper::PySetActive(PyObject* self, 
-											PyObject* args, 
-											PyObject* kwds)
+PyObject*	KX_PhysicsObjectWrapper::PySetActive(PyObject* args)
 {
 	int active;
 	if (PyArg_ParseTuple(args,"i:setActive",&active))

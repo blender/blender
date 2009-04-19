@@ -257,7 +257,7 @@ const char KX_NetworkMessageSensor::SetSubjectFilterText_doc[] =
 "\tsetSubjectFilterText(value)\n"
 "\tChange the message subject text that this sensor is listening to.\n";
 
-PyObject* KX_NetworkMessageSensor::PySetSubjectFilterText( PyObject* self, PyObject* value)
+PyObject* KX_NetworkMessageSensor::PySetSubjectFilterText(PyObject* value)
 {
 	ShowDeprecationWarning("setSubjectFilterText()", "subject");
 	char* Subject = PyString_AsString(value);
@@ -275,7 +275,7 @@ const char KX_NetworkMessageSensor::GetFrameMessageCount_doc[] =
 "\tgetFrameMessageCount()\n"
 "\tGet the number of messages received since the last frame.\n";
 
-PyObject* KX_NetworkMessageSensor::PyGetFrameMessageCount( PyObject* )
+PyObject* KX_NetworkMessageSensor::PyGetFrameMessageCount()
 {
 	ShowDeprecationWarning("getFrameMessageCount()", "frameMessageCount");
 	return PyInt_FromLong(long(m_frame_message_count));
@@ -286,7 +286,7 @@ const char KX_NetworkMessageSensor::GetBodies_doc[] =
 "\tgetBodies()\n"
 "\tGet the list of message bodies.\n";
 
-PyObject* KX_NetworkMessageSensor::PyGetBodies( PyObject* )
+PyObject* KX_NetworkMessageSensor::PyGetBodies()
 {
 	ShowDeprecationWarning("getBodies()", "bodies");
 	if (m_BodyList) {
@@ -301,7 +301,7 @@ const char KX_NetworkMessageSensor::GetSubject_doc[] =
 "\tgetSubject()\n"
 "\tGet the subject: field of the message sensor.\n";
 
-PyObject* KX_NetworkMessageSensor::PyGetSubject( PyObject* )
+PyObject* KX_NetworkMessageSensor::PyGetSubject()
 {
 	ShowDeprecationWarning("getSubject()", "subject");
 	return PyString_FromString(m_subject ? m_subject : "");
@@ -312,7 +312,7 @@ const char KX_NetworkMessageSensor::GetSubjects_doc[] =
 "\tgetSubjects()\n"
 "\tGet list of message subjects.\n";
 
-PyObject* KX_NetworkMessageSensor::PyGetSubjects( PyObject* )
+PyObject* KX_NetworkMessageSensor::PyGetSubjects()
 {
 	ShowDeprecationWarning("getSubjects()", "subjects");
 	if (m_SubjectList) {

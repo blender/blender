@@ -85,8 +85,8 @@ public:
 	virtual int py_setattro(PyObject *attr, PyObject *value);
 
 	// Deprecated ----->
-	KX_PYMETHOD(KX_CDActuator,SetGain);
-	KX_PYMETHOD(KX_CDActuator,GetGain);
+	KX_PYMETHOD_VARARGS(KX_CDActuator,SetGain);
+	KX_PYMETHOD_VARARGS(KX_CDActuator,GetGain);
 	// <-----
 
 	KX_PYMETHOD_DOC_NOARGS(KX_CDActuator, startCD);

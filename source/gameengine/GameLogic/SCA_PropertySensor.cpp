@@ -334,11 +334,11 @@ PyParentObject SCA_PropertySensor::Parents[] = {
 
 PyMethodDef SCA_PropertySensor::Methods[] = {
 	//Deprecated functions ------>
-	{"getType", (PyCFunction) SCA_PropertySensor::sPyGetType, METH_VARARGS, (PY_METHODCHAR)GetType_doc},
+	{"getType", (PyCFunction) SCA_PropertySensor::sPyGetType, METH_NOARGS, (PY_METHODCHAR)GetType_doc},
 	{"setType", (PyCFunction) SCA_PropertySensor::sPySetType, METH_VARARGS, (PY_METHODCHAR)SetType_doc},
-	{"getProperty", (PyCFunction) SCA_PropertySensor::sPyGetProperty, METH_VARARGS, (PY_METHODCHAR)GetProperty_doc},
+	{"getProperty", (PyCFunction) SCA_PropertySensor::sPyGetProperty, METH_NOARGS, (PY_METHODCHAR)GetProperty_doc},
 	{"setProperty", (PyCFunction) SCA_PropertySensor::sPySetProperty, METH_VARARGS, (PY_METHODCHAR)SetProperty_doc},
-	{"getValue", (PyCFunction) SCA_PropertySensor::sPyGetValue, METH_VARARGS, (PY_METHODCHAR)GetValue_doc},
+	{"getValue", (PyCFunction) SCA_PropertySensor::sPyGetValue, METH_NOARGS, (PY_METHODCHAR)GetValue_doc},
 	{"setValue", (PyCFunction) SCA_PropertySensor::sPySetValue, METH_VARARGS, (PY_METHODCHAR)SetValue_doc},
 	//<----- Deprecated
 	{NULL,NULL} //Sentinel
@@ -364,7 +364,7 @@ int SCA_PropertySensor::py_setattro(PyObject *attr, PyObject *value) {
 const char SCA_PropertySensor::GetType_doc[] = 
 "getType()\n"
 "\tReturns the type of check this sensor performs.\n";
-PyObject* SCA_PropertySensor::PyGetType(PyObject* self, PyObject* args, PyObject* kwds)
+PyObject* SCA_PropertySensor::PyGetType()
 {
 	ShowDeprecationWarning("getType()", "the type property");
 	return PyInt_FromLong(m_checktype);
@@ -377,7 +377,7 @@ const char SCA_PropertySensor::SetType_doc[] =
 "\t        KX_PROPSENSOR_INTERVAL, KX_PROPSENSOR_CHANGED,\n"
 "\t        or KX_PROPSENSOR_EXPRESSION.\n"
 "\tSet the type of check to perform.\n";
-PyObject* SCA_PropertySensor::PySetType(PyObject* self, PyObject* args, PyObject* kwds) 
+PyObject* SCA_PropertySensor::PySetType(PyObject* args) 
 {
 	ShowDeprecationWarning("setType()", "the type property");
 	int typeArg;
@@ -398,7 +398,7 @@ PyObject* SCA_PropertySensor::PySetType(PyObject* self, PyObject* args, PyObject
 const char SCA_PropertySensor::GetProperty_doc[] = 
 "getProperty()\n"
 "\tReturn the property with which the sensor operates.\n";
-PyObject* SCA_PropertySensor::PyGetProperty(PyObject* self, PyObject* args, PyObject* kwds) 
+PyObject* SCA_PropertySensor::PyGetProperty() 
 {
 	ShowDeprecationWarning("getProperty()", "the 'property' property");
 	return PyString_FromString(m_checkpropname);
@@ -410,7 +410,7 @@ const char SCA_PropertySensor::SetProperty_doc[] =
 "\t- name: string\n"
 "\tSets the property with which to operate. If there is no property\n"
 "\tof this name, the call is ignored.\n";
-PyObject* SCA_PropertySensor::PySetProperty(PyObject* self, PyObject* args, PyObject* kwds) 
+PyObject* SCA_PropertySensor::PySetProperty(PyObject* args) 
 {
 	ShowDeprecationWarning("setProperty()", "the 'property' property");
 	/* We should query whether the name exists. Or should we create a prop   */
@@ -435,7 +435,7 @@ PyObject* SCA_PropertySensor::PySetProperty(PyObject* self, PyObject* args, PyOb
 const char SCA_PropertySensor::GetValue_doc[] = 
 "getValue()\n"
 "\tReturns the value with which the sensor operates.\n";
-PyObject* SCA_PropertySensor::PyGetValue(PyObject* self, PyObject* args, PyObject* kwds) 
+PyObject* SCA_PropertySensor::PyGetValue() 
 {
 	ShowDeprecationWarning("getValue()", "the value property");
 	return PyString_FromString(m_checkpropval);
@@ -448,7 +448,7 @@ const char SCA_PropertySensor::SetValue_doc[] =
 "\tSet the value with which the sensor operates. If the value\n"
 "\tis not compatible with the type of the property, the subsequent\n"
 "\t action is ignored.\n";
-PyObject* SCA_PropertySensor::PySetValue(PyObject* self, PyObject* args, PyObject* kwds) 
+PyObject* SCA_PropertySensor::PySetValue(PyObject* args) 
 {
 	ShowDeprecationWarning("setValue()", "the value property");
 	/* Here, we need to check whether the value is 'valid' for this property.*/
@@ -460,7 +460,7 @@ PyObject* SCA_PropertySensor::PySetValue(PyObject* self, PyObject* args, PyObjec
 	}
 	STR_String oldval = m_checkpropval;
 	m_checkpropval = propValArg;
-	if (validValueForProperty(self, NULL)) {
+	if (validValueForProperty(m_proxy, NULL)) {
 		m_checkpropval = oldval;
 		return NULL;
 	}	

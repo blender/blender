@@ -207,7 +207,7 @@ const char KX_RadarSensor::GetConeOrigin_doc[] =
 "getConeOrigin()\n"
 "\tReturns the origin of the cone with which to test. The origin\n"
 "\tis in the middle of the cone.";
-PyObject* KX_RadarSensor::PyGetConeOrigin(PyObject* self) {
+PyObject* KX_RadarSensor::PyGetConeOrigin() {
 	ShowDeprecationWarning("getConeOrigin()", "the coneOrigin property");
 
 	PyObject *retVal = PyList_New(3);
@@ -223,7 +223,7 @@ PyObject* KX_RadarSensor::PyGetConeOrigin(PyObject* self) {
 const char KX_RadarSensor::GetConeTarget_doc[] = 
 "getConeTarget()\n"
 "\tReturns the center of the bottom face of the cone with which to test.\n";
-PyObject* KX_RadarSensor::PyGetConeTarget(PyObject* self) {
+PyObject* KX_RadarSensor::PyGetConeTarget() {
 	ShowDeprecationWarning("getConeTarget()", "the coneTarget property");
 
 	PyObject *retVal = PyList_New(3);
@@ -239,7 +239,7 @@ PyObject* KX_RadarSensor::PyGetConeTarget(PyObject* self) {
 const char KX_RadarSensor::GetConeHeight_doc[] = 
 "getConeHeight()\n"
 "\tReturns the height of the cone with which to test.\n";
-PyObject* KX_RadarSensor::PyGetConeHeight(PyObject* self) {
+PyObject* KX_RadarSensor::PyGetConeHeight() {
 											  
 	ShowDeprecationWarning("getConeHeight()", "the distance property");
 

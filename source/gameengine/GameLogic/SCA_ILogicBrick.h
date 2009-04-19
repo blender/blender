@@ -88,7 +88,7 @@ public:
 	// python methods
 
 	KX_PYMETHOD_NOARGS(SCA_ILogicBrick,GetOwner);
-	KX_PYMETHOD(SCA_ILogicBrick,SetExecutePriority);
+	KX_PYMETHOD_VARARGS(SCA_ILogicBrick,SetExecutePriority);
 	KX_PYMETHOD_NOARGS(SCA_ILogicBrick,GetExecutePriority);
 
 	// check that attribute is a property

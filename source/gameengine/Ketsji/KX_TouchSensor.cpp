@@ -310,7 +310,7 @@ const char KX_TouchSensor::SetProperty_doc[] =
 "\tSet the property or material to collide with. Use\n"
 "\tsetTouchMaterial() to switch between properties and\n"
 "\tmaterials.";
-PyObject* KX_TouchSensor::PySetProperty(PyObject* self, PyObject* value)
+PyObject* KX_TouchSensor::PySetProperty(PyObject* value)
 {
 	ShowDeprecationWarning("setProperty()", "the propertyName property");
 	char *nameArg= PyString_AsString(value);
@@ -328,14 +328,14 @@ const char KX_TouchSensor::GetProperty_doc[] =
 "\tReturns the property or material to collide with. Use\n"
 "\tgetTouchMaterial() to find out whether this sensor\n"
 "\tlooks for properties or materials.";
-PyObject*  KX_TouchSensor::PyGetProperty(PyObject* self) {
+PyObject*  KX_TouchSensor::PyGetProperty() {
 	return PyString_FromString(m_touchedpropname);
 }
 
 const char KX_TouchSensor::GetHitObject_doc[] = 
 "getHitObject()\n"
 ;
-PyObject* KX_TouchSensor::PyGetHitObject(PyObject* self)
+PyObject* KX_TouchSensor::PyGetHitObject()
 {
 	ShowDeprecationWarning("getHitObject()", "the objectHit property");
 	/* to do: do Py_IncRef if the object is already known in Python */
@@ -351,7 +351,7 @@ const char KX_TouchSensor::GetHitObjectList_doc[] =
 "getHitObjectList()\n"
 "\tReturn a list of the objects this object collided with,\n"
 "\tbut only those matching the property/material condition.\n";
-PyObject* KX_TouchSensor::PyGetHitObjectList(PyObject* self)
+PyObject* KX_TouchSensor::PyGetHitObjectList()
 {
 	ShowDeprecationWarning("getHitObjectList()", "the objectHitList property");
 	/* to do: do Py_IncRef if the object is already known in Python */
@@ -367,7 +367,7 @@ const char KX_TouchSensor::GetTouchMaterial_doc[] =
 "getTouchMaterial()\n"
 "\tReturns KX_TRUE if this sensor looks for a specific material,\n"
 "\tKX_FALSE if it looks for a specific property.\n" ;
-PyObject* KX_TouchSensor::PyGetTouchMaterial(PyObject* self)
+PyObject* KX_TouchSensor::PyGetTouchMaterial()
 {
 	ShowDeprecationWarning("getTouchMaterial()", "the materialCheck property");
 	return PyInt_FromLong(m_bFindMaterial);
@@ -380,7 +380,7 @@ const char KX_TouchSensor::SetTouchMaterial_doc[] =
 "\t- flag: KX_TRUE or KX_FALSE.\n"
 "\tSet flag to KX_TRUE to switch on positive pulse mode,\n"
 "\tKX_FALSE to switch off positive pulse mode.\n" ;
-PyObject* KX_TouchSensor::PySetTouchMaterial(PyObject* self, PyObject *value)
+PyObject* KX_TouchSensor::PySetTouchMaterial(PyObject *value)
 {
 	int pulseArg = PyInt_AsLong(value);
 

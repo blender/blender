@@ -289,7 +289,7 @@ KX_PYMETHODDEF_DOC_NOARGS(KX_CDActuator, playAll,
 }     
 
 // Deprecated ----->
-PyObject* KX_CDActuator::PySetGain(PyObject* self, PyObject* args, PyObject* kwds)
+PyObject* KX_CDActuator::PySetGain(PyObject* args)
 {
 	float gain = 1.0;
 	ShowDeprecationWarning("setGain()", "the volume property");
@@ -303,7 +303,7 @@ PyObject* KX_CDActuator::PySetGain(PyObject* self, PyObject* args, PyObject* kwd
 
 
 
-PyObject* KX_CDActuator::PyGetGain(PyObject* self, PyObject* args, PyObject* kwds)
+PyObject* KX_CDActuator::PyGetGain(PyObject* args)
 {
 	float gain = SND_CDObject::Instance()->GetGain();
 	ShowDeprecationWarning("getGain()", "the volume property");

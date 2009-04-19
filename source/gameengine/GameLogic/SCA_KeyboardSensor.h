@@ -115,21 +115,21 @@ public:
 
 	//Deprecated functions ----->
 	/** 1. GetKey : check which key this sensor looks at */
-	KX_PYMETHOD_DOC(SCA_KeyboardSensor,GetKey);
+	KX_PYMETHOD_DOC_NOARGS(SCA_KeyboardSensor,GetKey);
 	/** 2. SetKey: change the key to look at */
-	KX_PYMETHOD_DOC(SCA_KeyboardSensor,SetKey);
+	KX_PYMETHOD_DOC_VARARGS(SCA_KeyboardSensor,SetKey);
 	/** 3. GetHold1 : set the first bucky bit */
-	KX_PYMETHOD_DOC(SCA_KeyboardSensor,GetHold1);
+	KX_PYMETHOD_DOC_NOARGS(SCA_KeyboardSensor,GetHold1);
 	/** 4. SetHold1: change the first bucky bit */
-	KX_PYMETHOD_DOC(SCA_KeyboardSensor,SetHold1);
+	KX_PYMETHOD_DOC_VARARGS(SCA_KeyboardSensor,SetHold1);
 	/** 5. GetHold2 : set the second bucky bit */
-	KX_PYMETHOD_DOC(SCA_KeyboardSensor,GetHold2);
+	KX_PYMETHOD_DOC_NOARGS(SCA_KeyboardSensor,GetHold2);
 	/** 6. SetHold2: change the second bucky bit */
-	KX_PYMETHOD_DOC(SCA_KeyboardSensor,SetHold2);
+	KX_PYMETHOD_DOC_VARARGS(SCA_KeyboardSensor,SetHold2);
 	/** 9. GetPressedKeys: */
-	KX_PYMETHOD_DOC(SCA_KeyboardSensor,GetPressedKeys); 
+	KX_PYMETHOD_DOC_NOARGS(SCA_KeyboardSensor,GetPressedKeys); 
 	/** 9. GetCurrrentlyPressedKeys: */
-	KX_PYMETHOD_DOC(SCA_KeyboardSensor,GetCurrentlyPressedKeys); 
+	KX_PYMETHOD_DOC_NOARGS(SCA_KeyboardSensor,GetCurrentlyPressedKeys); 
 	// <------
 	
 	// KeyEvents: 

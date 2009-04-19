@@ -780,7 +780,7 @@ bool PyObjectPlus::isA(const char *mytypename)		// check typename of each parent
 	return false;
 }
 
-PyObject *PyObjectPlus::PyisA(PyObject *self, PyObject *value)		// Python wrapper for isA
+PyObject *PyObjectPlus::PyisA(PyObject *value)		// Python wrapper for isA
 {
 	if (PyType_Check(value)) {
 		return PyBool_FromLong(isA((PyTypeObject *)value));

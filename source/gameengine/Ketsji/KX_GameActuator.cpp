@@ -270,7 +270,7 @@ int KX_GameActuator::py_setattro(PyObject *attr, PyObject *value)
 const char KX_GameActuator::GetFile_doc[] = 
 "getFile()\n"
 "get the name of the file to start.\n";
-PyObject* KX_GameActuator::PyGetFile(PyObject* self, PyObject* args, PyObject* kwds)
+PyObject* KX_GameActuator::PyGetFile(PyObject* args, PyObject* kwds)
 {	
 	ShowDeprecationWarning("getFile()", "the file property");
 	return PyString_FromString(m_filename);
@@ -280,7 +280,7 @@ PyObject* KX_GameActuator::PyGetFile(PyObject* self, PyObject* args, PyObject* k
 const char KX_GameActuator::SetFile_doc[] =
 "setFile(name)\n"
 "set the name of the file to start.\n";
-PyObject* KX_GameActuator::PySetFile(PyObject* self, PyObject* args, PyObject* kwds)
+PyObject* KX_GameActuator::PySetFile(PyObject* args, PyObject* kwds)
 {
 	char* new_file;
 

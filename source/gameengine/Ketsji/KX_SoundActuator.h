@@ -108,21 +108,21 @@ public:
 	static PyObject* pyattr_get_type(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef);
 
 	// Deprecated ----->
-	KX_PYMETHOD(KX_SoundActuator,SetFilename);
-	KX_PYMETHOD(KX_SoundActuator,GetFilename);
-	KX_PYMETHOD(KX_SoundActuator,SetGain);
-	KX_PYMETHOD(KX_SoundActuator,GetGain);
-	KX_PYMETHOD(KX_SoundActuator,SetPitch);
-	KX_PYMETHOD(KX_SoundActuator,GetPitch);
-	KX_PYMETHOD(KX_SoundActuator,SetRollOffFactor);
-	KX_PYMETHOD(KX_SoundActuator,GetRollOffFactor);
-	KX_PYMETHOD(KX_SoundActuator,SetLooping);
-	KX_PYMETHOD(KX_SoundActuator,GetLooping);
-	KX_PYMETHOD(KX_SoundActuator,SetPosition);
-	KX_PYMETHOD(KX_SoundActuator,SetVelocity);
-	KX_PYMETHOD(KX_SoundActuator,SetOrientation);
-	KX_PYMETHOD(KX_SoundActuator,SetType);
-	KX_PYMETHOD(KX_SoundActuator,GetType);
+	KX_PYMETHOD_VARARGS(KX_SoundActuator,SetFilename);
+	KX_PYMETHOD_NOARGS(KX_SoundActuator,GetFilename);
+	KX_PYMETHOD_VARARGS(KX_SoundActuator,SetGain);
+	KX_PYMETHOD_NOARGS(KX_SoundActuator,GetGain);
+	KX_PYMETHOD_VARARGS(KX_SoundActuator,SetPitch);
+	KX_PYMETHOD_NOARGS(KX_SoundActuator,GetPitch);
+	KX_PYMETHOD_VARARGS(KX_SoundActuator,SetRollOffFactor);
+	KX_PYMETHOD_NOARGS(KX_SoundActuator,GetRollOffFactor);
+	KX_PYMETHOD_VARARGS(KX_SoundActuator,SetLooping);
+	KX_PYMETHOD_NOARGS(KX_SoundActuator,GetLooping);
+	KX_PYMETHOD_VARARGS(KX_SoundActuator,SetPosition);
+	KX_PYMETHOD_VARARGS(KX_SoundActuator,SetVelocity);
+	KX_PYMETHOD_VARARGS(KX_SoundActuator,SetOrientation);
+	KX_PYMETHOD_VARARGS(KX_SoundActuator,SetType);
+	KX_PYMETHOD_NOARGS(KX_SoundActuator,GetType);
 	// <-----
 
 };

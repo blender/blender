@@ -183,9 +183,9 @@ from = Name of object to sned the string from";
 static PyObject* gPySendMessage(PyObject*, PyObject* args)
 {
 	char* subject;
-	char* body = "";
-	char* to = "";
-	char* from = "";
+	char* body = (char *)"";
+	char* to = (char *)"";
+	char* from = (char *)"";
 
 	if (!PyArg_ParseTuple(args, "s|sss:sendMessage", &subject, &body, &to, &from))
 		return NULL;
@@ -1422,7 +1422,7 @@ static void clearGameModules()
 	/* Note, user modules could still reference these modules
 	 * but since the dict's are cleared their members wont be accessible */
 	
-	PyObject *modules= PySys_GetObject("modules");
+	PyObject *modules= PySys_GetObject((char *)"modules");
 	clearModule(modules, "Expression");
 	clearModule(modules, "CValue");	
 	clearModule(modules, "PhysicsConstraints");	

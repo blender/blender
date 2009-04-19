@@ -192,7 +192,7 @@ const char SCA_DelaySensor::SetDelay_doc[] =
 "\t- delay: length of the initial OFF period as number of frame\n"
 "\t         0 for immediate trigger\n"
 "\tSet the initial delay before the positive trigger\n";
-PyObject* SCA_DelaySensor::PySetDelay(PyObject* self, PyObject* args, PyObject* kwds)
+PyObject* SCA_DelaySensor::PySetDelay(PyObject* args)
 {
 	ShowDeprecationWarning("setDelay()", "the delay property");
 	int delay;
@@ -214,7 +214,7 @@ const char SCA_DelaySensor::SetDuration_doc[] =
 "\t            0 for no ON period\n"
 "\tSet the duration of the ON pulse after initial delay.\n"
 "\tIf > 0, a negative trigger is fired at the end of the ON pulse.\n";
-PyObject* SCA_DelaySensor::PySetDuration(PyObject* self, PyObject* args, PyObject* kwds)
+PyObject* SCA_DelaySensor::PySetDuration(PyObject* args)
 {
 	ShowDeprecationWarning("setDuration()", "the duration property");
 	int duration;
@@ -235,7 +235,7 @@ const char SCA_DelaySensor::SetRepeat_doc[] =
 "\t- repeat: 1 if the initial OFF-ON cycle should be repeated indefinately\n"
 "\t          0 if the initial OFF-ON cycle should run only once\n"
 "\tSet the sensor repeat mode\n";
-PyObject* SCA_DelaySensor::PySetRepeat(PyObject* self, PyObject* args, PyObject* kwds)
+PyObject* SCA_DelaySensor::PySetRepeat(PyObject* args)
 {
 	ShowDeprecationWarning("setRepeat()", "the repeat property");
 	int repeat;
@@ -250,7 +250,7 @@ PyObject* SCA_DelaySensor::PySetRepeat(PyObject* self, PyObject* args, PyObject*
 const char SCA_DelaySensor::GetDelay_doc[] = 
 "getDelay()\n"
 "\tReturn the delay parameter value\n";
-PyObject* SCA_DelaySensor::PyGetDelay(PyObject* self)
+PyObject* SCA_DelaySensor::PyGetDelay()
 {
 	ShowDeprecationWarning("getDelay()", "the delay property");
 	return PyInt_FromLong(m_delay);
@@ -259,7 +259,7 @@ PyObject* SCA_DelaySensor::PyGetDelay(PyObject* self)
 const char SCA_DelaySensor::GetDuration_doc[] = 
 "getDuration()\n"
 "\tReturn the duration parameter value\n";
-PyObject* SCA_DelaySensor::PyGetDuration(PyObject* self)
+PyObject* SCA_DelaySensor::PyGetDuration()
 {
 	ShowDeprecationWarning("getDuration()", "the duration property");
 	return PyInt_FromLong(m_duration);
@@ -268,7 +268,7 @@ PyObject* SCA_DelaySensor::PyGetDuration(PyObject* self)
 const char SCA_DelaySensor::GetRepeat_doc[] = 
 "getRepeat()\n"
 "\tReturn the repeat parameter value\n";
-PyObject* SCA_DelaySensor::PyGetRepeat(PyObject* self)
+PyObject* SCA_DelaySensor::PyGetRepeat()
 {
 	ShowDeprecationWarning("getRepeat()", "the repeat property");
 	return BoolToPyArg(m_repeat);

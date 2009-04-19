@@ -114,9 +114,9 @@ class SCA_MouseSensor : public SCA_ISensor
 
 	//Deprecated functions ----->
 	/* read x-coordinate */
-	KX_PYMETHOD_DOC(SCA_MouseSensor,GetXPosition);
+	KX_PYMETHOD_DOC_NOARGS(SCA_MouseSensor,GetXPosition);
 	/* read y-coordinate */
-	KX_PYMETHOD_DOC(SCA_MouseSensor,GetYPosition);
+	KX_PYMETHOD_DOC_NOARGS(SCA_MouseSensor,GetYPosition);
 	//<----- deprecated
 	
 	// get button status

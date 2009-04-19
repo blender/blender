@@ -289,7 +289,7 @@ int SCA_ILogicBrick::py_setattro(PyObject *attr, PyObject *value)
 }
 
 
-PyObject* SCA_ILogicBrick::PyGetOwner(PyObject* self)
+PyObject* SCA_ILogicBrick::PyGetOwner()
 {
 	CValue* parent = GetParent();
 	if (parent)
@@ -303,9 +303,7 @@ PyObject* SCA_ILogicBrick::PyGetOwner(PyObject* self)
 
 
 
-PyObject* SCA_ILogicBrick::PySetExecutePriority(PyObject* self, 
-			       PyObject* args, 
-			       PyObject* kwds)
+PyObject* SCA_ILogicBrick::PySetExecutePriority(PyObject* args)
 {
 	ShowDeprecationWarning("setExecutePriority()", "the executePriority property");
 
@@ -322,7 +320,7 @@ PyObject* SCA_ILogicBrick::PySetExecutePriority(PyObject* self,
 
 
 
-PyObject* SCA_ILogicBrick::PyGetExecutePriority(PyObject* self)
+PyObject* SCA_ILogicBrick::PyGetExecutePriority()
 {
 	ShowDeprecationWarning("getExecutePriority()", "the executePriority property");
 	return PyInt_FromLong(m_Execute_Ueber_Priority);

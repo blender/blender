@@ -267,20 +267,20 @@ PyParentObject KX_SoundActuator::Parents[] = {
 PyMethodDef KX_SoundActuator::Methods[] = {
 	// Deprecated ----->
 	{"setFilename", (PyCFunction) KX_SoundActuator::sPySetFilename, METH_VARARGS,NULL},
-	{"getFilename", (PyCFunction) KX_SoundActuator::sPyGetFilename, METH_VARARGS,NULL},
+	{"getFilename", (PyCFunction) KX_SoundActuator::sPyGetFilename, METH_NOARGS,NULL},
 	{"setGain",(PyCFunction) KX_SoundActuator::sPySetGain,METH_VARARGS,NULL},
-	{"getGain",(PyCFunction) KX_SoundActuator::sPyGetGain,METH_VARARGS,NULL},
+	{"getGain",(PyCFunction) KX_SoundActuator::sPyGetGain,METH_NOARGS,NULL},
 	{"setPitch",(PyCFunction) KX_SoundActuator::sPySetPitch,METH_VARARGS,NULL},
-	{"getPitch",(PyCFunction) KX_SoundActuator::sPyGetPitch,METH_VARARGS,NULL},
+	{"getPitch",(PyCFunction) KX_SoundActuator::sPyGetPitch,METH_NOARGS,NULL},
 	{"setRollOffFactor",(PyCFunction) KX_SoundActuator::sPySetRollOffFactor,METH_VARARGS,NULL},
-	{"getRollOffFactor",(PyCFunction) KX_SoundActuator::sPyGetRollOffFactor,METH_VARARGS,NULL},
+	{"getRollOffFactor",(PyCFunction) KX_SoundActuator::sPyGetRollOffFactor,METH_NOARGS,NULL},
 	{"setLooping",(PyCFunction) KX_SoundActuator::sPySetLooping,METH_VARARGS,NULL},
-	{"getLooping",(PyCFunction) KX_SoundActuator::sPyGetLooping,METH_VARARGS,NULL},
+	{"getLooping",(PyCFunction) KX_SoundActuator::sPyGetLooping,METH_NOARGS,NULL},
 	{"setPosition",(PyCFunction) KX_SoundActuator::sPySetPosition,METH_VARARGS,NULL},
 	{"setVelocity",(PyCFunction) KX_SoundActuator::sPySetVelocity,METH_VARARGS,NULL},
 	{"setOrientation",(PyCFunction) KX_SoundActuator::sPySetOrientation,METH_VARARGS,NULL},
 	{"setType",(PyCFunction) KX_SoundActuator::sPySetType,METH_VARARGS,NULL},
-	{"getType",(PyCFunction) KX_SoundActuator::sPyGetType,METH_VARARGS,NULL},
+	{"getType",(PyCFunction) KX_SoundActuator::sPyGetType,METH_NOARGS,NULL},
 	// <-----
 
 	KX_PYMETHODTABLE_NOARGS(KX_SoundActuator, startSound),
@@ -587,7 +587,7 @@ int KX_SoundActuator::pyattr_set_orientation(void *self, const struct KX_PYATTRI
 }
 
 // Deprecated ----->
-PyObject* KX_SoundActuator::PySetFilename(PyObject* self, PyObject* args, PyObject* kwds)
+PyObject* KX_SoundActuator::PySetFilename(PyObject* args)
 {
 	char *soundName = NULL;
 	ShowDeprecationWarning("setFilename()", "the filename property");
@@ -599,7 +599,7 @@ PyObject* KX_SoundActuator::PySetFilename(PyObject* self, PyObject* args, PyObje
 	Py_RETURN_NONE;
 }
 
-PyObject* KX_SoundActuator::PyGetFilename(PyObject* self, PyObject* args, PyObject* kwds)
+PyObject* KX_SoundActuator::PyGetFilename()
 {
 	ShowDeprecationWarning("getFilename()", "the filename property");
 	if (!m_soundObject)
@@ -616,7 +616,7 @@ PyObject* KX_SoundActuator::PyGetFilename(PyObject* self, PyObject* args, PyObje
 		return PyString_FromString(name);
 }
 
-PyObject* KX_SoundActuator::PySetGain(PyObject* self, PyObject* args, PyObject* kwds)
+PyObject* KX_SoundActuator::PySetGain(PyObject* args)
 {
 	ShowDeprecationWarning("setGain()", "the volume property");
 	float gain = 1.0;
@@ -631,7 +631,7 @@ PyObject* KX_SoundActuator::PySetGain(PyObject* self, PyObject* args, PyObject* 
 
 
 
-PyObject* KX_SoundActuator::PyGetGain(PyObject* self, PyObject* args, PyObject* kwds)
+PyObject* KX_SoundActuator::PyGetGain()
 {
 	ShowDeprecationWarning("getGain()", "the volume property");
 	float gain = (m_soundObject) ? m_soundObject->GetGain() : 1.0f;
@@ -642,7 +642,7 @@ PyObject* KX_SoundActuator::PyGetGain(PyObject* self, PyObject* args, PyObject* 
 
 
 
-PyObject* KX_SoundActuator::PySetPitch(PyObject* self, PyObject* args, PyObject* kwds)
+PyObject* KX_SoundActuator::PySetPitch(PyObject* args)
 {
 	ShowDeprecationWarning("setPitch()", "the pitch property");
 	float pitch = 1.0;
@@ -657,7 +657,7 @@ PyObject* KX_SoundActuator::PySetPitch(PyObject* self, PyObject* args, PyObject*
 
 
 
-PyObject* KX_SoundActuator::PyGetPitch(PyObject* self, PyObject* args, PyObject* kwds)
+PyObject* KX_SoundActuator::PyGetPitch()
 {
 	ShowDeprecationWarning("getPitch()", "the pitch property");
 	float pitch = (m_soundObject) ? m_soundObject->GetPitch() : 1.0;
@@ -668,7 +668,7 @@ PyObject* KX_SoundActuator::PyGetPitch(PyObject* self, PyObject* args, PyObject*
 
 
 
-PyObject* KX_SoundActuator::PySetRollOffFactor(PyObject* self, PyObject* args, PyObject* kwds)
+PyObject* KX_SoundActuator::PySetRollOffFactor(PyObject* args)
 {
 	ShowDeprecationWarning("setRollOffFactor()", "the rollOffFactor property");
 	float rollofffactor = 1.0;
@@ -683,7 +683,7 @@ PyObject* KX_SoundActuator::PySetRollOffFactor(PyObject* self, PyObject* args, P
 
 
 
-PyObject* KX_SoundActuator::PyGetRollOffFactor(PyObject* self, PyObject* args, PyObject* kwds)
+PyObject* KX_SoundActuator::PyGetRollOffFactor()
 {
 	ShowDeprecationWarning("getRollOffFactor()", "the rollOffFactor property");
 	float rollofffactor = (m_soundObject) ? m_soundObject->GetRollOffFactor() : 1.0;
@@ -694,7 +694,7 @@ PyObject* KX_SoundActuator::PyGetRollOffFactor(PyObject* self, PyObject* args, P
 
 
 
-PyObject* KX_SoundActuator::PySetLooping(PyObject* self, PyObject* args, PyObject* kwds)
+PyObject* KX_SoundActuator::PySetLooping(PyObject* args)
 {
 	ShowDeprecationWarning("setLooping()", "the looping property");
 	bool looping = 1;
@@ -709,7 +709,7 @@ PyObject* KX_SoundActuator::PySetLooping(PyObject* self, PyObject* args, PyObjec
 
 
 
-PyObject* KX_SoundActuator::PyGetLooping(PyObject* self, PyObject* args, PyObject* kwds)
+PyObject* KX_SoundActuator::PyGetLooping()
 {
 	ShowDeprecationWarning("getLooping()", "the looping property");
 	int looping = (m_soundObject) ? m_soundObject->GetLoopMode() : (int)SND_LOOP_OFF;
@@ -720,7 +720,7 @@ PyObject* KX_SoundActuator::PyGetLooping(PyObject* self, PyObject* args, PyObjec
 
 
 
-PyObject* KX_SoundActuator::PySetPosition(PyObject* self, PyObject* args, PyObject* kwds)
+PyObject* KX_SoundActuator::PySetPosition(PyObject* args)
 {
 	MT_Point3 pos;
 	ShowDeprecationWarning("setPosition()", "the position property");
@@ -739,7 +739,7 @@ PyObject* KX_SoundActuator::PySetPosition(PyObject* self, PyObject* args, PyObje
 
 
 
-PyObject* KX_SoundActuator::PySetVelocity(PyObject* self, PyObject* args, PyObject* kwds)
+PyObject* KX_SoundActuator::PySetVelocity(PyObject* args)
 {
 	MT_Vector3 vel;
 	ShowDeprecationWarning("setVelocity()", "the velocity property");
@@ -758,7 +758,7 @@ PyObject* KX_SoundActuator::PySetVelocity(PyObject* self, PyObject* args, PyObje
 
 
 
-PyObject* KX_SoundActuator::PySetOrientation(PyObject* self, PyObject* args, PyObject* kwds)
+PyObject* KX_SoundActuator::PySetOrientation(PyObject* args)
 {
 	MT_Matrix3x3 ori;
 	ShowDeprecationWarning("setOrientation()", "the orientation property");
@@ -781,7 +781,7 @@ PyObject* KX_SoundActuator::PySetOrientation(PyObject* self, PyObject* args, PyO
 	Py_RETURN_NONE;
 }
 
-PyObject* KX_SoundActuator::PySetType(PyObject* self, PyObject* args, PyObject* kwds)
+PyObject* KX_SoundActuator::PySetType(PyObject* args)
 {
 	int typeArg;
 	ShowDeprecationWarning("setType()", "the type property");
@@ -798,7 +798,7 @@ PyObject* KX_SoundActuator::PySetType(PyObject* self, PyObject* args, PyObject* 
 	Py_RETURN_NONE;
 }
 
-PyObject* KX_SoundActuator::PyGetType(PyObject* self, PyObject* args, PyObject* kwds)
+PyObject* KX_SoundActuator::PyGetType()
 {
 	ShowDeprecationWarning("getType()", "the type property");
 	return PyInt_FromLong(m_type);

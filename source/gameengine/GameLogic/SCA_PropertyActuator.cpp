@@ -289,7 +289,7 @@ const char SCA_PropertyActuator::SetProperty_doc[] =
 "\t- name: string\n"
 "\tSet the property on which to operate. If there is no property\n"
 "\tof this name, the call is ignored.\n";
-PyObject* SCA_PropertyActuator::PySetProperty(PyObject* self, PyObject* args, PyObject* kwds)
+PyObject* SCA_PropertyActuator::PySetProperty(PyObject* args, PyObject* kwds)
 {
 	ShowDeprecationWarning("setProperty()", "the 'property' property");
 	/* Check whether the name exists first ! */
@@ -314,7 +314,7 @@ PyObject* SCA_PropertyActuator::PySetProperty(PyObject* self, PyObject* args, Py
 const char SCA_PropertyActuator::GetProperty_doc[] = 
 "getProperty(name)\n"
 "\tReturn the property on which the actuator operates.\n";
-PyObject* SCA_PropertyActuator::PyGetProperty(PyObject* self, PyObject* args, PyObject* kwds)
+PyObject* SCA_PropertyActuator::PyGetProperty(PyObject* args, PyObject* kwds)
 {
 	ShowDeprecationWarning("getProperty()", "the 'property' property");
 	return PyString_FromString(m_propname);
@@ -327,7 +327,7 @@ const char SCA_PropertyActuator::SetValue_doc[] =
 "\tSet the value with which the actuator operates. If the value\n"
 "\tis not compatible with the type of the property, the subsequent\n"
 "\t action is ignored.\n";
-PyObject* SCA_PropertyActuator::PySetValue(PyObject* self, PyObject* args, PyObject* kwds)
+PyObject* SCA_PropertyActuator::PySetValue(PyObject* args, PyObject* kwds)
 {
 	ShowDeprecationWarning("setValue()", "the value property");
 	char *valArg;
@@ -344,7 +344,7 @@ PyObject* SCA_PropertyActuator::PySetValue(PyObject* self, PyObject* args, PyObj
 const char SCA_PropertyActuator::GetValue_doc[] = 
 "getValue()\n"
 "\tReturns the value with which the actuator operates.\n";
-PyObject* SCA_PropertyActuator::PyGetValue(PyObject* self, PyObject* args, PyObject* kwds)
+PyObject* SCA_PropertyActuator::PyGetValue(PyObject* args, PyObject* kwds)
 {
 	ShowDeprecationWarning("getValue()", "the value property");
 	return PyString_FromString(m_exprtxt);

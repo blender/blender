@@ -438,14 +438,14 @@ void CListValue::MergeList(CListValue *otherlist)
 
 
 
-PyObject* CListValue::Pyappend(PyObject* self, PyObject* value)
+PyObject* CListValue::Pyappend(PyObject* value)
 {
-	return listvalue_buffer_concat(self, value);
+	return listvalue_buffer_concat(m_proxy, value); /* m_proxy is the same as self */
 }
 
 
 
-PyObject* CListValue::Pyreverse(PyObject* self)
+PyObject* CListValue::Pyreverse()
 {
 	std::reverse(m_pValueArray.begin(),m_pValueArray.end());
 	Py_RETURN_NONE;
@@ -474,7 +474,7 @@ bool CListValue::CheckEqual(CValue* first,CValue* second)
 
 
 
-PyObject* CListValue::Pyindex(PyObject* self, PyObject *value)
+PyObject* CListValue::Pyindex(PyObject *value)
 {
 	PyObject* result = NULL;
 
@@ -503,7 +503,7 @@ PyObject* CListValue::Pyindex(PyObject* self, PyObject *value)
 
 
 
-PyObject* CListValue::Pycount(PyObject* self, PyObject* value)
+PyObject* CListValue::Pycount(PyObject* value)
 {
 	int numfound = 0;
 
@@ -530,7 +530,7 @@ PyObject* CListValue::Pycount(PyObject* self, PyObject* value)
 
 
 
-PyObject* CListValue::Pyfrom_id(PyObject* self, PyObject* value)
+PyObject* CListValue::Pyfrom_id(PyObject* value)
 {
 	uintptr_t id= (uintptr_t)PyLong_AsVoidPtr(value);
 	

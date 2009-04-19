@@ -341,12 +341,12 @@ void		KX_VertexProxy::ReplicaSetName(STR_String) {};
 
 // stuff for python integration
 	
-PyObject* KX_VertexProxy::PyGetXYZ(PyObject*)
+PyObject* KX_VertexProxy::PyGetXYZ()
 {
 	return PyObjectFrom(MT_Point3(m_vertex->getXYZ()));
 }
 
-PyObject* KX_VertexProxy::PySetXYZ(PyObject*, PyObject* value)
+PyObject* KX_VertexProxy::PySetXYZ(PyObject* value)
 {
 	MT_Point3 vec;
 	if (!PyVecTo(value, vec))
@@ -357,12 +357,12 @@ PyObject* KX_VertexProxy::PySetXYZ(PyObject*, PyObject* value)
 	Py_RETURN_NONE;
 }
 
-PyObject* KX_VertexProxy::PyGetNormal(PyObject*)
+PyObject* KX_VertexProxy::PyGetNormal()
 {
 	return PyObjectFrom(MT_Vector3(m_vertex->getNormal()));
 }
 
-PyObject* KX_VertexProxy::PySetNormal(PyObject*, PyObject* value)
+PyObject* KX_VertexProxy::PySetNormal(PyObject* value)
 {
 	MT_Vector3 vec;
 	if (!PyVecTo(value, vec))
@@ -374,13 +374,13 @@ PyObject* KX_VertexProxy::PySetNormal(PyObject*, PyObject* value)
 }
 
 
-PyObject* KX_VertexProxy::PyGetRGBA(PyObject*)
+PyObject* KX_VertexProxy::PyGetRGBA()
 {
 	int *rgba = (int *) m_vertex->getRGBA();
 	return PyInt_FromLong(*rgba);
 }
 
-PyObject* KX_VertexProxy::PySetRGBA(PyObject*, PyObject* value)
+PyObject* KX_VertexProxy::PySetRGBA(PyObject* value)
 {
 	if PyInt_Check(value) {
 		int rgba = PyInt_AsLong(value);
@@ -403,12 +403,12 @@ PyObject* KX_VertexProxy::PySetRGBA(PyObject*, PyObject* value)
 }
 
 
-PyObject* KX_VertexProxy::PyGetUV(PyObject*)
+PyObject* KX_VertexProxy::PyGetUV()
 {
 	return PyObjectFrom(MT_Vector2(m_vertex->getUV1()));
 }
 
-PyObject* KX_VertexProxy::PySetUV(PyObject*, PyObject* value)
+PyObject* KX_VertexProxy::PySetUV(PyObject* value)
 {
 	MT_Point2 vec;
 	if (!PyVecTo(value, vec))
@@ -419,12 +419,12 @@ PyObject* KX_VertexProxy::PySetUV(PyObject*, PyObject* value)
 	Py_RETURN_NONE;
 }
 
-PyObject* KX_VertexProxy::PyGetUV2(PyObject*)
+PyObject* KX_VertexProxy::PyGetUV2()
 {
 	return PyObjectFrom(MT_Vector2(m_vertex->getUV2()));
 }
 
-PyObject* KX_VertexProxy::PySetUV2(PyObject*, PyObject* args)
+PyObject* KX_VertexProxy::PySetUV2(PyObject* args)
 {
 	MT_Point2 vec;
 	unsigned int unit=0;

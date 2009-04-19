@@ -155,8 +155,8 @@ PyParentObject SCA_RandomSensor::Parents[] = {
 
 PyMethodDef SCA_RandomSensor::Methods[] = {
 	{"setSeed",     (PyCFunction) SCA_RandomSensor::sPySetSeed, METH_VARARGS, (PY_METHODCHAR)SetSeed_doc},
-	{"getSeed",     (PyCFunction) SCA_RandomSensor::sPyGetSeed, METH_VARARGS, (PY_METHODCHAR)GetSeed_doc},
-	{"getLastDraw", (PyCFunction) SCA_RandomSensor::sPyGetLastDraw, METH_VARARGS, (PY_METHODCHAR)GetLastDraw_doc},
+	{"getSeed",     (PyCFunction) SCA_RandomSensor::sPyGetSeed, METH_NOARGS, (PY_METHODCHAR)GetSeed_doc},
+	{"getLastDraw", (PyCFunction) SCA_RandomSensor::sPyGetLastDraw, METH_NOARGS, (PY_METHODCHAR)GetLastDraw_doc},
 	{NULL,NULL} //Sentinel
 };
 
@@ -182,7 +182,7 @@ const char SCA_RandomSensor::SetSeed_doc[] =
 "\tSet the initial seed of the generator. Equal seeds produce\n"
 "\tequal series. If the seed is 0, the generator will produce\n"
 "\tthe same value on every call.\n";
-PyObject* SCA_RandomSensor::PySetSeed(PyObject* self, PyObject* args, PyObject* kwds) {
+PyObject* SCA_RandomSensor::PySetSeed(PyObject* args) {
 	ShowDeprecationWarning("setSeed()", "the seed property");
 	long seedArg;
 	if(!PyArg_ParseTuple(args, "i:setSeed", &seedArg)) {
@@ -199,7 +199,7 @@ const char SCA_RandomSensor::GetSeed_doc[] =
 "getSeed()\n"
 "\tReturns the initial seed of the generator. Equal seeds produce\n"
 "\tequal series.\n";
-PyObject* SCA_RandomSensor::PyGetSeed(PyObject* self, PyObject* args, PyObject* kwds) {
+PyObject* SCA_RandomSensor::PyGetSeed() {
 	ShowDeprecationWarning("getSeed()", "the seed property");
 	return PyInt_FromLong(m_basegenerator->GetSeed());
 }
@@ -208,7 +208,7 @@ PyObject* SCA_RandomSensor::PyGetSeed(PyObject* self, PyObject* args, PyObject* 
 const char SCA_RandomSensor::GetLastDraw_doc[] = 
 "getLastDraw()\n"
 "\tReturn the last value that was drawn.\n";
-PyObject* SCA_RandomSensor::PyGetLastDraw(PyObject* self, PyObject* args, PyObject* kwds) {
+PyObject* SCA_RandomSensor::PyGetLastDraw() {
 	ShowDeprecationWarning("getLastDraw()", "the lastDraw property");
 	return PyInt_FromLong(m_lastdraw);
 }

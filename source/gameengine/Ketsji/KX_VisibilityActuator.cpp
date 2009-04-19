@@ -157,9 +157,7 @@ KX_VisibilityActuator::SetVisible_doc[] =
 "\tSet the properties of the actuator.\n";
 PyObject* 
 
-KX_VisibilityActuator::PySetVisible(PyObject* self, 
-				    PyObject* args, 
-				    PyObject* kwds) {
+KX_VisibilityActuator::PySetVisible(PyObject* args) {
 	int vis;
 	ShowDeprecationWarning("SetVisible()", "the visible property");
 

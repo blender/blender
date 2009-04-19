@@ -458,9 +458,9 @@ PyParentObject KX_TrackToActuator::Parents[] = {
 PyMethodDef KX_TrackToActuator::Methods[] = {
 	// ---> deprecated
 	{"setTime", (PyCFunction) KX_TrackToActuator::sPySetTime, METH_VARARGS, (PY_METHODCHAR)SetTime_doc},
-	{"getTime", (PyCFunction) KX_TrackToActuator::sPyGetTime, METH_VARARGS, (PY_METHODCHAR)GetTime_doc},
+	{"getTime", (PyCFunction) KX_TrackToActuator::sPyGetTime, METH_NOARGS, (PY_METHODCHAR)GetTime_doc},
 	{"setUse3D", (PyCFunction) KX_TrackToActuator::sPySetUse3D, METH_VARARGS, (PY_METHODCHAR)SetUse3D_doc},
-	{"getUse3D", (PyCFunction) KX_TrackToActuator::sPyGetUse3D, METH_VARARGS, (PY_METHODCHAR)GetUse3D_doc},
+	{"getUse3D", (PyCFunction) KX_TrackToActuator::sPyGetUse3D, METH_NOARGS, (PY_METHODCHAR)GetUse3D_doc},
 	{"setObject", (PyCFunction) KX_TrackToActuator::sPySetObject, METH_O, (PY_METHODCHAR)SetObject_doc},
 	{"getObject", (PyCFunction) KX_TrackToActuator::sPyGetObject, METH_VARARGS, (PY_METHODCHAR)GetObject_doc},
 	
@@ -519,7 +519,7 @@ const char KX_TrackToActuator::SetObject_doc[] =
 "setObject(object)\n"
 "\t- object: KX_GameObject, string or None\n"
 "\tSet the object to track with the parent of this actuator.\n";
-PyObject* KX_TrackToActuator::PySetObject(PyObject* self, PyObject* value)
+PyObject* KX_TrackToActuator::PySetObject(PyObject* value)
 {
 	KX_GameObject *gameobj;
 	
@@ -545,7 +545,7 @@ const char KX_TrackToActuator::GetObject_doc[] =
 "getObject(name_only = 1)\n"
 "name_only - optional arg, when true will return the KX_GameObject rather then its name\n"
 "\tReturns the object to track with the parent of this actuator\n";
-PyObject* KX_TrackToActuator::PyGetObject(PyObject* self, PyObject* args)
+PyObject* KX_TrackToActuator::PyGetObject(PyObject* args)
 {
 	int ret_name_only = 1;
 	
@@ -570,7 +570,7 @@ const char KX_TrackToActuator::SetTime_doc[] =
 "setTime(time)\n"
 "\t- time: integer\n"
 "\tSet the time in frames with which to delay the tracking motion.\n";
-PyObject* KX_TrackToActuator::PySetTime(PyObject* self, PyObject* args, PyObject* kwds)
+PyObject* KX_TrackToActuator::PySetTime(PyObject* args)
 {
 	ShowDeprecationWarning("setTime()", "the timer property");
 	int timeArg;
@@ -592,7 +592,7 @@ const char KX_TrackToActuator::GetTime_doc[] =
 "getTime()\n"
 "\t- time: integer\n"
 "\tReturn the time in frames with which the tracking motion is delayed.\n";
-PyObject* KX_TrackToActuator::PyGetTime(PyObject* self, PyObject* args, PyObject* kwds)
+PyObject* KX_TrackToActuator::PyGetTime()
 {
 	ShowDeprecationWarning("getTime()", "the timer property");
 	return PyInt_FromLong(m_time);
@@ -604,7 +604,7 @@ PyObject* KX_TrackToActuator::PyGetTime(PyObject* self, PyObject* args, PyObject
 const char KX_TrackToActuator::GetUse3D_doc[] = 
 "getUse3D()\n"
 "\tReturns 1 if the motion is allowed to extend in the z-direction.\n";
-PyObject* KX_TrackToActuator::PyGetUse3D(PyObject* self, PyObject* args, PyObject* kwds)
+PyObject* KX_TrackToActuator::PyGetUse3D()
 {
 	ShowDeprecationWarning("setTime()", "the use3D property");
 	return PyInt_FromLong(!(m_allow3D == 0));
@@ -618,7 +618,7 @@ const char KX_TrackToActuator::SetUse3D_doc[] =
 "\t- value: 0 or 1\n"
 "\tSet to 1 to allow the tracking motion to extend in the z-direction,\n"
 "\tset to 0 to lock the tracking motion to the x-y plane.\n";
-PyObject* KX_TrackToActuator::PySetUse3D(PyObject* self, PyObject* args, PyObject* kwds)
+PyObject* KX_TrackToActuator::PySetUse3D(PyObject* args)
 {
 	ShowDeprecationWarning("setTime()", "the use3D property");
 	int boolArg;

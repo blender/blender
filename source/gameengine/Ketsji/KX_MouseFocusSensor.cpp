@@ -391,7 +391,7 @@ PyObject* KX_MouseFocusSensor::py_getattro(PyObject *attr) {
 const char KX_MouseFocusSensor::GetHitObject_doc[] = 
 "getHitObject()\n"
 "\tReturns the object that was hit by this ray.\n";
-PyObject* KX_MouseFocusSensor::PyGetHitObject(PyObject* self)
+PyObject* KX_MouseFocusSensor::PyGetHitObject()
 {
 	ShowDeprecationWarning("GetHitObject()", "the hitObject property");
 	
@@ -405,7 +405,7 @@ PyObject* KX_MouseFocusSensor::PyGetHitObject(PyObject* self)
 const char KX_MouseFocusSensor::GetHitPosition_doc[] = 
 "getHitPosition()\n"
 "\tReturns the position (in worldcoordinates) where the object was hit by this ray.\n";
-PyObject* KX_MouseFocusSensor::PyGetHitPosition(PyObject* self)
+PyObject* KX_MouseFocusSensor::PyGetHitPosition()
 {
 	ShowDeprecationWarning("getHitPosition()", "the hitPosition property");
 	
@@ -415,7 +415,7 @@ PyObject* KX_MouseFocusSensor::PyGetHitPosition(PyObject* self)
 const char KX_MouseFocusSensor::GetRayDirection_doc[] = 
 "getRayDirection()\n"
 "\tReturns the direction from the ray (in worldcoordinates) .\n";
-PyObject* KX_MouseFocusSensor::PyGetRayDirection(PyObject* self)
+PyObject* KX_MouseFocusSensor::PyGetRayDirection()
 {
 	ShowDeprecationWarning("getRayDirection()", "the rayDirection property");
 	
@@ -428,7 +428,7 @@ PyObject* KX_MouseFocusSensor::PyGetRayDirection(PyObject* self)
 const char KX_MouseFocusSensor::GetHitNormal_doc[] = 
 "getHitNormal()\n"
 "\tReturns the normal (in worldcoordinates) at the point of collision where the object was hit by this ray.\n";
-PyObject* KX_MouseFocusSensor::PyGetHitNormal(PyObject* self)
+PyObject* KX_MouseFocusSensor::PyGetHitNormal()
 {
 	ShowDeprecationWarning("getHitNormal()", "the hitNormal property");
 	
@@ -441,7 +441,7 @@ const char KX_MouseFocusSensor::GetRayTarget_doc[] =
 "getRayTarget()\n"
 "\tReturns the target of the ray that seeks the focus object,\n"
 "\tin worldcoordinates.";
-PyObject* KX_MouseFocusSensor::PyGetRayTarget(PyObject* self)
+PyObject* KX_MouseFocusSensor::PyGetRayTarget()
 {
 	ShowDeprecationWarning("getRayTarget()", "the rayTarget property");
 	
@@ -453,7 +453,7 @@ const char KX_MouseFocusSensor::GetRaySource_doc[] =
 "getRaySource()\n"
 "\tReturns the source of the ray that seeks the focus object,\n"
 "\tin worldcoordinates.";
-PyObject* KX_MouseFocusSensor::PyGetRaySource(PyObject* self)
+PyObject* KX_MouseFocusSensor::PyGetRaySource()
 {
 	ShowDeprecationWarning("getRaySource()", "the raySource property");
 	

@@ -139,25 +139,21 @@ void		KX_MeshProxy::ReplicaSetName(STR_String name) {};
 
 // stuff for python integration
 	
-PyObject* KX_MeshProxy::PyGetNumMaterials(PyObject* self, 
-			       PyObject* args, 
-			       PyObject* kwds)
+PyObject* KX_MeshProxy::PyGetNumMaterials(PyObject* args, PyObject* kwds)
 {
 	int num = m_meshobj->NumMaterials();
 	ShowDeprecationWarning("getNumMaterials()", "the numMaterials property");
 	return PyInt_FromLong(num);
 }
 
-PyObject* KX_MeshProxy::PyGetNumPolygons(PyObject* self)
+PyObject* KX_MeshProxy::PyGetNumPolygons()
 {
 	int num = m_meshobj->NumPolygons();
 	ShowDeprecationWarning("getNumPolygons()", "the numPolygons property");
 	return PyInt_FromLong(num);
 }
 
-PyObject* KX_MeshProxy::PyGetMaterialName(PyObject* self, 
-			       PyObject* args, 
-			       PyObject* kwds)
+PyObject* KX_MeshProxy::PyGetMaterialName(PyObject* args, PyObject* kwds)
 {
     int matid= 1;
 	STR_String matname;
@@ -175,9 +171,7 @@ PyObject* KX_MeshProxy::PyGetMaterialName(PyObject* self,
 }
 	
 
-PyObject* KX_MeshProxy::PyGetTextureName(PyObject* self, 
-			       PyObject* args, 
-			       PyObject* kwds)
+PyObject* KX_MeshProxy::PyGetTextureName(PyObject* args, PyObject* kwds)
 {
     int matid= 1;
 	STR_String matname;
@@ -194,9 +188,7 @@ PyObject* KX_MeshProxy::PyGetTextureName(PyObject* self,
 		
 }
 
-PyObject* KX_MeshProxy::PyGetVertexArrayLength(PyObject* self, 
-			       PyObject* args, 
-			       PyObject* kwds)
+PyObject* KX_MeshProxy::PyGetVertexArrayLength(PyObject* args, PyObject* kwds)
 {
     int matid= 0;
 	int length = 0;
@@ -219,9 +211,7 @@ PyObject* KX_MeshProxy::PyGetVertexArrayLength(PyObject* self,
 }
 
 
-PyObject* KX_MeshProxy::PyGetVertex(PyObject* self, 
-			       PyObject* args, 
-			       PyObject* kwds)
+PyObject* KX_MeshProxy::PyGetVertex(PyObject* args, PyObject* kwds)
 {
     int vertexindex= 1;
 	int matindex= 1;
@@ -243,9 +233,7 @@ PyObject* KX_MeshProxy::PyGetVertex(PyObject* self,
 		
 }
 
-PyObject* KX_MeshProxy::PyGetPolygon(PyObject* self,
-			       PyObject* args, 
-			       PyObject* kwds)
+PyObject* KX_MeshProxy::PyGetPolygon(PyObject* args, PyObject* kwds)
 {
     int polyindex= 1;
 	PyObject* polyob = NULL;

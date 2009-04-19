@@ -35,9 +35,7 @@ KX_VehicleWrapper::~KX_VehicleWrapper()
 }
 
 
-PyObject* KX_VehicleWrapper::PyAddWheel(PyObject* self, 
-											PyObject* args, 
-											PyObject* kwds)
+PyObject* KX_VehicleWrapper::PyAddWheel(PyObject* args)
 {
 	
 	PyObject* pylistPos,*pylistDir,*pylistAxleDir;
@@ -85,9 +83,7 @@ PyObject* KX_VehicleWrapper::PyAddWheel(PyObject* self,
 
 
 
-PyObject* KX_VehicleWrapper::PyGetWheelPosition(PyObject* self, 
-											PyObject* args, 
-											PyObject* kwds)
+PyObject* KX_VehicleWrapper::PyGetWheelPosition(PyObject* args)
 {
 	
 	int wheelIndex;
@@ -102,9 +98,7 @@ PyObject* KX_VehicleWrapper::PyGetWheelPosition(PyObject* self,
 	return NULL;
 }
 
-PyObject* KX_VehicleWrapper::PyGetWheelRotation(PyObject* self, 
-											PyObject* args, 
-											PyObject* kwds)
+PyObject* KX_VehicleWrapper::PyGetWheelRotation(PyObject* args)
 {
 	int wheelIndex;
 	if (PyArg_ParseTuple(args,"i:getWheelRotation",&wheelIndex))
@@ -114,9 +108,7 @@ PyObject* KX_VehicleWrapper::PyGetWheelRotation(PyObject* self,
 	return NULL;
 }
 
-PyObject* KX_VehicleWrapper::PyGetWheelOrientationQuaternion(PyObject* self, 
-											PyObject* args, 
-											PyObject* kwds)
+PyObject* KX_VehicleWrapper::PyGetWheelOrientationQuaternion(PyObject* args)
 {
 	int wheelIndex;
 	if (PyArg_ParseTuple(args,"i:getWheelOrientationQuaternion",&wheelIndex))
@@ -132,26 +124,20 @@ PyObject* KX_VehicleWrapper::PyGetWheelOrientationQuaternion(PyObject* self,
 }
 
 
-PyObject* KX_VehicleWrapper::PyGetNumWheels(PyObject* self, 
-											PyObject* args, 
-											PyObject* kwds)
+PyObject* KX_VehicleWrapper::PyGetNumWheels(PyObject* args)
 {
 	return PyInt_FromLong(m_vehicle->GetNumWheels());
 }
 
 
-PyObject* KX_VehicleWrapper::PyGetConstraintId(PyObject* self, 
-											PyObject* args, 
-											PyObject* kwds)
+PyObject* KX_VehicleWrapper::PyGetConstraintId(PyObject* args)
 {
 	return PyInt_FromLong(m_vehicle->GetUserConstraintId());
 }
 
 
 
-PyObject* KX_VehicleWrapper::PyApplyEngineForce(PyObject* self, 
-											PyObject* args, 
-											PyObject* kwds)
+PyObject* KX_VehicleWrapper::PyApplyEngineForce(PyObject* args)
 {
 	float force;
 	int wheelIndex;
@@ -167,9 +153,7 @@ PyObject* KX_VehicleWrapper::PyApplyEngineForce(PyObject* self,
 	Py_RETURN_NONE;
 }
 
-PyObject* KX_VehicleWrapper::PySetTyreFriction(PyObject* self, 
-											PyObject* args, 
-											PyObject* kwds)
+PyObject* KX_VehicleWrapper::PySetTyreFriction(PyObject* args)
 {
 	float wheelFriction;
 	int wheelIndex;
@@ -184,9 +168,7 @@ PyObject* KX_VehicleWrapper::PySetTyreFriction(PyObject* self,
 	Py_RETURN_NONE;
 }
 
-PyObject* KX_VehicleWrapper::PySetSuspensionStiffness(PyObject* self, 
-											PyObject* args, 
-											PyObject* kwds)
+PyObject* KX_VehicleWrapper::PySetSuspensionStiffness(PyObject* args)
 {
 	float suspensionStiffness;
 	int wheelIndex;
@@ -201,9 +183,7 @@ PyObject* KX_VehicleWrapper::PySetSuspensionStiffness(PyObject* self,
 	Py_RETURN_NONE;
 }
 
-PyObject* KX_VehicleWrapper::PySetSuspensionDamping(PyObject* self, 
-											PyObject* args, 
-											PyObject* kwds)
+PyObject* KX_VehicleWrapper::PySetSuspensionDamping(PyObject* args)
 {
 	float suspensionDamping;
 	int wheelIndex;
@@ -217,9 +197,7 @@ PyObject* KX_VehicleWrapper::PySetSuspensionDamping(PyObject* self,
 	Py_RETURN_NONE;
 }
 
-PyObject* KX_VehicleWrapper::PySetSuspensionCompression(PyObject* self, 
-											PyObject* args, 
-											PyObject* kwds)
+PyObject* KX_VehicleWrapper::PySetSuspensionCompression(PyObject* args)
 {
 	float suspensionCompression;
 	int wheelIndex;
@@ -233,9 +211,7 @@ PyObject* KX_VehicleWrapper::PySetSuspensionCompression(PyObject* self,
 	Py_RETURN_NONE;
 }
 
-PyObject* KX_VehicleWrapper::PySetRollInfluence(PyObject* self, 
-											PyObject* args, 
-											PyObject* kwds)
+PyObject* KX_VehicleWrapper::PySetRollInfluence(PyObject* args)
 {
 	float rollInfluence;
 	int wheelIndex;
@@ -251,9 +227,7 @@ PyObject* KX_VehicleWrapper::PySetRollInfluence(PyObject* self,
 }
 
 
-PyObject* KX_VehicleWrapper::PyApplyBraking(PyObject* self, 
-											PyObject* args, 
-											PyObject* kwds)
+PyObject* KX_VehicleWrapper::PyApplyBraking(PyObject* args)
 {
 	float braking;
 	int wheelIndex;
@@ -271,9 +245,7 @@ PyObject* KX_VehicleWrapper::PyApplyBraking(PyObject* self,
 
 
 
-PyObject* KX_VehicleWrapper::PySetSteeringValue(PyObject* self, 
-											PyObject* args, 
-											PyObject* kwds)
+PyObject* KX_VehicleWrapper::PySetSteeringValue(PyObject* args)
 {
 	float steeringValue;
 	int wheelIndex;
@@ -289,9 +261,7 @@ PyObject* KX_VehicleWrapper::PySetSteeringValue(PyObject* self,
 }
 
 
-PyObject* KX_VehicleWrapper::PyGetConstraintType(PyObject* self, 
-											PyObject* args, 
-											PyObject* kwds)
+PyObject* KX_VehicleWrapper::PyGetConstraintType(PyObject* args)
 {
 	return PyInt_FromLong(m_vehicle->GetUserConstraintType());
 }

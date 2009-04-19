@@ -65,7 +65,7 @@ public:
 	virtual int py_setattro(PyObject *attr, PyObject *value);
 
 	/* 3. setProperty */
-	KX_PYMETHOD_DOC(SCA_ActuatorSensor,SetActuator);
+	KX_PYMETHOD_DOC_VARARGS(SCA_ActuatorSensor,SetActuator);
 	/* 4. getProperty */
 	KX_PYMETHOD_DOC_NOARGS(SCA_ActuatorSensor,GetActuator);
 	

@@ -49,17 +49,12 @@ KX_ConstraintWrapper::~KX_ConstraintWrapper()
 {
 }
 //python integration methods
-PyObject* KX_ConstraintWrapper::PyTestMethod(PyObject* self, 
-											PyObject* args, 
-											PyObject* kwds)
+PyObject* KX_ConstraintWrapper::PyTestMethod(PyObject* args, PyObject* kwds)
 {
-	
 	Py_RETURN_NONE;
 }
 
-PyObject* KX_ConstraintWrapper::PyGetConstraintId(PyObject* self, 
-											PyObject* args, 
-											PyObject* kwds)
+PyObject* KX_ConstraintWrapper::PyGetConstraintId(PyObject* args, PyObject* kwds)
 {
 	return PyInt_FromLong(m_constraintId);
 }

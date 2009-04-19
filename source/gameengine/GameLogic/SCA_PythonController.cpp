@@ -154,8 +154,8 @@ int SCA_PythonController::IsTriggered(class SCA_ISensor* sensor)
 static const char* sPyGetCurrentController__doc__;
 #endif
 
-
-PyObject* SCA_PythonController::sPyGetCurrentController(PyObject* self)
+/* warning, self is not the SCA_PythonController, its a PyObjectPlus_Proxy */
+PyObject* SCA_PythonController::sPyGetCurrentController(PyObject *self)
 {
 	return m_sCurrentController->GetProxy();
 }
@@ -197,12 +197,9 @@ SCA_IActuator* SCA_PythonController::LinkedActuatorFromPy(PyObject *value)
 static const char* sPyAddActiveActuator__doc__;
 #endif
 
-PyObject* SCA_PythonController::sPyAddActiveActuator(
-	  
-		PyObject* self, 
-		PyObject* args)
+/* warning, self is not the SCA_PythonController, its a PyObjectPlus_Proxy */
+PyObject* SCA_PythonController::sPyAddActiveActuator(PyObject* self, PyObject* args)
 {
-	
 	PyObject* ob1;
 	int activate;
 	if (!PyArg_ParseTuple(args, "Oi:addActiveActuator", &ob1,&activate))
@@ -384,7 +381,7 @@ int SCA_PythonController::py_setattro(PyObject *attr, PyObject *value)
 	py_setattro_up(SCA_IController);
 }
 
-PyObject* SCA_PythonController::PyActivate(PyObject* self, PyObject *value)
+PyObject* SCA_PythonController::PyActivate(PyObject *value)
 {
 	SCA_IActuator* actu = LinkedActuatorFromPy(value);
 	if(actu==NULL)
@@ -396,7 +393,7 @@ PyObject* SCA_PythonController::PyActivate(PyObject* self, PyObject *value)
 	Py_RETURN_NONE;
 }
 
-PyObject* SCA_PythonController::PyDeActivate(PyObject* self, PyObject *value)
+PyObject* SCA_PythonController::PyDeActivate(PyObject *value)
 {
 	SCA_IActuator* actu = LinkedActuatorFromPy(value);
 	if(actu==NULL)
@@ -408,7 +405,7 @@ PyObject* SCA_PythonController::PyDeActivate(PyObject* self, PyObject *value)
 	Py_RETURN_NONE;
 }
 
-PyObject* SCA_PythonController::PyGetActuators(PyObject* self)
+PyObject* SCA_PythonController::PyGetActuators()
 {
 	PyObject* resultlist = PyList_New(m_linkedactuators.size());
 	for (unsigned int index=0;index<m_linkedactuators.size();index++)
@@ -422,7 +419,7 @@ PyObject* SCA_PythonController::PyGetActuators(PyObject* self)
 const char SCA_PythonController::GetSensor_doc[] = 
 "GetSensor (char sensorname) return linked sensor that is named [sensorname]\n";
 PyObject*
-SCA_PythonController::PyGetSensor(PyObject* self, PyObject* value)
+SCA_PythonController::PyGetSensor(PyObject* value)
 {
 
 	char *scriptArg = PyString_AsString(value);
@@ -450,7 +447,7 @@ SCA_PythonController::PyGetSensor(PyObject* self, PyObject* value)
 const char SCA_PythonController::GetActuator_doc[] = 
 "GetActuator (char sensorname) return linked actuator that is named [actuatorname]\n";
 PyObject*
-SCA_PythonController::PyGetActuator(PyObject* self, PyObject* value)
+SCA_PythonController::PyGetActuator(PyObject* value)
 {
 
 	char *scriptArg = PyString_AsString(value);
@@ -475,7 +472,7 @@ SCA_PythonController::PyGetActuator(PyObject* self, PyObject* value)
 
 const char SCA_PythonController::GetSensors_doc[]   = "getSensors returns a list of all attached sensors";
 PyObject*
-SCA_PythonController::PyGetSensors(PyObject* self)
+SCA_PythonController::PyGetSensors()
 {
 	PyObject* resultlist = PyList_New(m_linkedsensors.size());
 	for (unsigned int index=0;index<m_linkedsensors.size();index++)
@@ -487,14 +484,14 @@ SCA_PythonController::PyGetSensors(PyObject* self)
 }
 
 /* 1. getScript */
-PyObject* SCA_PythonController::PyGetScript(PyObject* self)
+PyObject* SCA_PythonController::PyGetScript()
 {
 	ShowDeprecationWarning("getScript()", "the script property");
 	return PyString_FromString(m_scriptText);
 }
 
 /* 2. setScript */
-PyObject* SCA_PythonController::PySetScript(PyObject* self, PyObject* value)
+PyObject* SCA_PythonController::PySetScript(PyObject* value)
 {
 	char *scriptArg = PyString_AsString(value);
 	
@@ -514,7 +511,7 @@ PyObject* SCA_PythonController::PySetScript(PyObject* self, PyObject* value)
 }
 
 /* 1. getScript */
-PyObject* SCA_PythonController::PyGetState(PyObject* self)
+PyObject* SCA_PythonController::PyGetState()
 {
 	ShowDeprecationWarning("getState()", "the state property");
 	return PyInt_FromLong(m_statemask);

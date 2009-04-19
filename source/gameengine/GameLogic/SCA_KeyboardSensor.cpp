@@ -412,7 +412,7 @@ void SCA_KeyboardSensor::LogKeystrokes(void)
 const char SCA_KeyboardSensor::GetKey_doc[] = 
 "getKey()\n"
 "\tReturn the code of the key this sensor is listening to.\n" ;
-PyObject* SCA_KeyboardSensor::PyGetKey(PyObject* self, PyObject* args, PyObject* kwds)
+PyObject* SCA_KeyboardSensor::PyGetKey()
 {
 	ShowDeprecationWarning("getKey()", "the key property");
 	return PyInt_FromLong(m_hotkey);
@@ -423,7 +423,7 @@ const char SCA_KeyboardSensor::SetKey_doc[] =
 "setKey(keycode)\n"
 "\t- keycode: any code from GameKeys\n"
 "\tSet the key this sensor should listen to.\n" ;
-PyObject* SCA_KeyboardSensor::PySetKey(PyObject* self, PyObject* args, PyObject* kwds)
+PyObject* SCA_KeyboardSensor::PySetKey(PyObject* args)
 {
 	ShowDeprecationWarning("setKey()", "the key property");
 	int keyCode;
@@ -444,7 +444,7 @@ const char SCA_KeyboardSensor::GetHold1_doc[] =
 "getHold1()\n"
 "\tReturn the code of the first key modifier to the key this \n"
 "\tsensor is listening to.\n" ;
-PyObject* SCA_KeyboardSensor::PyGetHold1(PyObject* self, PyObject* args, PyObject* kwds)
+PyObject* SCA_KeyboardSensor::PyGetHold1()
 {
 	ShowDeprecationWarning("getHold1()", "the hold1 property");
 	return PyInt_FromLong(m_qual);
@@ -455,7 +455,7 @@ const char SCA_KeyboardSensor::SetHold1_doc[] =
 "setHold1(keycode)\n"
 "\t- keycode: any code from GameKeys\n"
 "\tSet the first modifier to the key this sensor should listen to.\n" ;
-PyObject* SCA_KeyboardSensor::PySetHold1(PyObject* self, PyObject* args, PyObject* kwds)
+PyObject* SCA_KeyboardSensor::PySetHold1(PyObject* args)
 {
 	ShowDeprecationWarning("setHold1()", "the hold1 property");
 	int keyCode;
@@ -476,7 +476,7 @@ const char SCA_KeyboardSensor::GetHold2_doc[] =
 "getHold2()\n"
 "\tReturn the code of the second key modifier to the key this \n"
 "\tsensor is listening to.\n" ;
-PyObject* SCA_KeyboardSensor::PyGetHold2(PyObject* self, PyObject* args, PyObject* kwds)
+PyObject* SCA_KeyboardSensor::PyGetHold2()
 {
 	ShowDeprecationWarning("getHold2()", "the hold2 property");
 	return PyInt_FromLong(m_qual2);
@@ -487,7 +487,7 @@ const char SCA_KeyboardSensor::SetHold2_doc[] =
 "setHold2(keycode)\n"
 "\t- keycode: any code from GameKeys\n"
 "\tSet the first modifier to the key this sensor should listen to.\n" ;
-PyObject* SCA_KeyboardSensor::PySetHold2(PyObject* self, PyObject* args, PyObject* kwds)
+PyObject* SCA_KeyboardSensor::PySetHold2(PyObject* args)
 {
 	ShowDeprecationWarning("setHold2()", "the hold2 property");
 	int keyCode;
@@ -508,7 +508,7 @@ const char SCA_KeyboardSensor::GetPressedKeys_doc[] =
 "getPressedKeys()\n"
 "\tGet a list of pressed keys that have either been pressed, or just released this frame.\n" ;
 
-PyObject* SCA_KeyboardSensor::PyGetPressedKeys(PyObject* self, PyObject* args, PyObject* kwds)
+PyObject* SCA_KeyboardSensor::PyGetPressedKeys()
 {
 	ShowDeprecationWarning("getPressedKeys()", "events");
 
@@ -549,7 +549,7 @@ const char SCA_KeyboardSensor::GetCurrentlyPressedKeys_doc[] =
 "getCurrentlyPressedKeys()\n"
 "\tGet a list of keys that are currently pressed.\n" ;
 
-PyObject* SCA_KeyboardSensor::PyGetCurrentlyPressedKeys(PyObject* self, PyObject* args, PyObject* kwds)
+PyObject* SCA_KeyboardSensor::PyGetCurrentlyPressedKeys()
 {
 	ShowDeprecationWarning("getCurrentlyPressedKeys()", "events");
 
@@ -640,14 +640,14 @@ PyParentObject SCA_KeyboardSensor::Parents[] = {
 
 PyMethodDef SCA_KeyboardSensor::Methods[] = {
 	//Deprecated functions ------>
-	{"getKey", (PyCFunction) SCA_KeyboardSensor::sPyGetKey, METH_VARARGS, (PY_METHODCHAR)GetKey_doc},
+	{"getKey", (PyCFunction) SCA_KeyboardSensor::sPyGetKey, METH_NOARGS, (PY_METHODCHAR)GetKey_doc},
 	{"setKey", (PyCFunction) SCA_KeyboardSensor::sPySetKey, METH_VARARGS, (PY_METHODCHAR)SetKey_doc},
-	{"getHold1", (PyCFunction) SCA_KeyboardSensor::sPyGetHold1, METH_VARARGS, (PY_METHODCHAR)GetHold1_doc},
+	{"getHold1", (PyCFunction) SCA_KeyboardSensor::sPyGetHold1, METH_NOARGS, (PY_METHODCHAR)GetHold1_doc},
 	{"setHold1", (PyCFunction) SCA_KeyboardSensor::sPySetHold1, METH_VARARGS, (PY_METHODCHAR)SetHold1_doc},
-	{"getHold2", (PyCFunction) SCA_KeyboardSensor::sPyGetHold2, METH_VARARGS, (PY_METHODCHAR)GetHold2_doc},
+	{"getHold2", (PyCFunction) SCA_KeyboardSensor::sPyGetHold2, METH_NOARGS, (PY_METHODCHAR)GetHold2_doc},
 	{"setHold2", (PyCFunction) SCA_KeyboardSensor::sPySetHold2, METH_VARARGS, (PY_METHODCHAR)SetHold2_doc},
-	{"getPressedKeys", (PyCFunction) SCA_KeyboardSensor::sPyGetPressedKeys, METH_VARARGS, (PY_METHODCHAR)GetPressedKeys_doc},
-	{"getCurrentlyPressedKeys", (PyCFunction) SCA_KeyboardSensor::sPyGetCurrentlyPressedKeys, METH_VARARGS, (PY_METHODCHAR)GetCurrentlyPressedKeys_doc},
+	{"getPressedKeys", (PyCFunction) SCA_KeyboardSensor::sPyGetPressedKeys, METH_NOARGS, (PY_METHODCHAR)GetPressedKeys_doc},
+	{"getCurrentlyPressedKeys", (PyCFunction) SCA_KeyboardSensor::sPyGetCurrentlyPressedKeys, METH_NOARGS, (PY_METHODCHAR)GetCurrentlyPressedKeys_doc},
 	//<----- Deprecated
 	KX_PYMETHODTABLE_O(SCA_KeyboardSensor, getKeyStatus),
 	{NULL,NULL} //Sentinel

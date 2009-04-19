@@ -423,8 +423,7 @@ const char BL_ActionActuator::GetAction_doc[] =
 "getAction()\n"
 "\tReturns a string containing the name of the current action.\n";
 
-PyObject* BL_ActionActuator::PyGetAction(PyObject* self, 
-										 PyObject* args, 
+PyObject* BL_ActionActuator::PyGetAction(PyObject* args, 
 										 PyObject* kwds) {
 	ShowDeprecationWarning("getAction()", "the action property");
 
@@ -439,8 +438,7 @@ const char BL_ActionActuator::GetProperty_doc[] =
 "getProperty()\n"
 "\tReturns the name of the property to be used in FromProp mode.\n";
 
-PyObject* BL_ActionActuator::PyGetProperty(PyObject* self, 
-										   PyObject* args, 
+PyObject* BL_ActionActuator::PyGetProperty(PyObject* args, 
 										   PyObject* kwds) {
 	ShowDeprecationWarning("getProperty()", "the property property");
 
@@ -456,8 +454,7 @@ const char BL_ActionActuator::GetFrameProperty_doc[] =
 "getFrameProperty()\n"
 "\tReturns the name of the property, that is set to the current frame number.\n";
 
-PyObject* BL_ActionActuator::PyGetFrameProperty(PyObject* self, 
-										   PyObject* args, 
+PyObject* BL_ActionActuator::PyGetFrameProperty(PyObject* args, 
 										   PyObject* kwds) {
 	ShowDeprecationWarning("getFrameProperty()", "the frameProperty property");
 
@@ -473,8 +470,7 @@ const char BL_ActionActuator::GetFrame_doc[] =
 "getFrame()\n"
 "\tReturns the current frame number.\n";
 
-PyObject* BL_ActionActuator::PyGetFrame(PyObject* self, 
-										PyObject* args, 
+PyObject* BL_ActionActuator::PyGetFrame(PyObject* args, 
 										PyObject* kwds) {
 	ShowDeprecationWarning("getFrame()", "the frame property");
 
@@ -490,8 +486,7 @@ const char BL_ActionActuator::GetEnd_doc[] =
 "getEnd()\n"
 "\tReturns the last frame of the action.\n";
 
-PyObject* BL_ActionActuator::PyGetEnd(PyObject* self, 
-									  PyObject* args, 
+PyObject* BL_ActionActuator::PyGetEnd(PyObject* args, 
 									  PyObject* kwds) {
 	ShowDeprecationWarning("getEnd()", "the end property");
 
@@ -507,8 +502,7 @@ const char BL_ActionActuator::GetStart_doc[] =
 "getStart()\n"
 "\tReturns the starting frame of the action.\n";
 
-PyObject* BL_ActionActuator::PyGetStart(PyObject* self, 
-										PyObject* args, 
+PyObject* BL_ActionActuator::PyGetStart(PyObject* args, 
 										PyObject* kwds) {
 	ShowDeprecationWarning("getStart()", "the start property");
 
@@ -525,8 +519,7 @@ const char BL_ActionActuator::GetBlendin_doc[] =
 "\tReturns the number of interpolation animation frames to be\n"
 "\tgenerated when this actuator is triggered.\n";
 
-PyObject* BL_ActionActuator::PyGetBlendin(PyObject* self, 
-										  PyObject* args, 
+PyObject* BL_ActionActuator::PyGetBlendin(PyObject* args, 
 										  PyObject* kwds) {
 	ShowDeprecationWarning("getBlendin()", "the blendin property");
 
@@ -543,8 +536,7 @@ const char BL_ActionActuator::GetPriority_doc[] =
 "\tReturns the priority for this actuator.  Actuators with lower\n"
 "\tPriority numbers will override actuators with higher numbers.\n";
 
-PyObject* BL_ActionActuator::PyGetPriority(PyObject* self, 
-										   PyObject* args, 
+PyObject* BL_ActionActuator::PyGetPriority(PyObject* args, 
 										   PyObject* kwds) {
 	ShowDeprecationWarning("getPriority()", "the priority property");
 
@@ -565,8 +557,7 @@ const char BL_ActionActuator::SetAction_doc[] =
 "\t               unchanged.  If reset is not specified, the timer will"
 "\t	              be reset.\n";
 
-PyObject* BL_ActionActuator::PySetAction(PyObject* self, 
-										 PyObject* args, 
+PyObject* BL_ActionActuator::PySetAction(PyObject* args, 
 										 PyObject* kwds) {
 	ShowDeprecationWarning("setAction()", "the action property");
 
@@ -601,8 +592,7 @@ const char BL_ActionActuator::SetStart_doc[] =
 "setStart(start)\n"
 "\t - start     : Specifies the starting frame of the animation.\n";
 
-PyObject* BL_ActionActuator::PySetStart(PyObject* self, 
-										PyObject* args, 
+PyObject* BL_ActionActuator::PySetStart(PyObject* args, 
 										PyObject* kwds) {
 	ShowDeprecationWarning("setStart()", "the start property");
 
@@ -624,8 +614,7 @@ const char BL_ActionActuator::SetEnd_doc[] =
 "setEnd(end)\n"
 "\t - end       : Specifies the ending frame of the animation.\n";
 
-PyObject* BL_ActionActuator::PySetEnd(PyObject* self, 
-									  PyObject* args, 
+PyObject* BL_ActionActuator::PySetEnd(PyObject* args, 
 									  PyObject* kwds) {
 	ShowDeprecationWarning("setEnd()", "the end property");
 
@@ -648,8 +637,7 @@ const char BL_ActionActuator::SetBlendin_doc[] =
 "\t - blendin   : Specifies the number of frames of animation to generate\n"
 "\t               when making transitions between actions.\n";
 
-PyObject* BL_ActionActuator::PySetBlendin(PyObject* self, 
-										  PyObject* args, 
+PyObject* BL_ActionActuator::PySetBlendin(PyObject* args, 
 										  PyObject* kwds) {
 	ShowDeprecationWarning("setBlendin()", "the blendin property");
 
@@ -673,8 +661,7 @@ const char BL_ActionActuator::SetBlendtime_doc[] =
 "\t               used when generating transitions between actions.  This\n"
 "\t               parameter must be in the range from 0.0 to 1.0.\n";
 
-PyObject* BL_ActionActuator::PySetBlendtime(PyObject* self, 
-										  PyObject* args, 
+PyObject* BL_ActionActuator::PySetBlendtime(PyObject* args, 
 										  PyObject* kwds) {
 	ShowDeprecationWarning("setBlendtime()", "the blendtime property");
 
@@ -702,8 +689,7 @@ const char BL_ActionActuator::SetPriority_doc[] =
 "\t               priority numbers will override actuators with higher\n"
 "\t               numbers.\n";
 
-PyObject* BL_ActionActuator::PySetPriority(PyObject* self, 
-										   PyObject* args, 
+PyObject* BL_ActionActuator::PySetPriority(PyObject* args, 
 										   PyObject* kwds) {
 	ShowDeprecationWarning("setPriority()", "the priority property");
 
@@ -725,8 +711,7 @@ const char BL_ActionActuator::SetFrame_doc[] =
 "setFrame(frame)\n"
 "\t - frame     : Specifies the new current frame for the animation\n";
 
-PyObject* BL_ActionActuator::PySetFrame(PyObject* self, 
-										PyObject* args, 
+PyObject* BL_ActionActuator::PySetFrame(PyObject* args, 
 										PyObject* kwds) {
 	ShowDeprecationWarning("setFrame()", "the frame property");
 
@@ -753,8 +738,7 @@ const char BL_ActionActuator::SetProperty_doc[] =
 "\t - prop      : A string specifying the property name to be used in\n"
 "\t               FromProp playback mode.\n";
 
-PyObject* BL_ActionActuator::PySetProperty(PyObject* self, 
-										   PyObject* args, 
+PyObject* BL_ActionActuator::PySetProperty(PyObject* args, 
 										   PyObject* kwds) {
 	ShowDeprecationWarning("setProperty()", "the property property");
 
@@ -776,8 +760,7 @@ const char BL_ActionActuator::SetFrameProperty_doc[] =
 "setFrameProperty(prop)\n"
 "\t - prop      : A string specifying the property of the frame set up update.\n";
 
-PyObject* BL_ActionActuator::PySetFrameProperty(PyObject* self, 
-										   PyObject* args, 
+PyObject* BL_ActionActuator::PySetFrameProperty(PyObject* args, 
 										   PyObject* kwds) {
 	ShowDeprecationWarning("setFrameProperty()", "the frameProperty property");
 
@@ -795,8 +778,7 @@ PyObject* BL_ActionActuator::PySetFrameProperty(PyObject* self,
 }
 
 /*
-PyObject* BL_ActionActuator::PyGetChannel(PyObject* self, 
-										   PyObject* args, 
+PyObject* BL_ActionActuator::PyGetChannel(PyObject* args, 
 										   PyObject* kwds) {
 	char *string;
 	
@@ -816,8 +798,7 @@ PyObject* BL_ActionActuator::PyGetChannel(PyObject* self,
 const char BL_ActionActuator::GetType_doc[] =
 "getType()\n"
 "\tReturns the operation mode of the actuator.\n";
-PyObject* BL_ActionActuator::PyGetType(PyObject* self,
-                                       PyObject* args, 
+PyObject* BL_ActionActuator::PyGetType(PyObject* args, 
                                        PyObject* kwds) {
 	ShowDeprecationWarning("getType()", "the type property");
 
@@ -829,8 +810,7 @@ const char BL_ActionActuator::SetType_doc[] =
 "setType(mode)\n"
 "\t - mode: Play (0), Flipper (2), LoopStop (3), LoopEnd (4) or Property (6)\n"
 "\tSet the operation mode of the actuator.\n";
-PyObject* BL_ActionActuator::PySetType(PyObject* self,
-                                       PyObject* args,
+PyObject* BL_ActionActuator::PySetType(PyObject* args,
                                        PyObject* kwds) {
 	ShowDeprecationWarning("setType()", "the type property");
 
@@ -854,13 +834,13 @@ PyObject* BL_ActionActuator::PySetType(PyObject* self,
 	Py_RETURN_NONE;
 }
 
-PyObject* BL_ActionActuator::PyGetContinue(PyObject* self) {
+PyObject* BL_ActionActuator::PyGetContinue() {
 	ShowDeprecationWarning("getContinue()", "the continue property");
 
     return PyInt_FromLong((long)(m_end_reset==0));
 }
 
-PyObject* BL_ActionActuator::PySetContinue(PyObject* self, PyObject* value) {
+PyObject* BL_ActionActuator::PySetContinue(PyObject* value) {
 	ShowDeprecationWarning("setContinue()", "the continue property");
 
 	int param = PyObject_IsTrue( value );

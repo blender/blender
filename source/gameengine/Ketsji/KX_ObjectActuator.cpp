@@ -344,7 +344,7 @@ PyObject* KX_ObjectActuator::py_getattro(PyObject *attr) {
 /* Removed! */
 
 /* 2. getForce                                                               */
-PyObject* KX_ObjectActuator::PyGetForce(PyObject* self)
+PyObject* KX_ObjectActuator::PyGetForce()
 {
 	PyObject *retVal = PyList_New(4);
 
@@ -356,9 +356,7 @@ PyObject* KX_ObjectActuator::PyGetForce(PyObject* self)
 	return retVal;
 }
 /* 3. setForce                                                               */
-PyObject* KX_ObjectActuator::PySetForce(PyObject* self, 
-										PyObject* args, 
-										PyObject* kwds)
+PyObject* KX_ObjectActuator::PySetForce(PyObject* args)
 {
 	float vecArg[3];
 	int bToggle = 0;
@@ -373,7 +371,7 @@ PyObject* KX_ObjectActuator::PySetForce(PyObject* self,
 }
 
 /* 4. getTorque                                                              */
-PyObject* KX_ObjectActuator::PyGetTorque(PyObject* self)
+PyObject* KX_ObjectActuator::PyGetTorque()
 {
 	PyObject *retVal = PyList_New(4);
 
@@ -385,9 +383,7 @@ PyObject* KX_ObjectActuator::PyGetTorque(PyObject* self)
 	return retVal;
 }
 /* 5. setTorque                                                              */
-PyObject* KX_ObjectActuator::PySetTorque(PyObject* self, 
-										 PyObject* args, 
-										 PyObject* kwds)
+PyObject* KX_ObjectActuator::PySetTorque(PyObject* args)
 {
 	float vecArg[3];
 	int bToggle = 0;
@@ -402,7 +398,7 @@ PyObject* KX_ObjectActuator::PySetTorque(PyObject* self,
 }
 
 /* 6. getDLoc                                                                */
-PyObject* KX_ObjectActuator::PyGetDLoc(PyObject* self)
+PyObject* KX_ObjectActuator::PyGetDLoc()
 {
 	PyObject *retVal = PyList_New(4);
 
@@ -414,9 +410,7 @@ PyObject* KX_ObjectActuator::PyGetDLoc(PyObject* self)
 	return retVal;
 }
 /* 7. setDLoc                                                                */
-PyObject* KX_ObjectActuator::PySetDLoc(PyObject* self, 
-									   PyObject* args, 
-									   PyObject* kwds)
+PyObject* KX_ObjectActuator::PySetDLoc(PyObject* args)
 {
 	float vecArg[3];
 	int bToggle = 0;
@@ -431,7 +425,7 @@ PyObject* KX_ObjectActuator::PySetDLoc(PyObject* self,
 }
 
 /* 8. getDRot                                                                */
-PyObject* KX_ObjectActuator::PyGetDRot(PyObject* self)
+PyObject* KX_ObjectActuator::PyGetDRot()
 {
 	PyObject *retVal = PyList_New(4);
 
@@ -443,9 +437,7 @@ PyObject* KX_ObjectActuator::PyGetDRot(PyObject* self)
 	return retVal;
 }
 /* 9. setDRot                                                                */
-PyObject* KX_ObjectActuator::PySetDRot(PyObject* self, 
-									   PyObject* args, 
-									   PyObject* kwds)
+PyObject* KX_ObjectActuator::PySetDRot(PyObject* args)
 {
 	float vecArg[3];
 	int bToggle = 0;
@@ -460,7 +452,7 @@ PyObject* KX_ObjectActuator::PySetDRot(PyObject* self,
 }
 
 /* 10. getLinearVelocity                                                 */
-PyObject* KX_ObjectActuator::PyGetLinearVelocity(PyObject* self) {
+PyObject* KX_ObjectActuator::PyGetLinearVelocity() {
 	PyObject *retVal = PyList_New(4);
 
 	PyList_SetItem(retVal, 0, PyFloat_FromDouble(m_linear_velocity[0]));
@@ -472,9 +464,7 @@ PyObject* KX_ObjectActuator::PyGetLinearVelocity(PyObject* self) {
 }
 
 /* 11. setLinearVelocity                                                 */
-PyObject* KX_ObjectActuator::PySetLinearVelocity(PyObject* self, 
-												 PyObject* args, 
-												 PyObject* kwds) {
+PyObject* KX_ObjectActuator::PySetLinearVelocity(PyObject* args) {
 	float vecArg[3];
 	int bToggle = 0;
 	if (!PyArg_ParseTuple(args, "fffi:setLinearVelocity", &vecArg[0], &vecArg[1], 
@@ -489,7 +479,7 @@ PyObject* KX_ObjectActuator::PySetLinearVelocity(PyObject* self,
 
 
 /* 12. getAngularVelocity                                                */
-PyObject* KX_ObjectActuator::PyGetAngularVelocity(PyObject* self) {
+PyObject* KX_ObjectActuator::PyGetAngularVelocity() {
 	PyObject *retVal = PyList_New(4);
 
 	PyList_SetItem(retVal, 0, PyFloat_FromDouble(m_angular_velocity[0]));
@@ -500,9 +490,7 @@ PyObject* KX_ObjectActuator::PyGetAngularVelocity(PyObject* self) {
 	return retVal;
 }
 /* 13. setAngularVelocity                                                */
-PyObject* KX_ObjectActuator::PySetAngularVelocity(PyObject* self, 
-												  PyObject* args, 
-												  PyObject* kwds) {
+PyObject* KX_ObjectActuator::PySetAngularVelocity(PyObject* args) {
 	float vecArg[3];
 	int bToggle = 0;
 	if (!PyArg_ParseTuple(args, "fffi:setAngularVelocity", &vecArg[0], &vecArg[1], 
@@ -516,9 +504,7 @@ PyObject* KX_ObjectActuator::PySetAngularVelocity(PyObject* self,
 }
 
 /* 13. setDamping                                                */
-PyObject* KX_ObjectActuator::PySetDamping(PyObject* self, 
-										  PyObject* args, 
-										  PyObject* kwds) {
+PyObject* KX_ObjectActuator::PySetDamping(PyObject* args) {
 	int damping = 0;
 	if (!PyArg_ParseTuple(args, "i:setDamping", &damping) || damping < 0 || damping > 1000) {
 		return NULL;
@@ -528,11 +514,11 @@ PyObject* KX_ObjectActuator::PySetDamping(PyObject* self,
 }
 
 /* 13. getVelocityDamping                                                */
-PyObject* KX_ObjectActuator::PyGetDamping(PyObject* self) {
+PyObject* KX_ObjectActuator::PyGetDamping() {
 	return Py_BuildValue("i",m_damping);
 }
 /* 6. getForceLimitX                                                                */
-PyObject* KX_ObjectActuator::PyGetForceLimitX(PyObject* self)
+PyObject* KX_ObjectActuator::PyGetForceLimitX()
 {
 	PyObject *retVal = PyList_New(3);
 
@@ -543,9 +529,7 @@ PyObject* KX_ObjectActuator::PyGetForceLimitX(PyObject* self)
 	return retVal;
 }
 /* 7. setForceLimitX                                                         */
-PyObject* KX_ObjectActuator::PySetForceLimitX(PyObject* self, 
-											  PyObject* args, 
-											  PyObject* kwds)
+PyObject* KX_ObjectActuator::PySetForceLimitX(PyObject* args)
 {
 	float vecArg[2];
 	int bToggle = 0;
@@ -559,7 +543,7 @@ PyObject* KX_ObjectActuator::PySetForceLimitX(PyObject* self,
 }
 
 /* 6. getForceLimitY                                                                */
-PyObject* KX_ObjectActuator::PyGetForceLimitY(PyObject* self)
+PyObject* KX_ObjectActuator::PyGetForceLimitY()
 {
 	PyObject *retVal = PyList_New(3);
 
@@ -570,9 +554,7 @@ PyObject* KX_ObjectActuator::PyGetForceLimitY(PyObject* self)
 	return retVal;
 }
 /* 7. setForceLimitY                                                                */
-PyObject* KX_ObjectActuator::PySetForceLimitY(PyObject* self, 
-											  PyObject* args, 
-											  PyObject* kwds)
+PyObject* KX_ObjectActuator::PySetForceLimitY(PyObject* args)
 {
 	float vecArg[2];
 	int bToggle = 0;
@@ -586,7 +568,7 @@ PyObject* KX_ObjectActuator::PySetForceLimitY(PyObject* self,
 }
 
 /* 6. getForceLimitZ                                                                */
-PyObject* KX_ObjectActuator::PyGetForceLimitZ(PyObject* self)
+PyObject* KX_ObjectActuator::PyGetForceLimitZ()
 {
 	PyObject *retVal = PyList_New(3);
 
@@ -597,9 +579,7 @@ PyObject* KX_ObjectActuator::PyGetForceLimitZ(PyObject* self)
 	return retVal;
 }
 /* 7. setForceLimitZ                                                                */
-PyObject* KX_ObjectActuator::PySetForceLimitZ(PyObject* self, 
-											  PyObject* args, 
-											  PyObject* kwds)
+PyObject* KX_ObjectActuator::PySetForceLimitZ(PyObject* args)
 {
 	float vecArg[2];
 	int bToggle = 0;
@@ -613,7 +593,7 @@ PyObject* KX_ObjectActuator::PySetForceLimitZ(PyObject* self,
 }
 
 /* 4. getPID                                                              */
-PyObject* KX_ObjectActuator::PyGetPID(PyObject* self)
+PyObject* KX_ObjectActuator::PyGetPID()
 {
 	PyObject *retVal = PyList_New(3);
 
@@ -624,9 +604,7 @@ PyObject* KX_ObjectActuator::PyGetPID(PyObject* self)
 	return retVal;
 }
 /* 5. setPID                                                              */
-PyObject* KX_ObjectActuator::PySetPID(PyObject* self, 
-									  PyObject* args, 
-									  PyObject* kwds)
+PyObject* KX_ObjectActuator::PySetPID(PyObject* args)
 {
 	float vecArg[3];
 	if (!PyArg_ParseTuple(args, "fff:setPID", &vecArg[0], &vecArg[1], &vecArg[2])) {

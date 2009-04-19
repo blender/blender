@@ -263,9 +263,9 @@ PyMethodDef KX_SceneActuator::Methods[] =
 	{"setUseRestart", (PyCFunction) KX_SceneActuator::sPySetUseRestart, METH_VARARGS, (PY_METHODCHAR)SetUseRestart_doc},
 	{"setScene",      (PyCFunction) KX_SceneActuator::sPySetScene, METH_VARARGS, (PY_METHODCHAR)SetScene_doc},
 	{"setCamera",     (PyCFunction) KX_SceneActuator::sPySetCamera, METH_VARARGS, (PY_METHODCHAR)SetCamera_doc},
-	{"getUseRestart", (PyCFunction) KX_SceneActuator::sPyGetUseRestart, METH_VARARGS, (PY_METHODCHAR)GetUseRestart_doc},
-	{"getScene",      (PyCFunction) KX_SceneActuator::sPyGetScene, METH_VARARGS, (PY_METHODCHAR)GetScene_doc},
-	{"getCamera",     (PyCFunction) KX_SceneActuator::sPyGetCamera, METH_VARARGS, (PY_METHODCHAR)GetCamera_doc},
+	{"getUseRestart", (PyCFunction) KX_SceneActuator::sPyGetUseRestart, METH_NOARGS, (PY_METHODCHAR)GetUseRestart_doc},
+	{"getScene",      (PyCFunction) KX_SceneActuator::sPyGetScene, METH_NOARGS, (PY_METHODCHAR)GetScene_doc},
+	{"getCamera",     (PyCFunction) KX_SceneActuator::sPyGetCamera, METH_NOARGS, (PY_METHODCHAR)GetCamera_doc},
 	//<----- Deprecated
 	{NULL,NULL} //Sentinel
 };
@@ -353,9 +353,7 @@ const char KX_SceneActuator::SetUseRestart_doc[] =
 "setUseRestart(flag)\n"
 "\t- flag: 0 or 1.\n"
 "\tSet flag to 1 to restart the scene.\n" ;
-PyObject* KX_SceneActuator::PySetUseRestart(PyObject* self, 
-											PyObject* args, 
-											PyObject* kwds)
+PyObject* KX_SceneActuator::PySetUseRestart(PyObject* args)
 {
 	ShowDeprecationWarning("setUseRestart()", "(no replacement)");
 	int boolArg;
@@ -376,9 +374,7 @@ PyObject* KX_SceneActuator::PySetUseRestart(PyObject* self,
 const char KX_SceneActuator::GetUseRestart_doc[] = 
 "getUseRestart()\n"
 "\tReturn whether the scene will be restarted.\n" ;
-PyObject* KX_SceneActuator::PyGetUseRestart(PyObject* self, 
-											PyObject* args, 
-											PyObject* kwds)
+PyObject* KX_SceneActuator::PyGetUseRestart()
 {
 	ShowDeprecationWarning("getUseRestart()", "(no replacement)");
 	return PyInt_FromLong(!(m_restart == 0));
@@ -391,9 +387,7 @@ const char KX_SceneActuator::SetScene_doc[] =
 "setScene(scene)\n"
 "\t- scene: string\n"
 "\tSet the name of scene the actuator will switch to.\n" ;
-PyObject* KX_SceneActuator::PySetScene(PyObject* self, 
-									   PyObject* args, 
-									   PyObject* kwds)
+PyObject* KX_SceneActuator::PySetScene(PyObject* args)
 {
 	ShowDeprecationWarning("setScene()", "the scene property");
 	/* one argument: a scene, ignore the rest */
@@ -416,9 +410,7 @@ PyObject* KX_SceneActuator::PySetScene(PyObject* self,
 const char KX_SceneActuator::GetScene_doc[] = 
 "getScene()\n"
 "\tReturn the name of the scene the actuator wants to switch to.\n" ;
-PyObject* KX_SceneActuator::PyGetScene(PyObject* self, 
-									   PyObject* args, 
-									   PyObject* kwds)
+PyObject* KX_SceneActuator::PyGetScene()
 {
 	ShowDeprecationWarning("getScene()", "the scene property");
 	return PyString_FromString(m_nextSceneName);
@@ -431,9 +423,7 @@ const char KX_SceneActuator::SetCamera_doc[] =
 "setCamera(camera)\n"
 "\t- camera: string\n"
 "\tSet the camera to switch to.\n" ;
-PyObject* KX_SceneActuator::PySetCamera(PyObject* self, 
-										PyObject* args, 
-										PyObject* kwds)
+PyObject* KX_SceneActuator::PySetCamera(PyObject* args)
 {
 	ShowDeprecationWarning("setCamera()", "the camera property");
 	PyObject *cam;
@@ -483,9 +473,7 @@ PyObject* KX_SceneActuator::PySetCamera(PyObject* self,
 const char KX_SceneActuator::GetCamera_doc[] = 
 "getCamera()\n"
 "\tReturn the name of the camera to switch to.\n" ;
-PyObject* KX_SceneActuator::PyGetCamera(PyObject* self, 
-										PyObject* args, 
-										PyObject* kwds)
+PyObject* KX_SceneActuator::PyGetCamera()
 {
 	ShowDeprecationWarning("getCamera()", "the camera property");
 	if (m_camera) {

@@ -218,7 +218,7 @@ void SCA_ISensor::Activate(class SCA_LogicManager* logicmgr,	  CValue* event)
 const char SCA_ISensor::IsPositive_doc[] = 
 "isPositive()\n"
 "\tReturns whether the sensor is in an active state.\n";
-PyObject* SCA_ISensor::PyIsPositive(PyObject* self)
+PyObject* SCA_ISensor::PyIsPositive()
 {
 	ShowDeprecationWarning("isPositive()", "the read-only positive property");
 	int retval = IsPositiveTrigger();
@@ -228,7 +228,7 @@ PyObject* SCA_ISensor::PyIsPositive(PyObject* self)
 const char SCA_ISensor::IsTriggered_doc[] = 
 "isTriggered()\n"
 "\tReturns whether the sensor has triggered the current controller.\n";
-PyObject* SCA_ISensor::PyIsTriggered(PyObject* self)
+PyObject* SCA_ISensor::PyIsTriggered()
 {
 	ShowDeprecationWarning("isTriggered()", "the read-only triggered property");
 	// check with the current controller
@@ -244,7 +244,7 @@ PyObject* SCA_ISensor::PyIsTriggered(PyObject* self)
 const char SCA_ISensor::GetUsePosPulseMode_doc[] = 
 "getUsePosPulseMode()\n"
 "\tReturns whether positive pulse mode is active.\n";
-PyObject* SCA_ISensor::PyGetUsePosPulseMode(PyObject* self)
+PyObject* SCA_ISensor::PyGetUsePosPulseMode()
 {
 	ShowDeprecationWarning("getUsePosPulseMode()", "the usePosPulseMode property");
 	return BoolToPyArg(m_pos_pulsemode);
@@ -258,7 +258,7 @@ const char SCA_ISensor::SetUsePosPulseMode_doc[] =
 "\t - pulse? : Pulse when a positive event occurs?\n"
 "\t            (KX_TRUE, KX_FALSE)\n"
 "\tSet whether to do pulsing when positive pulses occur.\n";
-PyObject* SCA_ISensor::PySetUsePosPulseMode(PyObject* self, PyObject* args, PyObject* kwds)
+PyObject* SCA_ISensor::PySetUsePosPulseMode(PyObject* args)
 {
 	ShowDeprecationWarning("setUsePosPulseMode()", "the usePosPulseMode property");
 	int pyarg = 0;
@@ -273,7 +273,7 @@ PyObject* SCA_ISensor::PySetUsePosPulseMode(PyObject* self, PyObject* args, PyOb
 const char SCA_ISensor::GetFrequency_doc[] = 
 "getFrequency()\n"
 "\tReturns the frequency of the updates in pulse mode.\n" ;
-PyObject* SCA_ISensor::PyGetFrequency(PyObject* self)
+PyObject* SCA_ISensor::PyGetFrequency()
 {
 	ShowDeprecationWarning("getFrequency()", "the frequency property");
 	return PyInt_FromLong(m_pulse_frequency);
@@ -287,7 +287,7 @@ const char SCA_ISensor::SetFrequency_doc[] =
 "\t- pulse_frequency: The frequency of the updates in pulse mode (integer)"
 "\tSet the frequency of the updates in pulse mode.\n"
 "\tIf the frequency is negative, it is set to 0.\n" ;
-PyObject* SCA_ISensor::PySetFrequency(PyObject* self, PyObject* args, PyObject* kwds)
+PyObject* SCA_ISensor::PySetFrequency(PyObject* args)
 {
 	ShowDeprecationWarning("setFrequency()", "the frequency property");
 	int pulse_frequencyArg = 0;
@@ -310,7 +310,7 @@ PyObject* SCA_ISensor::PySetFrequency(PyObject* self, PyObject* args, PyObject* 
 const char SCA_ISensor::GetInvert_doc[] = 
 "getInvert()\n"
 "\tReturns whether or not pulses from this sensor are inverted.\n" ;
-PyObject* SCA_ISensor::PyGetInvert(PyObject* self)
+PyObject* SCA_ISensor::PyGetInvert()
 {
 	ShowDeprecationWarning("getInvert()", "the invert property");
 	return BoolToPyArg(m_invert);
@@ -320,7 +320,7 @@ const char SCA_ISensor::SetInvert_doc[] =
 "setInvert(invert?)\n"
 "\t- invert?: Invert the event-values? (KX_TRUE, KX_FALSE)\n"
 "\tSet whether to invert pulses.\n";
-PyObject* SCA_ISensor::PySetInvert(PyObject* self, PyObject* args, PyObject* kwds)
+PyObject* SCA_ISensor::PySetInvert(PyObject* args)
 {
 	ShowDeprecationWarning("setInvert()", "the invert property");
 	int pyarg = 0;
@@ -336,7 +336,7 @@ const char SCA_ISensor::GetLevel_doc[] =
 "\tA level detector will immediately generate a pulse, negative or positive\n"
 "\tdepending on the sensor condition, as soon as the state is activated.\n"
 "\tA edge detector will wait for a state change before generating a pulse.\n";
-PyObject* SCA_ISensor::PyGetLevel(PyObject* self)
+PyObject* SCA_ISensor::PyGetLevel()
 {
 	ShowDeprecationWarning("getLevel()", "the level property");
 	return BoolToPyArg(m_level);
@@ -346,7 +346,7 @@ const char SCA_ISensor::SetLevel_doc[] =
 "setLevel(level?)\n"
 "\t- level?: Detect level instead of edge? (KX_TRUE, KX_FALSE)\n"
 "\tSet whether to detect level or edge transition when entering a state.\n";
-PyObject* SCA_ISensor::PySetLevel(PyObject* self, PyObject* args, PyObject* kwds)
+PyObject* SCA_ISensor::PySetLevel(PyObject* args)
 {
 	ShowDeprecationWarning("setLevel()", "the level property");
 	int pyarg = 0;
@@ -358,7 +358,7 @@ PyObject* SCA_ISensor::PySetLevel(PyObject* self, PyObject* args, PyObject* kwds
 const char SCA_ISensor::GetUseNegPulseMode_doc[] = 
 "getUseNegPulseMode()\n"
 "\tReturns whether negative pulse mode is active.\n";
-PyObject* SCA_ISensor::PyGetUseNegPulseMode(PyObject* self)
+PyObject* SCA_ISensor::PyGetUseNegPulseMode()
 {
 	ShowDeprecationWarning("getUseNegPulseMode()", "the useNegPulseMode property");
 	return BoolToPyArg(m_neg_pulsemode);
@@ -369,7 +369,7 @@ const char SCA_ISensor::SetUseNegPulseMode_doc[] =
 "\t - pulse? : Pulse when a negative event occurs?\n"
 "\t            (KX_TRUE, KX_FALSE)\n"
 "\tSet whether to do pulsing when negative pulses occur.\n";
-PyObject* SCA_ISensor::PySetUseNegPulseMode(PyObject* self, PyObject* args, PyObject* kwds)
+PyObject* SCA_ISensor::PySetUseNegPulseMode(PyObject* args)
 {
 	ShowDeprecationWarning("setUseNegPulseMode()", "the useNegPulseMode property");
 	int pyarg = 0;

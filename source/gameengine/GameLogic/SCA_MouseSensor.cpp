@@ -252,9 +252,7 @@ const char SCA_MouseSensor::GetXPosition_doc[] =
 "\tReturns the x-coordinate of the mouse sensor, in frame coordinates.\n"
 "\tThe lower-left corner is the origin. The coordinate is given in\n"
 "\tpixels\n";
-PyObject* SCA_MouseSensor::PyGetXPosition(PyObject* self, 
-										 PyObject* args, 
-										 PyObject* kwds) {
+PyObject* SCA_MouseSensor::PyGetXPosition() {
 	ShowDeprecationWarning("getXPosition()", "the position property");
 	return PyInt_FromLong(m_x);
 }
@@ -265,9 +263,7 @@ const char SCA_MouseSensor::GetYPosition_doc[] =
 "\tReturns the y-coordinate of the mouse sensor, in frame coordinates.\n"
 "\tThe lower-left corner is the origin. The coordinate is given in\n"
 "\tpixels\n";
-PyObject* SCA_MouseSensor::PyGetYPosition(PyObject* self, 
-										 PyObject* args, 
-										 PyObject* kwds) {
+PyObject* SCA_MouseSensor::PyGetYPosition() {
 	ShowDeprecationWarning("getYPosition()", "the position property");
 	return PyInt_FromLong(m_y);
 }

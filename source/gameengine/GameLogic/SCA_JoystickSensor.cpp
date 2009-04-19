@@ -349,7 +349,7 @@ int SCA_JoystickSensor::py_setattro(PyObject *attr, PyObject *value)
 const char SCA_JoystickSensor::GetIndex_doc[] = 
 "getIndex\n"
 "\tReturns the joystick index to use.\n";
-PyObject* SCA_JoystickSensor::PyGetIndex( PyObject* self ) {
+PyObject* SCA_JoystickSensor::PyGetIndex( ) {
 	ShowDeprecationWarning("getIndex()", "the index property");
 	return PyInt_FromLong(m_joyindex);
 }
@@ -359,7 +359,7 @@ PyObject* SCA_JoystickSensor::PyGetIndex( PyObject* self ) {
 const char SCA_JoystickSensor::SetIndex_doc[] = 
 "setIndex\n"
 "\tSets the joystick index to use.\n";
-PyObject* SCA_JoystickSensor::PySetIndex( PyObject* self, PyObject* value ) {
+PyObject* SCA_JoystickSensor::PySetIndex( PyObject* value ) {
 	ShowDeprecationWarning("setIndex()", "the index property");
 	int index = PyInt_AsLong( value ); /* -1 on error, will raise an error in this case */
 	if (index < 0 || index >= JOYINDEX_MAX) {
@@ -375,7 +375,7 @@ PyObject* SCA_JoystickSensor::PySetIndex( PyObject* self, PyObject* value ) {
 const char SCA_JoystickSensor::GetAxis_doc[] = 
 "getAxis\n"
 "\tReturns the current axis this sensor reacts to.\n";
-PyObject* SCA_JoystickSensor::PyGetAxis( PyObject* self) {
+PyObject* SCA_JoystickSensor::PyGetAxis( ) {
 	ShowDeprecationWarning("getAxis()", "the axis property");
 	return Py_BuildValue("[ii]",m_axis, m_axisf);
 }
@@ -385,7 +385,7 @@ PyObject* SCA_JoystickSensor::PyGetAxis( PyObject* self) {
 const char SCA_JoystickSensor::SetAxis_doc[] = 
 "setAxis\n"
 "\tSets the current axis this sensor reacts to.\n";
-PyObject* SCA_JoystickSensor::PySetAxis( PyObject* self, PyObject* args ) {
+PyObject* SCA_JoystickSensor::PySetAxis( PyObject* args ) {
 	ShowDeprecationWarning("setAxis()", "the axis property");
 	
 	int axis,axisflag;
@@ -402,7 +402,7 @@ PyObject* SCA_JoystickSensor::PySetAxis( PyObject* self, PyObject* args ) {
 const char SCA_JoystickSensor::GetAxisValue_doc[] = 
 "getAxisValue\n"
 "\tReturns a list of the values for the current state of each axis.\n";
-PyObject* SCA_JoystickSensor::PyGetAxisValue( PyObject* self) {
+PyObject* SCA_JoystickSensor::PyGetAxisValue( ) {
 	ShowDeprecationWarning("getAxisValue()", "the axisPosition property");
 	SCA_Joystick *joy = m_pJoystickMgr->GetJoystickDevice(m_joyindex);
 	
@@ -421,7 +421,7 @@ PyObject* SCA_JoystickSensor::PyGetAxisValue( PyObject* self) {
 const char SCA_JoystickSensor::GetThreshold_doc[] = 
 "getThreshold\n"
 "\tReturns the threshold of the axis.\n";
-PyObject* SCA_JoystickSensor::PyGetThreshold( PyObject* self) {
+PyObject* SCA_JoystickSensor::PyGetThreshold( ) {
 	ShowDeprecationWarning("getThreshold()", "the threshold property");
 	return PyInt_FromLong(m_precision);
 }
@@ -431,7 +431,7 @@ PyObject* SCA_JoystickSensor::PyGetThreshold( PyObject* self) {
 const char SCA_JoystickSensor::SetThreshold_doc[] = 
 "setThreshold\n"
 "\tSets the threshold of the axis.\n";
-PyObject* SCA_JoystickSensor::PySetThreshold( PyObject* self, PyObject* args ) {
+PyObject* SCA_JoystickSensor::PySetThreshold( PyObject* args ) {
 	ShowDeprecationWarning("setThreshold()", "the threshold property");
 	int thresh;
 	if(!PyArg_ParseTuple(args, "i:setThreshold", &thresh)){
@@ -445,7 +445,7 @@ PyObject* SCA_JoystickSensor::PySetThreshold( PyObject* self, PyObject* args ) {
 const char SCA_JoystickSensor::GetButton_doc[] = 
 "getButton\n"
 "\tReturns the current button this sensor is checking.\n";
-PyObject* SCA_JoystickSensor::PyGetButton( PyObject* self) {
+PyObject* SCA_JoystickSensor::PyGetButton( ) {
 	ShowDeprecationWarning("getButton()", "the button property");
 	return PyInt_FromLong(m_button);
 }
@@ -454,7 +454,7 @@ PyObject* SCA_JoystickSensor::PyGetButton( PyObject* self) {
 const char SCA_JoystickSensor::SetButton_doc[] = 
 "setButton\n"
 "\tSets the button the sensor reacts to.\n";
-PyObject* SCA_JoystickSensor::PySetButton( PyObject* self, PyObject* value ) {
+PyObject* SCA_JoystickSensor::PySetButton( PyObject* value ) {
 	ShowDeprecationWarning("setButton()", "the button property");
 	int button = PyInt_AsLong(value);
 	if(button==-1 && PyErr_Occurred()) {
@@ -469,16 +469,16 @@ PyObject* SCA_JoystickSensor::PySetButton( PyObject* self, PyObject* value ) {
 const char SCA_JoystickSensor::GetButtonValue_doc[] = 
 "getButtonValue\n"
 "\tReturns a list containing the indicies of the current pressed state of each button.\n";
-PyObject* SCA_JoystickSensor::PyGetButtonValue( PyObject* self) {
+PyObject* SCA_JoystickSensor::PyGetButtonValue( ) {
 	ShowDeprecationWarning("getButtonValue()", "getButtonActiveList");
-	return PyGetButtonActiveList(self);
+	return PyGetButtonActiveList( );
 }
 
 /* get button active list  -------------------------------------------------- */
 const char SCA_JoystickSensor::GetButtonActiveList_doc[] = 
 "getButtonActiveList\n"
 "\tReturns a list containing the indicies of the button currently pressed.\n";
-PyObject* SCA_JoystickSensor::PyGetButtonActiveList( PyObject* self) {
+PyObject* SCA_JoystickSensor::PyGetButtonActiveList( ) {
 	SCA_Joystick *joy = m_pJoystickMgr->GetJoystickDevice(m_joyindex);
 	PyObject *ls = PyList_New(0);
 	PyObject *value;
@@ -500,7 +500,7 @@ PyObject* SCA_JoystickSensor::PyGetButtonActiveList( PyObject* self) {
 const char SCA_JoystickSensor::GetButtonStatus_doc[] = 
 "getButtonStatus(buttonIndex)\n"
 "\tReturns a bool of the current pressed state of the specified button.\n";
-PyObject* SCA_JoystickSensor::PyGetButtonStatus( PyObject* self, PyObject* args ) {
+PyObject* SCA_JoystickSensor::PyGetButtonStatus( PyObject* args ) {
 	SCA_Joystick *joy = m_pJoystickMgr->GetJoystickDevice(m_joyindex);
 	int index;
 	
@@ -517,7 +517,7 @@ PyObject* SCA_JoystickSensor::PyGetButtonStatus( PyObject* self, PyObject* args 
 const char SCA_JoystickSensor::GetHat_doc[] = 
 "getHat\n"
 "\tReturns the current direction of the hat.\n";
-PyObject* SCA_JoystickSensor::PyGetHat( PyObject* self ) {
+PyObject* SCA_JoystickSensor::PyGetHat( ) {
 	ShowDeprecationWarning("getHat()", "the hat property");
 	return Py_BuildValue("[ii]",m_hat, m_hatf);
 }
@@ -527,7 +527,7 @@ PyObject* SCA_JoystickSensor::PyGetHat( PyObject* self ) {
 const char SCA_JoystickSensor::SetHat_doc[] = 
 "setHat\n"
 "\tSets the hat the sensor reacts to.\n";
-PyObject* SCA_JoystickSensor::PySetHat( PyObject* self, PyObject* args ) {
+PyObject* SCA_JoystickSensor::PySetHat( PyObject* args ) {
 	ShowDeprecationWarning("setHat()", "the hat property");
 	int hat,hatflag;
 	if(!PyArg_ParseTuple(args, "ii:setHat", &hat, &hatflag)){
@@ -543,7 +543,7 @@ PyObject* SCA_JoystickSensor::PySetHat( PyObject* self, PyObject* args ) {
 const char SCA_JoystickSensor::NumberOfAxes_doc[] = 
 "getNumAxes\n"
 "\tReturns the number of axes .\n";
-PyObject* SCA_JoystickSensor::PyNumberOfAxes( PyObject* self ) {
+PyObject* SCA_JoystickSensor::PyNumberOfAxes( ) {
 	ShowDeprecationWarning("getNumAxes()", "the numAxis property");
 	SCA_Joystick *joy = m_pJoystickMgr->GetJoystickDevice(m_joyindex);
 	// when the joystick is null their is 0 exis still. dumb but scripters should use isConnected()
@@ -554,7 +554,7 @@ PyObject* SCA_JoystickSensor::PyNumberOfAxes( PyObject* self ) {
 const char SCA_JoystickSensor::NumberOfButtons_doc[] = 
 "getNumButtons\n"
 "\tReturns the number of buttons .\n";
-PyObject* SCA_JoystickSensor::PyNumberOfButtons( PyObject* self ) {
+PyObject* SCA_JoystickSensor::PyNumberOfButtons( ) {
 	ShowDeprecationWarning("getNumButtons()", "the numButtons property");
 	SCA_Joystick *joy = m_pJoystickMgr->GetJoystickDevice(m_joyindex);
 	return PyInt_FromLong( joy ? joy->GetNumberOfButtons() : 0 );
@@ -564,7 +564,7 @@ PyObject* SCA_JoystickSensor::PyNumberOfButtons( PyObject* self ) {
 const char SCA_JoystickSensor::NumberOfHats_doc[] = 
 "getNumHats\n"
 "\tReturns the number of hats .\n";
-PyObject* SCA_JoystickSensor::PyNumberOfHats( PyObject* self ) {
+PyObject* SCA_JoystickSensor::PyNumberOfHats( ) {
 	ShowDeprecationWarning("getNumHats()", "the numHats property");
 	SCA_Joystick *joy = m_pJoystickMgr->GetJoystickDevice(m_joyindex);
 	return PyInt_FromLong( joy ? joy->GetNumberOfHats() : 0 );
@@ -573,7 +573,7 @@ PyObject* SCA_JoystickSensor::PyNumberOfHats( PyObject* self ) {
 const char SCA_JoystickSensor::Connected_doc[] = 
 "getConnected\n"
 "\tReturns True if a joystick is connected at this joysticks index.\n";
-PyObject* SCA_JoystickSensor::PyConnected( PyObject* self ) {
+PyObject* SCA_JoystickSensor::PyConnected( ) {
 	ShowDeprecationWarning("getConnected()", "the connected property");
 	SCA_Joystick *joy = m_pJoystickMgr->GetJoystickDevice(m_joyindex);
 	return PyBool_FromLong( joy ? joy->Connected() : 0 );

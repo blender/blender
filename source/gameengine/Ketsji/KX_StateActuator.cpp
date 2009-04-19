@@ -173,9 +173,7 @@ KX_StateActuator::SetOperation_doc[] =
 "\tUse setMask() to specify the bits that will be modified.\n";
 PyObject* 
 
-KX_StateActuator::PySetOperation(PyObject* self, 
-				    PyObject* args, 
-				    PyObject* kwds) {
+KX_StateActuator::PySetOperation(PyObject* args) {
 	ShowDeprecationWarning("setOperation()", "the operation property");
 	int oper;
 
@@ -199,9 +197,7 @@ KX_StateActuator::SetMask_doc[] =
 "\twhich copies the value to the object state.\n";
 PyObject* 
 
-KX_StateActuator::PySetMask(PyObject* self, 
-				    PyObject* args, 
-				    PyObject* kwds) {
+KX_StateActuator::PySetMask(PyObject* args) {
 	ShowDeprecationWarning("setMask()", "the mask property");
 	int mask;
 

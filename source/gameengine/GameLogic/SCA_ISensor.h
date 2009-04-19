@@ -143,15 +143,15 @@ public:
 	KX_PYMETHOD_DOC_NOARGS(SCA_ISensor,IsPositive);
 	KX_PYMETHOD_DOC_NOARGS(SCA_ISensor,IsTriggered);
 	KX_PYMETHOD_DOC_NOARGS(SCA_ISensor,GetUsePosPulseMode);
-	KX_PYMETHOD_DOC(SCA_ISensor,SetUsePosPulseMode);
+	KX_PYMETHOD_DOC_VARARGS(SCA_ISensor,SetUsePosPulseMode);
 	KX_PYMETHOD_DOC_NOARGS(SCA_ISensor,GetFrequency);
-	KX_PYMETHOD_DOC(SCA_ISensor,SetFrequency);
+	KX_PYMETHOD_DOC_VARARGS(SCA_ISensor,SetFrequency);
 	KX_PYMETHOD_DOC_NOARGS(SCA_ISensor,GetUseNegPulseMode);
-	KX_PYMETHOD_DOC(SCA_ISensor,SetUseNegPulseMode);
+	KX_PYMETHOD_DOC_VARARGS(SCA_ISensor,SetUseNegPulseMode);
 	KX_PYMETHOD_DOC_NOARGS(SCA_ISensor,GetInvert);
-	KX_PYMETHOD_DOC(SCA_ISensor,SetInvert);
+	KX_PYMETHOD_DOC_VARARGS(SCA_ISensor,SetInvert);
 	KX_PYMETHOD_DOC_NOARGS(SCA_ISensor,GetLevel);
-	KX_PYMETHOD_DOC(SCA_ISensor,SetLevel);
+	KX_PYMETHOD_DOC_VARARGS(SCA_ISensor,SetLevel);
 	//<------
 	KX_PYMETHOD_DOC_NOARGS(SCA_ISensor,reset);
 	

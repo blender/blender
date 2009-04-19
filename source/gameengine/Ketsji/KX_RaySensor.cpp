@@ -384,7 +384,7 @@ PyObject* KX_RaySensor::pyattr_get_hitobject(void *self_v, const KX_PYATTRIBUTE_
 const char KX_RaySensor::GetHitObject_doc[] = 
 "getHitObject()\n"
 "\tReturns the name of the object that was hit by this ray.\n";
-PyObject* KX_RaySensor::PyGetHitObject(PyObject* self)
+PyObject* KX_RaySensor::PyGetHitObject()
 {
 	ShowDeprecationWarning("getHitObject()", "the hitObject property");
 	if (m_hitObject)
@@ -398,7 +398,7 @@ PyObject* KX_RaySensor::PyGetHitObject(PyObject* self)
 const char KX_RaySensor::GetHitPosition_doc[] = 
 "getHitPosition()\n"
 "\tReturns the position (in worldcoordinates) where the object was hit by this ray.\n";
-PyObject* KX_RaySensor::PyGetHitPosition(PyObject* self)
+PyObject* KX_RaySensor::PyGetHitPosition()
 {
 	ShowDeprecationWarning("getHitPosition()", "the hitPosition property");
 
@@ -414,7 +414,7 @@ PyObject* KX_RaySensor::PyGetHitPosition(PyObject* self)
 const char KX_RaySensor::GetRayDirection_doc[] = 
 "getRayDirection()\n"
 "\tReturns the direction from the ray (in worldcoordinates) .\n";
-PyObject* KX_RaySensor::PyGetRayDirection(PyObject* self)
+PyObject* KX_RaySensor::PyGetRayDirection()
 {
 	ShowDeprecationWarning("getRayDirection()", "the rayDirection property");
 
@@ -430,7 +430,7 @@ PyObject* KX_RaySensor::PyGetRayDirection(PyObject* self)
 const char KX_RaySensor::GetHitNormal_doc[] = 
 "getHitNormal()\n"
 "\tReturns the normal (in worldcoordinates) of the object at the location where the object was hit by this ray.\n";
-PyObject* KX_RaySensor::PyGetHitNormal(PyObject* self)
+PyObject* KX_RaySensor::PyGetHitNormal()
 {
 	ShowDeprecationWarning("getHitNormal()", "the hitNormal property");
 

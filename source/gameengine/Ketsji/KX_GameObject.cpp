@@ -1179,7 +1179,7 @@ bool KX_GameObject::ConvertPythonVectorArgs(PyObject* args,
 }
 */
 
-PyObject* KX_GameObject::PyReplaceMesh(PyObject* self, PyObject* value)
+PyObject* KX_GameObject::PyReplaceMesh(PyObject* value)
 {
 	KX_Scene *scene = KX_GetActiveScene();
 	char* meshname;
@@ -1201,7 +1201,7 @@ PyObject* KX_GameObject::PyReplaceMesh(PyObject* self, PyObject* value)
 	Py_RETURN_NONE;
 }
 
-PyObject* KX_GameObject::PyEndObject(PyObject* self)
+PyObject* KX_GameObject::PyEndObject()
 {
 
 	KX_Scene *scene = KX_GetActiveScene();
@@ -1212,7 +1212,7 @@ PyObject* KX_GameObject::PyEndObject(PyObject* self)
 }
 
 
-PyObject* KX_GameObject::PyGetPosition(PyObject* self)
+PyObject* KX_GameObject::PyGetPosition()
 {
 	ShowDeprecationWarning("getPosition()", "the position property");
 	return PyObjectFrom(NodeGetWorldPosition());
@@ -1701,7 +1701,7 @@ PyObject* KX_GameObject::pyattr_get_meshes(void *self_v, const KX_PYATTRIBUTE_DE
 	PyObject *meshes= PyList_New(self->m_meshes.size());
 	int i;
 	
-	for(i=0; i < self->m_meshes.size(); i++)
+	for(i=0; i < (int)self->m_meshes.size(); i++)
 	{
 		KX_MeshProxy* meshproxy = new KX_MeshProxy(self->m_meshes[i]);
 		PyList_SET_ITEM(meshes, i, meshproxy->GetProxy());
@@ -1871,7 +1871,7 @@ int	KX_GameObject::py_delattro(PyObject *attr)
 }
 
 
-PyObject* KX_GameObject::PyApplyForce(PyObject* self, PyObject* args)
+PyObject* KX_GameObject::PyApplyForce(PyObject* args)
 {
 	int local = 0;
 	PyObject* pyvect;
@@ -1886,7 +1886,7 @@ PyObject* KX_GameObject::PyApplyForce(PyObject* self, PyObject* args)
 	return NULL;
 }
 
-PyObject* KX_GameObject::PyApplyTorque(PyObject* self, PyObject* args)
+PyObject* KX_GameObject::PyApplyTorque(PyObject* args)
 {
 	int local = 0;
 	PyObject* pyvect;
@@ -1901,7 +1901,7 @@ PyObject* KX_GameObject::PyApplyTorque(PyObject* self, PyObject* args)
 	return NULL;
 }
 
-PyObject* KX_GameObject::PyApplyRotation(PyObject* self, PyObject* args)
+PyObject* KX_GameObject::PyApplyRotation(PyObject* args)
 {
 	int local = 0;
 	PyObject* pyvect;
@@ -1916,7 +1916,7 @@ PyObject* KX_GameObject::PyApplyRotation(PyObject* self, PyObject* args)
 	return NULL;
 }
 
-PyObject* KX_GameObject::PyApplyMovement(PyObject* self, PyObject* args)
+PyObject* KX_GameObject::PyApplyMovement(PyObject* args)
 {
 	int local = 0;
 	PyObject* pyvect;
@@ -1931,7 +1931,7 @@ PyObject* KX_GameObject::PyApplyMovement(PyObject* self, PyObject* args)
 	return NULL;
 }
 
-PyObject* KX_GameObject::PyGetLinearVelocity(PyObject* self, PyObject* args)
+PyObject* KX_GameObject::PyGetLinearVelocity(PyObject* args)
 {
 	// only can get the velocity if we have a physics object connected to us...
 	int local = 0;
@@ -1945,7 +1945,7 @@ PyObject* KX_GameObject::PyGetLinearVelocity(PyObject* self, PyObject* args)
 	}
 }
 
-PyObject* KX_GameObject::PySetLinearVelocity(PyObject* self, PyObject* args)
+PyObject* KX_GameObject::PySetLinearVelocity(PyObject* args)
 {
 	int local = 0;
 	PyObject* pyvect;
@@ -1960,7 +1960,7 @@ PyObject* KX_GameObject::PySetLinearVelocity(PyObject* self, PyObject* args)
 	return NULL;
 }
 
-PyObject* KX_GameObject::PyGetAngularVelocity(PyObject* self, PyObject* args)
+PyObject* KX_GameObject::PyGetAngularVelocity(PyObject* args)
 {
 	// only can get the velocity if we have a physics object connected to us...
 	int local = 0;
@@ -1974,7 +1974,7 @@ PyObject* KX_GameObject::PyGetAngularVelocity(PyObject* self, PyObject* args)
 	}
 }
 
-PyObject* KX_GameObject::PySetAngularVelocity(PyObject* self, PyObject* args)
+PyObject* KX_GameObject::PySetAngularVelocity(PyObject* args)
 {
 	int local = 0;
 	PyObject* pyvect;
@@ -1989,7 +1989,7 @@ PyObject* KX_GameObject::PySetAngularVelocity(PyObject* self, PyObject* args)
 	return NULL;
 }
 
-PyObject* KX_GameObject::PySetVisible(PyObject* self, PyObject* args)
+PyObject* KX_GameObject::PySetVisible(PyObject* args)
 {
 	int visible, recursive = 0;
 	if (!PyArg_ParseTuple(args,"i|i:setVisible",&visible, &recursive))
@@ -2001,7 +2001,7 @@ PyObject* KX_GameObject::PySetVisible(PyObject* self, PyObject* args)
 	
 }
 
-PyObject* KX_GameObject::PySetOcclusion(PyObject* self, PyObject* args)
+PyObject* KX_GameObject::PySetOcclusion(PyObject* args)
 {
 	int occlusion, recursive = 0;
 	if (!PyArg_ParseTuple(args,"i|i:setOcclusion",&occlusion, &recursive))
@@ -2011,13 +2011,13 @@ PyObject* KX_GameObject::PySetOcclusion(PyObject* self, PyObject* args)
 	Py_RETURN_NONE;
 }
 
-PyObject* KX_GameObject::PyGetVisible(PyObject* self)
+PyObject* KX_GameObject::PyGetVisible()
 {
 	ShowDeprecationWarning("getVisible()", "the visible property");
 	return PyInt_FromLong(m_bVisible);	
 }
 
-PyObject* KX_GameObject::PyGetState(PyObject* self)
+PyObject* KX_GameObject::PyGetState()
 {
 	ShowDeprecationWarning("getState()", "the state property");
 	int state = 0;
@@ -2025,7 +2025,7 @@ PyObject* KX_GameObject::PyGetState(PyObject* self)
 	return PyInt_FromLong(state);
 }
 
-PyObject* KX_GameObject::PySetState(PyObject* self, PyObject* value)
+PyObject* KX_GameObject::PySetState(PyObject* value)
 {
 	ShowDeprecationWarning("setState()", "the state property");
 	int state_i = PyInt_AsLong(value);
@@ -2046,7 +2046,7 @@ PyObject* KX_GameObject::PySetState(PyObject* self, PyObject* value)
 	Py_RETURN_NONE;
 }
 
-PyObject* KX_GameObject::PyGetVelocity(PyObject* self, PyObject* args)
+PyObject* KX_GameObject::PyGetVelocity(PyObject* args)
 {
 	// only can get the velocity if we have a physics object connected to us...
 	MT_Point3 point(0.0,0.0,0.0);
@@ -2072,13 +2072,13 @@ PyObject* KX_GameObject::PyGetVelocity(PyObject* self, PyObject* args)
 
 
 
-PyObject* KX_GameObject::PyGetMass(PyObject* self)
+PyObject* KX_GameObject::PyGetMass()
 {
 	ShowDeprecationWarning("getMass()", "the mass property");
 	return PyFloat_FromDouble((GetPhysicsController() != NULL) ? GetPhysicsController()->GetMass() : 0.0f);
 }
 
-PyObject* KX_GameObject::PyGetReactionForce(PyObject* self)
+PyObject* KX_GameObject::PyGetReactionForce()
 {
 	// only can get the velocity if we have a physics object connected to us...
 	
@@ -2095,7 +2095,7 @@ PyObject* KX_GameObject::PyGetReactionForce(PyObject* self)
 
 
 
-PyObject* KX_GameObject::PyEnableRigidBody(PyObject* self)
+PyObject* KX_GameObject::PyEnableRigidBody()
 {
 	if(GetPhysicsController())
 		GetPhysicsController()->setRigidBody(true);
@@ -2105,7 +2105,7 @@ PyObject* KX_GameObject::PyEnableRigidBody(PyObject* self)
 
 
 
-PyObject* KX_GameObject::PyDisableRigidBody(PyObject* self)
+PyObject* KX_GameObject::PyDisableRigidBody()
 {
 	if(GetPhysicsController())
 		GetPhysicsController()->setRigidBody(false);
@@ -2115,7 +2115,7 @@ PyObject* KX_GameObject::PyDisableRigidBody(PyObject* self)
 
 
 
-PyObject* KX_GameObject::PyGetParent(PyObject* self)
+PyObject* KX_GameObject::PyGetParent()
 {
 	ShowDeprecationWarning("getParent()", "the parent property");
 	KX_GameObject* parent = this->GetParent();
@@ -2124,7 +2124,7 @@ PyObject* KX_GameObject::PyGetParent(PyObject* self)
 	Py_RETURN_NONE;
 }
 
-PyObject* KX_GameObject::PySetParent(PyObject* self, PyObject* value)
+PyObject* KX_GameObject::PySetParent(PyObject* value)
 {
 	KX_GameObject *obj;
 	if (!ConvertPythonToGameObject(value, &obj, false))
@@ -2134,24 +2134,24 @@ PyObject* KX_GameObject::PySetParent(PyObject* self, PyObject* value)
 	Py_RETURN_NONE;
 }
 
-PyObject* KX_GameObject::PyRemoveParent(PyObject* self)
+PyObject* KX_GameObject::PyRemoveParent()
 {
 	KX_Scene *scene = KX_GetActiveScene();
 	this->RemoveParent(scene);
 	Py_RETURN_NONE;
 }
 
-PyObject* KX_GameObject::PyGetChildren(PyObject* self)
+PyObject* KX_GameObject::PyGetChildren()
 {
 	return GetChildren()->NewProxy(true);
 }
 
-PyObject* KX_GameObject::PyGetChildrenRecursive(PyObject* self)
+PyObject* KX_GameObject::PyGetChildrenRecursive()
 {
 	return GetChildrenRecursive()->NewProxy(true);
 }
 
-PyObject* KX_GameObject::PyGetMesh(PyObject* self, PyObject* args)
+PyObject* KX_GameObject::PyGetMesh(PyObject* args)
 {
 	ShowDeprecationWarning("getMesh()", "the meshes property");
 	
@@ -2173,7 +2173,7 @@ PyObject* KX_GameObject::PyGetMesh(PyObject* self, PyObject* args)
 
 
 
-PyObject* KX_GameObject::PySetCollisionMargin(PyObject* self, PyObject* value)
+PyObject* KX_GameObject::PySetCollisionMargin(PyObject* value)
 {
 	float collisionMargin = PyFloat_AsDouble(value);
 	
@@ -2193,7 +2193,7 @@ PyObject* KX_GameObject::PySetCollisionMargin(PyObject* self, PyObject* value)
 
 
 
-PyObject* KX_GameObject::PyApplyImpulse(PyObject* self, PyObject* args)
+PyObject* KX_GameObject::PyApplyImpulse(PyObject* args)
 {
 	PyObject* pyattach;
 	PyObject* pyimpulse;
@@ -2220,7 +2220,7 @@ PyObject* KX_GameObject::PyApplyImpulse(PyObject* self, PyObject* args)
 
 
 
-PyObject* KX_GameObject::PySuspendDynamics(PyObject* self)
+PyObject* KX_GameObject::PySuspendDynamics()
 {
 	SuspendDynamics();
 	Py_RETURN_NONE;
@@ -2228,7 +2228,7 @@ PyObject* KX_GameObject::PySuspendDynamics(PyObject* self)
 
 
 
-PyObject* KX_GameObject::PyRestoreDynamics(PyObject* self)
+PyObject* KX_GameObject::PyRestoreDynamics()
 {
 	RestoreDynamics();
 	Py_RETURN_NONE;
@@ -2236,7 +2236,7 @@ PyObject* KX_GameObject::PyRestoreDynamics(PyObject* self)
 
 
 
-PyObject* KX_GameObject::PyGetOrientation(PyObject* self) //keywords
+PyObject* KX_GameObject::PyGetOrientation() //keywords
 {
 	ShowDeprecationWarning("getOrientation()", "the orientation property");
 	return PyObjectFrom(NodeGetWorldOrientation());
@@ -2244,7 +2244,7 @@ PyObject* KX_GameObject::PyGetOrientation(PyObject* self) //keywords
 
 
 
-PyObject* KX_GameObject::PySetOrientation(PyObject* self, PyObject* value)
+PyObject* KX_GameObject::PySetOrientation(PyObject* value)
 {
 	ShowDeprecationWarning("setOrientation()", "the orientation property");
 	MT_Matrix3x3 matrix;
@@ -2266,7 +2266,7 @@ PyObject* KX_GameObject::PySetOrientation(PyObject* self, PyObject* value)
 	return NULL;
 }
 
-PyObject* KX_GameObject::PyAlignAxisToVect(PyObject* self, PyObject* args)
+PyObject* KX_GameObject::PyAlignAxisToVect(PyObject* args)
 {
 	PyObject* pyvect;
 	int axis = 2; //z axis is the default
@@ -2288,7 +2288,7 @@ PyObject* KX_GameObject::PyAlignAxisToVect(PyObject* self, PyObject* args)
 	return NULL;
 }
 
-PyObject* KX_GameObject::PyGetAxisVect(PyObject* self, PyObject* value)
+PyObject* KX_GameObject::PyGetAxisVect(PyObject* value)
 {
 	MT_Vector3 vect;
 	if (PyVecTo(value, vect))
@@ -2298,7 +2298,7 @@ PyObject* KX_GameObject::PyGetAxisVect(PyObject* self, PyObject* value)
 	return NULL;
 }
 
-PyObject* KX_GameObject::PySetPosition(PyObject* self, PyObject* value)
+PyObject* KX_GameObject::PySetPosition(PyObject* value)
 {
 	ShowDeprecationWarning("setPosition()", "the position property");
 	MT_Point3 pos;
@@ -2312,7 +2312,7 @@ PyObject* KX_GameObject::PySetPosition(PyObject* self, PyObject* value)
 	return NULL;
 }
 
-PyObject* KX_GameObject::PySetWorldPosition(PyObject* self, PyObject* value)
+PyObject* KX_GameObject::PySetWorldPosition(PyObject* value)
 {
 	MT_Point3 pos;
 	if (PyVecTo(value, pos))
@@ -2325,7 +2325,7 @@ PyObject* KX_GameObject::PySetWorldPosition(PyObject* self, PyObject* value)
 	return NULL;
 }
 
-PyObject* KX_GameObject::PyGetPhysicsId(PyObject* self)
+PyObject* KX_GameObject::PyGetPhysicsId()
 {
 	KX_IPhysicsController* ctrl = GetPhysicsController();
 	uint_ptr physid=0;
@@ -2336,7 +2336,7 @@ PyObject* KX_GameObject::PyGetPhysicsId(PyObject* self)
 	return PyInt_FromLong((long)physid);
 }
 
-PyObject* KX_GameObject::PyGetPropertyNames(PyObject* self)
+PyObject* KX_GameObject::PyGetPropertyNames()
 {
 	PyObject *list=  ConvertKeysToPython();
 	

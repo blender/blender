@@ -83,16 +83,16 @@ public:
 	bAction*	GetAction() { return m_action; }
 	void		SetAction(bAction* act) { m_action= act; }
 
-	KX_PYMETHOD_DOC(BL_ShapeActionActuator,SetAction);
-	KX_PYMETHOD_DOC(BL_ShapeActionActuator,SetBlendin);
-	KX_PYMETHOD_DOC(BL_ShapeActionActuator,SetPriority);
-	KX_PYMETHOD_DOC(BL_ShapeActionActuator,SetStart);
-	KX_PYMETHOD_DOC(BL_ShapeActionActuator,SetEnd);
-	KX_PYMETHOD_DOC(BL_ShapeActionActuator,SetFrame);
-	KX_PYMETHOD_DOC(BL_ShapeActionActuator,SetProperty);
-	KX_PYMETHOD_DOC(BL_ShapeActionActuator,SetFrameProperty);
-	KX_PYMETHOD_DOC(BL_ShapeActionActuator,SetBlendtime);
-	KX_PYMETHOD_DOC(BL_ShapeActionActuator,SetChannel);
+	KX_PYMETHOD_DOC_VARARGS(BL_ShapeActionActuator,SetAction);
+	KX_PYMETHOD_DOC_VARARGS(BL_ShapeActionActuator,SetBlendin);
+	KX_PYMETHOD_DOC_VARARGS(BL_ShapeActionActuator,SetPriority);
+	KX_PYMETHOD_DOC_VARARGS(BL_ShapeActionActuator,SetStart);
+	KX_PYMETHOD_DOC_VARARGS(BL_ShapeActionActuator,SetEnd);
+	KX_PYMETHOD_DOC_VARARGS(BL_ShapeActionActuator,SetFrame);
+	KX_PYMETHOD_DOC_VARARGS(BL_ShapeActionActuator,SetProperty);
+	KX_PYMETHOD_DOC_VARARGS(BL_ShapeActionActuator,SetFrameProperty);
+	KX_PYMETHOD_DOC_VARARGS(BL_ShapeActionActuator,SetBlendtime);
+	KX_PYMETHOD_DOC_VARARGS(BL_ShapeActionActuator,SetChannel);
 
 	KX_PYMETHOD_DOC_NOARGS(BL_ShapeActionActuator,GetAction);
 	KX_PYMETHOD_DOC_NOARGS(BL_ShapeActionActuator,GetBlendin);
@@ -104,7 +104,7 @@ public:
 	KX_PYMETHOD_DOC_NOARGS(BL_ShapeActionActuator,GetFrameProperty);
 //	KX_PYMETHOD(BL_ActionActuator,GetChannel);
 	KX_PYMETHOD_DOC_NOARGS(BL_ShapeActionActuator,GetType);
-	KX_PYMETHOD_DOC(BL_ShapeActionActuator,SetType);
+	KX_PYMETHOD_DOC_VARARGS(BL_ShapeActionActuator,SetType);
 
 	virtual PyObject* py_getattro(PyObject* attr);
 	virtual int py_setattro(PyObject* attr, PyObject* value);

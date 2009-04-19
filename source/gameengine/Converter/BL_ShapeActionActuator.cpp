@@ -498,7 +498,7 @@ const char BL_ShapeActionActuator::GetAction_doc[] =
 "getAction()\n"
 "\tReturns a string containing the name of the current action.\n";
 
-PyObject* BL_ShapeActionActuator::PyGetAction(PyObject* self) {
+PyObject* BL_ShapeActionActuator::PyGetAction() {
 	ShowDeprecationWarning("getAction()", "the action property");
 	if (m_action){
 		return PyString_FromString(m_action->id.name+2);
@@ -511,7 +511,7 @@ const char BL_ShapeActionActuator::GetProperty_doc[] =
 "getProperty()\n"
 "\tReturns the name of the property to be used in FromProp mode.\n";
 
-PyObject* BL_ShapeActionActuator::PyGetProperty(PyObject* self) {
+PyObject* BL_ShapeActionActuator::PyGetProperty() {
 	ShowDeprecationWarning("getProperty()", "the property property");
 	PyObject *result;
 	
@@ -525,7 +525,7 @@ const char BL_ShapeActionActuator::GetFrame_doc[] =
 "getFrame()\n"
 "\tReturns the current frame number.\n";
 
-PyObject* BL_ShapeActionActuator::PyGetFrame(PyObject* self) {
+PyObject* BL_ShapeActionActuator::PyGetFrame() {
 	ShowDeprecationWarning("getFrame()", "the frame property");
 	PyObject *result;
 	
@@ -539,7 +539,7 @@ const char BL_ShapeActionActuator::GetEnd_doc[] =
 "getEnd()\n"
 "\tReturns the last frame of the action.\n";
 
-PyObject* BL_ShapeActionActuator::PyGetEnd(PyObject* self) {
+PyObject* BL_ShapeActionActuator::PyGetEnd() {
 	ShowDeprecationWarning("getEnd()", "the end property");
 	PyObject *result;
 	
@@ -553,7 +553,7 @@ const char BL_ShapeActionActuator::GetStart_doc[] =
 "getStart()\n"
 "\tReturns the starting frame of the action.\n";
 
-PyObject* BL_ShapeActionActuator::PyGetStart(PyObject* self) {
+PyObject* BL_ShapeActionActuator::PyGetStart() {
 	ShowDeprecationWarning("getStart()", "the start property");
 	PyObject *result;
 	
@@ -568,7 +568,7 @@ const char BL_ShapeActionActuator::GetBlendin_doc[] =
 "\tReturns the number of interpolation animation frames to be\n"
 "\tgenerated when this actuator is triggered.\n";
 
-PyObject* BL_ShapeActionActuator::PyGetBlendin(PyObject* self) {
+PyObject* BL_ShapeActionActuator::PyGetBlendin() {
 	ShowDeprecationWarning("getBlendin()", "the blendin property");
 	PyObject *result;
 	
@@ -583,7 +583,7 @@ const char BL_ShapeActionActuator::GetPriority_doc[] =
 "\tReturns the priority for this actuator.  Actuators with lower\n"
 "\tPriority numbers will override actuators with higher numbers.\n";
 
-PyObject* BL_ShapeActionActuator::PyGetPriority(PyObject* self) {
+PyObject* BL_ShapeActionActuator::PyGetPriority() {
 	ShowDeprecationWarning("getPriority()", "the priority property");
 	PyObject *result;
 	
@@ -603,9 +603,7 @@ const char BL_ShapeActionActuator::SetAction_doc[] =
 "\t               unchanged.  If reset is not specified, the timer will"
 "\t	              be reset.\n";
 
-PyObject* BL_ShapeActionActuator::PySetAction(PyObject* self, 
-											  PyObject* args, 
-											  PyObject* kwds) {
+PyObject* BL_ShapeActionActuator::PySetAction(PyObject* args) {
 	ShowDeprecationWarning("setAction()", "the action property");
 	char *string;
 	int	reset = 1;
@@ -638,9 +636,7 @@ const char BL_ShapeActionActuator::SetStart_doc[] =
 "setStart(start)\n"
 "\t - start     : Specifies the starting frame of the animation.\n";
 
-PyObject* BL_ShapeActionActuator::PySetStart(PyObject* self, 
-											 PyObject* args, 
-											 PyObject* kwds) {
+PyObject* BL_ShapeActionActuator::PySetStart(PyObject* args) {
 	ShowDeprecationWarning("setStart()", "the start property");
 	float start;
 	
@@ -660,9 +656,7 @@ const char BL_ShapeActionActuator::SetEnd_doc[] =
 "setEnd(end)\n"
 "\t - end       : Specifies the ending frame of the animation.\n";
 
-PyObject* BL_ShapeActionActuator::PySetEnd(PyObject* self, 
-										   PyObject* args, 
-										   PyObject* kwds) {
+PyObject* BL_ShapeActionActuator::PySetEnd(PyObject* args) {
 	ShowDeprecationWarning("setEnd()", "the end property");
 	float end;
 	
@@ -683,9 +677,7 @@ const char BL_ShapeActionActuator::SetBlendin_doc[] =
 "\t - blendin   : Specifies the number of frames of animation to generate\n"
 "\t               when making transitions between actions.\n";
 
-PyObject* BL_ShapeActionActuator::PySetBlendin(PyObject* self, 
-											   PyObject* args, 
-											   PyObject* kwds) {
+PyObject* BL_ShapeActionActuator::PySetBlendin(PyObject* args) {
 	ShowDeprecationWarning("setBlendin()", "the blendin property");
 	float blendin;
 	
@@ -707,9 +699,7 @@ const char BL_ShapeActionActuator::SetBlendtime_doc[] =
 "\t               used when generating transitions between actions.  This\n"
 "\t               parameter must be in the range from 0.0 to 1.0.\n";
 
-PyObject* BL_ShapeActionActuator::PySetBlendtime(PyObject* self, 
-												 PyObject* args, 
-												   PyObject* kwds) {
+PyObject* BL_ShapeActionActuator::PySetBlendtime(PyObject* args) {
 	ShowDeprecationWarning("setBlendtime()", "the blendTime property");
 	float blendframe;
 	
@@ -735,9 +725,7 @@ const char BL_ShapeActionActuator::SetPriority_doc[] =
 "\t               priority numbers will override actuators with higher\n"
 "\t               numbers.\n";
 
-PyObject* BL_ShapeActionActuator::PySetPriority(PyObject* self, 
-												PyObject* args, 
-												PyObject* kwds) {
+PyObject* BL_ShapeActionActuator::PySetPriority(PyObject* args) {
 	ShowDeprecationWarning("setPriority()", "the priority property");
 	int priority;
 	
@@ -757,7 +745,7 @@ const char BL_ShapeActionActuator::GetFrameProperty_doc[] =
 "getFrameProperty()\n"
 "\tReturns the name of the property, that is set to the current frame number.\n";
 
-PyObject* BL_ShapeActionActuator::PyGetFrameProperty(PyObject* self) {
+PyObject* BL_ShapeActionActuator::PyGetFrameProperty() {
 	ShowDeprecationWarning("getFrameProperty()", "the frameProperty property");
 	PyObject *result;
 	
@@ -772,9 +760,7 @@ const char BL_ShapeActionActuator::SetFrame_doc[] =
 "setFrame(frame)\n"
 "\t - frame     : Specifies the new current frame for the animation\n";
 
-PyObject* BL_ShapeActionActuator::PySetFrame(PyObject* self, 
-											 PyObject* args, 
-											 PyObject* kwds) {
+PyObject* BL_ShapeActionActuator::PySetFrame(PyObject* args) {
 	ShowDeprecationWarning("setFrame()", "the frame property");
 	float frame;
 	
@@ -799,9 +785,7 @@ const char BL_ShapeActionActuator::SetProperty_doc[] =
 "\t - prop      : A string specifying the property name to be used in\n"
 "\t               FromProp playback mode.\n";
 
-PyObject* BL_ShapeActionActuator::PySetProperty(PyObject* self, 
-												PyObject* args, 
-												PyObject* kwds) {
+PyObject* BL_ShapeActionActuator::PySetProperty(PyObject* args) {
 	ShowDeprecationWarning("setProperty()", "the property property");
 	char *string;
 	
@@ -821,9 +805,7 @@ const char BL_ShapeActionActuator::SetFrameProperty_doc[] =
 "setFrameProperty(prop)\n"
 "\t - prop      : A string specifying the property of the frame set up update.\n";
 
-PyObject* BL_ShapeActionActuator::PySetFrameProperty(PyObject* self, 
-										   PyObject* args, 
-										   PyObject* kwds) {
+PyObject* BL_ShapeActionActuator::PySetFrameProperty(PyObject* args) {
 	ShowDeprecationWarning("setFrameProperty()", "the frameProperty property");
 	char *string;
 	
@@ -842,7 +824,7 @@ PyObject* BL_ShapeActionActuator::PySetFrameProperty(PyObject* self,
 const char BL_ShapeActionActuator::GetType_doc[] =
 "getType()\n"
 "\tReturns the operation mode of the actuator.\n";
-PyObject* BL_ShapeActionActuator::PyGetType(PyObject* self) {
+PyObject* BL_ShapeActionActuator::PyGetType() {
 	ShowDeprecationWarning("getType()", "the type property");
     return Py_BuildValue("h", m_playtype);
 }
@@ -852,9 +834,7 @@ const char BL_ShapeActionActuator::SetType_doc[] =
 "setType(mode)\n"
 "\t - mode: Play (0), Flipper (2), LoopStop (3), LoopEnd (4) or Property (6)\n"
 "\tSet the operation mode of the actuator.\n";
-PyObject* BL_ShapeActionActuator::PySetType(PyObject* self,
-                                            PyObject* args,
-                                            PyObject* kwds) {
+PyObject* BL_ShapeActionActuator::PySetType(PyObject* args) {
 	ShowDeprecationWarning("setType()", "the type property");
 	short typeArg;
                                                                                                              

@@ -185,7 +185,7 @@ int SCA_ActuatorSensor::CheckActuator(void *self, const PyAttributeDef*)
 const char SCA_ActuatorSensor::GetActuator_doc[] = 
 "getActuator()\n"
 "\tReturn the Actuator with which the sensor operates.\n";
-PyObject* SCA_ActuatorSensor::PyGetActuator(PyObject* self) 
+PyObject* SCA_ActuatorSensor::PyGetActuator() 
 {
 	ShowDeprecationWarning("getActuator()", "the actuator property");
 	return PyString_FromString(m_checkactname);
@@ -197,7 +197,7 @@ const char SCA_ActuatorSensor::SetActuator_doc[] =
 "\t- name: string\n"
 "\tSets the Actuator with which to operate. If there is no Actuator\n"
 "\tof this name, the call is ignored.\n";
-PyObject* SCA_ActuatorSensor::PySetActuator(PyObject* self, PyObject* args, PyObject* kwds) 
+PyObject* SCA_ActuatorSensor::PySetActuator(PyObject* args) 
 {
 	ShowDeprecationWarning("setActuator()", "the actuator property");
 	/* We should query whether the name exists. Or should we create a prop   */

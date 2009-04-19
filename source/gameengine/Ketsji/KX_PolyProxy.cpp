@@ -123,7 +123,7 @@ PyObject* KX_PolyProxy::py_getattro(PyObject *attr)
 		// the one of the polygon
 		RAS_MaterialBucket* polyBucket = m_polygon->GetMaterial();
 		unsigned int matid;
-		for (matid=0; matid<m_mesh->NumMaterials(); matid++)
+		for (matid=0; matid<(unsigned int)m_mesh->NumMaterials(); matid++)
 		{
 			RAS_MeshMaterial* meshMat = m_mesh->GetMeshMaterial(matid);
 			if (meshMat->m_bucket == polyBucket)
@@ -189,7 +189,7 @@ KX_PYMETHODDEF_DOC_NOARGS(KX_PolyProxy, getMaterialIndex,
 {
 	RAS_MaterialBucket* polyBucket = m_polygon->GetMaterial();
 	unsigned int matid;
-	for (matid=0; matid<m_mesh->NumMaterials(); matid++)
+	for (matid=0; matid<(unsigned int)m_mesh->NumMaterials(); matid++)
 	{
 		RAS_MeshMaterial* meshMat = m_mesh->GetMeshMaterial(matid);
 		if (meshMat->m_bucket == polyBucket)
