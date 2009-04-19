@@ -359,8 +359,7 @@ static STR_String gPyGetCurrentScene_doc =
 "Gets a reference to the current scene.\n";
 static PyObject* gPyGetCurrentScene(PyObject* self)
 {
-	Py_INCREF(gp_KetsjiScene);
-	return (PyObject*) gp_KetsjiScene;
+	return gp_KetsjiScene->GetProxy();
 }
 
 static STR_String gPyGetSceneList_doc =  
@@ -369,7 +368,6 @@ static STR_String gPyGetSceneList_doc =
 static PyObject* gPyGetSceneList(PyObject* self)
 {
 	KX_KetsjiEngine* m_engine = KX_GetActiveEngine();
-	//CListValue* list = new CListValue();
 	PyObject* list;
 	KX_SceneList* scenes = m_engine->CurrentScenes();
 	int numScenes = scenes->size();
@@ -380,13 +378,10 @@ static PyObject* gPyGetSceneList(PyObject* self)
 	for (i=0;i<numScenes;i++)
 	{
 		KX_Scene* scene = scenes->at(i);
-		//list->Add(scene);
-		PyList_SET_ITEM(list, i, scene);
-		Py_INCREF(scene);
-		
+		PyList_SET_ITEM(list, i, scene->GetProxy());
 	}
 	
-	return (PyObject*)list;
+	return list;
 }
 
 static PyObject *pyPrintExt(PyObject *,PyObject *,PyObject *)

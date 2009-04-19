@@ -2354,7 +2354,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 			// Remove the child reference in the local list!
 			// Note: there may be descendents already if the children of the child were processed
 			//       by this loop before the child. In that case, we must remove the children also
-			CListValue* childrenlist = (CListValue*)childobj->PyGetChildrenRecursive(childobj);
+			CListValue* childrenlist = childobj->GetChildrenRecursive();
 			childrenlist->Add(childobj->AddRef());
 			for ( i=0;i<childrenlist->GetCount();i++)
 			{

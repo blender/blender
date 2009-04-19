@@ -481,7 +481,7 @@ PyObject* KX_TrackToActuator::pyattr_get_object(void *self, const struct KX_PYAT
 	if (!actuator->m_object)	
 		Py_RETURN_NONE;
 	else
-		return actuator->m_object->AddRef();
+		return actuator->m_object->GetProxy();
 }
 
 int KX_TrackToActuator::pyattr_set_object(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
@@ -560,7 +560,7 @@ PyObject* KX_TrackToActuator::PyGetObject(PyObject* self, PyObject* args)
 	if (ret_name_only)
 		return PyString_FromString(m_object->GetName());
 	else
-		return m_object->AddRef();
+		return m_object->GetProxy();
 }
 
 

@@ -110,7 +110,7 @@ PyObject* KX_SCA_ReplaceMeshActuator::pyattr_get_mesh(void *self, const struct K
 	if (!actuator->m_mesh)
 		Py_RETURN_NONE;
 	KX_MeshProxy* meshproxy = new KX_MeshProxy(actuator->m_mesh);
-	return meshproxy;
+	return meshproxy->NewProxy(true);
 }
 
 int KX_SCA_ReplaceMeshActuator::pyattr_set_mesh(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)

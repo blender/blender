@@ -98,7 +98,7 @@ void initPyObjectPlusType(PyTypeObject **parents)
 		}
 
 #if 0
-		PyObject_Print((PyObject *)parents[i], stderr, 0);
+		PyObject_Print(reinterpret_cast<PyObject *>parents[i], stderr, 0);
 		fprintf(stderr, "\n");
 		PyObject_Print(parents[i]->tp_dict, stderr, 0);
 		fprintf(stderr, "\n\n");
@@ -117,7 +117,7 @@ void initPyObjectPlusType(PyTypeObject **parents)
 		 dict= parents[i]->tp_dict;
 
 #if 1
-		PyObject_Print((PyObject *)parents[i], stderr, 0);
+		PyObject_Print(reinterpret_cast<PyObject *>(parents[i]), stderr, 0);
 		fprintf(stderr, "\n");
 		PyObject_Print(parents[i]->tp_dict, stderr, 0);
 		fprintf(stderr, "\n\n");
@@ -135,7 +135,7 @@ static void PyType_Ready_ADD(PyObject *dict, PyTypeObject *tp, PyAttributeDef *a
 	PyObject *item;
 	
 	PyType_Ready(tp);
-	PyDict_SetItemString(dict, tp->tp_name, (PyObject *)tp);
+	PyDict_SetItemString(dict, tp->tp_name, reinterpret_cast<PyObject *>(tp));
 	
 	/* store attr defs in the tp_dict for to avoid string lookups */
 	for(attr= attributes; attr->m_name; attr++) {

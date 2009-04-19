@@ -157,7 +157,7 @@ static const char* sPyGetCurrentController__doc__;
 
 PyObject* SCA_PythonController::sPyGetCurrentController(PyObject* self)
 {
-	return m_sCurrentController->AddRef();
+	return m_sCurrentController->GetProxy();
 }
 
 SCA_IActuator* SCA_PythonController::LinkedActuatorFromPy(PyObject *value)
@@ -176,10 +176,10 @@ SCA_IActuator* SCA_PythonController::LinkedActuatorFromPy(PyObject *value)
 			}
 		}
 	}
-	else {
-		/* Expecting an actuator type */
+	else if (BGE_PROXY_CHECK_TYPE(value)) {
+		PyObjectPlus *value_plus= BGE_PROXY_REF(value); /* Expecting an actuator type */ // XXX TODO - CHECK TYPE
 		for(it = lacts.begin(); it!= lacts.end(); it++) {
-			if( static_cast<SCA_IActuator*>(value) == (*it) ) {
+			if( static_cast<SCA_IActuator*>(value_plus) == (*it) ) {
 				return *it;
 			}
 		}
@@ -413,7 +413,7 @@ PyObject* SCA_PythonController::PyGetActuators(PyObject* self)
 	PyObject* resultlist = PyList_New(m_linkedactuators.size());
 	for (unsigned int index=0;index<m_linkedactuators.size();index++)
 	{
-		PyList_SET_ITEM(resultlist,index,m_linkedactuators[index]->AddRef());
+		PyList_SET_ITEM(resultlist,index, m_linkedactuators[index]->GetProxy());
 	}
 
 	return resultlist;
@@ -437,7 +437,7 @@ SCA_PythonController::PyGetSensor(PyObject* self, PyObject* value)
 		STR_String realname = sensor->GetName();
 		if (realname == scriptArg)
 		{
-			return sensor->AddRef();
+			return sensor->GetProxy();
 		}
 	}
 	
@@ -466,7 +466,7 @@ SCA_PythonController::PyGetActuator(PyObject* self, PyObject* value)
 		SCA_IActuator* actua = m_linkedactuators[index];
 		if (actua->GetName() == scriptArg)
 		{
-			return actua->AddRef();
+			return actua->GetProxy();
 		}
 	}
 	
@@ -484,7 +484,7 @@ SCA_PythonController::PyGetSensors(PyObject* self)
 	PyObject* resultlist = PyList_New(m_linkedsensors.size());
 	for (unsigned int index=0;index<m_linkedsensors.size();index++)
 	{
-		PyList_SET_ITEM(resultlist,index,m_linkedsensors[index]->AddRef());
+		PyList_SET_ITEM(resultlist,index, m_linkedsensors[index]->GetProxy());
 	}
 	
 	return resultlist;

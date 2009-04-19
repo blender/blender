@@ -381,7 +381,7 @@ static PyObject* gPyGetVehicleConstraint(PyObject* self,
 			if (vehicle)
 			{
 				KX_VehicleWrapper* pyWrapper = new KX_VehicleWrapper(vehicle,PHY_GetActiveEnvironment());
-				return pyWrapper;
+				return pyWrapper->NewProxy(true);
 			}
 
 		}
@@ -440,7 +440,7 @@ static PyObject* gPyCreateConstraint(PyObject* self,
 				KX_ConstraintWrapper* wrap = new KX_ConstraintWrapper((enum PHY_ConstraintType)constrainttype,constraintid,PHY_GetActiveEnvironment());
 				
 
-				return wrap;
+				return wrap->NewProxy(true);
 			}
 			
 			

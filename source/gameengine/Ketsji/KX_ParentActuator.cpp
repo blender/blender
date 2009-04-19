@@ -184,7 +184,7 @@ PyObject* KX_ParentActuator::pyattr_get_object(void *self, const struct KX_PYATT
 	if (!actuator->m_ob)	
 		Py_RETURN_NONE;
 	else
-		return actuator->m_ob->AddRef();
+		return actuator->m_ob->GetProxy();
 }
 
 int KX_ParentActuator::pyattr_set_object(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
@@ -261,7 +261,7 @@ PyObject* KX_ParentActuator::PyGetObject(PyObject* self, PyObject* args)
 	if (ret_name_only)
 		return PyString_FromString(m_ob->GetName());
 	else
-		return m_ob->AddRef();
+		return m_ob->GetProxy();
 }
 /* <----- */
 

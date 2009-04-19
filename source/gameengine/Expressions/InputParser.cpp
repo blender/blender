@@ -649,7 +649,7 @@ PyObject*	CParserPyMake(PyObject* ignored,PyObject* args)
 	CExpression* expr = parser.ProcessText(txt);
 	CValue* val = expr->Calculate();
 	expr->Release();
-	return val;
+	return val->GetProxy();
 }
 
 static PyMethodDef	CParserMethods[] = 

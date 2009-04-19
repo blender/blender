@@ -501,12 +501,6 @@ int	CValue::Release()
 	// Decrease local reference count, if it reaches 0 the object should be freed
 	if (--m_refcount > 0)
 	{
-		// Benoit suggest this as a way to automatically set the zombie flag, but I couldnt get it working - Campbell
-		/*
-		if (m_refcount == 1 && ob_refcnt > 1)
-			SetZombie(true); // the remaining refcount is held by Python!!
-		*/	
-		
 		// Reference count normal, return new reference count
 		return m_refcount;
 	}
@@ -543,9 +537,6 @@ void CValue::DisableRefCount()
 void CValue::AddDataToReplica(CValue *replica)
 {
 	replica->m_refcount = 1;
-
-	//register with Python
-	_Py_NewReference(replica);
 
 #ifdef _DEBUG
 	//gRefCountValue++;
@@ -616,7 +607,7 @@ PyObject*	CValue::py_getattro(PyObject *attr)
 		if (pyconvert)
 			return pyconvert;
 		else
-			return resultattr; // also check if it's already in pythoninterpreter!
+			return resultattr->GetProxy();
 	}
 	py_getattro_up(PyObjectPlus);
 }

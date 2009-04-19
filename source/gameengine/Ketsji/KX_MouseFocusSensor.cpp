@@ -396,7 +396,7 @@ PyObject* KX_MouseFocusSensor::PyGetHitObject(PyObject* self)
 	ShowDeprecationWarning("GetHitObject()", "the hitObject property");
 	
 	if (m_hitObject)
-		return m_hitObject->AddRef();
+		return m_hitObject->GetProxy();
 	
 	Py_RETURN_NONE;
 }
@@ -487,7 +487,7 @@ PyObject* KX_MouseFocusSensor::pyattr_get_hit_object(void *self_v, const KX_PYAT
 	KX_MouseFocusSensor* self= static_cast<KX_MouseFocusSensor*>(self_v);
 	
 	if(self->m_hitObject)
-		return self->m_hitObject->AddRef();
+		return self->m_hitObject->GetProxy();
 	
 	Py_RETURN_NONE;
 }

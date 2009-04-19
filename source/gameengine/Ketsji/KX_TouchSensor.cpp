@@ -342,7 +342,7 @@ PyObject* KX_TouchSensor::PyGetHitObject(PyObject* self)
 	/* otherwise, this leaks memory */
 	if (m_hitObject)
 	{
-		return m_hitObject->AddRef();
+		return m_hitObject->GetProxy();
 	}
 	Py_RETURN_NONE;
 }
@@ -356,7 +356,7 @@ PyObject* KX_TouchSensor::PyGetHitObjectList(PyObject* self)
 	ShowDeprecationWarning("getHitObjectList()", "the objectHitList property");
 	/* to do: do Py_IncRef if the object is already known in Python */
 	/* otherwise, this leaks memory */ /* Edit, this seems ok and not to leak memory - Campbell */
-	return m_colliders->AddRef();
+	return m_colliders->GetProxy();
 }
 
 /*getTouchMaterial and setTouchMaterial were never added to the api,
@@ -400,7 +400,7 @@ PyObject* KX_TouchSensor::pyattr_get_object_hit(void *self_v, const KX_PYATTRIBU
 	KX_TouchSensor* self= static_cast<KX_TouchSensor*>(self_v);
 	
 	if (self->m_hitObject)
-		return self->m_hitObject->AddRef();
+		return self->m_hitObject->GetProxy();
 	else
 		Py_RETURN_NONE;
 }
@@ -408,7 +408,7 @@ PyObject* KX_TouchSensor::pyattr_get_object_hit(void *self_v, const KX_PYATTRIBU
 PyObject* KX_TouchSensor::pyattr_get_object_hit_list(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_TouchSensor* self= static_cast<KX_TouchSensor*>(self_v);
-	return self->m_colliders->AddRef();
+	return self->m_colliders->GetProxy();
 }
 
 

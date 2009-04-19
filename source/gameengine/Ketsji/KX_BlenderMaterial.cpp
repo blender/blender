@@ -827,8 +827,7 @@ KX_PYMETHODDEF_DOC( KX_BlenderMaterial, getShader , "getShader()")
 			m_flag &= ~RAS_BLENDERGLSL;
 			mMaterial->SetSharedMaterial(true);
 			mScene->GetBucketManager()->ReleaseDisplayLists(this);
-			Py_INCREF(mShader);
-			return mShader;
+			return mShader->GetProxy();
 		}else
 		{
 			// decref all references to the object
@@ -836,13 +835,8 @@ KX_PYMETHODDEF_DOC( KX_BlenderMaterial, getShader , "getShader()")
 			// We will then go back to fixed functionality
 			// for this material
 			if(mShader) {
-				if(mShader->ob_refcnt > 1) {
-					Py_DECREF(mShader);
-				}
-				else {
-					delete mShader;
-					mShader=0;
-				}
+				delete mShader; /* will handle python de-referencing */
+				mShader=0;
 			}
 		}
 		Py_RETURN_NONE;

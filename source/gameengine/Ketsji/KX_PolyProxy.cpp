@@ -109,14 +109,12 @@ PyObject* KX_PolyProxy::py_getattro(PyObject *attr)
 		if(polymat->GetFlag() & RAS_BLENDERMAT)
 		{
 			KX_BlenderMaterial* mat = static_cast<KX_BlenderMaterial*>(polymat);
-			Py_INCREF(mat);
-			return mat;
+			return mat->GetProxy();
 		}
 		else
 		{
 			KX_PolygonMaterial* mat = static_cast<KX_PolygonMaterial*>(polymat);
-			Py_INCREF(mat);
-			return mat;
+			return mat->GetProxy();
 		}
 	}
 	if (!strcmp(attr_str, "matid"))
@@ -258,7 +256,7 @@ KX_PYMETHODDEF_DOC_NOARGS(KX_PolyProxy, getMesh,
 "getMesh() : returns a mesh proxy\n")
 {
 	KX_MeshProxy* meshproxy = new KX_MeshProxy((RAS_MeshObject*)m_mesh);
-	return meshproxy;
+	return meshproxy->NewProxy(true);
 }
 
 KX_PYMETHODDEF_DOC_NOARGS(KX_PolyProxy, getMaterial,
@@ -268,13 +266,11 @@ KX_PYMETHODDEF_DOC_NOARGS(KX_PolyProxy, getMaterial,
 	if(polymat->GetFlag() & RAS_BLENDERMAT)
 	{
 		KX_BlenderMaterial* mat = static_cast<KX_BlenderMaterial*>(polymat);
-		Py_INCREF(mat);
-		return mat;
+		return mat->GetProxy();
 	}
 	else
 	{
 		KX_PolygonMaterial* mat = static_cast<KX_PolygonMaterial*>(polymat);
-		Py_INCREF(mat);
-		return mat;
+		return mat->GetProxy();
 	}
 }

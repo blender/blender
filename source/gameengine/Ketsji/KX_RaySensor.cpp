@@ -375,7 +375,7 @@ PyObject* KX_RaySensor::pyattr_get_hitobject(void *self_v, const KX_PYATTRIBUTE_
 {
 	KX_RaySensor* self = static_cast<KX_RaySensor*>(self_v);
 	if (self->m_hitObject)
-		return self->m_hitObject->AddRef();
+		return self->m_hitObject->GetProxy();
 
 	Py_RETURN_NONE;
 }
@@ -389,7 +389,7 @@ PyObject* KX_RaySensor::PyGetHitObject(PyObject* self)
 	ShowDeprecationWarning("getHitObject()", "the hitObject property");
 	if (m_hitObject)
 	{
-		return m_hitObject->AddRef();
+		return m_hitObject->GetProxy();
 	}
 	Py_RETURN_NONE;
 }

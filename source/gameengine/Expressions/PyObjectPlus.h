@@ -81,6 +81,20 @@ static inline void Py_Fatal(const char *M) {
 	exit(-1);
 };
 
+typedef struct {
+	PyObject_HEAD		/* required python macro   */
+	class PyObjectPlus *ref;
+	bool py_owns;
+} PyObjectPlus_Proxy;
+
+#define BGE_PROXY_ERROR_MSG "Blender Game Engine data has been freed, cannot use this python variable"
+#define BGE_PROXY_REF(_self) (((PyObjectPlus_Proxy *)_self)->ref)
+#define BGE_PROXY_PYOWNS(_self) (((PyObjectPlus_Proxy *)_self)->py_owns)
+
+/* Note, sometimes we dont care what BGE type this is as long as its a proxy */
+#define BGE_PROXY_CHECK_TYPE(_self) ((_self)->ob_type->tp_dealloc == PyDestructor)
+
+
 								// This must be the first line of each 
 								// PyC++ class
 #define Py_Header \
@@ -90,7 +104,10 @@ static inline void Py_Fatal(const char *M) {
   static PyAttributeDef Attributes[]; \
   static PyParentObject Parents[]; \
   virtual PyTypeObject *GetType(void) {return &Type;}; \
-  virtual PyParentObject *GetParents(void) {return Parents;}
+  virtual PyParentObject *GetParents(void) {return Parents;} \
+  virtual PyObject *GetProxy() {return GetProxy_Ext(this, &Type);}; \
+  virtual PyObject *NewProxy(bool py_owns) {return NewProxy_Ext(this, &Type, py_owns);}; \
+
 
 
 
@@ -106,7 +123,7 @@ static inline void Py_Fatal(const char *M) {
 		if (PyCObject_Check(descr)) { \
 			return py_get_attrdef((void *)this, (const PyAttributeDef*)PyCObject_AsVoidPtr(descr)); \
 		} else if (descr->ob_type->tp_descr_get) { \
-			return PyCFunction_New(((PyMethodDescrObject *)descr)->d_method, (PyObject *)this); \
+			return PyCFunction_New(((PyMethodDescrObject *)descr)->d_method, this->m_proxy); \
 		} else { \
 			fprintf(stderr, "unknown attribute type"); \
 			return descr; \
@@ -165,52 +182,60 @@ static inline void Py_Fatal(const char *M) {
 #define KX_PYMETHOD(class_name, method_name)			\
 	PyObject* Py##method_name(PyObject* self, PyObject* args, PyObject* kwds); \
 	static PyObject* sPy##method_name( PyObject* self, PyObject* args, PyObject* kwds) { \
-		return ((class_name*) self)->Py##method_name(self, args, kwds);		\
+		PyObjectPlus *self_plus= BGE_PROXY_REF(self); \
+		return ((class_name*)self_plus)->Py##method_name(self, args, kwds);		\
 	}; \
 
 #define KX_PYMETHOD_VARARGS(class_name, method_name)			\
 	PyObject* Py##method_name(PyObject* self, PyObject* args); \
 	static PyObject* sPy##method_name( PyObject* self, PyObject* args) { \
-		return ((class_name*) self)->Py##method_name(self, args);		\
+		PyObjectPlus *self_plus= BGE_PROXY_REF(self); \
+		return ((class_name*)self_plus)->Py##method_name(self, args);		\
 	}; \
 
 #define KX_PYMETHOD_NOARGS(class_name, method_name)			\
 	PyObject* Py##method_name(PyObject* self); \
 	static PyObject* sPy##method_name( PyObject* self) { \
-		return ((class_name*) self)->Py##method_name(self);		\
+		PyObjectPlus *self_plus= BGE_PROXY_REF(self); \
+		return ((class_name*)self_plus)->Py##method_name(self);		\
 	}; \
 	
 #define KX_PYMETHOD_O(class_name, method_name)			\
 	PyObject* Py##method_name(PyObject* self, PyObject* value); \
 	static PyObject* sPy##method_name( PyObject* self, PyObject* value) { \
-		return ((class_name*) self)->Py##method_name(self, value);		\
+		PyObjectPlus *self_plus= ((PyObjectPlus_Proxy *)self)->ref; \
+		return ((class_name*) self_plus)->Py##method_name(self, value);		\
 	}; \
 
 #define KX_PYMETHOD_DOC(class_name, method_name)			\
 	PyObject* Py##method_name(PyObject* self, PyObject* args, PyObject* kwds); \
 	static PyObject* sPy##method_name( PyObject* self, PyObject* args, PyObject* kwds) { \
-		return ((class_name*) self)->Py##method_name(self, args, kwds);		\
+		PyObjectPlus *self_plus= BGE_PROXY_REF(self); \
+		return ((class_name*)self_plus)->Py##method_name(self, args, kwds);		\
 	}; \
     static const char method_name##_doc[]; \
 
 #define KX_PYMETHOD_DOC_VARARGS(class_name, method_name)			\
 	PyObject* Py##method_name(PyObject* self, PyObject* args); \
 	static PyObject* sPy##method_name( PyObject* self, PyObject* args) { \
-		return ((class_name*) self)->Py##method_name(self, args);		\
+		PyObjectPlus *self_plus= BGE_PROXY_REF(self); \
+		return ((class_name*)self_plus)->Py##method_name(self, args);		\
 	}; \
     static const char method_name##_doc[]; \
 
 #define KX_PYMETHOD_DOC_O(class_name, method_name)			\
 	PyObject* Py##method_name(PyObject* self, PyObject* value); \
 	static PyObject* sPy##method_name( PyObject* self, PyObject* value) { \
-		return ((class_name*) self)->Py##method_name(self, value);		\
+		PyObjectPlus *self_plus= BGE_PROXY_REF(self); \
+		return ((class_name*)self_plus)->Py##method_name(self, value);		\
 	}; \
     static const char method_name##_doc[]; \
 
 #define KX_PYMETHOD_DOC_NOARGS(class_name, method_name)			\
 	PyObject* Py##method_name(PyObject* self); \
 	static PyObject* sPy##method_name( PyObject* self) { \
-		return ((class_name*) self)->Py##method_name(self);		\
+		PyObjectPlus *self_plus= BGE_PROXY_REF(self); \
+		return ((class_name*)self_plus)->Py##method_name(self);		\
 	}; \
     static const char method_name##_doc[]; \
 
@@ -233,19 +258,19 @@ static inline void Py_Fatal(const char *M) {
  */
 #define KX_PYMETHODDEF_DOC(class_name, method_name, doc_string) \
 const char class_name::method_name##_doc[] = doc_string; \
-PyObject* class_name::Py##method_name(PyObject*, PyObject* args, PyObject*)
+PyObject* class_name::Py##method_name(PyObject* self, PyObject* args, PyObject*)
 
 #define KX_PYMETHODDEF_DOC_VARARGS(class_name, method_name, doc_string) \
 const char class_name::method_name##_doc[] = doc_string; \
-PyObject* class_name::Py##method_name(PyObject*, PyObject* args)
+PyObject* class_name::Py##method_name(PyObject* self, PyObject* args)
 
 #define KX_PYMETHODDEF_DOC_O(class_name, method_name, doc_string) \
 const char class_name::method_name##_doc[] = doc_string; \
-PyObject* class_name::Py##method_name(PyObject*, PyObject* value)
+PyObject* class_name::Py##method_name(PyObject* self, PyObject* value)
 
 #define KX_PYMETHODDEF_DOC_NOARGS(class_name, method_name, doc_string) \
 const char class_name::method_name##_doc[] = doc_string; \
-PyObject* class_name::Py##method_name(PyObject*)
+PyObject* class_name::Py##method_name(PyObject* self)
 
 /**
  * Attribute management
@@ -394,19 +419,17 @@ typedef struct KX_PYATTRIBUTE_DEF {
 ------------------------------*/
 typedef PyTypeObject * PyParentObject;				// Define the PyParent Object
 
-class PyObjectPlus : public PyObject 
+class PyObjectPlus 
 {				// The PyObjectPlus abstract class
 	Py_Header;							// Always start with Py_Header
 	
 public:
 	PyObjectPlus(PyTypeObject *T);
-	bool m_zombie;
+
+	PyObject *m_proxy; /* actually a PyObjectPlus_Proxy */
 	
 	virtual ~PyObjectPlus();					// destructor
-	static void PyDestructor(PyObject *P)				// python wrapper
-	{
-		delete ((PyObjectPlus *) P);  
-	};
+	static void PyDestructor(PyObject *self);				// python wrapper
 	
 //	void INCREF(void) {
 //		  Py_INCREF(this);
@@ -418,15 +441,15 @@ public:
 	virtual PyObject *py_getattro(PyObject *attr);			// py_getattro method
 	static  PyObject *py_base_getattro(PyObject * self, PyObject *attr) 	// This should be the entry in Type. 
 	{
-		if (((PyObjectPlus*)self)->IsZombie()) {
-			if (!strcmp(PyString_AsString(attr), "isValid")) {
-				Py_RETURN_FALSE;
+		PyObjectPlus *self_plus= BGE_PROXY_REF(self);
+		if(self_plus==NULL) {
+			if(!strcmp("isValid", PyString_AsString(attr))) {
+				Py_RETURN_TRUE;
 			}
-			((PyObjectPlus*)self)->IsZombiePyErr(); /* raise an error */
+			PyErr_SetString(PyExc_RuntimeError, "data has been removed");
 			return NULL;
 		}
-		
-		return ((PyObjectPlus*) self)->py_getattro(attr); 
+		return self_plus->py_getattro(attr); 
 	}
 	
 	static PyObject*	py_get_attrdef(void *self, const PyAttributeDef *attrdef);
@@ -441,22 +464,29 @@ public:
 	virtual int py_setattro(PyObject *attr, PyObject *value);		// py_setattro method
 	static  int py_base_setattro(PyObject *self, PyObject *attr, PyObject *value) // the PyType should reference this
 	{
-		if (((PyObjectPlus*)self)->IsZombie()) {
-			/* you cant set isValid anyway */
-			((PyObjectPlus*)self)->IsZombiePyErr();
+		PyObjectPlus *self_plus= BGE_PROXY_REF(self);
+		if(self_plus==NULL) {
+			PyErr_SetString(PyExc_RuntimeError, "data has been removed");
 			return -1;
 		}
 		
 		if (value==NULL)
-			return ((PyObjectPlus*)self)->py_delattro(attr);
+			return self_plus->py_delattro(attr);
 		
-		return ((PyObjectPlus*)self)->py_setattro(attr, value); 
+		return self_plus->py_setattro(attr, value); 
 	}
 	
 	virtual PyObject *py_repr(void);				// py_repr method
-	static  PyObject *py_base_repr(PyObject *PyObj)			// This should be the entry in Type.
+	static  PyObject *py_base_repr(PyObject *self)			// This should be the entry in Type.
 	{
-		return ((PyObjectPlus*) PyObj)->py_repr();  
+		
+		PyObjectPlus *self_plus= BGE_PROXY_REF(self);
+		if(self_plus==NULL) {
+			PyErr_SetString(PyExc_RuntimeError, "data has been removed");
+			return NULL;
+		}
+		
+		return self_plus->py_repr();  
 	}
 	
 									// isA methods
@@ -465,43 +495,20 @@ public:
 	PyObject *Py_isA(PyObject *value);
 	static PyObject *sPy_isA(PyObject *self, PyObject *value)
 	{
-		return ((PyObjectPlus*)self)->Py_isA(value);
+		PyObjectPlus *self_plus= BGE_PROXY_REF(self);
+		if(self_plus==NULL) {
+			PyErr_SetString(PyExc_RuntimeError, "data has been removed");
+			return NULL;
+		}
+		
+		return self_plus->Py_isA(value);
 	}
 	
 	/* Kindof dumb, always returns True, the false case is checked for, before this function gets accessed */
 	static PyObject*	pyattr_get_is_valid(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	
-	bool IsZombie()
-	{
-		return m_zombie;
-	}
-	
-	bool IsZombiePyErr()
-	{
-		if(m_zombie) {
-			/*
-			PyObject *this_pystr = PyObject_Repr(this);
-			
-			PyErr_Format(
-					PyExc_RuntimeError,
-					"\"%s\" of type \"%s\" has been freed by the blender game engine, "
-					"scripts cannot access this anymore, check for this case with the \"isValid\" attribute",
-					PyString_AsString(this_pystr), ob_type->tp_name );
-			
-			Py_DECREF(this_pystr);
-			*/
-			
-			PyErr_SetString(PyExc_RuntimeError, "This value has been freed by the blender game engine but python is still holding a reference, this value cant be used.");
-		}
-		
-		return m_zombie;
-	}
-	
-	void SetZombie(bool is_zombie)
-	{
-		m_zombie= is_zombie;
-	}
-	
+	static PyObject *GetProxy_Ext(PyObjectPlus *self, PyTypeObject *tp);
+	static PyObject *NewProxy_Ext(PyObjectPlus *self, PyTypeObject *tp, bool py_owns);
 };
 
 PyObject *py_getattr_dict(PyObject *pydict, PyObject *tp_dict);

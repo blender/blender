@@ -807,6 +807,10 @@ public:
 	}
 	
 	KX_ClientObjectInfo* getClientInfo() { return m_pClient_info; }
+	
+	CListValue* GetChildren();
+	CListValue* GetChildrenRecursive();
+	
 	/**
 	 * @section Python interface functions.
 	 */
@@ -816,8 +820,6 @@ public:
 	virtual int				py_delattro(PyObject *attr);
 	virtual PyObject* py_repr(void)
 	{
-		if (IsZombiePyErr())
-			return NULL;
 		return PyString_FromString(GetName().ReadPtr());
 	}
 	

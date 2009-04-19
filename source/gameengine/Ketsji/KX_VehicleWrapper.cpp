@@ -48,7 +48,10 @@ PyObject* KX_VehicleWrapper::PyAddWheel(PyObject* self,
 	
 	if (PyArg_ParseTuple(args,"OOOOffi:addWheel",&wheelGameObject,&pylistPos,&pylistDir,&pylistAxleDir,&suspensionRestLength,&wheelRadius,&hasSteering))
 	{
-		KX_GameObject* gameOb = (KX_GameObject*) wheelGameObject;
+		KX_GameObject *gameOb;
+		if (!ConvertPythonToGameObject(wheelGameObject, &gameOb, false))
+			return NULL;
+		
 
 		if (gameOb->GetSGNode())
 		{

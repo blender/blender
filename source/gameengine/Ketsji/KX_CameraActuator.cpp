@@ -449,7 +449,7 @@ PyObject* KX_CameraActuator::PyGetObject(PyObject* self, PyObject* args)
 	if (ret_name_only)
 		return PyString_FromString(m_ob->GetName());
 	else
-		return m_ob->AddRef();
+		return m_ob->GetProxy();
 }
 /* set obj  ---------------------------------------------------------- */
 const char KX_CameraActuator::SetObject_doc[] = 
@@ -597,7 +597,7 @@ PyObject* KX_CameraActuator::pyattr_get_object(void *self_v, const KX_PYATTRIBUT
 	if (self->m_ob==NULL)
 		Py_RETURN_NONE;
 	else
-		return self->m_ob->AddRef();
+		return self->m_ob->GetProxy();
 }
 
 int KX_CameraActuator::pyattr_set_object(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)

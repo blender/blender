@@ -223,7 +223,7 @@ PyObject* KX_SCA_AddObjectActuator::pyattr_get_object(void *self, const struct K
 	if (!actuator->m_OriginalObject)	
 		Py_RETURN_NONE;
 	else
-		return actuator->m_OriginalObject->AddRef();
+		return actuator->m_OriginalObject->GetProxy();
 }
 
 int KX_SCA_AddObjectActuator::pyattr_set_object(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
@@ -251,7 +251,7 @@ PyObject* KX_SCA_AddObjectActuator::pyattr_get_objectLastCreated(void *self, con
 	if (!actuator->m_lastCreatedObject)
 		Py_RETURN_NONE;
 	else
-		return actuator->m_lastCreatedObject->AddRef();
+		return actuator->m_lastCreatedObject->GetProxy();
 }
 
 
@@ -350,7 +350,7 @@ PyObject* KX_SCA_AddObjectActuator::PyGetObject(PyObject* self, PyObject* args)
 	if (ret_name_only)
 		return PyString_FromString(m_OriginalObject->GetName());
 	else
-		return m_OriginalObject->AddRef();
+		return m_OriginalObject->GetProxy();
 }
 
 
@@ -492,8 +492,7 @@ PyObject* KX_SCA_AddObjectActuator::PyGetLastCreatedObject(PyObject* self)
 	// it means the object has ended, The BGE python api crashes in many places if the object is returned.
 	if (result && (static_cast<KX_GameObject *>(result))->GetSGNode()) 
 	{
-		result->AddRef();
-		return result;
+		return result->GetProxy();
 	}
 	// don't return NULL to python anymore, it gives trouble in the scripts
 	Py_RETURN_NONE;

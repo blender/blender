@@ -235,9 +235,9 @@ PyObject* KX_NetworkMessageSensor::pyattr_get_bodies(void *self_v, const KX_PYAT
 {
 	KX_NetworkMessageSensor *self = static_cast<KX_NetworkMessageSensor*>(self_v);
 	if (self->m_BodyList) {
-		return ((PyObject*) self->m_BodyList->AddRef());
+		return self->m_BodyList->GetProxy();
 	} else {
-		return ((PyObject*) new CListValue());
+		return (new CListValue())->NewProxy(true);
 	}
 }
 
@@ -245,9 +245,9 @@ PyObject* KX_NetworkMessageSensor::pyattr_get_subjects(void *self_v, const KX_PY
 {
 	KX_NetworkMessageSensor *self = static_cast<KX_NetworkMessageSensor*>(self_v);
 	if (self->m_SubjectList) {
-		return ((PyObject*) self->m_SubjectList->AddRef());
+		return self->m_SubjectList->GetProxy();
 	} else {
-		return ((PyObject*) new CListValue());
+		return (new CListValue())->NewProxy(true);
 	}
 }
 
@@ -290,9 +290,9 @@ PyObject* KX_NetworkMessageSensor::PyGetBodies( PyObject* )
 {
 	ShowDeprecationWarning("getBodies()", "bodies");
 	if (m_BodyList) {
-		return ((PyObject*) m_BodyList->AddRef());
+		return m_BodyList->GetProxy();
 	} else {
-		return ((PyObject*) new CListValue());
+		return (new CListValue())->NewProxy(true);
 	}
 }
 
@@ -316,9 +316,9 @@ PyObject* KX_NetworkMessageSensor::PyGetSubjects( PyObject* )
 {
 	ShowDeprecationWarning("getSubjects()", "subjects");
 	if (m_SubjectList) {
-		return ((PyObject*) m_SubjectList->AddRef());
+		return m_SubjectList->GetProxy();
 	} else {
-		return ((PyObject*) new CListValue());
+		return (new CListValue())->NewProxy(true);
 	}
 }
 // <----- Deprecated

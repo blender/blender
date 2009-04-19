@@ -1039,7 +1039,43 @@ void KX_GameObject::Suspend()
 	}
 }
 
+static void walk_children(SG_Node* node, CListValue* list, bool recursive)
+{
+	if (!node)
+		return;
+	NodeList& children = node->GetSGChildren();
 
+	for (NodeList::iterator childit = children.begin();!(childit==children.end());++childit)
+	{
+		SG_Node* childnode = (*childit);
+		CValue* childobj = (CValue*)childnode->GetSGClientObject();
+		if (childobj != NULL) // This is a GameObject
+		{
+			// add to the list
+			list->Add(childobj->AddRef());
+		}
+		
+		// if the childobj is NULL then this may be an inverse parent link
+		// so a non recursive search should still look down this node.
+		if (recursive || childobj==NULL) {
+			walk_children(childnode, list, recursive);
+		}
+	}
+}
+
+CListValue* KX_GameObject::GetChildren()
+{
+	CListValue* list = new CListValue();
+	walk_children(GetSGNode(), list, 0); /* GetSGNode() is always valid or it would have raised an exception before this */
+	return list;
+}
+
+CListValue* KX_GameObject::GetChildrenRecursive()
+{
+	CListValue* list = new CListValue();
+	walk_children(GetSGNode(), list, 1);
+	return list;
+}
 
 
 /* ------- python stuff ---------------------------------------------------*/
@@ -1185,13 +1221,10 @@ PyObject* KX_GameObject::PyGetPosition(PyObject* self)
 
 Py_ssize_t KX_GameObject::Map_Len(PyObject* self_v)
 {
-	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
+	KX_GameObject* self= static_cast<KX_GameObject*>BGE_PROXY_REF(self_v);
 	
-	if (self->IsZombie()) /* not sure what to do here */
-	{
-		PyErr_Clear();
+	if (self==NULL) /* not sure what to do here */
 		return 0;
-	}
 	
 	Py_ssize_t len= self->GetPropertyCount();
 	if(self->m_attr_dict)
@@ -1202,18 +1235,20 @@ Py_ssize_t KX_GameObject::Map_Len(PyObject* self_v)
 
 PyObject *KX_GameObject::Map_GetItem(PyObject *self_v, PyObject *item)
 {
-	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
+	KX_GameObject* self= static_cast<KX_GameObject*>BGE_PROXY_REF(self_v);
 	const char *attr_str= PyString_AsString(item);
 	CValue* resultattr;
 	PyObject* pyconvert;
 	
-	if (self->IsZombiePyErr())
+	if (self==NULL) {
+		PyErr_SetString(PyExc_RuntimeError, BGE_PROXY_ERROR_MSG);
 		return NULL;
+	}
 	
 	/* first see if the attributes a string and try get the cvalue attribute */
 	if(attr_str && (resultattr=self->GetProperty(attr_str))) {
 		pyconvert = resultattr->ConvertValueToPython();			
-		return pyconvert ? pyconvert:resultattr;
+		return pyconvert ? pyconvert:resultattr->GetProxy();
 	}
 	/* no CValue attribute, try get the python only m_attr_dict attribute */
 	else if (self->m_attr_dict && (pyconvert=PyDict_GetItem(self->m_attr_dict, item))) {
@@ -1234,13 +1269,15 @@ PyObject *KX_GameObject::Map_GetItem(PyObject *self_v, PyObject *item)
 
 int KX_GameObject::Map_SetItem(PyObject *self_v, PyObject *key, PyObject *val)
 {
-	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
+	KX_GameObject* self= static_cast<KX_GameObject*>BGE_PROXY_REF(self_v);
 	const char *attr_str= PyString_AsString(key);
 	if(attr_str==NULL)
 		PyErr_Clear();
 	
-	if (self->IsZombiePyErr())
+	if (self==NULL) {
+		PyErr_SetString(PyExc_RuntimeError, BGE_PROXY_ERROR_MSG);
 		return -1;
+	}
 	
 	if (val==NULL) { /* del ob["key"] */
 		int del= 0;
@@ -1370,7 +1407,7 @@ PyObject* KX_GameObject::pyattr_get_parent(void *self_v, const KX_PYATTRIBUTE_DE
 	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
 	KX_GameObject* parent = self->GetParent();
 	if (parent)
-		return parent->AddRef();
+		return parent->GetProxy();
 	Py_RETURN_NONE;
 }
 
@@ -1667,7 +1704,7 @@ PyObject* KX_GameObject::pyattr_get_meshes(void *self_v, const KX_PYATTRIBUTE_DE
 	for(i=0; i < self->m_meshes.size(); i++)
 	{
 		KX_MeshProxy* meshproxy = new KX_MeshProxy(self->m_meshes[i]);
-		PyList_SET_ITEM(meshes, i, meshproxy);
+		PyList_SET_ITEM(meshes, i, meshproxy->GetProxy());
 	}
 	
 	return meshes;
@@ -1681,7 +1718,7 @@ PyObject* KX_GameObject::pyattr_get_sensors(void *self_v, const KX_PYATTRIBUTE_D
 	PyObject* resultlist = PyList_New(sensors.size());
 	
 	for (unsigned int index=0;index<sensors.size();index++)
-		PyList_SET_ITEM(resultlist, index, sensors[index]->AddRef());
+		PyList_SET_ITEM(resultlist, index, sensors[index]->GetProxy());
 	
 	return resultlist;
 }
@@ -1693,7 +1730,7 @@ PyObject* KX_GameObject::pyattr_get_controllers(void *self_v, const KX_PYATTRIBU
 	PyObject* resultlist = PyList_New(controllers.size());
 	
 	for (unsigned int index=0;index<controllers.size();index++)
-		PyList_SET_ITEM(resultlist, index, controllers[index]->AddRef());
+		PyList_SET_ITEM(resultlist, index, controllers[index]->GetProxy());
 	
 	return resultlist;
 }
@@ -1705,7 +1742,7 @@ PyObject* KX_GameObject::pyattr_get_actuators(void *self_v, const KX_PYATTRIBUTE
 	PyObject* resultlist = PyList_New(actuators.size());
 	
 	for (unsigned int index=0;index<actuators.size();index++)
-		PyList_SET_ITEM(resultlist, index, actuators[index]->AddRef());
+		PyList_SET_ITEM(resultlist, index, actuators[index]->GetProxy());
 	
 	return resultlist;
 }
@@ -2083,28 +2120,17 @@ PyObject* KX_GameObject::PyGetParent(PyObject* self)
 	ShowDeprecationWarning("getParent()", "the parent property");
 	KX_GameObject* parent = this->GetParent();
 	if (parent)
-		return parent->AddRef();
+		return parent->GetProxy();
 	Py_RETURN_NONE;
 }
 
 PyObject* KX_GameObject::PySetParent(PyObject* self, PyObject* value)
 {
-	if (!PyObject_TypeCheck(value, &KX_GameObject::Type)) {
-		PyErr_SetString(PyExc_TypeError, "expected a KX_GameObject type");
+	KX_GameObject *obj;
+	if (!ConvertPythonToGameObject(value, &obj, false))
 		return NULL;
-	}
-	if (self==value) {
-		PyErr_SetString(PyExc_ValueError, "cannot set the object to be its own parent!");
-		return NULL;
-	}
 	
-	// The object we want to set as parent
-	CValue *m_ob = (CValue*)value;
-	KX_GameObject *obj = ((KX_GameObject*)m_ob);
-	KX_Scene *scene = KX_GetActiveScene();
-	
-	this->SetParent(scene, obj);
-		
+	this->SetParent(KX_GetActiveScene(), obj);
 	Py_RETURN_NONE;
 }
 
@@ -2115,43 +2141,14 @@ PyObject* KX_GameObject::PyRemoveParent(PyObject* self)
 	Py_RETURN_NONE;
 }
 
-
-static void walk_children(SG_Node* node, CListValue* list, bool recursive)
-{
-	if (!node)
-		return;
-	NodeList& children = node->GetSGChildren();
-
-	for (NodeList::iterator childit = children.begin();!(childit==children.end());++childit)
-	{
-		SG_Node* childnode = (*childit);
-		CValue* childobj = (CValue*)childnode->GetSGClientObject();
-		if (childobj != NULL) // This is a GameObject
-		{
-			// add to the list
-			list->Add(childobj->AddRef());
-		}
-		
-		// if the childobj is NULL then this may be an inverse parent link
-		// so a non recursive search should still look down this node.
-		if (recursive || childobj==NULL) {
-			walk_children(childnode, list, recursive);
-		}
-	}
-}
-
 PyObject* KX_GameObject::PyGetChildren(PyObject* self)
 {
-	CListValue* list = new CListValue();
-	walk_children(GetSGNode(), list, 0); /* GetSGNode() is always valid or it would have raised an exception before this */
-	return list;
+	return GetChildren()->NewProxy(true);
 }
 
 PyObject* KX_GameObject::PyGetChildrenRecursive(PyObject* self)
 {
-	CListValue* list = new CListValue();
-	walk_children(GetSGNode(), list, 1);
-	return list;
+	return GetChildrenRecursive()->NewProxy(true);
 }
 
 PyObject* KX_GameObject::PyGetMesh(PyObject* self, PyObject* args)
@@ -2166,7 +2163,7 @@ PyObject* KX_GameObject::PyGetMesh(PyObject* self, PyObject* args)
 	if (((unsigned int)mesh < m_meshes.size()) && mesh >= 0)
 	{
 		KX_MeshProxy* meshproxy = new KX_MeshProxy(m_meshes[mesh]);
-		return meshproxy;
+		return meshproxy->NewProxy(true); // XXX Todo Python own.
 	}
 	
 	Py_RETURN_NONE;
@@ -2516,7 +2513,7 @@ KX_PYMETHODDEF_DOC(KX_GameObject, rayCastTo,
 	KX_RayCast::RayTest(pe, fromPoint, toPoint, callback);
 
     if (m_pHitObject)
-		return m_pHitObject->AddRef();
+		return m_pHitObject->GetProxy();
 	
 	Py_RETURN_NONE;
 }
@@ -2618,7 +2615,7 @@ KX_PYMETHODDEF_DOC(KX_GameObject, rayCast,
 	{
 		PyObject* returnValue = (poly) ? PyTuple_New(4) : PyTuple_New(3);
 		if (returnValue) { // unlikely this would ever fail, if it does python sets an error
-			PyTuple_SET_ITEM(returnValue, 0, m_pHitObject->AddRef());
+			PyTuple_SET_ITEM(returnValue, 0, m_pHitObject->GetProxy());
 			PyTuple_SET_ITEM(returnValue, 1, PyObjectFrom(callback.m_hitPoint));
 			PyTuple_SET_ITEM(returnValue, 2, PyObjectFrom(callback.m_hitNormal));
 			if (poly)
@@ -2628,7 +2625,7 @@ KX_PYMETHODDEF_DOC(KX_GameObject, rayCast,
 					// if this field is set, then we can trust that m_hitPolygon is a valid polygon
 					RAS_Polygon* polygon = callback.m_hitMesh->GetPolygon(callback.m_hitPolygon);
 					KX_PolyProxy* polyproxy = new KX_PolyProxy(callback.m_hitMesh, polygon);
-					PyTuple_SET_ITEM(returnValue, 3, polyproxy);
+					PyTuple_SET_ITEM(returnValue, 3, polyproxy->NewProxy(true));
 				}
 				else
 				{
@@ -2708,7 +2705,7 @@ bool ConvertPythonToGameObject(PyObject * value, KX_GameObject **object, bool py
 	}
 	
 	if (PyString_Check(value)) {
-		*object = (KX_GameObject *)SCA_ILogicBrick::m_sCurrentLogicManager->GetGameObjectByName(STR_String( PyString_AsString(value) ));
+		*object = (KX_GameObject*)SCA_ILogicBrick::m_sCurrentLogicManager->GetGameObjectByName(STR_String( PyString_AsString(value) ));
 		
 		if (*object) {
 			return true;
@@ -2719,11 +2716,13 @@ bool ConvertPythonToGameObject(PyObject * value, KX_GameObject **object, bool py
 	}
 	
 	if (PyObject_TypeCheck(value, &KX_GameObject::Type)) {
-		*object = static_cast<KX_GameObject*>(value);
+		*object = static_cast<KX_GameObject*>BGE_PROXY_REF(value);
 		
 		/* sets the error */
-		if ((*object)->IsZombiePyErr())
+		if (*object==NULL) {
+			PyErr_SetString(PyExc_RuntimeError, BGE_PROXY_ERROR_MSG);
 			return false;
+		}
 		
 		return true;
 	}

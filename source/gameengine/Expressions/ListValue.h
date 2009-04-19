@@ -61,9 +61,11 @@ public:
 
 	virtual PyObject* py_getattro(PyObject* attr);
 	virtual PyObject* py_repr(void) {
-		PyObject *py_list= PySequence_List((PyObject *)this);
+		PyObject *py_proxy= this->GetProxy();
+		PyObject *py_list= PySequence_List(py_proxy);
 		PyObject *py_string= PyObject_Repr(py_list);
 		Py_DECREF(py_list);
+		Py_DECREF(py_proxy);
 		return py_string;
 	}
 

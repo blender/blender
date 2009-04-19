@@ -232,7 +232,7 @@ PyObject* KX_MeshProxy::PyGetVertex(PyObject* self,
 		RAS_TexVert* vertex = m_meshobj->GetVertex(matindex,vertexindex);
 		if (vertex)
 		{
-			vertexob = new KX_VertexProxy(this, vertex);
+			vertexob = (new KX_VertexProxy(this, vertex))->NewProxy(true);
 		}
 	}
 	else {
@@ -263,7 +263,7 @@ PyObject* KX_MeshProxy::PyGetPolygon(PyObject* self,
 	RAS_Polygon* polygon = m_meshobj->GetPolygon(polyindex);
 	if (polygon)
 	{
-		polyob = new KX_PolyProxy(m_meshobj, polygon);
+		polyob = (new KX_PolyProxy(m_meshobj, polygon))->NewProxy(true);
 	}
 	else {
 		PyErr_SetString(PyExc_AttributeError, "polygon is NULL, unknown reason");
@@ -297,13 +297,11 @@ PyObject* KX_MeshProxy::pyattr_get_materials(void *self_v, const KX_PYATTRIBUTE_
 		if(polymat->GetFlag() & RAS_BLENDERMAT) 	 
 		{ 	 
 			KX_BlenderMaterial *mat = static_cast<KX_BlenderMaterial*>(polymat); 	 
-			PyList_SET_ITEM(materials, i, mat);
-			Py_INCREF(mat);
+			PyList_SET_ITEM(materials, i, mat->GetProxy());
 		}
 		else { 	
 			KX_PolygonMaterial *mat = static_cast<KX_PolygonMaterial*>(polymat);
-			PyList_SET_ITEM(materials, i, mat);
-			Py_INCREF(mat);
+			PyList_SET_ITEM(materials, i, mat->GetProxy());
 		}
 	}	
 	return materials;

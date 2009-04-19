@@ -924,8 +924,6 @@ int KX_Scene::NewRemoveObject(class CValue* gameobj)
 {
 	int ret;
 	KX_GameObject* newobj = (KX_GameObject*) gameobj;
-	
-	gameobj->SetZombie(true); /* disallow future python access */
 
 	// keep the blender->game object association up to date
 	// note that all the replicas of an object will have the same
@@ -1623,13 +1621,13 @@ PyObject* KX_Scene::pyattr_get_name(void *self_v, const KX_PYATTRIBUTE_DEF *attr
 PyObject* KX_Scene::pyattr_get_objects(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_Scene* self= static_cast<KX_Scene*>(self_v);
-	return self->GetObjectList()->AddRef();
+	return self->GetObjectList()->GetProxy();
 }
 
 PyObject* KX_Scene::pyattr_get_active_camera(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_Scene* self= static_cast<KX_Scene*>(self_v);
-	return self->GetActiveCamera()->AddRef();
+	return self->GetActiveCamera()->GetProxy();
 }
 
 /* __dict__ only for the purpose of giving useful dir() results */
@@ -1717,7 +1715,7 @@ KX_PYMETHODDEF_DOC_NOARGS(KX_Scene, getLightList,
 "Returns a list of all lights in the scene.\n"
 )
 {
-	return (PyObject*) m_lightlist->AddRef();
+	return m_lightlist->GetProxy();
 }
 
 KX_PYMETHODDEF_DOC_NOARGS(KX_Scene, getObjectList,
@@ -1726,7 +1724,7 @@ KX_PYMETHODDEF_DOC_NOARGS(KX_Scene, getObjectList,
 )
 {
 	// ShowDeprecationWarning("getObjectList()", "the objects property"); // XXX Grr, why doesnt this work?
-	return (PyObject*) m_objectlist->AddRef();
+	return m_objectlist->GetProxy();
 }
 
 KX_PYMETHODDEF_DOC_NOARGS(KX_Scene, getName,
@@ -1755,6 +1753,5 @@ KX_PYMETHODDEF_DOC(KX_Scene, addObject,
 
 
 	SCA_IObject* replica = AddReplicaObject((SCA_IObject*)ob, other, time);
-	replica->AddRef();
-	return replica;
+	return replica->GetProxy();
 }

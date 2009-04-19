@@ -27,45 +27,61 @@
 #define Py_ssize_t int
 #endif
 
-Py_ssize_t listvalue_bufferlen(PyObject* list)
+Py_ssize_t listvalue_bufferlen(PyObject* self)
 {
-	return (Py_ssize_t)( ((CListValue*)list)->GetCount());
+	CListValue *list= static_cast<CListValue *>(BGE_PROXY_REF(self));
+	if (list==NULL)
+		return 0;
+	
+	return (Py_ssize_t)list->GetCount();
 }
 
-PyObject* listvalue_buffer_item(PyObject* list,Py_ssize_t index)
+PyObject* listvalue_buffer_item(PyObject* self, Py_ssize_t index)
 {
-	int count = ((CListValue*) list)->GetCount();
+	CListValue *list= static_cast<CListValue *>(BGE_PROXY_REF(self));
+	if (list==NULL) {
+		PyErr_SetString(PyExc_IndexError, BGE_PROXY_ERROR_MSG);
+		return NULL;
+	}
+	
+	int count = list->GetCount();
 	
 	if (index < 0)
 		index = count+index;
 	
 	if (index >= 0 && index < count)
 	{
-		PyObject* pyobj = ((CListValue*) list)->GetValue(index)->ConvertValueToPython();
+		PyObject* pyobj = list->GetValue(index)->ConvertValueToPython();
 		if (pyobj)
 			return pyobj;
 		else
-			return ((CListValue*) list)->GetValue(index)->AddRef();
+			return list->GetValue(index)->GetProxy();
 
 	}
 	PyErr_SetString(PyExc_IndexError, "Python ListIndex out of range");
 	return NULL;
 }
 
-PyObject* listvalue_mapping_subscript(PyObject* list,PyObject* pyindex)
+PyObject* listvalue_mapping_subscript(PyObject* self, PyObject* pyindex)
 {
+	CListValue *list= static_cast<CListValue *>(BGE_PROXY_REF(self));
+	if (list==NULL) {
+		PyErr_SetString(PyExc_IndexError, BGE_PROXY_ERROR_MSG);
+		return NULL;
+	}
+	
 	if (PyString_Check(pyindex))
 	{
 		STR_String  index(PyString_AsString(pyindex));
 		CValue *item = ((CListValue*) list)->FindValue(index);
 		if (item)
-			return (PyObject*) item;
+			return item->GetProxy();
 			
 	}
 	if (PyInt_Check(pyindex))
 	{
 		int index = PyInt_AsLong(pyindex);
-		return listvalue_buffer_item(list, index);
+		return listvalue_buffer_item(self, index);
 	}
 	
 	PyObject *pyindex_str = PyObject_Repr(pyindex); /* new ref */
@@ -76,10 +92,16 @@ PyObject* listvalue_mapping_subscript(PyObject* list,PyObject* pyindex)
 
 
 /* just slice it into a python list... */
-PyObject* listvalue_buffer_slice(PyObject* list,Py_ssize_t ilow, Py_ssize_t ihigh)
+PyObject* listvalue_buffer_slice(PyObject* self,Py_ssize_t ilow, Py_ssize_t ihigh)
 {
+	CListValue *list= static_cast<CListValue *>(BGE_PROXY_REF(self));
+	if (list==NULL) {
+		PyErr_SetString(PyExc_IndexError, BGE_PROXY_ERROR_MSG);
+		return NULL;
+	}
+	
 	int i, j;
-	PyListObject *newlist;
+	PyObject *newlist;
 
 	if (ilow < 0) ilow = 0;
 
@@ -90,18 +112,18 @@ PyObject* listvalue_buffer_slice(PyObject* list,Py_ssize_t ilow, Py_ssize_t ihig
     if (ihigh < ilow)
         ihigh = ilow;
 
-	newlist = (PyListObject *) PyList_New(ihigh - ilow);
+	newlist = PyList_New(ihigh - ilow);
 	if (!newlist)
 		return NULL;
 
 	for (i = ilow, j = 0; i < ihigh; i++, j++)
 	{
-		PyObject* pyobj = ((CListValue*) list)->GetValue(i)->ConvertValueToPython();
+		PyObject* pyobj = list->GetValue(i)->ConvertValueToPython();
 		if (!pyobj)
-			pyobj = ((CListValue*) list)->GetValue(i)->AddRef();
-		newlist->ob_item[j] = pyobj;
+			pyobj = list->GetValue(i)->GetProxy();
+		PyList_SET_ITEM(newlist, i, pyobj);
 	}	
-	return (PyObject *) newlist;
+	return newlist;
 }
 
 
@@ -109,11 +131,16 @@ PyObject* listvalue_buffer_slice(PyObject* list,Py_ssize_t ilow, Py_ssize_t ihig
 static PyObject *
 listvalue_buffer_concat(PyObject * self, PyObject * other)
 {
+	CListValue *listval= static_cast<CListValue *>(BGE_PROXY_REF(self));
+	if (listval==NULL) {
+		PyErr_SetString(PyExc_IndexError, BGE_PROXY_ERROR_MSG);
+		return NULL;
+	}
+	
 	// for now, we support CListValue concatenated with items
 	// and CListValue concatenated to Python Lists
 	// and CListValue concatenated with another CListValue
-
-	CListValue* listval = (CListValue*) self;
+	
 	listval->AddRef();
 	if (other->ob_type == &PyList_Type)
 	{
@@ -519,8 +546,8 @@ PyObject* CListValue::Pyfrom_id(PyObject* self, PyObject* value)
 	int numelem = GetCount();
 	for (int i=0;i<numelem;i++)
 	{
-		if (reinterpret_cast<BGE_ID_TYPE>(static_cast<PyObject*>(m_pValueArray[i])) == id)
-			return GetValue(i);
+		if (reinterpret_cast<BGE_ID_TYPE>(m_pValueArray[i]->m_proxy) == id)
+			return GetValue(i)->GetProxy();
 	
 	}
 	PyErr_SetString(PyExc_IndexError, "from_id(#), id not found in CValueList");

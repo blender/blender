@@ -225,21 +225,6 @@ public:
 
 
 	virtual PyObject*			py_getattro(PyObject *attr);
-
-	void	SpecialRelease()
-	{
-		if (ob_refcnt == 0) /* make sure python always holds a reference */
-		{
-			_Py_NewReference(this);
-			
-		}
-		Release();
-	}
-	static void PyDestructor(PyObject *P)				// python wrapper
-	{
-	  ((CValue*)P)->SpecialRelease();
-	};
-
 	virtual PyObject*	ConvertValueToPython() {
 		return NULL;
 	}
@@ -352,7 +337,6 @@ private:
 	std::map<STR_String,CValue*>*		m_pNamedPropertyArray;									// Properties for user/game etc
 	ValueFlags			m_ValFlags;												// Frequently used flags in a bitfield (low memoryusage)
 	int					m_refcount;												// Reference Counter	
-	bool				m_zombie;												// Object is invalid put its still being referenced (by python)
 	static	double m_sZeroVec[3];	
 	static bool			m_ignore_deprecation_warnings;
 

@@ -291,23 +291,39 @@ PyObject* KX_SceneActuator::pyattr_get_camera(void *self, const struct KX_PYATTR
 	KX_SceneActuator* actuator = static_cast<KX_SceneActuator*>(self);
 	if (!actuator->m_camera)
 		Py_RETURN_NONE;
-	actuator->m_camera->AddRef();
-	return actuator->m_camera;
+	
+	return actuator->m_camera->GetProxy();
 }
 
 int KX_SceneActuator::pyattr_set_camera(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
 {
 	KX_SceneActuator* actuator = static_cast<KX_SceneActuator*>(self);
 	KX_Camera *camOb;
-
-	if (PyObject_TypeCheck(value, &KX_Camera::Type)) 
+	
+	if(value==Py_None)
 	{
-		camOb = static_cast<KX_Camera*>(value);
 		if (actuator->m_camera)
 			actuator->m_camera->UnregisterActuator(actuator);
-		actuator->m_camera = camOb;
+		
+		actuator->m_camera= NULL;
+		return 0;
+	}
+	
+	if (PyObject_TypeCheck(value, &KX_Camera::Type)) 
+	{
+		KX_Camera *camOb= static_cast<KX_Camera*>BGE_PROXY_REF(value);
+		
+		if(camOb==NULL)
+		{
+			PyErr_SetString(PyExc_RuntimeError, BGE_PROXY_ERROR_MSG);
+			return 1;
+		}
+		
 		if (actuator->m_camera)
-			actuator->m_camera->RegisterActuator(actuator);
+			actuator->m_camera->UnregisterActuator(actuator);
+		
+		actuator->m_camera = camOb;
+		actuator->m_camera->RegisterActuator(actuator);
 		return 0;
 	}
 
@@ -423,11 +439,21 @@ PyObject* KX_SceneActuator::PySetCamera(PyObject* self,
 	PyObject *cam;
 	if (PyArg_ParseTuple(args, "O!:setCamera", &KX_Camera::Type, &cam))
 	{
+		KX_Camera *new_camera;
+		
+		new_camera = static_cast<KX_Camera*>BGE_PROXY_REF(cam);
+		if(new_camera==NULL)
+		{
+			PyErr_SetString(PyExc_RuntimeError, BGE_PROXY_ERROR_MSG);
+			return NULL;
+		}
+		
 		if (m_camera)
 			m_camera->UnregisterActuator(this);
-		m_camera = (KX_Camera*) cam;
-		if (m_camera)
-			m_camera->RegisterActuator(this);
+		
+		m_camera= new_camera;
+		
+		m_camera->RegisterActuator(this);
 		Py_RETURN_NONE;
 	}
 	PyErr_Clear();

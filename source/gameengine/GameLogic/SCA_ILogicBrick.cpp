@@ -294,8 +294,7 @@ PyObject* SCA_ILogicBrick::PyGetOwner(PyObject* self)
 	CValue* parent = GetParent();
 	if (parent)
 	{
-		parent->AddRef();
-		return parent;
+		return parent->GetProxy();
 	}
 
 	printf("ERROR: Python scriptblock without owner\n");

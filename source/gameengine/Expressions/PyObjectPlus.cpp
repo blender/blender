@@ -54,6 +54,7 @@
  * PyObjectPlus Type		-- Every class, even the abstract one should have a Type
 ------------------------------*/
 
+
 PyTypeObject PyObjectPlus::Type = {
 	PyObject_HEAD_INIT(NULL)
 	0,				/*ob_size*/
@@ -74,21 +75,33 @@ PyTypeObject PyObjectPlus::Type = {
 	Methods
 };
 
+
 PyObjectPlus::~PyObjectPlus()
 {
-	if (ob_refcnt)
-	{
-		_Py_ForgetReference(this);
+	if(m_proxy) {
+		Py_DECREF(m_proxy);			/* Remove own reference, python may still have 1 */
+		BGE_PROXY_REF(m_proxy)= NULL;
 	}
 //	assert(ob_refcnt==0);
 }
 
+void PyObjectPlus::PyDestructor(PyObject *self)				// python wrapper
+{
+	PyObjectPlus *self_plus= BGE_PROXY_REF(self);
+	if(self_plus) {
+		if(BGE_PROXY_PYOWNS(self)) { /* Does python own this?, then delete it  */
+			delete self_plus;
+		}
+		
+		BGE_PROXY_REF(self)= NULL; // not really needed
+	}
+	PyObject_DEL( self );
+};
+
 PyObjectPlus::PyObjectPlus(PyTypeObject *T) 				// constructor
 {
 	MT_assert(T != NULL);
-	this->ob_type = T; 
-	_Py_NewReference(this);
-	SetZombie(false);
+	m_proxy= NULL;
 };
   
 /*------------------------------
@@ -131,7 +144,7 @@ PyObject *PyObjectPlus::py_getattro(PyObject* attr)
 		if (PyCObject_Check(descr)) {
 			return py_get_attrdef((void *)this, (const PyAttributeDef*)PyCObject_AsVoidPtr(descr));
 		} else if (descr->ob_type->tp_descr_get) {
-			return PyCFunction_New(((PyMethodDescrObject *)descr)->d_method, (PyObject *)this);
+			return PyCFunction_New(((PyMethodDescrObject *)descr)->d_method, this->m_proxy);
 		} else {
 			fprintf(stderr, "Unknown attribute type (PyObjectPlus::py_getattro)");
 			return descr;
@@ -792,6 +805,48 @@ PyObject *py_getattr_dict(PyObject *pydict, PyObject *tp_dict)
 	
 	PyDict_Update(pydict, tp_dict);
 	return pydict;
+}
+
+
+
+PyObject *PyObjectPlus::GetProxy_Ext(PyObjectPlus *self, PyTypeObject *tp)
+{
+	if (self->m_proxy==NULL)
+	{
+		self->m_proxy = reinterpret_cast<PyObject *>PyObject_NEW( PyObjectPlus_Proxy, tp);
+		BGE_PROXY_PYOWNS(self->m_proxy) = false;
+	}
+	//PyObject_Print(self->m_proxy, stdout, 0);
+	//printf("ref %d\n", self->m_proxy->ob_refcnt);
+	
+	BGE_PROXY_REF(self->m_proxy) = self; /* Its possible this was set to NULL, so set it back here */
+	Py_INCREF(self->m_proxy); /* we own one, thos ones fore the return */
+	return self->m_proxy;
+}
+
+PyObject *PyObjectPlus::NewProxy_Ext(PyObjectPlus *self, PyTypeObject *tp, bool py_owns)
+{
+	if (self->m_proxy)
+	{
+		if(py_owns)
+		{	/* Free */
+			BGE_PROXY_REF(self->m_proxy) = NULL;
+			Py_DECREF(self->m_proxy);
+			self->m_proxy= NULL;
+		}
+		else {
+			Py_INCREF(self->m_proxy);
+			return self->m_proxy;
+		}
+		
+	}
+	
+	GetProxy_Ext(self, tp);
+	if(py_owns) {
+		BGE_PROXY_PYOWNS(self->m_proxy) = py_owns;
+		Py_DECREF(self->m_proxy); /* could avoid thrashing here but for now its ok */
+	}
+	return self->m_proxy;
 }
 
 #endif //NO_EXP_PYTHON_EMBEDDING
