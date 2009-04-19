@@ -36,107 +36,6 @@ bool CValue::m_ignore_deprecation_warnings(false);
 
 #ifndef NO_EXP_PYTHON_EMBEDDING
 
-PyObject* cvalue_add(PyObject*v, PyObject*w)
-{
-	return  ((CValue*)v)->Calc(VALUE_ADD_OPERATOR,(CValue*)w);
-}
-PyObject* cvalue_sub(PyObject*v, PyObject*w)
-{
-	return  ((CValue*)v)->Calc(VALUE_SUB_OPERATOR,(CValue*)w);
-}
-PyObject* cvalue_mul(PyObject*v, PyObject*w)
-{
-	return  ((CValue*)v)->Calc(VALUE_MUL_OPERATOR,(CValue*)w);
-}
-PyObject* cvalue_div(PyObject*v, PyObject*w)
-{
-	return  ((CValue*)v)->Calc(VALUE_DIV_OPERATOR,(CValue*)w);
-}
-PyObject* cvalue_mod(PyObject*v, PyObject*w)
-{
-	return  ((CValue*)v)->Calc(VALUE_MOD_OPERATOR,(CValue*)w);
-}
-PyObject* cvalue_neg(PyObject*v)
-{
-	return  ((CValue*)v)->Calc(VALUE_NEG_OPERATOR,(CValue*)v);
-}
-PyObject* cvalue_pos(PyObject*v)
-{
-	return  ((CValue*)v)->Calc(VALUE_POS_OPERATOR,(CValue*)v);
-}
-
-
-int MyPyCompare (PyObject* v,PyObject* w)
-{
-	CValue* eqval =  ((CValue*)v)->Calc(VALUE_EQL_OPERATOR,(CValue*)w);
-	STR_String txt = eqval->GetText();
-	eqval->Release();
-	if (txt=="TRUE")
-		return 0;
-	CValue* lessval =  ((CValue*)v)->Calc(VALUE_LES_OPERATOR,(CValue*)w);
-	txt = lessval->GetText();
-	lessval->Release();
-	if (txt=="TRUE")
-		return -1;
-
-	return 1;
-}
-
-
-int cvalue_coerce(PyObject** pv,PyObject** pw)
-{
-	if (PyInt_Check(*pw)) {
-		*pw = new CIntValue((cInt)PyInt_AsLong(*pw));
-		Py_INCREF(*pv);
-		return 0;
-	}
-	else if (PyLong_Check(*pw)) {
-		*pw = new CIntValue((cInt)PyLong_AsLongLong(*pw));
-		Py_INCREF(*pv);
-		return 0;
-	}
-	else if (PyFloat_Check(*pw)) {
-		*pw = new CFloatValue((float)PyFloat_AsDouble(*pw));
-		Py_INCREF(*pv);
-		return 0;
-	} else if (PyString_Check(*pw)) {
-		const STR_String str = PyString_AsString(*pw);
-		*pw = new CStringValue(str,"");
-		Py_INCREF(*pv);
-		return 0;
-	}
-	
-	PyErr_SetString(PyExc_TypeError, "unable to coerce python type to cvalue");
-	return 1; /* Can't do it */
-
-}
-static PyNumberMethods cvalue_as_number = {
-	(binaryfunc)cvalue_add, /*nb_add*/
-	(binaryfunc)cvalue_sub, /*nb_subtract*/
-	(binaryfunc)cvalue_mul, /*nb_multiply*/
-	(binaryfunc)cvalue_div, /*nb_divide*/
-	(binaryfunc)cvalue_mod, /*nb_remainder*/
-	0,//(binaryfunc)cvalue_divmod,	/*nb_divmod*/
-	0,//0,//0,//0,//(ternaryfunc)cvalue_pow, /*nb_power*/
-	(unaryfunc)cvalue_neg, /*nb_negative*/
-	0,//(unaryfunc)cvalue_pos, /*nb_positive*/
-	0,//(unaryfunc)cvalue_abs, /*nb_absolute*/
-	0,//(inquiry)cvalue_nonzero, /*nb_nonzero*/
-	0,		/*nb_invert*/
-	0,		/*nb_lshift*/
-	0,		/*nb_rshift*/
-	0,		/*nb_and*/
-	0,		/*nb_xor*/
-	0,		/*nb_or*/
-	(coercion)cvalue_coerce, /*nb_coerce*/
-	0,//(unaryfunc)cvalue_int, /*nb_int*/
-	0,//(unaryfunc)cvalue_long, /*nb_long*/
-	0,//(unaryfunc)cvalue_float, /*nb_float*/
-	0,		/*nb_oct*/
-	0,		/*nb_hex*/
-};
-
-
 PyTypeObject CValue::Type = {
 	PyObject_HEAD_INIT(NULL)
 	0,
@@ -147,9 +46,9 @@ PyTypeObject CValue::Type = {
 	0,
 	0,
 	0,
-	&MyPyCompare,
+	0,
 	py_base_repr,
-	&cvalue_as_number,
+	0,
 	0,0,0,0,0,
 	py_base_getattro,
 	py_base_setattro,
