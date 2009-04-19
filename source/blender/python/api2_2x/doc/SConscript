@@ -10,6 +10,10 @@ names = env.Glob("source/blender/python/api2_2x/doc/[A-Z]*.py")
 docindex = build_doc_index(names)
 optvalues = cli.OPTION_DEFAULTS
 optvalues["verbose"] = 1
+optvalues["quiet"] = 0
+optvalues["include_source_code"] = 0
+optvalues["inheritance"] = "included"
+optvalues["show_private"] = 0
 optvalues["target"] = env["BF_DOCDIR"]+"/BPY_API/"
 optvalues["url"] = "http://www.blender.org"
 optvalues["top"] = "API_intro"
@@ -20,5 +24,6 @@ optvalues["names"] = names
 optparser = OptionParser()
 optparser.set_defaults(**optvalues)
 (options, args) = optparser.parse_args([])
+print "Writing Blender Python epydocs to \"%s\"" % optvalues["target"]
 cli.write_html(docindex, options)
 
