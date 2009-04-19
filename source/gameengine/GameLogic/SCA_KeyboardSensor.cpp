@@ -590,7 +590,7 @@ KX_PYMETHODDEF_DOC_O(SCA_KeyboardSensor, getKeyStatus,
 "\tGet the given key's status (KX_NO_INPUTSTATUS, KX_JUSTACTIVATED, KX_ACTIVE or KX_JUSTRELEASED).\n")
 {
 	if (!PyInt_Check(value)) {
-		PyErr_SetString(PyExc_ValueError, "getKeyStatus expected an int");
+		PyErr_SetString(PyExc_ValueError, "sensor.getKeyStatus(int): Keyboard Sensor, expected an int");
 		return NULL;
 	}
 	
@@ -598,7 +598,7 @@ KX_PYMETHODDEF_DOC_O(SCA_KeyboardSensor, getKeyStatus,
 	
 	if ((keycode < SCA_IInputDevice::KX_BEGINKEY)
 		|| (keycode > SCA_IInputDevice::KX_ENDKEY)){
-		PyErr_SetString(PyExc_AttributeError, "invalid keycode specified!");
+		PyErr_SetString(PyExc_AttributeError, "sensor.getKeyStatus(int): Keyboard Sensor, invalid keycode specified!");
 		return NULL;
 	}
 	

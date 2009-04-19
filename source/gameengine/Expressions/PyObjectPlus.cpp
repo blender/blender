@@ -325,12 +325,12 @@ int PyObjectPlus::py_set_attrdef(void *self, const PyAttributeDef *attrdef, PyOb
 	{
 		if (!PySequence_Check(value)) 
 		{
-			PyErr_SetString(PyExc_TypeError, "expected a sequence");
+			PyErr_Format(PyExc_TypeError, "expected a sequence for attribute \"%s\"", attrdef->m_name);
 			return 1;
 		}
 		if (PySequence_Size(value) != attrdef->m_length)
 		{
-			PyErr_SetString(PyExc_TypeError, "incorrect number of elements in sequence");
+			PyErr_Format(PyExc_TypeError, "incorrect number of elements in sequence for attribute \"%s\"", attrdef->m_name);
 			return 1;
 		}
 		switch (attrdef->m_type) 
@@ -338,7 +338,7 @@ int PyObjectPlus::py_set_attrdef(void *self, const PyAttributeDef *attrdef, PyOb
 		case KX_PYATTRIBUTE_TYPE_FUNCTION:
 			if (attrdef->m_setFunction == NULL) 
 			{
-				PyErr_SetString(PyExc_AttributeError, "function attribute without function, report to blender.org");
+				PyErr_Format(PyExc_AttributeError, "function attribute without function for attribute \"%s\", report to blender.org", attrdef->m_name);
 				return 1;
 			}
 			return (*attrdef->m_setFunction)(self, attrdef, value);
@@ -357,7 +357,7 @@ int PyObjectPlus::py_set_attrdef(void *self, const PyAttributeDef *attrdef, PyOb
 			break;
 		default:
 			// should not happen
-			PyErr_SetString(PyExc_AttributeError, "Unsupported attribute type, report to blender.org");
+			PyErr_Format(PyExc_AttributeError, "Unsupported attribute type for attribute \"%s\", report to blender.org", attrdef->m_name);
 			return 1;
 		}
 		// let's implement a smart undo method
@@ -390,7 +390,7 @@ int PyObjectPlus::py_set_attrdef(void *self, const PyAttributeDef *attrdef, PyOb
 					}
 					else
 					{
-						PyErr_SetString(PyExc_TypeError, "expected an integer or a bool");
+						PyErr_Format(PyExc_TypeError, "expected an integer or a bool for attribute \"%s\"", attrdef->m_name);
 						goto UNDO_AND_ERROR;
 					}
 					break;
@@ -411,14 +411,14 @@ int PyObjectPlus::py_set_attrdef(void *self, const PyAttributeDef *attrdef, PyOb
 						}
 						else if (val < attrdef->m_imin || val > attrdef->m_imax)
 						{
-							PyErr_SetString(PyExc_ValueError, "item value out of range");
+							PyErr_Format(PyExc_ValueError, "item value out of range for attribute \"%s\"", attrdef->m_name);
 							goto UNDO_AND_ERROR;
 						}
 						*var = (short int)val;
 					}
 					else
 					{
-						PyErr_SetString(PyExc_TypeError, "expected an integer");
+						PyErr_Format(PyExc_TypeError, "expected an integer for attribute \"%s\"", attrdef->m_name);
 						goto UNDO_AND_ERROR;
 					}
 					break;
@@ -427,7 +427,7 @@ int PyObjectPlus::py_set_attrdef(void *self, const PyAttributeDef *attrdef, PyOb
 				// enum are equivalent to int, just make sure that the field size matches:
 				if (sizeof(int) != attrdef->m_size)
 				{
-					PyErr_SetString(PyExc_AttributeError, "attribute size check error, report to blender.org");
+					PyErr_Format(PyExc_AttributeError, "Size check error for attribute, \"%s\", report to blender.org", attrdef->m_name);
 					goto UNDO_AND_ERROR;
 				}
 				// walkthrough
@@ -447,14 +447,14 @@ int PyObjectPlus::py_set_attrdef(void *self, const PyAttributeDef *attrdef, PyOb
 						}
 						else if (val < attrdef->m_imin || val > attrdef->m_imax)
 						{
-							PyErr_SetString(PyExc_ValueError, "item value out of range");
+							PyErr_Format(PyExc_ValueError, "item value out of range for attribute \"%s\"", attrdef->m_name);
 							goto UNDO_AND_ERROR;
 						}
 						*var = (int)val;
 					}
 					else
 					{
-						PyErr_SetString(PyExc_TypeError, "expected an integer");
+						PyErr_Format(PyExc_TypeError, "expected an integer for attribute \"%s\"", attrdef->m_name);
 						goto UNDO_AND_ERROR;
 					}
 					break;
@@ -466,7 +466,7 @@ int PyObjectPlus::py_set_attrdef(void *self, const PyAttributeDef *attrdef, PyOb
 					double val = PyFloat_AsDouble(item);
 					if (val == -1.0 && PyErr_Occurred())
 					{
-						PyErr_SetString(PyExc_TypeError, "expected a float");
+						PyErr_Format(PyExc_TypeError, "expected a float for attribute \"%s\"", attrdef->m_name);
 						goto UNDO_AND_ERROR;
 					}
 					else if (attrdef->m_clamp) 
@@ -478,7 +478,7 @@ int PyObjectPlus::py_set_attrdef(void *self, const PyAttributeDef *attrdef, PyOb
 					}
 					else if (val < attrdef->m_fmin || val > attrdef->m_fmax)
 					{
-						PyErr_SetString(PyExc_ValueError, "item value out of range");
+						PyErr_Format(PyExc_ValueError, "item value out of range for attribute \"%s\"", attrdef->m_name);
 						goto UNDO_AND_ERROR;
 					}
 					*var = (float)val;
@@ -486,7 +486,7 @@ int PyObjectPlus::py_set_attrdef(void *self, const PyAttributeDef *attrdef, PyOb
 				}
 			default:
 				// should not happen
-				PyErr_SetString(PyExc_AttributeError, "attribute type check error, report to blender.org");
+				PyErr_Format(PyExc_AttributeError, "type check error for attribute \"%s\", report to blender.org", attrdef->m_name);
 				goto UNDO_AND_ERROR;
 			}
 		}
@@ -515,7 +515,7 @@ int PyObjectPlus::py_set_attrdef(void *self, const PyAttributeDef *attrdef, PyOb
 		{
 			if (attrdef->m_setFunction == NULL)
 			{
-				PyErr_SetString(PyExc_AttributeError, "function attribute without function, report to blender.org");
+				PyErr_Format(PyExc_AttributeError, "function attribute without function \"%s\", report to blender.org", attrdef->m_name);
 				return 1;
 			}
 			return (*attrdef->m_setFunction)(self, attrdef, value);
@@ -545,7 +545,7 @@ int PyObjectPlus::py_set_attrdef(void *self, const PyAttributeDef *attrdef, PyOb
 					bufferSize = strlen(reinterpret_cast<char*>(sourceBuffer))+1;
 				break;
 			default:
-				PyErr_SetString(PyExc_AttributeError, "unknown attribute type, report to blender.org");
+				PyErr_Format(PyExc_AttributeError, "unknown type for attribute \"%s\", report to blender.org", attrdef->m_name);
 				return 1;
 			}
 			if (bufferSize)
@@ -573,7 +573,7 @@ int PyObjectPlus::py_set_attrdef(void *self, const PyAttributeDef *attrdef, PyOb
 				}
 				else
 				{
-					PyErr_SetString(PyExc_TypeError, "expected an integer or a bool");
+					PyErr_Format(PyExc_TypeError, "expected an integer or a bool for attribute \"%s\"", attrdef->m_name);
 					goto FREE_AND_ERROR;
 				}
 				break;
@@ -593,14 +593,14 @@ int PyObjectPlus::py_set_attrdef(void *self, const PyAttributeDef *attrdef, PyOb
 					}
 					else if (val < attrdef->m_imin || val > attrdef->m_imax)
 					{
-						PyErr_SetString(PyExc_ValueError, "value out of range");
+						PyErr_Format(PyExc_ValueError, "value out of range for attribute \"%s\"", attrdef->m_name);
 						goto FREE_AND_ERROR;
 					}
 					*var = (short int)val;
 				}
 				else
 				{
-					PyErr_SetString(PyExc_TypeError, "expected an integer");
+					PyErr_Format(PyExc_TypeError, "expected an integer for attribute \"%s\"", attrdef->m_name);
 					goto FREE_AND_ERROR;
 				}
 				break;
@@ -609,7 +609,7 @@ int PyObjectPlus::py_set_attrdef(void *self, const PyAttributeDef *attrdef, PyOb
 			// enum are equivalent to int, just make sure that the field size matches:
 			if (sizeof(int) != attrdef->m_size)
 			{
-				PyErr_SetString(PyExc_AttributeError, "attribute size check error, report to blender.org");
+				PyErr_Format(PyExc_AttributeError, "attribute size check error for attribute \"%s\", report to blender.org", attrdef->m_name);
 				goto FREE_AND_ERROR;
 			}
 			// walkthrough
@@ -628,14 +628,14 @@ int PyObjectPlus::py_set_attrdef(void *self, const PyAttributeDef *attrdef, PyOb
 					}
 					else if (val < attrdef->m_imin || val > attrdef->m_imax)
 					{
-						PyErr_SetString(PyExc_ValueError, "value out of range");
+						PyErr_Format(PyExc_ValueError, "value out of range for attribute \"%s\"", attrdef->m_name);
 						goto FREE_AND_ERROR;
 					}
 					*var = (int)val;
 				}
 				else
 				{
-					PyErr_SetString(PyExc_TypeError, "expected an integer");
+					PyErr_Format(PyExc_TypeError, "expected an integer for attribute \"%s\"", attrdef->m_name);
 					goto FREE_AND_ERROR;
 				}
 				break;
@@ -646,7 +646,7 @@ int PyObjectPlus::py_set_attrdef(void *self, const PyAttributeDef *attrdef, PyOb
 				double val = PyFloat_AsDouble(value);
 				if (val == -1.0 && PyErr_Occurred())
 				{
-					PyErr_SetString(PyExc_TypeError, "expected a float");
+					PyErr_Format(PyExc_TypeError, "expected a float for attribute \"%s\"", attrdef->m_name);
 					goto FREE_AND_ERROR;
 				}
 				else if (attrdef->m_clamp)
@@ -658,7 +658,7 @@ int PyObjectPlus::py_set_attrdef(void *self, const PyAttributeDef *attrdef, PyOb
 				}
 				else if (val < attrdef->m_fmin || val > attrdef->m_fmax)
 				{
-					PyErr_SetString(PyExc_ValueError, "value out of range");
+					PyErr_Format(PyExc_ValueError, "value out of range for attribute \"%s\"", attrdef->m_name);
 					goto FREE_AND_ERROR;
 				}
 				*var = (float)val;
@@ -675,7 +675,7 @@ int PyObjectPlus::py_set_attrdef(void *self, const PyAttributeDef *attrdef, PyOb
 						if (strlen(val) < attrdef->m_imin)
 						{
 							// can't increase the length of the string
-							PyErr_SetString(PyExc_ValueError, "string length too short");
+							PyErr_Format(PyExc_ValueError, "string length too short for attribute \"%s\"", attrdef->m_name);
 							goto FREE_AND_ERROR;
 						}
 						else if (strlen(val) > attrdef->m_imax)
@@ -689,21 +689,21 @@ int PyObjectPlus::py_set_attrdef(void *self, const PyAttributeDef *attrdef, PyOb
 						}
 					} else if (strlen(val) < attrdef->m_imin || strlen(val) > attrdef->m_imax)
 					{
-						PyErr_SetString(PyExc_ValueError, "string length out of range");
+						PyErr_Format(PyExc_ValueError, "string length out of range for attribute \"%s\"", attrdef->m_name);
 						goto FREE_AND_ERROR;
 					}
 					*var = val;
 				}
 				else
 				{
-					PyErr_SetString(PyExc_TypeError, "expected a string");
+					PyErr_Format(PyExc_TypeError, "expected a string for attribute \"%s\"", attrdef->m_name);
 					goto FREE_AND_ERROR;
 				}
 				break;
 			}
 		default:
 			// should not happen
-			PyErr_SetString(PyExc_AttributeError, "unknown attribute type, report to blender.org");
+			PyErr_Format(PyExc_AttributeError, "unknown type for attribute \"%s\", report to blender.org", attrdef->m_name);
 			goto FREE_AND_ERROR;
 		}
 	}
@@ -787,7 +787,7 @@ PyObject *PyObjectPlus::PyisA(PyObject *value)		// Python wrapper for isA
 	} else if (PyString_Check(value)) {
 		return PyBool_FromLong(isA(PyString_AsString(value)));
 	}
-    PyErr_SetString(PyExc_TypeError, "expected a type or a string");
+    PyErr_SetString(PyExc_TypeError, "object.isA(value): expected a type or a string");
     return NULL;	
 }
 

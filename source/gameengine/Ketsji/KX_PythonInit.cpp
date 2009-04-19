@@ -553,7 +553,7 @@ static PyObject* gPySetEyeSeparation(PyObject*, PyObject* args)
 		return NULL;
 
 	if (!gp_Rasterizer) {
-		PyErr_SetString(PyExc_RuntimeError, "Rasterizer not available");
+		PyErr_SetString(PyExc_RuntimeError, "Rasterizer.setEyeSeparation(float), Rasterizer not available");
 		return NULL;
 	}
 	
@@ -565,7 +565,7 @@ static PyObject* gPySetEyeSeparation(PyObject*, PyObject* args)
 static PyObject* gPyGetEyeSeparation(PyObject*)
 {
 	if (!gp_Rasterizer) {
-		PyErr_SetString(PyExc_RuntimeError, "Rasterizer not available");
+		PyErr_SetString(PyExc_RuntimeError, "Rasterizer.getEyeSeparation(), Rasterizer not available");
 		return NULL;
 	}
 	
@@ -579,7 +579,7 @@ static PyObject* gPySetFocalLength(PyObject*, PyObject* args)
 		return NULL;
 	
 	if (!gp_Rasterizer) {
-		PyErr_SetString(PyExc_RuntimeError, "Rasterizer not available");
+		PyErr_SetString(PyExc_RuntimeError, "Rasterizer.setFocalLength(float), Rasterizer not available");
 		return NULL;
 	}
 
@@ -591,7 +591,7 @@ static PyObject* gPySetFocalLength(PyObject*, PyObject* args)
 static PyObject* gPyGetFocalLength(PyObject*, PyObject*, PyObject*)
 {
 	if (!gp_Rasterizer) {
-		PyErr_SetString(PyExc_RuntimeError, "Rasterizer not available");
+		PyErr_SetString(PyExc_RuntimeError, "Rasterizer.getFocalLength(), Rasterizer not available");
 		return NULL;
 	}
 	
@@ -624,7 +624,7 @@ static PyObject* gPySetMistColor(PyObject*, PyObject* value)
 		return NULL;
 	
 	if (!gp_Rasterizer) {
-		PyErr_SetString(PyExc_RuntimeError, "Rasterizer not available");
+		PyErr_SetString(PyExc_RuntimeError, "Rasterizer.setMistColor(color), Rasterizer not available");
 		return NULL;
 	}	
 	gp_Rasterizer->SetFogColor(vec[0], vec[1], vec[2]);
@@ -642,7 +642,7 @@ static PyObject* gPySetMistStart(PyObject*, PyObject* args)
 		return NULL;
 	
 	if (!gp_Rasterizer) {
-		PyErr_SetString(PyExc_RuntimeError, "Rasterizer not available");
+		PyErr_SetString(PyExc_RuntimeError, "Rasterizer.setMistStart(float), Rasterizer not available");
 		return NULL;
 	}
 	
@@ -661,7 +661,7 @@ static PyObject* gPySetMistEnd(PyObject*, PyObject* args)
 		return NULL;
 	
 	if (!gp_Rasterizer) {
-		PyErr_SetString(PyExc_RuntimeError, "Rasterizer not available");
+		PyErr_SetString(PyExc_RuntimeError, "Rasterizer.setMistEnd(float), Rasterizer not available");
 		return NULL;
 	}
 	
@@ -679,7 +679,7 @@ static PyObject* gPySetAmbientColor(PyObject*, PyObject* value)
 		return NULL;
 	
 	if (!gp_Rasterizer) {
-		PyErr_SetString(PyExc_RuntimeError, "Rasterizer not available");
+		PyErr_SetString(PyExc_RuntimeError, "Rasterizer.setAmbientColor(color), Rasterizer not available");
 		return NULL;
 	}	
 	gp_Rasterizer->SetAmbientColor(vec[0], vec[1], vec[2]);
@@ -711,7 +711,7 @@ static PyObject* gPyEnableMotionBlur(PyObject*, PyObject* args)
 		return NULL;
 	
 	if (!gp_Rasterizer) {
-		PyErr_SetString(PyExc_RuntimeError, "Rasterizer not available");
+		PyErr_SetString(PyExc_RuntimeError, "Rasterizer.enableMotionBlur(float), Rasterizer not available");
 		return NULL;
 	}
 	
@@ -723,7 +723,7 @@ static PyObject* gPyEnableMotionBlur(PyObject*, PyObject* args)
 static PyObject* gPyDisableMotionBlur(PyObject*, PyObject* args)
 {
 	if (!gp_Rasterizer) {
-		PyErr_SetString(PyExc_RuntimeError, "Rasterizer not available");
+		PyErr_SetString(PyExc_RuntimeError, "Rasterizer.disableMotionBlur(), Rasterizer not available");
 		return NULL;
 	}
 	
@@ -763,7 +763,7 @@ static PyObject* gPySetGLSLMaterialSetting(PyObject*,
 	flag = getGLSLSettingFlag(setting);
 	
 	if  (flag==-1) {
-		PyErr_SetString(PyExc_ValueError, "glsl setting is not known");
+		PyErr_SetString(PyExc_ValueError, "Rasterizer.setGLSLMaterialSetting(string): glsl setting is not known");
 		return NULL;
 	}
 
@@ -804,7 +804,7 @@ static PyObject* gPyGetGLSLMaterialSetting(PyObject*,
 	flag = getGLSLSettingFlag(setting);
 	
 	if  (flag==-1) {
-		PyErr_SetString(PyExc_ValueError, "glsl setting is not known");
+		PyErr_SetString(PyExc_ValueError, "Rasterizer.getGLSLMaterialSetting(string): glsl setting is not known");
 		return NULL;
 	}
 
@@ -832,7 +832,7 @@ static PyObject* gPySetMaterialType(PyObject*,
 	else if(type == KX_TEXFACE_MATERIAL)
 		flag = 0;
 	else {
-		PyErr_SetString(PyExc_ValueError, "material type is not known");
+		PyErr_SetString(PyExc_ValueError, "Rasterizer.setMaterialType(int): material type is not known");
 		return NULL;
 	}
 
@@ -863,7 +863,7 @@ static PyObject* gPyDrawLine(PyObject*, PyObject* args)
 	PyObject* ob_color;
 
 	if (!gp_Rasterizer) {
-		PyErr_SetString(PyExc_RuntimeError, "Rasterizer not available");
+		PyErr_SetString(PyExc_RuntimeError, "Rasterizer.drawLine(obFrom, obTo, color): Rasterizer not available");
 		return NULL;
 	}
 
@@ -1270,7 +1270,7 @@ PyObject *KXpy_reload(PyObject *self, PyObject *args) {
 		return newmodule;
 	
 	if (found==0) /* if its found but could not import then it has its own error */
-		PyErr_SetString(PyExc_ImportError, "failed to reload from blenders internal text");
+		PyErr_SetString(PyExc_ImportError, "reload(module): failed to reload from blenders internal text");
 	
 	return newmodule;
 }
@@ -1517,7 +1517,7 @@ static PyObject* gPyEventToString(PyObject*, PyObject* value)
 	
 	PyErr_Clear(); // incase there was an error clearing
 	Py_DECREF(mod);
-	if (!ret)	PyErr_SetString(PyExc_ValueError, "expected a valid int keyboard event");
+	if (!ret)	PyErr_SetString(PyExc_ValueError, "GameKeys.EventToString(int): expected a valid int keyboard event");
 	else		Py_INCREF(ret);
 	
 	return ret;

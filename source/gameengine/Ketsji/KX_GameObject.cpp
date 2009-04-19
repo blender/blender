@@ -1187,13 +1187,13 @@ PyObject* KX_GameObject::PyReplaceMesh(PyObject* value)
 
 	meshname = PyString_AsString(value);
 	if (meshname==NULL) {
-		PyErr_SetString(PyExc_ValueError, "Expected a mesh name");
+		PyErr_SetString(PyExc_ValueError, "gameOb.replaceMesh(value): KX_GameObject, expected a mesh name");
 		return NULL;
 	}
 	mesh_pt = SCA_ILogicBrick::m_sCurrentLogicManager->GetMeshByName(STR_String(meshname));
 	
 	if (mesh_pt==NULL) {
-		PyErr_SetString(PyExc_ValueError, "The mesh name given does not exist");
+		PyErr_SetString(PyExc_ValueError, "gameOb.replaceMesh(value): KX_GameObject, the mesh name given does not exist");
 		return NULL;
 	}
 	scene->ReplaceMesh(this, (class RAS_MeshObject*)mesh_pt);
@@ -1259,8 +1259,8 @@ PyObject *KX_GameObject::Map_GetItem(PyObject *self_v, PyObject *item)
 		return pyconvert;
 	}
 	else {
-		if(attr_str)	PyErr_Format(PyExc_KeyError, "KX_GameObject key \"%s\" does not exist", attr_str);
-		else			PyErr_SetString(PyExc_KeyError, "KX_GameObject key does not exist");
+		if(attr_str)	PyErr_Format(PyExc_KeyError, "value = gameOb[key]: KX_GameObject, key \"%s\" does not exist", attr_str);
+		else			PyErr_SetString(PyExc_KeyError, "value = gameOb[key]: KX_GameObject, key does not exist");
 		return NULL;
 	}
 		
@@ -1290,8 +1290,8 @@ int KX_GameObject::Map_SetItem(PyObject *self_v, PyObject *key, PyObject *val)
 			del |= (PyDict_DelItem(self->m_attr_dict, key)==0) ? 1:0;
 		
 		if (del==0) {
-			if(attr_str)	PyErr_Format(PyExc_KeyError, "KX_GameObject key \"%s\" not found", attr_str);
-			else			PyErr_SetString(PyExc_KeyError, "KX_GameObject key not found");
+			if(attr_str)	PyErr_Format(PyExc_KeyError, "gameOb[key] = value: KX_GameObject, key \"%s\" could not be set", attr_str);
+			else			PyErr_SetString(PyExc_KeyError, "gameOb[key] = value: KX_GameObject, key could not be set");
 			return -1;
 		}
 		else if (self->m_attr_dict) {
@@ -1342,8 +1342,8 @@ int KX_GameObject::Map_SetItem(PyObject *self_v, PyObject *key, PyObject *val)
 				set= 1;
 			}
 			else {
-				if(attr_str)	PyErr_Format(PyExc_KeyError, "KX_GameObject key \"%s\" not be added to internal dictionary", attr_str);
-				else			PyErr_SetString(PyExc_KeyError, "KX_GameObject key not be added to internal dictionary");
+				if(attr_str)	PyErr_Format(PyExc_KeyError, "gameOb[key] = value: KX_GameObject, key \"%s\" not be added to internal dictionary", attr_str);
+				else			PyErr_SetString(PyExc_KeyError, "gameOb[key] = value: KX_GameObject, key not be added to internal dictionary");
 			}
 		}
 		
@@ -1424,7 +1424,7 @@ int KX_GameObject::pyattr_set_mass(void *self_v, const KX_PYATTRIBUTE_DEF *attrd
 	KX_IPhysicsController *spc = self->GetPhysicsController();
 	MT_Scalar val = PyFloat_AsDouble(value);
 	if (val < 0.0f) { /* also accounts for non float */
-		PyErr_SetString(PyExc_AttributeError, "expected a float zero or above");
+		PyErr_SetString(PyExc_AttributeError, "gameOb.mass = float: KX_GameObject, expected a float zero or above");
 		return 1;
 	}
 
@@ -1447,7 +1447,7 @@ int KX_GameObject::pyattr_set_lin_vel_min(void *self_v, const KX_PYATTRIBUTE_DEF
 	KX_IPhysicsController *spc = self->GetPhysicsController();
 	MT_Scalar val = PyFloat_AsDouble(value);
 	if (val < 0.0f) { /* also accounts for non float */
-		PyErr_SetString(PyExc_AttributeError, "expected a float zero or above");
+		PyErr_SetString(PyExc_AttributeError, "gameOb.linVelocityMin = float: KX_GameObject, expected a float zero or above");
 		return 1;
 	}
 
@@ -1470,7 +1470,7 @@ int KX_GameObject::pyattr_set_lin_vel_max(void *self_v, const KX_PYATTRIBUTE_DEF
 	KX_IPhysicsController *spc = self->GetPhysicsController();
 	MT_Scalar val = PyFloat_AsDouble(value);
 	if (val < 0.0f) { /* also accounts for non float */
-		PyErr_SetString(PyExc_AttributeError, "expected a float zero or above");
+		PyErr_SetString(PyExc_AttributeError, "gameOb.linVelocityMax = float: KX_GameObject, expected a float zero or above");
 		return 1;
 	}
 
@@ -1492,7 +1492,7 @@ int KX_GameObject::pyattr_set_visible(void *self_v, const KX_PYATTRIBUTE_DEF *at
 	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
 	int param = PyObject_IsTrue( value );
 	if (param == -1) {
-		PyErr_SetString(PyExc_AttributeError, "expected True or False");
+		PyErr_SetString(PyExc_AttributeError, "gameOb.visible = bool: KX_GameObject, expected True or False");
 		return 1;
 	}
 
@@ -1569,7 +1569,7 @@ int KX_GameObject::pyattr_set_localOrientation(void *self_v, const KX_PYATTRIBUT
 {
 	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
 	if (!PySequence_Check(value)) {
-		PyErr_SetString(PyExc_AttributeError, "'orientation' attribute needs to be a sequence");
+		PyErr_SetString(PyExc_AttributeError, "gameOb.orientation = [...]: KX_GameObject, expected a sequence");
 		return 1;
 	}
 
@@ -1609,7 +1609,7 @@ int KX_GameObject::pyattr_set_localOrientation(void *self_v, const KX_PYATTRIBUT
 		return 1;
 	}
 
-	PyErr_SetString(PyExc_AttributeError, "could not set the orientation from a 3x3 matrix, quaternion or euler sequence");
+	PyErr_SetString(PyExc_AttributeError, "gameOb.orientation = [...]: KX_GameObject, could not set the orientation from a 3x3 matrix, quaternion or euler sequence");
 	return 1;
 }
 
@@ -1658,7 +1658,7 @@ int KX_GameObject::pyattr_set_timeOffset(void *self_v, const KX_PYATTRIBUTE_DEF 
 		MT_Scalar val = PyFloat_AsDouble(value);
 		SG_Node* sg_parent= self->GetSGNode()->GetSGParent();
 		if (val < 0.0f) { /* also accounts for non float */
-			PyErr_SetString(PyExc_AttributeError, "expected a float zero or above");
+			PyErr_SetString(PyExc_AttributeError, "gameOb.timeOffset = float: KX_GameObject, expected a float zero or above");
 			return 1;
 		}
 		if (sg_parent && sg_parent->IsSlowParent())
@@ -1682,13 +1682,13 @@ int KX_GameObject::pyattr_set_state(void *self_v, const KX_PYATTRIBUTE_DEF *attr
 	unsigned int state = 0;
 	
 	if (state_i == -1 && PyErr_Occurred()) {
-		PyErr_SetString(PyExc_TypeError, "expected an int bit field");
+		PyErr_SetString(PyExc_TypeError, "gameOb.state = int: KX_GameObject, expected an int bit field");
 		return 1;
 	}
 	
 	state |= state_i;
 	if ((state & ((1<<30)-1)) == 0) {
-		PyErr_SetString(PyExc_AttributeError, "The state bitfield was not between 0 and 30 (1<<0 and 1<<29)");
+		PyErr_SetString(PyExc_AttributeError, "gameOb.state = int: KX_GameObject, state bitfield was not between 0 and 30 (1<<0 and 1<<29)");
 		return 1;
 	}
 	self->SetState(state);
@@ -1701,7 +1701,7 @@ PyObject* KX_GameObject::pyattr_get_meshes(void *self_v, const KX_PYATTRIBUTE_DE
 	PyObject *meshes= PyList_New(self->m_meshes.size());
 	int i;
 	
-	for(i=0; i < (int)self->m_meshes.size(); i++)
+	for(i=0; i < self->m_meshes.size(); i++)
 	{
 		KX_MeshProxy* meshproxy = new KX_MeshProxy(self->m_meshes[i]);
 		PyList_SET_ITEM(meshes, i, meshproxy->GetProxy());
@@ -1847,7 +1847,7 @@ int KX_GameObject::py_setattro(PyObject *attr, PyObject *value)	// py_setattro m
 			ret= PY_SET_ATTR_SUCCESS;
 		}
 		else {
-			PyErr_Format(PyExc_AttributeError, "failed assigning value to KX_GameObject internal dictionary");
+			PyErr_Format(PyExc_AttributeError, "gameOb.myAttr = value: KX_GameObject, failed assigning value to internal dictionary");
 			ret= PY_SET_ATTR_FAIL;
 		}
 	}
@@ -1866,7 +1866,7 @@ int	KX_GameObject::py_delattro(PyObject *attr)
 	if (m_attr_dict && (PyDict_DelItem(m_attr_dict, attr) == 0))
 		return 0;
 	
-	PyErr_Format(PyExc_AttributeError, "attribute \"%s\" dosnt exist", attr_str);
+	PyErr_Format(PyExc_AttributeError, "del gameOb.myAttr: KX_GameObject, attribute \"%s\" dosnt exist", attr_str);
 	return 1;
 }
 
@@ -2390,7 +2390,7 @@ KX_PYMETHODDEF_DOC_O(KX_GameObject, getVectTo,
 			toPoint = other->NodeGetWorldPosition();
 		} else
 		{
-			PyErr_SetString(PyExc_TypeError, "Expected a 3D Vector or GameObject type");
+			PyErr_SetString(PyExc_TypeError, "gameOb.getVectTo(other): KX_GameObject, expected a 3D Vector or KX_GameObject type");
 			return NULL;
 		}
 	}
@@ -2484,7 +2484,7 @@ KX_PYMETHODDEF_DOC(KX_GameObject, rayCastTo,
 			toPoint = other->NodeGetWorldPosition();
 		} else
 		{
-			PyErr_SetString(PyExc_TypeError, "the first argument to rayCastTo must be a vector or a KX_GameObject");
+			PyErr_SetString(PyExc_TypeError, "gameOb.rayCastTo(other,dist,prop): KX_GameObject, the first argument to rayCastTo must be a vector or a KX_GameObject");
 			return NULL;
 		}
 	}
@@ -2577,7 +2577,7 @@ KX_PYMETHODDEF_DOC(KX_GameObject, rayCast,
 			fromPoint = other->NodeGetWorldPosition();
 		} else
 		{
-			PyErr_SetString(PyExc_TypeError, "the second optional argument to rayCast must be a vector or a KX_GameObject");
+			PyErr_SetString(PyExc_TypeError, "gameOb.rayCast(to,from,dist,prop,face,xray,poly): KX_GameObject, the second optional argument to rayCast must be a vector or a KX_GameObject");
 			return NULL;
 		}
 	}

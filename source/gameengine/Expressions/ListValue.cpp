@@ -58,7 +58,7 @@ PyObject* listvalue_buffer_item(PyObject* self, Py_ssize_t index)
 			return list->GetValue(index)->GetProxy();
 
 	}
-	PyErr_SetString(PyExc_IndexError, "Python ListIndex out of range");
+	PyErr_SetString(PyExc_IndexError, "list[i]: Python ListIndex out of range in CValueList");
 	return NULL;
 }
 
@@ -85,7 +85,7 @@ PyObject* listvalue_mapping_subscript(PyObject* self, PyObject* pyindex)
 	}
 	
 	PyObject *pyindex_str = PyObject_Repr(pyindex); /* new ref */
-	PyErr_Format(PyExc_KeyError, "'%s' not in list", PyString_AsString(pyindex_str));
+	PyErr_Format(PyExc_KeyError, "list[key]: '%s' key not in list", PyString_AsString(pyindex_str));
 	Py_DECREF(pyindex_str);
 	return NULL;
 }
@@ -162,7 +162,7 @@ listvalue_buffer_concat(PyObject * self, PyObject * other)
 		}
 
 		if (error) {
-			PyErr_SetString(PyExc_SystemError, "Python Error: couldn't add one or more items to a list");
+			PyErr_SetString(PyExc_SystemError, "list.append(val): couldn't add one or more items to this CValueList");
 			return NULL;
 		}
 
@@ -187,7 +187,7 @@ listvalue_buffer_concat(PyObject * self, PyObject * other)
 				listval->Add(objval);
 			} else
 			{
-				PyErr_SetString(PyExc_SystemError, "Python Error: couldn't add item to a list");  
+				PyErr_SetString(PyExc_SystemError, "list.append(i): couldn't add item to this CValueList");
 				return NULL;
 			}
 		}
@@ -495,7 +495,7 @@ PyObject* CListValue::Pyindex(PyObject *value)
 	checkobj->Release();
 
 	if (result==NULL) {
-		PyErr_SetString(PyExc_ValueError, "ValueError: list.index(x): x not in CListValue");
+		PyErr_SetString(PyExc_ValueError, "list.index(x): x not in CListValue");
 	}
 	return result;
 	
@@ -543,7 +543,7 @@ PyObject* CListValue::Pyfrom_id(PyObject* value)
 		if (reinterpret_cast<uintptr_t>(m_pValueArray[i]->m_proxy) == id)
 			return GetValue(i)->GetProxy();
 	}
-	PyErr_SetString(PyExc_IndexError, "from_id(#), id not found in CValueList");
+	PyErr_SetString(PyExc_IndexError, "from_id(#): id not found in CValueList");
 	return NULL;	
 
 }

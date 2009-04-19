@@ -869,7 +869,7 @@ int BL_ShapeActionActuator::pyattr_set_action(void *self_v, const KX_PYATTRIBUTE
 	/* exact copy of BL_ActionActuator's function from here down */
 	if (!PyString_Check(value))
 	{
-		PyErr_SetString(PyExc_ValueError, "expected the string name of the action");
+		PyErr_SetString(PyExc_ValueError, "actuator.action = val: Shape Action Actuator, expected the string name of the action");
 		return -1;
 	}
 
@@ -881,7 +881,7 @@ int BL_ShapeActionActuator::pyattr_set_action(void *self_v, const KX_PYATTRIBUTE
 		action= (bAction*)SCA_ILogicBrick::m_sCurrentLogicManager->GetActionByName(val);
 		if (action==NULL)
 		{
-			PyErr_SetString(PyExc_ValueError, "action not found!");
+			PyErr_SetString(PyExc_ValueError, "actuator.action = val: Shape Action Actuator, action not found!");
 			return 1;
 		}
 	}

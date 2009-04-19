@@ -652,7 +652,7 @@ int KX_ConstraintActuator::pyattr_check_direction(void *self, const struct KX_PY
 	MT_Vector3 dir(act->m_refDirection);
 	MT_Scalar len = dir.length();
 	if (MT_fuzzyZero(len)) {
-		PyErr_SetString(PyExc_ValueError, "Invalid direction");
+		PyErr_SetString(PyExc_ValueError, "actuator.direction = vec: KX_ConstraintActuator, invalid direction");
 		return 1;
 	}
 	act->m_refDirVector = dir/len;

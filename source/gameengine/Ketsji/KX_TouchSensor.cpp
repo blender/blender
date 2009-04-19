@@ -369,7 +369,7 @@ const char KX_TouchSensor::GetTouchMaterial_doc[] =
 "\tKX_FALSE if it looks for a specific property.\n" ;
 PyObject* KX_TouchSensor::PyGetTouchMaterial()
 {
-	ShowDeprecationWarning("getTouchMaterial()", "the materialCheck property");
+	ShowDeprecationWarning("getTouchMaterial()", "the useMaterial property");
 	return PyInt_FromLong(m_bFindMaterial);
 }
 
@@ -382,6 +382,7 @@ const char KX_TouchSensor::SetTouchMaterial_doc[] =
 "\tKX_FALSE to switch off positive pulse mode.\n" ;
 PyObject* KX_TouchSensor::PySetTouchMaterial(PyObject *value)
 {
+	ShowDeprecationWarning("setTouchMaterial()", "the useMaterial property");
 	int pulseArg = PyInt_AsLong(value);
 
 	if(pulseArg ==-1 && PyErr_Occurred()) {

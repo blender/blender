@@ -671,7 +671,7 @@ CValue* CValue::ConvertPythonToValue(PyObject* pyobj)
 	} else
 	{
 		/* return an error value from the caller */
-		PyErr_SetString(PyExc_TypeError, "This python value could not be assigned to a game engine property");
+		PyErr_SetString(PyExc_TypeError, "This python type could not be converted to a to a game engine property");
 	}
 	return vallie;
 

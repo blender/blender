@@ -262,7 +262,7 @@ PyObject* KX_NetworkMessageSensor::PySetSubjectFilterText(PyObject* value)
 	ShowDeprecationWarning("setSubjectFilterText()", "subject");
 	char* Subject = PyString_AsString(value);
 	if (Subject==NULL) {
-		PyErr_SetString(PyExc_TypeError, "expected a string message");
+		PyErr_SetString(PyExc_TypeError, "sensor.tsetSubjectFilterText(string): KX_NetworkMessageSensor, expected a string message");
 		return NULL;
 	}
 	

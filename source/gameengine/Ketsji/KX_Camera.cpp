@@ -578,7 +578,7 @@ KX_PYMETHODDEF_DOC_VARARGS(KX_Camera, sphereInsideFrustum,
 		}
 	}
 
-	PyErr_SetString(PyExc_TypeError, "sphereInsideFrustum: Expected arguments: (center, radius)");
+	PyErr_SetString(PyExc_TypeError, "camera.sphereInsideFrustum(center, radius): KX_Camera, expected arguments: (center, radius)");
 	
 	return NULL;
 }
@@ -611,7 +611,7 @@ KX_PYMETHODDEF_DOC_O(KX_Camera, boxInsideFrustum,
 	unsigned int num_points = PySequence_Size(value);
 	if (num_points != 8)
 	{
-		PyErr_Format(PyExc_TypeError, "boxInsideFrustum: Expected eight (8) points, got %d", num_points);
+		PyErr_Format(PyExc_TypeError, "camera.boxInsideFrustum(box): KX_Camera, expected eight (8) points, got %d", num_points);
 		return NULL;
 	}
 	
@@ -650,7 +650,7 @@ KX_PYMETHODDEF_DOC_O(KX_Camera, pointInsideFrustum,
 		return PyInt_FromLong(PointInsideFrustum(point)); /* new ref */
 	}
 	
-	PyErr_SetString(PyExc_TypeError, "pointInsideFrustum: Expected point argument.");
+	PyErr_SetString(PyExc_TypeError, "camera.pointInsideFrustum(point): KX_Camera, expected point argument.");
 	return NULL;
 }
 
@@ -726,7 +726,7 @@ KX_PYMETHODDEF_DOC_O(KX_Camera, setProjectionMatrix,
 	MT_Matrix4x4 mat;
 	if (!PyMatTo(value, mat))
 	{
-		PyErr_SetString(PyExc_TypeError, "setProjectionMatrix: Expected 4x4 list as matrix argument.");
+		PyErr_SetString(PyExc_TypeError, "camera.setProjectionMatrix(matrix): KX_Camera, expected 4x4 list as matrix argument.");
 		return NULL;
 	}
 	
@@ -742,7 +742,7 @@ KX_PYMETHODDEF_DOC_O(KX_Camera, enableViewport,
 	int viewport = PyObject_IsTrue(value);
 	
 	if (viewport == -1) {
-		PyErr_SetString(PyExc_ValueError, "expected True/False or 0/1");
+		PyErr_SetString(PyExc_ValueError, "camera.enableViewport(bool): KX_Camera, expected True/False or 0/1");
 		return NULL;
 	}
 	
@@ -789,7 +789,7 @@ int KX_Camera::pyattr_set_perspective(void *self_v, const KX_PYATTRIBUTE_DEF *at
 	KX_Camera* self= static_cast<KX_Camera*>(self_v);
 	int param = PyObject_IsTrue( value );
 	if (param == -1) {
-		PyErr_SetString(PyExc_AttributeError, "expected True or False");
+		PyErr_SetString(PyExc_AttributeError, "camera.perspective = bool: KX_Camera, expected True/False or 0/1");
 		return -1;
 	}
 	
@@ -808,7 +808,7 @@ int KX_Camera::pyattr_set_lens(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, 
 	KX_Camera* self= static_cast<KX_Camera*>(self_v);
 	float param = PyFloat_AsDouble(value);
 	if (param == -1) {
-		PyErr_SetString(PyExc_AttributeError, "expected a float greater then zero");
+		PyErr_SetString(PyExc_AttributeError, "camera.lens = float: KX_Camera, expected a float greater then zero");
 		return -1;
 	}
 	
@@ -828,7 +828,7 @@ int KX_Camera::pyattr_set_near(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, 
 	KX_Camera* self= static_cast<KX_Camera*>(self_v);
 	float param = PyFloat_AsDouble(value);
 	if (param == -1) {
-		PyErr_SetString(PyExc_AttributeError, "expected a float greater then zero");
+		PyErr_SetString(PyExc_AttributeError, "camera.near = float: KX_Camera, expected a float greater then zero");
 		return -1;
 	}
 	
@@ -848,7 +848,7 @@ int KX_Camera::pyattr_set_far(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, P
 	KX_Camera* self= static_cast<KX_Camera*>(self_v);
 	float param = PyFloat_AsDouble(value);
 	if (param == -1) {
-		PyErr_SetString(PyExc_AttributeError, "expected a float greater then zero");
+		PyErr_SetString(PyExc_AttributeError, "camera.far = float: KX_Camera, expected a float greater then zero");
 		return -1;
 	}
 	

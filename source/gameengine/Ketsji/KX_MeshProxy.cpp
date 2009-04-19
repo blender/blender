@@ -243,7 +243,7 @@ PyObject* KX_MeshProxy::PyGetPolygon(PyObject* args, PyObject* kwds)
 	
 	if (polyindex<0 || polyindex >= m_meshobj->NumPolygons())
 	{
-		PyErr_SetString(PyExc_AttributeError, "Invalid polygon index");
+		PyErr_SetString(PyExc_AttributeError, "mesh.getPolygon(int): KX_MeshProxy, invalid polygon index");
 		return NULL;
 	}
 		
@@ -254,7 +254,7 @@ PyObject* KX_MeshProxy::PyGetPolygon(PyObject* args, PyObject* kwds)
 		polyob = (new KX_PolyProxy(m_meshobj, polygon))->NewProxy(true);
 	}
 	else {
-		PyErr_SetString(PyExc_AttributeError, "polygon is NULL, unknown reason");
+		PyErr_SetString(PyExc_AttributeError, "mesh.getPolygon(int): KX_MeshProxy, polygon is NULL, unknown reason");
 	}
 	return polyob;
 }
