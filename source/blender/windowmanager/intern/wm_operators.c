@@ -148,12 +148,12 @@ char *WM_operator_pystring(wmOperator *op)
 
 	BLI_dynstr_appendf(dynstr, "%s(", op->idname);
 
-	iterprop= RNA_struct_iterator_property(op->ptr);
+	iterprop= RNA_struct_iterator_property(op->ptr->type);
 	RNA_property_collection_begin(op->ptr, iterprop, &iter);
 
 	for(; iter.valid; RNA_property_collection_next(&iter)) {
 		prop= iter.ptr.data;
-		arg_name= RNA_property_identifier(&iter.ptr, prop);
+		arg_name= RNA_property_identifier(prop);
 
 		if (strcmp(arg_name, "rna_type")==0) continue;
 
@@ -206,7 +206,7 @@ int WM_menu_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	if(prop==NULL) {
 		printf("WM_menu_invoke: %s has no \"type\" enum property\n", op->type->idname);
 	}
-	else if (RNA_property_type(op->ptr, prop) != PROP_ENUM) {
+	else if (RNA_property_type(prop) != PROP_ENUM) {
 		printf("WM_menu_invoke: %s \"type\" is not an enum property\n", op->type->idname);
 	}
 	else {

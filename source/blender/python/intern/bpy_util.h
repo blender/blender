@@ -31,6 +31,7 @@
 #include "RNA_types.h" /* for EnumPropertyItem only */
 
 struct EnumPropertyItem;
+struct ReportList;
 
 /* for internal use only, so python can interchange a sequence of strings with flags */
 typedef struct BPY_flag_def {
@@ -69,5 +70,8 @@ char *BPy_enum_as_string(struct EnumPropertyItem *item);
 
 
 #define BLANK_PYTHON_TYPE {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}
+
+/* error reporting */
+int BPy_reports_to_error(struct ReportList *reports);
 
 #endif

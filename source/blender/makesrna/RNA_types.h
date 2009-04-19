@@ -35,6 +35,8 @@ struct PropertyRNA;
 struct StructRNA;
 struct BlenderRNA;
 struct IDProperty;
+struct bContext;
+struct ReportList;
 
 /* Pointer
  *
@@ -91,6 +93,11 @@ typedef enum PropertyFlag {
 
 	/* function paramater flags */
 	PROP_REQUIRED = 4,
+	PROP_RETURN = 8,
+
+	/* registering */
+	PROP_REGISTER = 16,
+	PROP_REGISTER_OPTIONAL = 16|32,
 
 	/* internal flags */
 	PROP_BUILTIN = 128,
@@ -147,6 +154,10 @@ typedef struct ParameterIterator {
 typedef enum FunctionFlag {
 	FUNC_TYPESTATIC = 1, /* for static functions, FUNC_ STATIC is taken by some windows header it seems */
 
+	/* registering */
+	FUNC_REGISTER = 2,
+	FUNC_REGISTER_OPTIONAL = 2|4,
+
 	/* internal flags */
 	FUNC_BUILTIN = 128,
 	FUNC_EXPORT = 256,
@@ -167,6 +178,13 @@ typedef enum StructFlag {
 	STRUCT_RUNTIME = 2,
 	STRUCT_GENERATED = 4
 } StructFlag;
+
+typedef int (*StructValidateFunc)(struct PointerRNA *ptr, void *data, int *have_function);
+typedef int (*StructCallbackFunc)(struct PointerRNA *ptr, struct FunctionRNA *func, struct ParameterList *list);
+typedef void (*StructFreeFunc)(void *data);
+typedef struct StructRNA *(*StructRegisterFunc)(const struct bContext *C, struct ReportList *reports, void *data,
+	StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free);
+typedef void (*StructUnregisterFunc)(const struct bContext *C, struct StructRNA *type);
 
 typedef struct StructRNA StructRNA;
 

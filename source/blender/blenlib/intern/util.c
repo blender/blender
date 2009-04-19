@@ -848,6 +848,12 @@ char *BLI_gethome_folder(char *folder_name)
 	char *s;
 	int i;
 
+	/* use argv[0] (bprogname) to get the path to the executable */
+	s = BLI_last_slash(bprogname);
+
+	i = s - bprogname + 1;
+	BLI_strncpy(bprogdir, bprogname, i);
+
 	/* try path_to_executable/release/folder_name (in svn) */
 	if (folder_name) {
 		BLI_snprintf(tmpdir, sizeof(tmpdir), "release/%s", folder_name);
@@ -888,16 +894,6 @@ char *BLI_gethome_folder(char *folder_name)
 	}
 	else
 		homedir[0] = '\0';
-
-	/* if either:
-	 * no homedir was found or
-	 * folder_name = 1 but there's no folder_name/ inside homedir,
-	 * use argv[0] (bprogname) to get .blender/ in
-	 * Blender's installation dir */
-	s = BLI_last_slash(bprogname);
-
-	i = s - bprogname + 1;
-	BLI_strncpy(bprogdir, bprogname, i);
 
 	/* using tmpdir to preserve homedir (if) found above:
 	 * the ideal is to have a home dir with folder_name dir inside

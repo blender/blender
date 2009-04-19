@@ -1861,7 +1861,7 @@ static uiBlock *ui_block_func_MENU_ITEM(bContext *C, uiPopupBlockHandle *handle,
 		else if(item->type==MENU_ITEM_RNA_BOOL) {
 			PropertyRNA *prop= RNA_struct_find_property(&item->rnapoin, item->propname);
 
-			if(prop && RNA_property_type(&item->rnapoin, prop) == PROP_BOOLEAN) {
+			if(prop && RNA_property_type(prop) == PROP_BOOLEAN) {
 				icon= (RNA_property_boolean_get(&item->rnapoin, prop))? ICON_CHECKBOX_HLT: ICON_CHECKBOX_DEHLT;
 				uiDefIconTextButR(block, TOG, 0, icon, NULL, x1, y1, width+16, MENU_BUTTON_HEIGHT-1, &item->rnapoin, item->propname, 0, 0, 0, 0, 0, NULL);
 			}
@@ -1876,7 +1876,7 @@ static uiBlock *ui_block_func_MENU_ITEM(bContext *C, uiPopupBlockHandle *handle,
 		else if(item->type==MENU_ITEM_RNA_ENUM) {
 			PropertyRNA *prop= RNA_struct_find_property(&item->rnapoin, item->propname);
 
-			if(prop && RNA_property_type(&item->rnapoin, prop) == PROP_ENUM) {
+			if(prop && RNA_property_type(prop) == PROP_ENUM) {
 				icon= (RNA_property_enum_get(&item->rnapoin, prop) == item->enumval)? ICON_CHECKBOX_HLT: ICON_CHECKBOX_DEHLT;
 				uiDefIconTextButR(block, ROW, 0, icon, NULL, x1, y1, width+16, MENU_BUTTON_HEIGHT-1, &item->rnapoin, item->propname, 0, 0, item->enumval, 0, 0, NULL);
 			}
@@ -2074,7 +2074,7 @@ void uiMenuItemsEnumO(uiMenuItem *head, char *opname, char *propname)
 	RNA_pointer_create(NULL, ot->srna, NULL, &ptr);
 	prop= RNA_struct_find_property(&ptr, propname);
 	
-	if(prop && RNA_property_type(&ptr, prop) == PROP_ENUM) {
+	if(prop && RNA_property_type(prop) == PROP_ENUM) {
 		const EnumPropertyItem *item;
 		int totitem, i;
 		
@@ -2112,7 +2112,7 @@ void uiMenuItemsEnumR(uiMenuItem *head, PointerRNA *ptr, char *propname)
 
 	prop= RNA_struct_find_property(ptr, propname);
 	
-	if(prop && RNA_property_type(ptr, prop) == PROP_ENUM) {
+	if(prop && RNA_property_type(prop) == PROP_ENUM) {
 		const EnumPropertyItem *item;
 		int totitem, i;
 		
@@ -2156,7 +2156,7 @@ void uiMenuLevelEnumR(uiMenuItem *head, PointerRNA *ptr, char *propname)
 	item->type = MENU_ITEM_LEVEL_RNA_ENUM;
 	prop= RNA_struct_find_property(ptr, propname);
 	if(prop)
-		BLI_strncpy(item->name, RNA_property_ui_name(ptr, prop), MAX_MENU_STR);
+		BLI_strncpy(item->name, RNA_property_ui_name(prop), MAX_MENU_STR);
 
 	item->rnapoin= *ptr;
 	item->propname= propname; // static!

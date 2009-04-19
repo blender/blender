@@ -27,6 +27,7 @@
 #include "bpy_operator_wrap.h"
 #include "bpy_rna.h" /* for setting arg props only - pyrna_py_to_prop() */
 #include "bpy_compat.h"
+#include "bpy_util.h"
 
 //#include "blendef.h"
 #include "BLI_dynstr.h"
@@ -54,7 +55,7 @@ int PYOP_props_from_dict(PointerRNA *ptr, PyObject *kw)
 	PropertyRNA *prop, *iterprop;
 	CollectionPropertyIterator iter;
 
-	iterprop= RNA_struct_iterator_property(ptr);
+	iterprop= RNA_struct_iterator_property(ptr->type);
 	RNA_property_collection_begin(ptr, iterprop, &iter);
 
 	totkw = kw ? PyDict_Size(kw):0;
@@ -62,7 +63,7 @@ int PYOP_props_from_dict(PointerRNA *ptr, PyObject *kw)
 	for(; iter.valid; RNA_property_collection_next(&iter)) {
 		prop= iter.ptr.data;
 
-		arg_name= RNA_property_identifier(&iter.ptr, prop);
+		arg_name= RNA_property_identifier(prop);
 
 		if (strcmp(arg_name, "rna_type")==0) continue;
 
@@ -128,7 +129,6 @@ static PyObject *pyop_base_call( PyObject * self, PyObject * args,  PyObject * k
 	bContext *C = (bContext *)PyCObject_AsVoidPtr(PyDict_GetItemString(PyEval_GetGlobals(), "__bpy_context__"));
 	
 	char *opname = _PyUnicode_AsString(self);
-	char *report_str= NULL;
 
 	if (PyTuple_Size(args)) {
 		PyErr_SetString( PyExc_AttributeError, "All operator args must be keywords");
@@ -157,16 +157,10 @@ static PyObject *pyop_base_call( PyObject * self, PyObject * args,  PyObject * k
 
 		WM_operator_call_py(C, ot, &ptr, &reports);
 
-		report_str= BKE_reports_string(&reports, RPT_ERROR);
-
-		if (report_str) {
-			PyErr_SetString(PyExc_SystemError, report_str);
-			MEM_freeN(report_str);
+		if(BPy_reports_to_error(&reports))
 			error_val = -1;
-		}
 
-		if (reports.list.first)
-			BKE_reports_clear(&reports);
+		BKE_reports_clear(&reports);
 	}
 
 	WM_operator_properties_free(&ptr);

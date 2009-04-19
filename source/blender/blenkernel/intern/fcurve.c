@@ -679,21 +679,21 @@ static float driver_get_target_value (ChannelDriver *driver, DriverTarget *dtar)
 	
 	/* get property to read from, and get value as appropriate */
 	if (RNA_path_resolve(&id_ptr, path, &ptr, &prop)) {
-		switch (RNA_property_type(&ptr, prop)) {
+		switch (RNA_property_type(prop)) {
 			case PROP_BOOLEAN:
-				if (RNA_property_array_length(&ptr, prop))
+				if (RNA_property_array_length(prop))
 					value= (float)RNA_property_boolean_get_index(&ptr, prop, index);
 				else
 					value= (float)RNA_property_boolean_get(&ptr, prop);
 				break;
 			case PROP_INT:
-				if (RNA_property_array_length(&ptr, prop))
+				if (RNA_property_array_length(prop))
 					value= (float)RNA_property_int_get_index(&ptr, prop, index);
 				else
 					value= (float)RNA_property_int_get(&ptr, prop);
 				break;
 			case PROP_FLOAT:
-				if (RNA_property_array_length(&ptr, prop))
+				if (RNA_property_array_length(prop))
 					value= RNA_property_float_get_index(&ptr, prop, index);
 				else
 					value= RNA_property_float_get(&ptr, prop);

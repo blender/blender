@@ -473,21 +473,21 @@ static float setting_get_rna_value (PointerRNA *ptr, PropertyRNA *prop, int inde
 {
 	float value= 0.0f;
 	
-	switch (RNA_property_type(ptr, prop)) {
+	switch (RNA_property_type(prop)) {
 		case PROP_BOOLEAN:
-			if (RNA_property_array_length(ptr, prop))
+			if (RNA_property_array_length(prop))
 				value= (float)RNA_property_boolean_get_index(ptr, prop, index);
 			else
 				value= (float)RNA_property_boolean_get(ptr, prop);
 			break;
 		case PROP_INT:
-			if (RNA_property_array_length(ptr, prop))
+			if (RNA_property_array_length(prop))
 				value= (float)RNA_property_int_get_index(ptr, prop, index);
 			else
 				value= (float)RNA_property_int_get(ptr, prop);
 			break;
 		case PROP_FLOAT:
-			if (RNA_property_array_length(ptr, prop))
+			if (RNA_property_array_length(prop))
 				value= RNA_property_float_get_index(ptr, prop, index);
 			else
 				value= RNA_property_float_get(ptr, prop);
@@ -538,14 +538,14 @@ static short visualkey_can_use (PointerRNA *ptr, PropertyRNA *prop)
 		Object *ob= (Object *)ptr->data;
 		
 		con= ob->constraints.first;
-		identifier= (char *)RNA_property_identifier(ptr, prop);
+		identifier= (char *)RNA_property_identifier(prop);
 	}
 	else if (ptr->type == &RNA_PoseChannel) {
 		/* Pose Channel */
 		bPoseChannel *pchan= (bPoseChannel *)ptr->data;
 		
 		con= pchan->constraints.first;
-		identifier= (char *)RNA_property_identifier(ptr, prop);
+		identifier= (char *)RNA_property_identifier(prop);
 	}
 	
 	/* check if any data to search using */
@@ -624,7 +624,7 @@ static short visualkey_can_use (PointerRNA *ptr, PropertyRNA *prop)
  */
 static float visualkey_get_value (PointerRNA *ptr, PropertyRNA *prop, int array_index)
 {
-	char *identifier= (char *)RNA_property_identifier(ptr, prop);
+	char *identifier= (char *)RNA_property_identifier(prop);
 	
 	/* handle for Objects or PoseChannels only 
 	 * 	- constraints can be on either Objects or PoseChannels, so we only check if the
@@ -726,7 +726,7 @@ short insert_keyframe (ID *id, bAction *act, const char group[], const char rna_
 		float curval= 0.0f;
 		
 		/* set additional flags for the F-Curve (i.e. only integer values) */
-		if (RNA_property_type(&ptr, prop) != PROP_FLOAT)
+		if (RNA_property_type(prop) != PROP_FLOAT)
 			fcu->flag |= FCURVE_INT_VALUES;
 		
 		/* apply special time tweaking */
@@ -1201,12 +1201,12 @@ static int insert_key_button_exec (bContext *C, wmOperator *op)
 	memset(&ptr, 0, sizeof(PointerRNA));
 	uiAnimContextProperty(C, &ptr, &prop, &index);
 	
-	if(ptr.data && prop && RNA_property_animateable(ptr.data, prop)) {
+	if(ptr.data && prop && RNA_property_animateable(&ptr, prop)) {
 		path= RNA_path_from_ID_to_property(&ptr, prop);
 		
 		if(path) {
 			if(all) {
-				length= RNA_property_array_length(&ptr, prop);
+				length= RNA_property_array_length(prop);
 				
 				if(length) index= 0;
 				else length= 1;
@@ -1270,7 +1270,7 @@ static int delete_key_button_exec (bContext *C, wmOperator *op)
 		
 		if(path) {
 			if(all) {
-				length= RNA_property_array_length(&ptr, prop);
+				length= RNA_property_array_length(prop);
 				
 				if(length) index= 0;
 				else length= 1;

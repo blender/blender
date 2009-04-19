@@ -135,19 +135,19 @@ void getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
 			/* for structname, we use a custom name if one is available */
 				// xxx we might want an icon from types?
 				// xxx it is hard to differentiate between object and bone channels then, if ob + bone motion occur together...
-			nameprop= RNA_struct_name_property(&ptr);
+			nameprop= RNA_struct_name_property(ptr.type);
 			if (nameprop) {
 				/* this gets a string which will need to be freed */
 				structname= RNA_property_string_get_alloc(&ptr, nameprop, NULL, 0);
 			}
 			else
-				structname= (char *)RNA_struct_ui_name(&ptr);
+				structname= (char *)RNA_struct_ui_name(ptr.type);
 			
 			/* Property Name is straightforward */
-			propname= (char *)RNA_property_ui_name(&ptr, prop);
+			propname= (char *)RNA_property_ui_name(prop);
 			
 			/* Array Index - only if applicable */
-			if (RNA_property_array_length(&ptr, prop)) {
+			if (RNA_property_array_length(prop)) {
 					// XXX the format of these is not final... we don't know how this will go yet
 					// format 1 style
 				//static char *vectoritem[4]= {".X", ".Y", ".Z", ".W"};
@@ -158,8 +158,8 @@ void getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
 				static char *quatitem[4]= {"W ", "X ", "Y ", "Z "};
 				static char *coloritem[4]= {"R ", "G ", "B ", "A "};
 				
-				int tot= RNA_property_array_length(&ptr, prop);
-				int propsubtype= RNA_property_subtype(&ptr, prop);
+				int tot= RNA_property_array_length(prop);
+				int propsubtype= RNA_property_subtype(prop);
 				
 				/* get string to use for array index */
 				if ((tot == 4) && (propsubtype == PROP_ROTATION))

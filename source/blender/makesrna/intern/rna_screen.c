@@ -69,19 +69,6 @@ static void rna_def_scrarea(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Regions", "Regions this area is subdivided in.");
 }
 
-static void rna_def_panel(BlenderRNA *brna)
-{
-	StructRNA *srna;
-	PropertyRNA *prop;
-	
-	srna= RNA_def_struct(brna, "Panel", NULL);
-	RNA_def_struct_ui_text(srna, "Panel", "Buttons panel.");
-	RNA_def_struct_sdna(srna, "Panel");
-
-	prop= RNA_def_property(srna, "layout", PROP_POINTER, PROP_NONE);
-	RNA_def_property_struct_type(prop, "UILayout");
-}
-
 static void rna_def_region(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -113,7 +100,6 @@ void RNA_def_screen(BlenderRNA *brna)
 {
 	rna_def_bscreen(brna);
 	rna_def_scrarea(brna);
-	rna_def_panel(brna);
 	rna_def_region(brna);
 }
 

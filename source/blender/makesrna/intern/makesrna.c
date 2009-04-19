@@ -1086,6 +1086,9 @@ static void rna_def_function_funcs(FILE *f, StructDefRNA *dsrna, FunctionDefRNA 
 	srna= dsrna->srna;
 	func= dfunc->func;
 
+	if(func->flag & FUNC_REGISTER)
+		return;
+
 	funcname= rna_alloc_function_name(srna->identifier, func->identifier, "call");
 
 	fprintf(f, "void %s(PointerRNA *_ptr, ParameterList *_parms)", funcname);
@@ -1396,6 +1399,9 @@ static void rna_generate_static_function_prototypes(BlenderRNA *brna, StructRNA 
 	fprintf(f, "/* Repeated prototypes to detect errors */\n\n");
 
 	for(func= srna->functions.first; func; func= func->cont.next) {
+		if(func->flag & FUNC_REGISTER)
+			continue;
+
 		dfunc= rna_find_function_def(func);
 		if(dfunc->call)
 			rna_generate_static_parameter_prototypes(brna, srna, dfunc, f);
@@ -1664,7 +1670,7 @@ static void rna_generate_struct(BlenderRNA *brna, StructRNA *srna, FILE *f)
 	if(prop) fprintf(f, "(PropertyRNA*)&rna_%s_%s}},\n", srna->identifier, prop->identifier);
 	else fprintf(f, "NULL}},\n");
 
-	fprintf(f, "\tNULL,\n"); /* PyType - Cant initialize here */
+	fprintf(f, "\tNULL,NULL,\n"); /* PyType - Cant initialize here */
 	
 	fprintf(f, "\t");
 	rna_print_c_string(f, srna->identifier);
@@ -1698,6 +1704,13 @@ static void rna_generate_struct(BlenderRNA *brna, StructRNA *srna, FILE *f)
 
 	fprintf(f, "\t%s,\n", rna_function_string(srna->refine));
 	fprintf(f, "\t%s,\n", rna_function_string(srna->path));
+	fprintf(f, "\t%s,\n", rna_function_string(srna->reg));
+	fprintf(f, "\t%s,\n", rna_function_string(srna->unreg));
+
+	if(srna->reg && !srna->refine) {
+		fprintf(stderr, "rna_generate_struct: %s has a register function, must also have refine function.\n", srna->identifier);
+		DefRNA.error= 1;
+	}
 
 	func= srna->functions.first;
 	if(func) fprintf(f, "\t{(FunctionRNA*)&rna_%s_%s, ", srna->identifier, func->identifier);

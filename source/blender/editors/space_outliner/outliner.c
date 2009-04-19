@@ -1042,20 +1042,20 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 		}
 		else if(type == TSE_RNA_STRUCT) {
 			/* struct */
-			nameprop= RNA_struct_name_property(ptr);
+			nameprop= RNA_struct_name_property(ptr->type);
 
 			if(nameprop) {
 				te->name= RNA_property_string_get_alloc(ptr, nameprop, NULL, 0);
 				te->flag |= TE_FREE_NAME;
 			}
 			else
-				te->name= (char*)RNA_struct_ui_name(ptr);
+				te->name= (char*)RNA_struct_ui_name(ptr->type);
 
-			iterprop= RNA_struct_iterator_property(ptr);
+			iterprop= RNA_struct_iterator_property(ptr->type);
 			tot= RNA_property_collection_length(ptr, iterprop);
 
 			/* auto open these cases */
-			if(!parent || (RNA_property_type(&parent->rnaptr, parent->directdata)) == PROP_POINTER)
+			if(!parent || (RNA_property_type(parent->directdata)) == PROP_POINTER)
 				if(!tselem->used)
 					tselem->flag &= ~TSE_CLOSED;
 
@@ -1070,13 +1070,13 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 		}
 		else if(type == TSE_RNA_PROPERTY) {
 			/* property */
-			iterprop= RNA_struct_iterator_property(ptr);
+			iterprop= RNA_struct_iterator_property(ptr->type);
 			RNA_property_collection_lookup_int(ptr, iterprop, index, &propptr);
 
 			prop= propptr.data;
-			proptype= RNA_property_type(ptr, prop);
+			proptype= RNA_property_type(prop);
 
-			te->name= (char*)RNA_property_ui_name(ptr, prop);
+			te->name= (char*)RNA_property_ui_name(prop);
 			te->directdata= prop;
 			te->rnaptr= *ptr;
 
@@ -1103,7 +1103,7 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 					te->flag |= TE_LAZY_CLOSED;
 			}
 			else if(ELEM3(proptype, PROP_BOOLEAN, PROP_INT, PROP_FLOAT)) {
-				tot= RNA_property_array_length(ptr, prop);
+				tot= RNA_property_array_length(prop);
 
 				if(!(tselem->flag & TSE_CLOSED)) {
 					for(a=0; a<tot; a++)
@@ -1120,9 +1120,9 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 			static char *coloritem[4]= {"  r", "  g", "  b", "  a"};
 
 			prop= parent->directdata;
-			proptype= RNA_property_type(ptr, prop);
-			propsubtype= RNA_property_subtype(ptr, prop);
-			tot= RNA_property_array_length(ptr, prop);
+			proptype= RNA_property_type(prop);
+			propsubtype= RNA_property_subtype(prop);
+			tot= RNA_property_array_length(prop);
 
 			te->directdata= prop;
 			te->rnaptr= *ptr;
@@ -3146,16 +3146,16 @@ static void tree_element_to_path(SpaceOops *soops, TreeElement *te, TreeStoreEle
 			 *	- to prevent memory leaks, we must write to newpath not path, then free old path + swap them
 			 */
 			if(tse->type == TSE_RNA_PROPERTY) {
-				if(RNA_property_type(ptr, prop) == PROP_POINTER) {
+				if(RNA_property_type(prop) == PROP_POINTER) {
 					/* for pointer we just append property name */
 					newpath= RNA_path_append(*path, ptr, prop, 0, NULL);
 				}
-				else if(RNA_property_type(ptr, prop) == PROP_COLLECTION) {
+				else if(RNA_property_type(prop) == PROP_COLLECTION) {
 					temnext= (TreeElement*)(ld->next->data);
 					tsenext= TREESTORE(temnext);
 					
 					nextptr= &temnext->rnaptr;
-					nameprop= RNA_struct_name_property(nextptr);
+					nameprop= RNA_struct_name_property(nextptr->type);
 					
 					if(nameprop) {
 						/* if possible, use name as a key in the path */
@@ -3192,7 +3192,7 @@ static void tree_element_to_path(SpaceOops *soops, TreeElement *te, TreeStoreEle
 			/* no ID, so check if entry is RNA-struct, and if that RNA-struct is an ID datablock to extract info from */
 			if (tse->type == TSE_RNA_STRUCT) {
 				/* ptr->data not ptr->id.data seems to be the one we want, since ptr->data is sometimes the owner of this ID? */
-				if(RNA_struct_is_ID(ptr)) {
+				if(RNA_struct_is_ID(ptr->type)) {
 					*id= (ID *)ptr->data;
 					
 					/* clear path */
@@ -3216,7 +3216,7 @@ static void tree_element_to_path(SpaceOops *soops, TreeElement *te, TreeStoreEle
 			/* item is part of an array, so must set the array_index */
 			*array_index= te->index;
 		}
-		else if (RNA_property_array_length(ptr, prop)) {
+		else if (RNA_property_array_length(prop)) {
 			/* entire array was selected, so keyframe all */
 			*flag |= KSP_FLAG_WHOLE_ARRAY;
 		}
@@ -4203,7 +4203,7 @@ static void outliner_draw_rnabuts(uiBlock *block, Scene *scene, ARegion *ar, Spa
 				ptr= &te->rnaptr;
 				prop= te->directdata;
 				
-				if(!(RNA_property_type(ptr, prop) == PROP_POINTER && (tselem->flag & TSE_CLOSED)==0))
+				if(!(RNA_property_type(prop) == PROP_POINTER && (tselem->flag & TSE_CLOSED)==0))
 					uiDefAutoButR(block, ptr, prop, -1, "", 0, sizex, (int)te->ys, OL_RNA_COL_SIZEX, OL_H-1);
 			}
 			else if(tselem->type == TSE_RNA_ARRAY_ELEM) {

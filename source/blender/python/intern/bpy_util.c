@@ -22,10 +22,12 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-
+#include "DNA_listBase.h"
+#include "RNA_access.h"
 #include "bpy_util.h"
 #include "BLI_dynstr.h"
 #include "MEM_guardedalloc.h"
+#include "BKE_report.h"
 
 PyObject *BPY_flag_to_list(struct BPY_flag_def *flagdef, int flag)
 {
@@ -241,7 +243,6 @@ PyObject *PyObject_GetAttrStringArgs(PyObject *o, Py_ssize_t n, ...)
 	return item;
 }
 
-
 int BPY_class_validate(const char *class_type, PyObject *class, PyObject *base_class, BPY_class_attr_check* class_attrs, PyObject **py_class_attrs)
 {
 	PyObject *item, *fitem;
@@ -333,3 +334,18 @@ char *BPy_enum_as_string(EnumPropertyItem *item)
 	BLI_dynstr_free(dynstr);
 	return cstring;
 }
+
+int BPy_reports_to_error(ReportList *reports)
+{
+	char *report_str;
+
+	report_str= BKE_reports_string(reports, RPT_ERROR);
+
+	if(report_str) {
+		PyErr_SetString(PyExc_SystemError, report_str);
+		MEM_freeN(report_str);
+	}
+
+	return (report_str != NULL);
+}
+

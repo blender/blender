@@ -1,9 +1,13 @@
 
 import bpy
 
-class RENDER_PT_shading(bpy.types.Panel):
-	__label__ = "Shading"
+class RenderButtonsPanel(bpy.types.Panel):
+	__space_type__ = "BUTTONS_WINDOW"
+	__region_type__ = "WINDOW"
 	__context__ = "render"
+
+class RENDER_PT_shading(RenderButtonsPanel):
+	__label__ = "Shading"
 
 	def draw(self, context):
 		scene = context.scene
@@ -25,7 +29,7 @@ class RENDER_PT_shading(bpy.types.Panel):
 		layout.row()
 		layout.itemR(rd, "alpha_mode")
 
-class RENDER_PT_image(bpy.types.Panel):
+class RENDER_PT_image(RenderButtonsPanel):
 	__label__ = "Image"
 	__context__ = "render"
 
@@ -47,7 +51,7 @@ class RENDER_PT_image(bpy.types.Panel):
 		layout.row()
 		layout.itemR(rd, "crop_to_border")
 
-class RENDER_PT_antialiasing(bpy.types.Panel):
+class RENDER_PT_antialiasing(RenderButtonsPanel):
 	__label__ = "Anti-Aliasing"
 	__context__ = "render"
 
@@ -66,7 +70,7 @@ class RENDER_PT_antialiasing(bpy.types.Panel):
 		layout.itemR(rd, "pixel_filter")
 		layout.itemR(rd, "filter_size")
 
-class RENDER_PT_render(bpy.types.Panel):
+class RENDER_PT_render(RenderButtonsPanel):
 	__label__ = "Render"
 	__context__ = "render"
 
@@ -118,8 +122,8 @@ class RENDER_PT_render(bpy.types.Panel):
 		layout.itemR(rd, "border", text="Border Render")
 		layout.itemR(rd, "panorama")
 
-bpy.ui.addPanel(RENDER_PT_shading, "BUTTONS_WINDOW", "WINDOW")
-bpy.ui.addPanel(RENDER_PT_image, "BUTTONS_WINDOW", "WINDOW")
-bpy.ui.addPanel(RENDER_PT_antialiasing, "BUTTONS_WINDOW", "WINDOW")
-bpy.ui.addPanel(RENDER_PT_render, "BUTTONS_WINDOW", "WINDOW")
+bpy.types.register(RENDER_PT_shading)
+bpy.types.register(RENDER_PT_image)
+bpy.types.register(RENDER_PT_antialiasing)
+bpy.types.register(RENDER_PT_render)
 

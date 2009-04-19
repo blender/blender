@@ -220,17 +220,17 @@ int UI_GetIconRNA(PointerRNA *ptr)
 uiBut *uiDefAutoButR(uiBlock *block, PointerRNA *ptr, PropertyRNA *prop, int index, char *name, int icon, int x1, int y1, int x2, int y2)
 {
 	uiBut *but=NULL;
-	const char *propname= RNA_property_identifier(ptr, prop);
-	int arraylen= RNA_property_array_length(ptr, prop);
+	const char *propname= RNA_property_identifier(prop);
+	int arraylen= RNA_property_array_length(prop);
 
-	switch(RNA_property_type(ptr, prop)) {
+	switch(RNA_property_type(prop)) {
 		case PROP_BOOLEAN: {
 			int value, length;
 
 			if(arraylen && index == -1)
 				return NULL;
 
-			length= RNA_property_array_length(ptr, prop);
+			length= RNA_property_array_length(prop);
 
 			if(length)
 				value= RNA_property_boolean_get_index(ptr, prop, index);
@@ -248,10 +248,10 @@ uiBut *uiDefAutoButR(uiBlock *block, PointerRNA *ptr, PropertyRNA *prop, int ind
 		case PROP_INT:
 		case PROP_FLOAT:
 			if(arraylen && index == -1) {
-				if(RNA_property_subtype(ptr, prop) == PROP_COLOR)
+				if(RNA_property_subtype(prop) == PROP_COLOR)
 					but= uiDefButR(block, COL, 0, name, x1, y1, x2, y2, ptr, propname, 0, 0, 0, -1, -1, NULL);
 			}
-			else if(RNA_property_subtype(ptr, prop) == PROP_PERCENTAGE)
+			else if(RNA_property_subtype(prop) == PROP_PERCENTAGE)
 				but= uiDefButR(block, NUMSLI, 0, name, x1, y1, x2, y2, ptr, propname, index, 0, 0, -1, -1, NULL);
 			else
 				but= uiDefButR(block, NUM, 0, name, x1, y1, x2, y2, ptr, propname, index, 0, 0, -1, -1, NULL);
@@ -268,7 +268,7 @@ uiBut *uiDefAutoButR(uiBlock *block, PointerRNA *ptr, PropertyRNA *prop, int ind
 
 			pptr= RNA_property_pointer_get(ptr, prop);
 			if(!pptr.type)
-				pptr.type= RNA_property_pointer_type(ptr, prop);
+				pptr.type= RNA_property_pointer_type(prop);
 			icon= UI_GetIconRNA(&pptr);
 
 			but= uiDefIconTextButR(block, IDPOIN, 0, icon, name, x1, y1, x2, y2, ptr, propname, index, 0, 0, -1, -1, NULL);
@@ -300,20 +300,20 @@ int uiDefAutoButsRNA(const bContext *C, uiBlock *block, PointerRNA *ptr)
 	layout= uiLayoutBegin(UI_LAYOUT_VERTICAL, x, y, DEF_BUT_WIDTH*2, 20);
 
 	uiLayoutColumn(layout);
-	uiItemL(layout, (char*)RNA_struct_ui_name(ptr), 0);
+	uiItemL(layout, (char*)RNA_struct_ui_name(ptr->type), 0);
 
-	iterprop= RNA_struct_iterator_property(ptr);
+	iterprop= RNA_struct_iterator_property(ptr->type);
 	RNA_property_collection_begin(ptr, iterprop, &iter);
 
 	for(; iter.valid; RNA_property_collection_next(&iter)) {
 		prop= iter.ptr.data;
 
-		if(strcmp(RNA_property_identifier(ptr, prop), "rna_type") == 0)
+		if(strcmp(RNA_property_identifier(prop), "rna_type") == 0)
 			continue;
 
 		uiLayoutSplit(layout, 2, 0);
 
-		name= (char*)RNA_property_ui_name(ptr, prop);
+		name= (char*)RNA_property_ui_name(prop);
 		uiLayoutColumn(uiLayoutSub(layout, 0));
 		uiItemL(uiLayoutSub(layout, 0), name, 0);
 		uiLayoutColumn(uiLayoutSub(layout, 1));

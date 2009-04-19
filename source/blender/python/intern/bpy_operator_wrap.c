@@ -208,12 +208,12 @@ static int PYTHON_OT_generic(int mode, bContext *C, wmOperator *op, wmEvent *eve
 			CollectionPropertyIterator iter;
 			const char *arg_name;
 
-			iterprop= RNA_struct_iterator_property(op->ptr);
+			iterprop= RNA_struct_iterator_property(op->ptr->type);
 			RNA_property_collection_begin(op->ptr, iterprop, &iter);
 
 			for(; iter.valid; RNA_property_collection_next(&iter)) {
 				prop= iter.ptr.data;
-				arg_name= RNA_property_identifier(&iter.ptr, prop);
+				arg_name= RNA_property_identifier(prop);
 
 				if (strcmp(arg_name, "rna_type")==0) continue;
 

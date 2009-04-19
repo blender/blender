@@ -422,12 +422,42 @@ void RNA_define_free(BlenderRNA *brna)
 	DefRNA.error= 0;
 }
 
+void RNA_struct_free(BlenderRNA *brna, StructRNA *srna)
+{
+	FunctionRNA *func, *nextfunc;
+	PropertyRNA *prop, *nextprop;
+	PropertyRNA *parm, *nextparm;
+
+	for(prop=srna->cont.properties.first; prop; prop=nextprop) {
+		nextprop= prop->next;
+
+		if(prop->flag & PROP_RUNTIME)
+			rna_freelinkN(&srna->cont.properties, prop);
+	}
+
+	for(func=srna->functions.first; func; func=nextfunc) {
+		nextfunc= func->cont.next;
+
+		for(parm=func->cont.properties.first; parm; parm=nextparm) {
+			nextparm= parm->next;
+
+			if(parm->flag & PROP_RUNTIME)
+				rna_freelinkN(&func->cont.properties, parm);
+		}
+
+		if(func->flag & FUNC_RUNTIME) {
+			rna_freelinkN(&srna->functions, func);
+		}
+	}
+
+	if(srna->flag & STRUCT_RUNTIME)
+		rna_freelinkN(&brna->structs, srna);
+}
+
 void RNA_free(BlenderRNA *brna)
 {
 	StructRNA *srna, *nextsrna;
-	PropertyRNA *prop, *nextprop;
-	FunctionRNA *func, *nextfunc;
-	PropertyRNA *parm, *nextparm;
+	FunctionRNA *func;
 
 	if(DefRNA.preprocess) {
 		RNA_define_free(brna);
@@ -447,31 +477,7 @@ void RNA_free(BlenderRNA *brna)
 	else {
 		for(srna=brna->structs.first; srna; srna=nextsrna) {
 			nextsrna= srna->cont.next;
-
-			for(prop=srna->cont.properties.first; prop; prop=nextprop) {
-				nextprop= prop->next;
-
-				if(prop->flag & PROP_RUNTIME)
-					rna_freelinkN(&srna->cont.properties, prop);
-			}
-
-			for(func=srna->functions.first; func; func=nextfunc) {
-				nextfunc= func->cont.next;
-
-				for(parm=func->cont.properties.first; parm; parm=nextparm) {
-					nextparm= parm->next;
-
-					if(parm->flag & PROP_RUNTIME)
-						rna_freelinkN(&func->cont.properties, parm);
-				}
-
-				if(func->flag & FUNC_RUNTIME) {
-					rna_freelinkN(&srna->functions, func);
-				}
-			}
-
-			if(srna->flag & STRUCT_RUNTIME)
-				rna_freelinkN(&brna->structs, srna);
+			RNA_struct_free(brna, srna);
 		}
 	}
 }
@@ -704,6 +710,17 @@ void RNA_def_struct_refine_func(StructRNA *srna, const char *refine)
 	if(refine) srna->refine= (StructRefineFunc)refine;
 }
 
+void RNA_def_struct_register_funcs(StructRNA *srna, const char *reg, const char *unreg)
+{
+	if(!DefRNA.preprocess) {
+		fprintf(stderr, "RNA_def_struct_register_funcs: only during preprocessing.\n");
+		return;
+	}
+
+	if(reg) srna->reg= (StructRegisterFunc)reg;
+	if(unreg) srna->unreg= (StructUnregisterFunc)unreg;
+}
+
 void RNA_def_struct_path_func(StructRNA *srna, const char *path)
 {
 	if(!DefRNA.preprocess) {
@@ -728,12 +745,6 @@ void RNA_def_struct_ui_text(StructRNA *srna, const char *name, const char *descr
 {
 	srna->name= name;
 	srna->description= description;
-}
-
-void RNA_struct_free(BlenderRNA *brna, StructRNA *srna)
-{
-	rna_freelistN(&srna->cont.properties);
-	rna_freelinkN(&brna->structs, srna);
 }
 
 /* Property Definition */
@@ -2125,6 +2136,7 @@ FunctionRNA *RNA_def_function_runtime(StructRNA *srna, const char *identifier, C
 void RNA_def_function_return(FunctionRNA *func, PropertyRNA *ret)
 {
 	func->ret= ret;
+	ret->flag|=PROP_RETURN;
 }
 
 void RNA_def_function_flag(FunctionRNA *func, int flag)

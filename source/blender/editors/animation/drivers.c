@@ -183,7 +183,7 @@ static int add_driver_button_exec (bContext *C, wmOperator *op)
 		
 		if (path) {
 			if (all) {
-				length= RNA_property_array_length(&ptr, prop);
+				length= RNA_property_array_length(prop);
 				
 				if (length) index= 0;
 				else length= 1;
@@ -245,7 +245,7 @@ static int remove_driver_button_exec (bContext *C, wmOperator *op)
 		
 		if (path) {
 			if (all) {
-				length= RNA_property_array_length(&ptr, prop);
+				length= RNA_property_array_length(prop);
 				
 				if(length) index= 0;
 				else length= 1;

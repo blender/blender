@@ -191,14 +191,14 @@ static void ui_item_array(uiBlock *block, uiItemRNA *rnaitem, int len, int x, in
 	int a;
 
 	/* retrieve type and subtype */
-	type= RNA_property_type(&rnaitem->ptr, rnaitem->prop);
-	subtype= RNA_property_subtype(&rnaitem->ptr, rnaitem->prop);
+	type= RNA_property_type(rnaitem->prop);
+	subtype= RNA_property_subtype(rnaitem->prop);
 
 	/* create label */
 	if(rnaitem->item.name)
 		name= (char*)rnaitem->item.name;
 	else
-		name= (char*)RNA_property_ui_name(&rnaitem->ptr, rnaitem->prop);
+		name= (char*)RNA_property_ui_name(rnaitem->prop);
 
 	if(strcmp(name, "") != 0)
 		uiDefBut(block, LABEL, 0, name, x, y + h - EM_UNIT_Y, w, EM_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
@@ -289,7 +289,7 @@ static void ui_item_enum_row(uiBlock *block, uiItemRNA *rnaitem, int x, int y, i
 	int a, totitem, pos, itemw;
 	const char *propname;
 	
-	propname= RNA_property_identifier(&rnaitem->ptr, rnaitem->prop);
+	propname= RNA_property_identifier(rnaitem->prop);
 	RNA_property_enum_items(&rnaitem->ptr, rnaitem->prop, &item, &totitem);
 
 	uiBlockBeginAlign(block);
@@ -310,7 +310,7 @@ static void ui_item_with_label(uiBlock *block, uiItemRNA *rnaitem, int x, int y,
 	if(rnaitem->item.name)
 		name= (char*)rnaitem->item.name;
 	else
-		name= (char*)RNA_property_ui_name(&rnaitem->ptr, rnaitem->prop);
+		name= (char*)RNA_property_ui_name(rnaitem->prop);
 	
 	if(strcmp(name, "") != 0) {
 		w= w/2;
@@ -331,8 +331,8 @@ static void ui_item_buts(uiBlock *block, uiItem *item, int x, int y, int w, int 
 		int len;
 		
 		/* retrieve info */
-		type= RNA_property_type(&rnaitem->ptr, rnaitem->prop);
-		len= RNA_property_array_length(&rnaitem->ptr, rnaitem->prop);
+		type= RNA_property_type(rnaitem->prop);
+		len= RNA_property_array_length(rnaitem->prop);
 
 		/* array property */
 		if(rnaitem->index == RNA_NO_INDEX && len > 0)
@@ -416,9 +416,9 @@ static void ui_item_size(uiItem *item, int *r_w, int *r_h)
 		h= EM_UNIT_Y;
 
 		/* arbitrary extended width by type */
-		type= RNA_property_type(&rnaitem->ptr, rnaitem->prop);
-		subtype= RNA_property_subtype(&rnaitem->ptr, rnaitem->prop);
-		len= RNA_property_array_length(&rnaitem->ptr, rnaitem->prop);
+		type= RNA_property_type(rnaitem->prop);
+		subtype= RNA_property_subtype(rnaitem->prop);
+		len= RNA_property_array_length(rnaitem->prop);
 
 		if(type == PROP_STRING)
 			w += 10*EM_UNIT_X;
@@ -506,7 +506,7 @@ void uiItemsEnumO(uiLayout *layout, char *opname, char *propname)
 	RNA_pointer_create(NULL, ot->srna, NULL, &ptr);
 	prop= RNA_struct_find_property(&ptr, propname);
 
-	if(prop && RNA_property_type(&ptr, prop) == PROP_ENUM) {
+	if(prop && RNA_property_type(prop) == PROP_ENUM) {
 		const EnumPropertyItem *item;
 		int totitem, i;
 
@@ -1214,7 +1214,7 @@ void uiRegionPanelLayout(const bContext *C, ARegion *ar, int vertical, char *con
 			if(!pt->context || strcmp(context, pt->context) != 0)
 				continue;
 
-		if(pt->draw && (!pt->poll || pt->poll(C))) {
+		if(pt->draw && (!pt->poll || pt->poll(C, pt))) {
 			block= uiBeginBlock(C, ar, pt->idname, UI_EMBOSS);
 			panel= uiBeginPanel(ar, block, pt);
 

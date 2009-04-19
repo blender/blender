@@ -1127,8 +1127,8 @@ void ui_get_but_vectorf(uiBut *but, float *vec)
 
 		vec[0]= vec[1]= vec[2]= 0.0f;
 
-		if(RNA_property_type(&but->rnapoin, prop) == PROP_FLOAT) {
-			tot= RNA_property_array_length(&but->rnapoin, prop);
+		if(RNA_property_type(prop) == PROP_FLOAT) {
+			tot= RNA_property_array_length(prop);
 			tot= MIN2(tot, 3);
 
 			for(a=0; a<tot; a++)
@@ -1161,8 +1161,8 @@ void ui_set_but_vectorf(uiBut *but, float *vec)
 	if(but->rnaprop) {
 		prop= but->rnaprop;
 
-		if(RNA_property_type(&but->rnapoin, prop) == PROP_FLOAT) {
-			tot= RNA_property_array_length(&but->rnapoin, prop);
+		if(RNA_property_type(prop) == PROP_FLOAT) {
+			tot= RNA_property_array_length(prop);
 			tot= MIN2(tot, 3);
 
 			for(a=0; a<tot; a++)
@@ -1186,7 +1186,7 @@ int ui_is_but_float(uiBut *but)
 	if(but->pointype==FLO && but->poin)
 		return 1;
 	
-	if(but->rnaprop && RNA_property_type(&but->rnapoin, but->rnaprop) == PROP_FLOAT)
+	if(but->rnaprop && RNA_property_type(but->rnaprop) == PROP_FLOAT)
 		return 1;
 	
 	return 0;
@@ -1203,21 +1203,21 @@ double ui_get_but_val(uiBut *but)
 	if(but->rnaprop) {
 		prop= but->rnaprop;
 
-		switch(RNA_property_type(&but->rnapoin, prop)) {
+		switch(RNA_property_type(prop)) {
 			case PROP_BOOLEAN:
-				if(RNA_property_array_length(&but->rnapoin, prop))
+				if(RNA_property_array_length(prop))
 					value= RNA_property_boolean_get_index(&but->rnapoin, prop, but->rnaindex);
 				else
 					value= RNA_property_boolean_get(&but->rnapoin, prop);
 				break;
 			case PROP_INT:
-				if(RNA_property_array_length(&but->rnapoin, prop))
+				if(RNA_property_array_length(prop))
 					value= RNA_property_int_get_index(&but->rnapoin, prop, but->rnaindex);
 				else
 					value= RNA_property_int_get(&but->rnapoin, prop);
 				break;
 			case PROP_FLOAT:
-				if(RNA_property_array_length(&but->rnapoin, prop))
+				if(RNA_property_array_length(prop))
 					value= RNA_property_float_get_index(&but->rnapoin, prop, but->rnaindex);
 				else
 					value= RNA_property_float_get(&but->rnapoin, prop);
@@ -1267,21 +1267,21 @@ void ui_set_but_val(uiBut *but, double value)
 		prop= but->rnaprop;
 
 		if(RNA_property_editable(&but->rnapoin, prop)) {
-			switch(RNA_property_type(&but->rnapoin, prop)) {
+			switch(RNA_property_type(prop)) {
 				case PROP_BOOLEAN:
-					if(RNA_property_array_length(&but->rnapoin, prop))
+					if(RNA_property_array_length(prop))
 						RNA_property_boolean_set_index(&but->rnapoin, prop, but->rnaindex, value);
 					else
 						RNA_property_boolean_set(&but->rnapoin, prop, value);
 					break;
 				case PROP_INT:
-					if(RNA_property_array_length(&but->rnapoin, prop))
+					if(RNA_property_array_length(prop))
 						RNA_property_int_set_index(&but->rnapoin, prop, but->rnaindex, value);
 					else
 						RNA_property_int_set(&but->rnapoin, prop, value);
 					break;
 				case PROP_FLOAT:
-					if(RNA_property_array_length(&but->rnapoin, prop))
+					if(RNA_property_array_length(prop))
 						RNA_property_float_set_index(&but->rnapoin, prop, but->rnaindex, value);
 					else
 						RNA_property_float_set(&but->rnapoin, prop, value);
@@ -1364,7 +1364,7 @@ void ui_get_but_string(uiBut *but, char *str, int maxlen)
 		PropertyType type;
 		char *buf= NULL;
 
-		type= RNA_property_type(&but->rnapoin, but->rnaprop);
+		type= RNA_property_type(but->rnaprop);
 
 		if(type == PROP_STRING) {
 			/* RNA string */
@@ -1375,7 +1375,7 @@ void ui_get_but_string(uiBut *but, char *str, int maxlen)
 			PointerRNA ptr= RNA_property_pointer_get(&but->rnapoin, but->rnaprop);
 			PropertyRNA *nameprop;
 
-			if(ptr.data && (nameprop = RNA_struct_name_property(&ptr)))
+			if(ptr.data && (nameprop = RNA_struct_name_property(ptr.type)))
 				buf= RNA_property_string_get_alloc(&ptr, nameprop, str, maxlen);
 			else
 				BLI_strncpy(str, "", maxlen);
@@ -1433,7 +1433,7 @@ static void ui_rna_ID_collection(bContext *C, uiBut *but, PointerRNA *ptr, Prope
 	/* look for collection property in Main */
 	RNA_pointer_create(NULL, &RNA_Main, CTX_data_main(C), ptr);
 
-	iterprop= RNA_struct_iterator_property(ptr);
+	iterprop= RNA_struct_iterator_property(ptr->type);
 	RNA_property_collection_begin(ptr, iterprop, &iter);
 	*prop= NULL;
 
@@ -1441,10 +1441,10 @@ static void ui_rna_ID_collection(bContext *C, uiBut *but, PointerRNA *ptr, Prope
 		iprop= iter.ptr.data;
 
 		/* if it's a collection and has same pointer type, we've got it */
-		if(RNA_property_type(ptr, iprop) == PROP_COLLECTION) {
-			srna= RNA_property_pointer_type(ptr, iprop);
+		if(RNA_property_type(iprop) == PROP_COLLECTION) {
+			srna= RNA_property_pointer_type(iprop);
 
-			if(RNA_property_pointer_type(&but->rnapoin, but->rnaprop) == srna) {
+			if(RNA_property_pointer_type(but->rnaprop) == srna) {
 				*prop= iprop;
 				break;
 			}
@@ -1475,7 +1475,7 @@ static void ui_rna_ID_autocomplete(bContext *C, char *str, void *arg_but)
 
 	/* loop over items in collection */
 	for(; iter.valid; RNA_property_collection_next(&iter)) {
-		if(iter.ptr.data && (nameprop = RNA_struct_name_property(&iter.ptr))) {
+		if(iter.ptr.data && (nameprop = RNA_struct_name_property(iter.ptr.type))) {
 			name= RNA_property_string_get_alloc(&iter.ptr, nameprop, NULL, 0);
 
 			if(name) {
@@ -1496,7 +1496,7 @@ int ui_set_but_string(bContext *C, uiBut *but, const char *str)
 		if(RNA_property_editable(&but->rnapoin, but->rnaprop)) {
 			PropertyType type;
 
-			type= RNA_property_type(&but->rnapoin, but->rnaprop);
+			type= RNA_property_type(but->rnaprop);
 
 			if(type == PROP_STRING) {
 				/* RNA string */
@@ -1593,7 +1593,7 @@ void ui_set_but_soft_range(uiBut *but, double value)
 	double softmin, softmax, step, precision;
 	
 	if(but->rnaprop) {
-		type= RNA_property_type(&but->rnapoin, but->rnaprop);
+		type= RNA_property_type(but->rnaprop);
 
 		if(type == PROP_INT) {
 			int imin, imax, istep;
@@ -1885,7 +1885,7 @@ void ui_check_but(uiBut *but)
 		}
 			
 		if(but->rnaprop) {
-			PropertySubType pstype = RNA_property_subtype(&but->rnapoin, but->rnaprop);
+			PropertySubType pstype = RNA_property_subtype(but->rnaprop);
 			
 			if (pstype == PROP_PERCENTAGE)
 				strcat(but->drawstr, "%");
@@ -2243,7 +2243,7 @@ uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, char *str, short x1,
 	prop= RNA_struct_find_property(ptr, propname);
 
 	if(prop) {
-		proptype= RNA_property_type(ptr, prop);
+		proptype= RNA_property_type(prop);
 
 		/* use rna values if parameters are not specified */
 		if(!str) {
@@ -2255,7 +2255,7 @@ uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, char *str, short x1,
 				RNA_property_enum_items(ptr, prop, &item, &totitem);
 
 				dynstr= BLI_dynstr_new();
-				BLI_dynstr_appendf(dynstr, "%s%%t", RNA_property_ui_name(ptr, prop));
+				BLI_dynstr_appendf(dynstr, "%s%%t", RNA_property_ui_name(prop));
 				for(i=0; i<totitem; i++)
 					BLI_dynstr_appendf(dynstr, "|%s %%x%d", item[i].name, item[i].value);
 				str= BLI_dynstr_get_cstring(dynstr);
@@ -2273,10 +2273,10 @@ uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, char *str, short x1,
 						str= (char*)item[i].name;
 
 				if(!str)
-					str= (char*)RNA_property_ui_name(ptr, prop);
+					str= (char*)RNA_property_ui_name(prop);
 			}
 			else
-				str= (char*)RNA_property_ui_name(ptr, prop);
+				str= (char*)RNA_property_ui_name(prop);
 		}
 
 		if(!tip) {
@@ -2297,7 +2297,7 @@ uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, char *str, short x1,
 		}
 		
 		if(!tip)
-			tip= (char*)RNA_property_ui_description(ptr, prop);
+			tip= (char*)RNA_property_ui_description(prop);
 
 		if(min == max || a1 == -1 || a2 == -1) {
 			if(proptype == PROP_INT) {
@@ -2332,7 +2332,7 @@ uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, char *str, short x1,
 			}
 			else if(proptype == PROP_STRING) {
 				min= 0;
-				max= RNA_property_string_maxlength(ptr, prop);
+				max= RNA_property_string_maxlength(prop);
 				if(max == 0) /* interface code should ideally support unlimited length */
 					max= UI_MAX_DRAW_STR; 
 			}
@@ -2348,7 +2348,7 @@ uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, char *str, short x1,
 		but->rnapoin= *ptr;
 		but->rnaprop= prop;
 
-		if(RNA_property_array_length(&but->rnapoin, but->rnaprop))
+		if(RNA_property_array_length(but->rnaprop))
 			but->rnaindex= index;
 		else
 			but->rnaindex= 0;
@@ -2767,7 +2767,7 @@ uiBut *uiDefMenuTogR(uiBlock *block, PointerRNA *ptr, char *propname, char *prop
 
 	prop= RNA_struct_find_property(ptr, propname);
 	if(prop) {
-		type= RNA_property_type(ptr, prop);
+		type= RNA_property_type(prop);
 
 		if(type == PROP_BOOLEAN) {
 			if(RNA_property_boolean_get(ptr, prop))

@@ -1031,7 +1031,7 @@ int modify_keyframes (bContext *C, ListBase *dsources, bAction *act, KeyingSet *
 				
 				RNA_id_pointer_create(ksp->id, &id_ptr);
 				if (RNA_path_resolve(&id_ptr, ksp->rna_path, &ptr, &prop) && prop)
-					arraylen= RNA_property_array_length(&ptr, prop);
+					arraylen= RNA_property_array_length(prop);
 			}
 			
 			/* for each possible index, perform operation 
@@ -1133,7 +1133,7 @@ int modify_keyframes (bContext *C, ListBase *dsources, bAction *act, KeyingSet *
 					
 					RNA_id_pointer_create(cks->id, &id_ptr);
 					if (RNA_path_resolve(&id_ptr, path, &ptr, &prop) && prop)
-						arraylen= RNA_property_array_length(&ptr, prop);
+						arraylen= RNA_property_array_length(prop);
 				}
 				
 				/* for each possible index, perform operation 

@@ -321,18 +321,24 @@ void RNA_blender_rna_pointer_create(PointerRNA *r_ptr);
 
 /* Structs */
 
-const char *RNA_struct_identifier(PointerRNA *ptr);
-const char *RNA_struct_ui_name(PointerRNA *ptr);
-const char *RNA_struct_ui_description(PointerRNA *ptr);
+const char *RNA_struct_identifier(StructRNA *type);
+const char *RNA_struct_ui_name(StructRNA *type);
+const char *RNA_struct_ui_description(StructRNA *type);
 
-PropertyRNA *RNA_struct_name_property(PointerRNA *ptr);
-PropertyRNA *RNA_struct_iterator_property(PointerRNA *ptr);
+PropertyRNA *RNA_struct_name_property(StructRNA *type);
+PropertyRNA *RNA_struct_iterator_property(StructRNA *type);
 
-int RNA_struct_is_ID(PointerRNA *ptr);
-int RNA_struct_is_a(PointerRNA *ptr, StructRNA *srna);
+int RNA_struct_is_ID(StructRNA *type);
+int RNA_struct_is_a(StructRNA *type, StructRNA *srna);
+
+StructRegisterFunc RNA_struct_register(StructRNA *type);
+StructUnregisterFunc RNA_struct_unregister(StructRNA *type);
 
 void *RNA_struct_py_type_get(StructRNA *srna);
 void RNA_struct_py_type_set(StructRNA *srna, void *py_type);
+
+void *RNA_struct_blender_type_get(StructRNA *srna);
+void RNA_struct_blender_type_set(StructRNA *srna, void *blender_type);
 
 PropertyRNA *RNA_struct_find_property(PointerRNA *ptr, const char *identifier);
 const struct ListBase *RNA_struct_defined_properties(StructRNA *srna);
@@ -347,12 +353,20 @@ const struct ListBase *RNA_struct_defined_functions(StructRNA *srna);
 
 /* Property Information */
 
-const char *RNA_property_identifier(PointerRNA *ptr, PropertyRNA *prop);
-PropertyType RNA_property_type(PointerRNA *ptr, PropertyRNA *prop);
-PropertySubType RNA_property_subtype(PointerRNA *ptr, PropertyRNA *prop);
-int RNA_property_flag(PointerRNA *ptr, PropertyRNA *prop);
+const char *RNA_property_identifier(PropertyRNA *prop);
+PropertyType RNA_property_type(PropertyRNA *prop);
+PropertySubType RNA_property_subtype(PropertyRNA *prop);
+int RNA_property_flag(PropertyRNA *prop);
 
-int RNA_property_array_length(PointerRNA *ptr, PropertyRNA *prop);
+int RNA_property_array_length(PropertyRNA *prop);
+
+StructRNA *RNA_property_pointer_type(PropertyRNA *prop);
+int RNA_property_string_maxlength(PropertyRNA *prop);
+
+const char *RNA_property_ui_name(PropertyRNA *prop);
+const char *RNA_property_ui_description(PropertyRNA *prop);
+
+/* Dynamic Property Information */
 
 void RNA_property_int_range(PointerRNA *ptr, PropertyRNA *prop, int *hardmin, int *hardmax);
 void RNA_property_int_ui_range(PointerRNA *ptr, PropertyRNA *prop, int *softmin, int *softmax, int *step);
@@ -360,15 +374,9 @@ void RNA_property_int_ui_range(PointerRNA *ptr, PropertyRNA *prop, int *softmin,
 void RNA_property_float_range(PointerRNA *ptr, PropertyRNA *prop, float *hardmin, float *hardmax);
 void RNA_property_float_ui_range(PointerRNA *ptr, PropertyRNA *prop, float *softmin, float *softmax, float *step, float *precision);
 
-int RNA_property_string_maxlength(PointerRNA *ptr, PropertyRNA *prop);
-StructRNA *RNA_property_pointer_type(PointerRNA *ptr, PropertyRNA *prop);
-
 void RNA_property_enum_items(PointerRNA *ptr, PropertyRNA *prop, const EnumPropertyItem **item, int *totitem);
 int RNA_property_enum_value(PointerRNA *ptr, PropertyRNA *prop, const char *identifier, int *value);
 int RNA_property_enum_identifier(PointerRNA *ptr, PropertyRNA *prop, const int value, const char **identifier);
-
-const char *RNA_property_ui_name(PointerRNA *ptr, PropertyRNA *prop);
-const char *RNA_property_ui_description(PointerRNA *ptr, PropertyRNA *prop);
 
 int RNA_property_editable(PointerRNA *ptr, PropertyRNA *prop);
 int RNA_property_animateable(PointerRNA *ptr, PropertyRNA *prop);
@@ -518,13 +526,14 @@ char *RNA_property_as_string(PointerRNA *ptr, PropertyRNA *prop);
 
 /* Function */
 
-const char *RNA_function_identifier(PointerRNA *ptr, FunctionRNA *func);
-PropertyRNA *RNA_function_return(PointerRNA *ptr, FunctionRNA *func);
-const char *RNA_function_ui_description(PointerRNA *ptr, FunctionRNA *func);
+const char *RNA_function_identifier(FunctionRNA *func);
+PropertyRNA *RNA_function_return(FunctionRNA *func);
+const char *RNA_function_ui_description(FunctionRNA *func);
+int RNA_function_flag(FunctionRNA *func);
 
 PropertyRNA *RNA_function_get_parameter(PointerRNA *ptr, FunctionRNA *func, int index);
 PropertyRNA *RNA_function_find_parameter(PointerRNA *ptr, FunctionRNA *func, const char *identifier);
-const struct ListBase *RNA_function_defined_parameters(PointerRNA *ptr, FunctionRNA *func);
+const struct ListBase *RNA_function_defined_parameters(FunctionRNA *func);
 
 /* Utility */
 

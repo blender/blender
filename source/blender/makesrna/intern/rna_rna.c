@@ -368,6 +368,18 @@ static int rna_Property_array_length_get(PointerRNA *ptr)
 	return prop->arraylength;
 }
 
+static int rna_Property_registered_get(PointerRNA *ptr)
+{
+	PropertyRNA *prop= (PropertyRNA*)ptr->data;
+	return prop->flag & PROP_REGISTER;
+}
+
+static int rna_Property_registered_optional_get(PointerRNA *ptr)
+{
+	PropertyRNA *prop= (PropertyRNA*)ptr->data;
+	return prop->flag & PROP_REGISTER_OPTIONAL;
+}
+
 static int rna_IntProperty_hard_min_get(PointerRNA *ptr)
 {
 	PropertyRNA *prop= (PropertyRNA*)ptr->data;
@@ -529,6 +541,18 @@ static void rna_Function_parameters_begin(CollectionPropertyIterator *iter, Poin
 	rna_iterator_listbase_begin(iter, &((FunctionRNA*)ptr->data)->cont.properties, rna_property_builtin);
 }
 
+static int rna_Function_registered_get(PointerRNA *ptr)
+{
+	FunctionRNA *func= (FunctionRNA*)ptr->data;
+	return func->flag & FUNC_REGISTER;
+}
+
+static int rna_Function_registered_optional_get(PointerRNA *ptr)
+{
+	FunctionRNA *func= (FunctionRNA*)ptr->data;
+	return func->flag & FUNC_REGISTER_OPTIONAL;
+}
+
 /* Blender RNA */
 
 static void rna_BlenderRNA_structs_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
@@ -655,6 +679,16 @@ static void rna_def_property(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_boolean_funcs(prop, "rna_Property_editable_get", NULL);
 	RNA_def_property_ui_text(prop, "Editable", "Property is editable through RNA.");
+
+	prop= RNA_def_property(srna, "registered", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_boolean_funcs(prop, "rna_Property_registered_get", NULL);
+	RNA_def_property_ui_text(prop, "Registered", "Property is registerd as part of type registration.");
+
+	prop= RNA_def_property(srna, "registered_optional", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_boolean_funcs(prop, "rna_Property_registered_optional_get", NULL);
+	RNA_def_property_ui_text(prop, "Registered Optionally", "Property is optionally registerd as part of type registration.");
 }
 
 static void rna_def_function(BlenderRNA *brna)
@@ -681,6 +715,16 @@ static void rna_def_function(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "Property");
 	RNA_def_property_collection_funcs(prop, "rna_Function_parameters_begin", "rna_iterator_listbase_next", "rna_iterator_listbase_end", "rna_iterator_listbase_get", 0, 0, 0);
 	RNA_def_property_ui_text(prop, "Parameters", "Parameters for the function.");
+
+	prop= RNA_def_property(srna, "registered", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_boolean_funcs(prop, "rna_Function_registered_get", NULL);
+	RNA_def_property_ui_text(prop, "Registered", "Function is registerd as callback as part of type registration.");
+
+	prop= RNA_def_property(srna, "registered_optional", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_boolean_funcs(prop, "rna_Function_registered_optional_get", NULL);
+	RNA_def_property_ui_text(prop, "Registered Optionally", "Function is optionally registerd as callback part of type registration.");
 }
 
 static void rna_def_number_property(StructRNA *srna, PropertyType type)

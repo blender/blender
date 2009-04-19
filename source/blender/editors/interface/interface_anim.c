@@ -118,9 +118,9 @@ void ui_but_anim_menu(bContext *C, uiBut *but)
 	int length;
 
 	if(but->rnapoin.data && but->rnaprop) {
-		head= uiPupMenuBegin(RNA_property_ui_name(&but->rnapoin, but->rnaprop), 0);
+		head= uiPupMenuBegin(RNA_property_ui_name(but->rnaprop), 0);
 
-		length= RNA_property_array_length(&but->rnapoin, but->rnaprop);
+		length= RNA_property_array_length(but->rnaprop);
 
 		if(but->flag & UI_BUT_ANIMATED_KEY) {
 			if(length) {

@@ -32,6 +32,8 @@ struct ContainerRNA;
 struct StructRNA;
 struct PropertyRNA;
 struct PointerRNA;
+struct FunctionRNA;
+struct ReportList;
 struct CollectionPropertyIterator;
 struct bContext;
 
@@ -248,6 +250,7 @@ struct StructRNA {
 	/* python type, this is a subtype of pyrna_struct_Type but used so each struct can have its own type
 	 * which is useful for subclassing RNA */
 	void *py_type;
+	void *blender_type;
 	
 	/* unique identifier */
 	const char *identifier;
@@ -279,6 +282,10 @@ struct StructRNA {
 
 	/* function to find path to this struct in an ID */
 	StructPathFunc path; 
+
+	/* function to register/unregister subclasses */
+	StructRegisterFunc reg; 
+	StructUnregisterFunc unreg; 
 
 	/* functions of this struct */
 	ListBase functions; 

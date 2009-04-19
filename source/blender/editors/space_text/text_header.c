@@ -487,15 +487,15 @@ void text_properties_register(ARegionType *art)
 
 	/* panels: properties */
 	pt= MEM_callocN(sizeof(PanelType), "spacetype text panel");
-	pt->idname= "TEXT_PT_properties";
-	pt->name= "Properties";
+	strcpy(pt->idname, "TEXT_PT_properties");
+	strcpy(pt->label, "Properties");
 	pt->draw= text_properties_panel_draw;
 	BLI_addtail(&art->paneltypes, pt);
 
 	/* panels: find */
 	pt= MEM_callocN(sizeof(PanelType), "spacetype text panel");
-	pt->idname= "TEXT_PT_find";
-	pt->name= "Find";
+	strcpy(pt->idname, "TEXT_PT_find");
+	strcpy(pt->label, "Find");
 	pt->draw= text_find_panel_draw;
 	BLI_addtail(&art->paneltypes, pt);
 }

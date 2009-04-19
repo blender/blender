@@ -45,6 +45,9 @@ struct wmWindowManager;
 struct uiLayout;
 struct uiMenuItem;
 struct StructRNA;
+struct PointerRNA;
+struct FunctionRNA;
+struct ParameterList;
 
 /* spacetype has everything stored to get an editor working, it gets initialized via 
    ED_spacetypes_init() in editors/area/spacetypes.c   */
@@ -143,18 +146,22 @@ typedef struct ARegionType {
 typedef struct PanelType {
 	struct PanelType *next, *prev;
 	
-	char		*idname;	/* unique name */
-	char		*name;		/* for panel header */
-	char		*context;	/* for buttons window */
+	char		idname[BKE_ST_MAXNAME];		/* unique name */
+	char		label[BKE_ST_MAXNAME];		/* for panel header */
+	char		context[BKE_ST_MAXNAME];	/* for buttons window */
+	char		space_type[BKE_ST_MAXNAME];
+	char		region_type[BKE_ST_MAXNAME];
 
 	/* verify if the panel should draw or not */
-	int			(*poll)(const struct bContext *);
+	int			(*poll)(const struct bContext *, struct PanelType *);
 	/* draw entirely, view changes should be handled here */
 	void		(*draw)(const struct bContext *, struct Panel *);	
 
 	/* python integration */
 	void				*py_data;
-	struct StructRNA	*srna;
+	struct StructRNA	*py_srna;
+	int					(*py_call)(struct PointerRNA *, struct FunctionRNA *, struct ParameterList *);
+	void				(*py_free)(void *py_data);
 } PanelType;
 
 /* header types */

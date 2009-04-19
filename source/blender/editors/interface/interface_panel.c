@@ -158,8 +158,8 @@ static void ui_panel_copy_offset(Panel *pa, Panel *papar)
 Panel *uiBeginPanel(ARegion *ar, uiBlock *block, PanelType *pt)
 {
 	Panel *pa, *patab, *palast, *panext;
-	char *panelname= pt->name;
-	char *tabname= pt->name;
+	char *panelname= pt->label;
+	char *tabname= pt->label;
 	char *hookname= NULL;
 	int newpanel;
 	

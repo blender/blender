@@ -1,8 +1,14 @@
+
 import bpy
 
-class OBJECT_PT_transform(bpy.types.Panel):
-	__label__ = "Transform"
+class ObjectButtonsPanel(bpy.types.Panel):
+	__space_type__ = "BUTTONS_WINDOW"
+	__region_type__ = "WINDOW"
 	__context__ = "object"
+
+class OBJECT_PT_transform(ObjectButtonsPanel):
+	__idname__ = "OBJECT_PT_transform"
+	__label__ = "Transform"
 
 	def draw(self, context):
 		ob = context.active_object
@@ -16,9 +22,9 @@ class OBJECT_PT_transform(bpy.types.Panel):
 		layout.itemR(ob, "rotation")
 		layout.itemR(ob, "scale")
 
-class OBJECT_PT_groups(bpy.types.Panel):
+class OBJECT_PT_groups(ObjectButtonsPanel):
+	__idname__ = "OBJECT_PT_groups"
 	__label__ = "Groups"
-	__context__ = "object"
 
 	def draw(self, context):
 		ob = context.active_object
@@ -46,9 +52,9 @@ class OBJECT_PT_groups(bpy.types.Panel):
 				sub.itemR(group, "layer")
 				sub.itemR(group, "dupli_offset")
 
-class OBJECT_PT_display(bpy.types.Panel):
+class OBJECT_PT_display(ObjectButtonsPanel):
+	__idname__ = "OBJECT_PT_display"
 	__label__ = "Display"
-	__context__ = "object"
 
 	def draw(self, context):
 		ob = context.active_object
@@ -69,9 +75,9 @@ class OBJECT_PT_display(bpy.types.Panel):
 		layout.itemR(ob, "x_ray", text="X-Ray")
 		layout.itemR(ob, "draw_transparent", text="Transparency")
 
-class OBJECT_PT_duplication(bpy.types.Panel):
+class OBJECT_PT_duplication(ObjectButtonsPanel):
+	__idname__ = "OBJECT_PT_duplication"
 	__label__ = "Duplication"
-	__context__ = "object"
 
 	def draw(self, context):
 		ob = context.active_object
@@ -90,9 +96,9 @@ class OBJECT_PT_duplication(bpy.types.Panel):
 			layout.itemR(ob, "dupli_frames_on", text="On:")
 			layout.itemR(ob, "dupli_frames_off", text="Off:")
 
-class OBJECT_PT_animation(bpy.types.Panel):
+class OBJECT_PT_animation(ObjectButtonsPanel):
+	__idname__ = "OBJECT_PT_animation"
 	__label__ = "Animation"
-	__context__ = "object"
 
 	def draw(self, context):
 		ob = context.active_object
@@ -119,9 +125,9 @@ class OBJECT_PT_animation(bpy.types.Panel):
 		sub.itemR(ob, "up_axis", text="Up Axis")
 		sub.itemR(ob, "track_rotation", text="Rotation")
 
-bpy.ui.addPanel(OBJECT_PT_transform, "BUTTONS_WINDOW", "WINDOW")
-bpy.ui.addPanel(OBJECT_PT_groups, "BUTTONS_WINDOW", "WINDOW")
-bpy.ui.addPanel(OBJECT_PT_display, "BUTTONS_WINDOW", "WINDOW")
-bpy.ui.addPanel(OBJECT_PT_duplication, "BUTTONS_WINDOW", "WINDOW")
-bpy.ui.addPanel(OBJECT_PT_animation, "BUTTONS_WINDOW", "WINDOW")
+bpy.types.register(OBJECT_PT_transform)
+bpy.types.register(OBJECT_PT_groups)
+bpy.types.register(OBJECT_PT_display)
+bpy.types.register(OBJECT_PT_duplication)
+bpy.types.register(OBJECT_PT_animation)
 
