@@ -1733,6 +1733,7 @@ RNAProcessItem PROCESS_ITEMS[]= {
 	{"rna_context.c", RNA_def_context},
 	{"rna_controller.c", RNA_def_controller},
 	{"rna_curve.c", RNA_def_curve},
+	{"rna_fcurve.c", RNA_def_fcurve},
 	{"rna_fluidsim.c", RNA_def_fluidsim},
 	{"rna_group.c", RNA_def_group},
 	{"rna_image.c", RNA_def_image},

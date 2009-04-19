@@ -103,6 +103,7 @@ extern StructRNA RNA_EnvironmentMapTexture;
 extern StructRNA RNA_ExplodeModifier;
 extern StructRNA RNA_ExpressionController;
 extern StructRNA RNA_FCurve;
+extern StructRNA RNA_FModifier;
 extern StructRNA RNA_FieldSettings;
 extern StructRNA RNA_FloatProperty;
 extern StructRNA RNA_FluidFluidSettings;
