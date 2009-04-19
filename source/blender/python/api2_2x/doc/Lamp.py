@@ -136,6 +136,9 @@ class Lamp:
 	@ivar samples:  Lamp shadow map samples.
 	Value is clamped to the range [1,16].
 	@type samples:  int
+	@ivar sampleBuffers:  Lamp amount of shadow map sample buffers.
+	Number of sample buffers for shadow buffer: 1, 4 or 9.
+	@type sampleBuffers:  int
 	@ivar raySamplesX:  Lamp raytracing X samples (X is used for the Y axis with square area lamps).
 	Value is clamped to the range [1,16].
 	@type raySamplesX:  int

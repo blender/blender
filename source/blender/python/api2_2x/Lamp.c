@@ -191,6 +191,7 @@ static PyObject *Lamp_getTypesConst( void );
 static PyObject *Lamp_getMode( BPy_Lamp * self );
 static PyObject *Lamp_getModesConst( void );
 static PyObject *Lamp_getSamples( BPy_Lamp * self );
+static PyObject *Lamp_getSampleBuffers( BPy_Lamp * self );
 static PyObject *Lamp_getRaySamplesX( BPy_Lamp * self );
 static PyObject *Lamp_getRaySamplesY( BPy_Lamp * self );
 static PyObject *Lamp_getAreaSizeX( BPy_Lamp * self );
@@ -241,6 +242,7 @@ static int Lamp_setIpo( BPy_Lamp * self, PyObject * args );
 static int Lamp_setType( BPy_Lamp * self, PyObject * args );
 static int Lamp_setMode( BPy_Lamp * self, PyObject * args );
 static int Lamp_setSamples( BPy_Lamp * self, PyObject * args );
+static int Lamp_setSampleBuffers( BPy_Lamp * self, PyObject * args );
 static int Lamp_setRaySamplesX( BPy_Lamp * self, PyObject * args );
 static int Lamp_setRaySamplesY( BPy_Lamp * self, PyObject * args );
 static int Lamp_setAreaSizeX( BPy_Lamp * self, PyObject * args );
@@ -446,6 +448,10 @@ static PyGetSetDef BPy_Lamp_getseters[] = {
 	{"samples",
 	 (getter)Lamp_getSamples, (setter)Lamp_setSamples,
 	 "Lamp shadow map samples",
+	 NULL},
+	{"sampleBuffers",
+	 (getter)Lamp_getSampleBuffers, (setter)Lamp_setSampleBuffers,
+	 "Lamp shadow samples buffers",
 	 NULL},
 	{"raySamplesX",
 	 (getter)Lamp_getRaySamplesX, (setter)Lamp_setRaySamplesX,
@@ -923,6 +929,11 @@ static PyObject *Lamp_getSamples( BPy_Lamp * self )
 	return PyInt_FromLong( self->lamp->samp );
 }
 
+static PyObject *Lamp_getSampleBuffers( BPy_Lamp * self )
+{
+	return PyInt_FromLong( self->lamp->buffers );
+}
+
 static PyObject *Lamp_getRaySamplesX( BPy_Lamp * self )
 {
 	return PyInt_FromLong( self->lamp->ray_samp );
@@ -1063,6 +1074,23 @@ static int Lamp_setSamples( BPy_Lamp * self, PyObject * value )
 								EXPP_LAMP_SAMPLES_MAX, 'h' );
 }
 
+static int Lamp_setSampleBuffers( BPy_Lamp * self, PyObject * value )
+{
+	int buffers= 1;
+	if( !PyInt_Check ( value ) ) {
+		return EXPP_ReturnIntError( PyExc_TypeError, "expected int argument" );
+	}
+	buffers= PyInt_AS_LONG(value);
+
+	if(buffers!=1 && buffers!=4 && buffers!=9) {
+		return EXPP_ReturnIntError( PyExc_TypeError,
+						"expected int argument of value 1, 4 or 9" );
+	}
+
+	self->lamp->buffers= buffers;
+
+	return 0;
+}
 
 static int Lamp_setRaySamplesX( BPy_Lamp * self, PyObject * value )
 {
