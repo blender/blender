@@ -110,9 +110,9 @@ PyTypeObject SCA_NANDController::Type = {
 	PyObject_HEAD_INIT(NULL)
 	0,
 	"SCA_NANDController",
-	sizeof(SCA_NANDController),
+	sizeof(PyObjectPlus_Proxy),
 	0,
-	PyDestructor,
+	py_base_dealloc,
 	0,
 	0,
 	0,

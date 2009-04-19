@@ -42,9 +42,9 @@ PyTypeObject KX_PolyProxy::Type = {
 	PyObject_HEAD_INIT(NULL)
 	0,
 	"KX_PolyProxy",
-	sizeof(KX_PolyProxy),
+	sizeof(PyObjectPlus_Proxy),
 	0,
-	PyDestructor,
+	py_base_dealloc,
 	0,
 	0,
 	0,

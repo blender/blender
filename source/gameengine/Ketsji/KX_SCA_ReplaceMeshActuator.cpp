@@ -56,9 +56,9 @@ KX_SCA_ReplaceMeshActuator::Type = {
 	PyObject_HEAD_INIT(NULL)
 	0,
 	"KX_SCA_ReplaceMeshActuator",
-	sizeof(KX_SCA_ReplaceMeshActuator),
+	sizeof(PyObjectPlus_Proxy),
 	0,
-	PyDestructor,
+	py_base_dealloc,
 	0,
 	0,
 	0,

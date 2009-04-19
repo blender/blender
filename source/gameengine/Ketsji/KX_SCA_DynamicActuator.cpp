@@ -54,9 +54,9 @@ KX_SCA_DynamicActuator::Type = {
 	PyObject_HEAD_INIT(NULL)
 	0,
 	"KX_SCA_DynamicActuator",
-	sizeof(KX_SCA_DynamicActuator),
+	sizeof(PyObjectPlus_Proxy),
 	0,
-	PyDestructor,
+	py_base_dealloc,
 	0,
 	0,
 	0,

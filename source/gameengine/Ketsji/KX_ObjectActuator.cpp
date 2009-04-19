@@ -280,9 +280,9 @@ PyTypeObject KX_ObjectActuator::Type = {
 	PyObject_HEAD_INIT(NULL)
 	0,
 	"KX_ObjectActuator",
-	sizeof(KX_ObjectActuator),
+	sizeof(PyObjectPlus_Proxy),
 	0,
-	PyDestructor,
+	py_base_dealloc,
 	0,
 	0,
 	0,

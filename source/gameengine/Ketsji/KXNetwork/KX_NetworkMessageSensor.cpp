@@ -171,9 +171,9 @@ PyTypeObject KX_NetworkMessageSensor::Type = {
 	PyObject_HEAD_INIT(NULL)
 	0,
 	"KX_NetworkMessageSensor",
-	sizeof(KX_NetworkMessageSensor),
+	sizeof(PyObjectPlus_Proxy),
 	0,
-	PyDestructor,
+	py_base_dealloc,
 	0,
 	0,
 	0,

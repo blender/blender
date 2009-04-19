@@ -338,9 +338,9 @@ PyTypeObject KX_MouseFocusSensor::Type = {
 	PyObject_HEAD_INIT(NULL)
 	0,
 	"KX_MouseFocusSensor",
-	sizeof(KX_MouseFocusSensor),
+	sizeof(PyObjectPlus_Proxy),
 	0,
-	PyDestructor,
+	py_base_dealloc,
 	0,
 	0,
 	0,

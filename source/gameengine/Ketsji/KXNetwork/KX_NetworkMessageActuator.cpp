@@ -108,9 +108,9 @@ PyTypeObject KX_NetworkMessageActuator::Type = {
 	PyObject_HEAD_INIT(NULL)
 	0,
 	"KX_NetworkMessageActuator",
-	sizeof(KX_NetworkMessageActuator),
+	sizeof(PyObjectPlus_Proxy),
 	0,
-	PyDestructor,
+	py_base_dealloc,
 	0,
 	0,
 	0,

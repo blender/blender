@@ -236,9 +236,9 @@ PyTypeObject SCA_PropertyActuator::Type = {
 	PyObject_HEAD_INIT(NULL)
 	0,
 	"SCA_PropertyActuator",
-	sizeof(SCA_PropertyActuator),
+	sizeof(PyObjectPlus_Proxy),
 	0,
-	PyDestructor,
+	py_base_dealloc,
 	0,
 	0,
 	0,

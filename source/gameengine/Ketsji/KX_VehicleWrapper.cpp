@@ -305,9 +305,9 @@ PyTypeObject KX_VehicleWrapper::Type = {
 	PyObject_HEAD_INIT(NULL)
 		0,
 		"KX_VehicleWrapper",
-		sizeof(KX_VehicleWrapper),
+		sizeof(PyObjectPlus_Proxy),
 		0,
-		PyDestructor,
+		py_base_dealloc,
 		0,
 		0,
 		0,

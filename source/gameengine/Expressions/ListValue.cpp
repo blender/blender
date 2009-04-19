@@ -223,10 +223,10 @@ PyTypeObject CListValue::Type = {
 	PyObject_HEAD_INIT(NULL)
 	0,				/*ob_size*/
 	"CListValue",			/*tp_name*/
-	sizeof(CListValue),		/*tp_basicsize*/
+	sizeof(PyObjectPlus_Proxy), /*tp_basicsize*/
 	0,				/*tp_itemsize*/
 	/* methods */
-	PyDestructor,	  		/*tp_dealloc*/
+	py_base_dealloc,	  		/*tp_dealloc*/
 	0,			 	/*tp_print*/
 	0, 			/*tp_getattr*/
 	0, 			/*tp_setattr*/

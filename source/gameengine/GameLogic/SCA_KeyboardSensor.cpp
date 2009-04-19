@@ -615,9 +615,9 @@ PyTypeObject SCA_KeyboardSensor::Type = {
 	PyObject_HEAD_INIT(NULL)
 	0,
 	"SCA_KeyboardSensor",
-	sizeof(SCA_KeyboardSensor),
+	sizeof(PyObjectPlus_Proxy),
 	0,
-	PyDestructor,
+	py_base_dealloc,
 	0,
 	0,
 	0,

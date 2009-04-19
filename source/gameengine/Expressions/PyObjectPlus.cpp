@@ -59,10 +59,10 @@ PyTypeObject PyObjectPlus::Type = {
 	PyObject_HEAD_INIT(NULL)
 	0,				/*ob_size*/
 	"PyObjectPlus",			/*tp_name*/
-	sizeof(PyObjectPlus),		/*tp_basicsize*/
+	sizeof(PyObjectPlus_Proxy),		/*tp_basicsize*/
 	0,				/*tp_itemsize*/
 	/* methods */
-	PyDestructor,
+	py_base_dealloc,
 	0,
 	0,
 	0,
@@ -85,7 +85,7 @@ PyObjectPlus::~PyObjectPlus()
 //	assert(ob_refcnt==0);
 }
 
-void PyObjectPlus::PyDestructor(PyObject *self)				// python wrapper
+void PyObjectPlus::py_base_dealloc(PyObject *self)				// python wrapper
 {
 	PyObjectPlus *self_plus= BGE_PROXY_REF(self);
 	if(self_plus) {
@@ -108,7 +108,7 @@ PyObjectPlus::PyObjectPlus(PyTypeObject *T) 				// constructor
  * PyObjectPlus Methods 	-- Every class, even the abstract one should have a Methods
 ------------------------------*/
 PyMethodDef PyObjectPlus::Methods[] = {
-  {"isA",		 (PyCFunction) sPy_isA,			METH_O},
+  {"isA",		 (PyCFunction) sPyisA,			METH_O},
   {NULL, NULL}		/* Sentinel */
 };
 
@@ -130,6 +130,49 @@ PyParentObject PyObjectPlus::Parents[] = {&PyObjectPlus::Type, NULL};
 /*------------------------------
  * PyObjectPlus attributes	-- attributes
 ------------------------------*/
+
+
+/* This should be the entry in Type since it takes the C++ class from PyObjectPlus_Proxy */
+PyObject *PyObjectPlus::py_base_getattro(PyObject * self, PyObject *attr)
+{
+	PyObjectPlus *self_plus= BGE_PROXY_REF(self);
+	if(self_plus==NULL) {
+		if(!strcmp("isValid", PyString_AsString(attr))) {
+			Py_RETURN_TRUE;
+		}
+		PyErr_SetString(PyExc_RuntimeError, BGE_PROXY_ERROR_MSG);
+		return NULL;
+	}
+	return self_plus->py_getattro(attr); 
+}
+
+/* This should be the entry in Type since it takes the C++ class from PyObjectPlus_Proxy */
+int PyObjectPlus::py_base_setattro(PyObject *self, PyObject *attr, PyObject *value)
+{
+	PyObjectPlus *self_plus= BGE_PROXY_REF(self);
+	if(self_plus==NULL) {
+		PyErr_SetString(PyExc_RuntimeError, BGE_PROXY_ERROR_MSG);
+		return -1;
+	}
+	
+	if (value==NULL)
+		return self_plus->py_delattro(attr);
+	
+	return self_plus->py_setattro(attr, value); 
+}
+
+PyObject *PyObjectPlus::py_base_repr(PyObject *self)			// This should be the entry in Type.
+{
+	
+	PyObjectPlus *self_plus= BGE_PROXY_REF(self);
+	if(self_plus==NULL) {
+		PyErr_SetString(PyExc_RuntimeError, BGE_PROXY_ERROR_MSG);
+		return NULL;
+	}
+	
+	return self_plus->py_repr();  
+}
+
 PyObject *PyObjectPlus::py_getattro(PyObject* attr)
 {
 	PyObject *descr = PyDict_GetItem(Type.tp_dict, attr); \
@@ -151,8 +194,6 @@ PyObject *PyObjectPlus::py_getattro(PyObject* attr)
 		}
 		/* end py_getattro_up copy */
 	}
-  //if (streq(attr, "type"))
-  //  return Py_BuildValue("s", (*(GetParents()))->tp_name);
 }
 
 int PyObjectPlus::py_delattro(PyObject* attr)
@@ -163,8 +204,6 @@ int PyObjectPlus::py_delattro(PyObject* attr)
 
 int PyObjectPlus::py_setattro(PyObject *attr, PyObject* value)
 {
-	//return PyObject::py_setattro(attr,value);
-	//cerr << "Unknown attribute" << endl;
 	PyErr_SetString(PyExc_AttributeError, "attribute cant be set");
 	return PY_SET_ATTR_MISSING;
 }
@@ -274,20 +313,6 @@ PyObject *PyObjectPlus::py_get_attrdef(void *self, const PyAttributeDef *attrdef
 		}
 	}
 }
-
-#if 0
-PyObject *PyObjectPlus::py_getattro_self(const PyAttributeDef attrlist[], void *self, PyObject *attr)
-{
-	char *attr_str= PyString_AsString(attr);
-	const PyAttributeDef *attrdef;
-	
-	for (attrdef=attrlist; attrdef->m_name != NULL; attrdef++)
-		if (!strcmp(attr_str, attrdef->m_name))
-			return py_get_attrdef(self, attrdef);
-	
-	return NULL;
-}
-#endif
 
 int PyObjectPlus::py_set_attrdef(void *self, const PyAttributeDef *attrdef, PyObject *value)
 {
@@ -714,29 +739,7 @@ int PyObjectPlus::py_set_attrdef(void *self, const PyAttributeDef *attrdef, PyOb
 	return 0;	
 }
 
-#if 0
-int PyObjectPlus::py_setattro_self(const PyAttributeDef attrlist[], void *self, PyObject *attr, PyObject *value)
-{
-	const PyAttributeDef *attrdef;
-	char *attr_str= PyString_AsString(attr);
 
-	for (attrdef=attrlist; attrdef->m_name != NULL; attrdef++)
-	{
-		if (!strcmp(attr_str, attrdef->m_name))
-		{
-			if (attrdef->m_access == KX_PYATTRIBUTE_RO ||
-				attrdef->m_type == KX_PYATTRIBUTE_TYPE_DUMMY)
-			{
-				PyErr_SetString(PyExc_AttributeError, "property is read-only");
-				return PY_SET_ATTR_FAIL;
-			}
-			
-			return py_set_attrdef(self, attrdef, value);
-		}
-	}
-	return PY_SET_ATTR_MISSING;			
-}
-#endif
 
 /*------------------------------
  * PyObjectPlus repr		-- representations
@@ -777,7 +780,7 @@ bool PyObjectPlus::isA(const char *mytypename)		// check typename of each parent
 	return false;
 }
 
-PyObject *PyObjectPlus::Py_isA(PyObject *value)		// Python wrapper for isA
+PyObject *PyObjectPlus::PyisA(PyObject *self, PyObject *value)		// Python wrapper for isA
 {
 	if (PyType_Check(value)) {
 		return PyBool_FromLong(isA((PyTypeObject *)value));

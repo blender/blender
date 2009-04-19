@@ -396,9 +396,9 @@ PyTypeObject SCA_ISensor::Type = {
 	PyObject_HEAD_INIT(NULL)
 	0,
 	"SCA_ISensor",
-	sizeof(SCA_ISensor),
+	sizeof(PyObjectPlus_Proxy),
 	0,
-	PyDestructor,
+	py_base_dealloc,
 	0,
 	0,
 	0,

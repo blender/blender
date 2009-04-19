@@ -416,9 +416,9 @@ PyTypeObject KX_IpoActuator::Type = {
 	PyObject_HEAD_INIT(NULL)
 	0,
 	"KX_IpoActuator",
-	sizeof(KX_IpoActuator),
+	sizeof(PyObjectPlus_Proxy),
 	0,
-	PyDestructor,
+	py_base_dealloc,
 	0,
 	0,
 	0,

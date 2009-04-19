@@ -40,9 +40,9 @@ PyTypeObject CValue::Type = {
 	PyObject_HEAD_INIT(NULL)
 	0,
 	"CValue",
-	sizeof(CValue),
+	sizeof(PyObjectPlus_Proxy),
 	0,
-	PyDestructor,
+	py_base_dealloc,
 	0,
 	0,
 	0,

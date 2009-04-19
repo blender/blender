@@ -423,9 +423,9 @@ PyTypeObject BL_ShapeActionActuator::Type = {
 	PyObject_HEAD_INIT(NULL)
 		0,
 		"BL_ShapeActionActuator",
-		sizeof(BL_ShapeActionActuator),
+		sizeof(PyObjectPlus_Proxy),
 		0,
-		PyDestructor,
+		py_base_dealloc,
 		0,
 		0,
 		0,

@@ -114,9 +114,9 @@ PyTypeObject SCA_XNORController::Type = {
 	PyObject_HEAD_INIT(NULL)
 	0,
 	"SCA_XNORController",
-	sizeof(SCA_XNORController),
+	sizeof(PyObjectPlus_Proxy),
 	0,
-	PyDestructor,
+	py_base_dealloc,
 	0,
 	0,
 	0,

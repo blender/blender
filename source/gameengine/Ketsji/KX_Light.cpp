@@ -328,9 +328,9 @@ PyTypeObject KX_LightObject::Type = {
 	PyObject_HEAD_INIT(NULL)
 		0,
 		"KX_LightObject",
-		sizeof(KX_LightObject),
+		sizeof(PyObjectPlus_Proxy),
 		0,
-		PyDestructor,
+		py_base_dealloc,
 		0,
 		0,
 		0,

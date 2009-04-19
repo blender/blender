@@ -775,9 +775,9 @@ PyTypeObject BL_Shader::Type = {
 	PyObject_HEAD_INIT(NULL)
 		0,
 		"BL_Shader",
-		sizeof(BL_Shader),
+		sizeof(PyObjectPlus_Proxy),
 		0,
-		PyDestructor,
+		py_base_dealloc,
 		0,
 		0,
 		0,

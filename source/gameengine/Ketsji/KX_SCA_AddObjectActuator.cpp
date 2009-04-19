@@ -170,9 +170,9 @@ PyTypeObject KX_SCA_AddObjectActuator::Type = {
 	PyObject_HEAD_INIT(NULL)
 	0,
 	"KX_SCA_AddObjectActuator",
-	sizeof(KX_SCA_AddObjectActuator),
+	sizeof(PyObjectPlus_Proxy),
 	0,
-	PyDestructor,
+	py_base_dealloc,
 	0,
 	0,
 	0,

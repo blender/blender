@@ -50,13 +50,13 @@
    also in api2_2x/gen_utils.h 
 */
 #ifndef Py_RETURN_NONE
-#define Py_RETURN_NONE  return Py_BuildValue("O", Py_None)
+#define Py_RETURN_NONE  return Py_INCREF(Py_None), Py_None
 #endif
 #ifndef Py_RETURN_FALSE
-#define Py_RETURN_FALSE  return PyBool_FromLong(0)
+#define Py_RETURN_FALSE  return Py_INCREF(Py_False), Py_False
 #endif
 #ifndef Py_RETURN_TRUE
-#define Py_RETURN_TRUE  return PyBool_FromLong(1)
+#define Py_RETURN_TRUE  return Py_INCREF(Py_True), Py_True
 #endif
 
 /*  for pre Py 2.5 */
@@ -92,7 +92,7 @@ typedef struct {
 #define BGE_PROXY_PYOWNS(_self) (((PyObjectPlus_Proxy *)_self)->py_owns)
 
 /* Note, sometimes we dont care what BGE type this is as long as its a proxy */
-#define BGE_PROXY_CHECK_TYPE(_self) ((_self)->ob_type->tp_dealloc == PyDestructor)
+#define BGE_PROXY_CHECK_TYPE(_self) ((_self)->ob_type->tp_dealloc == py_base_dealloc)
 
 
 								// This must be the first line of each 
@@ -429,80 +429,34 @@ public:
 	PyObject *m_proxy; /* actually a PyObjectPlus_Proxy */
 	
 	virtual ~PyObjectPlus();					// destructor
-	static void PyDestructor(PyObject *self);				// python wrapper
 	
-//	void INCREF(void) {
-//		  Py_INCREF(this);
-//	  };				// incref method
-//	void DECREF(void) {
-//		  Py_DECREF(this);
-//	  };				// decref method
+	/* These static functions are referenced by ALL PyObjectPlus_Proxy types
+	 * they take the C++ reference from the PyObjectPlus_Proxy and call
+	 * its own virtual py_getattro, py_setattro etc. functions.
+	 */
+	static void			py_base_dealloc(PyObject *self);
+	static  PyObject*		py_base_getattro(PyObject * self, PyObject *attr);
+	static  int			py_base_setattro(PyObject *self, PyObject *attr, PyObject *value);
+	static PyObject*		py_base_repr(PyObject *self);
+
+	/* These are all virtual python methods that are defined in each class
+	 * Our own fake subclassing calls these on each class, then calls the parent */
+	virtual PyObject*		py_getattro(PyObject *attr);
+	virtual int			py_delattro(PyObject *attr);
+	virtual int			py_setattro(PyObject *attr, PyObject *value);
+	virtual PyObject*		py_repr(void);
+
+	static PyObject*		py_get_attrdef(void *self, const PyAttributeDef *attrdef);
+	static int				py_set_attrdef(void *self, const PyAttributeDef *attrdef, PyObject *value);
 	
-	virtual PyObject *py_getattro(PyObject *attr);			// py_getattro method
-	static  PyObject *py_base_getattro(PyObject * self, PyObject *attr) 	// This should be the entry in Type. 
-	{
-		PyObjectPlus *self_plus= BGE_PROXY_REF(self);
-		if(self_plus==NULL) {
-			if(!strcmp("isValid", PyString_AsString(attr))) {
-				Py_RETURN_TRUE;
-			}
-			PyErr_SetString(PyExc_RuntimeError, "data has been removed");
-			return NULL;
-		}
-		return self_plus->py_getattro(attr); 
-	}
-	
-	static PyObject*	py_get_attrdef(void *self, const PyAttributeDef *attrdef);
-	static int			py_set_attrdef(void *self, const PyAttributeDef *attrdef, PyObject *value);
-	
-#if 0
-	static PyObject *py_getattro_self(const PyAttributeDef attrlist[], void *self, PyObject *attr);
-	static int py_setattro_self(const PyAttributeDef attrlist[], void *self, PyObject *attr, PyObject *value);
-#endif
-	
-	virtual int py_delattro(PyObject *attr);
-	virtual int py_setattro(PyObject *attr, PyObject *value);		// py_setattro method
-	static  int py_base_setattro(PyObject *self, PyObject *attr, PyObject *value) // the PyType should reference this
-	{
-		PyObjectPlus *self_plus= BGE_PROXY_REF(self);
-		if(self_plus==NULL) {
-			PyErr_SetString(PyExc_RuntimeError, "data has been removed");
-			return -1;
-		}
-		
-		if (value==NULL)
-			return self_plus->py_delattro(attr);
-		
-		return self_plus->py_setattro(attr, value); 
-	}
-	
-	virtual PyObject *py_repr(void);				// py_repr method
-	static  PyObject *py_base_repr(PyObject *self)			// This should be the entry in Type.
-	{
-		
-		PyObjectPlus *self_plus= BGE_PROXY_REF(self);
-		if(self_plus==NULL) {
-			PyErr_SetString(PyExc_RuntimeError, "data has been removed");
-			return NULL;
-		}
-		
-		return self_plus->py_repr();  
-	}
-	
-									// isA methods
+	/* isA() methods, shonky replacement for pythons issubclass()
+	 * which we cant use because we have our own subclass system  */
 	bool isA(PyTypeObject *T);
 	bool isA(const char *mytypename);
-	PyObject *Py_isA(PyObject *value);
-	static PyObject *sPy_isA(PyObject *self, PyObject *value)
-	{
-		PyObjectPlus *self_plus= BGE_PROXY_REF(self);
-		if(self_plus==NULL) {
-			PyErr_SetString(PyExc_RuntimeError, "data has been removed");
-			return NULL;
-		}
-		
-		return self_plus->Py_isA(value);
-	}
+	PyObject *PyisA(PyObject *value);
+	//static PyObject *sPy_isA(PyObject *self, PyObject *value);
+	
+	KX_PYMETHOD_O(PyObjectPlus,isA);
 	
 	/* Kindof dumb, always returns True, the false case is checked for, before this function gets accessed */
 	static PyObject*	pyattr_get_is_valid(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);

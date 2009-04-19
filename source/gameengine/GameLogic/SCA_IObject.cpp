@@ -378,9 +378,9 @@ PyTypeObject SCA_IObject::Type = {
 	PyObject_HEAD_INIT(NULL)
 	0,
 	"SCA_IObject",
-	sizeof(SCA_IObject),
+	sizeof(PyObjectPlus_Proxy),
 	0,
-	PyDestructor,
+	py_base_dealloc,
 	0,
 	0,
 	0,

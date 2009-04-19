@@ -269,9 +269,9 @@ PyTypeObject SCA_JoystickSensor::Type = {
 	PyObject_HEAD_INIT(NULL)
 		0,
 		"SCA_JoystickSensor",
-		sizeof(SCA_JoystickSensor),
+		sizeof(PyObjectPlus_Proxy),
 		0,
-		PyDestructor,
+		py_base_dealloc,
 		0,
 		0,
 		0,

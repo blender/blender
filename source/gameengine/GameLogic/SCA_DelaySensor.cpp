@@ -134,9 +134,9 @@ PyTypeObject SCA_DelaySensor::Type = {
 	PyObject_HEAD_INIT(NULL)
 	0,
 	"SCA_DelaySensor",
-	sizeof(SCA_DelaySensor),
+	sizeof(PyObjectPlus_Proxy),
 	0,
-	PyDestructor,
+	py_base_dealloc,
 	0,
 	0,
 	0,

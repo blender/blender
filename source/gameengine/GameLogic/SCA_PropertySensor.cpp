@@ -309,9 +309,9 @@ PyTypeObject SCA_PropertySensor::Type = {
 	PyObject_HEAD_INIT(NULL)
 	0,
 	"SCA_PropertySensor",
-	sizeof(SCA_PropertySensor),
+	sizeof(PyObjectPlus_Proxy),
 	0,
-	PyDestructor,
+	py_base_dealloc,
 	0,
 	0,
 	0,

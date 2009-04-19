@@ -108,9 +108,9 @@ PyTypeObject SCA_AlwaysSensor::Type = {
 	PyObject_HEAD_INIT(NULL)
 	0,
 	"SCA_AlwaysSensor",
-	sizeof(SCA_AlwaysSensor),
+	sizeof(PyObjectPlus_Proxy),
 	0,
-	PyDestructor,
+	py_base_dealloc,
 	0,
 	0,
 	0,

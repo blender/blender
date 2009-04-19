@@ -125,9 +125,9 @@ PyTypeObject SCA_ActuatorSensor::Type = {
 	PyObject_HEAD_INIT(NULL)
 	0,
 	"SCA_ActuatorSensor",
-	sizeof(SCA_ActuatorSensor),
+	sizeof(PyObjectPlus_Proxy),
 	0,
-	PyDestructor,
+	py_base_dealloc,
 	0,
 	0,
 	0,

@@ -324,9 +324,9 @@ PyTypeObject KX_RaySensor::Type = {
 	PyObject_HEAD_INIT(NULL)
 	0,
 	"KX_RaySensor",
-	sizeof(KX_RaySensor),
+	sizeof(PyObjectPlus_Proxy),
 	0,
-	PyDestructor,
+	py_base_dealloc,
 	0,
 	0,
 	0,

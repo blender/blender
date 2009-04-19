@@ -315,9 +315,9 @@ PyTypeObject SCA_RandomActuator::Type = {
 	PyObject_HEAD_INIT(NULL)
 	0,
 	"SCA_RandomActuator",
-	sizeof(SCA_RandomActuator),
+	sizeof(PyObjectPlus_Proxy),
 	0,
-	PyDestructor,
+	py_base_dealloc,
 	0,
 	0,
 	0,

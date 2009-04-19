@@ -229,9 +229,9 @@ PyTypeObject KX_SceneActuator::Type = {
 	PyObject_HEAD_INIT(NULL)
 		0,
 		"KX_SceneActuator",
-		sizeof(KX_SceneActuator),
+		sizeof(PyObjectPlus_Proxy),
 		0,
-		PyDestructor,
+		py_base_dealloc,
 		0,
 		0,
 		0,

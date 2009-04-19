@@ -428,9 +428,9 @@ PyTypeObject KX_TrackToActuator::Type = {
 	PyObject_HEAD_INIT(NULL)
 	0,
 	"KX_TrackToActuator",
-	sizeof(KX_TrackToActuator),
+	sizeof(PyObjectPlus_Proxy),
 	0,
-	PyDestructor,
+	py_base_dealloc,
 	0,
 	0,
 	0,

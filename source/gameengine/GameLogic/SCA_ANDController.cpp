@@ -110,9 +110,9 @@ PyTypeObject SCA_ANDController::Type = {
 	PyObject_HEAD_INIT(NULL)
 	0,
 	"SCA_ANDController",
-	sizeof(SCA_ANDController),
+	sizeof(PyObjectPlus_Proxy),
 	0,
-	PyDestructor,
+	py_base_dealloc,
 	0,
 	0,
 	0,

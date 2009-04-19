@@ -245,9 +245,9 @@ PyTypeObject KX_TouchSensor::Type = {
 	PyObject_HEAD_INIT(NULL)
 	0,
 	"KX_TouchSensor",
-	sizeof(KX_TouchSensor),
+	sizeof(PyObjectPlus_Proxy),
 	0,
-	PyDestructor,
+	py_base_dealloc,
 	0,
 	0,
 	0,

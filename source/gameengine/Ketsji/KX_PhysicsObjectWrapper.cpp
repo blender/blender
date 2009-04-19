@@ -124,9 +124,9 @@ PyTypeObject KX_PhysicsObjectWrapper::Type = {
 	PyObject_HEAD_INIT(NULL)
 		0,
 		"KX_PhysicsObjectWrapper",
-		sizeof(KX_PhysicsObjectWrapper),
+		sizeof(PyObjectPlus_Proxy),
 		0,
-		PyDestructor,
+		py_base_dealloc,
 		0,
 		0,
 		0,

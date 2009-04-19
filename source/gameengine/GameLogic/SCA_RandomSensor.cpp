@@ -130,9 +130,9 @@ PyTypeObject SCA_RandomSensor::Type = {
 	PyObject_HEAD_INIT(NULL)
 	0,
 	"SCA_RandomSensor",
-	sizeof(SCA_RandomSensor),
+	sizeof(PyObjectPlus_Proxy),
 	0,
-	PyDestructor,
+	py_base_dealloc,
 	0,
 	0,
 	0,

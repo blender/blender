@@ -113,9 +113,9 @@ PyTypeObject SCA_2DFilterActuator::Type = {
         PyObject_HEAD_INIT(NULL)
         0,
         "SCA_2DFilterActuator",
-        sizeof(SCA_2DFilterActuator),
+        sizeof(PyObjectPlus_Proxy),
         0,
-		PyDestructor,
+		py_base_dealloc,
 		0,
 		0,
 		0,

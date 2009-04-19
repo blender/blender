@@ -49,9 +49,9 @@ PyTypeObject KX_MeshProxy::Type = {
 	PyObject_HEAD_INIT(NULL)
 	0,
 	"KX_MeshProxy",
-	sizeof(KX_MeshProxy),
+	sizeof(PyObjectPlus_Proxy),
 	0,
-	PyDestructor,
+	py_base_dealloc,
 	0,
 	0,
 	0,

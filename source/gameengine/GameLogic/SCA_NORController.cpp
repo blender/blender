@@ -110,9 +110,9 @@ PyTypeObject SCA_NORController::Type = {
 	PyObject_HEAD_INIT(NULL)
 	0,
 	"SCA_NORController",
-	sizeof(SCA_NORController),
+	sizeof(PyObjectPlus_Proxy),
 	0,
-	PyDestructor,
+	py_base_dealloc,
 	0,
 	0,
 	0,

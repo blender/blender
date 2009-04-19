@@ -227,9 +227,9 @@ PyTypeObject SCA_PythonController::Type = {
 	PyObject_HEAD_INIT(NULL)
 		0,
 		"SCA_PythonController",
-		sizeof(SCA_PythonController),
+		sizeof(PyObjectPlus_Proxy),
 		0,
-		PyDestructor,
+		py_base_dealloc,
 		0,
 		0,
 		0,
@@ -441,9 +441,7 @@ SCA_PythonController::PyGetSensor(PyObject* self, PyObject* value)
 		}
 	}
 	
-	char emsg[96];
-	PyOS_snprintf( emsg, sizeof( emsg ), "Unable to find requested sensor \"%s\"", scriptArg );
-	PyErr_SetString(PyExc_AttributeError, emsg);
+	PyErr_Format(PyExc_AttributeError, "Unable to find requested sensor \"%s\"", scriptArg);
 	return NULL;
 }
 
@@ -470,9 +468,7 @@ SCA_PythonController::PyGetActuator(PyObject* self, PyObject* value)
 		}
 	}
 	
-	char emsg[96];
-	PyOS_snprintf( emsg, sizeof( emsg ), "Unable to find requested actuator \"%s\"", scriptArg );
-	PyErr_SetString(PyExc_AttributeError, emsg);
+	PyErr_Format(PyExc_AttributeError, "Unable to find requested actuator \"%s\"", scriptArg);
 	return NULL;
 }
 

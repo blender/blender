@@ -968,9 +968,9 @@ PyTypeObject BL_ActionActuator::Type = {
 	PyObject_HEAD_INIT(NULL)
 		0,
 		"BL_ActionActuator",
-		sizeof(BL_ActionActuator),
+		sizeof(PyObjectPlus_Proxy),
 		0,
-		PyDestructor,
+		py_base_dealloc,
 		0,
 		0,
 		0,
