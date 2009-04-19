@@ -1010,6 +1010,7 @@ PyObject *pyrna_param_to_py(PointerRNA *ptr, PropertyRNA *prop, void *data)
 	PyObject *ret;
 	int type = RNA_property_type(prop);
 	int len = RNA_property_array_length(prop);
+
 	int a;
 
 	if(len > 0) {

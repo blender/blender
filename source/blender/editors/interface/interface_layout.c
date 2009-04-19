@@ -1262,7 +1262,7 @@ void uiRegionHeaderLayout(const bContext *C, ARegion *ar)
 	uiBlock *block;
 	uiLayout *layout;
 	HeaderType *ht;
-	Header header = {};
+	Header header = {0};
 	float col[3];
 	int xco, yco;
 

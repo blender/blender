@@ -84,11 +84,6 @@ void		ED_keymap_mesh(struct wmWindowManager *wm);
 
 /* editmesh.c */
 
-/*accessor functions for editmesh, all access to editmesh must
-  go through them!*/
-struct EditMesh *BKE_mesh_get_editmesh(struct Mesh *me);
-void BKE_mesh_end_editmesh(struct Mesh *me, struct EditMesh *em);
-
 void		ED_spacetypes_init(void);
 void		ED_keymap_mesh(struct wmWindowManager *wm);
 
