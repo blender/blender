@@ -602,10 +602,7 @@ BL_Material* ConvertMaterial(
 
 	if( validface ) {
 
-		material->ras_mode |= !( 
-			(mface->flag & ME_HIDE)	||
-			(tface->mode & TF_INVISIBLE)
-			)?POLY_VIS:0;
+		material->ras_mode |= (tface->mode & TF_INVISIBLE)?0:POLY_VIS;
 
 		material->transp = tface->transp;
 		material->tile	= tface->tile;
@@ -900,7 +897,7 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 					tile = tface->tile;
 					mode = tface->mode;
 					
-					visible = !((mface->flag & ME_HIDE)||(tface->mode & TF_INVISIBLE));
+					visible = !(tface->mode & TF_INVISIBLE);
 					twoside = ((tface->mode & TF_TWOSIDE)!=0);
 					
 					uv0.setValue(tface->uv[0]);
