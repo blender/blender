@@ -208,7 +208,7 @@ static LRESULT CALLBACK screenSaverWindowProc(HWND hwnd, UINT uMsg, WPARAM wPara
 
 BOOL CALLBACK findGhostWindowHWNDProc(HWND hwnd, LPARAM lParam)
 {
-	GHOST_IWindow *p = (GHOST_IWindow*) GetWindowLong(hwnd, GWL_USERDATA);
+	GHOST_IWindow *p = (GHOST_IWindow*) GetWindowLongPtr(hwnd, GWLP_USERDATA);
 	BOOL ret = TRUE;
 	if (p == ghost_window_to_find)
 	{
@@ -292,8 +292,8 @@ bool GPG_Application::startScreenSaverFullScreen(
 		if (ghost_hwnd != NULL)
 		{
 			GetCursorPos(&scr_save_mouse_pos);
-			ghost_wnd_proc = (WNDPROC) GetWindowLong(ghost_hwnd, GWL_WNDPROC);
-			SetWindowLong(ghost_hwnd,GWL_WNDPROC, (LONG) screenSaverWindowProc);
+			ghost_wnd_proc = (WNDPROC) GetWindowLongPtr(ghost_hwnd, GWLP_WNDPROC);
+			SetWindowLongPtr(ghost_hwnd,GWLP_WNDPROC, (uintptr_t) screenSaverWindowProc);
 		}
 	}
 	return ret;
