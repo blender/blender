@@ -326,6 +326,10 @@ static void dag_add_driver_relation(AnimData *adt, DagForest *dag, DagNode *node
 					/* check if bone... */
 					if ((ob->type==OB_ARMATURE) && dtar->rna_path && strstr(dtar->rna_path, "pose.pose_channels["))
 						dag_add_relation(dag, node1, node, isdata?DAG_RL_DATA_DATA:DAG_RL_DATA_OB, "Driver");
+					/* check if ob data */
+					else if (dtar->rna_path && strstr(dtar->rna_path, "data."))
+						dag_add_relation(dag, node1, node, isdata?DAG_RL_DATA_DATA:DAG_RL_DATA_OB, "Driver");
+					/* normal */
 					else
 						dag_add_relation(dag, node1, node, isdata?DAG_RL_OB_DATA:DAG_RL_OB_OB, "Driver");
 				}

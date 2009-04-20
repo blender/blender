@@ -401,12 +401,12 @@ static short animsys_write_rna_setting (PointerRNA *ptr, char *path, int array_i
 					RNA_property_enum_set(&new_ptr, prop, (int)value);
 					break;
 				default:
-					break;
+					/* nothing can be done here... so it is unsuccessful? */
+					return 0;
 			}
 		}
 		
 		/* successful */
-		// XXX should the unhandled case also be successful?
 		return 1;
 	}
 	else {

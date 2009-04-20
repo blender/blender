@@ -126,7 +126,6 @@ extern "C" {
 
 	void BPY_pydriver_update(void);
 	float BPY_pydriver_eval(struct ChannelDriver *driver);
-	struct Object **BPY_pydriver_get_objects(struct ChannelDriver *driver);
 
 	int BPY_button_eval(char *expr, double *value);
 

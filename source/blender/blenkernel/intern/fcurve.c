@@ -650,7 +650,7 @@ ChannelDriver *fcurve_copy_driver (ChannelDriver *driver)
 /* Driver Evaluation -------------------------- */
 
 /* Helper function to obtain a value using RNA from the specified source (for evaluating drivers) */
-static float driver_get_target_value (ChannelDriver *driver, DriverTarget *dtar)
+float driver_get_target_value (ChannelDriver *driver, DriverTarget *dtar)
 {
 	PointerRNA id_ptr, ptr;
 	PropertyRNA *prop;
