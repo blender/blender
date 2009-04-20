@@ -90,6 +90,8 @@ public:
 	KX_PYMETHOD_NOARGS(SCA_ILogicBrick,GetOwner);
 	KX_PYMETHOD_VARARGS(SCA_ILogicBrick,SetExecutePriority);
 	KX_PYMETHOD_NOARGS(SCA_ILogicBrick,GetExecutePriority);
+	
+	static PyObject*	pyattr_get_owner(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 
 	// check that attribute is a property
 	static int CheckProperty(void *self, const PyAttributeDef *attrdef);

@@ -1182,22 +1182,12 @@ bool KX_GameObject::ConvertPythonVectorArgs(PyObject* args,
 PyObject* KX_GameObject::PyReplaceMesh(PyObject* value)
 {
 	KX_Scene *scene = KX_GetActiveScene();
-	char* meshname;
-	void* mesh_pt;
-
-	meshname = PyString_AsString(value);
-	if (meshname==NULL) {
-		PyErr_SetString(PyExc_ValueError, "gameOb.replaceMesh(value): KX_GameObject, expected a mesh name");
-		return NULL;
-	}
-	mesh_pt = SCA_ILogicBrick::m_sCurrentLogicManager->GetMeshByName(STR_String(meshname));
+	RAS_MeshObject* new_mesh;
 	
-	if (mesh_pt==NULL) {
-		PyErr_SetString(PyExc_ValueError, "gameOb.replaceMesh(value): KX_GameObject, the mesh name given does not exist");
+	if (!ConvertPythonToMesh(value, &new_mesh, false, "gameOb.replaceMesh(value): KX_GameObject"))
 		return NULL;
-	}
-	scene->ReplaceMesh(this, (class RAS_MeshObject*)mesh_pt);
 	
+	scene->ReplaceMesh(this, new_mesh);
 	Py_RETURN_NONE;
 }
 
@@ -1568,49 +1558,15 @@ PyObject* KX_GameObject::pyattr_get_localOrientation(void *self_v, const KX_PYAT
 int KX_GameObject::pyattr_set_localOrientation(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
 {
 	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
-	if (!PySequence_Check(value)) {
-		PyErr_SetString(PyExc_AttributeError, "gameOb.orientation = [...]: KX_GameObject, expected a sequence");
-		return 1;
-	}
-
+	
+	/* if value is not a sequence PyOrientationTo makes an error */
 	MT_Matrix3x3 rot;
+	if (!PyOrientationTo(value, rot, "gameOb.orientation = sequence: KX_GameObject, "))
+		return NULL;
 
-	if (PyMatTo(value, rot))
-	{
-		self->NodeSetLocalOrientation(rot);
-		self->NodeUpdateGS(0.f);
-		return 0;
-	}
-	PyErr_Clear();
-
-	if (PySequence_Size(value) == 4)
-	{
-		MT_Quaternion qrot;
-		if (PyVecTo(value, qrot))
-		{
-			rot.setRotation(qrot);
-			self->NodeSetLocalOrientation(rot);
-			self->NodeUpdateGS(0.f);
-			return 0;
-		}
-		return 1;
-	}
-
-	if (PySequence_Size(value) == 3)
-	{
-		MT_Vector3 erot;
-		if (PyVecTo(value, erot))
-		{
-			rot.setEuler(erot);
-			self->NodeSetLocalOrientation(rot);
-			self->NodeUpdateGS(0.f);
-			return 0;
-		}
-		return 1;
-	}
-
-	PyErr_SetString(PyExc_AttributeError, "gameOb.orientation = [...]: KX_GameObject, could not set the orientation from a 3x3 matrix, quaternion or euler sequence");
-	return 1;
+	self->NodeSetLocalOrientation(rot);
+	self->NodeUpdateGS(0.f);
+	return 0;
 }
 
 PyObject* KX_GameObject::pyattr_get_worldScaling(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
@@ -2127,7 +2083,7 @@ PyObject* KX_GameObject::PyGetParent()
 PyObject* KX_GameObject::PySetParent(PyObject* value)
 {
 	KX_GameObject *obj;
-	if (!ConvertPythonToGameObject(value, &obj, false))
+	if (!ConvertPythonToGameObject(value, &obj, false, "gameOb.setParent(value): KX_GameObject"))
 		return NULL;
 	
 	this->SetParent(KX_GetActiveScene(), obj);
@@ -2362,7 +2318,7 @@ KX_PYMETHODDEF_DOC_O(KX_GameObject, getDistanceTo,
 	PyErr_Clear();
 	
 	KX_GameObject *other;
-	if (ConvertPythonToGameObject(value, &other, false))
+	if (ConvertPythonToGameObject(value, &other, false, "gameOb.getDistanceTo(value): KX_GameObject"))
 	{
 		return PyFloat_FromDouble(NodeGetWorldPosition().distance(other->NodeGetWorldPosition()));
 	}
@@ -2385,7 +2341,7 @@ KX_PYMETHODDEF_DOC_O(KX_GameObject, getVectTo,
 		PyErr_Clear();
 		
 		KX_GameObject *other;
-		if (ConvertPythonToGameObject(value, &other, false))
+		if (ConvertPythonToGameObject(value, &other, false, "")) /* error will be overwritten */
 		{
 			toPoint = other->NodeGetWorldPosition();
 		} else
@@ -2479,7 +2435,7 @@ KX_PYMETHODDEF_DOC(KX_GameObject, rayCastTo,
 		KX_GameObject *other;
 		PyErr_Clear();
 		
-		if (ConvertPythonToGameObject(pyarg, &other, false))
+		if (ConvertPythonToGameObject(pyarg, &other, false, "")) /* error will be overwritten */
 		{
 			toPoint = other->NodeGetWorldPosition();
 		} else
@@ -2555,7 +2511,7 @@ KX_PYMETHODDEF_DOC(KX_GameObject, rayCast,
 	{
 		PyErr_Clear();
 		
-		if (ConvertPythonToGameObject(pyto, &other, false))
+		if (ConvertPythonToGameObject(pyto, &other, false, ""))  /* error will be overwritten */
 		{
 			toPoint = other->NodeGetWorldPosition();
 		} else
@@ -2572,7 +2528,7 @@ KX_PYMETHODDEF_DOC(KX_GameObject, rayCast,
 	{
 		PyErr_Clear();
 		
-		if (ConvertPythonToGameObject(pyfrom, &other, false))
+		if (ConvertPythonToGameObject(pyfrom, &other, false, "")) /* error will be overwritten */
 		{
 			fromPoint = other->NodeGetWorldPosition();
 		} else
@@ -2685,10 +2641,10 @@ void KX_GameObject::Relink(GEN_Map<GEN_HashedPtr, void*> *map_parameter)
 	}
 }
 
-bool ConvertPythonToGameObject(PyObject * value, KX_GameObject **object, bool py_none_ok)
+bool ConvertPythonToGameObject(PyObject * value, KX_GameObject **object, bool py_none_ok, const char *error_prefix)
 {
 	if (value==NULL) {
-		PyErr_SetString(PyExc_TypeError, "Error in ConvertPythonToGameObject, python pointer NULL, should never happen");
+		PyErr_Format(PyExc_TypeError, "%s, python pointer NULL, should never happen", error_prefix);
 		*object = NULL;
 		return false;
 	}
@@ -2699,7 +2655,7 @@ bool ConvertPythonToGameObject(PyObject * value, KX_GameObject **object, bool py
 		if (py_none_ok) {
 			return true;
 		} else {
-			PyErr_SetString(PyExc_TypeError, "Expected KX_GameObject or a string for a name of a KX_GameObject, None is invalid");
+			PyErr_Format(PyExc_TypeError, "%s, expected KX_GameObject or a KX_GameObject name, None is invalid", error_prefix);
 			return false;
 		}
 	}
@@ -2710,7 +2666,7 @@ bool ConvertPythonToGameObject(PyObject * value, KX_GameObject **object, bool py
 		if (*object) {
 			return true;
 		} else {
-			PyErr_SetString(PyExc_ValueError, "Requested name did not match any KX_GameObject");
+			PyErr_Format(PyExc_ValueError, "%s, requested name \"%s\" did not match any KX_GameObject in this scene", error_prefix, PyString_AsString(value));
 			return false;
 		}
 	}
@@ -2720,7 +2676,7 @@ bool ConvertPythonToGameObject(PyObject * value, KX_GameObject **object, bool py
 		
 		/* sets the error */
 		if (*object==NULL) {
-			PyErr_SetString(PyExc_RuntimeError, BGE_PROXY_ERROR_MSG);
+			PyErr_Format(PyExc_RuntimeError, "%s, " BGE_PROXY_ERROR_MSG, error_prefix);
 			return false;
 		}
 		
@@ -2730,9 +2686,9 @@ bool ConvertPythonToGameObject(PyObject * value, KX_GameObject **object, bool py
 	*object = NULL;
 	
 	if (py_none_ok) {
-		PyErr_SetString(PyExc_TypeError, "Expect a KX_GameObject, a string or None");
+		PyErr_Format(PyExc_TypeError, "%s, expect a KX_GameObject, a string or None", error_prefix);
 	} else {
-		PyErr_SetString(PyExc_TypeError, "Expect a KX_GameObject or a string");
+		PyErr_Format(PyExc_TypeError, "%s, expect a KX_GameObject or a string", error_prefix);
 	}
 	
 	return false;

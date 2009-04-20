@@ -462,7 +462,7 @@ PyObject* KX_CameraActuator::PySetObject(PyObject* value)
 	
 	ShowDeprecationWarning("setObject()", "the object property");
 	
-	if (!ConvertPythonToGameObject(value, &gameobj, true))
+	if (!ConvertPythonToGameObject(value, &gameobj, true, "actuator.setObject(value): KX_CameraActuator"))
 		return NULL; // ConvertPythonToGameObject sets the error
 	
 	if (m_ob != NULL)
@@ -589,7 +589,7 @@ int KX_CameraActuator::pyattr_set_object(void *self_v, const KX_PYATTRIBUTE_DEF 
 	KX_CameraActuator* self= static_cast<KX_CameraActuator*>(self_v);
 	KX_GameObject *gameobj;
 	
-	if (!ConvertPythonToGameObject(value, &gameobj, true))
+	if (!ConvertPythonToGameObject(value, &gameobj, true, "actuator.object = value: KX_CameraActuator"))
 		return 1; // ConvertPythonToGameObject sets the error
 	
 	if (self->m_ob)

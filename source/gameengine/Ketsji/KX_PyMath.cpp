@@ -44,6 +44,7 @@
 #include "ListValue.h"
 
 #include "KX_Python.h"
+#include "KX_PyMath.h"
 
 bool PyObject_IsMT_Matrix(PyObject *pymat, unsigned int rank)
 {
@@ -74,6 +75,39 @@ bool PyObject_IsMT_Matrix(PyObject *pymat, unsigned int rank)
 	return false;
 }
 
+bool PyOrientationTo(PyObject* pyval, MT_Matrix3x3 &mat, const char *error_prefix)
+{
+	MT_Matrix3x3 rot;
+	int size= PySequence_Size(pyval);
+	
+	if (size == 4)
+	{
+		MT_Quaternion qrot;
+		if (PyVecTo(pyval, qrot))
+		{
+			rot.setRotation(qrot);
+			return true;
+		}
+	}
+	else if (size == 3) {
+		/* 3x3 matrix or euler */
+		MT_Vector3 erot;
+		if (PyVecTo(pyval, erot))
+		{
+			rot.setEuler(erot);
+			return true;
+		}
+		PyErr_Clear();
+		
+		if (PyMatTo(pyval, rot))
+		{
+			return true;
+		}
+	}
+	
+	PyErr_Format(PyExc_TypeError, "%s, could not set the orientation from a 3x3 matrix, quaternion or euler sequence", error_prefix);
+	return false;
+}
 
 PyObject* PyObjectFrom(const MT_Matrix4x4 &mat)
 {

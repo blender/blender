@@ -246,8 +246,8 @@ PyParentObject SCA_ILogicBrick::Parents[] = {
 
 
 PyMethodDef SCA_ILogicBrick::Methods[] = {
+	// --> Deprecated
   {"getOwner", (PyCFunction) SCA_ILogicBrick::sPyGetOwner, METH_NOARGS},
-  // --> Deprecated
   {"getExecutePriority", (PyCFunction) SCA_ILogicBrick::sPyGetExecutePriority, METH_NOARGS},
   {"setExecutePriority", (PyCFunction) SCA_ILogicBrick::sPySetExecutePriority, METH_VARARGS},
   // <-- Deprecated
@@ -255,6 +255,7 @@ PyMethodDef SCA_ILogicBrick::Methods[] = {
 };
 
 PyAttributeDef SCA_ILogicBrick::Attributes[] = {
+	KX_PYATTRIBUTE_RO_FUNCTION("owner",	SCA_ILogicBrick, pyattr_get_owner),
 	KX_PYATTRIBUTE_INT_RW("executePriority",0,100000,false,SCA_ILogicBrick,m_Execute_Ueber_Priority),
 	{NULL} //Sentinel
 };
@@ -291,6 +292,8 @@ int SCA_ILogicBrick::py_setattro(PyObject *attr, PyObject *value)
 
 PyObject* SCA_ILogicBrick::PyGetOwner()
 {
+	ShowDeprecationWarning("getOwner()", "the owner property");
+	
 	CValue* parent = GetParent();
 	if (parent)
 	{
@@ -327,6 +330,19 @@ PyObject* SCA_ILogicBrick::PyGetExecutePriority()
 }
 
 
+/*Attribute functions */
+PyObject* SCA_ILogicBrick::pyattr_get_owner(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	SCA_ILogicBrick* self= static_cast<SCA_ILogicBrick*>(self_v);
+	CValue* parent = self->GetParent();
+	
+	if (parent)
+		return parent->GetProxy();
+	
+	Py_RETURN_NONE;
+}
+
+
 
 /* Conversions for making life better. */
 bool SCA_ILogicBrick::PyArgToBool(int boolArg)
@@ -337,8 +353,6 @@ bool SCA_ILogicBrick::PyArgToBool(int boolArg)
 		return false;
 	}
 }
-
-
 
 PyObject* SCA_ILogicBrick::BoolToPyArg(bool boolarg)
 {

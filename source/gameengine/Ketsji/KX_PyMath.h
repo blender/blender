@@ -145,6 +145,8 @@ bool PyVecTo(PyObject* pyval, T& vec)
 	return false;
 }
 
+bool PyOrientationTo(PyObject* pyval, MT_Matrix3x3 &mat, const char *error_prefix);
+
 /**
  * Converts an MT_Matrix4x4 to a python object.
  */

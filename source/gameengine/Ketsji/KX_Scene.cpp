@@ -1747,8 +1747,8 @@ KX_PYMETHODDEF_DOC(KX_Scene, addObject,
 	if (!PyArg_ParseTuple(args, "OO|i:addObject", &pyob, &pyother, &time))
 		return NULL;
 
-	if (!ConvertPythonToGameObject(pyob, &ob, false)
-		|| !ConvertPythonToGameObject(pyother, &other, false))
+	if (	!ConvertPythonToGameObject(pyob, &ob, false, "scene.addObject(object, other, time): KX_Scene (first argument)") ||
+			!ConvertPythonToGameObject(pyother, &other, false, "scene.addObject(object, other, time): KX_Scene (second argument)") )
 		return NULL;
 
 

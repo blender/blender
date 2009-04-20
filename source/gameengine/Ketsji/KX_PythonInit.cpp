@@ -1357,14 +1357,17 @@ void setSandbox(TPythonSecurityLevel level)
 /**
  * Python is not initialised.
  */
-PyObject* initGamePlayerPythonScripting(const STR_String& progname, TPythonSecurityLevel level, Main *maggie)
+PyObject* initGamePlayerPythonScripting(const STR_String& progname, TPythonSecurityLevel level, Main *maggie, int argc, char** argv)
 {
 	STR_String pname = progname;
 	Py_SetProgramName(pname.Ptr());
 	Py_NoSiteFlag=1;
 	Py_FrozenFlag=1;
 	Py_Initialize();
-
+	
+	if(argv) /* browser plugins dont currently set this */
+		PySys_SetArgv(argc, argv);
+	
 	//importBlenderModules()
 	
 	setSandbox(level);

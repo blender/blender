@@ -47,14 +47,15 @@ PyObject* KX_VehicleWrapper::PyAddWheel(PyObject* args)
 	if (PyArg_ParseTuple(args,"OOOOffi:addWheel",&wheelGameObject,&pylistPos,&pylistDir,&pylistAxleDir,&suspensionRestLength,&wheelRadius,&hasSteering))
 	{
 		KX_GameObject *gameOb;
-		if (!ConvertPythonToGameObject(wheelGameObject, &gameOb, false))
+		if (!ConvertPythonToGameObject(wheelGameObject, &gameOb, false, "vehicle.addWheel(...): KX_VehicleWrapper (first argument)"))
 			return NULL;
 		
 
 		if (gameOb->GetSGNode())
 		{
 			PHY_IMotionState* motionState = new KX_MotionState(gameOb->GetSGNode());
-
+			
+			/* TODO - no error checking here! - bad juju */
 			MT_Vector3 attachPos,attachDir,attachAxle;
 			PyVecTo(pylistPos,attachPos);
 			PyVecTo(pylistDir,attachDir);

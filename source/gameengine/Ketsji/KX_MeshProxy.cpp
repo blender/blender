@@ -304,3 +304,58 @@ PyObject * KX_MeshProxy::pyattr_get_numPolygons(void * selfv, const KX_PYATTRIBU
 	KX_MeshProxy * self = static_cast<KX_MeshProxy *> (selfv);
 	return PyInt_FromLong(self->m_meshobj->NumPolygons());
 }
+
+/* a close copy of ConvertPythonToGameObject but for meshes */
+bool ConvertPythonToMesh(PyObject * value, RAS_MeshObject **object, bool py_none_ok, const char *error_prefix)
+{
+	if (value==NULL) {
+		PyErr_Format(PyExc_TypeError, "%s, python pointer NULL, should never happen", error_prefix);
+		*object = NULL;
+		return false;
+	}
+		
+	if (value==Py_None) {
+		*object = NULL;
+		
+		if (py_none_ok) {
+			return true;
+		} else {
+			PyErr_Format(PyExc_TypeError, "%s, expected KX_MeshProxy or a KX_MeshProxy name, None is invalid", error_prefix);
+			return false;
+		}
+	}
+	
+	if (PyString_Check(value)) {
+		*object = (RAS_MeshObject*)SCA_ILogicBrick::m_sCurrentLogicManager->GetMeshByName(STR_String( PyString_AsString(value) ));
+		
+		if (*object) {
+			return true;
+		} else {
+			PyErr_Format(PyExc_ValueError, "%s, requested name \"%s\" did not match any KX_MeshProxy in this scene", error_prefix, PyString_AsString(value));
+			return false;
+		}
+	}
+	
+	if (PyObject_TypeCheck(value, &KX_MeshProxy::Type)) {
+		KX_MeshProxy *kx_mesh = static_cast<KX_MeshProxy*>BGE_PROXY_REF(value);
+		
+		/* sets the error */
+		if (*object==NULL) {
+			PyErr_Format(PyExc_RuntimeError, "%s, " BGE_PROXY_ERROR_MSG, error_prefix);
+			return false;
+		}		
+		
+		*object = kx_mesh->GetMesh();
+		return true;
+	}
+	
+	*object = NULL;
+	
+	if (py_none_ok) {
+		PyErr_Format(PyExc_TypeError, "%s, expect a KX_MeshProxy, a string or None", error_prefix);
+	} else {
+		PyErr_Format(PyExc_TypeError, "%s, expect a KX_MeshProxy or a string", error_prefix);
+	}
+	
+	return false;
+}

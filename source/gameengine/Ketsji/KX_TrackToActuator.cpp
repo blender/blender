@@ -489,7 +489,7 @@ int KX_TrackToActuator::pyattr_set_object(void *self, const struct KX_PYATTRIBUT
 	KX_TrackToActuator* actuator = static_cast<KX_TrackToActuator*>(self);
 	KX_GameObject *gameobj;
 		
-	if (!ConvertPythonToGameObject(value, &gameobj, true))
+	if (!ConvertPythonToGameObject(value, &gameobj, true, "actuator.object = value: KX_TrackToActuator"))
 		return 1; // ConvertPythonToGameObject sets the error
 		
 	if (actuator->m_object != NULL)
@@ -525,7 +525,7 @@ PyObject* KX_TrackToActuator::PySetObject(PyObject* value)
 	
 	ShowDeprecationWarning("setObject()", "the object property");
 	
-	if (!ConvertPythonToGameObject(value, &gameobj, true))
+	if (!ConvertPythonToGameObject(value, &gameobj, true, "actuator.setObject(value): KX_TrackToActuator"))
 		return NULL; // ConvertPythonToGameObject sets the error
 	
 	if (m_object != NULL)

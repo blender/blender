@@ -192,7 +192,7 @@ int KX_ParentActuator::pyattr_set_object(void *self, const struct KX_PYATTRIBUTE
 	KX_ParentActuator* actuator = static_cast<KX_ParentActuator*>(self);
 	KX_GameObject *gameobj;
 		
-	if (!ConvertPythonToGameObject(value, &gameobj, true))
+	if (!ConvertPythonToGameObject(value, &gameobj, true, "actuator.object = value: KX_ParentActuator"))
 		return 1; // ConvertPythonToGameObject sets the error
 		
 	if (actuator->m_ob != NULL)
@@ -226,7 +226,7 @@ PyObject* KX_ParentActuator::PySetObject(PyObject* value) {
 	
 	ShowDeprecationWarning("setObject()", "the object property");
 	
-	if (!ConvertPythonToGameObject(value, &gameobj, true))
+	if (!ConvertPythonToGameObject(value, &gameobj, true, "actuator.setObject(value): KX_ParentActuator"))
 		return NULL; // ConvertPythonToGameObject sets the error
 	
 	if (m_ob != NULL)

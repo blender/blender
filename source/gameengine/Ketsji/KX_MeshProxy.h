@@ -31,6 +31,9 @@
 
 #include "SCA_IObject.h"
 
+/* utility conversion function */
+bool ConvertPythonToMesh(PyObject * value, class RAS_MeshObject **object, bool py_none_ok, const char *error_prefix);
+
 class KX_MeshProxy	: public SCA_IObject
 {
 	Py_Header;

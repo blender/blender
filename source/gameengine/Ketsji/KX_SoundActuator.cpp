@@ -540,50 +540,16 @@ int KX_SoundActuator::pyattr_set_orientation(void *self, const struct KX_PYATTRI
 	MT_Matrix3x3 rot;
 	KX_SoundActuator * actuator = static_cast<KX_SoundActuator *> (self);
 
-	if (!PySequence_Check(value)) {
-		PyErr_SetString(PyExc_AttributeError, "value = actuator.orientation: KX_SoundActuator, expected a sequence");
-		return 1;
-	}
-
+	/* if value is not a sequence PyOrientationTo makes an error */
+	if (!PyOrientationTo(value, rot, "actuator.orientation = value: KX_SoundActuator"))
+		return NULL;
+	
 	if (!actuator->m_soundObject)
 		return 0; /* Since not having m_soundObject didn't do anything in the old version,
-				  * it probably should be kept that way  */
-
-	if (PyMatTo(value, rot))
-	{
-		actuator->m_soundObject->SetOrientation(rot);
-		return 0;
-	}
-	PyErr_Clear();
-
-
-	if (PySequence_Size(value) == 4)
-	{
-		MT_Quaternion qrot;
-		if (PyVecTo(value, qrot))
-		{
-			rot.setRotation(qrot);
-			actuator->m_soundObject->SetOrientation(rot);
-			return 0;
-		}
-		return 1;
-	}
-
-	if (PySequence_Size(value) == 3)
-	{
-		MT_Vector3 erot;
-		if (PyVecTo(value, erot))
-		{
-			rot.setEuler(erot);
-			actuator->m_soundObject->SetOrientation(rot);
-			return 0;
-		}
-		return 1;
-	}
-
-	PyErr_SetString(PyExc_AttributeError, "could not set the orientation from a 3x3 matrix, quaternion or euler sequence");
-	return 1;
-
+					* it probably should be kept that way  */
+	
+	actuator->m_soundObject->SetOrientation(rot);
+	return 0;
 }
 
 // Deprecated ----->
