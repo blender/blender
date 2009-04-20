@@ -163,7 +163,8 @@ void Texture_dealloc (Texture * self)
 	// release renderer
 	Py_XDECREF(self->m_source);
 	// close texture
-	Texture_close(self);
+	PyObject* ret = Texture_close(self);
+	Py_DECREF(ret);
 	// release scaled image buffer
 	delete [] self->m_scaledImg;
 	// release object
