@@ -162,20 +162,6 @@ static void do_graph_region_driver_buttons(bContext *C, void *arg, int event)
 	WM_event_add_notifier(C, NC_SCENE, scene);
 }
 
-#if 0 // XXX replace this for RNA
-/* callback to copy over RNA-Paths accordingly */
-static void driver_rnapath_copy_cb (bContext *C, void *driver_v, void *strbuf_v)
-{
-	ChannelDriver *driver= (ChannelDriver *)driver_v;
-	char *stringBuf= (char *)strbuf_v;
-	
-	/* copy over string */
-	if (driver->rna_path)
-		MEM_freeN(driver->rna_path);
-	driver->rna_path= BLI_strdupn(stringBuf, strlen(stringBuf));
-}
-#endif
-
 /* callback to remove the active driver */
 static void driver_remove_cb (bContext *C, void *ale_v, void *dummy_v)
 {
