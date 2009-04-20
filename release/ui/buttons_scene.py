@@ -60,7 +60,6 @@ class RENDER_PT_image(RenderButtonsPanel):
 		
 		layout.row()
 		layout.itemR(rd, "crop_to_border")
-		layout.itemR(rd, "save_buffers")
 
 class RENDER_PT_antialiasing(RenderButtonsPanel):
 	__label__ = "Anti-Aliasing"
@@ -78,10 +77,13 @@ class RENDER_PT_antialiasing(RenderButtonsPanel):
 		layout.column_flow()
 		layout.itemR(rd, "antialiasing", text="Enable")
 		layout.itemR(rd, "antialiasing_samples", text="Samples")
-		if (rd.save_buffers):
-			layout.itemR(rd, "full_sample")
 		layout.itemR(rd, "pixel_filter")
 		layout.itemR(rd, "filter_size")
+		
+		layout.row()
+		layout.itemR(rd, "save_buffers")
+		if (rd.save_buffers):
+			layout.itemR(rd, "full_sample")
 
 class RENDER_PT_render(RenderButtonsPanel):
 	__label__ = "Render"
