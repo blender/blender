@@ -537,7 +537,7 @@ int NewBooleanMesh(Base *base, Base *base_select, int int_op_type)
 	
 	/* put some checks in for nice user feedback */
 	if (dm == NULL || dm_select == NULL) return 0;
-	if (!dm->getNumFaces(dm) || !dm_select->getNumFaces(dm_select)) return 0;
+	if (!dm->getNumFaces(dm) || !dm_select->getNumFaces(dm_select))
 	{
 		MEM_freeN(mat);
 		return -1;
