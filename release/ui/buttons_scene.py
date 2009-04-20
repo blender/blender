@@ -23,6 +23,8 @@ class RENDER_PT_shading(RenderButtonsPanel):
 		layout.itemR(rd, "render_sss", text="SSS")
 		layout.itemR(rd, "render_envmaps", text="EnvMap")
 		layout.itemR(rd, "render_radiosity", text="Radio")
+		
+		layout.row()
 		layout.itemR(rd, "render_raytracing", text="Ray Tracing")
 		layout.itemR(rd, "octree_resolution")
 
@@ -74,11 +76,13 @@ class RENDER_PT_antialiasing(RenderButtonsPanel):
 
 		rd = scene.render_data
 
-		layout.column_flow()
+		layout.row()
 		layout.itemR(rd, "antialiasing", text="Enable")
-		layout.itemR(rd, "antialiasing_samples", text="Samples")
-		layout.itemR(rd, "pixel_filter")
 		layout.itemR(rd, "filter_size")
+		layout.row()
+		layout.itemR(rd, "pixel_filter")
+		layout.itemR(rd, "antialiasing_samples", text="Samples")
+		
 		
 		layout.row()
 		layout.itemR(rd, "save_buffers")
@@ -106,23 +110,22 @@ class RENDER_PT_render(RenderButtonsPanel):
 		layout.itemR(scene, "start_frame", text="Start")
 		layout.itemR(scene, "end_frame", text="End")
 		layout.itemR(scene, "current_frame", text="Frame")
+		
 		layout.row()
 		layout.itemR(rd, "fps")
 		layout.itemR(rd, "fps_base",text="/")
+		layout.itemR(scene, "frame_step", text="Step")
 
 		layout.row()
 		layout.itemR(rd, "do_composite")
 		layout.itemR(rd, "do_sequence")
 
 		layout.row()
-		layout.itemL(text="General")
+		layout.itemL(text="General:")
 
-		layout.row()
+		layout.column_flow()
 		layout.itemR(rd, "resolution_percentage", text="Size ")
-		layout.row()
 		layout.itemR(rd, "dither_intensity")
-
-		layout.row()
 		layout.itemR(rd, "parts_x")
 		layout.itemR(rd, "parts_y")
 
