@@ -3047,18 +3047,9 @@ void outliner_operation_menu(Scene *scene, ARegion *ar, SpaceOops *soops)
 	}
 }
 
-/* ***************** KEYINGSET OPERATIONS *************** */
+/* ***************** ANIMATO OPERATIONS ********************************** */
+/* KeyingSet and Driver Creation - Helper functions */
 
-/* These operators are only available in databrowser mode for now, as
- * they depend on having RNA paths and/or hierarchies available.
- */
-enum {
-	KEYINGSET_EDITMODE_ADD	= 0,
-	KEYINGSET_EDITMODE_REMOVE,
-} eKeyingSet_EditModes;
-
-/* Utilities ---------------------------------- */
- 
 /* specialised poll callback for these operators to work in Datablocks view only */
 static int ed_operator_outliner_datablocks_active(bContext *C)
 {
@@ -3069,33 +3060,9 @@ static int ed_operator_outliner_datablocks_active(bContext *C)
 	}
 	return 0;
 }
- 
- 
-/* find the 'active' KeyingSet, and add if not found (if adding is allowed) */
-// TODO: should this be an API func?
-static KeyingSet *verify_active_keyingset(Scene *scene, short add)
-{
-	KeyingSet *ks= NULL;
-	
-	/* sanity check */
-	if (scene == NULL)
-		return NULL;
-	
-	/* try to find one from scene */
-	if (scene->active_keyingset > 0)
-		ks= BLI_findlink(&scene->keyingsets, scene->active_keyingset-1);
-		
-	/* add if none found */
-	// XXX the default settings have yet to evolve
-	if ((add) && (ks==NULL)) {
-		ks= BKE_keyingset_add(&scene->keyingsets, "Keying Set", KEYINGSET_ABSOLUTE, 0);
-		scene->active_keyingset= BLI_countlist(&scene->keyingsets);
-	}
-	
-	return ks;
-}
 
-/* Helper func to extract an RNA path from seleted tree element 
+
+/* Helper func to extract an RNA path from selected tree element 
  * NOTE: the caller must zero-out all values of the pointers that it passes here first, as
  * this function does not do that yet 
  */
@@ -3229,6 +3196,180 @@ static void tree_element_to_path(SpaceOops *soops, TreeElement *te, TreeStoreEle
 
 	/* free temp data */
 	BLI_freelistN(&hierarchy);
+}
+
+/* ***************** KEYINGSET OPERATIONS *************** */
+
+/* These operators are only available in databrowser mode for now, as
+ * they depend on having RNA paths and/or hierarchies available.
+ */
+enum {
+	DRIVERS_EDITMODE_ADD	= 0,
+	DRIVERS_EDITMODE_REMOVE,
+} eDrivers_EditModes;
+
+/* Utilities ---------------------------------- */ 
+
+/* Recursively iterate over tree, finding and working on selected items */
+static void do_outliner_drivers_editop(SpaceOops *soops, ListBase *tree, short mode)
+{
+	TreeElement *te;
+	TreeStoreElem *tselem;
+	
+	for (te= tree->first; te; te=te->next) {
+		tselem= TREESTORE(te);
+		
+		/* if item is selected, perform operation */
+		if (tselem->flag & TSE_SELECTED) {
+			ID *id= NULL;
+			char *path= NULL;
+			int array_index= 0;
+			short flag= 0;
+			short groupmode= KSP_GROUP_KSNAME;
+			
+			/* check if RNA-property described by this selected element is an animateable prop */
+			if ((tselem->type == TSE_RNA_PROPERTY) && RNA_property_animateable(&te->rnaptr, te->directdata)) {
+				/* get id + path + index info from the selected element */
+				tree_element_to_path(soops, te, tselem, 
+						&id, &path, &array_index, &flag, &groupmode);
+			}
+			
+			/* only if ID and path were set, should we perform any actions */
+			if (id && path) {
+				/* action depends on mode */
+				switch (mode) {
+					case DRIVERS_EDITMODE_ADD:
+					{
+						/* add a new driver with the information obtained (only if valid) */
+						ANIM_add_driver(id, path, array_index, flag);
+					}
+						break;
+					case DRIVERS_EDITMODE_REMOVE:
+					{
+						/* remove driver matching the information obtained (only if valid) */
+						ANIM_remove_driver(id, path, array_index, flag);
+					}
+						break;
+				}
+				
+				/* free path, since it had to be generated */
+				MEM_freeN(path);
+			}
+			
+			
+		}
+		
+		/* go over sub-tree */
+		if ((tselem->flag & TSE_CLOSED)==0)
+			do_outliner_drivers_editop(soops, &te->subtree, mode);
+	}
+}
+
+/* Add Operator ---------------------------------- */
+
+static int outliner_drivers_addsel_exec(bContext *C, wmOperator *op)
+{
+	SpaceOops *soutliner= (SpaceOops*)CTX_wm_space_data(C);
+	Scene *scene= CTX_data_scene(C);
+	
+	/* check for invalid states */
+	if (soutliner == NULL)
+		return OPERATOR_CANCELLED;
+	
+	/* recursively go into tree, adding selected items */
+	do_outliner_drivers_editop(soutliner, &soutliner->tree, DRIVERS_EDITMODE_ADD);
+	
+	/* send notifiers */
+	WM_event_add_notifier(C, NC_SCENE|ND_KEYINGSET, NULL);
+	
+	return OPERATOR_FINISHED;
+}
+
+void OUTLINER_OT_drivers_add(wmOperatorType *ot)
+{
+	/* api callbacks */
+	ot->idname= "OUTLINER_OT_drivers_add";
+	ot->name= "Add Drivers";
+	ot->description= "Add drivers to selected items.";
+	
+	/* api callbacks */
+	ot->exec= outliner_drivers_addsel_exec;
+	ot->poll= ed_operator_outliner_datablocks_active;
+	
+	/* flags */
+	ot->flag = OPTYPE_UNDO;
+}
+
+
+/* Remove Operator ---------------------------------- */
+
+static int outliner_drivers_deletesel_exec(bContext *C, wmOperator *op)
+{
+	SpaceOops *soutliner= (SpaceOops*)CTX_wm_space_data(C);
+	Scene *scene= CTX_data_scene(C);
+	
+	/* check for invalid states */
+	if (soutliner == NULL)
+		return OPERATOR_CANCELLED;
+	
+	/* recursively go into tree, adding selected items */
+	do_outliner_drivers_editop(soutliner, &soutliner->tree, DRIVERS_EDITMODE_REMOVE);
+	
+	/* send notifiers */
+	WM_event_add_notifier(C, NC_SCENE|ND_KEYINGSET, NULL);
+	
+	return OPERATOR_FINISHED;
+}
+
+void OUTLINER_OT_drivers_delete(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->idname= "OUTLINER_OT_drivers_delete";
+	ot->name= "Delete Drivers";
+	ot->description= "Delete drivers assigned to selected items.";
+	
+	/* api callbacks */
+	ot->exec= outliner_drivers_deletesel_exec;
+	ot->poll= ed_operator_outliner_datablocks_active;
+	
+	/* flags */
+	ot->flag = OPTYPE_UNDO;
+}
+
+/* ***************** KEYINGSET OPERATIONS *************** */
+
+/* These operators are only available in databrowser mode for now, as
+ * they depend on having RNA paths and/or hierarchies available.
+ */
+enum {
+	KEYINGSET_EDITMODE_ADD	= 0,
+	KEYINGSET_EDITMODE_REMOVE,
+} eKeyingSet_EditModes;
+
+/* Utilities ---------------------------------- */ 
+ 
+/* find the 'active' KeyingSet, and add if not found (if adding is allowed) */
+// TODO: should this be an API func?
+static KeyingSet *verify_active_keyingset(Scene *scene, short add)
+{
+	KeyingSet *ks= NULL;
+	
+	/* sanity check */
+	if (scene == NULL)
+		return NULL;
+	
+	/* try to find one from scene */
+	if (scene->active_keyingset > 0)
+		ks= BLI_findlink(&scene->keyingsets, scene->active_keyingset-1);
+		
+	/* add if none found */
+	// XXX the default settings have yet to evolve
+	if ((add) && (ks==NULL)) {
+		ks= BKE_keyingset_add(&scene->keyingsets, "Keying Set", KEYINGSET_ABSOLUTE, 0);
+		scene->active_keyingset= BLI_countlist(&scene->keyingsets);
+	}
+	
+	return ks;
 }
 
 /* Recursively iterate over tree, finding and working on selected items */

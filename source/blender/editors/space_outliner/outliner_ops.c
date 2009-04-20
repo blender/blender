@@ -47,6 +47,9 @@ void outliner_operatortypes(void)
 	
 	WM_operatortype_append(OUTLINER_OT_keyingset_add_selected);
 	WM_operatortype_append(OUTLINER_OT_keyingset_remove_selected);
+	
+	WM_operatortype_append(OUTLINER_OT_drivers_add);
+	WM_operatortype_append(OUTLINER_OT_drivers_delete);
 }
 
 void outliner_keymap(wmWindowManager *wm)
@@ -61,5 +64,8 @@ void outliner_keymap(wmWindowManager *wm)
 	
 	WM_keymap_verify_item(keymap, "ANIM_OT_insert_keyframe", IKEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "ANIM_OT_delete_keyframe", IKEY, KM_PRESS, KM_ALT, 0);
+	
+	WM_keymap_verify_item(keymap, "OUTLINER_OT_drivers_add", DKEY, KM_PRESS, 0, 0);
+	WM_keymap_verify_item(keymap, "OUTLINER_OT_drivers_delete", DKEY, KM_PRESS, KM_ALT, 0);
 }
 
