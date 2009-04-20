@@ -138,4 +138,8 @@ PyObject* SCA_ORController::py_getattro(PyObject *attr) {
 	py_getattro_up(SCA_IController);
 }
 
+PyObject* SCA_ORController::py_getattro_dict() {
+	py_getattro_dict_up(SCA_IController);
+}
+
 /* eof */

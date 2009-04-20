@@ -612,6 +612,10 @@ PyObject*	CValue::py_getattro(PyObject *attr)
 	py_getattro_up(PyObjectPlus);
 }
 
+PyObject* CValue::py_getattro_dict() {
+	py_getattro_dict_up(PyObjectPlus);
+}
+
 CValue* CValue::ConvertPythonToValue(PyObject* pyobj)
 {
 

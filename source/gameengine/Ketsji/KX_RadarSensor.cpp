@@ -304,6 +304,10 @@ PyObject* KX_RadarSensor::py_getattro(PyObject *attr)
 	py_getattro_up(KX_NearSensor);
 }
 
+PyObject* KX_RadarSensor::py_getattro_dict() {
+	py_getattro_dict_up(KX_NearSensor);
+}
+
 int KX_RadarSensor::py_setattro(PyObject *attr, PyObject* value)
 {
 	py_setattro_up(KX_NearSensor);

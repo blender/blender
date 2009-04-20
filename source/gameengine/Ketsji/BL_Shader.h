@@ -203,6 +203,7 @@ public:
 
 	// Python interface
 	virtual PyObject* py_getattro(PyObject *attr);
+	virtual PyObject* py_getattro_dict();
 	virtual PyObject* py_repr(void) { return PyString_FromFormat("BL_Shader\n\tvertex shader:%s\n\n\tfragment shader%s\n\n", vertProg, fragProg); }
 
 	// -----------------------------------

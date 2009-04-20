@@ -145,4 +145,8 @@ PyObject* SCA_NORController::py_getattro(PyObject *attr) {
 	py_getattro_up(SCA_IController);
 }
 
+PyObject* SCA_NORController::py_getattro_dict() {
+	py_getattro_dict_up(SCA_IController);
+}
+
 /* eof */

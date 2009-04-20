@@ -157,6 +157,10 @@ PyObject* SCA_2DFilterActuator::py_getattro(PyObject *attr)
     py_getattro_up(SCA_IActuator);
 }
 
+PyObject* SCA_2DFilterActuator::py_getattro_dict() {
+	py_getattro_dict_up(SCA_IActuator);
+}
+
 int SCA_2DFilterActuator::py_setattro(PyObject *attr, PyObject* value) 
 {
 	py_setattro_up(SCA_IActuator);

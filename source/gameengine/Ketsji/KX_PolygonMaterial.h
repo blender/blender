@@ -117,6 +117,7 @@ public:
 	KX_PYMETHOD_DOC(KX_PolygonMaterial, loadProgram);
 
 	virtual PyObject* py_getattro(PyObject *attr);
+	virtual PyObject* py_getattro_dict();
 	virtual int       py_setattro(PyObject *attr, PyObject *pyvalue);
 	virtual PyObject* py_repr(void) { return PyString_FromString(m_material ? ((ID *)m_material)->name+2 : ""); }
 	

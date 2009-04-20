@@ -54,6 +54,7 @@ public:
 
 // stuff for python integration
 	virtual PyObject* py_getattro(PyObject *attr);
+	virtual PyObject* py_getattro_dict();
 
 	KX_PYMETHOD_DOC_NOARGS(KX_PolyProxy,getMaterialIndex)
 	KX_PYMETHOD_DOC_NOARGS(KX_PolyProxy,getNumVertex)

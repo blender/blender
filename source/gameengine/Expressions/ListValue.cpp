@@ -273,6 +273,10 @@ PyObject* CListValue::py_getattro(PyObject* attr) {
 	py_getattro_up(CValue);
 }
 
+PyObject* CListValue::py_getattro_dict() {
+	py_getattro_dict_up(CValue);
+}
+
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction

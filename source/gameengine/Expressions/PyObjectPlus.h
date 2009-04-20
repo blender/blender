@@ -130,16 +130,12 @@ typedef struct {
 		} \
 	} else { \
 		PyErr_Clear(); \
-		PyObject *rvalue= Parent::py_getattro(attr); \
-		 \
-		if (strcmp(PyString_AsString(attr), "__dict__")==0) { \
-			return py_getattr_dict(rvalue, Type.tp_dict); \
-		} \
-		 \
-		return rvalue; \
+		return Parent::py_getattro(attr); \
 	} \
 	return NULL;
 
+#define py_getattro_dict_up(Parent) \
+	return py_getattr_dict(Parent::py_getattro_dict(), Type.tp_dict);
 
 /*
  * nonzero values are an error for setattr
@@ -434,6 +430,7 @@ public:
 	/* These are all virtual python methods that are defined in each class
 	 * Our own fake subclassing calls these on each class, then calls the parent */
 	virtual PyObject*		py_getattro(PyObject *attr);
+	virtual PyObject*		py_getattro_dict();
 	virtual int			py_delattro(PyObject *attr);
 	virtual int			py_setattro(PyObject *attr, PyObject *value);
 	virtual PyObject*		py_repr(void);

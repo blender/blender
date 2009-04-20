@@ -146,6 +146,7 @@ public:
 	
 	// here come the python forwarded methods
 	virtual PyObject* py_getattro(PyObject *attr);
+	virtual PyObject* py_getattro_dict();
 
 	virtual int GetGameObjectType() {return -1;}
 	

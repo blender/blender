@@ -159,6 +159,10 @@ PyObject* KX_PolyProxy::py_getattro(PyObject *attr)
 	py_getattro_up(SCA_IObject);
 }
 
+PyObject* KX_PolyProxy::py_getattro_dict() {
+	py_getattro_dict_up(SCA_IObject);
+}
+
 KX_PolyProxy::KX_PolyProxy(const RAS_MeshObject*mesh, RAS_Polygon* polygon)
 :	m_polygon(polygon),
 	m_mesh((RAS_MeshObject*)mesh)

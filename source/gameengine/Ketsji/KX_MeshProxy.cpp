@@ -108,6 +108,10 @@ PyObject* KX_MeshProxy::py_getattro(PyObject *attr)
  	py_getattro_up(SCA_IObject);
 }
 
+PyObject* KX_MeshProxy::py_getattro_dict() {
+	py_getattro_dict_up(SCA_IObject);
+}
+
 int KX_MeshProxy::py_setattro(PyObject *attr, PyObject* value)
 {
 	py_setattro_up(SCA_IObject);

@@ -340,6 +340,10 @@ PyObject* KX_ObjectActuator::py_getattro(PyObject *attr) {
 	py_getattro_up(SCA_IActuator);
 };
 
+PyObject* KX_ObjectActuator::py_getattro_dict() {
+	py_getattro_dict_up(SCA_IActuator);
+}
+
 /* 1. set ------------------------------------------------------------------ */
 /* Removed! */
 

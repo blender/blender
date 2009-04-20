@@ -664,10 +664,13 @@ PyAttributeDef SCA_KeyboardSensor::Attributes[] = {
 	{ NULL }	//Sentinel
 };
 
-PyObject*
-SCA_KeyboardSensor::py_getattro(PyObject *attr)
+PyObject* SCA_KeyboardSensor::py_getattro(PyObject *attr)
 {
   py_getattro_up(SCA_ISensor);
+}
+
+PyObject* SCA_KeyboardSensor::py_getattro_dict() {
+	py_getattro_dict_up(SCA_ISensor);
 }
 
 int SCA_KeyboardSensor::py_setattro(PyObject *attr, PyObject *value)

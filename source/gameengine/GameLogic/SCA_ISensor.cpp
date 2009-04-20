@@ -459,10 +459,13 @@ PyAttributeDef SCA_ISensor::Attributes[] = {
 	{ NULL }	//Sentinel
 };
 
-PyObject*
-SCA_ISensor::py_getattro(PyObject *attr)
+PyObject* SCA_ISensor::py_getattro(PyObject *attr)
 {
 	py_getattro_up(SCA_ILogicBrick);
+}
+
+PyObject* SCA_ISensor::py_getattro_dict() {
+	py_getattro_dict_up(SCA_ILogicBrick);
 }
 
 int SCA_ISensor::py_setattro(PyObject *attr, PyObject *value)

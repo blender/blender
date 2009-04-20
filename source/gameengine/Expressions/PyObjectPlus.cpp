@@ -143,7 +143,13 @@ PyObject *PyObjectPlus::py_base_getattro(PyObject * self, PyObject *attr)
 		PyErr_SetString(PyExc_RuntimeError, BGE_PROXY_ERROR_MSG);
 		return NULL;
 	}
-	return self_plus->py_getattro(attr); 
+	
+	PyObject *ret= self_plus->py_getattro(attr);
+	
+	if(ret==NULL && (strcmp(PyString_AsString(attr), "__dict__")==0))
+		ret= self_plus->py_getattro_dict();
+	
+	return ret;
 }
 
 /* This should be the entry in Type since it takes the C++ class from PyObjectPlus_Proxy */
@@ -177,9 +183,6 @@ PyObject *PyObjectPlus::py_getattro(PyObject* attr)
 {
 	PyObject *descr = PyDict_GetItem(Type.tp_dict, attr); \
 	if (descr == NULL) {
-		if (strcmp(PyString_AsString(attr), "__dict__")==0) {
-			return py_getattr_dict(NULL, Type.tp_dict); /* no Attributes yet */
-		}
 		PyErr_Format(PyExc_AttributeError, "attribute \"%s\" not found", PyString_AsString(attr));
 		return NULL;
 	} else {
@@ -194,6 +197,10 @@ PyObject *PyObjectPlus::py_getattro(PyObject* attr)
 		}
 		/* end py_getattro_up copy */
 	}
+}
+
+PyObject* PyObjectPlus::py_getattro_dict() {
+	return py_getattr_dict(NULL, Type.tp_dict);
 }
 
 int PyObjectPlus::py_delattro(PyObject* attr)

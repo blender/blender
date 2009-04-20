@@ -237,6 +237,10 @@ PyObject* KX_PolygonMaterial::py_getattro(PyObject *attr)
 	py_getattro_up(PyObjectPlus);
 }
 
+PyObject* KX_PolygonMaterial::py_getattro_dict() {
+	py_getattro_dict_up(PyObjectPlus);
+}
+
 int KX_PolygonMaterial::py_setattro(PyObject *attr, PyObject *value)
 {
 	py_setattro_up(PyObjectPlus);

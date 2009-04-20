@@ -334,6 +334,10 @@ PyObject* KX_NearSensor::py_getattro(PyObject *attr)
 	py_getattro_up(KX_TouchSensor);
 }
 
+PyObject* KX_NearSensor::py_getattro_dict() {
+	py_getattro_dict_up(KX_TouchSensor);
+}
+
 int KX_NearSensor::py_setattro(PyObject*attr, PyObject* value)
 {
 	py_setattro_up(KX_TouchSensor);

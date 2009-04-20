@@ -60,6 +60,7 @@ public:
 	bool CheckEqual(CValue* first,CValue* second);
 
 	virtual PyObject* py_getattro(PyObject* attr);
+	virtual PyObject* py_getattro_dict();
 	virtual PyObject* py_repr(void) {
 		PyObject *py_proxy= this->GetProxy();
 		PyObject *py_list= PySequence_List(py_proxy);

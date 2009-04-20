@@ -63,6 +63,7 @@ public:
 	void Update();
 	
 	virtual PyObject* py_getattro(PyObject *attr); /* lens, near, far, projection_matrix */
+	virtual PyObject* py_getattro_dict();
 	virtual int       py_setattro(PyObject *attr, PyObject *pyvalue);
 
 	virtual bool IsLight(void) { return true; }

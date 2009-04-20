@@ -156,7 +156,11 @@ PyAttributeDef KX_StateActuator::Attributes[] = {
 PyObject* KX_StateActuator::py_getattro(PyObject *attr)
 {
 	py_getattro_up(SCA_IActuator);
-};
+}
+
+PyObject* KX_StateActuator::py_getattro_dict() {
+	py_getattro_dict_up(SCA_IActuator);
+}
 
 int KX_StateActuator::py_setattro(PyObject *attr, PyObject* value)
 {

@@ -159,6 +159,10 @@ KX_VertexProxy::py_getattro(PyObject *attr)
   py_getattro_up(SCA_IObject);
 }
 
+PyObject* KX_VertexProxy::py_getattro_dict() {
+	py_getattro_dict_up(SCA_IObject);
+}
+
 int    KX_VertexProxy::py_setattro(PyObject *attr, PyObject *pyvalue)
 {
   char *attr_str= PyString_AsString(attr);

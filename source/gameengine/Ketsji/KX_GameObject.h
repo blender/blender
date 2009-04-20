@@ -816,6 +816,7 @@ public:
 	 */
 	
 	virtual PyObject* py_getattro(PyObject *attr);
+	virtual PyObject* py_getattro_dict();
 	virtual int py_setattro(PyObject *attr, PyObject *value);		// py_setattro method
 	virtual int				py_delattro(PyObject *attr);
 	virtual PyObject* py_repr(void)
@@ -903,9 +904,6 @@ public:
 	static PyObject*	pyattr_get_state(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static int			pyattr_set_state(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 	static PyObject*	pyattr_get_meshes(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
-	
-	/* for dir(), python3 uses __dir__() */
-	static PyObject*	pyattr_get_dir_dict(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	
 	/* Experemental! */
 	static PyObject*	pyattr_get_sensors(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);

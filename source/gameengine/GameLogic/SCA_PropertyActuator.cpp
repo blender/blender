@@ -279,6 +279,10 @@ PyObject* SCA_PropertyActuator::py_getattro(PyObject *attr) {
 	py_getattro_up(SCA_IActuator);
 }
 
+PyObject* SCA_PropertyActuator::py_getattro_dict() {
+	py_getattro_dict_up(SCA_IActuator);
+}
+
 int SCA_PropertyActuator::py_setattro(PyObject *attr, PyObject *value) {
 	py_setattro_up(SCA_IActuator);
 }

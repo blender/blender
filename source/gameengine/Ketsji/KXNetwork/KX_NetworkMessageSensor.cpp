@@ -227,6 +227,10 @@ PyObject* KX_NetworkMessageSensor::py_getattro(PyObject *attr) {
 	py_getattro_up(SCA_ISensor);
 }
 
+PyObject* KX_NetworkMessageSensor::py_getattro_dict() {
+	py_getattro_dict_up(SCA_ISensor);
+}
+
 int KX_NetworkMessageSensor::py_setattro(PyObject *attr, PyObject *value) {
 	return SCA_ISensor::py_setattro(attr, value);
 }

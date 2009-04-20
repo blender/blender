@@ -83,6 +83,7 @@ public:
 	
 	// --------------------------------
 	virtual PyObject* py_getattro(PyObject *attr);
+	virtual PyObject* py_getattro_dict();
 	virtual int       py_setattro(PyObject *attr, PyObject *pyvalue);
 	virtual PyObject* py_repr(void) { return PyString_FromString(mMaterial->matname.ReadPtr()); }
 

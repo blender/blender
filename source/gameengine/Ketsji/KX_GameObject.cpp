@@ -1153,8 +1153,6 @@ PyAttributeDef KX_GameObject::Attributes[] = {
 	KX_PYATTRIBUTE_RW_FUNCTION("localScaling",	KX_GameObject, pyattr_get_localScaling,	pyattr_set_localScaling),
 	KX_PYATTRIBUTE_RO_FUNCTION("worldScaling",	KX_GameObject, pyattr_get_worldScaling),
 	
-	KX_PYATTRIBUTE_RO_FUNCTION("__dict__",	KX_GameObject, pyattr_get_dir_dict),
-	
 	/* Experemental, dont rely on these yet */
 	KX_PYATTRIBUTE_RO_FUNCTION("sensors",		KX_GameObject, pyattr_get_sensors),
 	KX_PYATTRIBUTE_RO_FUNCTION("controllers",	KX_GameObject, pyattr_get_controllers),
@@ -1703,37 +1701,6 @@ PyObject* KX_GameObject::pyattr_get_actuators(void *self_v, const KX_PYATTRIBUTE
 	return resultlist;
 }
 
-/* __dict__ only for the purpose of giving useful dir() results */
-PyObject* KX_GameObject::pyattr_get_dir_dict(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
-{
-	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
-	PyObject *dict_str = PyString_FromString("__dict__");
-	PyObject *dict= py_getattr_dict(self->SCA_IObject::py_getattro(dict_str), Type.tp_dict);
-	Py_DECREF(dict_str);
-	
-	if(dict==NULL)
-		return NULL;
-	
-	/* Not super fast getting as a list then making into dict keys but its only for dir() */
-	PyObject *list= self->ConvertKeysToPython();
-	if(list)
-	{
-		int i;
-		for(i=0; i<PyList_Size(list); i++)
-			PyDict_SetItem(dict, PyList_GET_ITEM(list, i), Py_None);
-	}
-	else
-		PyErr_Clear();
-	
-	Py_DECREF(list);
-	
-	/* Add m_attr_dict if we have it */
-	if(self->m_attr_dict)
-		PyDict_Update(dict, self->m_attr_dict);
-	
-	return dict;
-}
-
 /* We need these because the macros have a return in them */
 PyObject* KX_GameObject::py_getattro__internal(PyObject *attr)
 {
@@ -1770,6 +1737,35 @@ PyObject* KX_GameObject::py_getattro(PyObject *attr)
 		}
 	}
 	return object;
+}
+
+PyObject* KX_GameObject::py_getattro_dict() {
+	//py_getattro_dict_up(SCA_IObject);
+	PyObject *dict= py_getattr_dict(SCA_IObject::py_getattro_dict(), Type.tp_dict);
+	if(dict==NULL)
+		return NULL;
+	
+	/* normally just return this but KX_GameObject has some more items */
+
+	
+	/* Not super fast getting as a list then making into dict keys but its only for dir() */
+	PyObject *list= ConvertKeysToPython();
+	if(list)
+	{
+		int i;
+		for(i=0; i<PyList_Size(list); i++)
+			PyDict_SetItem(dict, PyList_GET_ITEM(list, i), Py_None);
+	}
+	else
+		PyErr_Clear();
+	
+	Py_DECREF(list);
+	
+	/* Add m_attr_dict if we have it */
+	if(m_attr_dict)
+		PyDict_Update(dict, m_attr_dict);
+	
+	return dict;
 }
 
 int KX_GameObject::py_setattro(PyObject *attr, PyObject *value)	// py_setattro method

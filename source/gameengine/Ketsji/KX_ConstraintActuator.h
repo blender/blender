@@ -144,6 +144,7 @@ protected:
 	/* --------------------------------------------------------------------- */
 
 	virtual PyObject* py_getattro(PyObject *attr);
+	virtual PyObject* py_getattro_dict();
 	virtual int py_setattro(PyObject *attr, PyObject* value);
 
 	static int pyattr_check_direction(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef);

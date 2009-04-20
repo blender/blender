@@ -216,6 +216,10 @@ PyObject* KX_LightObject::py_getattro(PyObject *attr)
 	py_getattro_up(KX_GameObject);
 }
 
+PyObject* KX_LightObject::py_getattro_dict() {
+	py_getattro_dict_up(KX_GameObject);
+}
+
 
 int KX_LightObject::py_setattro(PyObject *attr, PyObject *pyvalue)
 {

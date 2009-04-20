@@ -784,6 +784,10 @@ PyObject* KX_BlenderMaterial::py_getattro(PyObject *attr)
 	py_getattro_up(PyObjectPlus);
 }
 
+PyObject* KX_BlenderMaterial::py_getattro_dict() {
+	py_getattro_dict_up(PyObjectPlus);
+}
+
 int KX_BlenderMaterial::py_setattro(PyObject *attr, PyObject *pyvalue)
 {
 	return PyObjectPlus::py_setattro(attr, pyvalue);

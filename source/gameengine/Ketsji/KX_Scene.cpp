@@ -1630,19 +1630,6 @@ PyObject* KX_Scene::pyattr_get_active_camera(void *self_v, const KX_PYATTRIBUTE_
 	return self->GetActiveCamera()->GetProxy();
 }
 
-/* __dict__ only for the purpose of giving useful dir() results */
-PyObject* KX_Scene::pyattr_get_dir_dict(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
-{
-	KX_Scene* self= static_cast<KX_Scene*>(self_v);
-	/* Useually done by py_getattro_up but in this case we want to include m_attr_dict dict */
-	PyObject *dict_str= PyString_FromString("__dict__");
-	PyObject *dict= py_getattr_dict(self->PyObjectPlus::py_getattro(dict_str), Type.tp_dict);
-	Py_DECREF(dict_str);
-	
-	PyDict_Update(dict, self->m_attr_dict);
-	return dict;
-}
-
 PyAttributeDef KX_Scene::Attributes[] = {
 	KX_PYATTRIBUTE_RO_FUNCTION("name",			KX_Scene, pyattr_get_name),
 	KX_PYATTRIBUTE_RO_FUNCTION("objects",		KX_Scene, pyattr_get_objects),
@@ -1651,7 +1638,6 @@ PyAttributeDef KX_Scene::Attributes[] = {
 	KX_PYATTRIBUTE_BOOL_RO("activity_culling",	KX_Scene, m_activity_culling),
 	KX_PYATTRIBUTE_FLOAT_RW("activity_culling_radius", 0.5f, FLT_MAX, KX_Scene, m_activity_box_radius),
 	KX_PYATTRIBUTE_BOOL_RO("dbvt_culling",		KX_Scene, m_dbvt_culling),
-	KX_PYATTRIBUTE_RO_FUNCTION("__dict__",		KX_Scene, pyattr_get_dir_dict),
 	{ NULL }	//Sentinel
 };
 
@@ -1685,6 +1671,18 @@ PyObject* KX_Scene::py_getattro(PyObject *attr)
 	return object;
 }
 
+PyObject* KX_Scene::py_getattro_dict() {
+	//py_getattro_dict_up(PyObjectPlus);
+	
+	PyObject *dict= py_getattr_dict(PyObjectPlus::py_getattro_dict(), Type.tp_dict);
+	if(dict==NULL)
+		return NULL;
+	
+	/* normally just return this but KX_Scene has some more items */
+	
+	PyDict_Update(dict, m_attr_dict);
+	return dict;
+}
 
 int KX_Scene::py_setattro(PyObject *attr, PyObject *value)
 {
