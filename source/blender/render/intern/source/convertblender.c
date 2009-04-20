@@ -945,11 +945,17 @@ static Material *give_render_material(Render *re, Object *ob, int nr)
 /* ------------------------------------------------------------------------- */
 /* Particles                                                                 */
 /* ------------------------------------------------------------------------- */
-
+typedef struct ParticleStrandData
+{
+	struct MCol *mcol;
+	float *orco, *uvco, *surfnor;
+	float time, adapt_angle, adapt_pix, size;
+	int totuv, totcol;
+	int first, line, adapt, override_uv;
+}
+ParticleStrandData;
 /* future thread problem... */
-static void static_particle_strand(Render *re, ObjectRen *obr, Material *ma, float *orco, float *surfnor,
-								   float *uvco, int totuv, MCol *mcol, int totcol, float *vec, float *vec1, float ctime,
-								   int first, int line, int adapt, float adapt_angle, float adapt_pix, int override_uv)
+static void static_particle_strand(Render *re, ObjectRen *obr, Material *ma, ParticleStrandData *sd, float *vec, float *vec1)
 {
 	static VertRen *v1= NULL, *v2= NULL;
 	VlakRen *vlr= NULL;
@@ -972,11 +978,11 @@ static void static_particle_strand(Render *re, ObjectRen *obr, Material *ma, flo
 		float fac;
 		if(ma->strand_ease!=0.0f) {
 			if(ma->strand_ease<0.0f)
-				fac= pow(ctime, 1.0+ma->strand_ease);
+				fac= pow(sd->time, 1.0+ma->strand_ease);
 			else
-				fac= pow(ctime, 1.0/(1.0f-ma->strand_ease));
+				fac= pow(sd->time, 1.0/(1.0f-ma->strand_ease));
 		}
-		else fac= ctime;
+		else fac= sd->time;
 
 		width= ((1.0f-fac)*ma->strand_sta + (fac)*ma->strand_end);
 
@@ -1008,7 +1014,7 @@ static void static_particle_strand(Render *re, ObjectRen *obr, Material *ma, flo
 		flag |= R_STRAND;
 	
 	/* single face line */
-	if(line) {
+	if(sd->line) {
 		vlr= RE_findOrAddVlak(obr, obr->totvlak++);
 		vlr->flag= flag;
 		vlr->v1= RE_findOrAddVert(obr, obr->totvert++);
@@ -1019,25 +1025,25 @@ static void static_particle_strand(Render *re, ObjectRen *obr, Material *ma, flo
 		VECCOPY(vlr->v1->co, vec);
 		VecAddf(vlr->v1->co, vlr->v1->co, cross);
 		VECCOPY(vlr->v1->n, nor);
-		vlr->v1->orco= orco;
+		vlr->v1->orco= sd->orco;
 		vlr->v1->accum= -1.0f;	// accum abuse for strand texco
 		
 		VECCOPY(vlr->v2->co, vec);
 		VecSubf(vlr->v2->co, vlr->v2->co, cross);
 		VECCOPY(vlr->v2->n, nor);
-		vlr->v2->orco= orco;
+		vlr->v2->orco= sd->orco;
 		vlr->v2->accum= vlr->v1->accum;
 
 		VECCOPY(vlr->v4->co, vec1);
 		VecAddf(vlr->v4->co, vlr->v4->co, cross);
 		VECCOPY(vlr->v4->n, nor);
-		vlr->v4->orco= orco;
+		vlr->v4->orco= sd->orco;
 		vlr->v4->accum= 1.0f;	// accum abuse for strand texco
 		
 		VECCOPY(vlr->v3->co, vec1);
 		VecSubf(vlr->v3->co, vlr->v3->co, cross);
 		VECCOPY(vlr->v3->n, nor);
-		vlr->v3->orco= orco;
+		vlr->v3->orco= sd->orco;
 		vlr->v3->accum= vlr->v4->accum;
 
 		CalcNormFloat4(vlr->v4->co, vlr->v3->co, vlr->v2->co, vlr->v1->co, vlr->n);
@@ -1045,23 +1051,23 @@ static void static_particle_strand(Render *re, ObjectRen *obr, Material *ma, flo
 		vlr->mat= ma;
 		vlr->ec= ME_V2V3;
 
-		if(surfnor) {
+		if(sd->surfnor) {
 			float *snor= RE_vlakren_get_surfnor(obr, vlr, 1);
-			VECCOPY(snor, surfnor);
+			VECCOPY(snor, sd->surfnor);
 		}
 
-		if(uvco){
-			for(i=0; i<totuv; i++){
+		if(sd->uvco){
+			for(i=0; i<sd->totuv; i++){
 				MTFace *mtf;
 				mtf=RE_vlakren_get_tface(obr,vlr,i,NULL,1);
 				mtf->uv[0][0]=mtf->uv[1][0]=
-				mtf->uv[2][0]=mtf->uv[3][0]=(uvco+2*i)[0];
+				mtf->uv[2][0]=mtf->uv[3][0]=(sd->uvco+2*i)[0];
 				mtf->uv[0][1]=mtf->uv[1][1]=
-				mtf->uv[2][1]=mtf->uv[3][1]=(uvco+2*i)[1];
+				mtf->uv[2][1]=mtf->uv[3][1]=(sd->uvco+2*i)[1];
 			}
-			if(override_uv>=0){
+			if(sd->override_uv>=0){
 				MTFace *mtf;
-				mtf=RE_vlakren_get_tface(obr,vlr,override_uv,NULL,0);
+				mtf=RE_vlakren_get_tface(obr,vlr,sd->override_uv,NULL,0);
 				
 				mtf->uv[0][0]=mtf->uv[3][0]=0.0f;
 				mtf->uv[1][0]=mtf->uv[2][0]=1.0f;
@@ -1070,18 +1076,18 @@ static void static_particle_strand(Render *re, ObjectRen *obr, Material *ma, flo
 				mtf->uv[2][1]=mtf->uv[3][1]=1.0f;
 			}
 		}
-		if(mcol){
-			for(i=0; i<totcol; i++){
+		if(sd->mcol){
+			for(i=0; i<sd->totcol; i++){
 				MCol *mc;
 				mc=RE_vlakren_get_mcol(obr,vlr,i,NULL,1);
-				mc[0]=mc[1]=mc[2]=mc[3]=mcol[i];
-				mc[0]=mc[1]=mc[2]=mc[3]=mcol[i];
+				mc[0]=mc[1]=mc[2]=mc[3]=sd->mcol[i];
+				mc[0]=mc[1]=mc[2]=mc[3]=sd->mcol[i];
 			}
 		}
 	}
 	/* first two vertices of a strand */
-	else if(first) {
-		if(adapt){
+	else if(sd->first) {
+		if(sd->adapt){
 			VECCOPY(anor, nor);
 			VECCOPY(avec, vec);
 			second=1;
@@ -1093,18 +1099,18 @@ static void static_particle_strand(Render *re, ObjectRen *obr, Material *ma, flo
 		VECCOPY(v1->co, vec);
 		VecAddf(v1->co, v1->co, cross);
 		VECCOPY(v1->n, nor);
-		v1->orco= orco;
+		v1->orco= sd->orco;
 		v1->accum= -1.0f;	// accum abuse for strand texco
 		
 		VECCOPY(v2->co, vec);
 		VecSubf(v2->co, v2->co, cross);
 		VECCOPY(v2->n, nor);
-		v2->orco= orco;
+		v2->orco= sd->orco;
 		v2->accum= v1->accum;
 	}
 	/* more vertices & faces to strand */
 	else {
-		if(adapt==0 || second){
+		if(sd->adapt==0 || second){
 			vlr= RE_findOrAddVlak(obr, obr->totvlak++);
 			vlr->flag= flag;
 			vlr->v1= v1;
@@ -1116,14 +1122,14 @@ static void static_particle_strand(Render *re, ObjectRen *obr, Material *ma, flo
 			v2= vlr->v3; // cycle
 
 			
-			if(adapt){
+			if(sd->adapt){
 				second=0;
 				VECCOPY(anor,nor);
 				VECCOPY(avec,vec);
 			}
 
 		}
-		else if(adapt){
+		else if(sd->adapt){
 			float dvec[3],pvec[3];
 			VecSubf(dvec,avec,vec);
 			Projf(pvec,dvec,vec);
@@ -1133,7 +1139,7 @@ static void static_particle_strand(Render *re, ObjectRen *obr, Material *ma, flo
 			dx= re->winx*dvec[0]*re->winmat[0][0]/w;
 			dy= re->winy*dvec[1]*re->winmat[1][1]/w;
 			w= sqrt(dx*dx + dy*dy);
-			if(Inpf(anor,nor)<adapt_angle && w>adapt_pix){
+			if(Inpf(anor,nor)<sd->adapt_angle && w>sd->adapt_pix){
 				vlr= RE_findOrAddVlak(obr, obr->totvlak++);
 				vlr->flag= flag;
 				vlr->v1= v1;
@@ -1155,13 +1161,13 @@ static void static_particle_strand(Render *re, ObjectRen *obr, Material *ma, flo
 		VECCOPY(vlr->v4->co, vec);
 		VecAddf(vlr->v4->co, vlr->v4->co, cross);
 		VECCOPY(vlr->v4->n, nor);
-		vlr->v4->orco= orco;
-		vlr->v4->accum= -1.0f + 2.0f*ctime;	// accum abuse for strand texco
+		vlr->v4->orco= sd->orco;
+		vlr->v4->accum= -1.0f + 2.0f*sd->time;	// accum abuse for strand texco
 		
 		VECCOPY(vlr->v3->co, vec);
 		VecSubf(vlr->v3->co, vlr->v3->co, cross);
 		VECCOPY(vlr->v3->n, nor);
-		vlr->v3->orco= orco;
+		vlr->v3->orco= sd->orco;
 		vlr->v3->accum= vlr->v4->accum;
 		
 		CalcNormFloat4(vlr->v4->co, vlr->v3->co, vlr->v2->co, vlr->v1->co, vlr->n);
@@ -1169,23 +1175,23 @@ static void static_particle_strand(Render *re, ObjectRen *obr, Material *ma, flo
 		vlr->mat= ma;
 		vlr->ec= ME_V2V3;
 
-		if(surfnor) {
+		if(sd->surfnor) {
 			float *snor= RE_vlakren_get_surfnor(obr, vlr, 1);
-			VECCOPY(snor, surfnor);
+			VECCOPY(snor, sd->surfnor);
 		}
 
-		if(uvco){
-			for(i=0; i<totuv; i++){
+		if(sd->uvco){
+			for(i=0; i<sd->totuv; i++){
 				MTFace *mtf;
 				mtf=RE_vlakren_get_tface(obr,vlr,i,NULL,1);
 				mtf->uv[0][0]=mtf->uv[1][0]=
-				mtf->uv[2][0]=mtf->uv[3][0]=(uvco+2*i)[0];
+				mtf->uv[2][0]=mtf->uv[3][0]=(sd->uvco+2*i)[0];
 				mtf->uv[0][1]=mtf->uv[1][1]=
-				mtf->uv[2][1]=mtf->uv[3][1]=(uvco+2*i)[1];
+				mtf->uv[2][1]=mtf->uv[3][1]=(sd->uvco+2*i)[1];
 			}
-			if(override_uv>=0){
+			if(sd->override_uv>=0){
 				MTFace *mtf;
-				mtf=RE_vlakren_get_tface(obr,vlr,override_uv,NULL,0);
+				mtf=RE_vlakren_get_tface(obr,vlr,sd->override_uv,NULL,0);
 				
 				mtf->uv[0][0]=mtf->uv[3][0]=0.0f;
 				mtf->uv[1][0]=mtf->uv[2][0]=1.0f;
@@ -1194,12 +1200,12 @@ static void static_particle_strand(Render *re, ObjectRen *obr, Material *ma, flo
 				mtf->uv[2][1]=mtf->uv[3][1]=(vlr->v3->accum+1.0f)/2.0f;
 			}
 		}
-		if(mcol){
-			for(i=0; i<totcol; i++){
+		if(sd->mcol){
+			for(i=0; i<sd->totcol; i++){
 				MCol *mc;
 				mc=RE_vlakren_get_mcol(obr,vlr,i,NULL,1);
-				mc[0]=mc[1]=mc[2]=mc[3]=mcol[i];
-				mc[0]=mc[1]=mc[2]=mc[3]=mcol[i];
+				mc[0]=mc[1]=mc[2]=mc[3]=sd->mcol[i];
+				mc[0]=mc[1]=mc[2]=mc[3]=sd->mcol[i];
 			}
 		}
 	}
@@ -1252,17 +1258,13 @@ static void static_particle_wire(ObjectRen *obr, Material *ma, float *vec, float
 	}
 
 }
-static void particle_billboard(Render *re, ObjectRen *obr, Material *ma, Object *bb_ob, float *vec, float *vel, float size, float tilt, short align,
-							   int lock, int p, int totpart, short uv_split, short anim, short split_offset, float random, float pa_time, float offset[2], int uv[3])
+
+static void particle_billboard(Render *re, ObjectRen *obr, Material *ma, ParticleBillboardData *bb)
 {
 	VlakRen *vlr;
 	MTFace *mtf;
-	float xvec[3]={1.0f,0.0f,0.0f}, yvec[3]={0.0f,1.0f,0.0f}, zvec[3];
-	float onevec[3]={0.0f,0.0f,0.0f}, tvec[3],tvec2[3], bb_center[3];
-	float uvx=0.0f, uvy=0.0f, uvdx=1.0f, uvdy=1.0f, time=0.0f;
-
-	if(align<PART_BB_VIEW)
-		onevec[align]=1.0f;
+	float xvec[3], yvec[3], zvec[3], bb_center[3];
+	float uvx = 0.0f, uvy = 0.0f, uvdx = 1.0f, uvdy = 1.0f, time = 0.0f;
 
 	vlr= RE_findOrAddVlak(obr, obr->totvlak++);
 	vlr->v1= RE_findOrAddVert(obr, obr->totvert++);
@@ -1270,74 +1272,23 @@ static void particle_billboard(Render *re, ObjectRen *obr, Material *ma, Object 
 	vlr->v3= RE_findOrAddVert(obr, obr->totvert++);
 	vlr->v4= RE_findOrAddVert(obr, obr->totvert++);
 
-	if(lock && align==PART_BB_VIEW){
-		VECCOPY(xvec,bb_ob->obmat[0]);
-		Normalize(xvec);
-		VECCOPY(yvec,bb_ob->obmat[1]);
-		Normalize(yvec);
-		VECCOPY(zvec,bb_ob->obmat[2]);
-		Normalize(zvec);
-	}
-	else if(align==PART_BB_VEL){
-		float temp[3];
-		VECCOPY(temp,vel);
-		Normalize(temp);
-		VECSUB(zvec,bb_ob->obmat[3],vec);
-		if(lock){
-			float fac=-Inpf(zvec,temp);
-			VECADDFAC(zvec,zvec,temp,fac);
-		}
-		Normalize(zvec);
-		Crossf(xvec,temp,zvec);
-		Normalize(xvec);
-		Crossf(yvec,zvec,xvec);
-	}
-	else{
-		VECSUB(zvec,bb_ob->obmat[3],vec);
-		if(lock)
-			zvec[align]=0.0f;
-		Normalize(zvec);
+	psys_make_billboard(bb, xvec, yvec, zvec, bb_center);
 
-		if(align<PART_BB_VIEW)
-			Crossf(xvec,onevec,zvec);
-		else
-			Crossf(xvec,bb_ob->obmat[1],zvec);
-		Normalize(xvec);
-		Crossf(yvec,zvec,xvec);
-	}
+	VECADD(vlr->v1->co, bb_center, xvec);
+	VECADD(vlr->v1->co, vlr->v1->co, yvec);
+	MTC_Mat4MulVecfl(re->viewmat, vlr->v1->co);
 
-	VECCOPY(tvec,xvec);
-	VECCOPY(tvec2,yvec);
+	VECSUB(vlr->v2->co, bb_center, xvec);
+	VECADD(vlr->v2->co, vlr->v2->co, yvec);
+	MTC_Mat4MulVecfl(re->viewmat, vlr->v2->co);
 
-	VecMulf(xvec,cos(tilt*(float)M_PI));
-	VecMulf(tvec2,sin(tilt*(float)M_PI));
-	VECADD(xvec,xvec,tvec2);
+	VECSUB(vlr->v3->co, bb_center, xvec);
+	VECSUB(vlr->v3->co, vlr->v3->co, yvec);
+	MTC_Mat4MulVecfl(re->viewmat, vlr->v3->co);
 
-	VecMulf(yvec,cos(tilt*(float)M_PI));
-	VecMulf(tvec,-sin(tilt*(float)M_PI));
-	VECADD(yvec,yvec,tvec);
-
-	VecMulf(xvec,size);
-	VecMulf(yvec,size);
-
-	VECADDFAC(bb_center,vec,xvec,offset[0]);
-	VECADDFAC(bb_center,bb_center,yvec,offset[1]);
-
-	VECADD(vlr->v1->co,bb_center,xvec);
-	VECADD(vlr->v1->co,vlr->v1->co,yvec);
-	MTC_Mat4MulVecfl(re->viewmat,vlr->v1->co);
-
-	VECSUB(vlr->v2->co,bb_center,xvec);
-	VECADD(vlr->v2->co,vlr->v2->co,yvec);
-	MTC_Mat4MulVecfl(re->viewmat,vlr->v2->co);
-
-	VECSUB(vlr->v3->co,bb_center,xvec);
-	VECSUB(vlr->v3->co,vlr->v3->co,yvec);
-	MTC_Mat4MulVecfl(re->viewmat,vlr->v3->co);
-
-	VECADD(vlr->v4->co,bb_center,xvec);
-	VECSUB(vlr->v4->co,vlr->v4->co,yvec);
-	MTC_Mat4MulVecfl(re->viewmat,vlr->v4->co);
+	VECADD(vlr->v4->co, bb_center, xvec);
+	VECSUB(vlr->v4->co, vlr->v4->co, yvec);
+	MTC_Mat4MulVecfl(re->viewmat, vlr->v4->co);
 
 	CalcNormFloat4(vlr->v4->co, vlr->v3->co, vlr->v2->co, vlr->v1->co, vlr->n);
 	VECCOPY(vlr->v1->n,vlr->n);
@@ -1348,115 +1299,142 @@ static void particle_billboard(Render *re, ObjectRen *obr, Material *ma, Object 
 	vlr->mat= ma;
 	vlr->ec= ME_V2V3;
 
-	if(uv_split>1){
-		uvdx=uvdy=1.0f/(float)uv_split;
-		if(anim==PART_BB_ANIM_TIME){
-			if(split_offset==PART_BB_OFF_NONE)
-				time=pa_time;
-			else if(split_offset==PART_BB_OFF_LINEAR)
-				time=(float)fmod(pa_time+(float)p/(float)(uv_split*uv_split),1.0f);
+	if(bb->uv_split > 1){
+		uvdx = uvdy = 1.0f / (float)bb->uv_split;
+		if(bb->anim == PART_BB_ANIM_TIME) {
+			if(bb->split_offset == PART_BB_OFF_NONE)
+				time = bb->time;
+			else if(bb->split_offset == PART_BB_OFF_LINEAR)
+				time = (float)fmod(bb->time + (float)bb->num / (float)(bb->uv_split * bb->uv_split), 1.0f);
 			else /* split_offset==PART_BB_OFF_RANDOM */
-				time=(float)fmod(pa_time+random,1.0f);
+				time = (float)fmod(bb->time + bb->random, 1.0f);
 
 		}
-		else if(anim==PART_BB_ANIM_ANGLE){
-			if(align==PART_BB_VIEW){
-				time=(float)fmod((tilt+1.0f)/2.0f,1.0);
+		else if(bb->anim == PART_BB_ANIM_ANGLE) {
+			if(bb->align == PART_BB_VIEW) {
+				time = (float)fmod((bb->tilt + 1.0f) / 2.0f, 1.0);
 			}
 			else{
-				float axis1[3]={0.0f,0.0f,0.0f};
-				float axis2[3]={0.0f,0.0f,0.0f};
-				axis1[(align+1)%3]=1.0f;
-				axis2[(align+2)%3]=1.0f;
-				if(lock==0){
-					zvec[align]=0.0f;
+				float axis1[3] = {0.0f,0.0f,0.0f};
+				float axis2[3] = {0.0f,0.0f,0.0f};
+				axis1[(bb->align + 1) % 3] = 1.0f;
+				axis2[(bb->align + 2) % 3] = 1.0f;
+				if(bb->lock == 0) {
+					zvec[bb->align] = 0.0f;
 					Normalize(zvec);
 				}
-				time=saacos(Inpf(zvec,axis1))/(float)M_PI;
-				if(Inpf(zvec,axis2)<0.0f)
-					time=1.0f-time/2.0f;
+				time = saacos(Inpf(zvec, axis1)) / (float)M_PI;
+				if(Inpf(zvec, axis2) < 0.0f)
+					time = 1.0f - time / 2.0f;
 				else
-					time=time/2.0f;
+					time = time / 2.0f;
 			}
-			if(split_offset==PART_BB_OFF_LINEAR)
-				time=(float)fmod(pa_time+(float)p/(float)(uv_split*uv_split),1.0f);
-			else if(split_offset==PART_BB_OFF_RANDOM)
-				time=(float)fmod(pa_time+random,1.0f);
+			if(bb->split_offset == PART_BB_OFF_LINEAR)
+				time = (float)fmod(bb->time + (float)bb->num / (float)(bb->uv_split * bb->uv_split), 1.0f);
+			else if(bb->split_offset == PART_BB_OFF_RANDOM)
+				time = (float)fmod(bb->time + bb->random, 1.0f);
 		}
 		else{
-			if(split_offset==PART_BB_OFF_NONE)
-				time=0.0f;
-			else if(split_offset==PART_BB_OFF_LINEAR)
-				time=(float)fmod((float)p/(float)(uv_split*uv_split),1.0f);
+			if(bb->split_offset == PART_BB_OFF_NONE)
+				time = 0.0f;
+			else if(bb->split_offset == PART_BB_OFF_LINEAR)
+				time = (float)fmod((float)bb->num /(float)(bb->uv_split * bb->uv_split) , 1.0f);
 			else /* split_offset==PART_BB_OFF_RANDOM */
-				time=random;
+				time = bb->random;
 		}
-		uvx=uvdx*floor((float)(uv_split*uv_split)*(float)fmod((double)time,(double)uvdx));
-		uvy=uvdy*floor((1.0f-time)*(float)uv_split);
-		if(fmod(time,1.0f/uv_split)==0.0f)
-			uvy-=uvdy;
+		uvx = uvdx * floor((float)(bb->uv_split * bb->uv_split) * (float)fmod((double)time, (double)uvdx));
+		uvy = uvdy * floor((1.0f - time) * (float)bb->uv_split);
+		if(fmod(time, 1.0f / bb->uv_split) == 0.0f)
+			uvy -= uvdy;
 	}
 
 	/* normal UVs */
-	if(uv[0]>=0){
-		mtf=RE_vlakren_get_tface(obr,vlr,uv[0],NULL,1);
-		mtf->uv[0][0]=1.0f;
-		mtf->uv[0][1]=1.0f;
-		mtf->uv[1][0]=0.0f;
-		mtf->uv[1][1]=1.0f;
-		mtf->uv[2][0]=0.0f;
-		mtf->uv[2][1]=0.0f;
-		mtf->uv[3][0]=1.0f;
-		mtf->uv[3][1]=0.0f;
+	if(bb->uv[0] >= 0){
+		mtf = RE_vlakren_get_tface(obr, vlr, bb->uv[0], NULL, 1);
+		mtf->uv[0][0] = 1.0f;
+		mtf->uv[0][1] = 1.0f;
+		mtf->uv[1][0] = 0.0f;
+		mtf->uv[1][1] = 1.0f;
+		mtf->uv[2][0] = 0.0f;
+		mtf->uv[2][1] = 0.0f;
+		mtf->uv[3][0] = 1.0f;
+		mtf->uv[3][1] = 0.0f;
 	}
 
 	/* time-index UVs */
-	if(uv[1]>=0){
-		mtf=RE_vlakren_get_tface(obr,vlr,uv[1],NULL,1);
-		mtf->uv[0][0]=mtf->uv[1][0]=mtf->uv[2][0]=mtf->uv[3][0]=pa_time;
-		mtf->uv[0][1]=mtf->uv[1][1]=mtf->uv[2][1]=mtf->uv[3][1]=(float)p/(float)totpart;
+	if(bb->uv[1] >= 0){
+		mtf = RE_vlakren_get_tface(obr, vlr, bb->uv[1], NULL, 1);
+		mtf->uv[0][0] = mtf->uv[1][0] = mtf->uv[2][0] = mtf->uv[3][0] = bb->time;
+		mtf->uv[0][1] = mtf->uv[1][1] = mtf->uv[2][1] = mtf->uv[3][1] = (float)bb->num/(float)bb->totnum;
 	}
 
 	/* split UVs */
-	if(uv_split>1 && uv[2]>=0){
-		mtf=RE_vlakren_get_tface(obr,vlr,uv[2],NULL,1);
-		mtf->uv[0][0]=uvx+uvdx;
-		mtf->uv[0][1]=uvy+uvdy;
-		mtf->uv[1][0]=uvx;
-		mtf->uv[1][1]=uvy+uvdy;
-		mtf->uv[2][0]=uvx;
-		mtf->uv[2][1]=uvy;
-		mtf->uv[3][0]=uvx+uvdx;
-		mtf->uv[3][1]=uvy;
+	if(bb->uv_split > 1 && bb->uv[2] >= 0){
+		mtf = RE_vlakren_get_tface(obr, vlr, bb->uv[2], NULL, 1);
+		mtf->uv[0][0] = uvx + uvdx;
+		mtf->uv[0][1] = uvy + uvdy;
+		mtf->uv[1][0] = uvx;
+		mtf->uv[1][1] = uvy + uvdy;
+		mtf->uv[2][0] = uvx;
+		mtf->uv[2][1] = uvy;
+		mtf->uv[3][0] = uvx + uvdx;
+		mtf->uv[3][1] = uvy;
 	}
 }
-static void render_new_particle(Render *re, ObjectRen *obr, DerivedMesh *dm, Material *ma, int path, int first, int line,
-								float time, float *loc, float *loc1, float *orco, float *surfnor, int totuv, float *uvco,
-								int totcol, MCol *mcol, float size, int seed, int override_uv,
-								int adapt, float adapt_angle, float adapt_pix)
+static void render_new_particle(Render *re, ObjectRen *obr, DerivedMesh *dm, Material *ma, ParticleStrandData *sd, float *loc, float *loc1,	int seed)
 {
 	HaloRen *har=0;
-	if(path){
-		if(ma->mode&MA_WIRE)
-			static_particle_wire(obr, ma, loc, loc1, first, line);
-		else if(ma->mode & MA_HALO){
-			har= RE_inithalo_particle(re, obr, dm, ma, loc, loc1, orco, uvco, size, 1.0, seed);
-			if(har) har->lay= obr->ob->lay;
-		}
-		else
-			static_particle_strand(re, obr, ma, orco, surfnor, uvco, totuv, mcol, totcol, loc, loc1, time, first, line, adapt, adapt_angle, adapt_pix, override_uv);
-	}
-	else{
-		har= RE_inithalo_particle(re, obr, dm, ma, loc, NULL, orco, uvco, size, 0.0, seed);
+
+	if(ma->mode&MA_WIRE)
+		static_particle_wire(obr, ma, loc, loc1, sd->first, sd->line);
+	else if(ma->mode & MA_HALO){
+		har= RE_inithalo_particle(re, obr, dm, ma, loc, loc1, sd->orco, sd->uvco, sd->size, 1.0, seed);
 		if(har) har->lay= obr->ob->lay;
+	}
+	else
+		static_particle_strand(re, obr, ma, sd, loc, loc1);
+}
+static void get_particle_uvco_mcol(short from, DerivedMesh *dm, float *fuv, int num, ParticleStrandData *sd)
+{
+	int i;
+
+	/* get uvco */
+	if(sd->uvco && ELEM(from,PART_FROM_FACE,PART_FROM_VOLUME)) {
+		for(i=0; i<sd->totuv; i++) {
+			if(num != DMCACHE_NOTFOUND) {
+				MFace *mface = dm->getFaceData(dm, num, CD_MFACE);
+				MTFace *mtface = (MTFace*)CustomData_get_layer_n(&dm->faceData, CD_MTFACE, i);
+				mtface += num;
+				
+				psys_interpolate_uvs(mtface, mface->v4, fuv, sd->uvco + 2 * i);
+			}
+			else {
+				sd->uvco[2*i] = 0.0f;
+				sd->uvco[2*i + 1] = 0.0f;
+			}
+		}
+	}
+
+	/* get mcol */
+	if(sd->mcol && ELEM(from,PART_FROM_FACE,PART_FROM_VOLUME)) {
+		for(i=0; i<sd->totcol; i++) {
+			if(num != DMCACHE_NOTFOUND) {
+				MFace *mface = dm->getFaceData(dm, num, CD_MFACE);
+				MCol *mc = (MCol*)CustomData_get_layer_n(&dm->faceData, CD_MCOL, i);
+				mc += num * 4;
+
+				psys_interpolate_mcol(mc, mface->v4, fuv, sd->mcol + i);
+			}
+			else
+				memset(&sd->mcol[i], 0, sizeof(MCol));
+		}
 	}
 }
 static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem *psys, int timeoffset)
 {
 	Object *ob= obr->ob;
-	Object *tob=0, *bb_ob=re->scene->camera;
+	Object *tob=0;
 	Material *ma=0;
-	MTFace *mtface;
 	ParticleSystemModifierData *psmd;
 	ParticleSystem *tpsys=0;
 	ParticleSettings *part, *tpart=0;
@@ -1464,19 +1442,20 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 	ParticleKey *states=0;
 	ParticleKey state;
 	ParticleCacheKey *cache=0;
+	ParticleBillboardData bb;
+	ParticleStrandData sd;
 	StrandBuffer *strandbuf=0;
 	StrandVert *svert=0;
 	StrandBound *sbound= 0;
 	StrandRen *strand=0;
 	RNG *rng= 0;
-	MCol *mcol= 0;
 	float loc[3],loc1[3],loc0[3],vel[3],mat[4][4],nmat[3][3],co[3],nor[3],time;
-	float *orco=0,*surfnor=0,*uvco=0, strandlen=0.0f, curlen=0.0f;
+	float strandlen=0.0f, curlen=0.0f;
 	float hasize, pa_size, pa_time, r_tilt, cfra=bsystem_time(re->scene, ob, (float)re->scene->r.cfra, 0.0);
-	float adapt_angle=0.0, adapt_pix=0.0, random, simplify[2];
-	int i, a, k, max_k=0, totpart, totuv=0, totcol=0, override_uv=-1, dosimplify = 0, dosurfacecache = 0;
-	int path_possible=0, keys_possible=0, baked_keys=0, totchild=0;
-	int seed, path_nbr=0, path=0, orco1=0, adapt=0, uv[3]={0,0,0}, num;
+	float random, simplify[2];
+	int i, a, k, max_k=0, totpart, dosimplify = 0, dosurfacecache = 0;
+	int totchild=0;
+	int seed, path_nbr=0, orco1=0, num;
 	int totface, *origindex = 0;
 	char **uv_name=0;
 
@@ -1503,6 +1482,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 			return 1;
 	}
 
+	/* last possibility to bail out! */
 	psmd= psys_get_modifier(ob,psys);
 	if(!(psmd->modifier.mode & eModifierMode_Render))
 		return 0;
@@ -1511,14 +1491,17 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 		totchild = (int)((float)totchild * (float)part->disp / 100.0f);
 	}
 
-	psys->flag|=PSYS_DRAWING;
+	psys->flag |= PSYS_DRAWING;
 
 	rng= rng_new(psys->seed);
-	
-	ma= give_render_material(re, ob, part->omat);
 
-	if(part->bb_ob)
-		bb_ob=part->bb_ob;
+	totpart=psys->totpart;
+
+	memset(&sd, 0, sizeof(ParticleStrandData));
+	sd.override_uv = -1;
+
+/* 2.1 setup material stff */
+	ma= give_render_material(re, ob, part->omat);
 	
 #if 0 // XXX old animation system
 	if(ma->ipo){
@@ -1527,171 +1510,168 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 	}
 #endif // XXX old animation system
 
-	RE_set_customdata_names(obr, &psmd->dm->faceData);
-	totuv=CustomData_number_of_layers(&psmd->dm->faceData,CD_MTFACE);
-	totcol=CustomData_number_of_layers(&psmd->dm->faceData,CD_MCOL);
+	hasize = ma->hasize;
+	seed = ma->seed1;
 
-	if(ma->texco & TEXCO_UV && totuv) {
-		uvco = MEM_callocN(totuv*2*sizeof(float),"particle_uvs");
+	re->flag |= R_HALO;
+
+	RE_set_customdata_names(obr, &psmd->dm->faceData);
+	sd.totuv = CustomData_number_of_layers(&psmd->dm->faceData, CD_MTFACE);
+	sd.totcol = CustomData_number_of_layers(&psmd->dm->faceData, CD_MCOL);
+
+	if(ma->texco & TEXCO_UV && sd.totuv) {
+		sd.uvco = MEM_callocN(sd.totuv * 2 * sizeof(float), "particle_uvs");
 
 		if(ma->strand_uvname[0]) {
-			override_uv= CustomData_get_named_layer_index(&psmd->dm->faceData,CD_MTFACE,ma->strand_uvname);
-			override_uv-= CustomData_get_layer_index(&psmd->dm->faceData,CD_MTFACE);
+			sd.override_uv = CustomData_get_named_layer_index(&psmd->dm->faceData, CD_MTFACE, ma->strand_uvname);
+			sd.override_uv -= CustomData_get_layer_index(&psmd->dm->faceData, CD_MTFACE);
 		}
 	}
+	else
+		sd.uvco = NULL;
 
-	if(totcol)
-		mcol = MEM_callocN(totcol*sizeof(MCol),"particle_mcols");
+	if(sd.totcol)
+		sd.mcol = MEM_callocN(sd.totcol * sizeof(MCol), "particle_mcols");
 
-	if(part->draw_as==PART_DRAW_BB){
-		int first_uv=CustomData_get_layer_index(&psmd->dm->faceData,CD_MTFACE);
+/* 2.2 setup billboards */
+	if(part->draw_as == PART_DRAW_BB) {
+		int first_uv = CustomData_get_layer_index(&psmd->dm->faceData, CD_MTFACE);
 
-		uv[0]=CustomData_get_named_layer_index(&psmd->dm->faceData,CD_MTFACE,psys->bb_uvname[0]);
-		if(uv[0]<0)
-			uv[0]=CustomData_get_active_layer_index(&psmd->dm->faceData,CD_MTFACE);
+		bb.uv[0] = CustomData_get_named_layer_index(&psmd->dm->faceData, CD_MTFACE, psys->bb_uvname[0]);
+		if(bb.uv[0] < 0)
+			bb.uv[0] = CustomData_get_active_layer_index(&psmd->dm->faceData, CD_MTFACE);
 
-		uv[1]=CustomData_get_named_layer_index(&psmd->dm->faceData,CD_MTFACE,psys->bb_uvname[1]);
-		//if(uv[1]<0)
-		//	uv[1]=CustomData_get_active_layer_index(&psmd->dm->faceData,CD_MTFACE);
+		bb.uv[1] = CustomData_get_named_layer_index(&psmd->dm->faceData, CD_MTFACE, psys->bb_uvname[1]);
 
-		uv[2]=CustomData_get_named_layer_index(&psmd->dm->faceData,CD_MTFACE,psys->bb_uvname[2]);
-		//if(uv[2]<0)
-		//	uv[2]=CustomData_get_active_layer_index(&psmd->dm->faceData,CD_MTFACE);
+		bb.uv[2] = CustomData_get_named_layer_index(&psmd->dm->faceData, CD_MTFACE, psys->bb_uvname[2]);
 
-		if(first_uv>=0){
-			uv[0]-=first_uv;
-			uv[1]-=first_uv;
-			uv[2]-=first_uv;
+		if(first_uv >= 0) {
+			bb.uv[0] -= first_uv;
+			bb.uv[1] -= first_uv;
+			bb.uv[2] -= first_uv;
 		}
+
+		bb.align = part->bb_align;
+		bb.anim = part->bb_anim;
+		bb.lock = part->draw & PART_DRAW_BB_LOCK;
+		bb.ob = (part->bb_ob ? part->bb_ob : re->scene->camera);
+		bb.offset[0] = part->bb_offset[0];
+		bb.offset[1] = part->bb_offset[1];
+		bb.split_offset = part->bb_split_offset;
+		bb.totnum = totpart+totchild;
+		bb.uv_split = part->bb_uv_split;
 	}
 
 #if 0 // XXX old animation system
-	if(part->flag&PART_ABS_TIME && part->ipo){
+/* 2.3 setup time */
+	if(part->flag&PART_ABS_TIME && part->ipo) {
 		calc_ipo(part->ipo, cfra);
 		execute_ipo((ID *)part, part->ipo);
 	}
 #endif // XXX old animation system
 
-	if(part->flag&PART_GLOB_TIME)
-		cfra=bsystem_time(re->scene, 0, (float)re->scene->r.cfra, 0.0);
+	if(part->flag & PART_GLOB_TIME)
+		cfra = bsystem_time(re->scene, 0, (float)re->scene->r.cfra, 0.0);
 
-	if(part->type==PART_REACTOR){
+/* 2.4 setup reactors */
+	if(part->type == PART_REACTOR){
 		psys_get_reactor_target(ob, psys, &tob, &tpsys);
 		if(tpsys && (part->from==PART_FROM_PARTICLE || part->phystype==PART_PHYS_NO)){
-			psmd=psys_get_modifier(tob,tpsys);
-			tpart=tpsys->part;
+			psmd = psys_get_modifier(tob,tpsys);
+			tpart = tpsys->part;
 		}
 	}
-
-	hasize = ma->hasize;
-	seed = ma->seed1;
-
-	re->flag |= R_HALO;
 	
+/* 2.5 setup matrices */
 	MTC_Mat4MulMat4(mat, ob->obmat, re->viewmat);
 	MTC_Mat4Invert(ob->imat, mat);	/* need to be that way, for imat texture */
 	Mat3CpyMat4(nmat, ob->imat);
 	Mat3Transp(nmat);
 
-	totpart=psys->totpart;
+/* 2.6 setup strand rendering */
+	if(part->draw_as == PART_DRAW_PATH && psys->pathcache){
+		path_nbr=(int)pow(2.0,(double) part->ren_step);
 
-	if(psys->pathcache){
-		path_possible=1;
-		keys_possible=1;
-	}
-	if(part->draw_as==PART_DRAW_PATH){
-		if(path_possible){
-			path_nbr=(int)pow(2.0,(double) part->ren_step);
-			//if(part->phystype==PART_PHYS_KEYED && (psys->flag&PSYS_BAKED)==0)
-			//	path_nbr*=psys->totkeyed;
-
-			if(path_nbr) {
-				if((ma->mode & (MA_HALO|MA_WIRE))==0) {
-					orco= MEM_mallocN(3*sizeof(float)*(totpart+totchild), "particle orcos");
-					set_object_orco(re, psys, orco);
-				}
-				path=1;
-			}
-
-			if(part->draw&PART_DRAW_REN_ADAPT) {
-				adapt=1;
-				adapt_pix=(float)part->adapt_pix;
-				adapt_angle=cos((float)part->adapt_angle*(float)(M_PI/180.0));
-			}
-
-			if(re->r.renderer==R_INTERN && part->draw&PART_DRAW_REN_STRAND) {
-				strandbuf= RE_addStrandBuffer(obr, (totpart+totchild)*(path_nbr+1));
-				strandbuf->ma= ma;
-				strandbuf->lay= ob->lay;
-				Mat4CpyMat4(strandbuf->winmat, re->winmat);
-				strandbuf->winx= re->winx;
-				strandbuf->winy= re->winy;
-				strandbuf->maxdepth= 2;
-				strandbuf->adaptcos= cos((float)part->adapt_angle*(float)(M_PI/180.0));
-				strandbuf->overrideuv= override_uv;
-				strandbuf->minwidth= ma->strand_min;
-
-				if(ma->strand_widthfade == 0.0f)
-					strandbuf->widthfade= 0.0f;
-				else if(ma->strand_widthfade >= 1.0f)
-					strandbuf->widthfade= 2.0f - ma->strand_widthfade;
-				else
-					strandbuf->widthfade= 1.0f/MAX2(ma->strand_widthfade, 1e-5f);
-
-				if(part->flag & PART_HAIR_BSPLINE)
-					strandbuf->flag |= R_STRAND_BSPLINE;
-				if(ma->mode & MA_STR_B_UNITS)
-					strandbuf->flag |= R_STRAND_B_UNITS;
-
-				svert= strandbuf->vert;
-
-				if(re->r.mode & R_SPEED)
-					dosurfacecache= 1;
-				else if((re->wrld.mode & WO_AMB_OCC) && (re->wrld.ao_gather_method == WO_AOGATHER_APPROX))
-					if(ma->amb != 0.0f)
-						dosurfacecache= 1;
-
-				totface= psmd->dm->getNumFaces(psmd->dm);
-				origindex= psmd->dm->getFaceDataArray(psmd->dm, CD_ORIGINDEX);
-				if(origindex) {
-					for(a=0; a<totface; a++)
-						strandbuf->totbound= MAX2(strandbuf->totbound, origindex[a]);
-					strandbuf->totbound++;
-				}
-				strandbuf->totbound++;
-				strandbuf->bound= MEM_callocN(sizeof(StrandBound)*strandbuf->totbound, "StrandBound");
-				sbound= strandbuf->bound;
-				sbound->start= sbound->end= 0;
+		if(path_nbr) {
+			if((ma->mode & (MA_HALO|MA_WIRE))==0) {
+				sd.orco = MEM_mallocN(3*sizeof(float)*(totpart+totchild), "particle orcos");
+				set_object_orco(re, psys, sd.orco);
 			}
 		}
-	}
-	else if(keys_possible && part->draw&PART_DRAW_KEYS){
-		path_nbr=part->keys_step;
-		if(path_nbr==0)
-			baked_keys=1;
+
+		if(part->draw & PART_DRAW_REN_ADAPT) {
+			sd.adapt = 1;
+			sd.adapt_pix = (float)part->adapt_pix;
+			sd.adapt_angle = cos((float)part->adapt_angle * (float)(M_PI / 180.0));
+		}
+
+		if(re->r.renderer==R_INTERN && part->draw&PART_DRAW_REN_STRAND) {
+			strandbuf= RE_addStrandBuffer(obr, (totpart+totchild)*(path_nbr+1));
+			strandbuf->ma= ma;
+			strandbuf->lay= ob->lay;
+			Mat4CpyMat4(strandbuf->winmat, re->winmat);
+			strandbuf->winx= re->winx;
+			strandbuf->winy= re->winy;
+			strandbuf->maxdepth= 2;
+			strandbuf->adaptcos= cos((float)part->adapt_angle*(float)(M_PI/180.0));
+			strandbuf->overrideuv= sd.override_uv;
+			strandbuf->minwidth= ma->strand_min;
+
+			if(ma->strand_widthfade == 0.0f)
+				strandbuf->widthfade= 0.0f;
+			else if(ma->strand_widthfade >= 1.0f)
+				strandbuf->widthfade= 2.0f - ma->strand_widthfade;
+			else
+				strandbuf->widthfade= 1.0f/MAX2(ma->strand_widthfade, 1e-5f);
+
+			if(part->flag & PART_HAIR_BSPLINE)
+				strandbuf->flag |= R_STRAND_BSPLINE;
+			if(ma->mode & MA_STR_B_UNITS)
+				strandbuf->flag |= R_STRAND_B_UNITS;
+
+			svert= strandbuf->vert;
+
+			if(re->r.mode & R_SPEED)
+				dosurfacecache= 1;
+			else if((re->wrld.mode & WO_AMB_OCC) && (re->wrld.ao_gather_method == WO_AOGATHER_APPROX))
+				if(ma->amb != 0.0f)
+					dosurfacecache= 1;
+
+			totface= psmd->dm->getNumFaces(psmd->dm);
+			origindex= psmd->dm->getFaceDataArray(psmd->dm, CD_ORIGINDEX);
+			if(origindex) {
+				for(a=0; a<totface; a++)
+					strandbuf->totbound= MAX2(strandbuf->totbound, origindex[a]);
+				strandbuf->totbound++;
+			}
+			strandbuf->totbound++;
+			strandbuf->bound= MEM_callocN(sizeof(StrandBound)*strandbuf->totbound, "StrandBound");
+			sbound= strandbuf->bound;
+			sbound->start= sbound->end= 0;
+		}
 	}
 
-	if(orco==0){
-		orco=MEM_mallocN(3*sizeof(float),"particle orco");
-		orco1=1;
+	if(sd.orco == 0) {
+		sd.orco = MEM_mallocN(3 * sizeof(float), "particle orco");
+		orco1 = 1;
 	}
 
-	if(path_nbr==0)
-		psys->lattice= psys_get_lattice(re->scene, ob, psys);
+	if(path_nbr == 0)
+		psys->lattice = psys_get_lattice(re->scene, ob, psys);
 
 /* 3. start creating renderable things */
 	for(a=0,pa=pars; a<totpart+totchild; a++, pa++, seed++) {
 		random = rng_getFloat(rng);
-
+		/* setup per particle individual stuff */
 		if(a<totpart){
 			if(pa->flag & PARS_UNEXIST) continue;
 
 			pa_time=(cfra-pa->time)/pa->lifetime;
-			if((part->flag&PART_ABS_TIME)==0){
+			if((part->flag&PART_ABS_TIME) == 0){
 #if 0 // XXX old animation system
-				if(ma->ipo){
+				if(ma->ipo) {
 					/* correction for lifetime */
-					calc_ipo(ma->ipo, 100.0f*pa_time);
+					calc_ipo(ma->ipo, 100.0f * pa_time);
 					execute_ipo((ID *)ma, ma->ipo);
 				}
 				if(part->ipo){
@@ -1707,51 +1687,25 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 			/* get orco */
 			if(tpsys && (part->from==PART_FROM_PARTICLE || part->phystype==PART_PHYS_NO)){
 				tpa=tpsys->particles+pa->num;
-				psys_particle_on_emitter(psmd,tpart->from,tpa->num,pa->num_dmcache,tpa->fuv,tpa->foffset,co,nor,0,0,orco,0);
+				psys_particle_on_emitter(psmd,tpart->from,tpa->num,pa->num_dmcache,tpa->fuv,tpa->foffset,co,nor,0,0,sd.orco,0);
 			}
 			else
-				psys_particle_on_emitter(psmd,part->from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,co,nor,0,0,orco,0);
+				psys_particle_on_emitter(psmd,part->from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,co,nor,0,0,sd.orco,0);
 
+			/* get uvco & mcol */
 			num= pa->num_dmcache;
 
 			if(num == DMCACHE_NOTFOUND)
 				if(pa->num < psmd->dm->getNumFaces(psmd->dm))
 					num= pa->num;
 
-			if(uvco && ELEM(part->from,PART_FROM_FACE,PART_FROM_VOLUME)){
-				for(i=0; i<totuv; i++){
-					if(num != DMCACHE_NOTFOUND) {
-						MFace *mface=psmd->dm->getFaceData(psmd->dm,num,CD_MFACE);
-						mtface=(MTFace*)CustomData_get_layer_n(&psmd->dm->faceData,CD_MTFACE,i);
-						mtface+=num;
-						
-						psys_interpolate_uvs(mtface,mface->v4,pa->fuv,uvco+2*i);
-					}
-					else {
-						uvco[2*i]= 0.0f;
-						uvco[2*i + 1]= 0.0f;
-					}
-				}
-			}
-			if(mcol && ELEM(part->from,PART_FROM_FACE,PART_FROM_VOLUME)){
-				for(i=0; i<totcol; i++){
-					if(num != DMCACHE_NOTFOUND) {
-						MFace *mface=psmd->dm->getFaceData(psmd->dm,num,CD_MFACE);
-						MCol *mc=(MCol*)CustomData_get_layer_n(&psmd->dm->faceData,CD_MCOL,i);
-						mc+=num*4;
+			get_particle_uvco_mcol(part->from, psmd->dm, pa->fuv, num, &sd);
 
-						psys_interpolate_mcol(mc,mface->v4,pa->fuv,mcol+i);
-					}
-					else
-						memset(&mcol[i], 0, sizeof(MCol));
-				}
-			}
+			pa_size = pa->size;
 
-			pa_size=pa->size;
+			r_tilt = 1.0f + pa->r_ave[0];
 
-			r_tilt=1.0f+pa->r_ave[0];
-
-			if(path_nbr){
+			if(path_nbr) {
 				cache = psys->pathcache[a];
 				max_k = (int)cache->steps;
 			}
@@ -1760,124 +1714,68 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 		}
 		else {
 			ChildParticle *cpa= psys->child+a-totpart;
-			
-			pa_time=psys_get_child_time(psys, cpa, cfra);
 
-			if((part->flag&PART_ABS_TIME)==0){
+			if(path_nbr) {
+				cache = psys->childcache[a-totpart];
+
+				if(cache->steps < 0)
+					continue;
+
+				max_k = (int)cache->steps;
+			}
+			
+			pa_time = psys_get_child_time(psys, cpa, cfra);
+
+			if((part->flag & PART_ABS_TIME) == 0) {
 #if 0 // XXX old animation system
 				if(ma->ipo){
 					/* correction for lifetime */
-					calc_ipo(ma->ipo, 100.0f*pa_time);
+					calc_ipo(ma->ipo, 100.0f * pa_time);
 					execute_ipo((ID *)ma, ma->ipo);
 				}
-				if(part->ipo){
+				if(part->ipo) {
 					/* correction for lifetime */
-					calc_ipo(part->ipo, 100.0f*pa_time);
+					calc_ipo(part->ipo, 100.0f * pa_time);
 					execute_ipo((ID *)part, part->ipo);
 				}
 #endif // XXX old animation system
 			}
 
-			pa_size=psys_get_child_size(psys, cpa, cfra, &pa_time);
+			pa_size = psys_get_child_size(psys, cpa, cfra, &pa_time);
 
-			r_tilt=2.0f*cpa->rand[2];
+			r_tilt = 2.0f * cpa->rand[2];
 
-			num= cpa->num;
+			num = cpa->num;
 
 			/* get orco */
 			if(part->childtype == PART_CHILD_FACES) {
 				psys_particle_on_emitter(psmd,
 					PART_FROM_FACE, cpa->num,DMCACHE_ISCHILD,
-					cpa->fuv,cpa->foffset,co,nor,0,0,orco,0);
+					cpa->fuv,cpa->foffset,co,nor,0,0,sd.orco,0);
 			}
 			else {
 				ParticleData *par = psys->particles + cpa->parent;
 				psys_particle_on_emitter(psmd, part->from,
 					par->num,DMCACHE_ISCHILD,par->fuv,
-					par->foffset,co,nor,0,0,orco,0);
+					par->foffset,co,nor,0,0,sd.orco,0);
 			}
 
-			if(uvco){
-				if(part->from!=PART_FROM_PARTICLE && part->childtype==PART_CHILD_FACES){
-					for(i=0; i<totuv; i++){
-						if(part->childtype==PART_CHILD_FACES){
-							MFace *mface=psmd->dm->getFaceData(psmd->dm,cpa->num,CD_MFACE);
+			/* get uvco & mcol */
+			if(part->from!=PART_FROM_PARTICLE && part->childtype==PART_CHILD_FACES) {
+				get_particle_uvco_mcol(PART_FROM_FACE, psmd->dm, cpa->fuv, cpa->num, &sd);
+			}
+			else {
+				ParticleData *parent = psys->particles + cpa->parent;
+				num = parent->num_dmcache;
 
-							mtface=(MTFace*)CustomData_get_layer_n(&psmd->dm->faceData,CD_MTFACE,i);
-							mtface+=cpa->num;
-							
-							psys_interpolate_uvs(mtface,mface->v4,cpa->fuv,uvco+2*i);
-						}
-						else{
-							uvco[2*i]=uvco[2*i+1]=0.0f;
-						}
-					}
-				}
-				else if(ELEM(part->from,PART_FROM_FACE,PART_FROM_VOLUME)){
-					ParticleData *parent = psys->particles + cpa->parent;
-					num= parent->num_dmcache;
+				if(num == DMCACHE_NOTFOUND)
+					if(parent->num < psmd->dm->getNumFaces(psmd->dm))
+						num = parent->num;
 
-					if(num == DMCACHE_NOTFOUND)
-						if(parent->num < psmd->dm->getNumFaces(psmd->dm))
-							num= parent->num;
-
-					for(i=0; i<totuv; i++) {
-						if(num != DMCACHE_NOTFOUND) {
-							MFace *mface=psmd->dm->getFaceData(psmd->dm,num,CD_MFACE);
-							mtface=(MTFace*)CustomData_get_layer_n(&psmd->dm->faceData,CD_MTFACE,i);
-							mtface+=num;
-							psys_interpolate_uvs(mtface,mface->v4,parent->fuv,uvco+2*i);
-						}
-						else {
-							uvco[2*i]= 0.0f;
-							uvco[2*i + 1]= 0.0f;
-						}
-					}
-				}
+				get_particle_uvco_mcol(part->from, psmd->dm, pa->fuv, num, &sd);
 			}
 
-			if(mcol){
-				if(part->from!=PART_FROM_PARTICLE && part->childtype==PART_CHILD_FACES){
-					for(i=0; i<totcol; i++){
-						if(part->childtype==PART_CHILD_FACES){
-							MFace *mface=psmd->dm->getFaceData(psmd->dm,cpa->num,CD_MFACE);
-							MCol *mc=(MCol*)CustomData_get_layer_n(&psmd->dm->faceData,CD_MCOL,i);
-							mc+=cpa->num*4;
-							
-							psys_interpolate_mcol(mc,mface->v4,cpa->fuv,mcol+i);
-						}
-						else
-							memset(&mcol[i], 0, sizeof(MCol));
-					}
-				}
-				else if(ELEM(part->from,PART_FROM_FACE,PART_FROM_VOLUME)){
-					ParticleData *parent = psys->particles + cpa->parent;
-					num= parent->num_dmcache;
-
-					if(num == DMCACHE_NOTFOUND)
-						if(parent->num < psmd->dm->getNumFaces(psmd->dm))
-							num= parent->num;
-
-					for(i=0; i<totcol; i++){
-						if(num != DMCACHE_NOTFOUND) {
-							MFace *mface=psmd->dm->getFaceData(psmd->dm,num,CD_MFACE);
-							MCol *mc=(MCol*)CustomData_get_layer_n(&psmd->dm->faceData,CD_MCOL,i);
-							mc+=num*4;
-							
-							psys_interpolate_mcol(mc,mface->v4,parent->fuv,mcol+i);
-						}
-						else
-							memset(&mcol[i], 0, sizeof(MCol));
-					}
-				}
-			}
-
-			dosimplify= psys_render_simplify_params(psys, cpa, simplify);
-
-			if(path_nbr && psys->childcache) {
-				cache = psys->childcache[a-totpart];
-				max_k = (int)cache->steps;
-			}
+			dosimplify = psys_render_simplify_params(psys, cpa, simplify);
 
 			if(strandbuf) {
 				if(origindex[cpa->num]+1 > sbound - strandbuf->bound) {
@@ -1890,17 +1788,17 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 		/* surface normal shading setup */
 		if(ma->mode_l & MA_STR_SURFDIFF) {
 			Mat3MulVecfl(nmat, nor);
-			surfnor= nor;
+			sd.surfnor= nor;
 		}
 		else
-			surfnor= NULL;
+			sd.surfnor= NULL;
 
 		/* strand render setup */
 		if(strandbuf) {
 			strand= RE_findOrAddStrand(obr, obr->totstrand++);
 			strand->buffer= strandbuf;
 			strand->vert= svert;
-			VECCOPY(strand->orco, orco);
+			VECCOPY(strand->orco, sd.orco);
 
 			if(dosimplify) {
 				float *ssimplify= RE_strandren_get_simplify(obr, strand, 1);
@@ -1908,9 +1806,9 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 				ssimplify[1]= simplify[1];
 			}
 
-			if(surfnor) {
+			if(sd.surfnor) {
 				float *snor= RE_strandren_get_surfnor(obr, strand, 1);
-				VECCOPY(snor, surfnor);
+				VECCOPY(snor, sd.surfnor);
 			}
 
 			if(dosurfacecache && num >= 0) {
@@ -1918,20 +1816,20 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 				*facenum= num;
 			}
 
-			if(uvco) {
-				for(i=0; i<totuv; i++) {
-					if(i != override_uv) {
+			if(sd.uvco) {
+				for(i=0; i<sd.totuv; i++) {
+					if(i != sd.override_uv) {
 						float *uv= RE_strandren_get_uv(obr, strand, i, NULL, 1);
 
-						uv[0]= uvco[2*i];
-						uv[1]= uvco[2*i+1];
+						uv[0]= sd.uvco[2*i];
+						uv[1]= sd.uvco[2*i+1];
 					}
 				}
 			}
-			if(mcol) {
-				for(i=0; i<totcol; i++) {
+			if(sd.mcol) {
+				for(i=0; i<sd.totcol; i++) {
 					MCol *mc= RE_strandren_get_mcol(obr, strand, i, NULL, 1);
-					*mc = mcol[i];
+					*mc = sd.mcol[i];
 				}
 			}
 
@@ -1947,11 +1845,10 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 					strandlen += VecLenf((cache+k-1)->co, (cache+k)->co);
 		}
 
-		for(k=0; k<=path_nbr; k++){
-			if(path_nbr){
+		if(path_nbr) {
+			/* render strands */
+			for(k=0; k<=path_nbr; k++){
 				if(k<=max_k){
-					//bti->convert_bake_key(bsys,cache+k,0,(void*)&state);
-					//copy_particle_key(&state,cache+k,0);
 					VECCOPY(state.co,(cache+k)->co);
 					VECCOPY(state.vel,(cache+k)->vel);
 				}
@@ -1961,65 +1858,95 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 				if(k > 0)
 					curlen += VecLenf((cache+k-1)->co, (cache+k)->co);
 				time= curlen/strandlen;
+
+				VECCOPY(loc,state.co);
+				MTC_Mat4MulVecfl(re->viewmat,loc);
+
+				if(strandbuf) {
+					VECCOPY(svert->co, loc);
+					svert->strandco= -1.0f + 2.0f*time;
+					svert++;
+					strand->totvert++;
+				}
+				else{
+					sd.first = 0;
+					sd.time = time;
+					sd.size = hasize;
+
+					if(k==1){
+						sd.first = 1;
+						sd.time = 0.0f;
+						VECSUB(loc0,loc1,loc);
+						VECADD(loc0,loc1,loc0);
+					}
+
+					if(k)
+						render_new_particle(re, obr, psmd->dm, ma, &sd, loc, loc1, seed);
+
+					VECCOPY(loc1,loc);
+				}
 			}
-			else{
-				time=0.0f;
-				state.time=cfra;
-				if(psys_get_particle_state(re->scene, ob, psys, a, &state, 0)==0)
-					continue;
-			}
+
+		}
+		else {
+			/* render normal particles */
+			time=0.0f;
+			state.time=cfra;
+			if(psys_get_particle_state(re->scene,ob,psys,a,&state,0)==0)
+				continue;
 
 			VECCOPY(loc,state.co);
 			if(part->draw_as!=PART_DRAW_BB)
 				MTC_Mat4MulVecfl(re->viewmat,loc);
 
-			if(part->draw_as==PART_DRAW_LINE) {
-				VECCOPY(vel,state.vel);
-				//VECADD(vel,vel,state.co);
-				MTC_Mat4Mul3Vecfl(re->viewmat,vel);
-				//VECSUB(vel,vel,loc);
-				Normalize(vel);
-				if(part->draw & PART_DRAW_VEL_LENGTH)
-					VecMulf(vel,VecLength(state.vel));
-				VECADDFAC(loc0,loc,vel,-part->draw_line[0]);
-				VECADDFAC(loc1,loc,vel,part->draw_line[1]);
+			switch(part->draw_as) {
+				case PART_DRAW_LINE:
+					sd.line = 1;
+					sd.time = 0.0f;
+					sd.size = hasize;
 
-				render_new_particle(re,obr,psmd->dm,ma,1,0,1,0.0f,loc0,loc1,
-									orco,surfnor,totuv,uvco,totcol,mcol,hasize,seed,override_uv,0,0,0);
-			}
-			else if(part->draw_as==PART_DRAW_BB) {
-				VECCOPY(vel,state.vel);
-				//MTC_Mat4Mul3Vecfl(re->viewmat,vel);
-				particle_billboard(re,obr,ma,bb_ob,loc,vel,pa_size,part->bb_tilt*(1.0f-part->bb_rand_tilt*r_tilt),
-									part->bb_align,part->draw&PART_DRAW_BB_LOCK,
-									a,totpart+totchild,part->bb_uv_split,part->bb_anim,part->bb_split_offset,random,pa_time,part->bb_offset,uv);
-			}
-			else if(strandbuf) {
-				VECCOPY(svert->co, loc);
-				svert->strandco= -1.0f + 2.0f*time;
-				svert++;
-				strand->totvert++;
-			}
-			else{
-				if(k==1){
-					VECSUB(loc0,loc1,loc);
-					VECADD(loc0,loc1,loc0);
-					render_new_particle(re,obr,psmd->dm,ma,path,1,0,0.0f,loc1,loc0,
-										orco,surfnor,totuv,uvco,totcol,mcol,hasize,seed,override_uv,
-										adapt,adapt_angle,adapt_pix);
+					VECCOPY(vel,state.vel);
+					MTC_Mat4Mul3Vecfl(re->viewmat,vel);
+					Normalize(vel);
+
+					if(part->draw & PART_DRAW_VEL_LENGTH)
+						VecMulf(vel,VecLength(state.vel));
+
+					VECADDFAC(loc0,loc,vel,-part->draw_line[0]);
+					VECADDFAC(loc1,loc,vel,part->draw_line[1]);
+
+					render_new_particle(re,obr,psmd->dm,ma,&sd,loc0,loc1,seed);
+
+					break;
+
+				case PART_DRAW_BB:
+					bb.random = random;
+					bb.size = pa_size;
+					bb.tilt = part->bb_tilt * (1.0f - part->bb_rand_tilt * r_tilt);
+					bb.time = pa_time;
+					bb.num = a;
+					VECCOPY(bb.vec, loc);
+					VECCOPY(bb.vel, state.vel);
+
+					particle_billboard(re, obr, ma, &bb);
+
+					break;
+
+				default:
+				{
+					HaloRen *har=0;
+
+					har = RE_inithalo_particle(re, obr, psmd->dm, ma, loc, NULL, sd.orco, sd.uvco, hasize, 0.0, seed);
+					
+					if(har) har->lay= obr->ob->lay;
+
+					break;
 				}
-
-				if(path_nbr==0 || k)
-					render_new_particle(re,obr,psmd->dm,ma,path,0,0,time,loc,loc1,
-										orco,surfnor,totuv,uvco,totcol,mcol,hasize,seed,override_uv,
-										adapt,adapt_angle,adapt_pix);
-
-				VECCOPY(loc1,loc);
 			}
 		}
 
 		if(orco1==0)
-			orco+=3;
+			sd.orco+=3;
 
 		if(re->test_break(re->tbh))
 			break;
@@ -2034,13 +1961,13 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 #endif // XXX old animation system
 	
 	if(orco1)
-		MEM_freeN(orco);
+		MEM_freeN(sd.orco);
 
-	if(uvco)
-		MEM_freeN(uvco);
+	if(sd.uvco)
+		MEM_freeN(sd.uvco);
 	
-	if(mcol)
-		MEM_freeN(mcol);
+	if(sd.mcol)
+		MEM_freeN(sd.mcol);
 
 	if(uv_name)
 		MEM_freeN(uv_name);
@@ -2057,7 +1984,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 		psys->lattice= NULL;
 	}
 
-	if(path && (ma->mode_l & MA_TANGENT_STR)==0)
+	if(path_nbr && (ma->mode_l & MA_TANGENT_STR)==0)
 		calc_vertexnormals(re, obr, 0, 0);
 
 	return 1;
@@ -4447,24 +4374,8 @@ void RE_Database_Free(Render *re)
 static int allow_render_object(Object *ob, int nolamps, int onlyselected, Object *actob)
 {
 	/* override not showing object when duplis are used with particles */
-	if(ob->transflag & OB_DUPLIPARTS){
-		int allow= 0;
-
-		if(ob->particlesystem.first) {
-			ParticleSystem *psys;
-			ParticleSettings *part;
-
-			for(psys=ob->particlesystem.first; psys; psys=psys->next){
-				part=psys->part;
-
-				if(part->draw & PART_DRAW_EMITTER)
-					allow= 1;
-			}
-		}
-
-		if(!allow)
-			return 0;
-	}
+	if(ob->transflag & OB_DUPLIPARTS)
+		; /* let particle system(s) handle showing vs. not showing */
 	else if((ob->transflag & OB_DUPLI) && !(ob->transflag & OB_DUPLIFRAMES))
 		return 0;
 	

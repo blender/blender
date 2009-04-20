@@ -88,10 +88,15 @@ public:
 	virtual	void setScaling(const MT_Vector3& scaling);
 	virtual	MT_Scalar	GetMass();
 	virtual	void		SetMass(MT_Scalar newmass);
+	virtual MT_Vector3	GetLocalInertia();
 	virtual	MT_Scalar	GetRadius();
 	virtual	MT_Vector3	getReactionForce();
 	virtual	void	setRigidBody(bool rigid);
 	
+	virtual	float GetLinVelocityMin() { return SumoPhysicsController::GetLinVelocityMin(); }
+	virtual void	SetLinVelocityMin(float val) { SumoPhysicsController::SetLinVelocityMin(val); }
+	virtual	float GetLinVelocityMax() { return SumoPhysicsController::GetLinVelocityMax(); }
+	virtual void	SetLinVelocityMax(float val) { SumoPhysicsController::SetLinVelocityMax(val); }
 
 	virtual	SG_Controller*	GetReplica(class SG_Node* destnode);
 

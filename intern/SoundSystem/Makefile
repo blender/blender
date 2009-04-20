@@ -40,7 +40,6 @@ DIRS += dummy
 
 ifneq ($(NAN_NO_OPENAL),true)
   ifeq ($(OS),windows)
-      DIRS += fmod 
       DIRS += openal sdl
   endif
   ifeq ($(OS),darwin)

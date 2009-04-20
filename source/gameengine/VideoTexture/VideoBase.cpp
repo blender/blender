@@ -22,7 +22,7 @@ http://www.gnu.org/copyleft/lesser.txt.
 
 #if defined WIN32
 #define WINDOWS_LEAN_AND_MEAN
-#include <Windows.h>
+#include <windows.h>
 #endif
 
 #include "VideoBase.h"

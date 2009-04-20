@@ -3076,7 +3076,7 @@ static int object_center_set_exec(bContext *C, wmOperator *op)
 					
 					nu= nu1;
 					while(nu) {
-						if( (nu->type & 7)==1) {
+						if( (nu->type & 7)==CU_BEZIER) {
 							a= nu->pntsu;
 							while (a--) {
 								VecSubf(nu->bezt[a].vec[0], nu->bezt[a].vec[0], cent);
@@ -4338,14 +4338,12 @@ static void copymenu_properties(Scene *scene, View3D *v3d, Object *ob)
 		prop= prop->next;
 	}
 	
-	if(tot==0) {
-		error("No properties in the active object to copy");
-		return;
-	}
-	
 	str= MEM_callocN(50 + 33*tot, "copymenu prop");
 	
-	strcpy(str, "Copy Property %t|Replace All|Merge All|%l");
+	if (tot)
+		strcpy(str, "Copy Property %t|Replace All|Merge All|%l");
+	else
+		strcpy(str, "Copy Property %t|Clear All (no properties on active)");
 	
 	tot= 0;	
 	prop= ob->prop.first;
@@ -4648,7 +4646,8 @@ void copy_attr(Scene *scene, View3D *v3d, short event)
 					base->object->formfactor = ob->formfactor;
 					base->object->damping= ob->damping;
 					base->object->rdamping= ob->rdamping;
-					base->object->mass= ob->mass;
+					base->object->min_vel= ob->min_vel;
+					base->object->max_vel= ob->max_vel;
 					if (ob->gameflag & OB_BOUNDS) {
 						base->object->boundtype = ob->boundtype;
 					}
@@ -5192,7 +5191,7 @@ static void apply_objects_internal(Scene *scene, View3D *v3d, int apply_scale, i
 				
 				nu= cu->nurb.first;
 				while(nu) {
-					if( (nu->type & 7)==1) {
+					if( (nu->type & 7)==CU_BEZIER) {
 						a= nu->pntsu;
 						bezt= nu->bezt;
 						while(a--) {

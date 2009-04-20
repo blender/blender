@@ -46,13 +46,18 @@ class RAS_Polygon
 	unsigned short				m_numvert;
 
 	/* flags */
+#if 1
+	unsigned short			m_polyflags;
+#else
 	unsigned char				m_edgecode;
 	unsigned char				m_polyflags;
-
+#endif
+	
 public:
 	enum {
 		VISIBLE = 1,
-		COLLIDER = 2
+		COLLIDER = 2,
+		TWOSIDE = 4
 	};
 
 	RAS_Polygon(RAS_MaterialBucket* bucket, RAS_DisplayArray* darray, int numvert);
@@ -65,14 +70,18 @@ public:
 	int					GetVertexOffset(int i);
 	
 	// each bit is for a visible edge, starting with bit 1 for the first edge, bit 2 for second etc.
-	int					GetEdgeCode();
-	void				SetEdgeCode(int edgecode);
+	// - Not used yet!
+/*	int					GetEdgeCode();
+	void				SetEdgeCode(int edgecode); */
 	
 	bool				IsVisible();
 	void				SetVisible(bool visible);
 
 	bool				IsCollider();
 	void				SetCollider(bool collider);
+
+	bool				IsTwoside();
+	void				SetTwoside(bool twoside);
 
 	RAS_MaterialBucket*	GetMaterial();
 	RAS_DisplayArray*	GetDisplayArray();

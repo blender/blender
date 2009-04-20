@@ -202,7 +202,8 @@ public:
 	void SetUniform(int uniform, const int val);
 
 	// Python interface
-	virtual PyObject* _getattr(const char *attr);
+	virtual PyObject* py_getattro(PyObject *attr);
+	virtual PyObject* py_repr(void) { return PyString_FromFormat("BL_Shader\n\tvertex shader:%s\n\n\tfragment shader%s\n\n", vertProg, fragProg); }
 
 	// -----------------------------------
 	KX_PYMETHOD_DOC( BL_Shader, setSource );

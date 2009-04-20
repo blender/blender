@@ -27,59 +27,81 @@
 #define Py_ssize_t int
 #endif
 
-Py_ssize_t listvalue_bufferlen(PyObject* list)
+Py_ssize_t listvalue_bufferlen(PyObject* self)
 {
-	return (Py_ssize_t)( ((CListValue*)list)->GetCount());
+	CListValue *list= static_cast<CListValue *>(BGE_PROXY_REF(self));
+	if (list==NULL)
+		return 0;
+	
+	return (Py_ssize_t)list->GetCount();
 }
 
-PyObject* listvalue_buffer_item(PyObject* list,Py_ssize_t index)
+PyObject* listvalue_buffer_item(PyObject* self, Py_ssize_t index)
 {
-	int count = ((CListValue*) list)->GetCount();
+	CListValue *list= static_cast<CListValue *>(BGE_PROXY_REF(self));
+	if (list==NULL) {
+		PyErr_SetString(PyExc_IndexError, BGE_PROXY_ERROR_MSG);
+		return NULL;
+	}
+	
+	int count = list->GetCount();
 	
 	if (index < 0)
 		index = count+index;
 	
 	if (index >= 0 && index < count)
 	{
-		PyObject* pyobj = ((CListValue*) list)->GetValue(index)->ConvertValueToPython();
+		PyObject* pyobj = list->GetValue(index)->ConvertValueToPython();
 		if (pyobj)
 			return pyobj;
 		else
-			return ((CListValue*) list)->GetValue(index)->AddRef();
+			return list->GetValue(index)->GetProxy();
 
 	}
-	PyErr_SetString(PyExc_IndexError, "Python ListIndex out of range");
+	PyErr_SetString(PyExc_IndexError, "list[i]: Python ListIndex out of range in CValueList");
 	return NULL;
 }
 
-PyObject* listvalue_mapping_subscript(PyObject* list,PyObject* pyindex)
+PyObject* listvalue_mapping_subscript(PyObject* self, PyObject* pyindex)
 {
+	CListValue *list= static_cast<CListValue *>(BGE_PROXY_REF(self));
+	if (list==NULL) {
+		PyErr_SetString(PyExc_IndexError, BGE_PROXY_ERROR_MSG);
+		return NULL;
+	}
+	
 	if (PyString_Check(pyindex))
 	{
 		STR_String  index(PyString_AsString(pyindex));
 		CValue *item = ((CListValue*) list)->FindValue(index);
 		if (item)
-			return (PyObject*) item;
+			return item->GetProxy();
 			
 	}
 	if (PyInt_Check(pyindex))
 	{
 		int index = PyInt_AsLong(pyindex);
-		return listvalue_buffer_item(list, index);
+		return listvalue_buffer_item(self, index);
 	}
 	
 	PyObject *pyindex_str = PyObject_Repr(pyindex); /* new ref */
-	PyErr_Format(PyExc_KeyError, "'%s' not in list", PyString_AsString(pyindex_str));
+	PyErr_Format(PyExc_KeyError, "list[key]: '%s' key not in list", PyString_AsString(pyindex_str));
 	Py_DECREF(pyindex_str);
 	return NULL;
 }
 
 
 /* just slice it into a python list... */
-PyObject* listvalue_buffer_slice(PyObject* list,Py_ssize_t ilow, Py_ssize_t ihigh)
+PyObject* listvalue_buffer_slice(PyObject* self,Py_ssize_t ilow, Py_ssize_t ihigh)
 {
+	CListValue *list= static_cast<CListValue *>(BGE_PROXY_REF(self));
+	if (list==NULL) {
+		PyErr_SetString(PyExc_IndexError, BGE_PROXY_ERROR_MSG);
+		return NULL;
+	}
+	
 	int i, j;
-	PyListObject *newlist;
+	PyObject *newlist;
 
 	if (ilow < 0) ilow = 0;
 
@@ -90,18 +112,18 @@ PyObject* listvalue_buffer_slice(PyObject* list,Py_ssize_t ilow, Py_ssize_t ihig
     if (ihigh < ilow)
         ihigh = ilow;
 
-	newlist = (PyListObject *) PyList_New(ihigh - ilow);
+	newlist = PyList_New(ihigh - ilow);
 	if (!newlist)
 		return NULL;
 
 	for (i = ilow, j = 0; i < ihigh; i++, j++)
 	{
-		PyObject* pyobj = ((CListValue*) list)->GetValue(i)->ConvertValueToPython();
+		PyObject* pyobj = list->GetValue(i)->ConvertValueToPython();
 		if (!pyobj)
-			pyobj = ((CListValue*) list)->GetValue(i)->AddRef();
-		newlist->ob_item[j] = pyobj;
+			pyobj = list->GetValue(i)->GetProxy();
+		PyList_SET_ITEM(newlist, i, pyobj);
 	}	
-	return (PyObject *) newlist;
+	return newlist;
 }
 
 
@@ -109,11 +131,16 @@ PyObject* listvalue_buffer_slice(PyObject* list,Py_ssize_t ilow, Py_ssize_t ihig
 static PyObject *
 listvalue_buffer_concat(PyObject * self, PyObject * other)
 {
+	CListValue *listval= static_cast<CListValue *>(BGE_PROXY_REF(self));
+	if (listval==NULL) {
+		PyErr_SetString(PyExc_IndexError, BGE_PROXY_ERROR_MSG);
+		return NULL;
+	}
+	
 	// for now, we support CListValue concatenated with items
 	// and CListValue concatenated to Python Lists
 	// and CListValue concatenated with another CListValue
-
-	CListValue* listval = (CListValue*) self;
+	
 	listval->AddRef();
 	if (other->ob_type == &PyList_Type)
 	{
@@ -135,7 +162,7 @@ listvalue_buffer_concat(PyObject * self, PyObject * other)
 		}
 
 		if (error) {
-			PyErr_SetString(PyExc_SystemError, "Python Error: couldn't add one or more items to a list");
+			PyErr_SetString(PyExc_SystemError, "list.append(val): couldn't add one or more items to this CValueList");
 			return NULL;
 		}
 
@@ -160,7 +187,7 @@ listvalue_buffer_concat(PyObject * self, PyObject * other)
 				listval->Add(objval);
 			} else
 			{
-				PyErr_SetString(PyExc_SystemError, "Python Error: couldn't add item to a list");  
+				PyErr_SetString(PyExc_SystemError, "list.append(i): couldn't add item to this CValueList");
 				return NULL;
 			}
 		}
@@ -193,23 +220,28 @@ static  PyMappingMethods instance_as_mapping = {
 
 
 PyTypeObject CListValue::Type = {
-	PyObject_HEAD_INIT(&PyType_Type)
+	PyObject_HEAD_INIT(NULL)
 	0,				/*ob_size*/
 	"CListValue",			/*tp_name*/
-	sizeof(CListValue),		/*tp_basicsize*/
+	sizeof(PyObjectPlus_Proxy), /*tp_basicsize*/
 	0,				/*tp_itemsize*/
 	/* methods */
-	PyDestructor,	  		/*tp_dealloc*/
+	py_base_dealloc,	  		/*tp_dealloc*/
 	0,			 	/*tp_print*/
-	__getattr, 			/*tp_getattr*/
-	__setattr, 			/*tp_setattr*/
+	0, 			/*tp_getattr*/
+	0, 			/*tp_setattr*/
 	0,			        /*tp_compare*/
-	__repr,			        /*tp_repr*/
+	py_base_repr,			        /*tp_repr*/
 	0,			        /*tp_as_number*/
 	&listvalue_as_sequence, /*tp_as_sequence*/
 	&instance_as_mapping,	        /*tp_as_mapping*/
 	0,			        /*tp_hash*/
 	0,				/*tp_call */
+	0,
+	py_base_getattro,
+	py_base_setattro,
+	0,0,0,0,0,0,0,0,0,
+	Methods
 };
 
 
@@ -228,6 +260,7 @@ PyMethodDef CListValue::Methods[] = {
 	{"reverse", (PyCFunction)CListValue::sPyreverse,METH_NOARGS},
 	{"index", (PyCFunction)CListValue::sPyindex,METH_O},
 	{"count", (PyCFunction)CListValue::sPycount,METH_O},
+	{"from_id", (PyCFunction)CListValue::sPyfrom_id,METH_O},
 	
 	{NULL,NULL} //Sentinel
 };
@@ -236,8 +269,8 @@ PyAttributeDef CListValue::Attributes[] = {
 	{ NULL }	//Sentinel
 };
 
-PyObject* CListValue::_getattr(const char *attr) {
-	_getattr_up(CValue);
+PyObject* CListValue::py_getattro(PyObject* attr) {
+	py_getattro_up(CValue);
 }
 
 
@@ -405,14 +438,14 @@ void CListValue::MergeList(CListValue *otherlist)
 
 
 
-PyObject* CListValue::Pyappend(PyObject* self, PyObject* value)
+PyObject* CListValue::Pyappend(PyObject* value)
 {
-	return listvalue_buffer_concat(self, value);
+	return listvalue_buffer_concat(m_proxy, value); /* m_proxy is the same as self */
 }
 
 
 
-PyObject* CListValue::Pyreverse(PyObject* self)
+PyObject* CListValue::Pyreverse()
 {
 	std::reverse(m_pValueArray.begin(),m_pValueArray.end());
 	Py_RETURN_NONE;
@@ -425,6 +458,10 @@ bool CListValue::CheckEqual(CValue* first,CValue* second)
 	bool result = false;
 
 	CValue* eqval =  ((CValue*)first)->Calc(VALUE_EQL_OPERATOR,(CValue*)second);
+	
+	if (eqval==NULL)
+		return false;
+		
 	STR_String txt = eqval->GetText();
 	eqval->Release();
 	if (txt=="TRUE")
@@ -437,7 +474,7 @@ bool CListValue::CheckEqual(CValue* first,CValue* second)
 
 
 
-PyObject* CListValue::Pyindex(PyObject* self, PyObject *value)
+PyObject* CListValue::Pyindex(PyObject *value)
 {
 	PyObject* result = NULL;
 
@@ -458,7 +495,7 @@ PyObject* CListValue::Pyindex(PyObject* self, PyObject *value)
 	checkobj->Release();
 
 	if (result==NULL) {
-		PyErr_SetString(PyExc_ValueError, "ValueError: list.index(x): x not in CListValue");
+		PyErr_SetString(PyExc_ValueError, "list.index(x): x not in CListValue");
 	}
 	return result;
 	
@@ -466,7 +503,7 @@ PyObject* CListValue::Pyindex(PyObject* self, PyObject *value)
 
 
 
-PyObject* CListValue::Pycount(PyObject* self, PyObject* value)
+PyObject* CListValue::Pycount(PyObject* value)
 {
 	int numfound = 0;
 
@@ -474,7 +511,7 @@ PyObject* CListValue::Pycount(PyObject* self, PyObject* value)
 	
 	if (checkobj==NULL) { /* in this case just return that there are no items in the list */
 		PyErr_Clear();
-		PyInt_FromLong(0);
+		return PyInt_FromLong(0);
 	}
 
 	int numelem = GetCount();
@@ -493,12 +530,32 @@ PyObject* CListValue::Pycount(PyObject* self, PyObject* value)
 
 
 
+PyObject* CListValue::Pyfrom_id(PyObject* value)
+{
+	uintptr_t id= (uintptr_t)PyLong_AsVoidPtr(value);
+	
+	if (PyErr_Occurred())
+		return NULL;
+
+	int numelem = GetCount();
+	for (int i=0;i<numelem;i++)
+	{
+		if (reinterpret_cast<uintptr_t>(m_pValueArray[i]->m_proxy) == id)
+			return GetValue(i)->GetProxy();
+	}
+	PyErr_SetString(PyExc_IndexError, "from_id(#): id not found in CValueList");
+	return NULL;	
+
+}
+
+
 /* --------------------------------------------------------------------- 
  * Some stuff taken from the header
  * --------------------------------------------------------------------- */
 CValue* CListValue::Calc(VALUE_OPERATOR op,CValue *val) 
 {
-	assert(false); // todo: implement me!
+	//assert(false); // todo: implement me!
+	fprintf(stderr, "CValueList::Calc not yet implimented\n");
 	return NULL;
 }
 
@@ -508,7 +565,8 @@ CValue* CListValue::CalcFinal(VALUE_DATA_TYPE dtype,
 							  VALUE_OPERATOR op, 
 							  CValue* val) 
 {
-	assert(false); // todo: implement me!
+	//assert(false); // todo: implement me!
+	fprintf(stderr, "CValueList::CalcFinal not yet implimented\n");
 	return NULL;
 }
 
@@ -521,7 +579,7 @@ void CListValue::Add(CValue* value)
 
 
 
-float CListValue::GetNumber()
+double CListValue::GetNumber()
 {
 	return -1;
 }

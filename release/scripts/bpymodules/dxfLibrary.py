@@ -1,6 +1,6 @@
 #dxfLibrary.py : provides functions for generating DXF files
 # --------------------------------------------------------------------------
-__version__ = "v1.28beta - 2008.12.13"
+__version__ = "v1.29beta - 2008.12.28"
 __author__ = "Stani Michiels(Stani), Remigiusz Fiedler(migius)"
 __license__ = "GPL"
 __url__ = "http://wiki.blender.org/index.php/Scripts/Manual/Export/autodesk_dxf"
@@ -18,9 +18,11 @@ IDEAs:
 -
 
 TODO:
-- add support for SPLINEs
+- add support for SPLINEs, (bad idea, cause DXF r14 object :(
 
 History
+v1.29 - 2008.12.28 by Yorik
+- modif POLYLINE to support bulge segments
 v1.28 - 2008.12.13 by Steeve/BlenderArtists
 - bugfix for EXTMIN/EXTMAX to suit Cycas-CAD
 v1.27 - 2008.10.07 by migius
@@ -297,41 +299,60 @@ class Line(_Entity):
 #-----------------------------------------------
 class PolyLine(_Entity):
 	def __init__(self,points,org_point=[0,0,0],flag=0,width=None,**common):
+		#width = number, or width = list [width_start=None, width_end=None]
+		#for 2d-polyline: points = [ [x, y, z, width_start=None, width_end=None, bulge=0 or None], ...]
+		#for 3d-polyline: points = [ [x, y, z], ...]
+		#for polyface: points = [points_list, faces_list]
 		_Entity.__init__(self,**common)
 		self.points=points
 		self.org_point=org_point
 		self.flag=flag
-		if self.flag==64:
+		if self.flag & POLYFACE_MESH:
+			self.polyface=True
 			self.points=points[0]
 			self.faces=points[1]
 			self.p_count=len(self.points)
 			self.f_count=len(self.faces)
-		self.width=width
+		elif not self.flag & POLYLINE_3D:
+			self.polyline2d = True
+			if width:
+				if type(width)!='list':
+					width=[width,width]
+				self.width=width
 
 	def __str__(self):
 		result= '  0\nPOLYLINE\n%s 70\n%s\n' %(self._common(),self.flag)
 		#print 'deb: self._common()', self._common() #----------
 		result+=' 66\n1\n'
 		result+='%s\n' %_point(self.org_point)
-		if self.flag==64:
+		if self.polyface:
 			result+=' 71\n%s\n' %self.p_count
 			result+=' 72\n%s\n' %self.f_count
+		elif self.polyline2d:
+			if self.width: result+=' 40\n%s\n 41\n%s\n' %(self.width[0],self.width[1])
 		for point in self.points:
 			result+='  0\nVERTEX\n'
 			result+='  8\n%s\n' %self.layer
-			result+='%s\n' %_point(point)
-			if self.flag==64: result+=' 70\n192\n'
-			if self.width: result+=' 40\n%s\n 41\n%s\n' %(self.width,self.width)
-		if self.flag==64:
-			for face in self.faces:
-				result+='  0\nVERTEX\n'
-				result+='  8\n%s\n' %self.layer
-				result+='%s\n' %_point(self.org_point)
-				result+=' 70\n128\n'
-				result+=' 71\n%s\n' %face[0]
-				result+=' 72\n%s\n' %face[1]
-				result+=' 73\n%s\n' %face[2]
-				if len(face)==4: result+=' 74\n%s\n' %face[3]
+			result+='%s\n' %_point(point[0:2])
+			if self.polyface:
+				result+=' 70\n192\n'
+			elif self.polyline2d:
+				if len(point)>4:
+					width1, width2 = point[3], point[4]
+					if width1!=None: result+=' 40\n%s\n' %width1
+					if width2!=None: result+=' 41\n%s\n' %width2
+				if len(point)==6:
+					bulge = point[5]
+					if bulge: result+=' 42\n%s\n' %bulge
+		for face in self.faces:
+			result+='  0\nVERTEX\n'
+			result+='  8\n%s\n' %self.layer
+			result+='%s\n' %_point(self.org_point)
+			result+=' 70\n128\n'
+			result+=' 71\n%s\n' %face[0]
+			result+=' 72\n%s\n' %face[1]
+			result+=' 73\n%s\n' %face[2]
+			if len(face)==4: result+=' 74\n%s\n' %face[3]
 		result+='  0\nSEQEND\n'
 		result+='  8\n%s\n' %self.layer
 		return result
@@ -711,5 +732,5 @@ def test():
 if __name__=='__main__':
 	if not copy:
 		Draw.PupMenu('Error%t|This script requires a full python install')
-	main()
+	else: main()
 	

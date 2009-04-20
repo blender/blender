@@ -72,7 +72,7 @@ public:
 		m_meshObject(NULL),
 		m_unscaledShape(NULL),
 		m_useGimpact(false),
-		m_weldingThreshold(0.f),
+		m_weldingThreshold1(0.f),
 		m_shapeProxy(NULL)
 	{
 		m_childTrans.setIdentity();
@@ -107,7 +107,7 @@ public:
 	}
 	CcdShapeConstructionInfo* GetChildShape(int i)
 	{
-		if (i < 0 || i >= m_shapeArray.size())
+		if (i < 0 || i >= (int)m_shapeArray.size())
 			return NULL;
 
 		return m_shapeArray.at(i);
@@ -116,7 +116,7 @@ public:
 	{
 		if (shapeInfo == NULL)
 			return -1;
-		for (int i=0; i<m_shapeArray.size(); i++)
+		for (int i=0; i<(int)m_shapeArray.size(); i++)
 		{
 			CcdShapeConstructionInfo* childInfo = m_shapeArray.at(i);
 			if ((userData == NULL || userData == childInfo->m_userData) &&
@@ -130,10 +130,10 @@ public:
 
 	bool RemoveChildShape(int i)
 	{
-		if (i < 0 || i >= m_shapeArray.size())
+		if (i < 0 || i >= (int)m_shapeArray.size())
 			return false;
 		m_shapeArray.at(i)->Release();
-		if (i < m_shapeArray.size()-1)
+		if (i < (int)m_shapeArray.size()-1)
 			m_shapeArray[i] = m_shapeArray.back();
 		m_shapeArray.pop_back();
 		return true;
@@ -167,14 +167,17 @@ public:
 	std::vector<int>		m_polygonIndexArray;	// Contains the array of polygon index in the 
 													// original mesh that correspond to shape triangles.
 													// only set for concave mesh shape.
+	
+	std::vector<int>		m_triFaceArray;	// Contains an array of triplets of face indicies
+											// quads turn into 2 tris
 
-	void	setVertexWeldingThreshold(float threshold)
+	void	setVertexWeldingThreshold1(float threshold)
 	{
-		m_weldingThreshold  = threshold;
+		m_weldingThreshold1  = threshold;
 	}
-	float	getVertexWeldingThreshold() const
+	float	getVertexWeldingThreshold1() const
 	{
-		return m_weldingThreshold;
+		return m_weldingThreshold1;
 	}
 protected:
 	static std::map<RAS_MeshObject*, CcdShapeConstructionInfo*> m_meshShapeMap;
@@ -185,7 +188,7 @@ protected:
 											// the actual shape is of type btScaledBvhTriangleMeshShape
 	std::vector<CcdShapeConstructionInfo*> m_shapeArray;	// for compound shapes
 	bool	m_useGimpact; //use gimpact for concave dynamic/moving collision detection
-	float	m_weldingThreshold;	//welding closeby vertices together can improve softbody stability etc.
+	float	m_weldingThreshold1;	//welding closeby vertices together can improve softbody stability etc.
 	CcdShapeConstructionInfo* m_shapeProxy;	// only used for PHY_SHAPE_PROXY, pointer to actual shape info
 };
 
@@ -211,6 +214,8 @@ struct CcdConstructionInfo
 		m_gravity(0,0,0),
 		m_scaling(1.f,1.f,1.f),
 		m_mass(0.f),
+		m_clamp_vel_min(-1.f), 
+		m_clamp_vel_max(-1.f), 
 		m_restitution(0.1f),
 		m_friction(0.5f),
 		m_linearDamping(0.1f),
@@ -236,6 +241,8 @@ struct CcdConstructionInfo
 	btVector3	m_gravity;
 	btVector3	m_scaling;
 	btScalar	m_mass;
+	btScalar	m_clamp_vel_min;  
+	btScalar	m_clamp_vel_max;  
 	btScalar	m_restitution;
 	btScalar	m_friction;
 	btScalar	m_linearDamping;
@@ -476,7 +483,24 @@ class CcdPhysicsController : public PHY_IPhysicsController
 			}
 			m_cci.m_radius = margin;
 		}
-
+		
+		// velocity clamping
+		virtual void SetLinVelocityMin(float val) 
+		{
+			m_cci.m_clamp_vel_min= val;
+		}
+		virtual float GetLinVelocityMin() const 
+		{
+			return m_cci.m_clamp_vel_min;
+		}
+		virtual void SetLinVelocityMax(float val) 
+		{
+			m_cci.m_clamp_vel_max= val;
+		}
+		virtual float GetLinVelocityMax() const 
+		{
+			return m_cci.m_clamp_vel_max;
+		}
 
 		bool	wantsSleeping();
 
@@ -541,6 +565,7 @@ class	DefaultMotionState : public PHY_IMotionState
 		
 		virtual void	setWorldPosition(float posX,float posY,float posZ);
 		virtual	void	setWorldOrientation(float quatIma0,float quatIma1,float quatIma2,float quatReal);
+		virtual void	getWorldOrientation(float* ori);
 		
 		virtual	void	calculateWorldTransformations();
 		

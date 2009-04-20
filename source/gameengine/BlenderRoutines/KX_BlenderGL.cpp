@@ -44,7 +44,7 @@
 
 #include "BMF_Api.h"
 
-#include "BIF_gl.h"
+#include "GL/glew.h"
 
 #include "BL_Material.h" // MAXTEX
 

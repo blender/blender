@@ -76,9 +76,9 @@
 #endif /* WITH_QUICKTIME */
 
 #ifdef WITH_FFMPEG
-#include <ffmpeg/avformat.h>
-#include <ffmpeg/avcodec.h>
-#include <ffmpeg/swscale.h>
+#include <libavformat/avformat.h>
+#include <libavcodec/avcodec.h>
+#include <libswscale/swscale.h>
 #endif
 
 #ifdef WITH_REDCODE

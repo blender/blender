@@ -158,39 +158,7 @@ bool SND_IsSampleValid(const STR_String& name, void* memlocation)
 
 			if (shortbuf == SND_WAVE_FORMAT_PCM)
 				result = true;
-			
-			/* only fmod supports compressed wav */
-#ifdef USE_FMOD
-			switch (shortbuf)
-			{
-				case SND_WAVE_FORMAT_ADPCM:
-				case SND_WAVE_FORMAT_ALAW:
-				case SND_WAVE_FORMAT_MULAW:
-				case SND_WAVE_FORMAT_DIALOGIC_OKI_ADPCM:
-				case SND_WAVE_FORMAT_CONTROL_RES_VQLPC:
-				case SND_WAVE_FORMAT_GSM_610:
-				case SND_WAVE_FORMAT_MPEG3:
-					result = true;
-					break;
-				default:
-					{
-						break;
-					}
-			}
-#endif
 		}
-#ifdef USE_FMOD
-		/* only valid publishers may use ogg vorbis */
-		else if (!memcmp(buffer, "OggS", 4))
-		{
-			result = true;
-		}
-		/* only valid publishers may use mp3 */
-		else if (((!memcmp(buffer, "ID3", 3)) || (!memcmp(buffer, "ÿû", 2))))
-		{
-			result = true;
-		}
-#endif
 	}
 	if (loadedsample)
 	{

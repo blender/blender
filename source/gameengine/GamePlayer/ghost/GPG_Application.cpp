@@ -151,7 +151,7 @@ GPG_Application::~GPG_Application(void)
 
 
 
-bool GPG_Application::SetGameEngineData(struct Main* maggie, Scene *scene)
+bool GPG_Application::SetGameEngineData(struct Main* maggie, Scene *scene, int argc, char **argv)
 {
 	bool result = false;
 
@@ -163,6 +163,10 @@ bool GPG_Application::SetGameEngineData(struct Main* maggie, Scene *scene)
 		m_startScene = scene;
 		result = true;
 	}
+	
+	/* Python needs these */
+	m_argc= argc;
+	m_argv= argv;
 
 	return result;
 }
@@ -208,7 +212,7 @@ static LRESULT CALLBACK screenSaverWindowProc(HWND hwnd, UINT uMsg, WPARAM wPara
 
 BOOL CALLBACK findGhostWindowHWNDProc(HWND hwnd, LPARAM lParam)
 {
-	GHOST_IWindow *p = (GHOST_IWindow*) GetWindowLong(hwnd, GWL_USERDATA);
+	GHOST_IWindow *p = (GHOST_IWindow*) GetWindowLongPtr(hwnd, GWLP_USERDATA);
 	BOOL ret = TRUE;
 	if (p == ghost_window_to_find)
 	{
@@ -292,8 +296,8 @@ bool GPG_Application::startScreenSaverFullScreen(
 		if (ghost_hwnd != NULL)
 		{
 			GetCursorPos(&scr_save_mouse_pos);
-			ghost_wnd_proc = (WNDPROC) GetWindowLong(ghost_hwnd, GWL_WNDPROC);
-			SetWindowLong(ghost_hwnd,GWL_WNDPROC, (LONG) screenSaverWindowProc);
+			ghost_wnd_proc = (WNDPROC) GetWindowLongPtr(ghost_hwnd, GWLP_WNDPROC);
+			SetWindowLongPtr(ghost_hwnd,GWLP_WNDPROC, (uintptr_t) screenSaverWindowProc);
 		}
 	}
 	return ret;
@@ -530,7 +534,7 @@ bool GPG_Application::initEngine(GHOST_IWindow* window, const int stereoMode)
 		bool fixed_framerate= (SYS_GetCommandLineInt(syshandle, "fixed_framerate", fixedFr) != 0);
 		bool frameRate = (SYS_GetCommandLineInt(syshandle, "show_framerate", 0) != 0);
 		bool useLists = (SYS_GetCommandLineInt(syshandle, "displaylists", G.fileflags & G_FILE_DISPLAY_LISTS) != 0);
-		bool nodepwarnings = (SYS_GetCommandLineInt(syshandle, "ignore_deprecation_warnings", 0) != 0);
+		bool nodepwarnings = (SYS_GetCommandLineInt(syshandle, "ignore_deprecation_warnings", 1) != 0);
 
 		if(GLEW_ARB_multitexture && GLEW_VERSION_1_1)
 			m_blendermat = (SYS_GetCommandLineInt(syshandle, "blender_material", 1) != 0);
@@ -681,7 +685,7 @@ bool GPG_Application::startEngine(void)
 		
 		
 		// some python things
-		PyObject* dictionaryobject = initGamePlayerPythonScripting("Ketsji", psl_Lowest);
+		PyObject* dictionaryobject = initGamePlayerPythonScripting("Ketsji", psl_Lowest, m_maggie, m_argc, m_argv);
 		m_ketsjiengine->SetPythonDictionary(dictionaryobject);
 		initRasterizer(m_rasterizer, m_canvas);
 		PyObject *gameLogic = initGameLogic(m_ketsjiengine, startscene);
@@ -689,9 +693,15 @@ bool GPG_Application::startEngine(void)
 		initGameKeys();
 		initPythonConstraintBinding();
 		initMathutils();
+		initBGL();
 #ifdef WITH_FFMPEG
         initVideoTexture();
 #endif
+
+		//initialize Dome Settings
+		if(m_startScene->r.stereomode == RAS_IRasterizer::RAS_STEREO_DOME)
+			m_ketsjiengine->InitDome(m_startScene->r.domesize, m_startScene->r.domeres, m_startScene->r.domemode, m_startScene->r.domeangle, m_startScene->r.domeresbuf, m_startScene->r.dometext);
+
 		// Set the GameLogic.globalDict from marshal'd data, so we can
 		// load new blend files and keep data in GameLogic.globalDict
 		loadGamePythonConfig(m_pyGlobalDictString, m_pyGlobalDictString_Length);

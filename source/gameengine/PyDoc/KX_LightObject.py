@@ -2,7 +2,7 @@
 # Documentation for Light game objects.
 from KX_GameObject import *
 
-class KX_Light(KX_GameObject):
+class KX_LightObject(KX_GameObject):
 	"""
 	A Light object.
 

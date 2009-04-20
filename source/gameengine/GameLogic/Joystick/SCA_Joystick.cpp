@@ -29,6 +29,7 @@
 #endif
 
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "SCA_Joystick.h"
 #include "SCA_JoystickPrivate.h"
@@ -36,21 +37,19 @@
 SCA_Joystick::SCA_Joystick(short int index)
 	:
 	m_joyindex(index),
-	m_axis10(0),
-	m_axis11(0),
-	m_axis20(0),
-	m_axis21(0),
 	m_prec(3200),
 	m_buttonnum(-2),
 	m_axismax(-1),
-	m_hatdir(-2),
 	m_buttonmax(-1),
 	m_hatmax(-1),
+	m_hatdir(-2),
 	m_isinit(0),
 	m_istrig_axis(0),
 	m_istrig_button(0),
 	m_istrig_hat(0)
 {
+	for(int i=0; i<JOYAXIS_MAX; i++)
+		m_axis_array[i]= 0;
 #ifndef DISABLE_SDL
 	m_private = new PrivateData();
 #endif
@@ -125,47 +124,30 @@ void SCA_Joystick::cSetPrecision(int val)
 }
 
 
-bool SCA_Joystick::aAnyAxisIsPositive(int axis)
+bool SCA_Joystick::aAxisPairIsPositive(int axis)
 {
-	bool result;
-	int res = pAxisTest(axis);
-	res > m_prec? result = true: result = false;
-	return result;
+	return (pAxisTest(axis) > m_prec) ? true:false;
 }
 
-bool SCA_Joystick::aRightAxisIsPositive(int axis)
+bool SCA_Joystick::aAxisPairDirectionIsPositive(int axis, int dir)
 {
-	bool result;
-	int res = pGetAxis(axis,1);
-	res > m_prec? result = true: result = false;
-	return result;
+
+	int res;
+
+	if (dir==JOYAXIS_UP || dir==JOYAXIS_DOWN)
+		res = pGetAxis(axis, 1);
+	else /* JOYAXIS_LEFT || JOYAXIS_RIGHT */
+		res = pGetAxis(axis, 0);
+	
+	if (dir==JOYAXIS_DOWN || dir==JOYAXIS_RIGHT)
+		return (res > m_prec) ? true : false;
+	else /* JOYAXIS_UP || JOYAXIS_LEFT */
+		return (res < -m_prec) ? true : false;
 }
 
-
-bool SCA_Joystick::aUpAxisIsPositive(int axis)
+bool SCA_Joystick::aAxisIsPositive(int axis_single)
 {
-	bool result;
-	int res = pGetAxis(axis,0);
-	res < -m_prec? result = true : result = false;
-	return result;
-}
-
-
-bool SCA_Joystick::aLeftAxisIsPositive(int axis)
-{
-	bool result;
-	int res = pGetAxis(axis,1);
-	res < -m_prec ? result = true : result = false;
-	return result;
-}
-
-
-bool SCA_Joystick::aDownAxisIsPositive(int axis)
-{
-	bool result;
-	int res = pGetAxis(axis,0);
-	res > m_prec ? result = true:result = false;
-	return result;
+	return abs(m_axis_array[axis_single]) > m_prec ? true:false;
 }
 
 bool SCA_Joystick::aAnyButtonPressIsPositive(void)
@@ -255,8 +237,12 @@ bool SCA_Joystick::CreateJoystickDevice(void)
 		
 		/* must run after being initialized */
 		m_axismax =		SDL_JoystickNumAxes(m_private->m_joystick);
+		if (m_axismax > JOYAXIS_MAX) m_axismax= JOYAXIS_MAX;		/* very unlikely */
+		
 		m_buttonmax =	SDL_JoystickNumButtons(m_private->m_joystick);
 		m_hatmax =		SDL_JoystickNumHats(m_private->m_joystick);
+		
+		
 	}
 	return true;
 #endif
@@ -288,17 +274,8 @@ int SCA_Joystick::Connected(void)
 void SCA_Joystick::pFillAxes()
 {
 #ifndef DISABLE_SDL
-	if(m_axismax == 1){
-		m_axis10 = SDL_JoystickGetAxis(m_private->m_joystick, 0);
-		m_axis11 = SDL_JoystickGetAxis(m_private->m_joystick, 1);
-	}else if(m_axismax > 1){
-		m_axis10 = SDL_JoystickGetAxis(m_private->m_joystick, 0);
-		m_axis11 = SDL_JoystickGetAxis(m_private->m_joystick, 1);
-		m_axis20 = SDL_JoystickGetAxis(m_private->m_joystick, 2);
-		m_axis21 = SDL_JoystickGetAxis(m_private->m_joystick, 3);
-	}else{
-		m_axis10 = m_axis11 = m_axis20 = m_axis21 = 0;
-	}
+	for(int i=0; i<m_axismax; i++)
+		m_axis_array[i]= SDL_JoystickGetAxis(m_private->m_joystick, i);
 #endif
 }
 
@@ -306,10 +283,7 @@ void SCA_Joystick::pFillAxes()
 int SCA_Joystick::pGetAxis(int axisnum, int udlr)
 {
 #ifndef DISABLE_SDL
-	if(axisnum == 1 && udlr == 1)return m_axis10; //u/d
-	if(axisnum == 1 && udlr == 0)return m_axis11; //l/r
-	if(axisnum == 2 && udlr == 0)return m_axis20; //...
-	if(axisnum == 2 && udlr == 1)return m_axis21;
+	return m_axis_array[(axisnum*2)+udlr];
 #endif
 	return 0;
 }
@@ -317,13 +291,9 @@ int SCA_Joystick::pGetAxis(int axisnum, int udlr)
 int SCA_Joystick::pAxisTest(int axisnum)
 {
 #ifndef DISABLE_SDL
-	short i1,i2;
-	if(axisnum == 1) {
-		i1 = m_axis10;	i2 = m_axis11;
-	}
-	else if(axisnum == 2) {
-		i1 = m_axis20;	i2 = m_axis21;
-	}
+	short i1= m_axis_array[(axisnum*2)];
+	short i2= m_axis_array[(axisnum*2)+1];
+	
 	/* long winded way to do
 	 *   return MAX2(abs(i1), abs(i2))
 	 * avoid abs from math.h */
@@ -335,4 +305,3 @@ int SCA_Joystick::pAxisTest(int axisnum)
 	return 0;
 #endif
 }
-

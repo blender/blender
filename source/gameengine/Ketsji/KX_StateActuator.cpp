@@ -108,24 +108,23 @@ KX_StateActuator::Update()
 
 
 /* Integration hooks ------------------------------------------------------- */
-PyTypeObject 
-KX_StateActuator::Type = {
-	PyObject_HEAD_INIT(&PyType_Type)
+PyTypeObject KX_StateActuator::Type = {
+	PyObject_HEAD_INIT(NULL)
 	0,
 	"KX_StateActuator",
-	sizeof(KX_StateActuator),
+	sizeof(PyObjectPlus_Proxy),
 	0,
-	PyDestructor,
-	0,
-	__getattr,
-	__setattr,
-	0, //&MyPyCompare,
-	__repr,
-	0, //&cvalue_as_number,
+	py_base_dealloc,
 	0,
 	0,
 	0,
-	0
+	0,
+	py_base_repr,
+	0,0,0,0,0,0,
+	py_base_getattro,
+	py_base_setattro,
+	0,0,0,0,0,0,0,0,0,
+	Methods
 };
 
 PyParentObject 
@@ -139,22 +138,30 @@ KX_StateActuator::Parents[] = {
 
 PyMethodDef 
 KX_StateActuator::Methods[] = {
+	// deprecated -->
 	{"setOperation", (PyCFunction) KX_StateActuator::sPySetOperation, 
 	 METH_VARARGS, (PY_METHODCHAR)SetOperation_doc},
 	{"setMask", (PyCFunction) KX_StateActuator::sPySetMask, 
 	 METH_VARARGS, (PY_METHODCHAR)SetMask_doc},
+	 // <--
 	{NULL,NULL} //Sentinel
 };
 
 PyAttributeDef KX_StateActuator::Attributes[] = {
+	KX_PYATTRIBUTE_INT_RW("operation",KX_StateActuator::OP_NOP+1,KX_StateActuator::OP_COUNT-1,false,KX_StateActuator,m_operation),
+	KX_PYATTRIBUTE_INT_RW("mask",0,0x3FFFFFFF,false,KX_StateActuator,m_mask),
 	{ NULL }	//Sentinel
 };
 
-PyObject* KX_StateActuator::_getattr(const char *attr)
+PyObject* KX_StateActuator::py_getattro(PyObject *attr)
 {
-	_getattr_up(SCA_IActuator);
+	py_getattro_up(SCA_IActuator);
 };
 
+int KX_StateActuator::py_setattro(PyObject *attr, PyObject* value)
+{
+	py_setattro_up(SCA_IActuator);
+}
 
 
 /* set operation ---------------------------------------------------------- */
@@ -166,12 +173,11 @@ KX_StateActuator::SetOperation_doc[] =
 "\tUse setMask() to specify the bits that will be modified.\n";
 PyObject* 
 
-KX_StateActuator::PySetOperation(PyObject* self, 
-				    PyObject* args, 
-				    PyObject* kwds) {
+KX_StateActuator::PySetOperation(PyObject* args) {
+	ShowDeprecationWarning("setOperation()", "the operation property");
 	int oper;
 
-	if(!PyArg_ParseTuple(args, "i", &oper)) {
+	if(!PyArg_ParseTuple(args, "i:setOperation", &oper)) {
 		return NULL;
 	}
 
@@ -191,12 +197,11 @@ KX_StateActuator::SetMask_doc[] =
 "\twhich copies the value to the object state.\n";
 PyObject* 
 
-KX_StateActuator::PySetMask(PyObject* self, 
-				    PyObject* args, 
-				    PyObject* kwds) {
+KX_StateActuator::PySetMask(PyObject* args) {
+	ShowDeprecationWarning("setMask()", "the mask property");
 	int mask;
 
-	if(!PyArg_ParseTuple(args, "i", &mask)) {
+	if(!PyArg_ParseTuple(args, "i:setMask", &mask)) {
 		return NULL;
 	}
 

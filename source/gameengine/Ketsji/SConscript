@@ -6,7 +6,7 @@ Import ('env')
 sources = env.Glob('*.cpp')
 defs = ''
 
-#XXX
+# XXX 2.5
 # Mathutils C files.
 #sources.extend([\
 #	'#source/blender/python/api2_2x/Mathutils.c',\
@@ -18,8 +18,17 @@ defs = ''
 #	'#source/blender/python/api2_2x/quat.c',\
 #	'#source/blender/python/api2_2x/vector.c',\
 #])
+#
+#sources.extend([\
+#	'#source/blender/python/api2_2x/bpy_internal_import.c'
+#])
+#
+#
+#sources.extend([\
+#	'#source/blender/python/api2_2x/BGL.c'
+#])
 
-incs = '. #source/blender/python/api2_2x' # Only for Mathutils! - no other deps
+incs = '. #source/blender/python/api2_2x' # Only for Mathutils! and bpy_internal_import.h, be very careful
 
 incs += ' #source/kernel/gen_system #intern/string #intern/guardedalloc'
 incs += ' #source/gameengine/Rasterizer/RAS_OpenGLRasterizer #intern/bmfont'

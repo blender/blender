@@ -120,8 +120,8 @@ public:
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
 	
-	virtual PyObject* _getattr(const char *attr);
-	virtual int _setattr(const char *attr, PyObject *value);
+	virtual PyObject* py_getattro(PyObject *attr);
+	virtual int py_setattro(PyObject *attr, PyObject *value);
 
 	//Deprecated ----->
 	/* 1. setProperty */
@@ -139,6 +139,10 @@ public:
 	KX_PYMETHOD_DOC_O(KX_TouchSensor,SetTouchMaterial);
 #endif
 	//<-----
+	
+	static PyObject*	pyattr_get_object_hit(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject*	pyattr_get_object_hit_list(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	
 	
 };
 

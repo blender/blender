@@ -316,7 +316,7 @@ SND_OpenALDevice::SND_OpenALDevice()
 
 void SND_OpenALDevice::UseCD(void) const
 {
-	// only fmod has CD support, so only create it here
+	// we use SDL for CD, so we create the system
 	SND_CDObject::CreateSystem();
 
 }

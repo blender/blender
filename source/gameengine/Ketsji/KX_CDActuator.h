@@ -81,13 +81,24 @@ public:
 	/* Python interface --------------------------------------------------- */
 	/* -------------------------------------------------------------------- */
 
-	virtual PyObject*  _getattr(const char *attr);
+	virtual PyObject*  py_getattro(PyObject *attr);
+	virtual int py_setattro(PyObject *attr, PyObject *value);
 
-	KX_PYMETHOD(KX_CDActuator,StartCD);
-	KX_PYMETHOD(KX_CDActuator,PauseCD);
-	KX_PYMETHOD(KX_CDActuator,StopCD);
-	KX_PYMETHOD(KX_CDActuator,SetGain);
-	KX_PYMETHOD(KX_CDActuator,GetGain);
+	// Deprecated ----->
+	KX_PYMETHOD_VARARGS(KX_CDActuator,SetGain);
+	KX_PYMETHOD_VARARGS(KX_CDActuator,GetGain);
+	// <-----
+
+	KX_PYMETHOD_DOC_NOARGS(KX_CDActuator, startCD);
+	KX_PYMETHOD_DOC_NOARGS(KX_CDActuator, pauseCD);
+	KX_PYMETHOD_DOC_NOARGS(KX_CDActuator, resumeCD);
+	KX_PYMETHOD_DOC_NOARGS(KX_CDActuator, stopCD);
+	KX_PYMETHOD_DOC_NOARGS(KX_CDActuator, playAll);
+	KX_PYMETHOD_DOC_O(KX_CDActuator, playTrack);
+
+	static int pyattr_setGain(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef);
+
+
 };
 
 #endif //__KX_CDACTUATOR

@@ -96,46 +96,32 @@ class SCA_RandomActuator : public SCA_IActuator
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
 
-	virtual PyObject* _getattr(const char *attr);
-	virtual int _setattr(const char *attr, PyObject *value);
+	virtual PyObject* py_getattro(PyObject *attr);
+	virtual int py_setattro(PyObject *attr, PyObject *value);
 
-	/* 1. setSeed                                                            */
-	KX_PYMETHOD_DOC(SCA_RandomActuator,SetSeed);
-	/* 2. getSeed                                                            */
-	KX_PYMETHOD_DOC(SCA_RandomActuator,GetSeed);
-	/* 3. setPara1 -removed-                                                 */
-	/* 4. getPara1                                                           */
-	KX_PYMETHOD_DOC(SCA_RandomActuator,GetPara1);
-	/* 5. setPara2 -removed-                                                 */
-	/* 6. getPara2                                                           */
-	KX_PYMETHOD_DOC(SCA_RandomActuator,GetPara2);
-	/* 7. setDistribution -removed-                                          */
-	/* 8. getDistribution                                                    */
-	KX_PYMETHOD_DOC(SCA_RandomActuator,GetDistribution);
-	/* 9. setProperty                                                        */
-	KX_PYMETHOD_DOC(SCA_RandomActuator,SetProperty);
-	/* 10. getProperty                                                       */
-	KX_PYMETHOD_DOC(SCA_RandomActuator,GetProperty);
-	/* 11. setBoolConst                                                      */
-	KX_PYMETHOD_DOC(SCA_RandomActuator,SetBoolConst);
-	/* 12. setBoolUniform, */
-	KX_PYMETHOD_DOC(SCA_RandomActuator,SetBoolUniform);
-	/* 13. setBoolBernouilli,  */
-	KX_PYMETHOD_DOC(SCA_RandomActuator,SetBoolBernouilli);
-	/* 14. setIntConst,*/
-	KX_PYMETHOD_DOC(SCA_RandomActuator,SetIntConst);
-	/* 15. setIntUniform,*/
-	KX_PYMETHOD_DOC(SCA_RandomActuator,SetIntUniform);
-	/* 16. setIntPoisson,		*/
-	KX_PYMETHOD_DOC(SCA_RandomActuator,SetIntPoisson);
-	/* 17. setFloatConst,*/
-	KX_PYMETHOD_DOC(SCA_RandomActuator,SetFloatConst);
-	/* 18. setFloatUniform, */
-	KX_PYMETHOD_DOC(SCA_RandomActuator,SetFloatUniform);
-	/* 19. setFloatNormal, */
-	KX_PYMETHOD_DOC(SCA_RandomActuator,SetFloatNormal);
-	/* 20. setFloatNegativeExponential, */
-	KX_PYMETHOD_DOC(SCA_RandomActuator,SetFloatNegativeExponential);
+	static PyObject* pyattr_get_seed(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef);
+	static int pyattr_set_seed(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
+
+	// Deprecated methods ----->
+	KX_PYMETHOD_DOC_VARARGS(SCA_RandomActuator,SetSeed);
+	KX_PYMETHOD_DOC_NOARGS(SCA_RandomActuator,GetSeed);
+	KX_PYMETHOD_DOC_NOARGS(SCA_RandomActuator,GetPara1);
+	KX_PYMETHOD_DOC_NOARGS(SCA_RandomActuator,GetPara2);
+	KX_PYMETHOD_DOC_NOARGS(SCA_RandomActuator,GetDistribution);
+	KX_PYMETHOD_DOC_VARARGS(SCA_RandomActuator,SetProperty);
+	KX_PYMETHOD_DOC_NOARGS(SCA_RandomActuator,GetProperty);
+	// <-----
+
+	KX_PYMETHOD_DOC_VARARGS(SCA_RandomActuator, setBoolConst);
+	KX_PYMETHOD_DOC_NOARGS(SCA_RandomActuator, setBoolUniform);
+	KX_PYMETHOD_DOC_VARARGS(SCA_RandomActuator, setBoolBernouilli);
+	KX_PYMETHOD_DOC_VARARGS(SCA_RandomActuator, setIntConst);
+	KX_PYMETHOD_DOC_VARARGS(SCA_RandomActuator, setIntUniform);
+	KX_PYMETHOD_DOC_VARARGS(SCA_RandomActuator, setIntPoisson);
+	KX_PYMETHOD_DOC_VARARGS(SCA_RandomActuator, setFloatConst);
+	KX_PYMETHOD_DOC_VARARGS(SCA_RandomActuator, setFloatUniform);
+	KX_PYMETHOD_DOC_VARARGS(SCA_RandomActuator, setFloatNormal);
+	KX_PYMETHOD_DOC_VARARGS(SCA_RandomActuator, setFloatNegativeExponential);
 }; /* end of class KX_EditObjectActuator : public SCA_PropertyActuator */
 
 #endif

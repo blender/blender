@@ -23,7 +23,7 @@ class CErrorValue : public CPropValue
 
 public:
 	virtual const STR_String & GetText();
-	virtual float GetNumber();
+	virtual double GetNumber();
 	CErrorValue();
 	CErrorValue(STR_String errmsg);
 	virtual ~CErrorValue();

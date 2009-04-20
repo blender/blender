@@ -3865,7 +3865,7 @@ static void do_view3d_pose_armature_transformmenu(bContext *C, void *arg, int ev
 {
 #if 0
 	Scene *scene= CTX_data_scene(C);
-	Object *ob= OBACT;
+	Object *ob= CTX_data_active_object(C);
 	
 	switch(event) {
 	case 0: /*	clear origin */
@@ -3881,9 +3881,7 @@ static void do_view3d_pose_armature_transformmenu(bContext *C, void *arg, int ev
 		clear_object('g');
 		break;
 	case 4: /* clear user transform */
-		rest_pose(ob->pose);
-		DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
-		ED_undo_push(C, "Pose, Clear User Transform");
+		clear_user_transform(scene, ob);
 		break;
 	}
 #endif
@@ -5466,6 +5464,10 @@ void view3d_header_buttons(const bContext *C, ARegion *ar)
 				xco+= XIC;
 				uiDefIconButBitS(block, TOG, SCE_SNAP_ROTATE, B_REDR, ICON_SNAP_NORMAL,xco,yco,XIC,YIC, &scene->snap_flag, 0, 0, 0, 0, "Align rotation with the snapping target");	
 				xco+= XIC;
+				if (scene->snap_mode == SCE_SNAP_MODE_VOLUME) {
+					uiDefIconButBitS(block, TOG, SCE_SNAP_PEEL_OBJECT, B_REDR, 0 /* XXX 2.5 ICON_SNAP_PEEL_OBJECT */,xco,0,XIC,YIC, &scene->snap_flag, 0, 0, 0, 0, "Consider objects as whole when finding volume center");	
+					xco+= XIC;
+				}
 				uiDefIconTextButS(block, ICONTEXTROW,B_REDR, ICON_SNAP_VERTEX, snapmode_pup(), xco,yco,XIC+10,YIC, &(scene->snap_mode), 0.0, 0.0, 0, 0, "Snapping mode");
 				xco+= XIC;
 				uiDefButS(block, MENU, B_NOP, "Snap Mode%t|Closest%x0|Center%x1|Median%x2|Active%x3",xco,yco,70,YIC, &scene->snap_target, 0, 0, 0, 0, "Snap Target Mode");

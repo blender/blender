@@ -1434,9 +1434,9 @@ static void write_textures(WriteData *wd, ListBase *idbase)
 			if (tex->adt) write_animdata(wd, tex->adt);
 
 			/* direct data */
-			if(tex->plugin) writestruct(wd, DATA, "PluginTex", 1, tex->plugin);
+			if(tex->type == TEX_PLUGIN && tex->plugin) writestruct(wd, DATA, "PluginTex", 1, tex->plugin);
 			if(tex->coba) writestruct(wd, DATA, "ColorBand", 1, tex->coba);
-			if(tex->env) writestruct(wd, DATA, "EnvMap", 1, tex->env);
+			if(tex->type == TEX_ENVMAP && tex->env) writestruct(wd, DATA, "EnvMap", 1, tex->env);
 			
 			/* nodetree is integral part of texture, no libdata */
 			if(tex->nodetree) {
@@ -1832,7 +1832,6 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 					writestruct(wd, DATA, "SpaceFile", 1, sl);
 				}
 				else if(sl->spacetype==SPACE_SEQ) {
-					SpaceSeq *sseq= (SpaceSeq *)sl;
 					writestruct(wd, DATA, "SpaceSeq", 1, sl);
 				}
 				else if(sl->spacetype==SPACE_OUTLINER) {
@@ -1878,7 +1877,6 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 					writestruct(wd, DATA, "SpaceTime", 1, sl);
 				}
 				else if(sl->spacetype==SPACE_NODE){
-					SpaceNode *snode= (SpaceNode *)sl;
 					writestruct(wd, DATA, "SpaceNode", 1, sl);
 				}
 				sl= sl->next;

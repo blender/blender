@@ -2,7 +2,7 @@
  * Set or remove an objects parent
  *
  *
- * $Id: KX_ParentActuator.h 3271 2004-10-16 11:41:50Z kester $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -76,13 +76,17 @@ class KX_ParentActuator : public SCA_IActuator
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
 
-	virtual PyObject* _getattr(const char *attr);
-	virtual int _setattr(const char *attr, PyObject* value);
+	virtual PyObject* py_getattro(PyObject *attr);
+	virtual int py_setattro(PyObject *attr, PyObject* value);
 
-	/* 1. setObject                                                            */
+	/* These are used to get and set m_ob */
+	static PyObject* pyattr_get_object(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef);
+	static int pyattr_set_object(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
+
+	// Deprecated ----->
 	KX_PYMETHOD_DOC_O(KX_ParentActuator,SetObject);
-	/* 2. getObject                                                            */
 	KX_PYMETHOD_DOC_VARARGS(KX_ParentActuator,GetObject);
+	// <-----
 	
 }; /* end of class KX_ParentActuator : public SCA_PropertyActuator */
 

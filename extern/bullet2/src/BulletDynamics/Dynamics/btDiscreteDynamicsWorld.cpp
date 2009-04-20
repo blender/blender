@@ -350,12 +350,13 @@ int	btDiscreteDynamicsWorld::stepSimulation( btScalar timeStep,int maxSubSteps, 
 		for (int i=0;i<clampedSimulationSteps;i++)
 		{
 			internalSingleStepSimulation(fixedTimeStep);
-			synchronizeMotionStates();
+			//for Blender, no need to synchronize here, it is done in blender anyway
+			//synchronizeMotionStates();
 		}
 
 	} 
-
-	synchronizeMotionStates();
+	//else
+	//	synchronizeMotionStates();
 
 	clearForces();
 
@@ -725,9 +726,13 @@ void	btDiscreteDynamicsWorld::calculateSimulationIslands()
 			{
 				if (colObj0->isActive() || colObj1->isActive())
 				{
-
-					getSimulationIslandManager()->getUnionFind().unite((colObj0)->getIslandTag(),
-						(colObj1)->getIslandTag());
+					if ((colObj0)->getIslandTag() != -1 && (colObj1)->getIslandTag() != -1)
+					{
+					
+						getSimulationIslandManager()->getUnionFind().unite((colObj0)->getIslandTag(),
+							(colObj1)->getIslandTag());
+					}
+					
 				}
 			}
 		}

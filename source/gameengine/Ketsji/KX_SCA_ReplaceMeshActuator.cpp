@@ -36,6 +36,7 @@
 // Please look here for revision history.
 
 #include "KX_SCA_ReplaceMeshActuator.h"
+#include "KX_MeshProxy.h"
 
 #include "PyObjectPlus.h" 
 
@@ -51,28 +52,27 @@
 
 	PyTypeObject 
 
-KX_SCA_ReplaceMeshActuator::
-
-Type = {
-	PyObject_HEAD_INIT(&PyType_Type)
+KX_SCA_ReplaceMeshActuator::Type = {
+	PyObject_HEAD_INIT(NULL)
 	0,
 	"KX_SCA_ReplaceMeshActuator",
-	sizeof(KX_SCA_ReplaceMeshActuator),
+	sizeof(PyObjectPlus_Proxy),
 	0,
-	PyDestructor,
-	0,
-	__getattr,
-	__setattr,
-	0, 
-	__repr,
-	0, 
+	py_base_dealloc,
 	0,
 	0,
 	0,
-	0
+	0,
+	py_base_repr,
+	0,0,0,0,0,0,
+	py_base_getattro,
+	py_base_setattro,
+	0,0,0,0,0,0,0,0,0,
+	Methods
 };
 
 PyParentObject KX_SCA_ReplaceMeshActuator::Parents[] = {
+	&KX_SCA_ReplaceMeshActuator::Type,
 	&SCA_IActuator::Type,
 	&SCA_ILogicBrick::Type,
 	&CValue::Type,
@@ -82,23 +82,48 @@ PyParentObject KX_SCA_ReplaceMeshActuator::Parents[] = {
 
 
 PyMethodDef KX_SCA_ReplaceMeshActuator::Methods[] = {
-	{"setMesh", (PyCFunction) KX_SCA_ReplaceMeshActuator::sPySetMesh, METH_O, (PY_METHODCHAR)SetMesh_doc},
-	
 	KX_PYMETHODTABLE(KX_SCA_ReplaceMeshActuator, instantReplaceMesh),
+	// Deprecated ----->
+	{"setMesh", (PyCFunction) KX_SCA_ReplaceMeshActuator::sPySetMesh, METH_O, (PY_METHODCHAR)SetMesh_doc},
    	KX_PYMETHODTABLE(KX_SCA_ReplaceMeshActuator, getMesh),
 	{NULL,NULL} //Sentinel
 };
 
 PyAttributeDef KX_SCA_ReplaceMeshActuator::Attributes[] = {
+	KX_PYATTRIBUTE_RW_FUNCTION("mesh", KX_SCA_ReplaceMeshActuator, pyattr_get_mesh, pyattr_set_mesh),
 	{ NULL }	//Sentinel
 };
 
-PyObject* KX_SCA_ReplaceMeshActuator::_getattr(const char *attr)
+PyObject* KX_SCA_ReplaceMeshActuator::py_getattro(PyObject *attr)
 {
-  _getattr_up(SCA_IActuator);
+	py_getattro_up(SCA_IActuator);
 }
 
+int KX_SCA_ReplaceMeshActuator::py_setattro(PyObject *attr, PyObject* value) 
+{
+	py_setattro_up(SCA_IActuator);
+}
 
+PyObject* KX_SCA_ReplaceMeshActuator::pyattr_get_mesh(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef)
+{
+	KX_SCA_ReplaceMeshActuator* actuator = static_cast<KX_SCA_ReplaceMeshActuator*>(self);
+	if (!actuator->m_mesh)
+		Py_RETURN_NONE;
+	KX_MeshProxy* meshproxy = new KX_MeshProxy(actuator->m_mesh);
+	return meshproxy->NewProxy(true);
+}
+
+int KX_SCA_ReplaceMeshActuator::pyattr_set_mesh(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
+{
+	KX_SCA_ReplaceMeshActuator* actuator = static_cast<KX_SCA_ReplaceMeshActuator*>(self);
+	RAS_MeshObject* new_mesh;
+	
+	if (!ConvertPythonToMesh(value, &new_mesh, true, "actuator.mesh = value: KX_SCA_ReplaceMeshActuator"))
+		return 1;
+	
+	actuator->m_mesh = new_mesh;
+	return 0;
+}
 
 /* 1. setMesh */
 const char KX_SCA_ReplaceMeshActuator::SetMesh_doc[] = 
@@ -106,25 +131,15 @@ const char KX_SCA_ReplaceMeshActuator::SetMesh_doc[] =
 	"\t- name: string or None\n"
 	"\tSet the mesh that will be substituted for the current one.\n";
 
-PyObject* KX_SCA_ReplaceMeshActuator::PySetMesh(PyObject* self, PyObject* value)
+PyObject* KX_SCA_ReplaceMeshActuator::PySetMesh(PyObject* value)
 {
-	if (value == Py_None) {
-		m_mesh = NULL;
-	} else {
-		char* meshname = PyString_AsString(value);
-		if (!meshname) {
-			PyErr_SetString(PyExc_ValueError, "Expected the name of a mesh or None");
-			return NULL;
-		}
-		void* mesh = SCA_ILogicBrick::m_sCurrentLogicManager->GetMeshByName(STR_String(meshname));
-		
-		if (mesh==NULL) {
-			PyErr_SetString(PyExc_ValueError, "The mesh name given does not exist");
-			return NULL;
-		}
-		m_mesh= (class RAS_MeshObject*)mesh;
-	}
+	ShowDeprecationWarning("setMesh()", "the mesh property");
+	RAS_MeshObject* new_mesh;
 	
+	if (!ConvertPythonToMesh(value, &new_mesh, true, "actuator.mesh = value: KX_SCA_ReplaceMeshActuator"))
+		return NULL;
+	
+	m_mesh = new_mesh;
 	Py_RETURN_NONE;
 }
 
@@ -133,6 +148,7 @@ KX_PYMETHODDEF_DOC(KX_SCA_ReplaceMeshActuator, getMesh,
 "Returns the name of the mesh to be substituted.\n"
 )
 {
+	ShowDeprecationWarning("getMesh()", "the mesh property");
 	if (!m_mesh)
 		Py_RETURN_NONE;
 

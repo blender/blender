@@ -76,7 +76,7 @@ this object
 
 
 
-float CEmptyValue::GetNumber()
+double CEmptyValue::GetNumber()
 {
 	return 0;
 }

@@ -31,7 +31,6 @@ def validate_arguments(args, bc):
 			'WITH_BF_OPENAL', 'BF_OPENAL', 'BF_OPENAL_INC', 'BF_OPENAL_LIB', 'BF_OPENAL_LIBPATH', 'WITH_BF_STATICOPENAL', 'BF_OPENAL_LIB_STATIC',
 			'WITH_BF_SDL', 'BF_SDL', 'BF_SDL_INC', 'BF_SDL_LIB', 'BF_SDL_LIBPATH',
 			'BF_PTHREADS', 'BF_PTHREADS_INC', 'BF_PTHREADS_LIB', 'BF_PTHREADS_LIBPATH',
-			'WITH_BF_FMOD',
 			'WITH_BF_OPENEXR', 'BF_OPENEXR', 'BF_OPENEXR_INC', 'BF_OPENEXR_LIB', 'BF_OPENEXR_LIBPATH', 'WITH_BF_STATICOPENEXR', 'BF_OPENEXR_LIB_STATIC',
 			'WITH_BF_DDS',
 			'WITH_BF_FFMPEG', 'BF_FFMPEG_LIB','BF_FFMPEG_EXTRA', 'BF_FFMPEG',  'BF_FFMPEG_INC',
@@ -178,9 +177,6 @@ def read_opts(cfg, args):
 		('BF_PTHREADS_LIB', 'Pthreads library', ''),
 		('BF_PTHREADS_LIBPATH', 'Pthreads library path', ''),
 
-		(BoolVariable('WITH_BF_FMOD', 'Use FMOD if true', False)),
-		#  BF_FMOD = $(LCGDIR)/fmod
-
 		(BoolVariable('WITH_BF_OPENEXR', 'Use OPENEXR if true', True)),
 		(BoolVariable('WITH_BF_STATICOPENEXR', 'Staticly link to OpenEXR', False)),
 		('BF_OPENEXR', 'OPENEXR base path', ''),
@@ -290,7 +286,7 @@ def read_opts(cfg, args):
 ##BF_PARANOID = True
 ##
 ### enable freetype2 support for text objects
-		(BoolVariable('WITH_BF_FREETYPE', 'Use FreeType2 if true', False)),
+		(BoolVariable('WITH_BF_FREETYPE', 'Use FreeType2 if true', True)),
 		('BF_FREETYPE', 'Freetype base path', ''),
 		('BF_FREETYPE_INC', 'Freetype include path', ''),
 		('BF_FREETYPE_LIB', 'Freetype library', ''),

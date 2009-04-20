@@ -35,12 +35,10 @@ include nan_compile.mk
 
 CCFLAGS += $(LEVEL_1_CPP_WARNINGS)
 
-CPPFLAGS += -I$(NAN_FMOD)/include    
 CPPFLAGS += -I$(NAN_STRING)/include    
 CPPFLAGS += -I$(NAN_MOTO)/include
 CPPFLAGS += -I../../../source/blender/include
 CPPFLAGS += -I../dummy
-CPPFLAGS += -I../fmod
 CPPFLAGS += -I../openal
 CPPFLAGS += -I..
 CPPFLAGS += -I.

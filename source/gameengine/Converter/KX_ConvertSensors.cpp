@@ -520,7 +520,6 @@ void BL_ConvertSensors(struct Object* blenderobject,
 							starty,
 							keytype,
 							trackfocus,
-							canvas,
 							kxscene,
 							kxengine,
 							gameobj); 
@@ -718,6 +717,11 @@ void BL_ConvertSensors(struct Object* blenderobject,
 						hat		= bjoy->hat;
 						hatf	= bjoy->hatf;
 						joysticktype  = SCA_JoystickSensor::KX_JOYSENSORMODE_HAT;
+						break;
+					case SENS_JOY_AXIS_SINGLE:
+						axis	= bjoy->axis_single;
+						prec	= bjoy->precision;
+						joysticktype  = SCA_JoystickSensor::KX_JOYSENSORMODE_AXIS_SINGLE;
 						break;
 					default:
 						printf("Error: bad case statement\n");

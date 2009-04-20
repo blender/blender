@@ -1,5 +1,5 @@
 /**
- * $Id: CMP_node.h 12429 2007-10-29 14:37:19Z bebraw $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

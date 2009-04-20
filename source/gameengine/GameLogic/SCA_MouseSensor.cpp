@@ -102,7 +102,7 @@ int SCA_MouseSensor::UpdateHotkey(void *self, const PyAttributeDef*)
 	default:
 		; /* ignore, no hotkey */
 	}
-	// return value is used in _setattr(), 
+	// return value is used in py_setattro(), 
 	// 0=attribute checked ok (see Attributes array definition)
 	return 0;
 }
@@ -252,9 +252,7 @@ const char SCA_MouseSensor::GetXPosition_doc[] =
 "\tReturns the x-coordinate of the mouse sensor, in frame coordinates.\n"
 "\tThe lower-left corner is the origin. The coordinate is given in\n"
 "\tpixels\n";
-PyObject* SCA_MouseSensor::PyGetXPosition(PyObject* self, 
-										 PyObject* args, 
-										 PyObject* kwds) {
+PyObject* SCA_MouseSensor::PyGetXPosition() {
 	ShowDeprecationWarning("getXPosition()", "the position property");
 	return PyInt_FromLong(m_x);
 }
@@ -265,9 +263,7 @@ const char SCA_MouseSensor::GetYPosition_doc[] =
 "\tReturns the y-coordinate of the mouse sensor, in frame coordinates.\n"
 "\tThe lower-left corner is the origin. The coordinate is given in\n"
 "\tpixels\n";
-PyObject* SCA_MouseSensor::PyGetYPosition(PyObject* self, 
-										 PyObject* args, 
-										 PyObject* kwds) {
+PyObject* SCA_MouseSensor::PyGetYPosition() {
 	ShowDeprecationWarning("getYPosition()", "the position property");
 	return PyInt_FromLong(m_y);
 }
@@ -275,7 +271,7 @@ PyObject* SCA_MouseSensor::PyGetYPosition(PyObject* self,
 
 KX_PYMETHODDEF_DOC_O(SCA_MouseSensor, getButtonStatus,
 "getButtonStatus(button)\n"
-"\tGet the given button's status (KX_NO_INPUTSTATUS, KX_JUSTACTIVATED, KX_ACTIVE or KX_JUSTRELEASED).\n")
+"\tGet the given button's status (KX_INPUT_NONE, KX_INPUT_NONE, KX_INPUT_JUST_ACTIVATED, KX_INPUT_ACTIVE, KX_INPUT_JUST_RELEASED).\n")
 {
 	if (PyInt_Check(value))
 	{
@@ -283,7 +279,7 @@ KX_PYMETHODDEF_DOC_O(SCA_MouseSensor, getButtonStatus,
 		
 		if ((button < SCA_IInputDevice::KX_LEFTMOUSE)
 			|| (button > SCA_IInputDevice::KX_RIGHTMOUSE)){
-			PyErr_SetString(PyExc_ValueError, "invalid button specified!");
+			PyErr_SetString(PyExc_ValueError, "sensor.getButtonStatus(int): Mouse Sensor, invalid button specified!");
 			return NULL;
 		}
 		
@@ -300,22 +296,22 @@ KX_PYMETHODDEF_DOC_O(SCA_MouseSensor, getButtonStatus,
 /* ------------------------------------------------------------------------- */
 
 PyTypeObject SCA_MouseSensor::Type = {
-	PyObject_HEAD_INIT(&PyType_Type)
+	PyObject_HEAD_INIT(NULL)
 	0,
 	"SCA_MouseSensor",
-	sizeof(SCA_MouseSensor),
+	sizeof(PyObjectPlus_Proxy),
 	0,
-	PyDestructor,
-	0,
-	__getattr,
-	__setattr,
-	0, //&MyPyCompare,
-	__repr,
-	0, //&cvalue_as_number,
+	py_base_dealloc,
 	0,
 	0,
 	0,
-	0
+	0,
+	py_base_repr,
+	0,0,0,0,0,0,
+	py_base_getattro,
+	py_base_setattro,
+	0,0,0,0,0,0,0,0,0,
+	Methods
 };
 
 PyParentObject SCA_MouseSensor::Parents[] = {
@@ -341,20 +337,14 @@ PyAttributeDef SCA_MouseSensor::Attributes[] = {
 	{ NULL }	//Sentinel
 };
 
-PyObject* SCA_MouseSensor::_getattr(const char *attr) 
+PyObject* SCA_MouseSensor::py_getattro(PyObject *attr) 
 {
-	PyObject* object = _getattr_self(Attributes, this, attr);
-	if (object != NULL)
-		return object;
-	_getattr_up(SCA_ISensor);
+	py_getattro_up(SCA_ISensor);
 }
 
-int SCA_MouseSensor::_setattr(const char *attr, PyObject *value)
+int SCA_MouseSensor::py_setattro(PyObject *attr, PyObject *value)
 {
-	int ret = _setattr_self(Attributes, this, attr, value);
-	if (ret >= 0)
-		return ret;
-	return SCA_ISensor::_setattr(attr, value);
+	py_setattro_up(SCA_ISensor);
 }
 
 /* eof */

@@ -47,7 +47,7 @@ static void colorfn(float *out, float *coord, bNode *node, bNodeStack **in, shor
 	
 	Tex *nodetex = (Tex *)node->id;
 	
-	if(node->custom2) {
+	if(node->custom2 || node->need_exec==0) {
 		/* this node refers to its own texture tree! */
 		QUATCOPY(
 			out,

@@ -8,13 +8,17 @@ class SCA_ILogicBrick:
 	
 	@ivar executePriority: This determines the order controllers are evaluated, and actuators are activated (lower priority is executed first).
 	@type executePriority: int
+	@ivar owner: The game object this logic brick is attached to (read only).
+	@type owner: L{KX_GameObject<KX_GameObject.KX_GameObject>} or None in exceptional cases.
 	"""
 	
 	def getOwner():
 		"""
 		Gets the game object associated with this logic brick.
 		
-		@rtype: L{KX_GameObject}
+		Deprecated: Use the "owner" property instead.
+		
+		@rtype: L{KX_GameObject<KX_GameObject.KX_GameObject>}
 		"""
 
 	#--The following methods are deprecated--

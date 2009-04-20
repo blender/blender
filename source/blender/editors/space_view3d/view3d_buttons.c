@@ -63,6 +63,7 @@
 #include "BKE_customdata.h"
 #include "BKE_depsgraph.h"
 #include "BKE_idprop.h"
+#include "BKE_mesh.h"
 #include "BKE_object.h"
 #include "BKE_global.h"
 #include "BKE_scene.h"
@@ -404,7 +405,7 @@ static void v3d_editvertex_buts(const bContext *C, uiBlock *block, View3D *v3d, 
 			
 			nu= cu->editnurb->first;
 			while(nu) {
-				if((nu->type & 7)==1) {
+				if((nu->type & 7)==CU_BEZIER) {
 					bezt= nu->bezt;
 					a= nu->pntsu;
 					while(a--) {

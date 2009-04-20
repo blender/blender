@@ -206,12 +206,12 @@ float rollBoneByQuatAligned(EditBone *bone, float old_up_axis[3], float qrot[4],
 	}
 }
 
-float rollBoneByQuatJoint(RigEdge *edge, RigEdge *previous, float qrot[4], float qroll[4])
+float rollBoneByQuatJoint(RigEdge *edge, RigEdge *previous, float qrot[4], float qroll[4], float up_axis[3])
 {
 	if (previous == NULL)
 	{
-		QuatOne(qroll);
-		return rollBoneByQuat(edge->bone, edge->up_axis, qrot);
+		/* default to up_axis if no previous */
+		return rollBoneByQuatAligned(edge->bone, edge->up_axis, qrot, qroll, up_axis);
 	}
 	else
 	{
@@ -228,9 +228,8 @@ float rollBoneByQuatJoint(RigEdge *edge, RigEdge *previous, float qrot[4], float
 		}
 		else
 		{
-			/* SHOULDN'T BE HERE */
-			QuatOne(qroll);
-			return rollBoneByQuat(edge->bone, edge->up_axis, qrot);
+			/* default to up_axis if first bone in the chain is an offset */
+			return rollBoneByQuatAligned(edge->bone, edge->up_axis, qrot, qroll, up_axis);
 		}
 		
 		VecSubf(vec_second, edge->bone->tail, edge->bone->head);
@@ -1859,7 +1858,7 @@ static void repositionBone(bContext *C, RigGraph *rigg, RigEdge *edge, float vec
 		}
 		else if (scene->toolsettings->skgen_retarget_roll == SK_RETARGET_ROLL_JOINT)
 		{
-			bone->roll = rollBoneByQuatJoint(edge, edge->next, qrot, qroll);
+			bone->roll = rollBoneByQuatJoint(edge, edge->prev, qrot, qroll, up_axis);
 		}
 		else
 		{

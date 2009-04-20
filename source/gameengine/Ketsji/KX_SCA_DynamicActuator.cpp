@@ -49,25 +49,23 @@
 
 	PyTypeObject 
 
-KX_SCA_DynamicActuator::
-
-Type = {
-	PyObject_HEAD_INIT(&PyType_Type)
+KX_SCA_DynamicActuator::Type = {
+	PyObject_HEAD_INIT(NULL)
 	0,
 	"KX_SCA_DynamicActuator",
-	sizeof(KX_SCA_DynamicActuator),
+	sizeof(PyObjectPlus_Proxy),
 	0,
-	PyDestructor,
-	0,
-	__getattr,
-	__setattr,
-	0, 
-	__repr,
-	0, 
+	py_base_dealloc,
 	0,
 	0,
 	0,
-	0
+	0,
+	py_base_repr,
+	0,0,0,0,0,0,
+	py_base_getattro,
+	py_base_setattro,
+	0,0,0,0,0,0,0,0,0,
+	Methods
 };
 
 PyParentObject KX_SCA_DynamicActuator::Parents[] = {
@@ -80,21 +78,28 @@ PyParentObject KX_SCA_DynamicActuator::Parents[] = {
 
 
 PyMethodDef KX_SCA_DynamicActuator::Methods[] = {
+	// ---> deprecated
 	KX_PYMETHODTABLE(KX_SCA_DynamicActuator, setOperation),
    	KX_PYMETHODTABLE(KX_SCA_DynamicActuator, getOperation),
 	{NULL,NULL} //Sentinel
 };
 
 PyAttributeDef KX_SCA_DynamicActuator::Attributes[] = {
+	KX_PYATTRIBUTE_SHORT_RW("operation",0,4,false,KX_SCA_DynamicActuator,m_dyn_operation),
+	KX_PYATTRIBUTE_FLOAT_RW("mass",0.0,FLT_MAX,KX_SCA_DynamicActuator,m_setmass),
 	{ NULL }	//Sentinel
 };
 
 
-PyObject* KX_SCA_DynamicActuator::_getattr(const char *attr)
+PyObject* KX_SCA_DynamicActuator::py_getattro(PyObject *attr)
 {
-  _getattr_up(SCA_IActuator);
+	py_getattro_up(SCA_IActuator);
 }
 
+int KX_SCA_DynamicActuator::py_setattro(PyObject *attr, PyObject* value)
+{
+	py_setattro_up(SCA_IActuator);
+}
 
 
 /* 1. setOperation */
@@ -107,9 +112,10 @@ KX_PYMETHODDEF_DOC(KX_SCA_DynamicActuator, setOperation,
 "\t                3 = disable rigid body\n"
 "Change the dynamic status of the parent object.\n")
 {
+	ShowDeprecationWarning("setOperation()", "the operation property");
 	int dyn_operation;
 	
-	if (!PyArg_ParseTuple(args, "i", &dyn_operation))
+	if (!PyArg_ParseTuple(args, "i:setOperation", &dyn_operation))
 	{
 		return NULL;	
 	}
@@ -126,6 +132,7 @@ KX_PYMETHODDEF_DOC(KX_SCA_DynamicActuator, getOperation,
 "Returns the operation type of this actuator.\n"
 )
 {
+	ShowDeprecationWarning("getOperation()", "the operation property");
 	return PyInt_FromLong((long)m_dyn_operation);
 }
 

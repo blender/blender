@@ -64,7 +64,18 @@ class KX_SCA_DynamicActuator : public SCA_IActuator
 	virtual bool 
 	Update();
 
-	virtual PyObject* _getattr(const char *attr);
+	//Python Interface
+	enum DynamicOperation {
+		KX_DYN_RESTORE_DYNAMICS = 0,
+		KX_DYN_DISABLE_DYNAMICS,
+		KX_DYN_ENABLE_RIGID_BODY,
+		KX_DYN_DISABLE_RIGID_BODY,
+		KX_DYN_SET_MASS,
+	};
+
+
+	virtual PyObject* py_getattro(PyObject *attr);
+	virtual int py_setattro(PyObject *attr, PyObject *value);
 
 	/* 1. setOperation */
 	KX_PYMETHOD_DOC(KX_SCA_DynamicActuator,setOperation);

@@ -57,7 +57,8 @@ New(Bone* bone
 KX_BoneParentRelation::
 UpdateChildCoordinates(
 	SG_Spatial * child,
-	const SG_Spatial * parent
+	const SG_Spatial * parent,
+	bool& parentUpdated	
 ){
 	MT_assert(child != NULL);
 	
@@ -67,6 +68,8 @@ UpdateChildCoordinates(
 	const MT_Vector3 & child_scale = child->GetLocalScale();
 	const MT_Point3 & child_pos = child->GetLocalPosition();
 	const MT_Matrix3x3 & child_rotation = child->GetLocalOrientation();
+	// we don't know if the armature has been updated or not, assume yes
+	parentUpdated = true;
 
 	// the childs world locations which we will update.	
 	
@@ -122,7 +125,7 @@ UpdateChildCoordinates(
 	else {
 		child->SetWorldFromLocalTransform();
 	}
-	
+	child->SetModified(false);
 	return valid_parent_transform;
 }
 

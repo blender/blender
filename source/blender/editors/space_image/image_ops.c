@@ -1062,6 +1062,7 @@ void IMAGE_OT_new(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= new_exec;
+	ot->invoke= WM_operator_redo;
 	ot->poll= ED_operator_image_active;
 
 	/* flags */

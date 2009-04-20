@@ -34,6 +34,12 @@
 	obtain a colour value from this, a node further up the chain reads
 	the TexDelegate* from its input stack, and uses tex_call_delegate to
 	retrieve the colour from the delegate.
+ 
+    comments: (ton)
+    
+    This system needs recode, a node system should rely on the stack, and 
+	callbacks for nodes only should evaluate own node, not recursively go
+    over other previous ones.
 */
 
 #include <assert.h>
@@ -43,7 +49,8 @@
 
 void tex_call_delegate(TexDelegate *dg, float *out, float *coord, short thread)
 {
-	dg->fn(out, coord, dg->node, dg->in, thread);
+	if(dg->node->need_exec)
+		dg->fn(out, coord, dg->node, dg->in, thread);
 }
 
 void tex_input(float *out, int sz, bNodeStack *in, float *coord, short thread)

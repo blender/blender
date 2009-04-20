@@ -34,6 +34,11 @@ class KX_VertexProxy:
 	@ivar v: The v texture coordinate of the vertex.
 	@type v: float
 	
+	@ivar u2: The second u texture coordinate of the vertex.
+	@type u2: float
+	@ivar v2: The second v texture coordinate of the vertex.
+	@type v2: float
+	
 	@group Colour: r, g, b, a
 	@ivar r: The red component of the vertex colour.   0.0 <= r <= 1.0
 	@type r: float
@@ -69,6 +74,19 @@ class KX_VertexProxy:
 	def setUV(uv):
 		"""
 		Sets the UV (texture) coordinates of this vertex.
+		
+		@type uv: list [u, v]
+		"""
+	def getUV2():
+		"""
+		Gets the 2nd UV (texture) coordinates of this vertex.
+		
+		@rtype: list [u, v]
+		@return: this vertexes UV (texture) coordinates.
+		"""
+	def setUV2(uv):
+		"""
+		Sets the 2nd UV (texture) coordinates of this vertex.
 		
 		@type uv: list [u, v]
 		"""
@@ -120,3 +138,11 @@ class KX_VertexProxy:
 		@rtype: list [nx, ny, nz]
 		@return: normalised normal vector.
 		"""
+	def setNormal(normal):
+		"""
+		Sets the normal vector of this vertex.
+
+		@type normal: sequence of floats [r, g, b]
+		@param normal: the new normal of this vertex.
+		"""
+

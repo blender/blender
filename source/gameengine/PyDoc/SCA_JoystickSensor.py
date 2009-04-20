@@ -1,4 +1,4 @@
-# $Id: SCA_RandomSensor.py 15444 2008-07-05 17:05:05Z lukep $
+# $Id$
 # Documentation for SCA_RandomSensor
 from SCA_ISensor import *
 
@@ -8,10 +8,16 @@ class SCA_JoystickSensor(SCA_ISensor):
 	
 	Properties:
 	
-	@ivar axisPosition: (read-only) The state of the joysticks axis as a list of 4 values, each spesifying the value of an axis between -32767 and 32767 depending on how far the axis is pushed, 0 for nothing. 
-	                    The first 2 values are used by most joysticks and gamepads for directional control. 3rd and 4th values are only on some joysticks and can be used for arbitary controls.
-	                    left:[-32767, 0, ...], right:[32767, 0, ...], up:[0, -32767, ...], down:[0, 32767, ...]
-	@type axisPosition: [integer, integer, integer, integer]
+	@ivar axisValues: (read-only) The state of the joysticks axis as a list of values L{numAxis} long.
+						each spesifying the value of an axis between -32767 and 32767 depending on how far the axis is pushed, 0 for nothing. 
+						The first 2 values are used by most joysticks and gamepads for directional control. 3rd and 4th values are only on some joysticks and can be used for arbitary controls.
+						left:[-32767, 0, ...], right:[32767, 0, ...], up:[0, -32767, ...], down:[0, 32767, ...]
+	@type axisValues: list of ints
+	
+	@ivar axisSingle: (read-only) like L{axisValues} but returns a single axis value that is set by the sensor.
+						Only use this for "Single Axis" type sensors otherwise it will raise an error.
+	@type axisSingle: int
+	
 	@ivar numAxis: (read-only) The number of axes for the joystick at this index.
 	@type numAxis: integer
 	@ivar numButtons: (read-only) The number of buttons for the joystick at this index.
@@ -41,13 +47,13 @@ class SCA_JoystickSensor(SCA_ISensor):
 		Returns a list containing the indicies of the currently pressed buttons.
 		@rtype: list
 		"""
-    def getButtonStatus(buttonIndex):
-        """
-        Returns a bool of the current pressed state of the specified button.
-        @param buttonIndex: the button index, 0=first button
-        @type buttonIndex: integer
-        @rtype: bool
-        """
+	def getButtonStatus(buttonIndex):
+		"""
+		Returns a bool of the current pressed state of the specified button.
+		@param buttonIndex: the button index, 0=first button
+		@type buttonIndex: integer
+		@rtype: bool
+		"""
 	def getIndex():
 		"""
 		DEPRECATED: use the 'index' property.

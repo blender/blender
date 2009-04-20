@@ -1,0 +1,110 @@
+#~ This program is free software; you can redistribute it and/or modify
+#~ it under the terms of the GNU General Public License as published by
+#~ the Free Software Foundation; version 2 of the License.
+
+#~ This program is distributed in the hope that it will be useful,
+#~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+#~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#~ GNU General Public License for more details.
+
+# This script must run from a logic brick so it has access to the game engine api
+# it assumes the root blender source directory is the current working directory
+# 
+# Currently it only prints missing modules and methods (not attributes)
+
+
+BGE_API_DOC_PATH = 'source/gameengine/PyDoc'
+
+import GameTypes
+type_members = {}
+
+for type_name in dir(GameTypes):
+	if type_name.startswith('__'):
+		continue
+	
+	type_object = getattr(GameTypes, type_name)
+	
+	members = []
+	type_members[type_object.__name__] = members
+	
+	for member in type_object.__dict__.keys():
+		if member.startswith('__'):
+			continue
+		
+		# print type_object.__name__ + '.' + k
+		members.append(member)
+
+import sys, os
+
+doc_dir= os.path.join(os.getcwd(), BGE_API_DOC_PATH)
+
+if doc_dir not in sys.path:
+	sys.path.append(doc_dir)
+
+
+def check_attribute(type_mame, member):
+	filename = 	os.path.join(doc_dir, type_mame + '.py')
+	# print filename
+	
+	file = open(filename, 'rU')
+	
+	for l in file:
+		l = l.strip()
+		
+		'''
+			@ivar foo: blah blah
+		to
+			foo
+			
+		'''
+		
+		if l.startswith('@ivar'):
+			var = l.split()[1].split(':')[0]
+			
+			if var == member:
+				file.close()
+				return True
+	
+	file.close()
+	return False
+	
+	
+	
+	
+
+
+print '\n\n\nChecking Docs'
+
+PRINT_OK = False
+
+for type_name in sorted(type_members.keys()):
+	members = type_members[type_name]
+	
+	try:
+		mod = __import__(type_name)
+		if PRINT_OK:
+			print "type: %s" % type_name
+	except:
+		print "missing: %s - %s" % (type_name, str(sorted(members)))
+		continue
+	
+	reload(mod) # incase were editing it
+	
+	try:
+		type_class = getattr(mod, type_name)
+	except:
+		print "missing class: %s.%s - %s" % (type_name, type_name, str(sorted(members)))
+		continue
+	
+	for member in sorted(members):
+		try:
+			getattr(type_class, member)
+			if PRINT_OK:
+				print "\tfound: %s.%s" % (type_name, member)
+		except:
+			if check_attribute(type_name, member):
+				if PRINT_OK:
+					print "\tfound attr: %s.%s" % (type_name, member)
+			else:
+				print "\tmissing: %s.%s" % (type_name, member)
+

@@ -17,29 +17,31 @@ incs += ' ../gpu #/extern/glew/include '
 incs += ' ' + env['BF_OPENGL_INC']
 incs += ' ' + env['BF_ZLIB_INC']
 
-defs = ''
+defs = [] 
 
 if env['WITH_BF_PYTHON']:
-    incs += ' ' + env['BF_PYTHON_INC']
-    incs += ' ../python'
+	incs += ' ' + env['BF_PYTHON_INC']
+	incs += ' ../python'
+	if env['BF_DEBUG']:
+		defs.append('_DEBUG')
 else:
-    defs += 'DISABLE_PYTHON'
+	defs.append('DISABLE_PYTHON')
 
 if env['WITH_BF_INTERNATIONAL']:
-    defs += ' WITH_FREETYPE2'
+	defs.append('WITH_FREETYPE2')
 
 if env['WITH_BF_OPENEXR']:
-    defs += ' WITH_OPENEXR'
+	defs.append('WITH_OPENEXR')
 
 if env['WITH_BF_FFMPEG']:
-    defs += ' WITH_FFMPEG'
-    incs += ' ' + env['BF_FFMPEG_INC']
+	defs.append('WITH_FFMPEG')
+	incs += ' ' + env['BF_FFMPEG_INC']
 
 if env['WITH_BF_QUICKTIME']:
-    defs += ' WITH_QUICKTIME'
-    incs += ' ' + env['BF_QUICKTIME_INC']
+	defs.append('WITH_QUICKTIME')
+	incs += ' ' + env['BF_QUICKTIME_INC']
 
-env.BlenderLib ( libname = 'bf_nodes', sources = sources, includes = Split(incs), defines = Split(defs), libtype=['core'], priority = [190] )
-env.BlenderLib ( libname = 'bf_cmpnodes', sources = cmpsources, includes = Split(incs), defines = Split(defs), libtype=['core'], priority = [175] )
-env.BlenderLib ( libname = 'bf_shdnodes', sources = shdsources, includes = Split(incs), defines = Split(defs), libtype=['core'], priority = [175] )
-env.BlenderLib ( libname = 'bf_texnodes', sources = texsources, includes = Split(incs), defines = Split(defs), libtype=['core'], priority = [175] )
+env.BlenderLib ( libname = 'bf_nodes', sources = sources, includes = Split(incs), defines = defs, libtype=['core'], priority = [190] )
+env.BlenderLib ( libname = 'bf_cmpnodes', sources = cmpsources, includes = Split(incs), defines = defs, libtype=['core'], priority = [175] )
+env.BlenderLib ( libname = 'bf_shdnodes', sources = shdsources, includes = Split(incs), defines = defs, libtype=['core'], priority = [175] )
+env.BlenderLib ( libname = 'bf_texnodes', sources = texsources, includes = Split(incs), defines = defs, libtype=['core'], priority = [175] )

@@ -1,7 +1,7 @@
 /* particle.c
  *
  *
- * $Id: particle.c $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -1460,7 +1460,7 @@ static void do_prekink(ParticleKey *state, ParticleKey *par, float *par_rot, flo
 		case PART_KINK_WAVE:
 			vec[axis]=1.0;
 			if(obmat)
-				Mat4MulVecfl(obmat,vec);
+				Mat4Mul3Vecfl(obmat,vec);
 
 			if(par_rot)
 				QuatMulVecf(par_rot,vec);
@@ -1806,10 +1806,13 @@ void psys_find_parents(Object *ob, ParticleSystemModifierData *psmd, ParticleSys
 	int from=PART_FROM_FACE;
 	totparent=(int)(totchild*part->parents*0.3);
 
+	if(G.rendering && part->child_nbr && part->ren_child_nbr)
+		totparent*=(float)part->child_nbr/(float)part->ren_child_nbr;
+
 	tree=BLI_kdtree_new(totparent);
 
 	for(p=0,cpa=psys->child; p<totparent; p++,cpa++){
-		psys_particle_on_emitter(psmd,from,cpa->num,-1,cpa->fuv,cpa->foffset,co,0,0,0,orco,0);
+		psys_particle_on_emitter(psmd,from,cpa->num,DMCACHE_ISCHILD,cpa->fuv,cpa->foffset,co,0,0,0,orco,0);
 		BLI_kdtree_insert(tree, p, orco, NULL);
 	}
 
@@ -1873,6 +1876,10 @@ int psys_threads_init_path(ParticleThread *threads, Scene *scene, float cfra, in
 
 	if(totchild && part->from!=PART_FROM_PARTICLE && part->childtype==PART_CHILD_FACES){
 		totparent=(int)(totchild*part->parents*0.3);
+		
+		if(G.rendering && part->child_nbr && part->ren_child_nbr)
+			totparent*=(float)part->child_nbr/(float)part->ren_child_nbr;
+
 		/* part->parents could still be 0 so we can't test with totparent */
 		between=1;
 	}
@@ -1905,6 +1912,7 @@ int psys_threads_init_path(ParticleThread *threads, Scene *scene, float cfra, in
 	ctx->steps= steps;
 	ctx->totchild= totchild;
 	ctx->totparent= totparent;
+	ctx->parent_pass= 0;
 	ctx->cfra= cfra;
 
 	psys->lattice = psys_get_lattice(scene, ob, psys);
@@ -1944,14 +1952,14 @@ void psys_thread_create_path(ParticleThread *thread, struct ChildParticle *cpa, 
 	ParticleCacheKey *state, *par = NULL, *key[4];
 	ParticleData *pa=NULL;
 	ParticleTexture ptex;
-	float *cpa_fuv=0;
+	float *cpa_fuv=0, *par_rot=0;
 	float co[3], orco[3], ornor[3], t, rough_t, cpa_1st[3], dvec[3];
 	float branch_begin, branch_end, branch_prob, branchfac, rough_rand;
 	float pa_rough1, pa_rough2, pa_roughe;
 	float length, pa_length, pa_clump, pa_kink, pa_effector;
 	float max_length = 1.0f, cur_length = 0.0f;
 	float eff_length, eff_vec[3];
-	int k, cpa_num, guided=0;
+	int k, cpa_num, guided = 0;
 	short cpa_from;
 
 	if(part->flag & PART_BRANCHING) {
@@ -2055,9 +2063,10 @@ void psys_thread_create_path(ParticleThread *thread, struct ChildParticle *cpa, 
 	ptex.clump=1.0;
 	ptex.kink=1.0;
 	ptex.rough= 1.0;
+	ptex.exist= 1.0;
 
 	get_cpa_texture(ctx->dm,ctx->ma,cpa_num,cpa_fuv,orco,&ptex,
-		MAP_PA_LENGTH|MAP_PA_CLUMP|MAP_PA_KINK|MAP_PA_ROUGH);
+		MAP_PA_DENS|MAP_PA_LENGTH|MAP_PA_CLUMP|MAP_PA_KINK|MAP_PA_ROUGH);
 	
 	pa_length=ptex.length;
 	pa_clump=ptex.clump;
@@ -2066,6 +2075,11 @@ void psys_thread_create_path(ParticleThread *thread, struct ChildParticle *cpa, 
 	pa_rough2=ptex.rough;
 	pa_roughe=ptex.rough;
 	pa_effector= 1.0f;
+
+	if(ptex.exist < cpa->rand[1]) {
+		keys->steps = -1;
+		return;
+	}
 
 	if(ctx->vg_length)
 		pa_length*=psys_interpolate_value_from_verts(ctx->dm,cpa_from,cpa_num,cpa_fuv,ctx->vg_length);
@@ -2137,15 +2151,16 @@ void psys_thread_create_path(ParticleThread *thread, struct ChildParticle *cpa, 
 		t=(float)k/(float)ctx->steps;
 
 		if(ctx->totparent){
-			if(i>=ctx->totparent)
-				/* this is not threadsafe, but should only happen for
-				 * branching particles particles, which are not threaded */
+			if(i>=ctx->totparent) {
+				/* this is now threadsafe, virtual parents are calculated before rest of children */
 				par = cache[cpa->parent] + k;
+			}
 			else
 				par=0;
 		}
 		else if(cpa->parent>=0){
 			par=pcache[cpa->parent]+k;
+			par_rot = par->rot;
 		}
 
 		/* apply different deformations to the child path */
@@ -2155,7 +2170,7 @@ void psys_thread_create_path(ParticleThread *thread, struct ChildParticle *cpa, 
 
 		if(guided==0){
 			if(part->kink)
-				do_prekink((ParticleKey*)state, (ParticleKey*)par, par->rot, t,
+				do_prekink((ParticleKey*)state, (ParticleKey*)par, par_rot, t,
 				part->kink_freq * pa_kink, part->kink_shape, part->kink_amp, part->kink, part->kink_axis, ob->obmat);
 					
 			do_clump((ParticleKey*)state, (ParticleKey*)par, t, part->clumpfac, part->clumppow, pa_clump);
@@ -2254,10 +2269,15 @@ static void *exec_child_path_cache(void *data)
 	ParticleSystem *psys= ctx->psys;
 	ParticleCacheKey **cache= psys->childcache;
 	ChildParticle *cpa;
-	int i, totchild= ctx->totchild;
+	int i, totchild= ctx->totchild, first= 0;
+
+	if(thread->tot > 1){
+		first= ctx->parent_pass? 0 : ctx->totparent;
+		totchild= ctx->parent_pass? ctx->totparent : ctx->totchild;
+	}
 	
-	cpa= psys->child + thread->num;
-	for(i=thread->num; i<totchild; i+=thread->tot, cpa+=thread->tot)
+	cpa= psys->child + first + thread->num;
+	for(i=first+thread->num; i<totchild; i+=thread->tot, cpa+=thread->tot)
 		psys_thread_create_path(thread, cpa, cache[i], i);
 
 	return 0;
@@ -2296,6 +2316,22 @@ void psys_cache_child_paths(Scene *scene, Object *ob, ParticleSystem *psys, floa
 	totthread= pthreads[0].tot;
 
 	if(totthread > 1) {
+
+		/* make virtual child parents thread safe by calculating them first */
+		if(totparent) {
+			BLI_init_threads(&threads, exec_child_path_cache, totthread);
+			
+			for(i=0; i<totthread; i++) {
+				pthreads[i].ctx->parent_pass = 1;
+				BLI_insert_thread(&threads, &pthreads[i]);
+			}
+
+			BLI_end_threads(&threads);
+
+			for(i=0; i<totthread; i++)
+				pthreads[i].ctx->parent_pass = 0;
+		}
+
 		BLI_init_threads(&threads, exec_child_path_cache, totthread);
 
 		for(i=0; i<totthread; i++)
@@ -3171,6 +3207,8 @@ static void get_cpa_texture(DerivedMesh *dm, Material *ma, int face_index, float
 				ptex->kink= texture_value_blend(def,ptex->kink,value,var,blend,neg & MAP_PA_KINK);
 			if((event & mtex->pmapto) & MAP_PA_ROUGH)
 				ptex->rough= texture_value_blend(def,ptex->rough,value,var,blend,neg & MAP_PA_ROUGH);
+			if((event & mtex->pmapto) & MAP_PA_DENS)
+				ptex->exist= texture_value_blend(def,ptex->exist,value,var,blend,neg & MAP_PA_DENS);
 		}
 	}
 	if(event & MAP_PA_TIME) { CLAMP(ptex->time,0.0,1.0); }
@@ -3178,6 +3216,7 @@ static void get_cpa_texture(DerivedMesh *dm, Material *ma, int face_index, float
 	if(event & MAP_PA_CLUMP) { CLAMP(ptex->clump,0.0,1.0); }
 	if(event & MAP_PA_KINK) { CLAMP(ptex->kink,0.0,1.0); }
 	if(event & MAP_PA_ROUGH) { CLAMP(ptex->rough,0.0,1.0); }
+	if(event & MAP_PA_DENS) { CLAMP(ptex->exist,0.0,1.0); }
 }
 void psys_get_texture(Object *ob, Material *ma, ParticleSystemModifierData *psmd, ParticleSystem *psys, ParticleData *pa, ParticleTexture *ptex, int event)
 {
@@ -3496,6 +3535,10 @@ void psys_get_particle_on_path(Scene *scene, Object *ob, ParticleSystem *psys, i
 		
 		if(totchild && part->from!=PART_FROM_PARTICLE && part->childtype==PART_CHILD_FACES){
 			totparent=(int)(totchild*part->parents*0.3);
+			
+			if(G.rendering && part->child_nbr && part->ren_child_nbr)
+				totparent*=(float)part->child_nbr/(float)part->ren_child_nbr;
+			
 			/* part->parents could still be 0 so we can't test with totparent */
 			between=1;
 		}
@@ -3870,5 +3913,78 @@ void psys_get_dupli_path_transform(Object *ob, ParticleSystem *psys, ParticleSys
 	}
 
 	*scale= len;
+}
+
+void psys_make_billboard(ParticleBillboardData *bb, float xvec[3], float yvec[3], float zvec[3], float center[3])
+{
+	float onevec[3] = {0.0f,0.0f,0.0f}, tvec[3], tvec2[3];
+
+	xvec[0] = 1.0f; xvec[1] = 0.0f; xvec[2] = 0.0f;
+	yvec[0] = 0.0f; yvec[1] = 1.0f; yvec[2] = 0.0f;
+
+	if(bb->align < PART_BB_VIEW)
+		onevec[bb->align]=1.0f;
+
+	if(bb->lock && (bb->align == PART_BB_VIEW)) {
+		VECCOPY(xvec, bb->ob->obmat[0]);
+		Normalize(xvec);
+
+		VECCOPY(yvec, bb->ob->obmat[1]);
+		Normalize(yvec);
+
+		VECCOPY(zvec, bb->ob->obmat[2]);
+		Normalize(zvec);
+	}
+	else if(bb->align == PART_BB_VEL) {
+		float temp[3];
+
+		VECCOPY(temp, bb->vel);
+		Normalize(temp);
+
+		VECSUB(zvec, bb->ob->obmat[3], bb->vec);
+
+		if(bb->lock) {
+			float fac = -Inpf(zvec, temp);
+
+			VECADDFAC(zvec, zvec, temp, fac);
+		}
+		Normalize(zvec);
+
+		Crossf(xvec,temp,zvec);
+		Normalize(xvec);
+
+		Crossf(yvec,zvec,xvec);
+	}
+	else {
+		VECSUB(zvec, bb->ob->obmat[3], bb->vec);
+		if(bb->lock)
+			zvec[bb->align] = 0.0f;
+		Normalize(zvec);
+
+		if(bb->align < PART_BB_VIEW)
+			Crossf(xvec, onevec, zvec);
+		else
+			Crossf(xvec, bb->ob->obmat[1], zvec);
+		Normalize(xvec);
+
+		Crossf(yvec,zvec,xvec);
+	}
+
+	VECCOPY(tvec, xvec);
+	VECCOPY(tvec2, yvec);
+
+	VecMulf(xvec, cos(bb->tilt * (float)M_PI));
+	VecMulf(tvec2, sin(bb->tilt * (float)M_PI));
+	VECADD(xvec, xvec, tvec2);
+
+	VecMulf(yvec, cos(bb->tilt * (float)M_PI));
+	VecMulf(tvec, -sin(bb->tilt * (float)M_PI));
+	VECADD(yvec, yvec, tvec);
+
+	VecMulf(xvec, bb->size);
+	VecMulf(yvec, bb->size);
+
+	VECADDFAC(center, bb->vec, xvec, bb->offset[0]);
+	VECADDFAC(center, center, yvec, bb->offset[1]);
 }
 

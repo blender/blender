@@ -188,6 +188,13 @@ void SG_BBox::getaa(MT_Point3 *box, const MT_Transform &world) const
 	*box++ = max;
 }
 
+void SG_BBox::getmm(MT_Point3 *box, const MT_Transform &world) const
+{
+	const MT_Point3 min(world(m_min)), max(world(m_max));
+	*box++ = min;
+	*box++ = max;
+}
+
 void SG_BBox::split(SG_BBox &left, SG_BBox &right) const
 {
 	MT_Scalar sizex = m_max[0] - m_min[0];

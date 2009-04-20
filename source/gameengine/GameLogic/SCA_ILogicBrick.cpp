@@ -123,7 +123,7 @@ const STR_String& SCA_ILogicBrick::GetText()
 
 
 
-float SCA_ILogicBrick::GetNumber()
+double SCA_ILogicBrick::GetNumber()
 {
 	return -1;
 }
@@ -217,22 +217,22 @@ CValue* SCA_ILogicBrick::GetEvent()
 /* python stuff */
 
 PyTypeObject SCA_ILogicBrick::Type = {
-	PyObject_HEAD_INIT(&PyType_Type)
+	PyObject_HEAD_INIT(NULL)
 	0,
 	"SCA_ILogicBrick",
-	sizeof(SCA_ILogicBrick),
+	sizeof(PyObjectPlus_Proxy),
 	0,
-	PyDestructor,
-	0,
-	__getattr,
-	__setattr,
-	0, //&MyPyCompare,
-	__repr,
-	0, //&cvalue_as_number,
+	py_base_dealloc,
 	0,
 	0,
 	0,
-	0
+	0,
+	py_base_repr,
+	0,0,0,0,0,0,
+	py_base_getattro,
+	py_base_setattro,
+	0,0,0,0,0,0,0,0,0,
+	Methods
 };
 
 
@@ -246,8 +246,8 @@ PyParentObject SCA_ILogicBrick::Parents[] = {
 
 
 PyMethodDef SCA_ILogicBrick::Methods[] = {
+	// --> Deprecated
   {"getOwner", (PyCFunction) SCA_ILogicBrick::sPyGetOwner, METH_NOARGS},
-  // --> Deprecated
   {"getExecutePriority", (PyCFunction) SCA_ILogicBrick::sPyGetExecutePriority, METH_NOARGS},
   {"setExecutePriority", (PyCFunction) SCA_ILogicBrick::sPySetExecutePriority, METH_VARARGS},
   // <-- Deprecated
@@ -255,6 +255,7 @@ PyMethodDef SCA_ILogicBrick::Methods[] = {
 };
 
 PyAttributeDef SCA_ILogicBrick::Attributes[] = {
+	KX_PYATTRIBUTE_RO_FUNCTION("owner",	SCA_ILogicBrick, pyattr_get_owner),
 	KX_PYATTRIBUTE_INT_RW("executePriority",0,100000,false,SCA_ILogicBrick,m_Execute_Ueber_Priority),
 	{NULL} //Sentinel
 };
@@ -278,30 +279,25 @@ int SCA_ILogicBrick::CheckProperty(void *self, const PyAttributeDef *attrdef)
 }
 
 PyObject*
-SCA_ILogicBrick::_getattr(const char *attr)
+SCA_ILogicBrick::py_getattro(PyObject *attr)
 {
-	PyObject* object = _getattr_self(Attributes, this, attr);
-	if (object != NULL)
-		return object;
-  _getattr_up(CValue);
+  py_getattro_up(CValue);
 }
 
-int SCA_ILogicBrick::_setattr(const char *attr, PyObject *value)
+int SCA_ILogicBrick::py_setattro(PyObject *attr, PyObject *value)
 {
-	int ret = _setattr_self(Attributes, this, attr, value);
-	if (ret >= 0)
-		return ret;
-	return CValue::_setattr(attr, value);
+	py_setattro_up(CValue);
 }
 
 
-PyObject* SCA_ILogicBrick::PyGetOwner(PyObject* self)
+PyObject* SCA_ILogicBrick::PyGetOwner()
 {
+	ShowDeprecationWarning("getOwner()", "the owner property");
+	
 	CValue* parent = GetParent();
 	if (parent)
 	{
-		parent->AddRef();
-		return parent;
+		return parent->GetProxy();
 	}
 
 	printf("ERROR: Python scriptblock without owner\n");
@@ -310,15 +306,13 @@ PyObject* SCA_ILogicBrick::PyGetOwner(PyObject* self)
 
 
 
-PyObject* SCA_ILogicBrick::PySetExecutePriority(PyObject* self, 
-			       PyObject* args, 
-			       PyObject* kwds)
+PyObject* SCA_ILogicBrick::PySetExecutePriority(PyObject* args)
 {
 	ShowDeprecationWarning("setExecutePriority()", "the executePriority property");
 
 	int priority=0;
 
-    if (!PyArg_ParseTuple(args, "i", &priority)) {
+    if (!PyArg_ParseTuple(args, "i:setExecutePriority", &priority)) {
 		return NULL;
     }
 	
@@ -329,10 +323,23 @@ PyObject* SCA_ILogicBrick::PySetExecutePriority(PyObject* self,
 
 
 
-PyObject* SCA_ILogicBrick::PyGetExecutePriority(PyObject* self)
+PyObject* SCA_ILogicBrick::PyGetExecutePriority()
 {
 	ShowDeprecationWarning("getExecutePriority()", "the executePriority property");
 	return PyInt_FromLong(m_Execute_Ueber_Priority);
+}
+
+
+/*Attribute functions */
+PyObject* SCA_ILogicBrick::pyattr_get_owner(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	SCA_ILogicBrick* self= static_cast<SCA_ILogicBrick*>(self_v);
+	CValue* parent = self->GetParent();
+	
+	if (parent)
+		return parent->GetProxy();
+	
+	Py_RETURN_NONE;
 }
 
 
@@ -346,8 +353,6 @@ bool SCA_ILogicBrick::PyArgToBool(int boolArg)
 		return false;
 	}
 }
-
-
 
 PyObject* SCA_ILogicBrick::BoolToPyArg(bool boolarg)
 {

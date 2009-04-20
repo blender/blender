@@ -78,8 +78,8 @@ class SCA_PythonController : public SCA_IController
 	static PyObject* sPyAddActiveActuator(PyObject* self, 
 										  PyObject* args);
 	static SCA_IActuator* LinkedActuatorFromPy(PyObject *value);
-	virtual PyObject* _getattr(const char *attr);
-	virtual int _setattr(const char *attr, PyObject *value);
+	virtual PyObject* py_getattro(PyObject *attr);
+	virtual int py_setattro(PyObject *attr, PyObject *value);
 
 		
 	KX_PYMETHOD_O(SCA_PythonController,Activate);
@@ -91,6 +91,10 @@ class SCA_PythonController : public SCA_IController
 	KX_PYMETHOD_O(SCA_PythonController,SetScript);
 	KX_PYMETHOD_NOARGS(SCA_PythonController,GetScript);
 	KX_PYMETHOD_NOARGS(SCA_PythonController,GetState);
+	
+	static PyObject*	pyattr_get_state(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject*	pyattr_get_script(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static int			pyattr_set_script(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 	
 
 };

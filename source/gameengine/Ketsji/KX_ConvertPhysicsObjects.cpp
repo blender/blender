@@ -801,6 +801,8 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 	ci.m_gravity = btVector3(0,0,0);
 	ci.m_localInertiaTensor =btVector3(0,0,0);
 	ci.m_mass = objprop->m_dyna ? shapeprops->m_mass : 0.f;
+	ci.m_clamp_vel_min = shapeprops->m_clamp_vel_min;
+	ci.m_clamp_vel_max = shapeprops->m_clamp_vel_max;
 	ci.m_margin = objprop->m_margin;
 	shapeInfo->m_radius = objprop->m_radius;
 	isbulletdyna = objprop->m_dyna;
@@ -881,8 +883,10 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 				{
 					shapeInfo->SetMesh(meshobj, false,false);
 				}
+
+				// Soft bodies require welding. Only avoid remove doubles for non-soft bodies!
 				if (objprop->m_softbody)
-					shapeInfo->setVertexWeldingThreshold(0.01f); //todo: expose this to the UI
+					shapeInfo->setVertexWeldingThreshold1(0.01f); //todo: expose this to the UI
 
 				bm = shapeInfo->CreateBulletShape();
 				//no moving concave meshes, so don't bother calculating inertia
@@ -1103,16 +1107,19 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 
 		if (rbody)
 		{
-			btVector3 linearFactor(
-				objprop->m_lockXaxis? 0 : 1,
-				objprop->m_lockYaxis? 0 : 1,
-				objprop->m_lockZaxis? 0 : 1);
-			btVector3 angularFactor(
-				objprop->m_lockXRotaxis? 0 : 1,
-				objprop->m_lockYRotaxis? 0 : 1,
-				objprop->m_lockZRotaxis? 0 : 1);
-			rbody->setLinearFactor(linearFactor);
-			rbody->setAngularFactor(angularFactor);
+			if (objprop->m_angular_rigidbody)
+			{
+				btVector3 linearFactor(
+					objprop->m_lockXaxis? 0 : 1,
+					objprop->m_lockYaxis? 0 : 1,
+					objprop->m_lockZaxis? 0 : 1);
+				btVector3 angularFactor(
+					objprop->m_lockXRotaxis? 0 : 1,
+					objprop->m_lockYRotaxis? 0 : 1,
+					objprop->m_lockZRotaxis? 0 : 1);
+				rbody->setLinearFactor(linearFactor);
+				rbody->setAngularFactor(angularFactor);
+			}
 
 			if (rbody && objprop->m_disableSleeping)
 			{

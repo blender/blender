@@ -360,7 +360,7 @@ ifeq ($(OS),solaris)
     SPLIB += $(NAN_ZLIB)/lib/libz.a
 endif
 
-# OpenAL libs are already compiled as shared code! Check FMod if we switch to that. (nzc)
+# OpenAL libs are already compiled as shared code!
 
 # Some vars to keep the rest of this section mostly readable
 # in an 80 char term
@@ -543,7 +543,7 @@ ifdef NAN_BUILDINFO
 	$(CCC) $(REL_CFLAGS) -DBUILD_DATE='"$(BUILD_DATE)"' -DBUILD_TIME='"$(BUILD_TIME)"' -DBUILD_REV='"$(BUILD_REV)"' -DBUILD_PLATFORM='"$(CONFIG_GUESS)"' -DBUILD_TYPE='"static"' $(BUILDINFO_C) -c -o $(BUILDINFO_O) -DNAN_BUILDINFO
 endif
 	mkdir -p $(DIR)/$(DEBUG_DIR)bin
-	$(CCC) $(LDFLAGS) -o $(DIR)/$(DEBUG_DIR)bin/blenderstatic $(BUILDINFO_O) $(OBJS) $(GRPLIB) $(PULIB) $(COMLIB) $(LLIBS) $(SADD) $(LOPTS)
+	$(CCC) $(CCFLAGS) $(LDFLAGS) -o $(DIR)/$(DEBUG_DIR)bin/blenderstatic $(BUILDINFO_O) $(OBJS) $(GRPLIB) $(PULIB) $(COMLIB) $(LLIBS) $(SADD) $(LOPTS)
 ifdef NAN_BUILDINFO
 	/bin/rm $(BUILDINFO_O)
 endif
@@ -557,7 +557,7 @@ ifdef NAN_BUILDINFO
 	$(CCC) $(REL_CFLAGS) -DBUILD_DATE='"$(BUILD_DATE)"' -DBUILD_TIME='"$(BUILD_TIME)"' -DBUILD_REV='"$(BUILD_REV)"' -DBUILD_PLATFORM='"$(CONFIG_GUESS)"' -DBUILD_TYPE='"dynamic"' $(BUILDINFO_C) -c -o $(BUILDINFO_O) -DNAN_BUILDINFO
 endif
 	mkdir -p $(DIR)/$(DEBUG_DIR)bin
-	$(CCC) $(LDFLAGS) -o $(DIR)/$(DEBUG_DIR)bin/blender$(EXT) $(BUILDINFO_O) $(OBJS) $(GRPLIB) $(PULIB) $(COMLIB) $(LLIBS)  $(DADD) $(LOPTS)
+	$(CCC) $(CCFLAGS) $(LDFLAGS) -o $(DIR)/$(DEBUG_DIR)bin/blender$(EXT) $(BUILDINFO_O) $(OBJS) $(GRPLIB) $(PULIB) $(COMLIB) $(LLIBS)  $(DADD) $(LOPTS)
 ifdef NAN_BUILDINFO
 	/bin/rm $(BUILDINFO_O)
 endif
@@ -571,7 +571,7 @@ ifdef NAN_BUILDINFO
 	$(CCC) $(REL_CFLAGS) -DBUILD_DATE='"$(BUILD_DATE)"' -DBUILD_TIME='"$(BUILD_TIME)"' -DBUILD_REV='"$(BUILD_REV)"' -DBUILD_PLATFORM='"$(CONFIG_GUESS)"' -DBUILD_TYPE='"dynamic"' $(BUILDINFO_C) -c -o $(BUILDINFO_O) -DNAN_BUILDINFO
 endif
 	mkdir -p $(DIR)/$(DEBUG_DIR)bin
-	$(CCC) $(LDFLAGS) -o $(DIR)/$(DEBUG_DIR)bin/blenderplayer$(EXT) $(BUILDINFO_O) $(OBJS) $(SPLIB1) $(COMLIB) $(SPLIB) $(LLIBS) $(DADD) $(LOPTS)
+	$(CCC) $(CCFLAGS) $(LDFLAGS) -o $(DIR)/$(DEBUG_DIR)bin/blenderplayer$(EXT) $(BUILDINFO_O) $(OBJS) $(SPLIB1) $(COMLIB) $(SPLIB) $(LLIBS) $(DADD) $(LOPTS)
 ifdef NAN_BUILDINFO
 	/bin/rm $(BUILDINFO_O)
 endif
@@ -585,7 +585,7 @@ ifdef NAN_BUILDINFO
 	$(CCC) $(REL_CFLAGS) -DBUILD_DATE='"$(BUILD_DATE)"' -DBUILD_TIME='"$(BUILD_TIME)"' -DBUILD_REV='"$(BUILD_REV)"' -DBUILD_PLATFORM='"$(CONFIG_GUESS)"' -DBUILD_TYPE='"dynamic"' $(BUILDINFO_C) -c -o $(BUILDINFO_O) -DNAN_BUILDINFO
 endif
 	mkdir -p $(DIR)/$(DEBUG_DIR)bin
-	$(CCC) $(LDFLAGS) -o $(DIR)/$(DEBUG_DIR)bin/blenderdynplayer$(EXT) $(BUILDINFO_O) $(OBJS) $(SPLIB1) $(COMLIB) $(SPLIB) $(LLIBS) $(DADD) $(LOPTS)
+	$(CCC) $(CCFLAGS) $(LDFLAGS) -o $(DIR)/$(DEBUG_DIR)bin/blenderdynplayer$(EXT) $(BUILDINFO_O) $(OBJS) $(SPLIB1) $(COMLIB) $(SPLIB) $(LLIBS) $(DADD) $(LOPTS)
 ifdef NAN_BUILDINFO
 	/bin/rm $(BUILDINFO_O)
 endif
@@ -599,7 +599,7 @@ ifdef NAN_BUILDINFO
 	$(CCC) $(REL_CFLAGS) -DBUILD_DATE='"$(BUILD_DATE)"' -DBUILD_TIME='"$(BUILD_TIME)"' -DBUILD_REV='"$(BUILD_REV)"' -DBUILD_PLATFORM='"$(CONFIG_GUESS)"' -DBUILD_TYPE='"dynamic"' $(BUILDINFO_C) -c -o $(BUILDINFO_O) -DNAN_BUILDINFO
 endif
 	mkdir -p $(DIR)/$(DEBUG_DIR)bin
-	$(CCC) $(DYNLDFLAGS) -o $@ $(PLUGAPPLIB_XPLINK) $(LOPTS)
+	$(CCC) $(CCFLAGS) $(DYNLDFLAGS) -o $@ $(PLUGAPPLIB_XPLINK) $(LOPTS)
 ifdef NAN_BUILDINFO
 	/bin/rm $(BUILDINFO_O)
 endif

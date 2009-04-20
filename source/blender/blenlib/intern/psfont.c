@@ -2094,6 +2094,7 @@ static VFontData *objfnt_to_vfontdata(objfnt *fnt)
 						while(a--) {
 							if(bezt->h1!=HD_ALIGN && bezt->h2==HD_ALIGN) bezt->h2= 0;
 							else if(bezt->h2!=HD_ALIGN && bezt->h1==HD_ALIGN) bezt->h1= 0;
+							bezt->radius= 1.0f;
 							bezt++;
 						}
 						

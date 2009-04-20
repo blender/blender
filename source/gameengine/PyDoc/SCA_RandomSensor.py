@@ -5,6 +5,11 @@ from SCA_ISensor import *
 class SCA_RandomSensor(SCA_ISensor):
 	"""
 	This sensor activates randomly.
+
+	@ivar lastDraw: The seed of the random number generator.
+	@type lastDraw: int
+	@ivar seed: The seed of the random number generator.
+	@type seed: int
 	"""
 	
 	def setSeed(seed):
@@ -25,4 +30,6 @@ class SCA_RandomSensor(SCA_ISensor):
 	def getLastDraw():
 		"""
 		Returns the last random number generated.
+		
+		@rtype: integer
 		"""

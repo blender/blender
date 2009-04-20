@@ -35,7 +35,7 @@ enum RAS_ListSlotFlags	{
 	LIST_REGEN		=64
 };
 
-typedef std::map<class RAS_MeshSlot*, RAS_ListSlot*> RAS_Lists;
+typedef std::map<RAS_DisplayArrayList, RAS_ListSlot*> RAS_Lists;
 
 class RAS_ListRasterizer : public RAS_VAOpenGLRasterizer
 {

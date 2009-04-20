@@ -55,6 +55,7 @@ typedef unsigned long uint_ptr;
 #include <stdio.h> // printf
 #include "SG_Controller.h"
 #include "KX_IPhysicsController.h"
+#include "PHY_IGraphicController.h"
 #include "SG_Node.h"
 #include "SG_Controller.h"
 #include "KX_ClientObjectInfo.h"
@@ -64,6 +65,8 @@ typedef unsigned long uint_ptr;
 #include "KX_PyMath.h"
 #include "SCA_IActuator.h"
 #include "SCA_ISensor.h"
+#include "SCA_IController.h"
+#include "NG_NetworkScene.h" //Needed for sendMessage()
 
 #include "PyObjectPlus.h" /* python stuff */
 
@@ -71,6 +74,12 @@ typedef unsigned long uint_ptr;
 // in the game engine.
 
 #include "KX_SG_NodeRelationships.h"
+
+static MT_Point3 dummy_point= MT_Point3(0.0, 0.0, 0.0);
+static MT_Vector3 dummy_scaling = MT_Vector3(1.0, 1.0, 1.0);
+static MT_Matrix3x3 dummy_orientation = MT_Matrix3x3(	1.0, 0.0, 0.0,
+														0.0, 1.0, 0.0,
+														0.0, 0.0, 1.0);
 
 KX_GameObject::KX_GameObject(
 	void* sgReplicationInfo,
@@ -87,11 +96,14 @@ KX_GameObject::KX_GameObject(
 	m_bIsNegativeScaling(false),
 	m_bVisible(true),
 	m_bCulled(true),
+	m_bOccluder(false),
 	m_pPhysicsController1(NULL),
+	m_pGraphicController(NULL),
 	m_pPhysicsEnvironment(NULL),
 	m_xray(false),
 	m_pHitObject(NULL),
-	m_isDeformable(false)
+	m_isDeformable(false),
+	m_attr_dict(NULL)
 {
 	m_ignore_activity_culling = false;
 	m_pClient_info = new KX_ClientObjectInfo(this, KX_ClientObjectInfo::ACTOR);
@@ -129,9 +141,23 @@ KX_GameObject::~KX_GameObject()
 		}
 		m_pSGNode->SetSGClientObject(NULL);
 	}
+	if (m_pGraphicController)
+	{
+		delete m_pGraphicController;
+	}
+	
+	if (m_attr_dict) {
+		PyDict_Clear(m_attr_dict); /* incase of circular refs or other weired cases */
+		Py_DECREF(m_attr_dict);
+	}
 }
 
-
+KX_GameObject* KX_GameObject::GetClientObject(KX_ClientObjectInfo* info)
+{
+	if (!info)
+		return NULL;
+	return info->m_gameobject;
+}
 
 CValue* KX_GameObject::	Calc(VALUE_OPERATOR op, CValue *val) 
 {
@@ -154,7 +180,7 @@ const STR_String & KX_GameObject::GetText()
 
 
 
-float KX_GameObject::GetNumber()
+double KX_GameObject::GetNumber()
 {
 	return 0;
 }
@@ -246,7 +272,7 @@ void KX_GameObject::SetParent(KX_Scene *scene, KX_GameObject* obj)
 		NodeSetLocalScale(scale1);
 		NodeSetLocalPosition(MT_Point3(newpos[0],newpos[1],newpos[2]));
 		NodeSetLocalOrientation(invori*NodeGetWorldOrientation());
-		NodeUpdateGS(0.f,true);
+		NodeUpdateGS(0.f);
 		// object will now be a child, it must be removed from the parent list
 		CListValue* rootlist = scene->GetRootParentList();
 		if (rootlist->RemoveValue(this))
@@ -266,6 +292,7 @@ void KX_GameObject::SetParent(KX_Scene *scene, KX_GameObject* obj)
 				rootobj->m_pPhysicsController1->AddCompoundChild(m_pPhysicsController1);
 			}
 		}
+		// graphically, the object hasn't change place, no need to update m_pGraphicController
 	}
 }
 
@@ -283,7 +310,7 @@ void KX_GameObject::RemoveParent(KX_Scene *scene)
 
 		// Remove us from our parent
 		GetSGNode()->DisconnectFromParent();
-		NodeUpdateGS(0.f,true);
+		NodeUpdateGS(0.f);
 		// the object is now a root object, add it to the parentlist
 		CListValue* rootlist = scene->GetRootParentList();
 		if (!rootlist->SearchValue(this))
@@ -300,16 +327,21 @@ void KX_GameObject::RemoveParent(KX_Scene *scene)
 			}
 			m_pPhysicsController1->RestoreDynamics();
 		}
+		// graphically, the object hasn't change place, no need to update m_pGraphicController
 	}
 }
 
 void KX_GameObject::ProcessReplica(KX_GameObject* replica)
 {
 	replica->m_pPhysicsController1 = NULL;
+	replica->m_pGraphicController = NULL;
 	replica->m_pSGNode = NULL;
 	replica->m_pClient_info = new KX_ClientObjectInfo(*m_pClient_info);
 	replica->m_pClient_info->m_gameobject = replica;
 	replica->m_state = 0;
+	if(m_attr_dict)
+		replica->m_attr_dict= PyDict_Copy(m_attr_dict);
+		
 }
 
 
@@ -345,11 +377,14 @@ void KX_GameObject::ApplyTorque(const MT_Vector3& torque,bool local)
 
 void KX_GameObject::ApplyMovement(const MT_Vector3& dloc,bool local)
 {
-	if (m_pPhysicsController1) // (IsDynamic())
+	if (GetSGNode()) 
 	{
-		m_pPhysicsController1->RelativeTranslate(dloc,local);
+		if (m_pPhysicsController1) // (IsDynamic())
+		{
+			m_pPhysicsController1->RelativeTranslate(dloc,local);
+		}
+		GetSGNode()->RelativeTranslate(dloc,GetSGNode()->GetSGParent(),local);
 	}
-	GetSGNode()->RelativeTranslate(dloc,GetSGNode()->GetSGParent(),local);
 }
 
 
@@ -357,11 +392,13 @@ void KX_GameObject::ApplyMovement(const MT_Vector3& dloc,bool local)
 void KX_GameObject::ApplyRotation(const MT_Vector3& drot,bool local)
 {
 	MT_Matrix3x3 rotmat(drot);
+	
+	if (GetSGNode()) {
+		GetSGNode()->RelativeRotate(rotmat,local);
 
-	GetSGNode()->RelativeRotate(rotmat,local);
-
-	if (m_pPhysicsController1) { // (IsDynamic())
-		m_pPhysicsController1->RelativeRotate(rotmat,local); 
+		if (m_pPhysicsController1) { // (IsDynamic())
+			m_pPhysicsController1->RelativeRotate(rotmat,local); 
+		}
 	}
 }
 
@@ -374,16 +411,17 @@ double*	KX_GameObject::GetOpenGLMatrix()
 {
 	// todo: optimize and only update if necessary
 	double* fl = m_OpenGL_4x4Matrix.getPointer();
-	MT_Transform trans;
+	if (GetSGNode()) {
+		MT_Transform trans;
 	
-	trans.setOrigin(GetSGNode()->GetWorldPosition());
-	trans.setBasis(GetSGNode()->GetWorldOrientation());
+		trans.setOrigin(GetSGNode()->GetWorldPosition());
+		trans.setBasis(GetSGNode()->GetWorldOrientation());
 	
-	MT_Vector3 scaling = GetSGNode()->GetWorldScaling();
-	m_bIsNegativeScaling = ((scaling[0] < 0.0) ^ (scaling[1] < 0.0) ^ (scaling[2] < 0.0)) ? true : false;
-	trans.scale(scaling[0], scaling[1], scaling[2]);
-	trans.getValue(fl);
-
+		MT_Vector3 scaling = GetSGNode()->GetWorldScaling();
+		m_bIsNegativeScaling = ((scaling[0] < 0.0) ^ (scaling[1] < 0.0) ^ (scaling[2] < 0.0)) ? true : false;
+		trans.scale(scaling[0], scaling[1], scaling[2]);
+		trans.getValue(fl);
+	}
 	return fl;
 }
 
@@ -414,13 +452,15 @@ static void UpdateBuckets_recursive(SG_Node* node)
 
 void KX_GameObject::UpdateBuckets( bool recursive )
 {
-	double* fl = GetOpenGLMatrix();
+	if (GetSGNode()) {
+		double* fl = GetOpenGLMatrixPtr()->getPointer();
 
-	for (size_t i=0;i<m_meshes.size();i++)
-		m_meshes[i]->UpdateBuckets(this, fl, m_bUseObjectColor, m_objectColor, m_bVisible, m_bCulled);
+		for (size_t i=0;i<m_meshes.size();i++)
+			m_meshes[i]->UpdateBuckets(this, fl, m_bUseObjectColor, m_objectColor, m_bVisible, m_bCulled);
 	
-	if (recursive) {
-		UpdateBuckets_recursive(m_pSGNode);
+		if (recursive) {
+			UpdateBuckets_recursive(GetSGNode());
+		}
 	}
 }
 
@@ -434,22 +474,18 @@ void KX_GameObject::RemoveMeshes()
 	m_meshes.clear();
 }
 
-
-
-void KX_GameObject::UpdateNonDynas()
-{
-	if (m_pPhysicsController1)
-	{
-		m_pPhysicsController1->SetSumoTransform(true);
-	}
-}
-
-
-
 void KX_GameObject::UpdateTransform()
 {
 	if (m_pPhysicsController1)
-		m_pPhysicsController1->SetSumoTransform(false);
+		// only update the transform of static object, dynamic object are handled differently
+		// note that for bullet, this does not even update the transform of static object
+		// but merely sets there collision flag to "kinematic" because the synchronization is 
+		// done differently during physics simulation
+		m_pPhysicsController1->SetSumoTransform(true);
+	if (m_pGraphicController)
+		// update the culling tree
+		m_pGraphicController->SetGraphicTransform();
+
 }
 
 void KX_GameObject::UpdateTransformFunc(SG_IObject* node, void* gameobj, void* scene)
@@ -575,27 +611,42 @@ KX_GameObject::SetVisible(
 	bool recursive
 	)
 {
-	m_bVisible = v;
-	if (recursive)
-		setVisible_recursive(m_pSGNode, v);
+	if (GetSGNode()) {
+		m_bVisible = v;
+		if (recursive)
+			setVisible_recursive(GetSGNode(), v);
+	}
 }
 
-bool
-KX_GameObject::GetCulled(
-	void
-	)
+static void setOccluder_recursive(SG_Node* node, bool v)
 {
-	return m_bCulled;
+	NodeList& children = node->GetSGChildren();
+
+	for (NodeList::iterator childit = children.begin();!(childit==children.end());++childit)
+	{
+		SG_Node* childnode = (*childit);
+		KX_GameObject *clientgameobj = static_cast<KX_GameObject*>( (*childit)->GetSGClientObject());
+		if (clientgameobj != NULL) // This is a GameObject
+			clientgameobj->SetOccluder(v, false);
+		
+		// if the childobj is NULL then this may be an inverse parent link
+		// so a non recursive search should still look down this node.
+		setOccluder_recursive(childnode, v);
+	}
 }
 
 void
-KX_GameObject::SetCulled(
-	bool c
+KX_GameObject::SetOccluder(
+	bool v,
+	bool recursive
 	)
 {
-	m_bCulled = c;
+	if (GetSGNode()) {
+		m_bOccluder = v;
+		if (recursive)
+			setOccluder_recursive(GetSGNode(), v);
+	}
 }
-
 
 void
 KX_GameObject::SetLayer(
@@ -764,6 +815,16 @@ MT_Scalar KX_GameObject::GetMass()
 	return 0.0;
 }
 
+MT_Vector3 KX_GameObject::GetLocalInertia()
+{
+	MT_Vector3 local_inertia(0.0,0.0,0.0);
+	if (m_pPhysicsController1)
+	{
+		local_inertia = m_pPhysicsController1->GetLocalInertia();
+	}
+	return local_inertia;
+}
+
 MT_Vector3 KX_GameObject::GetLinearVelocity(bool local)
 {
 	MT_Vector3 velocity(0.0,0.0,0.0), locvel;
@@ -829,6 +890,7 @@ void KX_GameObject::NodeSetLocalPosition(const MT_Point3& trans)
 	}
 
 	GetSGNode()->SetLocalPosition(trans);
+
 }
 
 
@@ -883,7 +945,9 @@ void KX_GameObject::NodeSetRelativeScale(const MT_Vector3& scale)
 
 void KX_GameObject::NodeSetWorldPosition(const MT_Point3& trans)
 {
-	SG_Node* parent = m_pSGNode->GetSGParent();
+	if (!GetSGNode())
+		return;
+	SG_Node* parent = GetSGNode()->GetSGParent();
 	if (parent != NULL)
 	{
 		// Make sure the objects have some scale
@@ -908,7 +972,7 @@ void KX_GameObject::NodeSetWorldPosition(const MT_Point3& trans)
 }
 
 
-void KX_GameObject::NodeUpdateGS(double time,bool bInitiator)
+void KX_GameObject::NodeUpdateGS(double time)
 {
 	if (GetSGNode())
 		GetSGNode()->UpdateWorldData(time);
@@ -918,13 +982,9 @@ void KX_GameObject::NodeUpdateGS(double time,bool bInitiator)
 
 const MT_Matrix3x3& KX_GameObject::NodeGetWorldOrientation() const
 {
-	static MT_Matrix3x3 defaultOrientation = MT_Matrix3x3(	1.0, 0.0, 0.0,
-															0.0, 1.0, 0.0,
-															0.0, 0.0, 1.0);
-
 	// check on valid node in case a python controller holds a reference to a deleted object
 	if (!GetSGNode())
-		return defaultOrientation;
+		return dummy_orientation;
 	return GetSGNode()->GetWorldOrientation();
 }
 
@@ -932,11 +992,9 @@ const MT_Matrix3x3& KX_GameObject::NodeGetWorldOrientation() const
 
 const MT_Vector3& KX_GameObject::NodeGetWorldScaling() const
 {
-	static MT_Vector3 defaultScaling = MT_Vector3(1.0, 1.0, 1.0);
-
 	// check on valid node in case a python controller holds a reference to a deleted object
 	if (!GetSGNode())
-		return defaultScaling;
+		return dummy_scaling;
 
 	return GetSGNode()->GetWorldScaling();
 }
@@ -949,7 +1007,7 @@ const MT_Point3& KX_GameObject::NodeGetWorldPosition() const
 	if (GetSGNode())
 		return GetSGNode()->GetWorldPosition();
 	else
-		return MT_Point3(0.0, 0.0, 0.0);
+		return dummy_point;
 }
 
 /* Suspend/ resume: for the dynamic behaviour, there is a simple
@@ -963,7 +1021,8 @@ void KX_GameObject::Resume(void)
 {
 	if (m_suspended) {
 		SCA_IObject::Resume();
-		GetPhysicsController()->RestoreDynamics();
+		if(GetPhysicsController())
+			GetPhysicsController()->RestoreDynamics();
 
 		m_suspended = false;
 	}
@@ -974,22 +1033,54 @@ void KX_GameObject::Suspend()
 	if ((!m_ignore_activity_culling) 
 		&& (!m_suspended))  {
 		SCA_IObject::Suspend();
-		GetPhysicsController()->SuspendDynamics();
+		if(GetPhysicsController())
+			GetPhysicsController()->SuspendDynamics();
 		m_suspended = true;
 	}
 }
 
+static void walk_children(SG_Node* node, CListValue* list, bool recursive)
+{
+	if (!node)
+		return;
+	NodeList& children = node->GetSGChildren();
 
+	for (NodeList::iterator childit = children.begin();!(childit==children.end());++childit)
+	{
+		SG_Node* childnode = (*childit);
+		CValue* childobj = (CValue*)childnode->GetSGClientObject();
+		if (childobj != NULL) // This is a GameObject
+		{
+			// add to the list
+			list->Add(childobj->AddRef());
+		}
+		
+		// if the childobj is NULL then this may be an inverse parent link
+		// so a non recursive search should still look down this node.
+		if (recursive || childobj==NULL) {
+			walk_children(childnode, list, recursive);
+		}
+	}
+}
+
+CListValue* KX_GameObject::GetChildren()
+{
+	CListValue* list = new CListValue();
+	walk_children(GetSGNode(), list, 0); /* GetSGNode() is always valid or it would have raised an exception before this */
+	return list;
+}
+
+CListValue* KX_GameObject::GetChildrenRecursive()
+{
+	CListValue* list = new CListValue();
+	walk_children(GetSGNode(), list, 1);
+	return list;
+}
 
 
 /* ------- python stuff ---------------------------------------------------*/
 
-
-
-
 PyMethodDef KX_GameObject::Methods[] = {
-	{"getPosition", (PyCFunction) KX_GameObject::sPyGetPosition, METH_NOARGS},
-	{"setPosition", (PyCFunction) KX_GameObject::sPySetPosition, METH_O},
 	{"setWorldPosition", (PyCFunction) KX_GameObject::sPySetWorldPosition, METH_O},
 	{"applyForce", (PyCFunction)	KX_GameObject::sPyApplyForce, METH_VARARGS},
 	{"applyTorque", (PyCFunction)	KX_GameObject::sPyApplyTorque, METH_VARARGS},
@@ -1000,14 +1091,7 @@ PyMethodDef KX_GameObject::Methods[] = {
 	{"getAngularVelocity", (PyCFunction) KX_GameObject::sPyGetAngularVelocity, METH_VARARGS},
 	{"setAngularVelocity", (PyCFunction) KX_GameObject::sPySetAngularVelocity, METH_VARARGS},
 	{"getVelocity", (PyCFunction) KX_GameObject::sPyGetVelocity, METH_VARARGS},
-	{"getMass", (PyCFunction) KX_GameObject::sPyGetMass, METH_NOARGS},
 	{"getReactionForce", (PyCFunction) KX_GameObject::sPyGetReactionForce, METH_NOARGS},
-	{"getOrientation", (PyCFunction) KX_GameObject::sPyGetOrientation, METH_NOARGS},
-	{"setOrientation", (PyCFunction) KX_GameObject::sPySetOrientation, METH_O},
-	{"getVisible",(PyCFunction) KX_GameObject::sPyGetVisible, METH_NOARGS},
-	{"setVisible",(PyCFunction) KX_GameObject::sPySetVisible, METH_VARARGS},
-	{"getState",(PyCFunction) KX_GameObject::sPyGetState, METH_NOARGS},
-	{"setState",(PyCFunction) KX_GameObject::sPySetState, METH_O},
 	{"alignAxisToVect",(PyCFunction) KX_GameObject::sPyAlignAxisToVect, METH_VARARGS},
 	{"getAxisVect",(PyCFunction) KX_GameObject::sPyGetAxisVect, METH_O},
 	{"suspendDynamics", (PyCFunction)KX_GameObject::sPySuspendDynamics,METH_NOARGS},
@@ -1016,25 +1100,66 @@ PyMethodDef KX_GameObject::Methods[] = {
 	{"disableRigidBody", (PyCFunction)KX_GameObject::sPyDisableRigidBody,METH_NOARGS},
 	{"applyImpulse", (PyCFunction) KX_GameObject::sPyApplyImpulse, METH_VARARGS},
 	{"setCollisionMargin", (PyCFunction) KX_GameObject::sPySetCollisionMargin, METH_O},
-	{"getParent", (PyCFunction)KX_GameObject::sPyGetParent,METH_NOARGS},
 	{"setParent", (PyCFunction)KX_GameObject::sPySetParent,METH_O},
+	{"setVisible",(PyCFunction) KX_GameObject::sPySetVisible, METH_VARARGS},
+	{"setOcclusion",(PyCFunction) KX_GameObject::sPySetOcclusion, METH_VARARGS},
 	{"removeParent", (PyCFunction)KX_GameObject::sPyRemoveParent,METH_NOARGS},
 	{"getChildren", (PyCFunction)KX_GameObject::sPyGetChildren,METH_NOARGS},
 	{"getChildrenRecursive", (PyCFunction)KX_GameObject::sPyGetChildrenRecursive,METH_NOARGS},
-	{"getMesh", (PyCFunction)KX_GameObject::sPyGetMesh,METH_VARARGS},
 	{"getPhysicsId", (PyCFunction)KX_GameObject::sPyGetPhysicsId,METH_NOARGS},
 	{"getPropertyNames", (PyCFunction)KX_GameObject::sPyGetPropertyNames,METH_NOARGS},
 	{"replaceMesh",(PyCFunction) KX_GameObject::sPyReplaceMesh, METH_O},
 	{"endObject",(PyCFunction) KX_GameObject::sPyEndObject, METH_NOARGS},
+	
 	KX_PYMETHODTABLE(KX_GameObject, rayCastTo),
 	KX_PYMETHODTABLE(KX_GameObject, rayCast),
 	KX_PYMETHODTABLE_O(KX_GameObject, getDistanceTo),
 	KX_PYMETHODTABLE_O(KX_GameObject, getVectTo),
+	KX_PYMETHODTABLE(KX_GameObject, sendMessage),
+
+	// deprecated
+	{"getPosition", (PyCFunction) KX_GameObject::sPyGetPosition, METH_NOARGS},
+	{"setPosition", (PyCFunction) KX_GameObject::sPySetPosition, METH_O},
+	{"getOrientation", (PyCFunction) KX_GameObject::sPyGetOrientation, METH_NOARGS},
+	{"setOrientation", (PyCFunction) KX_GameObject::sPySetOrientation, METH_O},
+	{"getState",(PyCFunction) KX_GameObject::sPyGetState, METH_NOARGS},
+	{"setState",(PyCFunction) KX_GameObject::sPySetState, METH_O},
+	{"getParent", (PyCFunction)KX_GameObject::sPyGetParent,METH_NOARGS},
+	{"getVisible",(PyCFunction) KX_GameObject::sPyGetVisible, METH_NOARGS},
+	{"getMass", (PyCFunction) KX_GameObject::sPyGetMass, METH_NOARGS},
+	{"getMesh", (PyCFunction)KX_GameObject::sPyGetMesh,METH_VARARGS},
 	{NULL,NULL} //Sentinel
 };
 
 PyAttributeDef KX_GameObject::Attributes[] = {
-	{ NULL }	//Sentinel
+	KX_PYATTRIBUTE_RO_FUNCTION("name",		KX_GameObject, pyattr_get_name),
+	KX_PYATTRIBUTE_RO_FUNCTION("parent",	KX_GameObject, pyattr_get_parent),
+	KX_PYATTRIBUTE_RW_FUNCTION("mass",		KX_GameObject, pyattr_get_mass,		pyattr_set_mass),
+	KX_PYATTRIBUTE_RW_FUNCTION("linVelocityMin",		KX_GameObject, pyattr_get_lin_vel_min, pyattr_set_lin_vel_min),
+	KX_PYATTRIBUTE_RW_FUNCTION("linVelocityMax",		KX_GameObject, pyattr_get_lin_vel_max, pyattr_set_lin_vel_max),
+	KX_PYATTRIBUTE_RW_FUNCTION("visible",	KX_GameObject, pyattr_get_visible,	pyattr_set_visible),
+	KX_PYATTRIBUTE_BOOL_RW    ("occlusion", KX_GameObject, m_bOccluder),
+	KX_PYATTRIBUTE_RW_FUNCTION("position",	KX_GameObject, pyattr_get_worldPosition,	pyattr_set_localPosition),
+	KX_PYATTRIBUTE_RO_FUNCTION("localInertia",	KX_GameObject, pyattr_get_localInertia),
+	KX_PYATTRIBUTE_RW_FUNCTION("orientation",KX_GameObject,pyattr_get_worldOrientation,pyattr_set_localOrientation),
+	KX_PYATTRIBUTE_RW_FUNCTION("scaling",	KX_GameObject, pyattr_get_worldScaling,	pyattr_set_localScaling),
+	KX_PYATTRIBUTE_RW_FUNCTION("timeOffset",KX_GameObject, pyattr_get_timeOffset,pyattr_set_timeOffset),
+	KX_PYATTRIBUTE_RW_FUNCTION("state",		KX_GameObject, pyattr_get_state,	pyattr_set_state),
+	KX_PYATTRIBUTE_RO_FUNCTION("meshes",	KX_GameObject, pyattr_get_meshes),
+	KX_PYATTRIBUTE_RW_FUNCTION("localOrientation",KX_GameObject,pyattr_get_localOrientation,pyattr_set_localOrientation),
+	KX_PYATTRIBUTE_RO_FUNCTION("worldOrientation",KX_GameObject,pyattr_get_worldOrientation),
+	KX_PYATTRIBUTE_RW_FUNCTION("localPosition",	KX_GameObject, pyattr_get_localPosition,	pyattr_set_localPosition),
+	KX_PYATTRIBUTE_RW_FUNCTION("worldPosition",	KX_GameObject, pyattr_get_worldPosition,    pyattr_set_worldPosition),
+	KX_PYATTRIBUTE_RW_FUNCTION("localScaling",	KX_GameObject, pyattr_get_localScaling,	pyattr_set_localScaling),
+	KX_PYATTRIBUTE_RO_FUNCTION("worldScaling",	KX_GameObject, pyattr_get_worldScaling),
+	
+	KX_PYATTRIBUTE_RO_FUNCTION("__dict__",	KX_GameObject, pyattr_get_dir_dict),
+	
+	/* Experemental, dont rely on these yet */
+	KX_PYATTRIBUTE_RO_FUNCTION("sensors",		KX_GameObject, pyattr_get_sensors),
+	KX_PYATTRIBUTE_RO_FUNCTION("controllers",	KX_GameObject, pyattr_get_controllers),
+	KX_PYATTRIBUTE_RO_FUNCTION("actuators",		KX_GameObject, pyattr_get_actuators),
+	{NULL} //Sentinel
 };
 
 
@@ -1054,29 +1179,19 @@ bool KX_GameObject::ConvertPythonVectorArgs(PyObject* args,
 }
 */
 
-PyObject* KX_GameObject::PyReplaceMesh(PyObject* self, PyObject* value)
+PyObject* KX_GameObject::PyReplaceMesh(PyObject* value)
 {
 	KX_Scene *scene = KX_GetActiveScene();
-	char* meshname;
-	void* mesh_pt;
-
-	meshname = PyString_AsString(value);
-	if (meshname==NULL) {
-		PyErr_SetString(PyExc_ValueError, "Expected a mesh name");
-		return NULL;
-	}
-	mesh_pt = SCA_ILogicBrick::m_sCurrentLogicManager->GetMeshByName(STR_String(meshname));
+	RAS_MeshObject* new_mesh;
 	
-	if (mesh_pt==NULL) {
-		PyErr_SetString(PyExc_ValueError, "The mesh name given does not exist");
+	if (!ConvertPythonToMesh(value, &new_mesh, false, "gameOb.replaceMesh(value): KX_GameObject"))
 		return NULL;
-	}
-	scene->ReplaceMesh(this, (class RAS_MeshObject*)mesh_pt);
 	
+	scene->ReplaceMesh(this, new_mesh);
 	Py_RETURN_NONE;
 }
 
-PyObject* KX_GameObject::PyEndObject(PyObject* self)
+PyObject* KX_GameObject::PyEndObject()
 {
 
 	KX_Scene *scene = KX_GetActiveScene();
@@ -1087,31 +1202,180 @@ PyObject* KX_GameObject::PyEndObject(PyObject* self)
 }
 
 
-PyObject* KX_GameObject::PyGetPosition(PyObject* self)
+PyObject* KX_GameObject::PyGetPosition()
 {
+	ShowDeprecationWarning("getPosition()", "the position property");
 	return PyObjectFrom(NodeGetWorldPosition());
 }
 
 
+Py_ssize_t KX_GameObject::Map_Len(PyObject* self_v)
+{
+	KX_GameObject* self= static_cast<KX_GameObject*>BGE_PROXY_REF(self_v);
+	
+	if (self==NULL) /* not sure what to do here */
+		return 0;
+	
+	Py_ssize_t len= self->GetPropertyCount();
+	if(self->m_attr_dict)
+		len += PyDict_Size(self->m_attr_dict);
+	return len;
+}
+
+
+PyObject *KX_GameObject::Map_GetItem(PyObject *self_v, PyObject *item)
+{
+	KX_GameObject* self= static_cast<KX_GameObject*>BGE_PROXY_REF(self_v);
+	const char *attr_str= PyString_AsString(item);
+	CValue* resultattr;
+	PyObject* pyconvert;
+	
+	if (self==NULL) {
+		PyErr_SetString(PyExc_RuntimeError, BGE_PROXY_ERROR_MSG);
+		return NULL;
+	}
+	
+	/* first see if the attributes a string and try get the cvalue attribute */
+	if(attr_str && (resultattr=self->GetProperty(attr_str))) {
+		pyconvert = resultattr->ConvertValueToPython();			
+		return pyconvert ? pyconvert:resultattr->GetProxy();
+	}
+	/* no CValue attribute, try get the python only m_attr_dict attribute */
+	else if (self->m_attr_dict && (pyconvert=PyDict_GetItem(self->m_attr_dict, item))) {
+		
+		if (attr_str)
+			PyErr_Clear();
+		Py_INCREF(pyconvert);
+		return pyconvert;
+	}
+	else {
+		if(attr_str)	PyErr_Format(PyExc_KeyError, "value = gameOb[key]: KX_GameObject, key \"%s\" does not exist", attr_str);
+		else			PyErr_SetString(PyExc_KeyError, "value = gameOb[key]: KX_GameObject, key does not exist");
+		return NULL;
+	}
+		
+}
+
+
+int KX_GameObject::Map_SetItem(PyObject *self_v, PyObject *key, PyObject *val)
+{
+	KX_GameObject* self= static_cast<KX_GameObject*>BGE_PROXY_REF(self_v);
+	const char *attr_str= PyString_AsString(key);
+	if(attr_str==NULL)
+		PyErr_Clear();
+	
+	if (self==NULL) {
+		PyErr_SetString(PyExc_RuntimeError, BGE_PROXY_ERROR_MSG);
+		return -1;
+	}
+	
+	if (val==NULL) { /* del ob["key"] */
+		int del= 0;
+		
+		/* try remove both just incase */
+		if(attr_str)
+			del |= (self->RemoveProperty(attr_str)==true) ? 1:0;
+		
+		if(self->m_attr_dict)
+			del |= (PyDict_DelItem(self->m_attr_dict, key)==0) ? 1:0;
+		
+		if (del==0) {
+			if(attr_str)	PyErr_Format(PyExc_KeyError, "gameOb[key] = value: KX_GameObject, key \"%s\" could not be set", attr_str);
+			else			PyErr_SetString(PyExc_KeyError, "gameOb[key] = value: KX_GameObject, key could not be set");
+			return -1;
+		}
+		else if (self->m_attr_dict) {
+			PyErr_Clear(); /* PyDict_DelItem sets an error when it fails */
+		}
+	}
+	else { /* ob["key"] = value */
+		int set= 0;
+		
+		/* as CValue */
+		if(attr_str)
+		{
+			CValue* vallie = self->ConvertPythonToValue(val);
+			
+			if(vallie)
+			{
+				CValue* oldprop = self->GetProperty(attr_str);
+				
+				if (oldprop)
+					oldprop->SetValue(vallie);
+				else
+					self->SetProperty(attr_str, vallie);
+				
+				vallie->Release();
+				set= 1;
+				
+				/* try remove dict value to avoid double ups */
+				if (self->m_attr_dict){
+					if (PyDict_DelItem(self->m_attr_dict, key) != 0)
+						PyErr_Clear();
+				}
+			}
+			else {
+				PyErr_Clear();
+			}
+		}
+		
+		if(set==0)
+		{
+			if (self->m_attr_dict==NULL) /* lazy init */
+				self->m_attr_dict= PyDict_New();
+			
+			
+			if(PyDict_SetItem(self->m_attr_dict, key, val)==0)
+			{
+				if(attr_str)
+					self->RemoveProperty(attr_str); /* overwrite the CValue if it exists */
+				set= 1;
+			}
+			else {
+				if(attr_str)	PyErr_Format(PyExc_KeyError, "gameOb[key] = value: KX_GameObject, key \"%s\" not be added to internal dictionary", attr_str);
+				else			PyErr_SetString(PyExc_KeyError, "gameOb[key] = value: KX_GameObject, key not be added to internal dictionary");
+			}
+		}
+		
+		if(set==0)
+			return -1; /* pythons error value */
+		
+	}
+	
+	return 0; /* success */
+}
+
+
+PyMappingMethods KX_GameObject::Mapping = {
+	(lenfunc)KX_GameObject::Map_Len, 			/*inquiry mp_length */
+	(binaryfunc)KX_GameObject::Map_GetItem,		/*binaryfunc mp_subscript */
+	(objobjargproc)KX_GameObject::Map_SetItem,	/*objobjargproc mp_ass_subscript */
+};
+
 
 PyTypeObject KX_GameObject::Type = {
-	PyObject_HEAD_INIT(&PyType_Type)
+	PyObject_HEAD_INIT(NULL)
 		0,
 		"KX_GameObject",
-		sizeof(KX_GameObject),
+		sizeof(PyObjectPlus_Proxy),
 		0,
-		PyDestructor,
-		0,
-		__getattr,
-		__setattr,
-		0, //&MyPyCompare,
-		__repr,
-		0, //&cvalue_as_number,
+		py_base_dealloc,
 		0,
 		0,
 		0,
-		0
+		0,
+		py_base_repr,
+		0,0,
+		&Mapping,
+		0,0,0,
+		py_base_getattro,
+		py_base_setattro,
+		0,0,0,0,0,0,0,0,0,
+		Methods
 };
+
+
+
 
 
 
@@ -1122,181 +1386,448 @@ PyParentObject KX_GameObject::Parents[] = {
 		NULL
 };
 
-
-
-
-PyObject* KX_GameObject::_getattr(const char *attr)
+PyObject* KX_GameObject::pyattr_get_name(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
-	if (m_pPhysicsController1)
-	{
-		if (!strcmp(attr, "mass"))
-			return PyFloat_FromDouble(m_pPhysicsController1->GetMass());
-	}
-
-	if (!strcmp(attr, "parent"))
-	{	
-		KX_GameObject* parent = GetParent();
-		if (parent)
-			return parent->AddRef();
-		Py_RETURN_NONE;
-	}
-
-	if (!strcmp(attr, "visible"))
-		return PyInt_FromLong(m_bVisible);
-	
-	if (!strcmp(attr, "position"))
-		return PyObjectFrom(NodeGetWorldPosition());
-	
-	if (!strcmp(attr, "orientation"))
-		return PyObjectFrom(NodeGetWorldOrientation());
-	
-	if (!strcmp(attr, "scaling"))
-		return PyObjectFrom(NodeGetWorldScaling());
-		
-	if (!strcmp(attr, "name"))
-		return PyString_FromString(m_name.ReadPtr());
-	
-	if (!strcmp(attr, "timeOffset"))
-	{
-		if (m_pSGNode->GetSGParent()->IsSlowParent()) {
-			return PyFloat_FromDouble(static_cast<KX_SlowParentRelation *>(m_pSGNode->GetSGParent()->GetParentRelation())->GetTimeOffset());
-		} else {
-			return PyFloat_FromDouble(0.0);
-		}
-	}
-	
-	
-	_getattr_up(SCA_IObject);
+	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
+	return PyString_FromString(self->GetName().ReadPtr());
 }
 
-int KX_GameObject::_setattr(const char *attr, PyObject *value)	// _setattr method
+PyObject* KX_GameObject::pyattr_get_parent(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
-	
-	if (!strcmp(attr, "parent")) {
-		PyErr_SetString(PyExc_AttributeError, "attribute \"parent\" is read only\nUse setParent()");
+	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
+	KX_GameObject* parent = self->GetParent();
+	if (parent)
+		return parent->GetProxy();
+	Py_RETURN_NONE;
+}
+
+PyObject* KX_GameObject::pyattr_get_mass(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
+	KX_IPhysicsController *spc = self->GetPhysicsController();
+	return PyFloat_FromDouble(spc ? spc->GetMass() : 0.0f);
+}
+
+int KX_GameObject::pyattr_set_mass(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
+{
+	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
+	KX_IPhysicsController *spc = self->GetPhysicsController();
+	MT_Scalar val = PyFloat_AsDouble(value);
+	if (val < 0.0f) { /* also accounts for non float */
+		PyErr_SetString(PyExc_AttributeError, "gameOb.mass = float: KX_GameObject, expected a float zero or above");
 		return 1;
 	}
-		
-	if (PyInt_Check(value))
-	{
-		int val = PyInt_AsLong(value);
-		if (!strcmp(attr, "visible"))
-		{
-			SetVisible(val != 0, false);
-			UpdateBuckets(false);
-			return 0;
-		}
-	}
 
-	if (PyFloat_Check(value))
-	{
-		MT_Scalar val = PyFloat_AsDouble(value);
-		if (!strcmp(attr, "timeOffset")) {
-			if (m_pSGNode->GetSGParent() && m_pSGNode->GetSGParent()->IsSlowParent()) {
-				static_cast<KX_SlowParentRelation *>(m_pSGNode->GetSGParent()->GetParentRelation())->SetTimeOffset(val);
-				return 0;
-			} else {
-				return 0;
-			}		
-		}
-		if (!strcmp(attr, "mass")) {
-			if (m_pPhysicsController1)
-				m_pPhysicsController1->SetMass(val);
-			return 0;
-		}
-	}
-	
-	if (PySequence_Check(value))
-	{
-		if (!strcmp(attr, "orientation"))
-		{
-			MT_Matrix3x3 rot;
-			if (PyObject_IsMT_Matrix(value, 3))
-			{
-				if (PyMatTo(value, rot))
-				{
-					NodeSetLocalOrientation(rot);
-					NodeUpdateGS(0.f,true);
-					return 0;
-				}
-				return 1;
-			}
-			
-			if (PySequence_Size(value) == 4)
-			{
-				MT_Quaternion qrot;
-				if (PyVecTo(value, qrot))
-				{
-					rot.setRotation(qrot);
-					NodeSetLocalOrientation(rot);
-					NodeUpdateGS(0.f,true);
-					return 0;
-				}
-				return 1;
-			}
-			
-			if (PySequence_Size(value) == 3)
-			{
-				MT_Vector3 erot;
-				if (PyVecTo(value, erot))
-				{
-					rot.setEuler(erot);
-					NodeSetLocalOrientation(rot);
-					NodeUpdateGS(0.f,true);
-					return 0;
-				}
-				return 1;
-			}
-			PyErr_SetString(PyExc_AttributeError, "could not set the orientation from a 3x3 matrix, quaternion or euler sequence");
-			return 1;
-		}
-		
-		if (!strcmp(attr, "position"))
-		{
-			MT_Point3 pos;
-			if (PyVecTo(value, pos))
-			{
-				NodeSetLocalPosition(pos);
-				NodeUpdateGS(0.f,true);
-				return 0;
-			}
-			return 1;
-		}
-		
-		if (!strcmp(attr, "scaling"))
-		{
-			MT_Vector3 scale;
-			if (PyVecTo(value, scale))
-			{
-				NodeSetLocalScale(scale);
-				NodeUpdateGS(0.f,true);
-				return 0;
-			}
-			return 1;
-		}
-	}
-	
-	if (PyString_Check(value))
-	{
-		if (!strcmp(attr, "name"))	
-		{
-#if 0		// was added in revision 2832, but never took into account Object name mappings from revision 2
-			// unlikely anyone ever used this successfully , removing.
-			m_name = PyString_AsString(value);
-			return 0;
-#else
-			PyErr_SetString(PyExc_AttributeError, "object name readonly");
-			return 1;
-#endif
-		}
-	}
-	
-	/* Need to have parent settable here too */
-	
-	return SCA_IObject::_setattr(attr, value);
+	if (spc)
+		spc->SetMass(val);
+
+	return 0;
 }
 
-PyObject* KX_GameObject::PyApplyForce(PyObject* self, PyObject* args)
+PyObject* KX_GameObject::pyattr_get_lin_vel_min(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
+	KX_IPhysicsController *spc = self->GetPhysicsController();
+	return PyFloat_FromDouble(spc ? spc->GetLinVelocityMax() : 0.0f);
+}
+
+int KX_GameObject::pyattr_set_lin_vel_min(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
+{
+	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
+	KX_IPhysicsController *spc = self->GetPhysicsController();
+	MT_Scalar val = PyFloat_AsDouble(value);
+	if (val < 0.0f) { /* also accounts for non float */
+		PyErr_SetString(PyExc_AttributeError, "gameOb.linVelocityMin = float: KX_GameObject, expected a float zero or above");
+		return 1;
+	}
+
+	if (spc)
+		spc->SetLinVelocityMin(val);
+
+	return 0;
+}
+
+PyObject* KX_GameObject::pyattr_get_lin_vel_max(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
+	KX_IPhysicsController *spc = self->GetPhysicsController();
+	return PyFloat_FromDouble(spc ? spc->GetLinVelocityMax() : 0.0f);
+}
+
+int KX_GameObject::pyattr_set_lin_vel_max(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
+{
+	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
+	KX_IPhysicsController *spc = self->GetPhysicsController();
+	MT_Scalar val = PyFloat_AsDouble(value);
+	if (val < 0.0f) { /* also accounts for non float */
+		PyErr_SetString(PyExc_AttributeError, "gameOb.linVelocityMax = float: KX_GameObject, expected a float zero or above");
+		return 1;
+	}
+
+	if (spc)
+		spc->SetLinVelocityMax(val);
+
+	return 0;
+}
+
+
+PyObject* KX_GameObject::pyattr_get_visible(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
+	return PyBool_FromLong(self->GetVisible());
+}
+
+int KX_GameObject::pyattr_set_visible(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
+{
+	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
+	int param = PyObject_IsTrue( value );
+	if (param == -1) {
+		PyErr_SetString(PyExc_AttributeError, "gameOb.visible = bool: KX_GameObject, expected True or False");
+		return 1;
+	}
+
+	self->SetVisible(param, false);
+	self->UpdateBuckets(false);
+	return 0;
+}
+
+PyObject* KX_GameObject::pyattr_get_worldPosition(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
+	return PyObjectFrom(self->NodeGetWorldPosition());
+}
+
+int KX_GameObject::pyattr_set_worldPosition(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
+{
+	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
+	MT_Point3 pos;
+	if (!PyVecTo(value, pos))
+		return 1;
+	
+	self->NodeSetWorldPosition(pos);
+	self->NodeUpdateGS(0.f);
+	return 0;
+}
+
+PyObject* KX_GameObject::pyattr_get_localPosition(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
+	if (self->GetSGNode())
+		return PyObjectFrom(self->GetSGNode()->GetLocalPosition());
+	else
+		return PyObjectFrom(dummy_point);
+}
+
+int KX_GameObject::pyattr_set_localPosition(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
+{
+	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
+	MT_Point3 pos;
+	if (!PyVecTo(value, pos))
+		return 1;
+	
+	self->NodeSetLocalPosition(pos);
+	self->NodeUpdateGS(0.f);
+	return 0;
+}
+
+PyObject* KX_GameObject::pyattr_get_localInertia(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
+	if (self->GetPhysicsController())
+	{
+		return PyObjectFrom(self->GetPhysicsController()->GetLocalInertia());
+	}
+	return Py_BuildValue("fff", 0.0f, 0.0f, 0.0f);
+}
+
+PyObject* KX_GameObject::pyattr_get_worldOrientation(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
+	return PyObjectFrom(self->NodeGetWorldOrientation());
+}
+
+PyObject* KX_GameObject::pyattr_get_localOrientation(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
+	if (self->GetSGNode())
+		return PyObjectFrom(self->GetSGNode()->GetLocalOrientation());
+	else
+		return PyObjectFrom(dummy_orientation);
+}
+
+int KX_GameObject::pyattr_set_localOrientation(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
+{
+	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
+	
+	/* if value is not a sequence PyOrientationTo makes an error */
+	MT_Matrix3x3 rot;
+	if (!PyOrientationTo(value, rot, "gameOb.orientation = sequence: KX_GameObject, "))
+		return NULL;
+
+	self->NodeSetLocalOrientation(rot);
+	self->NodeUpdateGS(0.f);
+	return 0;
+}
+
+PyObject* KX_GameObject::pyattr_get_worldScaling(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
+	return PyObjectFrom(self->NodeGetWorldScaling());
+}
+
+PyObject* KX_GameObject::pyattr_get_localScaling(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
+	if (self->GetSGNode())
+		return PyObjectFrom(self->GetSGNode()->GetLocalScale());
+	else
+		return PyObjectFrom(dummy_scaling);
+}
+
+int KX_GameObject::pyattr_set_localScaling(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
+{
+	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
+	MT_Vector3 scale;
+	if (!PyVecTo(value, scale))
+		return 1;
+
+	self->NodeSetLocalScale(scale);
+	self->NodeUpdateGS(0.f);
+	return 0;
+}
+
+PyObject* KX_GameObject::pyattr_get_timeOffset(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
+	SG_Node* sg_parent;
+	if (self->GetSGNode() && (sg_parent = self->GetSGNode()->GetSGParent()) != NULL && sg_parent->IsSlowParent()) {
+		return PyFloat_FromDouble(static_cast<KX_SlowParentRelation *>(sg_parent->GetParentRelation())->GetTimeOffset());
+	} else {
+		return PyFloat_FromDouble(0.0);
+	}
+}
+
+int KX_GameObject::pyattr_set_timeOffset(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
+{
+	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
+	if (self->GetSGNode()) {
+		MT_Scalar val = PyFloat_AsDouble(value);
+		SG_Node* sg_parent= self->GetSGNode()->GetSGParent();
+		if (val < 0.0f) { /* also accounts for non float */
+			PyErr_SetString(PyExc_AttributeError, "gameOb.timeOffset = float: KX_GameObject, expected a float zero or above");
+			return 1;
+		}
+		if (sg_parent && sg_parent->IsSlowParent())
+			static_cast<KX_SlowParentRelation *>(sg_parent->GetParentRelation())->SetTimeOffset(val);
+	}
+	return 0;
+}
+
+PyObject* KX_GameObject::pyattr_get_state(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
+	int state = 0;
+	state |= self->GetState();
+	return PyInt_FromLong(state);
+}
+
+int KX_GameObject::pyattr_set_state(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
+{
+	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
+	int state_i = PyInt_AsLong(value);
+	unsigned int state = 0;
+	
+	if (state_i == -1 && PyErr_Occurred()) {
+		PyErr_SetString(PyExc_TypeError, "gameOb.state = int: KX_GameObject, expected an int bit field");
+		return 1;
+	}
+	
+	state |= state_i;
+	if ((state & ((1<<30)-1)) == 0) {
+		PyErr_SetString(PyExc_AttributeError, "gameOb.state = int: KX_GameObject, state bitfield was not between 0 and 30 (1<<0 and 1<<29)");
+		return 1;
+	}
+	self->SetState(state);
+	return 0;
+}
+
+PyObject* KX_GameObject::pyattr_get_meshes(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
+	PyObject *meshes= PyList_New(self->m_meshes.size());
+	int i;
+	
+	for(i=0; i < self->m_meshes.size(); i++)
+	{
+		KX_MeshProxy* meshproxy = new KX_MeshProxy(self->m_meshes[i]);
+		PyList_SET_ITEM(meshes, i, meshproxy->GetProxy());
+	}
+	
+	return meshes;
+}
+
+/* experemental! */
+PyObject* KX_GameObject::pyattr_get_sensors(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
+	SCA_SensorList& sensors= self->GetSensors();
+	PyObject* resultlist = PyList_New(sensors.size());
+	
+	for (unsigned int index=0;index<sensors.size();index++)
+		PyList_SET_ITEM(resultlist, index, sensors[index]->GetProxy());
+	
+	return resultlist;
+}
+
+PyObject* KX_GameObject::pyattr_get_controllers(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
+	SCA_ControllerList& controllers= self->GetControllers();
+	PyObject* resultlist = PyList_New(controllers.size());
+	
+	for (unsigned int index=0;index<controllers.size();index++)
+		PyList_SET_ITEM(resultlist, index, controllers[index]->GetProxy());
+	
+	return resultlist;
+}
+
+PyObject* KX_GameObject::pyattr_get_actuators(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
+	SCA_ActuatorList& actuators= self->GetActuators();
+	PyObject* resultlist = PyList_New(actuators.size());
+	
+	for (unsigned int index=0;index<actuators.size();index++)
+		PyList_SET_ITEM(resultlist, index, actuators[index]->GetProxy());
+	
+	return resultlist;
+}
+
+/* __dict__ only for the purpose of giving useful dir() results */
+PyObject* KX_GameObject::pyattr_get_dir_dict(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
+	PyObject *dict_str = PyString_FromString("__dict__");
+	PyObject *dict= py_getattr_dict(self->SCA_IObject::py_getattro(dict_str), Type.tp_dict);
+	Py_DECREF(dict_str);
+	
+	if(dict==NULL)
+		return NULL;
+	
+	/* Not super fast getting as a list then making into dict keys but its only for dir() */
+	PyObject *list= self->ConvertKeysToPython();
+	if(list)
+	{
+		int i;
+		for(i=0; i<PyList_Size(list); i++)
+			PyDict_SetItem(dict, PyList_GET_ITEM(list, i), Py_None);
+	}
+	else
+		PyErr_Clear();
+	
+	Py_DECREF(list);
+	
+	/* Add m_attr_dict if we have it */
+	if(self->m_attr_dict)
+		PyDict_Update(dict, self->m_attr_dict);
+	
+	return dict;
+}
+
+/* We need these because the macros have a return in them */
+PyObject* KX_GameObject::py_getattro__internal(PyObject *attr)
+{
+	py_getattro_up(SCA_IObject);
+}
+
+int KX_GameObject::py_setattro__internal(PyObject *attr, PyObject *value)	// py_setattro method
+{
+	py_setattro_up(SCA_IObject);
+}
+
+
+PyObject* KX_GameObject::py_getattro(PyObject *attr)
+{
+	PyObject *object= py_getattro__internal(attr);
+	
+	if (object==NULL && m_attr_dict)
+	{
+		/* backup the exception incase the attr doesnt exist in the dict either */
+		PyObject *err_type, *err_value, *err_tb;
+		PyErr_Fetch(&err_type, &err_value, &err_tb);
+		
+		object= PyDict_GetItem(m_attr_dict, attr);
+		if (object) {
+			Py_INCREF(object);
+			
+			PyErr_Clear();
+			Py_XDECREF( err_type );
+			Py_XDECREF( err_value );
+			Py_XDECREF( err_tb );
+		}
+		else {
+			PyErr_Restore(err_type, err_value, err_tb); /* use the error from the parent function */
+		}
+	}
+	return object;
+}
+
+int KX_GameObject::py_setattro(PyObject *attr, PyObject *value)	// py_setattro method
+{
+	int ret;
+	
+	ret= py_setattro__internal(attr, value);
+	
+	if (ret==PY_SET_ATTR_SUCCESS) {
+		/* remove attribute in our own dict to avoid double ups */
+		/* NOTE: Annoying that we also do this for setting builtin attributes like mass and visibility :/ */
+		if (m_attr_dict) {
+			if (PyDict_DelItem(m_attr_dict, attr) != 0)
+				PyErr_Clear();
+		}
+	}
+	
+	if (ret==PY_SET_ATTR_COERCE_FAIL) {
+		/* CValue attribute exists, remove CValue and add PyDict value */
+		RemoveProperty(STR_String(PyString_AsString(attr)));
+		ret= PY_SET_ATTR_MISSING;
+	}
+	
+	if (ret==PY_SET_ATTR_MISSING) {
+		/* Lazy initialization */
+		if (m_attr_dict==NULL)
+			m_attr_dict = PyDict_New();
+		
+		if (PyDict_SetItem(m_attr_dict, attr, value)==0) {
+			PyErr_Clear();
+			ret= PY_SET_ATTR_SUCCESS;
+		}
+		else {
+			PyErr_Format(PyExc_AttributeError, "gameOb.myAttr = value: KX_GameObject, failed assigning value to internal dictionary");
+			ret= PY_SET_ATTR_FAIL;
+		}
+	}
+	
+	return ret;	
+}
+
+
+int	KX_GameObject::py_delattro(PyObject *attr)
+{
+	char *attr_str= PyString_AsString(attr); 
+	
+	if (RemoveProperty(STR_String(attr_str))) // XXX - should call CValues instead but its only 2 lines here
+		return 0;
+	
+	if (m_attr_dict && (PyDict_DelItem(m_attr_dict, attr) == 0))
+		return 0;
+	
+	PyErr_Format(PyExc_AttributeError, "del gameOb.myAttr: KX_GameObject, attribute \"%s\" dosnt exist", attr_str);
+	return 1;
+}
+
+
+PyObject* KX_GameObject::PyApplyForce(PyObject* args)
 {
 	int local = 0;
 	PyObject* pyvect;
@@ -1311,7 +1842,7 @@ PyObject* KX_GameObject::PyApplyForce(PyObject* self, PyObject* args)
 	return NULL;
 }
 
-PyObject* KX_GameObject::PyApplyTorque(PyObject* self, PyObject* args)
+PyObject* KX_GameObject::PyApplyTorque(PyObject* args)
 {
 	int local = 0;
 	PyObject* pyvect;
@@ -1326,7 +1857,7 @@ PyObject* KX_GameObject::PyApplyTorque(PyObject* self, PyObject* args)
 	return NULL;
 }
 
-PyObject* KX_GameObject::PyApplyRotation(PyObject* self, PyObject* args)
+PyObject* KX_GameObject::PyApplyRotation(PyObject* args)
 {
 	int local = 0;
 	PyObject* pyvect;
@@ -1341,7 +1872,7 @@ PyObject* KX_GameObject::PyApplyRotation(PyObject* self, PyObject* args)
 	return NULL;
 }
 
-PyObject* KX_GameObject::PyApplyMovement(PyObject* self, PyObject* args)
+PyObject* KX_GameObject::PyApplyMovement(PyObject* args)
 {
 	int local = 0;
 	PyObject* pyvect;
@@ -1356,7 +1887,7 @@ PyObject* KX_GameObject::PyApplyMovement(PyObject* self, PyObject* args)
 	return NULL;
 }
 
-PyObject* KX_GameObject::PyGetLinearVelocity(PyObject* self, PyObject* args)
+PyObject* KX_GameObject::PyGetLinearVelocity(PyObject* args)
 {
 	// only can get the velocity if we have a physics object connected to us...
 	int local = 0;
@@ -1370,7 +1901,7 @@ PyObject* KX_GameObject::PyGetLinearVelocity(PyObject* self, PyObject* args)
 	}
 }
 
-PyObject* KX_GameObject::PySetLinearVelocity(PyObject* self, PyObject* args)
+PyObject* KX_GameObject::PySetLinearVelocity(PyObject* args)
 {
 	int local = 0;
 	PyObject* pyvect;
@@ -1385,7 +1916,7 @@ PyObject* KX_GameObject::PySetLinearVelocity(PyObject* self, PyObject* args)
 	return NULL;
 }
 
-PyObject* KX_GameObject::PyGetAngularVelocity(PyObject* self, PyObject* args)
+PyObject* KX_GameObject::PyGetAngularVelocity(PyObject* args)
 {
 	// only can get the velocity if we have a physics object connected to us...
 	int local = 0;
@@ -1399,7 +1930,7 @@ PyObject* KX_GameObject::PyGetAngularVelocity(PyObject* self, PyObject* args)
 	}
 }
 
-PyObject* KX_GameObject::PySetAngularVelocity(PyObject* self, PyObject* args)
+PyObject* KX_GameObject::PySetAngularVelocity(PyObject* args)
 {
 	int local = 0;
 	PyObject* pyvect;
@@ -1414,7 +1945,7 @@ PyObject* KX_GameObject::PySetAngularVelocity(PyObject* self, PyObject* args)
 	return NULL;
 }
 
-PyObject* KX_GameObject::PySetVisible(PyObject* self, PyObject* args)
+PyObject* KX_GameObject::PySetVisible(PyObject* args)
 {
 	int visible, recursive = 0;
 	if (!PyArg_ParseTuple(args,"i|i:setVisible",&visible, &recursive))
@@ -1426,20 +1957,33 @@ PyObject* KX_GameObject::PySetVisible(PyObject* self, PyObject* args)
 	
 }
 
-PyObject* KX_GameObject::PyGetVisible(PyObject* self)
+PyObject* KX_GameObject::PySetOcclusion(PyObject* args)
 {
+	int occlusion, recursive = 0;
+	if (!PyArg_ParseTuple(args,"i|i:setOcclusion",&occlusion, &recursive))
+		return NULL;
+	
+	SetOccluder(occlusion ? true:false, recursive ? true:false);
+	Py_RETURN_NONE;
+}
+
+PyObject* KX_GameObject::PyGetVisible()
+{
+	ShowDeprecationWarning("getVisible()", "the visible property");
 	return PyInt_FromLong(m_bVisible);	
 }
 
-PyObject* KX_GameObject::PyGetState(PyObject* self)
+PyObject* KX_GameObject::PyGetState()
 {
+	ShowDeprecationWarning("getState()", "the state property");
 	int state = 0;
 	state |= GetState();
 	return PyInt_FromLong(state);
 }
 
-PyObject* KX_GameObject::PySetState(PyObject* self, PyObject* value)
+PyObject* KX_GameObject::PySetState(PyObject* value)
 {
+	ShowDeprecationWarning("setState()", "the state property");
 	int state_i = PyInt_AsLong(value);
 	unsigned int state = 0;
 	
@@ -1458,9 +2002,7 @@ PyObject* KX_GameObject::PySetState(PyObject* self, PyObject* value)
 	Py_RETURN_NONE;
 }
 
-
-
-PyObject* KX_GameObject::PyGetVelocity(PyObject* self, PyObject* args)
+PyObject* KX_GameObject::PyGetVelocity(PyObject* args)
 {
 	// only can get the velocity if we have a physics object connected to us...
 	MT_Point3 point(0.0,0.0,0.0);
@@ -1486,110 +2028,89 @@ PyObject* KX_GameObject::PyGetVelocity(PyObject* self, PyObject* args)
 
 
 
-PyObject* KX_GameObject::PyGetMass(PyObject* self)
+PyObject* KX_GameObject::PyGetMass()
 {
-	return PyFloat_FromDouble(GetPhysicsController()->GetMass());
+	ShowDeprecationWarning("getMass()", "the mass property");
+	return PyFloat_FromDouble((GetPhysicsController() != NULL) ? GetPhysicsController()->GetMass() : 0.0f);
 }
 
-
-
-PyObject* KX_GameObject::PyGetReactionForce(PyObject* self)
+PyObject* KX_GameObject::PyGetReactionForce()
 {
 	// only can get the velocity if we have a physics object connected to us...
-	return PyObjectFrom(GetPhysicsController()->getReactionForce());
+	
+	// XXX - Currently not working with bullet intergration, see KX_BulletPhysicsController.cpp's getReactionForce
+	/*
+	if (GetPhysicsController())
+		return PyObjectFrom(GetPhysicsController()->getReactionForce());
+	return PyObjectFrom(dummy_point);
+	*/
+	
+	return Py_BuildValue("fff", 0.0f, 0.0f, 0.0f);
+	
 }
 
 
 
-PyObject* KX_GameObject::PyEnableRigidBody(PyObject* self)
+PyObject* KX_GameObject::PyEnableRigidBody()
 {
-	GetPhysicsController()->setRigidBody(true);
+	if(GetPhysicsController())
+		GetPhysicsController()->setRigidBody(true);
 
 	Py_RETURN_NONE;
 }
 
 
 
-PyObject* KX_GameObject::PyDisableRigidBody(PyObject* self)
+PyObject* KX_GameObject::PyDisableRigidBody()
 {
-	GetPhysicsController()->setRigidBody(false);
+	if(GetPhysicsController())
+		GetPhysicsController()->setRigidBody(false);
 
 	Py_RETURN_NONE;
 }
 
 
 
-PyObject* KX_GameObject::PyGetParent(PyObject* self)
+PyObject* KX_GameObject::PyGetParent()
 {
+	ShowDeprecationWarning("getParent()", "the parent property");
 	KX_GameObject* parent = this->GetParent();
 	if (parent)
-		return parent->AddRef();
+		return parent->GetProxy();
 	Py_RETURN_NONE;
 }
 
-PyObject* KX_GameObject::PySetParent(PyObject* self, PyObject* value)
+PyObject* KX_GameObject::PySetParent(PyObject* value)
 {
-	if (!PyObject_TypeCheck(value, &KX_GameObject::Type)) {
-		PyErr_SetString(PyExc_TypeError, "expected a KX_GameObject type");
+	KX_GameObject *obj;
+	if (!ConvertPythonToGameObject(value, &obj, false, "gameOb.setParent(value): KX_GameObject"))
 		return NULL;
-	}
 	
-	// The object we want to set as parent
-	CValue *m_ob = (CValue*)value;
-	KX_GameObject *obj = ((KX_GameObject*)m_ob);
-	KX_Scene *scene = KX_GetActiveScene();
-	
-	this->SetParent(scene, obj);
-		
+	this->SetParent(KX_GetActiveScene(), obj);
 	Py_RETURN_NONE;
 }
 
-PyObject* KX_GameObject::PyRemoveParent(PyObject* self)
+PyObject* KX_GameObject::PyRemoveParent()
 {
 	KX_Scene *scene = KX_GetActiveScene();
 	this->RemoveParent(scene);
 	Py_RETURN_NONE;
 }
 
-
-static void walk_children(SG_Node* node, CListValue* list, bool recursive)
+PyObject* KX_GameObject::PyGetChildren()
 {
-	NodeList& children = node->GetSGChildren();
-
-	for (NodeList::iterator childit = children.begin();!(childit==children.end());++childit)
-	{
-		SG_Node* childnode = (*childit);
-		CValue* childobj = (CValue*)childnode->GetSGClientObject();
-		if (childobj != NULL) // This is a GameObject
-		{
-			// add to the list
-			list->Add(childobj->AddRef());
-		}
-		
-		// if the childobj is NULL then this may be an inverse parent link
-		// so a non recursive search should still look down this node.
-		if (recursive || childobj==NULL) {
-			walk_children(childnode, list, recursive);
-		}
-	}
+	return GetChildren()->NewProxy(true);
 }
 
-PyObject* KX_GameObject::PyGetChildren(PyObject* self)
+PyObject* KX_GameObject::PyGetChildrenRecursive()
 {
-	CListValue* list = new CListValue();
-	walk_children(m_pSGNode, list, 0);
-	return list;
+	return GetChildrenRecursive()->NewProxy(true);
 }
 
-PyObject* KX_GameObject::PyGetChildrenRecursive(PyObject* self)
+PyObject* KX_GameObject::PyGetMesh(PyObject* args)
 {
-	CListValue* list = new CListValue();
-	walk_children(m_pSGNode, list, 1);
-	return list;
-}
-
-PyObject* KX_GameObject::PyGetMesh(PyObject* self, PyObject* args)
-{
+	ShowDeprecationWarning("getMesh()", "the meshes property");
+	
 	int mesh = 0;
 
 	if (!PyArg_ParseTuple(args, "|i:getMesh", &mesh))
@@ -1598,7 +2119,7 @@ PyObject* KX_GameObject::PyGetMesh(PyObject* self, PyObject* args)
 	if (((unsigned int)mesh < m_meshes.size()) && mesh >= 0)
 	{
 		KX_MeshProxy* meshproxy = new KX_MeshProxy(m_meshes[mesh]);
-		return meshproxy;
+		return meshproxy->NewProxy(true); // XXX Todo Python own.
 	}
 	
 	Py_RETURN_NONE;
@@ -1608,7 +2129,7 @@ PyObject* KX_GameObject::PyGetMesh(PyObject* self, PyObject* args)
 
 
 
-PyObject* KX_GameObject::PySetCollisionMargin(PyObject* self, PyObject* value)
+PyObject* KX_GameObject::PySetCollisionMargin(PyObject* value)
 {
 	float collisionMargin = PyFloat_AsDouble(value);
 	
@@ -1628,7 +2149,7 @@ PyObject* KX_GameObject::PySetCollisionMargin(PyObject* self, PyObject* value)
 
 
 
-PyObject* KX_GameObject::PyApplyImpulse(PyObject* self, PyObject* args)
+PyObject* KX_GameObject::PyApplyImpulse(PyObject* args)
 {
 	PyObject* pyattach;
 	PyObject* pyimpulse;
@@ -1655,7 +2176,7 @@ PyObject* KX_GameObject::PyApplyImpulse(PyObject* self, PyObject* args)
 
 
 
-PyObject* KX_GameObject::PySuspendDynamics(PyObject* self)
+PyObject* KX_GameObject::PySuspendDynamics()
 {
 	SuspendDynamics();
 	Py_RETURN_NONE;
@@ -1663,7 +2184,7 @@ PyObject* KX_GameObject::PySuspendDynamics(PyObject* self)
 
 
 
-PyObject* KX_GameObject::PyRestoreDynamics(PyObject* self)
+PyObject* KX_GameObject::PyRestoreDynamics()
 {
 	RestoreDynamics();
 	Py_RETURN_NONE;
@@ -1671,20 +2192,22 @@ PyObject* KX_GameObject::PyRestoreDynamics(PyObject* self)
 
 
 
-PyObject* KX_GameObject::PyGetOrientation(PyObject* self) //keywords
+PyObject* KX_GameObject::PyGetOrientation() //keywords
 {
+	ShowDeprecationWarning("getOrientation()", "the orientation property");
 	return PyObjectFrom(NodeGetWorldOrientation());
 }
 
 
 
-PyObject* KX_GameObject::PySetOrientation(PyObject* self, PyObject* value)
+PyObject* KX_GameObject::PySetOrientation(PyObject* value)
 {
+	ShowDeprecationWarning("setOrientation()", "the orientation property");
 	MT_Matrix3x3 matrix;
 	if (PyObject_IsMT_Matrix(value, 3) && PyMatTo(value, matrix))
 	{
 		NodeSetLocalOrientation(matrix);
-		NodeUpdateGS(0.f,true);
+		NodeUpdateGS(0.f);
 		Py_RETURN_NONE;
 	}
 
@@ -1693,13 +2216,13 @@ PyObject* KX_GameObject::PySetOrientation(PyObject* self, PyObject* value)
 	{
 		matrix.setRotation(quat);
 		NodeSetLocalOrientation(matrix);
-		NodeUpdateGS(0.f,true);
+		NodeUpdateGS(0.f);
 		Py_RETURN_NONE;
 	}
 	return NULL;
 }
 
-PyObject* KX_GameObject::PyAlignAxisToVect(PyObject* self, PyObject* args)
+PyObject* KX_GameObject::PyAlignAxisToVect(PyObject* args)
 {
 	PyObject* pyvect;
 	int axis = 2; //z axis is the default
@@ -1714,14 +2237,14 @@ PyObject* KX_GameObject::PyAlignAxisToVect(PyObject* self, PyObject* args)
 			if (fac> 1.0) fac= 1.0;
 			
 			AlignAxisToVect(vect,axis,fac);
-			NodeUpdateGS(0.f,true);
+			NodeUpdateGS(0.f);
 			Py_RETURN_NONE;
 		}
 	}
 	return NULL;
 }
 
-PyObject* KX_GameObject::PyGetAxisVect(PyObject* self, PyObject* value)
+PyObject* KX_GameObject::PyGetAxisVect(PyObject* value)
 {
 	MT_Vector3 vect;
 	if (PyVecTo(value, vect))
@@ -1731,33 +2254,34 @@ PyObject* KX_GameObject::PyGetAxisVect(PyObject* self, PyObject* value)
 	return NULL;
 }
 
-PyObject* KX_GameObject::PySetPosition(PyObject* self, PyObject* value)
+PyObject* KX_GameObject::PySetPosition(PyObject* value)
 {
+	ShowDeprecationWarning("setPosition()", "the position property");
 	MT_Point3 pos;
 	if (PyVecTo(value, pos))
 	{
 		NodeSetLocalPosition(pos);
-		NodeUpdateGS(0.f,true);
+		NodeUpdateGS(0.f);
 		Py_RETURN_NONE;
 	}
 
 	return NULL;
 }
 
-PyObject* KX_GameObject::PySetWorldPosition(PyObject* self, PyObject* value)
+PyObject* KX_GameObject::PySetWorldPosition(PyObject* value)
 {
 	MT_Point3 pos;
 	if (PyVecTo(value, pos))
 	{
 		NodeSetWorldPosition(pos);
-		NodeUpdateGS(0.f,true);
+		NodeUpdateGS(0.f);
 		Py_RETURN_NONE;
 	}
 
 	return NULL;
 }
 
-PyObject* KX_GameObject::PyGetPhysicsId(PyObject* self)
+PyObject* KX_GameObject::PyGetPhysicsId()
 {
 	KX_IPhysicsController* ctrl = GetPhysicsController();
 	uint_ptr physid=0;
@@ -1768,9 +2292,19 @@ PyObject* KX_GameObject::PyGetPhysicsId(PyObject* self)
 	return PyInt_FromLong((long)physid);
 }
 
-PyObject* KX_GameObject::PyGetPropertyNames(PyObject* self)
+PyObject* KX_GameObject::PyGetPropertyNames()
 {
-	return ConvertKeysToPython();
+	PyObject *list=  ConvertKeysToPython();
+	
+	if(m_attr_dict) {
+		PyObject *key, *value;
+		Py_ssize_t pos = 0;
+
+		while (PyDict_Next(m_attr_dict, &pos, &key, &value)) {
+			PyList_Append(list, key);
+		}
+	}
+	return list;
 }
 
 KX_PYMETHODDEF_DOC_O(KX_GameObject, getDistanceTo,
@@ -1784,7 +2318,7 @@ KX_PYMETHODDEF_DOC_O(KX_GameObject, getDistanceTo,
 	PyErr_Clear();
 	
 	KX_GameObject *other;
-	if (ConvertPythonToGameObject(value, &other, false))
+	if (ConvertPythonToGameObject(value, &other, false, "gameOb.getDistanceTo(value): KX_GameObject"))
 	{
 		return PyFloat_FromDouble(NodeGetWorldPosition().distance(other->NodeGetWorldPosition()));
 	}
@@ -1807,12 +2341,12 @@ KX_PYMETHODDEF_DOC_O(KX_GameObject, getVectTo,
 		PyErr_Clear();
 		
 		KX_GameObject *other;
-		if (ConvertPythonToGameObject(value, &other, false))
+		if (ConvertPythonToGameObject(value, &other, false, "")) /* error will be overwritten */
 		{
 			toPoint = other->NodeGetWorldPosition();
 		} else
 		{
-			PyErr_SetString(PyExc_TypeError, "Expected a 3D Vector or GameObject type");
+			PyErr_SetString(PyExc_TypeError, "gameOb.getVectTo(other): KX_GameObject, expected a 3D Vector or KX_GameObject type");
 			return NULL;
 		}
 	}
@@ -1901,12 +2435,12 @@ KX_PYMETHODDEF_DOC(KX_GameObject, rayCastTo,
 		KX_GameObject *other;
 		PyErr_Clear();
 		
-		if (ConvertPythonToGameObject(pyarg, &other, false))
+		if (ConvertPythonToGameObject(pyarg, &other, false, "")) /* error will be overwritten */
 		{
 			toPoint = other->NodeGetWorldPosition();
 		} else
 		{
-			PyErr_SetString(PyExc_TypeError, "the first argument to rayCastTo must be a vector or a KX_GameObject");
+			PyErr_SetString(PyExc_TypeError, "gameOb.rayCastTo(other,dist,prop): KX_GameObject, the first argument to rayCastTo must be a vector or a KX_GameObject");
 			return NULL;
 		}
 	}
@@ -1935,7 +2469,7 @@ KX_PYMETHODDEF_DOC(KX_GameObject, rayCastTo,
 	KX_RayCast::RayTest(pe, fromPoint, toPoint, callback);
 
     if (m_pHitObject)
-		return m_pHitObject->AddRef();
+		return m_pHitObject->GetProxy();
 	
 	Py_RETURN_NONE;
 }
@@ -1977,7 +2511,7 @@ KX_PYMETHODDEF_DOC(KX_GameObject, rayCast,
 	{
 		PyErr_Clear();
 		
-		if (ConvertPythonToGameObject(pyto, &other, false))
+		if (ConvertPythonToGameObject(pyto, &other, false, ""))  /* error will be overwritten */
 		{
 			toPoint = other->NodeGetWorldPosition();
 		} else
@@ -1994,12 +2528,12 @@ KX_PYMETHODDEF_DOC(KX_GameObject, rayCast,
 	{
 		PyErr_Clear();
 		
-		if (ConvertPythonToGameObject(pyfrom, &other, false))
+		if (ConvertPythonToGameObject(pyfrom, &other, false, "")) /* error will be overwritten */
 		{
 			fromPoint = other->NodeGetWorldPosition();
 		} else
 		{
-			PyErr_SetString(PyExc_TypeError, "the second optional argument to rayCast must be a vector or a KX_GameObject");
+			PyErr_SetString(PyExc_TypeError, "gameOb.rayCast(to,from,dist,prop,face,xray,poly): KX_GameObject, the second optional argument to rayCast must be a vector or a KX_GameObject");
 			return NULL;
 		}
 	}
@@ -2037,7 +2571,7 @@ KX_PYMETHODDEF_DOC(KX_GameObject, rayCast,
 	{
 		PyObject* returnValue = (poly) ? PyTuple_New(4) : PyTuple_New(3);
 		if (returnValue) { // unlikely this would ever fail, if it does python sets an error
-			PyTuple_SET_ITEM(returnValue, 0, m_pHitObject->AddRef());
+			PyTuple_SET_ITEM(returnValue, 0, m_pHitObject->GetProxy());
 			PyTuple_SET_ITEM(returnValue, 1, PyObjectFrom(callback.m_hitPoint));
 			PyTuple_SET_ITEM(returnValue, 2, PyObjectFrom(callback.m_hitNormal));
 			if (poly)
@@ -2047,7 +2581,7 @@ KX_PYMETHODDEF_DOC(KX_GameObject, rayCast,
 					// if this field is set, then we can trust that m_hitPolygon is a valid polygon
 					RAS_Polygon* polygon = callback.m_hitMesh->GetPolygon(callback.m_hitPolygon);
 					KX_PolyProxy* polyproxy = new KX_PolyProxy(callback.m_hitMesh, polygon);
-					PyTuple_SET_ITEM(returnValue, 3, polyproxy);
+					PyTuple_SET_ITEM(returnValue, 3, polyproxy->NewProxy(true));
 				}
 				else
 				{
@@ -2063,6 +2597,26 @@ KX_PYMETHODDEF_DOC(KX_GameObject, rayCast,
 		return Py_BuildValue("OOOO", Py_None, Py_None, Py_None, Py_None);
 	else
 		return Py_BuildValue("OOO", Py_None, Py_None, Py_None);
+}
+
+KX_PYMETHODDEF_DOC_VARARGS(KX_GameObject, sendMessage, 
+						   "sendMessage(subject, [body, to])\n"
+"sends a message in same manner as a message actuator"
+"subject = Subject of the message (string)"
+"body = Message body (string)"
+"to = Name of object to send the message to")
+{
+	char* subject;
+	char* body = (char *)"";
+	char* to = (char *)"";
+	const STR_String& from = GetName();
+
+	if (!PyArg_ParseTuple(args, "s|sss:sendMessage", &subject, &body, &to))
+		return NULL;
+
+	KX_GetActiveScene()->GetNetworkScene()->SendMessage(to, from, subject, body);
+
+	Py_RETURN_NONE;
 }
 
 /* --------------------------------------------------------------------- 
@@ -2087,10 +2641,10 @@ void KX_GameObject::Relink(GEN_Map<GEN_HashedPtr, void*> *map_parameter)
 	}
 }
 
-bool ConvertPythonToGameObject(PyObject * value, KX_GameObject **object, bool py_none_ok)
+bool ConvertPythonToGameObject(PyObject * value, KX_GameObject **object, bool py_none_ok, const char *error_prefix)
 {
 	if (value==NULL) {
-		PyErr_SetString(PyExc_TypeError, "Error in ConvertPythonToGameObject, python pointer NULL, should never happen");
+		PyErr_Format(PyExc_TypeError, "%s, python pointer NULL, should never happen", error_prefix);
 		*object = NULL;
 		return false;
 	}
@@ -2101,33 +2655,40 @@ bool ConvertPythonToGameObject(PyObject * value, KX_GameObject **object, bool py
 		if (py_none_ok) {
 			return true;
 		} else {
-			PyErr_SetString(PyExc_TypeError, "Expected KX_GameObject or a string for a name of a KX_GameObject, None is invalid");
+			PyErr_Format(PyExc_TypeError, "%s, expected KX_GameObject or a KX_GameObject name, None is invalid", error_prefix);
 			return false;
 		}
 	}
 	
 	if (PyString_Check(value)) {
-		*object = (KX_GameObject *)SCA_ILogicBrick::m_sCurrentLogicManager->GetGameObjectByName(STR_String( PyString_AsString(value) ));
+		*object = (KX_GameObject*)SCA_ILogicBrick::m_sCurrentLogicManager->GetGameObjectByName(STR_String( PyString_AsString(value) ));
 		
 		if (*object) {
 			return true;
 		} else {
-			PyErr_SetString(PyExc_ValueError, "Requested name did not match any KX_GameObject");
+			PyErr_Format(PyExc_ValueError, "%s, requested name \"%s\" did not match any KX_GameObject in this scene", error_prefix, PyString_AsString(value));
 			return false;
 		}
 	}
 	
 	if (PyObject_TypeCheck(value, &KX_GameObject::Type)) {
-		*object = static_cast<KX_GameObject*>(value);
+		*object = static_cast<KX_GameObject*>BGE_PROXY_REF(value);
+		
+		/* sets the error */
+		if (*object==NULL) {
+			PyErr_Format(PyExc_RuntimeError, "%s, " BGE_PROXY_ERROR_MSG, error_prefix);
+			return false;
+		}
+		
 		return true;
 	}
 	
 	*object = NULL;
 	
 	if (py_none_ok) {
-		PyErr_SetString(PyExc_TypeError, "Expect a KX_GameObject, a string or None");
+		PyErr_Format(PyExc_TypeError, "%s, expect a KX_GameObject, a string or None", error_prefix);
 	} else {
-		PyErr_SetString(PyExc_TypeError, "Expect a KX_GameObject or a string");
+		PyErr_Format(PyExc_TypeError, "%s, expect a KX_GameObject or a string", error_prefix);
 	}
 	
 	return false;

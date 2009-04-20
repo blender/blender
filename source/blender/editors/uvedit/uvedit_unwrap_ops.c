@@ -409,7 +409,7 @@ static int pack_islands_exec(bContext *C, wmOperator *op)
 	ParamHandle *handle;
 
 	handle = construct_param_handle(scene, em, 1, 0, 1, 1);
-	param_pack(handle);
+	param_pack(handle, scene->toolsettings->uvcalc_margin);
 	param_flush(handle);
 	param_delete(handle);
 	
@@ -804,7 +804,7 @@ static int unwrap_exec(bContext *C, wmOperator *op)
 	param_lscm_solve(handle);
 	param_lscm_end(handle);
 	
-	param_pack(handle);
+	param_pack(handle, scene->toolsettings->uvcalc_margin);
 
 	param_flush(handle);
 

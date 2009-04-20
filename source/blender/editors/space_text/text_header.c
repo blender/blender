@@ -56,6 +56,7 @@
 #include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
+#include "BKE_scene.h"
 #include "BKE_screen.h"
 #include "BKE_text.h"
 
@@ -278,6 +279,7 @@ static void text_unlink(Main *bmain, Text *text)
 	// XXX BPY_clear_bad_scriptlinks(text);
 	// XXX BPY_free_pyconstraint_links(text);
 	// XXX free_text_controllers(text);
+	// XXX free_dome_warp_text(text);
 
 	/* check if this text was used as script link:
 	 * this check function unsets the pointers and returns how many

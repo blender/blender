@@ -89,21 +89,21 @@ public:
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
 
-	virtual PyObject* _getattr(const char *attr);
-	virtual int _setattr(const char *attr, PyObject *value);
+	virtual PyObject* py_getattro(PyObject *attr);
+	virtual int py_setattro(PyObject *attr, PyObject *value);
 
 	/* 1. getType */
-	KX_PYMETHOD_DOC(SCA_PropertySensor,GetType);
+	KX_PYMETHOD_DOC_NOARGS(SCA_PropertySensor,GetType);
 	/* 2. setType */
-	KX_PYMETHOD_DOC(SCA_PropertySensor,SetType);
+	KX_PYMETHOD_DOC_VARARGS(SCA_PropertySensor,SetType);
 	/* 3. setProperty */
-	KX_PYMETHOD_DOC(SCA_PropertySensor,SetProperty);
+	KX_PYMETHOD_DOC_VARARGS(SCA_PropertySensor,SetProperty);
 	/* 4. getProperty */
-	KX_PYMETHOD_DOC(SCA_PropertySensor,GetProperty);
+	KX_PYMETHOD_DOC_NOARGS(SCA_PropertySensor,GetProperty);
 	/* 5. getValue */
-	KX_PYMETHOD_DOC(SCA_PropertySensor,GetValue);
+	KX_PYMETHOD_DOC_NOARGS(SCA_PropertySensor,GetValue);
 	/* 6. setValue */
-	KX_PYMETHOD_DOC(SCA_PropertySensor,SetValue);
+	KX_PYMETHOD_DOC_VARARGS(SCA_PropertySensor,SetValue);
 	/**
 	 * Test whether this is a sensible value (type check)
 	 */

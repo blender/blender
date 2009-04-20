@@ -1,6 +1,6 @@
 /**
  *
- * $Id: BOP_Merge22.cpp 14444 2008-04-16 22:40:48Z hos $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

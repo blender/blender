@@ -2152,6 +2152,13 @@ static void lib_link_constraints(FileData *fd, ID *id, ListBase *conlist)
 				data->tar = newlibadr(fd, id->lib, data->tar);
 			}
 			break;
+		case CONSTRAINT_TYPE_SHRINKWRAP:
+			{
+				bShrinkwrapConstraint *data;
+				data= ((bShrinkwrapConstraint*)con->data);
+				data->target = newlibadr(fd, id->lib, data->target);
+			}
+			break;
 		case CONSTRAINT_TYPE_NULL:
 			break;
 		}
@@ -3484,6 +3491,12 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 			collmd->mfaces = NULL;
 			
 		}
+		else if (md->type==eModifierType_Surface) {
+			SurfaceModifierData *surmd = (SurfaceModifierData*) md;
+
+			surmd->dm = NULL;
+			surmd->bvhtree = NULL;
+		}
 		else if (md->type==eModifierType_Hook) {
 			HookModifierData *hmd = (HookModifierData*) md;
 
@@ -3820,7 +3833,9 @@ static void lib_link_scene(FileData *fd, Main *main)
 				srl->mat_override= newlibadr_us(fd, sce->id.lib, srl->mat_override);
 				srl->light_override= newlibadr_us(fd, sce->id.lib, srl->light_override);
 			}
-			
+			/*Game Settings: Dome Warp Text*/
+			sce->r.dometext= newlibadr_us(fd, sce->id.lib, sce->r.dometext);
+
 			sce->id.flag -= LIB_NEEDLINK;
 		}
 
@@ -5702,8 +5717,7 @@ static void do_versions_gpencil_2_50(Main *main, bScreen *screen)
 	
 	/* add regions */
 	for(sa= screen->areabase.first; sa; sa= sa->next) {
-		sl= sa->spacedata.first;
-		for(sl; sl; sl= sl->next) {
+		for(sl= sa->spacedata.first; sl; sl= sl->next) {
 			if (sl->spacetype==SPACE_VIEW3D) {
 				View3D *v3d= (View3D*) sl;
 				if(v3d->gpd) {
@@ -8801,6 +8815,35 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
+	if (main->versionfile < 248 || (main->versionfile == 248 && main->subversionfile < 3)) {
+		Object *ob;
+
+		/* Adjustments needed after Bullets update */
+		for(ob = main->object.first; ob; ob= ob->id.next) {
+			ob->damping *= 0.635f;
+			ob->rdamping = 0.1 + (0.59f * ob->rdamping);
+		}
+	}
+	
+	if (main->versionfile < 248 || (main->versionfile == 248 && main->subversionfile < 4)) {
+		Scene *sce;
+		World *wrld;
+
+		/*  Dome (Fisheye) default parameters  */
+		for (sce= main->scene.first; sce; sce= sce->id.next) {
+			sce->r.domeangle = 180;
+			sce->r.domemode = 1;
+			sce->r.domesize = 1.0f;
+			sce->r.domeres = 4;
+			sce->r.domeresbuf = 1.0f;
+		}
+		/* DBVT culling by default */
+		for(wrld=main->world.first; wrld; wrld= wrld->id.next) {
+			wrld->mode |= WO_DBVT_CULLING;
+			wrld->occlusionRes = 128;
+		}
+	}
+
 	if (main->versionfile < 250) {
 		bScreen *screen;
 		Scene *scene;
@@ -8921,7 +8964,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			}
 		}
 	}
-				       
+
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in src/usiblender.c! */
 
@@ -9568,6 +9611,12 @@ static void expand_constraints(FileData *fd, Main *mainvar, ListBase *lb)
 				expand_doit(fd, mainvar, data->tar);
 			}
 			break;
+		case CONSTRAINT_TYPE_SHRINKWRAP:
+			{
+				bShrinkwrapConstraint *data = (bShrinkwrapConstraint*)curcon->data;
+				expand_doit(fd, mainvar, data->target);
+			}
+			break;
 		default:
 			break;
 		}
@@ -9797,6 +9846,9 @@ static void expand_scene(FileData *fd, Main *mainvar, Scene *sce)
 		expand_doit(fd, mainvar, srl->mat_override);
 		expand_doit(fd, mainvar, srl->light_override);
 	}
+
+	if(sce->r.dometext)
+		expand_doit(fd, mainvar, sce->r.dometext);
 }
 
 static void expand_camera(FileData *fd, Main *mainvar, Camera *ca)
