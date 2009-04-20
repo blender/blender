@@ -5465,7 +5465,7 @@ void view3d_header_buttons(const bContext *C, ARegion *ar)
 				uiDefIconButBitS(block, TOG, SCE_SNAP_ROTATE, B_REDR, ICON_SNAP_NORMAL,xco,yco,XIC,YIC, &scene->snap_flag, 0, 0, 0, 0, "Align rotation with the snapping target");	
 				xco+= XIC;
 				if (scene->snap_mode == SCE_SNAP_MODE_VOLUME) {
-					uiDefIconButBitS(block, TOG, SCE_SNAP_PEEL_OBJECT, B_REDR, 0 /* XXX 2.5 ICON_SNAP_PEEL_OBJECT */,xco,0,XIC,YIC, &scene->snap_flag, 0, 0, 0, 0, "Consider objects as whole when finding volume center");	
+					uiDefIconButBitS(block, TOG, SCE_SNAP_PEEL_OBJECT, B_REDR, ICON_SNAP_PEEL_OBJECT,xco,yco,XIC,YIC, &scene->snap_flag, 0, 0, 0, 0, "Consider objects as whole when finding volume center");	
 					xco+= XIC;
 				}
 				uiDefIconTextButS(block, ICONTEXTROW,B_REDR, ICON_SNAP_VERTEX, snapmode_pup(), xco,yco,XIC+10,YIC, &(scene->snap_mode), 0.0, 0.0, 0, 0, "Snapping mode");
