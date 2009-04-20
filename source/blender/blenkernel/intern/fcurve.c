@@ -709,6 +709,41 @@ float driver_get_target_value (ChannelDriver *driver, DriverTarget *dtar)
 	return value;
 }
 
+/* Get two PoseChannels from the targets of the given Driver */
+static void driver_get_target_pchans2 (ChannelDriver *driver, bPoseChannel **pchan1, bPoseChannel **pchan2)
+{
+	DriverTarget *dtar;
+	short i = 0;
+	
+	/* before doing anything */
+	*pchan1= NULL;
+	*pchan2= NULL;
+	
+	/* only take the first two targets */
+	for (dtar= driver->targets.first; (dtar) && (i < 2); dtar=dtar->next, i++) {
+		PointerRNA id_ptr, ptr;
+		PropertyRNA *prop;
+		
+		/* get RNA-pointer for the ID-block given in target */
+		if (dtar->id)
+			RNA_id_pointer_create(dtar->id, &id_ptr);
+		else
+			continue;
+		
+		/* resolve path so that we have pointer to the right posechannel */
+		if (RNA_path_resolve(&id_ptr, dtar->rna_path, &ptr, &prop)) {
+			/* is pointer valid (i.e. pointing to an actual posechannel */
+			if ((ptr.type == &RNA_PoseChannel) && (ptr.data)) {
+				/* first or second target? */
+				if (i)
+					*pchan1= ptr.data;
+				else
+					*pchan2= ptr.data;
+			}
+		}
+	}
+}
+
 /* Evaluate an Channel-Driver to get a 'time' value to use instead of "evaltime"
  *	- "evaltime" is the frame at which F-Curve is being evaluated
  * 	- has to return a float value 
@@ -746,7 +781,8 @@ static float evaluate_driver (ChannelDriver *driver, float evaltime)
 				return (value / (float)tot);
 			}
 		}
-
+			break;
+		
 		case DRIVER_TYPE_PYTHON: /* expression */
 		{
 #ifndef DISABLE_PYTHON
@@ -766,11 +802,30 @@ static float evaluate_driver (ChannelDriver *driver, float evaltime)
 			break;
 
 		
-		case DRIVER_TYPE_ROTDIFF: /* difference of rotations of 2 bones (should be in same armature) */
+		case DRIVER_TYPE_ROTDIFF: /* difference of rotations of 2 bones (should ideally be in same armature) */
 		{
-			/*
+			bPoseChannel *pchan, *pchan2;
 			float q1[4], q2[4], quat[4], angle;
 			
+			/* get pose channels, and check if we've got two */
+			driver_get_target_pchans2(driver, &pchan, &pchan2);
+			if (ELEM(NULL, pchan, pchan2)) {
+				/* disable this driver, since it doesn't work correctly... */
+				driver->flag |= DRIVER_FLAG_INVALID;
+				
+				/* check what the error was */
+				if ((pchan == NULL) && (pchan2 == NULL))
+					printf("Driver Evaluation Error: Rotational difference failed - first 2 targets invalid \n");
+				else if (pchan == NULL)
+					printf("Driver Evaluation Error: Rotational difference failed - first target not valid PoseChannel \n");
+				else if (pchan2 == NULL)
+					printf("Driver Evaluation Error: Rotational difference failed - second target not valid PoseChannel \n");
+					
+				/* stop here... */
+				return 0.0f;
+			}			
+			
+			/* use the final posed locations */
 			Mat4ToQuat(pchan->pose_mat, q1);
 			Mat4ToQuat(pchan2->pose_mat, q2);
 			
@@ -780,7 +835,6 @@ static float evaluate_driver (ChannelDriver *driver, float evaltime)
 			angle= ABS(angle);
 			
 			return (angle > M_PI) ? (float)((2.0f * M_PI) - angle) : (float)(angle);
-			*/
 		}
 			break;
 		
