@@ -1693,27 +1693,30 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 	mywrite(wd, MYWRITE_FLUSH, 0);
 }
 
-static void write_gpencil(WriteData *wd, bGPdata *gpd)
+static void write_gpencils(WriteData *wd, ListBase *lb)
 {
+	bGPdata *gpd;
 	bGPDlayer *gpl;
 	bGPDframe *gpf;
 	bGPDstroke *gps;
 	
-	/* write gpd data block to file */
-	writestruct(wd, DATA, "bGPdata", 1, gpd);
-	
-	/* write grease-pencil layers to file */
-	for (gpl= gpd->layers.first; gpl; gpl= gpl->next) {
-		writestruct(wd, DATA, "bGPDlayer", 1, gpl);
+	for (gpd= lb->first; gpd; gpd= gpd->id.next) {
+		/* write gpd data block to file */
+		writestruct(wd, ID_GD, "bGPdata", 1, gpd);
 		
-		/* write this layer's frames to file */
-		for (gpf= gpl->frames.first; gpf; gpf= gpf->next) {
-			writestruct(wd, DATA, "bGPDframe", 1, gpf);
+		/* write grease-pencil layers to file */
+		for (gpl= gpd->layers.first; gpl; gpl= gpl->next) {
+			writestruct(wd, DATA, "bGPDlayer", 1, gpl);
 			
-			/* write strokes */
-			for (gps= gpf->strokes.first; gps; gps= gps->next) {
-				writestruct(wd, DATA, "bGPDstroke", 1, gps);
-				writestruct(wd, DATA, "bGPDspoint", gps->totpoints, gps->points);				
+			/* write this layer's frames to file */
+			for (gpf= gpl->frames.first; gpf; gpf= gpf->next) {
+				writestruct(wd, DATA, "bGPDframe", 1, gpf);
+				
+				/* write strokes */
+				for (gps= gpf->strokes.first; gps; gps= gps->next) {
+					writestruct(wd, DATA, "bGPDstroke", 1, gps);
+					writestruct(wd, DATA, "bGPDspoint", gps->totpoints, gps->points);				
+				}
 			}
 		}
 	}
@@ -1808,7 +1811,6 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 					writestruct(wd, DATA, "View3D", 1, v3d);
 					if(v3d->bgpic) writestruct(wd, DATA, "BGpic", 1, v3d->bgpic);
 					if(v3d->localvd) writestruct(wd, DATA, "View3D", 1, v3d->localvd);
-					if(v3d->gpd) write_gpencil(wd, v3d->gpd);
 				}
 				else if(sl->spacetype==SPACE_IPO) {
 					SpaceIpo *sipo= (SpaceIpo *)sl;
@@ -1832,7 +1834,6 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 				else if(sl->spacetype==SPACE_SEQ) {
 					SpaceSeq *sseq= (SpaceSeq *)sl;
 					writestruct(wd, DATA, "SpaceSeq", 1, sl);
-					if(sseq->gpd) write_gpencil(wd, sseq->gpd);
 				}
 				else if(sl->spacetype==SPACE_OUTLINER) {
 					SpaceOops *so= (SpaceOops *)sl;
@@ -1852,8 +1853,6 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 					writestruct(wd, DATA, "SpaceImage", 1, sl);
 					if(sima->cumap)
 						write_curvemapping(wd, sima->cumap);
-					if(sima->gpd) 
-						write_gpencil(wd, sima->gpd);
 				}
 				else if(sl->spacetype==SPACE_IMASEL) {
 					writestruct(wd, DATA, "SpaceImaSel", 1, sl);
@@ -1881,7 +1880,6 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 				else if(sl->spacetype==SPACE_NODE){
 					SpaceNode *snode= (SpaceNode *)sl;
 					writestruct(wd, DATA, "SpaceNode", 1, sl);
-					if(snode->gpd) write_gpencil(wd, snode->gpd);
 				}
 				sl= sl->next;
 			}
@@ -2208,6 +2206,7 @@ static int write_file_handle(Main *mainvar, int handle, MemFile *compare, MemFil
 	write_nodetrees(wd, &mainvar->nodetree);
 	write_brushes  (wd, &mainvar->brush);
 	write_scripts  (wd, &mainvar->script);
+	write_gpencils (wd, &mainvar->gpencil);
 	if(current==NULL)	
 		write_libraries(wd,  mainvar->next); /* no library save in undo */
 

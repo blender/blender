@@ -53,6 +53,7 @@
 #include "BKE_blender.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
+#include "BKE_gpencil.h"
 #include "BKE_sequence.h"
 #include "BKE_utildefines.h"
 

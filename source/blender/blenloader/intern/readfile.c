@@ -4065,8 +4065,8 @@ static void lib_link_windowmanager(FileData *fd, Main *main)
 
 /* ****************** READ GREASE PENCIL ***************** */
 
-/* relinks grease-pencil data for 3d-view(s) - used for direct_link */
-static void link_gpencil(FileData *fd, bGPdata *gpd)
+/* relinks grease-pencil data - used for direct_link and old file linkage */
+static void direct_link_gpencil(FileData *fd, bGPdata *gpd)
 {
 	bGPDlayer *gpl;
 	bGPDframe *gpf;
@@ -4242,7 +4242,6 @@ static void lib_link_screen(FileData *fd, Main *main)
 							else if(GS(snode->id->name)==ID_TE)
 								snode->nodetree= ((Tex *)snode->id)->nodetree;
 						}
-						
 					}
 				}
 				sa= sa->next;
@@ -4353,7 +4352,7 @@ void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 						*/
 					}
 					else if(v3d->scenelock) v3d->lay= sc->scene->lay;
-					
+
 					/* not very nice, but could help */
 					if((v3d->layact & v3d->lay)==0) v3d->layact= v3d->lay;
 					
@@ -4592,7 +4591,7 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 					v3d->bgpic->iuser.ok= 1;
 				if(v3d->gpd) {
 					v3d->gpd= newdataadr(fd, v3d->gpd);
-					link_gpencil(fd, v3d->gpd);
+					direct_link_gpencil(fd, v3d->gpd);
 				}
 				v3d->localvd= newdataadr(fd, v3d->localvd);
 				v3d->afterdraw.first= v3d->afterdraw.last= NULL;
@@ -4621,11 +4620,11 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 				SpaceImage *sima= (SpaceImage *)sl;
 				
 				sima->cumap= newdataadr(fd, sima->cumap);
-				if(sima->cumap)
-					direct_link_curvemapping(fd, sima->cumap);
 				sima->gpd= newdataadr(fd, sima->gpd);
 				if (sima->gpd)
-					link_gpencil(fd, sima->gpd);
+					direct_link_gpencil(fd, sima->gpd);
+				if(sima->cumap)
+					direct_link_curvemapping(fd, sima->cumap);
 				sima->iuser.ok= 1;
 			}
 			else if(sl->spacetype==SPACE_NODE) {
@@ -4633,7 +4632,7 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 				
 				if(snode->gpd) {
 					snode->gpd= newdataadr(fd, snode->gpd);
-					link_gpencil(fd, snode->gpd);
+					direct_link_gpencil(fd, snode->gpd);
 				}
 				snode->nodetree= snode->edittree= NULL;
 			}
@@ -4641,7 +4640,7 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 				SpaceSeq *sseq= (SpaceSeq *)sl;
 				if(sseq->gpd) {
 					sseq->gpd= newdataadr(fd, sseq->gpd);
-					link_gpencil(fd, sseq->gpd);
+					direct_link_gpencil(fd, sseq->gpd);
 				}
 			}
 		}
@@ -4818,6 +4817,7 @@ static char *dataname(short id_code)
 		case ID_NT: return "Data from NT";
 		case ID_BR: return "Data from BR";
 		case ID_PA: return "Data from PA";
+		case ID_GD: return "Data from GD";
 	}
 	return "Data from Lib Block";
 	
@@ -4973,6 +4973,9 @@ static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, int flag, ID
 			break;
 		case ID_SCRIPT:
 			direct_link_script(fd, (Script*)id);
+			break;
+		case ID_GD:
+			direct_link_gpencil(fd, (bGPdata *)id);
 			break;
 	}
 	
@@ -5676,6 +5679,64 @@ static void do_versions_windowmanager_2_50(bScreen *screen)
 		}
 	}
 }
+
+static void versions_gpencil_add_main(ListBase *lb, ID *id, char *name)
+{
+	
+	BLI_addtail(lb, id);
+	id->us= 1;
+	id->flag= LIB_FAKEUSER;
+	*( (short *)id->name )= ID_GD;
+	
+	new_id(lb, id, name);
+	/* alphabetic insterion: is in new_id */
+	
+	if(G.f & G_DEBUG)
+		printf("Converted GPencil to ID: %s\n", id->name+2);
+}
+
+static void do_versions_gpencil_2_50(Main *main, bScreen *screen)
+{
+	ScrArea *sa;
+	SpaceLink *sl;
+	
+	/* add regions */
+	for(sa= screen->areabase.first; sa; sa= sa->next) {
+		sl= sa->spacedata.first;
+		for(sl; sl; sl= sl->next) {
+			if (sl->spacetype==SPACE_VIEW3D) {
+				View3D *v3d= (View3D*) sl;
+				if(v3d->gpd) {
+					versions_gpencil_add_main(&main->gpencil, (ID *)v3d->gpd, "GPencil View3D");
+					v3d->gpd= NULL;
+				}
+			}
+			else if (sl->spacetype==SPACE_NODE) {
+				SpaceNode *snode= (SpaceNode *)sl;
+				if(snode->gpd) {
+					versions_gpencil_add_main(&main->gpencil, (ID *)snode->gpd, "GPencil Node");
+					snode->gpd= NULL;
+				}
+			}
+			else if (sl->spacetype==SPACE_SEQ) {
+				SpaceSeq *sseq= (SpaceSeq *)sl;
+				if(sseq->gpd) {
+					versions_gpencil_add_main(&main->gpencil, (ID *)sseq->gpd, "GPencil Node");
+					sseq->gpd= NULL;
+				}
+			}
+			else if (sl->spacetype==SPACE_IMAGE) {
+				SpaceImage *sima= (SpaceImage *)sl;
+				if(sima->gpd) {
+					versions_gpencil_add_main(&main->gpencil, (ID *)sima->gpd, "GPencil Image");
+					sima->gpd= NULL;
+				}
+			}
+		}
+	}		
+}
+
+
 
 static void do_versions(FileData *fd, Library *lib, Main *main)
 {
@@ -8748,8 +8809,10 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		Scene *sce;
 		Tex *tx;
 		
-		for(screen= main->screen.first; screen; screen= screen->id.next)
+		for(screen= main->screen.first; screen; screen= screen->id.next) {
 			do_versions_windowmanager_2_50(screen);
+			do_versions_gpencil_2_50(main, screen);
+		}
 		
 		/* old Animation System (using IPO's) needs to be converted to the new Animato system 
 		 * (NOTE: conversion code in blenkernel/intern/ipo.c for now)
