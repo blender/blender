@@ -194,7 +194,7 @@ void rna_def_scene_render_data(BlenderRNA *brna)
 		{11, "OVERSAMPLE_11", "11", ""},
 		{16, "OVERSAMPLE_16", "16", ""},
 		{0, NULL, NULL, NULL}};
-	
+		
 	static EnumPropertyItem field_order_items[] = {
 		{0, "FIELDS_EVENFIRST", "Even Fields First", ""},
 		{R_ODDFIELD, "FIELDS_ODDFIRST", "Odd Fields First", ""},
@@ -244,11 +244,29 @@ void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_range(prop, 1.0f, 200.0f);
 	RNA_def_property_ui_text(prop, "Pixel Aspect X", "Horizontal aspect ratio - for anamorphic or non-square pixel output");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
-
+	
 	prop= RNA_def_property(srna, "pixel_aspect_y", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "yasp");
 	RNA_def_property_range(prop, 1.0f, 200.0f);
 	RNA_def_property_ui_text(prop, "Pixel Aspect Y", "Vertical aspect ratio - for anamorphic or non-square pixel output");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+	
+	prop= RNA_def_property(srna, "quality", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "quality");
+	RNA_def_property_range(prop, 1, 100);
+	RNA_def_property_ui_text(prop, "Quality", "Quality setting for JPEG images, AVI Jpeg and SGI movies.");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+	
+	prop= RNA_def_property(srna, "fps", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "frs_sec");
+	RNA_def_property_range(prop, 1, 120);
+	RNA_def_property_ui_text(prop, "FPS", "Frames per second.");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+	
+	prop= RNA_def_property(srna, "fps_base", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "frs_sec_base");
+	RNA_def_property_range(prop, 0.1f, 120.0f);
+	RNA_def_property_ui_text(prop, "FPS Base", "Frames per second base");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	
 	prop= RNA_def_property(srna, "dither_intensity", PROP_FLOAT, PROP_NONE);
@@ -413,6 +431,21 @@ void rna_def_scene_render_data(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "free_image_textures", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "scemode", R_FREE_IMAGE);
 	RNA_def_property_ui_text(prop, "Free Image Textures", "Free all image texture from memory after render, to save memory before compositing.");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+	
+	prop= RNA_def_property(srna, "save_buffers", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "scemode", R_EXR_TILE_FILE);
+	RNA_def_property_ui_text(prop, "Save Buffers","Save tiles for all RenderLayers and used SceneNodes to files in the temp directory (saves memory, allows Full Sampling).");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+	
+	prop= RNA_def_property(srna, "full_sample", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "scemode", R_FULL_SAMPLE);
+	RNA_def_property_ui_text(prop, "Full Sample","Saves for every OSA sample the entire RenderLayer results (Higher quality sampling but slower).");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+	
+	prop= RNA_def_property(srna, "backbuf", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "bufflag", R_BACKBUF);
+	RNA_def_property_ui_text(prop, "Back Buffer", "Render backbuffer image");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 
 }

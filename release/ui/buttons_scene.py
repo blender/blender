@@ -28,6 +28,8 @@ class RENDER_PT_shading(RenderButtonsPanel):
 
 		layout.row()
 		layout.itemR(rd, "alpha_mode")
+		layout.row()
+		layout.itemR(rd, "free_image_textures")
 
 class RENDER_PT_image(RenderButtonsPanel):
 	__label__ = "Image"
@@ -47,9 +49,18 @@ class RENDER_PT_image(RenderButtonsPanel):
 		layout.itemR(rd, "resolution_y", text="SizeY")
 		layout.itemR(rd, "pixel_aspect_x", text="AspX")
 		layout.itemR(rd, "pixel_aspect_y", text="AspY")
-
+		
+		layout.row()
+		layout.itemR(rd, "quality")
+		
+		layout.row()
+		layout.itemR(rd, "placeholders")
+		layout.itemR(rd, "no_overwrite")
+		layout.itemR(rd, "file_extensions")
+		
 		layout.row()
 		layout.itemR(rd, "crop_to_border")
+		layout.itemR(rd, "save_buffers")
 
 class RENDER_PT_antialiasing(RenderButtonsPanel):
 	__label__ = "Anti-Aliasing"
@@ -67,6 +78,8 @@ class RENDER_PT_antialiasing(RenderButtonsPanel):
 		layout.column_flow()
 		layout.itemR(rd, "antialiasing", text="Enable")
 		layout.itemR(rd, "antialiasing_samples", text="Samples")
+		if (rd.save_buffers):
+			layout.itemR(rd, "full_sample")
 		layout.itemR(rd, "pixel_filter")
 		layout.itemR(rd, "filter_size")
 
@@ -91,6 +104,9 @@ class RENDER_PT_render(RenderButtonsPanel):
 		layout.itemR(scene, "start_frame", text="Start")
 		layout.itemR(scene, "end_frame", text="End")
 		layout.itemR(scene, "current_frame", text="Frame")
+		layout.row()
+		layout.itemR(rd, "fps")
+		layout.itemR(rd, "fps_base",text="/")
 
 		layout.row()
 		layout.itemR(rd, "do_composite")
@@ -101,6 +117,7 @@ class RENDER_PT_render(RenderButtonsPanel):
 
 		layout.row()
 		layout.itemR(rd, "resolution_percentage", text="Size ")
+		layout.row()
 		layout.itemR(rd, "dither_intensity")
 
 		layout.row()
@@ -108,9 +125,10 @@ class RENDER_PT_render(RenderButtonsPanel):
 		layout.itemR(rd, "parts_y")
 
 		layout.row()
-		layout.itemR(rd, "threads")
 		layout.itemR(rd, "threads_mode")
-
+		if (rd.threads_mode == 'THREADS_FIXED'):
+			layout.itemR(rd, "threads")
+		
 		layout.row()
 		layout.itemR(rd, "fields", text="Fields")
 		layout.itemR(rd, "field_order", text="Order")
@@ -121,9 +139,9 @@ class RENDER_PT_render(RenderButtonsPanel):
 		layout.row()
 		layout.itemR(rd, "border", text="Border Render")
 		layout.itemR(rd, "panorama")
+		layout.itemR(rd, "backbuf")
 
+bpy.types.register(RENDER_PT_render)
+bpy.types.register(RENDER_PT_antialiasing)
 bpy.types.register(RENDER_PT_shading)
 bpy.types.register(RENDER_PT_image)
-bpy.types.register(RENDER_PT_antialiasing)
-bpy.types.register(RENDER_PT_render)
-
