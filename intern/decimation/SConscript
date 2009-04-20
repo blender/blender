@@ -1,0 +1,8 @@
+#!/usr/bin/python
+Import ('env')
+
+sources = env.Glob('intern/*.cpp')
+
+incs = '. ../moto/include ../container ../memutil'
+
+env.BlenderLib ('bf_decimation', sources, Split(incs) , [], libtype=['core','common'], priority = [10, 20] )

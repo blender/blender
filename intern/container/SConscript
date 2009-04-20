@@ -1,0 +1,7 @@
+#!/usr/bin/python
+Import ('env')
+
+sources = env.Glob('intern/*.cpp')
+incs = '.'
+
+env.BlenderLib ('blender_CTR', sources, Split(incs) , [], libtype='intern', priority = 10 )

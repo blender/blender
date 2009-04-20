@@ -1,0 +1,30 @@
+#!/usr/bin/python
+Import ('env')
+
+sources = env.Glob('*.cpp')
+defs = []
+
+incs = '. #source/kernel/gen_system #intern/string #intern/guardedalloc'
+incs += ' #source/gameengine/Rasterizer/RAS_OpenGLRasterizer #intern/bmfont'
+incs += ' #intern/SoundSystem #intern/SoundSystem/include #intern/SoundSystem/openal'
+incs += ' #intern/SoundSystem/dummy #intern/SoundSystem/intern #source/gameengine/Converter'
+incs += ' #source/gameengine/BlenderRoutines #source/blender/imbuf'
+incs += ' #intern/moto/include #source/gameengine/Ketsji #source/gameengine/Ketsji/KXNetwork'
+incs += ' #source/blender/blenlib #source/blender/blenkernel #source/blender'
+incs += ' #source/blender/include #source/blender/makesdna #source/gameengine/Rasterizer'
+incs += ' #source/gameengine/Rasterizer/RAS_OpenGLRasterizer #source/gameengine/GameLogic'
+incs += ' #source/gameengine/Expressions #source/gameengine/Network #source/gameengine/SceneGraph'
+incs += ' #source/gameengine/Physics/common #source/gameengine/Physics/Bullet #source/gameengine/Physics/BlOde'
+incs += ' #source/gameengine/Physics/Dummy'
+incs += ' #source/gameengine/Network/LoopBackNetwork'
+incs += ' #source/blender/misc #source/blender/blenloader #source/blender/gpu'
+
+if env['WITH_BF_SOLID']:
+	incs += ' #source/gameengine/Physics/Sumo #source/gameengine/Physics/Sumo/Fuzzics/include'
+	incs += ' ' + env['BF_SOLID_INC']
+	defs.append('USE_SUMO_SOLID')
+
+incs += ' ' + env['BF_PYTHON_INC']
+incs += ' ' + env['BF_BULLET_INC']
+
+env.BlenderLib ( 'bf_converter', sources, Split(incs), defs, libtype=['game','player'], priority=[5,70] )

@@ -1,0 +1,245 @@
+Microsoft Visual Studio Solution File, Format Version 8.00
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "build_install_all", "build_install_all.vcproj", "{9C71A793-C177-4CAB-8EC5-923D500B39F8}"
+	ProjectSection(ProjectDependencies) = postProject
+		{F9850C15-FF0A-429E-9D47-89FB433C9BD8} = {F9850C15-FF0A-429E-9D47-89FB433C9BD8}
+		{D696C86B-0B53-4471-A50D-5B983A6FA4AD} = {D696C86B-0B53-4471-A50D-5B983A6FA4AD}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "solid", "..\..\solid\make\msvc_7_0\solid.vcproj", "{D696C86B-0B53-4471-A50D-5B983A6FA4AD}"
+	ProjectSection(ProjectDependencies) = postProject
+		{6461F05D-4698-47AB-A8E8-1CA2ACC9948B} = {6461F05D-4698-47AB-A8E8-1CA2ACC9948B}
+		{BAC615B0-F1AF-418B-8D23-A10FD8870D6A} = {BAC615B0-F1AF-418B-8D23-A10FD8870D6A}
+		{0112CAD5-3584-412A-A2E5-1315A00437B4} = {0112CAD5-3584-412A-A2E5-1315A00437B4}
+		{B83C6BED-11EC-46C8-AFFA-121EEDE94373} = {B83C6BED-11EC-46C8-AFFA-121EEDE94373}
+		{524264F4-DF21-4B79-847F-E7CA643ECD0B} = {524264F4-DF21-4B79-847F-E7CA643ECD0B}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "qhull", "..\..\qhull\make\msvc_7_0\qhull.vcproj", "{6461F05D-4698-47AB-A8E8-1CA2ACC9948B}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "convex", "..\..\solid\make\msvc_7_0\convex\convex.vcproj", "{524264F4-DF21-4B79-847F-E7CA643ECD0B}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "complex", "..\..\solid\make\msvc_7_0\complex\complex.vcproj", "{B83C6BED-11EC-46C8-AFFA-121EEDE94373}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "broad", "..\..\solid\make\msvc_7_0\broad\broad.vcproj", "{0112CAD5-3584-412A-A2E5-1315A00437B4}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ftgl_static_lib", "..\..\bFTGL\make\msvc_7_0\ftgl_static_lib.vcproj", "{F9850C15-FF0A-429E-9D47-89FB433C9BD8}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "verse", "..\..\verse\make\msvc_7_0\libverse.vcproj", "{F9850C15-FF0A-429E-9D47-89FB433C9BD8}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "verse_server", "..\..\verse\make\msvc_7_0\verse.vcproj", "{FC752464-F413-4D4F-842D-A5D3AA0E6A3D}"
+	ProjectSection(ProjectDependencies) = postProject
+		{F9850C15-FF0A-429E-9D47-89FB433C9BD8} = {F9850C15-FF0A-429E-9D47-89FB433C9BD8}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "bullet2", "..\..\bullet2\make\msvc_7_0\Bullet_vc7.vcproj", "{FFD3C64A-30E2-4BC7-BC8F-51818C320400}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "glew", "..\..\glew\make\msvc_7_0\glew_vc7.vcproj", "{BAC615B0-F1AF-418B-8D23-A10FD8870D6A}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfiguration) = preSolution
+		3D Plugin Debug = 3D Plugin Debug
+		3D Plugin Release = 3D Plugin Release
+		Blender Debug = Blender Debug
+		Blender Release = Blender Release
+		BlenderPlayer Debug = BlenderPlayer Debug
+		BlenderPlayer Release = BlenderPlayer Release
+		Debug = Debug
+		Release = Release
+	EndGlobalSection
+	GlobalSection(ProjectDependencies) = postSolution
+	EndGlobalSection
+	GlobalSection(ProjectConfiguration) = postSolution
+		{9C71A793-C177-4CAB-8EC5-923D500B39F8}.3D Plugin Debug.ActiveCfg = 3D Plugin Debug|Win32
+		{9C71A793-C177-4CAB-8EC5-923D500B39F8}.3D Plugin Debug.Build.0 = 3D Plugin Debug|Win32
+		{9C71A793-C177-4CAB-8EC5-923D500B39F8}.3D Plugin Release.ActiveCfg = 3D Plugin Release|Win32
+		{9C71A793-C177-4CAB-8EC5-923D500B39F8}.3D Plugin Release.Build.0 = 3D Plugin Release|Win32
+		{9C71A793-C177-4CAB-8EC5-923D500B39F8}.Blender Debug.ActiveCfg = Blender Debug|Win32
+		{9C71A793-C177-4CAB-8EC5-923D500B39F8}.Blender Debug.Build.0 = Blender Debug|Win32
+		{9C71A793-C177-4CAB-8EC5-923D500B39F8}.Blender Release.ActiveCfg = Blender Release|Win32
+		{9C71A793-C177-4CAB-8EC5-923D500B39F8}.Blender Release.Build.0 = Blender Release|Win32
+		{9C71A793-C177-4CAB-8EC5-923D500B39F8}.BlenderPlayer Debug.ActiveCfg = Blender Release|Win32
+		{9C71A793-C177-4CAB-8EC5-923D500B39F8}.BlenderPlayer Debug.Build.0 = Blender Release|Win32
+		{9C71A793-C177-4CAB-8EC5-923D500B39F8}.BlenderPlayer Release.ActiveCfg = Blender Release|Win32
+		{9C71A793-C177-4CAB-8EC5-923D500B39F8}.BlenderPlayer Release.Build.0 = Blender Release|Win32
+		{9C71A793-C177-4CAB-8EC5-923D500B39F8}.Debug.ActiveCfg = 3D Plugin Debug|Win32
+		{9C71A793-C177-4CAB-8EC5-923D500B39F8}.Debug.Build.0 = 3D Plugin Debug|Win32
+		{9C71A793-C177-4CAB-8EC5-923D500B39F8}.Release.ActiveCfg = 3D Plugin Release|Win32
+		{9C71A793-C177-4CAB-8EC5-923D500B39F8}.Release.Build.0 = 3D Plugin Release|Win32
+		{D696C86B-0B53-4471-A50D-5B983A6FA4AD}.3D Plugin Debug.ActiveCfg = 3D Plugin Debug|Win32
+		{D696C86B-0B53-4471-A50D-5B983A6FA4AD}.3D Plugin Debug.Build.0 = 3D Plugin Debug|Win32
+		{D696C86B-0B53-4471-A50D-5B983A6FA4AD}.3D Plugin Release.ActiveCfg = 3D Plugin Release|Win32
+		{D696C86B-0B53-4471-A50D-5B983A6FA4AD}.3D Plugin Release.Build.0 = 3D Plugin Release|Win32
+		{D696C86B-0B53-4471-A50D-5B983A6FA4AD}.Blender Debug.ActiveCfg = Blender Debug|Win32
+		{D696C86B-0B53-4471-A50D-5B983A6FA4AD}.Blender Debug.Build.0 = Blender Debug|Win32
+		{D696C86B-0B53-4471-A50D-5B983A6FA4AD}.Blender Release.ActiveCfg = Blender Release|Win32
+		{D696C86B-0B53-4471-A50D-5B983A6FA4AD}.Blender Release.Build.0 = Blender Release|Win32
+		{D696C86B-0B53-4471-A50D-5B983A6FA4AD}.BlenderPlayer Debug.ActiveCfg = Blender Release|Win32
+		{D696C86B-0B53-4471-A50D-5B983A6FA4AD}.BlenderPlayer Debug.Build.0 = Blender Release|Win32
+		{D696C86B-0B53-4471-A50D-5B983A6FA4AD}.BlenderPlayer Release.ActiveCfg = Blender Release|Win32
+		{D696C86B-0B53-4471-A50D-5B983A6FA4AD}.BlenderPlayer Release.Build.0 = Blender Release|Win32
+		{D696C86B-0B53-4471-A50D-5B983A6FA4AD}.Debug.ActiveCfg = 3D Plugin Debug|Win32
+		{D696C86B-0B53-4471-A50D-5B983A6FA4AD}.Debug.Build.0 = 3D Plugin Debug|Win32
+		{D696C86B-0B53-4471-A50D-5B983A6FA4AD}.Release.ActiveCfg = 3D Plugin Release|Win32
+		{D696C86B-0B53-4471-A50D-5B983A6FA4AD}.Release.Build.0 = 3D Plugin Release|Win32
+		{6461F05D-4698-47AB-A8E8-1CA2ACC9948B}.3D Plugin Debug.ActiveCfg = 3D Plugin Debug|Win32
+		{6461F05D-4698-47AB-A8E8-1CA2ACC9948B}.3D Plugin Debug.Build.0 = 3D Plugin Debug|Win32
+		{6461F05D-4698-47AB-A8E8-1CA2ACC9948B}.3D Plugin Release.ActiveCfg = 3D Plugin Release|Win32
+		{6461F05D-4698-47AB-A8E8-1CA2ACC9948B}.3D Plugin Release.Build.0 = 3D Plugin Release|Win32
+		{6461F05D-4698-47AB-A8E8-1CA2ACC9948B}.Blender Debug.ActiveCfg = Blender Debug|Win32
+		{6461F05D-4698-47AB-A8E8-1CA2ACC9948B}.Blender Debug.Build.0 = Blender Debug|Win32
+		{6461F05D-4698-47AB-A8E8-1CA2ACC9948B}.Blender Release.ActiveCfg = Blender Release|Win32
+		{6461F05D-4698-47AB-A8E8-1CA2ACC9948B}.Blender Release.Build.0 = Blender Release|Win32
+		{6461F05D-4698-47AB-A8E8-1CA2ACC9948B}.BlenderPlayer Debug.ActiveCfg = Blender Debug|Win32
+		{6461F05D-4698-47AB-A8E8-1CA2ACC9948B}.BlenderPlayer Debug.Build.0 = Blender Debug|Win32
+		{6461F05D-4698-47AB-A8E8-1CA2ACC9948B}.BlenderPlayer Release.ActiveCfg = Blender Debug|Win32
+		{6461F05D-4698-47AB-A8E8-1CA2ACC9948B}.BlenderPlayer Release.Build.0 = Blender Debug|Win32
+		{6461F05D-4698-47AB-A8E8-1CA2ACC9948B}.Debug.ActiveCfg = 3D Plugin Debug|Win32
+		{6461F05D-4698-47AB-A8E8-1CA2ACC9948B}.Debug.Build.0 = 3D Plugin Debug|Win32
+		{6461F05D-4698-47AB-A8E8-1CA2ACC9948B}.Release.ActiveCfg = 3D Plugin Release|Win32
+		{6461F05D-4698-47AB-A8E8-1CA2ACC9948B}.Release.Build.0 = 3D Plugin Release|Win32
+		{524264F4-DF21-4B79-847F-E7CA643ECD0B}.3D Plugin Debug.ActiveCfg = 3D Plugin Debug|Win32
+		{524264F4-DF21-4B79-847F-E7CA643ECD0B}.3D Plugin Debug.Build.0 = 3D Plugin Debug|Win32
+		{524264F4-DF21-4B79-847F-E7CA643ECD0B}.3D Plugin Release.ActiveCfg = 3D Plugin Release|Win32
+		{524264F4-DF21-4B79-847F-E7CA643ECD0B}.3D Plugin Release.Build.0 = 3D Plugin Release|Win32
+		{524264F4-DF21-4B79-847F-E7CA643ECD0B}.Blender Debug.ActiveCfg = Blender Debug|Win32
+		{524264F4-DF21-4B79-847F-E7CA643ECD0B}.Blender Debug.Build.0 = Blender Debug|Win32
+		{524264F4-DF21-4B79-847F-E7CA643ECD0B}.Blender Release.ActiveCfg = Blender Release|Win32
+		{524264F4-DF21-4B79-847F-E7CA643ECD0B}.Blender Release.Build.0 = Blender Release|Win32
+		{524264F4-DF21-4B79-847F-E7CA643ECD0B}.BlenderPlayer Debug.ActiveCfg = Blender Release|Win32
+		{524264F4-DF21-4B79-847F-E7CA643ECD0B}.BlenderPlayer Debug.Build.0 = Blender Release|Win32
+		{524264F4-DF21-4B79-847F-E7CA643ECD0B}.BlenderPlayer Release.ActiveCfg = Blender Release|Win32
+		{524264F4-DF21-4B79-847F-E7CA643ECD0B}.BlenderPlayer Release.Build.0 = Blender Release|Win32
+		{524264F4-DF21-4B79-847F-E7CA643ECD0B}.Debug.ActiveCfg = 3D Plugin Debug|Win32
+		{524264F4-DF21-4B79-847F-E7CA643ECD0B}.Debug.Build.0 = 3D Plugin Debug|Win32
+		{524264F4-DF21-4B79-847F-E7CA643ECD0B}.Release.ActiveCfg = 3D Plugin Release|Win32
+		{524264F4-DF21-4B79-847F-E7CA643ECD0B}.Release.Build.0 = 3D Plugin Release|Win32
+		{B83C6BED-11EC-46C8-AFFA-121EEDE94373}.3D Plugin Debug.ActiveCfg = 3D Plugin Debug|Win32
+		{B83C6BED-11EC-46C8-AFFA-121EEDE94373}.3D Plugin Debug.Build.0 = 3D Plugin Debug|Win32
+		{B83C6BED-11EC-46C8-AFFA-121EEDE94373}.3D Plugin Release.ActiveCfg = 3D Plugin Release|Win32
+		{B83C6BED-11EC-46C8-AFFA-121EEDE94373}.3D Plugin Release.Build.0 = 3D Plugin Release|Win32
+		{B83C6BED-11EC-46C8-AFFA-121EEDE94373}.Blender Debug.ActiveCfg = Blender Debug|Win32
+		{B83C6BED-11EC-46C8-AFFA-121EEDE94373}.Blender Debug.Build.0 = Blender Debug|Win32
+		{B83C6BED-11EC-46C8-AFFA-121EEDE94373}.Blender Release.ActiveCfg = Blender Release|Win32
+		{B83C6BED-11EC-46C8-AFFA-121EEDE94373}.Blender Release.Build.0 = Blender Release|Win32
+		{B83C6BED-11EC-46C8-AFFA-121EEDE94373}.BlenderPlayer Debug.ActiveCfg = Blender Debug|Win32
+		{B83C6BED-11EC-46C8-AFFA-121EEDE94373}.BlenderPlayer Debug.Build.0 = Blender Debug|Win32
+		{B83C6BED-11EC-46C8-AFFA-121EEDE94373}.BlenderPlayer Release.ActiveCfg = Blender Debug|Win32
+		{B83C6BED-11EC-46C8-AFFA-121EEDE94373}.BlenderPlayer Release.Build.0 = Blender Debug|Win32
+		{B83C6BED-11EC-46C8-AFFA-121EEDE94373}.Debug.ActiveCfg = 3D Plugin Debug|Win32
+		{B83C6BED-11EC-46C8-AFFA-121EEDE94373}.Debug.Build.0 = 3D Plugin Debug|Win32
+		{B83C6BED-11EC-46C8-AFFA-121EEDE94373}.Release.ActiveCfg = 3D Plugin Release|Win32
+		{B83C6BED-11EC-46C8-AFFA-121EEDE94373}.Release.Build.0 = 3D Plugin Release|Win32
+		{0112CAD5-3584-412A-A2E5-1315A00437B4}.3D Plugin Debug.ActiveCfg = 3D Plugin Debug|Win32
+		{0112CAD5-3584-412A-A2E5-1315A00437B4}.3D Plugin Debug.Build.0 = 3D Plugin Debug|Win32
+		{0112CAD5-3584-412A-A2E5-1315A00437B4}.3D Plugin Release.ActiveCfg = 3D Plugin Release|Win32
+		{0112CAD5-3584-412A-A2E5-1315A00437B4}.3D Plugin Release.Build.0 = 3D Plugin Release|Win32
+		{0112CAD5-3584-412A-A2E5-1315A00437B4}.Blender Debug.ActiveCfg = Blender Debug|Win32
+		{0112CAD5-3584-412A-A2E5-1315A00437B4}.Blender Debug.Build.0 = Blender Debug|Win32
+		{0112CAD5-3584-412A-A2E5-1315A00437B4}.Blender Release.ActiveCfg = Blender Release|Win32
+		{0112CAD5-3584-412A-A2E5-1315A00437B4}.Blender Release.Build.0 = Blender Release|Win32
+		{0112CAD5-3584-412A-A2E5-1315A00437B4}.BlenderPlayer Debug.ActiveCfg = Blender Debug|Win32
+		{0112CAD5-3584-412A-A2E5-1315A00437B4}.BlenderPlayer Debug.Build.0 = Blender Debug|Win32
+		{0112CAD5-3584-412A-A2E5-1315A00437B4}.BlenderPlayer Release.ActiveCfg = Blender Debug|Win32
+		{0112CAD5-3584-412A-A2E5-1315A00437B4}.BlenderPlayer Release.Build.0 = Blender Debug|Win32
+		{0112CAD5-3584-412A-A2E5-1315A00437B4}.Debug.ActiveCfg = 3D Plugin Debug|Win32
+		{0112CAD5-3584-412A-A2E5-1315A00437B4}.Debug.Build.0 = 3D Plugin Debug|Win32
+		{0112CAD5-3584-412A-A2E5-1315A00437B4}.Release.ActiveCfg = 3D Plugin Release|Win32
+		{0112CAD5-3584-412A-A2E5-1315A00437B4}.Release.Build.0 = 3D Plugin Release|Win32
+		{F9850C15-FF0A-429E-9D47-89FB433C9BD8}.3D Plugin Debug.ActiveCfg = 3D Plugin Debug|Win32
+		{F9850C15-FF0A-429E-9D47-89FB433C9BD8}.3D Plugin Debug.Build.0 = 3D Plugin Debug|Win32
+		{F9850C15-FF0A-429E-9D47-89FB433C9BD8}.3D Plugin Release.ActiveCfg = 3D Plugin Release|Win32
+		{F9850C15-FF0A-429E-9D47-89FB433C9BD8}.3D Plugin Release.Build.0 = 3D Plugin Release|Win32
+		{F9850C15-FF0A-429E-9D47-89FB433C9BD8}.Blender Debug.ActiveCfg = Blender Debug|Win32
+		{F9850C15-FF0A-429E-9D47-89FB433C9BD8}.Blender Debug.Build.0 = Blender Debug|Win32
+		{F9850C15-FF0A-429E-9D47-89FB433C9BD8}.Blender Release.ActiveCfg = Blender Release|Win32
+		{F9850C15-FF0A-429E-9D47-89FB433C9BD8}.Blender Release.Build.0 = Blender Release|Win32
+		{F9850C15-FF0A-429E-9D47-89FB433C9BD8}.BlenderPlayer Debug.ActiveCfg = Blender Release|Win32
+		{F9850C15-FF0A-429E-9D47-89FB433C9BD8}.BlenderPlayer Debug.Build.0 = Blender Release|Win32
+		{F9850C15-FF0A-429E-9D47-89FB433C9BD8}.BlenderPlayer Release.ActiveCfg = Blender Release|Win32
+		{F9850C15-FF0A-429E-9D47-89FB433C9BD8}.BlenderPlayer Release.Build.0 = Blender Release|Win32
+		{F9850C15-FF0A-429E-9D47-89FB433C9BD8}.Debug.ActiveCfg = 3D Plugin Debug|Win32
+		{F9850C15-FF0A-429E-9D47-89FB433C9BD8}.Debug.Build.0 = 3D Plugin Debug|Win32
+		{F9850C15-FF0A-429E-9D47-89FB433C9BD8}.Release.ActiveCfg = 3D Plugin Release|Win32
+		{F9850C15-FF0A-429E-9D47-89FB433C9BD8}.Release.Build.0 = 3D Plugin Release|Win32
+		{F9850C15-FF0A-429E-9D47-89FB433C9BD8}.3D Plugin Debug.ActiveCfg = 3D Plugin Debug|Win32
+		{F9850C15-FF0A-429E-9D47-89FB433C9BD8}.3D Plugin Debug.Build.0 = 3D Plugin Debug|Win32
+		{F9850C15-FF0A-429E-9D47-89FB433C9BD8}.3D Plugin Release.ActiveCfg = 3D Plugin Release|Win32
+		{F9850C15-FF0A-429E-9D47-89FB433C9BD8}.3D Plugin Release.Build.0 = 3D Plugin Release|Win32
+		{F9850C15-FF0A-429E-9D47-89FB433C9BD8}.Blender Debug.ActiveCfg = Blender Debug|Win32
+		{F9850C15-FF0A-429E-9D47-89FB433C9BD8}.Blender Debug.Build.0 = Blender Debug|Win32
+		{F9850C15-FF0A-429E-9D47-89FB433C9BD8}.Blender Release.ActiveCfg = Blender Release|Win32
+		{F9850C15-FF0A-429E-9D47-89FB433C9BD8}.Blender Release.Build.0 = Blender Release|Win32
+		{F9850C15-FF0A-429E-9D47-89FB433C9BD8}.BlenderPlayer Debug.ActiveCfg = Blender Release|Win32
+		{F9850C15-FF0A-429E-9D47-89FB433C9BD8}.BlenderPlayer Debug.Build.0 = Blender Release|Win32
+		{F9850C15-FF0A-429E-9D47-89FB433C9BD8}.BlenderPlayer Release.ActiveCfg = Blender Release|Win32
+		{F9850C15-FF0A-429E-9D47-89FB433C9BD8}.BlenderPlayer Release.Build.0 = Blender Release|Win32
+		{F9850C15-FF0A-429E-9D47-89FB433C9BD8}.Debug.ActiveCfg = 3D Plugin Debug|Win32
+		{F9850C15-FF0A-429E-9D47-89FB433C9BD8}.Debug.Build.0 = 3D Plugin Debug|Win32
+		{F9850C15-FF0A-429E-9D47-89FB433C9BD8}.Release.ActiveCfg = 3D Plugin Release|Win32
+		{F9850C15-FF0A-429E-9D47-89FB433C9BD8}.Release.Build.0 = 3D Plugin Release|Win32
+		{FC752464-F413-4D4F-842D-A5D3AA0E6A3D}.3D Plugin Debug.ActiveCfg = 3D Plugin Debug|Win32
+		{FC752464-F413-4D4F-842D-A5D3AA0E6A3D}.3D Plugin Release.ActiveCfg = 3D Plugin Release|Win32
+		{FC752464-F413-4D4F-842D-A5D3AA0E6A3D}.Blender Debug.ActiveCfg = Blender Debug|Win32
+		{FC752464-F413-4D4F-842D-A5D3AA0E6A3D}.Blender Debug.Build.0 = Blender Debug|Win32
+		{FC752464-F413-4D4F-842D-A5D3AA0E6A3D}.Blender Release.ActiveCfg = Blender Release|Win32
+		{FC752464-F413-4D4F-842D-A5D3AA0E6A3D}.Blender Release.Build.0 = Blender Release|Win32
+		{FC752464-F413-4D4F-842D-A5D3AA0E6A3D}.BlenderPlayer Debug.ActiveCfg = BlenderPlayer Debug|Win32
+		{FC752464-F413-4D4F-842D-A5D3AA0E6A3D}.BlenderPlayer Release.ActiveCfg = BlenderPlayer Release|Win32
+		{FC752464-F413-4D4F-842D-A5D3AA0E6A3D}.Debug.ActiveCfg = BlenderPlayer Debug|Win32
+		{FC752464-F413-4D4F-842D-A5D3AA0E6A3D}.Debug.Build.0 = BlenderPlayer Debug|Win32
+		{FC752464-F413-4D4F-842D-A5D3AA0E6A3D}.Release.ActiveCfg = BlenderPlayer Release|Win32
+		{FC752464-F413-4D4F-842D-A5D3AA0E6A3D}.Release.Build.0 = BlenderPlayer Release|Win32
+		{FFD3C64A-30E2-4BC7-BC8F-51818C320400}.3D Plugin Debug.ActiveCfg = 3D Plugin Debug|Win32
+		{FFD3C64A-30E2-4BC7-BC8F-51818C320400}.3D Plugin Debug.Build.0 = 3D Plugin Debug|Win32
+		{FFD3C64A-30E2-4BC7-BC8F-51818C320400}.3D Plugin Release.ActiveCfg = 3D Plugin Release|Win32
+		{FFD3C64A-30E2-4BC7-BC8F-51818C320400}.3D Plugin Release.Build.0 = 3D Plugin Release|Win32
+		{FFD3C64A-30E2-4BC7-BC8F-51818C320400}.Blender Debug.ActiveCfg = Blender Debug|Win32
+		{FFD3C64A-30E2-4BC7-BC8F-51818C320400}.Blender Debug.Build.0 = Blender Debug|Win32
+		{FFD3C64A-30E2-4BC7-BC8F-51818C320400}.Blender Release.ActiveCfg = Blender Release|Win32
+		{FFD3C64A-30E2-4BC7-BC8F-51818C320400}.Blender Release.Build.0 = Blender Release|Win32
+		{FFD3C64A-30E2-4BC7-BC8F-51818C320400}.BlenderPlayer Debug.ActiveCfg = Blender Release|Win32
+		{FFD3C64A-30E2-4BC7-BC8F-51818C320400}.BlenderPlayer Debug.Build.0 = Blender Release|Win32
+		{FFD3C64A-30E2-4BC7-BC8F-51818C320400}.BlenderPlayer Release.ActiveCfg = Blender Release|Win32
+		{FFD3C64A-30E2-4BC7-BC8F-51818C320400}.BlenderPlayer Release.Build.0 = Blender Release|Win32
+		{FFD3C64A-30E2-4BC7-BC8F-51818C320400}.Debug.ActiveCfg = 3D Plugin Debug|Win32
+		{FFD3C64A-30E2-4BC7-BC8F-51818C320400}.Debug.Build.0 = 3D Plugin Debug|Win32
+		{FFD3C64A-30E2-4BC7-BC8F-51818C320400}.Release.ActiveCfg = 3D Plugin Release|Win32
+		{FFD3C64A-30E2-4BC7-BC8F-51818C320400}.Release.Build.0 = 3D Plugin Release|Win32
+		{BAC615B0-F1AF-418B-8D23-A10FD8870D6A}.3D Plugin Debug.ActiveCfg = Blender Release|Win32
+		{BAC615B0-F1AF-418B-8D23-A10FD8870D6A}.3D Plugin Debug.Build.0 = Blender Release|Win32
+		{BAC615B0-F1AF-418B-8D23-A10FD8870D6A}.3D Plugin Release.ActiveCfg = Blender Release|Win32
+		{BAC615B0-F1AF-418B-8D23-A10FD8870D6A}.3D Plugin Release.Build.0 = Blender Release|Win32
+		{BAC615B0-F1AF-418B-8D23-A10FD8870D6A}.Blender Debug.ActiveCfg = Blender Debug|Win32
+		{BAC615B0-F1AF-418B-8D23-A10FD8870D6A}.Blender Debug.Build.0 = Blender Debug|Win32
+		{BAC615B0-F1AF-418B-8D23-A10FD8870D6A}.Blender Release.ActiveCfg = Blender Release|Win32
+		{BAC615B0-F1AF-418B-8D23-A10FD8870D6A}.Blender Release.Build.0 = Blender Release|Win32
+		{BAC615B0-F1AF-418B-8D23-A10FD8870D6A}.BlenderPlayer Debug.ActiveCfg = Blender Release|Win32
+		{BAC615B0-F1AF-418B-8D23-A10FD8870D6A}.BlenderPlayer Debug.Build.0 = Blender Release|Win32
+		{BAC615B0-F1AF-418B-8D23-A10FD8870D6A}.BlenderPlayer Release.ActiveCfg = Blender Release|Win32
+		{BAC615B0-F1AF-418B-8D23-A10FD8870D6A}.BlenderPlayer Release.Build.0 = Blender Release|Win32
+		{BAC615B0-F1AF-418B-8D23-A10FD8870D6A}.Debug.ActiveCfg = Blender Debug|Win32
+		{BAC615B0-F1AF-418B-8D23-A10FD8870D6A}.Debug.Build.0 = Blender Debug|Win32
+		{BAC615B0-F1AF-418B-8D23-A10FD8870D6A}.Release.ActiveCfg = Blender Release|Win32
+		{BAC615B0-F1AF-418B-8D23-A10FD8870D6A}.Release.Build.0 = Blender Release|Win32
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+	EndGlobalSection
+	GlobalSection(ExtensibilityAddIns) = postSolution
+	EndGlobalSection
+EndGlobal

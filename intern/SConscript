@@ -1,0 +1,29 @@
+#!/usr/bin/python
+Import ('env')
+
+SConscript(['SoundSystem/SConscript',
+            'string/SConscript',
+            'ghost/SConscript',
+            'guardedalloc/SConscript',
+            'bmfont/SConscript',
+            'moto/SConscript',
+            'container/SConscript',
+            'memutil/SConscript/',
+            'decimation/SConscript',
+            'iksolver/SConscript',
+            'boolop/SConscript',
+            'opennl/SConscript'])
+
+# NEW_CSG was intended for intern/csg, but
+# getting it to compile is difficult
+# intern/bsp has been used anyway, so
+# perhaps get rid of intern/csg?
+NEW_CSG='false'
+
+if not env['BF_NO_ELBEEM']:
+    SConscript(['elbeem/SConscript'])
+
+if NEW_CSG=='false':
+    SConscript(['bsp/SConscript'])
+else:
+    SConscript(['csg/SConscript'])

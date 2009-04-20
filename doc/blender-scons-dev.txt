@@ -1,0 +1,194 @@
+$Id$
+
+
+    Internals of Blenders SCons scripts
+    ===================================
+
+    Scope
+    ------
+    This document describes the architecture of the SCons scripts for
+    Blender. An overview of available functionality and how to modify,
+    extend and maintain the system.
+
+    Audience
+    --------
+    This document is for developers who need to modify the system,
+    ie. add or remove new libraries, add new arguments for SCons, etc.
+
+    Files and their meaning
+    -----------------------
+
+    The main entry point for the build system is the SConstruct-file in
+    $BLENDERHOME. This file creates the first BlenderEnvironment to work
+    with, reads in options, and sets up some directory structures. Further
+    it defines some targets.
+
+    Platform-specific configurations are in $BLENDERHOME/config. The
+    filenames have the form (platform)-config.py, where platform one of:
+
+        * darwin
+        * linux2
+        * win32-mingw
+        * win32-vc
+
+    The user can override options by creating a file
+    $BLENDERHOME/user-config.py. It can have any option from
+    (platform)-config.py. Options in this file will override the platform
+    defaults.
+
+    Much of the actual functionality can be found in the python scripts
+    in the directory $BLENDERHOME/tools, with Blender.py defining the
+    bulk of the functionality. btools.py has some helper functions, and
+    bcolors.py is for the terminal colours. mstoolkit.py and crossmingw.py
+    are modules which set up SCons for the MS VC++ 2003 toolkit and
+    the cross-compile toolset for compiling Windows binaries on Linux
+    respectively. Note: the cross-compile doesn't work yet for Blender,
+    but is added in preparation for having it work in the distant future.
+
+    BlenderEnvironment
+    ------------------
+
+    The module Blender.py implements a BlenderEnvironment class, derived
+    from the SConsEnvironment of SCons. This is done to wrap some often
+    used functionality. The BlenderEnvironment offers two important
+    wrappers: BlenderProg() and BlenderLib(). The first one is used to
+    specify a binary to be built, the second one is used to specify what
+    static library is built from given sources.
+
+    Build a static library called "somelib". The system handles library
+    pre- and suffixes automatically, you don't need to bother yourself
+    with these details:
+
+        env = BlenderEnvironment(ENV = os.environ) # create an environment
+        env.BlenderLib(libname="somelib", sources=['list.c','with.c','sources.c'],
+                        includes=['/list/with/include/paths', '.', '..'],
+                        defines=['LIST_WITH', 'CPP_DEFINES', 'TO_USE'],
+                        libtype=['blender', 'common'] # this is a list with libtypes. Normally you don't
+                                                      # need to specify this, but if you encounter linking
+                                                      # problems you may need this
+                        priority=[10, 20]             # Priorities, list as long as libtype, priority per type
+                        compileflags=['/O2']          # List of compile flags needed for this particular library.
+                                                      # used only in rare cases, like SOLID, qhull and Bullet
+                        )
+
+    There should be no need to ever add an extra BlenderProg to the
+    existing ones in SConstruct, see that file for its use, and Blender.py
+    for its implementation.
+
+    The new system works so that using these wrappers, has all libraries
+    (and programs) register with a central repository. This means that
+    adding a new library is as easy as just creating the new SConscript
+    and making sure that it gets called properly. Linking and such will
+    then be handled automatically.
+
+    If you want that adding new source files for a certain library
+    is handled automatically, you can use the Glob() function from
+    the BlenderEnvironment to create lists of needed files. See
+    $BLENDERHOME/source/blender/src/SConscript for an example. Keep in
+    mind that this will add any new file that complies to the rule given
+    to the Glob() function. There are a few (external) libraries with
+    which this can't be used, because it'd take files that shouldn't be
+    compiled, and create subsequentially problems during the linking stage
+    (like SOLID, qhull, Bullet).
+
+    Linking order and priorities
+    ----------------------------
+
+    As shown above, you can give a library a priority in a certain
+    group. If you need to make sure that a Blender library is linked
+    before or after another one, you can give it a priority. To debug
+    the priorities us BF_PRIORITYLIST=1 on the command-line while running
+    a build.
+
+    % scons BF_PRIORITYLIST=1
+
+    This will give a list with values suggested by the system. Make
+    changes to all SConscripts in question to reflect or change the
+    values given by this command. ALWAYS check this after adding a new
+    internal, external library or core library, and make sure there are
+    sane values. You can use large and negative numbers to test with,
+    but after you've got a working linking order, do change the system
+    to reflect BF_PRIORITYLIST values.
+
+    Also, if you find that a library needs to be given multiple times to
+    the linker, you can do that by giving a python list with the names
+    of the available library types. They are currently:
+
+        B.possible_types = ['core', 'common', 'blender', 'intern',
+                            'international', 'game', 'game2',
+                            'player', 'player2', 'system']
+
+    More groups can be added, but that should be carefully considered,
+    as it may lead to large-scale changes. The current amount of libraries
+    should suffice.
+
+    The central repository is utilised in the SConstruct in two
+    ways. Firstly, it is used to determine the order of all static
+    libraries to link into the main Blender executable. Secondly, it
+    is used to keep track of all built binaries and their location,
+    so that they can be properly copied to BF_INSTALLDIR.
+
+    The libraries can be fetched in their priority order with
+    create_blender_liblist from Blender.py, see the SConstruct on how
+    it is used.
+
+    The program repository is the global list program_list from
+    Blender.py. See SConstruct for its usage.
+
+
+    Adding a new option and libraries
+    ---------------------------------
+
+    Lets say we want to add WITH_BF_NEWLIB, which will
+    enable or disable a new feature library with sources in
+    $BLENDERHOME/source/blender/newlib. This 'newlib' needs external
+    headers from a 3rd party library '3rdparty'. For this we want to
+    add a set of options BF_3RDPARTY, BF_3RDPARTY_INC, BF_3RDPARTY_LIB,
+    BF_3RDPARTY_LIBPATH:
+
+        1) Add all mentiond options to all (platform)-config.py
+        files. WITH_BF_NEWLIB is a boolean option ('true', 'false'),
+        the rest are strings with paths and library names. See the
+        OpenEXR options for example.
+
+        2) Add all options to the argument checking function
+        validate_arguments() in btools.py. See again OpenEXR options
+        for example.
+
+        3) Add all options to the option reading function read_opts()
+        in btools.py. See again OpenEXR options for example. All default
+        values can be empty, as the actual default values are in the
+        (platform)-config.py files.
+
+        4) Add BF_3RDPARTY_LIB to the function setup_syslibs()
+        and BF_3RDPARTY_LIBPATH to the function setup_staticlibs()
+        in Blender.py
+
+    At this stage we have prepared all option setting and linking needs,
+    but we still need to add in the compiling of the 'newlib'.
+
+        5) Create a SConscript in $BLENDERHOME/source/blender/newlib. Look
+        at ie. $BLENDERHOME/source/blender/src/SConscript for
+        template. The new SConscript will register the new library
+        like so:
+
+            env.BlenderLib(libname='newlib', sources=sourcefiles, includes=incs) # the rest of the arguments get defaults = empty lists and values
+
+        6) Edit $BLENDERHOME/source/blender/SConscript with the following
+        addition:
+
+            if env['WITH_BF_NEWLIB'] == 1:
+                SConscript(['newlib/SConscript'])
+
+    After this you can see if this works by trying to build:
+
+            % scons WITH_BF_NEWLIB=1  # build with newlib
+            % scons WITH_BF_NEWLIB=0  # disable newlib
+
+    This is all what should be needed. Changing the library name doesn't
+    need changes elsewhere in the system, as it is handled automatically
+    with the central library repository.
+
+    Enjoy the new system!
+
+    /Nathan Letwory (jesterKing)

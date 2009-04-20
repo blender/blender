@@ -1,0 +1,456 @@
+ode/src/array.o: \
+  ode/src/array.cpp \
+  include/ode/config.h \
+  include/ode/memory.h \
+  include/ode/error.h \
+  ode/src/array.h
+ode/src/error.o: \
+  ode/src/error.cpp \
+  include/ode/config.h \
+  include/ode/error.h
+ode/src/memory.o: \
+  ode/src/memory.cpp \
+  include/ode/config.h \
+  include/ode/memory.h \
+  include/ode/error.h
+ode/src/obstack.o: \
+  ode/src/obstack.cpp \
+  include/ode/common.h \
+  include/ode/config.h \
+  include/ode/error.h \
+  include/ode/memory.h \
+  ode/src/obstack.h \
+  ode/src/objects.h \
+  include/ode/mass.h \
+  ode/src/array.h
+ode/src/odemath.o: \
+  ode/src/odemath.cpp \
+  include/ode/common.h \
+  include/ode/config.h \
+  include/ode/error.h \
+  include/ode/odemath.h
+ode/src/matrix.o: \
+  ode/src/matrix.cpp \
+  include/ode/common.h \
+  include/ode/config.h \
+  include/ode/error.h \
+  include/ode/matrix.h
+ode/src/misc.o: \
+  ode/src/misc.cpp \
+  include/ode/config.h \
+  include/ode/misc.h \
+  include/ode/common.h \
+  include/ode/error.h \
+  include/ode/matrix.h
+ode/src/rotation.o: \
+  ode/src/rotation.cpp \
+  include/ode/rotation.h \
+  include/ode/common.h \
+  include/ode/config.h \
+  include/ode/error.h
+ode/src/mass.o: \
+  ode/src/mass.cpp \
+  include/ode/config.h \
+  include/ode/mass.h \
+  include/ode/common.h \
+  include/ode/error.h \
+  include/ode/odemath.h \
+  include/ode/matrix.h
+ode/src/ode.o: \
+  ode/src/ode.cpp \
+  ode/src/objects.h \
+  include/ode/common.h \
+  include/ode/config.h \
+  include/ode/error.h \
+  include/ode/memory.h \
+  include/ode/mass.h \
+  ode/src/array.h \
+  include/ode/ode.h \
+  include/ode/contact.h \
+  include/ode/odemath.h \
+  include/ode/matrix.h \
+  include/ode/timer.h \
+  include/ode/rotation.h \
+  include/ode/space.h \
+  include/ode/geom.h \
+  include/ode/misc.h \
+  include/ode/objects.h \
+  include/ode/odecpp.h \
+  ode/src/joint.h \
+  ode/src/obstack.h \
+  ode/src/step.h
+ode/src/step.o: \
+  ode/src/step.cpp \
+  ode/src/objects.h \
+  include/ode/common.h \
+  include/ode/config.h \
+  include/ode/error.h \
+  include/ode/memory.h \
+  include/ode/mass.h \
+  ode/src/array.h \
+  ode/src/joint.h \
+  include/ode/contact.h \
+  ode/src/obstack.h \
+  include/ode/odemath.h \
+  include/ode/rotation.h \
+  include/ode/timer.h \
+  include/ode/matrix.h \
+  ode/src/lcp.h
+ode/src/lcp.o: \
+  ode/src/lcp.cpp \
+  include/ode/common.h \
+  include/ode/config.h \
+  include/ode/error.h \
+  ode/src/lcp.h \
+  include/ode/matrix.h \
+  include/ode/misc.h \
+  ode/src/mat.h \
+  include/ode/timer.h
+ode/src/joint.o: \
+  ode/src/joint.cpp \
+  include/ode/odemath.h \
+  include/ode/common.h \
+  include/ode/config.h \
+  include/ode/error.h \
+  include/ode/rotation.h \
+  include/ode/matrix.h \
+  ode/src/joint.h \
+  ode/src/objects.h \
+  include/ode/memory.h \
+  include/ode/mass.h \
+  ode/src/array.h \
+  include/ode/contact.h \
+  ode/src/obstack.h
+ode/src/space.o: \
+  ode/src/space.cpp \
+  include/ode/common.h \
+  include/ode/config.h \
+  include/ode/error.h \
+  include/ode/space.h \
+  include/ode/geom.h \
+  include/ode/contact.h \
+  include/ode/memory.h \
+  ode/src/objects.h \
+  include/ode/mass.h \
+  ode/src/array.h \
+  ode/src/geom_internal.h
+ode/src/geom.o: \
+  ode/src/geom.cpp \
+  include/ode/common.h \
+  include/ode/config.h \
+  include/ode/error.h \
+  include/ode/geom.h \
+  include/ode/space.h \
+  include/ode/contact.h \
+  include/ode/rotation.h \
+  include/ode/odemath.h \
+  include/ode/memory.h \
+  include/ode/misc.h \
+  include/ode/objects.h \
+  include/ode/mass.h \
+  include/ode/matrix.h \
+  ode/src/objects.h \
+  ode/src/array.h \
+  ode/src/geom_internal.h
+ode/src/timer.o: \
+  ode/src/timer.cpp \
+  include/ode/common.h \
+  include/ode/config.h \
+  include/ode/error.h \
+  include/ode/timer.h
+ode/src/mat.o: \
+  ode/src/mat.cpp \
+  include/ode/config.h \
+  include/ode/misc.h \
+  include/ode/common.h \
+  include/ode/error.h \
+  include/ode/matrix.h \
+  include/ode/memory.h \
+  ode/src/mat.h
+ode/src/testing.o: \
+  ode/src/testing.cpp \
+  include/ode/config.h \
+  include/ode/misc.h \
+  include/ode/common.h \
+  include/ode/error.h \
+  include/ode/memory.h \
+  ode/src/testing.h \
+  ode/src/array.h
+ode/src/fastldlt.o: \
+  ode/src/fastldlt.c \
+  include/ode/matrix.h \
+  include/ode/common.h \
+  include/ode/config.h \
+  include/ode/error.h
+ode/src/fastlsolve.o: \
+  ode/src/fastlsolve.c \
+  include/ode/matrix.h \
+  include/ode/common.h \
+  include/ode/config.h \
+  include/ode/error.h
+ode/src/fastltsolve.o: \
+  ode/src/fastltsolve.c \
+  include/ode/matrix.h \
+  include/ode/common.h \
+  include/ode/config.h \
+  include/ode/error.h
+ode/src/fastdot.o: \
+  ode/src/fastdot.c \
+  include/ode/matrix.h \
+  include/ode/common.h \
+  include/ode/config.h \
+  include/ode/error.h
+drawstuff/src/drawstuff.o: \
+  drawstuff/src/drawstuff.cpp \
+  include/ode/config.h \
+  include/drawstuff/drawstuff.h \
+  include/drawstuff/version.h \
+  drawstuff/src/internal.h
+drawstuff/src/x11.o: \
+  drawstuff/src/x11.cpp \
+  include/ode/config.h \
+  include/drawstuff/drawstuff.h \
+  include/drawstuff/version.h \
+  drawstuff/src/internal.h
+ode/test/test_ode.o: \
+  ode/test/test_ode.cpp \
+  include/ode/ode.h \
+  include/ode/config.h \
+  include/ode/contact.h \
+  include/ode/common.h \
+  include/ode/error.h \
+  include/ode/memory.h \
+  include/ode/odemath.h \
+  include/ode/matrix.h \
+  include/ode/timer.h \
+  include/ode/rotation.h \
+  include/ode/mass.h \
+  include/ode/space.h \
+  include/ode/geom.h \
+  include/ode/misc.h \
+  include/ode/objects.h \
+  include/ode/odecpp.h
+ode/test/test_chain2.o: \
+  ode/test/test_chain2.cpp \
+  include/ode/ode.h \
+  include/ode/config.h \
+  include/ode/contact.h \
+  include/ode/common.h \
+  include/ode/error.h \
+  include/ode/memory.h \
+  include/ode/odemath.h \
+  include/ode/matrix.h \
+  include/ode/timer.h \
+  include/ode/rotation.h \
+  include/ode/mass.h \
+  include/ode/space.h \
+  include/ode/geom.h \
+  include/ode/misc.h \
+  include/ode/objects.h \
+  include/ode/odecpp.h \
+  include/drawstuff/drawstuff.h \
+  include/drawstuff/version.h
+ode/test/test_hinge.o: \
+  ode/test/test_hinge.cpp \
+  include/ode/ode.h \
+  include/ode/config.h \
+  include/ode/contact.h \
+  include/ode/common.h \
+  include/ode/error.h \
+  include/ode/memory.h \
+  include/ode/odemath.h \
+  include/ode/matrix.h \
+  include/ode/timer.h \
+  include/ode/rotation.h \
+  include/ode/mass.h \
+  include/ode/space.h \
+  include/ode/geom.h \
+  include/ode/misc.h \
+  include/ode/objects.h \
+  include/ode/odecpp.h \
+  include/drawstuff/drawstuff.h \
+  include/drawstuff/version.h
+ode/test/test_slider.o: \
+  ode/test/test_slider.cpp \
+  include/ode/ode.h \
+  include/ode/config.h \
+  include/ode/contact.h \
+  include/ode/common.h \
+  include/ode/error.h \
+  include/ode/memory.h \
+  include/ode/odemath.h \
+  include/ode/matrix.h \
+  include/ode/timer.h \
+  include/ode/rotation.h \
+  include/ode/mass.h \
+  include/ode/space.h \
+  include/ode/geom.h \
+  include/ode/misc.h \
+  include/ode/objects.h \
+  include/ode/odecpp.h \
+  include/drawstuff/drawstuff.h \
+  include/drawstuff/version.h
+ode/test/test_collision.o: \
+  ode/test/test_collision.cpp \
+  include/ode/ode.h \
+  include/ode/config.h \
+  include/ode/contact.h \
+  include/ode/common.h \
+  include/ode/error.h \
+  include/ode/memory.h \
+  include/ode/odemath.h \
+  include/ode/matrix.h \
+  include/ode/timer.h \
+  include/ode/rotation.h \
+  include/ode/mass.h \
+  include/ode/space.h \
+  include/ode/geom.h \
+  include/ode/misc.h \
+  include/ode/objects.h \
+  include/ode/odecpp.h \
+  include/drawstuff/drawstuff.h \
+  include/drawstuff/version.h
+ode/test/test_boxstack.o: \
+  ode/test/test_boxstack.cpp \
+  include/ode/ode.h \
+  include/ode/config.h \
+  include/ode/contact.h \
+  include/ode/common.h \
+  include/ode/error.h \
+  include/ode/memory.h \
+  include/ode/odemath.h \
+  include/ode/matrix.h \
+  include/ode/timer.h \
+  include/ode/rotation.h \
+  include/ode/mass.h \
+  include/ode/space.h \
+  include/ode/geom.h \
+  include/ode/misc.h \
+  include/ode/objects.h \
+  include/ode/odecpp.h \
+  include/drawstuff/drawstuff.h \
+  include/drawstuff/version.h
+ode/test/test_buggy.o: \
+  ode/test/test_buggy.cpp \
+  include/ode/ode.h \
+  include/ode/config.h \
+  include/ode/contact.h \
+  include/ode/common.h \
+  include/ode/error.h \
+  include/ode/memory.h \
+  include/ode/odemath.h \
+  include/ode/matrix.h \
+  include/ode/timer.h \
+  include/ode/rotation.h \
+  include/ode/mass.h \
+  include/ode/space.h \
+  include/ode/geom.h \
+  include/ode/misc.h \
+  include/ode/objects.h \
+  include/ode/odecpp.h \
+  include/drawstuff/drawstuff.h \
+  include/drawstuff/version.h
+ode/test/test_joints.o: \
+  ode/test/test_joints.cpp \
+  include/ode/ode.h \
+  include/ode/config.h \
+  include/ode/contact.h \
+  include/ode/common.h \
+  include/ode/error.h \
+  include/ode/memory.h \
+  include/ode/odemath.h \
+  include/ode/matrix.h \
+  include/ode/timer.h \
+  include/ode/rotation.h \
+  include/ode/mass.h \
+  include/ode/space.h \
+  include/ode/geom.h \
+  include/ode/misc.h \
+  include/ode/objects.h \
+  include/ode/odecpp.h \
+  include/drawstuff/drawstuff.h \
+  include/drawstuff/version.h
+ode/test/test_space.o: \
+  ode/test/test_space.cpp \
+  include/ode/ode.h \
+  include/ode/config.h \
+  include/ode/contact.h \
+  include/ode/common.h \
+  include/ode/error.h \
+  include/ode/memory.h \
+  include/ode/odemath.h \
+  include/ode/matrix.h \
+  include/ode/timer.h \
+  include/ode/rotation.h \
+  include/ode/mass.h \
+  include/ode/space.h \
+  include/ode/geom.h \
+  include/ode/misc.h \
+  include/ode/objects.h \
+  include/ode/odecpp.h \
+  include/drawstuff/drawstuff.h \
+  include/drawstuff/version.h
+ode/test/test_I.o: \
+  ode/test/test_I.cpp \
+  include/ode/ode.h \
+  include/ode/config.h \
+  include/ode/contact.h \
+  include/ode/common.h \
+  include/ode/error.h \
+  include/ode/memory.h \
+  include/ode/odemath.h \
+  include/ode/matrix.h \
+  include/ode/timer.h \
+  include/ode/rotation.h \
+  include/ode/mass.h \
+  include/ode/space.h \
+  include/ode/geom.h \
+  include/ode/misc.h \
+  include/ode/objects.h \
+  include/ode/odecpp.h \
+  include/drawstuff/drawstuff.h \
+  include/drawstuff/version.h
+ode/test/test_step.o: \
+  ode/test/test_step.cpp \
+  include/ode/ode.h \
+  include/ode/config.h \
+  include/ode/contact.h \
+  include/ode/common.h \
+  include/ode/error.h \
+  include/ode/memory.h \
+  include/ode/odemath.h \
+  include/ode/matrix.h \
+  include/ode/timer.h \
+  include/ode/rotation.h \
+  include/ode/mass.h \
+  include/ode/space.h \
+  include/ode/geom.h \
+  include/ode/misc.h \
+  include/ode/objects.h \
+  include/ode/odecpp.h \
+  include/drawstuff/drawstuff.h \
+  include/drawstuff/version.h
+ode/test/test_friction.o: \
+  ode/test/test_friction.cpp \
+  include/ode/ode.h \
+  include/ode/config.h \
+  include/ode/contact.h \
+  include/ode/common.h \
+  include/ode/error.h \
+  include/ode/memory.h \
+  include/ode/odemath.h \
+  include/ode/matrix.h \
+  include/ode/timer.h \
+  include/ode/rotation.h \
+  include/ode/mass.h \
+  include/ode/space.h \
+  include/ode/geom.h \
+  include/ode/misc.h \
+  include/ode/objects.h \
+  include/ode/odecpp.h \
+  include/drawstuff/drawstuff.h \
+  include/drawstuff/version.h
+drawstuff/dstest/dstest.o: \
+  drawstuff/dstest/dstest.cpp \
+  include/drawstuff/drawstuff.h \
+  include/drawstuff/version.h

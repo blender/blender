@@ -1,0 +1,231 @@
+$Id$
+
+    Blenders SCons build scripts
+    ============================
+
+    Introduction
+    ------------
+
+    Since the beginning of 2004 Blender has had the SCons system as a
+    build option. SCons is a Python-based, accurate build system. The
+    scripts that were implemented in the first iteration worked, but
+    the system grew quickly into such a state that maintaining it became
+    a nightmare, and adding new features was just horrible, leading to
+    many hacks without much sense in the overall structure.
+
+    The rewrite has been waiting for a long time. Jonathan Jacobs provided
+    a first overhaul of the scripts, which I used in the first phase of
+    the rewrite. To make the system as maintainable as possible I made
+    some radical changes, but thanks go to Jonathan for providing me
+    with the patch to get started.
+
+    This document describes the usage of the new SCons scripts. The
+    inner workings are described in blender-scons-dev.txt.
+
+    Building Blender
+    ----------------
+
+    To build Blender with the SCons scripts you need a full Python
+    install, version 2.4 or later (http://www.python.org). We already provide
+    a scons-local installation, which can be found in the scons/ subdirectory.
+    This document uses the scons-local installation for its examples.
+
+    Check from the page
+    http://www.blender.org/development/building-blender/getting-dependencies/
+    that you have all dependencies needed for building Blender. Note that for
+    windows many of these dependencies already come in the lib/windows module
+    from CVS.
+
+    In the base directory of the sources (from now on called $BLENDERHOME)
+    you'll see a file named SConstruct. This is the entry point for the
+    SCons build system. In a terminal, change to this directory. To just
+    build, start the SCons entry script on Windows (will be used for the remainder
+    of this document):
+
+        % python scons\scons.py
+
+    On a Unix-compatible system it would be
+
+        % python ./scons/scons.py
+
+    This will start the build process with default values. Depending
+    on your platform you may see colour in your output (non-Windows
+    machines). In the the beginning an overview of targets and arguments
+    from the command-line is given, then all libraries and binaries to
+    build are configured.
+
+    The build uses BF_BUILDDIR to build into and BF_INSTALLDIR to
+    finally copy all needed files to get a proper setup. The BF_DOCDIR is
+    used to generate Blender Python documentation files to. These
+    variables have default values for every platform in
+    $BLENDERHOME/config/(platform)-config.py. After the build successfully
+    completes, you can find everything you need in BF_INSTALLDIR.
+
+    If you want to create the installer package of Blender on Windows you'll
+    need to install nullsoft scriptable install system from http://nsis.sf.net.
+    As an extra dependency, you need the MoreInfo plugin too. The creation of
+    the installer is tied into the build process and can be triggered with:
+
+        % python scons\scons.py nsis
+
+
+    Configuring the build
+    ---------------------
+
+    The default values for your platform can be found in the directory
+    $BLENDERHOME/config. Your platform specific defaults are in
+    (platform)-config.py, where platform is one of:
+
+        - linux2, for machines running Linux
+        - win32-vc, for Windows machines, compiling with a Microsoft compiler
+        - win32-mingw, for Windows machines, compiling with the MingW compiler
+        - darwin, for OS X machines
+        (TBD: add cygwin, solaris and freebsd support)
+
+    These files you will normally not change. If you need to override
+    a default value, make a file called  $BLENDERHOME/user-config.py, and copy
+    settings from the config/(platform)-config.py that you want to change. Don't
+    copy the entire file (unless explicitely stated in the configuration file),
+    because you may not get updated options you don't change yourself, which may
+    result in build errors.
+
+    You can use BF_CONFIG argument to override the default user-config.py
+    check. This is just like the user-config.py, but just with another name:
+
+        % python scons\scons.py BF_CONFIG=myownsettings
+
+    If you want to quickly test a new setting, you can give the option
+    also on the command-line:
+
+        % python scons\scons.py BF_BUILDDIR=../mybuilddir WITH_BF_OPENEXR=0
+
+    This command sets the build directory to BF_BUILDDIR and disables
+    OpenEXR support.
+
+    If you need to know what can be set through the command-line, run
+    scons with -h:
+
+        % python scons\scons.py -h
+
+    This command will print a long list with settable options and what
+    every option means. Many of the default values will be empty, and
+    from a fresh checkout without a user-config.py the actual values
+    are the defaults as per $BLENDERHOME/config/(platform)-config.py
+    (unless you have overridden any of them in your
+    $BLENDERHOME/user-config.py).
+
+    NOTE: The best way to avoid confusion is the
+    copy $BLENDERHOME/config/(platform)-config.py to
+    $BLENDERHOME/user-config.py. You should NEVER have to modify
+    $BLENDERHOME/config/(platform)-config.py
+
+    Configuring the output
+    ----------------------
+
+    This rewrite features a cleaner output during the build process. If
+    you need to see the full command-line for compiles, then you can
+    change that behaviour. Also the use of colours can be changed:
+
+        % python scons\scons.py BF_FANCY=0
+
+    This will disable the use of colours.
+
+        % python scons\scons.py BF_QUIET=0
+
+    This will give the old, noisy output. Every command-line per
+    compile is printed out in its full glory. This is very useful when
+    debugging problems with compiling, because you can see what the
+    included paths are, what defines are given on the command-line,
+    what compiler switches are used, etc.
+
+    Compiling Only Some Libraries
+    -----------------------------
+    
+    Our implementation now has support for specifying a list of libraries that are
+    exclusively compiled, ignoring all other libraries.  This is invoked 
+    with the BF_QUICK arguments; for example:
+    
+        % python scons\scons.py BF_QUICK=src,bf_blenkernel
+    
+    Note that this not the same as passing a list of folders as in the 
+    makefile's "quicky" command.  In Scons, all of Blender's code modules
+    are in their own static library; this corresponds to one-lib-per-folder 
+    in some cases (especially in blender/source/blender).
+    
+    To obtain a list of the libraries, simple fire up scons and CTRL-C out once 
+    it finishes configuring (and printing to the console) the library list.
+    
+    Compiling Libraries With Debug Profiling
+    ----------------------------------------
+    
+    Scons has support for specifying a list of libraries that are compiled
+    with debug profiling enabled.  This is implemented in two commands:
+    BF_QUICKDEBUG which is a command-line argument and BF_DEBUG_LIBS, which goes
+    in your user-config.py
+    
+    BF_QUICKDEBUG is similar to BF_QUICK:
+    
+        % python scons\scons.py BF_QUICKDEBUG=src,bf_blenkernel,some-other-lib
+    
+    To use BF_DEBUG_LIBS, put something like the following in you user-config.py:
+    
+        BF_DEBUG_LIBS = ['bf_blenlib', 'src', 'some_lib']
+        
+    For instructions on how to find the names of the libraries (folders) you 
+    wish to use, see the above section.  Note that the command BF_DEBUG 
+    (see below) will override these settings and compile ALL of Blender with
+    debug symbols.  Also note that BF_QUICKDEBUG and BF_DEBUG_LIBS are combined;
+    for example, setting BF_QUICKDEBUG won't overwrite the contents of BF_DEBUG_LIBS.
+
+    Supported toolset
+    -----------------
+
+    WINDOWS
+
+        * msvc, this is a full install of Microsoft Visual C++. You'll
+        likely have the .NET Framework SDK, Platform SDK and DX9 SDK
+        installed * mstoolkit, this is the free MS VC++ 2003 Toolkit. You
+        need to verify you have also the SDKs installed as mentioned
+        for msvc.  * mingw, this is a minimal MingW install. TBD: write
+        proper instructions on getting needed packages.
+
+    On Windows with all of the three toolset installed you need to
+    specify what toolset to use
+
+        % python scons\scons.py BF_TOOLSET=msvc
+        % python scons\scons.py BF_TOOLSET=mingw
+
+    LINUX and OS X
+
+    Currently only the default toolsets are supported for these platforms,
+    so nothing special needs to be told to SCons when building. The
+    defaults should work fine in most cases.
+
+    Examples
+    --------
+
+    Build Blender with the defaults:
+
+        % python scons\scons.py
+
+    Build Blender, but disable OpenEXR support:
+
+        % python scons\scons.py WITH_BF_OPENEXR=0
+
+    Build Blender, enable debug symbols:
+
+        % python scons\scons.py BF_DEBUG=1
+
+    Build Blender, install to different directory:
+
+        % python scons\scons.py BF_INSTALLDIR=../myown/installdir
+
+    Build Blender in ../myown/builddir and install to ../myown/installdir:
+
+        % python scons\scons.py BF_BUILDDIR=../myown/builddir BF_INSTALLDIR=../myown/installdir
+
+    Clean BF_BUILDDIR:
+
+        % python scons\scons.py clean
+
+    /Nathan Letwory (jesterKing)

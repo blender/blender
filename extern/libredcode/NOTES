@@ -1,0 +1,23 @@
+This is a redcode decoder written solely by looking at some
+R3D files that are floating around on the web.
+
+This decoder works with the files I tested, but I don't give
+any guarantee (especially, if RED decides to change the
+file format).
+
+That said: I found it a really nice idea of them, to make
+such a clear and comprehensible file layout.
+
+Choosing JPEG2000 as an encoding format and the way, they
+did YCbCr encoding of the sensor data is simply brilliant.
+
+My approach of decoding the sensor data is probably not
+so brilliant, but seems to work rather nicely (and sharply!).
+
+If someone finds a better way and/or RED decides to release
+specification, just go ahead and feel free to change it!
+
+Until that happens: simply enjoy opening RED footage within Blender!
+
+-- Peter Schlaile, June 2008
+

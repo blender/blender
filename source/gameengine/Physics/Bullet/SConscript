@@ -1,0 +1,27 @@
+#!/usr/bin/python
+Import ('env')
+
+sources = 'CcdPhysicsEnvironment.cpp CcdPhysicsController.cpp CcdGraphicController.cpp'
+
+incs = '. ../common'
+incs += ' #source/kernel/gen_system'
+incs += ' #intern/string'
+incs += ' #intern/moto/include'
+incs += ' #extern/glew/include'
+incs += ' #source/gameengine/Rasterizer'
+incs += ' #source/gameengine/Ketsji'
+incs += ' #source/gameengine/Expressions'
+incs += ' #source/gameengine/GameLogic'
+incs += ' #source/gameengine/SceneGraph'
+incs += ' #source/blender/makesdna'
+incs += ' #intern/SoundSystem'
+
+incs += ' ' + env['BF_BULLET_INC']
+incs += ' ' + env['BF_PYTHON_INC']
+
+cxxflags = []
+if env['OURPLATFORM']=='win32-vc':
+	cxxflags.append ('/GR')
+	cxxflags.append ('/O2')
+
+env.BlenderLib ( 'bf_bullet', Split(sources), Split(incs), [], libtype=['game','player'], priority=[15,90], cxx_compileflags=cxxflags )

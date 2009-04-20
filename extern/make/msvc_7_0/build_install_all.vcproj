@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="Windows-1252"?>
+<VisualStudioProject
+	ProjectType="Visual C++"
+	Version="7.10"
+	Name="build_install_all"
+	ProjectGUID="{9C71A793-C177-4CAB-8EC5-923D500B39F8}"
+	RootNamespace="build_install_all"
+	Keyword="ManagedCProj">
+	<Platforms>
+		<Platform
+			Name="Win32"/>
+	</Platforms>
+	<Configurations>
+		<Configuration
+			Name="Blender Debug|Win32"
+			OutputDirectory="..\..\..\..\build\msvc_7\extern\debug"
+			IntermediateDirectory="..\..\..\..\build\msvc_7\extern\debug"
+			ConfigurationType="10"
+			CharacterSet="2"
+			ManagedExtensions="TRUE">
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+		</Configuration>
+		<Configuration
+			Name="Blender Release|Win32"
+			OutputDirectory="..\..\..\..\build\msvc_7\extern"
+			IntermediateDirectory="..\..\..\..\build\msvc_7\extern"
+			ConfigurationType="10"
+			CharacterSet="2"
+			ManagedExtensions="TRUE">
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+		</Configuration>
+		<Configuration
+			Name="3D Plugin Release|Win32"
+			OutputDirectory="..\..\..\..\build\msvc_7\extern\mtdll"
+			IntermediateDirectory="..\..\..\..\build\msvc_7\extern\mtdll"
+			ConfigurationType="10"
+			CharacterSet="2"
+			ManagedExtensions="TRUE">
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+		</Configuration>
+		<Configuration
+			Name="3D Plugin Debug|Win32"
+			OutputDirectory="..\..\..\..\build\msvc_7\extern\mtdll\debug"
+			IntermediateDirectory="..\..\..\..\build\msvc_7\extern\mtdll\debug"
+			ConfigurationType="10"
+			CharacterSet="2"
+			ManagedExtensions="TRUE">
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+		</Configuration>
+	</Configurations>
+	<References>
+	</References>
+	<Files>
+	</Files>
+	<Globals>
+	</Globals>
+</VisualStudioProject>

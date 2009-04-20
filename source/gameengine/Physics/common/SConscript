@@ -1,0 +1,13 @@
+#!/usr/bin/python
+Import ('env')
+
+sources = 'PHY_IMotionState.cpp PHY_IController.cpp PHY_IPhysicsController.cpp PHY_IGraphicController.cpp PHY_IPhysicsEnvironment.cpp PHY_IVehicle.cpp'
+
+incs = '. ../Dummy #intern/moto/include'
+
+cxxflags = []
+if env['OURPLATFORM']=='win32-vc':
+	cxxflags.append ('/GR')
+	cxxflags.append ('/O2')
+
+env.BlenderLib ( 'bf_common', Split(sources), Split(incs), [], libtype=['game', 'game2','player'], priority=[20, 35, 95], cxx_compileflags = cxxflags )

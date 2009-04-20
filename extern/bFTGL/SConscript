@@ -1,0 +1,12 @@
+#!/usr/bin/python
+import sys
+import os
+
+Import('env')
+
+incs = 'include src ' + env['BF_FREETYPE_INC'] + ' ' + env['BF_OPENGL_INC']
+defs = ''
+
+sources = env.Glob('src/*.cpp')
+
+env.BlenderLib ( 'extern_ftgl', sources, Split(incs), Split(defs), libtype=['international','player'], priority=[5, 210])

@@ -1,0 +1,292 @@
+<?xml version="1.0" encoding="Windows-1252"?>
+<VisualStudioProject
+	ProjectType="Visual C++"
+	Version="7.10"
+	Name="container"
+	SccProjectName=""
+	SccLocalPath="">
+	<Platforms>
+		<Platform
+			Name="Win32"/>
+	</Platforms>
+	<Configurations>
+		<Configuration
+			Name="Blender Release|Win32"
+			OutputDirectory="..\..\..\..\..\build\msvc_7\intern\container"
+			IntermediateDirectory="..\..\..\..\..\build\msvc_7\intern\container"
+			ConfigurationType="4"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				InlineFunctionExpansion="2"
+				PreprocessorDefinitions="WIN32,NDEBUG,_LIB"
+				StringPooling="TRUE"
+				RuntimeLibrary="0"
+				EnableFunctionLevelLinking="TRUE"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\..\build\msvc_7\intern\container\container.pch"
+				AssemblerListingLocation="..\..\..\..\..\build\msvc_7\intern\container\"
+				ObjectFile="..\..\..\..\..\build\msvc_7\intern\container\"
+				ProgramDataBaseFileName="..\..\..\..\..\build\msvc_7\intern\container\"
+				WarningLevel="2"
+				SuppressStartupBanner="TRUE"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="..\..\..\..\..\build\msvc_7\libs\intern\libcontainer.lib"
+				SuppressStartupBanner="TRUE"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"
+				Description="Copying CTR files library to lib tree"
+				CommandLine="ECHO Copying header files
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\intern\container\include MKDIR ..\..\..\..\..\build\msvc_7\intern\container\include
+XCOPY /Y ..\..\*.h ..\..\..\..\..\build\msvc_7\intern\container\include
+ECHO Done
+"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="NDEBUG"
+				Culture="1043"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="Blender Debug|Win32"
+			OutputDirectory="..\..\..\..\..\build\msvc_7\intern\container\debug"
+			IntermediateDirectory="..\..\..\..\..\build\msvc_7\intern\container\debug"
+			ConfigurationType="4"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="0"
+				PreprocessorDefinitions="WIN32,_DEBUG,_LIB"
+				BasicRuntimeChecks="3"
+				RuntimeLibrary="1"
+				BufferSecurityCheck="TRUE"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\..\build\msvc_7\intern\container\debug\container.pch"
+				AssemblerListingLocation="..\..\..\..\..\build\msvc_7\intern\container\debug\"
+				ObjectFile="..\..\..\..\..\build\msvc_7\intern\container\debug\"
+				ProgramDataBaseFileName="..\..\..\..\..\build\msvc_7\intern\container\debug\"
+				WarningLevel="2"
+				SuppressStartupBanner="TRUE"
+				DebugInformationFormat="3"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="..\..\..\..\..\build\msvc_7\libs\intern\debug\libcontainer.lib"
+				SuppressStartupBanner="TRUE"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"
+				Description="Copying CTR files library (debug target) to lib tree"
+				CommandLine="ECHO Copying header files
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\intern\container\include MKDIR ..\..\..\..\..\build\msvc_7\intern\container\include
+XCOPY /Y ..\..\*.h ..\..\..\..\..\build\msvc_7\intern\container\include
+ECHO Done
+"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="_DEBUG"
+				Culture="1043"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="3DPlugin Release|Win32"
+			OutputDirectory="..\..\..\..\..\build\msvc_7\intern\container\mtdll"
+			IntermediateDirectory="..\..\..\..\..\build\msvc_7\intern\container\mtdll"
+			ConfigurationType="4"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				InlineFunctionExpansion="2"
+				PreprocessorDefinitions="WIN32,NDEBUG,_LIB"
+				StringPooling="TRUE"
+				RuntimeLibrary="2"
+				EnableFunctionLevelLinking="TRUE"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\..\build\msvc_7\intern\container\mtdll\container.pch"
+				AssemblerListingLocation="..\..\..\..\..\build\msvc_7\intern\container\mtdll\"
+				ObjectFile="..\..\..\..\..\build\msvc_7\intern\container\mtdll\"
+				ProgramDataBaseFileName="..\..\..\..\..\build\msvc_7\intern\container\mtdll\"
+				WarningLevel="2"
+				SuppressStartupBanner="TRUE"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="..\..\..\..\..\build\msvc_7\libs\intern\mtdll\libcontainer.lib"
+				SuppressStartupBanner="TRUE"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"
+				Description="Copying CTR files library to lib tree"
+				CommandLine="ECHO Copying header files
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\intern\container\include MKDIR ..\..\..\..\..\build\msvc_7\intern\container\include
+XCOPY /Y ..\..\*.h ..\..\..\..\..\build\msvc_7\intern\container\include
+ECHO Done
+"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="NDEBUG"
+				Culture="1043"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="3DPlugin Debug|Win32"
+			OutputDirectory="..\..\..\..\..\build\msvc_7\intern\container\mtdll\debug"
+			IntermediateDirectory="..\..\..\..\..\build\msvc_7\intern\container\mtdll\debug"
+			ConfigurationType="4"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="0"
+				PreprocessorDefinitions="WIN32,_DEBUG,_LIB"
+				BasicRuntimeChecks="3"
+				RuntimeLibrary="3"
+				BufferSecurityCheck="TRUE"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\..\build\msvc_7\intern\container\mtdll\debug\container.pch"
+				AssemblerListingLocation="..\..\..\..\..\build\msvc_7\intern\container\mtdll\debug\"
+				ObjectFile="..\..\..\..\..\build\msvc_7\intern\container\mtdll\debug\"
+				ProgramDataBaseFileName="..\..\..\..\..\build\msvc_7\intern\container\mtdll\debug\"
+				WarningLevel="2"
+				SuppressStartupBanner="TRUE"
+				DebugInformationFormat="3"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="..\..\..\..\..\build\msvc_7\libs\intern\mtdll\debug\libcontainer.lib"
+				SuppressStartupBanner="TRUE"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"
+				Description="Copying CTR files library (debug target) to lib tree"
+				CommandLine="ECHO Copying header files
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\intern\container\include MKDIR ..\..\..\..\..\build\msvc_7\intern\container\include
+XCOPY /Y ..\..\*.h ..\..\..\..\..\build\msvc_7\intern\container\include
+ECHO Done
+"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="_DEBUG"
+				Culture="1043"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+	</Configurations>
+	<References>
+	</References>
+	<Files>
+		<Filter
+			Name="intern"
+			Filter="">
+			<File
+				RelativePath="..\..\intern\CTR_List.cpp">
+				<FileConfiguration
+					Name="Blender Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						AdditionalIncludeDirectories="../extern,../../;$(NoInherit)"
+						CompileAs="0"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Blender Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						AdditionalIncludeDirectories="../../;$(NoInherit)"
+						CompileAs="0"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="3DPlugin Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						AdditionalIncludeDirectories="../extern,../../;$(NoInherit)"
+						CompileAs="0"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="3DPlugin Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						AdditionalIncludeDirectories="../../;$(NoInherit)"
+						CompileAs="0"/>
+				</FileConfiguration>
+			</File>
+		</Filter>
+		<File
+			RelativePath="..\..\CTR_List.h">
+		</File>
+		<File
+			RelativePath="..\..\CTR_Map.h">
+		</File>
+		<File
+			RelativePath="..\..\CTR_TaggedIndex.h">
+		</File>
+		<File
+			RelativePath="..\..\CTR_TaggedSetOps.h">
+		</File>
+		<File
+			RelativePath="..\..\CTR_UHeap.h">
+		</File>
+	</Files>
+	<Globals>
+	</Globals>
+</VisualStudioProject>

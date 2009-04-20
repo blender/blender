@@ -1,0 +1,10 @@
+#!/usr/bin/python
+Import ('env')
+
+sources = env.Glob('intern/*.cpp')
+
+incs = '. intern'
+incs += ' ' + env['BF_OPENGL_INC']
+defs = ''
+
+env.BlenderLib ('bf_bmfont', sources, Split(incs), Split(defs), libtype=['intern','player'], priority = [20, 185] )

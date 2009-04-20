@@ -1,0 +1,24 @@
+THIS_DIR=./
+DEL_CMD=rm -f
+CC=CC
+OBJ=.o
+C_FLAGS=-c
+C_INC=-I
+C_OUT=-o 
+C_EXEOUT=-o 
+C_DEF=-D
+C_OPT=-O
+AR=ar rc 
+RANLIB=
+LIB_PREFIX=lib
+LIB_SUFFIX=.a
+LINK_OPENGL=-L/usr/X11R6/lib -L/usr/X11/lib -L/usr/lib/X11R6 -L/usr/lib/X11 -lX11 -lGL -lGLU
+LINK_MATH=-lm
+
+ifeq ($(BUILD),release)
+OPT=2
+endif
+
+ifeq ($(BUILD),debug)
+OPT=0
+endif

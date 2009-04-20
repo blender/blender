@@ -1,0 +1,45 @@
+#!/bin/sh
+
+VER=0.03
+# VER=`date +%y%m%d`
+
+if [ ! -f ode/src/ode.cpp ]; then
+  echo "run this from the ODE root directory"
+  exit 1
+fi
+
+ODE_DIR=`pwd`
+
+cd /tmp
+if [ -d /tmp/ode-$VER ]; then
+  echo "remove /tmp/ode-$VER first"
+  exit 1
+fi
+
+mkdir /tmp/ode-$VER
+cp -av $ODE_DIR/* /tmp/ode-$VER
+find /tmp/ode-$VER -type d -name CVS -exec rm -rf {} \; -print
+find /tmp/ode-$VER -type f -name *~ -exec rm -f {} \; -print
+rmdir /tmp/ode-$VER/build
+
+cd /tmp/ode-$VER
+make clean
+cp config/user-settings.example config/user-settings
+
+cd ode/doc
+./doccer ode.doc > ode.html
+
+cd /tmp/ode-$VER
+echo -e "\n\nMake any modifications you want, then exit the shell:"
+bash
+
+cd /tmp
+tar cfvz ode-$VER.tgz ode-$VER
+rm -rf /tmp/ode-$VER
+
+echo -e "\ntype <return> to exit or 'c' to copy to q12"
+read Q
+if [ $Q ]; then
+  echo copying...
+  scp1 ode-$VER.tgz q12.org:~/q12/ode/release/
+fi

@@ -1,0 +1,28 @@
+Microsoft Visual Studio Solution File, Format Version 7.00
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "makesdnacompact", "makesdnacompact.vcproj", "{14705769-A148-4DCC-B2C5-AFE8C20824E4}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "blendercompactNG", "blendercompactNG.vcproj", "{CB70E20D-75A2-497B-AD6E-60F3989F0622}"
+EndProject
+Global
+	GlobalSection(SolutionConfiguration) = preSolution
+		ConfigName.0 = Debug
+		ConfigName.1 = Release
+	EndGlobalSection
+	GlobalSection(ProjectDependencies) = postSolution
+		{CB70E20D-75A2-497B-AD6E-60F3989F0622}.0 = {14705769-A148-4DCC-B2C5-AFE8C20824E4}
+	EndGlobalSection
+	GlobalSection(ProjectConfiguration) = postSolution
+		{14705769-A148-4DCC-B2C5-AFE8C20824E4}.Debug.ActiveCfg = Debug|Win32
+		{14705769-A148-4DCC-B2C5-AFE8C20824E4}.Debug.Build.0 = Debug|Win32
+		{14705769-A148-4DCC-B2C5-AFE8C20824E4}.Release.ActiveCfg = Release|Win32
+		{14705769-A148-4DCC-B2C5-AFE8C20824E4}.Release.Build.0 = Release|Win32
+		{CB70E20D-75A2-497B-AD6E-60F3989F0622}.Debug.ActiveCfg = Debug|Win32
+		{CB70E20D-75A2-497B-AD6E-60F3989F0622}.Debug.Build.0 = Debug|Win32
+		{CB70E20D-75A2-497B-AD6E-60F3989F0622}.Release.ActiveCfg = Release|Win32
+		{CB70E20D-75A2-497B-AD6E-60F3989F0622}.Release.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+	EndGlobalSection
+	GlobalSection(ExtensibilityAddIns) = postSolution
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,45 @@
+Welcome to the fun world of open source.
+
+For instructions on building and installing Blender, please see the file named
+INSTALL.
+
+
+---------------------.Blanguages and the .blender directory---------------------
+
+The .blender directory holds various data files for Blender.
+In the 2.28a release those are the .Blanguages file containing a list of
+translations, the translations themselves and a default ttf font.
+
+Blender checks for the presence of this directory in several locations:
+	- the current directory
+	- your home directory
+	- On OSX, the blender bundle is also checked 
+	- On Windows, the installation dir is checked.
+
+If you get a 'File ".Blanguages" not found' warning, try to copy the .blender
+dir to one of these locations (your home directory being recommended).
+
+
+
+-------------------------------------Links--------------------------------------
+
+Getting Involved:
+http://www.blender.org/community/get-involved
+
+Community:
+http://www.blender.org/Community
+
+Main blender development site:
+http://www.blender.org
+
+The Blender project homepage:
+http://projects.blender.org/projects/bf-blender
+
+Documentation:
+http://www.blender.org/education-help
+
+Bug tracker:
+http://www.blender.org/development/report-a-bug
+
+Feature request tracker:
+http://wiki.blender.org/index.php/Requests

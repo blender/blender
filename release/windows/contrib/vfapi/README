@@ -1,0 +1,26 @@
+VFAPI-Plugin
+
+This plugin enables TMPGEnc (or other VFAPI-compliant applications)
+to directly connect to the blender frameserver. (Well, this was the
+intention of the frameserver... ;-)
+
+Use mingw
+
+i586-mingw32msvc-gcc -shared vfapi-plugin.c -o blenderserver.vfp -lwsock32
+i586-mingw32msvc-strip blenderserver.vfp
+
+and copy the resulting plugin into your TMPGenc directory.
+
+Usage:
+
+Create a small file that only contains
+
+host:port
+
+where "host" is running blender frameserver on "port"
+
+and call it something.blu
+
+You can open the blu-file in TMPGenc. That's all. The rest is automagic.
+By the way: the whole thing is developed completely under linux and
+tested successfully with a vanilla wine-0.9.6...

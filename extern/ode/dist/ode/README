@@ -1,0 +1,158 @@
+Dynamics Library.
+=================
+
+CONVENTIONS
+-----------
+
+matrix storage
+--------------
+
+matrix operations like factorization are expensive, so we must store the data
+in a way that is most useful to the matrix code. we want the ability to update
+the dynamics library without recompiling applications, e.g. so users can take
+advantage of new floating point hardware. so we must settle on a single
+format. because of the prevalence of 4-way SIMD, the format is this: store
+the matrix by rows or columns, and each column is rounded up to a multiple of
+4 elements. the extra "padding" elements at the end of each row/column are set
+to 0. this is called the "standard format". to indicate if the data is stored
+by rows or columns, we will say "standard row format" or "standard column
+format". hopefully this decision will remain good in the future, as more and
+more processors have 4-way SIMD, and 3D graphics always needs fast 4x4
+matrices.
+
+exception: matrices that have only one column or row (vectors), are always
+stored as consecutive elements in standard row format, i.e. there is no
+interior padding, only padding at the end.
+
+thus: all 3x1 floating point vectors are stored as 4x1 vectors: (x,x,x,0).
+also: all 6x1 spatial velocities and accelerations are split into 3x1 position
+  and angular components, which are stored as contiguous 4x1 vectors.
+
+ALL matrices are stored by in standard row format.
+
+
+arguments
+---------
+
+3x1 vector arguments to set() functions are supplied as x,y,z.
+3x1 vector result arguments to get() function are pointers to arrays.
+larger vectors are always supplied and returned as pointers.
+all coordinates are in the global frame except where otherwise specified.
+output-only arguments are usually supplied at the end.
+
+
+memory allocation
+-----------------
+
+with many C/C++ libraries memory allocation is a difficult problem to solve.
+who allocates the memory? who frees it? must objects go on the heap or can
+they go on the stack or in static storage? to provide the maximum flexibility,
+the dynamics and collision libraries do not do their own memory allocation.
+you must pass in pointers to externally allocated chunks of the right sizes.
+the body, joint and colllision object structures are all exported, so you
+can make instances of those structure and pass pointers to them.
+
+there are helper functions which allocate objects out of areans, in case you
+need loots of dynamic creation and deletion.
+
+BUT!!! this ties us down to the body/joint/collision representation.
+
+a better approach is to supply custom memory allocation functions
+(e.g. dlAlloc() etc).
+
+
+C versus C++ ... ?
+------------------
+
+everything should be C linkable, and there should be C header files for
+everything. but we want to develop in C++. so do this:
+  * all comments are "//". automatically convert to /**/ for distribution.
+  * structures derived from other structures --> automatically convert?
+
+
+WORLDS
+------
+
+might want better terminology here.
+
+the dynamics world (DWorld) is a list of systems. each system corresponds to
+one or more bodies, or perhaps some other kinds of physical object.
+each system corresponds to one or more objects in the collision world
+(there does not have to be a one-to-one correspondence between bodies and
+collision objects).
+
+systems are simulated separately, perhaps using completely different
+techniques. we must do something special when systems collide.
+systems collide when collision objects belonging to system A touch
+collision objects belonging to system B.
+
+for each collision point, the system must provide matrix equation data
+that is used to compute collision forces. once those forces are computed,
+the system must incorporate the forces into its timestep.
+PROBLEM: what if we intertwine the LCP problems of the two systems - then
+this simple approach wont work.
+
+the dynamics world contains two kinds of objects: bodies and joints.
+joints connect two bodies together.
+
+the world contains one of more partitions. each partition is a collection of
+bodies and joints such that each body is attached (through one or more joints)
+to every other body.
+
+Joints
+------
+
+a joint can be connected to one or two bodies.
+if the joint is only connected to one body, joint.node[1].body == 0.
+joint.node[0].body is always valid.
+
+
+Linkage
+-------
+
+this library will always be statically linked with the app, for these reasons:
+  * collision space is selected at compile time, it adds data to the geom
+    objects.
+
+
+Optimization
+------------
+
+doubles must be aligned on 8 byte boundaries!
+
+
+MinGW on Windows issues
+-----------------------
+
+* the .rc file for drawstuff needs a different include, try winresrc.h.
+
+* it seems we can't have both main() and WinMain() without the entry point
+  defaulting to main() and having resource loading problems. this screws up
+  what i was trying to do in the drawstuff library. perhaps main2() ?
+
+* remember to compile resources to COFF format RES files.
+
+
+
+Collision
+---------
+
+to plug in your own collision handling, replace (some of?) these functions
+with your own. collision should be a separate library that you can link in
+or not. your own library can call components in this collision library, e.g.
+if you want polymorphic spaces instead of a single statically called space.
+
+creating an object will automatically register the appropriate
+class (if necessary). how can we ensure that the minimum amount of code is
+linked in? e.g. only one space handler, and sphere-sphere and sphere-box and
+box-box collision code (if spheres and boxes instanced).
+
+the user creates a collision space, and for each dynamics object that is
+created a collision object is inserted into the space. the collision
+object's pos and R pointers are set to the corresponding dynamics
+variables.
+
+there should be utility functions which create the dynamics and collision
+objects at the same time, e.g. dMakeSphere().
+
+collision objects and dynamics objects keep pointers to each other.

@@ -1,0 +1,67 @@
+# $Id$
+# Documentation for KX_MouseFocusSensor
+from SCA_MouseSensor import *
+
+class KX_MouseFocusSensor(SCA_MouseSensor):
+	"""
+	The mouse focus sensor detects when the mouse is over the current game object.
+	
+	The mouse focus sensor works by transforming the mouse coordinates from 2d device
+	space to 3d space then raycasting away from the camera.
+	
+	@ivar raySource: The worldspace source of the ray (the view position)
+	@type raySource: list (vector of 3 floats)
+	@ivar rayTarget: The worldspace target of the ray.
+	@type rayTarget: list (vector of 3 floats)
+	@ivar rayDirection: The L{rayTarget} - L{raySource} normalized.
+	@type rayDirection: list (normalized vector of 3 floats)
+	@ivar hitObject: the last object the mouse was over.
+	@type hitObject: L{KX_GameObject<KX_GameObject.KX_GameObject>} or None
+	@ivar hitPosition: The worldspace position of the ray intersecton.
+	@type hitPosition: list (vector of 3 floats)
+	@ivar hitNormal: the worldspace normal from the face at point of intersection.
+	@type hitNormal: list (normalized vector of 3 floats)
+	"""
+	
+	def getHitNormal():
+		"""
+		Returns the normal (in worldcoordinates) at the point of collision where the object was hit by this ray. (B{deprecated})
+		 
+		@rtype: list [x, y, z]
+		@return: the ray collision normal.
+		"""
+	def getHitObject():
+		"""
+		Returns the object that was hit by this ray or None. (B{deprecated})
+		
+		@rtype: L{KX_GameObject} or None
+		@return: the collision object.
+		"""
+	def getHitPosition():
+		"""
+		Returns the position (in worldcoordinates) at the point of collision where the object was hit by this ray. (B{deprecated})
+		
+		@rtype: list [x, y, z]
+		@return: the ray collision position.
+		"""
+	def getRayDirection():
+		"""
+		Returns the normalized direction (in worldcoordinates) of the ray cast by the mouse. (B{deprecated})
+		
+		@rtype: list [x, y, z]
+		@return: the ray direction.
+		"""
+	def getRaySource():
+		"""
+		Returns the position (in worldcoordinates) the ray was cast from by the mouse. (B{deprecated})
+		
+		@rtype: list [x, y, z]
+		@return: the ray source.
+		"""
+	def getRayTarget():
+		"""
+		Returns the target of the ray (in worldcoordinates) that seeks the focus object. (B{deprecated})
+		
+		@rtype: list [x, y, z]
+		@return: the ray target.
+		"""
