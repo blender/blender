@@ -93,31 +93,6 @@ extern void gl_round_box(int mode, float minx, float miny, float maxx, float max
 extern void ui_draw_tria_icon(float x, float y, float aspect, char dir);
 
 
-static void snode_drawstring(SpaceNode *snode, int x, int y, char *str, int okwidth)
-{
-	char drawstr[NODE_MAXSTR];
-	int width;
-	
-	if(str[0]==0 || okwidth<4) return;
-	
-	BLI_strncpy(drawstr, str, NODE_MAXSTR);
-	width= UI_GetStringWidth(drawstr);
-
-	if(width > okwidth) {
-		int len= strlen(drawstr)-1;
-		
-		while(width > okwidth && len>=0) {
-			drawstr[len]= 0;
-			
-			width= snode->aspect*UI_GetStringWidth(drawstr);
-			len--;
-		}
-		if(len==0) return;
-	}
-	UI_DrawString(x, y, drawstr);
-}
-
-
 static void node_scaling_widget(int color_id, float aspect, float xmin, float ymin, float xmax, float ymax)
 {
 	float dx;
@@ -643,13 +618,19 @@ static void do_node_internal_buttons(bContext *C, void *node_v, int event)
 static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bNode *node)
 {
 	bNodeSocket *sock;
-	uiBlock *block= NULL;
+	uiBlock *block;
 	uiBut *bt;
 	rctf *rct= &node->totr;
 	float /*slen,*/ iconofs;
 	int /*ofs,*/ color_id= node_get_colorid(node);
 	char showname[128]; /* 128 used below */
 	View2D *v2d = &ar->v2d;
+	char str[32];
+	
+	/* make unique block name, also used for handling blocks in editnode.c */
+	sprintf(str, "node buttons %p", node);
+	block= uiBeginBlock(C, ar, str, UI_EMBOSS);
+	uiBlockSetHandleFunc(block, do_node_internal_buttons, node);
 	
 	uiSetRoundBox(15-4);
 	ui_dropshadow(rct, BASIS_RAD, snode->aspect, node->flag & SELECT);
@@ -735,7 +716,8 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	else
 		BLI_strncpy(showname, node->name, 128);
 	
-	snode_drawstring(snode, rct->xmin+19, rct->ymax-NODE_DY+5, showname, (int)(iconofs - rct->xmin-18.0f));
+	uiDefBut(block, LABEL, 0, showname, (short)(rct->xmin+15), (short)(rct->ymax-NODE_DY), 
+			 (int)(iconofs - rct->xmin-18.0f), NODE_DY,  NULL, 0, 0, 0, 0, "");
 
 	/* body */
 	UI_ThemeColor4(TH_NODE);
@@ -760,21 +742,6 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	if(node->flag & NODE_MUTED)
 		node_draw_mute_line(v2d, snode, node);
 
-	/* we make buttons for input sockets, if... */
-	if(node->flag & NODE_OPTIONS) {
-		if(node->inputs.first || node->typeinfo->butfunc) {
-			char str[32];
-			
-			/* make unique block name, also used for handling blocks in editnode.c */
-			sprintf(str, "node buttons %p", node);
-			
-			//block= uiNewBlock(&sa->uiblocks, str, UI_EMBOSS);
-			block= uiBeginBlock(C, ar, str, UI_EMBOSS);
-			uiBlockSetHandleFunc(block, do_node_internal_buttons, node);
-			// XXX if(snode->id)
-			// XXX	uiSetButLock(snode->id->lib!=NULL, ERROR_LIBDATA_MESSAGE);
-		}
-	}
 	
 	/* hurmf... another candidate for callback, have to see how this works first */
 	if(node->id && block && snode->treetype==NTREE_SHADER)
@@ -815,8 +782,9 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 				}
 			}
 			else {
-				UI_ThemeColor(TH_TEXT);
-				UI_DrawString(sock->locx+8.0f, sock->locy-5.0f, sock->name);
+				
+				uiDefBut(block, LABEL, 0, sock->name, (short)(sock->locx+3.0f), (short)(sock->locy-9.0f), 
+						 (short)(node->width-NODE_DY), NODE_DY,  NULL, 0, 0, 0, 0, "");
 			}
 		}
 	}
@@ -835,7 +803,9 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 				ofs++;
 				slen= snode->aspect*UI_GetStringWidth(sock->name+ofs);
 			}
-			UI_DrawString(sock->locx-8.0f-slen, sock->locy-5.0f, sock->name+ofs);
+			
+			uiDefBut(block, LABEL, 0, sock->name+ofs, (short)(sock->locx-15.0f-slen), (short)(sock->locy-9.0f), 
+					 (short)(node->width-NODE_DY), NODE_DY,  NULL, 0, 0, 0, 0, "");
 		}
 	}
 	
@@ -853,20 +823,24 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 		}
 	}
 	
-	if(block) {
-		uiEndBlock(C, block);
-		uiDrawBlock(C, block);
-	}
+	uiEndBlock(C, block);
+	uiDrawBlock(C, block);
 }
 
-static void node_draw_hidden(View2D *v2d, SpaceNode *snode, bNode *node)
+static void node_draw_hidden(const bContext *C, ARegion *ar, SpaceNode *snode, bNode *node)
 {
+	uiBlock *block;
 	bNodeSocket *sock;
 	rctf *rct= &node->totr;
 	float dx, centy= 0.5f*(rct->ymax+rct->ymin);
 	float hiddenrad= 0.5f*(rct->ymax-rct->ymin);
 	int color_id= node_get_colorid(node);
-	char showname[128];	/* 128 is used below */
+	char str[32], showname[128];	/* 128 is used below */
+	
+	/* make unique block name, also used for handling blocks in editnode.c */
+	sprintf(str, "node buttons %p", node);
+	block= uiBeginBlock(C, ar, str, UI_EMBOSS);
+	uiBlockSetHandleFunc(block, do_node_internal_buttons, node);
 	
 	/* shadow */
 	uiSetRoundBox(15);
@@ -895,7 +869,7 @@ static void node_draw_hidden(View2D *v2d, SpaceNode *snode, bNode *node)
 	
 	/* disable lines */
 	if(node->flag & NODE_MUTED)
-		node_draw_mute_line(v2d, snode, node);	
+		node_draw_mute_line(&ar->v2d, snode, node);	
 	
 	if(node->flag & SELECT) 
 		UI_ThemeColor(TH_TEXT_HI);
@@ -911,7 +885,8 @@ static void node_draw_hidden(View2D *v2d, SpaceNode *snode, bNode *node)
 		else
 			BLI_strncpy(showname, node->name, 128);
 
-		snode_drawstring(snode, rct->xmin+21, centy-4, showname, (int)(rct->xmax - rct->xmin-18.0f -12.0f));
+		uiDefBut(block, LABEL, 0, showname, (short)(rct->xmin+15), (short)(centy-10), 
+				 (int)(rct->xmax - rct->xmin-18.0f -12.0f), NODE_DY,  NULL, 0, 0, 0, 0, "");
 	}	
 
 	/* scale widget thing */
@@ -935,6 +910,10 @@ static void node_draw_hidden(View2D *v2d, SpaceNode *snode, bNode *node)
 		if(!(sock->flag & (SOCK_HIDDEN|SOCK_UNAVAIL)))
 			socket_circle_draw(sock, NODE_SOCKSIZE);
 	}
+	
+	uiEndBlock(C, block);
+	uiDrawBlock(C, block);
+
 }
 
 static void node_draw_nodetree(const bContext *C, ARegion *ar, SpaceNode *snode, bNodeTree *ntree)
@@ -959,7 +938,7 @@ static void node_draw_nodetree(const bContext *C, ARegion *ar, SpaceNode *snode,
 		if(!(node->flag & SELECT)) {
 			if(node->flag & NODE_GROUP_EDIT);
 			else if(node->flag & NODE_HIDDEN)
-				node_draw_hidden(&ar->v2d, snode, node);
+				node_draw_hidden(C, ar, snode, node);
 			else
 				node_draw_basis(C, ar, snode, node);
 		}
@@ -970,7 +949,7 @@ static void node_draw_nodetree(const bContext *C, ARegion *ar, SpaceNode *snode,
 		if(node->flag & SELECT) {
 			if(node->flag & NODE_GROUP_EDIT);
 			else if(node->flag & NODE_HIDDEN)
-				node_draw_hidden(&ar->v2d, snode, node);
+				node_draw_hidden(C, ar, snode, node);
 			else
 				node_draw_basis(C, ar, snode, node);
 		}
