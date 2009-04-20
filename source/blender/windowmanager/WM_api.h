@@ -183,6 +183,8 @@ void		wmMultMatrix		(float mat[][4]);
 void		wmGetSingleMatrix	(float mat[][4]);
 void		wmScale				(float x, float y, float z);
 void		wmLoadIdentity		(void);		/* note: old name clear_view_mat */
+void		wmPushMatrix		(void);		/* one level only */
+void		wmPopMatrix			(void);		/* one level only */
 
 void		wmFrustum			(float x1, float x2, float y1, float y2, float n, float f);
 void		wmOrtho				(float x1, float x2, float y1, float y2, float n, float f);

@@ -1193,10 +1193,8 @@ void uiBlockPickerButtons(uiBlock *block, float *col, float *hsv, float *old, ch
 	
 	// the cube intersection
 	bt= uiDefButF(block, HSVCUBE, retval, "",	0,DPICK+BPICK,FPICK,FPICK, col, 0.0, 0.0, 2, 0, "");
-	uiButSetFlag(bt, UI_NO_HILITE);
 
 	bt= uiDefButF(block, HSVCUBE, retval, "",	0,0,FPICK,BPICK, col, 0.0, 0.0, 3, 0, "");
-	uiButSetFlag(bt, UI_NO_HILITE);
 
 	// palette
 	
