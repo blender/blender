@@ -216,13 +216,13 @@ static PyObject* gPyGetSpectrum(PyObject*)
 
 		for (int index = 0; index < 512; index++)
 		{
-			PyList_SetItem(resultlist, index, PyFloat_FromDouble(spectrum[index]));
+			PyList_SET_ITEM(resultlist, index, PyFloat_FromDouble(spectrum[index]));
 		}
 	}
 	else {
 		for (int index = 0; index < 512; index++)
 		{
-			PyList_SetItem(resultlist, index, PyFloat_FromDouble(0.0));
+			PyList_SET_ITEM(resultlist, index, PyFloat_FromDouble(0.0));
 		}
 	}
 

@@ -754,9 +754,9 @@ PyObject* KX_ConstraintActuator::PyGetDirection(){
 	ShowDeprecationWarning("getDirection()", "the direction property");
 	PyObject *retVal = PyList_New(3);
 
-	PyList_SetItem(retVal, 0, PyFloat_FromDouble(m_refDirection[0]));
-	PyList_SetItem(retVal, 1, PyFloat_FromDouble(m_refDirection[1]));
-	PyList_SetItem(retVal, 2, PyFloat_FromDouble(m_refDirection[2]));
+	PyList_SET_ITEM(retVal, 0, PyFloat_FromDouble(m_refDirection[0]));
+	PyList_SET_ITEM(retVal, 1, PyFloat_FromDouble(m_refDirection[1]));
+	PyList_SET_ITEM(retVal, 2, PyFloat_FromDouble(m_refDirection[2]));
 	return retVal;
 }
 

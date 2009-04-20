@@ -404,9 +404,9 @@ PyObject* KX_RaySensor::PyGetHitPosition()
 
 	PyObject *retVal = PyList_New(3);
 
-	PyList_SetItem(retVal, 0, PyFloat_FromDouble(m_hitPosition[0]));
-	PyList_SetItem(retVal, 1, PyFloat_FromDouble(m_hitPosition[1]));
-	PyList_SetItem(retVal, 2, PyFloat_FromDouble(m_hitPosition[2]));
+	PyList_SET_ITEM(retVal, 0, PyFloat_FromDouble(m_hitPosition[0]));
+	PyList_SET_ITEM(retVal, 1, PyFloat_FromDouble(m_hitPosition[1]));
+	PyList_SET_ITEM(retVal, 2, PyFloat_FromDouble(m_hitPosition[2]));
 
 	return retVal;
 }
@@ -420,9 +420,9 @@ PyObject* KX_RaySensor::PyGetRayDirection()
 
 	PyObject *retVal = PyList_New(3);
 	
-	PyList_SetItem(retVal, 0, PyFloat_FromDouble(m_rayDirection[0]));
-	PyList_SetItem(retVal, 1, PyFloat_FromDouble(m_rayDirection[1]));
-	PyList_SetItem(retVal, 2, PyFloat_FromDouble(m_rayDirection[2]));
+	PyList_SET_ITEM(retVal, 0, PyFloat_FromDouble(m_rayDirection[0]));
+	PyList_SET_ITEM(retVal, 1, PyFloat_FromDouble(m_rayDirection[1]));
+	PyList_SET_ITEM(retVal, 2, PyFloat_FromDouble(m_rayDirection[2]));
 
 	return retVal;
 }
@@ -436,9 +436,9 @@ PyObject* KX_RaySensor::PyGetHitNormal()
 
 	PyObject *retVal = PyList_New(3);
 
-	PyList_SetItem(retVal, 0, PyFloat_FromDouble(m_hitNormal[0]));
-	PyList_SetItem(retVal, 1, PyFloat_FromDouble(m_hitNormal[1]));
-	PyList_SetItem(retVal, 2, PyFloat_FromDouble(m_hitNormal[2]));
+	PyList_SET_ITEM(retVal, 0, PyFloat_FromDouble(m_hitNormal[0]));
+	PyList_SET_ITEM(retVal, 1, PyFloat_FromDouble(m_hitNormal[1]));
+	PyList_SET_ITEM(retVal, 2, PyFloat_FromDouble(m_hitNormal[2]));
 
 	return retVal;
 }

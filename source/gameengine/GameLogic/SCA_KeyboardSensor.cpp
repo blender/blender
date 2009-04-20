@@ -694,7 +694,7 @@ PyObject* SCA_KeyboardSensor::pyattr_get_events(void *self_v, const KX_PYATTRIBU
 		{
 			PyObject* keypair = PyList_New(2);
 			PyList_SET_ITEM(keypair,0,PyInt_FromLong(i));
-			PyList_SetItem(keypair,1,PyInt_FromLong(inevent.m_status));
+			PyList_SET_ITEM(keypair,1,PyInt_FromLong(inevent.m_status));
 			PyList_Append(resultlist,keypair);
 		}
 	}	

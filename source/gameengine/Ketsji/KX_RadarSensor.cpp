@@ -212,9 +212,9 @@ PyObject* KX_RadarSensor::PyGetConeOrigin() {
 
 	PyObject *retVal = PyList_New(3);
 	
-	PyList_SetItem(retVal, 0, PyFloat_FromDouble(m_cone_origin[0]));
-	PyList_SetItem(retVal, 1, PyFloat_FromDouble(m_cone_origin[1]));
-	PyList_SetItem(retVal, 2, PyFloat_FromDouble(m_cone_origin[2]));
+	PyList_SET_ITEM(retVal, 0, PyFloat_FromDouble(m_cone_origin[0]));
+	PyList_SET_ITEM(retVal, 1, PyFloat_FromDouble(m_cone_origin[1]));
+	PyList_SET_ITEM(retVal, 2, PyFloat_FromDouble(m_cone_origin[2]));
 	
 	return retVal;
 }
@@ -228,9 +228,9 @@ PyObject* KX_RadarSensor::PyGetConeTarget() {
 
 	PyObject *retVal = PyList_New(3);
 	
-	PyList_SetItem(retVal, 0, PyFloat_FromDouble(m_cone_target[0]));
-	PyList_SetItem(retVal, 1, PyFloat_FromDouble(m_cone_target[1]));
-	PyList_SetItem(retVal, 2, PyFloat_FromDouble(m_cone_target[2]));
+	PyList_SET_ITEM(retVal, 0, PyFloat_FromDouble(m_cone_target[0]));
+	PyList_SET_ITEM(retVal, 1, PyFloat_FromDouble(m_cone_target[1]));
+	PyList_SET_ITEM(retVal, 2, PyFloat_FromDouble(m_cone_target[2]));
 	
 	return retVal;
 }
