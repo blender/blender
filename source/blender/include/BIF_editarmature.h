@@ -68,6 +68,23 @@ typedef struct EditBone
 
 } EditBone;
 
+EditBone *addEditBone(char *name, struct ListBase *ebones, struct bArmature *arm);
+
+/* duplicate method */
+void preEditBoneDuplicate(struct ListBase *editbones);
+EditBone *duplicateEditBone(EditBone *curBone, char *name, struct ListBase *editbones, struct Object *ob);
+void updateDuplicateSubtarget(EditBone *dupBone, struct ListBase *editbones, struct Object *ob);
+
+/* duplicate method (cross objects */
+
+/* editbones is the target list */
+EditBone *duplicateEditBoneObjects(EditBone *curBone, char *name, struct ListBase *editbones, struct Object *src_ob, struct Object *dst_ob);
+
+/* editbones is the source list */
+void updateDuplicateSubtargetObjects(EditBone *dupBone, struct ListBase *editbones, struct Object *src_ob, struct Object *dst_ob);
+
+/* -- */
+
 float	rollBoneToVector(EditBone *bone, float new_up_axis[3]);
 
 void	make_boneList(struct ListBase *list, struct ListBase *bones, EditBone *parent);
@@ -117,7 +134,7 @@ void	selectconnected_posearmature(void);
 void	armature_select_hierarchy(short direction, short add_to_sel);
 
 void	setflag_armature(short mode);
-void    unique_editbone_name (struct ListBase *ebones, char *name);
+void	unique_editbone_name (struct ListBase *ebones, char *name, EditBone *bone); /* if bone is already in list, pass it as param to ignore it */
 
 void	auto_align_armature(short mode);
 void	switch_direction_armature(void);
@@ -152,10 +169,14 @@ void	align_selected_bones(void);
 
 #define BONESEL_NOSEL	0x80000000	/* Indicates a negative number */
 
-/* from autoarmature */
+/* from editarmature_retarget */
 void BIF_retargetArmature();
 void BIF_adjustRetarget();
 void BIF_freeRetarget();
+
+/* from editarmature_sketch */
+void BIF_freeSketch();
+void BIF_freeTemplates();
 
 struct ReebArc;
 float calcVariance(struct ReebArc *arc, int start, int end, float v0[3], float n[3]);

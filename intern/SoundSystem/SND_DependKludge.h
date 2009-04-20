@@ -43,9 +43,6 @@
 #	ifdef USE_OPENAL
 #		undef USE_OPENAL
 #	endif
-#	ifdef USE_FMOD
-#		undef USE_FMOD
-#	endif
 #endif
 
 #endif /* NO_SOUND */

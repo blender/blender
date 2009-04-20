@@ -51,6 +51,7 @@
 #include "DNA_space_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_userdef_types.h"
 #include "DNA_view3d_types.h"
 
 #include "BKE_brush.h"
@@ -1321,6 +1322,10 @@ void set_texturepaint() /* toggle */
 
 	if(G.f & G_TEXTUREPAINT) {
 		G.f &= ~G_TEXTUREPAINT;
+		
+		if (U.glreslimit != 0)
+			GPU_free_images();
+		
 		GPU_paint_set_mipmap(1);
 	}
 	else if (me) {
@@ -1328,7 +1333,10 @@ void set_texturepaint() /* toggle */
 
 		if(me->mtface==NULL)
 			make_tfaces(me);
-
+		
+		if (U.glreslimit != 0)
+			GPU_free_images();
+		
 		brush_check_exists(&G.scene->toolsettings->imapaint.brush);
 		GPU_paint_set_mipmap(0);
 	}

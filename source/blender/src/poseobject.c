@@ -568,9 +568,7 @@ void pose_special_editmenu(void)
 		pose_clear_paths(ob);
 	}
 	else if(nr==5) {
-		rest_pose(ob->pose);
-		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
-		BIF_undo_push("Clear User Transform Pose");
+		pose_clear_user_transforms();
 	}
 	else if(nr==6) {
 		pose_relax();
@@ -1740,4 +1738,30 @@ void pose_flipquats(void)
 	autokeyframe_pose_cb_func(ob, TFM_ROTATION, 0);
 }
 
+/* Restore selected pose-bones to 'action'-defined pose */
+void pose_clear_user_transforms (void) 
+{
+	Object *ob = OBACT;
+	bArmature *arm= ob->data;
+	bPoseChannel *pchan;
+	
+	if (ob->pose == NULL)
+		return;
+	
+	/* find selected bones */
+	for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+		if (pchan->bone && (pchan->bone->flag & BONE_SELECTED) && (pchan->bone->layer & arm->layer)) {
+			/* just clear the BONE_UNKEYED flag, allowing this bone to get overwritten by actions again */
+			pchan->bone->flag &= ~BONE_UNKEYED;
+		}
+	}
+	
+	/* clear pose locking flag 
+	 *	- this will only clear the user-defined pose in the selected bones, where BONE_UNKEYED has been cleared
+	 */
+	ob->pose->flag |= POSE_DO_UNLOCK;
+	
+	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+	BIF_undo_push("Clear User Transform");
+}
 

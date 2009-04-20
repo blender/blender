@@ -127,6 +127,10 @@ ifeq ($(WITH_DDS),true)
 	CPPFLAGS += -DWITH_DDS
 endif
 
+ifeq ($(WITH_OPENJPEG),true)
+	CPPFLAGS += -DWITH_OPENJPEG
+endif
+
 ifeq ($(INTERNATIONAL), true)
     CPPFLAGS += -DINTERNATIONAL
 endif

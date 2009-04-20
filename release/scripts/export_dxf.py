@@ -1,14 +1,14 @@
 #!BPY
 
 """
- Name: 'Autodesk DXF (.dxf)'
+ Name: 'Autodesk (.dxf .dwg)'
  Blender: 247
  Group: 'Export'
- Tooltip: 'Export geometry to DXF-r12 (Drawing eXchange Format).'
+ Tooltip: 'Export geometry to Autocad DXF/DWG-r12 (Drawing eXchange Format).'
 """
 
-__version__ = "v1.27beta - 2008.10.07"
-__author__  = "Remigiusz Fiedler (AKA migius)"
+__version__ = "v1.29 - 2009.04.11"
+__author__  = "Remigiusz Fiedler (AKA migius), Alexandros Sigalas (AKA alxarch), Stani Michiels"
 __license__ = "GPL"
 __url__	 = "http://wiki.blender.org/index.php/Scripts/Manual/Export/autodesk_dxf"
 __bpydoc__ ="""The script exports Blender geometry to DXF format r12 version.
@@ -25,8 +25,9 @@ url: %s
 IDEAs:
  - correct normals for POLYLINE-POLYFACE via proper point-order
  - HPGL output for 2d and flattened 3d content
-		
+
 TODO:
+- export dupligroups and dupliverts as blocks ( option for the user to decide ) 
 - optimize back-faces removal (probably needs matrix transform)
 - optimize POLYFACE routine: remove double-vertices
 - optimize POLYFACE routine: remove unused vertices
@@ -36,6 +37,11 @@ TODO:
 - write drawing extends for automatic view positioning in CAD
 
 History
+v1.29 - 2009.04.11 by migius
+- added DWG support, Stani Michiels idea for binding an extern DXF-DWG-converter 
+v1.28 - 2009.02.05 by alxarch
+- added option to apply modifiers on exported meshes
+- added option to also export duplicates (from dupliverts etc)
 v1.27 - 2008.10.07 by migius
 - exclude Stani's DXF-Library to extern module
 v1.26 - 2008.10.05 by migius
@@ -86,13 +92,94 @@ ______________________________________________________________
 
 
 import Blender
-from Blender import Mathutils, Window, Scene, sys, Draw
+from Blender import Mathutils, Window, Scene, sys, Draw, Mesh
 import BPyMessages
+import os
+import subprocess
+
+#print os.sys.platform
+#print dir(os.sys.version)
 
 #import dxfLibrary
 #reload(dxfLibrary)
 from  dxfLibrary import *
 
+
+#-------- DWG support ------------------------------------------
+extCONV_OK = True
+extCONV = 'DConvertCon.exe'
+extCONV_PATH = os.path.join(Blender.Get('scriptsdir'),extCONV)
+if not os.path.isfile(extCONV_PATH):
+	extCONV_OK = False
+	extCONV_TEXT = 'DWG-Exporter: Abort, nothing done!|\
+Copy first %s into Blender script directory.|\
+More details in online Help.' %extCONV
+else:
+	if not os.sys.platform.startswith('win'):
+		# check if Wine installed:   
+		if subprocess.Popen(('which', 'winepath'), stdout=subprocess.PIPE).stdout.read().strip():
+			extCONV_PATH    = 'wine %s'%extCONV_PATH
+		else: 
+			extCONV_OK = False
+			extCONV_TEXT = 'DWG-Exporter: Abort, nothing done!|\
+The external DWG-converter (%s) needs Wine installed on your system.|\
+More details in online Help.' %extCONV
+#print 'extCONV_PATH = ', extCONV_PATH
+
+
+
+#-----------------------------------------------------
+def dupTest(object):
+	"""
+	Checks objects for duplicates enabled (any type)
+	object: Blender Object.
+	Returns: Boolean - True if object has any kind of duplicates enabled.
+	"""
+	if (object.enableDupFrames or \
+		object.enableDupGroup or \
+		object.enableDupVerts):
+		return True
+	else:
+		return False
+
+def getObjectsAndDuplis(oblist,MATRICES=False,HACK=False):
+	"""
+	Return a list of real objects and duplicates and optionally their matrices
+	oblist: List of Blender Objects
+	MATRICES: Boolean - Check to also get the objects matrices default=False
+	HACK: Boolean - See note default=False
+	Returns: List of objects or
+			 List of tuples of the form:(ob,matrix) if MATRICES is set to True
+	NOTE: There is an ugly hack here that excludes all objects whose name
+	starts with "dpl_" to exclude objects that are parented to a duplicating
+	object, User must name objects properly if hack is used.
+	"""
+
+	result = []
+	for ob in oblist:
+		if dupTest(ob):
+			dup_obs=ob.DupObjects
+			if len(dup_obs):
+				for dup_ob, dup_mx in dup_obs:
+					if MATRICES:
+						result.append((dup_ob,dup_mx))
+					else:
+						result.append(dup_ob)
+		else:
+			if HACK:
+				if ob.getName()[0:4] != "dpl_":
+					if MATRICES:
+						mx = ob.mat
+						result.append((ob,mx))
+					else:
+						result.append(ob)
+			else:
+				if MATRICES:
+					mx = ob.mat
+					result.append((ob,mx))
+				else:
+					result.append(ob)
+	return result
 
 #-----------------------------------------------------
 def hidden_status(faces, mx_n):
@@ -146,9 +233,13 @@ def flatten(points, mw):
 	return points
 
 #-----------------------------------------------------
-def	exportMesh(ob, mx, mx_n):
+def	exportMesh(ob, mx, mx_n,me=None):
 	entities = []
-	me = ob.getData(mesh=1)
+	global APPLY_MODIFIERS
+	if me is None:
+		me = ob.getData(mesh=1)
+	else:
+		me.getFromObject(ob)
 	#me.transform(mx)
 	# above is eventualy faster, but bad, cause
 	# directly transforms origin geometry and write back rounding errors
@@ -209,7 +300,7 @@ def	exportMesh(ob, mx, mx_n):
 				points = [ me_verts[key].co[:3] for key in e]
 				dxfLINE = Line(points)
 				entities.append(dxfLINE)
-				
+
 		else:
 			for e in me.edges:
 				#print 'deb: edge=', e #---------
@@ -257,7 +348,7 @@ def exportCurve(ob, mx):
 	return entities
 
 #-----------------------------------------------------
-def do_export(sel_group, filepath):
+def do_export(export_list, filepath):
 	Window.WaitCursor(1)
 	t = sys.time()
 
@@ -281,22 +372,27 @@ def do_export(sel_group, filepath):
 		m0[2][2]=0.0
 		mw *= m0 #flatten ViewMatrix
 
-	for ob in sel_group:
+	if APPLY_MODIFIERS:
+		tmp_me = Mesh.New('tmp')
+	else:
+		tmp_me = None
+
+	for ob,mx in export_list:
 		entities = []
-		mx = ob.matrix.copy()
+		#mx = ob.matrix.copy()
 		mb = mx.copy()
 		#print 'deb: mb    =\n', mb     #---------
 		#print 'deb: mw0    =\n', mw0     #---------
 		mx_n = mx.rotationPart() * mw0.rotationPart() #trans-matrix for normal_vectors
 		if SCALE_FACTOR!=1.0: mx *= SCALE_FACTOR
 		if FLATTEN:	mx *= mw
-			
+
 		#mx_inv = mx.copy().invert()
 		#print 'deb: mx    =\n', mx     #---------
 		#print 'deb: mx_inv=\n', mx_inv #---------
 
 		if (ob.type == 'Mesh'):
-			entities = exportMesh(ob, mx, mx_n)
+			entities = exportMesh(ob, mx, mx_n,tmp_me)
 		elif (ob.type == 'Curve'):
 			entities = exportCurve(ob, mx)
 
@@ -305,11 +401,30 @@ def do_export(sel_group, filepath):
 			something_ready = True
 
 	if something_ready:
-		d.saveas(filepath)
-		Window.WaitCursor(0)
-		#Draw.PupMenu('DXF Exporter: job finished')
-		print 'exported to %s' % filepath
-		print 'finished in %.2f seconds' % (sys.time()-t)
+		if not OUTPUT_DWG:
+			print 'exporting to %s' % filepath
+			d.saveas(filepath)
+			Window.WaitCursor(0)
+			#Draw.PupMenu('DXF Exporter: job finished')
+			print '  finished in %.2f seconds. -----DONE-----' % (sys.time()-t)
+		else:
+			if not extCONV_OK:
+				Draw.PupMenu(extCONV_TEXT)
+				Window.WaitCursor(False)
+			else:
+				print 'temp. exporting to %s' % filepath
+				d.saveas(filepath)
+				#Draw.PupMenu('DXF Exporter: job finished')
+				#print 'exported to %s' % filepath
+				#print 'finished in %.2f seconds' % (sys.time()-t)
+				filedwg = filepath[:-3]+'dwg'
+				print 'exporting to %s' % filedwg
+				os.system('%s %s  -acad13 -dwg' %(extCONV_PATH,filepath))
+				#os.chdir(cwd)
+				os.remove(filepath)
+				Window.WaitCursor(0)
+				print '  finished in %.2f seconds. -----DONE-----' % (sys.time()-t)
+		
 	else:
 		Window.WaitCursor(0)
 		print "Abort: selected objects dont mach choosen export option, nothing exported!"
@@ -323,8 +438,9 @@ POLYFACES = 1
 FLATTEN = 0
 HIDDEN_MODE = False #filter out hidden lines
 SCALE_FACTOR = 1.0 #optional, can be done later in CAD too
-
-
+APPLY_MODIFIERS = True
+INCLUDE_DUPLIS = False
+OUTPUT_DWG = False #optional save to DWG with extern converter
 
 #-----------------------------------------------------
 def dxf_export_ui(filepath):
@@ -334,9 +450,12 @@ def dxf_export_ui(filepath):
 	POLYFACES,\
 	FLATTEN,\
 	HIDDEN_MODE,\
-	SCALE_FACTOR
+	SCALE_FACTOR,\
+	APPLY_MODIFIERS,\
+	OUTPUT_DWG,\
+	INCLUDE_DUPLIS
 
-	print '\n\nDXF-Export %s -----------------------' %__version__
+	print '\n\nDXF-Export %s -----------START-----------' %__version__
 	#filepath = 'blend_test.dxf'
 	# Dont overwrite
 	if not BPyMessages.Warning_SaveOver(filepath):
@@ -352,19 +471,26 @@ def dxf_export_ui(filepath):
 	PREF_FLATTEN= Draw.Create(FLATTEN)
 	PREF_HIDDEN_MODE= Draw.Create(HIDDEN_MODE)
 	PREF_SCALE_FACTOR= Draw.Create(SCALE_FACTOR)
+	PREF_APPLY_MODIFIERS= Draw.Create(APPLY_MODIFIERS)
+	PREF_INCLUDE_DUPLIS= Draw.Create(INCLUDE_DUPLIS)
 	PREF_HELP= Draw.Create(0)
+	PREF_DWG= Draw.Create(OUTPUT_DWG)
 	block = [\
 	("only selected", PREF_ONLYSELECTED, "export only selected geometry"),\
+	("Apply Modifiers", PREF_APPLY_MODIFIERS, "Apply modifier stack to mesh objects before export"),\
+	("Include Duplis", PREF_INCLUDE_DUPLIS, "Export also Duplicates (dupliverts, dupliframes etc)"),\
 	("global Scale:", PREF_SCALE_FACTOR, 0.001, 1000, "set global Scale factor for exporting geometry"),\
-	("only faces", PREF_ONLYFACES, "from mesh-objects export only faces, otherwise only edges"),\
-	("write POLYFACE", PREF_POLYFACES, "export mesh to POLYFACE, otherwise to 3DFACEs"),\
-	("write POLYLINEs", PREF_POLYLINES, "export curve to POLYLINE, otherwise to LINEs"),\
+	(''),\
+	("export to 3DFaces", PREF_ONLYFACES, "from mesh-objects export only faces, otherwise only edges"),\
+	("mesh to POLYFACE", PREF_POLYFACES, "export mesh to POLYFACE, otherwise to 3DFACEs"),\
+	("curves to POLYLINEs", PREF_POLYLINES, "export curve to POLYLINE, otherwise to LINEs"),\
 	("3D-View to Flat", PREF_FLATTEN, "flatten geometry according current 3d-View"),\
 	("Hidden Mode", PREF_HIDDEN_MODE, "filter out hidden lines"),\
-	#(''),\
 	("online Help", PREF_HELP, "calls DXF-Exporter Manual Page on Wiki.Blender.org"),\
+	(''),\
+	("DXF->DWG", PREF_DWG, "writes DWG with extern converter"),\
 	]
-	
+
 	if not Draw.PupBlock("DXF-Exporter %s" %__version__[:10], block): return
 
 	if PREF_HELP.val!=0:
@@ -372,7 +498,7 @@ def dxf_export_ui(filepath):
 			import webbrowser
 			webbrowser.open('http://wiki.blender.org/index.php?title=Scripts/Manual/Export/autodesk_dxf')
 		except:
-			Draw.PupMenu('DXF Exporter: %t|no connection to manual-page on Blender-Wiki!	try:|\
+			Draw.PupMenu('DXF Exporter: %t|no connection to manual-page on Blender-Wiki! try:|\
 http://wiki.blender.org/index.php?title=Scripts/Manual/Export/autodesk_dxf')
 		return
 
@@ -383,12 +509,14 @@ http://wiki.blender.org/index.php?title=Scripts/Manual/Export/autodesk_dxf')
 	FLATTEN = PREF_FLATTEN.val
 	HIDDEN_MODE = PREF_HIDDEN_MODE.val
 	SCALE_FACTOR = PREF_SCALE_FACTOR.val
-
+	OUTPUT_DWG = PREF_DWG.val
+	
 	sce = Scene.GetCurrent()
 	if ONLYSELECTED: sel_group = sce.objects.selected
 	else: sel_group = sce.objects
+	export_list = getObjectsAndDuplis(sel_group,MATRICES=True)
 
-	if sel_group: do_export(sel_group, filepath)
+	if export_list: do_export(export_list, filepath)
 	else:
 		print "Abort: selection was empty, no object to export!"
 		Draw.PupMenu('DXF Exporter:   nothing exported!|empty selection!')
@@ -401,7 +529,4 @@ if __name__=='__main__':
 	#main()
 	if not copy:
 		Draw.PupMenu('Error%t|This script requires a full python install')
-	Window.FileSelector(dxf_export_ui, 'EXPORT DXF', sys.makename(ext='.dxf'))
-	
-	
-	
+	else: Window.FileSelector(dxf_export_ui, 'EXPORT DXF', sys.makename(ext='.dxf'))

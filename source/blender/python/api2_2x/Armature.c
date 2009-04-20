@@ -280,7 +280,7 @@ static int BonesDict_SetItem(BPy_BonesDict *self, PyObject *key, PyObject *value
 		//create a new editbone
 		editbone = MEM_callocN(sizeof(EditBone), "eBone");
 		BLI_strncpy(editbone->name, key_str, 32);
-		unique_editbone_name(NULL, editbone->name);
+		unique_editbone_name(NULL, editbone->name, NULL);
 		editbone->dist = ((BPy_EditBone*)value)->dist;
 		editbone->ease1 = ((BPy_EditBone*)value)->ease1;
 		editbone->ease2 = ((BPy_EditBone*)value)->ease2;

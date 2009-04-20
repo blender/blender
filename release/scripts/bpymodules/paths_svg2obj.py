@@ -1,7 +1,7 @@
 # -*- coding: latin-1 -*-
 """
-SVG 2 OBJ translater, 0.5.9h
-Copyright (c) jm soler juillet/novembre 2004-april 2007, 
+SVG 2 OBJ translater, 0.5.9n
+Copyright (c) jm soler juillet/novembre 2004-february 2009, 
 # ---------------------------------------------------------------
     released under GNU Licence 
     for the Blender 2.42 Python Scripts Bundle.
@@ -20,7 +20,6 @@ en même temps que ce programme ; si ce n'est pas le cas, écrivez à la
 Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston,
 MA 02111-1307, États-Unis.
 
-
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 2 of the License, or
@@ -35,7 +34,7 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA    
 # ---------------------------------------------------------------
-
+#
 #---------------------------------------------------------------------------
 # Page officielle :
 #   http://jmsoler.free.fr/didacticiel/blender/tutor/cpl_import_svg.htm
@@ -253,15 +252,27 @@ Changelog:
 
      0.5.9h : - 2007/5/2 
               - script was updated with the modifs by cambo
-              - removed all debug statements
+              - removed  all debug statements
               - correction of a zero division error in the calc_arc function.
+
+		  0.5.9f: - 2007/15/7 
+              - Correction de plusieurs bugs sur l'attributions des couleurs et le nommage 
+                des courbes
+
+     0.5.9i : - ??/??/?? 
+              - Patch externe réalisé sur blender.org project.
+
+     0.5.9j : - 08/11/2008 
+     0.5.9k : - 14/01/2009 
+     0.5.9l : - 31/01/2009 
+     0.5.9n : - 01/02/2009
 
 ==================================================================================   
 =================================================================================="""
 SHARP_IMPORT=0
 SCALE=1
 scale_=1
-DEBUG = 0#print
+DEBUG = 0
 DEVELOPPEMENT=0
 TESTCOLOR=0
 
@@ -533,7 +544,7 @@ def createCURVES(curves, name):
 	scene.objects.selected = [] 
 	
 	if not SEPARATE_CURVES: 
-		c = Curve.New()   
+		c = Curve.New()  
 		c.setResolu(24)  
 
 	MATNAME=[]			
@@ -709,7 +720,6 @@ def circle(prp):
 	else : cx =float(prp['cx'])
 	if 'cy' not in prp: cy=0.0
 	else : cy =float(prp['cy'])
-	#print 	prp.keys()
 	r = float(prp['r'])
 	D=['M',str(cx),str(cy+r),                  
 			'C',str(cx-r),       str(cy+r*0.552),str(cx-0.552*r),str(cy+r),      str(cx),str(cy+r), 
@@ -852,7 +862,7 @@ def calc_arc (cpx,cpy, rx, ry,  ang, fa , fs , x, y) :
 #--------------------
 # 0.3.9
 #--------------------
-def curve_to_a(c,D,n0,CP):  #A,a
+def curve_to_a(curves, c,D,n0,CP):  #A,a
 	global SCALE
 	l=[float(D[c[1]+1]),float(D[c[1]+2]),float(D[c[1]+3]),
 			int(D[c[1]+4]),int(D[c[1]+5]),float(D[c[1]+6]),float(D[c[1]+7])]
@@ -866,8 +876,7 @@ def curve_to_a(c,D,n0,CP):  #A,a
 	POINTS= calc_arc (CP[0],CP[1], 
 										l[0], l[1], l[2]*(PI / 180.0),
 										l[3], l[4], 
-										l[5], l[6] )    
-	#if DEBUG == 1  : print POINTS    
+										l[5], l[6] )     
 	for p in POINTS :
 		B=Bez()
 		B.co=[ p[2][0],p[2][1], p[0][0],p[0][1], p[1][0],p[1][1]]             
@@ -881,16 +890,23 @@ def curve_to_a(c,D,n0,CP):  #A,a
 	BP.co[2]=BP.co[0]
 	BP.co[3]=BP.co[1]
 	CP=[l[5], l[6]]
+	#----------  059m------------
+	if len(D)>c[1]+7 and D[c[1]+8] not in TAGcourbe :
+		c[1]+=7
+		curves,n0,CP=curve_to_a(curves, c, D, n0,CP)       
+	#----------  059m------------
 	return  curves,n0,CP    
 
-def move_to(c, D, n0,CP, proprietes):
+def move_to(curves, c, D, n0,CP, proprietes):
 	global DEBUG,TAGcourbe, LAST_ID
 	global 	USE_COLORS
 		
 	l=[float(D[c[1]+1]),float(D[c[1]+2])]
+	
 	if c[0]=='m':
 		l=[l[0]+CP[0],
 				l[1] + CP[1]]
+				
 	if n0 in curves.ITEM:
 		n0+=1
 	CP=[l[0],l[1]] 
@@ -917,14 +933,12 @@ def move_to(c, D, n0,CP, proprietes):
 	B.co=[CP[0],CP[1],CP[0],CP[1],CP[0],CP[1]]
 	B.ha=['L','C']
 	B.tag=c[0]
-	curves.ITEM[n0].beziers_knot.append(B)
-	#if DEBUG==1: print curves.ITEM[n0], CP    
+	curves.ITEM[n0].beziers_knot.append(B)  
 	return  curves,n0,CP     
 
-def close_z(c,D,n0,CP): #Z,z
+def close_z(curves, c,D,n0,CP): #Z,z
 	curves.ITEM[n0].flagUV[0]=1
 	if len(curves.ITEM[n0].beziers_knot)>1:
-		#print 	len(curves.ITEM[n0].beziers_knot)
 		BP=curves.ITEM[n0].beziers_knot[-1]
 		BP0=curves.ITEM[n0].beziers_knot[0]
 		if BP.tag in ['c','C','s','S',]: 
@@ -936,7 +950,7 @@ def close_z(c,D,n0,CP): #Z,z
 		n0-=1 
 	return  curves,n0,CP    
 
-def curve_to_q(c,D,n0,CP):  #Q,q
+def curve_to_q(curves, c,D,n0,CP):  #Q,q
 	l=[float(D[c[1]+1]),float(D[c[1]+2]),float(D[c[1]+3]),float(D[c[1]+4])]
 	if c[0]=='q':
 		l=[l[0]+CP[0], l[1]+CP[1], l[2]+CP[0], l[3]+CP[1]]
@@ -948,15 +962,14 @@ def curve_to_q(c,D,n0,CP):  #Q,q
 	BP.co[2]=BP.co[0]
 	BP.co[3]=BP.co[1]
 	curves.ITEM[n0].beziers_knot.append(B)
-	#if DEBUG==1: print B.co,BP.co
 	CP=[l[2],l[3]]
 	#if DEBUG==1:		pass 
 	if len(D)>c[1]+5 and D[c[1]+5] not in TAGcourbe :
 		c[1]+=4
-		curve_to_q(c, D, n0,CP)
+		curves,n0,CP=curve_to_q(curves, c, D, n0,CP)
 	return  curves,n0,CP          
 
-def curve_to_t(c,D,n0,CP):  #T,t 
+def curve_to_t(curves, c,D,n0,CP):  #T,t 
 	l=[float(D[c[1]+1]),float(D[c[1]+2])]
 	if c[0]=='t':
 		l=[l[0]+CP[0], l[1]+CP[1]]         
@@ -970,11 +983,10 @@ def curve_to_t(c,D,n0,CP):  #T,t
 		BP.co[2]=l0[2]
 		BP.co[3]=l0[3]
 	curves.ITEM[n0].beziers_knot.append(B)
-	#if DEBUG==1: print B.co,BP.co
 	CP=[l[0],l[1]]
 	if len(D)>c[1]+3 and D[c[1]+3] not in TAGcourbe :
 		c[1]+=4
-		curve_to_t(c, D, n0,CP)    
+		curves,n0,CP=curve_to_t(curves, c, D, n0,CP)    
 	return  curves,n0,CP     
 
 #--------------------
@@ -985,7 +997,7 @@ def build_SYMETRIC(l):
 	Y=l[3]-(l[1]-l[3])
 	return X,Y
 
-def curve_to_s(c,D,n0,CP):  #S,s
+def curve_to_s(curves, c,D,n0,CP):  #S,s
 	l=[float(D[c[1]+1]),
 			float(D[c[1]+2]),
 			float(D[c[1]+3]),
@@ -1003,17 +1015,16 @@ def curve_to_s(c,D,n0,CP):  #S,s
 	#--------------------
 	BP.co[2],BP.co[3]=build_SYMETRIC([BP.co[4],BP.co[5],BP.co[0],BP.co[1]])
 	curves.ITEM[n0].beziers_knot.append(B)
-	#if DEBUG==1: print B.co,BP.co
 	#--------------------
 	# 0.4.3
 	#--------------------	
 	CP=[l[2],l[3]]    
 	if len(D)>c[1]+5 and D[c[1]+5] not in TAGcourbe :
 		c[1]+=4
-		curve_to_c(c, D, n0,CP)       
+		curves,n0,CP=curve_to_c(curves, c, D, n0,CP)       
 	return  curves,n0,CP
 
-def curve_to_c(c, D, n0,CP): #c,C
+def curve_to_c(curves, c, D, n0,CP): #c,C	
 	l=[float(D[c[1]+1]),float(D[c[1]+2]),float(D[c[1]+3]),
 		 float(D[c[1]+4]),float(D[c[1]+5]),float(D[c[1]+6])]
 	if c[0]=='c':
@@ -1030,6 +1041,8 @@ def curve_to_c(c, D, n0,CP): #c,C
 				l[5],
 				l[2],
 				l[3]] #plus toucher au 2-3
+				
+				
 	B.ha=['C','C']
 	B.tag=c[0]
 	BP=curves.ITEM[n0].beziers_knot[-1]
@@ -1037,32 +1050,38 @@ def curve_to_c(c, D, n0,CP): #c,C
 	BP.co[3]=l[1]
 	BP.ha[1]='C'
 	curves.ITEM[n0].beziers_knot.append(B)
-	#if DEBUG==1: print B.co,BP.co
 	CP=[l[4],l[5]]
 	if len(D)>c[1]+7 and D[c[1]+7] not in TAGcourbe :
-		c[1]+=6
-		curve_to_c(c, D, n0,CP)
+			c[1]+=6
+			curves,n0,CP=curve_to_c(curves, c, D, n0,CP)
 	return  curves,n0,CP
 
-def draw_line_l(c, D, n0,CP): #L,l
-	l=[float(D[c[1]+1]),float(D[c[1]+2])]
+def draw_line_l(curves, c, D, n0,CP): #L,l
+	
+	l=[float(D[c[1]+1]),float(D[c[1]+2])]		
 	if c[0]=='l':
 		l=[l[0]+CP[0],
-				l[1]+CP[1]]
+				l[1]+CP[1]]								
 	B=Bez()
-	B.co=[l[0],l[1],l[0],l[1],l[0],l[1]]
+	B.co=[l[0],l[1],
+	      l[0],l[1],
+	      l[0],l[1]]
+	
 	B.ha=['L','L']
 	B.tag=c[0]
 	BP=curves.ITEM[n0].beziers_knot[-1]
 	BP.ha[1]='L'
+	
 	curves.ITEM[n0].beziers_knot.append(B)    
-	CP=[B.co[0],B.co[1]]
+	CP=[B.co[4],B.co[5]]
+		
 	if len(D)>c[1]+3 and D[c[1]+3] not in TAGcourbe :
 		c[1]+=2
-		draw_line_l(c, D, n0,CP) #L
+		curves,n0,CP=draw_line_l(curves, c, D, n0,CP) #L
+		
 	return  curves,n0,CP    
 
-def draw_line_h(c,D,n0,CP): #H,h
+def draw_line_h(curves, c,D,n0,CP): #H,h
 	if c[0]=='h':
 		l=[float(D[c[1]+1])+float(CP[0]),CP[1]]
 	else:
@@ -1077,7 +1096,7 @@ def draw_line_h(c,D,n0,CP): #H,h
 	CP=[l[0],l[1]]
 	return  curves,n0,CP    
 
-def draw_line_v(c,D,n0,CP): #V, v    
+def draw_line_v(curves, c,D,n0,CP): #V, v    
 	if c[0]=='v':
 		l=[CP[0], float(D[c[1]+1])+CP[1]]
 	else:
@@ -1121,17 +1140,31 @@ TAGtransform=['M','L','C','S','H','V','T','Q']
 tagTRANSFORM=0
  
 def wash_DATA(ndata):	
-	if ndata:
-		#if DEBUG==1: print ndata
+	if ndata:		
 		ndata = ndata.strip()
+		
 		if ndata[0]==',':ndata=ndata[1:]
 		if ndata[-1]==',':ndata=ndata[:-1]
+		
 		#--------------------
 		# 0.4.0 : 'e'
 		#--------------------
-		i = ndata.find('-')
-		if i != -1 and ndata[i-1] not in ' ,e':
-			ndata=ndata.replace('-',',-')
+		ni=0
+		i = ndata.find('-',ni)		
+		if i != -1:
+			while i>-1 :			
+				i = ndata.find('-',ni)	
+				# 059l		 ------
+				if i>0 :					
+					if ndata[i-1] not in [' ',',','e']:
+						ndata=ndata[:i]+','+ndata[i:]
+						ni=i+2
+					else:
+						ni=i+1												
+				elif i>-1:
+					ni=1
+				# 059l		 ------
+					
 		ndata=ndata.replace(',,',',')    
 		ndata=ndata.replace(' ',',')
 		ndata=ndata.split(',')		
@@ -1153,7 +1186,7 @@ def list_DATA(DATA):
 	#  borner les differents segments qui devront etre
 	#  traites
 	#  pour cela construire une liste avec chaque 
-	#  la position de chaqe emplacement tag de type 
+	#   position de chaque emplacement tag de type 
 	#  commande path...
 	# ----------------------------------------
 	tagplace=[]
@@ -1169,8 +1202,10 @@ def list_DATA(DATA):
 	# d'apparition des tags 
 	#------------------------------------------
 	tagplace.sort()
-
+	
 	tpn=range(len(tagplace))
+
+	
 	#--------------------
 	# 0.3.5 :: short data, only one tag
 	#--------------------
@@ -1179,14 +1214,18 @@ def list_DATA(DATA):
 		for t in tpn[:-1]: 
 			DATA2.append(DATA[tagplace[t]:tagplace[t]+1])    
 			ndata=DATA[tagplace[t]+1:tagplace[t+1]]
+			
 			if DATA2[-1] not in ['z','Z'] :
 				ndata=wash_DATA(ndata)
 				DATA2.extend(ndata)
+				
 		DATA2.append(DATA[tagplace[t+1]:tagplace[t+1]+1])  
+		
 		if DATA2[-1] not in ['z','Z'] and len(DATA)-1>=tagplace[t+1]+1:
 			ndata=DATA[tagplace[t+1]+1:]
 			ndata=wash_DATA(ndata)
 			DATA2.extend(ndata) #059a
+			
 	else:
 		#--------------------	
 		# 0.3.5 : short data,only one tag
@@ -1276,15 +1315,13 @@ def control_CONTAINT(txt):
 		nt0=txt[t0:t1+1]
 		t2=nt0[nt0.find('(')+1:-1]
 		val=nt0[:nt0.find('(')]
+
 		while t2.find('  ')!=-1:
 			t2=t2.replace('  ',' ')
-		t2=t2.replace(' ',',')
+		while t2.find(', ')!=-1: 		#059l
+			t2=t2.replace(', ',',')   #059l
 		
-		"""
-		t2=t2.split(',')		
-		for index, t in enumerate(t2):
-				t2[index]=float(t)
-		"""
+		t2=t2.replace(' ',',')
 		t2=[float(t) for t in t2.split(',')]		
 		
 		if val=='rotate' :
@@ -1314,12 +1351,24 @@ def curve_FILL(Courbe,proprietes):
 						i= i+6
 						Courbe[n].color=[int(pr[i:i+2],16),int(pr[i+2:i+4],16),int(pr[i+4:i+6],16)]
 						Courbe[n].mat=1
-					elif ';fill-opacity' in pr: 
-						i=  pr.find('fill:')+5
-						i2=	pr.find(';',i)
-						COLORNAME= pr[i:i2]
-						Courbe[n].color=SVGCOLORNAMELIST[COLORNAME]
-						Courbe[n].mat=1
+					elif ';fill-opacity' in pr:
+						if pr.find('fill:url')==-1:
+							i=  pr.find('fill:')+5
+							i2=	pr.find(';',i)
+							COLORNAME= pr[i:i2]
+							Courbe[n].color=SVGCOLORNAMELIST[COLORNAME]
+							Courbe[n].mat=1
+						elif 'color:' in pr:							
+							i=  pr.find('color:')+6
+							i2=	pr.find(';',i)
+							COLORNAME= pr[i:i2]
+							Courbe[n].color=SVGCOLORNAMELIST[COLORNAME]
+							Courbe[n].mat=1
+						else :
+							COLORNAME= 'white'
+							Courbe[n].color=SVGCOLORNAMELIST[COLORNAME]
+							Courbe[n].mat=1
+								
 #----------------------------------------------
 # 0.4.1 : apply transform stack
 #----------------------------------------------
@@ -1367,9 +1416,8 @@ def filter(d):
 def get_BOUNDBOX(BOUNDINGBOX,SVG):
 	if 'viewbox' not in SVG:
 		h=float(filter(SVG['height']))
-		#if DEBUG==1 : print 'h : ',h
+
 		w=float(filter(SVG['width']))
-		#if DEBUG==1 : print 'w :',w
 		BOUNDINGBOX['rec']=[0.0,0.0,w,h]
 		r=BOUNDINGBOX['rec']
 		BOUNDINGBOX['coef']=w/h       
@@ -1444,7 +1492,6 @@ def build_HIERARCHY(t):
 				b=balisetype.index(t[t0+1])
 				if t[t0+2]=='-': 
 					b=balisetype.index(t[t0+1])+1
-					#print t[t0:t1]
 				balise=BALISES[b]
 				if b==2:
 					parent=STACK.pop(-1)
@@ -1465,12 +1512,8 @@ def build_HIERARCHY(t):
 			if balise=='E' or balise=='O':
 				proprietes=collect_ATTRIBUTS(t[t0:t1+ouvrante])
 				
-				#print proprietes
 				if  'id' in proprietes:
 					LAST_ID=proprietes['id'] 
-					#print LAST_ID
-					
-
 					
 				if  balise=='O' and 'transform' in proprietes:
 					STACK.append(proprietes['transform'])
@@ -1489,20 +1532,20 @@ def build_HIERARCHY(t):
 					# 0.5.8, to remove exec 
 					#--------------------
 					D=OTHERSSHAPES[proprietes['TYPE']](proprietes)
-					
+				CP=[0.0,0.0]	
 				if len(D)>0:
 					cursor=0
 					proprietes['n']=[]
 					for cell in D: 
-						#if DEBUG==2 : print 'cell : ',cell ,' --'                   
+                 
 						if len(cell)>=1 and cell[0] in TAGcourbe:
 							#--------------------
 							# 0.5.8, to remove exec 
 							#--------------------
 							if cell[0] in ['m','M']: 
-								curves,n0,CP=Actions[cell]([cell,cursor], D, n0,CP,proprietes)
+								curves,n0,CP=Actions[cell](curves, [cell,cursor], D, n0,CP,proprietes)
 							else: 
-								curves,n0,CP=Actions[cell]([cell,cursor], D, n0,CP)
+								curves,n0,CP=Actions[cell](curves, [cell,cursor], D, n0,CP)
 								
 						cursor+=1
 					if TRANSFORM>0 or 'transform' in proprietes :
@@ -1513,7 +1556,6 @@ def build_HIERARCHY(t):
 						
 											
 				elif proprietes['TYPE'] == 'svg':
-					#print  'proprietes.keys()',proprietes.keys()
 					BOUNDINGBOX = get_BOUNDBOX(BOUNDINGBOX,proprietes)
 		else:
 			#--------------------

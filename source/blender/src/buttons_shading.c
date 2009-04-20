@@ -1498,9 +1498,10 @@ void uiblock_image_panel(uiBlock *block, Image **ima_pp, ImageUser *iuser,
 	 IMAnames_to_pupstring(&strp, NULL, NULL, &(G.main->image), NULL, &iuser->menunr);
 	 
 	 uiBlockBeginAlign(block);
+	 uiClearButLock(); /* no way to check if the image user is libdata or not, so assume its not, otherwise we cant select linked images - ANNOYING */
 	 but= uiDefButS(block, MENU, imagechanged, strp,		10,155,23,20, &iuser->menunr, 0, 0, 0, 0, "Selects an existing Image or Movie");
 	 uiButSetFunc(but, image_browse_cb, ima_pp, iuser);
-	 
+	 uiSetButLock(ima && (ima->id.lib!=NULL), ERROR_LIBDATA_MESSAGE);
 	 MEM_freeN(strp);
 	 
 	 /* name + options, or only load */
@@ -2444,18 +2445,29 @@ static void world_panel_mistaph(World *wrld)
 	uiSetButLock(wrld->id.lib!=0, ERROR_LIBDATA_MESSAGE);
 
 #if GAMEBLENDER == 1
-	uiDefButI(block, MENU, 1, 
+	uiDefButS(block, MENU, B_REDR, 
 #ifdef USE_ODE
 			  "Physics %t|None %x0|Sumo %x2|Ode %x4 |Bullet %x5",
 #else
-			  //"Physics %t|None %x0|Sumo %x2|Bullet %x5", //disable Sumo, until too many people complain ;-)
+
+#ifdef USE_SUMO_SOLID
 			  "Physics %t|None %x0|Sumo (deprecated) %x2|Bullet %x5",
+#else
+			  "Physics %t|None %x0|Bullet %x5", //disable Sumo, until too many people complain ;-)
+#endif
+
 #endif
 			  10,180,140,19, &wrld->physicsEngine, 0, 0, 0, 0, 
 			  "Physics Engine");
 	
 	/* Gravitation for the game worlds */
 	uiDefButF(block, NUMSLI,0, "Grav ", 150,180,150,19,	&(wrld->gravity), 0.0, 25.0, 0, 0,  "Sets the gravitation constant of the game world");
+	if (wrld->physicsEngine == WOPHY_BULLET) {
+		uiDefButBitS(block, TOG, WO_DBVT_CULLING, B_REDR, "DBVT culling",	10,160,140,19, &wrld->mode, 0, 0, 0, 0, "Toggles use of optimized Bullet DBVT tree for view frustrum and occlusion culling");
+		if (wrld->mode & WO_DBVT_CULLING)
+			uiDefButS(block, NUM, B_REDR, "Occlu Res:",
+				150, 160, 150, 19, &wrld->occlusionRes, 128.0, 1024.0, 0, 0, "Sets the size of the occlusion buffer in pixel, use higher value for better precsion (slower)");
+	}
 #endif
 
 	uiBlockSetCol(block, TH_BUT_SETTING1);

@@ -168,22 +168,22 @@ bool KX_NetworkMessageSensor::IsPositiveTrigger()
 
 /* Integration hooks --------------------------------------------------- */
 PyTypeObject KX_NetworkMessageSensor::Type = {
-	PyObject_HEAD_INIT(&PyType_Type)
+	PyObject_HEAD_INIT(NULL)
 	0,
 	"KX_NetworkMessageSensor",
-	sizeof(KX_NetworkMessageSensor),
+	sizeof(PyObjectPlus_Proxy),
 	0,
-	PyDestructor,
-	0,
-	__getattr,
-	__setattr,
-	0, //&MyPyCompare,
-	__repr,
-	0, //&cvalue_as_number,
+	py_base_dealloc,
 	0,
 	0,
 	0,
-	0
+	0,
+	py_base_repr,
+	0,0,0,0,0,0,
+	py_base_getattro,
+	py_base_setattro,
+	0,0,0,0,0,0,0,0,0,
+	Methods
 };
 
 PyParentObject KX_NetworkMessageSensor::Parents[] = {
@@ -195,6 +195,7 @@ PyParentObject KX_NetworkMessageSensor::Parents[] = {
 };
 
 PyMethodDef KX_NetworkMessageSensor::Methods[] = {
+	// Deprecated ----->
 	{"setSubjectFilterText", (PyCFunction)
 		KX_NetworkMessageSensor::sPySetSubjectFilterText, METH_O,
 		(PY_METHODCHAR)SetSubjectFilterText_doc},
@@ -210,23 +211,58 @@ PyMethodDef KX_NetworkMessageSensor::Methods[] = {
 	{"getSubjects", (PyCFunction)
 		KX_NetworkMessageSensor::sPyGetSubjects, METH_NOARGS,
 		(PY_METHODCHAR)GetSubjects_doc},
+	// <-----
 	{NULL,NULL} //Sentinel
 };
 
-PyObject* KX_NetworkMessageSensor::_getattr(const STR_String& attr) {
-	_getattr_up(SCA_ISensor); // implicit return!
+PyAttributeDef KX_NetworkMessageSensor::Attributes[] = {
+	KX_PYATTRIBUTE_STRING_RW("subject", 0, 100, false, KX_NetworkMessageSensor, m_subject),
+	KX_PYATTRIBUTE_INT_RO("frameMessageCount", KX_NetworkMessageSensor, m_frame_message_count),
+	KX_PYATTRIBUTE_RO_FUNCTION("bodies", KX_NetworkMessageSensor, pyattr_get_bodies),
+	KX_PYATTRIBUTE_RO_FUNCTION("subjects", KX_NetworkMessageSensor, pyattr_get_subjects),
+	{ NULL }	//Sentinel
+};
+
+PyObject* KX_NetworkMessageSensor::py_getattro(PyObject *attr) {
+	py_getattro_up(SCA_ISensor);
 }
 
+int KX_NetworkMessageSensor::py_setattro(PyObject *attr, PyObject *value) {
+	return SCA_ISensor::py_setattro(attr, value);
+}
+
+PyObject* KX_NetworkMessageSensor::pyattr_get_bodies(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	KX_NetworkMessageSensor *self = static_cast<KX_NetworkMessageSensor*>(self_v);
+	if (self->m_BodyList) {
+		return self->m_BodyList->GetProxy();
+	} else {
+		return (new CListValue())->NewProxy(true);
+	}
+}
+
+PyObject* KX_NetworkMessageSensor::pyattr_get_subjects(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	KX_NetworkMessageSensor *self = static_cast<KX_NetworkMessageSensor*>(self_v);
+	if (self->m_SubjectList) {
+		return self->m_SubjectList->GetProxy();
+	} else {
+		return (new CListValue())->NewProxy(true);
+	}
+}
+
+// Deprecated ----->
 // 1. Set the message subject that this sensor listens for
 const char KX_NetworkMessageSensor::SetSubjectFilterText_doc[] = 
 "\tsetSubjectFilterText(value)\n"
 "\tChange the message subject text that this sensor is listening to.\n";
 
-PyObject* KX_NetworkMessageSensor::PySetSubjectFilterText( PyObject* self, PyObject* value)
+PyObject* KX_NetworkMessageSensor::PySetSubjectFilterText(PyObject* value)
 {
+	ShowDeprecationWarning("setSubjectFilterText()", "subject");
 	char* Subject = PyString_AsString(value);
 	if (Subject==NULL) {
-		PyErr_SetString(PyExc_TypeError, "expected a string message");
+		PyErr_SetString(PyExc_TypeError, "sensor.tsetSubjectFilterText(string): KX_NetworkMessageSensor, expected a string message");
 		return NULL;
 	}
 	
@@ -239,8 +275,9 @@ const char KX_NetworkMessageSensor::GetFrameMessageCount_doc[] =
 "\tgetFrameMessageCount()\n"
 "\tGet the number of messages received since the last frame.\n";
 
-PyObject* KX_NetworkMessageSensor::PyGetFrameMessageCount( PyObject* )
+PyObject* KX_NetworkMessageSensor::PyGetFrameMessageCount()
 {
+	ShowDeprecationWarning("getFrameMessageCount()", "frameMessageCount");
 	return PyInt_FromLong(long(m_frame_message_count));
 }
 
@@ -249,12 +286,13 @@ const char KX_NetworkMessageSensor::GetBodies_doc[] =
 "\tgetBodies()\n"
 "\tGet the list of message bodies.\n";
 
-PyObject* KX_NetworkMessageSensor::PyGetBodies( PyObject* )
+PyObject* KX_NetworkMessageSensor::PyGetBodies()
 {
+	ShowDeprecationWarning("getBodies()", "bodies");
 	if (m_BodyList) {
-		return ((PyObject*) m_BodyList->AddRef());
+		return m_BodyList->GetProxy();
 	} else {
-		return ((PyObject*) new CListValue());
+		return (new CListValue())->NewProxy(true);
 	}
 }
 
@@ -263,8 +301,9 @@ const char KX_NetworkMessageSensor::GetSubject_doc[] =
 "\tgetSubject()\n"
 "\tGet the subject: field of the message sensor.\n";
 
-PyObject* KX_NetworkMessageSensor::PyGetSubject( PyObject* )
+PyObject* KX_NetworkMessageSensor::PyGetSubject()
 {
+	ShowDeprecationWarning("getSubject()", "subject");
 	return PyString_FromString(m_subject ? m_subject : "");
 }
 
@@ -273,11 +312,13 @@ const char KX_NetworkMessageSensor::GetSubjects_doc[] =
 "\tgetSubjects()\n"
 "\tGet list of message subjects.\n";
 
-PyObject* KX_NetworkMessageSensor::PyGetSubjects( PyObject* )
+PyObject* KX_NetworkMessageSensor::PyGetSubjects()
 {
+	ShowDeprecationWarning("getSubjects()", "subjects");
 	if (m_SubjectList) {
-		return ((PyObject*) m_SubjectList->AddRef());
+		return m_SubjectList->GetProxy();
 	} else {
-		return ((PyObject*) new CListValue());
+		return (new CListValue())->NewProxy(true);
 	}
 }
+// <----- Deprecated

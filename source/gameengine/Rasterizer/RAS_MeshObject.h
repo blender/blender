@@ -147,6 +147,16 @@ public:
 	/* polygon sorting by Z for alpha */
 	void				SortPolygons(RAS_MeshSlot& ms, const MT_Transform &transform);
 
+
+	bool				HasColliderPolygon() {
+		int numpolys= NumPolygons();
+		for (int p=0; p<numpolys; p++)
+			if (m_Polygons[p]->IsCollider())
+				return true;
+		
+		return false;
+	}
+
 	/* for construction to find shared vertices */
 	struct SharedVertex {
 		RAS_DisplayArray *m_darray;

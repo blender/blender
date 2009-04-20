@@ -60,12 +60,14 @@ RAS_MeshSlot::RAS_MeshSlot()
 
 RAS_MeshSlot::~RAS_MeshSlot()
 {
-	vector<RAS_DisplayArray*>::iterator it;
+	RAS_DisplayArrayList::iterator it;
 
+#ifdef USE_SPLIT
 	Split(true);
 
 	while(m_joinedSlots.size())
 		m_joinedSlots.front()->Split(true);
+#endif
 
 	for(it=m_displayArrays.begin(); it!=m_displayArrays.end(); it++) {
 		(*it)->m_users--;
@@ -81,7 +83,7 @@ RAS_MeshSlot::~RAS_MeshSlot()
 
 RAS_MeshSlot::RAS_MeshSlot(const RAS_MeshSlot& slot)
 {
-	vector<RAS_DisplayArray*>::iterator it;
+	RAS_DisplayArrayList::iterator it;
 
 	m_clientObj = NULL;
 	m_pDeformer = NULL;
@@ -203,7 +205,7 @@ RAS_DisplayArray *RAS_MeshSlot::CurrentDisplayArray()
 
 void RAS_MeshSlot::SetDisplayArray(int numverts)
 {
-	vector<RAS_DisplayArray*>::iterator it;
+	RAS_DisplayArrayList::iterator it;
 	RAS_DisplayArray *darray = NULL;
 	
 	for(it=m_displayArrays.begin(); it!=m_displayArrays.end(); it++) {
@@ -295,7 +297,7 @@ bool RAS_MeshSlot::Equals(RAS_MeshSlot *target)
 
 bool RAS_MeshSlot::Join(RAS_MeshSlot *target, MT_Scalar distance)
 {
-	vector<RAS_DisplayArray*>::iterator it;
+	RAS_DisplayArrayList::iterator it;
 	iterator mit;
 	size_t i;
 
@@ -330,6 +332,9 @@ bool RAS_MeshSlot::Join(RAS_MeshSlot *target, MT_Scalar distance)
 	for(begin(mit); !end(mit); next(mit))
 		for(i=mit.startvertex; i<mit.endvertex; i++)
 			mit.vertex[i].Transform(transform, ntransform);
+	
+	/* We know we'll need a list at least this big, reserve in advance */
+	target->m_displayArrays.reserve(target->m_displayArrays.size() + m_displayArrays.size());
 
 	for(it=m_displayArrays.begin(); it!=m_displayArrays.end(); it++) {
 		target->m_displayArrays.push_back(*it);
@@ -357,7 +362,7 @@ bool RAS_MeshSlot::Split(bool force)
 {
 	list<RAS_MeshSlot*>::iterator jit;
 	RAS_MeshSlot *target = m_joinSlot;
-	vector<RAS_DisplayArray*>::iterator it, jt;
+	RAS_DisplayArrayList::iterator it, jt;
 	iterator mit;
 	size_t i, found0 = 0, found1 = 0;
 
@@ -425,11 +430,11 @@ bool RAS_MeshSlot::IsCulled()
 		return true;
 	if(!m_bCulled)
 		return false;
-	
+#ifdef USE_SPLIT	
 	for(it=m_joinedSlots.begin(); it!=m_joinedSlots.end(); it++)
 		if(!(*it)->m_bCulled)
 			return false;
-	
+#endif	
 	return true;
 }
 
@@ -513,13 +518,13 @@ list<RAS_MeshSlot>::iterator RAS_MaterialBucket::msEnd()
 bool RAS_MaterialBucket::ActivateMaterial(const MT_Transform& cameratrans, RAS_IRasterizer* rasty,
 	RAS_IRenderTools *rendertools)
 {
-	if (!rasty->SetMaterial(*m_material))
+	bool uselights;
+
+	if(!rasty->SetMaterial(*m_material))
 		return false;
 	
-	if (m_material->UsesLighting(rasty))
-		rendertools->ProcessLighting(RAS_IRenderTools::RAS_LIGHT_OBJECT_LAYER, cameratrans);
-	else
-		rendertools->ProcessLighting(-1, cameratrans);
+	uselights= m_material->UsesLighting(rasty);
+	rendertools->ProcessLighting(rasty, uselights, cameratrans);
 	
 	return true;
 }

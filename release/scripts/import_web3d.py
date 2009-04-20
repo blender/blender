@@ -1332,7 +1332,9 @@ class x3dNode(vrmlNode):
 	
 	# Other funcs operate from vrml, but this means we can wrap XML fields, still use nice utility funcs
 	# getFieldAsArray getFieldAsBool etc
-	def getFieldName(self, field):
+	def getFieldName(self, field, ancestry, AS_CHILD=False):
+		# ancestry and AS_CHILD are ignored, only used for VRML now
+		
 		self_real = self.getRealNode() # incase we're an instance
 		field_xml = self.x3dNode.getAttributeNode(field)
 		if field_xml:
@@ -1564,7 +1566,8 @@ def importMesh_IndexedFaceSet(geom, bpyima, ancestry):
 	vcolor_spot = None # spot color when we dont have an array of colors
 	if vcolor:
 		# float to char
-		ifs_vcol = [[int(c*256) for c in col] for col in vcolor.getFieldAsArray('color', 3, ancestry)]
+		ifs_vcol = [(0,0,0)] # EEKADOODLE - vertex start at 1
+		ifs_vcol.extend([[int(c*256) for c in col] for col in vcolor.getFieldAsArray('color', 3, ancestry)])
 		ifs_color_index = geom.getFieldAsArray('colorIndex', 0, ancestry)
 		
 		if not ifs_vcol:
@@ -1758,7 +1761,7 @@ def importMesh_IndexedFaceSet(geom, bpyima, ancestry):
 							print '\tWarning: per vertex color index out of range'
 							continue
 					
-					if len(ifs_vcol) < color_index:
+					if color_index < len(ifs_vcol):
 						c.r, c.g, c.b = ifs_vcol[color_index]
 					else:
 						#print '\tWarning: per face color index out of range'

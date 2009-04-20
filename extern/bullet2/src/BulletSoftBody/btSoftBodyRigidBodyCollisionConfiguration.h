@@ -32,7 +32,7 @@ class	btSoftBodyRigidBodyCollisionConfiguration : public btDefaultCollisionConfi
 	btCollisionAlgorithmCreateFunc*	m_swappedSoftRigidConvexCreateFunc;
 	btCollisionAlgorithmCreateFunc*	m_softRigidConcaveCreateFunc;
 	btCollisionAlgorithmCreateFunc*	m_swappedSoftRigidConcaveCreateFunc;
-	
+
 public:
 
 	btSoftBodyRigidBodyCollisionConfiguration(const btDefaultCollisionConstructionInfo& constructionInfo = btDefaultCollisionConstructionInfo());

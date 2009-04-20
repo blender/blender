@@ -93,6 +93,7 @@
 #include "BIF_space.h"
 #include "BIF_toolbox.h"
 #include "BIF_transform.h"
+#include "BIF_generate.h"
 
 #include "BDR_editobject.h"
 #include "BDR_drawobject.h"
@@ -699,7 +700,7 @@ int join_armature(void)
 					curbone= editbone_name_exists(&eblist, pchan->name);
 					
 					/* Get new name */
-					unique_editbone_name(&ebbase, curbone->name);
+					unique_editbone_name(&ebbase, curbone->name, NULL);
 					
 					/* Transform the bone */
 					{
@@ -1740,6 +1741,8 @@ void make_editArmature(void)
 	if (!arm) return;
 	
 	make_boneList(&G.edbo, &arm->bonebase,NULL);
+	
+	BIF_freeTemplates(); /* force template update when entering editmode */
 }
 
 /* put EditMode back in Object */
@@ -1994,17 +1997,14 @@ void undo_push_armature(char *name)
 /* **************** END EditMode stuff ********************** */
 /* *************** Adding stuff in editmode *************** */
 
-/* default bone add, returns it selected, but without tail set */
-static EditBone *add_editbone(char *name)
+EditBone *addEditBone(char *name, ListBase *ebones, bArmature *arm)
 {
-	bArmature *arm= G.obedit->data;
-	
 	EditBone *bone= MEM_callocN(sizeof(EditBone), "eBone");
 	
 	BLI_strncpy(bone->name, name, 32);
-	unique_editbone_name(&G.edbo, bone->name);
+	unique_editbone_name(ebones, bone->name, NULL);
 	
-	BLI_addtail(&G.edbo, bone);
+	BLI_addtail(ebones, bone);
 	
 	bone->flag |= BONE_TIPSEL;
 	bone->weight= 1.0F;
@@ -2019,6 +2019,14 @@ static EditBone *add_editbone(char *name)
 	bone->layer= arm->layer;
 	
 	return bone;
+}
+
+/* default bone add, returns it selected, but without tail set */
+static EditBone *add_editbone(char *name)
+{
+	bArmature *arm= G.obedit->data;
+	
+	return addEditBone(name, &G.edbo, arm);
 }
 
 static void add_primitive_bone(Object *ob, short newob)
@@ -2192,13 +2200,12 @@ static EditBone *add_points_bone (float head[], float tail[])
 	return ebo;
 }
 
-
-static EditBone *get_named_editbone(char *name)
+static EditBone *get_named_editbone_from_list(char *name, ListBase *editbones)
 {
 	EditBone  *eBone;
 
 	if (name) {
-		for (eBone=G.edbo.first; eBone; eBone=eBone->next) {
+		for (eBone=editbones->first; eBone; eBone=eBone->next) {
 			if (!strcmp(name, eBone->name))
 				return eBone;
 		}
@@ -2207,7 +2214,29 @@ static EditBone *get_named_editbone(char *name)
 	return NULL;
 }
 
-static void update_dup_subtarget(EditBone *dupBone)
+static EditBone *get_named_editbone(char *name)
+{
+	return get_named_editbone_from_list(name, &G.edbo);
+}
+
+/* Call this before doing any duplications
+ * */
+void preEditBoneDuplicate(ListBase *editbones)
+{
+	EditBone *eBone;
+	
+	/* clear temp */
+	for (eBone = editbones->first; eBone; eBone = eBone->next)
+	{
+		eBone->temp = NULL;
+	}
+}
+
+/*
+ * Note: When duplicating cross objects, editbones here is the list of bones
+ * from the SOURCE object but ob is the DESTINATION object
+ * */
+void updateDuplicateSubtargetObjects(EditBone *dupBone, ListBase *editbones, Object *src_ob, Object *dst_ob)
 {
 	/* If an edit bone has been duplicated, lets
 	 * update it's constraints if the subtarget
@@ -2218,7 +2247,7 @@ static void update_dup_subtarget(EditBone *dupBone)
 	bConstraint  *curcon;
 	ListBase     *conlist;
 	
-	if ( (chan = verify_pose_channel(OBACT->pose, dupBone->name)) ) {
+	if ( (chan = verify_pose_channel(dst_ob->pose, dupBone->name)) ) {
 		if ( (conlist = &chan->constraints) ) {
 			for (curcon = conlist->first; curcon; curcon=curcon->next) {
 				/* does this constraint have a subtarget in
@@ -2232,14 +2261,15 @@ static void update_dup_subtarget(EditBone *dupBone)
 					cti->get_constraint_targets(curcon, &targets);
 					
 					for (ct= targets.first; ct; ct= ct->next) {
-						if ((ct->tar == G.obedit) && (ct->subtarget[0])) {
-							oldtarget = get_named_editbone(ct->subtarget);
+						if ((ct->tar == src_ob) && (ct->subtarget[0])) {
+							ct->tar = dst_ob; /* update target */
+							oldtarget = get_named_editbone_from_list(ct->subtarget, editbones);
 							if (oldtarget) {
 								/* was the subtarget bone duplicated too? If
 								 * so, update the constraint to point at the 
 								 * duplicate of the old subtarget.
 								 */
-								if (oldtarget->flag & BONE_SELECTED){
+								if (oldtarget->temp){
 									newtarget = (EditBone *) oldtarget->temp;
 									strcpy(ct->subtarget, newtarget->name);
 								}
@@ -2255,6 +2285,78 @@ static void update_dup_subtarget(EditBone *dupBone)
 	}
 }
 
+void updateDuplicateSubtarget(EditBone *dupBone, ListBase *editbones, Object *ob)
+{
+	updateDuplicateSubtargetObjects(dupBone, editbones, ob, ob);
+}
+
+
+EditBone *duplicateEditBoneObjects(EditBone *curBone, char *name, ListBase *editbones, Object *src_ob, Object *dst_ob)
+{
+	EditBone *eBone = MEM_callocN(sizeof(EditBone), "addup_editbone");
+	
+	/*	Copy data from old bone to new bone */
+	memcpy(eBone, curBone, sizeof(EditBone));
+	
+	curBone->temp = eBone;
+	eBone->temp = curBone;
+	
+	if (name != NULL)
+	{
+		BLI_strncpy(eBone->name, name, 32);
+	}
+
+	unique_editbone_name(editbones, eBone->name, NULL);
+	BLI_addtail(editbones, eBone);
+	
+	/* Lets duplicate the list of constraints that the
+	 * current bone has.
+	 */
+	if (src_ob->pose) {
+		bPoseChannel *chanold, *channew;
+		ListBase     *listold, *listnew;
+		
+		chanold = verify_pose_channel(src_ob->pose, curBone->name);
+		if (chanold) {
+			listold = &chanold->constraints;
+			if (listold) {
+				/* WARNING: this creates a new posechannel, but there will not be an attached bone 
+				 *		yet as the new bones created here are still 'EditBones' not 'Bones'. 
+				 */
+				channew = 
+					verify_pose_channel(dst_ob->pose, eBone->name);
+				if (channew) {
+					/* copy transform locks */
+					channew->protectflag = chanold->protectflag;
+					
+					/* copy bone group */
+					channew->agrp_index= chanold->agrp_index;
+					
+					/* ik (dof) settings */
+					channew->ikflag = chanold->ikflag;
+					VECCOPY(channew->limitmin, chanold->limitmin);
+					VECCOPY(channew->limitmax, chanold->limitmax);
+					VECCOPY(channew->stiffness, chanold->stiffness);
+					channew->ikstretch= chanold->ikstretch;
+					
+					/* constraints */
+					listnew = &channew->constraints;
+					copy_constraints(listnew, listold);
+					
+					/* custom shape */
+					channew->custom= chanold->custom;
+				}
+			}
+		}
+	}
+	
+	return eBone;
+}
+
+EditBone *duplicateEditBone(EditBone *curBone, char *name, ListBase *editbones, Object *ob)
+{
+	return duplicateEditBoneObjects(curBone, name, editbones, ob, ob);
+}
 
 void adduplicate_armature(void)
 {
@@ -2264,6 +2366,8 @@ void adduplicate_armature(void)
 	EditBone	*firstDup=NULL;	/*	The beginning of the duplicated bones in the edbo list */
 	
 	countall(); // flushes selection!
+	
+	preEditBoneDuplicate(&G.edbo);
 
 	/* Select mirrored bones */
 	if (arm->flag & ARM_MIRROR_EDIT) {
@@ -2277,6 +2381,7 @@ void adduplicate_armature(void)
 			}
 		}
 	}
+
 	
 	/*	Find the selected bones and duplicate them as needed */
 	for (curBone=G.edbo.first; curBone && curBone!=firstDup; curBone=curBone->next) {
@@ -2291,7 +2396,7 @@ void adduplicate_armature(void)
 				curBone->temp = eBone;
 				eBone->temp = curBone;
 				
-				unique_editbone_name(&G.edbo, eBone->name);
+				unique_editbone_name(&G.edbo, eBone->name, NULL);
 				BLI_addtail(&G.edbo, eBone);
 				if (!firstDup)
 					firstDup=eBone;
@@ -2351,12 +2456,12 @@ void adduplicate_armature(void)
 				*/
 				if (!curBone->parent)
 					eBone->parent = NULL;
-				/*	If this bone has a parent that IS selected,
+				/*	If this bone has a parent that was duplicated,
 					Set the duplicate->parent to the curBone->parent->duplicate
 					*/
-				else if (curBone->parent->flag & BONE_SELECTED)
+				else if (curBone->parent->temp)
 					eBone->parent= (EditBone *)curBone->parent->temp;
-				/*	If this bone has a parent that IS not selected,
+				/*	If this bone has a parent that was not duplicated,
 					Set the duplicate->parent to the curBone->parent
 					*/
 				else {
@@ -2366,7 +2471,7 @@ void adduplicate_armature(void)
 				
 				/* Lets try to fix any constraint subtargets that might
 					have been duplicated */
-				update_dup_subtarget(eBone);
+				updateDuplicateSubtarget(eBone, &G.edbo, OBACT);
 			}
 		}
 	} 
@@ -3055,13 +3160,16 @@ static EditBone *editbone_name_exists (ListBase *ebones, char *name)
 }
 
 /* note: there's a unique_bone_name() too! */
-void unique_editbone_name (ListBase *ebones, char *name)
+void unique_editbone_name (ListBase *ebones, char *name, EditBone *bone)
 {
+	EditBone *dupli;
 	char		tempname[64];
 	int			number;
 	char		*dot;
 	
-	if (editbone_name_exists(ebones, name)) {
+	dupli = editbone_name_exists(ebones, name); 
+	
+	if (dupli && bone != dupli) {
 		/*	Strip off the suffix, if it's a number */
 		number= strlen(name);
 		if (number && isdigit(name[number-1])) {
@@ -3182,7 +3290,7 @@ void extrude_armature(int forked)
 							else strcat(newbone->name, "_R");
 						}
 					}
-					unique_editbone_name(&G.edbo, newbone->name);
+					unique_editbone_name(&G.edbo, newbone->name, NULL);
 					
 					/* Add the new bone to the list */
 					BLI_addtail(&G.edbo, newbone);
@@ -3269,7 +3377,7 @@ void subdivide_armature(int numcuts)
 							
 							newbone->flag |= BONE_CONNECTED;
 							
-							unique_editbone_name (&G.edbo, newbone->name);
+							unique_editbone_name (&G.edbo, newbone->name, NULL);
 							
 							/* correct parent bones */
 							for (tbone = G.edbo.first; tbone; tbone=tbone->next) {
@@ -4303,7 +4411,7 @@ void armature_bone_rename(bArmature *arm, char *oldnamep, char *newnamep)
 			
 			eBone= editbone_name_exists(&G.edbo, oldname);
 			if (eBone) {
-				unique_editbone_name(&G.edbo, newname);
+				unique_editbone_name(&G.edbo, newname, NULL);
 				BLI_strncpy(eBone->name, newname, MAXBONENAME);
 			}
 			else return;
@@ -4548,9 +4656,9 @@ EditBone * subdivideByAngle(ReebArc *arc, ReebNode *head, ReebNode *tail)
 	EditBone *lastBone = NULL;
 	if (G.scene->toolsettings->skgen_options & SKGEN_CUT_ANGLE)
 	{
-		ReebArcIterator iter;
-		EmbedBucket *current = NULL;
-		EmbedBucket *previous = NULL;
+		ReebArcIterator arc_iter;
+		BArcIterator *iter = (BArcIterator*)&arc_iter;
+		float *previous = NULL, *current = NULL;
 		EditBone *child = NULL;
 		EditBone *parent = NULL;
 		EditBone *root = NULL;
@@ -4562,22 +4670,28 @@ EditBone * subdivideByAngle(ReebArc *arc, ReebNode *head, ReebNode *tail)
 		
 		root = parent;
 		
-		for (initArcIterator(&iter, arc, head), previous = nextBucket(&iter), current = nextBucket(&iter);
-			current;
-			previous = current, current = nextBucket(&iter))
+		initArcIterator(iter, arc, head);
+		IT_next(iter);
+		previous = iter->p;
+		
+		for (IT_next(iter);
+			IT_stopped(iter) == 0;
+			previous = iter->p, IT_next(iter))
 		{
 			float vec1[3], vec2[3];
 			float len1, len2;
+			
+			current = iter->p;
 
-			VecSubf(vec1, previous->p, parent->head);
-			VecSubf(vec2, current->p, previous->p);
+			VecSubf(vec1, previous, parent->head);
+			VecSubf(vec2, current, previous);
 
 			len1 = Normalize(vec1);
 			len2 = Normalize(vec2);
 
 			if (len1 > 0.0f && len2 > 0.0f && Inpf(vec1, vec2) < angleLimit)
 			{
-				VECCOPY(parent->tail, previous->p);
+				VECCOPY(parent->tail, previous);
 
 				child = add_editbone("Bone");
 				VECCOPY(child->head, parent->tail);
@@ -4604,179 +4718,26 @@ EditBone * subdivideByAngle(ReebArc *arc, ReebNode *head, ReebNode *tail)
 	return lastBone;
 }
 
-float calcVariance(ReebArc *arc, int start, int end, float v0[3], float n[3])
+EditBone * test_subdivideByCorrelation(ReebArc *arc, ReebNode *head, ReebNode *tail)
 {
-	int len = 2 + abs(end - start);
-	
-	if (len > 2)
-	{
-		ReebArcIterator iter;
-		EmbedBucket *bucket = NULL;
-		float avg_t = 0.0f;
-		float s_t = 0.0f;
-		float s_xyz = 0.0f;
-		
-		/* First pass, calculate average */
-		for (initArcIterator2(&iter, arc, start, end), bucket = nextBucket(&iter);
-			bucket;
-			bucket = nextBucket(&iter))
-		{
-			float v[3];
-			
-			VecSubf(v, bucket->p, v0);
-			avg_t += Inpf(v, n);
-		}
-		
-		avg_t /= Inpf(n, n);
-		avg_t += 1.0f; /* adding start (0) and end (1) values */
-		avg_t /= len;
-		
-		/* Second pass, calculate s_xyz and s_t */
-		for (initArcIterator2(&iter, arc, start, end), bucket = nextBucket(&iter);
-			bucket;
-			bucket = nextBucket(&iter))
-		{
-			float v[3], d[3];
-			float dt;
-			
-			VecSubf(v, bucket->p, v0);
-			Projf(d, v, n);
-			VecSubf(v, v, d);
-			
-			dt = VecLength(d) - avg_t;
-			
-			s_t += dt * dt;
-			s_xyz += Inpf(v, v);
-		}
-		
-		/* adding start(0) and end(1) values to s_t */
-		s_t += (avg_t * avg_t) + (1 - avg_t) * (1 - avg_t);
-		
-		return s_xyz / s_t; 
-	}
-	else
-	{
-		return 0;
-	}
-}
-
-float calcDistance(ReebArc *arc, int start, int end, float head[3], float tail[3])
-{
-	ReebArcIterator iter;
-	EmbedBucket *bucket = NULL;
-	float max_dist = 0;
-	
-	/* calculate maximum distance */
-	for (initArcIterator2(&iter, arc, start, end), bucket = nextBucket(&iter);
-		bucket;
-		bucket = nextBucket(&iter))
-	{
-		float v1[3], v2[3], c[3];
-		float dist;
-		
-		VecSubf(v1, head, tail);
-		VecSubf(v2, bucket->p, tail);
-
-		Crossf(c, v1, v2);
-		
-		dist = Inpf(c, c) / Inpf(v1, v1);
-		
-		max_dist = dist > max_dist ? dist : max_dist;
-	}
-	
-	
-	return max_dist; 
-}
-
-EditBone * subdivideByCorrelation(ReebArc *arc, ReebNode *head, ReebNode *tail)
-{
-	ReebArcIterator iter;
-	float n[3];
-	float ADAPTIVE_THRESHOLD = G.scene->toolsettings->skgen_correlation_limit;
 	EditBone *lastBone = NULL;
-	
-	/* init iterator to get start and end from head */
-	initArcIterator(&iter, arc, head);
-	
-	/* Calculate overall */
-	VecSubf(n, arc->buckets[iter.end].p, head->p);
-	
+
 	if (G.scene->toolsettings->skgen_options & SKGEN_CUT_CORRELATION)
 	{
-		EmbedBucket *bucket = NULL;
-		EmbedBucket *previous = NULL;
-		EditBone *child = NULL;
-		EditBone *parent = NULL;
-		float normal[3] = {0, 0, 0};
-		float avg_normal[3];
-		int total = 0;
-		int boneStart = iter.start;
+		float invmat[4][4] = {	{1, 0, 0, 0},
+								{0, 1, 0, 0},
+								{0, 0, 1, 0},
+								{0, 0, 0, 1}};
+		float tmat[3][3] = {	{1, 0, 0},
+								{0, 1, 0},
+								{0, 0, 1}};
+		ReebArcIterator arc_iter;
+		BArcIterator *iter = (BArcIterator*)&arc_iter;
+		bArmature *arm= G.obedit->data;
 		
-		parent = add_editbone("Bone");
-		parent->flag = BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL;
-		VECCOPY(parent->head, head->p);
+		initArcIterator(iter, arc, head);
 		
-		for (previous = nextBucket(&iter), bucket = nextBucket(&iter);
-			bucket;
-			previous = bucket, bucket = nextBucket(&iter))
-		{
-			float btail[3];
-			float value = 0;
-
-			if (G.scene->toolsettings->skgen_options & SKGEN_STICK_TO_EMBEDDING)
-			{
-				VECCOPY(btail, bucket->p);
-			}
-			else
-			{
-				float length;
-				
-				/* Calculate normal */
-				VecSubf(n, bucket->p, parent->head);
-				length = Normalize(n);
-				
-				total += 1;
-				VecAddf(normal, normal, n);
-				VECCOPY(avg_normal, normal);
-				VecMulf(avg_normal, 1.0f / total);
-				 
-				VECCOPY(btail, avg_normal);
-				VecMulf(btail, length);
-				VecAddf(btail, btail, parent->head);
-			}
-
-			if (G.scene->toolsettings->skgen_options & SKGEN_ADAPTIVE_DISTANCE)
-			{
-				value = calcDistance(arc, boneStart, iter.index, parent->head, btail);
-			}
-			else
-			{
-				float n[3];
-				
-				VecSubf(n, btail, parent->head);
-				value = calcVariance(arc, boneStart, iter.index, parent->head, n);
-			}
-
-			if (value > ADAPTIVE_THRESHOLD)
-			{
-				VECCOPY(parent->tail, btail);
-
-				child = add_editbone("Bone");
-				VECCOPY(child->head, parent->tail);
-				child->parent = parent;
-				child->flag |= BONE_CONNECTED|BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL;
-				
-				parent = child; // new child is next parent
-				boneStart = iter.index; // start from end
-				
-				normal[0] = normal[1] = normal[2] = 0;
-				total = 0;
-			}
-		}
-
-		VECCOPY(parent->tail, tail->p);
-		
-		lastBone = parent; /* set last bone in the chain */
+		lastBone = subdivideArcBy(arm, &G.edbo, iter, invmat, tmat, nextAdaptativeSubdivision);
 	}
 	
 	return lastBone;
@@ -4809,107 +4770,26 @@ float arcLengthRatio(ReebArc *arc)
 	return embedLength / arcLength;	
 }
 
-EditBone * subdivideByLength(ReebArc *arc, ReebNode *head, ReebNode *tail)
+EditBone * test_subdivideByLength(ReebArc *arc, ReebNode *head, ReebNode *tail)
 {
 	EditBone *lastBone = NULL;
 	if ((G.scene->toolsettings->skgen_options & SKGEN_CUT_LENGTH) &&
 		arcLengthRatio(arc) >= G.scene->toolsettings->skgen_length_ratio)
 	{
-		ReebArcIterator iter;
-		EmbedBucket *bucket = NULL;
-		EmbedBucket *previous = NULL;
-		EditBone *child = NULL;
-		EditBone *parent = NULL;
-		float lengthLimit = G.scene->toolsettings->skgen_length_limit;
-		int same = 0;
+		float invmat[4][4] = {	{1, 0, 0, 0},
+								{0, 1, 0, 0},
+								{0, 0, 1, 0},
+								{0, 0, 0, 1}};
+		float tmat[3][3] = {	{1, 0, 0},
+								{0, 1, 0},
+								{0, 0, 1}};
+		ReebArcIterator arc_iter;
+		BArcIterator *iter = (BArcIterator*)&arc_iter;
+		bArmature *arm= G.obedit->data;
 		
-		parent = add_editbone("Bone");
-		parent->flag |= BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL;
-		VECCOPY(parent->head, head->p);
-
-		initArcIterator(&iter, arc, head);
-
-		bucket = nextBucket(&iter);
+		initArcIterator(iter, arc, head);
 		
-		while (bucket != NULL)
-		{
-			float *vec0 = NULL;
-			float *vec1 = bucket->p;
-
-			/* first bucket. Previous is head */
-			if (previous == NULL)
-			{
-				vec0 = head->p;
-			}
-			/* Previous is a valid bucket */
-			else
-			{
-				vec0 = previous->p;
-			}
-			
-			/* If lengthLimit hits the current segment */
-			if (VecLenf(vec1, parent->head) > lengthLimit)
-			{
-				if (same == 0)
-				{
-					float dv[3], off[3];
-					float a, b, c, f;
-					
-					/* Solve quadratic distance equation */
-					VecSubf(dv, vec1, vec0);
-					a = Inpf(dv, dv);
-					
-					VecSubf(off, vec0, parent->head);
-					b = 2 * Inpf(dv, off);
-					
-					c = Inpf(off, off) - (lengthLimit * lengthLimit);
-					
-					f = (-b + (float)sqrt(b * b - 4 * a * c)) / (2 * a);
-					
-					//printf("a %f, b %f, c %f, f %f\n", a, b, c, f);
-					
-					if (isnan(f) == 0 && f < 1.0f)
-					{
-						VECCOPY(parent->tail, dv);
-						VecMulf(parent->tail, f);
-						VecAddf(parent->tail, parent->tail, vec0);
-					}
-					else
-					{
-						VECCOPY(parent->tail, vec1);
-					}
-				}
-				else
-				{
-					float dv[3];
-					
-					VecSubf(dv, vec1, vec0);
-					Normalize(dv);
-					 
-					VECCOPY(parent->tail, dv);
-					VecMulf(parent->tail, lengthLimit);
-					VecAddf(parent->tail, parent->tail, parent->head);
-				}
-				
-				child = add_editbone("Bone");
-				VECCOPY(child->head, parent->tail);
-				child->parent = parent;
-				child->flag |= BONE_CONNECTED|BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL;
-				
-				parent = child; // new child is next parent
-				
-				same = 1; // mark as same
-			}
-			else
-			{
-				previous = bucket;
-				bucket = nextBucket(&iter);
-				same = 0; // Reset same
-			}
-		}
-		VECCOPY(parent->tail, tail->p);
-		
-		lastBone = parent; /* set last bone in the chain */
+		lastBone = subdivideArcBy(arm, &G.edbo, iter, invmat, tmat, nextLengthSubdivision);
 	}
 	
 	return lastBone;
@@ -5002,13 +4882,13 @@ void generateSkeletonFromReebGraph(ReebGraph *rg)
 			switch(G.scene->toolsettings->skgen_subdivisions[i])
 			{
 				case SKGEN_SUB_LENGTH:
-					lastBone = subdivideByLength(arc, head, tail);
+					lastBone = test_subdivideByLength(arc, head, tail);
 					break;
 				case SKGEN_SUB_ANGLE:
 					lastBone = subdivideByAngle(arc, head, tail);
 					break;
 				case SKGEN_SUB_CORRELATION:
-					lastBone = subdivideByCorrelation(arc, head, tail);
+					lastBone = test_subdivideByCorrelation(arc, head, tail);
 					break;
 			}
 		}

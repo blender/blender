@@ -33,9 +33,9 @@
 #endif
 
 #ifdef WITH_FFMPEG
-#include <ffmpeg/avformat.h>
-#include <ffmpeg/avcodec.h>
-#include <ffmpeg/rational.h>
+#include <libavformat/avformat.h>
+#include <libavcodec/avcodec.h>
+#include <libavutil/rational.h>
 #if LIBAVFORMAT_VERSION_INT < (49 << 16)
 #define FFMPEG_OLD_FRAME_RATE 1
 #else
@@ -311,7 +311,8 @@ static void sound_hdaudio_extract_small_block(
 				audio_pkt_size = packet.size;
 
 				while (audio_pkt_size > 0) {
-					len = avcodec_decode_audio(
+					data_size=AVCODEC_MAX_AUDIO_FRAME_SIZE;
+					len = avcodec_decode_audio2(
 						hdaudio->pCodecCtx, 
 						hdaudio->decode_cache 
 						+ decode_pos, 
@@ -478,7 +479,8 @@ static void sound_hdaudio_extract_small_block(
 			}
 
 			while (audio_pkt_size > 0) {
-				len = avcodec_decode_audio(
+				data_size=AVCODEC_MAX_AUDIO_FRAME_SIZE;
+				len = avcodec_decode_audio2(
 					hdaudio->pCodecCtx, 
 					hdaudio->decode_cache 
 					+ decode_pos, 

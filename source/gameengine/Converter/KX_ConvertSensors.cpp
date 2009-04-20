@@ -306,12 +306,12 @@ void BL_ConvertSensors(struct Object* blenderobject,
 				{
 					// collision sensor can sense both materials and properties. 
 					
-					bool bFindMaterial = false;
+					bool bFindMaterial = false, bTouchPulse = false;
 					
 					bCollisionSensor* blendertouchsensor = (bCollisionSensor*)sens->data;
 					
-					bFindMaterial = (blendertouchsensor->mode 
-						& SENS_COLLISION_MATERIAL);
+					bFindMaterial = (blendertouchsensor->mode & SENS_COLLISION_MATERIAL);
+					bTouchPulse = (blendertouchsensor->mode & SENS_COLLISION_PULSE);
 					
 					
 					STR_String touchPropOrMatName = ( bFindMaterial ? 
@@ -324,6 +324,7 @@ void BL_ConvertSensors(struct Object* blenderobject,
 						gamesensor = new KX_TouchSensor(eventmgr,
 							gameobj,
 							bFindMaterial,
+							bTouchPulse,
 							touchPropOrMatName);
 					}
 					
@@ -349,6 +350,7 @@ void BL_ConvertSensors(struct Object* blenderobject,
 						gamesensor = new KX_TouchSensor(eventmgr,
 							gameobj,
 							bFindMaterial,
+							false,
 							touchpropertyname);
 					}
 				}
@@ -507,7 +509,6 @@ void BL_ConvertSensors(struct Object* blenderobject,
 							starty,
 							keytype,
 							trackfocus,
-							canvas,
 							kxscene,
 							kxengine,
 							gameobj); 
@@ -705,6 +706,11 @@ void BL_ConvertSensors(struct Object* blenderobject,
 						hat		= bjoy->hat;
 						hatf	= bjoy->hatf;
 						joysticktype  = SCA_JoystickSensor::KX_JOYSENSORMODE_HAT;
+						break;
+					case SENS_JOY_AXIS_SINGLE:
+						axis	= bjoy->axis_single;
+						prec	= bjoy->precision;
+						joysticktype  = SCA_JoystickSensor::KX_JOYSENSORMODE_AXIS_SINGLE;
 						break;
 					default:
 						printf("Error: bad case statement\n");

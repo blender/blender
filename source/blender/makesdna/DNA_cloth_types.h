@@ -1,5 +1,5 @@
 /**
-* $Id: DNA_cloth_types.h,v 1.1 2007/08/01 02:28:34 daniel Exp $
+* $Id$
 *
 * ***** BEGIN GPL LICENSE BLOCK *****
 *

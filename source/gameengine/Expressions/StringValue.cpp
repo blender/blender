@@ -113,7 +113,7 @@ this object
 
 
 
-float CStringValue::GetNumber()
+double CStringValue::GetNumber()
 {
 	return -1;
 }

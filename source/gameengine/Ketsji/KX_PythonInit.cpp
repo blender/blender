@@ -47,31 +47,43 @@
 #include "KX_PyConstraintBinding.h"
 
 #include "KX_KetsjiEngine.h"
+#include "KX_RadarSensor.h"
+#include "KX_RaySensor.h"
+#include "KX_SCA_DynamicActuator.h"
 
 #include "SCA_IInputDevice.h"
 #include "SCA_PropertySensor.h"
 #include "SCA_RandomActuator.h"
+#include "SCA_KeyboardSensor.h" /* IsPrintable, ToCharacter */
 #include "KX_ConstraintActuator.h"
 #include "KX_IpoActuator.h"
 #include "KX_SoundActuator.h"
+#include "KX_StateActuator.h"
 #include "BL_ActionActuator.h"
 #include "RAS_IRasterizer.h"
 #include "RAS_ICanvas.h"
 #include "RAS_BucketManager.h"
+#include "RAS_2DFilterManager.h"
 #include "MT_Vector3.h"
 #include "MT_Point3.h"
 #include "ListValue.h"
 #include "KX_Scene.h"
 #include "SND_DeviceManager.h"
 
+#include "NG_NetworkScene.h" //Needed for sendMessage()
+
 #include "BL_Shader.h"
 
 #include "KX_PyMath.h"
 
-#include "PyObjectPlus.h" 
+#include "PyObjectPlus.h"
+
+#include "KX_PythonInitTypes.h" 
 
 extern "C" {
 	#include "Mathutils.h" // Blender.Mathutils module copied here so the blenderlayer can use.
+	#include "bpy_internal_import.h"  /* from the blender python api, but we want to import text too! */
+	#include "BGL.h"
 }
 
 #include "marshal.h" /* python header for loading/saving dicts */
@@ -90,7 +102,7 @@ extern "C" {
 #include "GPU_material.h"
 
 static void setSandbox(TPythonSecurityLevel level);
-
+static void clearGameModules();
 
 // 'local' copy of canvas ptr, for window height/width python scripts
 static RAS_ICanvas* gp_Canvas = NULL;
@@ -107,9 +119,9 @@ void	KX_RasterizerDrawDebugLine(const MT_Vector3& from,const MT_Vector3& to,cons
 
 /* Macro for building the keyboard translation */
 //#define KX_MACRO_addToDict(dict, name) PyDict_SetItemString(dict, #name, PyInt_FromLong(SCA_IInputDevice::KX_##name))
-#define KX_MACRO_addToDict(dict, name) PyDict_SetItemString(dict, #name, PyInt_FromLong(name))
+#define KX_MACRO_addToDict(dict, name) PyDict_SetItemString(dict, #name, item=PyInt_FromLong(name)); Py_DECREF(item)
 /* For the defines for types from logic bricks, we do stuff explicitly... */
-#define KX_MACRO_addTypesToDict(dict, name, name2) PyDict_SetItemString(dict, #name, PyInt_FromLong(name2))
+#define KX_MACRO_addTypesToDict(dict, name, name2) PyDict_SetItemString(dict, #name, item=PyInt_FromLong(name2)); Py_DECREF(item)
 
 
 // temporarily python stuff, will be put in another place later !
@@ -125,10 +137,10 @@ static PyObject* gPyGetRandomFloat(PyObject*)
 	return PyFloat_FromDouble(MT_random());
 }
 
-static PyObject* gPySetGravity(PyObject*, PyObject* args)
+static PyObject* gPySetGravity(PyObject*, PyObject* value)
 {
-	MT_Vector3 vec = MT_Vector3(0., 0., 0.);
-	if (!PyVecArgTo(args, vec))
+	MT_Vector3 vec;
+	if (!PyVecTo(value, vec))
 		return NULL;
 
 	if (gp_KetsjiScene)
@@ -152,7 +164,7 @@ static PyObject* gPyExpandPath(PyObject*, PyObject* args)
 	char expanded[FILE_MAXDIR + FILE_MAXFILE];
 	char* filename;
 	
-	if (!PyArg_ParseTuple(args,"s",&filename))
+	if (!PyArg_ParseTuple(args,"s:ExpandPath",&filename))
 		return NULL;
 
 	BLI_strncpy(expanded, filename, FILE_MAXDIR + FILE_MAXFILE);
@@ -160,6 +172,28 @@ static PyObject* gPyExpandPath(PyObject*, PyObject* args)
 	return PyString_FromString(expanded);
 }
 
+static char gPySendMessage_doc[] = 
+"sendMessage(subject, [body, to, from])\n\
+sends a message in same manner as a message actuator\
+subject = Subject of the message\
+body = Message body\
+to = Name of object to send the message to\
+from = Name of object to sned the string from";
+
+static PyObject* gPySendMessage(PyObject*, PyObject* args)
+{
+	char* subject;
+	char* body = (char *)"";
+	char* to = (char *)"";
+	char* from = (char *)"";
+
+	if (!PyArg_ParseTuple(args, "s|sss:sendMessage", &subject, &body, &to, &from))
+		return NULL;
+
+	gp_KetsjiScene->GetNetworkScene()->SendMessage(to, from, subject, body);
+
+	Py_RETURN_NONE;
+}
 
 static bool usedsp = false;
 
@@ -196,7 +230,7 @@ static PyObject* gPyGetSpectrum(PyObject*)
 }
 
 
-
+#if 0 // unused
 static PyObject* gPyStartDSP(PyObject*, PyObject* args)
 {
 	SND_IAudioDevice* audiodevice = SND_DeviceManager::Instance();
@@ -213,7 +247,7 @@ static PyObject* gPyStartDSP(PyObject*, PyObject* args)
 	
 	Py_RETURN_NONE;
 }
-
+#endif
 
 
 static PyObject* gPyStopDSP(PyObject*, PyObject* args)
@@ -236,7 +270,7 @@ static PyObject* gPyStopDSP(PyObject*, PyObject* args)
 static PyObject* gPySetLogicTicRate(PyObject*, PyObject* args)
 {
 	float ticrate;
-	if (!PyArg_ParseTuple(args, "f", &ticrate))
+	if (!PyArg_ParseTuple(args, "f:setLogicTicRate", &ticrate))
 		return NULL;
 	
 	KX_KetsjiEngine::SetTicRate(ticrate);
@@ -251,23 +285,23 @@ static PyObject* gPyGetLogicTicRate(PyObject*)
 static PyObject* gPySetPhysicsTicRate(PyObject*, PyObject* args)
 {
 	float ticrate;
-	if (!PyArg_ParseTuple(args, "f", &ticrate))
+	if (!PyArg_ParseTuple(args, "f:setPhysicsTicRate", &ticrate))
 		return NULL;
 	
 	PHY_GetActiveEnvironment()->setFixedTimeStep(true,ticrate);
 	Py_RETURN_NONE;
 }
-
+#if 0 // unused
 static PyObject* gPySetPhysicsDebug(PyObject*, PyObject* args)
 {
 	int debugMode;
-	if (!PyArg_ParseTuple(args, "i", &debugMode))
+	if (!PyArg_ParseTuple(args, "i:setPhysicsDebug", &debugMode))
 		return NULL;
 	
 	PHY_GetActiveEnvironment()->setDebugMode(debugMode);
 	Py_RETURN_NONE;
 }
-
+#endif
 
 
 static PyObject* gPyGetPhysicsTicRate(PyObject*)
@@ -289,7 +323,7 @@ static PyObject* gPyGetBlendFileList(PyObject*, PyObject* args)
     DIR *dp;
     struct dirent *dirp;
 	
-	if (!PyArg_ParseTuple(args, "|s", &searchpath))
+	if (!PyArg_ParseTuple(args, "|s:getBlendFileList", &searchpath))
 		return NULL;
 	
 	list = PyList_New(0);
@@ -325,8 +359,29 @@ static STR_String gPyGetCurrentScene_doc =
 "Gets a reference to the current scene.\n";
 static PyObject* gPyGetCurrentScene(PyObject* self)
 {
-	Py_INCREF(gp_KetsjiScene);
-	return (PyObject*) gp_KetsjiScene;
+	return gp_KetsjiScene->GetProxy();
+}
+
+static STR_String gPyGetSceneList_doc =  
+"getSceneList()\n"
+"Return a list of converted scenes.\n";
+static PyObject* gPyGetSceneList(PyObject* self)
+{
+	KX_KetsjiEngine* m_engine = KX_GetActiveEngine();
+	PyObject* list;
+	KX_SceneList* scenes = m_engine->CurrentScenes();
+	int numScenes = scenes->size();
+	int i;
+	
+	list = PyList_New(numScenes);
+	
+	for (i=0;i<numScenes;i++)
+	{
+		KX_Scene* scene = scenes->at(i);
+		PyList_SET_ITEM(list, i, scene->GetProxy());
+	}
+	
+	return list;
 }
 
 static PyObject *pyPrintExt(PyObject *,PyObject *,PyObject *)
@@ -403,16 +458,19 @@ static PyObject *pyPrintExt(PyObject *,PyObject *,PyObject *)
 
 static struct PyMethodDef game_methods[] = {
 	{"expandPath", (PyCFunction)gPyExpandPath, METH_VARARGS, (PY_METHODCHAR)gPyExpandPath_doc},
+	{"sendMessage", (PyCFunction)gPySendMessage, METH_VARARGS, (PY_METHODCHAR)gPySendMessage_doc},
 	{"getCurrentController",
 	(PyCFunction) SCA_PythonController::sPyGetCurrentController,
 	METH_NOARGS, (PY_METHODCHAR)SCA_PythonController::sPyGetCurrentController__doc__},
 	{"getCurrentScene", (PyCFunction) gPyGetCurrentScene,
 	METH_NOARGS, (PY_METHODCHAR)gPyGetCurrentScene_doc.Ptr()},
+	{"getSceneList", (PyCFunction) gPyGetSceneList,
+	METH_NOARGS, (PY_METHODCHAR)gPyGetSceneList_doc.Ptr()},
 	{"addActiveActuator",(PyCFunction) SCA_PythonController::sPyAddActiveActuator,
 	METH_VARARGS, (PY_METHODCHAR)SCA_PythonController::sPyAddActiveActuator__doc__},
 	{"getRandomFloat",(PyCFunction) gPyGetRandomFloat,
 	METH_NOARGS, (PY_METHODCHAR)gPyGetRandomFloat_doc.Ptr()},
-	{"setGravity",(PyCFunction) gPySetGravity, METH_VARARGS, (PY_METHODCHAR)"set Gravitation"},
+	{"setGravity",(PyCFunction) gPySetGravity, METH_O, (PY_METHODCHAR)"set Gravitation"},
 	{"getSpectrum",(PyCFunction) gPyGetSpectrum, METH_NOARGS, (PY_METHODCHAR)"get audio spectrum"},
 	{"stopDSP",(PyCFunction) gPyStopDSP, METH_VARARGS, (PY_METHODCHAR)"stop using the audio dsp (for performance reasons)"},
 	{"getLogicTicRate", (PyCFunction) gPyGetLogicTicRate, METH_NOARGS, (PY_METHODCHAR)"Gets the logic tic rate"},
@@ -446,7 +504,7 @@ bool gUseVisibilityTemp = false;
 static PyObject* gPyEnableVisibility(PyObject*, PyObject* args)
 {
 	int visible;
-	if (!PyArg_ParseTuple(args,"i",&visible))
+	if (!PyArg_ParseTuple(args,"i:enableVisibility",&visible))
 		return NULL;
 	
 	gUseVisibilityTemp = (visible != 0);
@@ -458,7 +516,7 @@ static PyObject* gPyEnableVisibility(PyObject*, PyObject* args)
 static PyObject* gPyShowMouse(PyObject*, PyObject* args)
 {
 	int visible;
-	if (!PyArg_ParseTuple(args,"i",&visible))
+	if (!PyArg_ParseTuple(args,"i:showMouse",&visible))
 		return NULL;
 	
 	if (visible)
@@ -479,7 +537,7 @@ static PyObject* gPyShowMouse(PyObject*, PyObject* args)
 static PyObject* gPySetMousePosition(PyObject*, PyObject* args)
 {
 	int x,y;
-	if (!PyArg_ParseTuple(args,"ii",&x,&y))
+	if (!PyArg_ParseTuple(args,"ii:setMousePosition",&x,&y))
 		return NULL;
 	
 	if (gp_Canvas)
@@ -491,11 +549,11 @@ static PyObject* gPySetMousePosition(PyObject*, PyObject* args)
 static PyObject* gPySetEyeSeparation(PyObject*, PyObject* args)
 {
 	float sep;
-	if (!PyArg_ParseTuple(args, "f", &sep))
+	if (!PyArg_ParseTuple(args, "f:setEyeSeparation", &sep))
 		return NULL;
 
 	if (!gp_Rasterizer) {
-		PyErr_SetString(PyExc_RuntimeError, "Rasterizer not available");
+		PyErr_SetString(PyExc_RuntimeError, "Rasterizer.setEyeSeparation(float), Rasterizer not available");
 		return NULL;
 	}
 	
@@ -504,10 +562,10 @@ static PyObject* gPySetEyeSeparation(PyObject*, PyObject* args)
 	Py_RETURN_NONE;
 }
 
-static PyObject* gPyGetEyeSeparation(PyObject*, PyObject*, PyObject*)
+static PyObject* gPyGetEyeSeparation(PyObject*)
 {
 	if (!gp_Rasterizer) {
-		PyErr_SetString(PyExc_RuntimeError, "Rasterizer not available");
+		PyErr_SetString(PyExc_RuntimeError, "Rasterizer.getEyeSeparation(), Rasterizer not available");
 		return NULL;
 	}
 	
@@ -517,11 +575,11 @@ static PyObject* gPyGetEyeSeparation(PyObject*, PyObject*, PyObject*)
 static PyObject* gPySetFocalLength(PyObject*, PyObject* args)
 {
 	float focus;
-	if (!PyArg_ParseTuple(args, "f", &focus))
+	if (!PyArg_ParseTuple(args, "f:setFocalLength", &focus))
 		return NULL;
 	
 	if (!gp_Rasterizer) {
-		PyErr_SetString(PyExc_RuntimeError, "Rasterizer not available");
+		PyErr_SetString(PyExc_RuntimeError, "Rasterizer.setFocalLength(float), Rasterizer not available");
 		return NULL;
 	}
 
@@ -533,7 +591,7 @@ static PyObject* gPySetFocalLength(PyObject*, PyObject* args)
 static PyObject* gPyGetFocalLength(PyObject*, PyObject*, PyObject*)
 {
 	if (!gp_Rasterizer) {
-		PyErr_SetString(PyExc_RuntimeError, "Rasterizer not available");
+		PyErr_SetString(PyExc_RuntimeError, "Rasterizer.getFocalLength(), Rasterizer not available");
 		return NULL;
 	}
 	
@@ -542,11 +600,11 @@ static PyObject* gPyGetFocalLength(PyObject*, PyObject*, PyObject*)
 	Py_RETURN_NONE;
 }
 
-static PyObject* gPySetBackgroundColor(PyObject*, PyObject* args)
+static PyObject* gPySetBackgroundColor(PyObject*, PyObject* value)
 {
 	
-	MT_Vector4 vec = MT_Vector4(0., 0., 0.3, 0.);
-	if (!PyVecArgTo(args, vec))
+	MT_Vector4 vec;
+	if (!PyVecTo(value, vec))
 		return NULL;
 	
 	if (gp_Canvas)
@@ -558,15 +616,15 @@ static PyObject* gPySetBackgroundColor(PyObject*, PyObject* args)
 
 
 
-static PyObject* gPySetMistColor(PyObject*, PyObject* args)
+static PyObject* gPySetMistColor(PyObject*, PyObject* value)
 {
 	
-	MT_Vector3 vec = MT_Vector3(0., 0., 0.);
-	if (!PyVecArgTo(args, vec))
+	MT_Vector3 vec;
+	if (!PyVecTo(value, vec))
 		return NULL;
 	
 	if (!gp_Rasterizer) {
-		PyErr_SetString(PyExc_RuntimeError, "Rasterizer not available");
+		PyErr_SetString(PyExc_RuntimeError, "Rasterizer.setMistColor(color), Rasterizer not available");
 		return NULL;
 	}	
 	gp_Rasterizer->SetFogColor(vec[0], vec[1], vec[2]);
@@ -580,11 +638,11 @@ static PyObject* gPySetMistStart(PyObject*, PyObject* args)
 {
 
 	float miststart;
-	if (!PyArg_ParseTuple(args,"f",&miststart))
+	if (!PyArg_ParseTuple(args,"f:setMistStart",&miststart))
 		return NULL;
 	
 	if (!gp_Rasterizer) {
-		PyErr_SetString(PyExc_RuntimeError, "Rasterizer not available");
+		PyErr_SetString(PyExc_RuntimeError, "Rasterizer.setMistStart(float), Rasterizer not available");
 		return NULL;
 	}
 	
@@ -599,11 +657,11 @@ static PyObject* gPySetMistEnd(PyObject*, PyObject* args)
 {
 
 	float mistend;
-	if (!PyArg_ParseTuple(args,"f",&mistend))
+	if (!PyArg_ParseTuple(args,"f:setMistEnd",&mistend))
 		return NULL;
 	
 	if (!gp_Rasterizer) {
-		PyErr_SetString(PyExc_RuntimeError, "Rasterizer not available");
+		PyErr_SetString(PyExc_RuntimeError, "Rasterizer.setMistEnd(float), Rasterizer not available");
 		return NULL;
 	}
 	
@@ -613,15 +671,15 @@ static PyObject* gPySetMistEnd(PyObject*, PyObject* args)
 }
 
 
-static PyObject* gPySetAmbientColor(PyObject*, PyObject* args)
+static PyObject* gPySetAmbientColor(PyObject*, PyObject* value)
 {
 	
-	MT_Vector3 vec = MT_Vector3(0., 0., 0.);
-	if (!PyVecArgTo(args, vec))
+	MT_Vector3 vec;
+	if (!PyVecTo(value, vec))
 		return NULL;
 	
 	if (!gp_Rasterizer) {
-		PyErr_SetString(PyExc_RuntimeError, "Rasterizer not available");
+		PyErr_SetString(PyExc_RuntimeError, "Rasterizer.setAmbientColor(color), Rasterizer not available");
 		return NULL;
 	}	
 	gp_Rasterizer->SetAmbientColor(vec[0], vec[1], vec[2]);
@@ -635,7 +693,7 @@ static PyObject* gPySetAmbientColor(PyObject*, PyObject* args)
 static PyObject* gPyMakeScreenshot(PyObject*, PyObject* args)
 {
 	char* filename;
-	if (!PyArg_ParseTuple(args,"s",&filename))
+	if (!PyArg_ParseTuple(args,"s:makeScreenshot",&filename))
 		return NULL;
 	
 	if (gp_Canvas)
@@ -649,11 +707,11 @@ static PyObject* gPyMakeScreenshot(PyObject*, PyObject* args)
 static PyObject* gPyEnableMotionBlur(PyObject*, PyObject* args)
 {
 	float motionblurvalue;
-	if (!PyArg_ParseTuple(args,"f",&motionblurvalue))
+	if (!PyArg_ParseTuple(args,"f:enableMotionBlur",&motionblurvalue))
 		return NULL;
 	
 	if (!gp_Rasterizer) {
-		PyErr_SetString(PyExc_RuntimeError, "Rasterizer not available");
+		PyErr_SetString(PyExc_RuntimeError, "Rasterizer.enableMotionBlur(float), Rasterizer not available");
 		return NULL;
 	}
 	
@@ -665,7 +723,7 @@ static PyObject* gPyEnableMotionBlur(PyObject*, PyObject* args)
 static PyObject* gPyDisableMotionBlur(PyObject*, PyObject* args)
 {
 	if (!gp_Rasterizer) {
-		PyErr_SetString(PyExc_RuntimeError, "Rasterizer not available");
+		PyErr_SetString(PyExc_RuntimeError, "Rasterizer.disableMotionBlur(), Rasterizer not available");
 		return NULL;
 	}
 	
@@ -699,13 +757,13 @@ static PyObject* gPySetGLSLMaterialSetting(PyObject*,
 	char *setting;
 	int enable, flag, fileflags;
 
-	if (!PyArg_ParseTuple(args,"si",&setting,&enable))
+	if (!PyArg_ParseTuple(args,"si:setGLSLMaterialSetting",&setting,&enable))
 		return NULL;
 	
 	flag = getGLSLSettingFlag(setting);
 	
 	if  (flag==-1) {
-		PyErr_SetString(PyExc_ValueError, "glsl setting is not known");
+		PyErr_SetString(PyExc_ValueError, "Rasterizer.setGLSLMaterialSetting(string): glsl setting is not known");
 		return NULL;
 	}
 
@@ -740,13 +798,13 @@ static PyObject* gPyGetGLSLMaterialSetting(PyObject*,
 	char *setting;
 	int enabled = 0, flag;
 
-	if (!PyArg_ParseTuple(args,"s",&setting))
+	if (!PyArg_ParseTuple(args,"s:getGLSLMaterialSetting",&setting))
 		return NULL;
 	
 	flag = getGLSLSettingFlag(setting);
 	
 	if  (flag==-1) {
-		PyErr_SetString(PyExc_ValueError, "glsl setting is not known");
+		PyErr_SetString(PyExc_ValueError, "Rasterizer.getGLSLMaterialSetting(string): glsl setting is not known");
 		return NULL;
 	}
 
@@ -764,7 +822,7 @@ static PyObject* gPySetMaterialType(PyObject*,
 {
 	int flag, type;
 
-	if (!PyArg_ParseTuple(args,"i",&type))
+	if (!PyArg_ParseTuple(args,"i:setMaterialType",&type))
 		return NULL;
 
 	if(type == KX_BLENDER_GLSL_MATERIAL)
@@ -774,7 +832,7 @@ static PyObject* gPySetMaterialType(PyObject*,
 	else if(type == KX_TEXFACE_MATERIAL)
 		flag = 0;
 	else {
-		PyErr_SetString(PyExc_ValueError, "material type is not known");
+		PyErr_SetString(PyExc_ValueError, "Rasterizer.setMaterialType(int): material type is not known");
 		return NULL;
 	}
 
@@ -805,16 +863,16 @@ static PyObject* gPyDrawLine(PyObject*, PyObject* args)
 	PyObject* ob_color;
 
 	if (!gp_Rasterizer) {
-		PyErr_SetString(PyExc_RuntimeError, "Rasterizer not available");
+		PyErr_SetString(PyExc_RuntimeError, "Rasterizer.drawLine(obFrom, obTo, color): Rasterizer not available");
 		return NULL;
 	}
 
-	if (!PyArg_ParseTuple(args,"OOO",&ob_from,&ob_to,&ob_color))
+	if (!PyArg_ParseTuple(args,"OOO:drawLine",&ob_from,&ob_to,&ob_color))
 		return NULL;
 
-	MT_Vector3 from(0., 0., 0.);
-	MT_Vector3 to(0., 0., 0.);
-	MT_Vector3 color(0., 0., 0.);
+	MT_Vector3 from;
+	MT_Vector3 to;
+	MT_Vector3 color;
 	if (!PyVecTo(ob_from, from))
 		return NULL;
 	if (!PyVecTo(ob_to, to))
@@ -840,9 +898,9 @@ static struct PyMethodDef rasterizer_methods[] = {
    METH_VARARGS, "showMouse(bool visible)"},
    {"setMousePosition",(PyCFunction) gPySetMousePosition,
    METH_VARARGS, "setMousePosition(int x,int y)"},
-  {"setBackgroundColor",(PyCFunction)gPySetBackgroundColor,METH_VARARGS,"set Background Color (rgb)"},
-	{"setAmbientColor",(PyCFunction)gPySetAmbientColor,METH_VARARGS,"set Ambient Color (rgb)"},
- {"setMistColor",(PyCFunction)gPySetMistColor,METH_VARARGS,"set Mist Color (rgb)"},
+  {"setBackgroundColor",(PyCFunction)gPySetBackgroundColor,METH_O,"set Background Color (rgb)"},
+	{"setAmbientColor",(PyCFunction)gPySetAmbientColor,METH_O,"set Ambient Color (rgb)"},
+ {"setMistColor",(PyCFunction)gPySetMistColor,METH_O,"set Mist Color (rgb)"},
   {"setMistStart",(PyCFunction)gPySetMistStart,METH_VARARGS,"set Mist Start(rgb)"},
   {"setMistEnd",(PyCFunction)gPySetMistEnd,METH_VARARGS,"set Mist End(rgb)"},
   {"enableMotionBlur",(PyCFunction)gPyEnableMotionBlur,METH_VARARGS,"enable motion blur"},
@@ -850,7 +908,7 @@ static struct PyMethodDef rasterizer_methods[] = {
 
   
   {"setEyeSeparation", (PyCFunction) gPySetEyeSeparation, METH_VARARGS, "set the eye separation for stereo mode"},
-  {"getEyeSeparation", (PyCFunction) gPyGetEyeSeparation, METH_VARARGS, "get the eye separation for stereo mode"},
+  {"getEyeSeparation", (PyCFunction) gPyGetEyeSeparation, METH_NOARGS, "get the eye separation for stereo mode"},
   {"setFocalLength", (PyCFunction) gPySetFocalLength, METH_VARARGS, "set the focal length for stereo mode"},
   {"getFocalLength", (PyCFunction) gPyGetFocalLength, METH_VARARGS, "get the focal length for stereo mode"},
   {"setMaterialMode",(PyCFunction) gPySetMaterialType,
@@ -882,7 +940,8 @@ PyObject* initGameLogic(KX_KetsjiEngine *engine, KX_Scene* scene) // quick hack 
 {
 	PyObject* m;
 	PyObject* d;
-
+	PyObject* item; /* temp PyObject* storage */
+	
 	gp_KetsjiEngine = engine;
 	gp_KetsjiScene = scene;
 
@@ -898,10 +957,12 @@ PyObject* initGameLogic(KX_KetsjiEngine *engine, KX_Scene* scene) // quick hack 
 	
 	// can be overwritten later for gameEngine instances that can load new blend files and re-initialize this module
 	// for now its safe to make sure it exists for other areas such as the web plugin
-	PyDict_SetItemString(d, "globalDict", PyDict_New());
+	
+	PyDict_SetItemString(d, "globalDict", item=PyDict_New()); Py_DECREF(item);
 
 	ErrorObject = PyString_FromString("GameLogic.error");
 	PyDict_SetItemString(d, "error", ErrorObject);
+	Py_DECREF(ErrorObject);
 	
 	// XXXX Add constants here
 	/* To use logic bricks, we need some sort of constants. Here, we associate */
@@ -934,6 +995,12 @@ PyObject* initGameLogic(KX_KetsjiEngine *engine, KX_Scene* scene) // quick hack 
 	KX_MACRO_addTypesToDict(d, KX_CONSTRAINTACT_ORIX, KX_ConstraintActuator::KX_ACT_CONSTRAINT_ORIX);
 	KX_MACRO_addTypesToDict(d, KX_CONSTRAINTACT_ORIY, KX_ConstraintActuator::KX_ACT_CONSTRAINT_ORIY);
 	KX_MACRO_addTypesToDict(d, KX_CONSTRAINTACT_ORIZ, KX_ConstraintActuator::KX_ACT_CONSTRAINT_ORIZ);
+	KX_MACRO_addTypesToDict(d, KX_ACT_CONSTRAINT_FHPX, KX_ConstraintActuator::KX_ACT_CONSTRAINT_FHPX);
+	KX_MACRO_addTypesToDict(d, KX_ACT_CONSTRAINT_FHPY, KX_ConstraintActuator::KX_ACT_CONSTRAINT_FHPY);
+	KX_MACRO_addTypesToDict(d, KX_ACT_CONSTRAINT_FHPZ, KX_ConstraintActuator::KX_ACT_CONSTRAINT_FHPZ);
+	KX_MACRO_addTypesToDict(d, KX_ACT_CONSTRAINT_FHNX, KX_ConstraintActuator::KX_ACT_CONSTRAINT_FHNX);
+	KX_MACRO_addTypesToDict(d, KX_ACT_CONSTRAINT_FHNY, KX_ConstraintActuator::KX_ACT_CONSTRAINT_FHNY);
+	KX_MACRO_addTypesToDict(d, KX_ACT_CONSTRAINT_FHNZ, KX_ConstraintActuator::KX_ACT_CONSTRAINT_FHNZ);
 
 	/* 4. Ipo actuator, simple part                                            */
 	KX_MACRO_addTypesToDict(d, KX_IPOACT_PLAY,     KX_IpoActuator::KX_ACT_IPO_PLAY);
@@ -941,6 +1008,7 @@ PyObject* initGameLogic(KX_KetsjiEngine *engine, KX_Scene* scene) // quick hack 
 	KX_MACRO_addTypesToDict(d, KX_IPOACT_FLIPPER,  KX_IpoActuator::KX_ACT_IPO_FLIPPER);
 	KX_MACRO_addTypesToDict(d, KX_IPOACT_LOOPSTOP, KX_IpoActuator::KX_ACT_IPO_LOOPSTOP);
 	KX_MACRO_addTypesToDict(d, KX_IPOACT_LOOPEND,  KX_IpoActuator::KX_ACT_IPO_LOOPEND);
+	KX_MACRO_addTypesToDict(d, KX_IPOACT_FROM_PROP,KX_IpoActuator::KX_ACT_IPO_FROM_PROP);
 
 	/* 5. Random distribution types                                            */
 	KX_MACRO_addTypesToDict(d, KX_RANDOMACT_BOOL_CONST,      SCA_RandomActuator::KX_RANDOMACT_BOOL_CONST);
@@ -1032,6 +1100,74 @@ PyObject* initGameLogic(KX_KetsjiEngine *engine, KX_Scene* scene) // quick hack 
 	KX_MACRO_addTypesToDict(d, KX_STATE29, (1<<28));
 	KX_MACRO_addTypesToDict(d, KX_STATE30, (1<<29));
 
+	/* Radar Sensor */
+	KX_MACRO_addTypesToDict(d, KX_RADAR_AXIS_POS_X, KX_RadarSensor::KX_RADAR_AXIS_POS_X);
+	KX_MACRO_addTypesToDict(d, KX_RADAR_AXIS_POS_Y, KX_RadarSensor::KX_RADAR_AXIS_POS_Y);
+	KX_MACRO_addTypesToDict(d, KX_RADAR_AXIS_POS_Z, KX_RadarSensor::KX_RADAR_AXIS_POS_Z);
+	KX_MACRO_addTypesToDict(d, KX_RADAR_AXIS_NEG_X, KX_RadarSensor::KX_RADAR_AXIS_NEG_Y);
+	KX_MACRO_addTypesToDict(d, KX_RADAR_AXIS_NEG_Y, KX_RadarSensor::KX_RADAR_AXIS_NEG_X);
+	KX_MACRO_addTypesToDict(d, KX_RADAR_AXIS_NEG_Z, KX_RadarSensor::KX_RADAR_AXIS_NEG_Z);
+
+	/* Ray Sensor */
+	KX_MACRO_addTypesToDict(d, KX_RAY_AXIS_POS_X, KX_RaySensor::KX_RAY_AXIS_POS_X);
+	KX_MACRO_addTypesToDict(d, KX_RAY_AXIS_POS_Y, KX_RaySensor::KX_RAY_AXIS_POS_Y);
+	KX_MACRO_addTypesToDict(d, KX_RAY_AXIS_POS_Z, KX_RaySensor::KX_RAY_AXIS_POS_Z);
+	KX_MACRO_addTypesToDict(d, KX_RAY_AXIS_NEG_X, KX_RaySensor::KX_RAY_AXIS_NEG_Y);
+	KX_MACRO_addTypesToDict(d, KX_RAY_AXIS_NEG_Y, KX_RaySensor::KX_RAY_AXIS_NEG_X);
+	KX_MACRO_addTypesToDict(d, KX_RAY_AXIS_NEG_Z, KX_RaySensor::KX_RAY_AXIS_NEG_Z);
+
+	/* Dynamic actuator */
+	KX_MACRO_addTypesToDict(d, KX_DYN_RESTORE_DYNAMICS, KX_SCA_DynamicActuator::KX_DYN_RESTORE_DYNAMICS);
+	KX_MACRO_addTypesToDict(d, KX_DYN_DISABLE_DYNAMICS, KX_SCA_DynamicActuator::KX_DYN_DISABLE_DYNAMICS);
+	KX_MACRO_addTypesToDict(d, KX_DYN_ENABLE_RIGID_BODY, KX_SCA_DynamicActuator::KX_DYN_ENABLE_RIGID_BODY);
+	KX_MACRO_addTypesToDict(d, KX_DYN_DISABLE_RIGID_BODY, KX_SCA_DynamicActuator::KX_DYN_DISABLE_RIGID_BODY);
+	KX_MACRO_addTypesToDict(d, KX_DYN_SET_MASS, KX_SCA_DynamicActuator::KX_DYN_SET_MASS);
+
+	/* Input & Mouse Sensor */
+	KX_MACRO_addTypesToDict(d, KX_INPUT_NONE, SCA_InputEvent::KX_NO_INPUTSTATUS);
+	KX_MACRO_addTypesToDict(d, KX_INPUT_JUST_ACTIVATED, SCA_InputEvent::KX_JUSTACTIVATED);
+	KX_MACRO_addTypesToDict(d, KX_INPUT_ACTIVE, SCA_InputEvent::KX_ACTIVE);
+	KX_MACRO_addTypesToDict(d, KX_INPUT_JUST_RELEASED, SCA_InputEvent::KX_JUSTRELEASED);
+	
+	KX_MACRO_addTypesToDict(d, KX_MOUSE_BUT_LEFT, SCA_IInputDevice::KX_LEFTMOUSE);
+	KX_MACRO_addTypesToDict(d, KX_MOUSE_BUT_MIDDLE, SCA_IInputDevice::KX_MIDDLEMOUSE);
+	KX_MACRO_addTypesToDict(d, KX_MOUSE_BUT_RIGHT, SCA_IInputDevice::KX_RIGHTMOUSE);
+
+	KX_MACRO_addTypesToDict(d, RAS_2DFILTER_ENABLED, RAS_2DFilterManager::RAS_2DFILTER_ENABLED);
+	KX_MACRO_addTypesToDict(d, RAS_2DFILTER_DISABLED, RAS_2DFilterManager::RAS_2DFILTER_DISABLED);
+	KX_MACRO_addTypesToDict(d, RAS_2DFILTER_NOFILTER, RAS_2DFilterManager::RAS_2DFILTER_NOFILTER);
+	KX_MACRO_addTypesToDict(d, RAS_2DFILTER_MOTIONBLUR, RAS_2DFilterManager::RAS_2DFILTER_MOTIONBLUR);
+	KX_MACRO_addTypesToDict(d, RAS_2DFILTER_BLUR, RAS_2DFilterManager::RAS_2DFILTER_BLUR);
+	KX_MACRO_addTypesToDict(d, RAS_2DFILTER_SHARPEN, RAS_2DFilterManager::RAS_2DFILTER_SHARPEN);
+	KX_MACRO_addTypesToDict(d, RAS_2DFILTER_DILATION, RAS_2DFilterManager::RAS_2DFILTER_DILATION);
+	KX_MACRO_addTypesToDict(d, RAS_2DFILTER_EROSION, RAS_2DFilterManager::RAS_2DFILTER_EROSION);
+	KX_MACRO_addTypesToDict(d, RAS_2DFILTER_LAPLACIAN, RAS_2DFilterManager::RAS_2DFILTER_LAPLACIAN);
+	KX_MACRO_addTypesToDict(d, RAS_2DFILTER_SOBEL, RAS_2DFilterManager::RAS_2DFILTER_SOBEL);
+	KX_MACRO_addTypesToDict(d, RAS_2DFILTER_PREWITT, RAS_2DFilterManager::RAS_2DFILTER_PREWITT);
+	KX_MACRO_addTypesToDict(d, RAS_2DFILTER_GRAYSCALE, RAS_2DFilterManager::RAS_2DFILTER_GRAYSCALE);
+	KX_MACRO_addTypesToDict(d, RAS_2DFILTER_SEPIA, RAS_2DFilterManager::RAS_2DFILTER_SEPIA);
+	KX_MACRO_addTypesToDict(d, RAS_2DFILTER_INVERT, RAS_2DFilterManager::RAS_2DFILTER_INVERT);
+	KX_MACRO_addTypesToDict(d, RAS_2DFILTER_CUSTOMFILTER, RAS_2DFilterManager::RAS_2DFILTER_CUSTOMFILTER);
+		
+	KX_MACRO_addTypesToDict(d, KX_SOUNDACT_PLAYSTOP, KX_SoundActuator::KX_SOUNDACT_PLAYSTOP);
+	KX_MACRO_addTypesToDict(d, KX_SOUNDACT_PLAYEND, KX_SoundActuator::KX_SOUNDACT_PLAYEND);
+	KX_MACRO_addTypesToDict(d, KX_SOUNDACT_LOOPSTOP, KX_SoundActuator::KX_SOUNDACT_LOOPSTOP);
+	KX_MACRO_addTypesToDict(d, KX_SOUNDACT_LOOPEND, KX_SoundActuator:: KX_SOUNDACT_LOOPEND);
+	KX_MACRO_addTypesToDict(d, KX_SOUNDACT_LOOPBIDIRECTIONAL, KX_SoundActuator::KX_SOUNDACT_LOOPBIDIRECTIONAL);
+	KX_MACRO_addTypesToDict(d, KX_SOUNDACT_LOOPBIDIRECTIONAL_STOP, KX_SoundActuator::KX_SOUNDACT_LOOPBIDIRECTIONAL_STOP);
+
+	KX_MACRO_addTypesToDict(d, KX_STATE_OP_CPY, KX_StateActuator::OP_CPY);
+	KX_MACRO_addTypesToDict(d, KX_STATE_OP_SET, KX_StateActuator::OP_SET);
+	KX_MACRO_addTypesToDict(d, KX_STATE_OP_CLR, KX_StateActuator::OP_CLR);
+	KX_MACRO_addTypesToDict(d, KX_STATE_OP_NEG, KX_StateActuator::OP_NEG);
+
+	KX_MACRO_addTypesToDict(d, KX_ACT_CONSTRAINT_NORMAL, KX_ConstraintActuator::KX_ACT_CONSTRAINT_NORMAL);
+	KX_MACRO_addTypesToDict(d, KX_ACT_CONSTRAINT_MATERIAL, KX_ConstraintActuator::KX_ACT_CONSTRAINT_MATERIAL);
+	KX_MACRO_addTypesToDict(d, KX_ACT_CONSTRAINT_PERMANENT, KX_ConstraintActuator::KX_ACT_CONSTRAINT_PERMANENT);
+	KX_MACRO_addTypesToDict(d, KX_ACT_CONSTRAINT_DISTANCE, KX_ConstraintActuator::KX_ACT_CONSTRAINT_DISTANCE);
+	KX_MACRO_addTypesToDict(d, KX_ACT_CONSTRAINT_LOCAL, KX_ConstraintActuator::KX_ACT_CONSTRAINT_LOCAL);
+	KX_MACRO_addTypesToDict(d, KX_ACT_CONSTRAINT_DOROTFH, KX_ConstraintActuator::KX_ACT_CONSTRAINT_DOROTFH);
+
 	// Check for errors
 	if (PyErr_Occurred())
     {
@@ -1047,11 +1183,6 @@ PyObject* initGameLogic(KX_KetsjiEngine *engine, KX_Scene* scene) // quick hack 
 
 PyObject *KXpy_open(PyObject *self, PyObject *args) {
 	PyErr_SetString(PyExc_RuntimeError, "Sandbox: open() function disabled!\nGame Scripts should not use this function.");
-	return NULL;
-}
-
-PyObject *KXpy_reload(PyObject *self, PyObject *args) {
-	PyErr_SetString(PyExc_RuntimeError, "Sandbox: reload() function disabled!\nGame Scripts should not use this function.");
 	return NULL;
 }
 
@@ -1073,6 +1204,7 @@ PyObject *KXpy_compile(PyObject *self, PyObject *args) {
 PyObject *KXpy_import(PyObject *self, PyObject *args)
 {
 	char *name;
+	int found;
 	PyObject *globals = NULL;
 	PyObject *locals = NULL;
 	PyObject *fromlist = NULL;
@@ -1102,14 +1234,45 @@ PyObject *KXpy_import(PyObject *self, PyObject *args)
 	/* quick hack for GamePython modules 
 		TODO: register builtin modules properly by ExtendInittab */
 	if (!strcmp(name, "GameLogic") || !strcmp(name, "GameKeys") || !strcmp(name, "PhysicsConstraints") ||
-		!strcmp(name, "Rasterizer") || !strcmp(name, "Mathutils")) {
+		!strcmp(name, "Rasterizer") || !strcmp(name, "Mathutils") || !strcmp(name, "BGL")) {
 		return PyImport_ImportModuleEx(name, globals, locals, fromlist);
 	}
-		
-	PyErr_Format(PyExc_ImportError,
-		 "Import of external Module %.20s not allowed.", name);
+	
+	/* Import blender texts as python modules */
+	m= bpy_text_import(name, &found);
+	if (m)
+		return m;
+	
+	if(found==0) /* if its found but could not import then it has its own error */
+		PyErr_Format(PyExc_ImportError, "Import of external Module %.20s not allowed.", name);
+	
 	return NULL;
 
+}
+
+PyObject *KXpy_reload(PyObject *self, PyObject *args) {
+	
+	/* Used to be sandboxed, bettet to allow importing of internal text only */ 
+#if 0
+	PyErr_SetString(PyExc_RuntimeError, "Sandbox: reload() function disabled!\nGame Scripts should not use this function.");
+	return NULL;
+#endif
+	int found;
+	PyObject *module = NULL;
+	PyObject *newmodule = NULL;
+
+	/* check for a module arg */
+	if( !PyArg_ParseTuple( args, "O:bpy_reload_meth", &module ) )
+		return NULL;
+	
+	newmodule= bpy_text_reimport( module, &found );
+	if (newmodule)
+		return newmodule;
+	
+	if (found==0) /* if its found but could not import then it has its own error */
+		PyErr_SetString(PyExc_ImportError, "reload(module): failed to reload from blenders internal text");
+	
+	return newmodule;
 }
 
 /* override python file type functions */
@@ -1144,18 +1307,18 @@ void setSandbox(TPythonSecurityLevel level)
 {
     PyObject *m = PyImport_AddModule("__builtin__");
     PyObject *d = PyModule_GetDict(m);
-
+	PyObject *item;
 	switch (level) {
 	case psl_Highest:
 		//if (!g_security) {
 			//g_oldopen = PyDict_GetItemString(d, "open");
 	
 			// functions we cant trust
-			PyDict_SetItemString(d, "open", PyCFunction_New(meth_open, NULL));
-			PyDict_SetItemString(d, "reload", PyCFunction_New(meth_reload, NULL));
-			PyDict_SetItemString(d, "file", PyCFunction_New(meth_file, NULL));
-			PyDict_SetItemString(d, "execfile", PyCFunction_New(meth_execfile, NULL));
-			PyDict_SetItemString(d, "compile", PyCFunction_New(meth_compile, NULL));
+			PyDict_SetItemString(d, "open", item=PyCFunction_New(meth_open, NULL));			Py_DECREF(item);
+			PyDict_SetItemString(d, "reload", item=PyCFunction_New(meth_reload, NULL));		Py_DECREF(item);
+			PyDict_SetItemString(d, "file", item=PyCFunction_New(meth_file, NULL));			Py_DECREF(item);
+			PyDict_SetItemString(d, "execfile", item=PyCFunction_New(meth_execfile, NULL));	Py_DECREF(item);
+			PyDict_SetItemString(d, "compile", item=PyCFunction_New(meth_compile, NULL));		Py_DECREF(item);
 			
 			// our own import
 			PyDict_SetItemString(d, "__import__", PyCFunction_New(meth_import, NULL));
@@ -1184,6 +1347,9 @@ void setSandbox(TPythonSecurityLevel level)
 		}
 	*/
 	default:
+			/* Allow importing internal text, from bpy_internal_import.py */
+			PyDict_SetItemString(d, "reload", item=PyCFunction_New(bpy_reload_meth, NULL));		Py_DECREF(item);
+			PyDict_SetItemString(d, "__import__", item=PyCFunction_New(bpy_import_meth, NULL));	Py_DECREF(item);
 		break;
 	}
 }
@@ -1191,7 +1357,7 @@ void setSandbox(TPythonSecurityLevel level)
 /**
  * Python is not initialised.
  */
-PyObject* initGamePlayerPythonScripting(const STR_String& progname, TPythonSecurityLevel level)
+PyObject* initGamePlayerPythonScripting(const STR_String& progname, TPythonSecurityLevel level, Main *maggie)
 {
 	STR_String pname = progname;
 	Py_SetProgramName(pname.Ptr());
@@ -1202,20 +1368,25 @@ PyObject* initGamePlayerPythonScripting(const STR_String& progname, TPythonSecur
 	//importBlenderModules()
 	
 	setSandbox(level);
-
+	initPyTypes();
+	
+	bpy_import_main_set(maggie);
+	
 	PyObject* moduleobj = PyImport_AddModule("__main__");
 	return PyModule_GetDict(moduleobj);
 }
 
 void exitGamePlayerPythonScripting()
 {
+	//clearGameModules(); // were closing python anyway
 	Py_Finalize();
+	bpy_import_main_set(NULL);
 }
 
 /**
  * Python is already initialized.
  */
-PyObject* initGamePythonScripting(const STR_String& progname, TPythonSecurityLevel level)
+PyObject* initGamePythonScripting(const STR_String& progname, TPythonSecurityLevel level, Main *maggie)
 {
 	STR_String pname = progname;
 	Py_SetProgramName(pname.Ptr());
@@ -1223,15 +1394,54 @@ PyObject* initGamePythonScripting(const STR_String& progname, TPythonSecurityLev
 	Py_FrozenFlag=1;
 
 	setSandbox(level);
+	initPyTypes();
+	
+	bpy_import_main_set(maggie);
+	
+	/* run this to clear game modules and user modules which
+	 * may contain references to in game data */
+	clearGameModules();
 
 	PyObject* moduleobj = PyImport_AddModule("__main__");
 	return PyModule_GetDict(moduleobj);
 }
 
+static void clearModule(PyObject *modules, const char *name)
+{
+	PyObject *mod= PyDict_GetItemString(modules, name);
+	
+	if (mod==NULL)
+		return;
+	
+	PyDict_Clear(PyModule_GetDict(mod)); /* incase there are any circular refs */
+	PyDict_DelItemString(modules, name);
+}
 
+static void clearGameModules()
+{
+	/* Note, user modules could still reference these modules
+	 * but since the dict's are cleared their members wont be accessible */
+	
+	PyObject *modules= PySys_GetObject((char *)"modules");
+	clearModule(modules, "Expression");
+	clearModule(modules, "CValue");	
+	clearModule(modules, "PhysicsConstraints");	
+	clearModule(modules, "GameLogic");	
+	clearModule(modules, "Rasterizer");	
+	clearModule(modules, "GameKeys");	
+	clearModule(modules, "VideoTexture");	
+	clearModule(modules, "Mathutils");	
+	clearModule(modules, "BGL");	
+	PyErr_Clear(); // incase some of these were alredy removed.
+	
+	/* clear user defined modules */
+	bpy_text_clear_modules();
+}
 
 void exitGamePythonScripting()
 {
+	clearGameModules();
+	bpy_import_main_set(NULL);
 }
 
 
@@ -1244,6 +1454,7 @@ PyObject* initRasterizer(RAS_IRasterizer* rasty,RAS_ICanvas* canvas)
 
   PyObject* m;
   PyObject* d;
+  PyObject* item;
 
   // Create the module and add the functions
   m = Py_InitModule4("Rasterizer", rasterizer_methods,
@@ -1254,6 +1465,7 @@ PyObject* initRasterizer(RAS_IRasterizer* rasty,RAS_ICanvas* canvas)
   d = PyModule_GetDict(m);
   ErrorObject = PyString_FromString("Rasterizer.error");
   PyDict_SetItemString(d, "error", ErrorObject);
+  Py_DECREF(ErrorObject);
 
   /* needed for get/setMaterialType */
   KX_MACRO_addTypesToDict(d, KX_TEXFACE_MATERIAL, KX_TEXFACE_MATERIAL);
@@ -1282,7 +1494,7 @@ static char GameKeys_module_documentation[] =
 ;
 
 static char gPyEventToString_doc[] =
-"Take a valid event from the GameKeys module or Keyboard Sensor and return a name"
+"EventToString(event) - Take a valid event from the GameKeys module or Keyboard Sensor and return a name"
 ;
 
 static PyObject* gPyEventToString(PyObject*, PyObject* value)
@@ -1305,13 +1517,35 @@ static PyObject* gPyEventToString(PyObject*, PyObject* value)
 	
 	PyErr_Clear(); // incase there was an error clearing
 	Py_DECREF(mod);
-	if (!ret)	PyErr_SetString(PyExc_ValueError, "expected a valid int keyboard event");
+	if (!ret)	PyErr_SetString(PyExc_ValueError, "GameKeys.EventToString(int): expected a valid int keyboard event");
 	else		Py_INCREF(ret);
 	
 	return ret;
 }
 
+static char gPyEventToCharacter_doc[] =
+"EventToCharacter(event, is_shift) - Take a valid event from the GameKeys module or Keyboard Sensor and return a character"
+;
+
+static PyObject* gPyEventToCharacter(PyObject*, PyObject* args)
+{
+	int event, shift;
+	if (!PyArg_ParseTuple(args,"ii:EventToCharacter", &event, &shift))
+		return NULL;
+	
+	if(IsPrintable(event)) {
+		char ch[2] = {'\0', '\0'};
+		ch[0] = ToCharacter(event, (bool)shift);
+		return PyString_FromString(ch);
+	}
+	else {
+		return PyString_FromString("");
+	}
+}
+
+
 static struct PyMethodDef gamekeys_methods[] = {
+	{"EventToCharacter", (PyCFunction)gPyEventToCharacter, METH_VARARGS, (PY_METHODCHAR)gPyEventToCharacter_doc},
 	{"EventToString", (PyCFunction)gPyEventToString, METH_O, (PY_METHODCHAR)gPyEventToString_doc},
 	{ NULL, (PyCFunction) NULL, 0, NULL }
 };
@@ -1322,6 +1556,7 @@ PyObject* initGameKeys()
 {
 	PyObject* m;
 	PyObject* d;
+	PyObject* item;
 
 	// Create the module and add the functions
 	m = Py_InitModule4("GameKeys", gamekeys_methods,
@@ -1446,7 +1681,6 @@ PyObject* initGameKeys()
 	KX_MACRO_addTypesToDict(d, PAGEDOWNKEY, SCA_IInputDevice::KX_PAGEDOWNKEY);
 	KX_MACRO_addTypesToDict(d, ENDKEY, SCA_IInputDevice::KX_ENDKEY);
 
-
 	// Check for errors
 	if (PyErr_Occurred())
     {
@@ -1459,6 +1693,11 @@ PyObject* initGameKeys()
 PyObject* initMathutils()
 {
 	return Mathutils_Init("Mathutils"); // Use as a top level module in BGE
+}
+
+PyObject* initBGL()
+{
+	return BGL_Init("BGL"); // Use as a top level module in BGE
 }
 
 void KX_SetActiveScene(class KX_Scene* scene)

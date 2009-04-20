@@ -209,6 +209,11 @@ void	KX_SumoPhysicsController::SetMass(MT_Scalar newmass)
 {
 }
 
+MT_Vector3  KX_SumoPhysicsController::GetLocalInertia()
+{
+    return MT_Vector3(0.f, 0.f, 0.f); // \todo
+}
+
 MT_Scalar	KX_SumoPhysicsController::GetRadius()
 {
 	return SumoPhysicsController::GetRadius();

@@ -57,6 +57,10 @@ ifeq ($(WITH_BINRELOC), true)
     DIRS += binreloc
 endif
 
+ifeq ($(WITH_OPENJPEG), true)
+    DIRS += libopenjpeg
+endif
+
 TARGET = solid
 
 all::

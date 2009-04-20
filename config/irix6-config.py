@@ -34,13 +34,10 @@ WITH_BF_STATICCXX = 'false'
 BF_CXX_LIB_STATIC = '${BF_CXX}/lib/libstdc++.a'
 
 WITH_BF_SDL = 'true'
-BF_SDL = LCGDIR+'/SDL' #$(shell sdl-config --prefix)
+BF_SDL = LCGDIR+'/sdl' #$(shell sdl-config --prefix)
 BF_SDL_INC = '${BF_SDL}/include/SDL' #$(shell $(BF_SDL)/bin/sdl-config --cflags)
 BF_SDL_LIB = 'SDL audio iconv charset' #BF_SDL #$(shell $(BF_SDL)/bin/sdl-config --libs) -lSDL_mixer
 BF_SDL_LIBPATH = '${BF_SDL}/lib'
-
-WITH_BF_FMOD = 'false'
-BF_FMOD = LIBDIR + '/fmod'
 
 WITH_BF_OPENEXR = 'false'
 WITH_BF_STATICOPENEXR = 'false'

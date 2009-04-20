@@ -148,6 +148,10 @@ void RAS_BucketManager::RenderAlphaBuckets(
 
 		while(sit->m_bucket->ActivateMaterial(cameratrans, rasty, rendertools))
 			sit->m_bucket->RenderMeshSlot(cameratrans, rasty, rendertools, *(sit->m_ms));
+
+		// make this mesh slot culled automatically for next frame
+		// it will be culled out by frustrum culling
+		sit->m_ms->SetCulled(true);
 	}
 
 	rasty->SetDepthMask(RAS_IRasterizer::KX_DEPTHMASK_ENABLED);
@@ -170,6 +174,10 @@ void RAS_BucketManager::RenderSolidBuckets(
 
 			while ((*bit)->ActivateMaterial(cameratrans, rasty, rendertools))
 				(*bit)->RenderMeshSlot(cameratrans, rasty, rendertools, *mit);
+
+			// make this mesh slot culled automatically for next frame
+			// it will be culled out by frustrum culling
+			mit->SetCulled(true);
 		}
 	}
 	

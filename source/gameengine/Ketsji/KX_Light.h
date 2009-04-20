@@ -47,7 +47,6 @@ protected:
 	class RAS_IRenderTools*	m_rendertools;	//needed for registering and replication of lightobj
 	bool				m_glsl;
 	Scene*				m_blenderscene;
-	static char			doc[];
 
 public:
 	KX_LightObject(void* sgReplicationInfo,SG_Callbacks callbacks,class RAS_IRenderTools* rendertools,const struct RAS_LightObject&	lightobj, bool glsl, PyTypeObject *T = &Type);
@@ -63,8 +62,8 @@ public:
 	void UnbindShadowBuffer(class RAS_IRasterizer *ras);
 	void Update();
 	
-	virtual PyObject* _getattr(const STR_String& attr); /* lens, near, far, projection_matrix */
-	virtual int       _setattr(const STR_String& attr, PyObject *pyvalue);
+	virtual PyObject* py_getattro(PyObject *attr); /* lens, near, far, projection_matrix */
+	virtual int       py_setattro(PyObject *attr, PyObject *pyvalue);
 
 	virtual bool IsLight(void) { return true; }
 };

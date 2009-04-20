@@ -1,7 +1,7 @@
 /**
  * Set or remove an objects parent
  *
- * $Id: SCA_ParentActuator.cpp 13932 2008-03-01 19:05:41Z ben2610 $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -139,22 +139,22 @@ bool KX_ParentActuator::Update()
 
 /* Integration hooks ------------------------------------------------------- */
 PyTypeObject KX_ParentActuator::Type = {
-	PyObject_HEAD_INIT(&PyType_Type)
+	PyObject_HEAD_INIT(NULL)
 	0,
 	"KX_ParentActuator",
-	sizeof(KX_ParentActuator),
+	sizeof(PyObjectPlus_Proxy),
 	0,
-	PyDestructor,
-	0,
-	__getattr,
-	__setattr,
-	0, //&MyPyCompare,
-	__repr,
-	0, //&cvalue_as_number,
+	py_base_dealloc,
 	0,
 	0,
 	0,
-	0
+	0,
+	py_base_repr,
+	0,0,0,0,0,0,
+	py_base_getattro,
+	py_base_setattro,
+	0,0,0,0,0,0,0,0,0,
+	Methods
 };
 
 PyParentObject KX_ParentActuator::Parents[] = {
@@ -166,22 +166,65 @@ PyParentObject KX_ParentActuator::Parents[] = {
 };
 
 PyMethodDef KX_ParentActuator::Methods[] = {
-	{"setObject",         (PyCFunction) KX_ParentActuator::sPySetObject, METH_O, (PY_METHODCHAR)SetObject_doc},
-	{"getObject",         (PyCFunction) KX_ParentActuator::sPyGetObject, METH_VARARGS, (PY_METHODCHAR)GetObject_doc},
+	// Deprecated ----->
+	{"setObject", (PyCFunction) KX_ParentActuator::sPySetObject, METH_O, (PY_METHODCHAR)SetObject_doc},
+	{"getObject", (PyCFunction) KX_ParentActuator::sPyGetObject, METH_VARARGS, (PY_METHODCHAR)GetObject_doc},
+	// <-----
 	{NULL,NULL} //Sentinel
 };
 
-PyObject* KX_ParentActuator::_getattr(const STR_String& attr) {
-	_getattr_up(SCA_IActuator);
+PyAttributeDef KX_ParentActuator::Attributes[] = {
+	KX_PYATTRIBUTE_RW_FUNCTION("object", KX_ParentActuator, pyattr_get_object, pyattr_set_object),
+	{ NULL }	//Sentinel
+};
+
+PyObject* KX_ParentActuator::pyattr_get_object(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef)
+{
+	KX_ParentActuator* actuator = static_cast<KX_ParentActuator*>(self);
+	if (!actuator->m_ob)	
+		Py_RETURN_NONE;
+	else
+		return actuator->m_ob->GetProxy();
 }
 
+int KX_ParentActuator::pyattr_set_object(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
+{
+	KX_ParentActuator* actuator = static_cast<KX_ParentActuator*>(self);
+	KX_GameObject *gameobj;
+		
+	if (!ConvertPythonToGameObject(value, &gameobj, true))
+		return 1; // ConvertPythonToGameObject sets the error
+		
+	if (actuator->m_ob != NULL)
+		actuator->m_ob->UnregisterActuator(actuator);	
+
+	actuator->m_ob = (SCA_IObject*) gameobj;
+		
+	if (actuator->m_ob)
+		actuator->m_ob->RegisterActuator(actuator);
+		
+	return 0;
+}
+
+
+PyObject* KX_ParentActuator::py_getattro(PyObject *attr) {	
+	py_getattro_up(SCA_IActuator);
+}
+
+int KX_ParentActuator::py_setattro(PyObject *attr, PyObject* value) {
+	py_setattro_up(SCA_IActuator);
+}
+
+/* Deprecated -----> */
 /* 1. setObject                                                            */
 const char KX_ParentActuator::SetObject_doc[] = 
 "setObject(object)\n"
 "\t- object: KX_GameObject, string or None\n"
 "\tSet the object to set as parent.\n";
-PyObject* KX_ParentActuator::PySetObject(PyObject* self, PyObject* value) {
+PyObject* KX_ParentActuator::PySetObject(PyObject* value) {
 	KX_GameObject *gameobj;
+	
+	ShowDeprecationWarning("setObject()", "the object property");
 	
 	if (!ConvertPythonToGameObject(value, &gameobj, true))
 		return NULL; // ConvertPythonToGameObject sets the error
@@ -203,10 +246,13 @@ const char KX_ParentActuator::GetObject_doc[] =
 "getObject(name_only = 1)\n"
 "name_only - optional arg, when true will return the KX_GameObject rather then its name\n"
 "\tReturns the object that is set to.\n";
-PyObject* KX_ParentActuator::PyGetObject(PyObject* self, PyObject* args)
+PyObject* KX_ParentActuator::PyGetObject(PyObject* args)
 {
 	int ret_name_only = 1;
-	if (!PyArg_ParseTuple(args, "|i", &ret_name_only))
+	
+	ShowDeprecationWarning("getObject()", "the object property");
+	
+	if (!PyArg_ParseTuple(args, "|i:getObject", &ret_name_only))
 		return NULL;
 	
 	if (!m_ob)
@@ -215,7 +261,8 @@ PyObject* KX_ParentActuator::PyGetObject(PyObject* self, PyObject* args)
 	if (ret_name_only)
 		return PyString_FromString(m_ob->GetName());
 	else
-		return m_ob->AddRef();
+		return m_ob->GetProxy();
 }
+/* <----- */
 
 /* eof */

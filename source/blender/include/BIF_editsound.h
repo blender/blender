@@ -39,7 +39,6 @@ struct hdaudio;
 void sound_init_audio(void);
 void sound_initialize_sounds(void);
 void sound_exit_audio(void);
-int sound_get_mixrate(void);
 
 void* sound_get_audiodevice(void);
 void* sound_get_listener(void);

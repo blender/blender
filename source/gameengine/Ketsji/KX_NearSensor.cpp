@@ -37,14 +37,13 @@
 #include "PHY_IPhysicsEnvironment.h"
 #include "PHY_IPhysicsController.h"
 
-
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
 KX_NearSensor::KX_NearSensor(SCA_EventManager* eventmgr,
 							 KX_GameObject* gameobj,
-							 double margin,
-							 double resetmargin,
+							 float margin,
+							 float resetmargin,
 							 bool bFindMaterial,
 							 const STR_String& touchedpropname,
 							 class KX_Scene* scene,
@@ -53,6 +52,7 @@ KX_NearSensor::KX_NearSensor(SCA_EventManager* eventmgr,
 			 :KX_TouchSensor(eventmgr,
 							 gameobj,
 							 bFindMaterial,
+							 false,
 							 touchedpropname,
 							 /* scene, */
 							 T),
@@ -127,13 +127,10 @@ CValue* KX_NearSensor::GetReplica()
 		}
 		
 	}
-	//static_cast<KX_TouchEventManager*>(m_eventmgr)->RegisterSensor(this);
-	//todo: make sure replication works fine
-	//>m_sumoObj = new SM_Object(DT_NewSphere(0.0),NULL,NULL,NULL);
-	//replica->m_sumoObj->setMargin(m_Margin);
-	//replica->m_sumoObj->setClientObject(replica->m_client_info);
-	
-	((KX_GameObject*)replica->GetParent())->GetSGNode()->ComputeWorldTransforms(NULL);
+	//Wrong: the parent object could be a child, this code works only if it is a root parent.
+	//Anyway, at this stage, the parent object is already synchronized, nothing to do.
+	//bool parentUpdated = false;
+	//((KX_GameObject*)replica->GetParent())->GetSGNode()->ComputeWorldTransforms(NULL, parentUpdated);
 	replica->SynchronizeTransform();
 	
 	return replica;
@@ -154,8 +151,10 @@ void KX_NearSensor::ReParent(SCA_IObject* parent)
 	client_info->m_sensors.push_back(this);
 	SCA_ISensor::ReParent(parent);
 */
-	((KX_GameObject*)GetParent())->GetSGNode()->ComputeWorldTransforms(NULL);
-	SynchronizeTransform();
+	//Not needed, was done in GetReplica() already
+	//bool parentUpdated = false;
+	//((KX_GameObject*)GetParent())->GetSGNode()->ComputeWorldTransforms(NULL,parentUpdated);
+	//SynchronizeTransform();
 	SCA_ISensor::ReParent(parent);
 }
 
@@ -240,7 +239,7 @@ bool	KX_NearSensor::BroadPhaseFilterCollision(void*obj1,void*obj2)
 bool	KX_NearSensor::NewHandleCollision(void* obj1,void* obj2,const PHY_CollData * coll_data)
 {
 //	KX_TouchEventManager* toucheventmgr = static_cast<KX_TouchEventManager*>(m_eventmgr);
-	KX_GameObject* parent = static_cast<KX_GameObject*>(GetParent());
+//	KX_GameObject* parent = static_cast<KX_GameObject*>(GetParent());
 	
 	// need the mapping from PHY_IPhysicsController to gameobjects now
 	
@@ -272,29 +271,37 @@ bool	KX_NearSensor::NewHandleCollision(void* obj1,void* obj2,const PHY_CollData 
 		//}
 	}
 	
-	return DT_CONTINUE;
+	return false; // was DT_CONTINUE; but this was defined in Sumo as false
 }
 
 
+/* ------------------------------------------------------------------------- */
+/* Python Functions															 */
+/* ------------------------------------------------------------------------- */
 
-// python embedding
+//No methods
+
+/* ------------------------------------------------------------------------- */
+/* Python Integration Hooks                                                  */
+/* ------------------------------------------------------------------------- */
+
 PyTypeObject KX_NearSensor::Type = {
-	PyObject_HEAD_INIT(&PyType_Type)
+	PyObject_HEAD_INIT(NULL)
 	0,
 	"KX_NearSensor",
-	sizeof(KX_NearSensor),
+	sizeof(PyObjectPlus_Proxy),
 	0,
-	PyDestructor,
-	0,
-	__getattr,
-	__setattr,
-	0, //&MyPyCompare,
-	__repr,
-	0, //&cvalue_as_number,
+	py_base_dealloc,
 	0,
 	0,
 	0,
-	0
+	0,
+	py_base_repr,
+	0,0,0,0,0,0,
+	py_base_getattro,
+	py_base_setattro,
+	0,0,0,0,0,0,0,0,0,
+	Methods
 };
 
 
@@ -311,17 +318,23 @@ PyParentObject KX_NearSensor::Parents[] = {
 
 
 PyMethodDef KX_NearSensor::Methods[] = {
-	{"setProperty", (PyCFunction) KX_NearSensor::sPySetProperty,      METH_VARARGS, (PY_METHODCHAR)SetProperty_doc},
-	{"getProperty", (PyCFunction) KX_NearSensor::sPyGetProperty,      METH_VARARGS, (PY_METHODCHAR)GetProperty_doc},
-	{"getHitObject",(PyCFunction) KX_NearSensor::sPyGetHitObject,     METH_VARARGS, (PY_METHODCHAR)GetHitObject_doc},
-	{"getHitObjectList", (PyCFunction) KX_NearSensor::sPyGetHitObjectList, METH_VARARGS, (PY_METHODCHAR)GetHitObjectList_doc},
+	//No methods
 	{NULL,NULL} //Sentinel
 };
 
+PyAttributeDef KX_NearSensor::Attributes[] = {
+	KX_PYATTRIBUTE_FLOAT_RW_CHECK("distance", 0, 100, KX_NearSensor, m_Margin, CheckResetDistance),
+	KX_PYATTRIBUTE_FLOAT_RW_CHECK("resetDistance", 0, 100, KX_NearSensor, m_ResetMargin, CheckResetDistance),
+	{NULL} //Sentinel
+};
 
-PyObject*
-KX_NearSensor::_getattr(const STR_String& attr)
+
+PyObject* KX_NearSensor::py_getattro(PyObject *attr)
 {
-  _getattr_up(KX_TouchSensor);
+	py_getattro_up(KX_TouchSensor);
 }
 
+int KX_NearSensor::py_setattro(PyObject*attr, PyObject* value)
+{
+	py_setattro_up(KX_TouchSensor);
+}

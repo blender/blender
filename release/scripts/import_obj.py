@@ -424,8 +424,8 @@ def create_mesh(scn, new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_l
 					sharp_edges[key]= None
 	
 	
-	# mat the material names to an index
-	material_mapping= dict([(name, i) for i, name in enumerate(unique_materials.keys())])
+	# map the material names to an index
+	material_mapping= dict([(name, i) for i, name in enumerate(unique_materials)]) # enumerate over unique_materials keys()
 	
 	materials= [None] * len(unique_materials)
 	
@@ -537,6 +537,7 @@ def get_float_func(filepath):
 	'''
 	file= open(filepath, 'rU')
 	for line in file: #.xreadlines():
+		line = line.lstrip()
 		if line.startswith('v'): # vn vt v 
 			if ',' in line:
 				return lambda f: float(f.replace(',', '.'))
@@ -590,6 +591,7 @@ def load_obj(filepath, CLAMP_SIZE= 0.0, CREATE_FGONS= True, CREATE_SMOOTH_GROUPS
 	time_sub= sys.time()
 	file= open(filepath, 'rU')
 	for line in file: #.xreadlines():
+		line = line.lstrip() # rare cases there is white space at the start of the line
 		
 		if line.startswith('v '):
 			line_split= line.split()

@@ -38,7 +38,6 @@
 enum
 {
 	snd_e_dummydevice = 0,
-	snd_e_fmoddevice,
 	snd_e_openaldevice
 };
 
@@ -48,15 +47,6 @@ enum
 
 /* openal related stuff */
 #define AL_LOOPING						0x1007
-
-/* fmod related stuff */
-#ifdef WIN32
-#define MIXRATE							22050
-#else
-#define MIXRATE							44100
-#endif
-#define NUM_FMOD_MIN_HW_CHANNELS		16
-#define NUM_FMOD_MAX_HW_CHANNELS		16
 
 /* activelist defines */
 enum

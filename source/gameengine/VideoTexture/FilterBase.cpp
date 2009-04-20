@@ -69,7 +69,7 @@ FilterBase * FilterBase::findFirst (void)
 {
 	// find first filter in chain
 	FilterBase * frst;
-	for (frst = this; frst->m_previous != NULL; frst = frst->m_previous->m_filter);
+	for (frst = this; frst->m_previous != NULL; frst = frst->m_previous->m_filter) {};
 	// set first filter
 	return frst;
 }

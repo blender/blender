@@ -31,7 +31,6 @@ def validate_arguments(args, bc):
 			'WITH_BF_OPENAL', 'BF_OPENAL', 'BF_OPENAL_INC', 'BF_OPENAL_LIB', 'BF_OPENAL_LIBPATH', 'WITH_BF_STATICOPENAL', 'BF_OPENAL_LIB_STATIC',
 			'WITH_BF_SDL', 'BF_SDL', 'BF_SDL_INC', 'BF_SDL_LIB', 'BF_SDL_LIBPATH',
 			'BF_PTHREADS', 'BF_PTHREADS_INC', 'BF_PTHREADS_LIB', 'BF_PTHREADS_LIBPATH',
-			'WITH_BF_FMOD',
 			'WITH_BF_OPENEXR', 'BF_OPENEXR', 'BF_OPENEXR_INC', 'BF_OPENEXR_LIB', 'BF_OPENEXR_LIBPATH', 'WITH_BF_STATICOPENEXR', 'BF_OPENEXR_LIB_STATIC',
 			'WITH_BF_DDS',
 			'WITH_BF_FFMPEG', 'BF_FFMPEG_LIB','BF_FFMPEG_EXTRA', 'BF_FFMPEG',  'BF_FFMPEG_INC',
@@ -44,7 +43,7 @@ def validate_arguments(args, bc):
 			'BF_GETTEXT', 'BF_GETTEXT_INC', 'BF_GETTEXT_LIB', 'BF_GETTEXT_LIBPATH',
 			'WITH_BF_ICONV', 'BF_ICONV', 'BF_ICONV_INC', 'BF_ICONV_LIB', 'BF_ICONV_LIBPATH',
 			'WITH_BF_ODE', 'BF_ODE', 'BF_ODE_INC', 'BF_ODE_LIB',
-			'WITH_BF_GAMEENGINE', 'WITH_BF_BULLET', 'BF_BULLET', 'BF_BULLET_INC', 'BF_BULLET_LIB',
+			'WITH_BF_GAMEENGINE', 'WITH_BF_SOLID', 'WITH_BF_BULLET', 'BF_BULLET', 'BF_BULLET_INC', 'BF_BULLET_LIB',
 			'BF_SOLID', 'BF_SOLID_INC', 'BF_WINTAB', 'BF_WINTAB_INC',
 			'WITH_BF_YAFRAY',
 			'WITH_BF_FREETYPE', 'BF_FREETYPE', 'BF_FREETYPE_INC', 'BF_FREETYPE_LIB', 'BF_FREETYPE_LIBPATH',
@@ -190,9 +189,6 @@ def read_opts(cfg, args):
 		('BF_PTHREADS_LIB', 'Pthreads library', ''),
 		('BF_PTHREADS_LIBPATH', 'Pthreads library path', ''),
 
-		(BoolVariable('WITH_BF_FMOD', 'Use FMOD if true', False)),
-		#  BF_FMOD = $(LCGDIR)/fmod
-
 		(BoolVariable('WITH_BF_OPENEXR', 'Use OPENEXR if true', True)),
 		(BoolVariable('WITH_BF_STATICOPENEXR', 'Staticly link to OpenEXR', False)),
 		('BF_OPENEXR', 'OPENEXR base path', ''),
@@ -276,6 +272,7 @@ def read_opts(cfg, args):
 		('BF_BULLET_INC', 'Bullet include path', ''),
 		('BF_BULLET_LIB', 'Bullet library', ''),
 		
+		(BoolVariable('WITH_BF_SOLID', 'Use Sumo/Solid deprecated physics system if true', True)),
 		('BF_SOLID', 'Solid base dir', '#/extern/solid'),
 		('BF_SOLID_INC', 'Solid include path', ''),
 		('BF_WINTAB', 'WinTab base dir', ''),
@@ -301,7 +298,7 @@ def read_opts(cfg, args):
 ##BF_PARANOID = True
 ##
 ### enable freetype2 support for text objects
-		(BoolVariable('WITH_BF_FREETYPE', 'Use FreeType2 if true', False)),
+		(BoolVariable('WITH_BF_FREETYPE', 'Use FreeType2 if true', True)),
 		('BF_FREETYPE', 'Freetype base path', ''),
 		('BF_FREETYPE_INC', 'Freetype include path', ''),
 		('BF_FREETYPE_LIB', 'Freetype library', ''),

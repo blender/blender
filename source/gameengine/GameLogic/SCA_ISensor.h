@@ -105,11 +105,6 @@ public:
 					  bool negmode,
 					  int freq);
 	
-	/** Release sensor
-	 *  For property sensor, it is used to release the pre-calculated expression
-	 *  so that self references are removed before the sensor itself is released
-	 */
-	virtual void Delete() { Release(); }
 	/** Set inversion of pulses on or off. */
 	void SetInvert(bool inv);
 	/** set the level detection on or off */
@@ -118,7 +113,7 @@ public:
 	virtual void RegisterToManager();
 	virtual void UnregisterToManager();
 
-	virtual float GetNumber();
+	virtual double GetNumber();
 
 	/** Stop sensing for a while. */
 	void Suspend();
@@ -141,24 +136,27 @@ public:
 
 	/* Python functions: */
 	
-	virtual PyObject* _getattr(const STR_String& attr);
-	virtual int _setattr(const STR_String& attr, PyObject *value);
+	virtual PyObject* py_getattro(PyObject *attr);
+	virtual int py_setattro(PyObject *attr, PyObject *value);
 
 	//Deprecated functions ----->
 	KX_PYMETHOD_DOC_NOARGS(SCA_ISensor,IsPositive);
 	KX_PYMETHOD_DOC_NOARGS(SCA_ISensor,IsTriggered);
 	KX_PYMETHOD_DOC_NOARGS(SCA_ISensor,GetUsePosPulseMode);
-	KX_PYMETHOD_DOC(SCA_ISensor,SetUsePosPulseMode);
+	KX_PYMETHOD_DOC_VARARGS(SCA_ISensor,SetUsePosPulseMode);
 	KX_PYMETHOD_DOC_NOARGS(SCA_ISensor,GetFrequency);
-	KX_PYMETHOD_DOC(SCA_ISensor,SetFrequency);
+	KX_PYMETHOD_DOC_VARARGS(SCA_ISensor,SetFrequency);
 	KX_PYMETHOD_DOC_NOARGS(SCA_ISensor,GetUseNegPulseMode);
-	KX_PYMETHOD_DOC(SCA_ISensor,SetUseNegPulseMode);
+	KX_PYMETHOD_DOC_VARARGS(SCA_ISensor,SetUseNegPulseMode);
 	KX_PYMETHOD_DOC_NOARGS(SCA_ISensor,GetInvert);
-	KX_PYMETHOD_DOC(SCA_ISensor,SetInvert);
+	KX_PYMETHOD_DOC_VARARGS(SCA_ISensor,SetInvert);
 	KX_PYMETHOD_DOC_NOARGS(SCA_ISensor,GetLevel);
-	KX_PYMETHOD_DOC(SCA_ISensor,SetLevel);
+	KX_PYMETHOD_DOC_VARARGS(SCA_ISensor,SetLevel);
 	//<------
 	KX_PYMETHOD_DOC_NOARGS(SCA_ISensor,reset);
+	
+	static PyObject*	pyattr_get_triggered(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject*	pyattr_get_positive(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 };
 
 #endif //__SCA_ISENSOR

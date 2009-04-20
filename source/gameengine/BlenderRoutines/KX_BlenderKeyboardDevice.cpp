@@ -74,7 +74,7 @@ void	KX_BlenderKeyboardDevice::NextFrame()
 	
 	// now convert justpressed keyevents into regular (active) keyevents
 	int previousTable = 1-m_currentTable;
-	for (int keyevent= KX_BEGINKEY; keyevent< KX_ENDKEY;keyevent++)
+	for (int keyevent= KX_BEGINKEY; keyevent<= KX_ENDKEY;keyevent++)
 	{
 		SCA_InputEvent& oldevent = m_eventStatusTables[previousTable][keyevent];
 		if (oldevent.m_status == SCA_InputEvent::KX_JUSTACTIVATED ||
@@ -100,7 +100,7 @@ bool	KX_BlenderKeyboardDevice::ConvertBlenderEvent(unsigned short incode,short v
 	KX_EnumInputs kxevent = this->ToNative(incode);
 
 	// only process it, if it's a key
-	if (kxevent >= KX_BEGINKEY && kxevent < KX_ENDKEY)
+	if (kxevent >= KX_BEGINKEY && kxevent <= KX_ENDKEY)
 	{
 		int previousTable = 1-m_currentTable;
 

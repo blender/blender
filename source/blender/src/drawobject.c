@@ -1096,14 +1096,15 @@ void lattice_foreachScreenVert(void (*func)(void *userData, BPoint *bp, int x, i
 	float *co = dl?dl->verts:NULL;
 	BPoint *bp = editLatt->def;
 	float pmat[4][4], vmat[4][4];
-	short s[2];
+	short s[2] = {IS_CLIPPED, 0};
 
 	view3d_get_object_project_mat(curarea, G.obedit, pmat, vmat);
 
 	for (i=0; i<N; i++, bp++, co+=3) {
 		if (bp->hide==0) {
 			view3d_project_short_clip(curarea, dl?co:bp->vec, s, pmat, vmat);
-			func(userData, bp, s[0], s[1]);
+			if (s[0] != IS_CLIPPED)
+				func(userData, bp, s[0], s[1]);
 		}
 	}
 }
@@ -1196,15 +1197,18 @@ static void mesh_foreachScreenVert__mapFunc(void *userData, int index, float *co
 {
 	struct { void (*func)(void *userData, EditVert *eve, int x, int y, int index); void *userData; int clipVerts; float pmat[4][4], vmat[4][4]; } *data = userData;
 	EditVert *eve = EM_get_vert_for_index(index);
-	short s[2];
 
 	if (eve->h==0) {
+		short s[2]= {IS_CLIPPED, 0};
 		if (data->clipVerts) {
 			view3d_project_short_clip(curarea, co, s, data->pmat, data->vmat);
 		} else {
 			view3d_project_short_noclip(curarea, co, s, data->pmat);
 		}
-
+		
+		if (s[0]==IS_CLIPPED)
+			return;
+		
 		data->func(data->userData, eve, s[0], s[1], index);
 	}
 }
@@ -1300,7 +1304,7 @@ void mesh_foreachScreenFace(void (*func)(void *userData, EditFace *efa, int x, i
 void nurbs_foreachScreenVert(void (*func)(void *userData, Nurb *nu, BPoint *bp, BezTriple *bezt, int beztindex, int x, int y), void *userData)
 {
 	float pmat[4][4], vmat[4][4];
-	short s[2];
+	short s[2] = {IS_CLIPPED, 0};
 	Nurb *nu;
 	int i;
 
@@ -1336,7 +1340,8 @@ void nurbs_foreachScreenVert(void (*func)(void *userData, Nurb *nu, BPoint *bp, 
 
 				if(bp->hide==0) {
 					view3d_project_short_clip(curarea, bp->vec, s, pmat, vmat);
-					func(userData, nu, bp, NULL, -1, s[0], s[1]);
+					if (s[0] != IS_CLIPPED)
+						func(userData, nu, bp, NULL, -1, s[0], s[1]);
 				}
 			}
 		}
@@ -2905,6 +2910,7 @@ static void draw_new_particle_system(Base *base, ParticleSystem *psys, int dt)
 	ParticleData *pars, *pa;
 	ParticleKey state, *states=0;
 	ParticleCacheKey *cache=0;
+	ParticleBillboardData bb;
 	Material *ma;
 	Object *bb_ob=0;
 	float vel[3], vec[3], vec2[3], imat[4][4], onevec[3]={0.0f,0.0f,0.0f}, bb_center[3];
@@ -2912,8 +2918,7 @@ static void draw_new_particle_system(Base *base, ParticleSystem *psys, int dt)
 	float cfra=bsystem_time(ob,(float)CFRA,0.0);
 	float *vdata=0, *vedata=0, *cdata=0, *ndata=0, *vd=0, *ved=0, *cd=0, *nd=0, xvec[3], yvec[3], zvec[3];
 	float ma_r=0.0f, ma_g=0.0f, ma_b=0.0f;
-	int a, k, k_max=0, totpart, totpoint=0, draw_as, path_nbr=0;
-	int path_possible=0, keys_possible=0, draw_keys=0, totchild=0;
+	int a, k, k_max=0, totpart, totpoint=0, draw_as, totchild=0;
 	int select=ob->flag&SELECT, create_cdata=0;
 	GLint polygonmode[2];
 	char val[32];
@@ -2999,17 +3004,8 @@ static void draw_new_particle_system(Base *base, ParticleSystem *psys, int dt)
 	if(part->flag&PART_GLOB_TIME)
 		cfra=bsystem_time(0,(float)CFRA,0.0);
 
-	if(psys->pathcache){
-		path_possible=1;
-		keys_possible=1;
-	}
-	if(draw_as==PART_DRAW_PATH && path_possible==0)
+	if(draw_as==PART_DRAW_PATH && psys->pathcache==NULL)
 		draw_as=PART_DRAW_DOT;
-
-	if(draw_as!=PART_DRAW_PATH && keys_possible && part->draw&PART_DRAW_KEYS){
-		path_nbr=part->keys_step;
-		draw_keys=1;
-	}
 
 /* 3. */
 	switch(draw_as){
@@ -3059,12 +3055,15 @@ static void draw_new_particle_system(Base *base, ParticleSystem *psys, int dt)
 					glPointSize(2.0); /* default dot size */
 			}
 			else if(part->bb_ob)
-				bb_ob=part->bb_ob;
+				bb.ob=part->bb_ob;
 			else
-				bb_ob=G.vd->camera;
+				bb.ob=G.vd->camera;
 
-			if(part->bb_align<PART_BB_VIEW)
-				onevec[part->bb_align]=1.0f;
+			bb.align = part->bb_align;
+			bb.anim = part->bb_anim;
+			bb.lock = part->draw & PART_DRAW_BB_LOCK;
+			bb.offset[0] = part->bb_offset[0];
+			bb.offset[1] = part->bb_offset[1];
 			break;
 		case PART_DRAW_PATH:
 			break;
@@ -3076,35 +3075,37 @@ static void draw_new_particle_system(Base *base, ParticleSystem *psys, int dt)
 	}
 
 /* 4. */
-	if(draw_as && draw_as!=PART_DRAW_PATH){
-		if(draw_as!=PART_DRAW_CIRC){
-			switch(draw_as){
+	if(draw_as && draw_as!=PART_DRAW_PATH) {
+		int tot_vec_size = (totpart + totchild) * 3 * sizeof(float);
+
+		if(draw_as!=PART_DRAW_CIRC) {
+			switch(draw_as) {
 				case PART_DRAW_AXIS:
 				case PART_DRAW_CROSS:
-					if(draw_as!=PART_DRAW_CROSS || create_cdata)
-						cdata=MEM_callocN((totpart+totchild)*(path_nbr+1)*6*3*sizeof(float), "particle_cdata");
-					vdata=MEM_callocN((totpart+totchild)*(path_nbr+1)*6*3*sizeof(float), "particle_vdata");
+					if(draw_as != PART_DRAW_CROSS || create_cdata)
+						cdata = MEM_callocN(tot_vec_size * 6, "particle_cdata");
+					vdata = MEM_callocN(tot_vec_size * 6, "particle_vdata");
 					break;
 				case PART_DRAW_LINE:
 					if(create_cdata)
-						cdata=MEM_callocN((totpart+totchild)*(path_nbr+1)*2*3*sizeof(float), "particle_cdata");
-					vdata=MEM_callocN((totpart+totchild)*(path_nbr+1)*2*3*sizeof(float), "particle_vdata");
+						cdata = MEM_callocN(tot_vec_size * 2, "particle_cdata");
+					vdata = MEM_callocN(tot_vec_size * 2, "particle_vdata");
 					break;
 				case PART_DRAW_BB:
 					if(create_cdata)
-						cdata=MEM_callocN((totpart+totchild)*(path_nbr+1)*4*3*sizeof(float), "particle_cdata");
-					vdata=MEM_callocN((totpart+totchild)*(path_nbr+1)*4*3*sizeof(float), "particle_vdata");
-					ndata=MEM_callocN((totpart+totchild)*(path_nbr+1)*4*3*sizeof(float), "particle_vdata");
+						cdata = MEM_callocN(tot_vec_size * 4, "particle_cdata");
+					vdata = MEM_callocN(tot_vec_size * 4, "particle_vdata");
+					ndata = MEM_callocN(tot_vec_size * 4, "particle_vdata");
 					break;
 				default:
 					if(create_cdata)
-						cdata=MEM_callocN((totpart+totchild)*(path_nbr+1)*3*sizeof(float), "particle_cdata");
-					vdata=MEM_callocN((totpart+totchild)*(path_nbr+1)*3*sizeof(float), "particle_vdata");
+						cdata=MEM_callocN(tot_vec_size, "particle_cdata");
+					vdata=MEM_callocN(tot_vec_size, "particle_vdata");
 			}
 		}
 
-		if(part->draw&PART_DRAW_VEL && draw_as!=PART_DRAW_LINE)
-			vedata=MEM_callocN((totpart+totchild)*2*3*(path_nbr+1)*sizeof(float), "particle_vedata");
+		if(part->draw & PART_DRAW_VEL && draw_as != PART_DRAW_LINE)
+			vedata = MEM_callocN(tot_vec_size * 2, "particle_vedata");
 
 		vd=vdata;
 		ved=vedata;
@@ -3117,6 +3118,7 @@ static void draw_new_particle_system(Base *base, ParticleSystem *psys, int dt)
 	if(draw_as){
 /* 5. */
 		for(a=0,pa=pars; a<totpart+totchild; a++, pa++){
+			/* setup per particle individual stuff */
 			if(a<totpart){
 				if(totchild && (part->draw&PART_DRAW_PARENT)==0) continue;
 				if(pa->flag & PARS_NO_DISP || pa->flag & PARS_UNEXIST) continue;
@@ -3154,11 +3156,6 @@ static void draw_new_particle_system(Base *base, ParticleSystem *psys, int dt)
 				}
 
 				r_tilt=1.0f+pa->r_ave[0];
-
-				if(path_nbr){
-					cache=psys->pathcache[a];
-					k_max=(int)(cache->steps);
-				}
 			}
 			else{
 				ChildParticle *cpa= &psys->child[a-totpart];
@@ -3186,46 +3183,22 @@ static void draw_new_particle_system(Base *base, ParticleSystem *psys, int dt)
 				pa_size=psys_get_child_size(psys,cpa,cfra,0);
 
 				r_tilt=2.0f*cpa->rand[2];
-				if(path_nbr){
-					cache=psys->childcache[a-totpart];
-					k_max=(int)(cache->steps);
-				}
 			}
 
 			if(draw_as!=PART_DRAW_PATH){
-				int next_pa=0;
-				for(k=0; k<=path_nbr; k++){
-					if(draw_keys){
-						state.time=(float)k/(float)path_nbr;
-						psys_get_particle_on_path(ob,psys,a,&state,1);
-					}
-					else if(path_nbr){
-						if(k<=k_max){
-							VECCOPY(state.co,(cache+k)->co);
-							VECCOPY(state.vel,(cache+k)->vel);
-							QUATCOPY(state.rot,(cache+k)->rot);
-						}
-						else
-							continue;	
-					}
-					else{
-						state.time=cfra;
-						if(psys_get_particle_state(ob,psys,a,&state,0)==0){
-							next_pa=1;
-							break;
-						}
-					}
-
+				state.time=cfra;
+				if(psys_get_particle_state(ob,psys,a,&state,0)){
+					/* create actiual particle data */
 					switch(draw_as){
 						case PART_DRAW_DOT:
+							if(vd){
+								VECCOPY(vd,state.co) vd+=3;
+							}
 							if(cd) {
 								cd[0]=ma_r;
 								cd[1]=ma_g;
 								cd[2]=ma_b;
 								cd+=3;
-							}
-							if(vd){
-								VECCOPY(vd,state.co) vd+=3;
 							}
 							break;
 						case PART_DRAW_CROSS:
@@ -3309,59 +3282,15 @@ static void draw_new_particle_system(Base *base, ParticleSystem *psys, int dt)
 								cd[2]=cd[5]=cd[8]=cd[11]=ma_b;
 								cd+=12;
 							}
-							if(part->draw&PART_DRAW_BB_LOCK && part->bb_align==PART_BB_VIEW){
-								VECCOPY(xvec,bb_ob->obmat[0]);
-								Normalize(xvec);
-								VECCOPY(yvec,bb_ob->obmat[1]);
-								Normalize(yvec);
-								VECCOPY(zvec,bb_ob->obmat[2]);
-								Normalize(zvec);
-							}
-							else if(part->bb_align==PART_BB_VEL){
-								float temp[3];
-								VECCOPY(temp,state.vel);
-								Normalize(temp);
-								VECSUB(zvec,bb_ob->obmat[3],state.co);
-								if(part->draw&PART_DRAW_BB_LOCK){
-									float fac=-Inpf(zvec,temp);
-									VECADDFAC(zvec,zvec,temp,fac);
-								}
-								Normalize(zvec);
-								Crossf(xvec,temp,zvec);
-								Normalize(xvec);
-								Crossf(yvec,zvec,xvec);
-							}
-							else{
-								VECSUB(zvec,bb_ob->obmat[3],state.co);
-								if(part->draw&PART_DRAW_BB_LOCK)
-									zvec[part->bb_align]=0.0f;
-								Normalize(zvec);
 
-								if(part->bb_align<PART_BB_VIEW)
-									Crossf(xvec,onevec,zvec);
-								else
-									Crossf(xvec,bb_ob->obmat[1],zvec);
-								Normalize(xvec);
-								Crossf(yvec,zvec,xvec);
-							}
+							bb.size = pa_size;
+							bb.tilt = part->bb_tilt * (1.0f - part->bb_rand_tilt * r_tilt);
+							bb.time = pa_time;
+							VECCOPY(bb.vec, state.co);
+							VECCOPY(bb.vel, state.vel);
 
-							VECCOPY(vec,xvec);
-							VECCOPY(vec2,yvec);
-
-							VecMulf(xvec,cos(part->bb_tilt*(1.0f-part->bb_rand_tilt*r_tilt)*(float)M_PI));
-							VecMulf(vec2,sin(part->bb_tilt*(1.0f-part->bb_rand_tilt*r_tilt)*(float)M_PI));
-							VECADD(xvec,xvec,vec2);
-
-							VecMulf(yvec,cos(part->bb_tilt*(1.0f-part->bb_rand_tilt*r_tilt)*(float)M_PI));
-							VecMulf(vec,-sin(part->bb_tilt*(1.0f-part->bb_rand_tilt*r_tilt)*(float)M_PI));
-							VECADD(yvec,yvec,vec);
-
-							VecMulf(xvec,pa_size);
-							VecMulf(yvec,pa_size);
-
-							VECADDFAC(bb_center,state.co,xvec,part->bb_offset[0]);
-							VECADDFAC(bb_center,bb_center,yvec,part->bb_offset[1]);
-
+							psys_make_billboard(&bb, xvec, yvec, zvec, bb_center);
+							
 							VECADD(vd,bb_center,xvec);
 							VECADD(vd,vd,yvec); vd+=3;
 
@@ -3381,6 +3310,10 @@ static void draw_new_particle_system(Base *base, ParticleSystem *psys, int dt)
 							break;
 					}
 
+					totpoint++;
+
+					/* additional things to draw for each particle	*/
+					/* (velocity, size and number)					*/
 					if(vedata){
 						VECCOPY(ved,state.co);
 						ved+=3;
@@ -3396,15 +3329,12 @@ static void draw_new_particle_system(Base *base, ParticleSystem *psys, int dt)
 						setlinestyle(0);
 					}
 
-					totpoint++;
-				}
-				if(next_pa)
-						continue;
-				if(part->draw&PART_DRAW_NUM && !(G.f & G_RENDER_SHADOW)){
-					/* in path drawing state.co is the end point */
-					glRasterPos3f(state.co[0],  state.co[1],  state.co[2]);
-					sprintf(val," %i",a);
-					BMF_DrawString(G.font, val);
+					if(part->draw&PART_DRAW_NUM && !(G.f & G_RENDER_SHADOW)){
+						/* in path drawing state.co is the end point */
+						glRasterPos3f(state.co[0],  state.co[1],  state.co[2]);
+						sprintf(val," %i",a);
+						BMF_DrawString(G.font, val);
+					}
 				}
 			}
 		}
@@ -3413,123 +3343,128 @@ static void draw_new_particle_system(Base *base, ParticleSystem *psys, int dt)
 		glGetIntegerv(GL_POLYGON_MODE, polygonmode);
 		glDisableClientState(GL_NORMAL_ARRAY);
 
-		if(draw_as != PART_DRAW_CIRC){
-			if(draw_as==PART_DRAW_PATH){
-				ParticleCacheKey **cache, *path;
-				float *cd2=0,*cdata2=0;
+		if(draw_as==PART_DRAW_PATH){
+			ParticleCacheKey **cache, *path;
+			float *cd2=0,*cdata2=0;
 
-				glEnableClientState(GL_VERTEX_ARRAY);
+			glEnableClientState(GL_VERTEX_ARRAY);
 
-				if(dt > OB_WIRE) {
-					glEnableClientState(GL_NORMAL_ARRAY);
+			/* setup gl flags */
+			if(dt > OB_WIRE) {
+				glEnableClientState(GL_NORMAL_ARRAY);
 
-					if(part->draw&PART_DRAW_MAT_COL)
-						glEnableClientState(GL_COLOR_ARRAY);
-
-					glEnable(GL_LIGHTING);
-					glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
-					glEnable(GL_COLOR_MATERIAL);
-				}
-				else {
-					glDisableClientState(GL_NORMAL_ARRAY);
-
-					glDisable(GL_COLOR_MATERIAL);
-					glDisable(GL_LIGHTING);
-					BIF_ThemeColor(TH_WIRE);
-				}
-
-				if(totchild && (part->draw&PART_DRAW_PARENT)==0)
-					totpart=0;
-
-				cache=psys->pathcache;
-				for(a=0, pa=psys->particles; a<totpart; a++, pa++){
-					path=cache[a];
-					glVertexPointer(3, GL_FLOAT, sizeof(ParticleCacheKey), path->co);
-
-					if(dt > OB_WIRE) {
-						glNormalPointer(GL_FLOAT, sizeof(ParticleCacheKey), path->vel);
-						if(part->draw&PART_DRAW_MAT_COL)
-							glColorPointer(3, GL_FLOAT, sizeof(ParticleCacheKey), path->col);
-					}
-
-					glDrawArrays(GL_LINE_STRIP, 0, path->steps + 1);
-				}
-				
-				cache=psys->childcache;
-				for(a=0; a<totchild; a++){
-					path=cache[a];
-					glVertexPointer(3, GL_FLOAT, sizeof(ParticleCacheKey), path->co);
-
-					if(dt > OB_WIRE) {
-						glNormalPointer(GL_FLOAT, sizeof(ParticleCacheKey), path->vel);
-						if(part->draw&PART_DRAW_MAT_COL)
-							glColorPointer(3, GL_FLOAT, sizeof(ParticleCacheKey), path->col);
-					}
-
-					glDrawArrays(GL_LINE_STRIP, 0, path->steps + 1);
-				}
-
-				if(dt > OB_WIRE) {
-					if(part->draw&PART_DRAW_MAT_COL)
-						glDisable(GL_COLOR_ARRAY);
-					glDisable(GL_COLOR_MATERIAL);
-				}
-
-				if(cdata2)
-					MEM_freeN(cdata2);
-				cd2=cdata2=0;
-
-				glLineWidth(1.0f);
-
-				/* draw particle edit mode key points*/
-			}
-
-			if(draw_as!=PART_DRAW_PATH){
-				glDisableClientState(GL_COLOR_ARRAY);
-
-				if(vdata){
-					glEnableClientState(GL_VERTEX_ARRAY);
-					glVertexPointer(3, GL_FLOAT, 0, vdata);
-				}
-				else
-					glDisableClientState(GL_VERTEX_ARRAY);
-
-				if(ndata && dt>OB_WIRE){
-					glEnableClientState(GL_NORMAL_ARRAY);
-					glNormalPointer(GL_FLOAT, 0, ndata);
-					glEnable(GL_LIGHTING);
-				}
-				else{
-					glDisableClientState(GL_NORMAL_ARRAY);
-					glDisable(GL_LIGHTING);
-				}
-
-				if(cdata){
+				if(part->draw&PART_DRAW_MAT_COL)
 					glEnableClientState(GL_COLOR_ARRAY);
-					glColorPointer(3, GL_FLOAT, 0, cdata);
-				}
 
-				switch(draw_as){
-					case PART_DRAW_AXIS:
-					case PART_DRAW_CROSS:
-						glDrawArrays(GL_LINES, 0, 6*totpoint);
-						break;
-					case PART_DRAW_LINE:
-						glDrawArrays(GL_LINES, 0, 2*totpoint);
-						break;
-					case PART_DRAW_BB:
-						if(dt<=OB_WIRE)
-							glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
+				glEnable(GL_LIGHTING);
+				glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
+				glEnable(GL_COLOR_MATERIAL);
+			}
+			else {
+				glDisableClientState(GL_NORMAL_ARRAY);
 
-						glDrawArrays(GL_QUADS, 0, 4*totpoint);
-						break;
-					default:
-						glDrawArrays(GL_POINTS, 0, totpoint);
-						break;
-				}
+				glDisable(GL_COLOR_MATERIAL);
+				glDisable(GL_LIGHTING);
+				BIF_ThemeColor(TH_WIRE);
 			}
 
+			if(totchild && (part->draw&PART_DRAW_PARENT)==0)
+				totpart=0;
+
+			/* draw actual/parent particles */
+			cache=psys->pathcache;
+			for(a=0, pa=psys->particles; a<totpart; a++, pa++){
+				path=cache[a];
+				if(path->steps > 0) {
+					glVertexPointer(3, GL_FLOAT, sizeof(ParticleCacheKey), path->co);
+
+					if(dt > OB_WIRE) {
+						glNormalPointer(GL_FLOAT, sizeof(ParticleCacheKey), path->vel);
+						if(part->draw&PART_DRAW_MAT_COL)
+							glColorPointer(3, GL_FLOAT, sizeof(ParticleCacheKey), path->col);
+					}
+
+					glDrawArrays(GL_LINE_STRIP, 0, path->steps + 1);
+				}
+			}
+			
+			/* draw child particles */
+			cache=psys->childcache;
+			for(a=0; a<totchild; a++){
+				path=cache[a];
+				glVertexPointer(3, GL_FLOAT, sizeof(ParticleCacheKey), path->co);
+
+				if(dt > OB_WIRE) {
+					glNormalPointer(GL_FLOAT, sizeof(ParticleCacheKey), path->vel);
+					if(part->draw&PART_DRAW_MAT_COL)
+						glColorPointer(3, GL_FLOAT, sizeof(ParticleCacheKey), path->col);
+				}
+
+				glDrawArrays(GL_LINE_STRIP, 0, path->steps + 1);
+			}
+
+
+			/* restore & clean up */
+			if(dt > OB_WIRE) {
+				if(part->draw&PART_DRAW_MAT_COL)
+					glDisable(GL_COLOR_ARRAY);
+				glDisable(GL_COLOR_MATERIAL);
+			}
+
+			if(cdata2)
+				MEM_freeN(cdata2);
+			cd2=cdata2=0;
+
+			glLineWidth(1.0f);
 		}
+		else if(draw_as!=PART_DRAW_CIRC){
+			glDisableClientState(GL_COLOR_ARRAY);
+
+			/* setup created data arrays */
+			if(vdata){
+				glEnableClientState(GL_VERTEX_ARRAY);
+				glVertexPointer(3, GL_FLOAT, 0, vdata);
+			}
+			else
+				glDisableClientState(GL_VERTEX_ARRAY);
+
+			if(ndata && dt>OB_WIRE){
+				glEnableClientState(GL_NORMAL_ARRAY);
+				glNormalPointer(GL_FLOAT, 0, ndata);
+				glEnable(GL_LIGHTING);
+			}
+			else{
+				glDisableClientState(GL_NORMAL_ARRAY);
+				glDisable(GL_LIGHTING);
+			}
+
+			if(cdata){
+				glEnableClientState(GL_COLOR_ARRAY);
+				glColorPointer(3, GL_FLOAT, 0, cdata);
+			}
+
+
+			/* draw created data arrays */
+			switch(draw_as){
+				case PART_DRAW_AXIS:
+				case PART_DRAW_CROSS:
+					glDrawArrays(GL_LINES, 0, 6*totpoint);
+					break;
+				case PART_DRAW_LINE:
+					glDrawArrays(GL_LINES, 0, 2*totpoint);
+					break;
+				case PART_DRAW_BB:
+					if(dt<=OB_WIRE)
+						glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
+
+					glDrawArrays(GL_QUADS, 0, 4*totpoint);
+					break;
+				default:
+					glDrawArrays(GL_POINTS, 0, totpoint);
+					break;
+			}
+		}
+
 		if(vedata){
 			glDisableClientState(GL_COLOR_ARRAY);
 			cpack(0xC0C0C0);
@@ -3772,7 +3707,7 @@ static void tekenhandlesN(Nurb *nu, short sel)
 	
 	glBegin(GL_LINES); 
 	
-	if( (nu->type & 7)==1) {
+	if( (nu->type & 7)==CU_BEZIER) {
 		if(sel) col= nurbcol+4;
 		else col= nurbcol;
 
@@ -3829,7 +3764,7 @@ static void tekenvertsN(Nurb *nu, short sel)
 	
 	bglBegin(GL_POINTS);
 	
-	if((nu->type & 7)==1) {
+	if((nu->type & 7)==CU_BEZIER) {
 
 		bezt= nu->bezt;
 		a= nu->pntsu;

@@ -1,5 +1,5 @@
 #
-# $Id: Makefile,v 1.7 2003/05/12 18:12:25 sgefant Exp $
+# $Id$
 #
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
@@ -53,3 +53,4 @@ endif
 	@echo "---> removing CVS directories and Mac hidden files from distribution"
 	@find $(DIR)/bin/$(APPLICATION).app -name CVS -prune -exec rm -rf {} \;
 	@find $(DIR)/bin/$(APPLICATION).app -name .DS_Store -exec rm -f {} \;
+	@find $(DIR)/bin/$(APPLICATION).app -name .svn -exec rm -rf {} \;

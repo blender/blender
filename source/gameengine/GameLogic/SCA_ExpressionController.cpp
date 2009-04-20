@@ -49,7 +49,8 @@ SCA_ExpressionController::SCA_ExpressionController(SCA_IObject* gameobj,
 												   const STR_String& exprtext,
 												   PyTypeObject* T)
 	:SCA_IController(gameobj,T),
-	m_exprText(exprtext)
+	m_exprText(exprtext),
+	m_exprCache(NULL)
 {
 }
 
@@ -57,6 +58,8 @@ SCA_ExpressionController::SCA_ExpressionController(SCA_IObject* gameobj,
 
 SCA_ExpressionController::~SCA_ExpressionController()
 {
+	if (m_exprCache)
+		m_exprCache->Release();
 }
 
 
@@ -65,6 +68,7 @@ CValue* SCA_ExpressionController::GetReplica()
 {
 	SCA_ExpressionController* replica = new SCA_ExpressionController(*this);
 	replica->m_exprText = m_exprText;
+	replica->m_exprCache = NULL;
 	// this will copy properties and so on...
 	CValue::AddDataToReplica(replica);
 
@@ -72,18 +76,32 @@ CValue* SCA_ExpressionController::GetReplica()
 }
 
 
+// Forced deletion of precalculated expression to break reference loop
+// Use this function when you know that you won't use the sensor anymore
+void SCA_ExpressionController::Delete()
+{
+	if (m_exprCache)
+	{
+		m_exprCache->Release();
+		m_exprCache = NULL;
+	}
+	Release();
+}
+
 
 void SCA_ExpressionController::Trigger(SCA_LogicManager* logicmgr)
 {
 
 	bool expressionresult = false;
-
-	CParser parser;
-	parser.SetContext(this->AddRef());
-	CExpression* expr = parser.ProcessText(m_exprText);
-	if (expr)
+	if (!m_exprCache)
 	{
-		CValue* value = expr->Calculate();
+		CParser parser;
+		parser.SetContext(this->AddRef());
+		m_exprCache = parser.ProcessText(m_exprText);
+	}
+	if (m_exprCache)
+	{
+		CValue* value = m_exprCache->Calculate();
 		if (value)
 		{
 			if (value->IsError())
@@ -91,13 +109,14 @@ void SCA_ExpressionController::Trigger(SCA_LogicManager* logicmgr)
 				printf(value->GetText());
 			} else
 			{
-				float num = value->GetNumber();
+				float num = (float)value->GetNumber();
 				expressionresult = !MT_fuzzyZero(num);
 			}
 			value->Release();
 
 		}
-		expr->Release();
+		//m_exprCache->Release();
+		//m_exprCache = NULL;
 	}
 
 	/*

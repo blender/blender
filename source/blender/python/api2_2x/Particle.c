@@ -134,6 +134,56 @@ static PyObject *Part_getRenderStep( BPy_PartSys * self );
 static PyObject *Part_getDupOb( BPy_PartSys * self );
 static PyObject *Part_getDrawAs( BPy_PartSys * self );
 static PyObject *Part_GetAge( BPy_PartSys * self, PyObject * args );
+static int Part_setChildAmount( BPy_PartSys * self, PyObject * args );
+static PyObject *Part_getChildAmount( BPy_PartSys * self );
+static int Part_setChildType( BPy_PartSys * self, PyObject * args );
+static PyObject *Part_getChildType( BPy_PartSys * self );
+static int Part_setChildRenderAmount( BPy_PartSys * self, PyObject * args );
+static PyObject *Part_getChildRenderAmount( BPy_PartSys * self );
+static int Part_setChildRadius( BPy_PartSys * self, PyObject * args );
+static PyObject *Part_getChildRadius( BPy_PartSys * self );
+static int Part_setChildRoundness( BPy_PartSys * self, PyObject * args );
+static PyObject *Part_getChildRoundness( BPy_PartSys * self );
+static int Part_setChildClumping( BPy_PartSys * self, PyObject * args );
+static PyObject *Part_getChildClumping( BPy_PartSys * self );
+static int Part_setChildShape( BPy_PartSys * self, PyObject * args );
+static PyObject *Part_getChildShape( BPy_PartSys * self );
+static int Part_setChildSize( BPy_PartSys * self, PyObject * args );
+static PyObject *Part_getChildSize( BPy_PartSys * self );
+static int Part_setChildRandom( BPy_PartSys * self, PyObject * args );
+static PyObject *Part_getChildRandom( BPy_PartSys * self );
+static int Part_setChildRough1( BPy_PartSys * self, PyObject * args );
+static PyObject *Part_getChildRough1( BPy_PartSys * self );
+static int Part_setChildRough1Size( BPy_PartSys * self, PyObject * args );
+static PyObject *Part_getChildRough1Size( BPy_PartSys * self );
+static int Part_setChildRough2( BPy_PartSys * self, PyObject * args );
+static PyObject *Part_getChildRough2( BPy_PartSys * self );
+static int Part_setChildRough2Size( BPy_PartSys * self, PyObject * args );
+static PyObject *Part_getChildRough2Size( BPy_PartSys * self );
+static int Part_setChildRough2Thres( BPy_PartSys * self, PyObject * args );
+static PyObject *Part_getChildRough2Thres( BPy_PartSys * self );
+static int Part_setChildRoughE( BPy_PartSys * self, PyObject * args );
+static PyObject *Part_getChildRoughE( BPy_PartSys * self );
+static int Part_setChildRoughEShape( BPy_PartSys * self, PyObject * args );
+static PyObject *Part_getChildRoughEShape( BPy_PartSys * self );
+static int Part_setChildKink( BPy_PartSys * self, PyObject * args );
+static PyObject *Part_getChildKink( BPy_PartSys * self );
+static int Part_setChildKinkAxis( BPy_PartSys * self, PyObject * args );
+static PyObject *Part_getChildKinkAxis( BPy_PartSys * self );
+static int Part_setChildKinkFreq( BPy_PartSys * self, PyObject * args );
+static PyObject *Part_getChildKinkFreq( BPy_PartSys * self );
+static int Part_setChildKinkShape( BPy_PartSys * self, PyObject * args );
+static PyObject *Part_getChildKinkShape( BPy_PartSys * self );
+static int Part_setChildKinkAmp( BPy_PartSys * self, PyObject * args );
+static PyObject *Part_getChildKinkAmp( BPy_PartSys * self );
+static int Part_setChildBranch( BPy_PartSys * self, PyObject * args );
+static PyObject *Part_getChildBranch( BPy_PartSys * self );
+static int Part_setChildBranchAnim( BPy_PartSys * self, PyObject * args );
+static PyObject *Part_getChildBranchAnim( BPy_PartSys * self );
+static int Part_setChildBranchSymm( BPy_PartSys * self, PyObject * args );
+static PyObject *Part_getChildBranchSymm( BPy_PartSys * self );
+static int Part_setChildBranchThre( BPy_PartSys * self, PyObject * args );
+static PyObject *Part_getChildBranchThre( BPy_PartSys * self );
 
 /*****************************************************************************/
 /* Python Effect_Type callback function prototypes:                           */
@@ -315,6 +365,107 @@ static PyGetSetDef BPy_ParticleSys_getseters[] = {
      {"drawAs",
 	 (getter)Part_getDrawAs, NULL,
 	 "Get draw type Particle.DRAWAS([ 'NONE' | 'OBJECT' | 'POINT' | ... ] )",
+	 NULL},
+/* Children */
+	{"childAmount",
+	 (getter)Part_getChildAmount, (setter)Part_setChildAmount,
+	 "The total number of children",
+	 NULL},
+	 {"childType",
+	 (getter)Part_getChildType, (setter)Part_setChildType,
+	 "Type of childrens ( Particle.CHILDTYPE[ 'FACES' | 'PARTICLES' | 'NONE' ] )",
+	 NULL},
+	 {"childRenderAmount",
+	 (getter)Part_getChildRenderAmount, (setter)Part_setChildRenderAmount,
+	 "Amount of children/parent for rendering",
+	 NULL},
+	 {"childRadius",
+	 (getter)Part_getChildRadius, (setter)Part_setChildRadius,
+	 "Radius of children around parent",
+	 NULL},
+	 {"childRound",
+	 (getter)Part_getChildRoundness, (setter)Part_setChildRoundness,
+	 "Roundness of children around parent",
+	 NULL},
+	 {"childClump",
+	 (getter)Part_getChildClumping, (setter)Part_setChildClumping,
+	 "Amount of clumpimg",
+	 NULL},
+	 {"childShape",
+	 (getter)Part_getChildShape, (setter)Part_setChildShape,
+	 "Shape of clumpimg",
+	 NULL},
+	 {"childSize",
+	 (getter)Part_getChildSize, (setter)Part_setChildSize,
+	 "A multiplier for the child particle size",
+	 NULL},
+	 {"childRand",
+	 (getter)Part_getChildRandom, (setter)Part_setChildRandom,
+	 "Random variation to the size of the child particles",
+	 NULL},
+	 {"childRough1",
+	 (getter)Part_getChildRough1, (setter)Part_setChildRough1,
+	 "Amount of location dependant rough",
+	 NULL},
+	 {"childRough1Size",
+	 (getter)Part_getChildRough1Size, (setter)Part_setChildRough1Size,
+	 "Size of location dependant rough",
+	 NULL},
+	 {"childRough2",
+	 (getter)Part_getChildRough2, (setter)Part_setChildRough2,
+	 "Amount of random rough",
+	 NULL},
+	 {"childRough2Size",
+	 (getter)Part_getChildRough2Size, (setter)Part_setChildRough2Size,
+	 "Size of random rough",
+	 NULL},
+	 {"childRough2Thresh",
+	 (getter)Part_getChildRough2Thres, (setter)Part_setChildRough2Thres,
+	 "Amount of particles left untouched by random rough",
+	 NULL},
+	 {"childRoughE",
+	 (getter)Part_getChildRoughE, (setter)Part_setChildRoughE,
+	 "Amount of end point rough",
+	 NULL},
+	 {"childRoughEShape",
+	 (getter)Part_getChildRoughEShape, (setter)Part_setChildRoughEShape,
+	 "Shape of end point rough",
+	 NULL},
+	 {"childKink",
+	 (getter)Part_getChildKink, (setter)Part_setChildKink,
+	 "Type of periodic offset on the path (Particle.CHILDKINK[ 'BRAID' | 'WAVE' | 'RADIAL' | 'CURL' | 'NOTHING' ])",
+	 NULL},
+	 {"childKinkAxis",
+	 (getter)Part_getChildKinkAxis, (setter)Part_setChildKinkAxis,
+	 "Which axis to use for offset (Particle.CHILDKINKAXIS[ 'Z' | 'Y' | 'X' ])",
+	 NULL},
+	 {"childKinkFreq",
+	 (getter)Part_getChildKinkFreq, (setter)Part_setChildKinkFreq,
+	 "The frequency of the offset (1/total length)",
+	 NULL},
+	 {"childKinkShape",
+	 (getter)Part_getChildKinkShape, (setter)Part_setChildKinkShape,
+	 "Adjust the offset to the beginning/end",
+	 NULL},
+	 {"childKinkAmp",
+	 (getter)Part_getChildKinkAmp, (setter)Part_setChildKinkAmp,
+	 "The amplitude of the offset",
+	 NULL},
+	 {"childBranch",
+	 (getter)Part_getChildBranch, (setter)Part_setChildBranch,
+	 "Branch child paths from eachother",
+	 NULL},
+	 {"childBranchAnim",
+	 (getter)Part_getChildBranchAnim, (setter)Part_setChildBranchAnim,
+	 "Animate branching",
+	 NULL},
+	 {"childBranchSymm",
+	 (getter)Part_getChildBranchSymm, (setter)Part_setChildBranchSymm,
+	 "Start and end points are the same",
+	 NULL},
+	 {"childBranchThre",
+	 (getter)Part_getChildBranchThre, (setter)Part_setChildBranchThre,
+	 "Threshold of branching",
 	 NULL},
 	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
 };
@@ -559,10 +710,8 @@ PyObject *M_ParticleSys_Get( PyObject * self, PyObject * args )
 		}
 
 		if( !wanted_obj){  /* requested object not found */
-			char error_msg[64];
-			PyOS_snprintf( error_msg, sizeof( error_msg ),
-						   "Particle System '%s' not found", name);
-			return EXPP_ReturnPyObjError( PyExc_NameError, error_msg );
+			PyErr_Format(PyExc_NameError, "Particle System '%s' not found", name);
+			return NULL;
 		}
 
 		return wanted_obj;
@@ -710,6 +859,68 @@ static PyObject *Particle_ReactOnDict( void )
 	return ReactOn;
 }
 
+
+/* create the Blender.Particle.ChildType constant dict */
+
+static PyObject *Particle_ChildTypeDict( void )
+{
+	PyObject *ChildTypes = PyConstant_New(  );
+
+	if( ChildTypes ) {
+		BPy_constant *c = ( BPy_constant * ) ChildTypes;
+
+		PyConstant_Insert( c, "FACES",
+				 PyInt_FromLong( 2 ) );
+		PyConstant_Insert( c, "PARTICLES",
+				 PyInt_FromLong( 1 ) );
+		PyConstant_Insert( c, "NONE",
+				 PyInt_FromLong( 0 ) );
+	}
+	return ChildTypes;
+}
+
+/* create the Blender.Particle.ChildKink constant dict */
+
+static PyObject *Particle_ChildKinkDict( void )
+{
+	PyObject *ChildKinks = PyConstant_New(  );
+
+	if( ChildKinks ) {
+		BPy_constant *c = ( BPy_constant * ) ChildKinks;
+
+		PyConstant_Insert( c, "BRAID",
+				 PyInt_FromLong( 4 ) );
+		PyConstant_Insert( c, "WAVE",
+				 PyInt_FromLong( 3 ) );
+		PyConstant_Insert( c, "RADIAL",
+				 PyInt_FromLong( 2 ) );
+		PyConstant_Insert( c, "CURL",
+				 PyInt_FromLong( 1 ) );
+		PyConstant_Insert( c, "NOTHING",
+				 PyInt_FromLong( 0 ) );
+	}
+	return ChildKinks;
+}
+
+/* create the Blender.Particle.ChildKinkAxis constant dict */
+
+static PyObject *Particle_ChildKinkAxisDict( void )
+{
+	PyObject *ChildKinkAxes = PyConstant_New(  );
+
+	if( ChildKinkAxes ) {
+		BPy_constant *c = ( BPy_constant * ) ChildKinkAxes;
+
+		PyConstant_Insert( c, "Z",
+				 PyInt_FromLong( 2 ) );
+		PyConstant_Insert( c, "Y",
+				 PyInt_FromLong( 1 ) );
+		PyConstant_Insert( c, "X",
+				 PyInt_FromLong( 0 ) );
+	}
+	return ChildKinkAxes;
+}
+
 static PyObject *Particle_DrawAs( void )
 {
 	PyObject *DrawAs = PyConstant_New(  );
@@ -756,6 +967,10 @@ PyObject *ParticleSys_Init( void ){
 	PyObject *EmitFrom;
 	PyObject *Dist;
 	PyObject *DrawAs;
+	PyObject *ChildTypes;
+	PyObject *ChildKinks;
+	PyObject *ChildKinkAxes;
+
 
 	if( PyType_Ready( &ParticleSys_Type ) < 0)
 		return NULL;
@@ -765,6 +980,9 @@ PyObject *ParticleSys_Init( void ){
 	EmitFrom = Particle_EmitFrom();
 	DrawAs = Particle_DrawAs();
 	Dist = Particle_DistrDict();
+	ChildTypes = Particle_ChildTypeDict();
+	ChildKinks = Particle_ChildKinkDict();
+	ChildKinkAxes = Particle_ChildKinkAxisDict();
 
 	submodule = Py_InitModule3( "Blender.Particle", 
 								M_ParticleSys_methods, M_ParticleSys_doc );
@@ -779,6 +997,12 @@ PyObject *ParticleSys_Init( void ){
 		PyModule_AddObject( submodule, "DISTRIBUTION", Dist );
 	if( DrawAs )
 		PyModule_AddObject( submodule, "DRAWAS", DrawAs );
+	if( ChildTypes )
+		PyModule_AddObject( submodule, "CHILDTYPE", ChildTypes );
+	if( ChildKinks )
+		PyModule_AddObject( submodule, "CHILDKINK", ChildKinks );
+	if( ChildKinkAxes )
+		PyModule_AddObject( submodule, "CHILDKINKAXIS", ChildKinkAxes );
 
 	return ( submodule );
 }
@@ -1408,11 +1632,8 @@ static int Part_setEditable( BPy_PartSys * self, PyObject * args )
 {
 	int number;
 
-	if( !PyInt_Check( args ) ) {
-		char errstr[128];
-		sprintf ( errstr, "expected int argument" );
-		return EXPP_ReturnIntError( PyExc_TypeError, errstr );
-	}
+	if( !PyInt_Check( args ) )
+		return EXPP_ReturnIntError( PyExc_TypeError, "expected int argument" );
 
 	number = PyInt_AS_LONG( args );
 
@@ -1459,11 +1680,8 @@ static int Part_setMultiReact( BPy_PartSys * self, PyObject * args )
 {
 	int number;
 
-	if( !PyInt_Check( args ) ) {
-		char errstr[128];
-		sprintf ( errstr, "expected int argument" );
-		return EXPP_ReturnIntError( PyExc_TypeError, errstr );
-	}
+	if( !PyInt_Check( args ) )
+		return EXPP_ReturnIntError( PyExc_TypeError, "expected int argument" );
 
 	number = PyInt_AS_LONG( args );
 
@@ -1647,11 +1865,8 @@ static PyObject *Part_getGroundZ( BPy_PartSys * self )
 static int Part_setOb( BPy_PartSys * self, PyObject * args )
 {
 	Object *obj;
-	if( !BPy_Object_Check( args ) ) {
-		char errstr[128];
-		sprintf ( errstr, "expected object argument" );
-		return EXPP_ReturnIntError( PyExc_TypeError, errstr );
-	}
+	if( !BPy_Object_Check( args ) )
+		return EXPP_ReturnIntError( PyExc_TypeError, "expected object argument" );
 
 	obj = Object_FromPyObject(args);
 
@@ -1674,11 +1889,8 @@ static int Part_setRandEmission( BPy_PartSys * self, PyObject * args )
 {
 	int number;
 
-	if( !PyInt_Check( args ) ) {
-		char errstr[128];
-		sprintf ( errstr, "expected int argument" );
-		return EXPP_ReturnIntError( PyExc_TypeError, errstr );
-	}
+	if( !PyInt_Check( args ) )
+		return EXPP_ReturnIntError( PyExc_TypeError, "expected int argument" );
 
 	number = PyInt_AS_LONG( args );
 
@@ -1701,19 +1913,14 @@ static PyObject *Part_getRandEmission( BPy_PartSys * self )
 static int Part_setParticleDist( BPy_PartSys * self, PyObject * args )
 {
 	int number;
-	char errstr[128];
 
-	if( !PyInt_Check( args ) ) {
-		sprintf ( errstr, "expected int argument" );
-		return EXPP_ReturnIntError( PyExc_TypeError, errstr );
-	}
+	if( !PyInt_Check( args ) )
+		return EXPP_ReturnIntError( PyExc_TypeError, "expected int argument" );
 
 	number = PyInt_AS_LONG( args );
 
-	if (number < 0 || number > 3){
-		sprintf ( errstr, "expected int argument between 0 - 3" );
-		return EXPP_ReturnIntError( PyExc_TypeError, errstr );
-	}
+	if (number < 0 || number > 3)
+		return EXPP_ReturnIntError( PyExc_TypeError, "expected int argument between 0 - 3" );
 
 	self->psys->part->from = (short)number;
 
@@ -1731,11 +1938,8 @@ static int Part_setEvenDist( BPy_PartSys * self, PyObject * args )
 {
 	int number;
 
-	if( !PyInt_Check( args ) ) {
-		char errstr[128];
-		sprintf ( errstr, "expected int argument" );
-		return EXPP_ReturnIntError( PyExc_TypeError, errstr );
-	}
+	if( !PyInt_Check( args ) )
+		return EXPP_ReturnIntError( PyExc_TypeError, "expected int argument" );
 
 	number = PyInt_AS_LONG( args );
 
@@ -1758,19 +1962,14 @@ static PyObject *Part_getEvenDist( BPy_PartSys * self )
 static int Part_setDist( BPy_PartSys * self, PyObject * args )
 {
 	int number;
-	char errstr[128];
 
-	if( !PyInt_Check( args ) ) {
-		sprintf ( errstr, "expected int argument" );
-		return EXPP_ReturnIntError( PyExc_TypeError, errstr );
-	}
+	if( !PyInt_Check( args ) )
+		return EXPP_ReturnIntError( PyExc_TypeError, "expected int argument" );
 
 	number = PyInt_AS_LONG( args );
 
-	if (number < 0 || number > 2){
-		sprintf ( errstr, "expected int argument between 0 - 2" );
-		return EXPP_ReturnIntError( PyExc_TypeError, errstr );
-	}
+	if (number < 0 || number > 2)
+		return EXPP_ReturnIntError( PyExc_TypeError, "expected int argument between 0 - 2" );
 
 	self->psys->part->distr = (short)number;
 
@@ -1820,11 +2019,8 @@ static int Part_setInvert( BPy_PartSys * self, PyObject * args )
 {
 	int number;
 
-	if( !PyInt_Check( args ) ) {
-		char errstr[128];
-		sprintf ( errstr, "expected int argument" );
-		return EXPP_ReturnIntError( PyExc_TypeError, errstr );
-	}
+	if( !PyInt_Check( args ) )
+		return EXPP_ReturnIntError( PyExc_TypeError, "expected int argument" );
 
 	number = PyInt_AS_LONG( args );
 
@@ -1847,11 +2043,9 @@ static PyObject *Part_getInvert( BPy_PartSys * self )
 static int Part_setTargetOb( BPy_PartSys * self, PyObject * args )
 {
 	Object *obj;
-	if( !BPy_Object_Check( args ) ) {
-		char errstr[128];
-		sprintf ( errstr, "expected object argument" );
-		return EXPP_ReturnIntError( PyExc_TypeError, errstr );
-	}
+	
+	if( !BPy_Object_Check( args ) )
+		return EXPP_ReturnIntError( PyExc_TypeError, "expected object argument" );
 
 	obj = Object_FromPyObject(args);
 
@@ -1925,11 +2119,8 @@ static int Part_setRenderObject( BPy_PartSys * self, PyObject * args )
 	int number,nr;
 	ParticleSystem *psys = 0L;
 
-	if( !PyInt_Check( args ) ) {
-		char errstr[128];
-		sprintf ( errstr, "expected int argument" );
-		return EXPP_ReturnIntError( PyExc_TypeError, errstr );
-	}
+	if( !PyInt_Check( args ) )
+		return EXPP_ReturnIntError( PyExc_TypeError, "expected int argument" );
 
 	number = PyInt_AS_LONG( args );
 
@@ -2009,4 +2200,409 @@ static PyObject *Part_getRenderStep( BPy_PartSys * self )
 static PyObject *Part_getDrawAs( BPy_PartSys * self )
 {
 	return PyInt_FromLong( (long)( self->psys->part->draw_as ) );
+}
+
+static int Part_setChildAmount( BPy_PartSys * self, PyObject * args )
+{
+	int res = EXPP_setIValueRange( args, &self->psys->part->child_nbr,
+			0, MAX_PART_CHILDREN, 'i' );
+
+	psys_flush_settings( self->psys->part, PSYS_ALLOC, 1 );
+
+	return res;
+}
+
+static PyObject *Part_getChildAmount( BPy_PartSys * self )
+{
+	return PyInt_FromLong( ((int)( self->psys->part->child_nbr )) );
+}
+
+static int Part_setChildType( BPy_PartSys * self, PyObject * args )
+{
+	int res = EXPP_setIValueRange( args, &self->psys->part->childtype,
+			0, 2, 'h' );
+
+	psys_flush_settings( self->psys->part, PSYS_ALLOC, 1 );
+
+	return res;
+}
+
+static PyObject *Part_getChildType( BPy_PartSys * self )
+{
+	return PyInt_FromLong( (short)( self->psys->part->childtype ) );
+}
+
+static int Part_setChildRenderAmount( BPy_PartSys * self, PyObject * args )
+{
+	int res = EXPP_setIValueRange( args, &self->psys->part->ren_child_nbr,
+			0, MAX_PART_CHILDREN, 'i' );
+
+	psys_flush_settings( self->psys->part, PSYS_ALLOC, 1 );
+
+	return res;
+}
+
+static PyObject *Part_getChildRenderAmount( BPy_PartSys * self )
+{
+	return PyInt_FromLong( ((int)( self->psys->part->ren_child_nbr )) );
+}
+
+static int Part_setChildRadius( BPy_PartSys * self, PyObject * args )
+{
+	int res = EXPP_setFloatRange( args, &self->psys->part->childrad,
+			0.0, 10.0 );
+
+	psys_flush_settings( self->psys->part, PSYS_ALLOC, 1 );
+
+	return res;
+}
+
+static PyObject *Part_getChildRadius( BPy_PartSys * self )
+{
+	return PyFloat_FromDouble( ((float)( self->psys->part->childrad )) );
+}
+
+static int Part_setChildRoundness( BPy_PartSys * self, PyObject * args )
+{
+	int res = EXPP_setFloatRange( args, &self->psys->part->childflat,
+			0.0, 1.0 );
+
+	psys_flush_settings( self->psys->part, PSYS_ALLOC, 1 );
+
+	return res;
+}
+
+static PyObject *Part_getChildRoundness( BPy_PartSys * self )
+{
+	return PyFloat_FromDouble( ((float)( self->psys->part->childflat )) );
+}
+
+static int Part_setChildClumping( BPy_PartSys * self, PyObject * args )
+{
+	int res = EXPP_setFloatRange( args, &self->psys->part->clumpfac,
+			-1.0, 1.0 );
+
+	psys_flush_settings( self->psys->part, PSYS_ALLOC, 1 );
+
+	return res;
+}
+
+static PyObject *Part_getChildClumping( BPy_PartSys * self )
+{
+	return PyFloat_FromDouble( ((float)( self->psys->part->clumpfac )) );
+}
+
+static int Part_setChildShape( BPy_PartSys * self, PyObject * args )
+{
+	int res = EXPP_setFloatRange( args, &self->psys->part->clumppow,
+			-0.999, 0.999 );
+
+	psys_flush_settings( self->psys->part, PSYS_ALLOC, 1 );
+
+	return res;
+}
+
+static PyObject *Part_getChildShape( BPy_PartSys * self )
+{
+	return PyFloat_FromDouble( ((float)( self->psys->part->clumppow )) );
+}
+
+static int Part_setChildSize( BPy_PartSys * self, PyObject * args )
+{
+	int res = EXPP_setFloatRange( args, &self->psys->part->childsize,
+			0.01, 100.0 );
+
+	psys_flush_settings( self->psys->part, PSYS_ALLOC, 1 );
+
+	return res;
+}
+
+static PyObject *Part_getChildSize( BPy_PartSys * self )
+{
+	return PyFloat_FromDouble( ((float)( self->psys->part->childsize )) );
+}
+
+static int Part_setChildRandom( BPy_PartSys * self, PyObject * args )
+{
+	int res = EXPP_setFloatRange( args, &self->psys->part->childrandsize,
+			0.0, 1.0 );
+
+	psys_flush_settings( self->psys->part, PSYS_ALLOC, 1 );
+
+	return res;
+}
+
+static PyObject *Part_getChildRandom( BPy_PartSys * self )
+{
+	return PyFloat_FromDouble( ((float)( self->psys->part->childrandsize )) );
+}
+
+static int Part_setChildRough1( BPy_PartSys * self, PyObject * args )
+{
+	int res = EXPP_setFloatRange( args, &self->psys->part->rough1,
+			0.0, 10.0 );
+
+	psys_flush_settings( self->psys->part, PSYS_ALLOC, 1 );
+
+	return res;
+}
+
+static PyObject *Part_getChildRough1( BPy_PartSys * self )
+{
+	return PyFloat_FromDouble( ((float)( self->psys->part->rough1 )) );
+}
+
+static int Part_setChildRough1Size( BPy_PartSys * self, PyObject * args )
+{
+	int res = EXPP_setFloatRange( args, &self->psys->part->rough1_size,
+			0.01, 10.0 );
+
+	psys_flush_settings( self->psys->part, PSYS_ALLOC, 1 );
+
+	return res;
+}
+
+static PyObject *Part_getChildRough1Size( BPy_PartSys * self )
+{
+	return PyFloat_FromDouble( ((float)( self->psys->part->rough1_size )) );
+}
+
+static int Part_setChildRough2( BPy_PartSys * self, PyObject * args )
+{
+	int res = EXPP_setFloatRange( args, &self->psys->part->rough2,
+			0.0, 10.0 );
+
+	psys_flush_settings( self->psys->part, PSYS_ALLOC, 1 );
+
+	return res;
+}
+
+static PyObject *Part_getChildRough2( BPy_PartSys * self )
+{
+	return PyFloat_FromDouble( ((float)( self->psys->part->rough2 )) );
+}
+
+static int Part_setChildRough2Size( BPy_PartSys * self, PyObject * args )
+{
+	int res = EXPP_setFloatRange( args, &self->psys->part->rough2_size,
+			0.01, 10.0 );
+
+	psys_flush_settings( self->psys->part, PSYS_ALLOC, 1 );
+
+	return res;
+}
+
+static PyObject *Part_getChildRough2Size( BPy_PartSys * self )
+{
+	return PyFloat_FromDouble( ((float)( self->psys->part->rough2_size )) );
+}
+
+static int Part_setChildRough2Thres( BPy_PartSys * self, PyObject * args )
+{
+	int res = EXPP_setFloatRange( args, &self->psys->part->rough2_thres,
+			0.0, 10.0 );
+
+	psys_flush_settings( self->psys->part, PSYS_ALLOC, 1 );
+
+	return res;
+}
+
+static PyObject *Part_getChildRough2Thres( BPy_PartSys * self )
+{
+	return PyFloat_FromDouble( ((float)( self->psys->part->rough2_thres )) );
+}
+
+static int Part_setChildRoughE( BPy_PartSys * self, PyObject * args )
+{
+	int res = EXPP_setFloatRange( args, &self->psys->part->rough_end,
+			0.0, 10.0 );
+
+	psys_flush_settings( self->psys->part, PSYS_ALLOC, 1 );
+
+	return res;
+}
+
+static PyObject *Part_getChildRoughE( BPy_PartSys * self )
+{
+	return PyFloat_FromDouble( ((float)( self->psys->part->rough_end )) );
+}
+
+static int Part_setChildRoughEShape( BPy_PartSys * self, PyObject * args )
+{
+	int res = EXPP_setFloatRange( args, &self->psys->part->rough_end_shape,
+			0.0, 10.0 );
+
+	psys_flush_settings( self->psys->part, PSYS_ALLOC, 1 );
+
+	return res;
+}
+
+static PyObject *Part_getChildRoughEShape( BPy_PartSys * self )
+{
+	return PyFloat_FromDouble( ((float)( self->psys->part->rough_end_shape )) );
+}
+
+static int Part_setChildKink( BPy_PartSys * self, PyObject * args )
+{
+	int res = EXPP_setIValueRange( args, &self->psys->part->kink,
+			0, 4, 'h' );
+
+	psys_flush_settings( self->psys->part, PSYS_ALLOC, 1 );
+
+	return res;
+}
+
+static PyObject *Part_getChildKink( BPy_PartSys * self )
+{
+	return PyInt_FromLong( (short)( self->psys->part->kink ) );
+}
+
+static int Part_setChildKinkAxis( BPy_PartSys * self, PyObject * args )
+{
+	int res = EXPP_setIValueRange( args, &self->psys->part->kink_axis,
+			0, 2, 'h' );
+
+	psys_flush_settings( self->psys->part, PSYS_ALLOC, 1 );
+
+	return res;
+}
+
+static PyObject *Part_getChildKinkAxis( BPy_PartSys * self )
+{
+	return PyInt_FromLong( (short)( self->psys->part->kink_axis ) );
+}
+
+static int Part_setChildKinkFreq( BPy_PartSys * self, PyObject * args )
+{
+	int res = EXPP_setFloatRange( args, &self->psys->part->kink_freq,
+			0.0, 10.0 );
+
+	psys_flush_settings( self->psys->part, PSYS_ALLOC, 1 );
+
+	return res;
+}
+
+static PyObject *Part_getChildKinkFreq( BPy_PartSys * self )
+{
+	return PyFloat_FromDouble( ((float)( self->psys->part->kink_freq )) );
+}
+
+static int Part_setChildKinkShape( BPy_PartSys * self, PyObject * args )
+{
+	int res = EXPP_setFloatRange( args, &self->psys->part->kink_shape,
+			-0.999, 0.999 );
+
+	psys_flush_settings( self->psys->part, PSYS_ALLOC, 1 );
+
+	return res;
+}
+
+static PyObject *Part_getChildKinkShape( BPy_PartSys * self )
+{
+	return PyFloat_FromDouble( ((float)( self->psys->part->kink_shape )) );
+}
+
+static int Part_setChildKinkAmp( BPy_PartSys * self, PyObject * args )
+{
+	int res = EXPP_setFloatRange( args, &self->psys->part->kink_amp,
+			0.0, 10.0 );
+
+	psys_flush_settings( self->psys->part, PSYS_ALLOC, 1 );
+
+	return res;
+}
+
+static PyObject *Part_getChildKinkAmp( BPy_PartSys * self )
+{
+	return PyFloat_FromDouble( ((float)( self->psys->part->kink_amp )) );
+}
+
+static int Part_setChildBranch( BPy_PartSys * self, PyObject * args )
+{
+	int number;
+
+	if( !PyInt_Check( args ) )
+		return EXPP_ReturnIntError( PyExc_TypeError, "expected int argument" );
+
+	number = PyInt_AS_LONG( args );
+
+	if (number){
+		self->psys->part->flag |= PART_BRANCHING;
+	}else{
+		self->psys->part->flag &= ~PART_BRANCHING;
+	}
+
+	psys_flush_settings( self->psys->part, PSYS_ALLOC, 1 );
+
+	return 0;
+}
+
+static PyObject *Part_getChildBranch( BPy_PartSys * self )
+{
+	return PyInt_FromLong( ((long)( self->psys->part->flag & PART_BRANCHING )) > 0 );
+}
+
+static int Part_setChildBranchAnim( BPy_PartSys * self, PyObject * args )
+{
+	int number;
+
+	if( !PyInt_Check( args ) )
+		return EXPP_ReturnIntError( PyExc_TypeError, "expected int argument" );
+
+	number = PyInt_AS_LONG( args );
+
+	if (number){
+		self->psys->part->flag |= PART_ANIM_BRANCHING;
+	}else{
+		self->psys->part->flag &= ~PART_ANIM_BRANCHING;
+	}
+
+	psys_flush_settings( self->psys->part, PSYS_ALLOC, 1 );
+
+	return 0;
+}
+
+static PyObject *Part_getChildBranchAnim( BPy_PartSys * self )
+{
+	return PyInt_FromLong( ((long)( self->psys->part->flag & PART_ANIM_BRANCHING )) > 0 );
+}
+
+static int Part_setChildBranchSymm( BPy_PartSys * self, PyObject * args )
+{
+	int number;
+
+	if( !PyInt_Check( args ) )
+		return EXPP_ReturnIntError( PyExc_TypeError, "expected int argument" );
+
+	number = PyInt_AS_LONG( args );
+
+	if (number){
+		self->psys->part->flag |= PART_SYMM_BRANCHING;
+	}else{
+		self->psys->part->flag &= ~PART_SYMM_BRANCHING;
+	}
+
+	psys_flush_settings( self->psys->part, PSYS_ALLOC, 1 );
+
+	return 0;
+}
+
+static PyObject *Part_getChildBranchSymm( BPy_PartSys * self )
+{
+	return PyInt_FromLong( ((long)( self->psys->part->flag & PART_SYMM_BRANCHING )) > 0 );
+}
+
+static int Part_setChildBranchThre( BPy_PartSys * self, PyObject * args )
+{
+	int res = EXPP_setFloatRange( args, &self->psys->part->branch_thres,
+			0.0, 1.0 );
+
+	psys_flush_settings( self->psys->part, PSYS_ALLOC, 1 );
+
+	return res;
+}
+
+static PyObject *Part_getChildBranchThre( BPy_PartSys * self )
+{
+	return PyFloat_FromDouble( ((float)( self->psys->part->branch_thres )) );
 }

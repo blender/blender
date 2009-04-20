@@ -385,28 +385,32 @@ void free_compbuf(struct CompBuf *cbuf); /* internal...*/
 
 struct TexResult;
 
-#define TEX_NODE_OUTPUT     101
-#define TEX_NODE_CHECKER    102
-#define TEX_NODE_TEXTURE    103
-#define TEX_NODE_BRICKS     104
-#define TEX_NODE_MATH       105
-#define TEX_NODE_MIX_RGB    106
-#define TEX_NODE_RGBTOBW    107
-#define TEX_NODE_VALTORGB   108
-#define TEX_NODE_IMAGE      109
-#define TEX_NODE_CURVE_RGB  110
-#define TEX_NODE_INVERT     111
-#define TEX_NODE_HUE_SAT    112
-#define TEX_NODE_CURVE_TIME 113
-#define TEX_NODE_ROTATE     114
-#define TEX_NODE_VIEWER     115
-#define TEX_NODE_TRANSLATE  116
-#define TEX_NODE_COORD      117
-#define TEX_NODE_DISTANCE   118
+#define TEX_NODE_OUTPUT     401
+#define TEX_NODE_CHECKER    402
+#define TEX_NODE_TEXTURE    403
+#define TEX_NODE_BRICKS     404
+#define TEX_NODE_MATH       405
+#define TEX_NODE_MIX_RGB    406
+#define TEX_NODE_RGBTOBW    407
+#define TEX_NODE_VALTORGB   408
+#define TEX_NODE_IMAGE      409
+#define TEX_NODE_CURVE_RGB  410
+#define TEX_NODE_INVERT     411
+#define TEX_NODE_HUE_SAT    412
+#define TEX_NODE_CURVE_TIME 413
+#define TEX_NODE_ROTATE     414
+#define TEX_NODE_VIEWER     415
+#define TEX_NODE_TRANSLATE  416
+#define TEX_NODE_COORD      417
+#define TEX_NODE_DISTANCE   418
+#define TEX_NODE_COMPOSE    419
+#define TEX_NODE_DECOMPOSE  420
+#define TEX_NODE_VALTONOR   421
+#define TEX_NODE_SCALE      422
 
 /* 201-299 reserved. Use like this: TEX_NODE_PROC + TEX_CLOUDS, etc */
-#define TEX_NODE_PROC      200
-#define TEX_NODE_PROC_MAX  300
+#define TEX_NODE_PROC      500
+#define TEX_NODE_PROC_MAX  600
 
 extern struct ListBase node_all_textures;
 

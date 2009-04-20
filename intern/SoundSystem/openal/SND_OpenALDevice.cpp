@@ -235,7 +235,8 @@ SND_OpenALDevice::SND_OpenALDevice()
 
 			if (m_context) {
 #ifdef AL_VERSION_1_1
-		alcMakeContextCurrent((ALCcontext*)m_context);
+			alcMakeContextCurrent((ALCcontext*)m_context);
+			alutInitWithoutContext(NULL, NULL); /* in this case we dont want alut to initialize the context, see above */
 #else
 			alcMakeContextCurrent(m_context);
 #endif
@@ -315,7 +316,7 @@ SND_OpenALDevice::SND_OpenALDevice()
 
 void SND_OpenALDevice::UseCD(void) const
 {
-	// only fmod has CD support, so only create it here
+	// we use SDL for CD, so we create the system
 	SND_CDObject::CreateSystem();
 
 }
@@ -380,6 +381,9 @@ SND_OpenALDevice::~SND_OpenALDevice()
 #else
 	if (m_device)
 		alcCloseDevice((ALCdevice*) m_device);
+#ifdef AL_VERSION_1_1
+	alutExit();
+#endif
 #endif
 }
 
@@ -437,7 +441,9 @@ SND_WaveSlot* SND_OpenALDevice::LoadSample(const STR_String& name,
 					alutLoadWAVMemory((char*)memlocation, &sampleformat, &data, &numberofsamples, &samplerate);				//	openal_2.12
 #else
 #ifdef AL_VERSION_1_1					
-					alutLoadWAVMemory((ALbyte*)memlocation, &sampleformat, &data, &numberofsamples, &samplerate, &loop);//	openal_2.14+
+					float frequency = 0.0f;
+					data = alutLoadMemoryFromFileImage(memlocation, size, &sampleformat, &numberofsamples, &frequency);
+					samplerate = (int)frequency;
 #else
 					 alutLoadWAVMemory((signed char*)memlocation, &sampleformat, &data, &numberofsamples, &samplerate, &loop);//  openal_2.14+
 					 
@@ -480,7 +486,11 @@ SND_WaveSlot* SND_OpenALDevice::LoadSample(const STR_String& name,
 				}
 				
 				/* and free the original stuff (copy was made in openal) */
+#if defined(OUDE_OPENAL) || defined (__APPLE__) || !defined(AL_VERSION_1_1)
 				alutUnloadWAV(sampleformat, data, numberofsamples, samplerate);
+#else
+				free(data);
+#endif
 			}
 		}
 		else

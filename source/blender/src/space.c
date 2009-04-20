@@ -139,6 +139,7 @@
 #include "BIF_toolbox.h"
 #include "BIF_usiblender.h"
 #include "BIF_previewrender.h"
+#include "BIF_sketch.h"
 
 #include "BSE_edit.h"
 #include "BSE_view.h"
@@ -163,6 +164,7 @@
 #include "BDR_sculptmode.h"
 #include "BDR_unwrapper.h"
 #include "BDR_gpencil.h"
+#include "BDR_sketch.h"
 
 #include "BLO_readfile.h" /* for BLO_blendhandle_close */
 
@@ -1263,11 +1265,13 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		 * - grease-pencil also defaults to leftmouse
 		 */
 		if(event==LEFTMOUSE) {
+			if(BIF_paintSketch(LEFTMOUSE)) return;
 			if(gpencil_do_paint(sa, L_MOUSE)) return;
 			if(BIF_do_manipulator(sa)) return;
 		}
 		else if(event==RIGHTMOUSE) {
 			if(gpencil_do_paint(sa, R_MOUSE)) return;
+			if(BIF_paintSketch(RIGHTMOUSE)) return;
 		}
 		
 		/* swap mouse buttons based on user preference */
@@ -1318,6 +1322,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				}
 			}
 			
+			BDR_queueDrawSketch();
 
 			/* Handle retopo painting */
 			if(retopo_mesh_paint_check()) {
@@ -1913,7 +1918,16 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						else if(G.obedit->type==OB_LATTICE)
 							deselectall_Latt();
 						else if(G.obedit->type==OB_ARMATURE)
-							deselectall_armature(1, 1);	/* 1 == toggle */
+						{
+							if (BIF_fullSketchMode())
+							{
+								BIF_selectAllSketch(1);
+							}
+							else
+							{
+								deselectall_armature(1, 1);	/* 1 == toggle */
+							}
+						}
 					}
 					else if (ob && (ob->flag & OB_POSEMODE)){
 						deselectall_posearmature(ob, 1, 1);
@@ -1981,6 +1995,10 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				else if(G.qual==LR_ALTKEY) {
 					if(ob && (ob->flag & OB_POSEMODE))
 						pose_clear_constraints();	/* poseobject.c */
+					else if (BIF_fullSketchMode())
+					{
+						BIF_convertSketch();
+					}
 					else
 						convertmenu();	/* editobject.c */
 				}
@@ -2502,8 +2520,11 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					
 					else if(G.qual==LR_ALTKEY && G.obedit->type==OB_ARMATURE)
 						clear_bone_parent();
-					else if((G.qual==0) && (G.obedit->type==OB_ARMATURE)) 
-						armature_select_hierarchy(BONE_SELECT_PARENT, 1); // 1 = add to selection
+					else if((G.qual==0) && (G.obedit->type==OB_ARMATURE))
+					{ 
+						toggle_blockhandler(curarea, VIEW3D_HANDLER_BONESKETCH, UI_PNL_TO_MOUSE);
+						allqueue(REDRAWVIEW3D, 0);
+					}
 					else if((G.qual==(LR_CTRLKEY|LR_ALTKEY)) && (G.obedit->type==OB_ARMATURE))
 						separate_armature();
 					else if((G.qual==0) && G.obedit->type==OB_MESH)
@@ -2788,7 +2809,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			case DELKEY:
 				if(G.qual==0 || G.qual==LR_SHIFTKEY)
 					delete_context_selected();
-				if(G.qual==LR_ALTKEY)
+				else if(G.qual==LR_ALTKEY)
 					gpencil_delete_menu();
 				break;
 			case YKEY:
@@ -2950,7 +2971,11 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				break;
 
 			case ESCKEY:
-				if(G.qual==0) {
+				if (G.qual == 0 && BIF_validSketchMode())
+				{
+					BIF_cancelStrokeSketch();
+				}
+				else if(G.qual==0) {
 					if (G.vd->flag & V3D_DISPIMAGE) {
 						G.vd->flag &= ~V3D_DISPIMAGE;
 						doredraw= 1;

@@ -45,6 +45,7 @@ struct World;
 struct Scene;
 struct Image;
 struct Group;
+struct Text;
 struct bNodeTree;
 
 typedef struct Base {
@@ -314,6 +315,14 @@ typedef struct RenderData {
 	/* jpeg2000 */
 	short jp2_preset, jp2_depth;
 	int rpad3;
+
+	/* Dome variables */
+	short domeres, domemode;
+	short domeangle, pad9;
+	float domesize;
+	float domeresbuf;
+	struct Text *dometext;
+
 } RenderData;
 
 /* control render convert and shading engine */
@@ -403,6 +412,8 @@ typedef struct ToolSettings {
 	short unwrapper;
 	float uvcalc_radius;
 	float uvcalc_cubesize;
+	float uvcalc_margin;
+	float pad;
 	short uvcalc_mapdir;
 	short uvcalc_mapalign;
 	short uvcalc_flag;
@@ -447,12 +458,20 @@ typedef struct ToolSettings {
 	char  skgen_postpro_passes;
 	char  skgen_subdivisions[3];
 	char  skgen_multi_level;
-	char  skgen_optimisation_method;
 	
-	char tpad[6];
+	/* Skeleton Sketching */
+	struct Object *skgen_template;
+	char bone_sketching;
+	char bone_sketching_convert;
+	char skgen_subdivision_number;
+	char skgen_retarget_options;
+	char skgen_retarget_roll;
+	char skgen_side_string[8];
+	char skgen_num_string[8];
 	
 	/* Alt+RMB option */
 	char edge_mode;
+	char pad3[2];
 } ToolSettings;
 
 /* Used by all brushes to store their properties, which can be directly set
@@ -734,6 +753,7 @@ typedef struct Scene {
 /* scene->snap_flag */
 #define SCE_SNAP				1
 #define SCE_SNAP_ROTATE			2
+#define SCE_SNAP_PEEL_OBJECT	4
 /* scene->snap_target */
 #define SCE_SNAP_TARGET_CLOSEST	0
 #define SCE_SNAP_TARGET_CENTER	1
@@ -743,6 +763,7 @@ typedef struct Scene {
 #define SCE_SNAP_MODE_VERTEX	0
 #define SCE_SNAP_MODE_EDGE		1
 #define SCE_SNAP_MODE_FACE		2
+#define SCE_SNAP_MODE_VOLUME	3
 
 /* sce->selectmode */
 #define SCE_SELECT_VERTEX	1 /* for mesh */
@@ -891,6 +912,25 @@ typedef struct Scene {
 #define SKGEN_SMOOTH			0
 #define SKGEN_AVERAGE			1
 #define SKGEN_SHARPEN			2
+
+/* toolsettings->bone_sketching */
+#define BONE_SKETCHING			1
+#define BONE_SKETCHING_QUICK	2
+#define BONE_SKETCHING_ADJUST	4
+
+/* toolsettings->bone_sketching_convert */
+#define	SK_CONVERT_CUT_FIXED			0
+#define	SK_CONVERT_CUT_LENGTH			1
+#define	SK_CONVERT_CUT_ADAPTATIVE		2
+#define	SK_CONVERT_RETARGET				3
+
+/* toolsettings->skgen_retarget_options */
+#define	SK_RETARGET_AUTONAME			1
+
+/* toolsettings->skgen_retarget_roll */
+#define	SK_RETARGET_ROLL_VIEW			1
+#define	SK_RETARGET_ROLL_JOINT			2
+
 
 #ifdef __cplusplus
 }

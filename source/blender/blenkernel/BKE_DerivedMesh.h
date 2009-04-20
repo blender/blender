@@ -44,6 +44,7 @@
 
 #include "DNA_customdata_types.h"
 #include "BKE_customdata.h"
+#include "BKE_bvhutils.h"
 
 struct MVert;
 struct MEdge;
@@ -69,6 +70,7 @@ struct DerivedMesh {
 	int numVertData, numEdgeData, numFaceData;
 	int needsFree; /* checked on ->release, is set to 0 for cached results */
 	int deformedOnly; /* set by modifier stack if only deformed from original */
+	BVHCache bvhCache;
 
 	/* Misc. Queries */
 

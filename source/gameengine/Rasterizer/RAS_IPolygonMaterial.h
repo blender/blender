@@ -138,7 +138,7 @@ public:
 	const STR_String&	GetMaterialName() const;
 	dword				GetMaterialNameHash() const;
 	const STR_String&	GetTextureName() const;
-	const unsigned int	GetFlag() const;
+	unsigned int		GetFlag() const;
 
 	virtual bool		UsesLighting(RAS_IRasterizer *rasty) const;
 	virtual bool		UsesObjectColor() const;

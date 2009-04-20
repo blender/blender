@@ -1740,7 +1740,8 @@ void enter_editmode(int wc)
 	
 	if(wc) waitcursor(0);
 	
-	scrarea_queue_headredraw(curarea);
+	if (G.background==0)
+		scrarea_queue_headredraw(curarea);
 }
 
 void exit_editmode(int flag)	/* freedata==0 at render, 1= freedata, 2= do undo buffer too */
@@ -1817,8 +1818,9 @@ void exit_editmode(int flag)	/* freedata==0 at render, 1= freedata, 2= do undo b
 	allqueue(REDRAWNLA, 0);
 	allqueue(REDRAWIPO, 0);
 	allqueue(REDRAWOOPS, 0);
-
-	scrarea_queue_headredraw(curarea);
+	
+	if (G.background==0)
+		scrarea_queue_headredraw(curarea);
 	
 	if(G.obedit==NULL && (flag & EM_FREEUNDO)) 
 		BIF_undo_push("Editmode");
@@ -2032,7 +2034,7 @@ void docenter(int centermode)
 						
 						nu= nu1;
 						while(nu) {
-							if( (nu->type & 7)==1) {
+							if( (nu->type & 7)==CU_BEZIER) {
 								a= nu->pntsu;
 								while (a--) {
 									VecSubf(nu->bezt[a].vec[0], nu->bezt[a].vec[0], cent);
@@ -3203,14 +3205,12 @@ static void copymenu_properties(Object *ob)
 		prop= prop->next;
 	}
 	
-	if(tot==0) {
-		error("No properties in the active object to copy");
-		return;
-	}
-	
 	str= MEM_callocN(50 + 33*tot, "copymenu prop");
 	
-	strcpy(str, "Copy Property %t|Replace All|Merge All|%l");
+	if (tot)
+		strcpy(str, "Copy Property %t|Replace All|Merge All|%l");
+	else
+		strcpy(str, "Copy Property %t|Clear All (no properties on active)");
 	
 	tot= 0;	
 	prop= ob->prop.first;
@@ -3524,7 +3524,8 @@ void copy_attr(short event)
 					base->object->formfactor = ob->formfactor;
 					base->object->damping= ob->damping;
 					base->object->rdamping= ob->rdamping;
-					base->object->mass= ob->mass;
+					base->object->min_vel= ob->min_vel;
+					base->object->max_vel= ob->max_vel;
 					if (ob->gameflag & OB_BOUNDS) {
 						base->object->boundtype = ob->boundtype;
 					}
@@ -4074,7 +4075,7 @@ static void apply_objects_internal( int apply_scale, int apply_rot )
 				
 				nu= cu->nurb.first;
 				while(nu) {
-					if( (nu->type & 7)==1) {
+					if( (nu->type & 7)==CU_BEZIER) {
 						a= nu->pntsu;
 						bezt= nu->bezt;
 						while(a--) {

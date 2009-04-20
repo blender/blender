@@ -27,8 +27,12 @@ ATTRIBUTE_ALIGNED16(class) btSphereShape : public btConvexInternalShape
 public:
 	BT_DECLARE_ALIGNED_ALLOCATOR();
 
-	btSphereShape (btScalar radius);
-	
+	btSphereShape (btScalar radius) : btConvexInternalShape ()
+	{
+		m_shapeType = SPHERE_SHAPE_PROXYTYPE;
+		m_implicitShapeDimensions.setX(radius);
+		m_collisionMargin = radius;
+	}
 	
 	virtual btVector3	localGetSupportingVertex(const btVector3& vec)const;
 	virtual btVector3	localGetSupportingVertexWithoutMargin(const btVector3& vec)const;
@@ -40,7 +44,6 @@ public:
 
 	virtual void getAabb(const btTransform& t,btVector3& aabbMin,btVector3& aabbMax) const;
 
-	virtual int	getShapeType() const { return SPHERE_SHAPE_PROXYTYPE; }
 
 	btScalar	getRadius() const { return m_implicitShapeDimensions.getX() * m_localScaling.getX();}
 

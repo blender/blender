@@ -33,7 +33,7 @@ public:
 	/// CValue implementation
 	virtual bool		IsEqual(const STR_String & other);
 	virtual const STR_String &	GetText();
-	virtual float		GetNumber();
+	virtual double		GetNumber();
 	
 	virtual	CValue*		Calc(VALUE_OPERATOR op, CValue *val);
 	virtual	CValue*		CalcFinal(VALUE_DATA_TYPE dtype, VALUE_OPERATOR op, CValue *val);

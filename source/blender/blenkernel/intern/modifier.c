@@ -6016,6 +6016,82 @@ static void collisionModifier_deformVerts(
 }
 
 
+
+/* Surface */
+
+static void surfaceModifier_initData(ModifierData *md) 
+{
+	SurfaceModifierData *surmd = (SurfaceModifierData*) md;
+	
+	surmd->bvhtree = NULL;
+}
+
+static void surfaceModifier_freeData(ModifierData *md)
+{
+	SurfaceModifierData *surmd = (SurfaceModifierData*) md;
+	
+	if (surmd)
+	{
+		if(surmd->bvhtree) {
+			free_bvhtree_from_mesh(surmd->bvhtree);
+			MEM_freeN(surmd->bvhtree);
+		}
+
+		surmd->dm->release(surmd->dm);
+		
+		surmd->bvhtree = NULL;
+		surmd->dm = NULL;
+	}
+}
+
+static int surfaceModifier_dependsOnTime(ModifierData *md)
+{
+	return 1;
+}
+
+static void surfaceModifier_deformVerts(
+					  ModifierData *md, Object *ob, DerivedMesh *derivedData,
+       float (*vertexCos)[3], int numVerts)
+{
+	SurfaceModifierData *surmd = (SurfaceModifierData*) md;
+	DerivedMesh *dm = NULL;
+	float current_time = 0;
+	unsigned int numverts = 0, i = 0;
+	
+	if(surmd->dm)
+		surmd->dm->release(surmd->dm);
+
+	/* if possible use/create DerivedMesh */
+	if(derivedData) surmd->dm = CDDM_copy(derivedData);
+	else if(ob->type==OB_MESH) surmd->dm = CDDM_from_mesh(ob->data, ob);
+	
+	if(!ob->pd)
+	{
+		printf("surfaceModifier_deformVerts: Should not happen!\n");
+		return;
+	}
+	
+	if(surmd->dm)
+	{
+		CDDM_apply_vert_coords(surmd->dm, vertexCos);
+		CDDM_calc_normals(surmd->dm);
+		
+		numverts = surmd->dm->getNumVerts ( surmd->dm );
+
+		/* convert to global coordinates */
+		for(i = 0; i<numverts; i++)
+			Mat4MulVecfl(ob->obmat, CDDM_get_vert(surmd->dm, i)->co);
+
+		if(surmd->bvhtree)
+			free_bvhtree_from_mesh(surmd->bvhtree);
+		else
+			surmd->bvhtree = MEM_callocN(sizeof(BVHTreeFromMesh), "BVHTreeFromMesh");
+
+		bvhtree_from_mesh_faces(surmd->bvhtree, surmd->dm, 0.0, 2, 6);
+	}
+}
+
+
 /* Boolean */
 
 static void booleanModifier_copyData(ModifierData *md, ModifierData *target)
@@ -6064,12 +6140,16 @@ static DerivedMesh *booleanModifier_applyModifier(
 {
 	// XXX doesn't handle derived data
 	BooleanModifierData *bmd = (BooleanModifierData*) md;
+	DerivedMesh *dm = mesh_get_derived_final(bmd->object, CD_MASK_BAREMESH);
 
 	/* we do a quick sanity check */
-	if(((Mesh *)ob->data)->totface > 3
-		    && bmd->object && ((Mesh *)bmd->object->data)->totface > 3) {
-		DerivedMesh *result = NewBooleanDerivedMesh(bmd->object, ob,
+	if(dm && (derivedData->getNumFaces(derivedData) > 3)
+		    && bmd->object && dm->getNumFaces(dm) > 3) {
+		DerivedMesh *result = NewBooleanDerivedMesh(dm, bmd->object, derivedData, ob,
 				1 + bmd->operation);
+
+		if(dm)
+			dm->release(dm);
 
 		/* if new mesh returned, return it; otherwise there was
 		* an error, so delete the modifier object */
@@ -6077,9 +6157,27 @@ static DerivedMesh *booleanModifier_applyModifier(
 			return result;
 		else
 			bmd->object = NULL;
-		    }
+	}
+	
+	if(dm)
+			dm->release(dm);
 
-		    return derivedData;
+	return derivedData;
+}
+
+CustomDataMask booleanModifier_requiredDataMask(ModifierData *md)
+{
+	CustomDataMask dataMask = (1 << CD_MTFACE) + (1 << CD_MEDGE);
+
+	dataMask |= (1 << CD_MDEFORMVERT);
+	
+	/* particles only need this if they are after a non deform modifier, and
+	* the modifier stack will only create them in that case. */
+// 	dataMask |= CD_MASK_ORIGSPACE;
+
+// 	dataMask |= CD_MASK_ORCO;
+	
+	return dataMask;
 }
 
 /* Particles */
@@ -6380,20 +6478,12 @@ static DerivedMesh * particleInstanceModifier_applyModifier(
 	psys->lattice=psys_get_lattice(ob, psys);
 
 	if(psys->flag & (PSYS_HAIR_DONE|PSYS_KEYED)){
-		float co[3];
-		for(i=0; i< totvert; i++){
-			dm->getVertCo(dm,i,co);
-			if(i==0){
-				min_co=max_co=co[track];
-			}
-			else{
-				if(co[track]<min_co)
-					min_co=co[track];
 
-				if(co[track]>max_co)
-					max_co=co[track];
-			}
-		}
+		float min_r[3], max_r[3];
+		INIT_MINMAX(min_r, max_r);
+		dm->getMinMax(dm, min_r, max_r);		
+		min_co=min_r[track];
+		max_co=max_r[track];
 	}
 
 	result = CDDM_from_template(dm, maxvert,dm->getNumEdges(dm)*totpart,maxface);
@@ -7201,7 +7291,7 @@ static DerivedMesh * explodeModifier_explodeMesh(ExplodeModifierData *emd,
 			pa= pars+i;
 
 			/* get particle state */
-			psys_particle_on_emitter(psmd,part->from,pa->num,-1,pa->fuv,pa->foffset,loc0,nor,0,0,0,0);
+			psys_particle_on_emitter(psmd,part->from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,loc0,nor,0,0,0,0);
 			Mat4MulVecfl(ob->obmat,loc0);
 
 			state.time=cfra;
@@ -7257,7 +7347,7 @@ static DerivedMesh * explodeModifier_explodeMesh(ExplodeModifierData *emd,
 
 		*mf = source;
 
-		test_index_face(mf, &explode->faceData, i, (mf->v4 ? 4 : 3));
+		test_index_face(mf, &explode->faceData, i, (orig_v4 ? 4 : 3));
 	}
 
 	MEM_printmemlist_stats();
@@ -8225,16 +8315,24 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti->deformVerts = collisionModifier_deformVerts;
 		// mti->copyData = collisionModifier_copyData;
 
+		mti = INIT_TYPE(Surface);
+		mti->type = eModifierTypeType_OnlyDeform;
+		mti->initData = surfaceModifier_initData;
+		mti->flags = eModifierTypeFlag_AcceptsMesh;
+		mti->dependsOnTime = surfaceModifier_dependsOnTime;
+		mti->freeData = surfaceModifier_freeData; 
+		mti->deformVerts = surfaceModifier_deformVerts;
+
 		mti = INIT_TYPE(Boolean);
 		mti->type = eModifierTypeType_Nonconstructive;
 		mti->flags = eModifierTypeFlag_AcceptsMesh
-				| eModifierTypeFlag_RequiresOriginalData
 				| eModifierTypeFlag_UsesPointCache;
 		mti->copyData = booleanModifier_copyData;
 		mti->isDisabled = booleanModifier_isDisabled;
 		mti->applyModifier = booleanModifier_applyModifier;
 		mti->foreachObjectLink = booleanModifier_foreachObjectLink;
 		mti->updateDepgraph = booleanModifier_updateDepgraph;
+		mti->requiredDataMask = booleanModifier_requiredDataMask;
 
 		mti = INIT_TYPE(MeshDeform);
 		mti->type = eModifierTypeType_OnlyDeform;

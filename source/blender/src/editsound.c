@@ -530,38 +530,11 @@ static int sound_get_filetype_from_header(bSound *sound, PackedFile *pf)
 			filetype = SAMPLE_WAV;
 		}
 		else
-			/* only fmod supports compressed wav */
-#ifdef USE_FMOD
 		{
-			/* and only valid publishers may use compressed wav */
-			switch (shortbuf)
-			{
-			case SND_WAVE_FORMAT_ADPCM:
-			case SND_WAVE_FORMAT_ALAW:
-			case SND_WAVE_FORMAT_MULAW:
-			case SND_WAVE_FORMAT_DIALOGIC_OKI_ADPCM:
-			case SND_WAVE_FORMAT_CONTROL_RES_VQLPC:
-			case SND_WAVE_FORMAT_GSM_610:
-			case SND_WAVE_FORMAT_MPEG3:
-				filetype = SAMPLE_WAV;
-				break;
-			default:
-#endif
-				{
-					filetype = SAMPLE_INVALID;
-					if (G.f & G_DEBUG) printf("Unsupported wav compression\n");
-				}
-			}
-#ifdef USE_FMOD
+			filetype = SAMPLE_INVALID;
+			if (G.f & G_DEBUG) printf("Unsupported wav compression\n");
 		}
 	}
-	else if (!memcmp(buffer, "OggS", 4)) {
-		filetype = SAMPLE_OGG_VORBIS;
-	}
-	else if ((!memcmp(buffer, "ID3", 3)) || (!memcmp(buffer, "", 2))) {
-		filetype = SAMPLE_MP3;
-	}
-#endif
 	else {
 		filetype = SAMPLE_INVALID;
 		if (G.f & G_DEBUG) printf("Unsupported sound format: %s\n", sound->name);
@@ -583,21 +556,6 @@ static int check_filetype(bSound *sound, PackedFile *pf)
 	// a simple check to see what kind of sample we're dealing with
 	if (stricmp(pdest, ".wav") == 0)
 		sound->sample->type = SAMPLE_WAV;
-
-#ifdef USE_FMOD
-	if (stricmp(pdest, ".mp2") == 0)
-		sound->sample->type = SAMPLE_MP2;
-	if (stricmp(pdest, ".mp3") == 0)
-		sound->sample->type = SAMPLE_MP3;
-	if (stricmp(pdest, ".ogg") == 0)
-		sound->sample->type = SAMPLE_OGG_VORBIS;
-	if (stricmp(pdest, ".raw") == 0)
-		sound->sample->type = SAMPLE_RAW;
-	if (stricmp(pdest, ".wma") == 0)
-		sound->sample->type = SAMPLE_WMA;
-	if (stricmp(pdest, ".asf") == 0)
-		sound->sample->type = SAMPLE_ASF;
-#endif
 */
 	sound->sample->type = sound_get_filetype_from_header(sound, pf);
 
@@ -1058,12 +1016,6 @@ void sound_init_audio(void)
 		// also called after read new file, but doesnt work when no audio initialized
 		sound_initialize_sounds();
 	}
-}
-
-
-int sound_get_mixrate(void)
-{
-	return MIXRATE;
 }
 
 

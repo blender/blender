@@ -10,7 +10,7 @@ cflags = []
 if env['OURPLATFORM']=='win32-vc':
     defs += ' WIN32 NDEBUG _WINDOWS _LIB'
     #cflags += ['/MT', '/W3', '/GX', '/O2', '/Op']
-    cflags += ['/MT', '/W3', '/GX', '/Og', '/Ot', '/Ob1', '/Op', '/G6']
+    cflags += ['/MT', '/W3', '/GX', '/Og', '/Ot', '/Ob1', '/Op', '/G6', '/O3']
 elif env['OURPLATFORM']=='win32-mingw':
     defs += ' NDEBUG'
     cflags += ['-O2']

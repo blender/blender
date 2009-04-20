@@ -12,22 +12,24 @@ incs += ' ' + env['BF_OPENGL_INC']
 
 defs = []
 if env['WITH_BF_QUICKTIME']:
-    incs += ' ' + env['BF_QUICKTIME_INC']
-    defs.append('WITH_QUICKTIME')
+	incs += ' ' + env['BF_QUICKTIME_INC']
+	defs.append('WITH_QUICKTIME')
 
 if env['WITH_BF_BINRELOC']:
-    incs += ' ../../extern/binreloc/include'
-    defs.append('WITH_BINRELOC')
+	incs += ' ../../extern/binreloc/include'
+	defs.append('WITH_BINRELOC')
 
 if env['WITH_BF_OPENEXR']:
-    defs.append('WITH_OPENEXR')
+	defs.append('WITH_OPENEXR')
 
 if not env['WITH_BF_SDL']:
 	defs.append('DISABLE_SDL')
 
 if env['WITH_BF_PYTHON']:
-    incs += ' ../blender/python'
+	incs += ' ../blender/python'
+	if env['BF_DEBUG']:
+		defs.append('_DEBUG')
 else:
-    defs.append('DISABLE_PYTHON')
+	defs.append('DISABLE_PYTHON')
 
 env.BlenderLib ( libname = 'blender_creator', sources = Split(sources), includes = Split(incs), defines = defs, libtype='core', priority = 1 )

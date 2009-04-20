@@ -18,16 +18,9 @@ subject to the following restrictions:
 
 #include "LinearMath/btVector3.h"
 #include "btTriangleCallback.h"
+#include "btConcaveShape.h"
 
-/// PHY_ScalarType enumerates possible scalar types.
-/// See the btStridingMeshInterface for its use
-typedef enum PHY_ScalarType {
-	PHY_FLOAT,
-	PHY_DOUBLE,
-	PHY_INTEGER,
-	PHY_SHORT,
-	PHY_FIXEDPOINT88
-} PHY_ScalarType;
+
 
 ///	The btStridingMeshInterface is the interface class for high performance generic access to triangle meshes, used in combination with btBvhTriangleMeshShape and some other collision shapes.
 /// Using index striding of 3*sizeof(integer) it can use triangle arrays, using index striding of 1*sizeof(integer) it can handle triangle strips.
@@ -77,8 +70,16 @@ class  btStridingMeshInterface
 		virtual void	preallocateIndices(int numindices)=0;
 
 		virtual bool	hasPremadeAabb() const { return false; }
-		virtual void	setPremadeAabb(const btVector3& aabbMin, const btVector3& aabbMax ) const {}
-		virtual void	getPremadeAabb(btVector3* aabbMin, btVector3* aabbMax ) const {}
+		virtual void	setPremadeAabb(const btVector3& aabbMin, const btVector3& aabbMax ) const
+                {
+                        (void) aabbMin;
+                        (void) aabbMax;
+                }
+		virtual void	getPremadeAabb(btVector3* aabbMin, btVector3* aabbMax ) const
+        {
+            (void) aabbMin;
+            (void) aabbMax;
+        }
 
 		const btVector3&	getScaling() const {
 			return m_scaling;

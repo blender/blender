@@ -982,6 +982,41 @@ static int displace_setter( BPy_Modifier *self, int type, PyObject *value )
 	}
 }
 
+static PyObject *shrinkwrap_getter( BPy_Modifier * self, int type )
+{
+	ShrinkwrapModifierData *md = (ShrinkwrapModifierData *)(self->md);
+
+	switch( type ) {
+	case EXPP_MOD_OBJECT:
+		return Object_CreatePyObject( md->target );
+	default:
+		return EXPP_ReturnPyObjError( PyExc_KeyError, "key not found" );
+	}
+}
+
+static int shrinkwrap_setter( BPy_Modifier *self, int type, PyObject *value )
+{
+	ShrinkwrapModifierData *md = (ShrinkwrapModifierData *)(self->md);
+
+	switch( type ) {
+	case EXPP_MOD_OBJECT: { /* Only object for now */
+		Object *ob_new=NULL;
+		if (value == Py_None) {
+			md->target = NULL;
+		} else if (BPy_Object_Check( value )) {
+			ob_new = ((( BPy_Object * )value)->object);
+			md->target = ob_new;
+		} else {
+			return EXPP_ReturnIntError( PyExc_TypeError,
+				"Expected an Object or None value" );
+		}
+		return 0;
+	}
+	default:
+		return EXPP_ReturnIntError( PyExc_KeyError, "key not found" );
+	}
+}
+
 
 /* static PyObject *uvproject_getter( BPy_Modifier * self, int type )
 {
@@ -1062,6 +1097,8 @@ static PyObject *Modifier_getData( BPy_Modifier * self, PyObject * key )
 				return edgesplit_getter( self, setting );
 			case eModifierType_Displace:
 				return displace_getter( self, setting );
+			case eModifierType_Shrinkwrap:
+				return shrinkwrap_getter( self, setting );
 			/*case eModifierType_UVProject:
 				return uvproject_getter( self, setting );*/
 			case eModifierType_Hook:
@@ -1132,6 +1169,8 @@ static int Modifier_setData( BPy_Modifier * self, PyObject * key,
 			return edgesplit_setter( self, key_int, arg );
 		case eModifierType_Displace:
 			return displace_setter( self, key_int, arg );
+		case eModifierType_Shrinkwrap:
+			return shrinkwrap_setter( self, key_int, arg );
 		/*case eModifierType_UVProject:
 			return uvproject_setter( self, key_int, arg );*/
 		case eModifierType_Hook:
@@ -1550,6 +1589,22 @@ static PyObject *M_Modifier_TypeDict( void )
 				PyInt_FromLong( eModifierType_Cast ) );
 		PyConstant_Insert( d, "DISPLACE",
 				PyInt_FromLong( eModifierType_Displace ) );
+		PyConstant_Insert( d, "MESHDEFORM",
+				PyInt_FromLong( eModifierType_MeshDeform ) );
+		PyConstant_Insert( d, "PARTICLESYSTEM",
+				PyInt_FromLong( eModifierType_ParticleSystem ) );
+		PyConstant_Insert( d, "PARTICLEINSTANCE",
+				PyInt_FromLong( eModifierType_ParticleInstance ) );
+		PyConstant_Insert( d, "EXPLODE",
+				PyInt_FromLong( eModifierType_Explode ) );
+		PyConstant_Insert( d, "CLOTH",
+				PyInt_FromLong( eModifierType_Cloth ) );
+		PyConstant_Insert( d, "BEVEL",
+				PyInt_FromLong( eModifierType_Bevel ) );
+		PyConstant_Insert( d, "SHRINKWRAP",
+				PyInt_FromLong( eModifierType_Shrinkwrap ) );
+		PyConstant_Insert( d, "SHRINKWRAP",
+				PyInt_FromLong( eModifierType_Shrinkwrap ) );
 	}
 	return S;
 }

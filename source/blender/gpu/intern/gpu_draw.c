@@ -83,7 +83,18 @@ void GPU_render_text(MTFace *tface, int mode,
 		Image* ima;
 		int characters, index, character;
 		float centerx, centery, sizex, sizey, transx, transy, movex, movey, advance;
-
+		float advance_tab;
+		
+		
+		/* multiline */
+		float line_start= 0.0f, line_height; 
+		if (v4)
+			line_height= MAX4(v1[1], v2[1], v3[1], v4[2]) - MIN4(v1[1], v2[1], v3[1], v4[2]);
+		else
+			line_height= MAX3(v1[1], v2[1], v3[1]) - MIN3(v1[1], v2[1], v3[1]);
+		line_height *= 1.2; /* could be an option? */
+		/* end multiline */
+		
 		characters = textlen;
 
 		ima = (Image*)tface->tpage;
@@ -97,11 +108,31 @@ void GPU_render_text(MTFace *tface, int mode,
 			glColor3f(1.0f, 1.0f, 1.0f);
 
 		glPushMatrix();
+		
+		/* get the tab width */
+		matrixGlyph((ImBuf *)ima->ibufs.first, ' ', & centerx, &centery,
+			&sizex, &sizey, &transx, &transy, &movex, &movey, &advance);
+		
+		advance_tab= advance * 4; /* tab width could also be an option */
+		
+		
 		for (index = 0; index < characters; index++) {
 			float uv[4][2];
 
 			// lets calculate offset stuff
 			character = textstr[index];
+			
+			if (character=='\n') {
+				glTranslatef(line_start, -line_height, 0.0);
+				line_start = 0.0f;
+				continue;
+			}
+			else if (character=='\t') {
+				glTranslatef(advance_tab, 0.0, 0.0);
+				line_start -= advance_tab; /* so we can go back to the start of the line */
+				continue;
+				
+			}
 			
 			// space starts at offset 1
 			// character = character - ' ' + 1;
@@ -143,6 +174,7 @@ void GPU_render_text(MTFace *tface, int mode,
 			glEnd();
 
 			glTranslatef(advance, 0.0, 0.0);
+			line_start -= advance; /* so we can go back to the start of the line */
 		}
 		glPopMatrix();
 	}
@@ -167,6 +199,8 @@ static int smaller_pow2(int num)
 static int is_pow2_limit(int num)
 {
 	/* take texture clamping into account */
+	if (G.f & G_TEXTUREPAINT)
+		return 1;
 	if (U.glreslimit != 0 && num > U.glreslimit)
 		return 0;
 
@@ -175,6 +209,9 @@ static int is_pow2_limit(int num)
 
 static int smaller_pow2_limit(int num)
 {
+	if (G.f & G_TEXTUREPAINT)
+		return 1;
+	
 	/* take texture clamping into account */
 	if (U.glreslimit != 0 && num > U.glreslimit)
 		return U.glreslimit;
@@ -993,6 +1030,8 @@ int GPU_default_lights(void)
 		U.light[2].spec[3]= 1.0;
 	}
 
+	glLightModeli(GL_LIGHT_MODEL_LOCAL_VIEWER, GL_FALSE);
+
 	glLightfv(GL_LIGHT0, GL_POSITION, U.light[0].vec); 
 	glLightfv(GL_LIGHT0, GL_DIFFUSE, U.light[0].col); 
 	glLightfv(GL_LIGHT0, GL_SPECULAR, U.light[0].spec); 
@@ -1030,7 +1069,7 @@ int GPU_default_lights(void)
 	return count;
 }
 
-int GPU_scene_object_lights(Scene *scene, Object *ob, int lay, float viewmat[][4])
+int GPU_scene_object_lights(Scene *scene, Object *ob, int lay, float viewmat[][4], int ortho)
 {
 	Base *base;
 	Lamp *la;
@@ -1041,6 +1080,10 @@ int GPU_scene_object_lights(Scene *scene, Object *ob, int lay, float viewmat[][4
 	for(count=0; count<8; count++)
 		glDisable(GL_LIGHT0+count);
 	
+	/* view direction for specular is not compute correct by default in
+	 * opengl, so we set the settings ourselfs */
+	glLightModeli(GL_LIGHT_MODEL_LOCAL_VIEWER, (ortho)? GL_FALSE: GL_TRUE);
+
 	count= 0;
 	
 	for(base=scene->base.first; base; base=base->next) {
@@ -1126,9 +1169,6 @@ void GPU_state_init(void)
 	glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, mat_shininess);
 
 	GPU_default_lights();
-	
-	/* no local viewer, looks ugly in ortho mode */
-	/* glLightModelfv(GL_LIGHT_MODEL_LOCAL_VIEWER, &one); */
 	
 	glDepthFunc(GL_LEQUAL);
 	/* scaling matrices */

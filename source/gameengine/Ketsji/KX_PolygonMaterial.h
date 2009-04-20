@@ -33,6 +33,7 @@
 
 #include "RAS_MaterialBucket.h"
 #include "RAS_IRasterizer.h"
+#include "DNA_ID.h"
 
 struct MTFace;
 struct Material;
@@ -115,8 +116,20 @@ public:
 	KX_PYMETHOD_DOC(KX_PolygonMaterial, setCustomMaterial);
 	KX_PYMETHOD_DOC(KX_PolygonMaterial, loadProgram);
 
-	virtual PyObject* _getattr(const STR_String& attr);
-	virtual int       _setattr(const STR_String& attr, PyObject *pyvalue);
+	virtual PyObject* py_getattro(PyObject *attr);
+	virtual int       py_setattro(PyObject *attr, PyObject *pyvalue);
+	virtual PyObject* py_repr(void) { return PyString_FromString(m_material ? ((ID *)m_material)->name+2 : ""); }
+	
+	static PyObject*	pyattr_get_texture(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject*	pyattr_get_material(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	
+	static PyObject*	pyattr_get_tface(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject*	pyattr_get_gl_texture(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	
+	static PyObject*	pyattr_get_diffuse(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);	
+	static int			pyattr_set_diffuse(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
+	static PyObject*	pyattr_get_specular(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);	
+	static int			pyattr_set_specular(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 };
 
 #endif // __KX_POLYGONMATERIAL_H__

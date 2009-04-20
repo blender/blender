@@ -68,7 +68,9 @@ void btSliderConstraint::initParams()
 
 btSliderConstraint::btSliderConstraint()
         :btTypedConstraint(SLIDER_CONSTRAINT_TYPE),
-		m_useLinearReferenceFrameA(true)
+		m_useLinearReferenceFrameA(true),
+		m_useSolveConstraintObsolete(false)
+//		m_useSolveConstraintObsolete(true)
 {
 	initParams();
 } // btSliderConstraint::btSliderConstraint()
@@ -79,7 +81,9 @@ btSliderConstraint::btSliderConstraint(btRigidBody& rbA, btRigidBody& rbB, const
         : btTypedConstraint(SLIDER_CONSTRAINT_TYPE, rbA, rbB)
         , m_frameInA(frameInA)
         , m_frameInB(frameInB),
-		m_useLinearReferenceFrameA(useLinearReferenceFrameA)
+		m_useLinearReferenceFrameA(useLinearReferenceFrameA),
+		m_useSolveConstraintObsolete(false)
+//		m_useSolveConstraintObsolete(true)
 {
 	initParams();
 } // btSliderConstraint::btSliderConstraint()
@@ -88,6 +92,10 @@ btSliderConstraint::btSliderConstraint(btRigidBody& rbA, btRigidBody& rbB, const
 
 void btSliderConstraint::buildJacobian()
 {
+	if (!m_useSolveConstraintObsolete) 
+	{
+		return;
+	}
 	if(m_useLinearReferenceFrameA)
 	{
 		buildJacobianInt(m_rbA, m_rbB, m_frameInA, m_frameInB);
@@ -155,27 +163,372 @@ void btSliderConstraint::buildJacobianInt(btRigidBody& rbA, btRigidBody& rbB, co
 
 //-----------------------------------------------------------------------------
 
-void btSliderConstraint::solveConstraint(btScalar timeStep)
+void btSliderConstraint::getInfo1(btConstraintInfo1* info)
 {
-    m_timeStep = timeStep;
-	if(m_useLinearReferenceFrameA)
+	if (m_useSolveConstraintObsolete)
 	{
-		solveConstraintInt(m_rbA, m_rbB);
+		info->m_numConstraintRows = 0;
+		info->nub = 0;
 	}
 	else
 	{
-		solveConstraintInt(m_rbB, m_rbA);
+		info->m_numConstraintRows = 4; // Fixed 2 linear + 2 angular
+		info->nub = 2; 
+		//prepare constraint
+		calculateTransforms();
+		testLinLimits();
+		if(getSolveLinLimit() || getPoweredLinMotor())
+		{
+			info->m_numConstraintRows++; // limit 3rd linear as well
+			info->nub--; 
+		}
+		testAngLimits();
+		if(getSolveAngLimit() || getPoweredAngMotor())
+		{
+			info->m_numConstraintRows++; // limit 3rd angular as well
+			info->nub--; 
+		}
+	}
+} // btSliderConstraint::getInfo1()
+
+//-----------------------------------------------------------------------------
+
+void btSliderConstraint::getInfo2(btConstraintInfo2* info)
+{
+	btAssert(!m_useSolveConstraintObsolete);
+	int i, s = info->rowskip;
+	const btTransform& trA = getCalculatedTransformA();
+	const btTransform& trB = getCalculatedTransformB();
+	btScalar signFact = m_useLinearReferenceFrameA ? btScalar(1.0f) : btScalar(-1.0f);
+	// make rotations around Y and Z equal
+	// the slider axis should be the only unconstrained
+	// rotational axis, the angular velocity of the two bodies perpendicular to
+	// the slider axis should be equal. thus the constraint equations are
+	//    p*w1 - p*w2 = 0
+	//    q*w1 - q*w2 = 0
+	// where p and q are unit vectors normal to the slider axis, and w1 and w2
+	// are the angular velocity vectors of the two bodies.
+	// get slider axis (X)
+	btVector3 ax1 = trA.getBasis().getColumn(0);
+	// get 2 orthos to slider axis (Y, Z)
+	btVector3 p = trA.getBasis().getColumn(1);
+	btVector3 q = trA.getBasis().getColumn(2);
+	// set the two slider rows 
+	info->m_J1angularAxis[0] = p[0];
+	info->m_J1angularAxis[1] = p[1];
+	info->m_J1angularAxis[2] = p[2];
+	info->m_J1angularAxis[s+0] = q[0];
+	info->m_J1angularAxis[s+1] = q[1];
+	info->m_J1angularAxis[s+2] = q[2];
+
+	info->m_J2angularAxis[0] = -p[0];
+	info->m_J2angularAxis[1] = -p[1];
+	info->m_J2angularAxis[2] = -p[2];
+	info->m_J2angularAxis[s+0] = -q[0];
+	info->m_J2angularAxis[s+1] = -q[1];
+	info->m_J2angularAxis[s+2] = -q[2];
+	// compute the right hand side of the constraint equation. set relative
+	// body velocities along p and q to bring the slider back into alignment.
+	// if ax1,ax2 are the unit length slider axes as computed from body1 and
+	// body2, we need to rotate both bodies along the axis u = (ax1 x ax2).
+	// if "theta" is the angle between ax1 and ax2, we need an angular velocity
+	// along u to cover angle erp*theta in one step :
+	//   |angular_velocity| = angle/time = erp*theta / stepsize
+	//                      = (erp*fps) * theta
+	//    angular_velocity  = |angular_velocity| * (ax1 x ax2) / |ax1 x ax2|
+	//                      = (erp*fps) * theta * (ax1 x ax2) / sin(theta)
+	// ...as ax1 and ax2 are unit length. if theta is smallish,
+	// theta ~= sin(theta), so
+	//    angular_velocity  = (erp*fps) * (ax1 x ax2)
+	// ax1 x ax2 is in the plane space of ax1, so we project the angular
+	// velocity to p and q to find the right hand side.
+	btScalar k = info->fps * info->erp * getSoftnessOrthoAng();
+    btVector3 ax2 = trB.getBasis().getColumn(0);
+	btVector3 u = ax1.cross(ax2);
+	info->m_constraintError[0] = k * u.dot(p);
+	info->m_constraintError[s] = k * u.dot(q);
+	// pull out pos and R for both bodies. also get the connection
+	// vector c = pos2-pos1.
+	// next two rows. we want: vel2 = vel1 + w1 x c ... but this would
+	// result in three equations, so we project along the planespace vectors
+	// so that sliding along the slider axis is disregarded. for symmetry we
+	// also consider rotation around center of mass of two bodies (factA and factB).
+	btTransform bodyA_trans = m_rbA.getCenterOfMassTransform();
+	btTransform bodyB_trans = m_rbB.getCenterOfMassTransform();
+	int s2 = 2 * s, s3 = 3 * s;
+	btVector3 c;
+	btScalar miA = m_rbA.getInvMass();
+	btScalar miB = m_rbB.getInvMass();
+	btScalar miS = miA + miB;
+	btScalar factA, factB;
+	if(miS > btScalar(0.f))
+	{
+		factA = miB / miS;
+	}
+	else 
+	{
+		factA = btScalar(0.5f);
+	}
+	if(factA > 0.99f) factA = 0.99f;
+	if(factA < 0.01f) factA = 0.01f;
+	factB = btScalar(1.0f) - factA;
+	c = bodyB_trans.getOrigin() - bodyA_trans.getOrigin();
+	btVector3 tmp = c.cross(p);
+	for (i=0; i<3; i++) info->m_J1angularAxis[s2+i] = factA*tmp[i];
+	for (i=0; i<3; i++) info->m_J2angularAxis[s2+i] = factB*tmp[i];
+	tmp = c.cross(q);
+	for (i=0; i<3; i++) info->m_J1angularAxis[s3+i] = factA*tmp[i];
+	for (i=0; i<3; i++) info->m_J2angularAxis[s3+i] = factB*tmp[i];
+
+	for (i=0; i<3; i++) info->m_J1linearAxis[s2+i] = p[i];
+	for (i=0; i<3; i++) info->m_J1linearAxis[s3+i] = q[i];
+	// compute two elements of right hand side. we want to align the offset
+	// point (in body 2's frame) with the center of body 1.
+	btVector3 ofs; // offset point in global coordinates
+	ofs = trB.getOrigin() - trA.getOrigin();
+	k = info->fps * info->erp * getSoftnessOrthoLin();
+	info->m_constraintError[s2] = k * p.dot(ofs);
+	info->m_constraintError[s3] = k * q.dot(ofs);
+	int nrow = 3; // last filled row
+	int srow;
+	// check linear limits linear
+	btScalar limit_err = btScalar(0.0);
+	int limit = 0;
+	if(getSolveLinLimit())
+	{
+		limit_err = getLinDepth() *  signFact;
+		limit = (limit_err > btScalar(0.0)) ? 2 : 1;
+	}
+	int powered = 0;
+	if(getPoweredLinMotor())
+	{
+		powered = 1;
+	}
+	// if the slider has joint limits or motor, add in the extra row
+	if (limit || powered) 
+	{
+		nrow++;
+		srow = nrow * info->rowskip;
+		info->m_J1linearAxis[srow+0] = ax1[0];
+		info->m_J1linearAxis[srow+1] = ax1[1];
+		info->m_J1linearAxis[srow+2] = ax1[2];
+		// linear torque decoupling step:
+		//
+		// we have to be careful that the linear constraint forces (+/- ax1) applied to the two bodies
+		// do not create a torque couple. in other words, the points that the
+		// constraint force is applied at must lie along the same ax1 axis.
+		// a torque couple will result in limited slider-jointed free
+		// bodies from gaining angular momentum.
+		// the solution used here is to apply the constraint forces at the center of mass of the two bodies
+		btVector3 ltd;	// Linear Torque Decoupling vector (a torque)
+//		c = btScalar(0.5) * c;
+		ltd = c.cross(ax1);
+		info->m_J1angularAxis[srow+0] = factA*ltd[0];
+		info->m_J1angularAxis[srow+1] = factA*ltd[1];
+		info->m_J1angularAxis[srow+2] = factA*ltd[2];
+		info->m_J2angularAxis[srow+0] = factB*ltd[0];
+		info->m_J2angularAxis[srow+1] = factB*ltd[1];
+		info->m_J2angularAxis[srow+2] = factB*ltd[2];
+		// right-hand part
+		btScalar lostop = getLowerLinLimit();
+		btScalar histop = getUpperLinLimit();
+		if(limit && (lostop == histop))
+		{  // the joint motor is ineffective
+			powered = 0;
+		}
+		info->m_constraintError[srow] = 0.;
+		info->m_lowerLimit[srow] = 0.;
+		info->m_upperLimit[srow] = 0.;
+		if(powered)
+		{
+            info->cfm[nrow] = btScalar(0.0); 
+			btScalar tag_vel = getTargetLinMotorVelocity();
+			btScalar mot_fact = getMotorFactor(m_linPos, m_lowerLinLimit, m_upperLinLimit, tag_vel, info->fps * info->erp);
+//			info->m_constraintError[srow] += mot_fact * getTargetLinMotorVelocity();
+			info->m_constraintError[srow] -= signFact * mot_fact * getTargetLinMotorVelocity();
+			info->m_lowerLimit[srow] += -getMaxLinMotorForce() * info->fps;
+			info->m_upperLimit[srow] += getMaxLinMotorForce() * info->fps;
+		}
+		if(limit)
+		{
+			k = info->fps * info->erp;
+			info->m_constraintError[srow] += k * limit_err;
+			info->cfm[srow] = btScalar(0.0); // stop_cfm;
+			if(lostop == histop) 
+			{	// limited low and high simultaneously
+				info->m_lowerLimit[srow] = -SIMD_INFINITY;
+				info->m_upperLimit[srow] = SIMD_INFINITY;
+			}
+			else if(limit == 1) 
+			{ // low limit
+				info->m_lowerLimit[srow] = -SIMD_INFINITY;
+				info->m_upperLimit[srow] = 0;
+			}
+			else 
+			{ // high limit
+				info->m_lowerLimit[srow] = 0;
+				info->m_upperLimit[srow] = SIMD_INFINITY;
+			}
+			// bounce (we'll use slider parameter abs(1.0 - m_dampingLimLin) for that)
+			btScalar bounce = btFabs(btScalar(1.0) - getDampingLimLin());
+			if(bounce > btScalar(0.0))
+			{
+				btScalar vel = m_rbA.getLinearVelocity().dot(ax1);
+				vel -= m_rbB.getLinearVelocity().dot(ax1);
+				vel *= signFact;
+				// only apply bounce if the velocity is incoming, and if the
+				// resulting c[] exceeds what we already have.
+				if(limit == 1)
+				{	// low limit
+					if(vel < 0)
+					{
+						btScalar newc = -bounce * vel;
+						if (newc > info->m_constraintError[srow])
+						{
+							info->m_constraintError[srow] = newc;
+						}
+					}
+				}
+				else
+				{ // high limit - all those computations are reversed
+					if(vel > 0)
+					{
+						btScalar newc = -bounce * vel;
+						if(newc < info->m_constraintError[srow]) 
+						{
+							info->m_constraintError[srow] = newc;
+						}
+					}
+				}
+			}
+			info->m_constraintError[srow] *= getSoftnessLimLin();
+		} // if(limit)
+	} // if linear limit
+	// check angular limits
+	limit_err = btScalar(0.0);
+	limit = 0;
+	if(getSolveAngLimit())
+	{
+		limit_err = getAngDepth();
+		limit = (limit_err > btScalar(0.0)) ? 1 : 2;
+	}
+	// if the slider has joint limits, add in the extra row
+	powered = 0;
+	if(getPoweredAngMotor())
+	{
+		powered = 1;
+	}
+	if(limit || powered) 
+	{
+		nrow++;
+		srow = nrow * info->rowskip;
+		info->m_J1angularAxis[srow+0] = ax1[0];
+		info->m_J1angularAxis[srow+1] = ax1[1];
+		info->m_J1angularAxis[srow+2] = ax1[2];
+
+		info->m_J2angularAxis[srow+0] = -ax1[0];
+		info->m_J2angularAxis[srow+1] = -ax1[1];
+		info->m_J2angularAxis[srow+2] = -ax1[2];
+
+		btScalar lostop = getLowerAngLimit();
+		btScalar histop = getUpperAngLimit();
+		if(limit && (lostop == histop))
+		{  // the joint motor is ineffective
+			powered = 0;
+		}
+		if(powered)
+		{
+            info->cfm[srow] = btScalar(0.0); 
+			btScalar mot_fact = getMotorFactor(m_angPos, m_lowerAngLimit, m_upperAngLimit, getTargetAngMotorVelocity(), info->fps * info->erp);
+			info->m_constraintError[srow] = mot_fact * getTargetAngMotorVelocity();
+			info->m_lowerLimit[srow] = -getMaxAngMotorForce() * info->fps;
+			info->m_upperLimit[srow] = getMaxAngMotorForce() * info->fps;
+		}
+		if(limit)
+		{
+			k = info->fps * info->erp;
+			info->m_constraintError[srow] += k * limit_err;
+			info->cfm[srow] = btScalar(0.0); // stop_cfm;
+			if(lostop == histop) 
+			{
+				// limited low and high simultaneously
+				info->m_lowerLimit[srow] = -SIMD_INFINITY;
+				info->m_upperLimit[srow] = SIMD_INFINITY;
+			}
+			else if(limit == 1) 
+			{ // low limit
+				info->m_lowerLimit[srow] = 0;
+				info->m_upperLimit[srow] = SIMD_INFINITY;
+			}
+			else 
+			{ // high limit
+				info->m_lowerLimit[srow] = -SIMD_INFINITY;
+				info->m_upperLimit[srow] = 0;
+			}
+			// bounce (we'll use slider parameter abs(1.0 - m_dampingLimAng) for that)
+			btScalar bounce = btFabs(btScalar(1.0) - getDampingLimAng());
+			if(bounce > btScalar(0.0))
+			{
+				btScalar vel = m_rbA.getAngularVelocity().dot(ax1);
+				vel -= m_rbB.getAngularVelocity().dot(ax1);
+				// only apply bounce if the velocity is incoming, and if the
+				// resulting c[] exceeds what we already have.
+				if(limit == 1)
+				{	// low limit
+					if(vel < 0)
+					{
+						btScalar newc = -bounce * vel;
+						if(newc > info->m_constraintError[srow])
+						{
+							info->m_constraintError[srow] = newc;
+						}
+					}
+				}
+				else
+				{	// high limit - all those computations are reversed
+					if(vel > 0)
+					{
+						btScalar newc = -bounce * vel;
+						if(newc < info->m_constraintError[srow])
+						{
+							info->m_constraintError[srow] = newc;
+						}
+					}
+				}
+			}
+			info->m_constraintError[srow] *= getSoftnessLimAng();
+		} // if(limit)
+	} // if angular limit or powered
+} // btSliderConstraint::getInfo2()
+
+//-----------------------------------------------------------------------------
+
+void btSliderConstraint::solveConstraintObsolete(btSolverBody& bodyA,btSolverBody& bodyB,btScalar timeStep)
+{
+	if (m_useSolveConstraintObsolete)
+	{
+		m_timeStep = timeStep;
+		if(m_useLinearReferenceFrameA)
+		{
+			solveConstraintInt(m_rbA,bodyA, m_rbB,bodyB);
+		}
+		else
+		{
+			solveConstraintInt(m_rbB,bodyB, m_rbA,bodyA);
+		}
 	}
 } // btSliderConstraint::solveConstraint()
 
 //-----------------------------------------------------------------------------
 
-void btSliderConstraint::solveConstraintInt(btRigidBody& rbA, btRigidBody& rbB)
+void btSliderConstraint::solveConstraintInt(btRigidBody& rbA, btSolverBody& bodyA,btRigidBody& rbB, btSolverBody& bodyB)
 {
     int i;
     // linear
-    btVector3 velA = rbA.getVelocityInLocalPoint(m_relPosA);
-    btVector3 velB = rbB.getVelocityInLocalPoint(m_relPosB);
+    btVector3 velA;
+	bodyA.getVelocityInLocalPointObsolete(m_relPosA,velA);
+    btVector3 velB;
+	bodyB.getVelocityInLocalPointObsolete(m_relPosB,velB);
     btVector3 vel = velA - velB;
 	for(i = 0; i < 3; i++)
     {
@@ -190,8 +543,18 @@ void btSliderConstraint::solveConstraintInt(btRigidBody& rbA, btRigidBody& rbB)
 		// calcutate and apply impulse
 		btScalar normalImpulse = softness * (restitution * depth / m_timeStep - damping * rel_vel) * m_jacLinDiagABInv[i];
 		btVector3 impulse_vector = normal * normalImpulse;
-		rbA.applyImpulse( impulse_vector, m_relPosA);
-		rbB.applyImpulse(-impulse_vector, m_relPosB);
+		
+		//rbA.applyImpulse( impulse_vector, m_relPosA);
+		//rbB.applyImpulse(-impulse_vector, m_relPosB);
+		{
+			btVector3 ftorqueAxis1 = m_relPosA.cross(normal);
+			btVector3 ftorqueAxis2 = m_relPosB.cross(normal);
+			bodyA.applyImpulse(normal*rbA.getInvMass(), rbA.getInvInertiaTensorWorld()*ftorqueAxis1,normalImpulse);
+			bodyB.applyImpulse(normal*rbB.getInvMass(), rbB.getInvInertiaTensorWorld()*ftorqueAxis2,-normalImpulse);
+		}
+
+
+
 		if(m_poweredLinMotor && (!i))
 		{ // apply linear motor
 			if(m_accumulatedLinMotorImpulse < m_maxLinMotorForce)
@@ -217,8 +580,18 @@ void btSliderConstraint::solveConstraintInt(btRigidBody& rbA, btRigidBody& rbB)
 				m_accumulatedLinMotorImpulse = new_acc;
 				// apply clamped impulse
 				impulse_vector = normal * normalImpulse;
-				rbA.applyImpulse( impulse_vector, m_relPosA);
-				rbB.applyImpulse(-impulse_vector, m_relPosB);
+				//rbA.applyImpulse( impulse_vector, m_relPosA);
+				//rbB.applyImpulse(-impulse_vector, m_relPosB);
+
+				{
+					btVector3 ftorqueAxis1 = m_relPosA.cross(normal);
+					btVector3 ftorqueAxis2 = m_relPosB.cross(normal);
+					bodyA.applyImpulse(normal*rbA.getInvMass(), rbA.getInvInertiaTensorWorld()*ftorqueAxis1,normalImpulse);
+					bodyB.applyImpulse(normal*rbB.getInvMass(), rbB.getInvInertiaTensorWorld()*ftorqueAxis2,-normalImpulse);
+				}
+
+
+
 			}
 		}
     }
@@ -227,8 +600,10 @@ void btSliderConstraint::solveConstraintInt(btRigidBody& rbA, btRigidBody& rbB)
 	btVector3 axisA =  m_calculatedTransformA.getBasis().getColumn(0);
 	btVector3 axisB =  m_calculatedTransformB.getBasis().getColumn(0);
 
-	const btVector3& angVelA = rbA.getAngularVelocity();
-	const btVector3& angVelB = rbB.getAngularVelocity();
+	btVector3 angVelA;
+	bodyA.getAngularVelocity(angVelA);
+	btVector3 angVelB;
+	bodyB.getAngularVelocity(angVelB);
 
 	btVector3 angVelAroundAxisA = axisA * axisA.dot(angVelA);
 	btVector3 angVelAroundAxisB = axisB * axisB.dot(angVelB);
@@ -238,24 +613,38 @@ void btSliderConstraint::solveConstraintInt(btRigidBody& rbA, btRigidBody& rbB)
 	btVector3 velrelOrthog = angAorthog-angBorthog;
 	//solve orthogonal angular velocity correction
 	btScalar len = velrelOrthog.length();
+	btScalar orthorImpulseMag = 0.f;
+
 	if (len > btScalar(0.00001))
 	{
 		btVector3 normal = velrelOrthog.normalized();
 		btScalar denom = rbA.computeAngularImpulseDenominator(normal) + rbB.computeAngularImpulseDenominator(normal);
-		velrelOrthog *= (btScalar(1.)/denom) * m_dampingOrthoAng * m_softnessOrthoAng;
+		//velrelOrthog *= (btScalar(1.)/denom) * m_dampingOrthoAng * m_softnessOrthoAng;
+		orthorImpulseMag = (btScalar(1.)/denom) * m_dampingOrthoAng * m_softnessOrthoAng;
 	}
 	//solve angular positional correction
 	btVector3 angularError = axisA.cross(axisB) *(btScalar(1.)/m_timeStep);
+	btVector3 angularAxis = angularError;
+	btScalar angularImpulseMag = 0;
+
 	btScalar len2 = angularError.length();
 	if (len2>btScalar(0.00001))
 	{
 		btVector3 normal2 = angularError.normalized();
 		btScalar denom2 = rbA.computeAngularImpulseDenominator(normal2) + rbB.computeAngularImpulseDenominator(normal2);
-		angularError *= (btScalar(1.)/denom2) * m_restitutionOrthoAng * m_softnessOrthoAng;
+		angularImpulseMag = (btScalar(1.)/denom2) * m_restitutionOrthoAng * m_softnessOrthoAng;
+		angularError *= angularImpulseMag;
 	}
 	// apply impulse
-	rbA.applyTorqueImpulse(-velrelOrthog+angularError);
-	rbB.applyTorqueImpulse(velrelOrthog-angularError);
+	//rbA.applyTorqueImpulse(-velrelOrthog+angularError);
+	//rbB.applyTorqueImpulse(velrelOrthog-angularError);
+
+	bodyA.applyImpulse(btVector3(0,0,0), rbA.getInvInertiaTensorWorld()*velrelOrthog,-orthorImpulseMag);
+	bodyB.applyImpulse(btVector3(0,0,0), rbB.getInvInertiaTensorWorld()*velrelOrthog,orthorImpulseMag);
+	bodyA.applyImpulse(btVector3(0,0,0), rbA.getInvInertiaTensorWorld()*angularAxis,angularImpulseMag);
+	bodyB.applyImpulse(btVector3(0,0,0), rbB.getInvInertiaTensorWorld()*angularAxis,-angularImpulseMag);
+
+
 	btScalar impulseMag;
 	//solve angular limits
 	if(m_solveAngLim)
@@ -269,8 +658,14 @@ void btSliderConstraint::solveConstraintInt(btRigidBody& rbA, btRigidBody& rbB)
 		impulseMag *= m_kAngle * m_softnessDirAng;
 	}
 	btVector3 impulse = axisA * impulseMag;
-	rbA.applyTorqueImpulse(impulse);
-	rbB.applyTorqueImpulse(-impulse);
+	//rbA.applyTorqueImpulse(impulse);
+	//rbB.applyTorqueImpulse(-impulse);
+
+	bodyA.applyImpulse(btVector3(0,0,0), rbA.getInvInertiaTensorWorld()*axisA,impulseMag);
+	bodyB.applyImpulse(btVector3(0,0,0), rbB.getInvInertiaTensorWorld()*axisA,-impulseMag);
+
+
+
 	//apply angular motor
 	if(m_poweredAngMotor) 
 	{
@@ -301,8 +696,11 @@ void btSliderConstraint::solveConstraintInt(btRigidBody& rbA, btRigidBody& rbB)
 			m_accumulatedAngMotorImpulse = new_acc;
 			// apply clamped impulse
 			btVector3 motorImp = angImpulse * axisA;
-			m_rbA.applyTorqueImpulse(motorImp);
-			m_rbB.applyTorqueImpulse(-motorImp);
+			//rbA.applyTorqueImpulse(motorImp);
+			//rbB.applyTorqueImpulse(-motorImp);
+
+			bodyA.applyImpulse(btVector3(0,0,0), rbA.getInvInertiaTensorWorld()*axisA,angImpulse);
+			bodyB.applyImpulse(btVector3(0,0,0), rbB.getInvInertiaTensorWorld()*axisA,-angImpulse);
 		}
 	}
 } // btSliderConstraint::solveConstraint()
@@ -312,7 +710,7 @@ void btSliderConstraint::solveConstraintInt(btRigidBody& rbA, btRigidBody& rbB)
 //-----------------------------------------------------------------------------
 
 void btSliderConstraint::calculateTransforms(void){
-	if(m_useLinearReferenceFrameA)
+	if(m_useLinearReferenceFrameA || (!m_useSolveConstraintObsolete))
 	{
 		m_calculatedTransformA = m_rbA.getCenterOfMassTransform() * m_frameInA;
 		m_calculatedTransformB = m_rbB.getCenterOfMassTransform() * m_frameInB;
@@ -325,7 +723,14 @@ void btSliderConstraint::calculateTransforms(void){
 	m_realPivotAInW = m_calculatedTransformA.getOrigin();
 	m_realPivotBInW = m_calculatedTransformB.getOrigin();
 	m_sliderAxis = m_calculatedTransformA.getBasis().getColumn(0); // along X
-	m_delta = m_realPivotBInW - m_realPivotAInW;
+	if(m_useLinearReferenceFrameA || m_useSolveConstraintObsolete)
+	{
+		m_delta = m_realPivotBInW - m_realPivotAInW;
+	}
+	else
+	{
+		m_delta = m_realPivotAInW - m_realPivotBInW;
+	}
 	m_projPivotInW = m_realPivotAInW + m_sliderAxis.dot(m_delta) * m_sliderAxis;
     btVector3 normalWorld;
     int i;
@@ -367,7 +772,6 @@ void btSliderConstraint::testLinLimits(void)
 } // btSliderConstraint::testLinLimits()
 
 //-----------------------------------------------------------------------------
- 
 
 void btSliderConstraint::testAngLimits(void)
 {
@@ -379,6 +783,7 @@ void btSliderConstraint::testAngLimits(void)
 		const btVector3 axisA1 = m_calculatedTransformA.getBasis().getColumn(2);
 		const btVector3 axisB0 = m_calculatedTransformB.getBasis().getColumn(1);
 		btScalar rot = btAtan2Fast(axisB0.dot(axisA1), axisB0.dot(axisA0));  
+		m_angPos = rot;
 		if(rot < m_lowerAngLimit)
 		{
 			m_angDepth = rot - m_lowerAngLimit;
@@ -391,11 +796,8 @@ void btSliderConstraint::testAngLimits(void)
 		}
 	}
 } // btSliderConstraint::testAngLimits()
-
 	
 //-----------------------------------------------------------------------------
-
-
 
 btVector3 btSliderConstraint::getAncorInA(void)
 {

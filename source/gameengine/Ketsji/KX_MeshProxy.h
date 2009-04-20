@@ -46,24 +46,31 @@ public:
 	virtual CValue*		Calc(VALUE_OPERATOR op, CValue *val) ;
 	virtual CValue*		CalcFinal(VALUE_DATA_TYPE dtype, VALUE_OPERATOR op, CValue *val);
 	virtual const STR_String &	GetText();
-	virtual float		GetNumber();
+	virtual double		GetNumber();
+	virtual RAS_MeshObject* GetMesh() { return m_meshobj; }
 	virtual STR_String	GetName();
 	virtual void		SetName(STR_String name);								// Set the name of the value
 	virtual void		ReplicaSetName(STR_String name);
 	virtual CValue*		GetReplica();
 
 // stuff for python integration
-	virtual PyObject*  _getattr(const STR_String& attr);
-	KX_PYMETHOD(KX_MeshProxy,GetNumMaterials);
+	virtual PyObject*  py_getattro(PyObject *attr);
+	virtual int py_setattro(PyObject *attr, PyObject* value);
+
+	KX_PYMETHOD(KX_MeshProxy,GetNumMaterials);	// Deprecated
 	KX_PYMETHOD(KX_MeshProxy,GetMaterialName);
 	KX_PYMETHOD(KX_MeshProxy,GetTextureName);
-	KX_PYMETHOD_NOARGS(KX_MeshProxy,GetNumPolygons);
+	KX_PYMETHOD_NOARGS(KX_MeshProxy,GetNumPolygons); // Deprecated
 	
 	// both take materialid (int)
 	KX_PYMETHOD(KX_MeshProxy,GetVertexArrayLength);
 	KX_PYMETHOD(KX_MeshProxy,GetVertex);
 	KX_PYMETHOD(KX_MeshProxy,GetPolygon);
 	KX_PYMETHOD_DOC(KX_MeshProxy, reinstancePhysicsMesh);
+	
+	static PyObject*	pyattr_get_materials(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject * pyattr_get_numMaterials(void * self, const KX_PYATTRIBUTE_DEF * attrdef);
+	static PyObject * pyattr_get_numPolygons(void * self, const KX_PYATTRIBUTE_DEF * attrdef);
 };
 
 #endif //__KX_MESHPROXY

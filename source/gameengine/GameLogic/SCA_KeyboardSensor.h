@@ -82,22 +82,6 @@ class SCA_KeyboardSensor : public SCA_ISensor
 	void AddToTargetProp(int keyIndex);
 
 	/**
-	 * Determine whether this character can be printed. We cannot use
-	 * the library functions here, because we need to test our own
-	 * keycodes. */
-	bool IsPrintable(int keyIndex);
-
-	/**
-	 * Transform keycodes to something printable.
-	 */
-	char ToCharacter(int keyIndex, bool shifted);
-
-	/**
-	 * Tests whether this is a delete key.
-	 */	
-	bool IsDelete(int keyIndex);
-
-	/**
 	 * Tests whether shift is pressed.
 	 */
 	bool IsShifted(void);
@@ -126,33 +110,55 @@ public:
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
 
-	virtual PyObject* _getattr(const STR_String& attr);
-	virtual int _setattr(const STR_String& attr, PyObject *value);
+	virtual PyObject* py_getattro(PyObject *attr);
+	virtual int py_setattro(PyObject *attr, PyObject *value);
 
 	//Deprecated functions ----->
 	/** 1. GetKey : check which key this sensor looks at */
-	KX_PYMETHOD_DOC(SCA_KeyboardSensor,GetKey);
+	KX_PYMETHOD_DOC_NOARGS(SCA_KeyboardSensor,GetKey);
 	/** 2. SetKey: change the key to look at */
-	KX_PYMETHOD_DOC(SCA_KeyboardSensor,SetKey);
+	KX_PYMETHOD_DOC_VARARGS(SCA_KeyboardSensor,SetKey);
 	/** 3. GetHold1 : set the first bucky bit */
-	KX_PYMETHOD_DOC(SCA_KeyboardSensor,GetHold1);
+	KX_PYMETHOD_DOC_NOARGS(SCA_KeyboardSensor,GetHold1);
 	/** 4. SetHold1: change the first bucky bit */
-	KX_PYMETHOD_DOC(SCA_KeyboardSensor,SetHold1);
+	KX_PYMETHOD_DOC_VARARGS(SCA_KeyboardSensor,SetHold1);
 	/** 5. GetHold2 : set the second bucky bit */
-	KX_PYMETHOD_DOC(SCA_KeyboardSensor,GetHold2);
+	KX_PYMETHOD_DOC_NOARGS(SCA_KeyboardSensor,GetHold2);
 	/** 6. SetHold2: change the second bucky bit */
-	KX_PYMETHOD_DOC(SCA_KeyboardSensor,SetHold2);
+	KX_PYMETHOD_DOC_VARARGS(SCA_KeyboardSensor,SetHold2);
 	/** 9. GetPressedKeys: */
-	KX_PYMETHOD_DOC(SCA_KeyboardSensor,GetPressedKeys); 
+	KX_PYMETHOD_DOC_NOARGS(SCA_KeyboardSensor,GetPressedKeys); 
 	/** 9. GetCurrrentlyPressedKeys: */
-	KX_PYMETHOD_DOC(SCA_KeyboardSensor,GetCurrentlyPressedKeys); 
+	KX_PYMETHOD_DOC_NOARGS(SCA_KeyboardSensor,GetCurrentlyPressedKeys); 
 	// <------
 	
 	// KeyEvents: 
 	KX_PYMETHOD_DOC_NOARGS(SCA_KeyboardSensor,getEventList); 
 	// KeyStatus: 
 	KX_PYMETHOD_DOC_O(SCA_KeyboardSensor,getKeyStatus);
+	
+	static PyObject*	pyattr_get_events(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 };
 
+
+/**
+ * Transform keycodes to something printable.
+ */
+char ToCharacter(int keyIndex, bool shifted);
+
+/**
+ * Determine whether this character can be printed. We cannot use
+ * the library functions here, because we need to test our own
+ * keycodes. */
+bool IsPrintable(int keyIndex);
+
+/**
+ * Tests whether this is a delete key.
+ */	
+bool IsDelete(int keyIndex);
+
+
 #endif //__KX_KEYBOARDSENSOR
+
+
 

@@ -29,11 +29,11 @@
 
 #include <stdlib.h>
 
-#include <ffmpeg/avformat.h>
-#include <ffmpeg/avcodec.h>
-#include <ffmpeg/rational.h>
-#include <ffmpeg/swscale.h>
-#include <ffmpeg/opt.h>
+#include <libavformat/avformat.h>
+#include <libavcodec/avcodec.h>
+#include <libavutil/rational.h>
+#include <libswscale/swscale.h>
+#include <libavcodec/opt.h>
 
 #if LIBAVFORMAT_VERSION_INT < (49 << 16)
 #define FFMPEG_OLD_FRAME_RATE 1
@@ -290,8 +290,8 @@ static AVFrame* generate_video_frame(uint8_t* pixels)
 	int height = c->height;
 	AVFrame* rgb_frame;
 
-	if (c->pix_fmt != PIX_FMT_RGBA32) {
-		rgb_frame = alloc_picture(PIX_FMT_RGBA32, width, height);
+	if (c->pix_fmt != PIX_FMT_BGR32) {
+		rgb_frame = alloc_picture(PIX_FMT_BGR32, width, height);
 		if (!rgb_frame) {
 			G.afbreek=1;
 			error("Couldn't allocate temporary frame");
@@ -315,9 +315,9 @@ static AVFrame* generate_video_frame(uint8_t* pixels)
 			uint8_t* end = src + width * 4;
 			while (src != end) {
 				target[3] = src[3];
-				target[2] = src[0];
+				target[2] = src[2];
 				target[1] = src[1];
-				target[0] = src[2];
+				target[0] = src[0];
 
 				target += 4;
 				src += 4;
@@ -331,9 +331,9 @@ static AVFrame* generate_video_frame(uint8_t* pixels)
 			uint8_t* src = rendered_frame + width * 4 * y;
 			uint8_t* end = src + width * 4;
 			while (src != end) {
-				target[3] = src[2];
+				target[3] = src[0];
 				target[2] = src[1];
-				target[1] = src[0];
+				target[1] = src[2];
 				target[0] = src[3];
 
 				target += 4;
@@ -342,7 +342,7 @@ static AVFrame* generate_video_frame(uint8_t* pixels)
 		}
 	}
 
-	if (c->pix_fmt != PIX_FMT_RGBA32) {
+	if (c->pix_fmt != PIX_FMT_BGR32) {
 		sws_scale(img_convert_ctx, rgb_frame->data,
 			  rgb_frame->linesize, 0, c->height, 
 			  current_frame->data, current_frame->linesize);
@@ -498,9 +498,11 @@ static AVStream* alloc_video_stream(int codec_id, AVFormatContext* of,
 		c->pix_fmt = PIX_FMT_YUV420P;
 	}
 	
-	if (!strcmp(of->oformat->name, "mp4") || 
-	    !strcmp(of->oformat->name, "mov") ||
-	    !strcmp(of->oformat->name, "3gp")) {
+	if ((of->oformat->flags & AVFMT_GLOBALHEADER)
+//		|| !strcmp(of->oformat->name, "mp4")
+//	    || !strcmp(of->oformat->name, "mov")
+//	    || !strcmp(of->oformat->name, "3gp")
+		) {
 		fprintf(stderr, "Using global header\n");
 		c->flags |= CODEC_FLAG_GLOBAL_HEADER;
 	}
@@ -514,7 +516,7 @@ static AVStream* alloc_video_stream(int codec_id, AVFormatContext* of,
 
 	/* xasp & yasp got float lately... */
 
-	c->sample_aspect_ratio = av_d2q(
+	st->sample_aspect_ratio = c->sample_aspect_ratio = av_d2q(
 		((double) G.scene->r.xasp / (double) G.scene->r.yasp), 255);
 
 	set_ffmpeg_properties(c, "video");
@@ -531,7 +533,7 @@ static AVStream* alloc_video_stream(int codec_id, AVFormatContext* of,
 	current_frame = alloc_picture(c->pix_fmt, c->width, c->height);
 
 	img_convert_ctx = sws_getContext(c->width, c->height,
-					 PIX_FMT_RGBA32,
+					 PIX_FMT_BGR32,
 					 c->width, c->height,
 					 c->pix_fmt,
 					 SWS_BICUBIC,

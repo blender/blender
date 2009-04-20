@@ -614,6 +614,9 @@ static void exit_pydraw( SpaceScript * sc, short err )
 
 	if( err ) {
 		PyErr_Print(  );
+		PyErr_Clear(  );
+		PySys_SetObject("last_traceback", NULL);
+		
 		script->flags = 0;	/* mark script struct for deletion */
 		SCRIPT_SET_NULL(script);
 		script->scriptname[0] = '\0';
@@ -659,7 +662,7 @@ static void exec_callback( SpaceScript * sc, PyObject * callback,
 	}
 
 	Py_XDECREF( result );
-	Py_DECREF( args );
+	Py_XDECREF( args );
 }
 
 /* BPY_spacescript_do_pywin_draw, the static spacescript_do_pywin_buttons and
@@ -688,7 +691,7 @@ void BPY_spacescript_do_pywin_draw( SpaceScript * sc )
 		BPy_Set_DrawButtonsList(sc->but_refs);
 		
 		glPushAttrib( GL_ALL_ATTRIB_BITS );
-		exec_callback( sc, script->py_draw, Py_BuildValue( "()" ) );
+		exec_callback( sc, script->py_draw, NULL );
 		glPopAttrib(  );
 	} else {
 		glClearColor( 0.4375, 0.4375, 0.4375, 0.0 );
@@ -838,6 +841,8 @@ static void exec_but_callback(void *pyobj, void *data)
 	if (!result) {
 		Py_DECREF(pyvalue);
 		PyErr_Print(  );
+		PyErr_Clear(  );
+		PySys_SetObject("last_traceback", NULL);
 		error_pyscript(  );
 	}
 	Py_XDECREF( result );
@@ -1129,6 +1134,8 @@ static PyObject *Method_UIBlock( PyObject * self, PyObject * args )
 	
 	if (!result) {
 		PyErr_Print(  );
+		PyErr_Clear(  );
+		PySys_SetObject("last_traceback", NULL);
 		error_pyscript(  );
 	} else {
 		/* copied from do_clever_numbuts in toolbox.c */

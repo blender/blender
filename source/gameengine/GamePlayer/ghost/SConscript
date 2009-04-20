@@ -34,8 +34,6 @@ incs = ['.',
         '#source/gameengine/Network',
         '#source/gameengine/SceneGraph',
         '#source/gameengine/Physics/common',
-        '#source/gameengine/Physics/Sumo',
-        '#source/gameengine/Physics/Sumo/Fuzzics/include',
         '#source/gameengine/Network/LoopBackNetwork',
         '#source/gameengine/GamePlayer/common',
         '#source/blender/misc',
@@ -43,14 +41,19 @@ incs = ['.',
         '#source/blender/gpu',
         '#extern/glew/include']
 
+if env['WITH_BF_SOLID']:
+	incs.append(['#source/gameengine/Physics/Sumo', '#source/gameengine/Physics/Sumo/Fuzzics/include'])
+	incs += Split(env['BF_SOLID_INC'])
+
 incs += Split(env['BF_PYTHON_INC'])
-incs += Split(env['BF_SOLID_INC'])
-cflags = []
+
+cxxflags = []
 if env['OURPLATFORM']=='win32-vc':
-    cflags = ['/GR']
+	cxxflags.append ('/GR')
+	cxxflags.append ('/O2')
 
 defs = ''
 if env['WITH_BF_FFMPEG']:
     defs += ' WITH_FFMPEG'
 
-env.BlenderLib (libname='gp_ghost', sources=source_files, includes = incs, defines = Split(defs), libtype='player',priority=0, compileflags=cflags)
+env.BlenderLib (libname='gp_ghost', sources=source_files, includes = incs, defines = Split(defs), libtype='player',priority=0, cxx_compileflags=cxxflags)

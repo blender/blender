@@ -1,5 +1,5 @@
 #
-# $Id: Makefile 12796 2007-12-05 16:58:52Z sirdude $
+# $Id$
 #
 # ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
 #

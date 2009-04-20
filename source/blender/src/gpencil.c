@@ -484,7 +484,7 @@ ScrArea *gpencil_data_findowner (bGPdata *gpd)
 /* -------- GP-Frame API ---------- */
 
 /* delete the last stroke of the given frame */
-void gpencil_frame_delete_laststroke (bGPDframe *gpf)
+void gpencil_frame_delete_laststroke (bGPDlayer *gpl, bGPDframe *gpf)
 {
 	bGPDstroke *gps= (gpf) ? gpf->strokes.last : NULL;
 	
@@ -495,6 +495,11 @@ void gpencil_frame_delete_laststroke (bGPDframe *gpf)
 	/* free the stroke and its data */
 	MEM_freeN(gps->points);
 	BLI_freelinkN(&gpf->strokes, gps);
+	
+	if (gpf->strokes.first == NULL) {
+		gpencil_layer_delframe(gpl, gpf);
+		gpencil_layer_getframe(gpl, CFRA, 0);
+	}
 }
 
 /* -------- GP-Layer API ---------- */
@@ -603,6 +608,7 @@ bGPDframe *gpencil_layer_getframe (bGPDlayer *gpl, int cframe, short addnew)
 		else if (found)
 			gpl->actframe= gpf;
 		else {
+			gpl->actframe = gpl->frames.first;
 			/* unresolved errogenous situation! */
 			printf("Error: cannot find appropriate gp-frame \n");
 			/* gpl->actframe should still be NULL */
@@ -696,7 +702,9 @@ void gpencil_delete_laststroke (bGPdata *gpd)
 	bGPDlayer *gpl= gpencil_layer_getactive(gpd);
 	bGPDframe *gpf= gpencil_layer_getframe(gpl, CFRA, 0);
 	
-	gpencil_frame_delete_laststroke(gpf);
+	if (gpf->framenum != CFRA) return;
+
+	gpencil_frame_delete_laststroke(gpl, gpf);
 }
 
 /* delete the active frame */
@@ -939,7 +947,7 @@ static void gp_stroke_to_bonechain (bGPDlayer *gpl, bGPDstroke *gps, bArmature *
 		/* add new bone - note: sync with editarmature.c::add_editbone() */
 		{
 			BLI_strncpy(ebo->name, "Stroke", 32);
-			unique_editbone_name(bones, ebo->name);
+			unique_editbone_name(bones, ebo->name, NULL);
 			
 			BLI_addtail(bones, ebo);
 			

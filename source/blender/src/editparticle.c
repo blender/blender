@@ -1,7 +1,7 @@
 /* editparticle.c
  *
  *
- * $Id: editparticle.c $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

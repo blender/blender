@@ -945,17 +945,13 @@ static PyObject *M_Object_GetSelected( PyObject * self_unused )
 	PyObject *blen_object;
 	PyObject *list;
 	Base *base_iter;
-
+	unsigned int lay = G.vd ? G.vd->lay : G.scene->lay;
+	
 	list = PyList_New( 0 );
-
-	if( G.vd == NULL ) {
-		/* No 3d view has been initialized yet, simply return an empty list */
-		return list;
-	}
 	
 	if( ( G.scene->basact ) &&
 	    ( ( G.scene->basact->flag & SELECT ) &&
-	      ( G.scene->basact->lay & G.vd->lay ) ) ) {
+	      ( G.scene->basact->lay & lay ) ) ) {
 
 		/* Active object is first in the list. */
 		blen_object = Object_CreatePyObject( G.scene->basact->object );
@@ -970,7 +966,7 @@ static PyObject *M_Object_GetSelected( PyObject * self_unused )
 	base_iter = G.scene->base.first;
 	while( base_iter ) {
 		if( ( ( base_iter->flag & SELECT ) &&
-				( base_iter->lay & G.vd->lay ) ) &&
+				( base_iter->lay & lay ) ) &&
 				( base_iter != G.scene->basact ) ) {
 
 			blen_object = Object_CreatePyObject( base_iter->object );
@@ -3565,7 +3561,7 @@ static int Object_setRBMass( BPy_Object * self, PyObject * args )
 
 /* this is too low level, possible to add helper methods */
 
-#define GAMEFLAG_MASK ( OB_COLLISION | OB_DYNAMIC | OB_CHILD | OB_ACTOR | OB_DO_FH | \
+#define GAMEFLAG_MASK ( OB_OCCLUDER | OB_COLLISION | OB_DYNAMIC | OB_CHILD | OB_ACTOR | OB_DO_FH | \
 		OB_ROT_FH | OB_ANISOTROPIC_FRICTION | OB_GHOST | OB_RIGID_BODY | OB_SOFT_BODY | \
 		OB_BOUNDS | OB_COLLISION_RESPONSE | OB_SECTOR | OB_PROP | \
 		OB_MAINACTOR )
@@ -5546,6 +5542,7 @@ static PyObject *M_Object_RBFlagsDict( void )
 
 	if( M ) {
 		BPy_constant *d = ( BPy_constant * ) M;
+		PyConstant_Insert( d, "OCCLUDER", PyInt_FromLong( OB_OCCLUDER ) );
 		PyConstant_Insert( d, "COLLISION", PyInt_FromLong( OB_COLLISION ) );
 		PyConstant_Insert( d, "DYNAMIC", PyInt_FromLong( OB_DYNAMIC ) );
 		PyConstant_Insert( d, "CHILD", PyInt_FromLong( OB_CHILD ) );

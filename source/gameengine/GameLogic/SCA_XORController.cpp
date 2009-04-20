@@ -111,22 +111,22 @@ CValue* SCA_XORController::GetReplica()
 
 /* Integration hooks ------------------------------------------------------- */
 PyTypeObject SCA_XORController::Type = {
-	PyObject_HEAD_INIT(&PyType_Type)
+	PyObject_HEAD_INIT(NULL)
 	0,
 	"SCA_XORController",
-	sizeof(SCA_XORController),
+	sizeof(PyObjectPlus_Proxy),
 	0,
-	PyDestructor,
-	0,
-	__getattr,
-	__setattr,
-	0, //&MyPyCompare,
-	__repr,
-	0, //&cvalue_as_number,
+	py_base_dealloc,
 	0,
 	0,
 	0,
-	0
+	0,
+	py_base_repr,
+	0,0,0,0,0,0,
+	py_base_getattro,
+	py_base_setattro,
+	0,0,0,0,0,0,0,0,0,
+	Methods
 };
 
 PyParentObject SCA_XORController::Parents[] = {
@@ -141,8 +141,12 @@ PyMethodDef SCA_XORController::Methods[] = {
 	{NULL,NULL} //Sentinel
 };
 
-PyObject* SCA_XORController::_getattr(const STR_String& attr) {
-	_getattr_up(SCA_IController);
+PyAttributeDef SCA_XORController::Attributes[] = {
+	{ NULL }	//Sentinel
+};
+
+PyObject* SCA_XORController::py_getattro(PyObject *attr) {
+	py_getattro_up(SCA_IController);
 }
 
 /* eof */

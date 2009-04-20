@@ -748,38 +748,45 @@ PyMethodDef KX_BlenderMaterial::Methods[] =
 	{NULL,NULL} //Sentinel
 };
 
+PyAttributeDef KX_BlenderMaterial::Attributes[] = {
+	{ NULL }	//Sentinel
+};
 
 PyTypeObject KX_BlenderMaterial::Type = {
-	PyObject_HEAD_INIT(&PyType_Type)
+	PyObject_HEAD_INIT(NULL)
 		0,
 		"KX_BlenderMaterial",
-		sizeof(KX_BlenderMaterial),
+		sizeof(PyObjectPlus_Proxy),
 		0,
-		PyDestructor,
+		py_base_dealloc,
 		0,
-		__getattr,
-		__setattr,
 		0,
-		__repr,
-		0
+		0,
+		0,
+		py_base_repr,
+		0,0,0,0,0,0,
+		py_base_getattro,
+		py_base_setattro,
+		0,0,0,0,0,0,0,0,0,
+		Methods
 };
 
 
 PyParentObject KX_BlenderMaterial::Parents[] = {
-	&PyObjectPlus::Type,
 	&KX_BlenderMaterial::Type,
+	&PyObjectPlus::Type,
 	NULL
 };
 
 
-PyObject* KX_BlenderMaterial::_getattr(const STR_String& attr)
+PyObject* KX_BlenderMaterial::py_getattro(PyObject *attr)
 {
-	_getattr_up(PyObjectPlus);
+	py_getattro_up(PyObjectPlus);
 }
 
-int KX_BlenderMaterial::_setattr(const STR_String& attr, PyObject *pyvalue)
+int KX_BlenderMaterial::py_setattro(PyObject *attr, PyObject *pyvalue)
 {
-	return PyObjectPlus::_setattr(attr, pyvalue);
+	return PyObjectPlus::py_setattro(attr, pyvalue);
 }
 
 
@@ -790,7 +797,7 @@ KX_PYMETHODDEF_DOC( KX_BlenderMaterial, getShader , "getShader()")
 			spit("Fragment shaders not supported");
 	
 		mModified = true;
-		Py_Return;
+		Py_RETURN_NONE;
 	}
 
 	if( !GLEW_ARB_vertex_shader) {
@@ -798,14 +805,14 @@ KX_PYMETHODDEF_DOC( KX_BlenderMaterial, getShader , "getShader()")
 			spit("Vertex shaders not supported");
 
 		mModified = true;
-		Py_Return;
+		Py_RETURN_NONE;
 	}
 
 	if(!GLEW_ARB_shader_objects)  {
 		if(!mModified)
 			spit("GLSL not supported");
 		mModified = true;
-		Py_Return;
+		Py_RETURN_NONE;
 	}
 	else {
 		// returns Py_None on error
@@ -820,8 +827,7 @@ KX_PYMETHODDEF_DOC( KX_BlenderMaterial, getShader , "getShader()")
 			m_flag &= ~RAS_BLENDERGLSL;
 			mMaterial->SetSharedMaterial(true);
 			mScene->GetBucketManager()->ReleaseDisplayLists(this);
-			Py_INCREF(mShader);
-			return mShader;
+			return mShader->GetProxy();
 		}else
 		{
 			// decref all references to the object
@@ -829,18 +835,13 @@ KX_PYMETHODDEF_DOC( KX_BlenderMaterial, getShader , "getShader()")
 			// We will then go back to fixed functionality
 			// for this material
 			if(mShader) {
-				if(mShader->ob_refcnt > 1) {
-					Py_DECREF(mShader);
-				}
-				else {
-					delete mShader;
-					mShader=0;
-				}
+				delete mShader; /* will handle python de-referencing */
+				mShader=0;
 			}
 		}
-		Py_Return;
+		Py_RETURN_NONE;
 	}
-	PyErr_Format(PyExc_ValueError, "GLSL Error");
+	PyErr_SetString(PyExc_ValueError, "material.getShader(): KX_BlenderMaterial, GLSL Error");
 	return NULL;
 }
 
@@ -890,7 +891,7 @@ static unsigned int GL_array[11] = {
 KX_PYMETHODDEF_DOC( KX_BlenderMaterial, setBlending , "setBlending( GameLogic.src, GameLogic.dest)")
 {
 	unsigned int b[2];
-	if(PyArg_ParseTuple(args, "ii", &b[0], &b[1]))
+	if(PyArg_ParseTuple(args, "ii:setBlending", &b[0], &b[1]))
 	{
 		bool value_found[2] = {false, false};
 		for(int i=0; i<11; i++)
@@ -906,11 +907,11 @@ KX_PYMETHODDEF_DOC( KX_BlenderMaterial, setBlending , "setBlending( GameLogic.sr
 			if(value_found[0] && value_found[1]) break;
 		}
 		if(!value_found[0] || !value_found[1]) {
-			PyErr_Format(PyExc_ValueError, "invalid enum.");
+			PyErr_SetString(PyExc_ValueError, "material.setBlending(int, int): KX_BlenderMaterial, invalid enum.");
 			return NULL;
 		}
 		mUserDefBlend = true;
-		Py_Return;
+		Py_RETURN_NONE;
 	}
 	return NULL;
 }

@@ -4,6 +4,7 @@
 	Version="9,00"
 	Name="PHY_Bullet"
 	ProjectGUID="{E90C7BC2-CF30-4A60-A8F2-0050D592E358}"
+	RootNamespace="PHY_Bullet"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="131072"
 	>
@@ -41,7 +42,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\..\..\build\msvc_9\intern\moto\include;..\..\..\..\..\..\build\msvc_9\intern\string\include;..\..\..\..\..\..\build\msvc_9\extern\bullet\include;..\..\..\..\..\source\gameengine\Physics\common;..\..\..\..\..\source\gameengine\Physics\Bullet;..\..\..\..\..\source\gameengine\Rasterizer;..\..\..\..\..\source\kernel\gen_system"
+				AdditionalIncludeDirectories="..\..\..\..\..\..\lib\windows\python\include\python2.5;..\..\..\..\..\..\build\msvc_9\intern\moto\include;..\..\..\..\..\..\build\msvc_9\intern\string\include;..\..\..\..\..\..\build\msvc_9\extern\bullet\include;..\..\..\..\..\..\build\msvc_9\extern\glew\include;..\..\..\..\..\..\build\msvc_9\intern\SoundSystem\include;..\..\..\..\..\source\gameengine\Physics\common;..\..\..\..\..\source\gameengine\Physics\Bullet;..\..\..\..\..\source\gameengine\Rasterizer;..\..\..\..\..\source\gameengine\Ketsji;..\..\..\..\..\source\gameengine\Expressions;..\..\..\..\..\source\gameengine\GameLogic;..\..\..\..\..\source\gameengine\SceneGraph;..\..\..\..\..\source\kernel\gen_system;..\..\..\..\..\source\blender\makesdna"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB"
 				MinimalRebuild="false"
 				BasicRuntimeChecks="3"
@@ -109,7 +110,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="..\..\..\..\..\..\build\msvc_9\intern\moto\include;..\..\..\..\..\..\build\msvc_9\intern\string\include;..\..\..\..\..\..\build\msvc_9\extern\bullet\include;..\..\..\..\..\source\gameengine\Physics\common;..\..\..\..\..\source\gameengine\Physics\Bullet;..\..\..\..\..\source\gameengine\Rasterizer;..\..\..\..\..\source\kernel\gen_system"
+				AdditionalIncludeDirectories="..\..\..\..\..\..\lib\windows\python\include\python2.5;..\..\..\..\..\..\build\msvc_9\intern\moto\include;..\..\..\..\..\..\build\msvc_9\intern\string\include;..\..\..\..\..\..\build\msvc_9\extern\bullet\include;..\..\..\..\..\..\build\msvc_9\extern\glew\include;..\..\..\..\..\..\build\msvc_9\intern\SoundSystem\include;..\..\..\..\..\source\gameengine\Physics\common;..\..\..\..\..\source\gameengine\Physics\Bullet;..\..\..\..\..\source\gameengine\Rasterizer;..\..\..\..\..\source\gameengine\Ketsji;..\..\..\..\..\source\gameengine\Expressions;..\..\..\..\..\source\gameengine\GameLogic;..\..\..\..\..\source\gameengine\SceneGraph;..\..\..\..\..\source\kernel\gen_system;..\..\..\..\..\source\blender\makesdna"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB"
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="0"
@@ -175,7 +176,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="..\..\..\..\..\..\build\msvc_9\intern\moto\include;..\..\..\..\..\..\build\msvc_9\intern\string\include;..\..\..\..\..\..\build\msvc_9\extern\bullet\include;..\..\..\..\..\source\gameengine\Physics\common;..\..\..\..\..\source\gameengine\Physics\Bullet;..\..\..\..\..\source\gameengine\Rasterizer;..\..\..\..\..\source\kernel\gen_system"
+				AdditionalIncludeDirectories="..\..\..\..\..\..\lib\windows\python\include\python2.5;..\..\..\..\..\..\build\msvc_9\intern\moto\include;..\..\..\..\..\..\build\msvc_9\intern\string\include;..\..\..\..\..\..\build\msvc_9\extern\bullet\include;..\..\..\..\..\..\build\msvc_9\extern\glew\include;..\..\..\..\..\..\build\msvc_9\intern\SoundSystem\include;..\..\..\..\..\source\gameengine\Physics\common;..\..\..\..\..\source\gameengine\Physics\Bullet;..\..\..\..\..\source\gameengine\Rasterizer;..\..\..\..\..\source\gameengine\Ketsji;..\..\..\..\..\source\gameengine\Expressions;..\..\..\..\..\source\gameengine\GameLogic;..\..\..\..\..\source\gameengine\SceneGraph;..\..\..\..\..\source\kernel\gen_system;..\..\..\..\..\source\blender\makesdna"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB"
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="0"
@@ -242,7 +243,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\..\..\build\msvc_9\intern\moto\include;..\..\..\..\..\..\build\msvc_9\intern\string\include;..\..\..\..\..\..\build\msvc_9\extern\bullet\include;..\..\..\..\..\source\gameengine\Physics\common;..\..\..\..\..\source\gameengine\Physics\Bullet;..\..\..\..\..\source\gameengine\Rasterizer;..\..\..\..\..\source\kernel\gen_system"
+				AdditionalIncludeDirectories="..\..\..\..\..\..\lib\windows\python\include\python2.5;..\..\..\..\..\..\build\msvc_9\intern\moto\include;..\..\..\..\..\..\build\msvc_9\intern\string\include;..\..\..\..\..\..\build\msvc_9\extern\bullet\include;..\..\..\..\..\..\build\msvc_9\extern\glew\include;..\..\..\..\..\..\build\msvc_9\intern\SoundSystem\include;..\..\..\..\..\source\gameengine\Physics\common;..\..\..\..\..\source\gameengine\Physics\Bullet;..\..\..\..\..\source\gameengine\Rasterizer;..\..\..\..\..\source\gameengine\Ketsji;..\..\..\..\..\source\gameengine\Expressions;..\..\..\..\..\source\gameengine\GameLogic;..\..\..\..\..\source\gameengine\SceneGraph;..\..\..\..\..\source\kernel\gen_system;..\..\..\..\..\source\blender\makesdna"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB"
 				MinimalRebuild="false"
 				BasicRuntimeChecks="3"
@@ -311,7 +312,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\..\..\build\msvc_9\intern\moto\include;..\..\..\..\..\..\build\msvc_9\intern\string\include;..\..\..\..\..\..\build\msvc_9\extern\bullet\include;..\..\..\..\..\source\gameengine\Physics\common;..\..\..\..\..\source\gameengine\Physics\Bullet;..\..\..\..\..\source\gameengine\Rasterizer;..\..\..\..\..\source\kernel\gen_system"
+				AdditionalIncludeDirectories="..\..\..\..\..\..\lib\windows\python\include\python2.5;..\..\..\..\..\..\build\msvc_9\intern\moto\include;..\..\..\..\..\..\build\msvc_9\intern\string\include;..\..\..\..\..\..\build\msvc_9\extern\bullet\include;..\..\..\..\..\..\build\msvc_9\extern\glew\include;..\..\..\..\..\..\build\msvc_9\intern\SoundSystem\include;..\..\..\..\..\source\gameengine\Physics\common;..\..\..\..\..\source\gameengine\Physics\Bullet;..\..\..\..\..\source\gameengine\Rasterizer;..\..\..\..\..\source\gameengine\Ketsji;..\..\..\..\..\source\gameengine\Expressions;..\..\..\..\..\source\gameengine\GameLogic;..\..\..\..\..\source\gameengine\SceneGraph;..\..\..\..\..\source\kernel\gen_system;..\..\..\..\..\source\blender\makesdna"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB"
 				MinimalRebuild="false"
 				BasicRuntimeChecks="3"
@@ -379,7 +380,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="..\..\..\..\..\..\build\msvc_9\intern\moto\include;..\..\..\..\..\..\build\msvc_9\intern\string\include;..\..\..\..\..\..\build\msvc_9\extern\bullet\include;..\..\..\..\..\source\gameengine\Physics\common;..\..\..\..\..\source\gameengine\Physics\Bullet;..\..\..\..\..\source\gameengine\Rasterizer;..\..\..\..\..\source\kernel\gen_system"
+				AdditionalIncludeDirectories="..\..\..\..\..\..\lib\windows\python\include\python2.5;..\..\..\..\..\..\build\msvc_9\intern\moto\include;..\..\..\..\..\..\build\msvc_9\intern\string\include;..\..\..\..\..\..\build\msvc_9\extern\bullet\include;..\..\..\..\..\..\build\msvc_9\extern\glew\include;..\..\..\..\..\..\build\msvc_9\intern\SoundSystem\include;..\..\..\..\..\source\gameengine\Physics\common;..\..\..\..\..\source\gameengine\Physics\Bullet;..\..\..\..\..\source\gameengine\Rasterizer;..\..\..\..\..\source\gameengine\Ketsji;..\..\..\..\..\source\gameengine\Expressions;..\..\..\..\..\source\gameengine\GameLogic;..\..\..\..\..\source\gameengine\SceneGraph;..\..\..\..\..\source\kernel\gen_system;..\..\..\..\..\source\blender\makesdna"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB"
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"
@@ -430,6 +431,10 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
+				RelativePath="..\..\..\..\..\source\gameengine\Physics\Bullet\CcdGraphicController.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\..\..\source\gameengine\Physics\Bullet\CcdPhysicsController.cpp"
 				>
 			</File>
@@ -443,6 +448,10 @@
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
+			<File
+				RelativePath="..\..\..\..\..\source\gameengine\Physics\Bullet\CcdGraphicController.h"
+				>
+			</File>
 			<File
 				RelativePath="..\..\..\..\..\source\gameengine\Physics\Bullet\CcdPhysicsController.h"
 				>

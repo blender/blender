@@ -14,14 +14,14 @@ subject to the following restrictions:
 */
 
 #include "btConeShape.h"
-#include "LinearMath/btPoint3.h"
 
 
 
-btConeShape::btConeShape (btScalar radius,btScalar height):
+btConeShape::btConeShape (btScalar radius,btScalar height): btConvexInternalShape (),
 m_radius (radius),
 m_height(height)
 {
+	m_shapeType = CONE_SHAPE_PROXYTYPE;
 	setConeUpIndex(1);
 	btVector3 halfExtents;
 	m_sinAngle = (m_radius / btSqrt(m_radius * m_radius + m_height * m_height));
@@ -60,7 +60,7 @@ void	btConeShape::setConeUpIndex(int upIndex)
 			m_coneIndices[2] = 1;
 		break;
 	default:
-		assert(0);
+		btAssert(0);
 	};
 }
 

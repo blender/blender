@@ -56,7 +56,6 @@ static void cineon_conversion_parameters(LogImageByteConversionParameters *param
 
 static struct ImBuf *imb_load_dpx_cineon(unsigned char *mem, int use_cineon, int size, int flags)
 {
-	LogImageByteConversionParameters conversion;
 	ImBuf *ibuf;
 	LogImageFile *image;
 	int x, y;
@@ -64,7 +63,7 @@ static struct ImBuf *imb_load_dpx_cineon(unsigned char *mem, int use_cineon, int
 	int width, height, depth;
 	float *frow;
 
-	cineon_conversion_parameters(&conversion);
+	logImageSetVerbose((G.f & G_DEBUG) ? 1:0);
 	
 	image = logImageOpenFromMem(mem, size, use_cineon);
 	
@@ -85,15 +84,13 @@ static struct ImBuf *imb_load_dpx_cineon(unsigned char *mem, int use_cineon, int
 		return NULL;
 	}
 	
-	logImageSetByteConversion(image, &conversion);
-
 	ibuf = IMB_allocImBuf(width, height, 32, IB_rectfloat | flags, 0);
 
 	row = MEM_mallocN(sizeof(unsigned short)*width*depth, "row in cineon_dpx.c");
 	frow = ibuf->rect_float+width*height*4;
 	
 	for (y = 0; y < height; y++) {
-		logImageGetRowBytes(image, row, y);
+		logImageGetRowBytes(image, row, y); /* checks image->params.doLogarithm and convert */
 		upix = row;
 		frow -= width*4;
 		
@@ -143,7 +140,7 @@ static int imb_save_dpx_cineon(ImBuf *buf, char *filename, int use_cineon, int f
 		}
 	}
 	
-	logImageSetVerbose(0);
+	logImageSetVerbose((G.f & G_DEBUG) ? 1:0);
 	logImage = logImageCreate(filename, use_cineon, width, height, depth);
 
 	if (!logImage) return 0;

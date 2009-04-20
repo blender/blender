@@ -39,6 +39,7 @@ typedef enum ModifierType {
 	eModifierType_Fluidsim,
 	eModifierType_Mask,
 	eModifierType_SimpleDeform,
+	eModifierType_Surface,
 	NUM_MODIFIER_TYPES
 } ModifierType;
 
@@ -417,6 +418,14 @@ typedef struct CollisionModifierData {
 	float time;		/* cfra time of modifier */
 	struct BVHTree *bvhtree; /* bounding volume hierarchy for this cloth object */
 } CollisionModifierData;
+
+typedef struct SurfaceModifierData {
+	ModifierData	modifier;
+
+	struct DerivedMesh *dm;
+
+	struct BVHTreeFromMesh *bvhtree; /* bounding volume hierarchy of the mesh faces */
+} SurfaceModifierData;
 
 typedef enum {
 	eBooleanModifierOp_Intersect,

@@ -844,11 +844,13 @@ def load_3ds(filename, PREF_UI= True):
 	# IMPORT_AS_INSTANCE= Blender.Draw.Create(0)
 	IMPORT_CONSTRAIN_BOUNDS= Blender.Draw.Create(10.0)
 	IMAGE_SEARCH= Blender.Draw.Create(1)
+	APPLY_MATRIX= Blender.Draw.Create(0)
 	
 	# Get USER Options
 	pup_block= [\
 	('Size Constraint:', IMPORT_CONSTRAIN_BOUNDS, 0.0, 1000.0, 'Scale the model by 10 until it reacehs the size constraint. Zero Disables.'),\
 	('Image Search', IMAGE_SEARCH, 'Search subdirs for any assosiated images (Warning, may be slow)'),\
+	('Transform Fix', APPLY_MATRIX, 'Workaround for object transformations importing incorrectly'),\
 	#('Group Instance', IMPORT_AS_INSTANCE, 'Import objects into a new scene and group, creating an instance in the current scene.'),\
 	]
 	
@@ -861,6 +863,7 @@ def load_3ds(filename, PREF_UI= True):
 	IMPORT_CONSTRAIN_BOUNDS= IMPORT_CONSTRAIN_BOUNDS.val
 	# IMPORT_AS_INSTANCE= IMPORT_AS_INSTANCE.val
 	IMAGE_SEARCH = IMAGE_SEARCH.val
+	APPLY_MATRIX = APPLY_MATRIX.val
 	
 	if IMPORT_CONSTRAIN_BOUNDS:
 		BOUNDS_3DS[:]= [1<<30, 1<<30, 1<<30, -1<<30, -1<<30, -1<<30]
@@ -887,6 +890,8 @@ def load_3ds(filename, PREF_UI= True):
 		if ob.type=='Mesh':
 			me= ob.getData(mesh=1)
 			me.verts.delete([me.verts[0],])
+			if not APPLY_MATRIX:
+				me.transform(ob.matrixWorld.copy().invert())
 	
 	# Done DUMMYVERT
 	"""

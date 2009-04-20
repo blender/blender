@@ -474,12 +474,13 @@ void draw_uvs_sima(void)
 	MTFace *tface,*activetface = NULL;
 	EditMesh *em = G.editMesh;
 	EditFace *efa, *efa_act;
-	
+	Base *base;
+
 	char col1[4], col2[4];
 	float pointsize;
 	int drawface;
 	int lastsel, sel;
- 	
+
 	if (!G.obedit || !CustomData_has_layer(&em->fdata, CD_MTFACE))
 		return;
 	
@@ -489,7 +490,47 @@ void draw_uvs_sima(void)
 	myortho2(G.v2d->cur.xmin, G.v2d->cur.xmax, G.v2d->cur.ymin, G.v2d->cur.ymax);
 	glLoadIdentity();
 	
-	
+	if(G.sima->flag & SI_DRAW_OTHER) {
+		base= FIRSTBASE;
+		if(base) {
+			MTFace *activetf;
+			Image *curimage;
+
+			activetf = get_active_mtface(NULL, NULL, 1);
+			if (activetf) {
+				curimage = activetf->tpage;
+				glColor3ub(96, 96, 96);
+				while(base) {
+					if (TESTBASE_2D(base)) {
+						Object *ob;
+						ob = base->object;
+						if ((ob->type==OB_MESH) && (ob!=G.obedit)) {
+							Mesh *me;
+							me = ob->data;
+							if (me->mtface) {
+								MFace *mface;
+								int a;
+								mface= me->mface;
+								tface= me->mtface;
+								for (a=me->totface; a>0; a--, tface++, mface++) {
+									if (tface->tpage == curimage) {
+										glBegin(GL_LINE_LOOP);
+										glVertex2fv(tface->uv[0]);
+										glVertex2fv(tface->uv[1]);
+										glVertex2fv(tface->uv[2]);
+										if(mface->v4) glVertex2fv(tface->uv[3]);
+										glEnd();
+									}
+								}
+							}
+						}
+					}
+					base= base->next;
+				}
+			}
+		}
+	}
+
 	if(G.sima->flag & SI_DRAWTOOL) {
 		/* draws the grey mesh when painting */
 		glColor3ub(112, 112, 112);
@@ -902,7 +943,7 @@ void draw_uvs_sima(void)
 		}
 		
 		glLineWidth(1);
-		col2[0] = col2[1] = col2[2] = 128; col2[3] = 255;
+		col2[0] = col2[1] = col2[2] = 192; col2[3] = 255;
 		glColor4ubv((unsigned char *)col2); 
 		
 		if (G.f & G_DRAWEDGES) {
@@ -1467,7 +1508,8 @@ static void image_panel_view_properties(short cntrl)	// IMAGE_HANDLER_VIEW_PROPE
 		uiDefButBitI(block, TOG, G_DRAWFACES, B_REDR, "Faces",		10,30,60,19,  &G.f, 0, 0, 0, 0, "Displays all faces as shades in the 3d view and UV editor");
 		uiDefButBitI(block, TOG, G_DRAWEDGES, B_REDR, "Edges", 70, 30,60,19, &G.f, 0, 0, 0, 0, "Displays selected edges using hilights in the 3d view and UV editor");
 		
-		uiDefButBitI(block, TOG, SI_DRAWSHADOW, B_REDR, "Final Shadow", 130, 30,110,19, &G.sima->flag, 0, 0, 0, 0, "Draw the final result from the objects modifiers");
+		uiDefButBitI(block, TOG, SI_DRAWSHADOW, B_REDR, "Final Shadow", 130, 30,100,19, &G.sima->flag, 0, 0, 0, 0, "Draw the final result from the objects modifiers");
+		uiDefButBitI(block, TOG, SI_DRAW_OTHER, B_REDR, "Other Objs", 230, 30, 80, 19, &G.sima->flag, 0, 0, 0, 0, "Also draw all 3d view selected mesh objects that use this image");
 		
 		uiDefButBitI(block, TOG, SI_DRAW_STRETCH, B_REDR, "UV Stretch",	10,0,100,19,  &G.sima->flag, 0, 0, 0, 0, "Difference between UV's and the 3D coords (blue for low distortion, red is high)");
 		if (G.sima->flag & SI_DRAW_STRETCH) {

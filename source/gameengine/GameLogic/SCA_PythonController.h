@@ -70,15 +70,20 @@ class SCA_PythonController : public SCA_IController
 	void	AddTriggeredSensor(class SCA_ISensor* sensor)
 		{ m_triggeredSensors.push_back(sensor); }
 	int		IsTriggered(class SCA_ISensor* sensor);
+	bool	Compile();
 
 	static const char* sPyGetCurrentController__doc__;
 	static PyObject* sPyGetCurrentController(PyObject* self);
 	static const char* sPyAddActiveActuator__doc__;
 	static PyObject* sPyAddActiveActuator(PyObject* self, 
 										  PyObject* args);
-	virtual PyObject* _getattr(const STR_String& attr);
-	virtual int _setattr(const STR_String& attr, PyObject *value);
+	static SCA_IActuator* LinkedActuatorFromPy(PyObject *value);
+	virtual PyObject* py_getattro(PyObject *attr);
+	virtual int py_setattro(PyObject *attr, PyObject *value);
 
+		
+	KX_PYMETHOD_O(SCA_PythonController,Activate);
+	KX_PYMETHOD_O(SCA_PythonController,DeActivate);
 	KX_PYMETHOD_DOC_NOARGS(SCA_PythonController,GetSensors);
 	KX_PYMETHOD_DOC_NOARGS(SCA_PythonController,GetActuators);
 	KX_PYMETHOD_DOC_O(SCA_PythonController,GetSensor);
@@ -86,6 +91,10 @@ class SCA_PythonController : public SCA_IController
 	KX_PYMETHOD_O(SCA_PythonController,SetScript);
 	KX_PYMETHOD_NOARGS(SCA_PythonController,GetScript);
 	KX_PYMETHOD_NOARGS(SCA_PythonController,GetState);
+	
+	static PyObject*	pyattr_get_state(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject*	pyattr_get_script(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static int			pyattr_set_script(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 	
 
 };

@@ -223,14 +223,16 @@ int where_on_path(Object *ob, float ctime, float *vec, float *dir)	/* returns OK
 	cu= ob->data;
 	if(cu->path==NULL || cu->path->data==NULL) {
 		printf("no path!\n");
+		return 0;
 	}
 	path= cu->path;
 	fp= path->data;
 	
 	/* test for cyclic */
 	bl= cu->bev.first;
+	if (!bl) return 0;
 	if (!bl->nr) return 0;
-	if(bl && bl->poly> -1) cycl= 1;
+	if(bl->poly> -1) cycl= 1;
 
 	ctime *= (path->len-1);
 	
@@ -745,7 +747,7 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Object *par, float par_
 	float ctime, pa_time, scale = 1.0f;
 	float tmat[4][4], mat[4][4], pamat[4][4], size=0.0;
 	float (*obmat)[4], (*oldobmat)[4];
-	int lay, a, b, k, step_nbr = 0, counter, hair = 0;
+	int lay, a, b, k, counter, hair = 0;
 	int totpart, totchild, totgroup=0, pa_num;
 
 	if(psys==0) return;
@@ -772,11 +774,6 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Object *par, float par_
 	lay= G.scene->lay;
 	if((part->draw_as == PART_DRAW_OB && part->dup_ob) ||
 		(part->draw_as == PART_DRAW_GR && part->dup_group && part->dup_group->gobject.first)) {
-
-		if(psys->flag & (PSYS_HAIR_DONE|PSYS_KEYED) && part->draw & PART_DRAW_KEYS)
-			step_nbr = part->keys_step;
-		else
-			step_nbr = 0;
 
 		/* if we have a hair particle system, use the path cache */
 		if(part->type == PART_HAIR) {
@@ -857,75 +854,64 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Object *par, float par_
 				oldobmat= obcopy.obmat;
 			}
 
-			for(k=0; k<=step_nbr; k++, counter++) {
-				if(hair) {
-					/* hair we handle separate and compute transform based on hair keys */
-					if(a < totpart) {
-						cache = psys->pathcache[a];
-						psys_get_dupli_path_transform(par, psys, psmd, pa, 0, cache, pamat, &scale);
-					}
-					else {
-						cache = psys->childcache[a-totpart];
-						psys_get_dupli_path_transform(par, psys, psmd, 0, cpa, cache, pamat, &scale);
-					}
-
-					VECCOPY(pamat[3], cache->co);
-					pamat[3][3]= 1.0f;
-					
-				}
-				else if(step_nbr) {
-					/* other keys */
-					state.time = (float)k / (float)step_nbr;
-					psys_get_particle_on_path(par, psys, a, &state, 0);
-
-					QuatToMat4(state.rot, pamat);
-					VECCOPY(pamat[3], state.co);
-					pamat[3][3]= 1.0f;
+			if(hair) {
+				/* hair we handle separate and compute transform based on hair keys */
+				if(a < totpart) {
+					cache = psys->pathcache[a];
+					psys_get_dupli_path_transform(par, psys, psmd, pa, 0, cache, pamat, &scale);
 				}
 				else {
-					/* first key */
-					state.time = -1.0;
-					if(psys_get_particle_state(par, psys, a, &state, 0) == 0)
-						continue;
-
-					QuatToMat4(state.rot, pamat);
-					VECCOPY(pamat[3], state.co);
-					pamat[3][3]= 1.0f;
+					cache = psys->childcache[a-totpart];
+					psys_get_dupli_path_transform(par, psys, psmd, 0, cpa, cache, pamat, &scale);
 				}
 
-				if(part->draw_as==PART_DRAW_GR && psys->part->draw & PART_DRAW_WHOLE_GR) {
-					for(go= part->dup_group->gobject.first, b=0; go; go= go->next, b++) {
-						Mat4MulMat4(tmat, oblist[b]->obmat, pamat);
-						Mat4MulFloat3((float *)tmat, size*scale);
-						if(par_space_mat)
-							Mat4MulMat4(mat, tmat, par_space_mat);
-						else
-							Mat4CpyMat4(mat, tmat);
+				VECCOPY(pamat[3], cache->co);
+				pamat[3][3]= 1.0f;
+				
+			}
+			else {
+				/* first key */
+				state.time = ctime;
+				if(psys_get_particle_state(par, psys, a, &state, 0) == 0)
+					continue;
 
-						dob= new_dupli_object(lb, go->ob, mat, par->lay, counter, OB_DUPLIPARTS, animated);
-						Mat4CpyMat4(dob->omat, obcopylist[b].obmat);
-						if(G.rendering)
-							psys_get_dupli_texture(par, part, psmd, pa, cpa, dob->uv, dob->orco);
-					}
-				}
-				else {
-					/* to give ipos in object correct offset */
-					where_is_object_time(ob, ctime-pa_time);
-					
-					Mat4CpyMat4(mat, pamat);
+				QuatToMat4(state.rot, pamat);
+				VECCOPY(pamat[3], state.co);
+				pamat[3][3]= 1.0f;
+			}
 
-					Mat4MulMat4(tmat, obmat, mat);
+			if(part->draw_as==PART_DRAW_GR && psys->part->draw & PART_DRAW_WHOLE_GR) {
+				for(go= part->dup_group->gobject.first, b=0; go; go= go->next, b++) {
+					Mat4MulMat4(tmat, oblist[b]->obmat, pamat);
 					Mat4MulFloat3((float *)tmat, size*scale);
 					if(par_space_mat)
 						Mat4MulMat4(mat, tmat, par_space_mat);
 					else
 						Mat4CpyMat4(mat, tmat);
 
-					dob= new_dupli_object(lb, ob, mat, par->lay, counter, OB_DUPLIPARTS, animated);
-					Mat4CpyMat4(dob->omat, oldobmat);
+					dob= new_dupli_object(lb, go->ob, mat, par->lay, counter, OB_DUPLIPARTS, animated);
+					Mat4CpyMat4(dob->omat, obcopylist[b].obmat);
 					if(G.rendering)
 						psys_get_dupli_texture(par, part, psmd, pa, cpa, dob->uv, dob->orco);
 				}
+			}
+			else {
+				/* to give ipos in object correct offset */
+				where_is_object_time(ob, ctime-pa_time);
+				
+				Mat4CpyMat4(mat, pamat);
+
+				Mat4MulMat4(tmat, obmat, mat);
+				Mat4MulFloat3((float *)tmat, size*scale);
+				if(par_space_mat)
+					Mat4MulMat4(mat, tmat, par_space_mat);
+				else
+					Mat4CpyMat4(mat, tmat);
+
+				dob= new_dupli_object(lb, ob, mat, ob->lay, counter, OB_DUPLIPARTS, animated);
+				Mat4CpyMat4(dob->omat, oldobmat);
+				if(G.rendering)
+					psys_get_dupli_texture(par, part, psmd, pa, cpa, dob->uv, dob->orco);
 			}
 		}
 

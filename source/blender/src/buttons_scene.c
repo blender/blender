@@ -109,9 +109,9 @@
 
 #ifdef WITH_FFMPEG
 
-#include <ffmpeg/avcodec.h> /* for PIX_FMT_* and CODEC_ID_* */
-#include <ffmpeg/avformat.h>
-#include <ffmpeg/opt.h>
+#include <libavcodec/avcodec.h> /* for PIX_FMT_* and CODEC_ID_* */
+#include <libavformat/avformat.h>
+#include <libavcodec/opt.h>
 
 static int ffmpeg_preset_sel = 0;
 
@@ -296,17 +296,11 @@ void do_soundbuts(unsigned short event)
 static void sound_panel_listener(void)
 {
 	uiBlock *block;
-	int xco= 100, yco=100, mixrate;
-	char mixrateinfo[256];
+	int xco= 100, yco=100;
 	
 	block= uiNewBlock(&curarea->uiblocks, "sound_panel_listener", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Listener", "Sound", 320, 0, 318, 204)==0) return;
 
-	mixrate = sound_get_mixrate();
-	sprintf(mixrateinfo, "Game Mixrate: %d Hz", mixrate);
-	uiDefBut(block, LABEL, 0, mixrateinfo, xco,yco,295,20, 0, 0, 0, 0, 0, "");
-
-	yco -= 30;
 	uiDefBut(block, LABEL, 0, "Game listener settings:",xco,yco,195,20, 0, 0, 0, 0, 0, "");
 
 	yco -= 30;
@@ -1772,13 +1766,13 @@ static uiBlock *edge_render_menu(void *arg_unused)
 static uiBlock *framing_render_menu(void *arg_unused)
 {
 	uiBlock *block;
-	short yco = 190, xco = 0;
+	short yco = 267, xco = 0;
 	int randomcolorindex = 1234;
 
 	block= uiNewBlock(&curarea->uiblocks, "framing_options", UI_EMBOSS, UI_HELV, curarea->win);
 
 	/* use this for a fake extra empy space around the buttons */
-	uiDefBut(block, LABEL, 0, "",			-5, -10, 295, 224, NULL, 0, 0, 0, 0, "");
+	uiDefBut(block, LABEL, 0, "",			-5, -10, 295, 300, NULL, 0, 0, 0, 0, "");
 
 	uiDefBut(block, LABEL, 0, "Framing:", xco, yco, 68,19, 0, 0, 0, 0, 0, "");
 	uiBlockBeginAlign(block);
@@ -1820,6 +1814,7 @@ static uiBlock *framing_render_menu(void *arg_unused)
 	 * RAS_STEREO_ANAGLYPH		5
 	 * RAS_STEREO_SIDEBYSIDE	6
 	 * RAS_STEREO_VINTERLACE	7
+	 * RAS_STEREO_DOME		8
 	 */
 	uiBlockBeginAlign(block);
 	uiDefButS(block, ROW, 0, "No Stereo", xco, yco-=30, 88, 19, &(G.scene->r.stereomode), 7.0, 1.0, 0, 0, "Disables stereo");
@@ -1829,6 +1824,18 @@ static uiBlock *framing_render_menu(void *arg_unused)
 	uiDefButS(block, ROW, 0, "Side by Side", xco+=90, yco, 88, 19, &(G.scene->r.stereomode), 7.0, 6.0, 0, 0, "Enables side by side left and right images");
 	uiDefButS(block, ROW, 0, "V Interlace", xco+=90, yco, 88, 19, &(G.scene->r.stereomode), 7.0, 7.0, 0, 0, "Enables interlaced vertical strips for autostereo display");
 	
+	uiBlockEndAlign(block);
+
+	uiBlockBeginAlign(block);
+	uiDefButS(block, ROW, 0, "Dome", xco-=180, yco-=30, 88, 19, &(G.scene->r.stereomode), 7.0, 8.0, 0, 0, "Enables dome camera");
+	uiDefButS(block, NUM, 0, "Ang:",		xco+=90, yco, 88, 19, &G.scene->r.domeangle, 90.0, 250.0, 0, 0, "Angle (Aperture) of the Dome - it only works in mode 1");
+	uiDefButS(block, NUM, 0, "Mode:",		xco+=90, yco, 88, 19, &G.scene->r.domemode, 1.0, 3.0, 0, 0, "Dome mode - 1 fisheye, 2 truncated, 3 spherical panoramic");
+
+	uiDefButF(block, NUM, 0, "Size:",		xco-=180, yco-=21, 88, 19, &G.scene->r.domesize, 0.5, 3.5, 0, 0, "Size adjustments");
+	uiDefButS(block, NUM, 0, "Tes:",		xco+=90, yco, 88, 19, &G.scene->r.domeres, 1.0, 8.0, 0, 0, "Tesselation level - 1 to 8");
+	uiDefButF(block, NUM, 0, "Res:",	xco+=90, yco, 88, 19, &G.scene->r.domeresbuf, 0.1, 1.0, 0, 0, "Buffer Resolution - decrease it to increase speed");
+
+	uiDefIDPoinBut(block, test_scriptpoin_but, ID_SCRIPT, 1, "Warp Data: ", xco-180,yco-=21,268, 19, &G.scene->r.dometext, "Custom Warp Mesh data file");
 	uiBlockEndAlign(block);
 
 	uiBlockSetDirection(block, UI_TOP);

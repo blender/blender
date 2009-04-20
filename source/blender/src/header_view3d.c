@@ -3980,6 +3980,9 @@ static void do_view3d_edit_armaturemenu(void *arg, int event)
 	case 22: /* separate */
 		separate_armature();
 		break;
+	case 23: /* bone sketching panel */
+		add_blockhandler(curarea, VIEW3D_HANDLER_BONESKETCH, UI_PNL_UNSTOW);
+		break;
 	}
 	
 	allqueue(REDRAWVIEW3D, 0);
@@ -4057,6 +4060,7 @@ static uiBlock *view3d_edit_armaturemenu(void *arg_unused)
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Transform Properties|N", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Bone Sketching|P", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 23, "");
 	uiDefIconTextBlockBut(block, view3d_transformmenu, NULL, ICON_RIGHTARROW_THIN, "Transform", 0, yco-=20, 120, 19, "");
 	uiDefIconTextBlockBut(block, view3d_edit_mirrormenu, NULL, ICON_RIGHTARROW_THIN, "Mirror", 0, yco-=20, menuwidth, 19, "");
 	uiDefIconTextBlockBut(block, view3d_edit_snapmenu, NULL, ICON_RIGHTARROW_THIN, "Snap", 0, yco-=20, 120, 19, "");
@@ -4119,8 +4123,6 @@ static uiBlock *view3d_edit_armaturemenu(void *arg_unused)
 
 static void do_view3d_pose_armature_transformmenu(void *arg, int event)
 {
-	Object *ob= OBACT;
-	
 	switch(event) {
 	case 0: /*	clear origin */
 		clear_object('o');
@@ -4135,9 +4137,7 @@ static void do_view3d_pose_armature_transformmenu(void *arg, int event)
 		clear_object('g');
 		break;
 	case 4: /* clear user transform */
-		rest_pose(ob->pose);
-		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
-		BIF_undo_push("Pose, Clear User Transform");
+		pose_clear_user_transforms();
 		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
@@ -5214,6 +5214,7 @@ static char *snapmode_pup(void)
 	str += sprintf(str, "%s", "|Vertex%x0");
 	str += sprintf(str, "%s", "|Edge%x1");
 	str += sprintf(str, "%s", "|Face%x2"); 
+	str += sprintf(str, "%s", "|Volume%x3"); 
 	return string;
 }
 
@@ -5851,6 +5852,11 @@ void view3d_buttons(void)
 				xco+= XIC;
 				uiDefIconButBitS(block, TOG, SCE_SNAP_ROTATE, B_REDR, ICON_SNAP_NORMAL,xco,0,XIC,YIC, &G.scene->snap_flag, 0, 0, 0, 0, "Align rotation with the snapping target");	
 				xco+= XIC;
+				if (G.scene->snap_mode == SCE_SNAP_MODE_VOLUME)
+				{
+					uiDefIconButBitS(block, TOG, SCE_SNAP_PEEL_OBJECT, B_REDR, ICON_SNAP_PEEL_OBJECT,xco,0,XIC,YIC, &G.scene->snap_flag, 0, 0, 0, 0, "Consider objects as whole when finding volume center");	
+					xco+= XIC;
+				}
 				uiDefIconTextButS(block, ICONTEXTROW,B_REDR, ICON_VERTEXSEL, snapmode_pup(), xco,0,XIC+10,YIC, &(G.scene->snap_mode), 0.0, 0.0, 0, 0, "Snapping mode");
 				xco+= XIC;
 				uiDefButS(block, MENU, B_NOP, "Snap Mode%t|Closest%x0|Center%x1|Median%x2|Active%x3",xco,0,70,YIC, &G.scene->snap_target, 0, 0, 0, 0, "Snap Target Mode");

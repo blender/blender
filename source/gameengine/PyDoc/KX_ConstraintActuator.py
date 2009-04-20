@@ -5,6 +5,75 @@ from SCA_IActuator import *
 class KX_ConstraintActuator(SCA_IActuator):
 	"""
 	A constraint actuator limits the position, rotation, distance or orientation of an object.
+	
+	Properties:
+	
+	@ivar damp: time constant of the constraint expressed in frame (not use by Force field constraint)
+	@type damp: integer
+	
+	@ivar rotDamp: time constant for the rotation expressed in frame (only for the distance constraint)
+	               0 = use damp for rotation as well
+	@type rotDamp: integer
+	
+	@ivar direction: the reference direction in world coordinate for the orientation constraint
+	@type direction: 3-tuple of float: [x,y,z]
+	
+	@ivar option: Binary combination of the following values:
+	              Applicable to Distance constraint:
+					KX_ACT_CONSTRAINT_NORMAL    (  64) : Activate alignment to surface
+					KX_ACT_CONSTRAINT_DISTANCE  ( 512) : Activate distance control
+					KX_ACT_CONSTRAINT_LOCAL		(1024) : direction of the ray is along the local axis
+				  Applicable to Force field constraint:					
+					KX_ACT_CONSTRAINT_DOROTFH   (2048) : Force field act on rotation as well
+				  Applicable to both:
+					KX_ACT_CONSTRAINT_MATERIAL  ( 128) : Detect material rather than property
+					KX_ACT_CONSTRAINT_PERMANENT ( 256) : No deactivation if ray does not hit target
+	@type option: integer
+	
+	@ivar time: activation time of the actuator. The actuator disables itself after this many frame.
+		        If set to 0, the actuator is not limited in time.
+	@type time: integer
+	
+	@ivar property: the name of the property or material for the ray detection of the distance constraint.
+	@type property: string
+	
+	@ivar min: The lower bound of the constraint
+	           For the rotation and orientation constraint, it represents radiant
+	@type min: float
+	
+	@ivar distance: the target distance of the distance constraint
+	@type distance: float
+	
+	@ivar max: the upper bound of the constraint.
+	           For rotation and orientation constraints, it represents radiant.
+	@type max: float
+	
+	@ivar rayLength: the length of the ray of the distance constraint.
+	@type rayLength: float
+	
+	@ivar limit: type of constraint, use one of the following constant:
+	              KX_ACT_CONSTRAINT_LOCX  ( 1) : limit X coord
+	              KX_ACT_CONSTRAINT_LOCY  ( 2) : limit Y coord
+	              KX_ACT_CONSTRAINT_LOCZ  ( 3) : limit Z coord
+	              KX_ACT_CONSTRAINT_ROTX  ( 4) : limit X rotation
+	              KX_ACT_CONSTRAINT_ROTY  ( 5) : limit Y rotation
+	              KX_ACT_CONSTRAINT_ROTZ  ( 6) : limit Z rotation
+	              KX_ACT_CONSTRAINT_DIRPX ( 7) : set distance along positive X axis
+	              KX_ACT_CONSTRAINT_DIRPY ( 8) : set distance along positive Y axis
+	              KX_ACT_CONSTRAINT_DIRPZ ( 9) : set distance along positive Z axis
+	              KX_ACT_CONSTRAINT_DIRNX (10) : set distance along negative X axis
+	              KX_ACT_CONSTRAINT_DIRNY (11) : set distance along negative Y axis
+	              KX_ACT_CONSTRAINT_DIRNZ (12) : set distance along negative Z axis
+	              KX_ACT_CONSTRAINT_ORIX  (13) : set orientation of X axis
+	              KX_ACT_CONSTRAINT_ORIY  (14) : set orientation of Y axis
+	              KX_ACT_CONSTRAINT_ORIZ  (15) : set orientation of Z axis
+	              KX_ACT_CONSTRAINT_FHPX  (16) : set force field along positive X axis
+	              KX_ACT_CONSTRAINT_FHPY  (17) : set force field along positive Y axis
+	              KX_ACT_CONSTRAINT_FHPZ  (18) : set force field along positive Z axis
+	              KX_ACT_CONSTRAINT_FHNX  (19) : set force field along negative X axis
+	              KX_ACT_CONSTRAINT_FHNY  (20) : set force field along negative Y axis
+	              KX_ACT_CONSTRAINT_FHNZ  (21) : set force field along negative Z axis
+	@type limit: integer
 	"""
 	def setDamp(time):
 		"""

@@ -144,6 +144,11 @@ public:
 	void GetWorldPosition(MT_Point3& pos);
 	void GetWorldScaling(MT_Vector3& scale);
 
+	float GetLinVelocityMin() const { return 0.f; }
+	void  SetLinVelocityMin(float val) { }
+	float GetLinVelocityMax() const { return 0.f; }
+	void  SetLinVelocityMax(float val) { }
+
 
 //	void	SetSumoObject(class SM_Object* sumoObj)	{
 //		m_sumoObj = sumoObj;

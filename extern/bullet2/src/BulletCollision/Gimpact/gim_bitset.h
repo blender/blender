@@ -34,11 +34,6 @@ email: projectileman@yahoo.com
 
 #include "gim_array.h"
 
-/*! \addtogroup CONTAINERS
-\brief
-Abstract class for template containers
-*/
-//! @{
 
 #define GUINT_BIT_COUNT 32
 #define GUINT_EXPONENT 5
@@ -122,7 +117,6 @@ public:
 };
 
 
-//! @}
 
 
 

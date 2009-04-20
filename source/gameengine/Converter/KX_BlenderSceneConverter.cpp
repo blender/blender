@@ -267,9 +267,11 @@ void KX_BlenderSceneConverter::ConvertScene(const STR_String& scenename,
 	Scene *blenderscene = GetBlenderSceneForName(scenename);
 
 	e_PhysicsEngine physics_engine = UseBullet;
+	bool useDbvtCulling = false;
 	// hook for registration function during conversion.
 	m_currentScene = destinationscene;
 	destinationscene->SetSceneConverter(this);
+	SG_SetActiveStage(SG_STAGE_CONVERTER);
 
 	if (blenderscene)
 	{
@@ -281,6 +283,7 @@ void KX_BlenderSceneConverter::ConvertScene(const STR_String& scenename,
 			case WOPHY_BULLET:
 				{
 					physics_engine = UseBullet;
+					useDbvtCulling = (blenderscene->world->mode & WO_DBVT_CULLING) != 0;
 					break;
 				}
                                 
@@ -313,7 +316,7 @@ void KX_BlenderSceneConverter::ConvertScene(const STR_String& scenename,
 #ifdef USE_BULLET
 		case UseBullet:
 			{
-				CcdPhysicsEnvironment* ccdPhysEnv = new CcdPhysicsEnvironment();
+				CcdPhysicsEnvironment* ccdPhysEnv = new CcdPhysicsEnvironment(useDbvtCulling);
 				ccdPhysEnv->setDebugDrawer(new BlenderDebugDraw());
 				ccdPhysEnv->setDeactivationLinearTreshold(0.8f); // default, can be overridden by Python
 				ccdPhysEnv->setDeactivationAngularTreshold(1.0f); // default, can be overridden by Python
@@ -321,7 +324,7 @@ void KX_BlenderSceneConverter::ConvertScene(const STR_String& scenename,
 				SYS_SystemHandle syshandle = SYS_GetSystem(); /*unused*/
 				int visualizePhysics = SYS_GetCommandLineInt(syshandle,"show_physics",0);
 				if (visualizePhysics)
-					ccdPhysEnv->setDebugMode(btIDebugDraw::DBG_DrawWireframe|btIDebugDraw::DBG_DrawAabb|btIDebugDraw::DBG_DrawContactPoints|btIDebugDraw::DBG_DrawText);
+					ccdPhysEnv->setDebugMode(btIDebugDraw::DBG_DrawWireframe|btIDebugDraw::DBG_DrawAabb|btIDebugDraw::DBG_DrawContactPoints|btIDebugDraw::DBG_DrawText|btIDebugDraw::DBG_DrawConstraintLimits|btIDebugDraw::DBG_DrawConstraints);
 		
 				//todo: get a button in blender ?
 				//disable / enable debug drawing (contact points, aabb's etc)	
@@ -806,7 +809,7 @@ void	KX_BlenderSceneConverter::resetNoneDynamicObjectToIpo(){
 					gameobj->NodeSetLocalPosition(pos);
 					gameobj->NodeSetLocalOrientation(MT_Matrix3x3(eulxyz));
 					gameobj->NodeSetLocalScale(scale);
-					gameobj->NodeUpdateGS(0,true);
+					gameobj->NodeUpdateGS(0);
 				}
 			}
 		}

@@ -46,22 +46,25 @@ struct btDispatcherInfo
 		m_enableSPU(true),
 		m_useEpa(true),
 		m_allowedCcdPenetration(btScalar(0.04)),
+		m_useConvexConservativeDistanceUtil(true),
+		m_convexConservativeDistanceThreshold(0.0f),
 		m_stackAllocator(0)
 	{
 
 	}
 	btScalar	m_timeStep;
-	int		m_stepCount;
-	int		m_dispatchFunc;
+	int			m_stepCount;
+	int			m_dispatchFunc;
 	mutable btScalar	m_timeOfImpact;
-	bool	m_useContinuous;
+	bool		m_useContinuous;
 	class btIDebugDraw*	m_debugDraw;
-	bool	m_enableSatConvex;
-	bool	m_enableSPU;
-	bool	m_useEpa;
+	bool		m_enableSatConvex;
+	bool		m_enableSPU;
+	bool		m_useEpa;
 	btScalar	m_allowedCcdPenetration;
+	bool		m_useConvexConservativeDistanceUtil;
+	btScalar	m_convexConservativeDistanceThreshold;
 	btStackAlloc*	m_stackAllocator;
-	
 };
 
 ///The btDispatcher interface class can be used in combination with broadphase to dispatch calculations for overlapping pairs.

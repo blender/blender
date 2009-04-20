@@ -42,8 +42,7 @@ int NewBooleanMesh(struct Base *base, struct Base *base_select, int op);
 /* Performs a boolean between two mesh objects, it is assumed that both objects
    are in fact mesh object. On success returns a DerivedMesh. On failure
    returns NULL and reports an error. */
-struct DerivedMesh *NewBooleanDerivedMesh(struct Object *ob,
-                                          struct Object *ob_select,
-                                          int op);
+struct DerivedMesh *NewBooleanDerivedMesh(struct DerivedMesh *dm, struct Object *ob, struct DerivedMesh *dm_select, struct Object *ob_select,
+                                   int int_op_type);
 #endif
 

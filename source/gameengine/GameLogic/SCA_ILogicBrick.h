@@ -62,13 +62,14 @@ public:
 	SCA_IObject*	GetParent();
 	virtual void	ReParent(SCA_IObject* parent);
 	virtual void	Relink(GEN_Map<GEN_HashedPtr, void*> *obj_map);
+	virtual void Delete() { Release(); }
 
 	// act as a BoolValue (with value IsPositiveTrigger)
 	virtual CValue*	Calc(VALUE_OPERATOR op, CValue *val);
 	virtual CValue*	CalcFinal(VALUE_DATA_TYPE dtype, VALUE_OPERATOR op, CValue *val);
 
 	virtual const STR_String &	GetText();
-	virtual float		GetNumber();
+	virtual double		GetNumber();
 	virtual STR_String	GetName();
 	virtual void		SetName(STR_String name);
 	virtual void		ReplicaSetName(STR_String name);
@@ -78,8 +79,8 @@ public:
 
 	virtual	bool		LessComparedTo(SCA_ILogicBrick* other);
 	
-	virtual PyObject* _getattr(const STR_String& attr);
-	virtual int _setattr(const STR_String& attr, PyObject *value);
+	virtual PyObject* py_getattro(PyObject *attr);
+	virtual int py_setattro(PyObject *attr, PyObject *value);
 
 	static class SCA_LogicManager*	m_sCurrentLogicManager;
 
@@ -87,7 +88,7 @@ public:
 	// python methods
 
 	KX_PYMETHOD_NOARGS(SCA_ILogicBrick,GetOwner);
-	KX_PYMETHOD(SCA_ILogicBrick,SetExecutePriority);
+	KX_PYMETHOD_VARARGS(SCA_ILogicBrick,SetExecutePriority);
 	KX_PYMETHOD_NOARGS(SCA_ILogicBrick,GetExecutePriority);
 
 	// check that attribute is a property

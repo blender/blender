@@ -77,6 +77,7 @@
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
 #include "BKE_particle.h"
+#include "BKE_bvhutils.h"
 
 #include "BLO_sys_types.h" // for intptr_t support
 
@@ -182,6 +183,8 @@ void DM_init_funcs(DerivedMesh *dm)
 	dm->getVertDataArray = DM_get_vert_data_layer;
 	dm->getEdgeDataArray = DM_get_edge_data_layer;
 	dm->getFaceDataArray = DM_get_face_data_layer;
+
+	bvhcache_init(&dm->bvhCache);
 }
 
 void DM_init(DerivedMesh *dm,
@@ -218,6 +221,8 @@ void DM_from_template(DerivedMesh *dm, DerivedMesh *source,
 int DM_release(DerivedMesh *dm)
 {
 	if (dm->needsFree) {
+		bvhcache_free(&dm->bvhCache);
+
 		CustomData_free(&dm->vertData, dm->numVertData);
 		CustomData_free(&dm->edgeData, dm->numEdgeData);
 		CustomData_free(&dm->faceData, dm->numFaceData);
@@ -1995,21 +2000,33 @@ CustomDataMask get_viewedit_datamask()
 	/* check if we need tfaces & mcols due to face select or texture paint */
 	if(FACESEL_PAINT_TEST || G.f & G_TEXTUREPAINT)
 		mask |= CD_MASK_MTFACE | CD_MASK_MCOL;
+	
+	if (G.curscreen==NULL) {
+		/* No screen, happens when saving a blendfile in background mode,
+		 * then loading in the game engine
+		 * just assume we need the mesh info */
+		mask |= CD_MASK_MTFACE | CD_MASK_MCOL;
 
-	/* check if we need tfaces & mcols due to view mode */
-	for(sa = G.curscreen->areabase.first; sa; sa = sa->next) {
-		if(sa->spacetype == SPACE_VIEW3D) {
-			View3D *view = sa->spacedata.first;
-			if(view->drawtype == OB_SHADED) {
-				/* this includes normals for mesh_create_shadedColors */
-				mask |= CD_MASK_MTFACE | CD_MASK_MCOL | CD_MASK_NORMAL | CD_MASK_ORCO;
-			}
-			if((view->drawtype == OB_TEXTURE) || ((view->drawtype == OB_SOLID) && (view->flag2 & V3D_SOLID_TEX))) {
-				mask |= CD_MASK_MTFACE | CD_MASK_MCOL;
+		if((G.fileflags & G_FILE_GAME_MAT) &&
+		   (G.fileflags & G_FILE_GAME_MAT_GLSL)) {
+			mask |= CD_MASK_ORCO;
+		}
+	} else {
+		/* check if we need tfaces & mcols due to view mode */
+		for(sa = G.curscreen->areabase.first; sa; sa = sa->next) {
+			if(sa->spacetype == SPACE_VIEW3D) {
+				View3D *view = sa->spacedata.first;
+				if(view->drawtype == OB_SHADED) {
+					/* this includes normals for mesh_create_shadedColors */
+					mask |= CD_MASK_MTFACE | CD_MASK_MCOL | CD_MASK_NORMAL | CD_MASK_ORCO;
+				}
+				if((view->drawtype == OB_TEXTURE) || ((view->drawtype == OB_SOLID) && (view->flag2 & V3D_SOLID_TEX))) {
+					mask |= CD_MASK_MTFACE | CD_MASK_MCOL;
 
-				if((G.fileflags & G_FILE_GAME_MAT) &&
-				   (G.fileflags & G_FILE_GAME_MAT_GLSL)) {
-					mask |= CD_MASK_ORCO;
+					if((G.fileflags & G_FILE_GAME_MAT) &&
+					   (G.fileflags & G_FILE_GAME_MAT_GLSL)) {
+						mask |= CD_MASK_ORCO;
+					}
 				}
 			}
 		}

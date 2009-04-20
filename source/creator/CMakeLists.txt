@@ -124,6 +124,7 @@ IF(APPLE)
     COMMAND find ${TARGETDIR}/blender.app -name CVS -prune -exec rm -rf {} "\;"
     COMMAND find ${TARGETDIR}/blender.app -name CVS.sandboxinfo -prune -exec rm -rf {} "\;"
     COMMAND find ${TARGETDIR}/blender.app -name .DS_Store -prune -exec rm -rf {} "\;"
+    COMMAND find ${TARGETDIR}/blender.app -name .svn -prune -exec rm -rf {} "\;"
   )
 ENDIF(APPLE)
 
@@ -267,6 +268,7 @@ IF(UNIX)
     bf_quicktime
     extern_binreloc
     extern_glew
+    extern_libopenjpeg
     bf_videotex
   )
 

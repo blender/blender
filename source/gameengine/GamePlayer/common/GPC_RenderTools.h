@@ -54,6 +54,7 @@ class GPC_RenderTools : public RAS_IRenderTools
 {
 	int		m_lastlightlayer;
 	bool	m_lastlighting;
+	void	*m_lastauxinfo;
 	static unsigned int m_numgllights;
 
 	BMF_Font* m_font;
@@ -65,9 +66,9 @@ public:
 	void				EndFrame(RAS_IRasterizer* rasty);
 	void				BeginFrame(RAS_IRasterizer* rasty);
 
-	void				EnableOpenGLLights();
+	void				EnableOpenGLLights(RAS_IRasterizer *rasty);
 	void				DisableOpenGLLights();
-	void				ProcessLighting(int layer, const MT_Transform& viewmat);
+	void				ProcessLighting(RAS_IRasterizer *rasty, bool uselights, const MT_Transform& viewmat);
 
 	/* @attention mode is ignored here */
 	void			    RenderText2D(RAS_TEXT_RENDER_MODE mode,

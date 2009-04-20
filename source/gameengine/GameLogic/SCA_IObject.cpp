@@ -40,7 +40,7 @@
 
 MT_Point3 SCA_IObject::m_sDummy=MT_Point3(0,0,0);
 
-SCA_IObject::SCA_IObject(PyTypeObject* T): m_initState(0), m_state(0), CValue(T)
+SCA_IObject::SCA_IObject(PyTypeObject* T): CValue(T), m_initState(0), m_state(0)
 {
 	m_suspended = false;
 }
@@ -59,7 +59,9 @@ SCA_IObject::~SCA_IObject()
 	SCA_ControllerList::iterator itc; 
 	for (itc = m_controllers.begin(); !(itc == m_controllers.end()); ++itc)
 	{
-		((CValue*)(*itc))->Release();
+		//Use Delete for controller to ensure proper cleaning (expression controller)
+		(*itc)->Delete();
+		//((CValue*)(*itc))->Release();
 	}
 	SCA_ActuatorList::iterator ita;
 	for (ita = m_registeredActuators.begin(); !(ita==m_registeredActuators.end()); ++ita)
@@ -373,22 +375,22 @@ void SCA_IObject::SetState(unsigned int state)
 
 /* Integration hooks ------------------------------------------------------- */
 PyTypeObject SCA_IObject::Type = {
-	PyObject_HEAD_INIT(&PyType_Type)
+	PyObject_HEAD_INIT(NULL)
 	0,
 	"SCA_IObject",
-	sizeof(SCA_IObject),
+	sizeof(PyObjectPlus_Proxy),
 	0,
-	PyDestructor,
-	0,
-	__getattr,
-	__setattr,
-	0, //&MyPyCompare,
-	__repr,
-	0, //&cvalue_as_number,
+	py_base_dealloc,
 	0,
 	0,
 	0,
-	0
+	0,
+	py_base_repr,
+	0,0,0,0,0,0,
+	py_base_getattro,
+	py_base_setattro,
+	0,0,0,0,0,0,0,0,0,
+	Methods
 };
 
 
@@ -407,9 +409,12 @@ PyMethodDef SCA_IObject::Methods[] = {
 	{NULL,NULL} //Sentinel
 };
 
+PyAttributeDef SCA_IObject::Attributes[] = {
+	{ NULL }	//Sentinel
+};
 
 
-PyObject* SCA_IObject::_getattr(const STR_String& attr) {
-	_getattr_up(CValue);
+PyObject* SCA_IObject::py_getattro(PyObject *attr) {
+	py_getattro_up(CValue);
 }
 

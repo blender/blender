@@ -94,22 +94,22 @@ CValue* KX_SCA_EndObjectActuator::GetReplica()
 /* ------------------------------------------------------------------------- */
 
 PyTypeObject KX_SCA_EndObjectActuator::Type = {
-	PyObject_HEAD_INIT(&PyType_Type)
+	PyObject_HEAD_INIT(NULL)
 	0,
 	"KX_SCA_EndObjectActuator",
-	sizeof(KX_SCA_EndObjectActuator),
+	sizeof(PyObjectPlus_Proxy),
 	0,
-	PyDestructor,
-	0,
-	__getattr,
-	__setattr,
-	0, //&MyPyCompare,
-	__repr,
-	0, //&cvalue_as_number,
+	py_base_dealloc,
 	0,
 	0,
 	0,
-	0
+	0,
+	py_base_repr,
+	0,0,0,0,0,0,
+	py_base_getattro,
+	py_base_setattro,
+	0,0,0,0,0,0,0,0,0,
+	Methods
 };
 
 
@@ -127,10 +127,13 @@ PyMethodDef KX_SCA_EndObjectActuator::Methods[] = {
   {NULL,NULL} //Sentinel
 };
 
+PyAttributeDef KX_SCA_EndObjectActuator::Attributes[] = {
+	{ NULL }	//Sentinel
+};
 
-PyObject* KX_SCA_EndObjectActuator::_getattr(const STR_String& attr)
+PyObject* KX_SCA_EndObjectActuator::py_getattro(PyObject *attr)
 {
-  _getattr_up(SCA_IActuator);
+  py_getattro_up(SCA_IActuator);
 }
 
 /* eof */

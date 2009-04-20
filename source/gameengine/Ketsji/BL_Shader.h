@@ -166,7 +166,7 @@ public:
 	//const BL_Sampler*	GetSampler(int i);
 	void				SetSampler(int loc, int unit);
 
-	const bool			Ok()const;
+	bool				Ok()const;
 	unsigned int		GetProg();
 	void				SetProg(bool enable);
 	int					GetAttribute(){return mAttr;};
@@ -202,7 +202,8 @@ public:
 	void SetUniform(int uniform, const int val);
 
 	// Python interface
-	virtual PyObject* _getattr(const STR_String& attr);
+	virtual PyObject* py_getattro(PyObject *attr);
+	virtual PyObject* py_repr(void) { return PyString_FromFormat("BL_Shader\n\tvertex shader:%s\n\n\tfragment shader%s\n\n", vertProg, fragProg); }
 
 	// -----------------------------------
 	KX_PYMETHOD_DOC( BL_Shader, setSource );

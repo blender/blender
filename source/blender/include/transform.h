@@ -73,8 +73,8 @@ typedef struct TransSnap {
 	short	modePoint;
 	short	modeTarget;
 	int  	status;
-	float	snapPoint[3];
-	float	snapTarget[3];
+	float	snapPoint[3]; /* snapping from this point */
+	float	snapTarget[3];/* to this point */
 	float	snapNormal[3];
 	float	snapTangent[3];
 	float	dist; // Distance from snapPoint to snapTarget

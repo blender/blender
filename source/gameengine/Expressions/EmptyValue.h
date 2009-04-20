@@ -27,7 +27,7 @@ public:
 	virtual					~CEmptyValue();
 
 	virtual const STR_String &	GetText();
-	virtual float			GetNumber();
+	virtual double			GetNumber();
 	CListValue*				GetPolySoup();
 	virtual double*			GetVector3(bool bGetTransformedVec=false);
 	bool					IsInside(CValue* testpoint,bool bBorderInclude=true);

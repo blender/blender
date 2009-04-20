@@ -82,6 +82,7 @@ void viewmoveNDOF(int mode);
 void view_zoom_mouseloc(float dfac, short *mouseloc);
 int view_mouse_depth( float mouse_worldloc[3], short mval[2], int dist);
 
+int get_view3d_ortho(struct View3D *v3d);
 int get_view3d_viewplane(int winxi, int winyi, rctf *viewplane, float *clipsta, float *clipend, float *pixsize);
 void setwinmatrixview3d(int winx, int winy, struct rctf *rect);
 

@@ -35,7 +35,6 @@
 #include "BGL.h" /*This must come first */
 
 #include "MEM_guardedalloc.h"
-#include "gen_utils.h"
 
 static int type_size( int type );
 static Buffer *make_buffer( int type, int ndimensions, int *dimensions );
@@ -121,8 +120,6 @@ static PyObject *Method_##funcname (PyObject *self, PyObject *args) {\
 
 /* #endif */
 
-PyObject *BGL_Init( void );
-
 /********/
 static int type_size(int type)
 {
@@ -185,12 +182,12 @@ static PyObject *Method_Buffer (PyObject *self, PyObject *args)
 	int i, type;
 	int *dimensions = 0, ndimensions = 0;
 	
-	if (!PyArg_ParseTuple(args, "iO|O", &type, &length_ob, &template))
-	        return EXPP_ReturnPyObjError(PyExc_AttributeError,
-	                        "expected an int and one or two PyObjects");
-
+	if (!PyArg_ParseTuple(args, "iO|O", &type, &length_ob, &template)) {
+		PyErr_SetString(PyExc_AttributeError, "expected an int and one or two PyObjects");
+		return NULL;
+	}
 	if (type!=GL_BYTE && type!=GL_SHORT && type!=GL_INT && type!=GL_FLOAT && type!=GL_DOUBLE) {
-		PyErr_SetString(PyExc_AttributeError, "type");
+		PyErr_SetString(PyExc_AttributeError, "invalid first argument type, should be one of GL_BYTE, GL_SHORT, GL_INT, GL_FLOAT or GL_DOUBLE");
 		return NULL;
 	}
 
@@ -1088,19 +1085,19 @@ static struct PyMethodDef BGL_methods[] = {
 	{NULL, NULL, 0, NULL}
 };
 
-PyObject *BGL_Init(void) 
+PyObject *BGL_Init(const char *from) 
 {
-	PyObject *mod= Py_InitModule("Blender.BGL", BGL_methods);
+	PyObject *mod= Py_InitModule(from, BGL_methods);
 	PyObject *dict= PyModule_GetDict(mod);
-	
+	PyObject *item;
 	if( PyType_Ready( &buffer_Type) < 0)
-		Py_RETURN_NONE;
+		return NULL; /* should never happen */
 
-#define EXPP_ADDCONST(x) EXPP_dict_set_item_str(dict, #x, PyInt_FromLong((int)x))
+#define EXPP_ADDCONST(x) PyDict_SetItemString(dict, #x, item=PyInt_FromLong((int)x)); Py_DECREF(item)
 
 /* So, for example:
  * EXPP_ADDCONST(GL_CURRENT_BIT) becomes
- * EXPP_dict_set_item_str(dict, "GL_CURRENT_BIT", PyInt_FromLong(GL_CURRENT_BIT)) */
+ * PyDict_SetItemString(dict, "GL_CURRENT_BIT", item=PyInt_FromLong(GL_CURRENT_BIT)); Py_DECREF(item) */
 
 	EXPP_ADDCONST(GL_CURRENT_BIT);
 	EXPP_ADDCONST(GL_POINT_BIT);

@@ -58,8 +58,8 @@ KX_IpoSGController::KX_IpoSGController()
   m_ipo_add(false),
   m_ipo_local(false),
   m_modified(true),
-  m_ipo_start_initialized(false),
   m_ipotime(1.0),
+  m_ipo_start_initialized(false),
   m_ipo_start_euler(0.0,0.0,0.0),
   m_ipo_euler_initialized(false)
 {

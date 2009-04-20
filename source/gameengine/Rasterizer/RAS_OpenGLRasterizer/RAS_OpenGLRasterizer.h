@@ -80,6 +80,7 @@ class RAS_OpenGLRasterizer : public RAS_IRasterizer
 	MT_Matrix4x4	m_viewmatrix;
 	MT_Matrix4x4	m_viewinvmatrix;
 	MT_Point3		m_campos;
+	bool			m_camortho;
 
 	StereoMode		m_stereomode;
 	StereoEye		m_curreye;
@@ -168,6 +169,7 @@ public:
 					);
 
 	virtual const	MT_Point3& GetCameraPosition();
+	virtual bool	GetCameraOrtho();
 	
 	virtual void	SetFog(
 						float start,
@@ -237,6 +239,8 @@ public:
 	virtual void	SetAmbient(float factor);
 
 	virtual void	SetPolygonOffset(float mult, float add);
+
+	virtual	void	FlushDebugLines();
 
 	virtual	void	DrawDebugLine(const MT_Vector3& from,const MT_Vector3& to,const MT_Vector3& color)
 	{

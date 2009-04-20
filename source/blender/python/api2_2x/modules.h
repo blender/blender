@@ -52,7 +52,7 @@ BGL is a special case.  It still has data declarations in the .h file
 and cannot be #included until it is cleaned up.
 ****************************************************************************/
 
-PyObject *BGL_Init( void );
+PyObject *BGL_Init( const char *from );
 
 PyObject *Library_Init( void );
 PyObject *Noise_Init( void );

@@ -77,9 +77,13 @@ protected:
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
 
-	virtual PyObject* _getattr(const STR_String& attr);
+	virtual PyObject* py_getattro(PyObject *attr);
+	virtual int py_setattro(PyObject *attr, PyObject *value);
+
+	// Deprecated functions ----->
 	KX_PYMETHOD_DOC(KX_GameActuator,GetFile);
 	KX_PYMETHOD_DOC(KX_GameActuator,SetFile);
+	// <-----
 	
 }; /* end of class KX_GameActuator */
 

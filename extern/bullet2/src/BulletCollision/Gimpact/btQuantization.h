@@ -29,9 +29,6 @@ subject to the following restrictions:
 
 
 
-/*! \defgroup GEOMETRIC_OPERATIONS
-*/
-//! @{
 
 
 
@@ -86,7 +83,6 @@ SIMD_FORCE_INLINE btVector3 bt_unquantize(
 	return vecOut;
 }
 
-//! @}
 
 
 #endif // GIM_VECTOR_H_INCLUDED

@@ -1850,6 +1850,13 @@ static void lib_link_constraints(FileData *fd, ID *id, ListBase *conlist)
 				data->tar = newlibadr(fd, id->lib, data->tar);
 			}
 			break;
+		case CONSTRAINT_TYPE_SHRINKWRAP:
+			{
+				bShrinkwrapConstraint *data;
+				data= ((bShrinkwrapConstraint*)con->data);
+				data->target = newlibadr(fd, id->lib, data->target);
+			}
+			break;
 		case CONSTRAINT_TYPE_NULL:
 			break;
 		}
@@ -3219,6 +3226,12 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 			collmd->mfaces = NULL;
 			
 		}
+		else if (md->type==eModifierType_Surface) {
+			SurfaceModifierData *surmd = (SurfaceModifierData*) md;
+
+			surmd->dm = NULL;
+			surmd->bvhtree = NULL;
+		}
 		else if (md->type==eModifierType_Hook) {
 			HookModifierData *hmd = (HookModifierData*) md;
 
@@ -3489,6 +3502,9 @@ static void lib_link_scene(FileData *fd, Main *main)
 			sce->toolsettings->imapaint.brush=
 				newlibadr_us(fd, sce->id.lib, sce->toolsettings->imapaint.brush);
 
+	
+			sce->toolsettings->skgen_template = newlibadr(fd, sce->id.lib, sce->toolsettings->skgen_template);
+
 			/* Sculptdata textures */
 			for(a=0; a<MAX_MTEX; ++a) {
 				MTex *mtex= sce->sculptdata.mtex[a];
@@ -3540,7 +3556,9 @@ static void lib_link_scene(FileData *fd, Main *main)
 				srl->mat_override= newlibadr_us(fd, sce->id.lib, srl->mat_override);
 				srl->light_override= newlibadr_us(fd, sce->id.lib, srl->light_override);
 			}
-			
+			/*Game Settings: Dome Warp Text*/
+			sce->r.dometext= newlibadr_us(fd, sce->id.lib, sce->r.dometext);
+
 			sce->id.flag -= LIB_NEEDLINK;
 		}
 
@@ -7399,28 +7417,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				ima->flag |= IMA_DO_PREMUL;
 			}
 		}
-
-		if (main->versionfile < 245 || main->subversionfile < 12)
-		{
-			/* initialize skeleton generation toolsettings */
-			for(sce=main->scene.first; sce; sce = sce->id.next)
-			{
-				sce->toolsettings->skgen_resolution = 50;
-				sce->toolsettings->skgen_threshold_internal 	= 0.01f;
-				sce->toolsettings->skgen_threshold_external 	= 0.01f;
-				sce->toolsettings->skgen_angle_limit	 		= 45.0f;
-				sce->toolsettings->skgen_length_ratio			= 1.3f;
-				sce->toolsettings->skgen_length_limit			= 1.5f;
-				sce->toolsettings->skgen_correlation_limit		= 0.98f;
-				sce->toolsettings->skgen_symmetry_limit			= 0.1f;
-				sce->toolsettings->skgen_postpro = SKGEN_SMOOTH;
-				sce->toolsettings->skgen_postpro_passes = 1;
-				sce->toolsettings->skgen_options = SKGEN_FILTER_INTERNAL|SKGEN_FILTER_EXTERNAL|SKGEN_SUB_CORRELATION;
-				sce->toolsettings->skgen_subdivisions[0] = SKGEN_SUB_CORRELATION;
-				sce->toolsettings->skgen_subdivisions[1] = SKGEN_SUB_LENGTH;
-				sce->toolsettings->skgen_subdivisions[2] = SKGEN_SUB_ANGLE;
-			}
-		}
 	}
 	
 	/* sanity check for skgen
@@ -8102,10 +8098,63 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		for (sce= main->scene.first; sce; sce= sce->id.next) {
 			sce->toolsettings->imapaint.seam_bleed = 2;
 			sce->toolsettings->imapaint.normal_angle = 80;
+
+			/* initialize skeleton generation toolsettings */
+			sce->toolsettings->skgen_resolution = 250;
+			sce->toolsettings->skgen_threshold_internal 	= 0.1f;
+			sce->toolsettings->skgen_threshold_external 	= 0.1f;
+			sce->toolsettings->skgen_angle_limit	 		= 30.0f;
+			sce->toolsettings->skgen_length_ratio			= 1.3f;
+			sce->toolsettings->skgen_length_limit			= 1.5f;
+			sce->toolsettings->skgen_correlation_limit		= 0.98f;
+			sce->toolsettings->skgen_symmetry_limit			= 0.1f;
+			sce->toolsettings->skgen_postpro = SKGEN_SMOOTH;
+			sce->toolsettings->skgen_postpro_passes = 3;
+			sce->toolsettings->skgen_options = SKGEN_FILTER_INTERNAL|SKGEN_FILTER_EXTERNAL|SKGEN_FILTER_SMART|SKGEN_SUB_CORRELATION|SKGEN_HARMONIC;
+			sce->toolsettings->skgen_subdivisions[0] = SKGEN_SUB_CORRELATION;
+			sce->toolsettings->skgen_subdivisions[1] = SKGEN_SUB_LENGTH;
+			sce->toolsettings->skgen_subdivisions[2] = SKGEN_SUB_ANGLE;
+
+			
+			sce->toolsettings->skgen_retarget_angle_weight = 1.0f;
+			sce->toolsettings->skgen_retarget_length_weight = 1.0f;
+			sce->toolsettings->skgen_retarget_distance_weight = 1.0f;
+	
+			/* Skeleton Sketching */
+			sce->toolsettings->bone_sketching = 0;
+			sce->toolsettings->skgen_retarget_roll = SK_RETARGET_ROLL_VIEW;
+		}
+	}
+
+	if (main->versionfile < 248 || (main->versionfile == 248 && main->subversionfile < 3)) {
+		Object *ob;
+
+		/* Adjustments needed after Bullets update */
+		for(ob = main->object.first; ob; ob= ob->id.next) {
+			ob->damping *= 0.635f;
+			ob->rdamping = 0.1 + (0.59f * ob->rdamping);
 		}
 	}
 	
-	
+	if (main->versionfile < 248 || (main->versionfile == 248 && main->subversionfile < 4)) {
+		Scene *sce;
+		World *wrld;
+
+		/*  Dome (Fisheye) default parameters  */
+		for (sce= main->scene.first; sce; sce= sce->id.next) {
+			sce->r.domeangle = 180;
+			sce->r.domemode = 1;
+			sce->r.domesize = 1.0f;
+			sce->r.domeres = 4;
+			sce->r.domeresbuf = 1.0f;
+		}
+		/* DBVT culling by default */
+		for(wrld=main->world.first; wrld; wrld= wrld->id.next) {
+			wrld->mode |= WO_DBVT_CULLING;
+			wrld->occlusionRes = 128;
+		}
+	}
+
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in src/usiblender.c! */
 
@@ -8677,6 +8726,12 @@ static void expand_constraints(FileData *fd, Main *mainvar, ListBase *lb)
 				expand_doit(fd, mainvar, data->tar);
 			}
 			break;
+		case CONSTRAINT_TYPE_SHRINKWRAP:
+			{
+				bShrinkwrapConstraint *data = (bShrinkwrapConstraint*)curcon->data;
+				expand_doit(fd, mainvar, data->target);
+			}
+			break;
 		default:
 			break;
 		}
@@ -8902,6 +8957,9 @@ static void expand_scene(FileData *fd, Main *mainvar, Scene *sce)
 	expand_doit(fd, mainvar, sce->camera);
 	expand_doit(fd, mainvar, sce->world);
 	
+	if(sce->set)
+		expand_doit(fd, mainvar, sce->set);
+	
 	if(sce->nodetree)
 		expand_nodetree(fd, mainvar, sce->nodetree);
 	
@@ -8909,7 +8967,9 @@ static void expand_scene(FileData *fd, Main *mainvar, Scene *sce)
 		expand_doit(fd, mainvar, srl->mat_override);
 		expand_doit(fd, mainvar, srl->light_override);
 	}
-				
+
+	if(sce->r.dometext)
+		expand_doit(fd, mainvar, sce->r.dometext);
 }
 
 static void expand_camera(FileData *fd, Main *mainvar, Camera *ca)

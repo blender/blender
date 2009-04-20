@@ -57,7 +57,8 @@ New(Bone* bone
 KX_BoneParentRelation::
 UpdateChildCoordinates(
 	SG_Spatial * child,
-	const SG_Spatial * parent
+	const SG_Spatial * parent,
+	bool& parentUpdated	
 ){
 	MT_assert(child != NULL);
 	
@@ -67,6 +68,8 @@ UpdateChildCoordinates(
 	const MT_Vector3 & child_scale = child->GetLocalScale();
 	const MT_Point3 & child_pos = child->GetLocalPosition();
 	const MT_Matrix3x3 & child_rotation = child->GetLocalOrientation();
+	// we don't know if the armature has been updated or not, assume yes
+	parentUpdated = true;
 
 	// the childs world locations which we will update.	
 	
@@ -97,11 +100,11 @@ UpdateChildCoordinates(
 				child_transform = parent_matrix * child_transform;
 				
 				// Recompute the child transform components from the transform.
-				child_w_scale =  MT_Vector3( 
+				child_w_scale.setValue( 
 					MT_Vector3(child_transform[0][0], child_transform[0][1], child_transform[0][2]).length(),
 					MT_Vector3(child_transform[1][0], child_transform[1][1], child_transform[1][2]).length(),
 					MT_Vector3(child_transform[2][0], child_transform[2][1], child_transform[2][2]).length());
-				child_w_rotation = MT_Matrix3x3(child_transform[0][0], child_transform[0][1], child_transform[0][2], 
+				child_w_rotation.setValue(child_transform[0][0], child_transform[0][1], child_transform[0][2], 
 					child_transform[1][0], child_transform[1][1], child_transform[1][2], 
 					child_transform[2][0], child_transform[2][1], child_transform[2][2]);
 				child_w_rotation.scale(1.0/child_w_scale[0], 1.0/child_w_scale[1], 1.0/child_w_scale[2]);
@@ -113,17 +116,16 @@ UpdateChildCoordinates(
 		}
 	} 
 	
-	if (!valid_parent_transform)
+	if (valid_parent_transform)
 	{
-		child_w_scale = child_scale;
-		child_w_pos = child_pos;
-		child_w_rotation = child_rotation;
+		child->SetWorldScale(child_w_scale);
+		child->SetWorldPosition(child_w_pos);
+		child->SetWorldOrientation(child_w_rotation);
 	}
-
-	child->SetWorldScale(child_w_scale);
-	child->SetWorldPosition(child_w_pos);
-	child->SetWorldOrientation(child_w_rotation);
-	
+	else {
+		child->SetWorldFromLocalTransform();
+	}
+	child->SetModified(false);
 	return valid_parent_transform;
 }
 

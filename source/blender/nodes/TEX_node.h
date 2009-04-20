@@ -1,5 +1,5 @@
 /**
- * $Id: CMP_node.h 12429 2007-10-29 14:37:19Z bebraw $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -41,6 +41,7 @@
 extern bNodeType tex_node_math;
 extern bNodeType tex_node_mix_rgb;
 extern bNodeType tex_node_valtorgb;
+extern bNodeType tex_node_valtonor;
 extern bNodeType tex_node_rgbtobw;
 extern bNodeType tex_node_output;
 extern bNodeType tex_node_viewer;
@@ -57,6 +58,10 @@ extern bNodeType tex_node_distance;
 
 extern bNodeType tex_node_rotate;
 extern bNodeType tex_node_translate;
+extern bNodeType tex_node_scale;
+
+extern bNodeType tex_node_compose;
+extern bNodeType tex_node_decompose;
 
 extern bNodeType tex_node_proc_voronoi;
 extern bNodeType tex_node_proc_blend;

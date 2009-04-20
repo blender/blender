@@ -1131,17 +1131,21 @@ static short draw_sensorbuttons(bSensor *sens, uiBlock *block, short xco, short 
 			/* The collision sensor will become a generic collision (i.e. it     */
 			/* absorb the old touch sensor).                                     */
 
-			uiDefButBitS(block, TOG, SENS_COLLISION_MATERIAL, B_REDR, "M/P",(short)(xco + 10),(short)(yco - 44),
+			uiDefButBitS(block, TOG, SENS_COLLISION_PULSE, B_REDR, "Pulse",(short)(xco + 10),(short)(yco - 44),
+				(short)(0.20 * (width-20)), 19, &cs->mode, 0.0, 0.0, 0, 0,
+				"Changes to the set of colliding objects generate pulses");
+			
+			uiDefButBitS(block, TOG, SENS_COLLISION_MATERIAL, B_REDR, "M/P",(short)(xco + 10 + (0.20 * (width-20))),(short)(yco - 44),
 				(short)(0.20 * (width-20)), 19, &cs->mode, 0.0, 0.0, 0, 0,
 				"Toggle collision on material or property.");
 			
 			if (cs->mode & SENS_COLLISION_MATERIAL) {
-				uiDefBut(block, TEX, 1, "Material:", (short)(xco + 10 + 0.20 * (width-20)),
-					(short)(yco-44), (short)(0.8*(width-20)), 19, &cs->materialName, 0, 31, 0, 0,
+				uiDefBut(block, TEX, 1, "Material:", (short)(xco + 10 + 0.40 * (width-20)),
+					(short)(yco-44), (short)(0.6*(width-20)), 19, &cs->materialName, 0, 31, 0, 0,
 					"Only look for Objects with this material");
 			} else {
-				uiDefBut(block, TEX, 1, "Property:", (short)(xco + 10 + 0.20 * (width-20)), (short)(yco-44),
-					(short)(0.8*(width-20)), 19, &cs->name, 0, 31, 0, 0,
+				uiDefBut(block, TEX, 1, "Property:", (short)(xco + 10 + 0.40 * (width-20)), (short)(yco-44),
+					(short)(0.6*(width-20)), 19, &cs->name, 0, 31, 0, 0,
 					"Only look for Objects with this property");
 			}
 	
@@ -1453,32 +1457,33 @@ static short draw_sensorbuttons(bSensor *sens, uiBlock *block, short xco, short 
 			&joy->joyindex, 0, SENS_JOY_MAXINDEX-1, 100, 0,
 			"Specify which joystick to use");			
 
-			str= "Type %t|Button %x0|Axis %x1|Hat%x2"; 
+			str= "Type %t|Button %x0|Axis %x1|Single Axis %x3|Hat%x2"; 
 			uiDefButC(block, MENU, B_REDR, str, xco+87, yco-44, 0.26 * (width-20), 19,
 				&joy->type, 0, 31, 0, 0,
 				"The type of event this joystick sensor is triggered on.");
 			
-			if (joy->flag & SENS_JOY_ANY_EVENT) {
-				switch (joy->type) {
-				case SENS_JOY_AXIS:	
-					str = "All Axis Events";
-					break;
-				case SENS_JOY_BUTTON:	
-					str = "All Button Events";
-					break;
-				default:
-					str = "All Hat Events";
-					break;
+			if (joy->type != SENS_JOY_AXIS_SINGLE) {
+				if (joy->flag & SENS_JOY_ANY_EVENT) {
+					switch (joy->type) {
+					case SENS_JOY_AXIS:	
+						str = "All Axis Events";
+						break;
+					case SENS_JOY_BUTTON:	
+						str = "All Button Events";
+						break;
+					default:
+						str = "All Hat Events";
+						break;
+					}
+				} else {
+					str = "All";
 				}
-			} else {
-				str = "All";
+				
+				uiDefButBitS(block, TOG, SENS_JOY_ANY_EVENT, B_REDR, str,
+					xco+10 + 0.475 * (width-20), yco-68, ((joy->flag & SENS_JOY_ANY_EVENT) ? 0.525 : 0.12) * (width-20), 19,
+					&joy->flag, 0, 0, 0, 0,
+					"Triggered by all events on this joysticks current type (axis/button/hat)");
 			}
-			
-			uiDefButBitS(block, TOG, SENS_JOY_ANY_EVENT, B_REDR, str,
-				xco+10 + 0.475 * (width-20), yco-68, ((joy->flag & SENS_JOY_ANY_EVENT) ? 0.525 : 0.12) * (width-20), 19,
-				&joy->flag, 0, 0, 0, 0,
-				"Triggered by all events on this joysticks current type (axis/button/hat)");
-			
 			if(joy->type == SENS_JOY_BUTTON)
 			{
 				if ((joy->flag & SENS_JOY_ANY_EVENT)==0) {
@@ -1489,8 +1494,8 @@ static short draw_sensorbuttons(bSensor *sens, uiBlock *block, short xco, short 
 			}
 			else if(joy->type == SENS_JOY_AXIS)
 			{
-				uiDefButI(block, NUM, 1, "Number:", xco+10, yco-68, 0.46 * (width-20), 19,
-				&joy->axis, 1, 2.0, 100, 0,
+				uiDefButS(block, NUM, 1, "Number:", xco+10, yco-68, 0.46 * (width-20), 19,
+				&joy->axis, 1, 8.0, 100, 0,
 				"Specify which axis pair to use, 1 is useually the main direction input.");
 
 				uiDefButI(block, NUM, 1, "Threshold:", xco+10 + 0.6 * (width-20),yco-44, 0.4 * (width-20), 19,
@@ -1504,7 +1509,7 @@ static short draw_sensorbuttons(bSensor *sens, uiBlock *block, short xco, short 
 					"The direction of the axis, use 'All Events' to recieve events on any direction");
 				}
 			}
-			else
+			else if (joy->type == SENS_JOY_HAT)
 			{
 				uiDefButI(block, NUM, 1, "Number:", xco+10, yco-68, 0.46 * (width-20), 19,
 				&joy->hat, 1, 2.0, 100, 0,
@@ -1515,6 +1520,15 @@ static short draw_sensorbuttons(bSensor *sens, uiBlock *block, short xco, short 
 					&joy->hatf, 0, 12, 100, 0,
 					"Specify hat direction");
 				}
+			}
+			else { /* (joy->type == SENS_JOY_AXIS_SINGLE)*/
+				uiDefButS(block, NUM, 1, "Number:", xco+10, yco-68, 0.46 * (width-20), 19,
+				&joy->axis_single, 1, 16.0, 100, 0,
+				"Specify a single axis (verticle/horizontal/other) to detect");
+				
+				uiDefButI(block, NUM, 1, "Threshold:", xco+10 + 0.6 * (width-20),yco-44, 0.4 * (width-20), 19,
+				&joy->precision, 0, 32768.0, 100, 0,
+				"Specify the precision of the axis");
 			}
 			yco-= ysize;
 			break;
@@ -1871,7 +1885,7 @@ static short draw_actuatorbuttons(Object *ob, bActuator *act, uiBlock *block, sh
 			uiDefButS(block, NUM, 0, "Blendin: ", xco+10, yco-64, (width-20)/2, 19, &aa->blendin, 0.0, 32767, 0.0, 0.0, "Number of frames of motion blending");
 			uiDefButS(block, NUM, 0, "Priority: ", xco+10+(width-20)/2, yco-64, (width-20)/2, 19, &aa->priority, 0.0, 100.0, 0.0, 0.0, "Execution priority - lower numbers will override actions with higher numbers, With 2 or more actions at once, the overriding channels must be lower in the stack");
 			
-			uiDefBut(block, TEX, 0, "FrameProp: ",xco+10, yco-84, width-20, 19, aa->frameProp, 0.0, 31.0, 0, 0, "Assign this property this actions current frame number");			
+			uiDefBut(block, TEX, 0, "FrameProp: ",xco+10, yco-84, width-20, 19, aa->frameProp, 0.0, 31.0, 0, 0, "Assign the action's current frame number to this property");
 
 			
 #ifdef __NLA_ACTION_BY_MOTION_ACTUATOR
@@ -1956,12 +1970,17 @@ static short draw_actuatorbuttons(Object *ob, bActuator *act, uiBlock *block, sh
 			
 			pa= act->data;
 			
-			str= "Type   %t|Assign   %x0|Add %x1|Copy %x2";
+			str= "Type%t|Assign%x0|Add %x1|Copy %x2|Toggle (bool/int/float/timer)%x3";
 			uiDefButI(block, MENU, B_REDR, str,		xco+30,yco-24,width-60, 19, &pa->type, 0, 31, 0, 0, "Type");
 			
 			uiDefBut(block, TEX, 1, "Prop: ",		xco+30,yco-44,width-60, 19, pa->name, 0, 31, 0, 0, "Property name");
 			
-			if(pa->type==ACT_PROP_COPY) {
+			
+			if(pa->type==ACT_PROP_TOGGLE) {
+				/* no ui */
+				ysize -= 22;
+			}
+			else if(pa->type==ACT_PROP_COPY) {
 				uiDefIDPoinBut(block, test_obpoin_but, ID_OB, 1, "OB:",	xco+10, yco-64, (width-20)/2, 19, &(pa->ob), "Copy from this Object");
 				uiDefBut(block, TEX, 1, "Prop: ",		xco+10+(width-20)/2, yco-64, (width-20)/2, 19, pa->value, 0, 31, 0, 0, "Copy this property");
 			}
@@ -2436,18 +2455,18 @@ static short draw_actuatorbuttons(Object *ob, bActuator *act, uiBlock *block, sh
 			  xco + 10, yco - 20, (width - 20)/3, 19, &visAct->flag,
 			  0.0, 0.0, 0, 0,
 			  "Set the objects visible. Initialized from the objects render restriction toggle (access in the outliner)");
-		uiDefButBitI(block, TOG, ACT_VISIBILITY_INVISIBLE, B_REDR,
-			  "Invisible",
+		uiDefButBitI(block, TOG, ACT_VISIBILITY_OCCLUSION, B_REDR,
+			  "Occlusion",
 			  xco + 10 + ((width - 20)/3), yco - 20, (width - 20)/3, 19, &visAct->flag,
 			  0.0, 0.0, 0, 0,
-			  "Set the object invisible. Initialized from the objects render restriction toggle (access in the outliner)");
+			  "Set the object to occlude objects behind it. Initialized from the object type in physics button");
 		uiBlockEndAlign(block);
 		
 		uiDefButBitI(block, TOG, ACT_VISIBILITY_RECURSIVE, B_NOP,
 			  "Children",
 			  xco + 10 + (((width - 20)/3)*2)+10, yco - 20, ((width - 20)/3)-10, 19, &visAct->flag,
 			  0.0, 0.0, 0, 0,
-			  "Sets all the children of this object to the same visibility recursively");
+			  "Sets all the children of this object to the same visibility/occlusion recursively");
 
 		yco-= ysize;
 
@@ -3014,25 +3033,29 @@ static void check_body_type(void *arg1_but, void *arg2_object)
 	Object *ob = arg2_object;
 
 	switch (ob->body_type) {
+	case OB_BODY_TYPE_OCCLUDER:
+		ob->gameflag |= OB_OCCLUDER;
+		ob->gameflag &= ~(OB_COLLISION|OB_DYNAMIC);
+		break;
 	case OB_BODY_TYPE_NO_COLLISION:
-		ob->gameflag &= ~OB_COLLISION;
+		ob->gameflag &= ~(OB_COLLISION|OB_OCCLUDER|OB_DYNAMIC);
 		break;
 	case OB_BODY_TYPE_STATIC:
 		ob->gameflag |= OB_COLLISION;
-		ob->gameflag &= ~(OB_DYNAMIC|OB_RIGID_BODY|OB_SOFT_BODY);
+		ob->gameflag &= ~(OB_DYNAMIC|OB_RIGID_BODY|OB_SOFT_BODY|OB_OCCLUDER);
 		break;
 	case OB_BODY_TYPE_DYNAMIC:
 		ob->gameflag |= OB_COLLISION|OB_DYNAMIC|OB_ACTOR;
-		ob->gameflag &= ~(OB_RIGID_BODY|OB_SOFT_BODY);
+		ob->gameflag &= ~(OB_RIGID_BODY|OB_SOFT_BODY|OB_OCCLUDER);
 		break;
 	case OB_BODY_TYPE_RIGID:
 		ob->gameflag |= OB_COLLISION|OB_DYNAMIC|OB_RIGID_BODY|OB_ACTOR;
-		ob->gameflag &= ~(OB_SOFT_BODY);
+		ob->gameflag &= ~(OB_SOFT_BODY|OB_OCCLUDER);
 		break;
 	default:
 	case OB_BODY_TYPE_SOFT:
 		ob->gameflag |= OB_COLLISION|OB_DYNAMIC|OB_SOFT_BODY|OB_ACTOR;
-		ob->gameflag &= ~(OB_RIGID_BODY);
+		ob->gameflag &= ~(OB_RIGID_BODY|OB_OCCLUDER);
 		
 		/* assume triangle mesh, if no bounds chosen for soft body */
 		if ((ob->gameflag & OB_BOUNDS) && (ob->boundtype<OB_BOUND_POLYH))
@@ -3054,12 +3077,14 @@ static uiBlock *advanced_bullet_menu(void *arg_ob)
 
 	block= uiNewBlock(&curarea->uiblocks, "advanced_bullet_options", UI_EMBOSS, UI_HELV, curarea->win);
 	/* use this for a fake extra empy space around the buttons */
-	uiDefBut(block, LABEL, 0, "", -10, -10, 380, 60, NULL, 0, 0, 0, 0, "");
+	
 
 	if (ob->gameflag & OB_SOFT_BODY) {
+		uiDefBut(block, LABEL, 0, "", -10, -10, 380, 60, NULL, 0, 0, 0, 0, "");
 
 		if (ob->bsoft)
 		{
+			
 
 			uiBlockBeginAlign(block);
 			uiDefButBitI(block, TOG, OB_BSB_COL_CL_RS, 0, "Cluster Collision RS", 
@@ -3102,16 +3127,98 @@ static uiBlock *advanced_bullet_menu(void *arg_ob)
 
 		
 		xco = 0;
+		
 
 		if (ob->gameflag & OB_DYNAMIC) {
+
+			yco = 100;
+			uiDefBut(block, LABEL, 0, "", -10, -10, 380, 120, NULL, 0, 0, 0, 0, "");
+			uiBlockBeginAlign(block);
 			if (ob->margin < 0.001f)
 				ob->margin = 0.06f;
 			uiDefButF(block, NUM, 0, "Margin", 
-					xco, yco, 170, 19, &ob->margin, 0.001, 1.0, 1, 0, 
+					xco, yco, 180, 19, &ob->margin, 0.001, 1.0, 1, 0, 
 					"Collision margin");
+			
+			yco -= 20;
+
+			if (ob->gameflag & OB_RIGID_BODY)
+			{
+				uiDefButBitI(block, TOG, OB_LOCK_RIGID_BODY_X_AXIS, 0, "Lock X Axis", 
+					xco, yco, 180, 19, &ob->gameflag2, 0, 0, 0, 0, 
+					"Disable simulation of linear motion along the X axis");
+				uiDefButBitI(block, TOG, OB_LOCK_RIGID_BODY_X_ROT_AXIS, 0, "Lock X Rot Xxis", 
+					xco+=180, yco, 180, 19, &ob->gameflag2, 0, 0, 0, 0, 
+					"Disable simulation of angular motion along the X axis");
+				yco -= 20;
+				xco=0;
+				uiDefButBitI(block, TOG, OB_LOCK_RIGID_BODY_Y_AXIS, 0, "Lock Y Axis", 
+					xco, yco, 180, 19, &ob->gameflag2, 0, 0, 0, 0, 
+					"Disable simulation of linear motion along the Y axis");
+				uiDefButBitI(block, TOG, OB_LOCK_RIGID_BODY_Y_ROT_AXIS, 0, "Lock Y Rot Axis", 
+					xco+=180, yco, 180, 19, &ob->gameflag2, 0, 0, 0, 0, 
+					"Disable simulation of angular motion along the Y axis");
+
+				yco -= 20;
+				xco=0;
+				uiDefButBitI(block, TOG, OB_LOCK_RIGID_BODY_Z_AXIS, 0, "Lock Z Axis", 
+					xco, yco, 180, 19, &ob->gameflag2, 0, 0, 0, 0, 
+					"Disable simulation of linear motion along the Z axis");
+				uiDefButBitI(block, TOG, OB_LOCK_RIGID_BODY_Z_ROT_AXIS, 0, "Lock Z Rot Axis", 
+					xco+=180, yco, 180, 19, &ob->gameflag2, 0, 0, 0, 0, 
+					"Disable simulation of angular motion along the Z axis");
+				yco -= 20;
+			}
+			xco = 0;
+			
+			uiBlockEndAlign(block);
+			
+			uiDefBut(block, LABEL, 0, "Clamp Velocity (zero disables)",	  xco, yco, 180*2, 19, NULL, 0, 0, 0, 0, "");
+			
+			uiBlockBeginAlign(block);
+			
+			uiDefButF(block, NUM, 0, "Min", 
+				xco+=180, yco, 90, 19, &ob->min_vel, 0.0, 1000.0, 1, 0, 
+				"Clamp velocity to this minimum speed (except when totally still)");
+			uiDefButF(block, NUM, 0, "Max", 
+				xco+=90, yco, 90, 19, &ob->max_vel, 0.0, 1000.0, 1, 0, 
+				"Clamp velocity to this maximum speed");
+			uiBlockEndAlign(block);
+			
+			/*
+			uiDefButBitI(block, TOG, OB_BSB_COL_CL_RS, 0, "Cluster Collision RS", 
+				xco, yco, 180, 19, &ob->bsoft->collisionflags, 0, 0, 0, 0, 
+				"Enable cluster collision between soft and rigid body");
+			uiDefButBitI(block, TOG, OB_BSB_COL_CL_SS, 0, "Cluster Collision SS", 
+				xco+=180, yco, 180, 19, &ob->bsoft->collisionflags, 0, 0, 0, 0, 
+				"Enable cluster collision between soft and soft body");
+			yco -= 20;
+			xco = 0;
+			uiDefButI(block, NUM, 0, "Cluster Iter.",		
+				xco, yco, 180, 19, &ob->bsoft->numclusteriterations, 1.0, 128., 
+				0, 0, "Specify the number of cluster iterations");
+			uiDefButI(block, NUM, 0, "Position Iter.",		
+				xco+=180, yco, 180, 19, &ob->bsoft->piterations, 0, 10, 
+				0, 0, "Position solver iterations");
+			#define OB_LOCK_RIGID_BODY_X_AXIS	4
+			#define OB_LOCK_RIGID_BODY_Y_AXIS	8
+			#define OB_LOCK_RIGID_BODY_Z_AXIS	16
+			#define OB_LOCK_RIGID_BODY_X_ROT_AXIS	32
+			#define OB_LOCK_RIGID_BODY_Y_ROT_AXIS	64
+			#define OB_LOCK_RIGID_BODY_Z_ROT_AXIS	128
+			*/
+
+			uiBlockEndAlign(block);
+
+
+			
+
+
 		} else {
+			
+			uiDefBut(block, LABEL, 0, "", -10, -10, 380, 60, NULL, 0, 0, 0, 0, "");
 			uiDefButF(block, NUM, 0, "Margin", 
-					xco, yco, 170, 19, &ob->margin, 0.0, 1.0, 1, 0, 
+					xco, yco, 180, 19, &ob->margin, 0.0, 1.0, 1, 0, 
 					"Collision margin");
 		}
 		yco -= 20;
@@ -3131,7 +3238,7 @@ static void buttons_bullet(uiBlock *block, Object *ob)
 
 	/* determine the body_type setting based on flags */
 	if (!(ob->gameflag & OB_COLLISION))
-		ob->body_type = OB_BODY_TYPE_NO_COLLISION;
+		ob->body_type = (ob->gameflag & OB_OCCLUDER) ? OB_BODY_TYPE_OCCLUDER : OB_BODY_TYPE_NO_COLLISION;
 	else if (!(ob->gameflag & OB_DYNAMIC))
 		ob->body_type = OB_BODY_TYPE_STATIC;
 	else if (!(ob->gameflag & (OB_RIGID_BODY|OB_SOFT_BODY)))
@@ -3149,7 +3256,7 @@ static void buttons_bullet(uiBlock *block, Object *ob)
 
 	//only enable game soft body if Blender Soft Body exists
 	but = uiDefButS(block, MENU, REDRAWVIEW3D, 
-			"Object type%t|No collision%x0|Static%x1|Dynamic%x2|Rigid body%x3|Soft body%x4", 
+			"Object type%t|Occluder%x5|No collision%x0|Static%x1|Dynamic%x2|Rigid body%x3|Soft body%x4", 
 			10, 205, 100, 19, &ob->body_type, 0, 0, 0, 0, "Selects the type of physical representation");
 	uiButSetFunc(but, check_body_type, but, ob);
 

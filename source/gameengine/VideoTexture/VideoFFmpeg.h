@@ -24,11 +24,16 @@ http://www.gnu.org/copyleft/lesser.txt.
 
 #ifdef WITH_FFMPEG
 extern "C" {
-#include <ffmpeg/avformat.h>
-#include <ffmpeg/avcodec.h>
-#include <ffmpeg/rational.h>
-#include <ffmpeg/swscale.h>
+#include <pthread.h>
+#include <libavformat/avformat.h>
+#include <libavcodec/avcodec.h>
+#include <libavutil/rational.h>
+#include <libswscale/swscale.h>
+#include "DNA_listBase.h"
+#include "BLI_threads.h"
+#include "BLI_blenlib.h"
 }
+
 
 #if LIBAVFORMAT_VERSION_INT < (49 << 16)
 #define FFMPEG_OLD_FRAME_RATE 1
@@ -54,6 +59,8 @@ static inline AVCodecContext* get_codec_from_stream(AVStream* stream)
 
 #include "VideoBase.h"
 
+#define CACHE_FRAME_SIZE	5
+#define CACHE_PACKET_SIZE	30
 
 // type VideoFFmpeg declaration
 class VideoFFmpeg : public VideoBase
@@ -91,7 +98,6 @@ public:
 	char *getImageName(void) { return (m_isImage) ? m_imageName.Ptr() : NULL; }
 
 protected:
-
 	// format and codec information
 	AVCodec	*m_codec;
 	AVFormatContext *m_formatCtx;
@@ -138,6 +144,9 @@ protected:
 	/// is file an image?
 	bool m_isImage;
 
+	/// is image loading done in a separate thread?
+	bool m_isThreaded;
+
 	/// keep last image name
 	STR_String m_imageName;
 
@@ -157,10 +166,37 @@ protected:
 	int openStream(const char *filename, AVInputFormat *inputFormat, AVFormatParameters *formatParams);
 
 	/// check if a frame is available and load it in pFrame, return true if a frame could be retrieved
-	bool grabFrame(long frame);
+	AVFrame* grabFrame(long frame);
 
-	/// return the frame in RGB24 format, the image data is found in AVFrame.data[0]
-	AVFrame* getFrame(void) { return m_frameRGB; }
+	/// in case of caching, put the frame back in free queue
+	void releaseFrame(AVFrame* frame);
+
+	/// start thread to load the video file/capture/stream 
+	bool startCache();
+	void stopCache();
+
+private:
+	typedef struct {
+		Link link;
+		long framePosition;
+		AVFrame *frame;
+	} CacheFrame;
+	typedef struct {
+		Link link;
+		AVPacket packet;
+	} CachePacket;
+
+	bool m_stopThread;
+	bool m_cacheStarted;
+	ListBase m_thread;
+	ListBase m_frameCacheBase;	// list of frames that are ready
+	ListBase m_frameCacheFree;	// list of frames that are unused
+	ListBase m_packetCacheBase;	// list of packets that are ready for decoding
+	ListBase m_packetCacheFree;	// list of packets that are unused
+	pthread_mutex_t m_cacheMutex;
+
+	AVFrame	*allocFrameRGB();
+	static void *cacheThread(void *);
 };
 
 inline VideoFFmpeg * getFFmpeg (PyImage * self) 

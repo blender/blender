@@ -83,10 +83,10 @@
 #include "IMB_anim5.h"
 
 #ifdef WITH_FFMPEG
-#include <ffmpeg/avformat.h>
-#include <ffmpeg/avcodec.h>
-#include <ffmpeg/rational.h>
-#include <ffmpeg/swscale.h>
+#include <libavformat/avformat.h>
+#include <libavcodec/avcodec.h>
+#include <libavutil/rational.h>
+#include <libswscale/swscale.h>
 
 #if LIBAVFORMAT_VERSION_INT < (49 << 16)
 #define FFMPEG_OLD_FRAME_RATE 1

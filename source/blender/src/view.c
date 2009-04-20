@@ -75,6 +75,7 @@
 #include "BIF_space.h"
 #include "BIF_screen.h"
 #include "BIF_toolbox.h"
+#include "BIF_sketch.h"
 
 #include "BSE_view.h"
 #include "BSE_edit.h"		/* For countall */
@@ -83,6 +84,7 @@
 #include "BDR_drawobject.h"	/* For draw_object */
 #include "BDR_editface.h"	/* For minmax_tface */
 #include "BDR_sculptmode.h"
+#include "BDR_sketch.h"
 
 #include "mydevice.h"
 #include "blendef.h"
@@ -1579,6 +1581,28 @@ void object_view_settings(Object *ob, float *lens, float *clipsta, float *clipen
 	}
 }
 
+int get_view3d_ortho(View3D *v3d)
+{
+	Camera *cam;
+	
+	if(v3d->persp==V3D_CAMOB) {
+		if(v3d->camera && v3d->camera->type==OB_CAMERA) {
+			cam= v3d->camera->data;
+
+			if(cam && cam->type==CAM_ORTHO)
+				return 1;
+			else
+				return 0;
+		}
+		else
+			return 0;
+	}
+	
+	if(v3d->persp==V3D_ORTHO)
+		return 1;
+
+	return 0;
+}
 
 int get_view3d_viewplane(int winxi, int winyi, rctf *viewplane, float *clipsta, float *clipend, float *pixsize)
 {
@@ -1885,7 +1909,14 @@ short  view3d_opengl_select(unsigned int *buffer, unsigned int bufsize, short x1
 		draw_object(BASACT, DRAW_PICKING|DRAW_CONSTCOLOR);
 	}
 	else if ((G.obedit && G.obedit->type==OB_ARMATURE)) {
-		draw_object(BASACT, DRAW_PICKING|DRAW_CONSTCOLOR);
+		if (BIF_fullSketchMode())
+		{
+			BDR_drawSketchNames();
+		}
+		else
+		{
+			draw_object(BASACT, DRAW_PICKING|DRAW_CONSTCOLOR);
+		}
 	}
 	else {
 		Base *base;
@@ -2008,7 +2039,7 @@ void initlocalview()
 	locallay= free_localbit();
 
 	if(locallay==0) {
-		error("Sorry,  no more than 8 localviews");
+		error("Sorry, no more than 8 localviews");
 		ok= 0;
 	}
 	else {

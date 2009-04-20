@@ -59,6 +59,8 @@ RAS_OpenGLRasterizer::RAS_OpenGLRasterizer(RAS_ICanvas* canvas)
 	m_2DCanvas(canvas),
 	m_fogenabled(false),
 	m_time(0.0),
+	m_campos(0.0f, 0.0f, 0.0f),
+	m_camortho(false),
 	m_stereomode(RAS_STEREO_NOSTEREO),
 	m_curreye(RAS_STEREO_LEFTEYE),
 	m_eyeseparation(0.0),
@@ -325,18 +327,23 @@ void RAS_OpenGLRasterizer::ClearCachingInfo(void)
 	m_materialCachingInfo = 0;
 }
 
-
-void RAS_OpenGLRasterizer::EndFrame()
+void RAS_OpenGLRasterizer::FlushDebugLines()
 {
-	glDisable(GL_LIGHTING);
-	glDisable(GL_TEXTURE_2D);
+	if(!m_debugLines.size())
+		return;
 
-	//DrawDebugLines
+	// DrawDebugLines
+	GLboolean light, tex;
+
+	light= glIsEnabled(GL_LIGHTING);
+	tex= glIsEnabled(GL_TEXTURE_2D);
+
+	if(light) glDisable(GL_LIGHTING);
+	if(tex) glDisable(GL_TEXTURE_2D);
+
 	glBegin(GL_LINES);
 	for (unsigned int i=0;i<m_debugLines.size();i++)
 	{
-		
-
 		glColor4f(m_debugLines[i].m_color[0],m_debugLines[i].m_color[1],m_debugLines[i].m_color[2],1.f);
 		const MT_Scalar* fromPtr = &m_debugLines[i].m_from.x();
 		const MT_Scalar* toPtr= &m_debugLines[i].m_to.x();
@@ -346,7 +353,17 @@ void RAS_OpenGLRasterizer::EndFrame()
 	}
 	glEnd();
 
+	if(light) glEnable(GL_LIGHTING);
+	if(tex) glEnable(GL_TEXTURE_2D);
+
 	m_debugLines.clear();
+}
+
+void RAS_OpenGLRasterizer::EndFrame()
+{
+	
+
+	FlushDebugLines();
 
 	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 	m_2DCanvas->EndFrame();
@@ -419,7 +436,7 @@ RAS_IRasterizer::StereoMode RAS_OpenGLRasterizer::GetStereoMode()
 
 bool RAS_OpenGLRasterizer::Stereo()
 {
-	if(m_stereomode == RAS_STEREO_NOSTEREO)
+	if(m_stereomode == RAS_STEREO_NOSTEREO || m_stereomode == RAS_STEREO_DOME)
 		return false;
 	else
 		return true;
@@ -756,8 +773,9 @@ void RAS_OpenGLRasterizer::SetProjectionMatrix(MT_CmMatrix4x4 &mat)
 	glMatrixMode(GL_PROJECTION);
 	double* matrix = &mat(0,0);
 	glLoadMatrixd(matrix);
-}
 
+	m_camortho= (mat(3, 3) != 0.0f);
+}
 
 void RAS_OpenGLRasterizer::SetProjectionMatrix(const MT_Matrix4x4 & mat)
 {
@@ -767,6 +785,8 @@ void RAS_OpenGLRasterizer::SetProjectionMatrix(const MT_Matrix4x4 & mat)
 	mat.getValue(matrix);
 	/* Internally, MT_Matrix4x4 uses doubles (MT_Scalar). */
 	glLoadMatrixd(matrix);	
+
+	m_camortho= (mat[3][3] != 0.0f);
 }
 
 MT_Matrix4x4 RAS_OpenGLRasterizer::GetFrustumMatrix(
@@ -783,7 +803,7 @@ MT_Matrix4x4 RAS_OpenGLRasterizer::GetFrustumMatrix(
 	double mat[16];
 
 	// correction for stereo
-	if(m_stereomode != RAS_STEREO_NOSTEREO)
+	if(Stereo())
 	{
 			float near_div_focallength;
 			// next 2 params should be specified on command line and in Blender publisher
@@ -826,7 +846,7 @@ void RAS_OpenGLRasterizer::SetViewMatrix(const MT_Matrix4x4 &mat, const MT_Vecto
 	m_viewmatrix = mat;
 
 	// correction for stereo
-	if(m_stereomode != RAS_STEREO_NOSTEREO)
+	if(Stereo())
 	{
 		MT_Matrix3x3 camOrientMat3x3(camOrientQuat);
 		MT_Vector3 unitViewDir(0.0, -1.0, 0.0);  // minus y direction, Blender convention
@@ -883,6 +903,10 @@ const MT_Point3& RAS_OpenGLRasterizer::GetCameraPosition()
 	return m_campos;
 }
 
+bool RAS_OpenGLRasterizer::GetCameraOrtho()
+{
+	return m_camortho;
+}
 
 void RAS_OpenGLRasterizer::SetCullFace(bool enable)
 {

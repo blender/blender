@@ -1,9 +1,10 @@
 # $Id$
-# Documentation for KX_ActuatorSensor
+# Documentation for SCA_ActuatorSensor
 from SCA_IActuator import *
 from SCA_ISensor import *
+from SCA_ILogicBrick import *
 
-class KX_ActuatorSensor(SCA_ISensor):
+class SCA_ActuatorSensor(SCA_ISensor):
 	"""
 	Actuator sensor detect change in actuator state of the parent object.
 	It generates a positive pulse if the corresponding actuator is activated

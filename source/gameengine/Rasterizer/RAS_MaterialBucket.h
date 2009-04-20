@@ -86,9 +86,11 @@ public:
 };
 
 /* Entry of a RAS_MeshObject into RAS_MaterialBucket */
+typedef std::vector<RAS_DisplayArray*>	RAS_DisplayArrayList;
 
 class RAS_MeshSlot
 {
+	friend class RAS_ListRasterizer;
 private:
 	//  indices into display arrays
 	int							m_startarray;
@@ -97,7 +99,7 @@ private:
 	int							m_endindex;
 	int							m_startvertex;
 	int							m_endvertex;
-	vector<RAS_DisplayArray*>	m_displayArrays;
+	RAS_DisplayArrayList		m_displayArrays;
 
 	// for construction only
 	RAS_DisplayArray*			m_currentArray;
@@ -156,6 +158,7 @@ public:
 	bool Join(RAS_MeshSlot *target, MT_Scalar distance);
 	bool Equals(RAS_MeshSlot *target);
 	bool IsCulled();
+	void SetCulled(bool culled) { m_bCulled = culled; }
 };
 
 /* Used by RAS_MeshObject, to point to it's slots in a bucket */

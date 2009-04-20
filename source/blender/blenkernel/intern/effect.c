@@ -298,24 +298,22 @@ static float wind_func(struct RNG *rng, float strength)
 	return ret;
 }
 
-
+/* maxdist: zero effect from this distance outwards (if usemax) */
+/* mindist: full effect up to this distance (if usemin) */
+/* power: falloff with formula 1/r^power */
 static float falloff_func(float fac, int usemin, float mindist, int usemax, float maxdist, float power)
 {
-	if(!usemin)
-		mindist= 0.0f;
+	/* first quick checks */
+	if(usemax && fac > maxdist)
+		return 0.0f;
 
-	if(fac < mindist) {
+	if(usemin && fac < mindist)
 		return 1.0f;
-	}
-	else if(usemax) {
-		if(fac>maxdist || (maxdist-mindist)<=0.0f)
-			return 0.0f;
 
-		fac= (fac-mindist)/(maxdist-mindist);
-		return 1.0f - (float)pow((double)fac, (double)power);
-	}
-	else
-		return pow((double)1.0f+fac-mindist, (double)-power);
+	if(!usemin)
+		mindist = 0.0;
+
+	return pow((double)1.0+fac-mindist, (double)-power);
 }
 
 static float falloff_func_dist(PartDeflect *pd, float fac)
@@ -464,14 +462,11 @@ void do_physical_effector(Object *ob, float *opco, short type, float force_val, 
 			else
 				VecCopyf(mag_vec,vec_to_part);
 
-			Normalize(mag_vec);
-
 			VecMulf(mag_vec,force_val*falloff);
 			VecSubf(field,field,mag_vec);
 
 			VecCopyf(mag_vec,velocity);
-			/* 1.9 is an experimental value to get critical damping at damp=1.0 */
-			VecMulf(mag_vec,damp*1.9f*(float)sqrt(force_val));
+			VecMulf(mag_vec,damp*2.0f*(float)sqrt(force_val));
 			VecSubf(field,field,mag_vec);
 			break;
 		case PFIELD_CHARGE:

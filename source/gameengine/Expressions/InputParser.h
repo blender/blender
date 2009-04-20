@@ -49,6 +49,7 @@ private:
 	};			// all kinds of symbols
 
 	enum optype {
+		OPmodulus,
 		OPplus,
 		OPminus,
 		OPtimes,
@@ -93,7 +94,9 @@ private:
 	void CharRep();
 	void GrabString(int start);
 	void NextSym();
+#if 0	/* not used yet */
 	int MakeInt();
+#endif
 	STR_String Symbol2Str(int s);
 	void Term(int s);
 	int Priority(int optor);

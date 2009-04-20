@@ -1,29 +1,86 @@
 # $Id$
 # Documentation for game objects
 
-class KX_GameObject:
+# from SCA_IObject import *
+# from SCA_ISensor import *
+# from SCA_IController import *
+# from SCA_IActuator import *
+
+
+class KX_GameObject: # (SCA_IObject)
 	"""
 	All game objects are derived from this class.
 	
 	Properties assigned to game objects are accessible as attributes of this class.
-	
-	@ivar name: The object's name.
+		- note: Calling ANY method or attribute on an object that has been removed from a scene will raise a RuntimeError, if an object may have been removed since last accessing it use the L{isValid} attribute to check.
+
+	@ivar name: The object's name. (Read only)
+		- note: Currently (Blender 2.49) the prefix "OB" is added to all objects name. This may change in blender 2.5.
 	@type name: string.
-	@ivar mass: The object's mass (provided the object has a physics controller). Read only.
+	@ivar mass: The object's mass
+		- note: The object must have a physics controller for the mass to be applied, otherwise the mass value will be returned as 0.0
 	@type mass: float
+	@ivar linVelocityMin: Enforces the object keeps moving at a minimum velocity.
+		- note: Applies to dynamic and rigid body objects only.
+		- note: A value of 0.0 disables this option.
+		- note: While objects are stationary the minimum velocity will not be applied.
+	@type linVelocityMin: float
+	@ivar linVelocityMax: Clamp the maximum linear velocity to prevent objects moving beyond a set speed.
+		- note: Applies to dynamic and rigid body objects only.
+		- note: A value of 0.0 disables this option (rather then setting it stationary).
+	@type linVelocityMax: float
+	@ivar localInertia: the object's inertia vector in local coordinates. Read only.
+	@type localInertia: list [ix, iy, iz]
 	@ivar parent: The object's parent object. (Read only)
-	@type parent: L{KX_GameObject}
+	@type parent: L{KX_GameObject} or None
 	@ivar visible: visibility flag.
+		- note: Game logic will still run for invisible objects.
 	@type visible: boolean
+	@ivar occlusion: occlusion capability flag.
+	@type occlusion: boolean
 	@ivar position: The object's position. 
-	@type position: list [x, y, z]
-	@ivar orientation: The object's orientation. 3x3 Matrix.  
-	                   You can also write a Quaternion or Euler vector.
-	@type orientation: 3x3 Matrix [[float]]
+	                DEPRECATED: use localPosition and worldPosition
+	@type position: list [x, y, z] On write: local position, on read: world position
+	@ivar orientation: The object's orientation. 3x3 Matrix. You can also write a Quaternion or Euler vector.
+	                   DEPRECATED: use localOrientation and worldOrientation
+	@type orientation: 3x3 Matrix [[float]] On write: local orientation, on read: world orientation
 	@ivar scaling: The object's scaling factor. list [sx, sy, sz]
-	@type scaling: list [sx, sy, sz]
+	               DEPRECATED: use localScaling and worldScaling
+	@type scaling: list [sx, sy, sz] On write: local scaling, on read: world scaling
+	@ivar localOrientation: The object's local orientation. 3x3 Matrix. You can also write a Quaternion or Euler vector.
+	@type localOrientation: 3x3 Matrix [[float]]
+	@ivar worldOrientation: The object's world orientation. Read-only.
+	@type worldOrientation: 3x3 Matrix [[float]]
+	@ivar localScaling: The object's local scaling factor.
+	@type localScaling: list [sx, sy, sz]
+	@ivar worldScaling: The object's world scaling factor. Read-only
+	@type worldScaling: list [sx, sy, sz]
+	@ivar localPosition: The object's local position. 
+	@type localPosition: list [x, y, z]
+	@ivar worldPosition: The object's world position. 
+	@type worldPosition: list [x, y, z]
 	@ivar timeOffset: adjust the slowparent delay at runtime.
 	@type timeOffset: float
+	@ivar state: the game object's state bitmask, using the first 30 bits, one bit must always be set.
+	@type state: int
+	@ivar meshes: a list meshes for this object.
+		- note: Most objects use only 1 mesh.
+		- note: Changes to this list will not update the KX_GameObject.
+	@type meshes: list of L{KX_MeshProxy}
+	@ivar sensors: a list of L{SCA_ISensor} objects.
+		- note: This attribute is experemental and may be removed (but probably wont be).
+		- note: Changes to this list will not update the KX_GameObject.
+	@type sensors: list
+	@ivar controllers: a list of L{SCA_IController} objects.
+		- note: This attribute is experemental and may be removed (but probably wont be).
+		- note: Changes to this list will not update the KX_GameObject.
+	@type controllers: list of L{SCA_ISensor}.
+	@ivar actuators: a list of L{SCA_IActuator} objects.
+		- note: This attribute is experemental and may be removed (but probably wont be).
+		- note: Changes to this list will not update the KX_GameObject.
+	@type actuators: list
+	@ivar isValid: Retuerns fails when the object has been removed from the scene and can no longer be used.
+	@type isValid: bool
 	"""
 	def endObject(visible):
 		"""
@@ -37,33 +94,43 @@ class KX_GameObject:
 		"""	
 	def getVisible():
 		"""
-		Gets the game object's visible flag.
+		Gets the game object's visible flag. (B{deprecated})
 		
 		@rtype: boolean
 		"""	
-	def setVisible(visible):
+	def setVisible(visible, recursive):
 		"""
 		Sets the game object's visible flag.
 		
 		@type visible: boolean
+		@type recursive: boolean
+		@param recursive: optional argument to set all childrens visibility flag too.
+		"""
+	def setOcclusion(occlusion, recursive):
+		"""
+		Sets the game object's occlusion capability.
+		
+		@type visible: boolean
+		@type recursive: boolean
+		@param recursive: optional argument to set all childrens occlusion flag too.
 		"""
 	def getState():
 		"""
-		Gets the game object's state bitmask.
+		Gets the game object's state bitmask. (B{deprecated})
 		
 		@rtype: int
 		@return: the objects state.
 		"""	
 	def setState(state):
 		"""
-		Sets the game object's state flag.
-		The bitmasks for states from 1 to 30 can be set with (1<<0, 1<<1, 1<<2 ... 1<<29)
+		Sets the game object's state flag. (B{deprecated}).
+		The bitmasks for states from 1 to 30 can be set with (1<<0, 1<<1, 1<<2 ... 1<<29) 
 		
 		@type state: integer
 		"""
 	def setPosition(pos):
 		"""
-		Sets the game object's position. 
+		Sets the game object's position. (B{deprecated})
 		Global coordinates for root object, local for child objects.
 		
 		
@@ -79,14 +146,14 @@ class KX_GameObject:
 		"""
 	def getPosition():
 		"""
-		Gets the game object's position.
+		Gets the game object's position. (B{deprecated})
 		
 		@rtype: list [x, y, z]
 		@return: the object's position in world coordinates.
 		"""
 	def setOrientation(orn):
 		"""
-		Sets the game object's orientation.
+		Sets the game object's orientation. (B{deprecated})
 		
 		@type orn: 3x3 rotation matrix, or Quaternion.
 		@param orn: a rotation matrix specifying the new rotation.
@@ -117,7 +184,7 @@ class KX_GameObject:
 		"""
 	def getOrientation():
 		"""
-		Gets the game object's orientation.
+		Gets the game object's orientation. (B{deprecated})
 		
 		@rtype: 3x3 rotation matrix
 		@return: The game object's rotation matrix
@@ -133,7 +200,7 @@ class KX_GameObject:
 		@param local: - False: you get the "global" movement ie: relative to world orientation (default).
 		              - True: you get the "local" movement ie: relative to object orientation.
 		"""	
-	def applyRotation(movement, local = 0):
+	def applyRotation(rotation, local = 0):
 		"""
 		Sets the game object's rotation.
 		
@@ -231,7 +298,7 @@ class KX_GameObject:
 		"""
 	def getMass():
 		"""
-		Gets the game object's mass.
+		Gets the game object's mass. (B{deprecated})
 		
 		@rtype: float
 		@return: the object's mass.
@@ -242,6 +309,8 @@ class KX_GameObject:
 		
 		The reaction force is the force applied to this object over the last simulation timestep.
 		This also includes impulses, eg from collisions.
+		
+		(B{This is not implimented for bullet physics at the moment})
 		
 		@rtype: list [fx, fy, fz]
 		@return: the reaction force of this object.
@@ -280,7 +349,7 @@ class KX_GameObject:
 		"""
 	def getParent():
 		"""
-		Gets this object's parent.
+		Gets this object's parent. (B{deprecated})
 		
 		@rtype: L{KX_GameObject}
 		@return: this object's parent object, or None if this object has no parent.
@@ -299,13 +368,13 @@ class KX_GameObject:
 	def getChildren():
 		"""
 		Return a list of immediate children of this object.
-		@rtype: list
+		@rtype: L{CListValue<CListValue.CListValue>} of L{KX_GameObject<KX_GameObject.KX_GameObject>}
 		@return: a list of all this objects children.
 		"""
 	def getChildrenRecursive():
 		"""
 		Return a list of children of this object, including all their childrens children.
-		@rtype: list
+		@rtype: L{CListValue<CListValue.CListValue>} of L{KX_GameObject<KX_GameObject.KX_GameObject>}
 		@return: a list of all this objects children recursivly.
 		"""
 	def getMesh(mesh):
@@ -413,5 +482,23 @@ class KX_GameObject:
 		         If no hit, returns (None,None,None) or (None,None,None,None)
 		         If the object hit is not a static mesh, polygon is None
 		"""
-
-
+	def setCollisionMargin(margin):
+		"""
+		Set the objects collision margin.
+		
+		note: If this object has no physics controller (a physics ID of zero), this function will raise RuntimeError.
+		
+		@type margin: float
+		@param margin: the collision margin distance in blender units.
+		"""
+	def sendMessage(subject, body="", to=""):
+		"""
+		Sends a message.
+	
+		@param subject: The subject of the message
+		@type subject: string
+		@param body: The body of the message (optional)
+		@type body: string
+		@param to: The name of the object to send the message to (optional)
+		@type to: string
+		"""

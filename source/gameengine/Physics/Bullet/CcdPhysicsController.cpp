@@ -16,6 +16,9 @@ subject to the following restrictions:
 #include "CcdPhysicsController.h"
 #include "btBulletDynamicsCommon.h"
 #include "BulletCollision/CollisionShapes/btScaledBvhTriangleMeshShape.h"
+
+#include "BulletCollision/CollisionShapes/btTriangleIndexVertexArray.h"
+
 #include "PHY_IMotionState.h"
 #include "CcdPhysicsEnvironment.h"
 #include "RAS_MeshObject.h"
@@ -24,9 +27,13 @@ subject to the following restrictions:
 #include "BulletSoftBody/btSoftBodyHelpers.h"
 #include "LinearMath/btConvexHull.h"
 #include "BulletCollision/Gimpact/btGImpactShape.h"
+#include "BulletCollision/Gimpact/btGImpactShape.h"
 
 
 #include "BulletSoftBody/btSoftRigidDynamicsWorld.h"
+
+#include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
 
 class BP_Proxy;
 
@@ -577,7 +584,19 @@ bool		CcdPhysicsController::SynchronizeMotionStates(float time)
 
 	if (body && !body->isStaticObject())
 	{
-
+		
+		if ((m_cci.m_clamp_vel_max>0.0) || (m_cci.m_clamp_vel_min>0.0))
+		{
+			const btVector3& linvel = body->getLinearVelocity();
+			float len= linvel.length();
+			
+			if((m_cci.m_clamp_vel_max>0.0) && (len > m_cci.m_clamp_vel_max))
+					body->setLinearVelocity(linvel * (m_cci.m_clamp_vel_max / len));
+			
+			else if ((m_cci.m_clamp_vel_min>0.0) && btFuzzyZero(len)==0 && (len < m_cci.m_clamp_vel_min))
+				body->setLinearVelocity(linvel * (m_cci.m_clamp_vel_min / len));
+		}
+		
 		const btVector3& worldPos = body->getCenterOfMassPosition();
 		m_MotionState->setWorldPosition(worldPos[0],worldPos[1],worldPos[2]);
 		
@@ -1238,9 +1257,25 @@ void	DefaultMotionState::getWorldOrientation(float& quatIma0,float& quatIma1,flo
 	quatReal = m_worldTransform.getRotation()[3];
 }
 		
+void	DefaultMotionState::getWorldOrientation(float* ori)
+{
+	*ori++ = m_worldTransform.getBasis()[0].x();
+	*ori++ = m_worldTransform.getBasis()[1].x();
+	*ori++ = m_worldTransform.getBasis()[1].x();
+	*ori++ = 0.f;
+	*ori++ = m_worldTransform.getBasis()[0].y();
+	*ori++ = m_worldTransform.getBasis()[1].y();
+	*ori++ = m_worldTransform.getBasis()[1].y();
+	*ori++ = 0.f;
+	*ori++ = m_worldTransform.getBasis()[0].z();
+	*ori++ = m_worldTransform.getBasis()[1].z();
+	*ori++ = m_worldTransform.getBasis()[1].z();
+	*ori++ = 0.f;
+}
+
 void	DefaultMotionState::setWorldPosition(float posX,float posY,float posZ)
 {
-	btPoint3 pos(posX,posY,posZ);
+	btVector3 pos(posX,posY,posZ);
 	m_worldTransform.setOrigin( pos );
 }
 
@@ -1272,123 +1307,212 @@ CcdShapeConstructionInfo* CcdShapeConstructionInfo::FindMesh(RAS_MeshObject* mes
 
 bool CcdShapeConstructionInfo::SetMesh(RAS_MeshObject* meshobj, bool polytope,bool useGimpact)
 {
+	int numpolys;
+
 	m_useGimpact = useGimpact;
 
 	// assume no shape information
 	// no support for dynamic change of shape yet
 	assert(IsUnused());
 	m_shapeType = PHY_SHAPE_NONE;
-	m_vertexArray.clear();
-	m_polygonIndexArray.clear();
 	m_meshObject = NULL;
 
-	if (!meshobj)
-		return false;
-
-	// Mesh has no polygons!
-	int numpolys = meshobj->NumPolygons();
-	if (!numpolys)
-	{
+	// No mesh object or mesh has no polys
+	if (!meshobj || meshobj->HasColliderPolygon()==false) {
+		m_vertexArray.clear();
+		m_polygonIndexArray.clear();
+		m_triFaceArray.clear();
 		return false;
 	}
 
-	// check that we have at least one colliding polygon
-	int numvalidpolys = 0;
-
-	for (int p=0; p<numpolys; p++)
-	{
-		RAS_Polygon* poly = meshobj->GetPolygon(p);
-
-		// only add polygons that have the collisionflag set
-		if (poly->IsCollider())
-		{
-			numvalidpolys++;
-			break;
-		}
-	}
-
-	// No collision polygons
-	if (numvalidpolys < 1)
-		return false;
+	numpolys = meshobj->NumPolygons();
 
 	m_shapeType = (polytope) ? PHY_SHAPE_POLYTOPE : PHY_SHAPE_MESH;
 
-	numvalidpolys = 0;
+	/* Convert blender geometry into bullet mesh, need these vars for mapping */
+	vector<bool> vert_tag_array(meshobj->GetMesh()->totvert, false);
+	unsigned int tot_bt_verts= 0;
+	unsigned int orig_index;
+	int i;
 
-	for (int p2=0; p2<numpolys; p2++)
+	if (polytope)
 	{
-		RAS_Polygon* poly = meshobj->GetPolygon(p2);
+		// Tag verts we're using
+		for (int p2=0; p2<numpolys; p2++)
+		{
+			RAS_Polygon* poly= meshobj->GetPolygon(p2);
 
-		// only add polygons that have the collisionflag set
-		if (poly->IsCollider())
-		{   
-			//Bullet can raycast any shape, so
-			if (polytope)
+			// only add polygons that have the collision flag set
+			if (poly->IsCollider())
 			{
-				for (int i=0;i<poly->VertexCount();i++)
-				{
-					const float* vtx = poly->GetVertex(i)->getXYZ();
-					btPoint3 point(vtx[0],vtx[1],vtx[2]);
-					//avoid duplicates (could better directly use vertex offsets, rather than a vertex compare)
-					bool found = false;
-					for (int j=0;j<m_vertexArray.size();j++)
+				for(i=0; i<poly->VertexCount(); i++) {
+					orig_index= poly->GetVertex(i)->getOrigIndex();
+					if (vert_tag_array[orig_index]==false)
 					{
-						if (m_vertexArray[j]==point)
-						{
-							found = true;
-							break;
-						}
+						vert_tag_array[orig_index]= true;
+						tot_bt_verts++;
 					}
-					if (!found)
-						m_vertexArray.push_back(point);
-
-					numvalidpolys++;
 				}
-			} else
+			}
+		}
+
+		m_vertexArray.resize(tot_bt_verts);
+
+		btVector3 *bt= &m_vertexArray[0];
+
+		for (int p2=0; p2<numpolys; p2++)
+		{
+			RAS_Polygon* poly= meshobj->GetPolygon(p2);
+
+			// only add polygons that have the collisionflag set
+			if (poly->IsCollider())
 			{
-				{
-					const float* vtx = poly->GetVertex(2)->getXYZ();
-					btPoint3 vertex0(vtx[0],vtx[1],vtx[2]);
+				for(i=0; i<poly->VertexCount(); i++) {
+					RAS_TexVert *v= poly->GetVertex(i);
+					orig_index= v->getOrigIndex();
 
-					vtx = poly->GetVertex(1)->getXYZ();
-					btPoint3 vertex1(vtx[0],vtx[1],vtx[2]);
+					if (vert_tag_array[orig_index]==true)
+					{
+						const float* vtx = v->getXYZ();
+						vert_tag_array[orig_index]= false;
 
-					vtx = poly->GetVertex(0)->getXYZ();
-					btPoint3 vertex2(vtx[0],vtx[1],vtx[2]);
-
-					m_vertexArray.push_back(vertex0);
-					m_vertexArray.push_back(vertex1);
-					m_vertexArray.push_back(vertex2);
-					m_polygonIndexArray.push_back(p2);
-					numvalidpolys++;
+						bt->setX(vtx[0]);  bt->setY(vtx[1]);  bt->setZ(vtx[2]);
+						bt++;
+					}
 				}
-				if (poly->VertexCount() == 4)
-				{
-					const float* vtx = poly->GetVertex(3)->getXYZ();
-					btPoint3 vertex0(vtx[0],vtx[1],vtx[2]);
-
-					vtx = poly->GetVertex(2)->getXYZ();
-					btPoint3 vertex1(vtx[0],vtx[1],vtx[2]);
-
-					vtx = poly->GetVertex(0)->getXYZ();
-					btPoint3 vertex2(vtx[0],vtx[1],vtx[2]);
-
-					m_vertexArray.push_back(vertex0);
-					m_vertexArray.push_back(vertex1);
-					m_vertexArray.push_back(vertex2);
-					m_polygonIndexArray.push_back(p2);
-					numvalidpolys++;
-				}
-			}		
+			}
 		}
 	}
+	else {
+		unsigned int tot_bt_tris= 0;
+		vector<int> vert_remap_array(meshobj->GetMesh()->totvert, 0);
+		
+		// Tag verts we're using
+		for (int p2=0; p2<numpolys; p2++)
+		{
+			RAS_Polygon* poly= meshobj->GetPolygon(p2);
 
-	if (!numvalidpolys)
+			// only add polygons that have the collision flag set
+			if (poly->IsCollider())
+			{
+				for(i=0; i<poly->VertexCount(); i++) {
+					orig_index= poly->GetVertex(i)->getOrigIndex();
+					if (vert_tag_array[orig_index]==false)
+					{
+						vert_tag_array[orig_index]= true;
+						vert_remap_array[orig_index]= tot_bt_verts;
+						tot_bt_verts++;
+					}
+				}
+
+				tot_bt_tris += (i==4 ? 2:1); /* a quad or a tri */
+			}
+		}
+
+		m_vertexArray.resize(tot_bt_verts);
+		m_polygonIndexArray.resize(tot_bt_tris);
+		m_triFaceArray.resize(tot_bt_tris*3);
+
+		btVector3 *bt= &m_vertexArray[0];
+		int *poly_index_pt= &m_polygonIndexArray[0];
+		int *tri_pt= &m_triFaceArray[0];
+
+
+		for (int p2=0; p2<numpolys; p2++)
+		{
+			RAS_Polygon* poly= meshobj->GetPolygon(p2);
+
+			// only add polygons that have the collisionflag set
+			if (poly->IsCollider())
+			{
+				RAS_TexVert *v1= poly->GetVertex(0);
+				RAS_TexVert *v2= poly->GetVertex(1);
+				RAS_TexVert *v3= poly->GetVertex(2);
+				int i1= v1->getOrigIndex();
+				int i2= v2->getOrigIndex();
+				int i3= v3->getOrigIndex();
+				const float* vtx;
+
+				// the face indicies
+				tri_pt[0]= vert_remap_array[i1];
+				tri_pt[1]= vert_remap_array[i2];
+				tri_pt[2]= vert_remap_array[i3];
+				tri_pt= tri_pt+3;
+
+				// m_polygonIndexArray
+				*poly_index_pt= p2;
+				poly_index_pt++;
+
+				// the vertex location
+				if (vert_tag_array[i1]==true) { /* *** v1 *** */
+					vert_tag_array[i1]= false;
+					vtx = v1->getXYZ();
+					bt->setX(vtx[0]);	bt->setY( vtx[1]);	bt->setZ(vtx[2]);
+					bt++;
+				}
+				if (vert_tag_array[i2]==true) { /* *** v2 *** */
+					vert_tag_array[i2]= false;
+					vtx = v2->getXYZ();
+					bt->setX(vtx[0]);	bt->setY(vtx[1]);	bt->setZ(vtx[2]);
+					bt++;
+				}
+				if (vert_tag_array[i3]==true) { /* *** v3 *** */
+					vert_tag_array[i3]= false;
+					vtx = v3->getXYZ();
+					bt->setX(vtx[0]);	bt->setY(vtx[1]);	bt->setZ(vtx[2]);
+					bt++;
+				}
+
+				if (poly->VertexCount()==4)
+				{
+					RAS_TexVert *v4= poly->GetVertex(3);
+					int i4= v4->getOrigIndex();
+
+					tri_pt[0]= vert_remap_array[i1];
+					tri_pt[1]= vert_remap_array[i3];
+					tri_pt[2]= vert_remap_array[i4];
+					tri_pt= tri_pt+3;
+
+					// m_polygonIndexArray
+					*poly_index_pt= p2;
+					poly_index_pt++;
+
+					// the vertex location
+					if (vert_tag_array[i4]==true) { /* *** v4 *** */
+						vert_tag_array[i4]= false;
+						vtx = v4->getXYZ();
+						bt->setX(vtx[0]);	bt->setY(vtx[1]);	bt->setZ(vtx[2]);
+						bt++;
+					}
+				}
+			}
+		}
+
+
+		/* If this ever gets confusing, print out an OBJ file for debugging */
+#if 0
+		printf("# vert count %d\n", m_vertexArray.size());
+		for(i=0; i<m_vertexArray.size(); i+=1) {
+			printf("v %.6f %.6f %.6f\n", m_vertexArray[i].x(), m_vertexArray[i].y(), m_vertexArray[i].z());
+		}
+
+		printf("# face count %d\n", m_triFaceArray.size());
+		for(i=0; i<m_triFaceArray.size(); i+=3) {
+			printf("f %d %d %d\n", m_triFaceArray[i]+1, m_triFaceArray[i+1]+1, m_triFaceArray[i+2]+1);
+		}
+#endif
+
+	}
+
+#if 0
+	if (validpolys==false)
 	{
 		// should not happen
 		m_shapeType = PHY_SHAPE_NONE;
 		return false;
 	}
+#endif
+	
 	m_meshObject = meshobj;
 	if (!polytope)
 	{
@@ -1413,7 +1537,6 @@ btCollisionShape* CcdShapeConstructionInfo::CreateBulletShape()
 {
 	btCollisionShape* collisionShape = 0;
 	btTriangleMeshShape* concaveShape = 0;
-	btTriangleMesh* collisionMeshData = 0;
 	btCompoundShape* compoundShape = 0;
 	CcdShapeConstructionInfo* nextShapeInfo;
 
@@ -1442,7 +1565,7 @@ btCollisionShape* CcdShapeConstructionInfo::CreateBulletShape()
 		break;
 
 	case PHY_SHAPE_POLYTOPE:
-		collisionShape = new btConvexHullShape(&m_vertexArray.begin()->getX(), m_vertexArray.size());
+		collisionShape = new btConvexHullShape(&m_vertexArray[0].getX(), m_vertexArray.size());
 		break;
 
 	case PHY_SHAPE_MESH:
@@ -1454,16 +1577,17 @@ btCollisionShape* CcdShapeConstructionInfo::CreateBulletShape()
 		// One possible optimization is to use directly the btBvhTriangleMeshShape when the scale is 1,1,1
 		// and btScaledBvhTriangleMeshShape otherwise.
 		if (m_useGimpact)
-		{
-				collisionMeshData = new btTriangleMesh();
+		{				
+				btTriangleIndexVertexArray* indexVertexArrays = new btTriangleIndexVertexArray(
+						m_polygonIndexArray.size(),
+						&m_triFaceArray[0],
+						3*sizeof(int),
+						m_vertexArray.size(),
+						(btScalar*) &m_vertexArray[0].x(),
+						sizeof(btVector3)
+				);
 				
-
-				// m_vertexArray is necessarily a multiple of 3
-				for (std::vector<btPoint3>::iterator it=m_vertexArray.begin(); it != m_vertexArray.end(); )
-				{
-					collisionMeshData->addTriangle(*it++,*it++,*it++);
-				}
-				btGImpactMeshShape* gimpactShape =  new btGImpactMeshShape(collisionMeshData);
+				btGImpactMeshShape* gimpactShape =  new btGImpactMeshShape(indexVertexArrays);
 
 				collisionShape = gimpactShape;
 				gimpactShape->updateBound();
@@ -1472,16 +1596,39 @@ btCollisionShape* CcdShapeConstructionInfo::CreateBulletShape()
 		{
 			if (!m_unscaledShape)
 			{
-				collisionMeshData = new btTriangleMesh(true,false);
-				collisionMeshData->m_weldingThreshold = m_weldingThreshold;
+			
+				btTriangleIndexVertexArray* indexVertexArrays = 0;
 
-				// m_vertexArray is necessarily a multiple of 3
-				for (std::vector<btPoint3>::iterator it=m_vertexArray.begin(); it != m_vertexArray.end(); )
+				///enable welding, only for the objects that need it (such as soft bodies)
+				if (0.f != m_weldingThreshold1)
 				{
-					collisionMeshData->addTriangle(*it++,*it++,*it++);
+					btTriangleMesh* collisionMeshData = new btTriangleMesh(true,false);
+					collisionMeshData->m_weldingThreshold = m_weldingThreshold1;
+					bool removeDuplicateVertices=true;
+					// m_vertexArray not in multiple of 3 anymore, use m_triFaceArray
+					for(int i=0; i<m_triFaceArray.size(); i+=3) {
+						collisionMeshData->addTriangle(
+								m_vertexArray[m_triFaceArray[i]],
+								m_vertexArray[m_triFaceArray[i+1]],
+								m_vertexArray[m_triFaceArray[i+2]],
+								removeDuplicateVertices
+						);
+					}
+					indexVertexArrays = collisionMeshData;
+
+				} else
+				{
+					indexVertexArrays = new btTriangleIndexVertexArray(
+							m_polygonIndexArray.size(),
+							&m_triFaceArray[0],
+							3*sizeof(int),
+							m_vertexArray.size(),
+							(btScalar*) &m_vertexArray[0].x(),
+							sizeof(btVector3));
 				}
+				
 				// this shape will be shared and not deleted until shapeInfo is deleted
-				m_unscaledShape = new btBvhTriangleMeshShape( collisionMeshData, true );
+				m_unscaledShape = new btBvhTriangleMeshShape( indexVertexArrays, true );
 				m_unscaledShape->recalcLocalAabb();
 			}
 			collisionShape = new btScaledBvhTriangleMeshShape(m_unscaledShape, btVector3(1.0f,1.0f,1.0f));

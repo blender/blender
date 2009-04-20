@@ -43,6 +43,7 @@
 #include <Python.h>
 #include "BIF_gl.h"
 
+PyObject *BGL_Init( const char *from );
 
 /*@ Buffer Object */
 /*@ For Python access to OpenGL functions requiring a pointer. */
@@ -303,7 +304,8 @@ typedef struct _Buffer {
 
 #define ret_def_void
 #define ret_set_void
-#define ret_ret_void    return EXPP_incr_ret(Py_None)
+/* would use Py_RETURN_NONE - except for py 2.3 doesnt have it */
+#define ret_ret_void    { Py_INCREF(Py_None); return Py_None; }
 
 #define ret_def_GLint   int ret_int
 #define ret_set_GLint   ret_int=

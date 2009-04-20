@@ -691,7 +691,7 @@ void deleteflagNurb(short flag)
 				nu->bp= newbp;
 				clamp_nurb_order_v(nu);
 
-				makeknots(nu, 2, nu->flagv>>1);
+				makeknots(nu, 2);
 			}
 			else {
 				/* is the nurb in V direction selected */
@@ -737,7 +737,7 @@ void deleteflagNurb(short flag)
 						nu->pntsu= newu;
 						clamp_nurb_order_u(nu);
 					}
-					makeknots(nu, 1, nu->flagu>>1);
+					makeknots(nu, 1);
 				}
 			}
 		}
@@ -785,7 +785,7 @@ short extrudeflagNurb(int flag)
 
 				nu->pntsv= 2;
 				nu->orderv= 2;
-				makeknots(nu, 2, nu->flagv>>1);
+				makeknots(nu, 2);
 			}
 		}
 		else {
@@ -828,7 +828,7 @@ short extrudeflagNurb(int flag)
 					MEM_freeN(nu->bp);
 					nu->bp= newbp;
 					nu->pntsv++;
-					makeknots(nu, 2, nu->flagv>>1);
+					makeknots(nu, 2);
 				}
 				else if(v==0 || v== nu->pntsu-1) {	    /* collumn in v-direction selected */
 					ok= 1;
@@ -855,7 +855,7 @@ short extrudeflagNurb(int flag)
 					MEM_freeN(nu->bp);
 					nu->bp= newbp;
 					nu->pntsu++;
-					makeknots(nu, 1, nu->flagu>>1);
+					makeknots(nu, 1);
 				}
 			}
 		}
@@ -949,7 +949,7 @@ void adduplicateflagNurb(short flag)
 
 					/* knots */
 					newnu->knotsu= NULL;
-					makeknots(newnu, 1, newnu->flagu>>1);
+					makeknots(newnu, 1);
 				}
 				bp++;
 			}
@@ -1013,14 +1013,14 @@ void adduplicateflagNurb(short flag)
 						if(nu->pntsu==newnu->pntsu && nu->knotsu) {
 							newnu->knotsu= MEM_dupallocN( nu->knotsu );
 						} else {
-							makeknots(newnu, 1, newnu->flagu>>1);
+							makeknots(newnu, 1);
 						}
 					}
 					if (check_valid_nurb_v(newnu)) {
 						if(nu->pntsv==newnu->pntsv && nu->knotsv) {
 							newnu->knotsv= MEM_dupallocN( nu->knotsv );
 						} else {
-							makeknots(newnu, 2, newnu->flagv>>1);
+							makeknots(newnu, 2);
 						}
 					}
 				}
@@ -1779,8 +1779,8 @@ void subdivideNurb()
 				nu->bp= bpnew;
 				nu->pntsu+= amount;
 
-				if(nu->type & 4) {
-					makeknots(nu, 1, nu->flagu>>1);
+				if(nu->type & CU_NURBS) {
+					makeknots(nu, 1);
 				}
 			}
 		} /* End of 'else if(nu->pntsv==1)' */
@@ -1891,8 +1891,8 @@ void subdivideNurb()
 				nu->bp= bpnew;
 				nu->pntsu= 2*nu->pntsu-1;
 				nu->pntsv= 2*nu->pntsv-1;
-				makeknots(nu, 1, nu->flagu>>1);
-				makeknots(nu, 2, nu->flagv>>1);
+				makeknots(nu, 1);
+				makeknots(nu, 2);
 			} /* End of 'if(sel== nu->pntsu*nu->pntsv)' (subdivide entire NURB) */
 			else {
 				/* subdivide in v direction? */
@@ -1935,7 +1935,7 @@ void subdivideNurb()
 					MEM_freeN(nu->bp);
 					nu->bp= bpnew;
 					nu->pntsv+= sel;
-					makeknots(nu, 2, nu->flagv>>1);
+					makeknots(nu, 2);
 				}
 				else {
 					/* or in u direction? */
@@ -1975,7 +1975,7 @@ void subdivideNurb()
 						MEM_freeN(nu->bp);
 						nu->bp= bpnew;
 						nu->pntsu+= sel;
-						makeknots(nu, 1, nu->flagu>>1); /* shift knots
+						makeknots(nu, 1); /* shift knots
                                                      forward */
 					}
 				}
@@ -2119,7 +2119,7 @@ int convertspline(short type, Nurb *nu)
 	BPoint *bp;
 	int a, c, nr;
 
-	if((nu->type & 7)==0) {		/* Poly */
+	if((nu->type & 7)==CU_POLY) {
 		if(type==CU_BEZIER) {			    /* to Bezier with vecthandles  */
 			nr= nu->pntsu;
 			bezt =
@@ -2140,16 +2140,16 @@ int convertspline(short type, Nurb *nu)
 			nu->bp= 0;
 			nu->pntsu= nr;
 			nu->type &= ~7;
-			nu->type |= 1;
+			nu->type |= CU_BEZIER;
 			calchandlesNurb(nu);
 		}
 		else if(type==CU_NURBS) {
 			nu->type &= ~7;
-			nu->type+= 4;
+			nu->type |= CU_NURBS;
 			nu->orderu= 4;
 			nu->flagu &= CU_CYCLIC; /* disable all flags except for cyclic */
 			nu->flagu += 4;
-			makeknots(nu, 1, nu->flagu>>1);
+			makeknots(nu, 1);
 			a= nu->pntsu*nu->pntsv;
 			bp= nu->bp;
 			while(a--) {
@@ -2203,7 +2203,7 @@ int convertspline(short type, Nurb *nu)
 			if(type== 4) {
 				nu->flagu &= CU_CYCLIC; /* disable all flags except for cyclic */
 				nu->flagu += 4;
-				makeknots(nu, 1, nu->flagu>>1);
+				makeknots(nu, 1);
 			}
 		}
 	}
@@ -2245,7 +2245,7 @@ int convertspline(short type, Nurb *nu)
 				nu->knotsu= NULL;
 				nu->pntsu= nr;
 				nu->type &= ~7;
-				nu->type+= 1;
+				nu->type |= CU_BEZIER;
 			}
 		}
 	}
@@ -2493,12 +2493,12 @@ void merge_2_nurb(Nurb *nu1, Nurb *nu2)
 		}
 	}
 
-	if((nu1->type & 7)==4) {
+	if((nu1->type & 7)==CU_NURBS) {
 		/* merge knots */
-		makeknots(nu1, 1, nu1->flagu>>1);
+		makeknots(nu1, 1);
 	
 		/* make knots, for merged curved for example */
-		makeknots(nu1, 2, nu1->flagv>>1);
+		makeknots(nu1, 2);
 	}
 	
 	MEM_freeN(temp);
@@ -2681,9 +2681,9 @@ void addsegment_nurb()
 				BLI_remlink(&editNurb, nu2);
 
 				/* now join the knots */
-				if((nu1->type & 7)==4) {
+				if((nu1->type & 7)==CU_NURBS) {
 					if(nu1->knotsu==NULL) {
-						makeknots(nu1, 1, nu1->flagu>>1);
+						makeknots(nu1, 1);
 					}
 					else {
 						fp= MEM_mallocN(sizeof(float)*KNOTSU(nu1), "addsegment3");
@@ -2879,7 +2879,7 @@ static void spin_nurb(float *dvec, short mode)
 			if(isNurbsel(nu)) {
 				nu->orderv= 4;
 				nu->flagv |= CU_CYCLIC;
-				makeknots(nu, 2, nu->flagv>>1);
+				makeknots(nu, 2);
 			}
 		}
 	}
@@ -2993,7 +2993,7 @@ void addvert_Nurb(int mode)
 		if(bp) {
 			nu->pntsu++;
 			
-			makeknots(nu, 1, nu->flagu>>1);
+			makeknots(nu, 1);
 			
 			if(mode=='e') {
 				VECCOPY(newbp->vec, bp->vec);
@@ -3065,18 +3065,17 @@ void makecyclicNurb()
 	Nurb *nu;
 	BezTriple *bezt;
 	BPoint *bp;
-	float *fp;
-	int a, b, cyclmode=0;
+	
+	int a, cyclmode=0;
 
 	for(nu= editNurb.first; nu; nu= nu->next) {
 		if( nu->pntsu>1 || nu->pntsv>1) {
-			if( (nu->type & 7)==0 ) {
+			if( (nu->type & 7)==CU_POLY ) {
 				a= nu->pntsu;
 				bp= nu->bp;
 				while(a--) {
 					if( bp->f1 & SELECT ) {
-						if(nu->flagu & CU_CYCLIC) nu->flagu &= ~CU_CYCLIC;
-						else nu->flagu |= CU_CYCLIC;
+						nu->flagu ^= CU_CYCLIC;
 						break;
 					}
 					bp++;
@@ -3087,8 +3086,7 @@ void makecyclicNurb()
 				bezt= nu->bezt;
 				while(a--) {
 					if( BEZSELECTED_HIDDENHANDLES(bezt) ) {
-						if(nu->flagu & CU_CYCLIC) nu->flagu &= ~CU_CYCLIC;
-						else nu->flagu |= CU_CYCLIC;
+						nu->flagu ^= CU_CYCLIC;
 						break;
 					}
 					bezt++;
@@ -3101,19 +3099,8 @@ void makecyclicNurb()
 					bp= nu->bp;
 					while(a--) {
 						if( bp->f1 & SELECT ) {
-							if(nu->flagu & CU_CYCLIC) nu->flagu &= ~CU_CYCLIC;
-							else {
-								nu->flagu |= CU_CYCLIC;
-								nu->flagu &= ~2;	/* endpoint flag, fixme */
-								fp= MEM_mallocN(sizeof(float)*KNOTSU(nu), "makecyclicN");
-								b= (nu->orderu+nu->pntsu);
-								memcpy(fp, nu->knotsu, sizeof(float)*b);
-								MEM_freeN(nu->knotsu);
-								nu->knotsu= fp;
-							
-								makeknots(nu, 1, 0);	/* 1==u  0==uniform */
-							
-							}
+							nu->flagu ^= CU_CYCLIC;
+							makeknots(nu, 1);	/* 1==u  type is ignored for cyclic curves */
 							break;
 						}
 						bp++;
@@ -3131,38 +3118,12 @@ void makecyclicNurb()
 	
 					if( bp->f1 & SELECT) {
 						if(cyclmode==1 && nu->pntsu>1) {
-							if(nu->flagu & CU_CYCLIC) nu->flagu &= ~CU_CYCLIC;
-							else {
-								nu->flagu |= CU_CYCLIC;
-								if (check_valid_nurb_u(nu)) {
-									fp= MEM_mallocN(sizeof(float)*KNOTSU(nu), "makecyclicN");
-									b= (nu->orderu+nu->pntsu);
-									if (nu->knotsu) { /* null if check_valid_nurb_u failed before but is valid now */
-										memcpy(fp, nu->knotsu, sizeof(float)*b);
-										MEM_freeN(nu->knotsu);
-									}
-									nu->knotsu= fp;
-								
-									makeknots(nu, 1, 0);	/* 1==u  0==uniform */
-								}
-							}
+							nu->flagu ^= CU_CYCLIC;
+							makeknots(nu, 1);	/* 1==u  type is ignored for cyclic curves */
 						}
 						if(cyclmode==2 && nu->pntsv>1) {
-							if(nu->flagv & 1) nu->flagv--;
-							else {
-								nu->flagv++;
-								if (check_valid_nurb_v(nu)) {
-									fp= MEM_mallocN(sizeof(float)*KNOTSV(nu), "makecyclicN");
-									b= (nu->orderv+nu->pntsv);
-									if (nu->knotsv) { /* null if check_valid_nurb_v failed before but is valid now */
-										memcpy(fp, nu->knotsv, sizeof(float)*b);
-										MEM_freeN(nu->knotsv);
-									}
-									nu->knotsv= fp;
-								
-									makeknots(nu, 2, 0);	/* 2==v  0==uniform */
-								}
-							}
+							nu->flagv ^= CU_CYCLIC;
+							makeknots(nu, 2);	/* 2==v  type is ignored for cyclic curves */
 						}
 						break;
 					}
@@ -3799,7 +3760,7 @@ void delNurb()
 						clamp_nurb_order_u(nu);
 					}*/
 				}
-				makeknots(nu, 1, nu->flagu>>1);
+				makeknots(nu, 1);
 			}
 			nu= next;
 		}
@@ -4187,9 +4148,9 @@ Nurb *addNurbprim(int type, int stype, int newname)
 			bp= nu->bp;
 			for(a=0;a<4;a++, bp++) Mat3MulVecfl(imat,bp->vec);
 
-			if((type & 7)==4) {
+			if((type & 7)==CU_NURBS) {
 				nu->knotsu= 0;	/* makeknots allocates */
-				makeknots(nu, 1, nu->flagu>>1);
+				makeknots(nu, 1);
 			}
 
 		}
@@ -4224,7 +4185,7 @@ Nurb *addNurbprim(int type, int stype, int newname)
 
 		if((type & 7)==4) {
 			nu->knotsu= 0;	/* makeknots allocates */
-			makeknots(nu, 1, nu->flagu>>1);
+			makeknots(nu, 1);
 		}
 
 		break;
@@ -4309,7 +4270,7 @@ Nurb *addNurbprim(int type, int stype, int newname)
 				bp++;
 			}
 
-			makeknots(nu, 1, nu->flagu>>1);
+			makeknots(nu, 1);
 		}
 		break;
 	case 2:	/* 4x4 patch */
@@ -4346,8 +4307,8 @@ Nurb *addNurbprim(int type, int stype, int newname)
 				}
 			}
 
-			makeknots(nu, 1, nu->flagu>>1);
-			makeknots(nu, 2, nu->flagv>>1);
+			makeknots(nu, 1);
+			makeknots(nu, 2);
 		}
 		break;
 	case 3:	/* tube */
@@ -4409,7 +4370,7 @@ Nurb *addNurbprim(int type, int stype, int newname)
 				bp++;
 			}
 			nu->flagu= 4;
-			makeknots(nu, 1, nu->flagu>>1);
+			makeknots(nu, 1);
 
 			BLI_addtail(&editNurb, nu); /* temporal for spin */
 			if(newname && (U.flag & USER_ADD_VIEWALIGNED) == 0)
@@ -4417,7 +4378,7 @@ Nurb *addNurbprim(int type, int stype, int newname)
 			else
 				spin_nurb(0, 0);
 
-			makeknots(nu, 2, nu->flagv>>1);
+			makeknots(nu, 2);
 
 			a= nu->pntsu*nu->pntsv;
 			bp= nu->bp;

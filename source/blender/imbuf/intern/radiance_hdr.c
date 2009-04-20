@@ -180,7 +180,6 @@ struct ImBuf *imb_loadhdr(unsigned char *mem, int size, int flags)
 	int width=0, height=0;
 	int x, y;
 	unsigned char* ptr;
-	unsigned char* rect;
 	char oriY[80], oriX[80];
 
 	if (imb_is_a_hdr((void*)mem))
@@ -201,7 +200,7 @@ struct ImBuf *imb_loadhdr(unsigned char *mem, int size, int flags)
 			ptr++;
 
 			if (flags & IB_test) ibuf = IMB_allocImBuf(width, height, 32, 0, 0);
-			else ibuf = IMB_allocImBuf(width, height, 32, IB_rect|IB_rectfloat, 0);
+			else ibuf = IMB_allocImBuf(width, height, 32, (flags & IB_rect)|IB_rectfloat, 0);
 
 			if (ibuf==NULL) return NULL;
 			ibuf->ftype = RADHDR;
@@ -211,7 +210,6 @@ struct ImBuf *imb_loadhdr(unsigned char *mem, int size, int flags)
 
 			/* read in and decode the actual data */
 			sline = (RGBE*)MEM_mallocN(sizeof(RGBE)*width, "radhdr_read_tmpscan");
-			rect = (unsigned char*)ibuf->rect;
 			rect_float = (float *)ibuf->rect_float;
 			
 			for (y=0;y<height;y++) {
@@ -228,19 +226,15 @@ struct ImBuf *imb_loadhdr(unsigned char *mem, int size, int flags)
 					*rect_float++ = fcol[GRN];
 					*rect_float++ = fcol[BLU];
 					*rect_float++ = 1.0f;
-					/* Also old oldstyle for the rest of blender which is not using floats yet */
-					// e: changed to simpler tonemapping, previous code was rather slow (is this actually still relevant at all?)
-					fcol[RED] = fcol[RED]/(1.f + fcol[RED]);
-					fcol[GRN] = fcol[GRN]/(1.f + fcol[GRN]);
-					fcol[BLU] = fcol[BLU]/(1.f + fcol[BLU]);
-					*rect++ = (unsigned char)((fcol[RED] < 0.f) ? 0 : ((fcol[RED] > 1.f) ? 255 : (255.f*fcol[RED])));
-					*rect++ = (unsigned char)((fcol[GRN] < 0.f) ? 0 : ((fcol[GRN] > 1.f) ? 255 : (255.f*fcol[GRN])));
-					*rect++ = (unsigned char)((fcol[BLU] < 0.f) ? 0 : ((fcol[BLU] > 1.f) ? 255 : (255.f*fcol[BLU])));
-					*rect++ = 255;
 				}
 			}
 			MEM_freeN(sline);
 			if (oriY[0]=='-') IMB_flipy(ibuf);
+			
+			if (flags & IB_rect) {
+				IMB_rect_from_float(ibuf);
+			}
+			
 			return ibuf;
 		}
 		//else printf("Data not found!\n");

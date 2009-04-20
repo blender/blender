@@ -85,6 +85,8 @@ class RAS_IRenderTools;
 class SCA_JoystickManager;
 class btCollisionShape;
 class KX_BlenderSceneConverter;
+struct KX_ClientObjectInfo;
+
 /**
  * The KX_Scene holds all data for an independent scene. It relates
  * KX_Objects to the specific objects in the modules.
@@ -92,6 +94,12 @@ class KX_BlenderSceneConverter;
 class KX_Scene : public PyObjectPlus, public SCA_IScene
 {
 	Py_Header;
+
+	struct CullingInfo {
+		int m_layer;
+		CullingInfo(int layer) : m_layer(layer) {}
+	};
+
 protected:
 	RAS_BucketManager*	m_bucketmanager;
 	CListValue*			m_tempObjectList;
@@ -252,6 +260,16 @@ protected:
 	bool m_activity_culling;
 	
 	/**
+	 * Toggle to enable or disable culling via DBVT broadphase of Bullet.
+	 */
+	bool m_dbvt_culling;
+	
+	/**
+	 * Occlusion culling resolution
+	 */ 
+	int m_dbvt_occlusion_res;
+
+	/**
 	 * The framing settings used by this scene
 	 */
 
@@ -269,6 +287,7 @@ protected:
 	void MarkVisible(SG_Tree *node, RAS_IRasterizer* rasty, KX_Camera*cam,int layer=0);
 	void MarkSubTreeVisible(SG_Tree *node, RAS_IRasterizer* rasty, bool visible, KX_Camera*cam,int layer=0);
 	void MarkVisible(RAS_IRasterizer* rasty, KX_GameObject* gameobj, KX_Camera*cam, int layer=0);
+	static void PhysicsCullingCallback(KX_ClientObjectInfo* objectInfo, void* cullingInfo);
 
 	double				m_suspendedtime;
 	double				m_suspendeddelta;
@@ -276,7 +295,7 @@ protected:
 	/**
 	 * This stores anything from python
 	 */
-	PyObject* m_attrlist;
+	PyObject* m_attr_dict;
 
 	struct Scene* m_blenderScene;
 
@@ -530,6 +549,11 @@ public:
 	bool IsSuspended();
 	bool IsClearingZBuffer();
 	void EnableZBufferClearing(bool isclearingZbuffer);
+	// use of DBVT tree for camera culling
+	void SetDbvtCulling(bool b) { m_dbvt_culling = b; };
+	bool GetDbvtCulling() { return m_dbvt_culling; };
+	void SetDbvtOcclusionRes(int i) { m_dbvt_occlusion_res = i; };
+	int GetDbvtOcclusionRes() { return m_dbvt_occlusion_res; };
 	
 	void SetSceneConverter(class KX_BlenderSceneConverter* sceneConverter);
 
@@ -547,9 +571,10 @@ public:
 	 */
 	void SetNodeTree(SG_Tree* root);
 
-	KX_PYMETHOD_DOC(KX_Scene, getLightList);
-	KX_PYMETHOD_DOC(KX_Scene, getObjectList);
-	KX_PYMETHOD_DOC(KX_Scene, getName);
+	KX_PYMETHOD_DOC_NOARGS(KX_Scene, getLightList);
+	KX_PYMETHOD_DOC_NOARGS(KX_Scene, getObjectList);
+	KX_PYMETHOD_DOC_NOARGS(KX_Scene, getName);
+	KX_PYMETHOD_DOC(KX_Scene, addObject);
 /*	
 	KX_PYMETHOD_DOC(KX_Scene, getActiveCamera);
 	KX_PYMETHOD_DOC(KX_Scene, getActiveCamera);
@@ -564,10 +589,23 @@ public:
 	KX_PYMETHOD_DOC(KX_Scene, setSceneViewport);
 	*/
 
-	virtual PyObject* _getattr(const STR_String& attr); /* name, active_camera, gravity, suspended, viewport, framing, activity_culling, activity_culling_radius */
-	virtual int _setattr(const STR_String &attr, PyObject *pyvalue);
-	virtual int _delattr(const STR_String &attr);
+	/* attributes */
+	static PyObject*	pyattr_get_name(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject*	pyattr_get_objects(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject*	pyattr_get_active_camera(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	
+	/* for dir(), python3 uses __dir__() */
+	static PyObject*	pyattr_get_dir_dict(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	
 
+	virtual PyObject* py_getattro(PyObject *attr); /* name, active_camera, gravity, suspended, viewport, framing, activity_culling, activity_culling_radius */
+	virtual int py_setattro(PyObject *attr, PyObject *pyvalue);
+	virtual int py_delattro(PyObject *attr);
+	virtual PyObject* py_repr(void) { return PyString_FromString(GetName().ReadPtr()); }
+
+	PyObject* py_getattro__internal(PyObject *attr);
+	int py_setattro__internal(PyObject *attr, PyObject *pyvalue);
+		
 	/**
 	 * Sets the time the scene was suspended
 	 */ 

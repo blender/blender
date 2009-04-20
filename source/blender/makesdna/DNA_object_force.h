@@ -226,6 +226,7 @@ typedef struct SoftBody {
 #define PFIELD_USEMAXR			512
 #define PFIELD_USEMINR			1024
 #define PFIELD_TEX_ROOTCO		2048
+#define PFIELD_SURFACE			4096
 
 /* pd->falloff */
 #define PFIELD_FALL_SPHERE		0

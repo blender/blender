@@ -58,10 +58,6 @@ public:
 		RAS_TEXT_PADDED,
 		RAS_TEXT_MAX
 	};
-	enum RAS_LIGHT_MODE {
-		RAS_LIGHT_NONE = -1,
-		RAS_LIGHT_OBJECT_LAYER = 0
-	};
 
 	RAS_IRenderTools(
 	) :
@@ -134,7 +130,8 @@ public:
 	virtual 
 		void		
 	ProcessLighting(
-		int layer,
+		RAS_IRasterizer *rasty,
+		bool uselights,
 		const MT_Transform& trans
 	)=0;
 

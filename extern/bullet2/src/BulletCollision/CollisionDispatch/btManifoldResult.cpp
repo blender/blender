@@ -55,7 +55,7 @@ btManifoldResult::btManifoldResult(btCollisionObject* body0,btCollisionObject* b
 
 void btManifoldResult::addContactPoint(const btVector3& normalOnBInWorld,const btVector3& pointInWorld,btScalar depth)
 {
-	assert(m_manifoldPtr);
+	btAssert(m_manifoldPtr);
 	//order in manifold needs to match
 	
 	if (depth > m_manifoldPtr->getContactBreakingThreshold())
@@ -92,8 +92,8 @@ void btManifoldResult::addContactPoint(const btVector3& normalOnBInWorld,const b
    newPt.m_partId1 = m_partId1;
    newPt.m_index0  = m_index0;
    newPt.m_index1  = m_index1;
-	
-	///todo, check this for any side effects
+	//printf("depth=%f\n",depth);
+	///@todo, check this for any side effects
 	if (insertIndex >= 0)
 	{
 		//const btManifoldPoint& oldPoint = m_manifoldPtr->getContactPoint(insertIndex);

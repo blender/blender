@@ -1752,6 +1752,37 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-10, *yco-height, width+40,height-1, NULL, 5.0, 0.0, 12, rb_col, ""); 
 			}
 			break;
+
+		case CONSTRAINT_TYPE_SHRINKWRAP:
+			{
+				bShrinkwrapConstraint *data = con->data;
+
+				height = 78;
+				if(data->shrinkType == MOD_SHRINKWRAP_PROJECT)
+					height += 18;
+
+				uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-10, *yco-height, width+40,height-1, NULL, 5.0, 0.0, 12, rb_col, ""); 
+
+				/* Draw parameters */
+				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Target:", *xco+65, *yco-24, 90, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+				uiDefIDPoinBut(block, test_meshobpoin_but, ID_OB, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+120, *yco-24, 135, 18, &data->target, "Target Object");
+
+				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Dist:", *xco + 75, *yco-42, 90, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+120, *yco-42, 135, 18, &data->dist, -100.0f, 100.0f, 1.0f, 0.0f, "Distance to target");
+
+				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Type:", *xco + 70, *yco-60, 90, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+				uiDefButS(block, MENU, B_MODIFIER_RECALC, "Shrinkwrap Type%t|Nearest Surface Point %x0|Projection %x1|Nearest Vertex %x2", *xco+120, *yco-60, 135, 18, &data->shrinkType, 0, 0, 0, 0, "Selects type of shrinkwrap algorithm for target position.");
+
+				if(data->shrinkType == MOD_SHRINKWRAP_PROJECT)
+				{
+					/* Draw XYZ toggles */
+					uiDefBut(block, LABEL,B_CONSTRAINT_TEST, "Axis:", *xco+ 75, *yco-78, 90, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+					uiDefButBitC(block, TOG, MOD_SHRINKWRAP_PROJECT_OVER_X_AXIS, B_CONSTRAINT_TEST, "X",*xco+120, *yco-78, 45, 18, &data->projAxis, 0, 0, 0, 0, "Projection over X axis");
+					uiDefButBitC(block, TOG, MOD_SHRINKWRAP_PROJECT_OVER_Y_AXIS, B_CONSTRAINT_TEST, "Y",*xco+165, *yco-78, 45, 18, &data->projAxis, 0, 0, 0, 0, "Projection over Y axis");
+					uiDefButBitC(block, TOG, MOD_SHRINKWRAP_PROJECT_OVER_Z_AXIS, B_CONSTRAINT_TEST, "Z",*xco+210, *yco-78, 45, 18, &data->projAxis, 0, 0, 0, 0, "Projection over Z axis");
+				}
+			}
+			break;
 		default:
 			height = 0;
 			break;
@@ -1813,6 +1844,7 @@ static uiBlock *add_constraintmenu(void *arg_unused)
 	uiDefBut(block, BUTM, B_CONSTRAINT_ADD_MINMAX, "Floor",	0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
 	uiDefBut(block, BUTM, B_CONSTRAINT_ADD_LOCKTRACK, "Locked Track", 0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
 	uiDefBut(block, BUTM, B_CONSTRAINT_ADD_FOLLOWPATH, "Follow Path", 0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
+	uiDefBut(block, BUTM, B_CONSTRAINT_ADD_SHRINKWRAP, "Shrinkwrap" , 0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
 		
 	uiDefBut(block, SEPR, 0, "",					0, yco-=6, 120, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
@@ -2044,6 +2076,14 @@ void do_constraintbuts(unsigned short event)
 	case B_CONSTRAINT_ADD_DISTLIMIT:
 		{
 			con = add_new_constraint(CONSTRAINT_TYPE_DISTLIMIT);
+			add_constraint_to_active(ob, con);
+			
+			BIF_undo_push("Add constraint");
+		}
+		break;
+	case B_CONSTRAINT_ADD_SHRINKWRAP:
+		{
+			con = add_new_constraint(CONSTRAINT_TYPE_SHRINKWRAP);
 			add_constraint_to_active(ob, con);
 			
 			BIF_undo_push("Add constraint");
@@ -3340,6 +3380,35 @@ static void object_panel_collision(Object *ob)
 		}
 	}
 }
+static void object_surface__enabletoggle ( void *ob_v, void *arg2 )
+{
+	Object *ob = ob_v;
+	PartDeflect *pd= ob->pd;
+	ModifierData *md = modifiers_findByType ( ob, eModifierType_Surface );
+	
+	if(!md)
+	{
+		if(pd && (pd->flag & PFIELD_SURFACE)
+			&& ELEM5(pd->forcefield,PFIELD_HARMONIC,PFIELD_FORCE,PFIELD_HARMONIC,PFIELD_CHARGE,PFIELD_LENNARDJ))
+		{
+			md = modifier_new ( eModifierType_Surface );
+			BLI_addtail ( &ob->modifiers, md );
+			DAG_scene_sort(G.scene);
+			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+			allqueue(REDRAWBUTSEDIT, 0);
+			allqueue(REDRAWVIEW3D, 0);
+		}
+	}
+	else if(!pd || !(pd->flag & PFIELD_SURFACE)
+		|| ELEM5(pd->forcefield,PFIELD_HARMONIC,PFIELD_FORCE,PFIELD_HARMONIC,PFIELD_CHARGE,PFIELD_LENNARDJ))
+	{
+		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+		BLI_remlink ( &ob->modifiers, md );
+		modifier_free ( md );
+		DAG_scene_sort(G.scene);
+		allqueue(REDRAWBUTSEDIT, 0);
+	}
+}
 static void object_panel_fields(Object *ob)
 {
 	uiBlock *block;
@@ -3360,6 +3429,7 @@ static void object_panel_fields(Object *ob)
 		ob->pd->pdef_sbdamp = 0.1f;
 		ob->pd->pdef_sbift  = 0.2f;
 		ob->pd->pdef_sboft  = 0.02f;
+		ob->pd->tex_nabla = 0.025f;
 	}
 	
 	if(ob->pd) {
@@ -3424,9 +3494,12 @@ static void object_panel_fields(Object *ob)
 		}
 		
 		if(ob->particlesystem.first)
-			uiDefButS(block, MENU, B_FIELD_DEP, menustr,			80,180,70,20, &pd->forcefield, 0.0, 0.0, 0, 0, tipstr);
+			but = uiDefButS(block, MENU, B_FIELD_DEP, menustr,			80,180,70,20, &pd->forcefield, 0.0, 0.0, 0, 0, tipstr);
 		else
-			uiDefButS(block, MENU, B_FIELD_DEP, menustr,			10,180,140,20, &pd->forcefield, 0.0, 0.0, 0, 0, tipstr);
+			but = uiDefButS(block, MENU, B_FIELD_DEP, menustr,			10,180,140,20, &pd->forcefield, 0.0, 0.0, 0, 0, tipstr);
+
+		if(!particles)
+			uiButSetFunc(but, object_surface__enabletoggle, ob, NULL);
 
 		uiBlockEndAlign(block);
 		uiDefBut(block, LABEL, 0, "",160,180,150,2, NULL, 0.0, 0, 0, 0, "");
@@ -3467,11 +3540,16 @@ static void object_panel_fields(Object *ob)
 			else if(pd->forcefield==PFIELD_TEXTURE){
 				uiDefButS(block, MENU, B_FIELD_CHANGE, "Texture mode%t|RGB%x0|Gradient%x1|Curl%x2",	10,50,140,20, &pd->tex_mode, 0.0, 0.0, 0, 0, "How the texture effect is calculated (RGB & Curl need a RGB texture else Gradient will be used instead)");
 	
-				uiDefButF(block, NUM, B_FIELD_CHANGE, "Nabla:",	10,30,140,20, &pd->tex_nabla, 0.0001f, 1.0, 1, 0, "Specify the dimension of the area for gradient and curl calculation");
+				uiDefButF(block, NUM, B_FIELD_CHANGE, "Nabla:",	10,30,140,20, &pd->tex_nabla, 0.0001f, 1.0, 1, 0, "Defines size of derivative offset used for calculating gradient and curl");
 			}
 			else if(particles==0 && ELEM(pd->forcefield,PFIELD_VORTEX,PFIELD_WIND)==0){
 				//uiDefButF(block, NUM, B_FIELD_CHANGE, "Distance: ",	10,20,140,20, &pd->f_dist, 0, 1000.0, 10, 0, "Falloff power (real gravitational fallof = 2)");
-				uiDefButBitS(block, TOG, PFIELD_PLANAR, B_FIELD_CHANGE, "Planar",	10,15,140,20, &pd->flag, 0.0, 0, 0, 0, "Create planar field");
+				uiDefButBitS(block, TOG, PFIELD_PLANAR, B_FIELD_CHANGE, "Planar",	10,35,140,20, &pd->flag, 0.0, 0, 0, 0, "Create planar field");
+			}
+			
+			if(particles==0 && ELEM5(pd->forcefield,PFIELD_HARMONIC,PFIELD_FORCE,PFIELD_HARMONIC,PFIELD_CHARGE,PFIELD_LENNARDJ)) {
+				but = uiDefButBitS(block, TOG, PFIELD_SURFACE, B_FIELD_CHANGE, "Surface",	10,15,140,20, &pd->flag, 0.0, 0, 0, 0, "Use closest point on surface");
+				uiButSetFunc(but, object_surface__enabletoggle, ob, NULL);
 			}
 			uiBlockEndAlign(block);
 			
@@ -4390,11 +4468,11 @@ static void object_panel_particle_extra(Object *ob)
 		buty-=buth;
 
 	/* size changes must create a recalc event always so that sizes are updated properly */
-	uiDefButF(block, NUM, B_PART_RECALC, "Size:",	butx,(buty-=buth),butw,buth, &part->size, 0.01, 100, 10, 1, "The size of the particles");
-	uiDefButF(block, NUM, B_PART_RECALC, "Rand:",	butx,(buty-=buth),butw,buth, &part->randsize, 0.0, 1.0, 10, 1, "Give the particle size a random variation");
+	uiDefButF(block, NUM, B_PART_RECALC, "Size:",	butx,(buty-=buth),butw,buth, &part->size, 0.001, 100, 10, 0, "The size of the particles");
+	uiDefButF(block, NUM, B_PART_RECALC, "Rand:",	butx,(buty-=buth),butw,buth, &part->randsize, 0.0, 1.0, 10, 0, "Give the particle size a random variation");
 
 	uiDefButBitI(block, TOG, PART_SIZEMASS, B_PART_RECALC, "Mass from size",	 butx,(buty-=buth),butw,buth, &part->flag, 0, 0, 0, 0, "Multiply mass with particle size");
-	uiDefButF(block, NUM, B_PART_RECALC, "Mass:",	butx,(buty-=buth),butw,buth, &part->mass, 0.01, 100, 10, 1, "Specify the mass of the particles");
+	uiDefButF(block, NUM, B_PART_RECALC, "Mass:",	butx,(buty-=buth),butw,buth, &part->mass, 0.001, 100, 10, 0, "Specify the mass of the particles");
 }
 /* copy from buttons_shading.c */
 static void autocomplete_uv(char *str, void *arg_v)
@@ -4433,7 +4511,10 @@ static void object_panel_particle_visual(Object *ob)
 	block= uiNewBlock(&curarea->uiblocks, "object_panel_particle_visual", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Visualization", "Particle", 640, 0, 318, 204)==0) return;
 
-	uiDefButS(block, MENU, B_PART_RECALC, "Billboard %x9|Group %x8|Object %x7|Path %x6|Line %x5|Axis %x4|Cross %x3|Circle %x2|Point %x1|None %x0", butx,buty,butw,buth, &part->draw_as, 14.0, 0.0, 0, 0, "How particles are visualized");
+	if(part->type==PART_HAIR)
+		uiDefButS(block, MENU, B_PART_RECALC, "Group %x8|Object %x7|Path %x6|None %x0", butx,buty,butw,buth, &part->draw_as, 14.0, 0.0, 0, 0, "How hair is visualized");
+	else
+		uiDefButS(block, MENU, B_PART_RECALC, "Billboard %x9|Group %x8|Object %x7|Path %x6|Line %x5|Axis %x4|Cross %x3|Circle %x2|Point %x1|None %x0", butx,buty,butw,buth, &part->draw_as, 14.0, 0.0, 0, 0, "How particles are visualized");
 
 	if(part->draw_as==PART_DRAW_NOT) {
 		uiDefButBitS(block, TOG, PART_DRAW_EMITTER, B_PART_REDRAW, "Render emitter",	butx,(buty-=2*buth),butw,buth, &part->draw, 0, 0, 0, 0, "Render emitter object");
@@ -4895,8 +4976,8 @@ static void object_panel_particle_system(Object *ob)
 	}
 
 	if(part->type!=PART_HAIR) {
-		uiDefButF(block, NUM, B_PART_INIT, "Life:",	butx,(buty-=buth),butw,buth, &part->lifetime, 1.0, MAXFRAMEF, 100, 1, "Specify the life span of the particles");
-		uiDefButF(block, NUM, B_PART_INIT, "Rand:",	butx,(buty-=buth),butw,buth, &part->randlife, 0.0, 2.0, 10, 1, "Give the particle life a random variation");
+		uiDefButF(block, NUM, B_PART_INIT, "Life:",	butx,(buty-=buth),butw,buth, &part->lifetime, 1.0, MAXFRAMEF, 100, 0, "Specify the life span of the particles");
+		uiDefButF(block, NUM, B_PART_INIT, "Rand:",	butx,(buty-=buth),butw,buth, &part->randlife, 0.0, 1.0, 10, 0, "Give the particle life a random variation");
 	}
 
 	uiBlockEndAlign(block);

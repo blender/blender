@@ -90,6 +90,8 @@ class PHY_IPhysicsEnvironment
 		virtual void		endFrame() = 0;
 		/// Perform an integration step of duration 'timeStep'.
 		virtual	bool		proceedDeltaTime(double curTime,float timeStep)=0;
+		///draw debug lines (make sure to call this during the render phase, otherwise lines are not drawn properly)
+		virtual void		debugDrawWorld(){}
 		virtual	void		setFixedTimeStep(bool useFixedTimeStep,float fixedTimeStep)=0;
 		//returns 0.f if no fixed timestep is used
 		virtual	float		getFixedTimeStep()=0;
@@ -140,6 +142,10 @@ class PHY_IPhysicsEnvironment
 
 		virtual PHY_IPhysicsController* rayTest(PHY_IRayCastFilterCallback &filterCallback, float fromX,float fromY,float fromZ, float toX,float toY,float toZ)=0;
 
+		//culling based on physical broad phase
+		// the plane number must be set as follow: near, far, left, right, top, botton
+		// the near plane must be the first one and must always be present, it is used to get the direction of the view
+		virtual bool cullingTest(PHY_CullingCallback callback, void *userData, PHY__Vector4* planeNormals, int planeNumber, int occlusionRes) = 0;
 
 		//Methods for gamelogic collision/physics callbacks
 		//todo:

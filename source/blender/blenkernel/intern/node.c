@@ -1644,7 +1644,8 @@ void ntreeSolveOrder(bNodeTree *ntree)
 		might be different for editor or for "real" use... */
 }
 
-/* should be callback! */
+/* Should be callback! */
+/* Do not call execs here */
 void NodeTagChanged(bNodeTree *ntree, bNode *node)
 {
 	if(ntree->type==NTREE_COMPOSIT) {
@@ -1664,8 +1665,6 @@ void NodeTagChanged(bNodeTree *ntree, bNode *node)
 		}
 		node->need_exec= 1;
 	}
-	else if(ntree->type == NTREE_TEXTURE)
-		ntreeTexUpdatePreviews(ntree);
 }
 
 void NodeTagIDChanged(bNodeTree *ntree, ID *id)
@@ -1999,19 +1998,23 @@ static bNodeThreadStack *ntreeGetThreadStack(bNodeTree *ntree, int thread)
 {
 	ListBase *lb= &ntree->threadstack[thread];
 	bNodeThreadStack *nts;
-
+	
+	/* for material shading this is called quite a lot (perhaps too much locking unlocking)
+	 * however without locking we get bug #18058 - Campbell */
+	BLI_lock_thread(LOCK_CUSTOM1); 
+	
 	for(nts=lb->first; nts; nts=nts->next) {
 		if(!nts->used) {
 			nts->used= 1;
+			BLI_unlock_thread(LOCK_CUSTOM1);
 			return nts;
 		}
 	}
-	
 	nts= MEM_callocN(sizeof(bNodeThreadStack), "bNodeThreadStack");
 	nts->stack= MEM_dupallocN(ntree->stack);
 	nts->used= 1;
 	BLI_addtail(lb, nts);
-
+	BLI_unlock_thread(LOCK_CUSTOM1);
 	return nts;
 }
 
@@ -2063,6 +2066,11 @@ void ntreeBeginExecTree(bNodeTree *ntree)
 		/* tag used outputs, so we know when we can skip operations */
 		for(node= ntree->nodes.first; node; node= node->next) {
 			bNodeSocket *sock;
+			
+			/* composite has own need_exec tag handling */
+			if(ntree->type!=NTREE_COMPOSIT)
+				node->need_exec= 1;
+
 			for(sock= node->inputs.first; sock; sock= sock->next) {
 				if(sock->link) {
 					ns= ntree->stack + sock->link->fromsock->stack_index;
@@ -2071,9 +2079,22 @@ void ntreeBeginExecTree(bNodeTree *ntree)
 				}
 				else
 					sock->ns.sockettype= sock->type;
+				
+				if(sock->link) {
+					bNodeLink *link= sock->link;
+					/* this is the test for a cyclic case */
+					if(link->fromnode && link->tonode) {
+						if(link->fromnode->level >= link->tonode->level && link->tonode->level!=0xFFF);
+						else {
+							node->need_exec= 0;
+						}
+					}
+				}
 			}
+			
 			if(node->type==NODE_GROUP && node->id)
 				group_tag_used_outputs(node, ntree->stack);
+			
 		}
 		
 		if(ntree->type==NTREE_COMPOSIT)
@@ -2156,13 +2177,15 @@ void ntreeExecTree(bNodeTree *ntree, void *callerdata, int thread)
 	}
 	
 	for(node= ntree->nodes.first; node; node= node->next) {
-		if(node->typeinfo->execfunc) {
-			node_get_stack(node, stack, nsin, nsout);
-			node->typeinfo->execfunc(callerdata, node, nsin, nsout);
-		}
-		else if(node->type==NODE_GROUP && node->id) {
-			node_get_stack(node, stack, nsin, nsout);
-			node_group_execute(stack, callerdata, node, nsin, nsout); 
+		if(node->need_exec) {
+			if(node->typeinfo->execfunc) {
+				node_get_stack(node, stack, nsin, nsout);
+				node->typeinfo->execfunc(callerdata, node, nsin, nsout);
+			}
+			else if(node->type==NODE_GROUP && node->id) {
+				node_get_stack(node, stack, nsin, nsout);
+				node_group_execute(stack, callerdata, node, nsin, nsout); 
+			}
 		}
 	}
 
@@ -2882,12 +2905,15 @@ static void registerTextureNodes(ListBase *ntypelist)
 	nodeRegisterType(ntypelist, &tex_node_mix_rgb);
 	nodeRegisterType(ntypelist, &tex_node_valtorgb);
 	nodeRegisterType(ntypelist, &tex_node_rgbtobw);
+	nodeRegisterType(ntypelist, &tex_node_valtonor);
 	nodeRegisterType(ntypelist, &tex_node_curve_rgb);
 	nodeRegisterType(ntypelist, &tex_node_curve_time);
 	nodeRegisterType(ntypelist, &tex_node_invert);
 	nodeRegisterType(ntypelist, &tex_node_hue_sat);
 	nodeRegisterType(ntypelist, &tex_node_coord);
 	nodeRegisterType(ntypelist, &tex_node_distance);
+	nodeRegisterType(ntypelist, &tex_node_compose);
+	nodeRegisterType(ntypelist, &tex_node_decompose);
 	
 	nodeRegisterType(ntypelist, &tex_node_output);
 	nodeRegisterType(ntypelist, &tex_node_viewer);
@@ -2899,6 +2925,7 @@ static void registerTextureNodes(ListBase *ntypelist)
 	
 	nodeRegisterType(ntypelist, &tex_node_rotate);
 	nodeRegisterType(ntypelist, &tex_node_translate);
+	nodeRegisterType(ntypelist, &tex_node_scale);
 	
 	nodeRegisterType(ntypelist, &tex_node_proc_voronoi);
 	nodeRegisterType(ntypelist, &tex_node_proc_blend);

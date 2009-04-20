@@ -99,7 +99,7 @@ ret: a new object containing the result of applying operator op to val and
 
 
 
-float CErrorValue::GetNumber()
+double CErrorValue::GetNumber()
 {
 	return -1;
 }

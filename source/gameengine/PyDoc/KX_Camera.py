@@ -185,3 +185,25 @@ class KX_Camera(KX_GameObject):
 		@param matrix: The new projection matrix for this camera.
 		"""
 
+	def enableViewport(viewport):
+		"""
+		Use this camera to draw a viewport on the screen (for split screen games or overlay scenes). The viewport region is defined with L{setViewport}.
+		
+		@type viewport: bool
+		@param viewport: the new viewport status
+		"""
+	def setOnTop():
+		"""
+		Set this cameras viewport ontop of all other viewport.
+		"""
+	def setViewport(left, bottom, right, top):
+		"""
+		Sets the region of this viewport on the screen in pixels.
+		
+		Use L{Rasterizer.getWindowHeight} L{Rasterizer.getWindowWidth} to calculate values relative to the entire display.
+		
+		@type left: int
+		@type bottom: int
+		@type right: int
+		@type top: int
+		"""

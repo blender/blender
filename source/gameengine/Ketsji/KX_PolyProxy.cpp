@@ -39,22 +39,22 @@
 #include "KX_PyMath.h"
 
 PyTypeObject KX_PolyProxy::Type = {
-	PyObject_HEAD_INIT(&PyType_Type)
+	PyObject_HEAD_INIT(NULL)
 	0,
 	"KX_PolyProxy",
-	sizeof(KX_PolyProxy),
+	sizeof(PyObjectPlus_Proxy),
 	0,
-	PyDestructor,
-	0,
-	__getattr,
-	__setattr,
-	0, //&MyPyCompare,
-	__repr,
-	0, //&cvalue_as_number,
+	py_base_dealloc,
 	0,
 	0,
 	0,
-	0
+	0,
+	py_base_repr,
+	0,0,0,0,0,0,
+	py_base_getattro,
+	py_base_setattro,
+	0,0,0,0,0,0,0,0,0,
+	Methods
 };
 
 PyParentObject KX_PolyProxy::Parents[] = {
@@ -77,40 +77,53 @@ PyMethodDef KX_PolyProxy::Methods[] = {
 	{NULL,NULL} //Sentinel
 };
 
-PyObject*
-KX_PolyProxy::_getattr(const STR_String& attr)
+PyAttributeDef KX_PolyProxy::Attributes[] = {
+	/* All dummy's so they come up in a dir() */
+	KX_PYATTRIBUTE_DUMMY("matname"),
+	KX_PYATTRIBUTE_DUMMY("texture"),
+	KX_PYATTRIBUTE_DUMMY("material"),
+	KX_PYATTRIBUTE_DUMMY("matid"),
+	KX_PYATTRIBUTE_DUMMY("v1"),
+	KX_PYATTRIBUTE_DUMMY("v2"),
+	KX_PYATTRIBUTE_DUMMY("v3"),
+	KX_PYATTRIBUTE_DUMMY("v4"),
+	KX_PYATTRIBUTE_DUMMY("visible"),
+	KX_PYATTRIBUTE_DUMMY("collide"),
+	{ NULL }	//Sentinel
+};
+
+PyObject* KX_PolyProxy::py_getattro(PyObject *attr)
 {
-	if (attr == "matname")
+	char *attr_str= PyString_AsString(attr);
+	if (!strcmp(attr_str, "matname"))
 	{
 		return PyString_FromString(m_polygon->GetMaterial()->GetPolyMaterial()->GetMaterialName());
 	}
-	if (attr == "texture")
+	if (!strcmp(attr_str, "texture"))
 	{
 		return PyString_FromString(m_polygon->GetMaterial()->GetPolyMaterial()->GetTextureName());
 	}
-	if (attr == "material")
+	if (!strcmp(attr_str, "material"))
 	{
 		RAS_IPolyMaterial *polymat = m_polygon->GetMaterial()->GetPolyMaterial();
 		if(polymat->GetFlag() & RAS_BLENDERMAT)
 		{
 			KX_BlenderMaterial* mat = static_cast<KX_BlenderMaterial*>(polymat);
-			Py_INCREF(mat);
-			return mat;
+			return mat->GetProxy();
 		}
 		else
 		{
 			KX_PolygonMaterial* mat = static_cast<KX_PolygonMaterial*>(polymat);
-			Py_INCREF(mat);
-			return mat;
+			return mat->GetProxy();
 		}
 	}
-	if (attr == "matid")
+	if (!strcmp(attr_str, "matid"))
 	{
 		// we'll have to scan through the material bucket of the mes and compare with 
 		// the one of the polygon
 		RAS_MaterialBucket* polyBucket = m_polygon->GetMaterial();
 		unsigned int matid;
-		for (matid=0; matid<m_mesh->NumMaterials(); matid++)
+		for (matid=0; matid<(unsigned int)m_mesh->NumMaterials(); matid++)
 		{
 			RAS_MeshMaterial* meshMat = m_mesh->GetMeshMaterial(matid);
 			if (meshMat->m_bucket == polyBucket)
@@ -119,36 +132,36 @@ KX_PolyProxy::_getattr(const STR_String& attr)
 		}
 		return PyInt_FromLong(matid);
 	}
-	if (attr == "v1")
+	if (!strcmp(attr_str, "v1"))
 	{
 		return PyInt_FromLong(m_polygon->GetVertexOffset(0));
 	}
-	if (attr == "v2")
+	if (!strcmp(attr_str, "v2"))
 	{
 		return PyInt_FromLong(m_polygon->GetVertexOffset(1));
 	}
-	if (attr == "v3")
+	if (!strcmp(attr_str, "v3"))
 	{
 		return PyInt_FromLong(m_polygon->GetVertexOffset(2));
 	}
-	if (attr == "v4")
+	if (!strcmp(attr_str, "v4"))
 	{
 		return PyInt_FromLong(((m_polygon->VertexCount()>3)?m_polygon->GetVertexOffset(3):0));
 	}
-	if (attr == "visible")
+	if (!strcmp(attr_str, "visible"))
 	{
 		return PyInt_FromLong(m_polygon->IsVisible());
 	}
-	if (attr == "collide")
+	if (!strcmp(attr_str, "collide"))
 	{
 		return PyInt_FromLong(m_polygon->IsCollider());
 	}
-	_getattr_up(SCA_IObject);
+	py_getattro_up(SCA_IObject);
 }
 
 KX_PolyProxy::KX_PolyProxy(const RAS_MeshObject*mesh, RAS_Polygon* polygon)
-:	m_mesh((RAS_MeshObject*)mesh),
-	m_polygon(polygon)
+:	m_polygon(polygon),
+	m_mesh((RAS_MeshObject*)mesh)
 {
 }
 
@@ -162,7 +175,7 @@ CValue*		KX_PolyProxy::Calc(VALUE_OPERATOR, CValue *) { return NULL;}
 CValue*		KX_PolyProxy::CalcFinal(VALUE_DATA_TYPE, VALUE_OPERATOR, CValue *) { return NULL;}	
 STR_String	sPolyName="polygone";
 const STR_String &	KX_PolyProxy::GetText() {return sPolyName;};
-float		KX_PolyProxy::GetNumber() { return -1;}
+double		KX_PolyProxy::GetNumber() { return -1;}
 STR_String	KX_PolyProxy::GetName() { return sPolyName;}
 void		KX_PolyProxy::SetName(STR_String) { };
 CValue*		KX_PolyProxy::GetReplica() { return NULL;}
@@ -176,7 +189,7 @@ KX_PYMETHODDEF_DOC_NOARGS(KX_PolyProxy, getMaterialIndex,
 {
 	RAS_MaterialBucket* polyBucket = m_polygon->GetMaterial();
 	unsigned int matid;
-	for (matid=0; matid<m_mesh->NumMaterials(); matid++)
+	for (matid=0; matid<(unsigned int)m_mesh->NumMaterials(); matid++)
 	{
 		RAS_MeshMaterial* meshMat = m_mesh->GetMeshMaterial(matid);
 		if (meshMat->m_bucket == polyBucket)
@@ -223,13 +236,13 @@ KX_PYMETHODDEF_DOC(KX_PolyProxy, getVertexIndex,
 "Note: getVertexIndex(3) on a triangle polygon returns 0\n")
 {
 	int index;
-	if (!PyArg_ParseTuple(args,"i",&index))
+	if (!PyArg_ParseTuple(args,"i:getVertexIndex",&index))
 	{
 		return NULL;
 	}
 	if (index < 0 || index > 3)
 	{
-		PyErr_SetString(PyExc_AttributeError, "Valid range for index is 0-3");
+		PyErr_SetString(PyExc_AttributeError, "poly.getVertexIndex(int): KX_PolyProxy, expected an index between 0-3");
 		return NULL;
 	}
 	if (index < m_polygon->VertexCount())
@@ -243,7 +256,7 @@ KX_PYMETHODDEF_DOC_NOARGS(KX_PolyProxy, getMesh,
 "getMesh() : returns a mesh proxy\n")
 {
 	KX_MeshProxy* meshproxy = new KX_MeshProxy((RAS_MeshObject*)m_mesh);
-	return meshproxy;
+	return meshproxy->NewProxy(true);
 }
 
 KX_PYMETHODDEF_DOC_NOARGS(KX_PolyProxy, getMaterial,
@@ -253,13 +266,11 @@ KX_PYMETHODDEF_DOC_NOARGS(KX_PolyProxy, getMaterial,
 	if(polymat->GetFlag() & RAS_BLENDERMAT)
 	{
 		KX_BlenderMaterial* mat = static_cast<KX_BlenderMaterial*>(polymat);
-		Py_INCREF(mat);
-		return mat;
+		return mat->GetProxy();
 	}
 	else
 	{
 		KX_PolygonMaterial* mat = static_cast<KX_PolygonMaterial*>(polymat);
-		Py_INCREF(mat);
-		return mat;
+		return mat->GetProxy();
 	}
 }
