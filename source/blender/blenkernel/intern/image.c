@@ -407,7 +407,7 @@ static ImBuf *add_ibuf_size(int width, int height, char *name, int floatbuf, sho
 	unsigned char *rect= NULL;
 	float *rect_float= NULL;
 	int x, y;
-	int checkerwidth=21, dark=1;
+	int checkerwidth=32, dark=1;
 	
 	if (floatbuf) {
 		ibuf= IMB_allocImBuf(width, height, 24, IB_rectfloat, 0);
@@ -1024,7 +1024,7 @@ static void stampdata(StampData *stamp_data, int do_prefix)
 	}
 	
 	if (G.scene->r.stamp & R_STAMP_SEQSTRIP) {
-		Sequence *seq = get_forground_frame_seq(CFRA);
+		Sequence *seq = get_foreground_frame_seq(CFRA);
 	
 		if (seq) strcpy(text, seq->name+2);
 		else 		strcpy(text, "<none>");

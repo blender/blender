@@ -35,7 +35,7 @@
 #define MAXFRAMEF	300000.0f
 
 #define MINFRAME	1
-#define MINFRAMEF	1.0
+#define MINFRAMEF	1.0f
 
 /* max length material array, 16 because of bits in matfrom */
 #define MAXPICKBUF      10000

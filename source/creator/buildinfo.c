@@ -33,11 +33,11 @@
 
 #ifdef BUILD_DATE
 #ifndef WIN32
-char * build_date=BUILD_DATE;
-char * build_time=BUILD_TIME;
-char * build_rev=BUILD_REV;
-char * build_platform=BUILD_PLATFORM;
-char * build_type=BUILD_TYPE;
+const char * build_date=BUILD_DATE;
+const char * build_time=BUILD_TIME;
+const char * build_rev=BUILD_REV;
+const char * build_platform=BUILD_PLATFORM;
+const char * build_type=BUILD_TYPE;
 #else
 #include "winbuildinfo.h"
 #endif

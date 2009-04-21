@@ -1929,7 +1929,7 @@ static uiBlock *info_timelinemenu(void *arg_unused)
 void do_info_render_bakemenu(void *arg, int event)
 {
 	switch (event) {
-	case 6:
+	case (R_BAKE_TO_ACTIVE|R_BAKE_OSA):
 		G.scene->r.bake_flag ^= event;
 		break;
 	default:
@@ -1948,9 +1948,9 @@ static uiBlock *info_render_bakemenu(void *arg_unused)
 	uiBlockSetButmFunc(block, do_info_render_bakemenu, NULL);
 	
 	if(G.scene->r.bake_flag & R_BAKE_TO_ACTIVE) {
-		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Selected to Active",		 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
+		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Selected to Active",		 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, (R_BAKE_TO_ACTIVE|R_BAKE_OSA), "");
 	} else {
-		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Selected to Active",		 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
+		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Selected to Active",		 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, (R_BAKE_TO_ACTIVE|R_BAKE_OSA), "");
 	}
 	
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");

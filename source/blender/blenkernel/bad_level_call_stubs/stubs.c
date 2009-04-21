@@ -327,7 +327,7 @@ void antialias_tagbuf(int xsize, int ysize, char *rectmove) {}
 /* imagetexture.c stub */
 void ibuf_sample(struct ImBuf *ibuf, float fx, float fy, float dx, float dy, float *result) {}
 
-void update_for_newframe() {}
+void update_for_newframe(void) {}
 
 struct FileList;
 void BIF_filelist_freelib(struct FileList* filelist) {};
@@ -336,7 +336,8 @@ void BIF_filelist_freelib(struct FileList* filelist) {};
 TimeMarker *get_frame_marker(int frame){return 0;};
 
 /* editseq.c */
-Sequence *get_forground_frame_seq(int frame){return 0;};
+#include "BIF_editseq.h" // And fix the missing void there
+Sequence *get_foreground_frame_seq(int frame){return 0;};
 void clear_last_seq(Sequence *seq){};
     
 
