@@ -37,6 +37,7 @@ SET(INC
   ../../../../source/blender/makesdna
   ../../../../source/blender/blenkernel
   ../../../../source/blender/blenlib
+  ../../../../source/blender/blenloader
 )
 
 BLENDERLIB(bf_oglrasterizer "${SRC}" "${INC}")
