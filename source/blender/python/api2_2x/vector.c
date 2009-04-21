@@ -57,7 +57,7 @@ struct PyMethodDef Vector_methods[] = {
 	{NULL, NULL, 0, NULL}
 };
 
-/*-----------------------------METHODS----------------------------
+/*-----------------------------METHODS---------------------------- */
 /*----------------------------Vector.zero() ----------------------
   set the vector data to 0,0,0 */
 PyObject *Vector_Zero(VectorObject * self)

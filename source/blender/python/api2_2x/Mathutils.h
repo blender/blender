@@ -83,17 +83,4 @@ int EXPP_VectorsAreEqual(float *vecA, float *vecB, int size, int floatSteps);
 #define Py_WRAP 1024
 #define Py_NEW  2048
 
-
-/* Allow us to build with Py3k */
-#if (PY_VERSION_HEX >= 0x03000000)
-#define PyString_FromString PyUnicode_FromString
-#define intobjargproc ssizeobjargproc
-#define intintobjargproc ssizessizeobjargproc
-#define intargfunc ssizeargfunc
-#define intintargfunc ssizessizeargfunc
-
-
-#endif
-
-
 #endif				/* EXPP_Mathutils_H */
