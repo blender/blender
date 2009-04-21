@@ -4666,7 +4666,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 		/* don't do xray in particle mode, need the z-buffer */
 		if(!(G.f & G_PARTICLEEDIT)) {
 			/* xray and transp are set when it is drawing the 2nd/3rd pass */
-			if(!v3d->xray && !v3d->transp && (ob->dtx & OB_DRAWXRAY)) {
+			if(!v3d->xray && !v3d->transp && (ob->dtx & OB_DRAWXRAY) && !(ob->dtx & OB_DRAWTRANSP)) {
 				add_view3d_after(v3d, base, V3D_XRAY, flag);
 				return;
 			}
