@@ -83,4 +83,17 @@ int EXPP_VectorsAreEqual(float *vecA, float *vecB, int size, int floatSteps);
 #define Py_WRAP 1024
 #define Py_NEW  2048
 
+
+/* Mathutils is used by the BGE and Blender so have to define 
+ * some things here for luddite mac users of py2.3 */
+#ifndef Py_RETURN_NONE
+#define Py_RETURN_NONE  return Py_INCREF(Py_None), Py_None
+#endif
+#ifndef Py_RETURN_FALSE
+#define Py_RETURN_FALSE  return Py_INCREF(Py_False), Py_False
+#endif
+#ifndef Py_RETURN_TRUE
+#define Py_RETURN_TRUE  return Py_INCREF(Py_True), Py_True
+#endif
+
 #endif				/* EXPP_Mathutils_H */
