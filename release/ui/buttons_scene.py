@@ -4,7 +4,7 @@ import bpy
 class RenderButtonsPanel(bpy.types.Panel):
 	__space_type__ = "BUTTONS_WINDOW"
 	__region_type__ = "WINDOW"
-	__context__ = "render"
+	__context__ = "scene"
 
 class RENDER_PT_shading(RenderButtonsPanel):
 	__label__ = "Shading"
@@ -35,7 +35,6 @@ class RENDER_PT_shading(RenderButtonsPanel):
 
 class RENDER_PT_image(RenderButtonsPanel):
 	__label__ = "Image"
-	__context__ = "render"
 
 	def draw(self, context):
 		scene = context.scene
@@ -65,7 +64,6 @@ class RENDER_PT_image(RenderButtonsPanel):
 
 class RENDER_PT_antialiasing(RenderButtonsPanel):
 	__label__ = "Anti-Aliasing"
-	__context__ = "render"
 
 	def draw(self, context):
 		scene = context.scene
@@ -91,7 +89,6 @@ class RENDER_PT_antialiasing(RenderButtonsPanel):
 
 class RENDER_PT_render(RenderButtonsPanel):
 	__label__ = "Render"
-	__context__ = "render"
 
 	def draw(self, context):
 		scene = context.scene
