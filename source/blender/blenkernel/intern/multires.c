@@ -111,7 +111,8 @@ void multires_free(Multires *mr)
 			lvl= lvl->next;
 		}
 
-		MEM_freeN(mr->verts);
+		if(mr->verts)
+			MEM_freeN(mr->verts);
 
 		BLI_freelistN(&mr->levels);
 

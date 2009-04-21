@@ -2876,6 +2876,18 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
 			lvl->map_mem= NULL;
 		}
 	}
+
+	/* Gracefully handle corrupted mesh */
+	if(mesh->mr && !mesh->mr->verts) {
+		/* If totals match, simply load the current mesh verts into multires */
+		if(mesh->totvert == ((MultiresLevel*)mesh->mr->levels.last)->totvert)
+			mesh->mr->verts = MEM_dupallocN(mesh->mvert);
+		else {
+			/* Otherwise, we can't recover the data, silently remove multires */
+			multires_free(mesh->mr);
+			mesh->mr = NULL;
+		}
+	}
 	
 	if((fd->flags & FD_FLAGS_SWITCH_ENDIAN) && mesh->tface) {
 		TFace *tf= mesh->tface;
