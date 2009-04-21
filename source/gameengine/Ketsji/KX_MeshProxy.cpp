@@ -267,7 +267,7 @@ KX_PYMETHODDEF_DOC(KX_MeshProxy, reinstancePhysicsMesh,
 "Reinstance the physics mesh.")
 {
 	//this needs to be reviewed, it is dependend on Sumo/Solid. Who is using this ?
-	Py_RETURN_NONE;//(KX_ReInstanceShapeFromMesh(m_meshobj)) ? Py_RETURN_TRUE : Py_RETURN_FALSE;
+	(KX_ReInstanceShapeFromMesh(m_meshobj)) ? Py_RETURN_TRUE : Py_RETURN_FALSE;
 }
 
 PyObject* KX_MeshProxy::pyattr_get_materials(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
