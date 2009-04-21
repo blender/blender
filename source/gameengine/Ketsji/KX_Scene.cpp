@@ -717,12 +717,13 @@ void KX_Scene::DupliGroupRecurse(CValue* obj, int level)
 		// set the replica's relative scale with the rootnode's scale
 		replica->NodeSetRelativeScale(newscale);
 
-		MT_Matrix3x3 newori = groupobj->NodeGetWorldOrientation() * gameobj->NodeGetWorldOrientation();
-		replica->NodeSetLocalOrientation(newori);
 		MT_Point3 offset(group->dupli_ofs);
 		MT_Point3 newpos = groupobj->NodeGetWorldPosition() + 
 			newscale*(groupobj->NodeGetWorldOrientation() * (gameobj->NodeGetWorldPosition()-offset));
 		replica->NodeSetLocalPosition(newpos);
+		// set the orientation after position for softbody!
+		MT_Matrix3x3 newori = groupobj->NodeGetWorldOrientation() * gameobj->NodeGetWorldOrientation();
+		replica->NodeSetLocalOrientation(newori);
 
 		replica->GetSGNode()->UpdateWorldData(0);
 		replica->GetSGNode()->SetBBox(gameobj->GetSGNode()->BBox());
