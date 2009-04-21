@@ -1101,15 +1101,14 @@ static struct PyModuleDef BGL_module_def = {
 
 PyObject *BGL_Init(const char *from) 
 {
-	PyObject *mod;
+	PyObject *mod, *dict, *item;
 #if (PY_VERSION_HEX >= 0x03000000)
 	mod = PyModule_Create(&BGL_module_def);
 #else
 	mod= Py_InitModule(from, BGL_methods);
 #endif
+	dict= PyModule_GetDict(mod);
 	
-	PyObject *dict= PyModule_GetDict(mod);
-	PyObject *item;
 	if( PyType_Ready( &buffer_Type) < 0)
 		return NULL; /* should never happen */
 
