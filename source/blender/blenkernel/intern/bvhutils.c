@@ -617,7 +617,6 @@ void free_bvhtree_from_mesh(struct BVHTreeFromMesh *data)
 	}
 }
 
-
 /* BVHCache */
 typedef struct BVHCacheItem
 {

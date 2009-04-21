@@ -265,8 +265,8 @@ def consolidate_mesh_images(mesh_list, scn, PREF_IMAGE_PATH, PREF_IMAGE_SIZE, PR
 	render_context.setRenderWinSize(100)
 	render_context.setImageType(Render.PNG)
 	render_context.enableExtensions(True) 
-	render_context.enableSky() # No alpha needed.
-	render_context.enableRGBColor()
+	render_context.enablePremultiply() # No alpha needed.
+	render_context.enableRGBAColor()
 	render_context.threads = 2
 	
 	#Render.EnableDispView() # Broken??

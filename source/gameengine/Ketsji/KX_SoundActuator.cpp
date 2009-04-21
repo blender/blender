@@ -355,7 +355,7 @@ PyObject* KX_SoundActuator::pyattr_get_filename(void *self, const struct KX_PYAT
 	char* name = objectname.Ptr();
 	
 	if (!name) {
-		PyErr_SetString(PyExc_RuntimeError, "value = actuator.filename: KX_SoundActuator, unable to get sound filename");
+		PyErr_SetString(PyExc_RuntimeError, "Unable to get sound filename");
 		return NULL;
 	} else
 		return PyString_FromString(name);
@@ -541,7 +541,7 @@ int KX_SoundActuator::pyattr_set_orientation(void *self, const struct KX_PYATTRI
 	KX_SoundActuator * actuator = static_cast<KX_SoundActuator *> (self);
 
 	if (!PySequence_Check(value)) {
-		PyErr_SetString(PyExc_AttributeError, "value = actuator.orientation: KX_SoundActuator, expected a sequence");
+		PyErr_SetString(PyExc_AttributeError, "'orientation' attribute needs to be a sequence");
 		return 1;
 	}
 

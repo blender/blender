@@ -3,7 +3,7 @@
  *
  *	BMesh Euler construction API.
  *
- * $Id$
+ * $Id: BME_eulers.c 19485 2009-03-31 22:34:34Z gsrb3d $
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

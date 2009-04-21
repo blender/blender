@@ -74,7 +74,7 @@ static int setColor (PyFilter * self, PyObject * value, void * closure)
 	// check validity of parameter
 	if (value == NULL || !PyInt_Check(value))
 	{
-		PyErr_SetString(PyExc_TypeError, "filt.colorIdx = int: VideoTexture.FilterNormal, expected the value must be a int");
+		PyErr_SetString(PyExc_TypeError, "The value must be a int");
 		return -1;
 	}
 	// set color index
@@ -94,20 +94,15 @@ static PyObject * getDepth (PyFilter * self, void * closure)
 static int setDepth (PyFilter * self, PyObject * value, void * closure)
 {
 	// check validity of parameter
-	if (value)
+	if (value == NULL || !PyFloat_Check(value))
 	{
-		float depth= (float)PyFloat_AsDouble(value);
-		if ((depth==-1 && PyErr_Occurred()) == 0) /* no error converting to a float? */
-		{
-			// set depth
-			getFilter(self)->setDepth(depth);
-			// success
-			return 0;
-		}
+		PyErr_SetString(PyExc_TypeError, "The value must be a float");
+		return -1;
 	}
-
-	PyErr_SetString(PyExc_TypeError, "filt.depth = float: VideoTexture.FilterNormal, expected the value must be a float");
-	return -1;
+	// set depth
+	getFilter(self)->setDepth(float(PyFloat_AsDouble(value)));
+	// success
+	return 0;
 }
 
 

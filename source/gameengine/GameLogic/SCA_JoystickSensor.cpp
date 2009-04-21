@@ -601,7 +601,7 @@ PyObject* SCA_JoystickSensor::pyattr_get_axis_single(void *self_v, const KX_PYAT
 	SCA_Joystick *joy = self->m_pJoystickMgr->GetJoystickDevice(self->m_joyindex);
 	
 	if(self->m_joymode != KX_JOYSENSORMODE_AXIS_SINGLE) {
-		PyErr_SetString(PyExc_TypeError, "val = sensor.axisSingle: Joystick Sensor, not 'Single Axis' type");
+		PyErr_SetString(PyExc_TypeError, "joystick sensor is not an 'Single Axis' type");
 		return NULL;
 	}
 	

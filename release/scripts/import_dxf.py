@@ -311,7 +311,7 @@ import Blender
 from Blender import Mathutils, BezTriple, Draw, Registry, sys,\
 Text3d, Window, Mesh, Material, Group
 #from Blender.Mathutils import Vector, Matrix
-import bpy
+#import bpy #not used yet
 #import BPyMessages
 
 from dxfReader import readDXF
@@ -366,7 +366,7 @@ THIN_RESOLUTION = 8   #(4-64) thin_cylinder arc_resolution - number of segments
 MIN_THICK = MIN_DIST * 10.0  #minimal thickness by forced thickness
 MIN_WIDTH = MIN_DIST * 10.0  #minimal width by forced width
 TRIM_LIMIT = 3.0	 #limit for triming of polylines-wide-segments (values:0.0 - 5.0)
-ELEVATION = 0.0 #standard elevation = coordinate Z
+ELEVATION = 0.0 #standard elevation = coordinate Z value
 
 BYBLOCK = 0
 BYLAYER = 256
@@ -860,6 +860,7 @@ class Line:  #-----------------------------------------------------------------
 			curve.append(BezTriple.New(points[1]))
 			for point in curve:
 				point.handleTypes = [VECT, VECT]
+				point.radius = 1.0
 			curve.flagU = 0 # 0 sets the curve not cyclic=open
 			c.setResolu(settings.var['curve_res'])
 			c.update() #important for handles calculation
@@ -1324,9 +1325,11 @@ class Polyline:  #--------------------------------------------------------------
 				nurbs_points.append(pkt)
 			firstpoint = nurbs_points[0]
 			curve = pline.appendNurb(firstpoint)
-			curve.setType(4) # set curvetype NURBS
+			curve.setType(4) # set curve_type NURBS
+			print 'deb: dir(curve):', dir(curve[-1]) #----------------
 			for point in nurbs_points[1:]:
 				curve.append(point)
+				#TODO: what is the trick for bevel radius? curve[-1].radius = 1.0
 			if self.closed:
 				curve.flagU = 1+0 # Set curve cyclic=close and uni
 			else:
@@ -1349,6 +1352,7 @@ class Polyline:  #--------------------------------------------------------------
 				curve.append(BezTriple.New(p))
 			for point in curve:
 				point.handleTypes = [AUTO, AUTO]
+				point.radius = 1.0
 			#curve.setType(1) #Bezier curve
 			if self.closed:
 				curve.flagU = 5 #1 # Set curve cyclic=close
@@ -1361,6 +1365,7 @@ class Polyline:  #--------------------------------------------------------------
 					p0h1 = [p0h1[i]+begtangent[i] for i in range(3)]
 					curve.__setitem__(0,BezTriple.New(p0h1+p0+p0h2))
 				curve[0].handleTypes = [FREE, ALIGN]   #remi--todo-----
+				curve[0].radius = 1.0
 				if endtangent:
 					#print 'deb:polyline2dCurve.draw curve[-1].vec:', curve[-1].vec #-----
 					#print 'deb:polyline2dCurve.draw endtangent:', endtangent #-----
@@ -1370,6 +1375,7 @@ class Polyline:  #--------------------------------------------------------------
 					curve.__setitem__(-1,BezTriple.New(p0h1+p0+p0h2))
 					#print 'deb:polyline2dCurve.draw curve[-1].vec:', curve[-1].vec #-----
 				curve[-1].handleTypes = [ALIGN, FREE]   #remi--todo-----
+				curve[-1].radius = 1.0
 
 
 
@@ -1406,6 +1412,7 @@ class Polyline:  #--------------------------------------------------------------
 					for p in VectorTriples[1:-1]:
 						curve.append(BezTriple.New(p))
 						curve[-1].handleTypes = [FREE, FREE]
+						curve[-1].radius = 1.0
 
 					prevHandleVect = VectorTriples[-1][:3]
 					prevHandleType = FREE
@@ -1441,10 +1448,12 @@ class Polyline:  #--------------------------------------------------------------
 					curve.__setitem__(0,BezTriple.New(p0h1+p0+p0h2))
 
 					curve[0].handleTypes = [FREE,prevHandleType2]
+					curve[0].radius = 1.0
 					#print 'deb:drawPlineCurve:closed curve[0].vec:', curve[0].vec #----------
 					#print 'deb:drawPlineCurve:closed curve[0].handleTypes:', curve[0].handleTypes #----------
 				else: 
 					curve[0].handleTypes[0] = VECT
+					curve[0].radius = 1.0
 			else: 
 				curve.flagU = 0 # Set curve not cyclic=open
 
@@ -2086,9 +2095,10 @@ DXF: X value; APP: 3D point, Y and Z values of control points (in WCS) (one entr
 		self.ctrlpk_len = getit(obj, 73, 0) # Number of control points
 		self.fit_pk_len = getit(obj, 74, 0) # Number of fit points (if any)
 
+		#TODO: import SPLINE as Bezier curve directly, possible?
 		#print 'deb:Spline self.fit_pk_len=', self.fit_pk_len #------------------------
 		#self.fit_pk_len = 0 # temp for debug
-		if self.fit_pk_len and 'spline_as'==5:
+		if self.fit_pk_len and settings.var['splines_as']==5:
 			self.spline = False
 			self.curved = True
 		else:
@@ -2766,6 +2776,7 @@ class Arc:  #-----------------------------------------------------------------
 				curve.append(BezTriple.New(p))
 			for point in curve:
 				point.handleTypes = [FREE, FREE]
+				point.radius = 1.0
 			curve.flagU = 0 # 0 sets the curve not cyclic=open
 			arc.setResolu(settings.var['curve_res'])
 
@@ -3297,6 +3308,7 @@ class Ellipse:  #---------------------------------------------------------------
 					curve.append(BezTriple.New(p))
 				for point in curve:
 					point.handleTypes = [FREE, FREE]
+					point.radius = 1.0
 				curve.flagU = 1 # 0 sets the curve not cyclic=open
 				if settings.var['fill_on']:
 					arc.setFlag(6) # 2+4 set top and button caps
@@ -3307,6 +3319,7 @@ class Ellipse:  #---------------------------------------------------------------
 					curve.append(BezTriple.New(p))
 				for point in curve:
 					point.handleTypes = [FREE, FREE]
+					point.radius = 1.0
 				curve.flagU = 0 # 0 sets the curve not cyclic=open
 
 			arc.setResolu(settings.var['curve_res'])
@@ -4242,8 +4255,7 @@ def	analyzeDXF(dxfFile): #---------------------------------------
 		Draw.PupMenu('DXF importer: report saved in INF-file:%t|' + '\'%s\'' %infFile)
 	except:
 		Draw.PupMenu('DXF importer: ERROR by writing report in INF-file:%t|' + '\'%s\'' %infFile)
-	finally:
-		f.close()
+	#finally: f.close()
 
 
 
@@ -4262,7 +4274,8 @@ def main(dxfFile):  #---------------#############################-----------
 	global cur_COUNTER  #counter for progress_bar
 	cur_COUNTER = 0
 
-	try:
+	#try:
+	if 1:
 		#print "Getting settings..."
 		global GUI_A, GUI_B, g_scale_as
 		if not GUI_A['g_scale_on'].val:
@@ -4380,7 +4393,7 @@ def main(dxfFile):  #---------------#############################-----------
 		#settings.write(message)
 		if UI_MODE: Draw.PupMenu('DXF importer:	Done!|finished in %.4f sec.' % time_text)
 
-	finally:
+	#finally:
 		# restore state even if things didn't work
 		#print 'deb:drawEntities finally!' #-----------------------
 		Window.WaitCursor(False)
@@ -5072,6 +5085,7 @@ def drawCurveCircle(circle):  #--- no more used --------------------------------
 	curve.append(p4)
 	for point in curve:
 		point.handleTypes = [AUTO, AUTO]
+		point.radius = 1.0
 	curve.flagU = 1 # Set curve cyclic
 	c.update()
 
@@ -5113,6 +5127,7 @@ def drawCurveArc(self):  #---- only for ELLIPSE --------------------------------
 	curve.append(p4)
 	for point in curve:
 		point.handleTypes = [AUTO, AUTO]
+		point.radius = 1.0
 	curve.flagU = 1 # Set curve cyclic
 	a.update()
 
@@ -5152,12 +5167,12 @@ GUI_B = {}  # GUI-buttons dictionary for drawingTypes
 # settings default, initialize ------------------------
 
 points_as_menu  = "convert to: %t|empty %x1|mesh.vertex %x2|thin sphere %x3|thin box %x4|*curve.vertex %x5"
-lines_as_menu   = "convert to: %t|*edge %x1|mesh %x2|*thin cylinder %x3|thin box %x4|Bezier-curve %x5|NURBS-curve %x6"
+lines_as_menu   = "convert to: %t|*edge %x1|mesh %x2|*thin cylinder %x3|thin box %x4|Bezier-curve %x5|*NURBS-curve %x6"
 mlines_as_menu  = "convert to: %t|*edge %x1|*mesh %x2|*thin cylinder %x3|*thin box %x|*curve %x5"
 plines_as_menu  = "convert to: %t|*edge %x1|mesh %x2|*thin cylinder %x3|*thin box %x4|Bezier-curve %x5|NURBS-curve %x6"
-splines_as_menu = "convert to: %t|mesh %x2|*thin cylinder %x3|*thin box %x4|Bezier-curve %x5|NURBS-curve %x6"
+splines_as_menu = "convert to: %t|mesh %x2|*thin cylinder %x3|*thin box %x4|*Bezier-curve %x5|NURBS-curve %x6"
 plines3_as_menu = "convert to: %t|*edge %x1|mesh %x2|*thin cylinder %x3|*thin box %x4|Bezier-curve %x5|NURBS-curve %x6"
-plmesh_as_menu  = "convert to: %t|*edge %x1|mesh %x2|NURBS-surface %x6"
+plmesh_as_menu  = "convert to: %t|*edge %x1|mesh %x2|*NURBS-surface %x6"
 solids_as_menu  = "convert to: %t|*edge %x1|mesh %x2"
 blocks_as_menu  = "convert to: %t|dupliGroup %x1|*real.Group %x2|*exploded %x3"
 texts_as_menu   = "convert to: %t|text %x1|*mesh %x2|*curve %x5"
@@ -5338,11 +5353,9 @@ def saveConfig():  #--todo-----------------------------------------------
 		else:
 			#if BPyMessages.Warning_SaveOver(iniFile): #<- remi find it too abstarct
 			if sys.exists(iniFile):
-				try:
-					f = file(iniFile, 'r')
-					try: header_str = f.readline()
-					finally: f.close()
-				except: pass
+				f = file(iniFile, 'r')
+				header_str = f.readline()
+				f.close()
 				if header_str.startswith(INIFILE_HEADER[0:13]):
 					if Draw.PupMenu('  OK ? %t|SAVE OVER: ' + '\'%s\'' %iniFile) == 1:
 						save_ok = True
@@ -5362,10 +5375,9 @@ def saveConfig():  #--todo-----------------------------------------------
 				output_str = '{\n'.join(output_str.split('{'))
 				try:
 					f = file(iniFile, 'w')
-					try:
-						f.write(INIFILE_HEADER + '\n# this is a comment line\n')
-						f.write(output_str)
-					finally: f.close()
+					f.write(INIFILE_HEADER + '\n# this is a comment line\n')
+					f.write(output_str)
+					f.close()
 					#Draw.PupMenu('DXF importer: INI-file: Done!%t|config-data saved in ' + '\'%s\'' %iniFile)
 				except:
 					Draw.PupMenu('DXF importer: INI-file: Error!%t|failure by writing to ' + '\'%s\'|no config-data saved!' %iniFile)
@@ -5390,25 +5402,22 @@ def loadConfig():  #remi--todo-----------------------------------------------
 	update_RegistryKey('iniFileName', iniFile)
 	#print 'deb:loadConfig iniFile: ', iniFile #----------------------
 	if iniFile.lower().endswith(INIFILE_EXTENSION) and sys.exists(iniFile):
-		try:
-			f = file(iniFile, 'r')
-			try:
-				header_str = f.readline()
-				if header_str.startswith(INIFILE_HEADER):
-					data_str = f.read()
-					f.close()
-					#print 'deb:loadConfig data_str from %s: \n' %iniFile , data_str #-----------------
-					data = eval(data_str)
-					for k, v in data[0].iteritems():
-						try: GUI_A[k].val = v
-						except:	GUI_A[k] = Draw.Create(v)
-					for k, v in data[1].iteritems():
-						try: GUI_B[k].val = v
-						except:	GUI_B[k] = Draw.Create(v)
-				else:
-					Draw.PupMenu('DXF importer: INI-file:  Alert!%t|no valid header in INI-file: ' + '\'%s\'' %iniFile)
-			finally: f.close()
-		except: pass
+		f = file(iniFile, 'r')
+		header_str = f.readline()
+		if header_str.startswith(INIFILE_HEADER):
+			data_str = f.read()
+			f.close()
+			#print 'deb:loadConfig data_str from %s: \n' %iniFile , data_str #-----------------
+			data = eval(data_str)
+			for k, v in data[0].iteritems():
+				try: GUI_A[k].val = v
+				except:	GUI_A[k] = Draw.Create(v)
+			for k, v in data[1].iteritems():
+				try: GUI_B[k].val = v
+				except:	GUI_B[k] = Draw.Create(v)
+		else:
+			f.close()
+			Draw.PupMenu('DXF importer: INI-file:  Alert!%t|no valid header in INI-file: ' + '\'%s\'' %iniFile)
 	else:
 		Draw.PupMenu('DXF importer: INI-file:  Alert!%t|no valid INI-file selected!')
 		print "DXF importer: Alert!: no valid INI-file selected."

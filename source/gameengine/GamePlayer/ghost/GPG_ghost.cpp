@@ -206,6 +206,8 @@ void usage(const char* program)
 	printf("       blender_material               0         Enable material settings\n");
 	printf("       ignore_deprecation_warnings    1         Ignore deprecation warnings\n");
 	printf("\n");
+	printf("  - : all arguments after this are ignored, allowing python to access them from sys.argv\n");
+	printf("\n");
 	printf("example: %s -w 320 200 10 10 -g noaudio c:\\loadtest.blend\n", program);
 	printf("example: %s -g show_framerate = 0 c:\\loadtest.blend\n", program);
 }
@@ -293,6 +295,7 @@ static BlendFileData *load_game_data(char *progname, char *filename = NULL, char
 int main(int argc, char** argv)
 {
 	int i;
+	int argc_py_clamped= argc; /* use this so python args can be added after ' - ' */
 	bool error = false;
 	SYS_SystemHandle syshandle = SYS_GetSystem();
 	bool fullScreen = false;
@@ -393,6 +396,12 @@ int main(int argc, char** argv)
 #endif
 		if (argv[i][0] == '-')
 		{
+			/* ignore all args after " - ", allow python to have own args */
+			if (argv[i][1]=='\0') {
+				argc_py_clamped= i;
+				break;
+			}
+			
 			switch (argv[i][1])
 			{
 			case 'g':
@@ -596,7 +605,7 @@ int main(int argc, char** argv)
 				char pathname[FILE_MAXDIR + FILE_MAXFILE];
 				char *titlename;
 
-				get_filename(argc, argv, filename);
+				get_filename(argc_py_clamped, argv, filename);
 				if(filename[0])
 					BLI_convertstringcwd(filename);
 				
@@ -691,7 +700,7 @@ int main(int argc, char** argv)
 						}
 						
 						//					GPG_Application app (system, maggie, startscenename);
-						app.SetGameEngineData(maggie, scene);
+						app.SetGameEngineData(maggie, scene, argc, argv); /* this argc cant be argc_py_clamped, since python uses it */
 						
 						BLI_strncpy(pathname, maggie->name, sizeof(pathname));
 						BLI_strncpy(G.sce, maggie->name, sizeof(G.sce));

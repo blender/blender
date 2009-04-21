@@ -3,7 +3,7 @@
  *
  *	Custom Data functions for Bmesh
  *
- * $Id$
+ * $Id: BME_Customdata.c 19485 2009-03-31 22:34:34Z gsrb3d $
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

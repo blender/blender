@@ -151,7 +151,7 @@ GPG_Application::~GPG_Application(void)
 
 
 
-bool GPG_Application::SetGameEngineData(struct Main* maggie, Scene *scene)
+bool GPG_Application::SetGameEngineData(struct Main* maggie, Scene *scene, int argc, char **argv)
 {
 	bool result = false;
 
@@ -163,6 +163,10 @@ bool GPG_Application::SetGameEngineData(struct Main* maggie, Scene *scene)
 		m_startScene = scene;
 		result = true;
 	}
+	
+	/* Python needs these */
+	m_argc= argc;
+	m_argv= argv;
 
 	return result;
 }
@@ -681,7 +685,7 @@ bool GPG_Application::startEngine(void)
 		
 		
 		// some python things
-		PyObject* dictionaryobject = initGamePlayerPythonScripting("Ketsji", psl_Lowest, m_maggie);
+		PyObject* dictionaryobject = initGamePlayerPythonScripting("Ketsji", psl_Lowest, m_maggie, m_argc, m_argv);
 		m_ketsjiengine->SetPythonDictionary(dictionaryobject);
 		initRasterizer(m_rasterizer, m_canvas);
 		PyObject *gameLogic = initGameLogic(m_ketsjiengine, startscene);

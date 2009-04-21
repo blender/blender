@@ -1,6 +1,6 @@
 /* $Id$
 -----------------------------------------------------------------------------
-This source file is part of VideoTexture library
+This source file is part of VideoTexure library
 
 Copyright (c) 2006 The Zdeno Ash Miklas
 
@@ -49,14 +49,14 @@ static PyObject * getMaterialID (PyObject *self, PyObject *args)
 	char * matName;
 
 	// get parameters
-	if (!PyArg_ParseTuple(args, "Os:materialID", &obj, &matName))
+	if (!PyArg_ParseTuple(args, "Os", &obj, &matName))
 		return NULL;
 	// get material id
 	short matID = getMaterialID(obj, matName);
 	// if material was not found, report errot
 	if (matID < 0)
 	{
-		PyErr_SetString(PyExc_RuntimeError, "VideoTexture.materialID(ob, string): Object doesn't have material with given name");
+		PyErr_SetString(PyExc_RuntimeError, "object doesn't have material with given name");
 		return NULL;
 	}
 	// return material ID
@@ -67,7 +67,7 @@ static PyObject * getMaterialID (PyObject *self, PyObject *args)
 // get last error description
 static PyObject * getLastError (PyObject *self, PyObject *args)
 {
-	return PyString_FromString(Exception::m_lastError.c_str());
+	return Py_BuildValue("s", Exception::m_lastError.c_str());
 }
 
 // set log file
@@ -89,7 +89,7 @@ static PyObject * imageToArray (PyObject * self, PyObject *args)
 	if (!PyArg_ParseTuple(args, "O", &pyImg) || !pyImageTypes.in(pyImg->ob_type))
 	{
 		// if object is incorect, report error
-		PyErr_SetString(PyExc_TypeError, "VideoTexture.imageToArray(image): The value must be a image source object");
+		PyErr_SetString(PyExc_TypeError, "The value must be a image source object");
 		return NULL;
 	}
 	// get image structure

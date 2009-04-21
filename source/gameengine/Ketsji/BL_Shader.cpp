@@ -858,7 +858,7 @@ KX_PYMETHODDEF_DOC( BL_Shader, validate, "validate()")
 		Py_RETURN_NONE;
 	}
 	if(mShader==0) {
-		PyErr_SetString(PyExc_TypeError, "shader.validate(): BL_Shader, invalid shader object");
+		PyErr_Format(PyExc_TypeError, "invalid shader object");
 		return NULL;
 	}
 	int stat = 0;
@@ -1175,7 +1175,7 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniformfv , "setUniformfv( float (list2 or lis
 					}break;
 				default:
 					{
-						PyErr_SetString(PyExc_TypeError, "shader.setUniform4i(name, ix,iy,iz, iw): BL_Shader. invalid list size");
+						PyErr_Format(PyExc_TypeError, "Invalid list size");
 						return NULL;
 					}break;
 				}
@@ -1185,7 +1185,7 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniformfv , "setUniformfv( float (list2 or lis
 	return NULL;
 }
 
-KX_PYMETHODDEF_DOC( BL_Shader, setUniformiv, "setUniformiv( uniform_name, (list2 or list3 or list4) )")
+KX_PYMETHODDEF_DOC( BL_Shader, setUniformiv, "setUniformiv( int (list2 or list3 or list4) )")
 {
 	if(mError) {
 		Py_RETURN_NONE;
@@ -1194,84 +1194,70 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniformiv, "setUniformiv( uniform_name, (list2
 	PyObject *listPtr =0;
 	int array_data[4] = {0,0,0,0};
 
-	if(!PyArg_ParseTuple(args, "sO:setUniformiv", &uniform, &listPtr))
-		return NULL;
-	
-	int loc = GetUniformLocation(uniform);
-	
-	if(loc == -1) {
-		PyErr_SetString(PyExc_TypeError, "shader.setUniformiv(...): BL_Shader, first string argument is not a valid uniform value");
-		return NULL;
-	}
-	
-	if(!PySequence_Check(listPtr)) {
-		PyErr_SetString(PyExc_TypeError, "shader.setUniformiv(...): BL_Shader, second argument is not a sequence");
-		return NULL;
-	}
-	
-	unsigned int list_size = PySequence_Size(listPtr);
-	
-	for(unsigned int i=0; (i<list_size && i<4); i++)
+	if(PyArg_ParseTuple(args, "sO:setUniformiv", &uniform, &listPtr))
 	{
-		PyObject *item = PySequence_GetItem(listPtr, i);
-		array_data[i] = PyInt_AsLong(item);
-		Py_DECREF(item);
-	}
-	
-	if(PyErr_Occurred()) {
-		PyErr_SetString(PyExc_TypeError, "shader.setUniformiv(...): BL_Shader, one or more values in the list is not an int");
-		return NULL;
-	}
-	
-	/* Sanity checks done! */
-	
-	switch(list_size)
-	{
-	case 2:
+		int loc = GetUniformLocation(uniform);
+		if(loc != -1)
 		{
-			int array2[2] = { array_data[0],array_data[1]};
+			if(PySequence_Check(listPtr))
+			{
+				unsigned int list_size = PySequence_Size(listPtr);
+				
+				for(unsigned int i=0; (i<list_size && i<4); i++)
+				{
+					PyObject *item = PySequence_GetItem(listPtr, i);
+					array_data[i] = PyInt_AsLong(item);
+					Py_DECREF(item);
+				}
+				switch(list_size)
+				{
+				case 2:
+					{
+						int array2[2] = { array_data[0],array_data[1]};
 #ifdef SORT_UNIFORMS
-			SetUniformiv(loc, BL_Uniform::UNI_INT2, array2, sizeof(int)*2);
+						SetUniformiv(loc, BL_Uniform::UNI_INT2, array2, sizeof(int)*2);
 #else
-			SetUniform(loc, array2, 2);						
+						SetUniform(loc, array2, 2);						
 #endif
-			Py_RETURN_NONE;
-		} break;
-	case 3:
-		{
-			int array3[3] = { array_data[0],array_data[1],array_data[2] };
+						Py_RETURN_NONE;
+					} break;
+				case 3:
+					{
+						int array3[3] = { array_data[0],array_data[1],array_data[2] };
 #ifdef SORT_UNIFORMS
-			SetUniformiv(loc, BL_Uniform::UNI_INT3, array3, sizeof(int)*3);
-			
+						SetUniformiv(loc, BL_Uniform::UNI_INT3, array3, sizeof(int)*3);
+						
 #else
-			SetUniform(loc, array3, 3);	
+						SetUniform(loc, array3, 3);	
 #endif
-			Py_RETURN_NONE;
-		}break;
-	case 4:
-		{
-			int array4[4] = { array_data[0],array_data[1],array_data[2],array_data[3] };
+						Py_RETURN_NONE;
+					}break;
+				case 4:
+					{
+						int array4[4] = { array_data[0],array_data[1],array_data[2],array_data[3] };
 #ifdef SORT_UNIFORMS
-			SetUniformiv(loc, BL_Uniform::UNI_INT4, array4, sizeof(int)*4);
-			
+						SetUniformiv(loc, BL_Uniform::UNI_INT4, array4, sizeof(int)*4);
+						
 #else
-			SetUniform(loc, array4, 4);	
+						SetUniform(loc, array4, 4);	
 #endif
-			Py_RETURN_NONE;
-		}break;
-	default:
-		{
-			PyErr_SetString(PyExc_TypeError, "shader.setUniformiv(...): BL_Shader, second argument, invalid list size, expected an int list between 2 and 4");
-			return NULL;
-		}break;
+						Py_RETURN_NONE;
+					}break;
+				default:
+					{
+						PyErr_Format(PyExc_TypeError, "Invalid list size");
+						return NULL;
+					}break;
+				}
+			}
+		}
 	}
-	
-	Py_RETURN_NONE;
+	return NULL;
 }
 
 
 KX_PYMETHODDEF_DOC( BL_Shader, setUniformMatrix4, 
-"setUniformMatrix4(uniform_name, mat-4x4, transpose(row-major=true, col-major=false)" )
+"setUniformMatrix4(uniform-name, mat-4x4, transpose(row-major=true, col-major=false)" )
 {
 	if(mError) {
 		Py_RETURN_NONE;
@@ -1287,38 +1273,30 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniformMatrix4,
 	const char *uniform="";
 	PyObject *matrix=0;
 	int transp=1; // MT_ is row major so transpose by default....
-	
-	if(!PyArg_ParseTuple(args, "sO|i:setUniformMatrix4",&uniform, &matrix,&transp))
-		return NULL;
-
-	int loc = GetUniformLocation(uniform);
-	
-	if(loc == -1) {
-		PyErr_SetString(PyExc_TypeError, "shader.setUniformMatrix4(...): BL_Shader, first string argument is not a valid uniform value");
-		return NULL;
-	}
-	
-	MT_Matrix4x4 mat;
-	
-	if (!PyMatTo(matrix, mat)) {
-		PyErr_SetString(PyExc_TypeError, "shader.setUniformMatrix4(...): BL_Shader, second argument cannot be converted into a 4x4 matrix");
-		return NULL;
-	}
-	
-	/* Sanity checks done! */
-
+	if(PyArg_ParseTuple(args, "sO|i:setUniformMatrix4",&uniform, &matrix,&transp))
+	{
+		int loc = GetUniformLocation(uniform);
+		if(loc != -1)
+		{
+			MT_Matrix4x4 mat;
+			if (PyMatTo(matrix, mat))
+			{
 #ifdef SORT_UNIFORMS
-	mat.getValue(matr);
-	SetUniformfv(loc, BL_Uniform::UNI_MAT4, matr, (sizeof(float)*16), (transp!=0) );
+				mat.getValue(matr);
+				SetUniformfv(loc, BL_Uniform::UNI_MAT4, matr, (sizeof(float)*16), (transp!=0) );
 #else
-	SetUniform(loc,mat,(transp!=0));
+				SetUniform(loc,mat,(transp!=0));
 #endif
-	Py_RETURN_NONE;
+				Py_RETURN_NONE;
+			}
+		}
+	}
+	return NULL;
 }
 
 
 KX_PYMETHODDEF_DOC( BL_Shader, setUniformMatrix3,
-"setUniformMatrix3(uniform_name, list[3x3], transpose(row-major=true, col-major=false)" )
+"setUniformMatrix3(uniform-name, list[3x3], transpose(row-major=true, col-major=false)" )
 {
 	if(mError) {
 		Py_RETURN_NONE;
@@ -1333,32 +1311,25 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniformMatrix3,
 	const char *uniform="";
 	PyObject *matrix=0;
 	int transp=1; // MT_ is row major so transpose by default....
-	if(!PyArg_ParseTuple(args, "sO|i:setUniformMatrix3",&uniform, &matrix,&transp))
-		return NULL;
-	
-	int loc = GetUniformLocation(uniform);
-	
-	if(loc == -1) {
-		PyErr_SetString(PyExc_TypeError, "shader.setUniformMatrix3(...): BL_Shader, first string argument is not a valid uniform value");
-		return NULL;
-	}
-	
-	
-	MT_Matrix3x3 mat;
-	
-	if (!PyMatTo(matrix, mat)) {
-		PyErr_SetString(PyExc_TypeError, "shader.setUniformMatrix3(...): BL_Shader, second argument cannot be converted into a 3x3 matrix");
-		return NULL;
-	}
-	
-
+	if(PyArg_ParseTuple(args, "sO|i:setUniformMatrix3",&uniform, &matrix,&transp))
+	{
+		int loc = GetUniformLocation(uniform);
+		if(loc != -1)
+		{
+			MT_Matrix3x3 mat;
+			if (PyMatTo(matrix, mat))
+			{
 #ifdef SORT_UNIFORMS
-	mat.getValue(matr);
-	SetUniformfv(loc, BL_Uniform::UNI_MAT3, matr, (sizeof(float)*9), (transp!=0) );
+				mat.getValue(matr);
+				SetUniformfv(loc, BL_Uniform::UNI_MAT3, matr, (sizeof(float)*9), (transp!=0) );
 #else
-	SetUniform(loc,mat,(transp!=0));
+				SetUniform(loc,mat,(transp!=0));
 #endif
-	Py_RETURN_NONE;
+				Py_RETURN_NONE;
+			}
+		}
+	}
+	return NULL;
 }
 
 KX_PYMETHODDEF_DOC( BL_Shader, setAttrib, "setAttrib(enum)" )
@@ -1366,20 +1337,18 @@ KX_PYMETHODDEF_DOC( BL_Shader, setAttrib, "setAttrib(enum)" )
 	if(mError) {
 		Py_RETURN_NONE;
 	}
-	
 	int attr=0;
-	
-	if(!PyArg_ParseTuple(args, "i:setAttrib", &attr ))
-		return NULL;
-	
-	if(mShader==0) {
-		PyErr_SetString(PyExc_ValueError, "shader.setAttrib() BL_Shader, invalid shader object");
-		return NULL;
+	if(PyArg_ParseTuple(args, "i:setAttrib", &attr )) {
+		if(mShader==0) {
+			PyErr_Format(PyExc_ValueError, "invalid shader object");
+			return NULL;
+		}
+		mAttr=SHD_TANGENT;
+		glUseProgramObjectARB(mShader);
+		glBindAttribLocationARB(mShader, mAttr, "Tangent");
+		Py_RETURN_NONE;
 	}
-	mAttr=SHD_TANGENT; /* What the heck is going on here - attr is just ignored??? - Campbell */
-	glUseProgramObjectARB(mShader);
-	glBindAttribLocationARB(mShader, mAttr, "Tangent");
-	Py_RETURN_NONE;
+	return NULL;
 }
 
 

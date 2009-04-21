@@ -1,6 +1,6 @@
 /**
  *
- * $Id$
+ * $Id: BKE_bvhutils.h 19805 2009-04-20 00:19:16Z genscher $
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -134,4 +134,3 @@ void bvhcache_init(BVHCache *cache);
 void bvhcache_free(BVHCache *cache);
 
 #endif
-

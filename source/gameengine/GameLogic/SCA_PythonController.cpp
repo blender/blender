@@ -187,7 +187,7 @@ SCA_IActuator* SCA_PythonController::LinkedActuatorFromPy(PyObject *value)
 	
 	/* set the exception */
 	PyObject *value_str = PyObject_Repr(value); /* new ref */
-	PyErr_Format(PyExc_ValueError, "'%s' not in this python controllers actuator list", PyString_AsString(value_str));
+	PyErr_Format(PyExc_ValueError, "'%s' not in this controllers actuator list", PyString_AsString(value_str));
 	Py_DECREF(value_str);
 	
 	return false;
@@ -417,14 +417,14 @@ PyObject* SCA_PythonController::PyGetActuators()
 }
 
 const char SCA_PythonController::GetSensor_doc[] = 
-"getSensor (char sensorname) return linked sensor that is named [sensorname]\n";
+"GetSensor (char sensorname) return linked sensor that is named [sensorname]\n";
 PyObject*
 SCA_PythonController::PyGetSensor(PyObject* value)
 {
 
 	char *scriptArg = PyString_AsString(value);
 	if (scriptArg==NULL) {
-		PyErr_SetString(PyExc_TypeError, "controller.getSensor(string): Python Controller, expected a string (sensor name)");
+		PyErr_SetString(PyExc_TypeError, "expected a string (sensor name)");
 		return NULL;
 	}
 	
@@ -438,21 +438,21 @@ SCA_PythonController::PyGetSensor(PyObject* value)
 		}
 	}
 	
-	PyErr_Format(PyExc_AttributeError, "controller.getSensor(string): Python Controller, unable to find requested sensor \"%s\"", scriptArg);
+	PyErr_Format(PyExc_AttributeError, "Unable to find requested sensor \"%s\"", scriptArg);
 	return NULL;
 }
 
 
 
 const char SCA_PythonController::GetActuator_doc[] = 
-"getActuator (char sensorname) return linked actuator that is named [actuatorname]\n";
+"GetActuator (char sensorname) return linked actuator that is named [actuatorname]\n";
 PyObject*
 SCA_PythonController::PyGetActuator(PyObject* value)
 {
 
 	char *scriptArg = PyString_AsString(value);
 	if (scriptArg==NULL) {
-		PyErr_SetString(PyExc_TypeError, "controller.getActuator(string): Python Controller, expected a string (actuator name)");
+		PyErr_SetString(PyExc_TypeError, "expected a string (actuator name)");
 		return NULL;
 	}
 	
@@ -465,7 +465,7 @@ SCA_PythonController::PyGetActuator(PyObject* value)
 		}
 	}
 	
-	PyErr_Format(PyExc_AttributeError, "controller.getActuator(string): Python Controller, unable to find requested actuator \"%s\"", scriptArg);
+	PyErr_Format(PyExc_AttributeError, "Unable to find requested actuator \"%s\"", scriptArg);
 	return NULL;
 }
 
@@ -536,7 +536,7 @@ int SCA_PythonController::pyattr_set_script(void *self_v, const KX_PYATTRIBUTE_D
 	char *scriptArg = PyString_AsString(value);
 	
 	if (scriptArg==NULL) {
-		PyErr_SetString(PyExc_TypeError, "controller.script = string: Python Controller, expected a string script text");
+		PyErr_SetString(PyExc_TypeError, "expected a string (script name)");
 		return -1;
 	}
 

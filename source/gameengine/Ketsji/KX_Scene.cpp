@@ -1678,7 +1678,7 @@ PyObject* KX_Scene::py_getattro(PyObject *attr)
 			Py_INCREF(object);
 		}
 		else {
-			PyErr_Format(PyExc_AttributeError, "value = scene.myAttr: KX_Scene, attribute \"%s\" not found", PyString_AsString(attr));
+			PyErr_Format(PyExc_AttributeError, "KX_Scene attribute \"%s\" not found", PyString_AsString(attr));
 		}
 	}
 	
@@ -1696,7 +1696,7 @@ int KX_Scene::py_setattro(PyObject *attr, PyObject *value)
 			ret= PY_SET_ATTR_SUCCESS;
 		}
 		else {
-			PyErr_SetString(PyExc_AttributeError, "scene.UserAttr = value: KX_Scenes, failed assigning value to internal dictionary");
+			PyErr_SetString(PyExc_AttributeError, "failed assigning value to KX_Scenes internal dictionary");
 			ret= PY_SET_ATTR_FAIL;
 		}
 	}

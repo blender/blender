@@ -1,7 +1,7 @@
 /**
  * A kd-tree for nearest neighbour search.
  * 
- * $Id$
+ * $Id: BLI_kdtree.h 19485 2009-03-31 22:34:34Z gsrb3d $
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

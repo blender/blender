@@ -3,7 +3,7 @@
  *
  *	Low level routines for manipulating the BMesh structure.
  *
- * $Id$
+ * $Id: BME_structure.c 19485 2009-03-31 22:34:34Z gsrb3d $
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

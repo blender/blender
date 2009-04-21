@@ -1,4 +1,12 @@
+<<<<<<< .working
+<<<<<<< .working
+# $Id: SCA_JoystickSensor.py 19805 2009-04-20 00:19:16Z genscher $
+=======
+# $Id: SCA_RandomSensor.py 15444 2008-07-05 17:05:05Z lukep $
+=======
 # $Id$
+>>>>>>> .merge-right.r19825
+>>>>>>> .merge-right.r19804
 # Documentation for SCA_RandomSensor
 from SCA_ISensor import *
 

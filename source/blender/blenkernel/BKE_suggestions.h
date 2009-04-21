@@ -1,5 +1,5 @@
 /**	
- * $Id$ 
+ * $Id: $ 
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -91,3 +91,4 @@ void texttool_docs_clear();
 #endif
 
 #endif
+

@@ -1,4 +1,12 @@
+<<<<<<< .working
+<<<<<<< .working
+# $Id: KX_ParentActuator.py 19805 2009-04-20 00:19:16Z genscher $
+=======
+# $Id: KX_ParentActuator.py 2615 2004-06-02 12:43:27Z kester $
+=======
 # $Id$
+>>>>>>> .merge-right.r19825
+>>>>>>> .merge-right.r19804
 # Documentation for KX_ParentActuator
 from SCA_IActuator import *
 

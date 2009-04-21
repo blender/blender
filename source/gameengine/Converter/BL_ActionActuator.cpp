@@ -1037,7 +1037,7 @@ int BL_ActionActuator::pyattr_set_action(void *self_v, const KX_PYATTRIBUTE_DEF 
 	
 	if (!PyString_Check(value))
 	{
-		PyErr_SetString(PyExc_ValueError, "actuator.action = val: Action Actuator, expected the string name of the action");
+		PyErr_SetString(PyExc_ValueError, "expected the string name of the action");
 		return -1;
 	}
 
@@ -1049,7 +1049,7 @@ int BL_ActionActuator::pyattr_set_action(void *self_v, const KX_PYATTRIBUTE_DEF 
 		action= (bAction*)SCA_ILogicBrick::m_sCurrentLogicManager->GetActionByName(val);
 		if (!action)
 		{
-			PyErr_SetString(PyExc_ValueError, "actuator.action = val: Action Actuator, action not found!");
+			PyErr_SetString(PyExc_ValueError, "action not found!");
 			return 1;
 		}
 	}

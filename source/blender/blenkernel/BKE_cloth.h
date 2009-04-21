@@ -1,7 +1,7 @@
 /**
  * BKE_cloth.h
  *
- * $Id$
+ * $Id: BKE_cloth.h,v 1.1 2007/08/01 02:07:27 daniel Exp $
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

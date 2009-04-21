@@ -398,7 +398,7 @@ PyObject* KX_VertexProxy::PySetRGBA(PyObject* value)
 		}
 	}
 	
-	PyErr_SetString(PyExc_TypeError, "vert.setRGBA(value): KX_VertexProxy, expected a 4D vector or an int");
+	PyErr_SetString(PyExc_TypeError, "expected a 4D vector or an int");
 	return NULL;
 }
 

@@ -1,7 +1,7 @@
 /* BIF_editparticle.h
  *
  *
- * $Id$
+ * $Id: BIF_editparticle.h $
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

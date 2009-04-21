@@ -42,7 +42,7 @@ int resolX, resolY, resolZ;
 int frames;
 } VoxelDataHeader;
 
-inline int _I(int x, int y, int z, int *n);
+__inline int _I(int x, int y, int z, int *n);
 void make_voxeldata(struct Render *re);
 void free_voxeldata(struct Render *re);
 int voxeldatatex(struct Tex *tex, float *texvec, struct TexResult *texres);

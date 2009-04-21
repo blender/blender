@@ -1,5 +1,5 @@
 /**
- * $Id$
+ * $Id: raytrace.c 19805 2009-04-20 00:19:16Z genscher $
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -1439,4 +1439,3 @@ float RE_ray_tree_max_size(RayTree *tree)
 {
 	return ((Octree*)tree)->ocsize;
 }
-

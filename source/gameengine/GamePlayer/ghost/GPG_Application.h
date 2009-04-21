@@ -58,7 +58,7 @@ public:
 	GPG_Application(GHOST_ISystem* system);
 	~GPG_Application(void);
 
-			bool SetGameEngineData(struct Main* maggie, struct Scene* scene);
+			bool SetGameEngineData(struct Main* maggie, struct Scene* scene, int argc, char** argv);
 			bool startWindow(STR_String& title, int windowLeft, int windowTop, int windowWidth, int windowHeight,
 			const bool stereoVisual, const int stereoMode);
 			bool startFullScreen(int width, int height, int bpp, int frequency, const bool stereoVisual, const int stereoMode);
@@ -154,5 +154,9 @@ protected:
 	 */
 	char* m_pyGlobalDictString;
 	int m_pyGlobalDictString_Length;
+	
+	/* argc and argv need to be passed on to python */
+	int		m_argc;
+	char**	m_argv;
 };
 

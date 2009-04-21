@@ -1,5 +1,5 @@
 /* 
- * $Id$
+ * $Id: occlusion.c 19805 2009-04-20 00:19:16Z genscher $
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

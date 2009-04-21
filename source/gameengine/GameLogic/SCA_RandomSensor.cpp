@@ -224,7 +224,7 @@ int SCA_RandomSensor::pyattr_set_seed(void *self_v, const KX_PYATTRIBUTE_DEF *at
 {
 	SCA_RandomSensor* self= static_cast<SCA_RandomSensor*>(self_v);
 	if (!PyInt_Check(value)) {
-		PyErr_SetString(PyExc_TypeError, "sensor.seed = int: Random Sensor, expected an integer");
+		PyErr_SetString(PyExc_TypeError, "expected an integer");
 		return -1;
 	}
 	self->m_basegenerator->SetSeed(PyInt_AsLong(value));

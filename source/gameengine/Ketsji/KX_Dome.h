@@ -1,4 +1,4 @@
-/* $Id: KX_Dome.h 19599 2009-04-08 15:06:20Z ben2610 $
+/* $Id$
 -----------------------------------------------------------------------------
 
 This program is free software; you can redistribute it and/or modify it under

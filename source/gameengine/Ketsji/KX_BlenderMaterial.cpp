@@ -841,7 +841,7 @@ KX_PYMETHODDEF_DOC( KX_BlenderMaterial, getShader , "getShader()")
 		}
 		Py_RETURN_NONE;
 	}
-	PyErr_SetString(PyExc_ValueError, "material.getShader(): KX_BlenderMaterial, GLSL Error");
+	PyErr_Format(PyExc_ValueError, "GLSL Error");
 	return NULL;
 }
 
@@ -907,7 +907,7 @@ KX_PYMETHODDEF_DOC( KX_BlenderMaterial, setBlending , "setBlending( GameLogic.sr
 			if(value_found[0] && value_found[1]) break;
 		}
 		if(!value_found[0] || !value_found[1]) {
-			PyErr_SetString(PyExc_ValueError, "material.setBlending(int, int): KX_BlenderMaterial, invalid enum.");
+			PyErr_Format(PyExc_ValueError, "invalid enum.");
 			return NULL;
 		}
 		mUserDefBlend = true;

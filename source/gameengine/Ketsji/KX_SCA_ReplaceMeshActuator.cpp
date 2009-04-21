@@ -121,7 +121,7 @@ int KX_SCA_ReplaceMeshActuator::pyattr_set_mesh(void *self, const struct KX_PYAT
 	} else if (PyString_Check(value)) {
 		void* mesh = SCA_ILogicBrick::m_sCurrentLogicManager->GetMeshByName(STR_String(PyString_AsString(value)));
 		if (mesh==NULL) {
-			PyErr_SetString(PyExc_ValueError, "actuator.mesh = string: Replace Mesh Actuator, mesh name given does not exist");
+			PyErr_SetString(PyExc_ValueError, "The mesh name given does not exist");
 			return 1;
 		}
 		actuator->m_mesh= (class RAS_MeshObject*)mesh;
@@ -129,7 +129,7 @@ int KX_SCA_ReplaceMeshActuator::pyattr_set_mesh(void *self, const struct KX_PYAT
 		KX_MeshProxy* proxy = (KX_MeshProxy*)value;
 		actuator->m_mesh= proxy->GetMesh();
 	} else {
-		PyErr_SetString(PyExc_ValueError, "actuator.mesh = value: Replace Mesh Actuator, expected the mesh name, a KX_MeshProxy or None");
+		PyErr_SetString(PyExc_ValueError, "Expected the name of a mesh, a mesh proxy or None");
 		return 1;
 	}
 	return 0;

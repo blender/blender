@@ -1,4 +1,4 @@
-/* $Id: KX_Dome.cpp 19618 2009-04-09 10:29:07Z ben2610 $
+/* $Id$
 -----------------------------------------------------------------------------
 
 This program is free software; you can redistribute it and/or modify it under

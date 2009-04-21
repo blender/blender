@@ -1,7 +1,7 @@
 /**
  * Set or remove an objects parent
  *
- * $Id$
+ * $Id: KX_ParentActuator.cpp 19794 2009-04-19 17:29:07Z campbellbarton $
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

@@ -242,7 +242,7 @@ KX_PYMETHODDEF_DOC(KX_PolyProxy, getVertexIndex,
 	}
 	if (index < 0 || index > 3)
 	{
-		PyErr_SetString(PyExc_AttributeError, "poly.getVertexIndex(int): KX_PolyProxy, expected an index between 0-3");
+		PyErr_SetString(PyExc_AttributeError, "Valid range for index is 0-3");
 		return NULL;
 	}
 	if (index < m_polygon->VertexCount())

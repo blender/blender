@@ -1,5 +1,13 @@
 #
+<<<<<<< .working
+<<<<<<< .working
+# $Id: Makefile 19805 2009-04-20 00:19:16Z genscher $
+=======
+# $Id: Makefile,v 1.7 2003/05/12 18:12:25 sgefant Exp $
+=======
 # $Id$
+>>>>>>> .merge-right.r19825
+>>>>>>> .merge-right.r19804
 #
 # ***** BEGIN GPL LICENSE BLOCK *****
 #

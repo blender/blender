@@ -92,35 +92,18 @@ bool PyMatTo(PyObject* pymat, T& mat)
 }
 
 /**
- *  Converts a python sequence to a MT class.
+ *  Converts a python list to a MT class.
  */
 template<class T>
 bool PyVecTo(PyObject* pyval, T& vec)
 {
-
-	if(PyTuple_Check(pyval))
-	{
-		unsigned int numitems = PyTuple_GET_SIZE(pyval);
-		if (numitems != Size(vec)) {
-			PyErr_Format(PyExc_AttributeError, "error setting vector, %d args, should be %d", numitems, Size(vec));
-			return false;
-		}
-		
-		for (unsigned int x = 0; x < numitems; x++)
-			vec[x] = PyFloat_AsDouble(PyTuple_GET_ITEM(pyval, x)); /* borrow ref */
-		
-		if (PyErr_Occurred()) {
-			PyErr_SetString(PyExc_AttributeError, "one or more of the items in the sequence was not a float");
-			return false;
-		}
-		
-		return true;
-	}
-	else if (PySequence_Check(pyval))
+	if (PySequence_Check(pyval))
 	{
 		unsigned int numitems = PySequence_Size(pyval);
 		if (numitems != Size(vec)) {
-			PyErr_Format(PyExc_AttributeError, "error setting vector, %d args, should be %d", numitems, Size(vec));
+			char err[128];
+			sprintf(err, "error setting vector, %d args, should be %d", numitems, Size(vec));
+			PyErr_SetString(PyExc_AttributeError, err);
 			return false;
 		}
 		
@@ -139,7 +122,9 @@ bool PyVecTo(PyObject* pyval, T& vec)
 		return true;
 	} else
 	{
-		PyErr_Format(PyExc_AttributeError, "not a sequence type, expected a sequence of numbers size %d", Size(vec));
+		char err[128];
+		sprintf(err, "not a sequence type, expected a sequence of numbers size %d", Size(vec));
+		PyErr_SetString(PyExc_AttributeError, err);
 	}
 	
 	return false;

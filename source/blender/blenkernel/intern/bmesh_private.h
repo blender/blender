@@ -3,7 +3,7 @@
  *
  *	low level, 'private' function prototypes for bmesh kernel.
  *
- * $Id$
+ * $Id: bmesh_private.h 19485 2009-03-31 22:34:34Z gsrb3d $
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

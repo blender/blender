@@ -144,7 +144,7 @@ public:
 			case ACT_ACTION_FROM_PROP:
 				return 0;
 			default:
-				PyErr_SetString(PyExc_ValueError, "Shape Action Actuator, invalid play type supplied");
+				PyErr_SetString(PyExc_ValueError, "invalid type supplied");
 				return 1;
 		}
 

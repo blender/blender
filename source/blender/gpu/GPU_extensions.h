@@ -1,5 +1,5 @@
 /**
- * $Id$
+ * $Id: GPU_extensions.h 19485 2009-03-31 22:34:34Z gsrb3d $
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

@@ -3,7 +3,7 @@
  *
  *	Functions for changing the topology of a mesh.
  *
- * $Id$
+ * $Id: BME_tools.c 19485 2009-03-31 22:34:34Z gsrb3d $
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

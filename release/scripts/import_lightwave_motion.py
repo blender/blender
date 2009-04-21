@@ -22,7 +22,7 @@ Be sure to set the framerate correctly
 
 """
 
-# $Id: export_lightwave_motion.py 9924 2007-01-27 02:15:14Z campbellbarton $
+# $Id: import_lightwave_motion.py 17332 2008-11-05 11:42:34Z migius $
 # --------------------------------------------------------------------------
 # ***** BEGIN GPL LICENSE BLOCK *****
 #

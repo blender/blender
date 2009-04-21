@@ -1,5 +1,5 @@
 /**
- * $Id: KX_PythonInitTypes.cpp 19794 2009-04-19 17:29:07Z campbellbarton $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

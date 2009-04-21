@@ -1,5 +1,5 @@
 /*
- * $Id$
+ * $Id: multires.h 13015 2007-12-27 07:27:03Z nicholasbishop $
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
