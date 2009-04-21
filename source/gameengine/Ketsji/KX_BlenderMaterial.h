@@ -73,7 +73,6 @@ public:
 	Image * getImage (unsigned int idx) { 
 		return (idx < MAXTEX && mMaterial) ? mMaterial->img[idx] : NULL; 
 	}
-
 	// for ipos
 	void UpdateIPO(
 		MT_Vector4 rgba, MT_Vector3 specrgb,
@@ -117,6 +116,9 @@ private:
 	void ActivateTexGen( RAS_IRasterizer *ras ) const;
 
 	bool UsesLighting(RAS_IRasterizer *rasty) const;
+	void GetMaterialRGBAColor(unsigned char *rgba) const;
+	Material* GetBlenderMaterial() const;
+	Scene* GetBlenderScene() const;
 
 	// message centers
 	void	setTexData( bool enable,RAS_IRasterizer *ras);

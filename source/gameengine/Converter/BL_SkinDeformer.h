@@ -64,6 +64,7 @@ public:
 					struct Object *bmeshobj_new,
 					class BL_SkinMeshObject *mesh,
 					bool release_object,
+					bool recalc_normal,
 					BL_ArmatureObject* arma = NULL);
 
 	virtual void ProcessReplica();
@@ -88,10 +89,11 @@ protected:
 	BL_ArmatureObject*		m_armobj;	//	Our parent object
 	float					m_time;
 	double					m_lastArmaUpdate;
-	ListBase*				m_defbase;
+	//ListBase*				m_defbase;
 	float					m_obmat[4][4];	// the reference matrix for skeleton deform
 	bool					m_releaseobject;
 	bool					m_poseApplied;
+	bool					m_recalcNormal;
 
 };
 

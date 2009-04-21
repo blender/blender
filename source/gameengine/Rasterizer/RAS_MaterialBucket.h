@@ -69,6 +69,7 @@ class RAS_DisplayArray;
 class RAS_MeshSlot;
 class RAS_MeshMaterial;
 class RAS_MaterialBucket;
+struct DerivedMesh;
 
 /* An array with data used for OpenGL drawing */
 
@@ -110,6 +111,7 @@ public:
 	RAS_MeshObject*			m_mesh;
 	void*					m_clientObj;
 	RAS_Deformer*			m_pDeformer;
+	DerivedMesh*			m_pDerivedMesh;
 	double*					m_OpenGLMatrix;
 	// visibility
 	bool					m_bVisible;
@@ -148,6 +150,7 @@ public:
 	/* used during construction */
 	void SetDisplayArray(int numverts);
 	RAS_DisplayArray *CurrentDisplayArray();
+	void SetDeformer(RAS_Deformer* deformer);
 
 	void AddPolygon(int numverts);
 	int AddVertex(const RAS_TexVert& tv);

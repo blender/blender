@@ -480,10 +480,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\gameengine\Converter\BL_ArmatureObject.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\..\..\source\gameengine\Converter\BL_BlenderDataConversion.cpp"
 				>
 			</File>
@@ -493,6 +489,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\gameengine\Converter\BL_MeshDeformer.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\gameengine\Converter\BL_ModifierDeformer.cpp"
 				>
 			</File>
 			<File
@@ -553,6 +553,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\gameengine\Converter\BL_ArmatureObject.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\gameengine\Converter\BL_ArmatureObject.h"
 				>
 			</File>
@@ -566,6 +570,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\gameengine\Converter\BL_MeshDeformer.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\gameengine\Converter\BL_ModifierDeformer.h"
 				>
 			</File>
 			<File

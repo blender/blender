@@ -89,6 +89,7 @@ public:
 
 	RAS_MeshMaterial* 	GetMeshMaterial(unsigned int matid);
 	RAS_MeshMaterial*	GetMeshMaterial(RAS_IPolyMaterial *mat);
+	int					GetMaterialId(RAS_IPolyMaterial *mat);
 
 	list<RAS_MeshMaterial>::iterator GetFirstMaterial();
 	list<RAS_MeshMaterial>::iterator GetLastMaterial();

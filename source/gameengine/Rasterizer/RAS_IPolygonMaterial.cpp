@@ -29,12 +29,16 @@
 #include "RAS_IPolygonMaterial.h"
 #include "RAS_IRasterizer.h"
 
+#include "DNA_image_types.h"
+#include "DNA_meshdata_types.h"
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
 
 RAS_IPolyMaterial::RAS_IPolyMaterial(const STR_String& texname,
 									 const STR_String& matname,
+									 int materialindex,
 									 int tile,
 									 int tilexrep,
 									 int tileyrep,
@@ -45,6 +49,7 @@ RAS_IPolyMaterial::RAS_IPolyMaterial(const STR_String& texname,
 									 int lightlayer)
 		: m_texturename(texname),
 		m_materialname(matname),
+		m_materialindex(materialindex),
 		m_tile(tile),
 		m_tilexrep(tilexrep),
 		m_tileyrep(tileyrep),
@@ -95,6 +100,15 @@ bool RAS_IPolyMaterial::Equals(const RAS_IPolyMaterial& lhs) const
 	}
 }
 
+
+void RAS_IPolyMaterial::GetMaterialRGBAColor(unsigned char *rgba) const
+{
+	*rgba++ = 0xFF;
+	*rgba++ = 0xFF;
+	*rgba++ = 0xFF;
+	*rgba++ = 0xFF;
+}
+
 bool RAS_IPolyMaterial::Less(const RAS_IPolyMaterial& rhs) const
 {
 	if (Equals(rhs))
@@ -142,6 +156,22 @@ const STR_String& RAS_IPolyMaterial::GetTextureName() const
 {
 	return m_texturename;
 }
+
+int RAS_IPolyMaterial::GetMaterialIndex() const
+{
+	return m_materialindex;
+}
+
+Material *RAS_IPolyMaterial::GetBlenderMaterial() const
+{
+	return NULL;
+}
+
+Scene* RAS_IPolyMaterial::GetBlenderScene() const
+{
+	return NULL;
+}
+
 
 unsigned int	RAS_IPolyMaterial::GetFlag() const
 {

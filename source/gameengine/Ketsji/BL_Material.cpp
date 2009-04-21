@@ -52,7 +52,7 @@ BL_Material::BL_Material()
 	mode = 0;
 	material = 0;
 	tface = 0;
-	material_index = 0;
+	materialindex = 0;
 	amb=0.5f;
 	num_enabled = 0;
 	num_users = 1;

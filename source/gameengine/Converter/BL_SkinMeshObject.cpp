@@ -87,7 +87,7 @@ void BL_SkinMeshObject::UpdateBuckets(void* clientobj,double* oglmatrix,bool use
 			continue;
 
 		RAS_MeshSlot *slot = *it->m_slots[clientobj];
-		slot->m_pDeformer = ((BL_DeformableGameObject*)clientobj)->GetDeformer();
+		slot->SetDeformer(((BL_DeformableGameObject*)clientobj)->GetDeformer());
 	}
 
 	RAS_MeshObject::UpdateBuckets(clientobj, oglmatrix, useObjectColor, rgbavec, visible, culled);

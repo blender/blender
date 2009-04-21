@@ -56,6 +56,7 @@ RAS_MeshSlot::RAS_MeshSlot()
 	m_DisplayList = NULL;
 	m_bDisplayList = true;
 	m_joinSlot = NULL;
+	m_pDerivedMesh = NULL;
 }
 
 RAS_MeshSlot::~RAS_MeshSlot()
@@ -87,6 +88,7 @@ RAS_MeshSlot::RAS_MeshSlot(const RAS_MeshSlot& slot)
 
 	m_clientObj = NULL;
 	m_pDeformer = NULL;
+	m_pDerivedMesh = NULL;
 	m_OpenGLMatrix = NULL;
 	m_mesh = slot.m_mesh;
 	m_bucket = slot.m_bucket;
@@ -277,6 +279,43 @@ void RAS_MeshSlot::AddPolygonVertex(int offset)
 
 	if(darray == m_displayArrays[m_endarray])
 		m_endindex++;
+}
+
+void RAS_MeshSlot::SetDeformer(RAS_Deformer* deformer)
+{
+	if (deformer && m_pDeformer != deformer) {
+		// we create local copy of RAS_DisplayArray when we have a deformer:
+		// this way we can avoid conflict between the vertex cache of duplicates
+		RAS_DisplayArrayList::iterator it;
+		for(it=m_displayArrays.begin(); it!=m_displayArrays.end(); it++) {
+			if (deformer->UseVertexArray()) {
+				// the deformer makes use of vertex array, make sure we have our local copy
+				if ((*it)->m_users > 1) {
+					// only need to copy if there are other users
+					// note that this is the usual case as vertex arrays are held by the material base slot
+					RAS_DisplayArray *newarray = new RAS_DisplayArray(*(*it));
+					newarray->m_users = 1;
+					(*it)->m_users--;
+					*it = newarray;
+				}
+			} else {
+				// the deformer is not using vertex array (Modifier), release them
+				(*it)->m_users--;
+				if((*it)->m_users == 0)
+					delete *it;
+			}
+		}
+		if (!deformer->UseVertexArray()) {
+			m_displayArrays.clear();
+			m_startarray = 0;
+			m_startvertex = 0;
+			m_startindex = 0;
+			m_endarray = 0;
+			m_endvertex = 0;
+			m_endindex = 0;
+		}
+	}
+	m_pDeformer = deformer;
 }
 
 bool RAS_MeshSlot::Equals(RAS_MeshSlot *target)

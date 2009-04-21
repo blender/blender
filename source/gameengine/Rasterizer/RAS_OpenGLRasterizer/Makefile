@@ -42,8 +42,13 @@ CPPFLAGS += -I$(NAN_STRING)/include
 CPPFLAGS += -I$(NAN_MOTO)/include
 CPPFLAGS += -I../../../kernel/gen_system
 CPPFLAGS += -I../../../blender/gpu
+CPPFLAGS += -I../../../blender/makesdna
+CPPFLAGS += -I../../../blender/blenlib
+CPPFLAGS += -I../../../blender/blenkernel
 CPPFLAGS += -I../../BlenderRoutines
+CPPFLAGS += -I../../Ketsji
 CPPFLAGS += -I..
+CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
 
 ifeq ($(OS),darwin)
 	CPPFLAGS += -fpascal-strings

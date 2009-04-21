@@ -49,6 +49,10 @@ public:
 	{
 		return false;
 	}
+	virtual bool UseVertexArray()
+	{
+		return true;
+	}
 protected:
 	class RAS_MeshObject	*m_pMesh;
 };

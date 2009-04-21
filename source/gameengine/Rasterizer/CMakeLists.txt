@@ -29,6 +29,7 @@ FILE(GLOB SRC *.cpp)
 SET(INC
   .
   ../../../source/kernel/gen_system
+  ../../../source/blender/makesdna
   ../../../intern/string
   ../../../intern/moto/include
   ../../../extern/glew/include

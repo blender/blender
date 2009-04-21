@@ -53,6 +53,7 @@
 
 KX_PolygonMaterial::KX_PolygonMaterial(const STR_String &texname,
 											   Material *material,
+											   int materialindex,
 											   int tile,
 											   int tilexrep,
 											   int tileyrep,
@@ -67,6 +68,7 @@ KX_PolygonMaterial::KX_PolygonMaterial(const STR_String &texname,
 		: PyObjectPlus(T),
 		  RAS_IPolyMaterial(texname,
 							STR_String(material?material->id.name:""),
+							materialindex,
 							tile,
 							tilexrep,
 							tileyrep,
@@ -166,6 +168,18 @@ void KX_PolygonMaterial::DefaultActivate(RAS_IRasterizer* rasty, TCachingInfo& c
 	if (m_material)
 		rasty->SetPolygonOffset(-m_material->zoffs, 0.0);
 }
+
+void KX_PolygonMaterial::GetMaterialRGBAColor(unsigned char *rgba) const
+{
+	if (m_material) {
+		*rgba++ = (unsigned char) (m_material->r*255.0);
+		*rgba++ = (unsigned char) (m_material->g*255.0);
+		*rgba++ = (unsigned char) (m_material->b*255.0);
+		*rgba++ = (unsigned char) (m_material->alpha*255.0);
+	} else
+		RAS_IPolyMaterial::GetMaterialRGBAColor(rgba);
+}
+
 
 //----------------------------------------------------------------------------
 //Python

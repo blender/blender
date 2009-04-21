@@ -80,6 +80,7 @@
 #include "KX_BlenderSceneConverter.h"
 #include "KX_MotionState.h"
 
+#include "BL_ModifierDeformer.h"
 #include "BL_ShapeDeformer.h"
 #include "BL_DeformableGameObject.h"
 
@@ -1038,6 +1039,7 @@ void KX_Scene::ReplaceMesh(class CValue* obj,void* meshobj)
 			Object* oldblendobj = static_cast<struct Object*>(m_logicmgr->FindBlendObjByGameMeshName(mesh->GetName()));
 			Mesh* blendmesh = mesh->GetMesh();
 
+			bool bHasModifier = BL_ModifierDeformer::HasCompatibleDeformer(blendobj);
 			bool bHasShapeKey = blendmesh->key != NULL && blendmesh->key->type==KEY_RELATIVE;
 			bool bHasDvert = blendmesh->dvert != NULL;
 			bool bHasArmature = 
@@ -1053,10 +1055,37 @@ void KX_Scene::ReplaceMesh(class CValue* obj,void* meshobj)
 			
 			if (oldblendobj==NULL) {
 				std::cout << "warning: ReplaceMesh() new mesh is not used in an object from the current scene, you will get incorrect behavior" << std::endl;
-				bHasShapeKey= bHasDvert= bHasArmature= false;
+				bHasShapeKey= bHasDvert= bHasArmature=bHasModifier= false;
 			}
 			
-			if (bHasShapeKey)
+			if (bHasModifier)
+			{
+				BL_ModifierDeformer* modifierDeformer;
+				if (bHasShapeKey || bHasArmature)
+				{
+					modifierDeformer = new BL_ModifierDeformer(
+						newobj,
+						oldblendobj, blendobj,
+						static_cast<BL_SkinMeshObject*>(mesh),
+						true,
+						static_cast<BL_ArmatureObject*>( parentobj )
+					);
+					releaseParent= false;
+					modifierDeformer->LoadShapeDrivers(blendobj->parent);
+				}
+				else
+				{
+					modifierDeformer = new BL_ModifierDeformer(
+						newobj,
+						oldblendobj, blendobj,
+						static_cast<BL_SkinMeshObject*>(mesh),
+						false,
+						NULL
+					);
+				}
+				newobj->SetDeformer(modifierDeformer);
+			} 
+			else 	if (bHasShapeKey)
 			{
 				BL_ShapeDeformer* shapeDeformer;
 				if (bHasArmature) 
@@ -1065,6 +1094,7 @@ void KX_Scene::ReplaceMesh(class CValue* obj,void* meshobj)
 						newobj,
 						oldblendobj, blendobj,
 						static_cast<BL_SkinMeshObject*>(mesh),
+						true,
 						true,
 						static_cast<BL_ArmatureObject*>( parentobj )
 					);
@@ -1078,6 +1108,7 @@ void KX_Scene::ReplaceMesh(class CValue* obj,void* meshobj)
 						oldblendobj, blendobj,
 						static_cast<BL_SkinMeshObject*>(mesh),
 						false,
+						true,
 						NULL
 					);
 				}
@@ -1089,6 +1120,7 @@ void KX_Scene::ReplaceMesh(class CValue* obj,void* meshobj)
 					newobj,
 					oldblendobj, blendobj,
 					static_cast<BL_SkinMeshObject*>(mesh),
+					true,
 					true,
 					static_cast<BL_ArmatureObject*>( parentobj )
 				);

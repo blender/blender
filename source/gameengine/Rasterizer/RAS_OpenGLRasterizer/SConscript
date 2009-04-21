@@ -5,6 +5,8 @@ sources = env.Glob('*.cpp')
 
 incs = '. #source/kernel/gen_system #intern/string #intern/moto/include #source/gameengine/Rasterizer #source/gameengine/BlenderRoutines '
 incs += ' #source/blender/gpu #extern/glew/include ' + env['BF_OPENGL_INC']
+incs += ' #source/blender/gameengine/Ketsji #source/blender/makesdna #source/blender/blenkernel'
+incs += ' #intern/guardedalloc #source/blender/blenlib'
 
 cxxflags = []
 if env['OURPLATFORM']=='win32-vc':

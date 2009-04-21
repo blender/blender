@@ -79,6 +79,7 @@ RAS_Deformer *BL_ShapeDeformer::GetReplica(class KX_GameObject* replica)
 
 void BL_ShapeDeformer::ProcessReplica()
 {
+	BL_SkinDeformer::ProcessReplica();
 }
 
 bool BL_ShapeDeformer::LoadShapeDrivers(Object* arma)
@@ -87,7 +88,7 @@ bool BL_ShapeDeformer::LoadShapeDrivers(Object* arma)
 
 	m_shapeDrivers.clear();
 	// check if this mesh has armature driven shape keys
-	if (m_bmesh->key->ipo) {
+	if (m_bmesh->key && m_bmesh->key->ipo) {
 		for(icu= (IpoCurve*)m_bmesh->key->ipo->curve.first; icu; icu= (IpoCurve*)icu->next) {
 			if(icu->driver && 
 				(icu->flag & IPO_MUTE) == 0 &&
@@ -147,7 +148,9 @@ bool BL_ShapeDeformer::Update(void)
 		m_pMeshObject->CheckWeightCache(blendobj);
 
 		/* we will blend the key directly in mvert array: it is used by armature as the start position */
-		do_rel_key(0, m_bmesh->totvert, m_bmesh->totvert, (char *)m_bmesh->mvert->co, m_bmesh->key, 0);
+		/* m_bmesh->key can be NULL in case of Modifier deformer */
+		if (m_bmesh->key)
+			do_rel_key(0, m_bmesh->totvert, m_bmesh->totvert, (char *)m_bmesh->mvert->co, m_bmesh->key, 0);
 
 		// Don't release the weight array as in Blender, it will most likely be reusable on next frame 
 		// The weight array are ultimately deleted when the skin mesh is destroyed
@@ -174,7 +177,8 @@ bool BL_ShapeDeformer::Update(void)
 			VECCOPY(m_transverts[v], m_bmesh->mvert[v].co);
 
 #ifdef __NLA_DEFNORMALS
-		RecalcNormals();
+		if (m_recalcNormal)
+			RecalcNormals();
 #endif
 		bSkinUpdate = true;
 	}

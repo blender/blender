@@ -116,10 +116,13 @@ RAS_ListRasterizer::~RAS_ListRasterizer()
 
 void RAS_ListRasterizer::RemoveListSlot(RAS_ListSlot* list)
 {
-	RAS_Lists::iterator it = mLists.begin();
-	while(it != mLists.end()) {
+	if (list->m_flag & LIST_STANDALONE)
+		return ;
+	
+	RAS_ArrayLists::iterator it = mArrayLists.begin();
+	while(it != mArrayLists.end()) {
 		if (it->second == list) {
-			mLists.erase(it);
+			mArrayLists.erase(it);
 			break;
 		}
 		it++;
@@ -136,12 +139,19 @@ RAS_ListSlot* RAS_ListRasterizer::FindOrAdd(RAS_MeshSlot& ms)
 	*/
 	RAS_ListSlot* localSlot = (RAS_ListSlot*)ms.m_DisplayList;
 	if(!localSlot) {
-		RAS_Lists::iterator it = mLists.find(ms.m_displayArrays);
-		if(it == mLists.end()) {
+		if (ms.m_pDerivedMesh) {
+			// that means that we draw based on derived mesh, a display list is possible
+			// but it's unique to this mesh slot
 			localSlot = new RAS_ListSlot(this);
-			mLists.insert(std::pair<RAS_DisplayArrayList, RAS_ListSlot*>(ms.m_displayArrays, localSlot));
+			localSlot->m_flag |= LIST_STANDALONE;
 		} else {
-			localSlot = static_cast<RAS_ListSlot*>(it->second->AddRef());
+			RAS_ArrayLists::iterator it = mArrayLists.find(ms.m_displayArrays);
+			if(it == mArrayLists.end()) {
+				localSlot = new RAS_ListSlot(this);
+				mArrayLists.insert(std::pair<RAS_DisplayArrayList, RAS_ListSlot*>(ms.m_displayArrays, localSlot));
+			} else {
+				localSlot = static_cast<RAS_ListSlot*>(it->second->AddRef());
+			}
 		}
 	}
 	MT_assert(localSlot);
@@ -150,12 +160,12 @@ RAS_ListSlot* RAS_ListRasterizer::FindOrAdd(RAS_MeshSlot& ms)
 
 void RAS_ListRasterizer::ReleaseAlloc()
 {
-	RAS_Lists::iterator it = mLists.begin();
-	while(it != mLists.end()) {
+	RAS_ArrayLists::iterator it = mArrayLists.begin();
+	while(it != mArrayLists.end()) {
 		delete it->second;
 		it++;
 	}
-	mLists.clear();
+	mArrayLists.clear();
 }
 
 void RAS_ListRasterizer::IndexPrimitives(RAS_MeshSlot& ms)
@@ -172,8 +182,8 @@ void RAS_ListRasterizer::IndexPrimitives(RAS_MeshSlot& ms)
 			return;
 		}
 	}
-	
-	if (mUseVertexArrays)
+	// derived mesh cannot use vertex array
+	if (mUseVertexArrays && !ms.m_pDerivedMesh)
 		RAS_VAOpenGLRasterizer::IndexPrimitives(ms);
 	else
 		RAS_OpenGLRasterizer::IndexPrimitives(ms);
@@ -204,7 +214,7 @@ void RAS_ListRasterizer::IndexPrimitivesMulti(RAS_MeshSlot& ms)
 	// workaround: note how we do not use vertex arrays for making display
 	// lists, since glVertexAttribPointerARB doesn't seem to work correct
 	// in display lists on ATI? either a bug in the driver or in Blender ..
-	if (mUseVertexArrays && !localSlot)
+	if (mUseVertexArrays && !localSlot && !ms.m_pDerivedMesh)
 		RAS_VAOpenGLRasterizer::IndexPrimitivesMulti(ms);
 	else
 		RAS_OpenGLRasterizer::IndexPrimitivesMulti(ms);
