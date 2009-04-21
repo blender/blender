@@ -82,7 +82,7 @@ CPPFLAGS += -I../../gpu
 CPPFLAGS += -I..
 
 # path to bullet2, for cloth
-CPPFLAGS += -I../../../../extern/bullet2/src
+CPPFLAGS += -I$(NAN_BULLET2)/include
 
 ifeq ($(WITH_FREETYPE2), true)
     CPPFLAGS += -DWITH_FREETYPE2

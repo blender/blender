@@ -49,9 +49,10 @@ ifeq ($(WITH_VERSE), true)
    DIRS += verse
 endif
 
-ifneq ($(NAN_NO_KETSJI), true)
-    DIRS += bullet2
-endif
+# Cloth requires it
+#ifneq ($(NAN_NO_KETSJI), true)
+DIRS += bullet2
+#endif
 
 ifeq ($(WITH_BINRELOC), true)
     DIRS += binreloc
