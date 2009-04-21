@@ -137,7 +137,7 @@ extern void validate_editbonebutton_cb(void *bonev, void *namev);
 
 #if 0
 /* start buttons grid doc/reclacement version
-/* With this system rows can easily have 1 to 4 buttons
+   With this system rows can easily have 1 to 4 buttons
    or create perfectly aligned 1 to 4 columns layouts
 
      < - - -    PANEL_XMAX  - - - >|
