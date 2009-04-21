@@ -3551,6 +3551,8 @@ void copy_constraints (ListBase *dst, ListBase *src)
 		/* make a new copy of the constraint's data */
 		con->data = MEM_dupallocN(con->data);
 		
+		id_us_plus((ID *)con->ipo);
+		
 		/* only do specific constraints if required */
 		if (cti && cti->copy_data)
 			cti->copy_data(con, srccon);
