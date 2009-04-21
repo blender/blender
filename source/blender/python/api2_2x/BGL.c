@@ -1085,9 +1085,29 @@ static struct PyMethodDef BGL_methods[] = {
 	{NULL, NULL, 0, NULL}
 };
 
+#if (PY_VERSION_HEX >= 0x03000000)
+static struct PyModuleDef BGL_module_def = {
+	{}, /* m_base */
+	"BGL",  /* m_name */
+	0,  /* m_doc */
+	0,  /* m_size */
+	BGL_methods,  /* m_methods */
+	0,  /* m_reload */
+	0,  /* m_traverse */
+	0,  /* m_clear */
+	0,  /* m_free */
+};
+#endif
+
 PyObject *BGL_Init(const char *from) 
 {
-	PyObject *mod= Py_InitModule(from, BGL_methods);
+	PyObject *mod;
+#if (PY_VERSION_HEX >= 0x03000000)
+	mod = PyModule_Create(&BGL_module_def);
+#else
+	mod= Py_InitModule(from, BGL_methods);
+#endif
+	
 	PyObject *dict= PyModule_GetDict(mod);
 	PyObject *item;
 	if( PyType_Ready( &buffer_Type) < 0)

@@ -1026,13 +1026,11 @@ static PyObject *Vector_getAxis( VectorObject * self, void *type )
 
 static int Vector_setAxis( VectorObject * self, PyObject * value, void * type )
 {
-	float param;
+	float param= (float)PyFloat_AsDouble( value );
 	
-	if (!PyNumber_Check(value))
+	if (param==-1 && PyErr_Occurred())
 		return EXPP_ReturnIntError( PyExc_TypeError,
 			"expected a number for the vector axis" );
-	
-	param= (float)PyFloat_AsDouble( value );
 	
 	switch( (long)type ) {
     case 'X':	/* these are backwards, but that how it works */
@@ -1054,13 +1052,6 @@ static int Vector_setAxis( VectorObject * self, PyObject * value, void * type )
 	
 		self->vec[3]= param;
 		break;
-	default:
-		{
-			char errstr[1024];
-			sprintf( errstr, "undefined type '%d' in Vector_setAxis",
-					(int)((long)type & 0xff));
-			return EXPP_ReturnIntError( PyExc_RuntimeError, errstr );
-		}
 	}
 
 	return 0;
@@ -1160,7 +1151,7 @@ static PyGetSetDef Vector_getseters[] = {
 	 NULL},
 	{"wrapped",
 	 (getter)Vector_getWrapped, (setter)NULL,
-	 "Vector Length",
+	 "True when this wraps blenders internal data",
 	 NULL},
 	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
 };

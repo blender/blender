@@ -155,109 +155,13 @@ static void Quaternion_dealloc(QuaternionObject * self)
 	}
 	PyObject_DEL(self);
 }
-//----------------------------getattr()(internal) ------------------
-//object.attribute access (get)
-static PyObject *Quaternion_getattr(QuaternionObject * self, char *name)
-{
-	int x;
-	double mag = 0.0f;
-	float vec[3];
 
-	if(STREQ(name,"w")){
-		return PyFloat_FromDouble(self->quat[0]);
-	}else if(STREQ(name, "x")){
-		return PyFloat_FromDouble(self->quat[1]);
-	}else if(STREQ(name, "y")){
-		return PyFloat_FromDouble(self->quat[2]);
-	}else if(STREQ(name, "z")){
-		return PyFloat_FromDouble(self->quat[3]);
-	}
-	if(STREQ(name, "magnitude")) {
-		for(x = 0; x < 4; x++) {
-			mag += self->quat[x] * self->quat[x];
-		}
-		mag = sqrt(mag);
-		return PyFloat_FromDouble(mag);
-	}
-	if(STREQ(name, "angle")) {
-		mag = self->quat[0];
-		mag = 2 * (saacos(mag));
-		mag *= (180 / Py_PI);
-		return PyFloat_FromDouble(mag);
-	}
-	if(STREQ(name, "axis")) {
-		mag = self->quat[0] * (Py_PI / 180);
-		mag = 2 * (saacos(mag));
-		mag = sin(mag / 2);
-		for(x = 0; x < 3; x++) {
-			vec[x] = (float)(self->quat[x + 1] / mag);
-		}
-		Normalize(vec);
-		//If the axis of rotation is 0,0,0 set it to 1,0,0 - for zero-degree rotations
-		if( EXPP_FloatsAreEqual(vec[0], 0.0f, 10) &&
-			EXPP_FloatsAreEqual(vec[1], 0.0f, 10) &&
-			EXPP_FloatsAreEqual(vec[2], 0.0f, 10) ){
-			vec[0] = 1.0f;
-		}
-		return (PyObject *) newVectorObject(vec, 3, Py_NEW);
-	}
-	if(STREQ(name, "wrapped")){
-		if(self->wrapped == Py_WRAP)
-			return EXPP_incr_ret((PyObject *)Py_True);
-		else 
-			return EXPP_incr_ret((PyObject *)Py_False);
-	}
-
-	return Py_FindMethod(Quaternion_methods, (PyObject *) self, name);
-}
-//----------------------------setattr()(internal) ------------------
-//object.attribute access (set)
-static int Quaternion_setattr(QuaternionObject * self, char *name, PyObject * q)
-{
-	PyObject *f = NULL;
-
-	f = PyNumber_Float(q);
-	if(f == NULL) { // parsed item not a number
-		return EXPP_ReturnIntError(PyExc_TypeError, 
-			"quaternion.attribute = x: argument not a number\n");
-	}
-
-	if(STREQ(name,"w")){
-		self->quat[0] = (float)PyFloat_AS_DOUBLE(f);
-	}else if(STREQ(name, "x")){
-		self->quat[1] = (float)PyFloat_AS_DOUBLE(f);
-	}else if(STREQ(name, "y")){
-		self->quat[2] = (float)PyFloat_AS_DOUBLE(f);
-	}else if(STREQ(name, "z")){
-		self->quat[3] = (float)PyFloat_AS_DOUBLE(f);
-	}else{
-		Py_DECREF(f);
-		return EXPP_ReturnIntError(PyExc_AttributeError,
-				"quaternion.attribute = x: unknown attribute\n");
-	}
-
-	Py_DECREF(f);
-	return 0;
-}
 //----------------------------print object (internal)--------------
 //print the object to screen
 static PyObject *Quaternion_repr(QuaternionObject * self)
 {
-	int i;
-	char buffer[48], str[1024];
-
-	BLI_strncpy(str,"[",1024);
-	for(i = 0; i < 4; i++){
-		if(i < (3)){
-			sprintf(buffer, "%.6f, ", self->quat[i]);
-			strcat(str,buffer);
-		}else{
-			sprintf(buffer, "%.6f", self->quat[i]);
-			strcat(str,buffer);
-		}
-	}
-	strcat(str, "](quaternion)");
-
+	char str[64];
+	sprintf(str, "[%.6f, %.6f, %.6f, %.6f](quaternion)", self->quat[0], self->quat[1], self->quat[2], self->quat[3]);
 	return PyString_FromString(str);
 }
 //------------------------tp_richcmpr
@@ -269,9 +173,9 @@ static PyObject* Quaternion_richcmpr(PyObject *objectA, PyObject *objectB, int c
 
 	if (!QuaternionObject_Check(objectA) || !QuaternionObject_Check(objectB)){
 		if (comparison_type == Py_NE){
-			return EXPP_incr_ret(Py_True); 
+			Py_RETURN_TRUE;
 		}else{
-			return EXPP_incr_ret(Py_False);
+			Py_RETURN_FALSE;
 		}
 	}
 	quatA = (QuaternionObject*)objectA;
@@ -294,9 +198,9 @@ static PyObject* Quaternion_richcmpr(PyObject *objectA, PyObject *objectB, int c
 			break;
 	}
 	if (result == 1){
-		return EXPP_incr_ret(Py_True);
+		Py_RETURN_TRUE;
 	}else{
-		return EXPP_incr_ret(Py_False);
+		Py_RETURN_FALSE;
 	}
 }
 //------------------------tp_doc
@@ -576,6 +480,138 @@ static PyNumberMethods Quaternion_NumMethods = {
 	(unaryfunc) 0,								/* __hex__ */
 
 };
+
+
+static PyObject *Quaternion_getAxis( QuaternionObject * self, void *type )
+{
+	switch( (long)type ) {
+    case 'W':
+		return PyFloat_FromDouble(self->quat[0]);
+    case 'X':
+		return PyFloat_FromDouble(self->quat[1]);
+    case 'Y':
+		return PyFloat_FromDouble(self->quat[2]);
+    case 'Z':
+		return PyFloat_FromDouble(self->quat[3]);
+	}
+	
+	PyErr_SetString(PyExc_SystemError, "corrupt quaternion, cannot get axis");
+	return NULL;
+}
+
+static int Quaternion_setAxis( QuaternionObject * self, PyObject * value, void * type )
+{
+	float param= (float)PyFloat_AsDouble( value );
+	
+	if (param==-1 && PyErr_Occurred())
+		return EXPP_ReturnIntError( PyExc_TypeError,
+			"expected a number for the vector axis" );
+	
+	switch( (long)type ) {
+    case 'W':
+		self->quat[0]= param;
+		break;
+    case 'X':
+		self->quat[1]= param;
+		break;
+    case 'Y':
+		self->quat[2]= param;
+		break;
+    case 'Z':
+		self->quat[3]= param;
+		break;
+	}
+
+	return 0;
+}
+
+static PyObject *Quaternion_getWrapped( QuaternionObject * self, void *type )
+{
+	if (self->wrapped == Py_WRAP)
+		Py_RETURN_TRUE;
+	else
+		Py_RETURN_FALSE;
+}
+
+static PyObject *Quaternion_getMagnitude( QuaternionObject * self, void *type )
+{
+	double mag = 0.0;
+	int i;
+	for(i = 0; i < 4; i++) {
+		mag += self->quat[i] * self->quat[i];
+	}
+	return PyFloat_FromDouble(sqrt(mag));
+}
+
+static PyObject *Quaternion_getAngle( QuaternionObject * self, void *type )
+{
+	double ang = self->quat[0];
+	ang = 2 * (saacos(ang));
+	ang *= (180 / Py_PI);
+	return PyFloat_FromDouble(ang);
+}
+
+static PyObject *Quaternion_getAxisVec( QuaternionObject * self, void *type )
+{
+	int i;
+	float vec[3];
+	double mag = self->quat[0] * (Py_PI / 180);
+	mag = 2 * (saacos(mag));
+	mag = sin(mag / 2);
+	for(i = 0; i < 3; i++)
+		vec[i] = (float)(self->quat[i + 1] / mag);
+	
+	Normalize(vec);
+	//If the axis of rotation is 0,0,0 set it to 1,0,0 - for zero-degree rotations
+	if( EXPP_FloatsAreEqual(vec[0], 0.0f, 10) &&
+		EXPP_FloatsAreEqual(vec[1], 0.0f, 10) &&
+		EXPP_FloatsAreEqual(vec[2], 0.0f, 10) ){
+		vec[0] = 1.0f;
+	}
+	return (PyObject *) newVectorObject(vec, 3, Py_NEW);
+}
+
+
+/*****************************************************************************/
+/* Python attributes get/set structure:                                      */
+/*****************************************************************************/
+static PyGetSetDef Quaternion_getseters[] = {
+	{"w",
+	 (getter)Quaternion_getAxis, (setter)Quaternion_setAxis,
+	 "Quaternion W value",
+	 (void *)'W'},
+	{"x",
+	 (getter)Quaternion_getAxis, (setter)Quaternion_setAxis,
+	 "Quaternion X axis",
+	 (void *)'X'},
+	{"y",
+	 (getter)Quaternion_getAxis, (setter)Quaternion_setAxis,
+	 "Quaternion Y axis",
+	 (void *)'Y'},
+	{"z",
+	 (getter)Quaternion_getAxis, (setter)Quaternion_setAxis,
+	 "Quaternion Z axis",
+	 (void *)'Z'},
+	{"magnitude",
+	 (getter)Quaternion_getMagnitude, (setter)NULL,
+	 "Size of the quaternion",
+	 NULL},
+	{"angle",
+	 (getter)Quaternion_getAngle, (setter)NULL,
+	 "angle of the quaternion",
+	 NULL},
+	{"axis",
+	 (getter)Quaternion_getAxisVec, (setter)NULL,
+	 "quaternion axis as a vector",
+	 NULL},
+	{"wrapped",
+	 (getter)Quaternion_getWrapped, (setter)NULL,
+	 "True when this wraps blenders internal data",
+	 NULL},
+	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
+};
+
+
 //------------------PY_OBECT DEFINITION--------------------------
 PyTypeObject quaternion_Type = {
 PyObject_HEAD_INIT(NULL)		//tp_head
@@ -585,8 +621,8 @@ PyObject_HEAD_INIT(NULL)		//tp_head
 	0,								//tp_itemsize
 	(destructor)Quaternion_dealloc,		//tp_dealloc
 	0,								//tp_print
-	(getattrfunc)Quaternion_getattr,	//tp_getattr
-	(setattrfunc) Quaternion_setattr,	//tp_setattr
+	0,								//tp_getattr
+	0,								//tp_setattr
 	0,								//tp_compare
 	(reprfunc) Quaternion_repr,			//tp_repr
 	&Quaternion_NumMethods,				//tp_as_number
@@ -606,9 +642,9 @@ PyObject_HEAD_INIT(NULL)		//tp_head
 	0,								//tp_weaklistoffset
 	0,								//tp_iter
 	0,								//tp_iternext
-	0,								//tp_methods
+	Quaternion_methods,				//tp_methods
 	0,								//tp_members
-	0,								//tp_getset
+	Quaternion_getseters,			//tp_getset
 	0,								//tp_base
 	0,								//tp_dict
 	0,								//tp_descr_get

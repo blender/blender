@@ -108,6 +108,21 @@ struct PyMethodDef M_Mathutils_methods[] = {
 };
 /*----------------------------MODULE INIT-------------------------*/
 /* from can be Blender.Mathutils or GameLogic.Mathutils for the BGE */
+
+#if (PY_VERSION_HEX >= 0x03000000)
+static struct PyModuleDef M_Mathutils_module_def = {
+	{}, /* m_base */
+	"Mathutils",  /* m_name */
+	M_Mathutils_doc,  /* m_doc */
+	0,  /* m_size */
+	M_Mathutils_methods,  /* m_methods */
+	0,  /* m_reload */
+	0,  /* m_traverse */
+	0,  /* m_clear */
+	0,  /* m_free */
+};
+#endif
+
 PyObject *Mathutils_Init(const char *from)
 {
 	PyObject *submodule;
@@ -126,7 +141,12 @@ PyObject *Mathutils_Init(const char *from)
 	if( PyType_Ready( &quaternion_Type ) < 0 )
 		return NULL;
 	
+#if (PY_VERSION_HEX >= 0x03000000)
+	submodule = PyModule_Create(&M_Mathutils_module_def);
+#else
 	submodule = Py_InitModule3(from, M_Mathutils_methods, M_Mathutils_doc);
+#endif
+	
 	return (submodule);
 }
 //-----------------------------METHODS----------------------------
