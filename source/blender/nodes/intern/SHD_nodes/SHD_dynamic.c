@@ -51,13 +51,15 @@ static void node_dynamic_free_storage_cb(bNode *node);
 
 #ifndef DISABLE_PYTHON
 static PyObject *init_dynamicdict(void) {
-	PyObject *newscriptdict;
+	PyObject *newscriptdict, *item;
 	PyGILState_STATE gilstate = PyGILState_Ensure();
 
 	newscriptdict= PyDict_New();
 
 	PyDict_SetItemString(newscriptdict, "__builtins__", PyEval_GetBuiltins());
-	EXPP_dict_set_item_str(newscriptdict, "__name__", PyString_FromString("__main__"));
+	item= PyString_FromString("__main__");
+	PyDict_SetItemString(newscriptdict, "__name__", item);
+	Py_DECREF(item);
 
 	PyGILState_Release(gilstate);
 
